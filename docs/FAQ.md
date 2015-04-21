@@ -1106,9 +1106,8 @@ Can I build netCDF with shared libraries? {#Can-I-build-netCDF-with-shared-libra
 -----------------
 
 
-Starting with version 3.6.2, netCDF can build shared libraries on
-platforms that support them, but by default netCDF will build static
-libraries only. To turn on shared libraries, use the --enable-shared
+By default shared and static netCDF libraries are built on
+platforms that support them. To turn off shared libraries, use the --disable-shared
 option to the [netCDF configure script](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-install/Running-the-configure-Script.html).
 
 ----------

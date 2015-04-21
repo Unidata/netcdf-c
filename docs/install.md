@@ -4,12 +4,12 @@ Getting and Building netCDF {#getting_and_building_netcdf}
 [TOC]
 
 This document is for getting and building the netCDF C library and
-utilities, version 4.3.0.  Other libraries that depend on the netCDF C
-library, such as the Fortran and C++ libraries, are available as
-separate distributions that can be built and installed after the C
-library is successfully installed.  The netCDF-Java library is also a
-separate distribution that is currently independent of the netCDF C
-library.
+utilities for the most recent released version.  Other libraries that
+depend on the netCDF C library, such as the Fortran, Python, Java, and
+C++ libraries, are available as separate distributions that can be
+optionally built and installed after the C library is successfully
+installed.  The netCDF-Java library is independent of the netCDF C
+library unless writing netCDF-4 files from Java is required.
 
 
 Getting netCDF-C {#getting}
@@ -21,112 +21,97 @@ Getting pre-built netCDF-C libraries. {#sec_get_pre_built}
 -------------------------------------
 
 The easiest way to get netCDF is through a package management program,
-such as rpm, yum, adept, and others. NetCDF is available from many
-different repositories, including the default Red Hat and Ubuntu
-repositories.
+such as rpm, yum, homebrew, macports, adept, and others. NetCDF is
+available from many different repositories, including the default Red
+Hat and Ubuntu repositories.
 
-When getting netCDF from a software repository, you will wish to get
-the development version of the package ("netcdf-devel"). This includes
-the netcdf.h header file.
+When getting netCDF from a software repository, you should get a
+development version that includes the netcdf.h header file. A
+development version will typically have a name such as "netcdf-devel"
+or "libnetcdf-dev".
 
-Pre-release libraries for Windows may be found here: \ref winbin.
+Instructions for installing and using pre-built libraries for Windows may be found here: \ref winbin.
 
 Getting the latest netCDF-C Source Code {#sec_get_source}
 ----------------------------------------
 
-Starting with netCDF-C version 4.3.1, the netCDF-C source code is hosted at the
-Unidata GitHub repository, available at http://github.com/Unidata/netcdf-c.
+The netCDF-C source code is hosted from the Unidata GitHub repository
+at http://github.com/Unidata/netcdf-c.
 
 Two options are available for building from source:
 
-- The latest release.
-- The developer snapshot.
+* The latest release.
+* The developer snapshot.
 
 ### The latest release {#sec_latest_release}
 
-The latest release may be downloaded from github at the following location:
-
-- http://github.com/Unidata/netcdf-c/releases
+The latest full release may be downloaded from GitHub at
+http://github.com/Unidata/netcdf-c/releases.
 
 Source files are available in `.tar.gz` and `.zip` formats.
 
 ### The developer snapshot {#sec_dev_snapshot}
 
-The developer snapshot may be cloned from github directly by using the `git` command.
+The developer snapshot may be cloned from GitHub directly by using the `git` command.
 
 > $ git clone http://github.com/Unidata/netcdf-c netcdf-c
 
 **Note:**
 
-> ***The developer snapshot release contains bug-fixes and new
-features added since the last full release. It may also contain
-portability bugs.***
-
-Once you have downloaded and unpacked the distribution, see the
-following section on \ref building.
+*The developer snapshot release contains bug-fixes and new features added since the last full release, but may also contain new bugs, as it is not tested as extensively as the full release.*
 
 Building netCDF-C {#building}
 ===========================
 
 The netCDF-C library and utilities require third-party libraries for
 full functionality. (See \ref architecture).
-- \ref build_default
-- \ref build_classic
-- \ref build_hdf4
-- \ref build_parallel
-- \ref building_netcdf_fortran
-- \ref configure_options
+* \ref build_default
+* \ref build_classic
+* \ref build_hdf4
+* \ref build_parallel
+* \ref building_netcdf_fortran
+* \ref configure_options
 
 Requirements {#netcdf_requirements}
 ----------------------------------
 
-* HDF5 1.8.9 (netcdf-4 support)
-* zlib 1.2.5
-* curl 7.18.0 (DAP support)
+* HDF5 1.8.9 or later (for netCDF-4 support)
+* zlib 1.2.5 or later (for netCDF-4 compression)
+* curl 7.18.0 or later (for DAP remote access client support)
 
 
 CMake and Windows support {#sub}
 --------------------------------
 
-- \ref netCDF-CMake
-- \subpage winbin
+* \ref netCDF-CMake
+* \subpage winbin
 
 Building with netCDF-4 and the Remote Data Client {#build_default}
 --------------------------------
 
 The usual way of building netCDF requires the HDF5, zlib, and curl
-libraries. (And, optionally, the szlib library). Versions required are
+libraries. Versions required are
 at least HDF5 1.8.9, zlib 1.2.5, and curl 7.18.0 or later.
-(Optionally, if building with szlib, get szip 2.0 or later.)
 
-HDF5 1.8.9 and zlib 1.2.7 packages are available from the <a
-href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4">netCDF-4 ftp
-site</a>. If you wish to use the remote data client code, then you
+HDF5 and zlib packages are available from the <a
+href="http://www.hdfgroup.org/downloads/">HDF5 downloads site</a> and
+the <a href="http://www.zlib.net/">zlib home site</a>.
+If you wish to use the remote data client code, then you
 will also need libcurl, which can be obtained from the <a
 href="http://curl.haxx.se/download.html">curl website</a>.
 
-Make sure you run ``make check'' for the HDF5 and zlib
-distributions. They are very well-behaved distributions, but sometimes
-the build doesn't work (perhaps because of something subtly
-misconfigured on the target machine). If one of these libraries is not
-working, netCDF will have serious problems.
-
 Note that for building netCDF, it is not necessary to build the HDF5
-Fortran, C++, or Java API's.  Only the HDF5 C library is used.
+Fortran, C++, or Java API's.  Only the HDF5 C library is used, even
+for netCDF Fortran or C++ libraries.
 
 Optionally, you can also build netCDF-4 with the szip library
-(a.k.a. szlib). NetCDF cannot create szipped data files, but can read
+(a.k.a. szlib). If building with szlib, get szip 2.0 or later.
+NetCDF cannot create szipped data files, but can read
 HDF5 data files that have used szip.
-8
-There are license restrictions on the use of szip, see the section on
-licensing terms in the <a
+To determine whether license restrictions on the use of szip apply to
+your situation, see the <a
 href="http://www.hdfgroup.org/doc_resource/SZIP/">web page on szip
-compression in HDF products</a>. These license restrictions seem to
-apply to commercial users who are writing data. (Data readers are not
-restricted.) But here at NetCDF World Headquarters, in Sunny Boulder,
-Colorado, there are no lawyers, only programmers, so please read the
-szip documents for the license agreement to see how it applies to your
-situation.
+compression in HDF products</a>.
 
 If ``make check'' fails for either zlib or HDF5, the problem must be
 resolved before the netCDF-4 installation can continue. For HDF5
@@ -134,92 +119,88 @@ problems, see the <a
 href="http://www.hdfgroup.org/services/support.html">HDF5 help
 services</a>.
 
-Build zlib like this:
+To build zlib from source, specify where you want to install zlib in
+an environment variable (ZDIR, for example), and build it like this
+from the top-level zlib source directory
 
-~~~
-$ ./configure --prefix=/home/username/local
-$ make check install
-~~~
+    $ # Build and install zlib
+    $ ZDIR=/usr/local
+    $ ./configure --prefix=${ZDIR}
+    $ make check
+    $ make install   # or sudo make install, if root permissions required
 
-Then you build HDF5, specifying the location of the zlib library:
+Next, specify where you want to install HDF5 in an environment
+variable, for example H5DIR, and build it from the HDF5 top-level
+source directory:
 
-~~~
-$ ./configure --with-zlib=/home/username/local --prefix=/home/username/local
-$ make check install
-~~~
+    $ # Build and install HDF5
+    $ H5DIR=/usr/local
+    $ ./configure --with-zlib=${ZDIR} --prefix=${H5DIR}
+    $ make check
+    $ make install   # or sudo make install, if root permissions required
+
+If you are building HDF5 with the optional szip library, include the
+<CODE>--with-szlib=</CODE> option to specify where it was installed.
 
 In all cases, the installation location specified with the <CODE>--prefix</CODE>
-option must be different from the source directory where the software
+option *must be different* from the source directory where the software
 is being built.
 
-Note that for shared libraries, you may need to add the install
-directory to the LD_LIBRARY_PATH environment variable. See
-the <a href="http://www.unidata.ucar.edu/netcdf/docs/faq.html#Shared%20Libraries">netCDF
+Before building netCDF, you may need to add ${H5DIR}/lib to the
+LD_LIBRARY_PATH environment variable if that directory is not searched
+by default. See the <a
+href="http://www.unidata.ucar.edu/netcdf/docs/faq.html#Shared%20Libraries">netCDF
 FAQ</a> for more details on using shared libraries.
 
-If you are building HDF5 with szip, then include the <CODE>--with-szlib=</CODE>
-option, with the directory holding the szip library.
+Indicate where you want to install netCDF in another environment
+variable, for example NCDIR. Then run the netCDF configure script,
+specifying where HDF5 was installed using the CPPFLAGS and LDFLAGS
+environment variables. For example, from the top-level netCDF source
+directory:
 
-After HDF5 is done, build netcdf, specifying the location of the
-HDF5, zlib, and (if built into HDF5) the szip header files and
-libraries in the CPPFLAGS and LDFLAGS environment variables. For example:
+    $ # Build and install netCDF-4
+    $ NCDIR=/usr/local
+    $ CPPFLAGS=-I${H5DIR}/include LDFLAGS=-L${H5DIR}/lib ./configure --prefix=${NCDIR}
+    $ make check
+    $ make install  # or sudo make install
 
-~~~
-$ CPPFLAGS=-I/home/username/local/include LDFLAGS=-L/home/username/local/lib ./configure --prefix=/home/username/local
-$ make check install
-~~~
-
-The configure script will try to find necessary tools in your
-path. When you run configure you may optionally use the <CODE>--prefix</CODE>
-argument to change the default installation directory. The above
-examples install the zlib, HDF5, and netCDF-4 libraries in
-/home/username/local/lib, the header file in /home/username/local/include, and the
-utilities in /home/username/local/bin. If you don't provide a <CODE>--prefix</CODE>
-option, installation will be in /usr/local/, in subdirectories lib/,
-include/, and bin/.  The installation location specified with the
-<CODE>--prefix</CODE> option must be different from the source directory where the
-software is being built.
+If you don't provide a <CODE>--prefix</CODE> option, installation will
+be in /usr/local/, in subdirectories lib/, include/, and bin/.  The
+installation location specified with the <CODE>--prefix</CODE> option
+must be different from the source directory where the software is
+being built.
 
 Building netCDF with Classic Library Only {#build_classic}
 ---------------------------------------
 
 It is possible to build the netCDF C libraries and utilities so that
 only the netCDF classic and 64-bit offset formats are supported, or
-the remote data access client is not built. (See \ref netcdf_format)
+the remote data access client is not built. (See \ref netCDF_format
 for more information about the netCDF format variants.  See the <a
-href="http://opendap.org/netCDF-DAP">netCDF-DAP site</a>
-for more information about remote client access to data
-on OPeNDAP servers.)
+href="http://www.opendap.org/documentation">DAP documentation and
+support site</a> for more information about remote client access to
+data on OPeNDAP servers.)
 
-To build without support for the netCDF-4 formats or the additional
-netCDF-4 functions, but with remote access, use:
+Set the NCDIR environment variable to indicate where netCDF should be
+installed. Then to build a netCDF-3 library without support for the
+netCDF-4 formats or functions, but with remote client access, use:
 
-~~~
-$ ./configure --prefix=/home/username/local --disable-netcdf-4
-$ make check install
-~~~
+    $ # Build and install netCDF-3 from netCDF-4 source
+    $ ./configure --prefix=${NCDIR} --disable-netcdf-4
+    $ make check install
 
-(Replace `/home/username/local` with the name of the directory where
-netCDF is to be installed.  The installation location specified with
-the <CODE>--prefix</CODE> option must be different from the source directory where
-the software is being built.)
+To build with full support for netCDF-4 API's and format but without
+remote client access, use:
 
-Starting with version 4.1.1 the netCDF C libraries and utilities have
-supported remote data access, using the OPeNDAP protocols.  To build
-with full support for netCDF-4 APIs and format but without remote
-client access, use:
-
-~~~
-$ ./configure --prefix=/home/username/local --disable-dap
-$ make check install
-~~~
+    $ # Build and install netCDF-4 without DAP client support
+    $ ./configure --prefix=${NCDIR} --disable-dap
+    $ make check install
 
 To build without netCDF-4 support or remote client access, use:
 
-~~~
-$ ./configure --prefix=/home/username/local --disable-netcdf-4 --disable-dap
-$ make check install
-~~~
+    $ # Build and install minimal netCDF-3 with no DAP client support
+    $ ./configure --prefix=${NCDIR} --disable-netcdf-4 --disable-dap
+    $ make check install
 
 If you get the message that netCDF installed correctly, then you are
 done!
@@ -227,46 +208,41 @@ done!
 Building with HDF4 Support {#build_hdf4}
 ---------------------
 
-The netCDF-4 library can (since version 4.1) read HDF4 data files, if
-they were created with the SD (Scientific Data) API.
+The netCDF-4 library can read HDF4 data files, if they were created
+with the SD (Scientific Data) API.
 
 For this to work, you must build the HDF4 library with the
-configure option
-~~~
-  --disable-netcdf
-~~~
+configure option <CODE>--disable-netcdf</CODE>
 to prevent it from building an HDF4 version of the netCDF-2 library
 that conflicts with the netCDF-2 functions that are built into the Unidata
 netCDF library.
 
-Then, when building netCDF-4, use the
-~~~
-  --enable-hdf4
-~~~
+Then, when building netCDF-4, use the <CODE>--enable-hdf4</CODE>.
 option to configure. The location for the HDF4 header files and
-library must be set in the CPPFLAGS and LDFLAGS options.
+library must be specified in the CPPFLAGS and LDFLAGS environment variables
+or configure options.
 
 For HDF4 access to work, the library must be build with netCDF-4
 features.
 
 Here's an example, assuming the HDF5 library has been built and
 installed in H5DIR and you will build and install the HDF4 library in
-H4DIR (which could be the same as H5DIR):
+H4DIR (which could be the same as H5DIR). From the top-level HDF4
+source directory:
 
-~~~
-# Build and install HDF4
-$ cd ${HDF4_SOURCE_DIRECTORY}
-$ ./configure --enable-shared --disable-netcdf --disable-fortran --prefix=${H4DIR}
-$ make
-$ make install
-$ # Build and install netCDF with HDF4 access enabled
-$ cd ${NETCDF_SOURCE_DIRECTORY}
-$ CPPFLAGS="-I${H5DIR}/include -I${H4DIR}/include" \
-$          LDFLAGS="-L${H5DIR}/lib -L${H4DIR}/lib" \
-$ ./configure --enable-hdf4 --enable-hdf4-file-tests
-$ make check
-$ make install
-~~~
+    $ # Build and install HDF4
+    $ ./configure --enable-shared --disable-netcdf --disable-fortran --prefix=${H4DIR}
+    $ make check
+    $ make install
+
+Then from the top-level netCDF directory:
+
+    $ # Build and install netCDF-4 with HDF4 access enabled
+    $ CPPFLAGS="-I${H5DIR}/include -I${H4DIR}/include" \
+      LDFLAGS="-L${H5DIR}/lib -L${H4DIR}/lib" \
+      ./configure --enable-hdf4 --enable-hdf4-file-tests
+    $ make check
+    $ make install
 
 Building with Parallel I/O Support {#build_parallel}
 --------------
@@ -274,74 +250,74 @@ Building with Parallel I/O Support {#build_parallel}
 For parallel I/O to work, HDF5 must be installed with
 –enable-parallel, and an MPI library (and related libraries) must be
 made available to the HDF5 configure. This can be accomplished with
-the mpicc wrapper script, in the case of MPICH2.
+an mpicc wrapper script.
 
-The following works to build HDF5 with parallel I/O on our netCDF
-testing system:
+The following works from the top-level HDF5 source directory to build
+HDF5 with parallel I/O:
 
-~~~
-CC=mpicc ./configure --enable-parallel
-make check install
-~~~
+    $ # Build and install HDF5 with parallel support
+    $ CC=mpicc ./configure --enable-parallel --prefix=${H5DIR}
+    $ make check
+    $ make install
 
 If the HDF5 used by netCDF has been built with parallel I/O, then
-netCDF will also be built with support for parallel I/O. This allows
-parallel I/O access to netCDF-4/HDF5 files. Note that shared libraries
-are not supported for parallel HDF5, which makes linking more
-difficult to get right.  "LIBS=-ldl" is also sometimes needed to link
-successfully with parallel HDF5 libraries.
-(See /ref netcdf_formats for more information about the netCDF format
-variants.)
+netCDF will also be built with inherited support for parallel
+I/O. This allows parallel I/O access to netCDF-4/HDF5 files. Note that
+shared libraries are not supported for parallel HDF5, which makes
+linking more difficult to get right.  (See /ref netcdf_formats for
+more information about the netCDF format variants.)
 
-The following works to build netCDF-4 with parallel I/O on our netCDF
-testing system:
+From the top-level netCDF-4 source directory, the following builds
+netCDF-4 with parallel I/O, assuming H5DIR specifies where parallel
+HDF5 was installed:
 
-~~~
-$ H5DIR=/where/parallel/HDF5/was/installed
-$ CPPFLAGS="-I${H5DIR}/include"
-$ CC=mpicc
-$ LDFLAGS=-L${H5DIR}/lib
-$ LIBS=-ldl
-$ ./configure --disable-shared --enable-parallel-tests
-$ make check install
-~~~
-
+    $ # Build, test, and install netCDF-4 with HDF5 parallel support
+    $ CC=mpicc CPPFLAGS=-I${H5DIR}/include LDFLAGS=-L${H5DIR}/lib \
+      ./configure --disable-shared --enable-parallel-tests --prefix=${NCDIR}
+    $ make check
+    $ make install
 
 If parallel I/O access to netCDF classic and 64-bit offset files is
-also needed, the parallel-netcdf library should also be installed.
-(Note: the previously recommended <a
-href=ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/pnetcdf.h>replacement
-pnetcdf.h</a> should no longer be used.)  Then configure netCDF with the
-"--enable-pnetcdf" option.
+needed, an alternate
+[parallel-netcdf library](https://trac.mcs.anl.gov/projects/parallel-netcdf/wiki/WikiStart),
+referred to as "PnetCDF", must also be installed. Assume it was
+installed in the directory named by the PNDIR environment variable.
+Then, from the top-level netCDF-4 source directory, configure netCDF
+with the "--enable-pnetcdf" option:
+
+    $ # Build, test, and install netCDF-4 with pnetcdf support
+    $ CC=mpicc CPPFLAGS="-I${H5DIR}/include -I${PNDIR}/include" \
+      LDFLAGS="-L${H5DIR}/lib -L${PNDIR}/lib" ./configure \
+	  --disable-shared --enable-pnetcdf  --enable-parallel-tests \
+	  --prefix=${NCDIR}
+    $ make check
+    $ make install
 
 Linking to netCDF-C {#linking}
 -------------------
 
-For static build, to use netCDF-4 you must link to all the libraries,
+For static builds, to use netCDF-4 you must link to all the libraries,
 netCDF, HDF5, zlib, szip (if used with HDF5 build), and curl (if the
-remote access client has not been disabled). This will mean -L options
+remote access client has not been disabled). This will require -L options
 to your build for the locations of the libraries, and -l (lower-case
 L) for the names of the libraries.
 
-For example, one user reports that she can build other applications
-with netCDF-4 by setting the LIBS environment variable:
+For example, you might build other applications with netCDF-4 by
+setting the LIBS environment variable, assuming NCDIR, H5DIR, and ZDIR
+indicate where netCDF, HDF5, and zlib are installed:
 
-~~~
-LIBS='-L/X/netcdf-4.0/lib -lnetcdf -L/X/hdf5-1.8.9/lib -lhdf5_hl -lhdf5 -lz -lm -L/X/szip-2.1/lib -lsz'
-~~~
+    LIBS="-L${NCDIR}/lib -lnetcdf -L${H5DIR}/lib -lhdf5_hl -lhdf5 -L${ZDIR}/lib -lz -lm"
 
-For shared builds, only -lnetcdf is needed. All other libraries will
+For shared builds, only <CODE>-lnetcdf</CODE> is needed. All other libraries will
 be found automatically.
 
-The ``nc-config --all'' command can be used to learn what options are
-needed for the local netCDF installation.
+The <CODE>nc-config --all</CODE> utility can be used to learn what
+options are needed for the local netCDF installation. Use of the
+nc-config utility can also help make build scripts that involve
+linking with netCDF portable.  For example, to compile and link an
+application named myapp.c with netCDF-4 libraries:
 
-For example, this works for linking an application named myapp.c with
-netCDF-4 libraries:
-
-~~~
-cc -o myapp myapp.c `nc-config --cflags --libs`
-~~~
+    $ cc -o myapp myapp.c `nc-config --cflags --libs`
 
 configure options {#configure_options}
 -----------------------------
@@ -354,8 +330,8 @@ Note: --disable prefix indicates that the option is normally enabled.
 <tr><td>--disable-doxygen<td>Disable generation of documentation.<td>doxygen
 <tr><td>--disable-fsync<td>disable fsync support<td>kernel fsync support
 <tr><td>--enable-valgrind-tests <td>build with valgrind-tests; static builds only<td>valgrind
-<tr><td>--enable-netcdf-4<td>build with netcdf-4<td>HDF5 and zlib
-<tr><td>--enable-netcdf4<td>synonym for enable-netcdf-4
+<tr><td>--disable-netcdf-4<td>build netcdf-3 without HDF5 and zlib<td>
+<tr><td>--disable-netcdf4<td>synonym for disable-netcdf-4
 <tr><td>--enable-hdf4<td>build netcdf-4 with HDF4 read capability<td>HDF4, HDF5 and zlib
 <tr><td>--enable-hdf4-file-tests<td>test ability to read HDF4 files<td>selected HDF4 files from Unidata ftp site
 <tr><td>--enable-pnetcdf<td>build netcdf-4 with parallel I/O for classic and
@@ -378,16 +354,14 @@ Note: --disable prefix indicates that the option is normally enabled.
                           tests are complete). See option --with-temp-large to
                           specify temporary directory<td>
 <tr><td>--enable-benchmarks<td>Run benchmarks. This is an experimental feature.
-			  The benchmarks are a
-                          bunch of extra tests, which are timed. We use these
-                          tests to check netCDF performance.
+			  The benchmarks are extra tests, used to check netCDF performance.
     <td>sample data files from the Unidata ftp site
 <tr><td>--disable-extreme-numbers
 <td>don't use extreme numbers during testing, such as MAX_INT - 1<td>
 <tr><td>--enable-dll<td>build a win32 DLL<td>mingw compiler
-<tr><td>--disable-shared<td>build shared libraries<td>
-<tr><td>--disable-static<td>build static libraries<td>
-<tr><td>--disable-largefile<td>omit support for large files<td>
+<tr><td>--disable-shared<td>don't build shared libraries<td>
+<tr><td>--disable-static<td>don't build static libraries<td>
+<tr><td>--disable-largefile<td>omit support for files larger than 2GB<td>
 <tr><td>--enable-mmap<td>Use mmap to implement NC_DISKLESS<td>
 </table>
 
