@@ -461,9 +461,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     # Find out if HDF5 was built with parallel support.
     # Do that by checking for the targets H5Pget_fapl_mpiposx and
     # H5Pget_fapl_mpio in ${HDF5_LIB}.
-    CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
-    CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
-
+    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
     IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
       SET(HDF5_IS_PARALLEL ON)
     ENDIF()
@@ -482,6 +481,9 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
 
   ENDIF(NOT MSVC)
+
+  CHECK_LIBRARY_EXISTS(hdf5 H5free_memory "" HDF5_HAS_H5FREE)
+
 
   # Assert HDF5 version.
   SET(HDF5_VERSION_REQUIRED 1.8.10)
@@ -549,6 +551,20 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF()
   SET(USE_ZLIB ON)
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
+
+  ##
+  # Check to see if libhdf5 contains
+  # 'H5free_memory'.
+  ##
+#  CHECK_C_SOURCE_COMPILES("
+#  #include <hdf5.h>
+#  int main() {H5free_memory(NULL);}" HDF5_HAS_H5FREE)
+#  CHECK_SYMBOL_EXISTS(H5free_memory "H5public.h" HDF5_HAS_H5FREE)
+# CHECK_LIBRARY_EXISTS(hdf5 H5free_memory "-L${HDF5_hdf5_LIBRARY}" HDF5_HAS_H5FREE)
+#  MESSAGE(STATUS "HDF5_HAS_H5FREE: ${HDF5_HAS_H5FREE}")
+
+
+
 ENDIF()
 
 # Option to Build DAP Client
