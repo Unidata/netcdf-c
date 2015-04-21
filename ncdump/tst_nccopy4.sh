@@ -2,12 +2,16 @@
 # For a netCDF-4 build, test nccopy on netCDF files in this directory
 
 set -e
+if test "x$srcdir" = "x"; then
+    srcdir=`dirname $0`;
+fi
+export srcdir
 echo ""
 
 # These files are actually in $srcdir in distcheck builds, so they
 # need to be handled differently.
-# ref_tst_compounds2 ref_tst_compounds3 ref_tst_compounds4 
-TESTFILES='tst_comp tst_comp2 tst_enum_data tst_fillbug 
+# ref_tst_compounds2 ref_tst_compounds3 ref_tst_compounds4
+TESTFILES='tst_comp tst_comp2 tst_enum_data tst_fillbug
  tst_group_data tst_nans tst_opaque_data tst_solar_1 tst_solar_2
  tst_solar_cmp tst_special_atts tst_string_data tst_unicode
  tst_vlen_data'

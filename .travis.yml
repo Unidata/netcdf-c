@@ -8,15 +8,10 @@ before_install:
   # - sudo add-apt-repository -y ppa:amcg/netcdf-parallel
   - sudo apt-get update -qq
   - sudo apt-get install -y -qq libcurl4-openssl-dev m4 wget autoconf libtool clang
-  - wget http://www.unidata.ucar.edu/downloads/netcdf/ftp/hdf5-1.8.14.tar.bz2
-  - sudo mv hdf5-1.8.14.tar.bz2 /usr/local
-  - pushd /usr/local
-  - sudo tar -jxf hdf5-1.8.14.tar.bz2
-  - popd
 
 before_script:
   - autoreconf -if
-  - ./configure
+  - ./configure --disable-netcdf-4
 
 script:
   - make

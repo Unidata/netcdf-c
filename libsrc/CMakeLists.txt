@@ -3,7 +3,7 @@
 
 # Process these files with m4.
 SET(m4_SOURCES attr ncx putget t_ncxx)
-foreach (f ${m4_SOURCES})      
+foreach (f ${m4_SOURCES})
   GEN_m4(${f})
 endforeach(f)
 
@@ -24,7 +24,7 @@ ELSE (USE_FFIO)
   SET(libsrc_SOURCES ${libsrc_SOURCES} posixio.c)
 ENDIF (USE_FFIO)
 
-add_library(netcdf3 OBJECT ${libsrc_SOURCES}) 
+add_library(netcdf3 OBJECT ${libsrc_SOURCES})
 
 # The C API man page.
 
@@ -57,11 +57,3 @@ IF(NOT MSVC)
 
   INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/netcdf.3 DESTINATION "share/man/man3" COMPONENT documentation)
 ENDIF()
-
-# Add files to the distribution
-FILE(GLOB libsrc_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-SET(CUR_EXTRA_DIST attr.m4 ncx.m4 putget.m4 XGetopt.c memio.c mmapio.c ffio.c posixio.c CMakeLists.txt Makefile.am)
-ADD_EXTRA_DIST("${libsrc_SOURCES}")
-ADD_EXTRA_DIST("${libsrc_HEADERS}") 
-ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
-

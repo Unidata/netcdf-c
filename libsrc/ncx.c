@@ -64,7 +64,7 @@
 #define DOUBLE_MAX DBL_MAX
 #define DOUBLE_MIN (-DBL_MAX)
 #define FLOAT_MAX_EXP FLT_MAX_EXP
-#define DOUBLE_MAX_EXP DBL_MAX_EXP
+#define DOUBLE_MAX_EXP DBL_MAX_EXP
 #include <assert.h>
 #define UCHAR_MIN 0
 #define Min(a,b) ((a) < (b) ? (a) : (b))
@@ -549,7 +549,7 @@ ncx_put_short_short(void *xp, const short *ip)
 }
 
 int
-ncx_put_short_int(void *xp, const int *ip)
+ncx_put_short_int(void *xp, const int *ip)
 {
 #if SIZEOF_IX_SHORT == SIZEOF_INT && X_SHORT_MAX == INT_MAX
 	put_ix_short(xp, (const ix_short *)ip);
@@ -923,7 +923,7 @@ ncx_put_int_float(void *xp, const float *ip)
 
 int
 ncx_put_int_double(void *xp, const double *ip)
-{
+{
 	ix_int xx = (ix_int)(*ip);
 	put_ix_int(xp, &xx);
 	if(*ip > X_INT_MAX || *ip < X_INT_MIN)
@@ -4256,7 +4256,7 @@ ncx_putn_short_ulonglong(void **xpp, size_t nelems, const ulonglong *tp)
 
 int
 ncx_pad_putn_short_schar(void **xpp, size_t nelems, const schar *tp)
-{
+{
 	const size_t rndup = nelems % 2;
 
 	char *xp = (char *) *xpp;
@@ -4763,7 +4763,7 @@ ncx_getn_int_int(const void **xpp, size_t nelems, int *tp)
 int
 ncx_getn_int_uint(const void **xpp, size_t nelems, uint *tp)
 {
-#if _SX && X_SIZEOF_INT == SIZEOF_INT
+#if _SX && X_SIZEOF_INT == SIZEOF_INT
 
  /* basic algorithm is:
   *   - ensure sane alignment of input data
@@ -5846,7 +5846,7 @@ ncx_getn_float_uchar(const void **xpp, size_t nelems, uchar *tp)
 
 	*xpp = (const void *)xp;
 	return status;
-#  endif
+#  endif
 }
 
 int
@@ -5988,7 +5988,7 @@ ncx_getn_float_float(const void **xpp, size_t nelems, float *tp)
 	*xpp = (const void *)((const char *)(*xpp) + nelems * X_SIZEOF_FLOAT);
 	return ENOERR;
 }
-#elif vax
+#elif vax
 int
 ncx_getn_float_float(const void **xpp, size_t nfloats, float *ip)
 {
@@ -6695,7 +6695,7 @@ ncx_putn_float_double(void **xpp, size_t nelems, const double *tp)
   *   - update tp to point at next unconverted input, and xpp to point
   *     at next location for converted output
   */
-  long i, j, ni;
+  long i, j, ni;
   float tmp[LOOPCNT];        /* in case input is misaligned */
   float *xp;
   int nrange = 0;         /* number of range errors */
@@ -7426,7 +7426,7 @@ ncx_getn_double_ulonglong(const void **xpp, size_t nelems, ulonglong *tp)
     ni=Min(nelems-j,LOOPCNT);
     if (realign) {
       memcpy(tmp, *xpp, ni*SIZEOF_DOUBLE);
-      xp = tmp;
+      xp = tmp;
     } else {
       xp = (double *) *xpp;
     }
@@ -7723,7 +7723,7 @@ ncx_putn_double_short(void **xpp, size_t nelems, const short *tp)
     for (i=0; i<ni; i++) {
       /* the normal case: */
       xp[i] = (double) Max( X_DOUBLE_MIN, Min(X_DOUBLE_MAX, (double) tp[i]));
-     /* test for range errors (not always needed but do it anyway) */
+     /* test for range errors (not always needed but do it anyway) */
       nrange += tp[i] < X_DOUBLE_MIN || tp[i] > X_DOUBLE_MAX;
     }
    /* copy workspace back if necessary */ 
@@ -7977,7 +7977,7 @@ ncx_putn_double_longlong(void **xpp, size_t nelems, const longlong *tp)
   int nrange = 0;         /* number of range errors */
   int realign = 0;        /* "do we need to fix input data alignment?" */
   long cxp = (long) *((char**)xpp);
-
+
   realign = (cxp & 7) % SIZEOF_DOUBLE;
   /* sjl: manually stripmine so we can limit amount of
    * vector work space reserved to LOOPCNT elements. Also

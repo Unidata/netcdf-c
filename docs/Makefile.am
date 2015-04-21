@@ -5,11 +5,11 @@
 
 # These files will be included with the dist.
 EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html \
-    mainpage.dox tutorial.dox install.dox dispatch.dox \
-    guide.dox types.dox notes.dox cdl.dox \
+    mainpage.dox tutorial.dox dispatch.dox \
+    guide.dox types.dox cdl.dox \
     architecture.dox internal.dox windows-binaries.md \
     building-with-cmake.md CMakeLists.txt \
-    groups.dox install.md install-fortran.md \
+    groups.dox install.md notes.md install-fortran.md \
     all-error-codes.md cmake_faq.md credits.md auth.md.in auth.md
 
 # Turn off parallel builds in this directory.

@@ -1530,7 +1530,7 @@ test_nc_get_vara_uchar(void)
     int ncid;
     int d;
     int i;
-    int j;
+    int j;
     int k;
     int err;
     int allInExtRange;	/* all values within external range? */
@@ -1826,7 +1826,7 @@ test_nc_get_vara_schar(void)
 		}
 		for (j = 0; j < nels; j++) {
 		    if (inRange3(expect[j],var_type[i],NCT_SCHAR)
-			    && expect[j] >= schar_min && expect[j] <= schar_max) {
+			    && expect[j] >= schar_min && expect[j] <= schar_max) {
 			IF (!equal(value[j],expect[j],var_type[i],NCT_SCHAR)){
 			    error("value read not that expected");
 			    if (verbose) {
@@ -2015,7 +2015,7 @@ test_nc_get_vara_short(void)
     }
     err = nc_close(ncid);
     IF (err)
-	error("nc_close: %s", nc_strerror(err));
+	error("nc_close: %s", nc_strerror(err));
     print_nok(nok);
 }
 
@@ -2546,7 +2546,7 @@ test_nc_get_vara_double(void)
 	for (j = 0; j < var_rank[i]; j++) {
 	    start[j] = 0;
 	    edge[j] = 1;
-	}
+	}
         err = nc_get_vara_double(BAD_ID, i, start, edge, value);
         IF (err != NC_EBADID)
 	    error("bad ncid: status = %d", err);
@@ -4877,7 +4877,7 @@ test_nc_get_varm_int(void)
         }
             /* Choose a random point dividing each dim into 2 parts */
             /* get 2^rank (nslabs) slabs so defined */
-        nslabs = 1;
+        nslabs = 1;
         for (j = 0; j < var_rank[i]; j++) {
             mid[j] = roll( var_shape[i][j] );
             nslabs *= 2;

@@ -62,6 +62,6 @@ IF(ENABLE_DOXYGEN)
 
 ENDIF(ENABLE_DOXYGEN)
 
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am netcdf.m4 DoxygenLayout.xml Doxyfile.in Doxyfile.guide.in footer.html mainpage.dox tutorial.dox install.dox dispatch.dox guide.dox types.dox notes.dox cdl.dox architecture.dox internal.dox install-fortran.dox Doxyfile.in.cmake windows-binaries.md building-with-cmake.md)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am netcdf.m4 DoxygenLayout.xml Doxyfile.in Doxyfile.guide.in footer.html mainpage.dox tutorial.dox dispatch.dox guide.dox types.dox notes.md cdl.dox architecture.dox internal.dox install-fortran.dox Doxyfile.in.cmake windows-binaries.md building-with-cmake.md install.md)
 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

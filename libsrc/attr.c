@@ -156,7 +156,7 @@ free_NC_attrarrayV0(NC_attrarray *ncap)
 	{
 		NC_attr **app = ncap->value;
 		NC_attr *const *const end = &app[ncap->nelems];
-		for( /*NADA*/; app < end; app++)
+		for( /*NADA*/; app < end; app++)
 		{
 			free_NC_attr(*app);
 			*app = NULL;
@@ -590,7 +590,7 @@ NC3_del_att(int ncid, int varid, const char *uname)
 			break;
 		}
 	    }
-	free(name);
+	free(name);
 	}
 	if( (size_t) attrid == ncap->nelems )
 		return NC_ENOTATT;
