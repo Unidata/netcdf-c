@@ -3,11 +3,11 @@ OC Authorization Support {#auth}
 
 [TOC]
 
-###### Author: Dennis Heimbigner\
+###### Author: Dennis Heimbigner
  dmh at ucar dot edu
 
-###### Draft: 11/21/2014\
- Last Revised: 12/23/2014\
+###### Draft: 11/21/2014
+ Last Revised: 12/23/2014
  OC Version 2.1
 
 ###### Table of Contents {.break}

@@ -175,7 +175,7 @@ Building netCDF with Classic Library Only {#build_classic}
 
 It is possible to build the netCDF C libraries and utilities so that
 only the netCDF classic and 64-bit offset formats are supported, or
-the remote data access client is not built. (See \ref netCDF_format
+the remote data access client is not built. (See \ref netcdf_format
 for more information about the netCDF format variants.  See the <a
 href="http://www.opendap.org/documentation">DAP documentation and
 support site</a> for more information about remote client access to
