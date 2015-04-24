@@ -14,11 +14,12 @@ before_install:
   - wget http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.14/src/hdf5-1.8.14.tar.bz2
   - tar -jxf hdf5-1.8.14.tar.bz2
   - cd hdf5-1.8.14 && ./configure --enable-shared --disable-static --disable-fortran --enable-hl --disable-fortran --prefix=/usr && make -j 4 && sudo make install
+  - cd ..
 
 before_script:
   - autoreconf -if
   - ./configure --enable-extra-tests
-  - cd ..
+
 script:
   - make -j 4
   - LD_LIBRARY_PATH=/usr/local/lib make check
