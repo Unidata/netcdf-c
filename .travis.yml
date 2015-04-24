@@ -18,7 +18,7 @@ before_install:
 before_script:
   - autoreconf -if
   - ./configure --enable-extra-tests
-
+  - cd ..
 script:
   - make -j 4
   - LD_LIBRARY_PATH=/usr/local/lib make check
