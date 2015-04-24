@@ -11,7 +11,7 @@ before_install:
 
   # We need to install hdf5.
   # hdf5-1.8.14.tar.bz2
-  - wget http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.14/hdf5-1.8.14.tar.bz2
+  - wget http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.14/src/hdf5-1.8.14.tar.bz2
   - tar -jxf hdf5-1.8.14.tar.bz2
   - cd hdf5-1.8.14 && ./configure --enable-shared --disable-static --disable-fortran --enable-hl --disable-fortran --prefix=/usr && make -j 4 && make install
 
