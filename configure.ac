@@ -839,7 +839,7 @@ if test "x$enable_netcdf_4" = xyes; then
    [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
-   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory])
 
    # The user may have parallel HDF5 based on MPI POSIX.
    if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
@@ -873,6 +873,12 @@ if test "x$enable_netcdf_4" = xyes; then
    	AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
   	AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
+
+   if test "x$ac_cv_func_H5free_memory" = xyes; then
+      AC_DEFINE([HDF5_HAS_H5FREE], [1], [if true, H5free_memory() will be used to free hdf5-allocated memory in nc4file.])
+   fi
+
+
 
    # If the user wants hdf4 built in, check it out.
    if test "x$enable_hdf4" = xyes; then

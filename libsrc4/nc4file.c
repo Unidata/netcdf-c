@@ -1284,11 +1284,18 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                }
 
 #ifndef JNA
+
                /* Free the member name (which HDF5 allocated for us). */
 			   /* On Windows using the microsoft runtime, it is an error
-				  for one library to free memory allocated by a different library. */
+				  for one library to free memory allocated by a different library.
+                  IF it is available, we should use H5free_memory*/
+
+#ifdef HDF5_HAS_H5FREE
+               if(member_name != NULL) H5free_memory(member_name);
+#else
 #ifndef _MSC_VER
                if(member_name != NULL) free(member_name);
+#endif
 #endif
 #endif
 	       member_name = NULL;

@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.X Released ????
 
+* Addressed in issue in netcdf4 files on Windows, built with Microsoft Visual Studio, which could result in a memory leak.  See [NCF-329](https://bugtracking.unidata.ucar.edu/browse/NCF-329) for more information.
+
 * Addressed an issue in netcdf4 files where writing unlimited dimensions that were not declared at head of the dimensions list, as reported by Ellen Johnson at Mathworks.  See [NCF-326](https://bugtracking.unidata.ucar.edu/browse/NCF-326) for more information.
 
 * Added an authorization reference document as oc2/ocauth.html.

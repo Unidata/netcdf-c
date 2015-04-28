@@ -44,8 +44,35 @@ IF(UNAME)
   getuname(osname -s)
   getuname(osrel  -r)
   getuname(cpu    -m)
-  set(BUILDNAME "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variable for CDash")
+  set(TMP_BUILDNAME "${osname}-${osrel}-${cpu}")
 ENDIF()
+
+###
+# Allow for some customization of the buildname.
+# This will make it easier to identify different builds,
+# based on values passed from command line/shell scripts.
+#
+# For ctest scripts, we can use CTEST_BUILD_NAME.
+###
+
+SET(BUILDNAME_PREFIX "" CACHE STRING "")
+SET(BUILDNAME_SUFFIX "" CACHE STRING "")
+
+IF(BUILDNAME_PREFIX)
+  SET(TMP_BUILDNAME "${BUILDNAME_PREFIX}-${TMP_BUILDNAME}")
+ENDIF()
+
+IF(BUILDNAME_SUFFIX)
+  SET(TMP_BUILDNAME "${TMP_BUILDNAME}-${BUILDNAME_SUFFIX}")
+ENDIF()
+
+IF(NOT BUILDNAME)
+  SET(BUILDNAME "${TMP_BUILDNAME}" CACHE STRING "Build name variable for CDash")
+ENDIF()
+###
+# End BUILDNAME customization.
+###
+
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
 
@@ -116,6 +143,8 @@ SET(EXTRA_DEPS "")
 ################################
 # Set CTest Properties
 ################################
+
+
 
 ENABLE_TESTING()
 INCLUDE(CTest)
@@ -286,6 +315,7 @@ OPTION(BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 # Option to use MMAP
 OPTION(ENABLE_MMAP "Use MMAP." OFF)
 IF(ENABLE_MMAP)
+  CHECK_FUNCTION_EXISTS(mremap  HAVE_MREMAP)
   IF(NOT HAVE_MREMAP)
     MESSAGE(WARNING "mremap not found: disabling MMAP support.")
     SET(ENABLE_MMAP OFF)
@@ -461,9 +491,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     # Find out if HDF5 was built with parallel support.
     # Do that by checking for the targets H5Pget_fapl_mpiposx and
     # H5Pget_fapl_mpio in ${HDF5_LIB}.
-    CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
-    CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
-
+    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
     IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
       SET(HDF5_IS_PARALLEL ON)
     ENDIF()
@@ -482,6 +511,9 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
 
   ENDIF(NOT MSVC)
+
+  CHECK_LIBRARY_EXISTS(hdf5 H5free_memory "" HDF5_HAS_H5FREE)
+
 
   # Assert HDF5 version.
   SET(HDF5_VERSION_REQUIRED 1.8.10)
@@ -549,6 +581,20 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF()
   SET(USE_ZLIB ON)
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
+
+  ##
+  # Check to see if libhdf5 contains
+  # 'H5free_memory'.
+  ##
+#  CHECK_C_SOURCE_COMPILES("
+#  #include <hdf5.h>
+#  int main() {H5free_memory(NULL);}" HDF5_HAS_H5FREE)
+#  CHECK_SYMBOL_EXISTS(H5free_memory "H5public.h" HDF5_HAS_H5FREE)
+# CHECK_LIBRARY_EXISTS(hdf5 H5free_memory "-L${HDF5_hdf5_LIBRARY}" HDF5_HAS_H5FREE)
+#  MESSAGE(STATUS "HDF5_HAS_H5FREE: ${HDF5_HAS_H5FREE}")
+
+
+
 ENDIF()
 
 # Option to Build DAP Client
@@ -770,13 +816,14 @@ IF(ENABLE_PNETCDF)
   IF(NOT PNETCDF)
     MESSAGE(STATUS "Cannot find pNetCDF library. Disabling pNetCDF support.")
     SET(USE_PNETCDF OFF CACHE BOOL "")
+  ELSE()
+    SET(STATUS_PNETCDF "ON")
+    INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
+    SET(HAVE_LIBPNETCDF ON)
+    # pnetcdf => parallel
+    SET(STATUS_PARALLEL "ON")
+    SET(USE_PARALLEL ON)
   ENDIF()
-  SET(STATUS_PNETCDF "ON")
-  INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
-  SET(HAVE_LIBPNETCDF ON)
-  # pnetcdf => parallel
-  SET(STATUS_PARALLEL "ON")
-  SET(USE_PARALLEL ON)
 ENDIF()
 
 # Enable Parallel Tests.
@@ -957,7 +1004,6 @@ CHECK_FUNCTION_EXISTS(MPI_Comm_f2C  HAVE_MPI_COMM_F2C)
 CHECK_FUNCTION_EXISTS(memmove HAVE_MEMMOVE)
 CHECK_FUNCTION_EXISTS(getpagesize HAVE_GETPAGESIZE)
 CHECK_FUNCTION_EXISTS(sysconf HAVE_SYSCONF)
-CHECK_FUNCTION_EXISTS(mremap  HAVE_MREMAP)
 CHECK_FUNCTION_EXISTS(getrlimit HAVE_GETRLIMIT)
 CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 

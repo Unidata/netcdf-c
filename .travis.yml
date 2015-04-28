@@ -9,10 +9,17 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -y -qq libcurl4-openssl-dev m4 wget autoconf libtool clang
 
+  # We need to install hdf5.
+  # hdf5-1.8.14.tar.bz2
+  - wget http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.14/src/hdf5-1.8.14.tar.bz2
+  - tar -jxf hdf5-1.8.14.tar.bz2
+  - cd hdf5-1.8.14 && ./configure --enable-shared --disable-static --disable-fortran --enable-hl --disable-fortran --prefix=/usr && make -j 4 && sudo make install
+  - cd ..
+
 before_script:
   - autoreconf -if
-  - ./configure --disable-netcdf-4
+  - ./configure --enable-extra-tests
 
 script:
-  - make
+  - make -j 4
   - LD_LIBRARY_PATH=/usr/local/lib make check
