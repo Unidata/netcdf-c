@@ -308,16 +308,21 @@ indicate where netCDF, HDF5, and zlib are installed:
 
     LIBS="-L${NCDIR}/lib -lnetcdf -L${H5DIR}/lib -lhdf5_hl -lhdf5 -L${ZDIR}/lib -lz -lm"
 
-For shared builds, only <CODE>-lnetcdf</CODE> is needed. All other libraries will
-be found automatically.
+For shared builds, only <CODE>-L${NCDIR}/lib -lnetcdf</CODE> is
+needed. All other libraries will be found automatically.
 
-The <CODE>nc-config --all</CODE> utility can be used to learn what
-options are needed for the local netCDF installation. Use of the
-nc-config utility can also help make build scripts that involve
-linking with netCDF portable.  For example, to compile and link an
-application named myapp.c with netCDF-4 libraries:
+The <CODE>pkg-config</CODE> or <CODE>nc-config</CODE> utilities can be
+used to specify build options for software that uses netCDF.  For
+example, to compile and link an application named myapp.c with a
+netCDF-C libraries, whether shared or static, you can use
 
     $ cc -o myapp myapp.c `nc-config --cflags --libs`
+
+or
+
+    $ PKG_CONFIG_PATH=${NCDIR}/lib/pkgconfig:$PKG_CONFIG_PATH
+    $ export PKG_CONFIG_PATH
+    $ cc -o myapp myapp.c `pkg-config --cflags --libs netcdf`
 
 configure options {#configure_options}
 -----------------------------
