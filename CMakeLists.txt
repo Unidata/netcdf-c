@@ -694,8 +694,9 @@ IF(NOT WIN32)
   ENDIF()
 ENDIF()
 
+##
 # Enable Tests
-#IF(NOT MSVC)
+##
 OPTION(ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
 IF(ENABLE_TESTS)
   SET(BUILD_TESTSETS ON CACHE BOOL "")
@@ -724,6 +725,27 @@ IF(ENABLE_TESTS)
     @ONLY
     )
 
+  ###
+  # This option dictates whether or not to turn on
+  # tests which are known to fail.  This is not the
+  # same thing as an 'expected failure'. Rather, these
+  # are tests that will need to be fixed eventually.
+  #
+  # By placing them here, we can occasionaly turn this
+  # flag on and see if any known failures have been
+  # fixed in the course of code improvement/other bug
+  # fixes.
+  #
+  # To use this, simply add as a fencepost around tests
+  # which are known to fail.
+  ###
+
+  OPTION(ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
+
+  ###
+  # End known-failures.
+  ###
+  MARK_AS_ADVANCED(ENABLE_FAILING_TESTS)
 ENDIF()
 
 ###
