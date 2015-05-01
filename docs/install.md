@@ -16,6 +16,14 @@ Getting netCDF-C {#getting}
 =========================
 
 * For information regarding the netCDF-Fortran libraries, see \subpage building_netcdf_fortran.
+* Functionality to make it easier to build netcdf-fortran as part of
+  the netcdf-c build for *non-MSVC* builds may be enabled at configure
+  time by using the following **Highly Experimental** options:
+
+ * Autotools: `--enable-remote-fortran-bootstrap`
+ * CMake:  `-DENABLE_REMOTE_FORTRAN_BOOTSTRAP=ON`
+
+For more details, see the <a href="http://github.com/Unidata/netcdf-c/blob/v4.3.3.1/RELEASE_NOTES.md">draft instructions</a> in the Release 4.3.3-rc3 Notes.
 
 Getting pre-built netCDF-C libraries. {#sec_get_pre_built}
 -------------------------------------
@@ -35,8 +43,8 @@ Instructions for installing and using pre-built libraries for Windows may be fou
 Getting the latest netCDF-C Source Code {#sec_get_source}
 ----------------------------------------
 
-The netCDF-C source code is hosted from the Unidata GitHub repository
-at http://github.com/Unidata/netcdf-c.
+The netCDF-C source code is hosted from the <a href="http://github.com/Unidata/netcdf-c" >Unidata GitHub repository</a>.
+
 
 Two options are available for building from source:
 
@@ -45,8 +53,7 @@ Two options are available for building from source:
 
 ### The latest release {#sec_latest_release}
 
-The latest full release may be downloaded from GitHub at
-http://github.com/Unidata/netcdf-c/releases.
+The latest full release may be <a href="http://github.com/Unidata/netcdf-c/releases" >downloaded from GitHub</a>.
 
 Source files are available in `.tar.gz` and `.zip` formats.
 

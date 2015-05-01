@@ -50,7 +50,6 @@ endif
 
 doxyfile.stamp:
 	$(DOXYGEN) Doxyfile
-	echo Timestamp > doxyfile.stamp
 
 CLEANFILES = doxyfile.stamp html latex man
 

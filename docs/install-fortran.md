@@ -4,15 +4,21 @@ Building the NetCDF-4.2 and later Fortran libraries {#building_netcdf_fortran}
 [TOC]
 
 In versions before 4.2, the Fortran netCDF library source was bundled
-with the C library source in one distribution, and it was possible to
-combine the libraries in a single library file. With version 4.2, the
-Fortran netCDF library for Fortran77 and Fortran90 APIs has been
-separated into its own source distribution, and should now be built as a
-separate library, after the C library is built and installed. This
-separation simplifies the building and use of the C and Fortran netCDF
-libraries and allows them to evolve independently.
+with the C library source in one distribution. With more recent
+versions, the Fortran netCDF library has been split off into an
+independent source distribution, intended to be built as a separate
+library, *after* the C library is built and installed. This separation
+simplifies the building and use of the C and Fortran netCDF libraries
+and allows them to evolve independently.
 
-Please note that in the example commands below, we assume use of a
+More recently, building netcdf-fortran as an automated step in the
+netcdf-c build is now possible (for non-MSVC builds) by using new
+options at configure time, so if you haven't built and installed the
+netCDF-C library yet, you may want to try the new netCDF-C <a
+href="http://www.unidata.ucar.edu/software/netcdf/docs/getting_and_building_netcdf.html#getting"
+>Fortran-bootstrap procedure</a>.
+
+In the example commands below, we assume use of a
 POSIX-standard shell, such as sh, bash, ksh, or zsh. If you are using
 csh instead, you will have to use the
 
@@ -22,8 +28,8 @@ syntax to set environment variables instead of the
 
        ENV_VARIABLE=value
 
-syntax used in the examples that use a POSIX-standard shell. In either
-case, <I>${NCDIR}</I> is the value of the environment variable <I>NCDIR</I>.
+syntax used in the examples. In either case, `${NCDIR}` is the
+value of the environment variable NCDIR.
 
 It will be easier to build the netCDF Fortran library if the C (and if
 needed, HDF5) libraries are built as shared libraries (the default), but
@@ -33,39 +39,45 @@ Building with shared libraries {#building_fortran_shared_libraries}
 ==============================
 
 1.  First make sure the netCDF C library has been built, tested, and
-    installed.  Set the environment NCDIR to the installation
-    directory for the netCDF C library, the same directory that would
-    have been specified by --prefix=<I>${NCDIR}</I> to the C library
-    configure script, or under directory /usr/local by default. (There
-    should be a shared library for netCDF C under ${NCDIR}/lib.)
+    installed. The environment variable NCDIR should be set such that
+    the shared library for netCDF C is under `${NCDIR}/lib` and
+    netCDF utilities such as ncdump are under `${NCDIR}/bin`. For example:
+
+        NCDIR=/usr/local
     
 2.  The configure script will try to determine suitable Fortran and C
-    compilers for building netCDF Fortran, but you can also, specify
-    them with the FC and CC environment variables.
+    compilers for building netCDF Fortran, but you can instead specify
+    them with the FC and CC environment variables, if needed. For
+    example:
+
+		CC=/usr/local/cc
+		FC=/usr/local/fortran
     
 3.  If the netCDF C library was installed as a shared library in a
     location that is not searched by default, you will need to set the
     LD\_LIBRARY\_PATH environment variable (or DYLD\_LIBRARY\_PATH on
-    OSX) to specify that directory before running the configure script,
-    for example:
+    OSX) to specify that directory before running the configure script.
+    For example:
 
         export LD_LIBRARY_PATH=${NCDIR}/lib:${LD_LIBRARY_PATH}
 
 4.  If you set the LD\_LIBRARY\_PATH (or DYLD\_LIBRARY\_PATH)
-    environment variable in the previous step, don't use the "sudo"
-    command before the following "configure" or "make check" commands.
+    environment variable in the previous step, don't use "sudo"
+    before the following "configure" or "make check" commands.
     Using "sudo" causes the LD\_\* environment variables to be
-    ignored, for security. You can use "sudo make install" as the last
-    step, but you shouldn't need to use "sudo" before that.
+    ignored. You can use "sudo make install" as the last
+    step if necessary, but don't use "sudo" before that.
     
-5.  Let the environment variable *\${NFDIR}* specify where you want to
-    install the netCDF Fortan library, which can be the same location
-    where the netCDF C library is installed (default is /usr/local).
-    From the top-level netCDF-Fortran directory, run the configure
-    script specifying where the netCDF C library was installed:
+5.  Set the environment variable `NFDIR` to where you want to install
+    netCDF Fortran, which can be the same location where the netCDF C
+    was installed (default /usr/local), but **not** the source
+    directory where you are building the software.  Then, from the top-level
+    source directory, run the configure script, using CPPFLAGS and LDFLAGS to
+    specify where the netCDF C library was installed:
 
+		NFDIR=/usr/local
         CPPFLAGS=-I${NCDIR}/include LDFLAGS=-L${NCDIR}/lib \
-	    ./configure --prefix=${NFDIR}
+		./configure --prefix=${NFDIR}
 
     If you are cross-compiling, you should also include the configure
     option "--disable-fortran-type-check", as in:
@@ -73,9 +85,22 @@ Building with shared libraries {#building_fortran_shared_libraries}
         CPPFLAGS=-I${NCDIR}/include LDFLAGS=-L${NCDIR}/lib \
         ./configure --prefix=${NFDIR} --disable-fortran-type-check
 
-6.  If that succeeds, run "make check".
+	To see other configure options, run `configure --help`.
 
-7.  If that succeeds, run "make install" or "sudo make install".
+6.  If that succeeds, run
+
+		make check
+
+7.  If that succeeds, run
+
+		make install
+
+	or
+
+		sudo make install
+
+If you encounter problems, send the complete "config.log" file
+generated by running configure to support-netcdf@unidata.ucar.edu.
 
 Building with static libraries {#building_fortran_with_static_libraries}
 ==============================
@@ -98,19 +123,18 @@ Fortran netCDF libraries will be more complicated.
     gfortran are being used, then set CFLAGS=-DgFortran, and similarly
     set CFLAGS=-DpgiFortran for Portland Group compilers.
 
-3.  Assume the static netCDF C library is installed under *\${NCDIR}*,
-    the HDF5 library under *\${H5DIR}*, and other needed libraries
-    such as zlib and curl under *\${ODIR}*. Some or all of these could
-    be the same (for example "/usr/local").
+3.  Assume the static netCDF C library is installed under `${NCDIR}`,
+    the HDF5 library under `${H5DIR}`, and other needed libraries
+    such as zlib and curl under `${ODIR}`. Some or all of these could
+    be the same (for example /usr/local).
 
-4.  Let the environment variable *\${NFDIR}* specify where you want to
-    install the netCDF Fortan library.  This can be the same location
+4.  Let the environment variable `${NFDIR}` specify where you want to
+    install the netCDF Fortran library.  This can be the same location
     where the netCDF C library is installed (default is /usr/local).
 
-5.  Set the CPPFLAGS, LDFLAGS, and LD\_LIBRARY\_PATH environment
+5.  Set the CPPFLAGS, LDFLAGS, LD\_LIBRARY\_PATH, and LIBS environment
     variables to specify where the netCDF C library is installed and
-    where the other libraries may be found, when running the
-    configure script. For example:
+    where the other libraries may be found. For example:
 
           CPPFLAGS="-I${NCDIR}/include -I${H5DIR}/include -I${ODIR}/include" \
           LDFLAGS="-L${NCDIR}/lib -L${H5DIR}/lib -L${ODIR}/lib" \
@@ -133,16 +157,24 @@ Linking your programs with netCDF Fortran libraries {#linking_against_netcdf_for
 
 If you built the shared libraries, you can link with something like
 
-       fortran_compiler my_prog.f -o my_prog -I${NFDIR}/include -L${NFDIR}/lib -lnetcdff
+    fortran my_prog.f -o my_prog -I${NFDIR}/include -L${NFDIR}/lib -lnetcdff
 
 to link your Fortran software with the installed netCDF Fortran and C
-libraries. If you didn't install the shared libraries in a standard
-place, you may need to set LD\_LIBRARY\_PATH (or DYLD\_LIBRARY\_PATH for
-OSX) before running the resulting program.
+libraries.
+
+If you didn't install the shared libraries in a standard place, you
+may need to set LD\_LIBRARY\_PATH (or DYLD\_LIBRARY\_PATH for OSX) to
+include `${NFDIR}/lib` before running the resulting
+program. Alternatively, you may add `${NFDIR}/lib` to the
+LD\_RUN\_PATH environment variable before linking, or use the
+`-Wl,-rpath -Wl,${NFDIR}/lib` linker flag, or have your system
+administrator add `${NFDIR}/lib` to `/etc/ld.so.conf'.  See
+operating system documentation about shared libraries for more
+information, such as the ld(1) and ld.so(8) manual pages.
 
 If you built static libraries, you will need to use something like
 
-    fortran_compiler my_prog.f -o my_prog -I${NFDIR}/include \
+    fortran my_prog.f -o my_prog -I${NFDIR}/include \
     -L${NCDIR}/lib -lnetcdff -lnetcdf \
 	-L${H5DIR}/lib -lhdf5_hl -lhdf5 -L${ODIR} -lz -lcurl -lm
 
@@ -150,31 +182,30 @@ to link Fortran software with the installed Fortran library and the
 libraries on which it depends.
 
 A simpler alternative that should work for either shared or static
-libraries is to use the "nf-config" utility installed in *${NCDIR}*/bin:
+libraries is to use the "nf-config" utility installed in `${NFDIR}/bin`:
 
-       `nf-config --fc` my_prog.f -o my_prog `nf-config --fflags --flibs`
+	fortran my_prog.f -o my_prog `nf-config --fflags --flibs`
 
 or the more general "pkg-config" utility, if you have it:
 
-       fortran_compiler my_prog.f -o my_prog `pkg-config --cflags --libs netcdf-fortran`
-       
+	fortran my_prog.f -o my_prog `pkg-config --cflags --libs netcdf-fortran`
 
 Specifying The Environment for Building {#specify_build_env_fortran}
 ========================================
 
 For cross-compiles, the following environment variables can be used to override the default fortran/C type settings like this (in sh):
 
-     export NCBYTE_T=''integer(selected_int_kind(2))''
-     export NCSHORT_T=''integer*2''
-     export NF_INT1_T=''integer(selected_int_kind(2))''
-     export NF_INT2_T=''integer*2''
+     export NCBYTE_T="integer(selected_int_kind(2))"
+     export NCSHORT_T="integer*2"
+     export NF_INT1_T="integer(selected_int_kind(2))"
+     export NF_INT2_T="integer*2"
      export NF_INT1_IS_C_SHORT=1
      export NF_INT2_IS_C_SHORT=1
      export NF_INT_IS_C_INT=1
      export NF_REAL_IS_C_FLOAT=1
      export NF_DOUBLEPRECISION_IS_C_DOUBLE=1
      
-In this case you will need to run configure with –disable-fortran-compiler-check and –disable-fortran-type-check.
+In this case you will need to run configure with `–disable-fortran-compiler-check` and `–disable-fortran-type-check`.
 
 Environment Variable Description Notes
 --------------------------
