@@ -7,6 +7,10 @@
 #include "ncd2dispatch.h"
 #include "dapalign.h"
 
+#ifdef _MSC_VER
+#include <crtdbg.h>
+#endif
+
 #define NCRCFILE "NCRCFILE"
 
 #ifdef HAVE_GETRLIMIT
@@ -935,12 +939,23 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	else
 	    atype = nctypeconvert(dapcomm,att->etype);
 	typesize = nctypesizeof(atype);
-    if(nvalues > 0)
-      mem = malloc(typesize * nvalues);
+	if (nvalues > 0) {
+		mem = malloc(typesize * nvalues);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
+	}
     ncstat = dapcvtattrval(atype,mem,att->values);
+#ifdef _MSC_VER
+	_ASSERTE(_CrtCheckMemory());
+#endif
     ncstat = nc_put_att(drno->substrate,varid,att->name,atype,nvalues,mem);
-	nullfree(mem);
-    }
+#ifdef _MSC_VER
+	_ASSERTE(_CrtCheckMemory());
+#endif
+	if (mem != NULL)
+		free(mem);
+	}
     return THROW(ncstat);
 }
 

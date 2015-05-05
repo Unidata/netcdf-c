@@ -5,6 +5,10 @@
 #include "config.h"
 #include "ncdap.h"
 
+#ifdef _MSC_VER
+#include <crtdbg.h>
+#endif
+
 NCerror
 dapconvert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count)
 {
@@ -197,67 +201,162 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
     unsigned int memsize = nctypesizeof(etype);
     unsigned int nvalues = nclistlength(src);
     char* dstmem = (char*)dst;
-
+#ifdef _MSC_VER
+	_ASSERTE(_CrtCheckMemory());
+#endif
     for(i=0;i<nvalues;i++) {
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	char* s = (char*)nclistget(src,i);
+#ifdef _MSC_VER
+	_ASSERTE(_CrtCheckMemory());
+#endif
 	ok = 0;
 	switch (etype) {
 	case NC_BYTE: {
-	    unsigned char* p = (unsigned char*)dstmem;
-	    ok = sscanf(s,"%hhu",p);
+		char tmp[128];
+		sprintf(tmp, "%%%dhhu", nvalues);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
+		unsigned char* p = (unsigned char*)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
+		ok = sscanf(s, tmp, p);
+	    //ok = sscanf(s,"%hhu",p);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    } break;
 	case NC_CHAR: {
 	    signed char* p = (signed char*)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    ok = sscanf(s,"%c",p);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    } break;
 	case NC_SHORT: {
 	    short* p = (short*)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    ok = sscanf(s,"%hd",p);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    } break;
 	case NC_INT: {
 	    int* p = (int*)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    ok = sscanf(s,"%d",p);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    } break;
 	case NC_FLOAT: {
 	    float* p = (float*)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    ok = sscanf(s,"%g",p);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    } break;
 	case NC_DOUBLE: {
 	    double* p = (double*)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    ok = sscanf(s,"%lg",p);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    } break;
 	case NC_UBYTE: {
 	    unsigned char* p = (unsigned char*)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    ok = sscanf(s,"%hhu",p);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    } break;
 	case NC_USHORT: {
 	    unsigned short* p = (unsigned short*)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    ok = sscanf(s,"%hu",p);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    } break;
 	case NC_UINT: {
 	    unsigned int* p = (unsigned int*)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    ok = sscanf(s,"%u",p);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    } break;
 	case NC_INT64: {
 	    long long* p = (long long*)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    ok = sscanf(s,"%lld",p);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    } break;
 	case NC_UINT64: {
 	    unsigned long long* p = (unsigned long long*)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    ok = sscanf(s,"%llu",p);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    } break;
 	case NC_STRING: case NC_URL: {
 	    char** p = (char**)dstmem;
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    *p = nulldup(s);
+#ifdef _MSC_VER
+		_ASSERTE(_CrtCheckMemory());
+#endif
 	    ok = 1;
 	    } break;
 	default:
    	    PANIC1("unexpected nc_type: %d",(int)etype);
 	}
 	if(ok != 1) {ncstat = NC_EINVAL; goto done;}
+#ifdef _MSC_VER
+	_ASSERTE(_CrtCheckMemory());
+#endif
 	dstmem += memsize;
+#ifdef _MSC_VER
+	_ASSERTE(_CrtCheckMemory());
+#endif
     }
 done:
+#ifdef _MSC_VER
+	_ASSERTE(_CrtCheckMemory());
+#endif
     return THROW(ncstat);
 }
 

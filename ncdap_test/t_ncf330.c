@@ -7,6 +7,10 @@
  */
 
 #include <netcdf.h>
+#include <malloc.h>
+#ifdef _MSC_VER
+#include <crtdbg.h>
+#endif
 
 static char* URL="http://data.nodc.noaa.gov/thredds/dodsC/testdata/pathfinderAgg/pathFinderV5.2_night.ncml";
 
@@ -23,6 +27,11 @@ main()
      int format_p;
      float lat_data[4320];
 
+#ifdef _MSC_VER
+	 /* See https://msdn.microsoft.com/en-us/library/5at7yxcs(v=vs.120).aspx
+	    for more information re: these. */
+	 //int tmpFlag = _CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
      printf(" \n");
      printf("********************\n");
      printf("open URL %s\n",URL);

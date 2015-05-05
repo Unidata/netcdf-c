@@ -831,9 +831,9 @@ NC3_put_att(
     }
 
     if(attrpp != NULL) {
-        assert(old != NULL);
         *attrpp = attrp;
-        free_NC_attr(old);
+	if(old != NULL)
+	        free_NC_attr(old);
     } else {
         const int lstatus = incr_NC_attrarray(ncap, attrp);
         /*
