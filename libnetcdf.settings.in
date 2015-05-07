@@ -28,6 +28,7 @@ NetCDF-2 API:		@HAS_NC2@
 NetCDF-4 API:		@HAS_NC4@
 HDF4 Support:		@HAS_HDF4@
 HDF5 Support:		@HAS_HDF5@
+HDF5/SZIP Support:      @HAS_SZIP@
 PNetCDF Support:	@HAS_PNETCDF@
 Parallel Support:	@HAS_PARALLEL@
 DAP Support:		@HAS_DAP@
