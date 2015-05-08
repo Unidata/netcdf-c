@@ -216,16 +216,9 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	switch (etype) {
 	case NC_BYTE: {
 		char tmp[128];
-		sprintf(tmp, "%%%dhhu", nvalues);
-#ifdef _MSC_VER
-		_ASSERTE(_CrtCheckMemory());
-#endif
+		
 		unsigned char* p = (unsigned char*)dstmem;
-#ifdef _MSC_VER
-		_ASSERTE(_CrtCheckMemory());
-#endif
-		ok = sscanf(s, tmp, p);
-	    //ok = sscanf(s,"%hhu",p);
+		ok = sscanf(s,"%hhu",p);
 #ifdef _MSC_VER
 		_ASSERTE(_CrtCheckMemory());
 #endif
