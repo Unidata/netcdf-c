@@ -241,8 +241,13 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	    } break;
 	case NC_UBYTE: {
 	    unsigned char* p = (unsigned char*)dstmem;
+#ifdef _MSC_VER
+		ok = sscanf(s, "%hc", p);
+		_ASSERTE(_CrtCheckMemory());
+#else
 	    ok = sscanf(s,"%hhu",p);
-	    } break;
+#endif
+		} break;
 	case NC_USHORT: {
 	    unsigned short* p = (unsigned short*)dstmem;
 	    ok = sscanf(s,"%hu",p);
@@ -253,8 +258,12 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	    } break;
 	case NC_INT64: {
 	    long long* p = (long long*)dstmem;
-	    ok = sscanf(s,"%lld",p);
-	    } break;
+#ifdef _MSC_VER
+		ok = sscanf(s, "%I64d", p);
+#else
+		ok = sscanf(s,"%lld",p);
+#endif
+	} break;
 	case NC_UINT64: {
 	    unsigned long long* p = (unsigned long long*)dstmem;
 	    ok = sscanf(s,"%llu",p);
