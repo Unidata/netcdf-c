@@ -6,12 +6,12 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
-LDADD = ${top_builddir}/liblib/libnetcdf.la 
+LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 
 # Set up the tests; do the .sh first, then .c
-check_PROGRAMS = 
-TESTS = 
+check_PROGRAMS =
+TESTS =
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 
 TESTS += tst_ncdap3.sh
@@ -20,7 +20,7 @@ t_dap3a_SOURCES = t_dap3a.c
 test_cvt3_SOURCES = test_cvt.c
 test_vara_SOURCES = test_vara.c
 
-check_PROGRAMS += t_dap3a test_cvt3 test_vara 
+check_PROGRAMS += t_dap3a test_cvt3 test_vara
 
 TESTS += t_dap3a test_cvt3 test_vara
 
@@ -56,6 +56,7 @@ check_PROGRAMS += test_partvar
 check_PROGRAMS += test_nstride_cached
 check_PROGRAMS += t_misc
 check_PROGRAMS += test_varm3
+check_PROGRAMS += t_ncf330
 
 if ENABLE_DAP_AUTH_TESTS
 #check_PROGRAMS += t_auth t_auth1
@@ -95,7 +96,8 @@ EXTRA_DIST = tst_ncdap3.sh tst_ncdap4.sh \
              tst_remote3.sh tst_remote4.sh \
              tst_longremote3.sh tst_longremote4.sh \
              tst_ncdap.sh tst_ncdap_shared.sh tst_remote.sh \
-	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh
+	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
+			t_ncf330.c
 
 CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a test_nstride_cached
 
