@@ -7,8 +7,9 @@
  */
 
 #include <netcdf.h>
-#include <malloc.h>
+
 #ifdef _MSC_VER
+#include <malloc.h>
 #include <crtdbg.h>
 #endif
 
