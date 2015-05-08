@@ -45,8 +45,10 @@ test_nstride_cached_SOURCE = test_nstride_cached.c
 #t_auth1_SOURCES = t_auth1.c
 t_misc_SOURCES = t_misc.c
 test_varm3_SOURCES = test_varm3.c
+t_ncf330_SOURCES = t_ncf330.c
 
 TESTS += test_varm3
+TESTS += t_ncf330
 TESTS += test_nstride_cached
 TESTS += t_misc
 

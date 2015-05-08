@@ -61,9 +61,11 @@ IF(ENABLE_TESTS)
     
     add_bin_test(ncdap test_varm3)
     
-    IF(ENABLE_FAILING_TESTS)
-      add_bin_test(ncdap_failing t_ncf330)
-    ENDIF(ENABLE_FAILING_TESTS)
+    ###
+    # This test relates to NCF-330 in
+    # the Unidata JIRA system.
+    ###
+    add_bin_test(ncdap t_ncf330)
 
   ENDIF()
 ENDIF()
