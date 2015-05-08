@@ -5,7 +5,9 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.3.X Released ????
+## 4.3.X Released TBD
+
+* Addressed an issue in netcdf4 on Windows w/DAP related to how byte values were copied with sscanf.  Issue originally reported by Ellen Johnson at Mathworks, see [NCF-330](https://bugtracking.unidata.ucar.edu/browse/NCF-330) for more information.
 
 * Addressed in issue in netcdf4 files on Windows, built with Microsoft Visual Studio, which could result in a memory leak.  See [NCF-329](https://bugtracking.unidata.ucar.edu/browse/NCF-329) for more information.
 
