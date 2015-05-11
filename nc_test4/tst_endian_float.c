@@ -1,4 +1,4 @@
-/*! Test for NCF-331.
+/*! Test for NCF-331. Added May 11, 2015.
  *  See the following links for more information:
  *
  *  o Issue on GitHub: https://github.com/Unidata/netcdf-c/issues/112
@@ -9,16 +9,25 @@
 
 #include <string.h>
 #include <netcdf.h>
+#include <stdio.h>
+
 #define FILE_NAME "tst_endian_float.nc"
 #define NDIM 10
 #define NLON 20
 #define DIM_NAME "x"
 #define VAR_NAME "fv"
 #define VAR_NAME2 "iv"
-int
-main()
-{
+int main() {
+
+  /*
+   * 1. Create a file with endianness as desired.
+   */
+
   int ncid, dimid, varid, varid2, retval;
+  int ed, ed2;
+  int failures = 0;
+
+
   retval = nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid);
   retval = nc_def_dim(ncid, DIM_NAME, NDIM, &dimid);
   retval = nc_def_var(ncid, VAR_NAME, NC_FLOAT, 1, &dimid, &varid);
@@ -27,9 +36,37 @@ main()
   retval = nc_def_var_endian(ncid, varid2, NC_ENDIAN_BIG);
   retval = nc_close(ncid);
 
+  /*
+   * 2. Reopen file, check to see if the endianness attribute
+   *    exists.
+   */
+  ncid = 0;
+  retval = nc_open(FILE_NAME, NC_NETCDF4 | NC_NOWRITE, &ncid);
+  retval = nc_inq_varid(ncid,VAR_NAME,&varid);
+  retval = nc_inq_varid(ncid,VAR_NAME2,&varid2);
+
+  retval = nc_inq_var_endian(ncid,varid,&ed);
+  if(ed != NC_ENDIAN_BIG) {
+    printf("Test 1: Error for float variable endianness: [%d] not NC_ENDIAN_BIG\n",ed);
+    failures++;
+  } else {
+    printf("Test 1: [%d] is NC_ENDIAN_BIG, Success.\n",ed);
+  }
+
+  retval = nc_inq_var_endian(ncid,varid2,&ed2);
+  if(ed2 != NC_ENDIAN_BIG) {
+    printf("Test 2: Error for integer variable endianness: [%d] not NC_ENDIAN_BIG\n",ed2);
+    failures++;
+  } else {
+    printf("Test 2: [%d] is NC_ENDIAN_BIG, Success.\n",ed2);
+  }
+
+  retval = nc_close(ncid);
+
+
   /* Force a failure for now, until I can automate the check
      programatically that the endianess attribute is properly
      stored. */
 
-  return 1;
+  return failures;
 }
