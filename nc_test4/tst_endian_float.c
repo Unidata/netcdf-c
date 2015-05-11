@@ -9,7 +9,7 @@
 
 #include <string.h>
 #include <netcdf.h>
-#define FILE_NAME "test.nc"
+#define FILE_NAME "tst_endian_float.nc"
 #define NDIM 10
 #define NLON 20
 #define DIM_NAME "x"
@@ -26,5 +26,10 @@ main()
   retval = nc_def_var(ncid, VAR_NAME2, NC_INT, 1, &dimid, &varid2);
   retval = nc_def_var_endian(ncid, varid2, NC_ENDIAN_BIG);
   retval = nc_close(ncid);
-  return 0;
+
+  /* Force a failure for now, until I can automate the check
+     programatically that the endianess attribute is properly
+     stored. */
+
+  return 1;
 }
