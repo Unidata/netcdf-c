@@ -3,46 +3,69 @@
    how endianness is stored to a file.
 */
 
+#include "h5_err_macros.h"
 #include "hdf5.h"
+
 #include <stdio.h>
-#define FILE_NAME "tst_endian_float.h5"
+
+#define FILE_NAME "tst_h_endian_float.h5"
+#define NDIM 10
+#define NLON 20
+
+#define DIM_NAME "x"
+#define VAR_NAME "jv"
+#define VAR_NAME2 "fv"
+#define VAR_NAME3 "iv"
+
+#define NUM_STR 1
+#define NDIMS 1
+#define NFLOAT 1
+#define NINT 1
+
+#define GNAME "FloatBigEnds"
+
 int main() {
 
-   hid_t       file_id, dataset_id, attribute_id, dataspace_id;  /* identifiers */
-   hsize_t     dims;
-   int         attr_data[2];
-   herr_t      status;
+  hid_t       fileid, grpid, plistid, spaceid, datasetid;
+  hsize_t     dims[NDIMS] = {NUM_STR}, max_dims[NDIMS] = {H5S_UNLIMITED};
+  float empty = -42.0;
 
-   /* Initialize the attribute data. */
-   attr_data[0] = 100;
-   attr_data[1] = 200;
+  printf("\n*** Checking if HDF5 Endianness is properly stored.\n");
 
-   /* Open an existing file. */
-   file_id = H5Fcreate(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT, H5P_DEFAULT);
+  /* Create file, open root group. */
+  printf("\t* Creating File.\n");
+  if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
+                          H5P_DEFAULT)) < 0) ERR;
 
-   /* Open an existing dataset. */
-   dataset_id = H5Dopen(file_id, "/dset", H5P_DEFAULT);
+    printf("\t* Opening Group.\n");
+  if ((grpid = H5Gopen2(fileid, "/", H5P_DEFAULT)) < 0) ERR;
 
-   /* Create the data space for the attribute. */
-   dims = 2;
-   dataspace_id = H5Screate_simple(1, &dims, NULL);
+  /* Create space for the dataset. */
+  printf("\t* Creating Space.\n");
+  if ((spaceid = H5Screate_simple(1, dims, max_dims)) < 0) ERR;
 
-   /* Create a dataset attribute. */
-   attribute_id = H5Acreate (dataset_id, "Units", H5T_STD_I32BE, dataspace_id,
-                             H5P_DEFAULT, H5P_DEFAULT);
+  /* Create dataset. */
+  printf("\t* Creating Dataset.\n");
+  if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
 
-   /* Write the attribute data. */
-   status = H5Awrite(attribute_id, H5T_NATIVE_INT, attr_data);
+  //printf("\t* Setting fill value..\n");
+  //if (H5Pset_fill_value(plistid, H5T_NATIVE_FLOAT, &empty) < 0) ERR;
+  printf("\t* Getting dataset id.\n");
+  if ((datasetid = H5Dcreate1(grpid,GNAME,H5T_IEEE_F32BE,
+                              spaceid,plistid)) < 0) ERR;
 
-   /* Close the attribute. */
-   status = H5Aclose(attribute_id);
+  printf("\t* Closing datasetid.\n");
+  if (H5Dclose(datasetid) < 0) ERR;
+    printf("\t* Closing plistid.\n");
+  if (H5Pclose(plistid) < 0) ERR;
+  printf("\t* Closing spaceid.\n");
+  if (H5Sclose(spaceid) < 0) ERR;
+    printf("\t* Closing grpid.\n");
+  if (H5Gclose(grpid) < 0) ERR;
+  printf("\t* Closing fileid.\n\n\n");
+  if (H5Fclose(fileid) < 0) ERR;
 
-   /* Close the dataspace. */
-   status = H5Sclose(dataspace_id);
+  SUMMARIZE_ERR;
+  FINAL_RESULTS;
 
-   /* Close to the dataset. */
-   status = H5Dclose(dataset_id);
-
-   /* Close the file. */
-   status = H5Fclose(file_id);
 }
