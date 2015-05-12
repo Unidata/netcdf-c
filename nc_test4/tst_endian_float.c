@@ -15,25 +15,35 @@
 #define NDIM 10
 #define NLON 20
 #define DIM_NAME "x"
-#define VAR_NAME "fv"
-#define VAR_NAME2 "iv"
+#define VAR_NAME2 "fv"
+#define VAR_NAME3 "iv"
+#define VAR_NAME "jv"
 int main() {
 
   /*
    * 1. Create a file with endianness as desired.
    */
 
-  int ncid, dimid, varid, varid2, retval;
-  int ed, ed2;
+  int ncid, dimid, varid, varid2, varid3, retval;
+  int ed, ed2, ed3;
   int failures = 0;
 
 
   retval = nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid);
   retval = nc_def_dim(ncid, DIM_NAME, NDIM, &dimid);
+
+  /* First, Float */
   retval = nc_def_var(ncid, VAR_NAME, NC_FLOAT, 1, &dimid, &varid);
   retval = nc_def_var_endian(ncid, varid, NC_ENDIAN_BIG);
-  retval = nc_def_var(ncid, VAR_NAME2, NC_INT, 1, &dimid, &varid2);
+
+  /* Second, Float */
+  retval = nc_def_var(ncid, VAR_NAME2, NC_FLOAT, 1, &dimid, &varid2);
   retval = nc_def_var_endian(ncid, varid2, NC_ENDIAN_BIG);
+
+  /* Third, Int */
+  retval = nc_def_var(ncid, VAR_NAME3, NC_INT, 1, &dimid, &varid3);
+  retval = nc_def_var_endian(ncid, varid3, NC_ENDIAN_BIG);
+
   retval = nc_close(ncid);
 
   /*
@@ -44,6 +54,7 @@ int main() {
   retval = nc_open(FILE_NAME, NC_NETCDF4 | NC_NOWRITE, &ncid);
   retval = nc_inq_varid(ncid,VAR_NAME,&varid);
   retval = nc_inq_varid(ncid,VAR_NAME2,&varid2);
+  retval = nc_inq_varid(ncid,VAR_NAME3,&varid3);
 
   retval = nc_inq_var_endian(ncid,varid,&ed);
   if(ed != NC_ENDIAN_BIG) {
@@ -55,10 +66,18 @@ int main() {
 
   retval = nc_inq_var_endian(ncid,varid2,&ed2);
   if(ed2 != NC_ENDIAN_BIG) {
-    printf("Test 2: Error for integer variable endianness: [%d] not NC_ENDIAN_BIG\n",ed2);
+    printf("Test 2: Error for float variable endianness: [%d] not NC_ENDIAN_BIG\n",ed);
     failures++;
   } else {
     printf("Test 2: [%d] is NC_ENDIAN_BIG, Success.\n",ed2);
+  }
+
+  retval = nc_inq_var_endian(ncid,varid3,&ed3);
+  if(ed3 != NC_ENDIAN_BIG) {
+    printf("Test 3: Error for integer variable endianness: [%d] not NC_ENDIAN_BIG\n",ed2);
+    failures++;
+  } else {
+    printf("Test 3: [%d] is NC_ENDIAN_BIG, Success.\n",ed3);
   }
 
   retval = nc_close(ncid);
