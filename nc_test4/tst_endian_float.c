@@ -27,14 +27,16 @@ int main() {
   int ncid, dimid, varid, varid2, varid3, retval;
   int ed, ed2, ed3;
   int failures = 0;
+  int oldfill = 0;
 
 
   retval = nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid);
+
   retval = nc_def_dim(ncid, DIM_NAME, NDIM, &dimid);
 
   /* First, Float */
   retval = nc_def_var(ncid, VAR_NAME, NC_FLOAT, 1, &dimid, &varid);
-  retval = nc_def_var_endian(ncid, varid, NC_ENDIAN_BIG);
+    retval = nc_def_var_endian(ncid, varid, NC_ENDIAN_BIG);
 
   /* Second, Float */
   retval = nc_def_var(ncid, VAR_NAME2, NC_FLOAT, 1, &dimid, &varid2);
@@ -52,6 +54,7 @@ int main() {
    */
   ncid = 0;
   retval = nc_open(FILE_NAME, NC_NETCDF4 | NC_NOWRITE, &ncid);
+  retval = nc_set_fill(ncid, NC_NOFILL, &oldfill);
   retval = nc_inq_varid(ncid,VAR_NAME,&varid);
   retval = nc_inq_varid(ncid,VAR_NAME2,&varid2);
   retval = nc_inq_varid(ncid,VAR_NAME3,&varid3);
