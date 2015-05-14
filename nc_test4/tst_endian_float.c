@@ -10,6 +10,7 @@
 #include <string.h>
 #include <netcdf.h>
 #include <stdio.h>
+#include "nc_logging.h"
 
 #define FILE_NAME "tst_endian_float.nc"
 #define NDIM 10
@@ -29,6 +30,11 @@ int main() {
   int failures = 0;
   int oldfill = 0;
 
+#ifdef LOGGING
+  printf("Setting log level 10\n");
+  nc_set_log_level(10);
+  LOG((2,"setting Log_level, logging with level 2."));
+#endif
 
   retval = nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid);
 
@@ -38,13 +44,13 @@ int main() {
   retval = nc_def_var(ncid, VAR_NAME, NC_FLOAT, 1, &dimid, &varid);
     retval = nc_def_var_endian(ncid, varid, NC_ENDIAN_BIG);
 
-  /* Second, Float */
-  retval = nc_def_var(ncid, VAR_NAME2, NC_FLOAT, 1, &dimid, &varid2);
+  /* Second, Double */
+  retval = nc_def_var(ncid, VAR_NAME2, NC_DOUBLE, 1, &dimid, &varid2);
   retval = nc_def_var_endian(ncid, varid2, NC_ENDIAN_BIG);
 
   /* Third, Int */
   retval = nc_def_var(ncid, VAR_NAME3, NC_INT, 1, &dimid, &varid3);
-  retval = nc_def_var_endian(ncid, varid3, NC_ENDIAN_BIG);
+  retval = nc_def_var_endian(ncid, varid3, NC_ENDIAN_LITTLE);
 
   retval = nc_close(ncid);
 
@@ -69,14 +75,14 @@ int main() {
 
   retval = nc_inq_var_endian(ncid,varid2,&ed2);
   if(ed2 != NC_ENDIAN_BIG) {
-    printf("Test 2: Error for float variable endianness: [%d] not NC_ENDIAN_BIG\n",ed);
+    printf("Test 2: Error for double variable endianness: [%d] not NC_ENDIAN_BIG\n",ed);
     failures++;
   } else {
     printf("Test 2: [%d] is NC_ENDIAN_BIG, Success.\n",ed2);
   }
 
   retval = nc_inq_var_endian(ncid,varid3,&ed3);
-  if(ed3 != NC_ENDIAN_BIG) {
+  if(ed3 != NC_ENDIAN_LITTLE) {
     printf("Test 3: Error for integer variable endianness: [%d] not NC_ENDIAN_BIG\n",ed2);
     failures++;
   } else {

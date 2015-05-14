@@ -339,6 +339,7 @@ ENDIF()
 # Option Logging, only valid for netcdf4.
 OPTION(ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
+  ADD_DEFINITIONS(-DLOGGING)
   SET(LOGGING ON)
 ENDIF()
 

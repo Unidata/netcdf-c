@@ -1554,11 +1554,11 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 
       /* Check to see if any unlimited dimensions are used in this var. */
       for (d = 0; d < var->ndims; d++) {
-	for (g = grp; g; g = g->parent) 
-	  for (dim = g->dim; dim; dim = dim->l.next) 
-	    if (dim->dimid == var->dimids[d]) 
-	      if (dim->unlimited) 
-		unlimdim++; 
+	for (g = grp; g; g = g->parent)
+	  for (dim = g->dim; dim; dim = dim->l.next)
+	    if (dim->dimid == var->dimids[d])
+	      if (dim->unlimited)
+		unlimdim++;
       }
 
       /* If there are no unlimited dims, and no filters, and the user
@@ -1662,7 +1662,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 
   /* At long last, create the dataset. */
   name_to_use = var->hdf5_name ? var->hdf5_name : var->name;
-  LOG((4, "%s: about to H5Dcreate dataset %s of type 0x%x", __func__,
+  LOG((4, "%s: about to H5Dcreate2 dataset %s of type 0x%x", __func__,
        name_to_use, typeid));
   if ((var->hdf_datasetid = H5Dcreate2(grp->hdf_grpid, name_to_use, typeid,
                                        spaceid, H5P_DEFAULT, plistid, access_plistid)) < 0)
@@ -2295,7 +2295,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
   /* Clear coord. var state transition flags */
   var->was_coord_var = NC_FALSE;
   var->became_coord_var = NC_FALSE;
-      
+
   /* Now check the attributes for this var. */
   if (var->attr_dirty)
     {
@@ -2364,7 +2364,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
         BAIL(NC_EHDFERR);
 
       /* Create the dataset that will be the dimension scale. */
-      LOG((4, "%s: about to H5Dcreate a dimscale dataset %s", __func__, dim->name));
+      LOG((4, "%s: about to H5Dcreate1 a dimscale dataset %s", __func__, dim->name));
       if ((dim->hdf_dimscaleid = H5Dcreate1(grp->hdf_grpid, dim->name, H5T_IEEE_F32BE,
                                             spaceid, create_propid)) < 0)
         BAIL(NC_EHDFERR);
