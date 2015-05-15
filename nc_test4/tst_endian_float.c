@@ -45,15 +45,15 @@ int main() {
     retval = nc_def_var_endian(ncid, varid, NC_ENDIAN_BIG);
 
   /* Second, Double */
-  retval = nc_def_var(ncid, VAR_NAME2, NC_DOUBLE, 1, &dimid, &varid2);
-  retval = nc_def_var_endian(ncid, varid2, NC_ENDIAN_BIG);
+  //retval = nc_def_var(ncid, VAR_NAME2, NC_DOUBLE, 1, &dimid, &varid2);
+  //retval = nc_def_var_endian(ncid, varid2, NC_ENDIAN_BIG);
 
   /* Third, Int */
   retval = nc_def_var(ncid, VAR_NAME3, NC_INT, 1, &dimid, &varid3);
-  retval = nc_def_var_endian(ncid, varid3, NC_ENDIAN_LITTLE);
+  retval = nc_def_var_endian(ncid, varid3, NC_ENDIAN_BIG);
 
   retval = nc_close(ncid);
-
+    return retval;
   /*
    * 2. Reopen file, check to see if the endianness attribute
    *    exists.
