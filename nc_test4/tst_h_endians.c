@@ -14,8 +14,6 @@
 #include "nc_logging.h"
 
 #define FILE_NAME_NC "tst_h_endians.nc"
-#define FILE_NAME_H5 "tst_h_endians.h5"
-
 
 #define NDIM 10
 #define NLON 20
