@@ -5,7 +5,9 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.3.X Released TBD
+## 4.3.x Released TBD
+
+* Addressed an issure in netcdf4 related to specifying an endianness explicitly.  When specifying an endianness for `NC_FLOAT`, the value would appear to not be written to file, if checked with `ncdump -s`.  The issue was more subtle; the value would be written but was not being read from file properly for non-`NC_INT`.  See [GitHub Issue](https://github.com/Unidata/netcdf-c/issues/112) or [NCF-331](https://bugtracking.unidata.ucar.edu/browse/NCF-331) for more information.
 
 * Addressed an issue in netcdf4 on Windows w/DAP related to how byte values were copied with sscanf.  Issue originally reported by Ellen Johnson at Mathworks, see [NCF-330](https://bugtracking.unidata.ucar.edu/browse/NCF-330) for more information.
 
