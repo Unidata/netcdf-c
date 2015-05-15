@@ -895,31 +895,51 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
 	       break;
 	 }
 
-	 /* Find out about endianness. */
-	 if (class == H5T_INTEGER)
-	 {
-	    if ((order = H5Tget_order(hdf_typeid)) < 0)
-	       return NC_EHDFERR;
+     /* Find out about endianness.
+      * As of HDF 1.8.6, this works with all data types
+      * Not just H5T_INTEGER.
+      *
+      * See https://www.hdfgroup.org/HDF5/doc/RM/RM_H5T.html#Datatype-GetOrder
+      */
+     if((order = H5Tget_order(hdf_typeid)) < 0)
+         return NC_EHDFERR;
+
+     if(order == H5T_ORDER_LE)
+         (*type_info)->endianness = NC_ENDIAN_LITTLE;
+     else if(order == H5T_ORDER_BE)
+         (*type_info)->endianness = NC_ENDIAN_BIG;
+     else
+         return NC_EBADTYPE;
+
+     if(class == H5T_INTEGER)
+          (*type_info)->nc_type_class = NC_INT;
+     else
+        (*type_info)->nc_type_class = NC_FLOAT;
+
+
+ //    if (class == H5T_INTEGER)
+//	 {
+//	    if ((order = H5Tget_order(hdf_typeid)) < 0)
+//	       return NC_EHDFERR;
 
 	    /* Copy this into the type_info struct. */
-	    if (order == H5T_ORDER_LE)
-               (*type_info)->endianness = NC_ENDIAN_LITTLE;
-	    else if (order == H5T_ORDER_BE)
-               (*type_info)->endianness = NC_ENDIAN_BIG;
-	    else /* don't support H5T_ORDER_VAX, H5T_ORDER_MIXED, H5T_ORDER_NONE */
-		return NC_EBADTYPE;
+//	    if (order == H5T_ORDER_LE)
+ //              (*type_info)->endianness = NC_ENDIAN_LITTLE;
+//	    else if (order == H5T_ORDER_BE)
+ //              (*type_info)->endianness = NC_ENDIAN_BIG;
+//	    else /* don't support H5T_ORDER_VAX, H5T_ORDER_MIXED, H5T_ORDER_NONE */
+//		return NC_EBADTYPE;
 
-            /* Set a class for the type */
-            /* (Note use of 'NC_INT' for all integer types) */
-            (*type_info)->nc_type_class = NC_INT;
-	 }
-         else
-         {
+//            /* Set a class for the type */
+ //           /* (Note use of 'NC_INT' for all integer types) */
+//            (*type_info)->nc_type_class = NC_INT;
+//	 } else
+  //       {
             /* Set a class for the type */
             /* (Note use of 'NC_FLOAT' for all floating-point types) */
-            (*type_info)->nc_type_class = NC_FLOAT;
-         }
-      }
+  //          (*type_info)->nc_type_class = NC_FLOAT;
+ //        }
+     }
       (*type_info)->nc_typeid = nc_type_constant_g[t];
       (*type_info)->size = nc_type_size_g[t];
       if (!((*type_info)->name = strdup(nc_type_name_g[t])))
