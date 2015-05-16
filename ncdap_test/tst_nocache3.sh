@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 # if this is part of a distcheck action, then this script
 # will be executed in a different directory
 # than the one containing it; so capture the path to this script

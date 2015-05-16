@@ -1,12 +1,12 @@
-TOP="/home/dmh/git/netcdf-c"
-#TOP="/cygdrive/f/git/netcdf-c"
+#TOP="/home/dmh/git/netcdf-c"
+TOP="/cygdrive/f/git/netcdf-c"
 
 alias xx="cd ..;make; cd libdap2"
 
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""; SHARP='#'
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-F="file://${TOP}/ncdap_test/testdata3/test.02"
+F="file://${TOP}/ncdap_test/testdata3/synth9"
 
 if test -f ./ncd ; then
 PROG=./ncd
