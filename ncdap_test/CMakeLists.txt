@@ -5,22 +5,22 @@ add_definitions(-D"TOPSRCDIR=${CMAKE_SOURCE_DIR}")
 
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
-FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE) 
+FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
 IF(ENABLE_DAP_REMOTE_TESTS)
   ADD_EXECUTABLE(nctestserver nctestserver.c)
   TARGET_LINK_LIBRARIES(nctestserver netcdf ${ALL_TLL_LIBS})
 
-  ####				     
-  # We have to do a little tweaking    
+  ####
+  # We have to do a little tweaking
   # to remove the Release/ and Debug/ directories
   # in MSVC builds.  This is required to get
   # test scripts to work.
   ####
   IF(MSVC)
-    SET_TARGET_PROPERTIES(nctestserver PROPERTIES RUNTIME_OUTPUT_DIRECTORY 
+    SET_TARGET_PROPERTIES(nctestserver PROPERTIES RUNTIME_OUTPUT_DIRECTORY
       ${CMAKE_CURRENT_BINARY_DIR})
-    SET_TARGET_PROPERTIES(nctestserver PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG 
+    SET_TARGET_PROPERTIES(nctestserver PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
       ${CMAKE_CURRENT_BINARY_DIR})
     SET_TARGET_PROPERTIES(nctestserver PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
       ${CMAKE_CURRENT_BINARY_DIR})
@@ -33,7 +33,7 @@ IF(ENABLE_TESTS)
   # must be run in a particular order. It is painful but will use macros to help
   # keep it from being too bad.
   # Binary Test Macro
-  
+
   add_sh_test(ncdap tst_ncdap3)
 
   IF(NOT MSVC)
@@ -50,22 +50,22 @@ IF(ENABLE_TESTS)
       add_sh_test(ncdap tst_longremote3)
     ENDIF()
     add_sh_test(ncdap testurl)
-    
+
     add_bin_test(ncdap test_nstride_cached)
     add_bin_test(ncdap t_misc)
-    
+
     IF(ENABLE_DAP_AUTH_TESTS)
       add_bin_test(ncdap t_auth)
       add_sh_test(ncdap testauth)
     ENDIF()
-    
+
     add_bin_test(ncdap test_varm3)
-    
+
     ###
     # This test relates to NCF-330 in
     # the Unidata JIRA system.
     ###
-    add_bin_test(ncdap t_ncf330)
+    #add_bin_test(ncdap t_ncf330)
 
   ENDIF()
 ENDIF()

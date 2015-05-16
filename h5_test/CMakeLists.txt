@@ -18,5 +18,3 @@ FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SO
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ref_tst_h_compounds.h5 ref_tst_h_compounds2.h5 ref_tst_compounds.nc CMakeLists.txt Makefile.am)
 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
-
-

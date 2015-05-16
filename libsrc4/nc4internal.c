@@ -1454,9 +1454,9 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
              strcat(dims_string, temp_string);
            }
       }
-      LOG((2, "%s VARIABLE - varid: %d name: %s type: %d ndims: %d dimscale: %d dimids:%s",
+      LOG((2, "%s VARIABLE - varid: %d name: %s type: %d ndims: %d dimscale: %d dimids:%s endianness: %d, hdf_typeid: %d",
 	   tabs, var->varid, var->name, var->type_info->nc_typeid, var->ndims, (int)var->dimscale,
-	   (dims_string ? dims_string : " -")));
+       (dims_string ? dims_string : " -"),var->type_info->endianness, var->type_info->native_hdf_typeid));
       for(att = var->att; att; att = att->l.next)
 	 LOG((2, "%s VAR ATTRIBUTE - attnum: %d name: %s type: %d len: %d",
 	      tabs, att->attnum, att->name, att->nc_typeid, att->len));
