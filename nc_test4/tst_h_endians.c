@@ -24,6 +24,9 @@
 #define BE_FLOAT_VARNAME "fl_be"
 #define LE_INT_VARNAME "int_le"
 #define BE_INT_VARNAME "int_be"
+#define LE_DBL_VARNAME "dbl_le"
+#define BE_DBL_VARNAME "dbl_be"
+
 int main() {
 
   int ncid, dimid;
@@ -31,6 +34,8 @@ int main() {
   int be_float_varid;
   int le_int_varid;
   int be_int_varid;
+  int le_dbl_varid;
+  int be_dbl_varid;
   int ed;
   int failures = 0;
   int retval = 0;
@@ -63,6 +68,14 @@ int main() {
     retval = nc_def_var(ncid, BE_INT_VARNAME, NC_INT, 1, &dimid, &be_int_varid);
     retval = nc_def_var_endian(ncid, be_int_varid, NC_ENDIAN_BIG);
 
+    /* Little-Endian Double */
+    retval = nc_def_var(ncid, LE_DBL_VARNAME, NC_DOUBLE, 1, &dimid, &le_dbl_varid);
+    retval = nc_def_var_endian(ncid, le_dbl_varid, NC_ENDIAN_LITTLE);
+
+    /* Big-Endian Double */
+    retval = nc_def_var(ncid, BE_DBL_VARNAME, NC_DOUBLE, 1, &dimid, &be_dbl_varid);
+    retval = nc_def_var_endian(ncid, be_dbl_varid, NC_ENDIAN_BIG);
+
 
     retval = nc_close(ncid);
   }
@@ -74,6 +87,13 @@ int main() {
   printf("** Checking test files.\n");
   {
     ncid = 0;
+    le_float_varid = 0;
+    be_float_varid = 0;
+    le_int_varid = 0;
+    be_int_varid = 0;
+    le_dbl_varid = 0;
+    be_dbl_varid = 0;
+
     printf("*** %s\n",FILE_NAME_NC);
     retval = nc_open(FILE_NAME_NC, NC_NETCDF4 | NC_NOWRITE, &ncid);
 
@@ -81,6 +101,8 @@ int main() {
     retval = nc_inq_varid(ncid,BE_FLOAT_VARNAME,&be_float_varid);
     retval = nc_inq_varid(ncid,LE_INT_VARNAME,&le_int_varid);
     retval = nc_inq_varid(ncid,BE_INT_VARNAME,&be_int_varid);
+    retval = nc_inq_varid(ncid,LE_DBL_VARNAME,&le_dbl_varid);
+    retval = nc_inq_varid(ncid,BE_DBL_VARNAME,&be_dbl_varid);
 
     printf("\tLittle-Endian Float...\t");
     retval = nc_inq_var_endian(ncid,le_float_varid,&ed);
@@ -96,6 +118,14 @@ int main() {
 
     printf("\tBig-Endian Int...\t");
     retval = nc_inq_var_endian(ncid,be_int_varid,&ed);
+    if(ed == NC_ENDIAN_BIG) printf("passed\n"); else {printf("failed\n"); failures++;}
+
+    printf("\tLittle-Endian Double...\t");
+    retval = nc_inq_var_endian(ncid,le_dbl_varid,&ed);
+    if(ed == NC_ENDIAN_LITTLE) printf("passed\n"); else {printf("failed\n"); failures++;}
+
+    printf("\tBig-Endian Double...\t");
+    retval = nc_inq_var_endian(ncid,be_dbl_varid,&ed);
     if(ed == NC_ENDIAN_BIG) printf("passed\n"); else {printf("failed\n"); failures++;}
 
     retval = nc_close(ncid);
