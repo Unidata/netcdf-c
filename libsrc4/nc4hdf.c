@@ -657,8 +657,9 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       /* If we're reading, we need bufr to have enough memory to store
        * the data in the file. If we're writing, we need bufr to be
        * big enough to hold all the data in the file's type. */
-      if (!(bufr = malloc(len * file_type_size)))
-        BAIL(NC_ENOMEM);
+      if(len > 0)
+        if (!(bufr = malloc(len * file_type_size)))
+          BAIL(NC_ENOMEM);
     }
   else
 #endif /* ifndef HDF5_CONVERT */
@@ -823,7 +824,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   num_plists--;
 #endif
 #ifndef HDF5_CONVERT
-  if (need_to_convert) free(bufr);
+  if (need_to_convert && bufr) free(bufr);
 #endif
 
   /* If there was an error return it, otherwise return any potential
@@ -1039,8 +1040,9 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
           /* If we're reading, we need bufr to have enough memory to store
            * the data in the file. If we're writing, we need bufr to be
            * big enough to hold all the data in the file's type. */
-          if (!(bufr = malloc(len * file_type_size)))
-            BAIL(NC_ENOMEM);
+          if(len > 0)
+            if (!(bufr = malloc(len * file_type_size)))
+              BAIL(NC_ENOMEM);
         }
       else
 #endif /* ifndef HDF5_CONVERT */
@@ -1187,7 +1189,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 #endif
     }
 #ifndef HDF5_CONVERT
-  if (need_to_convert)
+  if (need_to_convert && bufr != NULL)
     free(bufr);
 #endif
   if (xtend_size)
