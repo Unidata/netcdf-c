@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.x Released TBD
 
+* Addressed an issue with IBM's `XL C` compiler on AIX and how it handled some calls to malloc.  Also, as suggested by Wolfgang Hayek, developers using this compiler may need to pass `CPPFLAGS=-D_LINUX_SOURCE_COMPAT` to avoid some test failures.
+
 * Addressed an issure in netcdf4 related to specifying an endianness explicitly.  When specifying an endianness for `NC_FLOAT`, the value would appear to not be written to file, if checked with `ncdump -s`.  The issue was more subtle; the value would be written but was not being read from file properly for non-`NC_INT`.  See [GitHub Issue](https://github.com/Unidata/netcdf-c/issues/112) or [NCF-331](https://bugtracking.unidata.ucar.edu/browse/NCF-331) for more information.
 
 * Addressed an issue in netcdf4 on Windows w/DAP related to how byte values were copied with sscanf.  Issue originally reported by Ellen Johnson at Mathworks, see [NCF-330](https://bugtracking.unidata.ucar.edu/browse/NCF-330) for more information.
