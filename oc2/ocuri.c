@@ -593,12 +593,10 @@ ocuridecodeparams(OCURI* ocuri)
     int nparams;
     char* params = NULL;
     char** plist;
-    size_t len;
 
     if(ocuri == NULL) return 0;
     if(ocuri->params == NULL) return 1;
 
-    len = strlen(ocuri->params);
     params = strdup(ocuri->params);
     if(params == NULL)
 	return 0; /* no memory */

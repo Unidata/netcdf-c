@@ -238,7 +238,7 @@ ocdata_read(OCstate* state, OCdata* data, size_t start, size_t count,
 {
     int stat = OC_NOERR;
     XXDR* xdrs;
-    OCtype etype, octype;
+    OCtype etype;
     int isscalar;
     size_t elemsize, totalsize, countsize;
     OCnode* pattern;
@@ -251,8 +251,7 @@ ocdata_read(OCstate* state, OCdata* data, size_t start, size_t count,
     assert(memsize > 0);
 
     pattern = data->pattern;
-    octype = pattern->octype;
-    assert(octype == OC_Atomic);
+    assert(pattern->octype == OC_Atomic);
     etype = pattern->etype;
 
     isscalar = (pattern->array.rank == 0 ? 1 : 0);

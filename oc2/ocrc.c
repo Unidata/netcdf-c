@@ -13,6 +13,8 @@
 #include "ocdebug.h"
 #include "oclog.h"
 
+#define OCRCFILEENV "DAPRCFILE"
+
 #define RTAG ']'
 #define LTAG '['
 
@@ -366,12 +368,14 @@ ocrc_load(void)
 
     /* locate the configuration files in the following order:
        1. specified by set_rcfile
-       2. set by OCRCFILE env variable
+       2. set by DAPRCFILE env variable
        3. '.'
        4. $HOME
     */  
     if(ocglobalstate.rc.rcfile != NULL) { /* always use this */
 	path = strdup(ocglobalstate.rc.rcfile);
+    } else if(getenv(OCRCFILEENV) != NULL && strlen(getenv(OCRCFILEENV)) > 0) {
+	path = strdup(getenv(OCRCFILEENV));
     } else {
 	char** rcname;
 	int found = 0;
