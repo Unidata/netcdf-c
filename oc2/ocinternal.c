@@ -611,7 +611,8 @@ ocset_curlproperties(OCstate* state)
 	/* If no cookie file was defined, define a default */
 	char tmp[OCPATHMAX+1];
         int stat;
-	snprintf(tmp,sizeof(tmp)-1,"%s/%s/",ocglobalstate.tempdir,OCDIR);
+	pid_t pid = getpid();
+	snprintf(tmp,sizeof(tmp)-1,"%s/%s.%ld/",ocglobalstate.tempdir,OCDIR,(long)pid);
 #ifdef _MSC_VER
 	stat = mkdir(tmp);
 #else

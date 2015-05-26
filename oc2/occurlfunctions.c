@@ -170,7 +170,7 @@ ocset_curlflag(OCstate* state, int flag)
     {
         struct OCSSL* ssl = &state->ssl;
         CHECK(state, CURLOPT_SSL_VERIFYPEER, (OPTARG)(ssl->verifypeer?1L:0L));
-        CHECK(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(ssl->verifyhost?2L:0L));
+        CHECK(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(ssl->verifyhost?1L:0L));
         if(ssl->certificate)
             CHECK(state, CURLOPT_SSLCERT, ssl->certificate);
         if(ssl->key)

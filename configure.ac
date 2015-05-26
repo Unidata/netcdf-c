@@ -79,11 +79,34 @@ AC_ARG_WITH([minblocksize],
 AC_MSG_RESULT([$NCIO_MINBLOCKSIZE])
 AC_DEFINE_UNQUOTED([NCIO_MINBLOCKSIZE], [$NCIO_MINBLOCKSIZE], [min blocksize for posixio.])
 
+###
+# Doxygen and doxygen-related options.
+###
 AC_ARG_ENABLE([doxygen],
   [AS_HELP_STRING([--enable-doxygen],
     [Enable generation of documentation.])])
 test "x$enable_doxygen" = xyes || enable_doxygen=no
 AM_CONDITIONAL([BUILD_DOCS], [test "x$enable_doxygen" = xyes])
+
+AC_ARG_ENABLE([doxygen-tasks],
+    [AS_HELP_STRING([--enable-doxygen-tasks],
+        [Enable Doxygen-generated test, todo and bug list documentation. Developers only.])])
+test "x$enable_doxygen_tasks" = xyes || enable_doxygen_tasks=no
+AM_CONDITIONAL([SHOW_DOXYGEN_TAG_LIST], [test "x$enable_doxygen_tasks" = xyes])
+AC_SUBST([SHOW_DOXYGEN_TAG_LIST], [$enable_doxygen_tasks])
+
+AC_ARG_ENABLE([doxygen-server-side-search],
+    [AS_HELP_STRING([--enable-doxygen-server-side-search],
+        [Enable doxygen server-side search. This is of interest to developers only, or users who will serve the documentation via a web server instead of browsing locally.])])
+test "x$enable_doxygen_server_side_search" = xyes || enable_doxygen_server_side_search=no
+AM_CONDITIONAL([SERVER_SIDE_SEARCH], [test "x$enable_doxygen_server_side_search" = xyes])
+AC_SUBST([SERVER_SIDE_SEARCH], [$enable_doxygen_server_side_search])
+
+AC_ARG_ENABLE([doxygen-pdf-output],
+    [AS_HELP_STRING([--enable-doxygen-pdf-output],
+        [Build netCDF library documentation in PDF format. Experimental.])])
+               AM_CONDITIONAL([NC_ENABLE_DOXYGEN_PDF_OUTPUT], [test "x$enable_doxygen_pdf_output" = xyes])
+AC_SUBST([NC_ENABLE_DOXYGEN_PDF_OUTPUT], [$enable_doxygen_pdf_output])
 
 AC_ARG_ENABLE([dot],
 	[AS_HELP_STRING([--enable-dot],
@@ -974,6 +997,9 @@ AM_CONDITIONAL(BUILD_CDMREMOTE, [test "x$enable_cdmremote" = xyes]) # Alias
 AM_CONDITIONAL(BUILD_RPC, [test "x$enable_rpc" = xyes])
 AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
+AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
+AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
+AM_CONDITIONAL(SERVER_SIDE_SEARCH, [test x$enable_doxygen_server_side_search = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
