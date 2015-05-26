@@ -1,6 +1,8 @@
 Software for Manipulating or Displaying NetCDF Data {#software}
 ===================================================
 
+[TOC]
+
 This document provides references to software packages that may be used for manipulating or displaying [netCDF](/software/netcdf/) data. We include information about both freely-available and licensed (commercial) software that can be used with netCDF data. We rely on developers to help keep this list up-to-date. If you know of corrections or additions, please [send them to us (mailto:support@unidata.ucar.edu). Where practical, we would like to include WWW links to information about these packages in the HTML version of this document.
 
 Other useful guides to utilities that can handle netCDF data include ARM's list of [ARM-tested netCDF data tools](http://science.arm.gov/%7ecflynn/ARM_Tested_Tools/), which includes some downloadable binaries and the NOAA Geophysical Fluid Dynamics Laboratory [guide to netCDF utilities](http://nomads.gfdl.noaa.gov/sandbox/products/vis/data/netcdf/GFDL_VG_NetCDF_Utils.html).
@@ -12,6 +14,7 @@ Other useful guides to utilities that can handle netCDF data include ARM's list 
 
 -   [ANDX (ARM NetCDF Data eXtract) and ANAX (ARM NetCDF ASCII
     eXtract)](#ANDX)
+
 -   [ANTS (ARM NetCDF Tool Suite)](#ANTS)
 -   [ARGOS (interActive thRee-dimensional Graphics ObServatory)](#ARGOS)
 -   [CDAT (Climate Data Analysis Tool)](#CDAT)
@@ -39,7 +42,7 @@ Other useful guides to utilities that can handle netCDF data include ARM's list 
 -   [HDF-EOS to netCDF converter](#HDF-EOS)
 -   [HIPHOP (Handy IDL-Program for HDF-Output Plotting)](#HIPHOP)
 -   [HOPS (Hyperslab OPerator
-    Suite)](#Hyperslab_OPerator_Suite_(HOPS))
+    Suite)](#HOPS))
 -   [iCDF (imports chromatographic netCDF data into MATLAB)](#iCDF)
 -   [IDV (Integrated Data Viewer)](#IDV)
 -   [Ingrid](#Ingrid)
@@ -66,6 +69,7 @@ Other useful guides to utilities that can handle netCDF data include ARM's list 
 -   [ncregrid](#ncregrid)
 -   [nctoolbox (a MATLAB common data model interface)](#nctoolbox)
 -   [ncview](#ncview)
+-   [NetCDF Toolbox for MATLAB-5](#matlab5)
 -   [ncvtk](#ncvtk)
 -   [netcdf tools](#netcdf_tools)
 -   [netcdf4excel (add-in for MS Excel)](#netcdf4excel)
@@ -79,7 +83,7 @@ Other useful guides to utilities that can handle netCDF data include ARM's list 
 -   [Parallel-NetCDF](#Parallel-NetCDF)
 -   [Paraview and vtkCSCSNetCDF](#Paraview)
 -   [Perl interfaces](#Perl)
--   [PolyPaint+](#PolyPaint+)
+-   [PolyPaint+](#PolyPaint)
 -   [Pomegranate](#pomegranate)
 -   [Pupynere (PUre PYthon NEtcdf REader)](#pupynere)
 -   [PyNGL and PyNIO](#PyNGL)
@@ -89,7 +93,7 @@ Other useful guides to utilities that can handle netCDF data include ARM's list 
 -   [Ruby interface](#Ruby)
 -   [Scientific DataSet (SDS) Library](#SDS)
 -   [Apache Spatial Information System (SIS)](#SIS)
--   [Tcl/Tk interfaces](#Tcl/Tk)
+-   [Tcl/Tk interfaces](#TclTk)
 -   [Tcl-nap (N-dimensional array processor)](#Tcl-nap)
 -   [Visual Basic and VB.net](#VB)
 -   [VisAD](#VisAD)
@@ -107,7 +111,7 @@ Other useful guides to utilities that can handle netCDF data include ARM's list 
 -   [Avizo](#Avizo)
 -   [AVS](#AVS)
 -   [Barrodale UFI](#BCS-UFI)
--   [DioVISTA/Storm](#DioVISTA/Storm)
+-   [DioVISTA/Storm](#DioVISTAStorm)
 -   [EnSight](#EnSight)
 -   [Environmental WorkBench](#Environmental_WorkBench)
 -   [ESRI](#ESRI)
@@ -133,7 +137,7 @@ Other useful guides to utilities that can handle netCDF data include ARM's list 
 Freely Available Software {#freely}
 =========================
 
-<span id="ANDX"></span>ANDX and ANAX {#ANDX}
+ANDX and ANAX {#ANDX}
 ------------------------------------
 
 The ARM Program has developed [ANDX (ARM NetCDF Data
@@ -150,7 +154,7 @@ scaled-down version of ANDX -- it is designed to only extract ASCII
 data. All features of ANDX pertaining to non-graphic data extraction are
 included in ANAX.
 
-<span id="ANTS"></span>ANTS {#ANTS}
+ANTS {#ANTS}
 ---------------------------
 
 The ARM Program has developed [ANTS (ARM NetCDF Tool
@@ -177,7 +181,7 @@ represents a library of coding examples for fundamental netCDF tasks.
 See the [website](http://science.arm.gov/~cflynn/ANTS/) for more
 information.
 
-<span id="ARGOS"></span>ARGOS {#ARGOS}
+ARGOS {#ARGOS}
 -----------------------------
 
 [ARGOS](http://www.lapeth.ethz.ch/argos/index.html) (interActive
@@ -207,7 +211,7 @@ conditions](http://www.lapeth.ethz.ch/argos/argos_copyright.html) are
 available. For further information and installation, please E-mail to:
 bresch@atmos.umnw.ethz.ch
 
-<span id="CDAT"></span>CDAT {#CDAT}
+CDAT {#CDAT}
 ---------------------------
 
 The [Climate Data Analysis Tool (CDAT)](http://cdat.sf.net), developed
@@ -239,7 +243,7 @@ an image, or as a collection of images in an animation. The software has
 a gradual learning curve, allowing the novice user to quickly obtain
 useful results.
 
-<span id="CDFconvert"></span>CDFconvert {#CDFconvert}
+CDFconvert {#CDFconvert}
 ---------------------------------------
 
 The [MRG CDFconvert
@@ -257,7 +261,7 @@ has the flexibility to handle netCDF files generated by a number of
 sources, including NCEP and ECMWF. User-definable conversion tables make
 the extension of the package to different datasets possible.
 
-<span id="cdfsync"></span>cdfsync {#cdfsync}
+cdfsync {#cdfsync}
 ---------------------------------
 
 Joe Sirott of NOAA's Pacific Marine Environmental Laboratory has
@@ -277,7 +281,7 @@ The latest version should run on Linux variants and Solaris.
 More information is available at the [cdfsync
 website](http://www.epic.noaa.gov/epic/software/cdfsync/).
 
-<span id="CDO"></span>CDO (Climate Data Operators) {#CDO}
+CDO (Climate Data Operators) {#CDO}
 --------------------------------------------------
 
 Uwe Schulzweida at the Max Planck Institute for Meteorology has
@@ -316,7 +320,7 @@ or using ECMWF reanalysis on a reduced grid
 More information is available on the [CDO
 homepage](http://code.zmaw.de/projects/cdo).
 
-<span id="CIDS Tools"></span>CIDS Tools {#CIDS_Tools}
+CIDS Tools {#CIDS_Tools}
 ---------------------------------------
 
 The Center for Clouds Chemistry and Climate
@@ -332,7 +336,7 @@ The source for these utilities can be downloaded from [CIDS NetCDF
 Visualization Tools
 site](http://www-c4.ucsd.edu/~cids/software/visual.html).
 
-<span id="CSIRO-MATLAB"></span>CSIRO MATLAB/netCDF interface
+CSIRO MATLAB/netCDF interface {#CSIRO-MATLAB}
 ------------------------------------------------------------
 
 The [CSIRO MATLAB/netCDF
@@ -352,7 +356,7 @@ netCDF data, the CSIRO interface has a simpler syntax than the netCDF
 Toolbox, but the latter may also be used to create and manipulate netCDF
 variables and datasets.
 
-<span id="EPIC"></span>EPIC
+EPIC {#EPIC}
 ---------------------------
 
 NOAA's Pacific Marine Environmental Laboratory
@@ -391,7 +395,7 @@ information about EPIC, please see the Web pages at
 <http://www.pmel.noaa.gov/epic/index.html>. Contact epic@pmel.noaa.gov,
 or Nancy Soreide, nns@noaapmel.gov, for more information.
 
-<span id="ExcelUse"></span>Excel Use
+Excel Use
 ------------------------------------
 
 Several packages are available for accessing netCDF data from Microsoft
@@ -400,7 +404,7 @@ a [Scientific Dataset (SDS) Library](#SDS) that supports a DataSetEditor
 add-in for Excel to view and modify various forms of data, including
 netCDF.
 
-<span id="EzGet"></span>EzGet
+EzGet {#EzGet}
 -----------------------------
 
 A FORTRAN library called
@@ -437,7 +441,7 @@ the documentation or software, see the EzGet home page at
 <http://www-pcmdi.llnl.gov/ktaylor/ezget/ezget.html>. For questions or
 comments on EzGet, contact Karl Taylor (taylor13@llnl.gov).
 
-<span id="FAN"></span>FAN
+FAN
 -------------------------
 
 [FAN (File Array Notation)](/software/netcdf/fan_utils.html) is Harvey
@@ -451,7 +455,7 @@ via anonymous FTP from
 <ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/fan.tar.Z>. Questions and
 comments may be sent to Harvey Davies, harvey.davies@csiro.au.
 
-<span id="FERRET"></span>FERRET
+FERRET {#FERRET}
 -------------------------------
 
 [FERRET](http://ferret.wrc.noaa.gov/Ferret/) is an interactive computer
@@ -478,7 +482,7 @@ data base, special memory management for very large calculations, and
 symmetrical processing in 4 dimensions. Contact Steve Hankin,
 hankin@noaapmel.gov, for more information.
 
-<span id="fimex"></span>Fimex
+Fimex {#fimex}
 -----------------------------
 
 Heiko Klein (Norwegian Meteorological Institute) has developed the
@@ -496,7 +500,7 @@ For simple usage, Fimex also comes with the command line program fimex.
 Documentation and downloads are available from the [fimex web
 site](http://wiki.met.no/fimex/).
 
-<span id="fwtools"></span>FWTools (GIS Binary Kit for Windows and Linux)
+FWTools (GIS Binary Kit for Windows and Linux) {#fwtools}
 ------------------------------------------------------------------------
 
 [FWTools](http://fwtools.maptools.org/) is Frank Warmerdam's set of Open
@@ -507,7 +511,7 @@ some supporting components. FWTools aims to track the latest development
 versions of the packages included as opposed to official releases, "to
 give folks a chance to use the *latest and greatest*".
 
-<span id="GDAL"></span>GDAL
+GDAL {#GDAL}
 ---------------------------
 
 Frank Warmerdam's [GDAL](http://www.remotesensing.org/gdal/index.html)
@@ -538,14 +542,14 @@ netCDF (GMT conventions) as easy as:
 
        gdal_translate arc_ascii.grd -of GMT gmt_grid.nc
 
-<span id="GDL"></span>GDL (GNU Data Language)
+GDL (GNU Data Language) {#GDL}
 ---------------------------------------------
 
 [GDL](http://gnudatalanguage.sourceforge.net/) is a free implementation
 of most of the programming language supported by [IDL](#IDL)
 (Interactive Data Language). GDL supports the netCDF-3 API.
 
-<span id="Gfdnavi"></span>Gfdnavi (Geophysical fluid data navigator)
+Gfdnavi (Geophysical fluid data navigator) {#Gfdnavi}
 --------------------------------------------------------------------
 
 [Gfdnavi](http://www.gfd-dennou.org/arch/davis/gfdnavi/index.en.htm) is
@@ -575,7 +579,7 @@ Global Satellite Mapping of Precipitation
 ([GSMaP](http://www.radar.aero.osakafu-u.ac.jp/~gsmap/index_english.html))
 project.
 
-<span id="GMT"></span>GMT
+GMT {#GMT}
 -------------------------
 
 [GMT](http://gmt.soest.hawaii.edu/) (Generic Mapping Tools) is an open
@@ -596,7 +600,7 @@ anonymous ftp from several servers; see
 [gmt.soest.hawaii.edu](http://gmt.soest.hawaii.edu) for installation
 information.
 
-<span id="Grace"></span>Grace
+Grace {#Grace}
 -----------------------------
 
 [Grace](http://plasma-gate.weizmann.ac.il/Grace/) is a tool to make
@@ -619,7 +623,7 @@ A few features of Grace are:
 -   Device-independent Type1 font rastering.
 -   Ability to read or write netCDF data.
 
-<span id="GrADS"></span>GrADS
+GrADS {#GrADS}
 -----------------------------
 
 [GrADS](http://grads.iges.org/grads/grads.html) (Grid Analysis and
@@ -633,7 +637,7 @@ manipulation, and display of earth science data in several forms,
 including GRIB and netCDF. For more information, see the [GrADS User's
 Guide](http://grads.iges.org/grads/gadoc/users.html).
 
-<span id="Gri"></span>Gri
+Gri
 -------------------------
 
 Gri is an extensible plotting language for producing scientific graphs,
@@ -642,7 +646,7 @@ Dalhousie University is the author of Gri, which can read data from
 netCDF files as well as ASCII and native binary data. For more
 information on Gri, see the URL <http://gri.sourceforge.net/>.
 
-<span id="GXSM"></span>GXSM
+GXSM {#GXSM}
 ---------------------------
 
 The GXSM is the Gnome X Scanning Microscopy project, it is a bit more
@@ -651,7 +655,7 @@ support for DSP cards including open source DSP software and a growing
 set of SPM related electronics. For more information, see
 <http://gxsm.sourceforge.net/>.
 
-<span id="HDF interface"></span>HDF interface
+HDF interface {#HDF_interface}
 ---------------------------------------------
 
 The National Center for Supercomputing Applications (NCSA) has added the
@@ -678,7 +682,7 @@ rest of the HDF tool suite. Such an integration will then allow tools
 written for netCDF and tools written for HDF to both interact
 intelligently with the new data files.
 
-<span id="HDF-EOS"></span>HDF-EOS to netCDF converter
+HDF-EOS to netCDF converter {#HDF-EOS}
 -----------------------------------------------------
 
 The Goddard Earth Sciences Data and Information Services Center ([GES
@@ -699,7 +703,7 @@ are available for searching and converting these data. More information
 on AIRS products is available at
 <http://disc.gsfc.nasa.gov/AIRS/index.html>.
 
-<span id="HIPHOP"></span>HIPHOP
+HIPHOP {#HIPHOP}
 -------------------------------
 
 [HIPHOP](http://www.knmi.nl/onderzk/atmosam/English/Service/hiphop/hiphop.html),
@@ -722,7 +726,7 @@ Beginning with Version 4.0, it also supports the ability to overlay
 meteorological fields on a number of different satellite images, and to
 draw air parcel trajectories.
 
-<span id="Hyperslab OPerator Suite (HOPS)"></span>Hyperslab OPerator Suite (HOPS)
+Hyperslab OPerator Suite (HOPS) {#HOPS}
 ---------------------------------------------------------------------------------
 
 Hyperslab OPerator Suite
@@ -746,7 +750,7 @@ Note that HOPS is not a general purpose netCDF utility and works only
 for the NCAR CSM netCDF formats. For more information, check the [HOPS
 home page](http://www.cgd.ucar.edu/gds/svn/hyperslab.html).
 
-<span id="iCDF"></span>iCDF (imports chromatographic netCDF data into MATLAB)
+iCDF (imports chromatographic netCDF data into MATLAB) {#iCDF}
 -----------------------------------------------------------------------------
 
 Klavs M. Sørensen, Thomas Skov and Rasmus Bro (Faculty of Life Sciences,
@@ -768,7 +772,7 @@ For more information, see the paper
 > chromatographic analysis Analytical and Bioanalytical Chemistry, 390
 > (1): 281-285.
 
-<span id="IDV"></span>IDV (Integrated Data Viewer)
+IDV (Integrated Data Viewer) {#IDV}
 --------------------------------------------------
 
 Unidata's [Integrated Data Viewer (IDV)](/software/idv/) is a Java
@@ -791,7 +795,7 @@ collaborative visualization and analysis and the [netCDF Java
 library](/software/netcdf-java/) for reading and manipulating netCDF
 files.
 
-<span id="Ingrid"></span>Ingrid
+Ingrid {#Ingrid}
 -------------------------------
 
 [Ingrid](http://ingrid.ldgo.columbia.edu/), by M. Benno Blumenthal
@@ -832,7 +836,7 @@ quote the introduction:
 Ingrid currently runs on Linux, for which binaries are available. CVS
 access to the current source can be arranged.
 
-<span id="IntelArrayVisualizer"></span> Intel Array Visualizer
+ Intel Array Visualizer {#IntelArrayVisualizer}
 --------------------------------------------------------------
 
 The [Intel® Array
@@ -845,7 +849,7 @@ developing scientific visualization applications and for creating
 interactive graphs of array data in various formats, including HDF and
 netCDF.
 
-<span id="IVE"></span>IVE
+IVE {#IVE}
 -------------------------
 
 [IVE (Interactive Visualization
@@ -899,7 +903,7 @@ Library](http://ngwww.ucar.edu/ng/) to produce graphical output. IVE is
 via anonymous ftp; and as binary on request for licensees of NCAR
 graphics.
 
-<span id="JSON"></span>JSON format with the ncdump-json utility
+JSON format with the ncdump-json utility {#JSON}
 ---------------------------------------------------------------
 
 Josep Llodrà has developed a program to output the contents of a
@@ -910,7 +914,7 @@ functionality, unless the "-j" option is used to specify JSON output.
 The program and source are available from
 <https://github.com/jllodra/ncdump-json> .
 
-<span id="Java interface"></span>Java interface
+Java interface {#Java_interface}
 -----------------------------------------------
 
 The [NetCDF-Java 4.2 Library](/packages/netcdf-java/) is a Java
@@ -931,7 +935,7 @@ The library also implements
 you to add metadata to CDM datasets, as well as to create virtual
 datasets through aggregation.
 
-<span id="KST"></span>Kst (2D plotting tool)
+Kst (2D plotting tool) {#KST}
 --------------------------------------------
 
 [Kst](http://kst-plot.kde.org) is an open-source, cross-platform 2D
@@ -959,7 +963,7 @@ Kst is characterized by the following features:
     thanks to a plugin-based architecture
 -   Available on Windows, Linux, and Mac OSX
 
-<span id="Labview-API"></span>Labview interface
+Labview interface {#Labview-API}
 -----------------------------------------------
 
 A netCDF Labview interface, implemented in the Labview programming
@@ -970,7 +974,7 @@ University in China. For more information and to download the source
 code, see the [NetCDFLabview web
 site](https://sourceforge.net/projects/netcdflabview/).
 
-<span id="MBDyn"></span>MBDyn (MultiBody Dynamics)
+MBDyn (MultiBody Dynamics) #{MBDyn}
 --------------------------------------------------
 
 [MBDyn](http://www.aero.polimi.it/~mbdyn/) is an open-source MultiBody
@@ -989,7 +993,7 @@ automotive fields for dynamics analysis and simulation of complex
 systems. Dynamic linking of user-defined modules is heavily exploited to
 let users extend the feature library.
 
-<span id="Max_diff_nc"></span>Max\_diff\_nc
+Max_diff_nc ${Maxdiffnc}
 -------------------------------------------
 
 This is a program which compares two NetCDF files. Variables with the
@@ -1005,7 +1009,7 @@ The web page for this program is:
 
 This is a freely available tool.
 
-<span id="MeteoExplorer"></span>MeteoExplorer
+MeteoExplorer {#MeteoExplorer}
 ---------------------------------------------
 
 [MeteoExplorer](http://www.eastmodelsoft.com/index_en.htm), developed by
@@ -1045,7 +1049,7 @@ For more information, please visit [MeteoExplorer's home
 page](http://www.eastmodelsoft.com/software/mexplorer.htm) or contact
 the support staff via meteoexplorer@hotmail.com .
 
-<span id="MeteoInfo"></span>MeteoInfo
+MeteoInfo {#MeteoInfo}
 -------------------------------------
 
 For better cross-platform support,
@@ -1061,7 +1065,7 @@ Download: <http://www.meteothinker.com/>
 
 Java 6 is needed to run the software.
 
-<span id="MexEPS"></span>MexEPS
+MexEPS {#MexEPS}
 -------------------------------
 
 [PMEL](http://www.pmel.noaa.gov/) has developed a MATLAB interface,
@@ -1094,7 +1098,7 @@ If you have any questions or comments, please contact the author, Willa
 Zhu [(willa@pmel.noaa.gov)](mailto:willa@pmel.noaa.gov) or Nancy Soreide
 (nns@pmel.noaa.gov).
 
-<span id="MEXNC"></span>MEXNC and SNCTOOLS
+MEXNC and SNCTOOLS {#MEXNC}
 ------------------------------------------
 
 John Evans of Rutgers University maintains MEXNC and developed SNCTOOLS.
@@ -1107,7 +1111,7 @@ such low level netCDF details as file IDs, variable IDs, and dimension
 IDs. The general philosophy behind SNCTOOLS is providing the ability to
 read and write data without trying to invent a new syntax.
 
-<span id="Mirone"></span>Mirone (Windows MATLAB-based display)
+Mirone (Windows MATLAB-based display) {#Mirone}
 --------------------------------------------------------------
 
 Joaquim Luis of Universidade do Algarve has developed
@@ -1135,7 +1139,7 @@ Also see\
  J. F. Luis. Mirone: A multi-purpose tool for exploring grid data.
 Computers & Geosciences, 33, 31-41, 2007.
 
-<span id="ncBrowse"></span>ncBrowse
+ncBrowse {#ncBrowse}
 -----------------------------------
 
 Donald Denbo of NOAA's Pacific Marine Environmental Laboratory has
@@ -1165,7 +1169,7 @@ Questions and suggestions should be directed to
 reading a netCDF file with ncBrowse, please send him a copy of the file
 and he'll get ncBrowse to read it!
 
-<span id="nccmp"></span>nccmp
+nccmp {#nccmp}
 -----------------------------
 
 Remik Ziemlinski of the NOAA Geophysical Fluid Dynamics Laboratory has
@@ -1175,7 +1179,7 @@ metadata and operates quickly. Highly recommended for regression testing
 with large datasets. See the Web site <http://nccmp.sourceforge.net/>
 for more information.
 
-<span id="NCL"></span>NCL
+NCL {#NCL}
 -------------------------
 
 The [NCAR Command Language (NCL)](http://www.ncl.ucar.edu/) is an
@@ -1228,7 +1232,7 @@ Documentation and additional information on NCL are available from the
 download. You can also contact Mary Haley, at <haley@ucar.edu> for more
 information.
 
-<span id="NCO"></span>NCO
+NCO {#NCO}
 -------------------------
 
 [NCO](http://nco.sourceforge.net) (netCDF operators) is a package of
@@ -1258,7 +1262,7 @@ page](http://nco.sourceforge.net/), as is the NCO User's Guide.
 
 For more information, contact the author, Charlie Zender.
 
-<span id="ncregrid"></span>ncregrid
+ncregrid {#ncregrid}
 -----------------------------------
 
 Patrick Jöckel of the Max Planck Institute for Chemistry has developed
@@ -1276,7 +1280,7 @@ onto the required grid resolution.
 More information is available on the web-page:
 <http://www.mpch-mainz.mpg.de/~joeckel/ncregrid/index.html>.
 
-<span id="nctoolbox"></span>nctoolbox (a MATLAB common data model interface)
+nctoolbox (a MATLAB common data model interface) {#nctoolbox}
 ----------------------------------------------------------------------------
 
 [nctoolbox](http://nctoolbox.github.io/nctoolbox/) is a MATLAB interface
@@ -1289,7 +1293,7 @@ works with MATLAB 2008a and later. The nctoolbox software was developed
 by Brian Schlining (MBARI), Rich Signell (USGS), Sachin Kumar Bhate
 (freelance), and Alex Crosby (RPS/ASA).
 
-<span id="ncdx"></span>ncdx
+ncdx {#ncdx}
 ---------------------------
 
 Patrick Jöckel of the Max Planck Institute for Chemistry has developed
@@ -1299,14 +1303,14 @@ any warranty under the GNU public license (GPL). More information is
 available on the web-page:
 <http://www.mpch-mainz.mpg.de/~joeckel/ncdx/index.html>.
 
-<span id="ncensemble"></span>ncensemble
+ncensemble {#ncensemble}
 ---------------------------------------
 
 Alan Iwi, of Rutherford Appleton Laboratory, offers this command line
 ensemble statistics utility. More information is available on the
 web-page: <http://home.badc.rl.ac.uk/iwi/ncensemble/>.
 
-<span id="ncview"></span>ncview
+ncview {#ncview}
 -------------------------------
 
 [Ncview](http://meteora.ucsd.edu/~pierce/ncview_home_page.html) is a
@@ -1323,7 +1327,7 @@ The source may be downloaded from <ftp://cirrus.ucsd.edu/pub/ncview/>.
 For more information, please contact the author, David W. Pierce at
 <dpierce@ucsd.edu>.
 
-<span id="NC4ML5"></span>NetCDF Toolbox for MATLAB-5
+NetCDF Toolbox for MATLAB-5 {#matlab5}
 ----------------------------------------------------
 
 The [NetCDF Toolbox for MATLAB-5](http://mexcdf.sourceforge.net/),
@@ -1335,7 +1339,7 @@ bug-fix-only mode, and is maintained by John.G.Evans.NE@gmail.com, on
 the [MEXNC, SNCTOOLS, and the NetCDF Toolbox](http://mexcdf.sf.net) web
 page.
 
-<span id="ncvtk"></span>ncvtk
+ncvtk {#ncvtk}
 -----------------------------
 
 [Ncvtk](http://ncvtk.sourceforge.net/) is a program for exploring
@@ -1357,7 +1361,7 @@ highly portable and known to run on Windows and Linux (i386, ia64,
 EMT64) platforms. More information about Ncvtk is available at
 <http://ncvtk.sourceforge.net>.
 
-<span id="netcdf_tools"></span>Ivan Shmakov's netcdf tools
+Ivan Shmakov's netcdf tools {#netcdf_tools}
 ----------------------------------------------------------
 
 The NetCDF tools is a free software package consisting of a few tools
@@ -1389,7 +1393,7 @@ page](http://freshmeat.net/projects/netcdf-tools) on freshmeat.net. The
 [source](http://waterlily.siamics.net/~ivan/src/netcdf-tools-0.1-rc1.tar.gz)
 is also available.
 
-<span id="netcdf4excel"></span>netcdf4excel (add-in for MS Excel)
+netcdf4excel (add-in for MS Excel) {#netcdf4excel}
 -----------------------------------------------------------------
 
 Alexander Bruhns has developed [a netCDF add-in written in Visual Basic
@@ -1408,7 +1412,7 @@ Excel for read or write access.
 More details are available on the [netcdf4excel web
 site](http://code.google.com/p/netcdf4excel/).
 
-<span id="netcdf95"></span>NetCDF95 alternative Fortran API
+NetCDF95 alternative Fortran API {#netcdf95}
 -----------------------------------------------------------
 
 Lionel Guez has developed and made feely available
@@ -1417,7 +1421,7 @@ Fortran interface to the NetCDF library. Compared to the
 Unidata-provided Fortran 90 netCDF interface, the NetCDF95 interface is
 meant to be easier to use and more secure.
 
-<span id="Objective-C"></span>Objective-C API
+Objective-C API {#Objective-C}
 ---------------------------------------------
 
 Tom Moore has an Objective-C API, available here:
@@ -1450,7 +1454,7 @@ distribution](http://www.mt-se.com/pub/NetcdfStep-GNUstep-0.6.1.tar.gz)
 synced up to version 0.6.1 is available for GNUstep for use on Linux and
 other Unix platforms.
 
-<span id="NCMEX"></span>Octave interface
+Octave interface {#NCMEX}
 ----------------------------------------
 
 The ARM Program has contributed NCMEX for Octave, a port of Chuck
@@ -1471,7 +1475,7 @@ toolbox for Octave.
 
 For installation instructions, see the README file inside the .tar file.
 
-<span id="Octave"></span>Octave interface (Barth)
+Octave interface (Barth) {#Octave}
 -------------------------------------------------
 
 Alexander Barth has contributed the following:
@@ -1490,7 +1494,7 @@ source code is available at
 It was also included in the Octave Repository
 [octave-forge](http://octave.sourceforge.net/).
 
-<span id="OPeNDAP"></span>OPeNDAP (formerly DODS)
+OPeNDAP (formerly DODS) {#OPeNDAP}
 -------------------------------------------------
 
 The [OPeNDAP](http://opendap.org/) (formerly known as DODS) is an
@@ -1523,7 +1527,7 @@ NFS, for example).
 OPeNDAP software is freely available in both source form or binary form
 for selected platforms.
 
-<span id="OpenDX"></span>OpenDX
+OpenDX {#OpenDX}
 -------------------------------
 
 [OpenDX](http://www.opendx.org/about.html) (formerly IBM Data Explorer,
@@ -1589,7 +1593,7 @@ earth, space and environmental sciences examples are available at
 Cornell University via info.tc.cornell.edu. Also see the [ncdx](#ncdx)
 tool for making netCDF files OpenDX compliant.
 
-<span id="Panoply"></span>Panoply
+Panoply {#Panoply}
 ---------------------------------
 
 [Panoply](http://www.giss.nasa.gov/tools/panoply/) is an application
@@ -1621,7 +1625,7 @@ Panoply is developed at the NASA Goddard Institute for Space Studies.
 Questions and suggestions should be directed to [Dr. Robert B.
 Schmunk](http://www.giss.nasa.gov/staff/rschmunk.html).
 
-<span id="Parallel-NetCDF"></span>Parallel-NetCDF
+Parallel-NetCDF {#Parallel-NetCDF}
 -------------------------------------------------
 
 A group of researchers at Northwestern University and Argonne National
@@ -1642,7 +1646,7 @@ improvements on parallel platforms, as described in a [technical
 report](ftp://info.mcs.anl.gov/pub/tech_reports/reports/P1048.pdf).
 Users are invited to test Parallel-NetCDF in their applications.
 
-<span id="Paraview"></span>Paraview and vtkCSCSNetCDF
+Paraview and vtkCSCSNetCDF {#Paraview}
 -----------------------------------------------------
 
 <http://www.paraview.org/>
@@ -1665,7 +1669,7 @@ of Tcl/Tk and C++.
 
 A vtk/ParaView reader for netCDF files can be found here.
 
-<span id="Perl"></span>Perl interfaces
+Perl interfaces {#Perl}
 --------------------------------------
 
 There are two netCDF interfaces for Perl:
@@ -1676,7 +1680,7 @@ There are two netCDF interfaces for Perl:
     module, based on version 2 of the netCDF package. Uses perl lists
     for representing netCDF variables.
 
-<span id="PolyPaint+"></span>PolyPaint+
+PolyPaint+ {#PolyPaint}
 ---------------------------------------
 
 [PolyPaint+](http://lasp.colorado.edu/polypaint/home.html) is an
@@ -1740,7 +1744,7 @@ You may order by...
 
 -   E-MAIL : margi@aries.colorado.edu
 
-<span id="pomegranate"></span>Pomegranate
+Pomegranate {#Pomegranate}
 -----------------------------------------
 
 The P9E Team at NASA JPL has developed
@@ -1764,7 +1768,7 @@ from files in supported formats.
 Pomegranate is open source software and can be downloaded from
 <http://www.openchannelsoftware.com/projects/Pomegranate/>.
 
-<span id="PyNGL"></span>PyNGL and PyNIO
+PyNGL and PyNIO {#PyNGL}
 ---------------------------------------
 
 NCAR's Computational and Information Systems Laboratory has developed
@@ -1774,7 +1778,7 @@ visualization and data analysis and
 supporting access to a variety of data formats using an interface
 modelled on netCDF.
 
-<span id="Python"></span>Python interfaces
+Python interfaces {#Python}
 ------------------------------------------
 
 Python is an interpreted, object-oriented language that is supported on
@@ -1830,7 +1834,7 @@ Konrad Hinsen's NetCDF package to Python but can read and write in a
 parallel way. For more information, see:
 <http://www.pyacts.org/pypnetcdf>.
 
-<span id="pupynere"></span>Pupynere (PUre PYthon NEtcdf REader) Roberto
+Pupynere (PUre PYthon NEtcdf REader) Roberto
 De Almeida has developed
 [pupynere](http://pypi.python.org/pypi/pupynere/), a PUre PYthon NEtcdf
 REader that allows read-access to netCDF files using the same syntax as
@@ -1838,7 +1842,7 @@ the Scientific.IO.NetCDF Python module. Even though it's written in
 Python, the module is up to 40% faster than Scientific.IO.NetCDF and
 pynetcdf.
 
-<span id="R"></span>R interface
+R interface {#R}
 -------------------------------
 
 The R Project for Statistical Computing has developed
@@ -1868,7 +1872,7 @@ don't fit into memory, because data is processed in chunks. See
 package](http://cran.r-project.org/web/packages/raster/vignettes/Raster.pdf)
 for more information.
 
-<span id="QGIS"></span>Quantum GIS (QGIS)
+Quantum GIS (QGIS) {#QGIS}
 -----------------------------------------
 
 [Quantum GIS](http://www.qgis.org/) (QGIS) is an Open Source Geographic
@@ -1885,7 +1889,7 @@ a more detailed list of features of the QGIS desktop, browser, server,
 and client, see the [QGIS features
 page](http://www.qgis.org/en/about-qgis/features.html).
 
-<span id="Ruby"></span>Ruby interface
+Ruby interface {#Ruby}
 -------------------------------------
 
 A group at the Research Institute for Sustainable Humanosphere (RISH) of
@@ -1903,7 +1907,7 @@ and netCDF data uniformly.
 More information about Ruby is available from the [Ruby web
 site](http://www.ruby-lang.org/).
 
-<span id="SDS"></span>Scientific DataSet (SDS) Library
+Scientific DataSet (SDS) Library {#SDS}
 ------------------------------------------------------
 
 The [Scientific DataSet Library and Tools
@@ -1947,7 +1951,7 @@ The SDS project is in beta phase and keeps evolving. You are welcome to
 join discussions or report issues at the CodePlex site:
 <http://sds.codeplex.com>.
 
-<span id="SIS"></span>Apache Spatial Information System (SIS)
+Apache Spatial Information System (SIS) {#SIS}
 -------------------------------------------------------------
 
 [Apache Spatial Information System
@@ -1980,7 +1984,7 @@ conventions and ISO 19115 metadata.
 SIS is under developement as an Apache project. Release 0.3 is currently
 available for download.
 
-<span id="Tcl/Tk"></span>Tcl/Tk interfaces
+Tcl/Tk interfaces {#TclTk}
 ------------------------------------------
 
 Dan Schmitt has developed [cdftcl](http://cnrit.tamu.edu/rsg/cdftcl/), a
@@ -1989,7 +1993,7 @@ use of "wildcards" (\*) or ranges (1-4) in the subscript notation, and
 use of name references instead of variable IDs. Contact dan@computer.org
 for more information.
 
-<span id="Tcl-nap"></span>Tcl-nap
+Tcl-nap {#Tcl-nap}
 ---------------------------------
 
 [Tcl-nap](http://tcl-nap.sourceforge.net) (n-dimensional array
@@ -2014,7 +2018,7 @@ Tcl-nap was developed as part of the [CSIRO CAPS
 project](http://www.dar.csiro.au/rs/avhrr_processing_software.htm), but
 can be loaded and used without the (satellite oriented) CAPS extension.
 
-<span id="VB"></span>Visual Basic and VB.net interfaces
+Visual Basic and VB.net interfaces {#VB}
 -------------------------------------------------------
 
 Carsten Wieczorrek has developed code in VB 6 to export chromatographic
@@ -2024,7 +2028,7 @@ programming with netcdf.dll from VB 6, see Wieczorrek's web page on
 [netCDF and VB 6.0](http://www.mn-net.com/netcdf_vb6) and for VB.net,
 see [netCDF and VB.net](http://www.mn-net.com/netcdf_vbnet).
 
-<span id="VisAD"></span>VisAD
+VisAD {#VisAD}
 -----------------------------
 
 [VisAD](http://www.ssec.wisc.edu/~billh/visad.html) is a Java class
@@ -2061,7 +2065,7 @@ Wisconsin-Madison [Space Science and Engineering
 Center](http://www.ssec.wisc.edu/), and the [Unidata Program
 Center](/index.html).
 
-<span id="WebWinds"></span>WebWinds
+WebWinds {#WebWinds}
 -----------------------------------
 
 [WebWinds](http://www.openchannelsoftware.com/projects/WebWinds/) is a
@@ -2101,7 +2105,7 @@ well on Unix, Windows (95/98/NT) and Mac platforms. It currently
 requires JDK 1.1. To download a copy of this release, go to
 <http://www.sci-conservices.com/rel4/webpage/wwhome.html>
 
-<span id="xray"></span>xray (Python N-D labelled arrays)
+xray (Python N-D labelled arrays) {#xray}
 --------------------------------------------------------
 
 [xray](http://xray.readthedocs.org/en/stable/index.html) is an open
@@ -2119,7 +2123,7 @@ representation of a netCDF file.
 xray is being developed by Stephan Hoyer, Alex Kleeman, and [other
 contributors](https://github.com/xray/xray/graphs/contributors).
 
-<span id="Zebra"></span>Zebra
+Zebra {#Zebra}
 -----------------------------
 
 [Zebra](http://www.atd.ucar.edu/rdp/zebra.html) (formerly named Zeb) is
@@ -2154,7 +2158,7 @@ http://www.atd.ucar.edu/rdp/zebra.html.
 
 ------------------------------------------------------------------------
 
-<span id="user"></span>User-Contributed Software
+User-Contributed Software {#user}
 ================================================
 
 Unidata makes available a separate
@@ -2178,7 +2182,7 @@ user-contributed software are:
 Commercial or Licensed Packages {#commercial}
 ===============================
 
-<span id="ViewNcDap"></span>ASA ViewNcDap
+ASA ViewNcDap {#ViewNcDap}
 -----------------------------------------
 
 Applied Science Associates, Inc. has made the ASA View NC/Dap
@@ -2195,7 +2199,7 @@ permit additional formats to be read. It should not be considered a GIS
 system, but is used to quickly preview a variety of data on a simple
 map. Data may also be filtered and saved to a local netCDF file.
 
-<span id="Avizo"></span>Avizo
+Avizo {#Avizo}
 -----------------------------
 
 [Avizo](http://www.avizo3d.com/) software is a powerful tool for 3D data
@@ -2211,7 +2215,7 @@ and 3D data representations.
 
 For more information, see [www.avizo3d.com](http://www.avizo3d.com/).
 
-<span id="AVS"></span>AVS
+AVS {#AVS}
 -------------------------
 
 [AVS](ftp://testavs.ncsc.org/avs/Info/WHAT_IS_AVS) (Application
@@ -2239,7 +2243,7 @@ directory.
 See also the information on [DDI](#DDI) for another way to use netCDF
 data with AVS.
 
-<span id="BCS-UFI"></span>Barrodale UFI
+Barrodale UFI {#BCS-UFI}
 ---------------------------------------
 
 [Barrodale Computing Services Ltd.](http://www.barrodale.com) (BCS) has
@@ -2268,10 +2272,7 @@ tables, so "UFI managed tables" are actually virtual database tables.
 Consequently, users of UFI can perform SQL queries on their files
 without having to first load them into a database.
 
-<span></span>
--------------
-
-<span id="DioVISTA/Storm"></span>DioVISTA/Storm
+DioVISTA/Storm {#DioVISTAStorm}
 -----------------------------------------------
 
 [DioVISTA/Storm](http://www.hitachi-power-solutions.com/products/product03/p03_61.html)
@@ -2283,7 +2284,7 @@ resources through OGC Web Tile Map Services (WTMS). It supports CF
 Conventions version 1.6 (lon-lat-alt-time axis and trajectory). Its
 first version was released on Aug 5 2014.
 
-<span id="Environmental WorkBench"></span>Environmental WorkBench
+Environmental WorkBench {#Environmental_WorkBench}
 -----------------------------------------------------------------
 
 [SuperComputer Systems Engineering and Services
@@ -2346,7 +2347,7 @@ flexible interface for storing scientific data. MeRAF is being used by
 the DOE at the Hanford-Meteorological Site for observational data and
 will be used for their weather-modeling.
 
-<span id="ESRI"></span>ESRI
+ESRI {#ESRI}
 ---------------------------
 
 [ESRI ArcGIS](http://www.esri.com/software/arcgis/index.html) version
@@ -2357,7 +2358,7 @@ with data. A selected slice of netCDF data may be displayed in ArcGIS as
 a raster layer, feature layer, or table. You can also drag a netCDF file
 from Windows Explorer and drop it in an ESRI application such as ArcMap.
 
-<span id="FME"></span>FME
+FME {#FME}
 -------------------------
 
 [FME](http://www.safe.com/fme), developed by [Safe Software
@@ -2369,7 +2370,7 @@ netCDF common standard, regardless of its source, and conversely enables
 end-users to consume netCDF data for use in their preferred systems. For
 more information visit <http://www.safe.com/fme>.
 
-<span id="HDF-Explorer"></span>HDF Explorer
+HDF Explorer {#HDF-Explorer}
 -------------------------------------------
 
 [HDF Explorer](http://www.space-research.org/) is a data visualization
@@ -2385,7 +2386,7 @@ features include fast access to data, grid, scalar and vector views. It
 also allows exporting your data either as an ASCII text file or a bitmap
 image.
 
-<span id="IDL"></span>IDL Interface
+IDL Interface {#IDL}
 -----------------------------------
 
 [IDL](http://www.exelisvis.com/ProductsServices/IDL.aspx) (Interactive
@@ -2415,7 +2416,7 @@ netCDF data includes [ARGOS](#ARGOS), [CIDS Tools](#CIDS_Tools),
 [DDI](#DDI), [HIPHOP](#HIPHOP), [Hyperslab OPerator Suite
 (HOPS)](Hyperslab_OPerator_Suite_(HOPS)), and [Noesys](Noesys).
 
-<span id="InterFormat"></span>InterFormat
+InterFormat {#InterFormat}
 -----------------------------------------
 
 [InterFormat](http://www.radio-logic.com/) is a medical image format
@@ -2431,7 +2432,7 @@ For more details about the formats handled, program features, and
 pricing, see the Radio-Logic web site at
 [\<http://www.radio-logic.com\>](http://www.radio-logic.com).
 
-<span id="IRIS Explorer Module"></span>IRIS Explorer Module
+IRIS Explorer Module {#IRIS_Explorer_Module}
 -----------------------------------------------------------
 
 The Atmospheric and Oceanic Sciences Group at the National Center for
@@ -2469,15 +2470,15 @@ information please send email to: pathfinder@redrock.ncsa.uiuc.edu
 See also the information on [DDI](#DDI) for another way to use netCDF
 data with IRIS Explorer.
 
-<span id="LeoNetCDF"></span>LeoNetCDF
+LeoNetCDF {#LeoNetCDF}
 -------------------------------------
 
 [LeoNetCDF](http://www.leokrut.com/leonetcdf.html) is a Windows
-application (Windows96/NT and higher) for editing netCDF files. It can
+application (Windows95/NT and higher) for editing netCDF files. It can
 display content of netCDF files in tree style control and permits
 editing its parameters in a standard Windows interface environment.
 
-<span id="Mathematica"></span>Mathematica
+Mathematica {#Mathematica}
 -----------------------------------------
 
 [Mathematica](http://www.wolfram.com/products/mathematica/index.html) is
@@ -2487,7 +2488,7 @@ adds classic [netCDF
 data](http://reference.wolfram.com/mathematica/ref/format/NetCDF.html)
 to the many forms of data it can import, export, and visualize.
 
-<span id="MATLAB"></span>MATLAB
+MATLAB {#MATLAB}
 -------------------------------
 
 [MATLAB](http://www.mathworks.com/products/matlab/) is an integrated
@@ -2506,7 +2507,7 @@ implement a MATLAB/netCDF interface are available:
 reader](http://www.mathworks.com/matlabcentral/fileexchange/loadFile.do?objectId=15177&objectType=file),
 and [fanmat](/software/netcdf/Contrib.html).
 
-<span id="Noesys"></span>Noesys
+Noesys {#Neosys}
 -------------------------------
 
 [Noesys](http://www.rsinc.com/NOeSYS/index.cfm) is software for desktop
@@ -2547,7 +2548,7 @@ Power Macintosh OS. More details and information about ordering Noesys
 are available from
 [\<http://www.rsinc.com/NOeSYS/index.cfm\>](http://www.rsinc.com/NOeSYS/index.cfm).
 
-<span id="Origin"></span>Origin
+Origin {#Origin}
 -------------------------------
 
 Ryan Toomey reports:
@@ -2575,7 +2576,7 @@ produces professional data analysis and graphing software for scientists
 and engineers. Our products are designed to be easy-to-use, yet have the
 power and versatility to provide for the most demanding user."
 
-<span id="PPLUS"></span>PPLUS
+PPLUS {#PPLUS}
 -----------------------------
 
 [Plot-Plus (PPLUS)](http://dwd6.home.mindspring.com/) is a general
@@ -2608,7 +2609,7 @@ Korea...).
 Plot Plus is now available at no charge. It does require licensing on a
 per computer basis, but the license is at no cost. For more information
 about licensing, see
-[http://dwd6.home.mindspring.com/pplus\_license.html/](http://dwd6.home.mindspring.com/pplus_license.html);
+[http://dwd6.home.mindspring.com/pplus_license.html/](http://dwd6.home.mindspring.com/pplus_license.html);
 source and documentation are available via anonymous FTP from
 <ftp://ftp.halcyon.com/pub/users/dwd/pplus1_3_2.tar.gz> and
 <ftp://ftp.pmel.noaa.gov/epic/manual-dir/pplus.pdf>.
@@ -2619,7 +2620,7 @@ source and documentation are available via anonymous FTP from
                 Shoreline, WA 98133
         Fax and Voice:  (206) 366-0624
 
-<span id="PV-Wave"></span>PV-Wave
+PV-Wave {#PV-Wave}
 ---------------------------------
 
 [PV-Wave](http://www.vni.com/products/wave/index.html) is a software
@@ -2634,7 +2635,7 @@ PV-Wave supports data access in numerous formats, including netCDF.
 See also the information on [DDI](#DDI) for another way to use netCDF
 data with PV-Wave.
 
-<span id="SlicerDicer"></span>Slicer Dicer
+Slicer Dicer {#SlicerDicer}
 ------------------------------------------
 
 [Slicer Dicer](http://www.slicerdicer.com/) is a volumetric data
@@ -2659,7 +2660,7 @@ Slicer Dicer output. Visualizations features include:
 -   Any data level or range of levels can be rendered as either opaque
     or transparent.
 
-<span id="vGeo"></span>vGeo
+vGeo {#vGeo}
 ---------------------------
 
 [vGeo](http://www.vrco.com/products/vgeo/vgeo.html) (Virtual Global
@@ -2674,7 +2675,7 @@ how multiple files and variables are mapped into a data source. 3D
 graphics are built from the underlying data in real-time, and the user
 has interactive control of graphics, navigation, animation, and more.
 
-<span id="VISAGE and Decimate"></span>VISAGE and Decimate
+VISAGE and Decimate {#VISAGE_and_Decimate}
 ---------------------------------------------------------
 
 [VISAGE](http://www.crd.ge.com/esl/cgsp/projects/visage/)
@@ -2696,7 +2697,7 @@ a preferred format. Decimate is currently licensed to Cyberware, Inc.,
 makers of 3D laser digitizing hardware. Decimate is currently bundled
 with the scanners, and will soon be available as a commercial product.
 
-<span id="Voyager"></span>Voyager
+Voyager {#Voyager}
 ---------------------------------
 
 [Makai Voyager](http://voyager.makai.com/), developed by Makai Ocean
