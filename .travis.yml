@@ -11,8 +11,8 @@ before_install:
   # Install dependencies from a pre-built binary.
   ###
   - cd /
-  - wget http://www.unidata.ucar.edu/downloads/netcdf/ftp/travisdeps.tar.bz2
-  - tar -jxf travisdeps.tar.bz2
+  - sudo wget http://www.unidata.ucar.edu/downloads/netcdf/ftp/travisdeps.tar.bz2
+  - sudo tar -jxf travisdeps.tar.bz2
   - cd -
 
 before_script:
