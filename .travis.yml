@@ -4,22 +4,22 @@ compiler:
   - clang
 
 before_install:
-  # Get CMake >=2.8.8, HDF5 >= 1.8.6
-  # - sudo add-apt-repository -y ppa:amcg/netcdf-parallel
   - sudo apt-get update -qq
-  - sudo apt-get install -y -qq libcurl4-openssl-dev m4 wget autoconf libtool clang
+  - sudo apt-get install -y -qq libcurl4-openssl-dev m4 wget autoconf libtool clang libjpeg8-dev
 
-  # We need to install hdf5.
-  # hdf5-1.8.14.tar.bz2
-  - wget http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.15/src/hdf5-1.8.15.tar.bz2
-  - tar -jxf hdf5-1.8.15.tar.bz2
-  - cd hdf5-1.8.15 && ./configure --enable-shared --disable-static --disable-fortran --enable-hl --disable-fortran --prefix=/usr && make -j 4 && sudo make install
-  - cd ..
+  ###
+  # Install dependencies from a pre-built binary.
+  ###
+  - cd /
+  - wget http://www.unidata.ucar.edu/downloads/netcdf/ftp/travisdeps.tar.bz2
+  - tar -jxf travisdeps.tar.bz2
+  - cd -
 
 before_script:
-  - autoreconf -if
-  - ./configure --enable-extra-tests
+  - mkdir build
+  - cd build
+  - cmake .. -DENABLE_EXTRA_TESTS=ON -DENABLE_HDF4=ON
 
 script:
   - make -j 4
-  - LD_LIBRARY_PATH=/usr/local/lib make check
+  - make test
