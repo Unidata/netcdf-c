@@ -104,7 +104,7 @@ cd $srcdir
 srcdir=`pwd`
 cd ${builddir}
 
-function createrc {
+createrc() {
   xf
   RCP="$1" ; shift
   unset NOPWD
@@ -143,7 +143,7 @@ function createrc {
   fi
 }
 
-function createnetrc {
+createnetrc() {
   xf
   NCP="$1" ; shift
   unset NOPWD
@@ -180,14 +180,14 @@ function createnetrc {
   fi
 }
 
-function reset {
+reset() {
   for f in ./$RC $HOME/$RC $SPECRC $ENVRC $COOKIES $NETRC $OUTPUT ; do
     rm -f ${f}
   done      
   unset DAPRCFILE
 }
 
-function restore {
+restore() {
   reset
   for f in ./$RC $HOME/$RC $SPECRC $ENVRC $COOKIES $NETRC ; do
     if test -f ${f}.save ; then
@@ -197,7 +197,7 @@ function restore {
   done      
 }
 
-function save {
+save() {
   for f in ./$RC $HOME/$RC $SPECRC $ENVRC $COOKIES $NETRC ; do
     if test -f $f ; then
       if test -f ${f}.save ; then
@@ -210,7 +210,7 @@ function save {
   done      
 }
 
-function show {
+show() {
   if test "x$SHOW" = x1 ; then cat $OUTPUT; fi
   if test "x$OUTPUT" != "x"; then rm -f $OUTPUT; fi
 }
