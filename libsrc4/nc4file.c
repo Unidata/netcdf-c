@@ -2298,57 +2298,87 @@ exit:
    return retval;
 }
 
-/* Given an HDF4 type, set a pointer to netcdf type. */
 #ifdef USE_HDF4
+/*! Given an HDF4 type, set a pointer to netcdf type.
+ *
+ * Given an HDF4 type, set a pointer to a netcdf type.
+ * See http://www.hdfgroup.org/training/HDFtraining/UsersGuide/Fundmtls.fm3.html
+ * for more information re: HDF4 types.
+ *
+ * \param NC_HDF5_FILE_INFO_T* Pointer to h5
+ * \param int32 TypeID for hdf4 datatype.
+ * \param nc_type* Pointer to netcdf type, where result will be stored.
+ * \param NC_TYPE_INFO_T* (Optiona) Type info for the variable.
+ * \return Error code, 0 on success.
+ *
+ */
 static int
 get_netcdf_type_from_hdf4(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid,
 			  nc_type *xtype, NC_TYPE_INFO_T *type_info)
 {
-   int t;
+   int t = 0;
+
+   /* Added this variable in the course of fixing NCF-332.
+    * Prior to the fix, all data types were assigned
+    * NC_ENDIAN_BIG, so I am preserving that here for now.
+    * Not sure why it wouldn't be NC_ENDIAN_NATIVE, although
+    * I can hazard a guess or two.
+    */
+
+   int endianness = NC_ENDIAN_BIG;
    assert(h5 && xtype);
 
    switch(hdf4_typeid)
    {
-      case DFNT_CHAR:
-	 *xtype = NC_CHAR;
-	 t = 0;
-	 break;
-      case DFNT_UCHAR:
-      case DFNT_UINT8:
-	 *xtype = NC_UBYTE;
-	 t = 6;
-	 break;
-      case DFNT_INT8:
-	 *xtype = NC_BYTE;
-	 t = 1;
-	 break;
-      case DFNT_INT16:
-	 *xtype = NC_SHORT;
-	 t = 2;
-	 break;
-      case DFNT_UINT16:
-	 *xtype = NC_USHORT;
-	 t = 7;
-	 break;
-      case DFNT_INT32:
-	 *xtype = NC_INT;
-	 t = 3;
-	 break;
-      case DFNT_UINT32:
-	 *xtype = NC_UINT;
-	 t = 8;
-	 break;
-      case DFNT_FLOAT32:
-	 *xtype = NC_FLOAT;
-	 t = 4;
-	 break;
-      case DFNT_FLOAT64:
-	 *xtype = NC_DOUBLE;
-	 t = 5;
-	 break;
-      default:
-	 *xtype = NC_NAT;
-	 return NC_EBADTYPID;
+   case DFNT_CHAR:
+       *xtype = NC_CHAR;
+       t = 0;
+       break;
+   case DFNT_UCHAR:
+   case DFNT_UINT8:
+       *xtype = NC_UBYTE;
+       t = 6;
+       break;
+   case DFNT_LUINT8:
+       *xtype = NC_UBYTE;
+       t = 6;
+       endianness = NC_ENDIAN_LITTLE;
+       break;
+   case DFNT_INT8:
+       *xtype = NC_BYTE;
+       t = 1;
+       break;
+   case DFNT_LINT8:
+       *xtype = NC_BYTE;
+       t = 1;
+       endianness = NC_ENDIAN_LITTLE;
+   case DFNT_INT16:
+       *xtype = NC_SHORT;
+       t = 2;
+       break;
+   case DFNT_UINT16:
+       *xtype = NC_USHORT;
+       t = 7;
+       break;
+   case DFNT_INT32:
+       *xtype = NC_INT;
+       t = 3;
+       break;
+   case DFNT_UINT32:
+       *xtype = NC_UINT;
+       t = 8;
+       break;
+   case DFNT_FLOAT32:
+       *xtype = NC_FLOAT;
+       t = 4;
+       break;
+   case DFNT_FLOAT64:
+       *xtype = NC_DOUBLE;
+       t = 5;
+       break;
+   default:
+       *xtype = NC_NAT;
+       return NC_EBADTYPID;
    }
 
    if (type_info)
