@@ -80,6 +80,39 @@ int main() {
   printf("\to Reading hdf4 file.\n");
 
 
+  {
+    int ncid = 0;
+    int le_int16_varid = 0;
+    int retval = 0;
+    int ed = 0;
+
+    printf("\t\to Opening file....\t");
+    retval = nc_open(FILENAME, NC_NETCDF4 | NC_NOWRITE, &ncid);
+    if(retval) {printf("Failure [%d]\n",retval); return retval;}
+    else {printf("Success\n");}
+
+    printf("\t\to Getting varid....\t");
+    retval = nc_inq_varid(ncid,SDSNAME,&le_int16_varid);
+    if(retval) {printf("Failure [%d]\n",retval); return retval;}
+    else {printf("Success\n");}
+
+    printf("\t\to Querying endianness of the variable....\t");
+    retval = nc_inq_var_endian(ncid,le_int16_varid,&ed);
+    if(retval) {printf("Failure [%d]\n",retval); return retval;}
+    else {printf("Success\n");}
+
+    printf("\t\to Checking that endianness is NC_ENDIAN_LITTLE....\t");
+    if (ed == NC_ENDIAN_LITTLE) printf("Success\n");
+    else {printf("Failure [%d]\n",ed); return -1;}
+
+    printf("\t\to Closing file....\t");
+    retval = nc_close(ncid);
+    if(retval) {printf("Failure [%d]\n",retval); return retval;}
+    else {printf("Success\n");}
+
+
+  }
+
   printf("Finished.\n");
   return 0;
 }
