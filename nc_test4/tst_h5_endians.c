@@ -13,7 +13,7 @@
 #include <nc_tests.h>
 #include "nc_logging.h"
 
-#define FILE_NAME_NC "tst_h_endians.nc"
+#define FILE_NAME_NC "tst_h5_endians.nc"
 
 #define NDIM 10
 #define NLON 20
