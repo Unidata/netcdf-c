@@ -2352,29 +2352,60 @@ get_netcdf_type_from_hdf4(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid,
        *xtype = NC_BYTE;
        t = 1;
        endianness = NC_ENDIAN_LITTLE;
+       break;
    case DFNT_INT16:
        *xtype = NC_SHORT;
        t = 2;
+       break;
+   case DFNT_LINT16:
+       *xtype = NC_SHORT;
+       t = 2;
+       endianness = NC_ENDIAN_LITTLE;
        break;
    case DFNT_UINT16:
        *xtype = NC_USHORT;
        t = 7;
        break;
+   case DFNT_LUINT16:
+       *xtype = NC_USHORT;
+       t = 7;
+       endianness = NC_ENDIAN_LITTLE;
+       break;
    case DFNT_INT32:
        *xtype = NC_INT;
        t = 3;
+       break;
+   case DFNT_LINT32:
+        *xtype = NC_INT;
+       t = 3;
+       endianness = NC_ENDIAN_LITTLE;
        break;
    case DFNT_UINT32:
        *xtype = NC_UINT;
        t = 8;
        break;
+   case DFNT_LUINT32:
+        *xtype = NC_UINT;
+       t = 8;
+       endianness = NC_ENDIAN_LITTLE;
+       break;
    case DFNT_FLOAT32:
        *xtype = NC_FLOAT;
        t = 4;
        break;
+   case DFNT_LFLOAT32:
+       *xtype = NC_FLOAT;
+       t = 4;
+       endianness = NC_ENDIAN_LITTLE;
+       break;
    case DFNT_FLOAT64:
        *xtype = NC_DOUBLE;
        t = 5;
+       break;
+   case DFNT_LFLOAT64:
+       *xtype = NC_DOUBLE;
+       t = 5;
+       endianness = NC_ENDIAN_LITTLE;
        break;
    default:
        *xtype = NC_NAT;
@@ -2391,11 +2422,11 @@ get_netcdf_type_from_hdf4(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid,
 	 type_info->nc_type_class = NC_STRING;
       else
 	 type_info->nc_type_class = NC_INT;
-      type_info->endianness = NC_ENDIAN_BIG;
+      type_info->endianness = endianness;
       type_info->nc_typeid = *xtype;
       type_info->size = nc_type_size_g[t];
       if (!(type_info->name = strdup(nc_type_name_g[t])))
-	 return NC_ENOMEM;
+        return NC_ENOMEM;
    }
 
    return NC_NOERR;
