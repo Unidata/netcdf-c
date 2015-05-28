@@ -22,6 +22,7 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#include "ncdispatch.h"
 #include "nc3internal.h"
 
 #undef DEBUG
@@ -98,14 +99,20 @@ static long pagesize = 0;
 
 /* Create a new ncio struct to hold info about the file. */
 static int
-memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEMIO** memiop)
+memio_new(const char* path, int ioflags, off_t initialsize, void* memory, ncio** nciopp, NCMEMIO** memiop)
 {
     int status = NC_NOERR;
     ncio* nciop = NULL;
     NCMEMIO* memio = NULL;
+    off_t minsize = initialsize;
+    int inmemory = (fIsSet(ioflags,NC_INMEMORY));
+
+    /* use asserts because this is an internal function */
+    assert(memiop != NULL && nciopp != NULL);
+    assert(path != NULL || (memory != NULL && initialsize > 0));
+    assert(!inmemory || (memory != NULL && initialsize > 0));
 
     if(pagesize == 0) {
-
 #if defined (_WIN32) || defined(_WIN64)
       SYSTEM_INFO info;
       GetSystemInfo (&info);
@@ -132,9 +139,6 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
     nciop->ioflags = ioflags;
     *((int*)&nciop->fd) = -1; /* caller will fix */
 
-    *((char**)&nciop->path) = strdup(path);
-    if(nciop->path == NULL) {status = NC_ENOMEM; goto fail;}
-
     *((ncio_relfunc**)&nciop->rel) = memio_rel;
     *((ncio_getfunc**)&nciop->get) = memio_get;
     *((ncio_movefunc**)&nciop->move) = memio_move;
@@ -142,30 +146,37 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
     *((ncio_filesizefunc**)&nciop->filesize) = memio_filesize;
     *((ncio_pad_lengthfunc**)&nciop->pad_length) = memio_pad_length;
     *((ncio_closefunc**)&nciop->close) = memio_close;
-
+ 
     memio = (NCMEMIO*)calloc(1,sizeof(NCMEMIO));
     if(memio == NULL) {status = NC_ENOMEM; goto fail;}
     *((void* *)&nciop->pvt) = memio;
 
+    *((char**)&nciop->path) = strdup(path);
+    if(nciop->path == NULL) {status = NC_ENOMEM; goto fail;}
     memio->alloc = initialsize;
-
-    memio->memory = NULL;
-    memio->size = 0;
     memio->pos = 0;
+    memio->size = minsize;
+    memio->memory = NULL;
     memio->persist = fIsSet(ioflags,NC_WRITE);
-
-    if(nciopp) *nciopp = nciop;
+    if(memiop && memio) *memiop = memio; else free(memio);
+    if(nciopp && nciop) *nciopp = nciop;
     else {
-        free((char*)nciop->path);
+        if(nciop->path != NULL) free((char*)nciop->path);
         free(nciop);
     }
-    if(memiop) *memiop = memio;
-    else free(memio);
+    if(inmemory) {
+	memio->memory = memory;
+    } else {
+        /* malloc memory */
+        memio->memory = (char*)malloc(memio->alloc);
+        if(memio->memory == NULL) {status = NC_ENOMEM; goto fail;}
+    }
 
 done:
     return status;
 
 fail:
+    if(memio != NULL) free(memio);
     if(nciop != NULL) {
         if(nciop->path != NULL) free((char*)nciop->path);
         free(nciop);
@@ -173,16 +184,16 @@ fail:
     goto done;
 }
 
-/* Create a file, and the ncio struct to go with it. This function is
-   only called from nc__create_mp.
+/* Create a file, and the ncio struct to go with it.
 
    path - path of file to create.
    ioflags - flags from nc_create
    initialsz - From the netcdf man page: "The argument
-   Iinitialsize sets the initial size of the file at creation time."
+               initialsize sets the initial size of the file at creation time."
    igeto - 
    igetsz - 
    sizehintp - the size of a page of data for buffered reads and writes.
+   parameters - arbitrary data 
    nciopp - pointer to a pointer that will get location of newly
    created and inited ncio struct.
    mempp - pointer to pointer to the initial memory read.
@@ -191,6 +202,7 @@ int
 memio_create(const char* path, int ioflags,
     size_t initialsz,
     off_t igeto, size_t igetsz, size_t* sizehintp,
+    void* parameters,
     ncio* *nciopp, void** const mempp)
 {
     ncio* nciop;
@@ -203,21 +215,12 @@ memio_create(const char* path, int ioflags,
     if(path == NULL ||* path == 0)
         return NC_EINVAL;
 
-    /* For diskless open has, the file must be classic version 1 or 2.*/
-    if(fIsSet(ioflags,NC_NETCDF4))
-        return NC_EDISKLESS; /* violates constraints */
-
-    status = memio_new(path, ioflags, initialsz, &nciop, &memio);
+    status = memio_new(path, ioflags, initialsz, NULL, &nciop, &memio);
     if(status != NC_NOERR)
         return status;
-    memio->size = 0;
-
-    /* malloc memory */
-    memio->memory = (char*)malloc(memio->alloc);
-    if(memio->memory == NULL) {status = NC_ENOMEM; goto unwind_open;}
 
     if(persist) {
-        /* Open the file, but make sure we can write it if needed */
+        /* Open the file just tomake sure we can write it if needed */
         oflags = (persist ? O_RDWR : O_RDONLY);    
 #ifdef O_BINARY
         fSet(oflags, O_BINARY);
@@ -261,14 +264,11 @@ fprintf(stderr,"memio_create: initial memory: %lu/%lu\n",(unsigned long)memio->m
     return NC_NOERR;
 
 unwind_open:
-    if(memio->memory != NULL)
-	free(memio->memory);
     memio_close(nciop,1);
     return status;
 }
 
-/* This function opens the data file. It is only called from nc.c,
-   from nc__open_mp and nc_delete_mp.
+/* This function opens the data file.
 
    path - path of data file.
    ioflags - flags passed into nc_open.
@@ -278,6 +278,7 @@ unwind_open:
    igetsz - the size in bytes of initial page get (a.k.a. extent). Not
    ever used in the library.
    sizehintp - the size of a page of data for buffered reads and writes.
+   parameters - arbitrary data 
    nciopp - pointer to pointer that will get address of newly created
    and inited ncio struct.
    mempp - pointer to pointer to the initial memory read.
@@ -286,85 +287,91 @@ int
 memio_open(const char* path,
     int ioflags,
     off_t igeto, size_t igetsz, size_t* sizehintp,
+    void* parameters,
     ncio* *nciopp, void** const mempp)
 {
     ncio* nciop = NULL;
-    int fd;
-    int status;
+    int fd = -1;
+    int status = NC_NOERR;
     int persist = (fIsSet(ioflags,NC_WRITE)?1:0);
-    int oflags;
+    int inmemory = (fIsSet(ioflags,NC_INMEMORY));
+    int oflags = 0;
     NCMEMIO* memio = NULL;
-    size_t sizehint;
-    off_t filesize;
+    size_t sizehint = 0;
+    off_t filesize = 0;
+    off_t red = 0;
+    char* pos = NULL;
+    NC_MEM_INFO* meminfo = (NC_MEM_INFO*)parameters;
 
-    if(path == NULL ||* path == 0)
-        return EINVAL;
+    if(path == NULL || strlen(path) == 0)
+        return NC_EINVAL;
 
     assert(sizehintp != NULL);
-    sizehint = *sizehintp;
+    sizehint = *sizehintp; 
 
-    /* Open the file, but make sure we can write it if needed */
-    oflags = (persist ? O_RDWR : O_RDONLY);    
+    if(inmemory) {
+	filesize = meminfo->size;
+    } else {
+        /* Open the file,and make sure we can write it if needed */
+        oflags = (persist ? O_RDWR : O_RDONLY);    
 #ifdef O_BINARY
-    fSet(oflags, O_BINARY);
+        fSet(oflags, O_BINARY);
 #endif
-    oflags |= O_EXCL;
+        oflags |= O_EXCL;
 #ifdef vms
-    fd = open(path, oflags, 0, "ctx=stm");
+        fd = open(path, oflags, 0, "ctx=stm");
 #else
-    fd  = open(path, oflags, OPENMODE);
+        fd  = open(path, oflags, OPENMODE);
 #endif
 #ifdef DEBUG
-    if(fd < 0) {
-	fprintf(stderr,"open failed: file=%s err=",path);
-	perror("");
-    }
+        if(fd < 0) {
+            fprintf(stderr,"open failed: file=%s err=",path);
+            perror("");
+	}
 #endif
-    if(fd < 0) {status = errno; goto unwind_open;}
+        if(fd < 0) {status = errno; goto unwind_open;}
 
-    /* get current filesize  = max(|file|,initialize)*/
-    filesize = lseek(fd,0,SEEK_END);
-    if(filesize < 0) {status = errno; goto unwind_open;}
-    /* move pointer back to beginning of file */
-    (void)lseek(fd,0,SEEK_SET);
-    if(filesize < (off_t)sizehint)
-        filesize = (off_t)sizehint;
+        /* get current filesize  = max(|file|,initialize)*/
+        filesize = lseek(fd,0,SEEK_END);
+        if(filesize < 0) {status = errno; goto unwind_open;}
+        /* move pointer back to beginning of file */
+        (void)lseek(fd,0,SEEK_SET);
+        if(filesize < (off_t)sizehint)
+            filesize = (off_t)sizehint;
+    }
 
-    status = memio_new(path, ioflags, filesize, &nciop, &memio);
+    if(inmemory)
+        status = memio_new(path, ioflags, filesize, meminfo->memory, &nciop, &memio);
+    else
+        status = memio_new(path, ioflags, filesize, NULL, &nciop, &memio);
     if(status != NC_NOERR) {
-      if(fd >= 0) 
-	close(fd);
+	if(fd >= 0) 
+	    close(fd);
       return status;
     }
-    memio->size = filesize;
-
-    memio->memory = (char*)malloc(memio->alloc);
-    if(memio->memory == NULL) {status = NC_ENOMEM; goto unwind_open;}
 
 #ifdef DEBUG
 fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->memory,(unsigned long)memio->alloc);
 #endif
 
-    /* Read the file into the memio memory */
-    /* We need to do multiple reads because there is no
-       guarantee that the amount read will be the full amount */
-    {
-	off_t red = memio->size;
-	char* pos = memio->memory;
-	while(red > 0) {
-	    ssize_t count = read(fd, pos, red);
-	    if(count < 0)
-	        {status = errno; goto unwind_open;}
-	    if(count == 0)
-	        {status = NC_ENOTNC; goto unwind_open;}
-	    red -= count;
-	    pos += count;
-	}
+    if(!inmemory) {
+        /* Read the file into the memio memory */
+        /* We need to do multiple reads because there is no
+           guarantee that the amount read will be the full amount */
+        red = memio->size;
+        pos = memio->memory;
+        while(red > 0) {
+            ssize_t count = read(fd, pos, red);
+            if(count < 0) {status = errno; goto unwind_open;}
+            if(count == 0) {status = NC_ENOTNC; goto unwind_open;}
+            red -= count;
+            pos += count;
+        }
+        (void)close(fd);
     }
-    (void)close(fd); /* until memio_close() */
 
-    /* Use half the filesize as the blocksize */
-    sizehint = filesize/2;
+    /* Use half the filesize as the blocksize ; why? */
+    sizehint = filesize/2; 
 
     fd = nc__pseudofd();
     *((int* )&nciop->fd) = fd; 
@@ -379,8 +386,8 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
             goto unwind_open;
     }
 
-    *sizehintp = sizehint;
-    *nciopp = nciop;
+    if(sizehintp) *sizehintp = sizehint;
+    if(nciopp) *nciopp = nciop; else {ncio_close(nciop,0);}
     return NC_NOERR;
 
 unwind_open:
@@ -389,7 +396,6 @@ unwind_open:
     memio_close(nciop,0);
     return status;
 }
-
 
 /* 
  *  Get file size in bytes.
@@ -464,17 +470,19 @@ memio_close(ncio* nciop, int doUnlink)
     int status = NC_NOERR;
     NCMEMIO* memio;
     int fd = -1;
+    int inmemory = (fIsSet(nciop->ioflags,NC_INMEMORY));
+
     if(nciop == NULL || nciop->pvt == NULL) return NC_NOERR;
 
     memio = (NCMEMIO*)nciop->pvt;
     assert(memio != NULL);
 
     /* See if the user wants the contents persisted to a file */
-    if(memio->persist) {
+    if(!inmemory && memio->persist) {
         /* Try to open the file for writing */
 	int oflags = O_WRONLY|O_CREAT|O_TRUNC;
 #ifdef O_BINARY
-        fSet(oflags, O_BINARY);
+        fisSet(oflags, O_BINARY);
 #endif
 	fd = open(nciop->path, oflags, OPENMODE);
 	if(fd >= 0) {
@@ -496,7 +504,7 @@ memio_close(ncio* nciop, int doUnlink)
      }
 
 done:
-    if(memio->memory != NULL)
+    if(!inmemory && memio->memory != NULL)
 	free(memio->memory);
     /* do cleanup  */
     if(fd >= 0) (void)close(fd);		

@@ -75,6 +75,8 @@ typedef struct {			/* specification for how to format dump */
 				 * on command line.
                                  */
     int nc_mode;                /* mode as reported by inq_format_extended */
+
+    int xopt_inmemory;      /* Use in-memory option; testing only */
 } fspec_t;
 
 #endif	/*_NCDUMP_H_ */

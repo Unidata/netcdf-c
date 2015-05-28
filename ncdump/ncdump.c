@@ -8,8 +8,14 @@ Research/Unidata. See \ref copyright file for more info.  */
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#ifndef _WIN32
+#ifdef _MSC_VER /* Microsoft Compilers */
+#include <io.h>
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
 #endif
 
 #ifdef _MSC_VER
@@ -37,6 +43,7 @@ int optind;
 #include "indent.h"
 #include "isnan.h"
 #include "cdl.h"
+#include "netcdf_mem.h"
 
 #define int64_t long long
 #define uint64_t unsigned long long
@@ -277,6 +284,67 @@ kind_string_extended(int kind, int mode)
     return text;
 }
 
+#ifdef USE_DISKLESS
+static int
+fileopen(const char* path, void** memp, size_t* sizep)
+{
+    int status = NC_NOERR;
+    int fd = -1;
+    int oflags = 0;
+    size_t size = 0;
+    void* mem = NULL;
+    off_t red = 0;
+    char* pos = NULL;
+
+    /* Open the file, but make sure we can write it if needed */
+    oflags = O_RDONLY;
+#ifdef O_BINARY
+    oflags |= O_BINARY;
+#endif
+    oflags |= O_EXCL;
+#ifdef vms
+    fd = open(path, oflags, 0, "ctx=stm");
+#else
+    fd  = open(path, oflags, 0666);
+#endif
+#ifdef DEBUG
+    if(fd < 0) {
+        fprintf(stderr,"open failed: file=%s err=",path);
+	status = errno;
+    }
+#endif
+    if(fd < 0) {status = errno; goto done;}
+    /* get current filesize  = max(|file|,initialize)*/
+    size = lseek(fd,0,SEEK_END);
+    if(size < 0) {status = errno; goto done;}
+    /* move pointer back to beginning of file */
+    (void)lseek(fd,0,SEEK_SET);
+    mem = malloc(size);
+    if(mem == NULL) {status = NC_ENOMEM; goto done;}
+    /* Read the file into memory */
+    /* We need to do multiple reads because there is no
+       guarantee that the amount read will be the full amount */
+    red = size;
+    pos = (char*)mem;
+    while(red > 0) {
+	ssize_t count = read(fd, pos, red);
+	if(count < 0) {status = errno; goto done;}
+        if(count == 0) {status = NC_ENOTNC; goto done;}
+	red -= count;
+	pos += count;
+    }
+
+done:
+    if(fd >= 0) (void)close(fd);
+    if(status != NC_NOERR && mem != NULL)
+	free(mem);
+    else {
+	if(sizep) *sizep = size;
+	if(memp) *memp = mem;
+    }
+    return status;
+}
+#endif
 
 /* 
  * Emit initial line of output for NcML
@@ -287,7 +355,6 @@ pr_initx(int ncid, const char *path)
     printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<netcdf xmlns=\"http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\" location=\"%s\">\n", 
 	   path);
 }
-
 
 /*
  * Print attribute string, for text attributes.
@@ -1927,7 +1994,7 @@ main(int argc, char *argv[])
        exit(EXIT_SUCCESS);
     }
 
-    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwK")) != EOF)
+    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwKX:")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
 	  formatting_specs.header_only = true;
@@ -2015,6 +2082,16 @@ main(int argc, char *argv[])
         case 'w':		/* with client-side cache for DAP URLs */
 	  formatting_specs.with_cache = true;
 	  break;
+        case 'X':		/* special options */
+	  switch (tolower((int)optarg[0])) {
+	    case 'm':
+	      formatting_specs.xopt_inmemory = 1;
+	      break;
+	    default: 
+	      error("invalid value for -X option: %s", optarg);
+	      break;
+	  }
+	  break;
         case '?':
 	  usage();
 	  exit(EXIT_FAILURE);
@@ -2057,7 +2134,16 @@ main(int argc, char *argv[])
 		/* else fall thru and treat like a file path */
 	    }
 #endif /*USE_DAP*/
-	    nc_status = nc_open(path, NC_NOWRITE, &ncid);
+#ifdef USE_DISKLESS
+	    if(formatting_specs.xopt_inmemory) {
+		size_t size = 0;
+		void* mem = NULL;
+		nc_status = fileopen(path,&mem,&size);
+		if(nc_status == NC_NOERR)
+	            nc_status = nc_open_mem(path,NC_DISKLESS|NC_INMEMORY,size,mem,&ncid);
+	    } else 
+#endif
+	        nc_status = nc_open(path, NC_NOWRITE, &ncid);
 	    if (nc_status != NC_NOERR) {
 		error("%s: %s", path, nc_strerror(nc_status));
 	    }
@@ -2100,4 +2186,6 @@ main(int argc, char *argv[])
     }
     exit(EXIT_SUCCESS);
 }
+
+
 END_OF_MAIN();
