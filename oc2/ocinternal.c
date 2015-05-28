@@ -7,6 +7,11 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#ifdef _MSC_VER
+typedef int pid_t;
+#endif
+
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
