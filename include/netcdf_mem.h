@@ -13,48 +13,51 @@
 extern "C" {
 #endif
 
-/**
-Open a netcdf file taking the content from a chunk of memory.
-It determines the underlying file format automatically. Use the same call
-to open a netCDF classic, 64-bit offset, or netCDF-4 file.
+/** 
+Open a netCDF file with the contents taken from a block of memory.
 
-\param path File name; this must be non-null, but is ignored except
-as noted below.
+\param path Must be non-null, but otherwise only used to set the dataset name.
+
+\param mode the mode flags; Note that this procedure uses a limited set of flags because it forcibly sets NC_NOWRITE|NC_DISKLESS|NC_INMEMORY.
+
+\param size The length of the block of memory being passed.
  
-\param mode the mode flags.
-
-\param size The size of the chunk of memory.
-
-\param memory The chunk of memory containing the content.
+\param memory Pointer to the block of memory containing the contents
+of a netcdf file.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
-
-<h2>Open Mode</h2>
-
-Note that this procedure uses a limited set of flags.  This
-is because it assumes the equivalent of
-NC_NOWRITE|NC_DISKLESS|NC_INMEMORY.
-
-It is not necessary to pass any information about the format of the
-file being opened. The file type will be detected automatically by the
-netCDF library.
- 
-nc_open_mem()returns the value NC_NOERR if no errors occurred. Otherwise,
-the returned status indicates an error. Possible causes of errors
-include:
 
 \returns ::NC_NOERR No error.
 
 \returns ::NC_ENOMEM Out of memory.
 
-\returns ::NC_EDISKLESS Error in establishing the in-memory content.
+\returns ::NC_EDISKLESS diskless io is not enabled for fails.
 
-\returns ::NC_EHDFERR HDF5 error. (NetCDF-4 files only.)
+\returns ::NC_EINVAL, etc. other errors also returned by nc_open.
 
-\returns ::NC_EINVAL Invalid arguments (e.g. a null memory pointer).
+<h1>Examples</h1>
+
+Here is an example using nc_open_mem() to open an existing netCDF dataset
+named foo.nc for read-only, non-shared access. It differs from the nc_open()
+example in that it assumes the contents of foo.nc have been read into memory.
+
+@code
+#include <netcdf.h>
+#include <netcdf_mem.h>
+   ... 
+int status = NC_NOERR;
+int ncid;
+size_t size;
+void* memory;
+   ... 
+size = <compute file size of foo.nc in bytes>;
+memory = malloc(size);
+   ... 
+status = nc_open_mem("foo.nc", 0, size, memory, &ncid);
+if (status != NC_NOERR) handle_error(status);
+@endcode
 */
-
 extern int
 nc_open_mem(const char* path, int mode, size_t size, void* memory, int* ncidp);
 

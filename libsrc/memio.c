@@ -482,7 +482,7 @@ memio_close(ncio* nciop, int doUnlink)
         /* Try to open the file for writing */
 	int oflags = O_WRONLY|O_CREAT|O_TRUNC;
 #ifdef O_BINARY
-        fisSet(oflags, O_BINARY);
+        fSet(oflags, O_BINARY);
 #endif
 	fd = open(nciop->path, oflags, OPENMODE);
 	if(fd >= 0) {

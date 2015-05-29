@@ -40,8 +40,8 @@ for f in $2 ; do
 done
 }
 
-dotest 3 "$CLASSIC"
-dotest 4 "$EXTENDED"
+dotest "3" "$CLASSIC"
+dotest "4" "$EXTENDED"
 
 # Cleanup
 rm -fr results
