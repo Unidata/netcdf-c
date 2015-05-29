@@ -305,15 +305,12 @@ fileopen(const char* path, void** memp, size_t* sizep)
 #ifdef vms
     fd = open(path, oflags, 0, "ctx=stm");
 #else
-    fd  = open(path, oflags, 0666);
+    fd  = open(path, oflags);
 #endif
-#ifdef DEBUG
     if(fd < 0) {
-        fprintf(stderr,"open failed: file=%s err=",path);
 	status = errno;
+	goto done;
     }
-#endif
-    if(fd < 0) {status = errno; goto done;}
     /* get current filesize  = max(|file|,initialize)*/
     size = lseek(fd,0,SEEK_END);
     if(size < 0) {status = errno; goto done;}
@@ -330,12 +327,20 @@ fileopen(const char* path, void** memp, size_t* sizep)
 	ssize_t count = read(fd, pos, red);
 	if(count < 0) {status = errno; goto done;}
         if(count == 0) {status = NC_ENOTNC; goto done;}
+	/* assert(count > 0) */
 	red -= count;
 	pos += count;
     }
 
 done:
-    if(fd >= 0) (void)close(fd);
+    if(fd >= 0)
+	(void)close(fd);
+    if(status != NC_NOERR) {
+#ifndef DEBUG
+        fprintf(stderr,"open failed: file=%s err=%d\n",path,status);
+	fflush(stderr);
+#endif
+    }
     if(status != NC_NOERR && mem != NULL)
 	free(mem);
     else {
