@@ -109,10 +109,11 @@ int test_read_write(int dtype) {
   int res = 0;
 
   res = create_hdf_file(dtype);
-  if(res) {return res;}
+  if(res) {unlink(FILENAME); return res;}
 
   res = read_hdf_file(dtype);
 
+  unlink(FILENAME);
   return res;
 }
 
@@ -143,19 +144,19 @@ int main() {
   res = test_read_write(DFNT_UINT8);
   if(!res) {printf("Should have failed. Error!\n"); return -1;}
 
-    res = test_read_write(DFNT_INT16);
+  res = test_read_write(DFNT_INT16);
   if(!res) {printf("Should have failed. Error!\n"); return -1;}
 
-    res = test_read_write(DFNT_UINT16);
+  res = test_read_write(DFNT_UINT16);
   if(!res) {printf("Should have failed. Error!\n"); return -1;}
 
-    res = test_read_write(DFNT_INT32);
+  res = test_read_write(DFNT_INT32);
   if(!res) {printf("Should have failed. Error!\n"); return -1;}
 
-    res = test_read_write(DFNT_UINT32);
+  res = test_read_write(DFNT_UINT32);
   if(!res) {printf("Should have failed. Error!\n"); return -1;}
 
-    res = test_read_write(DFNT_FLOAT32);
+  res = test_read_write(DFNT_FLOAT32);
   if(!res) {printf("Should have failed. Error!\n"); return -1;}
 
   res = test_read_write(DFNT_FLOAT64);
