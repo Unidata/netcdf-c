@@ -525,7 +525,7 @@ if test "x$enable_large_file_tests" = xyes; then
 fi
 
 # Does the user want to run benchmarks?
-AC_MSG_CHECKING([whether benchmaks should be run (experimental)])
+AC_MSG_CHECKING([whether benchmarks should be run (experimental)])
 AC_ARG_ENABLE([benchmarks],
               [AS_HELP_STRING([--enable-benchmarks],
                               [Run benchmarks. This is an experimental feature. You must fetch
