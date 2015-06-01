@@ -463,23 +463,18 @@ The SDS ([Scientific DataSet](http://research.microsoft.com/en-us/projects/sds/)
 
 ----------
 
-How do I build netCDF for use with Fortran compiler *xxx* and C compiler *yyy* on platform *zzz*? {#How-do-I-build-netCDF-for-use-with-Fortran-compiler}
+How do I build and install netCDF for a specific development environment? {#How-do-I-build-netCDF-for-a specific-dev-environment}
 -----------------
 
+You have to build and install the netCDF C library first, before you
+build and install other language libraries that depend on it, such as
+Fortran, C++, or Python netCDF libraries. The netCDF Java library is
+mostly independent of the netCDF C library, unless you need to write
+netCDF-4 files from Java, in which case you will also need an
+installed netCDF C library.
 
-
-If you have an unusual combination of compilers or platform, you may
-have to set a few environment variables before invoking
-
-~~~~ {.boldcode}
-  ./configure
-  make test
-  make install
-~~~~
-
-For details, see the [NetCDF Installation and Porting Guide](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-install/index.html).
-
-You should also check reports we maintain of successful [builds in other environments](other-builds.html). If you have success with a combination useful to others, please send it for addition to the list.
+For more details, see
+[Getting and Building netCDF](http://www.unidata.ucar.edu/netcdf/docs/getting_and_building_netcdf.html).
 
 ----------
 

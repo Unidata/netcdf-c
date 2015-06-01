@@ -28,8 +28,8 @@ syntax to set environment variables instead of the
 
        ENV_VARIABLE=value
 
-syntax used in the examples. In either case, `${NCDIR}` is the
-value of the environment variable NCDIR.
+syntax used in the examples. In either case, `${VAR}` is the
+value of the shell variable or environment variable VAR.
 
 It will be easier to build the netCDF Fortran library if the C (and if
 needed, HDF5) libraries are built as shared libraries (the default), but
@@ -39,7 +39,7 @@ Building with shared libraries {#building_fortran_shared_libraries}
 ==============================
 
 1.  First make sure the netCDF C library has been built, tested, and
-    installed. The environment variable NCDIR should be set such that
+    installed. The shell variable NCDIR should be set such that
     the shared library for netCDF C is under `${NCDIR}/lib` and
     netCDF utilities such as ncdump are under `${NCDIR}/bin`. For example:
 
@@ -68,7 +68,7 @@ Building with shared libraries {#building_fortran_shared_libraries}
     ignored. You can use "sudo make install" as the last
     step if necessary, but don't use "sudo" before that.
     
-5.  Set the environment variable `NFDIR` to where you want to install
+5.  Set the shell variable `NFDIR` to where you want to install
     netCDF Fortran, which can be the same location where the netCDF C
     was installed (default /usr/local), but **not** the source
     directory where you are building the software.  Then, from the top-level
@@ -128,7 +128,7 @@ Fortran netCDF libraries will be more complicated.
     such as zlib and curl under `${ODIR}`. Some or all of these could
     be the same (for example /usr/local).
 
-4.  Let the environment variable `${NFDIR}` specify where you want to
+4.  Let the shell variable `${NFDIR}` specify where you want to
     install the netCDF Fortran library.  This can be the same location
     where the netCDF C library is installed (default is /usr/local).
 

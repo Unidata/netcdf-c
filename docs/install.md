@@ -127,7 +127,7 @@ href="http://www.hdfgroup.org/services/support.html">HDF5 help
 services</a>.
 
 To build zlib from source, specify where you want to install zlib in
-an environment variable (ZDIR, for example), and build it like this
+a shell variable you will also use later (ZDIR, for example), and build it like this
 from the top-level zlib source directory
 
     $ # Build and install zlib
@@ -136,7 +136,7 @@ from the top-level zlib source directory
     $ make check
     $ make install   # or sudo make install, if root permissions required
 
-Next, specify where you want to install HDF5 in an environment
+Next, specify where you want to install HDF5 in another shell
 variable, for example H5DIR, and build it from the HDF5 top-level
 source directory:
 
@@ -154,12 +154,12 @@ option *must be different* from the source directory where the software
 is being built.
 
 Before building netCDF, you may need to add ${H5DIR}/lib to the
-LD_LIBRARY_PATH environment variable if that directory is not searched
+LD_LIBRARY_PATH environment variable if that lib directory is not searched
 by default. See the <a
 href="http://www.unidata.ucar.edu/netcdf/docs/faq.html#Shared%20Libraries">netCDF
 FAQ</a> for more details on using shared libraries.
 
-Indicate where you want to install netCDF in another environment
+Indicate where you want to install netCDF in another shell
 variable, for example NCDIR. Then run the netCDF configure script,
 specifying where HDF5 was installed using the CPPFLAGS and LDFLAGS
 environment variables. For example, from the top-level netCDF source
@@ -188,7 +188,7 @@ href="http://www.opendap.org/documentation">DAP documentation and
 support site</a> for more information about remote client access to
 data on OPeNDAP servers.)
 
-Set the NCDIR environment variable to indicate where netCDF should be
+If necessary, set the NCDIR shell variable to indicate where netCDF should be
 installed. Then to build a netCDF-3 library without support for the
 netCDF-4 formats or functions, but with remote client access, use:
 
@@ -229,7 +229,7 @@ option to configure. The location for the HDF4 header files and
 library must be specified in the CPPFLAGS and LDFLAGS environment variables
 or configure options.
 
-For HDF4 access to work, the library must be build with netCDF-4
+For HDF4 access to work, the library must be built with netCDF-4
 features.
 
 Here's an example, assuming the HDF5 library has been built and
@@ -288,7 +288,7 @@ If parallel I/O access to netCDF classic and 64-bit offset files is
 needed, an alternate
 [parallel-netcdf library](https://trac.mcs.anl.gov/projects/parallel-netcdf/wiki/WikiStart),
 referred to as "PnetCDF", must also be installed. Assume it was
-installed in the directory named by the PNDIR environment variable.
+installed in the directory named by the PNDIR shell variable.
 Then, from the top-level netCDF-4 source directory, configure netCDF
 with the "--enable-pnetcdf" option:
 
@@ -303,7 +303,7 @@ with the "--enable-pnetcdf" option:
 Linking to netCDF-C {#linking}
 -------------------
 
-For static builds, to use netCDF-4 you must link to all the libraries,
+For static builds of applications that use netCDF-4 you must link to all the libraries,
 netCDF, HDF5, zlib, szip (if used with HDF5 build), and curl (if the
 remote access client has not been disabled). This will require -L options
 to your build for the locations of the libraries, and -l (lower-case
