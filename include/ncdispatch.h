@@ -356,6 +356,7 @@ extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 #  define MSC_NCDISPATCH_EXTRA __declspec(dllimport)
 # endif
 MSC_NCDISPATCH_EXTRA extern char* NC_findtestserver(const char*, const char**);
+MSC_NCDISPATCH_EXTRA extern int nc_open_mem(const char*, int, size_t, void*, int*);
 #else
 extern char* NC_findtestserver(const char*,const char**);
 #endif
