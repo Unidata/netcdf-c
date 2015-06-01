@@ -10,7 +10,7 @@ This file contains a high-level description of this package's evolution. Release
 * Added support for opening in-memory file content. See include/netcdf_mem.h
 for the procedure signature. Basically, it allows one to fill a chunk
 of memory with the equivalent of some netCDF file and then open it
-and read from it as if it were any other file.
+and read from it as if it were any other file. See [NCF-328](https://bugtracking.unidata.ucar.edu/browse/NCF-328) for more information.
 
 * Addressed an issue with IBM's `XL C` compiler on AIX and how it handled some calls to malloc.  Also, as suggested by Wolfgang Hayek, developers using this compiler may need to pass `CPPFLAGS=-D_LINUX_SOURCE_COMPAT` to avoid some test failures.
 
