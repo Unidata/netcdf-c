@@ -1,7 +1,7 @@
 #!/bin/sh
 verbose=1
 set -e
-
+set -x
 if test "x$builddir" = "x"; then builddir=`pwd`; fi
 if test "x$srcdir" = "x"; then srcdir=`dirname $0`; fi
 
@@ -30,9 +30,9 @@ K=$1
 for f in $2 ; do
   echo "Testing ${f}"
   ${builddir}/../ncgen/ncgen -$K -o ./results/${f}.nc ${srcdir}/${f}.cdl
-  ./ncdump ./results/${f}.nc >./results/${f}.cdl
-  ./ncdump -Xm ./results/${f}.nc >./results/${f}.cdx
-  diff -w ./results/${f}.cdl ./results/${f}.cdx >& ./results/${f}.diff
+  ./ncdump ./results/${f}.nc > ./results/${f}.cdl
+  ./ncdump -Xm ./results/${f}.nc > ./results/${f}.cdx
+  diff -w ./results/${f}.cdl ./results/${f}.cdx &> ./results/${f}.diff
   if test -s ./results/${f}.diff ; then
     echo "***FAIL: $f"
     PASS=0
