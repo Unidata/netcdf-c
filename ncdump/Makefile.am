@@ -37,6 +37,10 @@ if LARGE_FILE_TESTS
 TESTS += tst_iter.sh
 endif
 
+if BUILD_DISKLESS
+TESTS += tst_inmemory.sh
+endif
+
 if USE_NETCDF4
 # NetCDF-4 has some extra tests.
 check_PROGRAMS += tst_create_files tst_h_rdc0 tst_group_data		\
@@ -128,7 +132,7 @@ tst_iter.sh tst_mud.sh ref_tst_mud4.cdl ref_tst_mud4-bc.cdl             \
 ref_tst_mud4_chars.cdl \
 ref_tst_ncf213.cdl tst_h_scalar.sh                                      \
 tst_formatx3.sh tst_formatx4.sh                                         \
-CMakeLists.txt XGetopt.c tst_bom.sh
+CMakeLists.txt XGetopt.c tst_bom.sh tst_inmemory.sh
 
 # CDL files and Expected results
 SUBDIRS=cdl expected

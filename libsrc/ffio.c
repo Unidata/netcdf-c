@@ -612,6 +612,7 @@ int
 ffio_create(const char *path, int ioflags,
 	size_t initialsz,
 	off_t igeto, size_t igetsz, size_t *sizehintp,
+	void* parameters,
 	ncio **nciopp, void **const igetvpp)
 {
 	ncio *nciop;
@@ -709,6 +710,7 @@ int
 ffio_open(const char *path,
 	int ioflags,
 	off_t igeto, size_t igetsz, size_t *sizehintp,
+	void* parameters,
 	ncio **nciopp, void **const igetvpp)
 {
 	ncio *nciop;

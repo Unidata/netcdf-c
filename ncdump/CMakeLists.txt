@@ -91,14 +91,22 @@ ENDIF()
   add_sh_test(ncdump tst_nccopy3)
   add_sh_test(ncdump tst_charfill)
 
-  # The following test script invokes
-  # gcc directly.
-  IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-      add_sh_test(ncdump tst_iter)
-  ENDIF()
+
 
   add_sh_test(ncdump tst_formatx3)
   add_sh_test(ncdump tst_bom)
+
+  # The following test script invokes
+  # gcc directly.
+  IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+    IF(ENABLE_LARGE_FILE_TESTS)
+      add_sh_test(ncdump tst_iter)
+    ENDIF(ENABLE_LARGE_FILE_TESTS)
+  ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+
+  IF(BUILD_DISKLESS)
+    add_sh_test(ncdump tst_inmemory)
+  ENDIF()
 
   ###
   # This test fails on Visual Studio builds with bash.

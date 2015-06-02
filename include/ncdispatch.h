@@ -101,6 +101,11 @@ typedef struct NC_MPI_INFO {
     MPI_Info info;
 } NC_MPI_INFO;
 
+typedef struct NC_MEM_INFO {
+    size_t size;
+    void* memory;
+} NC_MEM_INFO;
+
 /* Define known dispatch tables and initializers */
 
 /*Forward*/
@@ -164,11 +169,11 @@ struct NC;
 
 int NC_create(const char *path, int cmode,
 	      size_t initialsz, int basepe, size_t *chunksizehintp, 
-	      int useparallel,void* mpi_info,
+	      int useparallel, void* parameters,
 	      int *ncidp);
 int NC_open(const char *path, int cmode,
 	    int basepe, size_t *chunksizehintp,
-	    int useparallel, void* mpi_info,
+	    int useparallel, void* parameters,
 	    int *ncidp);
 
 /* Expose the default vars and varm dispatch entries */
@@ -253,7 +258,8 @@ int (*inq_var_all)(int ncid, int varid, char *name, nc_type *xtypep,
 int (*var_par_access)(int, int, int);
 
 /* Note the following may still be invoked by netcdf client code
-   even when the file is a classic file
+   even when the file is a classic file; they will just return an error or
+   be ignored.
 */
 #ifdef USE_NETCDF4
 int (*show_metadata)(int);
@@ -294,6 +300,7 @@ int (*def_var_endian)(int, int, int);
 int (*set_var_chunk_cache)(int, int, size_t, size_t, float);
 int (*get_var_chunk_cache)(int ncid, int varid, size_t *sizep, size_t *nelemsp, float *preemptionp);
 #endif /*USE_NETCDF4*/
+
 };
 
 /* Following functions must be handled as non-dispatch */
@@ -349,6 +356,7 @@ extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 #  define MSC_NCDISPATCH_EXTRA __declspec(dllimport)
 # endif
 MSC_NCDISPATCH_EXTRA extern char* NC_findtestserver(const char*, const char**);
+MSC_NCDISPATCH_EXTRA extern int nc_open_mem(const char*, int, size_t, void*, int*);
 #else
 extern char* NC_findtestserver(const char*,const char**);
 #endif
