@@ -463,7 +463,7 @@ The SDS ([Scientific DataSet](http://research.microsoft.com/en-us/projects/sds/)
 
 ----------
 
-How do I build and install netCDF for a specific development environment? {#How-do-I-build-netCDF-for-a specific-dev-environment}
+How do I build and install netCDF for a specific development environment? {#How-do-I-build-netCDF-for-a-specific-dev-environment}
 -----------------
 
 You have to build and install the netCDF C library first, before you
