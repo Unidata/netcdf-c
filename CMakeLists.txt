@@ -1064,13 +1064,13 @@ ENDIF(NOT MSVC)
 MACRO(GEN_m4 filename)
 #  IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
 IF(NC_M4)
-    ADD_CUSTOM_COMMAND(
-      OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-      COMMAND ${NC_M4}
-      ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-      VERBATIM
-      )
-  ENDIF()
+  ADD_CUSTOM_COMMAND(
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+    COMMAND ${NC_M4}
+    ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+    VERBATIM
+    )
+ENDIF(NC_M4)
 ENDMACRO(GEN_m4)
 
 # Binary tests, but ones which depend on value of 'TEMP_LARGE' being defined.

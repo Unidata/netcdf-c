@@ -16,6 +16,14 @@ IF(ENABLE_DOXYGEN)
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
     ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
+  # Create auth.md by combining auth.md.in and oc2/ocauth.html
+  ADD_CUSTOM_TARGET(auth_doc
+    cat ${CMAKE_SOURCE_DIR}/docs/auth.md.in ${CMAKE_SOURCE_DIR}/oc2/ocauth.html > ${CMAKE_CURRENT_SOURCE_DIR}/auth.md
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating oc authentication Documentation"
+    VERBATIM
+    )
+
   # Generate User Documentation
   ADD_CUSTOM_TARGET(doc_all ALL
     ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
