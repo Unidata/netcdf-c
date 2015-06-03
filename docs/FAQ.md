@@ -1,4 +1,4 @@
-FAQ                {#faq}
+FAQ                {#ncFAQ}
 =======================
 
 [TOC]
@@ -236,14 +236,16 @@ have used netCDF is available from
 What are some references to netCDF? {#What-are-some-references-to-netCDF}
 -----------------
 
-
 A primary reference is the User's Guide:
 
 Rew, R. K., G. P. Davis, S. Emmerson, and H. Davies, **NetCDF User's
 Guide for C, An Interface for Data Access, Version 3**, April 1997.
 
+To cite use of netCDF software, please use this Digital Object Identifier (DOI):
+[http://dx.doi.org/10.5065/D6H70CW6](http://dx.doi.org/10.5065/D6H70CW6)
+
 Current online and downloadable documentation is available from the
-[documentation directory](http://www.unidata.ucar.edu/software/netcdf/docs/index.html).
+[documentation directory](http://www.unidata.ucar.edu/netcdf/docs/).
 
 Other references include:
 
@@ -463,18 +465,23 @@ The SDS ([Scientific DataSet](http://research.microsoft.com/en-us/projects/sds/)
 
 ----------
 
-How do I build and install netCDF for a specific development environment? {#How-do-I-build-netCDF-for-a specific-dev-environment}
+How do I build netCDF for use with Fortran compiler *xxx* and C compiler *yyy* on platform *zzz*? {#How-do-I-build-netCDF-for-use-with-Fortran-compiler}
 -----------------
 
-You have to build and install the netCDF C library first, before you
-build and install other language libraries that depend on it, such as
-Fortran, C++, or Python netCDF libraries. The netCDF Java library is
-mostly independent of the netCDF C library, unless you need to write
-netCDF-4 files from Java, in which case you will also need an
-installed netCDF C library.
 
-For more details, see
-[Getting and Building netCDF](http://www.unidata.ucar.edu/netcdf/docs/getting_and_building_netcdf.html).
+
+If you have an unusual combination of compilers or platform, you may
+have to set a few environment variables before invoking
+
+~~~~ {.boldcode}
+  ./configure
+  make test
+  make install
+~~~~
+
+For details, see the [NetCDF Installation and Porting Guide](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-install/index.html).
+
+You should also check reports we maintain of successful [builds in other environments](other-builds.html). If you have success with a combination useful to others, please send it for addition to the list.
 
 ----------
 
@@ -1101,8 +1108,9 @@ Can I build netCDF with shared libraries? {#Can-I-build-netCDF-with-shared-libra
 -----------------
 
 
-By default shared and static netCDF libraries are built on
-platforms that support them. To turn off shared libraries, use the --disable-shared
+Starting with version 3.6.2, netCDF can build shared libraries on
+platforms that support them, but by default netCDF will build static
+libraries only. To turn on shared libraries, use the --enable-shared
 option to the [netCDF configure script](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-install/Running-the-configure-Script.html).
 
 ----------
