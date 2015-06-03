@@ -25,7 +25,7 @@ ochttp.h ocread.h ocutil.h \
 ocbytes.h oclist.h ocuri.h oclog.h \
 xxdr.h
 
-DOCS=docs/ocauth.html
+DOCS=docs/ocauth.md
 
 MISC=dap.y
 
