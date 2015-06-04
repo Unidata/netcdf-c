@@ -31,7 +31,7 @@ ochttp.h ocread.h ocutil.h \
 ocbytes.h oclist.h ocuri.h oclog.h \
 xxdr.h
 
-EXTRA_DIST = dap.y CMakeLists.txt ocauth.md
+EXTRA_DIST = dap.y CMakeLists.txt ocauth.html
 
 if BUILD_DAP
 noinst_LTLIBRARIES = liboc.la
