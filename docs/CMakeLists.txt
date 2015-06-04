@@ -20,9 +20,8 @@ IF(ENABLE_DOXYGEN)
   # Create auth.md by combining auth.md.in and oc2/ocauth.md
 
   ADD_CUSTOM_TARGET(auth_doc ALL
-    cat ${CMAKE_SOURCE_DIR}/docs/auth.md.in ${CMAKE_SOURCE_DIR}/oc2/ocauth.md > ${CMAKE_CURRENT_SOURCE_DIR}/auth.md
+    cat ${CMAKE_SOURCE_DIR}/docs/auth.md.in ${CMAKE_SOURCE_DIR}/docs/ocauth.md > ${CMAKE_CURRENT_SOURCE_DIR}/auth.md
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Generating oc Auth Documentation."
     VERBATIM
     )
 
