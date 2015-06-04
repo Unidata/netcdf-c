@@ -12,12 +12,18 @@ include $(top_srcdir)/lib_flags.am
 # This is our output, the netcdf library the user will install.
 lib_LTLIBRARIES = libnetcdf.la
 
+##
 # These linker flags specify libtool version info.
 # Note: version-info of "9:0:2" results in soname of libnetcdf.so.7 -> libnetcdf.so.7.2.0
-libnetcdf_la_LDFLAGS = -version-info 9:0:2
+# See http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
+# for information regarding incrementing `-version-info`.
+##
+
+libnetcdf_la_LDFLAGS = -version-info 10:0:3
+
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
-libnetcdf_la_LIBADD = 
-CLEANFILES = 
+libnetcdf_la_LIBADD =
+CLEANFILES =
 
 # Turn on some extra stuff when building a DLL for windows.
 if BUILD_DLL
@@ -67,4 +73,4 @@ endif #USE_NETCDF4
 
 # We need at least one source file
 libnetcdf_la_SOURCES = stub.c
-EXTRA_DIST=CMakeLists.txt 
+EXTRA_DIST=CMakeLists.txt
