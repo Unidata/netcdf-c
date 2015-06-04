@@ -1,4 +1,4 @@
-Authorization Support in the netDF-C Libraries {#auth}
+Authorization Support in the netCDF-C Libraries {#oc_auth}
 ==================================================
 
 \brief It is possible to support a number of authorization schemes
@@ -12,7 +12,6 @@ Note that the value of this environment variable should be the
 absolute path of the rc file, not the path to its containing directory.
 
 Following is the authorization documentation.
-
 <center>
 
 OC Authorization Support {#oc_auth_support}
