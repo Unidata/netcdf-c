@@ -465,7 +465,7 @@ The SDS ([Scientific DataSet](http://research.microsoft.com/en-us/projects/sds/)
 
 ----------
 
-How do I build and install netCDF for a specific development environment? {#How-do-I-build-netCDF-for-a specific-dev-environment}
+How do I build and install netCDF for a specific development environment? {#How-do-I-build-and-install-netCDF-for-a-specific-development-environment}
 -----------------
 
 You have to build and install the netCDF C library first, before you build and install other language libraries that depend on it, such as Fortran, C++, or Python netCDF libraries. The netCDF Java library is mostly independent of the netCDF C library, unless you need to write netCDF-4 files from Java, in which case you will also need an installed netCDF C library.

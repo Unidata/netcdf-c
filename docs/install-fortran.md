@@ -115,14 +115,6 @@ Fortran netCDF libraries will be more complicated.
     compilers for building netCDF Fortran, but you can also, specify
     them with the FC and CC environment variables.
 
-2.  For parallel I/O: The configure script sets CFLAGS appropriately for
-    standard compilers, but if you are building with parallel I/O using
-    wrappers such as mpicc and mpif90, you may have to set CFLAGS
-    to indicate which Fortran compiler is wrapped by mpif90. For
-    example, if "mpicc --show" and "mpif90 --show" indicate gcc and
-    gfortran are being used, then set CFLAGS=-DgFortran, and similarly
-    set CFLAGS=-DpgiFortran for Portland Group compilers.
-
 3.  Assume the static netCDF C library is installed under `${NCDIR}`,
     the HDF5 library under `${H5DIR}`, and other needed libraries
     such as zlib and curl under `${ODIR}`. Some or all of these could
@@ -136,15 +128,30 @@ Fortran netCDF libraries will be more complicated.
     variables to specify where the netCDF C library is installed and
     where the other libraries may be found. For example:
 
-          CPPFLAGS="-I${NCDIR}/include -I${H5DIR}/include -I${ODIR}/include" \
-          LDFLAGS="-L${NCDIR}/lib -L${H5DIR}/lib -L${ODIR}/lib" \
-          LD_LIBRARY_PATH=${NCDIR}/lib:${H5DIR}/lib:${ODIR}/lib \
-          LIBS="-lnetcdf -lhdf5_hl -lhdf5 -lz -lcurl" \
-          ./configure --disable-shared --prefix=${NCDIR}
+        CPPFLAGS="-I${NCDIR}/include -I${H5DIR}/include -I${ODIR}/include" \
+        LDFLAGS="-L${NCDIR}/lib -L${H5DIR}/lib -L${ODIR}/lib" \
+        LD_LIBRARY_PATH=${NCDIR}/lib:${H5DIR}/lib:${ODIR}/lib \
+        LIBS="-lnetcdf -lhdf5_hl -lhdf5 -lz -lcurl" \
+        ./configure --disable-shared --prefix=${NCDIR}
 
     If you are cross-compiling, you should also include the configure
     option "--disable-fortran-type-check".
-	
+
+5.  For parallel I/O: The configure script sets CFLAGS appropriately for
+    standard compilers, but if you are building with parallel I/O using
+    wrappers such as mpicc, mpif90, and mpif77, specify compilers
+    using the CC, FC, and F77 variables before configure.  For example:
+
+        CC=mpicc FC=mpif90 F77=mpif77 CPPFLAGS=-I${NCDIR}/include \
+        LDFLAGS=-L${NCDIR}/lib ./configure --prefix=${NFDIR}
+
+    You may have to use absolute path names for CC, F90, and F77 if
+	configure can't find them. Finally, you may also need to set
+	CFLAGS to indicate which Fortran compiler is wrapped by mpif90 nd
+	mpif77. For example, if "mpif90 --show" indicates gfortran is
+	being used, then set CFLAGS=-DgFortran, and similarly set
+	CFLAGS=-DpgiFortran for Portland Group compilers.
+
 6.  If that succeeds, run "make check".
 
 7.  If that succeeds, run "make install" or "sudo make install".
