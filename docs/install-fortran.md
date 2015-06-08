@@ -115,16 +115,16 @@ Fortran netCDF libraries will be more complicated.
     compilers for building netCDF Fortran, but you can also, specify
     them with the FC and CC environment variables.
 
-3.  Assume the static netCDF C library is installed under `${NCDIR}`,
+2.  Assume the static netCDF C library is installed under `${NCDIR}`,
     the HDF5 library under `${H5DIR}`, and other needed libraries
     such as zlib and curl under `${ODIR}`. Some or all of these could
     be the same (for example /usr/local).
 
-4.  Let the shell variable `${NFDIR}` specify where you want to
+3.  Let the shell variable `${NFDIR}` specify where you want to
     install the netCDF Fortran library.  This can be the same location
     where the netCDF C library is installed (default is /usr/local).
 
-5.  Set the CPPFLAGS, LDFLAGS, LD\_LIBRARY\_PATH, and LIBS environment
+4.  Set the CPPFLAGS, LDFLAGS, LD\_LIBRARY\_PATH, and LIBS environment
     variables to specify where the netCDF C library is installed and
     where the other libraries may be found. For example:
 
