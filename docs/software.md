@@ -1,8 +1,6 @@
 Software for Manipulating or Displaying NetCDF Data {#software}
 ===================================================
 
-[TOC]
-
 This document provides references to software packages that may be used for manipulating or displaying [netCDF](/software/netcdf/) data. We include information about both freely-available and licensed (commercial) software that can be used with netCDF data. We rely on developers to help keep this list up-to-date. If you know of corrections or additions, please [send them to us (mailto:support@unidata.ucar.edu). Where practical, we would like to include WWW links to information about these packages in the HTML version of this document.
 
 Other useful guides to utilities that can handle netCDF data include ARM's list of [ARM-tested netCDF data tools](http://science.arm.gov/%7ecflynn/ARM_Tested_Tools/), which includes some downloadable binaries and the NOAA Geophysical Fluid Dynamics Laboratory [guide to netCDF utilities](http://nomads.gfdl.noaa.gov/sandbox/products/vis/data/netcdf/GFDL_VG_NetCDF_Utils.html).

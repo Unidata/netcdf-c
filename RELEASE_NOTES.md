@@ -5,15 +5,15 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.3.x Released TBD
+## 4.4.0 Released TBD
 
+### 4.4.0-RC1 Released TBD
+
+* The pre-built Windows binaries are now built using `Visual Studio 2012`, instead of `Visual Studio 2010`.  Source-code compilation remains function with `Visual Studio 2010`, this is just a change in the pre-built binaries.
+
+* Added support for opening in-memory file content. See `include/netcdf_mem.h` for the procedure signature. Basically, it allows one to fill a chunk of memory with the equivalent of some netCDF file and then open it and read from it as if it were any other file. See [NCF-328](https://bugtracking.unidata.ucar.edu/browse/NCF-328) for more information.
 
 * Addressed an issue when reading hdf4 files with explicit little-endian datatypes. This issue was [reported by Tim Burgess at GitHub](https://github.com/Unidata/netcdf-c/issues/113).  See [NCF-332](https://bugtracking.unidata.ucar.edu/browse/NCF-332) for more information.  
-
-* Added support for opening in-memory file content. See include/netcdf_mem.h
-for the procedure signature. Basically, it allows one to fill a chunk
-of memory with the equivalent of some netCDF file and then open it
-and read from it as if it were any other file. See [NCF-328](https://bugtracking.unidata.ucar.edu/browse/NCF-328) for more information.
 
 * Addressed an issue with IBM's `XL C` compiler on AIX and how it handled some calls to malloc.  Also, as suggested by Wolfgang Hayek, developers using this compiler may need to pass `CPPFLAGS=-D_LINUX_SOURCE_COMPAT` to avoid some test failures.
 

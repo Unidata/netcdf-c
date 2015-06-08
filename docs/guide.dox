@@ -2079,7 +2079,7 @@ extended as necessary.
 The ncgen man-page reference has more details about CDL representation
 of constants of user-defined types.
 
-\section guide_ncdump ncdump
+\section ncdump_guide ncdump
 
 Convert NetCDF file to text form (CDL)
 

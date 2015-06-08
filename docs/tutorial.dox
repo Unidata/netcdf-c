@@ -68,7 +68,7 @@ The utility ncdump can be used to show the contents of netCDF
 files. By default, ncdump shows the CDL description of the file. This
 CDL description can be fed into ncgen to create the data file.
 
-See also: \ref guide_ncdump
+See also: \ref ncdump_guide
 
 \subsection netcdf_utilities_ncgen ncgen
 

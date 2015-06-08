@@ -766,6 +766,7 @@ INPUT = \
     @abs_top_srcdir@/docs/credits.md \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_meta.h \
+    @abs_top_srcdir@/include/netcdf_mem.h \
     @abs_top_srcdir@/libdispatch/dfile.c \
     @abs_top_srcdir@/libdispatch/ddim.c \
     @abs_top_srcdir@/libdispatch/dvar.c \
