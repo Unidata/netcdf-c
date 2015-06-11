@@ -1055,22 +1055,26 @@ ENDMACRO()
 
 # A basic script used to convert m4 files
 FIND_PROGRAM(NC_M4 NAMES m4)
-IF(NOT MSVC)
-  IF(NOT NC_M4)
-    MESSAGE(FATAL "Cannot find 'm4' utility. Install m4 and try again.")
-  ENDIF(NOT NC_M4)
-ENDIF(NOT MSVC)
+IF(NC_M4)
+    SET(HAVE_M4 TRUE)
+ENDIF()
+#IF(NOT MSVC)
+  #IF(NOT NC_M4)
+  #  MESSAGE(FATAL "Cannot find 'm4' utility. Install m4 and try again.")
+  # ENDIF(NOT NC_M4)
+#ENDIF(NOT MSVC)
 
 MACRO(GEN_m4 filename)
 #  IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-IF(NC_M4)
+IF(HAVE_M4)
+  MESSAGE(STATUS "Test: NC_M4: ${NC_M4}")
   ADD_CUSTOM_COMMAND(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
     COMMAND ${NC_M4}
     ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
     VERBATIM
     )
-ENDIF(NC_M4)
+ENDIF(HAVE_M4)
 ENDMACRO(GEN_m4)
 
 # Binary tests, but ones which depend on value of 'TEMP_LARGE' being defined.
