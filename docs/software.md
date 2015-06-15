@@ -126,6 +126,7 @@ Other useful guides to utilities that can handle netCDF data include ARM's list 
 -   [PPLUS](#PPLUS)
 -   [PV-Wave](#PV-Wave)
 -   [Slicer Dicer](#SlicerDicer)
+-   [Surfer](#Surfer)
 -   [vGeo](#vGeo)
 -   [VISAGE and Decimate](#VISAGE_and_Decimate)
 -   [Voyager](#Voyager)
@@ -2657,6 +2658,18 @@ Slicer Dicer output. Visualizations features include:
     an arbitrary color.
 -   Any data level or range of levels can be rendered as either opaque
     or transparent.
+
+Surfer {#Surfer}
+------------------------------------------
+
+[Surfer](http://www.goldensoftware.com/products/surfer) is a 3D
+visualization, contouring, and surface modeling package that runs
+under Microsoft Windows. Surfer is useful for terrain modeling,
+bathymetric modeling, landscape visualization, surface analysis,
+contour mapping, watershed and 3D surface mapping, gridding,
+volumetrics, and more. A sophisticated interpolation engine transforms
+XYZ data into publication-quality maps. Surfer imports from and
+exports to a multitude of file formats, including NetCDF grids.
 
 vGeo {#vGeo}
 ---------------------------
