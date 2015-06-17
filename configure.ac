@@ -397,6 +397,10 @@ fi
 if test "x$enable_dap" = xyes; then
    AC_DEFINE([USE_DAP], [1], [if true, build DAP Client])
    AC_DEFINE([ENABLE_DAP], [1], [if true, build DAP Client])
+#AC_CHECK_HEADER(sys/socket.h, ,AC_DEFINE([NO_SYS_SOCKET_H], [], [no sys/socket.h]))
+#AC_CHECK_HEADER(socket.h, ,AC_DEFINE([NO_SOCKET_H], [], [no socket.h]))
+AC_CHECK_HEADERS([sys/socket.h socket.h])
+AC_CHECK_TYPES([socklen_t])
 fi
 
 if test "x$enable_dap_remote_tests" = xyes; then

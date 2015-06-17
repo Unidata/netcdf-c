@@ -19,7 +19,6 @@
 #define nullfree(m) {if((m)!=NULL) {free(m);} else {}}
 #endif
 
-
 /* Misc. code controls */
 #define FILLCONSTRAINT TRUE
 

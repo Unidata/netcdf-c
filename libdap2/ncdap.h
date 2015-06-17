@@ -15,6 +15,16 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#elif defined HAVE_SOCKET_H
+#include <socket.h>
+#endif
+
+#ifndef HAVE_SOCKLEN_T
+typedef int socklen_t;
+#endif
+
 #include "ncbytes.h"
 #include "nclist.h"
 #include "nchashmap.h"
