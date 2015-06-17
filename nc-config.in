@@ -180,7 +180,7 @@ while test $# -gt 0; do
        	;;
 
      --libs)
-       	pkg-config netcdf --libs
+       	PKG_CONFIG_PATH=${prefix}/lib/pkgconfig pkg-config netcdf --libs
        	;;
 
     --prefix)
