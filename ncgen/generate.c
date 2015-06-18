@@ -314,6 +314,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
 
         if(!con) { /* fail on null compound. */
           semerror(constline(con),"NULL compound data.");
+          break;
         }
 
         if(!islistconst(con)) {/* fail on no compound*/
