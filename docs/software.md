@@ -916,7 +916,7 @@ The program and source are available from
 Java interface {#Java_interface}
 -----------------------------------------------
 
-The [NetCDF-Java 4.2 Library](/packages/netcdf-java/) is a Java
+The [NetCDF-Java 4.2 Library](/software/netcdf-java/) is a Java
 interface to netCDF files, as well as to many other types of scientific
 data formats. It is freely available and the source code is released
 under the (MIT-style) netCDF C library license. Previous versions use
@@ -1250,7 +1250,7 @@ command line operators that work on generic netCDF or HDF4 files:
 -   ncrename - renamer
 -   ncwa - weighted averager
 
-All operators may now be [OPeNDAP](/packages/dods) clients. OPeNDAP
+All operators may now be [OPeNDAP](www.opendao.org) clients. OPeNDAP
 enables network transparent data access to any OPeNDAP server. Thus
 OPeNDAP-enabled NCO can operate on remote files accessible through any
 OPeNDAP server without transferring the files. Only the required data
