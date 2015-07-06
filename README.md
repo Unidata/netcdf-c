@@ -1,14 +1,10 @@
-Unidata NetCDF
-==============
+# Unidata NetCDF
 
 [![Build Status](https://travis-ci.org/Unidata/netcdf-c.svg?branch=master)](https://travis-ci.org/Unidata/netcdf-c)
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/157/badge.svg)](https://scan.coverity.com/projects/157)
 
-<a href="https://scan.coverity.com/projects/157">
-  <img alt="Coverity Scan Build Status"
-       src="https://scan.coverity.com/projects/157/badge.svg"/>
-</a>
-
-The Unidata network Common Data Form (netCDF) is an interface for
+### About
+The Unidata network Common Data Form (**netCDF**) is an interface for
 scientific data access and a freely-distributed software library that
 provides an implementation of the interface.  The netCDF library also
 defines a machine-independent format for representing scientific data.
@@ -19,6 +15,7 @@ distributions available from Unidata provide Java, Fortran, Python,
 and C++ interfaces.  They have been tested on various common
 platforms.
 
+#### Properties
 NetCDF files are self-describing, network-transparent, directly
 accessible, and extendible.  `Self-describing` means that a netCDF file
 includes information about the data it contains.  `Network-transparent`
@@ -29,6 +26,7 @@ large dataset may be accessed efficiently, without first reading through
 all the preceding data.  `Extendible` means that data can be appended to
 a netCDF dataset without copying it or redefining its structure.
 
+#### Use
 NetCDF is useful for supporting access to diverse kinds of scientific
 data in heterogeneous networking environments and for writing
 application software that does not depend on application-specific
@@ -38,23 +36,27 @@ netCDF form, see
 
 * http://www.unidata.ucar.edu/netcdf/software.html
 
+##### More informations
 For more information about netCDF, see the netCDF Web page at
 
 * http://www.unidata.ucar.edu/netcdf/
 
+### Latest releases
 You can obtain a copy of the latest released version of netCDF software
 from
 
-* http://github.com/Unidata/netcdf-c
-* http://github.com/Unidata/netcdf-fortran
-* http://github.com/Unidata/netcdf-cxx4
-* http://github.com/Unidata/netcdf4-python
+* C - http://github.com/Unidata/netcdf-c
+* Fortan - http://github.com/Unidata/netcdf-fortran
+* Libraries and utilities in C - http://github.com/Unidata/netcdf-cxx4
+* Python - http://github.com/Unidata/netcdf4-python
 
+### Copyright
 Copyright and licensing information can be found here, as well as in
 the COPYRIGHT file accompanying the software
 
 * http://www.unidata.ucar.edu/software/netcdf/copyright.html
 
+### Install
 To install this package, please see the file INSTALL in the
 distribution, or the (usually more up-to-date) document:
 
@@ -66,6 +68,7 @@ pages at
 * http://www.unidata.ucar.edu/netcdf/docs/netcdf-man-3.html
 * http://www.unidata.ucar.edu/netcdf/docs/netcdf-man-3f.html
 
+### User's Guides
 User's Guides are also available in several forms from the same
 location.
 
@@ -75,6 +78,7 @@ enhancements.  For information about how to subscribe, see the URL
 
 * http://www.unidata.ucar.edu/netcdf/mailing-lists.html
 
+### Feedback
 We appreciate feedback from users of this package.  Please send
 comments, suggestions, and bug reports to
 <support-netcdf@unidata.ucar.edu>.  Please identify the version of the
