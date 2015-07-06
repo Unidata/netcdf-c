@@ -13,8 +13,6 @@ synth4.das synth4.dds synth4.dods \
 synth5.das synth5.dds synth5.dods \
 synth6.das synth6.dds synth6.dods \
 synth7.das synth7.dds synth7.dods \
-synth8.das synth8.dds synth8.dods \
-synth9.das synth9.dds synth9.dods \
 synth10.das synth10.dds synth10.dods \
 123bears.nc.das 123bears.nc.dds 123bears.nc.dods \
 123.nc.das 123.nc.dds 123.nc.dods \
@@ -96,3 +94,8 @@ test.vs5.das test.vs5.dds test.vs5.dods \
 text.nc.das text.nc.dds text.nc.dods \
 whoi.das whoi.dds whoi.dods \
 CMakeLists.txt
+
+# following are not legally convertible to dap2
+#synth8.das synth8.dds synth8.dods
+#synth9.das synth9.dds synth9.dods
+

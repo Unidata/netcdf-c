@@ -8,11 +8,9 @@
 
 FILEURL="file://${testdata3}"
 
-# Synth8 still fails
+# Synth8 and Synth9 still fail
 
 SYNTHETICDATA="synth1 synth2 synth3 synth4 synth5 synth6 synth7 synth10"
-SYNTHETICDDS="synth9"
-
 
 ACTUALDATA1=\
 "1990-S1700101.HDF.WVC_Lat 1998-6-avhrr.dat \
@@ -53,5 +51,5 @@ fi
 
 FILETESTS="${SYNTHETICDATA} ${ACTUALDATA1} ${ACTUALDATA2}"
 #DDSTESTS intersect FILETESTS should empty
-DDSTESTS="${SYNTHETICDDS}"
+DDSTESTS=
 

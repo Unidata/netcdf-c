@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -e
-#set -x
 quiet=0
 leakcheck=0
 
@@ -68,7 +66,7 @@ fi
 rm -fr ${RESULTSDIR}
 mkdir "${RESULTSDIR}"
 
-rm -f ./.dodsrc ./.ocrc
+rm -f ./.dodsrc ./.ocrc ./.daprc
 passcount=0
 xfailcount=0
 failcount=0
@@ -116,12 +114,14 @@ for x in ${TESTSET} ; do
 
 done
 
-rm -f ./.dodsrc
+rm -f ./.dodsrc ./.ocrc ./.daprc
 
 cd ..
+echo "pwd=" `pwd`
 
 totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
+
 
 echo "*** PASSED: ${okcount}/${totalcount} ; ${xfailcount} expected failures ; ${failcount} unexpected failures"
 

@@ -215,7 +215,7 @@ ocset_flags_perlink(OCstate* state)
 
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_ENCODING);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_NETRC);
-    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_VERBOSE);
+//    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_VERBOSE);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_TIMEOUT);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USERAGENT);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_COOKIEJAR);

@@ -136,7 +136,7 @@ static int check(size_t* start, size_t* count)
 	size_t offset = odom_count(odom);
 	if(floateq(result[offset],expected[offset])) {
 	    fprintf(stderr,"fail: result[%lu] = %f ; expected[%lu] = %f\n",
-		offset,result[offset],offset,expected[offset]);
+		(long unsigned)offset,result[offset],(long unsigned)offset,expected[offset]);
 	    ok=0;
 	}
         odom_incr(odom);
