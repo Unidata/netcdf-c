@@ -8,4 +8,4 @@ Dataset {
       } G1;
       Int32 lat[lat=2];
       Int32 long[long=2];
-    } TEST3;
+    } SYNTH9;
