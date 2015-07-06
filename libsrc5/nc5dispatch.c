@@ -564,10 +564,6 @@ NC5_get_vara(int ncid,
     nc5 = NC5_DATA(nc);
     assert(nc5);
 
-    /* No NC_LONG for parallel-netcdf library! */
-    if(memtype == NC_INT64)
-	 return NC_EINVAL;
-
     /* get variable's rank */
     status= ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
     if(status) return status;
@@ -644,10 +640,6 @@ NC5_put_vara(int ncid,
 
     nc5 = NC5_DATA(nc);
     assert(nc5);
-
-    /* No NC_LONG for parallel-netcdf library! */
-    if(memtype == NC_INT64)
-	 return NC_EINVAL;
 
     /* get variable's rank */
     status = ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
