@@ -331,7 +331,7 @@ This is a bug-fix-only release for version 4.3.1.
 
 * Integrated a fix by Quincey Koziol which addressed a variation of [NCF-250], *Fix issue of netCDF-4 parallel independent access with unlimited dimension hanging*.
 
-[NCF-250]:https://www.unidata.ucar.edu/jira/browse/NCF-250
+[NCF-250]:https://bugtracking.unidata.ucar.edu/browse/NCF-250
 
 * Integrated change contributed by Orion Poplawski which integrated GNUInstallDirs into the netCDF-C CMake system; this will permit systems that install into lib64 (such as Fedora) to `make install` without problem.
 
@@ -353,7 +353,7 @@ This is a bug-fix-only release for version 4.3.1.
 
 * Added a `NC_HAVE_RENAME_GRP` macro to netcdf.h, [as per a request by Charlie Zender][cz1]. This will allow software compiling against netcdf to easily query whether or not nc\_rename\_grp() is available.
 
-[cz1]: https://www.unidata.ucar.edu/esupport/staff/index.php?_m=tickets&_a=viewticket&ticketid=22442
+[cz1]: https://bugtracking.unidata.ucar.edu/browse/NCF-204
 
 * Added Greg Sjaardema's contributed optimization for the nc4\_find\_dim\_len function in libsrc4/nc4internal.c. The patch eliminates several malloc/free calls that exist in the original coding.
 
@@ -361,7 +361,7 @@ This is a bug-fix-only release for version 4.3.1.
 	* autotools-based builds: --enable-dynamic-loading
 	* cmake-based builds: -DENABLE\_DYNAMIC\_LOADING=ON
 
-[NCF-258]: https://www.unidata.ucar.edu/jira/browse/NCF-258
+[NCF-258]: https://bugtracking.unidata.ucar.edu/browse/NCF-258
 
 * Fix issue of netCDF-4 parallel independent access with unlimited dimension hanging.  Extending the size of an unlimited dimension in HDF5 must be a collective operation, so now an error is returned if trying to extend in independent access mode. [NCF-250]
 
@@ -382,138 +382,138 @@ This is a bug-fix-only release for version 4.3.1.
 * fsync: Changed default in autotools config file; fsync must now be
 explicitely enabled instead of explicitely disabled. [NCF-239]
 
-[NCF-239]: https://www.unidata.ucar.edu/jira/browse/NCF-239
+[NCF-239]: https://bugtracking.unidata.ucar.edu/browse/NCF-239
 
 * Fixed netCDF-4 bug where odometer code for libdap2 mishandled stride \> 1. Bug reported by Ansley Manke. [NCF-249]
 
-[NCF-249]: https://www.unidata.ucar.edu/jira/browse/NCF-249
+[NCF-249]: https://bugtracking.unidata.ucar.edu/browse/NCF-249
 
 * Fixed netCDF-4 bug so netCDF just ignores objects of HDF5 reference type in
 the file, instead of rejecting the file. [NCF-29]
 
-[NCF-29]: https://www.unidata.ucar.edu/jira/browse/NCF-29
+[NCF-29]: https://bugtracking.unidata.ucar.edu/browse/NCF-29
 
 * Fixed netCDF-4 bug with particular order of creation of dimensions,
 coordinate variables, and subgroups resulting in two dimensions with the
 same dimension ID. [NCF-244]
 
-[NCF-244]: https://www.unidata.ucar.edu/jira/browse/NCF-244
+[NCF-244]: https://bugtracking.unidata.ucar.edu/browse/NCF-244
 
 * Fixed netCDF-4 bug with a multidimensional coordinate variable in a
 subgroup getting the wrong dimension IDs for its dimensions. [NCF-247]
 
-[NCF-247]: https://www.unidata.ucar.edu/jira/browse/NCF-247
+[NCF-247]: https://bugtracking.unidata.ucar.edu/browse/NCF-247
 
 * Fixed bug with incorrect fixed-size variable offsets in header getting
 written when schema changed for files created by parallel-netcdf. Thanks
 to Wei-keng Liao for developing and contributing the fix. [NCF-234]
 
-[NCF-234]: https://www.unidata.ucar.edu/jira/browse/NCF-234
+[NCF-234]: https://bugtracking.unidata.ucar.edu/browse/NCF-234
 
 * Fixed bug in handling old servers that do not do proper Grid to
 Structure conversions. [NCF-232]
 
-[NCF-232]: https://www.unidata.ucar.edu/jira/browse/NCF-232
+[NCF-232]: https://bugtracking.unidata.ucar.edu/browse/NCF-232
 
 * Replaced the oc library with oc2.0
 
 * Fix bug with nc\_get\_var1\_uint() not accepting unsigned ints larger
 than 2\*\*31. [NCF-226]
 
-[NCF-226]: https://www.unidata.ucar.edu/jira/browse/NCF-226
+[NCF-226]: https://bugtracking.unidata.ucar.edu/browse/NCF-226
 
 * Fix to convert occurrences of '/' in DAP names to %2f. [NCF-223]
 
-[NCF-223]: https://www.unidata.ucar.edu/jira/browse/NCF-223
+[NCF-223]: https://bugtracking.unidata.ucar.edu/browse/NCF-223
 
 * Fix bug in netCDF-4 with scalar non-coordinate variables with same name
 as dimensions. [NCF-222]
 
-[NCF-222]: https://www.unidata.ucar.edu/jira/browse/NCF-222
+[NCF-222]: https://bugtracking.unidata.ucar.edu/browse/NCF-222
 
 * Fix bug in which calling netCDF-4 functions in which behavior that
 should not depend on order of calls sometimes produces the wrong
 results. [NCF-217]
 
-[NCF-217]: https://www.unidata.ucar.edu/jira/browse/NCF-217
+[NCF-217]: https://bugtracking.unidata.ucar.edu/browse/NCF-217
 
 * Merged in nccopy additions from Martin van Driel to support -g and -v
 options for specifying which groups or variables are to be copied.
 [NCF-216]
 
-[NCF-216]: https://www.unidata.ucar.edu/jira/browse/NCF-216
+[NCF-216]: https://bugtracking.unidata.ucar.edu/browse/NCF-216
 
 * Merged in parallel-netcdf bugs fixes from Greg Sjaardema. [NCF-214]
 
-[NCF-214]: https://www.unidata.ucar.edu/jira/browse/NCF-214
+[NCF-214]: https://bugtracking.unidata.ucar.edu/browse/NCF-214
 
 * Modify ncgen so that if the incoming file has a special attribute, then
 it is used to establish the special property of the netcdf file, but the
 attribute is not included as a real attribute in the file. [NCF-213].
 
-[NCF-213]: https://www.unidata.ucar.edu/jira/browse/NCF-213
+[NCF-213]: https://bugtracking.unidata.ucar.edu/browse/NCF-213
 
 * Added library version info to the user-agent string so that the server
 logs will be more informative. [NCF-210]
 
-[NCF-210]: https://www.unidata.ucar.edu/jira/browse/NCF-210
+[NCF-210]: https://bugtracking.unidata.ucar.edu/browse/NCF-210
 
 * Added work around for bad servers that sometimes sends DAP dataset with
 duplicate field names. [NCF-208]
 
-[NCF-208]: https://www.unidata.ucar.edu/jira/browse/NCF-208
+[NCF-208]: https://bugtracking.unidata.ucar.edu/browse/NCF-208
 
 * Fixed bug with strided access for NC\_STRING type. [NCF-206]
 
-[NCF-206]: https://www.unidata.ucar.edu/jira/browse/NCF-206
+[NCF-206]: https://bugtracking.unidata.ucar.edu/browse/NCF-206
 
 * Prevented adding an invalid \_FillValue attribute to a variable (with
 nonmatching type or multiple values), to avoid later error when any
 record variable is extended. [NCF-190]
 
-[NCF-190]: https://www.unidata.ucar.edu/jira/browse/NCF-190
+[NCF-190]: https://bugtracking.unidata.ucar.edu/browse/NCF-190
 
 * Fix bug in which some uses of vlen within compounds causes HDF5 errors.
 [NCF-155]
 
-[NCF-155]: https://www.unidata.ucar.edu/jira/browse/NCF-155
+[NCF-155]: https://bugtracking.unidata.ucar.edu/browse/NCF-155
 
 * Fixed ncdump bug in display of data values of variables that use
 multiple unlimited dimensions. [NCF-144]
 
-[NCF-144]: https://www.unidata.ucar.edu/jira/browse/NCF-144
+[NCF-144]: https://bugtracking.unidata.ucar.edu/browse/NCF-144
 
 * Fix bug in which interspersing def\_var calls with put\_var calls can
 lead to corrupt metadata in a netCDF file with groups and inherited
 dimensions. [NCF-134]
 
-[NCF-134]: https://www.unidata.ucar.edu/jira/browse/NCF-134
+[NCF-134]: https://bugtracking.unidata.ucar.edu/browse/NCF-134
 
 * Building shared libraries works with DAP and netCDF4 functionality.
 [NCF-205] [NCF-57]
 
-[NCF-205]: https://www.unidata.ucar.edu/jira/browse/NCF-205
-[NCF-57]: https://www.unidata.ucar.edu/jira/browse/NCF-57
+[NCF-205]: https://bugtracking.unidata.ucar.edu/browse/NCF-205
+[NCF-57]: https://bugtracking.unidata.ucar.edu/browse/NCF-57
 
 * 32-and-64-bit builds are working under MinGW on Windows. [NCF-112]
 
-[NCF-112]: https://www.unidata.ucar.edu/jira/browse/NCF-112
+[NCF-112]: https://bugtracking.unidata.ucar.edu/browse/NCF-112
 
 * Config.h for Windows compiles are included in the build. [NCF-98]
 
-[NCF-98]: https://www.unidata.ucar.edu/jira/browse/NCF-98
+[NCF-98]: https://bugtracking.unidata.ucar.edu/browse/NCF-98
 
 * NetCDF-4 dependency on NC\_MAX\_DIMS has been removed. [NCF-71]
 
-[NCF-71]: https://www.unidata.ucar.edu/jira/browse/NCF-71
+[NCF-71]: https://bugtracking.unidata.ucar.edu/browse/NCF-71
 
 * 64-bit DLL's are produced on Windows. [NCF-65]
 
-[NCF-65]: https://www.unidata.ucar.edu/jira/browse/NCF-65
+[NCF-65]: https://bugtracking.unidata.ucar.edu/browse/NCF-65
 
 * DLL Packaging issues are resolved. [NCF-54]
 
-[NCF-54]: https://www.unidata.ucar.edu/jira/browse/NCF-54
+[NCF-54]: https://bugtracking.unidata.ucar.edu/browse/NCF-54
 
 * The CMake build system (with related ctest and cdash systems for
 testing) has been integrated into netCDF-C. This allows for Visual

@@ -126,6 +126,7 @@ Other useful guides to utilities that can handle netCDF data include ARM's list 
 -   [PPLUS](#PPLUS)
 -   [PV-Wave](#PV-Wave)
 -   [Slicer Dicer](#SlicerDicer)
+-   [Surfer](#Surfer)
 -   [vGeo](#vGeo)
 -   [VISAGE and Decimate](#VISAGE_and_Decimate)
 -   [Voyager](#Voyager)
@@ -915,7 +916,7 @@ The program and source are available from
 Java interface {#Java_interface}
 -----------------------------------------------
 
-The [NetCDF-Java 4.2 Library](/packages/netcdf-java/) is a Java
+The [NetCDF-Java 4.2 Library](/software/netcdf-java/) is a Java
 interface to netCDF files, as well as to many other types of scientific
 data formats. It is freely available and the source code is released
 under the (MIT-style) netCDF C library license. Previous versions use
@@ -1249,7 +1250,7 @@ command line operators that work on generic netCDF or HDF4 files:
 -   ncrename - renamer
 -   ncwa - weighted averager
 
-All operators may now be [OPeNDAP](/packages/dods) clients. OPeNDAP
+All operators may now be [OPeNDAP](www.opendao.org) clients. OPeNDAP
 enables network transparent data access to any OPeNDAP server. Thus
 OPeNDAP-enabled NCO can operate on remote files accessible through any
 OPeNDAP server without transferring the files. Only the required data
@@ -2657,6 +2658,18 @@ Slicer Dicer output. Visualizations features include:
     an arbitrary color.
 -   Any data level or range of levels can be rendered as either opaque
     or transparent.
+
+Surfer {#Surfer}
+------------------------------------------
+
+[Surfer](http://www.goldensoftware.com/products/surfer) is a 3D
+visualization, contouring, and surface modeling package that runs
+under Microsoft Windows. Surfer is useful for terrain modeling,
+bathymetric modeling, landscape visualization, surface analysis,
+contour mapping, watershed and 3D surface mapping, gridding,
+volumetrics, and more. A sophisticated interpolation engine transforms
+XYZ data into publication-quality maps. Surfer imports from and
+exports to a multitude of file formats, including NetCDF grids.
 
 vGeo {#vGeo}
 ---------------------------

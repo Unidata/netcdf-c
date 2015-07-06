@@ -311,14 +311,21 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
                 semerror(0,"Compound data fill value not enclosed in {..}, con is NULL.");
             }
         }
+
+        if(!con) { /* fail on null compound. */
+          semerror(constline(con),"NULL compound data.");
+          break;
+        }
+
         if(!islistconst(con)) {/* fail on no compound*/
             semerror(constline(con),"Compound data must be enclosed in {..}");
         }
+
         data = con->value.compoundv;
         nfields = listlength(tsym->subnodes);
         dllen = datalistlen(data);
         if(dllen > nfields) {
-            semerror(con->lineno,"Datalist longer than the number of compound fields");
+          semerror(con->lineno,"Datalist longer than the number of compound fields");
             break;
         }
         generator->listbegin(generator,LISTCOMPOUND,listlength(tsym->subnodes),codebuf,&uid);

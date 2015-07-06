@@ -252,23 +252,25 @@ static int touppercase(int c)
 static void
 initialize(void)
 {
-    struct OCCURLFLAG* p;
-    if(nflags == 0) {  /* initialize */
+  struct OCCURLFLAG* p;
+  if(nflags == 0) {  /* initialize */
 	maxflag = -1;
-        for(p=oc_curlflags;p->name;p++) {
-	    int c;
-	    nflags++; /* count number of flags */
-	    if(p->flag > maxflag) maxflag = p->flag;
-	    /* construct alphabetic radix nameindices */
-	    c = p->name[0];
-	    OCASSERT(c >= 'A' && c <= 'Z');
-	    if(nameindices[c] == NULL)
+    for(p=oc_curlflags;p->name;p++) {
+      int c;
+      nflags++; /* count number of flags */
+      if(p->flag > maxflag) maxflag = p->flag;
+      /* construct alphabetic radix nameindices */
+      c = p->name[0];
+      OCASSERT(c >= 'A' && c <= 'Z');
+      if(nameindices[c] == NULL)
 		nameindices[c] = p;
 	}
-	flagindices = (struct OCCURLFLAG**)calloc(1,(maxflag+1)*sizeof(struct OCCURLFLAG*));
-        for(p=oc_curlflags;p->name;p++)
-	    flagindices[p->flag] = p;
-    }
+
+
+    flagindices = (struct OCCURLFLAG**)calloc(1,(maxflag+(maxflag == -1 ? 2 : 1))*sizeof(struct OCCURLFLAG*));
+    for(p=oc_curlflags;p->name;p++)
+      flagindices[p->flag] = p;
+  }
 }
 
 struct OCCURLFLAG*
@@ -287,7 +289,7 @@ occurlflagbyname(const char* name)
     const char* p;
     char* q;
 
-    if(nflags == 0) initialize();    
+    if(nflags == 0) initialize();
     /* Force upper case */
     for(p=name,q=flagname;*p;p++) {
         int cc = touppercase(*p);
@@ -309,7 +311,7 @@ occurlflagbyname(const char* name)
 struct OCCURLFLAG*
 occurlflagbyflag(int flag)
 {
-    if(nflags == 0) initialize();    
+    if(nflags == 0) initialize();
     if(flag >= 0 || flag <= maxflag)
 	return flagindices[flag];
     return NULL;
