@@ -426,9 +426,9 @@ AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
 # Does the user want to do some extra tests?
 AC_MSG_CHECKING([whether netCDF extra tests should be run (developers only)])
 AC_ARG_ENABLE([extra-tests],
-              [AS_HELP_STRING([--enable-extra-tests],
-                              [run some extra tests that may not pass because of known issues])])
-test "x$enable_extra_tests" = xyes || enable_extra_tests=no
+              [AS_HELP_STRING([--disable-extra-tests],
+                              [disable some extra tests that may not pass because of known issues])])
+test "x$enable_extra_tests" = xno || enable_extra_tests=yes
 AC_MSG_RESULT($enable_extra_tests)
 if test "x$enable_extra_tests" = xyes; then
    AC_DEFINE([EXTRA_TESTS], [1], [if true, run extra tests which may not work yet])

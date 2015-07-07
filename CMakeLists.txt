@@ -678,7 +678,7 @@ ELSE()
 ENDIF()
 
 # Enable some developer-only tests
-OPTION(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
+OPTION(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." ON)
 IF(ENABLE_EXTRA_TESTS)
   SET(EXTRA_TESTS ON)
 ENDIF()
