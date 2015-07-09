@@ -7,7 +7,11 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.0 Released TBD
 
-### 4.4.0-RC1 Released TBD
+### 4.4.0-RC2 Released 2015-07-09
+
+* Minor bug fixes and cleanup of issues reported with first release candidate.
+
+### 4.4.0-RC1 Released 2015-06-09
 
 * The pre-built Windows binaries are now built using `Visual Studio 2012`, instead of `Visual Studio 2010`.  Source-code compilation remains function with `Visual Studio 2010`, this is just a change in the pre-built binaries.
 
