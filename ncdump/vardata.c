@@ -503,7 +503,7 @@ print_rows(
 	    }
 	    printf("%s", sbuf_str(sb));
 	    lastdelim (0, lastrow);
-	    annotate (vp, cor, 0L);
+	    annotate (vp, cor, i);
 	} else {
 	    for (j = 0; j < marks_pending; j++) {
 		sbuf_cat(sb, "}");
