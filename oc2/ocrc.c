@@ -125,7 +125,7 @@ static void
 rctrim(char* text)
 {
     char* p = text;
-    size_t len = strlen(text);
+    size_t len;
     int i;
     /* locate first non-trimchar */
     for(;*p;p++) {
@@ -371,7 +371,7 @@ ocrc_load(void)
        2. set by DAPRCFILE env variable
        3. '.'
        4. $HOME
-    */  
+    */
     if(ocglobalstate.rc.rcfile != NULL) { /* always use this */
 	path = strdup(ocglobalstate.rc.rcfile);
     } else if(getenv(OCRCFILEENV) != NULL && strlen(getenv(OCRCFILEENV)) > 0) {
