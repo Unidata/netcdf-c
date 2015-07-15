@@ -127,6 +127,8 @@ rctrim(char* text)
     char* p = text;
     size_t len;
     int i;
+
+    len = strlen(text);
     /* locate first non-trimchar */
     for(;*p;p++) {
        if(strchr(TRIMCHARS,*p) == NULL) break; /* hit non-trim char */
