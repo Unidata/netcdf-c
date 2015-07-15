@@ -63,18 +63,8 @@ netCDF-C distribution, or the (usually more up-to-date) document:
 * [Building NetCDF](http://www.unidata.ucar.edu/netcdf/docs/building.html)
 
 ### Documentation
-Reference documentation for various language interfaces are available from:
-
-* [NetCDF-C](http://www.unidata.ucar.edu/netcdf/docs/modules.html),
-  [C man page](http://www.unidata.ucar.edu/netcdf/docs/netcdf-man-3.html)
-* [Fortran-90](http://www.unidata.ucar.edu/netcdf/docs/netcdf-f90.html)
-* [Fortran-77](http://www.unidata.ucar.edu/netcdf/docs/netcdf-man-3f.html)
-* [Java](http://www.unidata.ucar.edu/software/thredds/current/netcdf-java/reference/)
-* [C++](https://www.unidata.ucar.edu/netcdf/docs/cxx4/index.html)
-* [Python](http://unidata.github.io/netcdf4-python/#header-classes)
-
 A language-independent User's Guide for netCDF, and some other
-language-specific documents are available from:
+language-specific user-level documents are available from:
 
 * [Language-independent User's Guide](http://www.unidata.ucar.edu/netcdf/docs/user_guide.html)
 * [NetCDF-C Tutorial](http://www.unidata.ucar.edu/software/netcdf/docs/tutorial_8dox.html)
@@ -82,6 +72,16 @@ language-specific documents are available from:
 * [Fortran-77 User's Guide](http://www.unidata.ucar.edu/netcdf/docs/netcdf-f77.html)
 * [netCDF-Java/Common Data Model library](http://www.unidata.ucar.edu/software/thredds/current/netcdf-java/)
 * [netCDF4-python](http://unidata.github.io/netcdf4-python/)
+
+Reference documentation for various language interfaces are available from:
+
+* [NetCDF-C](http://www.unidata.ucar.edu/netcdf/docs/modules.html),
+  [C man page](http://www.unidata.ucar.edu/netcdf/docs/netcdf-man-3.html)
+* [Fortran-90](http://www.unidata.ucar.edu/netcdf/docs/netcdf-f90.html)
+* [Fortran-77 man page](http://www.unidata.ucar.edu/netcdf/docs/netcdf-man-3f.html)
+* [Java](http://www.unidata.ucar.edu/software/thredds/current/netcdf-java/reference/)
+* [C++](https://www.unidata.ucar.edu/netcdf/docs/cxx4/index.html)
+* [Python](http://unidata.github.io/netcdf4-python/#header-classes)
 
 A mailing list, netcdfgroup@unidata.ucar.edu, exists for discussion of
 the netCDF interface and announcements about netCDF bugs, fixes, and
