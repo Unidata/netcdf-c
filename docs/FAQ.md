@@ -241,9 +241,6 @@ A primary reference is the User's Guide:
 Rew, R. K., G. P. Davis, S. Emmerson, and H. Davies, **NetCDF User's
 Guide for C, An Interface for Data Access, Version 3**, April 1997.
 
-To cite use of netCDF software, please use this Digital Object Identifier (DOI):
-[http://dx.doi.org/10.5065/D6H70CW6](http://dx.doi.org/10.5065/D6H70CW6)
-
 Current online and downloadable documentation is available from the
 [documentation directory](http://www.unidata.ucar.edu/software/netcdf/docs/).
 
@@ -277,6 +274,21 @@ Anaheim, California, American Meteorology Society, pp. 33-40, February
 1990.
 
 Rew, R. K. and G. P. Davis, " [Unidata's netCDF Interface for Data Access: Status and Plans](/netcdf/ams97.html)," Thirteenth International Conference on Interactive Information and Processing Systems for Meteorology, Oceanography, and Hydrology, Anaheim, California, American Meteorology Society, February 1997.
+
+----------
+
+I'm submitting a paper for publication and want to include a citation for use of netCDF software. What reference should I use? {#How-should-I-cite-use-of-netCDF-software}
+-----------------
+
+The registered Digital Object Identifier for all versions of netCDF software is `http://doi.org/10.5065/D6H70CW6`.
+
+The following can be used as a citation:
+
+Unidata, (_year_): Network Common Data Form (netCDF) version _nc_version_ [software]. Boulder, CO: UCAR/Unidata. (http://doi.org/10.5065/D6H70CW6) 
+
+where _year_ is the year in which the work being described was done and _nc_version_ is the version of netCDF used. For example:
+
+Unidata, (2015): Network Common Data Form (netCDF) version 4.3.3.1 [software]. Boulder, CO: UCAR/Unidata. (http://doi.org/10.5065/D6H70CW6) 
 
 ----------
 
