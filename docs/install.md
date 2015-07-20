@@ -177,6 +177,11 @@ installation location specified with the <CODE>--prefix</CODE> option
 must be different from the source directory where the software is
 being built.
 
+WARNING: you should be able to use parallel 'make all'. But 'make check'
+will probably fail if you use parallel make. This is because historically,
+there are inter-dependencies between test programs. It is unlikely
+that this will be fixed any time soon, if ever.
+
 Building netCDF with Classic Library Only {#build_classic}
 ---------------------------------------
 
