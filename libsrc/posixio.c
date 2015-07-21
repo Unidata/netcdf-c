@@ -282,7 +282,9 @@ px_pgin(ncio *const nciop,
 {
 	int status;
 	ssize_t nread;
-
+    size_t read_count = 0;
+    ssize_t bytes_xfered = 0;
+    void *p = vp;
 #ifdef X_ALIGN
 	assert(offset % X_ALIGN == 0);
 	assert(extent % X_ALIGN == 0);
@@ -309,15 +311,26 @@ px_pgin(ncio *const nciop,
 	}
 
 	errno = 0;
-	nread = read(nciop->fd, vp, extent);
-	if(nread != (ssize_t) extent)
-	{
+    /* Handle the case where the read is interrupted
+       by a signal (see NCF-337,
+       http://pubs.opengroup.org/onlinepubs/009695399/functions/read.html)
+
+       The case where it's a short read is already handled by the function. */
+    /*do {
+      nread = read(nciop->fd, vp, extent);
+      if( nread > 0) {
+
+      }
+      } while(errno == EINTR); */
+
+    if(nread != (ssize_t) extent)
+      {
 		status = errno;
-		if(nread == -1 || status != ENOERR)
-			return status;
+		if( nread == -1 || (status != EINTR && status != ENOERR))
+          return status;
 		/* else it's okay we read less than asked for */
 		(void) memset((char *)vp + nread, 0, (ssize_t)extent - nread);
-	}
+      }
 	*nreadp = nread;
 	*posp += nread;
 
