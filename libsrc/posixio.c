@@ -316,21 +316,13 @@ px_pgin(ncio *const nciop,
        http://pubs.opengroup.org/onlinepubs/009695399/functions/read.html)
 
        The case where it's a short read is already handled by the function. */
-    /*do {
-      nread = read(nciop->fd, vp, extent);
-      if( nread > 0) {
-
-      }
-      } while(errno == EINTR); */
-
-    if(nread != (ssize_t) extent)
-      {
-		status = errno;
-		if( nread == -1 || (status != EINTR && status != ENOERR))
-          return status;
-		/* else it's okay we read less than asked for */
-		(void) memset((char *)vp + nread, 0, (ssize_t)extent - nread);
-      }
+    if(nread != (ssize_t)extent) {
+      status = errno;
+      if( nread == -1 || (status != EINTR && status != ENOERR))
+        return status;
+      /* else it's okay we read less than asked for */
+      (void) memset((char *)vp + nread, 0, (ssize_t)extent - nread);
+    }
 	*nreadp = nread;
 	*posp += nread;
 
