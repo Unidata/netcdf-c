@@ -315,7 +315,21 @@ px_pgin(ncio *const nciop,
        by a signal (see NCF-337,
        http://pubs.opengroup.org/onlinepubs/009695399/functions/read.html)
 
-       The case where it's a short read is already handled by the function. */
+       When this happens, nread will (should) be the bytes read, and
+       errno will be set to EINTR.  On older systems nread might be -1.
+       If this is the case, there's not a whole lot we can do about it
+       as we can't compute any offsets, so we will attempt to read again.
+       This *feels* like it could lead to an infinite loop, but it shouldn't
+       unless the read is being constantly interrupted by a signal, and is
+       on an older system which returns -1 instead of bytexs read.
+
+       The case where it's a short read is already handled by the function
+       (according to the comment below, at least). */
+    do {
+      nread = read(nciop->fd,vp,extent);
+    } while (nread == -1 && errno == EINTR);
+
+
     if(nread != (ssize_t)extent) {
       status = errno;
       if( nread == -1 || (status != EINTR && status != ENOERR))
@@ -323,7 +337,8 @@ px_pgin(ncio *const nciop,
       /* else it's okay we read less than asked for */
       (void) memset((char *)vp + nread, 0, (ssize_t)extent - nread);
     }
-	*nreadp = nread;
+
+    *nreadp = nread;
 	*posp += nread;
 
 	return ENOERR;
