@@ -166,7 +166,7 @@ swapn2b(void *dst, const void *src, size_t nn)
 }
 
 # ifndef vax
-static void
+void
 swap4b(void *dst, const void *src)
 {
     unsigned int *op = dst;
