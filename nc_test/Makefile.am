@@ -16,7 +16,7 @@ tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc unlim.nc
 
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
-tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta
+tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_swap4b
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts tst_put_vars
@@ -96,7 +96,7 @@ run_diskless.sh run_diskless2.sh run_mmap.sh run_pnetcdf_test.sh
 
 
 # ref_tst_diskless2.cdl is for diff comparison and to produce tst_diskless2.c
-EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt
+EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt tst_swap4b.c
 
 #EXTRA_DIST += ${nc_test_SOURCES}
 
