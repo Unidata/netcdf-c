@@ -13,7 +13,7 @@ dnl
 /*
  *	Copyright 1996, University Corporation for Atmospheric Research
  *	See netcdf/COPYRIGHT file for copying and redistribution conditions.
- * 	
+ *
  * 	This file contains some routines derived from code
  *	which is copyrighted by Sun Microsystems, Inc.
  *	The "#ifdef vax" versions of
@@ -144,7 +144,7 @@ swapn2b(void *dst, const void *src, size_t nn)
  *	{
  *		*op++ = *(++ip);
  *		*op++ = *(ip++ -1);
- *	}                                       
+ *	}
  */
 	while(nn > 3)
 	{
@@ -169,12 +169,19 @@ swapn2b(void *dst, const void *src, size_t nn)
 static void
 swap4b(void *dst, const void *src)
 {
-	char *op = dst;
-	const char *ip = src;
-	op[0] = ip[3];
-	op[1] = ip[2];
-	op[2] = ip[1];
-	op[3] = ip[0];
+    unsigned int *op = dst;
+    const char *ip = src;
+    unsigned int tempIn;
+    unsigned int tempOut;
+
+    tempIn = *(unsigned int *)(ip+0);
+    tempOut =
+    ( tempIn << 24) |
+    ((tempIn & 0x0000ff00) << 8) |
+    ((tempIn & 0x00ff0000) >> 8) |
+    ( tempIn >> 24);
+
+    *(float *)op = *(float *)(&tempOut);
 }
 # endif /* !vax */
 
@@ -378,7 +385,7 @@ get_ix_short(const void *xp, ix_short *ip)
 		*ip |= (~(0xffff)); /* N.B. Assumes "twos complement" */
 	}
 #endif
-	*ip |= *cp; 
+	*ip |= *cp;
 }
 
 static void
@@ -681,7 +688,7 @@ get_ix_int(const void *xp, ix_int *ip)
 #endif
 	*ip |= (*cp++ << 16);
 	*ip |= (*cp++ << 8);
-	*ip |= *cp; 
+	*ip |= *cp;
 }
 
 static void
@@ -941,7 +948,7 @@ ncx_put_int_double(void *xp, const double *ip)
 		return NC_ERANGE;
 	return ENOERR;
 }
- 
+
 
 /* x_float */
 
@@ -1671,7 +1678,7 @@ dnl PUT_VAX_DDOUBLE_Body(xp) (body for put_ix_double)
 dnl
 define(`PUT_VAX_DDOUBLE_Body',dnl
 `dnl
-	const struct vax_double *const vdp = 
+	const struct vax_double *const vdp =
 			(const struct vax_double *)ip;
 	struct ieee_double *const idp =
 			 (struct ieee_double *) $1;
@@ -1727,7 +1734,7 @@ define(`PUT_VAX_DDOUBLE_Body',dnl
 		idp->exp_hi = exp >> 4;
 		idp->exp_lo = exp;
 	}
-		
+
 	shipit:
 		idp->sign = vdp->sign;
 ')dnl
@@ -2061,7 +2068,7 @@ ncx_get_size_t(const void **xpp,  size_t *ulp)
 	*ulp = (unsigned)(*cp++ << 24);
 	*ulp |= (*cp++ << 16);
 	*ulp |= (*cp++ << 8);
-	*ulp |= *cp; 
+	*ulp |= *cp;
 
 	*xpp = (const void *)((const char *)(*xpp) + X_SIZEOF_SIZE_T);
 	return ENOERR;
@@ -2079,7 +2086,7 @@ ncx_put_off_t(void **xpp, const off_t *lp, size_t sizeof_off_t)
 	  /* Assume this is an overflow of a 32-bit int... */
 	  return ERANGE;
 	}
-	  
+
 	assert(sizeof_off_t == 4 || sizeof_off_t == 8);
 
 	if (sizeof_off_t == 4) {
@@ -2125,7 +2132,7 @@ ncx_get_off_t(const void **xpp, off_t *lp, size_t sizeof_off_t)
 		*lp =  (off_t)(*cp++ << 24);
 		*lp |= (off_t)(*cp++ << 16);
 		*lp |= (off_t)(*cp++ <<  8);
-		*lp |= (off_t)*cp; 
+		*lp |= (off_t)*cp;
 	} else {
 #if SIZEOF_OFF_T == 4
 /* Read a 64-bit offset on a system with only a 32-bit offset */
@@ -2381,7 +2388,7 @@ ncx_pad_getn_short_$1(const void **xpp, size_t nelems, $1 *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2415,7 +2422,7 @@ define(`NCX_PAD_PUTN_Byte_Body',dnl
 		(void) memcpy(*xpp, nada, rndup);
 		*xpp = (void *)((char *)(*xpp) + rndup);
 	}
-	
+
 	return ENOERR;
 `dnl
 ')dnl
@@ -2550,7 +2557,7 @@ ifelse( $1$2, intfloat,dnl
     for (i=0; i<ni; i++) {
 ifelse( $1$2, intfloat,dnl
 `dnl
-      /* for some reason int to float, for putn, requires a special case */ 
+      /* for some reason int to float, for putn, requires a special case */
       d = tp[i];
       xp[i] = ($1) Max( Xmin($1), Min(Xmax($1), ($1) d));
       nrange += d < Xmin($1) || d > Xmax($1);
@@ -2562,7 +2569,7 @@ ifelse( $1$2, intfloat,dnl
       nrange += tp[i] < Xmin($1) || tp[i] > Xmax($1);
 ')dnl
     }
-   /* copy workspace back if necessary */ 
+   /* copy workspace back if necessary */
     if (realign) {
       memcpy(*xpp, tmp, ni*Xsizeof($1));
       xp = ($1 *) *xpp;
@@ -2615,9 +2622,9 @@ ncx_pad_putn_short_$1(void **xpp, size_t nelems, const $1 *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2948,7 +2955,7 @@ ncx_putn_float_float(void **xpp, size_t nfloats, const float *ip)
 	while(ip < end)
 	{
 PUT_VAX_DFLOAT_Body(`(*xpp)')
-	
+
 		ip++;
 		*xpp = (char *)(*xpp) + X_SIZEOF_FLOAT;
 	}
