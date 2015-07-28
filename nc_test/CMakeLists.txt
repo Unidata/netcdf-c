@@ -27,8 +27,10 @@ TARGET_LINK_LIBRARIES(nc_test
 # out of libnetcdf.
 ##
 ADD_EXECUTABLE(tst_swap4b tst_swap4b.c ${CMAKE_SOURCE_DIR}/libsrc/ncx.c ${CMAKE_SOURCE_DIR}/libsrc/ncx.h)
+ADD_TEST(tst_swap4b ${EXECUTABLE_OUTPUT_PATH}/tst_swap4b)
 
-# Some extra tests
+
+# Some extra stand-alone tests
 SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta)
 
 IF(NOT HAVE_BASH)

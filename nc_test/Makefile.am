@@ -15,8 +15,9 @@ tst_diskless3.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl \
 tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc unlim.nc
 
 # These are the tests which are always run.
-TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
-tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_swap4b
+TESTPROGRAMS = t_nc tst_small nc_test tst_swap4b tst_misc tst_norm \
+	tst_names tst_nofill tst_nofill2 tst_nofill3 tst_atts3 \
+	tst_meta tst_swap4b
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts tst_put_vars
@@ -26,14 +27,16 @@ if USE_PNETCDF
 TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_formatx_pnetcdf
 endif
 
-# if EXTRA_TESTS
-# TESTPROGRAMS +=
-# endif # EXTRA_TESTS
-
 # These are the source files for the main workhorse test program,
 # nc_test. If you pass nc_test, you are doing well.
 nc_test_SOURCES = nc_test.c error.c test_get.c test_put.c \
 test_read.c test_write.c util.c error.h tests.h
+
+
+##
+# These are the source files for tst_swap4b.
+##
+tst_swap4b_SOURCES = tst_swap4b.c $(top_builddir)/libsrc/ncx.c $(top_builddir)/libsrc/ncx.h
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include
