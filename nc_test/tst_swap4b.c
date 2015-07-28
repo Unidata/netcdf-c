@@ -18,7 +18,6 @@
 /* Taken from ncx.c */
 void swap4b(void *dst, const void *src);
 
-
 #include <stdio.h>
 
 /*! The 'Old' swap4b algorithm.
