@@ -16,7 +16,7 @@
                    (((a) >> 24) & 0x000000ff) )
 
 /* Taken from ncx.c */
-extern void swap4b(void *dst, const void *src);
+void swap4b(void *dst, const void *src);
 
 
 #include <stdio.h>
