@@ -439,24 +439,30 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
 
     /* Use the specialized put_att_XX routines if possible*/
     if(isprim(basetype->typ.typecode)) {
-	switch (basetype->typ.typecode) {
-            case NC_BYTE: {
-                signed char* data = (signed char*)bbContents(databuf);
-                stat = nc_put_att_schar(grpid,varid,asym->name,typid,len,data);
-                check_err(stat,__LINE__,__FILE__);
-            } break;
-            case NC_CHAR: {
-                char* data = (char*)bbContents(databuf);
+      switch (basetype->typ.typecode) {
+      case NC_BYTE: {
+        signed char* data = (signed char*)bbContents(databuf);
+        stat = nc_put_att_schar(grpid,varid,asym->name,typid,len,data);
+        check_err(stat,__LINE__,__FILE__);
+      } break;
+      case NC_CHAR: {
+        char* data = (char*)bbContents(databuf);
 		size_t slen = bbLength(databuf);
 		/* Revise length if slen == 0 */
-		if(slen == 0) {bbAppend(databuf,'\0'); slen++;}
-                stat = nc_put_att_text(grpid,varid,asym->name,slen,data);
-                check_err(stat,__LINE__,__FILE__);
-            } break;
-            case NC_SHORT: {
-                short* data = (short*)bbContents(databuf);
-                stat = nc_put_att_short(grpid,varid,asym->name,typid,len,data);
-                check_err(stat,__LINE__,__FILE__);
+		if(slen == 0) {
+          bbAppend(databuf,'\0');
+          /* bbAppend frees the memory pointed to by char* data,
+             so re-assign.  See Coverity issue: 1265731.*/
+          data = (char*)bbContents(databuf);
+          slen++;
+        }
+        stat = nc_put_att_text(grpid,varid,asym->name,slen,data);
+        check_err(stat,__LINE__,__FILE__);
+      } break;
+      case NC_SHORT: {
+        short* data = (short*)bbContents(databuf);
+        stat = nc_put_att_short(grpid,varid,asym->name,typid,len,data);
+        check_err(stat,__LINE__,__FILE__);
             } break;
             case NC_INT: {
                 int* data = (int*)bbContents(databuf);
