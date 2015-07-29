@@ -1165,9 +1165,9 @@ ncio_spx_get(ncio *const nciop,
 	}
 
 	{
-		const size_t rndup = extent % X_ALIGN;
-		if(rndup != 0)
-			extent += X_ALIGN - rndup;
+      const size_t rndup = extent % X_ALIGN;
+      if(rndup != 0)
+        extent += X_ALIGN - rndup;
 	}
 
 	assert(offset % X_ALIGN == 0);
@@ -1183,7 +1183,7 @@ ncio_spx_get(ncio *const nciop,
 			pxp->bf_extent = 0;
 		}
 		assert(pxp->bf_extent == 0);
-		pxp->bf_base = malloc(extent);
+		pxp->bf_base = malloc(extent+1);
 		if(pxp->bf_base == NULL)
 			return ENOMEM;
 		pxp->bf_extent = extent;
