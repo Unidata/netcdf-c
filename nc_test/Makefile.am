@@ -41,7 +41,7 @@ test_read.c test_write.c util.c error.h tests.h
 tst_swap4b_SOURCES = ncx.c tst_swap4b.c
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
-AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include -I$(top_builddir)/libsrc
+AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include -I$(top_srcdir)/libsrc
 
 # If the user asked for large file tests, then add them.
 if LARGE_FILE_TESTS
@@ -106,7 +106,7 @@ EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt tst_swap4b.c
 #MAINTAINERCLEANFILES = test_get.c test_put.c
 
 all:
-	cp $(top_builddir)/libsrc/ncx.c .
+	cp $(top_srcdir)/libsrc/ncx.c .
 
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
