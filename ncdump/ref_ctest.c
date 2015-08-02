@@ -933,7 +933,7 @@ main() {			/* create ctest0.nc */
    }
 
    {			/* store c3 */
-    static char c3[] = {"\001\300."};
+    static char c3[] = {"\001\177."};
     stat = nc_put_var_text(ncid, c3_id, c3);
     check_err(stat,__LINE__,__FILE__);
    }
