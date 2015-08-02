@@ -296,7 +296,7 @@ fileopen(const char* path, void** memp, size_t* sizep)
     int status = NC_NOERR;
     int fd = -1;
     int oflags = 0;
-    size_t size = 0;
+    off_t size = 0;
     void* mem = NULL;
     off_t red = 0;
     char* pos = NULL;
@@ -2206,4 +2206,4 @@ main(int argc, char *argv[])
 }
 
 
-END_OF_MAIN();
+END_OF_MAIN()

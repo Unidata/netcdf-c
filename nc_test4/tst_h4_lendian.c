@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <config.h>
+#include <unistd.h>
 #include <nc_tests.h>
 #include <hdf5.h>
 #include <H5DSpublic.h>
@@ -80,10 +81,10 @@ int create_hdf_file(int dtype) {
     sds_id = SDcreate(sd_id, SDSNAME, dtype, RANK, edges);
 
     istat = SDendaccess(sds_id);
-    if(istat) {printf("Failure %d\n"); SDend(sd_id); return istat;}
+    if(istat) {printf("Failure %d\n", istat); SDend(sd_id); return istat;}
 
     istat = SDend(sd_id);
-    if(istat) {printf("Failure %d\n"); SDend(sd_id); return istat;}
+    if(istat) {printf("Failure %d\n", istat); SDend(sd_id); return istat;}
 
     sd_id = SDstart(FILENAME, DFACC_WRITE);
 
@@ -91,13 +92,13 @@ int create_hdf_file(int dtype) {
     sds_id = SDselect(sd_id, sd_index);
 
     istat = SDwritedata(sds_id, start, NULL, edges, (VOIDP)array_data);
-    if(istat) {printf("Failure %d\n"); SDend(sd_id); return istat;}
+    if(istat) {printf("Failure %d\n", istat); SDend(sd_id); return istat;}
 
     istat = SDendaccess(sds_id);
-    if(istat) {printf("Failure %d\n"); SDend(sd_id); return istat;}
+    if(istat) {printf("Failure %d\n", istat); SDend(sd_id); return istat;}
 
     istat = SDend(sd_id);
-    if(istat) {printf("Failure %d\n"); return istat;}
+    if(istat) {printf("Failure %d\n", istat); return istat;}
 
     printf("Success\n");
     return 0;
