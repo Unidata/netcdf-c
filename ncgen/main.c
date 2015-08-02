@@ -514,7 +514,7 @@ main(
 
     return 0;
 }
-END_OF_MAIN();
+END_OF_MAIN()
 
 void
 init_netcdf(void) /* initialize global counts, flags */

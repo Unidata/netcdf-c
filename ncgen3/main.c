@@ -242,4 +242,4 @@ main(
 	return 1;
     return 0;
 }
-END_OF_MAIN();
+END_OF_MAIN()

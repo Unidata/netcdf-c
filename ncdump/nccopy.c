@@ -1132,7 +1132,7 @@ copy_data(int igrp, int ogrp)
 
 /* Count total number of dimensions in ncid and all its descendant subgroups */
 int
-count_dims(ncid) {
+count_dims(int ncid) {
     int numgrps;
     int ndims;
     NC_CHECK(nc_inq_ndims(ncid, &ndims));
@@ -1727,4 +1727,4 @@ main(int argc, char**argv)
         exit(EXIT_FAILURE);
     exit(EXIT_SUCCESS);
 }
-END_OF_MAIN();
+END_OF_MAIN()
