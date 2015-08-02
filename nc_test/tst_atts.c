@@ -1191,7 +1191,7 @@ create_file()
 
     /* assign global attributes */
     { /* Gc */
-    stat = nc_put_att_text(ncid, NC_GLOBAL, "Gc", 1, "€");
+    stat = nc_put_att_text(ncid, NC_GLOBAL, "Gc", 1, "\177");
     check_err(stat,__LINE__,__FILE__);
     }
     { /* Gb */
@@ -1293,7 +1293,7 @@ create_file()
     stat = nc_put_var1(ncid, d_id, &zero, d_data);    check_err(stat,__LINE__,__FILE__);
     }
     {
-    char cr_data[2] = "€\177" ;
+    char cr_data[2] = "\177\177" ;
     size_t cr_startset[1] = {0} ;
     size_t cr_countset[1] = {2} ;
     stat = nc_put_vara(ncid, cr_id, cr_startset, cr_countset, cr_data);
@@ -1341,7 +1341,7 @@ create_file()
     }
 
     {
-    char c1_data[1] = "€" ;
+    char c1_data[1] = "\177" ;
     size_t c1_startset[1] = {0} ;
     size_t c1_countset[1] = {1} ;
     stat = nc_put_vara(ncid, c1_id, c1_startset, c1_countset, c1_data);
@@ -1389,7 +1389,7 @@ create_file()
     }
 
     {
-    char c2_data[2] = "€\177" ;
+    char c2_data[2] = "\177\177" ;
     size_t c2_startset[1] = {0} ;
     size_t c2_countset[1] = {2} ;
     stat = nc_put_vara(ncid, c2_id, c2_startset, c2_countset, c2_data);
@@ -1437,7 +1437,7 @@ create_file()
     }
 
     {
-    char c3_data[3] = "€\177A" ;
+    char c3_data[3] = "\177\177A" ;
     size_t c3_startset[1] = {0} ;
     size_t c3_countset[1] = {3} ;
     stat = nc_put_vara(ncid, c3_id, c3_startset, c3_countset, c3_data);
@@ -1485,7 +1485,7 @@ create_file()
     }
 
     {
-    char c4_data[4] = "€\177AZ" ;
+    char c4_data[4] = "\177\177AZ" ;
     size_t c4_startset[1] = {0} ;
     size_t c4_countset[1] = {4} ;
     stat = nc_put_vara(ncid, c4_id, c4_startset, c4_countset, c4_data);
