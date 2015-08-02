@@ -6,6 +6,8 @@
  * See https://bugtracking.unidata.ucar.edu/browse/NCF-330
  */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <netcdf.h>
 
 #ifdef _MSC_VER
