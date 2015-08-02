@@ -4,8 +4,10 @@
   <dimension name="t" length="0" isUnlimited="true" />
   <attribute name="gtatt" value="&lt;, &gt;, ', &quot;, and &amp;" />
   <attribute name="gnatt" type="int" value="3 4" />
+  <attribute name="gdatt" type="double" value="-7.02788826649782e-09 7.02788826649782e-09" />
   <variable name="var" shape="t m" type="float">
     <attribute name="tatt" value="text attribute value" />
     <attribute name="natt" type="int" value="1 2" />
+    <attribute name="datt" type="double" value="7.02788826649782e-09 -7.02788826649782e-09" />
   </variable>
 </netcdf>

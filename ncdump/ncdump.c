@@ -1081,7 +1081,7 @@ pr_attx(
     default:
 	att.vals = (double *) emalloc((att.len + 1) * sizeof(double));
 	NC_CHECK( nc_get_att_double(ncid, varid, att.name, att.vals ) );
-	attvalslen = 20*att.len; /* max 20 chars for each value and blank separator */
+	attvalslen = PRIM_LEN * att.len; /* max chars for each value and blank separator */
 	attvals = (char *) emalloc(attvalslen + 1);
 	pr_att_valsx(att.type, att.len, att.vals, attvals, attvalslen);
 	free(att.vals);
