@@ -617,7 +617,7 @@ ocset_curlproperties(OCstate* state)
         int stat;
 	pid_t pid = getpid();
 	snprintf(tmp,sizeof(tmp)-1,"%s/%s.%ld/",ocglobalstate.tempdir,OCDIR,(long)pid);
-#ifdef _MSC_VER
+#ifdef _WIN32
 	stat = mkdir(tmp);
 #else
 	stat = mkdir(tmp,S_IRUSR | S_IWUSR | S_IXUSR);
