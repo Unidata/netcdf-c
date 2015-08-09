@@ -176,7 +176,7 @@ install-data-hook:
 #endif
 
 if BUILD_DLL
-	cp liblib/netcdfdll.def $(DESTDIR)${prefix}/lib
+	cp liblib/netcdfdll.def $(DESTDIR)${prefix}/bin
 endif # BUILD_DLL
 	@echo ''
 	@echo '+-------------------------------------------------------------+'
