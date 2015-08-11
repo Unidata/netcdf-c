@@ -26,7 +26,7 @@ echo "*** test output for ncdump -x"
 echo "*** creating tst_ncml.nc from tst_ncml.cdl"
 ../ncgen/ncgen -b -o tst_ncml.nc $srcdir/tst_ncml.cdl
 echo "*** creating c1.ncml from tst_ncml.nc"
-./ncdump -x tst_ncml.nc | sed 's/e-0/e-/g' > c1.ncml
+./ncdump -x tst_ncml.nc | sed 's/e-00/e-0/g' > c1.ncml
 echo "*** comparing ncdump -x of generated file with ref1.ncml ..."
 diff -b c1.ncml $srcdir/ref1.ncml
 
