@@ -864,23 +864,37 @@ ncvarputg(
     const void* value
 )
 {
+	int ndims = 0;
 	if(map == NULL)
 		return ncvarputs(ncid, varid, start, count, stride, value);
 	/* else */
 	{
-	NDIMS_DECL
+	long *imp=NULL;
+	if (map != NULL) {
+		int ret = NC_NOERR;
+		/* make map[ndims-1] number of elements instead of bytes */
+		int i, el_size;
+		nc_type type;
+		ret = nc_inq_varndims(ncid, varid, &ndims);
+		if(ret) return ret;
+		ret = nc_inq_vartype(ncid, varid, &type);
+		if(ret) return ret;
+				el_size = nctypelen(type);
+		imp = (long*) malloc(ndims * sizeof(long));
+		for (i=0; i<ndims; i++) imp[i] = map[i] / el_size;
+	}
+
+	{
 	A_DECL(stp, size_t, ndims, start);
 	A_DECL(cntp, size_t, ndims, count);
 	A_DECL(strdp, ptrdiff_t, ndims, stride);
-	A_DECL(imp, ptrdiff_t, ndims, map);
 	A_INIT(stp, size_t, ndims, start);
 	A_INIT(cntp, size_t, ndims, count);
 	A_INIT(strdp, ptrdiff_t, ndims, stride);
-	A_INIT(imp, ptrdiff_t, ndims, map);
 	{
 	const int status = nc_put_varm(ncid, varid,
 			 stp, cntp, strdp, imp, value);
-	A_FREE(imp);
+	if (imp!=NULL) free(imp);
 	A_FREE(strdp);
 	A_FREE(cntp);
 	A_FREE(stp);
@@ -891,6 +905,7 @@ ncvarputg(
 	}
 	}
 	return 0;
+	}
 	}
 }
 
@@ -906,23 +921,37 @@ ncvargetg(
     void*	value
 )
 {
+	int ndims = 0;
 	if(map == NULL)
 		return ncvargets(ncid, varid, start, count, stride, value);
 	/* else */
 	{
-	NDIMS_DECL
+	long *imp=NULL;
+	if (map != NULL) {
+		int ret = NC_NOERR;
+		/* make map[ndims-1] number of elements instead of bytes */
+		int i, el_size;
+		nc_type type;
+		ret = nc_inq_varndims(ncid, varid, &ndims);
+		if(ret) return ret;
+		ret = nc_inq_vartype(ncid, varid, &type);
+		if(ret) return ret;
+		el_size = nctypelen(type);
+		imp = (long*) malloc(ndims * sizeof(long));
+		for (i=0; i<ndims; i++) imp[i] = map[i] / el_size;
+	}
+
+	{
 	A_DECL(stp, size_t, ndims, start);
 	A_DECL(cntp, size_t, ndims, count);
 	A_DECL(strdp, ptrdiff_t, ndims, stride);
-	A_DECL(imp, ptrdiff_t, ndims, map);
 	A_INIT(stp, size_t, ndims, start);
 	A_INIT(cntp, size_t, ndims, count);
 	A_INIT(strdp, ptrdiff_t, ndims, stride);
-	A_INIT(imp, ptrdiff_t, ndims, map);
 	{
 	const int status = nc_get_varm(ncid, varid,
 			stp, cntp, strdp, imp, value);
-	A_FREE(imp);
+	if (imp!=NULL) free(imp);
 	A_FREE(strdp);
 	A_FREE(cntp);
 	A_FREE(stp);
@@ -933,6 +962,7 @@ ncvargetg(
 	}
 	}
 	return 0;
+	}
 	}
 }
 

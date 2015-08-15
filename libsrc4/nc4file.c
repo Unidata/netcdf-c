@@ -46,9 +46,9 @@ extern int num_spaces;
 #define NAME "NAME"
 
 /* Define the illegal mode flags */
-#define ILLEGAL_OPEN_FLAGS (NC_MMAP|NC_64BIT_OFFSET)
+static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET);
 
-#define ILLEGAL_CREATE_FLAGS (NC_NOWRITE|NC_MMAP|NC_INMEMORY|NC_64BIT_OFFSET|NC_PNETCDF)
+static const int ILLEGAL_CREATE_FLAGS = (NC_NOWRITE|NC_MMAP|NC_INMEMORY|NC_64BIT_OFFSET|NC_CDF5);
 
 /*! Struct to track information about objects in a group, for nc4_rec_read_metadata()
 
@@ -193,7 +193,7 @@ static int
 nc_check_for_hdf(const char *path, int flags, void* parameters, int *hdf_file)
 {
    char blob[MAGIC_NUMBER_LEN];
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
    int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
    NC_MPI_INFO* mpiinfo = (NC_MPI_INFO*)parameters;
    MPI_Comm comm = MPI_COMM_WORLD;
@@ -204,7 +204,7 @@ nc_check_for_hdf(const char *path, int flags, void* parameters, int *hdf_file)
    NC_MEM_INFO* meminfo = (NC_MEM_INFO*)parameters;
 #endif
 
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
    if(use_parallel) {
        comm = mpiinfo->comm;
        info = mpiinfo->info;
@@ -222,7 +222,7 @@ nc_check_for_hdf(const char *path, int flags, void* parameters, int *hdf_file)
 
 /* Get the 4-byte blob from the beginning of the file. Don't use posix
  * for parallel, use the MPI functions instead. */
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
        if (!inmemory && use_parallel)
        {
 	   MPI_File fh;
@@ -238,7 +238,7 @@ nc_check_for_hdf(const char *path, int flags, void* parameters, int *hdf_file)
 	       return NC_EPARINIT;
        }
        else
-#endif /* USE_PARALLEL */
+#endif /* USE_PARALLEL4 */
        if(!inmemory) {
 	   FILE *fp;
 	   if (!(fp = fopen(path, "r")) ||
@@ -276,10 +276,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    FILE *fp;
    int retval = NC_NOERR;
    NC_HDF5_FILE_INFO_T* nc4_info = NULL;
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
    int comm_duped = 0;          /* Whether the MPI Communicator was duplicated */
    int info_duped = 0;          /* Whether the MPI Info object was duplicated */
-#else /* !USE_PARALLEL */
+#else /* !USE_PARALLEL4 */
    int persist = 0; /* Should diskless try to persist its data into file?*/
 #endif
 
@@ -298,7 +298,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* If this file already exists, and NC_NOCLOBBER is specified,
       return an error. */
    if (cmode & NC_DISKLESS) {
-#ifndef USE_PARALLEL
+#ifndef USE_PARALLEL4
 	if(cmode & NC_WRITE)
 	    persist = 1;
 #endif
@@ -334,7 +334,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       BAIL(NC_EHDFERR);
 #endif /* EXTRA_TESTS */
 
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
    /* If this is a parallel file create, set up the file creation
       property list. */
    if ((cmode & NC_MPIIO) || (cmode & NC_MPIPOSIX))
@@ -388,7 +388,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       BAIL(NC_EHDFERR);
    LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
 	__func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems, nc4_chunk_cache_preemption));
-#endif /* USE_PARALLEL */
+#endif /* USE_PARALLEL4 */
 
    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0)
       BAIL(NC_EHDFERR);
@@ -440,7 +440,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    return NC_NOERR;
 
 exit: /*failure exit*/
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
    if (comm_duped) MPI_Comm_free(&nc4_info->comm);
    if (info_duped) MPI_Info_free(&nc4_info->info);
 #endif
@@ -482,13 +482,13 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    LOG((1, "%s: path %s cmode 0x%x comm %d info %d",
 	__func__, path, cmode, comm, info));
 
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
    if (parameters)
    {
       comm = ((NC_MPI_INFO *)parameters)->comm;
       info = ((NC_MPI_INFO *)parameters)->info;
    }
-#endif /* USE_PARALLEL */
+#endif /* USE_PARALLEL4 */
 
    /* If this is our first file, turn off HDF5 error messages. */
    if (virgin)
@@ -525,7 +525,9 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    cmode |= NC_NETCDF4;
 
    /* Apply default create format. */
-   if (nc_get_default_format() == NC_FORMAT_64BIT)
+   if (nc_get_default_format() == NC_FORMAT_CDF5)
+      cmode |= NC_CDF5;
+   else if (nc_get_default_format() == NC_FORMAT_64BIT_OFFSET)
       cmode |= NC_64BIT_OFFSET;
    else if (nc_get_default_format() == NC_FORMAT_NETCDF4_CLASSIC)
       cmode |= NC_CLASSIC_MODEL;
@@ -2193,11 +2195,11 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 #ifdef USE_DISKLESS
    NC_MEM_INFO* meminfo = (NC_MEM_INFO*)parameters;
 #endif
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
    NC_MPI_INFO* mpiinfo = (NC_MPI_INFO*)parameters;
    int comm_duped = 0;          /* Whether the MPI Communicator was duplicated */
    int info_duped = 0;          /* Whether the MPI Info object was duplicated */
-#endif /* !USE_PARALLEL */
+#endif /* !USE_PARALLEL4 */
 
    LOG((3, "%s: path %s mode %d", __func__, path, mode));
    assert(path && nc);
@@ -2224,7 +2226,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       BAIL(NC_EHDFERR);
 #endif
 
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
    /* If this is a parallel file create, set up the file creation
       property list. */
    if (mode & NC_MPIIO || mode & NC_MPIPOSIX)
@@ -2274,7 +2276,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       BAIL(NC_EHDFERR);
    LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
 	__func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems, nc4_chunk_cache_preemption));
-#endif /* USE_PARALLEL */
+#endif /* USE_PARALLEL4 */
 
    /* The NetCDF-3.x prototype contains an mode option NC_SHARE for
       multiple processes accessing the dataset concurrently.  As there
@@ -2320,7 +2322,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    return NC_NOERR;
 
 exit:
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
    if (comm_duped) MPI_Comm_free(&nc4_info->comm);
    if (info_duped) MPI_Info_free(&nc4_info->info);
 #endif
@@ -2770,10 +2772,10 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 {
    int res;
    int hdf_file = 0;
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
    NC_MPI_INFO mpidfalt = {MPI_COMM_WORLD, MPI_INFO_NULL};
 #endif
-#if defined USE_PARALLEL || defined USE_HDF4
+#if defined USE_PARALLEL4 || defined USE_HDF4
    int inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
 #endif
 
@@ -2782,10 +2784,10 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    LOG((1, "%s: path %s mode %d params %x",
 	__func__, path, mode, parameters));
 
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
    if (!inmemory && use_parallel && parameters == NULL)
 	parameters = &mpidfalt;
-#endif /* USE_PARALLEL */
+#endif /* USE_PARALLEL4 */
 
    /* If this is our first file, turn off HDF5 error messages. */
    if (virgin)
@@ -3076,7 +3078,7 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
    else
 #endif /* USE_HDF4 */
    {
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
       /* Free the MPI Comm & Info objects, if we opened the file in parallel */
       if(h5->parallel)
       {
@@ -3326,10 +3328,10 @@ nc_exit()
 }
 #endif /* EXTRA_TESTS */
 
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
 int
 nc_use_parallel_enabled()
 {
    return 0;
 }
-#endif /* USE_PARALLEL */
+#endif /* USE_PARALLEL4 */

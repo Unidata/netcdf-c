@@ -26,11 +26,12 @@ Extra libraries:	@LIBS@
 --------
 NetCDF-2 API:		@HAS_NC2@
 NetCDF-4 API:		@HAS_NC4@
+CDF-5 Support:		yes
 HDF4 Support:		@HAS_HDF4@
 HDF5 Support:		@HAS_HDF5@
 HDF5/SZIP Support:      @HAS_SZIP@
 PNetCDF Support:	@HAS_PNETCDF@
-Parallel Support:	@HAS_PARALLEL@
+NC-4 Parallel Support:	@HAS_PARALLEL4@
 DAP Support:		@HAS_DAP@
 Diskless Support:	@HAS_DISKLESS@
 MMap Support:		@HAS_MMAP@

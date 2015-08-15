@@ -34,4 +34,10 @@ for conditions of use.
 #define ONE_TWENTY_EIGHT_MEG (SIXTEEN_MEG * 8)
 /** \} */
 
+#ifdef USE_PNETCDF
+#define TEST_PNETCDF 1
+#else
+#undef TEST_PNETCDF
+#endif
+
 #endif /* _NC_TESTS_H */

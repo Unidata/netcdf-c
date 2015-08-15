@@ -1,7 +1,8 @@
 #!/bin/bash
-#X="-x"
 #NB=1
-#DB=1
+DB=1
+#X=-x
+FAST=1
 
 if test $# != 0 ; then
 cmds=$@
@@ -9,23 +10,18 @@ fi
 
 HDF5=1
 DAP=1
-#HDF4=1
 #PNETCDF=1
+#PAR4=1
+#HDF4=1
 
-#PAR=1
-
-if test "x$PNETCDF" = x1 ; then
-PAR=1
-fi
-
-#RPC=1
 #PGI=1
 #M32=1
 #M64=1
 
 CFLAGS=""
-#CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
-CFLAGS="-Wall ${CFLAGS}"
+#CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
+CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter ${CFLAGS}"
+#CFLAGS="-Wall ${CFLAGS}"
 #CFLAGS="-Wconversion"
 
 stddir="/usr/local"
@@ -133,14 +129,14 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #FLAGS="$FLAGS --enable-valgrind-tests"
 FLAGS="$FLAGS --enable-jna"
 
+if test "x$PAR4" != x1 ; then
+FLAGS="$FLAGS --disable-parallel4"
+fi
+
 if test "x${DB}" = x1 ; then
 FLAGS="$FLAGS --disable-shared"
 else
 FLAGS="$FLAGS --enable-shared"
-fi
-
-if test "x${PAR}" != x ; then
-FLAGS="$FLAGS --enable-parallel"
 fi
 
 if test "x$HDF5" = "x" ; then
@@ -152,14 +148,8 @@ fi
 if test "x$DAP" = "x" ; then
 FLAGS="$FLAGS --disable-dap"
 fi
-if test "x$CDMR" = "x1" ; then
-FLAGS="$FLAGS --enable-cdmremote"
-fi
-if test "x$RPC" = "x1" ; then
-FLAGS="$FLAGS --enable-rpc"
-fi
 
-if test "x$PNETCDF" = x1 ; then
+if test "x$PNETCDF" = x1 -o "x$PAR4" = x1 ; then
 if test -f /machine/local_mpich2 ; then
 MPI1=/machine/local_mpich2
 MPI2=/machine/local_par7
@@ -191,11 +181,18 @@ DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
 export DISTCHECK_CONFIGURE_FLAGS
 
 if test -z "$NB" ; then
-${MAKE} maintainer-clean >/dev/null 2>&1
+#${MAKE} maintainer-clean >/dev/null 2>&1
 if autoreconf -i --force ; then ok=1; else exit ; fi
 fi
 
+<<<<<<< HEAD
+if test "x$FAST" = x ; then
+  if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
+=======
+if test "x$FAST" != x1 ; then
 if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
+>>>>>>> 0a87a62ebd7fb28a25667e791938728b912967dc
+fi
 sh $X ./configure ${FLAGS}
 for c in $cmds; do
   ${MAKE} ${FORCE} $c

@@ -8,8 +8,9 @@
  
    Based on a program to test the nasa look-alike program, so not the
    most appropropriate test. See ../nctest for a complete spec test.
-*/
  
+   $Id: t_nc.c 2792 2014-10-27 06:02:59Z wkliao $ */
+
 #define REDEF
 /* #define SYNCDEBUG */
 
@@ -21,10 +22,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <mpi.h>
 #include <netcdf.h>
-#ifdef USE_PNETCDF
 #include <netcdf_par.h>
-#endif
 
 #define MAXSHORT	32767
 #define MAXINT		2147483647
@@ -357,19 +357,11 @@ main(int argc, char *argv[])
 	size_t chunksz = 8192;
 	size_t align = 8192/32;
 
-#ifdef USE_PNETCDF
 	MPI_Init(&argc, &argv);
 
-        cmode |= (NC_PNETCDF);
-	cmode |= (NC_64BIT_DATA);
+        /* cmode |= NC_PNETCDF |NC_64BIT_OFFSET; */
+        cmode != NC_PNETCDF |NC_64BIT_DATA;
 	ret = nc_create_par(fname,cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &id);
-#else
-	ret = nc__create(fname,cmode, initialsz, &chunksz, &id);
-	if(ret != NC_NOERR) {
- 		/* (void) fprintf(stderr, "trying again\n"); */
-		ret = nc__create(fname,cmode, initialsz, &chunksz, &id);
-	}
-#endif
 	if(ret != NC_NOERR)  {
 		fprintf(stderr,"Error %s in file %s at line %d\n",nc_strerror(ret),__FILE__,__LINE__);
 		exit(ret);
@@ -472,12 +464,7 @@ main(int argc, char *argv[])
  *	read it
  */
         omode = NC_NOWRITE;
-#ifdef USE_PNETCDF
-        omode |= NC_PNETCDF;
-	ret = nc_open_par(fname,omode, MPI_COMM_WORLD, MPI_INFO_NULL, &id);
-#else
-	ret = nc__open(fname,omode, &chunksz, &id);
-#endif
+        omode = NC_NOWRITE | NC_PNETCDF;
 	if(ret != NC_NOERR)
 	{
    	    (void) printf("Could not open %s: %s\n", fname,
@@ -670,8 +657,6 @@ main(int argc, char *argv[])
 	ret = nc_close(id);
 	/* (void) printf("re nc_close ret = %d\n", ret); */
 
-#ifdef USE_PNETCDF
 	MPI_Finalize();
-#endif
 	return 0;
 }

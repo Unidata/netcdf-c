@@ -3606,7 +3606,11 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             }
             attr = makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
         } else switch (tag) {
+<<<<<<< HEAD
 	    // These will be output as attributes later
+=======
+	    /* These will be output as attributes later */
+>>>>>>> cdf-5
             case _STORAGE_FLAG:
               if(!sdata)
                 derror("_Storage: illegal NULL value");

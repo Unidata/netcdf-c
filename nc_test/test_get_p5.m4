@@ -10,9 +10,8 @@ dnl
  *   $Id: test_get.m4 2785 2014-10-26 05:21:20Z wkliao $
  *********************************************************************/
 
-#ifdef USE_PARALLEL
+// #define TEST_PNETCDF
 #include <mpi.h>
-#endif
 
 undefine(`index')dnl
 dnl dnl dnl
@@ -52,7 +51,11 @@ test_nc_get_var1_$1(void)
     int canConvert;     /* Both text or both numeric */
     $1 value;
 
-    err = file_open(testfile, NC_NOWRITE, &ncid);
+#ifdef TEST_PNETCDF
+    err = nc_open_par(testfile, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+#else
+    err = nc_open(testfile, NC_NOWRITE, &ncid);
+#endif
     IF (err)
 	error("nc_open: %s", nc_strerror(err));
     for (i = 0; i < numVars; i++) {
@@ -152,7 +155,11 @@ test_nc_get_var_$1(void)
     $1 value[MAX_NELS];
     double expect[MAX_NELS];
 
-    err = file_open(testfile, NC_NOWRITE, &ncid);
+#ifdef TEST_PNETCDF
+    err = nc_open_par(testfile, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+#else
+    err = nc_open(testfile, NC_NOWRITE, &ncid);
+#endif
     IF (err)
 	error("nc_open: %s", nc_strerror(err));
     for (i = 0; i < numVars; i++) {
@@ -267,7 +274,11 @@ test_nc_get_vara_$1(void)
     $1 value[MAX_NELS];
     double expect[MAX_NELS];
 
-    err = file_open(testfile, NC_NOWRITE, &ncid);
+#ifdef TEST_PNETCDF
+    err = nc_open_par(testfile, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+#else
+    err = nc_open(testfile, NC_NOWRITE, &ncid);
+#endif
     IF (err)
 	error("nc_open: %s", nc_strerror(err));
     for (i = 0; i < numVars; i++) {
@@ -457,7 +468,11 @@ test_nc_get_vars_$1(void)
     $1 value[MAX_NELS];
     double expect[MAX_NELS];
 
-    err = file_open(testfile, NC_NOWRITE, &ncid);
+#ifdef TEST_PNETCDF
+    err = nc_open_par(testfile, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+#else
+    err = nc_open(testfile, NC_NOWRITE, &ncid);
+#endif
     IF (err)
         error("nc_open: %s", nc_strerror(err));
     for (i = 0; i < numVars; i++) {
@@ -574,7 +589,8 @@ test_nc_get_vars_$1(void)
 		    for (j = 0; j < nels; j++) {
 			if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))
 				&& expect[j] >= $1_min && expect[j] <= $1_max) {
-			    IF (!equal(value[j],expect[j],var_type[i], NCT_ITYPE($1))){
+			    IF (!equal(value[j],expect[j],var_type[i],
+				    NCT_ITYPE($1))){
 				error("value read not that expected");
 				if (verbose) {
 				    error("\n");
@@ -651,7 +667,11 @@ test_nc_get_varm_$1(void)
     $1 value[MAX_NELS];
     double expect[MAX_NELS];
 
-    err = file_open(testfile, NC_NOWRITE, &ncid);
+#ifdef TEST_PNETCDF
+    err = nc_open_par(testfile, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+#else
+    err = nc_open(testfile, NC_NOWRITE, &ncid);
+#endif
     IF (err)
         error("nc_open: %s", nc_strerror(err));
     for (i = 0; i < numVars; i++) {
@@ -776,7 +796,8 @@ test_nc_get_varm_$1(void)
                         if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))
                                 && expect[j] >= $1_min 
 				&& expect[j] <= $1_max) {
-			    IF (!equal(value[j],expect[j],var_type[i], NCT_ITYPE($1))){
+			    IF (!equal(value[j],expect[j],var_type[i],
+				    NCT_ITYPE($1))){
                                 error("value read not that expected");
                                 if (verbose) {
                                     error("\n");
@@ -838,7 +859,11 @@ test_nc_get_att_$1(void)
     double expect[MAX_NELS];
     int nok = 0;      /* count of valid comparisons */
 
-    err = file_open(testfile, NC_NOWRITE, &ncid);
+#ifdef TEST_PNETCDF
+    err = nc_open_par(testfile, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+#else
+    err = nc_open(testfile, NC_NOWRITE, &ncid);
+#endif
     IF (err) 
 	error("nc_open: %s", nc_strerror(err));
 
@@ -881,7 +906,8 @@ test_nc_get_att_$1(void)
 		for (k = 0; k < ATT_LEN(i,j); k++) {
 		    if (inRange3(expect[k],ATT_TYPE(i,j),NCT_ITYPE($1))
                             && expect[k] >= $1_min && expect[k] <= $1_max) {
-			IF (!equal(value[k],expect[k],ATT_TYPE(i,j), NCT_ITYPE($1))){
+			IF (!equal(value[k],expect[k],ATT_TYPE(i,j),
+				NCT_ITYPE($1))){
 			    error("value read not that expected");
                             if (verbose) {
                                 error("\n");

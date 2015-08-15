@@ -10,10 +10,27 @@ This file contains a high-level description of this package's evolution. Release
 ### 4.4.0-RC3 In Progress
 
 * Addressed an inefficiency in how bytes would be swapped when converting between `LITTLE` and `BIG` ENDIANNESS.  See [NCF-338](https://bugtracking.unidata.ucar.edu/browse/NCF-338) for more information.
+
 * Addressed an issue where an interrupted read on a `POSIX` system would return an error even if errno had been properly set to `EINTR`.  This issue was initially reported by David Knaak at Cray.  More information may be found at [NCF-337](https://bugtracking.unidata.ucar.edu/browse/NCF-337).
+
 * Added a note to the install directions pointing out that parallel make
 cannot be used for 'make check'.
 
+* Added CDM-5 support via new mode flag called NC_64BIT_DATA (alias NC_CDF5).
+  Major kudos to Wei-Keng Liao for all the effort he put into getting this to
+  work.
+
+  This cascaded into a number of other changes.
+  1. Renamed libsrcp5 -> libsrcp because pnetcdf can do parallel io for
+     CDF-1, CDF-2 and CDF-5, not just CDF-5.
+  2. Given #1, then the NC_PNETCDF mode flag becomes a subset of NC_MPIIO,
+      so made NC_PNETCDF an alias for NC_MPII.
+
+* Modified Configure.ac to provide finer control over parallel
+  support. Specifically, add flags for:
+  1. HDF5_PARALLEL when hdf5 library has parallel enabled
+  2. --disable-parallel4 to be used when we do not want
+     netcdf-4 to use parallelism even if hdf5 has it enabled.
 
 ### 4.4.0-RC2 Released 2015-07-09
 

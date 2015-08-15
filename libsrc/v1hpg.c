@@ -2,7 +2,6 @@
  *	Copyright 1996, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
-/* $Id: v1hpg.c,v 1.70 2010/05/26 21:43:34 dmh Exp $ */
 
 #include "config.h"
 #include "nc3internal.h"
@@ -34,7 +33,7 @@
  */
 static const schar ncmagic[] = {'C', 'D', 'F', 0x02};
 static const schar ncmagic1[] = {'C', 'D', 'F', 0x01};
-
+static const schar ncmagic5[] = {'C', 'D', 'F', 0x05};
 
 /*
  * v1hs == "Version 1 Header Stream"
@@ -50,7 +49,7 @@ typedef struct v1hs {
 	off_t offset;	/* argument to nciop->get() */
 	size_t extent;	/* argument to nciop->get() */
 	int flags;	/* set to RGN_WRITE for write */
-        int version;    /* format variant: NC_FORMAT_CLASSIC or NC_FORMAT_64BIT */
+        int version;    /* format variant: NC_FORMAT_CLASSIC, NC_FORMAT_64BIT_OFFSET or NC_FORMAT_CDF5 */
 	void *base;	/* beginning of current buffer */
 	void *pos;	/* current position in buffer */
 	void *end;	/* end of current buffer = base + extent */
@@ -133,23 +132,39 @@ fprintf(stderr, "nextread %lu, remaining %lu\n",
 static int
 v1h_put_size_t(v1hs *psp, const size_t *sp)
 {
-	int status = check_v1hs(psp, X_SIZEOF_SIZE_T);
-	if(status != ENOERR)
-		return status;
-	return ncx_put_size_t(&psp->pos, sp);
+	int status;
+	if (psp->version == 5) /* all integers in CDF-5 are 64 bits */
+		status = check_v1hs(psp, X_SIZEOF_INT64);
+	else
+		status = check_v1hs(psp, X_SIZEOF_SIZE_T);
+ 	if(status != ENOERR)
+ 		return status;
+        if (psp->version == 5)
+		return ncx_put_int64(&psp->pos, *sp);
+        else
+	    return ncx_put_size_t(&psp->pos, sp);
 }
-
 
 /* Read a size_t from the header */
 static int
 v1h_get_size_t(v1hs *gsp, size_t *sp)
 {
-	int status = check_v1hs(gsp, X_SIZEOF_SIZE_T);
+	int status;
+	if (gsp->version == 5) /* all integers in CDF-5 are 64 bits */
+		status = check_v1hs(gsp, X_SIZEOF_INT64);
+	else
+		status = check_v1hs(gsp, X_SIZEOF_SIZE_T);
 	if(status != ENOERR)
 		return status;
-	return ncx_get_size_t((const void **)(&gsp->pos), sp);
+        if (gsp->version == 5) {
+		long long tmp=0;
+		status = ncx_get_int64((const void **)(&gsp->pos), &tmp);
+		*sp = (size_t)tmp;
+		return status;
+        }
+        else
+	    return ncx_get_size_t((const void **)(&gsp->pos), sp);
 }
-
 
 /* Begin nc_type */
 
@@ -187,7 +202,13 @@ v1h_get_nc_type(v1hs *gsp, nc_type *typep)
 		|| type == NC_SHORT
 		|| type == NC_INT
 		|| type == NC_FLOAT
-		|| type == NC_DOUBLE);
+		|| type == NC_DOUBLE
+		|| type == NC_UBYTE
+		|| type == NC_USHORT
+		|| type == NC_UINT
+		|| type == NC_INT64
+		|| type == NC_UINT64
+		|| type == NC_STRING);
 
 	/* else */
 	*typep = (nc_type) type;
@@ -239,9 +260,9 @@ v1h_get_NCtype(v1hs *gsp, NCtype *typep)
 NC_xlen_string(cdfstr)
  */
 static size_t
-ncx_len_NC_string(const NC_string *ncstrp)
+ncx_len_NC_string(const NC_string *ncstrp, int version)
 {
-	size_t sz = X_SIZEOF_SIZE_T; /* nchars */
+	size_t sz = (version == 5) ? X_SIZEOF_INT64 : X_SIZEOF_INT; /* nchars */
 
 	assert(ncstrp != NULL);
 
@@ -336,14 +357,14 @@ unwind_alloc:
 NC_xlen_dim(dpp)
  */
 static size_t
-ncx_len_NC_dim(const NC_dim *dimp)
+ncx_len_NC_dim(const NC_dim *dimp, int version)
 {
 	size_t sz;
 
 	assert(dimp != NULL);
 
-	sz = ncx_len_NC_string(dimp->name);
-	sz += X_SIZEOF_SIZE_T;
+	sz = ncx_len_NC_string(dimp->name, version);
+	sz += (version == 5) ? X_SIZEOF_INT64 : X_SIZEOF_SIZE_T;
 
 	return(sz);
 }
@@ -404,10 +425,10 @@ unwind_name:
 
 /* How much space in the header is required for this NC_dimarray? */
 static size_t
-ncx_len_NC_dimarray(const NC_dimarray *ncap)
+ncx_len_NC_dimarray(const NC_dimarray *ncap, int version)
 {
 	size_t xlen = X_SIZEOF_NCTYPE;	/* type */
-	xlen += X_SIZEOF_SIZE_T;	/* count */
+	xlen += (version == 5) ? X_SIZEOF_INT64 : X_SIZEOF_SIZE_T; /* count */
 	if(ncap == NULL)
 		return xlen;
 	/* else */
@@ -416,7 +437,7 @@ ncx_len_NC_dimarray(const NC_dimarray *ncap)
 		const NC_dim *const *const end = &dpp[ncap->nelems];
 		for(  /*NADA*/; dpp < end; dpp++)
 		{
-			xlen += ncx_len_NC_dim(*dpp);
+			xlen += ncx_len_NC_dim(*dpp,version);
 		}
 	}
 	return xlen;
@@ -537,15 +558,15 @@ v1h_get_NC_dimarray(v1hs *gsp, NC_dimarray *ncap)
 NC_xlen_attr(app)
  */
 static size_t
-ncx_len_NC_attr(const NC_attr *attrp)
+ncx_len_NC_attr(const NC_attr *attrp, int version)
 {
 	size_t sz;
 
 	assert(attrp != NULL);
 
-	sz = ncx_len_NC_string(attrp->name);
+	sz = ncx_len_NC_string(attrp->name, version);
 	sz += X_SIZEOF_NC_TYPE; /* type */
-	sz += X_SIZEOF_SIZE_T; /* nelems */
+	sz += (version == 5) ? X_SIZEOF_INT64 : X_SIZEOF_SIZE_T; /* nelems */
 	sz += attrp->xsz;
 
 	return(sz);
@@ -696,10 +717,10 @@ unwind_name:
 
 /* How much space in the header is required for this NC_attrarray? */
 static size_t
-ncx_len_NC_attrarray(const NC_attrarray *ncap)
+ncx_len_NC_attrarray(const NC_attrarray *ncap, int version)
 {
 	size_t xlen = X_SIZEOF_NCTYPE;	/* type */
-	xlen += X_SIZEOF_SIZE_T;	/* count */
+	xlen += (version == 5) ? X_SIZEOF_INT64 : X_SIZEOF_SIZE_T; /* count */
 	if(ncap == NULL)
 		return xlen;
 	/* else */
@@ -708,7 +729,7 @@ ncx_len_NC_attrarray(const NC_attrarray *ncap)
 		const NC_attr *const *const end = &app[ncap->nelems];
 		for( /*NADA*/; app < end; app++)
 		{
-			xlen += ncx_len_NC_attr(*app);
+			xlen += ncx_len_NC_attr(*app,version);
 		}
 	}
 	return xlen;
@@ -826,19 +847,25 @@ v1h_get_NC_attrarray(v1hs *gsp, NC_attrarray *ncap)
 NC_xlen_var(vpp)
  */
 static size_t
-ncx_len_NC_var(const NC_var *varp, size_t sizeof_off_t)
+ncx_len_NC_var(const NC_var *varp, size_t sizeof_off_t, int version)
 {
 	size_t sz;
 
 	assert(varp != NULL);
 	assert(sizeof_off_t != 0);
 
-	sz = ncx_len_NC_string(varp->name);
-	sz += X_SIZEOF_SIZE_T; /* ndims */
-	sz += ncx_len_int(varp->ndims); /* dimids */
-	sz += ncx_len_NC_attrarray(&varp->attrs);
-	sz += X_SIZEOF_NC_TYPE; /* type */
-	sz += X_SIZEOF_SIZE_T; /* len */
+	sz = ncx_len_NC_string(varp->name, version);
+        if (version == 5) {
+	    sz += X_SIZEOF_INT64; /* ndims */
+	    sz += ncx_len_int64(varp->ndims); /* dimids */
+        }
+        else {
+	    sz += X_SIZEOF_SIZE_T; /* ndims */
+	    sz += ncx_len_int(varp->ndims); /* dimids */
+	}
+	sz += ncx_len_NC_attrarray(&varp->attrs, version);
+	sz += X_SIZEOF_NC_TYPE; /* nc_type */
+	sz += (version == 5) ? X_SIZEOF_INT64 : X_SIZEOF_SIZE_T; /* vsize */
 	sz += sizeof_off_t; /* begin */
 
 	return(sz);
@@ -859,13 +886,24 @@ v1h_put_NC_var(v1hs *psp, const NC_var *varp)
 	if(status != ENOERR)
 		return status;
 
-	status = check_v1hs(psp, ncx_len_int(varp->ndims));
-	if(status != ENOERR)
+	if (psp->version == 5) {
+		status = check_v1hs(psp, ncx_len_int64(varp->ndims));
+		if(status != ENOERR)
+			return status;
+		status = ncx_putn_longlong_int(&psp->pos,
+				varp->ndims, varp->dimids);
+		if(status != ENOERR)
+			return status;
+	}
+	else {
+  	    status = check_v1hs(psp, ncx_len_int(varp->ndims));
+	    if(status != ENOERR)
 		return status;
-	status = ncx_putn_int_int(&psp->pos,
+	    status = ncx_putn_int_int(&psp->pos,
 			varp->ndims, varp->dimids);
-	if(status != ENOERR)
+	    if(status != ENOERR)
 		return status;
+	}
 
 	status = v1h_put_NC_attrarray(psp, &varp->attrs);
 	if(status != ENOERR)
@@ -879,7 +917,7 @@ v1h_put_NC_var(v1hs *psp, const NC_var *varp)
 	if(status != ENOERR)
 		return status;
 
-	status = check_v1hs(psp, psp->version == 1 ? 4 : 8);
+	status = check_v1hs(psp, psp->version == 1 ? 4 : 8); /*begin*/
 	if(status != ENOERR)
 		 return status;
 	status = ncx_put_off_t(&psp->pos, &varp->begin, psp->version == 1 ? 4 : 8);
@@ -914,18 +952,27 @@ v1h_get_NC_var(v1hs *gsp, NC_var **varpp)
 		goto unwind_name;
 	}
 
-	status = check_v1hs(gsp, ncx_len_int(ndims));
-	if(status != ENOERR)
+	if (gsp->version == 5) {
+		status = check_v1hs(gsp, ncx_len_int64(ndims));
+		if(status != ENOERR)
+			goto unwind_alloc;
+		status = ncx_getn_longlong_int((const void **)(&gsp->pos),
+				ndims, varp->dimids);
+		if(status != ENOERR)
+			goto unwind_alloc;
+	}
+	else {
+	    status = check_v1hs(gsp, ncx_len_int(ndims));
+	    if(status != ENOERR)
 		goto unwind_alloc;
-	status = ncx_getn_int_int((const void **)(&gsp->pos),
+	    status = ncx_getn_int_int((const void **)(&gsp->pos),
 			ndims, varp->dimids);
-	if(status != ENOERR)
+	    if(status != ENOERR)
 		goto unwind_alloc;
-
+	}
 	status = v1h_get_NC_attrarray(gsp, &varp->attrs);
 	if(status != ENOERR)
 		goto unwind_alloc;
-
 	status = v1h_get_nc_type(gsp, &varp->type);
 	if(status != ENOERR)
 		 goto unwind_alloc;
@@ -957,10 +1004,10 @@ unwind_name:
 
 /* How much space in the header is required for this NC_vararray? */
 static size_t
-ncx_len_NC_vararray(const NC_vararray *ncap, size_t sizeof_off_t)
+ncx_len_NC_vararray(const NC_vararray *ncap, size_t sizeof_off_t, int version)
 {
 	size_t xlen = X_SIZEOF_NCTYPE;	/* type */
-	xlen += X_SIZEOF_SIZE_T;	/* count */
+	xlen += (version == 5) ? X_SIZEOF_INT64 : X_SIZEOF_SIZE_T; /* count */
 	if(ncap == NULL)
 		return xlen;
 	/* else */
@@ -969,7 +1016,7 @@ ncx_len_NC_vararray(const NC_vararray *ncap, size_t sizeof_off_t)
 		const NC_var *const *const end = &vpp[ncap->nelems];
 		for( /*NADA*/; vpp < end; vpp++)
 		{
-			xlen += ncx_len_NC_var(*vpp, sizeof_off_t);
+			xlen += ncx_len_NC_var(*vpp, sizeof_off_t, version);
 		}
 	}
 	return xlen;
@@ -1117,7 +1164,8 @@ NC_computeshapes(NC3_INFO* ncp)
 		{
 	  		if(first_rec == NULL)	
 				first_rec = *vpp;
-			if((*vpp)->len == UINT32_MAX) /* Flag for large last record */
+			if((*vpp)->len == UINT32_MAX &&
+                           fIsSet(ncp->flags, NC_64BIT_OFFSET)) /* Flag for large last record */
                             ncp->recsize += (*vpp)->dsizes[0] * (*vpp)->xsz;
 			else
 			    ncp->recsize += (*vpp)->len;
@@ -1168,15 +1216,20 @@ NC_computeshapes(NC3_INFO* ncp)
 size_t
 ncx_len_NC(const NC3_INFO* ncp, size_t sizeof_off_t)
 {
+	int version=1;
 	size_t xlen = sizeof(ncmagic);
 
 	assert(ncp != NULL);
-	
-	xlen += X_SIZEOF_SIZE_T; /* numrecs */
-	xlen += ncx_len_NC_dimarray(&ncp->dims);
-	xlen += ncx_len_NC_attrarray(&ncp->attrs);
-	xlen += ncx_len_NC_vararray(&ncp->vars, sizeof_off_t);
+	if (fIsSet(ncp->flags, NC_64BIT_DATA)) /* CDF-5 */
+		version = 5;
+    	else if (fIsSet(ncp->flags, NC_64BIT_OFFSET)) /* CDF-2 */
+		version = 2;
 
+	xlen += (version == 5) ? X_SIZEOF_INT64 : X_SIZEOF_SIZE_T; /* numrecs */
+	xlen += ncx_len_NC_dimarray(&ncp->dims, version);
+	xlen += ncx_len_NC_attrarray(&ncp->attrs, version);
+	xlen += ncx_len_NC_vararray(&ncp->vars, sizeof_off_t, version);
+	
 	return xlen;
 }
 
@@ -1195,7 +1248,9 @@ ncx_put_NC(const NC3_INFO* ncp, void **xpp, off_t offset, size_t extent)
 	ps.nciop = ncp->nciop;
 	ps.flags = RGN_WRITE;
 
-	if (ncp->flags & NC_64BIT_OFFSET)
+	if (ncp->flags & NC_64BIT_DATA)
+	  ps.version = 5;
+	else if (ncp->flags & NC_64BIT_OFFSET)
 	  ps.version = 2;
 	else 
 	  ps.version = 1;
@@ -1206,7 +1261,7 @@ ncx_put_NC(const NC3_INFO* ncp, void **xpp, off_t offset, size_t extent)
 		 * Come up with a reasonable stream read size.
 		 */
 		extent = ncp->xsz;
-		if(extent <= MIN_NC_XSZ)
+		if(extent <= ((ps.version==5)?MIN_NC5_XSZ:MIN_NC3_XSZ))
 		{
 			/* first time read */
 			extent = ncp->chunk;
@@ -1236,7 +1291,9 @@ ncx_put_NC(const NC3_INFO* ncp, void **xpp, off_t offset, size_t extent)
 		ps.end = (char *)ps.base + ps.extent;
 	}
 
-	if (ps.version == 2)
+	if (ps.version == 5)
+	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic5), ncmagic5);
+	else if (ps.version == 2)
 	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic), ncmagic);
 	else
 	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic1), ncmagic1);
@@ -1245,7 +1302,10 @@ ncx_put_NC(const NC3_INFO* ncp, void **xpp, off_t offset, size_t extent)
 
 	{
 	const size_t nrecs = NC_get_numrecs(ncp);
-	status = ncx_put_size_t(&ps.pos, &nrecs);
+       	if (ps.version == 5)
+	    status = ncx_put_int64(&ps.pos, nrecs);
+       	else
+	    status = ncx_put_size_t(&ps.pos, &nrecs);
 	if(status != ENOERR)
 		goto release;
 	}
@@ -1295,10 +1355,9 @@ nc_get_NC(NC3_INFO* ncp)
 		 * Come up with a reasonable stream read size.
 		 */
 	        off_t filesize;
-		size_t extent = MIN_NC_XSZ;
+		size_t extent = ncp->xsz;
 		
-		extent = ncp->xsz;
-		if(extent <= MIN_NC_XSZ)
+		if(extent <= ((fIsSet(ncp->flags, NC_64BIT_DATA))?MIN_NC5_XSZ:MIN_NC3_XSZ))
 		{
 		        status = ncio_filesize(ncp->nciop, &filesize);
 			if(status)
@@ -1362,6 +1421,9 @@ nc_get_NC(NC3_INFO* ncp)
 		    fprintf(stderr, "NETCDF WARNING: Version 2 file on 32-bit system.\n");
 		  }
 #endif
+		} else if (magic[sizeof(ncmagic)-1] == 0x5) {
+		  gs.version = 5;
+		  fSet(ncp->flags, NC_64BIT_DATA);
 		} else {
 			status = NC_ENOTNC;
 			goto unwind_get;
@@ -1370,7 +1432,13 @@ nc_get_NC(NC3_INFO* ncp)
 	
 	{
 	size_t nrecs = 0;
-	status = ncx_get_size_t((const void **)(&gs.pos), &nrecs);
+       	if (gs.version == 5) {
+		long long tmp = 0;
+		status = ncx_get_int64((const void **)(&gs.pos), &tmp);
+		nrecs = (size_t)tmp;
+       	}
+       	else
+	    status = ncx_get_size_t((const void **)(&gs.pos), &nrecs);
 	if(status != ENOERR)
 		goto unwind_get;
 	NC_set_numrecs(ncp, nrecs);

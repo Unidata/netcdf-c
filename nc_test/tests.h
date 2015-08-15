@@ -1,7 +1,7 @@
 /*********************************************************************
  *   Copyright 1996, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Id: tests.h,v 1.39 2008/09/21 13:11:23 ed Exp $
+ *   $Id: tests.h 2785 2014-10-26 05:21:20Z wkliao $
  *********************************************************************/
 
 #include <config.h>
@@ -13,6 +13,9 @@
 #include <float.h>
 #define NO_NETCDF_2 1
 #include "netcdf.h"
+#ifdef USE_PARALLEL
+#include "netcdf_par.h"
+#endif
 #include "error.h"
 
 #if defined(_CRAY) && !defined(_CRAYIEEE) && !defined(__crayx1)
@@ -51,6 +54,40 @@
 #endif
 #define X_DOUBLE_MIN	(-X_DOUBLE_MAX)
 
+#define X_SCHAR_MAX     X_CHAR_MAX
+#define X_SCHAR_MIN     X_CHAR_MIN
+#define X_UCHAR_MAX     UCHAR_MAX
+#define X_UCHAR_MIN     0
+#define X_UBYTE_MAX     X_UCHAR_MAX
+#define X_UBYTE_MIN     X_UCHAR_MIN
+#define X_USHORT_MAX    USHRT_MAX
+#define X_USHORT_MIN    0
+#define X_UINT_MAX      UINT_MAX
+#define X_UINT_MIN      0
+
+#ifndef LLONG_MAX
+#define LLONG_MAX  0x7fffffffffffffffLL
+#endif
+#ifndef LLONG_MIN
+#define LLONG_MIN (-0x7fffffffffffffffLL-1)
+#endif
+#ifndef ULLONG_MAX
+#define ULLONG_MAX  0xffffffffffffffffULL
+#endif
+
+#ifndef X_INT64_MAX
+#define X_INT64_MAX    LLONG_MAX
+#endif
+#ifndef X_INT64_MIN
+#define X_INT64_MIN    LLONG_MIN
+#endif
+#ifndef X_UINT64_MAX
+#define X_UINT64_MAX  ULLONG_MAX
+#endif
+#ifndef X_UINT64_MIN
+#define X_UINT64_MIN  ULLONG_MIN
+#endif
+
 
 #if _SX /* NEC SUPER UX */
 #if _INT64
@@ -86,9 +123,9 @@
 
     /* Parameters of test data */
 
-#define NTYPES 6
+#define NTYPES 11
 #define NDIMS 5
-#define NVARS 136
+#define NVARS 166
 #define NRECS 2
 #define NGATTS NTYPES
 #define RECDIM 0
@@ -96,6 +133,10 @@
 #define MAX_NELS 64
 #define MAX_DIM_LEN 4
 #define MAX_NATTS 3
+
+extern int numGatts;  /* number of global attributes */
+extern int numVars;   /* number of variables */
+extern int numTypes;  /* number of netCDF data types to test */
 
 
     /* Limits of internal types */
@@ -108,6 +149,13 @@
 #define long_min LONG_MIN
 #define float_min (-FLT_MAX)
 #define double_min (-DBL_MAX)
+#define ushort_min 0
+#define uint_min 0
+#define ulong_min 0
+#define int64_min LLONG_MIN
+#define longlong_min int64_min
+#define uint64_min 0
+#define ulonglong_min uint64_min
 
 #define text_max CHAR_MAX
 #define uchar_max UCHAR_MAX
@@ -117,6 +165,13 @@
 #define long_max LONG_MAX
 #define float_max FLT_MAX
 #define double_max DBL_MAX
+#define ushort_max USHRT_MAX
+#define uint_max UINT_MAX
+#define ulong_max ULONG_MAX
+#define int64_max LLONG_MAX
+#define longlong_max int64_max
+#define uint64_max ULLONG_MAX
+#define ulonglong_max uint64_max
 
 
 
@@ -140,8 +195,28 @@ extern "C" {
 
     /* Non-standard internal types */
 
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+
 typedef char text;
 typedef signed char schar;
+
+#ifndef HAVE_USHORT
+typedef unsigned short int  ushort;
+#endif
+
+#ifndef HAVE_UINT
+typedef unsigned       int  uint;
+#endif
+
+#ifndef HAVE_INT64
+typedef          long long  int64;
+#endif
+
+#ifndef HAVE_UINT64
+typedef unsigned long long  uint64;
+#endif
 
 
     /* Global variables - filenames */
@@ -179,7 +254,7 @@ extern size_t gatt_len[NGATTS];
     /* varid is -1 for NC_GLOBAL so can do global atts in same loop */
 
 #define VARID(varid)      (varid < 0 ? NC_GLOBAL : varid)
-#define NATTS(varid)      (varid < 0 ? NGATTS : var_natts[varid])
+#define NATTS(varid)      (varid < 0 ? numGatts : var_natts[varid])
 #define ATT_NAME(varid,j) (varid < 0 ? gatt_name[j] : att_name[varid][j])
 #define ATT_TYPE(varid,j) (varid < 0 ? gatt_type[j] : att_type[varid][j])
 #define ATT_LEN(varid,j)  (varid < 0 ? gatt_len[j] : att_len[varid][j])
@@ -218,6 +293,10 @@ extern void test_nc_get_var_short(void);
 extern void test_nc_get_var_text(void);
 extern void test_nc_get_var_uchar(void);
 extern void test_nc_get_var(void);
+extern void test_nc_get_var_ushort(void);
+extern void test_nc_get_var_uint(void);
+extern void test_nc_get_var_longlong(void);
+extern void test_nc_get_var_ulonglong(void);
 
 extern void test_nc_get_var1_double(void);
 extern void test_nc_get_var1_float(void);
@@ -228,6 +307,10 @@ extern void test_nc_get_var1_short(void);
 extern void test_nc_get_var1_text(void);
 extern void test_nc_get_var1_uchar(void);
 extern void test_nc_get_var1(void);
+extern void test_nc_get_var1_ushort(void);
+extern void test_nc_get_var1_uint(void);
+extern void test_nc_get_var1_longlong(void);
+extern void test_nc_get_var1_ulonglong(void);
 
 extern void test_nc_get_vara_double(void);
 extern void test_nc_get_vara_float(void);
@@ -238,6 +321,10 @@ extern void test_nc_get_vara_short(void);
 extern void test_nc_get_vara_text(void);
 extern void test_nc_get_vara_uchar(void);
 extern void test_nc_get_vara(void);
+extern void test_nc_get_vara_ushort(void);
+extern void test_nc_get_vara_uint(void);
+extern void test_nc_get_vara_longlong(void);
+extern void test_nc_get_vara_ulonglong(void);
 
 extern void test_nc_get_vars(void);
 extern void test_nc_get_vars_double(void);
@@ -249,6 +336,10 @@ extern void test_nc_get_vars_short(void);
 extern void test_nc_get_vars_text(void);
 extern void test_nc_get_vars_uchar(void);
 extern void test_nc_get_vars(void);
+extern void test_nc_get_vars_ushort(void);
+extern void test_nc_get_vars_uint(void);
+extern void test_nc_get_vars_longlong(void);
+extern void test_nc_get_vars_ulonglong(void);
 
 extern void test_nc_get_varm(void);
 extern void test_nc_get_varm_double(void);
@@ -260,6 +351,10 @@ extern void test_nc_get_varm_short(void);
 extern void test_nc_get_varm_text(void);
 extern void test_nc_get_varm_uchar(void);
 extern void test_nc_get_varm(void);
+extern void test_nc_get_varm_ushort(void);
+extern void test_nc_get_varm_uint(void);
+extern void test_nc_get_varm_longlong(void);
+extern void test_nc_get_varm_ulonglong(void);
 
 extern void test_nc_get_att(void);
 extern void test_nc_get_att_double(void);
@@ -270,6 +365,10 @@ extern void test_nc_get_att_schar(void);
 extern void test_nc_get_att_short(void);
 extern void test_nc_get_att_text(void);
 extern void test_nc_get_att_uchar(void);
+extern void test_nc_get_att_ushort(void);
+extern void test_nc_get_att_uint(void);
+extern void test_nc_get_att_longlong(void);
+extern void test_nc_get_att_ulonglong(void);
 
 extern void test_nc_put_att(void);
 extern void test_nc_put_var_double(void);
@@ -281,6 +380,10 @@ extern void test_nc_put_var_short(void);
 extern void test_nc_put_var_text(void);
 extern void test_nc_put_var_uchar(void);
 extern void test_nc_put_var(void);
+extern void test_nc_put_var_ushort(void);
+extern void test_nc_put_var_uint(void);
+extern void test_nc_put_var_longlong(void);
+extern void test_nc_put_var_ulonglong(void);
 
 extern void test_nc_put_var1_double(void);
 extern void test_nc_put_var1_float(void);
@@ -291,6 +394,10 @@ extern void test_nc_put_var1_short(void);
 extern void test_nc_put_var1_text(void);
 extern void test_nc_put_var1_uchar(void);
 extern void test_nc_put_var1(void);
+extern void test_nc_put_var1_ushort(void);
+extern void test_nc_put_var1_uint(void);
+extern void test_nc_put_var1_longlong(void);
+extern void test_nc_put_var1_ulonglong(void);
 
 extern void test_nc_put_vara_double(void);
 extern void test_nc_put_vara_float(void);
@@ -301,6 +408,10 @@ extern void test_nc_put_vara_short(void);
 extern void test_nc_put_vara_text(void);
 extern void test_nc_put_vara_uchar(void);
 extern void test_nc_put_vara(void);
+extern void test_nc_put_vara_ushort(void);
+extern void test_nc_put_vara_uint(void);
+extern void test_nc_put_vara_longlong(void);
+extern void test_nc_put_vara_ulonglong(void);
 
 extern void test_nc_put_vars_double(void);
 extern void test_nc_put_vars_float(void);
@@ -311,6 +422,10 @@ extern void test_nc_put_vars_short(void);
 extern void test_nc_put_vars_text(void);
 extern void test_nc_put_vars_uchar(void);
 extern void test_nc_put_vars(void);
+extern void test_nc_put_vars_ushort(void);
+extern void test_nc_put_vars_uint(void);
+extern void test_nc_put_vars_longlong(void);
+extern void test_nc_put_vars_ulonglong(void);
 
 extern void test_nc_put_varm_double(void);
 extern void test_nc_put_varm_float(void);
@@ -321,6 +436,10 @@ extern void test_nc_put_varm_short(void);
 extern void test_nc_put_varm_text(void);
 extern void test_nc_put_varm_uchar(void);
 extern void test_nc_put_varm(void);
+extern void test_nc_put_varm_ushort(void);
+extern void test_nc_put_varm_uint(void);
+extern void test_nc_put_varm_longlong(void);
+extern void test_nc_put_varm_ulonglong(void);
 
 extern void test_nc_put_att_double(void);
 extern void test_nc_put_att_float(void);
@@ -330,6 +449,10 @@ extern void test_nc_put_att_schar(void);
 extern void test_nc_put_att_short(void);
 extern void test_nc_put_att_text(void);
 extern void test_nc_put_att_uchar(void);
+extern void test_nc_put_att_ushort(void);
+extern void test_nc_put_att_uint(void);
+extern void test_nc_put_att_longlong(void);
+extern void test_nc_put_att_ulonglong(void);
 
 extern void test_nc_create(void);
 extern void test_nc_redef(void);
@@ -370,7 +493,13 @@ typedef enum {
 	NCT_INT =	20,	/* int */
 	NCT_LONG =	22,	/* long */
 	NCT_FLOAT =	36,	/* float */
-	NCT_DOUBLE =	40	/* double */
+	NCT_DOUBLE =	40,	/* double */
+        NCT_USHORT =    41,
+        NCT_UINT =      42,
+        NCT_INT64 =     43,
+#define NCT_LONGLONG NCT_INT64
+        NCT_UINT64 =    44
+#define NCT_ULONGLONG NCT_UINT64
 } nct_itype;
 
 int inRange3(const double value, const nc_type datatype, const nct_itype itype);
@@ -425,6 +554,10 @@ void check_vars(int  ncid);
 void check_atts(int  ncid);
 
 void check_file(char *filename);
+
+int file_create(const char *filename, int cmode, int *ncid);
+
+int file_open(const char *filename, int omode, int *ncid);
 
 #ifdef __cplusplus
 }

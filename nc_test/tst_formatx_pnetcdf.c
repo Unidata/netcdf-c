@@ -48,19 +48,56 @@ int main(int argc, char* argv[])
     MPI_Info_set(info, "nc_var_align_size",    "1");
 #endif
 
+    /* test CDF-1 file format */
     cmode = NC_PNETCDF | NC_CLOBBER;
     if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR_RET;
 
     if (nc_enddef(ncid)) ERR;
 
     if(nc_inq_format_extended(ncid,&format,&cmode)) ERR;
-    if(cmode != 0x8000) {
-	printf("***FAIL: mode was %08x ; expected %08x\n",cmode,0);
+    if((cmode & NC_PNETCDF) != NC_PNETCDF) {
+	printf("***FAIL at line %d: mode was %08x ; expected %08x\n",__LINE__,cmode,NC_PNETCDF);
 	ecode = 1;
 	ERR;
     }
-    if(format != NC_FORMAT_PNETCDF) {
-	printf("***FAIL: format was %d ; expected %d\n",format,NC_FORMAT_PNETCDF);
+    if(format != NC_FORMATX_PNETCDF) {
+	printf("***FAIL at line %d: format was %d ; expected %d\n",__LINE__,format,NC_FORMATX_PNETCDF);
+	ecode = 1;
+	ERR;
+    }
+
+    /* test CDF-2 file format */
+    cmode = NC_PNETCDF | NC_CLOBBER | NC_64BIT_OFFSET;
+    if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR_RET;
+
+    if (nc_enddef(ncid)) ERR;
+
+    if(nc_inq_format_extended(ncid,&format,&cmode)) ERR;
+    if((cmode & NC_64BIT_OFFSET) != NC_64BIT_OFFSET) {
+	printf("***FAIL at line %d: mode was %08x ; expected %08x\n",__LINE__,cmode,NC_64BIT_OFFSET);
+	ecode = 1;
+	ERR;
+    }
+    if(format != NC_FORMATX_PNETCDF) {
+	printf("***FAIL at line %d: format was %d ; expected %d\n",__LINE__,format,NC_FORMATX_PNETCDF);
+	ecode = 1;
+	ERR;
+    }
+
+    /* test CDF-5 file format */
+    cmode = NC_PNETCDF | NC_CLOBBER | NC_64BIT_DATA;
+    if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR_RET;
+
+    if (nc_enddef(ncid)) ERR;
+
+    if(nc_inq_format_extended(ncid,&format,&cmode)) ERR;
+    if((cmode & NC_64BIT_DATA) != NC_64BIT_DATA) {
+	printf("***FAIL at line %d: mode was %08x ; expected %08x\n",__LINE__,cmode,NC_64BIT_DATA);
+	ecode = 1;
+	ERR;
+    }
+    if(format != NC_FORMATX_PNETCDF) {
+	printf("***FAIL at line %d: format was %d ; expected %d\n",__LINE__,format,NC_FORMATX_PNETCDF);
 	ecode = 1;
 	ERR;
     }

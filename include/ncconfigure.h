@@ -62,6 +62,10 @@ typedef long long longlong;
 typedef unsigned long long ulonglong;
 #endif
 
+#ifndef HAVE_USHORT
+typedef unsigned short ushort;
+#endif
+
 #ifndef HAVE_UINT
 typedef unsigned int uint;
 #endif

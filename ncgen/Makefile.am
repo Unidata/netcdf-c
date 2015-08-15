@@ -22,7 +22,7 @@ man_MANS = ncgen.1
 # These files all need to be distributed.
 EXTRA_DIST = ncgen.y ncgenyy.c ncgen.l $(man_MANS) internals.html	\
 run_tests.sh run_nc4_tests.sh c0.cdl c0_4.cdl ref_camrun.cdl \
-ncf199.cdl CMakeLists.txt XGetopt.c
+ncf199.cdl CMakeLists.txt XGetopt.c c5.cdl
 
 # This shell script causes ncgen to build a classic and a 64-bit
 # offset file from a cdl file shipped with the distribution.
@@ -34,7 +34,7 @@ endif # USE_NETCDF4
 #endif # !BUILD_DLL
 
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
-		ncf199.nc
+		ncf199.nc c5.nc
 
 # These rules are used if someone wants to rebuild ncgenyy.c or ncgentab.c
 # Otherwise never invoked, but records how to do it.

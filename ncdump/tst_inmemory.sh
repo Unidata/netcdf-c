@@ -41,7 +41,13 @@ done
 }
 
 dotest "3" "$CLASSIC"
-dotest "4" "$EXTENDED"
+dotest "5" "$EXTENDED5"
+
+if test -f ${builddir}/../config.h ; then
+  if fgrep -e '#define USE_NETCDF4 1' ${builddir}/../config.h >/dev/null ; then
+    dotest "4" "$EXTENDED4"
+  fi
+fi
 
 # Cleanup
 rm -fr results

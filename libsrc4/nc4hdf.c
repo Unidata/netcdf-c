@@ -480,7 +480,7 @@ log_dim_info(NC_VAR_INFO_T *var, hsize_t *fdims, hsize_t *fmaxdims,
 }
 #endif /* LOGGING */
 
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
 static int
 set_par_access(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
 {
@@ -687,7 +687,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
     BAIL(NC_EHDFERR);
 #endif
 
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
   /* Set up parallel I/O, if needed. */
   if ((retval = set_par_access(h5, var, xfer_plistid)))
     BAIL(retval);
@@ -725,7 +725,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
             }
         }
 
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
       /* Check if anyone wants to extend */
       if (h5->parallel && NC_COLLECTIVE == var->parallel_access)
         {
@@ -735,14 +735,14 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
           if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &need_to_extend, 1, MPI_INT, MPI_BOR, h5->comm))
             BAIL(NC_EMPI);
         }
-#endif /* USE_PARALLEL */
+#endif /* USE_PARALLEL4 */
 
       /* If we need to extend it, we also need a new file_spaceid
          to reflect the new size of the space. */
       if (need_to_extend)
         {
           LOG((4, "extending dataset"));
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
           if (h5->parallel)
             {
               if(NC_COLLECTIVE != var->parallel_access)
@@ -756,7 +756,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
               if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &xtend_size, (var->ndims * (sizeof(hsize_t) / sizeof(int))), MPI_UNSIGNED, MPI_MAX, h5->comm))
                 BAIL(NC_EMPI);
             }
-#endif /* USE_PARALLEL */
+#endif /* USE_PARALLEL4 */
           if (H5Dset_extent(var->hdf_datasetid, xtend_size) < 0)
             BAIL(NC_EHDFERR);
           if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
@@ -1071,7 +1071,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
         BAIL(NC_EHDFERR);
 #endif
 
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
       /* Set up parallel I/O, if needed. */
       if ((retval = set_par_access(h5, var, xfer_plistid)))
         BAIL(retval);
@@ -1739,7 +1739,7 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
   /* Nothing to be done. */
   if (var->contiguous)
     return NC_NOERR;
-#ifdef USE_PARALLEL
+#ifdef USE_PARALLEL4
   return NC_NOERR;
 #endif
 

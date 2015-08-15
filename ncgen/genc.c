@@ -1140,14 +1140,13 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
 	codedump(stmt);
 	break;
 
-#ifdef USE_NETCDF4
     /* !usingclassic only (except NC_STRING) */
     case NC_UBYTE:
     case NC_USHORT:
     case NC_UINT:
     case NC_INT64:
     case NC_UINT64:
-	if(usingclassic) {
+	if(usingclassic && k_flag <= 2) {
 	    verror("Non-classic type: %s",nctypename(basetype->typ.typecode));
 	    return;
 	}
@@ -1164,6 +1163,7 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
 	codedump(stmt);
 	break;
 
+#ifdef USE_NETCDF4
     case NC_STRING:
 	if(usingclassic) {
 	    verror("Non-classic type: %s",nctypename(basetype->typ.typecode));
@@ -1185,7 +1185,7 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
     default: /* User defined type */
 #ifndef USE_NETCDF4
         verror("Non-classic type: %s",nctypename(basetype->typ.typecode));
-#else /* USE_NETCDF4 */
+#else /* !USE_NETCDF4 */
 	if(usingclassic && !isclassicprim(basetype->typ.typecode)) {
             verror("Non-classic type: %s",nctypename(basetype->typ.typecode));
 	}

@@ -71,7 +71,7 @@ ctest.c:
 	$(top_builddir)/ncgen/ncgen -lc -o ctest0.nc $(top_srcdir)/ncgen/c0.cdl >$(srcdir)/ctest.c
 
 ctest64.c:
-	$(top_builddir)/ncgen/ncgen -v2 -lc -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest64.c
+	$(top_builddir)/ncgen/ncgen -k2 -lc -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest64.c
 else
 ctest.c:
 	cp $(top_srcdir)/ncdump/ref_ctest.c $(top_srcdir)/ncdump/ctest.c

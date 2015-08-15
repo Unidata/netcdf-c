@@ -6,9 +6,6 @@ Research/Unidata. See COPYRIGHT file for more info.
 */
 
 #include "config.h"
-#ifdef USE_PARALLEL
-#include "netcdf_f.h"
-#endif /* USE_PARALLEL */
 #include "ncdispatch.h"
 
 /* This function creates a file for use with parallel I/O. */

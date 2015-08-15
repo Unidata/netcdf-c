@@ -14,6 +14,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#ifdef HDF5_PARALLEL
+#include <mpi.h>
+#endif
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
@@ -58,11 +61,11 @@
 /**************************************************/
 /* Define the known classes of dispatchers */
 /* Flags may be or'd => powers of 2*/
+#if 0
 #define NC_DISPATCH_NC3    1
 #define NC_DISPATCH_NC4    2
 #define NC_DISPATCH_NCD    4
 #define NC_DISPATCH_NCP    8
-
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */
@@ -76,21 +79,19 @@
 #endif
 
 /* Define the range of Atomic types */
-#ifdef USE_NETCDF4
-#define ATOMICTYPEMAX NC_STRING
-#else
-#define ATOMICTYPEMAX NC_DOUBLE
-#endif
+#define ATOMICTYPEMAX4 NC_STRING
+#define ATOMICTYPEMAX3 NC_DOUBLE
+#define ATOMICTYPEMAX5 NC_UINT64
 
 /* Define an alias for int to indicate an error return */
 typedef int NCerror;
 
-#ifndef USE_PARALLEL
+#if !defined HDF5_PARALLEL && !defined USE_PNETCDF
 typedef int MPI_Comm;
 typedef int MPI_Info;
 #define MPI_COMM_WORLD 0
 #define MPI_INFO_NULL 0
-#endif /* USE_PARALLEL */
+#endif
 
 /* Define a struct to hold the MPI info so it can be passed down the
  * call stack. This is used internally by the netCDF library. It
@@ -110,40 +111,39 @@ typedef struct NC_MEM_INFO {
 /*Forward*/
 typedef struct NC_Dispatch NC_Dispatch;
 
-extern NC_Dispatch* NCSUBSTRATE_dispatch_table;
 extern int NCDISPATCH_initialize(void);
+extern int NCDISPATCH_finalize(void);
+
+extern NC_Dispatch* NCSUBSTRATE_dispatch_table;
+extern int NCSUBSTRATE_initialize(void);
+extern int NCSUBSTRATE_finalize(void);
 
 extern NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
+extern int NC3_finalize(void);
 
 #ifdef USE_DAP
 extern NC_Dispatch* NCD2_dispatch_table;
 extern int NCD2_initialize(void);
+extern int NCD2_finalize(void);
 #endif
 
 #ifdef USE_PNETCDF
 extern NC_Dispatch* NCP_dispatch_table;
 extern int NCP_initialize(void);
+extern int NCP_finalize(void);
 #endif
 
 #ifdef USE_NETCDF4
 
 extern NC_Dispatch* NC4_dispatch_table;
 extern int NC4_initialize(void);
+extern int NC4_finalize(void);
 
 #ifdef USE_DAP
 extern NC_Dispatch* NCD4_dispatch_table;
 extern int NCD4_initialize(void);
-#endif
-
-#ifdef USE_CDMREMOTE
-extern NC_Dispatch* NCCR_dispatch_table;
-extern int NCCR_initialize(void);
-#endif
-
-#ifdef BUILD_RPC
-extern NC_Dispatch* NCRPC_dispatch_table;
-extern int NCRPC_initialize(void);
+extern int NCD4_finalize(void);
 #endif
 
 #endif /*USE_NETCDF4*/
@@ -193,7 +193,7 @@ struct NCHDR;
 
 struct NC_Dispatch {
 
-int model; /* one of the NC_DISPATCH #'s above */
+int model; /* one of the NC_FORMATX #'s */
 
 int (*create)(const char *path, int cmode,
 	  size_t initialsz, int basepe, size_t *chunksizehintp, 
@@ -245,7 +245,6 @@ int (*put_vars)(int, int, const size_t*, const size_t*, const ptrdiff_t*, const 
 
 int (*get_varm)(int, int, const size_t*, const size_t*, const ptrdiff_t*, const ptrdiff_t*, void*, nc_type);
 int (*put_varm)(int, int, const size_t*, const size_t*, const ptrdiff_t*, const ptrdiff_t*, const void*, nc_type);
-
 
 int (*inq_var_all)(int ncid, int varid, char *name, nc_type *xtypep, 
                int *ndimsp, int *dimidsp, int *nattsp, 
@@ -304,12 +303,14 @@ int (*get_var_chunk_cache)(int ncid, int varid, size_t *sizep, size_t *nelemsp, 
 
 /* Following functions must be handled as non-dispatch */
 #ifdef NONDISPATCH
-void(*nc_advise)(const char*cdf_routine_name,interr,const char*fmt,...);
-void(*nc_set_log_level)(int);
+void (*nc_advise)(const char*cdf_routine_name,interr,const char*fmt,...);
+void (*nc_set_log_level)(int);
 const char* (*nc_inq_libvers)(void);
 const char* (*nc_strerror)(int);
-int(*nc_delete)(const char*path);
-int(*nc_delete_mp)(const char*path,intbasepe);
+int (*nc_delete)(const char*path);
+int (*nc_delete_mp)(const char*path,intbasepe);
+int (*nc_initialize)();
+int (*nc_finalize)();
 #endif /*NONDISPATCH*/
 
 /* Define the common fields for NC and NC_FILE_INFO_T etc */
@@ -324,9 +325,6 @@ typedef struct NCcommon {
 
 extern size_t NC_atomictypelen(nc_type xtype);
 extern char* NC_atomictypename(nc_type xtype);
-
-/* Provide an initializer */
-extern int NC_initialize(void);
 
 /* Provide a dispatch table overlay facility */
 extern int NC_dispatch_overlay(const NC_Dispatch* overlay,
@@ -373,6 +371,12 @@ extern int NC_inq_recvar(int ncid, int varid, int* nrecdims, int* is_recdim);
 
 extern size_t NC_coord_zero[NC_MAX_VAR_DIMS];
 extern size_t NC_coord_one[NC_MAX_VAR_DIMS];
+
+extern int NC_argc;
+extern char* NC_argv[];
+extern int NC_initialized;
+extern int NC_finalized;
+extern int nc_initialize();
 
 #endif /* _DISPATCH_H */
 

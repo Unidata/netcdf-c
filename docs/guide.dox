@@ -2755,6 +2755,7 @@ The -k file specifies the kind of netCDF file to generate. The
 arguments to the -k flag can be as follows.
         'classic', 'nc3' – Produce a netcdf classic file format file.
         '64-bit offset', 'nc6' – Produce a netcdf 64 bit classic file format file.
+        '64-bit data (CDF-5), 'nc5' – Produce a CDF-5 format file.
         'netCDF-4', 'nc4' – Produce a netcdf-4 format file.
         'netCDF-4 classic model', 'nc7' – Produce a netcdf-4 file format, but restricted to netcdf-3 classic CDL input.
 
@@ -2767,6 +2768,7 @@ format names 'nc3', 'nc6', 'nc4', or 'nc7' respectively, are also
 still accepted but deprecated, due to easy confusion between format
 numbers and format names. Various old format name aliases are also
 accepted but deprecated, e.g. 'hdf5', 'enhanced-nc3', for 'netCDF-4'.
+
 
 -l
 The -l file specifies that ncgen should output (to standard output)
@@ -2821,7 +2823,7 @@ programs.
 UNIX syntax for invoking ncgen3:
 
 \code
-     ncgen3 [-b] [-o netcdf-file] [-c] [-f] [-v2|-v3] [-x] [input-file]
+     ncgen3 [-b] [-o netcdf-file] [-c] [-f] [-v2|-v3|-v5] [-x] [input-file]
 \endcode
 
 where:
@@ -2863,6 +2865,12 @@ because they require version 3.6.0 or later of the netCDF library.
 The generated netCDF file will be in netCDF-4/HDF5 format. These files
 are not as portable as classic format netCDF files, because they
 require version 4.0 or later of the netCDF library.
+
+-v5
+The generated netCDF file or program will use the version of the
+format with 64-bit integers, to allow for the creation of very large
+variables. These files are not as portable as classic format netCDF files,
+because they require version 4.4.0 or later of the netCDF library.
 
 -x
 Use “no fill” mode, omitting the initialization of variable values

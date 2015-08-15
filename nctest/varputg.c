@@ -138,7 +138,7 @@ test_ncvarputg(path)
 	error("%s: ncvarputg failed to report bad netcdf handle", pname);
 	nerrs++;
     }
-    free (hc.vals);
+    if(hc.vals != NULL) free (hc.vals);
     if (nerrs > 0)
       (void) fprintf(stderr,"FAILED! ***\n");
     else

@@ -3,24 +3,27 @@
 
 #define MAXSERVERURL 4096
 
-extern int NCSUBSTRATE_intialize(void);
+extern int NCSUBSTRATE_initialize(void);
+extern int NCSUBSTRATE_finalize(void);
 
 /* Define vectors of zeros and ones for use with various nc_get_varX function*/
 size_t nc_sizevector0[NC_MAX_VAR_DIMS];
 size_t nc_sizevector1[NC_MAX_VAR_DIMS];
 ptrdiff_t nc_ptrdiffvector1[NC_MAX_VAR_DIMS];
+size_t NC_coord_zero[NC_MAX_VAR_DIMS];
+size_t NC_coord_one[NC_MAX_VAR_DIMS];
 
 /* Define the known protocols and their manipulations */
 static struct NCPROTOCOLLIST {
     char* protocol;
     char* substitute;
-    int   modelflags;
+    int   model;
 } ncprotolist[] = {
     {"http",NULL,0},
     {"https",NULL,0},
-    {"file",NULL,NC_DISPATCH_NCD},
-    {"dods","http",NC_DISPATCH_NCD},
-    {"dodss","https",NC_DISPATCH_NCD},
+    {"file",NULL,NC_FORMATX_DAP2},
+    {"dods","http",NC_FORMATX_DAP2},
+    {"dodss","https",NC_FORMATX_DAP2},
     {NULL,NULL,0} /* Terminate search */
 };
 
@@ -38,19 +41,30 @@ static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);
 static nc_type ulongtype = (sizeof(unsigned long) == sizeof(unsigned int)?NC_UINT:NC_UINT64);
 */
 
-/* Allow dispatch to do initialization */
+/* Allow dispatch to do general initialization and finalization */
 int
 NCDISPATCH_initialize(void)
 {
-    extern int NCSUBSTRATE_initialize(void);
+    int status = NC_NOERR;
     int i;
-    NCSUBSTRATE_initialize();
     for(i=0;i<NC_MAX_VAR_DIMS;i++) {
 	nc_sizevector0[i] = 0;
         nc_sizevector1[i] = 1;
         nc_ptrdiffvector1[i] = 1;
     }
-    return NC_NOERR;
+    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
+	NC_coord_one[i] = 1;
+	NC_coord_zero[i] = 0;
+    }
+    return status;
+}
+
+int
+NCDISPATCH_finalize(void)
+{
+    int status = NC_NOERR;
+    int i;
+    return status;
 }
 
 /* search list of servers and return first that succeeds when
@@ -127,7 +141,7 @@ NC_testurl(const char* path)
 }
 
 /*
-Return the OR of some of the NC_DISPATCH flags
+Return an NC_FORMATX_... value.
 Assumes that the path is known to be a url
 */
 
@@ -138,36 +152,7 @@ NC_urlmodel(const char* path)
     NCURI* tmpurl = NULL;
     struct NCPROTOCOLLIST* protolist;
 
-    if(!ncuriparse(path,&tmpurl)) goto done;
-
-    /* Look at any prefixed parameters */
-    if(ncurilookup(tmpurl,"netcdf4",NULL)
-       || ncurilookup(tmpurl,"netcdf-4",NULL)) {
-	model = (NC_DISPATCH_NC4|NC_DISPATCH_NCD);
-    } else if(ncurilookup(tmpurl,"netcdf3",NULL)
-              || ncurilookup(tmpurl,"netcdf-3",NULL)) {
-	model = (NC_DISPATCH_NC3|NC_DISPATCH_NCD);
-    }
-
-    if(model == 0) {
-        for(protolist=ncprotolist;protolist->protocol;protolist++) {
-	    if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
-    	        model |= protolist->modelflags;
-    	        if(protolist->substitute) {
-		    free(tmpurl->protocol);
-    		    tmpurl->protocol = strdup(protolist->substitute);
-    	        }
-    	        break;
-	    }
-	}
-    }
-
-    /* Force NC_DISPATCH_NC3 if necessary */
-    if((model & NC_DISPATCH_NC4) == 0)
-	model |= (NC_DISPATCH_NC3 | NC_DISPATCH_NCD);
-
-done:
-    ncurifree(tmpurl);
+    model = NC_FORMATX_DAP2;
     return model;
 }
 

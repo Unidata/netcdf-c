@@ -8,7 +8,6 @@ dnl
  *	Copyright 1996, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
-/* $Id: attr.m4,v 2.39 2010/05/26 18:11:08 dmh Exp $ */
 
 #include "nc3internal.h"
 #include "ncdispatch.h"
@@ -57,6 +56,16 @@ ncx_len_NC_attrV(nc_type type, size_t nelems)
 		return ncx_len_float(nelems);
 	case NC_DOUBLE:
 		return ncx_len_double(nelems);
+	case NC_UBYTE:
+		return ncx_len_ubyte(nelems);
+	case NC_USHORT:
+		return ncx_len_ushort(nelems);
+	case NC_UINT:
+		return ncx_len_uint(nelems);
+	case NC_INT64:
+		return ncx_len_int64(nelems);
+	case NC_UINT64:
+		return ncx_len_uint64(nelems);
 	default:
 	        assert("ncx_len_NC_attr bad type" == 0);
 	}
@@ -394,7 +403,7 @@ NC_lookupattr(int ncid,
 	if(attrpp != NULL)
 		*attrpp = *tmp;
 
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /* Public */
@@ -637,6 +646,16 @@ ncx_pad_putn_I$1(void **xpp, size_t nelems, const $1 *tp, nc_type type)
 		return ncx_putn_float_$1(xpp, nelems, tp);
 	case NC_DOUBLE:
 		return ncx_putn_double_$1(xpp, nelems, tp);
+	case NC_UBYTE:
+		return ncx_pad_putn_uchar_$1(xpp, nelems, tp);
+	case NC_USHORT:
+		return ncx_putn_ushort_$1(xpp, nelems, tp);
+	case NC_UINT:
+		return ncx_putn_uint_$1(xpp, nelems, tp);
+	case NC_INT64:
+		return ncx_putn_longlong_$1(xpp, nelems, tp);
+	case NC_UINT64:
+		return ncx_putn_ulonglong_$1(xpp, nelems, tp);
 	default:
                 assert("ncx_pad_putn_I$1 invalid type" == 0);
 	}
@@ -664,6 +683,16 @@ ncx_pad_getn_I$1(const void **xpp, size_t nelems, $1 *tp, nc_type type)
 		return ncx_getn_float_$1(xpp, nelems, tp);
 	case NC_DOUBLE:
 		return ncx_getn_double_$1(xpp, nelems, tp);
+	case NC_UBYTE:
+		return ncx_pad_getn_uchar_$1(xpp, nelems, tp);
+	case NC_USHORT:
+		return ncx_getn_ushort_$1(xpp, nelems, tp);
+	case NC_UINT:
+		return ncx_getn_uint_$1(xpp, nelems, tp);
+	case NC_INT64:
+		return ncx_getn_longlong_$1(xpp, nelems, tp);
+	case NC_UINT64:
+		return ncx_getn_ulonglong_$1(xpp, nelems, tp);
 	default:
 	        assert("ncx_pad_getn_I$1 invalid type" == 0);
 	}
@@ -698,6 +727,15 @@ XNCX_PAD_GETN(long)
 XNCX_PAD_PUTN(longlong)
 XNCX_PAD_GETN(longlong)
 
+XNCX_PAD_PUTN(ushort)
+XNCX_PAD_GETN(ushort)
+
+XNCX_PAD_PUTN(uint)
+XNCX_PAD_GETN(uint)
+
+XNCX_PAD_PUTN(ulonglong)
+XNCX_PAD_GETN(ulonglong)
+
 
 /* Common dispatcher for put cases */
 static int
@@ -721,6 +759,12 @@ dispatchput(void **xpp, size_t nelems, const void* tp,
         return ncx_pad_putn_Iuchar(xpp,nelems, (uchar *)tp, atype);
     case NC_INT64:
           return ncx_pad_putn_Ilonglong(xpp, nelems, (longlong*)tp, atype);
+    case NC_USHORT:
+          return ncx_pad_putn_Iushort(xpp, nelems, (ushort*)tp, atype);
+    case NC_UINT:
+          return ncx_pad_putn_Iuint(xpp, nelems, (uint*)tp, atype);
+    case NC_UINT64:
+          return ncx_pad_putn_Iulonglong(xpp, nelems, (ulonglong*)tp, atype);
     case NC_NAT:
         return NC_EBADTYPE;
     default:
@@ -759,7 +803,7 @@ NC3_put_att(
     if(ncap == NULL)
 	return NC_ENOTVAR;
 
-    status = nc_cktype(type);
+    status = nc3_cktype(nc->mode, type);
     if(status != NC_NOERR)
 	return status;
 
@@ -806,7 +850,7 @@ NC3_put_att(
                  * N.B.: potentially overrides NC_ERANGE
                  * set by ncx_pad_putn_I$1
                  */
-                if(lstatus != ENOERR) return lstatus;
+                if(lstatus != NC_NOERR) return lstatus;
             }
 
             return status;
@@ -890,6 +934,13 @@ NC3_get_att(
           return ncx_pad_getn_Ilonglong(&xp,attrp->nelems,(longlong*)value,attrp->type);
     case NC_UBYTE: /* Synthetic */
         return ncx_pad_getn_Iuchar(&xp, attrp->nelems , (uchar *)value, attrp->type);
+    case NC_USHORT:
+          return ncx_pad_getn_Iushort(&xp,attrp->nelems,(ushort*)value,attrp->type);
+    case NC_UINT:
+          return ncx_pad_getn_Iuint(&xp,attrp->nelems,(uint*)value,attrp->type);
+    case NC_UINT64:
+          return ncx_pad_getn_Iulonglong(&xp,attrp->nelems,(ulonglong*)value,attrp->type);
+
     case NC_NAT:
         return NC_EBADTYPE;
     default:
