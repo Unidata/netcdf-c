@@ -48,7 +48,9 @@ main(int argc, char **argv) {
 
 #define NUMRECS 2
 #define I_LEN 5
-//#define J_LEN 214700000
+#if 0
+#define J_LEN 214700000
+#endif
 #define J_LEN   500000000
 #define K_LEN 1023
 #define N_LEN 2
@@ -103,7 +105,7 @@ main(int argc, char **argv) {
    var1_dims[0] = rec_dim;
    var1_dims[1] = i_dim;
    var1_dims[2] = j_dim;
-   //var1_dims[3] = k_dim;
+   /*var1_dims[3] = k_dim;*/
    stat = nc_def_var(ncid, "var1", NC_FLOAT, RANK_var1, var1_dims, &var1_id);
    check_err(stat,__LINE__,__FILE__);
 
@@ -116,7 +118,7 @@ main(int argc, char **argv) {
    check_err(stat,__LINE__,__FILE__);
 
    {			/* store var1 */
-     //static float var1[J_LEN];
+     /*static float var1[J_LEN];*/
      static float *var1 = NULL;
      var1 = malloc(sizeof(float)*J_LEN);
      if(!var1) {
@@ -156,7 +158,7 @@ main(int argc, char **argv) {
 
    {			/* read var1 */
      
-     //static float avar1[J_LEN];
+     /*static float avar1[J_LEN];*/
      static float *avar1 = NULL;
      avar1 = (float*)malloc(sizeof(float)*J_LEN);
      static size_t avar1_start[RANK_var1] = {0, 0, 0};

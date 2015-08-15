@@ -134,9 +134,11 @@ extern "C" {
 
 #define NC_DISKLESS      0x0008  /**< Use diskless file. Mode flag for nc_open() or nc_create(). */
 #define NC_MMAP          0x0010  /**< Use diskless file with mmap. Mode flag for nc_open() or nc_create(). */
-#define NC_INMEMORY      0x0020  /**< Read from memory. Mode flag for nc_open() or nc_create(). */
 
-#define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model. Mode flag for nc_create(). */
+#define NC_64BIT_DATA    0x0020  /**< CDF-5 format: classic model but 64 bit dimensions and sizes */
+#define NC_CDF5          NC_64BIT_DATA  /**< Alias */
+
+#define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model on netCDF-4. Mode flag for nc_create(). */
 #define NC_64BIT_OFFSET  0x0200  /**< Use large (64-bit) file offsets. Mode flag for nc_create(). */
 
 /** \deprecated The following flag currently is ignored, but use in
@@ -157,7 +159,10 @@ Use this in mode flags for both nc_create() and nc_open(). */
 /** Turn on MPI POSIX I/O.
 Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_MPIPOSIX      0x4000 /**< \deprecated As of libhdf5 1.8.13. */
-#define NC_PNETCDF       0x8000	/**< Use parallel-netcdf library. Mode flag for nc_open(). */
+
+#define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create(). */
+
+#define NC_PNETCDF       (NC_MPIIO) /**< Use parallel-netcdf library; alias for NC_MPIIO. */
 
 /** Format specifier for nc_set_default_format() and returned
  *  by nc_inq_format. This returns the format as provided by
@@ -166,10 +171,19 @@ Use this in mode flags for both nc_create() and nc_open(). */
  *  4.0 introduces the third one. \see netcdf_format
  */
 /**@{*/
-#define NC_FORMAT_CLASSIC (1)
-#define NC_FORMAT_64BIT   (2)
-#define NC_FORMAT_NETCDF4 (3)
-#define NC_FORMAT_NETCDF4_CLASSIC  (4)
+#define NC_FORMAT_CLASSIC         (1)
+/* After adding CDF5 support, this flag
+   is somewhat confusing. So, it is renamed.
+   Note that the name in the contributed code
+   NC_FORMAT_64_BIT was renamed to NC_FORMAT_CDF2
+*/
+#define NC_FORMAT_64BIT_OFFSET    (2)
+#define NC_FORMAT_NETCDF4         (3)
+#define NC_FORMAT_NETCDF4_CLASSIC (4)
+#define NC_FORMAT_64BIT_DATA      (5)
+
+/* Alias */
+#define NC_FORMAT_CDF5    NC_FORMAT_64BIT_DATA
 
 /**@}*/
 
@@ -187,15 +201,17 @@ Use this in mode flags for both nc_create() and nc_open(). */
  *    or nc_create.
  * More or less, the #1 values track the set of dispatch tables.
  * The #1 values are as follows.
+ * Note that CDF-5 returns NC_FORMAT_NC3, but sets the mode flag properly.
  */
 /**@{*/
-#define NC_FORMAT_NC3     (1)
-#define NC_FORMAT_NC_HDF5 (2) /* netCDF-4 subset of HDF5 */
-#define NC_FORMAT_NC_HDF4 (3) /* netCDF-4 subset of HDF4 */
-#define NC_FORMAT_PNETCDF (4)
-#define NC_FORMAT_DAP2    (5)
-#define NC_FORMAT_DAP4    (6)
-#define NC_FORMAT_UNDEFINED (0)
+#define NC_FORMATX_NC3       (1)
+#define NC_FORMATX_NC_HDF5   (2) /* netCDF-4 subset of HDF5 */
+#define NC_FORMATX_NC4       NC_FORMATX_NC_HDF5 /* alias */
+#define NC_FORMATX_NC_HDF4   (3) /* netCDF-4 subset of HDF4 */
+#define NC_FORMATX_PNETCDF   (4)
+#define NC_FORMATX_DAP2      (5)
+#define NC_FORMATX_DAP4      (6)
+#define NC_FORMATX_UNDEFINED (0)
 /**@}*/
 
 /** Let nc__create() or nc__open() figure out a suitable buffer size. */
@@ -834,7 +850,7 @@ EXTERNL int
 nc_set_fill(int ncid, int fillmode, int *old_modep);
 
 /* Set the default nc_create format to NC_FORMAT_CLASSIC,
- * NC_FORMAT_64BIT, NC_FORMAT_NETCDF4, NC_FORMAT_NETCDF4_CLASSIC. */
+ * NC_FORMAT_64BIT, NC_FORMAT_NETCDF4, etc */
 EXTERNL int
 nc_set_default_format(int format, int *old_formatp);
 
@@ -859,7 +875,7 @@ nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
 EXTERNL int
 nc_redef(int ncid);
 
-/* Is this ever used? */
+/* Is this ever used? Convert to parameter form */
 EXTERNL int
 nc__enddef(int ncid, size_t h_minfree, size_t v_align,
 	size_t v_minfree, size_t r_align);

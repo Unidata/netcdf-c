@@ -91,6 +91,7 @@ INCLUDE(${CMAKE_ROOT}/Modules/CheckTypeSize.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckCSourceCompiles.cmake)
+INCLUDE(${CMAKE_ROOT}/Modules/CheckCSourceRuns.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
@@ -836,6 +837,7 @@ ENDIF()
 # Options to enable parallel IO, tests.
 SET(STATUS_PNETCDF "OFF")
 OPTION(ENABLE_PNETCDF "Build with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
+
 IF(ENABLE_PNETCDF)
   # Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
   # Does the user want to turn on PNETCDF read ability?
@@ -846,13 +848,38 @@ IF(ENABLE_PNETCDF)
     MESSAGE(STATUS "Cannot find pNetCDF library. Disabling pNetCDF support.")
     SET(USE_PNETCDF OFF CACHE BOOL "")
   ELSE()
-    SET(STATUS_PNETCDF "ON")
-    INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
-    SET(HAVE_LIBPNETCDF ON)
-    # pnetcdf => parallel
-    SET(STATUS_PARALLEL "ON")
-    SET(USE_PARALLEL ON)
-  ENDIF()
+	SET(TMP_INC ${CMAKE_REQUIRED_INCLUDES})
+	SET(TMP_LB ${CMAKE_REQUIRED_LIBRARIES})
+	SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${PNETCDF})
+	SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${PNETCDF_INCLUDE_DIR})
+	# Check to see if version > 1.6.0
+	CHECK_C_SOURCE_RUNS("
+		#include <stdio.h>
+      		#include <pnetcdf.h>
+      		int main() {
+      		int major = PNETCDF_VERSION_MAJOR;
+      		int minor = PNETCDF_VERSION_MINOR;
+      		int version = major*1000 + minor;
+      		int ok = (version >= (1*1000 + 6));
+      		return ok?0:1;}"
+      		HAVE_PNETCDF_16)
+
+	SET(CMAKE_REQUIRED_INCLUDES ${TMP_INC})
+	SET(CMAKE_REQUIRED_LIBRARIES ${TMP_LB})
+
+	IF(HAVE_PNETCDF_16)
+		SET(ENABLE_PNETCDF "OFF")
+      		MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.0 or later; disabled")
+    	ELSE()
+
+	    SET(STATUS_PNETCDF "ON")
+    	    INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
+    	    SET(HAVE_LIBPNETCDF ON)
+    	    # pnetcdf => parallel
+    	    SET(STATUS_PARALLEL "ON")
+    	    SET(USE_PARALLEL ON)
+  	ENDIF()
+    ENDIF()
 ENDIF()
 
 # Enable Parallel Tests.

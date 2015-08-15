@@ -53,8 +53,8 @@ test_varputgetg(cdfid)
 
     for (iv = 0; iv < test.nvars; iv++)	{ /* for each var in netcdf */
 
-	for (ie = 0; ie < ne; ie++)
-	  nel[ie] = 1;		/* to compute space for hypercube values */
+		for (ie = 0; ie < ne; ie++)
+			nel[ie] = 1;		/* to compute space for hypercube values */
 
 	/*
 	 * The following macro returns the size of a dimension for a

@@ -1,14 +1,33 @@
 # Test c output
-T=test_read
-#VG=valgrind --leak-check=full
+T=t
+#CMD=valgrind --leak-check=full
+#CMD=gdb --args
+
+CC=mpicc
 
 CFLAGS=-g -O0 -I.. -I../include
-LDFLAGS=../liblib/.libs/libnetcdf.a  -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
+#LDFLAGS=../liblib/.libs/libnetcdf.a  -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
+
+LDFLAGS=-L/usr/local/lib -lhdf5_hl -lhdf5 -lz  ../liblib/.libs/libnetcdf.a -ldl -lm -lcurl
+
+CC=/usr/local/bin/mpicc
+LDFLAGS=-L/usr/local/lib -lhdf5_hl -lhdf5 -lz  ../liblib/.libs/libnetcdf.a -ldl -lcurl -lpnetcdf -lmpich -lm
 
 #	cd .. ; ${MAKE} all
 
-all::
-	export LD_RUN_PATH; export CFLAGS; export LDFLAGS; \
-	gcc -o t ${CFLAGS} ${T}.c ${LDFLAGS}
-	${VG} ./t
+LLP=/usr/local/lib:${LD_LIBRARY_PATH}
 
+all::
+	echo ${LD_RUN_PATH}
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${CC} -o t ${CFLAGS} ${T}.c ${LDFLAGS}; \
+	${CMD} ./t
+
+cpp::
+	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt
+
+all::
+	echo ${LD_RUN_PATH}
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	gcc -o t ${CFLAGS} ${T}.c ${LDFLAGS}; \
+	${CMD} ./t

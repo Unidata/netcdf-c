@@ -32,7 +32,7 @@ check_PROGRAMS = $(H5TESTS)
 TESTS = $(H5TESTS)
 
 # The parallel program is run from a script.
-if TEST_PARALLEL
+if TEST_PARALLEL4
 check_PROGRAMS += tst_h_par
 TESTS += run_par_tests.sh
 endif

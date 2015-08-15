@@ -6,13 +6,15 @@
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
+AM_CPPFLAGS += -I$(top_srcdir)/libsrc
 
 # These files are created by the tests.
 CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
 tst_*.nc t_nc.nc large_files.nc quick_large_files.nc \
 tst_diskless.nc tst_diskless2.nc \
 tst_diskless3.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl \
-tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc unlim.nc ncx.c
+tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc nc_test_cdf5.nc \
+unlim.nc
 
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm \

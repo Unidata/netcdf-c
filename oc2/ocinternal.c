@@ -76,9 +76,10 @@ ocinternalinitialize(void)
 #if 0
     if(sizeof(off_t) != sizeof(void*)) {
       fprintf(stderr,"OC xxdr depends on the assumption that sizeof(off_t) == sizeof(void*)\n");
-      //Commenting out for now, as this does not hold true on 32-bit
-      //linux systems.
-      //OCASSERT(sizeof(off_t) == sizeof(void*));
+      /*
+	Commenting out for now, as this does not hold true on 32-bit linux systems.
+      OCASSERT(sizeof(off_t) == sizeof(void*));
+	*/
     }
 #endif
 

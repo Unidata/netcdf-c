@@ -94,7 +94,7 @@ static int NCD2_get_vars(int ncid, int varid,
 
 static NC_Dispatch NCD2_dispatch_base = {
 
-NC_DISPATCH_NC3 | NC_DISPATCH_NCD,
+NC_FORMATX_DAP2,
 
 NCD2_create,
 NCD2_open,
@@ -215,6 +215,12 @@ NCD2_initialize(void)
 	if(oc_set_rcfile(ncrcfile) != OC_NOERR)
 	    return NC_EAUTH;
     }
+    return NC_NOERR;
+}
+
+int
+NCD2_finalize(void)
+{
     return NC_NOERR;
 }
 
@@ -1000,7 +1006,7 @@ NCD2_inq_format_extended(int ncid, int* formatp, int* modep)
     int ncstatus = NC_check_id(ncid, (NC**)&nc);
     if(ncstatus != NC_NOERR) return THROW(ncstatus);
     if(modep) *modep = nc->mode;
-    if(formatp) *formatp = NC_FORMAT_DAP2;
+    if(formatp) *formatp = NC_FORMATX_DAP2;
     return NC_NOERR;
 }
 

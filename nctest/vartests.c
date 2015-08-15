@@ -218,8 +218,8 @@ test_ncvarinq(path)
 	    nerrs++;
 	}
     }
-    free(var.dims);
-    free(var.name);
+    if(var.dims != NULL) free(var.dims);
+    if(var.name != NULL) free(var.name);
     if (nerrs > 0)
       (void) fprintf(stderr,"FAILED! ***\n");
     else

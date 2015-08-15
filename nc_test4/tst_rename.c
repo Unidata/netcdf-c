@@ -44,7 +44,7 @@ create_test_file(
     case (NC_FORMAT_CLASSIC):
 	if (nc_create(path, 0, &ncid)) ERR;
 	break;
-    case (NC_FORMAT_64BIT):
+    case (NC_FORMAT_64BIT_OFFSET):
 	if (nc_create(path, NC_64BIT_OFFSET, &ncid)) ERR;
 	break;
     case (NC_FORMAT_NETCDF4):

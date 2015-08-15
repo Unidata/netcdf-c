@@ -1160,7 +1160,8 @@ count_dims(int ncid) {
  * to copy data a record at a time. */
 static int
 nc3_special_case(int ncid, int kind) {
-    if (kind == NC_FORMAT_CLASSIC ||  kind == NC_FORMAT_64BIT) {
+    if (kind == NC_FORMAT_CLASSIC ||  kind == NC_FORMAT_64BIT_OFFSET
+        || kind == NC_FORMAT_CDF5) {
 	int recdimid = 0;
 	NC_CHECK(nc_inq_unlimdim(ncid, &recdimid));
 	if (recdimid != -1) {	/* we have a record dimension */
@@ -1368,7 +1369,8 @@ copy(char* infile, char* outfile)
     if (option_kind == SAME_AS_INPUT) {	/* default, kind not specified */
 	outkind = inkind;
 	/* Deduce output kind if netCDF-4 features requested */
-	if (inkind == NC_FORMAT_CLASSIC || inkind == NC_FORMAT_64BIT) { 
+	if (inkind == NC_FORMAT_CLASSIC || inkind == NC_FORMAT_64BIT_OFFSET
+	    || inkind == NC_FORMAT_CDF5) { 
 	    if (option_deflate_level > 0 || 
 		option_shuffle_vars == NC_SHUFFLE || 
 		option_chunkspec) 
@@ -1406,8 +1408,11 @@ copy(char* infile, char* outfile)
     case NC_FORMAT_CLASSIC:
 	/* nothing to do */
 	break;
-    case NC_FORMAT_64BIT:
+    case NC_FORMAT_64BIT_OFFSET:
 	create_mode |= NC_64BIT_OFFSET;
+	break;
+    case NC_FORMAT_CDF5:
+	create_mode |= NC_64BIT_DATA;
 	break;
 #ifdef USE_NETCDF4
     case NC_FORMAT_NETCDF4:
@@ -1514,12 +1519,13 @@ usage(void)
 {
 #define USAGE   "\
   [-k kind] specify kind of netCDF format for output file, default same as input\n\
-	    kind strings: 'classic', '64-bit offset',\n\
+	    kind strings: 'classic', '64-bit offset', 'cdf5',\n\
                           'netCDF-4', 'netCDF-4 classic model'\n\
   [-3]      netCDF classic output (same as -k 'classic')\n\
   [-6]      64-bit-offset output (same as -k '64-bit offset')\n\
   [-4]      netCDF-4 output (same as -k 'netCDF-4')\n\
   [-7]      netCDF-4-classic output (same as -k 'netCDF-4 classic model')\n\
+  [-5]      CDF5 output (same as -k 'cdf5)\n\
   [-d n]    set output deflation compression level, default same as input (0=none 9=max)\n\
   [-s]      add shuffle option to deflation compression\n\
   [-c chunkspec] specify chunking for dimensions, e.g. \"dim1/N1,dim2/N2,...\"\n\
@@ -1532,7 +1538,7 @@ usage(void)
   [-m n]    set size in bytes of copy buffer, default is 5000000 bytes\n\
   [-h n]    set size in bytes of chunk_cache for chunked variables\n\
   [-e n]    set number of elements that chunk_cache can hold\n\
-  [-r]      read whole input file into diskless file on open (classic or 64-bit offset format only)\n\
+  [-r]      read whole input file into diskless file on open (classic or 64-bit offset or cdf5 formats only)\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
@@ -1561,10 +1567,10 @@ main(int argc, char**argv)
 	{"1", NC_FORMAT_CLASSIC}, /* deprecated, use "-3" or "-k nc3" instead */
 	
 	/* NetCDF-3 64-bit offset format */
-	{"64-bit offset", NC_FORMAT_64BIT}, /* canonical format name */
-	{"nc6", NC_FORMAT_64BIT},	    /* short format name */
-	{"2", NC_FORMAT_64BIT},	/* deprecated, use "-6" or "-k nc6" instead */
-	{"64-bit-offset", NC_FORMAT_64BIT}, /* deprecated alias */
+	{"64-bit offset", NC_FORMAT_64BIT_OFFSET}, /* canonical format name */
+	{"nc6", NC_FORMAT_64BIT_OFFSET},	    /* short format name */
+	{"2", NC_FORMAT_64BIT_OFFSET},	/* deprecated, use "-6" or "-k nc6" instead */
+	{"64-bit-offset", NC_FORMAT_64BIT_OFFSET}, /* deprecated alias */
 	
 	/* NetCDF-4 HDF5-based format */
 	{"netCDF-4", NC_FORMAT_NETCDF4}, /* canonical format name */
@@ -1583,6 +1589,13 @@ main(int argc, char**argv)
 	{"netCDF4_classic", NC_FORMAT_NETCDF4_CLASSIC},
 	{"hdf5-nc3", NC_FORMAT_NETCDF4_CLASSIC},
 	{"enhanced-nc3", NC_FORMAT_NETCDF4_CLASSIC},
+
+	/* The 64-bit data (CDF5) kind (5) */
+	{"5", NC_FORMAT_CDF5},
+	{"64-bit-data", NC_FORMAT_CDF5},
+	{"64-bit data", NC_FORMAT_CDF5},
+	{"nc5", NC_FORMAT_CDF5},
+	{"cdf5", NC_FORMAT_CDF5},
 
 	/* null terminate*/
 	{NULL,0}
@@ -1604,11 +1617,13 @@ main(int argc, char**argv)
                        "64-bit offset" or "nc6"
 		       "netCDF-4" or "nc4"
 		       "netCDF-4 classic model" or "nc7"
+                       "64-bit-data" | "64-bit data" | "cdf5" | "nc5"
                      Format version numbers (deprecated):
                        1 (=> classic)
                        2 (=> 64-bit offset)
                        3 (=> netCDF-4)
                        4 (=> netCDF-4 classic model)
+                       5 (=> classic 64 bit data, CDF-5)
 		   */
 	    {
 		struct Kvalues* kvalue;
@@ -1628,8 +1643,11 @@ main(int argc, char**argv)
 	case '3':		/* output format is classic (netCDF-3) */
 	    option_kind = NC_FORMAT_CLASSIC;
 	    break;
+	case '5':		/* output format is cdf5 */
+	    option_kind = NC_FORMAT_CDF5;
+	    break;
 	case '6':		/* output format is 64-bit-offset (netCDF-3 version 2) */
-	    option_kind = NC_FORMAT_64BIT;
+	    option_kind = NC_FORMAT_64BIT_OFFSET;
 	    break;
 	case '4':		/* output format is netCDF-4 (variant of HDF5) */
 	    option_kind = NC_FORMAT_NETCDF4;

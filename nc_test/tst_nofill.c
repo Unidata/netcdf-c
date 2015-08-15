@@ -9,7 +9,7 @@
   when invoked with the blksize argument between 2091953 and 2150032,
   inclusive, and succeeds for other blksizes.
 
-  $Id$
+  $Id: tst_nofill.c 2792 2014-10-27 06:02:59Z wkliao $
 */
 
 #include <config.h>
@@ -107,9 +107,14 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
     * the same effect by providing the desired value as sizehint to
     * nc__create() instead of calling nc_create() and getting the
     * block size reported by fstat */
+#ifdef USE_PNETCDF
+   stat = nc_create_par(file_name, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+   /* PnetCDF does not support fill mode */
+#else
    stat = nc__create(file_name, NC_CLOBBER, default_initialsize, sizehintp, &ncid);
    check_err(stat,__LINE__,__FILE__);
    stat = nc_set_fill(ncid, fill_mode, &old_fill_mode);
+#endif
    check_err(stat,__LINE__,__FILE__);
 
    /* define dimensions */
@@ -357,6 +362,9 @@ main(int argc, char **argv)
 				 * value between 2091953 and 2150032
 				 * triggers bug, whereas all other
 				 * values work fine. */
+#ifdef USE_PNETCDF
+    MPI_Init(&argc, &argv);
+#endif
 
     if (argc > 1) {
 	char *endptr, *str = argv[1];
@@ -393,8 +401,13 @@ main(int argc, char **argv)
        printf("*** Compare values in nofill mode and fill mode files...");
        /* compare data in two files created with nofill mode and fill
 	* mode, which should be identical if all the data were written */
+#ifdef USE_PNETCDF
+       if (nc_open_par(FILE_NAME1, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid1)) ERR;
+       if (nc_open_par(FILE_NAME2, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid2)) ERR;
+#else
        if (nc_open(FILE_NAME1, NC_NOWRITE, &ncid1)) ERR;
        if (nc_open(FILE_NAME2, NC_NOWRITE, &ncid2)) ERR;
+#endif
        if (nc_inq_nvars(ncid1, &nvars1)) ERR;
        if (nc_inq_nvars(ncid2, &nvars2)) ERR;
        if (nvars1 != nvars2) ERR;
@@ -473,4 +486,7 @@ main(int argc, char **argv)
        SUMMARIZE_ERR;
    }
    FINAL_RESULTS;
+#ifdef USE_PNETCDF
+   MPI_Finalize();
+#endif
 }

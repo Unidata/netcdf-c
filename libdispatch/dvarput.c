@@ -122,7 +122,7 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
   /* Rebuilt put_vars code to simplify and avoid use of put_varm */
   
    int status = NC_NOERR;
-   int i,simplestride,isrecvar;
+   int i,isstride1,isrecvar;
    int rank;
    struct PUTodometer odom;
    nc_type vartype = NC_NAT;
@@ -131,13 +131,12 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    int memtypelen;
    const char* value = (const char*)value0;
    size_t numrecs;
-   int nrecdims;		   /* number of record dims for a variable */
+   int nrecdims;                /* number of record dims for a variable */
    int is_recdim[NC_MAX_VAR_DIMS]; /* for variable's dimensions */
    size_t varshape[NC_MAX_VAR_DIMS];
    size_t mystart[NC_MAX_VAR_DIMS];
    size_t myedges[NC_MAX_VAR_DIMS];
    ptrdiff_t mystride[NC_MAX_VAR_DIMS];
-
    const char* memptr = value;
 
    status = NC_check_id (ncid, &ncp);
@@ -173,7 +172,9 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    if(status != NC_NOERR) return status;
 
    /* Get variable dimension sizes */
-   /* isrecvar = NC_is_recvar(ncid,varid,&numrecs); */
+#if 0
+   isrecvar = NC_is_recvar(ncid,varid,&numrecs);
+#endif
    status = NC_inq_recvar(ncid,varid,&nrecdims,is_recdim);
    if(status != NC_NOERR) return status;
    isrecvar = (nrecdims > 0);
@@ -191,13 +192,18 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    }
 
    /* Do various checks and fixups on start/edges/stride */
-   simplestride = 1; /* assume so */
+   isstride1 = 1; /* assume so */
    for(i=0;i<rank;i++) {
 	size_t dimlen;
 	mystart[i] = (start == NULL ? 0 : start[i]);
 	if(edges == NULL) {
+#if 0
+	   if(i == 0 && isrecvar)
+  	      myedges[i] = numrecs - start[i];
+#else
 	   if(is_recdim[i] && isrecvar)
   	      myedges[i] = varshape[i] - start[i];
+#endif
 	   else
 	      myedges[i] = varshape[i] - mystart[i];
 	} else
@@ -209,10 +215,15 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 	   /* cast needed for braindead systems with signed size_t */
            || ((unsigned long) mystride[i] >= X_INT_MAX))
            return NC_ESTRIDE;
-  	if(mystride[i] != 1) simplestride = 0;	
+  	if(mystride[i] != 1) isstride1 = 0;	
         /* illegal value checks */
+#if 0
+	dimlen = (i == 0 && isrecvar ? numrecs : varshape[i]);
+	if(i == 0 && isrecvar) {/*do nothing*/}
+#else
 	dimlen = varshape[i];
 	if(is_recdim[i]) {/*do nothing*/}
+#endif
         else {
 	  /* mystart is unsigned, will never be < 0 */
 	  if(mystart[i] > dimlen)
@@ -222,7 +233,7 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 	    return NC_EEDGE;
        }
    }
-   if(simplestride) {
+   if(isstride1) {
       return NC_put_vara(ncid, varid, mystart, myedges, value, memtype);
    }
 
@@ -273,7 +284,6 @@ NCDEFAULT_put_varm(
    int maxidim = 0;
    NC* ncp;
    int memtypelen;
-   ptrdiff_t cvtmap[NC_MAX_VAR_DIMS];
    const char* value = (char*)value0;
 
    status = NC_check_id (ncid, &ncp);
@@ -295,21 +305,6 @@ NCDEFAULT_put_varm(
    if(status != NC_NOERR) return status;
 
    if(memtype == NC_NAT) {
-      if(imapp != NULL && varndims != 0) {
-	 /*
-	  * convert map units from bytes to units of sizeof(type)
-	  */
-	 size_t ii;
-	 const ptrdiff_t szof = (ptrdiff_t) nctypelen(vartype);
-	 for(ii = 0; ii < varndims; ii++) {
-	    if(imapp[ii] % szof != 0) {
-	       /*free(cvtmap);*/
-	       return NC_EINVAL;
-	    }
-	    cvtmap[ii] = imapp[ii] / szof;
-	 }
-	 imapp = cvtmap;
-      }
       memtype = vartype;
    }
 
