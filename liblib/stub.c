@@ -23,7 +23,7 @@ extern int NCCR_initialize(void);
 #endif
 
 #ifdef USE_PNETCDF
-extern int NC5_initialize(void);
+extern int NCP_initialize(void);
 #endif
 
 /**
@@ -51,7 +51,7 @@ NC_initialize(void)
 #endif
 
 #ifdef USE_PNETCDF
-    if((stat = NC5_initialize())) return stat;
+    if((stat = NCP_initialize())) return stat;
 #endif
 
 #ifdef USE_NETCDF4

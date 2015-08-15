@@ -43,8 +43,8 @@ libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libdispatch.la	\
 
 # + pnetcdf
 if USE_PNETCDF
-AM_CPPFLAGS += -I${top_srcdir}/libsrc5
-libnetcdf_la_LIBADD += ${top_builddir}/libsrc5/libnetcdf5.la
+AM_CPPFLAGS += -I${top_srcdir}/libsrcp
+libnetcdf_la_LIBADD += ${top_builddir}/libsrcp/libnetcdfp.la
 endif # USE_PNETCDF
 
 # + dap

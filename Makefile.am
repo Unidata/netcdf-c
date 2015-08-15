@@ -64,7 +64,7 @@ endif
 
 # Build pnetcdf
 if USE_PNETCDF
-LIBSRC5 = libsrc5
+LIBSRCP = libsrcp
 endif
 
 # Build UDUNITS?
@@ -86,7 +86,7 @@ endif
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
 SUBDIRS = include $(OCLIB) $(H5_TEST_DIR) libdispatch libsrc		\
-$(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) $(LIBSRC5) liblib  \
+$(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) $(LIBSRCP) liblib  \
 $(NCGEN3) $(NCGEN) $(NCDUMP) \
 $(TESTDIRS) \
 docs $(EXAMPLES) \

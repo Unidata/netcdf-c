@@ -1902,7 +1902,7 @@ ncx_get_double_ulonglong(const void *xp, unsigned long long *ip)
 {
 	double xx;
 	get_ix_double(xp, &xx);
-	*ip = (unsigned longlong) xx;
+	*ip = (unsigned long long) xx;
 	if(xx > ULONG_LONG_MAX || xx < 0)
 		return NC_ERANGE;
 	return ENOERR;

@@ -61,8 +61,7 @@
 #define NC_DISPATCH_NC3    1
 #define NC_DISPATCH_NC4    2
 #define NC_DISPATCH_NCD    4
-#define NC_DISPATCH_NCR    8
-#define NC_DISPATCH_NC5    16
+#define NC_DISPATCH_NCP    8
 
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
@@ -123,8 +122,8 @@ extern int NCD2_initialize(void);
 #endif
 
 #ifdef USE_PNETCDF
-extern NC_Dispatch* NC5_dispatch_table;
-extern int NC5_initialize(void);
+extern NC_Dispatch* NCP_dispatch_table;
+extern int NCP_initialize(void);
 #endif
 
 #ifdef USE_NETCDF4

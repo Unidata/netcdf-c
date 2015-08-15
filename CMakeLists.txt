@@ -1334,7 +1334,7 @@ add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
 
 IF(USE_PNETCDF)
-  add_subdirectory(libsrc5)
+  add_subdirectory(libsrcp)
 ENDIF(USE_PNETCDF)
 
 IF(USE_HDF5)

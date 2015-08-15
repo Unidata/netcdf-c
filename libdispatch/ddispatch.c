@@ -21,10 +21,6 @@ static struct NCPROTOCOLLIST {
     {"file",NULL,NC_DISPATCH_NCD},
     {"dods","http",NC_DISPATCH_NCD},
     {"dodss","https",NC_DISPATCH_NCD},
-    {"cdmr","http",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
-    {"cdmrs","https",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
-    {"cdmremote","http",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
-    {"cdmremotes","https",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
     {NULL,NULL,0} /* Terminate search */
 };
 
@@ -151,9 +147,6 @@ NC_urlmodel(const char* path)
     } else if(ncurilookup(tmpurl,"netcdf3",NULL)
               || ncurilookup(tmpurl,"netcdf-3",NULL)) {
 	model = (NC_DISPATCH_NC3|NC_DISPATCH_NCD);
-    } else if(ncurilookup(tmpurl,"cdmremote",NULL)
-	      || ncurilookup(tmpurl,"cdmr",NULL)) {
-	model = (NC_DISPATCH_NCR|NC_DISPATCH_NC4);
     }
 
     if(model == 0) {

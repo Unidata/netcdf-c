@@ -106,7 +106,7 @@ NC_interpret_magic_number(char* magic, int* model, int* version, int use_paralle
 #endif
 	 else
 	    {status = NC_ENOTNC; goto done;}
-	 *model = (use_parallel || *version == 5)?NC_DISPATCH_NC5:NC_DISPATCH_NC3;
+	 *model = (use_parallel || *version == 5)?NC_DISPATCH_NCP:NC_DISPATCH_NC3;
      } else
         {status = NC_ENOTNC; goto done;}
 done:
@@ -1627,7 +1627,7 @@ NC_create(const char *path, int cmode, size_t initialsz,
 #endif
 #ifdef USE_PNETCDF
       if(cmode & NC_PNETCDF)
-	model = NC_DISPATCH_NC5;
+	model = NC_DISPATCH_NCP;
       else
 #endif
       if(cmode & NC_CLASSIC_MODEL)
@@ -1686,8 +1686,8 @@ NC_create(const char *path, int cmode, size_t initialsz,
       else
 #endif
 #ifdef USE_PNETCDF
-      if(model == (NC_DISPATCH_NC5))
-	dispatcher = NC5_dispatch_table;
+      if(model == (NC_DISPATCH_NCP))
+	dispatcher = NCP_dispatch_table;
       else
 #endif
       if(model == (NC_DISPATCH_NC3))
@@ -1797,7 +1797,7 @@ NC_open(const char *path, int cmode,
    else if(model & NC_DISPATCH_NC3) {
       cmode &= ~NC_NETCDF4; /* must be netcdf-3 */
       if(version == 2) cmode |= NC_64BIT_OFFSET;
-   } else if(model & NC_DISPATCH_NC5) {
+   } else if(model & NC_DISPATCH_NCP) {
 #if 0
 It appears that pnetcdf can read NC_64_BIT_OFFSET
       cmode &= ~(NC_NETCDF4 | NC_64BIT_OFFSET); /* must be pnetcdf */
@@ -1826,8 +1826,8 @@ It appears that pnetcdf can read NC_64_BIT_OFFSET
    else
 #endif
 #if  defined(USE_PNETCDF)
-   if(model == (NC_DISPATCH_NC5))
-	dispatcher = NC5_dispatch_table;
+   if(model == (NC_DISPATCH_NCP))
+	dispatcher = NCP_dispatch_table;
    else
 #endif
 #if defined(USE_NETCDF4)
