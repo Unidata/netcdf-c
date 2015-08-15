@@ -648,7 +648,7 @@ get_ix_ushort(const void *xp, ix_ushort *ip)
 		*ip |= (~(0xffff)); /* N.B. Assumes "twos complement" */
 	}
 #endif
-	*ip |= *cp; 
+	*ip |= *cp;
 }
 
 static void
@@ -829,7 +829,7 @@ get_ix_uint(const void *xp, ix_uint *ip)
 	*ip = *cp++ << 24;
 	*ip |= (*cp++ << 16);
 	*ip |= (*cp++ << 8);
-	*ip |= *cp; 
+	*ip |= *cp;
 }
 
 static void
@@ -893,7 +893,7 @@ static NCX_PUT1I(uint, ushort,    1)
 static NCX_PUT1I(uint, ulonglong, 1)
 static NCX_PUT1F(uint, float)
 static NCX_PUT1F(uint, double)
- 
+
 /* x_float -------------------------------------------------------------------*/
 
 #if X_SIZEOF_FLOAT == SIZEOF_FLOAT && !defined(NO_IEEE_FLOAT)
@@ -1636,6 +1636,7 @@ static NCX_GET1F(double, longlong)
 static NCX_GET1F(double, uchar)
 static NCX_GET1F(double, ushort)
 static NCX_GET1F(double, uint)
+static NCX_GET1F(double, ulonglong)
 
 int
 ncx_get_double_ulonglong(const void *xp, unsigned long long *ip)
@@ -1782,7 +1783,7 @@ static NCX_PUT1I(longlong, uint,      0)
 static NCX_PUT1I(longlong, ulonglong, 0)
 static NCX_PUT1F(longlong, float)
 static NCX_PUT1F(longlong, double)
- 
+
 
 /* x_ulonglong --------------------------------------------------------------------*/
 
@@ -1854,7 +1855,7 @@ static NCX_PUT1I(ulonglong, uint,      1)
 static NCX_PUT1I(ulonglong, ulonglong, 1)
 static NCX_PUT1F(ulonglong, float)
 static NCX_PUT1F(ulonglong, double)
- 
+
 
 /* x_size_t */
 
@@ -2297,7 +2298,7 @@ ncx_pad_getn_$1_$2(const void **xpp, size_t nelems, $2 *tp)
 
 	if(rndup != 0)
 		xp += Xsizeof($1);
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2532,7 +2533,7 @@ ncx_pad_putn_$1_$2(void **xpp, size_t nelems, const $2 *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, Xsizeof($1));
-		xp += Xsizeof($1);	
+		xp += Xsizeof($1);
 	}
 
 	*xpp = (void *)xp;

@@ -134,16 +134,20 @@ if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
 fi
 
+<<<<<<< HEAD
 if test "x$CYGWIN" = x1 ; then
 FLAGS="$FLAGS --enable-workaround"
 fi
 
+=======
+>>>>>>> merge-squash
 if test "x${DB}" = x1 ; then
 FLAGS="$FLAGS --disable-shared"
 else
 FLAGS="$FLAGS --enable-shared"
 fi
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 TMP=
 rm -f ./test_mpi.tmp
@@ -165,6 +169,8 @@ fi
 
 =======
 >>>>>>> merge-squash
+=======
+>>>>>>> merge-squash
 if test "x$HDF5" = "x" ; then
 FLAGS="$FLAGS --disable-netcdf-4"
 fi
@@ -176,7 +182,11 @@ FLAGS="$FLAGS --disable-dap"
 fi
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 if test "x$PAR" = x1 -o "x$PNETCDF" = x1 ; then
+=======
+if test "x$PNETCDF" = x1 -o "x$PAR4" = x1 ; then
+>>>>>>> merge-squash
 =======
 if test "x$PNETCDF" = x1 -o "x$PAR4" = x1 ; then
 >>>>>>> merge-squash
@@ -217,8 +227,18 @@ if test -z "$NB" ; then
 if autoreconf -i --force ; then ok=1; else exit ; fi
 fi
 
+<<<<<<< HEAD
 if test "x$FAST" = x ; then
   if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
+=======
+<<<<<<< HEAD
+if test "x$FAST" = x ; then
+  if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
+=======
+if test "x$FAST" != x1 ; then
+if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
+>>>>>>> 0a87a62ebd7fb28a25667e791938728b912967dc
+>>>>>>> merge-squash
 fi
 sh $X ./configure ${FLAGS}
 for c in $cmds; do

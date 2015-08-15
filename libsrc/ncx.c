@@ -722,7 +722,7 @@ get_ix_ushort(const void *xp, ix_ushort *ip)
 		*ip |= (~(0xffff)); /* N.B. Assumes "twos complement" */
 	}
 #endif
-	*ip |= *cp; 
+	*ip |= *cp;
 }
 
 static void
@@ -1360,7 +1360,7 @@ get_ix_uint(const void *xp, ix_uint *ip)
 	*ip = *cp++ << 24;
 	*ip |= (*cp++ << 16);
 	*ip |= (*cp++ << 8);
-	*ip |= *cp; 
+	*ip |= *cp;
 }
 
 static void
@@ -1655,7 +1655,7 @@ ncx_put_uint_double(void *xp, const double *ip)
 	return ENOERR;
 }
 
- 
+
 /* x_float -------------------------------------------------------------------*/
 
 #if X_SIZEOF_FLOAT == SIZEOF_FLOAT && !defined(NO_IEEE_FLOAT)
@@ -2634,6 +2634,16 @@ ncx_get_double_uint(const void *xp, uint *ip)
 	return ENOERR;
 }
 
+static int
+ncx_get_double_ulonglong(const void *xp, ulonglong *ip)
+{
+	ix_double xx;
+	get_ix_double(xp, &xx);
+	*ip = (ulonglong) xx;
+	if(xx > ULONGLONG_MAX || xx < 0) return NC_ERANGE;
+	return ENOERR;
+}
+
 
 int
 ncx_get_double_ulonglong(const void *xp, unsigned long long *ip)
@@ -3092,7 +3102,7 @@ ncx_put_longlong_double(void *xp, const double *ip)
 	return ENOERR;
 }
 
- 
+
 
 /* x_ulonglong --------------------------------------------------------------------*/
 
@@ -3422,7 +3432,7 @@ ncx_put_ulonglong_double(void *xp, const double *ip)
 	return ENOERR;
 }
 
- 
+
 
 /* x_size_t */
 
@@ -5867,7 +5877,7 @@ ncx_pad_getn_short_schar(const void **xpp, size_t nelems, schar *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -5889,7 +5899,7 @@ ncx_pad_getn_short_uchar(const void **xpp, size_t nelems, uchar *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -5911,7 +5921,7 @@ ncx_pad_getn_short_short(const void **xpp, size_t nelems, short *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -5933,7 +5943,7 @@ ncx_pad_getn_short_int(const void **xpp, size_t nelems, int *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -5955,7 +5965,7 @@ ncx_pad_getn_short_float(const void **xpp, size_t nelems, float *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -5977,7 +5987,7 @@ ncx_pad_getn_short_double(const void **xpp, size_t nelems, double *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -5999,7 +6009,7 @@ ncx_pad_getn_short_uint(const void **xpp, size_t nelems, uint *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -6021,7 +6031,7 @@ ncx_pad_getn_short_longlong(const void **xpp, size_t nelems, longlong *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -6043,7 +6053,7 @@ ncx_pad_getn_short_ulonglong(const void **xpp, size_t nelems, ulonglong *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -6065,7 +6075,7 @@ ncx_pad_getn_short_ushort(const void **xpp, size_t nelems, ushort *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -6805,7 +6815,7 @@ ncx_pad_putn_short_schar(void **xpp, size_t nelems, const schar *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -6830,7 +6840,7 @@ ncx_pad_putn_short_uchar(void **xpp, size_t nelems, const uchar *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -6855,7 +6865,7 @@ ncx_pad_putn_short_short(void **xpp, size_t nelems, const short *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -6880,7 +6890,7 @@ ncx_pad_putn_short_int(void **xpp, size_t nelems, const int *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -6905,7 +6915,7 @@ ncx_pad_putn_short_float(void **xpp, size_t nelems, const float *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -6930,7 +6940,7 @@ ncx_pad_putn_short_double(void **xpp, size_t nelems, const double *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -6955,7 +6965,7 @@ ncx_pad_putn_short_uint(void **xpp, size_t nelems, const uint *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -6980,7 +6990,7 @@ ncx_pad_putn_short_longlong(void **xpp, size_t nelems, const longlong *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -7005,7 +7015,7 @@ ncx_pad_putn_short_ulonglong(void **xpp, size_t nelems, const ulonglong *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -7030,7 +7040,7 @@ ncx_pad_putn_short_ushort(void **xpp, size_t nelems, const ushort *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -7724,7 +7734,7 @@ ncx_pad_getn_ushort_schar(const void **xpp, size_t nelems, schar *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_USHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -7746,7 +7756,7 @@ ncx_pad_getn_ushort_uchar(const void **xpp, size_t nelems, uchar *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_USHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -7768,7 +7778,7 @@ ncx_pad_getn_ushort_short(const void **xpp, size_t nelems, short *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_USHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -7790,7 +7800,7 @@ ncx_pad_getn_ushort_ushort(const void **xpp, size_t nelems, ushort *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_USHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -7812,7 +7822,7 @@ ncx_pad_getn_ushort_int(const void **xpp, size_t nelems, int *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_USHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -7834,7 +7844,7 @@ ncx_pad_getn_ushort_uint(const void **xpp, size_t nelems, uint *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_USHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -7856,7 +7866,7 @@ ncx_pad_getn_ushort_float(const void **xpp, size_t nelems, float *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_USHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -7878,7 +7888,7 @@ ncx_pad_getn_ushort_double(const void **xpp, size_t nelems, double *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_USHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -7900,7 +7910,7 @@ ncx_pad_getn_ushort_longlong(const void **xpp, size_t nelems, longlong *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_USHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -7922,7 +7932,7 @@ ncx_pad_getn_ushort_ulonglong(const void **xpp, size_t nelems, ulonglong *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_USHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -8662,7 +8672,7 @@ ncx_pad_putn_ushort_schar(void **xpp, size_t nelems, const schar *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_USHORT);
-		xp += X_SIZEOF_USHORT;	
+		xp += X_SIZEOF_USHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -8687,7 +8697,7 @@ ncx_pad_putn_ushort_uchar(void **xpp, size_t nelems, const uchar *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_USHORT);
-		xp += X_SIZEOF_USHORT;	
+		xp += X_SIZEOF_USHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -8712,7 +8722,7 @@ ncx_pad_putn_ushort_short(void **xpp, size_t nelems, const short *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_USHORT);
-		xp += X_SIZEOF_USHORT;	
+		xp += X_SIZEOF_USHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -8737,7 +8747,7 @@ ncx_pad_putn_ushort_int(void **xpp, size_t nelems, const int *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_USHORT);
-		xp += X_SIZEOF_USHORT;	
+		xp += X_SIZEOF_USHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -8762,7 +8772,7 @@ ncx_pad_putn_ushort_float(void **xpp, size_t nelems, const float *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_USHORT);
-		xp += X_SIZEOF_USHORT;	
+		xp += X_SIZEOF_USHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -8787,7 +8797,7 @@ ncx_pad_putn_ushort_double(void **xpp, size_t nelems, const double *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_USHORT);
-		xp += X_SIZEOF_USHORT;	
+		xp += X_SIZEOF_USHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -8812,7 +8822,7 @@ ncx_pad_putn_ushort_uint(void **xpp, size_t nelems, const uint *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_USHORT);
-		xp += X_SIZEOF_USHORT;	
+		xp += X_SIZEOF_USHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -8837,7 +8847,7 @@ ncx_pad_putn_ushort_longlong(void **xpp, size_t nelems, const longlong *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_USHORT);
-		xp += X_SIZEOF_USHORT;	
+		xp += X_SIZEOF_USHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -8862,7 +8872,7 @@ ncx_pad_putn_ushort_ulonglong(void **xpp, size_t nelems, const ulonglong *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_USHORT);
-		xp += X_SIZEOF_USHORT;	
+		xp += X_SIZEOF_USHORT;
 	}
 
 	*xpp = (void *)xp;
@@ -8887,7 +8897,7 @@ ncx_pad_putn_ushort_ushort(void **xpp, size_t nelems, const ushort *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_USHORT);
-		xp += X_SIZEOF_USHORT;	
+		xp += X_SIZEOF_USHORT;
 	}
 
 	*xpp = (void *)xp;
