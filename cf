@@ -10,8 +10,8 @@ fi
 
 HDF5=1
 DAP=1
-#PNETCDF=1
-#PAR4=1
+PNETCDF=1
+PAR4=1
 #HDF4=1
 
 #PGI=1
@@ -212,13 +212,8 @@ if test -z "$NB" ; then
 if autoreconf -i --force ; then ok=1; else exit ; fi
 fi
 
-<<<<<<< HEAD
 if test "x$FAST" = x ; then
   if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
-=======
-if test "x$FAST" != x1 ; then
-if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
->>>>>>> 0a87a62ebd7fb28a25667e791938728b912967dc
 fi
 sh $X ./configure ${FLAGS}
 for c in $cmds; do
