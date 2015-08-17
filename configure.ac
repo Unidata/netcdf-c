@@ -95,12 +95,25 @@ test "x$enable_doxygen_tasks" = xyes || enable_doxygen_tasks=no
 AM_CONDITIONAL([SHOW_DOXYGEN_TAG_LIST], [test "x$enable_doxygen_tasks" = xyes])
 AC_SUBST([SHOW_DOXYGEN_TAG_LIST], [$enable_doxygen_tasks])
 
-AC_ARG_ENABLE([doxygen-server-side-search],
-    [AS_HELP_STRING([--enable-doxygen-server-side-search],
-        [Enable doxygen server-side search. This is of interest to developers only, or users who will serve the documentation via a web server instead of browsing locally.])])
-test "x$enable_doxygen_server_side_search" = xyes || enable_doxygen_server_side_search=no
-AM_CONDITIONAL([SERVER_SIDE_SEARCH], [test "x$enable_doxygen_server_side_search" = xyes])
-AC_SUBST([SERVER_SIDE_SEARCH], [$enable_doxygen_server_side_search])
+###
+# Determine if we should build documentation
+# configured for releases on the Unidata web server.
+###
+AC_ARG_ENABLE([doxygen-build-release-docs],
+    [AS_HELP_STRING([--enable-doxygen-build-release-docs],
+        [Build release documentation.  This is of interest only to developers.])])
+test "x$enable_doxygen_build_release_docs" = xyes || enable_doxygen_build_release_docs=no
+AM_CONDITIONAL([DOXYGEN_BUILD_RELEASE_DOCS], [test "x$enable_doxygen_build_release_docs" = xyes])
+
+if test $enable_doxygen_build_release_docs = yes; then
+   AC_SUBST([DOXYGEN_CSS_FILE], ["release.css"])
+   AC_SUBST([DOXYGEN_HEADER_FILE], ["release_header.html"])
+   AC_SUBST([DOXYGEN_SEARCHENGINE], ["NO"])
+else
+   AC_SUBST([DOXYGEN_CSS_FILE], [])
+   AC_SUBST([DOXYGEN_HEADER_FILE], [])
+   AC_SUBST([DOXYGEN_SEARCHENGINE], ["YES"])
+fi
 
 AC_ARG_ENABLE([doxygen-pdf-output],
     [AS_HELP_STRING([--enable-doxygen-pdf-output],
@@ -999,7 +1012,6 @@ AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
-AM_CONDITIONAL(SERVER_SIDE_SEARCH, [test x$enable_doxygen_server_side_search = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
