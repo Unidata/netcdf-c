@@ -122,6 +122,19 @@ endif # BUILD_DLL
 settingsdir=$(libdir)
 settings_DATA=libnetcdf.settings
 
+####
+# Provide an entry to rebuild all the m4 generated files
+
+# List of files to create: WARNING leave off the extension
+MM4= ./nc_test/test_put ./nc_test/test_get \
+     ./libsrc/netcdf ./libsrc/putget ./libsrc/ncx \
+     ./libsrc/t_ncxx ./libsrc/attr
+
+mm4::
+	for m in ${MM4} ; do m4 -s $${m}.m4 > $${m}.c ; done
+####
+
+
 #####
 # If ENABLE_FORTRAN was turned on,
 # we have new make targets, build-netcdf-fortran and
