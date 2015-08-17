@@ -10,7 +10,7 @@ IF(USE_HDF5 OR USE_NETCDF4)
 ENDIF()
 
 IF(USE_PNETCDF)
-  SET(liblib_LIBS ${liblib_LIBS} netcdf5)
+  SET(liblib_LIBS ${liblib_LIBS} netcdfp)
 ENDIF()
 
 IF(USE_DAP)
