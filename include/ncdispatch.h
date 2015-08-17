@@ -62,7 +62,6 @@
 #if 0
 /* Define the known classes of dispatchers */
 /* Flags may be or'd => powers of 2*/
-#if 0
 #define NC_DISPATCH_NC3    1
 #define NC_DISPATCH_NC4    2
 #define NC_DISPATCH_NCD    4
@@ -140,10 +139,7 @@ extern int NCP_finalize(void);
 extern NC_Dispatch* NC4_dispatch_table;
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
-<<<<<<< HEAD
 #endif
-=======
->>>>>>> merge-squash
 
 #ifdef USE_DAP
 extern NC_Dispatch* NCD4_dispatch_table;
@@ -151,11 +147,7 @@ extern int NCD4_initialize(void);
 extern int NCD4_finalize(void);
 #endif
 
-<<<<<<< HEAD
-=======
 #endif /*USE_NETCDF4*/
-
->>>>>>> merge-squash
 /* Vectors of ones and zeros */
 extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
 extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];

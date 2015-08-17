@@ -1636,7 +1636,6 @@ static NCX_GET1F(double, longlong)
 static NCX_GET1F(double, uchar)
 static NCX_GET1F(double, ushort)
 static NCX_GET1F(double, uint)
-static NCX_GET1F(double, ulonglong)
 
 int
 ncx_get_double_ulonglong(const void *xp, unsigned long long *ip)

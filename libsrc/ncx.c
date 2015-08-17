@@ -2634,16 +2634,6 @@ ncx_get_double_uint(const void *xp, uint *ip)
 	return ENOERR;
 }
 
-static int
-ncx_get_double_ulonglong(const void *xp, ulonglong *ip)
-{
-	ix_double xx;
-	get_ix_double(xp, &xx);
-	*ip = (ulonglong) xx;
-	if(xx > ULONGLONG_MAX || xx < 0) return NC_ERANGE;
-	return ENOERR;
-}
-
 
 int
 ncx_get_double_ulonglong(const void *xp, unsigned long long *ip)
