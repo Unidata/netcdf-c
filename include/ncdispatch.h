@@ -59,13 +59,14 @@
 #define T_ulong   ulongtype
 
 /**************************************************/
+#if 0
 /* Define the known classes of dispatchers */
 /* Flags may be or'd => powers of 2*/
-#if 0
 #define NC_DISPATCH_NC3    1
 #define NC_DISPATCH_NC4    2
 #define NC_DISPATCH_NCD    4
 #define NC_DISPATCH_NCP    8
+#endif
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */
@@ -135,18 +136,16 @@ extern int NCP_finalize(void);
 #endif
 
 #ifdef USE_NETCDF4
-
 extern NC_Dispatch* NC4_dispatch_table;
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
+#endif
 
 #ifdef USE_DAP
 extern NC_Dispatch* NCD4_dispatch_table;
 extern int NCD4_initialize(void);
 extern int NCD4_finalize(void);
 #endif
-
-#endif /*USE_NETCDF4*/
 
 /* Vectors of ones and zeros */
 extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
