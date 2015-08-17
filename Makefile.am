@@ -131,7 +131,9 @@ MM4= ./nc_test/test_put ./nc_test/test_get \
      ./libsrc/t_ncxx ./libsrc/attr
 
 mm4::
-	for m in ${MM4} ; do m4 -s $${m}.m4 > $${m}.c ; done
+	for m in ${MM4} ; do \
+	  b=`basename $$m` ; d=`dirname $$m`;\
+	  pushd $$d; m4 -s $${b}.m4 > $${b}.c ; popd; done
 ####
 
 
