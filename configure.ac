@@ -447,6 +447,18 @@ if test "x$enable_ffio" = xyes; then
 fi
 AM_CONDITIONAL(USE_FFIO, [test x$enable_ffio = xyes])
 
+# Does the user want to use the stdio module?
+AC_MSG_CHECKING([whether STDIO will be used])
+AC_ARG_ENABLE([stdio],
+              [AS_HELP_STRING([--enable-stdio],
+                              [use stdio instead of posixio (ex. on the Cray)])])
+test "x$enable_stdio" = xyes || enable_stdio=no
+AC_MSG_RESULT($enable_stdio)
+if test "x$enable_stdio" = xyes; then
+   AC_DEFINE([USE_STDIO], [1], [if true, use stdio instead of posixio])
+fi
+AM_CONDITIONAL(USE_STDIO, [test x$enable_stdio = xyes])
+
 # Does the user want to enable the user-provided NEC-SX vectorization
 # patch.
 dnl AC_MSG_CHECKING([whether netCDF NEC-SX vectorization patch is enabled])

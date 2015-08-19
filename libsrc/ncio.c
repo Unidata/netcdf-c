@@ -19,6 +19,9 @@
 extern int posixio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,void** const);
 extern int posixio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 
+extern int stdio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,void** const);
+extern int stdio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
+
 #ifdef USE_FFIO
 extern int ffio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,void** const);
 extern int ffio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
@@ -50,7 +53,9 @@ ncio_create(const char *path, int ioflags, size_t initialsz,
     }
 #endif
 
-#ifdef USE_FFIO
+#ifdef USE_STDIO
+    return stdio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
+#elif defined(USE_FFIO)
     return ffio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
 #else
     return posixio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
@@ -76,7 +81,9 @@ ncio_open(const char *path, int ioflags,
         return memio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
     }
 #endif
-#ifdef USE_FFIO
+#ifdef USE_STDIO
+    return stdio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
+#elif defined(USE_FFIO)
     return ffio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
 #else
     return posixio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);

@@ -178,6 +178,8 @@ FLAGS="$FLAGS --enable-pnetcdf"
 FLAGS="$FLAGS --enable-parallel-tests"
 fi
 
+#FLAGS="${FLAGS} --enable-stdio"
+
 export PATH
 export CC
 export CPPFLAGS
