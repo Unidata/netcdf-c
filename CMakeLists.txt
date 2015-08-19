@@ -873,12 +873,21 @@ IF(ENABLE_DOXYGEN)
     SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
   ENDIF()
 
-  OPTION(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH "Enable doxygen server-side search. This is of interest to developers only." OFF)
-  IF(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH)
-    SET(SERVER_SIDE_SEARCH YES CACHE STRING "")
+  ###
+  #
+  # If we are building release documentation, we need to set some
+  # variables that will be used in the Doxygen.in template.
+  ###
+  OPTION(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS "Build release documentation.  This is of interest only to the netCDF developers." OFF)
+  IF(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
+    SET(DOXYGEN_CSS_FILE "${CMAKE_SOURCE_DIR}/docs/release.css" CACHE STRING "")
+    SET(DOXYGEN_HEADER_FILE "${CMAKE_SOURCE_DIR}/docs/release_header.html" CACHE STRING "")
+    SET(DOXYGEN_SEARCHENGINE "NO" CACHE STRING "")
   ELSE()
-    SET(SERVER_SIDE_SEARCH NO CACHE STRING "")
-  ENDIF()
+    SET(DOXYGEN_CSS_FILE "" CACHE STRING "")
+    SET(DOXYGEN_HEADER_FILE "" CACHE STRING "")
+    SET(DOXYGEN_SEARCHENGINE "YES" CACHE STRING "")
+  ENDIF(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
   # Option to turn on the TODO list in the doxygen-generated documentation.
   OPTION(DOXYGEN_ENABLE_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
   IF(DOXYGEN_ENABLE_TASKS)
@@ -920,7 +929,7 @@ ENDIF()
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF ENABLE_COVERAGE_TESTS)
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
-MARK_AS_ADVANCED(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH DOXYGEN_ENABLE_TASKS)
+MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS)
 ################################
 # Option checks
 ################################

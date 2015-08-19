@@ -68,16 +68,16 @@ endif #!USE_NETCDF4
 BUILT_SOURCES = ctest.c ctest64.c
 if EXTRA_TESTS
 ctest.c:
-	$(top_builddir)/ncgen/ncgen -lc -o ctest0.nc $(top_srcdir)/ncgen/c0.cdl >$(srcdir)/ctest.c
+	$(top_builddir)/ncgen/ncgen -lc -o ctest0.nc $(top_srcdir)/ncgen/c0.cdl > $(top_builddir)/ncdump/ctest.c
 
 ctest64.c:
-	$(top_builddir)/ncgen/ncgen -v2 -lc -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest64.c
+	$(top_builddir)/ncgen/ncgen -v2 -lc -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(top_builddir)/ncdump/ctest64.c
 else
 ctest.c:
-	cp $(top_srcdir)/ncdump/ref_ctest.c $(top_srcdir)/ncdump/ctest.c
+	cp $(top_srcdir)/ncdump/ref_ctest.c $(top_builddir)/ncdump/ctest.c
 
 ctest64.c:
-	cp $(top_srcdir)/ncdump/ref_ctest64.c $(top_srcdir)/ncdump/ctest64.c
+	cp $(top_srcdir)/ncdump/ref_ctest64.c $(top_builddir)/ncdump/ctest64.c
 endif
 
 #if !BUILD_DLL
@@ -137,8 +137,7 @@ CMakeLists.txt XGetopt.c tst_bom.sh tst_inmemory.sh
 # CDL files and Expected results
 SUBDIRS=cdl expected
 EXTRA_DIST += tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh	\
-tst_ncgen4_diff.sh tst_ncgen4_cycle.sh ref_ctest.c ref_ctest64.c \
-ctest.c ctest64.c
+tst_ncgen4_diff.sh tst_ncgen4_cycle.sh ref_ctest.c ref_ctest64.c
 
 CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl tst_bug324.nc
 DISTCLEANFILES = results
