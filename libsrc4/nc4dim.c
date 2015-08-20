@@ -191,7 +191,7 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
 }
 
 /* Find out name and len of a dim. For an unlimited dimension, the
-   length is the largest lenght so far written. If the name of lenp
+   length is the largest length so far written. If the name of lenp
    pointers are NULL, they will be ignored. */
 int
 NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)

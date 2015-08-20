@@ -196,7 +196,7 @@ dceslicecompose(DCEslice* s1, DCEslice* s2, DCEslice* result)
 {
     int err = NC_NOERR;
     size_t lastx = 0;
-    DCEslice sr; /* For back compatability so s1 and result can be same object */
+    DCEslice sr; /* For back compatibility so s1 and result can be same object */
 #ifdef DEBUG1
 slicedump("compose: s1",s1);
 slicedump("compose: s2",s2);
@@ -997,7 +997,7 @@ dcesegmentsize(DCEsegment* seg, size_t start, size_t stop)
 }
 
 /* Return the index of the leftmost slice
-   starting at start and upto, but not including
+   starting at start and up to, but not including
    stop, such that it and all slices to the right
    are "safe". Safe means dceiswholeslice() is true.
    In effect, we can read the safe index set as a

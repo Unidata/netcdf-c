@@ -225,7 +225,7 @@ ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
 ADD_DEFINITIONS()
 
-# Supress CRT Warnings.
+# Suppress CRT Warnings.
 # Only necessary for Windows
 IF(MSVC)
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
@@ -458,7 +458,7 @@ OPTION(USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
 IF(USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
   SET(USE_NETCDF4 ON)
-  # Accomodate developers who have hdf5 libraries and
+  # Accommodate developers who have hdf5 libraries and
   # headers on their system, but do not have a the hdf
   # .cmake files.  If this is the case, they should
   # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
@@ -652,7 +652,7 @@ ENDIF()
 
 # Check to see if libtool supports
 
-# Check for the math library so it can be explicitely linked.
+# Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
   FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
   MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")

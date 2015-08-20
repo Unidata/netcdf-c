@@ -51,7 +51,7 @@ netcdf-f90, The NetCDF Users' Guide for FORTRAN 90}).
 
 @menu
 * C Code::                      
-* Derivitive Works::            
+* Derivative Works::            
 * Concept Index::               
 
 @detailmenu
@@ -71,7 +71,7 @@ C Code
 @end detailmenu
 @end menu
 
-@node C Code, Derivitive Works, Top, Top
+@node C Code, Derivative Works, Top, Top
 @chapter C Code
 
 The netCDF library is implemented in C in a bunch of directories under
@@ -533,11 +533,11 @@ package involving cfortran.h, which defines a C function of the exact
 signature which will be produced by a fortran program calling a C
 function. So _nf_open will map to nc_open.
 
-@node Derivitive Works, Concept Index, C Code, Top
-@chapter Derivitive Works
+@node Derivative Works, Concept Index, C Code, Top
+@chapter Derivative Works
 
-At Unidata, the creative energies are simply enourmous. NetCDF has
-spawned a host of derivitive works, some samples of which are listed
+At Unidata, the creative energies are simply enormous. NetCDF has
+spawned a host of derivative works, some samples of which are listed
 below.
 
 @section From ``A Tale of Two Data Formats,'' the bestselling novel
@@ -654,7 +654,7 @@ it doesn't mean that I can't love you, you know?
 
 [Audience]: (sighing) Ahhhhhh...
 
-[Jerry]: Now we have a suprise guest, flow all the way here from
+[Jerry]: Now we have a surprise guest, flow all the way here from
 Champagne-Urbana, Illinois, to appear as a guest on this show. Her
 name is HDF5, and she's a professional data format.
 
@@ -671,7 +671,7 @@ someone gets hurt...
 @end example
 
 
-@node Concept Index,  , Derivitive Works, Top
+@node Concept Index,  , Derivative Works, Top
 @chapter Concept Index
 
 @printindex cp

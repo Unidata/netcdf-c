@@ -593,7 +593,7 @@ test_ncattget(path)
     }
     /* try getting non-existent attribute, should fail */
     if (ncattget(cdfid, uu_id, "nonesuch", vmax.val) != -1) {
-	error("%s: ncattget should fail with nonexistant attribute", pname);
+	error("%s: ncattget should fail with nonexistent attribute", pname);
 	ncclose(cdfid); return ++nerrs;
     }
     if (ncclose (cdfid) == -1) {

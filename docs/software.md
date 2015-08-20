@@ -173,7 +173,7 @@ categories.
 -   Missing values (setctomiss, setmisstoc, setrtomiss)
 -   Arithmetic (add, sub, mul, div, ...)
 -   Mathematical functions (sqrt, exp, log, sin, cos, ...)
--   Comparision (eq, ne, le, lt, ge, gt, ...)
+-   Comparison (eq, ne, le, lt, ge, gt, ...)
 -   Conditions (ifthen, ifnotthen, ifthenc, ifnotthenc)
 -   Field statistics (fldsum, fldavg, fldstd, fldmin, fldmax, ...)
 -   Vertical statistics (vertsum, vertavg, vertstd, vertmin, ...)
@@ -1857,7 +1857,7 @@ from a given file, URL, stream, or NetcdfFile object. SIS netCDF storage
 is intended to be a bridge between NetCDF Climate and Forecast (CF)
 conventions and ISO 19115 metadata.
 
-SIS is under developement as an Apache project. Release 0.3 is currently
+SIS is under development as an Apache project. Release 0.3 is currently
 available for download.
 
 Tcl/Tk interfaces {#TclTk}

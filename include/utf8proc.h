@@ -114,7 +114,7 @@ typedef unsigned char _Bool;
  *  Flags being regarded by several functions in the library:
  *  NULLTERM:  The given UTF-8 input is NULL terminated.
  *  STABLE:    Unicode Versioning Stability has to be respected.
- *  COMPAT:    Compatiblity decomposition
+ *  COMPAT:    Compatibility decomposition
  *             (i.e. formatting information is lost)
  *  COMPOSE:   Return a result with composed characters.
  *  DECOMPOSE: Return a result with decomposed characters.

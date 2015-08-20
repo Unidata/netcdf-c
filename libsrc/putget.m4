@@ -374,7 +374,7 @@ NCtouchlast(NC3_INFO* ncp, const NC_var *const *varpp, size_t recno)
 
 /*
  * Ensure that the netcdf file has 'numrecs' records,
- * add records and fill as neccessary.
+ * add records and fill as necessary.
  */
 static int
 NCvnrecs(NC3_INFO* ncp, size_t numrecs)

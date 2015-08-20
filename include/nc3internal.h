@@ -58,7 +58,7 @@ typedef enum {
 
 
 /*
- * NC dimension stucture
+ * NC dimension structure
  */
 typedef struct {
 	/* all xdr'd */
