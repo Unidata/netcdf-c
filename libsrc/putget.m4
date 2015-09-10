@@ -1332,9 +1332,9 @@ NC3_get_vara(int ncid, int varid,
     if(NC_indef(nc3))
         return NC_EINDEFINE;
 
-    varp = NC_lookupvar(nc3, varid);
-    if(varp == NULL)
-        return NC_ENOTVAR;
+    status = NC_lookupvar(nc3, varid, &varp);
+    if(status != NC_NOERR)
+        return status;
 
     if(memtype == NC_NAT) memtype=varp->type;
 
@@ -1463,7 +1463,7 @@ NC3_put_vara(int ncid, int varid,
         return NC_EINDEFINE;
 
     status = NC_lookupvar(nc3, varid, &varp);
-    if(status != NC_NOERROR)
+    if(status != NC_NOERR)
        return status; /*invalid varid */
 
 

@@ -509,32 +509,37 @@ NC_check_vlen(NC_var *varp, size_t vlen_max) {
 }
 
 
-/*
- * Given valid ncp and varid, return var
- *  else NULL on error
- * Formerly
-NC_hlookupvar()
+/*! Look up a variable by varid.
+ *
+ * Given a valid ncp structure and varid, return the var.
+ *
+ * Formerly NC_hlookupvar()
+ *
+ * @param[in] ncp NC3_INFO data structure.
+ * @param[in] varid The varid key for the var we are looking up.
+ * @param[out] varp Data structure to contain the varp pointer.
+ * @return Error code, if one exists, 0 otherwise.
  */
-NC_var *
-NC_lookupvar(NC3_INFO* ncp, int varid)
-{
-	NC_var *varp;
 
+int NC_lookupvar(NC3_INFO* ncp, int varid, NC_var **varp)
+{
 	if(varid == NC_GLOBAL)
 	{
 		/* Global is error in this context */
-		return(NULL);
+      return NC_EGLOBAL;
 	}
 
-	varp = elem_NC_vararray(&ncp->vars, (size_t)varid);
+	*varp = elem_NC_vararray(&ncp->vars, (size_t)varid);
 	if(varp == NULL)
 	{
-		return NULL;
+      return NC_ENOTVAR;
 	}
 
-	assert(varp != NULL);
+	return NC_NOERR;
 
-	return(varp);
+
+
+
 }
 
 
@@ -717,11 +722,11 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 		return NC_ENAMEINUSE;
 	}
 
-	varp = NC_lookupvar(ncp, varid);
-	if(varp == NULL)
+	status = NC_lookupvar(ncp, varid, &varp);
+	if(status != NC_NOERR)
 	{
 		/* invalid varid */
-		return NC_ENOTVAR; /* TODO: is this the right error code? */
+      return status;
 	}
 
 	old = varp->name;
