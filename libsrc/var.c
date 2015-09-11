@@ -523,22 +523,20 @@ NC_check_vlen(NC_var *varp, size_t vlen_max) {
 
 int NC_lookupvar(NC3_INFO* ncp, int varid, NC_var **varp)
 {
-	if(varid == NC_GLOBAL)
+  if(varid == NC_GLOBAL)
 	{
-		/* Global is error in this context */
+      /* Global is error in this context */
       return NC_EGLOBAL;
 	}
 
-	*varp = elem_NC_vararray(&ncp->vars, (size_t)varid);
-	if(varp == NULL)
-	{
-      return NC_ENOTVAR;
-	}
+  *varp = elem_NC_vararray(&ncp->vars, (size_t)varid);
 
-	return NC_NOERR;
+  if(varp == NULL)
+	return NC_ENOTVAR;
+  if(*varp == NULL)
+    return NC_ENOTVAR;
 
-
-
+  return NC_NOERR;
 
 }
 
