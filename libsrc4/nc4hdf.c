@@ -19,8 +19,8 @@
 #include <H5DSpublic.h>
 #include <math.h>
 
-#if 0 /*def USE_PNETCDF*/
-#include <pnetcdf.h>
+#ifdef USE_PARALLEL
+#include "netcdf_par.h"
 #endif
 
 #define NC3_STRICT_ATT_NAME "_nc3_strict"
