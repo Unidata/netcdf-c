@@ -780,21 +780,36 @@ AC_TYPE_OFF_T
 AC_CHECK_TYPES([ssize_t, ptrdiff_t, uchar, longlong, ushort, uint, int64, uint64])
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
+
+# As a temporary work around for an anti-virus problem
+# add a sleep command before each ac_check_sizeof to slow
+# down file creation/deletion
+sleep 3
 AC_CHECK_SIZEOF(short)
+sleep 3
 AC_CHECK_SIZEOF(int)
+sleep 3
 AC_CHECK_SIZEOF(long)
+sleep 3
 AC_CHECK_SIZEOF(long long)
+sleep 3
 AC_CHECK_SIZEOF(float)
+sleep 3
 AC_CHECK_SIZEOF(double)
+sleep 3
 AC_CHECK_SIZEOF(off_t)
+sleep 3
 AC_CHECK_SIZEOF(size_t)
+sleep 3
 AC_CHECK_SIZEOF(unsigned long long)
 
+sleep 3
 if test "$ac_cv_type_ushort" = yes ; then
    AC_CHECK_SIZEOF(ushort)
 else
    AC_CHECK_SIZEOF(unsigned short int)
 fi
+sleep 3
 if test "$ac_cv_type_uint" = yes ; then
    AC_CHECK_SIZEOF(uint)
 else
