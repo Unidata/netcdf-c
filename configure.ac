@@ -832,14 +832,18 @@ AC_CHECK_SIZEOF(double)
 $SLEEPCMD
 AC_CHECK_SIZEOF(off_t)
 $SLEEPCMD
+
 AC_CHECK_SIZEOF(size_t)
+
 AC_CHECK_SIZEOF(unsigned long long)
 
+$SLEEPCMD
 if test "$ac_cv_type_ushort" = yes ; then
    AC_CHECK_SIZEOF(ushort)
 else
    AC_CHECK_SIZEOF(unsigned short int)
 fi
+$SLEEPCMD
 if test "$ac_cv_type_uint" = yes ; then
    AC_CHECK_SIZEOF(uint)
 else
@@ -989,7 +993,7 @@ if test "x$enable_pnetcdf" = xyes; then
   AC_MSG_RESULT([$pnetcdf16])
   if test x$pnetcdf16 = xno; then
     AC_MSG_WARN([--enable-pnetcdf requires version 1.6.0 or later; disabling])
-    pnetcdf_conflict=yes  
+    pnetcdf_conflict=yes
   fi
 fi
 
