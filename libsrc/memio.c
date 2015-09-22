@@ -97,9 +97,8 @@ static int memio_close(ncio* nciop, int);
 
 static long pagesize = 0;
 
-/* Create a new ncio struct to hold info about the file. */
-static int
-memio_new(const char* path, int ioflags, off_t initialsize, void* memory, ncio** nciopp, NCMEMIO** memiop)
+/*! Create a new ncio struct to hold info about the file. */
+static int memio_new(const char* path, int ioflags, off_t initialsize, void* memory, ncio** nciopp, NCMEMIO** memiop)
 {
     int status = NC_NOERR;
     ncio* nciop = NULL;
@@ -124,6 +123,14 @@ memio_new(const char* path, int ioflags, off_t initialsize, void* memory, ncio**
 #else
         pagesize = 4096; /* good guess */
 #endif
+    }
+
+    /* We need to catch errors.
+       sysconf, at least, can return a negative value
+       when there is an error. */
+    if(pagesize < 0) {
+      status = NC_EIO;
+      goto fail;
     }
 
     errno = 0;
@@ -165,7 +172,7 @@ memio_new(const char* path, int ioflags, off_t initialsize, void* memory, ncio**
         free(nciop);
     }
     if(inmemory) {
-	memio->memory = memory;
+      memio->memory = memory;
     } else {
         /* malloc memory */
         memio->memory = (char*)malloc(memio->alloc);
