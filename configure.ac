@@ -845,13 +845,21 @@ AC_TYPE_OFF_T
 AC_CHECK_TYPES([ssize_t, ptrdiff_t, uchar, longlong])
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
+sleep 5
 AC_CHECK_SIZEOF(short)
+sleep 5
 AC_CHECK_SIZEOF(int)
+sleep 5
 AC_CHECK_SIZEOF(long)
+sleep 5
 AC_CHECK_SIZEOF(long long)
+sleep 5
 AC_CHECK_SIZEOF(float)
+sleep 5
 AC_CHECK_SIZEOF(double)
+sleep 5
 AC_CHECK_SIZEOF(off_t)
+sleep 5
 AC_CHECK_SIZEOF(size_t)
 
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
