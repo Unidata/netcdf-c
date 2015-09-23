@@ -36,7 +36,7 @@ NetCDF data is:
 The netCDF software was developed by Glenn Davis, Russ Rew, Ed Hartnett,
 John Caron, Dennis Heimbigner, Steve Emmerson, Harvey Davies, and Ward
 Fisher at the Unidata Program Center in Boulder, Colorado, with
-[contributions](/netcdf/credits.html) from many other netCDF users.
+[contributions](http://www.unidata.ucar.edu/software/netcdf/docs/credits.html) from many other netCDF users.
 
 ----------
 
@@ -1441,7 +1441,7 @@ purposes.
 
 It is also possible to overcome the 4 GiB variable restriction for a
 single fixed size variable, when there are no record variables, by
-making it the last variable, as explained in the example in [NetCDF Classic Format Limitations](netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations).
+making it the last variable, as explained in the example in [NetCDF Classic Format Limitations](http://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations).
 
 ----------
 
