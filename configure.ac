@@ -845,21 +845,33 @@ AC_TYPE_OFF_T
 AC_CHECK_TYPES([ssize_t, ptrdiff_t, uchar, longlong])
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
-sleep 5
+
+###
+# Crude hack to work around an issue
+# in Cygwin.
+###
+SLEEPCMD=""
+PLTFORMOUT="$(uname | cut -d '_' -f 1)"
+if test "$PLTFORMOUT" = "CYGWIN"; then
+   SLEEPCMD="sleep 5"
+   AC_MSG_NOTICE([Pausing between sizeof() checks to mitigate a Cygwin issue.])
+fi
+
+$SLEEPCMD
 AC_CHECK_SIZEOF(short)
-sleep 5
+$SLEEPCMD
 AC_CHECK_SIZEOF(int)
-sleep 5
+$SLEEPCMD
 AC_CHECK_SIZEOF(long)
-sleep 5
+$SLEEPCMD
 AC_CHECK_SIZEOF(long long)
-sleep 5
+$SLEEPCMD
 AC_CHECK_SIZEOF(float)
-sleep 5
+$SLEEPCMD
 AC_CHECK_SIZEOF(double)
-sleep 5
+$SLEEPCMD
 AC_CHECK_SIZEOF(off_t)
-sleep 5
+$SLEEPCMD
 AC_CHECK_SIZEOF(size_t)
 
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
