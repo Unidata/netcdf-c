@@ -534,8 +534,6 @@ int NC_lookupvar(NC3_INFO* ncp, int varid, NC_var **varp)
   else
     return NC_ENOTVAR;
 
-  if(varp == NULL)
-	return NC_ENOTVAR;
   if(*varp == NULL)
     return NC_ENOTVAR;
 
