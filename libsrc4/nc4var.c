@@ -861,7 +861,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       return NC_ELATEDEF;
 
    /* Check compression options. */
-   if (deflate && !deflate_level)
+   if (!deflate || !deflate_level)
       return NC_EINVAL;      
        
    /* Valid deflate level? */
