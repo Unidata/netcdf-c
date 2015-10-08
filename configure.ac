@@ -15,12 +15,12 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.4.0-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.4.0-rc3], [support-netcdf@unidata.ucar.edu])
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=4
 AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=0
-AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
+AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-rc3"
 
 #####
 # Set some variables used to generate a libnetcdf.settings file,
