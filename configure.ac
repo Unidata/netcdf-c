@@ -50,6 +50,7 @@ AC_CONFIG_HEADERS([config.h])
 
 # This call is required by automake.
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
+AM_MAINTAINER_MODE()
 
 # Check for the existence of this file before proceeding.
 AC_CONFIG_SRCDIR([include/netcdf.h])
