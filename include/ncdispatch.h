@@ -147,7 +147,6 @@ extern int NCD4_initialize(void);
 extern int NCD4_finalize(void);
 #endif
 
-#endif /*USE_NETCDF4*/
 /* Vectors of ones and zeros */
 extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
 extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];
