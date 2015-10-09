@@ -959,7 +959,7 @@ fi
 if test "x$enable_netcdf_4" = xyes ; then
   AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
   AC_ARG_ENABLE([parallel4], [AS_HELP_STRING([--disable-parallel4],
-                [disable parallel I/O for netcdf-4, even if possible])])
+                [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5])])
   test "x$enable_parallel4" = xno || enable_parallel4=yes
   AC_MSG_RESULT($enable_parallel4)
 else
