@@ -695,6 +695,13 @@ ENDIF()
 
 SET(MATH "")
 IF(NOT WIN32)
+
+  # STDIO instead of posixio.
+  OPTION(ENABLE_STDIO "If true, use stdio instead of posixio (ex. on the Cray)" OFF)
+  IF(ENABLE_STDIO)
+    SET(USE_STDIO ON CACHE BOOL "")
+  ENDIF()
+
   # FFIO insteaad of PosixIO
   OPTION(ENABLE_FFIO "If true, use ffio instead of posixio" OFF)
   IF(ENABLE_FFIO)
