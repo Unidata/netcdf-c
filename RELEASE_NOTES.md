@@ -16,8 +16,8 @@ This file contains a high-level description of this package's evolution. Release
   This cascaded into a number of other changes.
   1. Renamed libsrcp5 -> libsrcp because pnetcdf can do parallel io for
      CDF-1, CDF-2 and CDF-5, not just CDF-5.
-  2. Given #1, then the NC_PNETCDF mode flag becomes a subset of NC_MPIIO,
-      so made NC_PNETCDF an alias for NC_MPII.
+  2. Given #1, then the NC\_PNETCDF mode flag becomes a subset of NC\_MPIIO,
+      so made NC\_PNETCDF an alias for NC_MPII.
 
 * Modified Configure.ac to provide finer control over parallel
   support. Specifically, add flags for:
