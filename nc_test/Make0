@@ -1,6 +1,7 @@
 # Test c output
-T=test_read
-#VG=valgrind --leak-check=full
+T=t
+#CMD=valgrind --leak-check=full
+CMD=gdb --args
 
 CFLAGS=-g -O0 -I.. -I../include
 LDFLAGS=../liblib/.libs/libnetcdf.a  -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
@@ -10,5 +11,5 @@ LDFLAGS=../liblib/.libs/libnetcdf.a  -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lm -
 all::
 	export LD_RUN_PATH; export CFLAGS; export LDFLAGS; \
 	gcc -o t ${CFLAGS} ${T}.c ${LDFLAGS}
-	${VG} ./t
+	${CMD} ./t
 

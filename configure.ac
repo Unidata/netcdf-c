@@ -853,6 +853,7 @@ AC_CHECK_SIZEOF(float)
 AC_CHECK_SIZEOF(double)
 AC_CHECK_SIZEOF(off_t)
 AC_CHECK_SIZEOF(size_t)
+AC_CHECK_SIZEOF(ptrdiff_t)
 
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
    AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
