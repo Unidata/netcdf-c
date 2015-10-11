@@ -1127,7 +1127,7 @@ command line operators that work on generic netCDF or HDF4 files:
 -   ncrename - renamer
 -   ncwa - weighted averager
 
-All operators may now be [OPeNDAP](www.opendao.org) clients. OPeNDAP
+All operators may now be [OPeNDAP](http://www.opendap.org) clients. OPeNDAP
 enables network transparent data access to any OPeNDAP server. Thus
 OPeNDAP-enabled NCO can operate on remote files accessible through any
 OPeNDAP server without transferring the files. Only the required data

@@ -25,9 +25,7 @@ while converting it into texinfo, and is the primary developer for
 netCDF-4. Dennis Heimbigner wrote the netCDF-4 version of ncgen, the C
 OPeNDAP client, the dispatch layer, and the implementation of diskless
 files. The nccopy utility was added by Russ Rew. Lynton Appel developed
-the C++ implementation for netCDF-4. Ward Fisher developed the netCDF
-Windows/Microsoft Visual Studio  port and implemented the portable
-CMake-based netCDF build and test system.
+the C++ implementation for netCDF-4. Ward Fisher overhauled netCDF release-engineering, developed a new build-and-test framework using CMake, virtualization, and container technologies, moved sources to GitHub, developed a Windows/Microsoft Visual Studio port, refactored documentation for improved web access, and merged all the documentation into the sources for maintaining with Markdown and Doxygen.
 
 The following people have contributed related software, bug reports,
 fixes, valuable suggestions, and other kinds of useful support:

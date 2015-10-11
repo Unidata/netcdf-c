@@ -102,4 +102,4 @@ all:
 
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
-	m4 $(AM_M4FLAGS) $(M4FLAGS) -s $< >$@
+	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@

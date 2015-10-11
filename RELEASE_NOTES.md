@@ -7,12 +7,13 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.0 Released TBD
 
-### 4.4.0-RC3 In Progress
+### 4.4.0-RC3 2015-10-08
 
 * Addressed an inefficiency in how bytes would be swapped when converting between `LITTLE` and `BIG` ENDIANNESS.  See [NCF-338](https://bugtracking.unidata.ucar.edu/browse/NCF-338) for more information.
 * Addressed an issue where an interrupted read on a `POSIX` system would return an error even if errno had been properly set to `EINTR`.  This issue was initially reported by David Knaak at Cray.  More information may be found at [NCF-337](https://bugtracking.unidata.ucar.edu/browse/NCF-337).
 * Added a note to the install directions pointing out that parallel make
 cannot be used for 'make check'.
+* Many miscellaneous bug fixes.
 
 
 ### 4.4.0-RC2 Released 2015-07-09

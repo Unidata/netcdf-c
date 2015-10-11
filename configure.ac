@@ -439,8 +439,8 @@ AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
 # Does the user want to do some extra tests?
 AC_MSG_CHECKING([whether netCDF extra tests should be run (developers only)])
 AC_ARG_ENABLE([extra-tests],
-              [AS_HELP_STRING([--disable-extra-tests],
-                              [disable some extra tests that may not pass because of known issues])])
+              [AS_HELP_STRING([--enable-extra-tests],
+                              [enable some extra tests that may not pass because of known issues])])
 test "x$enable_extra_tests" = xno || enable_extra_tests=yes
 AC_MSG_RESULT($enable_extra_tests)
 if test "x$enable_extra_tests" = xyes; then
@@ -845,13 +845,33 @@ AC_TYPE_OFF_T
 AC_CHECK_TYPES([ssize_t, ptrdiff_t, uchar, longlong])
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
+
+###
+# Crude hack to work around an issue
+# in Cygwin.
+###
+SLEEPCMD=""
+PLTFORMOUT="$(uname | cut -d '_' -f 1)"
+if test "$PLTFORMOUT" = "CYGWIN"; then
+   SLEEPCMD="sleep 5"
+   AC_MSG_NOTICE([Pausing between sizeof() checks to mitigate a Cygwin issue.])
+fi
+
+$SLEEPCMD
 AC_CHECK_SIZEOF(short)
+$SLEEPCMD
 AC_CHECK_SIZEOF(int)
+$SLEEPCMD
 AC_CHECK_SIZEOF(long)
+$SLEEPCMD
 AC_CHECK_SIZEOF(long long)
+$SLEEPCMD
 AC_CHECK_SIZEOF(float)
+$SLEEPCMD
 AC_CHECK_SIZEOF(double)
+$SLEEPCMD
 AC_CHECK_SIZEOF(off_t)
+$SLEEPCMD
 AC_CHECK_SIZEOF(size_t)
 AC_CHECK_SIZEOF(ptrdiff_t)
 
