@@ -19,8 +19,8 @@
 #include <H5DSpublic.h>
 #include <math.h>
 
-#if 0 /*def USE_PNETCDF*/
-#include <pnetcdf.h>
+#ifdef USE_PARALLEL
+#include "netcdf_par.h"
 #endif
 
 #define NC3_STRICT_ATT_NAME "_nc3_strict"
@@ -293,6 +293,8 @@ nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
             return NC_EHDFERR;
           if (H5Tset_strpad(typeid, H5T_STR_NULLTERM) < 0)
             BAIL(NC_EVARMETA);
+	  if(H5Tset_cset(typeid, H5T_CSET_UTF8) < 0)
+	    BAIL(NC_EVARMETA);
 
           /* Take ownership of the newly created HDF5 datatype */
           *hdf_typeid = typeid;
@@ -304,6 +306,8 @@ nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
             return NC_EHDFERR;
           if (H5Tset_size(typeid, H5T_VARIABLE) < 0)
             BAIL(NC_EVARMETA);
+	  if(H5Tset_cset(typeid, H5T_CSET_UTF8) < 0)
+	    BAIL(NC_EVARMETA);
 
           /* Take ownership of the newly created HDF5 datatype */
           *hdf_typeid = typeid;

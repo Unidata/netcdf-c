@@ -220,8 +220,8 @@ NC_findvar(const NC_vararray *ncap, const char *name, NC_var **varpp);
 extern int
 NC_check_vlen(NC_var *varp, size_t vlen_max);
 
-extern NC_var *
-NC_lookupvar(NC3_INFO* ncp, int varid);
+extern int
+NC_lookupvar(NC3_INFO* ncp, int varid, NC_var **varp);
 
 /* End defined in var.c */
 
@@ -289,7 +289,7 @@ struct NC3_INFO {
 	fIsSet((ncp)->flags, NC_CREAT)
 
 #define NC_indef(ncp) \
-	(NC_IsNew(ncp) || fIsSet((ncp)->flags, NC_INDEF)) 
+	(NC_IsNew(ncp) || fIsSet((ncp)->flags, NC_INDEF))
 
 #define set_NC_ndirty(ncp) \
 	fSet((ncp)->flags, NC_NDIRTY)

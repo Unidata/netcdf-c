@@ -1009,25 +1009,6 @@ USE_HTAGS              = NO
 
 VERBATIM_HEADERS       = YES
 
-# If the CLANG_ASSISTED_PARSING tag is set to YES, then doxygen will use the
-# clang parser (see: http://clang.llvm.org/) for more acurate parsing at the
-# cost of reduced performance. This can be particularly helpful with template
-# rich C++ code for which doxygen's built-in parser lacks the necessary type
-# information.
-# Note: The availability of this option depends on whether or not doxygen was
-# compiled with the --with-libclang option.
-# The default value is: NO.
-
-CLANG_ASSISTED_PARSING = NO
-
-# If clang assisted parsing is enabled you can provide the compiler with command
-# line options that you would normally use when invoking the compiler. Note that
-# the include paths will already be set by doxygen for the files and directories
-# specified with INPUT and INCLUDE_PATH.
-# This tag requires that the tag CLANG_ASSISTED_PARSING is set to YES.
-
-CLANG_OPTIONS          =
-
 #---------------------------------------------------------------------------
 # Configuration options related to the alphabetical class index
 #---------------------------------------------------------------------------
@@ -1129,7 +1110,7 @@ HTML_STYLESHEET        =
 # see the documentation.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_STYLESHEET  =
+HTML_EXTRA_STYLESHEET  = docs/extra.css
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
 # other source files which should be copied to the HTML output directory. Note
@@ -1850,18 +1831,6 @@ GENERATE_XML           = NO
 
 XML_OUTPUT             = xml
 
-# The XML_SCHEMA tag can be used to specify a XML schema, which can be used by a
-# validating XML parser to check the syntax of the XML files.
-# This tag requires that the tag GENERATE_XML is set to YES.
-
-XML_SCHEMA             =
-
-# The XML_DTD tag can be used to specify a XML DTD, which can be used by a
-# validating XML parser to check the syntax of the XML files.
-# This tag requires that the tag GENERATE_XML is set to YES.
-
-XML_DTD                =
-
 # If the XML_PROGRAMLISTING tag is set to YES doxygen will dump the program
 # listings (including syntax highlighting and cross-referencing information) to
 # the XML output. Note that enabling this will significantly increase the size
@@ -2130,7 +2099,7 @@ DOT_NUM_THREADS        = 4
 # The default value is: Helvetica.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-DOT_FONTNAME           = FreeSans.ttf
+DOT_FONTNAME           =
 
 # The DOT_FONTSIZE tag can be used to set the size (in points) of the font of
 # dot graphs.

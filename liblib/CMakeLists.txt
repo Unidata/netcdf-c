@@ -17,9 +17,6 @@ IF(USE_DAP)
   SET(liblib_LIBS ${liblib_LIBS} oc2 dap2)
 ENDIF()
 
-IF(BUILD_CDMREMOTE)
-  SET(liblib_LIBS ${liblib_LIBS} cdmr)
-ENDIF()
 
 FOREACH(LIBS ${liblib_LIBS})
   SET(LARGS ${LARGS} $<TARGET_OBJECTS:${LIBS}>)

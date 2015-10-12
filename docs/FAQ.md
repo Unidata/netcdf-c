@@ -36,7 +36,7 @@ NetCDF data is:
 The netCDF software was developed by Glenn Davis, Russ Rew, Ed Hartnett,
 John Caron, Dennis Heimbigner, Steve Emmerson, Harvey Davies, and Ward
 Fisher at the Unidata Program Center in Boulder, Colorado, with
-[contributions](/netcdf/credits.html) from many other netCDF users.
+[contributions](http://www.unidata.ucar.edu/software/netcdf/docs/credits.html) from many other netCDF users.
 
 ----------
 
@@ -1176,7 +1176,7 @@ Was it possible to create netCDF files larger than 2 GiBytes before version 3.6?
 
 Yes, but there are significant restrictions on the structure of large
 netCDF files that result from the 32-bit relative offsets that are part
-of the classic netCDF format. For details, see [NetCDF Classic Format Limitations](netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations)
+of the classic netCDF format. For details, see [NetCDF Classic Format Limitations](http://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations)
 in the User's Guide.
 
 ----------
@@ -1441,7 +1441,7 @@ purposes.
 
 It is also possible to overcome the 4 GiB variable restriction for a
 single fixed size variable, when there are no record variables, by
-making it the last variable, as explained in the example in [NetCDF Classic Format Limitations](netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations).
+making it the last variable, as explained in the example in [NetCDF Classic Format Limitations](http://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations).
 
 ----------
 
@@ -1560,7 +1560,7 @@ Data Center at Goddard, and is freely available. It was originally a VMS
 FORTRAN interface for scientific data access. Unidata reimplemented the
 library from scratch to use [XDR](http://www.faqs.org/rfcs/rfc1832.html)
 for a machine-independent representation, designed the
-[CDL](netcdf/CDL-Syntax.htm) (network Common Data form Language) text
+[CDL](http://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf/CDL-Syntax.htm) (network Common Data form Language) text
 representation for netCDF data, and added aggregate data access, a
 single-file implementation, named dimensions, and variable-specific
 attributes.

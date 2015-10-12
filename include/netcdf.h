@@ -147,7 +147,7 @@ extern "C" {
  */
 #define NC_LOCK          0x0400
 
-/** Share updates, limit cacheing.
+/** Share updates, limit caching.
 Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_SHARE         0x0800
 
@@ -426,7 +426,7 @@ by the desired type. */
 #define NC_EMAPTYPE      (-121)    /**< Mapped access for atomic types only. */
 #define NC_ELATEFILL     (-122)    /**< Attempt to define fill value when data already exists. */
 #define NC_ELATEDEF      (-123)    /**< Attempt to define var properties, like deflate, after enddef. */
-#define NC_EDIMSCALE     (-124)    /**< Probem with HDF5 dimscales. */
+#define NC_EDIMSCALE     (-124)    /**< Problem with HDF5 dimscales. */
 #define NC_ENOGRP        (-125)    /**< No group found. */
 #define NC_ESTORAGE      (-126)    /**< Can't specify both contiguous and chunking. */
 #define NC_EBADCHUNK     (-127)    /**< Bad chunksize. */
@@ -867,7 +867,7 @@ EXTERNL int
 nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
 		       float preemption);
 
-/* Set the per-variable cache size, nelems, and preemption policy. */
+/* Get the per-variable cache size, nelems, and preemption policy. */
 EXTERNL int
 nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
 		       float *preemptionp);
@@ -1758,10 +1758,10 @@ nc_inq_base_pe(int ncid, int *pe);
 EXTERNL int
 nctypelen(nc_type datatype);
 
-/* Begin v2.4 backward compatiblity */
+/* Begin v2.4 backward compatibility */
 /*
  * defining NO_NETCDF_2 to the preprocessor
- * turns off backward compatiblity declarations.
+ * turns off backward compatibility declarations.
  */
 #ifndef NO_NETCDF_2
 
@@ -1926,7 +1926,7 @@ ncrecget(int ncid, long recnum, void **datap);
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
-/* End v2.4 backward compatiblity */
+/* End v2.4 backward compatibility */
 #endif /*!NO_NETCDF_2*/
 
 #if defined(__cplusplus)

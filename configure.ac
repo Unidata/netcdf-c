@@ -95,12 +95,25 @@ test "x$enable_doxygen_tasks" = xyes || enable_doxygen_tasks=no
 AM_CONDITIONAL([SHOW_DOXYGEN_TAG_LIST], [test "x$enable_doxygen_tasks" = xyes])
 AC_SUBST([SHOW_DOXYGEN_TAG_LIST], [$enable_doxygen_tasks])
 
-AC_ARG_ENABLE([doxygen-server-side-search],
-    [AS_HELP_STRING([--enable-doxygen-server-side-search],
-        [Enable doxygen server-side search. This is of interest to developers only, or users who will serve the documentation via a web server instead of browsing locally.])])
-test "x$enable_doxygen_server_side_search" = xyes || enable_doxygen_server_side_search=no
-AM_CONDITIONAL([SERVER_SIDE_SEARCH], [test "x$enable_doxygen_server_side_search" = xyes])
-AC_SUBST([SERVER_SIDE_SEARCH], [$enable_doxygen_server_side_search])
+###
+# Determine if we should build documentation
+# configured for releases on the Unidata web server.
+###
+AC_ARG_ENABLE([doxygen-build-release-docs],
+    [AS_HELP_STRING([--enable-doxygen-build-release-docs],
+        [Build release documentation.  This is of interest only to developers.])])
+test "x$enable_doxygen_build_release_docs" = xyes || enable_doxygen_build_release_docs=no
+AM_CONDITIONAL([DOXYGEN_BUILD_RELEASE_DOCS], [test "x$enable_doxygen_build_release_docs" = xyes])
+
+if test $enable_doxygen_build_release_docs = yes; then
+   AC_SUBST([DOXYGEN_CSS_FILE], ["release.css"])
+   AC_SUBST([DOXYGEN_HEADER_FILE], ["release_header.html"])
+   AC_SUBST([DOXYGEN_SEARCHENGINE], ["NO"])
+else
+   AC_SUBST([DOXYGEN_CSS_FILE], [])
+   AC_SUBST([DOXYGEN_HEADER_FILE], [])
+   AC_SUBST([DOXYGEN_SEARCHENGINE], ["YES"])
+fi
 
 AC_ARG_ENABLE([doxygen-pdf-output],
     [AS_HELP_STRING([--enable-doxygen-pdf-output],
@@ -388,8 +401,8 @@ AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
 # Does the user want to do some extra tests?
 AC_MSG_CHECKING([whether netCDF extra tests should be run (developers only)])
 AC_ARG_ENABLE([extra-tests],
-              [AS_HELP_STRING([--disable-extra-tests],
-                              [disable some extra tests that may not pass because of known issues])])
+              [AS_HELP_STRING([--enable-extra-tests],
+                              [enable some extra tests that may not pass because of known issues])])
 test "x$enable_extra_tests" = xno || enable_extra_tests=yes
 AC_MSG_RESULT($enable_extra_tests)
 if test "x$enable_extra_tests" = xyes; then
@@ -408,6 +421,18 @@ if test "x$enable_ffio" = xyes; then
    AC_DEFINE([USE_FFIO], [1], [if true, use ffio instead of posixio])
 fi
 AM_CONDITIONAL(USE_FFIO, [test x$enable_ffio = xyes])
+
+# Does the user want to use the stdio module?
+AC_MSG_CHECKING([whether STDIO will be used])
+AC_ARG_ENABLE([stdio],
+              [AS_HELP_STRING([--enable-stdio],
+                              [use stdio instead of posixio (ex. on the Cray)])])
+test "x$enable_stdio" = xyes || enable_stdio=no
+AC_MSG_RESULT($enable_stdio)
+if test "x$enable_stdio" = xyes; then
+   AC_DEFINE([USE_STDIO], [1], [if true, use stdio instead of posixio])
+fi
+AM_CONDITIONAL(USE_STDIO, [test x$enable_stdio = xyes])
 
 # Does the user want to enable the user-provided NEC-SX vectorization
 # patch.
@@ -781,35 +806,58 @@ AC_CHECK_TYPES([ssize_t, ptrdiff_t, uchar, longlong, ushort, uint, int64, uint64
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
-# As a temporary work around for an anti-virus problem
-# add a sleep command before each ac_check_sizeof to slow
-# down file creation/deletion
-sleep 3
-AC_CHECK_SIZEOF(short)
-sleep 3
-AC_CHECK_SIZEOF(int)
-sleep 3
-AC_CHECK_SIZEOF(long)
-sleep 3
-AC_CHECK_SIZEOF(long long)
-sleep 3
-AC_CHECK_SIZEOF(float)
-sleep 3
-AC_CHECK_SIZEOF(double)
-sleep 3
-AC_CHECK_SIZEOF(off_t)
-sleep 3
-AC_CHECK_SIZEOF(size_t)
-sleep 3
-AC_CHECK_SIZEOF(unsigned long long)
+###
+# Crude hack to work around an issue
+# in Cygwin.
+###
+SLEEPCMD=""
+PLTFORMOUT="$(uname | cut -d '_' -f 1)"
+if test "$PLTFORMOUT" = "CYGWIN"; then
+   SLEEPCMD="sleep 5"
+   AC_MSG_NOTICE([Pausing between sizeof() checks to mitigate a Cygwin issue.])
+fi
 
-sleep 3
+$SLEEPCMD
+AC_CHECK_SIZEOF(short)
+$SLEEPCMD
+AC_CHECK_SIZEOF(int)
+$SLEEPCMD
+AC_CHECK_SIZEOF(long)
+$SLEEPCMD
+AC_CHECK_SIZEOF(long long)
+$SLEEPCMD
+AC_CHECK_SIZEOF(float)
+$SLEEPCMD
+AC_CHECK_SIZEOF(double)
+$SLEEPCMD
+AC_CHECK_SIZEOF(off_t)
+$SLEEPCMD
+AC_CHECK_SIZEOF(size_t)
+$SLEEPCMD
+AC_CHECK_SIZEOF(unsigned long long)
+$SLEEPCMD
+
 if test "$ac_cv_type_ushort" = yes ; then
    AC_CHECK_SIZEOF(ushort)
 else
    AC_CHECK_SIZEOF(unsigned short int)
 fi
 sleep 3
+if test "$ac_cv_type_uint" = yes ; then
+   AC_CHECK_SIZEOF(uint)
+else
+   AC_CHECK_SIZEOF(unsigned int)
+fi
+
+AC_CHECK_SIZEOF(unsigned long long)
+
+$SLEEPCMD
+if test "$ac_cv_type_ushort" = yes ; then
+   AC_CHECK_SIZEOF(ushort)
+else
+   AC_CHECK_SIZEOF(unsigned short int)
+fi
+$SLEEPCMD
 if test "$ac_cv_type_uint" = yes ; then
    AC_CHECK_SIZEOF(uint)
 else
@@ -911,7 +959,7 @@ fi
 if test "x$enable_netcdf_4" = xyes ; then
   AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
   AC_ARG_ENABLE([parallel4], [AS_HELP_STRING([--disable-parallel4],
-                [disable parallel I/O for netcdf-4, even if possible])])
+                [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5])])
   test "x$enable_parallel4" = xno || enable_parallel4=yes
   AC_MSG_RESULT($enable_parallel4)
 else
@@ -959,7 +1007,7 @@ if test "x$enable_pnetcdf" = xyes; then
   AC_MSG_RESULT([$pnetcdf16])
   if test x$pnetcdf16 = xno; then
     AC_MSG_WARN([--enable-pnetcdf requires version 1.6.0 or later; disabling])
-    pnetcdf_conflict=yes  
+    pnetcdf_conflict=yes
   fi
 fi
 
@@ -1061,7 +1109,6 @@ AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
-AM_CONDITIONAL(SERVER_SIDE_SEARCH, [test x$enable_doxygen_server_side_search = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!

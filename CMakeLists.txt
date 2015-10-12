@@ -445,6 +445,7 @@ IF(ENABLE_NETCDF_4)
   SET(USE_NETCDF4 ON CACHE BOOL "")
   SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
   SET(ENABLE_NETCDF4 ON CACHE BOOL "")
+
 ENDIF()
 
 # Option for building RPC
@@ -679,7 +680,7 @@ ELSE()
 ENDIF()
 
 # Enable some developer-only tests
-OPTION(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." ON)
+OPTION(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
 IF(ENABLE_EXTRA_TESTS)
   SET(EXTRA_TESTS ON)
 ENDIF()
@@ -695,6 +696,13 @@ ENDIF()
 
 SET(MATH "")
 IF(NOT WIN32)
+
+  # STDIO instead of posixio.
+  OPTION(ENABLE_STDIO "If true, use stdio instead of posixio (ex. on the Cray)" OFF)
+  IF(ENABLE_STDIO)
+    SET(USE_STDIO ON CACHE BOOL "")
+  ENDIF()
+
   # FFIO insteaad of PosixIO
   OPTION(ENABLE_FFIO "If true, use ffio instead of posixio" OFF)
   IF(ENABLE_FFIO)
@@ -823,13 +831,14 @@ ENDIF()
 
 # Enable Parallel (different than pnetcdf).
 SET(STATUS_PARALLEL "OFF")
-OPTION(ENABLE_PARALLEL "Build netCDF-4 with parallel IO" "${HDF5_IS_PARALLEL}")
-IF(ENABLE_PARALLEL AND ENABLE_NETCDF_4)
+OPTION(ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_IS_PARALLEL}")
+IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
   IF(NOT HDF5_IS_PARALLEL)
     SET(USE_PARALLEL OFF CACHE BOOL "")
     MESSAGE(STATUS "Cannot find HDF5 library built with parallel support. Disabling parallel build.")
   ELSE()
     SET(USE_PARALLEL ON CACHE BOOL "")
+    SET(USE_PARALLEL4 ON CACHE BOOL "")
     SET(STATUS_PARALLEL "ON")
   ENDIF()
 ENDIF()
@@ -847,39 +856,40 @@ IF(ENABLE_PNETCDF)
   IF(NOT PNETCDF)
     MESSAGE(STATUS "Cannot find pNetCDF library. Disabling pNetCDF support.")
     SET(USE_PNETCDF OFF CACHE BOOL "")
-  ELSE()
-	SET(TMP_INC ${CMAKE_REQUIRED_INCLUDES})
-	SET(TMP_LB ${CMAKE_REQUIRED_LIBRARIES})
-	SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${PNETCDF})
-	SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${PNETCDF_INCLUDE_DIR})
+  ENDIF(NOT PNETCDF)
+#  ELSE()
+##	SET(TMP_INC ${CMAKE_REQUIRED_INCLUDES})
+#	SET(TMP_LB ${CMAKE_REQUIRED_LIBRARIES})
+#	SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${PNETCDF})
+#	SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${PNETCDF_INCLUDE_DIR})
 	# Check to see if version > 1.6.0
-	CHECK_C_SOURCE_RUNS("
+	# CHECK_C_SOURCE_RUNS("
 		#include <stdio.h>
       		#include <pnetcdf.h>
-      		int main() {
-      		int major = PNETCDF_VERSION_MAJOR;
-      		int minor = PNETCDF_VERSION_MINOR;
-      		int version = major*1000 + minor;
-      		int ok = (version >= (1*1000 + 6));
-      		return ok?0:1;}"
-      		HAVE_PNETCDF_16)
+    #  		int main() {
+    #  		int major = PNETCDF_VERSION_MAJOR;
+    #  		int minor = PNETCDF_VERSION_MINOR;
+    #  		int version = major*1000 + minor;
+    #  		int ok = (version >= (1*1000 + 6));
+    #  		return ok?0:1;}"
+    #  		HAVE_PNETCDF_16)
 
-	SET(CMAKE_REQUIRED_INCLUDES ${TMP_INC})
-	SET(CMAKE_REQUIRED_LIBRARIES ${TMP_LB})
+#	SET(CMAKE_REQUIRED_INCLUDES ${TMP_INC})
+#	SET(CMAKE_REQUIRED_LIBRARIES ${TMP_LB})
 
-	IF(HAVE_PNETCDF_16)
-		SET(ENABLE_PNETCDF "OFF")
-      		MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.0 or later; disabled")
-    	ELSE()
+	#IF(HAVE_PNETCDF_16)
+	#	SET(ENABLE_PNETCDF "OFF")
+    #  		MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.0 or later; disabled")
+    #	ELSE()
 
-	    SET(STATUS_PNETCDF "ON")
-    	    INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
-    	    SET(HAVE_LIBPNETCDF ON)
+   #	    SET(STATUS_PNETCDF "ON")
+    #	    INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
+    #	    SET(HAVE_LIBPNETCDF ON)
     	    # pnetcdf => parallel
-    	    SET(STATUS_PARALLEL "ON")
-    	    SET(USE_PARALLEL ON)
-  	ENDIF()
-    ENDIF()
+    #	    SET(STATUS_PARALLEL "ON")
+    #	    SET(USE_PARALLEL ON)
+  	#ENDIF()
+    #ENDIF()
 ENDIF()
 
 # Enable Parallel Tests.
@@ -900,12 +910,21 @@ IF(ENABLE_DOXYGEN)
     SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
   ENDIF()
 
-  OPTION(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH "Enable doxygen server-side search. This is of interest to developers only." OFF)
-  IF(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH)
-    SET(SERVER_SIDE_SEARCH YES CACHE STRING "")
+  ###
+  #
+  # If we are building release documentation, we need to set some
+  # variables that will be used in the Doxygen.in template.
+  ###
+  OPTION(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS "Build release documentation.  This is of interest only to the netCDF developers." OFF)
+  IF(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
+    SET(DOXYGEN_CSS_FILE "${CMAKE_SOURCE_DIR}/docs/release.css" CACHE STRING "")
+    SET(DOXYGEN_HEADER_FILE "${CMAKE_SOURCE_DIR}/docs/release_header.html" CACHE STRING "")
+    SET(DOXYGEN_SEARCHENGINE "NO" CACHE STRING "")
   ELSE()
-    SET(SERVER_SIDE_SEARCH NO CACHE STRING "")
-  ENDIF()
+    SET(DOXYGEN_CSS_FILE "" CACHE STRING "")
+    SET(DOXYGEN_HEADER_FILE "" CACHE STRING "")
+    SET(DOXYGEN_SEARCHENGINE "YES" CACHE STRING "")
+  ENDIF(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
   # Option to turn on the TODO list in the doxygen-generated documentation.
   OPTION(DOXYGEN_ENABLE_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
   IF(DOXYGEN_ENABLE_TASKS)
@@ -947,7 +966,7 @@ ENDIF()
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF ENABLE_COVERAGE_TESTS)
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
-MARK_AS_ADVANCED(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH DOXYGEN_ENABLE_TASKS)
+MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS)
 ################################
 # Option checks
 ################################

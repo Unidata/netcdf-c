@@ -97,9 +97,8 @@ static int memio_close(ncio* nciop, int);
 
 static long pagesize = 0;
 
-/* Create a new ncio struct to hold info about the file. */
-static int
-memio_new(const char* path, int ioflags, off_t initialsize, void* memory, ncio** nciopp, NCMEMIO** memiop)
+/*! Create a new ncio struct to hold info about the file. */
+static int memio_new(const char* path, int ioflags, off_t initialsize, void* memory, ncio** nciopp, NCMEMIO** memiop)
 {
     int status = NC_NOERR;
     ncio* nciop = NULL;
@@ -126,6 +125,14 @@ memio_new(const char* path, int ioflags, off_t initialsize, void* memory, ncio**
 #endif
     }
 
+    /* We need to catch errors.
+       sysconf, at least, can return a negative value
+       when there is an error. */
+    if(pagesize < 0) {
+      status = NC_EIO;
+      goto fail;
+    }
+
     errno = 0;
 
     /* Always force the allocated size to be a multiple of pagesize */
@@ -135,7 +142,7 @@ memio_new(const char* path, int ioflags, off_t initialsize, void* memory, ncio**
 
     nciop = (ncio* )calloc(1,sizeof(ncio));
     if(nciop == NULL) {status = NC_ENOMEM; goto fail;}
-    
+
     nciop->ioflags = ioflags;
     *((int*)&nciop->fd) = -1; /* caller will fix */
 
@@ -146,7 +153,7 @@ memio_new(const char* path, int ioflags, off_t initialsize, void* memory, ncio**
     *((ncio_filesizefunc**)&nciop->filesize) = memio_filesize;
     *((ncio_pad_lengthfunc**)&nciop->pad_length) = memio_pad_length;
     *((ncio_closefunc**)&nciop->close) = memio_close;
- 
+
     memio = (NCMEMIO*)calloc(1,sizeof(NCMEMIO));
     if(memio == NULL) {status = NC_ENOMEM; goto fail;}
     *((void* *)&nciop->pvt) = memio;
@@ -165,7 +172,7 @@ memio_new(const char* path, int ioflags, off_t initialsize, void* memory, ncio**
         free(nciop);
     }
     if(inmemory) {
-	memio->memory = memory;
+      memio->memory = memory;
     } else {
         /* malloc memory */
         memio->memory = (char*)malloc(memio->alloc);
@@ -190,10 +197,10 @@ fail:
    ioflags - flags from nc_create
    initialsz - From the netcdf man page: "The argument
                initialsize sets the initial size of the file at creation time."
-   igeto - 
-   igetsz - 
+   igeto -
+   igetsz -
    sizehintp - the size of a page of data for buffered reads and writes.
-   parameters - arbitrary data 
+   parameters - arbitrary data
    nciopp - pointer to a pointer that will get location of newly
    created and inited ncio struct.
    mempp - pointer to pointer to the initial memory read.
@@ -221,7 +228,7 @@ memio_create(const char* path, int ioflags,
 
     if(persist) {
         /* Open the file just tomake sure we can write it if needed */
-        oflags = (persist ? O_RDWR : O_RDONLY);    
+        oflags = (persist ? O_RDWR : O_RDONLY);
 #ifdef O_BINARY
         fSet(oflags, O_BINARY);
 #endif
@@ -243,7 +250,7 @@ fprintf(stderr,"memio_create: initial memory: %lu/%lu\n",(unsigned long)memio->m
 #endif
 
     fd = nc__pseudofd();
-    *((int* )&nciop->fd) = fd; 
+    *((int* )&nciop->fd) = fd;
 
     fSet(nciop->ioflags, NC_WRITE);
 
@@ -274,11 +281,11 @@ unwind_open:
    ioflags - flags passed into nc_open.
    igeto - looks like this function can do an initial page get, and
    igeto is going to be the offset for that. But it appears to be
-   unused 
+   unused
    igetsz - the size in bytes of initial page get (a.k.a. extent). Not
    ever used in the library.
    sizehintp - the size of a page of data for buffered reads and writes.
-   parameters - arbitrary data 
+   parameters - arbitrary data
    nciopp - pointer to pointer that will get address of newly created
    and inited ncio struct.
    mempp - pointer to pointer to the initial memory read.
@@ -307,13 +314,13 @@ memio_open(const char* path,
         return NC_EINVAL;
 
     assert(sizehintp != NULL);
-    sizehint = *sizehintp; 
+    sizehint = *sizehintp;
 
     if(inmemory) {
 	filesize = meminfo->size;
     } else {
         /* Open the file,and make sure we can write it if needed */
-        oflags = (persist ? O_RDWR : O_RDONLY);    
+        oflags = (persist ? O_RDWR : O_RDONLY);
 #ifdef O_BINARY
         fSet(oflags, O_BINARY);
 #endif
@@ -345,7 +352,7 @@ memio_open(const char* path,
     else
         status = memio_new(path, ioflags, filesize, NULL, &nciop, &memio);
     if(status != NC_NOERR) {
-	if(fd >= 0) 
+	if(fd >= 0)
 	    close(fd);
       return status;
     }
@@ -371,10 +378,10 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
     }
 
     /* Use half the filesize as the blocksize ; why? */
-    sizehint = filesize/2; 
+    sizehint = filesize/2;
 
     fd = nc__pseudofd();
-    *((int* )&nciop->fd) = fd; 
+    *((int* )&nciop->fd) = fd;
 
     if(igetsz != 0)
     {
@@ -397,7 +404,7 @@ unwind_open:
     return status;
 }
 
-/* 
+/*
  *  Get file size in bytes.
  */
 static int
@@ -451,29 +458,31 @@ fprintf(stderr,"realloc: %lu/%lu -> %lu/%lu\n",
 #endif
 	memio->memory = newmem;
 	memio->alloc = newsize;
-    }  
+    }
     memio->size = length;
     return NC_NOERR;
 }
 
-/* Write out any dirty buffers to disk and
-   ensure that next read will get data from disk.
-   Sync any changes, then close the open file associated with the ncio
-   struct, and free its memory.
-   nciop - pointer to ncio to close.
-   doUnlink - if true, unlink file
+/*! Write out any dirty buffers to disk.
+
+  Write out any dirty buffers to disk and ensure that next read will get data from disk. Sync any changes, then close the open file associated with the ncio struct, and free its memory.
+
+  @param[in] nciop pointer to ncio to close.
+  @param[in] doUnlink if true, unlink file
+  @return NC_NOERR on success, error code on failure.
 */
 
-static int 
+static int
 memio_close(ncio* nciop, int doUnlink)
 {
     int status = NC_NOERR;
-    NCMEMIO* memio;
+    NCMEMIO* memio ;
     int fd = -1;
-    int inmemory = (fIsSet(nciop->ioflags,NC_INMEMORY));
+    int inmemory = 0;
 
     if(nciop == NULL || nciop->pvt == NULL) return NC_NOERR;
 
+    inmemory = (fIsSet(nciop->ioflags,NC_INMEMORY));
     memio = (NCMEMIO*)nciop->pvt;
     assert(memio != NULL);
 
@@ -507,7 +516,7 @@ done:
     if(!inmemory && memio->memory != NULL)
 	free(memio->memory);
     /* do cleanup  */
-    if(fd >= 0) (void)close(fd);		
+    if(fd >= 0) (void)close(fd);
     if(memio != NULL) free(memio);
     if(nciop->path != NULL) free((char*)nciop->path);
     free(nciop);

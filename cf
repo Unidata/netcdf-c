@@ -144,6 +144,24 @@ else
 FLAGS="$FLAGS --enable-shared"
 fi
 
+TMP=
+rm -f ./test_mpi.tmp
+if test -f $stddir/lib/libhdf5.a ; then
+  nm $stddir/lib/libhdf5.a | grep mpich_mpi_float$ >./test_mpi.tmp
+else
+  if test -f $stddir/lib/libhdf5.so ; then
+    nm $stddir/lib/libhdf5.so | grep mpich_mpi_float$ >./test_mpi.tmp
+  fi
+fi
+if test -s ./test_mpi.tmp ; then
+  PAR=1
+fi
+rm -f ./test_mpi.tmp
+
+if test "x${PAR}" != x ; then
+FLAGS="$FLAGS --enable-parallel"
+fi
+
 if test "x$HDF5" = "x" ; then
 FLAGS="$FLAGS --disable-netcdf-4"
 fi
@@ -154,7 +172,7 @@ if test "x$DAP" = "x" ; then
 FLAGS="$FLAGS --disable-dap"
 fi
 
-if test "x$PNETCDF" = x1 -o "x$PAR4" = x1 ; then
+if test "x$PAR" = x1 -o "x$PNETCDF" = x1 ; then
 if test -f /machine/local_mpich2 ; then
 MPI1=/machine/local_mpich2
 MPI2=/machine/local_par7
@@ -168,10 +186,12 @@ PATH=${PATH}:${MPI1}/bin
 CC="${MPI1}/bin/mpicc"
 CPPFLAGS="-I${MPI2}/include -I${MPI1}/include -I${MPI3}/include"
 LDFLAGS="-L${MPI2}/lib -L${MPI1}/lib -L${MPI3}/lib"
-LDLIBS="-lmpich -lmpl"
+LDLIBS="-lmpich"
 FLAGS="$FLAGS --enable-pnetcdf"
 FLAGS="$FLAGS --enable-parallel-tests"
 fi
+
+#FLAGS="${FLAGS} --enable-stdio"
 
 export PATH
 export CC
@@ -195,6 +215,7 @@ if test "x$FAST" = x ; then
 fi
 sh $X ./configure ${FLAGS}
 for c in $cmds; do
+printenv LD_LIBRARY_PATH
   ${MAKE} ${FORCE} $c
 done
 exit 0

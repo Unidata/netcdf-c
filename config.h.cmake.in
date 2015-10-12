@@ -90,6 +90,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine USE_PARALLEL_MPIO 1
 #cmakedefine HDF5_HAS_H5FREE 1
 #cmakedefine USE_PARALLEL 1
+#cmakedefine USE_PARALLEL4 1
 #cmakedefine USE_PNETCDF 1
 #cmakedefine USE_MMAP 1
 #cmakedefine TEST_PARALLEL ${TEST_PARALLEL}

@@ -55,10 +55,10 @@ void
 arrayp(const char *label, size_t count, const size_t *array)
 {
 	(void) fprintf(stderr, "%s", label);
-	(void) fputc('\t',stderr);	
+	(void) fputc('\t',stderr);
 	for(; count > 0; count--, array++)
 		(void) fprintf(stderr," %lu", (unsigned long)*array);
-	(void) fputc('\n',stderr);	
+	(void) fputc('\n',stderr);
 }
 #endif /* ODEBUG */
 
@@ -67,7 +67,7 @@ arrayp(const char *label, size_t count, const size_t *array)
 /*
  * This is tunable parameter.
  * It essentially controls the tradeoff between the number of times
- * memcpy() gets called to copy the external data to fill 
+ * memcpy() gets called to copy the external data to fill
  * a large buffer vs the number of times its called to
  * prepare the external data.
  */
@@ -134,7 +134,7 @@ NCFILL(ulonglong, ulonglong, X_SIZEOF_ULONGLONG, NC_FILL_UINT64)
 
 
 
-/* 
+/*
  * Fill the external space for variable 'varp' values at 'recno' with
  * the appropriate value. If 'varp' is not a record variable, fill the
  * whole thing.  For the special case when 'varp' is the only record
@@ -185,12 +185,12 @@ fill_NC_var(NC3_INFO* ncp, const NC_var *varp, size_t varsize, size_t recno)
 	else
 	{
 		/* use the default */
-		
+
 		assert(xsz % X_ALIGN == 0);
 		assert(xsz <= sizeof(xfillp));
-	
+
 		xp = xfillp;
-	
+
 		switch(varp->type){
 		case NC_BYTE :
 			status = NC_fill_schar(&xp, nelems);
@@ -207,7 +207,7 @@ fill_NC_var(NC3_INFO* ncp, const NC_var *varp, size_t varsize, size_t recno)
 		case NC_FLOAT :
 			status = NC_fill_float(&xp, nelems);
 			break;
-		case NC_DOUBLE : 
+		case NC_DOUBLE :
 			status = NC_fill_double(&xp, nelems);
 			break;
                 case NC_UBYTE :
@@ -232,7 +232,7 @@ fill_NC_var(NC3_INFO* ncp, const NC_var *varp, size_t varsize, size_t recno)
 		}
 		if(status != NC_NOERR)
 			return status;
-	
+
 		assert(xp == xfillp + xsz);
 	}
 
@@ -259,7 +259,7 @@ fill_NC_var(NC3_INFO* ncp, const NC_var *varp, size_t varsize, size_t recno)
 		size_t ii;
 
 		status = ncio_get(ncp->nciop, offset, chunksz,
-				 RGN_WRITE, &xp);	
+				 RGN_WRITE, &xp);
 		if(status != NC_NOERR)
 		{
 			return status;
@@ -359,7 +359,7 @@ NCtouchlast(NC3_INFO* ncp, const NC_var *const *varpp, size_t recno)
 {
 	int status = NC_NOERR;
 	const NC_var *varp = NULL;
-	
+
 	{
 	size_t ii = 0;
 	for(; ii < ncp->vars.nelems; ii++, varpp++)
@@ -381,7 +381,7 @@ NCtouchlast(NC3_INFO* ncp, const NC_var *const *varpp, size_t recno)
 
 
 		status = ncio_get(ncp->nciop, offset, varp->xsz,
-				 RGN_WRITE, &xp);	
+				 RGN_WRITE, &xp);
 		if(status != NC_NOERR)
 			return status;
 		(void)memset(xp, 0, varp->xsz);
@@ -421,7 +421,7 @@ NCvnrecs(NC3_INFO* ncp, size_t numrecs)
 #endif
 		/* work-around for non-unique tickets */
 		if (nowserving > myticket && nowserving < myticket + numpe ) {
-			/* get a new ticket ... you've been bypassed */ 
+			/* get a new ticket ... you've been bypassed */
 			/* and handle the unlikely wrap-around effect */
 			myticket = shmem_short_finc(
 				(shmem_t *) ncp->lock + LOCKNUMREC_LOCK,
@@ -456,9 +456,9 @@ NCvnrecs(NC3_INFO* ncp, size_t numrecs)
 		}
 		else
 		{
-		    /* Treat two cases differently: 
+		    /* Treat two cases differently:
 		        - exactly one record variable (no padding)
-                        - multiple record variables (each record padded 
+                        - multiple record variables (each record padded
                           to 4-byte alignment)
 		    */
 		    NC_var **vpp = (NC_var **)ncp->vars.value;
@@ -466,7 +466,7 @@ NCvnrecs(NC3_INFO* ncp, size_t numrecs)
 		    NC_var *recvarp = NULL;	/* last record var */
 		    int numrecvars = 0;
 		    size_t cur_nrecs;
-		    
+
 		    /* determine how many record variables */
 		    for( /*NADA*/; vpp < end; vpp++) {
 			if(IS_RECVAR(*vpp)) {
@@ -474,7 +474,7 @@ NCvnrecs(NC3_INFO* ncp, size_t numrecs)
 			    numrecvars++;
 			}
 		    }
-		    
+
 		    if (numrecvars != 1) { /* usual case */
 			/* Fill each record out to numrecs */
 			while((cur_nrecs = NC_get_numrecs(ncp)) < numrecs)
@@ -505,7 +505,7 @@ NCvnrecs(NC3_INFO* ncp, size_t numrecs)
 			}
 			if(status != NC_NOERR)
 				goto common_return;
-			
+
 		    }
 		}
 
@@ -525,7 +525,7 @@ common_return:
 }
 
 
-/* 
+/*
  * Check whether 'coord' values are valid for the variable.
  */
 static int
@@ -563,7 +563,7 @@ NCcoordck(NC3_INFO* ncp, const NC_var *varp, const size_t *coord)
 		ip = coord;
 		up = varp->shape;
 	}
-	
+
 #ifdef CDEBUG
 fprintf(stderr,"	NCcoordck: coord %ld, count %d, ip %ld\n",
 		coord, varp->ndims, ip );
@@ -586,7 +586,7 @@ fprintf(stderr,"	NCcoordck: ip %p, *ip %ld, up %p, *up %lu\n",
 }
 
 
-/* 
+/*
  * Check whether 'edges' are valid for the variable and 'start'
  */
 /*ARGSUSED*/
@@ -620,7 +620,7 @@ NCedgeck(const NC3_INFO* ncp, const NC_var *varp,
 }
 
 
-/* 
+/*
  * Translate the (variable, coord) pair into a seek index
  */
 static off_t
@@ -644,7 +644,7 @@ NC_varoffset(const NC3_INFO* ncp, const NC_var *varp, const size_t *coord)
 		off_t *up = varp->dsizes +1;
 		const size_t *ip = coord;
 		const off_t *const end = varp->dsizes + varp->ndims;
-		
+
 		if(IS_RECVAR(varp))
 			up++, ip++;
 
@@ -652,10 +652,10 @@ NC_varoffset(const NC3_INFO* ncp, const NC_var *varp, const size_t *coord)
 			lcoord += (off_t)(*up) * (off_t)(*ip);
 
 		lcoord *= varp->xsz;
-		
+
 		if(IS_RECVAR(varp))
 			lcoord += (off_t)(*coord) * ncp->recsize;
-		
+
 		lcoord += varp->begin;
 		return lcoord;
 	}
@@ -692,10 +692,10 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 		size_t nput = ncx_howmany(varp->type, extent);
 
 		int lstatus = ncio_get(ncp->nciop, offset, extent,
-				 RGN_WRITE, &xp);	
+				 RGN_WRITE, &xp);
 		if(lstatus != NC_NOERR)
 			return lstatus;
-		
+
 		lstatus = ncx_putn_$1_$2(&xp, nput, value);
 		if(lstatus != NC_NOERR && status == NC_NOERR)
 		{
@@ -704,7 +704,7 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 		}
 
 		(void) ncio_rel(ncp->nciop, offset,
-				 RGN_MODIFIED);	
+				 RGN_MODIFIED);
 
 		remaining -= extent;
 		if(remaining == 0)
@@ -858,12 +858,12 @@ getNCvx_$1_$2(const NC3_INFO* ncp, const NC_var *varp,
 				 0, (void **)&xp);	/* cast away const */
 		if(lstatus != NC_NOERR)
 			return lstatus;
-		
+
 		lstatus = ncx_getn_$1_$2(&xp, nget, value);
 		if(lstatus != NC_NOERR && status == NC_NOERR)
 			status = lstatus;
 
-		(void) ncio_rel(ncp->nciop, offset, 0);	
+		(void) ncio_rel(ncp->nciop, offset, 0);
 
 		remaining -= extent;
 		if(remaining == 0)
@@ -1058,7 +1058,7 @@ NCiocount(const NC3_INFO* const ncp, const NC_var *const varp,
 	 * If there is only one dimension and and it is a "record dimension",
 	 *	edp is &edges[1] (out of bounds) and we will return 0;
 	 */
-	assert(shp >= varp->shape + varp->ndims -1 
+	assert(shp >= varp->shape + varp->ndims -1
 		|| *(edp +1) == *(shp +1));
 
 	/* now accumulate max count for a single io operation */
@@ -1100,7 +1100,7 @@ set_upper(size_t *upp, /* modified on return */
  * For some ii,
  * upp == &upper[ii]
  * cdp == &coord[ii]
- * 
+ *
  * Running this routine increments *cdp.
  *
  * If after the increment, *cdp is equal to *upp
@@ -1108,7 +1108,7 @@ set_upper(size_t *upp, /* modified on return */
  * *cdp is "zeroed" to the starting value and
  * we need to "carry", eg, increment one place to
  * the left.
- * 
+ *
  * TODO: Some architectures hate recursion?
  * 	Reimplement non-recursively.
  */
@@ -1121,7 +1121,7 @@ odo1(const size_t *const start, const size_t *const upper,
 	assert(coord <= cdp && cdp <= coord + NC_MAX_VAR_DIMS);
 	assert(upper <= upp && upp <= upper + NC_MAX_VAR_DIMS);
 	assert(upp - upper == cdp - coord);
-	
+
 	assert(*cdp <= *upp);
 
 	(*cdp)++;
@@ -1630,7 +1630,7 @@ NC3_get_vara(int ncid, int varid,
     const size_t* edges = edges0; /* so we can modify for special cases */
     size_t modedges[NC_MAX_VAR_DIMS];
 
-    status = NC_check_id(ncid, &nc); 
+    status = NC_check_id(ncid, &nc);
     if(status != NC_NOERR)
         return status;
     nc3 = NC3_DATA(nc);
@@ -1638,15 +1638,15 @@ NC3_get_vara(int ncid, int varid,
     if(NC_indef(nc3))
         return NC_EINDEFINE;
 
-    varp = NC_lookupvar(nc3, varid);
-    if(varp == NULL)
-        return NC_ENOTVAR;
+    status = NC_lookupvar(nc3, varid, &varp);
+    if(status != NC_NOERR)
+        return status;
 
     if(memtype == NC_NAT) memtype=varp->type;
 
     if(memtype == NC_CHAR && varp->type != NC_CHAR)
         return NC_ECHAR;
-    else if(memtype != NC_CHAR && varp->type == NC_CHAR)  
+    else if(memtype != NC_CHAR && varp->type == NC_CHAR)
         return NC_ECHAR;
 
     /* If edges is NULL, then this was called from nc_get_var() */
@@ -1757,7 +1757,7 @@ NC3_put_vara(int ncid, int varid,
     const size_t* edges = edges0; /* so we can modify for special cases */
     size_t modedges[NC_MAX_VAR_DIMS];
 
-    status = NC_check_id(ncid, &nc); 
+    status = NC_check_id(ncid, &nc);
     if(status != NC_NOERR)
         return status;
     nc3 = NC3_DATA(nc);
@@ -1768,15 +1768,16 @@ NC3_put_vara(int ncid, int varid,
     if(NC_indef(nc3))
         return NC_EINDEFINE;
 
-    varp = NC_lookupvar(nc3, varid);
-    if(varp == NULL)
-        return NC_ENOTVAR; /* TODO: lost NC_EGLOBAL */
+    status = NC_lookupvar(nc3, varid, &varp);
+    if(status != NC_NOERR)
+       return status; /*invalid varid */
+
 
     if(memtype == NC_NAT) memtype=varp->type;
 
     if(memtype == NC_CHAR && varp->type != NC_CHAR)
         return NC_ECHAR;
-    else if(memtype != NC_CHAR && varp->type == NC_CHAR)  
+    else if(memtype != NC_CHAR && varp->type == NC_CHAR)
         return NC_ECHAR;
 
     /* Get the size of the memtype */

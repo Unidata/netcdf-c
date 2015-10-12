@@ -402,7 +402,7 @@ static void
 ncio_fileio_init(ncio *const nciop)
 {
 	ncio_ffio *ffp = (ncio_ffio *)nciop->pvt;
-
+p
 	*((ncio_relfunc **)&nciop->rel) = ncio_fileio_rel; /* cast away const */
 	*((ncio_getfunc **)&nciop->get) = ncio_fileio_get; /* cast away const */
 	*((ncio_movefunc **)&nciop->move) = ncio_fileio_move; /* cast away const */
