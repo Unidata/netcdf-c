@@ -7,6 +7,10 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.0 Released TBD
 
+### 4.4.0-RC4 TBD
+
+* The documentation section `The Default Chunking Scheme` has been updated with more information.  This lives in the `guide.dox` file in the `docs/` directory, or can be found online in the appropriate location (typically http://www.unidata.ucar.edu/netcdf/docs), once this release has been published.
+
 ### 4.4.0-RC3 2015-10-08
 
 * Addressed an inefficiency in how bytes would be swapped when converting between `LITTLE` and `BIG` ENDIANNESS.  See [NCF-338](https://bugtracking.unidata.ucar.edu/browse/NCF-338) for more information.
