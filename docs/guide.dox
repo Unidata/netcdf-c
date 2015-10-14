@@ -1630,24 +1630,17 @@ NF_SET_VAR_CHUNK_CACHE, ).
 
 \section default_chunking_4_1 The Default Chunking Scheme
 
-When the data writer does not specify chunk sizes for variable, the
-netCDF library has to come up with some default values.
+Unfortunately, there are no general-purpose chunking defaults that are optimal for all uses. Different patterns of access lead to different chunk shapes and sizes for optimum access. Optimizing for a single specific pattern of access can degrade performance for other access patterns.  By creating or rewriting datasets using appropriate chunking, it is sometimes possible to support efficient access for multiple patterns of access.
 
-For unlimited dimensions, a chunk size of one is always used. For
-large datasets, where the size of fixed dimensions is small compared
-to the unlimited dimensions, users are advised to avoid unlimited
-dimensions or to increase the chunk sizes of the unlimited
-dimensions. Be aware that an unlimited dimension with chunksize > 1
-may result in slower performance for record-oriented access patterns
-that where common with netcdf-3.
+If you don't know or can't anticipate what access patterns will be most common, or you want to store a variable in a way that will support reasonable access along any of its dimensions, you can use the library's default chunking strategy.
 
-For unlimited dimensions, a chunk size of one is always used. For
-large datasets, where the size of fixed dimensions is small compared
-to the unlimited dimensions, users are advised to avoid unlimited
-dimensions or to increase the chunk sizes of the unlimited
-dimensions. Be aware that an unlimited dimension with chunksize > 1
-may result in slower performance for record-oriented access patterns
-that where common with netcdf-3.
+The size and shape of chunks for each individual variable are determined at creation time by the size of each variable element and by the shape of the variable, specified by the ordered list of its dimensions and the lengths of each dimension, with special rules for unlimited dimensions.
+
+The best default chunk size would be as large as possible without exceeding the size of a physical disk access. However, block sizes differ for different file systems and platforms, and in particular may be different when the data is first written and later read. Currently the netCDF default chunk size is 4MiB, which is reasonable for filesystems on high-performance computing platforms. A different default may be specified at configuration time when building the library from source, for example 4KiB for filesystems with small physical block sizes.
+
+The current default chunking strategy of the netCDF library is to balance access time along any of a variable's dimensions, by using chunk shapes similar to the shape of the entire variable but small enough that the resulting chunk size is less than or equal to the default chunk size. This differs from an earlier default chunking strategy that always used one for the length of a chunk along any unlimited dimension, and otherwise divided up the number of chunks along fixed dimensions to keep chunk sizes less than or equal to the default chunk size.
+
+A pragmatic exception to the default strategy is used for variables that only have a single unlimited dimension, for example time series with only a time dimension. In that case, in order to avoid chunks much larger than needed when there are only a small number of records, the chunk sizes for such variables are limited to 4KiB. This may be overridden by explicitly setting the chunk shapes for such variables.
 
 \section chunking_parallel_io Chunking and Parallel I/O
 
