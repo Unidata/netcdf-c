@@ -136,7 +136,7 @@ extern "C" {
 #define NC_MMAP          0x0010  /**< Use diskless file with mmap. Mode flag for nc_open() or nc_create(). */
 
 #define NC_64BIT_DATA    0x0020  /**< CDF-5 format: classic model but 64 bit dimensions and sizes */
-#define NC_CDF5          NC_64BIT_DATA  /**< Alias */
+#define NC_CDF5          NC_64BIT_DATA  /**< Alias NC_CDF5 to NC_64BIT_DATA */
 
 #define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model on netCDF-4. Mode flag for nc_create(). */
 #define NC_64BIT_OFFSET  0x0200  /**< Use large (64-bit) file offsets. Mode flag for nc_create(). */
@@ -178,7 +178,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
    NC_FORMAT_64BIT was renamed to NC_FORMAT_CDF2
 */
 #define NC_FORMAT_64BIT           (2) /**< Saved for compatibility.  Use NC_FORMAT_64BIT_OFFSET or NC_FORMAT_64BIT_DATA, from netCDF 4.4.0 onwards. *//
-#define NC_FORMAT_64BIT_OFFSET    NC_FORMAT_64BIT
+#define NC_FORMAT_64BIT_OFFSET    (2)
 #define NC_FORMAT_NETCDF4         (3)
 #define NC_FORMAT_NETCDF4_CLASSIC (4)
 #define NC_FORMAT_64BIT_DATA      (5)
