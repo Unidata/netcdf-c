@@ -175,9 +175,10 @@ Use this in mode flags for both nc_create() and nc_open(). */
 /* After adding CDF5 support, this flag
    is somewhat confusing. So, it is renamed.
    Note that the name in the contributed code
-   NC_FORMAT_64_BIT was renamed to NC_FORMAT_CDF2
+   NC_FORMAT_64BIT was renamed to NC_FORMAT_CDF2
 */
-#define NC_FORMAT_64BIT_OFFSET    (2)
+#define NC_FORMAT_64BIT           (2) /**< Saved for compatibility.  Use NC_FORMAT_64BIT_OFFSET or NC_FORMAT_64BIT_DATA, from netCDF 4.4.0 onwards. *//
+#define NC_FORMAT_64BIT_OFFSET    NC_FORMAT_64BIT
 #define NC_FORMAT_NETCDF4         (3)
 #define NC_FORMAT_NETCDF4_CLASSIC (4)
 #define NC_FORMAT_64BIT_DATA      (5)
@@ -204,15 +205,31 @@ Use this in mode flags for both nc_create() and nc_open(). */
  * Note that CDF-5 returns NC_FORMAT_NC3, but sets the mode flag properly.
  */
 /**@{*/
+
 #define NC_FORMATX_NC3       (1)
-#define NC_FORMATX_NC_HDF5   (2) /* netCDF-4 subset of HDF5 */
-#define NC_FORMATX_NC4       NC_FORMATX_NC_HDF5 /* alias */
-#define NC_FORMATX_NC_HDF4   (3) /* netCDF-4 subset of HDF4 */
+#define NC_FORMATX_NC_HDF5   (2) /**< netCDF-4 subset of HDF5 */
+#define NC_FORMATX_NC4       NC_FORMATX_NC_HDF5 /**< alias */
+#define NC_FORMATX_NC_HDF4   (3) /**< netCDF-4 subset of HDF4 */
 #define NC_FORMATX_PNETCDF   (4)
 #define NC_FORMATX_DAP2      (5)
 #define NC_FORMATX_DAP4      (6)
 #define NC_FORMATX_UNDEFINED (0)
-/**@}*/
+
+  /* To avoid breaking compatibility (such as in the python library),
+   we need to retain the NC_FORMAT_xxx format as well. This may come
+  out eventually, as the NC_FORMATX is more clear that it's an extended
+  format specifier.*/
+
+  #define NC_FORMAT_NC3       NC_FORMATX_NC3
+  #define NC_FORMAT_NC_HDF5   NC_FORMATX_NC_HDF5
+  #define NC_FORMAT_NC4       NC_FORMATX_NC4
+  #define NC_FORMAT_NC_HDF4   NC_FORMATX_HDF4
+  #define NC_FORMAT_PNETCDF   NC_FORMATX_PNETCDF
+  #define NC_FORMAT_DAP2      NC_FORMATX_DAP2
+  #define NC_FORMAT_DAP4      NC_FORMATX_DAP4
+  #define NC_FORMAT_UNDEFINED NC_FORMATX_UNDEFED
+
+  /**@}*/
 
 /** Let nc__create() or nc__open() figure out a suitable buffer size. */
 #define NC_SIZEHINT_DEFAULT 0
