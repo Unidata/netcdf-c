@@ -1,24 +1,38 @@
+sudo: false
 language: c
 compiler:
   - gcc
   - clang
 
+addons:
+    apt:
+      packages:
+      - libcurl4-openssl-dev
+      - m4
+      - wget
+      - autoconf
+      - libtool
+      - gfortran
+      - git
+
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y -qq libcurl4-openssl-dev m4 wget autoconf libtool clang libjpeg8-dev
+
+before_script:
 
   ###
   # Install dependencies from a pre-built binary.
   ###
-  - cd /
-  - sudo wget http://www.unidata.ucar.edu/downloads/netcdf/ftp/travisdeps.tar.bz2
-  - sudo tar -jxf travisdeps.tar.bz2
+  - cd $HOME
+  - wget http://www.unidata.ucar.edu/downloads/netcdf/ftp/travisdeps.tar.bz2
+
+  - tar -jxf travisdeps.tar.bz2
+  - export LD_LIBRARY_PATH=$HOME/usr/lib
+  - export PATH=$HOME/usr/bin:$PATH
   - cd -
 
-before_script:
   - mkdir build
   - cd build
-  - cmake .. -DENABLE_EXTRA_TESTS=ON -DENABLE_HDF4=ON
+  - cmake .. -DENABLE_EXTRA_TESTS=ON -DENABLE_HDF4=ON -DCMAKE_PREFIX_PATH=$HOME/usr
 
 script:
   - make -j 4
