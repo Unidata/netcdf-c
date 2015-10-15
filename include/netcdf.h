@@ -220,16 +220,16 @@ Use this in mode flags for both nc_create() and nc_open(). */
   out eventually, as the NC_FORMATX is more clear that it's an extended
   format specifier.*/
 
-  #define NC_FORMAT_NC3       NC_FORMATX_NC3
-  #define NC_FORMAT_NC_HDF5   NC_FORMATX_NC_HDF5
-  #define NC_FORMAT_NC4       NC_FORMATX_NC4
-  #define NC_FORMAT_NC_HDF4   NC_FORMATX_HDF4
-  #define NC_FORMAT_PNETCDF   NC_FORMATX_PNETCDF
-  #define NC_FORMAT_DAP2      NC_FORMATX_DAP2
-  #define NC_FORMAT_DAP4      NC_FORMATX_DAP4
-  #define NC_FORMAT_UNDEFINED NC_FORMATX_UNDEFED
+#define NC_FORMAT_NC3       NC_FORMATX_NC3 /**< \deprecated As of 4.4.0, use NC_FORMATX_NC3 */
+#define NC_FORMAT_NC_HDF5   NC_FORMATX_NC_HDF5 /**< \deprecated As of 4.4.0, use NC_FORMATX_NC_HDF5 */
+#define NC_FORMAT_NC4       NC_FORMATX_NC4 /**< \deprecated As of 4.4.0, use NC_FORMATX_NC4 */
+#define NC_FORMAT_NC_HDF4   NC_FORMATX_HDF4 /**< \deprecated As of 4.4.0, use NC_FORMATX_HDF4 */
+#define NC_FORMAT_PNETCDF   NC_FORMATX_PNETCDF /**< \deprecated As of 4.4.0, use NC_FORMATX_PNETCDF */
+#define NC_FORMAT_DAP2      NC_FORMATX_DAP2 /**< \deprecated As of 4.4.0, use NC_FORMATX_DAP2 */
+#define NC_FORMAT_DAP4      NC_FORMATX_DAP4 /**< \deprecated As of 4.4.0, use NC_FORMATX_DAP4 */
+#define NC_FORMAT_UNDEFINED NC_FORMATX_UNDEFINED /**< \deprecated As of 4.4.0, use NC_FORMATX_UNDEFINED */
 
-  /**@}*/
+/**@}*/
 
 /** Let nc__create() or nc__open() figure out a suitable buffer size. */
 #define NC_SIZEHINT_DEFAULT 0
