@@ -7,12 +7,12 @@ define(<<CODE>>, <<\fB$1\fR>>)
 
 define(<<ARG>>, <<\fI$1\fP>>)
 
-define(<<HEADER_FILE>>, 
+define(<<HEADER_FILE>>,
     <<ifelse(API,C,
 	$1.h,
 	$1.inc)>>)
 
-define(<<INCLUDE>>, 
+define(<<INCLUDE>>,
     <<ifelse(API,C,
 	<<#include>> "HEADER_FILE($1)",
 	<<<<include>>>> HEADER_FILE($1))>>)
@@ -76,7 +76,7 @@ dnl CSTAR(io, rank)
 define(<<CSTAR>>, <<ifelse($1,input,,<<ifelse($2,0,*)>>)>>)
 
 dnl FTYPE(type, rank)
-define(<<FTYPE>>, 
+define(<<FTYPE>>,
     <<ifelse($1,text,<<character*ifelse($2,0,1,(*))>>,
     <<ifelse($1,schar,integer*1,
     <<ifelse($1,short,integer*2,
@@ -99,12 +99,12 @@ define(<<FTYPE>>,
 
 dnl ATYPE(io,rank,type)
 define(<<ATYPE>>, <<ifelse(API,C,
-    <<CTYPE($3)<<>>CSTAR($1,$2)>>, 
+    <<CTYPE($3)<<>>CSTAR($1,$2)>>,
     <<FTYPE($3,$2)>>)>>)
 
 dnl AID(name, rank, type)
 define(<<AID>>, <<ARG($1)<<>>ifelse(API,C,
-    <<ifelse($2,0,,[])>>, 
+    <<ifelse($2,0,,[])>>,
     <<ifelse($3,text,,<<ifelse($2,0,,(1))>>)>>)>>)
 
 dnl ADECL(io, rank, type, name)
@@ -206,7 +206,7 @@ define(<<OVOIDP>>,	<<ADECL(output,0,voidp,$1)>>)
 define(<<OVOIDPV>>,	<<ADECL(output,1,voidp,$1)>>)
 
 dnl CCOMP(type)
-define(<<CCOMP>>, 
+define(<<CCOMP>>,
     <<ifelse($1,text,text,
     <<ifelse($1,uchar,uchar,
     <<ifelse($1,schar,schar,
@@ -225,7 +225,7 @@ define(<<CCOMP>>,
 )>>)>>)>>)>>)>>)>>)>>)>>)>>)>>)>>)>>)>>)>>)>>)
 
 dnl FCOMP(type)
-define(<<FCOMP>>, 
+define(<<FCOMP>>,
     <<ifelse($1,text,text,
     <<ifelse($1,schar,int1,
     <<ifelse($1,short,int2,
@@ -244,7 +244,7 @@ dnl COMP(type)
 define(<<COMP>>, <<ifelse(API,C,<<CCOMP($1)>>,<<FCOMP($1)>>)>>)
 
 define(<<FDECL_TYPE>>,
-    <<ifelse(API,C, 
+    <<ifelse(API,C,
 	int,
 	integer function)>>)
 
@@ -345,7 +345,7 @@ define(<<VARIDIN>>, <<ARG(varid_in)>>)
 define(<<VARIDOUT>>, <<ARG(varid_out)>>)
 define(<<XTYPE>>, <<ARG(xtype)>>)
 
-define(<<UPCASE>>, 
+define(<<UPCASE>>,
 <<translit($1,abcdefghijklmnopqrstuvwxyz,ABCDEFGHIJKLMNOPQRSTUVWXYZ)>>)
 
 dnl Variable "Put" Functions:
@@ -462,7 +462,7 @@ FREF(inq_libvers) and FREF(strerror)) return an integer status.
 
 If this returned status value is not equal to
 MACRO(NOERR) (zero), it
-indicates that an error occurred. The possible status values are defined in 
+indicates that an error occurred. The possible status values are defined in
 ifelse(API,C, system <<<<include>>>> file <errno.h> and in )<<>>dnl
 ifelse(API,C,")HEADER_FILE(netcdf)<<>>ifelse(API,C,").
 .HP
@@ -492,11 +492,11 @@ When a netCDF dataset is created, is is opened
 MACRO(WRITE).
 The new netCDF dataset is in <<define>> mode.
 MACRO(64BIT_OFFSET).
-to create a file in the 64-bit offset format 
-(as opposed to classic format, the default). 
+to create a file in the 64-bit offset format
+(as opposed to classic format, the default).
 ifelse(NETCDF4,TRUE,
-<<MACRO(NETCDF4) to create a netCDF-4/HDF5 file, 
-and MACRO(CLASSIC_MODEL) to guarantee that netCDF-4/HDF5 files maintain compatibility 
+<<MACRO(NETCDF4) to create a netCDF-4/HDF5 file,
+and MACRO(CLASSIC_MODEL) to guarantee that netCDF-4/HDF5 files maintain compatibility
 with the netCDF classic data model.>>,
 .
 )
@@ -549,7 +549,7 @@ The actual value chosen is returned by reference.
 Using the value MACRO(SIZEHINT_DEFAULT) causes the library to choose a
 default.
 How the system choses the default depends on the system.
-On many systems, the "preferred I/O block size" is available from the 
+On many systems, the "preferred I/O block size" is available from the
 CODE(stat()) system call, CODE(struct stat) member CODE(st_blksize).
 If this is available it is used. Lacking that, twice the system pagesize
 is used.
@@ -567,8 +567,8 @@ FDECL(redef, (INCID()))
 .sp
 (Corresponds to FOLD(redef, redf) in version 2)
 .sp
-Puts an open netCDF dataset into <<define>> mode, 
-so dimensions, variables, and attributes can be added or renamed and 
+Puts an open netCDF dataset into <<define>> mode,
+so dimensions, variables, and attributes can be added or renamed and
 attributes can be deleted.
 .HP
 FDECL(enddef, (INCID()))
@@ -706,7 +706,7 @@ UNLIMDIMID() will contain the
 dimension ID of the unlimited dimension if one exists, or
 ifelse(API,C, <<\-1>>, <<0>>) otherwise.
 FORMATN() will contain the version number of the dataset <format>, one of
-MACRO(FORMAT_CLASSIC), MACRO(FORMAT_64BIT), MACRO(FORMAT_NETCDF4), or
+MACRO(FORMAT_CLASSIC), MACRO(FORMAT_64BIT_OFFSET), MACRO(FORMAT_NETCDF4), or
 MACRO(FORMAT_NETCDF4_CLASSIC).
 ifelse(API,C,
 <<If any of the
@@ -717,7 +717,7 @@ FDECL(def_dim, (INCID(), INAME(), ILEN(), ODIMID()))
 .sp
 (Corresponds to FOLD(dimdef, ddef) in version 2)
 .sp
-Adds a new dimension to an open netCDF dataset, which must be 
+Adds a new dimension to an open netCDF dataset, which must be
 in <<define>> mode.
 NAME() is the dimension name.
 ifelse(API,C,dnl
@@ -743,7 +743,7 @@ FDECL(insert_compound, (INCID(), INCTYPE(), INAME(), ISIZET(offset), INCTYPE(fie
 Insert an element into a compound type. May not be done after type has been used, or after the type has been written by an enddef.
 .HP
 FDECL(insert_array_compound, (INCID(), INCTYPE(), INAME(), ISIZET(offset), INCTYPE(field_typeid), INDIMS(), IINTV(dim_sizes)))
-.sp 
+.sp
 Insert an array into a compound type.
 .HP
 FDECL(inq_type, (INCID(), INCTYPE(), ONAME(), OSIZET(sizep)))
@@ -894,7 +894,7 @@ FDECL(rename_dim, (INCID(), IDIMID(), INAME()))
 (Corresponds to FOLD(dimrename, dren) in version 2)
 .sp
 Renames an existing dimension in an open netCDF dataset.
-If the new name is longer than the old name, the netCDF dataset must be in 
+If the new name is longer than the old name, the netCDF dataset must be in
 <<define>> mode.
 You cannot rename a dimension to have the same name as another dimension.
 .SH "VARIABLES"
@@ -1004,7 +1004,7 @@ converted to integers.
 FUNC_FAMILY(<<GET_VAR>>)
 .sp
 Reads an entire netCDF variable (i.e. all the values).
-The netCDF dataset must be open and in data mode.  
+The netCDF dataset must be open and in data mode.
 The data is converted from the external type of the specified variable,
 if necessary, to the type specified in the function name.  If conversion is
 not possible, an MACRO(ERANGE) error is returned.
@@ -1020,7 +1020,7 @@ error is returned.
 FUNC_FAMILY(<<GET_VAR1>>)
 .sp
 Gets a single data value from a variable at the position INDEX()
-of an open netCDF dataset that is in data mode.  
+of an open netCDF dataset that is in data mode.
 The data is converted from the external type of the specified variable,
 if necessary, to the type specified in the function name.  If conversion is
 not possible, an MACRO(ERANGE) error is returned.
@@ -1058,7 +1058,7 @@ vector, see COMMON ARGUMENTS DESCRIPTIONS below.
 FUNC_FAMILY(<<GET_VARS>>)
 .sp
 These functions are used for \fIstrided input\fP, which is like the
-array section input described above, except that 
+array section input described above, except that
 the sampling stride (the interval between accessed values) is
 specified for each dimension.
 For an explanation of the sampling stride
@@ -1089,7 +1089,7 @@ FDECL(put_att, (INCID(), IVARID(), INAME(), INCTYPE(xtype), ISIZET(len), IVOIDP(
 .HP
 FDECL(get_att, (INCID(), IVARID(), INAME(), OVOIDP(ip)))
 .sp
-Unlike variables, attributes do not have 
+Unlike variables, attributes do not have
 separate functions for defining and writing values.
 This family of functions defines a new attribute with a value or changes
 the value of an existing attribute.
@@ -1106,7 +1106,7 @@ the in-memory type of the value, whereas the XTYPE() argument refers to the
 external type for storing the value.  An MACRO(ERANGE)
 error results if
 a conversion between these types is not possible.  In this case the value
-is represented with the appropriate fill-value for the associated 
+is represented with the appropriate fill-value for the associated
 external type.
 .HP
 FDECL(inq_attname, (INCID(), IVARID(), IATTNUM(), ONAME()))
@@ -1158,7 +1158,7 @@ for a global attribute.
 NAME()
 is the name of the attribute in the input netCDF dataset to be copied.
 NCIDOUT()
-is the netCDF ID of the output netCDF dataset to which the attribute will be 
+is the netCDF ID of the output netCDF dataset to which the attribute will be
 copied.
 It is permissible for the input and output netCDF ID's to be the same.  The
 output netCDF dataset should be in <<define>> mode if the attribute to be
@@ -1197,7 +1197,7 @@ FREF(inq_attlen)
 first to find out the length of the attribute.
 .SH "COMMON ARGUMENT DESCRIPTIONS"
 .LP
-In this section we <<define>> some common arguments which are used in the 
+In this section we <<define>> some common arguments which are used in the
 "FUNCTION DESCRIPTIONS" section.
 .TP
 INCID()
@@ -1205,23 +1205,23 @@ is the netCDF ID returned from a previous, successful call to
 FREF(open) or FREF(create)
 .TP
 ONAME()
-is the name of a dimension, variable, or attribute. The names of 
+is the name of a dimension, variable, or attribute. The names of
 dimensions, variables and attributes consist of arbitrary
 sequences of alphanumeric characters (as well as underscore '_',
 period '.' and hyphen '-'), beginning with a letter or
 underscore. (However names commencing with underscore are reserved for
 system use.) Case is significant in netCDF names. A zero-length name
 is not allowed.
-ifelse(API,C,<<As an input argument, 
-it shall be a pointer to a 0-terminated string; as an output argument, it 
+ifelse(API,C,<<As an input argument,
+it shall be a pointer to a 0-terminated string; as an output argument, it
 shall be the address of a buffer in which to hold such a string.>>)
-The maximum allowable number of characters 
+The maximum allowable number of characters
 ifelse(API,C,(excluding the terminating 0)) is MACRO(MAX_NAME).
 .TP
 IXTYPE()
 specifies the external data type of a netCDF variable or attribute and
 is one of the following:
-MACRO(BYTE), MACRO(CHAR), MACRO(SHORT), MACRO(INT), 
+MACRO(BYTE), MACRO(CHAR), MACRO(SHORT), MACRO(INT),
 MACRO(FLOAT), or MACRO(DOUBLE).
 These are used to specify 8-bit integers,
 characters, 16-bit integers, 32-bit integers, 32-bit IEEE floating point
@@ -1247,22 +1247,22 @@ MACRO(MAX_VAR_DIMS).
 .TP
 IDIMID()
 is the ID of a netCDF dimension.
-netCDF dimension ID's are allocated sequentially from the 
+netCDF dimension ID's are allocated sequentially from the
 ifelse(API,C,non-negative, positive)
 integers beginning with ifelse(API,C,0,1).
 .TP
 INDIMS()
 is either the total number of dimensions in a netCDF dataset or the rank
 (i.e. the number of dimensions) of a netCDF variable.
-The value shall not be negative or greater than the symbolic constant 
+The value shall not be negative or greater than the symbolic constant
 MACRO(MAX_VAR_DIMS).
 .TP
 IVARID()
-is the ID of a netCDF variable or (for the attribute-access functions) 
+is the ID of a netCDF variable or (for the attribute-access functions)
 the symbolic constant
 MACRO(GLOBAL),
 which is used to reference global attributes.
-netCDF variable ID's are allocated sequentially from the 
+netCDF variable ID's are allocated sequentially from the
 ifelse(API,C,non-negative,positive)
 integers beginning with ifelse(API,C,0,1).
 .TP
@@ -1286,7 +1286,7 @@ variable's dimensions.
 ISTART()
 specifies the starting point
 for accessing a netCDF variable's data values
-in terms of the indicial coordinates of 
+in terms of the indicial coordinates of
 the corner of the array section.
 The indices start at ifelse(API,C,0,1);
 thus, the first data
@@ -1301,7 +1301,7 @@ array section.
 Thus, to access a single value, for example, specify COUNT() as
 (1, 1, ..., 1).
 Note that, for strided I/O, this argument must be adjusted
-to be compatible with the STRIDE() and START() arguments so that 
+to be compatible with the STRIDE() and START() arguments so that
 the interaction of the
 three does not attempt to access an invalid data co-ordinate.
 The elements of the
@@ -1311,7 +1311,7 @@ ISTRIDE()
 specifies the sampling interval along each dimension of the netCDF
 variable.   The elements of the stride vector correspond, in order,
 to the netCDF variable's dimensions (ARG(stride)<<>>ifelse(API,C,[0],<<(1)>>))
-gives the sampling interval along the most ifelse(API,C,slowly,rapidly) 
+gives the sampling interval along the most ifelse(API,C,slowly,rapidly)
 varying dimension of the netCDF variable).  Sampling intervals are
 specified in type-independent units of elements (a value of 1 selects
 consecutive elements of the netCDF variable along the corresponding
@@ -1334,7 +1334,7 @@ the same structure as the associated netCDF variable.>>)
 .LP
 By default, the netCDF interface sets the values of
 all newly-defined variables of finite length (i.e. those that do not have
-an unlimited, dimension) to the type-dependent fill-value associated with each 
+an unlimited, dimension) to the type-dependent fill-value associated with each
 variable.  This is done when FREF(enddef)
 is called.  The
 fill-value for a variable may be changed from the default value by
@@ -1363,14 +1363,14 @@ For variables that
 use the unlimited dimension, this call
 may be made at any time.
 .LP
-One can obtain increased performance of the netCDF interface by using 
+One can obtain increased performance of the netCDF interface by using
 this feature, but only at the expense of requiring the application to set
 every single data value.  The performance
 enhancing behavior of this function is dependent on the particulars of
 the implementation and dataset <<format>>.
 The flag value controlled by FREF(set_fill)
 is per netCDF ID,
-not per variable or per write. 
+not per variable or per write.
 Allowing this to change affects the degree to which
 a program can be effectively parallelized.
 Given all of this, we state that the use
@@ -1383,7 +1383,7 @@ ifelse(API,C,
 <<.sp
 (Corresponds to FOLD(setfill) in version 2)>>)
 .sp
-Determines whether or not variable prefilling will be done (see 
+Determines whether or not variable prefilling will be done (see
 above).
 The netCDF dataset shall be writable.
 FILLMODE() is either MACRO(FILL)
@@ -1397,7 +1397,7 @@ ifelse(PARALLEL_IO,TRUE,
 .HP
 FDECL(create_par, (IPATH(), ICMODE(), MPI_Comm comm, MPI_Info info, ONCID()))
 .sp
-Like FREF(create) but creates for parallel I/O access. The mode must specify a 
+Like FREF(create) but creates for parallel I/O access. The mode must specify a
 netCDF-4/HDF5 dataset.
 .sp
 .HP
@@ -1458,8 +1458,8 @@ under only the most extreme cases.
 Specifies the Flexible File I/O buffers for netCDF I/O when executing
 under the UNICOS operating system (the variable is ignored on other
 operating systems).
-An appropriate specification can greatly increase the efficiency of 
-netCDF I/O -- to the extent that it can actually surpass FORTRAN binary 
+An appropriate specification can greatly increase the efficiency of
+netCDF I/O -- to the extent that it can actually surpass FORTRAN binary
 I/O.
 This environment variable has been made a little more generalized,
 such that other FFIO option specifications can now be added.
