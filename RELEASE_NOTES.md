@@ -12,19 +12,19 @@ This file contains a high-level description of this package's evolution. Release
 
 * Added CDM-5 support via new mode flag called NC_64BIT_DATA (alias NC_CDF5).
 
-    > Major kudos to Wei-Keng Liao for all the effort he put into getting this to work.
+	Major kudos to Wei-Keng Liao for all the effort he put into getting this to work.
 
     This cascaded into a number of other changes.
   
     1. Renamed libsrcp5 -> libsrcp because pnetcdf can do parallel io for CDF-1, CDF-2 and CDF-5, not just CDF-5.
-    2. Given #1, then the NC\_PNETCDF mode flag becomes a subset of NC\_MPIIO, so made NC\_PNETCDF an alias for NC_MPII.
-    3. NC\_FORMAT\_64BIT is now deprecated.  Use NC\_FORMAT\_64BIT\_OFFSET
+    2. Given #1, then the NC_PNETCDF mode flag becomes a subset of NC_MPIIO, so made NC_PNETCDF an alias for NC_MPII.
+    3. NC_FORMAT_64BIT is now deprecated.  Use NC_FORMAT_64BIT_OFFSET.
 
 * Modified configure.ac to provide finer control over parallel
   support. Specifically, add flags for:
   
-1. HDF5_PARALLEL when hdf5 library has parallel enabled
-2. --disable-parallel4 to be used when we do not want
+    1. HDF5_PARALLEL when hdf5 library has parallel enabled
+    2. --disable-parallel4 to be used when we do not want
      netcdf-4 to use parallelism even if hdf5 has it enabled.
 
 
