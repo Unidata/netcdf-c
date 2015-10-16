@@ -49,7 +49,7 @@ if ! test -f $TMP/${d1}-3d.nc3; then
     cp /upc/share/testdata/nssl/mosaic3d_nc/tile1/20070803-2300.netcdf $TMP/${d1}-3d.nc3
 fi
 
-# Test diferent compressions, with and without shuffle.
+# Test different compressions, with and without shuffle.
 out1=radar_3d_compression.txt
 c0=3
 c1=100

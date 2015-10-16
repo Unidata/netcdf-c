@@ -43,7 +43,7 @@
 
 /*
  * The integer return code for the conversion routines
- * is 0 (ENOERR) when no error occured, or NC_ERANGE as appropriate
+ * is 0 (ENOERR) when no error occurred, or NC_ERANGE as appropriate
  * for an overflow conversion.
  */
 #ifndef ENOERR
@@ -192,10 +192,10 @@ typedef signed char schar;
  *
  * Storage for a single element of internal type is at `ip' argument.
  *
- * These functions return 0 (ENOERR) when no error occured,
+ * These functions return 0 (ENOERR) when no error occurred,
  * or NC_ERANGE when the value being converted is too large.
  * When NC_ERANGE occurs, an undefined (implementation dependent)
- * conversion may have occured.
+ * conversion may have occurred.
  *
  * Note that loss of precision may occur silently.
  *

@@ -300,7 +300,7 @@ main(int argc, char **argv)
       SUMMARIZE_ERR;
 
 #ifndef NO_NETCDF_2
-      /* The following test is an attempt to recreate a problem occuring
+      /* The following test is an attempt to recreate a problem occurring
          in the cxx tests. The file is created in c++ in nctsts.cpp. */
       printf("**** testing fill value with example from cxx tests in v2 api...");
       {
@@ -846,7 +846,7 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_var(ncid, GENERIC_NAME, NC_BYTE, 0, NULL, &varid)) ERR;
 
-      /* These don'e work, becuase the name is already in use. Make
+      /* These don'e work, because the name is already in use. Make
        * sure the correct error is returned. */
       if (nc_def_grp(ncid, GENERIC_NAME, NULL) != NC_ENAMEINUSE) ERR;
       if (nc_def_opaque(ncid, 1, GENERIC_NAME, NULL) != NC_ENAMEINUSE) ERR;
@@ -878,7 +878,7 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_opaque(ncid, 1, GENERIC_NAME, NULL)) ERR;
 
-      /* These don'e work, becuase the name is already in use. Make
+      /* These don'e work, because the name is already in use. Make
        * sure the correct error is returned. */
       if (nc_def_grp(ncid, GENERIC_NAME, NULL) != NC_ENAMEINUSE) ERR;
       if (nc_def_var(ncid, GENERIC_NAME, NC_BYTE, 0, NULL, &varid) != NC_ENAMEINUSE) ERR;
@@ -907,7 +907,7 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_grp(ncid, GENERIC_NAME, NULL)) ERR;
 
-      /* These don'e work, becuase the name is already in use. Make
+      /* These don'e work, because the name is already in use. Make
        * sure the correct error is returned. */
       if (nc_def_opaque(ncid, 1, GENERIC_NAME, NULL) != NC_ENAMEINUSE) ERR;
       if (nc_def_var(ncid, GENERIC_NAME, NC_BYTE, 0, NULL, &varid) != NC_ENAMEINUSE) ERR;

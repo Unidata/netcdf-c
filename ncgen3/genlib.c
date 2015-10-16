@@ -860,7 +860,7 @@ cline(
 }
 
 /*
- * From a long line FORTRAN statment, generates the necessary FORTRAN
+ * From a long line FORTRAN statement, generates the necessary FORTRAN
  * lines with continuation characters in column 6.  If stmnt starts with "*",
  * it is treated as a one-line comment.  Statement labels are *not* handled,
  * but since we don't generate any labels, we don't care.

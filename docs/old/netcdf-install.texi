@@ -650,7 +650,7 @@ in which case this flag should be disabled.
 @item --enable-dap-long-tests
 If --enable-dap-remote-tests is enabled, then this
 flag can also be enabled to add extra tests that may
-take signficant time to execute. 
+take significant time to execute. 
 This flag is off by default.
 
 @item --enable-hdf4
@@ -760,7 +760,7 @@ Change the size (in bytes) that will be used as a target size when
 computing default chunksizes for netCDF-4/HDF5 chunked variables.
 
 @item --default-chunks-in-cache
-Change the number of chunks that are accomodated in the per-variable
+Change the number of chunks that are accommodated in the per-variable
 chunk caches that are used by default.
 
 @item --max-default-cache-size

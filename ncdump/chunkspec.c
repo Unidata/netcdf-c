@@ -31,7 +31,7 @@ static struct {
  *         omitted, in which case it is assumed to be the entire
  *         dimension size.  That is also the default for dimensions
  *         not mentioned in the string.
- *         If the chunkspec string is "/", specifiying no dimensions or 
+ *         If the chunkspec string is "/", specifying no dimensions or 
  *         chunk sizes, it indicates chunking to be turned off on output.
  *
  * Returns NC_NOERR if no error, NC_EINVAL if spec has consecutive

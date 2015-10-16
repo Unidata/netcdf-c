@@ -2,7 +2,7 @@
  Copyright 2004-2006, UCAR/Unidata
  See COPYRIGHT file for copying and redistribution conditions.
 
- This program (quickly, but not throughly) tests the large file
+ This program (quickly, but not thoroughly) tests the large file
  features. It turns off fill mode to quickly create an 8 gb file, and
  write one value is written, nothing is read.
 
@@ -105,7 +105,7 @@ main(int argc, char **argv)
 	   This has 3 dims, 4 vars. The dimensions are such that this will
 	   (just barely) not fit in a classic format file. The first three
 	   vars are cromwell, 536870911 bytes, washington, 2*536870911
-	   bytes, and napolean, 536870911 bytes. That's a grand total of
+	   bytes, and napoleon, 536870911 bytes. That's a grand total of
 	   2147483644 bytes. Recall our magic limit for the combined size
 	   of all fixed vars: 2 GiB - 4 bytes, or 2147483644. So you would
 	   think these would exactly fit, unless you realized that
@@ -137,7 +137,7 @@ main(int argc, char **argv)
 	if ((res = nc_def_var(ncid, "Washington", NC_SHORT, 1, &dimids_gen[1], 
 			      &washingtonid)))
 	    ERR;
-	if ((res = nc_def_var(ncid, "Napolean", NC_BYTE, 1, &dimids_gen[0], 
+	if ((res = nc_def_var(ncid, "Napoleon", NC_BYTE, 1, &dimids_gen[0], 
 			      &napoleanid)))
 	    ERR;
 	if ((res = nc_def_var(ncid, "Collins", NC_DOUBLE, 1, &dimids_gen[2], 
@@ -206,7 +206,7 @@ main(int argc, char **argv)
 	if ((res = nc_def_var(ncid, "Washington", NC_SHORT, 1, &dimids_gen[1], 
 			      &washingtonid)))
 	    ERR;
-	if ((res = nc_def_var(ncid, "Napolean", NC_BYTE, 1, &dimids_gen[0], 
+	if ((res = nc_def_var(ncid, "Napoleon", NC_BYTE, 1, &dimids_gen[0], 
 			      &napoleanid)))
 	    ERR;
 	if ((res = nc_def_var(ncid, "Collins", NC_DOUBLE, 1, &dimids_gen[2], 
@@ -230,7 +230,7 @@ main(int argc, char **argv)
 	if ((res = nc_def_var(ncid, "Cromwell", NC_SHORT, 1, dimids_gen,
 			      &cromwellid)))
 	    ERR;
-	if ((res = nc_def_var(ncid, "Napolean", NC_SHORT, 1, dimids_gen, 
+	if ((res = nc_def_var(ncid, "Napoleon", NC_SHORT, 1, dimids_gen, 
 			      &napoleanid)))
 	    ERR;
 	if ((res = nc_def_var(ncid, "Collins", NC_DOUBLE, 1, dimids_gen, 
@@ -289,7 +289,7 @@ main(int argc, char **argv)
 	if ((res = nc_def_var(ncid, "Washington", NC_SHORT, 2, dimids_gen, 
 			      &washingtonid)))
 	    ERR;
-	if ((res = nc_def_var(ncid, "Napolean", NC_BYTE, 2, dimids_gen, 
+	if ((res = nc_def_var(ncid, "Napoleon", NC_BYTE, 2, dimids_gen, 
 			      &napoleanid)))
 	    ERR;
 	if ((res = nc_def_var(ncid, "Collins", NC_DOUBLE, 1, &dimids_gen[2], 
@@ -325,7 +325,7 @@ main(int argc, char **argv)
 	if ((res = nc_def_var(ncid, "Washington", NC_SHORT, 2, dimids_gen, 
 			      &washingtonid)))
 	    ERR;
-	if ((res = nc_def_var(ncid, "Napolean", NC_BYTE, 2, dimids_gen, 
+	if ((res = nc_def_var(ncid, "Napoleon", NC_BYTE, 2, dimids_gen, 
 			      &napoleanid)))
 	    ERR;
 	if ((res = nc_def_var(ncid, "Collins", NC_DOUBLE, 1, &dimids_gen[2], 
@@ -422,7 +422,7 @@ main(int argc, char **argv)
 	if ((res = nc_def_var(ncid, "Washington", NC_SHORT, 2, dimids_gen1, 
 			      &washingtonid)))
 	    ERR;
-	if ((res = nc_def_var(ncid, "Napolean", NC_BYTE, 2, dimids_gen1, 
+	if ((res = nc_def_var(ncid, "Napoleon", NC_BYTE, 2, dimids_gen1, 
 			      &napoleanid)))
 	    ERR;
 	if ((res = nc_def_var(ncid, "Collins", NC_DOUBLE, 2, dimids_gen1, 
@@ -467,7 +467,7 @@ main(int argc, char **argv)
 	if ((res = nc_def_var(ncid, "Washington", NC_SHORT, 2, dimids_gen1, 
 			      &washingtonid)))
 	    ERR;
-	if ((res = nc_def_var(ncid, "Napolean", NC_BYTE, 2, dimids_gen1, 
+	if ((res = nc_def_var(ncid, "Napoleon", NC_BYTE, 2, dimids_gen1, 
 			      &napoleanid)))
 	    ERR;
 	if ((res = nc_def_var(ncid, "Cromwell", NC_DOUBLE, 2, dimids_gen,
@@ -504,7 +504,7 @@ main(int argc, char **argv)
 	if ((res = nc_def_var(ncid, "Washington", NC_SHORT, 2, dimids_gen1, 
 			      &washingtonid)))
 	    ERR;
-	if ((res = nc_def_var(ncid, "Napolean", NC_BYTE, 2, dimids_gen1, 
+	if ((res = nc_def_var(ncid, "Napoleon", NC_BYTE, 2, dimids_gen1, 
 			      &napoleanid)))
 	    ERR;
 	if ((res = nc_def_var(ncid, "Cromwell", NC_DOUBLE, 2, dimids_gen,
@@ -538,7 +538,7 @@ main(int argc, char **argv)
 	if ((res = nc_def_var(ncid, "Washington", NC_SHORT, 2, dimids_gen1, 
 			      &washingtonid)))
 	    ERR;
-	if ((res = nc_def_var(ncid, "Napolean", NC_SHORT, 2, dimids_gen1, 
+	if ((res = nc_def_var(ncid, "Napoleon", NC_SHORT, 2, dimids_gen1, 
 			      &napoleanid)))
 	    ERR;
 	if ((res = nc_def_var(ncid, "Cromwell", NC_SHORT, 2, dimids_gen,

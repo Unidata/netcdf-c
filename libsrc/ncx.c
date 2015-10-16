@@ -1198,7 +1198,7 @@ put_ix_float(void *xp, const float *ip)
 
 /*
  * Return the number of bytes until the next "word" boundary
- * N.B. This is based on the very wierd YMP address structure,
+ * N.B. This is based on the very weird YMP address structure,
  * which puts the address within a word in the leftmost 3 bits
  * of the address.
  */

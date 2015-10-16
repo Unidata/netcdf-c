@@ -387,7 +387,7 @@ typedef struct ncio_px {
    offset - file offset for beginning of to region to be
    released.
 
-   rflags - only RGN_MODIFIED is relevent to this function, others ignored
+   rflags - only RGN_MODIFIED is relevant to this function, others ignored
 */
 static int
 px_rel(ncio_px *const pxp, off_t offset, int rflags)
@@ -420,7 +420,7 @@ px_rel(ncio_px *const pxp, off_t offset, int rflags)
    nciop - pointer to ncio struct.
    offset - num bytes from beginning of buffer to region to be
    released.
-   rflags - only RGN_MODIFIED is relevent to this function, others ignored
+   rflags - only RGN_MODIFIED is relevant to this function, others ignored
 */
 static int
 ncio_px_rel(ncio *const nciop, off_t offset, int rflags)
@@ -444,7 +444,7 @@ ncio_px_rel(ncio *const nciop, off_t offset, int rflags)
    offset - start byte of region to get.
    extent - how many bytes to read.
    rflags - One of the RGN_* flags defined in ncio.h.
-   vpp - pointer to pointer that will recieve data.
+   vpp - pointer to pointer that will receive data.
 
    NOTES:
 
@@ -1517,7 +1517,7 @@ ncio_px_new(const char *path, int ioflags)
 #define NC_DEFAULT_CREAT_MODE 0666
 #endif
 
-/* Create a file, and the ncio struct to go with it. This funtion is
+/* Create a file, and the ncio struct to go with it. This function is
    only called from nc__create_mp.
 
    path - path of file to create.

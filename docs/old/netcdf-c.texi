@@ -1354,7 +1354,7 @@ initial size for the file.
    ... 
 int status;
 int ncid;
-int intialsz = 2048;
+int initialsz = 2048;
 int *bufrsize;
    ... 
 *bufrsize = 1024;

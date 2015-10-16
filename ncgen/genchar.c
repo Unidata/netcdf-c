@@ -236,7 +236,7 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
     of each string constant. Expected size is then the size
     of concat of the string constants after padding.
 
-    There is another special case used for back compatability with ncgen3.
+    There is another special case used for back compatibility with ncgen3.
     In the datalist, all sequences of character constants (i.e. 'X')
     are concatenated into a single string; the result, however is not
     concatenated with any trailing or leading string (with double quotes).
@@ -286,7 +286,7 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
 	}
     }
 
-    /* Compute crossproduct upto (but not includng) the last dimension */
+    /* Compute crossproduct up to (but not including) the last dimension */
     xproduct = crossproduct(dimset,dimindex,rank-1);
 
     /* Start casing it out */

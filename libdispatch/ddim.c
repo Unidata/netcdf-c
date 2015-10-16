@@ -284,7 +284,7 @@ nc_rename_dim(int ncid, int dimid, const char *name)
 /*!
 Find the number of dimensions.
 
-In a classic model netCDF file, this funtion returns the number of
+In a classic model netCDF file, this function returns the number of
 defined dimensions. In a netCDF-4/HDF5 file, this function returns the
 number of dimensions available in the group specified by ncid, which
 may be less than the total number of dimensions in a file. In a
