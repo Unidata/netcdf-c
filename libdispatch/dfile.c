@@ -459,7 +459,7 @@ and initial size for the file.
         ...
      int status = NC_NOERR;
      int ncid;
-     int initialsz = 2048;
+     int intialsz = 2048;
      int *bufrsize;
         ...
      *bufrsize = 1024;
