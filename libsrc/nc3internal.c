@@ -1474,7 +1474,7 @@ NC3_set_base_pe(int ncid, int pe)
 	/* update serving & lock values for a "smooth" transition */
 	/* note that the "real" server will being doing this as well */
 	/* as all the rest in the group */
-	/* must have syncronization before & after this step */
+	/* must have synchronization before & after this step */
 	shmem_short_get(
 		(shmem_t *) nc3->lock + LOCKNUMREC_SERVING,
 		(shmem_t *) nc3->lock + LOCKNUMREC_SERVING,

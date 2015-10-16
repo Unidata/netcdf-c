@@ -488,7 +488,7 @@ assumed that the cost is not prohibitive.
 
 In an effort to provide better performance for some access patterns,
 client-side caching of data is available. The default is no caching,
-but it may be enabled by prefixing the URL with the paramter "cache".
+but it may be enabled by prefixing the URL with the parameter "cache".
 
 Caching operates basically as follows.
 

@@ -1851,7 +1851,7 @@ write variables and attributes of any type. Use these functions to
 read and write variables and attributes of user defined type. In C use
 nc_put_att/nc_get_att and the nc_put_var/nc_get_var,
 nc_put_var1/nc_get_var1, nc_put_vara/nc_get_vara, or
-nc_put_vars/nc_get_vars functons to access attribute and variable data
+nc_put_vars/nc_get_vars functions to access attribute and variable data
 of user defined type.
 
 @subsection Compound Types
@@ -3237,7 +3237,7 @@ The DAS output from the web server should look like this.
 @verbatim
 Attributes {
     Facility {
-        String PrincipleInvestigator ``Mark Abbott'', ``Ph.D'';
+        String PrincipleInvestigator ``Mark Abort'', ``Ph.D'';
         String DataCenter ``COAS Environmental Computer Facility'';
         String DrifterType ``MetOcean WOCE/OCM'';
     }
@@ -5979,7 +5979,7 @@ sets these when creating a group.
 
 Each dataset in the HDF5 file must be created with a property list for
 which the attribute creation order has been set to creation
-ordering. The H5Pset_attr_creation_order funtion is used to set the
+ordering. The H5Pset_attr_creation_order function is used to set the
 creation ordering of attributes of a variable.
 
 The following example code (from libsrc4/nc4hdf.c) shows how the
@@ -6014,7 +6014,7 @@ Until version 1.8, HDF5 did not have any capability to represent
 shared dimensions. With the 1.8 release, HDF5 introduced the dimension
 scale feature to allow shared dimensions in HDF5 files.
 
-The dimension scale is unfortunately not exactly equivilent to the
+The dimension scale is unfortunately not exactly equivalent to the
 netCDF shared dimension, and this leads to a number of compromises in
 the design of netCDF-4.
 
@@ -6416,7 +6416,7 @@ endif
 @end example
 
 @unnumberedsec Step 7.
-Modify the NC_intialize function in liblib/stub.c by
+Modify the NC_initialize function in liblib/stub.c by
 adding appropriate references to the NCM dispatch function.
 @example
 #ifdef USE_NETCDFM

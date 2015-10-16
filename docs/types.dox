@@ -167,7 +167,7 @@ defining variables or attributes. Use functions
 - nc_put_vara() / nc_get_vara()
 - nc_put_vars() / nc_get_vars()
 
-functons to access attribute and variable data of user defined type.
+functions to access attribute and variable data of user defined type.
 
 \subsection types_compound_types Compound Types
 

@@ -2,7 +2,7 @@
  Copyright 2004-2006, UCAR/Unidata
  See COPYRIGHT file for copying and redistribution conditions.
 
- This program (quickly, but not throughly) tests the large file
+ This program (quickly, but not thoroughly) tests the large file
  features. It turns off fill mode to quickly create an 8 gb file, and
  write one value is written, nothing is read.
 

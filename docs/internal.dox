@@ -132,7 +132,7 @@ adding something like the following.
 
 \section dispatch_step7 Step 7.
 
-Modify the NC_intialize function in liblib/stub.c by adding
+Modify the NC_initialize function in liblib/stub.c by adding
 appropriate references to the NCM dispatch function.
 
 \code

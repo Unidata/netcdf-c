@@ -525,7 +525,7 @@ ncio_ffio_new(const char *path, int ioflags)
 /* put all the FFIO assign specific code here
  * returns a pointer to an internal static char location
  * which may change when the function is called again
- * if the returned pointer is NULL this indicates that an error occured
+ * if the returned pointer is NULL this indicates that an error occurred
  * check errno for the netCDF error value
  */
 /* prototype fortran subroutines */
@@ -565,7 +565,7 @@ ncio_ffio_assign(const char *filename) {
 #endif
 	if (istat == 0) {	/* user has already specified an assign */
 		return buffer;
-	} else if (istat > 0 || istat < -1) {	/* error occured */
+	} else if (istat > 0 || istat < -1) {	/* error occurred */
 		errno = EINVAL;
 		return (const char *) NULL;
 	} /* istat = -1 -> no assign for file */
@@ -635,7 +635,7 @@ ffio_create(const char *path, int ioflags,
 		return ENOMEM;
 
 	if ((ControlString = ncio_ffio_assign(path)) == (const char *)NULL) {
-		/* an error occured - just punt */
+		/* an error occurred - just punt */
 		status = errno;
 		goto unwind_new;
 	}
@@ -728,7 +728,7 @@ ffio_open(const char *path,
 		return ENOMEM;
 
 	if ((ControlString = ncio_ffio_assign(path)) == (const char *)NULL) {
-		/* an error occured - just punt */
+		/* an error occurred - just punt */
 		status = errno;
 		goto unwind_new;
 	}

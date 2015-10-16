@@ -641,7 +641,7 @@ unescapeoct(const char* s)
 
 /*
  * "Un-escapes" valid escape sequences in yystring (read by lex) into the
- * apropriate unescaped characters.  For example, the two character
+ * appropriate unescaped characters.  For example, the two character
  * sequence "\t" in yystring would be converted into a single tab character.
  * On return, termstring is nul terminated.
  * Watch out for embedded nuls and utf-8 characters.

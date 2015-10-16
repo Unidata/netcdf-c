@@ -1007,7 +1007,7 @@ computeunlimitedsizes(Dimset* dimset, int dimindex, Datalist* data, int ischar)
     xproduct = crossproduct(dimset,dimindex+1,nextunlim);
 
     if(!lastunlim) {
-	/* Compute candiate size of this unlimited */
+	/* Compute candidate size of this unlimited */
         length = data->length;
 	unlimsize = length / xproduct;
 	if(length % xproduct != 0)
