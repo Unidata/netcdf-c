@@ -22,7 +22,7 @@
 #define DIM2_LEN 15
 #define ATT_INT_NAME "Old_Bailey_Room_Numbers"
 #define ATT_DOUBLE_NAME "Equity_Court_Canteen_Charges"
-#define ATT_SHORT_NAME "Ecclesiastical_Court_Appearences"
+#define ATT_SHORT_NAME "Ecclesiastical_Court_Appearances"
 #define ATT_TEXT_NAME "Speech_to_Jury"
 #define ATT_TEXT_NAME2 "Speech_to_She_Who_Must_be_Obeyed"
 #define ATT_UCHAR_NAME "Number_of_current_briefs"

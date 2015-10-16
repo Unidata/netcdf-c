@@ -356,7 +356,7 @@ This is a bug-fix-only release for version 4.3.1.
 
 ### 4.3.1-rc1 Released 2013-08-09
 
-* Migrated from the netCDF-C `subversion` repository to a publically available GitHub repository available at https://github.com/Unidata/netCDF-C.  This repository may be checked out (cloned) with the following command:
+* Migrated from the netCDF-C `subversion` repository to a publicly available GitHub repository available at https://github.com/Unidata/netCDF-C.  This repository may be checked out (cloned) with the following command:
 
 	$ git clone https://github.com/Unidata/netCDF-C.git
 
@@ -397,7 +397,7 @@ This is a bug-fix-only release for version 4.3.1.
 ## 4.3.0 Released 2013-04-29
 
 * fsync: Changed default in autotools config file; fsync must now be
-explicitely enabled instead of explicitely disabled. [NCF-239]
+explicitly enabled instead of explicitly disabled. [NCF-239]
 
 [NCF-239]: https://bugtracking.unidata.ucar.edu/browse/NCF-239
 
@@ -1116,7 +1116,7 @@ Kent.
 * Fixed some cross-compile problems.
 
 * Rewrote code which placed bogus errors on the HDF5 error stack, trying
-to open non-existant attributes and variables. Now no HDF5 errors are
+to open non-existent attributes and variables. Now no HDF5 errors are
 seen.
 
 * Removed man subdirectory. Now man4 subdirectory is used for all builds.

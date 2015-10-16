@@ -4219,7 +4219,7 @@ test_nc_put_var_text(void)
 #line 478
 
 #line 478
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
 #line 478
         /* again with more than 0 records */
 #line 478
@@ -4464,7 +4464,7 @@ test_nc_put_var_uchar(void)
 #line 479
 
 #line 479
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
 #line 479
         /* again with more than 0 records */
 #line 479
@@ -4709,7 +4709,7 @@ test_nc_put_var_schar(void)
 #line 480
 
 #line 480
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
 #line 480
         /* again with more than 0 records */
 #line 480
@@ -4954,7 +4954,7 @@ test_nc_put_var_short(void)
 #line 481
 
 #line 481
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
 #line 481
         /* again with more than 0 records */
 #line 481
@@ -5199,7 +5199,7 @@ test_nc_put_var_int(void)
 #line 482
 
 #line 482
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
 #line 482
         /* again with more than 0 records */
 #line 482
@@ -5444,7 +5444,7 @@ test_nc_put_var_long(void)
 #line 483
 
 #line 483
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
 #line 483
         /* again with more than 0 records */
 #line 483
@@ -5689,7 +5689,7 @@ test_nc_put_var_float(void)
 #line 484
 
 #line 484
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
 #line 484
         /* again with more than 0 records */
 #line 484
@@ -5934,7 +5934,7 @@ test_nc_put_var_double(void)
 #line 485
 
 #line 485
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
 #line 485
         /* again with more than 0 records */
 #line 485

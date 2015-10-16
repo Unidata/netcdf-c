@@ -315,7 +315,7 @@ typedef struct  NC_HDF5_FILE_INFO
 } NC_HDF5_FILE_INFO_T;
 
 
-/* These functions convert beteen netcdf and HDF5 types. */
+/* These functions convert between netcdf and HDF5 types. */
 int nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, 
 			int is_long, size_t *len);
 int nc4_convert_type(const void *src, void *dest, 
