@@ -9,7 +9,11 @@
 #include "daptab.h"
 
 #undef URLCVT /* NEVER turn this on */
+
 #define DAP2ENCODE
+#ifdef DAP2ENCODE
+#define KEEPSLASH
+#endif
 
 /* Forward */
 static void dumptoken(DAPlexstate* lexstate);
@@ -132,18 +136,30 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 	    int more = 1;
 	    /* We have a string token; will be reported as WORD_STRING */
 	    while(more && (c=*(++p))) {
-#ifdef DAP2ENCODE
-	        if(c == '"')
+	        if(c == '"') {
 		    more = 0;
-		else if(c == '\\') {
-		    /* Remove spec ambiguity by convering \c to c
-                       for any character c */
+		    continue;
+		}
+#ifdef DAP2ENCODE
+		if(c == '\\') {
+		    /* Resolve spec ambiguity about handling of \c:
+			1. !KEEPSLASH: convert \c to c for any character c
+			2. KEEPSLASH: convert \c to \c for any character c;
+			   that is, keep the backslash.
+			It is clear that the problem being addressed was \".
+			But it is unclear what to to do about \n: convert to
+                        Ascii LF or leave as \n.
+                        This code will leave as \n and assume higher levels
+                        of code will address the issue.
+		    */
+#ifdef KEEPSLASH
+		    dapaddyytext(lexstate,c);		    
+#endif
 		    c=*(++p);
 		    if(c == '\0') more = 0;
 		}
 #else /*Non-standard*/
 		switch (c) {
-		case '"': more=0; break;
 		case '\\':
 		    c=*(++p);
 		    switch (c) {
