@@ -109,7 +109,7 @@ SET_TARGET_PROPERTIES(netcdf PROPERTIES
 # https://github.com/Unidata/netcdf-c/issues/135
 # for more information.
 ###
-IF(${CMAKE_VERSION} LESS 2.8.12)
+IF(${CMAKE_VERSION} VERSION_LESS 2.8.12)
   INSTALL(
     TARGETS netcdf EXPORT netCDFTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libraries
