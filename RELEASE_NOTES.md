@@ -9,6 +9,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.4.0-RC4 TBD
 
+* Reduced minimum cmake version to `2.8.11` from `2.8.12`. This will allow for cmake use on a broader set of popular linux platforms without having to do a custom cmake install.  See https://github.com/Unidata/netcdf-c/issues/135 for more information.
+
 * The documentation section `The Default Chunking Scheme` has been updated with more information.  This lives in the `guide.dox` file in the `docs/` directory, or can be found online in the appropriate location (typically http://www.unidata.ucar.edu/netcdf/docs), once this release has been published.
 
 ### 4.4.0-RC3 2015-10-08
