@@ -245,7 +245,7 @@ swapn4b(void *dst, const void *src, size_t nn)
 		ip += 16;
 		nn -= 4;
 	}
-	while(nn-- > 0)
+	while(nn-- != 0)
 	{
 		op[0] = ip[3];
 		op[1] = ip[2];
