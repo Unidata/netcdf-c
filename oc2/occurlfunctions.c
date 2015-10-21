@@ -214,21 +214,21 @@ ocset_flags_perlink(OCstate* state)
     OCerror stat = OC_NOERR;
 
     /* Following are always set */
-    stat = ocset_curlflag(state,CURLOPT_ENCODING);
-    stat = ocset_curlflag(state,CURLOPT_NETRC);
-    stat = ocset_curlflag(state,CURLOPT_TIMEOUT);
-    stat = ocset_curlflag(state,CURLOPT_USERAGENT);
-    stat = ocset_curlflag(state,CURLOPT_COOKIEJAR);
-    stat = ocset_curlflag(state,CURLOPT_USERPWD);
-    stat = ocset_curlflag(state,CURLOPT_PROXY);
-    stat = ocset_curlflag(state,CURLOPT_USE_SSL);
-    
-    stat = ocset_curlflag(state, CURLOPT_FOLLOWLOCATION);
-    stat = ocset_curlflag(state, CURLOPT_MAXREDIRS);
-    stat = ocset_curlflag(state, CURLOPT_ERRORBUFFER);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_ENCODING);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_NETRC);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_VERBOSE);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_TIMEOUT);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USERAGENT);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_COOKIEJAR);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USERPWD);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_PROXY);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USE_SSL);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state, CURLOPT_FOLLOWLOCATION);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state, CURLOPT_MAXREDIRS);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state, CURLOPT_ERRORBUFFER);
 
     /* Set the CURL. options */
-    stat = oc_set_curl_options(state);
+    if(stat == OC_NOERR) stat = oc_set_curl_options(state);
 
     return stat;
 }

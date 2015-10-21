@@ -74,7 +74,7 @@ The oc library supports an <i>rc</i> file mechanism to allow the passing
 of a number of parameters to liboc and libcurl.
 <p>
 The file must be called one of the following names:
-".daprc", ".dodsrc"
+".daprc" or ".dodsrc"
 If both .daprc and .dodsrc exist, then
 the .daprc file will take precedence.
 <p>
@@ -149,21 +149,30 @@ specified the url for accessing the proxy:
 
 <h2 class="break"><a name="REDIR"><u>Redirection-Based Authentication</u></a> </h2>
 Some sites provide authentication by using a third party site
-to to the authentication. One example is
+to do the authentication. One example is
 <a href="https://uat.urs.earthdata.nasa.gov">URS</a>,
 the EOSDIS User Registration System.
 <p>
 The process is usually as follows.
 <ol>
-<li>The client contacts the server of interest (SOI), the actual data provider.
-<li>The SOI sends a redirect to the client to connect to the URS system.
+<li>The client contacts the server of interest (SOI), the actual data provider
+using, typically http protocol.
+<li>The SOI sends a redirect to the client to connect to the URS system
+using the 'https' protocol.
 <li>The client authenticates with URS.
 <li>URS sends a redirect (with authorization information) to send
 the client back to the SOI to actually obtain the data.
 </ol>
 <p>
-In order for this to work with libcurl, the client will usually need
-to provide a .netrc file so that the redirection will work correctly.
+It turns out that libcurl uses the password in the .daprc file
+only for the initial connection. This causes problems because
+the redirected connection is the one that actually requires the password.
+This is where .netrc comes in. Libcurl will use .netrc for
+the redirected connection. It is possible to cause libcurl to use
+the .daprc password always, but this introduces a security hole.
+In summary, if you are using redirection, then you must create a .netrc
+file to hold the password for the site to which the redirection is sent.
+<p>
 The format of this .netrc file will contain content that
 typically look like this.
 <pre>
