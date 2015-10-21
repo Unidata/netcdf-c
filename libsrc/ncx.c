@@ -234,7 +234,7 @@ swapn4b(void *dst, const void *src, size_t nn)
 		ip += 16;
 		nn -= 4;
 	}
-	while(nn-- > 0)
+	while(nn-- != 0)
 	{
 		op[0] = ip[3];
 		op[1] = ip[2];
@@ -536,7 +536,7 @@ ncx_get_short_ulonglong(const void *xp, ulonglong *ip)
 #if IX_SHORT_MAX > ULONGLONG_MAX
 	if (xx > ULONGLONG_MAX) return NC_ERANGE;
 #endif
-	if (xx < 0) return NC_ERANGE; /* because ip is unsigned */
+	if (xx < 0) return NC_ERANGE; /* because ip is unsigned */
 	return ENOERR;
 }
 
@@ -2398,7 +2398,7 @@ get_ix_double(const void *xp, double *ip)
 				 | (idp->mant_5 << 8)
 				 | idp->mant_4);
 		unsigned mant_lo = SWAP4(idp->mant_lo);
-		vdp->mantissa1 = (mant_hi >> 13);
+		vdp->mantissa1 = (mant_hi >> 13);
 		vdp->mantissa2 = ((mant_hi & MASK(13)) << 3)
 				| (mant_lo >> 29);
 		vdp->mantissa3 = (mant_lo >> 13);
@@ -3566,7 +3566,7 @@ ncx_get_off_t(const void **xpp, off_t *lp, size_t sizeof_off_t)
 
 /*----< ncx_get_int32() >--------------------------------------------------*/
 int
-ncx_get_int32(const void **xpp,
+ncx_get_int32(const void **xpp,
               int         *ip)
 {
     const uchar *cp = (const uchar *) *xpp;
@@ -3604,7 +3604,7 @@ ncx_get_int64(const void **xpp,
     *xpp = (void *)((const char *)(*xpp) + 8);
 
     return NC_NOERR;
-}
+}
 
 /*---< ncx_put_int32() >-----------------------------------------------------*/
 /* copy the contents of lp (a signed 32-bit integer) to xpp in Big Endian
@@ -4036,7 +4036,7 @@ ncx_putn_schar_short(void **xpp, size_t nelems, const short *tp)
 	}
 
 	*xpp = (void *)xp;
-	return status;
+	return status;
 }
 
 int
@@ -4275,7 +4275,7 @@ ncx_pad_putn_schar_float(void **xpp, size_t nelems, const float *tp)
 
 	if(rndup)
 	{
-		(void) memcpy(xp, nada, rndup);
+		(void) memcpy(xp, nada, rndup);
 		xp += rndup;
 	}
 
@@ -7330,7 +7330,7 @@ ncx_getn_ushort_float(const void **xpp, size_t nelems, float *tp)
   for (j=0; j<nelems && nrange==0; j+=LOOPCNT) {
     ni=Min(nelems-j,LOOPCNT);
     if (realign) {
-      memcpy(tmp, *xpp, ni*SIZEOF_USHORT);
+      memcpy(tmp, *xpp, ni*SIZEOF_USHORT);
       xp = tmp;
     } else {
       xp = (ushort *) *xpp;
@@ -8283,7 +8283,7 @@ ncx_putn_ushort_double(void **xpp, size_t nelems, const double *tp)
   *   - update tp to point at next unconverted input, and xpp to point
   *     at next location for converted output
   */
-  long i, j, ni;
+  long i, j, ni;
   ushort tmp[LOOPCNT];        /* in case input is misaligned */
   ushort *xp;
   int nrange = 0;         /* number of range errors */
@@ -8559,7 +8559,7 @@ ncx_putn_ushort_ulonglong(void **xpp, size_t nelems, const ulonglong *tp)
  /* basic algorithm is:
   *   - ensure sane alignment of output data
   *   - copy (conversion happens automatically) input data
-  *     to output
+  *     to output
   *   - update tp to point at next unconverted input, and xpp to point
   *     at next location for converted output
   */
@@ -12105,7 +12105,7 @@ ncx_getn_float_ushort(const void **xpp, size_t nelems, ushort *tp)
    /* update xpp and tp */
     if (realign) xp = (float *) *xpp;
     xp += ni;
-    tp += ni;
+    tp += ni;
     *xpp = (void*)xp;
   }
   return nrange == 0 ? ENOERR : NC_ERANGE;
@@ -15212,7 +15212,7 @@ int
 ncx_putn_longlong_schar(void **xpp, size_t nelems, const schar *tp)
 {
 #if _SX && X_SIZEOF_LONGLONG == SIZEOF_LONGLONG
-
+
  /* basic algorithm is:
   *   - ensure sane alignment of output data
   *   - copy (conversion happens automatically) input data
@@ -15881,7 +15881,7 @@ ncx_getn_ulonglong_ulonglong(const void **xpp, size_t nelems, ulonglong *tp)
   for (j=0; j<nelems && nrange==0; j+=LOOPCNT) {
     ni=Min(nelems-j,LOOPCNT);
     if (realign) {
-      memcpy(tmp, *xpp, ni*SIZEOF_ULONGLONG);
+      memcpy(tmp, *xpp, ni*SIZEOF_ULONGLONG);
       xp = tmp;
     } else {
       xp = (ulonglong *) *xpp;
@@ -15986,7 +15986,7 @@ ncx_getn_ulonglong_schar(const void **xpp, size_t nelems, schar *tp)
 #  endif
 }
 
-int
+int
 ncx_getn_ulonglong_short(const void **xpp, size_t nelems, short *tp)
 {
 #if _SX && X_SIZEOF_ULONGLONG == SIZEOF_ULONGLONG
