@@ -1597,7 +1597,7 @@ check_atts_int(int  ncid)
                         } else {
                             nok++;
                         }
-                    }
+                    }
                 }
             }                                               
         }
@@ -1933,7 +1933,7 @@ check_atts_uint(int  ncid)
 	    if (canConvert) {
 		err = nc_inq_att(ncid, i, ATT_NAME(i,j), &datatype, &length);
 		IF (err)
-		    error("nc_inq_att: %s", nc_strerror(err));
+		    error("nc_inq_att: %s", nc_strerror(err));
 		IF (datatype != ATT_TYPE(i,j))
 		error("nc_inq_att: unexpected type");
 		IF (length != ATT_LEN(i,j))
@@ -7194,7 +7194,7 @@ test_nc_put_vars_uchar(void)
 	    error("bad var id: status = %d", err);
 	for (j = 0; j < var_rank[i]; j++) {
 	    if (var_dimid[i][j] > 0) {		/* skip record dim */
-		start[j] = var_shape[i][j] + 1;
+		start[j] = var_shape[i][j] + 1;
 		err = nc_put_vars_uchar(ncid, i, start, edge, stride, value);
 	      if(!canConvert) {
 		IF(err != NC_ECHAR)
@@ -8949,7 +8949,7 @@ test_nc_put_vars_ulonglong(void)
 	    nstarts = 1;
 	    for (j = 0; j < var_rank[i]; j++) {
 		if ((k >> j) & 1) {
-		    start[j] = 0;
+		    start[j] = 0;
 		    edge[j] = mid[j];
 		}else{
 		    start[j] = mid[j];
@@ -9257,7 +9257,7 @@ test_nc_put_varm_uchar(void)
 	canConvert = (var_type[i] == NC_CHAR) == (NCT_UCHAR == NCT_TEXT);
 	assert(var_rank[i] <= MAX_RANK);
 	assert(var_nels[i] <= MAX_NELS);
-	for (j = 0; j < var_rank[i]; j++) {
+	for (j = 0; j < var_rank[i]; j++) {
 	    start[j] = 0;
 	    edge[j] = 1;
 	    stride[j] = 1;
@@ -10282,7 +10282,7 @@ test_nc_put_varm_float(void)
         error("remove of %s failed", scratch);
 }
 
-void
+void
 test_nc_put_varm_double(void)
 {
     int ncid;
@@ -11304,7 +11304,7 @@ test_nc_put_att_uchar(void)
     IF (err)
         error("nc_close: %s", nc_strerror(err));
 
-    err = remove(scratch);
+    err = remove(scratch);
     IF (err)
         error("remove of %s failed", scratch);
 }
@@ -11340,7 +11340,7 @@ test_nc_put_att_schar(void)
 		    ATT_TYPE(i,j), ATT_LEN(i,j), value);
 		IF (err != NC_ENOTVAR)
 		    error("bad var id: status = %d", err);
-		err = nc_put_att_schar(ncid, i, ATT_NAME(i,j), BAD_TYPE, 
+		err = nc_put_att_schar(ncid, i, ATT_NAME(i,j), BAD_TYPE, 
 		    ATT_LEN(i,j), value);
 		IF (err != NC_EBADTYPE)
 		    error("bad type: status = %d", err);
