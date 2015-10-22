@@ -21,13 +21,6 @@ echo "*** dump and compare utf8 output..."
 diff -b -w utf8.cdl ${srcdir}/ref_tst_utf8.cdl
 
 rm -f utf8.nc utf8.cdl
-echo "*** creating enhanced file with utf8 characters..."
-../ncgen/ncgen -4 -b -o utf8.nc ${srcdir}/ref_tst_utf8_4.cdl
-echo "*** dump and compare utf8 output..."
-./ncdump utf8.nc > utf8.cdl
-diff -b -w utf8.cdl ${srcdir}/ref_tst_utf8_4.cdl
-
-rm -f utf8.nc utf8.cdl
 echo "*** creating 64-bit offset file with utf8 characters..."
 ../ncgen/ncgen -k 64-bit-offset -b -o utf8.nc ${srcdir}/ref_tst_utf8.cdl
 echo "*** (64 bit) dump and compare utf8 output..."

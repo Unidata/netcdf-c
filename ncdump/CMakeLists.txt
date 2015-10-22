@@ -87,7 +87,12 @@ ENDIF()
   add_sh_test(ncdump tst_lengths)
   add_sh_test(ncdump tst_calendars)
   add_bin_test(ncdump tst_utf8)
+
   add_sh_test(ncdump run_utf8_tests)
+  IF(USE_NETCDF4)
+    add_sh_test(ncdump run_utf8_nc4_tests)
+  ENDIF(USE_NETCDF4)
+
   add_sh_test(ncdump tst_nccopy3)
   add_sh_test(ncdump tst_charfill)
 
