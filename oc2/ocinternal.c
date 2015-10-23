@@ -12,7 +12,7 @@
 #endif
 #include <errno.h>
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 typedef int pid_t;
 #endif
 
