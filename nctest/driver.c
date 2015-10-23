@@ -66,6 +66,7 @@ main(int argc, char **argv)
        testfile = testfiles[i];
 
        /* Run all the tests for this format. */
+	   
        nerrs += test_nccreate(testfile);
        nerrs += test_ncopen(testfile);
        nerrs += test_ncredef(testfile);
@@ -81,6 +82,7 @@ main(int argc, char **argv)
        nerrs += test_ncvardef(testfile);
        nerrs += test_ncvarid(testfile);
        nerrs += test_ncvarinq(testfile);
+	   nerrs += test_ncvarputg(testfile);
        nerrs += test_ncvarput1(testfile);
        nerrs += test_ncvarget1(testfile);
        nerrs += test_ncvarput(testfile);

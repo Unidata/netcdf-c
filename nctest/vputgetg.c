@@ -80,7 +80,7 @@ test_varputgetg(cdfid)
 					? nctypelen(test.vars[iv].type)
 					: hc[0].imap[id+1] * hc[0].npts[id+1];
 	    nel[0]		*= hc[0].npts[id];
-	    if (id == 0)
+	    if (id <= 0)
 		hc[0].offset	= 0;
 
 	    /* start at "upper-right" corner, do one point */
