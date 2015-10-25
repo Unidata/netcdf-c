@@ -1,0 +1,39 @@
+<style> 
+.break { page-break-before: always; } 
+body { counter-reset: H2; font-size: 12pt; } 
+h1.title {
+  font-size: 18pt;
+  text-decoration: underline;
+}
+div.subtitle {
+}
+.subtitle h1 {
+  font-size: 14pt;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+h1.toc {
+  font-size: 16pt;
+  text-decoration: underline;
+}
+h1.appendix {
+  font-size: 14pt;
+}
+
+h2:before { 
+  content: counter(H2) " "; 
+  counter-increment: H2; 
+} 
+h2 { counter-reset: H3; text-decoration: underline; } 
+h3:before { 
+  content: counter(H2) "." counter(H3) " "; 
+  counter-increment:H3; 
+} 
+h3 { counter-reset: H4; } 
+h4:before { 
+  content: counter(H2) "." counter(H3) "." counter(H4) " "; 
+  counter-increment:H4; 
+} 
+
+</style> 

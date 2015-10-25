@@ -1797,13 +1797,10 @@ NC_open(const char *path, int cmode,
    else if(model & NC_DISPATCH_NC3) {
       cmode &= ~NC_NETCDF4; /* must be netcdf-3 */
       if(version == 2) cmode |= NC_64BIT_OFFSET;
-   } else if(model & NC_DISPATCH_NCP) {
-#if 0
-It appears that pnetcdf can read NC_64_BIT_OFFSET
-      cmode &= ~(NC_NETCDF4 | NC_64BIT_OFFSET); /* must be pnetcdf */
-#else
-      cmode &= ~(NC_NETCDF4);
-#endif
+   } else if(model & NC_DISPATCH_NCP) { /* pnetcdf */
+      /*It appears that pnetcdf can read NC_64_BIT_OFFSET*/
+/*      cmode &= ~(NC_NETCDF4 | NC_64BIT_OFFSET);*/ /* old code */
+      cmode &= ~(NC_NETCDF4); /* pnetcdf allows all NC_64BIT_OFFSET */
       cmode |= NC_PNETCDF;
    }
 
