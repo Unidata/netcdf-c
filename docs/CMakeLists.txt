@@ -18,24 +18,21 @@ IF(ENABLE_DOXYGEN)
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
     ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
-  # Create auth.html with some sed commands.
-  ADD_CUSTOM_TARGET(auth_doc_html ALL
-    cat ${CMAKE_CURRENT_BINARY_DIR}/auth.html.in | sed -e "/<OC>/d" | sed -e "s|^<NC>||" | sed -e "s|zz|netcdf|g" -e "s|ZZ|netCDF|g" | sed -e "/stylesheet/r${CMAKE_SOURCE_DIR}/oc2/oc.css" -e "/stylesheet/d" > ${CMAKE_CURRENT_BINARY_DIR}/auth.html
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
-    )
-
-  ADD_CUSTOM_TARGET(auth_doc_md ALL
-    cat ${CMAKE_CURRENT_BINARY_DIR}/auth.html | sed "1,46d" > ${CMAKE_CURRENT_BINARY_DIR}/auth.md
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
-    )
-
   # Generate User Documentation
   ADD_CUSTOM_TARGET(doc_all ALL
     ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating API Documentation" VERBATIM)
+
+    # Create auth.html with some sed commands.
+  ADD_CUSTOM_TARGET(auth_doc_html ALL
+    cat ${CMAKE_CURRENT_BINARY_DIR}/auth.html.in | sed -e "/<OC>/d" | sed -e "s|^<NC>||" | sed -e "s|zz|netcdf|g" -e "s|ZZ|netCDF|g" | sed -e "/stylesheet/r${CMAKE_SOURCE_DIR}/oc2/oc.css" -e "/stylesheet/d" > ${CMAKE_CURRENT_BINARY_DIR}/html/auth.html
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+    )
+
+
+
 
   # If ENABLE_DOXYGEN_LATEX_OUTPUT is true, automatically build
   # the PDF files.
