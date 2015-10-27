@@ -869,7 +869,7 @@ ncvarputg(
 		return ncvarputs(ncid, varid, start, count, stride, value);
 	/* else */
 	{
-	long *imp=NULL;
+	long long *imp=NULL;
 	if (map != NULL) {
 		int ret = NC_NOERR;
 		/* make map[ndims-1] number of elements instead of bytes */
@@ -880,7 +880,7 @@ ncvarputg(
 		ret = nc_inq_vartype(ncid, varid, &type);
 		if(ret) return ret;
 				el_size = nctypelen(type);
-		imp = (long*) malloc(ndims * sizeof(long));
+		imp = (long long*) malloc(ndims * sizeof(long long));
 		for (i=0; i<ndims; i++) imp[i] = map[i] / el_size;
 	}
 
@@ -926,7 +926,7 @@ ncvargetg(
 		return ncvargets(ncid, varid, start, count, stride, value);
 	/* else */
 	{
-	long *imp=NULL;
+	ptrdiff_t *imp=NULL;
 	if (map != NULL) {
 		int ret = NC_NOERR;
 		/* make map[ndims-1] number of elements instead of bytes */
@@ -937,7 +937,7 @@ ncvargetg(
 		ret = nc_inq_vartype(ncid, varid, &type);
 		if(ret) return ret;
 		el_size = nctypelen(type);
-		imp = (long*) malloc(ndims * sizeof(long));
+		imp = (ptrdiff_t*) malloc(ndims * sizeof(ptrdiff_t));
 		for (i=0; i<ndims; i++) imp[i] = map[i] / el_size;
 	}
 

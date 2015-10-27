@@ -39,7 +39,7 @@ test_varputgetg(cdfid)
 {
     int nerrs = 0;
     static char pname[] = "test_varputgetg";
-    int id, ie, iv;		/* loop indices */
+    int id = 0, ie = 0, iv = 0;		/* loop indices */
     int ne = 3;			/* number of test hypercubes for each var */
     struct cdfhc {		/* a hypercube with generic values */
 	long cor[MAX_NC_DIMS];	/* netcdf coordinates for lower corner */

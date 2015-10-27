@@ -335,12 +335,12 @@ NCDEFAULT_put_varm(
    {
       int idim;
       size_t *mystart = NULL;
-      size_t *myedges;
-      size_t *iocount;    /* count vector */
-      size_t *stop;   /* stop indexes */
-      size_t *length; /* edge lengths in bytes */
-      ptrdiff_t *mystride;
-      ptrdiff_t *mymap;
+      size_t *myedges = 0;
+      size_t *iocount= 0;    /* count vector */
+      size_t *stop = 0;   /* stop indexes */
+      size_t *length = 0; /* edge lengths in bytes */
+      ptrdiff_t *mystride = 0;
+      ptrdiff_t *mymap= 0;
       size_t varshape[NC_MAX_VAR_DIMS];
       int isrecvar;
       size_t numrecs;
