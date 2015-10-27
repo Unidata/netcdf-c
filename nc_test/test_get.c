@@ -338,7 +338,7 @@ test_nc_get_var1_int(void)
     int canConvert;     /* Both text or both numeric */
     int value;
 
-    err = file_open(testfile, NC_NOWRITE, &ncid);
+    err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
 	error("nc_open: %s", nc_strerror(err));
     for (i = 0; i < numVars; i++) {
@@ -1218,7 +1218,7 @@ test_nc_get_var_schar(void)
     }
     err = nc_close(ncid);
     IF (err)
-	error("nc_close: %s", nc_strerror(err));
+	error("nc_close: %s", nc_strerror(err));
     print_nok(nok);
 }
 
@@ -1250,7 +1250,7 @@ test_nc_get_var_short(void)
 	    error("bad ncid: status = %d", err);
         err = nc_get_var_short(ncid, BAD_VARID, value);
         IF (err != NC_ENOTVAR)
-	    error("bad var id: status = %d", err);
+	    error("bad var id: status = %d", err);
 
 	nels = 1;
 	for (j = 0; j < var_rank[i]; j++) {
@@ -1391,7 +1391,7 @@ test_nc_get_var_int(void)
 		    }
 		}
 	    }
-	} else {
+	} else {
 	    IF (nels > 0 && err != NC_ECHAR)
 		error("wrong type: status = %d", err);
 	}
@@ -3150,7 +3150,7 @@ test_nc_get_vara_float(void)
             if (canConvert) {
 		if (allInExtRange) {
 		    if (allInIntRange) {
-			IF (err)
+			IF (err)
 			    error("%s", nc_strerror(err));
 		    } else {
 			IF (err != NC_ERANGE)
@@ -4194,7 +4194,7 @@ test_nc_get_vars_text(void)
 
 void
 test_nc_get_vars_uchar(void)
-{
+{
     int ncid;
     int d;
     int i;
@@ -5815,7 +5815,7 @@ test_nc_get_vars_longlong(void)
                 error("bad index: status = %d", err);
             start[j] = 0;
             edge[j] = var_shape[i][j] + 1;
-            err = nc_get_vars_longlong(ncid, i, start, edge, stride, value);
+            err = nc_get_vars_longlong(ncid, i, start, edge, stride, value);
             IF (err != NC_EEDGE)
                 error("bad edge: status = %d", err);
             edge[j] = 1;
@@ -7214,7 +7214,7 @@ test_nc_get_varm_float(void)
     int allInExtRange;	/* all values within external range? */
     int allInIntRange;	/* all values within internal range? */
     int nels;
-    int nslabs;
+    int nslabs;
     int nstarts;        /* number of different starts */
     int nok = 0;      /* count of valid comparisons */
     size_t start[MAX_RANK];
@@ -7994,7 +7994,7 @@ test_nc_get_varm_longlong(void)
             edge[j] = 1;
             stride[j] = 0;
             err = nc_get_varm_longlong(ncid, i, start, edge, stride, imap, value);
-            IF (err != NC_ESTRIDE)
+            IF (err != NC_ESTRIDE)
                 error("bad stride: status = %d", err);
             stride[j] = 1;
            }
