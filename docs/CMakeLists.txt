@@ -4,7 +4,7 @@
 IF(ENABLE_DOXYGEN)
   # The following is redundant but does not hurt anything.
 
-  FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.html ${CMAKE_CURRENT_SOURCE_DIR}/images ${CMAKE_CURRENT_SOURCE_DIR}/*.doc ${CMAKE_CURRENT_SOURCE_DIR}/*.xml ${CMAKE_CURRENT_SOURCE_DIR}/*.m4 ${CMAKE_CURRENT_SOURCE_DIR}/*.texi)
+  FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.html ${CMAKE_CURRENT_SOURCE_DIR}/images ${CMAKE_CURRENT_SOURCE_DIR}/*.doc ${CMAKE_CURRENT_SOURCE_DIR}/*.xml ${CMAKE_CURRENT_SOURCE_DIR}/*.m4 ${CMAKE_CURRENT_SOURCE_DIR}/*.texi ${CMAKE_SOURCE_DIR}/oc2/auth.html.in)
   FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 
 
@@ -18,11 +18,16 @@ IF(ENABLE_DOXYGEN)
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
     ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
-  # Create auth.md by combining auth.md.in and oc2/ocauth.md
+  # Create auth.html with some sed commands.
+  ADD_CUSTOM_TARGET(auth_doc_html ALL
+    cat ${CMAKE_CURRENT_BINARY_DIR}/auth.html.in | sed -e "/<OC>/d" | sed -e "s|^<NC>||" | sed -e "s|zz|netcdf|g" -e "s|ZZ|netCDF|g" | sed -e "/stylesheet/r${CMAKE_SOURCE_DIR}/oc2/oc.css" -e "/stylesheet/d" > ${CMAKE_CURRENT_BINARY_DIR}/auth.html
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+    )
 
-  ADD_CUSTOM_TARGET(auth_doc ALL
-    cat ${CMAKE_SOURCE_DIR}/docs/auth.md.in ${CMAKE_SOURCE_DIR}/docs/ocauth.md > ${CMAKE_CURRENT_SOURCE_DIR}/auth.md
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  ADD_CUSTOM_TARGET(auth_doc_md ALL
+    cat ${CMAKE_CURRENT_BINARY_DIR}/auth.html | sed "1,46d" > ${CMAKE_CURRENT_BINARY_DIR}/auth.md
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
     )
 

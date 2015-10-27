@@ -2,54 +2,17 @@
 <!- See the COPYRIGHT file for more information. --> 
 <html> 
 <head>
-<style> 
-.break { page-break-before: always; } 
-body { counter-reset: H2; font-size: 12pt; } 
-h1.title {
-  font-size: 18pt;
-  text-decoration: underline;
-}
-div.subtitle {
-}
-.subtitle h1 {
-  font-size: 14pt;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-h1.toc {
-  font-size: 16pt;
-  text-decoration: underline;
-}
-h1.appendix {
-  font-size: 14pt;
-}
-
-h2:before { 
-  content: counter(H2) " "; 
-  counter-increment: H2; 
-} 
-h2 { counter-reset: H3; text-decoration: underline; } 
-h3:before { 
-  content: counter(H2) "." counter(H3) " "; 
-  counter-increment:H3; 
-} 
-h3 { counter-reset: H4; } 
-h4:before { 
-  content: counter(H2) "." counter(H3) "." counter(H4) " "; 
-  counter-increment:H4; 
-} 
-
-</style> 
+<link rel="stylesheet" type="text/css" href="oc.css">
 </head>
 <body> 
  
-<h1 class="title">netCDF Authorization Support</h1> 
+<h1 class="title">ZZ Authorization Support</h1> 
 <div class="subtitle">
 <h1>Author: Dennis Heimbigner</h1>
 <h1>Address: http://www.unidata.ucar.edu/staff/dmh/</h1>
 <h1>Draft: 11/21/2014</h1>
 <h1>Last Revised: 10/24/2015</h1>
+<OC><h1>ZZ Version 4.0</h1> 
 </div>
  
 <h1 class="toc">Table of Contents</h1> 
@@ -65,7 +28,7 @@ h4:before {
 </ol> 
  
 <h2><a name="Introduction">Introduction</a></h2> 
-netCDF can support user authorization using the facilities provided by the curl
+ZZ can support user authorization using the facilities provided by the curl
 library. This includes basic password authentication as well as
 certificate-based authorization.
 <p>
@@ -91,8 +54,8 @@ authorization will not work with this because the username and password
 will only be used on the initial request, not the redirection
 
 <h2><a name="DODSRC">RC File Authentication</a></h2> 
-The netcdf library supports an <i>rc</i> file mechanism to allow the passing
-of a number of parameters to libnetcdf and libcurl.
+The zz library supports an <i>rc</i> file mechanism to allow the passing
+of a number of parameters to libzz and libcurl.
 <p>
 The file must be called one of the following names:
 ".daprc" or ".dodsrc"
@@ -102,6 +65,10 @@ the .daprc file will take precedence.
 The rc file is searched for first in the current directory
 and then in the home directory (as defined by the HOME environment
 variable).
+<OC>It is also possible to specify a direct path using
+<OC>the <i>-R</i> option to ocprint or using the <i>oc_set_rcfile</i>
+<OC>procedure (see oc.h). Note that for these latter cases, the path
+<OC>must be to the file itself, not to the containing directory.
 <p>
 The rc file format is a series of lines of the general form:
 <pre>
@@ -210,11 +177,24 @@ where the machine, mmmmmm, is the hostname of the machine to
 which the client is redirected for authorization, and the
 login and password are those needed to authenticate on that machine.
 <p>
-The .netrc file can be specified by
-putting the following line in your .daprc/.dodsrc file.
-<pre>
-HTTP.NETRC=&lt;path to netrc file&gt;
-</pre>
+<NC>The .netrc file can be specified by
+<NC>putting the following line in your .daprc/.dodsrc file.
+<NC><pre>
+<NC>HTTP.NETRC=&lt;path to netrc file&gt;
+<NC></pre>
+<OC>The .netrc file can be specified in two ways.
+<OC><ol>
+<OC><li> Specify the netrc file to libzz using the procedure in oc.h:
+<OC><pre>
+<OC>oc_set_netrc(OClink* link, const char* file)
+<OC></pre>
+<OC>(This is equivalent to the -N flag to ocprint). 
+<OC><p>
+<OC><li> Put the following line in your .daprc/.dodsrc file.
+<OC><pre>
+<OC>HTTP.NETRC=&lt;path to netrc file&gt;
+<OC></pre>
+<OC></ol>
 
 <p>
 One final note. In using this, it is almost certain that you will
@@ -236,7 +216,7 @@ Examples.
 or
 [fake.ucar.edu:9090]HTTP.VERBOSE=0
 </pre>
-If the url request from, say, the <i>netcdf_open</i> method
+If the url request from, say, the <i>zz_open</i> method
 has a host+port matching one of the prefixes in the rc file, then
 the corresponding entry will be used, otherwise ignored.
 <p>
@@ -293,7 +273,7 @@ the code is definitive.
 
 <h1 class="appendix"><a name="URSDETAIL">Appendix B. URS Access in Detail</a></h1>
 It is possible to use the NASA Earthdata Login System (URS)
-with netcdf by using using the process specified in the 
+with zz by using using the process specified in the 
 <a href="#REDIR">redirection</a> based authorization section.
 In order to access URS controlled datasets, however, it is necessary to
 register as a user with NASA at the
@@ -302,12 +282,12 @@ website.
 
 <h1 class="appendix"><a name="ESGDETAIL">Appendix C. ESG Access in Detail</a></h1>
 It is possible to access Earth Systems Grid (ESG) datasets
-from ESG servers through the netCDF API using the techniques
+from ESG servers through the ZZ API using the techniques
 described in the section on <a href="#CLIENTCERTS">Client-Side Certificates</a>.
 <p>
 In order to access ESG datasets, however, it is necessary to
 register as a user with ESG and to setup your environment
-so that proper authentication is established between an netcdf
+so that proper authentication is established between an zz
 client program and the ESG data server.  Specifically, it
 is necessary to use what is called "client-side keys" to
 enable this authentication. Normally, when a client accesses
@@ -317,7 +297,7 @@ With client-side keys, the client must also provide a
 certificate to the server so that the server can know with
 whom it is communicating.
 <p>
-The netcdf library uses the <i>curl</i> library and it is that
+The zz library uses the <i>curl</i> library and it is that
 underlying library that must be properly configured.
 
 <h3>Terminology</h3>
