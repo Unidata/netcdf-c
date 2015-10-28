@@ -36,6 +36,7 @@ IF(USE_PNETCDF)
   build_bin_test_no_prefix(tst_pnetcdf)
   build_bin_test_no_prefix(tst_parallel2)
   add_sh_test(nc_test run_pnetcdf_test)
+  add_bin_test(nc_test tst_addvar)
 ENDIF()
 
 IF(LARGE_FILE_TESTS)
