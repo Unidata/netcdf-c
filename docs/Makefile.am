@@ -50,7 +50,8 @@ endif
 # includes them in the documentation.
 
 doxyfile.stamp:
-	$(DOXYGEN) Doxyfile
+	$(DOXYGEN) Doxyfile \
+	cp auth.html html
 
 CLEANFILES = doxyfile.stamp html latex man
 
@@ -64,11 +65,10 @@ web-tarball: doxyfile.stamp
 
 # When oc2/auth.html.in is changed, you should generate auth.html
 # using the following process.
-auth::
-	cat ${top_srcdir}/oc2/auth.html.in \
+oc2-auth:
 	cat ${top_srcdir}/oc2/auth.html.in \
 	| sed -e '/<OC>/d' \
 	| sed -e 's|^<NC>||' \
 	| sed -e 's|zz|netcdf|g' -e 's|ZZ|netCDF|g' \
 	| sed -e '/stylesheet/r${top_srcdir}/oc2/oc.css' -e '/stylesheet/d' \
-	> ${top_srcdir}/html/auth.html
+	> auth.html
