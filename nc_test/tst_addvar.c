@@ -25,6 +25,8 @@
 
 int main(int argc, char** argv) {
   int err, ncid, varid[2], dimid[2], rank, nprocs;
+  MPI_Comm comm=MPI_COMM_SELF;
+  MPI_Info info=MPI_INFO_NULL;
 
     MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
