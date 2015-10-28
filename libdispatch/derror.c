@@ -260,7 +260,12 @@ const char *nc_strerror(int ncerr1)
 	 return "NetCDF: Error in using diskless access";
       default:
 #ifdef USE_PNETCDF
- 	 return ncmpi_strerror(ncerr1);
+        /* The behavior of ncmpi_strerror here is to return
+           NULL, not a string.  This causes problems in (at least)
+           the fortran interface. */
+        return (ncmpi_strerror(ncerr1) ?
+                ncmpi_strerror(ncerr1) :
+                "Unknown Error");
 #else
 	 return "Unknown Error";
 #endif
