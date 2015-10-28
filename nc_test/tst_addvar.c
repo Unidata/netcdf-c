@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <netcdf.h>
 
-#define FILENAME "tst_addvar.nc"
+#define FILENAME "tst_pnetcdf.nc"
 
 #define NVARS 6
 #define NX 5
@@ -73,13 +73,6 @@ int main(int argc, char** argv) {
     int err, ncid, varid[2], dimid[2];
 
     printf("\n*** Testing bug fix for adding a new variable to an existing file.\n");
-
-
-    printf("***** Creating File...\t");
-
-    createfile();
-
-    printf("success.\n");
 
     printf("***** Reopening file...\t");
 
