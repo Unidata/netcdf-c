@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 
     printf("***** Reopening file...\t");
 
-    err = nc_open_par(FILENAME, NC_WRITE|NC_PNETCDF, comm, info &ncid); ERR;
+    err = nc_open_par(FILENAME, NC_WRITE|NC_PNETCDF, comm, info, &ncid); ERR;
     if(err) {
 
     }
