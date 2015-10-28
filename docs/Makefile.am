@@ -71,4 +71,4 @@ auth::
 	| sed -e 's|^<NC>||' \
 	| sed -e 's|zz|netcdf|g' -e 's|ZZ|netCDF|g' \
 	| sed -e '/stylesheet/r${top_srcdir}/oc2/oc.css' -e '/stylesheet/d' \
-	>auth.html
+	> ${top_srcdir}/html/auth.html
