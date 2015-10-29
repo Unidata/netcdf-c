@@ -1140,7 +1140,7 @@ ENDMACRO()
 # Binary tests which are used by a script looking for a specific name.
 MACRO(add_bin_test_no_prefix F)
   build_bin_test(${F})
-  #ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
+  ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
   IF(MSVC)
     SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
     SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
@@ -1155,7 +1155,6 @@ ENDMACRO()
 # Binary tests which are used by a script looking for a specific name.
 MACRO(build_bin_test_no_prefix F)
   build_bin_test(${F})
-  ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
   IF(MSVC)
     SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
     SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
