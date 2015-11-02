@@ -884,10 +884,22 @@ IF(ENABLE_DOXYGEN)
     SET(DOXYGEN_CSS_FILE "${CMAKE_SOURCE_DIR}/docs/release.css" CACHE STRING "")
     SET(DOXYGEN_HEADER_FILE "${CMAKE_SOURCE_DIR}/docs/release_header.html" CACHE STRING "")
     SET(DOXYGEN_SEARCHENGINE "NO" CACHE STRING "")
+    SET(ENABLE_DOXYGEN_SERVER_BASED_SEARCH NO CACHE STRING "")
   ELSE()
     SET(DOXYGEN_CSS_FILE "" CACHE STRING "")
     SET(DOXYGEN_HEADER_FILE "" CACHE STRING "")
     SET(DOXYGEN_SEARCHENGINE "YES" CACHE STRING "")
+
+    # If not using release document configuration,
+    # provide an option for server-based search.
+    OPTION(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH "Configure Doxygen with server-based search." OFF)
+    IF(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
+      SET(ENABLE_DOXYGEN_SERVER_BASED_SEARCH YES CACHE STRING "")
+    ELSE()
+      SET(ENABLE_DOXYGEN_SERVER_BASED_SEARCH NO CACHE STRING "")
+    ENDIF(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
+
+
   ENDIF(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
   # Option to turn on the TODO list in the doxygen-generated documentation.
   OPTION(DOXYGEN_ENABLE_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
