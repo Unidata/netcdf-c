@@ -215,6 +215,7 @@ fprintf(stderr, "    VAR %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
                  should be the same. If the new begin is smaller,
                  reuse the old begin */
               (*vpp)->begin = ncp->old->vars.value[j]->begin;
+              index = (*vpp)->begin;
             }
             j++;
           }
