@@ -503,15 +503,16 @@ main(
     }
 
     if(k_flag == 0)
-	k_flag = format_flag;
+      k_flag = format_flag;
 
     if(enhanced_flag && k_flag == 0)
-	k_flag = 3;
+      k_flag = 3;
 
     if(enhanced_flag && k_flag != 3) {
-    if(enhanced_flag && k_flag != 3 && k_flag != 5)
-	derror("-k or _Format conflicts with enhanced CDL input");
-	return 0;
+      if(enhanced_flag && k_flag != 3 && k_flag != 5) {
+        derror("-k or _Format conflicts with enhanced CDL input");
+        return 0;
+      }
     }
 
     if(specials_flag > 0 && k_flag == 0)
