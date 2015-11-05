@@ -7,8 +7,12 @@ dnl
 /*********************************************************************
  *   Copyright 1996, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Id: test_put.m4,v 1.25 2005/03/08 03:04:19 ed Exp $
+ *   $Id: test_put.m4 2785 2014-10-26 05:21:20Z wkliao $
  *********************************************************************/
+
+#ifdef USE_PARALLEL
+#include <mpi.h>
+#endif
 
 undefine(`index')dnl
 dnl dnl dnl
@@ -61,6 +65,10 @@ HASH(int)
 HASH(long)
 HASH(float)
 HASH(double)
+HASH(ushort)
+HASH(uint)
+HASH(longlong)
+HASH(ulonglong)
 
 
 dnl CHECK_VARS(TYPE)
@@ -90,11 +98,11 @@ check_vars_$1(const char *filename)
     int canConvert;     /* Both text or both numeric */
     int nok = 0;      /* count of valid comparisons */
 
-    err = nc_open(filename, NC_NOWRITE, &ncid);
+    err = file_open(filename, NC_NOWRITE, &ncid);
     IF (err)
         error("nc_open: %s", nc_strerror(err));
 
-    for (i = 0; i < NVARS; i++) {
+    for (i = 0; i < numVars; i++) {
 	canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
 	if (canConvert) {
 	    err = nc_inq_var(ncid, i, name, &datatype, &ndims, dimids, NULL);
@@ -160,6 +168,10 @@ CHECK_VARS(int)
 CHECK_VARS(long)
 CHECK_VARS(float)
 CHECK_VARS(double)
+CHECK_VARS(ushort)
+CHECK_VARS(uint)
+CHECK_VARS(longlong)
+CHECK_VARS(ulonglong)
 
 
 dnl CHECK_ATTS(TYPE)         numeric only
@@ -187,7 +199,7 @@ check_atts_$1(int  ncid)
     int canConvert;     /* Both text or both numeric */
     int nok = 0;      /* count of valid comparisons */
 
-    for (i = -1; i < NVARS; i++) {
+    for (i = -1; i < numVars; i++) {
         for (j = 0; j < NATTS(i); j++) {
 	    canConvert = (ATT_TYPE(i,j) == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
 	    if (canConvert) {
@@ -250,6 +262,10 @@ CHECK_ATTS(int)
 CHECK_ATTS(long)
 CHECK_ATTS(float)
 CHECK_ATTS(double)
+CHECK_ATTS(ushort)
+CHECK_ATTS(uint)
+CHECK_ATTS(longlong)
+CHECK_ATTS(ulonglong)
 
 
 dnl TEST_NC_PUT_VAR1(TYPE)
@@ -267,7 +283,7 @@ test_nc_put_var1_$1(void)
     int canConvert;	/* Both text or both numeric */
     $1 value = 5;	/* any value would do - only for error cases */
 
-    err = nc_create(scratch, NC_CLOBBER, &ncid);
+    err = file_create(scratch, NC_CLOBBER, &ncid);
     IF (err) {
         error("nc_create: %s", nc_strerror(err));
         return;
@@ -278,7 +294,21 @@ test_nc_put_var1_$1(void)
     IF (err)
         error("nc_enddef: %s", nc_strerror(err));
 
-    for (i = 0; i < NVARS; i++) {
+#ifdef USE_PNETCDF
+    {
+    int format;
+    nc_inq_format_extended(ncid, &format, NULL);
+    if (format == NC_FORMATX_PNETCDF) {
+        for (i = 0; i < numVars; i++) {
+            err = nc_var_par_access(ncid, i, NC_COLLECTIVE);
+	    IF (err)
+	        error("nc_var_par_access: %s", nc_strerror(err));
+        }
+    }
+    }
+#endif
+
+    for (i = 0; i < numVars; i++) {
 	canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
         for (j = 0; j < var_rank[i]; j++)
             index[j] = 0;
@@ -345,6 +375,10 @@ TEST_NC_PUT_VAR1(int)
 TEST_NC_PUT_VAR1(long)
 TEST_NC_PUT_VAR1(float)
 TEST_NC_PUT_VAR1(double)
+TEST_NC_PUT_VAR1(ushort)
+TEST_NC_PUT_VAR1(uint)
+TEST_NC_PUT_VAR1(longlong)
+TEST_NC_PUT_VAR1(ulonglong)
 
 
 dnl TEST_NC_PUT_VAR(TYPE)
@@ -365,7 +399,7 @@ test_nc_put_var_$1(void)
     int allInExtRange;	/* all values within external range? */
     $1 value[MAX_NELS];
 
-    err = nc_create(scratch, NC_CLOBBER, &ncid);
+    err = file_create(scratch, NC_CLOBBER, &ncid);
     IF (err) {
         error("nc_create: %s", nc_strerror(err));
         return;
@@ -376,7 +410,21 @@ test_nc_put_var_$1(void)
     IF (err)
         error("nc_enddef: %s", nc_strerror(err));
 
-    for (i = 0; i < NVARS; i++) {
+#ifdef USE_PNETCDF
+    {
+    int format;
+    nc_inq_format_extended(ncid, &format, NULL);
+    if (format == NC_FORMATX_PNETCDF) {
+        for (i = 0; i < numVars; i++) {
+            err = nc_var_par_access(ncid, i, NC_COLLECTIVE);
+	    IF (err)
+	        error("nc_var_par_access: %s", nc_strerror(err));
+        }
+    }
+    }
+#endif
+
+    for (i = 0; i < numVars; i++) {
 	canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
@@ -427,7 +475,7 @@ test_nc_put_var_$1(void)
     IF (err)
         error("nc_put_var1_text: %s", nc_strerror(err));
 
-    for (i = 0; i < NVARS; i++) {
+    for (i = 0; i < numVars; i++) {
         if (var_dimid[i][0] == RECDIM) {  /* only test record variables here */
 	    canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
 	    assert(var_rank[i] <= MAX_RANK);
@@ -483,6 +531,10 @@ TEST_NC_PUT_VAR(int)
 TEST_NC_PUT_VAR(long)
 TEST_NC_PUT_VAR(float)
 TEST_NC_PUT_VAR(double)
+TEST_NC_PUT_VAR(ushort)
+TEST_NC_PUT_VAR(uint)
+TEST_NC_PUT_VAR(longlong)
+TEST_NC_PUT_VAR(ulonglong)
 
 
 dnl TEST_NC_PUT_VARA(TYPE)
@@ -508,7 +560,7 @@ test_nc_put_vara_$1(void)
     int allInExtRange;	/* all values within external range? */
     $1 value[MAX_NELS];
 
-    err = nc_create(scratch, NC_CLOBBER, &ncid);
+    err = file_create(scratch, NC_CLOBBER, &ncid);
     IF (err) {
         error("nc_create: %s", nc_strerror(err));
         return;
@@ -519,8 +571,22 @@ test_nc_put_vara_$1(void)
     IF (err)
         error("nc_enddef: %s", nc_strerror(err));
 
+#ifdef USE_PNETCDF
+    {
+    int format;
+    nc_inq_format_extended(ncid, &format, NULL);
+    if (format == NC_FORMATX_PNETCDF) {
+        for (i = 0; i < numVars; i++) {
+            err = nc_var_par_access(ncid, i, NC_COLLECTIVE);
+	    IF (err)
+	        error("nc_var_par_access: %s", nc_strerror(err));
+        }
+    }
+    }
+#endif
+
     value[0] = 0;
-    for (i = 0; i < NVARS; i++) {
+    for (i = 0; i < numVars; i++) {
 	canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
@@ -567,6 +633,11 @@ test_nc_put_vara_$1(void)
 		start[j] = 0;
 	    }
         }
+
+/* wkliao: this test below of put_vara is redundant and incorrectly uses the
+           value[] set from the previously iteration. There is no such test
+           in put_vars and put_varm.
+
 	err = nc_put_vara_$1(ncid, i, start, edge, value);
 	if (canConvert) {
 	    IF (err) 
@@ -575,6 +646,7 @@ test_nc_put_vara_$1(void)
 	    IF (err != NC_ECHAR)
 		error("wrong type: status = %d", err);
         }
+*/
         for (j = 0; j < var_rank[i]; j++) {
             edge[j] = 1;
 	}
@@ -648,6 +720,10 @@ TEST_NC_PUT_VARA(int)
 TEST_NC_PUT_VARA(long)
 TEST_NC_PUT_VARA(float)
 TEST_NC_PUT_VARA(double)
+TEST_NC_PUT_VARA(ushort)
+TEST_NC_PUT_VARA(uint)
+TEST_NC_PUT_VARA(longlong)
+TEST_NC_PUT_VARA(ulonglong)
 
 
 dnl TEST_NC_PUT_VARS(TYPE)
@@ -679,7 +755,7 @@ test_nc_put_vars_$1(void)
     int allInExtRange;	/* all values within external range? */
     $1 value[MAX_NELS];
 
-    err = nc_create(scratch, NC_CLOBBER, &ncid);
+    err = file_create(scratch, NC_CLOBBER, &ncid);
     IF (err) {
 	error("nc_create: %s", nc_strerror(err));
 	return;
@@ -690,7 +766,21 @@ test_nc_put_vars_$1(void)
     IF (err)
 	error("nc_enddef: %s", nc_strerror(err));
 
-    for (i = 0; i < NVARS; i++) {
+#ifdef USE_PNETCDF
+    {
+    int format;
+    nc_inq_format_extended(ncid, &format, NULL);
+    if (format == NC_FORMATX_PNETCDF) {
+        for (i = 0; i < numVars; i++) {
+            err = nc_var_par_access(ncid, i, NC_COLLECTIVE);
+	    IF (err)
+	        error("nc_var_par_access: %s", nc_strerror(err));
+        }
+    }
+    }
+#endif
+
+    for (i = 0; i < numVars; i++) {
 	canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
 	assert(var_rank[i] <= MAX_RANK);
 	assert(var_nels[i] <= MAX_NELS);
@@ -821,6 +911,10 @@ TEST_NC_PUT_VARS(int)
 TEST_NC_PUT_VARS(long)
 TEST_NC_PUT_VARS(float)
 TEST_NC_PUT_VARS(double)
+TEST_NC_PUT_VARS(ushort)
+TEST_NC_PUT_VARS(uint)
+TEST_NC_PUT_VARS(longlong)
+TEST_NC_PUT_VARS(ulonglong)
 
 
 dnl TEST_NC_PUT_VARM(TYPE)
@@ -853,7 +947,7 @@ test_nc_put_varm_$1(void)
     int allInExtRange;	/* all values within external range? */
     $1 value[MAX_NELS];
 
-    err = nc_create(scratch, NC_CLOBBER, &ncid);
+    err = file_create(scratch, NC_CLOBBER, &ncid);
     IF (err) {
 	error("nc_create: %s", nc_strerror(err));
 	return;
@@ -864,7 +958,21 @@ test_nc_put_varm_$1(void)
     IF (err)
 	error("nc_enddef: %s", nc_strerror(err));
 
-    for (i = 0; i < NVARS; i++) {
+#ifdef USE_PNETCDF
+    {
+    int format;
+    nc_inq_format_extended(ncid, &format, NULL);
+    if (format == NC_FORMATX_PNETCDF) {
+        for (i = 0; i < numVars; i++) {
+            err = nc_var_par_access(ncid, i, NC_COLLECTIVE);
+	    IF (err)
+	        error("nc_var_par_access: %s", nc_strerror(err));
+        }
+    }
+    }
+#endif
+
+    for (i = 0; i < numVars; i++) {
 	canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
 	assert(var_rank[i] <= MAX_RANK);
 	assert(var_nels[i] <= MAX_NELS);
@@ -1002,6 +1110,10 @@ TEST_NC_PUT_VARM(int)
 TEST_NC_PUT_VARM(long)
 TEST_NC_PUT_VARM(float)
 TEST_NC_PUT_VARM(double)
+TEST_NC_PUT_VARM(ushort)
+TEST_NC_PUT_VARM(uint)
+TEST_NC_PUT_VARM(longlong)
+TEST_NC_PUT_VARM(ulonglong)
 
 
 void
@@ -1014,7 +1126,7 @@ test_nc_put_att_text(void)
     int err;
     text value[MAX_NELS];
 
-    err = nc_create(scratch, NC_NOCLOBBER, &ncid);
+    err = file_create(scratch, NC_NOCLOBBER, &ncid);
     IF (err) {
         error("nc_create: %s", nc_strerror(err));
         return;
@@ -1030,7 +1142,7 @@ test_nc_put_att_text(void)
 	IF (err != NC_EBADNAME)
 	   error("should be NC_EBADNAME: status = %d", err);
     }
-    for (i = -1; i < NVARS; i++) {
+    for (i = -1; i < numVars; i++) {
         for (j = 0; j < NATTS(i); j++) {
             if (ATT_TYPE(i,j) == NC_CHAR) {
 		assert(ATT_LEN(i,j) <= MAX_NELS);
@@ -1080,7 +1192,7 @@ test_nc_put_att_$1(void)
     $1 value[MAX_NELS];
     int allInExtRange;  /* all values within external range? */
 
-    err = nc_create(scratch, NC_NOCLOBBER, &ncid);
+    err = file_create(scratch, NC_NOCLOBBER, &ncid);
     IF (err) {
         error("nc_create: %s", nc_strerror(err));
         return;
@@ -1088,7 +1200,7 @@ test_nc_put_att_$1(void)
     def_dims(ncid);
     def_vars(ncid);
 
-    for (i = -1; i < NVARS; i++) {
+    for (i = -1; i < numVars; i++) {
         for (j = 0; j < NATTS(i); j++) {
             if (!(ATT_TYPE(i,j) == NC_CHAR)) {
 		assert(ATT_LEN(i,j) <= MAX_NELS);
@@ -1140,4 +1252,8 @@ TEST_NC_PUT_ATT(int)
 TEST_NC_PUT_ATT(long)
 TEST_NC_PUT_ATT(float)
 TEST_NC_PUT_ATT(double)
+TEST_NC_PUT_ATT(ushort)
+TEST_NC_PUT_ATT(uint)
+TEST_NC_PUT_ATT(longlong)
+TEST_NC_PUT_ATT(ulonglong)
 

@@ -1,3 +1,15 @@
+#####
+# The following generated files are
+# ignored in development branch,
+# but should be included in releases.
+#####
+libsrc/attr.c
+libsrc/ncx.c
+libsrc/putget.c
+#####
+# End ignored generated files.
+#####
+
 ### 'Normal' gitignore files.
 autom4te.cache
 ctest.c

@@ -1830,6 +1830,7 @@ print_type_name(int locid, int typeid) {
  * use by is_unlim_dim() function.  If ncid is a subgroup of a netCDF
  * dataset, the table will still be initialized for the whole dataset
  * in which the subgroup resides. */
+#ifdef USE_NETCDF4
 static int
 init_is_unlim(int ncid, int **is_unlim_p)
 {
@@ -1840,7 +1841,6 @@ init_is_unlim(int ncid, int **is_unlim_p)
     int igrp;
     int grpid;
 
-#ifdef USE_NETCDF4
     /* if ncid is not root group, find its ancestor root group id */
     int status = nc_inq_grp_parent(ncid, &grpid);
     while(status == NC_NOERR && grpid != ncid) {
@@ -1883,9 +1883,9 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	    free(dimids);
     }
     free(grpids);
-#endif	/*  USE_NETCDF4 */
     return NC_NOERR;
 }
+#endif	/*  USE_NETCDF4 */
 
 /* TODO: make list of these arrays for multiple open datasets, such as
  * the idnode_t lists above.  For now, we just have one of these, for
@@ -1901,7 +1901,7 @@ is_unlim_dim(int ncid, int dimid) {
 #ifdef USE_NETCDF4
     static int *is_unlim = NULL; /* gets allocated by init_is_unlim() */
     if(for_ncid == UNLIM_NOT_INITIALIZED) {
-      NC_CHECK( init_is_unlim(ncid, &is_unlim) );
+      NC_CHECK(init_is_unlim(ncid, &is_unlim));
       for_ncid = ncid;
     }
     assert(is_unlim);

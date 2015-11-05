@@ -1,13 +1,14 @@
 #!/bin/bash
-#X="-x"
 #NB=1
 DB=1
+#X=-x
+FAST=1
+CYGWIN=1
 
 FAST=1
 
 HDF5=1
 DAP=1
-#HDF4=1
 #PNETCDF=1
 #PAR4=1
 
@@ -20,13 +21,15 @@ PAR=1
 fi
 
 #RPC=1
+
 #PGI=1
 #M32=1
 #M64=1
 
 CFLAGS=""
-#CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
-CFLAGS="-Wall ${CFLAGS}"
+#CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
+CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter ${CFLAGS}"
+#CFLAGS="-Wall ${CFLAGS}"
 #CFLAGS="-Wconversion"
 
 stddir="/usr/local"
@@ -134,6 +137,14 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #FLAGS="$FLAGS --enable-valgrind-tests"
 FLAGS="$FLAGS --enable-jna"
 
+if test "x$PAR4" != x1 ; then
+FLAGS="$FLAGS --disable-parallel4"
+fi
+
+if test "x$CYGWIN" = x1 ; then
+FLAGS="$FLAGS --enable-workaround"
+fi
+
 if test "x${DB}" = x1 ; then
 FLAGS="$FLAGS --disable-shared"
 else
@@ -166,12 +177,6 @@ FLAGS="$FLAGS --enable-hdf4 --enable-hdf4-file-tests"
 fi
 if test "x$DAP" = "x" ; then
 FLAGS="$FLAGS --disable-dap"
-fi
-if test "x$CDMR" = "x1" ; then
-FLAGS="$FLAGS --enable-cdmremote"
-fi
-if test "x$RPC" = "x1" ; then
-FLAGS="$FLAGS --enable-rpc"
 fi
 
 if test "x$PAR" = x1 -o "x$PNETCDF" = x1 ; then
@@ -207,6 +212,14 @@ export CXXFLAGS
 DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
 export DISTCHECK_CONFIGURE_FLAGS
 
+<<<<<<< HEAD
+if test -z "$NB" ; then
+#${MAKE} maintainer-clean >/dev/null 2>&1
+if autoreconf -i --force ; then ok=1; else exit ; fi
+fi
+
+if test "x$FAST" = x ; then
+=======
 if test "x$NB" != x -o "x$FAST" = x ; then
 ${MAKE} maintainer-clean >/dev/null 2>&1
 fi
@@ -215,6 +228,7 @@ if test -z "$NB" ; then
 fi
 
 if test -z "$FAST" ; then
+>>>>>>> master
   if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
 fi
 sh $X ./configure ${FLAGS}

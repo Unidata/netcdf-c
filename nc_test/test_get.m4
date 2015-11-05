@@ -7,8 +7,12 @@ dnl
 /*********************************************************************
  *   Copyright 1996, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Id: test_get.m4,v 1.16 2005/03/08 03:04:19 ed Exp $
+ *   $Id: test_get.m4 2785 2014-10-26 05:21:20Z wkliao $
  *********************************************************************/
+
+#ifdef USE_PARALLEL
+#include <mpi.h>
+#endif
 
 undefine(`index')dnl
 dnl dnl dnl
@@ -48,10 +52,10 @@ test_nc_get_var1_$1(void)
     int canConvert;     /* Both text or both numeric */
     $1 value;
 
-    err = nc_open(testfile, NC_NOWRITE, &ncid);
+    err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
 	error("nc_open: %s", nc_strerror(err));
-    for (i = 0; i < NVARS; i++) {
+    for (i = 0; i < numVars; i++) {
         canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
 	for (j = 0; j < var_rank[i]; j++)
 	    index[j] = 0;
@@ -122,6 +126,10 @@ TEST_NC_GET_VAR1(int)
 TEST_NC_GET_VAR1(long)
 TEST_NC_GET_VAR1(float)
 TEST_NC_GET_VAR1(double)
+TEST_NC_GET_VAR1(ushort)
+TEST_NC_GET_VAR1(uint)
+TEST_NC_GET_VAR1(longlong)
+TEST_NC_GET_VAR1(ulonglong)
 
 
 dnl TEST_NC_GET_VAR(TYPE)
@@ -144,10 +152,10 @@ test_nc_get_var_$1(void)
     $1 value[MAX_NELS];
     double expect[MAX_NELS];
 
-    err = nc_open(testfile, NC_NOWRITE, &ncid);
+    err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
 	error("nc_open: %s", nc_strerror(err));
-    for (i = 0; i < NVARS; i++) {
+    for (i = 0; i < numVars; i++) {
         canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
@@ -227,6 +235,10 @@ TEST_NC_GET_VAR(int)
 TEST_NC_GET_VAR(long)
 TEST_NC_GET_VAR(float)
 TEST_NC_GET_VAR(double)
+TEST_NC_GET_VAR(ushort)
+TEST_NC_GET_VAR(uint)
+TEST_NC_GET_VAR(longlong)
+TEST_NC_GET_VAR(ulonglong)
 
 
 dnl TEST_NC_GET_VARA(TYPE)
@@ -255,10 +267,10 @@ test_nc_get_vara_$1(void)
     $1 value[MAX_NELS];
     double expect[MAX_NELS];
 
-    err = nc_open(testfile, NC_NOWRITE, &ncid);
+    err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
 	error("nc_open: %s", nc_strerror(err));
-    for (i = 0; i < NVARS; i++) {
+    for (i = 0; i < numVars; i++) {
         canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
@@ -407,6 +419,10 @@ TEST_NC_GET_VARA(int)
 TEST_NC_GET_VARA(long)
 TEST_NC_GET_VARA(float)
 TEST_NC_GET_VARA(double)
+TEST_NC_GET_VARA(ushort)
+TEST_NC_GET_VARA(uint)
+TEST_NC_GET_VARA(longlong)
+TEST_NC_GET_VARA(ulonglong)
 
 
 dnl TEST_NC_GET_VARS(TYPE)
@@ -441,10 +457,10 @@ test_nc_get_vars_$1(void)
     $1 value[MAX_NELS];
     double expect[MAX_NELS];
 
-    err = nc_open(testfile, NC_NOWRITE, &ncid);
+    err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
         error("nc_open: %s", nc_strerror(err));
-    for (i = 0; i < NVARS; i++) {
+    for (i = 0; i < numVars; i++) {
         canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
@@ -596,6 +612,10 @@ TEST_NC_GET_VARS(int)
 TEST_NC_GET_VARS(long)
 TEST_NC_GET_VARS(float)
 TEST_NC_GET_VARS(double)
+TEST_NC_GET_VARS(ushort)
+TEST_NC_GET_VARS(uint)
+TEST_NC_GET_VARS(longlong)
+TEST_NC_GET_VARS(ulonglong)
 
 
 dnl TEST_NC_GET_VARM(TYPE)
@@ -631,10 +651,10 @@ test_nc_get_varm_$1(void)
     $1 value[MAX_NELS];
     double expect[MAX_NELS];
 
-    err = nc_open(testfile, NC_NOWRITE, &ncid);
+    err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
         error("nc_open: %s", nc_strerror(err));
-    for (i = 0; i < NVARS; i++) {
+    for (i = 0; i < numVars; i++) {
         canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
@@ -793,6 +813,10 @@ TEST_NC_GET_VARM(int)
 TEST_NC_GET_VARM(long)
 TEST_NC_GET_VARM(float)
 TEST_NC_GET_VARM(double)
+TEST_NC_GET_VARM(ushort)
+TEST_NC_GET_VARM(uint)
+TEST_NC_GET_VARM(longlong)
+TEST_NC_GET_VARM(ulonglong)
 
 
 dnl TEST_NC_GET_ATT(TYPE)
@@ -814,11 +838,11 @@ test_nc_get_att_$1(void)
     double expect[MAX_NELS];
     int nok = 0;      /* count of valid comparisons */
 
-    err = nc_open(testfile, NC_NOWRITE, &ncid);
+    err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err) 
 	error("nc_open: %s", nc_strerror(err));
 
-    for (i = -1; i < NVARS; i++) {
+    for (i = -1; i < numVars; i++) {
         for (j = 0; j < NATTS(i); j++) {
 	    canConvert = (ATT_TYPE(i,j) == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
 	    err = nc_get_att_$1(BAD_ID, i, ATT_NAME(i,j), value);
@@ -894,4 +918,8 @@ TEST_NC_GET_ATT(int)
 TEST_NC_GET_ATT(long)
 TEST_NC_GET_ATT(float)
 TEST_NC_GET_ATT(double)
+TEST_NC_GET_ATT(ushort)
+TEST_NC_GET_ATT(uint)
+TEST_NC_GET_ATT(longlong)
+TEST_NC_GET_ATT(ulonglong)
 

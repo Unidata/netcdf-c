@@ -34,7 +34,11 @@ before_script:
 
   - mkdir build
   - cd build
+<<<<<<< HEAD
+  - cmake .. -DENABLE_EXTRA_TESTS=ON -DENABLE_HDF4=ON -DCMAKE_PREFIX_PATH=$HOME/usr
+=======
   - cmake .. -DENABLE_DOXYGEN=ON -DENABLE_EXTRA_TESTS=ON -DENABLE_HDF4=ON -DCMAKE_PREFIX_PATH=$HOME/usr
+>>>>>>> master
 
 script:
   - make -j 4

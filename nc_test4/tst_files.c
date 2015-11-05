@@ -259,7 +259,7 @@ main(int argc, char **argv)
    test_redef(NC_FORMAT_CLASSIC);
    SUMMARIZE_ERR;
    printf("*** testing redef for netCDF 64-bit offset...");
-   test_redef(NC_FORMAT_64BIT);
+   test_redef(NC_FORMAT_64BIT_OFFSET);
    SUMMARIZE_ERR;
    printf("*** testing redef for netCDF-4 ...");
    test_redef(NC_FORMAT_NETCDF4);
@@ -281,7 +281,7 @@ main(int argc, char **argv)
       /* Create a netcdf-3 64-bit offset file. */
       if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_CLOBBER, &ncid)) ERR;
       if (nc_inq_format(ncid, &format)) ERR;
-      if (format != NC_FORMAT_64BIT) ERR;
+      if (format != NC_FORMAT_64BIT_OFFSET) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Create a netcdf-4 file. */
@@ -305,7 +305,7 @@ main(int argc, char **argv)
       /* Create a netcdf-3 64-bit offset file. */
       if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_CLOBBER|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_inq_format(ncid, &format)) ERR;
-      if (format != NC_FORMAT_64BIT) ERR;
+      if (format != NC_FORMAT_64BIT_OFFSET) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -395,8 +395,10 @@ test_redef(int format)
    float cache_preemption_in;
    int ret;
 
-   if (format == NC_FORMAT_64BIT)
+   if (format == NC_FORMAT_64BIT_OFFSET)
       cflags |= NC_64BIT_OFFSET;
+   else if (format == NC_FORMAT_CDF5)
+      cflags |= NC_CDF5;
    else if (format == NC_FORMAT_NETCDF4_CLASSIC)
       cflags |= (NC_NETCDF4|NC_CLASSIC_MODEL);
    else if (format == NC_FORMAT_NETCDF4)

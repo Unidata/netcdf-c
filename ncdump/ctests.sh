@@ -1,6 +1,6 @@
 #!/bin/sh
 #set -e
-#set -x
+set -x
 echo "*** ctests.sh: testing ncgen4 -c"
 
 KFLAG=3

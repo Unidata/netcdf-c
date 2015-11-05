@@ -7,7 +7,25 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.0 Released TBD
 
-### 4.4.0-RC4 TBD
+### 4.4.0-RC4 Released TBD
+
+
+* Added CDM-5 support via new mode flag called NC_64BIT_DATA (alias NC_CDF5).
+
+	Major kudos to Wei-Keng Liao for all the effort he put into getting this to work.
+
+    This cascaded into a number of other changes.
+  
+    1. Renamed libsrcp5 -> libsrcp because pnetcdf can do parallel io for CDF-1, CDF-2 and CDF-5, not just CDF-5.
+    2. Given #1, then the NC_PNETCDF mode flag becomes a subset of NC_MPIIO, so made NC_PNETCDF an alias for NC_MPII.
+    3. NC_FORMAT_64BIT is now deprecated.  Use NC_FORMAT_64BIT_OFFSET.
+
+* Modified configure.ac to provide finer control over parallel
+  support. Specifically, add flags for:
+  
+    1. HDF5_PARALLEL when hdf5 library has parallel enabled
+    2. --disable-parallel4 to be used when we do not want
+     netcdf-4 to use parallelism even if hdf5 has it enabled.
 
 * Reduced minimum cmake version to `2.8.11` from `2.8.12`. This will allow for cmake use on a broader set of popular linux platforms without having to do a custom cmake install.  See https://github.com/Unidata/netcdf-c/issues/135 for more information.
 
@@ -16,11 +34,11 @@ This file contains a high-level description of this package's evolution. Release
 ### 4.4.0-RC3 2015-10-08
 
 * Addressed an inefficiency in how bytes would be swapped when converting between `LITTLE` and `BIG` ENDIANNESS.  See [NCF-338](https://bugtracking.unidata.ucar.edu/browse/NCF-338) for more information.
+
 * Addressed an issue where an interrupted read on a `POSIX` system would return an error even if errno had been properly set to `EINTR`.  This issue was initially reported by David Knaak at Cray.  More information may be found at [NCF-337](https://bugtracking.unidata.ucar.edu/browse/NCF-337).
+
 * Added a note to the install directions pointing out that parallel make
 cannot be used for 'make check'.
-* Many miscellaneous bug fixes.
-
 
 ### 4.4.0-RC2 Released 2015-07-09
 
@@ -32,7 +50,7 @@ cannot be used for 'make check'.
 
 * Added support for opening in-memory file content. See `include/netcdf_mem.h` for the procedure signature. Basically, it allows one to fill a chunk of memory with the equivalent of some netCDF file and then open it and read from it as if it were any other file. See [NCF-328](https://bugtracking.unidata.ucar.edu/browse/NCF-328) for more information.
 
-* Addressed an issue when reading hdf4 files with explicit little-endian datatypes. This issue was [reported by Tim Burgess at GitHub](https://github.com/Unidata/netcdf-c/issues/113).  See [NCF-332](https://bugtracking.unidata.ucar.edu/browse/NCF-332) for more information.  
+* Addressed an issue when reading hdf4 files with explicit little-endian datatypes. This issue was [reported by Tim Burgess at GitHub](https://github.com/Unidata/netcdf-c/issues/113).  See [NCF-332](https://bugtracking.unidata.ucar.edu/browse/NCF-332) for more information.
 
 * Addressed an issue with IBM's `XL C` compiler on AIX and how it handled some calls to malloc.  Also, as suggested by Wolfgang Hayek, developers using this compiler may need to pass `CPPFLAGS=-D_LINUX_SOURCE_COMPAT` to avoid some test failures.
 

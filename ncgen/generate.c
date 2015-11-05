@@ -81,9 +81,11 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
     int rank = dimset->ndims;
     Symbol* basetype = vsym->typ.basetype;
     Datalist* filler = getfiller(vsym);
+#if 0
     const size_t* start;
     const size_t* count;
     Odometer* odom;
+#endif
 
     if(vsym->data == NULL) return;
 
@@ -96,10 +98,12 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
         generate_basetype(basetype,c0,code,filler,generator);
         writer(generator,vsym,code,0,NULL,NULL);
     } else {/*rank > 0*/
+#if 0
         /* First, create an odometer using all of the dimensions */
         odom = newodometer(dimset,NULL,NULL);
 	start = odometerstartvector(odom);
 	count = odometercountvector(odom);
+#endif
 	generate_array(vsym,code,filler,generator,writer);
     }
 }
@@ -149,7 +153,9 @@ generate_array(Symbol* vsym,
 	    /* Create an odometer to get the dimension info */
             odom = newodometer(dimset,NULL,NULL);
             writer(generator,vsym,code,odom->rank,odom->start,odom->count);
-//            writer(generator,vsym,code,odom->rank,0,bbLength(charbuf));
+#if 0
+            writer(generator,vsym,code,odom->rank,0,bbLength(charbuf));
+#endif
 	    bbFree(charbuf);
 	} else { /* typecode != NC_CHAR */
             /* Case: dim 1..rank-1 are not unlimited, dim 0 might be */

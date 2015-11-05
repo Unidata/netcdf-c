@@ -1,5 +1,5 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 1996, Unuiversity Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -25,6 +25,13 @@
 #define VER_64BIT_OFFSET 2
 #define VER_HDF5 3
 
+#define NC_NUMRECS_OFFSET 4
+
+/* For netcdf classic */
+#define NC_NUMRECS_EXTENT3 4
+/* For cdf5 */
+#define NC_NUMRECS_EXTENT5 8
+
 static void
 free_NC3INFO(NC3_INFO *nc3)
 {
@@ -46,9 +53,8 @@ new_NC3INFO(const size_t *chunkp)
 	NC3_INFO *ncp;
 	ncp = (NC3_INFO*)calloc(1,sizeof(NC3_INFO));
 	if(ncp == NULL) return ncp;
-	ncp->xsz = MIN_NC_XSZ;
-	assert(ncp->xsz == ncx_len_NC(ncp,0));
         ncp->chunk = chunkp != NULL ? *chunkp : NC_SIZEHINT_DEFAULT;
+	/* Note that ncp->xsz is not set yet because we do not know the file format */
 	return ncp;
 }
 
@@ -80,23 +86,20 @@ err:
 
 /*
  *  Verify that this is a user nc_type
- * Formerly
-NCcktype()
+ * Formerly NCcktype()
  * Sense of the return is changed.
  */
 int
-nc_cktype(nc_type type)
+nc3_cktype(int mode, nc_type type)
 {
-	switch((int)type){
-	case NC_BYTE:
-	case NC_CHAR:
-	case NC_SHORT:
-	case NC_INT:
-	case NC_FLOAT:
-	case NC_DOUBLE:
-		return(NC_NOERR);
-	}
-	return(NC_EBADTYPE);
+    if (mode & NC_CDF5) { /* CDF-5 format */
+        if (type >= NC_BYTE && type < NC_STRING) return NC_NOERR;
+    } else if (mode & NC_64BIT_OFFSET) { /* CDF-2 format */
+        if (type >= NC_BYTE && type <= NC_DOUBLE) return NC_NOERR;
+    } else if ((mode & NC_64BIT_OFFSET) == 0) { /* CDF-1 format */
+        if (type >= NC_BYTE && type <= NC_DOUBLE) return NC_NOERR;
+    }
+    return(NC_EBADTYPE);
 }
 
 
@@ -119,6 +122,16 @@ ncx_howmany(nc_type type, size_t xbufsize)
 		return xbufsize/X_SIZEOF_FLOAT;
 	case NC_DOUBLE:
 		return xbufsize/X_SIZEOF_DOUBLE;
+	case NC_UBYTE:
+ 		return xbufsize;
+	case NC_USHORT:
+		return xbufsize/X_SIZEOF_USHORT;
+	case NC_UINT:
+		return xbufsize/X_SIZEOF_UINT;
+	case NC_INT64:
+		return xbufsize/X_SIZEOF_LONGLONG;
+	case NC_UINT64:
+		return xbufsize/X_SIZEOF_ULONGLONG;
 	default:
 	        assert("ncx_howmany: Bad type" == 0);
 		return(0);
@@ -149,7 +162,7 @@ NC_begins(NC3_INFO* ncp,
 	if(r_align == NC_ALIGN_CHUNK)
 		r_align = ncp->chunk;
 
-	if (fIsSet(ncp->flags, NC_64BIT_OFFSET)) {
+	if (fIsSet(ncp->flags, NC_64BIT_OFFSET) || fIsSet(ncp->flags, NC_64BIT_DATA)) {
 	  sizeof_off_t = 8;
 	} else {
 	  sizeof_off_t = 4;
@@ -323,25 +336,32 @@ read_numrecs(NC3_INFO *ncp)
 {
 	int status = NC_NOERR;
 	const void *xp = NULL;
-	size_t nrecs = NC_get_numrecs(ncp);
+	size_t new_nrecs = 0;
+	size_t  old_nrecs = NC_get_numrecs(ncp);
+	size_t nc_numrecs_extent = NC_NUMRECS_EXTENT3; /* CDF-1 and CDF-2 */
 
 	assert(!NC_indef(ncp));
 
-#define NC_NUMRECS_OFFSET 4
-#define NC_NUMRECS_EXTENT 4
+	if (fIsSet(ncp->flags, NC_64BIT_DATA))
+		nc_numrecs_extent = NC_NUMRECS_EXTENT5; /* CDF-5 */
+
 	status = ncio_get(ncp->nciop,
-		 NC_NUMRECS_OFFSET, NC_NUMRECS_EXTENT, 0, (void **)&xp);
-					/* cast away const */
+		 NC_NUMRECS_OFFSET, nc_numrecs_extent, 0, (void **)&xp);/* cast away const */
 	if(status != NC_NOERR)
 		return status;
 
-	status = ncx_get_size_t(&xp, &nrecs);
+	if (fIsSet(ncp->flags, NC_64BIT_DATA)) {
+	    long long tmp=0;
+	    status = ncx_get_int64(&xp, &tmp);
+	    new_nrecs = tmp;
+        } else
+	    status = ncx_get_size_t(&xp, &new_nrecs);
 
 	(void) ncio_rel(ncp->nciop, NC_NUMRECS_OFFSET, 0);
 
-	if(status == NC_NOERR)
+	if(status == NC_NOERR && old_nrecs != new_nrecs)
 	{
-		NC_set_numrecs(ncp, nrecs);
+		NC_set_numrecs(ncp, new_nrecs);
 		fClr(ncp->flags, NC_NDIRTY);
 	}
 
@@ -358,18 +378,25 @@ write_numrecs(NC3_INFO *ncp)
 {
 	int status = NC_NOERR;
 	void *xp = NULL;
+	size_t nc_numrecs_extent = NC_NUMRECS_EXTENT3; /* CDF-1 and CDF-2 */
 
 	assert(!NC_readonly(ncp));
 	assert(!NC_indef(ncp));
 
+	if (fIsSet(ncp->flags, NC_64BIT_DATA))
+	    nc_numrecs_extent = NC_NUMRECS_EXTENT5; /* CDF-5 */
+
 	status = ncio_get(ncp->nciop,
-		 NC_NUMRECS_OFFSET, NC_NUMRECS_EXTENT, RGN_WRITE, &xp);
+		 NC_NUMRECS_OFFSET, nc_numrecs_extent, RGN_WRITE, &xp);
 	if(status != NC_NOERR)
 		return status;
 
 	{
 		const size_t nrecs = NC_get_numrecs(ncp);
-		status = ncx_put_size_t(&xp, &nrecs);
+		if (fIsSet(ncp->flags, NC_64BIT_DATA))
+		    status = ncx_put_int64(&xp, nrecs);
+		else
+ 		    status = ncx_put_size_t(&xp, &nrecs);
 	}
 
 	(void) ncio_rel(ncp->nciop, NC_NUMRECS_OFFSET, RGN_MODIFIED);
@@ -669,7 +696,11 @@ NC_check_vlens(NC3_INFO *ncp)
     if(ncp->vars.nelems == 0)
 	return NC_NOERR;
 
-    if ((ncp->flags & NC_64BIT_OFFSET) && sizeof(off_t) > 4) {
+    if (fIsSet(ncp->flags,NC_64BIT_DATA)) {
+	/* CDF5 format allows many large vars */
+        return NC_NOERR;
+    } 
+    if (fIsSet(ncp->flags,NC_64BIT_OFFSET) && sizeof(off_t) > 4) {
 	/* CDF2 format and LFS */
 	vlen_max = X_UINT_MAX - 3; /* "- 3" handles rounded-up size */
     } else {
@@ -812,15 +843,16 @@ NC_endef(NC3_INFO *ncp,
 				return status;
 
 		}
-		else if(ncp->old != NULL && (ncp->vars.nelems > ncp->old->vars.nelems))
-		{
-			status = fill_added(ncp, ncp->old);
-			if(status != NC_NOERR)
-				return status;
-			status = fill_added_recs(ncp, ncp->old);
-			if(status != NC_NOERR)
-				return status;
-		}
+		else if(ncp->old == NULL ? 0
+                                         : (ncp->vars.nelems > ncp->old->vars.nelems))
+          {
+            status = fill_added(ncp, ncp->old);
+            if(status != NC_NOERR)
+              return status;
+            status = fill_added_recs(ncp, ncp->old);
+            if(status != NC_NOERR)
+              return status;
+          }
 	}
 
 	if(ncp->old != NULL)
@@ -882,8 +914,8 @@ NC_calcsize(const NC3_INFO *ncp, off_t *calcsizep)
 	    if(last_fix->len == X_UINT_MAX) { /* huge last fixed var */
 		int i;
 		varsize = 1;
-		    for(i = 0; i < last_fix->ndims; i++ ) {
-              varsize *= (last_fix->shape ? last_fix->shape[i] : 1);
+  	        for(i = 0; i < last_fix->ndims; i++ ) {
+                varsize *= (last_fix->shape ? last_fix->shape[i] : 1);
 		    }
 	    }
 	    *calcsizep = last_fix->begin + varsize;
@@ -958,12 +990,23 @@ NC3_create(const char *path, int ioflags,
 	assert(nc3->flags == 0);
 
 	/* Apply default create format. */
-	if (nc_get_default_format() == NC_FORMAT_64BIT)
+	if (nc_get_default_format() == NC_FORMAT_64BIT_OFFSET)
 	  ioflags |= NC_64BIT_OFFSET;
+	else if (nc_get_default_format() == NC_FORMAT_CDF5)
+	  ioflags |= NC_64BIT_DATA;
+
+	/* Now we can set min size */
+	if (fIsSet(ioflags, NC_64BIT_DATA))
+	    nc3->xsz = MIN_NC5_XSZ; /* CDF-5 has minimum 16 extra bytes */
+	else
+	    nc3->xsz = MIN_NC3_XSZ;
 
 	if (fIsSet(ioflags, NC_64BIT_OFFSET)) {
-	  fSet(nc3->flags, NC_64BIT_OFFSET);
-	  sizeof_off_t = 8;
+	    fSet(nc3->flags, NC_64BIT_OFFSET);
+	    sizeof_off_t = 8;
+	} else if (fIsSet(ioflags, NC_64BIT_DATA)) {
+	    fSet(nc3->flags, NC_64BIT_DATA);
+	    sizeof_off_t = 8;
 	} else {
 	  sizeof_off_t = 4;
 	}
@@ -1025,7 +1068,7 @@ unwind_alloc:
 /* This function sets a default create flag that will be logically
    or'd to whatever flags are passed into nc_create for all future
    calls to nc_create.
-   Valid default create flags are NC_64BIT_OFFSET, NC_CLOBBER,
+   Valid default create flags are NC_64BIT_OFFSET, NC_CDF5, NC_CLOBBER,
    NC_LOCK, NC_SHARE. */
 int
 nc_set_default_format(int format, int *old_formatp)
@@ -1036,11 +1079,12 @@ nc_set_default_format(int format, int *old_formatp)
 
     /* Make sure only valid format is set. */
 #ifdef USE_NETCDF4
-    if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT &&
+    if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET &&
 	format != NC_FORMAT_NETCDF4 && format != NC_FORMAT_NETCDF4_CLASSIC)
       return NC_EINVAL;
 #else
-    if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT)
+    if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET &&
+        format != NC_FORMAT_CDF5)
       return NC_EINVAL;
 #endif
     default_create_format = format;
@@ -1222,18 +1266,18 @@ NC3_close(int ncid)
 	 * what it should be (due to previous use of NOFILL mode),
 	 * pad it to correct size, as reported by NC_calcsize().
 	 */
-	if (status == ENOERR) {
+	if (status == NC_NOERR) {
 	    off_t filesize; 	/* current size of open file */
 	    off_t calcsize;	/* calculated file size, from header */
 	    status = ncio_filesize(nc3->nciop, &filesize);
-	    if(status != ENOERR)
+	    if(status != NC_NOERR)
 		return status;
 	    status = NC_calcsize(nc3, &calcsize);
 	    if(status != NC_NOERR)
 		return status;
 	    if(filesize < calcsize && !NC_readonly(nc3)) {
 		status = ncio_pad_length(nc3->nciop, calcsize);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 		    return status;
 	    }
 	}
@@ -1532,10 +1576,13 @@ NC3_inq_format(int ncid, int *formatp)
 		return status;
 	nc3 = NC3_DATA(nc);
 
-	/* only need to check for netCDF-3 variants, since this is never called for netCDF-4
-	   files */
-	*formatp = fIsSet(nc3->flags, NC_64BIT_OFFSET) ? NC_FORMAT_64BIT
-	    : NC_FORMAT_CLASSIC;
+	/* only need to check for netCDF-3 variants, since this is never called for netCDF-4 files */
+	if (fIsSet(nc3->flags, NC_64BIT_DATA))
+	    *formatp = NC_FORMAT_CDF5;
+	else if (fIsSet(nc3->flags, NC_64BIT_OFFSET))
+	    *formatp = NC_FORMAT_64BIT_OFFSET;
+	else
+	    *formatp = NC_FORMAT_CLASSIC; 
 	return NC_NOERR;
 }
 
@@ -1548,7 +1595,7 @@ NC3_inq_format_extended(int ncid, int *formatp, int *modep)
 	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
-        if(formatp) *formatp = NC_FORMAT_NC3;
+        if(formatp) *formatp = NC_FORMATX_NC3;
 	if(modep) *modep = nc->mode;
 	return NC_NOERR;
 }
@@ -1568,21 +1615,31 @@ NC3_inq_format_extended(int ncid, int *formatp, int *modep)
 int
 NC3_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
 {
+#if 0
    int atomic_size[NUM_ATOMIC_TYPES] = {NC_BYTE_LEN, NC_CHAR_LEN, NC_SHORT_LEN,
 					NC_INT_LEN, NC_FLOAT_LEN, NC_DOUBLE_LEN};
    char atomic_name[NUM_ATOMIC_TYPES][NC_MAX_NAME + 1] = {"byte", "char", "short",
 							  "int", "float", "double"};
+#endif
 
-   /* Only netCDF classic model needs to be handled. */
-   if (typeid < NC_BYTE || typeid > NC_DOUBLE)
+   NC *ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if (stat != NC_NOERR)
+	return stat;
+
+   /* Only netCDF classic model and CDF-5 need to be handled. */
+   if((ncp->mode & NC_CDF5) != 0) {
+	if (typeid < NC_BYTE || typeid > NC_STRING)
+            return NC_EBADTYPE;
+   } else if (typeid < NC_BYTE || typeid > NC_DOUBLE)
       return NC_EBADTYPE;
 
    /* Give the user the values they want. Subtract one because types
     * are numbered starting at 1, not 0. */
    if (name)
-      strcpy(name, atomic_name[typeid - 1]);
+      strcpy(name, NC_atomictypename(typeid));
    if (size)
-      *size = atomic_size[typeid - 1];
+      *size = NC_atomictypelen(typeid);
 
    return NC_NOERR;
 }

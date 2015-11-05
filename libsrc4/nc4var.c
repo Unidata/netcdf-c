@@ -1293,7 +1293,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
 int
 NC4_var_par_access(int ncid, int varid, int par_access) 
 {
-#ifndef USE_PARALLEL
+#ifndef USE_PARALLEL4
    return NC_ENOPAR;
 #else
    NC *nc; 
@@ -1343,7 +1343,7 @@ NC4_var_par_access(int ncid, int varid, int par_access)
    else
       var->parallel_access = NC_INDEPENDENT;
    return NC_NOERR;
-#endif /* USE_PARALLEL */
+#endif /* USE_PARALLEL4 */
 }
 
 static int

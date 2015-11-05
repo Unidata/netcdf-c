@@ -53,8 +53,10 @@ create_file(int format, unsigned char *uchar_out)
    int ncid, varid, cflags=0, dimids[1];
    int retval;
 
-   if (format == NC_FORMAT_64BIT)
+   if (format == NC_FORMAT_64BIT_OFFSET)
       cflags |= NC_64BIT_OFFSET;
+   else if (format == NC_FORMAT_CDF5)
+      cflags |= NC_CDF5;
    else if (format == NC_FORMAT_NETCDF4_CLASSIC)
    {
       cflags |= (NC_NETCDF4|NC_CLASSIC_MODEL);

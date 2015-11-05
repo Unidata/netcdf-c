@@ -5,13 +5,16 @@
    This is a very simple example which tests NFC normalization of
    Unicode names encoded with UTF-8.
 
-   $Id: tst_norm.c,v 1.8 2008/10/20 01:48:08 ed Exp $
+   $Id: tst_norm.c 2792 2014-10-27 06:02:59Z wkliao $
 */
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <netcdf.h>
+#ifdef USE_PARALLEL
+#include <netcdf_par.h>
+#endif
 #include <nc_tests.h>
 
 /* The data file we will create. */
@@ -99,8 +102,15 @@ main(int argc, char **argv)
    int attvals[] = {42};
 #define ATTNUM ((sizeof attvals)/(sizeof attvals[0]))
 
+#ifdef TEST_PNETCDF
+MPI_Init(&argc, &argv);
+#endif
    printf("\n*** testing UTF-8 normalization...");
+#ifdef TEST_PNETCDF
+   if((res = nc_create_par(FILE7_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)))
+#else
    if((res = nc_create(FILE7_NAME, NC_CLOBBER, &ncid)))
+#endif
        ERR;
 
    /* Define dimension with unnormalized Unicode UTF-8 encoded name */
@@ -124,10 +134,11 @@ main(int argc, char **argv)
     * version of same name.  These should fail, as unnormalized name
     * should have been normalized in library, so these are attempts to
     * create duplicate netCDF objects. */
-   if ((res = nc_def_dim(ncid, NNAME, NX, &dimid))
-       != NC_ENAMEINUSE) ERR;
-   if ((res = nc_def_var(ncid, NNAME, NC_CHAR, NDIMS, dimids, &varid))
-       != NC_ENAMEINUSE) ERR;
+   if ((res = nc_def_dim(ncid, NNAME, NX, &dimid)) != NC_ENAMEINUSE)
+       ERR;
+
+   if ((res = nc_def_var(ncid, NNAME, NC_CHAR, NDIMS, dimids, &varid)) != NC_ENAMEINUSE)
+       ERR;
    if ((res = nc_enddef(ncid)))
        ERR;
 
@@ -138,7 +149,11 @@ main(int argc, char **argv)
        ERR;
 
    /* Check it out. */
+#ifdef TEST_PNETCDF
+   if ((res = nc_open_par(FILE7_NAME, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD,MPI_INFO_NULL, &ncid)))
+#else
    if ((res = nc_open(FILE7_NAME, NC_NOWRITE, &ncid)))
+#endif
        ERR;
    if ((res = nc_inq_varid(ncid, UNAME, &varid)))
        ERR;
@@ -169,6 +184,9 @@ main(int argc, char **argv)
        ERR;
 
    SUMMARIZE_ERR;
+#ifdef TEST_PNETCDF
+   MPI_Finalize();
+#endif
    FINAL_RESULTS;
    return 0;
 }
