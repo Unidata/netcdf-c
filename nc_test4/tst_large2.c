@@ -16,8 +16,7 @@
 #define DIM1 2048
 #define DIM2 2097153		/* DIM1*DIM2*sizeof(char)   > 2**32 */
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
    printf("\n*** Testing netcdf-4 large files.\n");
    printf("**** testing with user-contributed test...\n");

@@ -15,6 +15,8 @@
 #define DIM1 2048
 #define DIM2 2097153		/* DIM1*DIM2*sizeof(char)   > 2**32 */
 
+
+
 int
 main(int argc, char **argv)
 {

@@ -351,11 +351,15 @@ extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 # else
 #  define MSC_NCDISPATCH_EXTRA __declspec(dllimport)
 # endif
-MSC_NCDISPATCH_EXTRA extern char* NC_findtestserver(const char*, const char**);
-MSC_NCDISPATCH_EXTRA extern int nc_open_mem(const char*, int, size_t, void*, int*);
 #else
-extern char* NC_findtestserver(const char*,const char**);
+#  define MSC_NCDISPATCH_EXTRA
 #endif
+
+#define NCD_EXTERNL MSC_NCDISPATCH_EXTRA extern
+
+NCD_EXTERNL char* NC_findtestserver(const char*, const char**);
+NCD_EXTERNL int nc_open_mem(const char*, int, size_t, void*, int*);
+NCD_EXTERNL int nc_finalize();
 
 /* Ping a specific server */
 extern int NCDAP_ping(const char*);
@@ -374,7 +378,7 @@ extern size_t NC_coord_one[NC_MAX_VAR_DIMS];
 extern int NC_argc;
 extern char* NC_argv[];
 extern int NC_initialized;
-extern int NC_finalized;
-extern int nc_initialize();
+
+NCD_EXTERNL int nc_initialize();
 
 #endif /* _DISPATCH_H */
