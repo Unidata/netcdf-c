@@ -12,7 +12,7 @@
 
 /*
  * "Expands" valid escape sequences in yystring (read by lex) into the
- * apropriate characters in termstring.  For example, the two character
+ * appropriate characters in termstring.  For example, the two character
  * sequence "\t" in yystring would be converted into a single tab character
  * in termstring.  On return, termstring is properly terminated.
  */

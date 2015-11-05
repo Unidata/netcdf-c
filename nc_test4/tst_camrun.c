@@ -5693,10 +5693,10 @@ main()
    if (nc_put_att_text(ncid, FLUTC_id, "long_name", 48, "Clearsky upwelling longwave flux at top of model")) ERR;
    if (nc_put_att_text(ncid, FLUTC_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, FREQSH_id, "units", 8, "fraction")) ERR;
-   if (nc_put_att_text(ncid, FREQSH_id, "long_name", 42, "Fractional occurance of shallow convection")) ERR;
+   if (nc_put_att_text(ncid, FREQSH_id, "long_name", 42, "Fractional occurrence of shallow convection")) ERR;
    if (nc_put_att_text(ncid, FREQSH_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, FREQZM_id, "units", 8, "fraction")) ERR;
-   if (nc_put_att_text(ncid, FREQZM_id, "long_name", 37, "Fractional occurance of ZM convection")) ERR;
+   if (nc_put_att_text(ncid, FREQZM_id, "long_name", 37, "Fractional occurrence of ZM convection")) ERR;
    if (nc_put_att_text(ncid, FREQZM_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, FSDS_id, "Sampling_Sequence", 8, "rad_lwsw")) ERR;
    if (nc_put_att_text(ncid, FSDS_id, "units", 4, "W/m2")) ERR;
@@ -6065,7 +6065,7 @@ main()
    if (nc_put_att_text(ncid, SO2_id, "long_name", 3, "SO2")) ERR;
    if (nc_put_att_text(ncid, SO2_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, SO2_CLXF_id, "units", 11, "molec/cm2/s")) ERR;
-   if (nc_put_att_text(ncid, SO2_CLXF_id, "long_name", 47, "vertically intergrated external forcing for SO2")) ERR;
+   if (nc_put_att_text(ncid, SO2_CLXF_id, "long_name", 47, "vertically integrated external forcing for SO2")) ERR;
    if (nc_put_att_text(ncid, SO2_CLXF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, SO2_XFRC_id, "units", 11, "molec/cm3/s")) ERR;
    if (nc_put_att_text(ncid, SO2_XFRC_id, "long_name", 24, "external forcing for SO2")) ERR;
@@ -6167,7 +6167,7 @@ main()
    if (nc_put_att_text(ncid, TROP_P_id, "long_name", 19, "Tropopause Pressure")) ERR;
    if (nc_put_att_text(ncid, TROP_P_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, TROP_PD_id, "units", 11, "probability")) ERR;
-   if (nc_put_att_text(ncid, TROP_PD_id, "long_name", 21, "Tropopause Probabilty")) ERR;
+   if (nc_put_att_text(ncid, TROP_PD_id, "long_name", 21, "Tropopause Probability")) ERR;
    if (nc_put_att_text(ncid, TROP_PD_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double TROP_T_FillValue_att[1] = {1e+36} ;
@@ -6279,7 +6279,7 @@ main()
    if (nc_put_att_text(ncid, bc_a1TBF_id, "long_name", 35, "bc_a1 turbulent dry deposition flux")) ERR;
    if (nc_put_att_text(ncid, bc_a1TBF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, bc_a1_CLXF_id, "units", 11, "molec/cm2/s")) ERR;
-   if (nc_put_att_text(ncid, bc_a1_CLXF_id, "long_name", 49, "vertically intergrated external forcing for bc_a1")) ERR;
+   if (nc_put_att_text(ncid, bc_a1_CLXF_id, "long_name", 49, "vertically integrated external forcing for bc_a1")) ERR;
    if (nc_put_att_text(ncid, bc_a1_CLXF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, bc_a1_XFRC_id, "units", 11, "molec/cm3/s")) ERR;
    if (nc_put_att_text(ncid, bc_a1_XFRC_id, "long_name", 26, "external forcing for bc_a1")) ERR;
@@ -6688,7 +6688,7 @@ main()
    if (nc_put_att_text(ncid, num_a1TBF_id, "long_name", 36, "num_a1 turbulent dry deposition flux")) ERR;
    if (nc_put_att_text(ncid, num_a1TBF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, num_a1_CLXF_id, "units", 11, "molec/cm2/s")) ERR;
-   if (nc_put_att_text(ncid, num_a1_CLXF_id, "long_name", 50, "vertically intergrated external forcing for num_a1")) ERR;
+   if (nc_put_att_text(ncid, num_a1_CLXF_id, "long_name", 50, "vertically integrated external forcing for num_a1")) ERR;
    if (nc_put_att_text(ncid, num_a1_CLXF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, num_a1_XFRC_id, "units", 11, "molec/cm3/s")) ERR;
    if (nc_put_att_text(ncid, num_a1_XFRC_id, "long_name", 27, "external forcing for num_a1")) ERR;
@@ -6739,7 +6739,7 @@ main()
    if (nc_put_att_text(ncid, num_a2TBF_id, "long_name", 36, "num_a2 turbulent dry deposition flux")) ERR;
    if (nc_put_att_text(ncid, num_a2TBF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, num_a2_CLXF_id, "units", 11, "molec/cm2/s")) ERR;
-   if (nc_put_att_text(ncid, num_a2_CLXF_id, "long_name", 50, "vertically intergrated external forcing for num_a2")) ERR;
+   if (nc_put_att_text(ncid, num_a2_CLXF_id, "long_name", 50, "vertically integrated external forcing for num_a2")) ERR;
    if (nc_put_att_text(ncid, num_a2_CLXF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, num_a2_XFRC_id, "units", 11, "molec/cm3/s")) ERR;
    if (nc_put_att_text(ncid, num_a2_XFRC_id, "long_name", 27, "external forcing for num_a2")) ERR;
@@ -6943,7 +6943,7 @@ main()
    if (nc_put_att_text(ncid, pom_a1TBF_id, "long_name", 36, "pom_a1 turbulent dry deposition flux")) ERR;
    if (nc_put_att_text(ncid, pom_a1TBF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, pom_a1_CLXF_id, "units", 11, "molec/cm2/s")) ERR;
-   if (nc_put_att_text(ncid, pom_a1_CLXF_id, "long_name", 50, "vertically intergrated external forcing for pom_a1")) ERR;
+   if (nc_put_att_text(ncid, pom_a1_CLXF_id, "long_name", 50, "vertically integrated external forcing for pom_a1")) ERR;
    if (nc_put_att_text(ncid, pom_a1_CLXF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, pom_a1_XFRC_id, "units", 11, "molec/cm3/s")) ERR;
    if (nc_put_att_text(ncid, pom_a1_XFRC_id, "long_name", 27, "external forcing for pom_a1")) ERR;
@@ -7003,7 +7003,7 @@ main()
    if (nc_put_att_text(ncid, so4_a1TBF_id, "long_name", 36, "so4_a1 turbulent dry deposition flux")) ERR;
    if (nc_put_att_text(ncid, so4_a1TBF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, so4_a1_CLXF_id, "units", 11, "molec/cm2/s")) ERR;
-   if (nc_put_att_text(ncid, so4_a1_CLXF_id, "long_name", 50, "vertically intergrated external forcing for so4_a1")) ERR;
+   if (nc_put_att_text(ncid, so4_a1_CLXF_id, "long_name", 50, "vertically integrated external forcing for so4_a1")) ERR;
    if (nc_put_att_text(ncid, so4_a1_CLXF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, so4_a1_XFRC_id, "units", 11, "molec/cm3/s")) ERR;
    if (nc_put_att_text(ncid, so4_a1_XFRC_id, "long_name", 27, "external forcing for so4_a1")) ERR;
@@ -7051,7 +7051,7 @@ main()
    if (nc_put_att_text(ncid, so4_a2TBF_id, "long_name", 36, "so4_a2 turbulent dry deposition flux")) ERR;
    if (nc_put_att_text(ncid, so4_a2TBF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, so4_a2_CLXF_id, "units", 11, "molec/cm2/s")) ERR;
-   if (nc_put_att_text(ncid, so4_a2_CLXF_id, "long_name", 50, "vertically intergrated external forcing for so4_a2")) ERR;
+   if (nc_put_att_text(ncid, so4_a2_CLXF_id, "long_name", 50, "vertically integrated external forcing for so4_a2")) ERR;
    if (nc_put_att_text(ncid, so4_a2_CLXF_id, "cell_methods", 10, "time: mean")) ERR;
    if (nc_put_att_text(ncid, so4_a2_XFRC_id, "units", 11, "molec/cm3/s")) ERR;
    if (nc_put_att_text(ncid, so4_a2_XFRC_id, "long_name", 27, "external forcing for so4_a2")) ERR;

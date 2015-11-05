@@ -5,15 +5,22 @@ DB=1
 FAST=1
 CYGWIN=1
 
-if test $# != 0 ; then
-cmds=$@
-fi
+FAST=1
 
 HDF5=1
 DAP=1
 #PNETCDF=1
 #PAR4=1
-#HDF4=1
+
+if test $# != 0 ; then
+cmds=$@
+fi
+
+if test "x$PNETCDF" = x1 ; then
+PAR=1
+fi
+
+#RPC=1
 
 #PGI=1
 #M32=1
@@ -205,12 +212,23 @@ export CXXFLAGS
 DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
 export DISTCHECK_CONFIGURE_FLAGS
 
+<<<<<<< HEAD
 if test -z "$NB" ; then
 #${MAKE} maintainer-clean >/dev/null 2>&1
 if autoreconf -i --force ; then ok=1; else exit ; fi
 fi
 
 if test "x$FAST" = x ; then
+=======
+if test "x$NB" != x -o "x$FAST" = x ; then
+${MAKE} maintainer-clean >/dev/null 2>&1
+fi
+if test -z "$NB" ; then
+  if autoreconf -i --force ; then ok=1; else exit ; fi
+fi
+
+if test -z "$FAST" ; then
+>>>>>>> master
   if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
 fi
 sh $X ./configure ${FLAGS}

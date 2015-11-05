@@ -120,7 +120,7 @@ nc_sync_sub(int ncid)
 
 	    pid = wait(&status);
 	}
-    }				/* successfull popen() */
+    }				/* successful popen() */
 
     return everythingOK ? 0 : 1;
 }

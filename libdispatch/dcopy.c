@@ -645,7 +645,7 @@ nc_copy_att(int ncid_in, int varid_in, const char *name,
 	 }
       }
       else
-	 return retval; /* Some other error occured. */
+	 return retval; /* Some other error occurred. */
    }
    else
       return NC_copy_att(ncid_in, varid_in, name, ncid_out, varid_out);

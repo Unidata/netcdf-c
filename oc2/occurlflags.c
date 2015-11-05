@@ -253,6 +253,8 @@ static void
 initialize(void)
 {
   struct OCCURLFLAG* p;
+  size_t len = 0;
+
   if(nflags == 0) {  /* initialize */
 	maxflag = -1;
     for(p=oc_curlflags;p->name;p++) {
@@ -267,7 +269,9 @@ initialize(void)
 	}
 
 
-    flagindices = (struct OCCURLFLAG**)calloc(1,(maxflag+(maxflag == -1 ? 2 : 1))*sizeof(struct OCCURLFLAG*));
+    len = maxflag;
+    if(maxflag == -1) len += 2; else len += 1;
+    flagindices = (struct OCCURLFLAG**)calloc(1,len*sizeof(struct OCCURLFLAG*));
     for(p=oc_curlflags;p->name;p++)
       flagindices[p->flag] = p;
   }

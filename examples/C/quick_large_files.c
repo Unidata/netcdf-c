@@ -1,7 +1,7 @@
 /* This example program is part of Unidata's netCDF library for
    scientific data access. 
 
-   This program (quickly, but not throughly) tests the large file
+   This program (quickly, but not thoroughly) tests the large file
    features.
 
    Ed Hartnett, 8/11/4

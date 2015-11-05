@@ -509,7 +509,7 @@ AC_DEFUN([DODS_CHECK_SIZES], [dnl
     # there are 2 possibilities for the definition of dods_int32, ..., 
     # types. First possibility is that the C99 types are used and 
     # dods-datatypes-static.h is copied. In that case the following 
-    # definitions are not really usefull. In case the C99 types are 
+    # definitions are not really useful. In case the C99 types are 
     # not available, dods-datatypes-config.h.in is used to generate
     # dods-datatypes.h.
     # The code below makes dods-datatypes-config.h stand on its own. 

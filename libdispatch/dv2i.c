@@ -1,5 +1,5 @@
 /** \file 
-The V2 API Funtions.
+The V2 API Functions.
 
 Copyright 1996, University Corporation for Atmospheric Research
 See \ref copyright file for copying and redistribution conditions.

@@ -26,7 +26,7 @@ TESTPROGRAMS += tst_atts tst_put_vars
 endif
 
 if USE_PNETCDF
-TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_formatx_pnetcdf
+TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar tst_formatx_pnetcdf
 endif
 
 # These are the source files for the main workhorse test program,
@@ -106,4 +106,4 @@ CLEANFILES += ncx.c
 
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
-	m4 $(AM_M4FLAGS) $(M4FLAGS) -s $< >$@
+	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@

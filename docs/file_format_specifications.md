@@ -477,7 +477,7 @@ sets these when creating a group.
 
 Each dataset in the HDF5 file must be created with a property list for
 which the attribute creation order has been set to creation
-ordering. The H5Pset_attr_creation_order funtion is used to set the
+ordering. The H5Pset_attr_creation_order function is used to set the
 creation ordering of attributes of a variable.
 
 The following example code (from libsrc4/nc4hdf.c) shows how the
@@ -511,7 +511,7 @@ Until version 1.8, HDF5 did not have any capability to represent
 shared dimensions. With the 1.8 release, HDF5 introduced the dimension
 scale feature to allow shared dimensions in HDF5 files.
 
-The dimension scale is unfortunately not exactly equivilent to the
+The dimension scale is unfortunately not exactly equivalent to the
 netCDF shared dimension, and this leads to a number of compromises in
 the design of netCDF-4.
 

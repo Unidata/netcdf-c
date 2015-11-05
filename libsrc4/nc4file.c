@@ -2980,7 +2980,7 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
       /* Turn define mode off. */
       h5->flags ^= NC_INDEF;
 
-      /* Redef mode needs to be tracked seperately for nc_abort. */
+      /* Redef mode needs to be tracked separately for nc_abort. */
       h5->redef = NC_FALSE;
    }
 
@@ -3311,7 +3311,7 @@ nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
    /* Turn define mode off. */
    h5->flags ^= NC_INDEF;
 
-   /* Redef mode needs to be tracked seperately for nc_abort. */
+   /* Redef mode needs to be tracked separately for nc_abort. */
    h5->redef = NC_FALSE;
 
    return sync_netcdf4_file(h5);

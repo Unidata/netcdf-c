@@ -462,7 +462,7 @@ test_nc_put_var_$1(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */

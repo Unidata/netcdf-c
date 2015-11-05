@@ -863,6 +863,9 @@ if test "$ac_cv_type_uint" = yes ; then
 else
    AC_CHECK_SIZEOF(unsigned int)
 fi
+$SLEEPCMD
+AC_CHECK_SIZEOF(ptrdiff_t)
+
 
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
    AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
@@ -1134,7 +1137,21 @@ BINFILE_NAME=${BINFILE_NAME}.tar
 AC_SUBST(BINFILE_NAME)
 AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
 
-#UD_FTPBINDIR
+##
+# Bugfix for Cygwin.
+##
+AC_MSG_CHECKING([if libtool needs -no-undefined flag to build shared libraries])
+case "`uname`" in
+     CYGWIN*|MINGW*|AIX*)
+     ## Add in the -no-undefined flag to LDFLAGS for libtool.
+     AC_MSG_RESULT([yes])
+     NOUNDEFINED=" -no-undefined"
+     ;;
+     *)
+     ## Don't add anything
+     AC_MSG_RESULT([no])
+     ;;
+esac
 
 AC_MSG_CHECKING([value of LIBS])
 AC_MSG_RESULT([$LIBS])
@@ -1228,6 +1245,7 @@ AC_SUBST([LDFLAGS])
 AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_LDFLAGS])
+AC_SUBST([NOUNDEFINED])
 
 # Args:
 # 1. netcdf_meta.h variable

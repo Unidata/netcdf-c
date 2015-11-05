@@ -1,7 +1,7 @@
 dnl
 dnl sjl: this version of ncx.m4 has SX-specific optimisations as per
 dnl      Harveys mods to earlier versions. However, I have removed
-dnl      support for FLOAT2 and attemped to tidy up the mods to
+dnl      support for FLOAT2 and attempted to tidy up the mods to
 dnl      reduce the complexity a bit
 dnl
 dnl This is m4 source.
@@ -1074,7 +1074,7 @@ PUT_VAX_DFLOAT_Body(xp)
 
 /*
  * Return the number of bytes until the next "word" boundary
- * N.B. This is based on the very wierd YMP address structure,
+ * N.B. This is based on the very weird YMP address structure,
  * which puts the address within a word in the leftmost 3 bits
  * of the address.
  */

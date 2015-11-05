@@ -1,12 +1,13 @@
 ## This is a CMake file, part of Unidata's netCDF package.
 # Copyright 2012-2014, see the COPYRIGHT file for more information.
+#
 
 ##################################
 # Set Project Properties
 ##################################
 
 #Minimum required CMake Version
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 2.8.11)
 
 #Project Name
 project(netCDF C)
@@ -226,7 +227,7 @@ ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
 ADD_DEFINITIONS()
 
-# Supress CRT Warnings.
+# Suppress CRT Warnings.
 # Only necessary for Windows
 IF(MSVC)
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
@@ -460,7 +461,7 @@ OPTION(USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
 IF(USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
   SET(USE_NETCDF4 ON)
-  # Accomodate developers who have hdf5 libraries and
+  # Accommodate developers who have hdf5 libraries and
   # headers on their system, but do not have a the hdf
   # .cmake files.  If this is the case, they should
   # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
@@ -654,7 +655,7 @@ ENDIF()
 
 # Check to see if libtool supports
 
-# Check for the math library so it can be explicitely linked.
+# Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
   FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
   MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
@@ -920,10 +921,22 @@ IF(ENABLE_DOXYGEN)
     SET(DOXYGEN_CSS_FILE "${CMAKE_SOURCE_DIR}/docs/release.css" CACHE STRING "")
     SET(DOXYGEN_HEADER_FILE "${CMAKE_SOURCE_DIR}/docs/release_header.html" CACHE STRING "")
     SET(DOXYGEN_SEARCHENGINE "NO" CACHE STRING "")
+    SET(ENABLE_DOXYGEN_SERVER_BASED_SEARCH NO CACHE STRING "")
   ELSE()
     SET(DOXYGEN_CSS_FILE "" CACHE STRING "")
     SET(DOXYGEN_HEADER_FILE "" CACHE STRING "")
     SET(DOXYGEN_SEARCHENGINE "YES" CACHE STRING "")
+
+    # If not using release document configuration,
+    # provide an option for server-based search.
+    OPTION(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH "Configure Doxygen with server-based search." OFF)
+    IF(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
+      SET(DOXYGEN_SERVER_BASED_SEARCH "YES" CACHE STRING "")
+    ELSE()
+      SET(DOXYGEN_SERVER_BASED_SEARCH "NO" CACHE STRING "")
+    ENDIF(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
+
+
   ENDIF(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
   # Option to turn on the TODO list in the doxygen-generated documentation.
   OPTION(DOXYGEN_ENABLE_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
@@ -964,9 +977,9 @@ IF(MSVC)
 ENDIF()
 
 # Set some of the options as advanced.
-MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF ENABLE_COVERAGE_TESTS)
+MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_COVERAGE_TESTS )
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
-MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS)
+MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
 ################################
 # Option checks
 ################################
@@ -1191,7 +1204,6 @@ ENDMACRO()
 # Binary tests which are used by a script looking for a specific name.
 MACRO(build_bin_test_no_prefix F)
   build_bin_test(${F})
-  ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
   IF(MSVC)
     SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
     SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
@@ -1205,7 +1217,6 @@ ENDMACRO()
 
 MACRO(add_bin_test prefix F)
   ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
-
   TARGET_LINK_LIBRARIES(${prefix}_${F}
     ${ALL_TLL_LIBS}
     netcdf

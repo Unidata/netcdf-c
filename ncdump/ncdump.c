@@ -148,7 +148,7 @@ name_path(const char *path)
     cp = strrchr(path, FILE_DELIMITER);
     if (cp == 0)		/* no delimiter */
       cp = path;
-    else			/* skip delimeter */
+    else			/* skip delimiter */
       cp++;
     new = (char *) emalloc((unsigned) (strlen(cp)+1));
     (void) strncpy(new, cp, strlen(cp) + 1);	/* copy last component of path */

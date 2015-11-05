@@ -29,7 +29,7 @@ DDS and DAS, refer to the OPeNDAP web site http://opendap.org.
 See the following pages for more information.
 
 - \subpage dap_accessing_data
-- \subpage oc_auth
+- <a href="auth.html">netCDF Authorization Support</a>
 - \subpage dap_to_netcdf
 - \subpage var_dim_trans
 - \subpage var_name_trans
@@ -488,7 +488,7 @@ assumed that the cost is not prohibitive.
 
 In an effort to provide better performance for some access patterns,
 client-side caching of data is available. The default is no caching,
-but it may be enabled by prefixing the URL with the paramter "cache".
+but it may be enabled by prefixing the URL with the parameter "cache".
 
 Caching operates basically as follows.
 

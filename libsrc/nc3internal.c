@@ -216,18 +216,22 @@ fprintf(stderr, "    VAR %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 		(*vpp)->begin = index;
 
 		if (ncp->old != NULL) {
-		    /* move to the next fixed variable */
-		    for (; j<ncp->old->vars.nelems; j++)
-		        if (!IS_RECVAR(ncp->old->vars.value[j]))
-		            break;
-		    if (j < ncp->old->vars.nelems) {
-		        if ((*vpp)->begin < ncp->old->vars.value[j]->begin)
-		            /* the first ncp->vars.nelems fixed variables
-                               should be the same. If the new begin is smaller,
-                               reuse the old begin */
-                            (*vpp)->begin = ncp->old->vars.value[j]->begin;
-                        j++;
-		    }
+          /* move to the next fixed variable */
+          for (; j<ncp->old->vars.nelems; j++) {
+            if (!IS_RECVAR(ncp->old->vars.value[j]))
+              break;
+          }
+
+          if (j < ncp->old->vars.nelems) {
+            if ((*vpp)->begin < ncp->old->vars.value[j]->begin) {
+              /* the first ncp->vars.nelems fixed variables
+                 should be the same. If the new begin is smaller,
+                 reuse the old begin */
+              (*vpp)->begin = ncp->old->vars.value[j]->begin;
+              index = (*vpp)->begin;
+            }
+            j++;
+          }
 		}
 
 		index += (*vpp)->len;
@@ -1108,7 +1112,7 @@ NC3_open(const char * path, int ioflags,
 	if (status = NC_init_pe(nc3, basepe)) {
 		return status;
 	}
-#else 
+#else
 	/*
 	 * !_CRAYMPP, only pe 0 is valid
 	 */
@@ -1518,7 +1522,7 @@ NC3_set_base_pe(int ncid, int pe)
 	/* update serving & lock values for a "smooth" transition */
 	/* note that the "real" server will being doing this as well */
 	/* as all the rest in the group */
-	/* must have syncronization before & after this step */
+	/* must have synchronization before & after this step */
 	shmem_short_get(
 		(shmem_t *) nc3->lock + LOCKNUMREC_SERVING,
 		(shmem_t *) nc3->lock + LOCKNUMREC_SERVING,
@@ -1662,7 +1666,7 @@ NC3_set_content(int ncid, size_t size, void* memory)
     if(status != NC_NOERR) goto done;
 #else
     status = NC_EDISKLESS;
-#endif    				
+#endif
 
 done:
     return status;

@@ -3342,7 +3342,7 @@ test_nc_put_var_text(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */
@@ -3479,7 +3479,7 @@ test_nc_put_var_uchar(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */
@@ -3616,7 +3616,7 @@ test_nc_put_var_schar(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */
@@ -3753,7 +3753,7 @@ test_nc_put_var_short(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */
@@ -3890,7 +3890,7 @@ test_nc_put_var_int(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */
@@ -4027,7 +4027,7 @@ test_nc_put_var_long(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */
@@ -4164,7 +4164,7 @@ test_nc_put_var_float(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */
@@ -4301,7 +4301,7 @@ test_nc_put_var_double(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */
@@ -4438,7 +4438,7 @@ test_nc_put_var_ushort(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */
@@ -4575,7 +4575,7 @@ test_nc_put_var_uint(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */
@@ -4712,7 +4712,7 @@ test_nc_put_var_longlong(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */
@@ -4849,7 +4849,7 @@ test_nc_put_var_ulonglong(void)
 	}
     }
 
-        /* Preceeding has written nothing for record variables, now try */
+        /* Preceding has written nothing for record variables, now try */
         /* again with more than 0 records */
 
 	/* Write record number NRECS to force writing of preceding records */

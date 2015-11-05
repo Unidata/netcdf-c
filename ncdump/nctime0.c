@@ -265,7 +265,7 @@ get_timeinfo(int ncid1, int varid1, ncvar_t *vp) {
  *     are always printed on successive lines, with line wrapping
  *     as needed.
  *
- * Assume: Preceeding call to pr_att_valgs has already screened
+ * Assume: Preceding call to pr_att_valgs has already screened
  * this attribute for valid primitive types for the current netcdf
  * model (netcdf 3 or 4).
  */

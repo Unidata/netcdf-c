@@ -1,6 +1,7 @@
 # Test c output
 T=t
 #CMD=valgrind --leak-check=full
+
 #CMD=gdb --args
 
 CC=mpicc

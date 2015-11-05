@@ -101,7 +101,7 @@ done:
 }
 
 /**
-Given an existing file, figure out its format 
+Given an existing file, figure out its format
 and return that format value (NC_FORMATX_XXX)
 in model arg.
 */
@@ -470,7 +470,7 @@ int
 nc__create(const char *path, int cmode, size_t initialsz,
 	   size_t *chunksizehintp, int *ncidp)
 {
-   return NC_create(path, cmode, initialsz, 0, 
+   return NC_create(path, cmode, initialsz, 0,
 		    chunksizehintp, 0, NULL, ncidp);
 
 }
@@ -669,7 +669,7 @@ nc__open(const char *path, int mode,
     * flags, such as NC_PNETCDF, NC_MPIIO, or NC_MPIPOSIX, before entering
     * NC_open()? Note nc_open_par() also calls NC_open().
     */
-   return NC_open(path, mode, 0, chunksizehintp, 0, 
+   return NC_open(path, mode, 0, chunksizehintp, 0,
 		  NULL, ncidp);
 }
 
@@ -1624,7 +1624,7 @@ NC_create(const char *path, int cmode, size_t initialsz,
    if(!NC_initialized)
    {
       if ((stat = nc_initialize()))
-	 return stat; 
+	 return stat;
    }
 
 #ifdef USE_REFCOUNT
@@ -1825,16 +1825,16 @@ NC_open(const char *path, int cmode,
        */
       if(version == 2) cmode |= NC_64BIT_OFFSET;
       else if(version == 5) {
-	cmode |= NC_64BIT_DATA;
-	cmode &= ~(NC_64BIT_OFFSET); /*NC_64BIT_DATA=>NC_64BIT_OFFSET*/
-     }
+        cmode |= NC_64BIT_DATA;
+        cmode &= ~(NC_64BIT_OFFSET); /*NC_64BIT_DATA=>NC_64BIT_OFFSET*/
+      }
    } else if(model == NC_FORMATX_PNETCDF) {
-      cmode &= ~(NC_NETCDF4|NC_64BIT_OFFSET);
-      cmode |= NC_64BIT_DATA;
+     cmode &= ~(NC_NETCDF4|NC_64BIT_OFFSET);
+     cmode |= NC_64BIT_DATA;
    }
 
    if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX))
-      return  NC_EINVAL;
+     return  NC_EINVAL;
 
    /* override any other table choice */
    dispatcher = NC_get_dispatch_override();

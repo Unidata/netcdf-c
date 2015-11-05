@@ -53,7 +53,7 @@ tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug	\
 tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh             \
 tst_grp_spec.sh tst_mud.sh tst_h_scalar tst_h_scalar.sh tst_formatx4.sh \
-tst_bug324
+tst_bug324 run_utf8_nc4_tests.sh
 
 if EXTRA_TESTS
 TESTS += run_back_comp_tests.sh
@@ -131,7 +131,8 @@ ref_tst_charfill.cdl tst_charfill.cdl tst_charfill.sh                   \
 tst_iter.sh tst_mud.sh ref_tst_mud4.cdl ref_tst_mud4-bc.cdl             \
 ref_tst_mud4_chars.cdl \
 ref_tst_ncf213.cdl tst_h_scalar.sh                                      \
-tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl                        \
+run_utf8_nc4_tests.sh							\
+tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl                      \
 CMakeLists.txt XGetopt.c tst_bom.sh tst_inmemory.sh
 
 # CDL files and Expected results

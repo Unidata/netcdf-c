@@ -27,6 +27,9 @@ This file contains a high-level description of this package's evolution. Release
     2. --disable-parallel4 to be used when we do not want
      netcdf-4 to use parallelism even if hdf5 has it enabled.
 
+* Reduced minimum cmake version to `2.8.11` from `2.8.12`. This will allow for cmake use on a broader set of popular linux platforms without having to do a custom cmake install.  See https://github.com/Unidata/netcdf-c/issues/135 for more information.
+
+* The documentation section `The Default Chunking Scheme` has been updated with more information.  This lives in the `guide.dox` file in the `docs/` directory, or can be found online in the appropriate location (typically http://www.unidata.ucar.edu/netcdf/docs), once this release has been published.
 
 ### 4.4.0-RC3 2015-10-08
 
@@ -36,22 +39,6 @@ This file contains a high-level description of this package's evolution. Release
 
 * Added a note to the install directions pointing out that parallel make
 cannot be used for 'make check'.
-
-* Added CDM-5 support via new mode flag called NC_64BIT_DATA (alias NC_CDF5).
-  Major kudos to Wei-Keng Liao for all the effort he put into getting this to
-  work.
-
-  This cascaded into a number of other changes.
-  1. Renamed libsrcp5 -> libsrcp because pnetcdf can do parallel io for
-     CDF-1, CDF-2 and CDF-5, not just CDF-5.
-  2. Given #1, then the NC_PNETCDF mode flag becomes a subset of NC_MPIIO,
-      so made NC_PNETCDF an alias for NC_MPII.
-
-* Modified Configure.ac to provide finer control over parallel
-  support. Specifically, add flags for:
-  1. HDF5_PARALLEL when hdf5 library has parallel enabled
-  2. --disable-parallel4 to be used when we do not want
-     netcdf-4 to use parallelism even if hdf5 has it enabled.
 
 ### 4.4.0-RC2 Released 2015-07-09
 
@@ -389,7 +376,7 @@ This is a bug-fix-only release for version 4.3.1.
 
 ### 4.3.1-rc1 Released 2013-08-09
 
-* Migrated from the netCDF-C `subversion` repository to a publically available GitHub repository available at https://github.com/Unidata/netCDF-C.  This repository may be checked out (cloned) with the following command:
+* Migrated from the netCDF-C `subversion` repository to a publicly available GitHub repository available at https://github.com/Unidata/netCDF-C.  This repository may be checked out (cloned) with the following command:
 
 	$ git clone https://github.com/Unidata/netCDF-C.git
 
@@ -430,7 +417,7 @@ This is a bug-fix-only release for version 4.3.1.
 ## 4.3.0 Released 2013-04-29
 
 * fsync: Changed default in autotools config file; fsync must now be
-explicitely enabled instead of explicitely disabled. [NCF-239]
+explicitly enabled instead of explicitly disabled. [NCF-239]
 
 [NCF-239]: https://bugtracking.unidata.ucar.edu/browse/NCF-239
 
@@ -1149,7 +1136,7 @@ Kent.
 * Fixed some cross-compile problems.
 
 * Rewrote code which placed bogus errors on the HDF5 error stack, trying
-to open non-existant attributes and variables. Now no HDF5 errors are
+to open non-existent attributes and variables. Now no HDF5 errors are
 seen.
 
 * Removed man subdirectory. Now man4 subdirectory is used for all builds.

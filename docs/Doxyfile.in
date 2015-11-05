@@ -754,7 +754,6 @@ INPUT = \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/guide.dox \
     @abs_top_srcdir@/docs/OPeNDAP.dox \
-    @abs_top_srcdir@/docs/auth.md \
     @abs_top_srcdir@/docs/attribute_conventions.md \
     @abs_top_srcdir@/docs/file_format_specifications.md \
     @abs_top_srcdir@/docs/tutorial.dox \
@@ -1563,7 +1562,7 @@ SEARCHENGINE           = @DOXYGEN_SEARCHENGINE@
 # The default value is: NO.
 # This tag requires that the tag SEARCHENGINE is set to YES.
 
-SERVER_BASED_SEARCH    = NO
+SERVER_BASED_SEARCH    = @DOXYGEN_SERVER_BASED_SEARCH@
 
 # When EXTERNAL_SEARCH tag is enabled doxygen will no longer generate the PHP
 # script for searching. Instead the search results are written to an XML file
@@ -2020,7 +2019,7 @@ PREDEFINED             = USE_NETCDF4
 EXPAND_AS_DEFINED      =
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES then doxygen's preprocessor will
-# remove all refrences to function-like macros that are alone on a line, have an
+# remove all references to function-like macros that are alone on a line, have an
 # all uppercase name, and do not end with a semicolon. Such function macros are
 # typically used for boiler-plate code, and will confuse the parser if not
 # removed.

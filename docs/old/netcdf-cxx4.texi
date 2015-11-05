@@ -147,7 +147,7 @@ attributes are discussed.
 
 @node Class Hierarchy, Auxiliary Types and Constants, Introduction, Introduction
 @unnumberedsec Class Hierarchy
-@cindex class hierachy
+@cindex class hierarchy
 
 The class for netCDF file objects is @code{NcFile}.
 

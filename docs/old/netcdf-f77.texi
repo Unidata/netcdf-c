@@ -2218,7 +2218,7 @@ group.
 
 Variable are only visible in the group in which they are defined. The
 same applies to attributes. ``Global'' attributes are defined in
-whichever group is refered to by the ncid. 
+whichever group is referred to by the ncid. 
 
 Dimensions are visible in their groups, and all child groups.
 
@@ -3775,7 +3775,7 @@ Insert a named field into a compound type.
 @heading Usage 
 
 @example
-INTEGER FUNTION NF_INSERT_COMPOUND(INTEGER TYPEID, CHARACTER*(*) NAME, INTEGER OFFSET, 
+INTEGER FUNCTION NF_INSERT_COMPOUND(INTEGER TYPEID, CHARACTER*(*) NAME, INTEGER OFFSET, 
         INTEGER FIELD_TYPEID)
 @end example
 
@@ -3959,7 +3959,7 @@ C     Include an array.
 Get the number of fields, length in bytes, and name of a compound
 type.
 
-In addtion to the NF_INQ_COMPOUND function, three additional functions
+In addition to the NF_INQ_COMPOUND function, three additional functions
 are provided which get only the name, size, and number of fields.
 
 @heading Usage 
