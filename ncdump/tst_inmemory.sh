@@ -41,7 +41,9 @@ done
 }
 
 dotest "3" "$CLASSIC"
-dotest "4" "$EXTENDED"
+if [ "x$USE_NETCDF4" != "x" ]; then
+    dotest "4" "$EXTENDED"
+fi
 
 # Cleanup
 rm -fr results
@@ -53,5 +55,3 @@ else
   CODE=1
 fi
 exit $CODE
-
-
