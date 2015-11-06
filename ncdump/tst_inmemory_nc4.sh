@@ -40,10 +40,7 @@ for f in $2 ; do
 done
 }
 
-dotest "3" "$CLASSIC"
-if [ "x$USE_NETCDF4" != "x" ]; then
-    dotest "4" "$EXTENDED"
-fi
+dotest "4" "$EXTENDED"
 
 # Cleanup
 rm -fr results

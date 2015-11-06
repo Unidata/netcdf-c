@@ -38,7 +38,10 @@ TESTS += tst_iter.sh
 endif
 
 if BUILD_DISKLESS
-TESTS += tst_inmemory.sh
+TESTS += tst_inmemory_nc3.sh
+if USE_NETCDF4
+TESTS += tst_inmemory_nc4.sh
+endif
 endif
 
 if USE_NETCDF4
@@ -133,7 +136,7 @@ ref_tst_mud4_chars.cdl \
 ref_tst_ncf213.cdl tst_h_scalar.sh                                      \
 run_utf8_nc4_tests.sh							\
 tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl                      \
-CMakeLists.txt XGetopt.c tst_bom.sh tst_inmemory.sh
+CMakeLists.txt XGetopt.c tst_bom.sh tst_inmemory_nc3.sh tst_inmemory_nc4.sh
 
 # CDL files and Expected results
 SUBDIRS=cdl expected

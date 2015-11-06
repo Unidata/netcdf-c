@@ -110,8 +110,11 @@ ENDIF()
   ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
   IF(BUILD_DISKLESS)
-    add_sh_test(ncdump tst_inmemory)
-  ENDIF()
+    add_sh_test(ncdump tst_inmemory_nc3)
+    IF(USE_NETCDF4)
+      add_sh_test(ncdump tst_inmemory_nc4)
+    ENDIF(USE_NETCDF4)
+  ENDIF(BUILD_DISKLESS)
 
   ###
   # This test fails on Visual Studio builds with bash.
