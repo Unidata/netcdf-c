@@ -167,19 +167,19 @@ test "x$enable_valgrind_tests" = xyes || enable_valgrind_tests=no
 AC_MSG_RESULT($enable_valgrind_tests)
 
 # Does the user want to build netcdf-4?
-AC_MSG_CHECKING([whether we should try to build netCDF-4])
-AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--enable-netcdf-4],
-              [build with netcdf-4 (HDF5 and zlib required)])])
+AC_MSG_CHECKING([whether we should build netCDF-4])
+AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
+              [do not build with netcdf-4 (else HDF5 and zlib required)])])
 test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
-AC_MSG_RESULT([$enable_netcdf_4])
 
 # Synonym
-# --enable-netcdf-4 is the controlling enable switch
-if test "x$enable_netcdf_4" = "x" ; then
-  AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--enable-netcdf4],
-              [(just a synonym for enable-netcdf-4)])])
-  enable_netcdf_4="$enable_netcdf4"
+AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
+              [(just a synonym for --disable-netcdf-4)])])
+test "x$enable_netcdf4" = xno || enable_netcdf4=yesi
+if test "x$enable_netcdf4" = xno ; then
+enable_netcdf_4=no
 fi
+AC_MSG_RESULT([$enable_netcdf_4])
 
 # Does the user require dynamic loading?
 # This is only for those hdf5 installs that support it.

@@ -72,12 +72,13 @@ seekable.
 .IP "\fB-\fIformat_code\fP"
 The \-k flag specifies the format of the file to be created and, by inference,
 the data model accepted by ncgen (i.e. netcdf-3 (classic) versus
-netcdf-4). As a shortcut, a numeric \fIformat_code\fP may be specified instead.
+netcdf-4 vs netcdf-5). As a shortcut, a numeric \fIformat_code\fP may be specified instead.
 The possible \fIformat_name\fP values for the \-k option are:
 .RS
 .RS
 .IP "'classic' or 'nc3' => netCDF classic format"
 .IP "'64-bit offset' or 'nc6' => netCDF 64-bit format"
+.IP "'64-bit data or 'nc5' => netCDF-5 (64-bit data) format"
 .IP "'netCDF-4' 0r 'nc4' => netCDF-4 format (enhanced data model)"
 .IP "'netCDF-4 classic model' or 'nc7' => netCDF-4 classic model format"
 .RE
@@ -86,6 +87,7 @@ Accepted \fIformat_number\fP arguments, just shortcuts for format_names, are:
 .RS
 .RS
 .IP "3 => netcdf classic format"
+.IP "5 => netcdf 5 format"
 .IP "6 => netCDF 64-bit format"
 .IP "4 => netCDF-4 format (enhanced data model)"
 .IP "7 => netCDF-4 classic model format"
@@ -127,11 +129,17 @@ only the classic model is supported.
 The choice of output format is determined by three flags.
 .IP "\fB-k flag.\fP"
 .IP "\fB_Format attribute (see below).\fP"
-.IP "\fBOccurrence of netcdf-4 constructs in the input CDL.\fP"
+.IP "\fBOccurrence of CDF-5 (64-bit data) or
+netcdf-4 constructs in the input CDL.\fP"
 The term "netCDF-4 constructs" means
 constructs from the enhanced data model,
 not just special performance-related attributes such as
  _ChunkSizes, _DeflateLevel, _Endianness, etc.
+The term "CDF-5 constructs" means
+extended unsigned integer types allowed in the 64-bit data model.
+.LP
+Note that there is an ambiguity between the netCDF-4 case
+and the CDF-5 case is only an unsigned type is seen in the input.
 .LP
 The rules are as follows, in order of application.
 .IP "\fB1.\fP"
@@ -152,7 +160,9 @@ ncgen will output a file in the requested form,
 else an error will be reported.
 .IP "\fB4.\fP"
 If the \-k flag is undefined,
-and if there are netCDF-4 constructs in the CDL,
+and if there are CDF-5 constructs, only, in the CDL,
+a \-k flag value of 5 (64-bit data model) will be used.
+If there are true netCDF-4 constructs in the CDL,
 a \-k flag value of 3 (enhanced model) will be used.
 .IP "\fB5.\fP"
 If special performance-related attributes are specified in the CDL,
@@ -731,7 +741,7 @@ The special attributes currently supported are as follows:
 .LP
 `_Format' is a global attribute specifying the netCDF format
 variant. Its value must be a single string
-matching one of `classic', `64-bit offset', `netCDF-4', or
+matching one of `classic', `64-bit offset', `64-bit data', `netCDF-4', or
 `netCDF-4 classic model'.
 .LP
 The rest of the special attributes are all variable attributes.
