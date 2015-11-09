@@ -40,7 +40,8 @@ int header_only;
 int k_flag;    /* > 0  => -k was specified on command line*/
 int format_flag;   /* _Format attribute value (same range as -k flag) */
 int format_attribute; /* 1=>format came from format attribute */
-int enhanced_flag; /* 1 => netcdf-4 constructs appear in the parse */
+int enhanced_flag; /* 1 => netcdf-4 */
+int cdf5_flag; /* 1 => cdf5 | maybe netcdf-4 */
 int specials_flag; /* 1=> special attributes are present */
 int usingclassic;
 int cmode_modifier;
@@ -71,10 +72,10 @@ struct Kvalues legalkinds[NKVALUES] = {
     {"1", NC_FORMAT_CLASSIC},	/* deprecated, use "-3" or "-k nc3" instead */
 
     /* NetCDF-3 64-bit offset format */
-    {"64-bit offset", NC_FORMAT_64BIT}, /* canonical format name */
-    {"nc6", NC_FORMAT_64BIT},		/* short format name */
-    {"2", NC_FORMAT_64BIT},     /* deprecated, use "-6" or "-k nc6" instead */
-    {"64-bit-offset", NC_FORMAT_64BIT}, /* aliases */
+    {"64-bit offset", NC_FORMAT_64BIT_OFFSET}, /* canonical format name */
+    {"nc6", NC_FORMAT_64BIT_OFFSET},		/* short format name */
+    {"2", NC_FORMAT_64BIT_OFFSET},     /* deprecated, use "-6" or "-k nc6" instead */
+    {"64-bit-offset", NC_FORMAT_64BIT_OFFSET}, /* aliases */
 
     /* NetCDF-4 HDF5-based format */
     {"netCDF-4", NC_FORMAT_NETCDF4}, /* canonical format name */
@@ -95,6 +96,14 @@ struct Kvalues legalkinds[NKVALUES] = {
     {"netCDF4_classic", NC_FORMAT_NETCDF4_CLASSIC},
     {"hdf5-nc3", NC_FORMAT_NETCDF4_CLASSIC},
     {"enhanced-nc3", NC_FORMAT_NETCDF4_CLASSIC},
+
+    /* CDF-5 format */
+    {"5", NC_FORMAT_64BIT_DATA},
+    {"64-bit-data", NC_FORMAT_64BIT_DATA},
+    {"64-bit data", NC_FORMAT_64BIT_DATA},
+    {"nc5", NC_FORMAT_64BIT_DATA},
+    {"cdf5", NC_FORMAT_64BIT_DATA},
+    {"cdf-5", NC_FORMAT_64BIT_DATA},
 
     /* null terminate*/
     {NULL,0}
@@ -170,7 +179,26 @@ ubasename(char *logident)
 void
 usage(void)
 {
-    derror("Usage: %s [ -b ] [ -c ] [ -f ] [ -k kind ] [ -x ] [-S struct-format] [-M <name> [ -o outfile]  [ file ... ]",
+    derror("Usage: %s"
+" [-1]"
+" [-3]"
+" [-4]"
+" [-5]"
+" [-6]"
+" [-7]"
+" [-b]"
+" [-B buffersize]"
+" [-d]"
+" [-D debuglevel]"
+" [-h]"
+" [-k kind ]"
+" [-l language=b|c|f77|java]"
+" [-M <name>]"
+" [-n]"
+" [-o outfile]"
+" [-P]"
+" [-x]"
+" [file ... ]",
 	   progname);
     derror("netcdf library version %s", nc_inq_libvers());
 }
@@ -206,6 +234,7 @@ main(
     format_flag = 0;
     format_attribute = 0;
     enhanced_flag = 0;
+    cdf5_flag = 0;
     specials_flag = 0;
 
     diskless = 0;
@@ -215,7 +244,7 @@ main(
     (void) par_io_init(32, 32);
 #endif
 
-    while ((c = getopt(argc, argv, "hbcfk:3467l:no:v:xdM:D:B:P")) != EOF)
+    while ((c = getopt(argc, argv, "134567bB:cdD:fhk:l:M:no:Pv:x")) != EOF)
       switch(c) {
 	case 'd':
 	  debug = 1;
@@ -249,33 +278,29 @@ main(
 	case 'h':
 	  header_only = 1;
 	  break;
-    case 'l': /* specify language, instead of using -c or -f or -b */
-
-      {
-		if(l_flag != 0) {
-          fprintf(stderr,"Please specify only one language\n");
-          return 1;
-		}
-        if(!optarg) {
-          derror("%s: output language is null",
-                 progname);
-          return(1);
-        }
-        lang_name = (char*) emalloc(strlen(optarg)+1);
-		(void)strcpy(lang_name, optarg);
-		for(langs=legallanguages;langs->name != NULL;langs++) {
-          if(strcmp(lang_name,langs->name)==0) {
-			l_flag = langs->flag;
-            break;
-          }
-		}
-		if(langs->name == NULL) {
-          derror("%s: output language %s not implemented",
-                 progname, lang_name);
-          return(1);
-		}
-      }
-	  break;
+        case 'l': /* specify language, instead of using -c or -f or -b */
+	{
+	    if(l_flag != 0) {
+              fprintf(stderr,"Please specify only one language\n");
+              return 1;
+	    }
+            if(!optarg) {
+              derror("%s: output language is null", progname);
+              return(1);
+            }
+            lang_name = (char*) emalloc(strlen(optarg)+1);
+	    (void)strcpy(lang_name, optarg);
+	    for(langs=legallanguages;langs->name != NULL;langs++) {
+              if(strcmp(lang_name,langs->name)==0) {
+	  	l_flag = langs->flag;
+                break;
+              }
+	    }
+	    if(langs->name == NULL) {
+              derror("%s: output language %s not implemented",progname, lang_name);
+              return(1);
+	    }
+	}; break;
 	case 'n':		/* old version of -b, uses ".cdf" extension */
 	  if(l_flag != 0) {
 	    fprintf(stderr,"Please specify only one language\n");
@@ -297,13 +322,16 @@ main(
 		     Format names:
 		       "classic" or "nc3"
 		       "64-bit offset" or "nc6"
+		       "64-bit data" or "nc5" or "cdf-5"
 		       "netCDF-4" or "nc4"
 		       "netCDF-4 classic model" or "nc7"
+		       "netCDF-5" or "nc5" or "cdf5"
 		     Format version numbers (deprecated):
 		       1 (=> classic)
 		       2 (=> 64-bit offset)
 		       3 (=> netCDF-4)
 		       4 (=> netCDF-4 classic model)
+                       5 (=> classic 64 bit data aka CDF-5)
 		   */
 	    {
 		struct Kvalues* kvalue;
@@ -331,10 +359,13 @@ main(
 	    k_flag = NC_FORMAT_CLASSIC;
 	    break;
 	case '6':		/* output format is 64-bit-offset (netCDF-3 version 2) */
-	    k_flag = NC_FORMAT_64BIT;
+	    k_flag = NC_FORMAT_64BIT_OFFSET;
 	    break;
 	case '4':		/* output format is netCDF-4 (variant of HDF5) */
 	    k_flag = NC_FORMAT_NETCDF4;
+	    break;
+	case '5':		/* output format is CDF5 */
+	    k_flag = NC_FORMAT_CDF5;
 	    break;
 	case '7':		/* output format is netCDF-4 (restricted to classic model)*/
 	    k_flag = NC_FORMAT_NETCDF4_CLASSIC;
@@ -474,14 +505,18 @@ main(
     }
 
     if(k_flag == 0)
-	k_flag = format_flag;
+      k_flag = format_flag;
 
+    if(cdf5_flag && !enhanced_flag && k_flag == 0)
+      k_flag = 5;
     if(enhanced_flag && k_flag == 0)
-	k_flag = 3;
+      k_flag = 3;
 
     if(enhanced_flag && k_flag != 3) {
-	derror("-k or _Format conflicts with enhanced CDL input");
-	return 0;
+      if(enhanced_flag && k_flag != 3 && k_flag != 5) {
+        derror("-k or _Format conflicts with enhanced CDL input");
+        return 0;
+      }
     }
 
     if(specials_flag > 0 && k_flag == 0)
@@ -494,7 +529,7 @@ main(
     if(k_flag == 0)
 	k_flag = 1;
 
-    usingclassic = (k_flag <= 2 || k_flag == 4)?1:0;
+    usingclassic = (k_flag <= 2 || k_flag == 4 || k_flag == 5)?1:0;
 
     /* compute cmode_modifier */
     switch (k_flag) {
@@ -502,6 +537,7 @@ main(
     case 2: cmode_modifier = NC_64BIT_OFFSET; break;
     case 3: cmode_modifier = NC_NETCDF4; break;
     case 4: cmode_modifier = NC_NETCDF4 | NC_CLASSIC_MODEL; break;
+    case 5: cmode_modifier = NC_CDF5; break;
     default: ASSERT(0); /* cannot happen */
     }
 

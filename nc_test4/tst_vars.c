@@ -1217,7 +1217,7 @@ main(int argc, char **argv)
 
    printf("*** testing 4D example file in 64-bit offset format...");
    if (create_4D_example(NC3_64BIT_OFFSET_FILE, NC_CLOBBER|NC_64BIT_OFFSET)) ERR;
-   if (check_4D_example(NC3_64BIT_OFFSET_FILE, NC_FORMAT_64BIT)) ERR;      
+   if (check_4D_example(NC3_64BIT_OFFSET_FILE, NC_FORMAT_64BIT_OFFSET)) ERR;      
    SUMMARIZE_ERR;
 
    printf("*** testing 4D example file in netCDF-4/HDF5 format...");

@@ -4,6 +4,11 @@
 
 echo "*** Testing ncgen3."
 set -e
+
+if test "x$srcdir" = x ;then
+srcdir=`pwd`
+fi
+
 echo "*** creating classic file c0.nc from c0.cdl..."
 ./ncgen3 -b -o c0.nc $srcdir/c0.cdl
 echo "*** creating 64-bit offset file c0_64.nc from c0.cdl..."

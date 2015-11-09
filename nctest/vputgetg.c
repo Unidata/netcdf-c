@@ -39,7 +39,7 @@ test_varputgetg(cdfid)
 {
     int nerrs = 0;
     static char pname[] = "test_varputgetg";
-    int id, ie, iv;		/* loop indices */
+    int id = 0, ie = 0, iv = 0;		/* loop indices */
     int ne = 3;			/* number of test hypercubes for each var */
     struct cdfhc {		/* a hypercube with generic values */
 	long cor[MAX_NC_DIMS];	/* netcdf coordinates for lower corner */
@@ -53,8 +53,8 @@ test_varputgetg(cdfid)
 
     for (iv = 0; iv < test.nvars; iv++)	{ /* for each var in netcdf */
 
-	for (ie = 0; ie < ne; ie++)
-	  nel[ie] = 1;		/* to compute space for hypercube values */
+		for (ie = 0; ie < ne; ie++)
+			nel[ie] = 1;		/* to compute space for hypercube values */
 
 	/*
 	 * The following macro returns the size of a dimension for a
@@ -80,7 +80,7 @@ test_varputgetg(cdfid)
 					? nctypelen(test.vars[iv].type)
 					: hc[0].imap[id+1] * hc[0].npts[id+1];
 	    nel[0]		*= hc[0].npts[id];
-	    if (id == 0)
+	    if (id <= 0)
 		hc[0].offset	= 0;
 
 	    /* start at "upper-right" corner, do one point */

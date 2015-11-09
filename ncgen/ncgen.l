@@ -40,6 +40,43 @@
 #define XDR_INT64_MIN  (-9223372036854775807LL-1)
 #define XDR_INT64_MAX  (9223372036854775807LL)
 
+#undef DEBUG
+#ifdef DEBUG
+static int MIN_BYTE = NC_MIN_BYTE;
+static int MIN_SHORT = NC_MIN_SHORT;
+static int MIN_INT = NC_MIN_INT;
+static int MAX_BYTE = NC_MAX_BYTE;
+static int MAX_SHORT = NC_MAX_SHORT;
+static int MAX_INT = NC_MAX_INT;
+static int MAX_UBYTE = NC_MAX_UBYTE;
+static int MAX_USHORT = NC_MAX_USHORT;
+static unsigned int MAX_UINT = NC_MAX_UINT;
+
+#undef NC_MIN_BYTE
+#undef NC_MIN_SHORT
+#undef NC_MIN_INT
+#undef NC_MAX_BYTE
+#undef NC_MAX_SHORT
+#undef NC_MAX_INT
+#undef NC_MAX_UBYTE
+#undef NC_MAX_USHORT
+#undef NC_MAX_UINT
+
+#define NC_MIN_BYTE MIN_BYTE
+#define NC_MIN_SHORT MIN_SHORT
+#define NC_MIN_INT MIN_INT
+#define NC_MAX_BYTE MAX_BYTE
+#define NC_MAX_SHORT MAX_SHORT
+#define NC_MAX_INT MAX_INT
+#define NC_MAX_UBYTE MAX_UBYTE
+#define NC_MAX_USHORT MAX_USHORT
+#define NC_MAX_UINT MAX_UINT
+#endif
+
+#define TAG "BbSsLl"
+
+#define tstdecimal(ch) ((ch) >= '0' && (ch) <= '9')
+
 /*Mnemonics*/
 #define ISIDENT 1
 
@@ -49,7 +86,7 @@ int lineno;              /* line number for error messages */
 Bytebuffer* lextext;           /* name or string with escapes removed */
 
 #define YY_BREAK                /* defining as nothing eliminates unreachable
-				   statement warnings from flex output, 
+				   statement warnings from flex output,
                                    but make sure every action ends with
                                    "return" or "break"! */
 
@@ -68,7 +105,10 @@ unsigned char ubyte_val;       /* last byte value read */
 
 static Symbol* makepath(char* text);
 static int lexdebug(int);
-static int parseLL(char* text);
+static unsigned long long parseULL(char* text, int*);
+static nc_type downconvert(unsigned long long uint64, int, int, int);
+static int tagmatch(nc_type nct, int tag, int hasU);
+static int nct2lexeme(nc_type nct);
 
 static struct Specialtoken {
     char* name;
@@ -156,10 +196,8 @@ OPAQUESTRING	(0[xX][0-9A-Fa-f][0-9A-Fa-f]*)
 
 PATH    ([/]|([/]{ID})([/]{ID})*)
 
-SIMPLENUMBER [+-]?[0-9][0-9]*
 XUNUMBER     {OPAQUESTRING}[SsLl]
-UNUMBER      [0-9][0-9]*[Uu][BbSsLl]?
-NUMBER       [+-]?[0-9][0-9]*[BbSsLl]
+NUMBER       [+-]?[0-9][0-9]*[Uu]?[BbSsLl]?
 DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
@@ -168,11 +206,11 @@ SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateL
 USASCII   [\x01-\x7F]
 
 %%
-[ \r\t\f]+	{ /* whitespace */ 
-		  break;        
+[ \r\t\f]+	{ /* whitespace */
+		  break;
 		}
 
-\/\/.*		        { /* comment */ 
+\/\/.*		        { /* comment */
                           break;
                         }
 
@@ -325,158 +363,69 @@ NIL|nil|Nil {
 		    return lexdebug(IDENT);
 		}
 
-{SIMPLENUMBER}	{
-		    /* We need to try to see what size of integer ((u)int). */
-		    /* Technically, the user should specify, but... */
-		    /* If out of any integer range, then complain */
-		    switch (parseLL(yytext)) {
-		    case 0:
-			return lexdebug(INT64_CONST); /* meaningless */
-		    case -1:
-#ifdef USE_NETCDF4
-		        if(int64_val >= NC_MIN_INT) {
-			    int32_val = (int)int64_val;
-		            return lexdebug(INT_CONST);
-			} else
-		            return lexdebug(INT64_CONST);
-#else
-			/* Convert to int32, unless overflow then complain  */
-			if(int64_val >=NC_MIN_INT) {
-			    int32_val = (int)int64_val;
-			} else {
-			   sprintf(errstr,"32 bit integer constant out of range: %s",(char*)yytext);
-			   yyerror(errstr);
-			}
-		        return lexdebug(INT_CONST);		    
-#endif
-		    case 1:
-#ifdef USE_NETCDF4
- 		        if(uint64_val <= NC_MAX_INT) {
-			    int32_val = (int)uint64_val;
-		            return lexdebug(INT_CONST);
- 		        } else if(uint64_val <= NC_MAX_UINT) {
-			    uint32_val = (unsigned int)uint64_val;
-		            return lexdebug(UINT_CONST);
- 		        } else if(uint64_val <= NC_MAX_INT64) {
-			    int64_val = (long long)uint64_val;
-		            return lexdebug(INT64_CONST);
-			} else
-		            return lexdebug(UINT64_CONST);
-#else
-			/* Convert to int32 but complain if overflow */
-			if(uint64_val > NC_MAX_INT) {
-			    sprintf(errstr,"32 bit integer constant out of range: %s",(char*)yytext);
-			    yyerror(errstr);
-			}
-			int32_val = (int)uint64_val;
-			return lexdebug(INT_CONST);
-#endif
-                     default:
-                         yyerror("Unknown integer size");
-		    }
-		}
+{NUMBER}    {
+/*
+We need to try to see what size of integer ((u)int).
+Technically, the user should specify, but...
+If out of any integer range, then complain
+*/
+		    int slen = strlen(ncgtext);
+		    int tag = ncgtext[slen-1];
+		    int hasU = 0;
+		    int signchar = 0;
+		    int isneg = 0;
+		    int c = ncgtext[0];
+		    int fail = 0;
+		    nc_type nct = 0;
+		    char* pos = NULL;
 
-{NUMBER}    { /* The number may be signed or unsigned (signed has priority) */
-		int slen = strlen(yytext);
-		int tag = yytext[slen-1];
-		int token = 0;
-		switch (tag) {
-		case 'B': case 'b':
-		    if (sscanf((char*)yytext, "%d", &int32_val) != 1) {
-		        sprintf(errstr,"bad byte constant: %s",(char*)yytext);
-		        yyerror(errstr);
-		    } else if(int32_val >= NC_MIN_BYTE && int32_val <= NC_MAX_BYTE) {
-		        byte_val = (signed char)int32_val;
-		        token = BYTE_CONST;
-		    } else if(int32_val >= 0 && int32_val <= NC_MAX_UBYTE) {
-		        ubyte_val = (unsigned char)int32_val;
-		        token = UBYTE_CONST;
-		    } else {
-		        sprintf(errstr,"bad byte constant: %s",(char*)yytext);
-		        yyerror(errstr);
-		    }
-		    break;
-		case 'S': case 's':
-		    if (sscanf((char*)yytext, "%d", &int32_val) != 1) {
-		        sprintf(errstr,"bad short constant: %s",(char*)yytext);
-		        yyerror(errstr);
-		    } else if(int32_val >= NC_MIN_SHORT && int32_val <= NC_MAX_SHORT) {
-		        int16_val = (signed short)int32_val;
-		        token = SHORT_CONST;
-		    } else if(int32_val >= 0 && int32_val <= NC_MAX_USHORT) {
-		        uint16_val = (unsigned short)int32_val;
-		        token = USHORT_CONST;
-		    } else {
-		        sprintf(errstr,"bad short constant: %s",(char*)yytext);
-		        yyerror(errstr);
-		    }
-		    break;
-		case 'L': case 'l':
-		    switch(parseLL(yytext)) {
-		    case 0:
-		        sprintf(errstr,"bad int64 constant: %s",(char*)yytext);
-		        yyerror(errstr);
-			break;
-		    case -1: token = INT64_CONST; break;
-		    case 1:
-			/* if value is too big, complain */
-			/* cannot actually test this.
-		        if(uint64_val > NC_MAX_INT64) {
-			   sprintf(errstr,"64 bit integer constant out of range: %s",(char*)yytext);
-			   yyerror(errstr);
+		    if(!tstdecimal(c)) {
+			pos = ncgtext+1;
+			isneg = (c == '-');
+		    } else
+		        pos = ncgtext;
+		    if(tag != '\0' && strchr(TAG,tag) != NULL) {
+			if(slen > 2) {
+			    c = ncgtext[slen-2];
+			    hasU = (c == 'U' || c == 'u') ? 1 : 0;
 			}
-                        */
-		        int64_val = (long long)(uint64_val & 0x7fffffffffffffffLL);
-			token = INT64_CONST;
-			break;
+		    } else
+			tag = 0;
+		    if(isneg && hasU) {
+			sprintf(errstr,"Unsigned integer cannot be signed: %s",ncgtext);
+			yyerror(errstr);
+			goto done;
 		    }
-		    break;
-		default:/*(optionally)signed string of digits; treat like int*/
-		    sprintf(errstr,"bad numeric constant: %s",(char*)yytext);
-		    yyerror(errstr);
-		}
-		return lexdebug(token);
+		    uint64_val = parseULL(pos,&fail);
+		    if(fail) {
+			sprintf(errstr,"integer constant out of range: %s",ncgtext);
+			yyerror(errstr);
+			goto done;
+		    }
+		    /* Down convert to smallest possible range */
+		    nct = downconvert(uint64_val,isneg,tag,hasU);
+		    switch (k_flag) {
+		    case NC_FORMAT_64BIT_DATA:
+		    case NC_FORMAT_NETCDF4:
+			    return lexdebug(nct2lexeme(nct));
+		    case NC_FORMAT_CLASSIC:
+		    case NC_FORMAT_64BIT_OFFSET:
+		    case NC_FORMAT_NETCDF4_CLASSIC:
+			    if(nct > NC_INT) {
+				sprintf(errstr,"Illegal integer constant for classic format: %s",ncgtext);
+				yyerror(errstr);
+				goto done;
+			    }
+		    }
+		    if(!tagmatch(nct,tag,hasU))  {
+			sprintf(errstr,"Integer out of range for tag: %s",ncgtext);
+			yyerror(errstr);
+			goto done;
+		    }
+		    return lexdebug(nct2lexeme(nct));
+done: return 0;
 	    }
 
-{UNUMBER}    {
-		int slen = strlen(yytext);
-		int tag = yytext[slen-1];
-		int token = 0;
-		switch (tag) {
-		case 'B': case 'b':
-		    if (sscanf((char*)yytext, "%u", &uint32_val) != 1
-		        || uint32_val > NC_MAX_UBYTE) {
-		        sprintf(errstr,"bad unsigned byte constant: %s",(char*)yytext);
-		        yyerror(errstr);
-		    }
-		    ubyte_val = (unsigned char)uint32_val;
-		    token = UBYTE_CONST;
-		    break;
-		case 'S': case 's':
-		    if (sscanf((char*)yytext, "%u", &uint32_val) != 1
-		        || uint32_val > NC_MAX_USHORT) {
-		        sprintf(errstr,"bad unsigned short constant: %s",(char*)yytext);
-		        yyerror(errstr);
-		    }
-		    uint16_val = (unsigned short)uint32_val;
-		    token = USHORT_CONST;
-		    break;
-		case 'L': case 'l':
-		    if (sscanf((char*)yytext, "%llu", &uint64_val) != 1) {
-		        sprintf(errstr,"bad unsigned int64 constant: %s",(char*)yytext);
-		        yyerror(errstr);
-		    }
-		    token = UINT64_CONST;
-		    break;
-		default: /* string of digits; treat like int */
-		    if (sscanf((char*)yytext, "%u", &uint32_val) != 1) {
-		        sprintf(errstr,"bad unsigned int constant: %s",(char*)yytext);
-		        yyerror(errstr);
-		    }
-		    token = UINT_CONST;
-		}
-		return lexdebug(token);
-	    }
 {XUNUMBER}    {
 		int c;
 		int token = 0;
@@ -534,7 +483,7 @@ NIL|nil|Nil {
 		if(oct < 0) {
 		    sprintf(errstr,"bad octal character constant: %s",(char*)yytext);
 		    yyerror(errstr);
-		}		    		    
+		}
 	        byte_val = (unsigned int)oct;
 		return lexdebug(BYTE_CONST);
                 }
@@ -543,7 +492,7 @@ NIL|nil|Nil {
 		if(byte_val < 0) {
 		    sprintf(errstr,"bad hex character constant: %s",(char*)yytext);
 		    yyerror(errstr);
-		}		    		    
+		}
 		byte_val = (unsigned int)hex;
 		return lexdebug(BYTE_CONST);
                 }
@@ -664,7 +613,7 @@ makepath(char* text0)
 		    refsym->subnodes = listnew();
 		}
 		container = refsym;
-	        ident=p+1; p=ident;		
+	        ident=p+1; p=ident;
 	        break;
 	    }
 	} while(c != '\0');
@@ -674,41 +623,189 @@ makepath(char* text0)
     return refsym;
 }
 
-
-static int
-parseLL(char* text)
+/*
+Parse a simple string of digitis into an unsigned long long
+Return the value.
+*/
+static unsigned long long
+parseULL(char* text, int* failp)
 {
     int result = 0;
-#if defined(HAVE_STRTOLL) && defined(HAVE_STRTOULL)
     extern int errno;
     char* endptr;
+    unsigned long long uint64 = 0;
+
     errno = 0; endptr = NULL;
-    if(text[0] == '-') {
-        int64_val = strtoll(text,&endptr,10);
-	result = -1; /* negative int64_val */	
-    } else {
-        uint64_val = strtoull(text,&endptr,10);
-	result = 1; /* positive uint64_val */	
+    assert(tstdecimal(text[0]));
+#ifdef HAVE_STRTOULL
+    uint64 = strtoull(text,&endptr,10);
+    if(errno == ERANGE) {
+	if(failp) *failp = ERANGE;
+	return 0;
     }
-    if(result == 0) {
-	sprintf(errstr,"Unparseable 64 bit integer constant: %s",(char*)text);
-	yyerror(errstr);
-    } else if(errno == ERANGE) {
-	sprintf(errstr,"64 bit integer constant out of range: %s",(char*)text);
-	yyerror(errstr);
-	result = 0; /* out of range */
-    }			
 #else /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
-    if(text[0] == '-') {
-        sscanf((char*)text, "%lld", &int64_val);
-	result = -1; /* negative int64_val */	
-    } else {
-	sscanf((char*)text, "%llu", &uint64_val);
-	result = 1; /* positive uint64_val */	
-    }
+    sscanf((char*)text, "%llu", &uint64);
     /* Have no useful way to detect out of range */
 #endif /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
-    return result;
+    return uint64;
 }
 
+
+/**
+Given the raw bits, the sign char, the tag, and hasU
+fill in the appropriate *_val field
+and return the type
+*/
+static nc_type
+downconvert(unsigned long long uint64, int isneg, int tag, int hasU)
+{
+    nc_type nct = NC_NAT;
+    int bit64 = (uint64 >> 63);
+    int allones = (uint64 == 0xffffffffffffffffUL);
+    long long int64 = *((long long*)&uint64);
+
+    if(isneg && hasU)
+	return NC_NAT;
+    /* Special cases: all (u)int64 values */
+    if(allones && (hasU || !isneg)) /* bare max uint64 value */
+	return NC_UINT64;
+    if((int64 < NC_MIN_INT) || (int64 > NC_MAX_INT)) {
+	if(isneg && !hasU) {
+	    int64_val = - int64;
+	    return NC_INT64;
+	}
+	if(!isneg && hasU) {
+	    uint64_val = uint64;
+	    return NC_UINT64;
+	}
+	/* Bare big integer, assume int64 unless sign bit set */
+	if(!isneg && !hasU && bit64) {
+	    uint64_val = uint64;
+	    return NC_UINT64;
+	} else if(!bit64) {
+	    int64_val = int64;
+	    return NC_INT64;
+	}
+        /*assert(!isneg)*/
+        uint64_val = uint64;
+	return NC_UINT64;
+    }
+
+    if(isneg) int64 = -int64;
+
+    /* special case:
+       If there is no tag and the size is ok,
+       then always return NC_INT or NC_UINT.
+    */
+    if(!tag) {
+	if(!hasU) {
+	    if((int64 >= NC_MIN_INT) && (int64 <= NC_MAX_INT)) {
+		int32_val = (int)int64;
+	        return NC_INT;
+	    }
+	}
+	if(uint64 <= NC_MAX_UINT) {
+	    uint32_val = (unsigned int)uint64;
+	    return NC_INT;
+	}
+    }
+    /* assert (tag != 0) */
+
+    /* Pick smallest enclosing type;
+       for historical reasons (ncgen3), technically out of range
+       values are allowed and conversion is attempted;
+	e.g. 65535s; is legal and is return as an unsigned short.
+    */
+    if(hasU) {
+        switch (tag) {
+        case 'B': case 'b':
+	    if((int64 >= 0) && (int64 <= NC_MAX_UBYTE)) {
+	        nct = NC_UBYTE;
+	        ubyte_val = (unsigned char)int64;
+	    }; break;
+        case 'S': case 's':
+	    if((int64 >= 0) && (int64 <= NC_MAX_USHORT)) {
+	        nct = NC_USHORT;
+	        uint16_val = (unsigned short)int64;
+	    } break;
+        case 'L': case 'l':
+            if((int64 >= 0) && (int64 <= NC_MAX_UINT64)) {
+	        nct = NC_UINT64;
+	        uint64_val = uint64;
+	    } break;
+	default:
+	    return NC_NAT;
+	}
+    } else { /* !hasU */
+        switch (tag) {
+        case 'B': case 'b':
+            if((int64 >= NC_MIN_BYTE) && (int64 <= NC_MAX_BYTE)) {
+	        nct = NC_BYTE;
+	        byte_val = (signed char)int64;
+	    } else {/* force to unsigned value */
+		uint64_val = uint64 & 0xff;
+		nct = NC_UBYTE;
+	    }
+	    break;
+        case 'S': case 's':
+	    if((int64 >= NC_MIN_SHORT) && (int64 <= NC_MAX_SHORT)) {
+	        nct = NC_SHORT;
+	        int16_val = (signed short)int64;
+	    } else {/* force to unsigned value */
+		uint64_val = uint64 & 0xffff;
+		nct = NC_USHORT;
+	    }
+	    break;
+        case 'L': case 'l':
+            if((uint64 <= NC_MAX_INT64)) {
+	        nct = NC_INT64;
+	        int64_val = int64;
+	    } else {/* force to unsigned value */
+		uint64_val = uint64;
+		nct = NC_UINT64;
+	    }
+	    break;
+	default:
+	    return NC_NAT;
+	}
+    }
+    return nct;
+}
+
+static int
+nct2lexeme(nc_type nct)
+{
+    switch(nct) {
+    case NC_BYTE: return BYTE_CONST;
+    case NC_CHAR: return CHAR_CONST;
+    case NC_SHORT: return SHORT_CONST;
+    case NC_INT: return INT_CONST;
+    case NC_UBYTE: return UBYTE_CONST;
+    case NC_USHORT: return USHORT_CONST;
+    case NC_UINT: return UINT_CONST;
+    case NC_INT64: return INT64_CONST;
+    case NC_UINT64: return UINT64_CONST;
+    }
+    return 0;
+}
+
+
+static int
+tagmatch(nc_type nct, int tag, int hasU)
+{
+    if(hasU) switch(nct) {
+        case NC_UBYTE: return (tag == 0 || tag == 'B' || tag == 'b');
+        case NC_USHORT: return (tag == 0 || tag == 'S' || tag == 's');
+        case NC_UINT: return (tag == 0);
+        case NC_UINT64: return (tag == 0 || tag == 'L' || tag == 'l');
+	default: return 0;
+    } else switch(nct) {
+	case NC_BYTE: return (tag == 0 || tag == 'B' || tag == 'b');
+	case NC_SHORT: return (tag == 0 || tag == 'S' || tag == 's');
+	case NC_INT: return (tag == 0);
+	case NC_INT64: return (tag == 0 || tag == 'L' || tag == 'l');
+	default: return 0;
+    }
+    return 0;
+}
 

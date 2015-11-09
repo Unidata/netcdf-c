@@ -326,15 +326,15 @@ isrecvar = (nrecdims > 0);
 \endcode
  */
 int
-NC_inq_recvar(int ncid, int varid, int *nrecdims, int *is_recdim)
+NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
 {
    int status = NC_NOERR;
    int unlimid;
    int nvardims;
    int dimset[NC_MAX_VAR_DIMS];
    int dim;
+   int nrecdims = 0;
     
-   *nrecdims = 0;
    status = nc_inq_varndims(ncid,varid,&nvardims);
    if(status != NC_NOERR) return status;
    if(nvardims == 0) return NC_NOERR; /* scalars have no dims */
@@ -357,7 +357,7 @@ NC_inq_recvar(int ncid, int varid, int *nrecdims, int *is_recdim)
        for(recdim = 0; recdim < nunlimdims; recdim++) {
 	 if(dimset[dim] == unlimids[recdim]) {
 	   is_recdim[dim] = 1;
-	   *nrecdims += 1;
+	   nrecdims++;
 	 }		
        }
      }
@@ -367,9 +367,10 @@ NC_inq_recvar(int ncid, int varid, int *nrecdims, int *is_recdim)
    if(status != NC_NOERR) return status;
    if(dimset[0] == unlimid) {
      is_recdim[0] = 1;
-     *nrecdims++;
+     nrecdims++;
    }
 #endif /* USE_NETCDF4 */
+   if(nrecdimsp) *nrecdimsp = nrecdims;
    return status;
 }
 

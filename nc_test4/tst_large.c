@@ -8,19 +8,18 @@
 
 #include <nc_tests.h>
 #include "netcdf.h"
+#include "ncdispatch.h"
 
 #define FILE_NAME "tst_large.nc"
 #define NUMDIMS 2		/* rank of each variable in tests */
 #define DIM1 2048
 #define DIM2 2097153		/* DIM1*DIM2*sizeof(char)   > 2**32 */
 
+
+
 int
 main(int argc, char **argv)
 {
-
-#ifdef USE_PARALLEL
-   MPI_Init(&argc, &argv);
-#endif
 
    printf("\n*** Testing netcdf-4 large files.\n");
    printf("**** testing simple fill value attribute creation...");
@@ -58,9 +57,8 @@ main(int argc, char **argv)
    }
    SUMMARIZE_ERR;
 
-#ifdef USE_PARALLEL
-   MPI_Finalize();
-#endif   
+   nc_finalize();
+
    FINAL_RESULTS;
 }
 

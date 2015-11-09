@@ -11,7 +11,7 @@
 #include <netcdf.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
+#include "ncdispatch.h"
 
 /* We will create this file. */
 #define FILE_NAME "tst_floats_1D.nc"
@@ -19,10 +19,10 @@
 int
 main(int argc, char **argv)
 {
+    nc_argc = argc;
+    nc_argv = argv;    
+    nc_initialize();
 
-#ifdef USE_PARALLEL
-   MPI_Init(&argc, &argv);
-#endif
     printf("\n*** Create some files for testing benchmarks.\n");
 
 #ifdef LARGE_FILE_TESTS
@@ -299,9 +299,7 @@ main(int argc, char **argv)
     }
     SUMMARIZE_ERR;
 
-#ifdef USE_PARALLEL
-   MPI_Finalize();
-#endif   
+    nc_finalize();
     FINAL_RESULTS;
 }
 

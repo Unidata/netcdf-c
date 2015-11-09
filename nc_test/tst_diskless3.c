@@ -34,22 +34,12 @@
 #define TITLE " OUTPUT FROM WRF V2.0.3.1 MODEL"
 #define ATT_NAME2 "TITLE"
 
-#undef ERR
-#define ERR report(status,__LINE__)
-
 static int status = NC_NOERR;
 
 /* Control flags  */
 static int persist, usenetcdf4, mmap, diskless;
 
 static int diskmode;
-
-void report(int stat, int lno)
-{
-    fprintf(stderr,"line: %d ; %s\n",stat,nc_strerror(stat));
-    fflush(stderr);
-    exit(1);
-}
 
 /* Test a diskless file with two record vars, which grow, and has
  * attributes added. */
@@ -63,11 +53,11 @@ test_two_growing_with_att(const char *testfile)
    int v, r;
 
    /* Create a file with one ulimited dimensions, and one var. */
-   if((status=nc_create(testfile, NC_CLOBBER, &ncid))) ERR;
-   if((status=nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid))) ERR;
-   if((status=nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid[0]))) ERR;
-   if((status=nc_def_var(ncid, VAR_NAME2, NC_CHAR, 1, &dimid, &varid[1]))) ERR;
-   if((status=nc_close(ncid))) ERR;
+   if((status=nc_create(testfile, NC_CLOBBER, &ncid))) ERRSTAT(status);
+   if((status=nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid))) ERRSTAT(status);
+   if((status=nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid[0]))) ERRSTAT(status);
+   if((status=nc_def_var(ncid, VAR_NAME2, NC_CHAR, 1, &dimid, &varid[1]))) ERRSTAT(status);
+   if((status=nc_close(ncid))) ERRSTAT(status);
 
    /* Create some phoney data. */
    for (data[0] = 'a', r = 1; r < MAX_RECS; r++)
@@ -79,30 +69,30 @@ test_two_growing_with_att(const char *testfile)
    for (r = 0; r < MAX_RECS; r++)
    {
       /* Write one record of var data, a single character. */
-      if((status=nc_open(testfile, NC_WRITE, &ncid))) ERR;
+      if((status=nc_open(testfile, NC_WRITE, &ncid))) ERRSTAT(status);
       count[0] = 1;
       start[0] = r;
       sprintf(att_name, "a_%d", data[r]);
       for (v = 0; v < NUM_VARS; v++)
       {
-	 if((status=nc_put_vara_text(ncid, varid[v], start, count, &data[r]))) ERR;
-	 if((status=nc_redef(ncid))) ERR;
-	 if((status=nc_put_att_text(ncid, varid[v], att_name, 1, &data[r]))) ERR;
-	 if((status=nc_enddef(ncid))) ERR;
+	 if((status=nc_put_vara_text(ncid, varid[v], start, count, &data[r]))) ERRSTAT(status);
+	 if((status=nc_redef(ncid))) ERRSTAT(status);
+	 if((status=nc_put_att_text(ncid, varid[v], att_name, 1, &data[r]))) ERRSTAT(status);
+	 if((status=nc_enddef(ncid))) ERRSTAT(status);
       }
-      if((status=nc_close(ncid))) ERR;
+      if((status=nc_close(ncid))) ERRSTAT(status);
       
       /* Reopen the file and check it. */
-      if((status=nc_open(testfile, diskmode|NC_WRITE, &ncid))) ERR;
-      if((status=nc_inq_dimlen(ncid, 0, &len_in))) ERR;
+      if((status=nc_open(testfile, diskmode|NC_WRITE, &ncid))) ERRSTAT(status);
+      if((status=nc_inq_dimlen(ncid, 0, &len_in))) ERRSTAT(status);
       if (len_in != r + 1) ERR;
       index[0] = r;
       for (v = 0; v < NUM_VARS; v++)
       {
-	 if((status=nc_get_var1_text(ncid, varid[v], index, &data_in))) ERR;
+	 if((status=nc_get_var1_text(ncid, varid[v], index, &data_in))) ERRSTAT(status);
 	 if (data_in != data[r]) ERR;
       }
-      if((status=nc_close(ncid))) ERR; 
+      if((status=nc_close(ncid))) ERRSTAT(status); 
    } /* Next record. */
    return 0;
 }
@@ -118,29 +108,29 @@ test_one_with_att(const char *testfile)
    size_t start[NDIMS], count[NDIMS];
 
    /* Create a file with one ulimited dimensions, and one var. */
-   if((status=nc_create(testfile, NC_CLOBBER, &ncid))) ERR;
-   if((status=nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid))) ERR;
-   if((status=nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid))) ERR;
-   if((status=nc_put_att_text(ncid, NC_GLOBAL, ATT_NAME, 1, &data))) ERR;
-   if((status=nc_enddef(ncid))) ERR;
+   if((status=nc_create(testfile, NC_CLOBBER, &ncid))) ERRSTAT(status);
+   if((status=nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid))) ERRSTAT(status);
+   if((status=nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid))) ERRSTAT(status);
+   if((status=nc_put_att_text(ncid, NC_GLOBAL, ATT_NAME, 1, &data))) ERRSTAT(status);
+   if((status=nc_enddef(ncid))) ERRSTAT(status);
 
    /* Write one record of var data, a single character. */
    count[0] = 1;
    start[0] = 0;
-   if((status=nc_put_vara_text(ncid, varid, start, count, &data))) ERR;
+   if((status=nc_put_vara_text(ncid, varid, start, count, &data))) ERRSTAT(status);
 
    /* We're done! */
-   if((status=nc_close(ncid))) ERR;
+   if((status=nc_close(ncid))) ERRSTAT(status);
    
    /* Reopen the file and check it. */
-   if((status=nc_open(testfile, diskmode|NC_WRITE, &ncid))) ERR;
-   if((status=nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid))) ERR;
-   if (ndims != 1 && nvars != 1 && natts != 0 && unlimdimid != 0) ERR;
-   if((status=nc_get_var_text(ncid, varid, &data_in))) ERR;
-   if (data_in != data) ERR;
-   if((status=nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, &data_in))) ERR;
-   if (data_in != data) ERR;
-   if((status=nc_close(ncid))) ERR; 
+   if((status=nc_open(testfile, diskmode|NC_WRITE, &ncid))) ERRSTAT(status);
+   if((status=nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid))) ERRSTAT(status);
+   if (ndims != 1 && nvars != 1 && natts != 0 && unlimdimid != 0) ERRSTAT(status);
+   if((status=nc_get_var_text(ncid, varid, &data_in))) ERRSTAT(status);
+   if (data_in != data) ERRSTAT(status);
+   if((status=nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, &data_in))) ERRSTAT(status);
+   if (data_in != data) ERRSTAT(status);
+   if((status=nc_close(ncid))) ERRSTAT(status); 
    return 0;
 }
 #endif

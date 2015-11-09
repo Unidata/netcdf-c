@@ -2,6 +2,10 @@
 # This shell script runs the ncdump tests.
 # $Id: run_nc4_tests.sh,v 1.3 2009/09/24 18:19:10 dmh Exp $
 
+if test "x$srcdir" = x ; then
+srcdir=`pwd`
+fi
+
 echo "*** Testing ncgen3 for netCDF-4."
 set -e
 echo "*** creating netCDF-4 file c0_4.nc from c0.cdl..."

@@ -62,10 +62,6 @@ int main(int argc, char *argv[])
    int type, num_errors = 0, res = NC_NOERR;
    int errors = 0, total_errors = 0;
 
-#ifdef USE_PARALLEL
-   MPI_Init(&argc, &argv);
-#endif
-
    /* Uncomment the following line to get verbose feedback. */
    /*nc_set_log_level(2);*/
    printf("\n\n*** Testing netCDF-4 new atomic types...\n");
@@ -333,9 +329,7 @@ int main(int argc, char *argv[])
    else
       printf(" *** success!\n");
 
-#ifdef USE_PARALLEL
-   MPI_Finalize();
-#endif   
+   nc_finalize();
 
    return 2 ? errors : 0;
 }

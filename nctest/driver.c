@@ -32,7 +32,7 @@ main(int argc, char **argv)
   /*EXTERNL int ncopts;	*/	/* netCDF error options */
     char *testfiles[] = {"nonesuch", "nctest_classic.nc", 
 			 "nctest_64bit_offset.nc", "nctest_netcdf4.nc"};
-    char *testfile;
+    char *testfile = NULL;
     int i, nerrs = 0;
 
     ncopts &= ~NC_FATAL;	/* make errors nonfatal */
@@ -49,8 +49,8 @@ main(int argc, char **argv)
 	     nc_set_default_format(NC_FORMAT_CLASSIC, NULL);
 	     fprintf(stderr, "\n\nSwitching to netCDF classic format.\n");
 	     break;
-	  case NC_FORMAT_64BIT:
-	     nc_set_default_format(NC_FORMAT_64BIT, NULL);
+	  case NC_FORMAT_64BIT_OFFSET:
+	     nc_set_default_format(NC_FORMAT_64BIT_OFFSET, NULL);
 	     fprintf(stderr, "\n\nSwitching to 64-bit offset format.\n");
 	     break;
 #ifdef USE_NETCDF4 
@@ -66,6 +66,7 @@ main(int argc, char **argv)
        testfile = testfiles[i];
 
        /* Run all the tests for this format. */
+	   
        nerrs += test_nccreate(testfile);
        nerrs += test_ncopen(testfile);
        nerrs += test_ncredef(testfile);
@@ -81,6 +82,7 @@ main(int argc, char **argv)
        nerrs += test_ncvardef(testfile);
        nerrs += test_ncvarid(testfile);
        nerrs += test_ncvarinq(testfile);
+	   nerrs += test_ncvarputg(testfile);
        nerrs += test_ncvarput1(testfile);
        nerrs += test_ncvarget1(testfile);
        nerrs += test_ncvarput(testfile);

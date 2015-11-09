@@ -1278,7 +1278,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             }
             attr = makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
         } else switch (tag) {
-	    // These will be output as attributes later
+	    /* These will be output as attributes later */
             case _STORAGE_FLAG:
               if(!sdata)
                 derror("_Storage: illegal NULL value");
@@ -1394,23 +1394,21 @@ datalistextend(Datalist* dl, NCConstant* con)
 }
 
 static void
-vercheck(int ncid)
+vercheck(int tid)
 {
-    char* tmsg = NULL;
-    switch (ncid) {
-    case NC_UBYTE: tmsg = "netCDF4 type: UBYTE"; break;
-    case NC_USHORT: tmsg = "netCDF4 type: USHORT"; break;
-    case NC_UINT: tmsg = "netCDF4 type: UINT"; break;
-    case NC_INT64: tmsg = "netCDF4 type: INT64"; break;
-    case NC_UINT64: tmsg = "netCDF4 type: UINT64"; break;
-    case NC_STRING: tmsg = "netCDF4 type: STRING"; break;
-    case NC_VLEN: tmsg = "netCDF4 type: VLEN"; break;
-    case NC_OPAQUE: tmsg = "netCDF4 type: OPAQUE"; break;
-    case NC_ENUM: tmsg = "netCDF4 type: ENUM"; break;
-    case NC_COMPOUND: tmsg = "netCDF4 type: COMPOUND"; break;
+    switch (tid) {
+    case NC_UBYTE: markcdf5("netCDF4/5 type: UBYTE"); break;
+    case NC_USHORT: markcdf5("netCDF4/5 type: USHORT"); break;
+    case NC_UINT: markcdf5("netCDF4/5 type: UINT"); break;
+    case NC_INT64: markcdf5("netCDF4/5 type: INT64"); break;
+    case NC_UINT64: markcdf5("netCDF4/5 type: UINT64"); break;
+    case NC_STRING: markcdf4("netCDF4 type: STRING"); break;
+    case NC_VLEN: markcdf4("netCDF4 type: VLEN"); break;
+    case NC_OPAQUE: markcdf4("netCDF4 type: OPAQUE"); break;
+    case NC_ENUM: markcdf4("netCDF4 type: ENUM"); break;
+    case NC_COMPOUND: markcdf4("netCDF4 type: COMPOUND"); break;
     default: break;
     }
-    if(tmsg != NULL) markcdf4(tmsg);
 }
 
 /*

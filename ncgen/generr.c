@@ -110,6 +110,22 @@ getmarkcdf4(void)
     return markcdf4_msg;
 }
 
+/* Capture potential version errors */
+static char* markcdf5_msg = NULL;
+void
+markcdf5(const char* msg)
+{
+    cdf5_flag = 1;
+    if(markcdf5_msg == NULL)
+        markcdf5_msg = (char*)msg;
+}
+
+char*
+getmarkcdf5(void)
+{
+    return markcdf5_msg;
+}
+
 /**************************************************/
 /* Provide a version of snprintf that panics if*/
 /* the buffer is overrun*/

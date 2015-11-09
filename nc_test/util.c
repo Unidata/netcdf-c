@@ -1,7 +1,7 @@
 /*********************************************************************
  *   Copyright 1996, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Id: util.c,v 1.27 2006/12/10 13:59:56 ed Exp $
+ *   $Id: util.c 2792 2014-10-27 06:02:59Z wkliao $
  *********************************************************************/
 
 #include "tests.h"
@@ -23,12 +23,17 @@ inRange(const double value, const nc_type datatype)
     double min, max;
 
     switch (datatype) {
-	case NC_CHAR:   min = X_CHAR_MIN;   max = X_CHAR_MAX; break;
-	case NC_BYTE:   min = X_BYTE_MIN;   max = X_BYTE_MAX; break;
-	case NC_SHORT:  min = X_SHORT_MIN;  max = X_SHORT_MAX; break;
-	case NC_INT:   min = X_INT_MIN;   max = X_INT_MAX; break;
-	case NC_FLOAT:  min = X_FLOAT_MIN;  max = X_FLOAT_MAX; break;
-	case NC_DOUBLE: min = X_DOUBLE_MIN; max = X_DOUBLE_MAX; break;
+        case NC_CHAR:   return value >= X_CHAR_MIN   && value <= X_CHAR_MAX;
+        case NC_BYTE:   return value >= X_BYTE_MIN   && value <= X_BYTE_MAX;
+        case NC_SHORT:  return value >= X_SHORT_MIN  && value <= X_SHORT_MAX;
+        case NC_INT:    return value >= X_INT_MIN    && value <= X_INT_MAX;
+        case NC_FLOAT:  return value >= X_FLOAT_MIN  && value <= X_FLOAT_MAX;
+        case NC_DOUBLE: return value >= X_DOUBLE_MIN && value <= X_DOUBLE_MAX;
+        case NC_UBYTE:  return value >= 0            && value <= X_UCHAR_MAX;
+        case NC_USHORT: return value >= 0            && value <= X_USHORT_MAX;
+        case NC_UINT:   return value >= 0            && value <= X_UINT_MAX;
+        case NC_INT64:  return value >= X_INT64_MIN  && value <= X_INT64_MAX;
+        case NC_UINT64: return value >= 0            && value <= X_UINT64_MAX;
 	default:  assert(0);
     }
     return value >= min && value <= max;
@@ -39,6 +44,22 @@ inRange_uchar(const double value, const nc_type datatype)
 {
     if (datatype == NC_BYTE) {
 	return(value >= 0 && value <= 255);
+    }
+    /* else */
+    return inRange(value, datatype);
+}
+
+static int
+inRange_schar(const double value, const nc_type datatype)
+{
+    /* check value of type datatype if within schar range */
+
+    if (datatype == NC_UBYTE) {
+        /* netCDF specification make a special case for type conversion between
+         * uchar and scahr: do not check for range error. See
+         * http://www.unidata.ucar.edu/software/netcdf/docs_rc/data_type.html#type_conversion
+         */
+        return(value >= X_CHAR_MIN && value <= X_CHAR_MAX);
     }
     /* else */
     return inRange(value, datatype);
@@ -72,6 +93,11 @@ inRange_float(const double value, const nc_type datatype)
 			max = X_DOUBLE_MAX;
 		}
 		break;
+        case NC_UBYTE:  min = 0;            max = X_UCHAR_MAX;  break;
+        case NC_USHORT: min = 0;            max = X_USHORT_MAX; break;
+        case NC_UINT:   min = 0;            max = X_UINT_MAX;   break;
+        case NC_INT64:  min = X_INT64_MIN;  max = X_INT64_MAX;  break;
+        case NC_UINT64: min = 0;            max = X_UINT64_MAX; break;
 	default:  assert(0);
     }
     if(!( value >= min && value <= max)) {
@@ -104,6 +130,9 @@ inRange3(
     const nct_itype itype)
 {
     switch (itype) {
+        case NCT_SCHAR:
+        case NCT_CHAR:
+            return inRange_schar(value, datatype);
     case NCT_UCHAR:
 	return inRange_uchar(value, datatype);
     case NCT_FLOAT:
@@ -239,13 +268,22 @@ int nc2dbl ( const nc_type datatype, const void *p, double *result)
         case NC_SHORT: *result = *((short *) p); break;
         case NC_INT:
 #if INT_MAX >= X_INT_MAX
-		*result = *((int *) p);
+		*result = *((int *) p); break;
 #else
-		*result = *((long *) p);
+		*result = *((long *) p); break;
 #endif
-		break;
         case NC_FLOAT: *result = *((float *) p); break;
         case NC_DOUBLE: *result = *((double *) p); break;
+        case NC_UBYTE:  *result = *((unsigned char *)  p); break;
+        case NC_USHORT: *result = *((unsigned short *) p); break;
+        case NC_UINT:
+#if UINT_MAX >= X_UINT_MAX
+            *result = *((unsigned int *) p); break;
+#else
+            *result = *((unsigned long *) p); break;
+#endif
+        case NC_INT64:  *result = *((long long *)          p); break;
+        case NC_UINT64: *result = *((unsigned long long *) p); break;
         default: return 1;
     }
     return 0;
@@ -290,6 +328,35 @@ int dbl2nc ( const double d, const nc_type datatype, void *p)
             case NC_DOUBLE:
                 *((double *) p) = d;
                 break;
+        case NC_UBYTE:
+            r = floor(0.5+d);
+            if ( r < 0.0  ||  r > uchar_max )  return 2;
+            *((unsigned char *) p) = r;
+            break;
+        case NC_USHORT:
+            r = floor(0.5+d);
+            if ( r < 0.0  ||  r > ushort_max )  return 2;
+            *((unsigned short *) p) = r;
+            break;
+        case NC_UINT:
+            r = floor(0.5+d);
+            if ( r < 0.0  ||  r > uint_max )  return 2;
+#if UINT_MAX >= X_UINT_MAX
+            *((unsigned int  *) p) = r;
+#else
+            *((unsigned long *) p) = r;
+#endif
+            break;
+        case NC_INT64:
+            r = floor(0.5+d);
+            if ( r < int64_min  ||  r > int64_max )  return 2;
+            *((long long *) p) = r;
+            break;
+        case NC_UINT64:
+            r = floor(0.5+d);
+            if ( r < 0.0  ||  r > uint64_max )  return 2;
+            *((unsigned long long *) p) = r;
+            break;
             default:
                 return 1;
         }
@@ -322,6 +389,12 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    case NC_INT:   return X_INT_MIN;
 		    case NC_FLOAT:  return X_FLOAT_MIN;
 		    case NC_DOUBLE: return X_DOUBLE_MIN;
+                    case NC_UBYTE:  return 0;
+                    case NC_USHORT: return 0;
+                    case NC_UINT:   return 0;
+                    case NC_INT64:  return X_INT_MIN - 128.0; /* slight smaller
+                                                                 than INT_MIN */
+                    case NC_UINT64: return 0;
 		    default:  assert(0);
 		}
 	    case 1:
@@ -332,6 +405,13 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    case NC_INT:   return X_INT_MAX;
 		    case NC_FLOAT:  return X_FLOAT_MAX;
 		    case NC_DOUBLE: return X_DOUBLE_MAX;
+                    case NC_UBYTE:  return X_UCHAR_MAX;
+                    case NC_USHORT: return X_USHORT_MAX;
+                    case NC_UINT:   return X_UINT_MAX;
+                    case NC_INT64:  return X_INT_MAX + 128.0;
+                                    /* slightly bigger than INT_MAX */
+                    case NC_UINT64: return X_UINT_MAX + 128.0;
+                                    /* slightly bigger than UINT_MAX */
 		    default:  assert(0);
 		}
 	    case 2:
@@ -342,6 +422,11 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    case NC_INT:   return X_INT_MIN-1.0;
 		    case NC_FLOAT:  return X_FLOAT_MIN * (1.0 + FUZZ);
 		    case NC_DOUBLE: return -1.0;
+                    case NC_UBYTE:  return -1.0;
+                    case NC_USHORT: return -1.0;
+                    case NC_UINT:   return -1.0;
+                    case NC_INT64:  return -1.0;  /* skip test */
+                    case NC_UINT64: return -1.0;
 		    default:  assert(0);
 		}
 	    case 3:
@@ -352,6 +437,11 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    case NC_INT:   return X_INT_MAX+1.0;
 		    case NC_FLOAT:  return X_FLOAT_MAX * (1.0 + FUZZ);
 		    case NC_DOUBLE: return 1.0;
+                    case NC_UBYTE:  return X_UCHAR_MAX +1.0;
+                    case NC_USHORT: return X_USHORT_MAX+1.0;
+                    case NC_UINT:   return X_UINT_MAX  +1.0;
+                    case NC_INT64:  return 1.0;    /* skip test */
+                    case NC_UINT64: return 1.0;    /* skip test */
 		    default:  assert(0);
 		}
 	}
@@ -363,6 +453,13 @@ hash( const nc_type type, const int rank, const size_t *index )
 	    case NC_INT: base = -20; break;
 	    case NC_FLOAT: base = -9; break;
 	    case NC_DOUBLE: base = -10; break;
+
+            /* not sure what right values are */
+            case NC_UBYTE:   base =   2;  break;
+            case NC_USHORT:  base =   5;  break;
+            case NC_UINT:    base =  20;  break;
+            case NC_INT64:   base = -20;  break;
+            case NC_UINT64:  base =  20;  break;
 	    default:  assert(0);
 	}
 	result = rank < 0 ? base * 7 : base * (rank + 1);
@@ -397,6 +494,12 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    case NC_INT:   return SANE_INT;
 		    case NC_FLOAT:  return SANE_FLOAT;
 		    case NC_DOUBLE: return SANE_DOUBLE;
+                    case NC_UBYTE:  return 0;
+                    case NC_USHORT: return 0;
+                    case NC_UINT:   return 0;
+                    case NC_INT64:  return X_INT_MIN - 128.0; /* slight smaller
+                                                                 than INT_MIN */
+                    case NC_UINT64: return 0;
 		    default:  assert(0);
 		}
 	    case 1:
@@ -407,6 +510,13 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    case NC_INT:   return SANE_INT;
 		    case NC_FLOAT:  return SANE_FLOAT;
 		    case NC_DOUBLE: return SANE_DOUBLE;
+                    case NC_UBYTE:  return X_UCHAR_MAX;
+                    case NC_USHORT: return X_USHORT_MAX;
+                    case NC_UINT:   return X_UINT_MAX;
+                    case NC_INT64:  return X_INT_MAX + 128.0;
+                                    /* slightly bigger than INT_MAX */
+                    case NC_UINT64: return X_UINT_MAX + 128.0;
+                                    /* slightly bigger than UINT_MAX */
 		    default:  assert(0);
 		}
 	    case 2:
@@ -417,6 +527,11 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    case NC_INT:   return SANE_INT-1.0;
 		    case NC_FLOAT:  return SANE_FLOAT * (1.0 + FUZZ);
 		    case NC_DOUBLE: return -1.0;
+                    case NC_UBYTE:  return -1.0;
+                    case NC_USHORT: return -1.0;
+                    case NC_UINT:   return -1.0;
+                    case NC_INT64:  return -1.0;  /* skip test */
+                    case NC_UINT64: return -1.0;
 		    default:  assert(0);
 		}
 	    case 3:
@@ -427,6 +542,11 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    case NC_INT:   return SANE_INT+1.0;
 		    case NC_FLOAT:  return SANE_FLOAT * (1.0 + FUZZ);
 		    case NC_DOUBLE: return 1.0;
+                    case NC_UBYTE:  return X_UCHAR_MAX +1.0;
+                    case NC_USHORT: return X_USHORT_MAX+1.0;
+                    case NC_UINT:   return X_UINT_MAX  +1.0;
+                    case NC_INT64:  return 1.0;    /* skip test */
+                    case NC_UINT64: return 1.0;    /* skip test */
 		    default:  assert(0);
 		}
 	}
@@ -438,6 +558,13 @@ hash( const nc_type type, const int rank, const size_t *index )
 	    case NC_INT: base = -20; break;
 	    case NC_FLOAT: base = -9; break;
 	    case NC_DOUBLE: base = -10; break;
+
+            /* not sure what right values are */
+            case NC_UBYTE:   base =   2;  break;
+            case NC_USHORT:  base =   5;  break;
+            case NC_UINT:    base =  20;  break;
+            case NC_INT64:   base = -20;  break;
+            case NC_UINT64:  base =  20;  break;
 	    default:  assert(0);
 	}
 	result = rank < 0 ? base * 7 : base * (rank + 1);
@@ -472,6 +599,11 @@ char2type(char letter) {
         case 'i': return NC_INT;
         case 'f': return NC_FLOAT;
         case 'd': return NC_DOUBLE;
+        case 'y': return NC_UBYTE;
+        case 't': return NC_USHORT;
+        case 'u': return NC_UINT;
+        case 'x': return NC_INT64;
+        case 'z': return NC_UINT64;
         default:  assert(0);
     }
     return NC_CHAR;  /* Just to keep compiler happy */
@@ -495,7 +627,7 @@ static void
 init_gatts(const char *type_letter)
 {
 	int attid;
-	for (attid = 0; attid < NGATTS; attid++)
+	for (attid = 0; attid < numGatts; attid++)
 	{
 		gatt_name[attid][0] = 'G';
 		gatt_name[attid][1] = type_letter[attid];
@@ -528,7 +660,10 @@ init_gvars (void)
 		MAX_DIM_LEN,
 		MAX_DIM_LEN
 	};
-	const char type_letter[] = "cbsifd";
+    const char type_letter[] = "cbsifdytuxz";
+    /* c:char, b:byte, s:short, i:int, f:float, d:double, y:ubyte, t:ushort,
+     * u:uint, x:int64, z:uint64
+     */
 	const char digit[] = "r123456789";
 
 	size_t rank;
@@ -540,6 +675,9 @@ init_gvars (void)
 
 	init_dims(digit);
 
+	for (vn=0; vn<numVars; vn++)
+	    memset(var_name[vn], 0, 2+MAX_RANK);
+
 	for (rank = 0, vn = 0, xtype = 0, an = 0;  rank <= MAX_RANK; rank++)
 	{
 			/* number variables of a type and rank */
@@ -549,11 +687,11 @@ init_gvars (void)
 		for (jj = 0; jj < nvars; jj++)
 		{
 				/* number types of this shape */
-			const int ntypes = rank < 2 ? NTYPES : 1;
+			const int ntypes = rank < 2 ? numTypes : 1;
 
 			int tc;
 			for (tc = 0; tc < ntypes;
-			     tc++, vn++, xtype = (xtype + 1) % NTYPES)
+			     tc++, vn++, xtype = (xtype + 1) % numTypes)
 			{
 				size_t tmp[MAX_RANK];
 
@@ -565,10 +703,10 @@ init_gvars (void)
 					int ac;
 					for (ac = 0; ac < var_natts[vn]; ac++, an++)
 					{
-						att_name[vn][ac][0] = type_letter[an % NTYPES];
+						att_name[vn][ac][0] = type_letter[an % numTypes];
 						att_name[vn][ac][1] = '\0';
 						att_len[vn][ac] = an;
-						att_type[vn][ac] = char2type (type_letter[an % NTYPES]);
+						att_type[vn][ac] = char2type (type_letter[an % numTypes]);
 					}
 				} /* ac block */
 #ifndef NDEBUG
@@ -622,7 +760,7 @@ def_vars(int ncid)
     int  i;
     int var_id;
 
-    for (i = 0; i < NVARS; i++) {
+    for (i = 0; i < numVars; i++) {
 	err = nc_def_var(ncid, var_name[i], var_type[i], var_rank[i],
 	    var_dimid[i], &var_id);
 	IF (err) error("nc_def_var: %s", nc_strerror(err));
@@ -642,7 +780,7 @@ put_atts(int ncid)
     double att[MAX_NELS];
     char catt[MAX_NELS];
 
-    for (i = -1; i < NVARS; i++) {
+    for (i = -1; i < numVars; i++) {
 	for (j = 0; j < NATTS(i); j++) {
 	    if (ATT_TYPE(i,j) == NC_CHAR) {
 		for (k = 0; k < ATT_LEN(i,j); k++) {
@@ -686,7 +824,7 @@ put_vars(int ncid)
 
     for (j = 0; j < MAX_RANK; j++)
 	start[j] = 0;
-    for (i = 0; i < NVARS; i++) {
+    for (i = 0; i < numVars; i++) {
 	for (allInRange = 1, j = 0; j < var_nels[i]; j++) {
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) error("toMixedBase");
@@ -719,10 +857,9 @@ put_vars(int ncid)
 void
 write_file(char *filename) 
 {
-    int  ncid;			/* netCDF id */
-    int  err;		/* status */
-
-    err = nc_create(filename, NC_CLOBBER, &ncid);
+    int  ncid; /* netCDF id */
+    int  err;  /* status */
+    err = file_create(filename, NC_CLOBBER, &ncid);
     IF (err) 
 	error("nc_create: %s", nc_strerror(err));
 
@@ -732,6 +869,18 @@ write_file(char *filename)
     err = nc_enddef(ncid);
     IF (err) 
 	error("nc_enddef: %s", nc_strerror(err));
+
+#ifdef USE_PNETCDF
+    { int i,format;
+    nc_inq_format_extended(ncid, &format, NULL);
+    if (format == NC_FORMATX_PNETCDF) {
+        for (i = 0; i < numVars; i++) {
+            err = nc_var_par_access(ncid, i, NC_COLLECTIVE);
+	    IF (err) error("nc_var_par_access: %s", nc_strerror(err));
+        }
+    }}
+#endif
+
     put_vars(ncid);
 
     err = nc_close (ncid);
@@ -784,7 +933,7 @@ check_vars(int  ncid)
     size_t length;
     int nok = 0;      /* count of valid comparisons */
 
-    for (i = 0; i < NVARS; i++) {
+    for (i = 0; i < numVars; i++) {
         isChar = var_type[i] == NC_CHAR;
 	err = nc_inq_var(ncid, i, name, &datatype, &ndims, dimids, NULL);
 	IF (err) 
@@ -829,9 +978,11 @@ check_vars(int  ncid)
 			error("nc_get_var1_double: %s", nc_strerror(err));
 		    } else {
 			IF (!equal(value,expect,var_type[i], NCT_DOUBLE)) {
-	error("Var %s value read % 12.5e not that expected % 12.7e ",
-		var_name[i], value, expect);
-		print_n_size_t(var_rank[i], index);
+			    value = 0;
+	  		    err = nc_get_var1_double(ncid, i, index, &value);		
+			    error("Var %s value read % 12.5e not that expected % 12.7e ",
+					var_name[i], value, expect);
+			    print_n_size_t(var_rank[i], index);
 			} else {
 #if 0
 			print("\nOk %s ", var_name[i]);
@@ -866,7 +1017,7 @@ check_atts(int  ncid)
     double expect;
     int nok = 0;      /* count of valid comparisons */
 
-    for (i = -1; i < NVARS; i++) {
+    for (i = -1; i < numVars; i++) {
 	for (j = 0; j < NATTS(i); j++) {
             err = nc_inq_attname(ncid, i, j, name);
             IF (err) 
@@ -919,7 +1070,7 @@ check_file(char *filename)
     int  ncid;		/* netCDF id */
     int  err;		/* status */
 
-    err = nc_open(filename, NC_NOWRITE, &ncid);
+    err = file_open(filename, NC_NOWRITE, &ncid);
     IF (err) {
         error("nc_open: %s", nc_strerror(err));
     } else {
@@ -937,18 +1088,62 @@ const char *
 s_nc_type(nc_type type)
 {
 	switch((int)type){
-	case NC_BYTE:
-		return "NC_BYTE";
-	case NC_CHAR:
-		return "NC_CHAR";
-	case NC_SHORT:
-		return "NC_SHORT";
-	case NC_INT:
-		return "NC_INT";
-	case NC_FLOAT:
-		return "NC_FLOAT";
-	case NC_DOUBLE:
-		return "NC_DOUBLE";
+        case NC_CHAR:   return "NC_CHAR";
+        case NC_BYTE:   return "NC_BYTE";
+        case NC_UBYTE:  return "NC_UBYTE";
+        case NC_SHORT:  return "NC_SHORT";
+        case NC_USHORT: return "NC_USHORT";
+        case NC_INT:    return "NC_INT";
+        case NC_UINT:   return "NC_UINT";
+        case NC_FLOAT:  return "NC_FLOAT";
+        case NC_DOUBLE: return "NC_DOUBLE";
+        case NC_INT64:  return "NC_INT64";
+        case NC_UINT64: return "NC_UINT64";
 	}
 	return "";
+}
+
+
+int file_create(const char *filename, int cmode, int *ncid)
+{
+    int err;
+
+    /* get the default file format */
+    int default_format;
+    nc_set_default_format(NC_FORMAT_CLASSIC, &default_format);
+    /* set it back to the default */
+    nc_set_default_format(default_format, NULL);
+
+#ifdef USE_PNETCDF
+    if (default_format == NC_FORMAT_CLASSIC ||
+        default_format == NC_FORMAT_64BIT_OFFSET ||
+        default_format == NC_FORMAT_64BIT_DATA)
+        err = nc_create_par(filename, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+    else
+#endif
+        err = nc_create(filename, cmode, ncid);
+
+    return err;
+}
+
+int file_open(const char *filename, int omode, int *ncid)
+{
+    int err;
+
+    /* get the default file format */
+    int default_format;
+    err = nc_set_default_format(NC_FORMAT_CLASSIC, &default_format);
+    /* set it back to the default */
+    err = nc_set_default_format(default_format, NULL);
+
+#ifdef USE_PNETCDF
+    if (default_format == NC_FORMAT_CLASSIC ||
+        default_format == NC_FORMAT_64BIT_OFFSET ||
+        default_format == NC_FORMAT_64BIT_DATA)
+        err = nc_open_par(filename, omode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+    else
+#endif
+        err = nc_open(filename, omode, ncid);
+
+    return err;
 }

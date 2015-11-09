@@ -53,6 +53,18 @@ fprintf(stderr, "Sorry! Unexpected result, %s, line: %d\n", \
 goto error;                                                 \
 } while (0)
 
+int ERR_report(int stat, const char* file, int line)
+{
+    fflush(stdout);
+    fprintf(stderr, "Sorry! Unexpected result, %s, line: %d; status=%d\n",
+	file,line,stat);
+    fflush(stdout);
+    return 1;
+}
+
+#define ERRSTAT(stat) {err+=ERR_report(stat,__FILE__,__LINE__);}
+
+
 /* After a set of tests, report the number of errors, and increment
  * total_err. */
 #define SUMMARIZE_ERR do { \

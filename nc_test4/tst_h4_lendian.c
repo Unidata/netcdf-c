@@ -66,7 +66,7 @@ int create_hdf_file(int dtype) {
     edges[0] = DIM1;
     edges[1] = DIM0;
 
-    // populate data array
+    /* populate data array */
     count = 0;
     for (j = 0; j < DIM0; j++)
       {
@@ -77,7 +77,7 @@ int create_hdf_file(int dtype) {
     printf("\to Creating hdf4 file with little-endian datatype %d....\t",dtype);
 
     sd_id = SDstart(FILENAME, DFACC_CREATE);
-    //sds_id = SDcreate(sd_id, SDSNAME, DFNT_LITEND|dtype, RANK, edges);
+    /* sds_id = SDcreate(sd_id, SDSNAME, DFNT_LITEND|dtype, RANK, edges); */
     sds_id = SDcreate(sd_id, SDSNAME, dtype, RANK, edges);
 
     istat = SDendaccess(sds_id);

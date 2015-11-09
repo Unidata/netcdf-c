@@ -31,11 +31,16 @@ the abstraction and invoke the
 substrate dispatch table directly.
 */
 
-
 int
 NCSUBSTRATE_initialize(void)
 {
     NCSUBSTRATE_dispatch_table = &NCSUBSTRATE_dispatch_base;
+    return NC_NOERR;
+}
+
+int
+NCSUBSTRATE_finalize(void)
+{
     return NC_NOERR;
 }
 

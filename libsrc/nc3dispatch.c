@@ -80,7 +80,7 @@ static int NC3_get_var_chunk_cache(int,int,size_t*,size_t*,float*);
 
 static NC_Dispatch NC3_dispatcher = {
 
-NC_DISPATCH_NC3,
+NC_FORMATX_NC3,
 
 NC3_create,
 NC3_open,
@@ -176,6 +176,12 @@ int
 NC3_initialize(void)
 {
     NC3_dispatch_table = &NC3_dispatcher;
+    return NC_NOERR;
+}
+
+int
+NC3_finalize(void)
+{
     return NC_NOERR;
 }
 
@@ -335,7 +341,7 @@ NC3_inq_type_equal(int ncid1, nc_type typeid1, int ncid2, nc_type typeid2, int* 
     }
     
     /* If both are atomic types, the answer is easy. */
-    if (typeid1 <= ATOMICTYPEMAX) {
+    if (typeid1 <= ATOMICTYPEMAX3) {
         if (equalp) {
             if (typeid1 == typeid2)
                 *equalp = 1;
@@ -351,7 +357,7 @@ static int
 NC3_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 {
     int i;
-    for (i = 0; i <= ATOMICTYPEMAX; i++)
+    for (i = 0; i <= ATOMICTYPEMAX3; i++)
         if (!strcmp(name, NC_atomictypename(i))) {
             if (typeidp) *typeidp = i;
                 return NC_NOERR;
