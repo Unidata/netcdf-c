@@ -408,10 +408,10 @@ done:
     return stat;
 }
 
-int
+OCerror
 ocrc_process(OCstate* state)
 {
-    int stat = 0;
+    OCerror stat = OC_NOERR;
     char* value = NULL;
     OCURI* uri = state->uri;
     char* url_userpwd = NULL;
