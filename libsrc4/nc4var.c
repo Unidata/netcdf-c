@@ -931,6 +931,10 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 
 	 if ((retval = check_chunksizes(grp, var, chunksizes)))
 	    return retval;
+	 for (d = 0; d < var->ndims; d++) {
+	    if(var->dim[d]->len > 0 && chunksizes[d] > var->dim[d]->len)
+	       return NC_EBADCHUNK;
+	 }
 
 	 /* Set the chunksizes for this variable. */
 	 for (d = 0; d < var->ndims; d++)
