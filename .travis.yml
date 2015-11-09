@@ -32,10 +32,21 @@ before_script:
   - export PATH=$HOME/usr/bin:$PATH
   - cd -
 
-  - mkdir build
-  - cd build
-  - cmake .. -DENABLE_DOXYGEN=ON -DENABLE_EXTRA_TESTS=ON -DENABLE_HDF4=ON -DCMAKE_PREFIX_PATH=$HOME/usr
+  - mkdir build-all
+  - mkdir build-min
+
+  - cd build-min
+  - cmake .. -DENABLE_NETCDF_4=OFF -DENABLE_DAP=OFF -DCMAKE_PREFIX_PATH=$HOME/usr-min
+  - cd ..
+
+  - cd build-all
+  - cmake .. -DENABLE_MMAP=ON -DENABLE_DOXYGEN=ON -DENABLE_EXTRA_TESTS=ON -DENABLE_HDF4=ON -DCMAKE_PREFIX_PATH=$HOME/usr
+  - cd ..
 
 script:
+  - cd build-min
+  - make -j 4
+  - make test
+  - cd ../build-all
   - make -j 4
   - make test

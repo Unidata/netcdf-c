@@ -59,5 +59,3 @@ else
   CODE=1
 fi
 exit $CODE
-
-
