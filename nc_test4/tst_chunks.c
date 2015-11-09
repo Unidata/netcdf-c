@@ -253,6 +253,44 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("**** testing that too large chunksizes fail...");
+   {
+#define D_SMALL_LEN2 66
+      int stat = NC_NOERR;
+      int ncid;
+      int nvars, ndims, ngatts, unlimdimid;
+      int contig;
+      int ndims_in, natts_in, dimids_in;
+      int small_dimid, medium_dimid, large_dimid;
+      int small_varid;
+      char var_name_in[NC_MAX_NAME + 1];
+      size_t chunks[1], chunksize_in;
+      nc_type xtype_in;
+
+      /* Create a netcdf-4 file with three dimensions. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, D_SMALL, D_SMALL_LEN2, &small_dimid)) ERR;
+
+      /* Add one var. */
+      if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &small_dimid, &small_varid)) ERR;
+
+      /* Attempt to set too large chunksizes */
+      chunks[0] = D_SMALL_LEN2 + 1;
+      stat = nc_def_var_chunking(ncid, small_varid, NC_CHUNKED, chunks);
+      if(stat != NC_EBADCHUNK) {
+	printf("Return code is '%s', expected NC_BADCHUNK",nc_strerror(stat));
+	ERR;
+      }
+      /* try agains with proper chunksize */
+      chunks[0] = D_SMALL_LEN2;
+      stat = nc_def_var_chunking(ncid, small_varid, NC_CHUNKED, chunks);
+      if(stat != NC_NOERR) {
+	printf("Return code is '%s', expected NC_NOERR",nc_strerror(stat));
+	ERR;
+      }
+      if (nc_abort(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
 
