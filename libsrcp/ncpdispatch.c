@@ -715,8 +715,7 @@ NCP_put_vara(int ncid,
 	case NC_UINT:
 	    status = ncmpi_put_vara_uint(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
 	case NC_INT64:
-	    status = ncmpi_put_vara_long(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	    status = ncmpi_put_vara_longlong(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
+      status = ncmpi_put_vara_longlong(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
 	case NC_UINT64:
 	    status = ncmpi_put_vara_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
 	default:

@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#ifdef HDF5_PARALLEL
+#if defined(HDF5_PARALLEL) || defined(USE_PNETCDF)
 #include <mpi.h>
 #endif
 #ifdef USE_PARALLEL
@@ -245,8 +245,8 @@ int (*put_vars)(int, int, const size_t*, const size_t*, const ptrdiff_t*, const 
 int (*get_varm)(int, int, const size_t*, const size_t*, const ptrdiff_t*, const ptrdiff_t*, void*, nc_type);
 int (*put_varm)(int, int, const size_t*, const size_t*, const ptrdiff_t*, const ptrdiff_t*, const void*, nc_type);
 
-int (*inq_var_all)(int ncid, int varid, char *name, nc_type *xtypep, 
-               int *ndimsp, int *dimidsp, int *nattsp, 
+int (*inq_var_all)(int ncid, int varid, char *name, nc_type *xtypep,
+               int *ndimsp, int *dimidsp, int *nattsp,
                int *shufflep, int *deflatep, int *deflate_levelp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                int *no_fill, void *fill_valuep, int *endiannessp,
