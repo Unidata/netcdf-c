@@ -40,7 +40,8 @@ int header_only;
 int k_flag;    /* > 0  => -k was specified on command line*/
 int format_flag;   /* _Format attribute value (same range as -k flag) */
 int format_attribute; /* 1=>format came from format attribute */
-int enhanced_flag; /* 1 => netcdf-4 | (some) CDF-5 constructs appear in the parse */
+int enhanced_flag; /* 1 => netcdf-4 */
+int cdf5_flag; /* 1 => cdf5 | maybe netcdf-4 */
 int specials_flag; /* 1=> special attributes are present */
 int usingclassic;
 int cmode_modifier;
@@ -233,6 +234,7 @@ main(
     format_flag = 0;
     format_attribute = 0;
     enhanced_flag = 0;
+    cdf5_flag = 0;
     specials_flag = 0;
 
     diskless = 0;
@@ -505,6 +507,8 @@ main(
     if(k_flag == 0)
       k_flag = format_flag;
 
+    if(cdf5_flag && !enhanced_flag && k_flag == 0)
+      k_flag = 5;
     if(enhanced_flag && k_flag == 0)
       k_flag = 3;
 

@@ -184,7 +184,6 @@ prim_type_name(nc_type type)
 	return "int64";
       case NC_UINT64:
 	return "uint64";
-#ifdef USE_NETCDF4
       case NC_STRING:
 	return "string";
       case NC_VLEN:
@@ -193,7 +192,6 @@ prim_type_name(nc_type type)
 	return "opaque";
       case NC_COMPOUND:
 	return "compound";
-#endif /* USE_NETCDF4 */
       default:
 	error("prim_type_name: bad type %d", type);
 	return "bogus";
