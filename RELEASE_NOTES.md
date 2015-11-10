@@ -7,8 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.0 Released TBD
 
-### 4.4.0-RC4 Released TBD
-
+### 4.4.0-RC4 Released - November 10, 2015
 
 * Added CDM-5 support via new mode flag called NC_64BIT_DATA (alias NC_CDF5).
 
@@ -20,12 +19,30 @@ This file contains a high-level description of this package's evolution. Release
     2. Given #1, then the NC_PNETCDF mode flag becomes a subset of NC_MPIIO, so made NC_PNETCDF an alias for NC_MPII.
     3. NC_FORMAT_64BIT is now deprecated.  Use NC_FORMAT_64BIT_OFFSET.
 
+Further information regarding the CDF-5 file format specifrication may be found here: http://cucis.ece.northwestern.edu/projects/PnetCDF/CDF-5.html
+
 * Modified configure.ac to provide finer control over parallel
   support. Specifically, add flags for:
   
     1. HDF5_PARALLEL when hdf5 library has parallel enabled
     2. --disable-parallel4 to be used when we do not want
      netcdf-4 to use parallelism even if hdf5 has it enabled.
+
+
+* Deprecating various extended format flags.
+
+The various extended format flags of the format `NC_FORMAT_FOO` have been refactored into the form `NC_FORMATX_FOO`.  The old flags still exist but have been marked as deprecated and will be removed at some point.  This was done to avoid confusion between the extended format flags and the format flags `NC_FORMAT_CLASSIC`, `NC_FORMAT_64BIT_OFFSET`, etc.  The mapping of deprecated-to-new flags is as follows:
+
+Deprecated | Replaced with
+-----------|-------------
+NC\_FORMAT\_NC3       | NC\_FORMATX\_NC3
+NC\_FORMAT\_NC\_HDF5  | NC\_FORMATX\_NC\_HDF5
+NC\_FORMAT\_NC4       | NC\_FORMATX\_NC4
+NC\_FORMAT\_NC\_HDF4  | NC\_FORMATX\_NC\_HDF4
+NC\_FORMAT\_PNETCDF   | NC\_FORMATX\_PNETCDF
+NC\_FORMAT\_DAP2      | NC\_FORMATX\_DAP2 
+NC\_FORMAT\_DAP4      | NC\_FORMATX\_DAP4
+NC\_FORMAT\_UNDEFINED | NC\_FORMATX\_UNDEFINED
 
 * Reduced minimum cmake version to `2.8.11` from `2.8.12`. This will allow for cmake use on a broader set of popular linux platforms without having to do a custom cmake install.  See https://github.com/Unidata/netcdf-c/issues/135 for more information.
 
