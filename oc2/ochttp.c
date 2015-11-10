@@ -88,11 +88,11 @@ fail:
 	return OCTHROW(OC_ECURL);
 }
 
-int
+OCerror
 ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
            struct OCcredentials* creds)
 {
-	int stat = OC_NOERR;
+	OCerror stat = OC_NOERR;
 	CURLcode cstat = CURLE_OK;
 	size_t len;
         long httpcode = 0;
