@@ -20,6 +20,20 @@ Below are a list of commonly-asked questions regarding NetCDF and CMake.
 
     Not at this time; it is required to instead build first one version, and then the other, if you need both.
 
+    ## What if I want to link against multiple libraries in a non-standard location? {#nonstdloc}
+
+        You can specify the path to search when looking for dependencies and header files using the `CMAKE_PREFIX_PATH` variable:
+
+    * Windows:
+
+            $ cmake [Source Directory] -DCMAKE_PREFIX_PATH=c:\shared\libs\
+
+
+    * Linux/Unix/OSX:
+
+            $ cmake [Source Directory] -DCMAKE_PREFIX_PATH=/usr/custom_library_locations/		
+
+
 ## How can I specify linking against a particular library? {#partlib}
 
     It depends on the library.  To specify a custom `ZLib`, for example, you would do the following:
@@ -39,19 +53,6 @@ Below are a list of commonly-asked questions regarding NetCDF and CMake.
         $ cmake [Source Directory] \
             -DHDF5_LIBRARIES="/path/to/hdf5.lib;/path/to/hdf5_hl.lib" \
             -DHDF5_INCLUDE_DIR=/path/to/hdf5/include/
-
-## What if I want to link against multiple libraries in a non-standard location? {#nonstdloc}
-
-    You can specify the path to search when looking for dependencies and header files using the `CMAKE_PREFIX_PATH` variable:
-
-* Windows:
-
-        $ cmake [Source Directory] -DCMAKE_PREFIX_PATH=c:\shared\libs\
-
-
-* Linux/Unix/OSX:
-
-        $ cmake [Source Directory] -DCMAKE_PREFIX_PATH=/usr/custom_library_locations/		
 
 
 ## How can I specify a Parallel Build using HDF5 {#parallelhdf}
