@@ -7,6 +7,10 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.0 Released TBD
 
+### 4.4.0-RC5 Released - November 11, 2015
+
+* Added a fix for https://github.com/Unidata/netcdf-c/issues/149, which was reported several times in quick succession within an hour of the RC4 release.
+
 ### 4.4.0-RC4 Released - November 10, 2015
 
 * Added CDM-5 support via new mode flag called NC_64BIT_DATA (alias NC_CDF5).
