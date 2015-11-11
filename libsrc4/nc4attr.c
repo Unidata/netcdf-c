@@ -410,7 +410,7 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       }
       else
 	 memcpy(var->fill_value, data, type_size);
-      
+
       /* Indicate that the fill value was changed, if the variable has already
        * been created in the file, so the dataset gets deleted and re-created. */
       if (var->created)
@@ -455,19 +455,29 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       }
       else if (type_class == NC_STRING)
       {
-         LOG((4, "copying array of NC_STRING"));
-         if (!(att->stdata = malloc(sizeof(char *) * att->len)))
-            BAIL(NC_ENOMEM);
-         for (i = 0; i < att->len; i++)
-         {
+        LOG((4, "copying array of NC_STRING"));
+        if (!(att->stdata = malloc(sizeof(char *) * att->len))) {
+          BAIL(NC_ENOMEM);
+        }
+
+        /* If we are overwriting an existing attribute,
+           specifically an NC_CHAR, we need to clean up
+           the pre-existing att->data. */
+        if (!new_att && att->data) {
+          free(att->data);
+          att->data = NULL;
+        }
+
+        for (i = 0; i < att->len; i++)
+          {
             if(NULL != ((char **)data)[i]) {
-               LOG((5, "copying string %d of size %d", i, strlen(((char **)data)[i]) + 1));
-               if (!(att->stdata[i] = strdup(((char **)data)[i])))
-                  BAIL(NC_ENOMEM);
-           }
-           else
-               att->stdata[i] = ((char **)data)[i];
-         }
+              LOG((5, "copying string %d of size %d", i, strlen(((char **)data)[i]) + 1));
+              if (!(att->stdata[i] = strdup(((char **)data)[i])))
+                BAIL(NC_ENOMEM);
+            }
+            else
+              att->stdata[i] = ((char **)data)[i];
+          }
       }
       else
       {
