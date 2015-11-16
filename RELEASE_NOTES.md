@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.0 Released TBD
 
+* Updated documentation to reference the new `NodeJS` interface to netcdf4, by Sven Willner.  It is available from [https://www.npmjs.com/package/netcdf4](https://www.npmjs.com/package/netcdf4) or from the GitHub repository at [https://github.com/swillner/netcdf4-js](https://github.com/swillner/netcdf4-js).
+
 * Incorporated pull request https://github.com/Unidata/netcdf-c/pull/150 from Greg Sjaardema to remove the internal hard-wired use of `NC_MAX_DIMS`, instead using a dynamic memory allocation.
 
 ### 4.4.0-RC5 Released - November 11, 2015
