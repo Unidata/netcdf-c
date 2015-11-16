@@ -233,6 +233,14 @@ IF(MSVC)
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF()
 
+#####
+# System inspection checks
+#####
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/oc2)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libsrc)
+SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
+
 ################################
 # End Compiler Configuration
 ################################
@@ -986,13 +994,6 @@ MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS ENABLE_D
 # Option checks
 ################################
 
-#####
-# System inspection checks
-#####
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/oc2)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libsrc)
-SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
 
 #
 # Library include checks
