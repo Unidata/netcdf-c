@@ -35,6 +35,14 @@ SET(netCDF_LIB_VERSION 7.3.0)
 SET(netCDF_SO_VERSION 7)
 SET(PACKAGE_VERSION ${VERSION})
 
+#####
+# System inspection checks
+#####
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/oc2)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libsrc)
+SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
+
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
 find_program(UNAME NAMES uname)
@@ -986,13 +994,6 @@ MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS ENABLE_D
 # Option checks
 ################################
 
-#####
-# System inspection checks
-#####
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/oc2)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libsrc)
-SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
 
 #
 # Library include checks
