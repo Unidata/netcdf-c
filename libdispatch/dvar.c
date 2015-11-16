@@ -346,13 +346,24 @@ NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
 #ifdef USE_NETCDF4
    {
      int nunlimdims;
-     int unlimids[NC_MAX_DIMS];
+     int *unlimids;
      int recdim;
-     status = nc_inq_unlimdims(ncid, &nunlimdims, unlimids); /* for group or file, not variable */
+     status = nc_inq_unlimdims(ncid, &nunlimdims, NULL); /* for group or file, not variable */
      if(status != NC_NOERR) return status;
      if(nunlimdims == 0) return status;
+
+     if (!(unlimids = malloc(nunlimdims * sizeof(int))))
+       return NC_ENOMEM;
+     status = nc_inq_unlimdims(ncid, &nunlimdims, unlimids); /* for group or file, not variable */
+     if(status != NC_NOERR) {
+       free(unlimids);
+       return status;
+     }
      status = nc_inq_vardimid(ncid, varid, dimset);
-     if(status != NC_NOERR) return status;
+     if(status != NC_NOERR) {
+       free(unlimids);
+       return status;
+     }
      for (dim = 0; dim < nvardims; dim++) { /* netCDF-4 rec dims need not be first dim for a rec var */
        for(recdim = 0; recdim < nunlimdims; recdim++) {
 	 if(dimset[dim] == unlimids[recdim]) {
@@ -361,6 +372,7 @@ NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
 	 }		
        }
      }
+     free(unlimids);
    }
 #else
    status = nc_inq_vardimid(ncid, varid, dimset);
