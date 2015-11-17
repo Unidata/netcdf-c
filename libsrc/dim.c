@@ -359,7 +359,7 @@ NC3_def_dim(int ncid, const char *name, size_t size, int *dimidp)
 		}
 	}
 
-	if(ncp->dims.nelems >= NC_MAX_DIMS)
+	if(ncp->dims.nelems >= NC_MAX_DIMS && !(ncp->flags & NC_IGNORE_MAX_DIMS))
 		return NC_EMAXDIMS;
 
 	dimid = NC_finddim(&ncp->dims, name, &dimp);

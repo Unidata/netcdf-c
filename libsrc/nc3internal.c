@@ -1011,6 +1011,13 @@ NC3_create(const char *path, int ioflags,
 	  sizeof_off_t = 4;
 	}
 
+	if (fIsSet(ioflags, NC_IGNORE_MAX_VARS)) {
+	    fSet(nc3->flags, NC_IGNORE_MAX_VARS);
+	}
+	if (fIsSet(ioflags, NC_IGNORE_MAX_DIMS)) {
+	    fSet(nc3->flags, NC_IGNORE_MAX_DIMS);
+	}
+
 	assert(nc3->xsz == ncx_len_NC(nc3,sizeof_off_t));
 
         status =  ncio_create(path, ioflags, initialsz,
