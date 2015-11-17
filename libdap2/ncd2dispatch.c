@@ -1165,14 +1165,15 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 	    PANIC1("missing dim names: %s",dim1->ocname);
 	/* search backward so we can delete duplicates */
 	for(j=nclistlength(basedims)-1;j>i;j--) {
-	    CDFnode* dim2 = (CDFnode*)nclistget(basedims,j);
-	    if(strcmp(dim1->ncfullname,dim2->ncfullname)==0) {
+      if(!dim1->ncfullname) continue;
+      CDFnode* dim2 = (CDFnode*)nclistget(basedims,j);
+      if(strcmp(dim1->ncfullname,dim2->ncfullname)==0) {
 		/* complain and suppress one of them */
 		fprintf(stderr,"duplicate dim names: %s[%lu] %s[%lu]\n",
-			dim1->ncfullname,(unsigned long)dim1->dim.declsize,
-			dim2->ncfullname,(unsigned long)dim2->dim.declsize);
+                dim1->ncfullname,(unsigned long)dim1->dim.declsize,
+                dim2->ncfullname,(unsigned long)dim2->dim.declsize);
 		nclistremove(basedims,j);
-	    }
+      }
 	}
     }
 
