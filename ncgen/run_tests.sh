@@ -8,6 +8,7 @@ fi
 
 echo "*** Testing ncgen."
 set -e
+
 echo "*** creating classic file c0.nc from c0.cdl..."
 ./ncgen -b -o c0.nc $srcdir/c0.cdl
 if [ ! -f c0.nc ]; then

@@ -153,6 +153,12 @@ srcpeek(Datasrc* ds)
     return NULL;
 }
 
+void
+srcreset(Datasrc* ds)
+{
+    ds->index = 0;
+}
+
 NCConstant*
 srcnext(Datasrc* ds)
 {

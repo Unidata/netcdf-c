@@ -835,20 +835,22 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(size_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
-$SLEEPCMD
 
+$SLEEPCMD
 if test "$ac_cv_type_ushort" = yes ; then
    AC_CHECK_SIZEOF(ushort)
 else
    AC_CHECK_SIZEOF(unsigned short int)
 fi
-sleep 3
+
+$SLEEPCMD
 if test "$ac_cv_type_uint" = yes ; then
    AC_CHECK_SIZEOF(uint)
 else
    AC_CHECK_SIZEOF(unsigned int)
 fi
 
+$SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
 
 $SLEEPCMD

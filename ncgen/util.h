@@ -8,7 +8,6 @@
 
 #define MAX(x,y) ((x)>(y)?(x):(y))
 
-
 extern void expe2d(char*);
 extern int pow2(int);
 extern void tztrim(char*);
@@ -27,7 +26,13 @@ extern char* nctypename(nc_type);
 extern char* ncclassname(nc_class);
 extern int ncsize(nc_type);
 
+extern nc_type signedtype(nc_type nctype);
+extern nc_type unsignedtype(nc_type nctype);
+
 /* We have several versions of primitive testing*/
+extern int isinttype(nc_type nctype); /* some kind of integer*/
+extern int isuinttype(nc_type nctype); /* some kind of integer*/
+extern int isfloattype(nc_type nctype); /* some kind of float*/
 extern int isclassicprim(nc_type); /* a classic primitive type*/
 extern int isclassicprimplus(nc_type); /* classic + String*/
 extern int isprim(nc_type); /* a netcdf4 primitive type*/

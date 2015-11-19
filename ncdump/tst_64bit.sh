@@ -1,4 +1,5 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 # This shell script runs the ncdump tests.
 # $Id: tst_64bit.sh,v 1.9 2006/03/04 18:50:15 ed Exp $
 

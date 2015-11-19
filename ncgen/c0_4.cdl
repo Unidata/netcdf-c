@@ -20,7 +20,7 @@ variables:
 		s:b = 0b, 127b, -128b, -1b ;
 		s:s = -32768s, 0s, 32767s ;
 	int i ;
-		i:i = -2147483647, 0, 2147483647 ;
+		i:i = -2147483647, 0, 2147483647L ;
 		i:f = -1.e+36f, 0.f, 1.e+36f ;
 		i:d = -1.e+308, 0., 1.e+308 ;
 	float f ;
@@ -28,9 +28,9 @@ variables:
 	double d ;
 		d:c = "abcd\tZ$&" ;
 	int64 i64 ;
-		i64:att_int64 = 1L ;
+		i64:att_int64 = 1LL ;
 	uint64 ui64 ;
-		ui64:att_uint64 = 1UL ;
+		ui64:att_uint64 = 1ULL ;
 	char cr(Dr) ;
 	byte br(Dr) ;
 	short sr(Dr) ;
@@ -127,9 +127,9 @@ data:
 
  d = -10 ;
 
- i64 = 9223372036854775807L;
+ i64 = 9223372036854775807LL;
 
- ui64 = 18446744073709551615UL;
+ ui64 = 18446744073709551615ULL;
 
  cr = "ab" ;
 

@@ -28,10 +28,26 @@ void
 vderror(fmt,va_alist) const char* fmt; va_dcl
 #endif
 {
+    (void) vdwarn(fmt,argv);
+    error_count++;
+}
+
+/*
+ * For logging error conditions.
+ * Designed to be called by other vararg procedures
+ */
+#ifndef NO_STDARG
+void
+vdwarn(const char *fmt, va_list argv)
+#else
+/* Technically illegal; va_alist should be only arg */
+void
+vdwarn(fmt,va_alist) const char* fmt; va_dcl
+#endif
+{
     (void) vfprintf(stderr,fmt,argv) ;
     (void) fputc('\n',stderr) ;
     (void) fflush(stderr);	/* to ensure log files are current */
-    error_count++;
 }
 
 #ifndef NO_STDARG
@@ -76,7 +92,7 @@ semwarn(lno,fmt,va_alist) const int lno; const char* fmt; va_dcl
     va_list argv;
     vastart(argv,fmt);
     (void)fprintf(stderr,"%s: %s line %d: ", progname, cdlname, lno);
-    vderror(fmt,argv);
+    vdwarn(fmt,argv);
 }
 
 #ifndef NO_STDARG

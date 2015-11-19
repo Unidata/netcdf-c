@@ -107,7 +107,7 @@ NCConstant       constant;
 
 
 /* Line 2068 of yacc.c  */
-#line 111 "ncgentab.h"
+#line 111 "ncgeny.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

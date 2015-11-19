@@ -1,4 +1,11 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
+
+if test "x$srcdir" = "x"; then srcdir=`pwd`; fi
+if test "x$builddir" = "x"; then builddir=`pwd`; fi
+#for sunos
+export srcdir;
+export builddir;
 
 . ${srcdir}/tst_ncgen_shared.sh
 
@@ -18,7 +25,7 @@ echo "*** Testing ncgen with -k${KFLAG}"
 
 cd ${RESULTSDIR}
 for x in ${TESTSET} ; do
-  test $verbose = 1 && echo "*** Testing: ${x}"
+  if test $verbose = 1 ; then echo "*** Testing: ${x}" ; fi
 	# determine if we need the specflag set
 	specflag=
 	headflag=
@@ -56,7 +63,7 @@ cd ..
 
 totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
-#set -x
+
 echo "*** PASSED: ${okcount}/${totalcount} ; ${xfailcount} expected failures ; ${failcount} unexpected failures"
 
 if test $failcount -gt 0 ; then
