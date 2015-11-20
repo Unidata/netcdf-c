@@ -5,11 +5,9 @@ services:
 
 env
     - NCTESTIMG=unidata/nctests:serial
-    - NCTESTIMG=unidata/nctests:serial32
-
 
 before_install:
     - docker pull unidata/nctests:serial
-    - docker pull unidata/nctests:serial32
 
-script: "docker run -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USEAC=OFF -v $(pwd):/netcdf-c $NCTESTIMG"
+script:
+    - docker run -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USEAC=OFF -v $(pwd):/netcdf-c $NCTESTIMG
