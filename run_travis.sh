@@ -5,4 +5,4 @@
 # create a test matrix using travis-ci and docker.
 ###
 
-docker run -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USEAC=OFF -v $(pwd):/netcdf-c $DOCKIMG
+docker run --rm -it -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USEAC=OFF -v $(pwd):/netcdf-c $DOCKIMG

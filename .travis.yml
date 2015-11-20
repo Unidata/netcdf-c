@@ -12,4 +12,4 @@ before_install:
     - docker pull unidata/nctests:serial
 
 script:
-    - ./run_travis.sh
+    - docker run --rm -it -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USEAC=OFF -v $(pwd):/netcdf-c $DOCKIMG
