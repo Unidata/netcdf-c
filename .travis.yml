@@ -7,9 +7,13 @@ env:
     matrix:
         - DOCKIMG=unidata/nctests:serial
         - DOCKIMG=unidata/nctests:serial32
+        - USECMAKE=TRUE USEAC=FALSE
+        - USECMAKE=TRUE USEAC=TRUE
+        - USECMAKE=FALSE USEAC=TRUE
+
 
 before_install:
     - docker pull $DOCKIMG
 
 script:
-    - docker run --rm -it -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USEAC=OFF -v $(pwd):/netcdf-c $DOCKIMG
+    - docker run --rm -it -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USECMAKE=$USECMAKE -e USEAC=$USEAC -v $(pwd):/netcdf-c $DOCKIMG
