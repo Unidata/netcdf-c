@@ -14,7 +14,9 @@ env:
 
 
 before_install:
+    - echo "Running $DOCKIMG : $USE_CC"
     - docker pull $DOCKIMG
 
 script:
+
     - docker run --rm -it -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USECMAKE=$USECMAKE -e USEAC=$USEAC -v $(pwd):/netcdf-c $DOCKIMG
