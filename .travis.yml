@@ -4,7 +4,8 @@ services:
     - docker
 
 env
-    - NCTESTIMG=unidata/nctests:serial
+    matrix:
+        - NCTESTIMG=unidata/nctests:serial
 
 before_install:
     - docker pull unidata/nctests:serial
