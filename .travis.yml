@@ -7,4 +7,4 @@ before_install:
     - docker pull unidata/nctests:serial
 
 script:
-    - docker run -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNNCO=OFF -v $(pwd):/netcdf-c unidata/nctests:serial
+    - docker run -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USEAC=ON -v $(pwd):/netcdf-c unidata/nctests:serial
