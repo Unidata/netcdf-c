@@ -931,8 +931,6 @@ if test "x$enable_netcdf_4" = xyes; then
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
     AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
   	AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
-    else
-     AC_DEFINE([USE_SZIP], [0], [if true, compile in szip compression in netCDF-4 variables])
    fi
 
    if test "x$ac_cv_func_H5free_memory" = xyes; then
@@ -1205,7 +1203,6 @@ AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
 AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
-AC_SUBST(HAS_SZIP,[$USE_SZIP])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
