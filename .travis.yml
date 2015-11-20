@@ -3,7 +3,7 @@ language: c
 services:
     - docker
 
-env
+env:
     matrix:
         - DOCKIMG=unidata/nctests:serial
 
