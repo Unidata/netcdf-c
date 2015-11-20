@@ -4,13 +4,11 @@ services:
     - docker
 
 env:
+    global:
+         - USECMAKE=TRUE USEAC=TRUE
     matrix:
         - DOCKIMG=unidata/nctests:serial
         - DOCKIMG=unidata/nctests:serial32
-        - USECMAKE=TRUE USEAC=FALSE
-        - USECMAKE=TRUE USEAC=TRUE
-        - USECMAKE=FALSE USEAC=TRUE
-
 
 before_install:
     - docker pull $DOCKIMG
