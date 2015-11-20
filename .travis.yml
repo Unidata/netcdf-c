@@ -9,6 +9,7 @@ env
 
 
 before_install:
-    - docker pull $NCTESTIMG
+    - docker pull unidata/nctests:serial
+    - docker pull unidata/nctests:serial32
 
 script: "docker run -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USEAC=OFF -v $(pwd):/netcdf-c $NCTESTIMG"
