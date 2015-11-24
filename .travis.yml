@@ -10,7 +10,7 @@ env:
         - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=gcc
         - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=clang
 before_install:
-    - docker pull $DOCKIMG
+    - docker pull $DOCKIMG > /dev/null
 
 script:
 
