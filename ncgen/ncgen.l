@@ -391,7 +391,7 @@ NIL|nil|Nil {
 			sprintf(errstr,"Illegal integer suffix: %s",stag);
 			yyerror(errstr);
 			goto done;
-		    }			
+		    }
 		    /* drop the tag from the input text */
 		    ncgtext[slen - strlen(stag)] = '\0';
 		    hasU = isuinttype(tag);
@@ -450,7 +450,7 @@ done: return 0;
 		    sprintf(errstr,"Illegal integer suffix: %s",stag);
 		    yyerror(errstr);
 		    goto done;
-		}			
+		}
 		yytext[slen - strlen(stag)] = '\0';
 	        if(xlen > 16) { /* truncate hi order digits */
 		    hex += (xlen - 16);
@@ -740,7 +740,7 @@ downconvert(unsigned long long uint64, int* tagp, int isneg, int hasU)
 	    if(int64 <= NC_MAX_USHORT) {
 	        nct = NC_USHORT;
 	        uint16_val = (unsigned short)int64;
-	    } else 
+	    } else
 	       goto outofrange;
 	    break;
     case NC_UINT:
@@ -817,6 +817,7 @@ collecttag(char* text, char** stagp)
     char* stag0;
 #define MAXTAGLEN 3
     char stag[MAXTAGLEN+1];
+    char stagtmp[MAXTAGLEN+1];
     int slen = strlen(text);
     int staglen;
     int tag = NC_NAT;
@@ -835,7 +836,8 @@ collecttag(char* text, char** stagp)
     stag[MAXTAGLEN] = '\0';
     if(stag[0] == 'U' || stag[0] == 'u') {
 	hasU = 1;
-	strncpy(stag,stag+1,MAXTAGLEN+1);
+	strncpy(stagtmp,stag+1,MAXTAGLEN+1);
+    strncpy(stag,stagtmp,MAXTAGLEN+1);
 	staglen--;
     } else if(stag[staglen-1] == 'U' || stag[staglen-1] == 'u') {
 	hasU = 1;
@@ -855,9 +857,9 @@ collecttag(char* text, char** stagp)
 	tag = (hasU ? NC_UINT64 : NC_INT64);
     }
     if(tag == NC_NAT) {
-	if(strlen(stag) > 0) 
+	if(strlen(stag) > 0)
 	    return tag;
 	tag = NC_NAT;
-    }	
+    }
     return tag;
 }
