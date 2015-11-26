@@ -817,7 +817,6 @@ collecttag(char* text, char** stagp)
     char* stag0;
 #define MAXTAGLEN 3
     char stag[MAXTAGLEN+1];
-    char stagtmp[MAXTAGLEN+1];
     int slen = strlen(text);
     int staglen;
     int tag = NC_NAT;
@@ -836,8 +835,7 @@ collecttag(char* text, char** stagp)
     stag[MAXTAGLEN] = '\0';
     if(stag[0] == 'U' || stag[0] == 'u') {
 	hasU = 1;
-	strncpy(stagtmp,stag+1,MAXTAGLEN+1);
-    strncpy(stag,stagtmp,MAXTAGLEN+1);
+    memmove(stag,stag+1,MAXTAGLEN);
 	staglen--;
     } else if(stag[staglen-1] == 'U' || stag[staglen-1] == 'u') {
 	hasU = 1;
