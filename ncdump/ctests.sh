@@ -1,6 +1,6 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 #set -e
-set -x
 echo "*** ctests.sh: testing ncgen4 -c"
 
 KFLAG=3

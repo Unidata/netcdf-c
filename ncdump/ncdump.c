@@ -606,11 +606,11 @@ pr_att_valgs(
 	    break;
 	case NC_INT64:
 	    i64 = ((int64_t *) vals)[iel];
-	    printf ("%lldL%s", i64, delim);
+	    printf ("%lldLL%s", i64, delim);
 	    break;
 	case NC_UINT64:
 	    ui64 = ((uint64_t *) vals)[iel];
-	    printf ("%lluUL%s", ui64, delim);
+	    printf ("%lluULL%s", ui64, delim);
 	    break;
 #ifdef USE_NETCDF4
 	case NC_STRING:

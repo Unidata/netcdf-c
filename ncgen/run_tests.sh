@@ -8,6 +8,7 @@ fi
 
 echo "*** Testing ncgen."
 set -e
+
 echo "*** creating classic file c0.nc from c0.cdl..."
 ./ncgen -b -o c0.nc $srcdir/c0.cdl
 if [ ! -f c0.nc ]; then
@@ -29,6 +30,12 @@ if [ ! -f c5.nc ]; then
     exit 1
 fi
 
+echo "**** creating file to test ncf-345..."
+./ncgen -b -o ncf345.nc $srcdir/ncf345.cdl
+if [ ! -f ncf345.nc ]; then
+    echo "Failure."
+    exit 1
+fi
 
 echo "*** Test successful!"
 exit 0

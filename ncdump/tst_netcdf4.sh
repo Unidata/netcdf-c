@@ -1,4 +1,5 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 # This shell script tests ncdump for netcdf-4
 # $Id: tst_netcdf4.sh,v 1.34 2009/09/25 18:22:10 dmh Exp $
 
@@ -14,6 +15,7 @@ echo ""
 echo "*** Testing ncgen and ncdump test output for netCDF-4 format."
 # echo "*** creating netcdf-4 file c0_4.nc from c0_4.cdl..."
 ../ncgen/ncgen -k nc4 -b -o c0_4.nc $srcdir/../ncgen/c0_4.cdl
+
 # echo "*** creating c1_4.cdl from c0_4.nc..."
 ./ncdump -n c1 c0_4.nc | sed 's/e+0/e+/g' > c1_4.cdl
 # echo "*** comparing c1_4.cdl with ref_ctest1_nc4.cdl..."

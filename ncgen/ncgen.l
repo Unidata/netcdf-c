@@ -73,12 +73,16 @@ static unsigned int MAX_UINT = NC_MAX_UINT;
 #define NC_MAX_UINT MAX_UINT
 #endif
 
-#define TAG "BbSsLl"
+#define TAGCHARS "BbSsLlUu"
 
 #define tstdecimal(ch) ((ch) >= '0' && (ch) <= '9')
 
 /*Mnemonics*/
 #define ISIDENT 1
+
+/* Define a fake constant indicating that
+   no tag was specified */
+#define NC_NOTAG (-1)
 
 char errstr[100];		/* for short error messages */
 
@@ -106,9 +110,10 @@ unsigned char ubyte_val;       /* last byte value read */
 static Symbol* makepath(char* text);
 static int lexdebug(int);
 static unsigned long long parseULL(char* text, int*);
-static nc_type downconvert(unsigned long long uint64, int, int, int);
-static int tagmatch(nc_type nct, int tag, int hasU);
+static nc_type downconvert(unsigned long long uint64, int*, int, int);
+static int tagmatch(nc_type nct, int tag);
 static int nct2lexeme(nc_type nct);
+static int collecttag(char* text, char** stagp);
 
 static struct Specialtoken {
     char* name;
@@ -196,8 +201,8 @@ OPAQUESTRING	(0[xX][0-9A-Fa-f][0-9A-Fa-f]*)
 
 PATH    ([/]|([/]{ID})([/]{ID})*)
 
-XUNUMBER     {OPAQUESTRING}[SsLl]
-NUMBER       [+-]?[0-9][0-9]*[Uu]?[BbSsLl]?
+XUNUMBER     {OPAQUESTRING}([Ss]|[Ll]|[Ll][Ll])?
+NUMBER       [+-]?[0-9][0-9]*[Uu]?([BbSs]|[Ll]|[Ll][Ll])?
 DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
@@ -246,7 +251,7 @@ yytext[MAXTRST-1] = '\0';
 	        if((len % 2) == 1) bbAppend(lextext,'0');
 		bbNull(lextext);
 		/* convert all chars to lower case */
-		for(p=bbContents(lextext);*p;p++) *p = tolower(*p);
+		for(p=bbContents(lextext);(int)*p;p++) *p = tolower(*p);
 		return lexdebug(OPAQUESTRING);
 		}
 
@@ -364,33 +369,37 @@ NIL|nil|Nil {
 		}
 
 {NUMBER}    {
-/*
-We need to try to see what size of integer ((u)int).
-Technically, the user should specify, but...
-If out of any integer range, then complain
-*/
+		/*
+		  We need to try to see what size of integer ((u)int).
+		  Technically, the user should specify, but...
+		  If out of any integer range, then complain
+		*/
 		    int slen = strlen(ncgtext);
-		    int tag = ncgtext[slen-1];
-		    int hasU = 0;
+		    char* stag = NULL;
+		    int tag = NC_NAT;
 		    int signchar = 0;
 		    int isneg = 0;
 		    int c = ncgtext[0];
 		    int fail = 0;
 		    nc_type nct = 0;
 		    char* pos = NULL;
+		    int hasU = 0;
 
+		    /* capture the tag string */
+		    tag = collecttag(ncgtext,&stag);
+		    if(tag == NC_NAT) {
+			sprintf(errstr,"Illegal integer suffix: %s",stag);
+			yyerror(errstr);
+			goto done;
+		    }
+		    /* drop the tag from the input text */
+		    ncgtext[slen - strlen(stag)] = '\0';
+		    hasU = isuinttype(tag);
 		    if(!tstdecimal(c)) {
 			pos = ncgtext+1;
 			isneg = (c == '-');
 		    } else
 		        pos = ncgtext;
-		    if(tag != '\0' && strchr(TAG,tag) != NULL) {
-			if(slen > 2) {
-			    c = ncgtext[slen-2];
-			    hasU = (c == 'U' || c == 'u') ? 1 : 0;
-			}
-		    } else
-			tag = 0;
 		    if(isneg && hasU) {
 			sprintf(errstr,"Unsigned integer cannot be signed: %s",ncgtext);
 			yyerror(errstr);
@@ -403,7 +412,7 @@ If out of any integer range, then complain
 			goto done;
 		    }
 		    /* Down convert to smallest possible range */
-		    nct = downconvert(uint64_val,isneg,tag,hasU);
+		    nct = downconvert(uint64_val,&tag,isneg,hasU);
 		    switch (k_flag) {
 		    case NC_FORMAT_64BIT_DATA:
 		    case NC_FORMAT_NETCDF4:
@@ -417,10 +426,9 @@ If out of any integer range, then complain
 				goto done;
 			    }
 		    }
-		    if(!tagmatch(nct,tag,hasU))  {
-			sprintf(errstr,"Integer out of range for tag: %s",ncgtext);
-			yyerror(errstr);
-			goto done;
+
+		    if(!tagmatch(nct,tag))  {
+			semwarn(lineno,"Warning: Integer out of range for tag: %s; tag treated as changed.",ncgtext);
 		    }
 		    return lexdebug(nct2lexeme(nct));
 done: return 0;
@@ -430,10 +438,20 @@ done: return 0;
 		int c;
 		int token = 0;
 		int slen = strlen(yytext);
-		int tag = yytext[slen-1];
+		char* stag = NULL;
+	        int tag = NC_NAT;
 		char* hex = yytext+2; /* point to first true hex digit */
 		int xlen = (slen - 3);  /* true hex length */
+
 		yytext[slen-1] = '\0';
+	        /* capture the tag string */
+		tag = collecttag(yytext,&stag);
+		if(tag == NC_NAT) {
+		    sprintf(errstr,"Illegal integer suffix: %s",stag);
+		    yyerror(errstr);
+		    goto done;
+		}
+		yytext[slen - strlen(stag)] = '\0';
 	        if(xlen > 16) { /* truncate hi order digits */
 		    hex += (xlen - 16);
 		}
@@ -444,11 +462,14 @@ done: return 0;
 		    uint64_val = ((uint64_val << 4) | hexdigit);
 		}
 		switch (tag) {
-		case 'S': case 's':
+		case NC_USHORT:
 		    uint16_val = (unsigned short)uint64_val;
 		    token = USHORT_CONST;
 		    break;
-		case 'L': case 'l':
+		case NC_UINT:
+		    token = UINT_CONST;
+		    break;
+		case NC_UINT64:
 		    token = UINT64_CONST;
 		    break;
 		default: /* should never happen */
@@ -624,7 +645,7 @@ makepath(char* text0)
 }
 
 /*
-Parse a simple string of digitis into an unsigned long long
+Parse a simple string of digits into an unsigned long long
 Return the value.
 */
 static unsigned long long
@@ -654,122 +675,114 @@ parseULL(char* text, int* failp)
 /**
 Given the raw bits, the sign char, the tag, and hasU
 fill in the appropriate *_val field
-and return the type
+and return the type.
+Note that we cannot return unsigned types if running pure netcdf classic.
+The rule is to pick the smallest enclosing type.
+
+The rule used here is that the tag (the suffix, if any)
+always takes precedence and the value is modified to conform
+if possible, otherwise out-of-range is signalled.
+For historical reasons (ncgen3), values that fit as unsigned
+are acceptable for the signed tag and conversion is attempted;
+e.g. 65535s; is legal and is return as a negative short.
 */
 static nc_type
-downconvert(unsigned long long uint64, int isneg, int tag, int hasU)
+downconvert(unsigned long long uint64, int* tagp, int isneg, int hasU)
 {
     nc_type nct = NC_NAT;
-    int bit64 = (uint64 >> 63);
-    int allones = (uint64 == 0xffffffffffffffffUL);
+    int tag = *tagp;
+    int bit63set = (uint64 >> 63);
     long long int64 = *((long long*)&uint64);
 
-    if(isneg && hasU)
-	return NC_NAT;
-    /* Special cases: all (u)int64 values */
-    if(allones && (hasU || !isneg)) /* bare max uint64 value */
-	return NC_UINT64;
-    if((int64 < NC_MIN_INT) || (int64 > NC_MAX_INT)) {
-	if(isneg && !hasU) {
-	    int64_val = - int64;
-	    return NC_INT64;
-	}
-	if(!isneg && hasU) {
-	    uint64_val = uint64;
-	    return NC_UINT64;
-	}
-	/* Bare big integer, assume int64 unless sign bit set */
-	if(!isneg && !hasU && bit64) {
-	    uint64_val = uint64;
-	    return NC_UINT64;
-	} else if(!bit64) {
-	    int64_val = int64;
-	    return NC_INT64;
-	}
-        /*assert(!isneg)*/
+    if(isneg && hasU) {
+	return (*tagp = NC_NAT);
+    }
+    /* To simplify the code, we look for special case of NC_UINT64
+       constants that will not fit into an NC_INT64 constant.
+     */
+    if(tag == NC_UINT64 && bit63set) {
         uint64_val = uint64;
-	return NC_UINT64;
+	return tag;
     }
+    /* At this point we need deal only with int64 value */
+    /* Apply the isneg */
+    if(isneg)
+	int64 = - int64;
 
-    if(isneg) int64 = -int64;
-
-    /* special case:
-       If there is no tag and the size is ok,
-       then always return NC_INT or NC_UINT.
-    */
-    if(!tag) {
-	if(!hasU) {
-	    if((int64 >= NC_MIN_INT) && (int64 <= NC_MAX_INT)) {
-		int32_val = (int)int64;
-	        return NC_INT;
-	    }
+    if(tag == NC_NOTAG) {
+        /* If we have no other info, then assume NC_(U)INT(64) */
+	if(int64 >= NC_MIN_INT && int64 <= NC_MAX_INT) {
+	    nct = (tag = NC_INT);
+	    int32_val = (signed int)int64;
+	} else if(int64 >= 0 && int64 <= NC_MAX_UINT) {
+	        nct = (tag = NC_UINT);
+	        uint32_val = (unsigned int)int64;
+	} else if(int64 < 0) {
+		nct = (tag = NC_INT64);
+	        int64_val = (signed long long)int64;
+	} else {
+	        nct = (tag = NC_UINT64);
+	        uint64_val = (unsigned long long)int64;
 	}
-	if(uint64 <= NC_MAX_UINT) {
-	    uint32_val = (unsigned int)uint64;
-	    return NC_INT;
-	}
+        goto done;
     }
-    /* assert (tag != 0) */
-
-    /* Pick smallest enclosing type;
-       for historical reasons (ncgen3), technically out of range
-       values are allowed and conversion is attempted;
-	e.g. 65535s; is legal and is return as an unsigned short.
-    */
-    if(hasU) {
-        switch (tag) {
-        case 'B': case 'b':
-	    if((int64 >= 0) && (int64 <= NC_MAX_UBYTE)) {
+    if(isuinttype(tag) && int64 < 0)
+	goto outofrange;
+    switch (tag) {
+    case NC_UBYTE:
+	    if(int64 <= NC_MAX_UBYTE) {
 	        nct = NC_UBYTE;
 	        ubyte_val = (unsigned char)int64;
-	    }; break;
-        case 'S': case 's':
-	    if((int64 >= 0) && (int64 <= NC_MAX_USHORT)) {
+	    } else
+		goto outofrange;
+	    break;
+    case NC_USHORT:
+	    if(int64 <= NC_MAX_USHORT) {
 	        nct = NC_USHORT;
 	        uint16_val = (unsigned short)int64;
-	    } break;
-        case 'L': case 'l':
-            if((int64 >= 0) && (int64 <= NC_MAX_UINT64)) {
+	    } else
+	       goto outofrange;
+	    break;
+    case NC_UINT:
+	    if(int64 <= NC_MAX_UINT) {
+	        nct = NC_UINT;
+	        uint32_val = (unsigned int)int64;
+	    } else
+		goto outofrange;
+	    break;
+    case NC_UINT64:
+            if(int64 <= NC_MAX_UINT64) {
 	        nct = NC_UINT64;
 	        uint64_val = uint64;
-	    } break;
-	default:
-	    return NC_NAT;
-	}
-    } else { /* !hasU */
-        switch (tag) {
-        case 'B': case 'b':
-            if((int64 >= NC_MIN_BYTE) && (int64 <= NC_MAX_BYTE)) {
-	        nct = NC_BYTE;
-	        byte_val = (signed char)int64;
-	    } else {/* force to unsigned value */
-		uint64_val = uint64 & 0xff;
-		nct = NC_UBYTE;
-	    }
+	    } else
+		goto outofrange;
 	    break;
-        case 'S': case 's':
-	    if((int64 >= NC_MIN_SHORT) && (int64 <= NC_MAX_SHORT)) {
-	        nct = NC_SHORT;
-	        int16_val = (signed short)int64;
-	    } else {/* force to unsigned value */
-		uint64_val = uint64 & 0xffff;
-		nct = NC_USHORT;
-	    }
+    case NC_INT64:
+	    nct = NC_INT64;
+	    int64_val = int64;
 	    break;
-        case 'L': case 'l':
-            if((uint64 <= NC_MAX_INT64)) {
-	        nct = NC_INT64;
-	        int64_val = int64;
-	    } else {/* force to unsigned value */
-		uint64_val = uint64;
-		nct = NC_UINT64;
-	    }
+    case NC_BYTE:
+	    nct = NC_BYTE;
+	    byte_val = (signed char)int64;
 	    break;
-	default:
-	    return NC_NAT;
-	}
+    case NC_SHORT:
+	    nct = NC_SHORT;
+	    int16_val = (signed short)int64;
+	    break;
+    case NC_INT:
+	    nct = NC_INT;
+	    int32_val = (signed int)int64;
+	    break;
+    default:
+	    goto outofrange;
     }
+
+done:
+    *tagp = tag;
     return nct;
+outofrange:
+    yyerror("Value out of range");
+    return NC_NAT;
 }
 
 static int
@@ -789,23 +802,62 @@ nct2lexeme(nc_type nct)
     return 0;
 }
 
-
 static int
-tagmatch(nc_type nct, int tag, int hasU)
+tagmatch(nc_type nct, int tag)
 {
-    if(hasU) switch(nct) {
-        case NC_UBYTE: return (tag == 0 || tag == 'B' || tag == 'b');
-        case NC_USHORT: return (tag == 0 || tag == 'S' || tag == 's');
-        case NC_UINT: return (tag == 0);
-        case NC_UINT64: return (tag == 0 || tag == 'L' || tag == 'l');
-	default: return 0;
-    } else switch(nct) {
-	case NC_BYTE: return (tag == 0 || tag == 'B' || tag == 'b');
-	case NC_SHORT: return (tag == 0 || tag == 'S' || tag == 's');
-	case NC_INT: return (tag == 0);
-	case NC_INT64: return (tag == 0 || tag == 'L' || tag == 'l');
-	default: return 0;
-    }
-    return 0;
+    if(tag == NC_NAT || tag ==  NC_NOTAG)
+	return 1;
+    return nct == tag;
 }
 
+/* capture the tag string */
+static int
+collecttag(char* text, char** stagp)
+{
+    char* stag0;
+#define MAXTAGLEN 3
+    char stag[MAXTAGLEN+1];
+    int slen = strlen(text);
+    int staglen;
+    int tag = NC_NAT;
+    int hasU = 0;
+
+    for(stag0 = text+(slen-1);stag0 > 0;stag0--) {
+	if(strchr(TAGCHARS,*stag0) == NULL) {stag0++; break;}
+    }
+    if(stagp) *stagp = stag0;
+    staglen = strlen(stag0);
+    if(staglen == 0)
+	return NC_NOTAG;
+    if(staglen > MAXTAGLEN)
+	return tag;
+    strncpy(stag,stag0,sizeof(stag));
+    stag[MAXTAGLEN] = '\0';
+    if(stag[0] == 'U' || stag[0] == 'u') {
+	hasU = 1;
+    memmove(stag,stag+1,MAXTAGLEN);
+	staglen--;
+    } else if(stag[staglen-1] == 'U' || stag[staglen-1] == 'u') {
+	hasU = 1;
+	staglen--;
+	stag[staglen] = '\0';
+    }
+    if(strlen(stag) == 0 && hasU) {
+	tag = NC_UINT64;
+    } else if(strlen(stag) == 1) {
+	switch (stag[0]) {
+	case 'B': case 'b': tag = (hasU ? NC_UBYTE : NC_BYTE); break;
+	case 'S': case 's': tag = (hasU ? NC_USHORT : NC_SHORT); break;
+	case 'L': case 'l': tag = (hasU ? NC_UINT : NC_INT); break;
+	default: break;
+	}
+    } else if(strcasecmp(stag,"ll") == 0) {
+	tag = (hasU ? NC_UINT64 : NC_INT64);
+    }
+    if(tag == NC_NAT) {
+	if(strlen(stag) > 0)
+	    return tag;
+	tag = NC_NAT;
+    }
+    return tag;
+}

@@ -64,10 +64,10 @@ c_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
 	    bbprintf(codetmp,"%lf",con->value.doublev);
 	break;
     case NC_UBYTE:
-        bbprintf(codetmp,"%hhu",con->value.uint8v);
+        bbprintf(codetmp,"%hhuU",con->value.uint8v);
 	break;
     case NC_USHORT:
-	bbprintf(codetmp,"%hu",con->value.uint16v);
+	bbprintf(codetmp,"%huU",con->value.uint16v);
 	break;
     case NC_UINT:
 	bbprintf(codetmp,"%uU",con->value.uint32v);
@@ -76,7 +76,7 @@ c_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
 	bbprintf(codetmp,"%lldLL",con->value.int64v);
 	break;
     case NC_UINT64:
-	bbprintf(codetmp,"%lluLLU",con->value.uint64v);
+	bbprintf(codetmp,"%lluULL",con->value.uint64v);
 	break;
     case NC_ECONST:
 	bbprintf(codetmp,"%s",cname(con->value.enumv));

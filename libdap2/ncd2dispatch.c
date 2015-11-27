@@ -1160,13 +1160,14 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
     /* Verify unique and defined names for dimensions*/
     for(i=0;i<nclistlength(basedims);i++) {
 	CDFnode* dim1 = (CDFnode*)nclistget(basedims,i);
+        CDFnode* dim2 = NULL;
 	if(dim1->dim.basedim != NULL) PANIC1("nonbase basedim: %s\n",dim1->ncbasename);
 	if(dim1->ncbasename == NULL || dim1->ncfullname == NULL)
 	    PANIC1("missing dim names: %s",dim1->ocname);
 	/* search backward so we can delete duplicates */
 	for(j=nclistlength(basedims)-1;j>i;j--) {
       if(!dim1->ncfullname) continue;
-      CDFnode* dim2 = (CDFnode*)nclistget(basedims,j);
+      dim2 = (CDFnode*)nclistget(basedims,j);
       if(strcmp(dim1->ncfullname,dim2->ncfullname)==0) {
 		/* complain and suppress one of them */
 		fprintf(stderr,"duplicate dim names: %s[%lu] %s[%lu]\n",

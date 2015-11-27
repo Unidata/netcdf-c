@@ -177,8 +177,8 @@ Use this in mode flags for both nc_create() and nc_open(). */
    Note that the name in the contributed code
    NC_FORMAT_64BIT was renamed to NC_FORMAT_CDF2
 */
-#define NC_FORMAT_64BIT           (2) /**< \deprecated Saved for compatibility.  Use NC_FORMAT_64BIT_OFFSET or NC_FORMAT_64BIT_DATA, from netCDF 4.4.0 onwards. */
 #define NC_FORMAT_64BIT_OFFSET    (2)
+#define NC_FORMAT_64BIT           (NC_FORMAT_64BIT_OFFSET) /**< \deprecated Saved for compatibility.  Use NC_FORMAT_64BIT_OFFSET or NC_FORMAT_64BIT_DATA, from netCDF 4.4.0 onwards. */
 #define NC_FORMAT_NETCDF4         (3)
 #define NC_FORMAT_NETCDF4_CLASSIC (4)
 #define NC_FORMAT_64BIT_DATA      (5)
