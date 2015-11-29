@@ -20,6 +20,12 @@ types:
 variables:
 	person_t person ;
 	types_t types ;
+
+// global attributes:
+		:Facility.PrincipleInvestigator = "Mark Abbott\n",
+			"Ph.D" ;
+		:Facility.DataCenter = "COAS Environmental Computer Facility" ;
+		:Facility.DrifterType = "MetOcean WOCE/OCM" ;
 data:
 
  person = 

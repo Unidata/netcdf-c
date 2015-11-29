@@ -537,7 +537,7 @@ extern OCerror oc_svcerrordata(OClink link, char** codep,
    note that this may or may not be the same as returned
    by oc_svcerrordata.
  */
-extern OCerror oc_httpcode(OClink);
+extern int oc_httpcode(OClink);
 
 /*
 (Re-)initialize the oc library as if nothing had been called.

@@ -8,9 +8,10 @@
 
 static const unsigned int MAX_UINT = 0xffffffff;
 
-static int mergedas1(OCnode* dds, OCnode* das);
-static int mergedods1(OCnode* dds, OCnode* das);
-static char* pathtostring(OClist* path, char* separator, int usecdfname);
+static OCerror mergedas1(OCnode* dds, OCnode* das);
+static OCerror mergedods1(OCnode* dds, OCnode* das);
+static OCerror mergeother1(OCnode* root, OCnode* das);
+static char* pathtostring(OClist* path, char* separator);
 static void computefullname(OCnode* node);
 
 /* Process ocnodes to fix various semantic issues*/
@@ -60,9 +61,11 @@ computefullname(OCnode* node)
     OClist* path;
 
     OCASSERT((node->name != NULL));
+    if(node->fullname != NULL)
+	return;
     path = oclistnew();
     occollectpathtonode(node,path);
-    tmp = pathtostring(path,PATHSEPARATOR,1);
+    tmp = pathtostring(path,PATHSEPARATOR);
     if(tmp == NULL) {
         fullname = nulldup(node->name);
     } else {
@@ -72,14 +75,16 @@ computefullname(OCnode* node)
     oclistfree(path);
 }
 
-/* Convert path to a string; leave off the dataset name*/
+/* Convert path to a string */
 static char*
-pathtostring(OClist* path, char* separator, int usecdfname)
+pathtostring(OClist* path, char* separator)
 {
     int slen,i,len;
     char* pathname;
-    if(path == NULL || (len = oclistlength(path))==0) return NULL;
-    for(slen=0,i=0;i<len;i++) {
+    if(path == NULL) return NULL;
+    len = oclistlength(path);
+    if(len == 0) return NULL;
+    for(i=0,slen=0;i<len;i++) {
 	OCnode* node = (OCnode*)oclistget(path,(size_t)i);
 	if(node->container == NULL || node->name == NULL) continue;
 	slen += strlen(node->name);
@@ -138,12 +143,6 @@ makeattribute(char* name, OCtype ptype, OClist* values)
 	    att->values[i] = nulldup((char*)oclistget(values,(size_t)i));
     }
     return att;
-}
-
-static void
-marklostattribute(OCnode* att)
-{
-    oclog(OCLOGNOTE,"Lost attribute: %s",att->name);
 }
 
 void
@@ -239,6 +238,7 @@ As described there, the algorithm is as follows.
     Note: If a dataset contains two constructor types which have field names
     that are the same (say point.x and pair.x) one should use fully qualified
     names to get each of those variables.
+
 */
 
 OCerror
@@ -262,7 +262,7 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 
     /* 1. collect all the relevant DAS nodes;
           namely those that contain at least one
-          attribute value.
+          attribute value, not including the leaf attributes.
           Simultaneously look for potential ambiguities
           if found; complain but continue: result are indeterminate.
           also collect globals separately*/
@@ -305,7 +305,7 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
           attributes to the DDS node(s).
           Match means:
           1. DAS->fullname :: DDS->fullname
-          2. DAS->name :: DDS->fullname (support DAS names with embedded '.'
+          2. DAS->name :: DDS->fullname (support DAS names with embedded '.')
           3. DAS->name :: DDS->name
     */
     for(i=0;i<oclistlength(dasnodes);i++) {
@@ -322,21 +322,24 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 	}
     }
 
-    /* 4. If there are attributes left, then complain about them being lost.*/
-    for(i=0;i<oclistlength(dasnodes);i++) {
-	OCnode* das = (OCnode*)oclistget(dasnodes,i);
-	if(das != NULL) marklostattribute(das);
-    }
-
-    /* 5. Assign globals*/
+    /* 4. Assign globals*/
     for(i=0;i<oclistlength(dasglobals);i++) {
 	OCnode* das = (OCnode*)oclistget(dasglobals,i);
+	if(das == NULL) continue;
 	mergedas1(ddsroot,das);
     }
-    /* 6. Assign DODS_*/
+    /* 5. Assign DODS_*/
     for(i=0;i<oclistlength(dodsglobals);i++) {
 	OCnode* das = (OCnode*)oclistget(dodsglobals,i);
+	if(das == NULL) continue;
 	mergedods1(ddsroot,das);
+    }
+    /* 6. Assign other orphan attributes, which means
+	  construct their full name and assign as a global attribute. */
+    for(i=0;i<oclistlength(dasnodes);i++) {
+	OCnode* das = (OCnode*)oclistget(dasnodes,i);
+	if(das == NULL) continue;
+	mergeother1(ddsroot, das);
     }
 
 done:
@@ -348,11 +351,11 @@ done:
     return OCTHROW(stat);
 }
 
-static int
+static OCerror
 mergedas1(OCnode* dds, OCnode* das)
 {
     unsigned int i;
-    int stat = OC_NOERR;
+    OCerror stat = OC_NOERR;
     if(das == NULL) return OC_NOERR; /* nothing to do */
     if(dds->attributes == NULL) dds->attributes = oclistnew();
     /* assign the simple attributes in the das set to this dds node*/
@@ -368,11 +371,11 @@ mergedas1(OCnode* dds, OCnode* das)
     return OCTHROW(stat);
 }
 
-static int
+static OCerror
 mergedods1(OCnode* dds, OCnode* dods)
 {
     unsigned int i;
-    int stat = OC_NOERR;
+    OCerror stat = OC_NOERR;
     if(dods == NULL) return OC_NOERR; /* nothing to do */
     OCASSERT(dods->octype == OC_Attributeset);
     if(dds->attributes == NULL) dds->attributes = oclistnew();
@@ -395,9 +398,7 @@ mergedods1(OCnode* dds, OCnode* dods)
 	    strcpy(newname,dods->name);
 	    strcat(newname,".");
 	    strcat(newname,attnode->name);
-	    att = makeattribute(newname,
-						attnode->etype,
-						attnode->att.values);
+	    att = makeattribute(newname,attnode->etype,attnode->att.values);
 	    free(newname);
             oclistpush(dds->attributes,(void*)att);
 	}
@@ -405,88 +406,33 @@ mergedods1(OCnode* dds, OCnode* dods)
     return OCTHROW(stat);
 }
 
-
-
-#if 0
-
-int
-ocddsdasmerge(OCstate* state, OCnode* ddsroot, OCnode* dasroot)
+static OCerror
+mergeother1(OCnode* root, OCnode* das)
 {
-    int i,j;
-    int stat = OC_NOERR;
-    OClist* globals = oclistnew();
-    if(dasroot == NULL) return OCTHROW(stat);
-    /* Start by looking for global attributes*/
-    for(i=0;i<oclistlength(dasroot->subnodes);i++) {
-	OCnode* node = (OCnode*)oclistget(dasroot->subnodes,i);
-	if(node->att.isglobal) {
-	    for(j=0;j<oclistlength(node->subnodes);j++) {
-		OCnode* attnode = (OCnode*)oclistget(node->subnodes,j);
-		Attribute* att = makeattribute(attnode->name,
-						attnode->etype,
-						attnode->att.values);
-		oclistpush(globals,(void*)att);
-	    }
-	}
-    }
-    ddsroot->attributes = globals;
-    /* Now try to match subnode names with attribute set names*/
-    for(i=0;i<oclistlength(dasroot->subnodes);i++) {
-	OCnode* das = (OCnode*)oclistget(dasroot->subnodes,i);
-	int match = 0;
-        if(das->att.isglobal) continue;
-        if(das->octype == OC_Attributeset) {
-            for(j=0;j<oclistlength(ddsroot->subnodes) && !match;j++) {
-	        OCnode* dds = (OCnode*)oclistget(ddsroot->subnodes,j);
-	        if(strcmp(das->name,dds->name) == 0) {
-		    match = 1;
-	            stat = mergedas1(dds,das);
-	            if(stat != OC_NOERR) break;
-		}
-	    }
-	}
-        if(!match) {marklostattribute(das);}
-    }
-    if(stat == OC_NOERR) ddsroot->attributed = 1;
+    OCerror stat = OC_NOERR;
+    OCattribute* att = NULL;
+
+    OCASSERT(root != NULL);
+    if(root->attributes == NULL) root->attributes = oclistnew();
+
+    if(das->octype == OC_Attribute) {
+        /* compute the full name of this attribute */
+        computefullname(das);
+        /* create attribute */
+        att = makeattribute(das->fullname,das->etype,das->att.values);	
+        oclistpush(root->attributes,(void*)att);
+    } else if(das->octype == OC_Attributeset) {
+	int i;
+	/* Recurse */
+        for(i=0;i<oclistlength(das->subnodes);i++) {
+	    OCnode* sub = (OCnode*)oclistget(das->subnodes,i);
+	    if(sub == NULL) continue;
+	    mergeother1(root,sub);
+	}	
+    } else
+	stat = OC_EDAS;
     return OCTHROW(stat);
 }
-
-/* Merge das attributes into the dds node*/
-
-static int
-mergedas1(OCnode* dds, OCnode* das)
-{
-    int i,j;
-    int stat = OC_NOERR;
-    if(dds->attributes == NULL) dds->attributes = oclistnew();
-    /* assign the simple attributes in the das set to this dds node*/
-    for(i=0;i<oclistlength(das->subnodes);i++) {
-	OCnode* attnode = (OCnode*)oclistget(das->subnodes,i);
-	if(attnode->octype == OC_Attribute) {
-	    Attribute* att = makeattribute(attnode->name,
-						attnode->etype,
-						attnode->att.values);
-            oclistpush(dds->attributes,(void*)att);
-	}
-    }
-    /* Try to merge any enclosed sets with subnodes of dds*/
-    for(i=0;i<oclistlength(das->subnodes);i++) {
-	OCnode* dasnode = (OCnode*)oclistget(das->subnodes,i);
-	int match = 0;
-        if(dasnode->octype == OC_Attribute) continue; /* already dealt with above*/
-        for(j=0;j<oclistlength(dds->subnodes) && !match;j++) {
-	    OCnode* ddsnode = (OCnode*)oclistget(dds->subnodes,j);
-	    if(strcmp(dasnode->name,ddsnode->name) == 0) {
-	        match = 1;
-	        stat = mergedas1(ddsnode,dasnode);
-	        if(stat != OC_NOERR) break;
-	    }
-	}
-        if(!match) {marklostattribute(dasnode);}
-    }
-    return OCTHROW(stat);
-}
-#endif
 
 static void
 ocuncorrelate(OCnode* root)
@@ -612,6 +558,85 @@ ocmarkcacheable(OCstate* state, OCnode* ddsroot)
 }
 
 #if 0
+
+OCerror
+ocddsdasmerge(OCstate* state, OCnode* ddsroot, OCnode* dasroot)
+{
+    int i,j;
+    OCerror stat = OC_NOERR;
+    OClist* globals = oclistnew();
+    if(dasroot == NULL) return OCTHROW(stat);
+    /* Start by looking for global attributes*/
+    for(i=0;i<oclistlength(dasroot->subnodes);i++) {
+	OCnode* node = (OCnode*)oclistget(dasroot->subnodes,i);
+	if(node->att.isglobal) {
+	    for(j=0;j<oclistlength(node->subnodes);j++) {
+		OCnode* attnode = (OCnode*)oclistget(node->subnodes,j);
+		Attribute* att = makeattribute(attnode->name,
+						attnode->etype,
+						attnode->att.values);
+		oclistpush(globals,(void*)att);
+	    }
+	}
+    }
+    ddsroot->attributes = globals;
+    /* Now try to match subnode names with attribute set names*/
+    for(i=0;i<oclistlength(dasroot->subnodes);i++) {
+	OCnode* das = (OCnode*)oclistget(dasroot->subnodes,i);
+	int match = 0;
+        if(das->att.isglobal) continue;
+        if(das->octype == OC_Attributeset) {
+            for(j=0;j<oclistlength(ddsroot->subnodes) && !match;j++) {
+	        OCnode* dds = (OCnode*)oclistget(ddsroot->subnodes,j);
+	        if(strcmp(das->name,dds->name) == 0) {
+		    match = 1;
+	            stat = mergedas1(dds,das);
+	            if(stat != OC_NOERR) break;
+		}
+	    }
+	}
+        if(!match) {marklostattribute(das);}
+    }
+    if(stat == OC_NOERR) ddsroot->attributed = 1;
+    return OCTHROW(stat);
+}
+
+/* Merge das attributes into the dds node*/
+
+static int
+mergedas1(OCnode* dds, OCnode* das)
+{
+    int i,j;
+    int stat = OC_NOERR;
+    if(dds->attributes == NULL) dds->attributes = oclistnew();
+    /* assign the simple attributes in the das set to this dds node*/
+    for(i=0;i<oclistlength(das->subnodes);i++) {
+	OCnode* attnode = (OCnode*)oclistget(das->subnodes,i);
+	if(attnode->octype == OC_Attribute) {
+	    Attribute* att = makeattribute(attnode->name,
+						attnode->etype,
+						attnode->att.values);
+            oclistpush(dds->attributes,(void*)att);
+	}
+    }
+    /* Try to merge any enclosed sets with subnodes of dds*/
+    for(i=0;i<oclistlength(das->subnodes);i++) {
+	OCnode* dasnode = (OCnode*)oclistget(das->subnodes,i);
+	int match = 0;
+        if(dasnode->octype == OC_Attribute) continue; /* already dealt with above*/
+        for(j=0;j<oclistlength(dds->subnodes) && !match;j++) {
+	    OCnode* ddsnode = (OCnode*)oclistget(dds->subnodes,j);
+	    if(strcmp(dasnode->name,ddsnode->name) == 0) {
+	        match = 1;
+	        stat = mergedas1(ddsnode,dasnode);
+	        if(stat != OC_NOERR) break;
+	    }
+	}
+        if(!match) {marklostattribute(dasnode);}
+    }
+    return OCTHROW(stat);
+}
+
 void*
 oclinearize(OCtype etype, unsigned int nstrings, char** strings)
 {
