@@ -1,4 +1,5 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 # This shell script tests the output several previous tests.
 # $Id: tst_output.sh,v 1.17 2010/05/14 16:21:15 ed Exp $
 

@@ -1,4 +1,5 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 # This shell script runs an ncdump bug test for netcdf
 # Test if the nciter code is working [NCF-154]
 

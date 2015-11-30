@@ -97,13 +97,6 @@ extern  Symbol* locate(Symbol* refsym);
 extern  Symbol* lookup(nc_class objectclass, Symbol* pattern);
 extern  Symbol* lookupingroup(nc_class objectclass, char* name, Symbol* grp);
 extern  Symbol* lookupgroup(List* prefix);
-#ifndef NO_STDARG
-extern  void semerror(const int, const char *fmt, ...);
-extern  void semwarn(const int, const char *fmt, ...);
-#else
-extern  void semerror(lno,fmt,va_alist) const int lno; const char* fmt; va_dcl;
-extern  void semwarnlno,fmt,va_alist) const int lno; const char* fmt; va_dcl;
-#endif
 extern int nounlimited(Dimset* dimset, int from);
 extern int lastunlimited(Dimset* dimset);
 extern void padstring(NCConstant* con, size_t desiredlength, int fillchar);

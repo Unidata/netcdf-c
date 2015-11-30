@@ -1,4 +1,5 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 # This shell script tests lengths of small netcdf files and tests 
 # that rewriting a numeric value doesn't change file length
 # $Id: tst_lengths.sh,v 1.10 2008/08/07 00:07:52 ed Exp $
@@ -19,7 +20,6 @@
 # }
 # EOF
 # cat > test-len.sh << 'EOF'
-# #!/bin/sh
 # # test that length of file $1 is $2
 # len=`ls -l $1|awk '{print $5}'`
 # if [ $len = $2 ]; then

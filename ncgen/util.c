@@ -255,6 +255,65 @@ isbounded(Dimset* dimset)
 }
 
 int
+signedtype(nc_type nctype)
+{
+    switch (nctype) {
+    case NC_BYTE:
+    case NC_SHORT:
+    case NC_INT:
+    case NC_INT64:
+	return nctype;
+    case NC_UBYTE: return NC_BYTE;
+    case NC_USHORT: return NC_SHORT;
+    case NC_UINT: return NC_INT;
+    case NC_UINT64: return NC_INT64;
+    default: break;
+    }
+    return nctype;
+}
+
+int
+unsignedtype(nc_type nctype)
+{
+    switch (nctype) {
+    case NC_UBYTE:
+    case NC_USHORT:
+    case NC_UINT:
+    case NC_UINT64:
+	return nctype;
+    case NC_BYTE: return NC_UBYTE;
+    case NC_SHORT: return NC_USHORT;
+    case NC_INT: return NC_UINT;
+    case NC_INT64: return NC_UINT64;
+    default: break;
+    }
+    return nctype;
+}
+
+int
+isinttype(nc_type nctype)
+{
+    return (nctype != NC_CHAR)
+            && ((nctype >= NC_BYTE && nctype <= NC_INT)
+	        || (nctype >= NC_UBYTE && nctype <= NC_UINT64));
+}
+
+int
+isuinttype(nc_type t)
+{
+    return isinttype(t)
+	   && t >= NC_UBYTE
+           && t <= NC_UINT64
+           && t != NC_INT64;
+}
+
+int
+isfloattype(nc_type nctype)
+{
+    return (nctype == NC_FLOAT || nctype <= NC_DOUBLE);
+}
+
+int
 isclassicprim(nc_type nctype)
 {
     return    (nctype >= NC_BYTE && nctype <= NC_DOUBLE)

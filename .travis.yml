@@ -1,52 +1,17 @@
-sudo: false
+sudo: required
 language: c
-compiler:
-  - gcc
-  - clang
+services:
+    - docker
 
-addons:
-    apt:
-      packages:
-      - libcurl4-openssl-dev
-      - m4
-      - wget
-      - autoconf
-      - libtool
-      - gfortran
-      - git
-      - doxygen
-      - graphviz
-
+env:
+    matrix:
+        - DOCKIMG=unidata/nctests:serial USECMAKE=TRUE USEAC=TRUE USE_CC=gcc
+        - DOCKIMG=unidata/nctests:serial USECMAKE=TRUE USEAC=TRUE USE_CC=clang
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=gcc
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=clang
 before_install:
-
-before_script:
-
-  ###
-  # Install dependencies from a pre-built binary.
-  ###
-  - cd $HOME
-  - wget http://www.unidata.ucar.edu/downloads/netcdf/ftp/travisdeps.tar.bz2
-
-  - tar -jxf travisdeps.tar.bz2
-  - export LD_LIBRARY_PATH=$HOME/usr/lib
-  - export PATH=$HOME/usr/bin:$PATH
-  - cd -
-
-  - mkdir build-all
-  - mkdir build-min
-
-  - cd build-min
-  - cmake .. -DENABLE_NETCDF_4=OFF -DENABLE_DAP=OFF -DCMAKE_PREFIX_PATH=$HOME/usr-min
-  - cd ..
-
-  - cd build-all
-  - cmake .. -DENABLE_MMAP=ON -DENABLE_DOXYGEN=ON -DENABLE_EXTRA_TESTS=ON -DENABLE_HDF4=ON -DCMAKE_PREFIX_PATH=$HOME/usr
-  - cd ..
+    - docker pull $DOCKIMG > /dev/null
 
 script:
-  - cd build-min
-  - make -j 4
-  - make test
-  - cd ../build-all
-  - make -j 4
-  - make test
+
+    - docker run --rm -it -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USECMAKE=$USECMAKE -e USEAC=$USEAC -v $(pwd):/netcdf-c $DOCKIMG

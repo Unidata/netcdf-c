@@ -1,7 +1,7 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 verbose=1
 set -e
-set -x
 if test "x$builddir" = "x"; then builddir=`pwd`; fi
 if test "x$srcdir" = "x"; then srcdir=`dirname $0`; fi
 

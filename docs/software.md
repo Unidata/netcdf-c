@@ -16,76 +16,27 @@ Freely Available Software {#freely}
 ANDX and ANAX {#ANDX}
 ------------------------------------
 
-The ARM Program has developed [ANDX (ARM NetCDF Data
-eXtract)](http://engineering.arm.gov/~sbeus/andx-web/html/), a
-command-line utility designed for routine examination and extraction of
-data from netcdf files. Data can be displayed graphically (line-plot,
-scatter-plot, overlay, color-intensity, etc.) or extracted as ASCII
-data. Whether displayed graphically or extracted as ASCII, results can
-be saved to disk or viewed on screen.
+The ARM Program has developed [ANDX (ARM NetCDF Data eXtract)](http://engineering.arm.gov/~sbeus/andx-web/html/), a command-line utility designed for routine examination and extraction of data from netcdf files. Data can be displayed graphically (line-plot, scatter-plot, overlay, color-intensity, etc.) or extracted as ASCII data. Whether displayed graphically or extracted as ASCII, results can be saved to disk or viewed on screen.
 
-[ANAX (ARM NetCDF ASCII
-eXtract)](http://science.arm.gov/~cflynn/ARM_Tested_Tools/) is a
-scaled-down version of ANDX -- it is designed to only extract ASCII
-data. All features of ANDX pertaining to non-graphic data extraction are
-included in ANAX.
+[ANAX (ARM NetCDF ASCII eXtract)](http://science.arm.gov/~cflynn/ARM_Tested_Tools/) is a scaled-down version of ANDX -- it is designed to only extract ASCII data. All features of ANDX pertaining to non-graphic data extraction are included in ANAX.
 
 ANTS {#ANTS}
 ---------------------------
 
-The ARM Program has developed [ANTS (ARM NetCDF Tool
-Suite)](http://science.arm.gov/~cflynn/ANTS/), a collection of netCDF
-tools and utilities providing various means of creating and modifying
-netcdf files. ANTS is based on nctools written by Chuck Denham. The
-utilities within nctools were modified to compile with version 3.5 of
-the netCDF library, the command syntax was modified for consistency with
-other tools, and changes were made to accommodate ARM standard netCDF.
+The ARM Program has developed [ANTS (ARM NetCDF Tool Suite)](http://science.arm.gov/~cflynn/ANTS/), a collection of netCDF tools and utilities providing various means of creating and modifying netcdf files. ANTS is based on nctools written by Chuck Denham. The utilities within nctools were modified to compile with version 3.5 of the netCDF library, the command syntax was modified for consistency with other tools, and changes were made to accommodate ARM standard netCDF.
 
-The original functions from nctools were intended mainly for the
-creation, definition, and copying of fundamental netCDF elements. ARM
-added others which focus on manipulation of data within existing netCDF
-files. Additional functions have special support for multi-dimensional
-data such as "slicing" cross sections from multi-dimensional variable
-data or joining lesser-dimensional fields to form multi-dimensional
-structures. Functions have been added to support execution of arithmetic
-and logical operations, bundling or splitting netCDF files, comparing
-the structure or content of files, and so on.
+The original functions from nctools were intended mainly for the creation, definition, and copying of fundamental netCDF elements. ARM added others which focus on manipulation of data within existing netCDF files. Additional functions have special support for multi-dimensional data such as "slicing" cross sections from multi-dimensional variable data or joining lesser-dimensional fields to form multi-dimensional structures. Functions have been added to support execution of arithmetic and logical operations, bundling or splitting netCDF files, comparing the structure or content of files, and so on.
 
-Essentially every type of netCDF library function call is exercised in
-ANTS. In this way then, this open-source collection of tools also
-represents a library of coding examples for fundamental netCDF tasks.
-See the [website](http://science.arm.gov/~cflynn/ANTS/) for more
-information.
+Essentially every type of netCDF library function call is exercised in ANTS. In this way then, this open-source collection of tools also represents a library of coding examples for fundamental netCDF tasks. See the [website](http://science.arm.gov/~cflynn/ANTS/) for more information.
 
 ARGOS {#ARGOS}
 -----------------------------
 
-[ARGOS](http://www.lapeth.ethz.ch/argos/index.html) (interActive
-thRee-dimensional Graphics ObServatory) is a new IDL-based interactive
-3D visualization tool, developed by [David N.
-Bresch](http://www.lapeth.ethz.ch/~david/index.html) and [Mark A.
-Liniger](http://www.lapeth.ethz.ch/~mark/index.html) at the Institute
-for Atmospheric Science at the Swiss Federal Institute of Technology,
-ETH, ZÃ¼rich.
+[ARGOS](http://www.lapeth.ethz.ch/argos/index.html) (interActive thRee-dimensional Graphics ObServatory) is a new IDL-based interactive 3D visualization tool, developed by [David N. Bresch](http://www.lapeth.ethz.ch/~david/index.html) and [Mark A. Liniger](http://www.lapeth.ethz.ch/~mark/index.html) at the Institute for Atmospheric Science at the Swiss Federal Institute of Technology, ETH, ZÃ¼rich.
 
-A highly optimized graphical user interface allows quick and elegant
-creation of even complex 3D graphics (volume rendering,
-isosurfaces,...), including Z-buffered overlays (with hidden lines),
-light and data shading, Xray images, 3D trajectories, animations and
-virtual flights around your data, all documented in a full on-line
-[html-help](http://www.lapeth.ethz.ch/argos/argos_general.html). The
-netCDF data format is preferred, but any other format can be read by
-providing an IDL (or FORTRAN or C or C++) interface. Some toolboxes (for
-atmospheric model output, trajectory display, radar data) have already
-been written, others might easily be added (in IDL, FORTRAN or C code).
-All interactive activities are tracked in a script, allowing quick
-reconstruction of anything done as well as running ARGOS in batch script
-mode.
+A highly optimized graphical user interface allows quick and elegant creation of even complex 3D graphics (volume rendering, isosurfaces,...), including Z-buffered overlays (with hidden lines), light and data shading, Xray images, 3D trajectories, animations and virtual flights around your data, all documented in a full on-line [html-help](http://www.lapeth.ethz.ch/argos/argos_general.html). The netCDF data format is preferred, but any other format can be read by providing an IDL (or FORTRAN or C or C++) interface. Some toolboxes (for atmospheric model output, trajectory display, radar data) have already been written, others might easily be added (in IDL, FORTRAN or C code). All interactive activities are tracked in a script, allowing quick reconstruction of anything done as well as running ARGOS in batch script mode.
 
-Information about [copyright and licensing
-conditions](http://www.lapeth.ethz.ch/argos/argos_copyright.html) are
-available. For further information and installation, please E-mail to:
-bresch@atmos.umnw.ethz.ch
+Information about [copyright and licensing conditions](http://www.lapeth.ethz.ch/argos/argos_copyright.html) are available. For further information and installation, please E-mail to: bresch@atmos.umnw.ethz.ch
 
 CDAT {#CDAT}
 ---------------------------
@@ -1828,6 +1779,32 @@ details see license at <http://sds.codeplex.com/license>.
 The SDS project is in beta phase and keeps evolving. You are welcome to
 join discussions or report issues at the CodePlex site:
 <http://sds.codeplex.com>.
+
+sciNetCDF {#scinetcdf}
+-------------------------------------------------------------
+[sciNetCDF](https://atoms.scilab.org/toolboxes/scinetcdf)
+
+In the context of the IASI-NG project, CNES is responsible for the development
+of a Scilab/NetCDF4 interface, which CNES wanted to make available to the entire
+scientific community.
+
+The toolbox sciNetCDF is the result of this collaboration. It can read and write
+NetCDF files of any version (version 4 of the format is used by default for
+writing).
+
+The toolbox provides high level functions to read/write NetCDF files natively in
+Scilab in a friendly manner (data is converted automatically from Scilab to
+NetCDF and inversely).
+These functions are:
+- nccreate
+- ncwrite
+- ncread
+- ncwriteatt
+- ncreadatt
+- ncdisp
+
+It provides also a low level interface to all the NetCDF C library functions
+
 
 Apache Spatial Information System (SIS) {#SIS}
 -------------------------------------------------------------

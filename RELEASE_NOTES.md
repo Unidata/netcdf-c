@@ -7,12 +7,20 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.0 Released TBD
 
+* Modified ncgen to properly handle the L and UL suffixes for integer constants
+  to keep backward compatibility. Now it is the case the single L suffix
+  (e.g. 111L) is treated as a 32 bit integer. This makes it consistent with
+  the fact that NC_LONG (netcdf.h) is an alias for NC_INT. Existing .cdl
+  files should be examined for occurrences of the L prefix to ensure that
+  this change will not affect them.
+  (see Github issue 156[https://github.com/Unidata/netcdf-c/issues/156]).
+
 * Updated documentation to reference the new `NodeJS` interface to netcdf4, by Sven Willner.  It is available from [https://www.npmjs.com/package/netcdf4](https://www.npmjs.com/package/netcdf4) or from the GitHub repository at [https://github.com/swillner/netcdf4-js](https://github.com/swillner/netcdf4-js).
 
 * Incorporated pull request https://github.com/Unidata/netcdf-c/pull/150 from Greg Sjaardema to remove the internal hard-wired use of `NC_MAX_DIMS`, instead using a dynamic memory allocation.
 
 ### 4.4.0-RC5 Released - November 11, 2015
-
+ 
 * Added a fix for https://github.com/Unidata/netcdf-c/issues/149, which was reported several times in quick succession within an hour of the RC4 release.
 
 ### 4.4.0-RC4 Released - November 10, 2015
