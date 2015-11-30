@@ -61,8 +61,9 @@ int main(int argc, char **argv)
     
     /*  create new file */
     if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-    /* create N variables, printing time after every 1000.  Because only
-     * NC_MAX_VARS are permitted per group, create the necessary number
+    /* create N variables, printing time after every 1000.  
+     * Put NC_MAX_VARS variables per group (even though netcdf4 non-classic 
+     * format does not limit variable count), create the necessary number
      * of groups to hold nitem variables. */
     numvar = nitem;
     v = 1;
