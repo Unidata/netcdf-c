@@ -349,7 +349,12 @@ The specified corner indices were out of range for the rank of the
 specified variable. For example, a negative index or an index that is
 larger than the corresponding dimension length will cause an error. */
 #define	NC_EINVALCOORDS	(-40)
-#define	NC_EMAXDIMS	(-41)	   /**< NC_MAX_DIMS exceeded */
+
+/** NC_MAX_DIMS exceeded. Max number of dimensions exceeded in a
+classic or 64-bit offset file, or an netCDF-4 file with
+::NC_CLASSIC_MODEL on. */
+#define	NC_EMAXDIMS	(-41)
+
 #define	NC_ENAMEINUSE	(-42)	   /**< String match to name in use */
 #define NC_ENOTATT	(-43)	   /**< Attribute not found */
 #define	NC_EMAXATTS	(-44)	   /**< NC_MAX_ATTRS exceeded */
