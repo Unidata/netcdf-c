@@ -1,0 +1,52 @@
+sudo: false
+language: c
+compiler:
+  - gcc
+  - clang
+
+addons:
+    apt:
+      packages:
+      - libcurl4-openssl-dev
+      - m4
+      - wget
+      - autoconf
+      - libtool
+      - gfortran
+      - git
+      - doxygen
+      - graphviz
+
+before_install:
+
+before_script:
+
+  ###
+  # Install dependencies from a pre-built binary.
+  ###
+  - cd $HOME
+  - wget http://www.unidata.ucar.edu/downloads/netcdf/ftp/travisdeps.tar.bz2
+
+  - tar -jxf travisdeps.tar.bz2
+  - export LD_LIBRARY_PATH=$HOME/usr/lib
+  - export PATH=$HOME/usr/bin:$PATH
+  - cd -
+
+  - mkdir build-all
+  - mkdir build-min
+
+  - cd build-min
+  - cmake .. -DENABLE_NETCDF_4=OFF -DENABLE_DAP=OFF -DCMAKE_PREFIX_PATH=$HOME/usr-min
+  - cd ..
+
+  - cd build-all
+  - cmake .. -DENABLE_MMAP=ON -DENABLE_DOXYGEN=ON -DENABLE_EXTRA_TESTS=ON -DENABLE_HDF4=ON -DCMAKE_PREFIX_PATH=$HOME/usr
+  - cd ..
+
+script:
+  - cd build-min
+  - make -j 4
+  - make test
+  - cd ../build-all
+  - make -j 4
+  - make test

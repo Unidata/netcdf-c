@@ -835,20 +835,22 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(size_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
-$SLEEPCMD
 
+$SLEEPCMD
 if test "$ac_cv_type_ushort" = yes ; then
    AC_CHECK_SIZEOF(ushort)
 else
    AC_CHECK_SIZEOF(unsigned short int)
 fi
-sleep 3
+
+$SLEEPCMD
 if test "$ac_cv_type_uint" = yes ; then
    AC_CHECK_SIZEOF(uint)
 else
    AC_CHECK_SIZEOF(unsigned int)
 fi
 
+$SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
 
 $SLEEPCMD
@@ -929,7 +931,7 @@ if test "x$enable_netcdf_4" = xyes; then
 
    # The user may have built HDF5 with the SZLIB library.
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
-   	AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
+    AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
   	AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
 
@@ -960,9 +962,9 @@ fi
 
 # Should we suppress parallel io for netcdf-4?
 if test "x$enable_netcdf_4" = xyes ; then
-  AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
-  AC_ARG_ENABLE([parallel4], [AS_HELP_STRING([--disable-parallel4],
-                [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5])])
+     AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
+     AC_ARG_ENABLE([parallel4], [AS_HELP_STRING([--disable-parallel4],
+                                          [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5]  )])
   test "x$enable_parallel4" = xno || enable_parallel4=yes
   AC_MSG_RESULT($enable_parallel4)
 else
@@ -1199,12 +1201,10 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
 
-
 AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
 AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
-AC_SUBST(HAS_SZIP,[$ac_cv_func_H5Z_SZIP])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])

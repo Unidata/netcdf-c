@@ -490,7 +490,7 @@ except that type suffixes must be appended to shorts and floats to
 distinguish them from longs and doubles.
 .LP
 A \fIbyte\fP constant is represented by
- an integer constant with a `b' (or
+an integer constant with a `b' (or
 `B') appended.  In the old netCDF-2 API, byte constants could also be
 represented using single characters or standard C character escape
 sequences such as `a' or `\n'.  This is still supported for backward
@@ -520,8 +520,11 @@ begins with `0', it is interpreted as octal, except that if it begins with
 .LP
 \fIint\fP integer constants are intended for representing 32-bit signed
 quantities.  The form of an \fIint\fP constant is an ordinary integer
-constant, although it is acceptable to append an optional `l' or
-`L' (again, deprecated).
+constant, although it is acceptable to optionally append a single `l' or
+`L' (again, deprecated). Be careful, though, the L suffix is interpreted
+as a 32 bit integer, and never as a 64 bit integer. This can be confusing
+since the C long type can ambigously be either 32 bit or 64 bit.
+.LP
 If an \fIint\fP constant begins with `0', it is interpreted as
 octal, except that if it begins with `0x', it is interpreted as a hexadecimal
 constant (but see opaque constants below).
@@ -578,8 +581,9 @@ For example the following are all acceptable \fIdouble\fP constants:
 .LP
 Unsigned integer constants can be created by appending
 the character 'U' or 'u' between the constant and any trailing
-size specifier.  Thus one could say
-10U, 100us, 100000ul, or 1000000ull, for example.
+size specifier, or immediately at the end of the size specifier.
+Thus one could say
+10U, 100su, 100000ul, or 1000000llu, for example.
 .LP
 Single character constants may be enclosed in single quotes.
 If a sequence of one or more characters is enclosed

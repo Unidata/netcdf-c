@@ -175,6 +175,11 @@ ENDIF()
     add_sh_test(ncdump tst_ncgen4)
   ENDIF()
 
+  add_sh_test(ncdump tst_inttags)
+  IF(USE_NETCDF4)
+    add_sh_test(ncdump tst_inttags4)
+  ENDIF()
+
 
 ENDIF()
 

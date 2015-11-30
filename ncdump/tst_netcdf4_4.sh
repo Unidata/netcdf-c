@@ -1,4 +1,5 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 # This shell script runs extra tests ncdump for netcdf-4
 # $Id: tst_netcdf4_4.sh,v 1.13 2009/05/06 14:51:52 ed Exp $
 

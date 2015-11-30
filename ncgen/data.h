@@ -122,6 +122,8 @@ void srcsetfill(Datasrc* ds, Datalist* list);
 NCConstant* srcnext(Datasrc*);
 int srcmore(Datasrc*);
 int srcline(Datasrc* ds);
+void srcreset(Datasrc* ds);
+#define srclen(s) ((s)==NULL?0:(s)->length)
 
 #define islistconst(con) ((con)!=NULL && (con)->nctype == NC_COMPOUND)
 #define isfillconst(con) ((con)!=NULL && (con)->nctype == NC_FILLVALUE)

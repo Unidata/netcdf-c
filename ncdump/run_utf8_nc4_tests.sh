@@ -1,4 +1,5 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 #
 # Moving some netcdf-4 only tests here, out of tst_nccopy and run_utf8_tests.
 # Without this, the tests fail when netcdf-4 is disabled.

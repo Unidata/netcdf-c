@@ -4,14 +4,14 @@ dimensions:
 
 // global attributes:
 		:Number_of_vogons = 2UB, 23UB, 230UB ;
-		:Number_of_vogon_poems = 23232244UL, 1214124123423UL, 2353424234UL ;
+		:Number_of_vogon_poems = 23232244ULL, 1214124123423ULL, 2353424234ULL ;
 
 group: solar_system {
 
   group: Earth {
 
     // group attributes:
-    		:alien_concept_number_which_cannot_be_understood_by_humans = -23232244L, 1214124123423L, -2353424234L ;
+    		:alien_concept_number_which_cannot_be_understood_by_humans = -23232244LL, 1214124123423LL, -2353424234LL ;
 
     group: Luna {
       variables:

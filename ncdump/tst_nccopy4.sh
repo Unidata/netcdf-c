@@ -1,4 +1,5 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 # For a netCDF-4 build, test nccopy on netCDF files in this directory
 
 set -e

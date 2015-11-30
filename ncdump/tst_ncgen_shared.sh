@@ -1,4 +1,5 @@
 #!/bin/sh
+if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 
 # To add a new test,
 # 1. put the .cdl file in the 'cdl' directory

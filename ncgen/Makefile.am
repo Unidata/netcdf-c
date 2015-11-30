@@ -11,16 +11,17 @@ bin_PROGRAMS = ncgen
 
 ncgen_SOURCES=generate.c main.c cdata.c bindata.c genchar.c cvt.c data.c debug.c	\
 escapes.c genc.c genbin.c generr.c genlib.c getfill.c odom.c offsets.c	\
-semantics.c ncgentab.c dump.c util.c bytebuffer.c list.c data.h		\
+semantics.c dump.c util.c bytebuffer.c list.c data.h		\
 debug.h generr.h genlib.h includes.h ncgen.h odom.h offsets.h dump.h	\
 util.h bytebuffer.h list.h genf77.c f77data.c genj.c jdata.c nc_iter.h	\
-nc_iter.c ConvertUTF.c ConvertUTF.h
+nc_iter.c ConvertUTF.c ConvertUTF.h \
+ncgeny.c ncgeny.h
 
 # This is the man page.
 man_MANS = ncgen.1
 
 # These files all need to be distributed.
-EXTRA_DIST = ncgen.y ncgenyy.c ncgen.l $(man_MANS) internals.html	\
+EXTRA_DIST = ncgen.y ncgen.l ncgenl.c $(man_MANS) internals.html	\
 run_tests.sh run_nc4_tests.sh c0.cdl c0_4.cdl ref_camrun.cdl \
 ncf199.cdl CMakeLists.txt XGetopt.c c5.cdl
 
@@ -36,16 +37,16 @@ endif # USE_NETCDF4
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
 		ncf199.nc c5.nc
 
-# These rules are used if someone wants to rebuild ncgenyy.c or ncgentab.c
+# These rules are used if someone wants to rebuild ncgenl.c or ncgeny.c
 # Otherwise never invoked, but records how to do it.
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*
 
 makeparser::
-	flex -Pncg -8 ncgen.l
-	rm -f ncgenyy.c
-	sed -e s/lex.ncg.c/ncgenyy.c/g <lex.ncg.c >ncgenyy.c
+	flex -L -Pncg -8 ncgen.l
+	rm -f ncgenl.c
+	sed -e s/lex.ncg.c/ncgenl.c/g <lex.ncg.c >ncgenl.c
 	bison -pncg -t -d ncgen.y
-	rm -f ncgentab.c ncgentab.h
-	sed -e s/ncgen.tab.c/ncgentab.c/g -e s/ncgen.tab.h/ncgentab.h/g <ncgen.tab.c >ncgentab.c
-	sed -e s/ncgen.tab.c/ncgentab.c/g -e s/ncgen.tab.h/ncgentab.h/g <ncgen.tab.h >ncgentab.h
+	rm -f ncgeny.c ncgeny.h
+	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.c >ncgeny.c
+	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.h >ncgeny.h

@@ -244,7 +244,7 @@ main(
     (void) par_io_init(32, 32);
 #endif
 
-    while ((c = getopt(argc, argv, "134567bB:cdD:fhk:l:M:no:Pv:x")) != EOF)
+    while ((c = getopt(argc, argv, "134567bB:cdD:fhHk:l:M:no:Pv:x")) != EOF)
       switch(c) {
 	case 'd':
 	  debug = 1;
@@ -278,6 +278,9 @@ main(
 	case 'h':
 	  header_only = 1;
 	  break;
+	case 'H':
+	  usage();
+	  exit(0);
         case 'l': /* specify language, instead of using -c or -f or -b */
 	{
 	    if(l_flag != 0) {
@@ -317,7 +320,7 @@ main(
 	  break;
         case 'v': /* a deprecated alias for "kind" option */
 	    /*FALLTHRU*/
-	case 'k': /* for specifying variant of netCDF format to be generated
+	case 'k': { /* for specifying variant of netCDF format to be generated
 		     Possible values are:
 		     Format names:
 		       "classic" or "nc3"
@@ -333,28 +336,27 @@ main(
 		       4 (=> netCDF-4 classic model)
                        5 (=> classic 64 bit data aka CDF-5)
 		   */
-	    {
-		struct Kvalues* kvalue;
-		char *kind_name = (optarg != NULL ? (char *) emalloc(strlen(optarg)+1)
-                           : emalloc(1));
-		if (! kind_name) {
-		    derror ("%s: out of memory", progname);
-		    return(1);
-		}
-        if(optarg != NULL)
-          (void)strcpy(kind_name, optarg);
-        for(kvalue=legalkinds;kvalue->name;kvalue++) {
-          if(strcmp(kind_name,kvalue->name) == 0) {
-            k_flag = kvalue->k_flag;
-			break;
-          }
-		}
-		if(kvalue->name == NULL) {
-		   derror("Invalid format: %s",kind_name);
-		   return 2;
-		}
+	    struct Kvalues* kvalue;
+	    char *kind_name = (optarg != NULL
+				? (char *) emalloc(strlen(optarg)+1)
+				: emalloc(1));
+	    if (! kind_name) {
+		derror ("%s: out of memory", progname);
+		return(1);
 	    }
-	  break;
+            if(optarg != NULL)
+              (void)strcpy(kind_name, optarg);
+            for(kvalue=legalkinds;kvalue->name;kvalue++) {
+              if(strcmp(kind_name,kvalue->name) == 0) {
+                k_flag = kvalue->k_flag;
+                break;
+              }
+            }
+            if(kvalue->name == NULL) {
+                derror("Invalid format: %s",kind_name);
+                return 2;
+            }
+	} break;
 	case '3':		/* output format is classic (netCDF-3) */
 	    k_flag = NC_FORMAT_CLASSIC;
 	    break;
@@ -479,8 +481,6 @@ main(
 	}
     }
 
-    /* Standard Unidata java interface => usingclassic */
-
     parse_init();
     ncgin = fp;
     if(debug >= 2) {ncgdebug=1;}
@@ -529,15 +529,32 @@ main(
     if(k_flag == 0)
 	k_flag = 1;
 
-    usingclassic = (k_flag <= 2 || k_flag == 4 || k_flag == 5)?1:0;
+    /* Figure out usingclassic */
+    switch (k_flag) {
+    case NC_FORMAT_64BIT_DATA:
+    case NC_FORMAT_CLASSIC:
+    case NC_FORMAT_64BIT_OFFSET:
+    case NC_FORMAT_NETCDF4_CLASSIC:
+	usingclassic = 1;
+	break;
+    case NC_FORMAT_NETCDF4:
+    default:
+	usingclassic = 0;
+	break;
+    }
 
     /* compute cmode_modifier */
     switch (k_flag) {
-    case 1: cmode_modifier = 0; break;
-    case 2: cmode_modifier = NC_64BIT_OFFSET; break;
-    case 3: cmode_modifier = NC_NETCDF4; break;
-    case 4: cmode_modifier = NC_NETCDF4 | NC_CLASSIC_MODEL; break;
-    case 5: cmode_modifier = NC_CDF5; break;
+    case NC_FORMAT_CLASSIC:
+	cmode_modifier = 0; break;
+    case NC_FORMAT_64BIT_OFFSET:
+	cmode_modifier = NC_64BIT_OFFSET; break;
+    case NC_FORMAT_NETCDF4:
+	cmode_modifier = NC_NETCDF4; break;
+    case NC_FORMAT_NETCDF4_CLASSIC:
+	cmode_modifier = NC_NETCDF4 | NC_CLASSIC_MODEL; break;
+    case NC_FORMAT_64BIT_DATA:
+	cmode_modifier = NC_CDF5; break;
     default: ASSERT(0); /* cannot happen */
     }
 

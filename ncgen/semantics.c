@@ -774,29 +774,111 @@ processattributes(void)
 }
 
 /*
- Look at the first primitive value of the
- attribute's datalist to infer the type of the attribute.
- There is a potential ambiguity when that value is a string.
- Is the attribute type NC_CHAR or NC_STRING?
- The answer is we always assume it is NC_CHAR in order to
- be back compatible with ncgen.
+Given two types, attempt to upgrade to the "bigger type"
+Rules:
+- type size has precedence over signed/unsigned:
+   e.g. NC_INT over NC_UBYTE
 */
+static nc_type
+infertype(nc_type prior, nc_type next, int hasneg)
+{
+    nc_type sp, sn;
+    /* assert isinttype(prior) && isinttype(next) */
+    if(prior == NC_NAT) return next;
+    if(prior == next) return next;
+    sp = signedtype(prior);
+    sn = signedtype(next);
+    if(sp <= sn)
+	return next;
+    if(sn < sp)
+	return prior;
+    return NC_NAT; /* all other cases illegal */
+}
 
+/*
+Collect info by repeated walking of the attribute value list.
+*/
 static nc_type
 inferattributetype1(Datasrc* src)
 {
     nc_type result = NC_NAT;
-    /* Recurse down any enclosing compound markers to find first non-fill "primitive"*/
-    while(result == NC_NAT && srcmore(src)) {
-	if(issublist(src)) {
-	    srcpush(src);
-	    result = inferattributetype1(src);
-	    srcpop(src);
-	} else {	
-	    NCConstant* con = srcnext(src);
-	    if(isprimplus(con->nctype)) result = con->nctype;
-	    /* else keep looking*/
+    int hasneg = 0;
+    int stringcount = 0;
+    int charcount = 0;
+    int forcefloat = 0;
+    int forcedouble = 0;
+    int forceuint64 = 0;
+
+    /* Walk the top level set of attribute values to ensure non-nesting */
+    while(srcmore(src)) {
+	NCConstant* con = srcnext(src);
+	if(con == NULL) return NC_NAT;
+	if(con->nctype > NC_MAX_ATOMIC_TYPE) { /* illegal */
+	    return NC_NAT;
 	}
+	srcnext(src);
+    }	    
+    /* Walk repeatedly to get info for inference (loops could be combined) */
+
+    /* Compute: all strings or chars? */
+    srcreset(src);
+    stringcount = 0;
+    charcount = 0;
+    while(srcmore(src)) {
+	NCConstant* con = srcnext(src);
+	if(con->nctype == NC_STRING) stringcount++;
+	else if(con->nctype == NC_CHAR) charcount++;
+    }
+    if((stringcount+charcount) > 0) {
+        if((stringcount+charcount) < srclen(src)) 
+	    return NC_NAT; /* not all textual */
+	return NC_CHAR;
+    }
+
+    /* Compute: any floats/doubles? */
+    srcreset(src);
+    forcefloat = 0;
+    forcedouble = 0;
+    while(srcmore(src)) {
+	NCConstant* con = srcnext(src);
+	if(con->nctype == NC_FLOAT) forcefloat = 1;
+	else if(con->nctype == NC_DOUBLE) {forcedouble=1; break;}
+    }
+    if(forcedouble) return NC_DOUBLE;
+    if(forcefloat)  return NC_FLOAT;
+
+    /* At this point all the constants should be integers */
+
+    /* Compute: are there any uint64 values > NC_MAX_INT64? */
+    srcreset(src);
+    forceuint64 = 0;
+    while(srcmore(src)) {
+	NCConstant* con = srcnext(src);
+	if(con->nctype != NC_UINT64) continue;
+	if(con->value.uint64v > NC_MAX_INT64) {forceuint64=1; break;}
+    }
+    if(forceuint64)
+	return NC_UINT64;
+
+    /* Compute: are there any negative constants? */
+    srcreset(src);
+    hasneg = 0;
+    while(srcmore(src)) {
+	NCConstant* con = srcnext(src);
+	switch (con->nctype) {
+	case NC_BYTE :   if(con->value.int8v < 0)   {hasneg = 1;} break;
+	case NC_SHORT:   if(con->value.int16v < 0)  {hasneg = 1;} break;
+	case NC_INT:     if(con->value.int32v < 0)  {hasneg = 1;} break;
+	}	
+    }
+
+    /* Compute: inferred integer type */
+    srcreset(src);
+    result = NC_NAT;
+    while(srcmore(src)) {
+	NCConstant* con = srcnext(src);
+	result = infertype(result,con->nctype,hasneg);	
+	if(result == NC_NAT) break; /* something wrong */
     }
     return result;
 }
@@ -817,6 +899,10 @@ inferattributetype(Symbol* asym)
     src = datalist2src(datalist);
     nctype = inferattributetype1(src);    
     freedatasrc(src);
+    if(nctype == NC_NAT) { /* Illegal attribute value list */
+	semerror(asym->lineno,"Non-simple list of values for untyped attribute: %s",fullname(asym));
+	return;
+    }
     /* get the corresponding primitive type built-in symbol*/
     /* special case for string*/
     if(nctype == NC_STRING)
