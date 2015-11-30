@@ -1293,7 +1293,7 @@ test_ncattdel(path)
 	error("%s: ncinquire in data mode failed", pname);
 	ncclose(cdfid); return ++nerrs;
     }
-    vtmp.dims = (int *) emalloc(sizeof(int) * MAX_VAR_DIMS);
+    vtmp.dims = (int *) emalloc(sizeof(int) * NC_MAX_VAR_DIMS);
     vtmp.name = (char *) emalloc(MAX_NC_NAME);
     if (ncvarinq(cdfid, yav_id, vtmp.name, &vtmp.type, &vtmp.ndims, vtmp.dims,
 		  &natts) == -1) {
