@@ -10,9 +10,6 @@ env:
         - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=gcc
         - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=clang
 
-        - DOCKIMG=unidata/nctests:openmpi USECMAKE=TRUE USEAC=TRUE USE_CC=gcc
-        - DOCKIMG=unidata/nctests:openmpi32 USECMAKE=TRUE USEAC=TRUE USE_CC=gcc
-
 before_install:
     - docker pull $DOCKIMG > /dev/null
 
