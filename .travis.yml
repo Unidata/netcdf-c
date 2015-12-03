@@ -15,4 +15,4 @@ before_install:
 
 script:
 
-    - docker run --rm -it -e USEDASH=OFF -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USECMAKE=$USECMAKE -e USEAC=$USEAC -v $(pwd):/netcdf-c $DOCKIMG
+    - docker run --rm -it -e USEDASH=TRUE -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USECMAKE=$USECMAKE -e USEAC=$USEAC -v $(pwd):/netcdf-c $DOCKIMG
