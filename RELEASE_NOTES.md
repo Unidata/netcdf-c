@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.0 Released TBD
 
+* Updated documentation for `nc_get_att_string()` to reflect the fact that it returns allocated memory which must be explicitly free'd using `nc_free_string()`. Reported by Constantine Khroulev, see [GitHub Issue 171](https://github.com/Unidata/netcdf-c/issues/171) for more information.
+
 * Modified ncgen to properly handle the L and UL suffixes for integer constants
   to keep backward compatibility. Now it is the case the single L suffix
   (e.g. 111L) is treated as a 32 bit integer. This makes it consistent with
