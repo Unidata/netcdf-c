@@ -1012,7 +1012,7 @@ check_atts(int  ncid)
     nc_type datatype;
     char name[NC_MAX_NAME];
     size_t length;
-    char  text[MAX_NELS];
+    signed char  text[MAX_NELS];
     double value[MAX_NELS];
     double expect;
     int nok = 0;      /* count of valid comparisons */
