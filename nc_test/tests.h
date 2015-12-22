@@ -141,7 +141,7 @@ extern int numTypes;  /* number of netCDF data types to test */
 
     /* Limits of internal types */
 
-#define text_min CHAR_MIN
+#define text_min SCHAR_MIN
 #define uchar_min 0
 #define schar_min SCHAR_MIN
 #define short_min SHRT_MIN
@@ -157,7 +157,7 @@ extern int numTypes;  /* number of netCDF data types to test */
 #define uint64_min 0
 #define ulonglong_min uint64_min
 
-#define text_max CHAR_MAX
+#define text_max SCHAR_MAX
 #define uchar_max UCHAR_MAX
 #define schar_max SCHAR_MAX
 #define short_max SHRT_MAX
