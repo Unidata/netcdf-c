@@ -373,5 +373,3 @@ done:
     }
     return OCTHROW(stat);
 }
-
-

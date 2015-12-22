@@ -11,7 +11,7 @@
 %{
 #include "config.h"
 #include "dapparselex.h"
-#include "daptab.h"
+#include "dapy.h"
 int dapdebug = 0;
 %}
 
