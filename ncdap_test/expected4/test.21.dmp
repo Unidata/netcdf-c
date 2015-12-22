@@ -8,6 +8,12 @@ types:
   }; // exp_t
 variables:
 	exp_t exp ;
+
+// global attributes:
+		:Facility.PrincipleInvestigator = "Mark Abbott\n",
+			"Ph.D" ;
+		:Facility.DataCenter = "COAS Environmental Computer Facility" ;
+		:Facility.DrifterType = "MetOcean WOCE/OCM" ;
 data:
 
  exp = 

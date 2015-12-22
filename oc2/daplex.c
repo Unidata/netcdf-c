@@ -6,7 +6,7 @@
 #include <strings.h>
 #endif
 #include "dapparselex.h"
-#include "daptab.h"
+#include "dapy.h"
 
 #undef URLCVT /* NEVER turn this on */
 

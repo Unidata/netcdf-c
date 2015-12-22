@@ -30,12 +30,5 @@ if [ ! -f c5.nc ]; then
     exit 1
 fi
 
-echo "**** creating file to test ncf-345..."
-./ncgen -b -o ncf345.nc $srcdir/ncf345.cdl
-if [ ! -f ncf345.nc ]; then
-    echo "Failure."
-    exit 1
-fi
-
 echo "*** Test successful!"
 exit 0

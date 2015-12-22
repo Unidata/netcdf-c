@@ -10,9 +10,9 @@
 # Cause C preprocessor to search current and parent directory.
 AM_CPPFLAGS =  -I.. -I$(top_srcdir) -I$(top_srcdir)/include
 
-# OC Sources; include the daptab.[ch] to avoid the need for bison by user
+# OC Sources; include the dapy.[ch] to avoid the need for bison by user
 SRC=oc.c \
-daplex.c dapparse.c daptab.c \
+daplex.c dapparse.c dapy.c \
 occlientparams.c occompile.c occurlfunctions.c \
 ocdata.c ocdebug.c ocdump.c  \
 ocinternal.c ocnode.c \
@@ -23,7 +23,7 @@ occurlflags.c \
 xxdr.c
 
 HDRS=oc.h ocx.h \
-dapparselex.h daptab.h \
+dapparselex.h dapy.h \
 occlientparams.h occompile.h occonstraints.h occurlfunctions.h \
 ocdata.h ocdatatypes.h ocdebug.h ocdump.h \
 ocinternal.h ocnode.h \
@@ -49,6 +49,6 @@ endif
 bison:: dap.y
 	rm -f dap.tab.c dap.tab.h
 	bison --debug -d -p dap dap.y
-	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
+	mv dap.tab.c dapy.c; mv dap.tab.h dapy.h
 
 
