@@ -997,8 +997,24 @@ MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS ENABLE_D
 # Option checks
 ################################
 
+####
+# Check to see if char is signed or unsigned.
+####
 
-#
+SET(SIGNED_TEST_SOURCE "\n
+  #include <stdlib.h>\n
+  int main(void) {\n
+    char is_signed = (char) - 1;\n
+    if(is_signed < 0)\n
+      return 0;\n
+    else\n
+      return 1;\n
+}\n")
+
+CHECK_C_SOURCE_RUNS("${SIGNED_TEST_SOURCE}" CHAR_IS_SIGNED)
+MESSAGE(STATUS "Type 'char' is signed: ${CHAR_IS_SIGNED}")
+
+
 # Library include checks
 CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)
 CHECK_INCLUDE_FILE("unistd.h"  HAVE_UNISTD_H)

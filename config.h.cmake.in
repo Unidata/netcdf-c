@@ -209,6 +209,9 @@ are set when opening a binary file on Windows. */
 /* Define if we have filelengthi64. */
 #cmakedefine HAVE_FILE_LENGTH_I64 @HAVE_FILE_LENGTH_I64@
 
+/* Define whether char is signed by default. */
+#cmakedefine CHAR_IS_SIGNED
+
 /* The size of `void*` as computed by sizeof. */
 #cmakedefine SIZEOF_VOIDSTAR @SIZEOF_VOIDSTAR@
 /* The size of `char` as computed by sizeof. */
