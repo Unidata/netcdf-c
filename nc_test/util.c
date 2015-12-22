@@ -125,7 +125,7 @@ inRange_float(const double value, const nc_type datatype)
 /* wrapper for inRange to handle special NC_BYTE/uchar adjustment */
 int
 inRange3(
-    const double value, 
+    const double value,
     const nc_type datatype,
     const nct_itype itype)
 {
@@ -144,14 +144,14 @@ inRange3(
 }
 
 
-/* 
- *  Does x == y, where one is internal and other external (netCDF)?  
+/*
+ *  Does x == y, where one is internal and other external (netCDF)?
  *  Use tolerant comparison based on IEEE FLT_EPSILON or DBL_EPSILON.
  */
 int
 equal(
-    const double x, 
-    const double y, 
+    const double x,
+    const double y,
     nc_type extType, 	/* external data type */
     nct_itype itype)
 {
@@ -264,7 +264,7 @@ int nc2dbl ( const nc_type datatype, const void *p, double *result)
     if ( ! result ) return 3;
     switch (datatype) {
         case NC_BYTE: *result = *((signed char *) p); break;
-        case NC_CHAR: *result = *((char *) p); break;
+        case NC_CHAR: *result = *((signed char *) p); break;
         case NC_SHORT: *result = *((short *) p); break;
         case NC_INT:
 #if INT_MAX >= X_INT_MAX
@@ -371,7 +371,7 @@ int dbl2nc ( const double d, const nc_type datatype, void *p)
 #ifdef USE_EXTREME_NUMBERS
 /* Generate data values as function of type, rank (-1 for attribute), index */
 double
-hash( const nc_type type, const int rank, const size_t *index ) 
+hash( const nc_type type, const int rank, const size_t *index )
 {
     double base;
     double result;
@@ -476,7 +476,7 @@ hash( const nc_type type, const int rank, const size_t *index )
 
 /* Generate data values as function of type, rank (-1 for attribute), index */
 double
-hash( const nc_type type, const int rank, const size_t *index ) 
+hash( const nc_type type, const int rank, const size_t *index )
 {
     double base;
     double result;
@@ -577,9 +577,9 @@ hash( const nc_type type, const int rank, const size_t *index )
 /* wrapper for hash to handle special NC_BYTE/uchar adjustment */
 double
 hash4(
-    const nc_type type, 
-    const int rank, 
-    const size_t *index, 
+    const nc_type type,
+    const int rank,
+    const size_t *index,
     const nct_itype itype)
 {
     double result;
@@ -646,9 +646,9 @@ product(size_t nn, const size_t *sp)
 	return result;
 }
 
-/* 
+/*
    define global variables:
-   dim_name, dim_len, 
+   dim_name, dim_len,
    var_name, var_type, var_rank, var_shape, var_natts, var_dimid, var_nels
    att_name, gatt_name, att_type, gatt_type, att_len, gatt_len
  */
@@ -737,7 +737,7 @@ init_gvars (void)
 
 
 /* define dims defined by global variables */
-void                                                        
+void
 def_dims(int ncid)
 {
     int  err;             /* status */
@@ -753,7 +753,7 @@ def_dims(int ncid)
 
 
 /* define vars defined by global variables */
-void                                                        
+void
 def_vars(int ncid)
 {
     int  err;             /* status */
@@ -769,7 +769,7 @@ def_vars(int ncid)
 
 
 /* put attributes defined by global variables */
-void                                                        
+void
 put_atts(int ncid)
 {
     int  err;             /* status */
@@ -788,7 +788,7 @@ put_atts(int ncid)
 		}
 		err = nc_put_att_text(ncid, i, ATT_NAME(i,j),
 		    ATT_LEN(i,j), catt);
-		IF (err) 
+		IF (err)
 		    error("nc_put_att_text: %s", nc_strerror(err));
 	    } else {
 		for (allInRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
@@ -810,7 +810,7 @@ put_atts(int ncid)
 }
 
 /* put variables defined by global variables */
-void                                                        
+void
 put_vars(int ncid)
 {
     size_t start[MAX_RANK];
@@ -855,19 +855,19 @@ put_vars(int ncid)
 
 /* Create & write all of specified file using global variables */
 void
-write_file(char *filename) 
+write_file(char *filename)
 {
     int  ncid; /* netCDF id */
     int  err;  /* status */
     err = file_create(filename, NC_CLOBBER, &ncid);
-    IF (err) 
+    IF (err)
 	error("nc_create: %s", nc_strerror(err));
 
     def_dims(ncid);
     def_vars(ncid);
     put_atts(ncid);
     err = nc_enddef(ncid);
-    IF (err) 
+    IF (err)
 	error("nc_enddef: %s", nc_strerror(err));
 
 #ifdef USE_PNETCDF
@@ -884,7 +884,7 @@ write_file(char *filename)
     put_vars(ncid);
 
     err = nc_close (ncid);
-    IF (err) 
+    IF (err)
 	error("nc_close: %s", nc_strerror(err));
 }
 
@@ -936,24 +936,24 @@ check_vars(int  ncid)
     for (i = 0; i < numVars; i++) {
         isChar = var_type[i] == NC_CHAR;
 	err = nc_inq_var(ncid, i, name, &datatype, &ndims, dimids, NULL);
-	IF (err) 
+	IF (err)
 	    error("nc_inq_var: %s", nc_strerror(err));
-	IF (strcmp(name, var_name[i]) != 0) 
+	IF (strcmp(name, var_name[i]) != 0)
 	    error("Unexpected var_name");
-	IF (datatype != var_type[i]) 
+	IF (datatype != var_type[i])
 	    error("Unexpected type");
-	IF (ndims != var_rank[i]) 
+	IF (ndims != var_rank[i])
 	    error("Unexpected rank");
 	for (j = 0; j < ndims; j++) {
 	    err = nc_inq_dim(ncid, dimids[j], 0, &length);
-	    IF (err) 
+	    IF (err)
 		error("nc_inq_dim: %s", nc_strerror(err));
-	    IF (length != var_shape[i][j]) 
+	    IF (length != var_shape[i][j])
 		error("Unexpected shape");
 	}
 	for (j = 0; j < var_nels[i]; j++) {
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
-	    IF (err) 
+	    IF (err)
 		error("error in toMixedBase 2");
 	    expect = hash( var_type[i], var_rank[i], index );
 	    if (isChar) {
@@ -979,7 +979,7 @@ check_vars(int  ncid)
 		    } else {
 			IF (!equal(value,expect,var_type[i], NCT_DOUBLE)) {
 			    value = 0;
-	  		    err = nc_get_var1_double(ncid, i, index, &value);		
+	  		    err = nc_get_var1_double(ncid, i, index, &value);
 			    error("Var %s value read % 12.5e not that expected % 12.7e ",
 					var_name[i], value, expect);
 			    print_n_size_t(var_rank[i], index);
@@ -1003,7 +1003,7 @@ check_vars(int  ncid)
  * check attributes of specified file have expected name, type, length & values
  */
 void
-check_atts(int  ncid) 
+check_atts(int  ncid)
 {
     int  err;		/* status */
     int  i;
@@ -1020,12 +1020,12 @@ check_atts(int  ncid)
     for (i = -1; i < numVars; i++) {
 	for (j = 0; j < NATTS(i); j++) {
             err = nc_inq_attname(ncid, i, j, name);
-            IF (err) 
+            IF (err)
                 error("nc_inq_attname: %s", nc_strerror(err));
             IF (strcmp(name, ATT_NAME(i,j)) != 0)
                 error("nc_inq_attname: unexpected name");
 	    err = nc_inq_att(ncid, i, name, &datatype, &length);
-	    IF (err) 
+	    IF (err)
 		error("nc_inq_att: %s", nc_strerror(err));
 	    IF (datatype != ATT_TYPE(i,j))
 		error("nc_inq_att: unexpected type");
@@ -1065,7 +1065,7 @@ check_atts(int  ncid)
 
 /* Check file (dims, vars, atts) corresponds to global variables */
 void
-check_file(char *filename) 
+check_file(char *filename)
 {
     int  ncid;		/* netCDF id */
     int  err;		/* status */
@@ -1078,7 +1078,7 @@ check_file(char *filename)
 	check_vars(ncid);
 	check_atts(ncid);
 	err = nc_close (ncid);
-	IF (err) 
+	IF (err)
 	    error("nc_close: %s", nc_strerror(err));
     }
 }
