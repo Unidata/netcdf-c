@@ -1,1 +1,2 @@
-br s -f test_get.c -l 1002 -c 'i == 11 && j == 2'
+# br s -f test_get.c -l 1002 -c 'i == 11 && j == 2'
+br s -f test_get.c -l 1019 -c 'i == 11'
