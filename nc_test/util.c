@@ -922,7 +922,7 @@ check_vars(int  ncid)
     int  err;		/* status */
     int  i;
     size_t  j;
-    char  text;
+    signed char  text;
     double value;
     nc_type datatype;
     int ndims;
