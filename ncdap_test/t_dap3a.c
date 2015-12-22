@@ -124,8 +124,8 @@ int main()
     /* Assume that TESTS_ENVIRONMENT was set */
     topsrcdir = getenv("TOPSRCDIR");
     if(topsrcdir == NULL) {
-        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
-        exit(1);
+        fprintf(stderr,"$abs_top_srcdir not defined: using '../'");
+	topsrcdir = "..";
     }    
     len = strlen("file://") + strlen(topsrcdir) + strlen("/ncdap_test/testdata3/test.02") + 1;
 #ifdef DEBUG

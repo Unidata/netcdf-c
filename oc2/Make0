@@ -6,7 +6,7 @@ THISDIR=../oc2
 
 # Make consistent with Makefile.am
 SRC=oc.c \
-daplex.c dapparse.c daptab.c \
+daplex.c dapparse.c dapy.c \
 occlientparams.c occompile.c occurlfunctions.c \
 ocdata.c ocdebug.c ocdump.c  \
 ocinternal.c ocnode.c \
@@ -17,7 +17,7 @@ occurlflags.c \
 xxdr.c
 
 HDRS=oc.h ocx.h \
-dapparselex.h daptab.h \
+dapparselex.h dapy.h \
 occlientparams.h occompile.h occonstraints.h occurlfunctions.h \
 ocdata.h ocdatatypes.h ocdebug.h ocdump.h \
 ocinternal.h ocnode.h \
@@ -47,7 +47,7 @@ makeoc::
 	# This should match the bison command in Makefile.am
 	rm -f dap.tab.c dap.tab.h
 	bison --debug -d -p dap dap.y
-	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
+	mv dap.tab.c dapy.c; mv dap.tab.h dapy.h
 
 changed:
 	${MAKE} -f Make0 NAMEONLY=1 diffoc
@@ -57,7 +57,7 @@ diffoc::
 	@for file in ${FILES} ; do \
 	    f="${OCDIR}/$$file" ; \
 	    x=`basename $$f|tr -d '' ` ; \
-	    if test "x$${x}" = "xdaptab.c" -o "x$${x}" = "xdaptab.h" ; then echo "ignore: $${x}"; continue; fi ;\
+	    if test "x$${x}" = "xdapy.c" -o "x$${x}" = "xdapy.h" ; then echo "ignore: $${x}"; continue; fi ;\
 	    if ! test -e ${THISDIR}/$$x ; then \
 		echo "Missing file: $$x"; \
 	    fi ; \
@@ -78,7 +78,7 @@ olddiff::
 	for file in ${FILES} ; do \
 	    f="${OCDIR}/$$file" ; \
 	    x=`basename $$f | tr -d '' ` ; \
-	    if test "x$${x}" = "xdaptab.c" -o "x$${x}" = "xdaptab.h" ; then echo "ignore: $${x}"; continue; fi ;\
+	    if test "x$${x}" = "xdapy.c" -o "x$${x}" = "xdapy.h" ; then echo "ignore: $${x}"; continue; fi ;\
 	    if test -e ${THISDIR}/$$x -a -e ${OCDIR}/$$x ; then \
 		diff --brief -wBb ${THISDIR}/$$x $$f ; \
 	    else \
@@ -88,7 +88,7 @@ olddiff::
 	for file in ${FILES} ; do \
 	    f="${OCDIR}/$$file" ; \
 	    x=`basename $$f|tr -d '' ` ; \
-	    if test "x$${x}" = "xdaptab.c" -o "x$${x}" = "xdaptab.h" ; then echo "ignore: $${x}"; continue; fi ;\
+	    if test "x$${x}" = "xdapy.c" -o "x$${x}" = "xdapy.h" ; then echo "ignore: $${x}"; continue; fi ;\
 	    if test -e ${THISDIR}/$$x -a -e ${OCDIR}/$$x ; then \
 		if ! diff --brief -wBb ${THISDIR}/$$x $$f > /dev/null ; then \
 		echo diff -wBb ${THISDIR}/$$x $$f ;\

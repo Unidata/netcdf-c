@@ -5,6 +5,16 @@ dimensions:
 variables:
 	char person.name(person, maxStrlen64) ;
 	int person.age(person) ;
+
+// global attributes:
+		:Facility.PrincipleInvestigator = "Mark Abbott\n",
+			"Ph.D" ;
+		:Facility.DataCenter = "COAS Environmental Computer Facility" ;
+		:Facility.DrifterType = "MetOcean WOCE/OCM" ;
+		:b.Description = "A test byte" ;
+		:b.units = "unknown" ;
+		:i32.Description = "A 32 bit test server int" ;
+		:i32.units = "unknown" ;
 data:
 
  person.name =
