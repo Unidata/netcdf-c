@@ -38,7 +38,7 @@ TARGET_LINK_LIBRARIES(nc_test2
   )
 
 # Some extra stand-alone tests
-SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta)
+SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta cdf5_gh159_test)
 
 IF(NOT HAVE_BASH)
   SET(TESTS ${TESTS} tst_atts3)

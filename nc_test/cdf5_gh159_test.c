@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <netcdf.h>
 
+#define RANK_y3 1
+#define FILENAME "cdf5_test.nc"
 
 void
 check_err(const int stat, const int line, const char *file) {
@@ -26,12 +28,12 @@ main() {/* create cdf5_test */
 
     /* variable ids */
     int y3_id;
-#   define RANK_y3 1
+
 
     int y3_dims[RANK_y3];
 
     /* enter define mode */
-    stat = nc_create("cdf5_test", NC_CLOBBER | NC_64BIT_DATA, &ncid);
+    stat = nc_create(FILENAME, NC_CLOBBER | NC_64BIT_DATA, &ncid);
     check_err(stat,__LINE__,__FILE__);
 
     stat = nc_def_dim(ncid, "D3", D3_len, &D3_dim);
