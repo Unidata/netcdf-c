@@ -139,6 +139,9 @@ extern "C" {
 #define NC_CDF5          NC_64BIT_DATA  /**< Alias NC_CDF5 to NC_64BIT_DATA */
 
 #define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model on netCDF-4. Mode flag for nc_create(). */
+#define NC_IGNORE_MAX_DIMS 0x10000 /**< In classic model, ignore NC_MAX_DIMS setting */
+#define NC_IGNORE_MAX_VARS 0x20000 /**< In classic model, ignore NC_MAX_VARS setting */
+
 #define NC_64BIT_OFFSET  0x0200  /**< Use large (64-bit) file offsets. Mode flag for nc_create(). */
 
 /** \deprecated The following flag currently is ignored, but use in
