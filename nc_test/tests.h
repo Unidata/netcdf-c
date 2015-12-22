@@ -26,8 +26,8 @@
 
     /* Limits of external types (based on those in ncx.h) */
 
-#define X_CHAR_MIN	CHAR_MIN
-#define X_CHAR_MAX	CHAR_MAX
+#define X_CHAR_MIN	SCHAR_MIN
+#define X_CHAR_MAX	SCHAR_MAX
 #define X_BYTE_MIN	(-128)
 #define X_BYTE_MAX	127
 #define X_SHORT_MIN	(-32768)
@@ -50,12 +50,12 @@
 #define X_DOUBLE_MAX    1.79769313486230e+308
 #else
 /* scalb(1. - scalb(.5 , -52), 1024) */
-#define X_DOUBLE_MAX	1.7976931348623157e+308 
+#define X_DOUBLE_MAX	1.7976931348623157e+308
 #endif
 #define X_DOUBLE_MIN	(-X_DOUBLE_MAX)
 
-#define X_SCHAR_MAX     X_CHAR_MAX
-#define X_SCHAR_MIN     X_CHAR_MIN
+#define X_SCHAR_MAX     SCHAR_MAX
+#define X_SCHAR_MIN     SCHAR_MIN
 #define X_UCHAR_MAX     UCHAR_MAX
 #define X_UCHAR_MIN     0
 #define X_UBYTE_MAX     X_UCHAR_MAX
