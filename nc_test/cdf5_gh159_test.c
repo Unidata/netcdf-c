@@ -130,7 +130,7 @@ main() {/* create cdf5_test */
     }
 
     {
-      unsigned char y3d_data[3] = {(double)0, (double)255, (double)-1} ;
+      unsigned char y3d_data[3] = {0, 255, -1} ;
       size_t y3d_startset[1] = {0} ;
       size_t y3d_countset[1] = {3};
       stat = nc_put_vara(ncid, y3d_id, y3d_startset, y3d_countset, y3d_data);
