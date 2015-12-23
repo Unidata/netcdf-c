@@ -43,9 +43,9 @@ main() {/* create cdf5_test */
 
     /* define variables */
 
-    y3_dims[0] = D3_dim;
-    stat = nc_def_var(ncid, "y3", NC_UBYTE, RANK_y3, y3_dims, &y3_id);
-    check_err(stat,__LINE__,__FILE__);
+    //y3_dims[0] = D3_dim;
+    //stat = nc_def_var(ncid, "y3", NC_UBYTE, RANK_y3, y3_dims, &y3_id);
+    //check_err(stat,__LINE__,__FILE__);
 
     y3d_dims[0] = D3_dim;
     stat = nc_def_var(ncid, "y3d", NC_UBYTE, RANK_y3d, y3d_dims, &y3d_id);
@@ -124,7 +124,7 @@ main() {/* create cdf5_test */
       double y3d_data[3] = {0, 255U, -1} ;
       size_t y3d_startset[1] = {0} ;
       size_t y3d_countset[1] = {3};
-      stat = nc_put_vara_double(ncid,y3d_id,y3d_startset,y3d_countset,y3d_data);
+      nc_put_vara_double(ncid,y3d_id,y3d_startset,y3d_countset,y3d_data);
       //stat = nc_put_vara(ncid, y3d_id, y3d_startset, y3d_countset, y3d_data);
       check_err(stat,__LINE__,__FILE__);
     }
