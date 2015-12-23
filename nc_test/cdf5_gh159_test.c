@@ -30,9 +30,27 @@ main() {/* create cdf5_test */
     /* variable ids */
     int y3_id;
     int y3d_id;
-
+    int i = 0;
     int y3_dims[RANK_y3];
     int y3d_dims[RANK_y3d];
+
+    /* Lets do a bit of other
+       testing here too. */
+    {
+      int xx = 0;
+      double *tp = (double*)malloc(sizeof(double)*3);
+      double *tph = tp;
+      unsigned char *xp = (unsigned char *)malloc(sizeof(unsigned char)*3);
+      unsigned char *xph = xp;
+      tp[0] = -2;
+      tp[1] = 255;
+      tp[2] = -1;
+
+      for(i = 0; i < 3; i++)
+        *xp++ = (unsigned)(signed char)*tp++;
+
+      xx = 1;
+    }
 
     /* enter define mode */
     stat = nc_create(FILENAME, NC_CLOBBER | NC_64BIT_DATA, &ncid);

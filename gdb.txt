@@ -1,4 +1,8 @@
-break cdf5_gh159_test.c:127
+break cdf5_gh159_test.c:52
+commands
+continue
+end
+break cdf5_gh159_test.c:145
 commands
 break ncx_putn_uchar_double
 break ncx.c:4845
