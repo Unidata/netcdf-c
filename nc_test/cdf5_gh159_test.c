@@ -9,7 +9,7 @@
 void
 check_err(const int stat, const int line, const char *file) {
     if (stat != NC_NOERR) {
-        (void)fprintf(stderr,"line %d of %s: %s\n", line, file, nc_strerror(stat));
+      (void)fprintf(stderr,"[err: %d] line %d of %s: %s\n", stat, line, file, nc_strerror(stat));
         fflush(stderr);
         exit(1);
     }
@@ -120,7 +120,15 @@ main() {/* create cdf5_test */
     check_err(stat,__LINE__,__FILE__);
 
     /* assign variable data */
-
+    {
+      double y3d_data[3] = {0, 255U, -1} ;
+      size_t y3d_startset[1] = {0} ;
+      size_t y3d_countset[1] = {3};
+      stat = nc_put_vara_double(ncid,y3d_id,y3d_startset,y3d_countset,y3d_data);
+      //stat = nc_put_vara(ncid, y3d_id, y3d_startset, y3d_countset, y3d_data);
+      check_err(stat,__LINE__,__FILE__);
+    }
+    /*
     {
       double y3_data[3] = {0U, 255U, 255U} ;
       size_t y3_startset[1] = {0} ;
@@ -128,16 +136,7 @@ main() {/* create cdf5_test */
       stat = nc_put_vara_double(ncid, y3_id, y3_startset, y3_countset, y3_data);
       check_err(stat,__LINE__,__FILE__);
     }
-
-    {
-      double y3d_data[3] = {0, 255U, -1} ;
-      size_t y3d_startset[1] = {0} ;
-      size_t y3d_countset[1] = {3};
-      nc_put_vara_double(ncid,y3d_id,y3d_startset,y3d_countset,y3d_data);
-      //stat = nc_put_vara(ncid, y3d_id, y3d_startset, y3d_countset, y3d_data);
-      check_err(stat,__LINE__,__FILE__);
-    }
-
+    */
     stat = nc_close(ncid);
     check_err(stat,__LINE__,__FILE__);
     return 0;

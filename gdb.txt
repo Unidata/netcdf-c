@@ -1,0 +1,10 @@
+break cdf5_gh159_test.c:127
+commands
+break ncx_putn_uchar_double
+break ncx.c:4845
+commands
+print ((uchar *)*xpp)[0]
+print ((uchar *)*xpp)[1]
+print ((uchar *)*xpp)[2]
+end
+end
