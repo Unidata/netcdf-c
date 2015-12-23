@@ -122,15 +122,15 @@ main() {/* create cdf5_test */
     /* assign variable data */
 
     {
-      unsigned char y3_data[3] = {0U, 255U, 255U} ;
+      double y3_data[3] = {0U, 255U, 255U} ;
       size_t y3_startset[1] = {0} ;
       size_t y3_countset[1] = {3};
-      stat = nc_put_vara(ncid, y3_id, y3_startset, y3_countset, y3_data);
+      stat = nc_put_vara_double(ncid, y3_id, y3_startset, y3_countset, y3_data);
       check_err(stat,__LINE__,__FILE__);
     }
 
     {
-      char y3d_data[3] = {0, 255, -1} ;
+      double y3d_data[3] = {0, 255U, -1} ;
       size_t y3d_startset[1] = {0} ;
       size_t y3d_countset[1] = {3};
       nc_put_vara_double(ncid,y3d_id,y3d_startset,y3d_countset,y3d_data);
