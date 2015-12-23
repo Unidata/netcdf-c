@@ -592,7 +592,7 @@ ncx_put_short_schar(void *xp, const schar *ip)
 		*cp++ = 0xff;
 	else
 		*cp++ = 0;
-	*cp = (uchar)*ip;
+	*cp = (uchar)(signed)*ip;
 	return ENOERR;
 }
 
@@ -648,7 +648,7 @@ get_ix_ushort(const void *xp, ix_ushort *ip)
 		*ip |= (~(0xffff)); /* N.B. Assumes "twos complement" */
 	}
 #endif
-	*ip |= *cp; 
+	*ip |= *cp;
 }
 
 static void
@@ -678,7 +678,7 @@ ncx_put_ushort_schar(void *xp, const schar *ip)
 		*cp++ = 0xff;
 	else
 		*cp++ = 0;
-	*cp = (uchar)*ip;
+	*cp = (uchar)(signed)*ip;
         if (*ip < 0) return NC_ERANGE;
 
 	return ENOERR;
@@ -777,7 +777,7 @@ ncx_put_int_schar(void *xp, const schar *ip)
 		*cp++ = 0x00;
 		*cp++ = 0x00;
 	}
-	*cp = (uchar)*ip;
+	*cp = (uchar)(signed)*ip;
 	return ENOERR;
 }
 
@@ -829,7 +829,7 @@ get_ix_uint(const void *xp, ix_uint *ip)
 	*ip = *cp++ << 24;
 	*ip |= (*cp++ << 16);
 	*ip |= (*cp++ << 8);
-	*ip |= *cp; 
+	*ip |= *cp;
 }
 
 static void
@@ -864,7 +864,7 @@ ncx_put_uint_schar(void *xp, const schar *ip)
 	*cp++ = 0x00;
 	*cp++ = 0x00;
 	*cp++ = 0x00;
-	*cp = (uchar)*ip;
+	*cp = (uchar)(signed)*ip;
 
 	if (*ip < 0) return NC_ERANGE;
 
@@ -2348,7 +2348,7 @@ ncx_putn_$1_$2(void **xpp, size_t nelems, const $2 *tp)
 	{
 		if(*tp > Xmax($1) ifelse(index(`$2',`u'), 0, , `ifelse(index(`$1',`u'), 0, `|| *tp < 0',`|| *tp < Xmin(schar)')'))
 			status = NC_ERANGE;
-		*xp++ = ($1) *tp++;
+		*xp++ = ($1) (signed)*tp++;
 	}
 
 	*xpp = (void *)xp;
@@ -2375,7 +2375,7 @@ ncx_pad_putn_$1_$2(void **xpp, size_t nelems, const $2 *tp)
 	{
 		if(*tp > Xmax($1) ifelse(index(`$2',`u'), 0, , `ifelse(index(`$1',`u'), 0, `|| *tp < 0',`|| *tp < Xmin(schar)')'))
 			status = NC_ERANGE;
-		*xp++ = ($1) *tp++;
+		*xp++ = ($1) (signed) *tp++;
 	}
 
 
