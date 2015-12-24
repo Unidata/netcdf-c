@@ -3330,14 +3330,23 @@ ncx_getn_text(const void **xpp, size_t nelems, char *tp)
 NCX_GETN_Byte_Body
 }
 
+#ifdef __arm__
+int
+ncx_pad_getn_text(const void **xpp, size_t nelems, signed char *tp)
+#else
 int
 ncx_pad_getn_text(const void **xpp, size_t nelems, char *tp)
+#endif
 {
 NCX_PAD_GETN_Byte_Body
 }
 
+#ifdef __arm__
+int ncx_putn_text(void **xp, size_t nelems, const signed char *tp)
+#else
 int
 ncx_putn_text(void **xpp, size_t nelems, const char *tp)
+#endif
 {
 NCX_PUTN_Byte_Body
 }
