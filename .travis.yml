@@ -5,19 +5,19 @@ services:
 
 env:
     matrix:
-        - DOCKIMG=unidata/nctests:serial USECMAKE=TRUE USEAC=TRUE USE_CC=gcc CURHOST=docker-gcc-x64s COPTS="-fsigned-char"
-        - DOCKIMG=unidata/nctests:serial USECMAKE=TRUE USEAC=TRUE USE_CC=clang CURHOST=docker-clang-x64s COPTS="-fsigned-char"
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=gcc CURHOST=docker-gcc-x86s COPTS="-fsigned-char"
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=clang CURHOST=docker-clang-x86s COPTS="-fsigned-char"
+        - DOCKIMG=unidata/nctests:serial USECMAKE=TRUE USEAC=TRUE USE_CC=gcc CURHOST=docker-gcc-x64s COPTS=-fsigned-char
+        - DOCKIMG=unidata/nctests:serial USECMAKE=TRUE USEAC=TRUE USE_CC=clang CURHOST=docker-clang-x64s COPTS=-fsigned-char
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=gcc CURHOST=docker-gcc-x86s COPTS=-fsigned-char
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=clang CURHOST=docker-clang-x86s COPTS=-fsigned-char
 
-        - DOCKIMG=unidata/nctests:serial USECMAKE=TRUE USEAC=TRUE USE_CC=gcc CURHOST=docker-gcc-x64us COPTS="-funsigned-char"
-        - DOCKIMG=unidata/nctests:serial USECMAKE=TRUE USEAC=TRUE USE_CC=clang CURHOST=docker-clang-x64us COPTS="-funsigned-char"
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=gcc CURHOST=docker-gcc-x86us COPTS="-funsigned-char"
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=clang CURHOST=docker-clang-x86us COPTS="-funsigned-char"
+        - DOCKIMG=unidata/nctests:serial USECMAKE=TRUE USEAC=TRUE USE_CC=gcc CURHOST=docker-gcc-x64us COPTS=-funsigned-char
+        - DOCKIMG=unidata/nctests:serial USECMAKE=TRUE USEAC=TRUE USE_CC=clang CURHOST=docker-clang-x64us COPTS=-funsigned-char
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=gcc CURHOST=docker-gcc-x86us COPTS=-funsigned-char
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=clang CURHOST=docker-clang-x86us COPTS=-funsigned-char
 
 before_install:
     - docker pull $DOCKIMG > /dev/null
 
 script:
 
-    - docker run --rm -it -h "$CURHOST" -e USEDASH=TRUE -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USECMAKE=$USECMAKE -e USEAC=$USEAC -e COPTS=$COPTS -v $(pwd):/netcdf-c $DOCKIMG
+    - docker run --rm -it -h "$CURHOST" -e USEDASH=TRUE -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USECMAKE=$USECMAKE -e USEAC=$USEAC -e COPTS="$COPTS" -v $(pwd):/netcdf-c $DOCKIMG
