@@ -1,12 +1,27 @@
 break test_nc_put_var1
 commands
+
 break util.c:960 if i == 6 && j == 0
 commands
+
 break ncio_get
+commands
+break posixio.c:691
+commands
+print diff
+print ((char*)pxp->bf_base + diff)[0]
+print ((signed char*)pxp->bf_base + diff)[0]
+end
+
+end
+
+
 continue
 end
+
 continue
 end
+
 break util.c:963 if text != expect && i == 6 && j == 0
 break util.c:964
 
