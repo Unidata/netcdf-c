@@ -2109,7 +2109,7 @@ dnl
 define(`NCX_GETN_Byte_Body',dnl
 `dnl
 	(void) memcpy(tp, *xpp, nelems);
-	*xpp = (void *)((char *)(*xpp) + nelems);
+	*xpp = (void *)((schar *)(*xpp) + nelems);
 	return ENOERR;
 ')dnl
 dnl dnl dnl

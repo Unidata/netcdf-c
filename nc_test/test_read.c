@@ -6,7 +6,7 @@
 
 #include "tests.h"
 
-/* 
+/*
  * Test nc_strerror.
  *    Try on a bad error status.
  *    Test for each defined error status.
@@ -72,7 +72,7 @@ test_nc_strerror(void)
 }
 
 
-/* 
+/*
  * Test nc_open.
  * If in read-only section of tests,
  *    Try to open a non-existent netCDF file, check error return.
@@ -90,7 +90,7 @@ test_nc_open(void)
     int err;
     int ncid;
     int ncid2;
-    
+
     /* Try to open a nonexistent file */
     err = file_open("tooth-fairy.nc", NC_NOWRITE, &ncid);/* should fail */
     IF (err == NC_NOERR)
@@ -124,17 +124,17 @@ test_nc_open(void)
 	error("netCDF IDs for first and second nc_open calls should differ");
 
     err = file_create(scratch, NC_NOCLOBBER, &ncid2);
-    IF (err) 
+    IF (err)
        error("nc_create: %s", nc_strerror(err));
-    else 
+    else
        (void) nc_close(ncid2);
     err = file_open(scratch, NC_WRITE, &ncid2);
-    IF (err) 
+    IF (err)
        error("nc_open: %s", nc_strerror(err));
-    else 
+    else
        (void) nc_close(ncid2);
     err = remove(scratch);
-    IF (err) 
+    IF (err)
        error("remove of %s failed", scratch);
 
     err = nc_close(ncid);
@@ -143,7 +143,7 @@ test_nc_open(void)
 }
 
 
-/* 
+/*
  * Test nc_close.
  *    Try to close a netCDF file twice, check whether second close fails.
  *    Try on bad handle, check error return.
@@ -165,7 +165,7 @@ test_nc_close(void)
     err = nc_close(ncid);
     IF (err != NC_EBADID)
 	error("nc_close of closed file should have failed");
-    
+
     /* Try with a bad netCDF ID */
     err = nc_close(BAD_ID);/* should fail */
     IF (err != NC_EBADID)
@@ -180,7 +180,7 @@ test_nc_close(void)
 	error("nc_close in data mode failed: %s", nc_strerror(err));
 
     err = file_create(scratch, NC_NOCLOBBER, &ncid);
-    IF (err) 
+    IF (err)
        error("nc_create: %s", nc_strerror(err));
     err = nc_close(ncid);
     IF (err)
@@ -191,7 +191,7 @@ test_nc_close(void)
 }
 
 
-/* 
+/*
  * Test nc_inq.
  *    Try on bad handle, check error return.
  *    Try in data mode, check returned values.
@@ -213,12 +213,12 @@ test_nc_inq(void)
     err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
 	error("nc_open: %s", nc_strerror(err));
-    
+
     /* Try on bad handle */
     err = nc_inq(BAD_ID, 0, 0, 0, 0);
     IF (err != NC_EBADID)
 	error("bad ncid: status = %d", err);
-    
+
     err = nc_inq(ncid, &ndims, &nvars, &ngatts, &recdim);
     IF (err)
 	error("nc_inq: %s", nc_strerror(err));
@@ -230,7 +230,7 @@ test_nc_inq(void)
 	error("nc_inq: wrong number of global atts returned, %d", ngatts);
     else IF (recdim != RECDIM)
 	error("nc_inq: wrong record dimension ID returned, %d", recdim);
-    
+
     /* Inguire for no info (useless, but should still work) */
     err = nc_inq(ncid, 0, 0, 0, 0);
     IF (err)
@@ -493,14 +493,14 @@ test_nc_inq_dim(void)
 	err = nc_inq_dim(ncid, i, name, &length);
 	IF (err)
 	    error("nc_inq_dim: %s", nc_strerror(err));
-	else IF (strcmp(dim_name[i],name)) 
+	else IF (strcmp(dim_name[i],name))
 	    error("name expected: %s, got: %s",dim_name[i],name);
 	else IF (dim_len[i] != length)
 	    error("size expected: %d, got: %d",dim_len[i],length);
 	err = nc_inq_dim(ncid, i, name, 0);
         IF (err)
 	    error("nc_inq_dim: %s", nc_strerror(err));
-	else IF (strcmp(dim_name[i],name)) 
+	else IF (strcmp(dim_name[i],name))
 	    error("name expected: %s, got: %s",dim_name[i],name);
 	err = nc_inq_dim(ncid, i, 0, &length);
         IF (err)
@@ -565,7 +565,7 @@ test_nc_inq_dimname(void)
 	err = nc_inq_dimname(ncid, i, name);
 	IF (err)
 	    error("nc_inq_dimname: %s", nc_strerror(err));
-	else IF (strcmp(dim_name[i],name)) 
+	else IF (strcmp(dim_name[i],name))
 	    error("name expected: %s, got: %s",dim_name[i],name);
     }
     err = nc_close(ncid);
@@ -635,7 +635,7 @@ test_nc_inq_var(void)
 	err = nc_inq_var(ncid, i, name, &datatype, &ndims, dimids, &natts);
 	IF (err)
 	    error("nc_inq_var: %s", nc_strerror(err));
-	else IF (strcmp(var_name[i],name)) 
+	else IF (strcmp(var_name[i],name))
 	    error("name expected: %s, got: %s",var_name[i],name);
 	else IF (var_type[i] != datatype)
 	    error("type expected: %d, got: %d",var_type[i],datatype);
@@ -648,7 +648,7 @@ test_nc_inq_var(void)
 	err = nc_inq_var(ncid, i, name, 0, 0, 0, 0);
         IF (err)
 	    error("nc_inq_var: %s", nc_strerror(err));
-	else IF (strcmp(var_name[i],name)) 
+	else IF (strcmp(var_name[i],name))
 	    error("name expected: %s, got: %s",var_name[i],name);
 	err = nc_inq_var(ncid, i, 0, &datatype, 0, 0, 0);
         IF (err)
@@ -728,7 +728,7 @@ test_nc_inq_varname(void)
 	err = nc_inq_varname(ncid, i, name);
 	IF (err)
 	    error("nc_inq_varname: %s", nc_strerror(err));
-	else IF (strcmp(var_name[i],name)) 
+	else IF (strcmp(var_name[i],name))
 	    error("name expected: %s, got: %s",var_name[i],name);
     }
     err = nc_close(ncid);
@@ -1347,25 +1347,25 @@ test_nc_get_att(void)
     size_t k;
     int err;
     double buf[MAX_NELS];	/* (void *) buffer */
-    char *p;			/* (void *) pointer */
+    signed char *p;			/* (void *) pointer */
     double expect;
     double got;
     int nok = 0;      /* count of valid comparisons */
 
     err = file_open(testfile, NC_NOWRITE, &ncid);
-    IF (err) 
+    IF (err)
 	error("nc_open: %s", nc_strerror(err));
 
     for (i = -1; i < numVars; i++) {
         for (j = 0; j < NATTS(i); j++) {
 	    err = nc_get_att(BAD_ID, i, ATT_NAME(i,j), buf);
-	    IF (err != NC_EBADID) 
+	    IF (err != NC_EBADID)
 		error("bad ncid: status = %d", err);
 	    err = nc_get_att(ncid, BAD_VARID, ATT_NAME(i,j), buf);
-	    IF (err != NC_ENOTVAR) 
+	    IF (err != NC_ENOTVAR)
 		error("bad var id: status = %d", err);
 	    err = nc_get_att(ncid, i, "noSuch", buf);
-	    IF (err != NC_ENOTATT) 
+	    IF (err != NC_ENOTATT)
 		error("Bad attribute name: status = %d", err);
 	    err = nc_get_att(ncid, i, ATT_NAME(i,j), buf);
 	    IF (err) {
@@ -1373,13 +1373,13 @@ test_nc_get_att(void)
 	    } else {
 		for (k = 0; k < ATT_LEN(i,j); k++) {
 		    expect = hash(ATT_TYPE(i,j), -1, &k );
-		    p = (char *) buf;
+		    p = (signed char *) buf;
 		    p += k * nctypelen(ATT_TYPE(i,j));
 		    err = nc2dbl( ATT_TYPE(i,j), p, &got );
 		    IF (err)
 			error("error in nc2dbl");
 		    if (inRange(expect,ATT_TYPE(i,j))) {
-			IF (!equal(got,expect,ATT_TYPE(i,j),NCT_DOUBLE)) {
+              IF (!equal(got,expect,ATT_TYPE(i,j),NCT_DOUBLE)) {
 			    error("value read not that expected");
 			    if (verbose) {
 				error("\n");
@@ -1418,19 +1418,19 @@ test_nc_inq_att(void)
     size_t n;
 
     err = file_open(testfile, NC_NOWRITE, &ncid);
-    IF (err) 
+    IF (err)
 	error("nc_open: %s", nc_strerror(err));
 
     for (i = -1; i < numVars; i++) {
         for (j = 0; j < NATTS(i); j++) {
 	    err = nc_inq_att(BAD_ID, i, ATT_NAME(i,j), &t, &n);
-	    IF (err != NC_EBADID) 
+	    IF (err != NC_EBADID)
 		error("bad ncid: status = %d", err);
 	    err = nc_inq_att(ncid, BAD_VARID, ATT_NAME(i,j), &t, &n);
-	    IF (err != NC_ENOTVAR) 
+	    IF (err != NC_ENOTVAR)
 		error("bad var id: status = %d", err);
 	    err = nc_inq_att(ncid, i, "noSuch", &t, &n);
-	    IF (err != NC_ENOTATT) 
+	    IF (err != NC_ENOTATT)
 		error("Bad attribute name: status = %d", err);
 	    err = nc_inq_att(ncid, i, ATT_NAME(i,j), &t, &n);
 	    IF (err) {
@@ -1438,7 +1438,7 @@ test_nc_inq_att(void)
 	    } else {
 		IF (t != ATT_TYPE(i,j))
 		    error("type not that expected");
-		IF (n != ATT_LEN(i,j)) 
+		IF (n != ATT_LEN(i,j))
 		    error("length not that expected");
 	    }
 	}
@@ -1611,4 +1611,3 @@ test_nc_inq_attid(void)
     IF (err)
 	error("nc_close: %s", nc_strerror(err));
 }
-

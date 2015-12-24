@@ -994,10 +994,10 @@ nc_del_att(int ncid, int varid, const char *name);
 
 EXTERNL int
 nc_put_att_text(int ncid, int varid, const char *name,
-		size_t len, const char *op);
+		size_t len, const signed char *op);
 
 EXTERNL int
-nc_get_att_text(int ncid, int varid, const char *name, char *ip);
+nc_get_att_text(int ncid, int varid, const char *name, signed char *ip);
 
 EXTERNL int
 nc_put_att_uchar(int ncid, int varid, const char *name, nc_type xtype,
@@ -1079,10 +1079,10 @@ nc_get_att_ulonglong(int ncid, int varid, const char *name,
 
 EXTERNL int
 nc_put_att_string(int ncid, int varid, const char *name,
-		  size_t len, const char **op);
+		  size_t len, const signed char **op);
 
 EXTERNL int
-nc_get_att_string(int ncid, int varid, const char *name, char **ip);
+nc_get_att_string(int ncid, int varid, const char *name, signed char **ip);
 
 /* End {put,get}_att */
 /* Begin _var */
@@ -1131,7 +1131,7 @@ EXTERNL int
 nc_put_var1_text(int ncid, int varid, const size_t *indexp, const char *op);
 
 EXTERNL int
-nc_get_var1_text(int ncid, int varid, const size_t *indexp, char *ip);
+nc_get_var1_text(int ncid, int varid, const size_t *indexp, signed char *ip);
 
 EXTERNL int
 nc_put_var1_uchar(int ncid, int varid, const size_t *indexp,

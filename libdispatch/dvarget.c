@@ -825,7 +825,7 @@ nc_get_var1(int ncid, int varid, const size_t *indexp, void *ip)
 }
 
 int
-nc_get_var1_text(int ncid, int varid, const size_t *indexp, char *ip)
+nc_get_var1_text(int ncid, int varid, const size_t *indexp, signed char *ip)
 {
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);

@@ -778,7 +778,7 @@ put_atts(int ncid)
     int  j;		/* index of attribute */
     int  allInRange;
     double att[MAX_NELS];
-    char catt[MAX_NELS];
+    signed char catt[MAX_NELS];
 
     for (i = -1; i < numVars; i++) {
 	for (j = 0; j < NATTS(i); j++) {
@@ -1012,7 +1012,7 @@ check_atts(int  ncid)
     nc_type datatype;
     char name[NC_MAX_NAME];
     size_t length;
-    signed char  text[MAX_NELS];
+    signed char text[MAX_NELS];
     double value[MAX_NELS];
     double expect;
     int nok = 0;      /* count of valid comparisons */
@@ -1038,9 +1038,9 @@ check_atts(int  ncid)
 		for (k = 0; k < ATT_LEN(i,j); k++) {
 		    IF (text[k] != hash(datatype, -1, &k)) {
 			error("nc_get_att_text: unexpected value");
-                    } else {
-                        nok++;
-                    }
+            } else {
+              nok++;
+            }
 		}
 	    } else {
 		err = nc_get_att_double(ncid, i, name, value);
