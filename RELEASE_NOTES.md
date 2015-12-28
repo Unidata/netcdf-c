@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.0 Released TBD
 
+* Fixed an ambiguity in the grammar for cdl files.  See [GitHub #178](https://github.com/Unidata/netcdf-c/issues/178) for more information.
+
 * Modified ncgen to properly handle the L and UL suffixes for integer constants
   to keep backward compatibility. Now it is the case the single L suffix
   (e.g. 111L) is treated as a 32 bit integer. This makes it consistent with
