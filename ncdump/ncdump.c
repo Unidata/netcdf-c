@@ -53,6 +53,27 @@ typedef int ssize_t;
 #define int64_t long long
 #define uint64_t unsigned long long
 
+/* If we have a variable named one of these:
+   we need to be careful about printing their attributes.
+*/
+static const char* keywords[] = {
+"variable",
+"dimension",
+"data",
+"group",
+"types",
+NULL
+};
+
+static int iskeyword(const char* kw)
+{
+    const char** p;
+    for(p=keywords;*p;p++) {
+	if(strcmp(kw,*p)==0) return 1;
+    }    
+    return 0;
+}
+
 /* globals */
 char *progname;
 fspec_t formatting_specs =	/* defaults, overridden by command-line options */
@@ -751,6 +772,8 @@ pr_att(
     }
     /* 	printf ("\t\t%s:%s = ", varname, att.name); */
     print_name(varname);
+    if(iskeyword(varname)) /* see discussion about escapes in ncgen man page*/
+	printf(" ");    
     printf(":");
     print_name(att.name);
     printf(" = ");
