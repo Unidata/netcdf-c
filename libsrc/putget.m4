@@ -1165,7 +1165,7 @@ readNCv(const NC3_INFO* ncp, const NC_var* varp, const size_t* start,
 
     case CASE(NC_CHAR,NC_CHAR):
     case CASE(NC_CHAR,NC_UBYTE):
-#ifdef CHAR_IS_SIGNED
+#ifndef __CHAR_UNSIGNED__
        return getNCvx_char_char(ncp,varp,start,nelems,(char*)value);
 #else
     return getNCvx_schar_schar(ncp,varp,start,nelems,(signed char*)value);

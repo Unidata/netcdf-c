@@ -1006,14 +1006,12 @@ SET(SIGNED_TEST_SOURCE "\n
   int main(void) {\n
     char is_signed = (char) - 1;\n
     if(is_signed < 0)\n
-      return 0;\n
-    else\n
       return 1;\n
+    else\n
+      return 0;\n
 }\n")
 
-CHECK_C_SOURCE_RUNS("${SIGNED_TEST_SOURCE}" CHAR_IS_SIGNED)
-MESSAGE(STATUS "Type 'char' is signed: ${CHAR_IS_SIGNED}")
-
+CHECK_C_SOURCE_RUNS("${SIGNED_TEST_SOURCE}" __CHAR_UNSIGNED__)
 
 # Library include checks
 CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)

@@ -304,7 +304,7 @@ int dbl2nc ( const double d, const nc_type datatype, void *p)
             case NC_CHAR:
               r = floor(0.5+d);
               if ( r < text_min  ||  r > text_max )  return 2;
-#ifdef CHAR_IS_SIGNED
+#ifndef __CHAR_UNSIGNED__
               *((char   *) p) = r;
 #else
               *((signed char*) p) = r;
