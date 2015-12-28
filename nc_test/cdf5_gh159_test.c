@@ -38,8 +38,8 @@ main() {/* create cdf5_test */
        testing here too. */
     {
       int xx = 0;
-      double *tp = (double*)malloc(sizeof(double)*3);
-      double *tph = tp;
+      signed char *tp = (signed char*)malloc(sizeof(signed char)*3);
+      signed char *tph = tp;
       unsigned char *xp = (unsigned char *)malloc(sizeof(unsigned char)*3);
       unsigned char *xph = xp;
       tp[0] = -2;
@@ -47,7 +47,7 @@ main() {/* create cdf5_test */
       tp[2] = -1;
 
       for(i = 0; i < 3; i++)
-        *xp++ = (unsigned)(signed char)*tp++;
+        *xp++ = (unsigned char)*tp++;
 
       xx = 1;
     }
