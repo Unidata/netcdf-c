@@ -1,7 +1,30 @@
-break util.c:960 if var_name[i][0] == 'c' && var_name[i][1] == 'r' && var_name[i][2] == '\0' && i == 6 && j == 1
+set breakpoint pending on
 
-break test_put.c:3330 if var_name[i][0] == 'c' && var_name[i][1] == 'r' && var_name[i][2] == '\0'
-break test_write.c:737 if var_name[i][0] == 'c' && var_name[i][1] == 'r' && var_name[i][2] == '\0'
+break test_write.c:740 if i == 6
+
+#-------------
+break test_nc_put_var1
+commands
+break util.c:968
+commands
+print ((signed char*)((ncio_px*)nc3->nciop->pvt)->bf_base + 9816)[0]
+end
+break util.c:970 if i == 6 && j == 0 && expect == -128
+break util.c:974
+break putget.c:10414
+commands
+print ((signed char*)((ncio_px*)nc3->nciop->pvt)->bf_base + 9816)[0]
+end
+
+end
+#------------------
+
+####
+# No. We know the problem is in reading, not writing.
+####
+
+#break test_put.c:3330 if var_name[i][0] == 'c' && var_name[i][1] == 'r' && var_name[i][2] == '\0'
+#break test_write.c:737 if var_name[i][0] == 'c' && var_name[i][1] == 'r' && var_name[i][2] == '\0'
 
 
 #break util.c:960 if i == 6 && j == 0

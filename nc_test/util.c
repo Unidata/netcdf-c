@@ -6,7 +6,6 @@
 
 #include "tests.h"
 #include <math.h>
-
 void
 print_nok(int nok)
 {
@@ -303,10 +302,14 @@ int dbl2nc ( const double d, const nc_type datatype, void *p)
                 *((signed char *) p) = r;
                 break;
             case NC_CHAR:
-                r = floor(0.5+d);
-                if ( r < text_min  ||  r > text_max )  return 2;
-                *((char   *) p) = r;
-                break;
+              r = floor(0.5+d);
+              if ( r < text_min  ||  r > text_max )  return 2;
+#ifdef CHAR_IS_SIGNED
+              *((char   *) p) = r;
+#else
+              *((signed char*) p) = r;
+#endif
+              break;
             case NC_SHORT:
                 r = floor(0.5+d);
                 if ( r < short_min  ||  r > short_max )  return 2;
@@ -957,8 +960,8 @@ check_vars(int  ncid)
 		error("error in toMixedBase 2");
 	    expect = hash( var_type[i], var_rank[i], index );
 	    if (isChar) {
-		err = nc_get_var1_text(ncid, i, index, &text);
-		IF (err)
+          err = nc_get_var1_text(ncid, i, index, &text);
+          IF (err)
 		    error("nc_get_var1_text: %s", nc_strerror(err));
 		IF (text != expect) {
 		    error("Var %s value read 0x%02x not that expected 0x%02x ",
