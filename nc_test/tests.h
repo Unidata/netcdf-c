@@ -26,7 +26,7 @@
 
     /* Limits of external types (based on those in ncx.h) */
 
-#ifdef __UNSIGNED_CHAR__
+#ifdef __CHAR_UNSIGNED__
 #define X_CHAR_MIN	SCHAR_MIN
 #define X_CHAR_MAX	SCHAR_MAX
 #else
