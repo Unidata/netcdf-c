@@ -26,8 +26,14 @@
 
     /* Limits of external types (based on those in ncx.h) */
 
+#ifdef __UNSIGNED_CHAR__
 #define X_CHAR_MIN	SCHAR_MIN
 #define X_CHAR_MAX	SCHAR_MAX
+#else
+#define X_CHAR_MIN	CHAR_MIN
+#define X_CHAR_MAX	CHAR_MAX
+#endif //__unsigned_char__
+
 #define X_BYTE_MIN	(-128)
 #define X_BYTE_MAX	127
 #define X_SHORT_MIN	(-32768)
