@@ -47,7 +47,8 @@ ref_tst_chardata \
 ref_tst_nul3 \
 ref_tst_long_charconst \
 tst_chararray \
-unlimtest1"
+unlimtest1 \
+ref_keyword"
 
 NONCLASSIC3="\
 test0 \

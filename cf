@@ -3,9 +3,6 @@
 DB=1
 #X=-x
 FAST=1
-#CYGWIN=1
-
-FAST=1
 
 HDF5=1
 DAP=1
@@ -130,10 +127,6 @@ FLAGS="$FLAGS --enable-jna"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
-fi
-
-if test "x$CYGWIN" = x1 ; then
-FLAGS="$FLAGS --enable-workaround"
 fi
 
 if test "x${DB}" = x1 ; then
