@@ -1,6 +1,0 @@
-# Usage: lldb -s lldb.txt [file]
-br s -n main
-br s -n do_ncdump
-br s -n annotate
-br s -f vardata.c -l 310 -c '(int)strcmp(vp->name,"land_tile_fractions") == 0'
-r -f f -v land_tile_fractions gh181_check_me_out.nc
