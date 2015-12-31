@@ -1,5 +1,10 @@
 break main
 break do_ncdump
-break annotate
-break vardata.c:310 if 'vp->name == "land_tile_fractions"'
+break vardata.c:484quit
+break vardata.c:308
+command
+print cor[vrank-1]+iel+1
+end
+
+
 run -f f -v land_tile_fractions gh181_check_me_out.nc
