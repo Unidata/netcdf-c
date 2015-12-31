@@ -1,0 +1,5 @@
+break main
+break do_ncdump
+break annotate
+break vardata.c:310 if 'vp->name == "land_tile_fractions"'
+run -f f -v land_tile_fractions gh181_check_me_out.nc
