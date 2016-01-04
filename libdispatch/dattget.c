@@ -36,6 +36,9 @@ elements of the vector of attribute values are returned, so you must
 allocate enough space to hold them. Before using the value as a C
 string, make sure it is null-terminated. Call nc_inq_attlen() first to
 find out the length of the attribute.
+
+\note See documentation for nc_get_att_string() regarding a special case where memory must be explicitly released.
+
 */
 int
 nc_get_att(int ncid, int varid, const char *name, void *value)
@@ -244,7 +247,80 @@ nc_get_att_ulonglong(int ncid, int varid, const char *name, unsigned long long *
    if(stat != NC_NOERR) return stat;
    return ncp->dispatch->get_att(ncid, varid, name, (void *)value, NC_UINT64);
 }
+/*! \} */
 
+/*!
+\ingroup attributes
+Get a variable-length string attribute.
+
+This function gets an attribute from netCDF file. Thhe nc_get_att() function works with any type of data including user defined types, but this function will retrieve attributes which are of type variable-length string.
+
+\note Note that unlike most other nc_get_att functions, nc_get_att_string() allocates a chunk of memory which is returned to the calling function.  This chunk of memory must be specifically deallocated with nc_free_string() to avoid any memory leaks.  Also note that you must still preallocate the memory needed for the array of pointers passed to nc_get_att_string().
+
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as
+nc_inq_ncid().
+
+\param varid Variable ID of the attribute's variable, or ::NC_GLOBAL
+for a global attribute.
+
+\param name Attribute \ref object_name.
+
+\param value Pointer to location for returned attribute value(s). All
+elements of the vector of attribute values are returned, so you must
+allocate enough space to hold them. If you don't know how much
+space to reserve, call nc_inq_attlen() first to find out the length of
+the attribute.
+
+\section nc_get_att_string_example Example
+
+\code{.c}
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <netcdf.h>
+
+void check(int stat) {
+  if (stat != NC_NOERR) {
+    printf("NetCDF error: %s\n", nc_strerror(stat));
+    exit(1);
+  }
+}
+
+int main(int argc, char ** argv) {
+  int stat = 0;
+
+  int ncid = 0;
+  stat = nc_open("test.nc", NC_NOWRITE, &ncid); check(stat);
+
+  int varid = 0;
+  stat = nc_inq_varid(ncid, "variable", &varid); check(stat);
+
+  size_t attlen = 0;
+  stat = nc_inq_attlen(ncid, varid, "attribute", &attlen); check(stat);
+
+  char **string_attr = (char**)malloc(attlen * sizeof(char*));
+  memset(string_attr, 0, attlen * sizeof(char*));
+
+  stat = nc_get_att_string(ncid, varid, "attribute", string_attr); check(stat);
+
+  for (size_t k = 0; k < attlen; ++k) {
+    printf("variable:attribute[%d] = %s\n", k, string_attr[k]);
+  }
+
+  stat = nc_free_string(attlen, string_attr); check(stat);
+
+  free(string_attr);
+
+  stat = nc_close(ncid); check(stat);
+
+  return 0;
+}
+\endcode
+
+
+*/
 int
 nc_get_att_string(int ncid, int varid, const char *name, signed char **value)
 {
