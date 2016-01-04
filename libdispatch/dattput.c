@@ -45,15 +45,10 @@ apply.
 is still in initial define mode.
 */
 
-#ifdef __CHAR_UNSIGNED__
-int
-nc_put_att_string(int ncid, int varid, const char *name,
-		  size_t len, const signed char** value)
-#else
+
 int
 nc_put_att_string(int ncid, int varid, const char *name,
 		  size_t len, const char** value)
-#endif
 {
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);
@@ -139,13 +134,9 @@ netCDF dataset named foo.nc:
 \endcode
 */
 
-#ifdef __CHAR_UNSIGNED__
-int nc_put_att_text(int ncid, int varid, const char *name,
-		size_t len, const signed char *value)
-#else
+
 int nc_put_att_text(int ncid, int varid, const char *name,
 		size_t len, const char *value)
-#endif
 {
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
