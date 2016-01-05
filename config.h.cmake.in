@@ -5,6 +5,9 @@
    POSIX naming conventions. */
 #ifdef _MSC_VER
 
+#if _MSC_VER>=1900
+  #define STDC99
+#endif
 /* Define O_BINARY so that the appropriate flags
 are set when opening a binary file on Windows. */
 
@@ -28,17 +31,21 @@ are set when opening a binary file on Windows. */
   #endif
 
 #ifdef _WIN32
-	#ifndef strcasecmp
-  		#define strcasecmp _stricmp
-		#define snprintf _snprintf
-  	#endif
+  #ifndef strcasecmp
+    #define strcasecmp _stricmp
+  #endif
+  
+  #ifndef snprintf  
+    #if _MSC_VER<1900		
+      #define snprintf _snprintf
+    #endif
+  #endif 
 #endif
 
 
   #define strdup _strdup
   #define fdopen _fdopen
   #define write _write
-  #define snprintf _snprintf
   #define strtoll _strtoi64
 #endif
 
