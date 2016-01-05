@@ -132,13 +132,8 @@ the length of the attributes.
 */
 /*! \{ */
 
-#ifdef __CHAR_UNSIGNED__
-int
-nc_get_att_text(int ncid, int varid, const char *name, signed char *value)
-#else
 int
 nc_get_att_text(int ncid, int varid, const char *name, char *value)
-#endif
 {
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
@@ -327,13 +322,10 @@ int main(int argc, char ** argv) {
 
 
 */
-#ifdef __CHAR_UNSIGNED__
-int
-nc_get_att_string(int ncid, int varid, const char *name, signed char **value)
-#else
+
 int
 nc_get_att_string(int ncid, int varid, const char *name, char **value)
-#endif
+
 {
     NC *ncp;
     int stat = NC_check_id(ncid, &ncp);

@@ -991,23 +991,6 @@ nc_del_att(int ncid, int varid, const char *name);
 
 /* End _att */
 /* Begin {put,get}_att */
-#ifdef __CHAR_UNSIGNED__
-EXTERNL int
-nc_put_att_text(int ncid, int varid, const char *name,
-		size_t len, const signed char *op);
-
-EXTERNL int
-nc_get_att_text(int ncid, int varid, const char *name, signed char *ip);
-
-EXTERNL int
-nc_put_att_string(int ncid, int varid, const char *name,
-		  size_t len, const signed char **op);
-
-EXTERNL int
-nc_get_att_string(int ncid, int varid, const char *name, signed char **ip);
-
-#else // __CHAR_UNSIGNED__
-
 EXTERNL int
 nc_put_att_text(int ncid, int varid, const char *name,
 		size_t len, const char *op);
@@ -1022,9 +1005,7 @@ nc_put_att_string(int ncid, int varid, const char *name,
 EXTERNL int
 nc_get_att_string(int ncid, int varid, const char *name, char **ip);
 
-#endif //__CHAR_UNSIGNED__
-
-  EXTERNL int
+EXTERNL int
 nc_put_att_uchar(int ncid, int varid, const char *name, nc_type xtype,
 		 size_t len, const unsigned char *op);
 
