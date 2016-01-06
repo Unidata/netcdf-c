@@ -339,12 +339,13 @@ NC3_def_dim(int ncid, const char *name, size_t size, int *dimidp)
 	if(status != NC_NOERR)
 		return status;
 
-	if ((ncp->flags & NC_64BIT_OFFSET) && sizeof(off_t) > 4) {
-	    /* CDF2 format and LFS */
-	    if(size > X_UINT_MAX - 3) /* "- 3" handles rounded-up size */
+	if(ncp->flags & NC_64BIT_DATA) {/*CDF-5*/
+	    if((sizeof(size_t) > 4) && (size > X_UINT64_MAX - 3)) /* "- 3" handles rounded-up size */
 		return NC_EDIMSIZE;
-	} else {
-	    /* CDF1 format */
+	} else if(ncp->flags & NC_64BIT_OFFSET) {/* CDF2 format and LFS */
+	    if((sizeof(size_t) > 4) && (size > X_UINT_MAX - 3)) /* "- 3" handles rounded-up size */
+		return NC_EDIMSIZE;
+	} else {/*CDF-1*/
 	    if(size > X_INT_MAX - 3)
 		return NC_EDIMSIZE;
 	}
