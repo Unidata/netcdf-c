@@ -490,13 +490,36 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
 
     IF(MSVC)
-      FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C HL static)
-      	MESSAGE(STATUS "Found HDF5 Libraries: ${HDF5_LIBRARIES}")	
-    ELSE(MSVC)
-      FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
-    ENDIF(MSVC)
+      SET(SEARCH_PACKAGE_NAME ${HDF5_PACKAGE_NAME})
+      FIND_PACKAGE(HDF5 NAMES ${SEARCH_PACKAGE_NAME} COMPONENTS C HL shared)
+  message (STATUS "HDF5 C libs:${HDF5_FOUND} static:${HDF5_static_C_FOUND} and shared:${HDF5_shared_C_FOUND}")
+    ELSE()
+      FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED ${NC_HDF5_LINK_TYPE})
+    ENDIF()
   ENDIF()
  
+ IF(NOT HDF5_FOUND)
+ 	MESSAGE(FATAL_ERROR "Unable to locate HDF5. Disable netcdf-4 or install libhdf5 1.8.9 or later.")
+ ELSE()
+  MESSAGE(STATUS "HDF5_FOUND: ${HDF5_FOUND}")
+  MESSAGE(STATUS "HD5_C_FOUND: ${HDF5_C_FOUND}")
+  MESSAGE(STATUS "HDF5_shared_C_FOUND: ${HDF5_shared_C_FOUND}")
+  MESSAGE(STATUS "HDF5_static_C_FOUND: ${HDF5_static_C_FOUND}")
+  MESSAGE(STATUS "HDF5_shared_HL_FOUND: ${HDF5_shared_HL_FOUND}")
+  MESSAGE(STATUS "HDF5_static_HL_FOUND: ${HDF5_static_HL_FOUND}")
+  MESSAGE(STATUS "hdf5: ${hdf5}")
+  MESSAGE(STATUS "HDF5_hdf5: ${hdf5}")
+  MESSAGE(STATUS "HDF5_LIBRARIES: ${HDF5_LIBRARIES}")
+  MESSAGE(STATUS "HDF5_C_LIBRARIES: ${HDF5_C_LIBRARIES}")
+  MESSAGE(STATUS "HDF5_C_SHARED_LIBRARY: ${HDF5_C_SHARED_LIBRARY}")
+  MESSAGE(STATUS "HDF5_HL_SHARED_LIBRARY: ${HDF5_HL_SHARED_LIBRARY}")
+  MESSAGE(STATUS "HDF5_C_LIBRARIES_SHARED: ${HDF5_C_LIBRARIES_SHARED}")
+  MESSAGE(STATUS "HDF5_hdf5_LIBRARY: ${HDF5_hdf5_LIBRARY}")
+  MESSAGE(STATUS "HDF5_hdf5_shared_LIBRARY: ${HDF5_hdf5_shared_library}")
+  MESSAGE(STATUS "HDF5_hdf5-shared_LIBRARY: ${HDF5_hdf5-shared_library}")
+  MESSAGE(STATUS "HDF5_hdf5_hl_LIBRARY: ${HDF5_hdf5_hl_LIBRARY}")
+ ENDIF(NOT HDF5_FOUND)	 
+
   IF(NOT MSVC)
     # Depending on the install, either HDF5_hdf_library or
     # HDF5_C_LIBRARIES may be defined.  We must check for either.
@@ -535,7 +558,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
   # Assert HDF5 version.
   SET(HDF5_VERSION_REQUIRED 1.8.10)
-
+  
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
   ELSE()
@@ -545,6 +568,10 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   execute_process(COMMAND sh -c "${HDF5_CC} -showconfig | grep -i 'HDF5 version' | cut -d: -f2 | tr -d ' '"
   OUTPUT_VARIABLE HDF5_VERSION
   ERROR_QUIET)
+
+  IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
+    SET(HDF5_VERSION ${HDF5_VERSION_STRING})
+  ENDIF()
 
   # It cannot be assumed that libhdf5.settings exists.  If it doesn't,
   # the call to h5cc will have failed.  At this point we will have to
