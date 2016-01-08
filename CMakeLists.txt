@@ -611,9 +611,10 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF(MSVC)
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
+  ###
+  # The following options are not used in Windows.
+  ###
   IF(NOT MSVC)
-
-
     # Find out if HDF5 was built with parallel support.
     # Do that by checking for the targets H5Pget_fapl_mpiposx and
     # H5Pget_fapl_mpio in ${HDF5_LIB}.
