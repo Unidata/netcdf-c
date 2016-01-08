@@ -21,8 +21,8 @@ http://www.unidata.ucar.edu/netcdf/docs
 
 /* We are writing 2D data, a 6 x 12 grid. */
 #define NDIMS 2
-#define NX 60
-#define NY 120
+#define NX 6
+#define NY 12
 
 /* Handle errors by printing an error message and exiting with a
  * non-zero status. */
@@ -89,4 +89,3 @@ main()
    printf("*** SUCCESS writing example file simple_xy_nc4.nc!\n");
    return 0;
 }
-
