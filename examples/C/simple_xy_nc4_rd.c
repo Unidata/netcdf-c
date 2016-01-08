@@ -22,8 +22,8 @@ http://www.unidata.ucar.edu/netcdf/docs
 #define FILE_NAME "simple_xy_nc4.nc"
 
 /* We are reading 2D data, a 6 x 12 grid. */
-#define NX 60
-#define NY 120
+#define NX 6
+#define NY 12
 
 /* Handle errors by printing an error message and exiting with a
  * non-zero status. */
