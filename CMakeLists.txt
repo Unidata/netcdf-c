@@ -172,15 +172,17 @@ INCLUDE(GenerateExportHeader)
 # Compiler Configuration
 ################################
 
+##
 # Default building shared libraries.
 # BUILD_SHARED_LIBS is provided by/used by
 # CMake directly.
+##
 OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
 IF(BUILD_SHARED_LIBS)
   SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ENDIF()
 
-OPTION(FIND_SHARED_LIBS "Find shared variants of dependent libraries" ${BUILD_SHARED_LIBS})
+OPTION(NC_FIND_SHARED_LIBS "Find dynamicly-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
 
 # Set some default linux gcc & apple compiler options for
 # debug builds.
@@ -462,87 +464,155 @@ IF(ENABLE_RPC)
   SET(BUILD_RPC ON CACHE BOOL "")
 ENDIF()
 
+##
 # Option to Enable HDF5
+#
+# The HDF5 cmake variables differ between platform (linux/osx and Windows),
+# as well as between HDF5 versions.  As a result, this section is a bit convoluted.
+#
+# Note that the behavior seems much more stable across HDF5 versions under linux,
+# so we do not have to do as much version-based tweaking.
+#
+# At the end of it, we should have the following defined:
+#
+# * HDF5_C_LIBRARY
+# * HDF5_HL_LIBRARY
+# * HDF5_LIBRARIES
+# * HDF5_INCLUDE_DIR
+# *
+##
 OPTION(USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
-
 IF(USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
   SET(USE_NETCDF4 ON)
+  ##
   # Accommodate developers who have hdf5 libraries and
   # headers on their system, but do not have a the hdf
   # .cmake files.  If this is the case, they should
   # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
-  IF(HDF5_LIB AND HDF5_HL_LIB AND HDF5_INCLUDE_DIR)
-    SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})
-    SET(HDF5_C_LIBRARIES ${HDF5_LIB})
-    SET(HDF5_HL_LIBRARIES ${HDF5_HL_LIB})
-    MESSAGE(STATUS "Using HDF5 Library: ${HDF5_LIB}")
-    MESSAGE(STATUS "Using HDF5_HL LIbrary: ${HDF5_HL_LIB}")
-  ELSE()
-    IF(FIND_SHARED_LIBS)
-      SET(H5_BUILT_AS_DYNAMIC_LIB ON)
-      SET(HDF5_USE_STATIC_LIBRARIES OFF)
+  ##
+  IF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
+    SET(HDF5_LIBRARIES ${HDF5_C_LIBRARY} ${HDF5_HL_LIBRARY})
+    MESSAGE(STATUS "Using HDF5 C Library: ${HDF5_C_LIBRARY}")
+    MESSAGE(STATUS "Using HDF5 HL LIbrary: ${HDF5_HL_LIBRARY}")
+  ELSE(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR) # We are seeking out HDF5 with Find Package.
+    ###
+    # For now we assume that if we are building netcdf
+    # as a shared library, we will use hdf5 as a shared
+    # library. If we are building netcdf statically,
+    # we will use a static library.  This can be toggled
+    # by explicitely modifying NC_FIND_SHARED_LIBS.
+    ##
+    IF(NC_FIND_SHARED_LIBS)
       SET(NC_HDF5_LINK_TYPE "shared")
       SET(NC_HDF5_LINK_TYPE_UPPER "SHARED")
       ADD_DEFINITIONS(-DH5_BUILT_AS_DYNAMIC_LIB)
-    ELSE()
-      SET(H5_BUILT_AS_DYNAMIC_LIB OFF)
-      SET(HDF5_USE_STATIC_LIBRARIES ON)
+    ELSE(NC_FIND_SHARED_LIBS)
       SET(NC_HDF5_LINK_TYPE "static")
       SET(NC_HDF5_LINK_TYPE_UPPER "STATIC")
       ADD_DEFINITIONS(-DH5_BUILT_AS_STATIC_LIB)
-    ENDIF()
+    ENDIF(NC_FIND_SHARED_LIBS)
 
-
-    
-
+    #####
+    # First, find the C and HL libraries.
+    #
+    # This has been updated to reflect what is in the hdf5
+    # examples, even though the previous version of what we
+    # had worked.
+    #####
     IF(MSVC)
       SET(SEARCH_PACKAGE_NAME ${HDF5_PACKAGE_NAME})
       FIND_PACKAGE(HDF5 NAMES ${SEARCH_PACKAGE_NAME} COMPONENTS C HL NO_MODULES REQUIRED ${NC_HDF5_LINK_TYPE})
-      ###
-      # Kludge for hdf5 1.8.15
-      ###
-      IF(HDF5_LIBRARIES)
-        SET(HDF5_C_LIBRARY hdf5)
-      ENDIF()
-
-      IF(NOT HDF5_LIBRARIES AND HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY AND HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY)
-        SET(HDF5_C_LIBRARY ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
-      	SET(HDF5_LIBRARIES ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY} ${HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
-      ENDIF()
-
-    ELSE()
+    ELSE(MSVC)
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
+    ENDIF(MSVC)
+
+    ##
+    # Next, check the HDF5 version. This will inform which
+    # HDF5 variables we need to munge.
+    ##
+
+    ##
+    # Assert HDF5 version meets minimum required version.
+    ##
+    SET(HDF5_VERSION_REQUIRED 1.8.10)
+
+    IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
+      SET(HDF5_VERSION ${HDF5_VERSION_STRING})
     ENDIF()
-  ENDIF()
- 
- IF(NOT HDF5_FOUND)
- 	MESSAGE(FATAL_ERROR "Unable to locate HDF5. Disable netcdf-4 or install libhdf5 1.8.9 or later.")
- ELSE()
-  MESSAGE(STATUS "HDF5_FOUND: ${HDF5_FOUND}")
-  MESSAGE(STATUS "HD5_C_FOUND: ${HDF5_C_FOUND}")
-  MESSAGE(STATUS "HDF5_${NC_HDF5_LINK_TYPE}_C_FOUND: ${HDF5_${NC_HDF5_LINK_TYPE}_C_FOUND}")
-  MESSAGE(STATUS "HDF5_${NC_HDF5_LINK_TYPE}_HL_FOUND: ${HDF5_${NC_HDF5_LINK_TYPE}_HL_FOUND}")
-  MESSAGE(STATUS "hdf5: ${hdf5}")
-  MESSAGE(STATUS "HDF5_hdf5: ${hdf5}")
-  MESSAGE(STATUS "HDF5_LIBRARIES: ${HDF5_LIBRARIES}")
-  MESSAGE(STATUS "HDF5_C_LIBRARY: ${HDF5_C_LIBRARY}")
-  MESSAGE(STATUS "HDF5_C_LIBRARIES: ${HDF5_C_LIBRARIES}")
-  MESSAGE(STATUS "HDF5_C_SHARED_LIBRARY: ${HDF5_C_SHARED_LIBRARY}")
-  MESSAGE(STATUS "HDF5_HL_SHARED_LIBRARY: ${HDF5_HL_SHARED_LIBRARY}")
-  MESSAGE(STATUS "HDF5_C_LIBRARIES_SHARED: ${HDF5_C_LIBRARIES_SHARED}")
-  MESSAGE(STATUS "HDF5_hdf5_LIBRARY: ${HDF5_hdf5_LIBRARY}")
-  MESSAGE(STATUS "HDF5_hdf5_shared_LIBRARY: ${HDF5_hdf5_shared_library}")
-  MESSAGE(STATUS "HDF5_hdf5-shared_LIBRARY: ${HDF5_hdf5-shared_library}")
-  MESSAGE(STATUS "HDF5_hdf5_hl_LIBRARY: ${HDF5_hdf5_hl_LIBRARY}")
- ENDIF(NOT HDF5_FOUND)	 
+
+    IF("${HDF5_VERSION}" STREQUAL "")
+      MESSAGE(STATUS "Unable to determine hdf5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}")
+    ELSE()
+      IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
+        MESSAGE(FATAL_ERROR
+	      "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+      ELSE()
+        MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
+      ENDIF()
+    ENDIF()
+
+    ##
+    # Include the HDF5 include directory.
+    ##
+    INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
+
+    IF(NOT HDF5_FOUND)
+ 	  MESSAGE(FATAL_ERROR "Unable to locate HDF5. Disable netcdf-4 or install libhdf5 1.8.9 or later.")
+    ELSE()
+      MESSAGE(STATUS "HDF5_FOUND: ${HDF5_FOUND}")
+      MESSAGE(STATUS "HD5_C_FOUND: ${HDF5_C_FOUND}")
+      MESSAGE(STATUS "HDF5_${NC_HDF5_LINK_TYPE}_C_FOUND: ${HDF5_${NC_HDF5_LINK_TYPE}_C_FOUND}")
+      MESSAGE(STATUS "HDF5_${NC_HDF5_LINK_TYPE}_HL_FOUND: ${HDF5_${NC_HDF5_LINK_TYPE}_HL_FOUND}")
+      MESSAGE(STATUS "hdf5: ${hdf5}")
+      MESSAGE(STATUS "HDF5_hdf5: ${HDF5_hdf5}")
+      MESSAGE(STATUS "HDF5_LIBRARIES: ${HDF5_LIBRARIES}")
+      MESSAGE(STATUS "HDF5_C_LIBRARY: ${HDF5_C_LIBRARY}")
+      MESSAGE(STATUS "HDF5_C_LIBRARIES: ${HDF5_C_LIBRARIES}")
+      MESSAGE(STATUS "HDF5_C_SHARED_LIBRARY: ${HDF5_C_SHARED_LIBRARY}")
+      MESSAGE(STATUS "HDF5_HL_SHARED_LIBRARY: ${HDF5_HL_SHARED_LIBRARY}")
+      MESSAGE(STATUS "HDF5_C_LIBRARIES_SHARED: ${HDF5_C_LIBRARIES_SHARED}")
+      MESSAGE(STATUS "HDF5_hdf5_LIBRARY: ${HDF5_hdf5_LIBRARY}")
+      MESSAGE(STATUS "HDF5_hdf5_shared_LIBRARY: ${HDF5_hdf5_shared_library}")
+      MESSAGE(STATUS "HDF5_hdf5-shared_LIBRARY: ${HDF5_hdf5-shared_library}")
+      MESSAGE(STATUS "HDF5_hdf5_hl_LIBRARY: ${HDF5_hdf5_hl_LIBRARY}")
+    ENDIF(NOT HDF5_FOUND)
+
+
+    ###
+    # This is the block where we figure out what the appropriate
+    # variables are, and we ensure that we end up with
+    # HDF5_C_LIBRARY, HDF5_HL_LIBRARY and HDF5_LIBRARIES.
+    ###
+    IF(MSVC)
+      ##
+      # HDF5 1.8.15 defined HDF5_LIBRARIES.
+      ##
+      IF(${HDF5_VERSION} VERSION_LESS "1.8.16")
+        SET(HDF5_C_LIBRARY hdf5)
+      ENDIF(${HDF5_VERSION} VERSION_LESS "1.8.16")
+
+      IF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
+        IF(NOT HDF5_LIBRARIES AND HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY AND HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY)
+          SET(HDF5_C_LIBRARY ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
+          SET(HDF5_HL_LIBRARY ${HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
+      	  SET(HDF5_LIBRARIES ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY} ${HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
+        ENDIF()
+      ENDIF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
+
+    ELSE(MSVC)
+
+      # Depending on the install, either HDF5_hdf_library or
+      # HDF5_C_LIBRARIES may be defined.  We must check for either.
+      IF(HDF5_C_LIBRARIES AND NOT HDF5_hdf5_LIBRARY)
+        SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
+      ENDIF()
+
+    ENDIF(MSVC)
+  ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
   IF(NOT MSVC)
-    # Depending on the install, either HDF5_hdf_library or
-    # HDF5_C_LIBRARIES may be defined.  We must check for either.
-    IF(HDF5_C_LIBRARIES)
-      SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
-    ENDIF()
+
 
     # Find out if HDF5 was built with parallel support.
     # Do that by checking for the targets H5Pget_fapl_mpiposx and
@@ -573,39 +643,20 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5free_memory "" HDF5_HAS_H5FREE)
 
 
-  # Assert HDF5 version.
-  SET(HDF5_VERSION_REQUIRED 1.8.10)
-  
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
   ELSE()
 	SET(HDF5_CC h5cc)
   ENDIF()
 
-  execute_process(COMMAND sh -c "${HDF5_CC} -showconfig | grep -i 'HDF5 version' | cut -d: -f2 | tr -d ' '"
-  OUTPUT_VARIABLE HDF5_VERSION
-  ERROR_QUIET)
-
-  IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
-    SET(HDF5_VERSION ${HDF5_VERSION_STRING})
-  ENDIF()
+  #  execute_process(COMMAND sh -c "${HDF5_CC} -showconfig | grep -i 'HDF5 version' | cut -d: -f2 | tr -d ' '"
+  #  OUTPUT_VARIABLE HDF5_VERSION
+  #  ERROR_QUIET)
 
   # It cannot be assumed that libhdf5.settings exists.  If it doesn't,
   # the call to h5cc will have failed.  At this point we will have to
   # trust the user that they have configured their system properly.
 
-  IF("${HDF5_VERSION}" STREQUAL "")
-    MESSAGE(STATUS "Unable to determine hdf5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}")
-  ELSE()
-    IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
-      MESSAGE(FATAL_ERROR
-	"netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
-    ELSE()
-        MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
-    ENDIF()
-  ENDIF()
-
-  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
 
   # Starting with hdf5 1.8.11, dynamic loading is an option.
   # In case hdf5 has a dependency on libdl, the user must specify
@@ -655,16 +706,15 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   # Check to see if libhdf5 contains
   # 'H5free_memory'.
   ##
-#  CHECK_C_SOURCE_COMPILES("
-#  #include <hdf5.h>
-#  int main() {H5free_memory(NULL);}" HDF5_HAS_H5FREE)
-#  CHECK_SYMBOL_EXISTS(H5free_memory "H5public.h" HDF5_HAS_H5FREE)
-# CHECK_LIBRARY_EXISTS(hdf5 H5free_memory "-L${HDF5_hdf5_LIBRARY}" HDF5_HAS_H5FREE)
-#  MESSAGE(STATUS "HDF5_HAS_H5FREE: ${HDF5_HAS_H5FREE}")
+  #  CHECK_C_SOURCE_COMPILES("
+  #  #include <hdf5.h>
+  #  int main() {H5free_memory(NULL);}" HDF5_HAS_H5FREE)
+  #  CHECK_SYMBOL_EXISTS(H5free_memory "H5public.h" HDF5_HAS_H5FREE)
+  # CHECK_LIBRARY_EXISTS(hdf5 H5free_memory "-L${HDF5_hdf5_LIBRARY}" HDF5_HAS_H5FREE)
+  #  MESSAGE(STATUS "HDF5_HAS_H5FREE: ${HDF5_HAS_H5FREE}")
 
+ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
-
-ENDIF()
 
 # Option to Build DAP Client
 OPTION(ENABLE_DAP "Enable DAP Client." ON)
