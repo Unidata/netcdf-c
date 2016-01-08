@@ -159,8 +159,8 @@ NCConstant       constant;
         INT64_CONST   /* long long constant */
         UBYTE_CONST  /* unsigned byte constant */
         USHORT_CONST /* unsigned short constant */
-        UINT_CONST   /* unsigned long long constant */
-        UINT64_CONST   /* unsigned int constant */
+        UINT_CONST   /* unsigned int  constant */
+        UINT64_CONST   /* unsigned long long  constant */
         FLOAT_CONST /* float constant */
         DOUBLE_CONST/* double constant */
         DIMENSIONS  /* keyword starting dimensions section, if any */
@@ -438,37 +438,13 @@ dimdeclist:     dimdecl
                 ;
 
 dimdecl:
-	  dimd '=' UINT_CONST
+	  dimd '=' UINT64_CONST
               {
-		$1->dim.declsize = (size_t)uint32_val;
+		$1->dim.declsize = (size_t)uint64_val;
 #ifdef GENDEBUG1
-fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
+fprintf(stderr,"dimension: %s = %llu\n",$1->name,(unsigned long long)$1->dim.declsize);
 #endif
 	      }
-	| dimd '=' INT_CONST
-              {
-		if(int32_val <= 0) {
-		    derror("dimension size must be positive");
-		    YYABORT;
-		}
-		$1->dim.declsize = (size_t)int32_val;
-#ifdef GENDEBUG1
-fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
-#endif
-	      }
-        | dimd '=' DOUBLE_CONST
-                   { /* for rare case where 2^31 < dimsize < 2^32 */
-                       if (double_val <= 0)
-                         yyerror("dimension length must be positive");
-                       if (double_val > MAXFLOATDIM)
-                         yyerror("dimension too large");
-                       if (double_val - (size_t) double_val > 0)
-                         yyerror("dimension length must be an integer");
-                       $1->dim.declsize = (size_t)double_val;
-#ifdef GENDEBUG1
-fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
-#endif
-                   }
         | dimd '=' NC_UNLIMITED_K
                    {
 		        $1->dim.declsize = NC_UNLIMITED;

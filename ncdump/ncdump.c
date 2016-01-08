@@ -1561,7 +1561,7 @@ do_ncdump_rec(int ncid, const char *path)
 	  printf ("UNLIMITED ; // (%u currently)\n",
 		  (unsigned int)dims[dimid].size);
       } else {
-	  printf ("%u ;\n", (unsigned int)dims[dimid].size);
+	  printf ("%llu ;\n", (unsigned long long)dims[dimid].size);
       }
    }
 #endif /* USE_NETCDF4 */
