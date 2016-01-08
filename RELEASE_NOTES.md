@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.0 Released TBD
 
+* Modified `CMakeLists.txt` to work with the re-organized cmake configuration used by the latest HDF5, `1.8.16`, on Windows. Before this fix, netCDF would fail to locate hdf5 1.8.16 when using cmake on Windows.  See [GitHub #186](https://github.com/Unidata/netcdf-c/issues/186) for more information.
+
 * Addressed an issue with `ncdump` when annotations were used.  The indices for the last row suffered from an off-by-1 error.  See [GitHub issue #181](https://github.com/Unidata/netcdf-c/issues/181) for more information.
 
 * Addressed an issue on platforms where `char` is `unsigned` by default (such as `ARM`), as well as an issue describing regarding undefined behavior, again on `ARM`.  See [GitHub issue #159](https://github.com/Unidata/netcdf-c/issues/159) for detailed information.
