@@ -1,9 +1,10 @@
 # Test c output
 T=tst_dimsizes
 #CMD=valgrind --leak-check=full
-CMD=gdb --args
+#CMD=gdb --args
 
 #MPI=1
+LLP="LD_LIBRARY_PATH=/usr/local/lib"
 
 ifndef MPI
 CC=gcc
@@ -15,7 +16,7 @@ LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  ../li
 endif
 
 all::
-	export CFLAGS; export LDFLAGS; \
+	export ${LLP}; export CFLAGS; export LDFLAGS; \
 	${CC} -o $T.exe ${CFLAGS} ${T}.c ${LDFLAGS}; \
 	${CMD} ./$T.exe
 

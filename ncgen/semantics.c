@@ -174,7 +174,7 @@ Return NULL if symbol is not unique or not found at all.
 static Symbol*
 uniquetreelocate(Symbol* refsym, Symbol* root)
 {
-    int i;
+    unsigned long i;
     Symbol* sym = NULL;
     /* search the root for matching name and major type*/
     sym = lookupingroup(refsym->objectclass,refsym->name,root);
@@ -200,7 +200,7 @@ Compute the fqn for every top-level definition symbol
 static void
 computefqns(void)
 {
-    int i,j;
+    unsigned long i,j;
     /* Groups first */
     for(i=0;i<listlength(grpdefs);i++) {
         Symbol* sym = (Symbol*)listget(grpdefs,i);
@@ -259,7 +259,8 @@ computefqns(void)
 static void
 processtypes(void)
 {
-    int i,j,keep,added;
+    unsigned long i,j;
+    int keep,added;
     List* sorted = listnew(); /* hold re-ordered type set*/
     /* Prime the walk by capturing the set*/
     /*     of types that are dependent on primitive types*/
@@ -352,7 +353,7 @@ static int
 tagvlentypes(Symbol* tsym)
 {
     int tagged = 0;
-    int j;
+    unsigned long j;
     switch (tsym->subclass) {
         case NC_VLEN: 
 	    tagged = 1;
@@ -385,7 +386,7 @@ filltypecodes(void)
 static void
 processenums(void)
 {
-    int i,j;
+    unsigned long i,j;
     List* enumids = listnew();
     for(i=0;i<listlength(typdefs);i++) {
 	Symbol* sym = (Symbol*)listget(typdefs,i);
@@ -419,7 +420,7 @@ processenums(void)
 static void
 processeconstrefs(void)
 {
-    int i;
+    unsigned long i;
     /* locate all the datalist and walk them recursively */
     for(i=0;i<listlength(attdefs);i++) {
 	Symbol* att = (Symbol*)listget(attdefs,i);

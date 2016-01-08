@@ -10,7 +10,7 @@
 
 typedef struct Alignment {
     char* typename;
-    int alignment;
+    unsigned int alignment;
 } Alignment;
 
 /* Define indices for every primitive C type */

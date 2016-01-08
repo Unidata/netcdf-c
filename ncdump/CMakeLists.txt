@@ -107,7 +107,7 @@ ENDIF()
 
   add_sh_test(ncdump tst_formatx3)
   add_sh_test(ncdump tst_bom)
-  add_bin_test(ncdump tst_dimsizes)
+  add_sh_test(ncdump tst_dimsizes)
 
   # The following test script invokes
   # gcc directly.

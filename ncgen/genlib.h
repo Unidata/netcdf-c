@@ -159,6 +159,7 @@ extern int cdf5_flag; /* 1 => cdf-5 unsigned types in the parse */
 extern int specials_flag; /* 1 => special attributes are present */
 extern int usingclassic;   /* 1 => k_flag == 1|2|5 */
 extern int k_flag;
+extern int ncloglevel;
 
 /* Global data */
 
