@@ -19,7 +19,7 @@ lib_LTLIBRARIES = libnetcdf.la
 # for information regarding incrementing `-version-info`.
 ##
 
-libnetcdf_la_LDFLAGS = -version-info 10:0:3 ${NOUNDEFINED}
+libnetcdf_la_LDFLAGS = -version-info 11:0:0 ${NOUNDEFINED}
 
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD =
@@ -68,4 +68,4 @@ endif #USE_NETCDF4
 
 # We need at least one source file
 libnetcdf_la_SOURCES = nc_initialize.c
-EXTRA_DIST=CMakeLists.txt 
+EXTRA_DIST=CMakeLists.txt
