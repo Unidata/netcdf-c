@@ -44,10 +44,7 @@ web site (http://www.unidata.ucar.edu/netcdf), and with the netCDF
 distribution.
 
 The latest version of this document, and the language specific guides,
-can be found at the netCDF web site,
-http://www.unidata.ucar.edu/netcdf/docs, along with extensive
-additional information about netCDF, including pointers to other
-software that works with netCDF data.
+can be found at the netCDF web site (http://www.unidata.ucar.edu/netcdf/docs) along with extensive additional information about netCDF, including pointers to other software that works with netCDF data.
 
 Separate documentation of the Java netCDF library can be found at
 http://www.unidata.ucar.edu/software/netcdf-java.
