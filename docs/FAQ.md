@@ -1,4 +1,4 @@
-FAQ                {#ncFAQ}
+FAQ                {#faq}
 =======================
 
 [TOC]
@@ -284,11 +284,11 @@ The registered Digital Object Identifier for all versions of netCDF software is 
 
 The following can be used as a citation:
 
-Unidata, (_year_): Network Common Data Form (netCDF) version _nc_version_ [software]. Boulder, CO: UCAR/Unidata. (http://doi.org/10.5065/D6H70CW6) 
+Unidata, (_year_): Network Common Data Form (netCDF) version _nc_version_ [software]. Boulder, CO: UCAR/Unidata. (http://doi.org/10.5065/D6H70CW6)
 
 where _year_ is the year in which the work being described was done and _nc_version_ is the version of netCDF used. For example:
 
-Unidata, (2015): Network Common Data Form (netCDF) version 4.3.3.1 [software]. Boulder, CO: UCAR/Unidata. (http://doi.org/10.5065/D6H70CW6) 
+Unidata, (2015): Network Common Data Form (netCDF) version 4.3.3.1 [software]. Boulder, CO: UCAR/Unidata. (http://doi.org/10.5065/D6H70CW6)
 
 ----------
 
