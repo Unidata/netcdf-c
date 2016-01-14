@@ -1,5 +1,5 @@
 /** \file dparallel.c
-This file has the parallel I/O functions.
+This file has the parallel I/O functions which correspond to the serial I/O functions.
 
 Copyright 2010 University Corporation for Atmospheric
 Research/Unidata. See COPYRIGHT file for more info.
@@ -33,7 +33,11 @@ int nc_create_par(const char *path, int cmode, MPI_Comm comm,
 #endif /* USE_PARALLEL */
 }
 
-/* This function opens a file for parallel I/O. */
+/*! \ingroup datasets
+
+  This function opens a file for parallel I/O.
+
+*/
 int
 nc_open_par(const char *path, int mode, MPI_Comm comm,
 	    MPI_Info info, int *ncidp)

@@ -1,4 +1,5 @@
-/** \file
+/** \file dfile.c
+
 File create and open functions
 
 These functions end up calling functions in one of the dispatch layers
@@ -64,6 +65,20 @@ of the interfaces for these operations.
 */
 /**@{*/
 
+
+/*!
+  Interpret the magic number found in the header of a netCDF file.
+
+  This function interprets the magic number/string contained in the header of a netCDF file and sets the appropriate NC_FORMATX flags.
+
+  @param[in] magic Pointer to a character array with the magic number block.
+  @param[out] model Pointer to an integer to hold the corresponding netCDF type.
+  @param[out] version Pointer to an integer to hold the corresponding netCDF version.
+  @param[in] use_parallel 1 if using parallel, 0 if not.
+  @return Returns an error code or 0 on success.
+
+
+*/
 static int
 NC_interpret_magic_number(char* magic, int* model, int* version, int use_parallel)
 {
@@ -100,7 +115,7 @@ done:
      return status;
 }
 
-/**
+/*!
 Given an existing file, figure out its format
 and return that format value (NC_FORMATX_XXX)
 in model arg.
