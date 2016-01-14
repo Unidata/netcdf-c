@@ -28,7 +28,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 extern int NC_initialized;
 extern int NC_finalized;
 
-/** \defgroup datasets NetCDF Files
+/** \defgroup datasets NetCDF File and Data I/O
 
 NetCDF opens datasets as files or remote access URLs.
 
@@ -63,7 +63,6 @@ any.
 interfaces, the rest of this chapter presents a detailed description
 of the interfaces for these operations.
 */
-/**@{*/
 
 
 /*!
@@ -77,6 +76,8 @@ of the interfaces for these operations.
   @param[in] use_parallel 1 if using parallel, 0 if not.
   @return Returns an error code or 0 on success.
 
+\internal
+\ingroup datasets
 
 */
 static int
@@ -120,8 +121,7 @@ Given an existing file, figure out its format
 and return that format value (NC_FORMATX_XXX)
 in model arg.
 */
-static int
-NC_check_file_type(const char *path, int flags, void *parameters,
+static int NC_check_file_type(const char *path, int flags, void *parameters,
 		   int* model, int* version)
 {
    char magic[MAGIC_NUMBER_LEN];
@@ -480,6 +480,9 @@ and initial size for the file.
      status = nc__create("foo.nc", NC_NOCLOBBER, initialsz, bufrsize, &ncid);
      if (status != NC_NOERR) handle_error(status);
 \endcode
+
+\ingroup datasets
+
 */
 int
 nc__create(const char *path, int cmode, size_t initialsz,
@@ -505,7 +508,7 @@ nc__create_mp(const char *path, int cmode, size_t initialsz,
 		    chunksizehintp, 0, NULL, ncidp);
 }
 
-/**
+/** \ingroup datasets
 Open an existing netCDF file.
 
 This function opens an existing netCDF dataset for access. It
@@ -625,7 +628,7 @@ nc_open(const char *path, int mode, int *ncidp)
    return NC_open(path, mode, 0, NULL, 0, NULL, ncidp);
 }
 
-/**
+/** \ingroup datasets
 Open a netCDF file with extra performance parameters for the classic
 library.
 
@@ -688,7 +691,7 @@ nc__open(const char *path, int mode,
 		  NULL, ncidp);
 }
 
-/**
+/** \ingroup datasets
 Open a netCDF file with the contents taken from a block of memory.
 
 \param path Must be non-null, but otherwise only used to set the dataset name.
@@ -769,7 +772,7 @@ nc__open_mp(const char *path, int mode, int basepe,
 		  0, NULL, ncidp);
 }
 
-/**
+/** \ingroup datasets
 Get the file pathname (or the opendap URL) which was used to
 open/create the ncid's file.
 
@@ -803,7 +806,7 @@ nc_inq_path(int ncid, size_t *pathlen, char *path)
    return stat;
 }
 
-/**
+/** \ingroup datasets
 Put open netcdf dataset into define mode
 
 The function nc_redef puts an open netCDF dataset into define mode, so
@@ -860,7 +863,7 @@ nc_redef(int ncid)
    return ncp->dispatch->redef(ncid);
 }
 
-/**
+/** \ingroup datasets
 Leave define mode
 
 The function nc_enddef() takes an open netCDF dataset out of define
@@ -925,7 +928,7 @@ nc_enddef(int ncid)
    return ncp->dispatch->_enddef(ncid,0,1,0,1);
 }
 
-/**
+/** \ingroup datasets
 Leave define mode with performance tuning
 
 The function nc__enddef takes an open netCDF dataset out of define
@@ -1016,7 +1019,7 @@ nc__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
    return ncp->dispatch->_enddef(ncid,h_minfree,v_align,v_minfree,r_align);
 }
 
-/**
+/** \ingroup datasets
 Synchronize an open netcdf dataset to disk
 
 The function nc_sync() offers a way to synchronize the disk copy of a
@@ -1092,10 +1095,11 @@ nc_sync(int ncid)
    return ncp->dispatch->sync(ncid);
 }
 
-/**
-\internal
+/** \ingroup datasets
+No longer necessary for user to invoke manually.
 
-Users no longer need to call this function, since it is called
+
+\warning Users no longer need to call this function since it is called
 automatically by nc_close() in case the dataset is in define mode and
 something goes wrong with committing the changes. The function
 nc_abort() just closes the netCDF dataset, if not in define mode. If
@@ -1153,7 +1157,7 @@ nc_abort(int ncid)
    return stat;
 }
 
-/**
+/** \ingroup datasets
 Close an open netCDF dataset
 
 If the dataset in define mode, nc_enddef() will be called before
@@ -1213,7 +1217,7 @@ nc_close(int ncid)
    return stat;
 }
 
-/**
+/** \ingroup datasets
 Change the fill-value mode to improve write performance.
 
 This function is intended for advanced usage, to optimize writes under
@@ -1360,7 +1364,7 @@ nc_set_base_pe(int ncid, int pe)
    return ncp->dispatch->set_base_pe(ncid,pe);
 }
 
-/**
+/** \ingroup datasets
 Inquire about the binary format of a netCDF file
 as presented by the API.
 
@@ -1387,9 +1391,10 @@ nc_inq_format(int ncid, int *formatp)
    return ncp->dispatch->inq_format(ncid,formatp);
 }
 
-/**
+/** \ingroup datasets
 Obtain more detailed (vis-a-vis nc_inq_format)
 format information about an open dataset.
+
 Note that the netcdf API will present the file
 as if it had the format specified by nc_inq_format.
 The true file format, however, may not even be
@@ -1421,7 +1426,7 @@ nc_inq_format_extended(int ncid, int *formatp, int *modep)
    return ncp->dispatch->inq_format_extended(ncid,formatp,modep);
 }
 
-/**
+/**\ingroup datasets
 Inquire about a file or group.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
@@ -1483,7 +1488,7 @@ nc_inq_nvars(int ncid, int *nvarsp)
    return ncp->dispatch->inq(ncid, NULL, nvarsp, NULL, NULL);
 }
 
-/**
+/**\ingroup datasets
 Inquire about a type.
 
 Given an ncid and a typeid, get the information about a type. This
@@ -1584,7 +1589,6 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
    }
 #endif
 }
-/**@}*/
 
 /**
 \internal
