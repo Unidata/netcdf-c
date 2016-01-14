@@ -350,7 +350,7 @@ SUBGROUPING            = YES
 # SEPARATE_MEMBER_PAGES.
 # The default value is: NO.
 
-INLINE_GROUPED_CLASSES = NO
+INLINE_GROUPED_CLASSES = YES
 
 # When the INLINE_SIMPLE_STRUCTS tag is set to YES, structs, classes, and unions
 # with only public data fields or simple typedef fields will be shown inline in
@@ -360,7 +360,7 @@ INLINE_GROUPED_CLASSES = NO
 # Man pages) or section (for LaTeX and RTF).
 # The default value is: NO.
 
-INLINE_SIMPLE_STRUCTS  = NO
+INLINE_SIMPLE_STRUCTS  = YES
 
 # When TYPEDEF_HIDES_STRUCT tag is enabled, a typedef of a struct, union, or
 # enum is documented as struct, union, or enum with the name of the typedef. So
@@ -424,7 +424,7 @@ EXTRACT_STATIC         = YES
 # for Java sources.
 # The default value is: YES.
 
-EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_LOCAL_CLASSES  = NO
 
 # This flag is only useful for Objective-C code. When set to YES local methods,
 # which are defined in the implementation section but not in the interface are
@@ -1061,7 +1061,7 @@ VERBATIM_HEADERS       = YES
 # classes, structs, unions or interfaces.
 # The default value is: YES.
 
-ALPHABETICAL_INDEX     = YES
+ALPHABETICAL_INDEX     = NO
 
 # The COLS_IN_ALPHA_INDEX tag can be used to specify the number of columns in
 # which the alphabetical index list will be split.

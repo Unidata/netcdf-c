@@ -8,7 +8,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include "config.h"
 #include "ncdispatch.h"
 
-/** \ingroup datasets
+/**
 
  This function creates a file for use with parallel I/O.
 
@@ -63,7 +63,11 @@ nc_open_par(const char *path, int mode, MPI_Comm comm,
 #endif /* USE_PARALLEL */
 }
 
-/* Fortran needs to pass MPI comm/info as integers. */
+/*! \ingroup datasets
+
+ Fortran needs to pass MPI comm/info as integers.
+
+*/
 int
 nc_open_par_fortran(const char *path, int mode, int comm,
 		    int info, int *ncidp)
