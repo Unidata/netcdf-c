@@ -67,7 +67,7 @@ that is part of the netCDF software distribution. It is a command line
 tool that provides a text representation of a netCDF file's data, just its
 metadata, or just the data for specified
 variables, depending on what arguments you use. For more information,
-see the [ncdump documentation](http://www.unidata.ucar.edu/software/netcdf/docs/ncdump-man-1.html).
+see the \ref ncdump_guide documentation.
 
 Another good tool for conversion of netCDF data to text is the ["ncks" program](http://nco.sourceforge.net/nco.html#ncks-netCDF-Kitchen-Sink) that's one of the utility programs in the [NCO (NetCDF Operators)](software.html#NCO) package. Similar capabilities are available using programs from the [CDO (Climate Data Operators)](software.html#CDO) software, commands from [NCL (NCAR Command Language)](software.html#NCL), or various other packages such as [ANAX](http://science.arm.gov/~cflynn/ARM_Tested_Tools/), cdf2asc, and NOESYS, all "third party" netCDF utilities developed and supported by other organizations. You can find more information about these third-party packages on the [Software for Manipulating or Displaying NetCDF Data](software.html) page.
 
