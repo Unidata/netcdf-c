@@ -1,13 +1,10 @@
- ESG {#esg}
+ Accessing ESG Data Through netCDF {#esg}
 =================================
-
-Accessing ESG Data Through netCDF {#esg_info}
-===============
 
 [TOC]
 
 Introduction {#esg_intro}
-----------------
+==================
 
 It is possible to access Earth Systems Grid (ESG) datasets from ESG
 servers through the netCDF API. This requires building the netCDF
@@ -30,7 +27,7 @@ uses the *curl* library and it is that underlying library that must be
 properly configured.
 
 Terminology {#esg_term}
----------------
+==================
 
 The key elements for client-side keys requires the constructions of two
 "stores" on the client side.
@@ -44,7 +41,7 @@ The server actually has a similar set of stores, but the client need not
 be concerned with those.
 
 Initial Steps {#esg_initial_steps}
------------------
+==================
 
 The first step is to obtain authorization from ESG. Note that this
 information may evolve over time, and may be out of date. This
@@ -69,7 +66,7 @@ site for BADC in the following.
     it will help you understand the remaining steps).
 
 Building the KeyStore {#esg_keystore}
--------------------------
+==================
 
 You will have to modify the keyfile in the previous step and then create
 a keystore and install the key and a certificate. The commands are
@@ -85,7 +82,7 @@ Note, the file names "key.der" and "cert.der" can be whatever you
 choose. It is probably best to leave the .der extension, though.
 
 Building the TrustStore {#esg_truststore}
----------------------------
+==================
 
 Building the truststore is a bit tricky because as provided, the
 certificates in "globus" need some massaging. See the script below for
@@ -96,7 +93,7 @@ certificate, c, in globus. It sticks the certificate into the file named
       keytool -trustcacerts -storepass "password" -v -keystore "truststore"  -importcert -file "${c}"
 
 Running the C Client {#esg_c_client}
-------------------------
+==================
 
 The file ".dodsrc" is used to configure curl. This file must reside
 either in the current directory or in your home directory. It has lines
@@ -123,7 +120,7 @@ MyProxyLogon. The HTTP.SSL.CAPATH entry should be the path to the
 "certificates" directory produced by MyProxyLogon.
 
 Running the Java Client {#esg_java_client}
----------------------------
+==================
 
 If you are using the Java netCDF client, then you need to add some
 parameters to the "java" command. Specifically, add the following flags.
@@ -131,7 +128,7 @@ parameters to the "java" command. Specifically, add the following flags.
        -Dkeystore="path to keystore file" -Dkeystorepassword="keystore password"
 
 Script for creating Stores {#esg_script}
-------------------------------
+==================
 
 The following script shows in detail how to actually construct the key
 and trust stores. It is specific to the format of the globus file as it
@@ -196,14 +193,14 @@ document can be updated.
 
 
 Change Log {#esg_change_log}
---------------
+==================
 
 **Version 1.0:**
 
 -   10/17/2013 – Initial Release
 
 Document Information {#esg_doc_info}
-------------------------
+==================
 
   ------------------------------------------------------------------------
   Created:
