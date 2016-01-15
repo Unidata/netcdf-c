@@ -11,7 +11,7 @@ What Is netCDF?  {#What-Is-netCDF}
 
 
 NetCDF (network Common Data Form) is a set of interfaces for
-array-oriented data access and a [freely](http://www.unidata.ucar.edu/software/netcdf/docs/COPYRIGHT) distributed
+array-oriented data access and a [freely](http://www.unidata.ucar.edu/software/netcdf/docs/copyright.html) distributed
 collection of data access libraries for C, Fortran, C++, Java, and other
 languages. The netCDF libraries support a machine-independent format for
 representing scientific data. Together, the interfaces, libraries, and

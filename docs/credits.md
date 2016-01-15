@@ -1,9 +1,9 @@
-NetCDF Credits {#netcdf-credits-page}
+NetCDF Credits {#credits}
 ==============
 
 [Unidata](http://www.unidata.ucar.edu/) is sponsored by the [National
 Science Foundation](http://www.nsf.gov/) and managed by the [University
-Corporation for Atmospheric Research](http://www.ucar.edu/).
+Corporation for Atmospheric Research](http://www2.ucar.edu/).
 
 The NASA CDF data model, to which netCDF owes much, was developed by
 Michael Gough and Lloyd Treinish. Joe Fahle designed a C version for a
