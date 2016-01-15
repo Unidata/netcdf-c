@@ -1,0 +1,24 @@
+# Test c output
+T=tst_dimsizes
+#CMD=valgrind --leak-check=full
+#CMD=gdb --args
+
+#MPI=1
+LLP="LD_LIBRARY_PATH=/usr/local/lib"
+
+ifndef MPI
+CC=gcc
+CFLAGS=-g -O0 -I.. -I../include 
+LDFLAGS=../liblib/.libs/libnetcdf.a  -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
+else
+CC=/usr/local/bin/mpicc
+LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  ../liblib/.libs/libnetcdf.a -ldl -lcurl -lpnetcdf -lmpich -lm
+endif
+
+all::
+	export ${LLP}; export CFLAGS; export LDFLAGS; \
+	${CC} -o $T.exe ${CFLAGS} ${T}.c ${LDFLAGS}; \
+	${CMD} ./$T.exe
+
+cpp::
+	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt

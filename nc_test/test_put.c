@@ -1597,7 +1597,7 @@ check_atts_int(int  ncid)
                         } else {
                             nok++;
                         }
-                    }
+                    }
                 }
             }                                               
         }
@@ -1933,7 +1933,7 @@ check_atts_uint(int  ncid)
 	    if (canConvert) {
 		err = nc_inq_att(ncid, i, ATT_NAME(i,j), &datatype, &length);
 		IF (err)
-		    error("nc_inq_att: %s", nc_strerror(err));
+		    error("nc_inq_att: %s", nc_strerror(err));
 		IF (datatype != ATT_TYPE(i,j))
 		error("nc_inq_att: unexpected type");
 		IF (length != ATT_LEN(i,j))
@@ -3521,7 +3521,7 @@ test_nc_put_var_uchar(void)
 		    IF (err != NC_ERANGE)
 			error("range error: status = %d", err);
 		}
-	    } else {
+	    } else {
 		IF (nels > 0 && err != NC_ECHAR)
 		    error("wrong type: status = %d", err);
 	    }
@@ -4846,7 +4846,7 @@ test_nc_put_var_ulonglong(void)
 	} else {       /* should flag wrong type even if nothing to write */
 	    IF (nels > 0 && err != NC_ECHAR)
 		error("wrong type: status = %d", err);
-	}
+	}
     }
 
         /* Preceding has written nothing for record variables, now try */
@@ -4872,7 +4872,7 @@ test_nc_put_var_ulonglong(void)
 	        error("bad ncid: status = %d", err);
 	    nels = 1;
 	    for (j = 0; j < var_rank[i]; j++) {
-		nels *= var_shape[i][j];
+		nels *= var_shape[i][j];
 	    }
 	    for (allInExtRange = 1, j = 0; j < nels; j++) {
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
@@ -5264,7 +5264,7 @@ test_nc_put_vara_schar(void)
     int nslabs;
     int nels;
     size_t start[MAX_RANK];
-    size_t edge[MAX_RANK];
+    size_t edge[MAX_RANK];
     size_t mid[MAX_RANK];
     size_t index[MAX_RANK];
     int canConvert;	/* Both text or both numeric */
@@ -6387,7 +6387,7 @@ test_nc_put_vara_ushort(void)
 	nslabs = 1;
 	for (j = 0; j < var_rank[i]; j++) {
             mid[j] = roll( var_shape[i][j] );
-	    nslabs *= 2;
+	    nslabs *= 2;
 	}
 	    /* bits of k determine whether to put lower or upper part of dim */
 	for (k = 0; k < nslabs; k++) {
@@ -6866,7 +6866,7 @@ test_nc_put_vara_ulonglong(void)
         IF (err != NC_ENOTVAR) 
 	    error("bad var id: status = %d", err);
         for (j = 0; j < var_rank[i]; j++) {
-	    if (var_dimid[i][j] > 0) {		/* skip record dim */
+	    if (var_dimid[i][j] > 0) {		/* skip record dim */
 		start[j] = var_shape[i][j];
 		err = nc_put_vara_ulonglong(ncid, i, start, edge, value);
 		IF (canConvert && err != NC_EINVALCOORDS)
@@ -10807,7 +10807,7 @@ test_nc_put_varm_uint(void)
                     IF (nels > 0 && err != NC_ECHAR)
                         error("wrong type: status = %d", err);
 		}
-	    }
+	    }
 	}
     }
 
@@ -11131,7 +11131,7 @@ test_nc_put_varm_ulonglong(void)
                     for (j = 0; j < var_rank[i]; j++) {
                         index[j] += (count[j] - 1) * stride[j];
                         stride[j] = -stride[j];
-                    }
+                    }
                 }
 */
                 if (var_rank[i] > 0) {

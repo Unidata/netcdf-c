@@ -20,7 +20,7 @@ ref_solar.dmp unlimtest1.dmp unlimtest2.dmp \
 ref_tst_vlen_data.dmp ref_tst_vlen_data2.dmp \
 ref_niltest.dmp ref_tst_h_scalar.dmp ref_tst_econst.dmp \
 ref_tst_nul3.dmp ref_tst_nul4.dmp ref_tst_names.dmp \
-ref_tst_long_charconst.dmp tst_chararray.dmp \
+ref_tst_long_charconst.dmp tst_chararray.dmp ref_keyword.dmp \
 CMakeLists.txt
 
 # These do not exist because they are not run as usual tests

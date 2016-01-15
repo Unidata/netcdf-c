@@ -14,6 +14,7 @@ SET (nc_test_SRC
   test_write.c
   util.c
   )
+
 ADD_EXECUTABLE(nc_test ${nc_test_SRC})
 TARGET_LINK_LIBRARIES(nc_test
   netcdf

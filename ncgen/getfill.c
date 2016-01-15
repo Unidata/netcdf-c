@@ -50,7 +50,7 @@ getfiller(Symbol* tvsym)
 static void
 fill(Symbol* tsym, Datalist* filler)
 {
-    int i;
+    unsigned long i;
     NCConstant con = nullconstant;
     Datalist* sublist;
 
@@ -165,7 +165,7 @@ nc_getfill(NCConstant* value)
       case NC_UINT64: value->value.uint64v = NC_FILL_UINT64; break;
       case NC_STRING:
         value->value.stringv.stringv = nulldup(NC_FILL_STRING);
-        value->value.stringv.len = strlen(NC_FILL_STRING);
+        value->value.stringv.len = (int)strlen(NC_FILL_STRING);
 	/* Exception: if string is null, then make it's length be 1 */
 	if(value->value.stringv.len == 0)
 	    value->value.stringv.len = 1;

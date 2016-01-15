@@ -786,35 +786,19 @@ with nc_get_vara()/nc_put_vara().
 
 \page parallel_io Parallel I/O with NetCDF-4
 
-NetCDF-4 provides access to HDF5 parallel I/O features for
-netCDF-4/HDF5 files. NetCDF classic and 64-bit offset format may not
-be opened or created for use with parallel I/O. (They may be opened
-and created, but parallel I/O is not available.)
-
-A few functions have been added to the netCDF C API to handle parallel
-I/O.
-
-You must build netCDF-4 properly to take advantage of parallel
+NetCDF-4 provides access to HDF5 parallel I/O features for netCDF-4/HDF5 files. NetCDF classic and 64-bit offset format may not be opened or created for use with HDF5-based parallel I/O. (They may be opened and created, but parallel I/O is not available.)  They may be opened or created for use with parallel-netcdf-based parallel I/O. A few functions have been added to the netCDF C API to handle parallel I/O. You must build netCDF-4 properly to take advantage of parallel
 features (see \ref build_parallel).
 
 The nc_open_par() and nc_create_par() functions are used to
 create/open a netCDF file with parallel access.
 
-The parallel access associated with these functions is not a
-characteristic of the data file, but the way it was opened.
+\note The parallel access associated with these functions is not a characteristic of the data file, but the way it was opened.
 
 \section collective_independent Collective/Independent Access
 
 Parallel file access is either collective (all processors must
 participate) or independent (any processor may access the data without
-waiting for others).
-
-All netCDF metadata writing operations are collective. That is, all
-creation of groups, types, variables, dimensions, or attributes.
-
-Data reads and writes (ex. calls to nc_put_vara_int() and
-nc_get_vara_int()) may be independent (the default) or collective. To
-make writes to a variable collective, call nc_var_par_access().
+waiting for others). All netCDF metadata writing operations are collective. That is, all creation of groups, types, variables, dimensions, or attributes. Data reads and writes (ex. calls to nc_put_vara_int() and nc_get_vara_int()) may be independent (the default) or collective. To make writes to a variable collective, call nc_var_par_access().
 
 \page tutorial_ncids Numbering of NetCDF IDs
 

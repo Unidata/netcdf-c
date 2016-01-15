@@ -70,7 +70,8 @@ typedef struct {			/* specification for how to format dump */
     int nc_kind;		/* kind of netCDF file named on
 				 * command line, 1 (classic), 2
 				 * (64-bit offset), 3 (netCDF-4), 4
-				 * (netCDF-4 classic model) */
+				 * (netCDF-4 classic model), 5 (64-bit data)
+				 */
     int nc_extended;     	/* extended format info fornetCDF file named
 				 * on command line.
                                  */

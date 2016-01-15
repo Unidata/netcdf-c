@@ -26,8 +26,14 @@
 
     /* Limits of external types (based on those in ncx.h) */
 
+#ifdef __CHAR_UNSIGNED__
+#define X_CHAR_MIN	SCHAR_MIN
+#define X_CHAR_MAX	SCHAR_MAX
+#else
 #define X_CHAR_MIN	CHAR_MIN
 #define X_CHAR_MAX	CHAR_MAX
+#endif //__unsigned_char__
+
 #define X_BYTE_MIN	(-128)
 #define X_BYTE_MAX	127
 #define X_SHORT_MIN	(-32768)
@@ -50,12 +56,12 @@
 #define X_DOUBLE_MAX    1.79769313486230e+308
 #else
 /* scalb(1. - scalb(.5 , -52), 1024) */
-#define X_DOUBLE_MAX	1.7976931348623157e+308 
+#define X_DOUBLE_MAX	1.7976931348623157e+308
 #endif
 #define X_DOUBLE_MIN	(-X_DOUBLE_MAX)
 
-#define X_SCHAR_MAX     X_CHAR_MAX
-#define X_SCHAR_MIN     X_CHAR_MIN
+#define X_SCHAR_MAX     SCHAR_MAX
+#define X_SCHAR_MIN     SCHAR_MIN
 #define X_UCHAR_MAX     UCHAR_MAX
 #define X_UCHAR_MIN     0
 #define X_UBYTE_MAX     X_UCHAR_MAX
@@ -141,7 +147,7 @@ extern int numTypes;  /* number of netCDF data types to test */
 
     /* Limits of internal types */
 
-#define text_min CHAR_MIN
+#define text_min SCHAR_MIN
 #define uchar_min 0
 #define schar_min SCHAR_MIN
 #define short_min SHRT_MIN
@@ -157,7 +163,7 @@ extern int numTypes;  /* number of netCDF data types to test */
 #define uint64_min 0
 #define ulonglong_min uint64_min
 
-#define text_max CHAR_MAX
+#define text_max SCHAR_MAX
 #define uchar_max UCHAR_MAX
 #define schar_max SCHAR_MAX
 #define short_max SHRT_MAX
@@ -199,7 +205,7 @@ extern "C" {
 # include <sys/types.h>
 #endif
 
-typedef char text;
+typedef signed char text;
 typedef signed char schar;
 
 #ifndef HAVE_USHORT

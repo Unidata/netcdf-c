@@ -109,12 +109,16 @@ chunkspec_parse(int ncid, const char *spec) {
 		if(ret != NC_NOERR)
 		    return(ret);
 		chunksize = dimlen;
-	    } else {	      /* convert nnn string to long integer */
+	    } else {	      /* convert nnn string to long long integer */
 		char *ep;
-		long val = strtol(pp, &ep, 0);
+#ifdef HAVE_STRTOLL
+		long long val = strtoll(pp, &ep, 0);
+#else
+		long long val = strtol(pp, &ep, 0);
+#endif
 		if(ep == pp || errno == ERANGE || val < 1) /* allow chunksize bigger than dimlen */
 		    return (NC_EINVAL);
-		chunksize = val;
+		chunksize = (size_t)val;
 	    }
 	    chunkspecs.chunksizes[idim] = chunksize;
 	    idim++;

@@ -122,7 +122,8 @@ ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
 ref_tst_interops4.nc run_get_knmi_files.sh CMakeLists.txt               \
 run_grp_rename.sh tst_formatx_hdf4.sh                                   \
 run_chunk_hdf4.sh contiguous.hdf4 chunked.hdf4 \
-tst_h5_endians.c tst_h4_lendian.c tst_atts_string_rewrite.c
+tst_h5_endians.c tst_h4_lendian.c tst_atts_string_rewrite.c \
+tst_put_vars_two_unlim_dim.c
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt			\

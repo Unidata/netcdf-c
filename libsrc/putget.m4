@@ -1165,8 +1165,12 @@ readNCv(const NC3_INFO* ncp, const NC_var* varp, const size_t* start,
 
     case CASE(NC_CHAR,NC_CHAR):
     case CASE(NC_CHAR,NC_UBYTE):
-        return getNCvx_char_char(ncp,varp,start,nelems,(char*)value);
-	break;
+#ifndef __CHAR_UNSIGNED__
+       return getNCvx_char_char(ncp,varp,start,nelems,(char*)value);
+#else
+    return getNCvx_schar_schar(ncp,varp,start,nelems,(signed char*)value);
+#endif
+    break;
     case CASE(NC_BYTE,NC_BYTE):
         return getNCvx_schar_schar(ncp,varp,start,nelems,(signed char*)value);
 	break;
@@ -1208,13 +1212,13 @@ readNCv(const NC3_INFO* ncp, const NC_var* varp, const size_t* start,
 	break;
     case CASE(NC_SHORT,NC_INT):
         return getNCvx_short_int(ncp,varp,start,nelems,(int*)value);
-	break; 
+	break;
    case CASE(NC_SHORT,NC_FLOAT):
         return getNCvx_short_float(ncp,varp,start,nelems,(float*)value);
 	break;
     case CASE(NC_SHORT,NC_DOUBLE):
         return getNCvx_short_double(ncp,varp,start,nelems,(double*)value);
-	break;	
+	break;
     case CASE(NC_SHORT,NC_INT64):
         return getNCvx_short_longlong(ncp,varp,start,nelems,(long long*)value);
    	break;
@@ -1818,7 +1822,7 @@ NC3_get_vara(int ncid, int varid,
     int ii;
     size_t iocount;
     size_t memtypelen;
-    char* value = (char*) value0; /* legally allow ptr arithmetic */
+    signed char* value = (signed char*) value0; /* legally allow ptr arithmetic */
     const size_t* edges = edges0; /* so we can modify for special cases */
     size_t modedges[NC_MAX_VAR_DIMS];
 
@@ -1945,7 +1949,7 @@ NC3_put_vara(int ncid, int varid,
     int ii;
     size_t iocount;
     size_t memtypelen;
-    char* value = (char*) value0; /* legally allow ptr arithmetic */
+    signed char* value = (signed char*) value0; /* legally allow ptr arithmetic */
     const size_t* edges = edges0; /* so we can modify for special cases */
     size_t modedges[NC_MAX_VAR_DIMS];
 

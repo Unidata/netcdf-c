@@ -19,7 +19,7 @@
     * netcdf-4 files. The ext_ncid contains the ncid for the root
     * group (i.e. group zero). */
 
-/* Common Shared Structure for all Dispatched Objects */ 
+/* Common Shared Structure for all Dispatched Objects */
 typedef struct NC {
 	int ext_ncid;
 	int int_ncid;
@@ -39,7 +39,12 @@ typedef struct NC {
 typedef struct {
 	/* all xdr'd */
 	size_t nchars;
-	char *cp;
+#ifdef __arm__
+  signed char *cp;
+#else
+  char *cp;
+#endif
+
 } NC_string;
 
 /* Define functions that are used across multiple dispatchers */
@@ -51,11 +56,18 @@ free_NC_string(NC_string *ncstrp);
 extern int
 NC_check_name(const char *name);
 
+#ifdef __arm__
+extern NC_string *
+new_NC_string(size_t slen, const signed char *str);
+extern int
+set_NC_string(NC_string *ncstrp, const signed char *str);
+#else
 extern NC_string *
 new_NC_string(size_t slen, const char *str);
-
 extern int
 set_NC_string(NC_string *ncstrp, const char *str);
+#endif
+
 
 /* End defined in string.c */
 

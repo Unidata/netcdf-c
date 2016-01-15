@@ -16,14 +16,14 @@
  *
  * This started out as a general replacement for ONC XDR,
  * specifically, the xdrmem family of functions.
- * 
+ *
  * We eventually realized that we could write more portable
  * code if we decoupled any association between the 'C' types
  * and the external types. (XDR has this association between the 'C'
  * types and the external representations, like xdr_int() takes
- * an int argument and goes to an external int representation.) 
+ * an int argument and goes to an external int representation.)
  * So, now there is a matrix of functions.
- * 
+ *
  */
 
 #include <config.h> /* output of 'configure' */
@@ -80,7 +80,7 @@
  * For now, netcdf is limited to 32 bit sizes,
  * If compiled with support for "large files", then
  * netcdf will use a 64 bit off_t and it can then write a file
- * using 64 bit offsets. 
+ * using 64 bit offsets.
  *  see also X_SIZE_MAX, X_OFF_MAX below
  */
 #define X_SIZEOF_OFF_T		(sizeof(off_t))
@@ -112,7 +112,7 @@
 #define X_DOUBLE_MAX    1.79769313486230e+308
 #else
 /* scalb(1. - scalb(.5 , -52), 1024) */
-#define X_DOUBLE_MAX	1.7976931348623157e+308 
+#define X_DOUBLE_MAX	1.7976931348623157e+308
 #endif
 #define X_DOUBLE_MIN	(-X_DOUBLE_MAX)
 #define X_DBL_MAX	X_DOUBLE_MAX	/* alias compatible with limits.h */
@@ -124,7 +124,7 @@
 /* Begin ncx_len */
 
 /*
- * ncx_len_xxx() interfaces are defined as macros below, 
+ * ncx_len_xxx() interfaces are defined as macros below,
  * These give the length of an array of nelems of the type.
  * N.B. The 'char' and 'short' interfaces give the X_ALIGNED length.
  */
@@ -165,13 +165,13 @@
 
 /* End ncx_len */
 
-#if __CHAR_UNSIGNED__
+#ifdef __CHAR_UNSIGNED__
 	/* 'char' is unsigned, declare ncbyte as 'signed char' */
 typedef signed char schar;
 
 #else
 	/* 'char' is signed */
-typedef signed char schar;
+typedef char schar;
 
 #endif	/* __CHAR_UNSIGNED__ */
 
@@ -200,7 +200,7 @@ typedef signed char schar;
  *		uint
  *		float
  *		double
- *		longlong == int64 
+ *		longlong == int64
  *	        ulonglong == uint64
  *
  * Not all combinations make sense.
@@ -320,7 +320,7 @@ extern int ncx_put_int_int(void *xp, const int *ip);
  * The `ip' argument should point to an array of `nelems' of
  * internal_type.
  *
- * Range errors (NC_ERANGE) for a individual values in the array 
+ * Range errors (NC_ERANGE) for a individual values in the array
  * DO NOT terminate the array conversion. All elements are converted,
  * with some having undefined values.
  * If any range error occurs, the function returns NC_ERANGE.
@@ -396,7 +396,7 @@ extern int
 ncx_putn_schar_longlong (void **xpp, size_t nelems, const longlong  *ip);
 extern int
 ncx_putn_schar_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
- 
+
 extern int
 ncx_pad_putn_schar_schar (void **xpp, size_t nelems, const schar  *ip);
 extern int
@@ -489,7 +489,7 @@ extern int
 ncx_putn_uchar_longlong (void **xpp, size_t nelems, const longlong  *ip);
 extern int
 ncx_putn_uchar_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
- 
+
 extern int
 ncx_pad_putn_uchar_schar (void **xpp, size_t nelems, const schar  *ip);
 extern int
@@ -582,7 +582,7 @@ extern int
 ncx_putn_short_longlong (void **xpp, size_t nelems, const longlong  *ip);
 extern int
 ncx_putn_short_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
- 
+
 extern int
 ncx_pad_putn_short_schar (void **xpp, size_t nelems, const schar  *ip);
 extern int
@@ -675,7 +675,7 @@ extern int
 ncx_putn_ushort_longlong (void **xpp, size_t nelems, const longlong  *ip);
 extern int
 ncx_putn_ushort_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
- 
+
 extern int
 ncx_pad_putn_ushort_schar (void **xpp, size_t nelems, const schar  *ip);
 extern int
@@ -749,7 +749,7 @@ extern int
 ncx_putn_int_longlong (void **xpp, size_t nelems, const longlong  *ip);
 extern int
 ncx_putn_int_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
- 
+
 /*---- uint -----------------------------------------------------------------*/
 extern int
 ncx_getn_uint_schar (const void **xpp, size_t nelems, schar  *ip);
@@ -800,7 +800,7 @@ extern int
 ncx_putn_uint_longlong (void **xpp, size_t nelems, const longlong  *ip);
 extern int
 ncx_putn_uint_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
- 
+
 /*---- float ----------------------------------------------------------------*/
 extern int
 ncx_getn_float_schar (const void **xpp, size_t nelems, schar  *ip);
@@ -847,7 +847,7 @@ extern int
 ncx_putn_float_longlong (void **xpp, size_t nelems, const longlong  *ip);
 extern int
 ncx_putn_float_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
- 
+
 /*---- double ---------------------------------------------------------------*/
 extern int
 ncx_getn_double_schar (const void **xpp, size_t nelems, schar  *ip);
@@ -988,13 +988,28 @@ extern int
 ncx_putn_ulonglong_longlong (void **xpp, size_t nelems, const longlong  *ip);
 extern int
 ncx_putn_ulonglong_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
- 
+
 
 /*
  * Other aggregate conversion functions.
  */
 
 /* read ASCII characters */
+#ifdef __arm__
+
+extern int
+ncx_getn_text(const void **xpp, size_t nchars, signed char *cp);
+extern int
+ncx_pad_getn_text(const void **xpp, size_t nchars, signed char *cp);
+
+/* write ASCII characters */
+extern int
+ncx_putn_text(void **xpp, size_t nchars, const signed char *cp);
+extern int
+ncx_pad_putn_text(void **xpp, size_t nchars, const signed char *cp);
+
+#else // ifdef __arm__
+
 extern int
 ncx_getn_text(const void **xpp, size_t nchars, char *cp);
 extern int
@@ -1005,6 +1020,8 @@ extern int
 ncx_putn_text(void **xpp, size_t nchars, const char *cp);
 extern int
 ncx_pad_putn_text(void **xpp, size_t nchars, const char *cp);
+
+#endif //ifdef __arm__
 
 /* for symmetry */
 #define ncx_getn_char_char(xpp, nelems, fillp) ncx_getn_text(xpp, nelems, fillp)

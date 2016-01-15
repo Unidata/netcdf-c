@@ -54,8 +54,10 @@ ENDIF()
 IF(ENABLE_TESTS)
   ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c)
   ADD_EXECUTABLE(bom bom.c)
+  ADD_EXECUTABLE(tst_dimsizes tst_dimsizes.c)
   TARGET_LINK_LIBRARIES(rewrite-scalar netcdf)
   TARGET_LINK_LIBRARIES(bom netcdf)
+  TARGET_LINK_LIBRARIES(tst_dimsizes netcdf)
 
 IF(MSVC)
   SET_TARGET_PROPERTIES(rewrite-scalar PROPERTIES RUNTIME_OUTPUT_DIRECTORY
@@ -70,6 +72,13 @@ IF(MSVC)
   SET_TARGET_PROPERTIES(bom PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
     ${CMAKE_CURRENT_BINARY_DIR})
   SET_TARGET_PROPERTIES(bom PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+    ${CMAKE_CURRENT_BINARY_DIR})
+
+  SET_TARGET_PROPERTIES(tst_dimsizes PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR})
+  SET_TARGET_PROPERTIES(tst_dimsizes PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+    ${CMAKE_CURRENT_BINARY_DIR})
+  SET_TARGET_PROPERTIES(tst_dimsizes PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
     ${CMAKE_CURRENT_BINARY_DIR})
 ENDIF()
 
@@ -96,10 +105,9 @@ ENDIF()
   add_sh_test(ncdump tst_nccopy3)
   add_sh_test(ncdump tst_charfill)
 
-
-
   add_sh_test(ncdump tst_formatx3)
   add_sh_test(ncdump tst_bom)
+  add_sh_test(ncdump tst_dimsizes)
 
   # The following test script invokes
   # gcc directly.
