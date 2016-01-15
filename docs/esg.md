@@ -1,7 +1,12 @@
-Accessing ESG Data Through netCDF
+ ESG {#esg}
 =================================
 
-[Introduction]()
+Accessing ESG Data Through netCDF {#esg_info}
+===============
+
+[TOC]
+
+Introduction {#esg_intro}
 ----------------
 
 It is possible to access Earth Systems Grid (ESG) datasets from ESG
@@ -24,7 +29,7 @@ although the process is somewhat complicated. The DAP2 support in netCDF
 uses the *curl* library and it is that underlying library that must be
 properly configured.
 
-[Terminology]()
+Terminology {#esg_term}
 ---------------
 
 The key elements for client-side keys requires the constructions of two
@@ -38,7 +43,7 @@ The key elements for client-side keys requires the constructions of two
 The server actually has a similar set of stores, but the client need not
 be concerned with those.
 
-[Initial Steps]()
+Initial Steps {#esg_initial_steps}
 -----------------
 
 The first step is to obtain authorization from ESG. Note that this
@@ -63,7 +68,7 @@ site for BADC in the following.
     http://www.agentbob.info/agentbob/79-AB.html (read the whole page,
     it will help you understand the remaining steps).
 
-[Building the KeyStore]()
+Building the KeyStore {#esg_keystore}
 -------------------------
 
 You will have to modify the keyfile in the previous step and then create
@@ -79,7 +84,7 @@ these:
 Note, the file names "key.der" and "cert.der" can be whatever you
 choose. It is probably best to leave the .der extension, though.
 
-[Building the TrustStore]()
+Building the TrustStore {#esg_truststore}
 ---------------------------
 
 Building the truststore is a bit tricky because as provided, the
@@ -90,7 +95,7 @@ certificate, c, in globus. It sticks the certificate into the file named
 
       keytool -trustcacerts -storepass "password" -v -keystore "truststore"  -importcert -file "${c}"
 
-[Running the C Client]()
+Running the C Client {#esg_c_client}
 ------------------------
 
 The file ".dodsrc" is used to configure curl. This file must reside
@@ -117,7 +122,7 @@ same value, which is the file path for the certificate produced by
 MyProxyLogon. The HTTP.SSL.CAPATH entry should be the path to the
 "certificates" directory produced by MyProxyLogon.
 
-[Running the Java Client]()
+Running the Java Client {#esg_java_client}
 ---------------------------
 
 If you are using the Java netCDF client, then you need to add some
@@ -125,7 +130,7 @@ parameters to the "java" command. Specifically, add the following flags.
 
        -Dkeystore="path to keystore file" -Dkeystorepassword="keystore password"
 
-[Script for creating Stores]()
+Script for creating Stores {#esg_script}
 ------------------------------
 
 The following script shows in detail how to actually construct the key
@@ -134,6 +139,7 @@ was when ESG support was first added. It may have changed since then, in
 which case, you will need to seek some help in fixing this script. It
 would help if you communicated what you changed to the author so this
 document can be updated.
+
 
     #!/bin/sh -x
     KEYSTORE="esgkeystore"
@@ -146,8 +152,8 @@ document can be updated.
     PWD="password"
 
     D="-Dglobus=$GLOBUS"
-    CCP="bcprov-jdk16-145.jar" 
-    CP="./build:${CCP}" 
+    CCP="bcprov-jdk16-145.jar"
+    CP="./build:${CCP}"
     JAR="myproxy.jar"
 
     # Initialize needed directories
@@ -177,7 +183,7 @@ document can be updated.
         echo "-----BEGIN CERTIFICATE-----" >$c       
         cat /tmp/${alias} >>$c
     done
-     
+
     # Build the truststore
     for c in ${TRUSTROOTPATH}/*.0 ; do
         alias=`basename $c .0`
@@ -187,14 +193,16 @@ document can be updated.
     done
     exit
 
-[Change Log]()
+
+
+Change Log {#esg_change_log}
 --------------
 
 **Version 1.0:**
 
 -   10/17/2013 – Initial Release
 
-[Document Information]()
+Document Information {#esg_doc_info}
 ------------------------
 
   ------------------------------------------------------------------------
@@ -216,5 +224,3 @@ document can be updated.
   email:
   dmh@unida.ucar.edu
   ------------------------------------------------------------------------
-
-

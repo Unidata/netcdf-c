@@ -30,6 +30,7 @@ See the following pages for more information.
 
 - \subpage dap_accessing_data
 - <a href="auth.html">netCDF Authorization Support</a>
+- \subpage esg
 - \subpage dap_to_netcdf
 - \subpage var_dim_trans
 - \subpage var_name_trans
