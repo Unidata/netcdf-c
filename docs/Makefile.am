@@ -11,7 +11,7 @@ EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html \
     building-with-cmake.md CMakeLists.txt \
     groups.dox install.md notes.md install-fortran.md \
     all-error-codes.md cmake_faq.md credits.md software.md \
-    auth.html
+    auth.html obsolete/fan_utils.html
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:
@@ -51,7 +51,7 @@ endif
 
 doxyfile.stamp:
 	$(DOXYGEN) Doxyfile \
-	cp auth.html html
+	cp auth.html obsolete/fan_utils.html html
 
 CLEANFILES = doxyfile.stamp html latex man
 
