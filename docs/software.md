@@ -269,7 +269,7 @@ comments on EzGet, contact Karl Taylor (taylor13@llnl.gov).
 FAN
 -------------------------
 
-[FAN (File Array Notation)](/software/netcdf/fan_utils.html) is Harvey
+[FAN (File Array Notation)](fan_utils.html) is Harvey
 Davies' package for extracting and manipulating array data from netCDF
 files. The package includes the three utilities nc2text, text2nc, and
 ncrob for printing selected data from netCDF arrays, copying ASCII data
