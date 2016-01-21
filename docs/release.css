@@ -9,7 +9,7 @@
 .tabs ul.tablist li.linkMenu select#versions {
  vertical-align: middle;
  height: ;
- margin: 8px 0 0 10px !important;
+ margin: 0 0 0 10px !important;
  padding: 0;
 }
 
@@ -21,7 +21,7 @@
 
 .tabs ul.tablist li.searchForm form#cse-search-box {
  float: right;
- margin: 8px 10px 0 0;
+ margin: 0 10px 0 0;
 }
 .tabs ul.tablist li.searchForm form#cse-search-box input#search {
  border-radius: 5px;
