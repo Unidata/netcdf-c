@@ -99,8 +99,8 @@ int dump_hdf_file(const float *data, int docompression)
    hid_t file_spaceid, mem_spaceid, access_plistid, xfer_plistid;
    herr_t status;
    hsize_t dims[NDIMS] = {X_LEN, Y_LEN, Z_LEN};
-   hsize_t start[NC_MAX_DIMS] = {0, 0, 0};
-   hsize_t count[NC_MAX_DIMS] = {1, 1, Z_LEN};
+   hsize_t start[NDIMS] = {0, 0, 0};
+   hsize_t count[NDIMS] = {1, 1, Z_LEN};
 
    /* create file */
    file_id = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC,
