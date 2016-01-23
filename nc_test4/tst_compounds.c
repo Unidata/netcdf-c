@@ -33,7 +33,7 @@ main(int argc, char **argv)
       size_t size;
       nc_type xtype, field_xtype;
       int dimids[] = {0}, fieldid;
-      int field_ndims, field_sizes[NC_MAX_DIMS];
+      int field_ndims;
       size_t offset;
       struct s1 
       {
@@ -78,10 +78,10 @@ main(int argc, char **argv)
       if (size != sizeof(struct s1)) ERR;
       if (nc_inq_compound_nfields(ncid, xtype, &nfields)) ERR;
       if (nfields != 2) ERR;
-      if (nc_inq_compound_field(ncid, xtype, 0, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+      if (nc_inq_compound_field(ncid, xtype, 0, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
       if (field_ndims) ERR;
       if (strcmp(name, BATTLES_WITH_KLINGONS) || offset != 0 || (field_xtype != NC_INT || field_ndims != 0)) ERR;
-      if (nc_inq_compound_field(ncid, xtype, 1, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+      if (nc_inq_compound_field(ncid, xtype, 1, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
       if (strcmp(name, DATES_WITH_ALIENS) || offset != 4 || field_xtype != NC_INT) ERR;
       if (nc_inq_compound_fieldname(ncid, xtype, 1, name)) ERR;
       if (strcmp(name, DATES_WITH_ALIENS)) ERR;
@@ -106,7 +106,7 @@ main(int argc, char **argv)
       size_t size;
       nc_type xtype, field_xtype;
       int dimids[] = {0}, fieldid;
-      int field_ndims, field_sizes[NC_MAX_DIMS];
+      int field_ndims;
       size_t offset;
       int i;
       struct s1 
@@ -164,10 +164,10 @@ main(int argc, char **argv)
       if (size != sizeof(struct s1)) ERR;
       if (nc_inq_compound_nfields(ncid, xtype, &nfields)) ERR;
       if (nfields != 2) ERR;
-      if (nc_inq_compound_field(ncid, xtype, 0, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+      if (nc_inq_compound_field(ncid, xtype, 0, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
       if (field_ndims) ERR;
       if (strcmp(name, BATTLES_WITH_KLINGONS) || offset != 0 || (field_xtype != NC_INT || field_ndims != 0)) ERR;
-      if (nc_inq_compound_field(ncid, xtype, 1, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+      if (nc_inq_compound_field(ncid, xtype, 1, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
       if (strcmp(name, DATES_WITH_ALIENS) || offset != 4 || field_xtype != NC_INT) ERR;
       if (nc_inq_compound_fieldname(ncid, xtype, 1, name)) ERR;
       if (strcmp(name, DATES_WITH_ALIENS)) ERR;
@@ -244,7 +244,7 @@ main(int argc, char **argv)
       size_t size, len;
       nc_type xtype, field_xtype;
       int fieldid;
-      int field_ndims, field_sizes[NC_MAX_DIMS];
+      int field_ndims;
       size_t offset;
       int i;
       struct s1 
@@ -297,9 +297,9 @@ main(int argc, char **argv)
       if (nfields != 2 || size != 8 || strcmp(name, SVC_REC)) ERR;
       if (nc_inq_compound_nfields(ncid, xtype, &nfields)) ERR;
       if (nfields != 2) ERR;
-      if (nc_inq_compound_field(ncid, xtype, 0, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+      if (nc_inq_compound_field(ncid, xtype, 0, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
       if (strcmp(name, BATTLES_WITH_KLINGONS) || offset != 0 || field_xtype != NC_INT) ERR;
-      if (nc_inq_compound_field(ncid, xtype, 1, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+      if (nc_inq_compound_field(ncid, xtype, 1, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
       if (strcmp(name, DATES_WITH_ALIENS) || offset != 4 || field_xtype != NC_INT) ERR;
       if (nc_inq_compound_fieldindex(ncid, xtype, BATTLES_WITH_KLINGONS, &fieldid)) ERR;
       if (fieldid != 0) ERR;
@@ -320,7 +320,7 @@ main(int argc, char **argv)
       size_t size;
       nc_type xtype, field_xtype;
       int dimids[] = {0};
-      int field_ndims, field_sizes[NC_MAX_DIMS];
+      int field_ndims;
       size_t offset;
       int i;
 
@@ -379,18 +379,18 @@ main(int argc, char **argv)
 	 if (strcmp(name, "starbase_13") || ndims != 1 || natts != 0 || dimids[0] != 0) ERR;
 	 if (nc_inq_compound(ncid, xtype, name, &size, &nfields)) ERR;
 	 if (nfields != 5 || size != sizeof(struct sf_med_rec) || strcmp(name, "SFMedRec")) ERR;
-	 if (nc_inq_compound_field(ncid, xtype, 0, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+	 if (nc_inq_compound_field(ncid, xtype, 0, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
 	 if (strcmp(name, "num_heads") || offset != 0 || field_xtype != NC_UBYTE) ERR;
-	 if (nc_inq_compound_field(ncid, xtype, 1, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+	 if (nc_inq_compound_field(ncid, xtype, 1, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
 	 if (strcmp(name, "num_arms") || offset != NC_COMPOUND_OFFSET(struct sf_med_rec, num_arms) || 
 	     field_xtype != NC_USHORT) ERR;
-	 if (nc_inq_compound_field(ncid, xtype, 2, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+	 if (nc_inq_compound_field(ncid, xtype, 2, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
 	 if (strcmp(name, "num_toes") || offset != NC_COMPOUND_OFFSET(struct sf_med_rec, num_toes) || 
 	     field_xtype != NC_UINT) ERR;
-	 if (nc_inq_compound_field(ncid, xtype, 3, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+	 if (nc_inq_compound_field(ncid, xtype, 3, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
 	 if (strcmp(name, "ago") || offset != NC_COMPOUND_OFFSET(struct sf_med_rec, ago) || 
 	     field_xtype != NC_INT64) ERR;
-	 if (nc_inq_compound_field(ncid, xtype, 4, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+	 if (nc_inq_compound_field(ncid, xtype, 4, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
 	 if (strcmp(name, "num_hairs") || offset != NC_COMPOUND_OFFSET(struct sf_med_rec, num_hairs) || 
 	     field_xtype != NC_UINT64) ERR;
 	 if (nc_get_var(ncid, varid, med_data_in)) ERR;
@@ -417,7 +417,7 @@ main(int argc, char **argv)
       size_t size;
       nc_type xtype;
       int dimids[] = {0};
-      int field_ndims, field_sizes[NC_MAX_DIMS];
+      int field_ndims; field_sizes[NC_MAX_DIMS];
       size_t offset;
       nc_type field_typeid;
       int dim_sizes[] = {NUM_DIMENSIONS};
@@ -495,7 +495,7 @@ main(int argc, char **argv)
       char name[NC_MAX_NAME + 1];
       size_t size, len;
       nc_type xtype, field_xtype;
-      int field_ndims, field_sizes[NC_MAX_DIMS];
+      int field_ndims;
       size_t offset;
       nc_type svc_recid, hr_recid;
       int dim_sizes[] = {NC_MAX_NAME + 1};
@@ -595,9 +595,9 @@ main(int argc, char **argv)
       if (len != DIM_LEN) ERR;
       if (nc_inq_compound(ncid, xtype, name, &size, &nfields)) ERR;
       if (nfields != 6 || size != sizeof(struct hr_rec) || strcmp(name, "SF_HR_Record")) ERR;
-      if (nc_inq_compound_field(ncid, xtype, 0, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+      if (nc_inq_compound_field(ncid, xtype, 0, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
       if (strcmp(name, "StarFleet_ID") || offset != 0 || field_xtype != NC_INT) ERR;
-      if (nc_inq_compound_field(ncid, xtype, 1, name, &offset, &field_xtype, &field_ndims, field_sizes)) ERR;
+      if (nc_inq_compound_field(ncid, xtype, 1, name, &offset, &field_xtype, &field_ndims, NULL)) ERR;
       if (strcmp(name, "Service_Record") || offset != NC_COMPOUND_OFFSET(struct hr_rec, svc_rec)) ERR;
       /* Check the internal compound type. */
       
