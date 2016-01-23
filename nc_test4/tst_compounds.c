@@ -417,7 +417,7 @@ main(int argc, char **argv)
       size_t size;
       nc_type xtype;
       int dimids[] = {0};
-      int field_ndims; field_sizes[NC_MAX_DIMS];
+      int field_ndims;
       size_t offset;
       nc_type field_typeid;
       int dim_sizes[] = {NUM_DIMENSIONS};
