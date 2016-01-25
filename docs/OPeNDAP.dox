@@ -30,6 +30,7 @@ See the following pages for more information.
 
 - \subpage dap_accessing_data
 - <a href="auth.html">netCDF Authorization Support</a>
+- \subpage esg
 - \subpage dap_to_netcdf
 - \subpage var_dim_trans
 - \subpage var_name_trans
@@ -47,7 +48,7 @@ format. The URL is composed of three parts.
  -  Constraints - these are suffixed to the URL and take the form
     “?\<projections>&\<selections>”. The meaning of the terms projection
     and selection is somewhat complicated; and the OPeNDAP web site,
-    http://www.opendap.org, should be consulted. The interaction of DAP
+    http://www.opendap.org , should be consulted. The interaction of DAP
     constraints with netCDF is complex and at the moment requires an
     understanding of how DAP is translated to netCDF.
 

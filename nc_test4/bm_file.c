@@ -77,7 +77,7 @@ get_starts_counts(int ndims, size_t *dimlen, int p, int my_rank,
 		  size_t *last_count, size_t *start, size_t *count)
 {
    int extra_step = 0;
-   int total[NC_MAX_DIMS];
+   int total[NC_MAX_VAR_DIMS];
    int total_len;
    int s, d;
 
@@ -263,8 +263,8 @@ cmp_file(char *file1, char *file2, int *meta_read_us, int *data_read_us,
    void *data = NULL, *data2 = NULL;
    int a, v, d;
    nc_type xtype, xtype2;
-   int nvars, ndims, dimids[NC_MAX_DIMS], natts, real_ndims;
-   int nvars2, ndims2, dimids2[NC_MAX_DIMS], natts2;
+   int nvars, ndims, dimids[NC_MAX_VAR_DIMS], natts, real_ndims;
+   int nvars2, ndims2, dimids2[NC_MAX_VAR_DIMS], natts2;
    size_t *count = NULL, *start = NULL;
    int slice_len = 1;
    size_t *dimlen = NULL, type_size = 0;
@@ -567,7 +567,7 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
 	 char name[NC_MAX_NAME + 1];
 	 char att_name[NC_MAX_NAME + 1];
 	 nc_type xtype;
-	 int ndims, dimids[NC_MAX_DIMS], natts;
+	 int ndims, dimids[NC_MAX_VAR_DIMS], natts;
 	 int varid_out;
 	 int a, o1;
 	 int ret = NC_NOERR;
@@ -636,7 +636,7 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
    {
       char name[NC_MAX_NAME + 1];
       nc_type xtype;
-      int ndims, dimids[NC_MAX_DIMS], natts, real_ndims;
+      int ndims, dimids[NC_MAX_VAR_DIMS], natts, real_ndims;
       int d;
       void *data = NULL;
       size_t *count = NULL, *start = NULL;

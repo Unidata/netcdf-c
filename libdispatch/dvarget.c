@@ -11,9 +11,10 @@ Research/Unidata. See \ref copyright file for more info.
 #undef VARS_USES_VARM
 #ifndef VARS_USES_VARM
 
-/*! \internal
+/*!
+  \internal
 
- */
+*/
 struct GETodometer {
     int            rank;
     size_t         index[NC_MAX_VAR_DIMS];

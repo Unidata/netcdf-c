@@ -1,4 +1,4 @@
-FAQ                {#ncFAQ}
+FAQ                {#faq}
 =======================
 
 [TOC]
@@ -11,7 +11,7 @@ What Is netCDF?  {#What-Is-netCDF}
 
 
 NetCDF (network Common Data Form) is a set of interfaces for
-array-oriented data access and a [freely](http://www.unidata.ucar.edu/software/netcdf/docs/COPYRIGHT) distributed
+array-oriented data access and a [freely](http://www.unidata.ucar.edu/software/netcdf/docs/copyright.html) distributed
 collection of data access libraries for C, Fortran, C++, Java, and other
 languages. The netCDF libraries support a machine-independent format for
 representing scientific data. Together, the interfaces, libraries, and
@@ -67,7 +67,7 @@ that is part of the netCDF software distribution. It is a command line
 tool that provides a text representation of a netCDF file's data, just its
 metadata, or just the data for specified
 variables, depending on what arguments you use. For more information,
-see the [ncdump documentation](http://www.unidata.ucar.edu/software/netcdf/docs/ncdump-man-1.html).
+see the \ref ncdump_guide documentation.
 
 Another good tool for conversion of netCDF data to text is the ["ncks" program](http://nco.sourceforge.net/nco.html#ncks-netCDF-Kitchen-Sink) that's one of the utility programs in the [NCO (NetCDF Operators)](software.html#NCO) package. Similar capabilities are available using programs from the [CDO (Climate Data Operators)](software.html#CDO) software, commands from [NCL (NCAR Command Language)](software.html#NCL), or various other packages such as [ANAX](http://science.arm.gov/~cflynn/ARM_Tested_Tools/), cdf2asc, and NOESYS, all "third party" netCDF utilities developed and supported by other organizations. You can find more information about these third-party packages on the [Software for Manipulating or Displaying NetCDF Data](software.html) page.
 
@@ -284,11 +284,11 @@ The registered Digital Object Identifier for all versions of netCDF software is 
 
 The following can be used as a citation:
 
-Unidata, (_year_): Network Common Data Form (netCDF) version _nc_version_ [software]. Boulder, CO: UCAR/Unidata. (http://doi.org/10.5065/D6H70CW6) 
+Unidata, (_year_): Network Common Data Form (netCDF) version _nc_version_ [software]. Boulder, CO: UCAR/Unidata. (http://doi.org/10.5065/D6H70CW6)
 
 where _year_ is the year in which the work being described was done and _nc_version_ is the version of netCDF used. For example:
 
-Unidata, (2015): Network Common Data Form (netCDF) version 4.3.3.1 [software]. Boulder, CO: UCAR/Unidata. (http://doi.org/10.5065/D6H70CW6) 
+Unidata, (2015): Network Common Data Form (netCDF) version 4.3.3.1 [software]. Boulder, CO: UCAR/Unidata. (http://doi.org/10.5065/D6H70CW6)
 
 ----------
 
