@@ -1218,8 +1218,13 @@ IF(NC_M4)
 ENDIF()
 
 MACRO(GEN_m4 filename)
-#  IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
+
 IF(HAVE_M4)
+  # If m4 is available, remove generated file if it exists.
+  IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
+    FILE(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
+  ENDIF()
+
   ADD_CUSTOM_COMMAND(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
     COMMAND ${NC_M4}
