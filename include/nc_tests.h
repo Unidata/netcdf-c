@@ -22,6 +22,9 @@ for conditions of use.
 #include "netcdf.h"
 #include "err_macros.h"
 
+
+#define NC_TESTS_MAX_DIMS 1024 /**< NC_MAX_DIMS for tests.  Allows different NC_MAX_DIMS values without breaking this test with a heap or stack overflow. */
+
 /** Useful define for tests. */
 /** \{ */
 #define MEGABYTE 1048576
