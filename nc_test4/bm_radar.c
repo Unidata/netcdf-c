@@ -69,7 +69,7 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
       char name[NC_MAX_NAME + 1];
       char att_name[NC_MAX_NAME + 1];
       nc_type xtype;
-      int ndims, dimids[NC_MAX_DIMS], natts;
+      int ndims, dimids[NC_MAX_VAR_DIMS], natts;
       int varid_out;
       int a;
       int retval = NC_NOERR;
@@ -103,7 +103,7 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
    {
       char name[NC_MAX_NAME + 1];
       nc_type xtype;
-      int ndims, dimids[NC_MAX_DIMS], natts, real_ndims;
+      int ndims, dimids[NC_MAX_VAR_DIMS], natts, real_ndims;
       int d;
       void *data = NULL;
       size_t *count = NULL, *start = NULL;
