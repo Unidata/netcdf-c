@@ -42,7 +42,7 @@ main(int argc, char **argv)
       size_t size;
       nc_type xtype, field_xtype;
       int dimids[] = {0};
-      int field_ndims, field_sizes[NC_MAX_DIMS];
+      int field_ndims, field_sizes[NC_TESTS_MAX_DIMS];
       size_t offset;
       int i;
 
