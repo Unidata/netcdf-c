@@ -1,267 +1,60 @@
-![](http://www.unidata.ucar.edu/images/logos/thredds_tds-150x150.png)
+# DRAFT: How to contribute {#contributing}
 
-Welcome contributors!
-=====================
+Thanks for your interest in contributing to the netCDF project.  There are many different platforms and configurations which we don't have access to directly, and your contributions help ensure that things continue to run smoothly for **all** of our users.  We'll strive to keep the process simple for you, the contributor, by establishing a handful of guidelines up front.
 
-First off, thank you for your interest in contributing to the THREDDS
-project! This repository contains the code for both netCDF-Java and the
-THREDDS Data Server (TDS) projects. The other projects held under the
-THREDDS umbrella are
-[Siphon](https://github.com/unidata/rosetta%3ERosetta%3C/a%3E%20and%20the%20latest%20addition,%20%3Ca%20href=)
-(a python interface to the TDS).
+> We will assume that you are familiar with `git` and `GitHub`.  If not, you may go through the GitHub tutorial found at [https://guides.github.com/activities/hello-world/](https://guides.github.com/activities/hello-world/).  This tutorial should only take around 10 minutes.
 
-Process Overview
-----------------
+# Workflow
 
--   [GitHub Setup](#gh-setup)
-    -   [Join Github!](#gh-join)
-    -   [Fork the Unidata THREDDS project](#gh-fork)
-    -   [Pull down local copy of the Unidata THREDDS
-        project](#gh-pull-ud-thredds)
-    -   [Add and pull down a local copy of your THREDDS project
-        fork](#gh-pull-personal-thredds)
--   [Contribution workflow](#gh-contrib-workflow)
-    -   [Make sure you have the latest changes from Unidata THREDDS
-        repository](#gh-sync-ud)
-    -   [Make a new branch for your work and start hacking](#gh-branch)
-    -   [Clean up your git commit history](#gh-history-cleanup)
-    -   [Push changes to your fork to use for the pull
-        request](#gh-final-commit-for-pr)
-    -   [Make the pull request](#gh-pr)
--   [Now what?](#gh-now-what)
+The process for contributing a patch to netCDF roughly follows the following workflow:
 
-[GitHub Setup]()
-----------------
+* (Optional) Open an issue [on GitHub](http://github.com/Unidata/netcdf-c/issues).
 
-### [Join Github!]()
+> This step is strongly encouraged.  The larger the scope of the proposed change, the more likely it is that we will need to have a discussion about the ramifications before accepting the pull request.  We don't want anybody to waste their time developing a patch only to have it rejected because we disagree with the premise or goal!  By opening an issue you can start a public dialog with us about the proposed changes, ensuring that everybody is on the same page and that no time/effort will be wasted!
 
-To get started contributing to the THREDDS project, the first thing you
-should do is [signup for a free account on
-GitHub](https://github.com/join).
+* Fork the [Unidata/netcdf-c](http://github.com/Unidata/netcdf-c) repository.
+* Make the desired changes to the netcdf-c project.
+* Compile your code and test your changes.  See the section on testing your changes below for more information; we provide a lot of options!
+* Push your changes to GitHub.
+* Issue a pull request.
 
-### [Fork the Unidata THREDDS project]()
+Once a pull request has been received, it will be reviewed and evaluated by the netCDF developers at Unidata.  If there are any questions or comments, they will be appended to the discussion area of the pull request.
 
-Once you have an account, go ahead and
-[fork](https://github.com/unidata/thredds#fork-destination-box) the
-THREDDS project. By forking the project, you will have a complete copy
-of the THREDDS project, history and all, under your personal account.
-This will allow you to make pull requests against the Unidata THREDDS
-repository, which is the primairy mechanism used to add new code to the
-project (even Unidata developers do this!).
+# The characteristics of an accepted pull request
 
-### [Pull down local copy of the Unidata THREDDS project]()
+Not every pull request is created equally; while we appreciate every contribution we receive, we do not accept them all.  Those that we *do* accept generally have the following in common:
 
-After cloning the Unidata repository, you can pull down the source code
-to your local machine by using git:
+* **They possess a clear purpose** - What is the point of the pull request? How does it benefit the netCDF community at large? If it is not beneficial in an apparent fashion, we will likely reject the pull request.
+* **The code is documented** - The netCDF developers must understand not only *what* a change is doing, but *how* it is doing it.  Documenting your code makes it easier for us to understand the workflow of your patch.  If we can't figure out how a patch works, we will ask for clarification before accepting it.
+* **They pass QA** - If new functionality has been added, corresponding unit tests have been created and wired in to the build systems.  We do not expect you to perform comprehensive testing across a multitude of platforms, but at the very least your code should **compile** and no existing tests should be broken.  A pull request that doesn't compile will be rejected on principle, and a pull request which breaks tests will have to be corrected before it is accepted.  See "Testing your changes" below for more information.
+* **They do not compromise the principles behind netCDF** - NetCDF has a 100% iron-clad commitment to backwards compatibility.  Any file ever created with netCDF must be readable by any future version of netCDF.  The netCDF data models and file formats are **well** defined.  If your purpose is to modify the data model or file format, **please** discuss this with us first.  ***If*** we are in agreement regarding the changes, we will need to discuss how to add them as a **new** data-model/file-format.  Similarly, netCDF has a commitment to remaining *machine-independent*; data created on one platform/environment/architecture **must** remain readable by any other `libnetcdf` compiled with similar functionality.  
 
-    git clone --origin unidata git@github.com:Unidata/thredds.git (for ssh)
+## What about Typo/Bug Fixes/Incremental Fixes?
 
-or
+Many of the pull requests we receive do little other than to fix a typo or correct a bug in our code.  This is great, and we encourage as many of these as we can get!  "Fixing mistakes" falls within the principles guiding netCDF, and these changes are 1) Typically self-describing rarely result in any issues with QA
 
-    git clone --origin unidata https://github.com/Unidata/thredds.git (for http)
+# Testing your changes
 
-Note that these commands reference the Unidata repository.
+There are several ways to test your changes to ensure that your pull request passes QA.
 
-Normally in git, the remote repository you clone from is automatically
-named 'origin'. To help with any confusion when making pull requests,
-this commands above rename the remote repository to 'unidata'.
+## On-the-spot tests
 
-### [Add and pull down a local copy of your THREDDS project fork]()
+* `make check` if you are using configure/autotools.
+* `make test` if you are using cmake.
 
-Next, move into the source directory git has created, and add your
-personal fork of the THREDDS code as a remote"
+## Continuous Integration testing with Travis CI
 
-    git clone --origin me git@github.com:/thredds.git (for ssh)
+Travis CI is a system for providing **automated** continuous integration testing, without requiring any effort on the part of the contributor.  Any time a change is pushed out to GitHub, a series of tests will run automatically and will ultimately report a success or a failure.  You may view the Unidata Travis dashboard [here](https://travis-ci.org/Unidata/).  Each project listed may be "drilled down" into, where specific information may be found.
 
-or
+## Regression testing with Docker
 
-    git clone --origin me https://github.com/,my-github-user-name>/thredds.git (for http)
+If you are not familiar with Docker, feel free to skip this section *or* read up on Docker [at their website](http://www.docker.io).
 
-Now you are all set!
 
-[Contribution workflow]()
--------------------------
 
-### [Make sure you have the latest changes from Unidata THREDDS repository]()
+We provide
 
-First, make sure you have the most recent changes to the THREDDS code by
-using git pull:
 
-    git pull unidata master
+# We are here to help
 
-### [Make a new branch for your work and start hacking]()
-
-Next, make a new branch where you will actually do the hacking:
-
-    git checkout -b mywork
-
-As of this point, the branch 'mywork' is local. To make this branch part
-of your personal GitHub Remote repository, use the following command:
-
-    git push -u me mywork
-
-Now git (on your local machine) is setup to a point where you can start
-hacking on the code and commit changes to your personal GitHub
-repository. At any point, you may add commits to your local copy of the
-repository by using:
-
-    git commit
-
-If you would like these changes to be stored on your personal remote
-repository, simply use:
-
-    git push me mywork
-
-Once you are satisified with your work, there is one last step to
-complete before submitting the pull request - clean up the history.
-
-### [Clean up your git commit history]()
-
-Commit history can often be full of temporiariy commit messages, of
-commits with code changes that ultimately didn't make the final cut.
-
-To clean up your history, use the
-
-    git rebase -i
-
-command, which will open an editor:
-
-    sarms@flip: [mywork] git rebase -i
-    pick 083508e first commit of my really cool feature or bug fix!
-    pick 9bcba01 Oops missed this one thing. This commit fixes that.
-
-    # Rebase 083508e..9bcba01 onto 083508e (2 command(s))
-    #
-    # Commands:
-    # p, pick = use commit
-    # r, reword = use commit, but edit the commit message
-    # e, edit = use commit, but stop for amending
-    # s, squash = use commit, but meld into previous commit
-    # f, fixup = like "squash", but discard this commit
-
-message \# x, exec = run command (the rest of the line) using shell \#
-d, drop = remove commit \# \# These lines can be re-ordered; they are
-executed from top to bottom. \# \# If you remove a line here THAT COMMIT
-WILL BE LOST. \# \# However, if you remove everything, the rebase will
-be aborted. \# \# Note that empty commits are commented out
-
-
-    Based on my commit messages, you can see that commit 
-
-1' fixed a mistake from my first commit. It would be nice to 'squash'
-those changes into the first commit, so that the official history does
-not show my mistake..uhhh...this extra commit. To do so, edit the text
-to change the second commits 'pick' to 'squash':
-
-    h
-    pick 083508e first commit of my really cool feature or bug fix!
-    squash 9bcba01 Oops missed this one thing. This commit fixes that.
-
-    # Rebase 083508e..9bcba01 onto 083508e (2 command(s))
-    #
-    # Commands:
-    # p, pick = use commit
-    # r, reword = use commit, but edit the commit message
-    # e, edit = use commit, but stop for amending
-    # s, squash = use commit, but meld into previous commit
-    # f, fixup = like "squash", but discard this commit
-
-message \# x, exec = run command (the rest of the line) using shell \#
-d, drop = remove commit \# \# These lines can be re-ordered; they are
-executed from top to bottom. \# \# If you remove a line here THAT COMMIT
-WILL BE LOST. \# \# However, if you remove everything, the rebase will
-be aborted. \# \# Note that empty commits are commented out
-
-
-    Once you have marked the commits to be squashed and exited the edit, you will prompted to change the commit message for the new, squashed, mega commit:
-
-\# This is a combination of 2 commits. \# The first commit's message is:
-first commit of my really cool feature or bug fix! \# This is the 2nd
-commit message: Oops missed this one thing. This commit fixes that.
-\#Please enter the commit message for your changes. Lines starting \#
-with '\#' will be ignored, and an empty message aborts the commit. \# \#
-Date: Thu Oct 15 09:59:23 2015 -0600 \# \# interactive rebase in
-progress; onto 083508e \# Last commands done (2 commands done): \# pick
-09134d5 first commit of my really cool feature or bug fix! \# squash
-9bcba01 Oops missed this one thing. This commit fixes that. \# No
-commands remaining. \# You are currently editing a commit while rebasing
-branch 'mywork' on '0835 08e'. \# \# Changes to be committed: ...
-
-
-    Edit the two commit messages into a single message that describes the overall change:
-
-Once you have and exit, you will have a change to change the commit
-message for the new, squashed, mega commit:
-
-    h
-
-    Really cool feature or bug fix. Addresses the github issue Unidata/thredds#1
-
-    #Please enter the commit message for your changes. Lines starting
-    # with 
-
-l be ignored, and an empty message aborts the commit. \# \# Date: Thu
-Oct 15 09:59:23 2015 -0600 \# \# interactive rebase in progress; onto
-083508e \# Last commands done (2 commands done): \# pick 09134d5 first
-commit of my really cool feature or bug fix! \# squash 9bcba01 Oops
-missed this one thing. This commit fixes that. \# No commands remaining.
-\# You are currently editing a commit while rebasing branch 'mywork' on
-'0835 08e'. \# \# Changes to be committed: ...
-
-
-    Now, when you look at your git commit logs, you will see:
-
-commit 805b4723c4a2cbbed240354332cd7af57559a1b9 Author: Sean Arms Date:
-Thu Oct 15 09:59:23 2015 -0600 Really cool feature or bug fix. Addresses
-the github issue Unidata/thredds\#1
-
-
-    Note that the commit conains the text 
-
-a/thredds\#1'. This is a cool github trick that will allow you to
-reference GitHub issues within your commit messages. When viewed on
-github.com, this will be turned into a hyperlink to the issue. While not
-every contribution will address an issue, please use this feature if
-your contribution does!
-
-### [Push changes to your fork to use for the pull request]()
-
-Now that you have cleaned up the history, you will need to make a final
-push to your personal GitHub repository. However, the rebase has changed
-the history of your local branch, which means you will need to use the
-'--force' flag in your push:
-
-    ush --force me mywork
-
-### [Make the pull request]()
-
-Finally, go to your personal remote repository on github.com and switch
-to your 'mywork' branch. Once you are on your work branch, you will see
-a button that says "Pull request", which will allow you to make a pull
-request. The github pull request page will allow you to select which
-repository and branch you would like to submit the pull request to (the
-'base fork', which should be 'Unidata/thredds', and 'base', which should
-be 'master'), as well as the 'head fork' and 'compare' (which should be
-'' and 'mywork', respectivly). Once this is setup, you can make the pull
-request.
-
-[Now what?]()
--------------
-
-The Unidata THREDDS project is setup such that automated testing for all
-pull requests is done via TravisCI. The status of the tests can be seen
-on the pull request page. For example, see
-[Unidata/thredds\#231](https://github.com/Unidata/thredds/pull/231) by
-selecting the 'View Details' button. This pull request was tested on
-[TravisCI](https://travis-ci.org/Unidata/thredds/builds/84433104) and
-passed on all versions of Java supported by the current master branch.
-We have setup the THREDDS repository such that changes that do not pass
-these tests cannot be merged. One of the Unidata THREDDS team members
-will work with you to make sure your work is ready for merging once the
-tests have passed on TravisCI. Note that as changes to your pull request
-may be required, you can simply push thos changes to your personal
-GitHub repository and the pull request will automatically be updated and
-new TravisCI tests will be initiated. If your pull request addresses a
-bug, we kindly ask that you include a test in your pull request. If you
-do not know how to write tests in Java, we will be more than happy to
-work with you!
+We want as many contributions as we can get, and are here to help ensure that your efforts are not wasted!  We will work with you to ensure that your code works on more esoteric platforms (`ARM`, `Windows`) and that the pull request possesses the characteristics described above.  Feel free to reach out to us if you have any questions!
