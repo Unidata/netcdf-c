@@ -1,4 +1,4 @@
-# DRAFT: How to contribute {#contributing}
+# How to contribute {#contributing}
 
 Thanks for your interest in contributing to the netCDF project.  There are many different platforms and configurations which we don't have access to directly, and your contributions help ensure that things continue to run smoothly for **all** of our users.  We'll strive to keep the process simple for you, the contributor, by establishing a handful of guidelines up front.
 
@@ -10,7 +10,7 @@ The process for contributing a patch to netCDF roughly follows the following wor
 
 * (Optional) Open an issue [on GitHub](http://github.com/Unidata/netcdf-c/issues).
 
-> This step is strongly encouraged.  The larger the scope of the proposed change, the more likely it is that we will need to have a discussion about the ramifications before accepting the pull request.  We don't want anybody to waste their time developing a patch only to have it rejected because we disagree with the premise or goal!  By opening an issue you can start a public dialog with us about the proposed changes, ensuring that everybody is on the same page and that no time/effort will be wasted!
+> This step is ***strongly*** encouraged.  The larger the scope of the proposed change, the more likely it is that we will need to have a discussion about the ramifications before accepting the pull request.  We don't want anybody to waste their time developing a patch only to have it rejected because we disagree with the premise or goal!  By opening an issue you can start a public dialog with us about the proposed changes, ensuring that everybody is on the same page and that no time/effort will be wasted!
 
 * Fork the [Unidata/netcdf-c](http://github.com/Unidata/netcdf-c) repository.
 * Make the desired changes to the netcdf-c project.
@@ -35,9 +35,9 @@ Many of the pull requests we receive do little other than to fix a typo or corre
 
 # Testing your changes
 
-There are several ways to test your changes to ensure that your pull request passes QA.
+There are several ways to test your changes to ensure that your pull request passes QA.  There are manual *spot-checks* which test the code "on-the-spot", and there are automated *continuous integration* tests which will run and evaluate any contributes to ensure nothing breaks.  **Advanced** users may also use Unidata-maintained *Docker* images for running *regression* tests.
 
-## On-the-spot tests
+## Spot-check tests
 
 * `make check` if you are using configure/autotools.
 * `make test` if you are using cmake.
@@ -48,11 +48,18 @@ Travis CI is a system for providing **automated** continuous integration testing
 
 ## Regression testing with Docker
 
-If you are not familiar with Docker, feel free to skip this section *or* read up on Docker [at their website](http://www.docker.io).
+If you are not familiar with Docker, feel free to skip this section *or* read up on Docker [at their website](http://www.docker.io).  If you are familiar with Docker, please read on.
 
+We provide several Docker images for performing regression tests against netCDF-C.  These tests build and test `libnetcdf`, and then use it as the basis for testing the following packages:
 
+* NetCDF-C++
+* NetCDF-Fortran
+* NetCDF-Python
+* NetCDF Operators (NCO)
 
-We provide
+By performing these comprehensive tests, we're able to see if any change in the core library results in unexpected behavior with the common interfaces.  For full documentation, please see [this page](https://github.com/Unidata/docker-nctests/tree/master/tests-regression).  
+
+These tests will be run against any pull request submitted; you are encouraged to make use of them if you so like.
 
 
 # We are here to help
