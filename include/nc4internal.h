@@ -401,6 +401,10 @@ int nc4_check_name(const char *name, char *norm_name);
 int nc4_normalize_name(const char *name, char *norm_name);
 int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 
+/* HDF5 initialization */
+int nc4_hdf5_initialized;
+void nc4_hdf5_initialize(void);
+
 /* This is only included if --enable-logging is used for configure; it
    prints info about the metadata to stderr. */
 #ifdef LOGGING

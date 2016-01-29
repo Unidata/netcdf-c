@@ -86,10 +86,6 @@ size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;
 size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;
 float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION;
 
-/* To turn off HDF5 error messages, I have to catch an early
-   invocation of a netcdf function. */
-static int virgin = 1;
-
 /* For performance, fill this array only the first time, and keep it
  * in global memory for each further use. */
 #define NUM_TYPES 12
@@ -491,13 +487,8 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
 #endif /* USE_PARALLEL4 */
 
    /* If this is our first file, turn off HDF5 error messages. */
-   if (virgin)
-   {
-      if (H5Eset_auto(NULL, NULL) < 0)
-	 LOG((0, "Couldn't turn off HDF5 error messages!"));
-      LOG((1, "HDF5 error messages have been turned off."));
-      virgin = 0;
-   }
+   if (!nc4_hdf5_initialized)
+	nc4_hdf5_initialize();
 
    /* Check the cmode for validity. */
    if((cmode & ILLEGAL_CREATE_FLAGS) != 0)
@@ -2789,15 +2780,9 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 	parameters = &mpidfalt;
 #endif /* USE_PARALLEL4 */
 
-   /* If this is our first file, turn off HDF5 error messages. */
-   if (virgin)
-   {
-      if (H5Eset_auto(NULL, NULL) < 0)
-	 LOG((0, "Couldn't turn off HDF5 error messages!"));
-      LOG((1, "HDF5 error messages turned off!"));
-      virgin = 0;
-   }
-
+   /* If this is our first file, initialize HDF5. */
+   if (!nc4_hdf5_initialized)
+	nc4_hdf5_initialize();
 
    /* Check the mode for validity */
    if((mode & ILLEGAL_OPEN_FLAGS) != 0)
