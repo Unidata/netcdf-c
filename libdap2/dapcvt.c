@@ -203,8 +203,9 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
     char* dstmem = (char*)dst;
 
     for(i=0;i<nvalues;i++) {
-
 	char* s = (char*)nclistget(src,i);
+	size_t slen = strlen(s);
+        int nread = 0; /* # of chars read by sscanf */
 
 	ok = 0;
 	switch (etype) {
@@ -213,60 +214,60 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 		
 		unsigned char* p = (unsigned char*)dstmem;
 #ifdef _MSC_VER
-		ok = sscanf(s,"%hC",p);
+		ok = sscanf(s,"%hC%n",p,&nread);
 		_ASSERTE(_CrtCheckMemory());
 #else	
-		ok = sscanf(s,"%hhu",p);
+		ok = sscanf(s,"%hhu%n",p,&nread);
 #endif
 	    } break;
 	case NC_CHAR: {
 	    signed char* p = (signed char*)dstmem;
-	    ok = sscanf(s,"%c",p);
+	    ok = sscanf(s,"%c%n",p,&nread);
 	    } break;
 	case NC_SHORT: {
 	    short* p = (short*)dstmem;
-	    ok = sscanf(s,"%hd",p);
+	    ok = sscanf(s,"%hd%n",p,&nread);
 	    } break;
 	case NC_INT: {
 	    int* p = (int*)dstmem;
-	    ok = sscanf(s,"%d",p);
+	    ok = sscanf(s,"%d%n",p,&nread);
 	    } break;
 	case NC_FLOAT: {
 	    float* p = (float*)dstmem;
-	    ok = sscanf(s,"%g",p);
+	    ok = sscanf(s,"%g%n",p,&nread);
 	    } break;
 	case NC_DOUBLE: {
 	    double* p = (double*)dstmem;
-	    ok = sscanf(s,"%lg",p);
+	    ok = sscanf(s,"%lg%n",p,&nread);
 	    } break;
 	case NC_UBYTE: {
 	    unsigned char* p = (unsigned char*)dstmem;
 #ifdef _MSC_VER
-		ok = sscanf(s, "%hc", p);
+		ok = sscanf(s, "%hc%n", p,&nread);
 		_ASSERTE(_CrtCheckMemory());
 #else
-	    ok = sscanf(s,"%hhu",p);
+	    ok = sscanf(s,"%hhu%n",p,&nread);
 #endif
 		} break;
 	case NC_USHORT: {
 	    unsigned short* p = (unsigned short*)dstmem;
-	    ok = sscanf(s,"%hu",p);
+	    ok = sscanf(s,"%hu%n",p,&nread);
 	    } break;
 	case NC_UINT: {
 	    unsigned int* p = (unsigned int*)dstmem;
-	    ok = sscanf(s,"%u",p);
+	    ok = sscanf(s,"%u%n",p,&nread);
 	    } break;
 	case NC_INT64: {
 	    long long* p = (long long*)dstmem;
 #ifdef _MSC_VER
-		ok = sscanf(s, "%I64d", p);
+		ok = sscanf(s, "%I64d%n", p,&nread);
 #else
-		ok = sscanf(s,"%lld",p);
+		ok = sscanf(s,"%lld%n",p,&nread);
 #endif
 	} break;
 	case NC_UINT64: {
 	    unsigned long long* p = (unsigned long long*)dstmem;
-	    ok = sscanf(s,"%llu",p);
+	    ok = sscanf(s,"%llu%n",p,&nread);
 	    } break;
 	case NC_STRING: case NC_URL: {
 	    char** p = (char**)dstmem;
@@ -276,7 +277,7 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	default:
    	    PANIC1("unexpected nc_type: %d",(int)etype);
 	}
-	if(ok != 1) {ncstat = NC_EINVAL; goto done;}
+	if(ok != 1 || nread != slen) {ncstat = NC_EINVAL; goto done;}
 	dstmem += memsize;
     }
 done:
