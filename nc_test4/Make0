@@ -1,0 +1,31 @@
+# Test c output
+T=tst_mode
+#CMD=valgrind --leak-check=full
+CMD=gdb --args
+
+PAR=1
+
+CFLAGS=-g -O0 -I.. -I../include
+
+ifdef PAR
+CC=mpicc
+#CC=/usr/local/bin/mpicc
+LDFLAGS=-L/usr/local/lib -lhdf5_hl -lhdf5 -lz  ../liblib/.libs/libnetcdf.a -ldl -lcurl -lpnetcdf -lmpich -lm
+else
+CC=gcc
+#LDFLAGS=../liblib/.libs/libnetcdf.a  -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
+LDFLAGS=-L/usr/local/lib -lhdf5_hl -lhdf5 -lz  ../liblib/.libs/libnetcdf.a -ldl -lm -lcurl
+endif
+
+#	cd .. ; ${MAKE} all
+
+LLP=/usr/local/lib:${LD_LIBRARY_PATH}
+
+all::
+	echo ${LD_RUN_PATH}
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${CC} -o t ${CFLAGS} ${T}.c ${LDFLAGS}; \
+	${CMD} ./t
+
+cpp::
+	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt

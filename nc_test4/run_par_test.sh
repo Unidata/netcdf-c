@@ -4,6 +4,9 @@
 
 set -e
 echo
+echo "Testing MPI parallel I/O with various other mode flags..."
+mpiexec -n 1 ./tst_mode
+echo
 echo "Testing MPI parallel I/O without netCDF..."
 mpiexec -n 4 ./tst_mpi_parallel
 echo
@@ -18,6 +21,7 @@ mpiexec -n 1 ./tst_parallel4
 mpiexec -n 2 ./tst_parallel4
 mpiexec -n 4 ./tst_parallel4
 mpiexec -n 8 ./tst_parallel4
+
 #mpiexec -n 16 ./tst_parallel4
 #mpiexec -n 32 ./tst_parallel4
 #mpiexec -n 64 ./tst_parallel4
