@@ -79,6 +79,7 @@ IF(TEST_PARALLEL)
   build_bin_test(tst_parallel3)
   build_bin_test(tst_parallel4)
   build_bin_test(tst_nc4perf)
+  build_bin_test(tst_mode)
   add_sh_test(nc_test4 run_par_test)
 ENDIF()
 

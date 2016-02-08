@@ -858,6 +858,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 	  (*contiguous != NC_CHUNKED && fletcher32))
 	 return NC_EINVAL;
 
+   /* Can't turn on parallel and deflate/fletcher32/szip/shuffle. */
+   if (nc->mode & (NC_MPIIO | NC_MPIPOSIX)) {
+      if (deflate || fletcher32 || shuffle)
+	 return NC_EINVAL;
+   }
+
    /* If the HDF5 dataset has already been created, then it is too
     * late to set all the extra stuff. */
    if (var->created)

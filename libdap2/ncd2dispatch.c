@@ -929,6 +929,7 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	else
 	    ncstat = nc_put_att_text(drno->substrate,varid,att->name,strlen(newstring),newstring);
 	free(newstring);
+        if(ncstat) goto done;
     } else {
 	nc_type atype;
 	unsigned int typesize;
@@ -955,13 +956,14 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 #ifdef _MSC_VER
 	_ASSERTE(_CrtCheckMemory());
 #endif
+    if(ncstat) {nullfree(mem); goto done;}
     ncstat = nc_put_att(drno->substrate,varid,att->name,atype,nvalues,mem);
 #ifdef _MSC_VER
 	_ASSERTE(_CrtCheckMemory());
 #endif
-	if (mem != NULL)
-		free(mem);
-	}
+    if(ncstat) {nullfree(mem); goto done;}
+    }
+done:
     return THROW(ncstat);
 }
 
