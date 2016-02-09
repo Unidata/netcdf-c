@@ -947,44 +947,35 @@ IF(ENABLE_PNETCDF)
   FIND_LIBRARY(PNETCDF NAMES pnetcdf)
   FIND_PATH(PNETCDF_INCLUDE_DIR pnetcdf.h)
   IF(NOT PNETCDF)
-    MESSAGE(STATUS "Cannot find pNetCDF library. Disabling pNetCDF support.")
+    MESSAGE(STATUS "Cannot find PNetCDF library. Disabling PNetCDF support.")
     SET(USE_PNETCDF OFF CACHE BOOL "")
   ELSE(NOT PNETCDF)
     SET(USE_PARALLEL ON CACHE BOOL "")
+
+    # Check PNetCDF version. Must be >= 1.6.0
+    set(pnetcdf_h "${PNETCDF_INCLUDE_DIR}/pnetcdf.h" )
+    message(STATUS "PNetCDF include file ${pnetcdf_h} will be searched for version")
+    file(STRINGS "${pnetcdf_h}" pnetcdf_major_string REGEX "^#define PNETCDF_VERSION_MAJOR")
+    string(REGEX REPLACE "[^0-9]" "" pnetcdf_major "${pnetcdf_major_string}")
+    file(STRINGS "${pnetcdf_h}" pnetcdf_minor_string REGEX "^#define PNETCDF_VERSION_MINOR")
+    string(REGEX REPLACE "[^0-9]" "" pnetcdf_minor "${pnetcdf_minor_string}")
+    file(STRINGS "${pnetcdf_h}" pnetcdf_sub_string REGEX "^#define PNETCDF_VERSION_SUB")
+    string(REGEX REPLACE "[^0-9]" "" pnetcdf_sub "${pnetcdf_sub_string}")
+    set(pnetcdf_version "${pnetcdf_major}.${pnetcdf_minor}.${pnetcdf_sub}")
+    message(STATUS "Found PNetCDF version ${pnetcdf_version}")
+
+    if(${pnetcdf_version} VERSION_GREATER "1.6.0")
+      SET(STATUS_PNETCDF "ON")
+      INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
+      SET(HAVE_LIBPNETCDF ON)
+      # pnetcdf => parallel
+      SET(STATUS_PARALLEL ON)
+      SET(USE_PARALLEL ON)
+      MESSAGE(STATUS "Using PNetCDF Library: ${PNETCDF}")
+    ELSE()
+      MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.1 or later; found version ${pnetcdf_version}. PNetCDF is disabled")
+    ENDIF()  
   ENDIF(NOT PNETCDF)
-#  ELSE()
-##	SET(TMP_INC ${CMAKE_REQUIRED_INCLUDES})
-#	SET(TMP_LB ${CMAKE_REQUIRED_LIBRARIES})
-#	SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${PNETCDF})
-#	SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${PNETCDF_INCLUDE_DIR})
-	# Check to see if version > 1.6.0
-	# CHECK_C_SOURCE_RUNS("
-		#include <stdio.h>
-      		#include <pnetcdf.h>
-    #  		int main() {
-    #  		int major = PNETCDF_VERSION_MAJOR;
-    #  		int minor = PNETCDF_VERSION_MINOR;
-    #  		int version = major*1000 + minor;
-    #  		int ok = (version >= (1*1000 + 6));
-    #  		return ok?0:1;}"
-    #  		HAVE_PNETCDF_16)
-
-#	SET(CMAKE_REQUIRED_INCLUDES ${TMP_INC})
-#	SET(CMAKE_REQUIRED_LIBRARIES ${TMP_LB})
-
-	#IF(HAVE_PNETCDF_16)
-	#	SET(ENABLE_PNETCDF "OFF")
-    #  		MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.0 or later; disabled")
-    #	ELSE()
-
-   #	    SET(STATUS_PNETCDF "ON")
-    #	    INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
-    #	    SET(HAVE_LIBPNETCDF ON)
-    	    # pnetcdf => parallel
-    #	    SET(STATUS_PARALLEL "ON")
-    #	    SET(USE_PARALLEL ON)
-  	#ENDIF()
-    #ENDIF()
 ENDIF()
 
 # Enable Parallel Tests.
