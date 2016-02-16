@@ -19,8 +19,8 @@
 #include <nc_logging.h>
 
 #define FILE_NAME "tst_gh221.nc"
-//#define DIM_LEN NC_UNLIMITED
-#define DIM_LEN 5
+#define DIM_LEN NC_UNLIMITED
+//#define DIM_LEN 5
 #define DIM_NAME "x"
 #define VLEN_NAME "vltest"
 #define VAR_NAME1 "v"
@@ -105,10 +105,11 @@ int main() {
 
     data[2].p = dat2;
     data[2].len = VLEN2;
-    printf("\t* Puting data in VLEN variable:\tnc_put_vara().\n");
+
+    //printf("\t* Puting data in VLEN variable:\tnc_put_vara().\n");
     //stat = nc_put_vara(ncid,varid,&startp,&countp,data);
-    stat = nc_put_var(ncid,varid,data);
-    if(stat) ERR;
+    //stat = nc_put_var(ncid,varid,&data);
+    //if(stat) ERR;
 
 
 
