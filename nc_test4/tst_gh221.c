@@ -6,55 +6,119 @@
 
    $Id: tst_h_vl2.c,v 1.5 2010/06/01 15:34:52 ed Exp $
 */
+
+/* This test was added to help diagnose the issue described at:
+ *    * https://github.com/Unidata/netcdf-c/issues/221
+ * This issue was originally reported by the python group at:
+ *    * https://github.com/Unidata/netcdf4-python/issues/527
+ */
+
+
 #include <nc_tests.h>
 #include <hdf5.h>
 #include <nc_logging.h>
 
 #define FILE_NAME "tst_gh221.nc"
-#define DIM_LEN 3;
+//#define DIM_LEN NC_UNLIMITED
+#define DIM_LEN 5
 #define DIM_NAME "x"
-#define VLNE_NAME "vltest"
+#define VLEN_NAME "vltest"
 #define VAR_NAME1 "v"
 #define VAR_NAME2 "w"
+#define ROW_COUNT 3
+#define VLEN0 2
+#define VLEN1 3
+#define VLEN2 3
 
 int main() {
 
-  printf("Testing access to unset entrines in VLEN variable\n");
+  printf("Testing access to unset entries in VLEN variable\n");
   {
-    int ncid, typeid, dimid;
-    nc_vlen_t data[DIM_LEN], data_in[DIM_LEN];
-
-    size_t size_in;
-    nc_type base_nc_type_in;
-    int *phony, class_in;
-    size_t len_in;
-    int i, j;
-
-    /* Create phony data. */
-    for (i=0; i<DIM_LEN; i++) {
-        if (!(phony = malloc(sizeof(int) * (i+1))))
-          return NC_ENOMEM;
-        for (j = 0; j < i + 1; j++)
-          phony[j] = PHONY_VAL;
-        data[i].p = phony;
-        data[i].len = i+1;
-      }
-
+    int ncid, typeid, dimid, varid, varid2;
+    nc_vlen_t data[ROW_COUNT];
+    int stat;
+    float *dat0, *dat1, *dat2;
+    float *data2;
+    size_t startp[3] = {0,0,0};
+    size_t countp[3] = {VLEN0,VLEN1,VLEN2};
+    size_t startp2[1] = {0};
+    size_t countp2[1] = {VLEN2};
+    int i = 0;
     /* Create File */
-    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+    printf("\t* Creating File:\tnc_create()\n");
+    if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
     /* Create Dimension */
+    printf("\t* Defining Unlimited Dimension:\tnc_def_dim()\n");
     if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)) ERR;
 
     /* Create ragged array type. */
+    printf("\t* Creating Ragged Array type:\tnc_def_vlen().\n");
     if (nc_def_vlen(ncid, VLEN_NAME, NC_FLOAT, &typeid)) ERR;
 
     /* Create a variable of typeid. */
-    if (nc_def_var(ncid, VAR_NAME1, typeid, 1, &dimid, &varid);
+    printf("\t* Creating Variable using Ragged Arrayt Type:\tnc_def_var().\n");
+    if (nc_def_var(ncid, VAR_NAME1, typeid, 1, &dimid, &varid)) ERR;
+
+    /* Create a variable of type float. */
+    printf("\t* Creating secondary Variable using NC_FLOAT:\tnc_def_var().\n");
+    if (nc_def_var(ncid, VAR_NAME2, NC_FLOAT, 1, &dimid, &varid2)) ERR;
+
+    /* End define mode. */
+    printf("\t* Ending define mode:\tnc_enddef().\n");
+
+    /* Write out data for w */
+    printf("\t* Creating float data for secondary variable.\n");
+    data2 = (float*)malloc(sizeof(float) * VLEN2);
+    for(i = 0; i < VLEN2; i++) {
+      data2[i] = (float)i;
+    }
+
+    printf("\t* Puting data in secondary variable:\tnc_put_vara().\n");
+    if (nc_put_vara(ncid,varid2,&startp2,&countp2,data2)) ERR;
+
+    /***********/
+    /* Actually unnecessary to recreate the issue. */
+    /***********/
+
+
+    /* Write out varying-length data for v[0] and v[1]. Leave v[2] empty. */
+
+    dat0 = (float*)malloc(VLEN0 * sizeof(float));
+    for(i = 0; i < VLEN0; i++) {
+      dat0[i] = (float)i;
+    }
+    dat1 = (float*)malloc(VLEN1 * sizeof(float));
+    for(i = 0; i < VLEN1; i++) {
+      dat1[i] = (float)i;
+    }
+    dat2 = (float*)malloc(VLEN2 * sizeof(float));
+    for(i = 0; i < VLEN2; i++) {
+      dat2[i] = (float)i;
+    }
+
+    data[0].p = dat0;
+    data[0].len = VLEN0;
+
+    data[1].p = dat1;
+    data[1].len = VLEN1;
+
+    data[2].p = dat2;
+    data[2].len = VLEN2;
+    printf("\t* Puting data in VLEN variable:\tnc_put_vara().\n");
+    //stat = nc_put_vara(ncid,varid,&startp,&countp,data);
+    stat = nc_put_var(ncid,varid,data);
+    if(stat) ERR;
+
+
 
     /* Close File. */
-    if (nc_close(ncid)) ERR;
+    printf("\t* Closing file:\tnc_close().\n");
+    if (stat = nc_close(ncid)) ERR;
 
 
+  }
+  SUMMARIZE_ERR;
+  FINAL_RESULTS;
 
 }
