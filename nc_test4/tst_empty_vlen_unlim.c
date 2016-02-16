@@ -18,7 +18,7 @@
 #include <hdf5.h>
 #include <nc_logging.h>
 
-#define FILE_NAME "tst_gh221.nc"
+#define FILE_NAME "tst_empty_vlen_unlim.nc"
 #define DIM_LEN NC_UNLIMITED
 //#define DIM_LEN 5
 #define DIM_NAME "x"
