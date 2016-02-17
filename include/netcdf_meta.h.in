@@ -47,6 +47,6 @@
 #define NC_HAS_MMAP      @NC_HAS_MMAP@ /*!< mmap support. */
 #define NC_HAS_JNA       @NC_HAS_JNA@ /*!< jna support. */
 #define NC_HAS_PNETCDF   @NC_HAS_PNETCDF@ /*!< pnetcdf support. */
-#define NC_HAS_PARALLEL  @NC_HAS_PARALLEL@ /*!< parallel IO support via hdf5. */
+#define NC_HAS_PARALLEL  @NC_HAS_PARALLEL@ /*!< parallel IO support via hdf5 and/or pnetcdf. */
 
 #endif
