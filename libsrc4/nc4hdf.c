@@ -1147,6 +1147,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
       filldata = (char *)data + real_data_size;
       for (i = 0; i < fill_len; i++)
         {
+
           if (var->type_info->nc_type_class == NC_STRING)
             {
               if (*(char **)fillvalue)
@@ -1157,7 +1158,9 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
               else
                 *(char **)filldata = NULL;
             }
-          else
+          else if(var->type_info->nc_type_class == NC_VLEN) {
+            continue;
+          } else
             memcpy(filldata, fillvalue, file_type_size);
           filldata = (char *)filldata + file_type_size;
         }

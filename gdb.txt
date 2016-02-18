@@ -1,15 +1,20 @@
-set breakpoint pending on
-
-break nc4hdf.c:872
-command
-watch provide_fill
-c
-end
 
 
-break nc4hdf.c:974
-command
-print fill_value_size
-end
+#----------
+# Solved first set of problems. On to second, in print_any_val.
+#---------
+#set breakpoint pending on
 
-break nc4hdf.c:1126
+#break nc4hdf.c:872
+#command
+#watch provide_fill
+#c
+#end
+
+
+#break nc4hdf.c:974
+#command
+#print fill_value_size
+#end
+
+#break nc4hdf.c:1126
