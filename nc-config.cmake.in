@@ -22,7 +22,7 @@ fi
 
 has_nc2="@BUILD_V2@"
 
-if [ -z $has_nc2 ]; then
+if [ -z $has_nc2 -o "$has_nc2" = "OFF" ]; then
     has_nc2="no"
 else
     has_nc2="yes"
@@ -50,7 +50,7 @@ else
 fi
 
 has_hdf5="@USE_HDF5@"
-if [ -z $has_hdf5 ]; then
+if [ -z $has_hdf5 -o "$has_hdf5" = "OFF" ]; then
     has_hdf5="no"
 else
     has_hdf5="yes"
