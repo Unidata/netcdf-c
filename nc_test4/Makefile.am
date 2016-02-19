@@ -22,7 +22,6 @@ tst_xplatform tst_xplatform2 tst_h_atts2 tst_endian_fill tst_atts	\
 t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_strbug tst_h_refs        \
 tst_h_scalar tst_rename tst_h5_endians tst_atts_string_rewrite \
-tst_empty_vlen_unlim
 
 check_PROGRAMS = $(NC4_TESTS) renamegroup tst_empty_vlen_unlim
 
@@ -33,7 +32,7 @@ endif
 
 TESTS = $(NC4_TESTS)
 
-TESTS += run_grp_rename.sh run_empty_vlen_test
+TESTS += run_grp_rename.sh run_empty_vlen_test.sh
 
 # If the v2 API was built, add its test program.
 if BUILD_V2
