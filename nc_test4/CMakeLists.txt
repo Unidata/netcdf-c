@@ -15,13 +15,20 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars
 build_bin_test(renamegroup)
 add_sh_test(nc_test4 run_grp_rename)
 
+##
+# The shell script, run_empty_vlen_test.sh,
+# depends on the 'tst_empty_vlen_unlim' binary.
+##
+BUILD_BIN_TEST(tst_empty_vlen_unlim)
+ADD_SH_TEST(nc_test4 run_empty_vlen_test)
+
+
 IF(NOT MSVC)
   SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
 ENDIF()
 
 # If the v2 API was built, add the test program.
 IF(ENABLE_V2_API)
-
   build_bin_test(tst_v2)
 ENDIF()
 
@@ -82,8 +89,3 @@ IF(TEST_PARALLEL)
   build_bin_test(tst_mode)
   add_sh_test(nc_test4 run_par_test)
 ENDIF()
-
-## Specify files to be distributed by 'make dist'
-FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ref_chunks1.cdl ref_chunks2.cdl ref_tst_compounds.nc ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc ref_grp_rename.cdl ref_tst_nvars.nc contig.hdf4 chunked.hdf4)
