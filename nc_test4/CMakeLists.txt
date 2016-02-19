@@ -9,11 +9,19 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars
   t_type cdm_sea_soundings tst_vl tst_atts1 tst_atts2
   tst_vars2 tst_files5 tst_files6 tst_sync tst_h_strbug tst_h_refs
   tst_h_scalar tst_rename tst_h5_endians tst_atts_string_rewrite
-  tst_put_vars_two_unlim_dim tst_empty_vlen_unlim)
+  tst_put_vars_two_unlim_dim)
 
 # Note, renamegroup needs to be compiled before run_grp_rename
 build_bin_test(renamegroup)
 add_sh_test(nc_test4 run_grp_rename)
+
+##
+# The shell script, run_empty_vlen_test.sh,
+# depends on the 'tst_empty_vlen_unlim' binary.
+##
+BUILD_BIN_TEST(tst_empty_vlen_unlim)
+ADD_SH_TEST(nc_test4 run_empty_vlen_test)
+
 
 IF(NOT MSVC)
   SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
@@ -21,7 +29,6 @@ ENDIF()
 
 # If the v2 API was built, add the test program.
 IF(ENABLE_V2_API)
-
   build_bin_test(tst_v2)
 ENDIF()
 
