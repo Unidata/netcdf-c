@@ -975,7 +975,7 @@ IF(ENABLE_PNETCDF)
       MESSAGE(STATUS "Using PNetCDF Library: ${PNETCDF}")
     ELSE()
       MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.1 or later; found version ${pnetcdf_version}. PNetCDF is disabled")
-    ENDIF()  
+    ENDIF()
   ENDIF(NOT PNETCDF)
 ENDIF()
 
@@ -1549,23 +1549,6 @@ ENDIF()
 # Build doxygen documentation, if need be.
 #####
 ADD_SUBDIRECTORY(docs)
-
-#####
-# Moving on to CPack, install packages.
-#####
-INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  COMPONENT headers)
-
-INSTALL(FILES ${netCDF_BINARY_DIR}/include/netcdf_meta.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  COMPONENT headers)
-
-IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
-  INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    COMPONENT headers)
-ENDIF()
 
 ##
 # Brute force, grab all of the dlls from the depency directory,
