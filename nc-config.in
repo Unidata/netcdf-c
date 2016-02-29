@@ -57,6 +57,7 @@ Available values for OPTION include:
   --has-hdf4    whether HDF4 was used in build
   --has-logging whether logging is enabled with --enable-logging.
   --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
+  --has-szlib   whether szlib is included in build
   --libs        library linking information for netcdf
   --prefix      Install prefix
   --includedir  Include directory
@@ -120,6 +121,7 @@ all()
         echo "  --has-hdf4  -> $has_hdf4"
         echo "  --has-logging-> $has_logging"
         echo "  --has-pnetcdf-> $has_pnetcdf"
+        echo "  --has-szlib -> $has_szlib"
 	echo
         echo "  --prefix    -> $prefix"
         echo "  --includedir-> $includedir"
@@ -184,6 +186,10 @@ while test $# -gt 0; do
 
     --has-pnetcdf)
        	echo $has_pnetcdf
+       	;;
+
+    --has-szlib)
+       	echo $has_szlib
        	;;
 
      --libs)
