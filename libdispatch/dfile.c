@@ -1209,7 +1209,8 @@ nc_close(int ncid)
    if(ncp->refcount <= 0)
 #endif
    {
-       stat = ncp->dispatch->close(ncid);
+
+	   stat = ncp->dispatch->close(ncid);
        /* Remove from the nc list */
        del_from_NCList(ncp);
        free_NC(ncp);

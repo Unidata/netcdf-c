@@ -29,11 +29,16 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#define fstat _fstat64
+#define stat _stat64
+
+
 #include <fcntl.h>
 #include <string.h>
 
 #ifndef HAVE_SSIZE_T
-#define ssize_t int
+typedef int ssize_t;
 #endif
 
 #ifndef SEEK_SET
@@ -186,10 +191,19 @@ fgrow(const int fd, const off_t len)
 static int
 fgrow2(const int fd, const off_t len)
 {
+
+#ifdef _WIN64
+	struct _stat64 sb;
+	if (_fstat64(fd, &sb) < 0)
+#else
 	struct stat sb;
 	if (fstat(fd, &sb) < 0)
+#endif
+	{
+		printf("Error %d: %s\n", errno, strerror(errno));
 		return errno;
-	if (len <= sb.st_size)
+	}
+    if (len <= sb.st_size)
 		return ENOERR;
 	{
 	    const char dumb = 0;
