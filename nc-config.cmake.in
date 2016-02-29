@@ -35,6 +35,13 @@ else
     has_nc4="yes"
 fi
 
+has_logging="@ENABLE_LOGGING@"
+if [ -z $has_logging ]; then
+    has_logging="no"
+else
+    has_logging="yes"
+fi
+
 has_hdf4="@USE_HDF4@"
 if [ -z $has_hdf4 ]; then
     has_hdf4="no"
