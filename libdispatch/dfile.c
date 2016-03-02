@@ -28,6 +28,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 extern int NC_initialized;
 extern int NC_finalized;
 
+
 /** \defgroup datasets NetCDF File and Data I/O
 
 NetCDF opens datasets as files or remote access URLs.
@@ -178,6 +179,23 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
 	    /* The file must be at least MAGIC_NUMBER_LEN in size,
 	       or otherwise the following fread will exhibit unexpected
   	       behavior. */
+
+        /* Windows and fstat have some issues, this will work around that. */
+#ifdef HAVE_FILE_LENGTH_I64
+        __int64 file_len = 0;
+        if((file_len = _filelengthi64(fileno(fp))) < 0) {
+          fclose(fp);
+          status = errno;
+          goto done;
+        }
+
+        if(file_len < MAGIC_NUMBER_LEN) {
+          fclose(fp);
+          status = NC_ENOTNC;
+          goto done;
+        }
+#else
+
 	    if(!(fstat(fileno(fp),&st) == 0)) {
 	        fclose(fp);
 	        status = errno;
@@ -185,10 +203,12 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
 	    }
 
 	    if(st.st_size < MAGIC_NUMBER_LEN) {
-		fclose(fp);
-		status = NC_ENOTNC;
-		goto done;
+          fclose(fp);
+          status = NC_ENOTNC;
+          goto done;
 	    }
+#endif //HAVE_FILE_LENGTH_I64
+
 #endif
 
 	    i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);

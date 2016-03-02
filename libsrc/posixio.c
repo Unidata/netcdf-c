@@ -30,10 +30,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#define fstat _fstat64
-#define stat _stat64
-
-
 #include <fcntl.h>
 #include <string.h>
 
@@ -104,6 +100,41 @@ static int ncio_spx_close(ncio *nciop, int doUnlink);
 #ifndef POSIXIO_DEFAULT_PAGESIZE
 #define POSIXIO_DEFAULT_PAGESIZE 4096
 #endif
+
+/*! Cross-platform file length.
+ *
+ * Some versions of Visual Studio are throwing errno 132
+ * when fstat is used on large files.  This function is
+ * an attempt to get around that.
+ *
+ * @par fd File Descriptor.
+ * @return -1 on error, length of file (in bytes) otherwise.
+ */
+static size_t nc_get_filelen(const int fd) {
+
+  size_t flen;
+
+#ifdef HAVE_FILE_LENGTH_I64
+  __int64 file_len = 0;
+  if ((file_len = _filelengthi64(fd)) < 0) {
+    return file_len;
+  }
+  flen = (size_t)file_len;
+
+#else
+  int res = 0;
+  struct stat sb;
+  if((res = fstat(fd,&sb)) <0)
+    return res;
+
+  flen = sb.st_size;
+#endif
+
+  return flen;
+
+}
+
+
 /*
  * What is the system pagesize?
  */
@@ -201,22 +232,11 @@ fgrow2(const int fd, const off_t len)
 
   */
 
-#ifdef HAVE_FILE_LENGTH_I64
 
-  __int64 file_len = 0;
-  if (( file_len = _filelengthi64(fd)) < 0) {
-    return errno;
-  }
-  if (len <= file_len)
+  size_t file_len = nc_get_filelen(fd);
+  if(file_len < 0) return errno;
+  if(len <= file_len)
     return ENOERR;
-#else
-
-  struct stat sb;
-  if (fstat(fd, &sb) < 0)
-    return errno;
-  if (len <= sb.st_size)
-    return ENOERR;
-#endif
   {
     const char dumb = 0;
 	    /* we don't use ftruncate() due to problem with FAT32 file systems */
