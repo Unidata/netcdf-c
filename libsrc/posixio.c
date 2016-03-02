@@ -192,21 +192,33 @@ static int
 fgrow2(const int fd, const off_t len)
 {
 
-#ifdef _WIN64
-	struct _stat64 sb;
-	if (_fstat64(fd, &sb) < 0)
+
+  /* There is a problem with fstat on Windows based systems
+     which manifests (so far) when Config RELEASE is built.
+     Use _filelengthi64 isntead.
+
+     See https://github.com/Unidata/netcdf-c/issues/188
+
+  */
+
+#ifdef HAVE_FILE_LENGTH_I64
+
+  __int64 file_len = 0;
+  if (( file_len = _filelengthi64(fd)) < 0) {
+    return errno;
+  }
+  if (len <= file_len)
+    return ENOERR;
 #else
-	struct stat sb;
-	if (fstat(fd, &sb) < 0)
+
+  struct stat sb;
+  if (fstat(fd, &sb) < 0)
+    return errno;
+  if (len <= sb.st_size)
+    return ENOERR;
 #endif
-	{
-		printf("Error %d: %s\n", errno, strerror(errno));
-		return errno;
-	}
-    if (len <= sb.st_size)
-		return ENOERR;
-	{
-	    const char dumb = 0;
+  {
+    const char dumb = 0;
 	    /* we don't use ftruncate() due to problem with FAT32 file systems */
 	    /* cache current position */
 	    const off_t pos = lseek(fd, 0, SEEK_CUR);
