@@ -764,7 +764,8 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
    NC_TYPE_INFO_T *type;
    NC_GRP_INFO_T *g;
    NC_VAR_INFO_T *var;
-
+   uint32_t hash;
+   
    /* Any types of this name? */
    for (type = grp->type; type; type = type->l.next)
       if (!strcmp(type->name, name))
@@ -776,8 +777,9 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
 	 return NC_ENAMEINUSE;
 
    /* Any variables of this name? */
+   hash =  hash_fast(name, strlen(name));
    for (var = grp->var; var; var = var->l.next)
-      if (!strcmp(var->name, name))
+      if (var->hash == hash && !strcmp(var->name, name))
 	 return NC_ENAMEINUSE;
 
    return NC_NOERR;

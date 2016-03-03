@@ -606,6 +606,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    new_dim->hdf5_objid.fileno[1] = statbuf->fileno[1];
    new_dim->hdf5_objid.objno[0] = statbuf->objno[0];
    new_dim->hdf5_objid.objno[1] = statbuf->objno[1];
+   new_dim->hash = hash_fast(obj_name, strlen(obj_name));
 
    /* If the dimscale has an unlimited dimension, then this dimension
     * is unlimited. */
@@ -1564,6 +1565,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       strcpy(var->name, obj_name);
    }
 
+   var->hash = hash_fast(var->name, strlen(var->name));
    /* Find out what filters are applied to this HDF5 dataset,
     * fletcher32, deflate, and/or shuffle. All other filters are
     * ignored. */
@@ -2672,6 +2674,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	       dim->len = dim_len;
 	    else
 	       dim->len = *dimsize;
+	    dim->hash = hash_fast(dim_name, strlen(dim_name));
 	 }
 
 	 /* Tell the variable the id of this dimension. */

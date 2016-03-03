@@ -425,6 +425,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    if (!(var->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
       BAIL(NC_ENOMEM);
    strcpy(var->name, norm_name);
+   var->hash = hash_fast(norm_name, strlen(norm_name));
    var->varid = grp->nvars++;
    var->ndims = ndims;
    var->is_new_var = NC_TRUE;
@@ -513,7 +514,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
          BAIL(retval);
 
       /* Check for dim index 0 having the same name, in the same group */
-      if (d == 0 && dim_grp == grp && strcmp(dim->name, norm_name) == 0)
+      if (d == 0 && dim_grp == grp && dim->hash == var->hash && strcmp(dim->name, norm_name) == 0)
       {
          var->dimscale = NC_TRUE;
          dim->coord_var = var;
@@ -571,7 +572,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
     * because the dimension will cause a HDF5 dataset to be created,
     * and this var has the same name. */
    for (dim = grp->dim; dim; dim = dim->l.next)
-      if (!strcmp(dim->name, norm_name) &&
+      if (dim->hash == var->hash && !strcmp(dim->name, norm_name) &&
 	  (!var->ndims || dimidsp[0] != dim->dimid))
       {
 	 /* Set a different hdf5 name for this variable to avoid name
@@ -1152,6 +1153,8 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    NC_VAR_INFO_T *var;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
+   uint32_t nn_hash;
+   
 #if 0 /*def USE_PNETCDF*/
    NC_HDF5_FILE_INFO_T *h5;
 #endif
@@ -1181,9 +1184,11 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    if ((retval = nc4_normalize_name(name, norm_name)))
       return retval;
 
+   nn_hash = hash_fast(norm_name, strlen(norm_name));
+
    /* Find var of this name. */
    for (var = grp->var; var; var = var->l.next)
-      if (!(strcmp(var->name, norm_name)))
+      if (nn_hash == var->hash && !(strcmp(var->name, norm_name)))
       {
          *varidp = var->varid;
          return NC_NOERR;
@@ -1203,6 +1208,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var, *tmp_var;
+   uint32_t nn_hash;
    int retval = NC_NOERR;
 
    LOG((2, "%s: ncid 0x%x varid %d name %s",
@@ -1234,10 +1240,11 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return retval;
 
    /* Check if name is in use, and retain a pointer to the correct variable */
+   nn_hash = hash_fast(name, strlen(name));
    tmp_var = NULL;
    for (var = grp->var; var; var = var->l.next)
    {
-      if (!strncmp(var->name, name, NC_MAX_NAME))
+      if (nn_hash == var->hash && !strncmp(var->name, name, NC_MAX_NAME))
          return NC_ENAMEINUSE;
       if (var->varid == varid)
          tmp_var = var;
@@ -1265,6 +1272,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    if (!(var->name = malloc((strlen(name) + 1) * sizeof(char))))
       return NC_ENOMEM;
    strcpy(var->name, name);
+   var->hash = nn_hash;
 
    /* Check if this was a coordinate variable previously, but names are different now */
    if (var->dimscale && strcmp(var->name, var->dim[0]->name))
