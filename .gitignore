@@ -34,7 +34,6 @@ scan-build
 .deps
 .libs
 *.zip
-*.gz
 Makefile
 .DS_Store
 build-par

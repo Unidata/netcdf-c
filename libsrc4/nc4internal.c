@@ -45,7 +45,7 @@ int nc_log_level = -1;
 
 #endif /* LOGGING */
 
-int nc4_hdf5_initialized = 0;
+static int nc4_hdf5_initialized = 0;
 
 /*
 Provide a function to do any necessary initialization

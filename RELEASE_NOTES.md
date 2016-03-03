@@ -5,6 +5,12 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
+## 4.4.1 - TBD
+
+* Updated `nc-config` to report whether `logging` is enabled in netcdf.  Additionally, if `f03` is available in an installed netcdf-fortran library, it will now be reported as well.
+* Addressed an issue where `netcdf_mem.h` was not being installed by cmake. See [GitHub #227](https://github.com/Unidata/netcdf-c/issues/227) for more information.
+* Addressed an issue where `ncdump` would crash when trying to read a netcdf file containing an empty ragged `VLEN` variable in an unlimited dimension. See [GitHub #221](https://github.com/Unidata/netcdf-c/issues/221) for more information.
+
 ## 4.4.0 Released - January 13, 2016
 
 * Bumped SO version to 11.0.0.

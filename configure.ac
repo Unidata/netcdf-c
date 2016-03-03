@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.4.0-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.4.1-development], [support-netcdf@unidata.ucar.edu])
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=4
@@ -1208,7 +1208,8 @@ AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
-AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
+AC_SUBST(HAS_LOGGING, [$enable_logging])
+AC_SUBST(HAS_SZLIB,[$ac_cv_func_H4Z_SZIP])
 AC_SUBST(HAS_PARALLEL,[$enable_parallel])
 AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
 AC_SUBST(HAS_DISKLESS,[$enable_diskless])

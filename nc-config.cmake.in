@@ -22,7 +22,7 @@ fi
 
 has_nc2="@BUILD_V2@"
 
-if [ -z $has_nc2 ]; then
+if [ -z $has_nc2 -o "$has_nc2" = "OFF" ]; then
     has_nc2="no"
 else
     has_nc2="yes"
@@ -33,6 +33,13 @@ if [ -z $has_nc4 ]; then
     has_nc4="no"
 else
     has_nc4="yes"
+fi
+
+has_logging="@ENABLE_LOGGING@"
+if [ -z $has_logging ]; then
+    has_logging="no"
+else
+    has_logging="yes"
 fi
 
 has_hdf4="@USE_HDF4@"
@@ -50,7 +57,7 @@ else
 fi
 
 has_hdf5="@USE_HDF5@"
-if [ -z $has_hdf5 ]; then
+if [ -z $has_hdf5 -o "$has_hdf5" = "OFF" ]; then
     has_hdf5="no"
 else
     has_hdf5="yes"
@@ -67,11 +74,13 @@ fi
 version="@PACKAGE@ @VERSION@"
 
 has_f90="no"
+has_f03="no"
 if type -p nf-config > /dev/null 2>&1; then
   fc=`nf-config --fc`
   fflags=`nf-config --fflags`
   flibs=`nf-config --flibs`
   has_f90=`nf-config --has-f90`
+  has_f03=`nf-config --has-f03`
 fi
 
 has_cxx="no"
@@ -100,6 +109,7 @@ Available values for OPTION include:
   --has-nc4     whether NetCDF-4/HDF-5 is enabled in this build
   --has-hdf5    whether HDF5 is used in build (always the same as --has-nc4)
   --has-hdf4    whether HDF4 was used in build
+  --has-logging whether logging is enabled with --enable-logging.
   --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
   --has-szlib   whether szlib is included in build
   --libs        library linking information for netcdf
@@ -129,7 +139,7 @@ if type -p nf-config > /dev/null 2>&1; then
   --fflags      flags needed to compile a Fortran program
   --flibs       libraries needed to link a Fortran program
   --has-f90     whether Fortran 90 API is installed
-
+  --has-f03     whether Fortran 03 API is installed (implies F90).
 EOF
 fi
     exit $1
@@ -153,12 +163,14 @@ all()
         echo "  --fflags    -> $fflags"
         echo "  --flibs     -> $flibs"
         echo "  --has-f90   -> $has_f90"
+        echo "  --has-f03   -> $has_f03"
         echo
         echo "  --has-dap   -> $has_dap"
         echo "  --has-nc2   -> $has_nc2"
         echo "  --has-nc4   -> $has_nc4"
         echo "  --has-hdf5  -> $has_hdf5"
         echo "  --has-hdf4  -> $has_hdf4"
+        echo "  --has-logging-> $has_logging"
         echo "  --has-pnetcdf-> $has_pnetcdf"
         echo "  --has-szlib -> $has_szlib"
 	echo
@@ -218,6 +230,10 @@ while test $# -gt 0; do
     --has-hdf4)
        	echo $has_hdf4
        	;;
+
+    --has-logging)
+        echo $has_logging
+        ;;
 
     --has-pnetcdf)
        	echo $has_pnetcdf
@@ -281,6 +297,10 @@ while test $# -gt 0; do
 
     --has-f90)
        	echo $has_f90
+       	;;
+
+    --has-f03)
+       	echo $has_f03
        	;;
 
     *)
