@@ -113,6 +113,7 @@ typedef struct NC_DIM_INFO
    NC_LIST_NODE_T l;            /* Use generic doubly-linked list (must be first) */
    char *name;
    size_t len;
+   uint32_t hash;
    int dimid;
    nc_bool_t unlimited;         /* True if the dimension is unlimited */
    nc_bool_t extended;          /* True if the dimension needs to be extended */
@@ -148,6 +149,7 @@ typedef struct NC_VAR_INFO
    NC_DIM_INFO_T **dim;
    int varid;
    int natts;
+   uint32_t hash;
    nc_bool_t is_new_var;        /* True if variable is newly created */
    nc_bool_t was_coord_var;     /* True if variable was a coordinate var, but either the dim or var has been renamed */
    nc_bool_t became_coord_var;  /* True if variable _became_ a coordinate var, because either the dim or var has been renamed */

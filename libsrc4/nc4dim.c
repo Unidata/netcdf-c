@@ -73,6 +73,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    NC_DIM_INFO_T *dim;
    char norm_name[NC_MAX_NAME + 1];
    int retval = NC_NOERR;
+   uint32_t nn_hash;
 
    LOG((2, "%s: ncid 0x%x name %s len %d", __func__, ncid, name, 
 	(int)len));
@@ -122,9 +123,11 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
       if(len > X_UINT_MAX) /* Backward compat */
 	 return NC_EDIMSIZE;
 
+   nn_hash = hash_fast(norm_name, strlen(norm_name));
+
    /* Make sure the name is not already in use. */
    for (dim = grp->dim; dim; dim = dim->l.next)
-      if (!strncmp(dim->name, norm_name, NC_MAX_NAME))
+      if (nn_hash == dim->hash && !strncmp(dim->name, norm_name, NC_MAX_NAME))
 	 return NC_ENAMEINUSE;
 
    /* Add a dimension to the list. The ID must come from the file
@@ -139,6 +142,8 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    if (len == NC_UNLIMITED)
       dim->unlimited = NC_TRUE;
 
+   dim->hash = nn_hash;
+   
    /* Pass back the dimid. */
    if (idp)
       *idp = dim->dimid;
@@ -157,7 +162,8 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
    char norm_name[NC_MAX_NAME + 1];
    int finished = 0;
    int retval;
-
+   uint32_t shash;
+   
    LOG((2, "%s: ncid 0x%x name %s", __func__, ncid, name));
 
    /* Find metadata for this file. */
@@ -177,10 +183,12 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
    if ((retval = nc4_normalize_name(name, norm_name)))
       return retval;
 
+   shash = hash_fast(norm_name, strlen(norm_name));
+
    /* Go through each dim and check for a name match. */
    for (g = grp; g && !finished; g = g->parent)
       for (dim = g->dim; dim; dim = dim->l.next)
-	 if (!strncmp(dim->name, norm_name, NC_MAX_NAME))
+	 if (dim->hash == shash && !strncmp(dim->name, norm_name, NC_MAX_NAME))
 	 {
 	    if (idp)
 	       *idp = dim->dimid;
@@ -336,6 +344,8 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
       return NC_ENOMEM;
    strcpy(dim->name, norm_name);
 
+   dim->hash = hash_fast(norm_name, strlen(norm_name));
+   
    /* Check if dimension was a coordinate variable, but names are different now */
    if (dim->coord_var && strcmp(dim->name, dim->coord_var->name))
    {
