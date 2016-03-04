@@ -919,8 +919,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
      if (!ishdf4) {
       for (d = 0; d < var->ndims; d++)
       {
-	 if ((retval = nc4_find_dim(grp, var->dimids[d], &dim, NULL)))
-	    return retval;
+	 dim = var->dim[d];
 	 if (dim->unlimited)
 	    return NC_EINVAL;
       }
