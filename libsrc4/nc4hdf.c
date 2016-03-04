@@ -595,21 +595,17 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
    * put data beyond their current length. */
   for (d2 = 0; d2 < var->ndims; d2++)
     {
-      for (dim = grp->dim; dim; dim = dim->l.next)
+      dim = var->dim[d2];
+      assert(dim && dim->dimid == var->dimids[d2]);
+      if (!dim->unlimited)
         {
-          if (dim->dimid == var->dimids[d2])
-            {
-              if (!dim->unlimited)
-                {
-                  if (start[d2] >= (hssize_t)fdims[d2])
-                    BAIL_QUIET(NC_EINVALCOORDS);
-                  if (start[d2] + count[d2] > fdims[d2])
-                    BAIL_QUIET(NC_EEDGE);
-                }
-            }
+          if (start[d2] >= (hssize_t)fdims[d2])
+            BAIL_QUIET(NC_EINVALCOORDS);
+          if (start[d2] + count[d2] > fdims[d2])
+            BAIL_QUIET(NC_EEDGE);
         }
     }
-
+  
   /* Now you would think that no one would be crazy enough to write
      a scalar dataspace with one of the array function calls, but you
      would be wrong. So let's check to see if the dataset is
@@ -705,8 +701,8 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
     {
       for (d2 = 0; d2 < var->ndims; d2++)
         {
-          if ((retval = nc4_find_dim(grp, var->dimids[d2], &dim, NULL)))
-            BAIL(retval);
+          dim = var->dim[d2];
+	  assert(dim && dim->dimid == var->dimids[d2]);
           if (dim->unlimited)
             {
               if (start[d2] + count[d2] > fdims[d2])
@@ -921,53 +917,51 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
   /* Check dimension bounds. Remember that unlimited dimensions can
    * put data beyond their current length. */
-  for (d2 = 0; d2 < var->ndims; d2++)
-    for (g = grp; g; g = g->parent)
-      for (dim = g->dim; dim; dim = dim->l.next)
-        if (dim->dimid == var->dimids[d2])
-          {
-            if (dim->unlimited)
-              {
-                size_t ulen;
+  for (d2 = 0; d2 < var->ndims; d2++) {
+    dim = var->dim[d2];
+    assert(dim && dim->dimid == var->dimids[d2]);
+    if (dim->unlimited)
+      {
+        size_t ulen;
 
-                /* We can't go beyond the largest current extent of
-                   the unlimited dim. */
-                if ((retval = NC4_inq_dim(ncid, dim->dimid, NULL, &ulen)))
-                  BAIL(retval);
+        /* We can't go beyond the largest current extent of
+           the unlimited dim. */
+	if ((retval = NC4_inq_dim(ncid, dim->dimid, NULL, &ulen)))
+	  BAIL(retval);
 
-                /* Check for out of bound requests. */
-                if (start[d2] >= (hssize_t)ulen && count[d2])
-                  BAIL_QUIET(NC_EINVALCOORDS);
-                if (start[d2] + count[d2] > ulen)
-                  BAIL_QUIET(NC_EEDGE);
+        /* Check for out of bound requests. */
+        if (start[d2] >= (hssize_t)ulen && count[d2])
+          BAIL_QUIET(NC_EINVALCOORDS);
+        if (start[d2] + count[d2] > ulen)
+          BAIL_QUIET(NC_EEDGE);
 
-                /* Things get a little tricky here. If we're getting
-                   a GET request beyond the end of this var's
-                   current length in an unlimited dimension, we'll
-                   later need to return the fill value for the
-                   variable. */
-                if (start[d2] >= (hssize_t)fdims[d2])
-                  fill_value_size[d2] = count[d2];
-                else if (start[d2] + count[d2] > fdims[d2])
-                  fill_value_size[d2] = count[d2] - (fdims[d2] - start[d2]);
-                else
-                  fill_value_size[d2] = 0;
-                count[d2] -= fill_value_size[d2];
-                if (fill_value_size[d2])
-                  provide_fill++;
-              }
-            else
-              {
-                /* Check for out of bound requests. */
-                if (start[d2] >= (hssize_t)fdims[d2])
-                  BAIL_QUIET(NC_EINVALCOORDS);
-                if (start[d2] + count[d2] > fdims[d2])
-                  BAIL_QUIET(NC_EEDGE);
+        /* Things get a little tricky here. If we're getting
+           a GET request beyond the end of this var's
+           current length in an unlimited dimension, we'll
+           later need to return the fill value for the
+           variable. */
+        if (start[d2] >= (hssize_t)fdims[d2])
+          fill_value_size[d2] = count[d2];
+        else if (start[d2] + count[d2] > fdims[d2])
+          fill_value_size[d2] = count[d2] - (fdims[d2] - start[d2]);
+        else
+          fill_value_size[d2] = 0;
+        count[d2] -= fill_value_size[d2];
+        if (fill_value_size[d2])
+          provide_fill++;
+      }
+    else
+      {
+        /* Check for out of bound requests. */
+        if (start[d2] >= (hssize_t)fdims[d2])
+          BAIL_QUIET(NC_EINVALCOORDS);
+        if (start[d2] + count[d2] > fdims[d2])
+          BAIL_QUIET(NC_EEDGE);
 
-                /* Set the fill value boundary */
-                fill_value_size[d2] = count[d2];
-              }
-          }
+        /* Set the fill value boundary */
+        fill_value_size[d2] = count[d2];
+      }
+  }
 
   /* A little quirk: if any of the count values are zero, don't
    * read. */
@@ -1567,11 +1561,10 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 
       /* Check to see if any unlimited dimensions are used in this var. */
       for (d = 0; d < var->ndims; d++) {
-	for (g = grp; g; g = g->parent)
-	  for (dim = g->dim; dim; dim = dim->l.next)
-	    if (dim->dimid == var->dimids[d])
-	      if (dim->unlimited)
-		unlimdim++;
+	dim = var->dim[d];
+	assert(dim && dim->dimid == var->dimids[d]);
+	if (dim->unlimited)
+	  unlimdim++;
       }
 
       /* If there are no unlimited dims, and no filters, and the user
@@ -1592,47 +1585,37 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
       /* Gather current & maximum dimension sizes, along with chunk sizes */
       for (d = 0; d < var->ndims; d++)
         {
-          for (g = grp; g && (dims_found < var->ndims); g = g->parent)
-            {
-              for (dim = g->dim; dim; dim = dim->l.next)
-                {
-                  if (dim->dimid == var->dimids[d])
-                    {
-                      dimsize[d] = dim->unlimited ? NC_HDF5_UNLIMITED_DIMSIZE : dim->len;
-                      maxdimsize[d] = dim->unlimited ? H5S_UNLIMITED : (hsize_t)dim->len;
-                      if (!var->contiguous) {
-                        if (var->chunksizes[d])
-                          chunksize[d] = var->chunksizes[d];
-                        else
-                          {
-                            size_t type_size;
-                            if (var->type_info->nc_type_class == NC_STRING)
-                              type_size = sizeof(char *);
-                            else
-                              type_size = var->type_info->size;
+          dim = var->dim[d];
+	  assert(dim && dim->dimid == var->dimids[d]);
+          dimsize[d] = dim->unlimited ? NC_HDF5_UNLIMITED_DIMSIZE : dim->len;
+          maxdimsize[d] = dim->unlimited ? H5S_UNLIMITED : (hsize_t)dim->len;
+          if (!var->contiguous) {
+            if (var->chunksizes[d])
+              chunksize[d] = var->chunksizes[d];
+            else
+              {
+                size_t type_size;
+                if (var->type_info->nc_type_class == NC_STRING)
+                  type_size = sizeof(char *);
+                else
+                  type_size = var->type_info->size;
 
-                            /* Unlimited dim always gets chunksize of 1. */
-                            if (dim->unlimited)
-                              chunksize[d] = 1;
-                            else
-                              chunksize[d] = pow((double)DEFAULT_CHUNK_SIZE/type_size,
-                                                 1/(double)(var->ndims - unlimdim));
+                /* Unlimited dim always gets chunksize of 1. */
+                if (dim->unlimited)
+                  chunksize[d] = 1;
+                else
+                  chunksize[d] = pow((double)DEFAULT_CHUNK_SIZE/type_size,
+                                     1/(double)(var->ndims - unlimdim));
 
-                            /* If the chunksize is greater than the dim
-                             * length, make it the dim length. */
-                            if (!dim->unlimited && chunksize[d] > dim->len)
-                              chunksize[d] = dim->len;
+                /* If the chunksize is greater than the dim
+                 * length, make it the dim length. */
+                if (!dim->unlimited && chunksize[d] > dim->len)
+                  chunksize[d] = dim->len;
 
-                            /* Remember the computed chunksize */
-                            var->chunksizes[d] = chunksize[d];
-                          }
-                      }
-
-                      dims_found++;
-                      break;
-                    }
-                }
-            }
+                /* Remember the computed chunksize */
+                var->chunksizes[d] = chunksize[d];
+              }
+          }
         }
 
       if (var->contiguous)
@@ -2039,42 +2022,33 @@ attach_dimscales(NC_GRP_INFO_T *grp)
                 {
                   if (!var->dimscale_attached[d])
                     {
-                      for (g = grp; g && !var->dimscale_attached[d]; g = g->parent)
-                        for (dim1 = g->dim; dim1; dim1 = dim1->l.next)
-                          if (var->dimids[d] == dim1->dimid)
-                            {
-                              hid_t dim_datasetid;  /* Dataset ID for dimension */
+                      dim1 = var->dim[d];
+		      assert(dim1 && dim1->dimid == var->dimids[d]);
+                      hid_t dim_datasetid;  /* Dataset ID for dimension */
 
-                              LOG((2, "%s: attaching scale for dimid %d to var %s",
-                                   __func__, var->dimids[d], var->name));
+                      LOG((2, "%s: attaching scale for dimid %d to var %s",
+                           __func__, var->dimids[d], var->name));
 
-                              /* Find dataset ID for dimension */
-                              if (dim1->coord_var)
-                                dim_datasetid = dim1->coord_var->hdf_datasetid;
-                              else
-                                dim_datasetid = dim1->hdf_dimscaleid;
-                              assert(dim_datasetid > 0);
-                              if (H5DSattach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
-                                BAIL(NC_EHDFERR);
-                              var->dimscale_attached[d] = NC_TRUE;
-                              break;
-                            }
+                      /* Find dataset ID for dimension */
+                      if (dim1->coord_var)
+                        dim_datasetid = dim1->coord_var->hdf_datasetid;
+                      else
+                        dim_datasetid = dim1->hdf_dimscaleid;
+                      assert(dim_datasetid > 0);
+                      if (H5DSattach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+                        BAIL(NC_EHDFERR);
+                      var->dimscale_attached[d] = NC_TRUE;
                     }
 
-                  /* If we didn't find a dimscale to attach, that's a problem! */
-                  if (!var->dimscale_attached[d])
-                    {
-                      LOG((0, "no dimscale found!"));
-                      return NC_EDIMSCALE;
-                    }
-                }
-              else
-                {
-                  /* Create a phoney dimension! */
-
+		  /* If we didn't find a dimscale to attach, that's a problem! */
+		  if (!var->dimscale_attached[d])
+		    {
+		      LOG((0, "no dimscale found!"));
+		      return NC_EDIMSCALE;
+		    }
                 }
             }
-        } /* next d */
+        }
     }
 
  exit:
@@ -2223,39 +2197,26 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
       if (var->dimscale_attached)
         {
-          int dims_detached = 0;
-          nc_bool_t finished = NC_FALSE;
           int d;
 
           /* If this is a regular var, detach all its dim scales. */
           for (d = 0; d < var->ndims; d++)
             if (var->dimscale_attached[d])
               {
-                NC_GRP_INFO_T *g;
+                hid_t dim_datasetid;  /* Dataset ID for dimension */
+                NC_DIM_INFO_T *dim1 = var->dim[d];
+		assert(dim1 && dim1->dimid == var->dimids[d]);
 
-                for (g = grp; g && !finished; g = g->parent)
-                  {
-                    NC_DIM_INFO_T *dim1;
+                /* Find dataset ID for dimension */
+                if (dim1->coord_var)
+                  dim_datasetid = dim1->coord_var->hdf_datasetid;
+                else
+                  dim_datasetid = dim1->hdf_dimscaleid;
+                assert(dim_datasetid > 0);
 
-                    for (dim1 = g->dim; dim1; dim1 = dim1->l.next)
-                      if (var->dimids[d] == dim1->dimid)
-                        {
-                          hid_t dim_datasetid;  /* Dataset ID for dimension */
-
-                          /* Find dataset ID for dimension */
-                          if (dim1->coord_var)
-                            dim_datasetid = dim1->coord_var->hdf_datasetid;
-                          else
-                            dim_datasetid = dim1->hdf_dimscaleid;
-                          assert(dim_datasetid > 0);
-
-                          if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
-                            BAIL(NC_EHDFERR);
-                          var->dimscale_attached[d] = NC_FALSE;
-                          if (dims_detached++ == var->ndims)
-                            finished = NC_TRUE;
-                        }
-                  }
+                if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+                  BAIL(NC_EHDFERR);
+                var->dimscale_attached[d] = NC_FALSE;
               }
         }
     }
@@ -2418,7 +2379,6 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       if (v1)
         {
           hsize_t *new_size = NULL;
-          NC_GRP_INFO_T *g;
           NC_DIM_INFO_T *dim1;
           int d1;
 
@@ -2428,21 +2388,8 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
             BAIL(NC_ENOMEM);
           for (d1 = 0; d1 < v1->ndims; d1++)
             {
-              if (v1->dimids[d1] == dim->dimid)
-                new_size[d1] = dim->len;
-              else
-                {
-                  int break_it = 0;
-
-                  for (g = grp; g && !break_it; g = g->parent)
-                    for (dim1 = g->dim; dim1; dim1 = dim1->l.next)
-                      if (dim1->dimid == v1->dimids[d1])
-                        {
-                          new_size[d1] = dim1->len;
-                          break_it++;
-                          break;
-                        }
-                }
+	      assert(v1->dim[d1] && v1->dim[d1]->dimid == v1->dimids[d1]);
+	      new_size[d1] = v1->dim[d1]->len;
             }
           if (H5Dset_extent(v1->hdf_datasetid, new_size) < 0) {
             free(new_size);
@@ -3631,6 +3578,17 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
    * try and find a dimension for them. */
   for (var = grp->var; var; var = var->l.next)
     {
+      /* Check all vars and see if dim[i] != NULL if dimids[i] valid. */
+      int ndims = var->ndims;
+      int d;
+      for (d = 0; d < ndims; d++)
+	{
+	  if (var->dim[d] == NULL) {
+	    nc4_find_dim(grp, var->dimids[d], &var->dim[d], NULL);
+	  }
+	  /*	  assert(var->dim[d] && var->dim[d]->dimid == var->dimids[d]); */
+	}
+
       /* Skip dimension scale variables */
       if (!var->dimscale)
         {
@@ -3658,6 +3616,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                               LOG((4, "%s: for dimension %d, found dim %s",
                                    __func__, d, dim->name));
                               var->dimids[d] = dim->dimid;
+                              var->dim[d] = dim;
                               finished = NC_TRUE;
                               break;
                             }
@@ -3757,6 +3716,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 
                   /* The variable must remember the dimid. */
                   var->dimids[d] = dim->dimid;
+                  var->dim[d] = dim;
                 } /* next dim */
 
               /* Free the memory we malloced. */
