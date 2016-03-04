@@ -662,12 +662,13 @@ exit:
 /* This function reads the hacked in coordinates attribute I use for
  * multi-dimensional coordinates. */
 static int
-read_coord_dimids(NC_VAR_INFO_T *var)
+read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    hid_t coord_att_typeid = -1, coord_attid = -1, spaceid = -1;
    hssize_t npoints;
    int ret = 0;
-
+   int d;
+   
    /* There is a hidden attribute telling us the ids of the
     * dimensions that apply to this multi-dimensional coordinate
     * variable. Read it. */
@@ -687,6 +688,12 @@ read_coord_dimids(NC_VAR_INFO_T *var)
 
    if (!ret && H5Aread(coord_attid, coord_att_typeid, var->dimids) < 0) ret++;
    LOG((4, "dimscale %s is multidimensional and has coords", var->name));
+
+   /* Update var->dim field based on the var->dimids */
+   for (d = 0; d < var->ndims; d++) {
+     /* Ok if does not find a dim at this time, but if found set it */
+     nc4_find_dim(grp, var->dimids[d], &var->dim[d], NULL);
+   }
 
    /* Set my HDF5 IDs free! */
    if (spaceid >= 0 && H5Sclose(spaceid) < 0) ret++;
@@ -1681,7 +1688,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       var->dimscale = NC_TRUE;
       if (var->ndims > 1)
       {
-	 if ((retval = read_coord_dimids(var)))
+	 if ((retval = read_coord_dimids(grp, var)))
 	    BAIL(retval);
       }
       else
@@ -2679,6 +2686,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 
 	 /* Tell the variable the id of this dimension. */
 	 var->dimids[d] = dim->dimid;
+	 var->dim[d] = dim;
       }
 
       /* Read the atts. */
