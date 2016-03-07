@@ -39,21 +39,6 @@
 #define CRAYFLOAT 1 /* CRAY Floating point */
 #endif
 
-/*
- * The integer return code for the conversion routines
- * is 0 (ENOERR) when no error occurred, or NC_ERANGE as appropriate
- * for an overflow conversion.
- */
-#ifndef ENOERR
-#define ENOERR 0
-#endif
-#ifndef NC_ERANGE
-#define NC_ERANGE (-60) /* N.B. must match value in netcdf.h */
-#endif
-#ifndef NC_ENOMEM
-#define NC_ENOMEM (-61) /* N.B. must match value in netcdf.h */
-#endif
-
 
 /*
  * External sizes of the primitive elements.
