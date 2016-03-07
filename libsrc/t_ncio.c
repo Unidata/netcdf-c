@@ -11,8 +11,8 @@
 #include <ctype.h>
 #include <assert.h>
 #include "ncio.h" 
-#ifndef ENOERR
-#define ENOERR 0
+#ifndef NC_NOERR
+#define NC_NOERR 0
 #endif
 
 
@@ -199,7 +199,7 @@ main(int ac, char *av[])
 	off_t offset;
 	size_t extent;
 	void *vp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 	int verbose = 0;
 	int flags = 0;
 	int create = 0;
@@ -271,7 +271,7 @@ main(int ac, char *av[])
 		status = ncio_open(path, flags,
 				igeto, igetsz, &sizehint,
 				&nciop, &vp);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 		{
 			fprintf(stderr, "ncio_open: %s: %s\n",
 				path, strerror(status));
@@ -281,7 +281,7 @@ main(int ac, char *av[])
 		status = ncio_create(path, flags, initialsz,
 			igeto, igetsz, &sizehint,
 			&nciop, &vp);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 		{
 			fprintf(stderr, "ncio_create: %s: %s\n",
 				path, strerror(status));
@@ -361,7 +361,7 @@ main(int ac, char *av[])
 	}
 
 	status = ncio_close(nciop, doUnlink);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 	{
 		fprintf(stderr, "ncio_close(%s): %s: %s\n",
 			doUnlink ? "doUnlink" : "",

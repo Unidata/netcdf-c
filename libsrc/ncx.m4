@@ -451,7 +451,7 @@ ncx_get_$1_$2(const void *xp, $2 *ip)
 	get_ix_$1(xp, &xx);
 	*ip = ($2) xx;
 GETF_CheckBND($1, $2)
-	return ENOERR;
+	return NC_NOERR;
 }
 ')dnl
 
@@ -467,7 +467,7 @@ ncx_get_$1_$2(const void *xp, $2 *ip)
 ifelse(`$3', `1',
 ``#'if IXsizeof($1) == Isizeof($2) && IXmax($1) == Upcase($2)_MAX
 	get_ix_$1(xp, (ix_$1 *)ip);
-	return ENOERR;
+	return NC_NOERR;
 `#'else
 ')dnl
 	ix_$1 xx;
@@ -477,7 +477,7 @@ GETI_CheckBND($1, $2)
 GETI_CheckNeg($1, $2)
 ifelse(`$3', `1', ``#'endif
 ')dnl
-	return ENOERR;
+	return NC_NOERR;
 }
 ')dnl
 
@@ -493,7 +493,7 @@ ncx_put_$1_$2(void *xp, const $2 *ip)
 	ix_$1 xx = (ix_$1)*ip;
 	put_ix_$1(xp, &xx);
 PUTF_CheckBND($1, $2)
-	return ENOERR;
+	return NC_NOERR;
 }
 ')dnl
 
@@ -509,7 +509,7 @@ ncx_put_$1_$2(void *xp, const $2 *ip)
 ifelse(`$3', `1',
 ``#'if IXsizeof($1) == Isizeof($2) && IXmax($1) == Upcase($2)_MAX
 	put_ix_$1(xp, (const ix_$1 *)ip);
-	return ENOERR;
+	return NC_NOERR;
 `#'else
 ')dnl
 	ix_$1 xx = (ix_$1)*ip;
@@ -518,7 +518,7 @@ PUTI_CheckBND($1, $2)
 PUTI_CheckNeg($1, $2)
 ifelse(`$3', `1', ``#'endif
 ')dnl
-	return ENOERR;
+	return NC_NOERR;
 }
 ')dnl
 
@@ -593,7 +593,7 @@ ncx_put_short_schar(void *xp, const schar *ip)
 	else
 		*cp++ = 0;
 	*cp = (uchar)(signed)*ip;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static int
@@ -602,7 +602,7 @@ ncx_put_short_uchar(void *xp, const uchar *ip)
 	uchar *cp = (uchar *) xp;
 	*cp++ = 0;
 	*cp = *ip;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static NCX_PUT1I(short, short,     1)
@@ -681,7 +681,7 @@ ncx_put_ushort_schar(void *xp, const schar *ip)
 	*cp = (uchar)(signed)*ip;
         if (*ip < 0) return NC_ERANGE;
 
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static int
@@ -690,7 +690,7 @@ ncx_put_ushort_uchar(void *xp, const uchar *ip)
 	uchar *cp = (uchar *) xp;
 	*cp++ = 0;
 	*cp = *ip;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static NCX_PUT1I(ushort, short,     0)
@@ -778,7 +778,7 @@ ncx_put_int_schar(void *xp, const schar *ip)
 		*cp++ = 0x00;
 	}
 	*cp = (uchar)(signed)*ip;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static int
@@ -789,7 +789,7 @@ ncx_put_int_uchar(void *xp, const uchar *ip)
 	*cp++ = 0x00;
 	*cp++ = 0x00;
 	*cp   = *ip;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static NCX_PUT1I(int, short,     1)
@@ -868,7 +868,7 @@ ncx_put_uint_schar(void *xp, const schar *ip)
 
 	if (*ip < 0) return NC_ERANGE;
 
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static int
@@ -879,7 +879,7 @@ ncx_put_uint_uchar(void *xp, const uchar *ip)
 	*cp++ = 0x00;
 	*cp++ = 0x00;
 	*cp   = *ip;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 #if X_SIZEOF_UINT != SIZEOF_UINT
@@ -1310,7 +1310,7 @@ ncx_get_float_float(const void *xp, float *ip)
 {
 	/* TODO */
 	get_ix_float(xp, ip);
-	return ENOERR;
+	return NC_NOERR;
 }
 #endif
 
@@ -1335,7 +1335,7 @@ ncx_put_float_float(void *xp, const float *ip)
 	if(*ip > X_FLOAT_MAX || *ip < X_FLOAT_MIN)
 		return NC_ERANGE;
 #endif
-	return ENOERR;
+	return NC_NOERR;
 }
 #endif
 
@@ -1645,7 +1645,7 @@ ncx_get_double_ulonglong(const void *xp, unsigned long long *ip)
 	*ip = (unsigned long long) xx;
 	if(xx > ULONG_LONG_MAX || xx < 0)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static int
@@ -1664,7 +1664,7 @@ ncx_get_double_float(const void *xp, float *ip)
 		return NC_ERANGE;
 	}
 	*ip = (float) xx;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 #if X_SIZEOF_DOUBLE != SIZEOF_DOUBLE  || defined(NO_IEEE_FLOAT)
@@ -1673,7 +1673,7 @@ ncx_get_double_double(const void *xp, double *ip)
 {
 	/* TODO */
 	get_ix_double(xp, ip);
-	return ENOERR;
+	return NC_NOERR;
 }
 #endif
 
@@ -1695,7 +1695,7 @@ ncx_put_double_float(void *xp, const float *ip)
 	if((double)(*ip) > X_DOUBLE_MAX || (double)(*ip) < X_DOUBLE_MIN)
 		return NC_ERANGE;
 #endif
-	return ENOERR;
+	return NC_NOERR;
 }
 
 #if X_SIZEOF_DOUBLE != SIZEOF_DOUBLE  || defined(NO_IEEE_FLOAT)
@@ -1707,7 +1707,7 @@ ncx_put_double_double(void *xp, const double *ip)
 	if(*ip > X_DOUBLE_MAX || *ip < X_DOUBLE_MIN)
 		return NC_ERANGE;
 #endif
-	return ENOERR;
+	return NC_NOERR;
 }
 #endif
 
@@ -1874,7 +1874,7 @@ ncx_put_size_t(void **xpp, const size_t *ulp)
 	*cp   = (uchar)((*ulp) & 0x000000ff);
 
 	*xpp = (void *)((char *)(*xpp) + X_SIZEOF_SIZE_T);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1889,7 +1889,7 @@ ncx_get_size_t(const void **xpp,  size_t *ulp)
 	*ulp |= *cp;
 
 	*xpp = (const void *)((const char *)(*xpp) + X_SIZEOF_SIZE_T);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /* x_off_t */
@@ -1936,7 +1936,7 @@ ncx_put_off_t(void **xpp, const off_t *lp, size_t sizeof_off_t)
 #endif
 	}
 	*xpp = (void *)((char *)(*xpp) + sizeof_off_t);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1993,7 +1993,7 @@ ncx_get_off_t(const void **xpp, off_t *lp, size_t sizeof_off_t)
 #endif
 	}
 	*xpp = (const void *)((const char *)(*xpp) + sizeof_off_t);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /*----< ncx_get_int32() >--------------------------------------------------*/
@@ -2110,7 +2110,7 @@ define(`NCX_GETN_Byte_Body',dnl
 `dnl
 	(void) memcpy(tp, *xpp, nelems);
 	*xpp = (void *)((schar *)(*xpp) + nelems);
-	return ENOERR;
+	return NC_NOERR;
 ')dnl
 dnl dnl dnl
 dnl
@@ -2126,7 +2126,7 @@ define(`NCX_PAD_GETN_Byte_Body',dnl
 	(void) memcpy(tp, *xpp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems + rndup);
 
-	return ENOERR;
+	return NC_NOERR;
 ')dnl
 dnl dnl dnl
 dnl
@@ -2137,7 +2137,7 @@ define(`NCX_GETN_CHAR',dnl
 int
 ncx_getn_$1_$2(const void **xpp, size_t nelems, $2 *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	$1 *xp = ($1 *)(*xpp);
 
 	while(nelems-- != 0)
@@ -2159,7 +2159,7 @@ define(`NCX_PAD_GETN_CHAR',dnl
 int
 ncx_pad_getn_$1_$2(const void **xpp, size_t nelems, $2 *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	size_t rndup = nelems % X_ALIGN;
 	$1 *xp = ($1 *) *xpp;
 
@@ -2186,14 +2186,14 @@ int
 ncx_getn_$1_$2(const void **xpp, size_t nelems, $2 *tp)
 {
 	const char *xp = (const char *) *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 	$1 xx;
 
 	for( ; nelems != 0; nelems--, xp += Xsizeof($1), tp++)
 	{
 		const int lstatus = ncx_get_$1_$1(xp, &xx);
 		*tp = ($2)xx;
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2254,16 +2254,16 @@ ncx_getn_$1_$2(const void **xpp, size_t nelems, $2 *tp)
     tp += ni;
     *xpp = (void*)xp;
   }
-  return nrange == 0 ? ENOERR : NC_ERANGE;
+  return nrange == 0 ? NC_NOERR : NC_ERANGE;
 
 #else   /* not SX */
 	const char *xp = (const char *) *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += Xsizeof($1), tp++)
 	{
 		const int lstatus = ncx_get_$1_$2(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2284,12 +2284,12 @@ ncx_pad_getn_$1_$2(const void **xpp, size_t nelems, $2 *tp)
 	const size_t rndup = nelems % 2;
 
 	const char *xp = (const char *) *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += Xsizeof($1), tp++)
 	{
 		const int lstatus = ncx_get_$1_$2(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2308,7 +2308,7 @@ define(`NCX_PUTN_Byte_Body',dnl
 	(void) memcpy(*xpp, tp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems);
 
-	return ENOERR;
+	return NC_NOERR;
 ')dnl
 dnl dnl dnl
 dnl
@@ -2329,7 +2329,7 @@ define(`NCX_PAD_PUTN_Byte_Body',dnl
 		*xpp = (void *)((char *)(*xpp) + rndup);
 	}
 
-	return ENOERR;
+	return NC_NOERR;
 `dnl
 ')dnl
 dnl dnl dnl
@@ -2341,7 +2341,7 @@ define(`NCX_PUTN_CHAR',dnl
 int
 ncx_putn_$1_$2(void **xpp, size_t nelems, const $2 *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	$1 *xp = ($1 *) *xpp;
 
 	while(nelems-- != 0)
@@ -2364,7 +2364,7 @@ define(`NCX_PAD_PUTN_CHAR',dnl
 int
 ncx_pad_putn_$1_$2(void **xpp, size_t nelems, const $2 *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	size_t rndup = nelems % X_ALIGN;
 	$1 *xp = ($1 *) *xpp;
 
@@ -2399,7 +2399,7 @@ int
 ncx_putn_$1_$2(void **xpp, size_t nelems, const $2 *tp)
 {
 	char *xp = (char *) *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 	$1 xx;
 
 	for( ; nelems != 0; nelems--, xp += Xsizeof($1), tp++)
@@ -2407,7 +2407,7 @@ ncx_putn_$1_$2(void **xpp, size_t nelems, const $2 *tp)
 		xx = ($1) *tp;
 		{
 		int lstatus = ncx_put_$1_$1(xp, &xx);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 		}
 	}
@@ -2486,17 +2486,17 @@ ifelse( $1$2, intfloat,dnl
     tp += ni;
     *xpp = (void*)xp;
   }
-  return nrange == 0 ? ENOERR : NC_ERANGE;
+  return nrange == 0 ? NC_NOERR : NC_ERANGE;
 
 #else   /* not SX */
 
 	char *xp = (char *) *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += Xsizeof($1), tp++)
 	{
 		int lstatus = ncx_put_$1_$2(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2517,12 +2517,12 @@ ncx_pad_putn_$1_$2(void **xpp, size_t nelems, const $2 *tp)
 	const size_t rndup = nelems % 2;
 
 	char *xp = (char *) *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += Xsizeof($1), tp++)
 	{
 		int lstatus = ncx_put_$1_$2(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2729,7 +2729,7 @@ ncx_getn_short_short(const void **xpp, size_t nelems, short *tp)
 	swapn2b(tp, *xpp, nelems);
 # endif
 	*xpp = (const void *)((const char *)(*xpp) + nelems * X_SIZEOF_SHORT);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_GETN(short, short)
@@ -2766,7 +2766,7 @@ ncx_putn_short_short(void **xpp, size_t nelems, const short *tp)
 	swapn2b(*xpp, tp, nelems);
 # endif
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_SHORT);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_PUTN(short, short)
@@ -2806,7 +2806,7 @@ ncx_getn_ushort_ushort(const void **xpp, size_t nelems, unsigned short *tp)
 	swapn2b(tp, *xpp, nelems);
 # endif
 	*xpp = (const void *)((const char *)(*xpp) + nelems * X_SIZEOF_USHORT);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_GETN(ushort, ushort)
@@ -2843,7 +2843,7 @@ ncx_putn_ushort_ushort(void **xpp, size_t nelems, const unsigned short *tp)
 	swapn2b(*xpp, tp, nelems);
 # endif
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_USHORT);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_PUTN(ushort, ushort)
@@ -2883,7 +2883,7 @@ ncx_getn_int_int(const void **xpp, size_t nelems, int *tp)
 	swapn4b(tp, *xpp, nelems);
 # endif
 	*xpp = (const void *)((const char *)(*xpp) + nelems * X_SIZEOF_INT);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_GETN(int, int)
@@ -2909,7 +2909,7 @@ ncx_putn_int_int(void **xpp, size_t nelems, const int *tp)
 	swapn4b(*xpp, tp, nelems);
 # endif
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_INT);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_PUTN(int, int)
@@ -2937,7 +2937,7 @@ ncx_getn_uint_uint(const void **xpp, size_t nelems, unsigned int *tp)
 	swapn4b(tp, *xpp, nelems);
 # endif
 	*xpp = (const void *)((const char *)(*xpp) + nelems * X_SIZEOF_UINT);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_GETN(uint, uint)
@@ -2963,7 +2963,7 @@ ncx_putn_uint_uint(void **xpp, size_t nelems, const unsigned int *tp)
 	swapn4b(*xpp, tp, nelems);
 # endif
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_UINT);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_PUTN(uint, uint)
@@ -2992,7 +2992,7 @@ ncx_getn_float_float(const void **xpp, size_t nelems, float *tp)
 	swapn4b(tp, *xpp, nelems);
 # endif
 	*xpp = (const void *)((const char *)(*xpp) + nelems * X_SIZEOF_FLOAT);
-	return ENOERR;
+	return NC_NOERR;
 }
 #elif vax
 int
@@ -3007,19 +3007,19 @@ GET_VAX_DFLOAT_Body(`(*xpp)')
 		ip++;
 		*xpp = (char *)(*xpp) + X_SIZEOF_FLOAT;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 int
 ncx_getn_float_float(const void **xpp, size_t nelems, float *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_get_float_float(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3049,7 +3049,7 @@ ncx_putn_float_float(void **xpp, size_t nelems, const float *tp)
 	swapn4b(*xpp, tp, nelems);
 # endif
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_FLOAT);
-	return ENOERR;
+	return NC_NOERR;
 }
 #elif vax
 int
@@ -3064,19 +3064,19 @@ PUT_VAX_DFLOAT_Body(`(*xpp)')
 		ip++;
 		*xpp = (char *)(*xpp) + X_SIZEOF_FLOAT;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 int
 ncx_putn_float_float(void **xpp, size_t nelems, const float *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		int lstatus = ncx_put_float_float(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3107,7 +3107,7 @@ ncx_getn_double_double(const void **xpp, size_t nelems, double *tp)
 	swapn8b(tp, *xpp, nelems);
 # endif
 	*xpp = (const void *)((const char *)(*xpp) + nelems * X_SIZEOF_DOUBLE);
-	return ENOERR;
+	return NC_NOERR;
 }
 #elif vax
 int
@@ -3121,7 +3121,7 @@ GET_VAX_DDOUBLE_Body(`(*xpp)')
 		ip++;
 		*xpp = (char *)(*xpp) + X_SIZEOF_DOUBLE;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 	/* vax */
 #else
@@ -3129,12 +3129,12 @@ int
 ncx_getn_double_double(const void **xpp, size_t nelems, double *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_get_double_double(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3163,7 +3163,7 @@ ncx_putn_double_double(void **xpp, size_t nelems, const double *tp)
 	swapn8b(*xpp, tp, nelems);
 # endif
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_DOUBLE);
-	return ENOERR;
+	return NC_NOERR;
 }
 #elif vax
 int
@@ -3177,7 +3177,7 @@ PUT_VAX_DDOUBLE_Body(`(*xpp)')
 		ip++;
 		*xpp = (char *)(*xpp) + X_SIZEOF_DOUBLE;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 	/* vax */
 #else
@@ -3185,12 +3185,12 @@ int
 ncx_putn_double_double(void **xpp, size_t nelems, const double *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		int lstatus = ncx_put_double_double(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3222,7 +3222,7 @@ ncx_getn_longlong_longlong(const void **xpp, size_t nelems, long long *tp)
 	swapn8b(tp, *xpp, nelems);
 # endif
 	*xpp = (const void *)((const char *)(*xpp) + nelems * X_SIZEOF_LONGLONG);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_GETN(longlong, longlong)
@@ -3248,7 +3248,7 @@ ncx_putn_longlong_longlong(void **xpp, size_t nelems, const long long *tp)
 	swapn8b(*xpp, tp, nelems);
 # endif
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_LONGLONG);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_PUTN(longlong, longlong)
@@ -3276,7 +3276,7 @@ ncx_getn_ulonglong_ulonglong(const void **xpp, size_t nelems, unsigned long long
 	swapn8b(tp, *xpp, nelems);
 # endif
 	*xpp = (const void *)((const char *)(*xpp) + nelems * X_SIZEOF_ULONGLONG);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_GETN(ulonglong, ulonglong)
@@ -3302,7 +3302,7 @@ ncx_putn_ulonglong_ulonglong(void **xpp, size_t nelems, const unsigned long long
 	swapn8b(*xpp, tp, nelems);
 # endif
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_ULONGLONG);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 NCX_PUTN(ulonglong, ulonglong)

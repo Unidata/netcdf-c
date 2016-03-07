@@ -199,7 +199,7 @@ typedef char schar;
  *
  * Storage for a single element of internal type is at `ip' argument.
  *
- * These functions return 0 (ENOERR) when no error occurred,
+ * These functions return 0 (NC_NOERR) when no error occurred,
  * or NC_ERANGE when the value being converted is too large.
  * When NC_ERANGE occurs, an undefined (implementation dependent)
  * conversion may have occurred.

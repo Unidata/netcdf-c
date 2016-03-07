@@ -189,7 +189,7 @@ cput_short_short(void *xp, const short *ip, int which)
 
 	if(*ip > X_SHORT_MAX || *ip < X_SHORT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -200,7 +200,7 @@ ncx_get_short_schar(const void *xp, schar *ip)
 	*ip = xx;
 	if(xx > SCHAR_MAX || xx < SCHAR_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -211,14 +211,14 @@ ncx_get_short_uchar(const void *xp, uchar *ip)
 	*ip = xx;
 	if(xx > UCHAR_MAX || xx < 0)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
 ncx_get_short_short(const void *xp, short *ip)
 {
 	get_ix_short(xp, ip);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -227,7 +227,7 @@ ncx_get_short_int(const void *xp, int *ip)
 	ix_short xx;
 	get_ix_short(xp, &xx);
 	*ip = xx;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -236,7 +236,7 @@ ncx_get_short_long(const void *xp, long *ip)
 	ix_short xx;
 	get_ix_short(xp, &xx);
 	*ip = xx;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -245,7 +245,7 @@ ncx_get_short_float(const void *xp, float *ip)
 	ix_short xx;
 	get_ix_short(xp, &xx);
 	*ip = xx;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -254,7 +254,7 @@ ncx_get_short_double(const void *xp, double *ip)
 	ix_short xx;
 	get_ix_short(xp, &xx);
 	*ip = xx;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -266,7 +266,7 @@ ncx_put_short_schar(void *xp, const schar *ip)
 	else
 		*cp++ = 0;
 	*cp = (uchar)*ip;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -275,7 +275,7 @@ ncx_put_short_uchar(void *xp, const uchar *ip)
 	uchar *cp = xp;
 	*cp++ = 0;
 	*cp = *ip;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -303,11 +303,11 @@ ncx_put_short_float(void *xp, const float *ip)
 {
 	ix_short xx = (ix_short)*ip;
 	const int status = cput_short_short(xp, &xx, byteoff(xp)/X_SIZEOF_SHORT);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 	if(*ip > X_SHORT_MAX || *ip < X_SHORT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -315,11 +315,11 @@ ncx_put_short_double(void *xp, const double *ip)
 {
 	ix_short xx = (ix_short)*ip;
 	const int status = cput_short_short(xp, &xx, byteoff(xp)/X_SIZEOF_SHORT);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 	if(*ip > X_SHORT_MAX || *ip < X_SHORT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /* x_int */
@@ -365,7 +365,7 @@ cput_int_int(void *xp, const int *ip, int which)
 	}
 	if(*ip > X_INT_MAX || *ip < X_INT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 #define put_ix_int(xp, ip) cput_int_int((xp), (ip), byteoff(xp))
 
@@ -377,7 +377,7 @@ ncx_get_int_schar(const void *xp, schar *ip)
 	*ip = xx;
 	if(xx > SCHAR_MAX || xx < SCHAR_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -388,7 +388,7 @@ ncx_get_int_uchar(const void *xp, uchar *ip)
 	*ip = xx;
 	if(xx > UCHAR_MAX || xx < 0)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -399,7 +399,7 @@ ncx_get_int_short(const void *xp, short *ip)
 	*ip = xx;
 	if(xx > SHORT_MAX || xx < SHORT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -408,7 +408,7 @@ ncx_get_int_int(const void *xp, int *ip)
 	ix_int xx;
 	get_ix_int(xp, &xx);
 	*ip = xx;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static void
@@ -436,7 +436,7 @@ int
 ncx_get_int_long(const void *xp, long *ip)
 {
 	cget_int_long(xp, ip, byteoff(xp));
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -447,7 +447,7 @@ ncx_get_int_float(const void *xp, float *ip)
 	*ip = xx;
 	if(xx > FLT_MAX || xx < (-FLT_MAX))
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -456,7 +456,7 @@ ncx_get_int_double(const void *xp, double *ip)
 	ix_int xx;
 	get_ix_int(xp, &xx);
 	*ip = xx;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -476,7 +476,7 @@ ncx_put_int_schar(void *xp, const schar *ip)
 		*cp++ = 0x00;
 	}
 	*cp = (uchar)*ip;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -487,7 +487,7 @@ ncx_put_int_uchar(void *xp, const uchar *ip)
 	*cp++ = 0x00;
 	*cp++ = 0x00;
 	*cp   = *ip;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -518,7 +518,7 @@ cput_int_long(void *xp, const long *ip, int which)
 	}
 	if(*ip > X_INT_MAX || *ip < X_INT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -532,11 +532,11 @@ ncx_put_int_float(void *xp, const float *ip)
 {
 	ix_int xx = (ix_int)(*ip);
 	const int status = put_ix_int(xp, &xx);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 	if(*ip > (double)X_INT_MAX || *ip < (double)X_INT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -544,11 +544,11 @@ ncx_put_int_double(void *xp, const double *ip)
 {
 	ix_int xx = (ix_int)(*ip);
 	const int status = put_ix_int(xp, &xx);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 	if(*ip > X_INT_MAX || *ip < X_INT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
  
 
@@ -613,7 +613,7 @@ put_ix_float(void *xp, const float *ip)
 	int status = CRAY2IEG(&Cray2_F32, &One, (word *)xp, &bo, ip, &UnitStride);
 	if(status != 0)
 		status = NC_ERANGE;
-	/* else, status == 0 == ENOERR */
+	/* else, status == 0 == NC_NOERR */
 	return status;
 }
 
@@ -679,7 +679,7 @@ cget_float_float(const void *xp, float *ip, int which)
 static int
 cput_float_float(void *xp, const float *ip, int which)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	if(which == 0)
 	{
 		ieee_single_hi *isp = (ieee_single_hi*)xp;
@@ -766,7 +766,7 @@ cput_float_float(void *xp, const float *ip, int which)
 	}
 
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 
 #define get_ix_float(xp, ip) cget_float_float((xp), (ip), byteoff(xp))
@@ -838,7 +838,7 @@ cput_float_float(void *xp, const float *ip, int which)
 	}
 	if(*ip > X_FLOAT_MAX || *ip < X_FLOAT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 #define get_ix_float(xp, ip) cget_float_float((xp), (ip), byteoff(xp))
@@ -857,7 +857,7 @@ ncx_get_float_schar(const void *xp, schar *ip)
 	*ip = (schar) xx;
 	if(xx > SCHAR_MAX || xx < SCHAR_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -868,7 +868,7 @@ ncx_get_float_uchar(const void *xp, uchar *ip)
 	*ip = (uchar) xx;
 	if(xx > UCHAR_MAX || xx < 0)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -879,7 +879,7 @@ ncx_get_float_short(const void *xp, short *ip)
 	*ip = (short) xx;
 	if(xx > SHORT_MAX || xx < SHORT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -890,7 +890,7 @@ ncx_get_float_int(const void *xp, int *ip)
 	*ip = (int) xx;
 	if(xx > (double)INT_MAX || xx < (double)INT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -901,14 +901,14 @@ ncx_get_float_long(const void *xp, long *ip)
 	*ip = (long) xx;
 	if(xx > LONG_MAX || xx < LONG_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
 ncx_get_float_float(const void *xp, float *ip)
 {
 	get_ix_float(xp, ip);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -920,7 +920,7 @@ ncx_get_float_double(const void *xp, double *ip)
 	float xx;
 	get_ix_float(xp, &xx);
 	*ip = xx;
-	return ENOERR;
+	return NC_NOERR;
 #endif
 }
 
@@ -995,7 +995,7 @@ static int
 put_ix_double(void *xp, const double *ip)
 {
 	(void) memcpy(xp, ip, X_SIZEOF_DOUBLE);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 #else
@@ -1073,7 +1073,7 @@ cput_double_double(void *xp, const double *ip)
 		idp->exp = 0;
 		idp->mant = 0;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 
 #define get_ix_double(xp, ip) cget_double_double((xp), (ip))
@@ -1089,7 +1089,7 @@ ncx_get_double_schar(const void *xp, schar *ip)
 	*ip = (schar) xx;
 	if(xx > SCHAR_MAX || xx < SCHAR_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1100,7 +1100,7 @@ ncx_get_double_uchar(const void *xp, uchar *ip)
 	*ip = (uchar) xx;
 	if(xx > UCHAR_MAX || xx < 0)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1111,7 +1111,7 @@ ncx_get_double_short(const void *xp, short *ip)
 	*ip = (short) xx;
 	if(xx > SHORT_MAX || xx < SHORT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1122,7 +1122,7 @@ ncx_get_double_int(const void *xp, int *ip)
 	*ip = (int) xx;
 	if(xx > INT_MAX || xx < INT_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1133,7 +1133,7 @@ ncx_get_double_long(const void *xp, long *ip)
 	*ip = (long) xx;
 	if(xx > LONG_MAX || xx < LONG_MIN)
 		return NC_ERANGE;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1141,7 +1141,7 @@ ncx_get_double_float(const void *xp, float *ip)
 {
 #if SIZEOF_FLOAT == SIZEOF_DOUBLE && FLT_MANT_DIG == DBL_MANT_DIG
 	get_ix_double(xp, (double *)ip);
-	return ENOERR;
+	return NC_NOERR;
 #else
 	double xx;
 	get_ix_double(xp, &xx);
@@ -1156,7 +1156,7 @@ ncx_get_double_float(const void *xp, float *ip)
 		return NC_ERANGE;
 	}
 	*ip = (float) xx;
-	return ENOERR;
+	return NC_NOERR;
 #endif
 }
 
@@ -1164,7 +1164,7 @@ int
 ncx_get_double_double(const void *xp, double *ip)
 {
 	get_ix_double(xp, ip);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -1173,7 +1173,7 @@ ncx_put_double_schar(void *xp, const schar *ip)
 {
 	double xx = (double) *ip;
 	put_ix_double(xp, &xx);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1181,7 +1181,7 @@ ncx_put_double_uchar(void *xp, const uchar *ip)
 {
 	double xx = (double) *ip;
 	put_ix_double(xp, &xx);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1189,7 +1189,7 @@ ncx_put_double_short(void *xp, const short *ip)
 {
 	double xx = (double) *ip;
 	put_ix_double(xp, &xx);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1197,7 +1197,7 @@ ncx_put_double_int(void *xp, const int *ip)
 {
 	double xx = (double) *ip;
 	put_ix_double(xp, &xx);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1206,7 +1206,7 @@ ncx_put_double_long(void *xp, const long *ip)
 	double xx = (double) *ip;
 	put_ix_double(xp, &xx);
 	/* TODO: Deal with big guys */
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1214,7 +1214,7 @@ ncx_put_double_float(void *xp, const float *ip)
 {
 #if SIZEOF_FLOAT == SIZEOF_DOUBLE && FLT_MANT_DIG == DBL_MANT_DIG
 	put_ix_double(xp, (double *)ip);
-	return ENOERR;
+	return NC_NOERR;
 #else
 	double xx = (double) *ip;
 	return put_ix_double(xp, &xx);
@@ -1226,7 +1226,7 @@ ncx_put_double_double(void *xp, const double *ip)
 {
 #if !defined(NO_IEEE_FLOAT)
 	put_ix_double(xp, ip);
-	return ENOERR;
+	return NC_NOERR;
 #else
 	return put_ix_double(xp, ip);
 #endif
@@ -1248,7 +1248,7 @@ ncx_put_size_t(void **xpp, const size_t *ulp)
 	*cp   = (uchar)((*ulp) & 0x000000ff);
 
 	*xpp = (void *)((char *)(*xpp) + X_SIZEOF_SIZE_T);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1264,7 +1264,7 @@ ncx_get_size_t(const void **xpp,  size_t *ulp)
 	*ulp |= *cp; 
 
 	*xpp = (const void *)((const char *)(*xpp) + X_SIZEOF_SIZE_T);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /* x_off_t */
@@ -1283,7 +1283,7 @@ ncx_put_off_t(void **xpp, const off_t *lp)
 	*cp   = (uchar)((*lp) & 0x000000ff);
 
 	*xpp = (void *)((char *)(*xpp) + X_SIZEOF_OFF_T);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1299,7 +1299,7 @@ ncx_get_off_t(const void **xpp, off_t *lp)
 	*lp |= *cp; 
 
 	*xpp = (const void *)((const char *)(*xpp) + X_SIZEOF_OFF_T);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -1316,7 +1316,7 @@ ncx_getn_schar_schar(const void **xpp, size_t nelems, schar *tp)
 {
 		(void) memcpy(tp, *xpp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems);
-	return ENOERR;
+	return NC_NOERR;
 
 }
 int
@@ -1324,7 +1324,7 @@ ncx_getn_schar_uchar(const void **xpp, size_t nelems, uchar *tp)
 {
 		(void) memcpy(tp, *xpp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems);
-	return ENOERR;
+	return NC_NOERR;
 
 }
 int
@@ -1338,7 +1338,7 @@ ncx_getn_schar_short(const void **xpp, size_t nelems, short *tp)
 	}
 
 	*xpp = (const void *)xp;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1352,7 +1352,7 @@ ncx_getn_schar_int(const void **xpp, size_t nelems, int *tp)
 	}
 
 	*xpp = (const void *)xp;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1366,7 +1366,7 @@ ncx_getn_schar_long(const void **xpp, size_t nelems, long *tp)
 	}
 
 	*xpp = (const void *)xp;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1380,7 +1380,7 @@ ncx_getn_schar_float(const void **xpp, size_t nelems, float *tp)
 	}
 
 	*xpp = (const void *)xp;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1394,7 +1394,7 @@ ncx_getn_schar_double(const void **xpp, size_t nelems, double *tp)
 	}
 
 	*xpp = (const void *)xp;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -1409,7 +1409,7 @@ ncx_pad_getn_schar_schar(const void **xpp, size_t nelems, schar *tp)
 	(void) memcpy(tp, *xpp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems + rndup);
 
-	return ENOERR;
+	return NC_NOERR;
 
 }
 int
@@ -1423,7 +1423,7 @@ ncx_pad_getn_schar_uchar(const void **xpp, size_t nelems, uchar *tp)
 	(void) memcpy(tp, *xpp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems + rndup);
 
-	return ENOERR;
+	return NC_NOERR;
 
 }
 int
@@ -1441,7 +1441,7 @@ ncx_pad_getn_schar_short(const void **xpp, size_t nelems, short *tp)
 	}
 
 	*xpp = (void *)(xp + rndup);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1459,7 +1459,7 @@ ncx_pad_getn_schar_int(const void **xpp, size_t nelems, int *tp)
 	}
 
 	*xpp = (void *)(xp + rndup);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1477,7 +1477,7 @@ ncx_pad_getn_schar_long(const void **xpp, size_t nelems, long *tp)
 	}
 
 	*xpp = (void *)(xp + rndup);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1495,7 +1495,7 @@ ncx_pad_getn_schar_float(const void **xpp, size_t nelems, float *tp)
 	}
 
 	*xpp = (void *)(xp + rndup);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
@@ -1513,7 +1513,7 @@ ncx_pad_getn_schar_double(const void **xpp, size_t nelems, double *tp)
 	}
 
 	*xpp = (void *)(xp + rndup);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -1523,7 +1523,7 @@ ncx_putn_schar_schar(void **xpp, size_t nelems, const schar *tp)
 		(void) memcpy(*xpp, tp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems);
 
-	return ENOERR;
+	return NC_NOERR;
 
 }
 int
@@ -1532,13 +1532,13 @@ ncx_putn_schar_uchar(void **xpp, size_t nelems, const uchar *tp)
 		(void) memcpy(*xpp, tp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems);
 
-	return ENOERR;
+	return NC_NOERR;
 
 }
 int
 ncx_putn_schar_short(void **xpp, size_t nelems, const short *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	schar *xp = (schar *)(*xpp);
 
 	while(nelems-- != 0)
@@ -1555,7 +1555,7 @@ ncx_putn_schar_short(void **xpp, size_t nelems, const short *tp)
 int
 ncx_putn_schar_int(void **xpp, size_t nelems, const int *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	schar *xp = (schar *)(*xpp);
 
 	while(nelems-- != 0)
@@ -1572,7 +1572,7 @@ ncx_putn_schar_int(void **xpp, size_t nelems, const int *tp)
 int
 ncx_putn_schar_long(void **xpp, size_t nelems, const long *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	schar *xp = (schar *)(*xpp);
 
 	while(nelems-- != 0)
@@ -1589,7 +1589,7 @@ ncx_putn_schar_long(void **xpp, size_t nelems, const long *tp)
 int
 ncx_putn_schar_float(void **xpp, size_t nelems, const float *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	schar *xp = (schar *)(*xpp);
 
 	while(nelems-- != 0)
@@ -1606,7 +1606,7 @@ ncx_putn_schar_float(void **xpp, size_t nelems, const float *tp)
 int
 ncx_putn_schar_double(void **xpp, size_t nelems, const double *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	schar *xp = (schar *)(*xpp);
 
 	while(nelems-- != 0)
@@ -1638,7 +1638,7 @@ ncx_pad_putn_schar_schar(void **xpp, size_t nelems, const schar *tp)
 		*xpp = (void *)((char *)(*xpp) + rndup);
 	}
 	
-	return ENOERR;
+	return NC_NOERR;
 
 }
 int
@@ -1658,13 +1658,13 @@ ncx_pad_putn_schar_uchar(void **xpp, size_t nelems, const uchar *tp)
 		*xpp = (void *)((char *)(*xpp) + rndup);
 	}
 	
-	return ENOERR;
+	return NC_NOERR;
 
 }
 int
 ncx_pad_putn_schar_short(void **xpp, size_t nelems, const short *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	size_t rndup = nelems % X_ALIGN;
 	schar *xp = (schar *)(*xpp);
 
@@ -1693,7 +1693,7 @@ ncx_pad_putn_schar_short(void **xpp, size_t nelems, const short *tp)
 int
 ncx_pad_putn_schar_int(void **xpp, size_t nelems, const int *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	size_t rndup = nelems % X_ALIGN;
 	schar *xp = (schar *)(*xpp);
 
@@ -1722,7 +1722,7 @@ ncx_pad_putn_schar_int(void **xpp, size_t nelems, const int *tp)
 int
 ncx_pad_putn_schar_long(void **xpp, size_t nelems, const long *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	size_t rndup = nelems % X_ALIGN;
 	schar *xp = (schar *)(*xpp);
 
@@ -1751,7 +1751,7 @@ ncx_pad_putn_schar_long(void **xpp, size_t nelems, const long *tp)
 int
 ncx_pad_putn_schar_float(void **xpp, size_t nelems, const float *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	size_t rndup = nelems % X_ALIGN;
 	schar *xp = (schar *)(*xpp);
 
@@ -1780,7 +1780,7 @@ ncx_pad_putn_schar_float(void **xpp, size_t nelems, const float *tp)
 int
 ncx_pad_putn_schar_double(void **xpp, size_t nelems, const double *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	size_t rndup = nelems % X_ALIGN;
 	schar *xp = (schar *)(*xpp);
 
@@ -1814,12 +1814,12 @@ int
 ncx_getn_short_schar(const void **xpp, size_t nelems, schar *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_schar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -1831,12 +1831,12 @@ int
 ncx_getn_short_uchar(const void **xpp, size_t nelems, uchar *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_uchar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -1860,7 +1860,7 @@ ncx_getn_short_short(const void **xpp, size_t nelems, short *tp)
 		if(ierr > 0)
 			return NC_ERANGE;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 int
@@ -1879,7 +1879,7 @@ ncx_getn_short_short(const void **xpp, const size_t nelems, short *tp)
 		if(*tp & 0x8000)
 			*tp |= (~(0xffff));
 		if(tp == last)
-			return ENOERR;
+			return NC_NOERR;
 		tp++;
 		/*FALLTHRU*/	
 	case 2:
@@ -1887,7 +1887,7 @@ ncx_getn_short_short(const void **xpp, const size_t nelems, short *tp)
 		if(*tp & 0x8000)
 			*tp |= (~(0xffff));
 		if(tp == last)
-			return ENOERR;
+			return NC_NOERR;
 		tp++;
 		/*FALLTHRU*/	
 	case 1:
@@ -1895,7 +1895,7 @@ ncx_getn_short_short(const void **xpp, const size_t nelems, short *tp)
 		if(*tp & 0x8000)
 			*tp |= (~(0xffff));
 		if(tp == last)
-			return ENOERR;
+			return NC_NOERR;
 		tp++;
 		wp++; /* Note Bene */
 		/*FALLTHRU*/	
@@ -1956,7 +1956,7 @@ ncx_getn_short_short(const void **xpp, const size_t nelems, short *tp)
 	}
 
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 #endif
 
@@ -1964,12 +1964,12 @@ int
 ncx_getn_short_int(const void **xpp, size_t nelems, int *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_int(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -1981,12 +1981,12 @@ int
 ncx_getn_short_long(const void **xpp, size_t nelems, long *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_long(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -1998,12 +1998,12 @@ int
 ncx_getn_short_float(const void **xpp, size_t nelems, float *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_float(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2015,12 +2015,12 @@ int
 ncx_getn_short_double(const void **xpp, size_t nelems, double *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_double(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2035,12 +2035,12 @@ ncx_pad_getn_short_schar(const void **xpp, size_t nelems, schar *tp)
 	const size_t rndup = nelems % 2;
 
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_schar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2057,12 +2057,12 @@ ncx_pad_getn_short_uchar(const void **xpp, size_t nelems, uchar *tp)
 	const size_t rndup = nelems % 2;
 
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_uchar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2094,12 +2094,12 @@ ncx_pad_getn_short_int(const void **xpp, size_t nelems, int *tp)
 	const size_t rndup = nelems % 2;
 
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_int(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2116,12 +2116,12 @@ ncx_pad_getn_short_long(const void **xpp, size_t nelems, long *tp)
 	const size_t rndup = nelems % 2;
 
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_long(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2138,12 +2138,12 @@ ncx_pad_getn_short_float(const void **xpp, size_t nelems, float *tp)
 	const size_t rndup = nelems % 2;
 
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_float(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2160,12 +2160,12 @@ ncx_pad_getn_short_double(const void **xpp, size_t nelems, double *tp)
 	const size_t rndup = nelems % 2;
 
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_get_short_double(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2181,12 +2181,12 @@ int
 ncx_putn_short_schar(void **xpp, size_t nelems, const schar *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_schar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2198,12 +2198,12 @@ int
 ncx_putn_short_uchar(void **xpp, size_t nelems, const uchar *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_uchar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2229,13 +2229,13 @@ ncx_putn_short_short(void **xpp, size_t nelems, const short *tp)
 		if(ierr > 0)
 			return NC_ERANGE;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 int
 ncx_putn_short_short(void **xpp, const size_t nelems, const short *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	if(nelems == 0)
 		return status;
 {
@@ -2330,12 +2330,12 @@ int
 ncx_putn_short_int(void **xpp, size_t nelems, const int *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_int(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2347,12 +2347,12 @@ int
 ncx_putn_short_long(void **xpp, size_t nelems, const long *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_long(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2364,12 +2364,12 @@ int
 ncx_putn_short_float(void **xpp, size_t nelems, const float *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_float(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2381,12 +2381,12 @@ int
 ncx_putn_short_double(void **xpp, size_t nelems, const double *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_double(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2401,12 +2401,12 @@ ncx_pad_putn_short_schar(void **xpp, size_t nelems, const schar *tp)
 	const size_t rndup = nelems % 2;
 
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_schar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2426,12 +2426,12 @@ ncx_pad_putn_short_uchar(void **xpp, size_t nelems, const uchar *tp)
 	const size_t rndup = nelems % 2;
 
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_uchar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2466,12 +2466,12 @@ ncx_pad_putn_short_int(void **xpp, size_t nelems, const int *tp)
 	const size_t rndup = nelems % 2;
 
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_int(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2491,12 +2491,12 @@ ncx_pad_putn_short_long(void **xpp, size_t nelems, const long *tp)
 	const size_t rndup = nelems % 2;
 
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_long(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2516,12 +2516,12 @@ ncx_pad_putn_short_float(void **xpp, size_t nelems, const float *tp)
 	const size_t rndup = nelems % 2;
 
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_float(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2541,12 +2541,12 @@ ncx_pad_putn_short_double(void **xpp, size_t nelems, const double *tp)
 	const size_t rndup = nelems % 2;
 
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_SHORT, tp++)
 	{
 		const int lstatus = ncx_put_short_double(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2568,12 +2568,12 @@ int
 ncx_getn_int_schar(const void **xpp, size_t nelems, schar *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_INT, tp++)
 	{
 		const int lstatus = ncx_get_int_schar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2585,12 +2585,12 @@ int
 ncx_getn_int_uchar(const void **xpp, size_t nelems, uchar *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_INT, tp++)
 	{
 		const int lstatus = ncx_get_int_uchar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2602,12 +2602,12 @@ int
 ncx_getn_int_short(const void **xpp, size_t nelems, short *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_INT, tp++)
 	{
 		const int lstatus = ncx_get_int_short(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2631,7 +2631,7 @@ ncx_getn_int_int(const void **xpp, size_t nelems, int *tp)
 		if(ierr > 0)
 			return NC_ERANGE;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 int
@@ -2640,7 +2640,7 @@ ncx_getn_int_int(const void **xpp, size_t nelems, int *tp)
 	const int bo = byteoff(*xpp);
 
 	if(nelems == 0)
-		return ENOERR;
+		return NC_NOERR;
 
 	if(bo != 0)
 	{
@@ -2648,7 +2648,7 @@ ncx_getn_int_int(const void **xpp, size_t nelems, int *tp)
 		*xpp = ((char *) (*xpp) + X_SIZEOF_INT);
 		nelems--;
 		if(nelems == 0)
-			return ENOERR;
+			return NC_NOERR;
 		tp++;
 	}
 
@@ -2675,7 +2675,7 @@ ncx_getn_int_int(const void **xpp, size_t nelems, int *tp)
 		}
 	}
 
-	return ENOERR;
+	return NC_NOERR;
 }
 #endif
 
@@ -2685,7 +2685,7 @@ ncx_getn_int_long(const void **xpp, size_t nelems, long *tp)
 	const int bo = byteoff(*xpp);
 
 	if(nelems == 0)
-		return ENOERR;
+		return NC_NOERR;
 
 	if(bo != 0)
 	{
@@ -2693,7 +2693,7 @@ ncx_getn_int_long(const void **xpp, size_t nelems, long *tp)
 		*xpp = ((char *) (*xpp) + X_SIZEOF_INT);
 		nelems--;
 		if(nelems == 0)
-			return ENOERR;
+			return NC_NOERR;
 		tp++;
 	}
 
@@ -2720,19 +2720,19 @@ ncx_getn_int_long(const void **xpp, size_t nelems, long *tp)
 		}
 	}
 
-	return ENOERR;
+	return NC_NOERR;
 }
 
 int
 ncx_getn_int_float(const void **xpp, size_t nelems, float *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_INT, tp++)
 	{
 		const int lstatus = ncx_get_int_float(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2744,12 +2744,12 @@ int
 ncx_getn_int_double(const void **xpp, size_t nelems, double *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_INT, tp++)
 	{
 		const int lstatus = ncx_get_int_double(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2762,12 +2762,12 @@ int
 ncx_putn_int_schar(void **xpp, size_t nelems, const schar *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_INT, tp++)
 	{
 		const int lstatus = ncx_put_int_schar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2779,12 +2779,12 @@ int
 ncx_putn_int_uchar(void **xpp, size_t nelems, const uchar *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_INT, tp++)
 	{
 		const int lstatus = ncx_put_int_uchar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2796,12 +2796,12 @@ int
 ncx_putn_int_short(void **xpp, size_t nelems, const short *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_INT, tp++)
 	{
 		const int lstatus = ncx_put_int_short(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2827,17 +2827,17 @@ ncx_putn_int_int(void **xpp, size_t nelems, const int *tp)
 		if(ierr > 0)
 			return NC_ERANGE;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 int
 ncx_putn_int_int(void **xpp, size_t nelems, const int *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	const int bo = byteoff(*xpp);
 
 	if(nelems == 0)
-		return ENOERR;
+		return NC_NOERR;
 
 	if(bo != 0)
 	{
@@ -2860,10 +2860,10 @@ ncx_putn_int_int(void **xpp, size_t nelems, const int *tp)
 		for( ; wp < end; wp++, tp += 2)
 		{
 			int lstatus = cput_int_int(wp, tp, 0);
-			if(lstatus != ENOERR)
+			if(lstatus != NC_NOERR)
 				status = lstatus;
 			lstatus = cput_int_int(wp, tp + 1, 1);
-			if(lstatus != ENOERR)
+			if(lstatus != NC_NOERR)
 				status = lstatus;
 		}
 
@@ -2872,7 +2872,7 @@ ncx_putn_int_int(void **xpp, size_t nelems, const int *tp)
 		if(nelems != 0)
 		{
 			const int lstatus = cput_int_int(wp, tp, 0);
-			if(lstatus != ENOERR)
+			if(lstatus != NC_NOERR)
 				status = lstatus;
 			*xpp = ((char *) (*xpp) + X_SIZEOF_INT);
 		}
@@ -2885,11 +2885,11 @@ ncx_putn_int_int(void **xpp, size_t nelems, const int *tp)
 int
 ncx_putn_int_long(void **xpp, size_t nelems, const long *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	const int bo = byteoff(*xpp);
 
 	if(nelems == 0)
-		return ENOERR;
+		return NC_NOERR;
 
 	if(bo != 0)
 	{
@@ -2912,10 +2912,10 @@ ncx_putn_int_long(void **xpp, size_t nelems, const long *tp)
 		for( ; wp < end; wp++, tp += 2)
 		{
 			int lstatus = cput_int_long(wp, tp, 0);
-			if(lstatus != ENOERR)
+			if(lstatus != NC_NOERR)
 				status = lstatus;
 			lstatus = cput_int_long(wp, tp + 1, 1);
-			if(lstatus != ENOERR)
+			if(lstatus != NC_NOERR)
 				status = lstatus;
 		}
 
@@ -2924,7 +2924,7 @@ ncx_putn_int_long(void **xpp, size_t nelems, const long *tp)
 		if(nelems != 0)
 		{
 			const int lstatus = cput_int_long(wp, tp, 0);
-			if(lstatus != ENOERR)
+			if(lstatus != NC_NOERR)
 				status = lstatus;
 			*xpp = ((char *) (*xpp) + X_SIZEOF_INT);
 		}
@@ -2937,12 +2937,12 @@ int
 ncx_putn_int_float(void **xpp, size_t nelems, const float *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_INT, tp++)
 	{
 		const int lstatus = ncx_put_int_float(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2954,12 +2954,12 @@ int
 ncx_putn_int_double(void **xpp, size_t nelems, const double *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_INT, tp++)
 	{
 		const int lstatus = ncx_put_int_double(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2975,12 +2975,12 @@ int
 ncx_getn_float_schar(const void **xpp, size_t nelems, schar *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_get_float_schar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -2992,12 +2992,12 @@ int
 ncx_getn_float_uchar(const void **xpp, size_t nelems, uchar *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_get_float_uchar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3009,12 +3009,12 @@ int
 ncx_getn_float_short(const void **xpp, size_t nelems, short *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_get_float_short(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3026,12 +3026,12 @@ int
 ncx_getn_float_int(const void **xpp, size_t nelems, int *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_get_float_int(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3043,12 +3043,12 @@ int
 ncx_getn_float_long(const void **xpp, size_t nelems, long *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_get_float_long(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3072,7 +3072,7 @@ ncx_getn_float_float(const void **xpp, size_t nelems, float *tp)
 		if(ierr > 0)
 			return NC_ERANGE;
 	}
-	return ENOERR;
+	return NC_NOERR;
 
 }
 #else
@@ -3082,7 +3082,7 @@ ncx_getn_float_float(const void **xpp, size_t nelems, float *tp)
 	const int bo = byteoff(*xpp);
 
 	if(nelems == 0)
-		return ENOERR;
+		return NC_NOERR;
 
 	if(bo != 0)
 	{
@@ -3090,7 +3090,7 @@ ncx_getn_float_float(const void **xpp, size_t nelems, float *tp)
 		*xpp = ((char *) (*xpp) + X_SIZEOF_FLOAT);
 		nelems--;
 		if(nelems == 0)
-			return ENOERR;
+			return NC_NOERR;
 		tp++;
 	}
 
@@ -3117,7 +3117,7 @@ ncx_getn_float_float(const void **xpp, size_t nelems, float *tp)
 		}
 	}
 
-	return ENOERR;
+	return NC_NOERR;
 }
 #endif
 
@@ -3125,12 +3125,12 @@ int
 ncx_getn_float_double(const void **xpp, size_t nelems, double *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_get_float_double(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3143,12 +3143,12 @@ int
 ncx_putn_float_schar(void **xpp, size_t nelems, const schar *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_put_float_schar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3160,12 +3160,12 @@ int
 ncx_putn_float_uchar(void **xpp, size_t nelems, const uchar *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_put_float_uchar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3177,12 +3177,12 @@ int
 ncx_putn_float_short(void **xpp, size_t nelems, const short *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_put_float_short(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3194,12 +3194,12 @@ int
 ncx_putn_float_int(void **xpp, size_t nelems, const int *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_put_float_int(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3211,12 +3211,12 @@ int
 ncx_putn_float_long(void **xpp, size_t nelems, const long *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_put_float_long(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3242,17 +3242,17 @@ ncx_putn_float_float(void **xpp, size_t nelems, const float *tp)
 		if(ierr > 0)
 			return NC_ERANGE;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 int
 ncx_putn_float_float(void **xpp, size_t nelems, const float *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	const int bo = byteoff(*xpp);
 
 	if(nelems == 0)
-		return ENOERR;
+		return NC_NOERR;
 
 	if(bo != 0)
 	{
@@ -3275,10 +3275,10 @@ ncx_putn_float_float(void **xpp, size_t nelems, const float *tp)
 		for( ; wp < end; wp++, tp += 2)
 		{
 			int lstatus = cput_float_float(wp, tp, 0);
-			if(lstatus != ENOERR)
+			if(lstatus != NC_NOERR)
 				status = lstatus;
 			lstatus = cput_float_float(wp, tp + 1, 1);
-			if(lstatus != ENOERR)
+			if(lstatus != NC_NOERR)
 				status = lstatus;
 		}
 
@@ -3287,7 +3287,7 @@ ncx_putn_float_float(void **xpp, size_t nelems, const float *tp)
 		if(nelems != 0)
 		{
 			const int lstatus = cput_float_float(wp, tp, 0);
-			if(lstatus != ENOERR)
+			if(lstatus != NC_NOERR)
 				status = lstatus;
 			*xpp = ((char *) (*xpp) + X_SIZEOF_FLOAT);
 		}
@@ -3301,12 +3301,12 @@ int
 ncx_putn_float_double(void **xpp, size_t nelems, const double *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
 		const int lstatus = ncx_put_float_double(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3322,12 +3322,12 @@ int
 ncx_getn_double_schar(const void **xpp, size_t nelems, schar *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_get_double_schar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3339,12 +3339,12 @@ int
 ncx_getn_double_uchar(const void **xpp, size_t nelems, uchar *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_get_double_uchar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3356,12 +3356,12 @@ int
 ncx_getn_double_short(const void **xpp, size_t nelems, short *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_get_double_short(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3373,12 +3373,12 @@ int
 ncx_getn_double_int(const void **xpp, size_t nelems, int *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_get_double_int(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3390,12 +3390,12 @@ int
 ncx_getn_double_long(const void **xpp, size_t nelems, long *tp)
 {
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_get_double_long(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3411,7 +3411,7 @@ ncx_getn_double_double(const void **xpp, size_t nelems, double *tp)
 	int ierr;
 
 	if(nelems == 0)
-		return ENOERR;
+		return NC_NOERR;
 
 	if(noff != 0)
 	{
@@ -3434,7 +3434,7 @@ ncx_getn_double_double(const void **xpp, size_t nelems, double *tp)
 
 	assert(ierr >= 0);
 
-	return ierr > 0 ? NC_ERANGE : ENOERR;
+	return ierr > 0 ? NC_ERANGE : NC_NOERR;
 }
 #elif X_SIZEOF_DOUBLE == SIZEOF_DOUBLE  && !defined(NO_IEEE_FLOAT)
 int
@@ -3442,7 +3442,7 @@ ncx_getn_double_double(const void **xpp, size_t nelems, double *tp)
 {
 	(void) memcpy(tp, *xpp, nelems * X_SIZEOF_DOUBLE);
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_DOUBLE);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 int
@@ -3451,7 +3451,7 @@ ncx_getn_double_double(const void **xpp, size_t nelems, double *tp)
 	const size_t noff = byteoff(*xpp);
 
 	if(nelems == 0)
-		return ENOERR;
+		return NC_NOERR;
 
 	if(noff != 0)
 	{
@@ -3491,7 +3491,7 @@ ncx_getn_double_double(const void **xpp, size_t nelems, double *tp)
 
 	}
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_DOUBLE);
-	return ENOERR;
+	return NC_NOERR;
 }
 #endif
 
@@ -3502,12 +3502,12 @@ ncx_getn_double_float(const void **xpp, size_t nelems, float *tp)
 	return ncx_getn_double_double(xpp, nelems, (double *)tp);
 #else
 	const char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_get_double_float(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3521,12 +3521,12 @@ int
 ncx_putn_double_schar(void **xpp, size_t nelems, const schar *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_put_double_schar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3538,12 +3538,12 @@ int
 ncx_putn_double_uchar(void **xpp, size_t nelems, const uchar *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_put_double_uchar(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3555,12 +3555,12 @@ int
 ncx_putn_double_short(void **xpp, size_t nelems, const short *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_put_double_short(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3572,12 +3572,12 @@ int
 ncx_putn_double_int(void **xpp, size_t nelems, const int *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_put_double_int(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3589,12 +3589,12 @@ int
 ncx_putn_double_long(void **xpp, size_t nelems, const long *tp)
 {
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_put_double_long(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3610,7 +3610,7 @@ ncx_putn_double_double(void **xpp, size_t nelems, const double *tp)
 	int ierr;
 
 	if(nelems == 0)
-		return ENOERR;
+		return NC_NOERR;
 
 	if(noff != 0)
 	{
@@ -3633,7 +3633,7 @@ ncx_putn_double_double(void **xpp, size_t nelems, const double *tp)
 
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_DOUBLE);
 
-	return ierr > 0 ? NC_ERANGE : ENOERR;
+	return ierr > 0 ? NC_ERANGE : NC_NOERR;
 }
 #elif X_SIZEOF_DOUBLE == SIZEOF_DOUBLE  && !defined(NO_IEEE_FLOAT)
 int
@@ -3642,17 +3642,17 @@ ncx_putn_double_double(void **xpp, size_t nelems, const double *tp)
 	const size_t noff = byteoff(*xpp);
 	(void) memcpy(*xpp, tp, nelems * X_SIZEOF_DOUBLE);
 	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_DOUBLE);
-	return ENOERR;
+	return NC_NOERR;
 }
 #else
 int
 ncx_putn_double_double(void **xpp, size_t nelems, const double *tp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	const size_t noff = byteoff(*xpp);
 
 	if(nelems == 0)
-		return ENOERR;
+		return NC_NOERR;
 
 	if(noff != 0)
 	{
@@ -3671,7 +3671,7 @@ ncx_putn_double_double(void **xpp, size_t nelems, const double *tp)
 			for( ; wp < end; wp++, tp++)
 			{
 				const int lstatus = cput_double_double(wp, tp);
-				if(lstatus != ENOERR)
+				if(lstatus != NC_NOERR)
 					status = lstatus;
 			}
 
@@ -3689,7 +3689,7 @@ ncx_putn_double_double(void **xpp, size_t nelems, const double *tp)
 		for( ; wp < end; wp++, tp++)
 		{
 			const int lstatus = cput_double_double(wp, tp);
-			if(lstatus != ENOERR)
+			if(lstatus != NC_NOERR)
 				status = lstatus;
 		}
 
@@ -3707,12 +3707,12 @@ ncx_putn_double_float(void **xpp, size_t nelems, const float *tp)
 	return ncx_putn_double_double(xpp, nelems, (double *)tp);
 #else
 	char *xp = *xpp;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
 		const int lstatus = ncx_put_double_float(xp, tp);
-		if(lstatus != ENOERR)
+		if(lstatus != NC_NOERR)
 			status = lstatus;
 	}
 
@@ -3734,7 +3734,7 @@ ncx_getn_text(const void **xpp, size_t nelems, char *tp)
 {
 	(void) memcpy(tp, *xpp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems);
-	return ENOERR;
+	return NC_NOERR;
 
 }
 
@@ -3749,7 +3749,7 @@ ncx_pad_getn_text(const void **xpp, size_t nelems, char *tp)
 	(void) memcpy(tp, *xpp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems + rndup);
 
-	return ENOERR;
+	return NC_NOERR;
 
 }
 
@@ -3759,7 +3759,7 @@ ncx_putn_text(void **xpp, size_t nelems, const char *tp)
 	(void) memcpy(*xpp, tp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems);
 
-	return ENOERR;
+	return NC_NOERR;
 
 }
 
@@ -3780,7 +3780,7 @@ ncx_pad_putn_text(void **xpp, size_t nelems, const char *tp)
 		*xpp = (void *)((char *)(*xpp) + rndup);
 	}
 	
-	return ENOERR;
+	return NC_NOERR;
 
 }
 
@@ -3792,7 +3792,7 @@ ncx_getn_void(const void **xpp, size_t nelems, void *tp)
 {
 	(void) memcpy(tp, *xpp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems);
-	return ENOERR;
+	return NC_NOERR;
 
 }
 
@@ -3807,7 +3807,7 @@ ncx_pad_getn_void(const void **xpp, size_t nelems, void *tp)
 	(void) memcpy(tp, *xpp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems + rndup);
 
-	return ENOERR;
+	return NC_NOERR;
 
 }
 
@@ -3817,7 +3817,7 @@ ncx_putn_void(void **xpp, size_t nelems, const void *tp)
 	(void) memcpy(*xpp, tp, nelems);
 	*xpp = (void *)((char *)(*xpp) + nelems);
 
-	return ENOERR;
+	return NC_NOERR;
 
 }
 
@@ -3838,6 +3838,6 @@ ncx_pad_putn_void(void **xpp, size_t nelems, const void *tp)
 		*xpp = (void *)((char *)(*xpp) + rndup);
 	}
 	
-	return ENOERR;
+	return NC_NOERR;
 
 }

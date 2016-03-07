@@ -12,8 +12,8 @@
 #include <stdlib.h>
 #include <stdio.h>	/* DEBUG */
 #include <errno.h>
-#ifndef ENOERR
-#define ENOERR 0
+#ifndef NC_NOERR
+#define NC_NOERR 0
 #endif
 #include <fcntl.h>
 #include <unistd.h>
@@ -81,7 +81,7 @@ fgrow(const int fd, const off_t len)
 	if (fffcntl(fd, FC_STAT, &sb, &sw) < 0)
 		return errno;
 	if (len < sb.st_size)
-		return ENOERR;
+		return NC_NOERR;
 	{
 		const long dumb = 0;
 			/* cache current position */
@@ -96,7 +96,7 @@ fgrow(const int fd, const off_t len)
 			return errno;
 	}
 	/* else */
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -113,7 +113,7 @@ fgrow2(const int fd, const off_t len)
 	if (fffcntl(fd, FC_STAT, &sb, &sw) < 0)
 		return errno;
 	if (len <= sb.st_size)
-		return ENOERR;
+		return NC_NOERR;
 	{
 	    const char dumb = 0;
 	    /* we don't use ftruncate() due to problem with FAT32 file systems */
@@ -128,7 +128,7 @@ fgrow2(const int fd, const off_t len)
 	    if (ffseek(fd, pos, SEEK_SET) < 0)
 		return errno;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 /* End OS */
 /* Begin ffio */
@@ -157,7 +157,7 @@ ffio_pgout(ncio *const nciop,
 	}
 	*posp += extent;
 
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -189,14 +189,14 @@ ffio_pgin(ncio *const nciop,
 	if(nread != extent)
 	{
 		status = errno;
-		if(nread == -1 || status != ENOERR)
+		if(nread == -1 || status != NC_NOERR)
 			return status;
 		/* else it's okay we read 0. */
 	}
 	*nreadp = nread;
 	*posp += nread;
 
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /* */
@@ -215,7 +215,7 @@ static int
 ncio_ffio_rel(ncio *const nciop, off_t offset, int rflags)
 {
 	ncio_ffio *ffp = (ncio_ffio *)nciop->pvt;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	assert(ffp->bf_offset <= offset);
 	assert(ffp->bf_cnt != 0);
@@ -248,7 +248,7 @@ ncio_ffio_get(ncio *const nciop,
 		void **const vpp)
 {
 	ncio_ffio *ffp = (ncio_ffio *)nciop->pvt;
-	int status = ENOERR;
+	int status = NC_NOERR;
 #ifdef X_ALIGN
 	size_t rem;
 #endif
@@ -299,7 +299,7 @@ ncio_ffio_get(ncio *const nciop,
 		 extent,
 		 ffp->bf_base,
 		 &ffp->bf_cnt, &ffp->pos);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 
 	ffp->bf_offset = offset;
@@ -317,7 +317,7 @@ ncio_ffio_get(ncio *const nciop,
 #else
 	*vpp = (char *)ffp->bf_base;
 #endif
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -325,7 +325,7 @@ static int
 ncio_ffio_move(ncio *const nciop, off_t to, off_t from,
 			size_t nbytes, int rflags)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	off_t lower = from;	
 	off_t upper = to;
 	char *base;
@@ -335,7 +335,7 @@ ncio_ffio_move(ncio *const nciop, off_t to, off_t from,
 	rflags &= RGN_NOLOCK; /* filter unwanted flags */
 
 	if(to == from)
-		return ENOERR; /* NOOP */
+		return NC_NOERR; /* NOOP */
 	
 	if(to > from)
 	{
@@ -356,7 +356,7 @@ ncio_ffio_move(ncio *const nciop, off_t to, off_t from,
 	status = ncio_ffio_get(nciop, lower, extent, RGN_WRITE|rflags,
 			(void **)&base);
 
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 
 	if(to > from)
@@ -382,7 +382,7 @@ ncio_ffio_sync_noffflush(ncio *const nciop)
 	/* run some innocuous ffio routine to get if any errno */
 	if(fffcntl(nciop->fd, FC_STAT, &si, &ffstatus) < 0)
 		return ffstatus.sw_error;
-	return ENOERR;
+	return NC_NOERR;
 }
 /* this tests to see if the global FFIO layer is being called for
  * returns ~0 if it is, else returns 0
@@ -408,7 +408,7 @@ ncio_ffio_sync(ncio *const nciop)
 	if(ffflush(nciop->fd) < 0)
 #endif
 		return errno;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static void
@@ -448,7 +448,7 @@ ncio_ffio_init2(ncio *const nciop, size_t *sizehintp)
 		return ENOMEM;
 	}
 	/* else */
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -551,7 +551,7 @@ ncio_ffio_assign(const char *filename) {
 
 /* put things into known states */
 	memset(buffer,'\0',BUFLEN);
-	errno = ENOERR;
+	errno = NC_NOERR;
 
 /* set up Fortran character pointers */
 #ifdef __crayx1
@@ -673,13 +673,13 @@ ffio_create(const char *path, int ioflags,
 	}
 
 	status = ncio_ffio_init2(nciop, sizehintp);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		goto unwind_open;
 
 	if(initialsz != 0)
 	{
 		status = fgrow(fd, (off_t)initialsz);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			goto unwind_open;
 	}
 
@@ -689,12 +689,12 @@ ffio_create(const char *path, int ioflags,
 				igeto, igetsz,
                         	RGN_WRITE,
                         	igetvpp);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			goto unwind_open;
 	}
 
 	*nciopp = nciop;
-	return ENOERR;
+	return NC_NOERR;
 
 unwind_open:
 	(void) ffclose(fd);
@@ -765,7 +765,7 @@ ffio_open(const char *path,
 	}
 
 	status = ncio_ffio_init2(nciop, sizehintp);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		goto unwind_open;
 
 	if(igetsz != 0)
@@ -774,12 +774,12 @@ ffio_open(const char *path,
 				igeto, igetsz,
                         	0,
                         	igetvpp);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			goto unwind_open;
 	}
 
 	*nciopp = nciop;
-	return ENOERR;
+	return NC_NOERR;
 
 unwind_open:
 	(void) ffclose(fd);
@@ -809,7 +809,7 @@ ncio_ffio_filesize(ncio *nciop, off_t *filesizep)
 
     if(reset != current)
 	return EINVAL;
-    return ENOERR;
+    return NC_NOERR;
 }
 
 
@@ -823,7 +823,7 @@ ncio_ffio_filesize(ncio *nciop, off_t *filesizep)
 static int
 ncio_ffio_pad_length(ncio *nciop, off_t length)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	if(nciop == NULL)
 		return EINVAL;
@@ -832,13 +832,13 @@ ncio_ffio_pad_length(ncio *nciop, off_t length)
 	        return EPERM; /* attempt to write readonly file */
 
 	status = nciop->sync(nciop);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 	        return status;
 
 	status = fgrow2(nciop->fd, length);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 	        return errno;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -851,7 +851,7 @@ ncio_ffio_close(ncio *nciop, int doUnlink)
          * 2002-07-10.
 	 */
 
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	if(nciop == NULL)
 		return EINVAL;
