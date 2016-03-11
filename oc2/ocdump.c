@@ -462,16 +462,16 @@ ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
     }
 
     if(fseek(file,pos,SEEK_SET) < 0) {; /* leave it as we found it*/
-        fprintf(stderr,"ocreadfile: fseek error.\n");
-	stat = OC_ERCFILE;
-	goto done;
+      fprintf(stderr,"ocreadfile: fseek error.\n");
+      stat = OC_ERCFILE;
+      goto done;
     }
     if(memp) {*memp = mem; mem = NULL;}
     if(lenp) *lenp = len;
 
-done:
+ done:
     if(mem != NULL)
-	free(mem);
+      free(mem);
     return OCTHROW(stat);
 }
 
@@ -485,9 +485,11 @@ ocdd(OCstate* state, OCnode* root, int xdrencoded, int level)
                        root->tree->data.bod,
                        &mem,
                        &len)) {
-    	    fprintf(stderr,"ocdd could not read data file\n");
-	    return;
-	}
+          /* ocreadfile allocates memory that must be freed. */
+          if(mem != NULL) free(mem);
+          fprintf(stderr,"ocdd could not read data file\n");
+          return;
+        }
         ocdumpmemory(mem,len,xdrencoded,level);
         free(mem);
     } else {
