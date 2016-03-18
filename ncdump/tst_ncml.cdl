@@ -10,4 +10,5 @@ variables:
    :gtatt = "<, >, \', \", and &" ;
    :gnatt = 3, 4;
    :gdatt = -7.02788826649782e-09, 7.02788826649782e-09 ;
+   char :gnul = "\000abcd\000\000hello\000" ;
 }
