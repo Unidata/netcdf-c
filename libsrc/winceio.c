@@ -20,8 +20,8 @@
 #define EEXIST NC_EEXIST
 #endif
 
-#ifndef ENOERR
-#define ENOERR 0
+#ifndef NC_NOERR
+#define NC_NOERR 0
 #endif
 
 #include <string.h>
@@ -65,7 +65,7 @@ blksize(int fd)
 static int
 fgrow(FILE* f, const off_t len)
 {
-    int status = ENOERR;
+    int status = NC_NOERR;
     long pos = ftell(f);
     long size;
     pos = ftell(f);    
@@ -74,7 +74,7 @@ fgrow(FILE* f, const off_t len)
     size = ftell(f);
     status = fseek(f,pos,SEEK_SET);
     if(ferror(f)) return EIO;
-    if(len < size) return ENOERR;
+    if(len < size) return NC_NOERR;
     else {
 	const long dumb = 0;
 	status = fseek(f, len-sizeof(dumb), SEEK_SET);
@@ -84,7 +84,7 @@ fgrow(FILE* f, const off_t len)
 	status = fseek(f, pos, SEEK_SET);
         if(ferror(f)) return EIO;
     }
-    return ENOERR;
+    return NC_NOERR;
 }
 
 
@@ -96,7 +96,7 @@ fgrow(FILE* f, const off_t len)
 static int
 fgrow2(FILE* f, const off_t len)
 {
-    int status = ENOERR;
+    int status = NC_NOERR;
     long pos = ftell(f);
     long size;
     pos = ftell(f);    
@@ -105,7 +105,7 @@ fgrow2(FILE* f, const off_t len)
     size = ftell(f);
     status = fseek(f,pos,SEEK_SET);
     if(ferror(f)) return EIO;
-    if(len < size) return ENOERR;
+    if(len < size) return NC_NOERR;
     else {
 	const char dumb = 0;
 	status = fseek(f, len-sizeof(dumb), SEEK_SET);
@@ -115,7 +115,7 @@ fgrow2(FILE* f, const off_t len)
 	status = fseek(f, pos, SEEK_SET);
 	if(ferror(f)) return EIO;
     }
-    return ENOERR;
+    return NC_NOERR;
 }
 /* End OS */
 /* Begin ffio */
@@ -125,7 +125,7 @@ fileio_pgout(ncio *const nciop,
 	off_t const offset,  const size_t extent,
 	const void *const vp, off_t *posp)
 {
-       int status = ENOERR;
+       int status = NC_NOERR;
        FILE* f = descriptors[nciop->fd];
 
 #ifdef X_ALIGN
@@ -142,7 +142,7 @@ fileio_pgout(ncio *const nciop,
 	fwrite(vp,1,extent,f);
         if(ferror(f)) return EIO;
 	*posp += extent;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static int
@@ -150,7 +150,7 @@ fileio_pgin(ncio *const nciop,
 	off_t const offset, const size_t extent,
 	void *const vp, size_t *nreadp, off_t *posp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	ssize_t nread;
 	int count;
 
@@ -172,7 +172,7 @@ fileio_pgin(ncio *const nciop,
         if(ferror(f)) return EIO;
 	*nreadp = nread;
 	*posp += nread;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /* */
@@ -189,7 +189,7 @@ typedef struct ncio_ffio {
 static int
 ncio_fileio_rel(ncio *const nciop, off_t offset, int rflags)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
         FILE* f = descriptors[nciop->fd];
 
 	ncio_ffio *ffp = (ncio_ffio *)nciop->pvt;
@@ -225,7 +225,7 @@ ncio_fileio_get(ncio *const nciop,
 		void **const vpp)
 {
 	ncio_ffio *ffp = (ncio_ffio *)nciop->pvt;
-	int status = ENOERR;
+	int status = NC_NOERR;
         FILE* f = descriptors[nciop->fd];
 #ifdef X_ALIGN
 	size_t rem;
@@ -277,7 +277,7 @@ ncio_fileio_get(ncio *const nciop,
 		 extent,
 		 ffp->bf_base,
 		 &ffp->bf_cnt, &ffp->pos);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 
 	ffp->bf_offset = offset;
@@ -295,7 +295,7 @@ ncio_fileio_get(ncio *const nciop,
 #else
 	*vpp = (char *)ffp->bf_base;
 #endif
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -303,7 +303,7 @@ static int
 ncio_fileio_move(ncio *const nciop, off_t to, off_t from,
 			size_t nbytes, int rflags)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	off_t lower = from;	
 	off_t upper = to;
 	char *base;
@@ -314,7 +314,7 @@ ncio_fileio_move(ncio *const nciop, off_t to, off_t from,
 	rflags &= RGN_NOLOCK; /* filter unwanted flags */
 
 	if(to == from)
-		return ENOERR; /* NOOP */
+		return NC_NOERR; /* NOOP */
 	
 	if(to > from)
 	{
@@ -335,7 +335,7 @@ ncio_fileio_move(ncio *const nciop, off_t to, off_t from,
 	status = ncio_fileio_get(nciop, lower, extent, RGN_WRITE|rflags,
 			(void **)&base);
 
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 
 	if(to > from)
@@ -353,7 +353,7 @@ ncio_fileio_sync(ncio *const nciop)
 {
         FILE* f = descriptors[nciop->fd];
 	fflush(f);
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static void
@@ -394,7 +394,7 @@ ncio_fileio_init2(ncio *const nciop, size_t *sizehintp)
 		return ENOMEM;
 	}
 	/* else */
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -486,7 +486,7 @@ ncio_create(const char *path, int ioflags,
 #endif
 	FILE* f;
 	int i,fd;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	if(initialsz < (size_t)igeto + igetsz)
 		initialsz = (size_t)igeto + igetsz;
@@ -539,13 +539,13 @@ ncio_create(const char *path, int ioflags,
 	}
 
 	status = ncio_fileio_init2(nciop, sizehintp);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		goto unwind_open;
 
 	if(initialsz != 0)
 	{
 		status = fgrow(f, (off_t)initialsz);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			goto unwind_open;
 	}
 
@@ -555,12 +555,12 @@ ncio_create(const char *path, int ioflags,
 				igeto, igetsz,
                         	RGN_WRITE,
                         	igetvpp);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			goto unwind_open;
 	}
 
 	*nciopp = nciop;
-	return ENOERR;
+	return NC_NOERR;
 
 unwind_open:
 	(void) fclose(descriptors[fd]);
@@ -589,7 +589,7 @@ ncio_open(const char *path,
 #endif
 	FILE* f;
 	int i,fd;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	if(path == NULL || *path == 0)
 		return EINVAL;
@@ -625,7 +625,7 @@ ncio_open(const char *path,
 	}
 
 	status = ncio_fileio_init2(nciop, sizehintp);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		goto unwind_open;
 
 	if(igetsz != 0)
@@ -634,12 +634,12 @@ ncio_open(const char *path,
 				igeto, igetsz,
                         	0,
                         	igetvpp);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			goto unwind_open;
 	}
 
 	*nciopp = nciop;
-	return ENOERR;
+	return NC_NOERR;
 
 unwind_open:
 	(void) fclose(descriptors[fd]);
@@ -659,7 +659,7 @@ unwind_new:
 int
 ncio_filesize(ncio *nciop, off_t *filesizep)
 {
-    int status = ENOERR;
+    int status = NC_NOERR;
     off_t filesize, current, reset;
     FILE* f;
 
@@ -674,7 +674,7 @@ ncio_filesize(ncio *nciop, off_t *filesizep)
     *filesizep = ftell(f);
     status = fseek(f, current, SEEK_SET); /* reset */ 
     if(ferror(f)) return EIO;
-    return ENOERR;
+    return NC_NOERR;
 }
 
 
@@ -688,7 +688,7 @@ ncio_filesize(ncio *nciop, off_t *filesizep)
 int
 ncio_pad_length(ncio *nciop, off_t length)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	FILE* f;
 
 	if(nciop == NULL)
@@ -700,20 +700,20 @@ ncio_pad_length(ncio *nciop, off_t length)
 	        return EPERM; /* attempt to write readonly file */
 
 	status = nciop->sync(nciop);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 	        return status;
 
 	status = fgrow2(f, length);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 	        return errno;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
 int 
 ncio_close(ncio *nciop, int doUnlink)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	FILE* f;
 
 	if(nciop == NULL)

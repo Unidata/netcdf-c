@@ -23,8 +23,8 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#ifndef ENOERR
-#define ENOERR 0
+#ifndef NC_NOERR
+#define NC_NOERR 0
 #endif
 
 #include <sys/types.h>
@@ -195,7 +195,7 @@ fgrow(const int fd, const off_t len)
 	if (fstat(fd, &sb) < 0)
 		return errno;
 	if (len < sb.st_size)
-		return ENOERR;
+		return NC_NOERR;
 	{
 	    const long dumb = 0;
 	    /* we don't use ftruncate() due to problem with FAT32 file systems */
@@ -210,7 +210,7 @@ fgrow(const int fd, const off_t len)
 	    if (lseek(fd, pos, SEEK_SET) < 0)
 		return errno;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -236,7 +236,7 @@ fgrow2(const int fd, const off_t len)
   size_t file_len = nc_get_filelen(fd);
   if(file_len < 0) return errno;
   if(len <= file_len)
-    return ENOERR;
+    return NC_NOERR;
   {
     const char dumb = 0;
 	    /* we don't use ftruncate() due to problem with FAT32 file systems */
@@ -251,7 +251,7 @@ fgrow2(const int fd, const off_t len)
 	    if (lseek(fd, pos, SEEK_SET) < 0)
 		return errno;
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 /* End OS */
 /* Begin px */
@@ -307,7 +307,7 @@ px_pgout(ncio *const nciop,
 	    return errno;
 	*posp += extent;
 
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /*! Read in a page of data.
@@ -378,7 +378,7 @@ px_pgin(ncio *const nciop,
 
     if(nread != (ssize_t)extent) {
       status = errno;
-      if( nread == -1 || (status != EINTR && status != ENOERR))
+      if( nread == -1 || (status != EINTR && status != NC_NOERR))
         return status;
       /* else it's okay we read less than asked for */
       (void) memset((char *)vp + nread, 0, (ssize_t)extent - nread);
@@ -387,7 +387,7 @@ px_pgin(ncio *const nciop,
     *nreadp = nread;
 	*posp += nread;
 
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /* This struct is for POSIX systems, with NC_SHARE not in effect. If
@@ -449,7 +449,7 @@ px_rel(ncio_px *const pxp, off_t offset, int rflags)
 	}
 	pxp->bf_refcount--;
 
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /* This function indicates the file region starting at offset may be
@@ -520,7 +520,7 @@ px_get(ncio *const nciop, ncio_px *const pxp,
 		int rflags,
 		void **const vpp)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	const off_t blkoffset = _RNDDOWN(offset, (off_t)pxp->blksz);
 	off_t diff = (size_t)(offset - blkoffset);
@@ -563,7 +563,7 @@ px_get(ncio *const nciop, ncio_px *const pxp,
 				 middle,
 				 &pxp->bf_cnt,
 				 &pxp->pos);
-			if(status != ENOERR)
+			if(status != NC_NOERR)
 				return status;
 			pxp->bf_extent = 2 * pxp->blksz;
 			pxp->bf_cnt += pxp->blksz;
@@ -598,7 +598,7 @@ px_get(ncio *const nciop, ncio_px *const pxp,
 					pxp->blksz,
 					pxp->bf_base,
 					&pxp->pos);
-				if(status != ENOERR)
+				if(status != NC_NOERR)
 					return status;
 			}
 			pxp->bf_cnt -= pxp->blksz;
@@ -617,7 +617,7 @@ px_get(ncio *const nciop, ncio_px *const pxp,
 					pxp->blksz,
 					pxp->bf_base,
 					&pxp->pos);
-				if(status != ENOERR)
+				if(status != NC_NOERR)
 					return status;
 			}
 		}
@@ -635,7 +635,7 @@ px_get(ncio *const nciop, ncio_px *const pxp,
 				 middle,
 				 &pxp->bf_cnt,
 				 &pxp->pos);
-			if(status != ENOERR)
+			if(status != NC_NOERR)
 				return status;
 			pxp->bf_extent = 2 * pxp->blksz;
 			pxp->bf_cnt += pxp->blksz;
@@ -663,7 +663,7 @@ px_get(ncio *const nciop, ncio_px *const pxp,
 					pxp->bf_cnt - pxp->blksz,
 					middle,
 					&pxp->pos);
-				if(status != ENOERR)
+				if(status != NC_NOERR)
 					return status;
 			}
 			pxp->bf_cnt = pxp->blksz;
@@ -682,7 +682,7 @@ px_get(ncio *const nciop, ncio_px *const pxp,
 			 pxp->bf_base,
 			 &pxp->bf_cnt,
 			 &pxp->pos);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			return status;
 		pxp->bf_offset = blkoffset;
 		if(upper_cnt != 0)
@@ -707,7 +707,7 @@ px_get(ncio *const nciop, ncio_px *const pxp,
 			pxp->bf_cnt,
 			pxp->bf_base,
 			&pxp->pos);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			return status;
 		pxp->bf_rflags = 0;
 	}
@@ -719,7 +719,7 @@ pgin:
 		 pxp->bf_base,
 		 &pxp->bf_cnt,
 		 &pxp->pos);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 	 pxp->bf_offset = blkoffset;
 	 pxp->bf_extent = blkextent;
@@ -738,7 +738,7 @@ done:
 #else
     *vpp = (void *)((signed char*)pxp->bf_base + diff);
 #endif
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /* Request that the region (offset, extent) be made available through
@@ -795,7 +795,7 @@ px_double_buffer(ncio *const nciop, off_t to, off_t from,
 			size_t nbytes, int rflags)
 {
 	ncio_px *const pxp = (ncio_px *)nciop->pvt;
-	int status = ENOERR;
+	int status = NC_NOERR;
 	void *src;
 	void *dest;
 
@@ -805,7 +805,7 @@ fprintf(stderr, "\tdouble_buffr %ld %ld %ld\n",
 #endif
 	status = px_get(nciop, pxp, to, nbytes, RGN_WRITE,
 			&dest);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 
 	if(pxp->slave == NULL)
@@ -832,7 +832,7 @@ fprintf(stderr, "\tdouble_buffr %ld %ld %ld\n",
 	pxp->slave->pos = pxp->pos;
 	status = px_get(nciop, pxp->slave, from, nbytes, 0,
 			&src);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 	if(pxp->pos != pxp->slave->pos)
 	{
@@ -867,7 +867,7 @@ ncio_px_move(ncio *const nciop, off_t to, off_t from,
 			size_t nbytes, int rflags)
 {
 	ncio_px *const pxp = (ncio_px *)nciop->pvt;
-	int status = ENOERR;
+	int status = NC_NOERR;
 	off_t lower;
 	off_t upper;
 	char *base;
@@ -875,7 +875,7 @@ ncio_px_move(ncio *const nciop, off_t to, off_t from,
 	size_t extent;
 
 	if(to == from)
-		return ENOERR; /* NOOP */
+		return NC_NOERR; /* NOOP */
 
 	if(fIsSet(rflags, RGN_WRITE) && !fIsSet(nciop->ioflags, NC_WRITE))
 		return EPERM; /* attempt to write readonly file */
@@ -917,7 +917,7 @@ if(to > from)
 
 			status = px_double_buffer(nciop, toh, frm,
 				 	loopextent, rflags) ;
-			if(status != ENOERR)
+			if(status != NC_NOERR)
 				return status;
 			remaining -= loopextent;
 
@@ -933,7 +933,7 @@ else
 
 			status = px_double_buffer(nciop, to, from,
 				 	loopextent, rflags) ;
-			if(status != ENOERR)
+			if(status != NC_NOERR)
 				return status;
 			remaining -= loopextent;
 
@@ -943,7 +943,7 @@ else
 			from += loopextent;
 		}
 }
-		return ENOERR;
+		return NC_NOERR;
 	}
 
 #if INSTRUMENT
@@ -952,7 +952,7 @@ fprintf(stderr, "\tncio_px_move small\n");
 	status = px_get(nciop, pxp, lower, extent, RGN_WRITE|rflags,
 			(void **)&base);
 
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 
 	if(to > from)
@@ -973,14 +973,14 @@ static int
 ncio_px_sync(ncio *const nciop)
 {
 	ncio_px *const pxp = (ncio_px *)nciop->pvt;
-	int status = ENOERR;
+	int status = NC_NOERR;
 	if(fIsSet(pxp->bf_rflags, RGN_MODIFIED))
 	{
 		assert(pxp->bf_refcount <= 0);
 		status = px_pgout(nciop, pxp->bf_offset,
 			pxp->bf_cnt,
 			pxp->bf_base, &pxp->pos);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			return status;
 		pxp->bf_rflags = 0;
 	}
@@ -1074,7 +1074,7 @@ ncio_px_init2(ncio *const nciop, size_t *sizehintp, int isNew)
 		pxp->bf_extent = bufsz;
 		(void) memset(pxp->bf_base, 0, pxp->bf_extent);
 	}
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -1144,7 +1144,7 @@ static int
 ncio_spx_rel(ncio *const nciop, off_t offset, int rflags)
 {
 	ncio_spx *const pxp = (ncio_spx *)nciop->pvt;
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	assert(pxp->bf_offset <= offset);
 	assert(pxp->bf_cnt != 0);
@@ -1193,7 +1193,7 @@ ncio_spx_get(ncio *const nciop,
 		void **const vpp)
 {
 	ncio_spx *const pxp = (ncio_spx *)nciop->pvt;
-	int status = ENOERR;
+	int status = NC_NOERR;
 #ifdef X_ALIGN
 	size_t rem;
 #endif
@@ -1243,7 +1243,7 @@ ncio_spx_get(ncio *const nciop,
 		 extent,
 		 pxp->bf_base,
 		 &pxp->bf_cnt, &pxp->pos);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 
 	pxp->bf_offset = offset;
@@ -1256,7 +1256,7 @@ ncio_spx_get(ncio *const nciop,
 #else
 	*vpp = pxp->bf_base;
 #endif
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -1267,7 +1267,7 @@ strategy(ncio *const nciop, off_t to, off_t offset,
 			size_t extent, int rflags)
 {
 	static ncio_spx pxp[1];
-	int status = ENOERR;
+	int status = NC_NOERR;
 #ifdef X_ALIGN
 	size_t rem;
 #endif
@@ -1317,7 +1317,7 @@ fprintf(stderr, "strategy %ld at %ld to %ld\n",
 		 extent,
 		 pxp->bf_base,
 		 &pxp->bf_cnt, &pxp->pos);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 
 	pxp->bf_offset = to; /* TODO: XALIGN */
@@ -1350,7 +1350,7 @@ static int
 ncio_spx_move(ncio *const nciop, off_t to, off_t from,
 			size_t nbytes, int rflags)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	off_t lower = from;
 	off_t upper = to;
 	char *base;
@@ -1360,7 +1360,7 @@ ncio_spx_move(ncio *const nciop, off_t to, off_t from,
 	rflags &= RGN_NOLOCK; /* filter unwanted flags */
 
 	if(to == from)
-		return ENOERR; /* NOOP */
+		return NC_NOERR; /* NOOP */
 
 	if(to > from)
 	{
@@ -1381,7 +1381,7 @@ ncio_spx_move(ncio *const nciop, off_t to, off_t from,
 	status = ncio_spx_get(nciop, lower, extent, RGN_WRITE|rflags,
 			(void **)&base);
 
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		return status;
 
 	if(to > from)
@@ -1402,7 +1402,7 @@ static int
 ncio_spx_sync(ncio *const nciop)
 {
 	/* NOOP */
-	return ENOERR;
+	return NC_NOERR;
 }
 
 static void
@@ -1450,7 +1450,7 @@ ncio_spx_init2(ncio *const nciop, const size_t *const sizehintp)
 		return ENOMEM;
 	}
 	/* else */
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -1650,13 +1650,13 @@ posixio_create(const char *path, int ioflags,
 	else
 		status = ncio_px_init2(nciop, sizehintp, 1);
 
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		goto unwind_open;
 
 	if(initialsz != 0)
 	{
 		status = fgrow(fd, (off_t)initialsz);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			goto unwind_open;
 	}
 
@@ -1666,12 +1666,12 @@ posixio_create(const char *path, int ioflags,
 				igeto, igetsz,
                         	RGN_WRITE,
                         	igetvpp);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			goto unwind_open;
 	}
 
 	*nciopp = nciop;
-	return ENOERR;
+	return NC_NOERR;
 
 unwind_open:
 	(void) close(fd);
@@ -1782,7 +1782,7 @@ posixio_open(const char *path,
 	else
 		status = ncio_px_init2(nciop, sizehintp, 0);
 
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 		goto unwind_open;
 
 	if(igetsz != 0)
@@ -1791,12 +1791,12 @@ posixio_open(const char *path,
 				igeto, igetsz,
                         	0,
                         	igetvpp);
-		if(status != ENOERR)
+		if(status != NC_NOERR)
 			goto unwind_open;
 	}
 
 	*nciopp = nciop;
-	return ENOERR;
+	return NC_NOERR;
 
 unwind_open:
 	(void) close(fd); /* assert fd >= 0 */
@@ -1833,7 +1833,7 @@ ncio_px_filesize(ncio *nciop, off_t *filesizep)
 	return errno;
     *filesizep = sb.st_size;
 #endif
-	return ENOERR;
+	return NC_NOERR;
 }
 
 /*
@@ -1847,7 +1847,7 @@ static int
 ncio_px_pad_length(ncio *nciop, off_t length)
 {
 
-	int status = ENOERR;
+	int status = NC_NOERR;
 
 	if(nciop == NULL)
 		return EINVAL;
@@ -1856,13 +1856,13 @@ ncio_px_pad_length(ncio *nciop, off_t length)
 	        return EPERM; /* attempt to write readonly file */
 
 	status = nciop->sync(nciop);
-	if(status != ENOERR)
+	if(status != NC_NOERR)
 	        return status;
 
  	status = fgrow2(nciop->fd, length);
- 	if(status != ENOERR)
+ 	if(status != NC_NOERR)
 	        return status;
-	return ENOERR;
+	return NC_NOERR;
 }
 
 
@@ -1879,7 +1879,7 @@ ncio_px_pad_length(ncio *nciop, off_t length)
 static int
 ncio_px_close(ncio *nciop, int doUnlink)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	if(nciop == NULL)
 		return EINVAL;
 	if(nciop->fd > 0) {
@@ -1895,7 +1895,7 @@ ncio_px_close(ncio *nciop, int doUnlink)
 static int
 ncio_spx_close(ncio *nciop, int doUnlink)
 {
-	int status = ENOERR;
+	int status = NC_NOERR;
 	if(nciop == NULL)
 		return EINVAL;
 	if(nciop->fd > 0) {

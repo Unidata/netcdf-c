@@ -169,7 +169,7 @@ INCLUDE(GenerateExportHeader)
 
 
 ################################
-# Compiler Configuration
+# Compiler and Linker Configuration
 ################################
 
 ##
@@ -182,7 +182,15 @@ IF(BUILD_SHARED_LIBS)
   SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ENDIF()
 
-OPTION(NC_FIND_SHARED_LIBS "Find dynamicly-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
+OPTION(NC_FIND_SHARED_LIBS "Find dynamically-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
+
+##
+# We've had a request to allow for non-versioned shared libraries.
+# This seems reasonable enough to accomodate.  See
+# https://github.com/Unidata/netcdf-c/issues/228 for more info.
+##
+OPTION(ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file name of the generated library file." ON)
+
 
 # Set some default linux gcc & apple compiler options for
 # debug builds.
@@ -1066,6 +1074,7 @@ ENDIF()
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_COVERAGE_TESTS )
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
 MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
+MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
 ################################
 # Option checks
 ################################
