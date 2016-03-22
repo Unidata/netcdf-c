@@ -287,11 +287,11 @@ incr_NC_vararray(NC_vararray *ncap, NC_var *newelemp)
 	else if(ncap->nelems +1 > ncap->nalloc)
 	{
 		vp = (NC_var **) realloc(ncap->value,
-			(ncap->nalloc + NC_ARRAY_GROWBY) * sizeof(NC_var *));
+			(ncap->nalloc * NC_ARRAY_MULT) * sizeof(NC_var *));
 		if(vp == NULL)
 			return NC_ENOMEM;
 		ncap->value = vp;
-		ncap->nalloc += NC_ARRAY_GROWBY;
+		ncap->nalloc *= NC_ARRAY_MULT;
 	}
 
 	if(newelemp != NULL)
