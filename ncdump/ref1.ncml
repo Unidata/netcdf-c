@@ -5,6 +5,7 @@
   <attribute name="gtatt" value="&lt;, &gt;, ', &quot;, and &amp;" />
   <attribute name="gnatt" type="int" value="3 4" />
   <attribute name="gdatt" type="double" value="-7.02788826649782e-09 7.02788826649782e-09" />
+  <attribute name="gnul" value="&#0;abcd&#0;&#0;hello" />
   <variable name="var" shape="t m" type="float">
     <attribute name="tatt" value="text attribute value" />
     <attribute name="natt" type="int" value="1 2" />
