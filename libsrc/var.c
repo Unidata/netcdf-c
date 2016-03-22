@@ -65,7 +65,6 @@ new_x_NC_var(
 	(void) memset(varp, 0, sz);
 	varp->name = strp;
 	varp->ndims = ndims;
- 	varp->hash = hash_fast(strp->cp, strlen(strp->cp));
 
 	if(ndims != 0)
 	{
@@ -94,7 +93,7 @@ new_x_NC_var(
 	varp->len = 0;
 	varp->begin = 0;
 
- 	return varp;
+	return varp;
 }
 
 
@@ -282,19 +281,24 @@ incr_NC_vararray(NC_vararray *ncap, NC_var *newelemp)
 			return NC_ENOMEM;
 		ncap->value = vp;
 		ncap->nalloc = NC_ARRAY_GROWBY;
+
+		ncap->hashmap = NC_hashmapCreate(0);
 	}
 	else if(ncap->nelems +1 > ncap->nalloc)
 	{
 		vp = (NC_var **) realloc(ncap->value,
-			(ncap->nalloc + NC_ARRAY_GROWBY) * sizeof(NC_var *));
+			(ncap->nalloc * NC_ARRAY_MULT) * sizeof(NC_var *));
 		if(vp == NULL)
 			return NC_ENOMEM;
 		ncap->value = vp;
-		ncap->nalloc += NC_ARRAY_GROWBY;
+		ncap->nalloc *= NC_ARRAY_MULT;
 	}
 
 	if(newelemp != NULL)
 	{
+	  uint32_t key = hash_fast(newelemp->name->cp,
+				   strlen(newelemp->name->cp));
+		NC_hashmapInsert(ncap->hashmap, ncap->nelems, key);
 		ncap->value[ncap->nelems] = newelemp;
 		ncap->nelems++;
 	}
@@ -329,8 +333,9 @@ NC_hvarid
 int
 NC_findvar(const NC_vararray *ncap, const char *uname, NC_var **varpp)
 {
+  int hash_var_id;
 	NC_var **loc;
- 	uint32_t shash;
+	uint32_t shash;
 	int varid;
 	char *name;
 
@@ -339,26 +344,20 @@ NC_findvar(const NC_vararray *ncap, const char *uname, NC_var **varpp)
 	if(ncap->nelems == 0)
 		return -1;
 
-	loc = (NC_var **) ncap->value;
 
 	/* normalized version of uname */
 	name = (char *)utf8proc_NFC((const unsigned char *)uname);
 	if(name == NULL)
 	    return NC_ENOMEM;
- 	shash = hash_fast(name, strlen(name));
+	shash = hash_fast(name, strlen(name));
 
-	for(varid = 0; (size_t) varid < ncap->nelems; varid++, loc++)
-	{
-		if((*loc)->hash == shash &&
-		   strncmp((*loc)->name->cp, name, strlen(name)) == 0)
-		{
-			if(varpp != NULL)
-				*varpp = *loc;
-			free(name);
-			return(varid); /* Normal return */
-		}
-	}
+	hash_var_id = NC_hashmapGet(ncap->hashmap, shash);
 	free(name);
+	if (hash_var_id >= 0) {
+	  if (varpp != NULL)
+	    *varpp = ncap->value[hash_var_id];
+	  return(hash_var_id); /* Normal return */
+	}
 	return(-1); /* not found */
 }
 
@@ -708,6 +707,7 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 	NC_string *old, *newStr;
 	int other;
 	char *newname;		/* normalized */
+	uint32_t old_hash_key, var_hash;
 
 	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
@@ -737,10 +737,13 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
       return status;
 	}
 
+
 	old = varp->name;
+	old_hash_key = hash_fast(old->cp, strlen(old->cp));
 	newname = (char *)utf8proc_NFC((const unsigned char *)unewname);
 	if(newname == NULL)
 	    return NC_ENOMEM;
+	var_hash = hash_fast(newname, strlen(newname));
 	if(NC_indef(ncp))
 	{
 		newStr = new_NC_string(strlen(newname),newname);
@@ -748,17 +751,24 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 		if(newStr == NULL)
 			return(-1);
 		varp->name = newStr;
-		varp->hash = hash_fast(newStr->cp, strlen(newStr->cp));
 		free_NC_string(old);
+
+		/* Remove old name from hashmap; add new... */
+		NC_hashmapRemove(ncp->vars.hashmap, old_hash_key);
+		NC_hashmapInsert(ncp->vars.hashmap, varid, var_hash);
+
 		return NC_NOERR;
 	}
 
 	/* else, not in define mode */
 	status = set_NC_string(varp->name, newname);
-	varp->hash = hash_fast(newname, strlen(newname));
 	free(newname);
 	if(status != NC_NOERR)
 		return status;
+
+	/* Remove old name from hashmap; add new... */
+	NC_hashmapRemove(ncp->vars.hashmap, old_hash_key);
+	NC_hashmapInsert(ncp->vars.hashmap, varid, var_hash);
 
 	set_NC_hdirty(ncp);
 

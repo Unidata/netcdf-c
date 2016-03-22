@@ -25,6 +25,8 @@
 /* Always needed */
 #include "nc.h"
 
+#include "nc_hashmap.h"
+
 /*#ifndef HAVE_SSIZE_T
 #define ssize_t int
 #endif*/
@@ -66,7 +68,6 @@ typedef enum {
 typedef struct {
 	/* all xdr'd */
 	NC_string *name;
- 	uint32_t hash;
 	size_t size;
 } NC_dim;
 
@@ -75,6 +76,7 @@ typedef struct NC_dimarray {
 	/* below gets xdr'd */
 	/* NCtype type = NC_DIMENSION */
 	size_t nelems;		/* length of the array */
+	NC_hashmap *hashmap;
 	NC_dim **value;
 } NC_dimarray;
 
@@ -165,7 +167,6 @@ typedef struct NC_var {
 	off_t *dsizes; /* compiled info: the right to left product of shape */
 	/* below gets xdr'd */
 	NC_string *name;
- 	uint32_t hash;
 	/* next two: formerly NC_iarray *assoc */ /* user definition */
 	size_t ndims;	/* assoc->count */
 	int *dimids;	/* assoc->value */
@@ -180,6 +181,7 @@ typedef struct NC_vararray {
 	/* below gets xdr'd */
 	/* NCtype type = NC_VARIABLE */
 	size_t nelems;		/* length of the array */
+	NC_hashmap *hashmap;
 	NC_var **value;
 } NC_vararray;
 
