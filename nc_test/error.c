@@ -47,7 +47,7 @@ print(const char *fmt, ...)
 int
 ifFail(const int expr, const int line, const char *file)
 {
-    if (expr) {
+    if (expr != 0) {
 	++nfails;
 	error("\n\tFAILURE at line %d of %s: ", line, file);
     }
@@ -55,7 +55,7 @@ ifFail(const int expr, const int line, const char *file)
 }
 
 /* TODO:
- * This diagnostic doesn't fit very well with the diagnostic message 
+ * This diagnostic doesn't fit very well with the diagnostic message
  * "architecture" of this program.
  */
 void
