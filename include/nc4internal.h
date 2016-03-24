@@ -317,6 +317,9 @@ typedef struct  NC_HDF5_FILE_INFO
 } NC_HDF5_FILE_INFO_T;
 
 
+/* Defined in lookup3.c */
+extern uint32_t hash_fast(const void *key, size_t length);
+
 /* These functions convert between netcdf and HDF5 types. */
 int nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
 			int is_long, size_t *len);
