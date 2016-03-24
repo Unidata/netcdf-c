@@ -205,6 +205,9 @@ free_NC_vararrayV(NC_vararray *ncap)
 	if(ncap->nalloc == 0)
 		return;
 
+	NC_hashmapDelete(ncap->hashmap);
+	ncap->hashmap = NULL;
+
 	assert(ncap->value != NULL);
 
 	free_NC_vararrayV0(ncap);
@@ -333,10 +336,8 @@ NC_hvarid
 int
 NC_findvar(const NC_vararray *ncap, const char *uname, NC_var **varpp)
 {
-  int hash_var_id;
-	NC_var **loc;
+	int hash_var_id;
 	uint32_t shash;
-	int varid;
 	char *name;
 
 	assert(ncap != NULL);

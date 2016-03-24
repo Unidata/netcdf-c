@@ -196,9 +196,12 @@ void
 free_NC_dimarrayV(NC_dimarray *ncap)
 {
 	assert(ncap != NULL);
-	
+
 	if(ncap->nalloc == 0)
 		return;
+
+	NC_hashmapDelete(ncap->hashmap);
+	ncap->hashmap = NULL;
 
 	assert(ncap->value != NULL);
 

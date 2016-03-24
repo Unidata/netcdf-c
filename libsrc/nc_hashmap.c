@@ -210,6 +210,8 @@ long NC_hashmapCount(NC_hashmap* hash)
 
 void NC_hashmapDelete(NC_hashmap* hash)
 {
-  free(hash->table);
-  free(hash);
+  if (hash) {
+    free(hash->table);
+    free(hash);
+  }
 }
