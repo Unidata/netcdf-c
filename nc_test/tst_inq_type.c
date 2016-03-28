@@ -30,10 +30,10 @@ check_err(const int stat, const int line, const char *file) {
    }
 }
 
-int test_type(int type, char* tstring) {
+int test_type(int ncid, int type, char* tstring) {
 
   printf("\t* Testing Type %s:\t",tstring);
-  if(nc_inq_type(0,type,NULL,NULL)) ERR;
+  if(nc_inq_type(ncid,type,NULL,NULL)) ERR;
   else printf("success.\n");
 
   return 0;
@@ -45,23 +45,23 @@ int main(int argc, char **argv) {
 
   int ncid=0;
 
-  printf("\n* Testing nc_inq_type\n");
+  printf("\n* Testing nc_inq_type with netcdf-3\n");
 
-  if(nc_create(FILE_NAME,NC_WRITE,&ncid)) ERR;
+  if(nc_create(FILE_NAME,NC_CDF5,&ncid)) ERR;
 
-  test_type(NC_BYTE,"NC_BYTE");
-  test_type(NC_CHAR,"NC_CHAR");
-  test_type(NC_SHORT,"NC_SHORT");
-  test_type(NC_INT,"NC_INT");
-  test_type(NC_LONG,"NC_LONG");
-  test_type(NC_FLOAT,"NC_FLOAT");
-  test_type(NC_DOUBLE,"NC_DOUBLE");
-  test_type(NC_UBYTE,"NC_UBYTE");
-  test_type(NC_USHORT,"NC_USHORT");
-  test_type(NC_UINT,"NC_UINT");
-  test_type(NC_INT64,"NC_INT64");
-  test_type(NC_UINT64,"NC_UINT64");
-  test_type(NC_STRING,"NC_STRING");
+  test_type(ncid, NC_BYTE,"NC_BYTE");
+  test_type(ncid, NC_CHAR,"NC_CHAR");
+  test_type(ncid, NC_SHORT,"NC_SHORT");
+  test_type(ncid, NC_INT,"NC_INT");
+  test_type(ncid, NC_LONG,"NC_LONG");
+  test_type(ncid, NC_FLOAT,"NC_FLOAT");
+  test_type(ncid, NC_DOUBLE,"NC_DOUBLE");
+  test_type(ncid, NC_UBYTE,"NC_UBYTE");
+  test_type(ncid, NC_USHORT,"NC_USHORT");
+  test_type(ncid, NC_UINT,"NC_UINT");
+  test_type(ncid, NC_INT64,"NC_INT64");
+  test_type(ncid, NC_UINT64,"NC_UINT64");
+  test_type(ncid, NC_STRING,"NC_STRING");
 
 
   printf("* Finished.\n");
