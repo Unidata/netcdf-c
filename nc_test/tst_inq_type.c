@@ -45,27 +45,99 @@ int main(int argc, char **argv) {
 
   int ncid=0;
 
-  printf("\n* Testing nc_inq_type with netcdf-3\n");
+  {
+    printf("\n* Testing nc_inq_type with netcdf-3\n");
 
-  if(nc_create(FILE_NAME,NC_CDF5,&ncid)) ERR;
+    if(nc_create(FILE_NAME,NC_CLOBBER,&ncid)) ERR;
 
-  test_type(ncid, NC_BYTE,"NC_BYTE");
-  test_type(ncid, NC_CHAR,"NC_CHAR");
-  test_type(ncid, NC_SHORT,"NC_SHORT");
-  test_type(ncid, NC_INT,"NC_INT");
-  test_type(ncid, NC_LONG,"NC_LONG");
-  test_type(ncid, NC_FLOAT,"NC_FLOAT");
-  test_type(ncid, NC_DOUBLE,"NC_DOUBLE");
-  test_type(ncid, NC_UBYTE,"NC_UBYTE");
-  test_type(ncid, NC_USHORT,"NC_USHORT");
-  test_type(ncid, NC_UINT,"NC_UINT");
-  test_type(ncid, NC_INT64,"NC_INT64");
-  test_type(ncid, NC_UINT64,"NC_UINT64");
-  test_type(ncid, NC_STRING,"NC_STRING");
+    test_type(ncid, NC_BYTE,"NC_BYTE");
+    test_type(ncid, NC_CHAR,"NC_CHAR");
+    test_type(ncid, NC_SHORT,"NC_SHORT");
+    test_type(ncid, NC_INT,"NC_INT");
+    test_type(ncid, NC_LONG,"NC_LONG");
+    test_type(ncid, NC_FLOAT,"NC_FLOAT");
+    test_type(ncid, NC_DOUBLE,"NC_DOUBLE");
+
+    /* Not Valid for Classic
+      test_type(ncid, NC_UBYTE,"NC_UBYTE");
+      test_type(ncid, NC_USHORT,"NC_USHORT");
+      test_type(ncid, NC_UINT,"NC_UINT");
+      test_type(ncid, NC_INT64,"NC_INT64");
+      test_type(ncid, NC_UINT64,"NC_UINT64");
+      test_type(ncid, NC_STRING,"NC_STRING");
+    */
+
+    if(nc_close(ncid)) ERR;
+  }
+
+  {
+    printf("\n* Testing nc_inq_type with CDF5\n");
+
+    if(nc_create(FILE_NAME,NC_CLOBBER|NC_CDF5,&ncid)) ERR;
+
+    test_type(ncid, NC_BYTE,"NC_BYTE");
+    test_type(ncid, NC_CHAR,"NC_CHAR");
+    test_type(ncid, NC_SHORT,"NC_SHORT");
+    test_type(ncid, NC_INT,"NC_INT");
+    test_type(ncid, NC_LONG,"NC_LONG");
+    test_type(ncid, NC_FLOAT,"NC_FLOAT");
+    test_type(ncid, NC_DOUBLE,"NC_DOUBLE");
+    test_type(ncid, NC_UBYTE,"NC_UBYTE");
+    test_type(ncid, NC_USHORT,"NC_USHORT");
+    test_type(ncid, NC_UINT,"NC_UINT");
+    test_type(ncid, NC_INT64,"NC_INT64");
+    test_type(ncid, NC_UINT64,"NC_UINT64");
+    test_type(ncid, NC_STRING,"NC_STRING");
+
+    if(nc_close(ncid)) ERR;
+  }
+
+  {
+    printf("\n* Testing nc_inq_type with netcdf-4 + Classic Model\n");
+
+    if(nc_create(FILE_NAME,NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL,&ncid)) ERR;
+
+    test_type(ncid, NC_BYTE,"NC_BYTE");
+    test_type(ncid, NC_CHAR,"NC_CHAR");
+    test_type(ncid, NC_SHORT,"NC_SHORT");
+    test_type(ncid, NC_INT,"NC_INT");
+    test_type(ncid, NC_LONG,"NC_LONG");
+    test_type(ncid, NC_FLOAT,"NC_FLOAT");
+    test_type(ncid, NC_DOUBLE,"NC_DOUBLE");
+    test_type(ncid, NC_UBYTE,"NC_UBYTE");
+    test_type(ncid, NC_USHORT,"NC_USHORT");
+    test_type(ncid, NC_UINT,"NC_UINT");
+    test_type(ncid, NC_INT64,"NC_INT64");
+    test_type(ncid, NC_UINT64,"NC_UINT64");
+    test_type(ncid, NC_STRING,"NC_STRING");
+
+
+    if(nc_close(ncid)) ERR;
+  }
+
+  {
+    printf("\n* Testing nc_inq_type with netcdf-4\n");
+
+    if(nc_create(FILE_NAME,NC_CLOBBER|NC_NETCDF4,&ncid)) ERR;
+
+    test_type(ncid, NC_BYTE,"NC_BYTE");
+    test_type(ncid, NC_CHAR,"NC_CHAR");
+    test_type(ncid, NC_SHORT,"NC_SHORT");
+    test_type(ncid, NC_INT,"NC_INT");
+    test_type(ncid, NC_LONG,"NC_LONG");
+    test_type(ncid, NC_FLOAT,"NC_FLOAT");
+    test_type(ncid, NC_DOUBLE,"NC_DOUBLE");
+    test_type(ncid, NC_UBYTE,"NC_UBYTE");
+    test_type(ncid, NC_USHORT,"NC_USHORT");
+    test_type(ncid, NC_UINT,"NC_UINT");
+    test_type(ncid, NC_INT64,"NC_INT64");
+    test_type(ncid, NC_UINT64,"NC_UINT64");
+    test_type(ncid, NC_STRING,"NC_STRING");
+    if(nc_close(ncid)) ERR;
+  }
 
 
   printf("* Finished.\n");
-  if(nc_close(ncid)) ERR;
 
   SUMMARIZE_ERR;
   FINAL_RESULTS;
