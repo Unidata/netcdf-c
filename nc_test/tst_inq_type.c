@@ -30,6 +30,16 @@ check_err(const int stat, const int line, const char *file) {
    }
 }
 
+int test_type(int type, char* tstring) {
+
+  printf("\t* Testing Type %s:\t",tstring);
+  if(nc_inq_type(0,type,NULL,NULL)) ERR;
+  else printf("success.\n");
+
+  return 0;
+}
+
+
 
 int main(int argc, char **argv) {
 
@@ -39,14 +49,24 @@ int main(int argc, char **argv) {
 
   if(nc_create(FILE_NAME,NC_WRITE,&ncid)) ERR;
 
-  printf("\t* Testing NC_INT:\t");
-  if(nc_inq_type(0,NC_INT,NULL,NULL))ERR;
-  else printf("success.\n");
+  test_type(NC_BYTE,"NC_BYTE");
+  test_type(NC_CHAR,"NC_CHAR");
+  test_type(NC_SHORT,"NC_SHORT");
+  test_type(NC_INT,"NC_INT");
+  test_type(NC_LONG,"NC_LONG");
+  test_type(NC_FLOAT,"NC_FLOAT");
+  test_type(NC_DOUBLE,"NC_DOUBLE");
+  test_type(NC_UBYTE,"NC_UBYTE");
+  test_type(NC_USHORT,"NC_USHORT");
+  test_type(NC_UINT,"NC_UINT");
+  test_type(NC_INT64,"NC_INT64");
+  test_type(NC_UINT64,"NC_UINT64");
+  test_type(NC_STRING,"NC_STRING");
 
-  printf("\t* Testing NC_INT64:\t");
-  if(nc_inq_type(0,NC_INT64,NULL,NULL))ERR;
-  else printf("success.\n");
 
   printf("* Finished.\n");
-  return 0;
+  if(nc_close(ncid)) ERR;
+
+  SUMMARIZE_ERR;
+  FINAL_RESULTS;
 }
