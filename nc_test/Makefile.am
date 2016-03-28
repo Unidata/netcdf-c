@@ -14,12 +14,12 @@ tst_*.nc t_nc.nc large_files.nc quick_large_files.nc \
 tst_diskless.nc tst_diskless2.nc \
 tst_diskless3.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl \
 tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc nc_test_cdf5.nc \
-unlim.nc
+unlim.nc tst_inq_type.nc
 
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm \
 	tst_names tst_nofill tst_nofill2 tst_nofill3 tst_atts3 \
-	tst_meta
+	tst_meta tst_inq_type
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts tst_put_vars
@@ -93,7 +93,7 @@ EXTRA_DIST = test_get.m4 test_put.m4 run_valgrind_tests.sh \
 run_diskless.sh run_diskless2.sh run_mmap.sh run_pnetcdf_test.sh
 
 # ref_tst_diskless2.cdl is for diff comparison and to produce tst_diskless2.c
-EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt
+EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt tst_types.c
 
 # Only clean these on mainatiner-clean, because they require m4 to
 # regenerate.
