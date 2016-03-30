@@ -30,6 +30,16 @@ check_err(const int stat, const int line, const char *file) {
    }
 }
 
+
+int test_type_should_fail(int ncid, int type, char* tstring) {
+
+  printf("\t* Testing Type (Should Fail) %s:\t",tstring);
+  if(!nc_inq_type(ncid,type,NULL,NULL)) ERR;
+  else printf("expected failure.\n");
+
+  return 0;
+}
+
 int test_type(int ncid, int type, char* tstring) {
 
   printf("\t* Testing Type %s:\t",tstring);
@@ -58,14 +68,14 @@ int main(int argc, char **argv) {
     test_type(ncid, NC_FLOAT,"NC_FLOAT");
     test_type(ncid, NC_DOUBLE,"NC_DOUBLE");
 
-    /* Not Valid for Classic
-      test_type(ncid, NC_UBYTE,"NC_UBYTE");
-      test_type(ncid, NC_USHORT,"NC_USHORT");
-      test_type(ncid, NC_UINT,"NC_UINT");
-      test_type(ncid, NC_INT64,"NC_INT64");
-      test_type(ncid, NC_UINT64,"NC_UINT64");
-      test_type(ncid, NC_STRING,"NC_STRING");
-    */
+    /* Not Valid for Classic */
+    test_type_should_fail(ncid, NC_UBYTE,"NC_UBYTE");
+    test_type_should_fail(ncid, NC_USHORT,"NC_USHORT");
+    test_type_should_fail(ncid, NC_UINT,"NC_UINT");
+    test_type_should_fail(ncid, NC_INT64,"NC_INT64");
+    test_type_should_fail(ncid, NC_UINT64,"NC_UINT64");
+    test_type_should_fail(ncid, NC_STRING,"NC_STRING");
+
 
     if(nc_close(ncid)) ERR;
   }
@@ -91,6 +101,8 @@ int main(int argc, char **argv) {
 
     if(nc_close(ncid)) ERR;
   }
+
+#ifdef USE_NETCDF4
 
   {
     printf("\n* Testing nc_inq_type with netcdf-4 + Classic Model\n");
@@ -136,6 +148,7 @@ int main(int argc, char **argv) {
     if(nc_close(ncid)) ERR;
   }
 
+#endif // USE_NETCDF4
 
   printf("* Finished.\n");
 
