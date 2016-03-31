@@ -591,7 +591,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   log_dim_info(var, fdims, fmaxdims, start, count);
 #endif
 
-  /* Check dimension bounds. Remember that unlimited dimnsions can
+  /* Check dimension bounds. Remember that unlimited dimensions can
    * put data beyond their current length. */
   for (d2 = 0; d2 < var->ndims; d2++)
     {
@@ -599,7 +599,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       assert(dim && dim->dimid == var->dimids[d2]);
       if (!dim->unlimited)
         {
-          if (start[d2] >= (hssize_t)fdims[d2])
+          if (start[d2] >= (hssize_t)fdims[d2] && count[d2] > 0)
             BAIL_QUIET(NC_EINVALCOORDS);
           if (start[d2] + count[d2] > fdims[d2])
             BAIL_QUIET(NC_EEDGE);
@@ -953,7 +953,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
     else
       {
         /* Check for out of bound requests. */
-        if (start[d2] >= (hssize_t)fdims[d2])
+        if (start[d2] >= (hssize_t)fdims[d2] && count[d2] > 0)
           BAIL_QUIET(NC_EINVALCOORDS);
         if (start[d2] + count[d2] > fdims[d2])
           BAIL_QUIET(NC_EEDGE);
