@@ -69,12 +69,19 @@ int main(int argc, char **argv) {
     test_type(ncid, NC_DOUBLE,"NC_DOUBLE");
 
     /* Not Valid for Classic */
-    test_type_should_fail(ncid, NC_UBYTE,"NC_UBYTE");
-    test_type_should_fail(ncid, NC_USHORT,"NC_USHORT");
-    test_type_should_fail(ncid, NC_UINT,"NC_UINT");
-    test_type_should_fail(ncid, NC_INT64,"NC_INT64");
-    test_type_should_fail(ncid, NC_UINT64,"NC_UINT64");
-    test_type_should_fail(ncid, NC_STRING,"NC_STRING");
+    /* Valid now, see https://github.com/Unidata/netcdf-c/issues/240 for more
+       information. The types are not valid for use in Classic,
+       but nc_inq_type should return valid info. */
+    test_type(ncid, NC_UBYTE,"NC_UBYTE");
+    test_type(ncid, NC_USHORT,"NC_USHORT");
+    test_type(ncid, NC_UINT,"NC_UINT");
+    test_type(ncid, NC_INT64,"NC_INT64");
+    test_type(ncid, NC_UINT64,"NC_UINT64");
+    test_type(ncid, NC_STRING,"NC_STRING");
+
+    /* Invoke a true negative */
+    test_type_should_fail(ncid, 9999, "NC_GARBAGE");
+    test_type_should_fail(ncid, -1, "NC_GARBAGE_NEGATIVE");
 
 
     if(nc_close(ncid)) ERR;
