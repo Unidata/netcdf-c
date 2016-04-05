@@ -144,7 +144,6 @@ NC_finddim(const NC_dimarray *ncap, const char *uname, NC_dim **dimpp)
       if(name == NULL)
 	 return NC_ENOMEM;
       shash = hash_fast(name, strlen(name));
-      shash = hash_fast(name, strlen(name));
       dimid = NC_hashmapGet(ncap->hashmap, shash);
       free(name);
       if (dimid >= 0) {
