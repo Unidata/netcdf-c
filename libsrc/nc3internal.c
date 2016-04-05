@@ -699,7 +699,7 @@ NC_check_vlens(NC3_INFO *ncp)
     if (fIsSet(ncp->flags,NC_64BIT_DATA)) {
 	/* CDF5 format allows many large vars */
         return NC_NOERR;
-    } 
+    }
     if (fIsSet(ncp->flags,NC_64BIT_OFFSET) && sizeof(off_t) > 4) {
 	/* CDF2 format and LFS */
 	vlen_max = X_UINT_MAX - 3; /* "- 3" handles rounded-up size */
@@ -1582,7 +1582,7 @@ NC3_inq_format(int ncid, int *formatp)
 	else if (fIsSet(nc3->flags, NC_64BIT_OFFSET))
 	    *formatp = NC_FORMAT_64BIT_OFFSET;
 	else
-	    *formatp = NC_FORMAT_CLASSIC; 
+	    *formatp = NC_FORMAT_CLASSIC;
 	return NC_NOERR;
 }
 
@@ -1628,11 +1628,18 @@ NC3_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
 	return stat;
 
    /* Only netCDF classic model and CDF-5 need to be handled. */
+   /* After discussion, this seems like an artificial limitation.
+      See https://github.com/Unidata/netcdf-c/issues/240 for more
+      discussion. */
+   /*
    if((ncp->mode & NC_CDF5) != 0) {
 	if (typeid < NC_BYTE || typeid > NC_STRING)
             return NC_EBADTYPE;
    } else if (typeid < NC_BYTE || typeid > NC_DOUBLE)
       return NC_EBADTYPE;
+   */
+   if(typeid < NC_BYTE || typeid > NC_STRING)
+     return NC_EBADTYPE;
 
    /* Give the user the values they want. Subtract one because types
     * are numbered starting at 1, not 0. */
