@@ -730,7 +730,7 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 	if(status != NC_NOERR)
 	{
 		/* invalid varid */
-      return status;
+		return status;
 	}
 
 
@@ -748,7 +748,7 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 
 		/* Remove old name from hashmap; add new... */
 		NC_hashmapRemoveVar(&ncp->vars, old->cp);
-		NC_hashmapAddVar(&ncp->vars, varid, newname);
+		NC_hashmapAddVar(&ncp->vars, varid, newStr->cp);
 		free_NC_string(old);
 
 		return NC_NOERR;
@@ -762,7 +762,7 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 
 	/* Remove old name from hashmap; add new... */
 	NC_hashmapRemoveVar(&ncp->vars, old->cp);
-	NC_hashmapAddVar(&ncp->vars, varid, newname);
+	NC_hashmapAddVar(&ncp->vars, varid, varp->name->cp);
 
 	set_NC_hdirty(ncp);
 

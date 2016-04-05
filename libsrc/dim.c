@@ -479,7 +479,7 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 
 		/* Remove old name from hashmap; add new... */
 		NC_hashmapRemoveDim(&ncp->dims, old->cp);
-		NC_hashmapAddDim(&ncp->dims, dimid, newname);
+		NC_hashmapAddDim(&ncp->dims, dimid, newStr->cp);
 		free_NC_string(old);
 
 		return NC_NOERR;
@@ -494,7 +494,7 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 
 	/* Remove old name from hashmap; add new... */
 	NC_hashmapRemoveDim(&ncp->dims, old->cp);
-	NC_hashmapAddDim(&ncp->dims, dimid, newname);
+	NC_hashmapAddDim(&ncp->dims, dimid, dimp->name->cp);
 
 	set_NC_hdirty(ncp);
 
