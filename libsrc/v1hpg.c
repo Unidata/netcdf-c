@@ -561,6 +561,8 @@ v1h_get_NC_dimarray(v1hs *gsp, NC_dimarray *ncap)
 		return NC_ENOMEM;
 	ncap->nalloc = ncap->nelems;
 
+	ncap->hashmap = NC_hashmapCreate(ncap->nelems);
+
 	{
 		NC_dim **dpp = ncap->value;
 		NC_dim *const *const end = &dpp[ncap->nelems];
@@ -572,6 +574,12 @@ v1h_get_NC_dimarray(v1hs *gsp, NC_dimarray *ncap)
 				ncap->nelems = (size_t)(dpp - ncap->value);
 				free_NC_dimarrayV(ncap);
 				return status;
+			}
+			{
+			  uint32_t key = hash_fast((*dpp)->name->cp,
+						   (*dpp)->name->nchars);
+			  int dimid = (size_t)(dpp - ncap->value);
+			  NC_hashmapInsert(ncap->hashmap, dimid, key);
 			}
 		}
 	}
@@ -1150,6 +1158,7 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
 		return NC_ENOMEM;
 	ncap->nalloc = ncap->nelems;
 
+	ncap->hashmap = NC_hashmapCreate(ncap->nelems);
 	{
 		NC_var **vpp = ncap->value;
 		NC_var *const *const end = &vpp[ncap->nelems];
@@ -1161,6 +1170,12 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
 				ncap->nelems = (size_t)(vpp - ncap->value);
 				free_NC_vararrayV(ncap);
 				return status;
+			}
+			{
+			  uint32_t key = hash_fast((*vpp)->name->cp,
+						   (*vpp)->name->nchars);
+			  int varid = (size_t)(vpp - ncap->value);
+			  NC_hashmapInsert(ncap->hashmap, varid, key);
 			}
 		}
 	}
