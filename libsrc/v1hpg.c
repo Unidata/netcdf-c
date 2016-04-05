@@ -576,10 +576,8 @@ v1h_get_NC_dimarray(v1hs *gsp, NC_dimarray *ncap)
 				return status;
 			}
 			{
-			  uint32_t key = hash_fast((*dpp)->name->cp,
-						   (*dpp)->name->nchars);
 			  int dimid = (size_t)(dpp - ncap->value);
-			  NC_hashmapInsert(ncap->hashmap, dimid, key);
+			  NC_hashmapAddDim(ncap, dimid, (*dpp)->name->cp);
 			}
 		}
 	}
@@ -1172,10 +1170,8 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
 				return status;
 			}
 			{
-			  uint32_t key = hash_fast((*vpp)->name->cp,
-						   (*vpp)->name->nchars);
 			  int varid = (size_t)(vpp - ncap->value);
-			  NC_hashmapInsert(ncap->hashmap, varid, key);
+			  NC_hashmapAddVar(ncap, varid, (*vpp)->name->cp);
 			}
 		}
 	}

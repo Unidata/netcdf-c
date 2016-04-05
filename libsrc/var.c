@@ -299,9 +299,7 @@ incr_NC_vararray(NC_vararray *ncap, NC_var *newelemp)
 
 	if(newelemp != NULL)
 	{
-	  uint32_t key = hash_fast(newelemp->name->cp,
-				   strlen(newelemp->name->cp));
-		NC_hashmapInsert(ncap->hashmap, ncap->nelems, key);
+		NC_hashmapAddVar(ncap, (long)ncap->nelems, newelemp->name->cp);
 		ncap->value[ncap->nelems] = newelemp;
 		ncap->nelems++;
 	}
@@ -337,7 +335,6 @@ int
 NC_findvar(const NC_vararray *ncap, const char *uname, NC_var **varpp)
 {
 	int hash_var_id;
-	uint32_t shash;
 	char *name;
 
 	assert(ncap != NULL);
@@ -350,9 +347,8 @@ NC_findvar(const NC_vararray *ncap, const char *uname, NC_var **varpp)
 	name = (char *)utf8proc_NFC((const unsigned char *)uname);
 	if(name == NULL)
 	    return NC_ENOMEM;
-	shash = hash_fast(name, strlen(name));
 
-	hash_var_id = NC_hashmapGet(ncap->hashmap, shash);
+	hash_var_id = (int)NC_hashmapGetVar(ncap, name);
 	free(name);
 	if (hash_var_id >= 0) {
 	  if (varpp != NULL)
@@ -708,7 +704,6 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 	NC_string *old, *newStr;
 	int other;
 	char *newname;		/* normalized */
-	uint32_t old_hash_key, var_hash;
 
 	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
@@ -740,11 +735,9 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 
 
 	old = varp->name;
-	old_hash_key = hash_fast(old->cp, strlen(old->cp));
 	newname = (char *)utf8proc_NFC((const unsigned char *)unewname);
 	if(newname == NULL)
 	    return NC_ENOMEM;
-	var_hash = hash_fast(newname, strlen(newname));
 	if(NC_indef(ncp))
 	{
 		newStr = new_NC_string(strlen(newname),newname);
@@ -752,11 +745,11 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 		if(newStr == NULL)
 			return(-1);
 		varp->name = newStr;
-		free_NC_string(old);
 
 		/* Remove old name from hashmap; add new... */
-		NC_hashmapRemove(ncp->vars.hashmap, old_hash_key);
-		NC_hashmapInsert(ncp->vars.hashmap, varid, var_hash);
+		NC_hashmapRemoveVar(&ncp->vars, old->cp);
+		NC_hashmapAddVar(&ncp->vars, varid, newname);
+		free_NC_string(old);
 
 		return NC_NOERR;
 	}
@@ -768,8 +761,8 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 		return status;
 
 	/* Remove old name from hashmap; add new... */
-	NC_hashmapRemove(ncp->vars.hashmap, old_hash_key);
-	NC_hashmapInsert(ncp->vars.hashmap, varid, var_hash);
+	NC_hashmapRemoveVar(&ncp->vars, old->cp);
+	NC_hashmapAddVar(&ncp->vars, varid, newname);
 
 	set_NC_hdirty(ncp);
 

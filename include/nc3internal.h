@@ -187,9 +187,6 @@ typedef struct NC_vararray {
 
 /* Begin defined in lookup3.c */
 
-extern uint32_t
-hash_fast(const void *key, size_t length);
-
 /* End defined in lookup3.c */
 
 /* Begin defined in var.c */
