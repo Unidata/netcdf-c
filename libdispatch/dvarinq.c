@@ -562,4 +562,35 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
 }
 
 #endif /* USE_NETCDF4 */
+
+/**
+\internal
+\ingroup variables
+
+Expose access to nc_inq_var_all().
+Used in libdap2 and libdap4.
+
+*/
+int
+NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
+               int *ndimsp, int *dimidsp, int *nattsp,
+               int *shufflep, int *deflatep, int *deflate_levelp,
+               int *fletcher32p, int *contiguousp, size_t *chunksizesp,
+               int *no_fill, void *fill_valuep, int *endiannessp,
+	       int *options_maskp, int *pixels_per_blockp)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->inq_var_all(
+      ncid, varid, name, xtypep,
+      ndimsp, dimidsp, nattsp,
+      shufflep, deflatep, deflate_levelp, fletcher32p,
+      contiguousp, chunksizesp,
+      no_fill, fill_valuep,
+      endiannessp,
+      options_maskp, 
+      pixels_per_blockp);
+}
+
 /*! \} */  /* End of named group ...*/

@@ -58,8 +58,6 @@ nc_initialize()
 
     /* Initialize each active protocol */
 
-    if((stat = NCSUBSTRATE_initialize())) return stat;
-
     if((stat = NC3_initialize())) return stat;
 
 #ifdef USE_DAP
@@ -110,8 +108,6 @@ nc_finalize(void)
 #endif /* USE_NETCDF4 */
 
     if((stat = NC3_finalize())) return stat;
-
-    if((stat = NCSUBSTRATE_finalize())) return stat;
 
     /* Do general finalization */
     if((stat = NCDISPATCH_finalize())) return stat;

@@ -179,7 +179,7 @@ check(float* target, size_t* start, size_t* count)
 	int eq = floateq(result[offset],expected[offset]);
 	if(eq == 0) {
 	    fprintf(stderr,"fail: result[%lu] = %f ; expected[%lu] = %f\n",
-		offset,result[offset],offset,expected[offset]);
+		(unsigned long)offset,result[offset],(unsigned long)offset,expected[offset]);
 	    ok=0;
 	}
         odom_incr(odom);

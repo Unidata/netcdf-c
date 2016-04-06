@@ -115,10 +115,6 @@ typedef struct NC_Dispatch NC_Dispatch;
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
-extern NC_Dispatch* NCSUBSTRATE_dispatch_table;
-extern int NCSUBSTRATE_initialize(void);
-extern int NCSUBSTRATE_finalize(void);
-
 extern NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
@@ -319,7 +315,6 @@ typedef struct NCcommon {
 	struct NC_Dispatch* dispatch;
 	void* dispatchdata; /* per-protocol instance data */
 	char* path; /* as specified at open or create */
-	int   substrate; /* ncid for another protocol on which to build */
 } NCcommon;
 
 extern size_t NC_atomictypelen(nc_type xtype);
@@ -380,5 +375,13 @@ extern char* NC_argv[];
 extern int NC_initialized;
 
 NCD_EXTERNL int nc_initialize();
+
+extern int
+NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
+               int *ndimsp, int *dimidsp, int *nattsp,
+               int *shufflep, int *deflatep, int *deflate_levelp,
+               int *fletcher32p, int *contiguousp, size_t *chunksizesp,
+               int *no_fill, void *fill_valuep, int *endiannessp,
+	       int *options_maskp, int *pixels_per_blockp);
 
 #endif /* _DISPATCH_H */
