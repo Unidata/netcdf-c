@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -x
 set -e
 
 quiet=0
@@ -249,6 +249,7 @@ rm -f ./.dodsrc ./.ocrc ./.daprc
 cd ${RESULTSDIR}
 
 for t in ${TESTSET} ; do
+
   # see if we are using constraints
   #index=`expr index "${t}" ";"`
   
@@ -302,6 +303,7 @@ for t in ${TESTSET} ; do
 
   status=0
 
+  echo "command = ${TIMECMD} ${VALGRIND} ${NCDUMP} ${url} \> ${name}.dmp"
   if ${TIMECMD} ${VALGRIND} ${NCDUMP} "${url}" > ${name}.dmp ; then status=$status; else status=1; fi
   # compare with expected
   if diff -w ${EXPECTED}/${name}.dmp ${name}.dmp

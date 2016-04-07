@@ -212,6 +212,7 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
 
    if ((stat = NC_check_id(ncid, &ncp)))
       return stat;
+   TRACE(nc_def_var);
    return ncp->dispatch->def_var(ncid, name, xtype, ndims,
 				 dimidsp, varidp);
 }
@@ -282,6 +283,7 @@ nc_rename_var(int ncid, int varid, const char *name)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
+   TRACE(nc_rename_var);
    return ncp->dispatch->rename_var(ncid, varid, name);
 }
 /*! \} */

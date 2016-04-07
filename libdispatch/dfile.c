@@ -1658,6 +1658,7 @@ NC_create(const char *path, int cmode, size_t initialsz,
    int isurl = 0;   /* dap or cdmremote or neither */
    int xcmode = 0; /* for implied cmode flags */
 
+   TRACE(nc_create);
    /* Initialize the dispatch table. The function pointers in the
     * dispatch table will depend on how netCDF was built
     * (with/without netCDF-4, DAP, CDMREMOTE). */
@@ -1733,7 +1734,10 @@ NC_create(const char *path, int cmode, size_t initialsz,
    if((cmode & NC_MPIIO) && (cmode & NC_MPIPOSIX))
       return  NC_EINVAL;
 
-   if (!(dispatcher = NC_get_dispatch_override()))
+#ifdef OBSOLETE
+   dispatcher = NC_get_dispatch_override();
+#endif
+   if (dispatcher == NULL)
    {
 
       /* Figure out what dispatcher to use */
@@ -1807,6 +1811,7 @@ NC_open(const char *path, int cmode,
    int version = 0;
    int flags = 0;
 
+   TRACE(nc_open);
    if(!NC_initialized) {
       stat = nc_initialize();
       if(stat) return stat;
@@ -1877,7 +1882,9 @@ NC_open(const char *path, int cmode,
      return  NC_EINVAL;
 
    /* override any other table choice */
+#ifdef OBSOLETE
    dispatcher = NC_get_dispatch_override();
+#endif
    if(dispatcher != NULL) goto havetable;
 
    /* Figure out what dispatcher to use */

@@ -162,6 +162,7 @@ typedef struct NCDAPCOMMON {
     NCCDF cdf;
     NCOC oc;
     NCCONTROLS controls; /* Control flags and parameters */
+    int nc3id; /* nc3 file ncid used to hold metadata */
 } NCDAPCOMMON;
 
 /**************************************************/
@@ -339,5 +340,8 @@ extern int nc__opendap(void);
 #define NCD2_DATA(nc) ((NCDAPCOMMON*)(nc)->dispatchdata)
 #define NCD2_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
 
+#define getncid(drno) (((NC*)drno)->ext_ncid)
+#define getdap(drno) ((NCDAPCOMMON*)((NC*)drno)->dispatchdata)
+#define getnc3id(drno) (getdap(drno)->nc3id)
 
 #endif /*NCCOMMON_H*/

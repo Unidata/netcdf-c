@@ -126,7 +126,7 @@ nc3d_getvarx(int ncid, int varid,
     if(ncstat != NC_NOERR) goto fail;
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
 
-    ncstat = NC_check_id(drno->substrate, (NC**)&substrate);
+    ncstat = NC_check_id(getnc3id(drno), (NC**)&substrate);
     if(ncstat != NC_NOERR) goto fail;
 
     /* Locate var node via varid */
