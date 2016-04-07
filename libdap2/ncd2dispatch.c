@@ -300,6 +300,7 @@ NCD2_open(const char * path, int mode,
     OCerror ocstat = OC_NOERR;
     NCDAPCOMMON* dapcomm = NULL;
     const char* value;
+    int nc3id = -1;
 
     if(path == NULL)
 	return NC_EDAPURL;
@@ -366,7 +367,7 @@ NCD2_open(const char * path, int mode,
 	}
     }
 
-    /* Use libsrc code for storing metadata */
+    /* Use libsrc code (netcdf-3) for storing metadata */
     {
 	char tmpname[32];
 
@@ -376,12 +377,13 @@ NCD2_open(const char * path, int mode,
         snprintf(tmpname,sizeof(tmpname),"%d",drno->int_ncid);
 
         /* Now, use the file to create the netcdf file; force classic.  */
-        ncstat = nc_create(tmpname,NC_DISKLESS|NC_CLASSIC_MODEL,&getnc3id(drno));
+        ncstat = nc_create(tmpname,NC_DISKLESS|NC_CLASSIC_MODEL,&nc3id);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-    }
+	dapcomm->nc3id = nc3id;
+	/* Avoid fill */
+	nc_set_fill(nc3id,NC_NOFILL,NULL);
 
-    /* Avoid fill */
-    nc_set_fill(getnc3id(drno),NC_NOFILL,NULL);
+    }
 
     dapcomm->oc.dapconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
     dapcomm->oc.dapconstraint->projections = nclistnew();
@@ -512,7 +514,7 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
     if(ncstat) goto done;
 
     /* Process the constraints to map to the constrained CDF tree */
-    /* (must follow fixgrids3 */
+    /* (must follow fixgrids3) */
     ncstat = dapmapconstraints(dapcomm->oc.dapconstraint,dapcomm->cdf.ddsroot);
     if(ncstat != NC_NOERR) goto done;
 
@@ -554,31 +556,27 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
        about variables that are too large.
     */
 #if 0
-    ncstat = nc_endef(getnc3id(drno),NC_NOFILL,NULL);
+    ncstat = nc_endef(nc3id,NC_NOFILL,NULL);
     if(ncstat != NC_NOERR && ncstat != NC_EVARSIZE)
         {THROWCHK(ncstat); goto done;}
 #endif
 
-    {
-        NC* ncsub;
-        NC* drno = dapcomm->controller;
-	CDFnode* unlimited = dapcomm->cdf.recorddim;
-        /* (for now) break abstractions*/
-	NC3_INFO* nc3i;
-
-        /* get the id for the substrate */
-        ncstat = NC_check_id(getnc3id(drno),&ncsub);
-        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-	nc3i = (NC3_INFO*)ncsub->dispatchdata;
-
-        if(unlimited != NULL) {
-            /* Set the effective size of UNLIMITED */
-            NC_set_numrecs(nc3i,unlimited->dim.declsize);
-        }
-
-        /* Pretend the substrate is read-only */
-	NC_set_readonly(nc3i);
-
+    { /* (for now) break abstractions*/
+	    NC* ncsub;
+	    NC3_INFO* nc3i;
+	    CDFnode* unlimited = dapcomm->cdf.recorddim;
+            /* get the dispatch data for the substrate */
+            ncstat = NC_check_id(nc3id,&ncsub);
+	    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+	    nc3i = (NC3_INFO*)ncsub->dispatchdata;
+	    /* This must be checked after all dds and data processing
+               so we can figure out the value of numrecs.
+	    */
+            if(unlimited != NULL) { /* Set the effective size of UNLIMITED */
+                NC_set_numrecs(nc3i,unlimited->dim.declsize);
+	    }
+            /* Pretend the substrate is read-only */
+	    NC_set_readonly(nc3i);
     }
 
     /* Do any necessary data prefetch */
@@ -630,9 +628,6 @@ buildncstructures(NCDAPCOMMON* dapcomm)
     CDFnode* dds = dapcomm->cdf.ddsroot;
     NC* ncsub;
 
-    ncstat = NC_check_id(getnc3id(dapcomm->controller),&ncsub);
-    if(ncstat != NC_NOERR) goto done;
-
     ncstat = buildglobalattrs(dapcomm,dds);
     if(ncstat != NC_NOERR) goto done;
 
@@ -681,7 +676,7 @@ builddims(NCDAPCOMMON* dapcomm)
     if(dapcomm->cdf.recorddim != NULL) {
 	CDFnode* unlimited = dapcomm->cdf.recorddim;
 	definename = getdefinename(unlimited);
-        ncstat = nc_def_dim(getnc3id(drno),
+        ncstat = nc_def_dim(dapcomm->nc3id,
 			definename,
 			NC_UNLIMITED,
 			&unlimited->ncid);
@@ -689,7 +684,7 @@ builddims(NCDAPCOMMON* dapcomm)
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
         /* get the id for the substrate */
-        ncstat = NC_check_id(getnc3id(drno),&ncsub);
+        ncstat = NC_check_id(dapcomm->nc3id,&ncsub);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 #if 0
 	nc3sub = (NC3_INFO*)&ncsub->dispatchdata;
@@ -708,7 +703,7 @@ builddims(NCDAPCOMMON* dapcomm)
 fprintf(stderr,"define: dim: %s=%ld\n",dim->ncfullname,(long)dim->dim.declsize);
 #endif
 	definename = getdefinename(dim);
-        ncstat = nc_def_dim(getnc3id(drno),definename,dim->dim.declsize,&dimid);
+        ncstat = nc_def_dim(dapcomm->nc3id,definename,dim->dim.declsize,&dimid);
         if(ncstat != NC_NOERR) {
           THROWCHK(ncstat); nullfree(definename); goto done;
 	}
@@ -780,7 +775,7 @@ fprintf(stderr,"[%ld]",dim->dim.declsize);
  }
 fprintf(stderr,"\n");
 #endif
-        ncstat = nc_def_var(getnc3id(drno),
+        ncstat = nc_def_var(dapcomm->nc3id,
 		        definename,
                         var->externaltype,
                         ncrank,
@@ -841,7 +836,7 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 	    }
 	}
         if(ncbyteslength(buf) > 0) {
-            ncstat = nc_put_att_text(getnc3id(drno),NC_GLOBAL,"_sequence_dimensions",
+            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_sequence_dimensions",
 	           ncbyteslength(buf),ncbytescontents(buf));
 	}
     }
@@ -852,12 +847,12 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 
     if(dapparamcheck(dapcomm,"show","translate")) {
         /* Add a global attribute to show the translation */
-        ncstat = nc_put_att_text(getnc3id(drno),NC_GLOBAL,"_translate",
+        ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_translate",
 	           strlen("netcdf-3"),"netcdf-3");
     }
     if(dapparamcheck(dapcomm,"show","url")) {
 	if(dapcomm->oc.rawurltext != NULL)
-            ncstat = nc_put_att_text(getnc3id(drno),NC_GLOBAL,"_url",
+            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_url",
 				       strlen(dapcomm->oc.rawurltext),dapcomm->oc.rawurltext);
     }
     if(dapparamcheck(dapcomm,"show","dds")) {
@@ -868,7 +863,7 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 	    /* replace newlines with spaces*/
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
-            ncstat = nc_put_att_text(getnc3id(drno),NC_GLOBAL,"_dds",strlen(nltxt),nltxt);
+            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_dds",strlen(nltxt),nltxt);
 	    nullfree(nltxt);
 	}
     }
@@ -879,7 +874,7 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 	if(txt != NULL) {
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
-            ncstat = nc_put_att_text(getnc3id(drno),NC_GLOBAL,"_das",strlen(nltxt),nltxt);
+            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_das",strlen(nltxt),nltxt);
 	    nullfree(nltxt);
 	}
     }
@@ -921,9 +916,9 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	}
         dapexpandescapes(newstring);
 	if(newstring[0]=='\0')
-	    ncstat = nc_put_att_text(getnc3id(drno),varid,att->name,1,newstring);
+	    ncstat = nc_put_att_text(dapcomm->nc3id,varid,att->name,1,newstring);
 	else
-	    ncstat = nc_put_att_text(getnc3id(drno),varid,att->name,strlen(newstring),newstring);
+	    ncstat = nc_put_att_text(dapcomm->nc3id,varid,att->name,strlen(newstring),newstring);
 	free(newstring);
         if(ncstat) goto done;
     } else {
@@ -953,7 +948,7 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	_ASSERTE(_CrtCheckMemory());
 #endif
     if(ncstat) {nullfree(mem); goto done;}
-    ncstat = nc_put_att(getnc3id(drno),varid,att->name,atype,nvalues,mem);
+    ncstat = nc_put_att(dapcomm->nc3id,varid,att->name,atype,nvalues,mem);
 #ifdef _MSC_VER
 	_ASSERTE(_CrtCheckMemory());
 #endif
@@ -2372,12 +2367,12 @@ NCD2_get_att(int ncid, int varid, const char* name, void* value, nc_type t)
     NC* drno;
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_get_att(getnc3id(drno), varid, name, value);
+    ret = NCDISPATCH_get_att(getnc3id(drno), varid, name, value, t);
     return THROW(ret);
 }
 
 int
-NCD2_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
+NCD2_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep, 
                int* ndimsp, int* dimidsp, int* nattsp, 
                int* shufflep, int* deflatep, int* deflate_levelp,
                int* fletcher32p, int* contiguousp, size_t* chunksizesp, 
@@ -2387,7 +2382,7 @@ NCD2_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     NC* drno;
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = NC_inq_var_all(getnc3id(drno), varid, name, xtypep, 
+    ret = NCDISPATCH_inq_var_all(getnc3id(drno), varid, name, xtypep, 
                ndimsp, dimidsp, nattsp, 
                shufflep, deflatep, deflate_levelp,
                fletcher32p, contiguousp, chunksizesp, 
@@ -2534,12 +2529,12 @@ NCD2_inq_user_type(int ncid, nc_type t, char* p3, size_t* p4, nc_type* p5,
 }
 
 int
-NCD2_inq_typeid(int ncid, const char* name, nc_type* tp)
+NCD2_inq_typeid(int ncid, const char* name, nc_type* t)
 {
     NC* drno;
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_inq_typeid(getnc3id(drno), name, tp);
+    ret = nc_inq_typeid(getnc3id(drno), name, t);
     return THROW(ret);
 }
 
@@ -2564,12 +2559,12 @@ NCD2_rename_grp(int ncid, const char* p)
 }
 
 int
-NCD2_def_compound(int ncid, size_t p2, const char* p3, nc_type* p4)
+NCD2_def_compound(int ncid, size_t p2, const char* p3, nc_type* t)
 {
     NC* drno;
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_def_compound(getnc3id(drno), p2, p3, p4);
+    ret = nc_def_compound(getnc3id(drno), p2, p3, t);
     return THROW(ret);
 }
 
@@ -2596,7 +2591,7 @@ NCD2_insert_array_compound(int ncid, nc_type t1, const char* p3, size_t p4,
 
 int
 NCD2_inq_compound_field(int ncid, nc_type xtype, int fieldid, char *name,
-		      size_t *offsetp, nc_type *field_typeidp, int *ndimsp,
+		      size_t *offsetp, nc_type* field_typeidp, int *ndimsp,
 		      int *dim_sizesp)
 {
     NC* drno;
@@ -2618,12 +2613,12 @@ NCD2_inq_compound_fieldindex(int ncid, nc_type xtype, const char *name,
 }
 
 int
-NCD2_def_vlen(int ncid, const char* p2, nc_type base_typeid, nc_type* p4)
+NCD2_def_vlen(int ncid, const char* p2, nc_type base_typeid, nc_type* t)
 {
     NC* drno;
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_def_vlen(getnc3id(drno), p2, base_typeid, p4);
+    ret = nc_def_vlen(getnc3id(drno), p2, base_typeid, t);
     return THROW(ret);
 }
 
@@ -2648,12 +2643,12 @@ NCD2_get_vlen_element(int ncid, int p2, const void* p3, size_t* p4, void* p5)
 }
 
 int
-NCD2_def_enum(int ncid, nc_type t1, const char* p3, nc_type* p4)
+NCD2_def_enum(int ncid, nc_type t1, const char* p3, nc_type* t)
 {
     NC* drno;
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_def_enum(getnc3id(drno), t1, p3, p4);
+    ret = nc_def_enum(getnc3id(drno), t1, p3, t);
     return THROW(ret);
 }
 
@@ -2688,12 +2683,12 @@ NCD2_inq_enum_ident(int ncid, nc_type t1, long long p3, char* p4)
 }
 
 int
-NCD2_def_opaque(int ncid, size_t p2, const char* p3, nc_type* p4)
+NCD2_def_opaque(int ncid, size_t p2, const char* p3, nc_type* t)
 {
     NC* drno;
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_def_opaque(getnc3id(drno), p2, p3, p4);
+    ret = nc_def_opaque(getnc3id(drno), p2, p3, t);
     return THROW(ret);
 }
 

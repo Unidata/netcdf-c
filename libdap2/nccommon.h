@@ -341,7 +341,7 @@ extern int nc__opendap(void);
 #define NCD2_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
 
 #define getncid(drno) (((NC*)drno)->ext_ncid)
-#define getdap(drno) ((NCDAPCOMMON*)((NC*)drno)->dispatch)
+#define getdap(drno) ((NCDAPCOMMON*)((NC*)drno)->dispatchdata)
 #define getnc3id(drno) (getdap(drno)->nc3id)
 
 #endif /*NCCOMMON_H*/

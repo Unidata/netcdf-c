@@ -119,6 +119,7 @@ nc_inq_var(int ncid, int varid, char *name, nc_type *xtypep,
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
+   TRACE(nc_inq_var);
    return ncp->dispatch->inq_var_all(ncid, varid, name, xtypep, ndimsp,
 				     dimidsp, nattsp, NULL, NULL, NULL,
 				     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -276,6 +277,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
+   TRACE(nc_inq_var_deflate);
    return ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
@@ -330,6 +332,7 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
+   TRACE(nc_inq_var_szip);
    return ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
@@ -377,6 +380,7 @@ nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
+   TRACE(nc_inq_var_fletcher32);
    return ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
@@ -426,6 +430,7 @@ nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
    NC *ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
+   TRACE(nc_inq_var_chunking);
    return ncp->dispatch->inq_var_all(ncid, varid, NULL, NULL, NULL, NULL,
 				     NULL, NULL, NULL, NULL, NULL, storagep,
 				     chunksizesp, NULL, NULL, NULL, NULL, NULL);
@@ -460,6 +465,7 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
+   TRACE(nc_inq_var_fill);
    return ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
@@ -508,6 +514,7 @@ nc_inq_var_endian(int ncid, int varid, int *endianp)
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
+   TRACE(nc_inq_var_endian);
    return ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
@@ -557,6 +564,7 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
     NC* ncp;
     int stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) return stat;
+   TRACE(nc_inq_unlimdims);
     return ncp->dispatch->inq_unlimdims(ncid, nunlimdimsp,
 					unlimdimidsp);
 }

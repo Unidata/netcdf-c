@@ -26,12 +26,12 @@
 #endif
 
 #undef PARSEDEBUG
+/* Warning: setting CATCHERROR has significant performance impact */
+#define CATCHERROR
 
 #include <stdarg.h>
 #include <assert.h>
 
-/* Warning: setting CATCHERROR has significant performance impact */
-#define CATCHERROR
 #ifdef DAPDEBUG
 #undef CATCHERROR
 #define CATCHERROR

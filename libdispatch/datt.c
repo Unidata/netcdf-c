@@ -109,6 +109,7 @@ nc_rename_att(int ncid, int varid, const char *name, const char *newname)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
+   TRACE(nc_rename_att);
    return ncp->dispatch->rename_att(ncid, varid, name, newname);
 }
 
@@ -159,6 +160,7 @@ nc_del_att(int ncid, int varid, const char *name)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
+   TRACE(nc_del_att);
    return ncp->dispatch->del_att(ncid, varid, name);
 }
 /*! \} */  /* End of named group ...*/

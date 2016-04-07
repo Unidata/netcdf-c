@@ -153,6 +153,7 @@ NC_urlmodel(const char* path)
     return model;
 }
 
+#ifdef OBSOLETE
 /* Override dispatch table management */
 static NC_Dispatch* NC_dispatch_override = NULL;
 
@@ -166,8 +167,10 @@ void NC_set_dispatch_override(NC_Dispatch* d)
 {
     NC_dispatch_override = d;
 }
+#endif
 
-/* Overlay by treating the tables as arrays of void*.
+/* OBSOLETE
+   Overlay by treating the tables as arrays of void*.
    Overlay rules are:
         overlay    base    merge
         -------    ----    -----
@@ -177,6 +180,7 @@ void NC_set_dispatch_override(NC_Dispatch* d)
            x        y        x
 */
 
+#ifdef OBSOLETE
 int
 NC_dispatch_overlay(const NC_Dispatch* overlay, const NC_Dispatch* base, NC_Dispatch* merge)
 {
@@ -196,3 +200,4 @@ NC_dispatch_overlay(const NC_Dispatch* overlay, const NC_Dispatch* base, NC_Disp
     merge->model = overlay->model;
     return NC_NOERR;
 }
+#endif
