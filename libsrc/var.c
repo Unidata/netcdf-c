@@ -65,7 +65,6 @@ new_x_NC_var(
 	(void) memset(varp, 0, sz);
 	varp->name = strp;
 	varp->ndims = ndims;
- 	varp->hash = hash_fast(strp->cp, strlen(strp->cp));
 
 	if(ndims != 0)
 	{
@@ -94,7 +93,7 @@ new_x_NC_var(
 	varp->len = 0;
 	varp->begin = 0;
 
- 	return varp;
+	return varp;
 }
 
 
@@ -206,6 +205,9 @@ free_NC_vararrayV(NC_vararray *ncap)
 	if(ncap->nalloc == 0)
 		return;
 
+	NC_hashmapDelete(ncap->hashmap);
+	ncap->hashmap = NULL;
+
 	assert(ncap->value != NULL);
 
 	free_NC_vararrayV0(ncap);
@@ -282,6 +284,8 @@ incr_NC_vararray(NC_vararray *ncap, NC_var *newelemp)
 			return NC_ENOMEM;
 		ncap->value = vp;
 		ncap->nalloc = NC_ARRAY_GROWBY;
+
+		ncap->hashmap = NC_hashmapCreate(0);
 	}
 	else if(ncap->nelems +1 > ncap->nalloc)
 	{
@@ -295,6 +299,7 @@ incr_NC_vararray(NC_vararray *ncap, NC_var *newelemp)
 
 	if(newelemp != NULL)
 	{
+		NC_hashmapAddVar(ncap, (long)ncap->nelems, newelemp->name->cp);
 		ncap->value[ncap->nelems] = newelemp;
 		ncap->nelems++;
 	}
@@ -329,9 +334,7 @@ NC_hvarid
 int
 NC_findvar(const NC_vararray *ncap, const char *uname, NC_var **varpp)
 {
-	NC_var **loc;
- 	uint32_t shash;
-	int varid;
+	int hash_var_id;
 	char *name;
 
 	assert(ncap != NULL);
@@ -339,26 +342,19 @@ NC_findvar(const NC_vararray *ncap, const char *uname, NC_var **varpp)
 	if(ncap->nelems == 0)
 		return -1;
 
-	loc = (NC_var **) ncap->value;
 
 	/* normalized version of uname */
 	name = (char *)utf8proc_NFC((const unsigned char *)uname);
 	if(name == NULL)
 	    return NC_ENOMEM;
- 	shash = hash_fast(name, strlen(name));
 
-	for(varid = 0; (size_t) varid < ncap->nelems; varid++, loc++)
-	{
-		if((*loc)->hash == shash &&
-		   strncmp((*loc)->name->cp, name, strlen(name)) == 0)
-		{
-			if(varpp != NULL)
-				*varpp = *loc;
-			free(name);
-			return(varid); /* Normal return */
-		}
-	}
+	hash_var_id = (int)NC_hashmapGetVar(ncap, name);
 	free(name);
+	if (hash_var_id >= 0) {
+	  if (varpp != NULL)
+	    *varpp = ncap->value[hash_var_id];
+	  return(hash_var_id); /* Normal return */
+	}
 	return(-1); /* not found */
 }
 
@@ -734,8 +730,9 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 	if(status != NC_NOERR)
 	{
 		/* invalid varid */
-      return status;
+		return status;
 	}
+
 
 	old = varp->name;
 	newname = (char *)utf8proc_NFC((const unsigned char *)unewname);
@@ -748,17 +745,24 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 		if(newStr == NULL)
 			return(-1);
 		varp->name = newStr;
-		varp->hash = hash_fast(newStr->cp, strlen(newStr->cp));
+
+		/* Remove old name from hashmap; add new... */
+		NC_hashmapRemoveVar(&ncp->vars, old->cp);
+		NC_hashmapAddVar(&ncp->vars, varid, newStr->cp);
 		free_NC_string(old);
+
 		return NC_NOERR;
 	}
 
 	/* else, not in define mode */
 	status = set_NC_string(varp->name, newname);
-	varp->hash = hash_fast(newname, strlen(newname));
 	free(newname);
 	if(status != NC_NOERR)
 		return status;
+
+	/* Remove old name from hashmap; add new... */
+	NC_hashmapRemoveVar(&ncp->vars, old->cp);
+	NC_hashmapAddVar(&ncp->vars, varid, varp->name->cp);
 
 	set_NC_hdirty(ncp);
 

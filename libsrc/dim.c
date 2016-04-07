@@ -37,7 +37,6 @@ new_x_NC_dim(NC_string *name)
 		return NULL;
 
 	dimp->name = name;
- 	dimp->hash = hash_fast(name->cp, strlen(name->cp));
 	dimp->size = 0;
 
 	return(dimp);
@@ -127,7 +126,6 @@ NC_finddim(const NC_dimarray *ncap, const char *uname, NC_dim **dimpp)
 {
 
    int dimid;
-   uint32_t shash;
    NC_dim ** loc;
    char *name;
 
@@ -139,27 +137,20 @@ NC_finddim(const NC_dimarray *ncap, const char *uname, NC_dim **dimpp)
    {
       dimid = 0;
       loc = (NC_dim **) ncap->value;
+
       /* normalized version of uname */
       name = (char *)utf8proc_NFC((const unsigned char *)uname);
       if(name == NULL)
 	 return NC_ENOMEM;
-      shash = hash_fast(name, strlen(name));
-
-      for(; (size_t) dimid < ncap->nelems
-	     && ((*loc)->hash != shash
-		 || strncmp((*loc)->name->cp, name, strlen(name)) != 0);
-	  dimid++, loc++)
-      {
-	 /*EMPTY*/
-      }
+      dimid = (int)NC_hashmapGetDim(ncap, name);
       free(name);
-      if(dimid >= ncap->nelems)
-	 return(-1); /* not found */
-      /* else, normal return */
-      if(dimpp != NULL)
-	 *dimpp = *loc;
-      return(dimid);
+      if (dimid >= 0) {
+	if (dimpp != NULL)
+	  *dimpp = ncap->value[dimid];
+      }
+      return(dimid); /* Normal return */
    }
+   return -1;
 }
 
 
@@ -202,9 +193,12 @@ void
 free_NC_dimarrayV(NC_dimarray *ncap)
 {
 	assert(ncap != NULL);
-	
+
 	if(ncap->nalloc == 0)
 		return;
+
+	NC_hashmapDelete(ncap->hashmap);
+	ncap->hashmap = NULL;
 
 	assert(ncap->value != NULL);
 
@@ -282,6 +276,7 @@ incr_NC_dimarray(NC_dimarray *ncap, NC_dim *newelemp)
 			return NC_ENOMEM;
 		ncap->value = vp;
 		ncap->nalloc = NC_ARRAY_GROWBY;
+		ncap->hashmap = NC_hashmapCreate(0);
 	}
 	else if(ncap->nelems +1 > ncap->nalloc)
 	{
@@ -295,6 +290,7 @@ incr_NC_dimarray(NC_dimarray *ncap, NC_dim *newelemp)
 
 	if(newelemp != NULL)
 	{
+		NC_hashmapAddDim(ncap, (long)ncap->nelems, newelemp->name->cp);
 		ncap->value[ncap->nelems] = newelemp;
 		ncap->nelems++;
 	}
@@ -469,29 +465,36 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 	if(dimp == NULL)
 		return NC_EBADDIM;
 
+	NC_string *old = dimp->name;
 	newname = (char *)utf8proc_NFC((const unsigned char *)unewname);
 	if(newname == NULL)
 	    return NC_ENOMEM;
 	if(NC_indef(ncp))
 	{
-		NC_string *old = dimp->name;
 		NC_string *newStr = new_NC_string(strlen(newname), newname);
 		free(newname);
 		if(newStr == NULL)
 			return NC_ENOMEM;
 		dimp->name = newStr;
-		dimp->hash = hash_fast(newStr->cp, strlen(newStr->cp));
+
+		/* Remove old name from hashmap; add new... */
+		NC_hashmapRemoveDim(&ncp->dims, old->cp);
+		NC_hashmapAddDim(&ncp->dims, dimid, newStr->cp);
 		free_NC_string(old);
+
 		return NC_NOERR;
 	}
 
 	/* else, not in define mode */
 
 	status = set_NC_string(dimp->name, newname);
-	dimp->hash = hash_fast(newname, strlen(newname));
 	free(newname);
 	if(status != NC_NOERR)
 		return status;
+
+	/* Remove old name from hashmap; add new... */
+	NC_hashmapRemoveDim(&ncp->dims, old->cp);
+	NC_hashmapAddDim(&ncp->dims, dimid, dimp->name->cp);
 
 	set_NC_hdirty(ncp);
 
