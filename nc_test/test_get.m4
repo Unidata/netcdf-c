@@ -75,7 +75,7 @@ test_nc_get_var1_$1(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err)
 		error("error in toMixedBase 1");
-	    expect = hash4( var_type[i], var_rank[i], index, NCT_ITYPE($1) );
+	    expect = hash( var_type[i], var_rank[i], index);
 	    if (var_rank[i] == 0 && i%2 )
 		err = nc_get_var1_$1(ncid, i, NULL, &value);
 	    else
@@ -167,15 +167,19 @@ test_nc_get_var_$1(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err)
 		error("error in toMixedBase 1");
-	    expect[j] = hash4(var_type[i], var_rank[i], index, NCT_ITYPE($1));
+	    expect[j] = hash(var_type[i], var_rank[i], index);
+fprintf(stderr, "$1_min = %d, $1_max = %d\n", (int)$1_min, (int)$1_max);
 	    if (inRange3(expect[j],var_type[i], NCT_ITYPE($1))) {
 		allInIntRange = allInIntRange && expect[j] >= $1_min
 			    && expect[j] <= $1_max;
 	    } else {
 		allInExtRange = 0;
 	    }
+fprintf(stderr, "expect[%d] = %g, allInExtRange = %u, allInIntRange = %u\n", j, expect[j], (unsigned)allInExtRange, (unsigned)allInIntRange);
 	}
 	err = nc_get_var_$1(ncid, i, value);
+fprintf(stderr, "err = %d, canConvert = %u, allInExtRange = %u, allInIntRange = %u\n", (int)err, (unsigned)canConvert, (unsigned)allInExtRange, (unsigned)allInIntRange);
+fprintf(stderr, "value[0] = %g\n", (double)value[0]);
 	if (canConvert) {
 	    if (allInExtRange) {
 		if (allInIntRange) {
@@ -189,17 +193,20 @@ test_nc_get_var_$1(void)
 		IF (err != 0 && err != NC_ERANGE)
 		    error("OK or Range error: status = %d", err);
 	    }
+fprintf(stderr, "nels = %d, NC_BYTE = %d, NCT_ITYPE($1) (%s) = %d\n", (int)nels, (int)NC_BYTE, "$1", (int)NCT_ITYPE($1));
 	    for (j = 0; j < nels; j++) {
+fprintf(stderr, "expect[%d] = %g, inRange3() = %d\n", j, expect[j], (int)inRange3(expect[j],var_type[i],NCT_ITYPE($1)));
 		if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))
 			&& expect[j] >= $1_min && expect[j] <= $1_max) {
 		    IF (!equal(value[j],expect[j],var_type[i],NCT_ITYPE($1))){
+fprintf(stderr, "allInExtRange = %d, allInIntRange = %d\n", (int)allInExtRange, (int)allInIntRange);
 			error("value read not that expected");
 			if (verbose) {
 			    error("\n");
 			    error("varid: %d, ", i);
 			    error("var_name: %s, ", var_name[i]);
-			    error("element number: %d ", j);
-			    error("expect: %g", expect[j]);
+			    error("element number: %d, ", j);
+			    error("expect: %g, ", expect[j]);
 			    error("got: %g", (double) value[j]);
 			}
 		    } else {
@@ -343,7 +350,7 @@ test_nc_get_vara_$1(void)
                     error("error in toMixedBase 1");
                 for (d = 0; d < var_rank[i]; d++)
                     index[d] += start[d];
-                expect[j] = hash4(var_type[i], var_rank[i], index, NCT_ITYPE($1));
+                expect[j] = hash(var_type[i], var_rank[i], index);
 		if (inRange3(expect[j],var_type[i], NCT_ITYPE($1))) {
 		    allInIntRange = allInIntRange && expect[j] >= $1_min
 				&& expect[j] <= $1_max;
@@ -529,8 +536,7 @@ test_nc_get_vars_$1(void)
 			error("error in toMixedBase 1");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    expect[j] = hash4(var_type[i], var_rank[i], index2, 
-			NCT_ITYPE($1));
+		    expect[j] = hash(var_type[i], var_rank[i], index2);
 		    if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))) {
 			allInIntRange = allInIntRange && expect[j] >= $1_min
 			    && expect[j] <= $1_max;
@@ -726,8 +732,7 @@ test_nc_get_varm_$1(void)
                         error("error in toMixedBase 1");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    expect[j] = hash4(var_type[i], var_rank[i], index2,
-                        NCT_ITYPE($1));
+                    expect[j] = hash(var_type[i], var_rank[i], index2);
                     if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))) {
                         allInIntRange = allInIntRange && expect[j] >= $1_min
                             && expect[j] <= $1_max;
@@ -832,7 +837,7 @@ test_nc_get_att_$1(void)
 		error("Bad attribute name: status = %d", err);
 	    allInExtRange = allInIntRange = 1;
             for (k = 0; k < ATT_LEN(i,j); k++) {
-		expect[k] = hash4(ATT_TYPE(i,j), -1, &k, NCT_ITYPE($1));
+		expect[k] = hash(ATT_TYPE(i,j), -1, &k);
                 if (inRange3(expect[k],ATT_TYPE(i,j),NCT_ITYPE($1))) {
                     allInIntRange = allInIntRange && expect[k] >= $1_min
                                 && expect[k] <= $1_max;

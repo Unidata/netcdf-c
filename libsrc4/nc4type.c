@@ -215,8 +215,7 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
    /* No size is provided for vlens or enums, get it from the base type. */
    if (type_class == NC_VLEN || type_class == NC_ENUM)
    {
-      if ((retval = nc4_get_typelen_mem(grp->nc4_info, base_typeid, 0, 
-					&size)))
+      if ((retval = nc4_get_typelen_mem(grp->nc4_info, base_typeid, &size)))
 	 return retval;
    }
    else if (size <= 0)

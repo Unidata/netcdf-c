@@ -1077,8 +1077,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       attribute. */
    if (dims[0])
    {
-      if ((retval = nc4_get_typelen_mem(grp->nc4_info, att->nc_typeid, 0,
-					&type_size)))
+      if ((retval = nc4_get_typelen_mem(grp->nc4_info, att->nc_typeid, &type_size)))
 	 return retval;
       if (att_class == H5T_VLEN)
       {
@@ -1235,7 +1234,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                size_t member_offset;
                H5T_class_t mem_class;
                nc_type member_xtype;
-
 
                /* Get the typeid and native typeid of this member of the
                 * compound type. */
@@ -1472,6 +1470,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
          LOG((0, "unknown class"));
          return NC_EBADCLASS;
    }
+
    return retval;
 }
 
@@ -2529,7 +2528,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       att->len = att_count;
 
       /* Allocate memory to hold the data. */
-      if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, 0, &att_type_size)))
+      if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, &att_type_size)))
 	 return retval;
       if (!(att->data = malloc(att_type_size * att->len)))
 	 return NC_ENOMEM;
@@ -2601,7 +2600,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       /* Indicate that the variable has a pointer to the type */
       var->type_info->rc++;
 
-      if ((retval = nc4_get_typelen_mem(h5, var->type_info->nc_typeid, 0, &var_type_size))) {
+      if ((retval = nc4_get_typelen_mem(h5, var->type_info->nc_typeid, &var_type_size))) {
 	if(dimsize) free(dimsize);
 	return retval;
       }
@@ -2717,7 +2716,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	 att->len = att_count;
 
 	 /* Allocate memory to hold the data. */
-	 if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, 0, &att_type_size))) {
+	 if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, &att_type_size))) {
 	   if(dimsize) free(dimsize);
 	   return retval;
 	 }

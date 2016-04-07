@@ -93,7 +93,7 @@ main(int argc, char *argv[])
      */
     (void) signal(SIGFPE, SIG_IGN);
 
-    verbose = 0;
+    verbose = 1;
     max_nmpt = 8;
 
     /* Initialize global variables defining test file */
@@ -112,7 +112,12 @@ main(int argc, char *argv[])
      * the netCDF-4 format last, however, because, as an additional
      * test, the ../nc_test4/tst_nc_test_file program looks at the
      * output of this program. */
+#ifdef QAK
     for (i = 1; i <= NUM_FORMATS; i++)
+#else /* QAK */
+fprintf(stderr, "Uncomment tests!\n");
+    for (i = NUM_FORMATS; i <= NUM_FORMATS; i++)
+#endif /* QAK */
     {
        switch (i) 
        {
@@ -145,6 +150,7 @@ main(int argc, char *argv[])
        (void) remove(scratch);
 
 	/* Test read-only functions, using pre-generated test-file */
+#ifdef QAK
  	NC_TEST(nc_strerror);
 	NC_TEST(nc_open);
 	NC_TEST(nc_close);
@@ -165,7 +171,11 @@ main(int argc, char *argv[])
 	NC_TEST(nc_inq_varndims);
 	NC_TEST(nc_inq_vartype);
 	NC_TEST(nc_get_var_text);
+#else /* QAK */
+fprintf(stderr, "Uncomment tests!\n");
+#endif /* QAK */
 	NC_TEST(nc_get_var_uchar);
+#ifdef QAK
 	NC_TEST(nc_get_var_schar);
 	NC_TEST(nc_get_var_short);
 	NC_TEST(nc_get_var_int);
@@ -290,6 +300,9 @@ main(int argc, char *argv[])
 	NC_TEST(nc_rename_att);
 	NC_TEST(nc_del_att);
 	NC_TEST(nc_set_default_format);
+#else /* QAK */
+fprintf(stderr, "Uncomment tests!\n");
+#endif /* QAK */
     }
 
     fprintf(stderr, "\n*** Total number of failures: %d\n", nfailsTotal);

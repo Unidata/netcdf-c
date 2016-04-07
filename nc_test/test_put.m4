@@ -43,13 +43,12 @@ double
 hash_$1(
     const nc_type type,
     const int rank,
-    const size_t *index,
-    const nct_itype itype)
+    const size_t *index)
 {
     const double min = $1_min;
     const double max = $1_max;
 
-    return MAX(min, MIN(max, hash4( type, rank, index, itype)));
+    return MAX(min, MIN(max, hash( type, rank, index)));
 }
 ')dnl
 
@@ -117,7 +116,7 @@ check_vars_$1(const char *filename)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err)
 		    error("error in toMixedBase 2");
-		expect = hash4( var_type[i], var_rank[i], index, NCT_ITYPE($1));
+		expect = hash( var_type[i], var_rank[i], index);
 		err = nc_get_var1_$1(ncid, i, index, &value);
 		if (inRange3(expect,datatype,NCT_ITYPE($1))) {
                     if (expect >= $1_min && expect <= $1_max) {
@@ -201,7 +200,7 @@ check_atts_$1(int  ncid)
 		assert(length <= MAX_NELS);
 		nInIntRange = nInExtRange = 0;
 		for (k = 0; k < length; k++) {
-		    expect[k] = hash4( datatype, -1, &k, NCT_ITYPE($1));
+		    expect[k] = hash( datatype, -1, &k);
 		    if (inRange3(expect[k], datatype, NCT_ITYPE($1))) {
 			++nInExtRange;
 			if (expect[k] >= $1_min && expect[k] <= $1_max)
@@ -301,7 +300,7 @@ test_nc_put_var1_$1(void)
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
             IF (err) 
 		error("error in toMixedBase 1");
-            value = hash_$1( var_type[i], var_rank[i], index, NCT_ITYPE($1));
+            value = hash_$1( var_type[i], var_rank[i], index);
 	    if (var_rank[i] == 0 && i%2 == 0)
 		err = nc_put_var1_$1(ncid, i, NULL, &value);
 	    else
@@ -395,7 +394,7 @@ test_nc_put_var_$1(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) 
 		error("error in toMixedBase 1");
-	    value[j]= hash_$1(var_type[i], var_rank[i], index, NCT_ITYPE($1));
+	    value[j]= hash_$1(var_type[i], var_rank[i], index);
 	    allInExtRange = allInExtRange 
 		&& inRange3(value[j], var_type[i], NCT_ITYPE($1));
 	}
@@ -443,7 +442,7 @@ test_nc_put_var_$1(void)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err) 
 		    error("error in toMixedBase 1");
-		value[j]= hash_$1(var_type[i], var_rank[i], index, NCT_ITYPE($1));
+		value[j]= hash_$1(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_ITYPE($1));
 	    }
@@ -605,7 +604,7 @@ test_nc_put_vara_$1(void)
 		    error("error in toMixedBase 1");
 		for (d = 0; d < var_rank[i]; d++) 
 		    index[d] += start[d];
-		value[j]= hash_$1(var_type[i], var_rank[i], index, NCT_ITYPE($1));
+		value[j]= hash_$1(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_ITYPE($1));
 	    }
@@ -776,8 +775,7 @@ test_nc_put_vars_$1(void)
 			error("error in toMixedBase");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    value[j] = hash_$1(var_type[i], var_rank[i], index2, 
-			NCT_ITYPE($1));
+		    value[j] = hash_$1(var_type[i], var_rank[i], index2);
 		    allInExtRange = allInExtRange 
 			&& inRange3(value[j], var_type[i], NCT_ITYPE($1));
 		}
@@ -957,8 +955,7 @@ test_nc_put_varm_$1(void)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    value[j] = hash_$1(var_type[i], var_rank[i], index2,
-                        NCT_ITYPE($1));
+                    value[j] = hash_$1(var_type[i], var_rank[i], index2);
                     allInExtRange = allInExtRange
                         && inRange3(value[j], var_type[i], NCT_ITYPE($1));
                 }
@@ -1105,7 +1102,7 @@ test_nc_put_att_$1(void)
 		IF (err != NC_EBADTYPE)
 		    error("bad type: status = %d", err);
 		for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
-		    value[k] = hash_$1(ATT_TYPE(i,j), -1, &k, NCT_ITYPE($1));
+		    value[k] = hash_$1(ATT_TYPE(i,j), -1, &k);
 		    allInExtRange = allInExtRange
 			&& inRange3(value[k], ATT_TYPE(i,j), NCT_ITYPE($1));
 		}

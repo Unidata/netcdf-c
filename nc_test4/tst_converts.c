@@ -132,7 +132,11 @@ check_file(int format, unsigned char *uchar_out)
        * as. */
       if (nc_get_var_ushort(ncid, 0, ushort_in) != NC_ERANGE) ERR;
       for (i=0; i<DIM1_LEN; i++)
-	 if (ushort_in[i] != (unsigned short)(signed char)uchar_out[i]) ERR;
+	 if (ushort_in[i] != (unsigned short)(signed char)uchar_out[i])
+{
+printf("ushort_in[%d] = %u, uchar_out[%d] = %u\n", i, (unsigned)ushort_in[i], i, (unsigned)uchar_out[i]);
+             ERR;
+}
 
       if (nc_get_var_uint(ncid, 0, uint_in) != NC_ERANGE) ERR;
       for (i=0; i<DIM1_LEN; i++)

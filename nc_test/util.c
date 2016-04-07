@@ -31,15 +31,18 @@ inRange(const double value, const nc_type datatype)
 	case NC_DOUBLE: min = X_DOUBLE_MIN; max = X_DOUBLE_MAX; break;
 	default:  assert(0);
     }
+fprintf(stderr, "inRange: datatype = %d\n", (int)datatype);
+fprintf(stderr, "inRange: value = %g, min = %g, max = %g\n", value, min, max);
     return value >= min && value <= max;
 }
 
 static int
 inRange_uchar(const double value, const nc_type datatype)
 {
-    if (datatype == NC_BYTE) {
-	return(value >= 0 && value <= 255);
-    }
+fprintf(stderr, "inRange_uchar: NC_BYTE = %d, datatype = %d\n", (int)NC_BYTE, (int)datatype);
+//    if (datatype == NC_BYTE) {
+//	return(value >= 0 && value <= 255);
+//    }
     /* else */
     return inRange(value, datatype);
 }
@@ -447,21 +450,6 @@ hash( const nc_type type, const int rank, const size_t *index )
     return result;
 }
 #endif
-/* wrapper for hash to handle special NC_BYTE/uchar adjustment */
-double
-hash4(
-    const nc_type type, 
-    const int rank, 
-    const size_t *index, 
-    const nct_itype itype)
-{
-    double result;
-
-    result = hash( type, rank, index );
-    if (itype == NCT_UCHAR && type == NC_BYTE && result >= -128 && result < 0)
-	result += 256;
-    return result;
-}
 
 static nc_type
 char2type(char letter) {
@@ -697,6 +685,12 @@ put_vars(int ncid)
 		allInRange = allInRange && inRange(value[j], var_type[i]);
 	    }
 	}
+if(i == 1 || i == 7 || i == 13 || i == 19 || i ==25 || i ==31 || i == 37)
+{
+  printf("put_vars: var = %d, allInRange = %u\n", i, allInRange);
+  for (j = 0; j < var_nels[i]; j++)
+   printf("put_vars: var = %d, value[%zu] = %f\n", i, j, value[j]);
+}
 	if (var_name[i][0] == 'c') {
 	    err = nc_put_vara_text(ncid, i, start, var_shape[i], text);
 	    IF (err)

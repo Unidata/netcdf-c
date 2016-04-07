@@ -400,12 +400,6 @@ int dbl2nc ( const double d, const nc_type datatype, void *p);
 
 double hash( const nc_type type, const int rank, const size_t *index );
 
-double hash4(
-    const nc_type type,
-    const int rank,
-    const size_t *index,
-    const nct_itype itype);
-
 void init_gvars(void);
 
 void def_dims(int ncid);

@@ -25,12 +25,23 @@
 
 #define NC3_STRICT_ATT_NAME "_nc3_strict"
 
+#define HDF5_CONVERT 1
+
 /* This is to track opened HDF5 objects to make sure they are
  * closed. */
 #ifdef EXTRA_TESTS
 int num_plists;
 int num_spaces;
 #endif /* EXTRA_TESTS */
+
+/* Struct for datatype exception callback routine */
+typedef struct {
+   /* IN: */
+   nc_bool_t strict_nc3;        /* Are strict nc3 semantics being enforced? */
+
+   /* OUT: */
+   nc_bool_t range_error;       /* Whether a range error occured */
+} nc4_conv_except_ud_t;
 
 /* This function is needed to handle one special case: what if the
  * user defines a dim, writes metadata, then goes back into define
@@ -213,7 +224,7 @@ get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
     size = sizeof(char *);
   else
     {
-      if ((retval = nc4_get_typelen_mem(h5, var->type_info->nc_typeid, 0, &size)))
+      if ((retval = nc4_get_typelen_mem(h5, var->type_info->nc_typeid, &size)))
         return retval;
     }
   assert(size);
@@ -411,7 +422,10 @@ nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
             return NC_EBADTYPE;
           if (!type)
             return NC_EBADTYPE;
-          typeid = type->hdf_typeid;
+          if(endianness == NC_ENDIAN_NATIVE)
+            typeid = type->native_hdf_typeid;
+          else
+            typeid = type->hdf_typeid;
           break;
         }
       assert(typeid);
@@ -506,6 +520,39 @@ set_par_access(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
 }
 #endif
 
+/* Callback routine for HDF5 datatype conversion exceptions. */
+static H5T_conv_ret_t
+conv_except_func(H5T_conv_except_t except_type, hid_t src_id, hid_t dst_id,
+            void *src_buf, void *dst_buf, void *_udata)
+{
+   nc4_conv_except_ud_t *udata = (nc4_conv_except_ud_t *)_udata;
+
+   /* Type conversions from NC_UBYTE (which could be aliased to any of the
+    *        three HDF5 datatypes checked for below) to NC_BYTE (which could
+    *        be aliased to any of the three HDF5 datatypes checked for below)
+    *        that are out of range should not set the range_error flag when
+    *        strict_nc3 compatibility is enabled.
+    */
+   if ((H5Tequal(src_id, H5T_STD_U8LE) || H5Tequal(src_id, H5T_STD_U8BE) ||
+            H5Tequal(src_id, H5T_NATIVE_UCHAR))
+         && (H5Tequal(dst_id, H5T_STD_I8LE) || H5Tequal(dst_id, H5T_STD_I8BE) ||
+            H5Tequal(dst_id, H5T_NATIVE_SCHAR)))
+   {
+      if (!udata->strict_nc3 && except_type == H5T_CONV_EXCEPT_RANGE_HI)
+         udata->range_error = NC_TRUE;
+   }
+   else
+   {
+      /* Check for appropriate exception */
+      if (except_type == H5T_CONV_EXCEPT_RANGE_HI
+            || except_type == H5T_CONV_EXCEPT_RANGE_LOW)
+         udata->range_error = NC_TRUE;
+   }
+
+   return(H5T_CONV_UNHANDLED);
+}
+
+
 /* Write an array of data to a variable. When it comes right down to
  * it, this is what netCDF-4 is all about, this is *the* function, the
  * big enchilda, the grand poo-bah, the alpha dog, the head honcho,
@@ -513,7 +560,7 @@ set_par_access(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
  * muckity-muck, numero uno. Well, you get the idea.  */
 int
 nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
-             const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
+             const size_t *countp, nc_type mem_nc_type, void *data)
 {
   NC_GRP_INFO_T *grp;
   NC_HDF5_FILE_INFO_T *h5;
@@ -525,13 +572,15 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   hsize_t start[NC_MAX_VAR_DIMS];
   char *name_to_use;
   int need_to_extend = 0;
-  int retval = NC_NOERR, range_error = 0, i, d2;
+  nc_bool_t range_error = NC_FALSE;
+  int retval = NC_NOERR, i, d2;
   void *bufr = NULL;
 #ifndef HDF5_CONVERT
   int need_to_convert = 0;
   size_t len = 1;
 #endif
 #ifdef HDF5_CONVERT
+  nc4_conv_except_ud_t udata;
   hid_t mem_typeid = 0;
 #endif
 
@@ -542,8 +591,8 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   h5 = NC4_DATA(nc);
   assert(grp && h5 && var && var->name);
 
-  LOG((3, "%s: var->name %s mem_nc_type %d is_long %d",
-       __func__, var->name, mem_nc_type, is_long));
+  LOG((3, "%s: var->name %s mem_nc_type %d",
+       __func__, var->name, mem_nc_type));
 
   /* Check some stuff about the type and the file. If the file must
    * be switched from define mode, it happens here. */
@@ -636,7 +685,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 #ifndef HDF5_CONVERT
   /* Are we going to convert any data? (No converting of compound or
    * opaque types.) */
-  if ((mem_nc_type != var->type_info->nc_typeid || (var->type_info->nc_typeid == NC_INT && is_long)) &&
+  if (mem_nc_type != var->type_info->nc_typeid &&
       mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
     {
       size_t file_type_size;
@@ -668,7 +717,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 #ifdef HDF5_CONVERT
   /* Get the HDF type of the data in memory. */
   if ((retval = nc4_get_hdf_typeid(h5, mem_nc_type, &mem_typeid,
-                                   var->type_info->endianness)))
+                                   NC_ENDIAN_NATIVE)))
     BAIL(retval);
 #endif
 
@@ -683,7 +732,9 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
    * errors. Which one to call depends on the length of the
    * destination buffer type. */
 #ifdef HDF5_CONVERT
-  if (H5Pset_type_conv_cb(xfer_plistid, except_func, &range_error) < 0)
+  udata.strict_nc3 = (h5->cmode & NC_CLASSIC_MODEL);
+  udata.range_error = NC_FALSE;
+  if (H5Pset_type_conv_cb(xfer_plistid, conv_except_func, &udata) < 0)
     BAIL(NC_EHDFERR);
 #endif
 
@@ -778,7 +829,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
     {
       if ((retval = nc4_convert_type(data, bufr, mem_nc_type, var->type_info->nc_typeid,
                                      len, &range_error, var->fill_value,
-                                     (h5->cmode & NC_CLASSIC_MODEL), is_long, 0)))
+                                     (h5->cmode & NC_CLASSIC_MODEL))))
         BAIL(retval);
     }
 #endif
@@ -786,9 +837,16 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   /* Write the data. At last! */
   LOG((4, "about to H5Dwrite datasetid 0x%x mem_spaceid 0x%x "
        "file_spaceid 0x%x", var->hdf_datasetid, mem_spaceid, file_spaceid));
+#ifdef HDF5_CONVERT
+  if (H5Dwrite(var->hdf_datasetid, mem_typeid, 
+               mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
+    BAIL(NC_EHDFERR);
+  range_error = udata.range_error;
+#else /* HDF5_CONVERT */
   if (H5Dwrite(var->hdf_datasetid, var->type_info->hdf_typeid,
                mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
     BAIL(NC_EHDFERR);
+#endif /* HDF5_CONVERT */
 
   /* Remember that we have written to this var so that Fill Value
    * can't be set for it. */
@@ -801,7 +859,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       (var->type_info->nc_typeid == NC_UBYTE || var->type_info->nc_typeid == NC_BYTE) &&
       (mem_nc_type == NC_UBYTE || mem_nc_type == NC_BYTE) &&
       range_error)
-    range_error = 0;
+    range_error = NC_FALSE;
 
  exit:
 #ifdef HDF5_CONVERT
@@ -838,7 +896,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
 int
 nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
-             const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
+             const size_t *countp, nc_type mem_nc_type, void *data)
 {
   NC_GRP_INFO_T *grp, *g;
   NC_HDF5_FILE_INFO_T *h5;
@@ -852,11 +910,14 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
   hsize_t start[NC_MAX_VAR_DIMS];
   char *name_to_use;
   void *fillvalue = NULL;
-  int no_read = 0, provide_fill = 0;
+  nc_bool_t no_read = NC_FALSE, provide_fill = NC_FALSE;
   int fill_value_size[NC_MAX_VAR_DIMS];
-  int scalar = 0, retval = NC_NOERR, range_error = 0, i, d2;
+  nc_bool_t scalar = NC_FALSE;
+  nc_bool_t range_error = NC_FALSE;
+  int retval = NC_NOERR, i, d2;
   void *bufr = NULL;
 #ifdef HDF5_CONVERT
+  nc4_conv_except_ud_t udata;
   hid_t mem_typeid = 0;
 #endif
 #ifndef HDF5_CONVERT
@@ -871,8 +932,8 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
   h5 = NC4_DATA(nc);
   assert(grp && h5 && var && var->name);
 
-  LOG((3, "%s: var->name %s mem_nc_type %d is_long %d",
-       __func__, var->name, mem_nc_type, is_long));
+  LOG((3, "%s: var->name %s mem_nc_type %d",
+       __func__, var->name, mem_nc_type));
 
   /* Check some stuff about the type and the file. */
   if ((retval = check_for_vara(&mem_nc_type, var, h5)))
@@ -950,7 +1011,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
                   fill_value_size[d2] = 0;
                 count[d2] -= fill_value_size[d2];
                 if (fill_value_size[d2])
-                  provide_fill++;
+                  provide_fill = NC_TRUE;
               }
             else
               {
@@ -969,7 +1030,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
    * read. */
   for (d2 = 0; d2 < var->ndims; d2++)
     if (count[d2] == 0)
-      no_read++;
+      no_read = NC_TRUE;
 
   /* Later on, we will need to know the size of this type in the
    * file. */
@@ -986,7 +1047,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
         {
           if ((mem_spaceid = H5Screate(H5S_SCALAR)) < 0)
             BAIL(NC_EHDFERR);
-          scalar++;
+          scalar = NC_TRUE;
 #ifdef EXTRA_TESTS
           num_spaces++;
 #endif
@@ -1005,6 +1066,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 #endif
         }
 
+#ifdef OLD_WAY
       /* Fix bug when reading HDF5 files with variable of type
        * fixed-length string.  We need to make it look like a
        * variable-length string, because that's all netCDF-4 data
@@ -1026,7 +1088,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 #ifndef HDF5_CONVERT
       /* Are we going to convert any data? (No converting of compound or
        * opaque types.) */
-      if ((mem_nc_type != var->type_info->nc_typeid || (var->type_info->nc_typeid == NC_INT && is_long)) &&
+      if (mem_nc_type != var->type_info->nc_typeid &&
           mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
         {
           /* We must convert - allocate a buffer. */
@@ -1055,6 +1117,47 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
                                        var->type_info->endianness)))
         BAIL(retval);
 #endif
+#else /* OLD_WAY */
+assert(HDF5_CONVERT);
+      /* Fix bug when reading HDF5 files with variable of type
+       * fixed-length string.  We need to make it look like a
+       * variable-length string, because that's all netCDF-4 data
+       * model supports, lacking anonymous dimensions.  So
+       * variable-length strings are in allocated memory that user has
+       * to free, which we allocate here. */
+      if (var->type_info->nc_type_class == NC_STRING && 
+          H5Tget_size(var->type_info->hdf_typeid) > 1 &&
+          !H5Tis_variable_str(var->type_info->hdf_typeid))
+        {
+          hsize_t fstring_len;
+
+/* Currently, this code only works for scalar variables */
+assert(scalar);
+          /* Get the native HDF5 datatype for the fixed-length string */
+          if ((mem_typeid = H5Tget_native_type(var->type_info->hdf_typeid,
+              H5T_DIR_DEFAULT)) < 0)
+            BAIL(NC_EVARMETA);
+
+          /* Get the string length in the file */
+          if ((fstring_len = H5Tget_size(var->type_info->hdf_typeid)) == 0)
+	    BAIL(NC_EHDFERR);
+
+          /* Allocate a buffer for the strings */
+      	  if (!(*(char **)data = malloc(1 + fstring_len)))
+            BAIL(NC_ENOMEM);
+	  bufr = *(char **)data;
+        }
+      else
+        {
+          /* Get the HDF type of the data in memory. */
+          if ((retval = nc4_get_hdf_typeid(h5, mem_nc_type, &mem_typeid, 
+                                           NC_ENDIAN_NATIVE)))
+            BAIL(retval);
+
+          /* Set the pointer to the data buffer passed in */
+          bufr = data;
+        }
+#endif /* OLD_WAY */
 
       /* Create the data transfer property list. */
       if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
@@ -1067,7 +1170,9 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
       /* Apply the callback function which will detect range
        * errors. Which one to call depends on the length of the
        * destination buffer type. */
-      if (H5Pset_type_conv_cb(xfer_plistid, except_func, &range_error) < 0)
+      udata.strict_nc3 = (h5->cmode & NC_CLASSIC_MODEL);
+      udata.range_error = NC_FALSE;
+      if (H5Pset_type_conv_cb(xfer_plistid, conv_except_func, &udata) < 0)
         BAIL(NC_EHDFERR);
 #endif
 
@@ -1079,9 +1184,16 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
       /* Read this hyperslab into memory. */
       LOG((5, "About to H5Dread some data..."));
+#ifdef HDF5_CONVERT
+      if (H5Dread(var->hdf_datasetid, mem_typeid,
+                  mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
+         BAIL(NC_EHDFERR);
+      range_error = udata.range_error;
+#else /* HDF5_CONVERT */
       if (H5Dread(var->hdf_datasetid, var->type_info->native_hdf_typeid,
                   mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
         BAIL(NC_EHDFERR);
+#endif /* HDF5_CONVERT */
 
 #ifndef HDF5_CONVERT
       /* Eventually the block below will go away. Right now it's
@@ -1090,10 +1202,10 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
          being added to HDF5 at the HDF5 World Hall of Coding right
          now, by a staff of thousands of programming gnomes. */
       if (need_to_convert)
-        {
-          if ((retval = nc4_convert_type(bufr, data, var->type_info->nc_typeid, mem_nc_type,
-                                         len, &range_error, var->fill_value,
-                                         (h5->cmode & NC_CLASSIC_MODEL), 0, is_long)))
+      {
+         if ((retval = nc4_convert_type(bufr, data, var->type_info->nc_typeid, mem_nc_type,
+                                        len, &range_error, var->fill_value,
+                                        (h5->cmode & NC_CLASSIC_MODEL))))
             BAIL(retval);
 
           /* For strict netcdf-3 rules, ignore erange errors between UBYTE
@@ -1102,7 +1214,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
               (var->type_info->nc_typeid == NC_UBYTE || var->type_info->nc_typeid == NC_BYTE) &&
               (mem_nc_type == NC_UBYTE || mem_nc_type == NC_BYTE) &&
               range_error)
-            range_error = 0;
+            range_error = NC_FALSE;
         }
 #endif
 
@@ -1112,7 +1224,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
           (var->type_info->nc_typeid == NC_UBYTE || var->type_info->nc_typeid == NC_BYTE) &&
           (mem_nc_type == NC_UBYTE || mem_nc_type == NC_BYTE) &&
           range_error)
-        range_error = 0;
+        range_error = NC_FALSE;
 
     } /* endif ! no_read */
 
@@ -2639,8 +2751,7 @@ int
 nc4_convert_type(const void *src, void *dest,
                  const nc_type src_type, const nc_type dest_type,
                  const size_t len, int *range_error,
-                 const void *fill_value, int strict_nc3, int src_long,
-                 int dest_long)
+                 const void *fill_value, int strict_nc3)
 {
   char *cp, *cp1;
   float *fp, *fp1;
@@ -2657,8 +2768,8 @@ nc4_convert_type(const void *src, void *dest,
   size_t count = 0;
 
   *range_error = 0;
-  LOG((3, "%s: len %d src_type %d dest_type %d src_long %d dest_long %d",
-       __func__, len, src_type, dest_type, src_long, dest_long));
+  LOG((3, "%s: len %d src_type %d dest_type %d",
+       __func__, len, src_type, dest_type));
 
   /* OK, this is ugly. If you can think of anything better, I'm open
      to suggestions!
@@ -2710,18 +2821,9 @@ nc4_convert_type(const void *src, void *dest,
             }
           break;
         case NC_INT:
-          if (dest_long)
-            {
-              for (bp = (signed char *)src, lp = dest; count < len; count++)
-                *lp++ = *bp++;
-              break;
-            }
-          else
-            {
-              for (bp = (signed char *)src, ip = dest; count < len; count++)
-                *ip++ = *bp++;
-              break;
-            }
+          for (bp = (signed char *)src, ip = dest; count < len; count++)
+            *ip++ = *bp++;
+          break;
         case NC_UINT:
           for (bp = (signed char *)src, uip = dest; count < len; count++)
             {
@@ -2781,18 +2883,9 @@ nc4_convert_type(const void *src, void *dest,
             *usp++ = *ubp++;
           break;
         case NC_INT:
-          if (dest_long)
-            {
-              for (ubp = (unsigned char *)src, lp = dest; count < len; count++)
-                *lp++ = *ubp++;
-              break;
-            }
-          else
-            {
-              for (ubp = (unsigned char *)src, ip = dest; count < len; count++)
-                *ip++ = *ubp++;
-              break;
-            }
+          for (ubp = (unsigned char *)src, ip = dest; count < len; count++)
+            *ip++ = *ubp++;
+          break;
         case NC_UINT:
           for (ubp = (unsigned char *)src, uip = dest; count < len; count++)
             *uip++ = *ubp++;
@@ -2852,12 +2945,8 @@ nc4_convert_type(const void *src, void *dest,
             }
           break;
         case NC_INT:
-          if (dest_long)
-            for (sp = (short *)src, lp = dest; count < len; count++)
-              *lp++ = *sp++;
-          else
-            for (sp = (short *)src, ip = dest; count < len; count++)
-              *ip++ = *sp++;
+          for (sp = (short *)src, ip = dest; count < len; count++)
+            *ip++ = *sp++;
           break;
         case NC_UINT:
           for (sp = (short *)src, uip = dest; count < len; count++)
@@ -2926,12 +3015,8 @@ nc4_convert_type(const void *src, void *dest,
             *usp1++ = *usp++;
           break;
         case NC_INT:
-          if (dest_long)
-            for (usp = (unsigned short *)src, lp = dest; count < len; count++)
-              *lp++ = *usp++;
-          else
-            for (usp = (unsigned short *)src, ip = dest; count < len; count++)
-              *ip++ = *usp++;
+          for (usp = (unsigned short *)src, ip = dest; count < len; count++)
+            *ip++ = *usp++;
           break;
         case NC_UINT:
           for (usp = (unsigned short *)src, uip = dest; count < len; count++)
@@ -2961,185 +3046,80 @@ nc4_convert_type(const void *src, void *dest,
       break;
 
     case NC_INT:
-      if (src_long)
+      switch (dest_type)
         {
-          switch (dest_type)
+        case NC_UBYTE:
+          for (ip = (int *)src, ubp = dest; count < len; count++)
             {
-            case NC_UBYTE:
-              for (lp = (long *)src, ubp = dest; count < len; count++)
-                {
-                  if (*lp > X_UCHAR_MAX || *lp < 0)
-                    (*range_error)++;
-                  *ubp++ = *lp++;
-                }
-              break;
-            case NC_BYTE:
-              for (lp = (long *)src, bp = dest; count < len; count++)
-                {
-                  if (*lp > X_SCHAR_MAX || *lp < X_SCHAR_MIN)
-                    (*range_error)++;
-                  *bp++ = *lp++;
-                }
-              break;
-            case NC_SHORT:
-              for (lp = (long *)src, sp = dest; count < len; count++)
-                {
-                  if (*lp > X_SHORT_MAX || *lp < X_SHORT_MIN)
-                    (*range_error)++;
-                  *sp++ = *lp++;
-                }
-              break;
-            case NC_USHORT:
-              for (lp = (long *)src, usp = dest; count < len; count++)
-                {
-                  if (*lp > X_USHORT_MAX || *lp < 0)
-                    (*range_error)++;
-                  *usp++ = *lp++;
-                }
-              break;
-            case NC_INT: /* src is long */
-              if (dest_long)
-                {
-                  for (lp = (long *)src, lp1 = dest; count < len; count++)
-                    {
-                      if (*lp > X_LONG_MAX || *lp < X_LONG_MIN)
-                        (*range_error)++;
-                      *lp1++ = *lp++;
-                    }
-                }
-              else /* dest is int */
-                {
-                  for (lp = (long *)src, ip = dest; count < len; count++)
-                    {
-                      if (*lp > X_INT_MAX || *lp < X_INT_MIN)
-                        (*range_error)++;
-                      *ip++ = *lp++;
-                    }
-                }
-              break;
-            case NC_UINT:
-              for (lp = (long *)src, uip = dest; count < len; count++)
-                {
-                  if (*lp > X_UINT_MAX || *lp < 0)
-                    (*range_error)++;
-                  *uip++ = *lp++;
-                }
-              break;
-            case NC_INT64:
-              for (lp = (long *)src, lip = dest; count < len; count++)
-                *lip++ = *lp++;
-              break;
-            case NC_UINT64:
-              for (lp = (long *)src, ulip = dest; count < len; count++)
-                {
-                  if (*lp < 0)
-                    (*range_error)++;
-                  *ulip++ = *lp++;
-                }
-              break;
-            case NC_FLOAT:
-              for (lp = (long *)src, fp = dest; count < len; count++)
-                *fp++ = *lp++;
-              break;
-            case NC_DOUBLE:
-              for (lp = (long *)src, dp = dest; count < len; count++)
-                *dp++ = *lp++;
-              break;
-            default:
-              LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-                   __func__, src_type, dest_type));
-              return NC_EBADTYPE;
+              if (*ip > X_UCHAR_MAX || *ip < 0)
+                (*range_error)++;
+              *ubp++ = *ip++;
             }
-        }
-      else
-        {
-          switch (dest_type)
+          break;
+        case NC_BYTE:
+          for (ip = (int *)src, bp = dest; count < len; count++)
             {
-            case NC_UBYTE:
-              for (ip = (int *)src, ubp = dest; count < len; count++)
-                {
-                  if (*ip > X_UCHAR_MAX || *ip < 0)
-                    (*range_error)++;
-                  *ubp++ = *ip++;
-                }
-              break;
-            case NC_BYTE:
-              for (ip = (int *)src, bp = dest; count < len; count++)
-                {
-                  if (*ip > X_SCHAR_MAX || *ip < X_SCHAR_MIN)
-                    (*range_error)++;
-                  *bp++ = *ip++;
-                }
-              break;
-            case NC_SHORT:
-              for (ip = (int *)src, sp = dest; count < len; count++)
-                {
-                  if (*ip > X_SHORT_MAX || *ip < X_SHORT_MIN)
-                    (*range_error)++;
-                  *sp++ = *ip++;
-                }
-              break;
-            case NC_USHORT:
-              for (ip = (int *)src, usp = dest; count < len; count++)
-                {
-                  if (*ip > X_USHORT_MAX || *ip < 0)
-                    (*range_error)++;
-                  *usp++ = *ip++;
-                }
-              break;
-            case NC_INT: /* src is int */
-              if (dest_long)
-                {
-                  for (ip = (int *)src, lp1 = dest; count < len; count++)
-                    {
-                      if (*ip > X_LONG_MAX || *ip < X_LONG_MIN)
-                        (*range_error)++;
-                      *lp1++ = *ip++;
-                    }
-                }
-              else /* dest is int */
-                {
-                  for (ip = (int *)src, ip1 = dest; count < len; count++)
-                    {
-                      if (*ip > X_INT_MAX || *ip < X_INT_MIN)
-                        (*range_error)++;
-                      *ip1++ = *ip++;
-                    }
-                }
-              break;
-            case NC_UINT:
-              for (ip = (int *)src, uip = dest; count < len; count++)
-                {
-                  if (*ip > X_UINT_MAX || *ip < 0)
-                    (*range_error)++;
-                  *uip++ = *ip++;
-                }
-              break;
-            case NC_INT64:
-              for (ip = (int *)src, lip = dest; count < len; count++)
-                *lip++ = *ip++;
-              break;
-            case NC_UINT64:
-              for (ip = (int *)src, ulip = dest; count < len; count++)
-                {
-                  if (*ip < 0)
-                    (*range_error)++;
-                  *ulip++ = *ip++;
-                }
-              break;
-            case NC_FLOAT:
-              for (ip = (int *)src, fp = dest; count < len; count++)
-                *fp++ = *ip++;
-              break;
-            case NC_DOUBLE:
-              for (ip = (int *)src, dp = dest; count < len; count++)
-                *dp++ = *ip++;
-              break;
-            default:
-              LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-                   __func__, src_type, dest_type));
-              return NC_EBADTYPE;
+              if (*ip > X_SCHAR_MAX || *ip < X_SCHAR_MIN)
+                (*range_error)++;
+              *bp++ = *ip++;
             }
+          break;
+        case NC_SHORT:
+          for (ip = (int *)src, sp = dest; count < len; count++)
+            {
+              if (*ip > X_SHORT_MAX || *ip < X_SHORT_MIN)
+                (*range_error)++;
+              *sp++ = *ip++;
+            }
+          break;
+        case NC_USHORT:
+          for (ip = (int *)src, usp = dest; count < len; count++)
+            {
+              if (*ip > X_USHORT_MAX || *ip < 0)
+                (*range_error)++;
+              *usp++ = *ip++;
+            }
+          break;
+        case NC_INT: /* src is int */
+          for (ip = (int *)src, ip1 = dest; count < len; count++)
+            {
+              if (*ip > X_INT_MAX || *ip < X_INT_MIN)
+                (*range_error)++;
+              *ip1++ = *ip++;
+            }
+          break;
+        case NC_UINT:
+          for (ip = (int *)src, uip = dest; count < len; count++)
+            {
+              if (*ip > X_UINT_MAX || *ip < 0)
+                (*range_error)++;
+              *uip++ = *ip++;
+            }
+          break;
+        case NC_INT64:
+          for (ip = (int *)src, lip = dest; count < len; count++)
+            *lip++ = *ip++;
+          break;
+        case NC_UINT64:
+          for (ip = (int *)src, ulip = dest; count < len; count++)
+            {
+              if (*ip < 0)
+                (*range_error)++;
+              *ulip++ = *ip++;
+            }
+          break;
+        case NC_FLOAT:
+          for (ip = (int *)src, fp = dest; count < len; count++)
+            *fp++ = *ip++;
+          break;
+        case NC_DOUBLE:
+          for (ip = (int *)src, dp = dest; count < len; count++)
+            *dp++ = *ip++;
+          break;
+        default:
+          LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
+               __func__, src_type, dest_type));
+          return NC_EBADTYPE;
         }
       break;
 
@@ -3179,20 +3159,12 @@ nc4_convert_type(const void *src, void *dest,
             }
           break;
         case NC_INT:
-          if (dest_long)
-            for (uip = (unsigned int *)src, lp = dest; count < len; count++)
-              {
-                if (*uip > X_LONG_MAX)
-                  (*range_error)++;
-                *lp++ = *uip++;
-              }
-          else
-            for (uip = (unsigned int *)src, ip = dest; count < len; count++)
-              {
-                if (*uip > X_INT_MAX)
-                  (*range_error)++;
-                *ip++ = *uip++;
-              }
+          for (uip = (unsigned int *)src, ip = dest; count < len; count++)
+            {
+              if (*uip > X_INT_MAX)
+                (*range_error)++;
+              *ip++ = *uip++;
+            }
           break;
         case NC_UINT:
           for (uip = (unsigned int *)src, uip1 = dest; count < len; count++)
@@ -3269,20 +3241,12 @@ nc4_convert_type(const void *src, void *dest,
             }
           break;
         case NC_INT:
-          if (dest_long)
-            for (lip = (long long *)src, lp = dest; count < len; count++)
-              {
-                if (*lip > X_LONG_MAX || *lip < X_LONG_MIN)
-                  (*range_error)++;
-                *lp++ = *lip++;
-              }
-          else
-            for (lip = (long long *)src, ip = dest; count < len; count++)
-              {
-                if (*lip > X_INT_MAX || *lip < X_INT_MIN)
-                  (*range_error)++;
-                *ip++ = *lip++;
-              }
+          for (lip = (long long *)src, ip = dest; count < len; count++)
+            {
+              if (*lip > X_INT_MAX || *lip < X_INT_MIN)
+                (*range_error)++;
+              *ip++ = *lip++;
+            }
           break;
         case NC_INT64:
           for (lip = (long long *)src, lip1 = dest; count < len; count++)
@@ -3355,20 +3319,12 @@ nc4_convert_type(const void *src, void *dest,
             }
           break;
         case NC_INT:
-          if (dest_long)
-            for (ulip = (unsigned long long *)src, lp = dest; count < len; count++)
-              {
-                if (*ulip > X_LONG_MAX)
-                  (*range_error)++;
-                *lp++ = *ulip++;
-              }
-          else
-            for (ulip = (unsigned long long *)src, ip = dest; count < len; count++)
-              {
-                if (*ulip > X_INT_MAX)
-                  (*range_error)++;
-                *ip++ = *ulip++;
-              }
+          for (ulip = (unsigned long long *)src, ip = dest; count < len; count++)
+            {
+              if (*ulip > X_INT_MAX)
+                (*range_error)++;
+              *ip++ = *ulip++;
+            }
           break;
         case NC_INT64:
           for (ulip = (unsigned long long *)src, lip = dest; count < len; count++)
@@ -3441,20 +3397,12 @@ nc4_convert_type(const void *src, void *dest,
             }
           break;
         case NC_INT:
-          if (dest_long)
-            for (fp = (float *)src, lp = dest; count < len; count++)
-              {
-                if (*fp > (double)X_LONG_MAX || *fp < (double)X_LONG_MIN)
-                  (*range_error)++;
-                *lp++ = *fp++;
-              }
-          else
-            for (fp = (float *)src, ip = dest; count < len; count++)
-              {
-                if (*fp > (double)X_INT_MAX || *fp < (double)X_INT_MIN)
-                  (*range_error)++;
-                *ip++ = *fp++;
-              }
+          for (fp = (float *)src, ip = dest; count < len; count++)
+            {
+              if (*fp > (double)X_INT_MAX || *fp < (double)X_INT_MIN)
+                (*range_error)++;
+              *ip++ = *fp++;
+            }
           break;
         case NC_INT64:
           for (fp = (float *)src, lip = dest; count < len; count++)
@@ -3475,8 +3423,8 @@ nc4_convert_type(const void *src, void *dest,
         case NC_FLOAT:
           for (fp = (float *)src, fp1 = dest; count < len; count++)
             {
-              /*                if (*fp > X_FLOAT_MAX || *fp < X_FLOAT_MIN)
-                                (*range_error)++;*/
+/*                if (*fp > X_FLOAT_MAX || *fp < X_FLOAT_MIN)
+                    (*range_error)++;*/
               *fp1++ = *fp++;
             }
           break;
@@ -3535,20 +3483,12 @@ nc4_convert_type(const void *src, void *dest,
             }
           break;
         case NC_INT:
-          if (dest_long)
-            for (dp = (double *)src, lp = dest; count < len; count++)
-              {
-                if (*dp > X_LONG_MAX || *dp < X_LONG_MIN)
-                  (*range_error)++;
-                *lp++ = *dp++;
-              }
-          else
-            for (dp = (double *)src, ip = dest; count < len; count++)
-              {
-                if (*dp > X_INT_MAX || *dp < X_INT_MIN)
-                  (*range_error)++;
-                *ip++ = *dp++;
-              }
+          for (dp = (double *)src, ip = dest; count < len; count++)
+            {
+              if (*dp > X_INT_MAX || *dp < X_INT_MIN)
+                (*range_error)++;
+              *ip++ = *dp++;
+            }
           break;
         case NC_INT64:
           for (dp = (double *)src, lip = dest; count < len; count++)
@@ -3760,8 +3700,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 
 /* Get the length, in bytes, of one element of a type in memory. */
 int
-nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int is_long,
-                    size_t *len)
+nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, size_t *len)
 {
   NC_TYPE_INFO_T *type;
   int retval;
@@ -3783,10 +3722,7 @@ nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int is_long,
       return NC_NOERR;
     case NC_INT:
     case NC_UINT:
-      if (is_long)
-        *len = sizeof(long);
-      else
-        *len = sizeof(int);
+      *len = sizeof(int);
       return NC_NOERR;
     case NC_FLOAT:
       *len = sizeof(float);

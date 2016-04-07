@@ -39,7 +39,7 @@ herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid,
 int
 rec_scan_group(hid_t grpid)
 {
-   hid_t spaceid, datasetid = 0, child_grpid;
+   hid_t spaceid, datasetid = -1, child_grpid;
    hsize_t num_obj, i;
    int obj_class;
    char obj_name[STR_LEN + 1];

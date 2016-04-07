@@ -210,7 +210,7 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
    int d;
    int retval;
    
-   if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->nc_typeid, 0, &type_len)))
+   if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->nc_typeid, &type_len)))
       return retval;
    if (var->type_info->nc_type_class == NC_VLEN)
        dprod = (double)sizeof(hvl_t);
@@ -430,8 +430,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
       if ((type_info->native_hdf_typeid = H5Tget_native_type(type_info->hdf_typeid, 
 							      H5T_DIR_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
-      if ((retval = nc4_get_typelen_mem(h5, type_info->nc_typeid, 0, 
-					&type_info->size)))
+      if ((retval = nc4_get_typelen_mem(h5, type_info->nc_typeid, &type_info->size)))
 	 BAIL(retval);
 
       /* Set the "class" of the type */
@@ -1332,9 +1331,43 @@ NC4_var_par_access(int ncid, int varid, int par_access)
 #endif /* USE_PARALLEL */
 }
 
-static int
-nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long, 
-                const size_t *startp, const size_t *countp, const void *op)
+#ifdef USE_HDF4   
+static int 
+nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp, 
+		  const size_t *countp, nc_type mem_nc_type, void *data)
+{
+   NC_GRP_INFO_T *grp;
+   NC_HDF5_FILE_INFO_T *h5;
+   NC_VAR_INFO_T *var;
+   int32 start32[NC_MAX_VAR_DIMS], edge32[NC_MAX_VAR_DIMS];
+   int retval, d;
+#if 0
+   NC_GRP_INFO_T *g;
+   NC_DIM_INFO_T *dim;
+#endif   
+   /* Find our metadata for this file, group, and var. */
+   assert(nc);
+   if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
+      return retval;
+   h5 = NC4_DATA(nc);
+   assert(grp && h5 && var && var->name);
+   
+   for (d = 0; d < var->ndims; d++)
+   {
+      start32[d] = startp[d];
+      edge32[d] = countp[d];
+   }
+   
+   if (SDreaddata(var->sdsid, start32, NULL, edge32, data))
+      return NC_EHDFERR;
+
+   return NC_NOERR;
+}
+#endif /* USE_HDF4 */
+
+int
+NC4_put_vara(int ncid, int varid, const size_t *startp, 
+            const size_t *countp, const void *op, nc_type mem_type)
 {
    NC *nc;
 
@@ -1342,8 +1375,8 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
    NC_HDF5_FILE_INFO_T *h5;
 #endif
    
-   LOG((2, "%s: ncid 0x%x varid %d mem_type %d mem_type_is_long %d", 
-        __func__, ncid, varid, mem_type, mem_type_is_long));
+   LOG((2, "%s: ncid 0x%x varid %d mem_type %d", 
+        __func__, ncid, varid, mem_type));
 
    if (!(nc = nc4_find_nc_file(ncid,NULL)))
       return NC_EBADID;
@@ -1362,10 +1395,6 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
      mpi_start = (MPI_Offset*)alloca(sizeof(MPI_Offset)*h5->pnetcdf_ndims[varid]);
      mpi_count = (MPI_Offset*)alloca(sizeof(MPI_Offset)*h5->pnetcdf_ndims[varid]);
 
-      /* No NC_LONGs for parallel-netcdf library! */
-      if (mem_type_is_long)
-	 return NC_EINVAL;
-      
       /* We must convert the start, count, and stride arrays to
        * MPI_Offset type. */
       for (d = 0; d < h5->pnetcdf_ndims[varid]; d++)
@@ -1426,54 +1455,20 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
    
 #endif /* USE_PNETCDF */   
    
-   return nc4_put_vara(nc, ncid, varid, startp, countp, mem_type, 
-                       mem_type_is_long, (void *)op);
+   return nc4_put_vara(nc, ncid, varid, startp, countp, mem_type, (void *)op);
 }
 
-#ifdef USE_HDF4   
-static int 
-nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp, 
-		  const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
-{
-   NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
-   NC_VAR_INFO_T *var;
-   int32 start32[NC_MAX_VAR_DIMS], edge32[NC_MAX_VAR_DIMS];
-   int retval, d;
-#if 0
-   NC_GRP_INFO_T *g;
-   NC_DIM_INFO_T *dim;
-#endif   
-   /* Find our metadata for this file, group, and var. */
-   assert(nc);
-   if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
-      return retval;
-   h5 = NC4_DATA(nc);
-   assert(grp && h5 && var && var->name);
-   
-   for (d = 0; d < var->ndims; d++)
-   {
-      start32[d] = startp[d];
-      edge32[d] = countp[d];
-   }
-   
-   if (SDreaddata(var->sdsid, start32, NULL, edge32, data))
-      return NC_EHDFERR;
 
-   return NC_NOERR;
-}
-#endif /* USE_HDF4 */
-
-/* Get an array. */
-static int
-nc4_get_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
-                const size_t *startp, const size_t *countp, void *ip)
+/* Read an array of values. */
+int
+NC4_get_vara(int ncid, int varid, const size_t *startp, 
+            const size_t *countp, void *ip, nc_type mem_type)
 {
    NC *nc;
    NC_HDF5_FILE_INFO_T* h5;
 
-   LOG((2, "%s: ncid 0x%x varid %d mem_type %d mem_type_is_long %d", 
-        __func__, ncid, varid, mem_type, mem_type_is_long));
+   LOG((2, "%s: ncid 0x%x varid %d mem_type %d", 
+        __func__, ncid, varid, mem_type));
 
    if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;
@@ -1485,10 +1480,6 @@ nc4_get_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
       MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS];
       int d;
 
-      /* No NC_LONGs for parallel-netcdf library! */
-      if (mem_type_is_long)
-	 return NC_EINVAL;
-      
       /* We must convert the start, count, and stride arrays to
        * MPI_Offset type. */
       for (d = 0; d < h5->pnetcdf_ndims[varid]; d++)
@@ -1550,26 +1541,10 @@ nc4_get_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
    /* Handle HDF4 cases. */
    if (h5->hdf4)
       return nc4_get_hdf4_vara(nc, ncid, varid, startp, countp, mem_type, 
-			       mem_type_is_long, (void *)ip);
+			       (void *)ip);
 #endif /* USE_HDF4 */
    
    /* Handle HDF5 cases. */
-   return nc4_get_vara(nc, ncid, varid, startp, countp, mem_type, 
-                       mem_type_is_long, (void *)ip);
+   return nc4_get_vara(nc, ncid, varid, startp, countp, mem_type, (void *)ip);
 }
 
-int
-NC4_put_vara(int ncid, int varid, const size_t *startp, 
-            const size_t *countp, const void *op, int memtype)
-{
-   return nc4_put_vara_tc(ncid, varid, memtype, 0, startp, countp, op);
-}
-
-
-/* Read an array of values. */
-int
-NC4_get_vara(int ncid, int varid, const size_t *startp, 
-            const size_t *countp, void *ip, int memtype)
-{
-   return nc4_get_vara_tc(ncid, varid, memtype, 0, startp, countp, ip);
-}

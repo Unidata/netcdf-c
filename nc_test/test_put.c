@@ -17,13 +17,12 @@ double
 hash_text(
     const nc_type type,
     const int rank,
-    const size_t *index,
-    const nct_itype itype)
+    const size_t *index)
 {
     const double min = text_min;
     const double max = text_max;
 
-    return MAX(min, MIN(max, hash4( type, rank, index, itype)));
+    return MAX(min, MIN(max, hash( type, rank, index)));
 }
 
 /*
@@ -34,13 +33,12 @@ double
 hash_uchar(
     const nc_type type,
     const int rank,
-    const size_t *index,
-    const nct_itype itype)
+    const size_t *index)
 {
     const double min = uchar_min;
     const double max = uchar_max;
 
-    return MAX(min, MIN(max, hash4( type, rank, index, itype)));
+    return MAX(min, MIN(max, hash( type, rank, index)));
 }
 
 /*
@@ -51,13 +49,12 @@ double
 hash_schar(
     const nc_type type,
     const int rank,
-    const size_t *index,
-    const nct_itype itype)
+    const size_t *index)
 {
     const double min = schar_min;
     const double max = schar_max;
 
-    return MAX(min, MIN(max, hash4( type, rank, index, itype)));
+    return MAX(min, MIN(max, hash( type, rank, index)));
 }
 
 /*
@@ -68,13 +65,12 @@ double
 hash_short(
     const nc_type type,
     const int rank,
-    const size_t *index,
-    const nct_itype itype)
+    const size_t *index)
 {
     const double min = short_min;
     const double max = short_max;
 
-    return MAX(min, MIN(max, hash4( type, rank, index, itype)));
+    return MAX(min, MIN(max, hash( type, rank, index)));
 }
 
 /*
@@ -85,13 +81,12 @@ double
 hash_int(
     const nc_type type,
     const int rank,
-    const size_t *index,
-    const nct_itype itype)
+    const size_t *index)
 {
     const double min = int_min;
     const double max = int_max;
 
-    return MAX(min, MIN(max, hash4( type, rank, index, itype)));
+    return MAX(min, MIN(max, hash( type, rank, index)));
 }
 
 /*
@@ -102,13 +97,12 @@ double
 hash_long(
     const nc_type type,
     const int rank,
-    const size_t *index,
-    const nct_itype itype)
+    const size_t *index)
 {
     const double min = long_min;
     const double max = long_max;
 
-    return MAX(min, MIN(max, hash4( type, rank, index, itype)));
+    return MAX(min, MIN(max, hash( type, rank, index)));
 }
 
 /*
@@ -119,13 +113,12 @@ double
 hash_float(
     const nc_type type,
     const int rank,
-    const size_t *index,
-    const nct_itype itype)
+    const size_t *index)
 {
     const double min = float_min;
     const double max = float_max;
 
-    return MAX(min, MIN(max, hash4( type, rank, index, itype)));
+    return MAX(min, MIN(max, hash( type, rank, index)));
 }
 
 /*
@@ -136,13 +129,12 @@ double
 hash_double(
     const nc_type type,
     const int rank,
-    const size_t *index,
-    const nct_itype itype)
+    const size_t *index)
 {
     const double min = double_min;
     const double max = double_max;
 
-    return MAX(min, MIN(max, hash4( type, rank, index, itype)));
+    return MAX(min, MIN(max, hash( type, rank, index)));
 }
 
 
@@ -198,7 +190,7 @@ check_vars_text(const char *filename)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err)
 		    error("error in toMixedBase 2");
-		expect = hash4( var_type[i], var_rank[i], index, NCT_TEXT);
+		expect = hash( var_type[i], var_rank[i], index);
 		err = nc_get_var1_text(ncid, i, index, &value);
 		if (inRange3(expect,datatype,NCT_TEXT)) {
                     if (expect >= text_min && expect <= text_max) {
@@ -282,7 +274,7 @@ check_vars_uchar(const char *filename)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err)
 		    error("error in toMixedBase 2");
-		expect = hash4( var_type[i], var_rank[i], index, NCT_UCHAR);
+		expect = hash( var_type[i], var_rank[i], index);
 		err = nc_get_var1_uchar(ncid, i, index, &value);
 		if (inRange3(expect,datatype,NCT_UCHAR)) {
                     if (expect >= uchar_min && expect <= uchar_max) {
@@ -366,7 +358,7 @@ check_vars_schar(const char *filename)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err)
 		    error("error in toMixedBase 2");
-		expect = hash4( var_type[i], var_rank[i], index, NCT_SCHAR);
+		expect = hash( var_type[i], var_rank[i], index);
 		err = nc_get_var1_schar(ncid, i, index, &value);
 		if (inRange3(expect,datatype,NCT_SCHAR)) {
                     if (expect >= schar_min && expect <= schar_max) {
@@ -450,7 +442,7 @@ check_vars_short(const char *filename)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err)
 		    error("error in toMixedBase 2");
-		expect = hash4( var_type[i], var_rank[i], index, NCT_SHORT);
+		expect = hash( var_type[i], var_rank[i], index);
 		err = nc_get_var1_short(ncid, i, index, &value);
 		if (inRange3(expect,datatype,NCT_SHORT)) {
                     if (expect >= short_min && expect <= short_max) {
@@ -534,7 +526,7 @@ check_vars_int(const char *filename)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err)
 		    error("error in toMixedBase 2");
-		expect = hash4( var_type[i], var_rank[i], index, NCT_INT);
+		expect = hash( var_type[i], var_rank[i], index);
 		err = nc_get_var1_int(ncid, i, index, &value);
 		if (inRange3(expect,datatype,NCT_INT)) {
                     if (expect >= int_min && expect <= int_max) {
@@ -618,7 +610,7 @@ check_vars_long(const char *filename)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err)
 		    error("error in toMixedBase 2");
-		expect = hash4( var_type[i], var_rank[i], index, NCT_LONG);
+		expect = hash( var_type[i], var_rank[i], index);
 		err = nc_get_var1_long(ncid, i, index, &value);
 		if (inRange3(expect,datatype,NCT_LONG)) {
                     if (expect >= long_min && expect <= long_max) {
@@ -702,7 +694,7 @@ check_vars_float(const char *filename)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err)
 		    error("error in toMixedBase 2");
-		expect = hash4( var_type[i], var_rank[i], index, NCT_FLOAT);
+		expect = hash( var_type[i], var_rank[i], index);
 		err = nc_get_var1_float(ncid, i, index, &value);
 		if (inRange3(expect,datatype,NCT_FLOAT)) {
                     if (expect >= float_min && expect <= float_max) {
@@ -786,7 +778,7 @@ check_vars_double(const char *filename)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err)
 		    error("error in toMixedBase 2");
-		expect = hash4( var_type[i], var_rank[i], index, NCT_DOUBLE);
+		expect = hash( var_type[i], var_rank[i], index);
 		err = nc_get_var1_double(ncid, i, index, &value);
 		if (inRange3(expect,datatype,NCT_DOUBLE)) {
                     if (expect >= double_min && expect <= double_max) {
@@ -858,7 +850,7 @@ check_atts_text(int  ncid)
 		assert(length <= MAX_NELS);
 		nInIntRange = nInExtRange = 0;
 		for (k = 0; k < length; k++) {
-		    expect[k] = hash4( datatype, -1, &k, NCT_TEXT);
+		    expect[k] = hash( datatype, -1, &k);
 		    if (inRange3(expect[k], datatype, NCT_TEXT)) {
 			++nInExtRange;
 			if (expect[k] >= text_min && expect[k] <= text_max)
@@ -933,7 +925,7 @@ check_atts_uchar(int  ncid)
 		assert(length <= MAX_NELS);
 		nInIntRange = nInExtRange = 0;
 		for (k = 0; k < length; k++) {
-		    expect[k] = hash4( datatype, -1, &k, NCT_UCHAR);
+		    expect[k] = hash( datatype, -1, &k);
 		    if (inRange3(expect[k], datatype, NCT_UCHAR)) {
 			++nInExtRange;
 			if (expect[k] >= uchar_min && expect[k] <= uchar_max)
@@ -1008,7 +1000,7 @@ check_atts_schar(int  ncid)
 		assert(length <= MAX_NELS);
 		nInIntRange = nInExtRange = 0;
 		for (k = 0; k < length; k++) {
-		    expect[k] = hash4( datatype, -1, &k, NCT_SCHAR);
+		    expect[k] = hash( datatype, -1, &k);
 		    if (inRange3(expect[k], datatype, NCT_SCHAR)) {
 			++nInExtRange;
 			if (expect[k] >= schar_min && expect[k] <= schar_max)
@@ -1083,7 +1075,7 @@ check_atts_short(int  ncid)
 		assert(length <= MAX_NELS);
 		nInIntRange = nInExtRange = 0;
 		for (k = 0; k < length; k++) {
-		    expect[k] = hash4( datatype, -1, &k, NCT_SHORT);
+		    expect[k] = hash( datatype, -1, &k);
 		    if (inRange3(expect[k], datatype, NCT_SHORT)) {
 			++nInExtRange;
 			if (expect[k] >= short_min && expect[k] <= short_max)
@@ -1158,7 +1150,7 @@ check_atts_int(int  ncid)
 		assert(length <= MAX_NELS);
 		nInIntRange = nInExtRange = 0;
 		for (k = 0; k < length; k++) {
-		    expect[k] = hash4( datatype, -1, &k, NCT_INT);
+		    expect[k] = hash( datatype, -1, &k);
 		    if (inRange3(expect[k], datatype, NCT_INT)) {
 			++nInExtRange;
 			if (expect[k] >= int_min && expect[k] <= int_max)
@@ -1233,7 +1225,7 @@ check_atts_long(int  ncid)
 		assert(length <= MAX_NELS);
 		nInIntRange = nInExtRange = 0;
 		for (k = 0; k < length; k++) {
-		    expect[k] = hash4( datatype, -1, &k, NCT_LONG);
+		    expect[k] = hash( datatype, -1, &k);
 		    if (inRange3(expect[k], datatype, NCT_LONG)) {
 			++nInExtRange;
 			if (expect[k] >= long_min && expect[k] <= long_max)
@@ -1308,7 +1300,7 @@ check_atts_float(int  ncid)
 		assert(length <= MAX_NELS);
 		nInIntRange = nInExtRange = 0;
 		for (k = 0; k < length; k++) {
-		    expect[k] = hash4( datatype, -1, &k, NCT_FLOAT);
+		    expect[k] = hash( datatype, -1, &k);
 		    if (inRange3(expect[k], datatype, NCT_FLOAT)) {
 			++nInExtRange;
 			if (expect[k] >= float_min && expect[k] <= float_max)
@@ -1383,7 +1375,7 @@ check_atts_double(int  ncid)
 		assert(length <= MAX_NELS);
 		nInIntRange = nInExtRange = 0;
 		for (k = 0; k < length; k++) {
-		    expect[k] = hash4( datatype, -1, &k, NCT_DOUBLE);
+		    expect[k] = hash( datatype, -1, &k);
 		    if (inRange3(expect[k], datatype, NCT_DOUBLE)) {
 			++nInExtRange;
 			if (expect[k] >= double_min && expect[k] <= double_max)
@@ -1471,7 +1463,7 @@ test_nc_put_var1_text(void)
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
             IF (err) 
 		error("error in toMixedBase 1");
-            value = hash_text( var_type[i], var_rank[i], index, NCT_TEXT);
+            value = hash_text( var_type[i], var_rank[i], index);
 	    if (var_rank[i] == 0 && i%2 == 0)
 		err = nc_put_var1_text(ncid, i, NULL, &value);
 	    else
@@ -1551,7 +1543,7 @@ test_nc_put_var1_uchar(void)
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
             IF (err) 
 		error("error in toMixedBase 1");
-            value = hash_uchar( var_type[i], var_rank[i], index, NCT_UCHAR);
+            value = hash_uchar( var_type[i], var_rank[i], index);
 	    if (var_rank[i] == 0 && i%2 == 0)
 		err = nc_put_var1_uchar(ncid, i, NULL, &value);
 	    else
@@ -1631,7 +1623,7 @@ test_nc_put_var1_schar(void)
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
             IF (err) 
 		error("error in toMixedBase 1");
-            value = hash_schar( var_type[i], var_rank[i], index, NCT_SCHAR);
+            value = hash_schar( var_type[i], var_rank[i], index);
 	    if (var_rank[i] == 0 && i%2 == 0)
 		err = nc_put_var1_schar(ncid, i, NULL, &value);
 	    else
@@ -1711,7 +1703,7 @@ test_nc_put_var1_short(void)
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
             IF (err) 
 		error("error in toMixedBase 1");
-            value = hash_short( var_type[i], var_rank[i], index, NCT_SHORT);
+            value = hash_short( var_type[i], var_rank[i], index);
 	    if (var_rank[i] == 0 && i%2 == 0)
 		err = nc_put_var1_short(ncid, i, NULL, &value);
 	    else
@@ -1791,7 +1783,7 @@ test_nc_put_var1_int(void)
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
             IF (err) 
 		error("error in toMixedBase 1");
-            value = hash_int( var_type[i], var_rank[i], index, NCT_INT);
+            value = hash_int( var_type[i], var_rank[i], index);
 	    if (var_rank[i] == 0 && i%2 == 0)
 		err = nc_put_var1_int(ncid, i, NULL, &value);
 	    else
@@ -1871,7 +1863,7 @@ test_nc_put_var1_long(void)
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
             IF (err) 
 		error("error in toMixedBase 1");
-            value = hash_long( var_type[i], var_rank[i], index, NCT_LONG);
+            value = hash_long( var_type[i], var_rank[i], index);
 	    if (var_rank[i] == 0 && i%2 == 0)
 		err = nc_put_var1_long(ncid, i, NULL, &value);
 	    else
@@ -1951,7 +1943,7 @@ test_nc_put_var1_float(void)
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
             IF (err) 
 		error("error in toMixedBase 1");
-            value = hash_float( var_type[i], var_rank[i], index, NCT_FLOAT);
+            value = hash_float( var_type[i], var_rank[i], index);
 	    if (var_rank[i] == 0 && i%2 == 0)
 		err = nc_put_var1_float(ncid, i, NULL, &value);
 	    else
@@ -2031,7 +2023,7 @@ test_nc_put_var1_double(void)
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
             IF (err) 
 		error("error in toMixedBase 1");
-            value = hash_double( var_type[i], var_rank[i], index, NCT_DOUBLE);
+            value = hash_double( var_type[i], var_rank[i], index);
 	    if (var_rank[i] == 0 && i%2 == 0)
 		err = nc_put_var1_double(ncid, i, NULL, &value);
 	    else
@@ -2113,7 +2105,7 @@ test_nc_put_var_text(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) 
 		error("error in toMixedBase 1");
-	    value[j]= hash_text(var_type[i], var_rank[i], index, NCT_TEXT);
+	    value[j]= hash_text(var_type[i], var_rank[i], index);
 	    allInExtRange = allInExtRange 
 		&& inRange3(value[j], var_type[i], NCT_TEXT);
 	}
@@ -2161,7 +2153,7 @@ test_nc_put_var_text(void)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err) 
 		    error("error in toMixedBase 1");
-		value[j]= hash_text(var_type[i], var_rank[i], index, NCT_TEXT);
+		value[j]= hash_text(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_TEXT);
 	    }
@@ -2236,7 +2228,7 @@ test_nc_put_var_uchar(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) 
 		error("error in toMixedBase 1");
-	    value[j]= hash_uchar(var_type[i], var_rank[i], index, NCT_UCHAR);
+	    value[j]= hash_uchar(var_type[i], var_rank[i], index);
 	    allInExtRange = allInExtRange 
 		&& inRange3(value[j], var_type[i], NCT_UCHAR);
 	}
@@ -2284,7 +2276,7 @@ test_nc_put_var_uchar(void)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err) 
 		    error("error in toMixedBase 1");
-		value[j]= hash_uchar(var_type[i], var_rank[i], index, NCT_UCHAR);
+		value[j]= hash_uchar(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_UCHAR);
 	    }
@@ -2359,7 +2351,7 @@ test_nc_put_var_schar(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) 
 		error("error in toMixedBase 1");
-	    value[j]= hash_schar(var_type[i], var_rank[i], index, NCT_SCHAR);
+	    value[j]= hash_schar(var_type[i], var_rank[i], index);
 	    allInExtRange = allInExtRange 
 		&& inRange3(value[j], var_type[i], NCT_SCHAR);
 	}
@@ -2407,7 +2399,7 @@ test_nc_put_var_schar(void)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err) 
 		    error("error in toMixedBase 1");
-		value[j]= hash_schar(var_type[i], var_rank[i], index, NCT_SCHAR);
+		value[j]= hash_schar(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_SCHAR);
 	    }
@@ -2482,7 +2474,7 @@ test_nc_put_var_short(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) 
 		error("error in toMixedBase 1");
-	    value[j]= hash_short(var_type[i], var_rank[i], index, NCT_SHORT);
+	    value[j]= hash_short(var_type[i], var_rank[i], index);
 	    allInExtRange = allInExtRange 
 		&& inRange3(value[j], var_type[i], NCT_SHORT);
 	}
@@ -2530,7 +2522,7 @@ test_nc_put_var_short(void)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err) 
 		    error("error in toMixedBase 1");
-		value[j]= hash_short(var_type[i], var_rank[i], index, NCT_SHORT);
+		value[j]= hash_short(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_SHORT);
 	    }
@@ -2605,7 +2597,7 @@ test_nc_put_var_int(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) 
 		error("error in toMixedBase 1");
-	    value[j]= hash_int(var_type[i], var_rank[i], index, NCT_INT);
+	    value[j]= hash_int(var_type[i], var_rank[i], index);
 	    allInExtRange = allInExtRange 
 		&& inRange3(value[j], var_type[i], NCT_INT);
 	}
@@ -2653,7 +2645,7 @@ test_nc_put_var_int(void)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err) 
 		    error("error in toMixedBase 1");
-		value[j]= hash_int(var_type[i], var_rank[i], index, NCT_INT);
+		value[j]= hash_int(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_INT);
 	    }
@@ -2728,7 +2720,7 @@ test_nc_put_var_long(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) 
 		error("error in toMixedBase 1");
-	    value[j]= hash_long(var_type[i], var_rank[i], index, NCT_LONG);
+	    value[j]= hash_long(var_type[i], var_rank[i], index);
 	    allInExtRange = allInExtRange 
 		&& inRange3(value[j], var_type[i], NCT_LONG);
 	}
@@ -2776,7 +2768,7 @@ test_nc_put_var_long(void)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err) 
 		    error("error in toMixedBase 1");
-		value[j]= hash_long(var_type[i], var_rank[i], index, NCT_LONG);
+		value[j]= hash_long(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_LONG);
 	    }
@@ -2851,7 +2843,7 @@ test_nc_put_var_float(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) 
 		error("error in toMixedBase 1");
-	    value[j]= hash_float(var_type[i], var_rank[i], index, NCT_FLOAT);
+	    value[j]= hash_float(var_type[i], var_rank[i], index);
 	    allInExtRange = allInExtRange 
 		&& inRange3(value[j], var_type[i], NCT_FLOAT);
 	}
@@ -2899,7 +2891,7 @@ test_nc_put_var_float(void)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err) 
 		    error("error in toMixedBase 1");
-		value[j]= hash_float(var_type[i], var_rank[i], index, NCT_FLOAT);
+		value[j]= hash_float(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_FLOAT);
 	    }
@@ -2974,7 +2966,7 @@ test_nc_put_var_double(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) 
 		error("error in toMixedBase 1");
-	    value[j]= hash_double(var_type[i], var_rank[i], index, NCT_DOUBLE);
+	    value[j]= hash_double(var_type[i], var_rank[i], index);
 	    allInExtRange = allInExtRange 
 		&& inRange3(value[j], var_type[i], NCT_DOUBLE);
 	}
@@ -3022,7 +3014,7 @@ test_nc_put_var_double(void)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err) 
 		    error("error in toMixedBase 1");
-		value[j]= hash_double(var_type[i], var_rank[i], index, NCT_DOUBLE);
+		value[j]= hash_double(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_DOUBLE);
 	    }
@@ -3172,7 +3164,7 @@ test_nc_put_vara_text(void)
 		    error("error in toMixedBase 1");
 		for (d = 0; d < var_rank[i]; d++) 
 		    index[d] += start[d];
-		value[j]= hash_text(var_type[i], var_rank[i], index, NCT_TEXT);
+		value[j]= hash_text(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_TEXT);
 	    }
@@ -3322,7 +3314,7 @@ test_nc_put_vara_uchar(void)
 		    error("error in toMixedBase 1");
 		for (d = 0; d < var_rank[i]; d++) 
 		    index[d] += start[d];
-		value[j]= hash_uchar(var_type[i], var_rank[i], index, NCT_UCHAR);
+		value[j]= hash_uchar(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_UCHAR);
 	    }
@@ -3472,7 +3464,7 @@ test_nc_put_vara_schar(void)
 		    error("error in toMixedBase 1");
 		for (d = 0; d < var_rank[i]; d++) 
 		    index[d] += start[d];
-		value[j]= hash_schar(var_type[i], var_rank[i], index, NCT_SCHAR);
+		value[j]= hash_schar(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_SCHAR);
 	    }
@@ -3622,7 +3614,7 @@ test_nc_put_vara_short(void)
 		    error("error in toMixedBase 1");
 		for (d = 0; d < var_rank[i]; d++) 
 		    index[d] += start[d];
-		value[j]= hash_short(var_type[i], var_rank[i], index, NCT_SHORT);
+		value[j]= hash_short(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_SHORT);
 	    }
@@ -3772,7 +3764,7 @@ test_nc_put_vara_int(void)
 		    error("error in toMixedBase 1");
 		for (d = 0; d < var_rank[i]; d++) 
 		    index[d] += start[d];
-		value[j]= hash_int(var_type[i], var_rank[i], index, NCT_INT);
+		value[j]= hash_int(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_INT);
 	    }
@@ -3922,7 +3914,7 @@ test_nc_put_vara_long(void)
 		    error("error in toMixedBase 1");
 		for (d = 0; d < var_rank[i]; d++) 
 		    index[d] += start[d];
-		value[j]= hash_long(var_type[i], var_rank[i], index, NCT_LONG);
+		value[j]= hash_long(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_LONG);
 	    }
@@ -4072,7 +4064,7 @@ test_nc_put_vara_float(void)
 		    error("error in toMixedBase 1");
 		for (d = 0; d < var_rank[i]; d++) 
 		    index[d] += start[d];
-		value[j]= hash_float(var_type[i], var_rank[i], index, NCT_FLOAT);
+		value[j]= hash_float(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_FLOAT);
 	    }
@@ -4222,7 +4214,7 @@ test_nc_put_vara_double(void)
 		    error("error in toMixedBase 1");
 		for (d = 0; d < var_rank[i]; d++) 
 		    index[d] += start[d];
-		value[j]= hash_double(var_type[i], var_rank[i], index, NCT_DOUBLE);
+		value[j]= hash_double(var_type[i], var_rank[i], index);
 		allInExtRange = allInExtRange 
 		    && inRange3(value[j], var_type[i], NCT_DOUBLE);
 	    }
@@ -4381,8 +4373,7 @@ test_nc_put_vars_text(void)
 			error("error in toMixedBase");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    value[j] = hash_text(var_type[i], var_rank[i], index2, 
-			NCT_TEXT);
+		    value[j] = hash_text(var_type[i], var_rank[i], index2);
 		    allInExtRange = allInExtRange 
 			&& inRange3(value[j], var_type[i], NCT_TEXT);
 		}
@@ -4539,8 +4530,7 @@ test_nc_put_vars_uchar(void)
 			error("error in toMixedBase");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    value[j] = hash_uchar(var_type[i], var_rank[i], index2, 
-			NCT_UCHAR);
+		    value[j] = hash_uchar(var_type[i], var_rank[i], index2);
 		    allInExtRange = allInExtRange 
 			&& inRange3(value[j], var_type[i], NCT_UCHAR);
 		}
@@ -4697,8 +4687,7 @@ test_nc_put_vars_schar(void)
 			error("error in toMixedBase");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    value[j] = hash_schar(var_type[i], var_rank[i], index2, 
-			NCT_SCHAR);
+		    value[j] = hash_schar(var_type[i], var_rank[i], index2);
 		    allInExtRange = allInExtRange 
 			&& inRange3(value[j], var_type[i], NCT_SCHAR);
 		}
@@ -4855,8 +4844,7 @@ test_nc_put_vars_short(void)
 			error("error in toMixedBase");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    value[j] = hash_short(var_type[i], var_rank[i], index2, 
-			NCT_SHORT);
+		    value[j] = hash_short(var_type[i], var_rank[i], index2);
 		    allInExtRange = allInExtRange 
 			&& inRange3(value[j], var_type[i], NCT_SHORT);
 		}
@@ -5013,8 +5001,7 @@ test_nc_put_vars_int(void)
 			error("error in toMixedBase");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    value[j] = hash_int(var_type[i], var_rank[i], index2, 
-			NCT_INT);
+		    value[j] = hash_int(var_type[i], var_rank[i], index2);
 		    allInExtRange = allInExtRange 
 			&& inRange3(value[j], var_type[i], NCT_INT);
 		}
@@ -5171,8 +5158,7 @@ test_nc_put_vars_long(void)
 			error("error in toMixedBase");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    value[j] = hash_long(var_type[i], var_rank[i], index2, 
-			NCT_LONG);
+		    value[j] = hash_long(var_type[i], var_rank[i], index2);
 		    allInExtRange = allInExtRange 
 			&& inRange3(value[j], var_type[i], NCT_LONG);
 		}
@@ -5329,8 +5315,7 @@ test_nc_put_vars_float(void)
 			error("error in toMixedBase");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    value[j] = hash_float(var_type[i], var_rank[i], index2, 
-			NCT_FLOAT);
+		    value[j] = hash_float(var_type[i], var_rank[i], index2);
 		    allInExtRange = allInExtRange 
 			&& inRange3(value[j], var_type[i], NCT_FLOAT);
 		}
@@ -5487,8 +5472,7 @@ test_nc_put_vars_double(void)
 			error("error in toMixedBase");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    value[j] = hash_double(var_type[i], var_rank[i], index2, 
-			NCT_DOUBLE);
+		    value[j] = hash_double(var_type[i], var_rank[i], index2);
 		    allInExtRange = allInExtRange 
 			&& inRange3(value[j], var_type[i], NCT_DOUBLE);
 		}
@@ -5656,8 +5640,7 @@ test_nc_put_varm_text(void)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    value[j] = hash_text(var_type[i], var_rank[i], index2,
-                        NCT_TEXT);
+                    value[j] = hash_text(var_type[i], var_rank[i], index2);
                     allInExtRange = allInExtRange
                         && inRange3(value[j], var_type[i], NCT_TEXT);
                 }
@@ -5822,8 +5805,7 @@ test_nc_put_varm_uchar(void)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    value[j] = hash_uchar(var_type[i], var_rank[i], index2,
-                        NCT_UCHAR);
+                    value[j] = hash_uchar(var_type[i], var_rank[i], index2);
                     allInExtRange = allInExtRange
                         && inRange3(value[j], var_type[i], NCT_UCHAR);
                 }
@@ -5988,8 +5970,7 @@ test_nc_put_varm_schar(void)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    value[j] = hash_schar(var_type[i], var_rank[i], index2,
-                        NCT_SCHAR);
+                    value[j] = hash_schar(var_type[i], var_rank[i], index2);
                     allInExtRange = allInExtRange
                         && inRange3(value[j], var_type[i], NCT_SCHAR);
                 }
@@ -6154,8 +6135,7 @@ test_nc_put_varm_short(void)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    value[j] = hash_short(var_type[i], var_rank[i], index2,
-                        NCT_SHORT);
+                    value[j] = hash_short(var_type[i], var_rank[i], index2);
                     allInExtRange = allInExtRange
                         && inRange3(value[j], var_type[i], NCT_SHORT);
                 }
@@ -6320,8 +6300,7 @@ test_nc_put_varm_int(void)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    value[j] = hash_int(var_type[i], var_rank[i], index2,
-                        NCT_INT);
+                    value[j] = hash_int(var_type[i], var_rank[i], index2);
                     allInExtRange = allInExtRange
                         && inRange3(value[j], var_type[i], NCT_INT);
                 }
@@ -6486,8 +6465,7 @@ test_nc_put_varm_long(void)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    value[j] = hash_long(var_type[i], var_rank[i], index2,
-                        NCT_LONG);
+                    value[j] = hash_long(var_type[i], var_rank[i], index2);
                     allInExtRange = allInExtRange
                         && inRange3(value[j], var_type[i], NCT_LONG);
                 }
@@ -6652,8 +6630,7 @@ test_nc_put_varm_float(void)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    value[j] = hash_float(var_type[i], var_rank[i], index2,
-                        NCT_FLOAT);
+                    value[j] = hash_float(var_type[i], var_rank[i], index2);
                     allInExtRange = allInExtRange
                         && inRange3(value[j], var_type[i], NCT_FLOAT);
                 }
@@ -6818,8 +6795,7 @@ test_nc_put_varm_double(void)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    value[j] = hash_double(var_type[i], var_rank[i], index2,
-                        NCT_DOUBLE);
+                    value[j] = hash_double(var_type[i], var_rank[i], index2);
                     allInExtRange = allInExtRange
                         && inRange3(value[j], var_type[i], NCT_DOUBLE);
                 }
@@ -6954,7 +6930,7 @@ test_nc_put_att_uchar(void)
 		IF (err != NC_EBADTYPE)
 		    error("bad type: status = %d", err);
 		for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
-		    value[k] = hash_uchar(ATT_TYPE(i,j), -1, &k, NCT_UCHAR);
+		    value[k] = hash_uchar(ATT_TYPE(i,j), -1, &k);
 		    allInExtRange = allInExtRange
 			&& inRange3(value[k], ATT_TYPE(i,j), NCT_UCHAR);
 		}
@@ -7017,7 +6993,7 @@ test_nc_put_att_schar(void)
 		IF (err != NC_EBADTYPE)
 		    error("bad type: status = %d", err);
 		for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
-		    value[k] = hash_schar(ATT_TYPE(i,j), -1, &k, NCT_SCHAR);
+		    value[k] = hash_schar(ATT_TYPE(i,j), -1, &k);
 		    allInExtRange = allInExtRange
 			&& inRange3(value[k], ATT_TYPE(i,j), NCT_SCHAR);
 		}
@@ -7080,7 +7056,7 @@ test_nc_put_att_short(void)
 		IF (err != NC_EBADTYPE)
 		    error("bad type: status = %d", err);
 		for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
-		    value[k] = hash_short(ATT_TYPE(i,j), -1, &k, NCT_SHORT);
+		    value[k] = hash_short(ATT_TYPE(i,j), -1, &k);
 		    allInExtRange = allInExtRange
 			&& inRange3(value[k], ATT_TYPE(i,j), NCT_SHORT);
 		}
@@ -7143,7 +7119,7 @@ test_nc_put_att_int(void)
 		IF (err != NC_EBADTYPE)
 		    error("bad type: status = %d", err);
 		for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
-		    value[k] = hash_int(ATT_TYPE(i,j), -1, &k, NCT_INT);
+		    value[k] = hash_int(ATT_TYPE(i,j), -1, &k);
 		    allInExtRange = allInExtRange
 			&& inRange3(value[k], ATT_TYPE(i,j), NCT_INT);
 		}
@@ -7206,7 +7182,7 @@ test_nc_put_att_long(void)
 		IF (err != NC_EBADTYPE)
 		    error("bad type: status = %d", err);
 		for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
-		    value[k] = hash_long(ATT_TYPE(i,j), -1, &k, NCT_LONG);
+		    value[k] = hash_long(ATT_TYPE(i,j), -1, &k);
 		    allInExtRange = allInExtRange
 			&& inRange3(value[k], ATT_TYPE(i,j), NCT_LONG);
 		}
@@ -7269,7 +7245,7 @@ test_nc_put_att_float(void)
 		IF (err != NC_EBADTYPE)
 		    error("bad type: status = %d", err);
 		for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
-		    value[k] = hash_float(ATT_TYPE(i,j), -1, &k, NCT_FLOAT);
+		    value[k] = hash_float(ATT_TYPE(i,j), -1, &k);
 		    allInExtRange = allInExtRange
 			&& inRange3(value[k], ATT_TYPE(i,j), NCT_FLOAT);
 		}
@@ -7332,7 +7308,7 @@ test_nc_put_att_double(void)
 		IF (err != NC_EBADTYPE)
 		    error("bad type: status = %d", err);
 		for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
-		    value[k] = hash_double(ATT_TYPE(i,j), -1, &k, NCT_DOUBLE);
+		    value[k] = hash_double(ATT_TYPE(i,j), -1, &k);
 		    allInExtRange = allInExtRange
 			&& inRange3(value[k], ATT_TYPE(i,j), NCT_DOUBLE);
 		}

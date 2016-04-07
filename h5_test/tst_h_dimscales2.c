@@ -103,7 +103,7 @@ main()
    printf("*** Checking that one var, one dimscale file can be read...");
 
    {
-      hid_t fileid, spaceid = 0, datasetid = 0;
+      hid_t fileid, spaceid = -1, datasetid = -1;
       hsize_t num_obj, i;
       int obj_class;
       char obj_name[STR_LEN + 1];
