@@ -939,6 +939,10 @@ if test "x$enable_netcdf_4" = xyes; then
       AC_DEFINE([HDF5_HAS_H5FREE], [1], [if true, H5free_memory() will be used to free hdf5-allocated memory in nc4file.])
    fi
 
+   if test "x$ac_cv_func_H5Pset_libver_bounds" = xyes; then
+      AC_DEFINE([HDF5_HAS_LIBVER_BOUNDS], [1], [if true, netcdf4 file properties will be set using H5Pset_libver_bounds])
+   fi
+
    # If the user wants hdf4 built in, check it out.
    if test "x$enable_hdf4" = xyes; then
       AC_CHECK_HEADERS([mfhdf.h], [], [nc_mfhdf_h_missing=yes])
