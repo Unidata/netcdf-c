@@ -2022,9 +2022,9 @@ attach_dimscales(NC_GRP_INFO_T *grp)
                 {
                   if (!var->dimscale_attached[d])
                     {
+                      hid_t dim_datasetid;  /* Dataset ID for dimension */
                       dim1 = var->dim[d];
 		      assert(dim1 && dim1->dimid == var->dimids[d]);
-                      hid_t dim_datasetid;  /* Dataset ID for dimension */
 
                       LOG((2, "%s: attaching scale for dimid %d to var %s",
                            __func__, var->dimids[d], var->name));

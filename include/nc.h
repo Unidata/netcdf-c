@@ -27,7 +27,6 @@ typedef struct NC {
 	void* dispatchdata; /*per-'file' data; points to e.g. NC3_INFO data*/
 	char* path;
 	int   mode; /* as provided to nc_open/nc_create */
-	int   substrate;
 #ifdef USE_REFCOUNT
 	int   refcount; /* To enable multiple name-based opens */
 #endif

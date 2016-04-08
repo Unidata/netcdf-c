@@ -120,11 +120,13 @@ named foo.nc:
 \endcode
 
  */
-int nc_def_dim(int ncid, const char *name, size_t len, int *idp)
+int
+nc_def_dim(int ncid, const char *name, size_t len, int *idp)
 {
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
+    TRACE(nc_def_dim);
     return ncp->dispatch->def_dim(ncid, name, len, idp);
 }
 
@@ -154,6 +156,7 @@ nc_inq_dimid(int ncid, const char *name, int *idp)
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
+    TRACE(nc_inq_dimid);
     return ncp->dispatch->inq_dimid(ncid,name,idp);
 }
 
@@ -217,6 +220,7 @@ nc_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
+    TRACE(nc_inq_dim);
     return ncp->dispatch->inq_dim(ncid,dimid,name,lenp);
 }
 
@@ -278,6 +282,7 @@ nc_rename_dim(int ncid, int dimid, const char *name)
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
+    TRACE(nc_rename_dim);
     return ncp->dispatch->rename_dim(ncid,dimid,name);
 }
 
@@ -309,6 +314,7 @@ nc_inq_ndims(int ncid, int *ndimsp)
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
     if(ndimsp == NULL) return NC_NOERR;
+    TRACE(nc_inq_ndims);
     return ncp->dispatch->inq(ncid,ndimsp,NULL,NULL,NULL);
 }
 
@@ -338,6 +344,7 @@ nc_inq_unlimdim(int ncid, int *unlimdimidp)
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
+    TRACE(nc_inq_unlimdim);
     return ncp->dispatch->inq_unlimdim(ncid,unlimdimidp);
 }
 
@@ -397,6 +404,7 @@ nc_inq_dimname(int ncid, int dimid, char *name)
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
     if(name == NULL) return NC_NOERR;
+    TRACE(nc_inq_dimname);
     return ncp->dispatch->inq_dim(ncid,dimid,name,NULL);
 }
 
@@ -453,6 +461,7 @@ nc_inq_dimlen(int ncid, int dimid, size_t *lenp)
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
     if(lenp == NULL) return NC_NOERR;
+    TRACE(nc_inq_dimlen);
     return ncp->dispatch->inq_dim(ncid,dimid,NULL,lenp);
 }
 

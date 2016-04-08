@@ -115,10 +115,6 @@ typedef struct NC_Dispatch NC_Dispatch;
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
-extern NC_Dispatch* NCSUBSTRATE_dispatch_table;
-extern int NCSUBSTRATE_initialize(void);
-extern int NCSUBSTRATE_finalize(void);
-
 extern NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
@@ -319,12 +315,12 @@ typedef struct NCcommon {
 	struct NC_Dispatch* dispatch;
 	void* dispatchdata; /* per-protocol instance data */
 	char* path; /* as specified at open or create */
-	int   substrate; /* ncid for another protocol on which to build */
 } NCcommon;
 
 extern size_t NC_atomictypelen(nc_type xtype);
 extern char* NC_atomictypename(nc_type xtype);
 
+#ifdef OBSOLETE
 /* Provide a dispatch table overlay facility */
 extern int NC_dispatch_overlay(const NC_Dispatch* overlay,
                                         const NC_Dispatch* base,
@@ -333,6 +329,7 @@ extern int NC_dispatch_overlay(const NC_Dispatch* overlay,
 /* Get/set the override dispatch table */
 extern NC_Dispatch* NC_get_dispatch_override(void);
 extern void NC_set_dispatch_override(NC_Dispatch*);
+#endif
 
 /* Does the path look like a url? */
 extern int NC_testurl(const char* path);
@@ -372,6 +369,15 @@ extern int NC_inq_recvar(int ncid, int varid, int* nrecdims, int* is_recdim);
 
 #define nullstring(s) (s==NULL?"(null)":s)
 
+
+#undef TRACECALLS
+#ifdef TRACECALLS
+#include <stdio.h>
+#define TRACE(fname) fprintf(stderr,"call: %s\n",#fname)
+#else
+#define TRACE(fname)
+#endif
+
 extern size_t NC_coord_zero[NC_MAX_VAR_DIMS];
 extern size_t NC_coord_one[NC_MAX_VAR_DIMS];
 
@@ -380,5 +386,23 @@ extern char* NC_argv[];
 extern int NC_initialized;
 
 NCD_EXTERNL int nc_initialize();
+
+
+/**
+Certain functions are in the dispatch table,
+but not in the netcdf.h API. These need to
+be exposed for use in delegation such as
+in libdap2.
+*/
+extern int
+NCDISPATCH_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
+               int *ndimsp, int *dimidsp, int *nattsp,
+               int *shufflep, int *deflatep, int *deflate_levelp,
+               int *fletcher32p, int *contiguousp, size_t *chunksizesp,
+               int *no_fill, void *fill_valuep, int *endiannessp,
+	       int *options_maskp, int *pixels_per_blockp);
+
+extern int
+NCDISPATCH_get_att(int ncid, int varid, const char* name, void* value, nc_type t);
 
 #endif /* _DISPATCH_H */
