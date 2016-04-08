@@ -19,7 +19,7 @@ COPYRIGHT file for copying and redistribution conditions.
 
 /* must be after nc4internal.h */
 #include <H5DSpublic.h>
-
+#include <H5Fpublic.h>
 #ifdef USE_HDF4
 #include <mfhdf.h>
 #endif
@@ -386,8 +386,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 	__func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems, nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
 
-   if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0)
+#ifdef HDF5_HAS_LIBVER_BOUNDS
+   if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_LATEST) < 0)
       BAIL(NC_EHDFERR);
+#endif
 
    /* Create the property list. */
    if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0)
@@ -668,7 +670,7 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    hssize_t npoints;
    int ret = 0;
    int d;
-   
+
    /* There is a hidden attribute telling us the ids of the
     * dimensions that apply to this multi-dimensional coordinate
     * variable. Read it. */
@@ -2215,6 +2217,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
     * fail if there are any open objects in the file. */
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
+
 #ifdef EXTRA_TESTS
    num_plists++;
 #endif
@@ -2225,6 +2228,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG))
       BAIL(NC_EHDFERR);
 #endif
+
 
 #ifdef USE_PARALLEL4
    /* If this is a parallel file create, set up the file creation
@@ -3286,7 +3290,7 @@ NC4_set_content(int ncid, size_t size, void* memory)
 	BAIL(NC_EHDFERR);
 #else
     retval = NC_EDISKLESS;
-#endif    				
+#endif
 
 done:
     return retval;
