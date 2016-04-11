@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.1 - TBD
 
+* [Bug Fix][Enhancement] Fixed an issue with netCDF4 files generated using version `1.10.0` of the HDF5 library.  The 1.10 release potentially changed the underlying file format, introducing a backwards compatibility issue with the files generated.  HDF5 provided an API for retaining the 1.8.x file format, which is now on by default.  See [GitHub Issue #250](https://github.com/Unidata/netcdf-c/issues/250) for more information.
 * [Bug Fix] Corrected an issue with autotools-based builds performed out-of-source-tree.  See [GitHub Issue #242](https://github.com/Unidata/netcdf-c/issues/242) for more information.
 * [Enhancement] Modified `nc_inq_type()` so that it would work more broadly without requiring a valid ncid.  See [GitHub Issue #240](https://github.com/Unidata/netcdf-c/issues/240) for more information.
 * [Enhancement] Accepted a patch code which added a hashmap lookup for rapid var and dim retrieval in nc3 files, contributed by Greg Sjaardema.  See [GitHub Pull Request #238](https://github.com/Unidata/netcdf-c/pull/238) for more information.
