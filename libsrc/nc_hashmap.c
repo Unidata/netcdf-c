@@ -35,7 +35,11 @@ static int isPrime(unsigned long val)
 
   for (i = 9; i--;)
   {
+#ifdef HAVE_RANDOM
     unsigned long a = ((unsigned long)random() % (val-4)) + 2;
+#else
+	  unsigned long a = ((unsigned long)rand() % (val - 4)) + 2;
+#endif
     unsigned long p = 1;
     unsigned long exp = val-1;
     while (exp)
