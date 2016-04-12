@@ -11,6 +11,8 @@
 
 #define ACTIVE 1
 
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 extern uint32_t hash_fast(const void *key, size_t length);
 
 /* NOTE: 'data' is the dimid or varid which is non-negative.
@@ -144,7 +146,7 @@ void NC_hashmapAddDim(const NC_dimarray* ncap, long data, const char *name)
 {
   unsigned long key = hash_fast(name, strlen(name));
   NC_hashmap* hash = ncap->hashmap;
-  
+
   if (hash->size*3/4 <= hash->count) {
     rehashDim(ncap);
   }
@@ -153,7 +155,7 @@ void NC_hashmapAddDim(const NC_dimarray* ncap, long data, const char *name)
   {
     unsigned long i;
     unsigned long index = key % hash->size;
-    unsigned long step = (key % (hash->size-2)) + 1;
+    unsigned long step = (key % MAX(1,(hash->size-2))) + 1;
 
     for (i = 0; i < hash->size; i++)
     {
@@ -191,7 +193,7 @@ void NC_hashmapAddVar(const NC_vararray* ncap, long data, const char *name)
 {
   unsigned long key = hash_fast(name, strlen(name));
   NC_hashmap* hash = ncap->hashmap;
-  
+
   if (hash->size*3/4 <= hash->count) {
     rehashVar(ncap);
   }
@@ -200,7 +202,7 @@ void NC_hashmapAddVar(const NC_vararray* ncap, long data, const char *name)
   {
     unsigned long i;
     unsigned long index = key % hash->size;
-    unsigned long step = (key % (hash->size-2)) + 1;
+    unsigned long step = (key % MAX(1,(hash->size-2))) + 1;
 
     for (i = 0; i < hash->size; i++)
     {
