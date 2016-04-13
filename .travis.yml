@@ -5,15 +5,15 @@ services:
 
 env:
     matrix:
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE USE_CC=gcc   COPTS='-DCMAKE_C_FLAGS=-fsigned-char' CURHOST=docker-gcc-x64-signed
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE USE_CC=clang COPTS='-DCMAKE_C_FLAGS=-fsigned-char' CURHOST=docker-clang-x64-signed
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=gcc   COPTS='-DCMAKE_C_FLAGS=-fsigned-char' CURHOST=docker-gcc-x86-signed
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=clang COPTS='-DCMAKE_C_FLAGS=-fsigned-char' CURHOST=docker-clang-x86-signed
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   COPTS='-DCMAKE_C_FLAGS=-fsigned-char' CURHOST=docker-gcc-x64-signed
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang COPTS='-DCMAKE_C_FLAGS=-fsigned-char' CURHOST=docker-clang-x64-signed
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   COPTS='-DCMAKE_C_FLAGS=-fsigned-char' CURHOST=docker-gcc-x86-signed
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang COPTS='-DCMAKE_C_FLAGS=-fsigned-char' CURHOST=docker-clang-x86-signed
 
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE USE_CC=gcc   COPTS='-DCMAKE_C_FLAGS=-funsigned-char' CURHOST=docker-gcc-x64-unsigned
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE USE_CC=clang COPTS='-DCMAKE_C_FLAGS=-funsigned-char' CURHOST=docker-clang-x64-unsigned
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=gcc   COPTS='-DCMAKE_C_FLAGS=-funsigned-char' CURHOST=docker-gcc-x86-unsigned
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE USE_CC=clang COPTS='-DCMAKE_C_FLAGS=-funsigned-char' CURHOST=docker-clang-x86-unsigned
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   COPTS='-DCMAKE_C_FLAGS=-funsigned-char' CURHOST=docker-gcc-x64-unsigned
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang COPTS='-DCMAKE_C_FLAGS=-funsigned-char' CURHOST=docker-clang-x64-unsigned
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   COPTS='-DCMAKE_C_FLAGS=-funsigned-char' CURHOST=docker-gcc-x86-unsigned
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang COPTS='-DCMAKE_C_FLAGS=-funsigned-char' CURHOST=docker-clang-x86-unsigned
 
 before_install:
     - docker pull $DOCKIMG > /dev/null
