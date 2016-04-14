@@ -48,6 +48,18 @@ AC_CANONICAL_TARGET
 
 AC_CONFIG_HEADERS([config.h])
 
+##
+# Some files need to exist in build directories
+# that do not correspond to their source directory, or
+# the test program makes an assumption about where files
+# live.  AC_CONFIG_LINKS provides a mechanism to link/copy files
+# if an out-of-source build is happening.
+##
+
+AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat1.nc:nc_test4/ref_hdf5_compat1.nc])
+AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
+AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
+
 # This call is required by automake.
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 

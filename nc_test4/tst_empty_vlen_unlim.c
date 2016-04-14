@@ -80,7 +80,7 @@ int main() {
     }
 
     printf("\t* Puting data in secondary variable:\tnc_put_vara().\n");
-    if (nc_put_vara(ncid,varid2,&startp2,&countp2,data2)) ERR;
+    if (nc_put_vara(ncid,varid2,startp2,countp2,data2)) ERR;
 
     /***********/
     /* Actually unnecessary to recreate the issue. */
@@ -172,7 +172,7 @@ int main() {
     }
 
     printf("\t* Puting data in secondary variable:\tnc_put_vara().\n");
-    if (nc_put_vara(ncid,varid2,&startp2,&countp2,data2)) ERR;
+    if (nc_put_vara(ncid,varid2,startp2,countp2,data2)) ERR;
 
     /***********/
     /* Actually unnecessary to recreate the issue. */
