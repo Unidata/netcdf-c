@@ -48,6 +48,18 @@ AC_CANONICAL_TARGET
 
 AC_CONFIG_HEADERS([config.h])
 
+##
+# Some files need to exist in build directories
+# that do not correspond to their source directory, or
+# the test program makes an assumption about where files
+# live.  AC_CONFIG_LINKS provides a mechanism to link/copy files
+# if an out-of-source build is happening.
+##
+
+AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat1.nc:nc_test4/ref_hdf5_compat1.nc])
+AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
+AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
+
 # This call is required by automake.
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
@@ -750,7 +762,7 @@ AC_HEADER_STDBOOL
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
                 strdup strcasecmp strtod strtoll strtoull strstr \
-		mkstemp rand memcmp \
+		mkstemp rand random memcmp \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
 # Does the user want to use NC_DISKLESS?
@@ -937,6 +949,10 @@ if test "x$enable_netcdf_4" = xyes; then
 
    if test "x$ac_cv_func_H5free_memory" = xyes; then
       AC_DEFINE([HDF5_HAS_H5FREE], [1], [if true, H5free_memory() will be used to free hdf5-allocated memory in nc4file.])
+   fi
+
+   if test "x$ac_cv_func_H5Pset_libver_bounds" = xyes; then
+      AC_DEFINE([HDF5_HAS_LIBVER_BOUNDS], [1], [if true, netcdf4 file properties will be set using H5Pset_libver_bounds])
    fi
 
    # If the user wants hdf4 built in, check it out.

@@ -650,20 +650,24 @@ ncuridecodeparams(NCURI* ncuri)
 int
 ncurilookup(NCURI* uri, const char* key, const char** resultp)
 {
-    int i;
-    char* value = NULL;
-    if(uri == NULL || key == NULL || uri->params == NULL) return 0;
-    if(uri->paramlist == NULL) {
+  int i;
+  char* value = NULL;
+  if(uri == NULL || key == NULL || uri->params == NULL) return 0;
+  if(uri->paramlist == NULL) {
 	i = ncuridecodeparams(uri);
 	if(!i) return 0;
-    }
-    /* Coverity[FORWARD_NULL] */
-    i = ncfind(uri->paramlist,key);
-    if(i < 0)
+  }
+  /* Coverity[FORWARD_NULL] */
+  i = ncfind(uri->paramlist,key);
+  if(i < 0)
 	return 0;
+
+  if(uri->paramlist) {
     value = uri->paramlist[(2*i)+1];
     if(resultp) *resultp = value;
-    return 1;
+  }
+
+  return 1;
 }
 
 int

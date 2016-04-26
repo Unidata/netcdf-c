@@ -34,12 +34,12 @@ are set when opening a binary file on Windows. */
   #ifndef strcasecmp
     #define strcasecmp _stricmp
   #endif
-  
-  #ifndef snprintf  
-    #if _MSC_VER<1900		
+
+  #ifndef snprintf
+    #if _MSC_VER<1900
       #define snprintf _snprintf
     #endif
-  #endif 
+  #endif
 #endif
 
 
@@ -96,6 +96,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine USE_PARALLEL_POSIX 1
 #cmakedefine USE_PARALLEL_MPIO 1
 #cmakedefine HDF5_HAS_H5FREE 1
+#cmakedefine HDF5_HAS_LIBVER_BOUNDS 1
 #cmakedefine HDF5_PARALLEL 1
 #cmakedefine USE_PARALLEL 1
 #cmakedefine USE_PARALLEL4 1
@@ -271,6 +272,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_STRSTR
 #cmakedefine HAVE_MKSTEMP
 #cmakedefine HAVE_RAND
+#cmakedefine HAVE_RANDOM
 #cmakedefine HAVE_GETTIMEOFDAY
 #cmakedefine HAVE_MPI_COMM_F2C
 #cmakedefine HAVE_MEMMOVE
