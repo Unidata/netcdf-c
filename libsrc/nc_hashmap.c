@@ -1,4 +1,3 @@
-#include "nc_hashmap.h"
 #include "nc3internal.h"
 
 #include <stdio.h>
@@ -14,22 +13,6 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 extern uint32_t hash_fast(const void *key, size_t length);
-
-/* NOTE: 'data' is the dimid or varid which is non-negative.
-   we store the dimid+1 so a valid entry will have
-   data > 0
-*/
-typedef struct {
-  long data;
-  int flags;
-  unsigned long key;
-} hEntry;
-
-struct s_hashmap{
-  hEntry* table;
-  unsigned long size;
-  unsigned long count;
-};
 
 static int isPrime(unsigned long val)
 {
