@@ -6,6 +6,7 @@
 #include "ncdap.h"
 #include "ncd2dispatch.h"
 #include "dapalign.h"
+#include "config.h"
 
 #ifdef _MSC_VER
 #include <crtdbg.h>
