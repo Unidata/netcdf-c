@@ -124,15 +124,6 @@ ENDIF()
     ENDIF(USE_NETCDF4)
   ENDIF(BUILD_DISKLESS)
 
-  ###
-  # This test fails on Visual Studio builds with bash.
-  # It passes, but technically fails because the scientific
-  # formatting omits a 0.
-  ###
-  IF(EXTRA_TESTS AND NOT MSVC)
-    add_sh_test(ncdump run_back_comp_tests)
-  ENDIF()
-
   IF(USE_NETCDF4)
     add_bin_test(ncdump tst_create_files)
     add_bin_test(ncdump tst_group_data)
@@ -152,11 +143,21 @@ ENDIF()
     add_bin_test_no_prefix(tst_compress)
     add_bin_test_no_prefix(tst_chunking)
 
+
+    ###
+    # This test fails on Visual Studio builds with bash.
+    # It passes, but technically fails because the scientific
+    # formatting omits a 0.
+    ###
+    IF(EXTRA_TESTS AND NOT MSVC)
+      add_sh_test(ncdump run_back_comp_tests)
+    ENDIF()
+
     # Known failure on MSVC; the number of 0's padding
     # is different, but the result is actually correct.
     #IF(NOT MSVC)
-      add_sh_test(ncdump tst_netcdf4)
-      add_bin_test(ncdump tst_h_rdc0)
+    add_sh_test(ncdump tst_netcdf4)
+    add_bin_test(ncdump tst_h_rdc0)
     #ENDIF()
 
     add_bin_test(ncdump tst_unicode)
@@ -167,6 +168,8 @@ ENDIF()
     IF(NOT MSVC)
       add_sh_test(ncdump tst_netcdf4_4)
     ENDIF()
+
+
 
     IF(NOT MSVC)
       add_sh_test(ncdump tst_nccopy4)
