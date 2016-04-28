@@ -2417,6 +2417,9 @@ NCD2_var_par_access(int ncid, int p2, int p3)
     return THROW(NC_ENOPAR);
 }
 
+
+#ifdef USE_NETCDF4
+
 EXTERNL int
 NCD2_inq_ncid(int ncid, const char* name, int* grp_ncid)
 {
@@ -2426,9 +2429,6 @@ NCD2_inq_ncid(int ncid, const char* name, int* grp_ncid)
     ret = nc_inq_ncid(getnc3id(drno), name, grp_ncid);
     return THROW(ret);
 }
-
-#ifdef USE_NETCDF4
-
 
 NCD2_show_metadata(int ncid)
 {
@@ -2529,7 +2529,7 @@ NCD2_inq_typeids(int ncid, int*  ntypes, int* p)
     ret = nc_inq_typeids(getnc3id(drno), ntypes, p);
     return THROW(ret);
 }
-   
+
 int
 NCD2_inq_type_equal(int ncid, nc_type t1, int p3, nc_type t2, int* p5)
 {
@@ -2602,7 +2602,7 @@ NCD2_insert_compound(int ncid, nc_type t1, const char* p3, size_t p4, nc_type t2
 }
 
 int
-NCD2_insert_array_compound(int ncid, nc_type t1, const char* p3, size_t p4, 
+NCD2_insert_array_compound(int ncid, nc_type t1, const char* p3, size_t p4,
 			  nc_type t2, int p6, const int* p7)
 {
     NC* drno;
