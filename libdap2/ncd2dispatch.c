@@ -2306,7 +2306,7 @@ NCD2_rename_dim(int ncid, int dimid, const char* name)
     NC* drno;
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_rename_dim(getnc3id(drno), dimid, name); 
+    ret = nc_rename_dim(getnc3id(drno), dimid, name);
     return THROW(ret);
 }
 
@@ -2321,7 +2321,7 @@ NCD2_inq_att(int ncid, int varid, const char* name,
     return THROW(ret);
 }
 
-int 
+int
 NCD2_inq_attid(int ncid, int varid, const char *name, int *idp)
 {
     NC* drno;
@@ -2372,21 +2372,21 @@ NCD2_get_att(int ncid, int varid, const char* name, void* value, nc_type t)
 }
 
 int
-NCD2_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep, 
-               int* ndimsp, int* dimidsp, int* nattsp, 
+NCD2_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
+               int* ndimsp, int* dimidsp, int* nattsp,
                int* shufflep, int* deflatep, int* deflate_levelp,
-               int* fletcher32p, int* contiguousp, size_t* chunksizesp, 
-               int* no_fill, void* fill_valuep, int* endiannessp, 
+               int* fletcher32p, int* contiguousp, size_t* chunksizesp,
+               int* no_fill, void* fill_valuep, int* endiannessp,
 	       int* options_maskp, int* pixels_per_blockp)
 {
     NC* drno;
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = NCDISPATCH_inq_var_all(getnc3id(drno), varid, name, xtypep, 
-               ndimsp, dimidsp, nattsp, 
+    ret = NCDISPATCH_inq_var_all(getnc3id(drno), varid, name, xtypep,
+               ndimsp, dimidsp, nattsp,
                shufflep, deflatep, deflate_levelp,
-               fletcher32p, contiguousp, chunksizesp, 
-               no_fill, fill_valuep, endiannessp, 
+               fletcher32p, contiguousp, chunksizesp,
+               no_fill, fill_valuep, endiannessp,
 	       options_maskp, pixels_per_blockp);
     return THROW(ret);
 }
@@ -2417,6 +2417,9 @@ NCD2_var_par_access(int ncid, int p2, int p3)
     return THROW(NC_ENOPAR);
 }
 
+
+#ifdef USE_NETCDF4
+
 EXTERNL int
 NCD2_inq_ncid(int ncid, const char* name, int* grp_ncid)
 {
@@ -2424,6 +2427,15 @@ NCD2_inq_ncid(int ncid, const char* name, int* grp_ncid)
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
     ret = nc_inq_ncid(getnc3id(drno), name, grp_ncid);
+    return THROW(ret);
+}
+
+NCD2_show_metadata(int ncid)
+{
+    NC* drno;
+    int ret;
+    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
+    ret = nc_show_metadata(getnc3id(drno));
     return THROW(ret);
 }
 
@@ -2444,6 +2456,17 @@ NCD2_inq_grpname(int ncid, char* p)
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
     ret = nc_inq_grpname(getnc3id(drno), p);
+    return THROW(ret);
+}
+
+
+int
+NCD2_inq_unlimdims(int ncid, int* p2, int* p3)
+{
+    NC* drno;
+    int ret;
+    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
+    ret = nc_inq_unlimdims(getnc3id(drno), p2, p3);
     return THROW(ret);
 }
 
@@ -2506,7 +2529,7 @@ NCD2_inq_typeids(int ncid, int*  ntypes, int* p)
     ret = nc_inq_typeids(getnc3id(drno), ntypes, p);
     return THROW(ret);
 }
-   
+
 int
 NCD2_inq_type_equal(int ncid, nc_type t1, int p3, nc_type t2, int* p5)
 {
@@ -2579,7 +2602,7 @@ NCD2_insert_compound(int ncid, nc_type t1, const char* p3, size_t p4, nc_type t2
 }
 
 int
-NCD2_insert_array_compound(int ncid, nc_type t1, const char* p3, size_t p4, 
+NCD2_insert_array_compound(int ncid, nc_type t1, const char* p3, size_t p4,
 			  nc_type t2, int p6, const int* p7)
 {
     NC* drno;
@@ -2762,23 +2785,4 @@ NCD2_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return THROW(ret);
 }
 
-int
-NCD2_inq_unlimdims(int ncid, int* p2, int* p3)
-{
-    NC* drno;
-    int ret;
-    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_inq_unlimdims(getnc3id(drno), p2, p3);
-    return THROW(ret);
-}
-
-int
-NCD2_show_metadata(int ncid)
-{
-    NC* drno;
-    int ret;
-    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_show_metadata(getnc3id(drno));
-    return THROW(ret);
-}
-
+#endif // USE_NETCDF4
