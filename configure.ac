@@ -17,6 +17,13 @@ AC_PREREQ([2.59])
 # Initialize with name, version, and support email address.
 AC_INIT([netCDF], [4.4.1-development], [support-netcdf@unidata.ucar.edu])
 
+##
+# Prefer an empty CFLAGS variable instead of the default -g -O2.
+# See:
+#   * http://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.69/html_node/C-Compiler.html#C-Compiler
+##
+: ${CFLAGS=""}
+
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=4
 AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
@@ -597,7 +604,6 @@ fi
 if test -n "$cc_version_info"; then
   CC_VERSION="$CC_VERSION ( $cc_version_info)"
 fi
-
 
 
 AC_PROG_CC
