@@ -1,3 +1,0 @@
-set breakpoint pending y
-break tst_h_dimscales.c:574
-break tst_h_dimscales.c:579
