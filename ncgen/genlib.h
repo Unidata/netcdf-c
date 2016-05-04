@@ -152,7 +152,6 @@ extern void jflush(void);
 
 /* from: main.c */
 extern int k_flag;    /* -k value from command line*/
-extern int format_flag;   /* _Format attribute value (same range as -k flag) */
 extern int format_attribute; /* 1 if format came from _FORMAT attribute */
 extern int enhanced_flag; /* 1 => netcdf-4 constructs appear in the parse */
 extern int cdf5_flag; /* 1 => cdf-5 unsigned types in the parse */
@@ -160,6 +159,7 @@ extern int specials_flag; /* 1 => special attributes are present */
 extern int usingclassic;   /* 1 => k_flag == 1|2|5 */
 extern int k_flag;
 extern int ncloglevel;
+extern GlobalSpecialData globalspecials;
 
 /* Global data */
 
@@ -199,6 +199,6 @@ extern void* emalloc (size_t);
 extern void* ecalloc (size_t);
 extern void* erealloc(void*,size_t);
 
-extern char* specialname(int flag);
+extern const char* specialname(int tag);
 
 #endif /*!NC_GENLIB_H*/

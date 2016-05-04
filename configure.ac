@@ -68,7 +68,7 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 
 # This call is required by automake.
-AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
+AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects serial-tests])
 
 # Check for the existence of this file before proceeding.
 AC_CONFIG_SRCDIR([include/netcdf.h])
@@ -199,6 +199,21 @@ if test "x$enable_netcdf4" = xno ; then
 enable_netcdf_4=no
 fi
 AC_MSG_RESULT([$enable_netcdf_4])
+
+####
+# Is Netcdf4 file info capture enabled; includes properties attribute
+# We do not actually provide a direct flag for disabling this
+if test "x$enable_netcdf_4" = xyes ; then
+enable_fileinfo=yes
+else
+enable_fileinfo=no
+fi
+AC_MSG_CHECKING([If file info capture is enabled])
+AC_MSG_RESULT([$enable_fileinfo])
+if test "x$enable_fileinfo" = xyes ; then
+AC_DEFINE([ENABLE_FILEINFO], [1], [file info])
+fi
+AM_CONDITIONAL(ENABLE_FILEINFO, [test x$enable_fileinfo = xyes])
 
 # Does the user require dynamic loading?
 # This is only for those hdf5 installs that support it.

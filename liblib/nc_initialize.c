@@ -10,6 +10,7 @@
 #endif
 
 #include "ncdispatch.h"
+#include "nc4internal.h"
 
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
@@ -54,25 +55,26 @@ nc_initialize()
     NC_finalized = 0;
 
     /* Do general initialization */
-    if((stat = NCDISPATCH_initialize())) return stat;
+    if((stat = NCDISPATCH_initialize())) goto done;
 
     /* Initialize each active protocol */
-
-    if((stat = NC3_initialize())) return stat;
-
+    if((stat = NC3_initialize())) goto done;
 #ifdef USE_DAP
-    if((stat = NCD2_initialize())) return stat;
+    if((stat = NCD2_initialize())) goto done;
 #endif
-
 #ifdef USE_PNETCDF
-    if((stat = NCP_initialize())) return stat;
+    if((stat = NCP_initialize())) goto done;
 #endif
-
 #ifdef USE_NETCDF4
-    if((stat = NC4_initialize())) return stat;
+    if((stat = NC4_initialize())) goto done;
 #endif /* USE_NETCDF4 */
 
-    return NC_NOERR;
+#ifdef ENABLE_FILEINFO
+    stat = NC4_fileinfo_init();
+#endif
+
+done:
+    return stat;
 }
 
 /**
@@ -114,5 +116,3 @@ nc_finalize(void)
 
     return NC_NOERR;
 }
-
-

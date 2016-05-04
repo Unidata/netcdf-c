@@ -17,5 +17,6 @@
 #define NC_ATT_SHUFFLE     "_Shuffle"
 #define NC_ATT_STORAGE     "_Storage"
 #define NC_ATT_NOFILL      "_NoFill"
+#define NC_ATT_NETCDF4     "_NetCDF4"
 
 #endif	/*_CDL_H_ */

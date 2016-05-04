@@ -59,6 +59,12 @@ IF(ENABLE_TESTS)
   TARGET_LINK_LIBRARIES(bom netcdf)
   TARGET_LINK_LIBRARIES(tst_dimsizes netcdf)
 
+IF(ENABLE_PROPERTIES_ATTRIBUTE)
+  ADD_EXECUTABLE(tst_fileinfo tst_fileinfo.c)
+  TARGET_LINK_LIBRARIES(tst_fileinfo netcdf)
+  add_sh_test(ncdump tst_fileinfo)
+ENDIF()
+
 IF(MSVC)
   SET_TARGET_PROPERTIES(rewrite-scalar PROPERTIES RUNTIME_OUTPUT_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR})
@@ -80,6 +86,8 @@ IF(MSVC)
     ${CMAKE_CURRENT_BINARY_DIR})
   SET_TARGET_PROPERTIES(tst_dimsizes PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
     ${CMAKE_CURRENT_BINARY_DIR})
+  SET_TARGET_PROPERTIES(tst_fileinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+    ${CMAKE_CURRENT_BINARY_DIR})
 ENDIF()
 
   # Base tests
@@ -96,7 +104,6 @@ ENDIF()
   add_sh_test(ncdump tst_lengths)
   add_sh_test(ncdump tst_calendars)
   add_bin_test(ncdump tst_utf8)
-
   add_sh_test(ncdump run_utf8_tests)
   IF(USE_NETCDF4)
     add_sh_test(ncdump run_utf8_nc4_tests)

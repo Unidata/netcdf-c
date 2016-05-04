@@ -24,7 +24,7 @@ fi
 
 CFLAGS=""
 #CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
-CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter ${CFLAGS}"
+CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign -Wno-format ${CFLAGS}"
 #CFLAGS="-Wall ${CFLAGS}"
 #CFLAGS="-Wconversion"
 
@@ -116,21 +116,23 @@ FLAGS="$FLAGS --disable-examples"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 FLAGS="$FLAGS --enable-dap-auth-tests"
 #FLAGS="$FLAGS --enable-doxygen"
-FLAGS="$FLAGS --enable-logging"
+#FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-mmap"
 #FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
 #valgrind => not shared
 #FLAGS="$FLAGS --enable-valgrind-tests"
-FLAGS="$FLAGS --enable-jna"
+#FLAGS="$FLAGS --enable-jna"
+#FLAGS="$FLAGS --disable-properties-attribute"
+#FLAGS="$FLAGS --disable-silent-rules"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
 fi
 
 if test "x${DB}" = x1 ; then
-FLAGS="$FLAGS --disable-shared"
+FLAGS="$FLAGS --disable-shared --enable-static"
 else
 FLAGS="$FLAGS --enable-shared"
 fi

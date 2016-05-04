@@ -12,7 +12,6 @@ COPYRIGHT file for copying and redistribution conditions.
 #include "config.h"
 #include <errno.h>  /* netcdf functions sometimes return system errors */
 
-
 #include "nc.h"
 #include "nc4internal.h"
 #include "nc4dispatch.h"
@@ -28,6 +27,11 @@ COPYRIGHT file for copying and redistribution conditions.
 #include <hdf5_hl.h>
 #endif
 
+/* When we have open objects at file close, should
+   we log them or print to stdout. Default is to log
+*/
+#define LOGOPEN 1
+
 /* This is to track opened HDF5 objects to make sure they are
  * closed. */
 #ifdef EXTRA_TESTS
@@ -38,17 +42,12 @@ extern int num_spaces;
 #define MIN_DEFLATE_LEVEL 0
 #define MAX_DEFLATE_LEVEL 9
 
-/* These are the special attributes added by the HDF5 dimension scale
- * API. They will be ignored by netCDF-4. */
-#define REFERENCE_LIST "REFERENCE_LIST"
-#define CLASS "CLASS"
-#define DIMENSION_LIST "DIMENSION_LIST"
-#define NAME "NAME"
-
 /* Define the illegal mode flags */
 static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET);
 
 static const int ILLEGAL_CREATE_FLAGS = (NC_NOWRITE|NC_MMAP|NC_INMEMORY|NC_64BIT_OFFSET|NC_CDF5);
+
+extern void reportopenobjects(int log, hid_t);
 
 /*! Struct to track information about objects in a group, for nc4_rec_read_metadata()
 
@@ -79,6 +78,46 @@ typedef struct NC4_rec_read_metadata_ud
 static int NC4_enddef(int ncid);
 static int nc4_rec_read_metadata(NC_GRP_INFO_T *grp);
 static int close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort);
+
+/* Define the names of attributes to ignore
+ * added by the HDF5 dimension scale; these
+ * attached to variables.
+ * They cannot be modified thru the netcdf-4 API.
+ */
+const char* NC_RESERVED_VARATT_LIST[] = {
+NC_ATT_REFERENCE_LIST,
+NC_ATT_CLASS,
+NC_ATT_DIMENSION_LIST,
+NC_ATT_NAME,
+NC_ATT_COORDINATES,
+NC_DIMID_ATT_NAME,
+NULL
+};
+
+/* Define the names of attributes to ignore
+ * because they are "hidden" global attributes.
+ * They can be read, but not modified thru the netcdf-4 API.
+ */
+const char* NC_RESERVED_ATT_LIST[] = {
+NC_ATT_FORMAT,
+NC3_STRICT_ATT_NAME,
+#ifdef ENABLE_FILEINFO
+NCPROPS,
+ISNETCDF4ATT,
+SUPERBLOCKATT,
+#endif
+NULL
+};
+
+#ifdef ENABLE_FILEINFO
+/* Define the subset of the reserved list that is readable by name only */
+const char* NC_RESERVED_SPECIAL_LIST[] = {
+ISNETCDF4ATT,
+SUPERBLOCKATT,
+NCPROPS,
+NULL
+};
+#endif
 
 /* These are the default chunk cache sizes for HDF5 files created or
  * opened with netCDF-4. */
@@ -314,7 +353,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 	return NC_NOERR;
 #endif
 
-   /* Need this access plist to control how HDF5 handles open onjects
+   /* Need this access plist to control how HDF5 handles open objects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
     * fail if there are any open objects in the file. */
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
@@ -424,8 +463,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       BAIL(NC_EFILEMETA);
 
    /* Release the property lists. */
-   if (H5Pclose(fapl_id) < 0 ||
-       H5Pclose(fcpl_id) < 0)
+   if (H5Pclose(fapl_id) < 0 || H5Pclose(fcpl_id) < 0)
       BAIL(NC_EHDFERR);
 #ifdef EXTRA_TESTS
    num_plists--;
@@ -434,6 +472,11 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 
    /* Define mode gets turned on automatically on create. */
    nc4_info->flags |= NC_INDEF;
+
+#ifdef ENABLE_FILEINFO
+   NC4_get_fileinfo(nc4_info,&globalpropinfo);
+   NC4_put_propattr(nc4_info);
+#endif  
 
    return NC_NOERR;
 
@@ -474,6 +517,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    MPI_Comm comm = MPI_COMM_WORLD;
    MPI_Info info = MPI_INFO_NULL;
    int res;
+   NC* nc;
 
    assert(nc_file && path);
 
@@ -1490,6 +1534,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    hid_t access_pid = 0;
    int incr_id_rc = 0;          /* Whether the dataset ID's ref count has been incremented */
    int natts, a, d;
+   const char** reserved;
 
    NC_ATT_INFO_T *att;
    hid_t attid = 0;
@@ -1758,13 +1803,10 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       LOG((4, "%s:: a %d att_name %s", __func__, a, att_name));
 
       /* Should we ignore this attribute? */
-      if (strcmp(att_name, REFERENCE_LIST) &&
-	  strcmp(att_name, CLASS) &&
-	  strcmp(att_name, DIMENSION_LIST) &&
-	  strcmp(att_name, NAME) &&
-	  strcmp(att_name, COORDINATES) &&
-	  strcmp(att_name, NC_DIMID_ATT_NAME))
-      {
+      for(reserved=NC_RESERVED_VARATT_LIST;*reserved;reserved++) {
+          if (strcmp(att_name, *reserved)==0) break;
+      }
+      if(*reserved == NULL) {
 	 /* Add to the end of the list of atts for this var. */
 	 if ((retval = nc4_att_list_add(&var->att, &att)))
 	    BAIL(retval);
@@ -1825,36 +1867,43 @@ exit:
 static int
 read_grp_atts(NC_GRP_INFO_T *grp)
 {
-   hid_t attid = 0;
+   hid_t attid = -1;
    hsize_t num_obj, i;
    NC_ATT_INFO_T *att;
    NC_TYPE_INFO_T *type;
    char obj_name[NC_MAX_HDF5_NAME + 1];
    int max_len;
    int retval = NC_NOERR;
+   int hidden = 0;
 
    num_obj = H5Aget_num_attrs(grp->hdf_grpid);
    for (i = 0; i < num_obj; i++)
    {
-      /* Close an attribute from previous loop iteration */
-      /* (Should be from 'continue' statement, below) */
-      if (attid && H5Aclose(attid) < 0)
-         BAIL(NC_EHDFERR);
-
       if ((attid = H5Aopen_idx(grp->hdf_grpid, (unsigned int)i)) < 0)
          BAIL(NC_EATTMETA);
       if (H5Aget_name(attid, NC_MAX_NAME + 1, obj_name) < 0)
          BAIL(NC_EATTMETA);
       LOG((3, "reading attribute of _netCDF group, named %s", obj_name));
 
+      /* See if this a hidden, global attribute */
+      if(grp->nc4_info->root_grp == grp) {
+	const char** reserved = NC_RESERVED_ATT_LIST;
+	hidden = 0;
+	for(;*reserved;reserved++) {
+	    if(strcmp(*reserved,obj_name)==0) {
+		hidden = 1;
+		break;
+	    }
+	}
+      }
+
       /* This may be an attribute telling us that strict netcdf-3
        * rules are in effect. If so, we will make note of the fact,
        * but not add this attribute to the metadata. It's not a user
        * attribute, but an internal netcdf-4 one. */
-      if (!strcmp(obj_name, NC3_STRICT_ATT_NAME))
-         grp->nc4_info->cmode |= NC_CLASSIC_MODEL;
-      else
-      {
+      if(strcmp(obj_name, NC3_STRICT_ATT_NAME)==0)
+             grp->nc4_info->cmode |= NC_CLASSIC_MODEL;
+      else if(!hidden) {
          /* Add an att struct at the end of the list, and then go to it. */
          if ((retval = nc4_att_list_add(&grp->att, &att)))
             BAIL(retval);
@@ -1866,26 +1915,28 @@ read_grp_atts(NC_GRP_INFO_T *grp)
          strncpy(att->name, obj_name, max_len);
          att->name[max_len] = 0;
          att->attnum = grp->natts++;
-         if ((retval = read_hdf5_att(grp, attid, att)))
-         {
-            if (NC_EBADTYPID == retval)
-            {
-               if ((retval = nc4_att_list_del(&grp->att, att)))
+         retval = read_hdf5_att(grp, attid, att);
+         if(retval == NC_EBADTYPID) {
+               if((retval = nc4_att_list_del(&grp->att, att)))
                   BAIL(retval);
-               continue;
-            }
-            else
+	 } else if(retval) {
                BAIL(retval);
-         }
-         att->created = NC_TRUE;
-         if ((retval = nc4_find_type(grp->nc4_info, att->nc_typeid, &type)))
-            BAIL(retval);
+         } else {
+             att->created = NC_TRUE;
+	     if ((retval = nc4_find_type(grp->nc4_info, att->nc_typeid, &type)))
+            	BAIL(retval);
+	 }
       }
+      /* Unconditionally close the open attribute */
+      H5Aclose(attid);
+      attid = -1;
    }
 
-  exit:
-   if (attid > 0 && H5Aclose(attid) < 0)
-      BAIL2(NC_EHDFERR);
+exit:
+   if (attid > 0) {
+	if(H5Aclose(attid) < 0)
+            BAIL2(NC_EHDFERR);
+   }
    return retval;
 }
 
@@ -2229,7 +2280,6 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       BAIL(NC_EHDFERR);
 #endif
 
-
 #ifdef USE_PARALLEL4
    /* If this is a parallel file create, set up the file creation
       property list. */
@@ -2321,6 +2371,10 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       BAIL(NC_EHDFERR);
 #ifdef EXTRA_TESTS
    num_plists--;
+#endif
+
+#ifdef ENABLE_FILEINFO
+   NC4_get_fileinfo(nc4_info,NULL);
 #endif
 
    return NC_NOERR;
@@ -2834,7 +2888,6 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* USE_HDF4 */
    else
          assert(0); /* should never happen */
-
    return res;
 }
 
@@ -3087,6 +3140,11 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
               MPI_Info_free(&h5->info);
       }
 #endif
+
+#ifdef ENABLE_FILEINFO
+      if(h5->fileinfo) free(h5->fileinfo);
+#endif
+
       if (H5Fclose(h5->hdfid) < 0)
       {
 	int nobjs;
@@ -3097,23 +3155,29 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
           BAIL_QUIET(NC_EHDFERR);
 	} else if(nobjs > 0) {
 #ifdef LOGGING
+	 char msg[1024];
+	 int logit = 1;
 	 /* If the close doesn't work, probably there are still some HDF5
 	  * objects open, which means there's a bug in the library. So
 	  * print out some info on to help the poor programmer figure it
 	  * out. */
-         LOG((0, "There are %d HDF5 objects open!", nobjs));
+	snprintf(msg,sizeof(msg),"There are %d HDF5 objects open!", nobjs);
+#ifdef LOGOPEN
+         LOG((0, msg));
+#else
+         fprintf(stdout,msg);
+	 logit = 0;
 #endif
-         BAIL_QUIET(NC_EHDFERR);
-	}
+	 reportopenobjects(logit,h5->hdfid);
+#endif
       }
+    }
    }
-
 exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
    if(h5 != NULL)
        free(h5);
-
    return retval;
 }
 

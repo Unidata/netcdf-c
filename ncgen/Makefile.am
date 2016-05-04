@@ -43,7 +43,7 @@ CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
 # autoconf will forcibly delete files of the name *.tab.*
 
 makeparser::
-	flex -L -Pncg -8 ncgen.l
+	flex -Pncg -8 ncgen.l
 	rm -f ncgenl.c
 	sed -e s/lex.ncg.c/ncgenl.c/g <lex.ncg.c >ncgenl.c
 	bison -pncg -t -d ncgen.y

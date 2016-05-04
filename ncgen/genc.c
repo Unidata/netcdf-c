@@ -414,7 +414,7 @@ genc_defineglobalspecials(void)
     if(usingclassic) return;
     if(!/*Main.*/format_attribute) return;
     /* Watch out, this is a global Attribute */
-    format = kind_string(/*Main.*/format_flag);
+    format = kind_string(globalspecials._Format);
     bbprintf0(stmt,"%sstat = nc_put_att_text(ncid, NC_GLOBAL, \"_Format\", 1, \"%s\");\n",
 	          indented(1),
 		  format);

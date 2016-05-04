@@ -150,6 +150,7 @@ extern int nc_next_giter(ncgiter_t *iterp, int *grpid);
  * Release memory allocated for group iterator.
  */
 extern void nc_free_giter(ncgiter_t *iterp);
+extern int getrootid(int grpid);
 
 #ifdef __cplusplus
 }

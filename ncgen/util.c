@@ -695,3 +695,17 @@ kind_string(int kind)
     }
     return NULL;
 }
+
+int
+getrootid(int grpid)
+{
+    int current = grpid;
+    int parent = current;
+    /* see if root id */
+    for(;;) {
+        int stat = nc_inq_grp_parent(current,&parent);
+        if(stat) break;
+	current = parent;
+    }
+    return current;
+}

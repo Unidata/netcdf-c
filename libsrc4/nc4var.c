@@ -1474,10 +1474,7 @@ nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp,
    NC_VAR_INFO_T *var;
    int32 start32[NC_MAX_VAR_DIMS], edge32[NC_MAX_VAR_DIMS];
    int retval, d;
-#if 0
-   NC_GRP_INFO_T *g;
-   NC_DIM_INFO_T *dim;
-#endif
+
    /* Find our metadata for this file, group, and var. */
    assert(nc);
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))

@@ -42,7 +42,7 @@ ZLIB="-DZLIB_LIBRARY=${ZP}/$ZLIB -DZLIB_INCLUDE_DIR=${ZP}/include -DZLIB_INCLUDE
 HDF5="-DHDF5_LIB=${HP}/$H5LIB -DHDF5_HL_LIB=${HP}/$H5LIB_HL -DHDF5_INCLUDE_DIR=${HP}/include"
 CURL="-DCURL_LIBRARY=${CP}/$CURLLIB -DCURL_INCLUDE_DIR=${CP}/include -DCURL_INCLUDE_DIRS=${CP}/include"
 
-FLAGS="$FLAGS -DCMAKE_C_FLAGS='-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter'"x2
+#FLAGS="$FLAGS -DCMAKE_C_FLAGS='-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter'"x2
 
 #FLAGS="$FLAGS -DENABLE_DAP=false"
 #FLAGS="$FLAGS -DENABLE_NETCDF_4=false"

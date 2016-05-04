@@ -191,7 +191,6 @@ OPTION(NC_FIND_SHARED_LIBS "Find dynamically-built versions of dependent librari
 ##
 OPTION(ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file name of the generated library file." ON)
 
-
 # Set some default linux gcc & apple compiler options for
 # debug builds.
 IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
@@ -752,6 +751,12 @@ IF(NOT WIN32)
   ENDIF()
 ENDIF()
 
+OPTION(ENABLE_PROPERTIES_ATTRIBUTE "Enable properties attribute." ON)
+IF(ENABLE_PROPERTIES_ATTRIBUTE)
+  SET(ENABLE_PROPATTR ON CACHE BOOL "")
+ENDIF()
+
+
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
@@ -1064,6 +1069,11 @@ MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_COVERAGE_TESTS )
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
 MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
 MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
+
+# This option is temporary and should always be on
+OPTION(ENABLE_FILEINFO "Enable FILEINFO." ON)
+MARK_AS_ADVANCED(ENABLE_FILEINFO)
+
 ################################
 # Option checks
 ################################

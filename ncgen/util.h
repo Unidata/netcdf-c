@@ -61,6 +61,7 @@ extern int getpadding(int offset, int alignment);
 extern void check_err(const int stat, const int line, const char* file);
 extern void check_err2(const int stat, const int cdlline, const int line, const char* file);
 extern const char* kind_string(int kind);
+extern int getrootid(int grpid);
 
 /* Inline functions */
 #define isunlimited(dimset,i) ((dimset)->dimsyms[i]->dim.isunlimited)

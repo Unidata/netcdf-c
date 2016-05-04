@@ -43,7 +43,7 @@ typedef struct {			/* specification for how to format dump */
 				 * for optimization characteristics:
 				 * _Compression, _Chunking,
 				 * _Endianness, _Format, _Checksum,
-				 * _NoFill */
+				 * _NoFill, _NetCDF4 */
 
     Nclang data_lang;		/* Specifies index conventions used in data
 				 * comments, either LANG_C (C, 0-based,
@@ -78,6 +78,7 @@ typedef struct {			/* specification for how to format dump */
     int nc_mode;                /* mode as reported by inq_format_extended */
 
     int xopt_inmemory;      /* Use in-memory option; testing only */
+    int xopt_props ;      /* 1=>Unconditionally Suppress properties attribute */
 } fspec_t;
 
 #endif	/*_NCDUMP_H_ */
