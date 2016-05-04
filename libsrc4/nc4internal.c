@@ -45,7 +45,7 @@ int nc_log_level = -1;
 
 #endif /* LOGGING */
 
-static int nc4_hdf5_initialized = 0;
+int nc4_hdf5_initialized = 0;
 
 /*
 Provide a function to do any necessary initialization
@@ -544,12 +544,13 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 
    /* Now find the attribute by name or number. If a name is provided,
     * ignore the attnum. */
-   for (*att = attlist; *att; *att = (*att)->l.next) {
-      if (name && (*att)->name && !strcmp((*att)->name, name))
-	return NC_NOERR;
-      if (!name && (*att)->attnum == attnum)
-	return NC_NOERR;
-   }
+   if(attlist)
+       for (*att = attlist; *att; *att = (*att)->l.next) {
+           if (name && (*att)->name && !strcmp((*att)->name, name))
+	       return NC_NOERR;
+           if (!name && (*att)->attnum == attnum)
+	       return NC_NOERR;
+       }
 
    /* If we get here, we couldn't find the attribute. */
    return NC_ENOTATT;

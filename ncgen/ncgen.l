@@ -115,19 +115,19 @@ static int tagmatch(nc_type nct, int tag);
 static int nct2lexeme(nc_type nct);
 static int collecttag(char* text, char** stagp);
 
-static struct Specialtoken {
-    char* name;
-    int   token;
-} specials[] = {
-{"_FillValue",_FILLVALUE},
-{"_Format",_FORMAT},
-{"_Storage",_STORAGE},
-{"_ChunkSizes",_CHUNKSIZES},
-{"_Fletcher32",_FLETCHER32},
-{"_DeflateLevel",_DEFLATELEVEL},
-{"_Shuffle",_SHUFFLE},
-{"_Endianness",_ENDIANNESS},
-{"_NoFill",_NOFILL},
+struct Specialtoken specials[] = {
+{"_FillValue",_FILLVALUE,_FILLVALUE_FLAG},
+{"_Format",_FORMAT,_FORMAT_FLAG},
+{"_Storage",_STORAGE,_STORAGE_FLAG},
+{"_ChunkSizes",_CHUNKSIZES,_CHUNKSIZES_FLAG},
+{"_Fletcher32",_FLETCHER32,_FLETCHER32_FLAG},
+{"_DeflateLevel",_DEFLATELEVEL,_DEFLATE_FLAG},
+{"_Shuffle",_SHUFFLE,_SHUFFLE_FLAG},
+{"_Endianness",_ENDIANNESS,_ENDIAN_FLAG},
+{"_NoFill",_NOFILL,_NOFILL_FLAG},
+{"_NCProperties",_NCPROPS,_NCPROPS_FLAG},
+{"_IsNetcdf4",_ISNETCDF4,_ISNETCDF4_FLAG},
+{"_SuperblockVersion",_SUPERBLOCK,_SUPERBLOCK_FLAG},
 {NULL,0} /* null terminate */
 };
 
@@ -206,7 +206,7 @@ NUMBER       [+-]?[0-9][0-9]*[Uu]?([BbSs]|[Ll]|[Ll][Ll])?
 DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
-SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"
+SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"
 
 USASCII   [\x01-\x7F]
 

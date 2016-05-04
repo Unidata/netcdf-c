@@ -25,6 +25,8 @@
 
 #define NC3_STRICT_ATT_NAME "_nc3_strict"
 
+#define NC_HDF5_MAX_NAME 1024
+
 /* This is to track opened HDF5 objects to make sure they are
  * closed. */
 #ifdef EXTRA_TESTS
@@ -1901,10 +1903,10 @@ write_nc3_strict_att(hid_t hdf_grpid)
         BAIL(NC_EHDFERR);
       if (H5Aget_name(attid, NC_MAX_HDF5_NAME, att_name) < 0)
         BAIL(NC_EHDFERR);
-      if (!strcmp(att_name, NC3_STRICT_ATT_NAME))
-        {
-          if (H5Aclose(attid) < 0)
+      if (H5Aclose(attid) < 0)
             return NC_EFILEMETA;
+      if (strcmp(att_name, NC3_STRICT_ATT_NAME)==0)
+        {
           return NC_NOERR;
         }
     }
@@ -2488,14 +2490,12 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
   int coord_varid = -1;
 
   int retval;
-
   assert(grp && grp->name && grp->hdf_grpid);
   LOG((3, "%s: grp->name %s, bad_coord_order %d", __func__, grp->name, bad_coord_order));
 
   /* Write global attributes for this group. */
   if ((retval = write_attlist(grp->att, NC_GLOBAL, grp)))
     return retval;
-
   /* Set the pointers to the beginning of the list of dims & vars in this
    * group. */
   dim = grp->dim;
@@ -3848,3 +3848,228 @@ nc4_get_typeclass(const NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int *type_class)
  exit:
   return retval;
 }
+
+int
+NC4_test_netcdf4(void)
+{
+    return NC_NOERR;
+}
+void
+reportobject(int log, hid_t id, unsigned int type)
+{
+#   define MAXNAME 1024
+    char name[MAXNAME];
+    ssize_t len;
+    const char* typename = NULL;       
+
+    len = H5Iget_name(id, name, MAXNAME);
+    if(len < 0) return;
+    name[len] = '\0';
+
+    switch (type) {
+    case H5F_OBJ_FILE: typename = "File"; break;
+    case H5F_OBJ_DATASET: typename = "Dataset"; break;
+    case H5F_OBJ_GROUP: typename = "Group"; break;
+    case H5F_OBJ_DATATYPE: typename = "Datatype"; break;
+    case H5F_OBJ_ATTR:
+	typename = "Attribute";
+	len = H5Aget_name(id, MAXNAME, name);
+        if(len < 0) len = 0;
+	name[len] = '\0';
+	break;
+    default: typename = "<unknown>"; break;
+    }
+    if(log) {
+#ifdef LOGGING
+	LOG((0,"Type = %s(%8u) name='%s'",typename,id,name));
+#endif
+    } else {    
+	fprintf(stderr,"Type = %s(%8u) name='%s'",typename,id,name);
+    }
+}
+
+static unsigned int OTYPES[5] = {H5F_OBJ_FILE, H5F_OBJ_DATASET, H5F_OBJ_GROUP, H5F_OBJ_DATATYPE, H5F_OBJ_ATTR};
+
+static void
+reportopenobjectsT(int log, hid_t fid, int ntypes, unsigned int* otypes)
+{
+    int t,i;
+    ssize_t ocount;
+    size_t maxobjs = -1;
+    hid_t* idlist = NULL;
+
+    if(log) {
+#ifdef LOGGING
+        LOG((0,"\nReport: open objects on %d\n",fid));
+#endif
+    } else {
+        fprintf(stdout,"\nReport: open objects on %d\n",fid);
+    }
+    maxobjs = H5Fget_obj_count(fid,H5F_OBJ_ALL);
+    if(idlist != NULL) free(idlist);
+    idlist = (hid_t*)malloc(sizeof(hid_t)*maxobjs);
+    for(t=0;t<ntypes;t++) {    
+	unsigned int ot = otypes[t];
+	if(ot < 0) break;
+        ocount = H5Fget_obj_ids(fid,ot,maxobjs,idlist);
+	for(i=0;i<ocount;i++) {
+	    hid_t o = idlist[i];
+	    reportobject(log,o,ot);
+	}
+    }
+    if(idlist != NULL) free(idlist);
+}
+
+void
+reportopenobjects(int log, hid_t fid)
+{
+    reportopenobjectsT(log, fid,5,OTYPES);
+}
+
+
+#ifdef ENABLE_FILEINFO
+int
+NC4_hdf5get_libversion(unsigned* major,unsigned* minor,unsigned* release)
+{
+    if(H5get_libversion(major,minor,release) < 0)
+	return NC_EHDFERR;
+    return NC_NOERR;
+}
+
+int
+NC4_hdf5get_superblock(struct NC_HDF5_FILE_INFO* h5, int* idp)
+{
+    int stat = NC_NOERR;
+    unsigned super;
+    hid_t plist = -1;
+    if((plist = H5Fget_create_plist(h5->hdfid)) < 0)
+	{stat = NC_EHDFERR; goto done;}
+    if(H5Pget_version(plist, &super, NULL, NULL, NULL) < 0) 
+	{stat = NC_EHDFERR; goto done;}
+    if(idp) *idp = (int)super;
+done:
+    if(plist >= 0) H5Pclose(plist);
+    return stat;
+}
+
+/* We define a file as being from netcdf-4 if any of the following
+are true:
+1. NCPROPS attribute exists in root group
+2. NC3_STRICT_ATT_NAME exists in root group
+3. any of NC_ATT_REFERENCE_LIST, NC_ATT_CLASS,
+   NC_ATT_DIMENSION_LIST, NC_ATT_NAME,
+   NC_ATT_COORDINATES, NC_DIMID_ATT_NAME
+   exist anywhere in the file; note that this
+   requires walking the file.
+WARNINGS:
+1. False negatives are possible for a small subset of netcdf-4
+   created files.
+2. Deliberate falsification in the file can be used to cause
+   a false positive.
+*/
+
+static int NC4_get_strict_att(NC_HDF5_FILE_INFO_T*);
+static int NC4_walk(hid_t, int*);
+
+int
+NC4_isnetcdf4(struct NC_HDF5_FILE_INFO* h5)
+{
+    int stat;
+    int isnc4 = 0;
+    int count;
+
+#if 0
+    if(h5->fileinfo->propattr.version > 0) {
+	isnc4 = 1;
+	goto done;
+    }
+#endif
+    /* Look for NC3_STRICT_ATT_NAME */
+    isnc4 = NC4_get_strict_att(h5);
+    if(isnc4 > 0)
+	goto done;
+    /* attribute did not exist */
+    /* => last resort: walk the HDF5 file looking for markers */
+    count = 0;
+    stat = NC4_walk(h5->root_grp->hdf_grpid, &count);
+    if(stat != NC_NOERR)
+	isnc4 = 0;
+    else /* Threshold is at least two matches */
+	isnc4 = (count >= 2);
+
+done:
+    return isnc4;
+}
+
+static int
+NC4_get_strict_att(NC_HDF5_FILE_INFO_T* h5)
+{
+    int ncstat = NC_NOERR;
+    size_t size;
+    char text[NCPROPS_LENGTH+1];
+    hid_t grp = -1;
+    hid_t attid = -1;
+    herr_t herr = 0;
+
+    /* Get root group */
+    grp = h5->root_grp->hdf_grpid; /* get root group */
+    /* Try to extract the NC3_STRICT_ATT_NAME attribute */
+    attid = H5Aopen_name(grp, NC3_STRICT_ATT_NAME);
+    H5Aclose(attid);
+    return attid;
+}
+
+static int
+NC4_walk(hid_t gid, int* countp)
+{
+    int ncstat = NC_NOERR;
+    int i,j,na;
+    ssize_t len;
+    hsize_t nobj;
+    herr_t err;
+    int otype;
+    hid_t grpid, dsid;
+    char name[NC_HDF5_MAX_NAME];
+
+    /* walk group members of interest */
+    err = H5Gget_num_objs(gid, &nobj);
+    for(i = 0; i < nobj; i++) {
+        /* Get name & kind of object in the group */
+        len = H5Gget_objname_by_idx(gid,(hsize_t)i,name,(size_t)NC_HDF5_MAX_NAME);
+        otype =  H5Gget_objtype_by_idx(gid,(size_t)i);
+        switch(otype) {
+        case H5G_GROUP:
+            grpid = H5Gopen(gid,name);
+            NC4_walk(grpid,countp);
+            H5Gclose(grpid);
+            break;
+        case H5G_DATASET: /* variables */
+	    /* Check for phony_dim */
+	    if(strcmp(name,"phony_dim")==0)
+		*countp = *countp + 1;
+            dsid = H5Dopen(gid,name);
+            na = H5Aget_num_attrs(dsid);
+            for(j = 0; j < na; j++) {
+                hid_t aid =  H5Aopen_idx(dsid,(unsigned int)    j);
+                if(aid >= 0) {
+                    const char** p;
+                    ssize_t len = H5Aget_name(aid, NC_HDF5_MAX_NAME, name);
+                    /* Is this a netcdf-4 marker attribute */
+                        for(p=NC_RESERVED_VARATT_LIST;*p;p++) {
+                            if(strcmp(name,*p) ==     0) {
+                                *countp = *countp + 1;
+                            }
+                        }               
+                }
+                H5Aclose(aid);
+            }
+            H5Dclose(dsid);
+            break;
+        default:/* ignore */
+            break;
+            }
+    }
+    return ncstat;
+}
+
+#endif

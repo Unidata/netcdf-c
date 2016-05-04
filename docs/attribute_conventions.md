@@ -126,3 +126,42 @@ It is strongly recommended that applicable conventions be followed unless there 
 <p>
 
 > Typical conventions web sites will include references to documents in some form agreed upon by the community that supports the conventions and examples of netCDF file structures that follow the conventions.
+
+# Provenance Attributes
+
+These attributes can occur in netCDF enhanced (netcdf-4) files beginning
+with version 4.4.1. They all are associated with the root group as
+global attributes. They are hidden in the sense that they can only be
+accessed thru the netcdf-C api calls via the name. They have no
+attribute number and will not be counted in the number of global
+attributes in the root group. The simplest way to view these attributes
+is to use the -s flag to the ncdump command.
+
+`_NCProperties`
+
+> This attribute is persistent in the file, but hidden. It is inserted in the file at creation time and is never modified after that point. It specifies the following.
+> - The version for the netcdf library used at creation time.
+> - The version for the HDF5 library used at creation time.
+
+> Its format is: `name=value|name=value ...`<br>
+> Occurrences of '|' in the name or value are disallowed.
+
+> The current set of known names is as follows.
+> - version=... The current format version for the _NCProperties file, currently 1.
+> - netcdflibversion=... The version of the netcdf library used to create the file. The value is, for example, 4.4.1-rc1-development or 4.4.1.
+> - hdf5libversion=... The version of the HDF5 library used to create the file. The value is, for example, 1.8.16 or 1.10.0.
+
+`_SuperblockVersion`
+
+> This attribute is ephemeral in that it is computed by looking at the file's HDF5 superblock.
+> It has this form: `_SuperBlockVersion = 0|1|2|3|...`
+
+`_IsNetcdf4`
+
+> This attribute is ephemeral in that it is computed by walking the metadata of the file looking for attributes specific to netCDF-4 files.
+
+> The _IsNetcdf4 attribute has the form: `_IsNetcdf4 = 0|1`
+> where 1 means the file has various tags indicating it was produced thru the netcdf-4 API.
+
+> This attribute is computed by using the HDF5 API to walk the file to look for attributes specific to netcdf-4.  False negatives are possible for a small subset of netcdf-4 files, especially those not containing dimensions. False positives are only possible by deliberate modifications to an existing HDF5 file thru the HDF5 API. For files with the _NCProperties attribute, this attribute is redundant. For files created prior to the introduction of the _NCProperties attribute, this may be a useful indicator of the provenance of the file.
+

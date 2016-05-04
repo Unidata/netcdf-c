@@ -653,7 +653,7 @@ stripped from the name for the netCDF API.
 Attributes in HDF5 and netCDF-4 correspond very closely. Each
 attribute in an HDF5 file is represented as an attribute in the
 netCDF-4 file, with the exception of the attributes below, which are
-ignored by the netCDF-4 API.
+hidden by the netCDF-4 API.
 - _Netcdf4Coordinates An integer array containing the dimension IDs of
   a variable which is a multi-dimensional coordinate variable.
 - _nc3_strict When this (scalar, H5T_NATIVE_INT) attribute exists in
@@ -670,6 +670,9 @@ ignored by the netCDF-4 API.
 - _Netcdf4Dimid Holds a scalar H5T_NATIVE_INT that is the (zero-based)
   dimension ID for this dimension, needed when dimensions and
   coordinate variables are defined in different orders.
+- _NCProperties Holds provenance information about a file at the time
+  it was created. It specifies the versions of the netCDF and HDF5
+  libraries used to create the file.
 
 \subsection user_defined_spec User-Defined Data Types
 

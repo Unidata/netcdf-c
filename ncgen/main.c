@@ -38,7 +38,6 @@ int header_only;
 
 /* flags for tracking what output format to use */
 int k_flag;    /* > 0  => -k was specified on command line*/
-int format_flag;   /* _Format attribute value (same range as -k flag) */
 int format_attribute; /* 1=>format came from format attribute */
 int enhanced_flag; /* 1 => netcdf-4 */
 int cdf5_flag; /* 1 => cdf5 | maybe netcdf-4 */
@@ -47,6 +46,8 @@ int usingclassic;
 int cmode_modifier;
 int diskless;
 int ncloglevel;
+
+GlobalSpecialData globalspecials;
 
 char* binary_ext = ".nc";
 
@@ -231,7 +232,6 @@ main(
     nciterbuffersize = 0;
 
     k_flag = 0;
-    format_flag = 0;
     format_attribute = 0;
     enhanced_flag = 0;
     cdf5_flag = 0;
@@ -242,6 +242,7 @@ main(
 #else
     ncloglevel = -1;
 #endif
+    memset(&globalspecials,0,sizeof(GlobalSpecialData));
 
 #if _CRAYMPP && 0
     /* initialize CRAY MPP parallel-I/O library */
@@ -512,7 +513,7 @@ main(
     }
 
     if(k_flag == 0)
-      k_flag = format_flag;
+      k_flag = globalspecials._Format;
 
     if(cdf5_flag && !enhanced_flag && k_flag == 0)
       k_flag = 5;

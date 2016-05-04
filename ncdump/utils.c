@@ -745,3 +745,18 @@ nc_inq_grps_full(int rootid, int *numgrps, int *grpids)
     nc_free_giter(giter);
     return stat;
 }
+
+int
+getrootid(int grpid)
+{
+    int current = grpid;
+    int parent = current;
+    /* see if root id */
+    for(;;) {
+        int stat = nc_inq_grp_parent(current,&parent);
+        if(stat) break;
+	current = parent;
+    }
+    return current;
+}
+

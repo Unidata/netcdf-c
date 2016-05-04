@@ -82,7 +82,12 @@ if test -f ./tst_unicode -o -f ./tst_unicode.exe ; then
   #diff -b tst_unicode.cdl $srcdir/ref_tst_unicode.cdl
 fi
 ./tst_special_atts
-./ncdump -c -s tst_special_atts.nc | sed 's/e+0/e+/g' > tst_special_atts.cdl
+./ncdump -c -s tst_special_atts.nc \
+    | sed 's/e+0/e+/g' \
+    | sed -e 's/netcdflibversion=.*[|]/netcdflibversion=0.0.0|/' \
+    | sed -e 's/hdf5libversion=.*"/hdf5libversion=0.0.0"/' \
+    | sed -e 's|_SuperblockVersion = [0-9]|_SuperblockVersion = 0|' \
+    | cat > tst_special_atts.cdl
 echo "*** comparing tst_special_atts.cdl with ref_tst_special_atts.cdl..."
 diff -b tst_special_atts.cdl $srcdir/ref_tst_special_atts.cdl
 

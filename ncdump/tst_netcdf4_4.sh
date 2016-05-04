@@ -84,7 +84,11 @@ else # Non-MINGW Platforms
     # Exercise Jira NCF-213 bug fix
 #    rm -f tst_ncf213.cdl tst_ncf213.nc
     ../ncgen/ncgen -b -o tst_ncf213.nc $srcdir/ref_tst_ncf213.cdl
-    ./ncdump -s -h tst_ncf213.nc >tst_ncf213.cdl
+    ./ncdump -s -h tst_ncf213.nc \
+    | sed -e 's/netcdflibversion=.*[|]/netcdflibversion=0.0.0|/' \
+    | sed -e 's/hdf5libversion=.*"/hdf5libversion=0.0.0"/' \
+    | sed -e 's|_SuperblockVersion = [0-9]|_SuperblockVersion = 0|' \
+    | cat  >tst_ncf213.cdl
     # Now compare
     ok=1;
     if diff -b $srcdir/ref_tst_ncf213.cdl tst_ncf213.cdl ; then ok=1; else ok=0; fi

@@ -23,12 +23,15 @@ echo "* Testing Empty Ragged Arrays (VLEN)"
 echo "Generating test netcdf files."
 ./tst_empty_vlen_unlim
 
-echo "Validating Files with ncdump."
-echo "======================================"
-../ncdump/ncdump -s tst_empty_vlen_unlim.nc
-echo "---------------------------------------"
-../ncdump/ncdump -s tst_empty_vlen_lim.nc
-echo "======================================"
+# Since no comparison is made, I am not sure 
+# if this is useful.
+#echo "Validating Files with ncdump."
+#echo "======================================"
+#../ncdump/ncdump -s tst_empty_vlen_unlim.nc
+#echo "---------------------------------------"
+#../ncdump/ncdump -s tst_empty_vlen_lim.nc
+#echo "======================================"
+
 
 echo "* Tests Passed."
 exit 0

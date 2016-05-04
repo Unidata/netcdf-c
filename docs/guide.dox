@@ -2233,17 +2233,20 @@ one of 'classic'. '64-bit offset', 'netCDF-4', or 'netCDF-4 classic
 model'.
 
 @par -s
-Specifies that \e special virtual attributes should be output for the
-file format variant and for variable properties such as
+Specifies that \e special virtual and hidden attributes should be output
+for the file format variant and for variable properties such as
 compression, chunking, and other properties specific to the format
 implementation that are primarily related to performance rather
 than the logical schema of the data. All the special virtual
 attributes begin with '_' followed by an upper-case
-letter. Currently they include the global attribute '_Format' and
+letter. Currently they include the global attributes '_Format',
+'_NCProperties', '_IsNetcdf4', '_SuperblockVersion' and
 the variable attributes '_ChunkSizes', '_DeflateLevel',
 '_Endianness', '_Fletcher32', '_NoFill', '_Shuffle', and '_Storage'.
 The \b ncgen utility recognizes these attributes and
-supports them appropriately.
+supports them appropriately. For '_NCProperties',
+'_IsNetcdf4', and '_SuperblockVersion', the term 'appropriately'
+means that they are ignored.
 
 @par -t
 Controls display of time data, if stored in a variable that uses a

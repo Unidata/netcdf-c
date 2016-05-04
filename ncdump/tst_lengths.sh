@@ -1,5 +1,21 @@
 #!/bin/sh
 if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
+
+if test "x$srcdir" = x ; then
+srcdir=`pwd`
+fi
+
+# It is unreasonable to test actual lengths of files
+# (even netcdf-3 files).
+#However, the files created in this script are used in later ones
+
+../ncgen/ncgen -b ${srcdir}/small.cdl
+../ncgen/ncgen -b ${srcdir}/small2.cdl
+
+exit
+
+
+
 # This shell script tests lengths of small netcdf files and tests 
 # that rewriting a numeric value doesn't change file length
 # $Id: tst_lengths.sh,v 1.10 2008/08/07 00:07:52 ed Exp $
@@ -34,9 +50,6 @@ if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 # echo "netcdf small {variables: byte t; data: t = 1;}" > small.cdl
 set -e
 
-if test "x$srcdir" = x ; then
-srcdir=`pwd`
-fi
 
 echo ""
 echo "*** testing length of classic file"

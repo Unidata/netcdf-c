@@ -11,6 +11,7 @@
 
 #define ID_SHIFT (16)
 #define NCFILELISTLENGTH 0x10000
+
 /* Version one just allocates the max space (sizeof(NC*)*2^16)*/
 static NC** nc_filelist = NULL;
 
@@ -111,4 +112,13 @@ find_in_NCList_by_name(const char* path)
    return f;
 }
 
+int
+iterate_NCList(int index, NC** ncp)
+{
+    /* Walk from 0 ...; 0 return => stop */
+    if(index < 0 || index >= NCFILELISTLENGTH)
+	return NC_ERANGE;
+    if(ncp) *ncp = nc_filelist[index];
+    return NC_NOERR;
+}
 

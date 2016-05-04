@@ -87,12 +87,14 @@ extern int nc_set_default_format(int format, int *old_formatp);
 /* This function gets a current default create flag */
 extern int nc_get_default_format(void);
 
+
 extern int add_to_NCList(NC*);
 extern void del_from_NCList(NC*);/* does not free object */
 extern NC* find_in_NCList(int ext_ncid);
 extern NC* find_in_NCList_by_name(const char*);
 extern void free_NCList(void);/* reclaim whole list */
 extern int count_NCList(void); /* return # of entries in NClist */
+extern int iterate_NCList(int i,NC**); /* Walk from 0 ...; ERANGE return => stop */
 
 /* Defined in nc.c */
 extern void free_NC(NC*);
