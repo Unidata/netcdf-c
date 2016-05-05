@@ -694,14 +694,14 @@ type_var_ref:
 attrdecllist: /*empty*/ {} | attrdecl ';' attrdecllist {} ;
 
 attrdecl:
-	  ':' ident '=' datalist
-	    { $$=makeattribute($2,NULL,NULL,$4,ATTRGLOBAL);}
-	| ':' _NCPROPS '=' conststring
+	  ':' _NCPROPS '=' conststring
 	    {$$ = makespecial(_NCPROPS_FLAG,NULL,NULL,(void*)&$4,ATTRGLOBAL);}
 	| ':' _ISNETCDF4 '=' constbool
 	    {$$ = makespecial(_ISNETCDF4_FLAG,NULL,NULL,(void*)&$4,ATTRGLOBAL);}
 	| ':' _SUPERBLOCK '=' constint
 	    {$$ = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)&$4,ATTRGLOBAL);}
+	| ':' ident '=' datalist
+	    { $$=makeattribute($2,NULL,NULL,$4,ATTRGLOBAL);}
 	| typeref type_var_ref ':' ident '=' datalist
 	    {Symbol* tsym = $1; Symbol* vsym = $2; Symbol* asym = $4;
 		if(vsym->objectclass == NC_VAR) {
@@ -1338,11 +1338,8 @@ makeattribute(Symbol* asym,
     case ATTRGLOBAL:
         asym->att.var = NULL; /* NULL => NC_GLOBAL*/
         asym->typ.basetype = tsym;
-	// If we are adding NCPROPS to root group, then don't.
-        if(strcmp(NCPROPS,asym->name)!=0 || !currentgroup()->grp.is_root) {
-            addtogroup(asym);
-            listpush(gattdefs,(void*)asym);
-	}
+        listpush(gattdefs,(void*)asym);
+        addtogroup(asym);
 	break;
     default: PANIC1("unexpected attribute type: %d",kind);
     }

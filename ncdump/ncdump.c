@@ -759,10 +759,12 @@ pr_att(
     ncatt_t att;			/* attribute */
 
     NC_CHECK( nc_inq_attname(ncid, varid, ia, att.name) );
+#ifdef ENABLE_FILEINFO
     if (ncid == getrootid(ncid)
         && varid == NC_GLOBAL
         && strcmp(att.name,NCPROPS)==0)
 	return; /* will be printed elsewere */
+#endif
     NC_CHECK( nc_inq_att(ncid, varid, att.name, &att.type, &att.len) );
     att.tinfo = get_typeinfo(att.type);
 
@@ -1132,6 +1134,7 @@ pr_attx(
     int attvalslen = 0;
 
     NC_CHECK( nc_inq_attname(ncid, varid, ia, att.name) );
+#ifdef ENABLE_FILEINFO
     if (ncid == getrootid(ncid)
 	&& varid == NC_GLOBAL
         && strcmp(att.name,NCPROPS)==0
@@ -1139,6 +1142,7 @@ pr_attx(
             || !formatting_specs.xopt_props)
 	)
 	return;
+#endif
     NC_CHECK( nc_inq_att(ncid, varid, att.name, &att.type, &att.len) );
 
     /* Put attribute values into a single string, with blanks in between */
@@ -1743,7 +1747,9 @@ do_ncdump_rec(int ncid, const char *path)
    }
    if (is_root && formatting_specs.special_atts) { /* output special attribute
 					   * for format variant */
+#ifdef ENABLE_FILEINFO
        pr_att_hidden(ncid, kind);
+#endif
        pr_att_global_format(ncid, kind);
    }
 

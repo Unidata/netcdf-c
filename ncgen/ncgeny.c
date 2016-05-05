@@ -733,10 +733,10 @@ static const yytype_uint8 yydefact[] =
       87,     0,     0,     0,     0,   115,     0,     4,     7,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,    13,    14,    17,    23,    23,    23,    23,    86,     0,
-       0,    47,    58,    88,   148,   104,    90,   144,   146,   145,
-     147,   150,   149,    91,    92,   141,   130,   131,   132,   133,
+       0,    47,    58,    88,   148,   104,    89,   144,   146,   145,
+     147,   150,   149,    90,    91,   141,   130,   131,   132,   133,
      134,   135,   136,   137,   138,   139,   140,   121,   122,   123,
-     115,   126,    89,   113,   114,   116,   118,   124,   125,   120,
+     115,   126,    92,   113,   114,   116,   118,   124,   125,   120,
      105,     0,     0,     0,   115,     0,     0,     0,     0,     0,
        0,     0,   115,     0,    16,     0,    15,    24,    19,    22,
       21,    20,     0,     0,    18,    48,     0,    51,    53,     0,
@@ -2262,25 +2262,25 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 
   case 89:
 #line 698 "ncgen.y" /* yacc.c:1646  */
-    { (yyval.sym)=makeattribute((yyvsp[-2].sym),NULL,NULL,(yyvsp[0].datalist),ATTRGLOBAL);}
+    {(yyval.sym) = makespecial(_NCPROPS_FLAG,NULL,NULL,(void*)&(yyvsp[0].constant),ATTRGLOBAL);}
 #line 2267 "ncgeny.c" /* yacc.c:1646  */
     break;
 
   case 90:
 #line 700 "ncgen.y" /* yacc.c:1646  */
-    {(yyval.sym) = makespecial(_NCPROPS_FLAG,NULL,NULL,(void*)&(yyvsp[0].constant),ATTRGLOBAL);}
+    {(yyval.sym) = makespecial(_ISNETCDF4_FLAG,NULL,NULL,(void*)&(yyvsp[0].constant),ATTRGLOBAL);}
 #line 2273 "ncgeny.c" /* yacc.c:1646  */
     break;
 
   case 91:
 #line 702 "ncgen.y" /* yacc.c:1646  */
-    {(yyval.sym) = makespecial(_ISNETCDF4_FLAG,NULL,NULL,(void*)&(yyvsp[0].constant),ATTRGLOBAL);}
+    {(yyval.sym) = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)&(yyvsp[0].constant),ATTRGLOBAL);}
 #line 2279 "ncgeny.c" /* yacc.c:1646  */
     break;
 
   case 92:
 #line 704 "ncgen.y" /* yacc.c:1646  */
-    {(yyval.sym) = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)&(yyvsp[0].constant),ATTRGLOBAL);}
+    { (yyval.sym)=makeattribute((yyvsp[-2].sym),NULL,NULL,(yyvsp[0].datalist),ATTRGLOBAL);}
 #line 2285 "ncgeny.c" /* yacc.c:1646  */
     break;
 
@@ -3345,11 +3345,8 @@ makeattribute(Symbol* asym,
     case ATTRGLOBAL:
         asym->att.var = NULL; /* NULL => NC_GLOBAL*/
         asym->typ.basetype = tsym;
-	// If we are adding NCPROPS to root group, then don't.
-        if(strcmp(NCPROPS,asym->name)!=0 || !currentgroup()->grp.is_root) {
-            addtogroup(asym);
-            listpush(gattdefs,(void*)asym);
-	}
+        listpush(gattdefs,(void*)asym);
+        addtogroup(asym);
 	break;
     default: PANIC1("unexpected attribute type: %d",kind);
     }

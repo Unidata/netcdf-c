@@ -5,7 +5,7 @@ DB=1
 #FAST=1
 
 HDF5=1
-DAP=1
+#DAP=1
 #PNETCDF=1
 #PAR4=1
 

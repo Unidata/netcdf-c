@@ -746,6 +746,7 @@ nc_inq_grps_full(int rootid, int *numgrps, int *grpids)
     return stat;
 }
 
+#ifdef ENABLE_FILEINFO
 int
 getrootid(int grpid)
 {
@@ -759,4 +760,5 @@ getrootid(int grpid)
     }
     return current;
 }
+#endif
 
