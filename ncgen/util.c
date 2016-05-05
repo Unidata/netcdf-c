@@ -696,7 +696,8 @@ kind_string(int kind)
     return NULL;
 }
 
-int
+#ifdef USE_NETCDF4i
+nt
 getrootid(int grpid)
 {
     int current = grpid;
@@ -709,3 +710,4 @@ getrootid(int grpid)
     }
     return current;
 }
+#endif

@@ -766,7 +766,8 @@ processattributes(void)
 	List* list = listnew();
         for(j=0;j<listlength(attdefs);j++) {
 	    Symbol* asym = (Symbol*)listget(attdefs,j);
-	    ASSERT(asym->att.var != NULL);
+	    if(asym->att.var == NULL)
+		continue; /* ignore globals for now */
 	    if(asym->att.var != vsym) continue;	    
             listpush(list,(void*)asym);
 	}
