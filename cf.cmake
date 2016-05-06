@@ -1,3 +1,7 @@
+# Is netcdf-4 and/or DAP enabled?
+#NC4=1
+#DAP=1
+
 # Is visual studio being used?
 #VS=yes
 CYGWIN=yes
@@ -39,13 +43,22 @@ fi
 #if test "x$VS" != x ; then USR=c:/cygwin/usr; else USR=/usr; fi
 
 ZLIB="-DZLIB_LIBRARY=${ZP}/$ZLIB -DZLIB_INCLUDE_DIR=${ZP}/include -DZLIB_INCLUDE_DIRS=${ZP}/include"
+if test "x$NC4" = x1 ; then
 HDF5="-DHDF5_LIB=${HP}/$H5LIB -DHDF5_HL_LIB=${HP}/$H5LIB_HL -DHDF5_INCLUDE_DIR=${HP}/include"
+fi
+if test "x$DAP" = x1 ; then
 CURL="-DCURL_LIBRARY=${CP}/$CURLLIB -DCURL_INCLUDE_DIR=${CP}/include -DCURL_INCLUDE_DIRS=${CP}/include"
+fi
 
 #FLAGS="$FLAGS -DCMAKE_C_FLAGS='-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter'"x2
 
-#FLAGS="$FLAGS -DENABLE_DAP=false"
-#FLAGS="$FLAGS -DENABLE_NETCDF_4=false"
+if test "x$DAP" = x ; then
+FLAGS="$FLAGS -DENABLE_DAP=false"
+fi
+if test "x$NC4" = x ; then
+FLAGS="$FLAGS -DENABLE_NETCDF_4=false"
+fi
+FLAGS="$FLAGS -DENABLE_CONVERSION_WARNINGS=false"
 
 FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=$USR/local"
 #FLAGS="-DCMAKE_PREFIX_PATH=$PPATH"
