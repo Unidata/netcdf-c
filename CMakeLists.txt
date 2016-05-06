@@ -751,12 +751,6 @@ IF(NOT WIN32)
   ENDIF()
 ENDIF()
 
-OPTION(ENABLE_PROPERTIES_ATTRIBUTE "Enable properties attribute." ON)
-IF(ENABLE_PROPERTIES_ATTRIBUTE)
-  SET(ENABLE_PROPATTR ON CACHE BOOL "")
-ENDIF()
-
-
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
