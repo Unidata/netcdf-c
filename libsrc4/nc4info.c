@@ -20,9 +20,6 @@
 /* Global */
 struct NCPROPINFO globalpropinfo;
 
-struct NCdata {
-};
-
 int
 NC4_fileinfo_init(void)
 {
