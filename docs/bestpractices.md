@@ -1,10 +1,12 @@
 Writing NetCDF Files: Best Practices {#BestPractices}
 ====================================
 
-Writing NetCDF Files: Best Practices
+[TOC]
+
+Best Practices {#bp_Best_Practices}
 =====================================
 
-## Conventions
+## Conventions {#bp_Conventions}
 
 While netCDF is intended for "self-documenting data", it is often
 necessary for data writers and readers to agree upon attribute
@@ -26,7 +28,7 @@ For recommendations about conventions for the netCDF-4 *enhanced* data
 model, see [Developing Conventions for
 NetCDF-4](/netcdf/papers/nc4_conventions.html).
 
-## Coordinate Systems
+## Coordinate Systems {#bp_Coordinate-Systems}
 
 A ***coordinate variable*** is a one-dimensional variable with the same
 name as a dimension, which names the coordinate values of the dimension.
@@ -54,7 +56,7 @@ coordinates.***
     not related, create separate dimensions for them, even if they
     happen to have the same length.
 
-## Variable Grouping
+## Variable Grouping {#bp_Variable-Grouping}
 
 You may structure the data in a netCDF file in different ways, for
 example putting related parameters into a single variable by adding an
@@ -82,7 +84,8 @@ variables:
     spatio-temporal), and organize your data into variables accordingly.
     Variables with the same coordinate system implicitly form a group.
 
-## Variable Attributes
+## Variable Attributes {#bp_Variable-Attributes}
+
 
 -   For each variable where it makes sense, add a **units** attribute,
     using the [udunits](/software/udunits/index.html) conventions,
@@ -91,7 +94,7 @@ variables:
     attribute, which is a human-readable descriptive name for
     the variable. This could be used for labeling plots, for example.
 
-## Strings and Variables of type char
+## Strings and Variables of type char {#bp_Strings-and-Variables-of-type-char}
 
 NetCDF-3 does not have a primitive **String** type, but does have arrays
 of type **char**, which are 8 bits in size. The main difference is that
@@ -118,7 +121,7 @@ convenience routines that read char arrays and convert to Strings.
 -   When reading, trim zeros and blanks from the end of the char array
     and if in C, add a zero byte terminator.
 
-## Calendar Date/Time
+## Calendar Date/Time {#bp_Calendar-Date-Time}
 
 Time as a fundamental unit means a time interval, measured in seconds. A
 Calendar date/time is a specific instance in real, physical time. Dates
@@ -157,7 +160,7 @@ interpret.
 -   Add multiple sets of time encodings if necessary to allow different
     readers to work as well as possible.\
 
-## Unsigned Data
+## Unsigned Data {#bp_Unsigned-Data}
 
 NetCDF-3 does not have unsigned integer primitive types.
 
@@ -169,7 +172,7 @@ NetCDF-3 does not have unsigned integer primitive types.
     `_Unsigned = "true"` to indicate that integer data should be treated
     as unsigned.
 
-## Packed Data Values
+## Packed Data Values {#bp_Packed-Data-Values}
 
 Packed data is stored in a netCDF file by limiting precision and using a
 smaller data type than the original data, for example, packing
@@ -263,7 +266,7 @@ variable to be packed.
 
 -   The `units` attribute applies to unpacked values.
 
-## Missing Data Values
+## Missing Data Values {#bp_Missing-Data-Values}
 
 ***Missing data*** is a general name for data values that are invalid,
 never written, or missing. The netCDF library itself does not handle
@@ -310,7 +313,7 @@ reading, see class **VariableStandardized**).
     If the variable is unsigned the `valid_range` values should be
     widened if needed and stored as unsigned integers.
 
-## Miscellaneous tips
+## Miscellaneous tips {#bp_Miscellaneous-tips}
 
 -   To define a file whose structure is known in advance, write a CDL
     file and create the netCDF file using
@@ -328,7 +331,7 @@ reading, see class **VariableStandardized**).
     for Fortran) for more details on reserving extra space in
     the header.
 
-## Spelling netCDF: Best Practices
+## Spelling netCDF: Best Practices {#bp_Spelling-netCDF-Best-Practices}
 
 There are only 3 correct spellings of "netCDF":
 
