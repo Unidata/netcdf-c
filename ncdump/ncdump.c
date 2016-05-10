@@ -25,10 +25,6 @@ int opterr;
 int optind;
 #endif
 
-#ifndef HAVE_SSIZE_T
-typedef int ssize_t;
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -49,6 +45,10 @@ typedef int ssize_t;
 #include "isnan.h"
 #include "cdl.h"
 #include "nc4internal.h" /* to get name of the special properties file */
+
+#if !defined(HAVE_SSIZE_T) && !defined(H5_SIZEOF_SSIZE_T)
+typedef int ssize_t;
+#endif
 
 #define XML_VERSION "1.0"
 
