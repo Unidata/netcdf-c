@@ -570,7 +570,7 @@ case CASE(NC_NIL,NC_STRING):
 #ifdef IGNORE
 /* Force an Opaque or string to conform to a given length*/
 void
-setprimlength(Constant* prim, unsigned long len)
+setprimlength(NCConstant* prim, unsigned long len)
 {
     ASSERT(isprimplus(prim->nctype));
     if(prim->nctype == NC_STRING) {
