@@ -119,7 +119,7 @@ static int tagmatch(nc_type nct, int tag);
 static int nct2lexeme(nc_type nct);
 static int collecttag(char* text, char** stagp);
 
-static struct Specialtoken specials[] = {
+struct Specialtoken specials[] = {
 {"_FillValue",_FILLVALUE,_FILLVALUE_FLAG},
 {"_Format",_FORMAT,_FORMAT_FLAG},
 {"_Storage",_STORAGE,_STORAGE_FLAG},
