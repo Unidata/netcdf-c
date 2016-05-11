@@ -14,6 +14,8 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 */
 #include        "includes.h"
 #include        "offsets.h"
+#include        "ncgeny.h"
+#include        "ncgen.h"
 
 /* Following are in ncdump (for now)*/
 /* Need some (unused) definitions to get it to compile */

@@ -34,6 +34,10 @@
 
 /* Fill value used by ncdump from version 2.4 and later.  Should match
    definition of FILL_STRING in ../ncdump/vardata.h */
+
+#include "ncgen.h"
+#include "ncgeny.h"
+
 #define FILL_STRING "_"
 #define XDR_INT32_MIN (-2147483647-1)
 #define XDR_INT32_MAX 2147483647
@@ -115,7 +119,7 @@ static int tagmatch(nc_type nct, int tag);
 static int nct2lexeme(nc_type nct);
 static int collecttag(char* text, char** stagp);
 
-struct Specialtoken specials[] = {
+static struct Specialtoken specials[] = {
 {"_FillValue",_FILLVALUE,_FILLVALUE_FLAG},
 {"_Format",_FORMAT,_FORMAT_FLAG},
 {"_Storage",_STORAGE,_STORAGE_FLAG},

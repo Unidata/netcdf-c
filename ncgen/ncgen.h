@@ -93,6 +93,7 @@ various C global variables
 #define _SUPERBLOCK_FLAG    0x400
 #define _FORMAT_FLAG        0x800
 
+
 extern struct Specialtoken {
     char* name;
     int   token;
@@ -132,7 +133,7 @@ typedef struct Specialdata {
 
 typedef struct GlobalSpecialdata {
     int           _Format ;      /* kflag */
-    const char*   _NCProperties ;    
+    const char*   _NCProperties ;
     int           _IsNetcdf4 ;   /* 0 => false, 1 => true */
     int           _Superblock  ; /* HDF5 file superblock version */
 } GlobalSpecialData;
@@ -207,10 +208,10 @@ typedef struct Symbol {  /* symbol table entry*/
         /* use more than one part*/
         Typeinfo  typ; /* type info for e.g. var, att, etc.*/
         Varinfo   var;
-        Attrinfo  att;        
+        Attrinfo  att;
         Diminfo   dim;
         Groupinfo grp;
- 	Reference ref; /* symbol is really a referene to another symbol*/ 
+ 	Reference ref; /* symbol is really a referene to another symbol*/
 	/* Misc pieces of info*/
 	int             lineno;  /* at point of creation*/
 	int		touched; /* for sorting*/
