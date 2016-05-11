@@ -765,6 +765,7 @@ INPUT = \
     @abs_top_srcdir@/docs/known_problems.md \
     @abs_top_srcdir@/docs/COPYRIGHT.dox \
     @abs_top_srcdir@/docs/credits.md \
+    @abs_top_srcdir@/docs/bestpractices.md \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_mem.h \
     @abs_top_srcdir@/include/netcdf_par.h \

@@ -9,6 +9,7 @@
 - \subpage netcdf_perf_chunking
 - \subpage netcdf_utilities_guide
 - \subpage dap_support
+- \subpage BestPractices
 - \subpage users_guide_appendices
 
 <H2>The Purpose of NetCDF</H2>
