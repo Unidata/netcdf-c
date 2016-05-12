@@ -14,10 +14,6 @@ $Id: nc4dim.c,v 1.41 2010/05/25 17:54:23 dmh Exp $
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 
-#if 0 /*def USE_PNETCDF*/
-#include <pnetcdf.h>
-#endif
-
 /* Netcdf-4 files might have more than one unlimited dimension, but
    return the first one anyway. */
 /* Note that this code is inconsistent with nc_inq */
@@ -36,12 +32,6 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
    assert(h5);
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_inq_unlimdim(nc->int_ncid, unlimdimidp);
-#endif /* USE_PNETCDF */
 
    /* According to netcdf-3 manual, return -1 if there is no unlimited
       dimension. */
@@ -87,12 +77,6 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    /* If the file is read-only, return an error. */
    if (h5->no_write)
      return NC_EPERM;
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_def_dim(nc->int_ncid, name, len, idp);
-#endif /* USE_PNETCDF */
 
    /* Check some stuff if strict nc3 rules are in effect. */
    if (h5->cmode & NC_CLASSIC_MODEL)
@@ -173,12 +157,6 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
    assert(h5);
    assert(nc && grp);
 
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_inq_dimid(nc->int_ncid, name, idp);
-#endif /* USE_PNETCDF */
-
    /* Normalize name. */
    if ((retval = nc4_normalize_name(name, norm_name)))
       return retval;
@@ -218,19 +196,6 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
    
    assert(h5);
    assert(nc && grp);
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-   {
-      MPI_Offset mpi_len;
-      if ((ret = ncmpi_inq_dim(nc->int_ncid, dimid, name, &mpi_len)))
-	 return ret;
-      if (lenp)
-	 *lenp = mpi_len;
-      return ret;
-      }
-#endif /* USE_PNETCDF */
 
    /* Find the dimension and its home group. */
    if ((ret = nc4_find_dim(grp, dimid, &dim, &dim_grp)))
@@ -296,12 +261,6 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    /* Trying to write to a read-only file? No way, Jose! */
    if (h5->no_write)
       return NC_EPERM;
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_rename_dim(nc->int_ncid, dimid, name);
-#endif /* USE_PNETCDF */
 
    /* Make sure this is a valid netcdf name. */
    if ((retval = nc4_check_name(name, norm_name)))

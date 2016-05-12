@@ -50,12 +50,6 @@ NC4_inq_format(int ncid, int *formatp)
    if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
 
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc4_info->pnetcdf_file)
-     return ncmpi_inq_format(nc->int_ncid, formatp);
-#endif /* USE_PNETCDF */
-
    /* Otherwise, this is a netcdf-4 file. Check if classic NC3 rules
     * are in effect for this file. */
    if (nc4_info->cmode & NC_CLASSIC_MODEL)

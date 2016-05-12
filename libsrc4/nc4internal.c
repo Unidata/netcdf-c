@@ -19,10 +19,6 @@ conditions.
 #include "H5DSpublic.h"
 #include <utf8proc.h>
 
-#if 0 /*def USE_PNETCDF*/
-#include <pnetcdf.h>
-#endif
-
 #define MEGABYTE 1048576
 
 /* These are the default chunk cache sizes for HDF5 files created or
@@ -252,16 +248,6 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
 
     if(f == NULL) return NC_EBADID;
     *nc = f;
-
-#if 0 /* I do not understand this code at all */
-#if 0 /*def USE_PNETCDF*/
-    if (h5->pnetcdf_file) {
-      *h5p = NULL;
-      *grpp = NULL;
-      return NC_NOERR;
-    }
-#endif
-#endif
 
     if (h5) {
 	assert(h5->root_grp);

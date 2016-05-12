@@ -13,10 +13,6 @@ conditions.
 #include "nc4dispatch.h"
 #include <math.h>
 
-#if 0 /*def USE_PNETCDF*/
-#include <pnetcdf.h>
-#endif
-
 /* Min and max deflate levels tolerated by HDF5. */
 #define MIN_DEFLATE_LEVEL 0
 #define MAX_DEFLATE_LEVEL 9
@@ -627,19 +623,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
    if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;
 
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-   {
-      int ret;
-
-      ret = ncmpi_def_var(nc->int_ncid, name, xtype, ndims,
-			  dimidsp, varidp);
-      h5->pnetcdf_ndims[*varidp] = ndims;
-      return ret;
-   }
-#endif /* USE_PNETCDF */
-
    /* Handle netcdf-4 cases. */
    return nc_def_var_nc4(ncid, name, xtype, ndims, dimidsp, varidp);
 }
@@ -672,13 +655,6 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 
    assert(nc);
    assert(grp && h5);
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_inq_var(nc->int_ncid, varid, name, xtypep, ndimsp,
-			   dimidsp, nattsp);
-#endif /* USE_PNETCDF */
 
    /* Walk through the list of vars, and return the info about the one
       with a matching varid. If the varid is -1, find the global
@@ -1154,10 +1130,6 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    int retval;
    uint32_t nn_hash;
    
-#if 0 /*def USE_PNETCDF*/
-   NC_HDF5_FILE_INFO_T *h5;
-#endif
-
    if (!name)
       return NC_EINVAL;
    if (!varidp)
@@ -1168,16 +1140,6 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, NULL)))
       return retval;
-
-#if 0 /*def USE_PNETCDF*/
-   h5 = NC4_DATA(nc);
-   assert(h5);
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-   {
-     return ncmpi_inq_varid(nc->int_ncid, name, varidp);
-   }
-#endif /* USE_PNETCDF */
 
    /* Normalize name. */
    if ((retval = nc4_normalize_name(name, norm_name)))
@@ -1218,12 +1180,6 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return retval;
 
    assert(h5);
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_rename_var(nc->int_ncid, varid, name);
-#endif /* USE_PNETCDF */
 
    /* Is the new name too long? */
    if (strlen(name) > NC_MAX_NAME)
@@ -1332,21 +1288,6 @@ NC4_var_par_access(int ncid, int varid, int par_access)
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
 
-#if 0 /*def USE_PNETCDF*/
-   /* Handle files opened/created with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-   {
-      if (par_access == h5->pnetcdf_access_mode)
-	 return NC_NOERR;
-
-      h5->pnetcdf_access_mode = par_access;
-      if (par_access == NC_INDEPENDENT)
-	 return ncmpi_begin_indep_data(nc->int_ncid);
-      else
-	 return ncmpi_end_indep_data(nc->int_ncid);
-   }
-#endif /* USE_PNETCDF */
-
    /* This function only for files opened with nc_open_par or nc_create_par. */
    if (!h5->parallel)
       return NC_ENOPAR;
@@ -1372,93 +1313,11 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
 {
    NC *nc;
 
-#if 0 /*def USE_PNETCDF*/
-   NC_HDF5_FILE_INFO_T *h5;
-#endif
-
    LOG((2, "%s: ncid 0x%x varid %d mem_type %d mem_type_is_long %d",
         __func__, ncid, varid, mem_type, mem_type_is_long));
 
    if (!(nc = nc4_find_nc_file(ncid,NULL)))
       return NC_EBADID;
-
-#if 0 /*def USE_PNETCDF*/
-   h5 = NC4_DATA(nc);
-   assert(h5);
-
-   /* Handle files opened/created with the parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-   {
-     MPI_Offset *mpi_start;
-     MPI_Offset *mpi_count;
-     int d;
-
-     mpi_start = (MPI_Offset*)alloca(sizeof(MPI_Offset)*h5->pnetcdf_ndims[varid]);
-     mpi_count = (MPI_Offset*)alloca(sizeof(MPI_Offset)*h5->pnetcdf_ndims[varid]);
-
-      /* No NC_LONGs for parallel-netcdf library! */
-      if (mem_type_is_long)
-	 return NC_EINVAL;
-
-      /* We must convert the start, count, and stride arrays to
-       * MPI_Offset type. */
-      for (d = 0; d < h5->pnetcdf_ndims[varid]; d++)
-      {
-	 mpi_start[d] = startp[d];
-	 mpi_count[d] = countp[d];
-      }
-
-      if (h5->pnetcdf_access_mode == NC_INDEPENDENT)
-      {
-	 switch(mem_type)
-	 {
-	    case NC_BYTE:
-	       return ncmpi_put_vara_schar(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_UBYTE:
-	       return ncmpi_put_vara_uchar(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_CHAR:
-	       return ncmpi_put_vara_text(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_SHORT:
-	       return ncmpi_put_vara_short(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_INT:
-	       return ncmpi_put_vara_int(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_FLOAT:
-	       return ncmpi_put_vara_float(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_DOUBLE:
-	       return ncmpi_put_vara_double(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_NAT:
-	    default:
-	       return NC_EBADTYPE;
-	 }
-      }
-      else
-      {
-	 switch(mem_type)
-	 {
-	    case NC_BYTE:
-	       return ncmpi_put_vara_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_UBYTE:
-	       return ncmpi_put_vara_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_CHAR:
-	       return ncmpi_put_vara_text_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_SHORT:
-	       return ncmpi_put_vara_short_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_INT:
-	       return ncmpi_put_vara_int_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_FLOAT:
-	       return ncmpi_put_vara_float_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_DOUBLE:
-	       return ncmpi_put_vara_double_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
-	    case NC_NAT:
-	    default:
-	       return NC_EBADTYPE;
-	 }
-      }
-
-      return NC_EBADTYPE;
-   }
-
-#endif /* USE_PNETCDF */
 
    return nc4_put_vara(nc, ncid, varid, startp, countp, mem_type,
                        mem_type_is_long, (void *)op);
@@ -1508,74 +1367,6 @@ nc4_get_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
 
    if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;
-
-#if 0 /*def USE_PNETCDF*/
-   /* Handle files opened/created with the parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-   {
-      MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS];
-      int d;
-
-      /* No NC_LONGs for parallel-netcdf library! */
-      if (mem_type_is_long)
-	 return NC_EINVAL;
-
-      /* We must convert the start, count, and stride arrays to
-       * MPI_Offset type. */
-      for (d = 0; d < h5->pnetcdf_ndims[varid]; d++)
-      {
-	 mpi_start[d] = startp[d];
-	 mpi_count[d] = countp[d];
-      }
-
-      if (h5->pnetcdf_access_mode == NC_INDEPENDENT)
-      {
-	 switch(mem_type)
-	 {
-	    case NC_BYTE:
-	       return ncmpi_get_vara_schar(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_UBYTE:
-	       return ncmpi_get_vara_uchar(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_CHAR:
-	       return ncmpi_get_vara_text(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_SHORT:
-	       return ncmpi_get_vara_short(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_INT:
-	       return ncmpi_get_vara_int(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_FLOAT:
-	       return ncmpi_get_vara_float(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_DOUBLE:
-	       return ncmpi_get_vara_double(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_NAT:
-	    default:
-	       return NC_EBADTYPE;
-	 }
-      }
-      else
-      {
-	 switch(mem_type)
-	 {
-	    case NC_BYTE:
-	       return ncmpi_get_vara_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_UBYTE:
-	       return ncmpi_get_vara_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_CHAR:
-	       return ncmpi_get_vara_text_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_SHORT:
-	       return ncmpi_get_vara_short_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_INT:
-	       return ncmpi_get_vara_int_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_FLOAT:
-	       return ncmpi_get_vara_float_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_DOUBLE:
-	       return ncmpi_get_vara_double_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
-	    case NC_NAT:
-	    default:
-	       return NC_EBADTYPE;
-	 }
-      }
-   }
-#endif /* USE_PNETCDF */
 
 #ifdef USE_HDF4
    /* Handle HDF4 cases. */

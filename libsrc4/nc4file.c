@@ -348,11 +348,6 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
 
-#if 0 /*def USE_PNETCDF*/
-    if (cmode & NC_PNETCDF)
-	return NC_NOERR;
-#endif
-
    /* Need this access plist to control how HDF5 handles open objects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
     * fail if there are any open objects in the file. */
@@ -573,18 +568,6 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
 
    nc_file->int_ncid = nc_file->ext_ncid;
    res = nc4_create_file(path, cmode, comm, info, nc_file);
-
-#if 0 /*def USE_PNETCDF*/
-   if (cmode & NC_PNETCDF)
-   {
-      NC_HDF5_FILE_INFO_T* nc4_info;
-      nc4_info = NC4_DATA(nc_file);
-      assert(nc4_info);
-
-      nc4_info->pnetcdf_file++;
-      res = ncmpi_create(comm, path, cmode, info, &(nc_file->int_ncid));
-   }
-#endif /* USE_PNETCDF */
 
    return res;
 }
@@ -2923,12 +2906,6 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 
    nc4_info->fill_mode = fillmode;
 
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc4_info->pnetcdf_file)
-     return ncmpi_set_fill(nc->int_ncid, fillmode, old_modep);
-#endif /* USE_PNETCDF */
-
 
    return NC_NOERR;
 }
@@ -2946,12 +2923,6 @@ NC4_redef(int ncid)
    if (!(nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
    assert(nc4_info);
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc4_info->pnetcdf_file)
-      return ncmpi_redef(nc->int_ncid);
-#endif /* USE_PNETCDF */
 
    /* If we're already in define mode, return an error. */
    if (nc4_info->flags & NC_INDEF)
@@ -2995,20 +2966,6 @@ static int NC4_enddef(int ncid)
    if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
    assert(nc4_info);
-
-#if 0 /*def USE_PNETCDF*/
-   if (nc4_info->pnetcdf_file)
-   {
-      int res;
-      res = ncmpi_enddef(nc->int_ncid);
-      if (!res)
-      {
-	 if (nc4_info->pnetcdf_access_mode == NC_INDEPENDENT)
-	    res = ncmpi_begin_indep_data(nc->int_ncid);
-      }
-      return res;
-   }
-#endif /* USE_PNETCDF */
 
    return nc4_enddef_netcdf4_file(nc4_info);
 }
@@ -3076,12 +3033,6 @@ NC4_sync(int ncid)
    if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
    assert(nc4_info);
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc4_info->pnetcdf_file)
-      return ncmpi_sync(nc->int_ncid);
-#endif /* USE_PNETCDF */
 
    /* If we're in define mode, we can't sync. */
    if (nc4_info && nc4_info->flags & NC_INDEF)
@@ -3204,12 +3155,6 @@ NC4_abort(int ncid)
 
    assert(nc4_info);
 
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc4_info->pnetcdf_file)
-      return ncmpi_abort(nc->int_ncid);
-#endif /* USE_PNETCDF */
-
    /* If we're in define mode, but not redefing the file, delete it. */
    if (nc4_info->flags & NC_INDEF && !nc4_info->redef)
    {
@@ -3251,12 +3196,6 @@ NC4_close(int ncid)
    if (grp->parent)
       return NC_EBADGRPID;
 
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_close(nc->int_ncid);
-#endif /* USE_PNETCDF */
-
    /* Call the nc4 close. */
    if ((retval = close_netcdf4_file(grp->nc4_info, 0)))
       return retval;
@@ -3284,12 +3223,6 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
       return retval;
 
    assert(h5 && grp && nc);
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_inq(nc->int_ncid, ndimsp, nvarsp, nattsp, unlimdimidp);
-#endif /* USE_PNETCDF */
 
    /* Count the number of dims, vars, and global atts. */
    if (ndimsp)
@@ -3330,36 +3263,6 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 
    return NC_NOERR;
 }
-
-#if 0
-int
-NC4_set_content(int ncid, size_t size, void* memory)
-{
-    int retval = NC_NOERR;
-    herr_t herr;
-    NC *nc;
-    NC_HDF5_FILE_INFO_T *h5;
-    NC_GRP_INFO_T *grp;
-
-    LOG((4,"%s: ncid 0x%x size %ld memory 0x%x", __func__, ncid, size, memory));
-
-    /* Find file metadata. */
-    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-	return retval;
-    assert(h5 && grp && nc);
-
-#ifdef USE_DISKLESS
-    herr = H5Pset_file_image(h5->hdfid,memory,size);
-    if(herr)
-	BAIL(NC_EHDFERR);
-#else
-    retval = NC_EDISKLESS;
-#endif
-
-done:
-    return retval;
-}
-#endif
 
 /* This function will do the enddef stuff for a netcdf-4 file. */
 int
