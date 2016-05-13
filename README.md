@@ -52,36 +52,24 @@ software for various languages:
 * [C++](http://github.com/Unidata/netcdf-cxx4)
 
 ### Copyright
-Copyright and licensing information can be found
-[here](http://www.unidata.ucar.edu/software/netcdf/copyright.html), as
-well as in the COPYRIGHT file accompanying the software
+Copyright and licensing information can be found [here](http://www.unidata.ucar.edu/software/netcdf/copyright.html), as well as in the COPYRIGHT file accompanying the software
 
 ### Installation
 To install the netCDF-C software, please see the file INSTALL in the
 netCDF-C distribution, or the (usually more up-to-date) document:
 
-* [Building NetCDF](http://www.unidata.ucar.edu/netcdf/docs/building.html)
+* [Building NetCDF](http://www.unidata.ucar.edu/software/netcdf/docs/getting_and_building_netcdf.html)
 
 ### Documentation
 A language-independent User's Guide for netCDF, and some other
 language-specific user-level documents are available from:
 
-* [Language-independent User's Guide](http://www.unidata.ucar.edu/netcdf/docs/user_guide.html)
+* [Language-independent User's Guide](http://www.unidata.ucar.edu/software/netcdf/docs/user_guide.html)
 * [NetCDF-C Tutorial](http://www.unidata.ucar.edu/software/netcdf/docs/tutorial_8dox.html)
-* [Fortran-90 User's Guide](http://www.unidata.ucar.edu/netcdf/docs/netcdf-f90.html)
-* [Fortran-77 User's Guide](http://www.unidata.ucar.edu/netcdf/docs/netcdf-f77.html)
+* [Fortran-90 User's Guide](http://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf-f90/index.html#Top)
+* [Fortran-77 User's Guide](http://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf-f77/index.html#Top)
 * [netCDF-Java/Common Data Model library](http://www.unidata.ucar.edu/software/thredds/current/netcdf-java/)
 * [netCDF4-python](http://unidata.github.io/netcdf4-python/)
-
-Reference documentation for various language interfaces are available from:
-
-* [NetCDF-C](http://www.unidata.ucar.edu/netcdf/docs/modules.html),
-  [C man page](http://www.unidata.ucar.edu/netcdf/docs/netcdf-man-3.html)
-* [Fortran-90](http://www.unidata.ucar.edu/netcdf/docs/netcdf-f90.html)
-* [Fortran-77 man page](http://www.unidata.ucar.edu/netcdf/docs/netcdf-man-3f.html)
-* [Java](http://www.unidata.ucar.edu/software/thredds/current/netcdf-java/reference/)
-* [C++](https://www.unidata.ucar.edu/netcdf/docs/cxx4/index.html)
-* [Python](http://unidata.github.io/netcdf4-python/#header-classes)
 
 A mailing list, netcdfgroup@unidata.ucar.edu, exists for discussion of
 the netCDF interface and announcements about netCDF bugs, fixes, and
@@ -90,7 +78,4 @@ enhancements.  For information about how to subscribe, see the URL
 * [Unidata netCDF Mailing-Lists](http://www.unidata.ucar.edu/netcdf/mailing-lists.html)
 
 ### Feedback
-We appreciate feedback from users of this package.  Please send
-comments, suggestions, and bug reports to
-<support-netcdf@unidata.ucar.edu>.  Please identify the version of the
-package (file VERSION).
+We appreciate feedback from users of this package.  Please send comments, suggestions, and bug reports to <support-netcdf@unidata.ucar.edu>.  
