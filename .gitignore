@@ -6,6 +6,8 @@
 libsrc/attr.c
 libsrc/ncx.c
 libsrc/putget.c
+ctest.c
+ctest64.c
 nc_test/test_get.c
 nc_test/test_put.c
 
@@ -15,8 +17,6 @@ nc_test/test_put.c
 
 ### 'Normal' gitignore files.
 autom4te.cache
-ctest.c
-ctest64.c
 debug.txt
 CTestConfig.cmake
 Vagrantfile
