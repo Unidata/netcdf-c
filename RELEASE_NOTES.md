@@ -14,6 +14,8 @@ This file contains a high-level description of this package's evolution. Release
 * [Bug Fix] Corrected several issues related to building under Visual Studio 2014.
 * [Bug Fix] Corrected several test failures related to HDF5 `1.10.0`
 * [Bug Fix] Reverted SOVersion *current* to 11 from 12; it was incorrectly incremented in netCDF-C release 4.4.1-RC1.
+* [Enhancement][Windows] Bumped the included libhdf5 to 1.8.16 from 1.8.15 for pre-built Visual Studio installer files.
+
 
 ### 4.4.1-RC1 - April 15, 2016
 
