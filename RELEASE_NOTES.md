@@ -7,6 +7,14 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.1 - TBD
 
+### 4.4.1-RC2 - May 13, 2016
+
+* [Enhancement] Added provenance information to files created.  This information consists of a persistent attribute named `_NCProperties` plus two computed attributes, `_IsNetcdf4` and `_SuperblockVersion`.  Associated documentation was added to the file `docs/attribute_conventions.md`.  See [GitHub pull request #260](https://github.com/Unidata/netcdf-c/pull/260) for more information.
+* [Bug Fix] Cleaned up some dead links in the doxygen-generated documentation.
+* [Bug Fix] Corrected several issues related to building under Visual Studio 2014.
+* [Bug Fix] Corrected several test failures related to HDF5 `1.10.0`
+* [Bug Fix] Reverted SOVersion *current* to 11 from 12; it was incorrectly incremented in netCDF-C release 4.4.1-RC1.
+
 ### 4.4.1-RC1 - April 15, 2016
 
 * [Bug Fix][Enhancement] Fixed an issue with netCDF4 files generated using version `1.10.0` of the HDF5 library.  The 1.10 release potentially changed the underlying file format, introducing a backwards compatibility issue with the files generated.  HDF5 provided an API for retaining the 1.8.x file format, which is now on by default.  See [GitHub Issue #250](https://github.com/Unidata/netcdf-c/issues/250) for more information.
