@@ -14,7 +14,6 @@ lib_LTLIBRARIES = libnetcdf.la
 
 ##
 # These linker flags specify libtool version info.
-# Note: version-info of "9:0:2" results in soname of libnetcdf.so.7 -> libnetcdf.so.7.2.0
 # See http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 # for information regarding incrementing `-version-info`.
 ##
