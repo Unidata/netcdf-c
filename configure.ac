@@ -45,7 +45,11 @@ AC_MSG_NOTICE([netCDF AC_PACKAGE_VERSION])
 AC_CONFIG_MACRO_DIR([m4])
 
 # Configuration Date
-AC_SUBST([CONFIG_DATE]) CONFIG_DATE="`date`"
+if test -n ${SOURCE_DATE_EPOCH}; then
+    AC_SUBST([CONFIG_DATE]) CONFIG_DATE="`date -u -d "@${SOURCE_DATE_EPOCH}"`"
+else
+    AC_SUBST([CONFIG_DATE]) CONFIG_DATE="`date`"
+fi
 
 # Find out about the host we're building on.
 AC_CANONICAL_HOST
