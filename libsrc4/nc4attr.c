@@ -17,10 +17,6 @@ conditions.
 #include "nc4dispatch.h"
 #include "ncdispatch.h"
 
-#if 0 /*def USE_PNETCDF*/
-#include <pnetcdf.h>
-#endif
-
 #ifdef ENABLE_FILEINFO
 static int nc4_get_att_special(NC_HDF5_FILE_INFO_T*, const char*,
                                nc_type*, nc_type, size_t*, int*, int, void*);
@@ -565,19 +561,6 @@ NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp
    h5 = NC4_DATA(nc);
    assert(h5);
 
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-   {
-      MPI_Offset mpi_len;
-      int ret = ncmpi_inq_att(nc->int_ncid, varid, name, xtypep, &mpi_len);
-      if (ret != NC_NOERR)
-	 return ret;
-      if (lenp)
-	 *lenp = mpi_len;
-   }
-#endif /* USE_PNETCDF */
-
    /* Handle netcdf-4 files. */
    return nc4_get_att(ncid, nc, varid, name, xtypep, NC_NAT, lenp, NULL, 0, NULL);
 }
@@ -599,12 +582,6 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
    /* get netcdf-4 metadata */
    h5 = NC4_DATA(nc);
    assert(h5);
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_inq_attid(nc->int_ncid, varid, name, attnump);
-#endif /* USE_PNETCDF */
 
    /* Handle netcdf-4 files. */
    stat = nc4_get_att(ncid, nc, varid, name, NULL, NC_NAT,
@@ -632,12 +609,6 @@ NC4_inq_attname(int ncid, int varid, int attnum, char *name)
    /* get netcdf-4 metadata */
    h5 = NC4_DATA(nc);
    assert(h5);
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_inq_attname(nc->int_ncid, varid, attnum, name);
-#endif /* USE_PNETCDF */
 
    /* Handle netcdf-4 files. */
    if ((retval = nc4_find_nc_att(ncid, varid, NULL, attnum, &att)))
@@ -684,12 +655,6 @@ NC4_rename_att(int ncid, int varid, const char *name,
    /* If the file is read-only, return an error. */
    if (h5->no_write)
      return NC_EPERM;
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_rename_att(nc->int_ncid, varid, name, newname);
-#endif /* USE_PNETCDF */
 
    /* Check and normalize the name. */
    if ((retval = nc4_check_name(newname, norm_newname)))
@@ -794,12 +759,6 @@ NC4_del_att(int ncid, int varid, const char *name)
    /* If the file is read-only, return an error. */
    if (h5->no_write)
       return NC_EPERM;
-
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-      return ncmpi_del_att(nc->int_ncid, varid, name);
-#endif /* USE_PNETCDF */
 
    /* If it's not in define mode, forget it. */
    if (!(h5->flags & NC_INDEF))
@@ -908,44 +867,6 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
       }
    }
 
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-   {
-      if (mem_type == NC_UBYTE)
-	 mem_type = NC_BYTE;
-
-      switch(mem_type)
-      {
-	 case NC_BYTE:
-	    return ncmpi_put_att_schar(nc->int_ncid, varid, name,
-				     file_type, len, op);
-	 case NC_CHAR:
-	    return ncmpi_put_att_text(nc->int_ncid, varid, name,
-				    len, op);
-	 case NC_SHORT:
-	    return ncmpi_put_att_short(nc->int_ncid, varid, name,
-				     file_type, len, op);
-	 case NC_INT:
-	    if (mem_type_is_long)
-	       return ncmpi_put_att_long(nc->int_ncid, varid, name,
-				       file_type, len, op);
-	    else
-	       return ncmpi_put_att_int(nc->int_ncid, varid, name,
-				      file_type, len, op);
-	 case NC_FLOAT:
-	    return ncmpi_put_att_float(nc->int_ncid, varid, name,
-				     file_type, len, op);
-	 case NC_DOUBLE:
-	    return ncmpi_put_att_double(nc->int_ncid, varid, name,
-				      file_type, len, op);
-	 case NC_NAT:
-	 default:
-	    return NC_EBADTYPE;
-      }
-   }
-#endif /* USE_PNETCDF */
-
    /* Otherwise, handle things the netcdf-4 way. */
    return nc4_put_att(ncid, nc, varid, name, file_type, mem_type, len,
 		      mem_type_is_long, op);
@@ -1018,37 +939,7 @@ nc4_get_att_tc(int ncid, int varid, const char *name, nc_type mem_type,
    h5 = NC4_DATA(nc);
    assert(h5);
 
-#if 0 /*def USE_PNETCDF*/
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (h5->pnetcdf_file)
-   {
-      if (mem_type == NC_UBYTE)
-	 mem_type = NC_BYTE;
-
-      switch(mem_type)
-      {
-	 case NC_BYTE:
-	    return ncmpi_get_att_schar(nc->int_ncid, varid, name, ip);
-	 case NC_CHAR:
-	    return ncmpi_get_att_text(nc->int_ncid, varid, name, ip);
-	 case NC_SHORT:
-	    return ncmpi_get_att_short(nc->int_ncid, varid, name, ip);
-	 case NC_INT:
-	    if (mem_type_is_long)
-	       return ncmpi_get_att_long(nc->int_ncid, varid, name, ip);
-	    else
-	       return ncmpi_get_att_int(nc->int_ncid, varid, name, ip);
-	 case NC_FLOAT:
-	    return ncmpi_get_att_float(nc->int_ncid, varid, name, ip);
-	 case NC_DOUBLE:
-	    return ncmpi_get_att_double(nc->int_ncid, varid, name, ip);
-	 case NC_NAT:
-	 default:
-	    return NC_EBADTYPE;
-      }
-   }
-#endif /* USE_PNETCDF */
-    return nc4_get_att(ncid, nc, varid, name, NULL, mem_type,
+   return nc4_get_att(ncid, nc, varid, name, NULL, mem_type,
 		      NULL, NULL, mem_type_is_long, ip);
 }
 
