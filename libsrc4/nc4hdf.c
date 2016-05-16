@@ -3978,12 +3978,6 @@ NC4_isnetcdf4(struct NC_HDF5_FILE_INFO* h5)
     int isnc4 = 0;
     int count;
 
-#if 0
-    if(h5->fileinfo->propattr.version > 0) {
-	isnc4 = 1;
-	goto done;
-    }
-#endif
     /* Look for NC3_STRICT_ATT_NAME */
     isnc4 = NC4_get_strict_att(h5);
     if(isnc4 > 0)
