@@ -22,7 +22,8 @@ conditions.
 #endif
 
 #ifdef ENABLE_FILEINFO
-static int nc4_get_att_special(NC_HDF5_FILE_INFO_T*, const char*, nc_type, int, void*, size_t*, int*);
+static int nc4_get_att_special(NC_HDF5_FILE_INFO_T*, const char*,
+                               nc_type*, nc_type, size_t*, int*, int, void*);
 #endif
 
 int nc4typelen(nc_type type);
@@ -70,7 +71,7 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
 	const char** sp;
 	for(sp = NC_RESERVED_SPECIAL_LIST;*sp;sp++) {
 	    if(strcmp(name,*sp)==0) {
-		return nc4_get_att_special(h5, norm_name, mem_type, is_long, data, lenp, attnum);
+		return nc4_get_att_special(h5, norm_name, xtype, mem_type, lenp, attnum, is_long, data);
 	    }
 	}
     }
@@ -546,8 +547,8 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    return NC_NOERR;
 }
 
-/* Learn about an att. All the nc4 nc_inq_ functions just call
- * add_meta_get to get the metadata on an attribute. */
+/* Learn about an att. All the nc4 nc_inq_ functions just call 
+ * nc4_get_att to get the metadata on an attribute. */
 int
 NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp)
 {
@@ -578,7 +579,7 @@ NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-4 files. */
-   return nc4_get_att(ncid, nc, varid, name, xtypep, NC_UBYTE, lenp, NULL, 0, NULL);
+   return nc4_get_att(ncid, nc, varid, name, xtypep, NC_NAT, lenp, NULL, 0, NULL);
 }
 
 /* Learn an attnum, given a name. */
@@ -587,6 +588,7 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 {
    NC *nc;
    NC_HDF5_FILE_INFO_T *h5;
+   int stat;
 
    LOG((2, "nc_inq_attid: ncid 0x%x varid %d name %s", ncid, varid, name));
 
@@ -605,8 +607,9 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-4 files. */
-   return nc4_get_att(ncid, nc, varid, name, NULL, NC_UBYTE,
+   stat = nc4_get_att(ncid, nc, varid, name, NULL, NC_NAT,
 		      NULL, attnump, 0, NULL);
+   return stat;
 }
 
 
@@ -950,24 +953,33 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
 
 #ifdef ENABLE_FILEINFO
 static int
-nc4_get_att_special(NC_HDF5_FILE_INFO_T *h5, const char* name, nc_type mem_type, int islong, void* data, size_t* lenp, int* idp)
+nc4_get_att_special(NC_HDF5_FILE_INFO_T* h5, const char* name,
+                    nc_type* filetypep, nc_type mem_type, size_t* lenp,
+                    int* attnump, int is_long, void* data)
 {
-    /* Always make the attr id be -1 */
-    if(idp) *idp = -1;
+    /* Fail if asking for att id */
+    if(attnump)
+	return NC_EATTMETA;
 
     if(strcmp(name,NCPROPS)==0) {
 	if(h5->fileinfo->propattr.version == 0)
 	    return NC_ENOTATT;
+	if(mem_type == NC_NAT) mem_type = NC_CHAR;
+	if(mem_type != NC_CHAR)
+	    return NC_ECHAR;
+	if(filetypep) *filetypep = NC_CHAR;
 	if(lenp) *lenp = strlen(h5->fileinfo->propattr.text);
 	if(data) strcpy((char*)data,h5->fileinfo->propattr.text);
     } else if(strcmp(name,ISNETCDF4ATT)==0
               || strcmp(name,SUPERBLOCKATT)==0) {
 	unsigned long long iv = 0;
+	if(filetypep) *filetypep = NC_INT;
+	if(lenp) *lenp = 1;
 	if(strcmp(name,SUPERBLOCKATT)==0)
 	    iv = (unsigned long long)h5->fileinfo->superblockversion;
 	else /* strcmp(name,ISNETCDF4ATT)==0 */
 	    iv = NC4_isnetcdf4(h5);
-	if(lenp) *lenp = 1;
+	if(mem_type == NC_NAT) mem_type = NC_INT;
 	if(data)
 	switch (mem_type) {
 	case NC_BYTE: *((char*)data) = (char)iv; break;

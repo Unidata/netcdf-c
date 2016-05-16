@@ -131,17 +131,34 @@ It is strongly recommended that applicable conventions be followed unless there 
 
 These attributes can occur in netCDF enhanced (netcdf-4) files beginning
 with version 4.4.1. They all are associated with the root group as
-global attributes. They are hidden in the sense that they can only be
-accessed thru the netcdf-C api calls via the name. They have no
-attribute number and will not be counted in the number of global
-attributes in the root group. The simplest way to view these attributes
-is to use the -s flag to the ncdump command.
+global attributes. They are hidden in the sense that they have no
+attribute number, so they can only be accessed thru the netcdf-C api
+calls via the name.  Additionally, these attributes will not be counted
+in the number of global attributes in the root group.
+
+The simplest way to view these attributes is to use the -s flag to the
+ncdump command.  Alternatively, one can use the following API calls to
+obtain information.
+- nc_inq_att
+- nc_inq_atttype
+- nc_inq_attlen
+- nc_get_att (and derivatives)
+
+Using the following API calls will fail.
+- nc_inq_attid
+- nc_inq_attname
+- nc_copy_att
+- nc_rename_att
+- nc_del_att
+- nc_put_att (and derivatives)
+
 
 `_NCProperties`
 
 > This attribute is persistent in the file, but hidden. It is inserted in the file at creation time and is never modified after that point. It specifies the following.
 > - The version for the netcdf library used at creation time.
 > - The version for the HDF5 library used at creation time.
+> - The type of this attribute is NC_CHAR.
 
 > Its format is: `name=value|name=value ...`<br>
 > Occurrences of '|' in the name or value are disallowed.
@@ -155,6 +172,7 @@ is to use the -s flag to the ncdump command.
 
 > This attribute is ephemeral in that it is computed by looking at the file's HDF5 superblock.
 > It has this form: `_SuperBlockVersion = 0|1|2|3|...`
+> The type of this attribute is NC_INT.
 
 `_IsNetcdf4`
 
@@ -162,6 +180,7 @@ is to use the -s flag to the ncdump command.
 
 > The _IsNetcdf4 attribute has the form: `_IsNetcdf4 = 0|1`
 > where 1 means the file has various tags indicating it was produced thru the netcdf-4 API.
+> The type of this attribute is NC_INT.
 
 > This attribute is computed by using the HDF5 API to walk the file to look for attributes specific to netcdf-4.  False negatives are possible for a small subset of netcdf-4 files, especially those not containing dimensions. False positives are only possible by deliberate modifications to an existing HDF5 file thru the HDF5 API. For files with the _NCProperties attribute, this attribute is redundant. For files created prior to the introduction of the _NCProperties attribute, this may be a useful indicator of the provenance of the file.
 

@@ -71,14 +71,16 @@ main(int argc, char **argv)
     }
 
     {
-	int root, grpid, varid, stat, natts;
+	int root, grpid, varid, stat, natts, id;
 	int data = 17;
 	const char* sdata = "text";
 	char ncprops[8192];
 	size_t len;
 	int dimid;
+        nc_type xtype;
+	char name[NC_MAX_NAME];
 
-        printf("*** creating netcdf-4 test file using netCDF %s...", NC4FILE);
+        printf("\n*** creating netcdf-4 test file using netCDF %s...", NC4FILE);
 			
 	if(nc_create(NC4FILE,NC_WRITE|NC_CLOBBER|NC_NETCDF4,&root)!=0) ERR;
 	/* Create global attribute */
@@ -107,9 +109,24 @@ main(int argc, char **argv)
 
 	/* Now, fiddle with the NCPROPS attribute */
 
-	/* Get its value */
-	if(nc_inq_att(root,NC_GLOBAL,NCPROPS,NULL,&len)!=0) ERR;
+	/* Get its metadata */
+	if(nc_inq_att(root,NC_GLOBAL,NCPROPS,&xtype,&len)!=0) ERR;
+	if(xtype != NC_CHAR) ERR;
+
+	/* Read in two ways */
 	if(nc_get_att_text(root,NC_GLOBAL,NCPROPS,ncprops)!=0) ERR;
+	if(strlen(ncprops) != len) ERR;
+
+	/* Attempt to get attribute metadata piecemeal; some will fail */
+	id = -1;
+	stat = nc_inq_attid(root,NC_GLOBAL,NCPROPS,&id);
+	if(stat == NC_NOERR) ERR;       
+	stat = nc_inq_attname(root,NC_GLOBAL,id,name);
+	if(stat == NC_NOERR) ERR;       
+	if(nc_inq_atttype(root,NC_GLOBAL,NCPROPS,&xtype)!=0) ERR;
+	if(xtype != NC_CHAR) ERR;
+	if(nc_inq_attlen(root,NC_GLOBAL,NCPROPS,&len)!=0) ERR;
+	if(len != strlen(ncprops)) ERR;
 
 	/*Overwrite _NCProperties root attribute; should fail */
 	stat = nc_put_att_text(root,NC_GLOBAL,NCPROPS,strlen(sdata),sdata);
@@ -121,10 +138,22 @@ main(int argc, char **argv)
 
 	/* Ditto _SuperblockVersion */
 
-	/* Get its value */
-	if(nc_inq_att(root,NC_GLOBAL,SUPERBLOCKATT,NULL,&len)!=0) ERR;
+	/* Get its metadata */
+	if(nc_inq_att(root,NC_GLOBAL,SUPERBLOCKATT,&xtype,&len)!=0) ERR;
+	if(xtype != NC_INT) ERR;
 	if(len != 1) ERR;
+
 	if(nc_get_att_int(root,NC_GLOBAL,SUPERBLOCKATT,&data)!=0) ERR;
+
+	/* Attempt to get attribute metadata piecemeal */
+	stat = nc_inq_attid(root,NC_GLOBAL,SUPERBLOCKATT,&id);
+	if(stat == NC_NOERR) ERR;       
+	stat = nc_inq_attname(root,NC_GLOBAL,id,name);
+	if(stat == NC_NOERR) ERR;       
+	if(nc_inq_atttype(root,NC_GLOBAL,SUPERBLOCKATT,&xtype)!=0) ERR;
+	if(xtype != NC_INT) ERR;
+	if(nc_inq_attlen(root,NC_GLOBAL,SUPERBLOCKATT,&len)!=0) ERR;
+	if(len != 1) ERR;
 
 	/*Overwrite; should fail */
 	stat = nc_put_att_int(root,NC_GLOBAL,NCPROPS,NC_INT,1,&data);
@@ -136,10 +165,22 @@ main(int argc, char **argv)
 
 	/* Ditto _IsNetcdf4 */
 
-	/* Get its value */
-	if(nc_inq_att(root,NC_GLOBAL,ISNETCDF4ATT,NULL,&len)!=0) ERR;
+	/* Get its metadata */
+	if(nc_inq_att(root,NC_GLOBAL,ISNETCDF4ATT,&xtype,&len)!=0) ERR;
+	if(xtype != NC_INT) ERR;
 	if(len != 1) ERR;
+
 	if(nc_get_att_int(root,NC_GLOBAL,ISNETCDF4ATT,&data)!=0) ERR;
+
+	/* Attempt to get attribute metadata piecemeal */
+	stat = nc_inq_attid(root,NC_GLOBAL,ISNETCDF4ATT,&id);
+	if(stat == NC_NOERR) ERR;       
+	stat = nc_inq_attname(root,NC_GLOBAL,id,name);
+	if(stat == NC_NOERR) ERR;       
+	if(nc_inq_atttype(root,NC_GLOBAL,ISNETCDF4ATT,&xtype)!=0) ERR;
+	if(xtype != NC_INT) ERR;
+	if(nc_inq_attlen(root,NC_GLOBAL,ISNETCDF4ATT,&len)!=0) ERR;
+	if(len != 1) ERR;
 
 	/*Overwrite; should fail */
 	stat = nc_put_att_int(root,NC_GLOBAL,ISNETCDF4ATT,NC_INT,1,&data);
