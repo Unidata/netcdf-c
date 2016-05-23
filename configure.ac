@@ -45,7 +45,7 @@ AC_MSG_NOTICE([netCDF AC_PACKAGE_VERSION])
 AC_CONFIG_MACRO_DIR([m4])
 
 # Configuration Date
-if test -n ${SOURCE_DATE_EPOCH}; then
+if test "x$SOURCE_DATE_EPOCH" != "x" ; then
     AC_SUBST([CONFIG_DATE]) CONFIG_DATE="`date -u -d "${SOURCE_DATE_EPOCH}"`"
 else
     AC_SUBST([CONFIG_DATE]) CONFIG_DATE="`date`"
