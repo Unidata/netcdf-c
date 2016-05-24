@@ -3086,7 +3086,8 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
       /* Free the MPI Comm & Info objects, if we opened the file in parallel */
       if(h5->parallel)
       {
-          MPI_Comm_free(&h5->comm);
+          if(MPI_COMM_NULL != h5->comm)
+              MPI_Comm_free(&h5->comm);
           if(MPI_INFO_NULL != h5->info)
               MPI_Info_free(&h5->info);
       }
