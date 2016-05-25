@@ -1,4 +1,4 @@
-#                                               -*- Autoconf -*-
+M#                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
 # This is part of Unidata's netCDF package. Copyright 2005-2012, see
@@ -799,8 +799,7 @@ test "x$enable_diskless" = xno || enable_diskless=yes
 AC_MSG_RESULT($enable_diskless)
 
 # Check for enable DAP
-if test "x$enable_dap" = "xyes"; then
-enable_diskless=yes
+if test "x$enable_dap" = "xyes" -a "xenable_diskless" = xno  ; then
 AC_MSG_NOTICE([--enable-dap requires --enable-diskless])
 AC_MSG_NOTICE([dap support disabled])
 fi

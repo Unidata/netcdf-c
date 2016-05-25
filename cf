@@ -1,11 +1,11 @@
 #!/bin/bash
 #NB=1
-DB=1
+#DB=1
 #X=-x
 #FAST=1
 
 HDF5=1
-#DAP=1
+DAP=1
 #PNETCDF=1
 #PAR4=1
 
