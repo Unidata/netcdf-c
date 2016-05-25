@@ -3710,6 +3710,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                         return NC_ENOMEM;
                       }
                       dim->len = h5dimlen[d];
+                      dim->hash = hash_fast(phony_dim_name, strlen(phony_dim_name));
                       if (h5dimlenmax[d] == H5S_UNLIMITED)
                         dim->unlimited = NC_TRUE;
                     }
