@@ -22,7 +22,7 @@ add_sh_test(nc_test4 run_grp_rename)
 BUILD_BIN_TEST(tst_empty_vlen_unlim)
 ADD_SH_TEST(nc_test4 run_empty_vlen_test)
 
-ADD_SH_TEST(nc_test4 tst_misc.sh)
+ADD_SH_TEST(nc_test4 tst_misc)
 
 IF(NOT MSVC)
   SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
