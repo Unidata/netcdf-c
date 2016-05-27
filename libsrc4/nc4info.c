@@ -127,8 +127,8 @@ NC4_get_propattr(NC_HDF5_FILE_INFO_T* h5)
     /* Get root group */
     grp = h5->root_grp->hdf_grpid; /* get root group */
     /* Try to extract the NCPROPS attribute */
-    attid = H5Aopen_name(grp, NCPROPS);
-    if(attid >= 0) {
+    if(H5Aexists(grp,NCPROPS) > 0) { /* Does exist */
+        attid = H5Aopen_name(grp, NCPROPS);
 	herr = -1;
 	aspace = H5Aget_space(attid); /* dimensions of attribute data */
         atype = H5Aget_type(attid);
@@ -170,8 +170,7 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
     /* Get root group */
     grp = h5->root_grp->hdf_grpid; /* get root group */
     /* See if the NCPROPS attribute exists */
-    exists = H5Aopen_name(grp, NCPROPS);
-    if(exists < 0) {/* Does not exist */
+    if(H5Aexists(grp,NCPROPS) == 0) { /* Does not exist */
 	herr = -1;
         /* Create a datatype to refer to. */
         HCHECK((atype = H5Tcopy(H5T_C_S1)));
@@ -183,7 +182,6 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
 	herr = 0;
     }
 done:
-    if(exists >= 0) HCHECK((H5Aclose(exists)));
     if(attid >= 0) HCHECK((H5Aclose(attid)));
     if(aspace >= 0) HCHECK((H5Sclose(aspace)));
     if(atype >= 0) HCHECK((H5Tclose(atype)));

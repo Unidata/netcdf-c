@@ -602,8 +602,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       BAIL(NC_EHDFERR);
    if (attr_exists)
    {
-      if ((attid = H5Aopen_by_name(datasetid, ".", NC_DIMID_ATT_NAME,
-				   H5P_DEFAULT, H5P_DEFAULT)) < 0)
+      if ((attid = H5Aopen_name(datasetid, NC_DIMID_ATT_NAME)) < 0)
          BAIL(NC_EHDFERR);
 
       if (H5Aread(attid, H5T_NATIVE_INT, &new_dim->dimid) < 0)

@@ -120,7 +120,7 @@ int main() {
 
     /* Close File. */
     printf("\t* Closing file:\tnc_close().\n");
-    if (stat = nc_close(ncid)) ERR;
+    if ((stat = nc_close(ncid))) ERR;
 
 
   }
@@ -212,7 +212,7 @@ int main() {
 
     /* Close File. */
     printf("\t* Closing file:\tnc_close().\n");
-    if (stat = nc_close(ncid)) ERR;
+    if ((stat = nc_close(ncid))) ERR;
 
 
   }
