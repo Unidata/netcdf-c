@@ -11,7 +11,7 @@ set -e
 
 echo "*** Testing phony dimension creation on pure h5 file"
 rm -f ./tmp
-if ../ncdump/ncdump -K ${srcdir}/tdset.h5 >./tmp ; then
+if ../ncdump/ncdump -L0 -K ${srcdir}/tdset.h5 >./tmp ; then
 echo "*** Pass: phony dimension creation"
 ECODE=0
 else

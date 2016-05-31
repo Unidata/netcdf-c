@@ -2420,7 +2420,7 @@ NCD2_var_par_access(int ncid, int p2, int p3)
 
 #ifdef USE_NETCDF4
 
-EXTERNL int
+int
 NCD2_inq_ncid(int ncid, const char* name, int* grp_ncid)
 {
     NC* drno;
@@ -2430,6 +2430,7 @@ NCD2_inq_ncid(int ncid, const char* name, int* grp_ncid)
     return THROW(ret);
 }
 
+int
 NCD2_show_metadata(int ncid)
 {
     NC* drno;

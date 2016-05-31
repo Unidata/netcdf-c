@@ -73,10 +73,15 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
     }
 #endif
 
-   /* Find the attribute, if it exists. If we don't find it, we are
-      major failures. */
-   if ((retval = nc4_find_grp_att(grp, varid, norm_name, my_attnum, &att)))
+   /* Find the attribute, if it exists.
+      <strike>If we don't find it, we are major failures.</strike>
+   */
+   if ((retval = nc4_find_grp_att(grp, varid, norm_name, my_attnum, &att))) {
+     if(retval == NC_ENOTATT)
+	return retval;
+     else
       BAIL(retval);
+   }
 
    /* If mem_type is NC_NAT, it means we want to use the attribute's
     * file type as the mem type as well. */
