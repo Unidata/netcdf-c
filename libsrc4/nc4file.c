@@ -2618,6 +2618,8 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       if (SDgetinfo(var->sdsid, var->name, &rank, NULL, &data_type, &num_atts))
 	return NC_EVARMETA;
 
+      var->hash = hash_fast(var->name, strlen(var->name));
+
       if(!(dimsize = (int32*)malloc(sizeof(int32)*rank)))
 	return NC_ENOMEM;
 
