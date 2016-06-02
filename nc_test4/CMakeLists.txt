@@ -77,7 +77,7 @@ IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
     build_bin_test(tst_chunk_hdf4)
     add_sh_test(nc_test4 run_chunk_hdf4)
     add_bin_test(nc_test4 tst_h4_lendian)
-
+    add_sh_test(nc_test4 tst_hdf4_read_var)
 ENDIF()
 
 

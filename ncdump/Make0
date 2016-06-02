@@ -1,8 +1,9 @@
 # Test c output
-T=tst_fileinfo
+T=t
 #CMD=valgrind --leak-check=full
 CMD=gdb --args
 
+HDF4=1
 #PAR=1
 
 CFLAGS=-Wall -g -O0 -I.. -I../include
@@ -12,9 +13,14 @@ CC=mpicc
 #CC=/usr/local/bin/mpicc
 LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  -ldl -lcurl -lpnetcdf -lmpich -lm
 else
+ifdef HDF4
+CC=gcc
+LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lmfhdf -ldf -lz  -ldl -lm -lcurl -ljpeg
+else
 CC=gcc
 #LDFLAGS=../liblib/.libs/libnetcdf.a  -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
 LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  -ldl -lm -lcurl
+endif
 endif
 
 #	cd .. ; ${MAKE} all
