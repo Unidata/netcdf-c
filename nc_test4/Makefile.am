@@ -89,8 +89,8 @@ if USE_HDF4
 check_PROGRAMS += tst_interops2 tst_chunk_hdf4 tst_h4_lendian
 TESTS += tst_interops2  tst_formatx_hdf4.sh run_chunk_hdf4.sh tst_h4_lendian
 if USE_HDF4_FILE_TESTS
-check_PROGRAMS += tst_interops3 tst_hdf4_read_var.sh
-TESTS += run_get_hdf4_files.sh tst_interops3
+check_PROGRAMS += tst_interops3
+TESTS += run_get_hdf4_files.sh tst_interops3 tst_hdf4_read_var.sh
 endif # USE_HDF4_FILE_TESTS
 #tst_interops2_LDADD = ${lib_LTLIBRARIES} -lmfhdf -ldf -ljpeg -lhdf5_hl	\
 #-lhdf5 -lz
