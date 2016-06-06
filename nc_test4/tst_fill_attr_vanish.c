@@ -23,6 +23,10 @@
 #define RANK_P 3
 #define LEN 4
 
+#define ATTNAME "TextAttribute"
+#define ATTVAL  "This is a text attribute used for testing."
+
+
 int
 main()
 {
@@ -62,18 +66,13 @@ main()
   if (nc_def_var(ncid, "Test", NC_INT, 1, &dimids[1], &test_id)) ERR;
 
   /* Add a _FillValue attribute */
-  if (nc_put_att_int(ncid, test_id, "_FillValue", NC_INT, 1, test_fill_val)) ERR;
-  /* Add a test variable. */
+
+  if (nc_put_att_text(ncid, test_id, ATTNAME, strlen(ATTVAL), ATTVAL)) ERR;
+  /* Add a value to the test variable */
   if (nc_put_vara(ncid, test_id, test_start, test_count, test_data)) ERR;
 
   /* Add one record in coordinate variable. */
-
   if (nc_put_vara(ncid, time_id, start, count, data)) ERR;
-
-  /* The other variable should show an increase in size, since it
-   * uses the unlimited dimension. */
-  if (nc_inq_var(ncid, 1, NULL, NULL, &ndims, dimids_in, NULL)) ERR;
-  if (ndims != 3 || dimids_in[0] != 0 || dimids_in[1] != 2 || dimids_in[2] != 1) ERR;
 
   /* That's it! */
   if (nc_close(ncid)) ERR;
@@ -81,12 +80,54 @@ main()
   /********************************************/
 
   /* Reopen the file, add a fillvalue attribute. */
-  if (nc_open(FILENAME, NC_NOCLOBBER, &ncid)) ERR;
+  if (nc_open(FILENAME, NC_NOCLOBBER|NC_WRITE, &ncid)) ERR;
+  if (nc_redef(ncid)) ERR;
+  if (nc_inq_varid(ncid, "Test", &test_id)) ERR;
 
+  /* Query existing attribute. */
+  {
+    printf("**** Checking that attribute still exists:\t");
+    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
+    else {printf("%s\n",attval);}
+    free(attval);
 
+  }
+
+  printf("**** Adding _FillValue attribute.\n");
+  if (nc_put_att_int(ncid, test_id, "_FillValue", NC_INT, 1, test_fill_val)) ERR;
+
+  /* Query existing attribute. */
+  {
+    printf("**** Checking that attribute still exists, pre-write:\t");
+    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
+    else {printf("%s\n",attval);}
+    free(attval);
+
+  }
 
   /* Close file again. */
+  printf( "**** Saving, closing file.\n");
+  if (nc_close(ncid)) ERR;
+  /********************************************/
+  printf( "*** Reopening file.\n");
+  /* Reopen the file, checking that all attributes are preserved. */
+  if (nc_open(FILENAME, NC_NOCLOBBER|NC_WRITE, &ncid)) ERR;
+  if (nc_redef(ncid)) ERR;
+  if (nc_inq_varid(ncid, "Test", &test_id)) ERR;
 
+  /* Query existing attribute. */
+  {
+    printf("**** Checking that attribute still exists:\t");
+    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
+    else {printf("%s\n",attval);}
+    free(attval);
+
+  }
+
+  if (nc_close(ncid)) ERR;
   /********************************************/
 
    /* Reopen the fi+le and read the second slice. */
