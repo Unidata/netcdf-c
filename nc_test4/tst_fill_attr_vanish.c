@@ -30,13 +30,13 @@ main()
    int ndims, dimids_in[RANK_P];
 
    double data[1] = {3.14159};
+   float ddata[1] = {7.3,0,2};
+   size_t dstart[1] = {0}, dcount[1] = {1};
    size_t start[1] = {0}, count[1] = {1};
    static float P_data[LEN];
    size_t cor[RANK_P] = {0, 1, 0};
    size_t edg[RANK_P] = {1, 1, LEN};
-   float pdata[1] = {1};
-   int pfill = 3;
-   int i;
+   float pfills[] = {3};
 
    printf("\n*** Testing for a netCDF-4 fill-value bug.\n");
    printf("*** Creating a file with no _FillValue defined. ***\n");
@@ -54,7 +54,10 @@ main()
    if (nc_def_var(ncid, "Time", NC_DOUBLE, 1, dimids, &time_id)) ERR;
    if (nc_def_var(ncid, "P", NC_FLOAT, RANK_P, dimids, &p_id)) ERR;
 
-   if (nc_put_att_float(ncid,p_id,"_FillValue", NC_FLOAT, 1, pfill)) ERR;
+
+   if (nc_put_att_float(ncid,p_id,"_FillValue", NC_FLOAT, 1, pfills)) ERR;
+   if (nc_put_var(ncid, p_id, ddata)) ERR;
+   //if (nc_put_vara(ncid, p_id, dstart, dcount, ddata)) ERR;
 
    /* Add one record in coordinate variable. */
    if (nc_put_vara(ncid, time_id, start, count, data)) ERR;
