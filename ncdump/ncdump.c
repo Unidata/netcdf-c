@@ -44,7 +44,10 @@ int optind;
 #include "indent.h"
 #include "isnan.h"
 #include "cdl.h"
+
+#ifdef USE_NETCDF4
 #include "nc4internal.h" /* to get name of the special properties file */
+#endif
 
 #if !defined(HAVE_SSIZE_T) && !defined(H5_SIZEOF_SSIZE_T)
 typedef int ssize_t;
@@ -72,7 +75,7 @@ static int iskeyword(const char* kw)
     const char** p;
     for(p=keywords;*p;p++) {
 	if(strcmp(kw,*p)==0) return 1;
-    }    
+    }
     return 0;
 }
 
@@ -790,7 +793,7 @@ pr_att(
     /* 	printf ("\t\t%s:%s = ", varname, att.name); */
     print_name(varname);
     if(iskeyword(varname)) /* see discussion about escapes in ncgen man page*/
-	printf(" ");    
+	printf(" ");
     printf(":");
     print_name(att.name);
     printf(" = ");
