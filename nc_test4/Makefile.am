@@ -109,7 +109,7 @@ endif # USE_VALGRIND_TESTS
 # with --enable-parallel-tests.
 if TEST_PARALLEL4
 check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3	\
-tst_parallel4 tst_nc4perf tst_mode
+tst_parallel4 tst_nc4perf tst_mode tst_simplerw_coll_r
 TESTS += run_par_test.sh
 endif
 
@@ -125,7 +125,8 @@ run_grp_rename.sh tst_formatx_hdf4.sh                                   \
 run_chunk_hdf4.sh contiguous.hdf4 chunked.hdf4 \
 tst_h5_endians.c tst_h4_lendian.c tst_atts_string_rewrite.c \
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c run_empty_vlen_test.sh \
-ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_hdf4_read_var.sh
+ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_hdf4_read_var.sh \
+tst_simplerw_coll_r
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt			\
