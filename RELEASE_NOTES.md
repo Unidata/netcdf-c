@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.1 - TBD
 
+* [Bug Fix][Parallel I/O] Corrected an issue reported by Kent Yang at the HDF group related to Collective Parallel I/O and a potential hang.
+
 ### 4.4.1-RC2 - May 13, 2016
 
 * [Enhancement] Added provenance information to files created.  This information consists of a persistent attribute named `_NCProperties` plus two computed attributes, `_IsNetcdf4` and `_SuperblockVersion`.  Associated documentation was added to the file `docs/attribute_conventions.md`.  See [GitHub pull request #260](https://github.com/Unidata/netcdf-c/pull/260) for more information.
