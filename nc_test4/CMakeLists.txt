@@ -81,7 +81,7 @@ IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
 ENDIF()
 
 
-IF(TEST_PARALLEL)
+IF(TEST_PARALLEL4)
   build_bin_test(tst_mpi_parallel)
   build_bin_test(tst_parallel)
   build_bin_test(tst_parallel3)
