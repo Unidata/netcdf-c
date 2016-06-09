@@ -15,7 +15,7 @@ mpiexec -n 4 ./tst_parallel
 echo
 echo "Testing simple parallel I/O with 16 processors..."
 mpiexec -n 16 ./tst_parallel3
-echo 
+echo
 echo "num_proc   time(s)  write_rate(B/s)"
 mpiexec -n 1 ./tst_parallel4
 mpiexec -n 2 ./tst_parallel4
@@ -28,3 +28,8 @@ mpiexec -n 8 ./tst_parallel4
 echo
 echo "Parallel Performance Test for NASA"
 mpiexec -n 4 ./tst_nc4perf
+
+echo
+echo "Parallel I/O test for Collective I/O, contributed by HDF Group."
+mpiexec -n 1 ./tst_simplerw_coll_rc
+mpiexec -n 2 ./tst_simplerw_coll_rc
