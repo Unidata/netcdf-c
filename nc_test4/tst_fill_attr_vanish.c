@@ -27,13 +27,13 @@
 #define ATTVAL  "This is a text attribute used for testing."
 
 
-int
-main()
+/*! Main function for tst_fill_attr_vanish.c
+ *
+ */
+int main()
 {
   int ncid, dimids[RANK_P], time_id, p_id, test_id;
   int ndims, dimids_in[RANK_P];
-
-
 
   int test_data[1] = {1};
   size_t test_start[1] = {0}, test_count[1] = {1};

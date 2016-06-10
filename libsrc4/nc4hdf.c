@@ -607,7 +607,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
             BAIL_QUIET(NC_EEDGE);
         }
     }
-  
+
   /* Now you would think that no one would be crazy enough to write
      a scalar dataspace with one of the array function calls, but you
      would be wrong. So let's check to see if the dataset is
@@ -1119,7 +1119,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
     else {
 #ifdef USE_PARALLEL4 /* Start block contributed by HDF group. */
         /* For collective IO read, some processes may not have any element for reading.
-           Collective requires all processes to participate, so we use H5Sselect_none 
+           Collective requires all processes to participate, so we use H5Sselect_none
            for these processes. */
         if(var->parallel_access == NC_COLLECTIVE) {
 
@@ -1135,14 +1135,14 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
            if (H5Sselect_none(file_spaceid)<0)
               BAIL(NC_EHDFERR);
- 
+
            /* Since no element will be selected, we just get the memory space the same as the file space.
            */
            if((mem_spaceid = H5Dget_space(var->hdf_datasetid))<0)
              BAIL(NC_EHDFERR);
            if (H5Sselect_none(mem_spaceid)<0)
               BAIL(NC_EHDFERR);
- 
+
 #ifdef EXTRA_TESTS
              num_spaces++;
 #endif
@@ -2139,6 +2139,20 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
     {
       replace_existing_var = NC_TRUE;
       var->fill_val_changed = NC_FALSE;
+      /* If the variable is going to be replaced,
+         we need to flag any other attributes associated
+         with the variable as 'dirty', or else
+         *only* the fill value attribute will be copied over
+         and the rest will be lost.  See:
+
+         * https://github.com/Unidata/netcdf-c/issues/239 */
+      {
+        NC_ATT_INFO_T *att, **attlist = NULL;
+        attlist = &var->att;
+        for(att = *attlist; att; att = att->l.next) {
+          att->dirty = NC_TRUE;
+        }
+      }
     }
 
   /* Is this a coordinate var that has already been created in
@@ -3899,7 +3913,7 @@ reportobject(int log, hid_t id, unsigned int type)
 #   define MAXNAME 1024
     char name[MAXNAME];
     ssize_t len;
-    const char* typename = NULL;       
+    const char* typename = NULL;
 
     len = H5Iget_name(id, name, MAXNAME);
     if(len < 0) return;
@@ -3922,7 +3936,7 @@ reportobject(int log, hid_t id, unsigned int type)
 #ifdef LOGGING
 	LOG((0,"Type = %s(%8u) name='%s'",typename,id,name));
 #endif
-    } else {    
+    } else {
 	fprintf(stderr,"Type = %s(%8u) name='%s'",typename,id,name);
     }
 }
@@ -3947,7 +3961,7 @@ reportopenobjectsT(int log, hid_t fid, int ntypes, unsigned int* otypes)
     maxobjs = H5Fget_obj_count(fid,H5F_OBJ_ALL);
     if(idlist != NULL) free(idlist);
     idlist = (hid_t*)malloc(sizeof(hid_t)*maxobjs);
-    for(t=0;t<ntypes;t++) {    
+    for(t=0;t<ntypes;t++) {
 	unsigned int ot = otypes[t];
 	if(ot < 0) break;
         ocount = H5Fget_obj_ids(fid,ot,maxobjs,idlist);
@@ -3983,7 +3997,7 @@ NC4_hdf5get_superblock(struct NC_HDF5_FILE_INFO* h5, int* idp)
     hid_t plist = -1;
     if((plist = H5Fget_create_plist(h5->hdfid)) < 0)
 	{stat = NC_EHDFERR; goto done;}
-    if(H5Pget_version(plist, &super, NULL, NULL, NULL) < 0) 
+    if(H5Pget_version(plist, &super, NULL, NULL, NULL) < 0)
 	{stat = NC_EHDFERR; goto done;}
     if(idp) *idp = (int)super;
 done:
@@ -4092,7 +4106,7 @@ NC4_walk(hid_t gid, int* countp)
                             if(strcmp(name,*p) ==     0) {
                                 *countp = *countp + 1;
                             }
-                        }               
+                        }
                 }
                 H5Aclose(aid);
             }

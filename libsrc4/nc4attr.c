@@ -63,7 +63,7 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
       BAIL(retval);
 
 #ifdef ENABLE_FILEINFO
-   if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {	
+   if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {
 	const char** sp;
 	for(sp = NC_RESERVED_SPECIAL_LIST;*sp;sp++) {
 	    if(strcmp(name,*sp)==0) {
@@ -252,7 +252,7 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       return retval;
 
 #ifdef ENABLE_FILEINFO
-   if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {	
+   if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {
 	const char** sp;
 	for(sp = NC_RESERVED_SPECIAL_LIST;*sp;sp++) {
 	    if(strcmp(name,*sp)==0) {
@@ -267,19 +267,19 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       attlist = &grp->att;
    else
    {
-      for (var = grp->var; var; var = var->l.next)
-	 if (var->varid == varid)
-	 {
-	    attlist = &var->att;
-	    break;
-	 }
-      if (!var)
-	 return NC_ENOTVAR;
+     for (var = grp->var; var; var = var->l.next)
+       if (var->varid == varid)
+         {
+           attlist = &var->att;
+           break;
+         }
+     if (!var)
+       return NC_ENOTVAR;
    }
 
    for (att = *attlist; att; att = att->l.next)
-      if (!strcmp(att->name, norm_name))
-	 break;
+     if (!strcmp(att->name, norm_name))
+       break;
 
    if (!att)
    {
@@ -297,14 +297,14 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    {
       /* For an existing att, if we're not in define mode, the len
 	 must not be greater than the existing len for classic model. */
-      if (!(h5->flags & NC_INDEF) &&
-	  len * nc4typelen(file_type) > (size_t)att->len * nc4typelen(att->nc_typeid))
-      {
-	 if (h5->cmode & NC_CLASSIC_MODEL)
-	    return NC_EINDEFINE;
-	 if ((retval = NC4_redef(ncid)))
-	    BAIL(retval);
-      }
+     if (!(h5->flags & NC_INDEF) &&
+         len * nc4typelen(file_type) > (size_t)att->len * nc4typelen(att->nc_typeid))
+       {
+         if (h5->cmode & NC_CLASSIC_MODEL)
+           return NC_EINDEFINE;
+         if ((retval = NC4_redef(ncid)))
+           BAIL(retval);
+       }
    }
 
    /* We must have two valid types to continue. */
@@ -332,9 +332,9 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    {
       LOG((3, "adding attribute %s to the list...", norm_name));
       if ((res = nc4_att_list_add(attlist, &att)))
-	 BAIL (res);
+        BAIL (res);
       if (!(att->name = strdup(norm_name)))
-         return NC_ENOMEM;
+        return NC_ENOMEM;
    }
 
    /* Now fill in the metadata. */
@@ -375,72 +375,72 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
 
       /* Fill value must be same type and have exactly one value */
       if (att->nc_typeid != var->type_info->nc_typeid)
-	 return NC_EBADTYPE;
+        return NC_EBADTYPE;
       if (att->len != 1)
-	 return NC_EINVAL;
+        return NC_EINVAL;
 
       /* If we already wrote to the dataset, then return an error. */
       if (var->written_to)
-	 return NC_ELATEFILL;
+        return NC_ELATEFILL;
 
       /* If fill value hasn't been set, allocate space. Of course,
        * vlens have to be different... */
       if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->nc_typeid, 0,
-					&type_size)))
-	 return retval;
+                                        &type_size)))
+        return retval;
 
       /* Already set a fill value? Now I'll have to free the old
        * one. Make up your damn mind, would you? */
       if (var->fill_value)
-      {
-         if (var->type_info->nc_type_class == NC_VLEN)
-         {
-            if ((retval = nc_free_vlen(var->fill_value)))
-               return retval;
-         }
-         else if (var->type_info->nc_type_class == NC_STRING)
-         {
-            if (*(char **)var->fill_value)
-               free(*(char **)var->fill_value);
-         }
-	 free(var->fill_value);
-      }
+        {
+          if (var->type_info->nc_type_class == NC_VLEN)
+            {
+              if ((retval = nc_free_vlen(var->fill_value)))
+                return retval;
+            }
+          else if (var->type_info->nc_type_class == NC_STRING)
+            {
+              if (*(char **)var->fill_value)
+                free(*(char **)var->fill_value);
+            }
+          free(var->fill_value);
+        }
 
       /* Allocate space for the fill value. */
       if (var->type_info->nc_type_class == NC_VLEN)
-	 size = sizeof(hvl_t);
+        size = sizeof(hvl_t);
       else if (var->type_info->nc_type_class == NC_STRING)
-	 size = sizeof(char *);
+        size = sizeof(char *);
       else
-	 size = type_size;
+        size = type_size;
 
       if (!(var->fill_value = calloc(1, size)))
-	 return NC_ENOMEM;
+        return NC_ENOMEM;
 
       /* Copy the fill_value. */
       LOG((4, "Copying fill value into metadata for variable %s", var->name));
       if (var->type_info->nc_type_class == NC_VLEN)
-      {
-	 nc_vlen_t *in_vlen = (nc_vlen_t *)data, *fv_vlen = (nc_vlen_t *)(var->fill_value);
+        {
+          nc_vlen_t *in_vlen = (nc_vlen_t *)data, *fv_vlen = (nc_vlen_t *)(var->fill_value);
 
-	 fv_vlen->len = in_vlen->len;
-	 if (!(fv_vlen->p = malloc(size * in_vlen->len)))
-	    return NC_ENOMEM;
-	 memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * size);
-      }
+          fv_vlen->len = in_vlen->len;
+          if (!(fv_vlen->p = malloc(size * in_vlen->len)))
+            return NC_ENOMEM;
+          memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * size);
+        }
       else if (var->type_info->nc_type_class == NC_STRING)
-      {
-         if(NULL != (*(char **)data))
-         {
-            if (!(*(char **)(var->fill_value) = malloc(strlen(*(char **)data) + 1)))
-               return NC_ENOMEM;
-            strcpy(*(char **)var->fill_value, *(char **)data);
-         }
-         else
+        {
+          if(NULL != (*(char **)data))
+            {
+              if (!(*(char **)(var->fill_value) = malloc(strlen(*(char **)data) + 1)))
+                return NC_ENOMEM;
+              strcpy(*(char **)var->fill_value, *(char **)data);
+            }
+          else
             *(char **)var->fill_value = NULL;
-      }
+        }
       else
-	 memcpy(var->fill_value, data, type_size);
+        memcpy(var->fill_value, data, type_size);
 
       /* Indicate that the fill value was changed, if the variable has already
        * been created in the file, so the dataset gets deleted and re-created. */
@@ -548,7 +548,7 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    return NC_NOERR;
 }
 
-/* Learn about an att. All the nc4 nc_inq_ functions just call 
+/* Learn about an att. All the nc4 nc_inq_ functions just call
  * nc4_get_att to get the metadata on an attribute. */
 int
 NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp)
