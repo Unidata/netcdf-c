@@ -109,7 +109,7 @@ endif # USE_VALGRIND_TESTS
 # with --enable-parallel-tests.
 if TEST_PARALLEL4
 check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3	\
-tst_parallel4 tst_nc4perf tst_mode
+tst_parallel4 tst_nc4perf tst_mode tst_simplerw_coll_r
 TESTS += run_par_test.sh
 endif
 
@@ -127,6 +127,7 @@ tst_h5_endians.c tst_h4_lendian.c tst_atts_string_rewrite.c \
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c run_empty_vlen_test.sh \
 ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_hdf4_read_var.sh
 
+
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt			\
 radar_3d_compression.txt radar_2d_compression.txt			\
@@ -136,7 +137,8 @@ tst_elena_*.cdl tst_simple*.cdl tst_chunks.cdl pr_A1.* tauu_A1.*	\
 usi_01.* thetau_01.* tst_*.nc tst_*.h5                                  \
 tst_grp_rename.cdl tst_grp_rename.nc tst_grp_rename.dmp ref_grp_rename.cdl \
 foo1.nc tst_interops2.h4 tst_h5_endians.nc tst_h4_lendian.h4 test.nc \
-tst_atts_string_rewrite.nc tst_empty_vlen_unlim.nc tst_empty_vlen_lim.nc
+tst_atts_string_rewrite.nc tst_empty_vlen_unlim.nc tst_empty_vlen_lim.nc \
+tst_parallel4_simplerw_coll.nc
 
 if USE_HDF4_FILE_TESTS
 DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\

@@ -1116,6 +1116,44 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
     } /* endif ! no_read */
 
+    else {
+#ifdef USE_PARALLEL4 /* Start block contributed by HDF group. */
+        /* For collective IO read, some processes may not have any element for reading.
+           Collective requires all processes to participate, so we use H5Sselect_none 
+           for these processes. */
+        if(var->parallel_access == NC_COLLECTIVE) {
+
+           /* Create the data transfer property list. */
+           if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
+                BAIL(NC_EHDFERR);
+#ifdef EXTRA_TESTS
+           num_plists++;
+#endif
+
+           if ((retval = set_par_access(h5, var, xfer_plistid)))
+                BAIL(retval);
+
+           if (H5Sselect_none(file_spaceid)<0)
+              BAIL(NC_EHDFERR);
+ 
+           /* Since no element will be selected, we just get the memory space the same as the file space.
+           */
+           if((mem_spaceid = H5Dget_space(var->hdf_datasetid))<0)
+             BAIL(NC_EHDFERR);
+           if (H5Sselect_none(mem_spaceid)<0)
+              BAIL(NC_EHDFERR);
+ 
+#ifdef EXTRA_TESTS
+             num_spaces++;
+#endif
+            /* Read this hyperslab into memory. */
+            LOG((5, "About to H5Dread some data..."));
+            if (H5Dread(var->hdf_datasetid, var->type_info->native_hdf_typeid,
+                  mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
+                BAIL(NC_EHDFERR);
+        }
+#endif /* End ifdef USE_PARALLEL4 */
+    }
   /* Now we need to fake up any further data that was asked for,
      using the fill values instead. First skip past the data we
      just read, if any. */

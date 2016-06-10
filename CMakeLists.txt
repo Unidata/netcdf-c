@@ -986,6 +986,9 @@ ENDIF()
 OPTION(ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if netCDF4 is not enabled, or if there is no parallel I/O Support." ${USE_PARALLEL})
 IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
   SET(TEST_PARALLEL ON CACHE BOOL "")
+  IF(USE_NETCDF4)
+    SET(TEST_PARALLEL4 ON CACHE BOOL "")
+  ENDIF()
 ENDIF()
 
 # Determine whether or not to generate documentation.

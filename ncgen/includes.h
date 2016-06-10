@@ -47,7 +47,10 @@
 #include "util.h"
 #include "debug.h"
 #include "nc.h"
+
+#ifdef USE_NETCDF4
 #include "nc4internal.h"
+#endif
 
 extern int specialconstants;
 
