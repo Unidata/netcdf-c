@@ -2186,6 +2186,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
               {
                 /* Indicate that the variable already exists, and should be replaced */
                 replace_existing_var = NC_TRUE;
+                flag_atts_dirty(&var->att);
                 break;
               }
           }
