@@ -34,6 +34,23 @@ int num_plists;
 int num_spaces;
 #endif /* EXTRA_TESTS */
 
+
+static int flag_atts_dirty(NC_ATT_INFO_T **attlist) {
+
+  NC_ATT_INFO_T *att = NULL;
+
+  if(attlist == NULL) {
+    return NC_NOERR;
+  }
+
+  for(att = *attlist; att; att = att->l.next) {
+    att->dirty = NC_TRUE;
+  }
+
+  return NC_NOERR;
+
+}
+
 /* This function is needed to handle one special case: what if the
  * user defines a dim, writes metadata, then goes back into define
  * mode and adds a coordinate var for the already existing dim. In
@@ -2146,13 +2163,8 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
          and the rest will be lost.  See:
 
          * https://github.com/Unidata/netcdf-c/issues/239 */
-      {
-        NC_ATT_INFO_T *att, **attlist = NULL;
-        attlist = &var->att;
-        for(att = *attlist; att; att = att->l.next) {
-          att->dirty = NC_TRUE;
-        }
-      }
+
+      flag_atts_dirty(&var->att);
     }
 
   /* Is this a coordinate var that has already been created in
