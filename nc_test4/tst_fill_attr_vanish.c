@@ -130,20 +130,8 @@ int main()
   if (nc_close(ncid)) ERR;
   /********************************************/
 
-   /* Reopen the fi+le and read the second slice. */
-   /*
-   if (nc_open(FILENAME, NC_NOWRITE, &ncid)) ERR;
+  SUMMARIZE_ERR;
 
-   if (nc_inq_var(ncid, 1, NULL, NULL, &ndims, dimids_in, NULL)) ERR;
-   if (ndims != 3 || dimids_in[0] != 0 || dimids_in[1] != 2 || dimids_in[2] != 1) ERR;
-   if (nc_get_vara(ncid, 1, cor, edg, P_data)) ERR;
-   for (i = 0; i < LEN; i++)
-     if (P_data[i] != NC_FILL_FLOAT) ERR;
-
-   if (nc_close(ncid)) ERR;
-   */
-   SUMMARIZE_ERR;
-
-   FINAL_RESULTS;
-   return 0;
+  FINAL_RESULTS;
+  return 0;
 }

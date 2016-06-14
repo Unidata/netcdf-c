@@ -34,7 +34,14 @@ int num_plists;
 int num_spaces;
 #endif /* EXTRA_TESTS */
 
-
+/*! Flag attributes in a linked list as dirty.
+ *
+ * Given a linked list of attributes, flag each
+ * dirty.
+ *
+ * @param[in] attlist List of attributes, may be NULL.
+ * @return Returns NC_NOERR on succes, error on failure.
+ */
 static int flag_atts_dirty(NC_ATT_INFO_T **attlist) {
 
   NC_ATT_INFO_T *att = NULL;
