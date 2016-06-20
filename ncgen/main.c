@@ -428,8 +428,8 @@ main(
 	  exit(1);
     }
 #else
-    if(l_flag == L_JAVA && strcmp(mainname,"main")==0)
-	mainname = "Main";
+    if(l_flag == L_JAVA && mainname != NULL && strcmp(mainname,"main")==0)
+      mainname = "Main";
 #endif
 #ifndef ENABLE_F77
     if(l_flag == L_F77) {
