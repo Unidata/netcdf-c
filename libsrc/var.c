@@ -382,13 +382,13 @@ ncx_szof(nc_type type)
 		return X_SIZEOF_FLOAT;
 	case NC_DOUBLE :
 		return X_SIZEOF_DOUBLE;
-	case NC_USHORT : 
+	case NC_USHORT :
 		return X_SIZEOF_USHORT;
-	case NC_UINT : 
+	case NC_UINT :
 		return X_SIZEOF_UINT;
-	case NC_INT64 : 
+	case NC_INT64 :
 		return X_SIZEOF_INT64;
-	case NC_UINT64 : 
+	case NC_UINT64 :
 		return X_SIZEOF_UINT64;
 	default:
 	        assert("ncx_szof invalid type" == 0);
@@ -446,15 +446,15 @@ NC_var_shape(NC_var *varp, const NC_dimarray *dims)
       /*if(!(shp == varp->shape && IS_RECVAR(varp)))*/
       if( shp != NULL && (shp != varp->shape || !IS_RECVAR(varp)))
 		{
-		    if( (off_t)(*shp) <= OFF_T_MAX / product )
+          if( ((off_t)(*shp)) <= OFF_T_MAX / product )
 			{
               product *= (*shp > 0 ? *shp : 1);
 			} else
 			{
-				product = OFF_T_MAX ;
+              product = OFF_T_MAX ;
 			}
 		}
-		*dsp = product;
+      *dsp = product;
 	}
 
 

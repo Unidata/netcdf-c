@@ -4100,9 +4100,13 @@ NC4_walk(hid_t gid, int* countp)
 
     /* walk group members of interest */
     err = H5Gget_num_objs(gid, &nobj);
+    if(err < 0) return err;
+
     for(i = 0; i < nobj; i++) {
         /* Get name & kind of object in the group */
         len = H5Gget_objname_by_idx(gid,(hsize_t)i,name,(size_t)NC_HDF5_MAX_NAME);
+        if(len < 0) return len;
+
         otype =  H5Gget_objtype_by_idx(gid,(size_t)i);
         switch(otype) {
         case H5G_GROUP:
@@ -4121,6 +4125,7 @@ NC4_walk(hid_t gid, int* countp)
                 if(aid >= 0) {
                     const char** p;
                     ssize_t len = H5Aget_name(aid, NC_HDF5_MAX_NAME, name);
+                    if(len < 0) return len;
                     /* Is this a netcdf-4 marker attribute */
                         for(p=NC_RESERVED_VARATT_LIST;*p;p++) {
                             if(strcmp(name,*p) ==     0) {
