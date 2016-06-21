@@ -7,6 +7,10 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.1 - TBD
 
+### 4.4.1-RC3 - June 17, 2016
+
+* [Bug Fix] Misc. bug fixes and improvements.
+* [Bug Fix] Corrected an issue where adding a \_FillValue attribute to a variable would result in other attributes being lost. See [GitHub #239](https://github.com/Unidata/netcdf-c/issues/239) for more details.
 * [Bug Fix][Parallel I/O] Corrected an issue reported by Kent Yang at the HDF group related to Collective Parallel I/O and a potential hang.
 
 ### 4.4.1-RC2 - May 13, 2016

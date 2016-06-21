@@ -1310,10 +1310,10 @@ HDF5. Attributes similarly.
 Since there is more metadata in a netCDF file than an HDF5 file,
 special datasets are used to hold netCDF metadata.
 
-The _netcdf_dim_info dataset (in group _netCDF) contains the ids of
+\deprecated The _netcdf_dim_info dataset (in group _netCDF) contains the ids of
 the shared dimensions, and their length (0 for unlimited dimensions).
 
-The _netcdf_var_info dataset (in group _netCDF) holds an array of
+\deprecated The _netcdf_var_info dataset (in group _netCDF) holds an array of
 compound types which contain the variable ID, and the associated
 dimension ids.
 
