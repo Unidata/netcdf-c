@@ -761,7 +761,6 @@ INPUT = \
     @abs_top_srcdir@/docs/esg.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
     @abs_top_srcdir@/docs/FAQ.md \
-    @abs_top_srcdir@/docs/software.md \
     @abs_top_srcdir@/docs/known_problems.md \
     @abs_top_srcdir@/docs/COPYRIGHT.dox \
     @abs_top_srcdir@/docs/credits.md \
