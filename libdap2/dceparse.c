@@ -321,7 +321,7 @@ int
 dceerror(DCEparsestate* state, char* msg)
 {
   strncpy(state->errorbuf,msg,1023);
-  state->errorcode=1;
+  state->errorcode=NC_EDAPCONSTRAINT;
   return 0;
 }
 

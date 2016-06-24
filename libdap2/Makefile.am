@@ -61,5 +61,5 @@ EXTRA_DIST += dce.y
 makece::
 	bison -v -d -t -p dce dce.y
 	rm -f dcetab.c dcetab.h
-	mv dce.tab.c dcetab.c
-	mv dce.tab.h dcetab.h
+	sed -e 's/dce[.]tab[.]c/dcetab.c/g' -e 's/dce[.]tab[.]h/dcetab.h/g' <dce.tab.c >dcetab.c
+	sed -e 's/dce[.]tab[.]c/dcetab.c/g' -e 's/dce[.]tab[.]h/dcetab.h/g' <dce.tab.h >dcetab.h

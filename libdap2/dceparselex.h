@@ -5,6 +5,11 @@
 #define DCEPARSELEX_H
 
 #include "config.h"
+
+/* Forward */
+struct DCEparsestate;
+typedef struct DCEparsestate DCEparsestate;
+
 #include "dcetab.h"
 
 #ifdef WIN32
