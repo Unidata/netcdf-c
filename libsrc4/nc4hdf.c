@@ -30,8 +30,8 @@
 /* This is to track opened HDF5 objects to make sure they are
  * closed. */
 #ifdef EXTRA_TESTS
-int num_plists;
-int num_spaces;
+static int num_plists;
+static int num_spaces;
 #endif /* EXTRA_TESTS */
 
 /*! Flag attributes in a linked list as dirty.

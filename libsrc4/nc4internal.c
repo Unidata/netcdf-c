@@ -54,8 +54,6 @@ int nc_log_level = -1;
 
 #endif /* LOGGING */
 
-int nc4_hdf5_initialized = 0;
-
 /* Provide a wrapper for H5Eset_auto */
 static herr_t
 set_auto(void* func, void *client_data) 
@@ -78,7 +76,6 @@ nc4_hdf5_initialize(void)
     if (set_auto(NULL, NULL) < 0)
 	LOG((0, "Couldn't turn off HDF5 error messages!"));
     LOG((1, "HDF5 error messages have been turned off."));
-    nc4_hdf5_initialized = 1;
 }
 
 /* Check and normalize and name. */
@@ -1418,8 +1415,8 @@ nc4_normalize_name(const char *name, char *norm_name)
 int
 nc_set_log_level(int new_level)
 {
-   if(!nc4_hdf5_initialized)
-	nc4_hdf5_initialize();
+   if(!nc_global->initialized)
+	nc_global_initialize();
 
    /* If the user wants to completely turn off logging, turn off HDF5
       logging too. Now I truely can't think of what to do if this

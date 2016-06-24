@@ -5,14 +5,13 @@
 
 
 #include "ncdap.h"
+#include "ncglobal.h"
 #include "dapodom.h"
 #include "dapdump.h"
 #include "ncd2dispatch.h"
 #include "ocx.h"
 
 #define NEWVARM
-
-static DCEnode* save = NULL;
 
 /* Define a tracker for memory to support*/
 /* the concatenation*/
@@ -173,7 +172,7 @@ fprintf(stderr,"\n");
 
     /* Fill in missing arguments */
     if(startp == NULL)
-	startp = nc_sizevector0;
+	startp = nc_constants->sizevector0;
 
     if(countp == NULL) {
         /* Accumulate the dimension sizes */
@@ -185,7 +184,7 @@ fprintf(stderr,"\n");
     }
 
     if(stridep == NULL)
-	stridep = nc_ptrdiffvector1;
+	stridep = nc_constants->ptrdiffvector1;
 
     /* Validate the dimension sizes */
     for(i=0;i<ncrank;i++) {
@@ -412,7 +411,6 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
 
     /* Switch to datadds tree space*/
     varainfo->target = xtarget;
-save = (DCEnode*)varaprojection;
     ncstat = moveto(dapcomm,varainfo,varainfo->cache->datadds,data);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 

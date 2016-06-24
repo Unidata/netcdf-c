@@ -21,5 +21,7 @@ extern int ncaux_abort_compound(void* tag);
 extern int ncaux_add_field(void* tag,  const char *name, nc_type field_type,
 			   int ndims, const int* dimsizes);
 
+extern int ncaux_init(void);
+
 #endif /*NCAUX_H*/
 

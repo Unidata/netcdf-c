@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "ncdap.h"
+#include "ncglobal.h"
 #include "ncd2dispatch.h"
 #include "dapalign.h"
 
@@ -26,9 +27,6 @@
 static char* constrainableprotocols[] = {"http", "https",NULL};
 
 static int ncd2initialized = 0;
-
-size_t dap_one[NC_MAX_VAR_DIMS];
-size_t dap_zero[NC_MAX_VAR_DIMS];
 
 /* Forward */
 static NCerror buildncstructures(NCDAPCOMMON*);
@@ -194,10 +192,6 @@ NCD2_initialize(void)
     NCD2_dispatch_table = &NCD2_dispatch_base;
     /* Local Initialization */
     compute_nccalignments();
-    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
-	dap_one[i] = 1;
-	dap_zero[i] = 0;
-    }
     ncd2initialized = 1;
 #ifdef DEBUG
     /* force logging to go to stderr */
@@ -268,7 +262,7 @@ NCD2_get_vara(int ncid, int varid,
             void *value,
 	    nc_type memtype)
 {
-    int stat = nc3d_getvarx(ncid, varid, start, edges, nc_ptrdiffvector1, value,memtype);
+    int stat = nc3d_getvarx(ncid, varid, start, edges, nc_constants->ptrdiffvector1, value,memtype);
     return stat;
 }
 

@@ -13,10 +13,6 @@ See \ref copyright file for copying and redistribution conditions.
 #include <stdarg.h>
 #include "netcdf.h"
 #include "math.h"
-/* The subroutines in error.c emit no messages unless NC_VERBOSE bit
- * is on.  They call exit() when NC_FATAL bit is on. */
-int ncopts = (NC_FATAL | NC_VERBOSE) ;
-int ncerr = NC_NOERR ;
 
 #if SIZEOF_LONG == SIZEOF_SIZE_T
 /*
@@ -369,11 +365,17 @@ void
 nc_advise(const char *routine_name, int err, const char *fmt,...)
 {
 	va_list args;
+	int ncopts, ncerr;
 
 	if(NC_ISSYSERR(err))
 		ncerr = NC_SYSERR;
 	else
 		ncerr = err;
+
+	LOCK;
+	nc_global->ncerr = ncerr;
+	ncopts = nc_global->ncopts;
+	UNLOCK;
 
 	if( ncopts & NC_VERBOSE )
 	{

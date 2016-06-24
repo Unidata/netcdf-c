@@ -6,6 +6,7 @@ Research/Unidata. See \ref copyright file for more info.
 
 */
 
+#include "ncglobal.h"
 #include "ncdispatch.h"
 
 #undef VARS_USES_VARM
@@ -114,7 +115,7 @@ NC_get_var(int ncid, int varid, void *value, nc_type memtype)
    if(stat) return stat;
    stat = NC_getshape(ncid,varid, ndims, shape);
    if(stat) return stat;
-   return NC_get_vara(ncid, varid, NC_coord_zero, shape, value, memtype);
+   return NC_get_vara(ncid, varid, nc_constants->coord_zero, shape, value, memtype);
 }
 
 /** \internal
@@ -240,7 +241,7 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
    while(odom_more(&odom)) {
       int localstatus = NC_NOERR;
       /* Read a single value */
-      localstatus = NC_get_vara(ncid,varid,odom.index,nc_sizevector1,memptr,memtype);
+      localstatus = NC_get_vara(ncid,varid,odom.index,nc_constants->sizevector1,memptr,memtype);
       /* So it turns out that when get_varm is used, all errors are
          delayed and ERANGE will be overwritten by more serious errors.
       */
@@ -262,7 +263,7 @@ static int
 NC_get_var1(int ncid, int varid, const size_t *coord, void* value,
 	    nc_type memtype)
 {
-   return NC_get_vara(ncid, varid, coord, NC_coord_one, value, memtype);
+   return NC_get_vara(ncid, varid, coord, nc_constants->coord_one, value, memtype);
 }
 
 /** \internal

@@ -7,8 +7,6 @@
 
 #include "dapdump.h"
 
-extern CDFnode* v4node;
-
 static NCerror buildcdftreer(NCDAPCOMMON*,OCddsnode,CDFnode*,CDFtree*,CDFnode**);
 static void defdimensions(OCddsnode, CDFnode*, NCDAPCOMMON*, CDFtree*);
 static NCerror  attachsubsetr(CDFnode*, CDFnode*);

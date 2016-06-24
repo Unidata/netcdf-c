@@ -121,9 +121,9 @@ NULL
 
 /* These are the default chunk cache sizes for HDF5 files created or
  * opened with netCDF-4. */
-size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;
-size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;
-float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION;
+static const size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;
+static const size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;
+static constfloat nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION;
 
 /* For performance, fill this array only the first time, and keep it
  * in global memory for each further use. */
@@ -526,10 +526,6 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
       info = ((NC_MPI_INFO *)parameters)->info;
    }
 #endif /* USE_PARALLEL4 */
-
-   /* If this is our first file, turn off HDF5 error messages. */
-   if (!nc4_hdf5_initialized)
-	nc4_hdf5_initialize();
 
    /* Check the cmode for validity. */
    if((cmode & ILLEGAL_CREATE_FLAGS) != 0)
@@ -2832,10 +2828,6 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    if (!inmemory && use_parallel && parameters == NULL)
 	parameters = &mpidfalt;
 #endif /* USE_PARALLEL4 */
-
-   /* If this is our first file, initialize HDF5. */
-   if (!nc4_hdf5_initialized)
-	nc4_hdf5_initialize();
 
    /* Check the mode for validity */
    if((mode & ILLEGAL_OPEN_FLAGS) != 0)

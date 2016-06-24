@@ -65,9 +65,6 @@ extern OCnode* makeunlimiteddimension(void);
 #endif
 #endif
 
-/* Collect global state info in one place */
-struct OCGLOBALSTATE ocglobalstate;
-
 OCerror
 ocinternalinitialize(void)
 {

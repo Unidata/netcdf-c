@@ -1,4 +1,4 @@
-M#                                               -*- Autoconf -*-
+#                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
 # This is part of Unidata's netCDF package. Copyright 2005-2012, see
@@ -789,6 +789,9 @@ AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
                 strdup strcasecmp strtod strtoll strtoull strstr \
 		mkstemp rand random memcmp \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
+
+# Spinlocks
+AC_CHECK_HEADERS([linux/spinlock.h])
 
 # Does the user want to use NC_DISKLESS?
 AC_MSG_CHECKING([whether in-memory files are enabled])

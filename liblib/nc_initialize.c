@@ -10,6 +10,7 @@
 #endif
 
 #include "ncdispatch.h"
+#include "ncglobal.h"
 
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
@@ -30,12 +31,6 @@ extern int NCP_initialize(void);
 extern int NCP_finalize(void);
 #endif
 
-int NC_argc = 1;
-char* NC_argv[] = {"nc_initialize",NULL};
-
-int NC_initialized = 0;
-int NC_finalized = 1;
-
 /**
 This procedure invokes all defined
 initializers, and there is an initializer
@@ -50,9 +45,14 @@ nc_initialize()
 {
     int stat = NC_NOERR;
 
-    if(NC_initialized) return NC_NOERR;
-    NC_initialized = 1;
-    NC_finalized = 0;
+    LOCK;
+    if(nc_global->initialized) {UNLOCK; goto done;}
+
+    nc_global_init();
+
+    nc_global->initialized = 1;
+    nc_global->finalized = 0;
+    UNLOCK;
 
     /* Do general initialization */
     if((stat = NCDISPATCH_initialize())) goto done;
@@ -91,9 +91,11 @@ nc_finalize(void)
 {
     int stat = NC_NOERR;
 
-    if(NC_finalized) return NC_NOERR;
-    NC_initialized = 0;
-    NC_finalized = 1;
+    LOCK;
+    if(nc_global->finalized) {UNLOCK; goto done;}
+    nc_global->initialized = 0;
+    nc_global->finalized = 1;
+    UNLOCK;
 
     /* Finalize each active protocol */
 
@@ -114,5 +116,6 @@ nc_finalize(void)
     /* Do general finalization */
     if((stat = NCDISPATCH_finalize())) return stat;
 
+done:
     return NC_NOERR;
 }

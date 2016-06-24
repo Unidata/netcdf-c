@@ -18,9 +18,6 @@
 #include "nc.h"
 #include "ncdispatch.h"
 
-/* This is the default create format for nc_create and nc__create. */
-static int default_create_format = NC_FORMAT_CLASSIC;
-
 /* These have to do with version numbers. */
 #define MAGIC_NUM_LEN 4
 #define VER_CLASSIC 1
@@ -80,8 +77,11 @@ int
 nc_set_default_format(int format, int *old_formatp)
 {
     /* Return existing format if desired. */
-    if (old_formatp)
-      *old_formatp = default_create_format;
+    if (old_formatp) {
+      LOCK;
+      *old_formatp = nc_global->default_create_format;
+      UNLOCK;
+    }
 
     /* Make sure only valid format is set. */
 #ifdef USE_NETCDF4
@@ -94,12 +94,18 @@ nc_set_default_format(int format, int *old_formatp)
         format != NC_FORMAT_CDF5)
        return NC_EINVAL;
  #endif
-    default_create_format = format;
+    LOCK;
+    nc_global->default_create_format = format;
+    UNLOCK;
     return NC_NOERR;
 }
 
 int
 nc_get_default_format(void)
 {
+    int default_create_format;
+    LOCK;
+    default_create_format = nc_global->default_create_format;
+    UNLOCK;
     return default_create_format;
 }

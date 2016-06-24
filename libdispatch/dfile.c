@@ -24,10 +24,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include <fcntl.h>
 #endif
 #include "ncdispatch.h"
-
-extern int NC_initialized;
-extern int NC_finalized;
-
+#include "ncglobal.h"
 
 /** \defgroup datasets NetCDF File and Data I/O
 
@@ -1657,13 +1654,16 @@ NC_create(const char *path, int cmode, size_t initialsz,
    int model = NC_FORMATX_UNDEFINED; /* one of the NC_FORMATX values */
    int isurl = 0;   /* dap or cdmremote or neither */
    int xcmode = 0; /* for implied cmode flags */
+   int init;
 
    TRACE(nc_create);
    /* Initialize the dispatch table. The function pointers in the
     * dispatch table will depend on how netCDF was built
     * (with/without netCDF-4, DAP, CDMREMOTE). */
-   if(!NC_initialized)
-   {
+   LOCK;
+   init = nc_global->initialized;
+   UNLOCK;
+   if(!init) {
       if ((stat = nc_initialize()))
 	 return stat;
    }
@@ -1810,9 +1810,13 @@ NC_open(const char *path, int cmode,
    int isurl = 0;
    int version = 0;
    int flags = 0;
+   int init;
 
    TRACE(nc_open);
-   if(!NC_initialized) {
+   LOCK;
+   init = nc_global->initialized;
+   UNLOCK;
+   if(!init) {
       stat = nc_initialize();
       if(stat) return stat;
    }
@@ -1943,15 +1947,16 @@ havetable:
   for systems that are not file based (e.g. dap, memio).
 */
 
-/* Static counter for pseudo file descriptors (incremented) */
-static int pseudofd = 0;
-
 /* Create a pseudo file descriptor that does not
    overlap real file descriptors
 */
 int
 nc__pseudofd(void)
 {
+    int pseudofd;
+    LOCK;
+    pseudofd = nc_global->pseudofd;
+    UNLOCK;
     if(pseudofd == 0)  {
         int maxfd = 32767; /* default */
 #ifdef HAVE_GETRLIMIT
@@ -1965,5 +1970,8 @@ nc__pseudofd(void)
 	pseudofd = maxfd+1;
 #endif
     }
-    return pseudofd++;
+    LOCK;
+    nc_global->pseudofd++;
+    UNLOCK;
+    return pseudofd;
 }

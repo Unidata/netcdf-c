@@ -46,7 +46,8 @@ struct NCAUX_CMPD {
     size_t alignment;
 };
 
-static int ncaux_initialized = 0;
+static Typealignvec vec[NCTYPES];
+static Typealignset set;
 
 static void compute_alignments(void);
 static int computefieldinfo(struct NCAUX_CMPD* cmpd);
@@ -56,11 +57,6 @@ ncaux_begin_compound(int ncid, const char *name, int alignmode, void** tagp)
 {
     int status = NC_NOERR;
     struct NCAUX_CMPD* cmpd = NULL;
-
-    if(!ncaux_initialized) {
-	compute_alignments();
-	ncaux_initialized = 1;
-    }
 
     if(tagp) *tagp = NULL;
 	
@@ -251,9 +247,6 @@ typedef struct Typealignset {
     Alignment ncvlenalign;	/* nc_vlen_t*/
 } Typealignset;
 
-static Typealignvec vec[NCTYPES];
-static Typealignset set;
-
 static void
 compute_alignments(void)
 {
@@ -394,4 +387,9 @@ done:
     return status;
 }
 
-
+int
+ncaux_init(void)
+{
+    compute_alignments();
+    nc_global->ncaux_initialized = 1;
+}

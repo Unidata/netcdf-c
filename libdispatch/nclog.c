@@ -17,21 +17,24 @@
 #include <string.h>
 
 #include "nclog.h"
+#include "ncglobal.h"
 
 #define PREFIXLEN 8
 #define MAXTAGS 256
 #define NCTAGDFALT "Log";
 
-static int nclogginginitialized = 0;
-static int nclogging = 0;
-static int ncsystemfile = 0; /* 1 => we are logging to file we did not open */
-static char* nclogfile = NULL;
-static FILE* nclogstream = NULL;
-
-static int nctagsize = 0;
-static char** nctagset = NULL;
-static char* nctagdfalt = NULL;
 static char* nctagsetdfalt[] = {"Warning","Error","Note","Debug"};
+
+typedef struct NC_LOGSTATE {
+    int nclogging;
+    int ncsystemfile; /* 1 => we are logging to file we did not open */
+    char* nclogfile;
+    FILE* nclogstream;
+    int nctagsize;
+    char** nctagset;
+    char* nctagdfalt;
+} NC_LOGSTATE;
+
 static char* nctagname(int tag);
 
 /*!\defgroup NClog NClog Management
@@ -44,12 +47,11 @@ void
 ncloginit(void)
 {
     const char* file;
-    if(nclogginginitialized)
+
+    if(nc_global->logstate != NULL)
 	return;
-    nclogginginitialized = 1;
+    nc_global->logstate = (NC_LOGSTATE*)calloc(1,sizeof(NC_LOGSTATE));
     ncsetlogging(0);
-    nclogfile = NULL;
-    nclogstream = NULL;
     /* Use environment variables to preset nclogging state*/
     /* I hope this is portable*/
     file = getenv(NCENVFLAG);
@@ -58,8 +60,8 @@ ncloginit(void)
 	    ncsetlogging(1);
 	}
     }
-    nctagdfalt = NCTAGDFALT;
-    nctagset = nctagsetdfalt;
+    nc_global->logstate->nctagdfalt = NCTAGDFALT;
+    nc_global->logstate->nctagset = nctagsetdfalt;
 }
 
 /*!
@@ -74,9 +76,11 @@ int
 ncsetlogging(int tf)
 {
     int was;
-    if(!nclogginginitialized) ncloginit();
-    was = nclogging;
-    nclogging = tf;
+    LOCK;    
+    if(!nc_global->logstate) ncloginit();
+    was = nc_global->logstate->nclogging;
+    nc_global->logstate->nclogging = tf;
+    UNLOCK;
     return was;
 }
 
@@ -93,40 +97,57 @@ stderr.
 int
 nclogopen(const char* file)
 {
-    if(!nclogginginitialized) ncloginit();
+    LOCK;
+    if(!nc_global->logstate) ncloginit();
+    UNLOCK;
     nclogclose();
     if(file == NULL || strlen(file) == 0) {
 	/* use stderr*/
-	nclogstream = stderr;
-	nclogfile = NULL;
-	ncsystemfile = 1;
+        LOCK;
+	nc_global->logstate->nclogstream = stderr;
+	nc_global->logstate->nclogfile = NULL;
+	nc_global->logstate->ncsystemfile = 1;
+	UNLOCK;
     } else if(strcmp(file,"stdout") == 0) {
 	/* use stdout*/
-	nclogstream = stdout;
-	nclogfile = NULL;
-	ncsystemfile = 1;
+	LOCK;
+	nc_global->logstate->nclogstream = stdout;
+	nc_global->logstate->nclogfile = NULL;
+	nc_global->logstate->ncsystemfile = 1;
+	UNLOCK;
     } else if(strcmp(file,"stderr") == 0) {
 	/* use stderr*/
-	nclogstream = stderr;
-	nclogfile = NULL;
-	ncsystemfile = 1;
+	LOCK;
+	nc_global->logstate->nclogstream = stderr;
+	nc_global->logstate->nclogfile = NULL;
+	nc_global->logstate->ncsystemfile = 1;
+	UNLOCK;
     } else {
 	int fd;
-	nclogfile = strdup(file);
-	nclogstream = NULL;
+	LOCK;
+	nc_global->logstate->nclogfile = strdup(file);
+	nc_global->logstate->nclogstream = NULL;
+	UNLOCK;
 	/* We need to deal with this file carefully
 	   to avoid unauthorized access*/
-	fd = open(nclogfile,O_WRONLY|O_APPEND|O_CREAT,0600);
+	fd = open(file,O_WRONLY|O_APPEND|O_CREAT,0600);
 	if(fd >= 0) {
-	    nclogstream = fdopen(fd,"a");
+	    FILE* stream = fdopen(fd,"a");
+	    LOCK;
+	    nc_global->logstate->nclogstream = stream;
+	    UNLOCK
 	} else {
-	    free(nclogfile);
-	    nclogfile = NULL;
-	    nclogstream = NULL;
+	    LOCK;
+	    free(nc_global->logstate->nclogfile);
+	    nc_global->logstate->nclogfile = NULL;
+	    nc_global->logstate->nclogstream = NULL;
+	    UNLOCK;
 	    ncsetlogging(0);
 	    return 0;
 	}
-	ncsystemfile = 0;
+	LOCK;
+	nc_global->logstate->ncsystemfile = 0;
+	UNLOCK;
     }
     return 1;
 }
@@ -134,14 +155,19 @@ nclogopen(const char* file)
 void
 nclogclose(void)
 {
-    if(!nclogginginitialized) ncloginit();
-    if(nclogstream != NULL && !ncsystemfile) {
-	fclose(nclogstream);
+    LOCK;
+    if(!nc_global->logstate) ncloginit();
+    if(nc_global->logstate->nclogstream != NULL
+       && !nc_global->logstate->ncsystemfile) {
+	fclose(nc_global->logstate->nclogstream);
     }
-    if(nclogfile != NULL) free(nclogfile);
-    nclogstream = NULL;
-    nclogfile = NULL;
-    ncsystemfile = 0;
+    if(nc_global->logstate->nclogfile != NULL) {
+	free(nc_global->logstate->nclogfile);
+    }
+    nc_global->logstate->nclogstream = NULL;
+    nc_global->logstate->nclogfile = NULL;
+    nc_global->logstate->ncsystemfile = 0;
+    UNLOCK;
 }
 
 /*!
@@ -159,9 +185,11 @@ nclog(int tag, const char* fmt, ...)
     va_list args;
     char* prefix;
 
-    if(!nclogginginitialized) ncloginit();
-
-    if(!nclogging || nclogstream == NULL) return;
+    LOCK;
+    if(!nc_global->logstate->nclogginginitialized) ncloginit();
+    
+    if(!nc_global->logstate->nclogging
+       || nc_global->logstate->nclogstream == NULL) {UNLOCK; return;}
 
     prefix = nctagname(tag);
     fprintf(nclogstream,"%s:",prefix);
@@ -173,6 +201,7 @@ nclog(int tag, const char* fmt, ...)
     }
     fprintf(nclogstream, "\n" );
     fflush(nclogstream);
+    UNLOCK;
 }
 
 void
@@ -191,34 +220,39 @@ Each line will be sent using nclog with the specified tag.
 void
 nclogtextn(int tag, const char* text, size_t count)
 {
-    if(!nclogging || nclogstream == NULL) return;
+    LOCK;
+    if(!nc_global->logstate->nclogging
+       || nc_global->logstate->nclogstream == NULL) {UNLOCK; return;}
     fwrite(text,1,count,nclogstream);
     fflush(nclogstream);
+    UNLOCK;
 }
 
 /* The tagset is null terminated */
 void
 nclogsettags(char** tagset, char* dfalt)
 {
-    nctagdfalt = dfalt;
+    LOCK;
+    nc_global->logstate->nctagdfalt = dfalt;
     if(tagset == NULL) {
-	nctagsize = 0;
+	nc_global->logstate->nctagsize = 0;
     } else {
         int i;
 	/* Find end of the tagset */
 	for(i=0;i<MAXTAGS;i++) {if(tagset[i]==NULL) break;}
-	nctagsize = i;
+	nc_global->logstate->nctagsize = i;
     }
-    nctagset = tagset;
+    nc_global->logstate->nctagset = tagset;
+    UNLOCK;
 }
 
 static char*
 nctagname(int tag)
 {
-    if(tag < 0 || tag >= nctagsize) {
-	return nctagdfalt;
+    if(tag < 0 || tag >= nc_global->logstate->nctagsize) {
+	return nc_global->logstate->nctagdfalt;
     } else {
-	return nctagset[tag];
+	return nc_global->logstate->nctagset[tag];
     }
 }
 

@@ -3,13 +3,6 @@
 
 #define MAXSERVERURL 4096
 
-/* Define vectors of zeros and ones for use with various nc_get_varX function*/
-size_t nc_sizevector0[NC_MAX_VAR_DIMS];
-size_t nc_sizevector1[NC_MAX_VAR_DIMS];
-ptrdiff_t nc_ptrdiffvector1[NC_MAX_VAR_DIMS];
-size_t NC_coord_zero[NC_MAX_VAR_DIMS];
-size_t NC_coord_one[NC_MAX_VAR_DIMS];
-
 /* Define the known protocols and their manipulations */
 static struct NCPROTOCOLLIST {
     char* protocol;
@@ -43,16 +36,6 @@ int
 NCDISPATCH_initialize(void)
 {
     int status = NC_NOERR;
-    int i;
-    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
-	nc_sizevector0[i] = 0;
-        nc_sizevector1[i] = 1;
-        nc_ptrdiffvector1[i] = 1;
-    }
-    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
-	NC_coord_one[i] = 1;
-	NC_coord_zero[i] = 0;
-    }
     return status;
 }
 

@@ -86,16 +86,24 @@ It seems to work for HDF5 for a wide variety of machines.
 
 #define NCCTYPECOUNT     (NCCTYPENCVLEN+1)
 
-static NCtypealignvec vec[NCCTYPECOUNT];
-static NCtypealignset set;
-static int dapaligninit = 0;
+typedef struct NCD2_ALIGNSTATE {
+    NCtypealignvec vec[NCCTYPECOUNT];
+    NCtypealignset set;
+} NCD2_ALIGNSTATE;
+
+static void compute_nccalignments(void);
+
+void
+ncd2aligninit(void)
+{
+    compute_nccalignments();
+}
 
 unsigned int
 ncctypealignment(int nctype)
 {
     NCtypealignment* align = NULL;
     int index = 0;
-    if(!dapaligninit) compute_nccalignments();
     switch (nctype) {
       case NC_BYTE:   index = NCCTYPEUCHAR; break;
       case NC_CHAR:   index = NCCTYPECHAR; break;
@@ -118,52 +126,49 @@ ncctypealignment(int nctype)
 	return 0;
 #endif
     }
-    align = &vec[index];
+    align = &nc_constants->d2aign->vec[index];
     return align->alignment;
 }
 
 
-void
+static void
 compute_nccalignments(void)
 {
     /* Compute the alignments for all the common C data types*/
     /* First for the struct*/
     /* initialize*/
-    memset((void*)&set,0,sizeof(set));
-    memset((void*)vec,0,sizeof(vec));
+    nc_constants->d2align = (NCD2_ALIGNSTATE*)calloc(1,sizeof(NCD2_ALIGNSTATE));
 
-    COMP_ALIGNMENT(set.charalign,char);
-    COMP_ALIGNMENT(set.ucharalign,unsigned char);
-    COMP_ALIGNMENT(set.shortalign,short);
-    COMP_ALIGNMENT(set.ushortalign,unsigned short);
-    COMP_ALIGNMENT(set.intalign,int);
-    COMP_ALIGNMENT(set.uintalign,unsigned int);
-    COMP_ALIGNMENT(set.longalign,long);
-    COMP_ALIGNMENT(set.ulongalign,unsigned long);
-    COMP_ALIGNMENT(set.longlongalign,long long);
-    COMP_ALIGNMENT(set.ulonglongalign,unsigned long long);
-    COMP_ALIGNMENT(set.floatalign,float);
-    COMP_ALIGNMENT(set.doublealign,double);
-    COMP_ALIGNMENT(set.ptralign,void*);
-    COMP_ALIGNMENT(set.ncvlenalign,nccalignvlen_t);
+    COMP_ALIGNMENT(nc_constants->d2align->set.charalign,char);
+    COMP_ALIGNMENT(nc_constants->d2align->set.ucharalign,unsigned char);
+    COMP_ALIGNMENT(nc_constants->d2align->set.shortalign,short);
+    COMP_ALIGNMENT(nc_constants->d2align->set.ushortalign,unsigned short);
+    COMP_ALIGNMENT(nc_constants->d2align->set.intalign,int);
+    COMP_ALIGNMENT(nc_constants->d2align->set.uintalign,unsigned int);
+    COMP_ALIGNMENT(nc_constants->d2align->set.longalign,long);
+    COMP_ALIGNMENT(nc_constants->d2align->set.ulongalign,unsigned long);
+    COMP_ALIGNMENT(nc_constants->d2align->set.longlongalign,long long);
+    COMP_ALIGNMENT(nc_constants->d2align->set.ulonglongalign,unsigned long long);
+    COMP_ALIGNMENT(nc_constants->d2align->set.floatalign,float);
+    COMP_ALIGNMENT(nc_constants->d2align->set.doublealign,double);
+    COMP_ALIGNMENT(nc_constants->d2align->set.ptralign,void*);
+    COMP_ALIGNMENT(nc_constants->d2align->set.ncvlenalign,nccalignvlen_t);
 
     /* Then the vector*/
-    COMP_ALIGNMENT(vec[NCCTYPECHAR],char);
-    COMP_ALIGNMENT(vec[NCCTYPEUCHAR],unsigned char); 
-    COMP_ALIGNMENT(vec[NCCTYPESHORT],short);
-    COMP_ALIGNMENT(vec[NCCTYPEUSHORT],unsigned short);
-    COMP_ALIGNMENT(vec[NCCTYPEINT],int);
-    COMP_ALIGNMENT(vec[NCCTYPEUINT],unsigned int);
-    COMP_ALIGNMENT(vec[NCCTYPELONG],long);
-    COMP_ALIGNMENT(vec[NCCTYPEULONG],unsigned long);
-    COMP_ALIGNMENT(vec[NCCTYPELONGLONG],long long);
-    COMP_ALIGNMENT(vec[NCCTYPEULONGLONG],unsigned long long);
-    COMP_ALIGNMENT(vec[NCCTYPEFLOAT],float);
-    COMP_ALIGNMENT(vec[NCCTYPEDOUBLE],double);
-    COMP_ALIGNMENT(vec[NCCTYPEPTR],void*);
-    COMP_ALIGNMENT(vec[NCCTYPENCVLEN],nccalignvlen_t);
-
-    dapaligninit = 1;
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPECHAR],char);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPEUCHAR],unsigned char); 
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPESHORT],short);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPEUSHORT],unsigned short);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPEINT],int);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPEUINT],unsigned int);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPELONG],long);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPEULONG],unsigned long);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPELONGLONG],long long);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPEULONGLONG],unsigned long long);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPEFLOAT],float);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPEDOUBLE],double);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPEPTR],void*);
+    COMP_ALIGNMENT(nc_constants->d2align->vec[NCCTYPENCVLEN],nccalignvlen_t);
 }
 
 /* Compute padding */
