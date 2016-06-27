@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.1 - TBD
 
+* [Enhancement] Added better error reporting when ncdump/nccopy are given a bad constraint in a DAP url. See [GitHub #279](https://github.com/Unidata/netcdf-c/pull/279) for more information.
+
 ### 4.4.1-RC3 - June 17, 2016
 
 * [Bug Fix] Misc. bug fixes and improvements.
