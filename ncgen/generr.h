@@ -17,6 +17,12 @@ extern int error_count;
 #endif
 
 #ifndef NO_STDARG
+#define vaend(argv,fmt) va_end(argv)
+#else
+#define vaend(argv,fmt) va_end(argv)
+#endif
+
+#ifndef NO_STDARG
 #include <stdarg.h>
 extern void vderror(const char *fmt, va_list argv);
 extern void vdwarn(const char *fmt, va_list argv);

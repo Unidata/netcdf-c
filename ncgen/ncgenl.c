@@ -1,5 +1,5 @@
 
-#line 3 "lex.ncg.c"
+#line 3 "ncgenl.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -1320,7 +1320,7 @@ ID ([A-Za-z_]|{UTF8})([A-Z.@#\[\]a-z_0-9+-]|{UTF8})*
 /* Note: this definition of string will work for utf8 as well,
    although it is a very relaxed definition
 */
-#line 1324 "lex.ncg.c"
+#line 1324 "ncgenl.c"
 
 #define INITIAL 0
 #define ST_C_COMMENT 1
@@ -1506,7 +1506,7 @@ YY_DECL
     
 #line 217 "ncgen.l"
 
-#line 1510 "lex.ncg.c"
+#line 1510 "ncgenl.c"
 
 	if ( !(yy_init) )
 		{
@@ -1565,12 +1565,16 @@ yy_match:
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 			++yy_cp;
 			}
-		while ( yy_current_state != 416 );
-		yy_cp = (yy_last_accepting_cpos);
-		yy_current_state = (yy_last_accepting_state);
+		while ( yy_base[yy_current_state] != 2347 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
+		if ( yy_act == 0 )
+			{ /* have to back up */
+			yy_cp = (yy_last_accepting_cpos);
+			yy_current_state = (yy_last_accepting_state);
+			yy_act = yy_accept[yy_current_state];
+			}
 
 		YY_DO_BEFORE_ACTION;
 
@@ -2115,7 +2119,7 @@ YY_RULE_SETUP
 #line 570 "ncgen.l"
 ECHO;
 	YY_BREAK
-#line 2119 "lex.ncg.c"
+#line 2123 "ncgenl.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(TEXT):
 	yyterminate();
@@ -2183,8 +2187,7 @@ case YY_STATE_EOF(TEXT):
 
 			else
 				{
-				yy_cp = (yy_last_accepting_cpos);
-				yy_current_state = (yy_last_accepting_state);
+				yy_cp = (yy_c_buf_p);
 				goto yy_find_action;
 				}
 			}

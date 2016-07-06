@@ -879,6 +879,7 @@ yyerror(fmt,va_alist) const char* fmt; va_dcl
     vastart(argv,fmt);
     (void)fprintf(stderr,"%s: %s line %d: ", progname, cdlname, lineno);
     vderror(fmt,argv);
+    vaend(argv,fmt);
 }
 
 /* undefine yywrap macro, in case we are using bison instead of yacc */
