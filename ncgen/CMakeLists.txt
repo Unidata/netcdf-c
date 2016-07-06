@@ -53,7 +53,7 @@ SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
 
 ADD_CUSTOM_COMMAND(
   OUTPUT ncgentab.h
-  COMMAND flex -Pncg -B ncgen.l
+  COMMAND flex -Pncg -8 ncgen.l
   COMMAND rm -f ncgenl.c
   COMMAND mv lex.ncg.c ncgenl.c
 
