@@ -718,14 +718,20 @@ rc_search(const char* prefix, const char* rcname, char** pathp)
         oclog(OCLOGDBG, "Found rc file=%s",path);
 done:
     if(f == NULL || stat != OC_NOERR) {
-	if(path != NULL)
+      if(path != NULL)
 	    free(path);
-	path = NULL;
+      path = NULL;
     }
+
     if(f != NULL)
-	fclose(f);
+      fclose(f);
     if(pathp != NULL)
-	*pathp = path;
+      *pathp = path;
+    else {
+      free(path);
+      path = NULL;
+    }
+
     return OCTHROW(stat);
 }
 
