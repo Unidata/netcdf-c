@@ -338,7 +338,7 @@ ocrc_compile(const char* path)
             *value = '\0';
             value++;
         }
-        strncpy(ocrc->triples[ocrc->ntriples].key,key,MAXRCLINESIZE);
+        strncpy(ocrc->triples[ocrc->ntriples].key,key,MAXRCLINESIZE-1);
         if(*value == '\0')
             strcpy(ocrc->triples[ocrc->ntriples].value,"1");/*dfalt*/
         else
