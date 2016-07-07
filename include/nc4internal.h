@@ -262,6 +262,25 @@ typedef struct NC_TYPE_INFO
    } u;                         /* Union of structs, for each type/class */
 } NC_TYPE_INFO_T;
 
+typedef struct NC_VAR_ARRAY_T {
+	size_t nalloc;		/* number allocated >= nelems */
+	size_t nelems;		/* length of the array */
+	NC_VAR_INFO_T **value;
+} NC_VAR_ARRAY_T;
+
+extern void
+free_NC_VAR_ARRAY_V0(NC_VAR_ARRAY_T *ncap);
+
+extern void
+free_NC_VAR_ARRAY_V(NC_VAR_ARRAY_T *ncap);
+
+extern int
+dup_NC_VAR_ARRAY_V(NC_VAR_ARRAY_T *ncap, const NC_VAR_ARRAY_T *ref);
+
+extern NC_VAR_INFO_T *
+elem_NC_VAR_ARRAY(const NC_VAR_ARRAY_T *ncap, size_t elem);
+
+
 /* This holds information for one group. Groups reproduce with
  * parthenogenesis. */
 typedef struct NC_GRP_INFO
@@ -273,6 +292,7 @@ typedef struct NC_GRP_INFO
    struct NC_HDF5_FILE_INFO *nc4_info;
    struct NC_GRP_INFO *parent;
    struct NC_GRP_INFO *children;
+   NC_VAR_ARRAY_T vars;
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
    NC_ATT_INFO_T *att;

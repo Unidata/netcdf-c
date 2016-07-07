@@ -121,11 +121,11 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid, size_t *maxlen
    *maxlen = 0;
 
    /* Find this var. */
-   for (var = grp->var; var; var = var->l.next)
-      if (var->varid == varid)
-	 break;
-   if (!var)
-      return NC_ENOTVAR;
+   if (varid < 0 || varid >= grp->vars.nelems)
+     return NC_ENOTVAR;
+   var = grp->vars.value[varid];
+   if (!var) return NC_ENOTVAR;
+   assert(var->varid == varid);
 
    /* If the var hasn't been created yet, its size is 0. */
    if (!var->created)
@@ -331,11 +331,9 @@ nc4_find_g_var_nc(NC *nc, int ncid, int varid,
      return NC_ENOTVAR;
 
    /* Find the var info. */
-   for ((*var) = (*grp)->var; (*var); (*var) = (*var)->l.next)
-     if ((*var)->varid == varid)
-       break;
-   if (!(*var))
+   if (varid < 0 || varid >= (*grp)->vars.nelems)
      return NC_ENOTVAR;
+   (*var) = (*grp)->vars.value[varid];
 
    return NC_NOERR;
 }
@@ -378,10 +376,15 @@ nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
    assert(grp && var && name);
 
    /* Find the var info. */
-   for ((*var) = grp->var; (*var); (*var) = (*var)->l.next)
-      if (0 == strcmp(name, (*var)->name))
-         break;
-
+   *var = NULL;
+   for (int i=0; i < grp->vars.nelems; i++)
+   {
+     if (0 == strcmp(name, grp->vars.value[i]->name))
+     {
+       *var = grp->vars.value[i];
+       break;
+     }
+   }
    return NC_NOERR;
 }
 
@@ -510,9 +513,11 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 
    /* For all variables in this group, find the ones that use this
     * dimension, and remember the max length. */
-   for (var = grp->var; var; var = var->l.next)
+   for (int i=0; i < grp->vars.nelems; i++)
    {
      size_t mylen;
+     var = grp->vars.value[i];
+     if (!var) continue;
 
      /* Find max length of dim in this variable... */
      if ((retval = find_var_dim_max_length(grp, var->varid, dimid, &mylen)))
@@ -541,16 +546,12 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
       attlist = grp->att;
    else
    {
-      for(var = grp->var; var; var = var->l.next)
-      {
-	 if (var->varid == varid)
-	 {
-	    attlist = var->att;
-	    break;
-	 }
-      }
-      if (!var)
-	 return NC_ENOTVAR;
+      if (varid < 0 || varid >= grp->vars.nelems)
+	return NC_ENOTVAR;
+      var = grp->vars.value[varid];
+      if (!var) return NC_ENOTVAR;
+      attlist = var->att;
+      assert(var->varid == varid);
    }
 
    /* Now find the attribute by name or number. If a name is provided,
@@ -592,16 +593,12 @@ nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
       attlist = grp->att;
    else
    {
-      for(var = grp->var; var; var = var->l.next)
-      {
-	 if (var->varid == varid)
-	 {
-	    attlist = var->att;
-	    break;
-	 }
-      }
-      if (!var)
-	 return NC_ENOTVAR;
+      if (varid < 0 || varid >= grp->vars.nelems)
+	return NC_ENOTVAR;
+      var = grp->vars.value[varid];
+      if (!var) return NC_ENOTVAR;
+      attlist = var->att;
+      assert(var->varid == varid);
    }
 
    /* Now find the attribute by name or number. If a name is provided, ignore the attnum. */
@@ -790,10 +787,13 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
 
    /* Any variables of this name? */
    hash =  hash_fast(name, strlen(name));
-   for (var = grp->var; var; var = var->l.next)
+   for (int i=0; i < grp->vars.nelems; i++)
+   {
+      var = grp->vars.value[i];
+      if (!var) continue;
       if (var->hash == hash && !strcmp(var->name, name))
 	 return NC_ENAMEINUSE;
-
+   }
    return NC_NOERR;
 }
 
@@ -1168,9 +1168,20 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
       if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
 	 return NC_EHDFERR;
       v = var->l.next;
+      grp->vars.value[var->varid] = NULL;
       if ((retval = nc4_var_list_del(&grp->var, var)))
 	 return retval;
       var = v;
+   }
+
+   /* Vars are all freed above.  When eliminate linked-list,
+      then need to iterate value and free vars from it.
+   */
+   if (grp->vars.nalloc != 0) {
+     assert(grp->vars.value != NULL);
+     free(grp->vars.value);
+     grp->vars.value = NULL;
+     grp->vars.nalloc = 0;
    }
 
    /* Delete all dims. */
@@ -1476,8 +1487,10 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
       LOG((2, "%s DIMENSION - dimid: %d name: %s len: %d unlimited: %d",
 	   tabs, dim->dimid, dim->name, dim->len, dim->unlimited));
 
-   for(var = grp->var; var; var = var->l.next)
+   for (int i=0; i < grp->vars.nelems; i++)
    {
+      var = grp->vars.value[i];
+      if (!var) continue;
       if(var->ndims > 0)
       {
          dims_string = (char*)malloc(sizeof(char)*(var->ndims*4));

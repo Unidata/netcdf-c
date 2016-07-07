@@ -81,7 +81,10 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
       return retval;
 
   /* Find any vars that use this dimension id. */
-  for (var = grp->var; var; var = var->l.next)
+  for (int i=0; i < grp->vars.nelems; i++) 
+  {
+    var = grp->vars.value[i];
+    if (!var) continue;
     for (d = 0; d < var->ndims; d++)
       if (var->dimids[d] == dimid && !var->dimscale)
         {
@@ -94,7 +97,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
               var->dimscale_attached[d] = NC_TRUE;
             }
         }
-
+  }
   return NC_NOERR;
 }
 
@@ -121,7 +124,10 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
       return retval;
 
   /* Find any vars that use this dimension id. */
-  for (var = grp->var; var; var = var->l.next)
+  for (int i=0; i < grp->vars.nelems; i++) 
+  {
+    var = grp->vars.value[i];
+    if (!var) continue;
     for (d = 0; d < var->ndims; d++)
       if (var->dimids[d] == dimid && !var->dimscale)
         {
@@ -135,7 +141,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                 var->dimscale_attached[d] = NC_FALSE;
               }
         }
-
+  }
   return NC_NOERR;
 }
 
@@ -146,11 +152,11 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
   NC_VAR_INFO_T *var;
 
   /* Find the requested varid. */
-  for (var = grp->var; var; var = var->l.next)
-    if (var->varid == varid)
-      break;
-  if (!var)
-    return NC_ENOTVAR;
+   if (varid < 0 || varid >= grp->vars.nelems)
+     return NC_ENOTVAR;
+   var = grp->vars.value[varid];
+   if (!var) return NC_ENOTVAR;
+   assert(var->varid == varid);
 
   /* Open this dataset if necessary. */
   if (!var->hdf_datasetid)
@@ -2059,8 +2065,10 @@ attach_dimscales(NC_GRP_INFO_T *grp)
   int retval = NC_NOERR;
 
   /* Attach dimension scales. */
-  for (var = grp->var; var; var = var->l.next)
+  for (int i=0; i < grp->vars.nelems; i++) 
     {
+      var = grp->vars.value[i];
+      if (!var) continue;
       /* Scales themselves do not attach. But I really wish they
        * would. */
       if (var->dimscale)
@@ -2433,16 +2441,20 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
   /* Did we extend an unlimited dimension? */
   if (dim->extended)
     {
-      NC_VAR_INFO_T *v1;
+      NC_VAR_INFO_T *v1 = NULL;
 
       assert(dim->unlimited);
       /* If this is a dimension without a variable, then update
        * the secret length information at the end of the NAME
        * attribute. */
-      for (v1 = grp->var; v1; v1 = v1->l.next)
-        if (!strcmp(v1->name, dim->name))
+      for (int i=0; i < grp->vars.nelems; i++) 
+      {
+	if (grp->vars.value[i] && !strcmp(grp->vars.value[i]->name, dim->name))
+	{
+	  v1 = grp->vars.value[i];
           break;
-
+	}
+      }
       if (v1)
         {
           hsize_t *new_size = NULL;
@@ -2495,8 +2507,10 @@ nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_
   int retval;
 
   /* Iterate over variables in this group */
-  for (var = grp->var; var; var = var->l.next)
+  for (int i=0; i < grp->vars.nelems; i++) 
     {
+      var = grp->vars.value[i];
+      if (!var) continue;
       /* Only matters for dimension scale variables, with non-scalar dimensionality */
       if (var->dimscale && var->ndims)
         {
@@ -3641,8 +3655,10 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 
   /* Check all the vars in this group. If they have dimscale info,
    * try and find a dimension for them. */
-  for (var = grp->var; var; var = var->l.next)
+  for (int i=0; i < grp->vars.nelems; i++) 
     {
+      var = grp->vars.value[i];
+      if (!var) continue;
       /* Check all vars and see if dim[i] != NULL if dimids[i] valid. */
       int ndims = var->ndims;
       int d;

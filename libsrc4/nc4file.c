@@ -16,6 +16,9 @@ COPYRIGHT file for copying and redistribution conditions.
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 
+extern int nc4_vararray_add(NC_GRP_INFO_T *grp,
+			    NC_VAR_INFO_T *var);
+
 /* must be after nc4internal.h */
 #include <H5DSpublic.h>
 #include <H5Fpublic.h>
@@ -1809,6 +1812,8 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 	 att->created = NC_TRUE;
       } /* endif not HDF5 att */
    } /* next attribute */
+
+   nc4_vararray_add(grp, var);
 
    /* Is this a deflated variable with a chunksize greater than the
     * current cache size? */
