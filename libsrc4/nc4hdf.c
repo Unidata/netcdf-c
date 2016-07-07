@@ -2563,10 +2563,11 @@ nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_
 int
 nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
 {
-  NC_DIM_INFO_T *dim;
-  NC_VAR_INFO_T *var;
-  NC_GRP_INFO_T *child_grp;
+  NC_DIM_INFO_T *dim = NULL;
+  NC_VAR_INFO_T *var = NULL;
+  NC_GRP_INFO_T *child_grp = NULL;
   int coord_varid = -1;
+  int var_index = 0;
 
   int retval;
   assert(grp && grp->name && grp->hdf_grpid);
@@ -2578,7 +2579,8 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
   /* Set the pointers to the beginning of the list of dims & vars in this
    * group. */
   dim = grp->dim;
-  var = grp->var;
+  if (var_index < grp->vars.nelems)
+    var = grp->vars.value[var_index];
 
   /* Because of HDF5 ordering the dims and vars have to be stored in
    * this way to ensure that the dims and coordinate vars come out in
@@ -2605,12 +2607,16 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
 
       /* Write each var. When we get to the coord var we are waiting
        * for (if any), then we break after writing it. */
-      for (wrote_coord = NC_FALSE; var && !wrote_coord; var = var->l.next)
+      for (wrote_coord = NC_FALSE; var && !wrote_coord; )
         {
           if ((retval = write_var(var, grp, bad_coord_order)))
             return retval;
           if (found_coord && var->varid == coord_varid)
             wrote_coord = NC_TRUE;
+	  if (++var_index < grp->vars.nelems)
+	    var = grp->vars.value[var_index];
+	  else
+	    var = NULL;
         }
     } /* end while */
 

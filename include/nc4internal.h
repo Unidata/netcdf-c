@@ -146,7 +146,6 @@ typedef struct NC_ATT_INFO
 /* This is a struct to handle the var metadata. */
 typedef struct NC_VAR_INFO
 {
-   NC_LIST_NODE_T l;            /* Use generic doubly-linked list (must be first) */
    char *name;
    char *hdf5_name; /* used if different from name */
    int ndims;
@@ -268,19 +267,6 @@ typedef struct NC_VAR_ARRAY_T {
 	NC_VAR_INFO_T **value;
 } NC_VAR_ARRAY_T;
 
-extern void
-free_NC_VAR_ARRAY_V0(NC_VAR_ARRAY_T *ncap);
-
-extern void
-free_NC_VAR_ARRAY_V(NC_VAR_ARRAY_T *ncap);
-
-extern int
-dup_NC_VAR_ARRAY_V(NC_VAR_ARRAY_T *ncap, const NC_VAR_ARRAY_T *ref);
-
-extern NC_VAR_INFO_T *
-elem_NC_VAR_ARRAY(const NC_VAR_ARRAY_T *ncap, size_t elem);
-
-
 /* This holds information for one group. Groups reproduce with
  * parthenogenesis. */
 typedef struct NC_GRP_INFO
@@ -293,7 +279,6 @@ typedef struct NC_GRP_INFO
    struct NC_GRP_INFO *parent;
    struct NC_GRP_INFO *children;
    NC_VAR_ARRAY_T vars;
-   NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
    NC_ATT_INFO_T *att;
    NC_TYPE_INFO_T *type;
@@ -405,8 +390,8 @@ int nc4_type_free(NC_TYPE_INFO_T *type);
 
 /* These list functions add and delete vars, atts. */
 int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
-int nc4_var_list_add(NC_VAR_INFO_T **list, NC_VAR_INFO_T **var);
-int nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var);
+int nc4_var_add(NC_VAR_INFO_T **var);
+int nc4_var_del(NC_VAR_INFO_T *var);
 int nc4_dim_list_add(NC_DIM_INFO_T **list, NC_DIM_INFO_T **dim);
 int nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim);
 int nc4_att_list_add(NC_ATT_INFO_T **list, NC_ATT_INFO_T **att);

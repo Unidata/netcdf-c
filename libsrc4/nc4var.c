@@ -444,8 +444,8 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    }
 #endif
 
-   /* Add the var to the end of the list. */
-   if ((retval = nc4_var_list_add(&grp->var, &var)))
+   /* Add a new var. */
+   if ((retval = nc4_var_add(&var)))
       BAIL(retval);
 
    /* Now fill in the values in the var info structure. */

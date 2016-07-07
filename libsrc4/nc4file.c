@@ -1537,7 +1537,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    LOG((4, "%s: obj_name %s", __func__, obj_name));
 
    /* Add a variable to the end of the group's var list. */
-   if ((retval = nc4_var_list_add(&grp->var, &var)))
+   if ((retval = nc4_var_add(&var)))
       BAIL(retval);
 
    /* Fill in what we already know. */
@@ -1825,7 +1825,7 @@ exit:
    {
        if (incr_id_rc && H5Idec_ref(datasetid) < 0)
           BAIL2(NC_EHDFERR);
-       if (var && nc4_var_list_del(&grp->var, var))
+       if (var && nc4_var_del(var))
           BAIL2(NC_EHDFERR);
    }
    if (access_pid && H5Pclose(access_pid) < 0)
@@ -2595,8 +2595,8 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       size_t var_type_size;
       int a;
 
-      /* Add a variable to the end of the group's var list. */
-      if ((retval = nc4_var_list_add(&grp->var, &var)))
+      /* Add a variable. */
+      if ((retval = nc4_var_add(&var)))
 	return retval;
 
       var->varid = grp->nvars++;
@@ -3231,8 +3231,11 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    if (nvarsp)
    {
       *nvarsp = 0;
-      for (var = grp->var; var; var= var->l.next)
-	(*nvarsp)++;
+      for (int i=0; i < grp->vars.nelems; i++)
+      {
+	if (grp->vars.value[i])
+	  (*nvarsp)++;
+      }
    }
    if (nattsp)
      {

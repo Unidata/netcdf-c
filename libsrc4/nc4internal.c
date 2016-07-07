@@ -664,10 +664,9 @@ obj_list_del(NC_LIST_NODE_T **list, NC_LIST_NODE_T *obj)
       ((NC_LIST_NODE_T *)obj->next)->prev = obj->prev;
 }
 
-/* Add to the end of a var list. Return a pointer to the newly
- * added var. */
+/* Return a pointer to the new var. */
 int
-nc4_var_list_add(NC_VAR_INFO_T **list, NC_VAR_INFO_T **var)
+nc4_var_add(NC_VAR_INFO_T **var)
 {
    NC_VAR_INFO_T *new_var;
 
@@ -679,9 +678,6 @@ nc4_var_list_add(NC_VAR_INFO_T **list, NC_VAR_INFO_T **var)
    new_var->chunk_cache_size = nc4_chunk_cache_size;
    new_var->chunk_cache_nelems = nc4_chunk_cache_nelems;
    new_var->chunk_cache_preemption = nc4_chunk_cache_preemption;
-
-   /* Add object to list */
-   obj_list_add((NC_LIST_NODE_T **)list, (NC_LIST_NODE_T *)new_var);
 
    /* Set the var pointer, if one was given */
    if (var)
@@ -1002,18 +998,15 @@ nc4_type_free(NC_TYPE_INFO_T *type)
    return NC_NOERR;
 }
 
-/* Delete a var from a var list, and free the memory. */
+/* Delete a var, and free the memory. */
 int
-nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
+nc4_var_del(NC_VAR_INFO_T *var)
 {
    NC_ATT_INFO_T *a, *att;
    int ret;
 
    if(var == NULL)
      return NC_NOERR;
-
-   /* Remove the var from the linked list. */
-   obj_list_del((NC_LIST_NODE_T **)list, (NC_LIST_NODE_T *)var);
 
    /* First delete all the attributes attached to this var. */
    att = var->att;
@@ -1159,19 +1152,19 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    }
 
    /* Delete all vars. */
-   var = grp->var;
-   while (var)
+   for (int i=0; i < grp->vars.nelems; i++)
    {
+      var = grp->vars.value[i];
+      if (!var) continue;
+     
       LOG((4, "%s: deleting var %s", __func__, var->name));
       /* Close HDF5 dataset associated with this var, unless it's a
        * scale. */
       if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
 	 return NC_EHDFERR;
-      v = var->l.next;
-      grp->vars.value[var->varid] = NULL;
-      if ((retval = nc4_var_list_del(&grp->var, var)))
+      if ((retval = nc4_var_del(var)))
 	 return retval;
-      var = v;
+      grp->vars.value[i] = NULL;
    }
 
    /* Vars are all freed above.  When eliminate linked-list,
