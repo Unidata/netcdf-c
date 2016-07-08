@@ -40,7 +40,8 @@ than 32767.  Similarly, the number of simultaneously open netCDF-4
 files in one program context is limited to 32767.
 
  */
-/** \{ */
+
+/** \{*/ /* All these functions are part of the above defgroup... */
 
 /*!
 
@@ -131,6 +132,43 @@ int nc_inq_typeids(int ncid, int *ntypes, int *typeids)
     return ncp->dispatch->inq_typeids(ncid,ntypes,typeids);
 }
 
+/*!
+
+Define a new group.  The function nc_def_grp adds a new
+group to an open netCDF dataset in define mode.  It returns (as an
+ argument) a group id, given the parent ncid and the name of the group.
+
+A group may be a top-level group if it is passed the ncid of the file,
+or a sub-group if passed the ncid of an existing group.
+
+@param[in]  parent_ncid The ncid of the parent for the group.
+@param[in]  name        Name of the new group.
+@param[out] new_ncid    Pointer to memory to hold the new ncid.
+
+@returns Error code or 0 for no error.
+
+@retval ::NC_NOERR No error.
+@retval ::NC_ENOTNC4 Not an nc4 file.
+@retval ::NC_ENOTINDEFINE Not in define mode.
+@retval ::NC_ESTRICTNC3 Not permissible in nc4 classic mode.
+@retval ::NC_EPERM Write to read only.
+@retval ::NC_ENOMEM Memory allocation (malloc) failure.
+@retval ::NC_ENAMEINUSE String match to name in use.
+
+\section nc_def_grp_example Example
+
+Here is an example using nc_def_grp() to create a new group.
+
+\code{.c}
+
+#include <netcdf.h>
+...
+int status, ncid, grpid, latid, recid;
+...
+
+\endcode
+
+*/
 int nc_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
     NC* ncp;
@@ -138,6 +176,7 @@ int nc_def_grp(int parent_ncid, const char *name, int *new_ncid)
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->def_grp(parent_ncid,name,new_ncid);
 }
+
 
 int nc_rename_grp(int grpid, const char *name)
 {
