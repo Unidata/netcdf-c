@@ -308,9 +308,6 @@ typedef struct  NC_HDF5_FILE_INFO
 #endif
    int flags;
    int cmode;
-   int nvars;
-   int ndims;
-   int natts;
    nc_bool_t parallel;          /* True if file is open for parallel access */
    nc_bool_t redef;             /* True if redefining an existing file */
    int fill_mode;               /* Fill mode for vars - Unused internally currently */
