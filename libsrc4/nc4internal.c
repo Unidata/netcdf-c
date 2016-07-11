@@ -19,8 +19,6 @@ conditions.
 #include "H5DSpublic.h"
 #include <utf8proc.h>
 
-#define MEGABYTE 1048576
-
 #undef DEBUGH5
 
 #ifdef DEBUGH5
