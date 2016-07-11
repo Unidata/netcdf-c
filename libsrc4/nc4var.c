@@ -23,14 +23,6 @@ conditions.
 extern int num_plists;
 #endif /* EXTRA_TESTS */
 
-/* One meg is the minimum buffer size. */
-#define ONE_MEG 1048576
-
-/* Szip options. */
-#define NC_SZIP_EC_OPTION_MASK 4
-#define NC_SZIP_NN_OPTION_MASK 32
-#define NC_SZIP_MAX_PIXELS_PER_BLOCK 32
-
 extern int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value);
 
 
