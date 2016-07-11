@@ -228,9 +228,9 @@ int nc_inq_typeids(int ncid, int *ntypes, int *typeids)
     return ncp->dispatch->inq_typeids(ncid,ntypes,typeids);
 }
 
-/*!
+/*! Define a new group.
 
-  Define a new group.  The function nc_def_grp adds a new
+  The function nc_def_grp() adds a new
   group to an open netCDF dataset in define mode.  It returns (as an
   argument) a group id, given the parent ncid and the name of the group.
 
