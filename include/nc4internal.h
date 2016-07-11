@@ -278,7 +278,6 @@ typedef struct NC_GRP_INFO
    NC_ATT_INFO_T *att;
    NC_TYPE_INFO_T *type;
    int nvars;
-   int ndims;
    int natts;
 } NC_GRP_INFO_T;
 
