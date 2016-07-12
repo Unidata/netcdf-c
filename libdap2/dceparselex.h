@@ -40,12 +40,12 @@ typedef struct DCElexstate {
 } DCElexstate;
 
 /*! Specifies DCEparsestate. */
-typedef struct DCEparsestate {
+struct DCEparsestate {
     DCEconstraint* constraint;
     char errorbuf[1024];
     int errorcode;
     DCElexstate* lexstate;
-} DCEparsestate;
+};
 
 /* Define a generic object carrier; this serves
    essentially the same role as the typical bison %union
