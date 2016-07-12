@@ -1952,7 +1952,7 @@ write_nc3_strict_att(hid_t hdf_grpid)
 {
   hid_t attid = 0, spaceid = 0;
   int one = 1, num, a;
-  char att_name[NC_MAX_NAME + 1];
+  char att_name[NC_MAX_HDF5_NAME + 1];
   int retval = NC_NOERR;
 
   /* If the attribute already exists, call that a success and return
