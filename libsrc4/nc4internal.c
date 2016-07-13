@@ -373,11 +373,12 @@ nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
 int
 nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
 {
+  int i;
    assert(grp && var && name);
 
    /* Find the var info. */
    *var = NULL;
-   for (int i=0; i < grp->vars.nelems; i++)
+   for (i=0; i < grp->vars.nelems; i++)
    {
      if (0 == strcmp(name, grp->vars.value[i]->name))
      {
@@ -501,6 +502,7 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
    NC_GRP_INFO_T *g;
    NC_VAR_INFO_T *var;
    int retval;
+   int i;
 
    assert(grp && len);
    LOG((3, "nc4_find_dim_len: grp->name %s dimid %d", grp->name, dimid));
@@ -513,7 +515,7 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 
    /* For all variables in this group, find the ones that use this
     * dimension, and remember the max length. */
-   for (int i=0; i < grp->vars.nelems; i++)
+   for (i=0; i < grp->vars.nelems; i++)
    {
      size_t mylen;
      var = grp->vars.value[i];
@@ -770,6 +772,7 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
    NC_GRP_INFO_T *g;
    NC_VAR_INFO_T *var;
    uint32_t hash;
+   int i;
    
    /* Any types of this name? */
    for (type = grp->type; type; type = type->l.next)
@@ -783,7 +786,7 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
 
    /* Any variables of this name? */
    hash =  hash_fast(name, strlen(name));
-   for (int i=0; i < grp->vars.nelems; i++)
+   for (i=0; i < grp->vars.nelems; i++)
    {
       var = grp->vars.value[i];
       if (!var) continue;
@@ -1124,7 +1127,8 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    NC_DIM_INFO_T *d, *dim;
    NC_TYPE_INFO_T *type, *t;
    int retval;
-
+   int i;
+   
    assert(grp);
    LOG((3, "%s: grp->name %s", __func__, grp->name));
 
@@ -1152,7 +1156,7 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    }
 
    /* Delete all vars. */
-   for (int i=0; i < grp->vars.nelems; i++)
+   for (i=0; i < grp->vars.nelems; i++)
    {
       var = grp->vars.value[i];
       if (!var) continue;
@@ -1463,7 +1467,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
    char tabs[MAX_NESTS] = "";
    char *dims_string = NULL;
    char temp_string[10];
-   int t, retval, d;
+   int t, retval, d, i;
 
    /* Come up with a number of tabs relative to the group. */
    for (t = 0; t < tab_count && t < MAX_NESTS; t++)
@@ -1480,7 +1484,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
       LOG((2, "%s DIMENSION - dimid: %d name: %s len: %d unlimited: %d",
 	   tabs, dim->dimid, dim->name, dim->len, dim->unlimited));
 
-   for (int i=0; i < grp->vars.nelems; i++)
+   for (i=0; i < grp->vars.nelems; i++)
    {
       var = grp->vars.value[i];
       if (!var) continue;

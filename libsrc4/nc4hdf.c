@@ -69,7 +69,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
 {
   NC_VAR_INFO_T *var;
   NC_GRP_INFO_T *child_grp;
-  int d;
+  int d, i;
   int retval;
 
   assert(grp && grp->name && dimid >= 0 && dimscaleid >= 0);
@@ -81,7 +81,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
       return retval;
 
   /* Find any vars that use this dimension id. */
-  for (int i=0; i < grp->vars.nelems; i++) 
+  for (i=0; i < grp->vars.nelems; i++) 
   {
     var = grp->vars.value[i];
     if (!var) continue;
@@ -112,7 +112,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
 {
   NC_VAR_INFO_T *var;
   NC_GRP_INFO_T *child_grp;
-  int d;
+  int d, i;
   int retval;
 
   assert(grp && grp->name && dimid >= 0 && dimscaleid >= 0);
@@ -124,7 +124,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
       return retval;
 
   /* Find any vars that use this dimension id. */
-  for (int i=0; i < grp->vars.nelems; i++) 
+  for (i=0; i < grp->vars.nelems; i++) 
   {
     var = grp->vars.value[i];
     if (!var) continue;
@@ -2061,11 +2061,11 @@ attach_dimscales(NC_GRP_INFO_T *grp)
   NC_VAR_INFO_T *var;
   NC_DIM_INFO_T *dim1;
   NC_GRP_INFO_T *g;
-  int d;
+  int d, i;
   int retval = NC_NOERR;
 
   /* Attach dimension scales. */
-  for (int i=0; i < grp->vars.nelems; i++) 
+  for (i=0; i < grp->vars.nelems; i++) 
     {
       var = grp->vars.value[i];
       if (!var) continue;
@@ -2363,6 +2363,7 @@ static int
 write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
   int retval;
+  int i;
 
   /* If there's no dimscale dataset for this dim, create one,
    * and mark that it should be hidden from netCDF as a
@@ -2447,7 +2448,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       /* If this is a dimension without a variable, then update
        * the secret length information at the end of the NAME
        * attribute. */
-      for (int i=0; i < grp->vars.nelems; i++) 
+      for (i=0; i < grp->vars.nelems; i++) 
       {
 	if (grp->vars.value[i] && !strcmp(grp->vars.value[i]->name, dim->name))
 	{
@@ -2505,9 +2506,10 @@ nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_
   NC_GRP_INFO_T *child_grp;
   int last_dimid = -1;
   int retval;
+  int i;
 
   /* Iterate over variables in this group */
-  for (int i=0; i < grp->vars.nelems; i++) 
+  for (i=0; i < grp->vars.nelems; i++) 
     {
       var = grp->vars.value[i];
       if (!var) continue;
@@ -3650,7 +3652,8 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
   NC_VAR_INFO_T *var;
   NC_DIM_INFO_T *dim;
   int retval = NC_NOERR;
-
+  int i;
+  
   assert(grp && grp->name);
   LOG((4, "%s: grp->name %s", __func__, grp->name));
 
@@ -3661,7 +3664,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 
   /* Check all the vars in this group. If they have dimscale info,
    * try and find a dimension for them. */
-  for (int i=0; i < grp->vars.nelems; i++) 
+  for (i=0; i < grp->vars.nelems; i++) 
     {
       var = grp->vars.value[i];
       if (!var) continue;

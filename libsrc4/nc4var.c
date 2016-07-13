@@ -1158,6 +1158,7 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    char norm_name[NC_MAX_NAME + 1];
    int retval;
    uint32_t nn_hash;
+   int i;
    
    if (!name)
       return NC_EINVAL;
@@ -1177,7 +1178,7 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    nn_hash = hash_fast(norm_name, strlen(norm_name));
 
    /* Find var of this name. */
-   for (int i=0; i < grp->vars.nelems; i++)
+   for (i=0; i < grp->vars.nelems; i++)
       {
 	var = grp->vars.value[i];
 	if (!var) continue;
@@ -1203,7 +1204,8 @@ NC4_rename_var(int ncid, int varid, const char *name)
    NC_VAR_INFO_T *var, *tmp_var;
    uint32_t nn_hash;
    int retval = NC_NOERR;
-
+   int i;
+   
    LOG((2, "%s: ncid 0x%x varid %d name %s",
         __func__, ncid, varid, name));
 
@@ -1229,7 +1231,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    /* Check if name is in use, and retain a pointer to the correct variable */
    nn_hash = hash_fast(name, strlen(name));
    tmp_var = NULL;
-   for (int i=0; i < grp->vars.nelems; i++)
+   for (i=0; i < grp->vars.nelems; i++)
    {
       var = grp->vars.value[i];
       if (!var) continue;
