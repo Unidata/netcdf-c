@@ -1954,24 +1954,14 @@ write_nc3_strict_att(hid_t hdf_grpid)
   int one = 1, num, a;
   char att_name[NC_MAX_NAME + 1];
   int retval = NC_NOERR;
+  htri_t attr_exists;
 
   /* If the attribute already exists, call that a success and return
    * NC_NOERR. */
-  if ((num = H5Aget_num_attrs(hdf_grpid)) < 0)
+  if ((attr_exists = H5Aexists(hdf_grpid, NC3_STRICT_ATT_NAME)) < 0)
     return NC_EHDFERR;
-  for (a = 0; a < num; a++)
-    {
-      if ((attid = H5Aopen_idx(hdf_grpid, (unsigned int)a)) < 0)
-        BAIL(NC_EHDFERR);
-      if (H5Aget_name(attid, NC_MAX_HDF5_NAME, att_name) < 0)
-        BAIL(NC_EHDFERR);
-      if (H5Aclose(attid) < 0)
-            return NC_EFILEMETA;
-      if (strcmp(att_name, NC3_STRICT_ATT_NAME)==0)
-        {
-          return NC_NOERR;
-        }
-    }
+  if (attr_exists)
+    return NC_NOERR;
 
   /* Create the attribute to mark this as a file that needs to obey
    * strict netcdf-3 rules. */
