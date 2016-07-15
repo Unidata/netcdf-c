@@ -550,9 +550,9 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   NC_VAR_INFO_T *var;
   NC_DIM_INFO_T *dim;
   hid_t file_spaceid = 0, mem_spaceid = 0, xfer_plistid = 0;
-  hsize_t xtend_size[NC_MAX_VAR_DIMS] , count[NC_MAX_VAR_DIMS];
+  long long unsigned xtend_size[NC_MAX_VAR_DIMS];
   hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
-  hsize_t start[NC_MAX_VAR_DIMS];
+  hsize_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
   char *name_to_use;
   int need_to_extend = 0;
   int retval = NC_NOERR, range_error = 0, i, d2;
@@ -733,11 +733,11 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
             {
               if (start[d2] + count[d2] > fdims[d2])
                 {
-                  xtend_size[d2] = start[d2] + count[d2];
+                  xtend_size[d2] = (long long unsigned)(start[d2] + count[d2]);
                   need_to_extend++;
                 }
               else
-                xtend_size[d2] = fdims[d2];
+                xtend_size[d2] = (long long unsigned)fdims[d2];
 
               if (start[d2] + count[d2] > dim->len)
                 {
@@ -747,7 +747,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
             }
           else
             {
-              xtend_size[d2] = dim->len;
+              xtend_size[d2] = (long long unsigned)dim->len;
             }
         }
 
@@ -775,15 +775,15 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
                 BAIL(NC_ECANTEXTEND);
 
               /* Reach consensus about dimension sizes to extend to */
-              /* (Note: Somewhat hackish, with the use of MPI_INTEGER, but MPI_MAX is
-               *        correct with this usage, as long as it's not executed on
-               *        heterogeneous systems)
-               */
-              if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &xtend_size, (var->ndims * (sizeof(hsize_t) / sizeof(int))), MPI_UNSIGNED, MPI_MAX, h5->comm))
+              if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, xtend_size, var->ndims, MPI_UNSIGNED_LONG_LONG, MPI_MAX, h5->comm))
                 BAIL(NC_EMPI);
             }
 #endif /* USE_PARALLEL4 */
-          if (H5Dset_extent(var->hdf_datasetid, xtend_size) < 0)
+          /* Convert xtend_size back to hsize_t for use with H5Dset_extent */
+          for (d2 = 0; d2 < var->ndims; d2++)
+            fdims[d2] = (hsize_t)xtend_size[d2];
+
+          if (H5Dset_extent(var->hdf_datasetid, fdims) < 0)
             BAIL(NC_EHDFERR);
           if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
             BAIL2(NC_EHDFERR);
