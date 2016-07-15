@@ -1987,12 +1987,12 @@ write_nc3_strict_att(hid_t hdf_grpid)
     BAIL(NC_EFILEMETA);
 
  exit:
-  if (spaceid && (H5Sclose(spaceid) < 0))
+  if (spaceid > 0 && (H5Sclose(spaceid) < 0))
     BAIL2(NC_EFILEMETA);
 #ifdef EXTRA_TESTS
   num_spaces--;
 #endif
-  if (attid && (H5Aclose(attid) < 0))
+  if (attid > 0 && (H5Aclose(attid) < 0))
     BAIL2(NC_EFILEMETA);
   return retval;
 }
