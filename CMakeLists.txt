@@ -82,8 +82,7 @@ IF(MSVC)
 ENDIF()
 
 #Add custom CMake Module
-SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/"
-  CACHE INTERNAL "Location of our custom CMake modules.")
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
 # auto-configure style checks, other CMake modules.
 INCLUDE(${CMAKE_ROOT}/Modules/CheckLibraryExists.cmake)
@@ -613,8 +612,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     # Find out if HDF5 was built with parallel support.
     # Do that by checking for the targets H5Pget_fapl_mpiposx and
     # H5Pget_fapl_mpio in ${HDF5_LIB}.
-    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
-    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
+    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
     IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
       SET(HDF5_PARALLEL ON)
     ELSE()
