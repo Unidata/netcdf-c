@@ -740,14 +740,14 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 	    return NC_ENOMEM;
 	if(NC_indef(ncp))
 	{
+		/* Remove old name from hashmap; add new... */
+		NC_hashmapRemoveVar(&ncp->vars, old->cp);
+
 		newStr = new_NC_string(strlen(newname),newname);
 		free(newname);
 		if(newStr == NULL)
 			return(-1);
 		varp->name = newStr;
-
-		/* Remove old name from hashmap; add new... */
-		NC_hashmapRemoveVar(&ncp->vars, old->cp);
 		NC_hashmapAddVar(&ncp->vars, varid, newStr->cp);
 		free_NC_string(old);
 
@@ -755,13 +755,14 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 	}
 
 	/* else, not in define mode */
+	/* Remove old name from hashmap; add new... */
+	NC_hashmapRemoveVar(&ncp->vars, old->cp);
+
 	status = set_NC_string(varp->name, newname);
 	free(newname);
 	if(status != NC_NOERR)
 		return status;
 
-	/* Remove old name from hashmap; add new... */
-	NC_hashmapRemoveVar(&ncp->vars, old->cp);
 	NC_hashmapAddVar(&ncp->vars, varid, varp->name->cp);
 
 	set_NC_hdirty(ncp);

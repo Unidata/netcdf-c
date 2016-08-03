@@ -22,6 +22,7 @@ fi
 
 has_nc2="@BUILD_V2@"
 
+
 if [ -z $has_nc2 -o "$has_nc2" = "OFF" ]; then
     has_nc2="no"
 else
@@ -73,9 +74,16 @@ fi
 
 version="@PACKAGE@ @VERSION@"
 
+
+has_fortran="no"
 has_f90="no"
 has_f03="no"
-if type -p nf-config > /dev/null 2>&1; then
+
+nfconf=$(which nf-config)
+
+if [ -f "$nfconf" ]; then
+    echo "Using nf-config: $nfconf"
+    has_fortran="yes"
   fc=`nf-config --fc`
   fflags=`nf-config --fflags`
   flibs=`nf-config --flibs`
@@ -133,7 +141,7 @@ elif type -p ncxx-config > /dev/null 2>&1; then
 
 EOF
 fi
-if type -p nf-config > /dev/null 2>&1; then
+if [ -f "$nfconf" ]; then
     cat <<EOF
   --fc          Fortran compiler
   --fflags      flags needed to compile a Fortran program
@@ -156,15 +164,21 @@ all()
         echo
         echo "  --has-c++   -> $has_cxx"
         echo "  --cxx       -> $cxx"
+
+#	echo "  --cxxflags  -> $cxxflags"
+#	echo "  --cxxlibs   -> $cxxlibs"
         echo "  --has-c++4  -> $has_cxx4"
         echo "  --cxx4      -> $cxx4"
         echo
+
+if [ -f "$nfconf" ]; then
         echo "  --fc        -> $fc"
         echo "  --fflags    -> $fflags"
         echo "  --flibs     -> $flibs"
         echo "  --has-f90   -> $has_f90"
         echo "  --has-f03   -> $has_f03"
         echo
+fi
         echo "  --has-dap   -> $has_dap"
         echo "  --has-nc2   -> $has_nc2"
         echo "  --has-nc4   -> $has_nc4"

@@ -16,6 +16,15 @@ int error_count;
 #endif
 
 /*
+ * Invalidate variable list.
+ */
+#ifndef NO_STDARG
+#define vaend(argv,fmt) va_end(argv)
+#else
+#define vaend(argv,fmt) va_end(argv)
+#endif
+
+/*
  * For logging error conditions.
  * Designed to be called by other vararg procedures
  */
@@ -78,7 +87,7 @@ verror(fmt,va_alist) const char* fmt; va_dcl
     strcpy(newfmt,"netCDF classic: not supported: ");
     strncat(newfmt,fmt,2000);
     vderror(newfmt,argv);
-    va_end(argv);
+    vaend(argv,fmt);
 }
 
 #ifndef NO_STDARG

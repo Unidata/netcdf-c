@@ -4,8 +4,9 @@
  *********************************************************************/
 
 #include "ncdap.h"
-#include "dapdump.h"
 #include "dceparselex.h"
+#include "dceconstraints.h"
+#include "dapdump.h"
 
 static void completesegments(NClist* fullpath, NClist* segments);
 static NCerror qualifyprojectionnames(DCEprojection* proj);

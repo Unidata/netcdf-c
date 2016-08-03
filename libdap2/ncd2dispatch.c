@@ -376,8 +376,17 @@ NCD2_open(const char * path, int mode,
         */
         snprintf(tmpname,sizeof(tmpname),"%d",drno->int_ncid);
 
-        /* Now, use the file to create the netcdf file; force classic.  */
-        ncstat = nc_create(tmpname,NC_DISKLESS|NC_CLASSIC_MODEL,&nc3id);
+        /* Now, use the file to create the hidden, in-memory netcdf file.
+	   We want this hidden file to always be NC_CLASSIC, so we need to
+           force default format temporarily in case user changed it.
+	*/
+	{
+	    int new = NC_CLASSIC_MODEL;
+	    int old = 0;
+	    nc_set_default_format(new,&old); /* save and change */
+            ncstat = nc_create(tmpname,NC_DISKLESS|NC_CLASSIC_MODEL,&nc3id);
+	    nc_set_default_format(old,&new); /* restore */
+	}
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 	dapcomm->nc3id = nc3id;
 	/* Avoid fill */
@@ -2244,7 +2253,7 @@ int
 NCD2_inq_format(int ncid, int* formatp)
 {
     NC* drno;
-    int ret;
+    int ret = NC_NOERR;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
     ret = nc_inq_format(getnc3id(drno), formatp);
     return THROW(ret);
