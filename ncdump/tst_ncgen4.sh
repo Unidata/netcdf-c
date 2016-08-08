@@ -1,5 +1,4 @@
 #!/bin/sh
-export SETX=1
 if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 verbose=1
 set -e
