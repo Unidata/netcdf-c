@@ -17,10 +17,8 @@ conditions.
 #include "nc4dispatch.h"
 #include "ncdispatch.h"
 
-#ifdef ENABLE_FILEINFO
 static int nc4_get_att_special(NC_HDF5_FILE_INFO_T*, const char*,
                                nc_type*, nc_type, size_t*, int*, int, void*);
-#endif
 
 int nc4typelen(nc_type type);
 
@@ -62,7 +60,6 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
    if ((retval = nc4_normalize_name(name, norm_name)))
       BAIL(retval);
 
-#ifdef ENABLE_FILEINFO
    if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {
 	const char** sp;
 	for(sp = NC_RESERVED_SPECIAL_LIST;*sp;sp++) {
@@ -71,7 +68,6 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
 	    }
 	}
     }
-#endif
 
    /* Find the attribute, if it exists.
       <strike>If we don't find it, we are major failures.</strike>
@@ -251,7 +247,6 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    if ((retval = nc4_check_name(name, norm_name)))
       return retval;
 
-#ifdef ENABLE_FILEINFO
    if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {
 	const char** sp;
 	for(sp = NC_RESERVED_SPECIAL_LIST;*sp;sp++) {
@@ -260,7 +255,6 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
 	    }
 	}
     }
-#endif
 
    /* Find att, if it exists. */
    if (varid == NC_GLOBAL)
@@ -877,7 +871,6 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
 		      mem_type_is_long, op);
 }
 
-#ifdef ENABLE_FILEINFO
 static int
 nc4_get_att_special(NC_HDF5_FILE_INFO_T* h5, const char* name,
                     nc_type* filetypep, nc_type mem_type, size_t* lenp,
@@ -888,14 +881,21 @@ nc4_get_att_special(NC_HDF5_FILE_INFO_T* h5, const char* name,
 	return NC_EATTMETA;
 
     if(strcmp(name,NCPROPS)==0) {
+	char* propdata = NULL;
+	int stat = NC_NOERR;
+	int len;
 	if(h5->fileinfo->propattr.version == 0)
 	    return NC_ENOTATT;
 	if(mem_type == NC_NAT) mem_type = NC_CHAR;
 	if(mem_type != NC_CHAR)
 	    return NC_ECHAR;
 	if(filetypep) *filetypep = NC_CHAR;
-	if(lenp) *lenp = strlen(h5->fileinfo->propattr.text);
-	if(data) strcpy((char*)data,h5->fileinfo->propattr.text);
+	stat = NC4_buildpropinfo(&h5->fileinfo->propattr, &propdata);
+	if(stat != NC_NOERR) return stat;
+	len = strlen(propdata);
+	if(lenp) *lenp = len;
+	if(data) strncpy((char*)data,propdata,len+1);
+	free(propdata);
     } else if(strcmp(name,ISNETCDF4ATT)==0
               || strcmp(name,SUPERBLOCKATT)==0) {
 	unsigned long long iv = 0;
@@ -922,7 +922,6 @@ nc4_get_att_special(NC_HDF5_FILE_INFO_T* h5, const char* name,
     }
     return NC_NOERR;
 }
-#endif
 
 /* Read an attribute of any type, with type conversion. This may be
  * called by any of the nc_get_att_* functions. */

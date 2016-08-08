@@ -67,11 +67,8 @@ nc_initialize()
 #endif
 #ifdef USE_NETCDF4
     if((stat = NC4_initialize())) goto done;
-#endif /* USE_NETCDF4 */
-
-#ifdef ENABLE_FILEINFO
     stat = NC4_fileinfo_init();
-#endif
+#endif /* USE_NETCDF4 */
 
 done:
     return stat;

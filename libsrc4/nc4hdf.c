@@ -4003,7 +4003,6 @@ reportopenobjects(int log, hid_t fid)
 }
 
 
-#ifdef ENABLE_FILEINFO
 int
 NC4_hdf5get_libversion(unsigned* major,unsigned* minor,unsigned* release)
 {
@@ -4076,7 +4075,6 @@ NC4_get_strict_att(NC_HDF5_FILE_INFO_T* h5)
 {
     int ncstat = NC_NOERR;
     size_t size;
-    char text[NCPROPS_LENGTH+1];
     hid_t grp = -1;
     hid_t attid = -1;
     herr_t herr = 0;
@@ -4147,4 +4145,4 @@ NC4_walk(hid_t gid, int* countp)
     return ncstat;
 }
 
-#endif
+
