@@ -1098,7 +1098,7 @@ pr_att_hidden(
         if(stat == NC_NOERR) {
             pr_att_name(ncid, "", NCPROPS);
             /* make sure its null terminated */
-            propdata[len+1] = '\0';
+            propdata[len] = '\0';
             printf(" = \"%s\" ;\n",propdata);
         }
 	free(propdata);
