@@ -79,11 +79,11 @@ has_fortran="no"
 has_f90="no"
 has_f03="no"
 
-nfconf=$(which nf-config)
+nfconf=$(which nf-config 2>/dev/null)
 
 if [ -f "$nfconf" ]; then
-    echo "Using nf-config: $nfconf"
-    has_fortran="yes"
+  echo "Using nf-config: $nfconf"
+  has_fortran="yes"
   fc=`nf-config --fc`
   fflags=`nf-config --fflags`
   flibs=`nf-config --flibs`
@@ -112,6 +112,7 @@ Available values for OPTION include:
   --all         display all options
   --cc          C compiler
   --cflags      pre-processor and compiler flags
+  --has-fortran whether Fortran API is installed
   --has-dap     whether OPeNDAP is enabled in this build
   --has-nc2     whether NetCDF-2 API is enabled
   --has-nc4     whether NetCDF-4/HDF-5 is enabled in this build
@@ -123,6 +124,7 @@ Available values for OPTION include:
   --libs        library linking information for netcdf
   --prefix      Install prefix
   --includedir  Include directory
+  --libdir      Library directory
   --version     Library version
 
 EOF
@@ -171,6 +173,7 @@ all()
         echo "  --cxx4      -> $cxx4"
         echo
 
+        echo "  --has-fortran-> $has_fortran"
 if [ -f "$nfconf" ]; then
         echo "  --fc        -> $fc"
         echo "  --fflags    -> $fflags"
@@ -190,6 +193,7 @@ fi
 	echo
         echo "  --prefix    -> $prefix"
         echo "  --includedir-> $includedir"
+        echo "  --libdir    -> $libdir"
         echo "  --version   -> $version"
         echo
 }
@@ -269,6 +273,10 @@ while test $# -gt 0; do
        	echo "${includedir}"
        	;;
 
+    --libdir)
+       	echo "${libdir}"
+       	;;
+
     --version)
 	echo $version
 	;;
@@ -296,6 +304,10 @@ while test $# -gt 0; do
 #    --cxxlibs)
 #	echo $cxxlibs
 #	;;
+
+    --has-fortran)
+        echo $has_fortran
+        ;;
 
     --fc)
 	echo $fc
