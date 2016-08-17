@@ -5,12 +5,14 @@
 # contributed by netCDF user Arlindo DaSilva. Thanks Arlindo!
 
 prefix=@prefix@
-exec_prefix=${prefix}
-includedir=${prefix}/include
-
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
 
 cc="@CC@"
-cflags=" -I${includedir} @CPPFLAGS@"
+cflags="-I${includedir} @CPPFLAGS@"
+libs="-L${libdir} @NC_LIBS@"
+
 has_dap="@HAS_DAP@"
 has_nc2="@HAS_NC2@"
 has_nc4="@HAS_NC4@"
