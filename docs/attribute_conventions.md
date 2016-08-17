@@ -131,10 +131,11 @@ It is strongly recommended that applicable conventions be followed unless there 
 
 These attributes can occur in netCDF enhanced (netcdf-4) files beginning
 with version 4.4.1. They all are associated with the root group as
-global attributes. They are hidden in the sense that they have no
-attribute number, so they can only be accessed thru the netcdf-C api
-calls via the name.  Additionally, these attributes will not be counted
-in the number of global attributes in the root group.
+global attributes, although only _NCProperties is actually stored in the
+file; the others are computed. They are hidden in the sense that they
+have no attribute number, so they can only be accessed thru the netcdf-C
+API calls via the name.  Additionally, these attributes will not be
+counted in the number of global attributes in the root group.
 
 The simplest way to view these attributes is to use the -s flag to the
 ncdump command.  Alternatively, one can use the following API calls to
@@ -151,7 +152,6 @@ Using the following API calls will fail.
 - nc_rename_att
 - nc_del_att
 - nc_put_att (and derivatives)
-
 
 `_NCProperties`
 

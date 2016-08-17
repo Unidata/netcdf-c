@@ -26,7 +26,6 @@ NC4_fileinfo_init(void)
     int stat = NC_NOERR;
     unsigned major,minor,release;
     int super;
-    size_t total = 0;
 
     /* Build nc properties */
     memset((void*)&globalpropinfo,0,sizeof(globalpropinfo));
@@ -39,45 +38,28 @@ NC4_fileinfo_init(void)
     snprintf(globalpropinfo.hdf5ver,sizeof(globalpropinfo.hdf5ver),
 		 "%1u.%1u.%1u",major,minor,release);
     strncpy(globalpropinfo.netcdfver,PACKAGE_VERSION,sizeof(globalpropinfo.netcdfver));
-    /* Now build actual attribute text */
-    total = 0;
-    total += strlen(NCPVERSION);
-    total += strlen("=00000000|");
-    total += strlen(NCPNCLIBVERSION);
-    total += strlen(globalpropinfo.netcdfver);
-    total += strlen("=|");
-    total += strlen(NCPHDF5LIBVERSION);
-    total += strlen(globalpropinfo.hdf5ver);
-    total += strlen("="); /* Last pair has no trailing '|' */
-    if(total >= sizeof(globalpropinfo.text)) {
-        fprintf(stderr,"%s size is too small\n",NCPROPS);
-        goto done;
-    }
-    globalpropinfo.text[0] = '\0';
-    snprintf(globalpropinfo.text,sizeof(globalpropinfo.text),
-		"%s=%d|%s=%s|%s=%s",
-	        NCPVERSION,globalpropinfo.version,
-	        NCPNCLIBVERSION,globalpropinfo.netcdfver,
-	        NCPHDF5LIBVERSION,globalpropinfo.hdf5ver);
 done:
     return stat;
 }
 
 static int
-NC4_properties_parse(struct NCPROPINFO* ncprops)
+NC4_properties_parse(struct NCPROPINFO* ncprops, const char* text)
 {
+    int ret = NC_NOERR;
     size_t len;
-    char propdata[NCPROPS_LENGTH]; /* match nc.h struct NCProperties */
     char* p;
+    char* propdata = NULL;
 
     ncprops->version = 0;
     ncprops->hdf5ver[0] = '\0';
     ncprops->netcdfver[0] = '\0';
 
-    strncpy(propdata,ncprops->text,sizeof(propdata)-1);
-    propdata[sizeof(propdata)-1] = '\0';
-    len = strlen(propdata);
+    len = strlen(text);
     if(len == 0) return NC_NOERR;
+    propdata = (char*)malloc(len+1);
+    if(propdata == NULL) return NC_ENOMEM;
+    memcpy(propdata,text,len+1);
+    propdata[len] = '\0'; /* guarantee */
 
     /* Walk and fill in ncinfo */
     p = propdata;
@@ -86,7 +68,7 @@ NC4_properties_parse(struct NCPROPINFO* ncprops)
 	char* value = NULL;
 	char* q = strchr(p,'=');
 	if(q == NULL)
-	    return NC_EINVAL;
+	    {ret = NC_EINVAL; goto done;}
 	*q++ = '\0';
 	value = p = q;
         q = strchr(p,NCPROPSSEP);
@@ -107,7 +89,9 @@ NC4_properties_parse(struct NCPROPINFO* ncprops)
     /* Guarantee null term */
     ncprops->netcdfver[sizeof(ncprops->netcdfver)-1] = '\0';
     ncprops->hdf5ver[sizeof(ncprops->hdf5ver)-1] = '\0';
-    return NC_NOERR;
+done:
+    if(propdata != NULL) free(propdata);
+    return ret;
 }
 
 static int
@@ -116,13 +100,13 @@ NC4_get_propattr(NC_HDF5_FILE_INFO_T* h5)
     int ncstat = NC_NOERR;
     size_t size;
     H5T_class_t t_class;	
-    char text[NCPROPS_LENGTH+1];
     hid_t grp = -1;
     hid_t attid = -1;
     hid_t aspace = -1;
     hid_t atype = -1;
     hid_t ntype = -1;
     herr_t herr = 0;
+    char* text = NULL;
 
     /* Get root group */
     grp = h5->root_grp->hdf_grpid; /* get root group */
@@ -136,13 +120,16 @@ NC4_get_propattr(NC_HDF5_FILE_INFO_T* h5)
 	t_class = H5Tget_class(atype);
 	if(t_class != H5T_STRING) {ncstat = NC_EATTMETA; goto done;}
         size = H5Tget_size(atype);
-	if(size != NCPROPS_LENGTH) {ncstat = NC_EATTMETA; goto done;}
+	if(size == 0) goto done;
+	text = (char*)malloc(size+1);
+	if(text == NULL)
+	    {ncstat = NC_ENOMEM; goto done;}
         HCHECK((ntype = H5Tget_native_type(atype, H5T_DIR_ASCEND)));
         HCHECK((H5Aread(attid, ntype, text)));
+	/* Make sure its null terminated */
+	text[size] = '\0';
 	/* Try to parse text */
-	strncpy(h5->fileinfo->propattr.text,text,NCPROPS_LENGTH);
-	h5->fileinfo->propattr.text[NCPROPS_LENGTH-1] = '\0';
-	ncstat = NC4_properties_parse(&h5->fileinfo->propattr);
+	ncstat = NC4_properties_parse(&h5->fileinfo->propattr,text);
 	herr = 0;
     }    
 done:
@@ -150,6 +137,7 @@ done:
     if(aspace >= 0) HCHECK((H5Sclose(aspace)));
     if(ntype >= 0) HCHECK((H5Tclose(ntype)));
     if(atype >= 0) HCHECK((H5Tclose(atype)));
+    if(text != NULL) free(text);
     return ncstat;
 }
 
@@ -157,7 +145,6 @@ int
 NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
 {
     int ncstat = NC_NOERR;
-    char text[NCPROPS_LENGTH+1];
     H5T_class_t t_class;	
     size_t size;
     hid_t grp = -1;
@@ -171,14 +158,20 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
     grp = h5->root_grp->hdf_grpid; /* get root group */
     /* See if the NCPROPS attribute exists */
     if(H5Aexists(grp,NCPROPS) == 0) { /* Does not exist */
+	char* text = NULL;
+	ncstat = NC4_buildpropinfo(&h5->fileinfo->propattr,&text);
+	if(text == NULL || ncstat != NC_NOERR) {
+	    if(text != NULL) free(text);
+	    goto done;
+	}
 	herr = -1;
         /* Create a datatype to refer to. */
         HCHECK((atype = H5Tcopy(H5T_C_S1)));
-	HCHECK((H5Tset_cset(atype, H5T_CSET_UTF8)));
-        HCHECK((H5Tset_size(atype, NCPROPS_LENGTH)));
+	HCHECK((H5Tset_cset(atype, H5T_CSET_ASCII)));
+        HCHECK((H5Tset_size(atype, strlen(text)+1))); /*keep nul term */
 	HCHECK((aspace = H5Screate(H5S_SCALAR)));
 	HCHECK((attid = H5Acreate(grp, NCPROPS, atype, aspace, H5P_DEFAULT)));
-        HCHECK((H5Awrite(attid, atype, h5->fileinfo->propattr.text)));
+        HCHECK((H5Awrite(attid, atype, text)));
 	herr = 0;
     }
 done:
@@ -208,4 +201,45 @@ NC4_get_fileinfo(NC_HDF5_FILE_INFO_T* h5, struct NCPROPINFO* init)
     }
 done:
     return ncstat;    
+}
+
+int
+NC4_buildpropinfo(struct NCPROPINFO* info,char** propdatap)
+{
+    size_t total;
+    char* propdata = NULL;
+
+    if(info == NULL || info->version == 0)  return NC_EINVAL;
+    if(propdatap == NULL)
+	return NC_NOERR;
+    *propdatap = NULL; 
+
+    /* compute attribute length */
+    total = 0;
+    total += strlen(NCPVERSION);
+    total += strlen("=00000000");
+    if(strlen(info->netcdfver) > 0) {
+        total += 1; /*|NCPROPSEP|*/
+        total += strlen(NCPNCLIBVERSION);
+        total += strlen("=");
+        total += strlen(info->netcdfver);
+    }
+    if(strlen(info->hdf5ver) > 0) {
+        total += 1; /*|NCPROPSEP|*/
+        total += strlen(NCPHDF5LIBVERSION);
+        total += strlen("=");
+        total += strlen(info->hdf5ver);
+    }
+    propdata = (char*)malloc(total+1);
+    if(propdata == NULL)
+	return NC_ENOMEM;
+    snprintf(propdata,total+1,
+		"%s=%d|%s=%s|%s=%s",
+	        NCPVERSION,info->version,
+	        NCPNCLIBVERSION,info->netcdfver,
+	        NCPHDF5LIBVERSION,info->hdf5ver);
+    /* Force null termination */
+    propdata[total] = '\0';
+    if(propdatap) {*propdatap = propdata;} else {free(propdata);}
+    return NC_NOERR;
 }

@@ -101,15 +101,12 @@ NULL
 const char* NC_RESERVED_ATT_LIST[] = {
 NC_ATT_FORMAT,
 NC3_STRICT_ATT_NAME,
-#ifdef ENABLE_FILEINFO
 NCPROPS,
 ISNETCDF4ATT,
 SUPERBLOCKATT,
-#endif
 NULL
 };
 
-#ifdef ENABLE_FILEINFO
 /* Define the subset of the reserved list that is readable by name only */
 const char* NC_RESERVED_SPECIAL_LIST[] = {
 ISNETCDF4ATT,
@@ -117,7 +114,6 @@ SUPERBLOCKATT,
 NCPROPS,
 NULL
 };
-#endif
 
 /* These are the default chunk cache sizes for HDF5 files created or
  * opened with netCDF-4. */
@@ -468,10 +464,8 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* Define mode gets turned on automatically on create. */
    nc4_info->flags |= NC_INDEF;
 
-#ifdef ENABLE_FILEINFO
    NC4_get_fileinfo(nc4_info,&globalpropinfo);
    NC4_put_propattr(nc4_info);
-#endif  
 
    return NC_NOERR;
 
@@ -2355,9 +2349,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    num_plists--;
 #endif
 
-#ifdef ENABLE_FILEINFO
    NC4_get_fileinfo(nc4_info,NULL);
-#endif
 
    return NC_NOERR;
 
@@ -3094,9 +3086,7 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
       }
 #endif
 
-#ifdef ENABLE_FILEINFO
       if(h5->fileinfo) free(h5->fileinfo);
-#endif
 
       if (H5Fclose(h5->hdfid) < 0)
       {

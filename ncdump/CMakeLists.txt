@@ -59,7 +59,7 @@ IF(ENABLE_TESTS)
   TARGET_LINK_LIBRARIES(bom netcdf)
   TARGET_LINK_LIBRARIES(tst_dimsizes netcdf)
 
-IF(ENABLE_FILEINFO)
+IF(USE_NETCDF4)
   ADD_EXECUTABLE(tst_fileinfo tst_fileinfo.c)
   TARGET_LINK_LIBRARIES(tst_fileinfo netcdf)
   add_sh_test(ncdump tst_fileinfo)
