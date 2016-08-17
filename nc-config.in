@@ -205,7 +205,7 @@ while test $# -gt 0; do
        	;;
 
      --libs)
-       	PKG_CONFIG_PATH=${prefix}/lib/pkgconfig pkg-config netcdf --libs
+       	echo $libs
        	;;
 
     --prefix)
