@@ -5,12 +5,14 @@
 # contributed by netCDF user Arlindo DaSilva. Thanks Arlindo!
 
 prefix=@prefix@
-exec_prefix=${prefix}
-includedir=${prefix}/include
-
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
 
 cc="@CC@"
-cflags=" -I${includedir} @CPPFLAGS@"
+cflags="-I${includedir} @CPPFLAGS@"
+libs="-L${libdir} @NC_LIBS@"
+
 has_dap="@HAS_DAP@"
 has_nc2="@HAS_NC2@"
 has_nc4="@HAS_NC4@"
@@ -24,11 +26,11 @@ has_fortran="no"
 has_f90="no"
 has_f03="no"
 
-nfconf=$(which nf-config)
+nfconf=$(which nf-config 2>/dev/null)
 
 if [ -f "$nfconf" ]; then
-    echo "Using nf-config: $nfconf"
-    has_fortran="yes"
+  echo "Using nf-config: $nfconf"
+  has_fortran="yes"
   fc=`nf-config --fc`
   fflags=`nf-config --fflags`
   flibs=`nf-config --flibs`
@@ -40,9 +42,13 @@ has_cxx="no"
 has_cxx4="no"
 if type -p ncxx4-config > /dev/null 2>&1; then
   cxx4=`ncxx4-config --cxx`
+  cxx4flags=`ncxx4-config --cflags`
+  cxx4libs=`ncxx4-config --libs`
   has_cxx4="yes"
 elif type -p ncxx-config > /dev/null 2>&1; then
   cxx=`ncxx-config --cxx`
+  cxxflags=`ncxx-config --cflags`
+  cxxlibs=`ncxx-config --libs`
   has_cxx="yes"
 fi
 
@@ -57,6 +63,9 @@ Available values for OPTION include:
   --all         display all options
   --cc          C compiler
   --cflags      pre-processor and compiler flags
+  --has-c++     whether C++ API is installed
+  --has-c++4    whether netCDF-4 C++ API is installed
+  --has-fortran whether Fortran API is installed
   --has-dap     whether OPeNDAP is enabled in this build
   --has-nc2     whether NetCDF-2 API is enabled
   --has-nc4     whether NetCDF-4/HDF-5 is enabled in this build
@@ -68,22 +77,21 @@ Available values for OPTION include:
   --libs        library linking information for netcdf
   --prefix      Install prefix
   --includedir  Include directory
+  --libdir      Library directory
   --version     Library version
 
 EOF
-# When supported by ncxx4-config and ncxx-config, add
-#  --cxxflags    flags needed to compile a netCDF-4 C++ program
-#  --cxxlibs     libraries needed to link a netCDF-4 C++ program
 if type -p ncxx4-config > /dev/null 2>&1; then
     cat <<EOF
-  --cxx4         C++ compiler for netCDF-4 C++ library
-  --has-c++4     whether netCDF-4 C++ API is installed
+  --cxx4        C++ compiler for netCDF-4 C++ library
+  --cxx4flags   flags needed to compile a C++ program
+  --cxx4libs    libraries needed to link a C++ program
 EOF
 elif type -p ncxx-config > /dev/null 2>&1; then
     cat <<EOF
   --cxx         C++ compiler
-  --has-c++     whether C++ API is installed
-
+  --cxxflags    flags needed to compile a C++ program
+  --cxxlibs     libraries needed to link a C++ program
 EOF
 fi
 if [ -f "$nfconf" ]; then
@@ -110,12 +118,20 @@ all()
         echo "  --has-c++   -> $has_cxx"
         echo "  --cxx       -> $cxx"
 
-#	echo "  --cxxflags  -> $cxxflags"
-#	echo "  --cxxlibs   -> $cxxlibs"
+if type -p ncxx-config > /dev/null 2>&1; then
+        echo "  --cxxflags  -> $cxxflags"
+        echo "  --cxxlibs   -> $cxxlibs"
+fi
+        echo
         echo "  --has-c++4  -> $has_cxx4"
         echo "  --cxx4      -> $cxx4"
+if type -p ncxx4-config > /dev/null 2>&1; then
+        echo "  --cxx4flags -> $cxx4flags"
+        echo "  --cxx4libs  -> $cxx4libs"
+fi
         echo
 
+        echo "  --has-fortran-> $has_fortran"
 if [ -f "$nfconf" ]; then
         echo "  --fc        -> $fc"
         echo "  --fflags    -> $fflags"
@@ -135,6 +151,7 @@ fi
 	echo
         echo "  --prefix    -> $prefix"
         echo "  --includedir-> $includedir"
+        echo "  --libdir    -> $libdir"
         echo "  --version   -> $version"
         echo
 }
@@ -203,7 +220,7 @@ while test $# -gt 0; do
        	;;
 
      --libs)
-       	PKG_CONFIG_PATH=${prefix}/lib/pkgconfig pkg-config netcdf --libs
+       	echo $libs
        	;;
 
     --prefix)
@@ -212,6 +229,10 @@ while test $# -gt 0; do
 
     --includedir)
        	echo "${includedir}"
+       	;;
+
+    --libdir)
+       	echo "${libdir}"
        	;;
 
     --version)
@@ -226,6 +247,14 @@ while test $# -gt 0; do
 	echo $cxx
 	;;
 
+    --cxxflags)
+	echo $cxxflags
+	;;
+
+    --cxxlibs)
+	echo $cxxlibs
+	;;
+
     --has-c++4)
        	echo $has_cxx4
        	;;
@@ -233,6 +262,18 @@ while test $# -gt 0; do
     --cxx4)
 	echo $cxx4
 	;;
+
+    --cxx4flags)
+	echo $cxx4flags
+	;;
+
+    --cxx4libs)
+	echo $cxx4libs
+	;;
+
+    --has-fortran)
+        echo $has_fortran
+        ;;
 
     --fc)
 	echo $fc
