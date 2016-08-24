@@ -1205,7 +1205,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    uint32_t nn_hash;
    int retval = NC_NOERR;
    int i;
-   
+
    LOG((2, "%s: ncid 0x%x varid %d name %s",
         __func__, ncid, varid, name));
 

@@ -1128,7 +1128,7 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    NC_TYPE_INFO_T *type, *t;
    int retval;
    int i;
-   
+
    assert(grp);
    LOG((3, "%s: grp->name %s", __func__, grp->name));
 
@@ -1160,7 +1160,7 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    {
       var = grp->vars.value[i];
       if (!var) continue;
-     
+
       LOG((4, "%s: deleting var %s", __func__, var->name));
       /* Close HDF5 dataset associated with this var, unless it's a
        * scale. */
