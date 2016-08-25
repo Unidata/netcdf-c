@@ -1122,7 +1122,7 @@ int
 nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
 {
    NC_GRP_INFO_T *g, *c;
-   NC_VAR_INFO_T *v, *var;
+   NC_VAR_INFO_T *var;
    NC_ATT_INFO_T *a, *att;
    NC_DIM_INFO_T *d, *dim;
    NC_TYPE_INFO_T *type, *t;

@@ -509,7 +509,6 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    MPI_Comm comm = MPI_COMM_WORLD;
    MPI_Info info = MPI_INFO_NULL;
    int res;
-   NC* nc;
 
    assert(nc_file && path);
 
@@ -3210,7 +3209,6 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    NC_GRP_INFO_T *grp;
    NC_DIM_INFO_T *dim;
    NC_ATT_INFO_T *att;
-   NC_VAR_INFO_T *var;
    int retval;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));

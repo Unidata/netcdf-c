@@ -42,7 +42,6 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
    char norm_name[NC_MAX_NAME + 1];
    int i;
    int retval = NC_NOERR;
-   const char** sp;
 
    if (attnum) {
       my_attnum = *attnum;
@@ -362,7 +361,6 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
     * attribute). */
    if (!strcmp(att->name, _FillValue) && varid != NC_GLOBAL)
    {
-      NC_ATT_INFO_T *varatt;
       int size;
 
       /* Fill value must be same type and have exactly one value */

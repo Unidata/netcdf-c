@@ -873,7 +873,7 @@ int
 nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
              const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
 {
-  NC_GRP_INFO_T *grp, *g;
+  NC_GRP_INFO_T *grp;
   NC_HDF5_FILE_INFO_T *h5;
   NC_VAR_INFO_T *var;
   NC_DIM_INFO_T *dim;
@@ -1526,13 +1526,11 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
 static int
 var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid)
 {
-  NC_GRP_INFO_T *g;
   hid_t plistid = 0, access_plistid = 0, typeid = 0, spaceid = 0;
   hsize_t chunksize[H5S_MAX_RANK], dimsize[H5S_MAX_RANK], maxdimsize[H5S_MAX_RANK];
   int d;
   void *fillp = NULL;
   NC_DIM_INFO_T *dim = NULL;
-  int dims_found = 0;
   char *name_to_use;
   int retval = NC_NOERR;
 
@@ -2060,7 +2058,6 @@ attach_dimscales(NC_GRP_INFO_T *grp)
 {
   NC_VAR_INFO_T *var;
   NC_DIM_INFO_T *dim1;
-  NC_GRP_INFO_T *g;
   int d, i;
   int retval = NC_NOERR;
 
@@ -2459,7 +2456,6 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       if (v1)
         {
           hsize_t *new_size = NULL;
-          NC_DIM_INFO_T *dim1;
           int d1;
 
           /* Extend the dimension scale dataset to reflect the new
@@ -4001,7 +3997,6 @@ reportopenobjectsT(int log, hid_t fid, int ntypes, unsigned int* otypes)
     idlist = (hid_t*)malloc(sizeof(hid_t)*maxobjs);
     for(t=0;t<ntypes;t++) {
 	unsigned int ot = otypes[t];
-	if(ot < 0) break;
         ocount = H5Fget_obj_ids(fid,ot,maxobjs,idlist);
 	for(i=0;i<ocount;i++) {
 	    hid_t o = idlist[i];
@@ -4088,11 +4083,8 @@ done:
 static int
 NC4_get_strict_att(NC_HDF5_FILE_INFO_T* h5)
 {
-    int ncstat = NC_NOERR;
-    size_t size;
     hid_t grp = -1;
     hid_t attid = -1;
-    herr_t herr = 0;
 
     /* Get root group */
     grp = h5->root_grp->hdf_grpid; /* get root group */
