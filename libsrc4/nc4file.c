@@ -3230,8 +3230,9 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    }
    if (nvarsp)
    {
+      int i;
       *nvarsp = 0;
-      for (int i=0; i < grp->vars.nelems; i++)
+      for (i=0; i < grp->vars.nelems; i++)
       {
 	if (grp->vars.value[i])
 	  (*nvarsp)++;
