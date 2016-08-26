@@ -64,7 +64,7 @@ lput(const char *cp) {
 	linep = (int)strlen(LINEPIND) + indent_get();
     }
     (void) fputs(cp,stdout);
-    if (cp[nn - 1] == '\n') {
+    if (nn > 0 && cp[nn - 1] == '\n') {
 	linep = indent_get();
     } else
 	linep += nn;
