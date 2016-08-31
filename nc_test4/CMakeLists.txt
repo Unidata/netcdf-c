@@ -13,8 +13,12 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars
   tst_rehash)
 
 # Note, renamegroup needs to be compiled before run_grp_rename
-build_bin_test(renamegroup)
-add_sh_test(nc_test4 run_grp_rename)
+
+IF(BUILD_UTILITIES)
+  build_bin_test(renamegroup)
+  add_sh_test(nc_test4 run_grp_rename)
+  ADD_SH_TEST(nc_test4 tst_misc)
+ENDIF(BUILD_UTILITIES)
 
 ##
 # The shell script, run_empty_vlen_test.sh,
@@ -23,7 +27,7 @@ add_sh_test(nc_test4 run_grp_rename)
 BUILD_BIN_TEST(tst_empty_vlen_unlim)
 ADD_SH_TEST(nc_test4 run_empty_vlen_test)
 
-ADD_SH_TEST(nc_test4 tst_misc)
+
 
 IF(NOT MSVC)
   SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
