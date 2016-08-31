@@ -9,6 +9,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.2 - TBD
 
+* [Bug] Corrected an issue related to test failures when `--disable-utilities` or `-DENABLE_UTILITIES=OFF` are specified when building with autotools or cmake, respectively.  See [GitHub #313](https://github.com/Unidata/netcdf-c/issues/313) for more information.
 * [Bug][Enhancement] Corrected a behavioral issue with the `_NCProperties` attribute taking up too much space.  See [GitHub #300](https://github.com/Unidata/netcdf-c/issues/300) and [GitHub #301](https://github.com/Unidata/netcdf-c/pull/301) for more information.
 
 * [Bug] Corrected behavior for `nc-config` so that, if `nf-config` is found in system, the proper fortran-related information will be conveyed.  See [GitHub #296](https://github.com/Unidata/netcdf-c/issues/296] for more information.
