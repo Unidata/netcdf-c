@@ -1,4 +1,4 @@
-M#                                               -*- Autoconf -*-
+#                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
 # This is part of Unidata's netCDF package. Copyright 2005-2012, see
