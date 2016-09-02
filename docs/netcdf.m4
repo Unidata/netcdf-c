@@ -774,15 +774,15 @@ Learn about a compound type.
 .HP
 FDECL(def_vlen, (INCID(), INAME(), INCTYPE(base_typeid), ONCTYPE(xtypep)))
 .sp
-Create a varaible length array type.
+Create a variable length array type.
 .HP
 FDECL(inq_vlen, (INCID(), INCTYPE(), ONAME(), OSIZET(datum_sizep), ONCTYPE(base_nc_typep)))
 .sp
-Learn about a varaible length array type.
+Learn about a variable length array type.
 .HP
 FDECL(free_vlen, (nc_vlen_t *vl))
 .sp
-Free memory comsumed by reading data of a varaible length array type.
+Free memory comsumed by reading data of a variable length array type.
 .HP
 FDECL(put_vlen_element, (INCID(), INCTYPE(), IVOIDP(vlen_element), ISIZET(len), IVOIDP(data)))
 .sp

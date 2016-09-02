@@ -33,7 +33,11 @@ endif
 
 TESTS = $(NC4_TESTS)
 
-TESTS += run_grp_rename.sh run_empty_vlen_test.sh tst_misc.sh
+if BUILD_UTILITIES
+	TESTS += run_grp_rename.sh tst_misc.sh
+endif
+
+TESTS += run_empty_vlen_test.sh
 
 # If the v2 API was built, add its test program.
 if BUILD_V2
