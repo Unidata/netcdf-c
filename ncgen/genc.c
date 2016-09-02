@@ -229,6 +229,14 @@ gen_ncc(const char *filename)
     }
     codeflush();
 
+    /* Set log level */
+    if(ncloglevel >= 0) {
+        codeline("");
+        bbprintf0(stmt,"    nc_set_log_level(%d); /* set log level */",ncloglevel);
+        codedump(stmt);
+        codeline("");
+    }
+
     /* create netCDF file, uses NC_CLOBBER mode */
     codeline("");
     codelined(1,"/* enter define mode */");
