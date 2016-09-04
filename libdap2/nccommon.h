@@ -149,10 +149,6 @@ typedef struct NCCDF {
     struct CDFnode* globalstringdim;
     char* recorddimname; /* From DODS_EXTRA */
     struct CDFnode* recorddim;
-#if 0
-    /* libncdap4 only */
-    NClist*  usertypes; /* nodes which will represent netcdf types */
-#endif
 } NCCDF;
 
 /* Define a structure holding common info for NCDAP */

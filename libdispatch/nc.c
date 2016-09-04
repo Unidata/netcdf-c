@@ -18,6 +18,8 @@
 #include "nc.h"
 #include "ncdispatch.h"
 
+int ncdebug = 0;
+
 /* This is the default create format for nc_create and nc__create. */
 static int default_create_format = NC_FORMAT_CLASSIC;
 

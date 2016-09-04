@@ -123,10 +123,6 @@ extern NCerror nc3d_getvarx(int ncid, int varid,
 
 /**************************************************/
 
-/* From: ncd2dispatch.c*/
-extern size_t dap_one[NC_MAX_VAR_DIMS];
-extern size_t dap_zero[NC_MAX_VAR_DIMS];
-
 extern NCerror nc3d_open(const char* path, int mode, int* ncidp);
 extern int nc3d_close(int ncid);
 extern NCerror restruct(NCDAPCOMMON*, CDFnode* ddsroot, CDFnode* pattern, NClist*);

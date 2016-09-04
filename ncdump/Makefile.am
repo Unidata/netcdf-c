@@ -22,6 +22,11 @@ bin_PROGRAMS += nccopy
 nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c \
 utils.h utils.c dimmap.h dimmap.c
 
+if USE_NETCDF4
+noinst_PROGRAMS = nc4print
+nc4print_SOURCES = nc4print.c
+endif
+
 # This is the man page.
 man_MANS = ncdump.1 nccopy.1
 

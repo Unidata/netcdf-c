@@ -701,10 +701,12 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 
-# Option to Build DAP Client
-OPTION(ENABLE_DAP "Enable DAP Client." ON)
+# Option to Build DAP2+DAP4 Clients
+OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 IF(ENABLE_DAP)
   SET(USE_DAP ON)
+  SET(ENABLE_DAP2 ON)
+  SET(ENABLE_DAP4 ON)
   FIND_PACKAGE(CURL)
   IF(NOT CURL_LIBRARY)
     MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
@@ -743,8 +745,9 @@ IF(ENABLE_DAP)
   #include <curl/curl.h>
   int main() {int x = CURLOPT_CHUNK_BGN_FUNCTION;}" HAVE_CURLOPT_CHUNK_BGN_FUNCTION)
 
-
-
+ELSE()
+  SET(ENABLE_DAP2 OFF)
+  SET(ENABLE_DAP4 OFF)
 ENDIF()
 
 # Check to see if libtool supports
@@ -766,9 +769,8 @@ IF(ENABLE_DAP_REMOTE_TESTS)
   OPTION(ENABLE_DAP_AUTH_TESTS "Enable DAP remote authorization tests." OFF)
 ENDIF()
 
-
 # If netCDF4 and DAP, Option for DAP groups.
-IF(ENABLE_NETCDF_4 AND USE_DAP)
+IF(ENABLE_NETCDF_4 AND ENABLE_DAP2)
   OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
 ELSE()
   SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
@@ -1355,7 +1357,8 @@ MACRO(print_conf_summary)
   MESSAGE("")
   MESSAGE(STATUS "Building Shared Libraries:     ${BUILD_SHARED_LIBS}")
   MESSAGE(STATUS "Building netCDF-4:             ${ENABLE_NETCDF_4}")
-  MESSAGE(STATUS "Building DAP Support:          ${ENABLE_DAP}")
+  MESSAGE(STATUS "Building DAP2 Support:         ${ENABLE_DAP2}")
+  MESSAGE(STATUS "Building DAP4 Support:          ${ENABLE_DAP4}")
   MESSAGE(STATUS "Building Utilities:            ${BUILD_UTILITIES}")
   IF(CMAKE_PREFIX_PATH)
     MESSAGE(STATUS "CMake Prefix Path:             ${CMAKE_PREFIX_PATH}")
@@ -1507,9 +1510,13 @@ IF(USE_HDF5)
   add_subdirectory(libsrc4)
 ENDIF(USE_HDF5)
 
-IF(USE_DAP)
+IF(ENABLE_DAP2)
   ADD_SUBDIRECTORY(oc2)
   ADD_SUBDIRECTORY(libdap2)
+ENDIF()
+
+IF(ENABLE_DAP4)
+  ADD_SUBDIRECTORY(libdap4)
 ENDIF()
 
 add_subdirectory(liblib)
@@ -1539,7 +1546,7 @@ IF(ENABLE_TESTS)
     ADD_SUBDIRECTORY(nc_test4)
     ADD_SUBDIRECTORY(h5_test)
   ENDIF()
-  IF(USE_DAP AND ENABLE_DAP_REMOTE_TESTS)
+  IF((ENABLE_DAP2 OR ENABLE_DAP4) AND ENABLE_DAP_REMOTE_TESTS)
     ADD_SUBDIRECTORY(ncdap_test)
   ENDIF()
 
@@ -1694,7 +1701,8 @@ is_enabled(USE_SZIP HAS_SZIP)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
-is_enabled(USE_DAP HAS_DAP)
+is_enabled(ENABLE_DAP2 HAS_DAP2)
+is_enabled(ENABLE_DAP4 HAS_DAP4)
 is_enabled(USE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)

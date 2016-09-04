@@ -29,3 +29,11 @@ all::
 
 clean:
 	rm -f ${T}.o ${T}.exe
+
+
+EZXML=ezxml-0.8.6.tar.gz
+ezxml::
+	rm -fr ./ezxml ./ezxml.[ch]
+	tar -zxf ./${EZXML}
+	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.c >./ezxml.c
+	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.h >./ezxml.h

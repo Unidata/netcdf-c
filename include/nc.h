@@ -100,4 +100,7 @@ extern int iterate_NCList(int i,NC**); /* Walk from 0 ...; ERANGE return => stop
 extern void free_NC(NC*);
 extern int new_NC(struct NC_Dispatch*, const char*, int, NC**);
 
+/* Defined in nc.c */
+extern int ncdebug;
+
 #endif /* _NC_H_ */

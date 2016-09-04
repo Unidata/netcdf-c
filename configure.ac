@@ -1,4 +1,4 @@
-M#                                               -*- Autoconf -*-
+#                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
 # This is part of Unidata's netCDF package. Copyright 2005-2012, see
@@ -320,18 +320,34 @@ AC_ARG_ENABLE([logging],
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
 
-## Capture the state of the --enable-dap flag
-AC_MSG_CHECKING([whether DAP client is to be built])
-AC_ARG_ENABLE([dap],
-                 [AS_HELP_STRING([--disable-dap],
-                                 [build without DAP client support.])])
+## Capture the state of the --disable-dap, --disable-dap2, --disable-dap4 flags
+
+AC_MSG_CHECKING([whether DAP2+DAP4 client is to enabled])
+AC_ARG_ENABLE([dap],[AS_HELP_STRING([--disable-dap],[disable DAP2 and DAP4 clients.])])
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-# Curl support is required if and only if any of these flags are set:
-# 1. --enable-dap
+AC_MSG_CHECKING([whether DAP2 client is ensabled])
+AC_ARG_ENABLE([dap2],[AS_HELP_STRING([--disable-dap2],[disable DAP2 clients.])])
+test "x$enable_dap2" = xno || enable_dap2=yes
+AC_MSG_RESULT($enable_dap2)
 
-if test "x$enable_dap" = "xyes" ; then
+AC_MSG_CHECKING([whether DAP4 client is to ensabled])
+AC_ARG_ENABLE([dap4],[AS_HELP_STRING([--disable-dap4],[disable DAP4 clients.])])
+test "x$enable_dap4" = xno || enable_dap4=yes
+AC_MSG_RESULT($enable_dap4)
+
+# Now figure out what is enabled; enable/disable dap takes precedence
+if test "x$enable_dap" = "xno" ; then
+    enable_dap4=no
+    enable_dap2=no
+fi
+
+# Curl support is required if and only if any of these flags are set:
+# 1. --enable-dap2
+# 2. --enable-dap4
+
+if test "x$enable_dap2" = "xyes" -o "x$enable_dap4" = "xyes" ; then
 require_curl=yes
 else
 require_curl=no
@@ -349,7 +365,8 @@ if test $require_curl = yes ; then
   #elif test $found_curl = no ; then
   if test $found_curl = no ; then
     AC_MSG_NOTICE([libcurl not found; disabling remote protocol(s) support])
-    enable_dap=no
+    enable_dap2=no
+    enable_dap4=no
   elif test $found_curl = yes ; then
     # Redo the check lib to actually add -lcurl
     #AC_CHECK_LIB([curl], [curl_easy_setopt])
@@ -358,12 +375,13 @@ if test $require_curl = yes ; then
 fi
 
 # Default is now to always do the short remote tests
+# This applied to both dap2 and dap4
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
 AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--disable-dap-remote-tests],
                                  [disable dap remote tests])])
 test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
-if test "x$enable_dap" = "xno" ; then
+if test "x$enable_dap2" = "xno" -o "x$enable_dap4" = "xno"; then
   enable_dap_remote_tests=no
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
@@ -375,7 +393,7 @@ AC_ARG_ENABLE([dap-auth-tests],
                                  [enable dap remote authorization tests])])
 test "x$enable_dap_auth_tests" = xyes || enable_dap_auth_tests=no
 # dap must be enabled
-if test "x$enable_dap" = "xno" ; then
+if test "x$enable_dap2" = "xno" -o "x$enable_dap4" = "xno" ; then
   enable_dap_auth_tests=no
 fi
 # if remote tests are disabled, then so is this
@@ -384,25 +402,14 @@ if test "x$enable_dap_remote_tests" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_auth_tests)
 
-# Control if groups are supported in [netcdf4]dap2 code
-AC_MSG_CHECKING([whether [netcdf4] group names should be enabled (default on)])
-AC_ARG_ENABLE([dap-groups],
-              [AS_HELP_STRING([--disable-dap-groups],
-                                 [disable [netcdf4] dap group names])])
-test "x$enable_groups" = xno || enable_dap_groups=yes
-if test "x$enable_dap" = "xno" -o "x$enable_enable_netcdf_4" = "xno" ; then
-  AC_MSG_NOTICE([dap groups disabled because dap disabled or netcdf-4 disabled])
-  enable_dap_groups=no
-fi
-AC_MSG_RESULT($enable_dap_groups)
-if test "x$enable_dap_groups" = xyes; then
-AC_DEFINE([ENABLE_DAP_GROUPS], [1], [if true, enable DAP group names])
-fi
-
 # Set the config.h flags
-if test "x$enable_dap" = xyes; then
-   AC_DEFINE([USE_DAP], [1], [if true, build DAP Client])
-   AC_DEFINE([ENABLE_DAP], [1], [if true, build DAP Client])
+if test "x$enable_dap2" = xyes; then
+   AC_DEFINE([USE_DAP], [1], [(Deprecated) if true, build DAP Client])
+   AC_DEFINE([ENABLE_DAP], [1], [(Deprecated) if true, build DAP Client])
+   AC_DEFINE([ENABLE_DAP2], [1], [if true, build DAP2 Client])
+fi
+if test "x$enable_dap4" = xyes; then
+   AC_DEFINE([ENABLE_DAP4], [1], [if true, build DAP4 Client])
 fi
 
 if test "x$enable_dap_remote_tests" = xyes; then
@@ -775,7 +782,7 @@ AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
 		mkstemp rand random memcmp \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
-# Does the user want to use NC_DISKLESS?
+# Does the user want to disable NC_DISKLESS?
 AC_MSG_CHECKING([whether in-memory files are enabled])
 AC_ARG_ENABLE([diskless],
               [AS_HELP_STRING([--disable-diskless],
@@ -783,10 +790,14 @@ AC_ARG_ENABLE([diskless],
 test "x$enable_diskless" = xno || enable_diskless=yes
 AC_MSG_RESULT($enable_diskless)
 
-# Check for enable DAP
-if test "x$enable_dap" = "xyes" -a "xenable_diskless" = xno  ; then
-AC_MSG_NOTICE([--enable-dap requires --enable-diskless])
-AC_MSG_NOTICE([dap support disabled])
+# DAP2 & DAP4 require diskless
+if test "x$enable_diskless" = "xno" ; then
+  if test "x$enable_dap2" = "xyes" -o "x$enable_dap4" = "xyes"; then
+    enable_dap2=no
+    enable_dap4=no
+    AC_MSG_NOTICE([--enable-dap(2|4) requires --enable-diskless])
+    AC_MSG_NOTICE([dap2 & dap4 support disabled])
+  fi
 fi
 
 # check for useful, but not essential, memio support
@@ -890,10 +901,10 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(ptrdiff_t)
 
 
-if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
+if test "x$enable_netcdf_4" = xyes -o "x$enable_dap2" = xyes -o "x$enable_dap4" = xyes; then
    AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
-     AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
-     opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
+     AC_MSG_ERROR([Can't find or link to the z library. Please use the \
+     --disable-netcdf-4 and --disable-dap flags, or see config.log for errors.])])
 fi
 
 # We need the math library
@@ -1117,8 +1128,10 @@ fi
 # or no.
 AM_CONDITIONAL(BUILD_PARALLEL, [test x$enable_parallel = xyes])
 AM_CONDITIONAL(TEST_PARALLEL4, [test "x$enable_parallel4" = xyes -a "x$enable_parallel_tests" = xyes])
-AM_CONDITIONAL(BUILD_DAP, [test "x$enable_dap" = xyes])
-AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
+AM_CONDITIONAL(BUILD_DAP, [test "x$enable_dap2" = xyes])
+AM_CONDITIONAL(USE_DAP, [test "x$enable_dap2" = xyes]) # Alias
+AM_CONDITIONAL(ENABLE_DAP2, [test "x$enable_dap2" = xyes])
+AM_CONDITIONAL(ENABLE_DAP4, [test "x$enable_dap4" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
@@ -1227,7 +1240,9 @@ AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
 
 AC_SUBST(NC_LIBS,[$NC_LIBS])
-AC_SUBST(HAS_DAP,[$enable_dap])
+AC_SUBST(HAS_DAP,[$enable_dap2])
+AC_SUBST(HAS_DAP2,[$enable_dap2])
+AC_SUBST(HAS_DAP4,[$enable_dap4])
 AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
@@ -1297,7 +1312,9 @@ AX_SET_META([NC_HAS_NC4],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
 AX_SET_META([NC_HAS_HDF5],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_SZIP],[$ac_cv_func_H5Z_SZIP],[yes])
-AX_SET_META([NC_HAS_DAP],[$enable_dap],[yes])
+AX_SET_META([NC_HAS_DAP],[$enable_dap2],[yes])
+AX_SET_META([NC_HAS_DAP2],[$enable_dap2],[yes])
+AX_SET_META([NC_HAS_DAP4],[$enable_dap4],[yes])
 AX_SET_META([NC_HAS_DISKLESS],[$enable_diskless],[yes])
 AX_SET_META([NC_HAS_MMAP],[$enable_mmap],[yes])
 AX_SET_META([NC_HAS_JNA],[$enable_jna],[yes])
@@ -1334,6 +1351,7 @@ AC_CONFIG_FILES([Makefile
                  examples/CDL/Makefile
                  oc2/Makefile
                  libdap2/Makefile
+                 libdap4/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl/Makefile

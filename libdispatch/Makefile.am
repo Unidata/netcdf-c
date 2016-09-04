@@ -20,7 +20,7 @@ dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
 dvarinq.c dinternal.c ddispatch.c                                                   \
 nclog.c dstring.c dutf8proc.c utf8proc_data.h                          \
 ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c                        \
-nc.c nclistmgr.c
+nc.c nclistmgr.c drc.c
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4

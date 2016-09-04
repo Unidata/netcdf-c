@@ -41,6 +41,9 @@ EXTERNC int ncbytesappendn(NCbytes*,const void*,unsigned long); /* Add at Tail *
 /* Null terminate the byte string without extending its length (for debugging) */
 EXTERNC int ncbytesnull(NCbytes*);
 
+/* Remove char at position i */
+EXTERNC int ncbytesremove(NCbytes*,int);
+
 /* Concatenate a null-terminated string to the end of the buffer */
 EXTERNC int ncbytescat(NCbytes*,const char*);
 

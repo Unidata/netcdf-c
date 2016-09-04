@@ -37,7 +37,13 @@ if BUILD_DAP
 noinst_LTLIBRARIES = liboc.la
 liboc_la_SOURCES = $(SRC) $(HDRS) 
 liboc_la_CPPFLAGS = $(AM_CPPFLAGS)
+noinst_PROGRAMS=ocprint
 endif
+
+# Build the ocprint program, but do not install
+bin_PROGRAMS = ocprint
+ocprint_SOURCES=ocprint.c
+ocprint_LDADD=$(top_builddir)/oc2/liboc.la
 
 # These rule are used if someone wants to rebuild the grammar files.
 # Otherwise never invoked, but records how to do it.

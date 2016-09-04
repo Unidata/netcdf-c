@@ -53,10 +53,17 @@ LIBSRC4_DIR = libsrc4
 NC_TEST4 = nc_test4
 endif
 
-# Build the opendap client?
-if BUILD_DAP
+# Build the dap client(s)?
+if ENABLE_DAP2
 OCLIB = oc2
 DAP2 = libdap2
+#if BUILD_UTILITIES
+NCDAPTESTDIR = ncdap_test
+#endif # BUILD_UTILITIES
+endif
+
+if ENABLE_DAP4
+DAP4 = libdap4
 #if BUILD_UTILITIES
 NCDAPTESTDIR = ncdap_test
 #endif # BUILD_UTILITIES
@@ -86,7 +93,7 @@ endif
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
 SUBDIRS = include $(OCLIB) $(H5_TEST_DIR) libdispatch libsrc		\
-$(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) $(LIBSRCP) liblib  \
+$(LIBSRC4_DIR) $(DAP2) $(DAP4) $(LIBCDMR) $(LIBSRCP) liblib  \
 $(NCGEN3) $(NCGEN) $(NCDUMP) \
 $(TESTDIRS) \
 docs $(EXAMPLES) \

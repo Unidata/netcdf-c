@@ -202,3 +202,16 @@ ncbytesnull(NCbytes* bb)
     return 1;
 }
 
+/* Remove char at position i */
+int
+ncbytesremove(NCbytes* bb, int pos)
+{
+    if(bb == NULL) return ncbytesfail();
+    if(bb->length <= pos) return ncbytesfail();
+    if(pos < (bb->length - 1)) {
+	int copylen = (bb->length - pos) - 1;
+        memmove(bb->content+pos,bb->content+pos+1,copylen);
+    }
+    bb->length--;
+    return TRUE;
+}
