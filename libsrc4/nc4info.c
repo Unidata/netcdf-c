@@ -216,7 +216,7 @@ NC4_buildpropinfo(struct NCPROPINFO* info,char** propdatap)
 
     if(info == NULL || info->version == 0)  return NC_EINVAL;
     if(propdatap == NULL)
-	return NC_NOERR;
+      return NC_NOERR;
     *propdatap = NULL;
 
     /* compute attribute length */
@@ -239,12 +239,20 @@ NC4_buildpropinfo(struct NCPROPINFO* info,char** propdatap)
     if(propdata == NULL)
 	return NC_ENOMEM;
     snprintf(propdata,total+1,
-		"%s=%d|%s=%s|%s=%s",
+            "%s=%d|%s=%s|%s=%s",
 	        NCPVERSION,info->version,
 	        NCPNCLIBVERSION,info->netcdfver,
 	        NCPHDF5LIBVERSION,info->hdf5ver);
     /* Force null termination */
     propdata[total] = '\0';
-    if(propdatap) {*propdatap = propdata;} else {free(propdata);}
+    *propdatap = propdata;
+
+    /* propdatap is checked against being NULL above already. */
+    //if(propdatap) {
+    //  *propdatap = propdata;
+    //} else {
+    //  free(propdata);
+    //}
+
     return NC_NOERR;
 }
