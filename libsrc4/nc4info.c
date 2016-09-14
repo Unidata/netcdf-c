@@ -161,20 +161,24 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
 	char* text = NULL;
 	ncstat = NC4_buildpropinfo(&h5->fileinfo->propattr,&text);
 	if(text == NULL || ncstat != NC_NOERR) {
-	    if(text != NULL) free(text);
-	    goto done;
+      goto done;
 	}
 	herr = -1;
         /* Create a datatype to refer to. */
-        HCHECK((atype = H5Tcopy(H5T_C_S1)));
-	HCHECK((H5Tset_cset(atype, H5T_CSET_ASCII)));
-        HCHECK((H5Tset_size(atype, strlen(text)+1))); /*keep nul term */
+    HCHECK((atype = H5Tcopy(H5T_C_S1)));
+    HCHECK((H5Tset_cset(atype, H5T_CSET_ASCII)));
+    HCHECK((H5Tset_size(atype, strlen(text)+1))); /*keep nul term */
 	HCHECK((aspace = H5Screate(H5S_SCALAR)));
 	HCHECK((attid = H5Acreate(grp, NCPROPS, atype, aspace, H5P_DEFAULT)));
-        HCHECK((H5Awrite(attid, atype, text)));
+    HCHECK((H5Awrite(attid, atype, text)));
 	herr = 0;
     }
 done:
+    if(ncstat != NC_NOERR) {
+      if(text != NULL) {
+        free(text);
+      }
+
     if(attid >= 0) HCHECK((H5Aclose(attid)));
     if(aspace >= 0) HCHECK((H5Sclose(aspace)));
     if(atype >= 0) HCHECK((H5Tclose(atype)));
