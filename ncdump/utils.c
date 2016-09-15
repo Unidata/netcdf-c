@@ -746,11 +746,11 @@ nc_inq_grps_full(int rootid, int *numgrps, int *grpids)
     return stat;
 }
 
-#ifdef ENABLE_FILEINFO
 int
 getrootid(int grpid)
 {
     int current = grpid;
+#ifdef USE_NETCDF4
     int parent = current;
     /* see if root id */
     for(;;) {
@@ -758,7 +758,7 @@ getrootid(int grpid)
         if(stat) break;
 	current = parent;
     }
+#endif
     return current;
 }
-#endif
 

@@ -62,14 +62,16 @@ endif
 
 TESTS = $(TESTPROGRAMS)
 
-if BUILD_DISKLESS
-TESTS += run_diskless.sh
-if BUILD_MMAP
-TESTS += run_mmap.sh
-endif
-if LARGE_FILE_TESTS
-TESTS += run_diskless2.sh
-endif
+if BUILD_UTILITIES
+	if BUILD_DISKLESS
+		TESTS += run_diskless.sh
+		if BUILD_MMAP
+			TESTS += run_mmap.sh
+		endif
+		if LARGE_FILE_TESTS
+			TESTS += run_diskless2.sh
+		endif
+	endif
 endif
 
 if USE_PNETCDF

@@ -763,7 +763,7 @@ pr_att(
     ncatt_t att;			/* attribute */
 
     NC_CHECK( nc_inq_attname(ncid, varid, ia, att.name) );
-#ifdef ENABLE_FILEINFO
+#ifdef USE_NETCDF4
     if (ncid == getrootid(ncid)
         && varid == NC_GLOBAL
         && strcmp(att.name,NCPROPS)==0)
@@ -1074,7 +1074,7 @@ pr_att_specials(
 }
 #endif /* USE_NETCDF4 */
 
-#ifdef ENABLE_FILEINFO /*=>NETCDF4*/
+#ifdef USE_NETCDF4
 static void
 pr_att_hidden(
     int ncid,
@@ -1083,7 +1083,6 @@ pr_att_hidden(
 {
     int stat;
     size_t len;
-    char propdata[NCPROPS_LENGTH];
 
     /* No special variable attributes for classic or 64-bit offset data */
     if(kind == 1 || kind == 2)
@@ -1091,14 +1090,18 @@ pr_att_hidden(
     /* Print out Selected hidden attributes */
     /* NCPROPS */
     stat = nc_inq_att(ncid,NC_GLOBAL,NCPROPS,NULL,&len);
-    if(stat == NC_NOERR && len < sizeof(propdata)) {
+    if(stat == NC_NOERR) {
+	char* propdata = (char*)malloc(len+1);
+	if(propdata == NULL)
+	    return;
         stat = nc_get_att_text(ncid,NC_GLOBAL,NCPROPS,propdata);
         if(stat == NC_NOERR) {
             pr_att_name(ncid, "", NCPROPS);
             /* make sure its null terminated */
-            propdata[NCPROPS_LENGTH-1] = '\0';
+            propdata[len] = '\0';
             printf(" = \"%s\" ;\n",propdata);
         }
+	free(propdata);
     }
     /* _SuperblockVersion */
     stat = nc_inq_att(ncid,NC_GLOBAL,SUPERBLOCKATT,NULL,&len);
@@ -1121,7 +1124,7 @@ pr_att_hidden(
         }
     }
 }
-#endif /* ENABLE_FILEINFO */
+#endif /* USE_NETCDF4 */
 
 /*
  * Print a variable attribute for NcML
@@ -1138,7 +1141,7 @@ pr_attx(
     int attvalslen = 0;
 
     NC_CHECK( nc_inq_attname(ncid, varid, ia, att.name) );
-#ifdef ENABLE_FILEINFO
+#ifdef USE_NETCDF4
     if (ncid == getrootid(ncid)
 	&& varid == NC_GLOBAL
         && strcmp(att.name,NCPROPS)==0
@@ -1751,7 +1754,7 @@ do_ncdump_rec(int ncid, const char *path)
    }
    if (is_root && formatting_specs.special_atts) { /* output special attribute
 					   * for format variant */
-#ifdef ENABLE_FILEINFO
+#ifdef USE_NETCDF4
        pr_att_hidden(ncid, kind);
 #endif
        pr_att_global_format(ncid, kind);

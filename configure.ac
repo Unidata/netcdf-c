@@ -1,4 +1,4 @@
-M#                                               -*- Autoconf -*-
+#                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
 # This is part of Unidata's netCDF package. Copyright 2005-2012, see
@@ -203,21 +203,6 @@ if test "x$enable_netcdf4" = xno ; then
 enable_netcdf_4=no
 fi
 AC_MSG_RESULT([$enable_netcdf_4])
-
-####
-# Is Netcdf4 file info capture enabled; includes properties attribute
-# We do not actually provide a direct flag for disabling this
-if test "x$enable_netcdf_4" = xyes ; then
-enable_fileinfo=yes
-else
-enable_fileinfo=no
-fi
-AC_MSG_CHECKING([If file info capture is enabled])
-AC_MSG_RESULT([$enable_fileinfo])
-if test "x$enable_fileinfo" = xyes ; then
-AC_DEFINE([ENABLE_FILEINFO], [1], [file info])
-fi
-AM_CONDITIONAL(ENABLE_FILEINFO, [test x$enable_fileinfo = xyes])
 
 # Does the user require dynamic loading?
 # This is only for those hdf5 installs that support it.

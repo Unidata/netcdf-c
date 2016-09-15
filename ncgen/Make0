@@ -1,6 +1,7 @@
 # Test c output
-T=test0
-K=1
+T=t
+K=4
+L=-L5
 #VG=valgrind --leak-check=full
 
 STDLIB=/usr/local
@@ -13,19 +14,23 @@ LDFLAGS=../liblib/.libs/libnetcdf.a -L${STDLIB}/lib -lhdf5_hl -lhdf5 -lz -lm -lc
 CLASSPATH=".:ncCore-4.2.jar"
 
 btest::
-	./ncgen -k$K -lb -o ${T}.nc ${T}.cdl
-	../ncdump/ncdump ./${T}.nc >${T}.dmp
+	./ncgen ${L} -$K -lb -o ${T}.nc ${T}.cdl
+	../ncdump/ncdump -L2 ./${T}.nc >${T}.dmp
 	diff -wBb ${T}.cdl ${T}.dmp
+	rm -f ./junk.nc
+	../ncdump/nccopy ./${T}.nc ./junk.nc
 
 ctest::
-	./ncgen -k$K -lc ${T}.cdl >${T}.c
+	./ncgen ${L} -$K -lc ${T}.cdl >${T}.c
 	gcc -o ${T} ${CFLAGS} ${T}.c ${LDFLAGS}
 	./${T}
-	../ncdump/ncdump ./${T}.nc >${T}.dmp
+	../ncdump/ncdump ${L} ./${T}.nc >${T}.dmp
 	diff -wBb ${T}.cdl ${T}.dmp
+	rm -f ./junk.nc
+	../ncdump/nccopy ./${T}.nc ./junk.nc
 
 gtest::
-	./ncgen -k$K -lc ${T}.cdl >${T}.c
+	./ncgen -$K -lc ${T}.cdl >${T}.c
 	gcc -g -O0 -o ${T} ${CFLAGS} ${T}.c ${LDFLAGS}
 	gdb --args ./${T}
 
@@ -35,11 +40,11 @@ vctest::
 	${VG} ./vt
 
 ftest::
-	./ncgen -k$K -lf77 ${T}.cdl >${T}.f77
+	./ncgen -$K -lf77 ${T}.cdl >${T}.f77
 	gfortran -c ${CFLAGS} ${T}.f77
 
 jtest::
-	./ncgen -k$K -lj ${T}.cdl >Main.java
+	./ncgen -$K -lj ${T}.cdl >Main.java
 	javac -d . -classpath "${CLASSPATH}" Main.java
 
 #	java -cp ${CPATH} ./${T}

@@ -571,12 +571,34 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
 
 #endif /* USE_NETCDF4 */
 
-/**
+/*!
+
+Used in libdap2 and libdap4.
+
+@param[in] ncid               ncid for file.
+@param[in] varid              varid for variable in question.
+@param[out] name              Pointer to memory to contain the name of the variable.
+@param[out] xtypep            Pointer to memory to contain the type of the variable.
+@param[out] ndimsp            Pointer to memory to store the number of associated dimensions for the variable.
+@param[out] dimidsp           Pointer to memory to store the dimids associated with the variable.
+@param[out] nattsp            Pointer to memory to store the number of attributes associated with the variable.
+@param[out] shufflep          Pointer to memory to store shuffle information associated with the variable.
+@param[out] deflatep          Pointer to memory to store compression type associated with the variable.
+@param[out] deflate_levelp    Pointer to memory to store compression level associated with the variable.
+@param[out] fletcher32p       Pointer to memory to store compression information associated with the variable.
+@param[out] contiguousp       Pointer to memory to store contiguous-data information associated with the variable.
+@param[out] chunksizesp       Pointer to memory to store chunksize information associated with the variable.
+@param[out] no_fill           Pointer to memory to store whether or not there is a fill value associated with the variable.
+@param[out] fill_valuep       Pointer to memory to store the fill value (if one exists) for the variable.
+@param[out] endiannessp       Pointer to memory to store endianness value. One of ::NC_ENDIAN_BIG ::NC_ENDIAN_LITTLE ::NC_ENDIAN_NATIVE
+@param[out] options_maskp     Pointer to memory to store mask options information.
+@param[out] pixels_per_blockp Pointer to memory to store pixels-per-block information for chunked data.
+
+\note Expose access to nc_inq_var_all().
+
 \internal
 \ingroup variables
 
-Expose access to nc_inq_var_all().
-Used in libdap2 and libdap4.
 
 */
 int
@@ -597,7 +619,7 @@ NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       contiguousp, chunksizesp,
       no_fill, fill_valuep,
       endiannessp,
-      options_maskp, 
+      options_maskp,
       pixels_per_blockp);
 }
 

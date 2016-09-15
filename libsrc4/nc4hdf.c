@@ -550,9 +550,9 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   NC_VAR_INFO_T *var;
   NC_DIM_INFO_T *dim;
   hid_t file_spaceid = 0, mem_spaceid = 0, xfer_plistid = 0;
-  hsize_t xtend_size[NC_MAX_VAR_DIMS] , count[NC_MAX_VAR_DIMS];
+  long long unsigned xtend_size[NC_MAX_VAR_DIMS];
   hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
-  hsize_t start[NC_MAX_VAR_DIMS];
+  hsize_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
   char *name_to_use;
   int need_to_extend = 0;
   int retval = NC_NOERR, range_error = 0, i, d2;
@@ -617,7 +617,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   log_dim_info(var, fdims, fmaxdims, start, count);
 #endif
 
-  /* Check dimension bounds. Remember that unlimited dimnsions can
+  /* Check dimension bounds. Remember that unlimited dimensions can
    * put data beyond their current length. */
   for (d2 = 0; d2 < var->ndims; d2++)
     {
@@ -625,7 +625,8 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       assert(dim && dim->dimid == var->dimids[d2]);
       if (!dim->unlimited)
         {
-          if (start[d2] >= (hssize_t)fdims[d2])
+          if (start[d2] > (hssize_t)fdims[d2] ||
+              (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
             BAIL_QUIET(NC_EINVALCOORDS);
           if (start[d2] + count[d2] > fdims[d2])
             BAIL_QUIET(NC_EEDGE);
@@ -733,11 +734,11 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
             {
               if (start[d2] + count[d2] > fdims[d2])
                 {
-                  xtend_size[d2] = start[d2] + count[d2];
+                  xtend_size[d2] = (long long unsigned)(start[d2] + count[d2]);
                   need_to_extend++;
                 }
               else
-                xtend_size[d2] = fdims[d2];
+                xtend_size[d2] = (long long unsigned)fdims[d2];
 
               if (start[d2] + count[d2] > dim->len)
                 {
@@ -747,7 +748,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
             }
           else
             {
-              xtend_size[d2] = dim->len;
+              xtend_size[d2] = (long long unsigned)dim->len;
             }
         }
 
@@ -775,15 +776,15 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
                 BAIL(NC_ECANTEXTEND);
 
               /* Reach consensus about dimension sizes to extend to */
-              /* (Note: Somewhat hackish, with the use of MPI_INTEGER, but MPI_MAX is
-               *        correct with this usage, as long as it's not executed on
-               *        heterogeneous systems)
-               */
-              if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &xtend_size, (var->ndims * (sizeof(hsize_t) / sizeof(int))), MPI_UNSIGNED, MPI_MAX, h5->comm))
+              if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, xtend_size, var->ndims, MPI_UNSIGNED_LONG_LONG, MPI_MAX, h5->comm))
                 BAIL(NC_EMPI);
             }
 #endif /* USE_PARALLEL4 */
-          if (H5Dset_extent(var->hdf_datasetid, xtend_size) < 0)
+          /* Convert xtend_size back to hsize_t for use with H5Dset_extent */
+          for (d2 = 0; d2 < var->ndims; d2++)
+            fdims[d2] = (hsize_t)xtend_size[d2];
+
+          if (H5Dset_extent(var->hdf_datasetid, fdims) < 0)
             BAIL(NC_EHDFERR);
           if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
             BAIL2(NC_EHDFERR);
@@ -956,7 +957,8 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 	  BAIL(retval);
 
         /* Check for out of bound requests. */
-        if (start[d2] >= (hssize_t)ulen && count[d2])
+        if (start[d2] > (hssize_t)ulen ||
+            (start[d2] == (hssize_t)ulen && count[d2] > 0))
           BAIL_QUIET(NC_EINVALCOORDS);
         if (start[d2] + count[d2] > ulen)
           BAIL_QUIET(NC_EEDGE);
@@ -979,7 +981,8 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
     else
       {
         /* Check for out of bound requests. */
-        if (start[d2] >= (hssize_t)fdims[d2])
+        if (start[d2] > (hssize_t)fdims[d2] ||
+            (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
           BAIL_QUIET(NC_EINVALCOORDS);
         if (start[d2] + count[d2] > fdims[d2])
           BAIL_QUIET(NC_EEDGE);
@@ -1952,7 +1955,7 @@ write_nc3_strict_att(hid_t hdf_grpid)
 {
   hid_t attid = 0, spaceid = 0;
   int one = 1, num, a;
-  char att_name[NC_MAX_NAME + 1];
+  char att_name[NC_MAX_HDF5_NAME + 1];
   int retval = NC_NOERR;
 
   /* If the attribute already exists, call that a success and return
@@ -1987,12 +1990,12 @@ write_nc3_strict_att(hid_t hdf_grpid)
     BAIL(NC_EFILEMETA);
 
  exit:
-  if (spaceid && (H5Sclose(spaceid) < 0))
+  if (spaceid > 0 && (H5Sclose(spaceid) < 0))
     BAIL2(NC_EFILEMETA);
 #ifdef EXTRA_TESTS
   num_spaces--;
 #endif
-  if (attid && (H5Aclose(attid) < 0))
+  if (attid > 0 && (H5Aclose(attid) < 0))
     BAIL2(NC_EFILEMETA);
   return retval;
 }
@@ -3999,7 +4002,6 @@ reportopenobjects(int log, hid_t fid)
 }
 
 
-#ifdef ENABLE_FILEINFO
 int
 NC4_hdf5get_libversion(unsigned* major,unsigned* minor,unsigned* release)
 {
@@ -4072,7 +4074,6 @@ NC4_get_strict_att(NC_HDF5_FILE_INFO_T* h5)
 {
     int ncstat = NC_NOERR;
     size_t size;
-    char text[NCPROPS_LENGTH+1];
     hid_t grp = -1;
     hid_t attid = -1;
     herr_t herr = 0;
@@ -4143,4 +4144,4 @@ NC4_walk(hid_t gid, int* countp)
     return ncstat;
 }
 
-#endif
+
