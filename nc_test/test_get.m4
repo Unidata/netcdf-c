@@ -308,15 +308,6 @@ test_nc_get_vara_$1(void)
 	    err = nc_get_vara_$1(ncid, BAD_VARID, start, edge, value);
 	    IF (err != NC_ENOTVAR) 
 		error("bad var id: status = %d", err);
-	    for (j = 0; j < var_rank[i]; j++) {
-		if (var_dimid[i][j] > 0) {		/* skip record dim */
-		    start[j] = var_shape[i][j];
-		    err = nc_get_vara_$1(ncid, i, start, edge, value);
-		    IF (canConvert && err != NC_EINVALCOORDS)
-			error("bad start: status = %d", err);
-		    start[j] = 0;
-		}
-	    }
 	    err = nc_get_vara_$1(ncid, i, start, edge, value);
 	    if (canConvert) {
 		IF (err) 

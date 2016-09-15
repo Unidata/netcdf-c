@@ -102,10 +102,8 @@ typedef enum {VAR, DIM, ATT} NC_OBJ_T;
 /* Boolean type, to make the code easier to read */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 
-#ifdef ENABLE_FILEINFO
 /*Forward*/
 struct NCFILEINFO;
-#endif
 
 /* Generic doubly-linked list node */
 typedef struct NC_LIST_NODE
@@ -322,9 +320,7 @@ typedef struct  NC_HDF5_FILE_INFO
    nc_bool_t hdf4;              /* True for HDF4 file */
    int sdid;
 #endif /* USE_HDF4 */
-#ifdef ENABLE_FILEINFO
    struct NCFILEINFO* fileinfo;
-#endif
 } NC_HDF5_FILE_INFO_T;
 
 
@@ -452,12 +448,9 @@ For netcdf4 files, capture state information about the following:
 5. Per file: _NCProperties attribute
 */
 
-#ifdef ENABLE_FILEINFO
-
 #define NCPROPS "_NCProperties"
 #define NCPROPS_VERSION (1)
 #define NCPROPSSEP  '|'
-#define NCPROPS_LENGTH (8192)
 
 /* Currently used properties */
 #define NCPVERSION "version" /* Of the properties format */
@@ -475,7 +468,6 @@ struct NCFILEINFO {
         int version; /* 0 => not defined */
         char hdf5ver[NC_MAX_NAME+1];
         char netcdfver[NC_MAX_NAME+1];
-        char text[NCPROPS_LENGTH+1]; /* Value of the NCPROPS attribute */
     } propattr;
 };
 
@@ -484,11 +476,10 @@ extern struct NCPROPINFO globalpropinfo;
 extern int NC4_fileinfo_init(void); /*libsrc4/ncinfo.c*/
 extern int NC4_get_fileinfo(struct NC_HDF5_FILE_INFO* info, struct NCPROPINFO*); /*libsrc4/ncinfo.c*/
 extern int NC4_put_propattr(struct NC_HDF5_FILE_INFO* info); /*libsrc4/ncinfo.c*/
+extern int NC4_buildpropinfo(struct NCPROPINFO* info,char** propdatap);
 
-/* ENABLE_FILEINFO => ENABLE_NETCDF4 */
 extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
 extern int NC4_hdf5get_superblock(struct NC_HDF5_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
 extern int NC4_isnetcdf4(struct NC_HDF5_FILE_INFO*); /*libsrc4/nc4hdf.c*/
-#endif /*ENABLE_FILEINFO*/
 
 #endif /* _NETCDF4_ */

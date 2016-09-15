@@ -614,25 +614,6 @@ test_nc_put_vara_$1(void)
 		edge[j] = 1;
 	    }
         }
-            /* Check correct error returned even when nothing to put */
-        for (j = 0; j < var_rank[i]; j++) {
-            edge[j] = 0;
-	}
-        err = nc_put_vara_$1(BAD_ID, i, start, edge, value);
-        IF (err != NC_EBADID) 
-	    error("bad ncid: status = %d", err);
-        err = nc_put_vara_$1(ncid, BAD_VARID, start, edge, value);
-        IF (err != NC_ENOTVAR) 
-	    error("bad var id: status = %d", err);
-        for (j = 0; j < var_rank[i]; j++) {
-	    if (var_dimid[i][j] > 0) {		/* skip record dim */
-		start[j] = var_shape[i][j];
-		err = nc_put_vara_$1(ncid, i, start, edge, value);
-		IF (canConvert && err != NC_EINVALCOORDS)
-		    error("bad start: status = %d", err);
-		start[j] = 0;
-	    }
-        }
 
 /* wkliao: this test below of put_vara is redundant and incorrectly uses the
            value[] set from the previously iteration. There is no such test

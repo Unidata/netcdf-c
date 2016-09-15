@@ -1587,7 +1587,7 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
    if(stat != NC_NOERR) { /* bad ncid; do what we can */
        /* For compatibility, we need to allow inq about
           atomic types, even if ncid is ill-defined */
-	if(xtype <= ATOMICTYPEMAX5) {
+	if(xtype <= ATOMICTYPEMAX4) {
             if(name) strncpy(name,NC_atomictypename(xtype),NC_MAX_NAME);
             if(size) *size = NC_atomictypelen(xtype);
             return NC_NOERR;
