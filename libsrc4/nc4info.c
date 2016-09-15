@@ -177,6 +177,7 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
     if(ncstat != NC_NOERR) {
       if(text != NULL) {
         free(text);
+        text = NULL;
       }
     }
 
