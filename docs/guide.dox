@@ -750,6 +750,8 @@ characters.
 Some widely used conventions restrict names to only alphanumeric
 characters or underscores.
 
+\note Note that, when using the DAP2 protocol to access netCDF data, there are \em reserved keywords, the use of which may result in undefined behavior.  See \ref dap2_reserved_keywords for more information.
+
 \section archival Is NetCDF a Good Archive Format?
 
 NetCDF classic or 64-bit offset formats can be used as a
