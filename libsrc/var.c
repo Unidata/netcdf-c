@@ -15,7 +15,24 @@
 #include "utf8proc.h"
 
 #ifndef OFF_T_MAX
-#define OFF_T_MAX (~ (off_t) 0 - (~ (off_t) 0 << (CHAR_BIT * sizeof (off_t) - 1)))
+//#define OFF_T_MAX (~ (off_t) 0 - (~ (off_t) 0 << (CHAR_BIT * sizeof (off_t) - 1)))
+
+/* The behavior above is undefined, re: bitshifting a negative value, according
+   to warnings thrown by clang/gcc.  An alternative OFF_T_MAX was written
+   based on info found at:
+   * http://stackoverflow.com/questions/4514572/c-question-off-t-and-other-signed-integer-types-minimum-and-maximum-values
+   */
+#define MAX_INT_VAL_STEP(t) \
+    ((t) 1 << (CHAR_BIT * sizeof(t) - 1 - ((t) -1 < 1)))
+
+#define MAX_INT_VAL(t) \
+    ((MAX_INT_VAL_STEP(t) - 1) + MAX_INT_VAL_STEP(t))
+
+#define MIN_INT_VAL(t) \
+    ((t) -MAX_INT_VAL(t) - 1)
+
+#define OFF_T_MAX MAX_INT_VAL(off_t)
+
 #endif
 
 /*
