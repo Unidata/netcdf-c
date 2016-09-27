@@ -889,6 +889,14 @@ ENDIF()
 ###
 
 
+###
+# Option to enable extreme numbers during testing.
+###
+OPTION(ENABLE_EXTREME_NUMBERS "Enable extreme numbers during testing, such as MAX_INT-1" ON)
+IF(ENABLE_EXTREME_NUMBERS)
+  SET(USE_EXTREME_NUMBERS ON)
+ENDIF()
+
 # Enable Large file tests
 IF(ENABLE_LARGE_FILE_TESTS)
   SET(LARGE_FILE_TESTS ON)
@@ -1381,6 +1389,7 @@ MACRO(print_conf_summary)
     MESSAGE(STATUS "Coverage Tests:    ${ENABLE_COVERAGE_TESTS}")
     MESSAGE(STATUS "Parallel Tests:    ${ENABLE_PARALLEL_TESTS}")
     MESSAGE(STATUS "Large File Tests:  ${ENABLE_LARGE_FILE_TESTS}")
+    MESSAGE(STATUS "Extreme Numbers:   ${ENABLE_EXTREME_NUMBERS}")
   ENDIF()
 
   MESSAGE("")
