@@ -646,10 +646,57 @@ Note that this does not work for scalar variables. Only non-scalar variables can
 
 
 
-@param[in] ncid
-@param[in] varid
-@param[in] storage
-@param[in] chunksizesp
+@param[in] ncid NetCDF ID, from a previous call to nc_open or nc_create.
+@param[in] varid Variable ID.
+@param[in] storage If ::NC_CONTIGUOUS, then contiguous storage is used for this variable. Variables with one or more unlimited dimensions cannot use contiguous storage. If contiguous storage is turned on, the chunksizes parameter is ignored. If ::NC_CHUNKED, then chunked storage is used for this variable. Chunk sizes may be specified with the chunksizes parameter or default sizes will be used if that parameter is NULL.
+@param[in] chunksizesp A pointer to an array list of chunk sizes. The array must have one chunksize for each dimension of the variable. If ::NC_CONTIGUOUS storage is set, then the chunksizes parameter is ignored.
+
+@returns ::NC_NOERR No error.
+@returns ::NC_EBADID Bad ID.
+@returns ::NC_ENOTNC4 Not a netCDF-4 file.
+@returns ::NC_ELATEDEF This variable has already been the subject of a nc_enddef call.  In netCDF-4 files nc_enddef will be called automatically for any data read or write. Once nc_enddef has been called after the nc_def_var call for a variable, it is impossible to set the chunking for that variable.
+@returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for netCDF classic or 64-bit offset files, or for netCDF-4 files, when they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
+@returns ::NC_ESTRICTNC3 Trying to create a var some place other than the root group in a netCDF file with NC_STRICT_NC3 turned on.
+@returns ::NC_EPERM Attempt to create object in read-only file.
+@returns ::NC_EBADCHUNK Retunrs if the chunk size specified for a variable is larger than the length of the dimensions associated with variable.
+
+\section nc_def_var_chunking_example Example
+
+In this example from libsrc4/tst_vars2.c, chunksizes are set with nc_var_def_chunking, and checked with nc_var_inq_chunking.
+
+\code
+        printf("**** testing chunking...");
+        {
+     #define NDIMS5 1
+     #define DIM5_NAME "D5"
+     #define VAR_NAME5 "V5"
+     #define DIM5_LEN 1000
+
+           int dimids[NDIMS5], dimids_in[NDIMS5];
+           int varid;
+           int ndims, nvars, natts, unlimdimid;
+           nc_type xtype_in;
+           char name_in[NC_MAX_NAME + 1];
+           int data[DIM5_LEN], data_in[DIM5_LEN];
+           size_t chunksize[NDIMS5] = {5};
+           size_t chunksize_in[NDIMS5];
+           int storage_in;
+           int i, d;
+
+           for (i = 0; i < DIM5_LEN; i++)
+              data[i] = i;
+
+           if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+           if (nc_def_dim(ncid, DIM5_NAME, DIM5_LEN, &dimids[0])) ERR;
+           if (nc_def_var(ncid, VAR_NAME5, NC_INT, NDIMS5, dimids, &varid)) ERR;
+           if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, chunksize)) ERR;
+           if (nc_put_var_int(ncid, varid, data)) ERR;
+
+           if (nc_inq_var_chunking(ncid, varid, &storage_in, chunksize_in)) ERR;
+           for (d = 0; d < NDIMS5; d++)
+              if (chunksize[d] != chunksize_in[d]) ERR;
+           if (storage_in != NC_CHUNKED) ERR;
+\endcode
 
 */
 int

@@ -547,12 +547,12 @@ stored.
 
 <h2>Open Mode</h2>
 
-A zero value (or NC_NOWRITE) specifies the default behavior: open the
+A zero value (or ::NC_NOWRITE) specifies the default behavior: open the
 dataset with read-only access, buffering and caching accesses for
 efficiency.
 
-Otherwise, the open mode is NC_WRITE, NC_SHARE, or
-NC_WRITE|NC_SHARE. Setting the NC_WRITE flag opens the dataset with
+Otherwise, the open mode is ::NC_WRITE, ::NC_SHARE, or
+::NC_WRITE|::NC_SHARE. Setting the ::NC_WRITE flag opens the dataset with
 read-write access. ("Writing" means any kind of change to the dataset,
 including appending or changing data, adding or renaming dimensions,
 variables, and attributes, or deleting attributes.)
