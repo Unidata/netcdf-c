@@ -423,6 +423,44 @@ ignored_if_null.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTNC4 Not a netCDF-4 file.
 \returns ::NC_ENOTVAR Invalid variable ID.
+
+
+\section nc_inq_var_chunking_example Example
+
+\code
+        printf("**** testing contiguous storage...");
+        {
+     #define NDIMS6 1
+     #define DIM6_NAME "D5"
+     #define VAR_NAME6 "V5"
+     #define DIM6_LEN 100
+
+           int dimids[NDIMS6], dimids_in[NDIMS6];
+           int varid;
+           int ndims, nvars, natts, unlimdimid;
+           nc_type xtype_in;
+           char name_in[NC_MAX_NAME + 1];
+           int data[DIM6_LEN], data_in[DIM6_LEN];
+           size_t chunksize_in[NDIMS6];
+           int storage_in;
+           int i, d;
+
+           for (i = 0; i < DIM6_LEN; i++)
+              data[i] = i;
+
+
+           if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+           if (nc_def_dim(ncid, DIM6_NAME, DIM6_LEN, &dimids[0])) ERR;
+           if (dimids[0] != 0) ERR;
+           if (nc_def_var(ncid, VAR_NAME6, NC_INT, NDIMS6, dimids, &varid)) ERR;
+           if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;
+           if (nc_put_var_int(ncid, varid, data)) ERR;
+
+
+           if (nc_inq_var_chunking(ncid, 0, &storage_in, chunksize_in)) ERR;
+           if (storage_in != NC_CONTIGUOUS) ERR;
+\endcode
+
 */
 int
 nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
