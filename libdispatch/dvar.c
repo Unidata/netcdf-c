@@ -656,7 +656,6 @@ Note that this does not work for scalar variables. Only non-scalar variables can
 @returns ::NC_ENOTNC4 Not a netCDF-4 file.
 @returns ::NC_ELATEDEF This variable has already been the subject of a nc_enddef call.  In netCDF-4 files nc_enddef will be called automatically for any data read or write. Once nc_enddef has been called after the nc_def_var call for a variable, it is impossible to set the chunking for that variable.
 @returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for netCDF classic or 64-bit offset files, or for netCDF-4 files, when they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
-@returns ::NC_ESTRICTNC3 Trying to create a var some place other than the root group in a netCDF file with NC_STRICT_NC3 turned on.
 @returns ::NC_EPERM Attempt to create object in read-only file.
 @returns ::NC_EBADCHUNK Retunrs if the chunk size specified for a variable is larger than the length of the dimensions associated with variable.
 
