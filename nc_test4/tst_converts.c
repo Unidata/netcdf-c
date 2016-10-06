@@ -69,7 +69,7 @@ create_file(int format, unsigned char *uchar_out)
    if (nc_def_var(ncid, VAR1_NAME, NC_BYTE, 1, dimids, &varid)) ERR;
    if (nc_enddef(ncid)) ERR;
    retval = nc_put_var_uchar(ncid, varid, uchar_out);
-   if ((format != NC_FORMAT_NETCDF4) && retval) ERR;
+   if ((format == NC_FORMAT_64BIT_DATA) && retval) ERR;
    if ((format == NC_FORMAT_NETCDF4) && (retval != NC_ERANGE)) ERR;
    if (nc_close(ncid)) ERR;
    return NC_NOERR;
@@ -108,7 +108,7 @@ check_file(int format, unsigned char *uchar_out)
    {
       if (res != NC_ERANGE) ERR;
    }
-   else if (res) ERR;
+   else if (format == NC_FORMAT_64BIT_DATA && res) ERR;
        
    for (i=0; i<DIM1_LEN; i++)
       if (uchar_in[i] != uchar_out[i]) ERR;
