@@ -150,10 +150,12 @@ v1h_put_size_t(v1hs *psp, const size_t *sp)
 		status = check_v1hs(psp, X_SIZEOF_INT64);
 	else
 		status = check_v1hs(psp, X_SIZEOF_SIZE_T);
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
  		return status;
-        if (psp->version == 5)
-		return ncx_put_int64(&psp->pos, *sp);
+        if (psp->version == 5) {
+                unsigned long long tmp = (unsigned long long) (*sp);
+		return ncx_put_uint64(&psp->pos, tmp);
+        }
         else
 	    return ncx_put_size_t(&psp->pos, sp);
 }
@@ -167,11 +169,11 @@ v1h_get_size_t(v1hs *gsp, size_t *sp)
 		status = check_v1hs(gsp, X_SIZEOF_INT64);
 	else
 		status = check_v1hs(gsp, X_SIZEOF_SIZE_T);
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
 		return status;
         if (gsp->version == 5) {
-		long long tmp=0;
-		status = ncx_get_int64((const void **)(&gsp->pos), &tmp);
+		unsigned long long tmp=0;
+		status = ncx_get_uint64((const void **)(&gsp->pos), &tmp);
 		*sp = (size_t)tmp;
 		return status;
         }
@@ -187,18 +189,10 @@ v1h_get_size_t(v1hs *gsp, size_t *sp)
 static int
 v1h_put_nc_type(v1hs *psp, const nc_type *typep)
 {
-	const int itype = (int) *typep;
-	int status = check_v1hs(psp, X_SIZEOF_INT);
-    if(status != NC_NOERR)
-		return status;
-	status =  ncx_put_int_int(psp->pos, &itype);
-
-#ifdef __arm__
-	psp->pos = (void *)((signed char *)psp->pos + X_SIZEOF_INT);
-#else
-    psp->pos = (void *)((char *)psp->pos + X_SIZEOF_INT);
-#endif
-
+    const unsigned int itype = (unsigned int) *typep;
+    int status = check_v1hs(psp, X_SIZEOF_INT);
+    if(status != NC_NOERR) return status;
+    status =  ncx_put_uint32(&psp->pos, itype);
     return status;
 }
 
@@ -207,16 +201,10 @@ v1h_put_nc_type(v1hs *psp, const nc_type *typep)
 static int
 v1h_get_nc_type(v1hs *gsp, nc_type *typep)
 {
-	int type = 0;
-	int status = check_v1hs(gsp, X_SIZEOF_INT);
-    if(status != NC_NOERR)
-		return status;
-	status =  ncx_get_int_int(gsp->pos, &type);
-#ifdef __arm__
-	gsp->pos = (void *)((signed char *)gsp->pos + X_SIZEOF_INT);
-#else
-    gsp->pos = (void *)((char *)gsp->pos + X_SIZEOF_INT);
-#endif
+    unsigned int type = 0;
+    int status = check_v1hs(gsp, X_SIZEOF_INT);
+    if(status != NC_NOERR) return status;
+    status =  ncx_get_uint32((const void**)(&gsp->pos), &type);
     if(status != NC_NOERR)
 		return status;
 
@@ -248,16 +236,10 @@ v1h_get_nc_type(v1hs *gsp, nc_type *typep)
 static int
 v1h_put_NCtype(v1hs *psp, NCtype type)
 {
-	const int itype = (int) type;
-	int status = check_v1hs(psp, X_SIZEOF_INT);
-    if(status != NC_NOERR)
-		return status;
-	status = ncx_put_int_int(psp->pos, &itype);
-#ifdef __arm__
-    psp->pos = (void *)((signed char *)psp->pos + X_SIZEOF_INT);
-#else
-	psp->pos = (void *)((char *)psp->pos + X_SIZEOF_INT);
-#endif
+    const unsigned int itype = (unsigned int) type;
+    int status = check_v1hs(psp, X_SIZEOF_INT);
+    if(status != NC_NOERR) return status;
+    status = ncx_put_uint32(&psp->pos, itype);
     return status;
 }
 
@@ -265,21 +247,13 @@ v1h_put_NCtype(v1hs *psp, NCtype type)
 static int
 v1h_get_NCtype(v1hs *gsp, NCtype *typep)
 {
-	int type = 0;
-	int status = check_v1hs(gsp, X_SIZEOF_INT);
-    if(status != NC_NOERR)
-		return status;
-	status =  ncx_get_int_int(gsp->pos, &type);
-
-#ifdef __arm__
-	gsp->pos = (void *)((signed char *)gsp->pos + X_SIZEOF_INT);
-#else
-    gsp->pos = (void *)((char *)gsp->pos + X_SIZEOF_INT);
-#endif
-    if(status != NC_NOERR)
-		return status;
-	/* else */
-	*typep = (NCtype) type;
+    unsigned int type = 0;
+    int status = check_v1hs(gsp, X_SIZEOF_INT);
+    if(status != NC_NOERR) return status;
+    status =  ncx_get_uint32((const void**)(&gsp->pos), &type);
+    if(status != NC_NOERR) return status;
+    /* else */
+    *typep = (NCtype) type;
     return NC_NOERR;
 }
 
@@ -1350,16 +1324,18 @@ ncx_put_NC(const NC3_INFO* ncp, void **xpp, off_t offset, size_t extent)
 	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic), ncmagic);
 	else
 	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic1), ncmagic1);
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
 		goto release;
 
 	{
 	const size_t nrecs = NC_get_numrecs(ncp);
-       	if (ps.version == 5)
-	    status = ncx_put_int64(&ps.pos, nrecs);
+	if (ps.version == 5) {
+            unsigned long long tmp = (unsigned long long) nrecs;
+	    status = ncx_put_uint64(&ps.pos, tmp);
+        }
        	else
 	    status = ncx_put_size_t(&ps.pos, &nrecs);
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
 		goto release;
 	}
 
@@ -1486,8 +1462,8 @@ nc_get_NC(NC3_INFO* ncp)
 	{
 	size_t nrecs = 0;
        	if (gs.version == 5) {
-		long long tmp = 0;
-		status = ncx_get_int64((const void **)(&gs.pos), &tmp);
+		unsigned long long tmp = 0;
+		status = ncx_get_uint64((const void **)(&gs.pos), &tmp);
 		nrecs = (size_t)tmp;
        	}
        	else
