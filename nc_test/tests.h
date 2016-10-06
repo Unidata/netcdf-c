@@ -508,7 +508,7 @@ typedef enum {
 #define NCT_ULONGLONG NCT_UINT64
 } nct_itype;
 
-int inRange3(const double value, const nc_type datatype, const nct_itype itype);
+int inRange3(const int cdf_format, const double value, const nc_type datatype, const nct_itype itype);
 
 int equal(const double x, const double y, nc_type extType, nct_itype itype);
 

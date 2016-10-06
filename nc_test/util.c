@@ -17,11 +17,11 @@ print_nok(int nok)
 
 /* Is value within external type range? */
 int
-inRange(const double value, const nc_type datatype)
+inRange(const double value, const nc_type xtype)
 {
     double min, max;
 
-    switch (datatype) {
+    switch (xtype) {
         case NC_CHAR:   return value >= X_CHAR_MIN   && value <= X_CHAR_MAX;
         case NC_BYTE:   return value >= X_BYTE_MIN   && value <= X_BYTE_MAX;
         case NC_SHORT:  return value >= X_SHORT_MIN  && value <= X_SHORT_MAX;
@@ -39,37 +39,46 @@ inRange(const double value, const nc_type datatype)
 }
 
 static int
-inRange_uchar(const double value, const nc_type datatype)
+inRange_uchar(const int     cdf_format,
+              const double  value,
+              const nc_type xtype)
 {
-    if (datatype == NC_BYTE) {
-	return(value >= 0 && value <= 255);
+    /* check value of type xtype if within uchar range */
+
+    if (cdf_format < NC_FORMAT_CDF5 && xtype == NC_BYTE) {
+        /* netCDF specification make a special case for type conversion between
+         * uchar and scahr: do not check for range error. See
+         * http://www.unidata.ucar.edu/software/netcdf/docs_rc/data_type.html#type_conversion
+         */
+        return(value >= 0 && value <= 255);
+        /* this is to ensure value is within the range of uchar */
     }
     /* else */
-    return inRange(value, datatype);
+    return inRange(value, xtype);
 }
 
 static int
-inRange_schar(const double value, const nc_type datatype)
+inRange_schar(const double value, const nc_type xtype)
 {
-    /* check value of type datatype if within schar range */
+    /* check value of type xtype if within schar range */
 
-    if (datatype == NC_UBYTE) {
+    if (xtype == NC_UBYTE) {
         /* netCDF specification make a special case for type conversion between
-         * uchar and scahr: do not check for range error. See
+         * uchar and schar: do not check for range error. See
          * http://www.unidata.ucar.edu/software/netcdf/docs_rc/data_type.html#type_conversion
          */
         return(value >= X_CHAR_MIN && value <= X_CHAR_MAX);
     }
     /* else */
-    return inRange(value, datatype);
+    return inRange(value, xtype);
 }
 
 static int
-inRange_float(const double value, const nc_type datatype)
+inRange_float(const double value, const nc_type xtype)
 {
     double min, max;
 
-    switch (datatype) {
+    switch (xtype) {
 	case NC_CHAR:   min = X_CHAR_MIN;   max = X_CHAR_MAX; break;
 	case NC_BYTE:   min = X_BYTE_MIN;   max = X_BYTE_MAX; break;
 	case NC_SHORT:  min = X_SHORT_MIN;  max = X_SHORT_MAX; break;
@@ -101,7 +110,7 @@ inRange_float(const double value, const nc_type datatype)
     }
     if(!( value >= min && value <= max)) {
 #if 0	/* DEBUG */
-	if(datatype == NC_FLOAT) {
+	if(xtype == NC_FLOAT) {
 	fprintf(stderr, "\n");
 	fprintf(stderr, "min   % .17e\n", min);
 	fprintf(stderr, "value % .17e\n", value);
@@ -124,22 +133,25 @@ inRange_float(const double value, const nc_type datatype)
 /* wrapper for inRange to handle special NC_BYTE/uchar adjustment */
 int
 inRange3(
+    const int    cdf_format,
     const double value,
-    const nc_type datatype,
+    const nc_type xtype,
     const nct_itype itype)
 {
     switch (itype) {
+/*
         case NCT_SCHAR:
         case NCT_CHAR:
-            return inRange_schar(value, datatype);
+            return inRange_schar(value, xtype);
+*/
     case NCT_UCHAR:
-	return inRange_uchar(value, datatype);
+	return inRange_uchar(cdf_format, value, xtype);
     case NCT_FLOAT:
-	return inRange_float(value, datatype);
+	return inRange_float(value, xtype);
     default:
 	break;
     }
-    return inRange(value, datatype);
+    return inRange(value, xtype);
 }
 
 
@@ -151,14 +163,14 @@ int
 equal(
     const double x,
     const double y,
-    nc_type extType, 	/* external data type */
+    nc_type xtype, 	/* external data type */
     nct_itype itype)
 {
     const double flt_epsilon = 1.19209290E-07;
     const double dbl_epsilon = 2.2204460492503131E-16;
     double epsilon;
 
-    epsilon = extType == NC_FLOAT || itype == NCT_FLOAT ? flt_epsilon : dbl_epsilon;
+    epsilon = xtype == NC_FLOAT || itype == NCT_FLOAT ? flt_epsilon : dbl_epsilon;
     return ABS(x-y) <= epsilon * MAX( ABS(x), ABS(y));
 }
 
@@ -257,11 +269,11 @@ fromMixedBase(
 
 
 /* Convert any nc_type to double */
-int nc2dbl ( const nc_type datatype, const void *p, double *result)
+int nc2dbl ( const nc_type xtype, const void *p, double *result)
 {
     if ( ! p ) return 2;
     if ( ! result ) return 3;
-    switch (datatype) {
+    switch (xtype) {
         case NC_BYTE: *result = *((signed char *) p); break;
         case NC_CHAR: *result = *((signed char *) p); break;
         case NC_SHORT: *result = *((short *) p); break;
@@ -290,12 +302,12 @@ int nc2dbl ( const nc_type datatype, const void *p, double *result)
 
 
 /* Convert double to any nc_type */
-int dbl2nc ( const double d, const nc_type datatype, void *p)
+int dbl2nc ( const double d, const nc_type xtype, void *p)
 {
     double r;   /* rounded value */
 
     if (p) {
-        switch (datatype) {
+        switch (xtype) {
             case NC_BYTE:
                 r = floor(0.5+d);
                 if ( r < schar_min  ||  r > schar_max )  return 2;
@@ -374,7 +386,7 @@ int dbl2nc ( const double d, const nc_type datatype, void *p)
 #ifdef USE_EXTREME_NUMBERS
 /* Generate data values as function of type, rank (-1 for attribute), index */
 double
-hash( const nc_type type, const int rank, const size_t *index )
+hash( const nc_type xtype, const int rank, const size_t *index )
 {
     double base;
     double result;
@@ -385,7 +397,7 @@ hash( const nc_type type, const int rank, const size_t *index )
     if (abs(rank) == 1 && index[0] <= 3) {
 	switch (index[0]) {
 	    case 0:
-		switch (type) {
+		switch (xtype) {
 		    case NC_CHAR:   return X_CHAR_MIN;
 		    case NC_BYTE:   return X_BYTE_MIN;
 		    case NC_SHORT:  return X_SHORT_MIN;
@@ -401,7 +413,7 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    default:  assert(0);
 		}
 	    case 1:
-		switch (type) {
+		switch (xtype) {
 		    case NC_CHAR:   return X_CHAR_MAX;
 		    case NC_BYTE:   return X_BYTE_MAX;
 		    case NC_SHORT:  return X_SHORT_MAX;
@@ -418,7 +430,7 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    default:  assert(0);
 		}
 	    case 2:
-		switch (type) {
+		switch (xtype) {
 		    case NC_CHAR:   return 'A';
 		    case NC_BYTE:   return X_BYTE_MIN-1.0;
 		    case NC_SHORT:  return X_SHORT_MIN-1.0;
@@ -433,7 +445,7 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    default:  assert(0);
 		}
 	    case 3:
-		switch (type) {
+		switch (xtype) {
 		    case NC_CHAR:   return 'Z';
 		    case NC_BYTE:   return X_BYTE_MAX+1.0;
 		    case NC_SHORT:  return X_SHORT_MAX+1.0;
@@ -449,7 +461,7 @@ hash( const nc_type type, const int rank, const size_t *index )
 		}
 	}
     } else {
-	switch (type) {
+	switch (xtype) {
 	    case NC_CHAR: base = 2; break;
 	    case NC_BYTE: base = -2; break;
 	    case NC_SHORT: base = -5; break;
@@ -479,7 +491,7 @@ hash( const nc_type type, const int rank, const size_t *index )
 
 /* Generate data values as function of type, rank (-1 for attribute), index */
 double
-hash( const nc_type type, const int rank, const size_t *index )
+hash( const nc_type xtype, const int rank, const size_t *index )
 {
     double base;
     double result;
@@ -490,7 +502,7 @@ hash( const nc_type type, const int rank, const size_t *index )
     if (abs(rank) == 1 && index[0] <= 3) {
 	switch (index[0]) {
 	    case 0:
-		switch (type) {
+		switch (xtype) {
 		    case NC_CHAR:   return X_CHAR_MIN;
 		    case NC_BYTE:   return X_BYTE_MIN;
 		    case NC_SHORT:  return SANE_SHORT;
@@ -506,7 +518,7 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    default:  assert(0);
 		}
 	    case 1:
-		switch (type) {
+		switch (xtype) {
 		    case NC_CHAR:   return X_CHAR_MAX;
 		    case NC_BYTE:   return X_BYTE_MAX;
 		    case NC_SHORT:  return SANE_SHORT;
@@ -523,7 +535,7 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    default:  assert(0);
 		}
 	    case 2:
-		switch (type) {
+		switch (xtype) {
 		    case NC_CHAR:   return 'A';
 		    case NC_BYTE:   return X_BYTE_MIN-1.0;
 		    case NC_SHORT:  return SANE_SHORT-1.0;
@@ -538,7 +550,7 @@ hash( const nc_type type, const int rank, const size_t *index )
 		    default:  assert(0);
 		}
 	    case 3:
-		switch (type) {
+		switch (xtype) {
 		    case NC_CHAR:   return 'Z';
 		    case NC_BYTE:   return X_BYTE_MAX+1.0;
 		    case NC_SHORT:  return SANE_SHORT+1.0;
@@ -554,7 +566,7 @@ hash( const nc_type type, const int rank, const size_t *index )
 		}
 	}
     } else {
-	switch (type) {
+	switch (xtype) {
 	    case NC_CHAR: base = 2; break;
 	    case NC_BYTE: base = -2; break;
 	    case NC_SHORT: base = -5; break;
@@ -580,15 +592,15 @@ hash( const nc_type type, const int rank, const size_t *index )
 /* wrapper for hash to handle special NC_BYTE/uchar adjustment */
 double
 hash4(
-    const nc_type type,
+    const nc_type xtype,
     const int rank,
     const size_t *index,
     const nct_itype itype)
 {
     double result;
 
-    result = hash( type, rank, index );
-    if (itype == NCT_UCHAR && type == NC_BYTE && result >= -128 && result < 0)
+    result = hash( xtype, rank, index );
+    if (itype == NCT_UCHAR && xtype == NC_BYTE && result >= -128 && result < 0)
 	result += 256;
     return result;
 }
@@ -927,7 +939,7 @@ check_vars(int  ncid)
     size_t  j;
     signed char  text;
     double value;
-    nc_type datatype;
+    nc_type xtype;
     int ndims;
     int dimids[MAX_RANK];
     int isChar;
@@ -938,12 +950,12 @@ check_vars(int  ncid)
 
     for (i = 0; i < numVars; i++) {
         isChar = var_type[i] == NC_CHAR;
-	err = nc_inq_var(ncid, i, name, &datatype, &ndims, dimids, NULL);
+	err = nc_inq_var(ncid, i, name, &xtype, &ndims, dimids, NULL);
 	IF (err)
 	    error("nc_inq_var: %s", nc_strerror(err));
 	IF (strcmp(name, var_name[i]) != 0)
 	    error("Unexpected var_name");
-	IF (datatype != var_type[i])
+	IF (xtype != var_type[i])
 	    error("Unexpected type");
 	IF (ndims != var_rank[i])
 	    error("Unexpected rank");
@@ -1012,7 +1024,7 @@ check_atts(int  ncid)
     int  i;
     int  j;
     size_t  k;
-    nc_type datatype;
+    nc_type xtype;
     char name[NC_MAX_NAME];
     size_t length;
     signed char text[MAX_NELS];
@@ -1027,19 +1039,19 @@ check_atts(int  ncid)
                 error("nc_inq_attname: %s", nc_strerror(err));
             IF (strcmp(name, ATT_NAME(i,j)) != 0)
                 error("nc_inq_attname: unexpected name");
-	    err = nc_inq_att(ncid, i, name, &datatype, &length);
+	    err = nc_inq_att(ncid, i, name, &xtype, &length);
 	    IF (err)
 		error("nc_inq_att: %s", nc_strerror(err));
-	    IF (datatype != ATT_TYPE(i,j))
+	    IF (xtype != ATT_TYPE(i,j))
 		error("nc_inq_att: unexpected type");
 	    IF (length != ATT_LEN(i,j))
 		error("nc_inq_att: unexpected length");
-	    if (datatype == NC_CHAR) {
+	    if (xtype == NC_CHAR) {
 		err = nc_get_att_text(ncid, i, name, text);
 		IF (err)
 		    error("nc_get_att_text: %s", nc_strerror(err));
 		for (k = 0; k < ATT_LEN(i,j); k++) {
-		    IF (text[k] != hash(datatype, -1, &k)) {
+		    IF (text[k] != hash(xtype, -1, &k)) {
 			error("nc_get_att_text: unexpected value");
             } else {
               nok++;
@@ -1048,7 +1060,7 @@ check_atts(int  ncid)
 	    } else {
 		err = nc_get_att_double(ncid, i, name, value);
 		for (k = 0; k < ATT_LEN(i,j); k++) {
-		    expect = hash(datatype, -1, &k);
+		    expect = hash(xtype, -1, &k);
 		    if (inRange(expect,ATT_TYPE(i,j))) {
 			IF (err)
 			    error("nc_get_att_double: %s", nc_strerror(err));
@@ -1088,9 +1100,9 @@ check_file(char *filename)
 
 /* TODO: Maybe this function belongs in the netcdf library. */
 const char *
-s_nc_type(nc_type type)
+s_nc_type(nc_type xtype)
 {
-	switch((int)type){
+	switch((int)xtype){
         case NC_CHAR:   return "NC_CHAR";
         case NC_BYTE:   return "NC_BYTE";
         case NC_UBYTE:  return "NC_UBYTE";

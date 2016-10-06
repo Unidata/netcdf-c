@@ -33,6 +33,8 @@ dnl
 define(`NCT_ITYPE', ``NCT_'Upcase($1)')dnl
 dnl
 
+define(`CheckText', `ifelse(`$1',`text', , `== (NCT_ITYPE($1) == NCT_TEXT)')')dnl
+
 #include "tests.h"
 
 dnl TEST_NC_GET_VAR1(TYPE)
@@ -42,7 +44,7 @@ define(`TEST_NC_GET_VAR1',dnl
 void
 test_nc_get_var1_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int i;
     int j;
     int err;
@@ -55,8 +57,11 @@ test_nc_get_var1_$1(void)
     err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
 	error("nc_open: %s", nc_strerror(err));
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+	error("nc_inq_format: %s", nc_strerror(err));
     for (i = 0; i < numVars; i++) {
-        canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
+        canConvert = (var_type[i] == NC_CHAR) CheckText($1);
 	for (j = 0; j < var_rank[i]; j++)
 	    index[j] = 0;
         err = nc_get_var1_$1(BAD_ID, i, index, &value);
@@ -85,7 +90,7 @@ test_nc_get_var1_$1(void)
 	    else
 		err = nc_get_var1_$1(ncid, i, index, &value);
             if (canConvert) {
-		if (inRange3(expect,var_type[i], NCT_ITYPE($1))) {
+		if (inRange3(cdf_format, expect,var_type[i], NCT_ITYPE($1))) {
 		    if (expect >= $1_min && expect <= $1_max) {
 			IF (err) {
 			    error("%s", nc_strerror(err));
@@ -139,7 +144,7 @@ define(`TEST_NC_GET_VAR',dnl
 void
 test_nc_get_var_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int i;
     int j;
     int err;
@@ -155,8 +160,11 @@ test_nc_get_var_$1(void)
     err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
 	error("nc_open: %s", nc_strerror(err));
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+	error("nc_inq_format: %s", nc_strerror(err));
     for (i = 0; i < numVars; i++) {
-        canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
+        canConvert = (var_type[i] == NC_CHAR) CheckText($1);
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
         err = nc_get_var_$1(BAD_ID, i, value);
@@ -176,7 +184,7 @@ test_nc_get_var_$1(void)
 	    IF (err)
 		error("error in toMixedBase 1");
 	    expect[j] = hash4(var_type[i], var_rank[i], index, NCT_ITYPE($1));
-	    if (inRange3(expect[j],var_type[i], NCT_ITYPE($1))) {
+	    if (inRange3(cdf_format, expect[j],var_type[i], NCT_ITYPE($1))) {
 		allInIntRange = allInIntRange && expect[j] >= $1_min
 			    && expect[j] <= $1_max;
 	    } else {
@@ -198,7 +206,7 @@ test_nc_get_var_$1(void)
 		    error("OK or Range error: status = %d", err);
 	    }
 	    for (j = 0; j < nels; j++) {
-		if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))
+		if (inRange3(cdf_format, expect[j],var_type[i],NCT_ITYPE($1))
 			&& expect[j] >= $1_min && expect[j] <= $1_max) {
 		    IF (!equal(value[j],expect[j],var_type[i],NCT_ITYPE($1))){
 			error("value read not that expected");
@@ -248,7 +256,7 @@ define(`TEST_NC_GET_VARA',dnl
 void
 test_nc_get_vara_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int d;
     int i;
     int j;
@@ -270,8 +278,11 @@ test_nc_get_vara_$1(void)
     err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
 	error("nc_open: %s", nc_strerror(err));
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+	error("nc_inq_format: %s", nc_strerror(err));
     for (i = 0; i < numVars; i++) {
-        canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
+        canConvert = (var_type[i] == NC_CHAR) CheckText($1);
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
 	for (j = 0; j < var_rank[i]; j++) {
@@ -347,7 +358,7 @@ test_nc_get_vara_$1(void)
                 for (d = 0; d < var_rank[i]; d++)
                     index[d] += start[d];
                 expect[j] = hash4(var_type[i], var_rank[i], index, NCT_ITYPE($1));
-		if (inRange3(expect[j],var_type[i], NCT_ITYPE($1))) {
+		if (inRange3(cdf_format, expect[j],var_type[i], NCT_ITYPE($1))) {
 		    allInIntRange = allInIntRange && expect[j] >= $1_min
 				&& expect[j] <= $1_max;
 		} else {
@@ -372,7 +383,7 @@ test_nc_get_vara_$1(void)
 			error("OK or Range error: status = %d", err);
 		}
 		for (j = 0; j < nels; j++) {
-		    if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))
+		    if (inRange3(cdf_format, expect[j],var_type[i],NCT_ITYPE($1))
 			    && expect[j] >= $1_min && expect[j] <= $1_max) {
 			IF (!equal(value[j],expect[j],var_type[i],NCT_ITYPE($1))){
 			    error("value read not that expected");
@@ -423,7 +434,7 @@ define(`TEST_NC_GET_VARS',dnl
 void
 test_nc_get_vars_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int d;
     int i;
     int j;
@@ -451,8 +462,11 @@ test_nc_get_vars_$1(void)
     err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
         error("nc_open: %s", nc_strerror(err));
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+	error("nc_inq_format: %s", nc_strerror(err));
     for (i = 0; i < numVars; i++) {
-        canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
+        canConvert = (var_type[i] == NC_CHAR) CheckText($1);
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
         for (j = 0; j < var_rank[i]; j++) {
@@ -538,7 +552,7 @@ test_nc_get_vars_$1(void)
 			index2[d] = index[d] + index2[d] * stride[d];
 		    expect[j] = hash4(var_type[i], var_rank[i], index2, 
 			NCT_ITYPE($1));
-		    if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))) {
+		    if (inRange3(cdf_format, expect[j],var_type[i],NCT_ITYPE($1))) {
 			allInIntRange = allInIntRange && expect[j] >= $1_min
 			    && expect[j] <= $1_max;
 		    } else {
@@ -563,7 +577,7 @@ test_nc_get_vars_$1(void)
 			    error("OK or Range error: status = %d", err);
 		    }
 		    for (j = 0; j < nels; j++) {
-			if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))
+			if (inRange3(cdf_format, expect[j],var_type[i],NCT_ITYPE($1))
 				&& expect[j] >= $1_min && expect[j] <= $1_max) {
 			    IF (!equal(value[j],expect[j],var_type[i], NCT_ITYPE($1))){
 				error("value read not that expected");
@@ -616,7 +630,7 @@ define(`TEST_NC_GET_VARM',dnl
 void
 test_nc_get_varm_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int d;
     int i;
     int j;
@@ -645,8 +659,11 @@ test_nc_get_varm_$1(void)
     err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err)
         error("nc_open: %s", nc_strerror(err));
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+	error("nc_inq_format: %s", nc_strerror(err));
     for (i = 0; i < numVars; i++) {
-        canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
+        canConvert = (var_type[i] == NC_CHAR) CheckText($1);
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
         for (j = 0; j < var_rank[i]; j++) {
@@ -739,7 +756,7 @@ test_nc_get_varm_$1(void)
                         index2[d] = index[d] + index2[d] * stride[d];
                     expect[j] = hash4(var_type[i], var_rank[i], index2,
                         NCT_ITYPE($1));
-                    if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))) {
+                    if (inRange3(cdf_format, expect[j],var_type[i],NCT_ITYPE($1))) {
                         allInIntRange = allInIntRange && expect[j] >= $1_min
                             && expect[j] <= $1_max;
                     } else {
@@ -764,7 +781,7 @@ test_nc_get_varm_$1(void)
                             error("OK or Range error: status = %d", err);
                     }
                     for (j = 0; j < nels; j++) {
-                        if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))
+                        if (inRange3(cdf_format, expect[j],var_type[i],NCT_ITYPE($1))
                                 && expect[j] >= $1_min 
 				&& expect[j] <= $1_max) {
 			    IF (!equal(value[j],expect[j],var_type[i], NCT_ITYPE($1))){
@@ -817,7 +834,7 @@ define(`TEST_NC_GET_ATT',dnl
 void
 test_nc_get_att_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int i;
     int j;
     size_t k;
@@ -832,10 +849,13 @@ test_nc_get_att_$1(void)
     err = file_open(testfile, NC_NOWRITE, &ncid);
     IF (err) 
 	error("nc_open: %s", nc_strerror(err));
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+	error("nc_inq_format: %s", nc_strerror(err));
 
     for (i = -1; i < numVars; i++) {
         for (j = 0; j < NATTS(i); j++) {
-	    canConvert = (ATT_TYPE(i,j) == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
+	    canConvert = (ATT_TYPE(i,j) == NC_CHAR) CheckText($1);
 	    err = nc_get_att_$1(BAD_ID, i, ATT_NAME(i,j), value);
 	    IF (err != NC_EBADID) 
 		error("bad ncid: status = %d", err);
@@ -848,7 +868,7 @@ test_nc_get_att_$1(void)
 	    allInExtRange = allInIntRange = 1;
             for (k = 0; k < ATT_LEN(i,j); k++) {
 		expect[k] = hash4(ATT_TYPE(i,j), -1, &k, NCT_ITYPE($1));
-                if (inRange3(expect[k],ATT_TYPE(i,j),NCT_ITYPE($1))) {
+                if (inRange3(cdf_format, expect[k],ATT_TYPE(i,j),NCT_ITYPE($1))) {
                     allInIntRange = allInIntRange && expect[k] >= $1_min
                                 && expect[k] <= $1_max;
                 } else {
@@ -870,7 +890,7 @@ test_nc_get_att_$1(void)
                         error("OK or Range error: status = %d", err);
                 }
 		for (k = 0; k < ATT_LEN(i,j); k++) {
-		    if (inRange3(expect[k],ATT_TYPE(i,j),NCT_ITYPE($1))
+		    if (inRange3(cdf_format, expect[k],ATT_TYPE(i,j),NCT_ITYPE($1))
                             && expect[k] >= $1_min && expect[k] <= $1_max) {
 			IF (!equal(value[k],expect[k],ATT_TYPE(i,j), NCT_ITYPE($1))){
 			    error("value read not that expected");

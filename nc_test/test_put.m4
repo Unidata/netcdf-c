@@ -83,6 +83,7 @@ void
 check_vars_$1(const char *filename)
 {
     int  ncid;                  /* netCDF id */
+    int  cdf_format;
     size_t index[MAX_RANK];
     int  err;           /* status */
     int  d;
@@ -101,6 +102,10 @@ check_vars_$1(const char *filename)
     err = file_open(filename, NC_NOWRITE, &ncid);
     IF (err)
         error("nc_open: %s", nc_strerror(err));
+
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+        error("nc_inq_format: %s", nc_strerror(err));
 
     for (i = 0; i < numVars; i++) {
 	canConvert = (var_type[i] == NC_CHAR) == (NCT_ITYPE($1) == NCT_TEXT);
@@ -127,7 +132,7 @@ check_vars_$1(const char *filename)
 		    error("error in toMixedBase 2");
 		expect = hash4( var_type[i], var_rank[i], index, NCT_ITYPE($1));
 		err = nc_get_var1_$1(ncid, i, index, &value);
-		if (inRange3(expect,datatype,NCT_ITYPE($1))) {
+		if (inRange3(cdf_format, expect,datatype,NCT_ITYPE($1))) {
                     if (expect >= $1_min && expect <= $1_max) {
 			IF (err) {
 			    error("nc_get_var1_$1: %s", nc_strerror(err));
@@ -186,6 +191,7 @@ static
 void
 check_atts_$1(int  ncid)
 {
+    int  cdf_format;
     int  err;           /* status */
     int  i;
     int  j;
@@ -198,6 +204,10 @@ check_atts_$1(int  ncid)
     size_t nInIntRange;  /* number values within internal range */
     int canConvert;     /* Both text or both numeric */
     int nok = 0;      /* count of valid comparisons */
+
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+        error("nc_inq_format: %s", nc_strerror(err));
 
     for (i = -1; i < numVars; i++) {
         for (j = 0; j < NATTS(i); j++) {
@@ -214,7 +224,7 @@ check_atts_$1(int  ncid)
 		nInIntRange = nInExtRange = 0;
 		for (k = 0; k < length; k++) {
 		    expect[k] = hash4( datatype, -1, &k, NCT_ITYPE($1));
-		    if (inRange3(expect[k], datatype, NCT_ITYPE($1))) {
+		    if (inRange3(cdf_format, expect[k], datatype, NCT_ITYPE($1))) {
 			++nInExtRange;
 			if (expect[k] >= $1_min && expect[k] <= $1_max)
 			    ++nInIntRange;
@@ -229,7 +239,7 @@ check_atts_$1(int  ncid)
                         error("OK or Range error: status = %d", err);
                 }
 		for (k = 0; k < length; k++) {
-                    if (inRange3(expect[k],datatype,NCT_ITYPE($1))
+                    if (inRange3(cdf_format, expect[k],datatype,NCT_ITYPE($1))
                             && expect[k] >= $1_min && expect[k] <= $1_max) {
                         IF (!equal(value[k],expect[k],datatype,NCT_ITYPE($1))) {
                             error("att. value read not that expected");
@@ -275,7 +285,7 @@ define(`TEST_NC_PUT_VAR1',dnl
 void
 test_nc_put_var1_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int i;
     int j;
     int err;
@@ -288,6 +298,10 @@ test_nc_put_var1_$1(void)
         error("nc_create: %s", nc_strerror(err));
         return;
     }
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+        error("nc_inq_format: %s", nc_strerror(err));
+
     def_dims(ncid);
     def_vars(ncid);
     err = nc_enddef(ncid);
@@ -337,7 +351,7 @@ test_nc_put_var1_$1(void)
 	    else
 		err = nc_put_var1_$1(ncid, i, index, &value);
 	    if (canConvert) {
-		if (inRange3(value, var_type[i],NCT_ITYPE($1))) {
+		if (inRange3(cdf_format, value, var_type[i],NCT_ITYPE($1))) {
 		    IF (err)
 			error("%s", nc_strerror(err));
 		} else {
@@ -388,7 +402,7 @@ define(`TEST_NC_PUT_VAR',dnl
 void
 test_nc_put_var_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int varid;
     int i;
     int j;
@@ -404,6 +418,10 @@ test_nc_put_var_$1(void)
         error("nc_create: %s", nc_strerror(err));
         return;
     }
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+        error("nc_inq_format: %s", nc_strerror(err));
+
     def_dims(ncid);
     def_vars(ncid);
     err = nc_enddef(ncid);
@@ -445,7 +463,7 @@ test_nc_put_var_$1(void)
 		error("error in toMixedBase 1");
 	    value[j]= hash_$1(var_type[i], var_rank[i], index, NCT_ITYPE($1));
 	    allInExtRange = allInExtRange 
-		&& inRange3(value[j], var_type[i], NCT_ITYPE($1));
+		&& inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
 	}
         err = nc_put_var_$1(ncid, i, value);
 	if (canConvert) {
@@ -493,7 +511,7 @@ test_nc_put_var_$1(void)
 		    error("error in toMixedBase 1");
 		value[j]= hash_$1(var_type[i], var_rank[i], index, NCT_ITYPE($1));
 		allInExtRange = allInExtRange 
-		    && inRange3(value[j], var_type[i], NCT_ITYPE($1));
+		    && inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
 	    }
 	    err = nc_put_var_$1(ncid, i, value);
 	    if (canConvert) {
@@ -544,7 +562,7 @@ define(`TEST_NC_PUT_VARA',dnl
 void
 test_nc_put_vara_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int d;
     int i;
     int j;
@@ -565,6 +583,10 @@ test_nc_put_vara_$1(void)
         error("nc_create: %s", nc_strerror(err));
         return;
     }
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+        error("nc_inq_format: %s", nc_strerror(err));
+
     def_dims(ncid);
     def_vars(ncid);
     err = nc_enddef(ncid);
@@ -660,7 +682,7 @@ test_nc_put_vara_$1(void)
 		    index[d] += start[d];
 		value[j]= hash_$1(var_type[i], var_rank[i], index, NCT_ITYPE($1));
 		allInExtRange = allInExtRange 
-		    && inRange3(value[j], var_type[i], NCT_ITYPE($1));
+		    && inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
 	    }
 	    if (var_rank[i] == 0 && i%2 == 0)
 		err = nc_put_vara_$1(ncid, i, NULL, NULL, value);
@@ -714,7 +736,7 @@ define(`TEST_NC_PUT_VARS',dnl
 void
 test_nc_put_vars_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int d;
     int i;
     int j;
@@ -741,6 +763,10 @@ test_nc_put_vars_$1(void)
 	error("nc_create: %s", nc_strerror(err));
 	return;
     }
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+        error("nc_inq_format: %s", nc_strerror(err));
+
     def_dims(ncid);
     def_vars(ncid);
     err = nc_enddef(ncid);
@@ -850,7 +876,7 @@ test_nc_put_vars_$1(void)
 		    value[j] = hash_$1(var_type[i], var_rank[i], index2, 
 			NCT_ITYPE($1));
 		    allInExtRange = allInExtRange 
-			&& inRange3(value[j], var_type[i], NCT_ITYPE($1));
+			&& inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
 		}
 		if (var_rank[i] == 0 && i%2 == 0)
 		    err = nc_put_vars_$1(ncid, i, NULL, NULL, stride, value);
@@ -905,7 +931,7 @@ define(`TEST_NC_PUT_VARM',dnl
 void
 test_nc_put_varm_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int d;
     int i;
     int j;
@@ -933,6 +959,10 @@ test_nc_put_varm_$1(void)
 	error("nc_create: %s", nc_strerror(err));
 	return;
     }
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+        error("nc_inq_format: %s", nc_strerror(err));
+
     def_dims(ncid);
     def_vars(ncid);
     err = nc_enddef(ncid);
@@ -1049,7 +1079,7 @@ test_nc_put_varm_$1(void)
                     value[j] = hash_$1(var_type[i], var_rank[i], index2,
                         NCT_ITYPE($1));
                     allInExtRange = allInExtRange
-                        && inRange3(value[j], var_type[i], NCT_ITYPE($1));
+                        && inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
                 }
                 if (var_rank[i] == 0 && i%2 == 0)
                     err = nc_put_varm_$1(ncid,i,NULL,NULL,NULL,NULL,value);
@@ -1165,7 +1195,7 @@ define(`TEST_NC_PUT_ATT',dnl
 void
 test_nc_put_att_$1(void)
 {
-    int ncid;
+    int ncid, cdf_format;
     int i;
     int j;
     size_t k;
@@ -1178,6 +1208,10 @@ test_nc_put_att_$1(void)
         error("nc_create: %s", nc_strerror(err));
         return;
     }
+    err = nc_inq_format(ncid, &cdf_format);
+    IF (err)
+        error("nc_inq_format: %s", nc_strerror(err));
+
     def_dims(ncid);
     def_vars(ncid);
 
@@ -1200,7 +1234,7 @@ test_nc_put_att_$1(void)
 		for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
 		    value[k] = hash_$1(ATT_TYPE(i,j), -1, &k, NCT_ITYPE($1));
 		    allInExtRange = allInExtRange
-			&& inRange3(value[k], ATT_TYPE(i,j), NCT_ITYPE($1));
+			&& inRange3(cdf_format, value[k], ATT_TYPE(i,j), NCT_ITYPE($1));
 		}
 		err = nc_put_att_$1(ncid, i, ATT_NAME(i,j), ATT_TYPE(i,j),
 		    ATT_LEN(i,j), value);
