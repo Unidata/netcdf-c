@@ -839,7 +839,11 @@ NC3_put_att(
 
             if(nelems != 0) {
                 void *xp = attrp->xvalue;
-                status = dispatchput(&xp, nelems, (const void*)value, type, memtype);
+                /* for CDF-1 and CDF-2, NC_BYTE is treated the same type as uchar memtype */
+                if (!fIsSet(ncp->flags,NC_64BIT_DATA) && type == NC_BYTE && memtype == NC_UBYTE)
+                    status = dispatchput(&xp, nelems, (const void*)value, memtype, memtype);
+                else
+                    status = dispatchput(&xp, nelems, (const void*)value, type, memtype);
             }
 
             set_NC_hdirty(ncp);
@@ -871,7 +875,11 @@ NC3_put_att(
 
     if(nelems != 0) {
         void *xp = attrp->xvalue;
-        status = dispatchput(&xp, nelems, (const void*)value, type, memtype);
+        /* for CDF-1 and CDF-2, NC_BYTE is treated the same type as uchar memtype */
+        if (!fIsSet(ncp->flags,NC_64BIT_DATA) && type == NC_BYTE && memtype == NC_UBYTE)
+            status = dispatchput(&xp, nelems, (const void*)value, memtype, memtype);
+        else
+            status = dispatchput(&xp, nelems, (const void*)value, type, memtype);
     }
 
     if(attrpp != NULL) {
@@ -901,8 +909,15 @@ NC3_get_att(
 	nc_type memtype)
 {
     int status;
+    NC *nc;
+    NC3_INFO* ncp;
     NC_attr *attrp;
     const void *xp;
+
+    status = NC_check_id(ncid, &nc);
+    if(status != NC_NOERR)
+	return status;
+    ncp = NC3_DATA(nc);
 
     status = NC_lookupattr(ncid, varid, name, &attrp);
     if(status != NC_NOERR) return status;
@@ -933,7 +948,11 @@ NC3_get_att(
     case NC_INT64:
           return ncx_pad_getn_Ilonglong(&xp,attrp->nelems,(longlong*)value,attrp->type);
     case NC_UBYTE: /* Synthetic */
-        return ncx_pad_getn_Iuchar(&xp, attrp->nelems , (uchar *)value, attrp->type);
+        /* for CDF-1 and CDF-2, NC_BYTE is treated the same type as uchar memtype */
+        if (!fIsSet(ncp->flags,NC_64BIT_DATA) && attrp->type == NC_BYTE)
+            return ncx_pad_getn_Iuchar(&xp, attrp->nelems, (uchar *)value, NC_UBYTE);
+        else
+            return ncx_pad_getn_Iuchar(&xp, attrp->nelems, (uchar *)value, attrp->type);
     case NC_USHORT:
           return ncx_pad_getn_Iushort(&xp,attrp->nelems,(ushort*)value,attrp->type);
     case NC_UINT:
