@@ -269,6 +269,15 @@ ncx_put_int32(void **xpp, const int ip);
 extern int
 ncx_put_int64(void **xpp, const long long ip);
 
+extern int
+ncx_get_uint32(const void **xpp, unsigned int *ip);
+extern int
+ncx_get_uint64(const void **xpp, unsigned long long *ip);
+extern int
+ncx_put_uint32(void **xpp, const unsigned int ip);
+extern int
+ncx_put_uint64(void **xpp, const unsigned long long ip);
+
 extern int ncx_get_int_int(const void *xp, int *ip);
 extern int ncx_put_int_int(void *xp, const int *ip);
 
