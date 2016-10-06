@@ -351,9 +351,9 @@ read_numrecs(NC3_INFO *ncp)
 		return status;
 
 	if (fIsSet(ncp->flags, NC_64BIT_DATA)) {
-	    long long tmp=0;
-	    status = ncx_get_int64(&xp, &tmp);
-	    new_nrecs = tmp;
+	    unsigned long long tmp=0;
+	    status = ncx_get_uint64(&xp, &tmp);
+	    new_nrecs = (size_t)tmp;
         } else
 	    status = ncx_get_size_t(&xp, &new_nrecs);
 
@@ -394,7 +394,7 @@ write_numrecs(NC3_INFO *ncp)
 	{
 		const size_t nrecs = NC_get_numrecs(ncp);
 		if (fIsSet(ncp->flags, NC_64BIT_DATA))
-		    status = ncx_put_int64(&xp, nrecs);
+		    status = ncx_put_uint64(&xp, (unsigned long long)nrecs);
 		else
  		    status = ncx_put_size_t(&xp, &nrecs);
 	}
