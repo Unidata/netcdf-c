@@ -331,10 +331,10 @@ extern NC_Dispatch* NC_get_dispatch_override(void);
 extern void NC_set_dispatch_override(NC_Dispatch*);
 #endif
 
-/* Does the path look like a url? */
-extern int NC_testurl(const char* path);
-/* Return model (0 or 3 or 4) as specified by the url */
-extern int NC_urlmodel(const char* path);
+/* Return model as specified by the url, if any;
+   return a modified url suitable for passing to curl
+*/
+extern int NC_urlmodel(const char* path, int mode, char** newurl);
 
 /* allow access url parse and params without exposing nc_url.h */
 extern int NCDAP_urlparse(const char* s, void** dapurl);
