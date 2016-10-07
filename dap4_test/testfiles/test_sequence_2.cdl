@@ -1,0 +1,23 @@
+netcdf test_sequence_2.syn.raw {
+  variables:
+
+    Structure {
+      int i1;
+      short sh1;
+    } s(2, *);
+      :_DAP4_Checksum_CRC32 = "0x301102a3";
+
+
+  // global attributes:
+  :_CoordSysBuilder = "ucar.nc2.dataset.conv.DefaultConvention";
+ data:
+s =
+  {
+    i1 =-920699049
+    sh1 =896
+  } s(0)
+  {
+    i1 =null array for i1
+    sh1 =null array for sh1
+  } s(1)
+}
