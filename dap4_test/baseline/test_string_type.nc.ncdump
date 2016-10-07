@@ -1,0 +1,4 @@
+netcdf test_string_type {
+variables:
+	string vs ;
+}
