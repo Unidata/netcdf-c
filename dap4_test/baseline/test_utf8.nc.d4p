@@ -1,0 +1,15 @@
+<Dataset
+   name="test_utf8.nc"
+   dapVersion="4.0"
+   dmrVersion="1.0"
+   xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+   xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+  <Dimensions>
+    <Dimension name="d2" size="2"/>
+  </Dimensions>
+  <Variables>
+    <String name="vs">
+      <Dim name="/d2"/>
+    </String>
+  </Variables>
+</Dataset>
