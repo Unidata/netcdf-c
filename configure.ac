@@ -343,6 +343,11 @@ if test "x$enable_dap" = "xno" ; then
     enable_dap2=no
 fi
 
+# Enable dap4 only if netcdf-4 is enabled
+if test "x$enable_netcdf_4" = "xno" ; then
+    enable_dap4=no
+fi
+
 # Curl support is required if and only if any of these flags are set:
 # 1. --enable-dap2
 # 2. --enable-dap4
@@ -899,6 +904,8 @@ else
 fi
 $SLEEPCMD
 AC_CHECK_SIZEOF(ptrdiff_t)
+$SLEEPCMD
+AC_CHECK_SIZEOF([void*])
 
 
 if test "x$enable_netcdf_4" = xyes -o "x$enable_dap2" = xyes -o "x$enable_dap4" = xyes; then
@@ -1362,6 +1369,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expected4/Makefile
                  ncdap_test/expectremote3/Makefile
                  ncdap_test/expectremote4/Makefile
+                 dap4_test/Makefile
 		 ],
                  [test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()
