@@ -131,8 +131,7 @@ const char *nc_strerror(int ncerr1)
 	 return "NetCDF: Invalid dimension ID or name";
       case NC_EUNLIMPOS:
 	 return "NetCDF: NC_UNLIMITED in the wrong index";
-      case NC_EMAXVARS:
-	 return "NetCDF: NC_MAX_VARS exceeded";
+      case NC_EMAXVARS:	 return "NetCDF: NC_MAX_VARS exceeded";
       case NC_ENOTVAR:
 	 return "NetCDF: Variable not found";
       case NC_EGLOBAL:
