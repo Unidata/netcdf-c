@@ -227,6 +227,8 @@ are set when opening a binary file on Windows. */
 
 /* The size of `void*` as computed by sizeof. */
 #cmakedefine SIZEOF_VOIDSTAR @SIZEOF_VOIDSTAR@
+/* Alias to be consistent with Autoconf */
+#cmakedefine SIZEOF_VOIDP @SIZEOF_VOIDSTAR@
 /* The size of `char` as computed by sizeof. */
 #cmakedefine SIZEOF_CHAR @SIZEOF_CHAR@
 /* The size of `double` as computed by sizeof. */
