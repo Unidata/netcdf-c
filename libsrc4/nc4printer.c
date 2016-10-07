@@ -35,6 +35,15 @@ USERTYPE,
 
 typedef struct NCID NCID;
 
+typedef struct NC4printer {
+    NCbytes* out;
+    NClist* types;
+    NClist* dims;
+    NClist* allnodes;
+    NCbytes* tmp1;
+    NCbytes* tmp2;
+} NC4printer;
+
 struct NCID {
     NCSORT sort;
     struct NCID* parent;
@@ -59,15 +68,6 @@ union NUMVALUE {
     unsigned short i32[2];
     unsigned long long i64[1];
 };
-
-typedef struct NC4printer {
-    NCbytes* out;
-    NClist* types;
-    NClist* dims;
-    NClist* allnodes;
-    NCbytes* tmp1;
-    NCbytes* tmp2;
-} NC4printer;
 
 #define SETNAME(x,y) strncpy((x)->name,(y),NC_MAX_NAME+1);
 #define GRPIDFOR(gid) ((gid) & 0xFFFF)
