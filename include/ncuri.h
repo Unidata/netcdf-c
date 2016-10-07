@@ -7,7 +7,7 @@
 /*! This is an open structure meaning
 	it is ok to directly access its fields*/
 typedef struct NCURI {
-    char* uri;        /* as passed by the caller */
+    char* uri;        /* copy of url as passed by the caller */
     char* params;     /* all params */
     char** paramlist;    /*!<null terminated list */
     char* constraint; /*!< projection+selection */
@@ -19,12 +19,17 @@ typedef struct NCURI {
     char* user; /* from user:password@ */
     char* password; /* from user:password@ */
     char* host;	      /*!< host*/
-    char* port;	      /*!< host */
+    char* port;	      /*!< port */
     char* file;	      /*!< file */
+    /* Provide protocol override */
+    char* altprotocol;   /*!< altproto */
 } NCURI;
 
 extern int ncuriparse(const char* s, NCURI** ncuri);
 extern void ncurifree(NCURI* ncuri);
+
+/* Replace the protocol */
+extern void ncurisetprotocol(NCURI*,const char* newprotocol);
 
 /* Replace the constraints */
 extern void ncurisetconstraints(NCURI*,const char* constraints);
