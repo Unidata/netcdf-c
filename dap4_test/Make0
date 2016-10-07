@@ -1,0 +1,44 @@
+# Test c output
+T=t_dmrparse
+#ARGS=../dap4_test/testfiles/test_atomic_types.nc.dmr
+#ARGS=./tat.nc.dmr
+ARGS=./tat.dmr
+
+#G=gdb --args
+#c:/path/to/my/app args to my app
+V=drmemory.exe --
+
+#V=valgrind --leak-check=full
+
+CFLAGS=-Wall -g -O0 -I.. -I../include -I../libdap4
+
+CC=gcc
+LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  -ldl -lm -lcurl
+
+LLP=/usr/local/lib:${LD_LIBRARY_PATH}
+
+all:: t.exe
+	sh ./t_dmrparse.sh
+
+g::
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${G} ./t ${ARGS}
+
+v::
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${V} ./t ${ARGS}
+
+diff:: t.exe
+	rm -fr ./j
+	./t ${ARGS} >& ./j
+
+t.exe: ${T}.c ../liblib/.libs/libnetcdf.a
+	${CC} -o t ${CFLAGS} ${T}.c ${SRC} ${LDFLAGS}
+
+#	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS;
+
+clean::
+	rm -fr t.exe ${T}.o
+
+cpp::
+	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt
