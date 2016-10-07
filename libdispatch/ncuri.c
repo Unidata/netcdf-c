@@ -330,6 +330,7 @@ ncuriparse(const char* uri0, NCURI** durip)
     duri->host = host;
     duri->port = port;
     duri->file = file;
+    duri->altprotocol = NULL;
 
     ncurisetconstraints(duri,constraint);
 
@@ -389,6 +390,14 @@ ncurifree(NCURI* duri)
     if(duri->projection != NULL) {free(duri->projection);}
     if(duri->selection != NULL) {free(duri->selection);}
     free(duri);
+}
+
+/* Replace the protocol */
+void
+ncurisetprotocol(NCURI* duri,const char* protocol)
+{
+    nullfree(duri->altprotocol);
+    duri->altprotocol = strdup(protocol);
 }
 
 /* Replace the constraints */
@@ -468,7 +477,11 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
 #endif
 
     if(prefix != NULL) len += NILLEN(prefix);
-    len += (NILLEN(duri->protocol)+NILLEN("://"));
+    if(duri->altprotocol != NULL) 
+        len += (NILLEN(duri->altprotocol)+NILLEN("://"));
+    else
+        len += (NILLEN(duri->protocol)+NILLEN("://"));
+
     if(withuserpwd) {
 	len += (NILLEN(duri->user)+NILLEN(duri->password)+NILLEN(":@"));
     }
@@ -524,7 +537,9 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
     if(withprefixparams) {
 	ncappendparams(newuri,duri->paramlist);
     }
-    if(duri->protocol != NULL)
+    if(duri->altprotocol != NULL)
+	strcat(newuri,duri->altprotocol);
+    else if(duri->protocol != NULL)
 	strcat(newuri,duri->protocol);
     strcat(newuri,"://");
     if(withuserpwd) {
@@ -577,8 +592,10 @@ ncappendparams(char* newuri, char** p)
 /*
 In the original url, client parameters are assumed to be one
 or more instances of bracketed pairs: e.g "[...][...]...".
-They may occur either at the front, or suffixed after
-a trailing # character. After processing, the list is
+that occur at the front of the url.
+Alternately, the parameters may be encoded after 
+a trailing # character each separated by ampersand (&).
+After processing, the list is
 converted to an ampersand separated list of the combination
 of prefix and suffix parameters.
 
