@@ -53,21 +53,17 @@ LIBSRC4_DIR = libsrc4
 NC_TEST4 = nc_test4
 endif
 
-# Build the dap client(s)?
+# Build the dap2 client
 if ENABLE_DAP2
 OCLIB = oc2
 DAP2 = libdap2
-#if BUILD_UTILITIES
-NCDAPTESTDIR = ncdap_test
-#endif # BUILD_UTILITIES
+NCDAP2TESTDIR = ncdap_test
 endif
 
 if ENABLE_DAP4
 DAP4 = libdap4
-#if BUILD_UTILITIES
-NCDAPTESTDIR = ncdap_test
-#endif # BUILD_UTILITIES
-endif
+NCDAP4TESTDIR = dap4_test
+endif #DAP4
 
 # Build pnetcdf
 if USE_PNETCDF
@@ -86,14 +82,14 @@ endif
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAPTESTDIR)
+TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
 SUBDIRS = include $(OCLIB) $(H5_TEST_DIR) libdispatch libsrc		\
-$(LIBSRC4_DIR) $(DAP2) $(DAP4) $(LIBCDMR) $(LIBSRCP) liblib  \
+$(LIBSRC4_DIR) $(LIBSRCP) $(DAP2) ${DAP4} liblib  \
 $(NCGEN3) $(NCGEN) $(NCDUMP) \
 $(TESTDIRS) \
 docs $(EXAMPLES) \
