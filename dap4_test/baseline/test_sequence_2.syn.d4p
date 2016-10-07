@@ -1,0 +1,21 @@
+<Dataset
+   name="test_sequence_2.syn"
+   dapVersion="4.0"
+   dmrVersion="1.0"
+   xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+   xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+  <Dimensions>
+    <Dimension name="_Anonymous2" size="2"/>
+  </Dimensions> 
+  <Types>
+    <Sequence name="s">
+      <Int32 name="i1"/>
+      <Int16 name="sh1"/>
+    </Sequence>
+  </Types>
+  <Variables>
+    <Seq name="s" type="/s">
+      <Dim name="/_Anonymous2"/>
+    </Sequence>
+  </Variables>
+</Dataset>
