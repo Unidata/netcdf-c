@@ -1,0 +1,14 @@
+<Dataset
+         name="test_fill.nc"
+         dapVersion="4.0"
+         dmrVersion="1.0"
+         xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+         xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+    <UInt8 name="uv8"/>
+    <Int16 name="v16"/>
+    <UInt32 name="uv32">
+        <Attribute name="_FillValue" type="UInt32">
+            <Value value="17"/>
+        </Attribute>
+    </UInt32>
+</Dataset>
