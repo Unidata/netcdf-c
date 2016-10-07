@@ -1646,7 +1646,7 @@ stored.
 \returns ::NC_NOERR No error.
 */
 int
-NC_create(const char *path, int cmode, size_t initialsz,
+NC_create(const char *path0, int cmode, size_t initialsz,
 	  int basepe, size_t *chunksizehintp, int useparallel,
 	  void* parameters, int *ncidp)
 {
@@ -1657,6 +1657,7 @@ NC_create(const char *path, int cmode, size_t initialsz,
    int model = NC_FORMATX_UNDEFINED; /* one of the NC_FORMATX values */
    int isurl = 0;   /* dap or cdmremote or neither */
    int xcmode = 0; /* for implied cmode flags */
+   char* path = strdup(path0); /* in case we need to modify it (e.g. url) */
 
    TRACE(nc_create);
    /* Initialize the dispatch table. The function pointers in the
@@ -1675,8 +1676,15 @@ NC_create(const char *path, int cmode, size_t initialsz,
 	return NC_ENFILE;
 #endif
 
-   if((isurl = NC_testurl(path)))
-	model = NC_urlmodel(path);
+    {
+	char* newpath = NULL;
+        model = NC_urlmodel(path,cmode,&newpath);
+        isurl = (model != 0);
+	if(isurl) {
+	    nullfree(path);
+	    path = newpath;
+	}
+    }
 
    /* Look to the incoming cmode for hints */
    if(model == NC_FORMATX_UNDEFINED) {
@@ -1759,6 +1767,8 @@ NC_create(const char *path, int cmode, size_t initialsz,
 
    /* Create the NC* instance and insert its dispatcher */
    stat = new_NC(dispatcher,path,cmode,&ncp);
+   nullfree(path); path = NULL; /* no longer need path */
+   
    if(stat) return stat;
 
    /* Add to list of known open files and define ext_ncid */
@@ -1770,7 +1780,7 @@ NC_create(const char *path, int cmode, size_t initialsz,
 #endif
 
    /* Assume create will fill in remaining ncp fields */
-   if ((stat = dispatcher->create(path, cmode, initialsz, basepe, chunksizehintp,
+   if ((stat = dispatcher->create(ncp->path, cmode, initialsz, basepe, chunksizehintp,
 				   useparallel, parameters, dispatcher, ncp))) {
 	del_from_NCList(ncp); /* oh well */
 	free_NC(ncp);
@@ -1796,7 +1806,7 @@ For open, we have the following pieces of information to use to determine the di
 \returns ::NC_NOERR No error.
 */
 int
-NC_open(const char *path, int cmode,
+NC_open(const char *path0, int cmode,
 	int basepe, size_t *chunksizehintp,
         int useparallel, void* parameters,
         int *ncidp)
@@ -1810,6 +1820,7 @@ NC_open(const char *path, int cmode,
    int isurl = 0;
    int version = 0;
    int flags = 0;
+   char* path = nulldup(path0);
 
    TRACE(nc_open);
    if(!NC_initialized) {
@@ -1828,9 +1839,13 @@ NC_open(const char *path, int cmode,
 #endif
 
    if(!inmemory) {
-       isurl = NC_testurl(path);
-       if(isurl)
-           model = NC_urlmodel(path);
+	char* newpath = NULL;
+        model = NC_urlmodel(path,cmode,&newpath);
+        isurl = (model != 0);
+	if(isurl) {
+	    nullfree(path);
+	    path = newpath;
+	}
     }
     if(model == 0) {
 	version = 0;
@@ -1917,6 +1932,7 @@ havetable:
 
    /* Create the NC* instance and insert its dispatcher */
    stat = new_NC(dispatcher,path,cmode,&ncp);
+   nullfree(path); path = NULL; /* no longer need path */
    if(stat) return stat;
 
    /* Add to list of known open files */
@@ -1928,7 +1944,7 @@ havetable:
 #endif
 
    /* Assume open will fill in remaining ncp fields */
-   stat = dispatcher->open(path, cmode, basepe, chunksizehintp,
+   stat = dispatcher->open(ncp->path, cmode, basepe, chunksizehintp,
 			   useparallel, parameters, dispatcher, ncp);
    if(stat == NC_NOERR) {
      if(ncidp) *ncidp = ncp->ext_ncid;
