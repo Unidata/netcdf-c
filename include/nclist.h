@@ -21,6 +21,7 @@ typedef struct NClist {
 
 EXTERNC NClist* nclistnew(void);
 EXTERNC int nclistfree(NClist*);
+EXTERNC int nclistfreeall(NClist*);
 EXTERNC int nclistsetalloc(NClist*,unsigned long);
 EXTERNC int nclistsetlength(NClist*,unsigned long);
 
