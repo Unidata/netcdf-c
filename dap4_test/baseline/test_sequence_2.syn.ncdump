@@ -1,0 +1,12 @@
+netcdf test_sequence_2 {
+types:
+  compound s_cmpd_t {
+    int i1 ;
+    short sh1 ;
+  }; // s_cmpd_t
+  s_cmpd_t(*) s_t ;
+dimensions:
+	_Anonymous2 = 2 ;
+variables:
+	s_t s(_Anonymous2) ;
+}
