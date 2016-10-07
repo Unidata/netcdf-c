@@ -1,0 +1,20 @@
+netcdf test_struct_nested {
+types:
+  compound x.field1_t {
+    int x ;
+    int y ;
+  }; // x.field1_t
+  compound x.field2_t {
+    int x ;
+    int y ;
+  }; // x.field2_t
+  compound x_t {
+    x.field1_t field1 ;
+    x.field1_t field2 ;
+  }; // x_t
+variables:
+	float xcoords ;
+	float ycoords ;
+	x_t x ;
+		string x:_edu.ucar.maps = "/xcoords", "/ycoords" ;
+}
