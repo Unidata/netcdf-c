@@ -21,6 +21,8 @@ static struct NCPROTOCOLLIST {
     {"file",NULL,NC_FORMATX_DAP2},
     {"dods","http",NC_FORMATX_DAP2},
     {"dodss","https",NC_FORMATX_DAP2},
+    {"dap4","http",NC_FORMATX_DAP4},
+    {"dap4s","https",NC_FORMATX_DAP4},
     {NULL,NULL,0} /* Terminate search */
 };
 
@@ -123,7 +125,7 @@ NC_testurl(const char* path)
     /* Ok, try to parse as a url */
     if(ncuriparse(path,&tmpurl)) {
 	/* Do some extra testing to make sure this really is a url */
-        /* Look for a knownprotocol */
+        /* Look for a known/accepted protocol */
         struct NCPROTOCOLLIST* protolist;
         for(protolist=ncprotolist;protolist->protocol;protolist++) {
 	    if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
@@ -143,14 +145,64 @@ Assumes that the path is known to be a url
 */
 
 int
-NC_urlmodel(const char* path)
+NC_urlmodel(const char* path, int mode, char** newurl)
 {
-    int model = 0;
-    NCURI* tmpurl = NULL;
+    int found, model = 0;
     struct NCPROTOCOLLIST* protolist;
+    NCURI* url = NULL;
+    char* p;
 
-    model = NC_FORMATX_DAP2;
+    if(path == NULL) return 0;
+
+    /* find leading non-blank */
+    for(p=(char*)path;*p;p++) {if(*p != ' ') break;}
+
+    /* Do some initial checking to see if this looks like a file path */
+    if(*p == '/') return 0; /* probably an absolute file path */
+
+    /* Parse the url */
+    if(!ncuriparse(path,&url))
+	goto fail; /* Not parseable as url */
+
+    /* Look up the protocol */
+    for(found=0,protolist=ncprotolist;protolist->protocol;protolist++) {
+        if(strcmp(url->protocol,protolist->protocol) == 0) {
+	    found = 1;
+	    break;
+	}
+    }    
+    if(found) {
+	model = protolist->model;
+	/* Substitute the protocol in any case */
+	ncurisetprotocol(url,protolist->substitute);
+    } else
+	goto fail; /* Again, does not look like a url */
+
+    if(model != NC_FORMATX_DAP2 && model != NC_FORMATX_DAP4) {
+        /* Look for and of the following params:
+  	   "dap2", "protocol=dap2", "dap4", "protocol=dap4" */
+	const char* proto = NULL;
+	const char* match = NULL;
+	ncurilookup(url,"protocol",&proto);
+	if(proto == NULL) proto = "";
+	if(ncurilookup(url,"dap2",&match) || strcmp(proto,"dap2") == 0)
+            model = NC_FORMATX_DAP2;
+	else if(ncurilookup(url,"dap4",&match) || strcmp(proto,"dap2") == 0)
+            model = NC_FORMATX_DAP4;
+	else 
+	model = 0; /* Still don't know */
+    }
+    if(model == 0) {/* Last resort: use the mode */
+        /* If mode specifies netcdf-4, then this is assumed to be dap4 */
+        if(mode & NC_NETCDF4)
+	    model = NC_FORMATX_DAP4;
+        else
+            model = NC_FORMATX_DAP2; /* Default */
+    }
     return model;
+fail:
+    if(url) ncurifree(url);
+    return 0;
 }
 
 #ifdef OBSOLETE
