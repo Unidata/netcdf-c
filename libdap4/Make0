@@ -1,0 +1,83 @@
+# Test c output
+
+P=data
+
+V=valgrind --leak-check=full
+G=gdb --args
+
+I=./t.dmr
+O=./t.nc
+
+ifeq ($P, parse)
+T=t_dmrparse.c
+endif
+ifeq ($P, parser)
+T=t_dmrparse.c
+endif
+ifeq ($P, meta)
+T=t_dmrmeta.c
+endif
+ifeq ($P, data)
+T=t_dmrdata.c
+I=./t.raw
+endif
+
+CFLAGS=-Wall -g -O0 -I.. -I../include -I../libdap4
+
+CC=gcc
+LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  -ldl -lm -lcurl
+
+LLP=/usr/local/lib:${LD_LIBRARY_PATH}
+
+ifeq ($P, meta)
+all:: clean build
+else
+all:: clean g
+endif
+
+g:: mkt
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${G} ./t $I $O
+
+v:: mkt
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${V} ./t $I $O
+
+build:: mkt
+	./t $I $O
+	ncdump -h $O	
+	
+diff:: mkt
+	rm -fr ./j
+	./t ${ARGS} >& ./j
+
+mkt:: clean t.exe
+
+t.exe: ${T}
+	${CC} -o t ${CFLAGS} ${T} ${LDFLAGS}
+
+#	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS;
+
+d4printer.o: d4printer.c ../liblib/.libs/libnetcdf.a
+	${MAKE}
+
+clean::
+	rm -fr t t.exe t.o
+
+cpp::
+	rm -f cpp.txt
+	${CC} -E ${CFLAGS} t_dmr.h > cpp.txt
+
+x:
+	pushd .. ; ${MAKE} ; popd
+
+D=test_sequence_2
+TF=../dap4_test/testfiles/${D}
+debug::
+	rm -f t.dmr t.cdl t.raw
+	if test -f ${TF}.syn.dmr; then cp ${TF}.syn.dmr ./t.dmr ; fi
+	if test -f ${TF}.nc.dmr; then cp ${TF}.nc.dmr ./t.dmr ; fi
+	if test -f ${TF}.cdl; then cp ${TF}.cdl ./t.cdl ; fi
+	if test -f ${TF}.raw; then cp ${TF}.raw ./t.raw ; fi
+	if test -f ${TF}.syn.raw; then cp ${TF}.syn.raw ./t.raw ; fi
+	if test -f ${TF}.nc.raw; then cp ${TF}.nc.raw ./t.raw ; fi
