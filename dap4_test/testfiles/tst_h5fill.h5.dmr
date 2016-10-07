@@ -1,0 +1,11 @@
+<Dataset
+         name="tst_h5fill.h5"
+         dapVersion="4.0"
+         dmrVersion="1.0"
+         xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+         xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+
+    <Int32 name="var1">
+        <Dim size="1"/>
+    </Int32>
+</Dataset>
