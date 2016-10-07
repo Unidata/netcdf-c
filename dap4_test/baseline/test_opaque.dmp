@@ -1,0 +1,9 @@
+netcdf test_opaque {
+types:
+  ubyte(*) _bytestring ;
+variables:
+	_bytestring vo1 ;
+data:
+
+ vo1 = {1, 35, 69, 103, 137, 171, 205, 239} ;
+}
