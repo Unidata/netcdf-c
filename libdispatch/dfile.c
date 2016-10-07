@@ -547,12 +547,12 @@ stored.
 
 <h2>Open Mode</h2>
 
-A zero value (or NC_NOWRITE) specifies the default behavior: open the
+A zero value (or ::NC_NOWRITE) specifies the default behavior: open the
 dataset with read-only access, buffering and caching accesses for
 efficiency.
 
-Otherwise, the open mode is NC_WRITE, NC_SHARE, or
-NC_WRITE|NC_SHARE. Setting the NC_WRITE flag opens the dataset with
+Otherwise, the open mode is ::NC_WRITE, ::NC_SHARE, or
+::NC_WRITE|::NC_SHARE. Setting the ::NC_WRITE flag opens the dataset with
 read-write access. ("Writing" means any kind of change to the dataset,
 including appending or changing data, adding or renaming dimensions,
 variables, and attributes, or deleting attributes.)
@@ -1587,7 +1587,7 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
    if(stat != NC_NOERR) { /* bad ncid; do what we can */
        /* For compatibility, we need to allow inq about
           atomic types, even if ncid is ill-defined */
-	if(xtype <= ATOMICTYPEMAX5) {
+	if(xtype <= ATOMICTYPEMAX4) {
             if(name) strncpy(name,NC_atomictypename(xtype),NC_MAX_NAME);
             if(size) *size = NC_atomictypelen(xtype);
             return NC_NOERR;

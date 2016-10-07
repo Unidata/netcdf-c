@@ -9,6 +9,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.2 - TBD
 
+* [Documentation] Updated documentation related to netCDF variable names and DAP2 access to reflect the undefined behavior potentially observed when DAP2 reserved keywords are used as netCDF variable names. See [GitHub #308](https://github.com/Unidata/netcdf-c/issues/308) for more information.
+* [Bug] Fixed an issue with `nc_inq_type()` not returning proper value in some circumstances.  See [GitHub #317](https://github.com/Unidata/netcdf-c/issues/317) for more information.
 * [Bug] Corrected an issue related to test failures when `--disable-utilities` or `-DENABLE_UTILITIES=OFF` are specified when building with autotools or cmake, respectively.  See [GitHub #313](https://github.com/Unidata/netcdf-c/issues/313) for more information.
 * [Bug][Enhancement] Corrected a behavioral issue with the `_NCProperties` attribute taking up too much space.  See [GitHub #300](https://github.com/Unidata/netcdf-c/issues/300) and [GitHub #301](https://github.com/Unidata/netcdf-c/pull/301) for more information.
 
