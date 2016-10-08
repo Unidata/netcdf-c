@@ -592,6 +592,7 @@ hash( const nc_type xtype, const int rank, const size_t *index )
 /* wrapper for hash to handle special NC_BYTE/uchar adjustment */
 double
 hash4(
+    const int cdf_format,
     const nc_type xtype,
     const int rank,
     const size_t *index,
@@ -600,8 +601,15 @@ hash4(
     double result;
 
     result = hash( xtype, rank, index );
-    if (itype == NCT_UCHAR && xtype == NC_BYTE && result >= -128 && result < 0)
+
+    if (cdf_format < NC_FORMAT_CDF5 &&
+        itype == NCT_UCHAR && xtype == NC_BYTE && result >= -128 && result < 0)
+        /* netCDF specification make a special case for type conversion between
+         * uchar and scahr: do not check for range error. See
+         * http://www.unidata.ucar.edu/software/netcdf/docs_rc/data_type.html#type_conversion
+         */
 	result += 256;
+
     return result;
 }
 

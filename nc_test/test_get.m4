@@ -84,7 +84,7 @@ test_nc_get_var1_$1(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err)
 		error("error in toMixedBase 1");
-	    expect = hash4( var_type[i], var_rank[i], index, NCT_ITYPE($1) );
+	    expect = hash4(cdf_format, var_type[i], var_rank[i], index, NCT_ITYPE($1));
 	    if (var_rank[i] == 0 && i%2 )
 		err = nc_get_var1_$1(ncid, i, NULL, &value);
 	    else
@@ -183,7 +183,7 @@ test_nc_get_var_$1(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err)
 		error("error in toMixedBase 1");
-	    expect[j] = hash4(var_type[i], var_rank[i], index, NCT_ITYPE($1));
+	    expect[j] = hash4(cdf_format, var_type[i], var_rank[i], index, NCT_ITYPE($1));
 	    if (inRange3(cdf_format, expect[j],var_type[i], NCT_ITYPE($1))) {
 		allInIntRange = allInIntRange && expect[j] >= $1_min
 			    && expect[j] <= $1_max;
@@ -357,7 +357,7 @@ test_nc_get_vara_$1(void)
                     error("error in toMixedBase 1");
                 for (d = 0; d < var_rank[i]; d++)
                     index[d] += start[d];
-                expect[j] = hash4(var_type[i], var_rank[i], index, NCT_ITYPE($1));
+                expect[j] = hash4(cdf_format, var_type[i], var_rank[i], index, NCT_ITYPE($1));
 		if (inRange3(cdf_format, expect[j],var_type[i], NCT_ITYPE($1))) {
 		    allInIntRange = allInIntRange && expect[j] >= $1_min
 				&& expect[j] <= $1_max;
@@ -550,7 +550,7 @@ test_nc_get_vars_$1(void)
 			error("error in toMixedBase 1");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    expect[j] = hash4(var_type[i], var_rank[i], index2, 
+		    expect[j] = hash4(cdf_format, var_type[i], var_rank[i], index2, 
 			NCT_ITYPE($1));
 		    if (inRange3(cdf_format, expect[j],var_type[i],NCT_ITYPE($1))) {
 			allInIntRange = allInIntRange && expect[j] >= $1_min
@@ -754,7 +754,7 @@ test_nc_get_varm_$1(void)
                         error("error in toMixedBase 1");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    expect[j] = hash4(var_type[i], var_rank[i], index2,
+                    expect[j] = hash4(cdf_format, var_type[i], var_rank[i], index2,
                         NCT_ITYPE($1));
                     if (inRange3(cdf_format, expect[j],var_type[i],NCT_ITYPE($1))) {
                         allInIntRange = allInIntRange && expect[j] >= $1_min
@@ -867,7 +867,7 @@ test_nc_get_att_$1(void)
 		error("Bad attribute name: status = %d", err);
 	    allInExtRange = allInIntRange = 1;
             for (k = 0; k < ATT_LEN(i,j); k++) {
-		expect[k] = hash4(ATT_TYPE(i,j), -1, &k, NCT_ITYPE($1));
+		expect[k] = hash4(cdf_format, ATT_TYPE(i,j), -1, &k, NCT_ITYPE($1));
                 if (inRange3(cdf_format, expect[k],ATT_TYPE(i,j),NCT_ITYPE($1))) {
                     allInIntRange = allInIntRange && expect[k] >= $1_min
                                 && expect[k] <= $1_max;

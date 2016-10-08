@@ -536,6 +536,7 @@ int dbl2nc ( const double d, const nc_type datatype, void *p);
 double hash( const nc_type type, const int rank, const size_t *index );
 
 double hash4(
+    const int cdf_format,
     const nc_type type,
     const int rank,
     const size_t *index,

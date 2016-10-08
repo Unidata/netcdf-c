@@ -45,6 +45,7 @@ define(`HASH',dnl
 static
 double
 hash_$1(
+    const int cdf_format,
     const nc_type type,
     const int rank,
     const size_t *index,
@@ -53,7 +54,7 @@ hash_$1(
     const double min = $1_min;
     const double max = $1_max;
 
-    return MAX(min, MIN(max, hash4( type, rank, index, itype)));
+    return MAX(min, MIN(max, hash4(cdf_format, type, rank, index, itype)));
 }
 ')dnl
 
@@ -130,7 +131,7 @@ check_vars_$1(const char *filename)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err)
 		    error("error in toMixedBase 2");
-		expect = hash4( var_type[i], var_rank[i], index, NCT_ITYPE($1));
+		expect = hash4(cdf_format, var_type[i], var_rank[i], index, NCT_ITYPE($1));
 		err = nc_get_var1_$1(ncid, i, index, &value);
 		if (inRange3(cdf_format, expect,datatype,NCT_ITYPE($1))) {
                     if (expect >= $1_min && expect <= $1_max) {
@@ -223,7 +224,7 @@ check_atts_$1(int  ncid)
 		assert(length <= MAX_NELS);
 		nInIntRange = nInExtRange = 0;
 		for (k = 0; k < length; k++) {
-		    expect[k] = hash4( datatype, -1, &k, NCT_ITYPE($1));
+		    expect[k] = hash4(cdf_format, datatype, -1, &k, NCT_ITYPE($1));
 		    if (inRange3(cdf_format, expect[k], datatype, NCT_ITYPE($1))) {
 			++nInExtRange;
 			if (expect[k] >= $1_min && expect[k] <= $1_max)
@@ -345,7 +346,7 @@ test_nc_put_var1_$1(void)
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
             IF (err) 
 		error("error in toMixedBase 1");
-            value = hash_$1( var_type[i], var_rank[i], index, NCT_ITYPE($1));
+            value = hash_$1(cdf_format, var_type[i], var_rank[i], index, NCT_ITYPE($1));
 	    if (var_rank[i] == 0 && i%2 == 0)
 		err = nc_put_var1_$1(ncid, i, NULL, &value);
 	    else
@@ -461,7 +462,7 @@ test_nc_put_var_$1(void)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) 
 		error("error in toMixedBase 1");
-	    value[j]= hash_$1(var_type[i], var_rank[i], index, NCT_ITYPE($1));
+	    value[j]= hash_$1(cdf_format,var_type[i], var_rank[i], index, NCT_ITYPE($1));
 	    allInExtRange = allInExtRange 
 		&& inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
 	}
@@ -509,7 +510,7 @@ test_nc_put_var_$1(void)
 		err = toMixedBase(j, var_rank[i], var_shape[i], index);
 		IF (err) 
 		    error("error in toMixedBase 1");
-		value[j]= hash_$1(var_type[i], var_rank[i], index, NCT_ITYPE($1));
+		value[j]= hash_$1(cdf_format,var_type[i], var_rank[i], index, NCT_ITYPE($1));
 		allInExtRange = allInExtRange 
 		    && inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
 	    }
@@ -680,7 +681,7 @@ test_nc_put_vara_$1(void)
 		    error("error in toMixedBase 1");
 		for (d = 0; d < var_rank[i]; d++) 
 		    index[d] += start[d];
-		value[j]= hash_$1(var_type[i], var_rank[i], index, NCT_ITYPE($1));
+		value[j]= hash_$1(cdf_format,var_type[i], var_rank[i], index, NCT_ITYPE($1));
 		allInExtRange = allInExtRange 
 		    && inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
 	    }
@@ -873,7 +874,7 @@ test_nc_put_vars_$1(void)
 			error("error in toMixedBase");
 		    for (d = 0; d < var_rank[i]; d++)
 			index2[d] = index[d] + index2[d] * stride[d];
-		    value[j] = hash_$1(var_type[i], var_rank[i], index2, 
+		    value[j] = hash_$1(cdf_format,var_type[i], var_rank[i], index2, 
 			NCT_ITYPE($1));
 		    allInExtRange = allInExtRange 
 			&& inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
@@ -1076,7 +1077,7 @@ test_nc_put_varm_$1(void)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * stride[d];
-                    value[j] = hash_$1(var_type[i], var_rank[i], index2,
+                    value[j] = hash_$1(cdf_format,var_type[i], var_rank[i], index2,
                         NCT_ITYPE($1));
                     allInExtRange = allInExtRange
                         && inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
@@ -1232,7 +1233,7 @@ test_nc_put_att_$1(void)
 		IF (err != NC_EBADTYPE)
 		    error("bad type: status = %d", err);
 		for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
-		    value[k] = hash_$1(ATT_TYPE(i,j), -1, &k, NCT_ITYPE($1));
+		    value[k] = hash_$1(cdf_format,ATT_TYPE(i,j), -1, &k, NCT_ITYPE($1));
 		    allInExtRange = allInExtRange
 			&& inRange3(cdf_format, value[k], ATT_TYPE(i,j), NCT_ITYPE($1));
 		}
