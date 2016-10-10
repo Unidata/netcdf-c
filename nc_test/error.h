@@ -31,3 +31,4 @@ print_n_size_t(size_t nelems, const size_t *array);
 #endif
 
 #define IF(EXPR) if (ifFail(EXPR, __LINE__, __FILE__))
+#define ELSE_NOK else {nok++;}

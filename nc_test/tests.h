@@ -26,13 +26,12 @@
 
     /* Limits of external types (based on those in ncx.h) */
 
-#ifdef __CHAR_UNSIGNED__
-#define X_CHAR_MIN	SCHAR_MIN
-#define X_CHAR_MAX	SCHAR_MAX
-#else
-#define X_CHAR_MIN	CHAR_MIN
-#define X_CHAR_MAX	CHAR_MAX
-#endif //__unsigned_char__
+/* Note: In CDF format specification, NC_CHAR is for text characters, which
+ * is considered an 8-bit unsigned integer. Since it is for printable text
+ * characters, its values should range from 0 (X_CHAR_MIN) to 255 (X_CHAR_MAX).
+ */
+#define X_CHAR_MIN      0
+#define X_CHAR_MAX      255
 
 #define X_BYTE_MIN	(-128)
 #define X_BYTE_MAX	127
@@ -205,7 +204,7 @@ extern "C" {
 # include <sys/types.h>
 #endif
 
-typedef signed char text;
+typedef char text;
 typedef signed char schar;
 
 #ifndef HAVE_USHORT
@@ -290,175 +289,175 @@ extern void test_nc_inq_varndims(void);
 extern void test_nc_inq_vartype(void);
 extern void test_nc_inq_var(void);
 
-extern void test_nc_get_var_double(void);
-extern void test_nc_get_var_float(void);
-extern void test_nc_get_var_int(void);
-extern void test_nc_get_var_long(void);
-extern void test_nc_get_var_schar(void);
-extern void test_nc_get_var_short(void);
-extern void test_nc_get_var_text(void);
-extern void test_nc_get_var_uchar(void);
-extern void test_nc_get_var(void);
-extern void test_nc_get_var_ushort(void);
-extern void test_nc_get_var_uint(void);
-extern void test_nc_get_var_longlong(void);
-extern void test_nc_get_var_ulonglong(void);
+extern int test_nc_get_var_double(void);
+extern int test_nc_get_var_float(void);
+extern int test_nc_get_var_int(void);
+extern int test_nc_get_var_long(void);
+extern int test_nc_get_var_schar(void);
+extern int test_nc_get_var_short(void);
+extern int test_nc_get_var_text(void);
+extern int test_nc_get_var_uchar(void);
+extern int test_nc_get_var(void);
+extern int test_nc_get_var_ushort(void);
+extern int test_nc_get_var_uint(void);
+extern int test_nc_get_var_longlong(void);
+extern int test_nc_get_var_ulonglong(void);
 
-extern void test_nc_get_var1_double(void);
-extern void test_nc_get_var1_float(void);
-extern void test_nc_get_var1_int(void);
-extern void test_nc_get_var1_long(void);
-extern void test_nc_get_var1_schar(void);
-extern void test_nc_get_var1_short(void);
-extern void test_nc_get_var1_text(void);
-extern void test_nc_get_var1_uchar(void);
-extern void test_nc_get_var1(void);
-extern void test_nc_get_var1_ushort(void);
-extern void test_nc_get_var1_uint(void);
-extern void test_nc_get_var1_longlong(void);
-extern void test_nc_get_var1_ulonglong(void);
+extern int test_nc_get_var1_double(void);
+extern int test_nc_get_var1_float(void);
+extern int test_nc_get_var1_int(void);
+extern int test_nc_get_var1_long(void);
+extern int test_nc_get_var1_schar(void);
+extern int test_nc_get_var1_short(void);
+extern int test_nc_get_var1_text(void);
+extern int test_nc_get_var1_uchar(void);
+extern int test_nc_get_var1(void);
+extern int test_nc_get_var1_ushort(void);
+extern int test_nc_get_var1_uint(void);
+extern int test_nc_get_var1_longlong(void);
+extern int test_nc_get_var1_ulonglong(void);
 
-extern void test_nc_get_vara_double(void);
-extern void test_nc_get_vara_float(void);
-extern void test_nc_get_vara_int(void);
-extern void test_nc_get_vara_long(void);
-extern void test_nc_get_vara_schar(void);
-extern void test_nc_get_vara_short(void);
-extern void test_nc_get_vara_text(void);
-extern void test_nc_get_vara_uchar(void);
-extern void test_nc_get_vara(void);
-extern void test_nc_get_vara_ushort(void);
-extern void test_nc_get_vara_uint(void);
-extern void test_nc_get_vara_longlong(void);
-extern void test_nc_get_vara_ulonglong(void);
+extern int test_nc_get_vara_double(void);
+extern int test_nc_get_vara_float(void);
+extern int test_nc_get_vara_int(void);
+extern int test_nc_get_vara_long(void);
+extern int test_nc_get_vara_schar(void);
+extern int test_nc_get_vara_short(void);
+extern int test_nc_get_vara_text(void);
+extern int test_nc_get_vara_uchar(void);
+extern int test_nc_get_vara(void);
+extern int test_nc_get_vara_ushort(void);
+extern int test_nc_get_vara_uint(void);
+extern int test_nc_get_vara_longlong(void);
+extern int test_nc_get_vara_ulonglong(void);
 
-extern void test_nc_get_vars(void);
-extern void test_nc_get_vars_double(void);
-extern void test_nc_get_vars_float(void);
-extern void test_nc_get_vars_int(void);
-extern void test_nc_get_vars_long(void);
-extern void test_nc_get_vars_schar(void);
-extern void test_nc_get_vars_short(void);
-extern void test_nc_get_vars_text(void);
-extern void test_nc_get_vars_uchar(void);
-extern void test_nc_get_vars(void);
-extern void test_nc_get_vars_ushort(void);
-extern void test_nc_get_vars_uint(void);
-extern void test_nc_get_vars_longlong(void);
-extern void test_nc_get_vars_ulonglong(void);
+extern int test_nc_get_vars(void);
+extern int test_nc_get_vars_double(void);
+extern int test_nc_get_vars_float(void);
+extern int test_nc_get_vars_int(void);
+extern int test_nc_get_vars_long(void);
+extern int test_nc_get_vars_schar(void);
+extern int test_nc_get_vars_short(void);
+extern int test_nc_get_vars_text(void);
+extern int test_nc_get_vars_uchar(void);
+extern int test_nc_get_vars(void);
+extern int test_nc_get_vars_ushort(void);
+extern int test_nc_get_vars_uint(void);
+extern int test_nc_get_vars_longlong(void);
+extern int test_nc_get_vars_ulonglong(void);
 
-extern void test_nc_get_varm(void);
-extern void test_nc_get_varm_double(void);
-extern void test_nc_get_varm_float(void);
-extern void test_nc_get_varm_int(void);
-extern void test_nc_get_varm_long(void);
-extern void test_nc_get_varm_schar(void);
-extern void test_nc_get_varm_short(void);
-extern void test_nc_get_varm_text(void);
-extern void test_nc_get_varm_uchar(void);
-extern void test_nc_get_varm(void);
-extern void test_nc_get_varm_ushort(void);
-extern void test_nc_get_varm_uint(void);
-extern void test_nc_get_varm_longlong(void);
-extern void test_nc_get_varm_ulonglong(void);
+extern int test_nc_get_varm(void);
+extern int test_nc_get_varm_double(void);
+extern int test_nc_get_varm_float(void);
+extern int test_nc_get_varm_int(void);
+extern int test_nc_get_varm_long(void);
+extern int test_nc_get_varm_schar(void);
+extern int test_nc_get_varm_short(void);
+extern int test_nc_get_varm_text(void);
+extern int test_nc_get_varm_uchar(void);
+extern int test_nc_get_varm(void);
+extern int test_nc_get_varm_ushort(void);
+extern int test_nc_get_varm_uint(void);
+extern int test_nc_get_varm_longlong(void);
+extern int test_nc_get_varm_ulonglong(void);
 
-extern void test_nc_get_att(void);
-extern void test_nc_get_att_double(void);
-extern void test_nc_get_att_float(void);
-extern void test_nc_get_att_int(void);
-extern void test_nc_get_att_long(void);
-extern void test_nc_get_att_schar(void);
-extern void test_nc_get_att_short(void);
-extern void test_nc_get_att_text(void);
-extern void test_nc_get_att_uchar(void);
-extern void test_nc_get_att_ushort(void);
-extern void test_nc_get_att_uint(void);
-extern void test_nc_get_att_longlong(void);
-extern void test_nc_get_att_ulonglong(void);
+extern int test_nc_get_att(void);
+extern int test_nc_get_att_double(void);
+extern int test_nc_get_att_float(void);
+extern int test_nc_get_att_int(void);
+extern int test_nc_get_att_long(void);
+extern int test_nc_get_att_schar(void);
+extern int test_nc_get_att_short(void);
+extern int test_nc_get_att_text(void);
+extern int test_nc_get_att_uchar(void);
+extern int test_nc_get_att_ushort(void);
+extern int test_nc_get_att_uint(void);
+extern int test_nc_get_att_longlong(void);
+extern int test_nc_get_att_ulonglong(void);
 
-extern void test_nc_put_att(void);
-extern void test_nc_put_var_double(void);
-extern void test_nc_put_var_float(void);
-extern void test_nc_put_var_int(void);
-extern void test_nc_put_var_long(void);
-extern void test_nc_put_var_schar(void);
-extern void test_nc_put_var_short(void);
-extern void test_nc_put_var_text(void);
-extern void test_nc_put_var_uchar(void);
-extern void test_nc_put_var(void);
-extern void test_nc_put_var_ushort(void);
-extern void test_nc_put_var_uint(void);
-extern void test_nc_put_var_longlong(void);
-extern void test_nc_put_var_ulonglong(void);
+extern int test_nc_put_att(void);
+extern int test_nc_put_var_double(void);
+extern int test_nc_put_var_float(void);
+extern int test_nc_put_var_int(void);
+extern int test_nc_put_var_long(void);
+extern int test_nc_put_var_schar(void);
+extern int test_nc_put_var_short(void);
+extern int test_nc_put_var_text(void);
+extern int test_nc_put_var_uchar(void);
+extern int test_nc_put_var(void);
+extern int test_nc_put_var_ushort(void);
+extern int test_nc_put_var_uint(void);
+extern int test_nc_put_var_longlong(void);
+extern int test_nc_put_var_ulonglong(void);
 
-extern void test_nc_put_var1_double(void);
-extern void test_nc_put_var1_float(void);
-extern void test_nc_put_var1_int(void);
-extern void test_nc_put_var1_long(void);
-extern void test_nc_put_var1_schar(void);
-extern void test_nc_put_var1_short(void);
-extern void test_nc_put_var1_text(void);
-extern void test_nc_put_var1_uchar(void);
-extern void test_nc_put_var1(void);
-extern void test_nc_put_var1_ushort(void);
-extern void test_nc_put_var1_uint(void);
-extern void test_nc_put_var1_longlong(void);
-extern void test_nc_put_var1_ulonglong(void);
+extern int test_nc_put_var1_double(void);
+extern int test_nc_put_var1_float(void);
+extern int test_nc_put_var1_int(void);
+extern int test_nc_put_var1_long(void);
+extern int test_nc_put_var1_schar(void);
+extern int test_nc_put_var1_short(void);
+extern int test_nc_put_var1_text(void);
+extern int test_nc_put_var1_uchar(void);
+extern int test_nc_put_var1(void);
+extern int test_nc_put_var1_ushort(void);
+extern int test_nc_put_var1_uint(void);
+extern int test_nc_put_var1_longlong(void);
+extern int test_nc_put_var1_ulonglong(void);
 
-extern void test_nc_put_vara_double(void);
-extern void test_nc_put_vara_float(void);
-extern void test_nc_put_vara_int(void);
-extern void test_nc_put_vara_long(void);
-extern void test_nc_put_vara_schar(void);
-extern void test_nc_put_vara_short(void);
-extern void test_nc_put_vara_text(void);
-extern void test_nc_put_vara_uchar(void);
-extern void test_nc_put_vara(void);
-extern void test_nc_put_vara_ushort(void);
-extern void test_nc_put_vara_uint(void);
-extern void test_nc_put_vara_longlong(void);
-extern void test_nc_put_vara_ulonglong(void);
+extern int test_nc_put_vara_double(void);
+extern int test_nc_put_vara_float(void);
+extern int test_nc_put_vara_int(void);
+extern int test_nc_put_vara_long(void);
+extern int test_nc_put_vara_schar(void);
+extern int test_nc_put_vara_short(void);
+extern int test_nc_put_vara_text(void);
+extern int test_nc_put_vara_uchar(void);
+extern int test_nc_put_vara(void);
+extern int test_nc_put_vara_ushort(void);
+extern int test_nc_put_vara_uint(void);
+extern int test_nc_put_vara_longlong(void);
+extern int test_nc_put_vara_ulonglong(void);
 
-extern void test_nc_put_vars_double(void);
-extern void test_nc_put_vars_float(void);
-extern void test_nc_put_vars_int(void);
-extern void test_nc_put_vars_long(void);
-extern void test_nc_put_vars_schar(void);
-extern void test_nc_put_vars_short(void);
-extern void test_nc_put_vars_text(void);
-extern void test_nc_put_vars_uchar(void);
-extern void test_nc_put_vars(void);
-extern void test_nc_put_vars_ushort(void);
-extern void test_nc_put_vars_uint(void);
-extern void test_nc_put_vars_longlong(void);
-extern void test_nc_put_vars_ulonglong(void);
+extern int test_nc_put_vars_double(void);
+extern int test_nc_put_vars_float(void);
+extern int test_nc_put_vars_int(void);
+extern int test_nc_put_vars_long(void);
+extern int test_nc_put_vars_schar(void);
+extern int test_nc_put_vars_short(void);
+extern int test_nc_put_vars_text(void);
+extern int test_nc_put_vars_uchar(void);
+extern int test_nc_put_vars(void);
+extern int test_nc_put_vars_ushort(void);
+extern int test_nc_put_vars_uint(void);
+extern int test_nc_put_vars_longlong(void);
+extern int test_nc_put_vars_ulonglong(void);
 
-extern void test_nc_put_varm_double(void);
-extern void test_nc_put_varm_float(void);
-extern void test_nc_put_varm_int(void);
-extern void test_nc_put_varm_long(void);
-extern void test_nc_put_varm_schar(void);
-extern void test_nc_put_varm_short(void);
-extern void test_nc_put_varm_text(void);
-extern void test_nc_put_varm_uchar(void);
-extern void test_nc_put_varm(void);
-extern void test_nc_put_varm_ushort(void);
-extern void test_nc_put_varm_uint(void);
-extern void test_nc_put_varm_longlong(void);
-extern void test_nc_put_varm_ulonglong(void);
+extern int test_nc_put_varm_double(void);
+extern int test_nc_put_varm_float(void);
+extern int test_nc_put_varm_int(void);
+extern int test_nc_put_varm_long(void);
+extern int test_nc_put_varm_schar(void);
+extern int test_nc_put_varm_short(void);
+extern int test_nc_put_varm_text(void);
+extern int test_nc_put_varm_uchar(void);
+extern int test_nc_put_varm(void);
+extern int test_nc_put_varm_ushort(void);
+extern int test_nc_put_varm_uint(void);
+extern int test_nc_put_varm_longlong(void);
+extern int test_nc_put_varm_ulonglong(void);
 
-extern void test_nc_put_att_double(void);
-extern void test_nc_put_att_float(void);
-extern void test_nc_put_att_int(void);
-extern void test_nc_put_att_long(void);
-extern void test_nc_put_att_schar(void);
-extern void test_nc_put_att_short(void);
-extern void test_nc_put_att_text(void);
-extern void test_nc_put_att_uchar(void);
-extern void test_nc_put_att_ushort(void);
-extern void test_nc_put_att_uint(void);
-extern void test_nc_put_att_longlong(void);
-extern void test_nc_put_att_ulonglong(void);
+extern int test_nc_put_att_double(void);
+extern int test_nc_put_att_float(void);
+extern int test_nc_put_att_int(void);
+extern int test_nc_put_att_long(void);
+extern int test_nc_put_att_schar(void);
+extern int test_nc_put_att_short(void);
+extern int test_nc_put_att_text(void);
+extern int test_nc_put_att_uchar(void);
+extern int test_nc_put_att_ushort(void);
+extern int test_nc_put_att_uint(void);
+extern int test_nc_put_att_longlong(void);
+extern int test_nc_put_att_ulonglong(void);
 
 extern void test_nc_create(void);
 extern void test_nc_redef(void);
@@ -511,6 +510,8 @@ typedef enum {
 int inRange3(const int cdf_format, const double value, const nc_type datatype, const nct_itype itype);
 
 int equal(const double x, const double y, nc_type extType, nct_itype itype);
+
+int equal2(const double x, const double y, nc_type extType);
 
 int int_vec_eq(const int *v1, const int *v2, const int n);
 
@@ -565,6 +566,8 @@ void check_file(char *filename);
 int file_create(const char *filename, int cmode, int *ncid);
 
 int file_open(const char *filename, int omode, int *ncid);
+
+char* nc_err_code_name(int err);
 
 #ifdef __cplusplus
 }

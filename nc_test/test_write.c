@@ -706,10 +706,10 @@ test_nc_def_var(void)
 /*
  * Test nc_put_var1
  */
-void
+int
 test_nc_put_var1(void)
 {
-    int ncid;
+    int ncid, nok=0;
     int i;
     int j;
     int err;
@@ -720,7 +720,7 @@ test_nc_put_var1(void)
     err = file_create(scratch, NC_NOCLOBBER, &ncid);
     IF (err) {
         error("nc_create: %s", nc_strerror(err));
-        return;
+        return nok;
     }
     def_dims(ncid);
     def_vars(ncid);
@@ -754,7 +754,8 @@ test_nc_put_var1(void)
 	    if (inRange(value, var_type[i])) {
 		err = dbl2nc(value, var_type[i], buf);
 		IF (err)
-		    error("error in dbl2nc");
+		    error("error in dbl2nc var:%s type:%s",
+                          var_name[i],s_nc_type(var_type[i]));
 		if (var_rank[i] == 0 && i%2 == 0)
 		    err = nc_put_var1(ncid, i, NULL, buf);
 		else
@@ -773,6 +774,7 @@ test_nc_put_var1(void)
     err = remove(scratch);
     IF (err)
         error("remove of %s failed", scratch);
+    return nok;
 }
 
 
@@ -783,10 +785,10 @@ test_nc_put_var1(void)
  * Redefine buffer for each put.
  * At end check all variables using check_vars
  */
-void
+int
 test_nc_put_vara(void)
 {
-    int ncid;
+    int ncid, nok=0;
     int d;
     int i;
     int j;
@@ -805,7 +807,7 @@ test_nc_put_vara(void)
     err = file_create(scratch, NC_NOCLOBBER, &ncid);
     IF (err) {
         error("nc_create: %s", nc_strerror(err));
-        return;
+        return nok;
     }
     def_dims(ncid);
     def_vars(ncid);
@@ -893,6 +895,7 @@ test_nc_put_vara(void)
     err = remove(scratch);
     IF (err)
         error("remove of %s failed", scratch);
+    return nok;
 }
 
 
@@ -904,10 +907,10 @@ test_nc_put_vara(void)
  * Redefine buffer for each put.
  * At end check all variables using check_vars
  */
-void
+int
 test_nc_put_vars(void)
 {
-    int ncid;
+    int ncid, nok=0;
     int d;
     int i;
     int j;
@@ -932,7 +935,7 @@ test_nc_put_vars(void)
     err = file_create(scratch, NC_NOCLOBBER, &ncid);
     IF (err) {
         error("nc_create: %s", nc_strerror(err));
-        return;
+        return nok;
     }
     def_dims(ncid);
     def_vars(ncid);
@@ -1048,6 +1051,7 @@ test_nc_put_vars(void)
     err = remove(scratch);
     IF (err)
         error("remove of %s failed", scratch);
+    return nok;
 }
 
 
@@ -1060,10 +1064,10 @@ test_nc_put_vars(void)
  * So all puts for a variable put different elements of buffer
  * At end check all variables using check_vars
  */
-void
+int
 test_nc_put_varm(void)
 {
-    int ncid;
+    int ncid, nok=0;
     int i;
     int j;
     int k;
@@ -1087,7 +1091,7 @@ test_nc_put_varm(void)
     err = file_create(scratch, NC_NOCLOBBER, &ncid);
     IF (err) {
         error("nc_create: %s", nc_strerror(err));
-        return;
+        return nok;
     }
     def_dims(ncid);
     def_vars(ncid);
@@ -1210,6 +1214,7 @@ test_nc_put_varm(void)
     err = remove(scratch);
     IF (err)
         error("remove of %s failed", scratch);
+    return nok;
 }
 
 
@@ -1295,10 +1300,10 @@ test_nc_rename_var(void)
 }
 
 
-void
+int
 test_nc_put_att(void)
 {
-    int ncid;
+    int ncid, nok=0;
     int varid;
     int i;
     int j;
@@ -1314,7 +1319,7 @@ test_nc_put_att(void)
     err = file_create(scratch, NC_NOCLOBBER, &ncid);
     IF (err) {
         error("nc_create: %s", nc_strerror(err));
-        return;
+        return nok;
     }
     def_dims(ncid);
     def_vars(ncid);
@@ -1362,6 +1367,7 @@ test_nc_put_att(void)
     err = remove(scratch);
     IF (err)
         error("remove of %s failed", scratch);
+    return nok;
 }
 
 
@@ -1537,7 +1543,7 @@ test_nc_rename_att(void)
     nc_type atttype;
     size_t length;
     size_t attlength;
-    signed char  text[MAX_NELS];
+    char text[MAX_NELS];
     double value[MAX_NELS];
     double expect;
 

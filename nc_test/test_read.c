@@ -830,7 +830,7 @@ test_nc_inq_vartype(void)
 /*
  * Test nc_put_var1
  */
-void
+int
 test_nc_get_var1(void)
 {
     int ncid;
@@ -877,7 +877,8 @@ test_nc_get_var1(void)
 	    IF (err)
 		error("error in nc2dbl");
 	    if (inRange(expect,var_type[i])) {
-		IF (!equal(value,expect,var_type[i],NCT_DOUBLE)) {
+		IF (!equal2(value,expect,var_type[i])) {
+		    error("getting var %s of type %s\n", var_name[i], s_nc_type(var_type[i]));
 		    error("expected: %G, got: %G", expect, value);
 		} else {
 		    nok++;
@@ -889,6 +890,7 @@ test_nc_get_var1(void)
     IF (err)
 	error("nc_close: %s", nc_strerror(err));
     print_nok(nok);
+    return nok;
 }
 
 /*
@@ -897,7 +899,7 @@ test_nc_get_var1(void)
  * Get 2^rank (nslabs) slabs so defined
  * Each get overwrites buffer, so check after each get.
  */
-void
+int
 test_nc_get_vara(void)
 {
     int ncid;
@@ -986,7 +988,7 @@ test_nc_get_vara(void)
 			index[d] += start[d];
 		    expect = hash(var_type[i], var_rank[i], index);
 		    if (inRange(expect,var_type[i])) {
-			IF (!equal(got,expect,var_type[i],NCT_DOUBLE)) {
+			IF (!equal2(got,expect,var_type[i])) {
 			    error("value read not that expected");
 			    if (verbose) {
 				error("\n");
@@ -1008,6 +1010,7 @@ test_nc_get_vara(void)
     IF (err)
         error("nc_close: %s", nc_strerror(err));
     print_nok(nok);
+    return nok;
 }
 
 
@@ -1017,7 +1020,7 @@ test_nc_get_vara(void)
  * Get 2^rank (nslabs) slabs so defined
  * Each get overwrites buffer, so check after each get.
  */
-void
+int
 test_nc_get_vars(void)
 {
     int ncid;
@@ -1141,7 +1144,7 @@ test_nc_get_vars(void)
 			    index2[d] = index[d] + index2[d] * stride[d];
 			expect = hash(var_type[i], var_rank[i], index2);
 			if (inRange(expect,var_type[i])) {
-			    IF (!equal(got,expect,var_type[i],NCT_DOUBLE)) {
+			    IF (!equal2(got,expect,var_type[i])) {
 				error("value read not that expected");
 				if (verbose) {
 				    error("\n");
@@ -1175,6 +1178,7 @@ test_nc_get_vars(void)
     IF (err)
         error("nc_close: %s", nc_strerror(err));
     print_nok(nok);
+    return nok;
 }
 
 
@@ -1186,7 +1190,7 @@ test_nc_get_vars(void)
  * Buffer should end up being bit image of external variable.
  * So all gets for a variable store in different elements of buffer
  */
-void
+int
 test_nc_get_varm(void)
 {
     int ncid;
@@ -1314,7 +1318,7 @@ test_nc_get_varm(void)
 	    IF (err)
 		error("error in nc2dbl");
 	    if (inRange(expect,var_type[i])) {
-		IF (!equal(got,expect,var_type[i],NCT_DOUBLE)) {
+		IF (!equal2(got,expect,var_type[i])) {
 		    error("value read not that expected");
 		    if (verbose) {
 			error("\n");
@@ -1335,10 +1339,11 @@ test_nc_get_varm(void)
     IF (err)
         error("nc_close: %s", nc_strerror(err));
     print_nok(nok);
+    return nok;
 }
 
 
-void
+int
 test_nc_get_att(void)
 {
     int ncid;
@@ -1379,7 +1384,7 @@ test_nc_get_att(void)
 		    IF (err)
 			error("error in nc2dbl");
 		    if (inRange(expect,ATT_TYPE(i,j))) {
-              IF (!equal(got,expect,ATT_TYPE(i,j),NCT_DOUBLE)) {
+                        IF (!equal2(got,expect,ATT_TYPE(i,j))) {
 			    error("value read not that expected");
 			    if (verbose) {
 				error("\n");
@@ -1404,6 +1409,7 @@ test_nc_get_att(void)
     IF (err)
 	error("nc_close: %s", nc_strerror(err));
     print_nok(nok);
+    return nok;
 }
 
 
