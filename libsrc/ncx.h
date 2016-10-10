@@ -989,21 +989,6 @@ ncx_putn_ulonglong_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
  */
 
 /* read ASCII characters */
-#ifdef __arm__
-
-extern int
-ncx_getn_text(const void **xpp, size_t nchars, signed char *cp);
-extern int
-ncx_pad_getn_text(const void **xpp, size_t nchars, signed char *cp);
-
-/* write ASCII characters */
-extern int
-ncx_putn_text(void **xpp, size_t nchars, const signed char *cp);
-extern int
-ncx_pad_putn_text(void **xpp, size_t nchars, const signed char *cp);
-
-#else // ifdef __arm__
-
 extern int
 ncx_getn_text(const void **xpp, size_t nchars, char *cp);
 extern int
@@ -1015,7 +1000,6 @@ ncx_putn_text(void **xpp, size_t nchars, const char *cp);
 extern int
 ncx_pad_putn_text(void **xpp, size_t nchars, const char *cp);
 
-#endif //ifdef __arm__
 
 /* for symmetry */
 #define ncx_getn_char_char(xpp, nelems, fillp) ncx_getn_text(xpp, nelems, fillp)

@@ -228,13 +228,8 @@ fail:
 NC_new_string(count, str)
  */
 
-#ifdef __arm__
-NC_string *
-new_NC_string(size_t slen, const signed char *str)
-#else
 NC_string *
 new_NC_string(size_t slen, const char *str)
-#endif
 {
 	NC_string *ncstrp;
 	size_t sz = M_RNDUP(sizeof(NC_string)) + slen + 1;
@@ -269,13 +264,8 @@ new_NC_string(size_t slen, const char *str)
 NC_re_string()
  */
 
-#ifdef __arm__
- int
-   set_NC_string(NC_string *ncstrp, const signed char *str)
-#else
  int
    set_NC_string(NC_string *ncstrp, const char *str)
-#endif
  {
 	size_t slen;
 

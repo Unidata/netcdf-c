@@ -226,7 +226,11 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 #endif
         else {
 	  /* mystart is unsigned, will never be < 0 */
+#ifdef ISSUE243
 	  if(mystart[i] > dimlen)
+#else
+          if(mystart[i] >= dimlen)
+#endif
 	    return NC_EINVALCOORDS;
           /* myediges is unsigned, will never be < 0 */
 	  if(mystart[i] + myedges[i] > dimlen)
@@ -422,7 +426,11 @@ NCDEFAULT_put_varm(
        */
       for (idim = isrecvar; idim < maxidim; ++idim)
       {
+#ifdef ISSUE243
 	 if (mystart[idim] > varshape[idim])
+#else
+         if (mystart[idim] >= varshape[idim])
+#endif
 	 {
 	    status = NC_EINVALCOORDS;
 	    goto done;
