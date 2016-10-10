@@ -272,16 +272,9 @@ HDF5 with parallel I/O:
     $ make check
     $ make install
 
-If the HDF5 used by netCDF has been built with parallel I/O, then
-netCDF will also be built with inherited support for parallel
-I/O. This allows parallel I/O access to netCDF-4/HDF5 files. Note that
-shared libraries are not supported for parallel HDF5, which makes
-linking more difficult to get right.  (See /ref netcdf_formats for
-more information about the netCDF format variants.)
+If the HDF5 used by netCDF has been built with parallel I/O, then netCDF will also be built with inherited support for parallel I/O. This allows parallel I/O access to netCDF-4/HDF5 files.  (See /ref netcdf_formats for more information about the netCDF format variants.)
 
-From the top-level netCDF-4 source directory, the following builds
-netCDF-4 with parallel I/O, assuming H5DIR specifies where parallel
-HDF5 was installed:
+From the top-level netCDF-4 source directory, the following builds netCDF-4 with parallel I/O, assuming H5DIR specifies where parallel HDF5 was installed:
 
     $ # Build, test, and install netCDF-4 with HDF5 parallel support
     $ CC=mpicc CPPFLAGS=-I${H5DIR}/include LDFLAGS=-L${H5DIR}/lib \
