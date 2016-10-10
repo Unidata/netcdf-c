@@ -709,7 +709,7 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 		remaining -= extent;
 		if(remaining == 0)
 			break; /* normal loop exit */
-		offset += extent;
+		offset += (off_t)extent;
 		value += nput;
 
 	}
@@ -868,7 +868,7 @@ getNCvx_$1_$2(const NC3_INFO* ncp, const NC_var *varp,
 		remaining -= extent;
 		if(remaining == 0)
 			break; /* normal loop exit */
-		offset += extent;
+		offset += (off_t)extent;
 		value += nget;
 	}
 
