@@ -4,7 +4,7 @@ alias xx="cd ..;make; cd libdap2"
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""; SHARP='#'
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-F="https://eosdap.hdfgroup.org:8080/opendap/data/test/kent/ceres-converted/edition_4/CER_SSF1deg-Hour_Terra-MODIS_TestSuite_000000.200407D01.hdf"
+F="http://www.esrl.noaa.gov/psd/thredds/dodsC/Datasets/ncep.reanalysis.dailyavgs/pressure/air.1947.nc"
 
 if test -e "/cygdrive/f/git/netcdf-c" ; then
 TOP="/cygdrive/f/git/netcdf-c"

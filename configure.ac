@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.4.1-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.4.2-development], [support-netcdf@unidata.ucar.edu])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -26,7 +26,7 @@ AC_INIT([netCDF], [4.4.1-development], [support-netcdf@unidata.ucar.edu])
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=4
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=2
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 #####
@@ -203,21 +203,6 @@ if test "x$enable_netcdf4" = xno ; then
 enable_netcdf_4=no
 fi
 AC_MSG_RESULT([$enable_netcdf_4])
-
-####
-# Is Netcdf4 file info capture enabled; includes properties attribute
-# We do not actually provide a direct flag for disabling this
-if test "x$enable_netcdf_4" = xyes ; then
-enable_fileinfo=yes
-else
-enable_fileinfo=no
-fi
-AC_MSG_CHECKING([If file info capture is enabled])
-AC_MSG_RESULT([$enable_fileinfo])
-if test "x$enable_fileinfo" = xyes ; then
-AC_DEFINE([ENABLE_FILEINFO], [1], [file info])
-fi
-AM_CONDITIONAL(ENABLE_FILEINFO, [test x$enable_fileinfo = xyes])
 
 # Does the user require dynamic loading?
 # This is only for those hdf5 installs that support it.

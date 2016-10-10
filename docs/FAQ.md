@@ -322,7 +322,7 @@ We test releases on the following operating systems with various compilers:
 -   Solaris
 -   Windows (some versions, see below)
 
-The [NetCDF Installation and Porting Guide](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-install/index.html) explains how to build netCDF from source on various platforms. Often, it's as easy as running
+The [NetCDF Installation and Porting Guide](@ref getting_and_building_netcdf) explains how to build netCDF from source on various platforms. Often, it's as easy as running
 
 ~~~~ {.boldcode}
   ./configure
@@ -483,7 +483,7 @@ How do I build and install netCDF for a specific development environment? {#How-
 You have to build and install the netCDF C library first, before you build and install other language libraries that depend on it, such as Fortran, C++, or Python netCDF libraries. The netCDF Java library is mostly independent of the netCDF C library, unless you need to write netCDF-4 files from Java, in which case you will also need an installed netCDF C library.
 
 For more details, see
-[Getting and Building netCDF](http://www.unidata.ucar.edu/software/netcdf/docs/getting_and_building_netcdf.html).
+[NetCDF Installation and Porting Guide](@ref getting_and_building_netcdf).
 
 
 ----------

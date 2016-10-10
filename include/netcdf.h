@@ -1948,7 +1948,7 @@ ncrecget(int ncid, long recnum, void **datap);
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
-  //EXTERNL int nc_finalize();
+/* EXTERNL int nc_finalize(); */
 
 /* End v2.4 backward compatibility */
 #endif /*!NO_NETCDF_2*/

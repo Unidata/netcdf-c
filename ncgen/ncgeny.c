@@ -338,7 +338,7 @@ Datalist*      datalist;
 NCConstant       constant;
 }
 /* Line 193 of yacc.c.  */
-#line 342 "ncgen.tab.c"
+#line 342 "ncgeny.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -351,7 +351,7 @@ NCConstant       constant;
 
 
 /* Line 216 of yacc.c.  */
-#line 355 "ncgen.tab.c"
+#line 355 "ncgeny.c"
 
 #ifdef short
 # undef short
@@ -2732,7 +2732,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
 
 
 /* Line 1267 of yacc.c.  */
-#line 2736 "ncgen.tab.c"
+#line 2736 "ncgeny.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2961,6 +2961,7 @@ yyerror(fmt,va_alist) const char* fmt; va_dcl
     vastart(argv,fmt);
     (void)fprintf(stderr,"%s: %s line %d: ", progname, cdlname, lineno);
     vderror(fmt,argv);
+    vaend(argv,fmt);
 }
 
 /* undefine yywrap macro, in case we are using bison instead of yacc */

@@ -338,7 +338,7 @@ ocrc_compile(const char* path)
             *value = '\0';
             value++;
         }
-        strncpy(ocrc->triples[ocrc->ntriples].key,key,MAXRCLINESIZE);
+        strncpy(ocrc->triples[ocrc->ntriples].key,key,MAXRCLINESIZE-1);
         if(*value == '\0')
             strcpy(ocrc->triples[ocrc->ntriples].value,"1");/*dfalt*/
         else
@@ -718,14 +718,20 @@ rc_search(const char* prefix, const char* rcname, char** pathp)
         oclog(OCLOGDBG, "Found rc file=%s",path);
 done:
     if(f == NULL || stat != OC_NOERR) {
-	if(path != NULL)
+      if(path != NULL)
 	    free(path);
-	path = NULL;
+      path = NULL;
     }
+
     if(f != NULL)
-	fclose(f);
+      fclose(f);
     if(pathp != NULL)
-	*pathp = path;
+      *pathp = path;
+    else {
+      free(path);
+      path = NULL;
+    }
+
     return OCTHROW(stat);
 }
 

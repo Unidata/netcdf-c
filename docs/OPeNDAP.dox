@@ -32,6 +32,7 @@ See the following pages for more information.
 - <a href="auth.html">netCDF Authorization Support</a>
 - \subpage esg
 - \subpage dap_to_netcdf
+- \subpage dap2_reserved_keywords
 - \subpage var_dim_trans
 - \subpage var_name_trans
 
@@ -247,6 +248,36 @@ within grids are left out in order to mimic the behavior of libnc-dap.
     lat
     lon
 \endcode
+
+\page dap2_reserved_keywords DAP2 Reserved Keywords
+
+\tableofcontents
+
+In the OPeNDAP DAP2 protocol, there are a number of reserved keywords.  These keywords are case insensitive and if you use one as a netCDF variable name, you may encounter odd behavior such as case changes (depending on the client DDS/DAS parser).  The list of reserved keywords as used by the netCDF-C library parser are as follows:
+
+- alias
+- array
+- attributes
+- byte
+- dataset
+- error
+- float32
+- float64
+- grid
+- int16
+- int32
+- maps
+- sequence
+- string
+- structure
+- uint16
+- uint32
+- url
+- code
+- message
+- program_type
+- program
+
 
 \page var_dim_trans Variable Dimension Translation
 

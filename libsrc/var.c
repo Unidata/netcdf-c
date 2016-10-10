@@ -15,7 +15,24 @@
 #include "utf8proc.h"
 
 #ifndef OFF_T_MAX
-#define OFF_T_MAX (~ (off_t) 0 - (~ (off_t) 0 << (CHAR_BIT * sizeof (off_t) - 1)))
+//#define OFF_T_MAX (~ (off_t) 0 - (~ (off_t) 0 << (CHAR_BIT * sizeof (off_t) - 1)))
+
+/* The behavior above is undefined, re: bitshifting a negative value, according
+   to warnings thrown by clang/gcc.  An alternative OFF_T_MAX was written
+   based on info found at:
+   * http://stackoverflow.com/questions/4514572/c-question-off-t-and-other-signed-integer-types-minimum-and-maximum-values
+   */
+#define MAX_INT_VAL_STEP(t) \
+    ((t) 1 << (CHAR_BIT * sizeof(t) - 1 - ((t) -1 < 1)))
+
+#define MAX_INT_VAL(t) \
+    ((MAX_INT_VAL_STEP(t) - 1) + MAX_INT_VAL_STEP(t))
+
+#define MIN_INT_VAL(t) \
+    ((t) -MAX_INT_VAL(t) - 1)
+
+#define OFF_T_MAX MAX_INT_VAL(off_t)
+
 #endif
 
 /*
@@ -382,13 +399,13 @@ ncx_szof(nc_type type)
 		return X_SIZEOF_FLOAT;
 	case NC_DOUBLE :
 		return X_SIZEOF_DOUBLE;
-	case NC_USHORT : 
+	case NC_USHORT :
 		return X_SIZEOF_USHORT;
-	case NC_UINT : 
+	case NC_UINT :
 		return X_SIZEOF_UINT;
-	case NC_INT64 : 
+	case NC_INT64 :
 		return X_SIZEOF_INT64;
-	case NC_UINT64 : 
+	case NC_UINT64 :
 		return X_SIZEOF_UINT64;
 	default:
 	        assert("ncx_szof invalid type" == 0);
@@ -446,15 +463,15 @@ NC_var_shape(NC_var *varp, const NC_dimarray *dims)
       /*if(!(shp == varp->shape && IS_RECVAR(varp)))*/
       if( shp != NULL && (shp != varp->shape || !IS_RECVAR(varp)))
 		{
-		    if( (off_t)(*shp) <= OFF_T_MAX / product )
+          if( ((off_t)(*shp)) <= OFF_T_MAX / product )
 			{
               product *= (*shp > 0 ? *shp : 1);
 			} else
 			{
-				product = OFF_T_MAX ;
+              product = OFF_T_MAX ;
 			}
 		}
-		*dsp = product;
+      *dsp = product;
 	}
 
 
@@ -740,14 +757,14 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 	    return NC_ENOMEM;
 	if(NC_indef(ncp))
 	{
+		/* Remove old name from hashmap; add new... */
+		NC_hashmapRemoveVar(&ncp->vars, old->cp);
+
 		newStr = new_NC_string(strlen(newname),newname);
 		free(newname);
 		if(newStr == NULL)
 			return(-1);
 		varp->name = newStr;
-
-		/* Remove old name from hashmap; add new... */
-		NC_hashmapRemoveVar(&ncp->vars, old->cp);
 		NC_hashmapAddVar(&ncp->vars, varid, newStr->cp);
 		free_NC_string(old);
 
@@ -755,13 +772,14 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 	}
 
 	/* else, not in define mode */
+	/* Remove old name from hashmap; add new... */
+	NC_hashmapRemoveVar(&ncp->vars, old->cp);
+
 	status = set_NC_string(varp->name, newname);
 	free(newname);
 	if(status != NC_NOERR)
 		return status;
 
-	/* Remove old name from hashmap; add new... */
-	NC_hashmapRemoveVar(&ncp->vars, old->cp);
 	NC_hashmapAddVar(&ncp->vars, varid, varp->name->cp);
 
 	set_NC_hdirty(ncp);

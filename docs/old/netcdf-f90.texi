@@ -5180,7 +5180,7 @@ rh in an existing netCDF dataset named foo.nc:
 @findex NF90_INQ_VARID 
 @cindex NF90_INQ_VARID, example
 
-Given the name of a varaible, nf90_inq_varid finds the variable ID.
+Given the name of a variable, nf90_inq_varid finds the variable ID.
 
 @heading Usage 
 @example

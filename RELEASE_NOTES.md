@@ -5,8 +5,25 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.4.1 - TBD
+> Note: The combination of netCDF-C library versions earlier than 4.4.1 and libhdf5 1.10.0+ should be avoided, as they will result in binary files not readable by systems using earlier libhdf5 versions.
 
+## 4.4.2 - TBD
+
+* [Documentation] Updated documentation related to netCDF variable names and DAP2 access to reflect the undefined behavior potentially observed when DAP2 reserved keywords are used as netCDF variable names. See [GitHub #308](https://github.com/Unidata/netcdf-c/issues/308) for more information.
+* [Bug] Fixed an issue with `nc_inq_type()` not returning proper value in some circumstances.  See [GitHub #317](https://github.com/Unidata/netcdf-c/issues/317) for more information.
+* [Bug] Corrected an issue related to test failures when `--disable-utilities` or `-DENABLE_UTILITIES=OFF` are specified when building with autotools or cmake, respectively.  See [GitHub #313](https://github.com/Unidata/netcdf-c/issues/313) for more information.
+* [Bug][Enhancement] Corrected a behavioral issue with the `_NCProperties` attribute taking up too much space.  See [GitHub #300](https://github.com/Unidata/netcdf-c/issues/300) and [GitHub #301](https://github.com/Unidata/netcdf-c/pull/301) for more information.
+
+* [Bug] Corrected behavior for `nc-config` so that, if `nf-config` is found in system, the proper fortran-related information will be conveyed.  See [GitHub #296](https://github.com/Unidata/netcdf-c/issues/296] for more information.
+
+## 4.4.1 - June 28, 2016
+
+* [File Change] Starting with release 4.4.1, netCDF-4 files created will have superblock version 0 instead of superblock version 2, as was observed in previous netCDF versions.  This is due to a workaround required to avoid backwards binary incompatibility when using libhdf5 1.10.x or greater.  Superblock versions 0 and 2 appear to be forward and backward compatible.  Other than a different superblock number the data should remain consistent.
+* [Enhancement] Added better error reporting when ncdump/nccopy are given a bad constraint in a DAP url. See [GitHub #279](https://github.com/Unidata/netcdf-c/pull/279) for more information.
+
+### 4.4.1-RC3 - June 17, 2016
+
+* [Bug Fix] Misc. bug fixes and improvements.
 * [Bug Fix] Corrected an issue where adding a \_FillValue attribute to a variable would result in other attributes being lost. See [GitHub #239](https://github.com/Unidata/netcdf-c/issues/239) for more details.
 * [Bug Fix][Parallel I/O] Corrected an issue reported by Kent Yang at the HDF group related to Collective Parallel I/O and a potential hang.
 

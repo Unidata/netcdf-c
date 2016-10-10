@@ -423,6 +423,44 @@ ignored_if_null.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTNC4 Not a netCDF-4 file.
 \returns ::NC_ENOTVAR Invalid variable ID.
+
+
+\section nc_inq_var_chunking_example Example
+
+\code
+        printf("**** testing contiguous storage...");
+        {
+     #define NDIMS6 1
+     #define DIM6_NAME "D5"
+     #define VAR_NAME6 "V5"
+     #define DIM6_LEN 100
+
+           int dimids[NDIMS6], dimids_in[NDIMS6];
+           int varid;
+           int ndims, nvars, natts, unlimdimid;
+           nc_type xtype_in;
+           char name_in[NC_MAX_NAME + 1];
+           int data[DIM6_LEN], data_in[DIM6_LEN];
+           size_t chunksize_in[NDIMS6];
+           int storage_in;
+           int i, d;
+
+           for (i = 0; i < DIM6_LEN; i++)
+              data[i] = i;
+
+
+           if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+           if (nc_def_dim(ncid, DIM6_NAME, DIM6_LEN, &dimids[0])) ERR;
+           if (dimids[0] != 0) ERR;
+           if (nc_def_var(ncid, VAR_NAME6, NC_INT, NDIMS6, dimids, &varid)) ERR;
+           if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;
+           if (nc_put_var_int(ncid, varid, data)) ERR;
+
+
+           if (nc_inq_var_chunking(ncid, 0, &storage_in, chunksize_in)) ERR;
+           if (storage_in != NC_CONTIGUOUS) ERR;
+\endcode
+
 */
 int
 nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
@@ -571,12 +609,34 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
 
 #endif /* USE_NETCDF4 */
 
-/**
+/*!
+
+Used in libdap2 and libdap4.
+
+@param[in] ncid               ncid for file.
+@param[in] varid              varid for variable in question.
+@param[out] name              Pointer to memory to contain the name of the variable.
+@param[out] xtypep            Pointer to memory to contain the type of the variable.
+@param[out] ndimsp            Pointer to memory to store the number of associated dimensions for the variable.
+@param[out] dimidsp           Pointer to memory to store the dimids associated with the variable.
+@param[out] nattsp            Pointer to memory to store the number of attributes associated with the variable.
+@param[out] shufflep          Pointer to memory to store shuffle information associated with the variable.
+@param[out] deflatep          Pointer to memory to store compression type associated with the variable.
+@param[out] deflate_levelp    Pointer to memory to store compression level associated with the variable.
+@param[out] fletcher32p       Pointer to memory to store compression information associated with the variable.
+@param[out] contiguousp       Pointer to memory to store contiguous-data information associated with the variable.
+@param[out] chunksizesp       Pointer to memory to store chunksize information associated with the variable.
+@param[out] no_fill           Pointer to memory to store whether or not there is a fill value associated with the variable.
+@param[out] fill_valuep       Pointer to memory to store the fill value (if one exists) for the variable.
+@param[out] endiannessp       Pointer to memory to store endianness value. One of ::NC_ENDIAN_BIG ::NC_ENDIAN_LITTLE ::NC_ENDIAN_NATIVE
+@param[out] options_maskp     Pointer to memory to store mask options information.
+@param[out] pixels_per_blockp Pointer to memory to store pixels-per-block information for chunked data.
+
+\note Expose access to nc_inq_var_all().
+
 \internal
 \ingroup variables
 
-Expose access to nc_inq_var_all().
-Used in libdap2 and libdap4.
 
 */
 int
@@ -597,7 +657,7 @@ NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       contiguousp, chunksizesp,
       no_fill, fill_valuep,
       endiannessp,
-      options_maskp, 
+      options_maskp,
       pixels_per_blockp);
 }
 

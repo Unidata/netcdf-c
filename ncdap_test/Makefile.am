@@ -33,7 +33,11 @@ if ENABLE_DAP_REMOTE_TESTS
 check_PROGRAMS += nctestserver
 nctestserver_SOURCES = nctestserver.c
 
-TESTS += tst_remote3.sh tst_formatx.sh test_partvar testurl.sh
+if BUILD_UTILITIES
+TESTS += tst_remote3.sh tst_formatx.sh
+endif
+
+TESTS += test_partvar testurl.sh
 
 if ENABLE_DAP_LONG_TESTS
  TESTS += tst_longremote3.sh

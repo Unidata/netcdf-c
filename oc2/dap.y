@@ -236,7 +236,7 @@ errorbody:
 	;
 
 errorcode:  /*empty*/ {$$=null;} | SCAN_CODE    '=' WORD_WORD ';' {$$=$3;}
-errormsg:   /*empty*/ {$$=null;} | SCAN_MESSAGE '=' WORD_WORD ';' {$$=$3;}
+errormsg:   /*empty*/ {$$=null;} | SCAN_MESSAGE '=' WORD_STRING ';' {$$=$3;}
 errorptype: /*empty*/ {$$=null;} | SCAN_PTYPE   '=' WORD_WORD ';' {$$=$3;}
 errorprog : /*empty*/ {$$=null;} | SCAN_PROG    '=' WORD_WORD ';' {$$=$3;}
 

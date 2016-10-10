@@ -28,7 +28,7 @@ These libraries have been built using Visual Studio 2012.  The downloads are ins
 
 The included dependencies and versions are as follows:
 
-* `libhdf5`: 1.8.16
+* `libhdf5`: 1.8.17
 * `libcurl`: 7.35.0
 * `zlib`:    1.2.8
 

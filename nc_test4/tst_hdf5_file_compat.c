@@ -45,13 +45,13 @@ int main(int argc, char **argv) {
 
   {
     printf("Testing %s\n",FILE_NAME2);
-    if (nc_open(FILE_NAME1, NC_NOWRITE, &ncid)) ERR;
+    if (nc_open(FILE_NAME2, NC_NOWRITE, &ncid)) ERR;
     if (nc_close(ncid)) ERR;
   }
 
   {
     printf("Testing %s\n",FILE_NAME3);
-    if (nc_open(FILE_NAME1, NC_NOWRITE, &ncid)) ERR;
+    if (nc_open(FILE_NAME3, NC_NOWRITE, &ncid)) ERR;
     if (nc_close(ncid)) ERR;
   }
 
