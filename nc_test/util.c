@@ -1025,7 +1025,7 @@ check_vars(int  ncid)
           err = nc_get_var1_text(ncid, i, index, &text);
           IF (err)
 		    error("nc_get_var1_text: %s", nc_strerror(err));
-		IF (text != expect) {
+		IF (text != (char)expect) {
 		    error("Var %s value read 0x%02x not that expected 0x%02x ",
 			var_name[i], text, (char)expect);
 			print_n_size_t(var_rank[i], index);
@@ -1101,7 +1101,8 @@ check_atts(int  ncid)
 		IF (err)
 		    error("nc_get_att_text: %s", nc_strerror(err));
 		for (k = 0; k < ATT_LEN(i,j); k++) {
-		    IF (text[k] != hash(xtype, -1, &k)) {
+		    expect = hash(xtype, -1, &k);
+		    IF (text[k] != (char)expect) {
 			error("nc_get_att_text: unexpected value");
             } else {
               nok++;

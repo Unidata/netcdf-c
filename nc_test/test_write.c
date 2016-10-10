@@ -1616,7 +1616,7 @@ test_nc_rename_att(void)
                     error("nc_get_att_text: %s", nc_strerror(err));
                 for (k = 0; k < attlength; k++) {
                     expect = hash(datatype, -1, &k);
-                    IF (text[k] != expect) {
+                    IF (text[k] != (char)expect) {
                         error("nc_get_att_text: unexpected value");
                     } else {
                         nok++;
