@@ -396,6 +396,9 @@ NC_lookupattr(int ncid,
 	if(ncap == NULL)
 		return NC_ENOTVAR;
 
+	if(name == NULL)
+		return NC_EBADNAME;
+
 	tmp = NC_findattr(ncap, name);
 	if(tmp == NULL)
 		return NC_ENOTATT;
