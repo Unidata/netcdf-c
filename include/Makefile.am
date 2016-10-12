@@ -21,7 +21,8 @@ nclog.h ncconfigure.h nc4internal.h nctime.h nc3dispatch.h nc3internal.h \
 onstack.h nc_hashmap.h ncglobal.h
 
 if USE_NETCDF4
-noinst_HEADERS += ncaux.h
+noinst_HEADERS += ncauxinternal.h
+include_HEADERS += ncaux.h
 endif
 
 EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in

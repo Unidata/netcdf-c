@@ -17,6 +17,7 @@
 
 #include "nc.h"
 #include "ncdispatch.h"
+#include "ncglobal.h"
 
 /* These have to do with version numbers. */
 #define MAGIC_NUM_LEN 4
@@ -78,9 +79,9 @@ nc_set_default_format(int format, int *old_formatp)
 {
     /* Return existing format if desired. */
     if (old_formatp) {
-      LOCK;
+      NCLOCK();
       *old_formatp = nc_global->default_create_format;
-      UNLOCK;
+      NCUNLOCK();
     }
 
     /* Make sure only valid format is set. */
@@ -94,9 +95,9 @@ nc_set_default_format(int format, int *old_formatp)
         format != NC_FORMAT_CDF5)
        return NC_EINVAL;
  #endif
-    LOCK;
+    NCLOCK();
     nc_global->default_create_format = format;
-    UNLOCK;
+    NCUNLOCK();
     return NC_NOERR;
 }
 
@@ -104,8 +105,8 @@ int
 nc_get_default_format(void)
 {
     int default_create_format;
-    LOCK;
+    NCLOCK();
     default_create_format = nc_global->default_create_format;
-    UNLOCK;
+    NCUNLOCK();
     return default_create_format;
 }

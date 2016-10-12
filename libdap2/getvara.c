@@ -819,7 +819,7 @@ fprintf(stderr,"\n");
 	    count = dcesegmentsize(segment,0,rank0); /* how many to read */
 	    internlen = interntypesize*count;
             /* Read the whole variable directly into memory.*/
-            ocstat = oc_data_readn(conn,currentcontent,dap_zero,count,internlen,memory->next);
+            ocstat = oc_data_readn(conn,currentcontent,nc_constants->coord_zero,count,internlen,memory->next);
 	    /* bump memory pointer */
 	    memory->next += internlen;
             if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
@@ -876,7 +876,7 @@ fprintf(stderr,"\n");
             size_t internlen;
 	    count = dcesegmentsize(segment,0,rank0); /* how many to read */
 	    internlen = interntypesize*count;
-            ocstat = oc_data_readn(conn,currentcontent,dap_zero,count,internlen,memory->next);
+            ocstat = oc_data_readn(conn,currentcontent,nc_constants->coord_zero,count,internlen,memory->next);
             if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 	}
     }

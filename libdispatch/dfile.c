@@ -1660,9 +1660,9 @@ NC_create(const char *path, int cmode, size_t initialsz,
    /* Initialize the dispatch table. The function pointers in the
     * dispatch table will depend on how netCDF was built
     * (with/without netCDF-4, DAP, CDMREMOTE). */
-   LOCK;
-   init = nc_global->initialized;
-   UNLOCK;
+   NCLOCK();
+   init = (nc_global != NULL);
+   NCUNLOCK();
    if(!init) {
       if ((stat = nc_initialize()))
 	 return stat;
@@ -1813,9 +1813,9 @@ NC_open(const char *path, int cmode,
    int init;
 
    TRACE(nc_open);
-   LOCK;
-   init = nc_global->initialized;
-   UNLOCK;
+   NCLOCK();
+   init = (nc_global != NULL);
+   NCUNLOCK();
    if(!init) {
       stat = nc_initialize();
       if(stat) return stat;
@@ -1954,9 +1954,9 @@ int
 nc__pseudofd(void)
 {
     int pseudofd;
-    LOCK;
+    NCLOCK();
     pseudofd = nc_global->pseudofd;
-    UNLOCK;
+    NCUNLOCK();
     if(pseudofd == 0)  {
         int maxfd = 32767; /* default */
 #ifdef HAVE_GETRLIMIT
@@ -1970,8 +1970,8 @@ nc__pseudofd(void)
 	pseudofd = maxfd+1;
 #endif
     }
-    LOCK;
+    NCLOCK();
     nc_global->pseudofd++;
-    UNLOCK;
+    NCUNLOCK();
     return pseudofd;
 }

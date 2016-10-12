@@ -16,6 +16,7 @@ conditions.
 #include "nc4internal.h"
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
+#include "ncglobal.h"
 #include "H5DSpublic.h"
 #include <utf8proc.h>
 
@@ -55,8 +56,8 @@ int nc_log_level = -1;
 #endif /* LOGGING */
 
 /* Provide a wrapper for H5Eset_auto */
-static herr_t
-set_auto(void* func, void *client_data) 
+herr_t
+NC4_set_auto(void* func, void *client_data) 
 {
 #ifdef DEBUGH5
     return H5Eset_auto2(H5E_DEFAULT,(H5E_auto2_t)h5catch,client_data);
@@ -65,18 +66,6 @@ set_auto(void* func, void *client_data)
 #endif
 }
 
-/*
-Provide a function to do any necessary initialization
-of the HDF5 library.
-*/
-
-void
-nc4_hdf5_initialize(void)
-{
-    if (set_auto(NULL, NULL) < 0)
-	LOG((0, "Couldn't turn off HDF5 error messages!"));
-    LOG((1, "HDF5 error messages have been turned off."));
-}
 
 /* Check and normalize and name. */
 int
@@ -136,9 +125,7 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid, size_t *maxlen
        BAIL(retval);
      if ((spaceid = H5Dget_space(datasetid)) < 0)
        BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-     num_spaces++;
-#endif
+     INCRSPACES();
      /* If it's a scalar dataset, it has length one. */
      if (H5Sget_simple_extent_type(spaceid) == H5S_SCALAR)
      {
@@ -172,9 +159,7 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid, size_t *maxlen
   exit:
    if (spaceid > 0 && H5Sclose(spaceid) < 0)
       BAIL2(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_spaces--;
-#endif
+   DECRSPACES();
    if (h5dimlen) free(h5dimlen);
    if (h5dimlenmax) free(h5dimlenmax);
    return retval;
@@ -676,9 +661,11 @@ nc4_var_list_add(NC_VAR_INFO_T **list, NC_VAR_INFO_T **var)
       return NC_ENOMEM;
 
    /* These are the HDF5-1.8.4 defaults. */
-   new_var->chunk_cache_size = nc4_chunk_cache_size;
-   new_var->chunk_cache_nelems = nc4_chunk_cache_nelems;
-   new_var->chunk_cache_preemption = nc4_chunk_cache_preemption;
+   NCLOCK();
+   new_var->chunk_cache_size = nc_global->nc4.chunk_cache_size;
+   new_var->chunk_cache_nelems = nc_global->nc4.chunk_cache_nelems;
+   new_var->chunk_cache_preemption = nc_global->nc4.chunk_cache_preemption;
+   NCUNLOCK();
 
    /* Add object to list */
    obj_list_add((NC_LIST_NODE_T **)list, (NC_LIST_NODE_T *)new_var);
@@ -1423,7 +1410,7 @@ nc_set_log_level(int new_level)
       fails, so just ignore the return code. */
    if (new_level == NC_TURN_OFF_LOGGING)
    {
-      set_auto(NULL,NULL);
+      NC4_set_auto(NULL,NULL);
       LOG((1, "HDF5 error messages turned off!"));
    }
 
@@ -1431,7 +1418,7 @@ nc_set_log_level(int new_level)
    if (new_level > NC_TURN_OFF_LOGGING &&
        nc_log_level <= NC_TURN_OFF_LOGGING)
    {
-      if (set_auto((H5E_auto_t)&H5Eprint, stderr) < 0)
+      if (NC4_set_auto((H5E_auto_t)&H5Eprint, stderr) < 0)
 	 LOG((0, "H5Eset_auto failed!"));
       LOG((1, "HDF5 error messages turned on."));
    }
@@ -1586,3 +1573,55 @@ NC4_show_metadata(int ncid)
 #endif /*LOGGING*/
    return retval;
 }
+
+#ifdef EXTRA_TESTS
+void
+NC4_incrplist(void)
+{
+    NCLOCK();
+    nc_global->nc4.num_plists++;
+    NCUNLOCK();
+}
+
+void
+NC4_decrplist(void)
+{
+    NCLOCK();
+    nc_global->nc4.num_plists--;
+    NCUNLOCK();
+}
+
+int NC4_getplist(void)
+{
+    int n;
+    NCLOCK();
+    n = nc_global->nc4.num_plists;
+    NCUNLOCK();
+    return n;
+}
+
+void
+NC4_incrspaces(void)
+{
+    NCLOCK();
+    nc_global->nc4.num_spaces++;
+    NCUNLOCK();
+}
+
+void
+NC4_decrspaces(void)
+{
+    NCLOCK();
+    nc_global->nc4.num_spaces--;
+    NCUNLOCK();
+}
+
+int NC4_getspaces(void)
+{
+    int n;
+    NCLOCK();
+    n = nc_global->nc4.num_spaces;
+    NCUNLOCK();
+    return n;
+}
+#endif

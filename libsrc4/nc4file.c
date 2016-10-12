@@ -13,6 +13,7 @@ COPYRIGHT file for copying and redistribution conditions.
 #include <errno.h>  /* netcdf functions sometimes return system errors */
 
 #include "nc.h"
+#include "ncglobal.h"
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 
@@ -31,13 +32,6 @@ COPYRIGHT file for copying and redistribution conditions.
    we log them or print to stdout. Default is to log
 */
 #define LOGOPEN 1
-
-/* This is to track opened HDF5 objects to make sure they are
- * closed. */
-#ifdef EXTRA_TESTS
-extern int num_plists;
-extern int num_spaces;
-#endif /* EXTRA_TESTS */
 
 #define MIN_DEFLATE_LEVEL 0
 #define MAX_DEFLATE_LEVEL 9
@@ -78,6 +72,9 @@ typedef struct NC4_rec_read_metadata_ud
 static int NC4_enddef(int ncid);
 static int nc4_rec_read_metadata(NC_GRP_INFO_T *grp);
 static int close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort);
+#ifndef USE_PARALLEL4
+static int set_cache(hid_t fapl_id);
+#endif
 
 /* Define the names of attributes to ignore
  * added by the HDF5 dimension scale; these
@@ -115,16 +112,37 @@ NCPROPS,
 NULL
 };
 
-/* These are the default chunk cache sizes for HDF5 files created or
- * opened with netCDF-4. */
-static const size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;
-static const size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;
-static constfloat nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION;
+void
+nc4_global_init(void)
+{
+    /* do any necessary initialization of the HDF5 library.*/
+    if (NC4_set_auto(NULL, NULL) < 0)
+	LOG((0, "Couldn't turn off HDF5 error messages!"));
+    LOG((1, "HDF5 error messages have been turned off."));
+    nc_global->nc4.chunk_cache_size = CHUNK_CACHE_SIZE;
+    nc_global->nc4.chunk_cache_nelems = CHUNK_CACHE_NELEMS;
+    nc_global->nc4.chunk_cache_preemption = CHUNK_CACHE_PREEMPTION;
+   /* Because these N5T_NATIVE_* constants are actually function calls
+    * (!) in H5Tpublic.h, I can't initialize this array in the usual
+    * way, because at least some C compilers (like Irix) complain
+    * about calling functions when defining constants. So I have to do
+    * it like this. Note that there's no native types for char or
+    * string. Those are handled later. */
+    nc_constants->nc4.h5_native_type_constant_g[1] = H5T_NATIVE_SCHAR;
+    nc_constants->nc4.h5_native_type_constant_g[2] = H5T_NATIVE_SHORT;
+    nc_constants->nc4.h5_native_type_constant_g[3] = H5T_NATIVE_INT;
+    nc_constants->nc4.h5_native_type_constant_g[4] = H5T_NATIVE_FLOAT;
+    nc_constants->nc4.h5_native_type_constant_g[5] = H5T_NATIVE_DOUBLE;
+    nc_constants->nc4.h5_native_type_constant_g[6] = H5T_NATIVE_UCHAR;
+    nc_constants->nc4.h5_native_type_constant_g[7] = H5T_NATIVE_USHORT;
+    nc_constants->nc4.h5_native_type_constant_g[8] = H5T_NATIVE_UINT;
+    nc_constants->nc4.h5_native_type_constant_g[9] = H5T_NATIVE_LLONG;
+    nc_constants->nc4.h5_native_type_constant_g[10] = H5T_NATIVE_ULLONG;
+}
 
 /* For performance, fill this array only the first time, and keep it
  * in global memory for each further use. */
-#define NUM_TYPES 12
-static hid_t h5_native_type_constant_g[NUM_TYPES];
+#define NUM_TYPES NC_MAX_ATOMIC_TYPE
 static const char nc_type_name_g[NUM_TYPES][NC_MAX_NAME + 1] = {"char", "byte", "short",
     "int", "float", "double", "ubyte",
     "ushort", "uint", "int64",
@@ -145,9 +163,11 @@ nc_set_chunk_cache(size_t size, size_t nelems, float preemption)
 {
    if (preemption < 0 || preemption > 1)
       return NC_EINVAL;
-   nc4_chunk_cache_size = size;
-   nc4_chunk_cache_nelems = nelems;
-   nc4_chunk_cache_preemption = preemption;
+   NCLOCK();
+   nc_global->nc4.chunk_cache_size = size;
+   nc_global->nc4.chunk_cache_nelems = nelems;
+   nc_global->nc4.chunk_cache_preemption = preemption;
+   NCUNLOCK();
    return NC_NOERR;
 }
 
@@ -156,14 +176,16 @@ nc_set_chunk_cache(size_t size, size_t nelems, float preemption)
 int
 nc_get_chunk_cache(size_t *sizep, size_t *nelemsp, float *preemptionp)
 {
+   NCLOCK()
    if (sizep)
-      *sizep = nc4_chunk_cache_size;
+      *sizep = nc_global->nc4.chunk_cache_size;
 
    if (nelemsp)
-      *nelemsp = nc4_chunk_cache_nelems;
+      *nelemsp = nc_global->nc4.chunk_cache_nelems;
 
    if (preemptionp)
-      *preemptionp = nc4_chunk_cache_preemption;
+      *preemptionp = nc_global->nc4.chunk_cache_preemption;
+   NCUNLOCK();
    return NC_NOERR;
 }
 
@@ -173,22 +195,25 @@ nc_set_chunk_cache_ints(int size, int nelems, int preemption)
 {
    if (size <= 0 || nelems <= 0 || preemption < 0 || preemption > 100)
       return NC_EINVAL;
-   nc4_chunk_cache_size = size;
-   nc4_chunk_cache_nelems = nelems;
-   nc4_chunk_cache_preemption = (float)preemption / 100;
+   NCLOCK();
+   nc_global->nc4.chunk_cache_size = size;
+   nc_global->nc4.chunk_cache_nelems = nelems;
+   nc_global->nc4.chunk_cache_preemption = (float)preemption / 100;
+   NCUNLOCK();
    return NC_NOERR;
 }
 
 int
 nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
 {
+   NCLOCK();
    if (sizep)
-      *sizep = (int)nc4_chunk_cache_size;
+      *sizep = (int)nc_global->nc4.chunk_cache_size;
    if (nelemsp)
-      *nelemsp = (int)nc4_chunk_cache_nelems;
+      *nelemsp = (int)nc_global->nc4.chunk_cache_nelems;
    if (preemptionp)
-      *preemptionp = (int)(nc4_chunk_cache_preemption * 100);
-
+      *preemptionp = (int)(nc_global->nc4.chunk_cache_preemption * 100);
+   NCUNLOCK();
    return NC_NOERR;
 }
 
@@ -349,9 +374,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
     * fail if there are any open objects in the file. */
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists++;
-#endif
+   INCRPLIST();
 #ifdef EXTRA_TESTS
    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI))
       BAIL(NC_EHDFERR);
@@ -409,11 +432,8 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 	 if (H5Pset_fapl_core(fapl_id, 4096, persist))
 	    BAIL(NC_EDISKLESS);
    }
-   if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
-		    nc4_chunk_cache_preemption) < 0)
-      BAIL(NC_EHDFERR);
-   LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-	__func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems, nc4_chunk_cache_preemption));
+   if(set_cache(fapl_id))
+        BAIL(NC_EHDFERR);
 #endif /* USE_PARALLEL4 */
 
 #ifdef HDF5_HAS_LIBVER_BOUNDS
@@ -424,9 +444,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* Create the property list. */
    if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists++;
-#endif
+   INCRPLIST();
 
    /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
    if (H5Pset_obj_track_times(fcpl_id,0)<0)
@@ -456,10 +474,9 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* Release the property lists. */
    if (H5Pclose(fapl_id) < 0 || H5Pclose(fcpl_id) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists--;
-   num_plists--;
-#endif
+
+   DECRPLIST();
+   DECRPLIST();
 
    /* Define mode gets turned on automatically on create. */
    nc4_info->flags |= NC_INDEF;
@@ -474,9 +491,7 @@ exit: /*failure exit*/
    if (comm_duped) MPI_Comm_free(&nc4_info->comm);
    if (info_duped) MPI_Info_free(&nc4_info->info);
 #endif
-#ifdef EXTRA_TESTS
-   num_plists--;
-#endif
+   INCRPLIST();
    if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if(!nc4_info) return retval;
    close_netcdf4_file(nc4_info,1); /* treat like abort */
@@ -695,9 +710,7 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
    /* How many dimensions are there? */
    if (!ret && (spaceid = H5Aget_space(coord_attid)) < 0) ret++;
-#ifdef EXTRA_TESTS
-   num_spaces++;
-#endif
+   INCRSPACES();
    if (!ret && (npoints = H5Sget_simple_extent_npoints(spaceid)) < 0) ret++;
 
    /* Check that the number of points is the same as the number of dimensions
@@ -715,9 +728,7 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
    /* Set my HDF5 IDs free! */
    if (spaceid >= 0 && H5Sclose(spaceid) < 0) ret++;
-#ifdef EXTRA_TESTS
-   num_spaces--;
-#endif
+   DECRSPACES();
    if (coord_att_typeid >= 0 && H5Tclose(coord_att_typeid) < 0) ret++;
    if (coord_attid >= 0 && H5Aclose(coord_attid) < 0) ret++;
    return ret ? NC_EATTMETA : NC_NOERR;
@@ -872,26 +883,6 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
 
    assert(h5 && type_info);
 
-   /* Because these N5T_NATIVE_* constants are actually function calls
-    * (!) in H5Tpublic.h, I can't initialize this array in the usual
-    * way, because at least some C compilers (like Irix) complain
-    * about calling functions when defining constants. So I have to do
-    * it like this. Note that there's no native types for char or
-    * string. Those are handled later. */
-   if (!h5_native_type_constant_g[1])
-   {
-      h5_native_type_constant_g[1] = H5T_NATIVE_SCHAR;
-      h5_native_type_constant_g[2] = H5T_NATIVE_SHORT;
-      h5_native_type_constant_g[3] = H5T_NATIVE_INT;
-      h5_native_type_constant_g[4] = H5T_NATIVE_FLOAT;
-      h5_native_type_constant_g[5] = H5T_NATIVE_DOUBLE;
-      h5_native_type_constant_g[6] = H5T_NATIVE_UCHAR;
-      h5_native_type_constant_g[7] = H5T_NATIVE_USHORT;
-      h5_native_type_constant_g[8] = H5T_NATIVE_UINT;
-      h5_native_type_constant_g[9] = H5T_NATIVE_LLONG;
-      h5_native_type_constant_g[10] = H5T_NATIVE_ULLONG;
-   }
-
    /* Get the HDF5 typeid - we'll need it later. */
    if ((hdf_typeid = H5Dget_type(datasetid)) < 0)
       return NC_EHDFERR;
@@ -936,7 +927,7 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
       {
 	 for (t = 1; t < NUM_TYPES - 1; t++)
 	 {
-	    if ((equal = H5Tequal(native_typeid, h5_native_type_constant_g[t])) < 0)
+	    if ((equal = H5Tequal(native_typeid, nc_constants->nc4.h5_native_type_constant_g[t])) < 0)
 	       return NC_EHDFERR;
 	    if (equal)
 	       break;
@@ -1032,9 +1023,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
    /* Get len. */
    if ((spaceid = H5Aget_space(attid)) < 0)
       BAIL(NC_EATTMETA);
-#ifdef EXTRA_TESTS
-   num_spaces++;
-#endif
+   INCRSPACES();
    if ((att_ndims = H5Sget_simple_extent_ndims(spaceid)) < 0)
       BAIL(NC_EATTMETA);
    if ((att_npoints = H5Sget_simple_extent_npoints(spaceid)) < 0)
@@ -1173,9 +1162,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       BAIL(NC_EHDFERR);
    if (H5Sclose(spaceid) < 0)
       return NC_EHDFERR;
-#ifdef EXTRA_TESTS
-   num_spaces--;
-#endif
+   DECRSPACES();
 
    return NC_NOERR;
 
@@ -1184,9 +1171,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       BAIL2(NC_EHDFERR);
    if (spaceid > 0 && H5Sclose(spaceid) < 0)
       BAIL2(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_spaces--;
-#endif
+   DECRSPACES();
    return retval;
 }
 
@@ -1554,9 +1539,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Get the current chunk cache settings. */
    if ((access_pid = H5Dget_access_plist(datasetid)) < 0)
       BAIL(NC_EVARMETA);
-#ifdef EXTRA_TESTS
-   num_plists++;
-#endif
+   INCRPLIST();
 
    /* Learn about current chunk cache settings. */
    if ((H5Pget_chunk_cache(access_pid, &(var->chunk_cache_nelems),
@@ -1597,9 +1580,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     * ignored. */
    if ((propid = H5Dget_create_plist(datasetid)) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists++;
-#endif /* EXTRA_TESTS */
+   INCRPLIST();
 
    /* Get the chunking info for non-scalar vars. */
    if ((layout = H5Pget_layout(propid)) < -1)
@@ -1821,14 +1802,10 @@ exit:
    }
    if (access_pid && H5Pclose(access_pid) < 0)
       BAIL2(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists--;
-#endif
+   DECRPLIST();
    if (propid > 0 && H5Pclose(propid) < 0)
       BAIL2(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists--;
-#endif
+   DECRPLIST();
    if (attid > 0 && H5Aclose(attid) < 0)
       BAIL2(NC_EHDFERR);
    return retval;
@@ -1927,9 +1904,7 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Get the dimension information for this dataset. */
    if ((spaceid = H5Dget_space(datasetid)) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_spaces++;
-#endif
+   INCRSPACES();
    if ((ndims = H5Sget_simple_extent_ndims(spaceid)) < 0)
       BAIL(NC_EHDFERR);
 
@@ -1961,10 +1936,7 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 exit:
    if (spaceid && H5Sclose(spaceid) <0)
       BAIL2(retval);
-#ifdef EXTRA_TESTS
-   num_spaces--;
-#endif
-
+   DECRSPACES();
    return retval;
 }
 
@@ -2241,9 +2213,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
 
-#ifdef EXTRA_TESTS
-   num_plists++;
-#endif
+   INCRPLIST();
 #ifdef EXTRA_TESTS
    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI))
       BAIL(NC_EHDFERR);
@@ -2297,13 +2267,10 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       }
    }
 #else /* only set cache for non-parallel. */
-   if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
-		    nc4_chunk_cache_preemption) < 0)
+   if(set_cache(fapl_id))
       BAIL(NC_EHDFERR);
-   LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-	__func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems, nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
-
+   NCUNLOCK();
    /* The NetCDF-3.x prototype contains an mode option NC_SHARE for
       multiple processes accessing the dataset concurrently.  As there
       is no HDF5 equivalent, NC_SHARE is treated as NC_NOWRITE. */
@@ -2341,9 +2308,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    /* Close the property list. */
    if (H5Pclose(fapl_id) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists--;
-#endif
+   DECRPLIST();
 
    NC4_get_fileinfo(nc4_info,NULL);
 
@@ -2354,9 +2319,7 @@ exit:
    if (comm_duped) MPI_Comm_free(&nc4_info->comm);
    if (info_duped) MPI_Info_free(&nc4_info->info);
 #endif
-#ifdef EXTRA_TESTS
-   num_plists--;
-#endif
+   INCRPLIST();
    if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if (!nc4_info) return retval;
    close_netcdf4_file(nc4_info,1); /*  treat like abort*/
@@ -3272,7 +3235,7 @@ nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
 int
 nc_exit()
 {
-   if (num_plists || num_spaces)
+   if (GETPLIST() || GETSPACES())
       return NC_EHDFERR;
 
    return NC_NOERR;
@@ -3285,4 +3248,21 @@ nc_use_parallel_enabled()
 {
    return 0;
 }
+#endif /* USE_PARALLEL4 */
+
+#ifndef USE_PARALLEL4
+static int
+set_cache(hid_t fapl_id)
+{
+   NCLOCK();
+   herr_t err;
+   err = H5Pset_cache(fapl_id, 0, nc_global->nc4.chunk_cache_nelems, nc_global->nc4.chunk_cache_size,
+		    nc_global->nc4.chunk_cache_preemption);
+   NCUNLOCK();
+   if(err < 0) return NC_EHDFERR;
+   LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
+	__func__, nc_global->nc4.chunk_cache_size, nc_global->nc4.chunk_cache_nelems, nc_global->nc4.chunk_cache_preemption));
+   return NC_NOERR;
+}
+
 #endif /* USE_PARALLEL4 */

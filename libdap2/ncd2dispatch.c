@@ -190,8 +190,6 @@ NCD2_initialize(void)
     int i;
 
     NCD2_dispatch_table = &NCD2_dispatch_base;
-    /* Local Initialization */
-    compute_nccalignments();
     ncd2initialized = 1;
 #ifdef DEBUG
     /* force logging to go to stderr */

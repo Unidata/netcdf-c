@@ -155,23 +155,6 @@ struct OCTriplestore {
    } triples[MAXRCLINES];
 };
 
-/* Collect global state info in one place */
-extern struct OCGLOBALSTATE {
-    int initialized;
-    struct {
-        int proto_file;
-        int proto_https;
-    } curl;
-    char* tempdir; /* track a usable temp dir */
-    char* home; /* track $HOME for use in creating $HOME/.oc dir */
-    struct {
-	int ignore; /* if 1, then do not use any rc file */
-	int loaded;
-        struct OCTriplestore daprc; /* the rc file triple store fields*/
-        char* rcfile; /* specified rcfile; overrides anything else */
-    } rc;
-} ocglobalstate;
-
 /*! Specifies the OCstate = non-opaque version of OClink */
 struct OCstate {
     OCheader header; /* class=OC_State */

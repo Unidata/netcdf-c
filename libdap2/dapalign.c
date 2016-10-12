@@ -31,14 +31,10 @@ Author: D. Heimbigner 10/7/2008
 #include        <assert.h>
 #endif
 
+#include "ncglobal.h"
 #include        "dapnc.h"
 #include        "dapdebug.h"
 #include        "dapalign.h"
-
-typedef struct nccalignvlen_t {
-    size_t len;
-    void* p;
-} nccalignvlen_t;
 
 #ifdef OFFSETTEST
 typedef int nc_type;
@@ -84,13 +80,6 @@ It seems to work for HDF5 for a wide variety of machines.
     DST.alignment = (size_t)((char*)(&(tmp.x)) - (char*)(&tmp));}
 
 
-#define NCCTYPECOUNT     (NCCTYPENCVLEN+1)
-
-typedef struct NCD2_ALIGNSTATE {
-    NCtypealignvec vec[NCCTYPECOUNT];
-    NCtypealignset set;
-} NCD2_ALIGNSTATE;
-
 static void compute_nccalignments(void);
 
 void
@@ -102,7 +91,7 @@ ncd2aligninit(void)
 unsigned int
 ncctypealignment(int nctype)
 {
-    NCtypealignment* align = NULL;
+    unsigned int align = NULL;
     int index = 0;
     switch (nctype) {
       case NC_BYTE:   index = NCCTYPEUCHAR; break;
@@ -126,8 +115,8 @@ ncctypealignment(int nctype)
 	return 0;
 #endif
     }
-    align = &nc_constants->d2aign->vec[index];
-    return align->alignment;
+    align = nc_constants->d2align->vec[index].alignment;
+    return align;
 }
 
 

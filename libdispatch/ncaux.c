@@ -23,31 +23,8 @@ Author: D. Heimbigner 10/7/2008
 #include <assert.h>
 #include <netcdf.h>
 #include "config.h"
-#include "ncaux.h"
-
-struct NCAUX_FIELD {
-    char* name;
-    nc_type fieldtype;
-    size_t ndims;
-    int dimsizes[NC_MAX_VAR_DIMS];    
-    size_t size;
-    size_t offset;
-    size_t alignment;
-};
-
-struct NCAUX_CMPD {
-    int ncid;
-    int mode;
-    char* name;
-    size_t nfields;
-    struct NCAUX_FIELD* fields;
-    size_t size;
-    size_t offset; /* cumulative as fields are added */
-    size_t alignment;
-};
-
-static Typealignvec vec[NCTYPES];
-static Typealignset set;
+#include "ncglobal.h"
+#include "ncauxinternal.h"
 
 static void compute_alignments(void);
 static int computefieldinfo(struct NCAUX_CMPD* cmpd);
@@ -199,8 +176,8 @@ It seems to work for HDF5 for a wide variety of machines.
 
 #define COMP_ALIGNMENT(DST,TYPE)  {\
     struct {char f1; TYPE x;} tmp; \
-    DST.typename = #TYPE ;        \
-    DST.alignment = (size_t)((char*)(&(tmp.x)) - (char*)(&tmp));}
+    (DST)->typename = #TYPE ;        \
+    (DST)->alignment = (size_t)((char*)(&(tmp.x)) - (char*)(&tmp));}
 
 /* Define indices for every primitive C type */
 /* NAT => NOT-A-TYPE*/
@@ -220,56 +197,32 @@ It seems to work for HDF5 for a wide variety of machines.
 #define PTRINDEX       13
 #define NCVLENINDEX    14
 
-#define NCTYPES        15
-
-typedef struct Alignment {
-    char* typename;
-    size_t alignment;
-} Alignment;
-
-typedef Alignment Typealignvec;
-
-/* Capture in struct and in a vector*/
-typedef struct Typealignset {
-    Alignment charalign;	/* char*/
-    Alignment ucharalign;	/* unsigned char*/
-    Alignment shortalign;	/* short*/
-    Alignment ushortalign;	/* unsigned short*/
-    Alignment intalign;		/* int*/
-    Alignment uintalign;	/* unsigned int*/
-    Alignment longalign;	/* long*/
-    Alignment ulongalign;	/* unsigned long*/
-    Alignment longlongalign;	/* long long*/
-    Alignment ulonglongalign;	/* unsigned long long*/
-    Alignment floatalign;	/* float*/
-    Alignment doublealign;	/* double*/
-    Alignment ptralign;		/* void**/
-    Alignment ncvlenalign;	/* nc_vlen_t*/
-} Typealignset;
 
 static void
 compute_alignments(void)
 {
-    /* Compute the alignments for all the common C data types*/
-    /* First for the struct*/
-    /* initialize*/
-    memset((void*)&set,0,sizeof(set));
-    memset((void*)vec,0,sizeof(vec));
+    Typealignset* set;
+    Typealignment** vec;
 
-    COMP_ALIGNMENT(set.charalign,char);
-    COMP_ALIGNMENT(set.ucharalign,unsigned char);
-    COMP_ALIGNMENT(set.shortalign,short);
-    COMP_ALIGNMENT(set.ushortalign,unsigned short);
-    COMP_ALIGNMENT(set.intalign,int);
-    COMP_ALIGNMENT(set.uintalign,unsigned int);
-    COMP_ALIGNMENT(set.longalign,long);
-    COMP_ALIGNMENT(set.ulongalign,unsigned long);
-    COMP_ALIGNMENT(set.longlongalign,long long);
-    COMP_ALIGNMENT(set.ulonglongalign,unsigned long long);
-    COMP_ALIGNMENT(set.floatalign,float);
-    COMP_ALIGNMENT(set.doublealign,double);
-    COMP_ALIGNMENT(set.ptralign,void*);
-    COMP_ALIGNMENT(set.ncvlenalign,nc_vlen_t);
+    set = (Typealignset*)calloc(1,sizeof(Typealignset));
+    vec = (Typealignment**)calloc(1,sizeof(Typealignment*));
+    nc_constants->aux.set = set;
+    nc_constants->aux.vec = vec;
+
+    COMP_ALIGNMENT(&(set->charalign),char);
+    COMP_ALIGNMENT(&(set->ucharalign),unsigned char);
+    COMP_ALIGNMENT(&(set->shortalign),short);
+    COMP_ALIGNMENT(&(set->ushortalign),unsigned short);
+    COMP_ALIGNMENT(&(set->intalign),int);
+    COMP_ALIGNMENT(&(set->uintalign),unsigned int);
+    COMP_ALIGNMENT(&(set->longalign),long);
+    COMP_ALIGNMENT(&(set->ulongalign),unsigned long);
+    COMP_ALIGNMENT(&(set->longlongalign),long long);
+    COMP_ALIGNMENT(&(set->ulonglongalign),unsigned long long);
+    COMP_ALIGNMENT(&(set->floatalign),float);
+    COMP_ALIGNMENT(&(set->doublealign),double);
+    COMP_ALIGNMENT(&(set->ptralign),void*);
+    COMP_ALIGNMENT(&(set->ncvlenalign),nc_vlen_t);
 
     /* Then the vector*/
     COMP_ALIGNMENT(vec[CHARINDEX],char);
@@ -291,7 +244,7 @@ compute_alignments(void)
 static size_t
 nctypealignment(nc_type nctype)
 {
-    Alignment* align = NULL;
+    size_t align = 0;
     int index = 0;
     switch (nctype) {
       case NC_BYTE: index = UCHARINDEX; break;
@@ -310,8 +263,8 @@ nctypealignment(nc_type nctype)
       case NC_OPAQUE: index = UCHARINDEX; break;
       default: assert(0);
     }
-    align = &vec[index];
-    return align->alignment;
+    align = nc_constants->aux.vec[index]->alignment;
+    return align;
 }
 
 static size_t
@@ -391,5 +344,5 @@ int
 ncaux_init(void)
 {
     compute_alignments();
-    nc_global->ncaux_initialized = 1;
+    return NC_NOERR;
 }

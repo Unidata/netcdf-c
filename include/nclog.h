@@ -7,6 +7,10 @@
 #ifndef NCLOG_H
 #define NCLOG_H
 
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
 #define NCENVFLAG "NCLOGFILE"
 
 /* Suggested tag values */
@@ -14,6 +18,16 @@
 #define NCLOGWARN 1
 #define NCLOGERR 2
 #define NCLOGDBG 3
+
+typedef struct NC_LOGSTATE {
+    int logging;
+    int systemfile; /* 1 => we are logging to file we did not open */
+    char* logfile;
+    FILE* logstream;
+    int tagsize;
+    char** tagset;
+    char* tagdfalt;
+} NC_LOGSTATE;
 
 extern void ncloginit(void);
 extern int ncsetlogging(int tf);

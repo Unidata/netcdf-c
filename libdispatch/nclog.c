@@ -25,17 +25,7 @@
 
 static char* nctagsetdfalt[] = {"Warning","Error","Note","Debug"};
 
-typedef struct NC_LOGSTATE {
-    int nclogging;
-    int ncsystemfile; /* 1 => we are logging to file we did not open */
-    char* nclogfile;
-    FILE* nclogstream;
-    int nctagsize;
-    char** nctagset;
-    char* nctagdfalt;
-} NC_LOGSTATE;
-
-static char* nctagname(int tag);
+static const char* nctagname(int tag);
 
 /*!\defgroup NClog NClog Management
 @{*/
@@ -60,8 +50,8 @@ ncloginit(void)
 	    ncsetlogging(1);
 	}
     }
-    nc_global->logstate->nctagdfalt = NCTAGDFALT;
-    nc_global->logstate->nctagset = nctagsetdfalt;
+    nc_global->logstate->tagdfalt = NCTAGDFALT;
+    nc_global->logstate->tagset = nctagsetdfalt;
 }
 
 /*!
@@ -76,11 +66,10 @@ int
 ncsetlogging(int tf)
 {
     int was;
-    LOCK;    
-    if(!nc_global->logstate) ncloginit();
-    was = nc_global->logstate->nclogging;
-    nc_global->logstate->nclogging = tf;
-    UNLOCK;
+    NCLOCK();    
+    was = nc_global->logstate->logging;
+    nc_global->logstate->logging = tf;
+    NCUNLOCK();
     return was;
 }
 
@@ -97,57 +86,57 @@ stderr.
 int
 nclogopen(const char* file)
 {
-    LOCK;
+    NCLOCK();
     if(!nc_global->logstate) ncloginit();
-    UNLOCK;
+    NCUNLOCK();
     nclogclose();
     if(file == NULL || strlen(file) == 0) {
 	/* use stderr*/
-        LOCK;
-	nc_global->logstate->nclogstream = stderr;
-	nc_global->logstate->nclogfile = NULL;
-	nc_global->logstate->ncsystemfile = 1;
-	UNLOCK;
+        NCLOCK();
+	nc_global->logstate->logstream = stderr;
+	nc_global->logstate->logfile = NULL;
+	nc_global->logstate->systemfile = 1;
+	NCUNLOCK();
     } else if(strcmp(file,"stdout") == 0) {
 	/* use stdout*/
-	LOCK;
-	nc_global->logstate->nclogstream = stdout;
-	nc_global->logstate->nclogfile = NULL;
-	nc_global->logstate->ncsystemfile = 1;
-	UNLOCK;
+	NCLOCK();
+	nc_global->logstate->logstream = stdout;
+	nc_global->logstate->logfile = NULL;
+	nc_global->logstate->systemfile = 1;
+	NCUNLOCK();
     } else if(strcmp(file,"stderr") == 0) {
 	/* use stderr*/
-	LOCK;
-	nc_global->logstate->nclogstream = stderr;
-	nc_global->logstate->nclogfile = NULL;
-	nc_global->logstate->ncsystemfile = 1;
-	UNLOCK;
+	NCLOCK();
+	nc_global->logstate->logstream = stderr;
+	nc_global->logstate->logfile = NULL;
+	nc_global->logstate->systemfile = 1;
+	NCUNLOCK();
     } else {
 	int fd;
-	LOCK;
-	nc_global->logstate->nclogfile = strdup(file);
-	nc_global->logstate->nclogstream = NULL;
-	UNLOCK;
+	NCLOCK();
+	nc_global->logstate->logfile = strdup(file);
+	nc_global->logstate->logstream = NULL;
+	NCUNLOCK();
 	/* We need to deal with this file carefully
 	   to avoid unauthorized access*/
 	fd = open(file,O_WRONLY|O_APPEND|O_CREAT,0600);
 	if(fd >= 0) {
 	    FILE* stream = fdopen(fd,"a");
-	    LOCK;
-	    nc_global->logstate->nclogstream = stream;
-	    UNLOCK
+	    NCLOCK();
+	    nc_global->logstate->logstream = stream;
+	    NCUNLOCK();
 	} else {
-	    LOCK;
-	    free(nc_global->logstate->nclogfile);
-	    nc_global->logstate->nclogfile = NULL;
-	    nc_global->logstate->nclogstream = NULL;
-	    UNLOCK;
+	    NCLOCK();
+	    free(nc_global->logstate->logfile);
+	    nc_global->logstate->logfile = NULL;
+	    nc_global->logstate->logstream = NULL;
+	    NCUNLOCK();
 	    ncsetlogging(0);
 	    return 0;
 	}
-	LOCK;
-	nc_global->logstate->ncsystemfile = 0;
-	UNLOCK;
+	NCLOCK();
+	nc_global->logstate->systemfile = 0;
+	NCUNLOCK();
     }
     return 1;
 }
@@ -155,19 +144,19 @@ nclogopen(const char* file)
 void
 nclogclose(void)
 {
-    LOCK;
+    NCLOCK();
     if(!nc_global->logstate) ncloginit();
-    if(nc_global->logstate->nclogstream != NULL
-       && !nc_global->logstate->ncsystemfile) {
-	fclose(nc_global->logstate->nclogstream);
+    if(nc_global->logstate->logstream != NULL
+       && !nc_global->logstate->systemfile) {
+	fclose(nc_global->logstate->logstream);
     }
-    if(nc_global->logstate->nclogfile != NULL) {
-	free(nc_global->logstate->nclogfile);
+    if(nc_global->logstate->logfile != NULL) {
+	free(nc_global->logstate->logfile);
     }
-    nc_global->logstate->nclogstream = NULL;
-    nc_global->logstate->nclogfile = NULL;
-    nc_global->logstate->ncsystemfile = 0;
-    UNLOCK;
+    nc_global->logstate->logstream = NULL;
+    nc_global->logstate->logfile = NULL;
+    nc_global->logstate->systemfile = 0;
+    NCUNLOCK();
 }
 
 /*!
@@ -183,25 +172,25 @@ void
 nclog(int tag, const char* fmt, ...)
 {
     va_list args;
-    char* prefix;
+    const char* prefix;
 
-    LOCK;
-    if(!nc_global->logstate->nclogginginitialized) ncloginit();
+    NCLOCK();
     
-    if(!nc_global->logstate->nclogging
-       || nc_global->logstate->nclogstream == NULL) {UNLOCK; return;}
+    if(!nc_global->logstate->logging
+       || nc_global->logstate->logstream == NULL) goto done;
 
     prefix = nctagname(tag);
-    fprintf(nclogstream,"%s:",prefix);
+    fprintf(nc_global->logstate->logstream,"%s:",prefix);
 
     if(fmt != NULL) {
       va_start(args, fmt);
-      vfprintf(nclogstream, fmt, args);
+      vfprintf(nc_global->logstate->logstream, fmt, args);
       va_end( args );
     }
-    fprintf(nclogstream, "\n" );
-    fflush(nclogstream);
-    UNLOCK;
+    fprintf(nc_global->logstate->logstream, "\n" );
+    fflush(nc_global->logstate->logstream);
+done:
+    NCUNLOCK();
 }
 
 void
@@ -220,40 +209,45 @@ Each line will be sent using nclog with the specified tag.
 void
 nclogtextn(int tag, const char* text, size_t count)
 {
-    LOCK;
-    if(!nc_global->logstate->nclogging
-       || nc_global->logstate->nclogstream == NULL) {UNLOCK; return;}
-    fwrite(text,1,count,nclogstream);
-    fflush(nclogstream);
-    UNLOCK;
+    NCLOCK();
+    if(!nc_global->logstate->logging
+       || nc_global->logstate->logstream == NULL) goto done;
+    fwrite(text,1,count,nc_global->logstate->logstream);
+    fflush(nc_global->logstate->logstream);
+done:
+    NCUNLOCK();
 }
 
 /* The tagset is null terminated */
 void
 nclogsettags(char** tagset, char* dfalt)
 {
-    LOCK;
-    nc_global->logstate->nctagdfalt = dfalt;
+    NCLOCK();
+    nc_global->logstate->tagdfalt = dfalt;
     if(tagset == NULL) {
-	nc_global->logstate->nctagsize = 0;
+	nc_global->logstate->tagsize = 0;
     } else {
         int i;
 	/* Find end of the tagset */
 	for(i=0;i<MAXTAGS;i++) {if(tagset[i]==NULL) break;}
-	nc_global->logstate->nctagsize = i;
+	nc_global->logstate->tagsize = i;
     }
-    nc_global->logstate->nctagset = tagset;
-    UNLOCK;
+    nc_global->logstate->tagset = tagset;
+    NCUNLOCK();
 }
 
-static char*
+static const char*
 nctagname(int tag)
 {
-    if(tag < 0 || tag >= nc_global->logstate->nctagsize) {
-	return nc_global->logstate->nctagdfalt;
+    const char* result;
+    NCLOCK();
+    if(tag < 0 || tag >= nc_global->logstate->tagsize) {
+	result = nc_global->logstate->tagdfalt;
     } else {
-	return nc_global->logstate->nctagset[tag];
+	result = nc_global->logstate->tagset[tag];
     }
+    NCUNLOCK();
+    return result;
 }
 
 /**@}*/

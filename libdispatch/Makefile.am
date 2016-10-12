@@ -17,9 +17,9 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 # The source files.
 libdispatch_la_SOURCES = dparallel.c dcopy.c dfile.c ddim.c datt.c	\
 dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
-dvarinq.c dinternal.c ddispatch.c dglobal.c                                                   \
-nclog.c dstring.c dutf8proc.c utf8proc_data.h                          \
-ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c                        \
+dvarinq.c dinternal.c ddispatch.c dglobal.c dmutex.c                    \
+nclog.c dstring.c dutf8proc.c utf8proc_data.h                           \
+ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c                         \
 nc.c nclistmgr.c
 
 # Add functions only found in netCDF-4.

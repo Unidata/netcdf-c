@@ -12,6 +12,7 @@ See \ref copyright file for copying and redistribution conditions.
 #include <stdio.h>
 #include <stdarg.h>
 #include "netcdf.h"
+#include "ncglobal.h"
 #include "math.h"
 
 #if SIZEOF_LONG == SIZEOF_SIZE_T
@@ -372,10 +373,10 @@ nc_advise(const char *routine_name, int err, const char *fmt,...)
 	else
 		ncerr = err;
 
-	LOCK;
-	nc_global->ncerr = ncerr;
-	ncopts = nc_global->ncopts;
-	UNLOCK;
+        NCLOCK();
+	nc_global->dv2i.ncerr = ncerr;
+	ncopts = nc_global->dv2i.ncopts;
+	NCUNLOCK();
 
 	if( ncopts & NC_VERBOSE )
 	{

@@ -8,6 +8,8 @@
 #include "config.h"
 #include "netcdf.h"
 
+#define NCFILELISTLENGTH 0x10000
+
    /* There's an external ncid (ext_ncid) and an internal ncid
     * (int_ncid). The ext_ncid is the ncid returned to the user. If
     * the user has opened or created a netcdf-4 file, then the
@@ -87,13 +89,10 @@ extern int nc_set_default_format(int format, int *old_formatp);
 /* This function gets a current default create flag */
 extern int nc_get_default_format(void);
 
-
 extern int add_to_NCList(NC*);
 extern void del_from_NCList(NC*);/* does not free object */
 extern NC* find_in_NCList(int ext_ncid);
 extern NC* find_in_NCList_by_name(const char*);
-extern void free_NCList(void);/* reclaim whole list */
-extern int count_NCList(void); /* return # of entries in NClist */
 extern int iterate_NCList(int i,NC**); /* Walk from 0 ...; ERANGE return => stop */
 
 /* Defined in nc.c */

@@ -5,6 +5,11 @@
 #ifndef ALIGN_H
 #define ALIGN_H 1
 
+typedef struct nccalignvlen_t {
+    size_t len;
+    void* p;
+} nccalignvlen_t;
+
 typedef struct NCtypealignment {
     char* typename;
     int alignment;
@@ -46,9 +51,15 @@ typedef struct NCtypealignset {
     NCtypealignment ncvlenalign;	  /* nc_vlen_t*/
 } NCtypealignset;
 
-typedef NCtypealignment NCtypealignvec;
 
-extern void compute_nccalignments(void);
+#define NCCTYPECOUNT     (NCCTYPENCVLEN+1)
+
+
+typedef struct NCD2_ALIGNSTATE {
+    NCtypealignment vec[NCCTYPECOUNT];
+    NCtypealignset set;
+} NCD2_ALIGNSTATE;
+
 extern unsigned int ncctypealignment(int nctype);
 extern int nccpadding(unsigned long offset, int alignment);
 

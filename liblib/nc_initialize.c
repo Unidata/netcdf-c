@@ -45,14 +45,7 @@ nc_initialize()
 {
     int stat = NC_NOERR;
 
-    LOCK;
-    if(nc_global->initialized) {UNLOCK; goto done;}
-
     nc_global_init();
-
-    nc_global->initialized = 1;
-    nc_global->finalized = 0;
-    UNLOCK;
 
     /* Do general initialization */
     if((stat = NCDISPATCH_initialize())) goto done;
@@ -88,12 +81,6 @@ nc_finalize(void)
 {
     int stat = NC_NOERR;
 
-    LOCK;
-    if(nc_global->finalized) {UNLOCK; goto done;}
-    nc_global->initialized = 0;
-    nc_global->finalized = 1;
-    UNLOCK;
-
     /* Finalize each active protocol */
 
 #ifdef USE_DAP
@@ -113,6 +100,5 @@ nc_finalize(void)
     /* Do general finalization */
     if((stat = NCDISPATCH_finalize())) return stat;
 
-done:
     return NC_NOERR;
 }

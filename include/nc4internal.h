@@ -414,8 +414,8 @@ int nc4_normalize_name(const char *name, char *norm_name);
 int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 
 /* HDF5 initialization */
-extern int nc4_hdf5_initialized;
-extern void nc4_hdf5_initialize(void);
+extern void nc4_global_init(void);
+extern herr_t NC4_set_auto(void* func, void *client_data);
 
 /* This is only included if --enable-logging is used for configure; it
    prints info about the metadata to stderr. */
@@ -481,5 +481,28 @@ extern int NC4_buildpropinfo(struct NCPROPINFO* info,char** propdatap);
 extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
 extern int NC4_hdf5get_superblock(struct NC_HDF5_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
 extern int NC4_isnetcdf4(struct NC_HDF5_FILE_INFO*); /*libsrc4/nc4hdf.c*/
+
+#ifdef EXTRA_TESTS
+extern void NC4_incrplist(void);
+extern void NC4_decrplist(void);
+extern int NC4_getplist(void);
+extern void NC4_incrspaces(void);
+extern void NC4_decrspaces(void);
+extern int NC4_getspaces(void);
+#define INCRPLIST() NC4_incrplist()
+#define DECRPLIST() NC4_decrplist()
+#define GETPLIST() NC4_getplist()
+#define INCRSPACES() NC4_incrspaces()
+#define DECRSPACES() NC4_decrspaces()
+#define GETSPACES() NC4_getspaces()
+#else
+#define INCRPLIST()
+#define DECRPLIST()
+#define GETPLIST() (0)
+#define INCRSPACES()
+#define DECRSPACES()
+#define GETSPACES() (0)
+#endif
+
 
 #endif /* _NETCDF4_ */

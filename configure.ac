@@ -421,6 +421,27 @@ AC_MSG_RESULT([$enable_dap_long_tests])
 
 AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
 
+
+# Thread safe related options
+
+AC_MSG_CHECKING([whether thread-safety should be enabled (default off)])
+AC_ARG_ENABLE([threadsafe],
+              [AS_HELP_STRING([--enable-threadsafe],
+                                 [enable thread safe operation])])
+test "x$enable_threadsafe" = xyes || enable_threadsafe=no
+AC_MSG_RESULT($enable_threadsafe)
+AC_DEFINE([ENABLE_THREADSAFE], [1], [if true, make library thread safe])
+
+if test "x$enable_threadsafe" = xyes ; then
+# Apparently AX_PTHREAD is not available
+AC_CHECK_LIB(pthread, pthread_create)
+if test "x$ac_cv_lib_pthread_pthread_create" != x ; then
+have_pthread=yes
+else
+have_pthread=no
+fi
+fi
+
 # Does the user want to do some extra tests?
 AC_MSG_CHECKING([whether netCDF extra tests should be run (developers only)])
 AC_ARG_ENABLE([extra-tests],
@@ -1241,6 +1262,7 @@ AC_SUBST(HAS_SZLIB,[$ac_cv_func_H4Z_SZIP])
 AC_SUBST(HAS_PARALLEL,[$enable_parallel])
 AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
 AC_SUBST(HAS_DISKLESS,[$enable_diskless])
+AC_SUBST(HAS_THREADSAFE,[$enable_threadsafe])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
 
