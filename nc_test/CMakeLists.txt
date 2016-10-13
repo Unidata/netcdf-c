@@ -10,6 +10,8 @@ SET (nc_test_SRC
   error.c
   test_get.c
   test_put.c
+  test_read.c
+  test_write.c
   util.c
   )
 

@@ -128,6 +128,7 @@ settings_DATA=libnetcdf.settings
 ####
 
 MM4= ./nc_test/test_put ./nc_test/test_get \
+     ./nc_test/test_write ./nc_test/test_read \
      ./libsrc/netcdf ./libsrc/putget ./libsrc/ncx \
      ./libsrc/t_ncxx ./libsrc/attr
 

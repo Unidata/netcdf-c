@@ -10,6 +10,8 @@ ctest.c
 ctest64.c
 nc_test/test_get.c
 nc_test/test_put.c
+nc_test/test_read.c
+nc_test/test_write.c
 
 #####
 # End ignored generated files.
