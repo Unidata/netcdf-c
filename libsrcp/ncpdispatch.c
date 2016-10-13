@@ -441,6 +441,7 @@ NCP_get_att(
     if(status != NC_NOERR) return status;
 
     status = NCP_inq_att(ncid,varid,name,&xtype,NULL);
+    if(status != NC_NOERR) return status;
 
     if(memtype == NC_NAT) memtype = xtype;
 
@@ -487,6 +488,14 @@ NCP_put_att(
     int status;
     MPI_Offset mpilen;
 
+    /* check if ncid is valid */
+    status = NC_check_id(ncid, &nc);
+    if(status != NC_NOERR) return status;
+
+    /* check if varid is valid */
+    status = ncmpi_inq_varnatts(nc->int_ncid, varid, NULL);
+    if (status != NC_NOERR) return status;
+
     if (!name || (strlen(name) > NC_MAX_NAME))
 	return NC_EBADNAME;
 
@@ -494,9 +503,6 @@ NCP_put_att(
        systems with signed size_t). */
     if(((unsigned long) len) > X_INT_MAX)
 	return NC_EINVAL;
-
-    status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
 
     mpilen = len;
 
