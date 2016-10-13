@@ -1215,6 +1215,10 @@ int file_open(const char *filename, int omode, int *ncid)
 }
 
 
+#ifdef USE_PNETCDF
+#include <pnetcdf.h>  /* to include PnetCDF error codes */
+#endif
+
 char* nc_err_code_name(int err)
 {
     static char unknown_str[32];

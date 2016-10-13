@@ -266,28 +266,28 @@ extern size_t gatt_len[NGATTS];
 
 extern const char *s_nc_type(nc_type);
 
-extern void test_nc_strerror(void);
-extern void test_nc_open(void);
-extern void test_nc_close(void);
+extern int test_nc_strerror(void);
+extern int test_nc_open(void);
+extern int test_nc_close(void);
 
-extern void test_nc_inq(void);
-extern void test_nc_inq_natts(void);
-extern void test_nc_inq_ndims(void);
-extern void test_nc_inq_nvars(void);
-extern void test_nc_inq_unlimdim(void);
+extern int test_nc_inq(void);
+extern int test_nc_inq_natts(void);
+extern int test_nc_inq_ndims(void);
+extern int test_nc_inq_nvars(void);
+extern int test_nc_inq_unlimdim(void);
 
-extern void test_nc_inq_dimid(void);
-extern void test_nc_inq_dim(void);
-extern void test_nc_inq_dimlen(void);
-extern void test_nc_inq_dimname(void);
+extern int test_nc_inq_dimid(void);
+extern int test_nc_inq_dim(void);
+extern int test_nc_inq_dimlen(void);
+extern int test_nc_inq_dimname(void);
 
-extern void test_nc_inq_varid(void);
-extern void test_nc_inq_vardimid(void);
-extern void test_nc_inq_varname(void);
-extern void test_nc_inq_varnatts(void);
-extern void test_nc_inq_varndims(void);
-extern void test_nc_inq_vartype(void);
-extern void test_nc_inq_var(void);
+extern int test_nc_inq_varid(void);
+extern int test_nc_inq_vardimid(void);
+extern int test_nc_inq_varname(void);
+extern int test_nc_inq_varnatts(void);
+extern int test_nc_inq_varndims(void);
+extern int test_nc_inq_vartype(void);
+extern int test_nc_inq_var(void);
 
 extern int test_nc_get_var_double(void);
 extern int test_nc_get_var_float(void);
@@ -459,27 +459,27 @@ extern int test_nc_put_att_uint(void);
 extern int test_nc_put_att_longlong(void);
 extern int test_nc_put_att_ulonglong(void);
 
-extern void test_nc_create(void);
-extern void test_nc_redef(void);
-extern void test_nc_enddef(void);
-extern void test_nc_sync(void);
-extern void test_nc_abort(void);
-extern void test_nc_def_dim(void);
-extern void test_nc_rename_dim(void);
-extern void test_nc_def_var(void);
-extern void test_nc_rename_var(void);
-extern void test_nc_copy_att(void);
+extern int test_nc_create(void);
+extern int test_nc_redef(void);
+extern int test_nc_enddef(void);
+extern int test_nc_sync(void);
+extern int test_nc_abort(void);
+extern int test_nc_def_dim(void);
+extern int test_nc_rename_dim(void);
+extern int test_nc_def_var(void);
+extern int test_nc_rename_var(void);
+extern int test_nc_copy_att(void);
 
-extern void test_nc_inq_att(void);
-extern void test_nc_inq_attname(void);
-extern void test_nc_inq_attid(void);
-extern void test_nc_inq_attlen(void);
-extern void test_nc_inq_atttype(void);
+extern int test_nc_inq_att(void);
+extern int test_nc_inq_attname(void);
+extern int test_nc_inq_attid(void);
+extern int test_nc_inq_attlen(void);
+extern int test_nc_inq_atttype(void);
 
-extern void test_nc_rename_att(void);
-extern void test_nc_del_att(void);
-extern void test_nc_set_fill(void);
-extern void test_nc_set_default_format(void);
+extern int test_nc_rename_att(void);
+extern int test_nc_del_att(void);
+extern int test_nc_set_fill(void);
+extern int test_nc_set_default_format(void);
 
 void print_nok(int nok);
 
