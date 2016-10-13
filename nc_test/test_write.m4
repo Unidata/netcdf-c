@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_write.m4 2549 2016-10-13 08:22:49Z wkliao $ */
+/* $Id: test_write.m4 2550 2016-10-13 18:24:04Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -56,8 +56,8 @@ define(`PutVarm', `ifdef(`PNETCDF',`ncmpi_put_varm_all($1,$2,$3,$4,$5,$6,$7,$8,$
 
 
 /*
- * Test create
- *    For mode in NC_NOCLOBBER, NC_CLOBBER, info do:
+ * Test APIFunc(create)
+ *    For mode in NC_NOCLOBBER, NC_CLOBBER do:
  *       create netcdf file 'scratch.nc' with no data, close it
  *       test that it can be opened, do APIFunc(inq) to check nvars = 0, etc.
  *    Try again in NC_NOCLOBBER mode, check error return
@@ -66,7 +66,7 @@ define(`PutVarm', `ifdef(`PNETCDF',`ncmpi_put_varm_all($1,$2,$3,$4,$5,$6,$7,$8,$
 int
 TestFunc(create)(void)
 {
-    int clobber; /* 0 for NC_NOCLOBBER, 1 for NC_CLOBBER, info */
+    int clobber; /* 0 for NC_NOCLOBBER, 1 for NC_CLOBBER */
     int err;
     int ncid;
     int ndims;   /* number of dimensions */
@@ -117,7 +117,7 @@ TestFunc(create)(void)
 
 /*
  * Test APIFunc(redef)
- * (In fact also tests APIFunc(enddef) - called from TestFunc(enddef)
+ * (In fact also tests APIFunc(enddef) - called from TestFunc(enddef))
  *    BAD_ID
  *    attempt redef (error) & enddef on read-only file
  *    create file, define dims & vars.
@@ -132,6 +132,7 @@ TestFunc(create)(void)
  *    put vars
  *    close
  *    check file: vars & atts
+ *    check reopening with NC_WRITE and adding new dims, atts, vars
  */
 int
 TestFunc(redef)(AttVarArgs)
@@ -147,6 +148,7 @@ TestFunc(redef)(AttVarArgs)
     double var;
     char name[NC_MAX_NAME];
     IntType length;
+    int fmt_variant1, fmt_variant2;
 
     /* BAD_ID tests */
     err = APIFunc(redef)(BAD_ID);
@@ -180,7 +182,7 @@ TestFunc(redef)(AttVarArgs)
         error("create: %s", APIFunc(strerror)(err));
         return nok;
     }
-    /* limit for ncio implementations which which have infinite chunksize */
+    /* limit for ncio implementations which have infinite chunksize */
     if(sizehint > 32768)
         sizehint = 16384;
     def_dims(ncid);
@@ -194,7 +196,7 @@ TestFunc(redef)(AttVarArgs)
 ifdef(`PNETCDF', `
     err = ncmpi_begin_indep_data(ncid);
     IF (err != NC_EINDEFINE)
-        error("expecting NC_EINDEFINE but got %s", nc_err_code_name(err));')
+        error("expecting NC_EINDEFINE but got %s", nc_err_code_name(err));')dnl
 
     err = PutVar1TYPE(double)(ncid, varid, NULL, &var);
     IF (err != NC_EINDEFINE)
@@ -203,7 +205,7 @@ ifdef(`PNETCDF', `
 ifdef(`PNETCDF', `
     err = ncmpi_end_indep_data(ncid);
     IF (err != NC_ENOTINDEP)
-        error("expecting NC_ENOTINDEP but got %s", nc_err_code_name(err));')
+        error("expecting NC_ENOTINDEP but got %s", nc_err_code_name(err));')dnl
 
     err = APIFunc(redef)(ncid);
     IF (err != NC_EINDEFINE)
@@ -221,9 +223,11 @@ ifdef(`PNETCDF', `
     IF (err != NC_NOERR)
         error("redef: %s", APIFunc(strerror)(err));
     ELSE_NOK
+
     err = APIFunc(set_fill)(ncid, NC_NOFILL, NULL);
     IF (err != NC_NOERR)
         error("set_fill: %s", APIFunc(strerror)(err));
+
     err = APIFunc(def_dim)(ncid, "abc", sizehint, &dimid);
     IF (err != NC_NOERR)
         error("def_dim: %s", APIFunc(strerror)(err));
@@ -236,12 +240,11 @@ ifdef(`PNETCDF', `
     {
         int dimids[NDIMS +1];
         int ii = 0;
-        for(ii = 0; ii < NDIMS; ii++)
-                dimids[ii] = ii;
+        for(ii = 0; ii < NDIMS; ii++) dimids[ii] = ii;
         dimids[NDIMS] = dimid;
-            err = APIFunc(def_var)(ncid, "abcRec", NC_INT, NDIMS, dimids, &varid1);
-            IF (err != NC_NOERR)
-                error("def_var: %s", APIFunc(strerror)(err));
+        err = APIFunc(def_var)(ncid, "abcRec", NC_INT, NDIMS, dimids, &varid1);
+        IF (err != NC_NOERR)
+            error("def_var: %s", APIFunc(strerror)(err));
     }
     err = APIFunc(put_att_text)(ncid, NC_GLOBAL, "title", 1+strlen(title), title);
     IF (err != NC_NOERR)
@@ -255,34 +258,83 @@ ifdef(`PNETCDF', `
 ifdef(`PNETCDF', `
     err = ncmpi_end_indep_data(ncid);
     IF (err != NC_ENOTINDEP)
-        error("expecting NC_ENOTINDEP but got %s", nc_err_code_name(err));')
+        error("expecting NC_ENOTINDEP but got %s", nc_err_code_name(err));')dnl
 
     err = PutVar1TYPE(double)(ncid, varid, NULL, &var);
     IF (err != NC_NOERR)
         error("put_var1_double: %s", APIFunc(strerror)(err));
+    err = APIFunc(inq_format)(ncid, &fmt_variant1);
+    IF (err)
+        error("inq_format: %s", APIFunc(strerror)(err));
     err = APIFunc(close)(ncid);
     IF (err != NC_NOERR)
         error("close: %s", APIFunc(strerror)(err));
 
     /* check scratch file written as expected */
-    Check_File(scratch, numGatts, numVars);
-    err = FileOpen(scratch, NC_NOWRITE, &ncid);
-    IF (err != NC_NOERR)
+    Check_File(scratch, numGatts, numVars); /* checks all except "abc" stuff added above */
+
+    IF ((err = FileOpen(scratch, NC_NOWRITE, &ncid)))
         error("open: %s", APIFunc(strerror)(err));
-    err = APIFunc(inq_dim)(ncid, dimid, name, &length);
-    IF (err != NC_NOERR)
+    IF ((err = APIFunc(inq_dim)(ncid, dimid, name, &length)))
         error("inq_dim: %s", APIFunc(strerror)(err));
     IF (strcmp(name, "abc") != 0)
         error("Unexpected dim name");
     IF (length != sizehint)
         error("Unexpected dim length");
-    err = GetVar1TYPE(double)(ncid, varid, NULL, &var);
-    IF (err != NC_NOERR)
+    IF ((err = GetVar1TYPE(double)(ncid, varid, NULL, &var)))
         error("get_var1_double: %s", APIFunc(strerror)(err));
     IF (var != 1.0)
         error("get_var1_double: unexpected value");
+    IF ((err = APIFunc(close)(ncid)))
+        error("close: %s", APIFunc(strerror)(err));
+
+    /* open scratch file for writing, add another dim, var, att, then check */
+    IF ((err = FileOpen(scratch, NC_WRITE, &ncid)))
+        error("open: %s", APIFunc(strerror)(err));
+    IF ((err = APIFunc(redef)(ncid)))
+        error("redef: %s", APIFunc(strerror)(err));
+    IF ((err = APIFunc(def_dim)(ncid, "def", sizehint, &dimid)))
+        error("def_dim: %s", APIFunc(strerror)(err));
+    IF ((err = APIFunc(def_var)(ncid, "defScalar", NC_INT, 0, NULL, &varid)))
+        error("def_var: %s", APIFunc(strerror)(err));
+    IF ((err = APIFunc(def_var)(ncid, "def", NC_INT, 1, &dimid, &varid1)))
+        error("def_var: %s", APIFunc(strerror)(err));
+    IF ((err = APIFunc(put_att_text)(ncid, NC_GLOBAL, "Credits", 1+strlen("Thanks!"), "Thanks!")))
+        error("put_att_text: %s", APIFunc(strerror)(err));
+    IF ((err = APIFunc(enddef)(ncid)))
+        error("enddef: %s", APIFunc(strerror)(err));
+    var = 2.0;
+    IF ((err = PutVar1TYPE(double)(ncid, varid, NULL, &var)))
+        error("put_var1_double: %s", APIFunc(strerror)(err));
+    IF ((err = APIFunc(close)(ncid)))
+        error("close: %s", APIFunc(strerror)(err));
+
+    /* check scratch file written as expected */
+    Check_File(scratch, numGatts, numVars);
+
+    err = FileOpen(scratch, NC_NOWRITE, &ncid);
+    IF (err)
+        error("open: %s", APIFunc(strerror)(err));
+    err = APIFunc(inq_dim)(ncid, dimid, name, &length);
+    IF (err)
+        error("inq_dim: %s", APIFunc(strerror)(err));
+    IF (strcmp(name, "def") != 0)
+        error("Unexpected dim name");
+    IF (length != sizehint)
+        error("Unexpected dim length");
+    err = GetVar1TYPE(double)(ncid, varid, NULL, &var);
+    IF (err)
+        error("get_var1_double: %s", APIFunc(strerror)(err));
+    IF (var != 2.0)
+        error("get_var1_double: unexpected value");
+    /* make sure format variant hasn't changed from when created */
+    err = APIFunc(inq_format)(ncid, &fmt_variant2);
+    IF (err)
+        error("inq_format: %s", APIFunc(strerror)(err));
+    IF (fmt_variant1 != fmt_variant2)
+        error("enddef changed format variant");
     err = APIFunc(close)(ncid);
-    IF (err != NC_NOERR)
+    IF (err)
         error("close: %s", APIFunc(strerror)(err));
 
     err = FileDelete(scratch, info);
@@ -819,7 +871,8 @@ TestFunc(put_var1)(VarArgs)
             if (inRange(value, var_type[i])) {
                 err = dbl2nc(value, var_type[i], buf);
                 IF (err != NC_NOERR)
-                    error("error in dbl2nc");
+                    error("error in dbl2nc var:%s type:%s",
+                          var_name[i],s_nc_type(var_type[i]));
                 if (var_rank[i] == 0 && i%2 == 0)
                     err = PutVar1(ncid, i, NULL, buf, 1, buftype);
                 else
@@ -858,7 +911,7 @@ TestFunc(put_vara)(VarArgs)
     IntType edge[MAX_RANK];
     IntType index[MAX_RANK];
     IntType mid[MAX_RANK];
-    IntType bufcount;
+    ifdef(`PNETCDF', `IntType bufcount;')
     double buf[MAX_NELS];         /* (void *) buffer */
     char *p;                      /* (void *) pointer */
     double value;
@@ -883,7 +936,7 @@ TestFunc(put_vara)(VarArgs)
             edge[j] = 1;
         }
         ifdef(`PNETCDF', `buftype = nc_mpi_type(var_type[i]);')
-        for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= edge[j];
+        ifdef(`PNETCDF', `for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= edge[j];')
         err = PutVara(BAD_ID, i, start, edge, buf, bufcount, buftype);
         IF (err != NC_EBADID)
             error("expecting NC_EBADID but got %s", nc_err_code_name(err));
@@ -895,14 +948,14 @@ TestFunc(put_vara)(VarArgs)
         for (j = 0; j < var_rank[i]; j++) {
             if (var_dimid[i][j] > 0) {          /* skip record dim */
                 start[j] = var_shape[i][j];
-                for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];
+                ifdef(`PNETCDF', `for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];')
                 err = PutVara(ncid, i, start, edge, buf, bufcount, buftype);
                 IF (err != NC_EINVALCOORDS)
                     error("expecting NC_EINVALCOORDS but got %s", nc_err_code_name(err));
                 ELSE_NOK
                 start[j] = 0;
                 edge[j] = var_shape[i][j] + 1;
-                for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];
+                ifdef(`PNETCDF', `for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];')
                 err = PutVara(ncid, i, start, edge, buf, bufcount, buftype);
                 IF (err != NC_EEDGE)
                     error("expecting NC_EEDGE but got %s", nc_err_code_name(err));
@@ -945,7 +998,7 @@ TestFunc(put_vara)(VarArgs)
                     error("error in dbl2nc");
                 p += nctypelen(var_type[i]);
             }
-            for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= edge[j];
+            ifdef(`PNETCDF', `for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= edge[j];')
             if (var_rank[i] == 0 && i%2 == 0)
                 err = PutVara(ncid, i, NULL, NULL, buf, bufcount, buftype);
             else
@@ -989,7 +1042,7 @@ TestFunc(put_vars)(VarArgs)
     IntType count[MAX_RANK];
     IntType sstride[MAX_RANK];
     PTRDType stride[MAX_RANK];
-    IntType bufcount;
+    ifdef(`PNETCDF', `IntType bufcount;')
     double buf[MAX_NELS]; /* (void *) buffer */
     char *p;              /* (void *) pointer */
     double value;
@@ -1015,7 +1068,7 @@ TestFunc(put_vars)(VarArgs)
             stride[j] = 1;
         }
         ifdef(`PNETCDF', `buftype = nc_mpi_type(var_type[i]);')
-        for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= edge[j];
+        ifdef(`PNETCDF', `for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= edge[j];')
         err = PutVars(BAD_ID, i, start, edge, stride, buf, bufcount, buftype);
         IF (err != NC_EBADID)
             error("expecting NC_EBADID but got %s", nc_err_code_name(err));
@@ -1027,21 +1080,21 @@ TestFunc(put_vars)(VarArgs)
         for (j = 0; j < var_rank[i]; j++) {
             if (var_dimid[i][j] > 0) {          /* skip record dim */
                 start[j] = var_shape[i][j];
-                for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];
+                ifdef(`PNETCDF', `for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];')
                 err = PutVars(ncid, i, start, edge, stride, buf, bufcount, buftype);
                 IF (err != NC_EINVALCOORDS)
                     error("expecting NC_EINVALCOORDS but got %s", nc_err_code_name(err));
                 ELSE_NOK
                 start[j] = 0;
                 edge[j] = var_shape[i][j] + 1;
-                for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];
+                ifdef(`PNETCDF', `for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];')
                 err = PutVars(ncid, i, start, edge, stride, buf, bufcount, buftype);
                 IF (err != NC_EEDGE)
                     error("expecting NC_EEDGE but got %s", nc_err_code_name(err));
                 ELSE_NOK
                 edge[j] = 1;
                 stride[j] = 0;
-                for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];
+                ifdef(`PNETCDF', `for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];')
                 err = PutVars(ncid, i, start, edge, stride, buf, bufcount, buftype);
                 IF (err != NC_ESTRIDE)
                     error("expecting NC_ESTRIDE but got %s", nc_err_code_name(err));
@@ -1105,7 +1158,7 @@ TestFunc(put_vars)(VarArgs)
                         error("error in dbl2nc");
                     p += nctypelen(var_type[i]);
                 }
-                for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= count[j];
+                ifdef(`PNETCDF', `for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= count[j];')
                 if (var_rank[i] == 0 && i%2 == 0)
                     err = PutVars(ncid, i, NULL, NULL, NULL, buf, bufcount, buftype);
                 else
@@ -1158,7 +1211,7 @@ TestFunc(put_varm)(VarArgs)
     PTRDType stride[MAX_RANK];
     PTRDType imap[MAX_RANK];
     PTRDType imap2[MAX_RANK];
-    IntType bufcount;
+    ifdef(`PNETCDF', `IntType bufcount;')
     double buf[MAX_NELS];       /* (void *) buffer */
     char *p;                    /* (void *) pointer */
     double value;
@@ -1204,7 +1257,7 @@ TestFunc(put_varm)(VarArgs)
             p += nctypelen(var_type[i]);
         }
         ifdef(`PNETCDF', `buftype = nc_mpi_type(var_type[i]);')
-        for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= edge[j];
+        ifdef(`PNETCDF', `for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= edge[j];')
         err = PutVarm(BAD_ID, i, start, edge, stride, imap, buf, bufcount, buftype);
         IF (err != NC_EBADID)
             error("expecting NC_EBADID but got %s", nc_err_code_name(err));
@@ -1216,21 +1269,21 @@ TestFunc(put_varm)(VarArgs)
         for (j = 0; j < var_rank[i]; j++) {
             if (var_dimid[i][j] > 0) {          /* skip record dim */
                 start[j] = var_shape[i][j];
-                for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];
+                ifdef(`PNETCDF', `for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];')
                 err = PutVarm(ncid, i, start, edge, stride, imap, buf, bufcount, buftype);
                 IF (err != NC_EINVALCOORDS)
                     error("expecting NC_EINVALCOORDS but got %s", nc_err_code_name(err));
                 ELSE_NOK
                 start[j] = 0;
                 edge[j] = var_shape[i][j] + 1;
-                for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];
+                ifdef(`PNETCDF', `for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];')
                 err = PutVarm(ncid, i, start, edge, stride, imap, buf, bufcount, buftype);
                 IF (err != NC_EEDGE)
                     error("expecting NC_EEDGE but got %s", nc_err_code_name(err));
                 ELSE_NOK
                 edge[j] = 1;
                 stride[j] = 0;
-                for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];
+                ifdef(`PNETCDF', `for (bufcount=1,k=0; k<var_rank[i]; k++) bufcount *= edge[k];')
                 err = PutVarm(ncid, i, start, edge, stride, imap, buf, bufcount, buftype);
                 IF (err != NC_ESTRIDE)
                     error("expecting NC_ESTRIDE but got %s", nc_err_code_name(err));
@@ -1283,7 +1336,7 @@ TestFunc(put_varm)(VarArgs)
  */
                     j = fromMixedBase(var_rank[i], index, var_shape[i]);
                     p = (char *) buf + j * nctypelen(var_type[i]);
-                    for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= count[j];
+                    ifdef(`PNETCDF', `for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= count[j];')
                     err = PutVarm(ncid, i, index, count, stride, imap2, p, bufcount, buftype);
                 }
                 IF (err != NC_NOERR)
@@ -2003,7 +2056,7 @@ ifdef(`PNETCDF', `
 
     /* get all variables & check all values equal default fill */
     for (i = 0; i < numVars; i++) {
-        if (var_dimid[i][0] == RECDIM) continue; /* skip record variables */
+        ifdef(`PNETCDF', `if (var_dimid[i][0] == RECDIM) continue; /* skip record variables */')
         switch (var_type[i]) {
             case NC_CHAR:   fill = NC_FILL_CHAR;   break;
             case NC_BYTE:   fill = NC_FILL_BYTE;   break;
@@ -2113,12 +2166,13 @@ ifdef(`PNETCDF', `
 
 
 /* This function gets the version of a netCDF file, 1 is for netCDF
-   classic, 2 for 64-bit offset format, (someday) 3 for HDF5 format.
+   classic, 2 for 64-bit offset format, (someday) 3 for HDF5 format,
    5 for 64-bit data format (CDF-5).
 */
 #define MAGIC_NUM_LEN 4
 static
-int APIFunc(get_file_version)(char *path, int *version)
+int
+APIFunc(get_file_version)(char *path, int *version)
 {
    int fd;
    ssize_t read_len;
@@ -2133,18 +2187,22 @@ int APIFunc(get_file_version)(char *path, int *version)
    if (fd == -1) return errno;
 
    read_len = read(fd, magic, MAGIC_NUM_LEN);
-   if (read_len == -1) return errno;
+   if (read_len == -1) {
+       close(fd);
+       return errno;
+   }
    if (read_len != MAGIC_NUM_LEN) {
        printf("Error: reading NC magic string unexpected short read\n");
+       close(fd);
        return 0;
    }
 
    if (strncmp(magic, "CDF", MAGIC_NUM_LEN-1)==0)
    {
       if (magic[MAGIC_NUM_LEN-1] == NC_FORMAT_CLASSIC ||
-         magic[MAGIC_NUM_LEN-1] == NC_FORMAT_64BIT_OFFSET ||
-         magic[MAGIC_NUM_LEN-1] == NC_FORMAT_64BIT_OFFSET)
-        *version = magic[MAGIC_NUM_LEN-1];
+          magic[MAGIC_NUM_LEN-1] == NC_FORMAT_64BIT_OFFSET ||
+          magic[MAGIC_NUM_LEN-1] == NC_FORMAT_CDF5)
+         *version = magic[MAGIC_NUM_LEN-1];
       else
         return NC_ENOTNC;
    }
@@ -2156,7 +2214,7 @@ int APIFunc(get_file_version)(char *path, int *version)
 }
 
 /*
- * Test nc_set_default_format
+ * Test APIFunc(set_default_format)
  *    try with bad default format
  *    try with NULL old_formatp
  *    try in data mode, check error
@@ -2186,26 +2244,25 @@ TestFunc(set_default_format)(void)
     ELSE_NOK
 
     /* Cycle through available formats. */
-    for(i=1; i<5; i++)
+    for(i=NC_FORMAT_CLASSIC; i<NC_FORMAT_64BIT_DATA; i++)
     {
-       if (i == 3 || i == 4) continue; /* test classic formats only */
-
+       if (i == NC_FORMAT_NETCDF4 || i == NC_FORMAT_NETCDF4_CLASSIC)
+           continue; /* test classic formats only */
        if ((err = APIFunc(set_default_format)(i, NULL)))
-         error("setting classic format: status = %d", err);
+           error("setting classic format: status = %d", err);
        ELSE_NOK
        err = FileCreate(scratch, NC_CLOBBER, &ncid);
        if (err != NC_NOERR)
-         error("bad nc_create: status = %d", err);
-       err = APIFunc(put_att_text)(ncid, NC_GLOBAL, "testatt",
-                               sizeof("blah"), "blah");
+           error("bad nc_create: status = %d", err);
+       err = APIFunc(put_att_text)(ncid, NC_GLOBAL, "testatt", sizeof("blah"), "blah");
        if (err != NC_NOERR)
-         error("bad put_att: status = %d", err);
+           error("bad put_att: status = %d", err);
        err = APIFunc(close)(ncid);
        if (err != NC_NOERR)
-         error("bad close: status = %d", err);
+           error("bad close: status = %d", err);
        err = APIFunc(get_file_version)(scratch, &version);
        if (err != NC_NOERR)
-         error("bad file version = %d", err);
+           error("bad file version = %d", err);
        if (version != i) {
           if (i == 4) {
               if (version == 3) continue;
@@ -2219,7 +2276,7 @@ TestFunc(set_default_format)(void)
 
     /* Remove the left-over file. */
     if ((err = FileDelete(scratch, info)))
-       error("remove of %s failed", scratch);
+        error("remove of %s failed", scratch);
     return nok;
 }
 

@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_read.m4 2547 2016-10-12 23:58:59Z wkliao $ */
+/* $Id: test_read.m4 2550 2016-10-13 18:24:04Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -119,7 +119,7 @@ TestFunc(strerror)(void)
  *    Try to open a non-existent netCDF file, check error return.
  *    Open a file that is not a netCDF file, check error return.
  *    Open a netCDF file with a bad mode argument, check error return.
- *    Open a netCDF file with NC_NOWRITE, info mode, try to write, check error.
+ *    Open a netCDF file with NC_NOWRITE, read-only mode, try to write, check error.
  *    Try to open a netcdf twice, check whether returned netcdf ids different.
  * If in writable section of tests,
  *    Open a netCDF file with NC_WRITE mode, write something, close it.
@@ -129,11 +129,11 @@ TestFunc(strerror)(void)
 int
 TestFunc(open)(void)
 {
-    int err, fd;
-    int ncid;
-    int ncid2;
-    int nok=0;
+    int err, ncid, ncid2, nok=0;
+ifdef(`PNETCDF', ``#'if 1', ``#'if 0')
+    int fd;
     ssize_t w_len;
+#endif
 
     /* Try to open a nonexistent file */
     err = FileOpen("tooth-fairy.nc", NC_NOWRITE, &ncid); /* should fail */
@@ -157,6 +157,13 @@ ifdef(`PNETCDF',
         error("nc_open of nonexistent file should have returned system error");
 `#'endif')
 
+    /* Open a file that is not a netCDF file.  But need a portable
+     * test that also works for cross-compiles ... */
+    /* err = nc_open("nc_test.o", NC_NOWRITE, &ncid);/\* should fail *\/ */
+    /* IF (err != NC_ENOTNC) */
+    /*  error("nc_open of non-netCDF file: status = %d", err); */
+
+ifdef(`PNETCDF', ``#'if 1', ``#'if 0')
     /* create a not-nc file */
     fd = open(NOT_NC_FILE, O_CREAT|O_WRONLY, 0600);
     w_len = write(fd, "0123456789abcdefghijklmnopqrstuvwxyz", 36);
@@ -171,6 +178,7 @@ ifdef(`PNETCDF',
 
     /* delete the not-nc file */
     unlink(NOT_NC_FILE);
+#endif
 
     /* Open a netCDF file in read-only mode, check that write fails */
     err = FileOpen(testfile, NC_NOWRITE, &ncid);
@@ -1628,7 +1636,8 @@ TestFunc(inq_att)(AttVarArgs)
             } else {
                 IF (t != ATT_TYPE(i,j))
                     error("type not that expected");
-                else IF (n != ATT_LEN(i,j))
+                ELSE_NOK
+                IF (n != ATT_LEN(i,j))
                     error("length not that expected");
                 ELSE_NOK
             }
