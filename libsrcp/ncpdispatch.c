@@ -189,7 +189,7 @@ NCP__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t
     assert(nc5);
 
     /* causes implicitly defined warning; may be because of old installed pnetcdf? */
-#if 0
+#if 1
     /* In PnetCDF ncmpi__enddef() is only implemented in v1.5.0 and later */
     status = ncmpi__enddef(nc->int_ncid, mpi_h_minfree, mpi_v_align,
                            mpi_v_minfree, mpi_r_align);
