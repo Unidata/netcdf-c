@@ -71,7 +71,7 @@ tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 #WARNING: test_knmi depends on run_get_knmi_files.sh,
 # so they must appear in the appropriate order.
 TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
-run_bm_test2.sh run_tst_chunks.sh run_bm_ar4.sh tst_files2 tst_files3	\
+run_bm_test2.sh run_tst_chunks.sh tst_files2 tst_files3	\
 tst_ar5 tst_h_files3 tst_mem                                            \
 run_get_knmi_files.sh tst_knmi
 
