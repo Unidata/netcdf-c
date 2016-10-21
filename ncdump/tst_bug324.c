@@ -1,4 +1,5 @@
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
@@ -12,7 +13,7 @@
 #define NAME_H   "h"
 
 int
-main(int argc, char **argv) 
+main(int argc, char **argv)
 {/* Test bug fix for NCF-324, file that caused nc_close() failure for
   * non-coordinate variable and dimension with the same name */
 
@@ -60,7 +61,7 @@ main(int argc, char **argv)
     if (nc_close(ncid)) ERR;
 
     /* Check file can be opened and read correctly */
-    {   		
+    {
 	int format;
 	int ndims, nvars, ngatts, xdimid, nunlim;
 	nc_type lat_type, h_type;
@@ -91,7 +92,7 @@ main(int argc, char **argv)
 	}
     }
     if (nc_close(ncid)) ERR;
-      
+
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
