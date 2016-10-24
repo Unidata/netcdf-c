@@ -7,6 +7,7 @@
 /*#define USE_MPE 1*/
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <mpi.h>
 #include <pnetcdf.h>
 
