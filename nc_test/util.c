@@ -4,8 +4,9 @@
  *   $Id: util.c 2792 2014-10-27 06:02:59Z wkliao $
  *********************************************************************/
 
+#include <math.h> /* floor() */
 #include "tests.h"
-#include <math.h>
+
 void
 print_nok(int nok)
 {
@@ -19,8 +20,6 @@ print_nok(int nok)
 int
 inRange(const double value, const nc_type xtype)
 {
-    double min, max;
-
     switch (xtype) {
         case NC_CHAR:   return value >= X_CHAR_MIN   && value <= X_CHAR_MAX;
         case NC_BYTE:   return value >= X_BYTE_MIN   && value <= X_BYTE_MAX;
@@ -34,8 +33,8 @@ inRange(const double value, const nc_type xtype)
         case NC_INT64:  return value >= X_INT64_MIN  && value <= X_INT64_MAX;
         case NC_UINT64: return value >= 0            && value <= X_UINT64_MAX;
 	default:  assert(0);
+                  return(0);
     }
-    return value >= min && value <= max;
 }
 
 static int
@@ -58,31 +57,15 @@ inRange_uchar(const int     cdf_format,
 }
 
 static int
-inRange_schar(const double value, const nc_type xtype)
-{
-    /* check value of type xtype if within schar range */
-
-    if (xtype == NC_UBYTE) {
-        /* netCDF specification make a special case for type conversion between
-         * uchar and schar: do not check for range error. See
-         * http://www.unidata.ucar.edu/software/netcdf/docs_rc/data_type.html#type_conversion
-         */
-        return(value >= X_CHAR_MIN && value <= X_CHAR_MAX);
-    }
-    /* else */
-    return inRange(value, xtype);
-}
-
-static int
 inRange_float(const double value, const nc_type xtype)
 {
     double min, max;
 
     switch (xtype) {
-	case NC_CHAR:   min = X_CHAR_MIN;   max = X_CHAR_MAX; break;
-	case NC_BYTE:   min = X_BYTE_MIN;   max = X_BYTE_MAX; break;
+	case NC_CHAR:   min = X_CHAR_MIN;   max = X_CHAR_MAX;  break;
+	case NC_BYTE:   min = X_BYTE_MIN;   max = X_BYTE_MAX;  break;
 	case NC_SHORT:  min = X_SHORT_MIN;  max = X_SHORT_MAX; break;
-	case NC_INT:   min = X_INT_MIN;   max = X_INT_MAX; break;
+	case NC_INT:    min = X_INT_MIN;    max = X_INT_MAX;   break;
 	case NC_FLOAT:
 		if(FLT_MAX < X_FLOAT_MAX) {
 			min = (-FLT_MAX);
@@ -122,7 +105,7 @@ inRange_float(const double value, const nc_type xtype)
 #if FLT_MANT_DIG != DBL_MANT_DIG
     /* else */
     {
-	const float fvalue = value;
+	const float fvalue = (float)value;
 	return fvalue >= min && fvalue <= max;
     }
 #else
@@ -131,25 +114,35 @@ inRange_float(const double value, const nc_type xtype)
 }
 
 /* wrapper for inRange to handle special NC_BYTE/uchar adjustment */
+/* this function checks whether "value" to be casted to type "itype" is
+ * within the range of external "xtype".
+ */
 int
-inRange3(
-    const int    cdf_format,
-    const double value,
-    const nc_type xtype,
-    const nct_itype itype)
+inRange3(const int    cdf_format,
+         const double value,
+         const nc_type xtype,
+         const nct_itype itype)
 {
+    /* netCDF specification make a special case for type conversion between
+     * uchar and NC_BYTE: do not check for range error. See
+     * http://www.unidata.ucar.edu/software/netcdf/docs_rc/data_type.html#type_conversion
+     * The _uchar and _schar functions were introduced in netCDF-3 to eliminate
+     * an ambiguity, and support both signed and unsigned byte data. In
+     * netCDF-2, whether the external NC_BYTE type represented signed or
+     * unsigned values was left up to the user. In netcdf-3, we treat NC_BYTE
+     * as signed for the purposes of conversion to short, int, long, float, or
+     * double. (Of course, no conversion takes place when the internal type is
+     * signed char.) In the _uchar functions, we treat NC_BYTE as if it were
+     * unsigned. Thus, no NC_ERANGE error can occur converting between NC_BYTE
+     * and unsigned char.
+     */
     switch (itype) {
-/*
-        case NCT_SCHAR:
-        case NCT_CHAR:
-            return inRange_schar(value, xtype);
-*/
-    case NCT_UCHAR:
-	return inRange_uchar(cdf_format, value, xtype);
-    case NCT_FLOAT:
-	return inRange_float(value, xtype);
-    default:
-	break;
+        case NCT_UCHAR:
+	    return inRange_uchar(cdf_format, value, xtype);
+        case NCT_FLOAT:
+	    return inRange_float(value, xtype);
+        default:
+	    break;
     }
     return inRange(value, xtype);
 }
@@ -160,11 +153,10 @@ inRange3(
  *  Use tolerant comparison based on IEEE FLT_EPSILON or DBL_EPSILON.
  */
 int
-equal(
-    const double x,
-    const double y,
-    nc_type xtype, 	/* external data type */
-    nct_itype itype)
+equal(const double x,
+      const double y,
+      nc_type xtype, 	/* external data type */
+      nct_itype itype)
 {
     const double flt_epsilon = 1.19209290E-07;
     const double dbl_epsilon = 2.2204460492503131E-16;
@@ -187,10 +179,9 @@ equal(
 
 /* this function is for the APIs without itype, i.e. xtype == itype */
 int
-equal2(
-    const double x,
-    const double y,
-    nc_type xtype)    /* external data type */
+equal2(const double x,
+       const double y,
+       nc_type xtype)    /* external data type */
 {
     const double flt_epsilon = 1.19209290E-07;
     const double dbl_epsilon = 2.2204460492503131E-16;
@@ -237,7 +228,7 @@ int roll( int n )
 	 * We don't use RAND_MAX here because not all compilation
 	 * environments define it (e.g. gcc(1) under SunOS 4.1.4).
 	 */
-	r = ((rand() % 32768) / 32767.0) * (n - 1) + 0.5;
+	r = (int)(((rand() % 32768) / 32767.0) * (n - 1) + 0.5);
     while (r >= n);
 
     return r;
@@ -257,16 +248,15 @@ int roll( int n )
 int
 toMixedBase(
     size_t number,        /* number to be converted to mixed base */
-    size_t length,
+    int length,
     const size_t base[],        /* dimensioned [length], base[0] ignored */
     size_t result[])      /* dimensioned [length] */
 {
-    size_t i;
+    int i;
 
     if (length > 0) {
 	for (i = length - 1; i > 0; i--) {
-	    if (base[i] == 0)
-		return 1;
+	    if (base[i] == 0) return 1;
 	    result[i] = number % base[i];
 	    number = number / base[i];
 	}
@@ -286,10 +276,9 @@ toMixedBase(
  *      Author: Harvey Davies, Unidata/UCAR, Boulder, Colorado
  */
 size_t
-fromMixedBase(
-    size_t length,
-    size_t number[],      /* dimensioned [length] */
-    size_t base[])        /* dimensioned [length], base[0] ignored */
+fromMixedBase(size_t length,
+              size_t number[],      /* dimensioned [length] */
+              size_t base[])        /* dimensioned [length], base[0] ignored */
 {
     size_t i;
     size_t result = 0;
@@ -310,25 +299,25 @@ int nc2dbl ( const nc_type xtype, const void *p, double *result)
     if ( ! p ) return 2;
     if ( ! result ) return 3;
     switch (xtype) {
-        case NC_BYTE: *result = *((signed char *) p); break;
-        case NC_CHAR: *result = *((signed char *) p); break;
-        case NC_SHORT: *result = *((short *) p); break;
+        case NC_CHAR:   *result = *((signed char *)    p); break;
+        case NC_BYTE:   *result = *((signed char *)    p); break;
+        case NC_UBYTE:  *result = *((unsigned char *)  p); break;
+        case NC_SHORT:  *result = *((short *)          p); break;
+        case NC_USHORT: *result = *((unsigned short *) p); break;
         case NC_INT:
 #if INT_MAX >= X_INT_MAX
 		*result = *((int *) p); break;
 #else
 		*result = *((long *) p); break;
 #endif
-        case NC_FLOAT: *result = *((float *) p); break;
-        case NC_DOUBLE: *result = *((double *) p); break;
-        case NC_UBYTE:  *result = *((unsigned char *)  p); break;
-        case NC_USHORT: *result = *((unsigned short *) p); break;
         case NC_UINT:
 #if UINT_MAX >= X_UINT_MAX
             *result = *((unsigned int *) p); break;
 #else
             *result = *((unsigned long *) p); break;
 #endif
+        case NC_FLOAT:  *result = *((float *)              p); break;
+        case NC_DOUBLE: *result = *((double *)             p); break;
         case NC_INT64:  *result = *((long long *)          p); break;
         case NC_UINT64: *result = *((unsigned long long *) p); break;
         default: return 1;
@@ -342,58 +331,51 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
 {
     double r;   /* rounded value */
 
-    if (p) {
-        switch (xtype) {
-            case NC_BYTE:
-                r = floor(0.5+d);
-                if ( r < schar_min  ||  r > schar_max )  return 2;
-                *((signed char *) p) = r;
-                break;
-            case NC_CHAR:
-                r = floor(0.5+d);
-                /* d is obtained from hash() which may be set to X_CHAR_MIN (0)
-                 * or X_CHAR_MAX (255). When in-memory data type char is signed
-                 * (i.e. ranged from -128 to 127), we should still allow a type
-                 * cast a unsigned value > 127 to a signed char without
-                 * reporting it as a range error.
-                 */
-                if ( r < X_CHAR_MIN || r > X_CHAR_MAX ) return 2;
+    if (p == NULL) return 1;
+    switch (xtype) {
+        case NC_CHAR:
+            r = floor(0.5+d);
+            /* d is obtained from hash() which may be set to X_CHAR_MIN (0)
+             * or X_CHAR_MAX (255). When in-memory data type char is signed
+             * (i.e. ranged from -128 to 127), we should still allow a type
+             * cast a unsigned value > 127 to a signed char without
+             * reporting it as a range error.
+             */
+            if ( r < X_CHAR_MIN || r > X_CHAR_MAX ) return 2;
 #if defined(__CHAR_UNSIGNED__) && __CHAR_UNSIGNED__ != 0
-                *((signed char*) p) = r;
+            *((signed char*) p) = r;
 #else
-                *((char   *) p) = r;
+            *((char   *) p) = r;
 #endif
-                break;
-            case NC_SHORT:
-                r = floor(0.5+d);
-                if ( r < short_min  ||  r > short_max )  return 2;
-                *((short  *) p) = r;
-                break;
-            case NC_INT:
-                r = floor(0.5+d);
-                if ( r < long_min  ||  r > long_max )  return 2;
-#if INT_MAX >= X_INT_MAX
-                *((int   *) p) = r;
-#else
-                *((long   *) p) = r;
-#endif
-                break;
-            case NC_FLOAT:
-                if ( fabs(d) > float_max )  return 2;
-                *((float  *) p) = d;
-                break;
-            case NC_DOUBLE:
-                *((double *) p) = d;
-                break;
+            break;
+        case NC_BYTE:
+            r = floor(0.5+d);
+            if ( r < schar_min  ||  r > schar_max )  return 2;
+            *((signed char *) p) = r;
+            break;
         case NC_UBYTE:
             r = floor(0.5+d);
             if ( r < 0.0  ||  r > uchar_max )  return 2;
             *((unsigned char *) p) = r;
             break;
+        case NC_SHORT:
+            r = floor(0.5+d);
+            if ( r < short_min  ||  r > short_max )  return 2;
+            *((short  *) p) = r;
+            break;
         case NC_USHORT:
             r = floor(0.5+d);
             if ( r < 0.0  ||  r > ushort_max )  return 2;
             *((unsigned short *) p) = r;
+            break;
+        case NC_INT:
+            r = floor(0.5+d);
+            if ( r < long_min  ||  r > long_max )  return 2;
+#if INT_MAX >= X_INT_MAX
+            *((int   *) p) = r;
+#else
+            *((long   *) p) = r;
+#endif
             break;
         case NC_UINT:
             r = floor(0.5+d);
@@ -403,6 +385,13 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
 #else
             *((unsigned long *) p) = r;
 #endif
+            break;
+        case NC_FLOAT:
+            if ( fabs(d) > float_max )  return 2;
+            *((float  *) p) = d;
+            break;
+        case NC_DOUBLE:
+            *((double *) p) = d;
             break;
         case NC_INT64:
             r = floor(0.5+d);
@@ -414,13 +403,10 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
             if ( r < 0.0  ||  r > uint64_max )  return 2;
             *((unsigned long long *) p) = r;
             break;
-            default:
-                return 1;
-        }
-	return 0;
-    } else {
-	return 1;
+        default:
+            return 1;
     }
+    return 0;
 }
 
 #define FUZZ (1.19209290E-07)
@@ -443,7 +429,7 @@ hash( const nc_type xtype, const int rank, const size_t *index )
 		    case NC_CHAR:   return X_CHAR_MIN;
 		    case NC_BYTE:   return X_BYTE_MIN;
 		    case NC_SHORT:  return X_SHORT_MIN;
-		    case NC_INT:   return X_INT_MIN;
+		    case NC_INT:    return X_INT_MIN;
 		    case NC_FLOAT:  return X_FLOAT_MIN;
 		    case NC_DOUBLE: return X_DOUBLE_MIN;
                     case NC_UBYTE:  return 0;
@@ -459,7 +445,7 @@ hash( const nc_type xtype, const int rank, const size_t *index )
 		    case NC_CHAR:   return X_CHAR_MAX;
 		    case NC_BYTE:   return X_BYTE_MAX;
 		    case NC_SHORT:  return X_SHORT_MAX;
-		    case NC_INT:   return X_INT_MAX;
+		    case NC_INT:    return X_INT_MAX;
 		    case NC_FLOAT:  return X_FLOAT_MAX;
 		    case NC_DOUBLE: return X_DOUBLE_MAX;
                     case NC_UBYTE:  return X_UCHAR_MAX;
@@ -476,7 +462,7 @@ hash( const nc_type xtype, const int rank, const size_t *index )
 		    case NC_CHAR:   return 'A';
 		    case NC_BYTE:   return X_BYTE_MIN-1.0;
 		    case NC_SHORT:  return X_SHORT_MIN-1.0;
-		    case NC_INT:   return X_INT_MIN-1.0;
+		    case NC_INT:    return X_INT_MIN-1.0;
 		    case NC_FLOAT:  return X_FLOAT_MIN * (1.0 + FUZZ);
 		    case NC_DOUBLE: return -1.0;
                     case NC_UBYTE:  return -1.0;
@@ -491,7 +477,7 @@ hash( const nc_type xtype, const int rank, const size_t *index )
 		    case NC_CHAR:   return 'Z';
 		    case NC_BYTE:   return X_BYTE_MAX+1.0;
 		    case NC_SHORT:  return X_SHORT_MAX+1.0;
-		    case NC_INT:   return X_INT_MAX+1.0;
+		    case NC_INT:    return X_INT_MAX+1.0;
 		    case NC_FLOAT:  return X_FLOAT_MAX * (1.0 + FUZZ);
 		    case NC_DOUBLE: return 1.0;
                     case NC_UBYTE:  return X_UCHAR_MAX +1.0;
@@ -504,11 +490,11 @@ hash( const nc_type xtype, const int rank, const size_t *index )
 	}
     } else {
 	switch (xtype) {
-	    case NC_CHAR: base = 2; break;
-	    case NC_BYTE: base = -2; break;
-	    case NC_SHORT: base = -5; break;
-	    case NC_INT: base = -20; break;
-	    case NC_FLOAT: base = -9; break;
+	    case NC_CHAR:   base =   2; break;
+	    case NC_BYTE:   base =  -2; break;
+	    case NC_SHORT:  base =  -5; break;
+	    case NC_INT:    base = -20; break;
+	    case NC_FLOAT:  base =  -9; break;
 	    case NC_DOUBLE: base = -10; break;
 
             /* not sure what right values are */
@@ -633,23 +619,32 @@ hash( const nc_type xtype, const int rank, const size_t *index )
 #endif
 /* wrapper for hash to handle special NC_BYTE/uchar adjustment */
 double
-hash4(
-    const int cdf_format,
-    const nc_type xtype,
-    const int rank,
-    const size_t *index,
-    const nct_itype itype)
+hash4(const int        cdf_format,
+      const nc_type    xtype,
+      const int        rank,
+      const size_t    *index,
+      const nct_itype  itype)
 {
     double result;
 
     result = hash( xtype, rank, index );
 
+    /* netCDF specification make a special case for type conversion between
+     * uchar and NC_BYTE: do not check for range error. See
+     * http://www.unidata.ucar.edu/software/netcdf/docs_rc/data_type.html#type_conversion
+     * The _uchar and _schar functions were introduced in netCDF-3 to eliminate
+     * an ambiguity, and support both signed and unsigned byte data. In
+     * netCDF-2, whether the external NC_BYTE type represented signed or
+     * unsigned values was left up to the user. In netcdf-3, we treat NC_BYTE
+     * as signed for the purposes of conversion to short, int, long, float, or
+     * double. (Of course, no conversion takes place when the internal type is
+     * signed char.) In the _uchar functions, we treat NC_BYTE as if it were
+     * unsigned. Thus, no NC_ERANGE error can occur converting between NC_BYTE
+     * and unsigned char.
+     */
     if (cdf_format < NC_FORMAT_CDF5 &&
-        itype == NCT_UCHAR && xtype == NC_BYTE && result >= -128 && result < 0)
-        /* netCDF specification make a special case for type conversion between
-         * uchar and scahr: do not check for range error. See
-         * http://www.unidata.ucar.edu/software/netcdf/docs_rc/data_type.html#type_conversion
-         */
+        itype == NCT_UCHAR && xtype == NC_BYTE &&
+        result >= -128 && result < 0)
 	result += 256;
 
     return result;
@@ -703,7 +698,7 @@ init_gatts(const char *type_letter)
 }
 
 static size_t
-product(size_t nn, const size_t *sp)
+product(int nn, const size_t *sp)
 {
 	size_t result = 1;
 	while(nn-- > 0)
@@ -731,7 +726,7 @@ init_gvars (void)
      */
 	const char digit[] = "r123456789";
 
-	size_t rank;
+	int rank;
 	int vn;			/* var number */
 	int xtype;		/* index of type */
 	int an;			/* attribute number */
@@ -747,7 +742,7 @@ init_gvars (void)
 	{
 			/* number variables of a type and rank */
 		const size_t nvars = product(rank, max_dim_len);
-		int jj;
+		size_t jj;
 
 		for (jj = 0; jj < nvars; jj++)
 		{
@@ -849,7 +844,7 @@ put_atts(int ncid)
 	for (j = 0; j < NATTS(i); j++) {
 	    if (ATT_TYPE(i,j) == NC_CHAR) {
 		for (k = 0; k < ATT_LEN(i,j); k++) {
-		    catt[k] = hash(ATT_TYPE(i,j), -1, &k);
+		    catt[k] = (char) hash(ATT_TYPE(i,j), -1, &k);
 		}
 		err = nc_put_att_text(ncid, i, ATT_NAME(i,j),
 		    ATT_LEN(i,j), catt);
@@ -894,7 +889,7 @@ put_vars(int ncid)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) error("toMixedBase");
 	    if (var_name[i][0] == 'c') {
-		text[j] = hash(var_type[i], var_rank[i], index);
+		text[j] = (char) hash(var_type[i], var_rank[i], index);
 	    } else {
 		value[j]  = hash(var_type[i], var_rank[i], index);
 		allInRange = allInRange && inRange(value[j], var_type[i]);
@@ -984,19 +979,14 @@ void
 check_vars(int  ncid)
 {
     size_t index[MAX_RANK];
-    int  err;		/* status */
-    int  i;
+    char  text, name[NC_MAX_NAME];
+    int  i, err;		/* status */
     size_t  j;
-    char  text;
-    double value;
-    nc_type xtype;
-    int ndims;
-    int dimids[MAX_RANK];
-    int isChar;
-    double expect;
-    char name[NC_MAX_NAME];
-    size_t length;
     int nok = 0;      /* count of valid comparisons */
+    int isChar, ndims, dimids[MAX_RANK];
+    double value, expect;
+    nc_type xtype;
+    size_t length;
 
     for (i = 0; i < numVars; i++) {
         isChar = var_type[i] == NC_CHAR;
@@ -1022,18 +1012,14 @@ check_vars(int  ncid)
 		error("error in toMixedBase 2");
 	    expect = hash( var_type[i], var_rank[i], index );
 	    if (isChar) {
-          err = nc_get_var1_text(ncid, i, index, &text);
-          IF (err)
+          	err = nc_get_var1_text(ncid, i, index, &text);
+          	IF (err)
 		    error("nc_get_var1_text: %s", nc_strerror(err));
 		IF (text != (char)expect) {
 		    error("Var %s value read 0x%02x not that expected 0x%02x ",
 			var_name[i], text, (char)expect);
 			print_n_size_t(var_rank[i], index);
 		} else {
-#if 0
-			print("\nOk %s ", var_name[i]);
-			print_n_size_t(var_rank[i], index);
-#endif
 		    nok++;
 		}
 	    } else {
@@ -1049,10 +1035,6 @@ check_vars(int  ncid)
 					var_name[i], value, expect);
 			    print_n_size_t(var_rank[i], index);
 			} else {
-#if 0
-			print("\nOk %s ", var_name[i]);
-			print_n_size_t(var_rank[i], index);
-#endif
 			    nok++;
 			}
 		    }
@@ -1104,9 +1086,9 @@ check_atts(int  ncid)
 		    expect = hash(xtype, -1, &k);
 		    IF (text[k] != (char)expect) {
 			error("nc_get_att_text: unexpected value");
-            } else {
-              nok++;
-            }
+            	    } else {
+              		nok++;
+            	    }
 		}
 	    } else {
 		err = nc_get_att_double(ncid, i, name, value);
@@ -1222,6 +1204,16 @@ int file_open(const char *filename, int omode, int *ncid)
 char* nc_err_code_name(int err)
 {
     static char unknown_str[32];
+
+    if (err > 0) { /* system error */
+        const char *cp = (const char *) strerror(err);
+        if (cp == NULL)
+            sprintf(unknown_str,"Unknown error code %d",err);
+        else
+            sprintf(unknown_str,"Error code %d (%s)",err,cp);
+        return unknown_str;
+    }
+
     switch (err) {
         case (NC_NOERR):			return "NC_NOERR";
         case (NC_EBADID):			return "NC_EBADID";

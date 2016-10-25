@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_get.m4 2542 2016-10-12 21:14:00Z wkliao $ */
+/* $Id: test_get.m4 2559 2016-10-16 20:47:09Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -110,6 +110,18 @@ TestFunc(var1)_$1(VarArgs)
                 error("expecting NC_EINVALCOORDS but got %s", nc_err_code_name(err));
             index[j] = 0;
         }
+
+ifdef(`PNETCDF',`dnl
+        err = GetVar1($1)(ncid, i, NULL, &value);
+        if (!canConvert) {
+            IF (err != NC_ECHAR)
+                error("expecting NC_ECHAR, but got %s", nc_err_code_name(err));
+            ELSE_NOK
+        }
+        else IF (var_rank[i] > 0 && err != NC_ENULLSTART)
+            error("expecting NC_ENULLSTART, but got %s", nc_err_code_name(err));
+        ELSE_NOK
+')dnl
 
         /* check if the contents are supposed to be */
         for (j = 0; j < var_nels[i]; j++) {
@@ -342,6 +354,29 @@ TestFunc(vara)_$1(VarArgs)
             start[j] = 0;
             edge[j] = 1;
         }
+
+ifdef(`PNETCDF',`dnl
+        err = GetVara($1)(ncid, i, NULL, NULL, value);
+        if (!canConvert) {
+            IF (err != NC_ECHAR)
+                error("expecting NC_ECHAR, but got %s", nc_err_code_name(err));
+            ELSE_NOK
+        }
+        else IF (var_rank[i] > 0 && err != NC_ENULLSTART)
+            error("expecting NC_ENULLSTART, but got %s", nc_err_code_name(err));
+        ELSE_NOK
+
+        err = GetVara($1)(ncid, i, start, NULL, value);
+        if (!canConvert) {
+            IF (err != NC_ECHAR)
+                error("expecting NC_ECHAR, but got %s", nc_err_code_name(err));
+            ELSE_NOK
+        }
+        else IF (var_rank[i] > 0 && err != NC_ENULLCOUNT)
+            error("expecting NC_ENULLCOUNT, but got %s", nc_err_code_name(err));
+        ELSE_NOK
+')dnl
+
         for (j = 0; j < var_rank[i]; j++) {
             start[j] = var_shape[i][j]; /* causes NC_EINVALCOORDS */
             err = GetVara($1)(ncid, i, start, edge, value);
@@ -530,6 +565,29 @@ TestFunc(vars)_$1(VarArgs)
             edge[j] = 1;
             stride[j] = 1;
         }
+
+ifdef(`PNETCDF',`dnl
+        err = GetVars($1)(ncid, i, NULL, NULL, NULL, value);
+        if (!canConvert) {
+            IF (err != NC_ECHAR)
+                error("expecting NC_ECHAR, but got %s", nc_err_code_name(err));
+            ELSE_NOK
+        }
+        else IF (var_rank[i] > 0 && err != NC_ENULLSTART)
+            error("expecting NC_ENULLSTART, but got %s", nc_err_code_name(err));
+        ELSE_NOK
+
+        err = GetVars($1)(ncid, i, start, NULL, NULL, value);
+        if (!canConvert) {
+            IF (err != NC_ECHAR)
+                error("expecting NC_ECHAR, but got %s", nc_err_code_name(err));
+            ELSE_NOK
+        }
+        else IF (var_rank[i] > 0 && err != NC_ENULLCOUNT)
+            error("expecting NC_ENULLCOUNT, but got %s", nc_err_code_name(err));
+        ELSE_NOK
+')dnl
+
         for (j = 0; j < var_rank[i]; j++) {
             start[j] = var_shape[i][j];
             err = GetVars($1)(ncid, i, start, edge, stride, value);
@@ -727,6 +785,29 @@ TestFunc(varm)_$1(VarArgs)
             stride[j] = 1;
             imap[j] = 1;
         }
+
+ifdef(`PNETCDF',`dnl
+        err = GetVarm($1)(ncid, i, NULL, NULL, NULL, NULL, value);
+        if (!canConvert) {
+            IF (err != NC_ECHAR)
+                error("expecting NC_ECHAR, but got %s", nc_err_code_name(err));
+            ELSE_NOK
+        }
+        else IF (var_rank[i] > 0 && err != NC_ENULLSTART)
+            error("expecting NC_ENULLSTART, but got %s", nc_err_code_name(err));
+        ELSE_NOK
+
+        err = GetVarm($1)(ncid, i, start, NULL, NULL, NULL, value);
+        if (!canConvert) {
+            IF (err != NC_ECHAR)
+                error("expecting NC_ECHAR, but got %s", nc_err_code_name(err));
+            ELSE_NOK
+        }
+        else IF (var_rank[i] > 0 && err != NC_ENULLCOUNT)
+            error("expecting NC_ENULLCOUNT, but got %s", nc_err_code_name(err));
+        ELSE_NOK
+')dnl
+
         for (j = 0; j < var_rank[i]; j++) {
             start[j] = var_shape[i][j];
             err = GetVarm($1)(ncid, i, start, edge, stride, imap, value);
