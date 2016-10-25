@@ -135,7 +135,7 @@ main(int argc, char **argv)
     signed char schar_in[ATT_LEN], schar_out[ATT_LEN] = {NC_MIN_BYTE, 1, NC_MAX_BYTE};
     unsigned char uchar_in[ATT_LEN];
     short short_in[ATT_LEN], short_out[ATT_LEN] = {NC_MIN_SHORT, -128, NC_MAX_SHORT};
-    int int_in[ATT_LEN], int_out[ATT_LEN] = {-100000, 128, 100000};
+    int int_in[ATT_LEN], int_out[ATT_LEN] = {-100000, 127, 100000};
     float float_in[ATT_LEN], float_out[ATT_LEN] = {-0.5, 0.25, 0.125};
     double double_in[ATT_LEN], double_out[ATT_LEN] = {-0.25, .5, 0.125};
     long long longlong_in[ATT_LEN] = {-1LL, -1LL, -1LL};
