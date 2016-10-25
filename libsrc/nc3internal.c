@@ -1724,3 +1724,80 @@ nc_delete(const char * path)
 {
         return nc_delete_mp(path, 0);
 }
+
+/*----< NC3_inq_default_fill_value() >---------------------------------------*/
+/* copy the default fill value to the memory space pointed by fillp */
+int
+NC3_inq_default_fill_value(int xtype, void *fillp)
+{
+    if (fillp == NULL) return NC_NOERR;
+
+    switch(xtype) {
+        case NC_CHAR   :               *(char*)fillp = NC_FILL_CHAR;   break;
+        case NC_BYTE   :        *(signed char*)fillp = NC_FILL_BYTE;   break;
+        case NC_SHORT  :              *(short*)fillp = NC_FILL_SHORT;  break;
+        case NC_INT    :                *(int*)fillp = NC_FILL_INT;    break;
+        case NC_FLOAT  :              *(float*)fillp = NC_FILL_FLOAT;  break;
+        case NC_DOUBLE :             *(double*)fillp = NC_FILL_DOUBLE; break;
+        case NC_UBYTE  :      *(unsigned char*)fillp = NC_FILL_UBYTE;  break;
+        case NC_USHORT :     *(unsigned short*)fillp = NC_FILL_USHORT; break;
+        case NC_UINT   :       *(unsigned int*)fillp = NC_FILL_UINT;   break;
+        case NC_INT64  :          *(long long*)fillp = NC_FILL_INT64;  break;
+        case NC_UINT64 : *(unsigned long long*)fillp = NC_FILL_UINT64; break;
+        default : return NC_EBADTYPE;
+    }
+    return NC_NOERR;
+}
+
+
+/*----< NC3_inq_var_fill() >-------------------------------------------------*/
+/* inquire the fill value of a variable */
+int
+NC3_inq_var_fill(const NC_var *varp, void *fill_value)
+{
+    NC_attr **attrpp = NULL;
+
+    if (fill_value == NULL) return NC_EINVAL;
+
+    /*
+     * find fill value
+     */
+    attrpp = NC_findattr(&varp->attrs, _FillValue);
+    if ( attrpp != NULL ) {
+        /* User defined fill value */
+        if ( (*attrpp)->type != varp->type || (*attrpp)->nelems != 1 )
+            return NC_EBADTYPE;
+        else
+            (void) memcpy(fill_value, (*attrpp)->xvalue, varp->xsz);
+    }
+    else {
+        /* use the default */
+        switch(varp->type){
+            case NC_CHAR:                *(char *)fill_value = NC_FILL_CHAR;
+                 break;
+            case NC_BYTE:          *(signed char *)fill_value = NC_FILL_BYTE;
+                 break;
+            case NC_SHORT:               *(short *)fill_value = NC_FILL_SHORT;
+                 break;
+            case NC_INT:                   *(int *)fill_value = NC_FILL_INT;
+                 break;
+            case NC_UBYTE:       *(unsigned char *)fill_value = NC_FILL_UBYTE;
+                 break;
+            case NC_USHORT:     *(unsigned short *)fill_value = NC_FILL_USHORT;
+                 break;
+            case NC_UINT:         *(unsigned int *)fill_value = NC_FILL_UINT;
+                 break;
+            case NC_INT64:           *(long long *)fill_value = NC_FILL_INT64;
+                 break;
+            case NC_UINT64: *(unsigned long long *)fill_value = NC_FILL_UINT64;
+                 break;
+            case NC_FLOAT:               *(float *)fill_value = NC_FILL_FLOAT;
+                 break;
+            case NC_DOUBLE:             *(double *)fill_value = NC_FILL_DOUBLE;
+                 break;
+            default:
+                 return NC_EINVAL;
+        }
+    }
+    return NC_NOERR;
+}
