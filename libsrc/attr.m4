@@ -634,31 +634,31 @@ dnl
 define(`XNCX_PAD_PUTN',dnl
 `dnl
 static int
-ncx_pad_putn_I$1(void **xpp, size_t nelems, const $1 *tp, nc_type type)
+ncx_pad_putn_I$1(void **xpp, size_t nelems, const $1 *tp, nc_type type, void *fillp)
 {
 	switch(type) {
 	case NC_CHAR:
 		return NC_ECHAR;
 	case NC_BYTE:
-		return ncx_pad_putn_schar_$1(xpp, nelems, tp);
+		return ncx_pad_putn_schar_$1(xpp, nelems, tp, fillp);
 	case NC_SHORT:
-		return ncx_pad_putn_short_$1(xpp, nelems, tp);
+		return ncx_pad_putn_short_$1(xpp, nelems, tp, fillp);
 	case NC_INT:
-		return ncx_putn_int_$1(xpp, nelems, tp);
+		return ncx_putn_int_$1(xpp, nelems, tp, fillp);
 	case NC_FLOAT:
-		return ncx_putn_float_$1(xpp, nelems, tp);
+		return ncx_putn_float_$1(xpp, nelems, tp, fillp);
 	case NC_DOUBLE:
-		return ncx_putn_double_$1(xpp, nelems, tp);
+		return ncx_putn_double_$1(xpp, nelems, tp, fillp);
 	case NC_UBYTE:
-		return ncx_pad_putn_uchar_$1(xpp, nelems, tp);
+		return ncx_pad_putn_uchar_$1(xpp, nelems, tp, fillp);
 	case NC_USHORT:
-		return ncx_putn_ushort_$1(xpp, nelems, tp);
+		return ncx_putn_ushort_$1(xpp, nelems, tp, fillp);
 	case NC_UINT:
-		return ncx_putn_uint_$1(xpp, nelems, tp);
+		return ncx_putn_uint_$1(xpp, nelems, tp, fillp);
 	case NC_INT64:
-		return ncx_putn_longlong_$1(xpp, nelems, tp);
+		return ncx_putn_longlong_$1(xpp, nelems, tp, fillp);
 	case NC_UINT64:
-		return ncx_putn_ulonglong_$1(xpp, nelems, tp);
+		return ncx_putn_ulonglong_$1(xpp, nelems, tp, fillp);
 	default:
                 assert("ncx_pad_putn_I$1 invalid type" == 0);
 	}
@@ -671,31 +671,31 @@ dnl
 define(`XNCX_PAD_GETN',dnl
 `dnl
 static int
-ncx_pad_getn_I$1(const void **xpp, size_t nelems, $1 *tp, nc_type type)
+ncx_pad_getn_I$1(const void **xpp, size_t nelems, $1 *tp, nc_type type, $1 fillv)
 {
 	switch(type) {
 	case NC_CHAR:
 		return NC_ECHAR;
 	case NC_BYTE:
-		return ncx_pad_getn_schar_$1(xpp, nelems, tp);
+		return ncx_pad_getn_schar_$1(xpp, nelems, tp, fillv);
 	case NC_SHORT:
-		return ncx_pad_getn_short_$1(xpp, nelems, tp);
+		return ncx_pad_getn_short_$1(xpp, nelems, tp, fillv);
 	case NC_INT:
-		return ncx_getn_int_$1(xpp, nelems, tp);
+		return ncx_getn_int_$1(xpp, nelems, tp, fillv);
 	case NC_FLOAT:
-		return ncx_getn_float_$1(xpp, nelems, tp);
+		return ncx_getn_float_$1(xpp, nelems, tp, fillv);
 	case NC_DOUBLE:
-		return ncx_getn_double_$1(xpp, nelems, tp);
+		return ncx_getn_double_$1(xpp, nelems, tp, fillv);
 	case NC_UBYTE:
-		return ncx_pad_getn_uchar_$1(xpp, nelems, tp);
+		return ncx_pad_getn_uchar_$1(xpp, nelems, tp, fillv);
 	case NC_USHORT:
-		return ncx_getn_ushort_$1(xpp, nelems, tp);
+		return ncx_getn_ushort_$1(xpp, nelems, tp, fillv);
 	case NC_UINT:
-		return ncx_getn_uint_$1(xpp, nelems, tp);
+		return ncx_getn_uint_$1(xpp, nelems, tp, fillv);
 	case NC_INT64:
-		return ncx_getn_longlong_$1(xpp, nelems, tp);
+		return ncx_getn_longlong_$1(xpp, nelems, tp, fillv);
 	case NC_UINT64:
-		return ncx_getn_ulonglong_$1(xpp, nelems, tp);
+		return ncx_getn_ulonglong_$1(xpp, nelems, tp, fillv);
 	default:
 	        assert("ncx_pad_getn_I$1 invalid type" == 0);
 	}
@@ -743,31 +743,31 @@ XNCX_PAD_GETN(ulonglong)
 /* Common dispatcher for put cases */
 static int
 dispatchput(void **xpp, size_t nelems, const void* tp,
-	    nc_type atype, nc_type memtype)
+	    nc_type atype, nc_type memtype, void *fillp)
 {
     switch (memtype) {
     case NC_CHAR:
         return ncx_pad_putn_text(xpp,nelems, (char *)tp);
     case NC_BYTE:
-        return ncx_pad_putn_Ischar(xpp, nelems, (schar*)tp, atype);
+        return ncx_pad_putn_Ischar(xpp, nelems, (schar*)tp, atype, fillp);
     case NC_SHORT:
-        return ncx_pad_putn_Ishort(xpp, nelems, (short*)tp, atype);
+        return ncx_pad_putn_Ishort(xpp, nelems, (short*)tp, atype, fillp);
     case NC_INT:
-          return ncx_pad_putn_Iint(xpp, nelems, (int*)tp, atype);
+          return ncx_pad_putn_Iint(xpp, nelems, (int*)tp, atype, fillp);
     case NC_FLOAT:
-        return ncx_pad_putn_Ifloat(xpp, nelems, (float*)tp, atype);
+        return ncx_pad_putn_Ifloat(xpp, nelems, (float*)tp, atype, fillp);
     case NC_DOUBLE:
-        return ncx_pad_putn_Idouble(xpp, nelems, (double*)tp, atype);
+        return ncx_pad_putn_Idouble(xpp, nelems, (double*)tp, atype, fillp);
     case NC_UBYTE: /*Synthetic*/
-        return ncx_pad_putn_Iuchar(xpp,nelems, (uchar *)tp, atype);
+        return ncx_pad_putn_Iuchar(xpp,nelems, (uchar *)tp, atype, fillp);
     case NC_INT64:
-          return ncx_pad_putn_Ilonglong(xpp, nelems, (longlong*)tp, atype);
+          return ncx_pad_putn_Ilonglong(xpp, nelems, (longlong*)tp, atype, fillp);
     case NC_USHORT:
-          return ncx_pad_putn_Iushort(xpp, nelems, (ushort*)tp, atype);
+          return ncx_pad_putn_Iushort(xpp, nelems, (ushort*)tp, atype, fillp);
     case NC_UINT:
-          return ncx_pad_putn_Iuint(xpp, nelems, (uint*)tp, atype);
+          return ncx_pad_putn_Iuint(xpp, nelems, (uint*)tp, atype, fillp);
     case NC_UINT64:
-          return ncx_pad_putn_Iulonglong(xpp, nelems, (ulonglong*)tp, atype);
+          return ncx_pad_putn_Iulonglong(xpp, nelems, (ulonglong*)tp, atype, fillp);
     case NC_NAT:
         return NC_EBADTYPE;
     default:
@@ -793,6 +793,7 @@ NC3_put_att(
     NC_attr **attrpp;
     NC_attr *old = NULL;
     NC_attr *attrp;
+    unsigned char fill[8]; /* fill value in internal representation */
 
     status = NC_check_id(ncid, &nc);
     if(status != NC_NOERR)
@@ -831,6 +832,9 @@ NC3_put_att(
 
     /* 4 cases: exists X indef */
 
+    status = NC3_inq_default_fill_value(type, &fill);
+    if (status != NC_NOERR) return status;
+
     if(attrpp != NULL) { /* name in use */
         if(!NC_indef(ncp)) {
 	    const size_t xsz = ncx_len_NC_attrV(type, nelems);
@@ -846,10 +850,12 @@ NC3_put_att(
             if(nelems != 0) {
                 void *xp = attrp->xvalue;
                 /* for CDF-1 and CDF-2, NC_BYTE is treated the same type as uchar memtype */
-                if (!fIsSet(ncp->flags,NC_64BIT_DATA) && type == NC_BYTE && memtype == NC_UBYTE)
-                    status = dispatchput(&xp, nelems, (const void*)value, memtype, memtype);
-                else
-                    status = dispatchput(&xp, nelems, (const void*)value, type, memtype);
+                if (!fIsSet(ncp->flags,NC_64BIT_DATA) && type == NC_BYTE && memtype == NC_UBYTE) {
+                    status = NC3_inq_default_fill_value(NC_UBYTE, &fill);
+                    if (status != NC_NOERR) return status;
+                    status = dispatchput(&xp, nelems, value, memtype, memtype, &fill);
+                } else
+                    status = dispatchput(&xp, nelems, value, type, memtype, &fill);
             }
 
             set_NC_hdirty(ncp);
@@ -882,10 +888,12 @@ NC3_put_att(
     if(nelems != 0) {
         void *xp = attrp->xvalue;
         /* for CDF-1 and CDF-2, NC_BYTE is treated the same type as uchar memtype */
-        if (!fIsSet(ncp->flags,NC_64BIT_DATA) && type == NC_BYTE && memtype == NC_UBYTE)
-            status = dispatchput(&xp, nelems, (const void*)value, memtype, memtype);
-        else
-            status = dispatchput(&xp, nelems, (const void*)value, type, memtype);
+        if (!fIsSet(ncp->flags,NC_64BIT_DATA) && type == NC_BYTE && memtype == NC_UBYTE) {
+            status = NC3_inq_default_fill_value(NC_UBYTE, &fill);
+            if (status != NC_NOERR) return status;
+            status = dispatchput(&xp, nelems, value, memtype, memtype, &fill);
+        } else
+            status = dispatchput(&xp, nelems, value, type, memtype, &fill);
     }
 
     if(attrpp != NULL) {
@@ -940,31 +948,31 @@ NC3_get_att(
     xp = attrp->xvalue;
     switch (memtype) {
     case NC_CHAR:
-        return ncx_pad_getn_text(&xp, attrp->nelems , (char *)value);
+        return ncx_pad_getn_text(&xp, attrp->nelems, (char *)value);
     case NC_BYTE:
-        return ncx_pad_getn_Ischar(&xp,attrp->nelems,(schar*)value,attrp->type);
+        return ncx_pad_getn_Ischar(&xp,attrp->nelems,(schar*)value,attrp->type, NC_FILL_BYTE);
     case NC_SHORT:
-        return ncx_pad_getn_Ishort(&xp,attrp->nelems,(short*)value,attrp->type);
+        return ncx_pad_getn_Ishort(&xp,attrp->nelems,(short*)value,attrp->type, NC_FILL_SHORT);
     case NC_INT:
-          return ncx_pad_getn_Iint(&xp,attrp->nelems,(int*)value,attrp->type);
+          return ncx_pad_getn_Iint(&xp,attrp->nelems,(int*)value,attrp->type, NC_FILL_INT);
     case NC_FLOAT:
-        return ncx_pad_getn_Ifloat(&xp,attrp->nelems,(float*)value,attrp->type);
+        return ncx_pad_getn_Ifloat(&xp,attrp->nelems,(float*)value,attrp->type, NC_FILL_FLOAT);
     case NC_DOUBLE:
-        return ncx_pad_getn_Idouble(&xp,attrp->nelems,(double*)value,attrp->type);
+        return ncx_pad_getn_Idouble(&xp,attrp->nelems,(double*)value,attrp->type, NC_FILL_DOUBLE);
     case NC_INT64:
-          return ncx_pad_getn_Ilonglong(&xp,attrp->nelems,(longlong*)value,attrp->type);
+          return ncx_pad_getn_Ilonglong(&xp,attrp->nelems,(longlong*)value,attrp->type, NC_FILL_UINT64);
     case NC_UBYTE: /* Synthetic */
         /* for CDF-1 and CDF-2, NC_BYTE is treated the same type as uchar memtype */
         if (!fIsSet(ncp->flags,NC_64BIT_DATA) && attrp->type == NC_BYTE)
-            return ncx_pad_getn_Iuchar(&xp, attrp->nelems, (uchar *)value, NC_UBYTE);
+            return ncx_pad_getn_Iuchar(&xp, attrp->nelems, (uchar *)value, NC_UBYTE, NC_FILL_UBYTE);
         else
-            return ncx_pad_getn_Iuchar(&xp, attrp->nelems, (uchar *)value, attrp->type);
+            return ncx_pad_getn_Iuchar(&xp, attrp->nelems, (uchar *)value, attrp->type, NC_FILL_UBYTE);
     case NC_USHORT:
-          return ncx_pad_getn_Iushort(&xp,attrp->nelems,(ushort*)value,attrp->type);
+          return ncx_pad_getn_Iushort(&xp,attrp->nelems,(ushort*)value,attrp->type, NC_FILL_USHORT);
     case NC_UINT:
-          return ncx_pad_getn_Iuint(&xp,attrp->nelems,(uint*)value,attrp->type);
+          return ncx_pad_getn_Iuint(&xp,attrp->nelems,(uint*)value,attrp->type, NC_FILL_UINT);
     case NC_UINT64:
-          return ncx_pad_getn_Iulonglong(&xp,attrp->nelems,(ulonglong*)value,attrp->type);
+          return ncx_pad_getn_Iulonglong(&xp,attrp->nelems,(ulonglong*)value,attrp->type, NC_FILL_UINT64);
 
     case NC_NAT:
         return NC_EBADTYPE;
@@ -974,3 +982,4 @@ NC3_get_att(
     status =  NC_EBADTYPE;
     return status;
 }
+

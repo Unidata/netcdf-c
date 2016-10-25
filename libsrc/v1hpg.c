@@ -890,7 +890,7 @@ v1h_put_NC_var(v1hs *psp, const NC_var *varp)
         if(status != NC_NOERR)
 			return status;
 		status = ncx_putn_longlong_int(&psp->pos,
-				varp->ndims, varp->dimids);
+				varp->ndims, varp->dimids, NULL);
         if(status != NC_NOERR)
 			return status;
 	}
@@ -899,7 +899,7 @@ v1h_put_NC_var(v1hs *psp, const NC_var *varp)
         if(status != NC_NOERR)
 		return status;
 	    status = ncx_putn_int_int(&psp->pos,
-			varp->ndims, varp->dimids);
+			varp->ndims, varp->dimids, NULL);
         if(status != NC_NOERR)
 		return status;
 	}
@@ -956,7 +956,7 @@ v1h_get_NC_var(v1hs *gsp, NC_var **varpp)
         if(status != NC_NOERR)
 			goto unwind_alloc;
 		status = ncx_getn_longlong_int((const void **)(&gsp->pos),
-				ndims, varp->dimids);
+				ndims, varp->dimids, 0);
         if(status != NC_NOERR)
 			goto unwind_alloc;
 	}
@@ -965,7 +965,7 @@ v1h_get_NC_var(v1hs *gsp, NC_var **varpp)
         if(status != NC_NOERR)
 		goto unwind_alloc;
 	    status = ncx_getn_int_int((const void **)(&gsp->pos),
-			ndims, varp->dimids);
+			ndims, varp->dimids, 0);
         if(status != NC_NOERR)
 		goto unwind_alloc;
 	}
@@ -1296,11 +1296,11 @@ ncx_put_NC(const NC3_INFO* ncp, void **xpp, off_t offset, size_t extent)
 	}
 
 	if (ps.version == 5)
-	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic5), ncmagic5);
+	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic5), ncmagic5, NULL);
 	else if (ps.version == 2)
-	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic), ncmagic);
+	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic), ncmagic, NULL);
 	else
-	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic1), ncmagic1);
+	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic1), ncmagic1, NULL);
 	if(status != NC_NOERR)
 		goto release;
 
@@ -1406,7 +1406,7 @@ nc_get_NC(NC3_INFO* ncp)
 		(void) memset(magic, 0, sizeof(magic));
 
 		status = ncx_getn_schar_schar(
-			(const void **)(&gs.pos), sizeof(magic), magic);
+			(const void **)(&gs.pos), sizeof(magic), magic, 0);
         if(status != NC_NOERR)
 			goto unwind_get;
 

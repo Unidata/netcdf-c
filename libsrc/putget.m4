@@ -101,7 +101,7 @@ NC_fill_$2(
 			*vp++ = $4;
 		}
 	}
-	return ncx_putn_$2_$1(xpp, nelems, fillp);
+	return ncx_putn_$2_$1(xpp, nelems, fillp ifelse(`$1',`char',,`,NULL'));
 }
 ')dnl
 
@@ -680,11 +680,15 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 	size_t remaining = varp->xsz * nelems;
 	int status = NC_NOERR;
 	void *xp;
+        void *fillp;
 
 	if(nelems == 0)
 		return NC_NOERR;
 
 	assert(value != NULL);
+
+        fillp = malloc(varp->xsz);
+	status = NC3_inq_var_fill(varp, fillp);
 
 	for(;;)
 	{
@@ -696,7 +700,7 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 		if(lstatus != NC_NOERR)
 			return lstatus;
 
-		lstatus = ncx_putn_$1_$2(&xp, nput, value);
+		lstatus = ncx_putn_$1_$2(&xp, nput, value ifelse(`$1',`char',,`,fillp'));
 		if(lstatus != NC_NOERR && status == NC_NOERR)
 		{
 			/* not fatal to the loop */
@@ -713,6 +717,7 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 		value += nput;
 
 	}
+        free(fillp);
 
 	return status;
 }
@@ -843,6 +848,19 @@ getNCvx_$1_$2(const NC3_INFO* ncp, const NC_var *varp,
 	size_t remaining = varp->xsz * nelems;
 	int status = NC_NOERR;
 	const void *xp;
+        ifelse(
+        `$2', `text',      `$2 fillv=NC_FILL_CHAR;',
+        `$2', `schar',     `$2 fillv=NC_FILL_BYTE;',
+        `$2', `uchar',     `$2 fillv=NC_FILL_UBYTE;',
+        `$2', `short',     `$2 fillv=NC_FILL_SHORT;',
+        `$2', `ushort',    `$2 fillv=NC_FILL_USHORT;',
+        `$2', `int',       `$2 fillv=NC_FILL_INT;',
+        `$2', `long',      `$2 fillv=NC_FILL_INT;',
+        `$2', `uint',      `$2 fillv=NC_FILL_UINT;',
+        `$2', `float',     `$2 fillv=NC_FILL_FLOAT;',
+        `$2', `double',    `$2 fillv=NC_FILL_DOUBLE;',
+        `$2', `longlong',  `$2 fillv=NC_FILL_INT64;',
+        `$2', `ulonglong', `$2 fillv=NC_FILL_UINT64;')
 
 	if(nelems == 0)
 		return NC_NOERR;
@@ -859,7 +877,7 @@ getNCvx_$1_$2(const NC3_INFO* ncp, const NC_var *varp,
 		if(lstatus != NC_NOERR)
 			return lstatus;
 
-		lstatus = ncx_getn_$1_$2(&xp, nget, value);
+		lstatus = ncx_getn_$1_$2(&xp, nget, value ifelse(`$1',`char',,`,fillv'));
 		if(lstatus != NC_NOERR && status == NC_NOERR)
 			status = lstatus;
 
