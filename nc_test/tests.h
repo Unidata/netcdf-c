@@ -242,11 +242,11 @@ extern char dim_name[NDIMS][3];
 extern size_t dim_len[NDIMS];
 extern char var_name[NVARS][2+MAX_RANK];
 extern nc_type var_type[NVARS];
-extern size_t var_rank[NVARS];
+extern int var_rank[NVARS];
 extern int var_dimid[NVARS][MAX_RANK];
 extern size_t var_shape[NVARS][MAX_RANK];
 extern size_t var_nels[NVARS];
-extern size_t var_natts[NVARS];
+extern int var_natts[NVARS];
 extern char att_name[NVARS][MAX_NATTS][2];
 extern char gatt_name[NGATTS][3];
 extern nc_type att_type[NVARS][NGATTS];
@@ -520,15 +520,15 @@ int roll( int n );
 int
 toMixedBase(
     size_t number,        /* number to be converted to mixed base */
-    size_t length,
-    const size_t base[],        /* dimensioned [length], base[0] ignored */
-    size_t result[]);      /* dimensioned [length] */
+    int    length,
+    const size_t base[],  /* dimensioned [length], base[0] ignored */
+    size_t result[]);     /* dimensioned [length] */
 
 size_t
 fromMixedBase(
     size_t length,
     size_t number[],      /* dimensioned [length] */
-    size_t base[]);        /* dimensioned [length], base[0] ignored */
+    size_t base[]);       /* dimensioned [length], base[0] ignored */
 
 int nc2dbl ( const nc_type datatype, const void *p, double *result);
 

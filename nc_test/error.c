@@ -59,7 +59,7 @@ ifFail(const int expr, const int line, const char *file)
  * "architecture" of this program.
  */
 void
-print_n_size_t(size_t nelems, const size_t *array)
+print_n_size_t(int nelems, const size_t *array)
 {
 	fprintf(stderr, "[");
 	while(nelems-- > 0)

@@ -24,7 +24,7 @@ __attribute__ ((format (printf, 1, 2)))
 extern int ifFail(const int expr, const int line, const char *file);
 
 extern void
-print_n_size_t(size_t nelems, const size_t *array);
+print_n_size_t(int nelems, const size_t *array);
 
 #ifdef __cplusplus
 }
