@@ -317,14 +317,14 @@ or
 configure options {#configure_options}
 -----------------------------
 
-These options are used for `autotools`-based builds.  For `cmake` options, see
+These options are used for `autotools`-based builds.yup
 
 Note: `--disable` prefix indicates that the option is normally enabled.
 <table>
 <tr><th>Option<th>Description<th>Dependencies
 <tr><td>--disable-doxygen<td>Disable generation of documentation.<td>doxygen
 <tr><td>--disable-fsync<td>disable fsync support<td>kernel fsync support
-<tr><td>--enable-valgrind-tests <td>build with valgrind-tests; static builds only<td>valgrind
+
 <tr><td>--disable-netcdf-4<td>build netcdf-3 without HDF5 and zlib<td>
 <tr><td>--disable-netcdf4<td>synonym for disable-netcdf-4
 <tr><td>--enable-hdf4<td>build netcdf-4 with HDF4 read capability<td>HDF4, HDF5 and zlib
@@ -347,7 +347,7 @@ Note: `--disable` prefix indicates that the option is normally enabled.
 <tr><td>--enable-large-file-tests <td>Run tests which create very large data
 		          files<td>~13 GB disk space required, but recovered when
                           tests are complete). See option --with-temp-large to
-                          specify temporary directory<td>
+                          specify temporary directory
 <tr><td>--enable-benchmarks<td>Run benchmarks. This is an experimental feature.
 			  The benchmarks are extra tests, used to check netCDF performance.
     <td>sample data files from the Unidata ftp site
@@ -356,7 +356,8 @@ Note: `--disable` prefix indicates that the option is normally enabled.
 <tr><td>--disable-shared<td>don't build shared libraries<td>
 <tr><td>--disable-static<td>don't build static libraries<td>
 <tr><td>--disable-largefile<td>omit support for files larger than 2GB<td>
-<tr><td>--enable-mmap<td>Use mmap to implement NC_DISKLESS<td>
+<tr><td>--enable-mmap<td>Use mmap to implement NC_DISKLESS<td>System-provided `mmap` or `mremap` functions
+<tr><td>--enable-valgrind-tests <td>build with valgrind-tests; static builds only<td>valgrind
 </table>
 
 Build Instructions for netCDF-C using CMake {#netCDF-CMake}
