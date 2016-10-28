@@ -8,6 +8,7 @@
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include "netcdf.h"
 
 #define FILE_NAME "tst_converts.nc"
@@ -21,7 +22,7 @@
 #define VAR2_NAME "var2"
 
 /* This is handy for print statements. */
-static char *format_name[] = {"", "classic", "64-bit offset", "netCDF-4", 
+static char *format_name[] = {"", "classic", "64-bit offset", "netCDF-4",
 			      "netCDF-4 classic model"};
 
 int check_file(int format, unsigned char *uchar_out);
@@ -32,7 +33,7 @@ main(int argc, char **argv)
 {
    unsigned char uchar_out[DIM1_LEN] = {0, 128, 255};
    int format;
- 
+
    printf("\n*** Testing netcdf data conversion.\n");
 
    for (format = 1; format < 5; format++)
@@ -69,8 +70,12 @@ create_file(int format, unsigned char *uchar_out)
    if (nc_def_var(ncid, VAR1_NAME, NC_BYTE, 1, dimids, &varid)) ERR;
    if (nc_enddef(ncid)) ERR;
    retval = nc_put_var_uchar(ncid, varid, uchar_out);
-   if ((format == NC_FORMAT_64BIT_DATA) && retval) ERR;
-   if ((format == NC_FORMAT_NETCDF4) && (retval != NC_ERANGE)) ERR;
+   if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_64BIT_DATA)
+   {
+     if (retval != NC_ERANGE) ERR;
+   }
+   else if (retval != NC_NOERR) ERR;
+
    if (nc_close(ncid)) ERR;
    return NC_NOERR;
 }
@@ -96,7 +101,7 @@ check_file(int format, unsigned char *uchar_out)
    /* Read it back in, and check conversions. */
    if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
    if (nc_inq_var(ncid, 0, var_name, &var_type, &ndims, dimids_var, &natts)) ERR;
-   if (strcmp(var_name, VAR1_NAME) || natts !=0 || ndims != 1 || 
+   if (strcmp(var_name, VAR1_NAME) || natts !=0 || ndims != 1 ||
        dimids_var[0] != 0 || var_type != NC_BYTE) ERR;
 
    /* This is actually an NC_BYTE, with some negatives, so this should
@@ -104,12 +109,12 @@ check_file(int format, unsigned char *uchar_out)
     * because range errors are not generated for byte type
     * conversions. */
    res = nc_get_var_uchar(ncid, 0, uchar_in);
-   if (format == NC_FORMAT_NETCDF4)
+   if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_64BIT_DATA)
    {
       if (res != NC_ERANGE) ERR;
    }
-   else if (format == NC_FORMAT_64BIT_DATA && res) ERR;
-       
+   else if (res) ERR;
+
    for (i=0; i<DIM1_LEN; i++)
       if (uchar_in[i] != uchar_out[i]) ERR;
 
@@ -149,7 +154,7 @@ check_file(int format, unsigned char *uchar_out)
 	 if (int64_in[i] != (signed char)uchar_out[i]) ERR;
 
    }
-   
+
    if (nc_close(ncid)) ERR;
    return 0;
 }

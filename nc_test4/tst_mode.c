@@ -1,10 +1,11 @@
 /**
- * @file 
+ * @file
  * Test some illegal mode combinations
  *
  */
 
 #include "nc_tests.h"
+#include "err_macros.h"
 #include "netcdf_par.h"
 
 #define FILE_NAME "tst_mode.nc"
@@ -13,7 +14,7 @@ int
 main(int argc, char** argv)
 {
    int ncid,varid;
-   int retval; 
+   int retval;
 
    printf("\n*** Testing illegal mode combinations\n");
 
@@ -38,4 +39,3 @@ main(int argc, char** argv)
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
-

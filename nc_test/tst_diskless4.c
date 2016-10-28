@@ -9,6 +9,7 @@
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <netcdf.h>
 #include <stdio.h>
 #include <string.h>
@@ -44,7 +45,7 @@ main(int argc, char **argv)
     unsigned int data[DATASIZE];
     size_t start[1];
     size_t count[1];
-    Tag tag = Create; 
+    Tag tag = Create;
     int cmode = 0;
     int ncid;
     int dimids[1];
@@ -88,7 +89,7 @@ main(int argc, char **argv)
 	}
     } else
 	tag = Create; /* default */
-    
+
     switch (tag) {
     case Create: printf("\n*** Create file\n"); break;
     case CreateDiskless: printf("\n*** Create file diskless\n"); break;
