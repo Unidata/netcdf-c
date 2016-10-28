@@ -671,31 +671,31 @@ dnl
 define(`XNCX_PAD_GETN',dnl
 `dnl
 static int
-ncx_pad_getn_I$1(const void **xpp, size_t nelems, $1 *tp, nc_type type, $1 fillv)
+ncx_pad_getn_I$1(const void **xpp, size_t nelems, $1 *tp, nc_type type)
 {
 	switch(type) {
 	case NC_CHAR:
 		return NC_ECHAR;
 	case NC_BYTE:
-		return ncx_pad_getn_schar_$1(xpp, nelems, tp, fillv);
+		return ncx_pad_getn_schar_$1(xpp, nelems, tp);
 	case NC_SHORT:
-		return ncx_pad_getn_short_$1(xpp, nelems, tp, fillv);
+		return ncx_pad_getn_short_$1(xpp, nelems, tp);
 	case NC_INT:
-		return ncx_getn_int_$1(xpp, nelems, tp, fillv);
+		return ncx_getn_int_$1(xpp, nelems, tp);
 	case NC_FLOAT:
-		return ncx_getn_float_$1(xpp, nelems, tp, fillv);
+		return ncx_getn_float_$1(xpp, nelems, tp);
 	case NC_DOUBLE:
-		return ncx_getn_double_$1(xpp, nelems, tp, fillv);
+		return ncx_getn_double_$1(xpp, nelems, tp);
 	case NC_UBYTE:
-		return ncx_pad_getn_uchar_$1(xpp, nelems, tp, fillv);
+		return ncx_pad_getn_uchar_$1(xpp, nelems, tp);
 	case NC_USHORT:
-		return ncx_getn_ushort_$1(xpp, nelems, tp, fillv);
+		return ncx_getn_ushort_$1(xpp, nelems, tp);
 	case NC_UINT:
-		return ncx_getn_uint_$1(xpp, nelems, tp, fillv);
+		return ncx_getn_uint_$1(xpp, nelems, tp);
 	case NC_INT64:
-		return ncx_getn_longlong_$1(xpp, nelems, tp, fillv);
+		return ncx_getn_longlong_$1(xpp, nelems, tp);
 	case NC_UINT64:
-		return ncx_getn_ulonglong_$1(xpp, nelems, tp, fillv);
+		return ncx_getn_ulonglong_$1(xpp, nelems, tp);
 	default:
 	        assert("ncx_pad_getn_I$1 invalid type" == 0);
 	}
@@ -950,30 +950,29 @@ NC3_get_att(
     case NC_CHAR:
         return ncx_pad_getn_text(&xp, attrp->nelems, (char *)value);
     case NC_BYTE:
-        return ncx_pad_getn_Ischar(&xp,attrp->nelems,(schar*)value,attrp->type, NC_FILL_BYTE);
+        return ncx_pad_getn_Ischar(&xp,attrp->nelems,(schar*)value,attrp->type);
     case NC_SHORT:
-        return ncx_pad_getn_Ishort(&xp,attrp->nelems,(short*)value,attrp->type, NC_FILL_SHORT);
+        return ncx_pad_getn_Ishort(&xp,attrp->nelems,(short*)value,attrp->type);
     case NC_INT:
-          return ncx_pad_getn_Iint(&xp,attrp->nelems,(int*)value,attrp->type, NC_FILL_INT);
+          return ncx_pad_getn_Iint(&xp,attrp->nelems,(int*)value,attrp->type);
     case NC_FLOAT:
-        return ncx_pad_getn_Ifloat(&xp,attrp->nelems,(float*)value,attrp->type, NC_FILL_FLOAT);
+        return ncx_pad_getn_Ifloat(&xp,attrp->nelems,(float*)value,attrp->type);
     case NC_DOUBLE:
-        return ncx_pad_getn_Idouble(&xp,attrp->nelems,(double*)value,attrp->type, NC_FILL_DOUBLE);
+        return ncx_pad_getn_Idouble(&xp,attrp->nelems,(double*)value,attrp->type);
     case NC_INT64:
-          return ncx_pad_getn_Ilonglong(&xp,attrp->nelems,(longlong*)value,attrp->type, NC_FILL_UINT64);
+          return ncx_pad_getn_Ilonglong(&xp,attrp->nelems,(longlong*)value,attrp->type);
     case NC_UBYTE: /* Synthetic */
         /* for CDF-1 and CDF-2, NC_BYTE is treated the same type as uchar memtype */
         if (!fIsSet(ncp->flags,NC_64BIT_DATA) && attrp->type == NC_BYTE)
-            return ncx_pad_getn_Iuchar(&xp, attrp->nelems, (uchar *)value, NC_UBYTE, NC_FILL_UBYTE);
+            return ncx_pad_getn_Iuchar(&xp, attrp->nelems, (uchar *)value, NC_UBYTE);
         else
-            return ncx_pad_getn_Iuchar(&xp, attrp->nelems, (uchar *)value, attrp->type, NC_FILL_UBYTE);
+            return ncx_pad_getn_Iuchar(&xp, attrp->nelems, (uchar *)value, attrp->type);
     case NC_USHORT:
-          return ncx_pad_getn_Iushort(&xp,attrp->nelems,(ushort*)value,attrp->type, NC_FILL_USHORT);
+          return ncx_pad_getn_Iushort(&xp,attrp->nelems,(ushort*)value,attrp->type);
     case NC_UINT:
-          return ncx_pad_getn_Iuint(&xp,attrp->nelems,(uint*)value,attrp->type, NC_FILL_UINT);
+          return ncx_pad_getn_Iuint(&xp,attrp->nelems,(uint*)value,attrp->type);
     case NC_UINT64:
-          return ncx_pad_getn_Iulonglong(&xp,attrp->nelems,(ulonglong*)value,attrp->type, NC_FILL_UINT64);
-
+          return ncx_pad_getn_Iulonglong(&xp,attrp->nelems,(ulonglong*)value,attrp->type);
     case NC_NAT:
         return NC_EBADTYPE;
     default:

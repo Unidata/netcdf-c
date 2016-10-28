@@ -848,19 +848,6 @@ getNCvx_$1_$2(const NC3_INFO* ncp, const NC_var *varp,
 	size_t remaining = varp->xsz * nelems;
 	int status = NC_NOERR;
 	const void *xp;
-        ifelse(
-        `$2', `text',      `$2 fillv=NC_FILL_CHAR;',
-        `$2', `schar',     `$2 fillv=NC_FILL_BYTE;',
-        `$2', `uchar',     `$2 fillv=NC_FILL_UBYTE;',
-        `$2', `short',     `$2 fillv=NC_FILL_SHORT;',
-        `$2', `ushort',    `$2 fillv=NC_FILL_USHORT;',
-        `$2', `int',       `$2 fillv=NC_FILL_INT;',
-        `$2', `long',      `$2 fillv=NC_FILL_INT;',
-        `$2', `uint',      `$2 fillv=NC_FILL_UINT;',
-        `$2', `float',     `$2 fillv=NC_FILL_FLOAT;',
-        `$2', `double',    `$2 fillv=NC_FILL_DOUBLE;',
-        `$2', `longlong',  `$2 fillv=NC_FILL_INT64;',
-        `$2', `ulonglong', `$2 fillv=NC_FILL_UINT64;')
 
 	if(nelems == 0)
 		return NC_NOERR;
@@ -877,7 +864,7 @@ getNCvx_$1_$2(const NC3_INFO* ncp, const NC_var *varp,
 		if(lstatus != NC_NOERR)
 			return lstatus;
 
-		lstatus = ncx_getn_$1_$2(&xp, nget, value ifelse(`$1',`char',,`,fillv'));
+		lstatus = ncx_getn_$1_$2(&xp, nget, value);
 		if(lstatus != NC_NOERR && status == NC_NOERR)
 			status = lstatus;
 

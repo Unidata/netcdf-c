@@ -956,7 +956,7 @@ v1h_get_NC_var(v1hs *gsp, NC_var **varpp)
         if(status != NC_NOERR)
 			goto unwind_alloc;
 		status = ncx_getn_longlong_int((const void **)(&gsp->pos),
-				ndims, varp->dimids, 0);
+				ndims, varp->dimids);
         if(status != NC_NOERR)
 			goto unwind_alloc;
 	}
@@ -965,7 +965,7 @@ v1h_get_NC_var(v1hs *gsp, NC_var **varpp)
         if(status != NC_NOERR)
 		goto unwind_alloc;
 	    status = ncx_getn_int_int((const void **)(&gsp->pos),
-			ndims, varp->dimids, 0);
+			ndims, varp->dimids);
         if(status != NC_NOERR)
 		goto unwind_alloc;
 	}
@@ -1406,7 +1406,7 @@ nc_get_NC(NC3_INFO* ncp)
 		(void) memset(magic, 0, sizeof(magic));
 
 		status = ncx_getn_schar_schar(
-			(const void **)(&gs.pos), sizeof(magic), magic, 0);
+			(const void **)(&gs.pos), sizeof(magic), magic);
         if(status != NC_NOERR)
 			goto unwind_get;
 
