@@ -9,7 +9,7 @@ dnl
  *  Copyright (C) 2014, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: ncx.m4 2585 2016-10-28 04:47:51Z wkliao $ */
+/* $Id: ncx.m4 2586 2016-10-28 23:07:40Z wkliao $ */
 
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -167,31 +167,65 @@ define(`FillDefaultValue', `ifelse(
 #define Max(a,b) ((a) > (b) ? (a) : (b))
 
 #ifndef SIZEOF_UCHAR
+#ifdef  SIZEOF_UNSIGNED_CHAR
 #define SIZEOF_UCHAR SIZEOF_UNSIGNED_CHAR
+#else
+#error "unknown SIZEOF_UCHAR"
 #endif
+#endif
+
 #ifndef SIZEOF_USHORT
 #ifdef  SIZEOF_UNSIGNED_SHORT_INT
 #define SIZEOF_USHORT SIZEOF_UNSIGNED_SHORT_INT
 #elif defined(SIZEOF_UNSIGNED_SHORT)
 #define SIZEOF_USHORT SIZEOF_UNSIGNED_SHORT
 #else
-#error "size of short is unknown"
+#error "unknown SIZEOF_USHORT"
 #endif
 #endif
+
 #ifndef SIZEOF_UINT
+#ifdef  SIZEOF_UNSIGNED_INT
 #define SIZEOF_UINT SIZEOF_UNSIGNED_INT
+#else
+#error "unknown SIZEOF_UINT"
 #endif
+#endif
+
 #ifndef SIZEOF_LONGLONG
+#ifdef  SIZEOF_LONG_LONG
 #define SIZEOF_LONGLONG SIZEOF_LONG_LONG
+#else
+#error "unknown SIZEOF_LONGLONG"
 #endif
+#endif
+
 #ifndef SIZEOF_INT64
+#ifdef  SIZEOF_LONG_LONG
 #define SIZEOF_INT64 SIZEOF_LONG_LONG
+#elif defined(SIZEOF_LONGLONG)
+#define SIZEOF_INT64 SIZEOF_LONGLONG
+#else
+#error "unknown SIZEOF_INT64"
 #endif
+#endif
+
 #ifndef SIZEOF_ULONGLONG
+#ifdef  SIZEOF_UNSIGNED_LONG_LONG
 #define SIZEOF_ULONGLONG SIZEOF_UNSIGNED_LONG_LONG
+#else
+#error "unknown SIZEOF_ULONGLONG"
 #endif
+#endif
+
 #ifndef SIZEOF_UINT64
+#ifdef  SIZEOF_UNSIGNED_LONG_LONG
 #define SIZEOF_UINT64 SIZEOF_UNSIGNED_LONG_LONG
+#elif defined(SIZEOF_ULONGLONG)
+#define SIZEOF_UINT64 SIZEOF_ULONGLONG
+#else
+#error "unknown SIZEOF_UINT64"
+#endif
 #endif
 
 /*

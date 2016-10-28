@@ -858,6 +858,13 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
 
 $SLEEPCMD
+if test "$ac_cv_type_uchar" = yes ; then
+   AC_CHECK_SIZEOF(uchar)
+else
+   AC_CHECK_SIZEOF(unsigned char)
+fi
+
+$SLEEPCMD
 if test "$ac_cv_type_ushort" = yes ; then
    AC_CHECK_SIZEOF(ushort)
 else

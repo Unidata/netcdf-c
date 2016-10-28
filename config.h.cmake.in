@@ -251,6 +251,14 @@ are set when opening a binary file on Windows. */
 #cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
 /* The size of `__int64` found on Windows systems. */
 #cmakedefine SIZEOF___INT64 @SIZEOF___INT64@
+/* The size of `ushort` as computed by sizeof. */
+#cmakedefine SIZEOF_USHORT @SIZEOF_USHORT@
+/* The size of `ushort` as computed by sizeof. */
+#cmakedefine SIZEOF_UINT @SIZEOF_UINT@
+/* The size of `ushort` as computed by sizeof. */
+#cmakedefine SIZEOF_LONGLONG @SIZEOF_LONGLONG@
+/* The size of `ushort` as computed by sizeof. */
+#cmakedefine SIZEOF_ULONGLONG @SIZEOF_ULONGLONG@
 
 
 
