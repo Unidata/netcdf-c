@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_read.m4 2550 2016-10-13 18:24:04Z wkliao $ */
+/* $Id: test_read.m4 2587 2016-10-30 01:45:06Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -1009,13 +1009,12 @@ TestFunc(get_var1)(VarArgs)
 {
     int ncid;
     int i;
-    int j;
     int err;
     double expect;
     int nok = 0;                /* count of valid comparisons */
     double buf[1];              /* (void *) buffer */
     double value;
-    IntType index[MAX_RANK];
+    IntType j, index[MAX_RANK];
     ifdef(`PNETCDF', `MPI_Datatype datatype;')
 
     err = FileOpen(testfile, NC_NOWRITE, &ncid);
@@ -1079,8 +1078,9 @@ TestFunc(get_var1)(VarArgs)
 int
 TestFunc(get_vara)(VarArgs)
 {
-    int ncid, d, i, j, k, err, nels, nslabs;
+    int ncid, d, i, k, err, nslabs;
     int nok = 0;      /* count of valid comparisons */
+    IntType j, nels;
     IntType start[MAX_RANK];
     IntType edge[MAX_RANK];
     IntType index[MAX_RANK];
@@ -1153,7 +1153,7 @@ TestFunc(get_vara)(VarArgs)
                 for (j = 0; j < nels; j++) {
                     double got;
                     char *p = (char *) buf;
-                    p += j * nctypelen(var_type[i]);
+                    p += j * (IntType)nctypelen(var_type[i]);
                     err = nc2dbl( var_type[i], p, & got );
                     IF (err != NC_NOERR)
                         error("error in nc2dbl");
@@ -1199,15 +1199,13 @@ TestFunc(get_vars)(VarArgs)
     int ncid;
     int d;
     int i;
-    int j;
     int k;
-    int m;
     int err;
-    int nels;
     int nslabs;
-    int nstarts;        /* number of different starts */
+    PTRDType nstarts;   /* number of different starts */
     int nok = 0;        /* total count of valid comparisons */
     int n;              /* count of valid comparisons within var */
+    IntType j, m, nels;
     IntType start[MAX_RANK];
     IntType edge[MAX_RANK];
     IntType index[MAX_RANK];
@@ -1282,7 +1280,8 @@ TestFunc(get_vars)(VarArgs)
                     start[j] = mid[j];
                     edge[j] = var_shape[i][j] - mid[j];
                 }
-                sstride[j] = stride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                sstride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                stride[j] = (PTRDType)sstride[j];
                 nstarts *= stride[j];
             }
             for (m = 0; m < nstarts; m++) {
@@ -1291,7 +1290,7 @@ TestFunc(get_vars)(VarArgs)
                     error("error in toMixedBase");
                 nels = 1;
                 for (j = 0; j < var_rank[i]; j++) {
-                    count[j] = 1 + (edge[j] - index[j] - 1) / stride[j];
+                    count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
                     nels *= count[j];
                     index[j] += start[j];
                 }
@@ -1299,7 +1298,7 @@ TestFunc(get_vars)(VarArgs)
 /* TODO
                 if ( roll(2) ) {
                     for (j = 0; j < var_rank[i]; j++) {
-                        index[j] += (count[j] - 1) * stride[j];
+                        index[j] += (count[j] - 1) * (IntType)stride[j];
                         stride[j] = -stride[j];
                     }
                 }
@@ -1314,7 +1313,7 @@ TestFunc(get_vars)(VarArgs)
                     nok++;
                     for (j = 0; j < nels; j++) {
                         p = (char *) buf;
-                        p += j * nctypelen(var_type[i]);
+                        p += j * (IntType)nctypelen(var_type[i]);
                         err = nc2dbl( var_type[i], p, & got );
                         IF (err != NC_NOERR)
                             error("error in nc2dbl");
@@ -1322,7 +1321,7 @@ TestFunc(get_vars)(VarArgs)
                         IF (err != NC_NOERR)
                             error("error in toMixedBase 1");
                         for (d = 0; d < var_rank[i]; d++)
-                            index2[d] = index[d] + index2[d] * stride[d];
+                            index2[d] = index[d] + index2[d] * (IntType)stride[d];
                         expect = hash(var_type[i], var_rank[i], index2);
                         if (inRange(expect,var_type[i])) {
                             IF (!equal2(got,expect,var_type[i])) {
@@ -1373,13 +1372,12 @@ TestFunc(get_varm)(VarArgs)
 {
     int ncid;
     int i;
-    int j;
     int k;
-    int m;
     int err;
     int nslabs;
-    int nstarts;        /* number of different starts */
+    PTRDType nstarts;   /* number of different starts */
     int nok = 0;        /* total count of valid comparisons */
+    IntType j, m, nels;
     IntType start[MAX_RANK];
     IntType edge[MAX_RANK];
     IntType index[MAX_RANK];
@@ -1389,7 +1387,6 @@ TestFunc(get_varm)(VarArgs)
     PTRDType stride[MAX_RANK];
     PTRDType imap[MAX_RANK];
     PTRDType imap2[MAX_RANK];
-    IntType nels;
     ifdef(`PNETCDF', `MPI_Datatype datatype;')
     double buf[MAX_NELS];        /* (void *) buffer */
     char *p;                     /* (void *) pointer */
@@ -1409,11 +1406,11 @@ TestFunc(get_varm)(VarArgs)
             stride[j] = 1;
         }
         if (var_rank[i] > 0) {
-            j = var_rank[i] - 1;
-            /* imap[j] = nctypelen(var_type[i]); */
-            imap[j] = 1; /* in numbers of elements */
-            for (; j > 0; j--)
-                imap[j-1] = imap[j] * var_shape[i][j];
+            int jj = var_rank[i] - 1;
+            /* imap[jj] = nctypelen(var_type[i]); */
+            imap[jj] = 1; /* in numbers of elements */
+            for (; jj > 0; jj--)
+                imap[jj-1] = imap[jj] * (PTRDType)var_shape[i][jj];
         }
         err = GetVarm(BAD_ID, i, start, edge, stride, imap, buf, 1, datatype);
         IF (err != NC_EBADID)
@@ -1462,8 +1459,9 @@ TestFunc(get_varm)(VarArgs)
                     start[j] = mid[j];
                     edge[j] = var_shape[i][j] - mid[j];
                 }
-                sstride[j] = stride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
-                imap2[j] = imap[j] * sstride[j];
+                sstride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                stride[j] = (PTRDType)sstride[j];
+                imap2[j] = imap[j] * stride[j];
                 nstarts *= stride[j];
             }
             for (m = 0; m < nstarts; m++) {
@@ -1475,7 +1473,7 @@ TestFunc(get_varm)(VarArgs)
                         error("error in toMixedBase");
                     nels = 1;
                     for (j = 0; j < var_rank[i]; j++) {
-                        count[j] = 1 + (edge[j] - index[j] - 1) / stride[j];
+                        count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
                         index[j] += start[j];
                         nels *= count[j];
                     }
@@ -1483,13 +1481,13 @@ TestFunc(get_varm)(VarArgs)
 /* TODO
                     if ( roll(2) ) {
                         for (j = 0; j < var_rank[i]; j++) {
-                            index[j] += (count[j] - 1) * stride[j];
+                            index[j] += (count[j] - 1) * (IntType)stride[j];
                             stride[j] = -stride[j];
                         }
                     }
  */
                     j = fromMixedBase(var_rank[i], index, var_shape[i]);
-                    p = (char *) buf + j * nctypelen(var_type[i]);
+                    p = (char *) buf + j * (IntType)nctypelen(var_type[i]);
                     err = GetVarm(ncid, i, index, count, stride, imap2, p, nels, datatype);
                 }
                 IF (err != NC_NOERR)
@@ -1568,9 +1566,9 @@ TestFunc(get_att)(AttVarArgs)
             } else {
                 nok++;
                 for (k = 0; k < ATT_LEN(i,j); k++) {
-                    expect = hash(ATT_TYPE(i,j), -1, &k );
+                    expect = hash(ATT_TYPE(i,j), -1, &k);
                     p = (char *) buf;
-                    p += k * nctypelen(ATT_TYPE(i,j));
+                    p += k * (IntType)nctypelen(ATT_TYPE(i,j));
                     err = nc2dbl( ATT_TYPE(i,j), p, &got );
                     IF (err != NC_NOERR)
                         error("error in nc2dbl");

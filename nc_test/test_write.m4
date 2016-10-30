@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_write.m4 2563 2016-10-18 02:43:48Z wkliao $ */
+/* $Id: test_write.m4 2587 2016-10-30 01:45:06Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -30,7 +30,7 @@ dnl
 define(`IntType', `ifdef(`PNETCDF',`MPI_Offset',`size_t')')dnl
 define(`PTRDType',`ifdef(`PNETCDF',`MPI_Offset',`ptrdiff_t')')dnl
 define(`TestFunc',`ifdef(`PNETCDF',`test_ncmpi_$1',`test_nc_$1')')dnl
-define(`APIFunc',` ifdef(`PNETCDF',`ncmpi_$1',`nc_$1')')dnl
+define(`APIFunc', `ifdef(`PNETCDF',`ncmpi_$1',`nc_$1')')dnl
 
 define(`FileOpen', `ifdef(`PNETCDF',`ncmpi_open(comm, $1, $2, info, $3)', `file_open($1, $2, $3)')')dnl
 define(`FileCreate',`ifdef(`PNETCDF',`ncmpi_create(comm, $1, $2, info, $3)', `file_create($1, $2, $3)')')dnl
@@ -139,7 +139,7 @@ TestFunc(redef)(AttVarArgs)
 {
     int ncid;          /* netcdf id */
     /* used to force effective test of ncio->move() in redef */
-    size_t sizehint = 8192;
+    IntType sizehint = 8192;
     int dimid;         /* dimension id */
     int varid;         /* variable id */
     int varid1;        /* variable id */
@@ -617,9 +617,9 @@ TestFunc(def_dim)(VarArgs)
         IF (err != NC_EBADNAME)
             error("expecting NC_EBADNAME but got %s", nc_err_code_name(err));
         ELSE_NOK
-ifdef(`PNETCDF', ,`if(sizeof(long) > 4) /* Fix: dmh 11/4/2011: works only if sizeof(long) > 4 */')dnl
+ifdef(`PNETCDF', ,`if(sizeof(long) > 4) /* Fix: dmh 11/4/2011: works only if sizeof(long) > 4 */')
         {
-            err = APIFunc(def_dim)(ncid, dim_name[i], NC_UNLIMITED-1, &dimid);
+            err = APIFunc(def_dim)(ncid, dim_name[i], (size_t)(NC_UNLIMITED-1), &dimid);
             IF (err != NC_EDIMSIZE)
                 error("expecting NC_EDIMSIZE but got %s", nc_err_code_name(err));
             ELSE_NOK
@@ -827,8 +827,8 @@ TestFunc(def_var)(VarArgs)
 int
 TestFunc(put_var1)(VarArgs)
 {
-    int i, j, err, ncid, nok=0;
-    IntType index[MAX_RANK];
+    int i, err, ncid, nok=0;
+    IntType j, index[MAX_RANK];
     double value;
     double buf[1];                /* (void *) buffer */
     ifdef(`PNETCDF', `MPI_Datatype buftype;')
@@ -909,7 +909,8 @@ TestFunc(put_var1)(VarArgs)
 int
 TestFunc(put_vara)(VarArgs)
 {
-    int d, i, j, k, err, nels,nslabs, ncid, nok=0;
+    int d, i, k, err, nslabs, ncid, nok=0;
+    IntType j, nels;
     IntType start[MAX_RANK];
     IntType edge[MAX_RANK];
     IntType index[MAX_RANK];
@@ -1035,8 +1036,9 @@ TestFunc(put_vara)(VarArgs)
 int
 TestFunc(put_vars)(VarArgs)
 {
-    int ncid, d, i, j, k, m, err, nels, nslabs, nok=0;
-    int nstarts;        /* number of different starts */
+    int ncid, d, i, k, err, nslabs, nok=0;
+    PTRDType nstarts;        /* number of different starts */
+    IntType j, m, nels;
     IntType start[MAX_RANK];
     IntType edge[MAX_RANK];
     IntType index[MAX_RANK];
@@ -1124,7 +1126,8 @@ TestFunc(put_vars)(VarArgs)
                     start[j] = mid[j];
                     edge[j] = var_shape[i][j] - mid[j];
                 }
-                sstride[j] = stride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                sstride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                stride[j] = (PTRDType)sstride[j];
                 nstarts *= stride[j];
             }
             for (m = 0; m < nstarts; m++) {
@@ -1133,7 +1136,7 @@ TestFunc(put_vars)(VarArgs)
                     error("error in toMixedBase");
                 nels = 1;
                 for (j = 0; j < var_rank[i]; j++) {
-                    count[j] = 1 + (edge[j] - index[j] - 1) / stride[j];
+                    count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
                     nels *= count[j];
                     index[j] += start[j];
                 }
@@ -1141,7 +1144,7 @@ TestFunc(put_vars)(VarArgs)
 /* TODO
                 if ( roll(2) ) {
                     for (j = 0; j < var_rank[i]; j++) {
-                        index[j] += (count[j] - 1) * stride[j];
+                        index[j] += (count[j] - 1) * (IntType)stride[j];
                         stride[j] = -stride[j];
                     }
                 }
@@ -1152,7 +1155,7 @@ TestFunc(put_vars)(VarArgs)
                     IF (err != NC_NOERR)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
-                        index2[d] = index[d] + index2[d] * stride[d];
+                        index2[d] = index[d] + index2[d] * (IntType)stride[d];
                     value = hash(var_type[i], var_rank[i], index2);
                     if (!inRange(value, var_type[i]))
                         value = 0;
@@ -1199,12 +1202,11 @@ TestFunc(put_varm)(VarArgs)
 {
     int ncid, nok=0;
     int i;
-    int j;
     int k;
-    int m;
     int err;
     int nslabs;
-    int nstarts;        /* number of different starts */
+    IntType j, m;
+    PTRDType nstarts;        /* number of different starts */
     IntType start[MAX_RANK];
     IntType edge[MAX_RANK];
     IntType index[MAX_RANK];
@@ -1240,11 +1242,11 @@ TestFunc(put_varm)(VarArgs)
             stride[j] = 1;
         }
         if (var_rank[i] > 0) {
-            j = var_rank[i] - 1;
-            imap[j] = nctypelen(var_type[i]); /*  netCDF considers imap in bytes */
-            imap[j] = 1;                      /* PnetCDF considers imap in elements */
-            for (; j > 0; j--)
-                imap[j-1] = imap[j] * var_shape[i][j];
+            int jj = var_rank[i] - 1;
+            imap[jj] = nctypelen(var_type[i]); /*  netCDF considers imap in bytes */
+            imap[jj] = 1;                      /* PnetCDF considers imap in elements */
+            for (; jj > 0; jj--)
+                imap[jj-1] = imap[jj] * (PTRDType)var_shape[i][jj];
         }
         p = (char *) buf;
         for (j = 0; j < var_nels[i]; j++) {
@@ -1313,8 +1315,9 @@ TestFunc(put_varm)(VarArgs)
                     start[j] = mid[j];
                     edge[j] = var_shape[i][j] - mid[j];
                 }
-                sstride[j] = stride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
-                imap2[j] = imap[j] * sstride[j];
+                sstride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                stride[j] = (PTRDType)sstride[j];
+                imap2[j] = imap[j] * (PTRDType)sstride[j];
                 nstarts *= stride[j];
             }
             for (m = 0; m < nstarts; m++) {
@@ -1325,20 +1328,20 @@ TestFunc(put_varm)(VarArgs)
                     IF (err != NC_NOERR)
                         error("error in toMixedBase");
                     for (j = 0; j < var_rank[i]; j++) {
-                        count[j] = 1 + (edge[j] - index[j] - 1) / stride[j];
+                        count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
                         index[j] += start[j];
                     }
                     /* Random choice of forward or backward */
 /* TODO
                     if ( roll(2) ) {
                         for (j = 0; j < var_rank[i]; j++) {
-                            index[j] += (count[j] - 1) * stride[j];
+                            index[j] += (count[j] - 1) * (IntType)stride[j];
                             stride[j] = -stride[j];
                         }
                     }
  */
                     j = fromMixedBase(var_rank[i], index, var_shape[i]);
-                    p = (char *) buf + j * nctypelen(var_type[i]);
+                    p = (char *) buf + (int)j * nctypelen(var_type[i]);
                     ifdef(`PNETCDF', `for (bufcount=1,j=0; j<var_rank[i]; j++) bufcount *= count[j];')
                     err = PutVarm(ncid, i, index, count, stride, imap2, p, bufcount, buftype);
                 }
@@ -1977,7 +1980,7 @@ TestFunc(set_fill)(VarArgs)
     int varid;
     int err;
     int i;
-    int j;
+    IntType j;
     int old_fillmode;
     int nok = 0;      /* count of valid comparisons */
     char text = 0;
@@ -2061,17 +2064,17 @@ ifdef(`PNETCDF', `
     for (i = 0; i < numVars; i++) {
         ifdef(`PNETCDF', `if (var_dimid[i][0] == RECDIM) continue; /* skip record variables */')
         switch (var_type[i]) {
-            case NC_CHAR:   fill = NC_FILL_CHAR;   break;
-            case NC_BYTE:   fill = NC_FILL_BYTE;   break;
-            case NC_SHORT:  fill = NC_FILL_SHORT;  break;
-            case NC_INT:    fill = NC_FILL_INT;    break;
-            case NC_FLOAT:  fill = NC_FILL_FLOAT;  break;
-            case NC_DOUBLE: fill = NC_FILL_DOUBLE; break;
-            case NC_UBYTE:  fill = NC_FILL_UBYTE;  break;
-            case NC_USHORT: fill = NC_FILL_USHORT; break;
-            case NC_UINT:   fill = NC_FILL_UINT;   break;
-            case NC_INT64:  fill = NC_FILL_INT64;  break;
-            case NC_UINT64: fill = NC_FILL_UINT64; break;
+            case NC_CHAR:   fill = (double)NC_FILL_CHAR;   break;
+            case NC_BYTE:   fill = (double)NC_FILL_BYTE;   break;
+            case NC_SHORT:  fill = (double)NC_FILL_SHORT;  break;
+            case NC_INT:    fill = (double)NC_FILL_INT;    break;
+            case NC_FLOAT:  fill = (double)NC_FILL_FLOAT;  break;
+            case NC_DOUBLE: fill = (double)NC_FILL_DOUBLE; break;
+            case NC_UBYTE:  fill = (double)NC_FILL_UBYTE;  break;
+            case NC_USHORT: fill = (double)NC_FILL_USHORT; break;
+            case NC_UINT:   fill = (double)NC_FILL_UINT;   break;
+            case NC_INT64:  fill = (double)NC_FILL_INT64;  break;
+            case NC_UINT64: fill = (double)NC_FILL_UINT64; break;
             default: assert(0);
         }
         for (j = 0; j < var_nels[i]; j++) {
@@ -2108,7 +2111,8 @@ ifdef(`PNETCDF', `
     Def_Vars(ncid, numVars);
 
     /* set _FillValue = 42 for all vars */
-    text = fill = 42;
+    fill = 42;
+    text = 42;
     for (i = 0; i < numVars; i++) {
         if (var_type[i] == NC_CHAR) {
             err = APIFunc(put_att_text)(ncid, i, "_FillValue", 1, &text);

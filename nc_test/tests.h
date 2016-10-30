@@ -515,7 +515,7 @@ int equal2(const double x, const double y, nc_type extType);
 
 int int_vec_eq(const int *v1, const int *v2, const int n);
 
-int roll( int n );
+size_t roll( size_t n );
 
 int
 toMixedBase(
@@ -526,7 +526,7 @@ toMixedBase(
 
 size_t
 fromMixedBase(
-    size_t length,
+    int    length,
     size_t number[],      /* dimensioned [length] */
     size_t base[]);       /* dimensioned [length], base[0] ignored */
 

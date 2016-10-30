@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_get.m4 2581 2016-10-26 18:32:24Z wkliao $ */
+/* $Id: test_get.m4 2587 2016-10-30 01:45:06Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -71,10 +71,10 @@ define(`TEST_NC_GET_VAR1',dnl
 int
 TestFunc(var1)_$1(VarArgs)
 {
-    int i, j, err, ncid, cdf_format;
+    int i, err, ncid, cdf_format;
     int nok = 0;        /* count of valid comparisons */
     int canConvert;     /* Both text or both numeric */
-    IntType index[MAX_RANK];
+    IntType j, index[MAX_RANK];
     double expect;
     $1 value;
 
@@ -152,7 +152,7 @@ ifdef(`PNETCDF',`dnl
                              * equal test below for uchar.
                              */
                             if (cdf_format < NC_FORMAT_CDF5 && var_type[i] == NC_BYTE && expect > schar_max) continue;')
-                            IF (!equal(value,expect,var_type[i],NCT_ITYPE($1))) {
+                            IF (!equal((double)value,expect,var_type[i],NCT_ITYPE($1))) {
                                 error("expected: %G, got: %G", expect, (double) value);
                             } else {
                                 nok++;
@@ -200,12 +200,12 @@ define(`TEST_NC_GET_VAR',dnl
 int
 TestFunc(var)_$1(VarArgs)
 {
-    int i, j, err, nels, ncid, cdf_format;
+    int i, err, ncid, cdf_format;
     int allInExtRange;  /* all values within range of external data type */
     int allInIntRange;  /* all values within range of internal data type */
     int nok = 0;        /* count of valid comparisons */
     int canConvert;     /* Both text or both numeric */
-    IntType index[MAX_RANK];
+    IntType j, nels, index[MAX_RANK];
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
 
@@ -272,7 +272,7 @@ TestFunc(var)_$1(VarArgs)
                      * equal test below for uchar.
                      */
                     if (cdf_format < NC_FORMAT_CDF5 && var_type[i] == NC_BYTE && expect[j] > schar_max) continue;')
-                    IF (!equal(value[j],expect[j],var_type[i],NCT_ITYPE($1))){
+                    IF (!equal((double)value[j],expect[j],var_type[i],NCT_ITYPE($1))){
                         error("value read not that expected");
                         if (verbose) {
                             error("\n");
@@ -321,11 +321,12 @@ define(`TEST_NC_GET_VARA',dnl
 int
 TestFunc(vara)_$1(VarArgs)
 {
-    int i, j, k, d, err, nels, nslabs, ncid, cdf_format;
+    int i, k, d, err, nslabs, ncid, cdf_format;
     int allInExtRange;  /* all values within external range? */
     int allInIntRange;  /* all values within internal range? */
     int nok = 0;        /* count of valid comparisons */
     int canConvert;     /* Both text or both numeric */
+    IntType j, nels;
     IntType start[MAX_RANK], edge[MAX_RANK], index[MAX_RANK], mid[MAX_RANK];
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
@@ -477,7 +478,7 @@ ifdef(`PNETCDF',`dnl
                          * equal test below for uchar.
                          */
                         if (cdf_format < NC_FORMAT_CDF5 && var_type[i] == NC_BYTE && expect[j] > schar_max) continue;')
-                        IF (!equal(value[j],expect[j],var_type[i],NCT_ITYPE($1))){
+                        IF (!equal((double)value[j],expect[j],var_type[i],NCT_ITYPE($1))){
                             error("value read not that expected");
                             if (verbose) {
                                 error("\n");
@@ -527,12 +528,13 @@ define(`TEST_NC_GET_VARS',dnl
 int
 TestFunc(vars)_$1(VarArgs)
 {
-    int i, j, k, d, m, err, nels, nslabs, ncid, cdf_format;
+    int i, k, d, err, nslabs, ncid, cdf_format;
     int allInExtRange;  /* all values within external range? */
     int allInIntRange;  /* all values within internal range? */
-    int nstarts;        /* number of different starts */
+    PTRDType nstarts;   /* number of different starts */
     int nok = 0;        /* count of valid comparisons */
     int canConvert;     /* Both text or both numeric */
+    IntType j, m, nels;
     IntType start[MAX_RANK], edge[MAX_RANK], index[MAX_RANK];
     IntType index2[MAX_RANK], mid[MAX_RANK], count[MAX_RANK];
     IntType sstride[MAX_RANK];
@@ -629,7 +631,8 @@ ifdef(`PNETCDF',`dnl
                     start[j] = mid[j];
                     edge[j] = var_shape[i][j] - mid[j];
                 }
-                sstride[j] = stride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                sstride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                stride[j] = (PTRDType)sstride[j];
                 nstarts *= stride[j];
             }
             for (m = 0; m < nstarts; m++) {
@@ -638,7 +641,7 @@ ifdef(`PNETCDF',`dnl
                     error("error in toMixedBase");
                 nels = 1;
                 for (j = 0; j < var_rank[i]; j++) {
-                    count[j] = 1 + (edge[j] - index[j] - 1) / stride[j];
+                    count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
                     nels *= count[j];
                     index[j] += start[j];
                 }
@@ -646,7 +649,7 @@ ifdef(`PNETCDF',`dnl
 /* TODO
                 if ( roll(2) ) {
                     for (j = 0; j < var_rank[i]; j++) {
-                        index[j] += (count[j] - 1) * stride[j];
+                        index[j] += (count[j] - 1) * (IntType)stride[j];
                         stride[j] = -stride[j];
                     }
                 }
@@ -657,7 +660,7 @@ ifdef(`PNETCDF',`dnl
                     IF (err != NC_NOERR)
                         error("error in toMixedBase 1");
                     for (d = 0; d < var_rank[i]; d++)
-                        index2[d] = index[d] + index2[d] * stride[d];
+                        index2[d] = index[d] + index2[d] * (IntType)stride[d];
                     expect[j] = hash4(cdf_format, var_type[i], var_rank[i], index2,
                         NCT_ITYPE($1));
                     if (inRange3(cdf_format, expect[j],var_type[i],NCT_ITYPE($1))) {
@@ -694,7 +697,7 @@ ifdef(`PNETCDF',`dnl
                              * equal test below for uchar.
                              */
                             if (cdf_format < NC_FORMAT_CDF5 && var_type[i] == NC_BYTE && expect[j] > schar_max) continue;')
-                            IF (!equal(value[j],expect[j],var_type[i], NCT_ITYPE($1))){
+                            IF (!equal((double)value[j],expect[j],var_type[i], NCT_ITYPE($1))){
                                 error("value read not that expected");
                                 if (verbose) {
                                     error("\n");
@@ -746,12 +749,13 @@ define(`TEST_NC_GET_VARM',dnl
 int
 TestFunc(varm)_$1(VarArgs)
 {
-    int i, j, k, m, d, err, nels, nslabs, ncid, cdf_format;
+    int i, k, d, err, nslabs, ncid, cdf_format;
     int allInExtRange;  /* all values within external range? */
     int allInIntRange;  /* all values within internal range? */
-    int nstarts;        /* number of different starts */
+    PTRDType nstarts;   /* number of different starts */
     int nok = 0;        /* count of valid comparisons */
     int canConvert;     /* Both text or both numeric */
+    IntType j, m, nels;
     IntType start[MAX_RANK], edge[MAX_RANK], index[MAX_RANK];
     IntType index2[MAX_RANK], mid[MAX_RANK], count[MAX_RANK];
     IntType sstride[MAX_RANK];
@@ -849,7 +853,8 @@ ifdef(`PNETCDF',`dnl
                     start[j] = mid[j];
                     edge[j] = var_shape[i][j] - mid[j];
                 }
-                sstride[j] = stride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                sstride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                stride[j] = (PTRDType)sstride[j];
                 nstarts *= stride[j];
             }
             for (m = 0; m < nstarts; m++) {
@@ -858,7 +863,7 @@ ifdef(`PNETCDF',`dnl
                     error("error in toMixedBase");
                 nels = 1;
                 for (j = 0; j < var_rank[i]; j++) {
-                    count[j] = 1 + (edge[j] - index[j] - 1) / stride[j];
+                    count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
                     nels *= count[j];
                     index[j] += start[j];
                 }
@@ -866,16 +871,16 @@ ifdef(`PNETCDF',`dnl
 /* TODO
                 if ( roll(2) ) {
                     for (j = 0; j < var_rank[i]; j++) {
-                        index[j] += (count[j] - 1) * stride[j];
+                        index[j] += (count[j] - 1) * (IntType)stride[j];
                         stride[j] = -stride[j];
                     }
                 }
  */
                 if (var_rank[i] > 0) {
-                    j = var_rank[i] - 1;
-                    imap[j] = 1;
-                    for (; j > 0; j--)
-                        imap[j-1] = imap[j] * count[j];
+                    int jj = var_rank[i] - 1;
+                    imap[jj] = 1;
+                    for (; jj > 0; jj--)
+                        imap[jj-1] = imap[jj] * (PTRDType)count[jj];
                 }
                 allInExtRange = allInIntRange = 1;
                 for (j = 0; j < nels; j++) {
@@ -883,7 +888,7 @@ ifdef(`PNETCDF',`dnl
                     IF (err != NC_NOERR)
                         error("error in toMixedBase 1");
                     for (d = 0; d < var_rank[i]; d++)
-                        index2[d] = index[d] + index2[d] * stride[d];
+                        index2[d] = index[d] + index2[d] * (IntType)stride[d];
                     expect[j] = hash4(cdf_format, var_type[i], var_rank[i], index2,
                         NCT_ITYPE($1));
                     if (inRange3(cdf_format, expect[j],var_type[i],NCT_ITYPE($1))) {
@@ -920,7 +925,7 @@ ifdef(`PNETCDF',`dnl
                              * equal test below for uchar.
                              */
                             if (cdf_format < NC_FORMAT_CDF5 && var_type[i] == NC_BYTE && expect[j] > schar_max) continue;')
-                            IF (!equal(value[j],expect[j],var_type[i], NCT_ITYPE($1))){
+                            IF (!equal((double)value[j],expect[j],var_type[i], NCT_ITYPE($1))){
                                 error("value read not that expected");
                                 if (verbose) {
                                     error("\n");
@@ -1055,7 +1060,7 @@ TestFunc(att)_$1(AttVarArgs)
                          * equal test below for uchar.
                          */
                         if (cdf_format < NC_FORMAT_CDF5 && ATT_TYPE(i,j) == NC_BYTE && expect[k] > schar_max) continue;')
-                        IF (!equal(value[k],expect[k],ATT_TYPE(i,j), NCT_ITYPE($1))){
+                        IF (!equal((double)value[k],expect[k],ATT_TYPE(i,j), NCT_ITYPE($1))){
                             error("value read not that expected");
                             if (verbose) {
                                 error("\n");

@@ -9,7 +9,7 @@ dnl
  *  Copyright (C) 2014, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: ncx.m4 2586 2016-10-28 23:07:40Z wkliao $ */
+/* $Id: ncx.m4 2587 2016-10-30 01:45:06Z wkliao $ */
 
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -297,7 +297,7 @@ swapn2b(void *dst, const void *src, IntType nn)
     uint16_t *ip = (uint16_t*) src;
     for (i=0; i<nn; i++) {
         op[i] = ip[i];
-        op[i] = SWAP2(op[i]);
+        op[i] = (uint16_t)SWAP2(op[i]);
     }
 #if 0
 	char *op = dst;
@@ -808,7 +808,7 @@ static void
 get_ix_short(const void *xp, ix_short *ip)
 {
 	const uchar *cp = (const uchar *) xp;
-	*ip = *cp++ << 8;
+	*ip = (ix_short)(*cp++ << 8);
 #if SIZEOF_IX_SHORT > X_SIZEOF_SHORT
 	if (*ip & 0x8000)
 	{
@@ -816,15 +816,15 @@ get_ix_short(const void *xp, ix_short *ip)
 		*ip |= (~(0xffff)); /* N.B. Assumes "twos complement" */
 	}
 #endif
-	*ip |= *cp;
+	*ip = (ix_short)(*ip | *cp);
 }
 
 static void
 put_ix_short(void *xp, const ix_short *ip)
 {
 	uchar *cp = (uchar *) xp;
-	*cp++ = (*ip) >> 8;
-	*cp = (*ip) & 0xff;
+	*cp++ = (uchar)((*ip) >> 8);
+	*cp   = (uchar)((*ip) & 0xff);
 }
 
 NCX_GET1I(short, schar,     0)
@@ -896,7 +896,7 @@ static void
 get_ix_ushort(const void *xp, ix_ushort *ip)
 {
 	const uchar *cp = (const uchar *) xp;
-	*ip = *cp++ << 8;
+	*ip = (ix_ushort)(*cp++ << 8);
 #if SIZEOF_IX_SHORT > X_SIZEOF_SHORT
 	if (*ip & 0x8000)
 	{
@@ -904,15 +904,15 @@ get_ix_ushort(const void *xp, ix_ushort *ip)
 		*ip |= (~(0xffff)); /* N.B. Assumes "twos complement" */
 	}
 #endif
-	*ip |= *cp;
+	*ip = (ix_ushort)(*ip | *cp);
 }
 
 static void
 put_ix_ushort(void *xp, const ix_ushort *ip)
 {
 	uchar *cp = (uchar *) xp;
-	*cp++ = (*ip) >> 8;
-	*cp = (*ip) & 0xff;
+	*cp++ = (uchar)((*ip) >> 8);
+	*cp   = (uchar)((*ip) & 0xff);
 }
 
 NCX_GET1I(ushort, schar,     0)
@@ -1013,10 +1013,10 @@ put_ix_int(void *xp, const ix_int *ip)
 {
 	uchar *cp = (uchar *) xp;
 
-	*cp++ = (*ip) >> 24;
-	*cp++ = ((*ip) & 0x00ff0000) >> 16;
-	*cp++ = ((*ip) & 0x0000ff00) >>  8;
-	*cp   = ((*ip) & 0x000000ff);
+	*cp++ = (uchar)( (*ip) >> 24);
+	*cp++ = (uchar)(((*ip) & 0x00ff0000) >> 16);
+	*cp++ = (uchar)(((*ip) & 0x0000ff00) >>  8);
+	*cp   = (uchar)( (*ip) & 0x000000ff);
 }
 
 #if X_SIZEOF_INT != SIZEOF_INT
@@ -1101,10 +1101,10 @@ get_ix_uint(const void *xp, ix_uint *ip)
 {
 	const uchar *cp = (const uchar *) xp;
 
-	*ip  = (ix_uint)(*cp++ << 24);
-	*ip |= (ix_uint)(*cp++ << 16);
-	*ip |= (ix_uint)(*cp++ << 8);
-	*ip |= *cp;
+	*ip = (ix_uint)(*cp++ << 24);
+	*ip = (ix_uint)(*ip | (ix_uint)(*cp++ << 16));
+	*ip = (ix_uint)(*ip | (ix_uint)(*cp++ << 8));
+	*ip = (ix_uint)(*ip | *cp);
 }
 
 static void
@@ -1112,10 +1112,10 @@ put_ix_uint(void *xp, const ix_uint *ip)
 {
 	uchar *cp = (uchar *) xp;
 
-	*cp++ = (*ip) >> 24;
-	*cp++ = ((*ip) & 0x00ff0000) >> 16;
-	*cp++ = ((*ip) & 0x0000ff00) >>  8;
-	*cp   = ((*ip) & 0x000000ff);
+	*cp++ = (uchar)((*ip) >> 24);
+	*cp++ = (uchar)(((*ip) & 0x00ff0000) >> 16);
+	*cp++ = (uchar)(((*ip) & 0x0000ff00) >>  8);
+	*cp   = (uchar)( (*ip) & 0x000000ff);
 }
 
 #if X_SIZEOF_UINT != SIZEOF_UINT
@@ -2046,14 +2046,14 @@ put_ix_int64(void *xp, const ix_int64 *ip)
 {
     uchar *cp = (uchar *) xp;
 
-    *cp++ = (*ip) >> 56;
-    *cp++ = ((*ip) & 0x00ff000000000000LL) >> 48;
-    *cp++ = ((*ip) & 0x0000ff0000000000LL) >> 40;
-    *cp++ = ((*ip) & 0x000000ff00000000LL) >> 32;
-    *cp++ = ((*ip) & 0x00000000ff000000LL) >> 24;
-    *cp++ = ((*ip) & 0x0000000000ff0000LL) >> 16;
-    *cp++ = ((*ip) & 0x000000000000ff00LL) >>  8;
-    *cp   = ((*ip) & 0x00000000000000ffLL);
+    *cp++ = (uchar)((*ip) >> 56);
+    *cp++ = (uchar)(((*ip) & 0x00ff000000000000LL) >> 48);
+    *cp++ = (uchar)(((*ip) & 0x0000ff0000000000LL) >> 40);
+    *cp++ = (uchar)(((*ip) & 0x000000ff00000000LL) >> 32);
+    *cp++ = (uchar)(((*ip) & 0x00000000ff000000LL) >> 24);
+    *cp++ = (uchar)(((*ip) & 0x0000000000ff0000LL) >> 16);
+    *cp++ = (uchar)(((*ip) & 0x000000000000ff00LL) >>  8);
+    *cp   = (uchar)( (*ip) & 0x00000000000000ffLL);
 }
 
 #if X_SIZEOF_INT64 != SIZEOF_LONGLONG
@@ -2124,14 +2124,14 @@ put_ix_uint64(void *xp, const ix_uint64 *ip)
 {
     uchar *cp = (uchar *) xp;
 
-    *cp++ = (*ip) >> 56;
-    *cp++ = ((*ip) & 0x00ff000000000000ULL) >> 48;
-    *cp++ = ((*ip) & 0x0000ff0000000000ULL) >> 40;
-    *cp++ = ((*ip) & 0x000000ff00000000ULL) >> 32;
-    *cp++ = ((*ip) & 0x00000000ff000000ULL) >> 24;
-    *cp++ = ((*ip) & 0x0000000000ff0000ULL) >> 16;
-    *cp++ = ((*ip) & 0x000000000000ff00ULL) >>  8;
-    *cp   = ((*ip) & 0x00000000000000ffULL);
+    *cp++ = (uchar)((*ip) >> 56);
+    *cp++ = (uchar)(((*ip) & 0x00ff000000000000ULL) >> 48);
+    *cp++ = (uchar)(((*ip) & 0x0000ff0000000000ULL) >> 40);
+    *cp++ = (uchar)(((*ip) & 0x000000ff00000000ULL) >> 32);
+    *cp++ = (uchar)(((*ip) & 0x00000000ff000000ULL) >> 24);
+    *cp++ = (uchar)(((*ip) & 0x0000000000ff0000ULL) >> 16);
+    *cp++ = (uchar)(((*ip) & 0x000000000000ff00ULL) >>  8);
+    *cp   = (uchar)( (*ip) & 0x00000000000000ffULL);
 }
 
 #if X_SIZEOF_UINT64 != SIZEOF_ULONGLONG
@@ -2317,10 +2317,10 @@ APIPrefix`x_get_uint32'(const void **xpp, uint *ip)
 #else
     const uchar *cp = (const uchar *) *xpp;
 
-    *ip  = (*cp++ << 24);
-    *ip |= (*cp++ << 16);
-    *ip |= (*cp++ <<  8);
-    *ip |=  *cp;
+    *ip = (uint)(*cp++ << 24);
+    *ip = (uint)(*ip | (uint)(*cp++ << 16));
+    *ip = (uint)(*ip | (uint)(*cp++ <<  8));
+    *ip = (uint)(*ip | *cp);
 #endif
     /* advance *xpp 4 bytes */
     *xpp = (void *)((const char *)(*xpp) + 4);
@@ -2330,24 +2330,24 @@ APIPrefix`x_get_uint32'(const void **xpp, uint *ip)
 
 /*----< APIPrefix`x_get_uint64'() >------------------------------------------*/
 int
-APIPrefix`x_get_uint64'(const void **xpp, unsigned long long *llp)
+APIPrefix`x_get_uint64'(const void **xpp, unsigned long long *ullp)
 {
 #ifdef WORDS_BIGENDIAN
     /* use memcpy instead of assignment to avoid BUS_ADRALN alignment error on
      * some system, such as HPUX */
-    (void) memcpy(llp, *xpp, SIZEOF_UINT64);
+    (void) memcpy(ullp, *xpp, SIZEOF_UINT64);
 #else
     const uchar *cp = (const uchar *) *xpp;
 
-    /* below is the same as calling swap8b(llp, *xpp) */
-    *llp  = ((long long)(*cp++) << 56);
-    *llp |= ((long long)(*cp++) << 48);
-    *llp |= ((long long)(*cp++) << 40);
-    *llp |= ((long long)(*cp++) << 32);
-    *llp |= ((long long)(*cp++) << 24);
-    *llp |= ((long long)(*cp++) << 16);
-    *llp |= ((long long)(*cp++) <<  8);
-    *llp |=  (long long)*cp;
+    /* below is the same as calling swap8b(ullp, *xpp) */
+    *ullp = (unsigned long long)(*cp++) << 56;
+    *ullp = (unsigned long long)(*ullp | (unsigned long long)(*cp++) << 48);
+    *ullp = (unsigned long long)(*ullp | (unsigned long long)(*cp++) << 40);
+    *ullp = (unsigned long long)(*ullp | (unsigned long long)(*cp++) << 32);
+    *ullp = (unsigned long long)(*ullp | (unsigned long long)(*cp++) << 24);
+    *ullp = (unsigned long long)(*ullp | (unsigned long long)(*cp++) << 16);
+    *ullp = (unsigned long long)(*ullp | (unsigned long long)(*cp++) <<  8);
+    *ullp = (unsigned long long)(*ullp | (unsigned long long)(*cp));
 #endif
     /* advance *xpp 8 bytes */
     *xpp = (void *)((const char *)(*xpp) + 8);

@@ -216,9 +216,9 @@ int_vec_eq(const int *v1, const int *v2, const int n)
  *  Generate random integer from 0 to n-1
  *  Like throwing an n-sided dice marked 0, 1, 2, ..., n-1
  */
-int roll( int n )
+size_t roll( size_t n )
 {
-    int  r;
+    size_t r;
 
     do
 	/*
@@ -228,7 +228,7 @@ int roll( int n )
 	 * We don't use RAND_MAX here because not all compilation
 	 * environments define it (e.g. gcc(1) under SunOS 4.1.4).
 	 */
-	r = (int)(((rand() % 32768) / 32767.0) * (n - 1) + 0.5);
+	r = (size_t)(((rand() % 32768) / 32767.0) * (n - 1) + 0.5);
     while (r >= n);
 
     return r;
@@ -276,7 +276,7 @@ toMixedBase(
  *      Author: Harvey Davies, Unidata/UCAR, Boulder, Colorado
  */
 size_t
-fromMixedBase(size_t length,
+fromMixedBase(int    length,
               size_t number[],      /* dimensioned [length] */
               size_t base[])        /* dimensioned [length], base[0] ignored */
 {
@@ -343,65 +343,65 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
              */
             if ( r < X_CHAR_MIN || r > X_CHAR_MAX ) return 2;
 #if defined(__CHAR_UNSIGNED__) && __CHAR_UNSIGNED__ != 0
-            *((signed char*) p) = r;
+            *((signed char*) p) = (signed char)r;
 #else
-            *((char   *) p) = r;
+            *((char   *) p) = (char)r;
 #endif
             break;
         case NC_BYTE:
             r = floor(0.5+d);
             if ( r < schar_min  ||  r > schar_max )  return 2;
-            *((signed char *) p) = r;
+            *((signed char *) p) = (signed char)r;
             break;
         case NC_UBYTE:
             r = floor(0.5+d);
             if ( r < 0.0  ||  r > uchar_max )  return 2;
-            *((unsigned char *) p) = r;
+            *((unsigned char *) p) = (unsigned char)r;
             break;
         case NC_SHORT:
             r = floor(0.5+d);
             if ( r < short_min  ||  r > short_max )  return 2;
-            *((short  *) p) = r;
+            *((short  *) p) = (short)r;
             break;
         case NC_USHORT:
             r = floor(0.5+d);
             if ( r < 0.0  ||  r > ushort_max )  return 2;
-            *((unsigned short *) p) = r;
+            *((unsigned short *) p) = (unsigned short)r;
             break;
         case NC_INT:
             r = floor(0.5+d);
             if ( r < long_min  ||  r > long_max )  return 2;
 #if INT_MAX >= X_INT_MAX
-            *((int   *) p) = r;
+            *((int   *) p) = (int)r;
 #else
-            *((long   *) p) = r;
+            *((long   *) p) = (long)r;
 #endif
             break;
         case NC_UINT:
             r = floor(0.5+d);
             if ( r < 0.0  ||  r > uint_max )  return 2;
 #if UINT_MAX >= X_UINT_MAX
-            *((unsigned int  *) p) = r;
+            *((unsigned int  *) p) = (unsigned int)r;
 #else
-            *((unsigned long *) p) = r;
+            *((unsigned long *) p) = (unsigned long)r;
 #endif
             break;
         case NC_FLOAT:
             if ( fabs(d) > float_max )  return 2;
-            *((float  *) p) = d;
+            *((float  *) p) = (float)d;
             break;
         case NC_DOUBLE:
-            *((double *) p) = d;
+            *((double *) p) = (double)d;
             break;
         case NC_INT64:
             r = floor(0.5+d);
             if ( r < int64_min  ||  r > int64_max )  return 2;
-            *((long long *) p) = r;
+            *((long long *) p) = (long long)r;
             break;
         case NC_UINT64:
             r = floor(0.5+d);
             if ( r < 0.0  ||  r > uint64_max )  return 2;
-            *((unsigned long long *) p) = r;
+            *((unsigned long long *) p) = (unsigned long long)r;
             break;
         default:
             return 1;

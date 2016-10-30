@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_put.m4 2573 2016-10-23 16:37:07Z wkliao $ */
+/* $Id: test_put.m4 2587 2016-10-30 01:45:06Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -68,12 +68,12 @@ define(`CheckText', `ifelse(`$1',`text', , `== (NCT_ITYPE($1) == NCT_TEXT)')')dn
 define(`IfCheckTextChar', `ifelse(`$1',`text', `if ($2 != NC_CHAR)')')dnl
 define(`CheckNumRange',
        `ifelse(`$1',`text', `1',
-               `inRange3(cdf_format, $2,$3,NCT_ITYPE($1)) && ($2 >= $1_min && $2 <= $1_max)')')dnl
+               `inRange3(cdf_format, (double)$2,$3,NCT_ITYPE($1)) && ($2 >= $1_min && $2 <= $1_max)')')dnl
 define(`CheckRange',
        `ifelse(`$1',`text', `0', `($2 >= $1_min && $2 <= $1_max)')')dnl
 define(`CheckRange3',
        `ifelse(`$1',`text', `1',
-               `inRange3(cdf_format, $2,$3,NCT_ITYPE($1))')')dnl
+               `inRange3(cdf_format, (double)$2,$3,NCT_ITYPE($1))')')dnl
 
 dnl HASH(TYPE)
 dnl
@@ -82,25 +82,24 @@ define(`HASH',dnl
 /*
  *  ensure hash value within range for internal TYPE
  */
-static
-double
-hash_$1(
-    const int         cdf_format,
-    const nc_type     type,
-    const int         rank,
-    const IntType    *index,
-    const nct_itype   itype)
+static $1
+hash_$1(const int         cdf_format,
+        const nc_type     type,
+        const int         rank,
+        const IntType    *index,
+        const nct_itype   itype)
 {
-    const double min = $1_min;
-    const double max = $1_max;
+    double value;
 
-    return MAX(min, MIN(max, hash4(cdf_format, type, rank, index, itype)));
+    value = hash4(cdf_format, type, rank, index, itype);
+    ifelse(`$1',`text',`return (text)value;',`
+    if (value > $1_max) return $1_max;
+    else if (value < $1_min) return $1_min;
+    else return ($1)value;')
 }
 ')dnl
 
-dnl HASH(text)
-#define hash_text hash4
-
+HASH(text)
 HASH(uchar)
 HASH(schar)
 HASH(short)
@@ -125,14 +124,14 @@ static
 int
 check_vars_$1(const char *filename, int numVars)
 {
-    int i, j, d, err, ncid, cdf_format, ndims;
+    int i, d, err, ncid, cdf_format, ndims;
     int canConvert;   /* Both text or both numeric */
     int nok = 0;      /* count of valid comparisons */
     int dimids[MAX_RANK];
     nc_type datatype;
     char name[NC_MAX_NAME];
     IntType index[MAX_RANK];
-    IntType length;
+    IntType j, length;
     double expect;
     $1 value;
 
@@ -180,7 +179,7 @@ check_vars_$1(const char *filename, int numVars)
                      * equal test below for uchar.
                      */
                     if (cdf_format < NC_FORMAT_CDF5 && var_type[i] == NC_BYTE && expect > schar_max) continue;')
-                    IF (!equal(value,expect,var_type[i],NCT_ITYPE($1))) {
+                    IF (!equal((double)value,expect,var_type[i],NCT_ITYPE($1))) {
                         error("Var value read not that expected");
                         if (verbose) {
                             error("\n");
@@ -291,7 +290,7 @@ check_atts_$1(int ncid, int numGatts, int numVars)
                      * equal test below for uchar.
                      */
                     if (cdf_format < NC_FORMAT_CDF5 && ATT_TYPE(i,j) == NC_BYTE && expect[k] > schar_max) continue;')
-                    IF (!equal(value[k],expect[k],datatype,NCT_ITYPE($1))) {
+                    IF (!equal((double)value[k],expect[k],datatype,NCT_ITYPE($1))) {
                         error("att. value read not that expected");
                         if (verbose) {
                             error("\n");
@@ -334,8 +333,8 @@ define(`TEST_NC_PUT_VAR1',dnl
 int
 TestFunc(var1)_$1(VarArgs)
 {
-    int i, j, err, ncid, cdf_format, nok=0;
-    IntType index[MAX_RANK];
+    int i, err, ncid, cdf_format, nok=0;
+    IntType j, index[MAX_RANK];
     int canConvert;      /* Both text or both numeric */
     $1 value = 5;        /* any value would do - only for error cases */
 
@@ -462,9 +461,10 @@ define(`TEST_NC_PUT_VAR',dnl
 int
 TestFunc(var)_$1(VarArgs)
 {
-    int i, j, err, nels, ncid, varid, cdf_format, nok=0;
+    int i, err, ncid, varid, cdf_format, nok=0;
     int canConvert;        /* Both text or both numeric */
     int allInExtRange;     /* all values within external range? */
+    IntType j, nels;
     IntType index[MAX_RANK];
     $1 value[MAX_NELS];
 
@@ -512,7 +512,7 @@ TestFunc(var)_$1(VarArgs)
                 error("error in toMixedBase 1");
             value[j]= hash_$1(cdf_format,var_type[i], var_rank[i], index, NCT_ITYPE($1));
             IfCheckTextChar($1, var_type[i])
-                allInExtRange &= inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
+                allInExtRange &= inRange3(cdf_format, (double)value[j], var_type[i], NCT_ITYPE($1));
         }
         err = PutVar($1)(ncid, i, value);
         if (canConvert) {
@@ -566,7 +566,7 @@ TestFunc(var)_$1(VarArgs)
                 ELSE_NOK
                 value[j]= hash_$1(cdf_format,var_type[i], var_rank[i], index, NCT_ITYPE($1));
                 IfCheckTextChar($1, var_type[i])
-                    allInExtRange &= inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
+                    allInExtRange &= inRange3(cdf_format, (double)value[j], var_type[i], NCT_ITYPE($1));
             }
             err = PutVar($1)(ncid, i, value);
             if (canConvert) {
@@ -621,9 +621,10 @@ define(`TEST_NC_PUT_VARA',dnl
 int
 TestFunc(vara)_$1(VarArgs)
 {
-    int i, j, k, d, err, nels, nslabs, ncid, cdf_format, nok=0;
+    int i, k, d, err, nslabs, ncid, cdf_format, nok=0;
     int canConvert;        /* Both text or both numeric */
     int allInExtRange;     /* all values within external range? */
+    IntType j, nels;
     IntType start[MAX_RANK], edge[MAX_RANK];
     IntType mid[MAX_RANK], index[MAX_RANK];
     $1 value[MAX_NELS];
@@ -772,7 +773,7 @@ ifdef(`PNETCDF',`dnl
                     index[d] += start[d];
                 value[j]= hash_$1(cdf_format,var_type[i], var_rank[i], index, NCT_ITYPE($1));
                 IfCheckTextChar($1, var_type[i])
-                    allInExtRange &= inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
+                    allInExtRange &= inRange3(cdf_format, (double)value[j], var_type[i], NCT_ITYPE($1));
             }
             if (var_rank[i] == 0 && i%2 == 0)
                 err = PutVara($1)(ncid, i, NULL, NULL, value);
@@ -830,13 +831,14 @@ define(`TEST_NC_PUT_VARS',dnl
 int
 TestFunc(vars)_$1(VarArgs)
 {
-    int i, j, k, m, d, err, nels, nslabs, ncid, cdf_format, nok=0;
-    int nstarts;        /* number of different starts */
+    int i, k, d, err, nslabs, ncid, cdf_format, nok=0;
     int canConvert;     /* Both text or both numeric */
     int allInExtRange;  /* all values within external range? */
+    IntType j, m, nels;
     IntType start[MAX_RANK], edge[MAX_RANK], index[MAX_RANK];
     IntType index2[MAX_RANK], mid[MAX_RANK], count[MAX_RANK];
     IntType sstride[MAX_RANK];
+    PTRDType nstarts;   /* number of different starts */
     PTRDType stride[MAX_RANK];
     $1 value[MAX_NELS];
 
@@ -950,7 +952,8 @@ ifdef(`PNETCDF',`dnl
                     start[j] = mid[j];
                     edge[j] = var_shape[i][j] - mid[j];
                 }
-                sstride[j] = stride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                sstride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                stride[j] = (PTRDType)sstride[j];
                 nstarts *= stride[j];
             }
             for (m = 0; m < nstarts; m++) {
@@ -959,7 +962,7 @@ ifdef(`PNETCDF',`dnl
                     error("error in toMixedBase");
                 nels = 1;
                 for (j = 0; j < var_rank[i]; j++) {
-                    count[j] = 1 + (edge[j] - index[j] - 1) / stride[j];
+                    count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
                     nels *= count[j];
                     index[j] += start[j];
                 }
@@ -967,7 +970,7 @@ ifdef(`PNETCDF',`dnl
 /* TODO
                 if ( roll(2) ) {
                     for (j = 0; j < var_rank[i]; j++) {
-                        index[j] += (count[j] - 1) * stride[j];
+                        index[j] += (count[j] - 1) * (IntType)stride[j];
                         stride[j] = -stride[j];
                     }
                 }
@@ -977,11 +980,11 @@ ifdef(`PNETCDF',`dnl
                     IF (err != NC_NOERR)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
-                        index2[d] = index[d] + index2[d] * stride[d];
+                        index2[d] = index[d] + index2[d] * (IntType)stride[d];
                     value[j] = hash_$1(cdf_format,var_type[i], var_rank[i], index2,
                         NCT_ITYPE($1));
                     IfCheckTextChar($1, var_type[i])
-                        allInExtRange &= inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
+                        allInExtRange &= inRange3(cdf_format, (double)value[j], var_type[i], NCT_ITYPE($1));
                 }
                 if (var_rank[i] == 0 && i%2 == 0)
                     err = PutVars($1)(ncid, i, NULL, NULL, stride, value);
@@ -1040,13 +1043,14 @@ define(`TEST_NC_PUT_VARM',dnl
 int
 TestFunc(varm)_$1(VarArgs)
 {
-    int i, j, k, m, d, err, nels, nslabs, ncid, cdf_format, nok=0;
-    int nstarts;        /* number of different starts */
+    int i, k, d, err, nslabs, ncid, cdf_format, nok=0;
     int canConvert;     /* Both text or both numeric */
     int allInExtRange;  /* all values within external range? */
+    IntType j, m, nels;
     IntType start[MAX_RANK], edge[MAX_RANK], index[MAX_RANK];
     IntType index2[MAX_RANK], mid[MAX_RANK], count[MAX_RANK];
     IntType sstride[MAX_RANK];
+    PTRDType nstarts;   /* number of different starts */
     PTRDType stride[MAX_RANK], imap[MAX_RANK];
     $1 value[MAX_NELS];
 
@@ -1161,7 +1165,8 @@ ifdef(`PNETCDF',`dnl
                     start[j] = mid[j];
                     edge[j] = var_shape[i][j] - mid[j];
                 }
-                sstride[j] = stride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                sstride[j] = edge[j] > 0 ? 1+roll(edge[j]) : 1;
+                stride[j] = (PTRDType)sstride[j];
                 nstarts *= stride[j];
             }
             for (m = 0; m < nstarts; m++) {
@@ -1170,7 +1175,7 @@ ifdef(`PNETCDF',`dnl
                     error("error in toMixedBase");
                 nels = 1;
                 for (j = 0; j < var_rank[i]; j++) {
-                    count[j] = 1 + (edge[j] - index[j] - 1) / stride[j];
+                    count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
                     nels *= count[j];
                     index[j] += start[j];
                 }
@@ -1178,27 +1183,27 @@ ifdef(`PNETCDF',`dnl
 /* TODO
                 if ( roll(2) ) {
                     for (j = 0; j < var_rank[i]; j++) {
-                        index[j] += (count[j] - 1) * stride[j];
+                        index[j] += (count[j] - 1) * (IntType)stride[j];
                         stride[j] = -stride[j];
                     }
                 }
 */
                 if (var_rank[i] > 0) {
-                    j = var_rank[i] - 1;
-                    imap[j] = 1;
-                    for (; j > 0; j--)
-                        imap[j-1] = imap[j] * count[j];
+                    int jj = var_rank[i] - 1;
+                    imap[jj] = 1;
+                    for (; jj > 0; jj--)
+                        imap[jj-1] = imap[jj] * (PTRDType)count[jj];
                 }
                 for (allInExtRange = 1, j = 0; j < nels; j++) {
                     err = toMixedBase(j, var_rank[i], count, index2);
                     IF (err != NC_NOERR)
                         error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
-                        index2[d] = index[d] + index2[d] * stride[d];
+                        index2[d] = index[d] + index2[d] * (IntType)stride[d];
                     value[j] = hash_$1(cdf_format,var_type[i], var_rank[i], index2,
                         NCT_ITYPE($1));
                     IfCheckTextChar($1, var_type[i])
-                        allInExtRange &= inRange3(cdf_format, value[j], var_type[i], NCT_ITYPE($1));
+                        allInExtRange &= inRange3(cdf_format, (double)value[j], var_type[i], NCT_ITYPE($1));
                 }
                 if (var_rank[i] == 0 && i%2 == 0)
                     err = PutVarm($1)(ncid,i,NULL,NULL,NULL,NULL,value);
@@ -1297,7 +1302,8 @@ TestFunc(att)_text(AttVarArgs)
                 ELSE_NOK
 
                 for (k = 0; k < ATT_LEN(i,j); k++) {
-                    value[k] = hash(ATT_TYPE(i,j), -1, &k);
+                    double dtmp = hash(ATT_TYPE(i,j), -1, &k);
+                    value[k] = (text)dtmp;
                 }
                 err = PutAtt(text)(ncid, i, ATT_NAME(i,j), ATT_LEN(i,j), value);
                 IF (err != NC_NOERR)
@@ -1380,7 +1386,7 @@ TestFunc(att)_$1(AttVarArgs)
                 for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
                     value[k] = hash_$1(cdf_format,ATT_TYPE(i,j), -1, &k, NCT_ITYPE($1));
                     IfCheckTextChar($1, ATT_TYPE(i,j))
-                        allInExtRange &= inRange3(cdf_format, value[k], ATT_TYPE(i,j), NCT_ITYPE($1));
+                        allInExtRange &= inRange3(cdf_format, (double)value[k], ATT_TYPE(i,j), NCT_ITYPE($1));
                 }
                 err = PutAtt($1)(ncid, i, ATT_NAME(i,j), ATT_TYPE(i,j), ATT_LEN(i,j), value);
                 if (allInExtRange) {
