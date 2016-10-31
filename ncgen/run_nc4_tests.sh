@@ -19,5 +19,8 @@ echo "*** creating C code for CAM file ref_camrun.cdl..."
 echo "*** test for jira NCF-199 bug"
 ./ncgen -k nc4 $srcdir/ncf199.cdl
 
+echo "*** creating binary file for github issue 323..."
+./ncgen -k nc4 $srcdir/gh323.cdl
+
 echo "*** Test successful!"
 exit 0
