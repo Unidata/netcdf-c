@@ -1080,6 +1080,21 @@ if test "x$enable_parallel" = xyes; then
   AC_DEFINE([USE_PARALLEL], [1], [if true, pnetcdf or parallel netcdf-4 is in use])
 fi
 
+AC_ARG_ENABLE([erange_fill],
+   [AS_HELP_STRING([--disable-erange-fill],
+                   [Disable use of fill value when out-of-range type
+                    conversion causes NC_ERANGE error. @<:@default: enabled@:>@])],
+   [enable_erange_fill=${enableval}], [enable_erange_fill=yes]
+)
+if test "x$enable_erange_fill" = xyes ; then
+   if test "x$M4FLAGS" = x ; then
+      M4FLAGS="-DERANGE_FILL"
+   else
+      M4FLAGS="$M4FLAGS -DERANGE_FILL"
+   fi
+fi
+AC_SUBST(M4FLAGS)
+
 # Check for downloading/building fortran via postinstall script.
 if test "x$enable_remote_fortran_bootstrap" = xyes; then
    AC_DEFINE([BUILD_FORTRAN], 1, [If true, will attempt to download and build netcdf-fortran.])

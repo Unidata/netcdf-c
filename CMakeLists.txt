@@ -994,6 +994,15 @@ IF(ENABLE_PNETCDF)
   ENDIF(NOT PNETCDF)
 ENDIF()
 
+# Options to enable parallel IO, tests.
+SET(STATUS_ERANGE_FILL "ON")
+OPTION(DISABLE_ERANGE_FILL "Disable use of fill value when out-of-range type conversion causes NC_ERANGE error." OFF)
+IF(DISABLE_ERANGE_FILL)
+  SET(STATUS_ERANGE_FILL "OFF")
+ELSE()
+  SET(M4FLAGS "-DERANGE_FILL" CACHE STRING "")
+ENDIF()
+
 # Enable Parallel Tests.
 OPTION(ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if netCDF4 is not enabled, or if there is no parallel I/O Support." ${USE_PARALLEL})
 IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
@@ -1247,7 +1256,7 @@ IF(HAVE_M4)
   ADD_CUSTOM_COMMAND(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
     COMMAND ${NC_M4}
-    ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+    ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
     VERBATIM
     )
 ENDIF(HAVE_M4)
