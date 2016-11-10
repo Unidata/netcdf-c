@@ -393,6 +393,33 @@ IF(NOT MSVC)
   ENDIF(BUILD_FORTRAN)
 ENDIF()
 
+
+###
+# Allow the user to specify libraries
+# to link against, similar to automakes 'LIBS' variable.
+###
+SET(NC_EXTRA_DEPS "" CACHE STRING "Additional libraries to link against.")
+IF(NC_EXTRA_DEPS)
+  STRING(REPLACE " " ";" DEPS_LIST ${NC_EXTRA_DEPS})
+  FOREACH(_DEP ${DEPS_LIST})
+    STRING(REGEX REPLACE "^-l" "" _LIB ${_DEP})
+    FIND_LIBRARY("${_LIB}_DEP" NAMES "${_LIB}" "lib${_LIB}")
+    MESSAGE(${${_LIB}_DEP})
+    IF(NOT "${_LIB}_DEP")
+      MESSAGE(FATAL_ERROR "Error finding ${_LIB}.")
+    ELSE()
+      MESSAGE(STATUS "Found ${_LIB}: ${${_LIB}_DEP}")
+    ENDIF()
+    SET(EXTRA_DEPS ${EXTRA_DEPS} "${${_LIB}_DEP}")
+  ENDFOREACH()
+  MESSAGE("Extra deps: ${EXTRA_DEPS}")
+  LIST(REMOVE_DUPLICATES EXTRA_DEPS)
+  SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${EXTRA_DEPS})
+ENDIF()
+###
+# End user-specified dependent libraries.
+###
+
 # Option to use HDF4
 OPTION(ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability(HDF4, HDF5 and Zlib required)." OFF)
 IF(ENABLE_HDF4)
@@ -639,6 +666,18 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
     SET(HDF5_C_LIBRARY hdf5)
   ENDIF(NOT MSVC)
+  SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} sz)
+  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pset_szip "" USE_SZIP)
+  IF(USE_SZIP)
+    FIND_LIBRARY(SZIP NAMES szip sz)
+    IF(SZIP)
+      SET(SZIP_LIBRARY ${SZIP})
+      SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${SZIP})
+    ELSE()
+      MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
+    ENDIF()
+  ENDIF()
 
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5free_memory "" HDF5_HAS_H5FREE)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pset_libver_bounds "" HDF5_HAS_LIBVER_BOUNDS)
@@ -648,15 +687,6 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ELSE()
 	SET(HDF5_CC h5cc)
   ENDIF()
-
-  #  execute_process(COMMAND sh -c "${HDF5_CC} -showconfig | grep -i 'HDF5 version' | cut -d: -f2 | tr -d ' '"
-  #  OUTPUT_VARIABLE HDF5_VERSION
-  #  ERROR_QUIET)
-
-  # It cannot be assumed that libhdf5.settings exists.  If it doesn't,
-  # the call to h5cc will have failed.  At this point we will have to
-  # trust the user that they have configured their system properly.
-
 
   # Starting with hdf5 1.8.11, dynamic loading is an option.
   # In case hdf5 has a dependency on libdl, the user must specify
@@ -673,19 +703,6 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     MESSAGE(STATUS "Found libdl: ${LIBDL}")
     SET(HAVE_LIBDL ON)
     INCLUDE_DIRECTORIES(${LIBDL_INCLUDE_DIR})
-  ENDIF()
-
-  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
-  CHECK_LIBRARY_EXISTS(hdf5 H5Z_SZIP "" USE_SZIP)
-  IF(USE_SZIP)
-    FIND_LIBRARY(SZIP NAMES szip sz)
-    IF(SZIP)
-      SET(SZIP_LIBRARY ${SZIP})
-    ELSE()
-      MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
-    ENDIF()
-    #FIND_PACKAGE(SZIP NO_MODULE REQUIRED)
-    #INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIR})
   ENDIF()
 
   SET(H5_USE_16_API 1)
@@ -862,32 +879,6 @@ IF(ENABLE_TESTS)
   ###
   MARK_AS_ADVANCED(ENABLE_FAILING_TESTS)
 ENDIF()
-
-###
-# Allow the user to specify libraries
-# to link against, similar to automakes 'LIBS' variable.
-###
-SET(NC_EXTRA_DEPS "" CACHE STRING "Additional libraries to link against.")
-IF(NC_EXTRA_DEPS)
-  STRING(REPLACE " " ";" DEPS_LIST ${NC_EXTRA_DEPS})
-  FOREACH(_DEP ${DEPS_LIST})
-    STRING(REGEX REPLACE "^-l" "" _LIB ${_DEP})
-    FIND_LIBRARY("${_LIB}_DEP" NAMES "${_LIB}" "lib${_LIB}")
-    MESSAGE(${${_LIB}_DEP})
-    IF(NOT "${_LIB}_DEP")
-      MESSAGE(FATAL_ERROR "Error finding ${_LIB}.")
-    ELSE()
-      MESSAGE(STATUS "Found ${_LIB}: ${${_LIB}_DEP}")
-    ENDIF()
-    SET(EXTRA_DEPS ${EXTRA_DEPS} "${${_LIB}_DEP}")
-  ENDFOREACH()
-  MESSAGE("Extra deps: ${EXTRA_DEPS}")
-  LIST(REMOVE_DUPLICATES EXTRA_DEPS)
-ENDIF()
-###
-# End user-specified dependent libraries.
-###
-
 
 ###
 # Option to enable extreme numbers during testing.
