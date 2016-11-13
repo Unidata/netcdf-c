@@ -625,7 +625,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       assert(dim && dim->dimid == var->dimids[d2]);
       if (!dim->unlimited)
         {
-#ifdef ISSUE243
+#ifdef RELAX_COORD_BOUND
           if (start[d2] > (hssize_t)fdims[d2] ||
               (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
 #else
@@ -961,11 +961,11 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 	  BAIL(retval);
 
         /* Check for out of bound requests. */
-#ifdef ISSUE243
+#ifdef RELAX_COORD_BOUND
         if (start[d2] > (hssize_t)ulen ||
             (start[d2] == (hssize_t)ulen && count[d2] > 0))
 #else
-        if (start[d2] >= (hssize_t)ulen && count[d2])
+        if (start[d2] >= (hssize_t)ulen && ulen > 0)
 #endif
           BAIL_QUIET(NC_EINVALCOORDS);
         if (start[d2] + count[d2] > ulen)
@@ -989,7 +989,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
     else
       {
         /* Check for out of bound requests. */
-#ifdef ISSUE243
+#ifdef RELAX_COORD_BOUND
         if (start[d2] > (hssize_t)fdims[d2] ||
             (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
 #else

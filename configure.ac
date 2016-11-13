@@ -1095,6 +1095,42 @@ if test "x$enable_erange_fill" = xyes ; then
 fi
 AC_SUBST(M4FLAGS)
 
+AC_ARG_ENABLE([relax-coord-bound],
+   [AS_HELP_STRING([--enable-relax-coord-bound],
+                   [Enable a more relaxed boundary error check NC_EINVALCOORDS
+                    to allow coordinate start argument equal to dimension size
+                    when argument count is zero. @<:@default: disabled@:>@])],
+   [enable_relax_coord_bound=${enableval}], [enable_relax_coord_bound=no]
+)
+
+if test "x$enable_pnetcdf" = xyes; then
+   UD_CHECK_HEADER_PATH([pnetcdf.h])
+   AC_MSG_CHECKING([if relax_coord_bound is enabled in PnetCDF])
+   relax_coord_bound_pnetcdf=`grep PNETCDF_RELAX_COORD_BOUND ${ac_cv_header_path_pnetcdf_h}`
+   if test "x$relax_coord_bound_pnetcdf" = x; then
+      relax_coord_bound_pnetcdf=no
+   else
+      coord_bound_pnetcdf=`echo ${relax_coord_bound_pnetcdf} | cut -d' ' -f3`
+      if test "x$coord_bound_pnetcdf" = x0; then
+          relax_coord_bound_pnetcdf=no
+      else
+          relax_coord_bound_pnetcdf=yes
+      fi
+   fi
+   AC_MSG_NOTICE([$relax_coord_bound_pnetcdf])
+   if test "$enable_relax_coord_bound" != "$relax_coord_bound_pnetcdf"; then
+      if test "$relax_coord_bound_pnetcdf" = yes; then
+         AC_MSG_WARN([Enable relax-coord-bound to conform with PnetCDF setting])
+      else
+         AC_MSG_WARN([Disable relax-coord-bound to conform with PnetCDF setting])
+      fi
+      enable_relax_coord_bound=$relax_coord_bound_pnetcdf
+   fi
+fi
+if test "x$enable_relax_coord_bound" = xyes; then
+   AC_DEFINE([RELAX_COORD_BOUND], [1], [if true, NC_EINVALCOORDS check is more relaxed])
+fi
+
 # Check for downloading/building fortran via postinstall script.
 if test "x$enable_remote_fortran_bootstrap" = xyes; then
    AC_DEFINE([BUILD_FORTRAN], 1, [If true, will attempt to download and build netcdf-fortran.])
@@ -1262,6 +1298,7 @@ AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
 AC_SUBST(HAS_DISKLESS,[$enable_diskless])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
+AC_SUBST(RELAX_COORD_BOUND,[$enable_relax_coord_bound])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],

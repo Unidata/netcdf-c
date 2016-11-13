@@ -9,7 +9,7 @@ dnl
  *  Copyright (C) 2014, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: ncx.m4 2587 2016-10-30 01:45:06Z wkliao $ */
+/* $Id: ncx.m4 2601 2016-11-07 04:54:42Z wkliao $ */
 
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -719,7 +719,7 @@ static int
 APIPrefix`x_put_'NC_TYPE($1)_$2(void *xp, const $2 *ip, void *fillp)
 {
     int err=NC_NOERR;
-    ix_$1 xx;
+    ix_$1 xx = FillDefaultValue($1);
 
     ifelse(`$2', `double', `if (*ip > Xmax($1) || *ip < DXmin($1)) {
         FillValue($1, &xx)
@@ -751,7 +751,7 @@ ifelse(`$3', `1',
     put_ix_$1(xp, (const ix_$1 *)ip);
 `#'else
 ')dnl
-    ix_$1 xx;
+    ix_$1 xx = FillDefaultValue($1);
 
 `#'if IXmax($1) < Imax($2)
     if (*ip > IXmax($1)'`ifelse(index(`$1',`u'), 0, ,
@@ -934,7 +934,7 @@ APIPrefix`x_put_'NC_TYPE(ushort)_schar(void *xp, const schar *ip, void *fillp)
     uchar *cp;
     if (*ip < 0) {
 ifdef(`ERANGE_FILL', `dnl
-        FillValue(ushort, xp)
+        if (fillp != NULL) memcpy(xp, fillp, 2);
 #ifndef WORDS_BIGENDIAN
         swapn2b(xp, xp, 1);
 #endif
@@ -1138,8 +1138,8 @@ APIPrefix`x_put_'NC_TYPE(uint)_schar(void *xp, const schar *ip, void *fillp)
 {
     uchar *cp;
     if (*ip < 0) {
-        FillValue(uint, xp)
 ifdef(`ERANGE_FILL', `dnl
+        if (fillp != NULL) memcpy(xp, fillp, 4);
 #ifndef WORDS_BIGENDIAN
         swapn4b(xp, xp, 1);
 #endif')
@@ -1974,7 +1974,7 @@ static int
 APIPrefix`x_put_'NC_TYPE(double)_float(void *xp, const float *ip, void *fillp)
 {
     int err=NC_NOERR;
-    double xx;
+    double xx = FillDefaultValue(double);
 #if 1	/* TODO: figure this out (if condition below will never be true)*/
     if ((double)(*ip) > X_DOUBLE_MAX || (double)(*ip) < X_DOUBLE_MIN) {
         FillValue(double, &xx)
@@ -1994,9 +1994,9 @@ APIPrefix`x_put_'NC_TYPE(double)_double(void *xp, const double *ip, void *fillp)
     int err=NC_NOERR;
     double *_ip = ip;
 #ifdef NO_IEEE_FLOAT
-    ifdef(`ERANGE_FILL',`double tmp;')
+    ifdef(`ERANGE_FILL',`double tmp=NC_FILL_DOUBLE;')
     if (*ip > X_DOUBLE_MAX || *ip < X_DOUBLE_MIN) {
-        FillValue(double, tmp)
+        FillValue(double, &tmp)
         ifdef(`ERANGE_FILL',`_ip = &tmp;')
         DEBUG_ASSIGN_ERROR(err, NC_ERANGE)
     }

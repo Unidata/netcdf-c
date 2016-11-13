@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_write.m4 2587 2016-10-30 01:45:06Z wkliao $ */
+/* $Id: test_write.m4 2611 2016-11-11 19:26:14Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -868,8 +868,7 @@ TestFunc(put_var1)(VarArgs)
         }
         for (j = 0; j < var_nels[i]; j++) {
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
-            IF (err != NC_NOERR)
-                error("error in toMixedBase");
+            IF (err != 0) error("error in toMixedBase");
             value = hash(var_type[i], var_rank[i], index);
             if (inRange(value, var_type[i])) {
                 err = dbl2nc(value, var_type[i], buf);
@@ -990,8 +989,7 @@ TestFunc(put_vara)(VarArgs)
             p = (char *) buf;
             for (j = 0; j < nels; j++) {
                 err = toMixedBase(j, var_rank[i], edge, index);
-                IF (err != NC_NOERR)
-                    error("error in toMixedBase");
+                IF (err != 0) error("error in toMixedBase");
                 for (d = 0; d < var_rank[i]; d++)
                     index[d] += start[d];
                 value = hash(var_type[i], var_rank[i], index);
@@ -1132,8 +1130,7 @@ TestFunc(put_vars)(VarArgs)
             }
             for (m = 0; m < nstarts; m++) {
                 err = toMixedBase(m, var_rank[i], sstride, index);
-                IF (err != NC_NOERR)
-                    error("error in toMixedBase");
+                IF (err != 0) error("error in toMixedBase");
                 nels = 1;
                 for (j = 0; j < var_rank[i]; j++) {
                     count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
@@ -1152,8 +1149,7 @@ TestFunc(put_vars)(VarArgs)
                 p = (char *) buf;
                 for (j = 0; j < nels; j++) {
                     err = toMixedBase(j, var_rank[i], count, index2);
-                    IF (err != NC_NOERR)
-                        error("error in toMixedBase");
+                    IF (err != 0) error("error in toMixedBase");
                     for (d = 0; d < var_rank[i]; d++)
                         index2[d] = index[d] + index2[d] * (IntType)stride[d];
                     value = hash(var_type[i], var_rank[i], index2);
@@ -1251,8 +1247,7 @@ TestFunc(put_varm)(VarArgs)
         p = (char *) buf;
         for (j = 0; j < var_nels[i]; j++) {
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
-            IF (err != NC_NOERR)
-                error("error in toMixedBase");
+            IF (err != 0) error("error in toMixedBase");
             value = hash(var_type[i], var_rank[i], index);
             if (!inRange(value, var_type[i]))
                 value = 0;
@@ -1325,8 +1320,7 @@ TestFunc(put_varm)(VarArgs)
                     err = PutVarm(ncid, i, NULL, NULL, NULL, NULL, buf, 1, buftype);
                 } else {
                     err = toMixedBase(m, var_rank[i], sstride, index);
-                    IF (err != NC_NOERR)
-                        error("error in toMixedBase");
+                    IF (err != 0) error("error in toMixedBase");
                     for (j = 0; j < var_rank[i]; j++) {
                         count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
                         index[j] += start[j];
@@ -2079,8 +2073,7 @@ ifdef(`PNETCDF', `
         }
         for (j = 0; j < var_nels[i]; j++) {
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
-            IF (err != NC_NOERR)
-                error("error in toMixedBase");
+            IF (err != 0) error("error in toMixedBase");
             if (var_type[i] == NC_CHAR) {
                 err = GetVar1TYPE(text)(ncid, i, index, &text);
                 IF (err != NC_NOERR)
@@ -2144,8 +2137,7 @@ ifdef(`PNETCDF', `
         if (var_dimid[i][0] == RECDIM) continue; /* skip record variables */
         for (j = 0; j < var_nels[i]; j++) {
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
-            IF (err != NC_NOERR)
-                error("error in toMixedBase");
+            IF (err != 0) error("error in toMixedBase");
             if (var_type[i] == NC_CHAR) {
                 err = GetVar1TYPE(text)(ncid, i, index, &text);
                 IF (err != NC_NOERR)
