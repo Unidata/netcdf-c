@@ -33,4 +33,3 @@ DAP Support:		@HAS_DAP@
 Diskless Support:	@HAS_DISKLESS@
 MMap Support:		@HAS_MMAP@
 JNA Support:		@HAS_JNA@
-Relax Coord Check:	@RELAX_COORD_BOUND@

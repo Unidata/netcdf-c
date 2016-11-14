@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_read.m4 2611 2016-11-11 19:26:14Z wkliao $ */
+/* $Id: test_read.m4 2616 2016-11-14 09:19:14Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -24,6 +24,8 @@ dnl
 #include <fcntl.h> /* open() */
 #include <unistd.h> /* unlink(), write() */
 #include "tests.h"
+
+define(`EXPECT_ERR',`error("expecting $1 but got %s",nc_err_code_name($2));')dnl
 
 define(`IntType', `ifdef(`PNETCDF',`MPI_Offset',`size_t')')dnl
 define(`PTRDType',`ifdef(`PNETCDF',`MPI_Offset',`ptrdiff_t')')dnl
@@ -1013,50 +1015,73 @@ TestFunc(get_var1)(VarArgs)
     double expect;
     int nok = 0;                /* count of valid comparisons */
     double buf[1];              /* (void *) buffer */
-    double value;
+    double value[1];
     IntType j, index[MAX_RANK];
     ifdef(`PNETCDF', `MPI_Datatype datatype;')
 
     err = FileOpen(testfile, NC_NOWRITE, &ncid);
-    IF (err != NC_NOERR)
-        error("open: %s", APIFunc(strerror)(err));
+    IF (err != NC_NOERR) error("open: %s", APIFunc(strerror)(err));
+
+    /* check if can detect a bad file ID */
+    err = GetVar1(BAD_ID, 0, NULL, NULL, 0, MPI_DATATYPE_NULL);
+    IF (err != NC_EBADID) EXPECT_ERR(NC_EBADID, err)
+
+    /* check if can detect a bad variable ID */
+    err = GetVar1(ncid, BAD_VARID, NULL, NULL, 0, MPI_DATATYPE_NULL);
+    IF (err != NC_ENOTVAR) EXPECT_ERR(NC_ENOTVAR, err)
+
     for (i = 0; i < numVars; i++) {
-        ifdef(`PNETCDF', `datatype = nc_mpi_type(var_type[i]);')
-        for (j = 0; j < var_rank[i]; j++)
-            index[j] = 0;
-        err = GetVar1(BAD_ID, i, index, buf, 1, datatype);
+        assert(var_rank[i] <= MAX_RANK);
+        assert(var_nels[i] <= MAX_NELS);
+
+        /* check if can detect a bad file ID */
+        err = GetVar1(BAD_ID, i, NULL, value, 1, MPI_DATATYPE_NULL);
         IF (err != NC_EBADID)
-            error("expecting NC_EBADID but got %s", nc_err_code_name(err));
+            EXPECT_ERR(NC_EBADID, err)
         ELSE_NOK
-        err = GetVar1(ncid, BAD_VARID, index, buf, 1, datatype);
-        IF (err != NC_ENOTVAR)
-            error("expecting NC_ENOTVAR but got %s", nc_err_code_name(err));
+
+        ifdef(`PNETCDF', `datatype = nc_mpi_type(var_type[i]);')
+
+ifdef(`PNETCDF',`dnl
+        err = GetVar1(ncid, i, NULL, value, 1, datatype);
+        if (var_rank[i] == 0) { /* scalar variable */
+            IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
+        }
+        else IF (err != NC_EINVALCOORDS) {
+            EXPECT_ERR(NC_EINVALCOORDS, err)
+        }
         ELSE_NOK
+')dnl
+
+        /* test NC_EINVALCOORDS */
         for (j = 0; j < var_rank[i]; j++) {
             index[j] = var_shape[i][j];
             err = GetVar1(ncid, i, index, buf, 1, datatype);
             IF (err != NC_EINVALCOORDS)
-                error("expecting NC_EINVALCOORDS, but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_EINVALCOORDS, err)
             ELSE_NOK
             index[j] = 0;
         }
+        err = GetVar1(ncid, i, index, value, 1, datatype);
+        IF (err != NC_NOERR)
+            EXPECT_ERR(NC_NOERR, err)
+        ELSE_NOK
+
+        /* check if the contents are supposed to be */
         for (j = 0; j < var_nels[i]; j++) {
             err = toMixedBase(j, var_rank[i], var_shape[i], index);
             IF (err != 0) error("error in toMixedBase");
             expect = hash( var_type[i], var_rank[i], index );
-            if (var_rank[i] == 0 && i%2 )
-                err = GetVar1(ncid, i, NULL, buf, 1, datatype);
-            else
-                err = GetVar1(ncid, i, index, buf, 1, datatype);
+            err = GetVar1(ncid, i, index, buf, 1, datatype);
             IF (err != NC_NOERR)
-                error("%s", APIFunc(strerror)(err));
+                EXPECT_ERR(NC_NOERR, err)
             ELSE_NOK
-            err = nc2dbl( var_type[i], buf, &value );
-            IF (err != NC_NOERR)
+            err = nc2dbl( var_type[i], buf, &value[0]);
+            IF (err)
                 error("error in nc2dbl");
             if (inRange(expect,var_type[i])) {
-                IF (!equal2(value,expect,var_type[i]))
-                    error("expected: %G, got: %G", expect, value);
+                IF (!equal2(value[0],expect,var_type[i]))
+                    error("expected: %G, got: %G", expect, value[0]);
                 ELSE_NOK
             }
         }
@@ -1091,36 +1116,97 @@ TestFunc(get_vara)(VarArgs)
     err = FileOpen(testfile, NC_NOWRITE, &ncid);
     IF (err != NC_NOERR)
         error("open: %s", APIFunc(strerror)(err));
+
+    /* check if can detect a bad file ID */
+    err = GetVara(BAD_ID, 0, NULL, NULL, NULL, 0, MPI_DATATYPE_NULL);
+    IF (err != NC_EBADID) EXPECT_ERR(NC_EBADID, err)
+
+    /* check if can detect a bad variable ID */
+    err = GetVara(ncid, BAD_VARID, NULL, NULL, NULL, 0, MPI_DATATYPE_NULL);
+    IF (err != NC_ENOTVAR) EXPECT_ERR(NC_ENOTVAR, err)
+
     for (i = 0; i < numVars; i++) {
-        ifdef(`PNETCDF', `datatype = nc_mpi_type(var_type[i]);')
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
+
+        /* check if can detect a bad file ID */
+        err = GetVara(BAD_ID, i, NULL, NULL, buf, 1, MPI_DATATYPE_NULL);
+        IF (err != NC_EBADID)
+            EXPECT_ERR(NC_EBADID, err)
+        ELSE_NOK
+
+        ifdef(`PNETCDF', `datatype = nc_mpi_type(var_type[i]);')
+
         for (j = 0; j < var_rank[i]; j++) {
             start[j] = 0;
             edge[j] = 1;
         }
-        err = GetVara(BAD_ID, i, start, edge, buf, 1, datatype);
-        IF (err != NC_EBADID)
-            error("expecting NC_EBADID but got %s", nc_err_code_name(err));
+
+ifdef(`PNETCDF',`dnl
+        err = GetVara(ncid, i, NULL, NULL, buf, 1, datatype);
+        if (var_rank[i] == 0) { /* scalar variable */
+            IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
+        }
+        else IF (err != NC_EINVALCOORDS) {
+            EXPECT_ERR(NC_EINVALCOORDS, err)
+        }
         ELSE_NOK
-        err = GetVara(ncid, BAD_VARID, start, edge, buf, 1, datatype);
-        IF (err != NC_ENOTVAR)
-            error("expecting NC_ENOTVAR but got %s", nc_err_code_name(err));
+        err = GetVara(ncid, i, start, NULL, buf, 1, datatype);
+        if (var_rank[i] == 0) { /* scalar variable */
+            IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
+        }
+        else IF (err != NC_EEDGE) {
+            EXPECT_ERR(NC_EEDGE, err)
+        }
         ELSE_NOK
+')dnl
+
+        /* test NC_EINVALCOORDS, first when edge[*] > 0 */
         for (j = 0; j < var_rank[i]; j++) {
-            start[j] = var_shape[i][j];
-            err = GetVara(ncid, i, start, edge, buf, 1, datatype);
+            index[j] = var_shape[i][j];
+            err = GetVara(ncid, i, index, edge, buf, 1, datatype);
             IF (err != NC_EINVALCOORDS)
-                error("expecting NC_EINVALCOORDS, but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_EINVALCOORDS, err)
             ELSE_NOK
-            start[j] = 0;
-            edge[j] = var_shape[i][j] + 1;
+            index[j] = 0;
+            edge[j] = var_shape[i][j] + 1;  /* edge error check */
             err = GetVara(ncid, i, start, edge, buf, 1, datatype);
             IF (err != NC_EEDGE)
-                error("expecting NC_EEDGE but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_EEDGE, err)
             ELSE_NOK
             edge[j] = 1;
         }
+
+        /* Check non-scalars for correct error returned even when there is
+         * nothing to get (edge[j]==0) */
+        for (j = 0; j < var_rank[i]; j++) edge[j] = 0;
+
+        for (j = 0; j < var_rank[i]; j++) {
+            if (var_dimid[i][j] == RECDIM) continue; /* skip record dim */
+            start[j] = var_shape[i][j];
+            err = GetVara(ncid, i, start, edge, buf, 0, datatype);
+#ifdef RELAX_COORD_BOUND
+            IF (err != NC_NOERR) /* allowed when edge[j]==0 */
+                EXPECT_ERR(NC_NOERR, err)
+#else
+            IF (err != NC_EINVALCOORDS) /* not allowed even when edge[j]==0 */
+                EXPECT_ERR(NC_EINVALCOORDS, err)
+#endif
+            ELSE_NOK
+            start[j] = var_shape[i][j]+1;  /* out of boundary check */
+            err = GetVara(ncid, i, start, edge, buf, 1, datatype);
+            IF (err != NC_EINVALCOORDS)
+                EXPECT_ERR(NC_EINVALCOORDS, err)
+            ELSE_NOK
+            start[j] = 0;
+        }
+        for (j = 0; j < var_rank[i]; j++) edge[j] = 1;
+
+        err = GetVara(ncid, i, start, edge, buf, 1, datatype);
+        IF (err != NC_NOERR)
+            EXPECT_ERR(NC_NOERR, err)
+        ELSE_NOK
+
         /* Choose a random point dividing each dim into 2 parts */
         /* get 2^rank (nslabs) slabs so defined */
         nslabs = 1;
@@ -1141,37 +1227,32 @@ TestFunc(get_vara)(VarArgs)
                 }
                 nels *= edge[j];
             }
-            if (var_rank[i] == 0 && i%2 )
-                err = GetVara(ncid, i, NULL, NULL, buf, nels, datatype);
-            else
-                err = GetVara(ncid, i, start, edge, buf, nels, datatype);
-            IF (err != NC_NOERR) {
-                error("%s", APIFunc(strerror)(err));
-            } else {
-                nok++;
-                for (j = 0; j < nels; j++) {
-                    double got;
-                    char *p = (char *) buf;
-                    p += j * (IntType)nctypelen(var_type[i]);
-                    err = nc2dbl( var_type[i], p, & got );
-                    IF (err != NC_NOERR)
-                        error("error in nc2dbl");
-                    err = toMixedBase(j, var_rank[i], edge, index);
-                    IF (err != 0) error("error in toMixedBase");
-                    for (d = 0; d < var_rank[i]; d++)
-                        index[d] += start[d];
-                    expect = hash(var_type[i], var_rank[i], index);
-                    if (inRange(expect,var_type[i])) {
-                        IF (!equal2(got,expect,var_type[i])) {
-                            error("value read not that expected");
-                            if (verbose) {
-                                error("\n");
-                                error("varid: %d, ", i);
-                                error("var_name: %s, ", var_name[i]);
-                                error("element number: %d ", j);
-                                error("expect: %g", expect);
-                                error("got: %g", got);
-                            }
+            err = GetVara(ncid, i, start, edge, buf, nels, datatype);
+            IF (err != NC_NOERR)
+                EXPECT_ERR(NC_NOERR, err)
+            ELSE_NOK
+
+            for (j = 0; j < nels; j++) {
+                double got;
+                char *p = (char *) buf;
+                p += j * (IntType)nctypelen(var_type[i]);
+                err = nc2dbl( var_type[i], p, & got );
+                IF (err) error("error in nc2dbl");
+                err = toMixedBase(j, var_rank[i], edge, index);
+                IF (err != 0) error("error in toMixedBase");
+                for (d = 0; d < var_rank[i]; d++)
+                    index[d] += start[d];
+                expect = hash(var_type[i], var_rank[i], index);
+                if (inRange(expect,var_type[i])) {
+                    IF (!equal2(got,expect,var_type[i])) {
+                        error("buf read not that expected");
+                        if (verbose) {
+                            error("\n");
+                            error("varid: %d, ", i);
+                            error("var_name: %s, ", var_name[i]);
+                            error("element number: %d ", j);
+                            error("expect: %g", expect);
+                            error("got: %g", got);
                         }
                     }
                 }
@@ -1221,43 +1302,103 @@ TestFunc(get_vars)(VarArgs)
     err = FileOpen(testfile, NC_NOWRITE, &ncid);
     IF (err != NC_NOERR)
         error("open: %s", APIFunc(strerror)(err));
+
+    /* check if can detect a bad file ID */
+    err = GetVars(BAD_ID, 0, NULL, NULL, NULL, NULL, 0, MPI_DATATYPE_NULL);
+    IF (err != NC_EBADID) EXPECT_ERR(NC_EBADID, err)
+
+    /* check if can detect a bad variable ID */
+    err = GetVars(ncid, BAD_VARID, NULL, NULL, NULL, NULL, 0, MPI_DATATYPE_NULL);
+    IF (err != NC_ENOTVAR) EXPECT_ERR(NC_ENOTVAR, err)
+
     for (i = 0; i < numVars; i++) {
-        ifdef(`PNETCDF', `datatype = nc_mpi_type(var_type[i]);')
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
+
+        /* check if can detect a bad file ID */
+        err = GetVars(BAD_ID, i, NULL, NULL, NULL, buf, 1, MPI_DATATYPE_NULL);
+        IF (err != NC_EBADID)
+            EXPECT_ERR(NC_EBADID, err)
+        ELSE_NOK
+
+        ifdef(`PNETCDF', `datatype = nc_mpi_type(var_type[i]);')
+
         for (j = 0; j < var_rank[i]; j++) {
             start[j] = 0;
             edge[j] = 1;
             stride[j] = 1;
         }
-        err = GetVars(BAD_ID, i, start, edge, stride, buf, 1, datatype);
-        IF (err != NC_EBADID)
-            error("expecting NC_EBADID but got %s", nc_err_code_name(err));
+
+ifdef(`PNETCDF',`dnl
+        err = GetVars(ncid, i, NULL, NULL, NULL, buf, 1, datatype);
+        if (var_rank[i] == 0) { /* scalar variable */
+            IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
+        }
+        else IF (err != NC_EINVALCOORDS) {
+            EXPECT_ERR(NC_EINVALCOORDS, err)
+        }
         ELSE_NOK
-        err = GetVars(ncid, BAD_VARID, start, edge, stride, buf, 1, datatype);
-        IF (err != NC_ENOTVAR)
-            error("expecting NC_ENOTVAR but got %s", nc_err_code_name(err));
+        err = GetVars(ncid, i, start, NULL, NULL, buf, 1, datatype);
+        if (var_rank[i] == 0) { /* scalar variable */
+            IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
+        }
+        else IF (err != NC_EEDGE) {
+            EXPECT_ERR(NC_EEDGE, err)
+        }
         ELSE_NOK
+')dnl
+
+        /* test NC_EINVALCOORDS, first when edge[*] > 0 */
         for (j = 0; j < var_rank[i]; j++) {
             start[j] = var_shape[i][j];
             err = GetVars(ncid, i, start, edge, stride, buf, 1, datatype);
             IF (err != NC_EINVALCOORDS)
-                error("expecting NC_EINVALCOORDS, but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_EINVALCOORDS, err)
             ELSE_NOK
             start[j] = 0;
             edge[j] = var_shape[i][j] + 1;
             err = GetVars(ncid, i, start, edge, stride, buf, 1, datatype);
             IF (err != NC_EEDGE)
-                error("expecting NC_EEDGE but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_EEDGE, err)
             ELSE_NOK
             edge[j] = 1;
             stride[j] = 0;
             err = GetVars(ncid, i, start, edge, stride, buf, 1, datatype);
             IF (err != NC_ESTRIDE)
-                error("expecting NC_ESTRIDE but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_ESTRIDE, err)
             ELSE_NOK
             stride[j] = 1;
         }
+        /* Check non-scalars for correct error returned even when there is
+         * nothing to get (edge[j]==0) */
+        for (j = 0; j < var_rank[i]; j++) edge[j] = 0;
+
+        for (j = 0; j < var_rank[i]; j++) {
+            if (var_dimid[i][j] == RECDIM) continue; /* skip record dim */
+            start[j] = var_shape[i][j];
+            err = GetVars(ncid, i, start, edge, stride, buf, 0, datatype);
+#ifdef RELAX_COORD_BOUND
+            IF (err != NC_NOERR) /* allowed when edge[j]==0 */
+                EXPECT_ERR(NC_NOERR, err)
+#else
+            IF (err != NC_EINVALCOORDS) /* not allowed even when edge[j]==0 */
+                EXPECT_ERR(NC_EINVALCOORDS, err)
+#endif
+            ELSE_NOK
+            start[j] = var_shape[i][j]+1;  /* out of boundary check */
+            err = GetVars(ncid, i, start, edge, stride, buf, 1, datatype);
+            IF (err != NC_EINVALCOORDS)
+                EXPECT_ERR(NC_EINVALCOORDS, err)
+            ELSE_NOK
+            start[j] = 0;
+        }
+        for (j = 0; j < var_rank[i]; j++) edge[j] = 1;
+
+        err = GetVars(ncid, i, start, edge, stride, buf, 1, datatype);
+        IF (err != NC_NOERR)
+            EXPECT_ERR(NC_NOERR, err)
+        ELSE_NOK
+
         /* Choose a random point dividing each dim into 2 parts */
         /* get 2^rank (nslabs) slabs so defined */
         nslabs = 1;
@@ -1300,40 +1441,37 @@ TestFunc(get_vars)(VarArgs)
                     }
                 }
  */
-                if (var_rank[i] == 0 && i%2 )
-                    err = GetVars(ncid, i, NULL, NULL, NULL, buf, 1, datatype);
-                else
-                    err = GetVars(ncid, i, index, count, stride, buf, nels, datatype);
-                IF (err != NC_NOERR) {
+                err = GetVars(ncid, i, index, count, stride, buf, nels, datatype);
+                IF (err != NC_NOERR)
                     error("%s", APIFunc(strerror)(err));
-                } else {
-                    nok++;
-                    for (j = 0; j < nels; j++) {
-                        p = (char *) buf;
-                        p += j * (IntType)nctypelen(var_type[i]);
-                        err = nc2dbl( var_type[i], p, & got );
-                        IF (err != NC_NOERR)
-                            error("error in nc2dbl");
-                        err = toMixedBase(j, var_rank[i], count, index2);
-                        IF (err != 0) error("error in toMixedBase");
-                        for (d = 0; d < var_rank[i]; d++)
-                            index2[d] = index[d] + index2[d] * (IntType)stride[d];
-                        expect = hash(var_type[i], var_rank[i], index2);
-                        if (inRange(expect,var_type[i])) {
-                            IF (!equal2(got,expect,var_type[i])) {
-                                error("value read not that expected");
-                                if (verbose) {
-                                    error("\n");
-                                    error("varid: %d, ", i);
-                                    error("var_name: %s, ", var_name[i]);
-                                    error("element number: %d ", j);
-                                    error("expect: %g, ", expect);
-                                    error("got: %g ", got);
-                                }
+                ELSE_NOK
+
+                for (j = 0; j < nels; j++) {
+                    p = (char *) buf;
+                    p += j * (IntType)nctypelen(var_type[i]);
+                    err = nc2dbl( var_type[i], p, & got );
+                    IF (err != NC_NOERR)
+                        error("error in nc2dbl");
+                    err = toMixedBase(j, var_rank[i], count, index2);
+                    IF (err != 0) error("error in toMixedBase");
+                    for (d = 0; d < var_rank[i]; d++)
+                        index2[d] = index[d] + index2[d] * (IntType)stride[d];
+                    expect = hash(var_type[i], var_rank[i], index2);
+                    if (inRange(expect,var_type[i])) {
+                        IF (!equal2(got,expect,var_type[i])) {
+                            error("buf read not that expected");
+                            if (verbose) {
+                                error("\n");
+                                error("varid: %d, ", i);
+                                error("var_name: %s, ", var_name[i]);
+                                error("element number: %d ", j);
+                                error("expect: %g, ", expect);
+                                error("got: %g ", got);
                             }
                         }
-                        n++;
+                        ELSE_NOK
                     }
+                    n++;
                 }
             }
         }
@@ -1392,15 +1530,104 @@ TestFunc(get_varm)(VarArgs)
     err = FileOpen(testfile, NC_NOWRITE, &ncid);
     IF (err != NC_NOERR)
         error("open: %s", APIFunc(strerror)(err));
+
+    /* check if can detect a bad file ID */
+    err = GetVarm(BAD_ID, 0, NULL, NULL, NULL, NULL, NULL, 0, MPI_DATATYPE_NULL);
+    IF (err != NC_EBADID) EXPECT_ERR(NC_EBADID, err)
+
+    /* check if can detect a bad variable ID */
+    err = GetVarm(ncid, BAD_VARID, NULL, NULL, NULL, NULL, NULL, 0, MPI_DATATYPE_NULL);
+    IF (err != NC_ENOTVAR) EXPECT_ERR(NC_ENOTVAR, err)
+
     for (i = 0; i < numVars; i++) {
-        ifdef(`PNETCDF', `datatype = nc_mpi_type(var_type[i]);')
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
+
+        /* check if can detect a bad file ID */
+        err = GetVarm(BAD_ID, i, NULL, NULL, NULL, NULL, buf, 1, MPI_DATATYPE_NULL);
+        IF (err != NC_EBADID)
+            EXPECT_ERR(NC_EBADID, err)
+        ELSE_NOK
+
+        ifdef(`PNETCDF', `datatype = nc_mpi_type(var_type[i]);')
+
         for (j = 0; j < var_rank[i]; j++) {
             start[j] = 0;
             edge[j] = 1;
             stride[j] = 1;
+            imap[j] = 1;
         }
+
+ifdef(`PNETCDF',`dnl
+        err = GetVarm(ncid, i, NULL, NULL, NULL, NULL, buf, 1, datatype);
+        if (var_rank[i] == 0) { /* scalar variable */
+            IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
+        }
+        else IF (err != NC_EINVALCOORDS) {
+            EXPECT_ERR(NC_EINVALCOORDS, err)
+        }
+        ELSE_NOK
+        err = GetVarm(ncid, i, start, NULL, NULL, NULL, buf, 1, datatype);
+        if (var_rank[i] == 0) { /* scalar variable */
+            IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
+        }
+        else IF (err != NC_EEDGE) {
+            EXPECT_ERR(NC_EEDGE, err)
+        }
+        ELSE_NOK
+')dnl
+
+        /* test NC_EINVALCOORDS, first when edge[*] > 0 */
+        for (j = 0; j < var_rank[i]; j++) {
+            start[j] = var_shape[i][j];
+            err = GetVarm(ncid, i, start, edge, stride, imap, buf, 1, datatype);
+            IF (err != NC_EINVALCOORDS)
+                EXPECT_ERR(NC_EINVALCOORDS, err)
+            ELSE_NOK
+            start[j] = 0;
+            edge[j] = var_shape[i][j] + 1;
+            err = GetVarm(ncid, i, start, edge, stride, imap, buf, 1, datatype);
+            IF (err != NC_EEDGE)
+                EXPECT_ERR(NC_EEDGE, err)
+            ELSE_NOK
+            edge[j] = 1;
+            stride[j] = 0;
+            err = GetVarm(ncid, i, start, edge, stride, imap, buf, 1, datatype);
+            IF (err != NC_ESTRIDE)
+                EXPECT_ERR(NC_ESTRIDE, err)
+            ELSE_NOK
+            stride[j] = 1;
+        }
+        /* Check non-scalars for correct error returned even when there is
+         * nothing to get (edge[j]==0) */
+        for (j = 0; j < var_rank[i]; j++) edge[j] = 0;
+
+        for (j = 0; j < var_rank[i]; j++) {
+            if (var_dimid[i][j] == RECDIM) continue; /* skip record dim */
+            start[j] = var_shape[i][j];
+            err = GetVarm(ncid, i, start, edge, stride, imap, buf, 0, datatype);
+#ifdef RELAX_COORD_BOUND
+            IF (err != NC_NOERR) /* allowed when edge[j]==0 */
+                EXPECT_ERR(NC_NOERR, err)
+#else
+            IF (err != NC_EINVALCOORDS) /* not allowed even when edge[j]==0 */
+                EXPECT_ERR(NC_EINVALCOORDS, err)
+#endif
+            ELSE_NOK
+            start[j] = var_shape[i][j]+1;  /* out of boundary check */
+            err = GetVarm(ncid, i, start, edge, stride, imap, buf, 1, datatype);
+            IF (err != NC_EINVALCOORDS)
+                EXPECT_ERR(NC_EINVALCOORDS, err)
+            ELSE_NOK
+            start[j] = 0;
+        }
+        for (j = 0; j < var_rank[i]; j++) edge[j] = 1;
+
+        err = GetVarm(ncid, i, start, edge, stride, imap, buf, 1, datatype);
+        IF (err != NC_NOERR)
+            EXPECT_ERR(NC_NOERR, err)
+        ELSE_NOK
+
         if (var_rank[i] > 0) {
             int jj = var_rank[i] - 1;
             /* imap[jj] = nctypelen(var_type[i]); */
@@ -1408,34 +1635,7 @@ TestFunc(get_varm)(VarArgs)
             for (; jj > 0; jj--)
                 imap[jj-1] = imap[jj] * (PTRDType)var_shape[i][jj];
         }
-        err = GetVarm(BAD_ID, i, start, edge, stride, imap, buf, 1, datatype);
-        IF (err != NC_EBADID)
-            error("expecting NC_EBADID but got %s", nc_err_code_name(err));
-        ELSE_NOK
-        err = GetVarm(ncid, BAD_VARID, start, edge, stride, imap, buf, 1, datatype);
-        IF (err != NC_ENOTVAR)
-            error("expecting NC_ENOTVAR but got %s", nc_err_code_name(err));
-        ELSE_NOK
-        for (j = 0; j < var_rank[i]; j++) {
-            start[j] = var_shape[i][j];
-            err = GetVarm(ncid, i, start, edge, stride, imap, buf, 1, datatype);
-            IF (err != NC_EINVALCOORDS)
-                error("expecting NC_EINVALCOORDS, but got %s", nc_err_code_name(err));
-            ELSE_NOK
-            start[j] = 0;
-            edge[j] = var_shape[i][j] + 1;
-            err = GetVarm(ncid, i, start, edge, stride, imap, buf, 1, datatype);
-            IF (err != NC_EEDGE)
-                error("expecting NC_EEDGE but got %s", nc_err_code_name(err));
-            ELSE_NOK
-            edge[j] = 1;
-            stride[j] = 0;
-            err = GetVarm(ncid, i, start, edge, stride, imap, buf, 1, datatype);
-            IF (err != NC_ESTRIDE)
-                error("expecting NC_ESTRIDE but got %s", nc_err_code_name(err));
-            ELSE_NOK
-            stride[j] = 1;
-        }
+
         /* Choose a random point dividing each dim into 2 parts */
         /* get 2^rank (nslabs) slabs so defined */
         nslabs = 1;
@@ -1500,7 +1700,7 @@ TestFunc(get_varm)(VarArgs)
                 error("error in nc2dbl");
             if (inRange(expect,var_type[i])) {
                 IF (!equal2(got,expect,var_type[i])) {
-                    error("value read not that expected");
+                    error("buf read not that expected");
                     if (verbose) {
                         error("\n");
                         error("varid: %d, ", i);
@@ -1568,7 +1768,7 @@ TestFunc(get_att)(AttVarArgs)
                         error("error in nc2dbl");
                     if (inRange(expect,ATT_TYPE(i,j))) {
                         IF (!equal2(got,expect,ATT_TYPE(i,j))) {
-                            error("value read not that expected");
+                            error("buf read not that expected");
                             if (verbose) {
                                 error("\n");
                                 error("varid: %d, ", i);
