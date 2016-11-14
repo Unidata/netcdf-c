@@ -1086,14 +1086,6 @@ AC_ARG_ENABLE([erange_fill],
                     conversion causes NC_ERANGE error. @<:@default: enabled@:>@])],
    [enable_erange_fill=${enableval}], [enable_erange_fill=yes]
 )
-if test "x$enable_erange_fill" = xyes ; then
-   if test "x$M4FLAGS" = x ; then
-      M4FLAGS="-DERANGE_FILL"
-   else
-      M4FLAGS="$M4FLAGS -DERANGE_FILL"
-   fi
-fi
-AC_SUBST(M4FLAGS)
 
 AC_ARG_ENABLE([relax-coord-bound],
    [AS_HELP_STRING([--enable-relax-coord-bound],
@@ -1103,9 +1095,33 @@ AC_ARG_ENABLE([relax-coord-bound],
    [enable_relax_coord_bound=${enableval}], [enable_relax_coord_bound=no]
 )
 
+# check PnetCDF's settings on enable_erange_fill and relax_coord_bound
 if test "x$enable_pnetcdf" = xyes; then
    UD_CHECK_HEADER_PATH([pnetcdf.h])
-   AC_MSG_CHECKING([if relax_coord_bound is enabled in PnetCDF])
+
+   AC_MSG_CHECKING([if erange-fill is enabled in PnetCDF])
+   erange_fill_pnetcdf=`grep PNETCDF_ERANGE_FILL ${ac_cv_header_path_pnetcdf_h}`
+   if test "x$erange_fill_pnetcdf" = x; then
+      erange_fill_pnetcdf=no
+   else
+      erange_fill_pnetcdf=`echo ${erange_fill_pnetcdf} | cut -d' ' -f3`
+      if test "x$coord_bound_pnetcdf" = x0; then
+          enable_erange_fill_pnetcdf=no
+      else
+          enable_erange_fill_pnetcdf=yes
+      fi
+   fi
+   AC_MSG_NOTICE([$enable_erange_fill_pnetcdf])
+   if test "$enable_erange_fill" != "$enable_erange_fill_pnetcdf"; then
+      if test "$enable_erange_fill_pnetcdf" = yes; then
+         AC_MSG_WARN([Enable erange-fill to conform with PnetCDF setting])
+      else
+         AC_MSG_WARN([Disable erange-fill to conform with PnetCDF setting])
+      fi
+      enable_erange_fill=$enable_erange_fill_pnetcdf
+   fi
+
+   AC_MSG_CHECKING([if relax-coord-bound is enabled in PnetCDF])
    relax_coord_bound_pnetcdf=`grep PNETCDF_RELAX_COORD_BOUND ${ac_cv_header_path_pnetcdf_h}`
    if test "x$relax_coord_bound_pnetcdf" = x; then
       relax_coord_bound_pnetcdf=no
@@ -1127,6 +1143,16 @@ if test "x$enable_pnetcdf" = xyes; then
       enable_relax_coord_bound=$relax_coord_bound_pnetcdf
    fi
 fi
+
+if test "x$enable_erange_fill" = xyes ; then
+   if test "x$M4FLAGS" = x ; then
+      M4FLAGS="-DERANGE_FILL"
+   else
+      M4FLAGS="$M4FLAGS -DERANGE_FILL"
+   fi
+fi
+AC_SUBST(M4FLAGS)
+
 if test "x$enable_relax_coord_bound" = xyes; then
    AC_DEFINE([RELAX_COORD_BOUND], [1], [if true, NC_EINVALCOORDS check is more relaxed])
 fi
