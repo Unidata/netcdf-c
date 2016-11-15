@@ -29,7 +29,6 @@ has_f03="no"
 nfconf=$(which nf-config 2>/dev/null)
 
 if [ -f "$nfconf" ]; then
-  echo "Using nf-config: $nfconf"
   has_fortran="yes"
   fc=`nf-config --fc`
   fflags=`nf-config --fflags`
