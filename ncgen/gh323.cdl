@@ -1,3 +1,5 @@
+// Test for an issue related to CDL compound structs.
+// See https://github.com/Unidata/netcdf-c/issues/323 for more information
 netcdf stations {
 types:
   compound obs_t {
