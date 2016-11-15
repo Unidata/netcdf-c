@@ -1,8 +1,0 @@
-break semantics.c:641
-command
-watch offset
-end
-
-
-
-run -k nc4 gh323.cdl
