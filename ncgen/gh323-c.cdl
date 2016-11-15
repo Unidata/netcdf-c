@@ -1,0 +1,16 @@
+netcdf stations {
+types:
+  compound obs_t {
+    int lat;
+    double lon;
+}; // obs_t
+dimensions:
+  n = UNLIMITED ;
+variables:
+  obs_t obs(n) ;
+
+data:
+
+ obs = {39.9, -104},
+       {40, -105} ;
+}
