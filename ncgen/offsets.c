@@ -27,18 +27,17 @@ Author: D. Heimbigner 10/7/2008
 #ifndef OFFSETTEST
 #include        "includes.h"
 #else
+#include        <stdio.h>
 #include        <stdlib.h>
 #include        <string.h>
 #include        <assert.h>
+#include        "netcdf.h"
+#include        "debug.h"
 #endif
 
 
 #ifdef OFFSETTEST
 typedef int nc_type;
-typedef struct nc_vlen_t {
-    size_t len;
-    void* p;
-} nc_vlen_t;
 
 #define	NC_NAT 	        0	/* NAT = 'Not A Type' (c.f. NaN) */
 #define	NC_BYTE         1	/* signed 1 byte integer */
@@ -150,7 +149,7 @@ compute_alignments(void)
 
     /* Then the vector*/
     COMP_ALIGNMENT(vec[CHARINDEX],char);
-    COMP_ALIGNMENT(vec[UCHARINDEX],unsigned char); 
+    COMP_ALIGNMENT(vec[UCHARINDEX],unsigned char);
     COMP_ALIGNMENT(vec[SHORTINDEX],short);
     COMP_ALIGNMENT(vec[USHORTINDEX],unsigned short);
     COMP_ALIGNMENT(vec[INTINDEX],int);
@@ -179,7 +178,7 @@ compute_alignments(void)
 
 #define COMP_SIZE0(DST,TYPE1,TYPE2)  {\
     struct {TYPE1 c; TYPE2 x;} tmp; \
-    DST = sizeof(tmp); }g
+    DST = sizeof(tmp); }
 
 static char*
 padname(char* name)
@@ -262,10 +261,10 @@ verify(Typealignvec* vec)
     COMP_ALIGNMENT1(vec16[4],unsigned short,short);
     COMP_ALIGNMENT1(vec16[5],int,short);
     COMP_ALIGNMENT1(vec16[6],unsigned int,short);
-    COMP_ALIGNMENT1(vec32[7],long,short);
-    COMP_ALIGNMENT1(vec32[8],unsigned long,short);
-    COMP_ALIGNMENT1(vec32[9],long long,short);
-    COMP_ALIGNMENT1(vec32[10],unsigned long long,short);
+    COMP_ALIGNMENT1(vec16[7],long,short);
+    COMP_ALIGNMENT1(vec16[8],unsigned long,short);
+    COMP_ALIGNMENT1(vec16[9],long long,short);
+    COMP_ALIGNMENT1(vec16[10],unsigned long long,short);
     COMP_ALIGNMENT1(vec16[11],float,short);
     COMP_ALIGNMENT1(vec16[12],double,short);
     COMP_ALIGNMENT1(vec16[13],void*,short);
