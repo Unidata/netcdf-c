@@ -20,7 +20,7 @@ echo "*** test for jira NCF-199 bug"
 ./ncgen -k nc4 $srcdir/ncf199.cdl
 
 echo "*** creating binary file for github issue 323..."
-./ncgen -k nc4 $srcdir/gh323.cdl
+./ncgen -k nc4 $srcdir/compound_datasize_test.cdl
 
 echo "*** Test successful!"
 exit 0
