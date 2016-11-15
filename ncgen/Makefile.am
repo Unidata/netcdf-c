@@ -35,7 +35,7 @@ endif # USE_NETCDF4
 #endif # !BUILD_DLL
 
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
-		ncf199.nc c5.nc
+		ncf199.nc c5.nc compound_datasize_test.nc
 
 # These rules are used if someone wants to rebuild ncgenl.c or ncgeny.c
 # Otherwise never invoked, but records how to do it.
