@@ -1,8 +1,14 @@
-break semantics.c:641
-command
-watch offset
-end
-
-
+set breakpoint pending on
+#break semantics.c:631
+#break semantics.c:641
+#command
+#watch offset
+#end
+#break gen_netcdf
+#break genbin_definevardata
+#break generate_array
+#break generate_basetype
+#break genbin_writevar
+break nc4_put_vara
 
 run -k nc4 compound_datasize_test.cdl
