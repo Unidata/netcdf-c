@@ -9,6 +9,7 @@ set breakpoint pending on
 #break generate_array
 #break generate_basetype
 #break genbin_writevar
+break semantics.c:659
 break nc4_put_vara
 
 run -k nc4 compound_datasize_test.cdl

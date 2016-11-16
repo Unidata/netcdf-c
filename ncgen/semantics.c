@@ -627,46 +627,46 @@ computesize(Symbol* tsym)
 	    break;
 	case NC_COMPOUND: /* keep if all fields are primitive*/
 	    /* First, compute recursively, the size and alignment of fields*/
-	    for(i=0;i<listlength(tsym->subnodes);i++) {
+      for(i=0;i<listlength(tsym->subnodes);i++) {
 		Symbol* field = (Symbol*)listget(tsym->subnodes,i);
 		ASSERT(field->subclass == NC_FIELD);
 		computesize(field);
 		/* alignment of struct is same as alignment of first field*/
 		if(i==0) tsym->typ.alignment = field->typ.alignment;
-	    }
-	    /* now compute the size of the compound based on*/
-	    /* what user specified*/
-	    offset = 0;
-        int largsize = 0;
-        int largalign = 1;
-        for(i=0;i<listlength(tsym->subnodes);i++) {
-          Symbol* field = (Symbol*)listget(tsym->subnodes,i);
-          /* only support 'c' alignment for now*/
-          int alignment = field->typ.alignment;
-          offset += getpadding(offset,alignment);
-          field->typ.offset = offset;
-          offset += field->typ.size;
-          if (field->typ.size > largsize) {
-            largsize = field->typ.size;
-            largalign = alignment;
-          }
-	    }
-        offset += (offset % largalign);
-	    tsym->typ.size = offset;
-	    break;
-        case NC_FIELD: /* Compute size assume no unlimited dimensions*/
-	    if(tsym->typ.dimset.ndims > 0) {
-	        computesize(tsym->typ.basetype);
-	        totaldimsize = crossproduct(&tsym->typ.dimset,0,rankfor(&tsym->typ.dimset));
-	        tsym->typ.size = tsym->typ.basetype->typ.size * totaldimsize;
-	        tsym->typ.alignment = tsym->typ.basetype->typ.alignment;
-	        tsym->typ.nelems = 1;
-	    } else {
-	        tsym->typ.size = tsym->typ.basetype->typ.size;
-	        tsym->typ.alignment = tsym->typ.basetype->typ.alignment;
-	        tsym->typ.nelems = tsym->typ.basetype->typ.nelems;
-	    }
-	    break;
+      }
+      /* now compute the size of the compound based on*/
+      /* what user specified*/
+      offset = 0;
+      int largsize = 0;
+      int largalign = 1;
+      for(i=0;i<listlength(tsym->subnodes);i++) {
+        Symbol* field = (Symbol*)listget(tsym->subnodes,i);
+        /* only support 'c' alignment for now*/
+        int alignment = field->typ.alignment;
+        offset += getpadding(offset,alignment);
+        field->typ.offset = offset;
+        offset += field->typ.size;
+        if (field->typ.size > largsize) {
+          largsize = field->typ.size;
+          largalign = alignment;
+        }
+      }
+      offset += (offset % largalign);
+      tsym->typ.size = offset;
+      break;
+    case NC_FIELD: /* Compute size assume no unlimited dimensions*/
+      if(tsym->typ.dimset.ndims > 0) {
+        computesize(tsym->typ.basetype);
+        totaldimsize = crossproduct(&tsym->typ.dimset,0,rankfor(&tsym->typ.dimset));
+        tsym->typ.size = tsym->typ.basetype->typ.size * totaldimsize;
+        tsym->typ.alignment = tsym->typ.basetype->typ.alignment;
+        tsym->typ.nelems = 1;
+      } else {
+        tsym->typ.size = tsym->typ.basetype->typ.size;
+        tsym->typ.alignment = tsym->typ.basetype->typ.alignment;
+        tsym->typ.nelems = tsym->typ.basetype->typ.nelems;
+      }
+      break;
 	default:
 	    PANIC1("computesize: unexpected type class: %d",tsym->subclass);
 	    break;
