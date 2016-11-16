@@ -18,9 +18,16 @@ echo "*** creating C code for CAM file ref_camrun.cdl..."
 
 echo "*** test for jira NCF-199 bug"
 ./ncgen -k nc4 $srcdir/ncf199.cdl
+../ncdump/ncdump ncf199.nc > tst_ncf199.cdl
+echo "*** comparing binary against source file..."
+diff -b -w $srcdir/ncf199.cdl tst_ncf199.cdl
 
 echo "*** creating binary file for github issue 323..."
 ./ncgen -k nc4 $srcdir/compound_datasize_test.cdl
+../ncdump/ncdump compound_datasize_test.nc > tst_compound_datasize_test.cdl
+echo "*** comparing binary against source file..."
+diff -b -w $srcdir/compound_datasize_test.cdl tst_compound_datasize_test.cdl
+
 
 echo "*** Test successful!"
 exit 0
