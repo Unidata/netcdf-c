@@ -2602,6 +2602,8 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       var->created = NC_TRUE;
       var->written_to = NC_TRUE;
 
+      nc4_vararray_add(grp, var);
+
       /* Open this dataset in HDF4 file. */
       if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL)
 	return NC_EVARMETA;
