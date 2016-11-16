@@ -1,6 +1,4 @@
-// Test for an issue related to CDL compound structs.
-// See https://github.com/Unidata/netcdf-c/issues/323 for more information
-netcdf stations {
+netcdf compound_datasize_test {
 types:
   compound obs_t {
     float lat ;
@@ -10,12 +8,10 @@ types:
     float temperature ;
   }; // obs_t
 dimensions:
-  n = UNLIMITED ;
+  n = UNLIMITED ; // (2 currently)
 variables:
   obs_t obs(n) ;
-
 data:
 
- obs = {39.9, -104.9, "KDEN", 7776000, 15},
-       {40, -105, "KBOU", 7776000, 16} ;
+ obs = {39.9, -104.9, "KDEN", 7776000, 15}, {40, -105, "KBOU", 7776000, 16} ;
 }
