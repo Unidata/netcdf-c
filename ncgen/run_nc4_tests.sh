@@ -22,12 +22,17 @@ echo "*** test for jira NCF-199 bug"
 echo "*** comparing binary against source file..."
 diff -b -w $srcdir/ncf199.cdl tst_ncf199.cdl
 
-echo "*** creating binary file for github issue 323..."
+echo "*** creating binary files for github issue 323..."
+echo "*** github issue 323 test 1"
 ./ncgen -k nc4 $srcdir/compound_datasize_test.cdl
 ../ncdump/ncdump compound_datasize_test.nc > tst_compound_datasize_test.cdl
 echo "*** comparing binary against source file..."
 diff -b -w $srcdir/compound_datasize_test.cdl tst_compound_datasize_test.cdl
-
+echo "*** github issue 323 test 2"
+./ncgen -k nc4 $srcdir/compound_datasize_test2.cdl
+../ncdump/ncdump compound_datasize_test2.nc > tst_compound_datasize_test2.cdl
+echo "*** comparing binary against source file..."
+diff -b -w $srcdir/compound_datasize_test2.cdl tst_compound_datasize_test2.cdl
 
 echo "*** Test successful!"
 exit 0
