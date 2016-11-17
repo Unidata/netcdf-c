@@ -164,6 +164,7 @@ typedef struct Typeinfo {
         NCConstant      econst;   /* for enum values*/
         Dimset          dimset;     /* for NC_VAR/NC_FIELD/NC_ATT*/
         size_t   size;     /* for opaque, compound, etc.*/
+	size_t   cmpdalign; /* alignment needed for total size instances */
         size_t   nelems;   /* size in terms of # of datalist constants
 			      it takes to represent it */
 	Datalist*       _Fillvalue; /* per-type cached fillvalue

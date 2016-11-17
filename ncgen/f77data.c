@@ -13,7 +13,7 @@
 int f77_uid = 0;
 
 static int
-f77_charconstant(Generator* generator, Bytebuffer* codebuf, ...)
+f77_charconstant(Generator* generator, Symbol* sym, Bytebuffer* codebuf, ...)
 {
     /* Escapes and quoting will be handled in genc_write */
     /* Just transfer charbuf to codebuf */
@@ -28,7 +28,7 @@ f77_charconstant(Generator* generator, Bytebuffer* codebuf, ...)
 }
 
 static int
-f77_constant(Generator* generator, NCConstant* ci, Bytebuffer* codebuf,...)
+f77_constant(Generator* generator, Symbol* sym, NCConstant* ci, Bytebuffer* codebuf,...)
 {
     char tmp[64];
     char* special = NULL;
@@ -79,14 +79,14 @@ f77_constant(Generator* generator, NCConstant* ci, Bytebuffer* codebuf,...)
 }
 
 static int
-f77_listbegin(Generator* generator, ListClass lc, size_t size, Bytebuffer* codebuf, int* uidp, ...)
+f77_listbegin(Generator* generator, Symbol* sym, void* liststate, ListClass lc, size_t size, Bytebuffer* codebuf, int* uidp, ...)
 {
     if(uidp) *uidp = ++f77_uid;
     return 1;
 }
 
 static int
-f77_list(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer* codebuf, ...)
+f77_list(Generator* generator, Symbol* sym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* codebuf, ...)
 {
     switch (lc) {
     case LISTATTR:
@@ -104,19 +104,19 @@ f77_list(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer* 
 }
 
 static int
-f77_listend(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
+f77_listend(Generator* generator, Symbol* sym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
 {
     return 1;
 }
 
 static int
-f77_vlendecl(Generator* generator, Bytebuffer* codebuf, Symbol* tsym, int uid, size_t count, ...)
+f77_vlendecl(Generator* generator, Symbol* tsym, Bytebuffer* codebuf, int uid, size_t count, ...)
 {
     return 1;
 }
 
 static int
-f77_vlenstring(Generator* generator, Bytebuffer* vlenmem, int* uidp, size_t* countp,...)
+f77_vlenstring(Generator* generator, Symbol* sym, Bytebuffer* vlenmem, int* uidp, size_t* countp,...)
 {
     if(uidp) *uidp = ++f77_uid;
     return 1;
