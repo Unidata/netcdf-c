@@ -1,11 +1,13 @@
 set breakpoint pending on
-break semantics.c:667
-commands
-print tsym->name
-print tsym->typ.size
-print tsym->typ.alignment
-print tsym->typ.basetype->typ.nelems
-end
+#break semantics.c:667
+#commands
+#print tsym->name
+#print tsym->typ.size
+#print tsym->typ.alignment
+#print tsym->typ.basetype->typ.nelems
+#end
+
+break alignbuffer
 
 #break semantics.c:641
 #command
