@@ -24,7 +24,7 @@ validateNC() {
 
     echo "*** generating $BASENAME.nc ***"
     ./ncgen $ARGS -o $BASENAME.nc $INFILE
-    ../ncdump/ncdump $BASENAME.nc > $TMPFILE
+    ../ncdump/ncdump $BASENAME.nc | sed 's/e+0/e+/g' > $TMPFILE
     echo "*** comparing binary against source CDL file *** "
     diff -b -w $INFILE $TMPFILE
 
