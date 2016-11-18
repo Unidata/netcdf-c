@@ -4,35 +4,54 @@
 
 if test "x$srcdir" = x ; then srcdir="."; fi
 
+##
+# Function to test a netCDF CDL file.
+# 1. Generate binary nc.
+# Use ncdump to compare against original CDL file.
+# Input: CDL file name, minus the suffix.
+# Other input: arguments.
+#
+# Example:
+#     $ validateNC compound_datasize_test -k nc4
+##
+validateNC() {
+    BASENAME=$1
+    INFILE=$srcdir/$1.cdl
+    TMPFILE="tst_$1".cdl
+    shift
+    ARGS=$@
+
+    echo "*** generating $BASENAME.nc ***"
+    ./ncgen $ARGS $INFILE
+    ../ncdump/ncdump $BASENAME.nc > $TMPFILE
+    echo "*** comparing binary against source CDL file *** "
+    diff -b -w $INFILE $TMPFILE
+
+}
+
+
+
 echo "*** Testing ncgen for netCDF-4."
 set -e
 
 echo "*** creating netCDF-4 file c0_4.nc from c0_4.cdl..."
-./ncgen -k nc4 -b -o c0_4.nc $srcdir/c0_4.cdl
+validateNC "c0_4" -k nc4 -b -o c0_4.nc
 
 echo "*** creating netCDF-4 classic model file c0_4c.nc from c0.cdl..."
-./ncgen -k nc7 -b -o c0_4c.nc $srcdir/c0.cdl
+validateNC "c0" -k nc7 -b
 
 echo "*** creating C code for CAM file ref_camrun.cdl..."
 ./ncgen -lc $srcdir/ref_camrun.cdl >ref_camrun.c
 
 echo "*** test for jira NCF-199 bug"
-./ncgen -k nc4 $srcdir/ncf199.cdl
-../ncdump/ncdump ncf199.nc > tst_ncf199.cdl
-echo "*** comparing binary against source file..."
-diff -b -w $srcdir/ncf199.cdl tst_ncf199.cdl
+validateNC "ncf199" -k nc4
 
 echo "*** creating binary files for github issue 323..."
 echo "*** github issue 323 test 1"
-./ncgen -k nc4 $srcdir/compound_datasize_test.cdl
-../ncdump/ncdump compound_datasize_test.nc > tst_compound_datasize_test.cdl
-echo "*** comparing binary against source file..."
-diff -b -w $srcdir/compound_datasize_test.cdl tst_compound_datasize_test.cdl
+validateNC "compound_datasize_test" -k nc4
+
 echo "*** github issue 323 test 2"
-./ncgen -k nc4 $srcdir/compound_datasize_test2.cdl
-../ncdump/ncdump compound_datasize_test2.nc > tst_compound_datasize_test2.cdl
-echo "*** comparing binary against source file..."
-diff -b -w $srcdir/compound_datasize_test2.cdl tst_compound_datasize_test2.cdl
+validateNC "compound_datasize_test2" -k nc4
 
 echo "*** Test successful!"
 exit 0
