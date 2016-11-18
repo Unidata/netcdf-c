@@ -9,42 +9,35 @@ fi
 echo "*** Testing ncgen."
 set -e
 
-##
-# Function to test a netCDF CDL file.
-# 1. Generate binary nc.
-# Use ncdump to compare against original CDL file.
-# Input: CDL file name, minus the suffix.
-# Other input: arguments.
-#
-# Example:
-#     $ validateNC compound_datasize_test -k nc4
-##
 validateNC() {
     BASENAME=$1
     INFILE=$srcdir/$1.cdl
-    TMPFILE="tst_$1".cdl
+    TMPFILE=tst_$2.cdl
+    shift
     shift
     ARGS=$@
 
     echo "*** generating $BASENAME.nc ***"
-    ./ncgen $ARGS $INFILE
+    ./ncgen $ARGS -o $BASENAME.nc $INFILE
     ../ncdump/ncdump $BASENAME.nc > $TMPFILE
-    echo "*** comparing binary against source CDL file *** "
+    echo "*** comparing $BASENAME.nc against $INFILE *** "
     diff -b -w $INFILE $TMPFILE
-
 }
-
 
 echo "*** creating classic file c0.nc from c0.cdl..."
 
-validateNC c0
+validateNC c0 c0 -b
 
 echo "*** creating 64-bit offset file c0_64.nc from c0.cdl..."
 
-validate c0 -k 64-bit-offset -b
+validateNC c0 "c0_64" -k 64-bit-offset -b
 
 echo "*** creating 64-bit offset file c5.nc from c5.cdl..."
-validate c5 -k 64-bit-data -b
+./ncgen -k 64-bit-data -b -o c5.nc $srcdir/c5.cdl
+if [ ! -f c5.nc ]; then
+    echo "Failure."
+    exit 1
+fi
 
 echo "*** Test successful!"
 exit 0
