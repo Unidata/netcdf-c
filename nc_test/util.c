@@ -1311,31 +1311,21 @@ char* nc_err_code_name(int err)
         case (NC_EUNSPTETYPE):			return "NC_EUNSPTETYPE";
         case (NC_EINVAL_REQUEST):		return "NC_EINVAL_REQUEST";
         case (NC_EAINT_TOO_SMALL):		return "NC_EAINT_TOO_SMALL";
+        case (NC_ENOENT):			return "NC_ENOENT";
+#ifdef NC_EMULTIDEFINE
+        case (NC_EMULTIDEFINE):			return "NC_EMULTIDEFINE";
+#endif
+#if PNETCDF_VERSION_MAJOR>=1 && PNETCDF_VERSION_MINOR>=3
         case (NC_ENOTSUPPORT):			return "NC_ENOTSUPPORT";
         case (NC_ENULLBUF):			return "NC_ENULLBUF";
         case (NC_EPREVATTACHBUF):		return "NC_EPREVATTACHBUF";
         case (NC_ENULLABUF):			return "NC_ENULLABUF";
         case (NC_EPENDINGBPUT):			return "NC_EPENDINGBPUT";
         case (NC_EINSUFFBUF):			return "NC_EINSUFFBUF";
-        case (NC_ENOENT):			return "NC_ENOENT";
+#endif
+#if PNETCDF_VERSION_MAJOR>=1 && PNETCDF_VERSION_MINOR>=4
         case (NC_EINTOVERFLOW):			return "NC_EINTOVERFLOW";
-        case (NC_ENOTENABLED):			return "NC_ENOTENABLED";
-        case (NC_EBAD_FILE):			return "NC_EBAD_FILE";
-        case (NC_ENO_SPACE):			return "NC_ENO_SPACE";
-        case (NC_EQUOTA):			return "NC_EQUOTA";
-        case (NC_ENULLSTART):			return "NC_ENULLSTART";
-        case (NC_ENULLCOUNT):			return "NC_ENULLCOUNT";
-        case (NC_EINVAL_CMODE):			return "NC_EINVAL_CMODE";
-        case (NC_EINVAL_OMODE):			return "NC_EINVAL_OMODE";
-        case (NC_ETYPESIZE):			return "NC_ETYPESIZE";
-        case (NC_ETYPE_MISMATCH):		return "NC_ETYPE_MISMATCH";
-        case (NC_ETYPESIZE_MISMATCH):		return "NC_ETYPESIZE_MISMATCH";
-        case (NC_ESTRICTCDF2):			return "NC_ESTRICTCDF2";
-        case (NC_ENOTRECVAR):			return "NC_ENOTRECVAR";
-        case (NC_ENOTFILL):			return "NC_ENOTFILL";
-        case (NC_EMULTIDEFINE):			return "NC_EMULTIDEFINE";
         case (NC_EMULTIDEFINE_OMODE):		return "NC_EMULTIDEFINE_OMODE";
-        case (NC_EMULTIDEFINE_CMODE):		return "NC_EMULTIDEFINE_CMODE";
         case (NC_EMULTIDEFINE_DIM_NUM):		return "NC_EMULTIDEFINE_DIM_NUM";
         case (NC_EMULTIDEFINE_DIM_SIZE):	return "NC_EMULTIDEFINE_DIM_SIZE";
         case (NC_EMULTIDEFINE_DIM_NAME):	return "NC_EMULTIDEFINE_DIM_NAME";
@@ -1353,10 +1343,35 @@ char* nc_err_code_name(int err)
         case (NC_EMULTIDEFINE_ATTR_TYPE):	return "NC_EMULTIDEFINE_ATTR_TYPE";
         case (NC_EMULTIDEFINE_ATTR_LEN):	return "NC_EMULTIDEFINE_ATTR_LEN";
         case (NC_EMULTIDEFINE_ATTR_VAL):	return "NC_EMULTIDEFINE_ATTR_VAL";
+#endif
+#if PNETCDF_VERSION_MAJOR>=1 && PNETCDF_VERSION_MINOR>=5
+        case (NC_ENOTENABLED):			return "NC_ENOTENABLED";
+        case (NC_EBAD_FILE):			return "NC_EBAD_FILE";
+        case (NC_ENO_SPACE):			return "NC_ENO_SPACE";
+        case (NC_EQUOTA):			return "NC_EQUOTA";
         case (NC_EMULTIDEFINE_FNC_ARGS):	return "NC_EMULTIDEFINE_FNC_ARGS";
+#endif
+#if PNETCDF_VERSION_MAJOR>=1 && PNETCDF_VERSION_MINOR>=6
+        case (NC_EINVAL_CMODE):			return "NC_EINVAL_CMODE";
+        case (NC_ENULLSTART):			return "NC_ENULLSTART";
+        case (NC_ENULLCOUNT):			return "NC_ENULLCOUNT";
+        case (NC_ETYPESIZE_MISMATCH):		return "NC_ETYPESIZE_MISMATCH";
+        case (NC_ETYPESIZE):			return "NC_ETYPESIZE";
+        case (NC_ETYPE_MISMATCH):		return "NC_ETYPE_MISMATCH";
+        case (NC_ESTRICTCDF2):			return "NC_ESTRICTCDF2";
+#endif
+#if PNETCDF_VERSION_MAJOR>=1 && PNETCDF_VERSION_MINOR>=7
+        case (NC_ENOTRECVAR):			return "NC_ENOTRECVAR";
+        case (NC_ENOTFILL):			return "NC_ENOTFILL";
         case (NC_EMULTIDEFINE_FILL_MODE):	return "NC_EMULTIDEFINE_FILL_MODE";
         case (NC_EMULTIDEFINE_VAR_FILL_MODE):	return "NC_EMULTIDEFINE_VAR_FILL_MODE";
         case (NC_EMULTIDEFINE_VAR_FILL_VALUE):	return "NC_EMULTIDEFINE_VAR_FILL_VALUE";
+#endif
+#if PNETCDF_VERSION_MAJOR>=1 && PNETCDF_VERSION_MINOR>=8
+        case (NC_EPENDING):			return "NC_EPENDING";
+        case (NC_EINVAL_OMODE):			return "NC_EINVAL_OMODE";
+        case (NC_EMULTIDEFINE_CMODE):		return "NC_EMULTIDEFINE_CMODE";
+#endif
 #endif
         default:
               sprintf(unknown_str,"Unknown code %d",err);

@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_write.m4 2616 2016-11-14 09:19:14Z wkliao $ */
+/* $Id: test_write.m4 2633 2016-11-17 22:06:42Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -621,7 +621,7 @@ TestFunc(def_dim)(VarArgs)
         ELSE_NOK
 ifdef(`PNETCDF', ,`if(sizeof(long) > 4) /* Fix: dmh 11/4/2011: works only if sizeof(long) > 4 */')
         {
-            err = APIFunc(def_dim)(ncid, dim_name[i], (size_t)(NC_UNLIMITED-1), &dimid);
+            err = APIFunc(def_dim)(ncid, dim_name[i], (IntType)(NC_UNLIMITED-1), &dimid);
             IF (err != NC_EDIMSIZE)
                 error("expecting NC_EDIMSIZE but got %s", nc_err_code_name(err));
             ELSE_NOK
@@ -1781,7 +1781,7 @@ TestFunc(copy_att)(AttVarArgs)
             IF (err != NC_NOERR)
                 error("copy_att: %s", APIFunc(strerror)(err));
             ELSE_NOK
-            err = APIFunc(copy_att)(ncid_out, varid, name, ncid_out, varid);
+            err = APIFunc(copy_att)(ncid_in, varid, name, ncid_out, varid);
             IF (err != NC_NOERR)
                 error("source = target: %s", APIFunc(strerror)(err));
             ELSE_NOK
@@ -1896,7 +1896,7 @@ TestFunc(rename_att)(AttVarArgs)
     nc_type datatype;
     nc_type atttype;
     IntType length;
-    size_t attlength;
+    IntType attlength;
     char  text[MAX_NELS];
     double value[MAX_NELS];
     double expect;

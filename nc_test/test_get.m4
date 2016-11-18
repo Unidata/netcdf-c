@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_get.m4 2611 2016-11-11 19:26:14Z wkliao $ */
+/* $Id: test_get.m4 2630 2016-11-17 06:35:10Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -20,6 +20,17 @@ dnl types.
 dnl
 
 #include "tests.h"
+
+ifdef(`PNETCDF',,`dnl
+#ifdef USE_PNETCDF
+#include <pnetcdf.h>
+#ifndef PNETCDF_VERSION_MAJOR
+#error("PNETCDF_VERSION_MAJOR is not defined in pnetcdf.h")
+#endif
+#ifndef PNETCDF_VERSION_MINOR
+#error("PNETCDF_VERSION_MAJOR is not defined in pnetcdf.h")
+#endif
+#endif')
 
 define(`EXPECT_ERR',`error("expecting $1 but got %s",nc_err_code_name($2));')dnl
 
@@ -39,6 +50,22 @@ define(`GetVara',`ifdef(`PNETCDF',`ncmpi_get_vara_$1_all',`nc_get_vara_$1')')dnl
 define(`GetVars',`ifdef(`PNETCDF',`ncmpi_get_vars_$1_all',`nc_get_vars_$1')')dnl
 define(`GetVarm',`ifdef(`PNETCDF',`ncmpi_get_varm_$1_all',`nc_get_varm_$1')')dnl
 define(`GetAtt', `ifdef(`PNETCDF',`ncmpi_get_att_$1',`nc_get_att_$1')')dnl
+
+define(`PNETCDF_CHECK_ERANGE',`dnl
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,`
+`#'if !defined(USE_PNETCDF) || (PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR>=8)')',
+       `$1',`schar',`ifdef(`PNETCDF',,`
+`#'if defined(USE_PNETCDF) && PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR<7
+                    else if (cdf_format < NC_FORMAT_CDF5) {
+`#'else')')
+                    else {
+ifelse(`$1',`schar',`ifdef(`PNETCDF',,``#'endif')')
+                        IF (err != NC_ERANGE)
+                            EXPECT_ERR(NC_ERANGE, err)
+                        ELSE_NOK
+                    }
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')'
+)dnl
 
 undefine(`index')dnl
 dnl dnl dnl
@@ -121,7 +148,9 @@ ifdef(`PNETCDF',`dnl
                 CheckRange($1, expect)) {
                 IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
             }
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'if !defined(USE_PNETCDF) || (PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR>7)')')
             else IF (err != NC_ERANGE) EXPECT_ERR(NC_ERANGE, err)
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')
         }
         else IF (err != NC_EINVALCOORDS) {
             EXPECT_ERR(NC_EINVALCOORDS, err)
@@ -174,11 +203,8 @@ ifdef(`PNETCDF',`dnl
                             }
                             ELSE_NOK
                         }
-                    } else {
-                        IF (err != NC_ERANGE)
-                            EXPECT_ERR(NC_ERANGE, err)
-                        ELSE_NOK
                     }
+                    PNETCDF_CHECK_ERANGE($1)
                 } else {
                     IF (err != NC_NOERR && err != NC_ERANGE)
                         EXPECT_ERR(NC_NOERR or NC_ERANGE, err)
@@ -236,13 +262,13 @@ TestFunc(var)_$1(VarArgs)
     /* check if can detect a bad file ID */
     err = GetVar($1)(BAD_ID, 0, value);
     IF (err != NC_EBADID)
-        error("expecting NC_EBADID but got %s", nc_err_code_name(err));
+        EXPECT_ERR(NC_EBADID, err)
     ELSE_NOK
 
     /* check if can detect a bad variable ID */
     err = GetVar($1)(ncid, BAD_VARID, value);
     IF (err != NC_ENOTVAR)
-        error("expecting NC_ENOTVAR but got %s", nc_err_code_name(err));
+        EXPECT_ERR(NC_ENOTVAR, err)
     ELSE_NOK
 
     for (i = 0; i < numVars; i++) {
@@ -275,10 +301,8 @@ TestFunc(var)_$1(VarArgs)
                 if (allInIntRange) {
                     IF (err != NC_NOERR)
                         EXPECT_ERR(NC_NOERR, err)
-                } else {
-                    IF (err != NC_ERANGE)
-                        EXPECT_ERR(NC_ERANGE, err)
                 }
+                PNETCDF_CHECK_ERANGE($1)
             } else {
                 IF (err != NC_NOERR && err != NC_ERANGE)
                     EXPECT_ERR(NC_NOERR or NC_ERANGE, err)
@@ -360,12 +384,12 @@ TestFunc(vara)_$1(VarArgs)
 
     err = GetVara($1)(BAD_ID, 0, NULL, NULL, value);
     IF (err != NC_EBADID)
-        error("expecting NC_EBADID but got %s", nc_err_code_name(err));
+        EXPECT_ERR(NC_EBADID, err)
     ELSE_NOK
 
     err = GetVara($1)(ncid, BAD_VARID, NULL, NULL, value);
     IF (err != NC_ENOTVAR)
-        error("expecting NC_ENOTVAR but got %s", nc_err_code_name(err));
+        EXPECT_ERR(NC_ENOTVAR, err)
     ELSE_NOK
 
     for (i = 0; i < numVars; i++) {
@@ -400,7 +424,9 @@ ifdef(`PNETCDF',`dnl
                 CheckRange($1, expect[0])) {
                 IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
             }
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'if !defined(USE_PNETCDF) || (PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR>7)')')
             else IF (err != NC_ERANGE) EXPECT_ERR(NC_ERANGE, err)
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')
         }
         else IF (err != NC_EINVALCOORDS) {
             EXPECT_ERR(NC_EINVALCOORDS, err)
@@ -411,7 +437,7 @@ ifdef(`PNETCDF',`dnl
         err = GetVara($1)(ncid, i, start, NULL, value);
         if (!canConvert) {
             IF (err != NC_ECHAR)
-                error("expecting NC_ECHAR, but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_ECHAR, err)
             ELSE_NOK
         }
         else if (var_rank[i] == 0) {
@@ -485,7 +511,9 @@ ifdef(`PNETCDF',`dnl
                 CheckRange($1, expect[0])) {
                 IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
             }
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'if !defined(USE_PNETCDF) || (PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR>7)')')
             else IF (err != NC_ERANGE) EXPECT_ERR(NC_ERANGE, err)
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')
         } else {
             IF (err != NC_NOERR)
                 EXPECT_ERR(NC_NOERR, err)
@@ -533,10 +561,8 @@ ifdef(`PNETCDF',`dnl
                     if (allInIntRange) {
                         IF (err != NC_NOERR)
                             EXPECT_ERR(NC_NOERR, err)
-                    } else {
-                        IF (err != NC_ERANGE)
-                            EXPECT_ERR(NC_ERANGE, err)
                     }
+                    PNETCDF_CHECK_ERANGE($1)
                 } else {
                     IF (err != NC_NOERR && err != NC_ERANGE)
                         EXPECT_ERR(NC_NOERR or NC_ERANGE, err)
@@ -622,12 +648,12 @@ TestFunc(vars)_$1(VarArgs)
 
     err = GetVars($1)(BAD_ID, 0, NULL, NULL, NULL, value);
     IF (err != NC_EBADID)
-        error("expecting NC_EBADID but got %s", nc_err_code_name(err));
+        EXPECT_ERR(NC_EBADID, err)
     ELSE_NOK
 
     err = GetVars($1)(ncid, BAD_VARID, NULL, NULL, NULL, value);
     IF (err != NC_ENOTVAR)
-        error("expecting NC_ENOTVAR but got %s", nc_err_code_name(err));
+        EXPECT_ERR(NC_ENOTVAR, err)
     ELSE_NOK
 
     for (i = 0; i < numVars; i++) {
@@ -674,7 +700,7 @@ ifdef(`PNETCDF',`dnl
         err = GetVars($1)(ncid, i, start, NULL, NULL, value);
         if (!canConvert) {
             IF (err != NC_ECHAR)
-                error("expecting NC_ECHAR, but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_ECHAR, err)
             ELSE_NOK
         }
         else if (var_rank[i] == 0) {
@@ -742,11 +768,13 @@ ifdef(`PNETCDF',`dnl
             IF (err != NC_EINVALCOORDS)
                 EXPECT_ERR(NC_EINVALCOORDS, err)
             start[j] = 0;
+ifdef(`PNETCDF',,``#'if !defined(USE_PNETCDF) || (PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR>=7)')
             stride[j] = 0;
             err = GetVars($1)(ncid, i, start, edge, stride, value);
             IF (err != NC_ESTRIDE)
                 EXPECT_ERR(NC_ESTRIDE, err)
             stride[j] = 1;
+ifdef(`PNETCDF',,``#'endif')
         }
 
         err = GetVars($1)(ncid, i, start, edge, stride, value);
@@ -759,7 +787,9 @@ ifdef(`PNETCDF',`dnl
                 CheckRange($1, expect[0])) {
                 IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
             }
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'if !defined(USE_PNETCDF) || (PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR>7)')')
             else IF (err != NC_ERANGE) EXPECT_ERR(NC_ERANGE, err)
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')
         } else {
             IF (err != NC_NOERR)
                 EXPECT_ERR(NC_NOERR, err)
@@ -827,10 +857,8 @@ ifdef(`PNETCDF',`dnl
                         if (allInIntRange) {
                             IF (err != NC_NOERR)
                                 EXPECT_ERR(NC_NOERR, err)
-                        } else {
-                            IF (err != NC_ERANGE)
-                                EXPECT_ERR(NC_ERANGE, err)
                         }
+                        PNETCDF_CHECK_ERANGE($1)
                     } else {
                         IF (err != NC_NOERR && err != NC_ERANGE)
                             EXPECT_ERR(NC_NOERR or NC_ERANGE, err)
@@ -918,12 +946,12 @@ TestFunc(varm)_$1(VarArgs)
 
     err = GetVarm($1)(BAD_ID, 0, NULL, NULL, NULL, NULL, value);
     IF (err != NC_EBADID)
-        error("expecting NC_EBADID but got %s", nc_err_code_name(err));
+        EXPECT_ERR(NC_EBADID, err)
     ELSE_NOK
 
     err = GetVarm($1)(ncid, BAD_VARID, NULL, NULL, NULL, NULL, value);
     IF (err != NC_ENOTVAR)
-        error("expecting NC_ENOTVAR but got %s", nc_err_code_name(err));
+        EXPECT_ERR(NC_ENOTVAR, err)
     ELSE_NOK
 
     for (i = 0; i < numVars; i++) {
@@ -950,7 +978,7 @@ ifdef(`PNETCDF',`dnl
         err = GetVarm($1)(ncid, i, NULL, NULL, NULL, NULL, value);
         if (!canConvert) {
             IF (err != NC_ECHAR)
-                error("expecting NC_ECHAR, but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_ECHAR, err)
             ELSE_NOK
         }
         else if (var_rank[i] == 0) {
@@ -971,7 +999,7 @@ ifdef(`PNETCDF',`dnl
         err = GetVarm($1)(ncid, i, start, NULL, NULL, NULL, value);
         if (!canConvert) {
             IF (err != NC_ECHAR)
-                error("expecting NC_ECHAR, but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_ECHAR, err)
             ELSE_NOK
         }
         else if (var_rank[i] == 0) {
@@ -1038,11 +1066,13 @@ ifdef(`PNETCDF',`dnl
             IF (err != NC_EINVALCOORDS)
                 EXPECT_ERR(NC_EINVALCOORDS, err)
             start[j] = 0;
+ifdef(`PNETCDF',,``#'if !defined(USE_PNETCDF) || (PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR>=7)')
             stride[j] = 0;
             err = GetVarm($1)(ncid, i, start, edge, stride, imap, value);
             IF (err != NC_ESTRIDE)
                 EXPECT_ERR(NC_ESTRIDE, err)
             stride[j] = 1;
+ifdef(`PNETCDF',,``#'endif')
         }
 
         err = GetVarm($1)(ncid, i, start, edge, stride, imap, value);
@@ -1055,7 +1085,9 @@ ifdef(`PNETCDF',`dnl
                 CheckRange($1, expect[0])) {
                 IF (err != NC_NOERR) EXPECT_ERR(NC_NOERR, err)
             }
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'if !defined(USE_PNETCDF) || (PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR>7)')')
             else IF (err != NC_ERANGE) EXPECT_ERR(NC_ERANGE, err)
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')
         } else {
             IF (err != NC_NOERR)
                 EXPECT_ERR(NC_NOERR, err)
@@ -1129,10 +1161,8 @@ ifdef(`PNETCDF',`dnl
                         if (allInIntRange) {
                             IF (err != NC_NOERR)
                                 EXPECT_ERR(NC_NOERR, err)
-                        } else {
-                            IF (err != NC_ERANGE)
-                                EXPECT_ERR(NC_ERANGE, err)
                         }
+                        PNETCDF_CHECK_ERANGE($1)
                     } else {
                         IF (err != NC_NOERR && err != NC_ERANGE)
                             EXPECT_ERR(NC_NOERR or NC_ERANGE, err)
@@ -1214,12 +1244,12 @@ TestFunc(att)_$1(AttVarArgs)
 
     err = GetAtt($1)(BAD_ID, 0, NULL, value);
     IF (err != NC_EBADID)
-        error("expecting NC_EBADID but got %s", nc_err_code_name(err));
+        EXPECT_ERR(NC_EBADID, err)
     ELSE_NOK
 
     err = GetAtt($1)(ncid, BAD_VARID, NULL, value);
     IF (err != NC_ENOTVAR)
-        error("expecting NC_ENOTVAR but got %s", nc_err_code_name(err));
+        EXPECT_ERR(NC_ENOTVAR, err)
     ELSE_NOK
 
     for (i = -1; i < numVars; i++) {
@@ -1228,18 +1258,21 @@ TestFunc(att)_$1(AttVarArgs)
 
             err = GetAtt($1)(ncid, BAD_VARID, ATT_NAME(i,j), value);
             IF (err != NC_ENOTVAR)
-                error("expecting NC_ENOTVAR but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_ENOTVAR, err)
             ELSE_NOK
 
+ifdef(`PNETCDF',,``#'if !defined(USE_PNETCDF) || (PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR>7)')
             /* check if can detect a bad name */
             err = GetAtt($1)(ncid, i, NULL, NULL);
             IF (err != NC_EBADNAME)
-                error("expecting NC_EBADNAME but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_EBADNAME, err)
             ELSE_NOK
+ifdef(`PNETCDF',,``#'endif')
 
             err = GetAtt($1)(ncid, i, "noSuch", value);
             IF (err != NC_ENOTATT)
-                error("expecting NC_ENOTATT but got %s", nc_err_code_name(err));
+                EXPECT_ERR(NC_ENOTATT, err)
+            ELSE_NOK
 
             allInExtRange = allInIntRange = 1;
             for (k = 0; k < ATT_LEN(i,j); k++) {
@@ -1262,14 +1295,16 @@ TestFunc(att)_$1(AttVarArgs)
                 if (allInExtRange) {
                     if (allInIntRange) {
                         IF (err != NC_NOERR)
-                            error("%s", APIFunc(strerror)(err));
+                            EXPECT_ERR(NC_NOERR, err)
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'if !defined(USE_PNETCDF) || (PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR>7)')')
                     } else {
                         IF (err != NC_ERANGE)
-                            error("expecting NC_ERANGE but got %s", nc_err_code_name(err));
+                            EXPECT_ERR(NC_ERANGE, err)
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')
                     }
                 } else {
                     IF (err != NC_NOERR && err != NC_ERANGE)
-                        error("expecting NC_NOERR or NC_ERANGE but got %s", nc_err_code_name(err));
+                        EXPECT_ERR(NC_NOERR or NC_ERANGE, err)
                 }
                 for (k = 0; k < ATT_LEN(i,j); k++) {
                     if (CheckNumRange($1, expect[k], ATT_TYPE(i,j))) {
@@ -1303,7 +1338,7 @@ TestFunc(att)_$1(AttVarArgs)
                 }
             } else {
                 IF (err != NC_ECHAR)
-                    error("wrong type: expecting NC_ECHAR but got %s", nc_err_code_name(err));
+                    EXPECT_ERR(NC_ECHAR, err)
             }
         }
     }

@@ -104,6 +104,7 @@ test_small_atts(const char *testfile)
       {
 	 /* Create null-terminated text string of correct length. */
 	 strncpy(att, source, t);
+         att[t] = '\0';
 
 	 /* Create a file with one attribute. */
 	 if (file_create(testfile, NC_CLOBBER, &ncid)) ERR;

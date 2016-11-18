@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_put.m4 2611 2016-11-11 19:26:14Z wkliao $ */
+/* $Id: test_put.m4 2630 2016-11-17 06:35:10Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -20,6 +20,17 @@ dnl types.
 dnl
 
 #include "tests.h"
+
+ifdef(`PNETCDF',,`dnl
+#ifdef USE_PNETCDF
+#include <pnetcdf.h>
+#ifndef PNETCDF_VERSION_MAJOR
+#error("PNETCDF_VERSION_MAJOR is not defined in pnetcdf.h")
+#endif
+#ifndef PNETCDF_VERSION_MINOR
+#error("PNETCDF_VERSION_MAJOR is not defined in pnetcdf.h")
+#endif
+#endif')
 
 define(`EXPECT_ERR',`error("expecting $1 but got %s",nc_err_code_name($2));')dnl
 
@@ -43,6 +54,22 @@ define(`PutVarm',`ifdef(`PNETCDF',`ncmpi_put_varm_$1_all',`nc_put_varm_$1')')dnl
 define(`PutAtt', `ifdef(`PNETCDF',`ncmpi_put_att_$1',`nc_put_att_$1')')dnl
 define(`GetVar1',`ifdef(`PNETCDF',`ncmpi_get_var1_$1_all',`nc_get_var1_$1')')dnl
 define(`DefVars',`ifdef(`PNETCDF',`def_vars($1,$2)',`def_vars($1)')')dnl
+
+define(`PNETCDF_CHECK_ERANGE',`dnl
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,`
+`#'if !defined(USE_PNETCDF) || (PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR>=8)')',
+       `$1',`schar',`ifdef(`PNETCDF',,`
+`#'if defined(USE_PNETCDF) && PNETCDF_VERSION_MAJOR==1 && PNETCDF_VERSION_MINOR<7
+                    else if (cdf_format < NC_FORMAT_CDF5) {
+`#'else')')
+                    else {
+ifelse(`$1',`schar',`ifdef(`PNETCDF',,``#'endif')')
+                        IF (err != NC_ERANGE)
+                            EXPECT_ERR(NC_ERANGE, err)
+                        ELSE_NOK
+                    }
+ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')'
+)dnl
 
 undefine(`index')dnl
 dnl dnl dnl
@@ -276,7 +303,7 @@ check_atts_$1(int ncid, int numGatts, int numVars)
             err = APIFunc(get_att_$1)(ncid, i, ATT_NAME(i,j), value);
             if (nInExtRange == length && nInIntRange == length) {
                 IF (err != NC_NOERR)
-                    error("%s", APIFunc(strerror)(err));
+                    EXPECT_ERR(NC_NOERR, err)
             } else {
                 IF (err != NC_NOERR && err != NC_ERANGE)
                     EXPECT_ERR(NC_NOERR or NC_ERANGE, err)
@@ -428,17 +455,10 @@ ifdef(`PNETCDF',`dnl
             if (canConvert) {
                 if (CheckRange3($1, value[0], var_type[i])) {
                     IF (err != NC_NOERR)
-                        error("%s", APIFunc(strerror)(err));
-                    ELSE_NOK
-                } else {
-                    IF (err != NC_ERANGE) {
-                        EXPECT_ERR(NC_ERANGE, err)
-                        error("\n\t\tfor type %s value %.17e %ld",
-                                s_nc_type(var_type[i]),
-                                (double)value[0], (long)value[0]);
-                    }
+                        EXPECT_ERR(NC_NOERR, err)
                     ELSE_NOK
                 }
+                PNETCDF_CHECK_ERANGE($1)
             } else {
                 IF (err != NC_ECHAR)
                     EXPECT_ERR(NC_ECHAR, err)
@@ -545,13 +565,10 @@ TestFunc(var)_$1(VarArgs)
         if (canConvert) {
             if (allInExtRange) {
                 IF (err != NC_NOERR)
-                    error("%s", APIFunc(strerror)(err));
-                ELSE_NOK
-            } else {
-                IF (err != NC_ERANGE)
-                    EXPECT_ERR(NC_ERANGE, err)
+                    EXPECT_ERR(NC_NOERR, err)
                 ELSE_NOK
             }
+            PNETCDF_CHECK_ERANGE($1)
         } else { /* should flag wrong type even if nothing to write */
             IF (err != NC_ECHAR)
                 EXPECT_ERR(NC_ECHAR, err)
@@ -590,7 +607,7 @@ TestFunc(var)_$1(VarArgs)
         if (canConvert) {
             if (allInExtRange) {
                 IF (err != NC_NOERR)
-                    error("%s", APIFunc(strerror)(err));
+                    EXPECT_ERR(NC_NOERR, err)
                 ELSE_NOK
             } else {
                 IF (err != NC_ERANGE)
@@ -815,11 +832,8 @@ ifdef(`PNETCDF',`dnl
                     IF (err != NC_NOERR)
                         EXPECT_ERR(NC_NOERR, err)
                     ELSE_NOK
-                } else {
-                    IF (err != NC_ERANGE)
-                        EXPECT_ERR(NC_ERANGE, err)
-                    ELSE_NOK
                 }
+                PNETCDF_CHECK_ERANGE($1)
             } else {
                 IF (err != NC_ECHAR)
                     EXPECT_ERR(NC_ECHAR, err)
@@ -1065,13 +1079,10 @@ ifdef(`PNETCDF',`dnl
                 if (canConvert) {
                     if (allInExtRange) {
                         IF (err != NC_NOERR)
-                            error("%s", APIFunc(strerror)(err));
-                        ELSE_NOK
-                    } else {
-                        IF (err != NC_ERANGE)
-                            EXPECT_ERR(NC_ERANGE, err)
+                            EXPECT_ERR(NC_NOERR, err)
                         ELSE_NOK
                     }
+                    PNETCDF_CHECK_ERANGE($1)
                 } else {
                     IF (err != NC_ECHAR)
                         EXPECT_ERR(NC_ECHAR, err)
@@ -1326,13 +1337,10 @@ ifdef(`PNETCDF',`dnl
                 if (canConvert) {
                     if (allInExtRange) {
                         IF (err != NC_NOERR)
-                            error("%s", APIFunc(strerror)(err));
-                        ELSE_NOK
-                    } else {
-                        IF (err != NC_ERANGE)
-                            EXPECT_ERR(NC_ERANGE, err)
+                            EXPECT_ERR(NC_NOERR, err)
                         ELSE_NOK
                     }
+                    PNETCDF_CHECK_ERANGE($1)
                 } else {
                     IF (err != NC_ECHAR)
                         EXPECT_ERR(NC_ECHAR, err)
@@ -1398,7 +1406,7 @@ TestFunc(att)_text(AttVarArgs)
 
     {
         const char *const tval = "value for bad name";
-        const size_t tval_len = strlen(tval);
+        const IntType tval_len = (IntType)strlen(tval);
 
         err = PutAtt(text)(ncid, 0, "", tval_len, tval);
         IF (err != NC_EBADNAME)
@@ -1421,7 +1429,7 @@ TestFunc(att)_text(AttVarArgs)
                 }
                 err = PutAtt(text)(ncid, i, ATT_NAME(i,j), ATT_LEN(i,j), value);
                 IF (err != NC_NOERR)
-                    error("%s", APIFunc(strerror)(err));
+                    EXPECT_ERR(NC_NOERR, err)
                 ELSE_NOK
             }
         }
@@ -1505,13 +1513,10 @@ TestFunc(att)_$1(AttVarArgs)
                 err = PutAtt($1)(ncid, i, ATT_NAME(i,j), ATT_TYPE(i,j), ATT_LEN(i,j), value);
                 if (allInExtRange) {
                     IF (err != NC_NOERR)
-                        error("%s", APIFunc(strerror)(err));
-                    ELSE_NOK
-                } else {
-                    IF (err != NC_ERANGE)
-                        EXPECT_ERR(NC_ERANGE, err)
+                        EXPECT_ERR(NC_NOERR, err)
                     ELSE_NOK
                 }
+                PNETCDF_CHECK_ERANGE($1)
             }
         }
     }
