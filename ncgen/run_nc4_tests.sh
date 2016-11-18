@@ -17,7 +17,7 @@ if test "x$srcdir" = x ; then srcdir="."; fi
 validateNC() {
     BASENAME=$1
     INFILE=$srcdir/$1.cdl
-    TMPFILE=$2.cdl
+    TMPFILE=tst_$2.cdl
     shift
     shift
     ARGS=$@
