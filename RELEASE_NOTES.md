@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 > Note: The combination of netCDF-C library versions earlier than 4.4.1 and libhdf5 1.10.0+ should be avoided, as they will result in binary files not readable by systems using earlier libhdf5 versions.
 
-## 4.4.1.1 - TBD
+## 4.4.1.1 - November 21, 2016
 
 * [Bug] Fixed an issue where `ncgen` would potentially crash or write incorrect netCDF4 binary data under very specific circumstances.  This bug did *not* affect data written on 32-bit systems or by using the netCDF library; it was specific to `ncgen`.  This would only happen when writing a compound data type containing an 8-byte data type followed by a 4-byte data type *and* the 4-byte data type was not properly aligned; this would *possibly* result in incorrect padding. This did not affect 32-bit systems, or data written directly by the library.  See [GitHub #323](https://github.com/Unidata/netcdf-c/issues/323) for more information.
 * [Documentation] Updated documentation related to netCDF variable names and DAP2 access to reflect the undefined behavior potentially observed when DAP2 reserved keywords are used as netCDF variable names. See [GitHub #308](https://github.com/Unidata/netcdf-c/issues/308) for more information.
