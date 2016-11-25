@@ -3861,7 +3861,7 @@ nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int is_long,
 
   *len = type->size;
 
-  LOG((5, "type->size ", type->size));
+  LOG((5, "type->size: %d", type->size));
 
   return NC_NOERR;
 }
@@ -4146,5 +4146,3 @@ NC4_walk(hid_t gid, int* countp)
     }
     return ncstat;
 }
-
-

@@ -29,7 +29,8 @@ static void genbin_arraydatar(Symbol* basetype,
 	      Bytebuffer* code);
 static void genbin_primdata(Symbol*, Datasrc*, Datalist*, Bytebuffer*);
 static void genbin_fieldarray(Symbol*, Datasrc*, Dimset*, int, Bytebuffer*);
-static void alignbuffer(Constant* prim, Bytebuffer* buf);
+static void alignbuffer(Constant* prim, Bytebuffer* buf, int base);
+static void alignto(int,ByteBuffer*, int base);
 
 /* Datalist rules: see the rules on the man page */
 
@@ -48,6 +49,7 @@ genbin_attrdata(Symbol* asym, Bytebuffer* memory)
     }
 }
 
+#if 0 /* Apparently not used */
 void
 genbin_scalardata(Symbol* vsym, Bytebuffer* memory)
 {
@@ -61,6 +63,7 @@ genbin_scalardata(Symbol* vsym, Bytebuffer* memory)
         semerror(srcline(src),"Extra data at end of datalist");
     }
 }
+*/
 
 void
 genbin_datalist(struct Symbol* sym, Datalist* list, Bytebuffer* memory)
@@ -92,22 +95,9 @@ genbin_data(Symbol* tsym, Datasrc* datasrc, Datalist* fillsrc,
 	genbin_primdata(tsym,datasrc,fillsrc,memory);
 	break;
 
-    case NC_COMPOUND: {
-	int i;
-        if(!issublist(datasrc)) {
-	    semerror(srcline(datasrc),"Compound data must be enclosed in {..}");
-        }
-	srcpush(datasrc);
-        for(i=0;i<listlength(tsym->subnodes);i++) {
-            Symbol* field = (Symbol*)listget(tsym->subnodes,i);
-	    if(!srcmore(datasrc)) { /* generate a fill value*/
-	        Datalist* fillsrc = getfiller(tsym);
-	        genbin_data(field,datasrc,fillsrc,memory);
-	    } else
-	        genbin_data(field,datasrc,NULL,memory);
-	}
-        srcpop(datasrc);
-	} break;
+    case NC_COMPOUND:
+	genbin_compound(tsym,datasrc,fillsrc,memory);
+	break;
 
     case NC_VLEN: {
         Constant* cp;
@@ -136,6 +126,32 @@ genbin_data(Symbol* tsym, Datasrc* datasrc, Datalist* fillsrc,
 
     default: PANIC1("genbin_data: unexpected subclass %d",tsym->subclass);
     }
+}
+
+/* Used for compound instances */
+static void
+genbin_compound(Symbol* tsym, Datasrc* datasrc, Datalist* fillsrc, Bytebuffer* memory)
+{
+    int i;
+    int base = bblength(memory);
+    if(!issublist(datasrc)) {
+        semerror(srcline(datasrc),"Compound data must be enclosed in {..}");
+    }
+    /* Use this datasrc list to get values for compound fields */
+    srcpush(datasrc);
+    for(i=0;i<listlength(tsym->subnodes);i++) {
+        Symbol* field = (Symbol*)listget(tsym->subnodes,i);
+	if(!srcmore(datasrc)) { /* generate a fill value*/
+	    Datalist* fillsrc = getfiller(tsym);
+	    genbin_data(field,datasrc,fillsrc,memory);
+	} else
+	    genbin_data(field,datasrc,NULL,memory);
+    }
+    srcpop(datasrc);
+    /* Re: github issue 323: we may need to pad the end of the structure
+       to make its size be a multiple of the largest alignment.
+    */
+    alignto(tsym->cmpdalignment,buf,base);
 }
 
 /* Used only for structure field arrays*/
@@ -428,10 +444,8 @@ genbin_arraydatar(Symbol* vsym,
     }
 }
 
-static const char zeros[] =
-    "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 static void
-alignbuffer(Constant* prim, Bytebuffer* buf)
+alignbuffer(Constant* prim, Bytebuffer* buf, int base
 {
     int alignment,pad,offset;
 
@@ -443,7 +457,17 @@ alignbuffer(Constant* prim, Bytebuffer* buf)
         alignment = nctypealignment(NC_CHAR);
     else
         alignment = nctypealignment(prim->nctype);
+    alignto(alignment,buf,base);
+}
+
+static const char zeros[] =
+    "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+
+static void
+alignto(int alignment, Bytebuffer* buf, int base)
+{
     offset = bbLength(buf);
+    offset -= base; /* Need to actually align wrt to the base */
     pad = getpadding(offset,alignment);
     if(pad > 0) {
 	bbAppendn(buf,(void*)zeros,pad);
