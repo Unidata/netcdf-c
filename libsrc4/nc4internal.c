@@ -58,7 +58,7 @@ int nc4_hdf5_initialized = 0;
 
 /* Provide a wrapper for H5Eset_auto */
 static herr_t
-set_auto(void* func, void *client_data) 
+set_auto(void* func, void *client_data)
 {
 #ifdef DEBUGH5
     return H5Eset_auto2(H5E_DEFAULT,(H5E_auto2_t)h5catch,client_data);
@@ -684,6 +684,8 @@ nc4_var_add(NC_VAR_INFO_T **var)
    /* Set the var pointer, if one was given */
    if (var)
       *var = new_var;
+   else
+     free(new_var);
 
    return NC_NOERR;
 }
@@ -773,7 +775,7 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
    NC_VAR_INFO_T *var;
    uint32_t hash;
    int i;
-   
+
    /* Any types of this name? */
    for (type = grp->type; type; type = type->l.next)
       if (!strcmp(type->name, name))
