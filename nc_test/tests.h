@@ -480,6 +480,7 @@ extern int test_nc_rename_att(void);
 extern int test_nc_del_att(void);
 extern int test_nc_set_fill(void);
 extern int test_nc_set_default_format(void);
+extern int test_nc_against_pnetcdf(void);
 
 void print_nok(int nok);
 
@@ -564,6 +565,8 @@ void check_atts(int  ncid);
 void check_file(char *filename);
 
 int file_create(const char *filename, int cmode, int *ncid);
+
+int file__create(const char *filename, int cmode, size_t initialsz, size_t *bufrsizehintp, int *ncid);
 
 int file_open(const char *filename, int omode, int *ncid);
 

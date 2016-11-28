@@ -156,7 +156,7 @@ main(int argc, char *argv[])
        /* Initialize global variables defining test file */
        init_gvars();
 
-	/* Write the test file, needed for the read-only tests below. */
+       /* Write the test file, needed for the read-only tests below. */
        write_file(testfile);
 
 	/* delete any existing scratch netCDF file */
@@ -355,6 +355,8 @@ main(int argc, char *argv[])
 	NC_TEST(nc_copy_att);
 	NC_TEST(nc_rename_att);
 	NC_TEST(nc_del_att);
+	NC_TEST(nc_against_pnetcdf);
+        /* keep below the last test, as it changes the default file format */
 	NC_TEST(nc_set_default_format);
     }
 

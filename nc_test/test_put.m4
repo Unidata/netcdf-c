@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_put.m4 2630 2016-11-17 06:35:10Z wkliao $ */
+/* $Id: test_put.m4 2655 2016-11-25 21:03:48Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -112,11 +112,11 @@ define(`HASH',dnl
  *  ensure hash value within range for internal TYPE
  */
 $1
-hash_$1(const int         cdf_format,
-        const nc_type     type,
-        const int         rank,
-        const IntType    *index,
-        const nct_itype   itype)
+hash_$1(const int       cdf_format,
+        const nc_type   type,
+        const int       rank,
+        const IntType  *index,
+        const nct_itype itype)
 {
     double value;
 

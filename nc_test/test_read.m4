@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_read.m4 2616 2016-11-14 09:19:14Z wkliao $ */
+/* $Id: test_read.m4 2640 2016-11-18 21:08:08Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -20,9 +20,11 @@ dnl types.
 dnl
 
 #include <sys/types.h> /* open() */
-#include <sys/stat.h> /* open() */
-#include <fcntl.h> /* open() */
-#include <unistd.h> /* unlink(), write() */
+#include <sys/stat.h>  /* open() */
+#include <fcntl.h>     /* open() */
+#include <unistd.h>    /* unlink(), write() */
+#include <errno.h>     /* errno, strerror() */
+
 #include "tests.h"
 
 define(`EXPECT_ERR',`error("expecting $1 but got %s",nc_err_code_name($2));')dnl
@@ -168,9 +170,14 @@ ifdef(`PNETCDF',
 ifdef(`PNETCDF', ``#'if 1', ``#'if 0')
     /* create a not-nc file */
     fd = open(NOT_NC_FILE, O_CREAT|O_WRONLY, 0600);
-    w_len = write(fd, "0123456789abcdefghijklmnopqrstuvwxyz", 36);
-    assert(w_len >= 0);
-    close(fd);
+    IF (fd == -1) {
+        error("Error: creating a non-CDF file (%s)", strerror(errno));
+    }
+    else {
+        w_len = write(fd, "0123456789abcdefghijklmnopqrstuvwxyz", 36);
+        assert(w_len >= 0);
+        close(fd);
+    }
 
     /* Open a file that is not a netCDF file. */
     err = FileOpen(NOT_NC_FILE, NC_NOWRITE, &ncid); /* should fail */

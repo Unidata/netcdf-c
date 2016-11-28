@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_write.m4 2633 2016-11-17 22:06:42Z wkliao $ */
+/* $Id: test_write.m4 2655 2016-11-25 21:03:48Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -179,14 +179,16 @@ TestFunc(redef)(AttVarArgs)
         error("close: %s", APIFunc(strerror)(err));
 
     /* tests using scratch file */
-    err = FileCreate(scratch, NC_NOCLOBBER, &ncid);
+ifdef(`PNETCDF',`dnl
+    err = FileCreate(scratch, NC_NOCLOBBER, &ncid);',`dnl
+    err = file__create(scratch, NC_NOCLOBBER, 0, &sizehint, &ncid);')
     IF (err != NC_NOERR) {
         error("create: %s", APIFunc(strerror)(err));
         return nok;
     }
+ifdef(`PNETCDF',,`dnl
     /* limit for ncio implementations which have infinite chunksize */
-    if(sizehint > 32768)
-        sizehint = 16384;
+    if(sizehint > 32768) sizehint = 16384;')
     def_dims(ncid);
     Def_Vars(ncid, numVars);
     Put_Atts(ncid, numGatts, numVars);
@@ -2380,18 +2382,17 @@ APIFunc(get_file_version)(char *path, int *version)
    if (fd == -1) return errno;
 
    read_len = read(fd, magic, MAGIC_NUM_LEN);
-   if (read_len == -1) {
-       close(fd);
+   if (-1 == close(fd)) return errno;
+
+   if (read_len == -1)
        return errno;
-   }
+
    if (read_len != MAGIC_NUM_LEN) {
        printf("Error: reading NC magic string unexpected short read\n");
-       close(fd);
        return 0;
    }
 
-   if (strncmp(magic, "CDF", MAGIC_NUM_LEN-1)==0)
-   {
+   if (strncmp(magic, "CDF", MAGIC_NUM_LEN-1)==0) {
       if (magic[MAGIC_NUM_LEN-1] == NC_FORMAT_CLASSIC ||
           magic[MAGIC_NUM_LEN-1] == NC_FORMAT_64BIT_OFFSET ||
           magic[MAGIC_NUM_LEN-1] == NC_FORMAT_CDF5)
@@ -2457,11 +2458,13 @@ TestFunc(set_default_format)(void)
        if (err != NC_NOERR)
            error("bad file version = %d", err);
        if (version != i) {
+#if 0
           if (i == 4) {
               if (version == 3) continue;
               printf("expect version 3 but got %d (file=%s)",version,scratch);
               continue;
           }
+#endif
           printf("expect version %d but got %d (file=%s)",i,version,scratch);
           error("bad file version = %d", version);
         }

@@ -1016,9 +1016,9 @@ check_vars(int  ncid)
           	IF (err)
 		    error("nc_get_var1_text: %s", nc_strerror(err));
 		IF (text != (char)expect) {
-		    error("Var %s value read 0x%02x not that expected 0x%02x ",
-			var_name[i], text, (char)expect);
-			print_n_size_t(var_rank[i], index);
+		    error("Var %s [%lu] value read %hhd not that expected %g ",
+			  var_name[i], j, text, expect);
+		    print_n_size_t(var_rank[i], index);
 		} else {
 		    nok++;
 		}
@@ -1029,10 +1029,8 @@ check_vars(int  ncid)
 			error("nc_get_var1_double: %s", nc_strerror(err));
 		    } else {
 			IF (!equal(value,expect,var_type[i], NCT_DOUBLE)) {
-			    value = 0;
-	  		    err = nc_get_var1_double(ncid, i, index, &value);
-			    error("Var %s value read % 12.5e not that expected % 12.7e ",
-					var_name[i], value, expect);
+			    error("Var %s [%lu] value read %g  not that expected %g ",
+				  var_name[i], j, value, expect);
 			    print_n_size_t(var_rank[i], index);
 			} else {
 			    nok++;
@@ -1156,13 +1154,13 @@ int file_create(const char *filename, int cmode, int *ncid)
 {
     int err;
 
+#ifdef USE_PNETCDF
     /* get the default file format */
     int default_format;
     nc_set_default_format(NC_FORMAT_CLASSIC, &default_format);
     /* set it back to the default */
     nc_set_default_format(default_format, NULL);
 
-#ifdef USE_PNETCDF
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET ||
         default_format == NC_FORMAT_64BIT_DATA)
@@ -1174,17 +1172,43 @@ int file_create(const char *filename, int cmode, int *ncid)
     return err;
 }
 
-int file_open(const char *filename, int omode, int *ncid)
+int file__create(const char *filename,
+                 int         cmode,
+                 size_t      initialsz,
+                 size_t     *bufrsizehintp,
+                 int        *ncid)
 {
     int err;
 
+#ifdef USE_PNETCDF
     /* get the default file format */
     int default_format;
     err = nc_set_default_format(NC_FORMAT_CLASSIC, &default_format);
     /* set it back to the default */
     err = nc_set_default_format(default_format, NULL);
 
+    if (default_format == NC_FORMAT_CLASSIC ||
+        default_format == NC_FORMAT_64BIT_OFFSET ||
+        default_format == NC_FORMAT_64BIT_DATA)
+        err = nc_create_par(filename, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+    else
+#endif
+        err = nc__create(filename, cmode, initialsz, bufrsizehintp, ncid);
+
+    return err;
+}
+
+int file_open(const char *filename, int omode, int *ncid)
+{
+    int err;
+
 #ifdef USE_PNETCDF
+    /* get the default file format */
+    int default_format;
+    err = nc_set_default_format(NC_FORMAT_CLASSIC, &default_format);
+    /* set it back to the default */
+    err = nc_set_default_format(default_format, NULL);
+
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET ||
         default_format == NC_FORMAT_64BIT_DATA)
@@ -1379,3 +1403,57 @@ char* nc_err_code_name(int err)
     return unknown_str;
 }
 
+
+int
+test_nc_against_pnetcdf(void)
+{
+#ifdef USE_PNETCDF
+    int  ncid; /* netCDF id */
+    int  err;  /* status */
+
+    /* Using netCDF library to create file */
+    err = nc_create(scratch, NC_CLOBBER, &ncid);
+    IF (err != NC_NOERR) error("nc_create: %s", nc_strerror(err));
+    def_dims(ncid);
+    def_vars(ncid);
+    put_atts(ncid);
+    err = nc_enddef(ncid);
+    IF (err != NC_NOERR) error("nc_enddef: %s", nc_strerror(err));
+    put_vars(ncid);
+    err = nc_close (ncid);
+    IF (err != NC_NOERR) error("nc_close: %s", nc_strerror(err));
+
+    /* Using PnetCDF library to check file */
+    err = nc_open_par(scratch, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+    IF (err != NC_NOERR) error("nc_open_par: %s", nc_strerror(err));
+    check_dims(ncid);
+    check_vars(ncid);
+    check_atts(ncid);
+    err = nc_close (ncid);
+    IF (err != NC_NOERR) error("nc_close: %s", nc_strerror(err));
+
+    /* Using PnetCDF library to create file */
+    err = nc_create_par(scratch, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+    IF (err != NC_NOERR) error("nc_create_par: %s", nc_strerror(err));
+    def_dims(ncid);
+    def_vars(ncid);
+    put_atts(ncid);
+    err = nc_enddef(ncid);
+    IF (err != NC_NOERR) error("nc_enddef: %s", nc_strerror(err));
+    put_vars(ncid);
+    err = nc_close (ncid);
+    IF (err != NC_NOERR) error("nc_close: %s", nc_strerror(err));
+
+    /* Using NetCDF library to check file */
+    err = nc_open(scratch, NC_NOWRITE, &ncid);
+    IF (err != NC_NOERR) error("nc_open: %s", nc_strerror(err));
+    check_dims(ncid);
+    check_vars(ncid);
+    check_atts(ncid);
+    err = nc_close (ncid);
+    IF (err != NC_NOERR) error("nc_close: %s", nc_strerror(err));
+    err = nc_delete(scratch);
+    IF (err != NC_NOERR) error("remove of %s failed", scratch);
+#endif
+    return 1;
+}
