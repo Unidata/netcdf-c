@@ -25,7 +25,6 @@ NC4_fileinfo_init(void)
 {
     int stat = NC_NOERR;
     unsigned major,minor,release;
-    int super;
 
     /* Build nc properties */
     memset((void*)&globalpropinfo,0,sizeof(globalpropinfo));
@@ -145,10 +144,7 @@ int
 NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
 {
     int ncstat = NC_NOERR;
-    H5T_class_t t_class;
-    size_t size;
     hid_t grp = -1;
-    hid_t exists = -1;
     hid_t attid = -1;
     hid_t aspace = -1;
     hid_t atype = -1;

@@ -42,7 +42,6 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
    char norm_name[NC_MAX_NAME + 1];
    int i;
    int retval = NC_NOERR;
-   const char** sp;
 
    if (attnum) {
       my_attnum = *attnum;
@@ -261,14 +260,12 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       attlist = &grp->att;
    else
    {
-     for (var = grp->var; var; var = var->l.next)
-       if (var->varid == varid)
-         {
-           attlist = &var->att;
-           break;
-         }
-     if (!var)
-       return NC_ENOTVAR;
+      if (varid < 0 || varid >= grp->vars.nelems)
+	return NC_ENOTVAR;
+      var = grp->vars.value[varid];
+      if (!var) return NC_ENOTVAR;
+      attlist = &var->att;
+      assert(var->varid == varid);
    }
 
    for (att = *attlist; att; att = att->l.next)
@@ -364,7 +361,6 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
     * attribute). */
    if (!strcmp(att->name, _FillValue) && varid != NC_GLOBAL)
    {
-      NC_ATT_INFO_T *varatt;
       int size;
 
       /* Fill value must be same type and have exactly one value */
@@ -666,14 +662,12 @@ NC4_rename_att(int ncid, int varid, const char *name,
    }
    else
    {
-      for (var = grp->var; var; var = var->l.next)
-	 if (var->varid == varid)
-	 {
-	    list = var->att;
-	    break;
-	 }
-      if (!var)
-	 return NC_ENOTVAR;
+      if (varid < 0 || varid >= grp->vars.nelems)
+	return NC_ENOTVAR;
+      var = grp->vars.value[varid];
+      if (!var) return NC_ENOTVAR;
+      assert(var->varid == varid);
+      list = var->att;
    }
    for (att = list; att; att = att->l.next)
       if (!strncmp(att->name, norm_newname, NC_MAX_NAME))
@@ -777,16 +771,12 @@ NC4_del_att(int ncid, int varid, const char *name)
    }
    else
    {
-      for(var = grp->var; var; var = var->l.next)
-      {
-	 if (var->varid == varid)
-	 {
-	    attlist = &var->att;
-	    break;
-	 }
-      }
-      if (!var)
-	 return NC_ENOTVAR;
+      if (varid < 0 || varid >= grp->vars.nelems)
+	return NC_ENOTVAR;
+      var = grp->vars.value[varid];
+      if (!var) return NC_ENOTVAR;
+      attlist = &var->att;
+      assert(var->varid == varid);
       if (var->created)
 	 locid = var->hdf_datasetid;
    }
