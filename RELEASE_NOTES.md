@@ -5,9 +5,13 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-> Note: The combination of netCDF-C library versions earlier than 4.4.1 and libhdf5 1.10.0+ should be avoided, as they will result in binary files not readable by systems using earlier libhdf5 versions.
+## Important Notes
+
+* **The combination of netCDF-C library versions earlier than 4.4.1 and libhdf5 1.10.0+ should be avoided, as they will result in binary files not readable by systems using earlier libhdf5 versions.**
 
 ## 4.4.2 - TBD
+
+* [Enhancement] Incorporated an enhancement provided by Greg Sjaardema, which may improve read/write times for some complex files.  Basically, linked lists were replaced in some locations where it was safe to use an array/table.  See [Pull request #328](https://github.com/Unidata/netcdf-c/pull/328) for more information.
 
 ## 4.4.1.1 - November 21, 2016
 
