@@ -635,6 +635,9 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       ENDIF()
 
     ENDIF(MSVC)
+    IF(NOT HDF5_C_LIBRARY)
+      SET(HDF5_C_LIBRARY hdf5)
+    ENDIF()
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
   ###
@@ -644,8 +647,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     # Find out if HDF5 was built with parallel support.
     # Do that by checking for the targets H5Pget_fapl_mpiposx and
     # H5Pget_fapl_mpio in ${HDF5_LIB}.
-    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
-    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
+    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
     IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
       SET(HDF5_PARALLEL ON)
     ELSE()
@@ -664,7 +667,6 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     IF(ENABLE_DYNAMIC_LOADING)
       SET(USE_LIBDL ON CACHE BOOL "")
     ENDIF()
-    SET(HDF5_C_LIBRARY hdf5)
   ENDIF(NOT MSVC)
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
