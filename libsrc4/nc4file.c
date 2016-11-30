@@ -364,9 +364,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 #endif /* EXTRA_TESTS */
 
 #ifdef USE_PARALLEL4
+#ifdef HDF5_HAS_COLL_METADATA_OPS
    H5Pset_all_coll_metadata_ops(fapl_id, 1 );
    H5Pset_coll_metadata_write(fapl_id, 1);
-
+#endif
    /* If this is a parallel file create, set up the file creation
       property list. */
    if ((cmode & NC_MPIIO) || (cmode & NC_MPIPOSIX))
@@ -2264,8 +2265,9 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 #endif
 
 #ifdef USE_PARALLEL4
+#ifdef HDF5_HAS_COLL_METADATA_OPS
    H5Pset_all_coll_metadata_ops(fapl_id, 1 );
-
+#endif
    /* If this is a parallel file create, set up the file creation
       property list. */
    if (mode & NC_MPIIO || mode & NC_MPIPOSIX)

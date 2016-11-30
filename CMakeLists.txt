@@ -663,6 +663,9 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       SET(USE_PARALLEL_POSIX ON)
     ENDIF()
 
+    #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
+    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
+
     OPTION(ENABLE_DYNAMIC_LOADING "Enable Dynamic Loading" ON)
     IF(ENABLE_DYNAMIC_LOADING)
       SET(USE_LIBDL ON CACHE BOOL "")
