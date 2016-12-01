@@ -11,6 +11,7 @@
    $Id: tst_h_par.c,v 1.15 2010/05/25 13:53:04 ed Exp $
 */
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <hdf5.h>
 
 /* Defining USE_MPE causes the MPE trace library to be used (and you
