@@ -810,6 +810,7 @@ NC3_put_att(
     if (name == NULL)
         return NC_EBADNAME;
 
+    /* check NC_EBADTYPE */
     status = nc3_cktype(nc->mode, type);
     if(status != NC_NOERR)
 	return status;

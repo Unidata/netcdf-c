@@ -57,12 +57,11 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
 
    /* Check varid */
    if (varid != NC_GLOBAL) {
-     NC_VAR_INFO_T *var = NULL;
-     for (var = grp->var; var; var = var->l.next)
-       if (var->varid == varid)
-           break;
-     if (!var)
-       BAIL(NC_ENOTVAR);
+       if (varid < 0 || varid >= grp->vars.nelems)
+	   return NC_ENOTVAR;
+       if (grp->vars.value[varid] == NULL)
+           return NC_ENOTVAR;
+       assert(grp->vars.value[varid]->varid == varid);
    }
 
    if (name == NULL)
@@ -850,16 +849,16 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
 
    /* Check varid */
    if (varid != NC_GLOBAL) {
-     NC_GRP_INFO_T *grp;
-     NC_VAR_INFO_T *var = NULL;
-     /* Find info for this file and group, and set pointer to each. */
-     if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
-        return NC_EBADGRPID;
-     for (var = grp->var; var; var = var->l.next)
-       if (var->varid == varid)
-           break;
-     if (!var)
-       return NC_ENOTVAR;
+       /* Find info for this file and group, and set pointer to each. */
+       NC_GRP_INFO_T *grp;
+       if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
+          return NC_EBADGRPID;
+
+       if (varid < 0 || varid >= grp->vars.nelems)
+	   return NC_ENOTVAR;
+       if (grp->vars.value[varid] == NULL)
+           return NC_ENOTVAR;
+       assert(grp->vars.value[varid]->varid == varid);
    }
 
    if (!name || strlen(name) > NC_MAX_NAME)
