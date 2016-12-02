@@ -456,6 +456,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    var->varid = grp->nvars++;
    var->ndims = ndims;
    var->is_new_var = NC_TRUE;
+   var->no_fill = h5->fill_mode;
 
    nc4_vararray_add(grp, var);
 
