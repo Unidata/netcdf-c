@@ -456,7 +456,6 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    var->varid = grp->nvars++;
    var->ndims = ndims;
    var->is_new_var = NC_TRUE;
-   var->no_fill = h5->fill_mode;
 
    nc4_vararray_add(grp, var);
 
@@ -527,6 +526,13 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
       if (!(var->dimids = calloc(ndims, sizeof(int))))
 	 BAIL(NC_ENOMEM);
    }
+
+   /* Set variables no_fill to match the database default
+    * unless the variable type is variable length (NC_STRING or NC_VLEN)
+    * or is user-defined type.
+    */
+   if (var->type_info->nc_type_class < NC_STRING)
+      var->no_fill = h5->fill_mode;
 
    /* Assign dimensions to the variable */
    /* At the same time, check to see if this is a coordinate
