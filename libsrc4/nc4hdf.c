@@ -561,6 +561,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   hsize_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
   char *name_to_use;
   int need_to_extend = 0;
+  int extend_possible = 0;
   int retval = NC_NOERR, range_error = 0, i, d2;
   void *bufr = NULL;
 #ifndef HDF5_CONVERT
@@ -738,6 +739,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 	  assert(dim && dim->dimid == var->dimids[d2]);
           if (dim->unlimited)
             {
+	      extend_possible = 1;
               if (start[d2] + count[d2] > fdims[d2])
                 {
                   xtend_size[d2] = (long long unsigned)(start[d2] + count[d2]);
@@ -760,7 +762,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
 #ifdef USE_PARALLEL4
       /* Check if anyone wants to extend */
-      if (h5->parallel && NC_COLLECTIVE == var->parallel_access)
+      if (extend_possible && h5->parallel && NC_COLLECTIVE == var->parallel_access)
         {
           /* Form consensus opinion among all processes about whether to perform
            * collective I/O
