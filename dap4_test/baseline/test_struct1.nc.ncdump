@@ -1,10 +1,10 @@
 netcdf test_struct1 {
 types:
-  compound x_t {
+  compound s_t {
     int x ;
     int y ;
-  }; // x_t
+  }; // s_t
 variables:
-	x_t x ;
-		string x:_edu.ucar.maps = "/x.x", "/x.y" ;
+	s_t s ;
+		string s:_edu.ucar.maps = "/s.x", "/s.y" ;
 }

@@ -33,7 +33,6 @@ typedef struct D4printer {
 /* Forwards */
 
 static void atomicsToString(D4printer*, union ATOMICS* value, nc_type type);
-static char* entityEscape(const char* s);
 static int hasMetaData(NCD4node* node);
 static void indent(D4printer*, int depth);
 static int printAttribute(D4printer*, NCD4node* attr, int depth);
@@ -58,13 +57,13 @@ NCD4_print(NCD4meta* metadata, NCbytes* output)
 {
     int ret = NC_NOERR;
     D4printer out;
-    if(metadata == NULL || output == NULL) return NC_EINVAL;
+    if(metadata == NULL || output == NULL) return THROW(NC_EINVAL);
     out.out = output;
     out.tmp = ncbytesnew();
     out.metadata = metadata;
     ret = printNode(&out,metadata->root,0);
     ncbytesfree(out.tmp);
-    return ret;
+    return THROW(ret);
 }
 
 /*************************************************/
@@ -172,7 +171,7 @@ printNode(D4printer* out, NCD4node* node, int depth)
     }
 done:
     nullfree(fqn);
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -230,7 +229,7 @@ printVariable(D4printer* out, NCD4node* var, int depth)
 	CAT("/>");
 done:
     nullfree(fqn);
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -260,7 +259,7 @@ printDataset(D4printer* out, NCD4node* node, int depth)
     depth--;
     INDENT(depth);
     CAT("</Dataset>");
-    return ret;	   
+    return THROW(ret);	   
 }
 
 static int
@@ -276,7 +275,7 @@ printGroup(D4printer* out, NCD4node* node, int depth)
     depth--;
     INDENT(depth);
     CAT("</Group>");
-    return ret;	   
+    return THROW(ret);	   
 }	
 
 static int
@@ -350,7 +349,7 @@ printGroupBody(D4printer* out, NCD4node* node, int depth)
 	INDENT(depth);
 	CAT("</Groups>\n");
     }
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -380,7 +379,7 @@ printMetaData(D4printer* out, NCD4node* node, int depth)
 	    CAT("\n");
 	}
     }
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -389,15 +388,15 @@ printXMLAttributeName(D4printer* out, char* name, const char* value)
     int ret = NC_NOERR;
     char* escaped = NULL;
 
-    if(name == NULL) return ret;
+    if(name == NULL) return THROW(ret);
     if(value == NULL) value = "";
     CAT(" "); CAT(name); CAT("=\"");
     /* add xml entity escaping */
-    escaped = entityEscape(value);
+    escaped = NCD4_entityescape(value);
     CAT(escaped);
     CAT("\"");
     nullfree(escaped);
-    return ret;
+    return THROW(ret);
 }
 
 
@@ -406,17 +405,17 @@ printXMLAttributeString(D4printer* out, char* name, const char* value)
 {
     int ret = NC_NOERR;
     char* escaped = NULL;
-    if(name == NULL) return ret;
+    if(name == NULL) return THROW(ret);
     CAT(" "); CAT(name);
     CAT("=");
     CAT("\"");
     if(value == NULL) value = "";
     /* add xml entity escaping */
-    escaped = entityEscape(value);
+    escaped = NCD4_entityescape(value);
     CAT(escaped);
     CAT("\"");
     nullfree(escaped);
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -435,7 +434,7 @@ printXMLAttributeAtomics(D4printer* out, char* name, union ATOMICS* value, nc_ty
     atomicsToString(out,value,type);	
     CAT(ncbytescontents(out->tmp));
     CAT("\"");
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -463,7 +462,7 @@ printAttribute(D4printer* out, NCD4node* attr, int depth)
     CAT("</Attribute>");
 
     nullfree(fqn);
-    return ret;
+    return THROW(ret);
 }
 
 /**
@@ -483,7 +482,7 @@ printDimref(D4printer* out, NCD4node* d, int depth)
     printXMLAttributeName(out, "name", (fqn=NCD4_makeFQN(d)));
     CAT("/>");
     nullfree(fqn);
-    return NC_NOERR;
+    return THROW(NC_NOERR);
 }
 
 static int
@@ -494,7 +493,7 @@ printValue(D4printer* out, const char* value, int depth)
     CAT("<Value");
     printXMLAttributeString(out,"value",value);
     CAT("/>");
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -506,7 +505,7 @@ printMap(D4printer* out, NCD4node* mapref, int depth)
     printXMLAttributeName(out, "name", (fqn=NCD4_makeFQN(mapref)));
     CAT("/>");
     nullfree(fqn);
-    return NC_NOERR;
+    return THROW(NC_NOERR);
 }
 
 /*************************************************/
@@ -516,41 +515,6 @@ static void
 indent(D4printer* out, int depth)
 {
     while(depth-- > 0) ncbytescat(out->out,"  ");
-}
-
-
-static char*
-entityEscape(const char* s)
-{
-    const char* p;
-    char* q;
-    size_t len;
-    char* escaped = NULL;
-    const char* entity;
-
-    len = strlen(s);
-    escaped = (char*)malloc(1+(6*len)); /* 6 = |&apos;| */
-    if(escaped == NULL) return NULL;
-    for(p=s,q=escaped;*p;p++) {
-	char c = *p;
-	switch (c) {
-	case '&':  entity = "&amp;"; break;
-	case '<':  entity = "&lt;"; break;
-	case '>':  entity = "&gt;"; break;
-	case '"':  entity = "&quot;"; break;
-	case '\'': entity = "&apos;"; break;
-	default	 : entity = NULL; break;
-	}
-	if(entity == NULL)
-	    *q++ = c;
-	else {
-	    len = strlen(entity);
-	    memcpy(q,entity,len);
-	    q+=len;
-	}
-    }
-    *q = '\0';
-    return escaped;
 }
 
 static int

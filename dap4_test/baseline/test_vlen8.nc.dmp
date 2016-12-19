@@ -1,0 +1,17 @@
+netcdf test_vlen8.nc {
+types:
+  compound v1_cmpd_t {
+    int v1 ;
+  }; // v1_cmpd_t
+  v1_cmpd_t(*) v1_t ;
+dimensions:
+	d1 = 2 ;
+	d2 = 2 ;
+variables:
+	v1_t v1(d1, d2) ;
+data:
+
+ v1 =
+  {}, {},
+  {}, {} ;
+}

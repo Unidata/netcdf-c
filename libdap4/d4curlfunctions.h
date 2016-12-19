@@ -14,17 +14,17 @@ struct CURLFLAG {
     enum CURLFLAGTYPE type;
 };
 
-extern ncerror ncd4_set_curlopt(NCD4INFO* state, int flag, void* value);
+extern ncerror NCD4_set_curlopt(NCD4INFO* state, int flag, void* value);
 
-extern ncerror ncd4_set_flags_perfetch(NCD4INFO*);
-extern ncerror ncd4_set_flags_perlink(NCD4INFO*);
+extern ncerror NCD4_set_flags_perfetch(NCD4INFO*);
+extern ncerror NCD4_set_flags_perlink(NCD4INFO*);
 
-extern ncerror ncd4_set_curlflag(NCD4INFO*,int);
-extern ncerror dcd4_set_curlstate(NCD4INFO* state, int flag, void* value);
+extern ncerror NCD4_set_curlflag(NCD4INFO*,int);
+extern ncerror NCD4_set_curlstate(NCD4INFO* state, int flag, void* value);
 
-extern void ncd4_curl_debug(NCD4INFO* state);
+extern void NCD4_curl_debug(NCD4INFO* state);
 
-extern struct CURLFLAG* ncd4_curlflagbyflag(int flag);
-extern struct CURLFLAG* ncd4_curlflagbyname(const char* name);
+extern struct CURLFLAG* NCD4_curlflagbyname(const char* name);
+extern void NCD4_curl_protocols(NCD4globalstate* state);
 
 #endif /*D4CURLFUNCTIONS_H*/

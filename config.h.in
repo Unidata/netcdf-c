@@ -44,7 +44,10 @@
 /* if true, build DAP4 Client */
 #undef ENABLE_DAP4
 
-/* if true, do remote tests */
+/* if true, do dap4 remote tests */
+#undef ENABLE_DAP4_REMOTE_TESTS
+
+/* if true, do dap remote tests */
 #undef ENABLE_DAP_REMOTE_TESTS
 
 /* if true, run extra tests which may not work yet */
@@ -401,6 +404,9 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* the testservers for remote tests. */
+#undef REMOTETESTSERVERS
 
 /* The size of `double', as computed by sizeof. */
 #undef SIZEOF_DOUBLE

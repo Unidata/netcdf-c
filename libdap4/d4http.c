@@ -8,6 +8,7 @@
 
 static size_t WriteFileCallback(void*, size_t, size_t, void*);
 static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
+static int curlerrtoncerr(CURLcode cstat);
 
 struct Fetchdata {
         FILE* stream;
@@ -15,7 +16,7 @@ struct Fetchdata {
 };
 
 long
-ncd4_fetchhttpcode(CURL* curl)
+NCD4_fetchhttpcode(CURL* curl)
 {
     long httpcode = 200;
     CURLcode cstat = CURLE_OK;
@@ -32,42 +33,37 @@ ncd4_fetchhttpcode(CURL* curl)
     return httpcode;
 }
 
-ncerror
-ncd4_fetchurl_file(CURL* curl, const char* url, FILE* stream,
+int
+NCD4_fetchurl_file(CURL* curl, const char* url, FILE* stream,
                 off_t* sizep, long* filetime)
 {
-    int stat = NC_NOERR;
+    int ret = NC_NOERR;
     CURLcode cstat = CURLE_OK;
     struct Fetchdata fetchdata;
 
     /* Set the URL */
     cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
-    if (cstat != CURLE_OK)
-	goto fail;
+    if (cstat != CURLE_OK) goto fail;
 
     /* send all data to this function  */
     cstat = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteFileCallback);
-    if (cstat != CURLE_OK)
-	goto fail;
+    if (cstat != CURLE_OK) goto fail;
 
     /* we pass our file to the callback function */
     cstat = curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&fetchdata);
-     if (cstat != CURLE_OK)
-	goto fail;
+    if(cstat != CURLE_OK) goto fail;
 
     /* One last thing; always try to get the last modified time */
     cstat = curl_easy_setopt(curl, CURLOPT_FILETIME, (long)1);
-    if (cstat != CURLE_OK)
-        goto fail;
+    if (cstat != CURLE_OK) goto fail;
 
     fetchdata.stream = stream;
     fetchdata.size = 0;
     cstat = curl_easy_perform(curl);
-
     if (cstat != CURLE_OK)
-        goto fail;
+        {ret = NC_EDAPSVC; goto fail;}
 
-    if (stat == NC_NOERR) {
+    if (ret == NC_NOERR) {
         /* return the file size*/
 #ifdef D4DEBUG
 	nclog(NCLOGNOTE,"filesize: %lu bytes",fetchdata.size);
@@ -77,28 +73,27 @@ ncd4_fetchurl_file(CURL* curl, const char* url, FILE* stream,
         /* Get the last modified time */
         if(filetime != NULL)
             cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
-        if(cstat != CURLE_OK) goto fail;
+        if(cstat != CURLE_OK)
+	    {ret = NC_ECURL; goto fail;}
     }
-    return THROW(stat);
+    return THROW(ret);
 
 fail:
-    nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
-    return THROW(NC_ECURL);
+    if(cstat != CURLE_OK) {
+        nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
+        ret = curlerrtoncerr(cstat);
+    }
+    return THROW(ret);
 }
 
-ncerror
-ncd4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime,
+int
+NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime,
            struct credentials* creds)
 {
-    ncerror stat = NC_NOERR;
+    int ret = NC_NOERR;
     CURLcode cstat = CURLE_OK;
     size_t len;
     long httpcode = 0;
-
-    /* Set the URL */
-    cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
-    if (cstat != CURLE_OK)
-        goto fail;
 
     /* send all data to this function  */
     cstat = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
@@ -113,6 +108,12 @@ ncd4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime,
     /* One last thing; always try to get the last modified time */
     cstat = curl_easy_setopt(curl, CURLOPT_FILETIME, (long)1);
 
+    /* Set the URL */
+    cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)"");
+    cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
+    if (cstat != CURLE_OK)
+        goto fail;
+
     cstat = curl_easy_perform(curl);
 
     if(cstat == CURLE_PARTIAL_FILE) {
@@ -121,7 +122,7 @@ ncd4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime,
                curl_easy_strerror(cstat));
         cstat = CURLE_OK;
     }
-    httpcode = ncd4_fetchhttpcode(curl);
+    httpcode = NCD4_fetchhttpcode(curl);
 
     if(cstat != CURLE_OK) goto fail;
 
@@ -137,18 +138,20 @@ ncd4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime,
 #ifdef D4DEBUG
     nclog(NCLOGNOTE,"buffersize: %lu bytes",(off_t)ncbyteslength(buf));
 #endif
-    return THROW(stat);
+    return THROW(ret);
 
 fail:
-    nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
-    switch (httpcode) {
-    case 401: stat = NC_EAUTH; break;
-    case 404: stat = ENOENT; break;
-    case 500: stat = NC_EDAPSVC; break;
+    if(cstat != CURLE_OK) {
+        nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
+        ret = curlerrtoncerr(cstat);
+    } else switch (httpcode) {
+    case 401: ret = NC_EAUTH; break;
+    case 404: ret = ENOENT; break;
+    case 500: ret = NC_EDAPSVC; break;
     case 200: break;
-    default: stat = NC_ECURL; break;
+    default: ret = NC_ECURL; break;
     }
-    return THROW(stat);
+    return THROW(ret);
 }
 
 static size_t
@@ -191,37 +194,41 @@ WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *data)
     return realsize;
 }
 
-ncerror
-ncd4_curlopen(CURL** curlp)
+int
+NCD4_curlopen(CURL** curlp)
 {
-    int stat = NC_NOERR;
+    int ret = NC_NOERR;
     CURLcode cstat = CURLE_OK;
     CURL* curl;
     /* initialize curl*/
     curl = curl_easy_init();
     if (curl == NULL)
-        stat = NC_ECURL;
+        ret = NC_ECURL;
     else {
         cstat = curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
         if (cstat != CURLE_OK)
-            stat = NC_ECURL;
+            ret = NC_ECURL;
     }
     if (curlp)
         *curlp = curl;
-    return THROW(stat);
+    if(cstat != CURLE_OK) {
+        nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
+        ret = curlerrtoncerr(cstat);
+    }
+    return THROW(ret);
 }
 
 void
-ncd4_curlclose(CURL* curl)
+NCD4_curlclose(CURL* curl)
 {
     if (curl != NULL)
         curl_easy_cleanup(curl);
 }
 
-ncerror
-ncd4_fetchlastmodified(CURL* curl, char* url, long* filetime)
+int
+NCD4_fetchlastmodified(CURL* curl, char* url, long* filetime)
 {
-    int stat = NC_NOERR;
+    int ret = NC_NOERR;
     CURLcode cstat = CURLE_OK;
 
     /* Set the URL */
@@ -242,24 +249,27 @@ ncd4_fetchlastmodified(CURL* curl, char* url, long* filetime)
     if(filetime != NULL)
         cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
     if(cstat != CURLE_OK) goto fail;
-    return THROW(stat);
+    return THROW(ret);
 
 fail:
-    nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
-    return THROW(NC_ECURL);
+    if(cstat != CURLE_OK) {
+        nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
+        ret = curlerrtoncerr(cstat);
+    }
+    return THROW(ret);
 }
 
-ncerror
-ncd4_ping(const char* url)
+int
+NCD4_ping(const char* url)
 {
-    int stat = NC_NOERR;
+    int ret = NC_NOERR;
     CURLcode cstat = CURLE_OK;
     CURL* curl = NULL;
     NCbytes* buf = NULL;
 
     /* Create a CURL instance */
-    stat = ncd4_curlopen(&curl);
-    if(stat != NC_NOERR) return stat;
+    ret = NCD4_curlopen(&curl);
+    if(ret != NC_NOERR) return THROW(ret);
 
     /* Use redirects */
     cstat = curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
@@ -270,7 +280,7 @@ ncd4_ping(const char* url)
         goto done;
 
     /* use a very short timeout: 10 seconds */
-    cstat = curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)10);
+    cstat = curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)5);
     if (cstat != CURLE_OK)
         goto done;
 
@@ -281,8 +291,8 @@ ncd4_ping(const char* url)
 
     /* Try to get the file */
     buf = ncbytesnew();
-    stat = ncd4_fetchurl(curl,url,buf,NULL,NULL);
-    if(stat == NC_NOERR) {
+    ret = NCD4_fetchurl(curl,url,buf,NULL,NULL);
+    if(ret == NC_NOERR) {
         /* Don't trust curl to return an error when request gets 404 */
         long http_code = 0;
         cstat = curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &http_code);
@@ -297,11 +307,36 @@ ncd4_ping(const char* url)
 
 done:
     ncbytesfree(buf);
-    ncd4_curlclose(curl);
+    NCD4_curlclose(curl);
     if(cstat != CURLE_OK) {
         nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
-        stat = NC_EDAPSVC;
+        ret = curlerrtoncerr(cstat);
     }
-    return THROW(stat);
+    return THROW(ret);
 }
 
+static int
+curlerrtoncerr(CURLcode cstat)
+{
+    switch (cstat) {
+    case CURLE_OK: return THROW(NC_NOERR);
+    case CURLE_URL_MALFORMAT:
+	return THROW(NC_EURL);   
+    case CURLE_COULDNT_RESOLVE_HOST:
+    case CURLE_COULDNT_CONNECT:
+    case CURLE_REMOTE_ACCESS_DENIED:
+    case CURLE_TOO_MANY_REDIRECTS:
+	return THROW(NC_EDAPSVC);
+    case CURLE_OUT_OF_MEMORY:
+	return THROW(NC_ENOMEM);
+    /* Eventually would be nice to convert these */
+    case CURLE_SSL_CONNECT_ERROR:
+    case CURLE_READ_ERROR:
+    case CURLE_OPERATION_TIMEDOUT:
+    case CURLE_SSL_CERTPROBLEM:
+    case CURLE_FILESIZE_EXCEEDED:
+    case CURLE_SSL_CACERT_BADFILE:
+    default: break;
+    }
+    return THROW(NC_ECURL);	
+}

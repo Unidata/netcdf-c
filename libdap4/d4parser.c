@@ -5,6 +5,7 @@
 
 #include "d4includes.h"
 #include <stdarg.h>
+#include <assert.h>
 #include "ezxml.h"
 
 /**
@@ -100,23 +101,26 @@ static void setname(NCD4node* node, const char* name)
 
 /***************************************************/
 
+extern const char** ezxml_all_attr(ezxml_t xml, int* countp);
+
 /* Forwards */
 
-static int addOrigType(NCD4parser*, NCD4node* src, NCD4node* dst);
+static int addOrigType(NCD4parser*, NCD4node* src, NCD4node* dst, const char* tag);
 static int buildAtomicTypes(NCD4parser*);
 static int buildDapOpaque(NCD4parser*,NCD4node**);
 static void classify(NCD4node* container, NCD4node* node);
 static int convertString(union ATOMICS*, NCD4node* type, const char* s);
 static int downConvert(union ATOMICS*, NCD4node* type);
 static int fillgroup(NCD4parser*, NCD4node* group, ezxml_t xml);
-static NCD4node* getOpaque(NCD4parser*, NCD4node*, ezxml_t varxml);
-static int getValueStrings(NCD4parser*, ezxml_t xattr, NClist*);
+static NCD4node* getOpaque(NCD4parser*, ezxml_t varxml, NCD4node* group);
+static int getValueStrings(NCD4parser*, NCD4node*, ezxml_t xattr, NClist*);
 static NCD4node* groupFor(NCD4node* node);
+static int isReserved(const char* name);
 static KEYWORDINFO* keyword(const char* name);
 static NCD4node* lookupAtomictype(NCD4parser*, const char* name);
-static NCD4node* lookupFQN(NCD4parser*, const char* sfqn);
-static NCD4node* lookupFQNList(NCD4parser*, NClist* fqn);
-static NCD4node* lookupFQNListR(NCD4node* parent, NClist* fqn, int pos);
+static NCD4node* lookFor(NClist* elems, const char* name, NCD4sort sort);
+static NCD4node* lookupFQN(NCD4parser*, const char* sfqn, NCD4sort);
+static int lookupFQNList(NCD4parser*, NClist* fqn, NCD4sort sort, NCD4node** result);
 static NCD4node* makeAnonDim(NCD4parser*, const char* sizestr);
 static int makeNode(NCD4parser*, NCD4node* parent, ezxml_t, NCD4sort, nc_type, NCD4node**);
 static int parseAtomicVar(NCD4parser*, NCD4node* container, ezxml_t xml, NCD4node**);
@@ -249,8 +253,8 @@ parseDimensions(NCD4parser* parser, NCD4node* group, ezxml_t xml)
     ezxml_t x;
     for(x=ezxml_child(xml, "Dimension");x != NULL;x = ezxml_next(x)) {
 	NCD4node* dimnode = NULL;
-	NCD4node* attr = NULL;
 	const char* sizestr;
+	const char* unlimtag = NULL;
 	unsigned long long size;
 	sizestr = ezxml_attr(x,"size");
 	if(sizestr == NULL)
@@ -260,11 +264,11 @@ parseDimensions(NCD4parser* parser, NCD4node* group, ezxml_t xml)
 	dimnode->dim.size = (long long)size;
 	/* Process attributes */
 	if((ret = parseAttributes(parser,dimnode,x))) goto done;    
-	/* See if this was intended as an unlimited */
-	attr = NCD4_findAttr(dimnode,UCARTAGUNLIM);
-	if(attr != NULL)
-	    dimnode->nc4.isunlim = 1;
 	classify(group,dimnode);
+	/* See if this was intended as an unlimited */
+	unlimtag = ezxml_attr(x,UCARTAGUNLIM);
+	if(unlimtag != NULL)
+	    dimnode->nc4.isunlim = 1;
     }
 done:
     return THROW(ret);
@@ -280,7 +284,7 @@ parseEnumerations(NCD4parser* parser, NCD4node* group, ezxml_t xml)
 	NCD4node* node = NULL;
 	NCD4node* basetype = NULL;
 	const char* fqn = ezxml_attr(x,"basetype");
-	basetype = lookupFQN(parser,fqn);
+	basetype = lookupFQN(parser,fqn,NCD4_TYPE);
 	if(basetype == NULL) {
 	    FAIL(NC_EBADTYPE,"Enumeration has unknown type: ",fqn);
 	}
@@ -291,7 +295,11 @@ parseEnumerations(NCD4parser* parser, NCD4node* group, ezxml_t xml)
 	    FAIL(NC_EINVAL,"Enumeration has no values");
 	classify(group,node);
 	/* Finally, see if this type has UCARTAGORIGTYPE xml attribute */
-	
+	{
+	    const char* typetag = ezxml_attr(x,UCARTAGORIGTYPE);
+	    if(typetag != NULL) {
+	    }
+	}
     }
 done:
     return THROW(ret);
@@ -360,8 +368,6 @@ parseVariable(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
     default:
 	ret = parseAtomicVar(parser,container,xml,&node);
     }
-    if(node != NULL) 
-        classify(container,node);
     *nodep = node;
 
     return THROW(ret);
@@ -391,7 +397,7 @@ parseStructure(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** 
     NCbytes* fqn = ncbytesnew();
     char* name = NULL;
 
-    group = groupFor(container); /* default: put type in the same group as container */
+    group = groupFor(container); /* default: put type in the same group as var */
 
     /* Make the structure as a type with (for now) same name as the variable */
     if((ret=makeNode(parser,group,xml,NCD4_TYPE,NC_STRUCT,&type))) goto done;
@@ -399,6 +405,7 @@ parseStructure(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** 
 
     /* Also make the structure as a variable; will be classified later */
     if((ret=makeNode(parser,container,xml,NCD4_VAR,NC_STRUCT,&var))) goto done;
+    classify(container,var);
     /* Set the basetype */
     var->basetype = type;
 
@@ -416,8 +423,14 @@ parseStructure(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** 
 
     record(parser,var);
 
-    /* See if this var has UCARTAGORIGTYPE attribute, but place it on the type */
-    if((ret=addOrigType(parser,var,type))) goto done;
+    /* See if this var has UCARTAGORIGTYPE attribute */
+    {
+	const char* typetag = ezxml_attr(xml,UCARTAGORIGTYPE);
+	if(typetag != NULL) {
+	    /* yes, place it on the type */
+	    if((ret=addOrigType(parser,var,type,typetag))) goto done;
+ 	}
+    }
 
     if(nodep) *nodep = var;
 
@@ -461,6 +474,7 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
 
     /* Also make the sequence as a variable; will be classified later */
     if((ret=makeNode(parser,container,xml,NCD4_VAR,NC_SEQ,&var))) goto done;
+    classify(container,var);
     /* Set the basetype */
     var->basetype = type;
 
@@ -478,9 +492,14 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
 
     record(parser,var);
 
-    /* See if this var has UCARTAGORIGTYPE attribute, but place it on the type */
-    if((ret=addOrigType(parser,var,type))) goto done;
-
+    /* See if this var has UCARTAGORIGTYPE attribute */
+    {
+	const char* typetag = ezxml_attr(xml,UCARTAGORIGTYPE);
+	if(typetag != NULL) {
+	    /* yes, place it on the type */
+	    if((ret=addOrigType(parser,var,type,typetag))) goto done;
+ 	}
+    }
     if(nodep) *nodep = var;
 
 done:
@@ -509,13 +528,14 @@ done:
 }
 
 static int
-parseAtomicVar(NCD4parser* parser, NCD4node* group, ezxml_t xml, NCD4node** nodep)
+parseAtomicVar(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** nodep)
 {
     int ret = NC_NOERR;
     NCD4node* node = NULL;
     NCD4node* base = NULL;
     const char* typename;
     KEYWORDINFO* info;
+    NCD4node* group;
    
     /* Check for aliases */
     for(typename=xml->name;;) {
@@ -523,27 +543,36 @@ parseAtomicVar(NCD4parser* parser, NCD4node* group, ezxml_t xml, NCD4node** node
 	if(info->aliasfor == NULL) break;
 	typename = info->aliasfor;
     }	
+    group = groupFor(container);
     /* Locate its basetype; handle opaque and enum separately */
     if(info->subsort == NC_ENUM) {
         const char* enumfqn = ezxml_attr(xml,"enum");
 	if(enumfqn == NULL)
 	    base = NULL;
 	else
-	    base = lookupFQN(parser,enumfqn);
+	    base = lookupFQN(parser,enumfqn,NCD4_TYPE);
     } else if(info->subsort == NC_OPAQUE) {
-	base = getOpaque(parser,group,xml);
+	/* See if the xml references an opaque type name */
+	base = getOpaque(parser,xml,group);
     } else {
-	base = lookupFQN(parser,info->tag);
+	base = lookupFQN(parser,info->tag,NCD4_TYPE);
     }
     if(base == NULL || !ISTYPE(base->sort)) {
 	FAIL(NC_EBADTYPE,"Unexpected variable type: %s",info->tag);
     }
-    if((ret=makeNode(parser,group,xml,NCD4_VAR,base->subsort,&node))) goto done;
+    if((ret=makeNode(parser,container,xml,NCD4_VAR,base->subsort,&node))) goto done;
+    classify(container,node);
     node->basetype = base;
     /* Parse attributes, dims, and maps */
     if((ret = parseMetaData(parser,node,xml))) goto done;    
     /* See if this var has UCARTAGORIGTYPE attribute */
-    if((ret=addOrigType(parser,node,node))) goto done;
+    {
+	const char* typetag = ezxml_attr(xml,UCARTAGORIGTYPE);
+	if(typetag != NULL) {
+	    /* yes, place it on the type */
+	    if((ret=addOrigType(parser,node,node,typetag))) goto done;
+ 	}
+    }
     if(nodep) *nodep = node;
 done:
     return THROW(ret);
@@ -560,8 +589,8 @@ parseDimRefs(NCD4parser* parser, NCD4node* var, ezxml_t xml)
 
 	fqn = ezxml_attr(x,"name");
 	if(fqn != NULL) {
-   	    dim = lookupFQN(parser,fqn);
-	    if(!ISDIM(dim->sort)) {
+   	    dim = lookupFQN(parser,fqn,NCD4_DIM);
+	    if(dim == NULL) {
 	        FAIL(NC_EBADDIM,"Cannot locate dim with name: %s",fqn);
 	    }
 	} else {
@@ -593,11 +622,9 @@ parseMaps(NCD4parser* parser, NCD4node* var, ezxml_t xml)
 	fqn = ezxml_attr(x,"name");
 	if(fqn == NULL)
 	    FAIL(NC_ENOTVAR,"<Map> has no name attribute");
-        mapref = lookupFQN(parser,fqn);
+        mapref = lookupFQN(parser,fqn,NCD4_VAR);
 	if(mapref == NULL)
 	    FAIL(NC_ENOTVAR,"<Map> name does not refer to a variable: %s",fqn);
-        if(!ISVAR(mapref->sort))
-	    FAIL(NC_ENOTVAR,"Cannot locate map variable with name: %s",fqn);
 	PUSH(var->maps,mapref);
     }
 done:
@@ -607,8 +634,26 @@ done:
 static int
 parseAttributes(NCD4parser* parser, NCD4node* container, ezxml_t xml)
 {
-    int ret = NC_NOERR;
+    int i,ret = NC_NOERR;
     ezxml_t x;
+
+    /* First, transfer any reserved xml attributes */
+    {
+	int count = 0;
+	const char** all = NULL;
+	all = ezxml_all_attr(xml,&count);
+	if(all != NULL && count > 0) {
+	    const char** p;
+	    container->xmlattributes = nclistnew();
+	    for(p=all;*p;p+=2) {
+		if(isReserved(*p)) {
+		    nclistpush(container->xmlattributes,strdup(p[0]));
+		    nclistpush(container->xmlattributes,strdup(p[1]));
+		}
+	    }	
+	}
+    }
+
     for(x=ezxml_child(xml, "Attribute");x!= NULL;x=ezxml_next(x)) {
 	const char* name = ezxml_attr(x,"name");
 	const char* type = ezxml_attr(x,"type");
@@ -624,14 +669,14 @@ parseAttributes(NCD4parser* parser, NCD4node* container, ezxml_t xml)
 	if(strcmp(attr->name,"_FillValue") == 0)
 	    basetype = container->basetype;
 	else
-	    basetype = lookupFQN(parser,type);
+	    basetype = lookupFQN(parser,type,NCD4_TYPE);
 	if(basetype == NULL)
 	    FAIL(NC_EBADTYPE,"Unknown <Attribute> type: ",type);
 	if(basetype->subsort == NC_NAT && basetype->subsort != NC_ENUM)
 	    FAIL(NC_EBADTYPE,"<Attribute> type must be atomic or enum: ",type);
 	attr->basetype = basetype;
 	values = nclistnew();
-	if((ret=getValueStrings(parser,x,values))) {
+	if((ret=getValueStrings(parser,basetype,x,values))) {
 	    nclistfreeall(values);
 	    FAIL(NC_EINVAL,"Malformed attribute: %s",name);
 	}
@@ -665,28 +710,25 @@ parseError(NCD4parser* parser, ezxml_t errxml)
 	const char* txt = ezxml_txt(x);
 	parser->metadata->error.otherinfo = (txt == NULL ? NULL : strdup(txt));
     }
-    return NC_NOERR;
+    return THROW(NC_NOERR);
 }
 
 /*
 Find or create an opaque type
 */
 static NCD4node*
-getOpaque(NCD4parser* parser, NCD4node* var, ezxml_t varxml)
+getOpaque(NCD4parser* parser, ezxml_t varxml, NCD4node* group)
 {
     int i, ret = NC_NOERR;
     long long len;
     NCD4node* opaquetype = NULL;
-    NCD4node* ucar = NULL;
-    const char* s;
+    const char* xattr;
 
     /* See if this var has UCARTAGOPAQUE attribute */
-    if((ucar=NCD4_findAttr(var,UCARTAGOPAQUE)) != NULL) {
-	if(nclistlength(ucar->attr.values) > 0) {
-            s = nclistget(ucar->attr.values,0);
-            if((ret = parseLL(s,&len)) || (len < 0))
-	       FAIL(NC_EINVAL,"Illegal opaque len: %s",s);
-	}
+    xattr = ezxml_attr(varxml,UCARTAGOPAQUE);
+    if(xattr != NULL) {
+        if((ret = parseLL(xattr,&len)) || (len < 0))
+	    FAIL(NC_EINVAL,"Illegal opaque len: %s",xattr);
     } else
 	len = 0;
     if(opaquetype == NULL) {
@@ -700,11 +742,8 @@ getOpaque(NCD4parser* parser, NCD4node* var, ezxml_t varxml)
     if(opaquetype == NULL) {/* create it */
 	if(len > 0) {
 	    char name[NC_MAX_NAME+1];
-	    NCD4node* group = groupFor(var);
 	    /* Make name be "opaqueN" */
 	    snprintf(name,NC_MAX_NAME,"opaque%d_t",len);
-	    if(group == NULL)
-	        FAIL(NC_EINVAL,"Cannot locate group for: %s",var->name);
 	    /* Opaque types are always created in the current group */
 	    if((ret=makeNode(parser,group,NULL,NCD4_TYPE,NC_OPAQUE,&opaquetype)))
 	        goto done;
@@ -718,12 +757,12 @@ getOpaque(NCD4parser* parser, NCD4node* var, ezxml_t varxml)
 	}
     }
 done:
-    return opaquetype;        
+    return opaquetype;
 }
 
 /* get all value strings */
 static int
-getValueStrings(NCD4parser* parser, ezxml_t xattr, NClist* svalues)
+getValueStrings(NCD4parser* parser, NCD4node* type, ezxml_t xattr, NClist* svalues)
 {
     const char* s;
     /* See first if we have a "value" xml attribute */
@@ -733,37 +772,49 @@ getValueStrings(NCD4parser* parser, ezxml_t xattr, NClist* svalues)
     else {/* look for <Value> subnodes */
 	ezxml_t x;
         for(x=ezxml_child(xattr, "Value");x != NULL;x = ezxml_next(x)) {
-	    /* case 1: value= xml attribute */
+	    char* es;
+	    char* ds;
+	    /* We assume that either their is a single xml attribute called "value",
+               or there is a single chunk of text containing possibly multiple values.
+	    */                       
 	    s = ezxml_attr(x,"value");
-	    if(s == NULL) {/* Get the text */
+	    if(s == NULL) {/* See if there is a text part. */
 		s = x->txt;
 		if(s == NULL) s = "";
 	    }
-	    PUSH(svalues,strdup(s));
+	    /* Need to de-escape the string */
+	    es = NCD4_entityescape(s);
+	    ds = NCD4_deescape(es);
+	    nclistpush(svalues,ds);
+	    nullfree(es);
 	}
     }
-    return NC_NOERR;
+    return THROW(NC_NOERR);
 }
 
 /***************************************************/
 /* Utilities */
 
-/* If a node has the UCARTAGORIGTYPE attribute, then capture that annotation. */
+/* Determine is a name is reserved */
 static int
-addOrigType(NCD4parser* parser, NCD4node* src, NCD4node* dst)
+isReserved(const char* name)
+{
+    if(name == NULL) return 0;
+    return (name[0] == RESERVECHAR);
+}
+
+/* If a node has the UCARTAGORIGTYPE attribute,
+   then capture that annotation. */
+static int
+addOrigType(NCD4parser* parser, NCD4node* src, NCD4node* dst, const char* oldname)
 {
     int ret = NC_NOERR;
-    NCD4node* ucar;
 
     if(dst == NULL) dst = src;
-    if((ucar=NCD4_findAttr(src,UCARTAGORIGTYPE)) != NULL) {
-	if(nclistlength(ucar->attr.values) > 0) {
-	    /* Record the original type in the destination*/
-	    if((ret=splitOrigType(parser,(char*)nclistget(ucar->attr.values,0),dst))) goto done;
-	}
-    }
+    /* Record the original type in the destination*/
+    if((ret=splitOrigType(parser,oldname,dst))) goto done;
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -775,15 +826,13 @@ splitOrigType(NCD4parser* parser, const char* fqn, NCD4node* type)
     char* name = NULL;
 
     if((ret=NCD4_parseFQN(fqn,pieces))) goto done;
-    /* It should be the case that the pieces are .../group/name */
+    /* It should be the case that the pieces are {/group}+/name */
     name = (char*)nclistpop(pieces);
-    group = lookupFQNList(parser,pieces);
+    if((ret = lookupFQNList(parser,pieces,NCD4_GROUP,&group))) goto done;
     if(group == NULL) {
 	FAIL(NC_ENOGRP,"Non-existent group in FQN: ",fqn);    
-    } else if(!ISGROUP(group->sort)) {
-	FAIL(NC_EINVAL,"Malformed FQN: ",fqn);    	
     }
-    type->nc4.orig.name = strdup(name);
+    type->nc4.orig.name = strdup(name+1); /* plus 1 to skip the leading separator */
     type->nc4.orig.group = group;
 
 done:
@@ -829,13 +878,13 @@ parseULL(const char* text, unsigned long long* ullp)
 #ifdef HAVE_STRTOULL
     uint64 = strtoull(text,&endptr,10);
     if(errno == ERANGE)
-	return NC_ERANGE;
+	return THROW(NC_ERANGE);
 #else /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
     sscanf((char*)text, "%llu", &uint64);
     /* Have no useful way to detect out of range */
 #endif /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
     if(ullp) *ullp = uint64;
-    return NC_NOERR;
+    return THROW(NC_NOERR);
 }
 
 /*
@@ -854,76 +903,129 @@ parseLL(const char* text, long long* llp)
 #ifdef HAVE_STRTOLL
     int64 = strtoll(text,&endptr,10);
     if(errno == ERANGE)
-	return NC_ERANGE;
+	return THROW(NC_ERANGE);
 #else /*!(defined HAVE_STRTOLL && defined HAVE_STRTOLL)*/
     sscanf((char*)text, "%lld", &int64);
     /* Have no useful way to detect out of range */
 #endif /*!(defined HAVE_STRTOLL && defined HAVE_STRTOLL)*/
     if(llp) *llp = int64;
-    return NC_NOERR;
-}
-
-static NCD4node*
-lookupFQNList(NCD4parser* parser, NClist* fqn)
-{
-    NCD4node* root = parser->metadata->root;
-    /* verify root */
-    if(strcmp(root->name,nclistget(fqn,0))!=0) {
-	ERROR(NC_EBADID,"Root group is not named '/': ",root->name);
-	return NULL;
-    }
-    return lookupFQNListR(root,fqn,1); /* start at pos 1 to skip root */
+    return THROW(NC_NOERR);
 }
 
 /*
-Works only for dimensions, types, groups, and variables;
-not attributes or enum consts.
-*/ 
-static NCD4node*
-lookupFQNListR(NCD4node* parent, NClist* fqn, int pos)
+Convert a sequence of fqn names into a specific node.
+WARNING: This is highly specialized in that it assumes
+that the final object is one of: dimension, type, or var.
+This means that e.g. groups, attributes, econsts, cannot
+be found by this procedure.
+*/
+static int
+lookupFQNList(NCD4parser* parser, NClist* fqn, NCD4sort sort, NCD4node** result)
 {
-    int i, len;
-    char* name;
+    int ret = NC_NOERR;
+    int i,nsteps;
+    NCD4node* current;
+    char* name = NULL;
+    NCD4node* node = NULL;
 
-    /* Termination checks */
-    len = nclistlength(fqn);
-    if(pos >= len)
-	return NULL;
-    if(parent->sort != NCD4_GROUP) {
-	ERROR(NC_EINVAL,"fqn is not toplevel in group");
+    /* Step 1: walk thru groups until can go no further */
+    current = parser->metadata->root;
+    nsteps = nclistlength(fqn);
+    for(i=1;i<nsteps;i++) { /* start at 1 to side-step root name */
+	assert(ISGROUP(current->sort));
+	name = (char*)nclistget(fqn,i);	
+        /* See if we can find a matching subgroup */
+	node = lookFor(current->group.elements,name,NCD4_GROUP);
+	if(node == NULL)
+	    break; /* reached the end of the group part of the fqn */
+	current = node;
+    }	    
+    /* Invariant:
+	1. i == nsteps => node != null => last node was a group:
+                                          it must be our target
+	2. i == (nsteps-1) => non-group node at the end; disambiguate
+	3. i < (nsteps - 1) => need a compound var to continue
+    */
+    if(i == nsteps) {
+	if(sort != NCD4_GROUP) goto sortfail;
 	goto done;
     }
-    name = nclistget(fqn,pos);
-    /* Search parent for matching name */
-    for(i=0;i<nclistlength(parent->group.elements);i++) {
-	NCD4node* node = (NCD4node*)nclistget(parent->group.elements,i);
-	if(strcmp(node->name,name)==0) {
-	    if(pos == (len-1))
-	        return node;
-	    else
-	        return lookupFQNListR(node,fqn,pos+1);	
+    if(i == (nsteps - 1)) {
+	assert (node == NULL);
+        node = lookFor(current->group.elements,name,sort);
+	if(node == NULL) goto sortfail;
+	goto done;
+    }
+    assert (i < (nsteps - 1)); /* case 3 */
+    /* We have steps to take, so node better be a compound var */
+    node = lookFor(current->group.elements,name,NCD4_VAR);
+    if(node == NULL || !ISCMPD(node->basetype->subsort))
+	goto fail;
+    /* So we are at a compound variable, so walk its fields recursively */
+    /* Use the type to do the walk */
+    current = node->basetype;
+    assert (i < (nsteps - 1));
+    i++; /* skip variable name */
+    for(;;i++) {
+	int j;
+	name = (char*)nclistget(fqn,i);
+	assert(ISTYPE(current->sort) && ISCMPD(current->subsort));
+	for(node=NULL,j=0;j<nclistlength(current->vars);j++) {
+	    NCD4node* field = (NCD4node*)nclistget(current->vars,j);
+	    if(strcmp(field->name,name)==0)
+		{node = field; break;}
 	}
+	if(node == NULL) 
+	    goto sortfail; /* no match, so failed */
+	if(i == (nsteps - 1))
+	    break;
+	if(!ISCMPD(node->basetype->subsort)) 
+	    goto fail; /* more steps, but no compound field, so failed */
+	current = node->basetype;
     }
 done:
-    return NULL; /* not found */
+    if(result) *result = node;
+    return THROW(ret);
+fail:
+    ret = NC_EINVAL;
+    goto done;
+sortfail:
+    ret = NC_EBADID;
+    goto done;
 }
 
 static NCD4node*
-lookupFQN(NCD4parser* parser, const char* sfqn)
+lookFor(NClist* elems, const char* name, NCD4sort sort)
+{
+    int n,i;
+    if(elems == NULL || nclistlength(elems) == 0) return NULL;
+    n = nclistlength(elems);
+    for(i=0;i<n;i++) {
+	NCD4node* node = (NCD4node*)nclistget(elems,i);
+	if(strcmp(node->name,name) == 0 && (sort == node->sort))
+	    return node;
+    }	
+    return NULL;
+}
+
+static NCD4node*
+lookupFQN(NCD4parser* parser, const char* sfqn, NCD4sort sort)
 {
     int ret = NC_NOERR;
     NClist* fqnlist = nclistnew();
     NCD4node* match = NULL;
 
     /* Short circuit atomic types */
-    match = lookupAtomictype(parser,(sfqn[0]=='/'?sfqn+1:sfqn));
-    if(match != NULL)
-	return match;
+    if(NCD4_TYPE == sort) {
+        match = lookupAtomictype(parser,(sfqn[0]=='/'?sfqn+1:sfqn));
+        if(match != NULL)
+	    return match;
+    }
     if((ret=NCD4_parseFQN(sfqn,fqnlist))) goto done;
-    match = lookupFQNList(parser,fqnlist);    
+    if((ret=lookupFQNList(parser,fqnlist,sort,&match))) goto done;
 done:
     nclistfreeall(fqnlist);
-    return match;
+    return (ret == NC_NOERR ? match : NULL);
 }
 
 static KEYWORDINFO*
@@ -970,7 +1072,7 @@ buildAtomicTypes(NCD4parser* parser)
     
     parser->atomictypes = nclistnew();
     if(parser->atomictypes == NULL)
-	return NC_ENOMEM;
+	return THROW(NC_ENOMEM);
     for(ati=atomictypeinfo;ati->name;ati++) {
         if((ret=makeNode(parser,parser->metadata->root,NULL,NCD4_TYPE,ati->type,&node))) goto done;
 	SETNAME(node,ati->name);
@@ -1013,7 +1115,8 @@ makeNode(NCD4parser* parser, NCD4node* parent, ezxml_t xml, NCD4sort sort, nc_ty
 {
     int ret = NC_NOERR;
     NCD4node* node = (NCD4node*)calloc(1,sizeof(NCD4node));
-    if(node == NULL) return NC_ENOMEM;
+
+    if(node == NULL) return THROW(NC_ENOMEM);
     node->sort = sort;
     node->subsort = subsort;
     node->container = parent;
@@ -1047,12 +1150,12 @@ makeAnonDim(NCD4parser* parser, const char* sizestr)
 
     ret = parseLL(sizestr,&size);
     if(ret) return NULL;
-    snprintf(name,NC_MAX_NAME,"_Anonymous%lld",size);
+    snprintf(name,NC_MAX_NAME,"/_Anonymous%lld",size);
     /* See if it exists already */
-    dim = lookupFQN(parser,name);
+    dim = lookupFQN(parser,name,NCD4_DIM);
     if(dim == NULL) {/* create it */
 	if((ret=makeNode(parser,root,NULL,NCD4_DIM,NC_NULL,&dim))) goto done;
-	SETNAME(dim,name);
+	SETNAME(dim,name+1); /* leave out the '/' separator */
 	dim->dim.size = (long long)size;
 	PUSH(root->dims,dim);
     }
@@ -1063,6 +1166,8 @@ done:
 static void
 classify(NCD4node* container, NCD4node* node)
 {
+    if(ISGROUP(container->sort))
+	nclistpush(container->group.elements,node);
     switch (node->sort) {
     case NCD4_GROUP:
 	PUSH(container->groups,node);
@@ -1129,17 +1234,17 @@ convertString(union ATOMICS* converter, NCD4node* type, const char* s)
     case NC_SHORT:
     case NC_INT:
     case NC_INT64:
-	if(sscanf(s,"%lld",&converter->i64) != 1) return NC_ERANGE;
+	if(sscanf(s,"%lld",&converter->i64) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_UBYTE:
     case NC_USHORT:
     case NC_UINT:
     case NC_UINT64:
-	if(sscanf(s,"%llu",&converter->u64) != 1) return NC_ERANGE;
+	if(sscanf(s,"%llu",&converter->u64) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_FLOAT:
     case NC_DOUBLE:
-	if(sscanf(s,"%lf",&converter->f64) != 1) return NC_ERANGE;
+	if(sscanf(s,"%lf",&converter->f64) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_STRING:
 	converter->s[0]= strdup(s);
@@ -1190,6 +1295,77 @@ downConvert(union ATOMICS* converter, NCD4node* type)
 	converter->s[0]= s;
 	break;
     }/*switch*/
-    return NC_NOERR;
+    return THROW(NC_NOERR);
 }
 
+#if 0
+/* Try to remove excess text from a value set */
+static int
+valueParse(NCD4node* type, const char* values0, NClist* vlist)
+{
+    char* values;
+    char* p;
+    char* q;
+    char* s;
+    char* line;
+    ptrdiff_t len;
+
+    if(values0 == NULL || (len=strlen(values0)) == 0)
+	return THROW(NC_NOERR);
+    values = strdup(values0);
+    /* Compress the text by removing sequences of blanks and newlines:
+       note that this will fail for string typed values that might have
+       embedded blanks, so in that case, we assume each string is on a separate line.
+       For NC_CHAR, we treat like strings, except we use the last char in the line
+       as the value. This is all heuristic.
+    */
+    switch (type->subsort) {
+    case NC_STRING:
+	p = values;
+	for(;;) {
+	    if(*p == '\0') break;
+	    line = p;
+	    /* Start by looking for \n or \r\n */
+            for(;*p;p++) {if(*p == '\n') break;}
+	    q = p - 1;
+	    *p++ = '\0';
+	    if(*q == '\r') {*q = '\0';}
+            nclistpush(vlist,strdup(line));
+	}	
+	break;
+    case NC_CHAR:
+	p = values;
+	for(;*p;) {
+	    char c[2];
+	    line = p;
+	    /* Start by looking for \n or \r\n */
+            for(;*p;p++) {if(*p == '\n') break;}
+	    q = p;
+	    *p++ = '\0';
+	    q--;
+	    if(*q == '\r') {*q = '\0';}
+	    len = strlen(line);
+	    if(len > 0) {
+		c[0] = *q;
+		c[1] = '\0';
+		nclistpush(vlist,strdup(c));
+	    }
+	}	
+	break;
+    default:
+	p = values;
+        for(;*p;p++) {if(*p <= ' ') *p = '\n';}
+	line = values;
+	for(p=line;*p;p++) {if(*p == '\n') break;}
+	for(line=values;*line;) {
+	    size_t size = strlen(line);
+	    if(size > 0)
+	        nclistpush(vlist,strdup(line));
+	    line += (size+1); /* skip terminating nul */
+	}
+	break;
+    }
+    free(values);
+    return THROW(NC_NOERR);
+}
+#endif

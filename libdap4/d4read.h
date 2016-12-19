@@ -6,7 +6,7 @@
 #ifndef D4READ_H
 #define D4READ_H
 
-extern int ncd4_readDMR(NCD4INFO*);
-extern int ncd4_readDAP(NCD4INFO**, int inmemory);
+extern int NCD4_readDMR(NCD4INFO*);
+extern int NCD4_readDAP(NCD4INFO*, int inmemory);
 
 #endif /*READ_H*/

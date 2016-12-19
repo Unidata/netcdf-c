@@ -1,6 +1,0 @@
-netcdf test_opaque_type {
-types:
-  ubyte(*) _bytestring ;
-variables:
-	_bytestring vo ;
-}

@@ -1,7 +1,11 @@
+#include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netcdf.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#include "netcdf.h"
 
 /* The DDS in netcdf classic form is as follows: 
 netcdf test {
@@ -68,6 +72,32 @@ static int floateq(float f1, float f2)
     return 0;
 }
 
+/* Figure out topsrcdir; assume we are running in ncdap_test */
+static char*
+gettopsrcdir(void)
+{
+    char *p,*q, tmp[4096];
+    char* topsrcdir = getenv("TOPSRCDIR");
+    if(topsrcdir != NULL) {
+	strcpy(tmp,topsrcdir);
+    } else {
+#ifdef DEBUG
+	fprintf(stderr,"$abs_top_srcdir not defined: using 'getcwd'");
+#endif
+        getcwd(tmp,sizeof(tmp));
+    }
+    /* Remove trailing filename */
+    for(p=tmp,q=NULL;*p;p++) {
+	if(*p == '\\') *p  = '/';
+	if(*p == '/') q = p;		
+    }
+    if(q == NULL)
+       q = tmp; /* should not ever happen, but oh well*/
+    else
+       *q = '\0';    
+    return strdup(tmp);
+}    
+
 int
 main()
 {
@@ -79,14 +109,12 @@ main()
     char url[4096];
 
     /* Assume that TESTS_ENVIRONMENT was set */
-    topsrcdir = getenv("TOPSRCDIR");
-    if(topsrcdir == NULL) {
-        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
-        exit(1);
-    }    
-    strcpy(url,"file://");
+    topsrcdir = gettopsrcdir();
+    strcpy(url,"");
+    strcat(url,"file://");
     strcat(url,topsrcdir);
     strcat(url,"/ncdap_test/testdata3/test.06");
+    strcat(url,"#dap2");
 
     printf("test_vara: url=%s\n",url);
 

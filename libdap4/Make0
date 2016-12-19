@@ -1,6 +1,6 @@
 # Test c output
 
-P=data
+P=meta
 
 V=valgrind --leak-check=full
 G=gdb --args
@@ -19,7 +19,7 @@ T=t_dmrmeta.c
 endif
 ifeq ($P, data)
 T=t_dmrdata.c
-I=./t.raw
+I=./t.dap
 endif
 
 CFLAGS=-Wall -g -O0 -I.. -I../include -I../libdap4
@@ -66,18 +66,33 @@ clean::
 
 cpp::
 	rm -f cpp.txt
-	${CC} -E ${CFLAGS} t_dmr.h > cpp.txt
+	${CC} -E ${CFLAGS} d4rc.c > cpp.txt
 
 x:
 	pushd .. ; ${MAKE} ; popd
 
-D=test_sequence_2
+DMR=t_dmr.h t_dmrdata.c t_dmrmeta.c t_dmrparse.c
+
+dmr:: ../dap4_test/t_dmr*.[ch]
+	rm -f t_dmr*.[ch]
+	cp $? .
+
+testdmr:: 
+	for f in ${DMR} ; do \
+	  echo "[$$f]" ; \
+	  diff -wBb $$f ../dap4_test/$$f ; \
+	done
+
+D=test_struct_type
 TF=../dap4_test/testfiles/${D}
 debug::
-	rm -f t.dmr t.cdl t.raw
+	rm -f t.dmr t.cdl t.dap
 	if test -f ${TF}.syn.dmr; then cp ${TF}.syn.dmr ./t.dmr ; fi
 	if test -f ${TF}.nc.dmr; then cp ${TF}.nc.dmr ./t.dmr ; fi
 	if test -f ${TF}.cdl; then cp ${TF}.cdl ./t.cdl ; fi
-	if test -f ${TF}.raw; then cp ${TF}.raw ./t.raw ; fi
-	if test -f ${TF}.syn.raw; then cp ${TF}.syn.raw ./t.raw ; fi
-	if test -f ${TF}.nc.raw; then cp ${TF}.nc.raw ./t.raw ; fi
+	if test -f ${TF}.dap; then cp ${TF}.dap ./t.dap ; fi
+	if test -f ${TF}.syn.dap; then cp ${TF}.syn.dap ./t.dap ; fi
+	if test -f ${TF}.nc.dap; then cp ${TF}.nc.dap ./t.dap ; fi
+
+gdb:: mkt
+	gdb --args ../ncdump/ncdump '[log][dap4]http://localhost:8081/d4ts/${D}.nc'

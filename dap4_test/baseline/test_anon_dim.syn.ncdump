@@ -1,0 +1,6 @@
+netcdf test_anon_dim {
+dimensions:
+	_Anonymous6 = 6 ;
+variables:
+	int vu32(_Anonymous6) ;
+}

@@ -248,12 +248,5 @@ NC4_buildpropinfo(struct NCPROPINFO* info,char** propdatap)
     propdata[total] = '\0';
     *propdatap = propdata;
 
-    /* propdatap is checked against being NULL above already. */
-    //if(propdatap) {
-    //  *propdatap = propdata;
-    //} else {
-    //  free(propdata);
-    //}
-
     return NC_NOERR;
 }

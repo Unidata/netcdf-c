@@ -88,8 +88,8 @@ endif
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
-SUBDIRS = include $(OCLIB) $(H5_TEST_DIR) libdispatch libsrc		\
-$(LIBSRC4_DIR) $(LIBSRCP) $(DAP2) ${DAP4} liblib  \
+SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc		\
+$(LIBSRC4_DIR) $(LIBSRCP) $(OCLIB) $(DAP2) ${DAP4} liblib  \
 $(NCGEN3) $(NCGEN) $(NCDUMP) \
 $(TESTDIRS) \
 docs $(EXAMPLES) \

@@ -8,6 +8,8 @@ Test part variable fetch code
 #include <netcdf.h>
 #include <ncdispatch.h>
 
+extern char* nc_findtestserver(const char* server, int isdap4, const char*);
+
 /* The DDS in netcdf classic form is as follows: 
 netcdf test {
 dimensions:
@@ -88,14 +90,7 @@ main()
     char url[4096];
 
     /* Find Test Server */
-    svc = getenv("DTSTESTSERVER");
-    if(svc != NULL) {
-        const char* testserver[2];
-	testserver[0] = svc;
-	testserver[1] = NULL;
-        svc = NC_findtestserver("dts",testserver);
-    } else 	
-        svc = NC_findtestserver("dts",NULL);
+    svc = nc_findtestserver("dts",0, REMOTETESTSERVER);
 
     if(svc == NULL) {
 	fprintf(stderr,"Cannot locate test server\n");

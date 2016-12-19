@@ -3,8 +3,8 @@
 #DAP=1
 
 # Is visual studio being used?
-#VS=yes
-CYGWIN=yes
+VS=yes
+#CYGWIN=yes
 
 if test "x$VS" = x ; then
 #CC=mpicc

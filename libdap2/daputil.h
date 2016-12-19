@@ -65,22 +65,11 @@ extern void dapexpandescapes(char *termstring);
 extern int dapalignbuffer(NCbytes*, int alignment);
 extern size_t dapdimproduct(NClist* dimensions);
 
-#if defined(DLL_NETCDF)
-# if defined(DLL_EXPORT)
-#  define NCC_EXTRA __declspec(dllexport)
-#else
-#  define NCC_EXTRA __declspec(dllimport)
-# endif
-NCC_EXTRA extern int nc__testurl(const char* path, char** basename);
-#else
-extern int nc__testurl(const char* parth, char** basename);
-#endif
-
-
 /* Provide a wrapper for oc_fetch so we can log what it does */
 extern NCerror dap_fetch(struct NCDAPCOMMON*,OClink,const char*,OCdxd,OCobject*);
 
 extern int dap_badname(char* name);
 extern char* dap_repairname(char* name);
+extern char* dap_getselection(NCURI* uri);
 
 #endif /*DAPUTIL_H*/

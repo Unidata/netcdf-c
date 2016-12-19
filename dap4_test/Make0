@@ -42,3 +42,18 @@ clean::
 
 cpp::
 	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt
+
+tmp.sh::
+	rm -f tmp.sh
+	echo 'P=d:/git/thredds/dap4/d4tests/src/test/data/resources/TestCDMClient/testinput' >>tmp.sh
+	echo 'F="test_atomic_array.nc test_atomic_array.nc test_atomic_types.nc test_enum.nc test_enum_2.nc test_enum_array.nc test_fill.nc test_groups1.nc test_one_var.nc test_one_vararray.nc test_opaque.nc test_opaque_array.nc test_struct_type.nc test_utf8.nc"' >>tmp.sh
+	echo 'for f in $$F ; do' >>tmp.sh
+	echo 'R="$${P}/$$f" ; L="./testfiles/$$f"' >>tmp.sh
+	echo 'rm $${L}.dap ; cp $${R}.raw $${L}.dap' >>tmp.sh
+	echo 'done' >>tmp.sh
+	echo 'cp $${P}/test_sequence_1.syn.raw ./testfiles/test_sequence_1.nc.dap' >>tmp.sh
+	echo 'cp $${P}/test_sequence_2.syn.raw ./testfiles/test_sequence_2.nc.dap' >>tmp.sh
+
+testfiles:: tmp.sh
+	sh -x ./tmp.sh
+

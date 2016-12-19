@@ -4,7 +4,7 @@
  *   $Id: isnan.h,v 1.3 2008/04/23 22:05:00 russ Exp $
  *********************************************************************/
 
-#include <config.h>
+#include "config.h"
 
 #ifndef NO_FLOAT_H
 #include <float.h>		/* for DBL_MAX */

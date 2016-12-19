@@ -193,7 +193,6 @@ ncbytessetcontents(NCbytes* bb, char* contents, unsigned long alloc)
 }
 
 /* Null terminate the byte string without extending its length */
-/* For debugging */
 int
 ncbytesnull(NCbytes* bb)
 {

@@ -1,0 +1,11 @@
+<Dataset
+         name="test_one_vararray.nc"
+         dapVersion="4.0"
+         dmrVersion="1.0"
+         xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+         xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+    <Dimension name="d2" size="2"/>
+    <Int32 name="t">
+        <Dim name="/d2"/>
+    </Int32>
+</Dataset>

@@ -54,6 +54,8 @@ EXTERNC int nclistunique(NClist*);
 /* Create a clone of a list */
 EXTERNC NClist* nclistclone(NClist*);
 
+EXTERNC void* nclistextract(NClist*);
+
 /* Following are always "in-lined"*/
 #define nclistclear(l) nclistsetlength((l),0)
 #define nclistextend(l,len) nclistsetalloc((l),(len)+(l->alloc))

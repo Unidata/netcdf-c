@@ -5,6 +5,7 @@
 
 /* Define various things common to all the t_dmr*.c testers */
 #undef DEBUG
+#undef DUMP
 
 #include "d4includes.h"
 
@@ -60,7 +61,12 @@ setup(int expected, int argc, char** argv)
     input = ncbytesnew();
     output = ncbytesnew();
     if((ret = readfile(infile,input))) fail(ret);
-    if((metadata=NCD4_newmeta(NCD4_ALL,ncbyteslength(input),ncbytescontents(input)))==NULL)
+
+#ifdef DUMP
+    NCD4_dumpbytes(ncbyteslength(input),ncbytescontents(input),0);
+#endif
+
+    if((metadata=NCD4_newmeta(NCD4_CSUM_ALL,ncbyteslength(input),ncbytescontents(input)))==NULL)
 	fail(NC_ENOMEM);
     if(NCD4_isdmr(metadata->serial.rawdata)) {
 	char* dmr = (char*)metadata->serial.rawdata;

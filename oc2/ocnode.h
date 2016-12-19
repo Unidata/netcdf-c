@@ -17,7 +17,7 @@ typedef struct OCdiminfo {
 /*! Specifies the Arrayinfo.*/
 typedef struct OCarrayinfo {
     /* The complete set of dimension info applicable to this node*/
-    OClist*  dimensions;
+    NClist*  dimensions;
     /* convenience (because they are computed so often*/
     size_t rank; /* == |dimensions|*/
     size_t* sizes;
@@ -36,7 +36,7 @@ typedef struct OCattribute {
 typedef struct OCattinfo {
     int isglobal; /* is this supposed to be a global attribute set?*/
     int isdods;   /* is this a global DODS_XXX  attribute set */
-    OClist* values; /* oclist<char*>*/
+    NClist* values; /* oclist<char*>*/
 } OCattinfo;
 
 /*! Specifies the OCnode. */
@@ -54,9 +54,9 @@ struct OCnode {
     OCarrayinfo     array;     /* octype == {OC_Structure, OC_Primitive}*/
     OCattinfo       att;       /* octype == OC_Attribute */
     /* primary edge info*/
-    OClist* subnodes; /*oclist<OCnode*>*/
+    NClist* subnodes; /*oclist<OCnode*>*/
     /*int     attributed;*/ /* 1 if merge was done*/
-    OClist* attributes; /* oclist<OCattribute*>*/
+    NClist* attributes; /* oclist<OCattribute*>*/
     OCdata* data; /* Defined only if this node is a top-level atomic variable*/
 };
 
@@ -68,18 +68,18 @@ struct OCnode {
 #endif
 
 extern OCnode* ocnode_new(char* name, OCtype ptype, OCnode* root);
-extern void occollectpathtonode(OCnode* node, OClist* path);
+extern void occollectpathtonode(OCnode* node, NClist* path);
 extern void occomputefullnames(OCnode* root);
-extern void occomputesemantics(OClist*);
+extern void occomputesemantics(NClist*);
 extern void ocaddattribute(OCattribute* attr, OCnode* parent);
-extern OCattribute* ocmakeattribute(char* name, OCtype ptype, OClist* values);
+extern OCattribute* ocmakeattribute(char* name, OCtype ptype, NClist* values);
 extern size_t ocsetsize(OCnode* node);
 extern OCerror occorrelate(OCnode*,OCnode*);
 extern void ocmarkcacheable(OCstate* state, OCnode* ddsroot);
 
 extern void octree_free(struct OCtree* tree);
 extern void ocroot_free(OCnode* root);
-extern void ocnodes_free(OClist*);
+extern void ocnodes_free(NClist*);
 
 /* Merge DAS with DDS or DATADDS*/
 extern OCerror ocddsdasmerge(struct OCstate*, OCnode* das, OCnode* dds);

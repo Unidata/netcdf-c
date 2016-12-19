@@ -1,0 +1,22 @@
+<Dataset
+   name="test_vlen2.nc"
+   dapVersion="4.0"
+   dmrVersion="1.0"
+   xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+   xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+  <Dimensions>
+    <Dimension name="d3" size="3"/>
+    <Dimension name="d2" size="2"/>
+  </Dimensions>
+  <Types>
+    <Sequence name="x">
+      <Int32 name="x"/>
+    </Sequence>
+  </Types>
+  <Variables>
+    <Seq name="x" type="/x">
+      <Dim name="/d3"/>
+      <Dim name="/d2"/>
+    </Sequence>
+  </Variables>
+</Dataset>

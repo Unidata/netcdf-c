@@ -70,6 +70,18 @@ libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 
 endif #USE_NETCDF4
 
+# Conditionally build the findtestserver program, but do not install
+bin_PROGRAMS =
+if ENABLE_DAP2
+bin_PROGRAMS += findtestserver
+else !ENABLE_DAP2
+if ENABLE_DAP4
+bin_PROGRAMS += findtestserver
+endif
+endif
+findtestserver_SOURCES = findtestserver.c nctestserver.c
+LDADD = ${top_builddir}/liblib/libnetcdf.la
+
 # We need at least one source file
 libnetcdf_la_SOURCES = nc_initialize.c
 EXTRA_DIST=CMakeLists.txt

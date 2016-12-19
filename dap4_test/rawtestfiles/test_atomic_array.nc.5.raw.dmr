@@ -1,0 +1,22 @@
+<Dataset
+         name="test_atomic_array.nc"
+         dapVersion="4.0"
+         dmrVersion="1.0"
+         xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+         xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+    <UInt8 name="vu8">
+        <Dim size="1"/>
+        <Dim size="2"/>
+    </UInt8>
+    <Float64 name="vd">
+        <Dim size="1"/>
+    </Float64>
+    <String name="vs">
+        <Dim size="1"/>
+        <Dim size="1"/>
+    </String>
+    <Opaque name="vo">
+        <Dim size="1"/>
+        <Dim size="1"/>
+    </Opaque>
+</Dataset>

@@ -60,7 +60,7 @@ NCD4_databuild(NCD4meta* compiler)
 {
     int ret = NC_NOERR;
     ret = compile(compiler);
-    return ret;
+    return THROW(ret);
 }
 
 /**************************************************/
@@ -83,9 +83,22 @@ compile(NCD4meta* compiler)
     /* Mark all variable length objects */
     NCD4_markflags(compiler,toplevel);
 
-    /* Byte swap the serialized data if necessary */
-    if(compiler->serial.hostbigendian != compiler->serial.remotebigendian)
-	NCD4_swap(compiler,toplevel);
+    /* Do checsums and, if necessary, byte swap the serialized data */
+
+    /* There are two state wrt checksumming.
+       1. the incoming data may have checksums,
+          but we are not computing a local checksum.
+          Flag for this is compiler->checksumming
+       2. the incoming data does not have checksums at all.
+          Flag for this is compiler->nochecksum
+    */
+    compiler->checksumming = (compiler->checksummode != NCD4_CSUM_NONE);
+    /* However, if the data sent by the server says its does not have checksums,
+       then do not bother */
+    if(compiler->serial.nochecksum)
+	compiler->checksumming = 0;
+    compiler->swap = (compiler->serial.hostlittleendian != compiler->serial.remotelittleendian);
+    NCD4_serial(compiler,toplevel);
 
     /* Compute the offset and size of the vars and fields in the raw dap data.
        WARNING: this info is transient.
@@ -94,6 +107,17 @@ compile(NCD4meta* compiler)
     for(i=0;i<nclistlength(toplevel);i++) {
 	NCD4node* var = (NCD4node*)nclistget(toplevel,i);
         if((ret=NCD4_delimit(compiler,var,&offset))) goto done;
+    }
+
+    /* verify checksum */
+    if(compiler->checksummode != NCD4_CSUM_NONE) {
+        for(i=0;i<nclistlength(toplevel);i++) {
+	    NCD4node* var = (NCD4node*)nclistget(toplevel,i);
+	    if(var->data.localchecksum != var->data.remotechecksum) {
+		fprintf(stderr,"Checksum mismatch: %s\n",var->name);
+		abort();
+	    }
+        }
     }
 
     /* Fix up toplevel string-typed vars. Moves the strings out-of-band
@@ -149,7 +173,7 @@ compile(NCD4meta* compiler)
     }    
 
 done:
-    return ret;
+    return THROW(ret);
 }
 
 /**************************************************/
@@ -158,13 +182,17 @@ static int
 writeFixedVar(NCD4meta* compiler, NCD4node* var)
 {
     int ret = NC_NOERR;
-    PUTVAR(var,var->data.vardata.memory); /* write it out */
+    ASSERT((ISTOPLEVEL(var)));
+    PUTVAR(var,var->data.topvardata.memory); /* write it out */
 done:
-    return ret;
+    return THROW(ret);
 }
 
 /**************************************************/
 
+/**
+Note that this does not fix sequences; that is done elsewhere.
+*/
 static int
 compileFixedStruct(NCD4meta* compiler, NCD4node* structvar)
 {
@@ -197,7 +225,7 @@ compileFixedStruct(NCD4meta* compiler, NCD4node* structvar)
 	field->data.flags &= ~HASOPVAR; /* no longer needed */
     }    
 done:
-    return ret;
+    return THROW(ret);
 }
 
 
@@ -224,6 +252,6 @@ fprintf(stderr,"toplevel: var=%s\n",node->name);
 	if((ret=getToplevelVars(compiler,g,toplevel))) goto done;
     }
 done:
-    return ret;
+    return THROW(ret);
 }
 

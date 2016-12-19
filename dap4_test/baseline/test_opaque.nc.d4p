@@ -4,10 +4,7 @@
    dmrVersion="1.0"
    xmlns="http://xml.opendap.org/ns/DAP/4.0#"
    xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
-  <Types>
-    <Opaque name="_bytestring" size="0"/>
-  </Types>
   <Variables>
-    <Opaque name="vo1" type="/_bytestring"/>
+    <Opaque name="vo1" type="/opaque8_t"/>
   </Variables>
 </Dataset>

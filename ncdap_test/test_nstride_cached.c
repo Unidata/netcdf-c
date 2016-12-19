@@ -54,6 +54,8 @@ incorrect data return
 #include "netcdf.h"
 #include "ncdispatch.h"
 
+extern char* nc_findtestserver(const char* path, int isdap4, const char*);
+
 #define VERBOSE 1
 
 /*
@@ -93,14 +95,7 @@ main()
     char* svc;
 
     /* Find Test Server */
-    svc = getenv("THREDDSTESTSERVER");
-    if(svc != NULL) {
-        const char* testserver[2];
-	testserver[0] = svc;
-	testserver[1] = NULL;
-        svc = NC_findtestserver("thredds",testserver);
-    } else 	
-        svc = NC_findtestserver("thredds",NULL);
+    svc = nc_findtestserver("thredds",0,REMOTETESTSERVERS);
 
     if(svc == NULL) {
         fprintf(stderr,"Cannot locate test server\n");

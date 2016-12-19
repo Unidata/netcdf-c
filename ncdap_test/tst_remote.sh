@@ -1,5 +1,5 @@
 #!/bin/sh
-set -x
+
 set -e
 
 quiet=0
@@ -7,7 +7,7 @@ leakcheck=0
 timing=0
 
 # Figure our dst server
-DTS=`./nctestserver dts ${DTSTESTSERVER}`
+DTS=`../liblib/findtestserver dap2 dts`
 if test "x$DTS" = "x" ; then
 echo "cannot locate test server for dts"
 exit
@@ -16,11 +16,9 @@ fi
 PARAMS="[log]"
 #PARAMS="${PARAMS}[show=fetch]"
 
-
 # Determine If we're on OSX or Linux
 
 myplatform=`uname -a | cut -d" " -f 1`
-
 
 #OCLOGFILE=/dev/null
 OCLOGFILE="" ; export OCLOGFILE

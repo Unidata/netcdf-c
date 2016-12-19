@@ -1,0 +1,19 @@
+<Dataset
+         name="test_struct_nested.hdf5"
+         dapVersion="4.0"
+         dmrVersion="1.0"
+         xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+         xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+    <Structure name="x">
+        <Structure name="field1">
+            <Int32 name="x"/>
+            <Int32 name="y"/>
+        </Structure>
+        <Structure name="field2">
+            <Int32 name="x"/>
+            <Int32 name="y"/>
+        </Structure>
+        <Map name="/x.field1.x"/>
+        <Map name="/x.field1.y"/>
+    </Structure>
+</Dataset>

@@ -7,11 +7,8 @@
   <Dimensions>
     <Dimension name="d2" size="2"/>
   </Dimensions>
-  <Types>
-    <Opaque name="_bytestring" size="0"/>
-  </Types>
   <Variables>
-    <Opaque name="vo2" type="/_bytestring">
+    <Opaque name="vo2" type="/opaque8_t">
       <Dim name="/d2"/>
       <Dim name="/d2"/>
     </Opaque>

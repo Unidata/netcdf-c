@@ -389,7 +389,18 @@ test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
 if test "x$enable_dap2" = "xno" -o "x$enable_dap4" = "xno"; then
   enable_dap_remote_tests=no
 fi
-AC_MSG_RESULT($enable_dap_remote_tests)
+
+# Temporary: default is to not do dap4 remote tests
+AC_MSG_RESULT($enable_dap4_remote_tests)
+AC_MSG_CHECKING([whether DAP4  remote testing should be enabled (default off)])
+AC_ARG_ENABLE([dap4-remote-tests],
+              [AS_HELP_STRING([--enable-dap4-remote-tests],
+                                 [enable dap4 remote tests])])
+test "x$enable_dap4_remote_tests" = xyes || enable_dap4_remote_tests=no
+AC_MSG_RESULT($enable_dap4_remote_tests)
+if test "x$enable_dap4" = "xno" ; then
+  enable_dap4_remote_tests=no
+fi
 
 # Default is now to do the remote authorization tests
 AC_MSG_CHECKING([whether dap remote authorization testing should be enabled (default off)])
@@ -407,6 +418,20 @@ if test "x$enable_dap_remote_tests" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_auth_tests)
 
+# Did the user specify a list of test servers to try for remote tests?
+AC_MSG_CHECKING([which remote test server(s) to use])
+AC_ARG_WITH([testservers],
+              [AS_HELP_STRING([--with-testservers=<host+port>,<host+port>...],
+                              [Specify the testserver(s) to try for remote tests.])],
+            [REMOTETESTSERVERS=$with_testservers], [REMOTETESTSERVERS=no])
+msg="$REMOTETESTSERVERS"
+if test "x$REMOTETESTSERVERS" = xno ; then
+msg="localhost:8080,localhost:8081,remotetest.unidata.ucar.edu (default)"
+REMOTETESTSERVERS=localhost:8081,localhost:8080,remotetest.unidata.ucar.edu
+fi
+AC_MSG_RESULT([$msg])
+AC_DEFINE_UNQUOTED([REMOTETESTSERVERS], ["$REMOTETESTSERVERS"], [the testservers for remote tests.])
+
 # Set the config.h flags
 if test "x$enable_dap2" = xyes; then
    AC_DEFINE([USE_DAP], [1], [(Deprecated) if true, build DAP Client])
@@ -418,7 +443,10 @@ if test "x$enable_dap4" = xyes; then
 fi
 
 if test "x$enable_dap_remote_tests" = xyes; then
-   AC_DEFINE([ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
+   AC_DEFINE([ENABLE_DAP_REMOTE_TESTS], [1], [if true, do dap remote tests])
+fi
+if test "x$enable_dap4_remote_tests" = xyes; then
+   AC_DEFINE([ENABLE_DAP4_REMOTE_TESTS], [1], [if true, do dap4 remote tests])
 fi
 
 AC_MSG_CHECKING([whether the time-consuming dap tests should be enabled (default off)])
@@ -1140,6 +1168,7 @@ AM_CONDITIONAL(USE_DAP, [test "x$enable_dap2" = xyes]) # Alias
 AM_CONDITIONAL(ENABLE_DAP2, [test "x$enable_dap2" = xyes])
 AM_CONDITIONAL(ENABLE_DAP4, [test "x$enable_dap4" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
+AM_CONDITIONAL(ENABLE_DAP4_REMOTE_TESTS, [test "x$enable_dap4_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
 AM_CONDITIONAL(EXTRA_EXAMPLE_TESTS, [test "x$enable_extra_example_tests" = xyes])

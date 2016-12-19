@@ -1,0 +1,6 @@
+netcdf test_one_vararray.1 {
+dimensions:
+	_Anonymous1 = 1 ;
+variables:
+	int t(_Anonymous1) ;
+}

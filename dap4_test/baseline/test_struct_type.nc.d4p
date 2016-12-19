@@ -11,6 +11,9 @@
     </Structure>
   </Types>
   <Variables>
-    <Struct name="s" type="/s"/>
+    <Struct name="s" type="/s">
+      <Map name="/s.x"/>
+      <Map name="/s.y"/>
+    </Struct>
   </Variables>
 </Dataset>

@@ -1,0 +1,13 @@
+netcdf test_opaque_array.7.nc {
+types:
+  opaque(8) opaque8_t ;
+dimensions:
+	_Anonymous1 = 1 ;
+	_Anonymous2 = 2 ;
+variables:
+	opaque8_t vo2(_Anonymous1, _Anonymous2) ;
+data:
+
+ vo2 =
+  0XFEDCBA9876543210, 0XFEDCBA9999999999 ;
+}

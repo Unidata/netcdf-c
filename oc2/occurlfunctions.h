@@ -30,6 +30,6 @@ extern void oc_curl_protocols(struct OCGLOBALSTATE*);
 extern struct OCCURLFLAG* occurlflags(void);
 extern struct OCCURLFLAG* occurlflagbyname(const char*);
 extern struct OCCURLFLAG* occurlflagbyflag(int);
-extern char*  occombinehostport(const OCURI* uri);
+extern char*  occombinehostport(const NCURI* uri);
 
 #endif /*_CURLFUNCTION_H_*/

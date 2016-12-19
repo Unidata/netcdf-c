@@ -1,0 +1,6 @@
+netcdf test_atomic_array.9 {
+dimensions:
+	_Anonymous3 = 3 ;
+variables:
+	short v16(_Anonymous3) ;
+}

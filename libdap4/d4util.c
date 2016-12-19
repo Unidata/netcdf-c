@@ -12,7 +12,6 @@
 /* Forward */
 
 static char* backslashEscape(const char* s);
-static char* deEscape(const char* esc);
 
 /**************************************************/
 /**
@@ -26,41 +25,38 @@ int
 ncd4__testurl(const char* path, char** basenamep)
 {
     NCURI* uri;
-    int ok = ncuriparse(path,&uri);
-    if(ok) {
-	char* slash = (uri->file == NULL ? NULL : strrchr(uri->file, '/'));
+    int ok = NC_NOERR;
+    if(ncuriparse(path,&uri) != NCU_OK)
+	ok = NC_EURL;
+    else {
+	char* slash = (uri->path == NULL ? NULL : strrchr(uri->path, '/'));
 	char* dot;
 	if(slash == NULL) slash = (char*)path; else slash++;
-    slash = nulldup(slash);
-
-    if(slash == NULL)
-      dot = NULL;
-    else
-      dot = strrchr(slash, '.');
-
-    if(dot != NULL &&  dot != slash) *dot = '\0';
-
-    if(basenamep)
-      *basenamep=slash;
-    else  {
-      if(slash)
-        free(slash);
+        slash = nulldup(slash);
+        if(slash == NULL)
+            dot = NULL;
+        else
+            dot = strrchr(slash, '.');
+        if(dot != NULL &&  dot != slash) *dot = '\0';
+        if(basenamep)
+            *basenamep=slash;
+        else if(slash)
+            free(slash);
     }
     ncurifree(uri);
-    }
     return ok;
 }
 
-/* Return 1 if this machine is big endian */
+/* Return 1 if this machine is little endian */
 int
-NCD4_isBigEndian(void)
+NCD4_isLittleEndian(void)
 {
     union {
         unsigned char bytes[SIZEOF_INT];
 	int i;
     } u;
     u.i = 1;
-    return (u.bytes[0] == 1 ? 0 : 1);
+    return (u.bytes[0] == 1 ? 1 : 0);
 }
 
 /* Compute the size of an atomic type, except opaque */
@@ -199,31 +195,33 @@ backslashEscape(const char* s)
     return escaped;
 }
 
+/* Parse an fqn into a sequence of names;
+   initially using '/', then '.' */
 int
 NCD4_parseFQN(const char* fqn0, NClist* pieces)
 {
     int ret = NC_NOERR;
+    int count;
     char* p;
     char* start;
-    char* lastpiece;
     char* fqn = NULL;
-    int count;
 
     if(fqn0 == NULL) fqn0 = "/";
-    nclistpush(pieces,strdup("/")); /* set root */
-    count = 1;
-    fqn = strdup(fqn0);
-    start = (fqn[0] == '/' ? fqn+1 : fqn);
-    /* Step 1 Break fqn into pieces at occurrences of '/' */
-    for(p=start,lastpiece=p;*p;) {
+    fqn = strdup(fqn0[0] == '/' ? fqn0+1 : fqn0);
+    start = fqn;
+    /* Step 0: insert rootname */
+    nclistpush(pieces,strdup("/"));
+    /* Step 1: Break fqn into pieces at occurrences of '/' */
+    count = 0;
+    for(p=start;*p;) {
 	switch(*p) {
 	case '\\': /* leave the escapes in place */
 	    p+=2;
 	    break;
 	case '/': /*capture the piece name */
-	    *p++ = '\0';	    
+	    *p++ = '\0';
+	    start = p; /* mark start of the next part */
 	    count++;
-	    lastpiece = p;
 	    break;
 	default: /* ordinary char */
 	    p++;
@@ -231,13 +229,14 @@ NCD4_parseFQN(const char* fqn0, NClist* pieces)
 	}
     }
     /* Step 2, walk the final piece to break up based on '.' */
-    for(p=lastpiece;*p;) {
+    for(p=start;*p;) {
 	switch(*p) {
 	case '\\': /* leave the escapes in place */
 	    p+=2;
 	    break;
 	case '.': /*capture the piece name */
 	    *p++ = '\0';	    
+	    start = p;
 	    count++;
 	    break;
 	default: /* ordinary char */
@@ -245,19 +244,19 @@ NCD4_parseFQN(const char* fqn0, NClist* pieces)
 	    break;
 	}
     }
+    count++; /* acct for last piece */
     /* Step 3: capture and de-scape the pieces */
-    for(p=start;count > 0;count--) {
-	size_t len = strlen(p);
-	char* descaped = deEscape(p);
+    for(p=fqn;count > 0;count--) {
+	char* descaped = NCD4_deescape(p);
 	nclistpush(pieces,descaped);
-	p += (len+1);
+	p = p + strlen(p) + 1; /* skip past the terminating nul */
     }        
     if(fqn != NULL) free(fqn);
     return THROW(ret);
 }
 
-static char*
-deEscape(const char* esc)
+char*
+NCD4_deescape(const char* esc)
 {
     size_t len;
     char* s;
@@ -278,6 +277,132 @@ deEscape(const char* esc)
     }
     *q = '\0';
     return s;
+}
+
+char*
+NCD4_entityescape(const char* s)
+{
+    const char* p;
+    char* q;
+    size_t len;
+    char* escaped = NULL;
+    const char* entity;
+
+    len = strlen(s);
+    escaped = (char*)malloc(1+(6*len)); /* 6 = |&apos;| */
+    if(escaped == NULL) return NULL;
+    for(p=s,q=escaped;*p;p++) {
+	char c = *p;
+	switch (c) {
+	case '&':  entity = "&amp;"; break;
+	case '<':  entity = "&lt;"; break;
+	case '>':  entity = "&gt;"; break;
+	case '"':  entity = "&quot;"; break;
+	case '\'': entity = "&apos;"; break;
+	default	 : entity = NULL; break;
+	}
+	if(entity == NULL)
+	    *q++ = c;
+	else {
+	    len = strlen(entity);
+	    memcpy(q,entity,len);
+	    q+=len;
+	}
+    }
+    *q = '\0';
+    return escaped;
+}
+
+int
+NCD4_readfile(const char* filename, NCbytes* content)
+{
+    int ret = NC_NOERR;
+    FILE* stream = NULL;
+    char part[1024];
+
+    stream = fopen(filename,"r");
+    if(stream == NULL) {ret=errno; goto done;}
+    for(;;) {
+	size_t count = fread(part, 1, sizeof(part), stream);
+	if(count <= 0) break;
+	ncbytesappendn(content,part,count);
+	if(ferror(stream)) {ret = NC_EIO; goto done;}
+	if(feof(stream)) break;
+    }
+    ncbytesnull(content);
+done:
+    if(stream) fclose(stream);
+    return ret;
+}
+
+/**
+Wrap mktmp and return the generated name
+*/
+
+int
+NCD4_mktmp(const char* base, char** tmpnamep)
+{
+    int fd;
+    char tmp[NC_MAX_PATH];
+    mode_t mask;
+    strncpy(tmp,base,sizeof(tmp));
+#ifdef HAVE_MKSTEMP
+    strncat(tmp,"XXXXXX",sizeof(tmp));
+    /* Note Potential problem: old versions of this function
+       leave the file in mode 0666 instead of 0600 */
+    mask=umask(0077);
+    fd = mkstemp(tmp);
+    (void)umask(mask);
+#else /* !HAVE_MKSTEMP */
+    /* Need to simulate by using some kind of pseudo-random number */
+    {
+	int rno = rand();
+	char spid[7];
+	if(rno < 0) rno = -rno;
+        snprintf(spid,sizeof(spid),"%06d",rno);
+        strncat(tmp,spid,sizeof(tmp));	
+#if defined(_WIN32) || defined(_WIN64)
+        fd=open(tmp,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
+#  else
+        fd=open(tmp,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
+#  endif
+    }
+#endif /* !HAVE_MKSTEMP */
+    if(fd < 0) {
+       nclog(NCLOGERR, "Could not create temp file: %s",tmp);	
+       return THROW(NC_EPERM);
+    } else
+	close(fd);
+    if(tmpnamep) *tmpnamep = strdup(tmp);
+    return THROW(NC_NOERR);
+}
+
+void
+NCD4_hostport(NCURI* uri, char* space, size_t len)
+{
+    if(space != NULL && len >  0) {
+	space[0] = '\0'; /* so we can use strncat */
+        if(uri->host != NULL) {
+	    strncat(space,uri->host,len);
+            if(uri->port != NULL) {
+	        strncat(space,":",len);
+	        strncat(space,uri->port,len);
+	    }
+	}
+    }
+}
+
+void
+NCD4_userpwd(NCURI* uri, char* space, size_t len)
+{
+    if(space != NULL && len > 0) {
+	space[0] = '\0'; /* so we can use strncat */
+        if(uri->user != NULL && uri->password != NULL) {
+            strncat(space,uri->user,len);
+            strncat(space,":",len);
+            strncat(space,uri->password,len);
+	}
+    }
 }
 
 /**************************************************/

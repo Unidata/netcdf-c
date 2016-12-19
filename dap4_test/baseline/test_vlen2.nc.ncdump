@@ -1,0 +1,12 @@
+netcdf test_vlen2 {
+types:
+  compound x_cmpd_t {
+    int x ;
+  }; // x_cmpd_t
+  x_cmpd_t(*) x_t ;
+dimensions:
+	d3 = 3 ;
+	d2 = 2 ;
+variables:
+	x_t x(d3, d2) ;
+}

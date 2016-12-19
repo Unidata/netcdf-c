@@ -21,78 +21,46 @@ are defined here.
 
 #define DEFAULTSTRINGLENGTH 64
 
-/* Max rc file line size */
-#define MAXRCLINESIZE 8192
-
-/* Max number of triples from an rc file */
-#define MAXRCLINES 8192
-
 /* Size of the checksum */
 #define CHECKSUMSIZE 4
-
-/**************************************************/
-/*
-Collect single bit flags that
-affect the operation of the system.
-*/
-
-typedef unsigned int NCFLAGS;
-#  define SETFLAG(controls,flag) ((controls) |= (flag))
-#  define CLRFLAG(controls,flag) ((controls) &= ~(flag))
-#  define FLAGSET(controls,flag) (((controls) & (flag)) != 0)
-
-/* Defined flags */
-#define NCF_NC3             (0x0001) /* DAP->netcdf-3 */
-#define NCF_NC4             (0x0002) /* DAP->netcdf-4 */
-#define NCF_CACHE           (0x0008) /* Cache enabled/disabled */
-#define NCF_UNCONSTRAINABLE (0x0020) /* Not a constrainable URL */
-#define NCF_SHOWFETCH       (0x0040) /* show fetch calls */
-#define NCF_ONDISK          (0x0080) /* store data on disk */
-#define NCF_WHOLEVAR        (0x0100) /* retrieve only whole variables (as opposed to partial variable) into cache */
-#define NCF_PREFETCH        (0x0200) /* Cache prefetch enabled/disabled */
-#define NCF_PREFETCH_EAGER  (0x0400) /* Do eager prefetch; 0=>lazy */
-#define NCF_PREFETCH_ALL    (0x0800) /* Prefetch all variables */
-
-/* Define all the default on flags */
-#define DFALT_ON_FLAGS (NCF_CACHE|NCF_PREFETCH)
 
 /**************************************************/
 /* sigh, do the forwards */
 
 typedef struct NCD4INFO NCD4INFO;
+typedef enum NCD4CSUM NCD4CSUM;
 typedef enum NCD4mode NCD4mode;
 typedef struct NCD4curl NCD4curl;
 typedef struct NCD4meta NCD4meta;
 typedef struct NCD4globalstate NCD4globalstate;
 typedef struct NCD4node NCD4node;
 typedef struct NCD4params NCD4params;
-typedef struct NCD4triplestore NCD4triplestore;
 
 /**************************************************/
 /* DMR Tree node sorts */
 
 /* Concepts from netcdf-4 data model */
+/* Define as powers of 2 so we can create a set */
 typedef enum NCD4sort {
     NCD4_NULL=0,
     NCD4_ATTR=1,
     NCD4_ATTRSET=2,
-    NCD4_XML=3, /* OtherXML */
-    NCD4_DIM=4,
-    NCD4_GROUP=5, /* Including Dataset */
-    NCD4_TYPE=6, /* atom types, opaque, enum, struct or seq */
-    NCD4_VAR=7, /* Variable or field */
-    NCD4_ECONST=8,
-#define NSORTS (NCD4_ECONST+1)
+    NCD4_XML=4, /* OtherXML */
+    NCD4_DIM=8,
+    NCD4_GROUP=16, /* Including Dataset */
+    NCD4_TYPE=32, /* atom types, opaque, enum, struct or seq */
+    NCD4_VAR=64, /* Variable or field */
+    NCD4_ECONST=128,
 } NCD4sort;
 
-#define ISA(sort,flags) ((1<<(sort) & (flags)))
+#define ISA(sort,flags) ((sort) & (flags))
 
-#define ISATTR(sort) ISA((sort),(1<<NCD4_ATTR))
-#define ISDIM(sort) ISA((sort),(1<<NCD4_DIM))
-#define ISGROUP(sort) ISA((sort),(1<<NCD4_GROUP))
-#define ISTYPE(sort) ISA((sort),(1<<NCD4_TYPE))
-#define ISVAR(sort) ISA((sort),(1<<NCD4_VAR))
-#define ISECONST(sort) ISA((sort),(1<<NCD4_ECONST))
+#define ISATTR(sort) ISA((sort),(NCD4_ATTR))
+#define ISDIM(sort) ISA((sort),(NCD4_DIM))
+#define ISGROUP(sort) ISA((sort),(NCD4_GROUP))
+#define ISTYPE(sort) ISA((sort),(NCD4_TYPE))
+#define ISVAR(sort) ISA((sort),(NCD4_VAR))
+#define ISECONST(sort) ISA((sort),(NCD4_ECONST))
 
 /* Define some nc_type aliases */
 #define NC_NULL NC_NAT
@@ -106,25 +74,34 @@ typedef enum NCD4sort {
    these are suppressed, except for UCARTAGMAPS
 */
 
-#define UCARTAG        "^edu.ucar."
-#define UCARTAGNC4     "_edu.ucar."
-#define UCARTAGVLEN     "^edu.ucar.isvlen"
-#define UCARTAGOPAQUE   "^edu.ucar.opaque.size"
-#define UCARTAGUNLIM    "^edu.ucar.isunlim"
-#define UCARTAGORIGTYPE "^edu.ucar.orig.type"
-#define UCARTAGMAPS     "^edu.ucar.maps"
+#define RESERVECHAR '_'
+
+#define UCARTAG        "_edu.ucar."
+#define UCARTAGVLEN     "_edu.ucar.isvlen"
+#define UCARTAGOPAQUE   "_edu.ucar.opaque.size"
+#define UCARTAGUNLIM    "_edu.ucar.isunlim"
+#define UCARTAGORIGTYPE "_edu.ucar.orig.type"
+
+/* These are attributes inserted into the netcdf-4 file */
 #define NC4TAGMAPS      "_edu.ucar.maps"
 
 /**************************************************/
 /* Misc.*/
 
-/* Define possible checksum modes */
-
-
+/* Define possible retrieval modes */
 enum NCD4mode {
-    NCD4_DMR, /*=> compute checksums for DMR requests only*/
-    NCD4_DAP, /*=> compute checksums for DAP requests only*/
-    NCD4_ALL  /*=> compute checksums for both kinds of requests */
+NCD4_DMR = 1,
+NCD4_DAP = 2,
+};
+
+
+/* Define possible checksum modes */
+enum NCD4CSUM {
+    NCD4_CSUM_NONE   = 0,
+    NCD4_CSUM_IGNORE = 1, /*=> checksums are present; do not validate */
+    NCD4_CSUM_DMR    = 2, /*=> compute checksums for DMR requests only*/
+    NCD4_CSUM_DAP    = 4, /*=> compute checksums for DAP requests only*/
+    NCD4_CSUM_ALL    = 6  /*=> compute checksums for both kinds of requests */
 };
 
 /* Define storage for all the primitive types (plus vlen) */
@@ -167,7 +144,8 @@ struct NCD4node {
     NClist* types;   /* NClist<NCD4node*> types in group */
     NClist* dims;    /* NClist<NCD4node*>; dimdefs in group, dimrefs in vars */
     NClist* attributes; /* NClist<NCD4node*> */
-    NClist* maps;       /* ^edu.ucar.maps ; NClist<NCD4node*> */
+    NClist* maps;       /* NClist<NCD4node*> */
+    NClist* xmlattributes; /* NClist<String> */
     NCD4node* basetype;
     struct { /* sort == NCD4_ATTRIBUTE */
         NClist* values;
@@ -183,7 +161,7 @@ struct NCD4node {
         NClist* econsts; /* NClist<NCD4node*> */
     } en;
     struct { /* sort == NCD4_GROUP */
-	NClist* elements;   /* NClist<NCD4node*> defines the fqn path */
+	NClist* elements;   /* NClist<NCD4node*> everything at the top level in a group */
         int isdataset;
         char* dapversion;
         char* dmrversion;
@@ -196,18 +174,19 @@ struct NCD4node {
     } meta;
     struct { /* Data compilation info */
         int flags; /* See d4data for actual flags */
-	D4blob vardata; /* cover the memory of this variable/field */
-        unsigned char checksum[CHECKSUMSIZE]; /* toplevel variable checksum */    
+	D4blob topvardata; /* cover the memory of this TOPLEVEL variable/field */
+        unsigned int remotechecksum; /* toplevel variable checksum as sent by server*/    
+        unsigned int localchecksum; /* toplevel variable checksum as computed by client */    
     } data;
     struct { /* Track netcdf-4 conversion info */
-	int isvlen;	/*  ^edu.ucar.isvlen */
-	int isunlim;	/* ^edu.ucar.isunlim */
+	int isvlen;	/*  _edu.ucar.isvlen */
+	int isunlim;	/* _edu.ucar.isunlim */
 	/* Split UCARTAGORIGTYPE into group plus name */
 	struct {
   	    NCD4node* group;
 	    char* name;
 	} orig;
-	/* Represented elsewhare: ^edu.ucar.opaque.size */ 
+	/* Represented elsewhare: _edu.ucar.opaque.size */ 
     } nc4;
 };
 
@@ -220,8 +199,9 @@ typedef struct NCD4serial {
     size_t dmrsize; /* |dmrdata| */
     char* dmr;/* pointer into rawdata where dmr starts */ 
     char* errdata; /* null || error chunk (null terminated) */
-    int hostbigendian;
-    int remotebigendian; /* 1 if the packet says data is bigendian */
+    int hostlittleendian; /* 1 if the host is little endian */
+    int remotelittleendian; /* 1 if the packet says data is little endian */
+    int nochecksum; /* 1 if the packet says no checksums are included */
 } NCD4serial;
 
 /* This will be passed out of the parse */
@@ -237,8 +217,10 @@ struct NCD4meta {
 	char* otherinfo;
     } error;
     int debuglevel;
-    NCD4mode checksummode;
     NCD4serial serial;
+    NCD4CSUM checksummode;
+    int checksumming; /* 1=>compute local checksum */
+    int swap; /* 1 => swap data */
     NClist* blobs;  /* various malloc'd chunks will be remembered here */
 };
 
@@ -259,20 +241,17 @@ typedef struct NCD4parser {
 
 /**************************************************/
 
-struct NCD4triplestore {
-    int ntriples;
-    struct NCD4triple {
-        char host[MAXRCLINESIZE]; /* includes port if specified */
-        char key[MAXRCLINESIZE];
-        char value[MAXRCLINESIZE];
-   } triples[MAXRCLINES];
-};
+typedef struct NCD4triple {
+        char* host; /* includes port if specified */
+        char* key;
+        char* value;
+} NCD4triple;
+
 
 /**************************************************/
 
 /* Collect global state info in one place */
 struct NCD4globalstate {
-    int initialized;
     struct {
         int proto_file;
         int proto_https;
@@ -282,7 +261,7 @@ struct NCD4globalstate {
     struct {
 	int ignore; /* if 1, then do not use any rc file */
 	int loaded;
-        NCD4triplestore daprc; /* the rc file triple store fields*/
+        NClist* rc; /*NClist<NCD4triple>; the rc file triple store fields*/
         char* rcfile; /* specified rcfile; overrides anything else */
     } rc;
 };
@@ -331,46 +310,33 @@ struct NCD4curl {
     struct credentials {
 	char *userpwd; /*CURLOPT_USERPWD*/
     } creds;
-    void* usercurldata;
 };
 
 /**************************************************/
-struct NCD4params {
-#if 0
-    NClist*  projectedvars; /* vars appearing in nc_open url projections */
-    unsigned int defaultstringlength;
-    unsigned int defaultsequencelimit; /* global sequence limit;0=>no limit */
-    size_t fetchlimit;
-    size_t smallsizelimit; /* what constitutes a small object? */
-    size_t totalestimatedsize;
-    const char* separator; /* constant; do not free */
-    /* global string dimension */
-    struct CDFnode* globalstringdim;
-    NClist*  usertypes; /* nodes which will represent netcdf types */
-#endif
-};
-
 /* Define a structure holding common info */
 
 struct NCD4INFO {
     NC*   controller; /* Parent instance of NCD4INFO */
-    NCFLAGS  flags;
+    NCCONTROLS  flags;
     int nc4id; /* nc4 file ncid used to hold metadata */
     int debug;
     char* rawurltext; /* as given to ncd4_open */
     char* urltext;    /* as modified by ncd4_open */
     NCURI* uri;      /* parse of rawuritext */
-    /*DC4Constraint* dapconstraint;  from url */
     NCD4curl* curl;
     int inmemory; /* store fetched data in memory? */
     struct {
 	char*   memory;   /* allocated memory if ONDISK is not set */
-        char*   filename; /* If ONDISK is set */
-        FILE*   file;     /* ditto */
+        char*   ondiskfilename; /* If ONDISK is set */
+        FILE*   ondiskfile;     /* ditto */
         off_t   datasize; /* size on disk or in memory */
         long dmrlastmodified;
         long daplastmodified;
     } data;
+    struct {
+	char* filename; /* of the substrate file, not really important */	
+	NCD4meta* metadata;
+    } substrate;
 };
 
 #endif /*D4TYPES_H*/

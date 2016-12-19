@@ -119,10 +119,15 @@ extern NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 
-#ifdef USE_DAP
+#ifdef ENABLE_DAP2
 extern NC_Dispatch* NCD2_dispatch_table;
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
+#endif
+#ifdef ENABLE_DAP4
+extern NC_Dispatch* NCD4_dispatch_table;
+extern int NCD4_initialize(void);
+extern int NCD4_finalize(void);
 #endif
 
 #ifdef USE_PNETCDF
@@ -135,12 +140,6 @@ extern int NCP_finalize(void);
 extern NC_Dispatch* NC4_dispatch_table;
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
-#endif
-
-#ifdef USE_DAP
-extern NC_Dispatch* NCD4_dispatch_table;
-extern int NCD4_initialize(void);
-extern int NCD4_finalize(void);
 #endif
 
 /* Vectors of ones and zeros */
@@ -341,6 +340,18 @@ extern int NCDAP_urlparse(const char* s, void** dapurl);
 extern void NCDAP_urlfree(void* dapurl);
 extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 
+#if defined(DLL_NETCDF)
+# if defined(DLL_EXPORT)
+#  define NCC_EXTRA __declspec(dllexport)
+#else
+#  define NCC_EXTRA __declspec(dllimport)
+# endif
+NCC_EXTRA extern int nc__testurl(const char* path, char** basename);
+#else
+extern int
+ nc__testurl(const char* parth, char** basename);
+#endif
+
 /* Test for specific set of servers */
 #if defined(DLL_NETCDF) /* Defined when library is a DLL */
 # if defined(DLL_EXPORT) /* Define when building the library. */
@@ -354,12 +365,12 @@ extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 
 #define NCD_EXTERNL MSC_NCDISPATCH_EXTRA extern
 
-NCD_EXTERNL char* NC_findtestserver(const char*, const char**);
 NCD_EXTERNL int nc_open_mem(const char*, int, size_t, void*, int*);
 NCD_EXTERNL int nc_finalize();
 
 /* Ping a specific server */
-extern int NCDAP_ping(const char*);
+extern int NCDAP2_ping(const char*);
+extern int NCDAP4_ping(const char*);
 
 /* Misc */
 

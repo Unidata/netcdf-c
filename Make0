@@ -1,6 +1,7 @@
-T=t
+T=t_dap3a
 
 NCLIB=./liblib/.libs/libnetcdf.a
+D4LIB=./libdap4/.libs/libdap4.a
 
 LFLAG=-L/usr/local/lib
 
@@ -10,7 +11,7 @@ LFLAG=-L/usr/local/lib
 
 OTHERLIBS=-lm
 
-LIBS=${NCLIB} ${LFLAG} ${CURLLIB} ${HDF5LIB} ${ZLIB} ${OTHERLIBS}
+LIBS=${D4LIB} ${NCLIB} ${LFLAG} ${CURLLIB} ${HDF5LIB} ${ZLIB} ${OTHERLIBS}
 INCL=-I. -I./include
 RPATH=-Wl,-rpath,${LFLAG}
 

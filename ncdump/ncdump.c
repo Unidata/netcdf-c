@@ -3,7 +3,7 @@
 Copyright 2011 University Corporation for Atmospheric
 Research/Unidata. See \ref copyright file for more info.  */
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -162,10 +162,7 @@ name_path(const char *path)
     /* See if this is a url */
     {
 	char* base;
-
         extern int nc__testurl(const char*,char**);
-
-
  	if(nc__testurl(path,&base)) {
  	    return base; /* Looks like a url */
 	}

@@ -11,6 +11,30 @@
 
 #undef DEBUG
 
+/* Figure out topsrcdir; assume we are running in ncdap_test */
+static char*
+gettopsrcdir(void)
+{
+    char *p,*q, tmp[4096];
+    char* topsrcdir = getenv("TOPSRCDIR");
+    if(topsrcdir != NULL) {
+	strcpy(tmp,topsrcdir);
+    } else {
+	fprintf(stderr,"$abs_top_srcdir not defined: using 'getcwd'");
+        getcwd(tmp,sizeof(tmp));
+    }
+    /* Remove trailing filename */
+    for(p=tmp,q=NULL;*p;p++) {
+	if(*p == '\\') *p  = '/';
+	if(*p == '/') q = p;		
+    }
+    if(q == NULL)
+       q = tmp; /* should not ever happen, but oh well*/
+    else
+       *q = '\0';    
+    return strdup(tmp);
+}    
+
 int
 main()
 {
@@ -25,14 +49,12 @@ main()
     char url[4096];
 
     /* Assume that TESTS_ENVIRONMENT was set */
-    topsrcdir = getenv("TOPSRCDIR");
-    if(topsrcdir == NULL) {
-        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
-        exit(1);
-    }    
+    topsrcdir = gettopsrcdir();
+    strcat(url,"");
     strcpy(url,"file://");
     strcat(url,topsrcdir);
     strcat(url,"/ncdap_test/testdata3/test.02");
+    strcat(url,"#dap2");
 
     if ((retval = nc_open(url, 0, &ncid)))
        ERR(retval);

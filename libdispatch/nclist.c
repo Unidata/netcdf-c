@@ -197,8 +197,6 @@ nclistelemremove(NClist* l, void* elem)
 }
 
 
-
-
 /* Extends nclist to include a unique operator 
    which remove duplicate values; NULL values removed
    return value is always 1.
@@ -232,4 +230,14 @@ nclistclone(NClist* l)
     *clone = *l;
     clone->content = nclistdup(l);
     return clone;
+}
+
+void*
+nclistextract(NClist* l)
+{
+    void* result = l->content;
+    l->alloc = 0;
+    l->length = 0;
+    l->content = NULL;
+    return result;
 }

@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "ncdap.h"
+#include "dapincludes.h"
 #include "dapdump.h"
 
 #define LIMIT 1000

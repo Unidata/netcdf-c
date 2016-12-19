@@ -1,0 +1,16 @@
+netcdf test_sequence_2.syn {
+types:
+  compound s_cmpd_t {
+    int i1 ;
+    short sh1 ;
+  }; // s_cmpd_t
+  s_cmpd_t(*) s_t ;
+dimensions:
+	_Anonymous2 = 2 ;
+variables:
+	s_t s(_Anonymous2) ;
+data:
+
+ s = {{-920699049, 896}}, 
+    {{-920699049, 896}, {4, 0}, {970784768, -17143}, {475379458, 32427}} ;
+}

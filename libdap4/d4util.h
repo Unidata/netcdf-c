@@ -63,6 +63,7 @@ typedef struct D4blob {d4size_t size; void* memory;} D4blob;
 /***************************************************/
 /* Define the NCD4node.data.flags */
 
+#define HASNIL   (0) /* no flags set */
 #define HASSEQ   (1) /* transitively contains sequence(s)*/
 #define HASSTR   (2) /* transitively contains strings */
 #define HASOPFIX (4) /* transitively contains fixed size opaques */

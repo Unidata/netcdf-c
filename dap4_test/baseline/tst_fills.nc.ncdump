@@ -1,7 +1,0 @@
-netcdf tst_fills {
-variables:
-	ubyte uv8 ;
-	short v16 ;
-	int uv32 ;
-		uv32:_FillValue = 17 ;
-}

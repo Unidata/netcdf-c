@@ -1,0 +1,13 @@
+<Dataset
+         name="test_struct_type.nc"
+         dapVersion="4.0"
+         dmrVersion="1.0"
+         xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+         xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+    <Structure name="s">
+        <Int32 name="x"/>
+        <Int32 name="y"/>
+        <Map name="/s.x"/>
+        <Map name="/s.y"/>
+    </Structure>
+</Dataset>

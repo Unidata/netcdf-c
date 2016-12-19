@@ -57,15 +57,15 @@ ocstrncmp(const char* s1, const char* s2, size_t len)
 
 #if 0
 void
-makedimlist(OClist* path, OClist* dims)
+makedimlist(Nclist* path, Nclist* dims)
 {
     unsigned int i,j;
-    for(i=0;i<oclistlength(path);i++) {
-	OCnode* node = (OCnode*)oclistget(path,i);
+    for(i=0;i<nclistlength(path);i++) {
+	OCnode* node = (OCnode*)nclistget(path,i);
         unsigned int rank = node->array.rank;
 	for(j=0;j<rank;j++) {
-	    OCnode* dim = (OCnode*)oclistget(node->array.dimensions,j);
-	    oclistpush(dims,(void*)dim);
+	    OCnode* dim = (OCnode*)nclistget(node->array.dimensions,j);
+	    nclistpush(dims,(void*)dim);
         }
     }
 }
@@ -75,25 +75,25 @@ void
 ocfreeprojectionclause(OCprojectionclause* clause)
 {
     if(clause->target != NULL) free(clause->target);
-    while(oclistlength(clause->indexsets) > 0) {
-	OClist* slices = (OClist*)oclistpop(clause->indexsets);
-        while(oclistlength(slices) > 0) {
-	    OCslice* slice = (OCslice*)oclistpop(slices);
+    while(nclistlength(clause->indexsets) > 0) {
+	NClist* slices = (NClist*)nclistpop(clause->indexsets);
+        while(nclistlength(slices) > 0) {
+	    OCslice* slice = (OCslice*)nclistpop(slices);
 	    if(slice != NULL) free(slice);
 	}
-        oclistfree(slices);
+        nclistfree(slices);
     }
-    oclistfree(clause->indexsets);
+    nclistfree(clause->indexsets);
     free(clause);
 }
 
 #if 0
 void
-freeAttributes(OClist* attset)
+freeAttributes(NClist* attset)
 {
     unsigned int i,j;
-    for(i=0;i<oclistlength(attset);i++) {
-	OCattribute* att = (OCattribute*)oclistget(attset,i);
+    for(i=0;i<nclistlength(attset);i++) {
+	OCattribute* att = (OCattribute*)nclistget(attset,i);
 	if(att->name != NULL) free(att->name);
 	if(att->etype == OC_String || att->etype == OC_URL) {
 	    for(j=0;j<att->nvalues;j++) {
@@ -118,26 +118,26 @@ freeOCnode(OCnode* cdf, int deep)
     if(cdf->attributes != NULL) freeAttributes(cdf->attributes);
     if(cdf->subnodes != NULL) {
 	if(deep) {
-            for(i=0;i<oclistlength(cdf->subnodes);i++) {
-	        OCnode* node = (OCnode*)oclistget(cdf->subnodes,i);
+            for(i=0;i<nclistlength(cdf->subnodes);i++) {
+	        OCnode* node = (OCnode*)nclistget(cdf->subnodes,i);
 		freeOCnode(node,deep);
 	    }
 	}
-        oclistfree(cdf->subnodes);
+        nclistfree(cdf->subnodes);
     }
     free(cdf);
 }
 #endif
 
 int
-ocfindbod(OCbytes* buffer, size_t* bodp, size_t* ddslenp)
+ocfindbod(NCbytes* buffer, size_t* bodp, size_t* ddslenp)
 {
     unsigned int i;
     char* content;
-    size_t len = ocbyteslength(buffer);
+    size_t len = ncbyteslength(buffer);
     char** marks;
     
-    content = ocbytescontents(buffer);
+    content = ncbytescontents(buffer);
 
     for(marks = DDSdatamarks;*marks;marks++) {
 	char* mark = *marks;
@@ -455,7 +455,7 @@ ocdataddsmsg(OCstate* state, OCtree* tree)
 		if(c > 0 && (c < ' ' || c >= '\177'))
 		    contents[i+j] = ERRFILL;
 	    }
-	    oclog(OCLOGERR,"DATADDS failure, possible message: '%s'\n",
+	    nclog(NCLOGERR,"DATADDS failure, possible message: '%s'\n",
 			contents+i);
 	    goto done;
 	}

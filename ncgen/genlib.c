@@ -20,8 +20,8 @@ define_netcdf(void)
 
     /* Rule for specifying the dataset name:
 	1. use -o name
-	2. use input cdl file name
-	3. use the datasetname
+	2. use the datasetname from the .cdl file
+	3. use input cdl file name (with .cdl removed)
 	It would be better if there was some way
 	to specify the datasetname independently of the
 	file name, but oh well.

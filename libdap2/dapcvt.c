@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 #include "config.h"
-#include "ncdap.h"
+#include "dapincludes.h"
 
 #ifdef _MSC_VER
 #include <crtdbg.h>

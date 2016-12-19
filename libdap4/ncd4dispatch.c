@@ -10,9 +10,8 @@
 #include <crtdbg.h>
 #endif
 #include "ncd4dispatch.h"
-#include "ncd4.h"
-
-#define NCRCFILE "NCRCFILE"
+#include "d4includes.h"
+#include "d4curlfunctions.h"
 
 #ifdef HAVE_GETRLIMIT
 #  ifdef HAVE_SYS_RESOURCE_H
@@ -34,32 +33,44 @@ static NC_Dispatch NCD4_dispatch_base;
 
 NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
 
+/* Collect global state info in one place */
+NCD4globalstate* NCD4_globalstate = NULL;
+
+/* Forward */
+static int globalinit(void);
+
+/**************************************************/
 int
 NCD4_initialize(void)
 {
     NCD4_dispatch_table = &NCD4_dispatch_base;
     ncd4initialized = 1;
-#ifdef DEBUG
+    ncloginit();
+#ifdef D4DEBUG
     /* force logging to go to stderr */
     nclogclose();
     if(nclogopen(NULL))
         ncsetlogging(1); /* turn it on */
 #endif
-#if 0
-    /* Look at env vars for rc file location */
-    if(getenv(NCRCFILE) != NULL) {
-	const char* ncrcfile = getenv(NCRCFILE);
-	if(oc_set_rcfile(ncrcfile) != OC_NOERR)
-	    return NC_EAUTH;
-    }
-#endif
-    return NC_NOERR;
+    /* Init global state */
+    globalinit();
+    /* Load rc file */
+    NCD4_rcload();    
+    return THROW(NC_NOERR);
 }
 
 int
 NCD4_finalize(void)
 {
-    return NC_NOERR;
+    if(NCD4_globalstate != NULL) {
+        nullfree(NCD4_globalstate->tempdir);
+        nullfree(NCD4_globalstate->home);
+	nclistfree(NCD4_globalstate->rc.rc);
+	nullfree(NCD4_globalstate->rc.rcfile);
+	free(NCD4_globalstate);
+	NCD4_globalstate = NULL;
+    }
+    return THROW(NC_NOERR);
 }
 
 static int
@@ -86,7 +97,7 @@ NCD4_create(const char *path, int cmode,
 	   int use_parallel, void* mpidata,
            NC_Dispatch* dispatch, NC* ncp)
 {
-   return NC_EPERM;
+   return THROW(NC_EPERM);
 }
 
 static int
@@ -95,7 +106,7 @@ NCD4_put_vara(int ncid, int varid,
             const void *value,
 	    nc_type memtype)
 {
-    return NC_EPERM;
+    return THROW(NC_EPERM);
 }
 
 static int
@@ -116,7 +127,7 @@ NCD4_put_vars(int ncid, int varid,
 	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
             const void *value0, nc_type memtype)
 {
-    return NC_EPERM;
+    return THROW(NC_EPERM);
 }
 
 static int
@@ -141,7 +152,7 @@ NCD4_inq_format_extended(int ncid, int* formatp, int* modep)
     if(ncstatus != NC_NOERR) return (ncstatus);
     if(modep) *modep = nc->mode;
     if(formatp) *formatp = NC_FORMATX_DAP2;
-    return NC_NOERR;
+    return THROW(NC_NOERR);
 }
 
 /*
@@ -740,6 +751,141 @@ NCD4_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
 }
 
 #endif // USE_NETCDF4
+
+int
+NCDAP4_ping(const char* url)
+{
+    int stat = NC_NOERR;
+    CURLcode cstat = CURLE_OK;
+    CURL* curl = NULL;
+    NCbytes* buf = NULL;
+
+    /* Create a CURL instance */
+    stat = NCD4_curlopen(&curl);
+    if(stat != NC_NOERR) return stat;    
+
+    /* Use redirects */
+    cstat = curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
+    if (cstat != CURLE_OK)
+        goto done;
+    cstat = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    if (cstat != CURLE_OK)
+        goto done;
+
+    /* use a very short timeout: 5 seconds */
+    cstat = curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)5);
+    if (cstat != CURLE_OK)
+        goto done;
+
+    /* fail on HTTP 400 code errors */
+    cstat = curl_easy_setopt(curl, CURLOPT_FAILONERROR, (long)1);
+    if (cstat != CURLE_OK)
+        goto done;
+
+    /* Try to get the file */
+    buf = ncbytesnew();
+    stat = NCD4_fetchurl(curl,url,buf,NULL,NULL);
+    if(stat == NC_NOERR) {
+	/* Don't trust curl to return an error when request gets 404 */
+	long http_code = 0;
+	cstat = curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &http_code);
+        if (cstat != CURLE_OK)
+            goto done;
+	if(http_code >= 400) {
+	    cstat = CURLE_HTTP_RETURNED_ERROR;
+	    goto done;
+	}
+    } else
+        goto done;
+
+done:
+    ncbytesfree(buf);
+    NCD4_curlclose(curl);
+    if(cstat != CURLE_OK) {
+        nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
+        stat = NC_EDAPSVC;
+    }
+    return THROW(stat);
+}
+
+static int
+globalinit(void)
+{
+    int stat = NC_NOERR;
+    if(NCD4_globalstate != NULL) return stat;
+    NCD4_globalstate = (NCD4globalstate*)calloc(1,sizeof(NCD4globalstate));
+    if(NCD4_globalstate == NULL) {
+	nclog(NCLOGERR, "Out of memory");
+	return stat;
+    }
+
+    /* Capture temp dir*/
+    {
+	char* tempdir;
+	char* p;
+	char* q;
+	char cwd[NC_MAX_PATH];
+#if defined(_WIN32) || defined(_WIN64)
+        tempdir = getenv("TEMP");
+#else
+	tempdir = "/tmp";
+#endif
+        if(tempdir == NULL) {
+	    fprintf(stderr,"Cannot find a temp dir; using ./\n");
+	    tempdir = getcwd(cwd,sizeof(cwd));
+	    if(tempdir == NULL || *tempdir == '\0') tempdir = ".";
+	}
+        NCD4_globalstate->tempdir= (char*)malloc(strlen(tempdir) + 1);
+	for(p=tempdir,q=NCD4_globalstate->tempdir;*p;p++,q++) {
+	    if((*p == '/' && *(p+1) == '/')
+	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
+	    *q = *p;
+	}
+	*q = '\0';
+#if defined(_WIN32) || defined(_WIN64)
+#else
+        /* Canonicalize */
+	for(p=NCD4_globalstate->tempdir;*p;p++) {
+	    if(*p == '\\') {*p = '/'; };
+	}
+	*q = '\0';
+#endif
+    }
+
+    /* Capture $HOME */
+    {
+	char* p;
+	char* q;
+        char* home = getenv("HOME");
+
+        if(home == NULL) {
+	    /* use tempdir */
+	    home = NCD4_globalstate->tempdir;
+	}
+        NCD4_globalstate->home = (char*)malloc(strlen(home) + 1);
+	for(p=home,q=NCD4_globalstate->home;*p;p++,q++) {
+	    if((*p == '/' && *(p+1) == '/')
+	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
+	    *q = *p;
+	}
+	*q = '\0';
+#if defined(_WIN32) || defined(_WIN64)
+#else
+        /* Canonicalize */
+	for(p=home;*p;p++) {
+	    if(*p == '\\') {*p = '/'; };
+	}
+#endif
+    }
+
+    {
+	CURLcode cstat = curl_global_init(CURL_GLOBAL_DEFAULT);
+	if(cstat != CURLE_OK)
+	    fprintf(stderr,"curl_global_init failed!\n");
+    }
+    NCD4_curl_protocols(NCD4_globalstate); /* see what protocols are supported */
+    return stat;
+}
 
 /**************************************************/
 

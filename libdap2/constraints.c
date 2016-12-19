@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT filey for copying and redistribution conditions.
  *********************************************************************/
 
-#include "ncdap.h"
+#include "dapincludes.h"
 #include "dceparselex.h"
 #include "dceconstraints.h"
 #include "dapdump.h"

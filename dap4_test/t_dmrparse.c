@@ -20,8 +20,10 @@ main(int argc, char** argv)
     if((ret = NCD4_parse(metadata))) goto done;
     ret = NCD4_print(metadata,output);
     ncbytesnull(output);
-    if(ret == NC_NOERR)
+    if(ret == NC_NOERR) {
         fprintf(stdout,"%s\n",ncbytescontents(output));
+	fflush(stdout);
+    }
 done:
     return cleanup(ret);
 }

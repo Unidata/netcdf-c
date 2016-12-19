@@ -9,9 +9,10 @@
 /**************************************************/
 
 /* Header flags */
-#define LAST_CHUNK (1<<0)
-#define ERR_CHUNK (1<<1)
-#define LITTLE_ENDIAN_CHUNK (1<<2)
+#define LAST_CHUNK          (1)
+#define ERR_CHUNK           (2)
+#define LITTLE_ENDIAN_CHUNK (4)
+#define NOCHECKSUM_CHUNK    (8)
 
 /**************************************************/
 
@@ -19,7 +20,8 @@
 Given a packet as read from the wire via http (or a file), convert in
 place from chunked format to a single continguous set of bytes. If an
 error packet is recovered, then make that available to the caller and
-return an error. Also return whether the data was big endian encoded.
+return an error. Also return whether the data was big endian encoded
+and whether it has checksums.
 Notes:
 */
 
@@ -27,7 +29,7 @@ Notes:
 struct HDR {unsigned int flags;	unsigned int count;};
 
 /* Forward */
-static void* getheader(void* p, struct HDR* hdr, int hostbigendian);
+static void* getheader(void* p, struct HDR* hdr, int hostlittleendian);
 
 /**************************************************/
 
@@ -41,23 +43,25 @@ NCD4_dechunk(NCD4meta* metadata)
     metadata->serial.errdata = NULL;
     metadata->serial.dmr = NULL;
     metadata->serial.dap = NULL;
-    metadata->serial.hostbigendian = NCD4_isBigEndian();
-    metadata->serial.remotebigendian = 0; /* do not actually know yet */
+    metadata->serial.hostlittleendian = NCD4_isLittleEndian();
+    metadata->serial.remotelittleendian = 1; /* do not actually know yet */
+    metadata->serial.nochecksum = 0; /* do not actually know yet */
 
     p = metadata->serial.rawdata;
     firstchunk = 1;
     for(;;firstchunk=0) {
 	struct HDR hdr;
-	p = getheader(p,&hdr,metadata->serial.hostbigendian);
+	p = getheader(p,&hdr,metadata->serial.hostlittleendian);
 	if(hdr.flags & ERR_CHUNK) {
 	    metadata->serial.errdata = (char*)malloc(hdr.count+1);
-	    if(metadata->serial.errdata == NULL) return NC_ENOMEM;
+	    if(metadata->serial.errdata == NULL) return THROW(NC_ENOMEM);
 	    memcpy(metadata->serial.errdata,p,hdr.count);
 	    metadata->serial.errdata[hdr.count] = '\0';
-	    return NC_ENODATA; /* slight lie */
+	    return THROW(NC_ENODATA); /* slight lie */
 	}
 	if(firstchunk) { /* extract 1st (dmr) chunk */
-	    metadata->serial.remotebigendian = ((hdr.flags & LITTLE_ENDIAN_CHUNK) ? 0 : 1);
+	    metadata->serial.nochecksum = ((hdr.flags & NOCHECKSUM_CHUNK) ? 1 : 0);
+	    metadata->serial.remotelittleendian = ((hdr.flags & LITTLE_ENDIAN_CHUNK) ? 1 : 0);
 	    metadata->serial.dmr = p;
 	    metadata->serial.dmr[hdr.count-1] = '\0';
 	    metadata->serial.dmrsize = hdr.count;
@@ -73,7 +77,14 @@ NCD4_dechunk(NCD4meta* metadata)
 	if(hdr.flags & LAST_CHUNK) break;
     }
     metadata->serial.dapsize = (size_t)(((void*)p) - metadata->serial.dap);
-    return NC_NOERR;    
+#ifdef D4DUMPDMR
+    fprintf(stderr,"%s\n",metadata->serial.dmr);
+    fflush(stderr);
+#endif
+#ifdef D4DUMPDAP
+    NCD4_tagdump(metadata->serial.dapsize,metadata->serial.dap,0,"DAP");
+#endif
+    return THROW(NC_NOERR);    
 }
 
 void
@@ -91,14 +102,14 @@ NCD4_isdmr(const void* data)
 }
 
 static void*
-getheader(void* p, struct HDR* hdr, int hostbigendian)
+getheader(void* p, struct HDR* hdr, int hostlittleendian)
 {
     unsigned char bytes[4];
     memcpy(bytes,p,sizeof(bytes));
     p += 4; /* on-the-wire hdr is 4 bytes */
     hdr->flags = bytes[0]; /* big endian => flags are in byte 0 */
     bytes[0] = 0; /* so we can do byte swap to get count */
-    if(!hostbigendian)
+    if(hostlittleendian)
         swapinline32(bytes); /* host is little endian */
     hdr->count = *(unsigned int*)bytes; /* get count */
     return p;

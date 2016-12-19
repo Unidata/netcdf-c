@@ -1,6 +1,6 @@
 netcdf test_opaque {
 types:
-  ubyte(*) _bytestring ;
+  opaque(8) opaque8_t ;
 variables:
-	_bytestring vo1 ;
+	opaque8_t vo1 ;
 }

@@ -1,0 +1,14 @@
+<Dataset
+         name="test_vlen4.nc"
+         dapVersion="4.0"
+         dmrVersion="1.0"
+         xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+         xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+
+    <Structure name="v1">
+        <Sequence name="f1">
+            <Int32 name="f1"/>
+            <Dim size="2"/>
+        </Sequence>
+    </Structure>
+</Dataset>

@@ -66,7 +66,7 @@ NCD4_metabuild(NCD4meta* metadata, int ncid)
     NCD4_toposort(metadata);
     /* Process the metadata state */
     ret = build(metadata,metadata->root);
-    return ret;
+    return THROW(ret);
 }
 
 
@@ -76,7 +76,7 @@ NCD4_metabuild(NCD4meta* metadata, int ncid)
 */
 
 NCD4meta*
-NCD4_newmeta(NCD4mode checksummode, size_t rawsize, void* rawdata)
+NCD4_newmeta(NCD4CSUM checksummode, size_t rawsize, void* rawdata)
 {
     NCD4meta* meta = (NCD4meta*)calloc(1,sizeof(NCD4meta));
     if(meta == NULL) return NULL;
@@ -169,7 +169,7 @@ build(NCD4meta* builder, NCD4node* root)
 	if(ISVAR(x->sort) && ISTOPLEVEL(x)) buildVariable(builder,x);
     }
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -189,7 +189,7 @@ buildGroups(NCD4meta* builder, NCD4node* parent)
 	if((ret=buildGroups(builder,g))) goto done; /* recurse */
     }
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -199,7 +199,7 @@ buildDimension(NCD4meta* builder, NCD4node* dim)
     NCD4node* group = groupFor(dim);
     NCCHECK((nc_def_dim(group->meta.id,dim->name,(size_t)dim->dim.size,&dim->meta.id)));
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -213,7 +213,7 @@ buildEnumeration(NCD4meta* builder, NCD4node* en)
 	NCCHECK((nc_insert_enum(group->meta.id, en->meta.id, ec->name, ec->en.ecvalue.i8)));
     }
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -236,7 +236,7 @@ buildOpaque(NCD4meta* builder, NCD4node* op)
 	NCCHECK((nc_def_vlen(builder->root->meta.id,"_bytestring",NC_UBYTE,&op->meta.id)));
     }
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -256,7 +256,7 @@ buildVariable(NCD4meta* builder, NCD4node* var)
 	break;
     }
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -266,7 +266,7 @@ buildMetaData(NCD4meta* builder, NCD4node* var)
     if((ret = buildAttributes(builder,var))) goto done;    
     if((ret = buildMaps(builder,var))) goto done;    
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -290,12 +290,13 @@ buildMaps(NCD4meta* builder, NCD4node* var)
             *p++ = fqn;
         }
 	group = groupFor(var);
+	/* Make map info visible in the netcdf-4 file */
 	ret = nc_put_att(group->meta.id,var->meta.id,NC4TAGMAPS,NC_STRING,count,memory);
         freeStringMemory(memory,count);
         NCCHECK(ret);
     }
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -310,8 +311,8 @@ buildAttributes(NCD4meta* builder, NCD4node* varorgroup)
 	NCD4node* group;
         int varid;
 
-	/* Supress all UCARTAG attributes (as modified) */
-	if(strncmp(attr->name,UCARTAGNC4,strlen(UCARTAGNC4)) == 0)
+	/* Supress all UCARTAG attributes */
+	if(strncmp(attr->name,UCARTAG,strlen(UCARTAG)) == 0)
 	    continue;
 
 	if(ISGROUP(varorgroup->sort))
@@ -327,7 +328,7 @@ buildAttributes(NCD4meta* builder, NCD4node* varorgroup)
         nullfree(memory);
     }
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -359,7 +360,7 @@ buildStructureType(NCD4meta* builder, NCD4node* structtype)
 
 done:
     nullfree(name);
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -412,7 +413,7 @@ buildSequenceType(NCD4meta* builder, NCD4node* seqtype)
 done:
     nullfree(vlentypename);
     nullfree(cmpdtypename);
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -446,7 +447,7 @@ buildCompound(NCD4meta* builder, NCD4node* cmpdtype, NCD4node* group, char* name
     }
 
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -468,7 +469,7 @@ buildAtomicVar(NCD4meta* builder, NCD4node* var)
     /* Build attributes and map attributes */
     if((ret = buildMetaData(builder,var))) goto done;    
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -488,7 +489,7 @@ buildStructure(NCD4meta* builder, NCD4node* structvar)
     if((ret = buildMetaData(builder,structvar))) goto done;    
 
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -508,7 +509,7 @@ buildSequence(NCD4meta* builder, NCD4node* seq)
     if((ret = buildMetaData(builder,seq))) goto done;    
 
 done:
-    return ret;
+    return THROW(ret);
 }
 
 /***************************************************/
@@ -614,7 +615,7 @@ compileAttrValues(NCD4meta* builder, NCD4node* basetype, NClist* values, void** 
         FAIL(NC_EBADTYPE,"Illegal attribute type: %s",basetype->name);
     size = NCD4_typesize(truebase->meta.id);
     if((memory = (char*)malloc(count*size))==NULL)
-        return NC_ENOMEM;
+        return THROW(NC_ENOMEM);
     p = memory;
     for(i=0;i<count;i++) {
         char* s = (char*)nclistget(values,i);
@@ -630,7 +631,7 @@ compileAttrValues(NCD4meta* builder, NCD4node* basetype, NClist* values, void** 
     }
     if(memoryp) *memoryp = memory;
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static void*
@@ -663,17 +664,20 @@ convertString(union ATOMICS* converter, NCD4node* type, const char* s)
     case NC_SHORT:
     case NC_INT:
     case NC_INT64:
-	if(sscanf(s,"%lld",&converter->i64) != 1) return NC_ERANGE;
+	if(sscanf(s,"%lld",&converter->i64) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_UBYTE:
     case NC_USHORT:
     case NC_UINT:
     case NC_UINT64:
-	if(sscanf(s,"%llu",&converter->u64) != 1) return NC_ERANGE;
+	if(sscanf(s,"%llu",&converter->u64) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_FLOAT:
     case NC_DOUBLE:
-	if(sscanf(s,"%lf",&converter->f64) != 1) return NC_ERANGE;
+	if(sscanf(s,"%lf",&converter->f64) != 1) return THROW(NC_ERANGE);
+	break;
+    case NC_CHAR:
+	converter->i8[0] = s[0];
 	break;
     case NC_STRING:
 	converter->s[0]= strdup(s);
@@ -690,6 +694,7 @@ downConvert(union ATOMICS* converter, NCD4node* type)
     double f64 = converter->f64[0];
     char* s = converter->s[0];
     switch (type->subsort) {
+    case NC_CHAR:
     case NC_BYTE:
 	converter->i8[0] = (char)i64;
 	break;
@@ -724,7 +729,7 @@ downConvert(union ATOMICS* converter, NCD4node* type)
 	converter->s[0]= s;
 	break;
     }/*switch*/
-    return NC_NOERR;
+    return THROW(NC_NOERR);
 }
 
 /*
@@ -751,14 +756,14 @@ decodeEconst(NCD4meta* builder, NCD4node* enumtype, const char* nameorval, union
             goto done;
         for(i=0;i<nclistlength(enumtype->en.econsts);i++) {
             NCD4node* ec = (NCD4node*)nclistget(enumtype->en.econsts,i);
-            if(ec->en.ecvalue.u64 == number.u64) {match = ec; break;}
+            if(ec->en.ecvalue.u64[0] == number.u64[0]) {match = ec; break;}
         }
     }
     if(match == NULL)
         FAIL(NC_EINVAL,"No enum const matching value: %s",nameorval);
     if(converter) *converter = match->en.ecvalue;
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static char*
@@ -805,6 +810,11 @@ computeOffsets(NCD4meta* builder, NCD4node* cmpd)
 	    size = sizeof(nc_vlen_t);
 	} else
 	    size = computeTypeSize(builder,field->basetype);
+	/* Multiply by the field dimproduct*/
+	if(nclistlength(field->dims) > 0) {
+            unsigned long long count = NCD4_dimproduct(field);
+	    size = (size * count);
+	}
 	field->meta.offset = offset;
 	offset += size;
     }

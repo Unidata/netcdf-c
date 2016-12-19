@@ -9,6 +9,10 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.2 - TBD
 
+* [Enhancement] DAP4 is now supported. Since dap2 is the default for urls, dap4 must be specified
+by (1) using "dap4:" as the url protocol, or (2) appending "#protocol=dap4" to the end of the url.
+* [Enhancement] The remote testing server can now be specified with the '--with-testserver" option to ./configure.
+* [Refactor] the oc2 library is no longer independent of the main netcdf-c library. For example, it now uses ncuri, nclist, and ncbytes instead of its homegrown equivalents.
 * [Documentation] Updated documentation related to netCDF variable names and DAP2 access to reflect the undefined behavior potentially observed when DAP2 reserved keywords are used as netCDF variable names. See [GitHub #308](https://github.com/Unidata/netcdf-c/issues/308) for more information.
 * [Bug] Fixed an issue with `nc_inq_type()` not returning proper value in some circumstances.  See [GitHub #317](https://github.com/Unidata/netcdf-c/issues/317) for more information.
 * [Bug] Corrected an issue related to test failures when `--disable-utilities` or `-DENABLE_UTILITIES=OFF` are specified when building with autotools or cmake, respectively.  See [GitHub #313](https://github.com/Unidata/netcdf-c/issues/313) for more information.

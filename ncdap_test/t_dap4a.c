@@ -105,11 +105,35 @@ static long  ilong[DIMSIZE];
 static char string3[DIMSIZE][STRLEN];
 #endif
 
+/* Figure out topsrcdir; assume we are running in ncdap_test */
+static char*
+gettopsrcdir(void)
+{
+    char *p,*q, tmp[4096];
+    char* topsrcdir = getenv("TOPSRCDIR");
+    if(topsrcdir != NULL) {
+	strcpy(tmp,topsrcdir);
+    } else {
+	fprintf(stderr,"$abs_top_srcdir not defined: using 'getcwd'");
+        getcwd(tmp,sizeof(tmp));
+    }
+    /* Remove trailing filename */
+    for(p=tmp,q=NULL;*p;p++) {
+	if(*p == '\\') *p  = '/';
+	if(*p == '/') q = p;		
+    }
+    if(q == NULL)
+       q = tmp; /* should not ever happen, but oh well*/
+    else
+       *q = '\0';    
+    return strdup(tmp);
+}    
+
 int main()
 {
     int ncid, varid;
     int ncstat = NC_NOERR;
-    char* url;
+    char url[4096];
     char* topsrcdir;
     size_t len;
 #ifndef USE_NETCDF4
@@ -121,25 +145,15 @@ int main()
      */
     
     /* Assume that TESTS_ENVIRONMENT was set */
-    topsrcdir = getenv("TOPSRCDIR");
-    if(topsrcdir == NULL) {
-        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
-        exit(1);
-    }    
-    len = strlen("file://") + strlen(topsrcdir) + strlen("/ncdap_test/testdata3/test.02") + 1;
-#ifdef DEBUG
-    len += strlen("[log][show=fetch]");
-#endif
-    url = (char*)malloc(len);
-    url[0] = '\0';
-
-#ifdef DEBUG
-    strcat(url,"[log][show=fetch]");
-#endif
-
+    topsrcdir = gettopsrcdir();
+    strcat(url,"");
     strcat(url,"file://");
     strcat(url,topsrcdir);
     strcat(url,"/ncdap_test/testdata3/test.02");
+    strcat(url,"#dap2");
+#ifdef DEBUG
+    strcat(url,"&log&show=fetch");
+#endif
 
     printf("*** Test: var conversions on URL: %s\n",url);
 

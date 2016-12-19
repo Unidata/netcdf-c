@@ -27,6 +27,12 @@ noinst_PROGRAMS = nc4print
 nc4print_SOURCES = nc4print.c
 endif
 
+# Conditionally build the ocprint program, but do not install
+if ENABLE_DAP2
+bin_PROGRAMS += ocprint
+ocprint_SOURCES=ocprint.c
+endif
+
 # This is the man page.
 man_MANS = ncdump.1 nccopy.1
 

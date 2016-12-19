@@ -19,11 +19,9 @@
     </Structure>
   </Types>
   <Variables>
-    <Float32 name="xcoords"/>
-    <Float32 name="ycoords"/>
     <Struct name="x" type="/x">
-      <Map name="/xcoords"/>
-      <Map name="/ycoords"/>
+      <Map name="/x_field1.x"/>
+      <Map name="/x_field1.y"/>
     </Struct>
   </Variables>
 </Dataset>

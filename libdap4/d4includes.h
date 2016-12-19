@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <assert.h>
 #include <curl/curl.h>
 
 #ifdef HAVE_SYS_TIME_H
@@ -31,14 +32,13 @@
 #  endif
 #endif
 
-#undef D4DEBUG
-
 #include "nc.h"
 #include "netcdf.h"
 #include "ncbytes.h"
 #include "nclist.h"
 #include "ncuri.h"
 #include "nclog.h"
+#include "ncdap.h"
 
 #include "d4bytes.h"
 #include "d4util.h"

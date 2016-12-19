@@ -12,7 +12,6 @@ AM_CPPFLAGS += -I$(top_builddir)/liblib
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =
 TESTS =
-TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 
 TESTS += tst_ncdap3.sh
 
@@ -29,10 +28,6 @@ TESTS += t_dap3a test_cvt3 test_vara
 
 if ENABLE_DAP_REMOTE_TESTS
 
-# Make nctestserver be the first test to be built
-check_PROGRAMS += nctestserver
-nctestserver_SOURCES = nctestserver.c
-
 if BUILD_UTILITIES
 TESTS += tst_remote3.sh tst_formatx.sh
 endif
@@ -43,13 +38,12 @@ if ENABLE_DAP_LONG_TESTS
  TESTS += tst_longremote3.sh
 endif
 
-test_partvar_SOURCES = test_partvar.c
-test_nstride_cached_SOURCE = test_nstride_cached.c
-#t_auth_SOURCES = t_auth.c
-#t_auth1_SOURCES = t_auth1.c
+test_partvar_SOURCES = test_partvar.c ${top_srcdir}/liblib/nctestserver.c
+test_varm3_SOURCES = test_varm3.c ${top_srcdir}/liblib/nctestserver.c
+test_nstride_cached_SOURCES = test_nstride_cached.c ${top_srcdir}/liblib/nctestserver.c
+
+#t_auth_SOURCES = t_auth.c ${top_srcdir}/liblib/nctestserver.c
 t_misc_SOURCES = t_misc.c
-test_varm3_SOURCES = test_varm3.c
-#t_ncf330_SOURCES = t_ncf330.c
 
 TESTS += test_varm3
 #TESTS += t_ncf330

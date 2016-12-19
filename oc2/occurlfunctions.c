@@ -188,7 +188,7 @@ ocset_curlflag(OCstate* state, int flag)
     default: {
 	struct OCCURLFLAG* f = occurlflagbyflag(flag);
 	if(f != NULL)
-	    oclog(OCLOGWARN,"Attempt to update unexpected curl flag: %s",
+	    nclog(NCLOGWARN,"Attempt to update unexpected curl flag: %s",
 				f->name);
 	} break;
     }
@@ -334,8 +334,8 @@ oc_curl_protocols(struct OCGLOBALSTATE* state)
         if(strcmp("http",*proto)==0) {state->curl.proto_https=1;}
     }
     if(ocdebug > 0) {
-        oclog(OCLOGNOTE,"Curl file:// support = %d",state->curl.proto_file);
-        oclog(OCLOGNOTE,"Curl https:// support = %d",state->curl.proto_https);
+        nclog(NCLOGNOTE,"Curl file:// support = %d",state->curl.proto_file);
+        nclog(NCLOGNOTE,"Curl https:// support = %d",state->curl.proto_https);
     }
 }
 
@@ -436,7 +436,7 @@ ocset_curlstate(OCstate* state, int flag, void* value)
     default: {
 	struct OCCURLFLAG* f = occurlflagbyflag(flag);
 	if(f != NULL)
-	    oclog(OCLOGWARN,"Attempt to add unexpected curl flag to state: %s",
+	    nclog(NCLOGWARN,"Attempt to add unexpected curl flag to state: %s",
 				f->name);
 	} break;
     }

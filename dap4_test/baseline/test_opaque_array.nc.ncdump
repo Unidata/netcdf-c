@@ -1,8 +1,8 @@
 netcdf test_opaque_array {
 types:
-  ubyte(*) _bytestring ;
+  opaque(8) opaque8_t ;
 dimensions:
 	d2 = 2 ;
 variables:
-	_bytestring vo2(d2, d2) ;
+	opaque8_t vo2(d2, d2) ;
 }

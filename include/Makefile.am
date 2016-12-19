@@ -20,6 +20,10 @@ netcdf_f.h err_macros.h ncbytes.h nchashmap.h ceconstraints.h rnd.h	\
 nclog.h ncconfigure.h nc4internal.h nctime.h nc3dispatch.h nc3internal.h \
 onstack.h nc_hashmap.h ncrc.h
 
+if USE_DAP
+noinst_HEADERS += ncdap.h
+endif
+
 if USE_NETCDF4
 noinst_HEADERS += ncaux.h
 endif

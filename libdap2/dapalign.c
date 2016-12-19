@@ -24,7 +24,7 @@ Author: D. Heimbigner 10/7/2008
 */
 #include "config.h"
 #ifndef OFFSETTEST
-#include        "ncdap.h"
+#include        "dapincludes.h"
 #else
 #include        <stdlib.h>
 #include        <string.h>

@@ -1,0 +1,17 @@
+netcdf test_struct_array.6.nc {
+types:
+  compound s_t {
+    int x ;
+    int y ;
+  }; // s_t
+dimensions:
+	_Anonymous2 = 2 ;
+variables:
+	s_t s(_Anonymous2, _Anonymous2) ;
+		string s:_edu.ucar.maps = "/s.x", "/s.y" ;
+data:
+
+ s =
+  {1, -1}, {17, 37},
+  {-4, 12}, {-8, 8} ;
+}

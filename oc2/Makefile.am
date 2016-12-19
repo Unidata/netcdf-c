@@ -18,7 +18,6 @@ ocdata.c ocdebug.c ocdump.c  \
 ocinternal.c ocnode.c \
 ochttp.c \
 ocrc.c ocread.c ocutil.c \
-ocbytes.c oclist.c ocuri.c oclog.c \
 occurlflags.c \
 xxdr.c
 
@@ -28,22 +27,13 @@ occlientparams.h occompile.h occonstraints.h occurlfunctions.h \
 ocdata.h ocdatatypes.h ocdebug.h ocdump.h \
 ocinternal.h ocnode.h \
 ochttp.h ocread.h ocutil.h \
-ocbytes.h oclist.h ocuri.h oclog.h \
 xxdr.h
 
 EXTRA_DIST = dap.y CMakeLists.txt auth.html.in oc.css
 
-if BUILD_DAP
 noinst_LTLIBRARIES = liboc.la
 liboc_la_SOURCES = $(SRC) $(HDRS) 
 liboc_la_CPPFLAGS = $(AM_CPPFLAGS)
-noinst_PROGRAMS=ocprint
-endif
-
-# Build the ocprint program, but do not install
-bin_PROGRAMS = ocprint
-ocprint_SOURCES=ocprint.c
-ocprint_LDADD=$(top_builddir)/oc2/liboc.la
 
 # These rule are used if someone wants to rebuild the grammar files.
 # Otherwise never invoked, but records how to do it.

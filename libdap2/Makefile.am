@@ -20,7 +20,7 @@ ncdaperr.c cdf.c cache.c dapdump.c dapdebug.c dapattr.c		\
 ncd2dispatch.c getvara.c dceconstraints.c dcetab.c	\
 dceparse.c dcelex.c
 
-HDRS= nccommon.h constraints.h ncd2dispatch.h ncdap.h dapalign.h	\
+HDRS= nccommon.h constraints.h ncd2dispatch.h dapincludes.h dapalign.h	\
 dapodom.h getvara.h dapnc.h daputil.h dapdebug.h dapdump.h		\
 dceconstraints.h dcetab.h dceparselex.h
 

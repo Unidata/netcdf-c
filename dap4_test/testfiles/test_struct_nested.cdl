@@ -5,8 +5,8 @@ types:
     int y ;
   }; // x.field1_t
   compound x.field2_t {
-    s1_t field1 ;
-    s1_t field2 ;
+    int field1 ;
+    int field2 ;
   }; // x.field2_t
   compound x_t {
     x.field1_t field1 ;

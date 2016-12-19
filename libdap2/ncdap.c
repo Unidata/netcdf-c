@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "ncdap.h"
+#include "dapincludes.h"
 
 #ifdef HAVE_GETRLIMIT
 #  ifdef HAVE_SYS_RESOURCE_H

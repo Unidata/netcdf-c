@@ -18,6 +18,8 @@
     <Struct name="s" type="/s">
       <Dim name="/dx"/>
       <Dim name="/dy"/>
+      <Map name="/s.x"/>
+      <Map name="/s.y"/>
     </Struct>
   </Variables>
 </Dataset>

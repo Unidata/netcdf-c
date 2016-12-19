@@ -12,7 +12,6 @@ AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/libdap4
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =
 TESTS =
-TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 
 t_dmrparse_SOURCES = t_dmrparse.c
 t_dmrmeta_SOURCES = t_dmrmeta.c
@@ -20,9 +19,22 @@ t_dmrdata_SOURCES = t_dmrdata.c
 
 check_PROGRAMS += t_dmrparse t_dmrmeta t_dmrdata
 
-TESTS += t_dmrparse.sh t_dmrmeta.sh t_dmrdata.sh
+TESTS += t_dmrparse.sh t_dmrmeta.sh t_dmrdata.sh test_raw.sh
 
-EXTRA_DIST = testfiles baseline t_dmrparse.sh t_dmrmeta.sh t_dmrdata.sh
+if ENABLE_DAP4_REMOTE_TESTS
+
+if BUILD_UTILITIES
+TESTS += test_remote.sh
+# not yet TESTS += test_hyrax.sh
+endif
+
+endif
+
+EXTRA_DIST = t_dmrparse.sh t_dmrmeta.sh t_dmrdata.sh \
+             test_raw.sh test_remote.sh test_hyrax.sh \
+             test_common.sh \
+	     daptestfiles dmrtestfiles cdltestfiles \
+	     baseline baselineraw baselineremote
 
 CLEANFILES = 
 
@@ -34,14 +46,10 @@ BUILT_SOURCES = .daprc
 
 DISTCLEANFILES = .daprc results/* results
 
-t_dmrparse.c: ../libdap4/t_dmrparse.c ../libdap4/t_dmr.h
-	rm -f ./t_dmrparse.c ./t_dmr.h
-	cp ../libdap4/t_dmrparse.c ../libdap4/t_dmr.h .
-
-t_dmrmeta.c: ../libdap4/t_dmrmeta.c ../libdap4/t_dmr.h
-	rm -f ./t_dmrmeta.c ./t_dmr.h
-	cp ../libdap4/t_dmrmeta.c ../libdap4/t_dmr.h .
-
-t_dmrdata.c: ../libdap4/t_dmrdata.c ../libdap4/t_dmr.h
-	rm -f ./t_dmrdata.c ./t_dmr.h
-	cp ../libdap4/t_dmrdata.c ../libdap4/t_dmr.h .
+# The shell file maketests.sh is used to build the testdata
+# for dap4 testing. It creates and fills the directories
+# daptestfiles, dmrtestfiles, and cdltestfiles
+# As a rule, this will only be invoked if there was a change
+# in the GenerateRaw.java program in the thredds tree.
+maketests::
+	bash ./maketests.sh

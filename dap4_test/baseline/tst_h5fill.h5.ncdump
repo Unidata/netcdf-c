@@ -1,6 +1,0 @@
-netcdf tst_h5fill {
-dimensions:
-	_Anonymous1 = 1 ;
-variables:
-	int var1(_Anonymous1) ;
-}

@@ -10,13 +10,19 @@
 
 #undef D4DEBUG /* general debug */
 #undef D4DEBUGPARSER
-#undef D4DEBUGMETA
+#define D4DEBUGMETA
 #undef D4DEBUGDATA
+#define D4DUMPDMR
+#define D4DUMPDAP
+#undef D4DUMPCSUM
 
 #ifdef D4DEBUG
 #define D4DEBUGPARSER
 #define D4DEBUGMETA
 #define D4DEBUGDATA
+#define D4DUMPCSUM
+#define D4DUMPDMR
+#define D4DUMPDAP
 #endif
 
 

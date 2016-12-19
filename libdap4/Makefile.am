@@ -20,12 +20,17 @@ t_dmrmeta.c \
 t_dmrparse.c
 
 SRC= \
+d4crc32.c \
+d4curlfunctions.c \
+d4curlflags.c \
+d4rc.c \
 d4fix.c \
 d4data.c \
+d4file.c \
 d4parser.c \
 d4meta.c \
 d4dump.c \
-d4swap.c \
+d4serial.c \
 d4chunk.c \
 d4printer.c \
 d4read.c \
@@ -34,19 +39,23 @@ d4util.c \
 d4debug.c \
 d4bytes.c \
 ncd4dispatch.c \
-d4file.c \
+ezxml_extra.c \
 ezxml.c
 
 HDRS= \
 ncd4dispatch.h \
 ncd4types.h \
+ncd4.h \
+d4chunk.h \
 d4http.h \
 d4read.h \
 d4curlfunctions.h \
 d4util.h \
 d4debug.h \
+d4odom.h \
 d4bytes.h \
-d4includes.h
+d4includes.h \
+ezxml.h
 
 if ENABLE_DAP4
 if USE_NETCDF4

@@ -1866,9 +1866,13 @@ NC_open(const char *path0, int cmode,
    }
 
    /* Force flag consistentcy */
-   if(model == NC_FORMATX_NC4)
+   if(model == NC_FORMATX_NC4 || model == NC_FORMATX_DAP4)
       cmode |= NC_NETCDF4;
-   else if(model == NC_FORMATX_NC3) {
+   else if(model == NC_FORMATX_DAP2) {
+      cmode &= ~NC_NETCDF4;
+      cmode &= ~NC_PNETCDF;
+      cmode &= ~NC_64BIT_OFFSET;
+   } else if(model == NC_FORMATX_NC3) {
       cmode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
       /* User may want to open file using the pnetcdf library */
       if(cmode & NC_PNETCDF) {
@@ -1897,20 +1901,17 @@ NC_open(const char *path0, int cmode,
      return  NC_EINVAL;
 
    /* override any other table choice */
-#ifdef OBSOLETE
-   dispatcher = NC_get_dispatch_override();
-#endif
    if(dispatcher != NULL) goto havetable;
 
    /* Figure out what dispatcher to use */
-#if  defined(USE_CDMREMOTE)
-   if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCR))
-	dispatcher = NCCR_dispatch_table;
-   else
-#endif
-#if defined(USE_DAP)
+#if defined(ENABLE_DAP2)
    if(model == (NC_FORMATX_DAP2))
 	dispatcher = NCD2_dispatch_table;
+   else
+#endif
+#if defined(ENABLE_DAP4)
+   if(model == (NC_FORMATX_DAP4))
+	dispatcher = NCD4_dispatch_table;
    else
 #endif
 #if  defined(USE_PNETCDF)

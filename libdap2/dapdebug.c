@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #include "nclog.h"
-#include "ncdap.h"
+#include "dapincludes.h"
 
 int ncdap3debug = 0;
 
