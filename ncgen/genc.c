@@ -715,7 +715,7 @@ definectype(Symbol* tsym)
 	    Symbol* econst = (Symbol*)listget(tsym->subnodes,i);
 	    Bytebuffer* econststring = bbNew();
 	    ASSERT(econst->subclass == NC_ECONST);
-	    c_generator->constant(c_generator,&econst->typ.econst,econststring);
+	    c_generator->constant(c_generator,tsym,&econst->typ.econst,econststring);
 	    bbNull(econststring);
             /* Enum constants must be converted to a fully qualified name */
 	    bbprintf0(stmt,"#define %s ((%s)%s)\n",
@@ -813,7 +813,7 @@ genc_deftype(Symbol* tsym)
 	    Symbol* econst = (Symbol*)listget(tsym->subnodes,i);
 	    Bytebuffer* econststring = bbNew();
 	    ASSERT(econst->subclass == NC_ECONST);
-	    c_generator->constant(c_generator,&econst->typ.econst,econststring);
+	    c_generator->constant(c_generator,tsym,&econst->typ.econst,econststring);
 	    bbNull(econststring);
 	    bbprintf0(stmt,"%seconst = %s;\n",
 		indented(1),bbContents(econststring));

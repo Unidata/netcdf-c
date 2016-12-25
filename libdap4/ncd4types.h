@@ -30,6 +30,7 @@ are defined here.
 typedef struct NCD4INFO NCD4INFO;
 typedef enum NCD4CSUM NCD4CSUM;
 typedef enum NCD4mode NCD4mode;
+typedef enum NCD4translation NCD4translation;
 typedef struct NCD4curl NCD4curl;
 typedef struct NCD4meta NCD4meta;
 typedef struct NCD4globalstate NCD4globalstate;
@@ -79,7 +80,6 @@ typedef enum NCD4sort {
 #define UCARTAG        "_edu.ucar."
 #define UCARTAGVLEN     "_edu.ucar.isvlen"
 #define UCARTAGOPAQUE   "_edu.ucar.opaque.size"
-#define UCARTAGUNLIM    "_edu.ucar.isunlim"
 #define UCARTAGORIGTYPE "_edu.ucar.orig.type"
 
 /* These are attributes inserted into the netcdf-4 file */
@@ -87,6 +87,12 @@ typedef enum NCD4sort {
 
 /**************************************************/
 /* Misc.*/
+
+/* Define possible translation modes */
+enum NCD4translation {
+NCD4_NOTRANS = 0, /* Apply straight DAP4->NetCDF4 translation */
+NCD4_TRANSNC4 = 1, /* Use _edu.ucar flags to achieve better translation */
+};
 
 /* Define possible retrieval modes */
 enum NCD4mode {
@@ -155,6 +161,7 @@ struct NCD4node {
     } opaque;
     struct { /* sort == NCD4_DIMENSION */
 	long long size;
+	int isunlimited;
     } dim;
     struct { /* sort == NCD4_ECONST || sort == NCD4_ENUM */    
         union ATOMICS ecvalue;
@@ -180,7 +187,6 @@ struct NCD4node {
     } data;
     struct { /* Track netcdf-4 conversion info */
 	int isvlen;	/*  _edu.ucar.isvlen */
-	int isunlim;	/* _edu.ucar.isunlim */
 	/* Split UCARTAGORIGTYPE into group plus name */
 	struct {
   	    NCD4node* group;
@@ -206,6 +212,7 @@ typedef struct NCD4serial {
 
 /* This will be passed out of the parse */
 struct NCD4meta {
+    NCD4INFO* controller;
     int ncid; /* root ncid of the netcdf-4 file; copy of NCD4parse argument*/
     NCD4node* root;
     NClist* allnodes; /*list<NCD4node>*/
@@ -228,7 +235,6 @@ typedef struct NCD4parser {
     char* input;
     int debuglevel;
     NCD4meta* metadata;
-    NCD4INFO* parent;
     /* Capture useful subsets of dataset->allnodes */
     NClist* types; /*list<NCD4node>*/
     NClist* dims; /*list<NCD4node>*/
@@ -317,7 +323,6 @@ struct NCD4curl {
 
 struct NCD4INFO {
     NC*   controller; /* Parent instance of NCD4INFO */
-    NCCONTROLS  flags;
     int nc4id; /* nc4 file ncid used to hold metadata */
     int debug;
     char* rawurltext; /* as given to ncd4_open */
@@ -337,6 +342,10 @@ struct NCD4INFO {
 	char* filename; /* of the substrate file, not really important */	
 	NCD4meta* metadata;
     } substrate;
+    struct {
+        NCCONTROLS  flags;
+	NCD4translation translation;
+    } controls;
 };
 
 #endif /*D4TYPES_H*/

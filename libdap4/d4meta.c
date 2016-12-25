@@ -392,8 +392,11 @@ buildSequenceType(NCD4meta* builder, NCD4node* seqtype)
 
     /* Step 4: determine if we need to build a structure type or can go straight to a vlen/
        Test:  UCARTAGVLEN attribute is set && there is only field */
-    ucar = NCD4_findAttr(seqtype,UCARTAGVLEN);
-    usevlen = (ucar != NULL && (nclistlength(seqtype->vars) == 1));
+    if(builder->controller->controls.translation == NCD4_TRANSNC4) {
+        ucar = NCD4_findAttr(seqtype,UCARTAGVLEN);
+        usevlen = (ucar != NULL && (nclistlength(seqtype->vars) == 1));
+    } else
+	usevlen = 0;
 
     /* Step 5: get/define the basetype of the sequence vlen */
     if(usevlen) {

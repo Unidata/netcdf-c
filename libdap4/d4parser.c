@@ -253,22 +253,20 @@ parseDimensions(NCD4parser* parser, NCD4node* group, ezxml_t xml)
     ezxml_t x;
     for(x=ezxml_child(xml, "Dimension");x != NULL;x = ezxml_next(x)) {
 	NCD4node* dimnode = NULL;
-	const char* sizestr;
 	const char* unlimtag = NULL;
 	unsigned long long size;
+	const char* sizestr;
+	const char* unlimstr;
 	sizestr = ezxml_attr(x,"size");
 	if(sizestr == NULL)
 	    FAIL(NC_EDIMSIZE,"Dimension has no size");
+	unlimstr = ezxml_attr(x,"unlimited");
 	if((ret = parseULL(sizestr,&size))) goto done;
 	if((ret=makeNode(parser,group,x,NCD4_DIM,NC_NULL,&dimnode))) goto done;
-	dimnode->dim.size = (long long)size;
+	dimnode->dim.size = (unlimstr != NULL ? 0 : (long long)size);
 	/* Process attributes */
 	if((ret = parseAttributes(parser,dimnode,x))) goto done;    
 	classify(group,dimnode);
-	/* See if this was intended as an unlimited */
-	unlimtag = ezxml_attr(x,UCARTAGUNLIM);
-	if(unlimtag != NULL)
-	    dimnode->nc4.isunlim = 1;
     }
 done:
     return THROW(ret);
@@ -295,7 +293,7 @@ parseEnumerations(NCD4parser* parser, NCD4node* group, ezxml_t xml)
 	    FAIL(NC_EINVAL,"Enumeration has no values");
 	classify(group,node);
 	/* Finally, see if this type has UCARTAGORIGTYPE xml attribute */
-	{
+	if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
 	    const char* typetag = ezxml_attr(x,UCARTAGORIGTYPE);
 	    if(typetag != NULL) {
 	    }
@@ -424,7 +422,7 @@ parseStructure(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** 
     record(parser,var);
 
     /* See if this var has UCARTAGORIGTYPE attribute */
-    {
+    if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
 	const char* typetag = ezxml_attr(xml,UCARTAGORIGTYPE);
 	if(typetag != NULL) {
 	    /* yes, place it on the type */
@@ -493,7 +491,7 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
     record(parser,var);
 
     /* See if this var has UCARTAGORIGTYPE attribute */
-    {
+    if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
 	const char* typetag = ezxml_attr(xml,UCARTAGORIGTYPE);
 	if(typetag != NULL) {
 	    /* yes, place it on the type */
@@ -566,7 +564,7 @@ parseAtomicVar(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** 
     /* Parse attributes, dims, and maps */
     if((ret = parseMetaData(parser,node,xml))) goto done;    
     /* See if this var has UCARTAGORIGTYPE attribute */
-    {
+    if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
 	const char* typetag = ezxml_attr(xml,UCARTAGORIGTYPE);
 	if(typetag != NULL) {
 	    /* yes, place it on the type */
@@ -724,11 +722,14 @@ getOpaque(NCD4parser* parser, ezxml_t varxml, NCD4node* group)
     NCD4node* opaquetype = NULL;
     const char* xattr;
 
-    /* See if this var has UCARTAGOPAQUE attribute */
-    xattr = ezxml_attr(varxml,UCARTAGOPAQUE);
-    if(xattr != NULL) {
-        if((ret = parseLL(xattr,&len)) || (len < 0))
-	    FAIL(NC_EINVAL,"Illegal opaque len: %s",xattr);
+    if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
+        /* See if this var has UCARTAGOPAQUE attribute */
+        xattr = ezxml_attr(varxml,UCARTAGOPAQUE);
+        if(xattr != NULL) {
+            if((ret = parseLL(xattr,&len)) || (len < 0))
+	        FAIL(NC_EINVAL,"Illegal opaque len: %s",xattr);
+        } else
+	    len = 0;
     } else
 	len = 0;
     if(opaquetype == NULL) {

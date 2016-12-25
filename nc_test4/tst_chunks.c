@@ -2,11 +2,12 @@
    Copyright 2005 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test netcdf-4 variables. 
+   Test netcdf-4 variables.
    $Id: tst_chunks.c,v 1.3 2010/01/21 16:00:18 ed Exp $
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 
 #define FILE_NAME "tst_chunks.nc"
 #define NDIMS1 1
@@ -60,7 +61,7 @@ main(int argc, char **argv)
       if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, &dimids_in, &natts_in)) ERR;
       if (strcmp(var_name_in, V_SMALL) || xtype_in != NC_INT64 || ndims_in != 1 ||
 	  natts_in != 0) ERR;
-      
+
       /* Make sure chunking sizes are what we expect. */
       if (nc_inq_var_chunking(ncid, small_varid, &contig, chunksize_in)) ERR;
       if (contig || chunksize_in[0] != D_SMALL_LEN) ERR;
@@ -103,10 +104,10 @@ main(int argc, char **argv)
 	 if (nc_def_var(ncid, var_name, type_id[t], NUM_DIM, dimid, &varid[t])) ERR;
 	 if (nc_inq_var_chunking(ncid, varid[t], &contig, chunksize_in)) ERR;
 #ifdef PRINT_DEFAULT_CHUNKSIZE_TABLE
-	 printf("chunksizes for %d x %d x %d x %d var: %d x %d x %d x %d (=%d)\n", 
-		dim_len[0], dim_len[1], dim_len[2], dim_len[3], 
-		(int)chunksize_in[0], (int)chunksize_in[1], (int)chunksize_in[2], 
-		(int)chunksize_in[3], 
+	 printf("chunksizes for %d x %d x %d x %d var: %d x %d x %d x %d (=%d)\n",
+		dim_len[0], dim_len[1], dim_len[2], dim_len[3],
+		(int)chunksize_in[0], (int)chunksize_in[1], (int)chunksize_in[2],
+		(int)chunksize_in[3],
 		(int)(chunksize_in[0] * chunksize_in[1] * chunksize_in[2] * chunksize_in[3]));
 #endif
       }
@@ -117,16 +118,16 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
       if (nvars != NUM_TYPE || ndims != NUM_DIM || ngatts != 0 || unlimdimid != 0) ERR;
-      
+
       for (t = 0; t < NUM_TYPE; t++)
       {
 	 sprintf(var_name, "var_%d", type_id[t]);
 	 if (nc_inq_var_chunking(ncid, varid[t], &contig, chunksize_in)) ERR;
 	 if (contig) ERR;
 #ifdef PRINT_DEFAULT_CHUNKSIZE_TABLE
-	 printf("chunksizes for %d x %d x %d x %d var: %d x %d x %d x %d (=%d)\n", 
-		dim_len[0], dim_len[1], dim_len[2], dim_len[3], 
-		(int)chunksize_in[0], (int)chunksize_in[1], (int)chunksize_in[2], 
+	 printf("chunksizes for %d x %d x %d x %d var: %d x %d x %d x %d (=%d)\n",
+		dim_len[0], dim_len[1], dim_len[2], dim_len[3],
+		(int)chunksize_in[0], (int)chunksize_in[1], (int)chunksize_in[2],
 		(int)chunksize_in[3],
 		(int)(chunksize_in[0] * chunksize_in[1] * chunksize_in[2] * chunksize_in[3]));
 #endif
@@ -176,7 +177,7 @@ main(int argc, char **argv)
       if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, &dimids_in, &natts_in)) ERR;
       if (strcmp(var_name_in, V_SMALL) || xtype_in != NC_INT64 || ndims_in != 1 ||
 	  natts_in != 0) ERR;
-      
+
       /* Make sure chunking settings are what we expect. */
       if (nc_inq_var_chunking(ncid, small_varid, &contig, &chunksize_in)) ERR;
       if (!contig) ERR;
@@ -200,7 +201,7 @@ main(int argc, char **argv)
 #define D_EFFECTIVENESS_LEN 2
 
       int ncid, dimids[NDIMS_3], varid[NUM_PLANS];
-      size_t chunksize[NDIMS_3] = {D_SNEAKINESS_LEN, D_CLEVERNESS_LEN, 
+      size_t chunksize[NDIMS_3] = {D_SNEAKINESS_LEN, D_CLEVERNESS_LEN,
 				   D_EFFECTIVENESS_LEN};
       char plan_name[NC_MAX_NAME + 1];
       int contig;
@@ -217,11 +218,11 @@ main(int argc, char **argv)
       for (i = 0; i < NUM_PLANS; i++)
       {
 	 sprintf(plan_name, "Richelieu_sneaky_plan_%d", i);
-	 if (nc_def_var(ncid, plan_name, i % (NC_STRING - 1) + 1, NDIMS_3, 
+	 if (nc_def_var(ncid, plan_name, i % (NC_STRING - 1) + 1, NDIMS_3,
 			dimids, &varid[i])) ERR;
 	 if (i % 2 && nc_def_var_chunking(ncid, varid[i], 0, chunksize)) ERR;
       }
-      
+
       /* Check the chunking. */
       for (i = 0; i < NUM_PLANS; i++)
       {
@@ -230,7 +231,7 @@ main(int argc, char **argv)
 	 {
 	    for (j = 0; j < NDIMS_3; j++)
 	       if (chunksize_in[j] != chunksize[j]) ERR;
-	 } 
+	 }
 	 else
 	    if (!contig) ERR;
       }
@@ -246,7 +247,7 @@ main(int argc, char **argv)
 	 {
 	    for (j = 0; j < NDIMS_3; j++)
 	       if (chunksize_in[j] != chunksize[j]) ERR;
-	 } 
+	 }
 	 else
 	    if (!contig) ERR;
       }
@@ -293,9 +294,3 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
-
-
-
-
-
-

@@ -5,7 +5,7 @@ P=meta
 V=valgrind --leak-check=full
 G=gdb --args
 
-I=./t.dmr
+I=d:/git/dap4/dap4_test/dmrtestfiles/test_vlen4.nc.dmr
 O=./t.nc
 
 ifeq ($P, parse)

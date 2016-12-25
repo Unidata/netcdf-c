@@ -1,6 +1,6 @@
 # Test c output
-T=nc4print
-ARGS=./x.nc
+T=t
+#ARGS=./x.nc
 
 TF=test_atomic_array.cdl
 

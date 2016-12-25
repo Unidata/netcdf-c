@@ -1,12 +1,13 @@
 /** \file
 
 Performance test from KNMI.
- 
+
 Copyright 2009, UCAR/Unidata. See \ref copyright file for copying and
 redistribution conditions.
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -38,7 +39,7 @@ complain(int stat)
     return stat;
 }
 
-static int 
+static int
 read_file(char *filename)
 {
 #define CWP "cwp"
@@ -73,7 +74,7 @@ read_file(char *filename)
    return 0;
 }
 
-int 
+int
 main(int argc, char **argv)
 {
    int c, header = 0, verbose = 0, timeseries = 0;
@@ -91,10 +92,9 @@ main(int argc, char **argv)
    struct timeval start_time, end_time, diff_time;
 
    printf("\n*** Testing netcdf-4 vs. netcdf-3 performance.\n");
-   if (complain(read_file(FILE_NAME_1))) ERR; 
-   if (complain(read_file(FILE_NAME_2))) ERR; 
+   if (complain(read_file(FILE_NAME_1))) ERR;
+   if (complain(read_file(FILE_NAME_2))) ERR;
 
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
-

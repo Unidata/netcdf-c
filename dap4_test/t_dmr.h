@@ -68,6 +68,14 @@ setup(int expected, int argc, char** argv)
 
     if((metadata=NCD4_newmeta(NCD4_CSUM_ALL,ncbyteslength(input),ncbytescontents(input)))==NULL)
 	fail(NC_ENOMEM);
+    /* Create a fake NCD4INFO */
+    {
+	NCD4INFO* controller = (NCD4INFO*)calloc(1,sizeof(NCD4INFO));
+	if(controller == NULL)
+	    fail(NC_ENOMEM);
+        metadata->controller = controller;
+	controller->controls.translation = NCD4_TRANSNC4;
+    }
     if(NCD4_isdmr(metadata->serial.rawdata)) {
 	char* dmr = (char*)metadata->serial.rawdata;
 	NCD4_setdmr(metadata,dmr);

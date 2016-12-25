@@ -54,10 +54,10 @@ NCD4_open(const char * path, int mode,
 	{ret = NC_EDAPURL; goto done;}
 
     if(!constrainable(d4info->uri))
-	SETFLAG(d4info->flags,NCF_UNCONSTRAINABLE);
+	SETFLAG(d4info->controls.flags,NCF_UNCONSTRAINABLE);
 
     /* fail if we are unconstrainable but have constraints */
-    if(FLAGSET(d4info->flags,NCF_UNCONSTRAINABLE)) {
+    if(FLAGSET(d4info->controls.flags,NCF_UNCONSTRAINABLE)) {
 	if(d4info->uri->query != NULL) {
 	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
 		   d4info->uri->query);
@@ -127,7 +127,7 @@ NCD4_open(const char * path, int mode,
 
     /* fetch the dmr + data*/
     {
-	int inmem = FLAGSET(d4info->flags,NCF_ONDISK) ? 0 : 1;
+	int inmem = FLAGSET(d4info->controls.flags,NCF_ONDISK) ? 0 : 1;
         if((ret = NCD4_readDAP(d4info,inmem))) goto done;
     }
 
@@ -162,6 +162,7 @@ the data was little-endian
 	ncbyteslength(d4info->curl->packet),
         ncbytescontents(d4info->curl->packet)))==NULL)
 	{ret = NC_ENOMEM; goto done;}
+    d4info->substrate.metadata->controller = d4info;
     d4info->substrate.metadata->ncid = d4info->nc4id; /* Transfer netcdf ncid */
 
     if(NCD4_isdmr(d4info->substrate.metadata->serial.rawdata)) {
@@ -380,18 +381,20 @@ static void
 applyclientparamcontrols(NCD4INFO* info)
 {
     /* clear the flags */
-    CLRFLAG(info->flags,NCF_CACHE);
-    CLRFLAG(info->flags,NCF_SHOWFETCH);
-    CLRFLAG(info->flags,NCF_NC4);
-    CLRFLAG(info->flags,NCF_NCDAP);
+    CLRFLAG(info->controls.flags,NCF_CACHE);
+    CLRFLAG(info->controls.flags,NCF_SHOWFETCH);
+    CLRFLAG(info->controls.flags,NCF_NC4);
+    CLRFLAG(info->controls.flags,NCF_NCDAP);
 
     /* Turn on any default on flags */
-    SETFLAG(info->flags,DFALT_ON_FLAGS);
-    SETFLAG(info->flags,(NCF_NC4|NCF_NCDAP));
+    SETFLAG(info->controls.flags,DFALT_ON_FLAGS);
+    SETFLAG(info->controls.flags,(NCF_NC4|NCF_NCDAP));
 
     if(paramcheck(info,"show","fetch"))
-	SETFLAG(info->flags,NCF_SHOWFETCH);
+	SETFLAG(info->controls.flags,NCF_SHOWFETCH);
 
+    if(paramcheck(info,"translate","nc4"))
+	info->controls.translation = NCD4_TRANSNC4;
 }
 
 /* Search for substring in value of param. If substring == NULL; then just

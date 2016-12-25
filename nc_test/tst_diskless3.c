@@ -8,6 +8,7 @@
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <netcdf.h>
 
 /* Derived from tst_small.c */
@@ -17,7 +18,7 @@
 #define NCFILENAME "tst_diskless3.nc"
 
 #define ATT_NAME "Atom"
-#define MAX_LEN 7   
+#define MAX_LEN 7
 
 #define VAR_NAME2 "var2"
 #define NUM_VARS 2
@@ -81,7 +82,7 @@ test_two_growing_with_att(const char *testfile)
 	 if((status=nc_enddef(ncid))) ERRSTAT(status);
       }
       if((status=nc_close(ncid))) ERRSTAT(status);
-      
+
       /* Reopen the file and check it. */
       if((status=nc_open(testfile, diskmode|NC_WRITE, &ncid))) ERRSTAT(status);
       if((status=nc_inq_dimlen(ncid, 0, &len_in))) ERRSTAT(status);
@@ -92,7 +93,7 @@ test_two_growing_with_att(const char *testfile)
 	 if((status=nc_get_var1_text(ncid, varid[v], index, &data_in))) ERRSTAT(status);
 	 if (data_in != data[r]) ERR;
       }
-      if((status=nc_close(ncid))) ERRSTAT(status); 
+      if((status=nc_close(ncid))) ERRSTAT(status);
    } /* Next record. */
    return 0;
 }
@@ -121,7 +122,7 @@ test_one_with_att(const char *testfile)
 
    /* We're done! */
    if((status=nc_close(ncid))) ERRSTAT(status);
-   
+
    /* Reopen the file and check it. */
    if((status=nc_open(testfile, diskmode|NC_WRITE, &ncid))) ERRSTAT(status);
    if((status=nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid))) ERRSTAT(status);
@@ -130,7 +131,7 @@ test_one_with_att(const char *testfile)
    if (data_in != data) ERRSTAT(status);
    if((status=nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, &data_in))) ERRSTAT(status);
    if (data_in != data) ERRSTAT(status);
-   if((status=nc_close(ncid))) ERRSTAT(status); 
+   if((status=nc_close(ncid))) ERRSTAT(status);
    return 0;
 }
 #endif
@@ -174,4 +175,3 @@ main(int argc, char **argv)
 
    FINAL_RESULTS;
 }
-

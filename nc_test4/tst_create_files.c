@@ -8,10 +8,12 @@
 */
 #include <config.h>
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <netcdf.h>
 #include <stdio.h>
 #include <string.h>
 #include "ncdispatch.h"
+#include <math.h>
 
 /* We will create this file. */
 #define FILE_NAME "tst_floats_1D.nc"
@@ -19,8 +21,8 @@
 int
 main(int argc, char **argv)
 {
-    nc_argc = argc;
-    nc_argv = argv;    
+    int nc_argc = argc;
+    int nc_argv = argv;
     nc_initialize();
 
     printf("\n*** Create some files for testing benchmarks.\n");
@@ -41,7 +43,7 @@ main(int argc, char **argv)
        size_t chunk_sizes[NDIMS3] = {1, D1, D2};
        float *data;
        char file_name[NC_MAX_NAME * 2 + 1];
-       int d, i; 
+       int d, i;
 
        /* Initialize the data to random floats. */
        if (!(data = (float *)malloc(D1 * D2 * sizeof(float)))) ERR;
@@ -78,7 +80,7 @@ main(int argc, char **argv)
 	  count[d] = dim_len[d];
        }
        for ( ; start[0] < D0; (start[0])++)
-	  if (nc_put_vara_float(ncid, varid, start, count, (const float *) data)) 
+	  if (nc_put_vara_float(ncid, varid, start, count, (const float *) data))
 	     ERR_RET;
 
        /* Close up shop. */
@@ -101,7 +103,7 @@ main(int argc, char **argv)
        char name_in[NC_MAX_NAME + 1];
        size_t len;
        float data[DIMLEN], data_in[DIMLEN];
-       int i; 
+       int i;
 
        for (i = 0; i < DIMLEN; i++)
 	  data[i] = ((float)rand() / (float)(RAND_MAX));
@@ -114,7 +116,7 @@ main(int argc, char **argv)
        if (nc_enddef(ncid)) ERR;
        if (nc_put_var_float(ncid, varid, data)) ERR;
        if (nc_close(ncid)) ERR;
-       
+
        /* Reopen and check the file. */
        if (nc_open(FILE_NAME, 0, &ncid)) ERR;
        if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -124,12 +126,12 @@ main(int argc, char **argv)
        if (nc_inq_dim(ncid, 0, name_in, &len)) ERR;
        if (strcmp(name_in, DIM_NAME) || len != DIMLEN) ERR;
        if (nc_inq_var(ncid, 0, name_in, &xtype, &ndims, dimids, &natts)) ERR;
-       if (strcmp(name_in, var_name) || xtype != NC_FLOAT || ndims != 1 || 
+       if (strcmp(name_in, var_name) || xtype != NC_FLOAT || ndims != 1 ||
 	   dimids[0] != 0 || natts != 0) ERR;
        if (nc_get_var_float(ncid, 0, data_in)) ERR;
        for (i = 0; i < DIMLEN; i++)
 	  if (data_in[i] != data[i]) ERR;
-       
+
        if (nc_close(ncid)) ERR;
     }
 
@@ -151,7 +153,7 @@ main(int argc, char **argv)
        short sdata[TOTAL_SIZE];
        void *data[MAX_TYPES];
        int ndims;
-       int i, d, t; 
+       int i, d, t;
 
        /* Initialize the data to random floats. */
        for (i = 0; i < TOTAL_SIZE; i++)
@@ -195,11 +197,11 @@ main(int argc, char **argv)
 #define NDIMS 3
 #define E_VAR_NAME "Like_Elenas_Benchmark"
 #define ELENA_FILE_NAME "tst_elena_int_3D.nc"
-#define E_TYPE_SIZE 4       
+#define E_TYPE_SIZE 4
 
        int ncid, dimids[NDIMS], varid;
        int *idata;
-       int i; 
+       int i;
 
        /* Initialize data to random int between 0 and 255. */
        if (!(idata = malloc(XLEN * YLEN * ZLEN * E_TYPE_SIZE)))
@@ -230,7 +232,7 @@ main(int argc, char **argv)
 
        int ncid, dimids[NDIMS1], varid;
        int data[DIM_LEN];
-       int i; 
+       int i;
 
        /* Initialize data to my favorite numbers. */
        for (i = 0; i < DIM_LEN; i++)
@@ -263,7 +265,7 @@ main(int argc, char **argv)
        short sdata[TOTAL_SIZE];
        void *data[MAX_TYPES];
        int ndims;
-       int i, d, t; 
+       int i, d, t;
 
        /* Initialize the data to random floats. */
        for (i = 0; i < TOTAL_SIZE; i++)
@@ -302,4 +304,3 @@ main(int argc, char **argv)
     nc_finalize();
     FINAL_RESULTS;
 }
-

@@ -16,6 +16,7 @@
 #include <netcdf_par.h>
 #endif
 #include <nc_tests.h>
+#include "err_macros.h"
 
 /* The data file we will create. */
 #define FILE7_NAME "tst_norm.nc"

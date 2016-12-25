@@ -8,10 +8,12 @@
 
 #ifdef ENABLE_BINARY
 
+static void alignto(int alignment, Bytebuffer* buf, int base);
+
 static int bin_uid = 0;
 
 static int
-bin_charconstant(Generator* generator, Bytebuffer* buf, ...)
+bin_charconstant(Generator* generator, Symbol* sym, Bytebuffer* buf, ...)
 {
     /* Just transfer charbuf to codebuf */
     Bytebuffer* charbuf;
@@ -25,7 +27,7 @@ bin_charconstant(Generator* generator, Bytebuffer* buf, ...)
 }
 
 static int
-bin_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
+bin_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf,...)
 {
     if(con->nctype != NC_ECONST) {
         alignbuffer(con,buf);
@@ -97,27 +99,39 @@ bin_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
 }
 
 static int
-bin_listbegin(Generator* generator, ListClass lc, size_t size, Bytebuffer* buf, int* uidp, ...)
+bin_listbegin(Generator* generator, Symbol* tsym, void* liststate, ListClass lc, size_t size, Bytebuffer* buf, int* uidp, ...)
 {
     if(uidp) *uidp = ++bin_uid;
+    if(lc == LISTCOMPOUND)
+        *((int*)liststate) = bbLength(buf);
     return 1;
 }
 
 static int
-bin_list(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
+bin_list(Generator* generator, Symbol* tsym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
 {
+    if(lc == LISTCOMPOUND) {
+        int offsetbase = *((int*)liststate);
+        /* Pad for the alignment */
+	alignto(tsym->typ.alignment,buf,offsetbase);		
+    }
     return 1;
 }
 
 static int
-bin_listend(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
+bin_listend(Generator* generator, Symbol* tsym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
 {
+    if(lc == LISTCOMPOUND) {
+        int offsetbase = *((int*)liststate);
+        /* Pad out the whole instance */
+	alignto(tsym->typ.cmpdalign,buf,offsetbase);		
+    }
     return 1;
 }
 
 
 static int
-bin_vlendecl(Generator* generator, Bytebuffer* buf, Symbol* tsym, int uid, size_t count,...)
+bin_vlendecl(Generator* generator, Symbol* tsym, Bytebuffer* buf, int uid, size_t count,...)
 {
     va_list ap;
     Bytebuffer* vlenmem;
@@ -132,7 +146,7 @@ bin_vlendecl(Generator* generator, Bytebuffer* buf, Symbol* tsym, int uid, size_
 }
 
 static int
-bin_vlenstring(Generator* generator, Bytebuffer* codebuf, int* uidp, size_t* sizep,...)
+bin_vlenstring(Generator* generator, Symbol* sym, Bytebuffer* codebuf, int* uidp, size_t* sizep,...)
 {
     Bytebuffer* vlenmem;
     nc_vlen_t ptr;
@@ -145,6 +159,21 @@ bin_vlenstring(Generator* generator, Bytebuffer* codebuf, int* uidp, size_t* siz
     ptr.p = bbDup(vlenmem);
     bbAppendn(codebuf,(char*)&ptr,sizeof(ptr));
     return 1;
+}
+
+static const char zeros[] =
+    "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+
+static void
+alignto(int alignment, Bytebuffer* buf, int base)
+{
+    int pad = 0;
+    int offset = bbLength(buf);
+    offset -= base; /* Need to actually align wrt to the base */
+    pad = getpadding(offset,alignment);
+    if(pad > 0) {
+	bbAppendn(buf,(void*)zeros,pad);
+    }
 }
 
 /* Define the single static bin data generator  */
@@ -161,3 +190,4 @@ static Generator bin_generator_singleton = {
 Generator* bin_generator = &bin_generator_singleton;
 
 #endif /*ENABLE_BINARY*/
+
