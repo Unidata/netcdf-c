@@ -202,7 +202,8 @@ swap4b(void *dst, const void *src)
     ((tempIn & 0x00ff0000) >> 8) |
     ( tempIn >> 24);
 
-    *(float *)op = *(float *)(&tempOut);
+    //*(float *)op = *(float *)(&tempOut);
+    *op = *(&tempOut);
 }
 # endif /* !vax */
 
