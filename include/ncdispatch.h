@@ -128,8 +128,8 @@ extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
 NCD_EXTERNL NC_Dispatch* NC3_dispatch_table;
-extern int NC3_initialize(void);
-extern int NC3_finalize(void);
+NCD_EXTERNL int NC3_initialize(void);
+NCD_EXTERNL int NC3_finalize(void);
 
 #ifdef USE_DAP
 extern NC_Dispatch* NCD2_dispatch_table;
