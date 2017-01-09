@@ -444,8 +444,8 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 	int existid;
 	NC_dim *dimp;
 	char *newname;		/* normalized */
-	NC_string *old = dimp->name;
-	newname = (char *)utf8proc_NFC((const unsigned char *)unewname);
+	NC_string *old = NULL;
+
 
 	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
@@ -467,9 +467,11 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 	if(dimp == NULL)
 		return NC_EBADDIM;
 
+    old = dimp->name;
+    newname = (char *)utf8proc_NFC((const unsigned char *)unewname);
 	if(newname == NULL)
 	    return NC_ENOMEM;
-	if(NC_indef(ncp))
+    if(NC_indef(ncp))
 	{
 		NC_string *newStr = new_NC_string(strlen(newname), newname);
 		free(newname);
