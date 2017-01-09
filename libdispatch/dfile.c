@@ -182,17 +182,20 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
 
         /* Windows and fstat have some issues, this will work around that. */
 #ifdef HAVE_FILE_LENGTH_I64
-        __int64 file_len = 0;
-        if((file_len = _filelengthi64(fileno(fp))) < 0) {
-          fclose(fp);
-          status = errno;
-          goto done;
-        }
+        {
+          __int64 file_len = 0;
+          if((file_len = _filelengthi64(fileno(fp))) < 0) {
+            fclose(fp);
+            status = errno;
+            goto done;
+          }
 
-        if(file_len < MAGIC_NUMBER_LEN) {
-          fclose(fp);
-          status = NC_ENOTNC;
-          goto done;
+
+          if(file_len < MAGIC_NUMBER_LEN) {
+            fclose(fp);
+            status = NC_ENOTNC;
+            goto done;
+          }
         }
 #else
 
