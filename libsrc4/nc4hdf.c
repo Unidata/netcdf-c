@@ -3651,7 +3651,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
   NC_DIM_INFO_T *dim;
   int retval = NC_NOERR;
   int i;
-  
+
   assert(grp && grp->name);
   LOG((4, "%s: grp->name %s", __func__, grp->name));
 
@@ -3664,11 +3664,12 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
    * try and find a dimension for them. */
   for (i=0; i < grp->vars.nelems; i++)
     {
+      int ndims;
+      int d;
       var = grp->vars.value[i];
       if (!var) continue;
       /* Check all vars and see if dim[i] != NULL if dimids[i] valid. */
-      int ndims = var->ndims;
-      int d;
+      ndims = var->ndims;
       for (d = 0; d < ndims; d++)
 	{
 	  if (var->dim[d] == NULL) {
