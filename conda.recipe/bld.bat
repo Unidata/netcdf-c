@@ -1,3 +1,5 @@
+set PATH=%PATH%;C:\msys64\usr\bin
+
 mkdir %SRC_DIR%\build
 cd %SRC_DIR%\build
 
