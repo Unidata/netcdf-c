@@ -16,7 +16,6 @@ build:
 requirements:
   build:
     - python  # Here only to activate the `vc`s.
-    - cmake
     - msinttypes
     - curl
     - zlib 1.2.*
