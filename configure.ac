@@ -911,7 +911,7 @@ if test "x$enable_netcdf_4" = xyes; then
       if test "x$nc_dlfcn_h_missing" = xyes; then
       	      AC_MSG_ERROR([Cannot find dlfcn.h, yet --enable-dynamic-loading was used.])
       fi
-      AC_CHECK_LIB([dl],[dlopen], [], [AC_MSG_ERROR([Can't find or link against libdf. See config.log for errors.])])
+      AC_CHECK_LIB([dl],[dlopen], [], [AC_MSG_ERROR([Can't find or link against libdl. See config.log for errors.])])
       AC_DEFINE([USE_LIBDL],[1], [if true, enable dynamic loading support])
    fi
 

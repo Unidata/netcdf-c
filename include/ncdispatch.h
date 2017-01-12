@@ -24,6 +24,18 @@
 #include "nc.h"
 #include "ncuri.h"
 
+#if defined(DLL_NETCDF) /* Defined when library is a DLL */
+# if defined(DLL_EXPORT) /* Define when building the library. */
+#  define MSC_NCDISPATCH_EXTRA __declspec(dllexport)
+# else
+#  define MSC_NCDISPATCH_EXTRA __declspec(dllimport)
+# endif
+#else
+#  define MSC_NCDISPATCH_EXTRA
+#endif
+
+#define NCD_EXTERNL MSC_NCDISPATCH_EXTRA extern
+
 #define longtype ((sizeof(long) == sizeof(int) ? NC_INT : NC_INT64))
 
 #define X_INT_MAX	2147483647
@@ -115,9 +127,9 @@ typedef struct NC_Dispatch NC_Dispatch;
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
-extern NC_Dispatch* NC3_dispatch_table;
-extern int NC3_initialize(void);
-extern int NC3_finalize(void);
+NCD_EXTERNL NC_Dispatch* NC3_dispatch_table;
+NCD_EXTERNL int NC3_initialize(void);
+NCD_EXTERNL int NC3_finalize(void);
 
 #ifdef USE_DAP
 extern NC_Dispatch* NCD2_dispatch_table;
@@ -342,18 +354,6 @@ extern void NCDAP_urlfree(void* dapurl);
 extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 
 /* Test for specific set of servers */
-#if defined(DLL_NETCDF) /* Defined when library is a DLL */
-# if defined(DLL_EXPORT) /* Define when building the library. */
-#  define MSC_NCDISPATCH_EXTRA __declspec(dllexport)
-# else
-#  define MSC_NCDISPATCH_EXTRA __declspec(dllimport)
-# endif
-#else
-#  define MSC_NCDISPATCH_EXTRA
-#endif
-
-#define NCD_EXTERNL MSC_NCDISPATCH_EXTRA extern
-
 NCD_EXTERNL char* NC_findtestserver(const char*, const char**);
 NCD_EXTERNL int nc_open_mem(const char*, int, size_t, void*, int*);
 NCD_EXTERNL int nc_finalize();

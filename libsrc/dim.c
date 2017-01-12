@@ -323,7 +323,7 @@ NC3_def_dim(int ncid, const char *name, size_t size, int *dimidp)
 	int dimid;
 	NC_dim *dimp;
 
-	status = NC_check_id(ncid, &nc); 
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
 	ncp = NC3_DATA(nc);
@@ -362,7 +362,7 @@ NC3_def_dim(int ncid, const char *name, size_t size, int *dimidp)
 	dimid = NC_finddim(&ncp->dims, name, &dimp);
 	if(dimid != -1)
 		return NC_ENAMEINUSE;
-	
+
 	dimp = new_NC_dim(name, size);
 	if(dimp == NULL)
 		return NC_ENOMEM;
@@ -387,7 +387,7 @@ NC3_inq_dimid(int ncid, const char *name, int *dimid_ptr)
 	NC3_INFO* ncp;
 	int dimid;
 
-	status = NC_check_id(ncid, &nc); 
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
 	ncp = NC3_DATA(nc);
@@ -410,7 +410,7 @@ NC3_inq_dim(int ncid, int dimid, char *name, size_t *sizep)
 	NC3_INFO* ncp;
 	NC_dim *dimp;
 
-	status = NC_check_id(ncid, &nc); 
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
 	ncp = NC3_DATA(nc);
@@ -421,7 +421,7 @@ NC3_inq_dim(int ncid, int dimid, char *name, size_t *sizep)
 
 	if(name != NULL)
 	{
-		(void)strncpy(name, dimp->name->cp, 
+		(void)strncpy(name, dimp->name->cp,
 			dimp->name->nchars);
 		name[dimp->name->nchars] = 0;
 	}
@@ -430,7 +430,7 @@ NC3_inq_dim(int ncid, int dimid, char *name, size_t *sizep)
 		if(dimp->size == NC_UNLIMITED)
 			*sizep = NC_get_numrecs(ncp);
 		else
-			*sizep = dimp->size;	
+			*sizep = dimp->size;
 	}
 	return NC_NOERR;
 }
@@ -444,8 +444,10 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 	int existid;
 	NC_dim *dimp;
 	char *newname;		/* normalized */
+	NC_string *old = NULL;
 
-	status = NC_check_id(ncid, &nc); 
+
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
 	ncp = NC3_DATA(nc);
@@ -465,11 +467,11 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 	if(dimp == NULL)
 		return NC_EBADDIM;
 
-	NC_string *old = dimp->name;
-	newname = (char *)utf8proc_NFC((const unsigned char *)unewname);
+    old = dimp->name;
+    newname = (char *)utf8proc_NFC((const unsigned char *)unewname);
 	if(newname == NULL)
 	    return NC_ENOMEM;
-	if(NC_indef(ncp))
+    if(NC_indef(ncp))
 	{
 		NC_string *newStr = new_NC_string(strlen(newname), newname);
 		free(newname);
