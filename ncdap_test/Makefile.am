@@ -7,16 +7,15 @@
 include $(top_srcdir)/lib_flags.am
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
-AM_CPPFLAGS += -I$(top_builddir)/liblib
+AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir} -I$(top_builddir)/liblib
 
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =
 TESTS =
-TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 
 TESTS += tst_ncdap3.sh
 
-t_dap3a_SOURCES = t_dap3a.c
+t_dap3a_SOURCES = t_dap3a.c t_srcdir.h
 test_cvt3_SOURCES = test_cvt.c
 test_vara_SOURCES = test_vara.c
 
@@ -32,6 +31,9 @@ if ENABLE_DAP_REMOTE_TESTS
 # Make nctestserver be the first test to be built
 check_PROGRAMS += nctestserver
 nctestserver_SOURCES = nctestserver.c
+
+check_PROGRAMS += topsrcdir
+topsrcdir_SOURCES = topsrcdir.c
 
 if BUILD_UTILITIES
 TESTS += tst_remote3.sh tst_formatx.sh

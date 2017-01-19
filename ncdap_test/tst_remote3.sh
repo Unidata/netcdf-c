@@ -6,7 +6,12 @@ set -e
 # will be executed in a different directory
 # than the one containing it; so capture the path to this script
 # as the location of the source directory.
-srcdir=`dirname $0`
+
+if test "x$topsrcdir" != x ; then
+  srcdir="$topsrcdir/ncdap_test"
+else
+  srcdir=`dirname $0`
+fi
 
 # compute the build directory
 builddir=`pwd`/..
