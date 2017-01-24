@@ -10,7 +10,13 @@ set -e
 # than the one containing it; so capture the path to this script
 # as the location of the source directory.
 
-srcdir=`dirname $0`
+
+if test "x$topsrcdir" != x ; then
+  srcdir="$topsrcdir/ncdap_test"
+else
+  srcdir=`dirname $0`
+fi
+
 #set -x
 # compute the build directory
 # Do a hack to remove e.g. c: for MSYS
