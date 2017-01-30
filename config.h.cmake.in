@@ -328,6 +328,7 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #cmakedefine HAVE_UNISTD_H 1
+#cmakedefine YY_NO_UNISTD_H 1
 
 /* Define to 1 if the system has the type 'unsigned long long int'. */
 #cmakedefine HAVE_UNSIGNED_LONG_LONG_INT 1
