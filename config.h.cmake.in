@@ -555,8 +555,13 @@
 
 /* Define strcasecmp, snprintf on Win32 systems. */
 #ifdef _WIN32
-	#define strcasecmp _stricmp
-	#define snprintf _snprintf
+    #ifndef HAVE_STRCASECMP
+	 #define strcasecmp _stricmp
+    #endif
+
+    #ifndef HAVE_SNPRINTF
+	 #define snprintf _snprintf
+    #endif
 #endif
 
 #include "ncconfigure.h"
