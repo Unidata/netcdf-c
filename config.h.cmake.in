@@ -1,4 +1,51 @@
-/* config.h.in.  Generated from configure.ac by autoheader.  */
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#ifdef _MSC_VER
+
+   #if _MSC_VER>=1900
+     #define STDC99
+   #endif
+/* Define O_BINARY so that the appropriate flags
+are set when opening a binary file on Windows. */
+
+/* Disable a few warnings under Visual Studio, for the
+   time being. */
+   #include <io.h>
+   #pragma warning( disable: 4018 4996 4244 4305 )
+   #define unlink _unlink
+   #define open _open
+   #define close _close
+   #define read _read
+   #define lseek _lseeki64
+
+   #define fstat _fstat64
+
+   #define off_t __int64
+   #define _off_t __int64
+
+   #ifndef _OFF_T_DEFINED
+   #define _OFF_T_DEFINED
+   #endif
+
+   #ifdef _WIN32
+    #ifndef strcasecmp
+      #define strcasecmp _stricmp
+    #endif
+
+    #ifndef snprintf
+     #if _MSC_VER<1900
+       #define snprintf _snprintf
+     #endif
+    #endif
+   #endif
+
+
+   #define strdup _strdup
+   #define fdopen _fdopen
+   #define write _write
+   #define strtoll _strtoi64
+#endif
 
 /* Define if building universal (internal helper macro) */
 #cmakedefine AC_APPLE_UNIVERSAL_BUILD 1
@@ -566,3 +613,5 @@
 #endif
 
 #include "ncconfigure.h"
+
+#endif
