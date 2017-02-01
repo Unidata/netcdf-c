@@ -389,6 +389,12 @@ NC_sync(NC3_INFO* ncp);
 extern int
 NC_calcsize(const NC3_INFO* ncp, off_t *filesizep);
 
+extern int
+NC3_inq_default_fill_value(int xtype, void *fillp);
+
+extern int
+NC3_inq_var_fill(const NC_var *varp, void *fill_value);
+
 /* End defined in nc.c */
 /* Begin defined in v1hpg.c */
 

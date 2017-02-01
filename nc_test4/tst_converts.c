@@ -70,8 +70,12 @@ create_file(int format, unsigned char *uchar_out)
    if (nc_def_var(ncid, VAR1_NAME, NC_BYTE, 1, dimids, &varid)) ERR;
    if (nc_enddef(ncid)) ERR;
    retval = nc_put_var_uchar(ncid, varid, uchar_out);
-   if ((format != NC_FORMAT_NETCDF4) && retval) ERR;
-   if ((format == NC_FORMAT_NETCDF4) && (retval != NC_ERANGE)) ERR;
+   if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_64BIT_DATA)
+   {
+     if (retval != NC_ERANGE) ERR;
+   }
+   else if (retval != NC_NOERR) ERR;
+
    if (nc_close(ncid)) ERR;
    return NC_NOERR;
 }
@@ -105,7 +109,7 @@ check_file(int format, unsigned char *uchar_out)
     * because range errors are not generated for byte type
     * conversions. */
    res = nc_get_var_uchar(ncid, 0, uchar_in);
-   if (format == NC_FORMAT_NETCDF4)
+   if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_64BIT_DATA)
    {
       if (res != NC_ERANGE) ERR;
    }
