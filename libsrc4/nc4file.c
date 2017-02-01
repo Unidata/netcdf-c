@@ -446,6 +446,11 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       BAIL(NC_EHDFERR);
 
    /* Create the file. */
+#ifdef HDF5_HAS_COLL_METADATA_OPS
+   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
+   H5Pset_coll_metadata_write(fapl_id, 1);
+#endif
+
    if ((nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
         /*Change the return error from NC_EFILEMETADATA to
           System error EACCES because that is the more likely problem */
@@ -2315,6 +2320,9 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    /* The NetCDF-3.x prototype contains an mode option NC_SHARE for
       multiple processes accessing the dataset concurrently.  As there
       is no HDF5 equivalent, NC_SHARE is treated as NC_NOWRITE. */
+#ifdef HDF5_HAS_COLL_METADATA_OPS
+   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
+#endif
    if(inmemory) {
        if((nc4_info->hdfid = H5LTopen_file_image(meminfo->memory,meminfo->size,
 			H5LT_FILE_IMAGE_DONT_COPY|H5LT_FILE_IMAGE_DONT_RELEASE
