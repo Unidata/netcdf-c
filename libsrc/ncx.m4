@@ -948,7 +948,7 @@ ifdef(`ERANGE_FILL', `dnl
         *cp++ = 0xff;
     else
         *cp++ = 0;
-    *cp = (uchar)*ip;
+    *cp = (uchar)(signed)*ip;
 
     return err;
 }
@@ -1050,7 +1050,7 @@ APIPrefix`x_put_'NC_TYPE(int)_schar(void *xp, const schar *ip, void *fillp)
 		*cp++ = 0x00;
 		*cp++ = 0x00;
 	}
-	*cp = (uchar)*ip;
+	*cp = (uchar)(signed)*ip;
 	return NC_NOERR;
 }
 
