@@ -892,9 +892,9 @@ NC3_put_att(
         if (!fIsSet(ncp->flags,NC_64BIT_DATA) && type == NC_BYTE && memtype == NC_UBYTE) {
             status = NC3_inq_default_fill_value(NC_UBYTE, &fill);
             if (status != NC_NOERR) return status;
-            status = dispatchput(&xp, nelems, value, memtype, memtype, &fill);
+            status = dispatchput(&xp, nelems, (const void*)value, memtype, memtype, &fill);
         } else
-            status = dispatchput(&xp, nelems, value, type, memtype, &fill);
+            status = dispatchput(&xp, nelems, (const void*)value, type, memtype, &fill);
     }
 
     if(attrpp != NULL) {

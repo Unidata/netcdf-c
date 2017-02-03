@@ -233,7 +233,17 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    int i;
    int res;
 
+   if (!name)
+      return NC_EBADNAME;
    assert(nc && NC4_DATA(nc));
+
+   LOG((1, "nc4_put_att: ncid 0x%x varid %d name %s "
+	"file_type %d mem_type %d len %d", ncid, varid,
+	name, file_type, mem_type, len));
+
+   /* If len is not zero, then there must be some data. */
+   if (len && !data)
+      return NC_EINVAL;
 
    /* Find info for this file and group, and set pointer to each. */
    h5 = NC4_DATA(nc);
