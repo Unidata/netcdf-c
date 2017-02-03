@@ -131,6 +131,10 @@ fprintf(stderr, "nextread %lu, remaining %lu\n",
 #ifdef __arm__
 if((signed char *)gsp->pos + nextread <= (signed char *)gsp->end)
         return NC_NOERR;
+#else
+ if((char *)gsp->pos + nextread <= (char *)gsp->end)
+        return NC_NOERR;
+#endif
 
     return fault_v1hs(gsp, nextread);
 }
@@ -711,6 +715,10 @@ v1h_get_NC_attrV(v1hs *gsp, NC_attr *attrp)
 		(void) memcpy(value, gsp->pos, nget);
 #ifdef __arm__
 		gsp->pos = (void *)((signed char *)gsp->pos + nget);
+#else
+        gsp->pos = (void*)((unsigned char *)gsp->pos + nget);
+#endif
+
 		value = (void *)((signed char *)value + nget);
 
 		remaining -= nget;
