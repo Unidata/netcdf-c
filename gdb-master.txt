@@ -1,0 +1,2 @@
+set breakpoint pending yes
+break test_read.c:876 if i == 6 && j == 1

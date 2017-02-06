@@ -1,3 +1,4 @@
 set breakpoint pending yes
+break test_nc_get_var1
 break test_read.c:1045
 break test_read.c:1040 if i == 6 && j == 1
