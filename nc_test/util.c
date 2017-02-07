@@ -979,7 +979,7 @@ void
 check_vars(int  ncid)
 {
     size_t index[MAX_RANK];
-    char  text, name[NC_MAX_NAME];
+    signed char  text, name[NC_MAX_NAME];
     int  i, err;		/* status */
     size_t  j;
     int nok = 0;      /* count of valid comparisons */
@@ -987,6 +987,7 @@ check_vars(int  ncid)
     double value, expect;
     nc_type xtype;
     size_t length;
+    signed char tmp_char;
 
     for (i = 0; i < numVars; i++) {
         isChar = var_type[i] == NC_CHAR;
@@ -1013,11 +1014,11 @@ check_vars(int  ncid)
 	    expect = hash( var_type[i], var_rank[i], index );
 	    if (isChar) {
           	err = nc_get_var1_text(ncid, i, index, &text);
-          	IF (err)
+            IF (err)
 		    error("nc_get_var1_text: %s", nc_strerror(err));
-		IF (text != (char)expect) {
-		    error("Var %s [%lu] value read %hhd not that expected %g ",
-			  var_name[i], j, text, expect);
+            IF (text != expect) {
+              error("Var %s [%lu] value read %hhd not that expected %g ",
+                  var_name[i], j, text, expect);
 		    print_n_size_t(var_rank[i], index);
 		} else {
 		    nok++;

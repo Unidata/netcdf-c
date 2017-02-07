@@ -2426,7 +2426,7 @@ dnl
 define(`NCX_GETN_Byte_Body',dnl
 `dnl
 	(void) memcpy(tp, *xpp, (size_t)nelems);
-	*xpp = (void *)((char *)(*xpp) + nelems);
+	*xpp = (void *)((schar *)(*xpp) + nelems);
 	return NC_NOERR;
 ')dnl
 dnl dnl dnl
@@ -2441,7 +2441,7 @@ define(`NCX_PAD_GETN_Byte_Body',dnl
 		rndup = X_ALIGN - rndup;
 
 	(void) memcpy(tp, *xpp, (size_t)nelems);
-	*xpp = (void *)((char *)(*xpp) + nelems + rndup);
+	*xpp = (void *)((schar *)(*xpp) + nelems + rndup);
 
 	return NC_NOERR;
 ')dnl
