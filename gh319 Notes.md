@@ -4,5 +4,7 @@
 
 ## Results and Debugging Table
 
-Note | Master | GH319
-------|------|------
+Variable  | Master | GH319
+----------        |--------|------
+expect            |  127   | 255
+value / value[0]  |  127   | -1
