@@ -1,4 +1,13 @@
 set breakpoint pending yes
-break test_nc_get_var1
-break test_read.c:1045
-break test_read.c:1040 if i == 6 && j == 1
+break util.c:1011 if i == 6
+commands
+break putget.c:10948
+commands
+break getNCvx_schar_schar
+break px_get
+break px_pgin
+end
+end
+
+break util.c:1014 if i == 6
+break util.c:1020
