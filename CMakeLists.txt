@@ -101,6 +101,12 @@ INCLUDE(${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 INCLUDE(CheckCCompilerFlag)
 FIND_PACKAGE(PkgConfig QUIET)
 
+# Check for Big Endian
+TEST_BIG_ENDIAN(BIGENDIAN)
+IF(${BIGENDIAN})
+    SET(WORDS_BIGENDIAN "1")
+ENDIF(${BIGENDIAN})
+
 # A macro to check if a C linker supports a particular flag.
 MACRO(CHECK_C_LINKER_FLAG M_FLAG M_RESULT)
   SET(T_REQ_FLAG "${CMAKE_REQUIRED_FLAGS}")
