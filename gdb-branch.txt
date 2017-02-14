@@ -1,10 +1,18 @@
 set breakpoint pending yes
-#break put_vars
-#break util.c:903 if i == 6
-break util.c:1020
-break util.c:1014 if i == 6 && j == 0
-break util.c:1016 if i == 6 && j == 0
-break test_write.c:216
+break test_nc_redef
 commands
-break ncx_put_int_double
+break util.c:888 if i == 6
 end
+
+#break util.c:903 if i == 6
+#break util.c:1020
+#break util.c:1014 if i == 6 && j == 0
+#break util.c:1016 if i == 6 && j == 0
+#commands
+#break putget.c:10948
+#end
+
+#break test_write.c:216
+#commands
+#break ncx_put_int_double
+#end

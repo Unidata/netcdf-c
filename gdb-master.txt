@@ -1,13 +1,12 @@
 set breakpoint pending yes
-break util.c:958 if i == 6
+break test_nc_redef
 commands
-break putget.c:10414
-commands
-break getNCvx_schar_schar
-break px_get
-break px_pgin
-end
+break util.c:835 if i == 6
 end
 
-break util.c:961 if i == 6
-break util.c:963 if i == 6
+#break test_write.c:139
+#break util.c:961 if i == 6 && j == 0
+#break util.c:963 if i == 6 && j == 0
+#commands
+#break putget.c:10414
+#end

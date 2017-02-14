@@ -879,7 +879,7 @@ put_vars(int ncid)
     int  i;
     size_t  j;
     double value[MAX_NELS];
-    char text[MAX_NELS];
+    signed char text[MAX_NELS];
     int  allInRange;
 
     for (j = 0; j < MAX_RANK; j++)

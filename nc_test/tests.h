@@ -205,7 +205,7 @@ extern "C" {
 # include <sys/types.h>
 #endif
 
-typedef char text;
+typedef signed char text;
 typedef signed char schar;
 
 #ifndef HAVE_USHORT
