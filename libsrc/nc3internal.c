@@ -1767,8 +1767,23 @@ NC3_inq_var_fill(const NC_var *varp, void *fill_value)
         /* User defined fill value */
         if ( (*attrpp)->type != varp->type || (*attrpp)->nelems != 1 )
             return NC_EBADTYPE;
-        else
-            (void) memcpy(fill_value, (*attrpp)->xvalue, varp->xsz);
+
+        const void *xp = (*attrpp)->xvalue;
+        /* value stored in xvalue is in external representation, may need byte-swap */
+        switch(varp->type) {
+            case NC_CHAR:   return ncx_getn_text               (&xp, 1,               (char*)fill_value);
+            case NC_BYTE:   return ncx_getn_schar_schar        (&xp, 1,        (signed char*)fill_value);
+            case NC_UBYTE:  return ncx_getn_uchar_uchar        (&xp, 1,      (unsigned char*)fill_value);
+            case NC_SHORT:  return ncx_getn_short_short        (&xp, 1,              (short*)fill_value);
+            case NC_USHORT: return ncx_getn_ushort_ushort      (&xp, 1,     (unsigned short*)fill_value);
+            case NC_INT:    return ncx_getn_int_int            (&xp, 1,                (int*)fill_value);
+            case NC_UINT:   return ncx_getn_uint_uint          (&xp, 1,       (unsigned int*)fill_value);
+            case NC_FLOAT:  return ncx_getn_float_float        (&xp, 1,              (float*)fill_value);
+            case NC_DOUBLE: return ncx_getn_double_double      (&xp, 1,             (double*)fill_value);
+            case NC_INT64:  return ncx_getn_longlong_longlong  (&xp, 1,          (long long*)fill_value);
+            case NC_UINT64: return ncx_getn_ulonglong_ulonglong(&xp, 1, (unsigned long long*)fill_value);
+            default: return NC_EBADTYPE;
+        }
     }
     else {
         /* use the default */
