@@ -32,3 +32,10 @@ requirements:
     - vc 9  # [win and py27]
     - vc 10  # [win and py34]
     - vc 14  # [win and py>=35]
+
+test:
+  commands:
+    - ncdump -h http://geoport-dev.whoi.edu/thredds/dodsC/estofs/atlantic
+    # FIXME: the next two are failing at the moment.
+    - ncdump -h http://thredds.ucar.edu/thredds/dodsC/grib/NCEP/GFS/Global_0p5deg/GFS_Global_0p5deg_20170215_1200.grib2
+    - ncdump -h https://data.nodc.noaa.gov/thredds/dodsC/ioos/sccoos/scripps_pier/scripps_pier-2016.nc
