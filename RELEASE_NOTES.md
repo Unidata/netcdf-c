@@ -11,6 +11,10 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.2 - TBD
 
+* [License] Update utf8proc.[ch] to use the version now maintained by the
+Julia Language project (https://github.com/JuliaLang/utf8proc/blob/master/LICENSE.md). The license for the previous version was unacceptable for the
+Debian and Ubuntu release systems. The new version both updates the code
+and addresses the license issue.
 * [Enhancement] Added support for HDF5 collective metadata operations when available. Patch submitted by Greg Sjaardema, see [Pull request #335](https://github.com/Unidata/netcdf-c/pull/335) for more information.
 * [Bug] Addressed a potential type punning issue. See [GitHub #351](https://github.com/Unidata/netcdf-c/issues/351) for more information.
 * [Bug] Addressed an issue where netCDF wouldn't build on Windows systems using MSVC 2012. See [GitHub #304](https://github.com/Unidata/netcdf-c/issues/304) for more information.
