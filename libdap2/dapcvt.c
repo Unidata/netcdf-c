@@ -215,6 +215,7 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	    int ival;
 	    ok = sscanf(s,"%d%n",&ival,&nread);
 	    _ASSERTE(_CrtCheckMemory());
+	    if(ival < NC_MIN_BYTE || ival > NC_MAX_BYTE) ok = 0;
 	    *p = (char)ival;
 #else	
 	   ok = sscanf(s,"%hhu%n",p,&nread);
@@ -246,6 +247,7 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	    unsigned int uval;
 	    ok = sscanf(s,"%u%n",&uval,&nread);
 	    _ASSERTE(_CrtCheckMemory());
+	    if(uval > NC_MAX_UBYTE) ok = 0;
 	    *p = (unsigned char)uval;
 #else
 	    ok = sscanf(s,"%hhu%n",p,&nread);
