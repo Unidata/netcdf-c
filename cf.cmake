@@ -18,6 +18,7 @@ fi
 export CC
 
 FLAGS="-DCMAKE_PREFIX_PATH=c:/tools/nccmake"
+FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=d:/ignore"
 
 if test "x$DAP" = x ; then
 FLAGS="$FLAGS -DENABLE_DAP=false"
@@ -28,11 +29,16 @@ fi
 FLAGS="$FLAGS -DENABLE_CONVERSION_WARNINGS=false"
 FLAGS="$FLAGS -DENABLE_DAP_REMOTE_TESTS=true"
 FLAGS="$FLAGS -DENABLE_TESTS=true"
+FLAGS="$FLAGS -DENABLE_EXAMPLES=false"
+#FLAGS="$FLAGS -DENABLE_DAP4=true"
 
 rm -fr build
 mkdir build
 cd build
 
-cmake -GVisual\ Studio\ 14\ 2015 $FLAGS ${ZLIB} ${HDF5} ${CURL} ..
-#cmake --build .
-CTEST_OUTPUT_ON_FAILURE=1 cmake --build . --target test
+cmake $FLAGS ${ZLIB} ${HDF5} ${CURL} ..
+# We must use Release config here because Debug will invoke a runtime dialog box.
+# If missing, appears to default to Debug
+#CFG="--config RelWithDebInfo"
+#cmake --build . ${CFG}
+#cmake --build . ${CFG} --target RUN_TESTS
