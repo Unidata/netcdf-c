@@ -44,6 +44,8 @@ CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
 # Otherwise never invoked, but records how to do it.
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*
+# Note also that this should be built under linux or cygwin
+# using bison version 3 or later.
 
 makeparser::
 	flex -Pncg -8 ncgen.l
