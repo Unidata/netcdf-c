@@ -442,6 +442,8 @@ IF(ENABLE_HDF4)
     MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 mfhdf library.")
   ENDIF()
 
+  SET(HAVE_LIBMFHDF TRUE)
+
   SET(HDF4_LIBRARIES ${HDF4_DF_LIB} ${HDF4_MFHDF_LIB})
   # End include files, libraries.
   MESSAGE(STATUS "HDF4 libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
@@ -454,6 +456,7 @@ IF(ENABLE_HDF4)
     MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find jpeglib.h")
   ELSE()
     SET(HAVE_JPEGLIB_H ON CACHE BOOL "")
+    SET(HAVE_LIBJPEG TRUE)
     INCLUDE_DIRECTORIES(${JPEGLIB_H_INCLUDE_DIR})
   ENDIF()
 
