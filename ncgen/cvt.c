@@ -18,7 +18,9 @@ convert1(NCConstant* src, NCConstant* dst)
     Constvalue tmp;
     unsigned char* bytes = NULL;
     size_t bytelen;
-
+#ifdef _MSC_VER
+    int byteval;
+#endif
     dst->lineno = src->lineno;
 
     /* Need to translate all possible sources to all possible sinks.*/
@@ -405,10 +407,17 @@ case CASE(NC_DOUBLE,NC_DOUBLE):
     break;
 
 /* Conversion of a string to e.g. an integer should be what?*/
+#ifdef _MSC_VER
+case CASE(NC_STRING,NC_BYTE):
+    sscanf(src->value.stringv.stringv,"%d",&byteval); tmp.int8v = (char)byteval; break;
+case CASE(NC_STRING,NC_UBYTE):
+    sscanf(src->value.stringv.stringv,"%d",&byteval); tmp.uint8v = (unsigned char)byteval; break;
+#else
 case CASE(NC_STRING,NC_BYTE):
     sscanf(src->value.stringv.stringv,"%hhd",&tmp.int8v); break;
 case CASE(NC_STRING,NC_UBYTE):
     sscanf(src->value.stringv.stringv,"%hhu",&tmp.uint8v); break;
+#endif
 case CASE(NC_STRING,NC_USHORT):
     sscanf(src->value.stringv.stringv,"%hu",&tmp.uint16v); break;
 case CASE(NC_STRING,NC_UINT):
