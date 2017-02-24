@@ -175,7 +175,7 @@ NCConstant       constant;
         TYPES
 	COMPOUND
         ENUM
-        OPAQUE
+        OPAQUE_
         OPAQUESTRING    /* 0x<even number of hexdigits> */
         GROUP
 	PATH            /* / or (/IDENT)+(.IDENT)? */
@@ -340,7 +340,7 @@ enumid: ident '=' constint
         }
         ;
 
-opaquedecl: OPAQUE '(' INT_CONST ')' typename
+opaquedecl: OPAQUE_ '(' INT_CONST ')' typename
                 {
 		    vercheck(NC_OPAQUE);
                     addtogroup($5); /*sets prefix*/
