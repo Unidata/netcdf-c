@@ -175,7 +175,7 @@ NCConstant       constant;
         TYPES
 	COMPOUND
         ENUM
-        OPAQUE_
+        OPAQUE_ /* 'OPAQUE' apparently conflicts with HDF4 code */
         OPAQUESTRING    /* 0x<even number of hexdigits> */
         GROUP
 	PATH            /* / or (/IDENT)+(.IDENT)? */
