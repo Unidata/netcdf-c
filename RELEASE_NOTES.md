@@ -11,6 +11,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.2 - TBD
 
+* [Upgrade] Update utf8proc.[ch] to use the version now maintained by the
+Julia Language project (https://github.com/JuliaLang/utf8proc/blob/master/LICENSE.md).
 * [Bug] Addressed conversion problem with Windows sscanf.  This primarily affected some OPeNDAP URLs on Windows.  See [GitHub #365](https://github.com/Unidata/netcdf-c/issues/365) and [GitHub #366](https://github.com/Unidata/netcdf-c/issues/366) for more information.
 * [Enhancement] Added support for HDF5 collective metadata operations when available. Patch submitted by Greg Sjaardema, see [Pull request #335](https://github.com/Unidata/netcdf-c/pull/335) for more information.
 * [Bug] Addressed a potential type punning issue. See [GitHub #351](https://github.com/Unidata/netcdf-c/issues/351) for more information.

@@ -487,6 +487,7 @@ IF(WIN32)
     SET(BUILD_DLL ON CACHE BOOL "")
     ADD_DEFINITIONS(-DDLL_NETCDF)
     ADD_DEFINITIONS(-DDLL_EXPORT)
+    ADD_DEFINITIONS(-DUTF8PROC_DLLEXPORT)
   ENDIF()
 ENDIF()
 # Did the user specify a default minimum blocksize for posixio?

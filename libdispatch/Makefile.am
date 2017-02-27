@@ -17,10 +17,13 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 # The source files.
 libdispatch_la_SOURCES = dparallel.c dcopy.c dfile.c ddim.c datt.c	\
 dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
-dvarinq.c dinternal.c ddispatch.c                                                   \
-nclog.c dstring.c dutf8proc.c utf8proc_data.h                          \
+dvarinq.c dinternal.c ddispatch.c dutf8.c                               \
+nclog.c dstring.c                           \
 ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c                        \
 nc.c nclistmgr.c
+
+# Add the utf8 codebase
+libdispatch_la_SOURCES += utf8proc.c utf8proc.h
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
@@ -40,7 +43,7 @@ libnetcdf2_la_SOURCES = dv2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
 
-EXTRA_DIST=CMakeLists.txt ncsettings.hdr
+EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c
 
 # Build ncsettings.c as follows:
 # 1. copy ncsettings.hdr to ncsettings.c

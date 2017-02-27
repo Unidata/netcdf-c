@@ -16,8 +16,8 @@ conditions.
 #include "nc4internal.h"
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
+#include "ncutf8.h"
 #include "H5DSpublic.h"
-#include <utf8proc.h>
 
 #define MEGABYTE 1048576
 
@@ -99,8 +99,9 @@ nc4_check_name(const char *name, char *norm_name)
       return retval;
 
    /* Normalize the name. */
-   if (!(temp = (char *)utf8proc_NFC((const unsigned char *)name)))
-      return NC_EINVAL;
+   retval = nc_utf8_normalize((const unsigned char *)name,(unsigned char**)&temp);
+   if(retval != NC_NOERR)
+      return retval;
    strcpy(norm_name, temp);
    free(temp);
 
@@ -1407,8 +1408,9 @@ int
 nc4_normalize_name(const char *name, char *norm_name)
 {
    char *temp_name;
-   if (!(temp_name = (char *)utf8proc_NFC((const unsigned char *)name)))
-      return NC_EINVAL;
+   int stat = nc_utf8_normalize((const unsigned char *)name,(unsigned char **)&temp_name);
+   if(stat != NC_NOERR)
+      return stat;
    if (strlen(temp_name) > NC_MAX_NAME)
    {
       free(temp_name);
