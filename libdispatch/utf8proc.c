@@ -222,15 +222,15 @@ static nc_utf8proc_ssize_t nc_unsafe_encode_char(nc_utf8proc_int32_t uc, nc_utf8
 /* internal "unsafe" version that does not check whether uc is in range */
 static const nc_utf8proc_property_t *nc_unsafe_get_property(nc_utf8proc_int32_t uc) {
   /* ASSERT: uc >= 0 && uc < 0x110000 */
-  return utf8proc_properties + (
-    utf8proc_stage2table[
-      utf8proc_stage1table[uc >> 8] + (uc & 0xFF)
+  return nc_utf8proc_properties + (
+    nc_utf8proc_stage2table[
+      nc_utf8proc_stage1table[uc >> 8] + (uc & 0xFF)
     ]
   );
 }
 
  const nc_utf8proc_property_t *nc_utf8proc_get_property(nc_utf8proc_int32_t uc) {
-  return uc < 0 || uc >= 0x110000 ? utf8proc_properties : nc_unsafe_get_property(uc);
+  return uc < 0 || uc >= 0x110000 ? nc_utf8proc_properties : nc_unsafe_get_property(uc);
 }
 
 /* return whether there is a grapheme break between boundclasses lbc and tbc
@@ -335,13 +335,13 @@ static nc_utf8proc_int32_t nc_seqindex_decode_entry(const nc_utf8proc_uint16_t *
 
 static nc_utf8proc_int32_t nc_seqindex_decode_index(const nc_utf8proc_uint32_t seqindex)
 {
-  const nc_utf8proc_uint16_t *entry = &utf8proc_sequences[seqindex];
+  const nc_utf8proc_uint16_t *entry = &nc_utf8proc_sequences[seqindex];
   return nc_seqindex_decode_entry(&entry);
 }
 
 static nc_utf8proc_ssize_t nc_seqindex_write_char_decomposed(nc_utf8proc_uint16_t seqindex, nc_utf8proc_int32_t *dst, nc_utf8proc_ssize_t bufsize, nc_utf8proc_option_t options, int *last_boundclass) {
   nc_utf8proc_ssize_t written = 0;
-  const nc_utf8proc_uint16_t *entry = &utf8proc_sequences[seqindex & 0x1FFF];
+  const nc_utf8proc_uint16_t *entry = &nc_utf8proc_sequences[seqindex & 0x1FFF];
   int len = seqindex >> 13;
   if (len >= 7) {
     len = *entry;
@@ -632,13 +632,13 @@ static nc_utf8proc_ssize_t nc_seqindex_write_char_decomposed(nc_utf8proc_uint16_
             current_property->comb_index != UINT16_MAX &&
             current_property->comb_index >= 0x8000) {
           int sidx = starter_property->comb_index;
-          int idx = (current_property->comb_index & 0x3FFF) - utf8proc_combinations[sidx];
-          if (idx >= 0 && idx <= utf8proc_combinations[sidx + 1] ) {
+          int idx = (current_property->comb_index & 0x3FFF) - nc_utf8proc_combinations[sidx];
+          if (idx >= 0 && idx <= nc_utf8proc_combinations[sidx + 1] ) {
             idx += sidx + 2;
             if (current_property->comb_index & 0x4000) {
-              composition = (utf8proc_combinations[idx] << 16) | utf8proc_combinations[idx+1];
+              composition = (nc_utf8proc_combinations[idx] << 16) | nc_utf8proc_combinations[idx+1];
             } else
-              composition = utf8proc_combinations[idx];
+              composition = nc_utf8proc_combinations[idx];
 
             if (composition > 0 && (!(options & UTF8PROC_STABLE) ||
                 !(nc_unsafe_get_property(composition)->comp_exclusion))) {
