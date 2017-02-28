@@ -30,7 +30,7 @@ nc_utf8_validate(const unsigned char* name)
 
     str = (const utf8proc_uint8_t*)name;
     while(*str) {
-        count = utf8proc_iterate(str,strlen,&codepoint);
+        count = nc_utf8proc_iterate(str,strlen,&codepoint);
 	if(count < 0) {
 	    switch (count) {
 	    case UTF8PROC_ERROR_NOMEM:

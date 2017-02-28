@@ -110,7 +110,7 @@ const char *utf8proc_version(void) {
 }
 
 #define utf_cont(ch)  (((ch) & 0xc0) == 0x80)
-utf8proc_ssize_t utf8proc_iterate(
+utf8proc_ssize_t nc_utf8proc_iterate(
   const utf8proc_uint8_t *str, utf8proc_ssize_t strlen, utf8proc_int32_t *dst
 ) {
   utf8proc_uint32_t uc;
@@ -506,7 +506,7 @@ static utf8proc_ssize_t seqindex_write_char_decomposed(utf8proc_uint16_t seqinde
     int boundclass = UTF8PROC_BOUNDCLASS_START;
     while (1) {
       if (options & UTF8PROC_NULLTERM) {
-        rpos += utf8proc_iterate(str + rpos, -1, &uc);
+        rpos += nc_utf8proc_iterate(str + rpos, -1, &uc);
         /* checking of return value is not necessary,
            as 'uc' is < 0 in case of error */
         if (uc < 0) return UTF8PROC_ERROR_INVALIDUTF8;
@@ -514,7 +514,7 @@ static utf8proc_ssize_t seqindex_write_char_decomposed(utf8proc_uint16_t seqinde
         if (uc == 0) break;
       } else {
         if (rpos >= strlen) break;
-        rpos += utf8proc_iterate(str + rpos, strlen - rpos, &uc);
+        rpos += nc_utf8proc_iterate(str + rpos, strlen - rpos, &uc);
         if (uc < 0) return UTF8PROC_ERROR_INVALIDUTF8;
       }
       if (custom_func != NULL) {
