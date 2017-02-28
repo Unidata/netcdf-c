@@ -73,7 +73,7 @@ nc_utf8_normalize(const unsigned char* utf8, unsigned char** normalp)
     const utf8proc_uint8_t* str = (const utf8proc_uint8_t*)utf8;
     utf8proc_uint8_t* retval = NULL;
     utf8proc_ssize_t count;
-    count = utf8proc_map(str, 0, &retval, UTF8PROC_NULLTERM | UTF8PROC_STABLE | UTF8PROC_COMPOSE);
+    count = nc_utf8proc_map(str, 0, &retval, UTF8PROC_NULLTERM | UTF8PROC_STABLE | UTF8PROC_COMPOSE);
     if(count < 0) {/* error */
 	switch (count) {
 	case UTF8PROC_ERROR_NOMEM:

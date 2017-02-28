@@ -424,7 +424,7 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t nc_utf8proc_iterate(const utf8proc_uint8_t *
  *
  * @return 1 if the given `codepoint` is valid and otherwise return 0.
  */
-utf8proc_bool utf8proc_codepoint_valid(utf8proc_int32_t codepoint);
+utf8proc_bool nc_utf8proc_codepoint_valid(utf8proc_int32_t codepoint);
 
 /**
  * Encodes the codepoint as an UTF-8 string in the byte array pointed
@@ -435,7 +435,7 @@ utf8proc_bool utf8proc_codepoint_valid(utf8proc_int32_t codepoint);
  *
  * This function does not check whether `codepoint` is valid Unicode.
  */
-utf8proc_ssize_t utf8proc_encode_char(utf8proc_int32_t codepoint, utf8proc_uint8_t *dst);
+utf8proc_ssize_t nc_utf8proc_encode_char(utf8proc_int32_t codepoint, utf8proc_uint8_t *dst);
 
 /**
  * Look up the properties for a given codepoint.
@@ -449,7 +449,7 @@ utf8proc_ssize_t utf8proc_encode_char(utf8proc_int32_t codepoint, utf8proc_uint8
  * If the codepoint is unassigned or invalid, a pointer to a special struct is
  * returned in which `category` is 0 (@ref UTF8PROC_CATEGORY_CN).
  */
-const utf8proc_property_t *utf8proc_get_property(utf8proc_int32_t codepoint);
+const utf8proc_property_t *nc_utf8proc_get_property(utf8proc_int32_t codepoint);
 
 /** Decompose a codepoint into an array of codepoints.
  *
@@ -478,7 +478,7 @@ const utf8proc_property_t *utf8proc_get_property(utf8proc_int32_t codepoint);
  * required buffer size is returned, while the buffer will be overwritten with
  * undefined data.
  */
-utf8proc_ssize_t utf8proc_decompose_char(
+utf8proc_ssize_t nc_utf8proc_decompose_char(
   utf8proc_int32_t codepoint, utf8proc_int32_t *dst, utf8proc_ssize_t bufsize,
   utf8proc_option_t options, int *last_boundclass
 );
@@ -500,7 +500,7 @@ utf8proc_ssize_t utf8proc_decompose_char(
  * required buffer size is returned, while the buffer will be overwritten with
  * undefined data.
  */
-utf8proc_ssize_t utf8proc_decompose(
+utf8proc_ssize_t nc_utf8proc_decompose(
   const utf8proc_uint8_t *str, utf8proc_ssize_t strlen,
   utf8proc_int32_t *buffer, utf8proc_ssize_t bufsize, utf8proc_option_t options
 );
@@ -511,7 +511,7 @@ utf8proc_ssize_t utf8proc_decompose(
  * (along with a `custom_data` pointer that is passed through to `custom_func`).
  * The `custom_func` argument is ignored if it is `NULL`.  See also @ref utf8proc_map_custom.
  */
-utf8proc_ssize_t utf8proc_decompose_custom(
+utf8proc_ssize_t nc_utf8proc_decompose_custom(
   const utf8proc_uint8_t *str, utf8proc_ssize_t strlen,
   utf8proc_int32_t *buffer, utf8proc_ssize_t bufsize, utf8proc_option_t options,
   utf8proc_custom_func custom_func, void *custom_data
@@ -540,7 +540,7 @@ utf8proc_ssize_t utf8proc_decompose_custom(
  * @warning The entries of the array pointed to by `str` have to be in the
  *          range `0x0000` to `0x10FFFF`. Otherwise, the program might crash!
  */
-utf8proc_ssize_t utf8proc_normalize_utf32(utf8proc_int32_t *buffer, utf8proc_ssize_t length, utf8proc_option_t options);
+utf8proc_ssize_t nc_utf8proc_normalize_utf32(utf8proc_int32_t *buffer, utf8proc_ssize_t length, utf8proc_option_t options);
 
 /**
  * Reencodes the sequence of `length` codepoints pointed to by `buffer`
@@ -570,7 +570,7 @@ utf8proc_ssize_t utf8proc_normalize_utf32(utf8proc_int32_t *buffer, utf8proc_ssi
  *          entries of the array pointed to by `str` have to be in the
  *          range `0x0000` to `0x10FFFF`. Otherwise, the program might crash!
  */
-utf8proc_ssize_t utf8proc_reencode(utf8proc_int32_t *buffer, utf8proc_ssize_t length, utf8proc_option_t options);
+utf8proc_ssize_t nc_utf8proc_reencode(utf8proc_int32_t *buffer, utf8proc_ssize_t length, utf8proc_option_t options);
 
 /**
  * Given a pair of consecutive codepoints, return whether a grapheme break is
@@ -586,14 +586,14 @@ utf8proc_ssize_t utf8proc_reencode(utf8proc_int32_t *buffer, utf8proc_ssize_t le
  * @warning If the state parameter is used, `utf8proc_grapheme_break_stateful` must
  *          be called IN ORDER on ALL potential breaks in a string.
  */
-utf8proc_bool utf8proc_grapheme_break_stateful(
+utf8proc_bool nc_utf8proc_grapheme_break_stateful(
     utf8proc_int32_t codepoint1, utf8proc_int32_t codepoint2, utf8proc_int32_t *state);
 
 /**
  * Same as @ref utf8proc_grapheme_break_stateful, except without support for the
  * Unicode 9 additions to the algorithm. Supported for legacy reasons.
  */
-utf8proc_bool utf8proc_grapheme_break(
+utf8proc_bool nc_utf8proc_grapheme_break(
     utf8proc_int32_t codepoint1, utf8proc_int32_t codepoint2);
 
 
@@ -602,21 +602,21 @@ utf8proc_bool utf8proc_grapheme_break(
  * lower-case character, if any; otherwise (if there is no lower-case
  * variant, or if `c` is not a valid codepoint) return `c`.
  */
-utf8proc_int32_t utf8proc_tolower(utf8proc_int32_t c);
+utf8proc_int32_t nc_utf8proc_tolower(utf8proc_int32_t c);
 
 /**
  * Given a codepoint `c`, return the codepoint of the corresponding
  * upper-case character, if any; otherwise (if there is no upper-case
  * variant, or if `c` is not a valid codepoint) return `c`.
  */
-utf8proc_int32_t utf8proc_toupper(utf8proc_int32_t c);
+utf8proc_int32_t nc_utf8proc_toupper(utf8proc_int32_t c);
 
 /**
  * Given a codepoint `c`, return the codepoint of the corresponding
  * title-case character, if any; otherwise (if there is no title-case
  * variant, or if `c` is not a valid codepoint) return `c`.
  */
-utf8proc_int32_t utf8proc_totitle(utf8proc_int32_t c);
+utf8proc_int32_t nc_utf8proc_totitle(utf8proc_int32_t c);
 
 /**
  * Given a codepoint, return a character width analogous to `wcwidth(codepoint)`,
@@ -626,19 +626,19 @@ utf8proc_int32_t utf8proc_totitle(utf8proc_int32_t c);
  * @note
  * If you want to check for particular types of non-printable characters,
  * (analogous to `isprint` or `iscntrl`), use @ref utf8proc_category. */
-int utf8proc_charwidth(utf8proc_int32_t codepoint);
+int nc_utf8proc_charwidth(utf8proc_int32_t codepoint);
 
 /**
  * Return the Unicode category for the codepoint (one of the
  * @ref utf8proc_category_t constants.)
  */
-utf8proc_category_t utf8proc_category(utf8proc_int32_t codepoint);
+utf8proc_category_t nc_utf8proc_category(utf8proc_int32_t codepoint);
 
 /**
  * Return the two-letter (nul-terminated) Unicode category string for
  * the codepoint (e.g. `"Lu"` or `"Co"`).
  */
-const char *utf8proc_category_string(utf8proc_int32_t codepoint);
+const char *nc_utf8proc_category_string(utf8proc_int32_t codepoint);
 
 /**
  * Maps the given UTF-8 string pointed to by `str` to a new UTF-8
@@ -659,7 +659,7 @@ const char *utf8proc_category_string(utf8proc_int32_t codepoint);
  * @note The memory of the new UTF-8 string will have been allocated
  * with `malloc`, and should therefore be deallocated with `free`.
  */
-utf8proc_ssize_t utf8proc_map(
+utf8proc_ssize_t nc_utf8proc_map(
   const utf8proc_uint8_t *str, utf8proc_ssize_t strlen, utf8proc_uint8_t **dstptr, utf8proc_option_t options
 );
 
@@ -669,7 +669,7 @@ utf8proc_ssize_t utf8proc_map(
  * (along with a `custom_data` pointer that is passed through to `custom_func`).
  * The `custom_func` argument is ignored if it is `NULL`.
  */
-utf8proc_ssize_t utf8proc_map_custom(
+utf8proc_ssize_t nc_utf8proc_map_custom(
   const utf8proc_uint8_t *str, utf8proc_ssize_t strlen, utf8proc_uint8_t **dstptr, utf8proc_option_t options,
   utf8proc_custom_func custom_func, void *custom_data
 );
@@ -683,13 +683,13 @@ utf8proc_ssize_t utf8proc_map_custom(
  */
 /** @{ */
 /** NFD normalization (@ref UTF8PROC_DECOMPOSE). */
-UTF8PROC_DLLEXPORT utf8proc_uint8_t *utf8proc_NFD(const utf8proc_uint8_t *str);
+UTF8PROC_DLLEXPORT utf8proc_uint8_t *nc_utf8proc_NFD(const utf8proc_uint8_t *str);
 /** NFC normalization (@ref UTF8PROC_COMPOSE). */
-UTF8PROC_DLLEXPORT utf8proc_uint8_t *utf8proc_NFC(const utf8proc_uint8_t *str);
+UTF8PROC_DLLEXPORT utf8proc_uint8_t *nc_utf8proc_NFC(const utf8proc_uint8_t *str);
 /** NFKD normalization (@ref UTF8PROC_DECOMPOSE and @ref UTF8PROC_COMPAT). */
-UTF8PROC_DLLEXPORT utf8proc_uint8_t *utf8proc_NFKD(const utf8proc_uint8_t *str);
+UTF8PROC_DLLEXPORT utf8proc_uint8_t *nc_utf8proc_NFKD(const utf8proc_uint8_t *str);
 /** NFKC normalization (@ref UTF8PROC_COMPOSE and @ref UTF8PROC_COMPAT). */
-UTF8PROC_DLLEXPORT utf8proc_uint8_t *utf8proc_NFKC(const utf8proc_uint8_t *str);
+UTF8PROC_DLLEXPORT utf8proc_uint8_t *nc_utf8proc_NFKC(const utf8proc_uint8_t *str);
 /** @} */
 
 #ifdef __cplusplus
