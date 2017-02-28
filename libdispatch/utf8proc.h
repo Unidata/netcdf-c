@@ -398,13 +398,13 @@ const utf8proc_int8_t utf8proc_utf8class[256];
  * (http://semver.org format), possibly with a "-dev" suffix for
  * development versions.
  */
-const char *utf8proc_version(void);
+const char *nc_utf8proc_version(void);
 
 /**
  * Returns an informative error string for the given utf8proc error code
  * (e.g. the error codes returned by @ref utf8proc_map).
  */
-const char *utf8proc_errmsg(utf8proc_ssize_t errcode);
+const char *nc_utf8proc_errmsg(utf8proc_ssize_t errcode);
 
 /**
  * Reads a single codepoint from the UTF-8 sequence being pointed to by `str`.
