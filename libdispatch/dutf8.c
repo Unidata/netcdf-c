@@ -23,12 +23,12 @@ int
 nc_utf8_validate(const unsigned char* name)
 {
     int ncstat = NC_NOERR;
-    const utf8proc_uint8_t *str;
-    utf8proc_ssize_t strlen = -1;
-    utf8proc_int32_t codepoint;
-    utf8proc_ssize_t count;
+    const nc_utf8proc_uint8_t *str;
+    nc_utf8proc_ssize_t strlen = -1;
+    nc_utf8proc_int32_t codepoint;
+    nc_utf8proc_ssize_t count;
 
-    str = (const utf8proc_uint8_t*)name;
+    str = (const nc_utf8proc_uint8_t*)name;
     while(*str) {
         count = nc_utf8proc_iterate(str,strlen,&codepoint);
 	if(count < 0) {
@@ -70,9 +70,9 @@ int
 nc_utf8_normalize(const unsigned char* utf8, unsigned char** normalp)
 {
     int ncstat = NC_NOERR;
-    const utf8proc_uint8_t* str = (const utf8proc_uint8_t*)utf8;
-    utf8proc_uint8_t* retval = NULL;
-    utf8proc_ssize_t count;
+    const nc_utf8proc_uint8_t* str = (const nc_utf8proc_uint8_t*)utf8;
+    nc_utf8proc_uint8_t* retval = NULL;
+    nc_utf8proc_ssize_t count;
     count = nc_utf8proc_map(str, 0, &retval, UTF8PROC_NULLTERM | UTF8PROC_STABLE | UTF8PROC_COMPOSE);
     if(count < 0) {/* error */
 	switch (count) {

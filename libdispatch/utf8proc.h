@@ -108,15 +108,15 @@ typedef bool utf8proc_bool;
 #  include <stddef.h>
 #  include <stdbool.h>
 #  include <inttypes.h>
-typedef int8_t utf8proc_int8_t;
-typedef uint8_t utf8proc_uint8_t;
-typedef int16_t utf8proc_int16_t;
-typedef uint16_t utf8proc_uint16_t;
-typedef int32_t utf8proc_int32_t;
-typedef uint32_t utf8proc_uint32_t;
-typedef size_t utf8proc_size_t;
-typedef ptrdiff_t utf8proc_ssize_t;
-typedef bool utf8proc_bool;
+typedef int8_t nc_utf8proc_int8_t;
+typedef uint8_t nc_utf8proc_uint8_t;
+typedef int16_t nc_utf8proc_int16_t;
+typedef uint16_t nc_utf8proc_uint16_t;
+typedef int32_t nc_utf8proc_int32_t;
+typedef uint32_t nc_utf8proc_uint32_t;
+typedef size_t nc_utf8proc_size_t;
+typedef ptrdiff_t nc_utf8proc_ssize_t;
+typedef bool nc_utf8proc_bool;
 #endif
 #include <limits.h>
 
@@ -209,7 +209,7 @@ typedef enum {
    *       @ref UTF8PROC_DECOMPOSE
    */
   UTF8PROC_STRIPMARK = (1<<13),
-} utf8proc_option_t;
+} nc_utf8proc_option_t;
 
 /** @name Error codes
  * Error codes being returned by almost all functions.
@@ -230,32 +230,32 @@ typedef enum {
 /* @name Types */
 
 /** Holds the value of a property. */
-typedef utf8proc_int16_t utf8proc_propval_t;
+typedef nc_utf8proc_int16_t nc_utf8proc_propval_t;
 
 /** Struct containing information about a codepoint. */
-typedef struct utf8proc_property_struct {
+typedef struct nc_utf8proc_property_struct {
   /**
    * Unicode category.
    * @see utf8proc_category_t.
    */
-  utf8proc_propval_t category;
-  utf8proc_propval_t combining_class;
+  nc_utf8proc_propval_t category;
+  nc_utf8proc_propval_t combining_class;
   /**
    * Bidirectional class.
    * @see utf8proc_bidi_class_t.
    */
-  utf8proc_propval_t bidi_class;
+  nc_utf8proc_propval_t bidi_class;
   /**
    * @anchor Decomposition type.
    * @see utf8proc_decomp_type_t.
    */
-  utf8proc_propval_t decomp_type;
-  utf8proc_uint16_t decomp_seqindex;
-  utf8proc_uint16_t casefold_seqindex;
-  utf8proc_uint16_t uppercase_seqindex;
-  utf8proc_uint16_t lowercase_seqindex;
-  utf8proc_uint16_t titlecase_seqindex;
-  utf8proc_uint16_t comb_index;
+  nc_utf8proc_propval_t decomp_type;
+  nc_utf8proc_uint16_t decomp_seqindex;
+  nc_utf8proc_uint16_t casefold_seqindex;
+  nc_utf8proc_uint16_t uppercase_seqindex;
+  nc_utf8proc_uint16_t lowercase_seqindex;
+  nc_utf8proc_uint16_t titlecase_seqindex;
+  nc_utf8proc_uint16_t comb_index;
   unsigned bidi_mirrored:1;
   unsigned comp_exclusion:1;
   /**
@@ -274,7 +274,7 @@ typedef struct utf8proc_property_struct {
    * @see utf8proc_boundclass_t.
    */
   unsigned boundclass:8;
-} utf8proc_property_t;
+} nc_utf8proc_property_t;
 
 /** Unicode categories. */
 typedef enum {
@@ -308,7 +308,7 @@ typedef enum {
   UTF8PROC_CATEGORY_CF = 27, /**< Other, format */
   UTF8PROC_CATEGORY_CS = 28, /**< Other, surrogate */
   UTF8PROC_CATEGORY_CO = 29, /**< Other, private use */
-} utf8proc_category_t;
+} nc_utf8proc_category_t;
 
 /** Bidirectional character classes. */
 typedef enum {
@@ -335,7 +335,7 @@ typedef enum {
   UTF8PROC_BIDI_CLASS_RLI  = 21, /**< Right-to-Left Isolate */
   UTF8PROC_BIDI_CLASS_FSI  = 22, /**< First Strong Isolate */
   UTF8PROC_BIDI_CLASS_PDI  = 23, /**< Pop Directional Isolate */
-} utf8proc_bidi_class_t;
+} nc_utf8proc_bidi_class_t;
 
 /** Decomposition type. */
 typedef enum {
@@ -355,7 +355,7 @@ typedef enum {
   UTF8PROC_DECOMP_TYPE_SQUARE   = 14, /**< Square */
   UTF8PROC_DECOMP_TYPE_FRACTION = 15, /**< Fraction */
   UTF8PROC_DECOMP_TYPE_COMPAT   = 16, /**< Compat */
-} utf8proc_decomp_type_t;
+} nc_utf8proc_decomp_type_t;
 
 /** Boundclass property. (TR29) */
 typedef enum {
@@ -378,20 +378,20 @@ typedef enum {
   UTF8PROC_BOUNDCLASS_E_MODIFIER         = 16, /**< Emoji Modifier */
   UTF8PROC_BOUNDCLASS_GLUE_AFTER_ZWJ     = 17, /**< Glue_After_ZWJ */
   UTF8PROC_BOUNDCLASS_E_BASE_GAZ         = 18, /**< E_BASE + GLUE_AFTER_ZJW */
-} utf8proc_boundclass_t;
+} nc_utf8proc_boundclass_t;
 
 /**
  * Function pointer type passed to @ref utf8proc_map_custom and
  * @ref utf8proc_decompose_custom, which is used to specify a user-defined
  * mapping of codepoints to be applied in conjunction with other mappings.
  */
-typedef utf8proc_int32_t (*utf8proc_custom_func)(utf8proc_int32_t codepoint, void *data);
+typedef nc_utf8proc_int32_t (*nc_utf8proc_custom_func)(nc_utf8proc_int32_t codepoint, void *data);
 
 /**
  * Array containing the byte lengths of a UTF-8 encoded codepoint based
  * on the first byte.
  */
-const utf8proc_int8_t utf8proc_utf8class[256];
+const nc_utf8proc_int8_t nc_utf8proc_utf8class[256];
 
 /**
  * Returns the utf8proc API version as a string MAJOR.MINOR.PATCH
@@ -404,7 +404,7 @@ const char *nc_utf8proc_version(void);
  * Returns an informative error string for the given utf8proc error code
  * (e.g. the error codes returned by @ref utf8proc_map).
  */
-const char *nc_utf8proc_errmsg(utf8proc_ssize_t errcode);
+const char *nc_utf8proc_errmsg(nc_utf8proc_ssize_t errcode);
 
 /**
  * Reads a single codepoint from the UTF-8 sequence being pointed to by `str`.
@@ -416,7 +416,7 @@ const char *nc_utf8proc_errmsg(utf8proc_ssize_t errcode);
  * In case of success, the number of bytes read is returned; otherwise, a
  * negative error code is returned.
  */
-UTF8PROC_DLLEXPORT utf8proc_ssize_t nc_utf8proc_iterate(const utf8proc_uint8_t *str, utf8proc_ssize_t strlen, utf8proc_int32_t *codepoint_ref);
+UTF8PROC_DLLEXPORT nc_utf8proc_ssize_t nc_utf8proc_iterate(const nc_utf8proc_uint8_t *str, nc_utf8proc_ssize_t strlen, nc_utf8proc_int32_t *codepoint_ref);
 
 /**
  * Check if a codepoint is valid (regardless of whether it has been
@@ -424,7 +424,7 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t nc_utf8proc_iterate(const utf8proc_uint8_t *
  *
  * @return 1 if the given `codepoint` is valid and otherwise return 0.
  */
-utf8proc_bool nc_utf8proc_codepoint_valid(utf8proc_int32_t codepoint);
+nc_utf8proc_bool nc_utf8proc_codepoint_valid(nc_utf8proc_int32_t codepoint);
 
 /**
  * Encodes the codepoint as an UTF-8 string in the byte array pointed
@@ -435,7 +435,7 @@ utf8proc_bool nc_utf8proc_codepoint_valid(utf8proc_int32_t codepoint);
  *
  * This function does not check whether `codepoint` is valid Unicode.
  */
-utf8proc_ssize_t nc_utf8proc_encode_char(utf8proc_int32_t codepoint, utf8proc_uint8_t *dst);
+nc_utf8proc_ssize_t nc_utf8proc_encode_char(nc_utf8proc_int32_t codepoint, nc_utf8proc_uint8_t *dst);
 
 /**
  * Look up the properties for a given codepoint.
@@ -449,7 +449,7 @@ utf8proc_ssize_t nc_utf8proc_encode_char(utf8proc_int32_t codepoint, utf8proc_ui
  * If the codepoint is unassigned or invalid, a pointer to a special struct is
  * returned in which `category` is 0 (@ref UTF8PROC_CATEGORY_CN).
  */
-const utf8proc_property_t *nc_utf8proc_get_property(utf8proc_int32_t codepoint);
+const nc_utf8proc_property_t *nc_utf8proc_get_property(nc_utf8proc_int32_t codepoint);
 
 /** Decompose a codepoint into an array of codepoints.
  *
@@ -478,9 +478,9 @@ const utf8proc_property_t *nc_utf8proc_get_property(utf8proc_int32_t codepoint);
  * required buffer size is returned, while the buffer will be overwritten with
  * undefined data.
  */
-utf8proc_ssize_t nc_utf8proc_decompose_char(
-  utf8proc_int32_t codepoint, utf8proc_int32_t *dst, utf8proc_ssize_t bufsize,
-  utf8proc_option_t options, int *last_boundclass
+nc_utf8proc_ssize_t nc_utf8proc_decompose_char(
+  nc_utf8proc_int32_t codepoint, nc_utf8proc_int32_t *dst, nc_utf8proc_ssize_t bufsize,
+  nc_utf8proc_option_t options, int *last_boundclass
 );
 
 /**
@@ -500,9 +500,9 @@ utf8proc_ssize_t nc_utf8proc_decompose_char(
  * required buffer size is returned, while the buffer will be overwritten with
  * undefined data.
  */
-utf8proc_ssize_t nc_utf8proc_decompose(
-  const utf8proc_uint8_t *str, utf8proc_ssize_t strlen,
-  utf8proc_int32_t *buffer, utf8proc_ssize_t bufsize, utf8proc_option_t options
+nc_utf8proc_ssize_t nc_utf8proc_decompose(
+  const nc_utf8proc_uint8_t *str, nc_utf8proc_ssize_t strlen,
+  nc_utf8proc_int32_t *buffer, nc_utf8proc_ssize_t bufsize, nc_utf8proc_option_t options
 );
 
 /**
@@ -511,10 +511,10 @@ utf8proc_ssize_t nc_utf8proc_decompose(
  * (along with a `custom_data` pointer that is passed through to `custom_func`).
  * The `custom_func` argument is ignored if it is `NULL`.  See also @ref utf8proc_map_custom.
  */
-utf8proc_ssize_t nc_utf8proc_decompose_custom(
-  const utf8proc_uint8_t *str, utf8proc_ssize_t strlen,
-  utf8proc_int32_t *buffer, utf8proc_ssize_t bufsize, utf8proc_option_t options,
-  utf8proc_custom_func custom_func, void *custom_data
+nc_utf8proc_ssize_t nc_utf8proc_decompose_custom(
+  const nc_utf8proc_uint8_t *str, nc_utf8proc_ssize_t strlen,
+  nc_utf8proc_int32_t *buffer, nc_utf8proc_ssize_t bufsize, nc_utf8proc_option_t options,
+  nc_utf8proc_custom_func custom_func, void *custom_data
 );
 
 /**
@@ -540,7 +540,7 @@ utf8proc_ssize_t nc_utf8proc_decompose_custom(
  * @warning The entries of the array pointed to by `str` have to be in the
  *          range `0x0000` to `0x10FFFF`. Otherwise, the program might crash!
  */
-utf8proc_ssize_t nc_utf8proc_normalize_utf32(utf8proc_int32_t *buffer, utf8proc_ssize_t length, utf8proc_option_t options);
+nc_utf8proc_ssize_t nc_utf8proc_normalize_utf32(nc_utf8proc_int32_t *buffer, nc_utf8proc_ssize_t length, nc_utf8proc_option_t options);
 
 /**
  * Reencodes the sequence of `length` codepoints pointed to by `buffer`
@@ -570,7 +570,7 @@ utf8proc_ssize_t nc_utf8proc_normalize_utf32(utf8proc_int32_t *buffer, utf8proc_
  *          entries of the array pointed to by `str` have to be in the
  *          range `0x0000` to `0x10FFFF`. Otherwise, the program might crash!
  */
-utf8proc_ssize_t nc_utf8proc_reencode(utf8proc_int32_t *buffer, utf8proc_ssize_t length, utf8proc_option_t options);
+nc_utf8proc_ssize_t nc_utf8proc_reencode(nc_utf8proc_int32_t *buffer, nc_utf8proc_ssize_t length, nc_utf8proc_option_t options);
 
 /**
  * Given a pair of consecutive codepoints, return whether a grapheme break is
@@ -586,15 +586,15 @@ utf8proc_ssize_t nc_utf8proc_reencode(utf8proc_int32_t *buffer, utf8proc_ssize_t
  * @warning If the state parameter is used, `utf8proc_grapheme_break_stateful` must
  *          be called IN ORDER on ALL potential breaks in a string.
  */
-utf8proc_bool nc_utf8proc_grapheme_break_stateful(
-    utf8proc_int32_t codepoint1, utf8proc_int32_t codepoint2, utf8proc_int32_t *state);
+nc_utf8proc_bool nc_utf8proc_grapheme_break_stateful(
+    nc_utf8proc_int32_t codepoint1, nc_utf8proc_int32_t codepoint2, nc_utf8proc_int32_t *state);
 
 /**
  * Same as @ref utf8proc_grapheme_break_stateful, except without support for the
  * Unicode 9 additions to the algorithm. Supported for legacy reasons.
  */
-utf8proc_bool nc_utf8proc_grapheme_break(
-    utf8proc_int32_t codepoint1, utf8proc_int32_t codepoint2);
+nc_utf8proc_bool nc_utf8proc_grapheme_break(
+    nc_utf8proc_int32_t codepoint1, nc_utf8proc_int32_t codepoint2);
 
 
 /**
@@ -602,21 +602,21 @@ utf8proc_bool nc_utf8proc_grapheme_break(
  * lower-case character, if any; otherwise (if there is no lower-case
  * variant, or if `c` is not a valid codepoint) return `c`.
  */
-utf8proc_int32_t nc_utf8proc_tolower(utf8proc_int32_t c);
+nc_utf8proc_int32_t nc_utf8proc_tolower(nc_utf8proc_int32_t c);
 
 /**
  * Given a codepoint `c`, return the codepoint of the corresponding
  * upper-case character, if any; otherwise (if there is no upper-case
  * variant, or if `c` is not a valid codepoint) return `c`.
  */
-utf8proc_int32_t nc_utf8proc_toupper(utf8proc_int32_t c);
+nc_utf8proc_int32_t nc_utf8proc_toupper(nc_utf8proc_int32_t c);
 
 /**
  * Given a codepoint `c`, return the codepoint of the corresponding
  * title-case character, if any; otherwise (if there is no title-case
  * variant, or if `c` is not a valid codepoint) return `c`.
  */
-utf8proc_int32_t nc_utf8proc_totitle(utf8proc_int32_t c);
+nc_utf8proc_int32_t nc_utf8proc_totitle(nc_utf8proc_int32_t c);
 
 /**
  * Given a codepoint, return a character width analogous to `wcwidth(codepoint)`,
@@ -626,19 +626,19 @@ utf8proc_int32_t nc_utf8proc_totitle(utf8proc_int32_t c);
  * @note
  * If you want to check for particular types of non-printable characters,
  * (analogous to `isprint` or `iscntrl`), use @ref utf8proc_category. */
-int nc_utf8proc_charwidth(utf8proc_int32_t codepoint);
+int nc_utf8proc_charwidth(nc_utf8proc_int32_t codepoint);
 
 /**
  * Return the Unicode category for the codepoint (one of the
  * @ref utf8proc_category_t constants.)
  */
-utf8proc_category_t nc_utf8proc_category(utf8proc_int32_t codepoint);
+nc_utf8proc_category_t nc_utf8proc_category(nc_utf8proc_int32_t codepoint);
 
 /**
  * Return the two-letter (nul-terminated) Unicode category string for
  * the codepoint (e.g. `"Lu"` or `"Co"`).
  */
-const char *nc_utf8proc_category_string(utf8proc_int32_t codepoint);
+const char *nc_utf8proc_category_string(nc_utf8proc_int32_t codepoint);
 
 /**
  * Maps the given UTF-8 string pointed to by `str` to a new UTF-8
@@ -659,8 +659,8 @@ const char *nc_utf8proc_category_string(utf8proc_int32_t codepoint);
  * @note The memory of the new UTF-8 string will have been allocated
  * with `malloc`, and should therefore be deallocated with `free`.
  */
-utf8proc_ssize_t nc_utf8proc_map(
-  const utf8proc_uint8_t *str, utf8proc_ssize_t strlen, utf8proc_uint8_t **dstptr, utf8proc_option_t options
+nc_utf8proc_ssize_t nc_utf8proc_map(
+  const nc_utf8proc_uint8_t *str, nc_utf8proc_ssize_t strlen, nc_utf8proc_uint8_t **dstptr, nc_utf8proc_option_t options
 );
 
 /**
@@ -669,9 +669,9 @@ utf8proc_ssize_t nc_utf8proc_map(
  * (along with a `custom_data` pointer that is passed through to `custom_func`).
  * The `custom_func` argument is ignored if it is `NULL`.
  */
-utf8proc_ssize_t nc_utf8proc_map_custom(
-  const utf8proc_uint8_t *str, utf8proc_ssize_t strlen, utf8proc_uint8_t **dstptr, utf8proc_option_t options,
-  utf8proc_custom_func custom_func, void *custom_data
+nc_utf8proc_ssize_t nc_utf8proc_map_custom(
+  const nc_utf8proc_uint8_t *str, nc_utf8proc_ssize_t strlen, nc_utf8proc_uint8_t **dstptr, nc_utf8proc_option_t options,
+  nc_utf8proc_custom_func custom_func, void *custom_data
 );
 
 /** @name Unicode normalization
@@ -683,13 +683,13 @@ utf8proc_ssize_t nc_utf8proc_map_custom(
  */
 /** @{ */
 /** NFD normalization (@ref UTF8PROC_DECOMPOSE). */
-UTF8PROC_DLLEXPORT utf8proc_uint8_t *nc_utf8proc_NFD(const utf8proc_uint8_t *str);
+UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFD(const nc_utf8proc_uint8_t *str);
 /** NFC normalization (@ref UTF8PROC_COMPOSE). */
-UTF8PROC_DLLEXPORT utf8proc_uint8_t *nc_utf8proc_NFC(const utf8proc_uint8_t *str);
+UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFC(const nc_utf8proc_uint8_t *str);
 /** NFKD normalization (@ref UTF8PROC_DECOMPOSE and @ref UTF8PROC_COMPAT). */
-UTF8PROC_DLLEXPORT utf8proc_uint8_t *nc_utf8proc_NFKD(const utf8proc_uint8_t *str);
+UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFKD(const nc_utf8proc_uint8_t *str);
 /** NFKC normalization (@ref UTF8PROC_COMPOSE and @ref UTF8PROC_COMPAT). */
-UTF8PROC_DLLEXPORT utf8proc_uint8_t *nc_utf8proc_NFKC(const utf8proc_uint8_t *str);
+UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFKC(const nc_utf8proc_uint8_t *str);
 /** @} */
 
 #ifdef __cplusplus
