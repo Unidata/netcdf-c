@@ -401,12 +401,14 @@ ncio_ffio_global_test(const char *ControlString)
 static int
 ncio_ffio_sync(ncio *const nciop)
 {
+	int test_flush;
 #ifdef __crayx1
 	struct ffsw stat;
-	if(ffflush(nciop->fd,&stat) < 0)
+	test_flush = ffflush(nciop->fd,&stat) < 0;
 #else
-	if(ffflush(nciop->fd) < 0)
+	test_flush = ffflush(nciop->fd) < 0;
 #endif
+	if(test_flush)
 		return errno;
 	return NC_NOERR;
 }
