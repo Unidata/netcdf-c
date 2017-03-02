@@ -487,6 +487,7 @@ IF(WIN32)
     SET(BUILD_DLL ON CACHE BOOL "")
     ADD_DEFINITIONS(-DDLL_NETCDF)
     ADD_DEFINITIONS(-DDLL_EXPORT)
+    ADD_DEFINITIONS(-DUTF8PROC_DLLEXPORT)
   ENDIF()
 ENDIF()
 # Did the user specify a default minimum blocksize for posixio?
@@ -861,7 +862,8 @@ IF(ENABLE_TESTS)
 
   # Options for CTest-based tests, dashboards.
   SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
-  SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+  SET(NC_CTEST_DROP_SITE "129.114.104.111" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+  #SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
   SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
 
   FIND_PROGRAM(HOSTNAME_CMD NAMES hostname)

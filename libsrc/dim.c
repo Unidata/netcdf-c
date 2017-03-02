@@ -10,7 +10,7 @@
 #include <assert.h>
 #include "ncx.h"
 #include "fbits.h"
-#include "utf8proc.h"
+#include "ncutf8.h"
 
 /*
  * Free dim
@@ -52,9 +52,11 @@ new_NC_dim(const char *uname, size_t size)
 {
 	NC_string *strp;
 	NC_dim *dimp;
+	int stat;
+	char* name;
 
-	char *name = (char *)utf8proc_NFC((const unsigned char *)uname);
-	if(name == NULL)
+	stat = nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name);
+	if(stat != NC_NOERR)
 	    return NULL;
 	strp = new_NC_string(strlen(name), name);
 	free(name);
@@ -135,13 +137,14 @@ NC_finddim(const NC_dimarray *ncap, const char *uname, NC_dim **dimpp)
       return -1;
 
    {
+      int stat;
       dimid = 0;
       loc = (NC_dim **) ncap->value;
 
       /* normalized version of uname */
-      name = (char *)utf8proc_NFC((const unsigned char *)uname);
-      if(name == NULL)
-	 return NC_ENOMEM;
+      stat = nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name);
+	if(stat != NC_NOERR)
+	 return stat;
       dimid = (int)NC_hashmapGetDim(ncap, name);
       free(name);
       if (dimid >= 0) {
@@ -468,9 +471,9 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 		return NC_EBADDIM;
 
     old = dimp->name;
-    newname = (char *)utf8proc_NFC((const unsigned char *)unewname);
-	if(newname == NULL)
-	    return NC_ENOMEM;
+    status = nc_utf8_normalize((const unsigned char *)unewname,(unsigned char **)&newname);
+    if(status != NC_NOERR)
+	return status;
     if(NC_indef(ncp))
 	{
 		NC_string *newStr = new_NC_string(strlen(newname), newname);
