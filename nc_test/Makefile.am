@@ -19,7 +19,7 @@ unlim.nc tst_inq_type.nc
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm \
 	tst_names tst_nofill tst_nofill2 tst_nofill3 tst_atts3 \
-	tst_meta tst_inq_type
+	tst_meta tst_inq_type tst_utf8_validate tst_utf8_phrases
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts tst_put_vars
@@ -63,15 +63,15 @@ endif
 TESTS = $(TESTPROGRAMS)
 
 if BUILD_UTILITIES
-	if BUILD_DISKLESS
+if BUILD_DISKLESS
 		TESTS += run_diskless.sh
-		if BUILD_MMAP
+if BUILD_MMAP
 			TESTS += run_mmap.sh
-		endif
-		if LARGE_FILE_TESTS
+endif
+if LARGE_FILE_TESTS
 			TESTS += run_diskless2.sh
-		endif
-	endif
+endif
+endif
 endif
 
 if USE_PNETCDF

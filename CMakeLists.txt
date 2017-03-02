@@ -101,6 +101,12 @@ INCLUDE(${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 INCLUDE(CheckCCompilerFlag)
 FIND_PACKAGE(PkgConfig QUIET)
 
+# Check for Big Endian
+TEST_BIG_ENDIAN(BIGENDIAN)
+IF(${BIGENDIAN})
+    SET(WORDS_BIGENDIAN "1")
+ENDIF(${BIGENDIAN})
+
 # A macro to check if a C linker supports a particular flag.
 MACRO(CHECK_C_LINKER_FLAG M_FLAG M_RESULT)
   SET(T_REQ_FLAG "${CMAKE_REQUIRED_FLAGS}")
@@ -436,6 +442,8 @@ IF(ENABLE_HDF4)
     MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 mfhdf library.")
   ENDIF()
 
+  SET(HAVE_LIBMFHDF TRUE)
+
   SET(HDF4_LIBRARIES ${HDF4_DF_LIB} ${HDF4_MFHDF_LIB})
   # End include files, libraries.
   MESSAGE(STATUS "HDF4 libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
@@ -448,6 +456,7 @@ IF(ENABLE_HDF4)
     MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find jpeglib.h")
   ELSE()
     SET(HAVE_JPEGLIB_H ON CACHE BOOL "")
+    SET(HAVE_LIBJPEG TRUE)
     INCLUDE_DIRECTORIES(${JPEGLIB_H_INCLUDE_DIR})
   ENDIF()
 
@@ -478,6 +487,7 @@ IF(WIN32)
     SET(BUILD_DLL ON CACHE BOOL "")
     ADD_DEFINITIONS(-DDLL_NETCDF)
     ADD_DEFINITIONS(-DDLL_EXPORT)
+    ADD_DEFINITIONS(-DUTF8PROC_DLLEXPORT)
   ENDIF()
 ENDIF()
 # Did the user specify a default minimum blocksize for posixio?
@@ -613,6 +623,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       IF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
         IF(NOT HDF5_LIBRARIES AND HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY AND HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY)
           SET(HDF5_C_LIBRARY ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
+          SET(HDF5_C_LIBRARY_hdf5 ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
           SET(HDF5_HL_LIBRARY ${HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
       	  SET(HDF5_LIBRARIES ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY} ${HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
         ENDIF()
@@ -627,6 +638,9 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       ENDIF()
 
     ENDIF(MSVC)
+    IF(NOT HDF5_C_LIBRARY)
+      SET(HDF5_C_LIBRARY hdf5)
+    ENDIF()
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
   ###
@@ -636,8 +650,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     # Find out if HDF5 was built with parallel support.
     # Do that by checking for the targets H5Pget_fapl_mpiposx and
     # H5Pget_fapl_mpio in ${HDF5_LIB}.
-    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
-    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
+    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
     IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
       SET(HDF5_PARALLEL ON)
     ELSE()
@@ -653,11 +667,13 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       SET(USE_PARALLEL_POSIX ON)
     ENDIF()
 
+    #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
+    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
+
     OPTION(ENABLE_DYNAMIC_LOADING "Enable Dynamic Loading" ON)
     IF(ENABLE_DYNAMIC_LOADING)
       SET(USE_LIBDL ON CACHE BOOL "")
     ENDIF()
-    SET(HDF5_C_LIBRARY hdf5)
   ENDIF(NOT MSVC)
 
   # Make sure the user has built the library with zlib support.
@@ -846,7 +862,8 @@ IF(ENABLE_TESTS)
 
   # Options for CTest-based tests, dashboards.
   SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
-  SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+  SET(NC_CTEST_DROP_SITE "129.114.104.111" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+  #SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
   SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
 
   FIND_PROGRAM(HOSTNAME_CMD NAMES hostname)
@@ -1169,6 +1186,8 @@ CHECK_SYMBOL_EXISTS(isinf "math.h" HAVE_DECL_ISINF)
 CHECK_SYMBOL_EXISTS(signbit "math.h" HAVE_DECL_SIGNBIT)
 CHECK_SYMBOL_EXISTS(st_blksize "sys/stat.h" HAVE_STRUCT_STAT_ST_BLKSIZE)
 CHECK_SYMBOL_EXISTS(alloca "alloca.h" HAVE_ALLOCA)
+CHECK_SYMBOL_EXISTS(snprintf "stdio.h" HAVE_SNPRINTF)
+CHECK_SYMBOL_EXISTS(vprintf "stdio.h" HAVE_VPRINTF)
 
 # For historic purposes...
 SET(HAVE_ST_BLKSIZE ${HAVE_STRUCT_STAT_ST_BLKSIZE})
@@ -1245,7 +1264,6 @@ ENDIF()
 CHECK_FUNCTION_EXISTS(fsync HAVE_FSYNC)
 CHECK_FUNCTION_EXISTS(strlcat   HAVE_STRLCAT)
 CHECK_FUNCTION_EXISTS(strerror  HAVE_STRERROR)
-CHECK_FUNCTION_EXISTS(snprintf  HAVE_SNPRINTF)
 CHECK_FUNCTION_EXISTS(strchr  HAVE_STRCHR)
 CHECK_FUNCTION_EXISTS(strrchr HAVE_STRRCHR)
 CHECK_FUNCTION_EXISTS(strcat  HAVE_STRCAT)
@@ -1283,7 +1301,6 @@ IF(ENABLE_MMAP)
   ENDIF(NOT HAVE_MREMAP)
 ENDIF(ENABLE_MMAP)
 
-CHECK_FUNCTION_EXISTS(vprintf HAVE_VPRINTF)
 #CHECK_FUNCTION_EXISTS(alloca HAVE_ALLOCA)
 #####
 # End system inspection checks.

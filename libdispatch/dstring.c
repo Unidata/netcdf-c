@@ -12,7 +12,7 @@
 #include <assert.h>
 #include "nc.h"
 #include "rnd.h"
-#include "utf8proc.h"
+#include "ncutf8.h"
 
 
 /* There are 3 levels of UTF8 checking: 1=> (exact)validating 2=>relaxed
@@ -171,7 +171,7 @@ NC_check_name(const char *name)
 	int skip;
 	int ch;
 	const char *cp = name;
-	ssize_t utf8_stat;
+	int stat;
 
 	assert(name != NULL);
 
@@ -180,8 +180,8 @@ NC_check_name(const char *name)
 		goto fail;
 
 	/* check validity of any UTF-8 */
-	utf8_stat = utf8proc_check((const unsigned char *)name);
-	if (utf8_stat < 0)
+	stat = nc_utf8_validate((const unsigned char *)name);
+	if (stat != NC_NOERR)
 	    goto fail;
 
 	/* First char must be [a-z][A-Z][0-9]_ | UTF8 */
