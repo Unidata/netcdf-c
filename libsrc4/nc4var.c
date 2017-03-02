@@ -94,11 +94,11 @@ NC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->l.next)
-      if (var->varid == varid)
-         break;
-   if (!var)
-      return NC_ENOTVAR;
+   if (varid < 0 || varid >= grp->vars.nelems)
+     return NC_ENOTVAR;
+   var = grp->vars.value[varid];
+   if (!var) return NC_ENOTVAR;
+   assert(var->varid == varid);
 
    /* Set the values. */
    var->chunk_cache_size = size;
@@ -157,11 +157,11 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->l.next)
-      if (var->varid == varid)
-         break;
-   if (!var)
-      return NC_ENOTVAR;
+   if (varid < 0 || varid >= grp->vars.nelems)
+     return NC_ENOTVAR;
+   var = grp->vars.value[varid];
+   if (!var) return NC_ENOTVAR;
+   assert(var->varid == varid);
 
    /* Give the user what they want. */
    if (sizep)
@@ -340,6 +340,37 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    return NC_NOERR;
 }
 
+#define NC_ARRAY_GROWBY 4
+int nc4_vararray_add(NC_GRP_INFO_T *grp,
+		     NC_VAR_INFO_T *var)
+{
+  NC_VAR_INFO_T **vp = NULL;
+
+  if (grp->vars.nalloc == 0) {
+    assert(grp->vars.nelems == 0);
+    vp = (NC_VAR_INFO_T **) malloc(NC_ARRAY_GROWBY * sizeof(NC_VAR_INFO_T *));
+    if(vp == NULL)
+      return NC_ENOMEM;
+    grp->vars.value = vp;
+    grp->vars.nalloc = NC_ARRAY_GROWBY;
+  }
+  else if(grp->vars.nelems +1 > grp->vars.nalloc) {
+    vp = (NC_VAR_INFO_T **) realloc(grp->vars.value,
+			     (grp->vars.nalloc + NC_ARRAY_GROWBY) * sizeof(NC_VAR_INFO_T *));
+    if(vp == NULL)
+      return NC_ENOMEM;
+    grp->vars.value = vp;
+    grp->vars.nalloc += NC_ARRAY_GROWBY;
+  }
+
+  if(var != NULL) {
+    assert(var->varid == grp->vars.nelems);
+    grp->vars.value[grp->vars.nelems] = var;
+    grp->vars.nelems++;
+  }
+  return NC_NOERR;
+}
+
 /* This is called when a new netCDF-4 variable is defined. Break it
  * down! */
 static int
@@ -413,8 +444,8 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    }
 #endif
 
-   /* Add the var to the end of the list. */
-   if ((retval = nc4_var_list_add(&grp->var, &var)))
+   /* Add a new var. */
+   if ((retval = nc4_var_add(&var)))
       BAIL(retval);
 
    /* Now fill in the values in the var info structure. */
@@ -425,6 +456,8 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    var->varid = grp->nvars++;
    var->ndims = ndims;
    var->is_new_var = NC_TRUE;
+
+   nc4_vararray_add(grp, var);
 
    /* If this is a user-defined type, there is a type_info struct with
     * all the type information. For atomic types, fake up a type_info
@@ -671,13 +704,11 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    }
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->l.next)
-      if (var->varid == varid)
-         break;
-
-   /* Oh no! Maybe we couldn't find it (*sob*)! */
-   if (!var)
-      return NC_ENOTVAR;
+   if (varid < 0 || varid >= grp->vars.nelems)
+     return NC_ENOTVAR;
+   var = grp->vars.value[varid];
+   if (!var) return NC_ENOTVAR;
+   assert(var->varid == varid);
 
    /* Copy the data to the user's data buffers. */
    if (name)
@@ -821,13 +852,11 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->l.next)
-      if (var->varid == varid)
-         break;
-
-   /* Oh no! Maybe we couldn't find it (*sob*)! */
-   if (!var)
-      return NC_ENOTVAR;
+   if (varid < 0 || varid >= grp->vars.nelems)
+     return NC_ENOTVAR;
+   var = grp->vars.value[varid];
+   if (!var) return NC_ENOTVAR;
+   assert(var->varid == varid);
 
    /* Can't turn on contiguous and deflate/fletcher32/szip. */
    if (contiguous)
@@ -1129,6 +1158,7 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    char norm_name[NC_MAX_NAME + 1];
    int retval;
    uint32_t nn_hash;
+   int i;
    
    if (!name)
       return NC_EINVAL;
@@ -1148,13 +1178,16 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    nn_hash = hash_fast(norm_name, strlen(norm_name));
 
    /* Find var of this name. */
-   for (var = grp->var; var; var = var->l.next)
-      if (nn_hash == var->hash && !(strcmp(var->name, norm_name)))
+   for (i=0; i < grp->vars.nelems; i++)
       {
-         *varidp = var->varid;
-         return NC_NOERR;
+	var = grp->vars.value[i];
+	if (!var) continue;
+        if (nn_hash == var->hash && !(strcmp(var->name, norm_name)))
+          {
+             *varidp = var->varid;
+             return NC_NOERR;
+          }
       }
-
    return NC_ENOTVAR;
 }
 
@@ -1171,6 +1204,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    NC_VAR_INFO_T *var, *tmp_var;
    uint32_t nn_hash;
    int retval = NC_NOERR;
+   int i;
 
    LOG((2, "%s: ncid 0x%x varid %d name %s",
         __func__, ncid, varid, name));
@@ -1197,8 +1231,10 @@ NC4_rename_var(int ncid, int varid, const char *name)
    /* Check if name is in use, and retain a pointer to the correct variable */
    nn_hash = hash_fast(name, strlen(name));
    tmp_var = NULL;
-   for (var = grp->var; var; var = var->l.next)
+   for (i=0; i < grp->vars.nelems; i++)
    {
+      var = grp->vars.value[i];
+      if (!var) continue;
       if (nn_hash == var->hash && !strncmp(var->name, name, NC_MAX_NAME))
          return NC_ENAMEINUSE;
       if (var->varid == varid)
@@ -1293,11 +1329,11 @@ NC4_var_par_access(int ncid, int varid, int par_access)
       return NC_ENOPAR;
 
    /* Find the var, and set its preference. */
-   for (var = grp->var; var; var = var->l.next)
-      if (var->varid == varid)
-         break;
-   if (!var)
-      return NC_ENOTVAR;
+   if (varid < 0 || varid >= grp->vars.nelems)
+     return NC_ENOTVAR;
+   var = grp->vars.value[varid];
+   if (!var) return NC_ENOTVAR;
+   assert(var->varid == varid);
 
    if (par_access)
       var->parallel_access = NC_COLLECTIVE;

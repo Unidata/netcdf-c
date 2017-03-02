@@ -751,6 +751,7 @@ AC_MSG_NOTICE([checking types, headers, and functions])
 
 AC_CHECK_HEADER(stdlib.h, ,AC_DEFINE([NO_STDLIB_H], [], [no stdlib.h]))
 AC_CHECK_HEADER(sys/types.h, ,AC_DEFINE([NO_SYS_TYPES_H], [], [no sys_types.h]))
+AC_CHECK_HEADERS([sys/dir.h])
 AC_CHECK_HEADERS([sys/param.h])
 #AC_CHECK_HEADERS([locale.h])
 AC_HEADER_DIRENT
@@ -911,7 +912,7 @@ if test "x$enable_netcdf_4" = xyes; then
       if test "x$nc_dlfcn_h_missing" = xyes; then
       	      AC_MSG_ERROR([Cannot find dlfcn.h, yet --enable-dynamic-loading was used.])
       fi
-      AC_CHECK_LIB([dl],[dlopen], [], [AC_MSG_ERROR([Can't find or link against libdf. See config.log for errors.])])
+      AC_CHECK_LIB([dl],[dlopen], [], [AC_MSG_ERROR([Can't find or link against libdl. See config.log for errors.])])
       AC_DEFINE([USE_LIBDL],[1], [if true, enable dynamic loading support])
    fi
 
@@ -923,7 +924,7 @@ if test "x$enable_netcdf_4" = xyes; then
    [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
-   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
 
    # The user may have parallel HDF5 based on MPI POSIX.
    if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
@@ -933,6 +934,11 @@ if test "x$enable_netcdf_4" = xyes; then
    # The user may have parallel HDF5 based on MPI mumble mumble.
    if test "x$ac_cv_func_H5Pget_fapl_mpio" = xyes; then
       AC_DEFINE([USE_PARALLEL_MPIO], [1], [if true, compile in parallel netCDF-4 based on MPI/IO])
+   fi
+
+   # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
+   if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
+      AC_DEFINE([HDF5_HAS_COLL_METADATA_OPS], [1], [if true, use collective metadata ops in parallel netCDF-4])
    fi
 
    # If parallel is available in hdf5, enable it in the C code. Also add some stuff to netcdf.h.
@@ -1341,9 +1347,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile
                  ncdap_test/expected3/Makefile
-                 ncdap_test/expected4/Makefile
                  ncdap_test/expectremote3/Makefile
-                 ncdap_test/expectremote4/Makefile
 		 ],
                  [test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()

@@ -16,6 +16,9 @@ COPYRIGHT file for copying and redistribution conditions.
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 
+extern int nc4_vararray_add(NC_GRP_INFO_T *grp,
+			    NC_VAR_INFO_T *var);
+
 /* must be after nc4internal.h */
 #include <H5DSpublic.h>
 #include <H5Fpublic.h>
@@ -443,6 +446,11 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       BAIL(NC_EHDFERR);
 
    /* Create the file. */
+#ifdef HDF5_HAS_COLL_METADATA_OPS
+   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
+   H5Pset_coll_metadata_write(fapl_id, 1);
+#endif
+
    if ((nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
         /*Change the return error from NC_EFILEMETADATA to
           System error EACCES because that is the more likely problem */
@@ -506,7 +514,6 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    MPI_Comm comm = MPI_COMM_WORLD;
    MPI_Info info = MPI_INFO_NULL;
    int res;
-   NC* nc;
 
    assert(nc_file && path);
 
@@ -1534,7 +1541,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    LOG((4, "%s: obj_name %s", __func__, obj_name));
 
    /* Add a variable to the end of the group's var list. */
-   if ((retval = nc4_var_list_add(&grp->var, &var)))
+   if ((retval = nc4_var_add(&var)))
       BAIL(retval);
 
    /* Fill in what we already know. */
@@ -1810,6 +1817,8 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       } /* endif not HDF5 att */
    } /* next attribute */
 
+   nc4_vararray_add(grp, var);
+
    /* Is this a deflated variable with a chunksize greater than the
     * current cache size? */
    if ((retval = nc4_adjust_var_cache(grp, var)))
@@ -1820,7 +1829,7 @@ exit:
    {
        if (incr_id_rc && H5Idec_ref(datasetid) < 0)
           BAIL2(NC_EHDFERR);
-       if (var && nc4_var_list_del(&grp->var, var))
+       if (var && nc4_var_del(var))
           BAIL2(NC_EHDFERR);
    }
    if (access_pid && H5Pclose(access_pid) < 0)
@@ -2311,6 +2320,9 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    /* The NetCDF-3.x prototype contains an mode option NC_SHARE for
       multiple processes accessing the dataset concurrently.  As there
       is no HDF5 equivalent, NC_SHARE is treated as NC_NOWRITE. */
+#ifdef HDF5_HAS_COLL_METADATA_OPS
+   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
+#endif
    if(inmemory) {
        if((nc4_info->hdfid = H5LTopen_file_image(meminfo->memory,meminfo->size,
 			H5LT_FILE_IMAGE_DONT_COPY|H5LT_FILE_IMAGE_DONT_RELEASE
@@ -2590,13 +2602,15 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       size_t var_type_size;
       int a;
 
-      /* Add a variable to the end of the group's var list. */
-      if ((retval = nc4_var_list_add(&grp->var, &var)))
+      /* Add a variable. */
+      if ((retval = nc4_var_add(&var)))
 	return retval;
 
       var->varid = grp->nvars++;
       var->created = NC_TRUE;
       var->written_to = NC_TRUE;
+
+      nc4_vararray_add(grp, var);
 
       /* Open this dataset in HDF4 file. */
       if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL)
@@ -3205,7 +3219,6 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    NC_GRP_INFO_T *grp;
    NC_DIM_INFO_T *dim;
    NC_ATT_INFO_T *att;
-   NC_VAR_INFO_T *var;
    int retval;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
@@ -3225,9 +3238,13 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    }
    if (nvarsp)
    {
+      int i;
       *nvarsp = 0;
-      for (var = grp->var; var; var= var->l.next)
-	(*nvarsp)++;
+      for (i=0; i < grp->vars.nelems; i++)
+      {
+	if (grp->vars.value[i])
+	  (*nvarsp)++;
+      }
    }
    if (nattsp)
      {

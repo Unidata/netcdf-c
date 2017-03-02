@@ -392,6 +392,7 @@ NC4_inq_varids(int ncid, int *nvars, int *varids)
    NC_VAR_INFO_T *var;
    int v, num_vars = 0;
    int retval;
+   int i;
 
    LOG((2, "nc_inq_varids: ncid 0x%x", ncid));
 
@@ -413,14 +414,13 @@ NC4_inq_varids(int ncid, int *nvars, int *varids)
    {
       /* This is a netCDF-4 group. Round up them doggies and count
        * 'em. The list is in correct (i.e. creation) order. */
-      if (grp->var)
+      for (i=0; i < grp->vars.nelems; i++)
       {
-	 for (var = grp->var; var; var = var->l.next)
-	 {
-	    if (varids)
-	       varids[num_vars] = var->varid;
-	    num_vars++;
-	 }
+	var = grp->vars.value[i];
+	if (!var) continue;
+	if (varids)
+	  varids[num_vars] = var->varid;
+	num_vars++;
       }
    }
 
