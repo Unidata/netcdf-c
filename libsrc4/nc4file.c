@@ -45,6 +45,73 @@ extern int num_spaces;
 #define MIN_DEFLATE_LEVEL 0
 #define MAX_DEFLATE_LEVEL 9
 
+static int
+read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att);
+
+/* Custom iteration callback data */
+typedef struct {
+  NC_GRP_INFO_T *grp;
+  NC_VAR_INFO_T *var;
+} att_iter_info;
+
+static herr_t
+att_read_var_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo, void *att_data)
+{
+
+  hid_t attid = 0;
+  int retval = NC_NOERR;
+  NC_ATT_INFO_T *att;
+  att_iter_info *att_info = (att_iter_info *)att_data;
+  const char** reserved;
+
+
+  /* Should we ignore this attribute? */
+  for(reserved=NC_RESERVED_VARATT_LIST;*reserved;reserved++) {
+    if (strcmp(att_name, *reserved)==0) break;
+  }
+
+  if(*reserved == NULL) {
+      /* Open the att by name. */
+      if ((attid = H5Aopen(loc_id, att_name, H5P_DEFAULT)) < 0)
+	BAIL(NC_EATTMETA);
+      LOG((4, "%s::  att_name %s", __func__, att_name));
+      /* Add to the end of the list of atts for this var. */
+      if ((retval = nc4_att_list_add(&att_info->var->att, &att)))
+	BAIL(retval);
+      /* Fill in the information we know. */
+      att->attnum = att_info->var->natts++;
+      if (!(att->name = strdup(att_name)))
+	BAIL(NC_ENOMEM);
+
+      /* Read the rest of the info about the att,
+       * including its values. */
+      if ((retval = read_hdf5_att(att_info->grp, attid, att)))
+	{
+	  if (NC_EBADTYPID == retval)
+            {
+	      if ((retval = nc4_att_list_del(&att_info->var->att, att)))
+		BAIL(retval);
+            }
+	  else
+	    BAIL(retval);
+	}
+
+      att->created = NC_TRUE;
+
+      if (attid > 0 && H5Aclose(attid) < 0)
+	BAIL2(NC_EHDFERR);
+
+    } /* endif not HDF5 att */
+  
+  return NC_NOERR;
+
+ exit:
+  if (attid > 0 && H5Aclose(attid) < 0)
+    BAIL2(NC_EHDFERR);
+
+  return retval;
+}
+
 /* Define the illegal mode flags */
 static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET);
 
@@ -1515,7 +1582,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    const char** reserved;
 
    NC_ATT_INFO_T *att;
-   hid_t attid = 0;
+   att_iter_info att_info;         /* Custom iteration information */
    char att_name[NC_MAX_HDF5_NAME + 1];
 
 #define CD_NELEMS_ZLIB 1
@@ -1763,54 +1830,12 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
    /* Now read all the attributes of this variable, ignoring the
       ones that hold HDF5 dimension scale information. */
-   if ((natts = H5Aget_num_attrs(var->hdf_datasetid)) < 0)
-      BAIL(NC_EATTMETA);
-   for (a = 0; a < natts; a++)
-   {
-      /* Close the attribute and try to move on with our
-       * lives. Like bits through the network port, so
-       * flows the Days of Our Lives! */
-      if (attid && H5Aclose(attid) < 0)
-         BAIL(NC_EHDFERR);
 
-      /* Open the att and get its name. */
-      if ((attid = H5Aopen_idx(var->hdf_datasetid, (unsigned int)a)) < 0)
-         BAIL(NC_EATTMETA);
-      if (H5Aget_name(attid, NC_MAX_HDF5_NAME, att_name) < 0)
-         BAIL(NC_EATTMETA);
-      LOG((4, "%s:: a %d att_name %s", __func__, a, att_name));
+   att_info.var = var;
+   att_info.grp = grp;
 
-      /* Should we ignore this attribute? */
-      for(reserved=NC_RESERVED_VARATT_LIST;*reserved;reserved++) {
-          if (strcmp(att_name, *reserved)==0) break;
-      }
-      if(*reserved == NULL) {
-	 /* Add to the end of the list of atts for this var. */
-	 if ((retval = nc4_att_list_add(&var->att, &att)))
-	    BAIL(retval);
-
-	 /* Fill in the information we know. */
-	 att->attnum = var->natts++;
-	 if (!(att->name = strdup(att_name)))
-	    BAIL(NC_ENOMEM);
-
-	 /* Read the rest of the info about the att,
-	  * including its values. */
-	 if ((retval = read_hdf5_att(grp, attid, att)))
-         {
-            if (NC_EBADTYPID == retval)
-            {
-                if ((retval = nc4_att_list_del(&var->att, att)))
-                    BAIL(retval);
-                continue;
-            }
-            else
-                BAIL(retval);
-         }
-
-	 att->created = NC_TRUE;
-      } /* endif not HDF5 att */
-   } /* next attribute */
+   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL, att_read_var_callbk, &att_info)) < 0)
+     BAIL(NC_EATTMETA);
 
    nc4_vararray_add(grp, var);
 
@@ -1837,8 +1862,6 @@ exit:
 #ifdef EXTRA_TESTS
    num_plists--;
 #endif
-   if (attid > 0 && H5Aclose(attid) < 0)
-      BAIL2(NC_EHDFERR);
    return retval;
 }
 
