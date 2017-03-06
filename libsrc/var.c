@@ -603,7 +603,7 @@ NC3_def_var( int ncid, const char *name, nc_type type,
 		return NC_EINVAL;
 	}
 
-	if(ncp->vars.nelems >= NC_MAX_VARS)
+	if(ncp->vars.nelems >= NC_MAX_VARS && !(ncp->flags & NC_IGNORE_MAX_VARS))
 	{
 		return NC_EMAXVARS;
 	}
