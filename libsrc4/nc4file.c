@@ -588,7 +588,6 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    htri_t attr_exists = -1;             /* Flag indicating hidden attribute exists */
    hid_t attid = -1;                    /* ID of hidden attribute (to store dim ID) */
    int dimscale_created = 0;            /* Remember if a dimension was created (for error recovery) */
-   int initial_grp_ndims = grp->ndims;  /* Retain for error recovery */
    short initial_next_dimid = grp->nc4_info->next_dimid;/* Retain for error recovery */
    int retval;
 
@@ -618,9 +617,6 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       /* Assign dimid */
       new_dim->dimid = grp->nc4_info->next_dimid++;
    }
-
-   /* Increment number of dimensions. */
-   grp->ndims++;
 
    if (!(new_dim->name = strdup(obj_name)))
       BAIL(NC_ENOMEM);
@@ -681,7 +677,6 @@ exit:
            BAIL2(retval);
 
       /* Reset the group's information */
-      grp->ndims = initial_grp_ndims;
       grp->nc4_info->next_dimid = initial_next_dimid;
    }
 
@@ -2719,7 +2714,6 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 		 dim_name, var->name));
 	    if ((retval = nc4_dim_list_add(&grp->dim, &dim)))
 	       return retval;
-	    grp->ndims++;
 	    dim->dimid = grp->nc4_info->next_dimid++;
 	    if (strlen(dim_name) > NC_MAX_HDF4_NAME)
 	       return NC_EMAXNAME;
