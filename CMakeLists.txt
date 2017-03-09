@@ -442,6 +442,8 @@ IF(ENABLE_HDF4)
     MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 mfhdf library.")
   ENDIF()
 
+  SET(HAVE_LIBMFHDF TRUE)
+
   SET(HDF4_LIBRARIES ${HDF4_DF_LIB} ${HDF4_MFHDF_LIB})
   # End include files, libraries.
   MESSAGE(STATUS "HDF4 libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
@@ -454,6 +456,7 @@ IF(ENABLE_HDF4)
     MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find jpeglib.h")
   ELSE()
     SET(HAVE_JPEGLIB_H ON CACHE BOOL "")
+    SET(HAVE_LIBJPEG TRUE)
     INCLUDE_DIRECTORIES(${JPEGLIB_H_INCLUDE_DIR})
   ENDIF()
 
@@ -484,6 +487,7 @@ IF(WIN32)
     SET(BUILD_DLL ON CACHE BOOL "")
     ADD_DEFINITIONS(-DDLL_NETCDF)
     ADD_DEFINITIONS(-DDLL_EXPORT)
+    ADD_DEFINITIONS(-DUTF8PROC_DLLEXPORT)
   ENDIF()
 ENDIF()
 # Did the user specify a default minimum blocksize for posixio?
@@ -860,7 +864,8 @@ IF(ENABLE_TESTS)
 
   # Options for CTest-based tests, dashboards.
   SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
-  SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+  SET(NC_CTEST_DROP_SITE "129.114.104.111" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+  #SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
   SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
 
   FIND_PROGRAM(HOSTNAME_CMD NAMES hostname)

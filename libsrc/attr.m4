@@ -18,8 +18,7 @@ dnl
 #include "ncx.h"
 #include "fbits.h"
 #include "rnd.h"
-#include "utf8proc.h"
-
+#include "ncutf8.h"
 
 /*
  * Free attr
@@ -117,9 +116,11 @@ new_NC_attr(
 {
 	NC_string *strp;
 	NC_attr *attrp;
+	char *name;
+	int stat;
 
-	char *name = (char *)utf8proc_NFC((const unsigned char *)uname);
-	if(name == NULL)
+	stat = nc_utf8_normalize((const unsigned char *)uname,(unsigned char**)&name);
+	if(stat != NC_NOERR)
 	    return NULL;
 	assert(name != NULL && *name != 0);
 
@@ -344,6 +345,7 @@ NC_findattr(const NC_attrarray *ncap, const char *uname)
 	size_t attrid;
 	size_t slen;
 	char *name;
+	int stat;
 
 	assert(ncap != NULL);
 
@@ -353,8 +355,8 @@ NC_findattr(const NC_attrarray *ncap, const char *uname)
 	attrpp = (NC_attr **) ncap->value;
 
 	/* normalized version of uname */
-	name = (char *)utf8proc_NFC((const unsigned char *)uname);
-	if(name == NULL)
+	stat = nc_utf8_normalize((const unsigned char *)uname,(unsigned char**)&name);
+	if(stat != NC_NOERR)
 	    return NULL; /* TODO: need better way to indicate no memory */
 	slen = strlen(name);
 
@@ -534,9 +536,9 @@ NC3_rename_att( int ncid, int varid, const char *name, const char *unewname)
 	}
 
 	old = attrp->name;
-	newname = (char *)utf8proc_NFC((const unsigned char *)unewname);
-	if(newname == NULL)
-	    return NC_EBADNAME;
+	status = nc_utf8_normalize((const unsigned char *)unewname,(unsigned char**)&newname);
+	if(status != NC_NOERR)
+	    return status;
 	if(NC_indef(ncp))
 	{
 		newStr = new_NC_string(strlen(newname), newname);
@@ -590,11 +592,12 @@ NC3_del_att(int ncid, int varid, const char *uname)
 		return NC_ENOTVAR;
 
 	{
-	char *name = (char *)utf8proc_NFC((const unsigned char *)uname);
-	if(name == NULL)
-	    return NC_ENOMEM;
+	char* name;
+	int stat = nc_utf8_normalize((const unsigned char *)uname,(unsigned char**)&name);
+	if(stat != NC_NOERR)
+	    return stat;
 
-			/* sortof inline NC_findattr() */
+        /* sortof inline NC_findattr() */
 	slen = strlen(name);
 
 	attrpp = (NC_attr **) ncap->value;

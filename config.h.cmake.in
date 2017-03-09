@@ -549,7 +549,7 @@ are set when opening a binary file on Windows. */
 
 /* If true, use use wget to fetch some sample HDF4 data, and then test against
    it. */
-#cmakedefine USE_HDF4_FILE_TESTS 1
+//#cmakedefine USE_HDF4_FILE_TESTS 1
 
 /* if true, enable dynamic loading support */
 #cmakedefine USE_LIBDL 1
@@ -634,6 +634,8 @@ are set when opening a binary file on Windows. */
 	 #define snprintf _snprintf
     #endif
 #endif
+
+#cmakedefine WORDS_BIGENDIAN
 
 #include "ncconfigure.h"
 

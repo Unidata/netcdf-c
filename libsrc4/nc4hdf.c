@@ -3802,7 +3802,6 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                         free(h5dimlen);
                         return retval;
                       }
-                      grp->ndims++;
                       dim->dimid = grp->nc4_info->next_dimid++;
                       sprintf(phony_dim_name, "phony_dim_%d", dim->dimid);
                       if (!(dim->name = strdup(phony_dim_name))) {
