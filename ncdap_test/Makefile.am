@@ -3,37 +3,35 @@
 
 # This file builds and runs DAP tests.
 
+# This will not work until we get a new remotetest server set up 
+
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
-AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir} -I$(top_builddir)/liblib
+AM_CPPFLAGS += -I$(top_srcdir)/liblib
+AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
+AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
 
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =
 TESTS =
 
-TESTS += tst_ncdap3.sh
-
 t_dap3a_SOURCES = t_dap3a.c t_srcdir.h
-test_cvt3_SOURCES = test_cvt.c
-test_vara_SOURCES = test_vara.c
+test_cvt3_SOURCES = test_cvt.c t_srcdir.h
+test_vara_SOURCES = test_vara.c t_srcdir.h
 
+if ENABLE_DAP
 check_PROGRAMS += t_dap3a test_cvt3 test_vara
-
 TESTS += t_dap3a test_cvt3 test_vara
+TESTS += tst_ncdap3.sh
 
 # remote tests are optional
 # because the server may be down or inaccessible
 
 if ENABLE_DAP_REMOTE_TESTS
-
-# Make nctestserver be the first test to be built
-check_PROGRAMS += nctestserver
-nctestserver_SOURCES = nctestserver.c
-
-check_PROGRAMS += topsrcdir
-topsrcdir_SOURCES = topsrcdir.c
+check_PROGRAMS += findtestserver
+findtestserver_SOURCES = findtestserver.c
 
 if BUILD_UTILITIES
 TESTS += tst_remote3.sh tst_formatx.sh
@@ -46,12 +44,11 @@ if ENABLE_DAP_LONG_TESTS
 endif
 
 test_partvar_SOURCES = test_partvar.c
-test_nstride_cached_SOURCE = test_nstride_cached.c
-#t_auth_SOURCES = t_auth.c
-#t_auth1_SOURCES = t_auth1.c
-t_misc_SOURCES = t_misc.c
 test_varm3_SOURCES = test_varm3.c
-#t_ncf330_SOURCES = t_ncf330.c
+test_nstride_cached_SOURCES = test_nstride_cached.c
+
+#t_auth_SOURCES = t_auth.c
+t_misc_SOURCES = t_misc.c
 
 TESTS += test_varm3
 #TESTS += t_ncf330
@@ -72,6 +69,8 @@ endif
 
 endif #ENABLE_DAP_REMOTE_TESTS
 
+endif #ENABLE_DAP
+
 # Need to add subdirs
 SUBDIRS = testdata3 expected3 expectremote3
 
@@ -82,11 +81,7 @@ EXTRA_DIST = tst_ncdap3.sh  \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
 			t_ncf330.c
 
-CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a test_nstride_cached
-
-if USE_NETCDF4
-CLEANFILES += test_cvt4 t_dap4
-endif
+CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a test_nstride_cached *.exe
 
 # This rule are used if someone wants to rebuild t_dap3a.c
 # Otherwise never invoked, but records how to do it.
@@ -103,4 +98,11 @@ BUILT_SOURCES = .dodsrc
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
 
-DISTCLEANFILES = .dodsrc results/* results
+clean-local: clean-local-check
+
+.PHONY: clean-local-check
+
+clean-local-check:
+	-rm -rf results
+	-rm .dodsrc
+

@@ -1427,3 +1427,17 @@ NC4_get_vara(int ncid, int varid, const size_t *startp,
 {
    return nc4_get_vara_tc(ncid, varid, memtype, 0, startp, countp, ip);
 }
+
+void
+nc4verify(int ncid, char* name)
+{
+   NC_GRP_INFO_T *grp;
+   NC_HDF5_FILE_INFO_T *h5;
+   int retval;
+
+   /* Find info for this file and group, and set pointer to each. */
+   retval = nc4_find_grp_h5(ncid, &grp, &h5);
+   assert(grp && h5);
+   retval = nc4_check_dup_name(grp, name);
+   return;
+}

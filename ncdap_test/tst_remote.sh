@@ -1,26 +1,30 @@
 #!/bin/sh
+
+export SETX=1
 set -x
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 set -e
 
 quiet=0
 leakcheck=0
 timing=0
 
-# Figure our dst server
-DTS=`./nctestserver dts ${DTSTESTSERVER}`
+# Figure our dst server; if none, then just stop
+DTS=`${execdir}/findtestserver dap2 dts`
 if test "x$DTS" = "x" ; then
-echo "cannot locate test server for dts"
+echo "WARNING: Cannot locate test server for dts"
 exit
 fi
 
 PARAMS="[log]"
 #PARAMS="${PARAMS}[show=fetch]"
 
-
 # Determine If we're on OSX or Linux
 
 myplatform=`uname -a | cut -d" " -f 1`
-
 
 #OCLOGFILE=/dev/null
 OCLOGFILE="" ; export OCLOGFILE
@@ -201,7 +205,6 @@ esac
 
 RESULTSDIR="./results"
 # Locate some tools
-NCDUMP="${builddir}/ncdump/ncdump"
 if test "x$leakcheck" = x1 ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
 else

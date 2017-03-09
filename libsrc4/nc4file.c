@@ -635,7 +635,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    LOG((2, "cmode after applying default format: 0x%x", cmode));
 
    nc_file->int_ncid = nc_file->ext_ncid;
-   res = nc4_create_file(path, cmode, comm, info, nc_file);
+   res = nc4_create_file(nc_file->path, cmode, comm, info, nc_file);
 
    return res;
 }

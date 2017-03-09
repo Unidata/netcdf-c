@@ -21,6 +21,7 @@ netcdf-4.1-beta2-snapshot2009091100
 #include <string.h>
 #include "netcdf.h"
 #include "ncdispatch.h"
+#include "nctestserver.h"
 
 #undef STANDALONE
 
@@ -92,14 +93,7 @@ main()
 #endif
 
     /* Find Test Server */
-    svc = getenv("THREDDSTESTSERVER");
-    if(svc != NULL) {
-        const char* testserver[2];
-	testserver[0] = svc;
-	testserver[1] = NULL;
-        svc = NC_findtestserver("thredds",testserver);
-    } else 	
-        svc = NC_findtestserver("thredds",NULL);
+    svc = nc_findtestserver("thredds",0,REMOTETESTSERVERS);
 
     if(svc == NULL) {
         fprintf(stderr,"Cannot locate test server\n");

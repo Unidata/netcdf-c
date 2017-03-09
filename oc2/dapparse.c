@@ -9,12 +9,12 @@
 /* Forward */
 
 static void addedges(OCnode* node);
-static void setroot(OCnode*,OClist*);
+static void setroot(OCnode*,NClist*);
 static int isglobalname(const char* name);
 static int isdodsname(const char* name);
 static OCnode* newocnode(char* name, OCtype octype, DAPparsestate* state);
 static OCtype octypefor(Object etype);
-static OClist* scopeduplicates(OClist* list);
+static NClist* scopeduplicates(NClist* list);
 static int check_int32(char* val, long* value);
 
 
@@ -44,7 +44,7 @@ dap_datasetbody(DAPparsestate* state, Object name, Object decls)
 {
     OCnode* root = newocnode((char*)name,OC_Dataset,state);
     char* dupname = NULL;
-    OClist* dups = scopeduplicates((OClist*)decls);
+    NClist* dups = scopeduplicates((NClist*)decls);
     if(dups != NULL) {
 	/* Sometimes, some servers (i.e. Thredds)
            return a dds with duplicate field names
@@ -55,7 +55,7 @@ dap_datasetbody(DAPparsestate* state, Object name, Object decls)
 	state->error = OC_ENAMEINUSE;
 	return (Object)NULL;
     }
-    root->subnodes = (OClist*)decls;
+    root->subnodes = (NClist*)decls;
     OCASSERT((state->root == NULL));
     state->root = root;
     state->root->root = state->root; /* make sure to cross link */
@@ -69,7 +69,7 @@ dap_attributebody(DAPparsestate* state, Object attrlist)
 {
     OCnode* node;
     /* Check for and remove attribute duplicates */
-    OClist* dups = scopeduplicates((OClist*)attrlist);
+    NClist* dups = scopeduplicates((NClist*)attrlist);
     if(dups != NULL) {
         ocnodes_free(dups);	
 	dap_parse_error(state,"Duplicate attribute names in same scope");
@@ -81,7 +81,7 @@ dap_attributebody(DAPparsestate* state, Object attrlist)
     state->root = node;
     /* make sure to cross link */
     state->root->root = state->root;
-    node->subnodes = (OClist*)attrlist;
+    node->subnodes = (NClist*)attrlist;
     addedges(node);
     return NULL;
 }
@@ -115,22 +115,22 @@ dap_unrecognizedresponse(DAPparsestate* state)
 Object
 dap_declarations(DAPparsestate* state, Object decls, Object decl)
 {
-    OClist* alist = (OClist*)decls;
+    NClist* alist = (NClist*)decls;
     if(alist == NULL)
-	 alist = oclistnew();
+	 alist = nclistnew();
     else
-	oclistpush(alist,(void*)decl);
+	nclistpush(alist,(void*)decl);
     return alist;
 }
 
 Object
 dap_arraydecls(DAPparsestate* state, Object arraydecls, Object arraydecl)
 {
-    OClist* alist = (OClist*)arraydecls;
+    NClist* alist = (NClist*)arraydecls;
     if(alist == NULL)
-	alist = oclistnew();
+	alist = nclistnew();
     else
-	oclistpush(alist,(void*)arraydecl);
+	nclistpush(alist,(void*)arraydecl);
     return alist;
 }
 
@@ -154,12 +154,12 @@ dap_arraydecl(DAPparsestate* state, Object name, Object size)
 Object
 dap_attrlist(DAPparsestate* state, Object attrlist, Object attrtuple)
 {
-    OClist* alist = (OClist*)attrlist;
+    NClist* alist = (NClist*)attrlist;
     if(alist == NULL)
-	alist = oclistnew();
+	alist = nclistnew();
     else {
 	if(attrtuple != NULL) {/* NULL=>alias encountered, ignore */
-            oclistpush(alist,(void*)attrtuple);
+            nclistpush(alist,(void*)attrtuple);
 	}
     }
     return alist;
@@ -168,11 +168,11 @@ dap_attrlist(DAPparsestate* state, Object attrlist, Object attrtuple)
 Object
 dap_attrvalue(DAPparsestate* state, Object valuelist, Object value, Object etype)
 {
-    OClist* alist = (OClist*)valuelist;
-    if(alist == NULL) alist = oclistnew();
+    NClist* alist = (NClist*)valuelist;
+    if(alist == NULL) alist = nclistnew();
     /* Watch out for null values */
     if(value == NULL) value = "";
-    oclistpush(alist,(void*)strdup(value));
+    nclistpush(alist,(void*)strdup(value));
     return alist;
 }
 
@@ -182,7 +182,7 @@ dap_attribute(DAPparsestate* state, Object name, Object values, Object etype)
     OCnode* att;
     att = newocnode((char*)name,OC_Attribute,state);
     att->etype = octypefor(etype);
-    att->att.values = (OClist*)values;
+    att->att.values = (NClist*)values;
     return att;
 }
 
@@ -194,7 +194,7 @@ dap_attrset(DAPparsestate* state, Object name, Object attributes)
     /* Check var set vs global set */
     attset->att.isglobal = isglobalname(name);
     attset->att.isdods = isdodsname(name);
-    attset->subnodes = (OClist*)attributes;
+    attset->subnodes = (NClist*)attributes;
     addedges(attset);
     return attset;
 }
@@ -233,14 +233,14 @@ isnumber(const char* text)
 #endif
 
 static void
-dimension(OCnode* node, OClist* dimensions)
+dimension(OCnode* node, NClist* dimensions)
 {
     unsigned int i;
-    unsigned int rank = oclistlength(dimensions);
-    node->array.dimensions = (OClist*)dimensions;
+    unsigned int rank = nclistlength(dimensions);
+    node->array.dimensions = (NClist*)dimensions;
     node->array.rank = rank;
     for(i=0;i<rank;i++) {
-        OCnode* dim = (OCnode*)oclistget(node->array.dimensions,i);
+        OCnode* dim = (OCnode*)nclistget(node->array.dimensions,i);
         dim->dim.array = node;
 	dim->dim.arrayindex = i;
 #if 0
@@ -266,7 +266,7 @@ dap_makebase(DAPparsestate* state, Object name, Object etype, Object dimensions)
     OCnode* node;
     node = newocnode((char*)name,OC_Atomic,state);
     node->etype = octypefor(etype);
-    dimension(node,(OClist*)dimensions);
+    dimension(node,(NClist*)dimensions);
     return node;
 }
 
@@ -274,7 +274,7 @@ Object
 dap_makestructure(DAPparsestate* state, Object name, Object dimensions, Object fields)
 {
     OCnode* node;
-    OClist* dups = scopeduplicates((OClist*)fields);
+    NClist* dups = scopeduplicates((NClist*)fields);
     if(dups != NULL) {
 	ocnodes_free(dups);
         dap_parse_error(state,"Duplicate structure field names in same structure: %s",(char*)name);
@@ -283,7 +283,7 @@ dap_makestructure(DAPparsestate* state, Object name, Object dimensions, Object f
     }
     node = newocnode(name,OC_Structure,state);
     node->subnodes = fields;
-    dimension(node,(OClist*)dimensions);
+    dimension(node,(NClist*)dimensions);
     addedges(node);
     return node;
 }
@@ -292,7 +292,7 @@ Object
 dap_makesequence(DAPparsestate* state, Object name, Object members)
 {
     OCnode* node;
-    OClist* dups = scopeduplicates((OClist*)members);
+    NClist* dups = scopeduplicates((NClist*)members);
     if(dups != NULL) {
 	ocnodes_free(dups);
         dap_parse_error(state,"Duplicate sequence member names in same sequence: %s",(char*)name);
@@ -309,7 +309,7 @@ dap_makegrid(DAPparsestate* state, Object name, Object arraydecl, Object mapdecl
 {
     OCnode* node;
     /* Check for duplicate map names */
-    OClist* dups = scopeduplicates((OClist*)mapdecls);
+    NClist* dups = scopeduplicates((NClist*)mapdecls);
     if(dups != NULL) {
 	ocnodes_free(dups);
         dap_parse_error(state,"Duplicate grid map names in same grid: %s",(char*)name);
@@ -317,8 +317,8 @@ dap_makegrid(DAPparsestate* state, Object name, Object arraydecl, Object mapdecl
 	return (Object)NULL;
     }
     node = newocnode(name,OC_Grid,state);
-    node->subnodes = (OClist*)mapdecls;
-    oclistinsert(node->subnodes,0,(void*)arraydecl);
+    node->subnodes = (NClist*)mapdecls;
+    nclistinsert(node->subnodes,0,(void*)arraydecl);
     addedges(node);
     return node;
 }
@@ -328,18 +328,18 @@ addedges(OCnode* node)
 {
     unsigned int i;
     if(node->subnodes == NULL) return;
-    for(i=0;i<oclistlength(node->subnodes);i++) {
-        OCnode* subnode = (OCnode*)oclistget(node->subnodes,i);
+    for(i=0;i<nclistlength(node->subnodes);i++) {
+        OCnode* subnode = (OCnode*)nclistget(node->subnodes,i);
 	subnode->container = node;
     }
 }
 
 static void
-setroot(OCnode* root, OClist* ocnodes)
+setroot(OCnode* root, NClist* ocnodes)
 {
     size_t i;
-    for(i=0;i<oclistlength(ocnodes);i++) {
-	OCnode* node = (OCnode*)oclistget(ocnodes,i);
+    for(i=0;i<nclistlength(ocnodes);i++) {
+	OCnode* node = (OCnode*)nclistget(ocnodes,i);
 	node->root = root;
     }
 }
@@ -383,7 +383,7 @@ static OCnode*
 newocnode(char* name, OCtype octype, DAPparsestate* state)
 {
     OCnode* node = ocnode_new(name,octype,state->root);
-    oclistpush(state->ocnodes,(void*)node);
+    nclistpush(state->ocnodes,(void*)node);
     return node;
 }
 
@@ -399,21 +399,21 @@ check_int32(char* val, long* value)
     return ok;
 }
 
-static OClist*
-scopeduplicates(OClist* list)
+static NClist*
+scopeduplicates(NClist* list)
 {
     unsigned int i,j;
-    unsigned int len = oclistlength(list);
-    OClist* dups = NULL;
+    unsigned int len = nclistlength(list);
+    NClist* dups = NULL;
     for(i=0;i<len;i++) {
-	OCnode* io = (OCnode*)oclistget(list,i);
+	OCnode* io = (OCnode*)nclistget(list,i);
 retry:
         for(j=i+1;j<len;j++) {
-	    OCnode* jo = (OCnode*)oclistget(list,j);
+	    OCnode* jo = (OCnode*)nclistget(list,j);
 	    if(strcmp(io->name,jo->name)==0) {
-		if(dups == NULL) dups = oclistnew();
-		oclistpush(dups,jo);
-		oclistremove(list,j);
+		if(dups == NULL) dups = nclistnew();
+		nclistpush(dups,jo);
+		nclistremove(list,j);
 		len--;
 		goto retry;
 	    }
@@ -493,7 +493,7 @@ DAPparse(OCstate* conn, OCtree* tree, char* parsestring)
     DAPparsestate* state = dap_parse_init(parsestring);
     int parseresult;
     OCerror ocerr = OC_NOERR;
-    state->ocnodes = oclistnew();
+    state->ocnodes = nclistnew();
     state->conn = conn;
     if(ocdebug >= 2)
 	dapdebug = 1;

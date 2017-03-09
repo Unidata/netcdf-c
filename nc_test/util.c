@@ -19,7 +19,8 @@ print_nok(int nok)
 int
 inRange(const double value, const nc_type datatype)
 {
-    double min, max;
+    double min = 0.0;
+    double max = 0.0;
 
     switch (datatype) {
         case NC_CHAR:   return value >= X_CHAR_MIN   && value <= X_CHAR_MAX;

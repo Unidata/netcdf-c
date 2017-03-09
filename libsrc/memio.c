@@ -16,12 +16,14 @@
 #include <string.h>
 #ifdef _MSC_VER /* Microsoft Compilers */
 #include <io.h>
-#else
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+
 #include "ncdispatch.h"
 #include "nc3internal.h"
 

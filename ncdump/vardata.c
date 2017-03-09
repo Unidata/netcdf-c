@@ -4,7 +4,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncdump/vardata.c,v 1.48 2010/05/05 22:15:39 dmh Exp $
  *********************************************************************/
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>

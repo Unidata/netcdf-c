@@ -15,6 +15,10 @@
 #define NCLOGERR 2
 #define NCLOGDBG 3
 
+#if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
+extern "C" {
+#endif
+
 extern void ncloginit(void);
 extern int ncsetlogging(int tf);
 extern int nclogopen(const char* file);
@@ -27,5 +31,9 @@ extern void nclogtextn(int tag, const char* text, size_t count);
 
 /* Provide printable names for tags */
 extern void nclogsettags(char** tagset, char* dfalt);
+
+#if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
+}
+#endif
 
 #endif /*NCLOG_H*/

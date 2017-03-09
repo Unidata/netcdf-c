@@ -11,6 +11,14 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.2 - TBD
 
+* [Upgrade] The bash based test scripts have been upgraded to use a common test_common.sh include file that isolates build specific information.
+* [Enhancement] DAP4 is now included. Since dap2 is the default for urls, dap4 must be specified by
+(1) using "dap4:" as the url protocol, or
+(2) appending "#protocol=dap4" to the end of the url, or
+(3) appending "#dap4" to the end of the url 
+Note that dap4 is disabled by default until the testserver situation is resolved.
+* [Enhancement] The remote testing server can now be specified with the '--with-testserver" option to ./configure.
+* [Refactor] the oc2 library is no longer independent of the main netcdf-c library. For example, it now uses ncuri, nclist, and ncbytes instead of its homegrown equivalents.
 * [Upgrade] Update utf8proc.[ch] to use the version now maintained by the
 Julia Language project (https://github.com/JuliaLang/utf8proc/blob/master/LICENSE.md).
 * [Bug] Addressed conversion problem with Windows sscanf.  This primarily affected some OPeNDAP URLs on Windows.  See [GitHub #365](https://github.com/Unidata/netcdf-c/issues/365) and [GitHub #366](https://github.com/Unidata/netcdf-c/issues/366) for more information.

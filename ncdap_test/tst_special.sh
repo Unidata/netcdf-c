@@ -1,34 +1,13 @@
 #!/bin/sh
 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.shs
+
 set -e
-
-# if this is part of a distcheck action, then this script
-# will be executed in a different directory
-# than the one containing it; so capture the path to this script
-# as the location of the source directory.
-
-if test "x$topsrcdir" != x ; then
-  srcdir="$topsrcdir/ncdap_test"
-else
-  srcdir=`dirname $0`
-fi
-
-cd $srcdir
-srcdir=`pwd`
-
-# compute the build directory
-builddir=`pwd`/..
-# Hack for CYGWIN
-if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
-    srcdir=`pwd | sed 's/\/c\//c:\//g'`
-    builddir="$srcdir"/..
-fi
-cd ${builddir}/ncdap_test
 
 #EXTSET="hdr dmp"
 EXTSET="dmp"
 
-#set -x
 quiet=0
 leakcheck=0
 
@@ -85,7 +64,6 @@ XFAILTESTS="qscat_high_wind totalAagg  world-unfilter-monthly.nc duacs_global_nr
 
 RESULTSDIR="./results"
 # Locate some tools
-NCDUMP="${builddir}/ncdump/ncdump"
 if test "x$leakcheck" = x1 ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
 else

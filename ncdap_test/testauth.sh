@@ -1,5 +1,8 @@
 #!/bin/sh
 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 RCEMBED=1
 RCLOCAL=1
 RCHOME=1
@@ -61,29 +64,6 @@ fi
 BASICUSER=`echo $BASICCOMBO | cut -d: -f1`
 BASICPWD=`echo $BASICCOMBO | cut -d: -f2`
 
-xf() { case $- in *[x]*) set +x; XP=1;; *) XP=0;; esac }
-xo() { case $XP in 1) set -x;; *) set +x;; esac }
-
-xf
-NCDUMP=
-for d in "$WD/../ncdump" "$WD" ; do
-  for o in $d/.libs/ncdump.exe $d/.libs/ncdump $d/ncdump.exe $d/ncdump ; do
-    if test -f $o ; then
-    NCDUMP=$o
-    break;
-    fi
-  done
-  if test "x$NCDUMP" != x; then break; fi
-done
-xo
-
-if test "x$NCDUMP" = x ; then
-echo "no ncdump"
-exit 1
-else
-echo "NCDUMP=$NCDUMP"
-fi
-
 OUTPUT="./.output"
 
 if test "x$TEMP" = x ; then
@@ -97,15 +77,7 @@ HOMERC=`echo "$HOMERC" | sed -e "s|//|/|g"`
 SPECRC="$TEMP/temprc"
 ENVRC="$WD/envrc"
 
-cd `pwd`
-builddir=`pwd`
-# Hack for CYGWIN
-cd $srcdir
-srcdir=`pwd`
-cd ${builddir}
-
 createrc() {
-  xf
   RCP="$1" ; shift
   unset NOPWD
   unset BADPWD
@@ -117,7 +89,6 @@ createrc() {
     esac
     shift
   done
-  xo
   if test "x$RCP" != x ; then
     rm -f $RCP
     echo "Creating rc file $RCP"
@@ -144,7 +115,6 @@ createrc() {
 }
 
 createnetrc() {
-  xf
   NCP="$1" ; shift
   unset NOPWD
   unset BADPWD
@@ -156,7 +126,6 @@ createnetrc() {
     esac
     shift
   done
-  xo
   if test "x$NCP" != x ; then
     rm -f $NCP
     echo "Creating netrc file $NCP"
@@ -228,10 +197,8 @@ NCDUMP="valgrind --leak-check=full $NCDUMP"
 fi
 
 # Initialize
-xf
 save
 reset
-xo
 
 if test "x$RCEMBED" = x1 ; then
   echo "***Testing rc file with embedded user:pwd"
@@ -250,7 +217,7 @@ NETRC=$NETRCFILE
 if test "x$RCLOCAL" = x1 ; then
   echo "***Testing rc file in local directory"
   # Create the rc file and (optional) netrc fil in ./
-  xf; reset; xo
+  reset
   createnetrc $NETRC
   createrc $LOCALRC
 
@@ -263,7 +230,7 @@ fi
 if test "x$RCHOME" = x1 ; then
   echo "***Testing rc file in home directory"
   # Create the rc file and (optional) netrc file in ./
-  xf; reset; xo
+  reset
   createnetrc $NETRC
   createrc $HOMERC
 
@@ -276,7 +243,7 @@ fi
 if test "x$RCSPEC" == x1 ; then
   echo "*** Testing rc file in specified directory"
   # Create the rc file and (optional) netrc file
-  xf; reset; xo
+  reset
   createnetrc $NETRC
   createrc $SPECRC
 
@@ -289,7 +256,7 @@ fi
 if test "x$RCENV" = x1 ; then
   echo "*** Testing rc file using env variable"
   # Create the rc file and (optional) netrc file
-  xf; reset; xo
+  reset
   createnetrc $NETRC
   echo "ENV: export DAPRCFILE=$ENVRC"
   export DAPRCFILE=$ENVRC
@@ -308,20 +275,19 @@ NETRC=$NETRCFILE
 if test "x$RCPREC" = x1 ; then
   echo "***Testing rc vs netrc file precedence"
   # Create the rc file and (optional) netrc file in ./
-  xf; reset; xo
+  reset
   createnetrc $NETRC badpwd
   createrc $LOCALRC
 
   # Invoke ncdump to extract a file using the URL
   echo "command: ${NCDUMP} -h $URL > $OUTPUT"
   ${NCDUMP} -h "$URL" > $OUTPUT
+  ${NCDUMP} -h "$URL"
   show
 fi
 
-xf
 reset
 restore
-xo
 
 exit
 

@@ -4,7 +4,7 @@
 #ifndef OCCLIENTPARAMS_H
 #define OCCLIENTPARAMS_H
 
-extern OClist* ocparamdecode(OCstate*);
+extern NClist* ocparamdecode(OCstate*);
 extern const char* ocparamlookup(OCstate*, const char*);
 extern void ocparamset(OCstate*,const char*);
 

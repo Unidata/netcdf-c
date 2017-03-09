@@ -7,6 +7,8 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc
+AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
+AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
 
 # These files are created by the tests.
 CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
@@ -15,6 +17,8 @@ tst_diskless.nc tst_diskless2.nc \
 tst_diskless3.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl \
 tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc nc_test_cdf5.nc \
 unlim.nc tst_inq_type.nc
+
+check_PROGRAMS =
 
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm \
@@ -50,7 +54,7 @@ CLEANFILES += benchmark.nc
 endif
 
 # Set up the tests.
-check_PROGRAMS = $(TESTPROGRAMS)
+check_PROGRAMS += $(TESTPROGRAMS)
 
 # Build Diskless test helpers
 if BUILD_DISKLESS
@@ -64,12 +68,12 @@ TESTS = $(TESTPROGRAMS)
 
 if BUILD_UTILITIES
 if BUILD_DISKLESS
-		TESTS += run_diskless.sh
+TESTS += run_diskless.sh
 if BUILD_MMAP
-			TESTS += run_mmap.sh
+TESTS += run_mmap.sh
 endif
 if LARGE_FILE_TESTS
-			TESTS += run_diskless2.sh
+TESTS += run_diskless2.sh
 endif
 endif
 endif
@@ -82,9 +86,9 @@ endif
 # checking tool. (Valgrind must be present for this to work.)
 if USE_VALGRIND_TESTS
 if USE_NETCDF4
-TESTS_ENVIRONMENT=USE_NETCDF4=1
+    TESTS_ENVIRONMENT = USE_NETCDF4=1
 else
-TESTS_ENVIRONMENT=USE_NETCDF4=0
+    TESTS_ENVIRONMENT = USE_NETCDF4=0
 endif
 TESTS += run_valgrind_tests.sh
 endif # USE_VALGRIND_TESTS
@@ -97,7 +101,7 @@ run_diskless.sh run_diskless2.sh run_mmap.sh run_pnetcdf_test.sh
 # ref_tst_diskless2.cdl is for diff comparison and to produce tst_diskless2.c
 EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt
 
-# Only clean these on mainatiner-clean, because they require m4 to
+# Only clean these on maintainer-clean, because they require m4 to
 # regenerate.
 #MAINTAINERCLEANFILES = test_get.c test_put.c
 

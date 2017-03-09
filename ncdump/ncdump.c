@@ -3,7 +3,7 @@
 Copyright 2011 University Corporation for Atmospheric
 Research/Unidata. See \ref copyright file for more info.  */
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -33,8 +33,9 @@ int optind;
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif	/* HAVE_LOCALE_H */
-#include "netcdf.h"
+
 #include "netcdf_mem.h"
+#include "netcdf.h"
 #include "utils.h"
 #include "nccomps.h"
 #include "nctime0.h"		/* new iso time and calendar stuff */
@@ -162,10 +163,7 @@ name_path(const char *path)
     /* See if this is a url */
     {
 	char* base;
-
         extern int nc__testurl(const char*,char**);
-
-
  	if(nc__testurl(path,&base)) {
  	    return base; /* Looks like a url */
 	}
@@ -2301,9 +2299,9 @@ main(int argc, char *argv[])
                                              &formatting_specs.nc_extended,
                                              &formatting_specs.nc_mode) );
 	    if (kind_out) {
-		printf ("%s\n", kind_string(formatting_specs.nc_kind));
+		printf ("%s", kind_string(formatting_specs.nc_kind));
 	    } else if (kind_out_extended) {
-		printf ("%s\n", kind_string_extended(formatting_specs.nc_extended,formatting_specs.nc_mode));
+		printf ("%s", kind_string_extended(formatting_specs.nc_extended,formatting_specs.nc_mode));
 	    } else {
 		/* Initialize list of types. */
 		init_types(ncid);

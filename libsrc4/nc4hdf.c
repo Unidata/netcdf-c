@@ -1960,8 +1960,7 @@ static int
 write_nc3_strict_att(hid_t hdf_grpid)
 {
   hid_t attid = 0, spaceid = 0;
-  int one = 1, num, a;
-  char att_name[NC_MAX_HDF5_NAME + 1];
+  int one = 1;
   int retval = NC_NOERR;
   htri_t attr_exists;
 

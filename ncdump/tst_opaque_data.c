@@ -7,7 +7,7 @@
    $Id: tst_opaque_data.c,v 1.7 2009/01/28 18:19:49 russ Exp $
 */
 
-#include <config.h>
+#include "config.h"
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <netcdf.h>

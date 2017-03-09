@@ -3,7 +3,7 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
-#include <config.h>
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>

@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "ncdap.h"
+#include "dapincludes.h"
 
 #ifdef HAVE_GETRLIMIT
 #  ifdef HAVE_SYS_RESOURCE_H
@@ -19,7 +19,7 @@
 #include "nc3internal.h"
 #include "nc3dispatch.h"
 #include "ncd2dispatch.h"
-#include "dapalign.h"
+#include "ncoffsets.h"
 #include "dapdump.h"
 
 static NCerror buildncstructures(NCDAPCOMMON*);

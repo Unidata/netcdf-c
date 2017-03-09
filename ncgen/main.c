@@ -6,7 +6,7 @@
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/main.c,v 1.33 2010/05/26 21:43:36 dmh Exp $ */
 
 #include "includes.h"
-#include "offsets.h"
+#include "ncoffsets.h"
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -580,7 +580,6 @@ END_OF_MAIN()
 void
 init_netcdf(void) /* initialize global counts, flags */
 {
-    compute_alignments();
     memset((void*)&nullconstant,0,sizeof(NCConstant));
     fillconstant = nullconstant;
     fillconstant.nctype = NC_FILLVALUE;

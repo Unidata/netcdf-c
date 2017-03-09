@@ -6,7 +6,7 @@
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/jdatastd.c,v 1.2 2010/05/24 19:59:57 dmh Exp $ */
 
 #include "includes.h"
-#include "offsets.h"
+#include "ncoffsets.h"
 
 extern List* vlenconstants;  /* List<Constant*>;*/
 

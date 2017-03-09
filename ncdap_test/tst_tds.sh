@@ -26,7 +26,6 @@ fi
 
 cd ${builddir}/ncdap_test
 
-#set -x
 quiet=0
 cache=1
 leakcheck=0

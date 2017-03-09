@@ -40,4 +40,5 @@ int main()
   nc_def_var(id, "var2", NC_FLOAT, 2, dimids,    &v4);
 
   nc_close(id);
+  return 0;
 }

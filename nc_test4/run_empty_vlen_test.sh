@@ -11,17 +11,16 @@
 # full details.
 #
 
-set -e
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
 
-if test "x$srcdir" = x ; then
-srcdir=`pwd`
-fi
+set -e
 
 echo ""
 echo "* Testing Empty Ragged Arrays (VLEN)"
 
 echo "Generating test netcdf files."
-./tst_empty_vlen_unlim
+${execdir}/tst_empty_vlen_unlim
 
 # Since no comparison is made, I am not sure 
 # if this is useful.

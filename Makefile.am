@@ -15,7 +15,7 @@ EXTRA_DIST = README.md COPYRIGHT INSTALL.md test_prog.c \
 	FixBundle.cmake.in \
 	nc-config.cmake.in RELEASE_NOTES.md CTestCustom.cmake \
 	CTestConfig.cmake.in libnetcdf.settings.in netCDFConfig.cmake.in \
-	CMakeInstallation.cmake
+	CMakeInstallation.cmake test-driver-verbose test_common.in
 
 # Doxygen doesn't build nicely in vpath builds.
 # Don't do this; it wipes out any exported values
@@ -53,14 +53,17 @@ LIBSRC4_DIR = libsrc4
 NC_TEST4 = nc_test4
 endif
 
-# Build the opendap client?
-if BUILD_DAP
+# Build the dap2 client
+if ENABLE_DAP
 OCLIB = oc2
 DAP2 = libdap2
-#if BUILD_UTILITIES
-NCDAPTESTDIR = ncdap_test
-#endif # BUILD_UTILITIES
+NCDAP2TESTDIR = ncdap_test
 endif
+
+if ENABLE_DAP4
+DAP4 = libdap4
+NCDAP4TESTDIR = dap4_test
+endif #DAP4
 
 # Build pnetcdf
 if USE_PNETCDF
@@ -79,21 +82,21 @@ endif
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAPTESTDIR)
+TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
-SUBDIRS = include $(OCLIB) $(H5_TEST_DIR) libdispatch libsrc		\
-$(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) $(LIBSRCP) liblib  \
+SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc		\
+$(LIBSRC4_DIR) $(LIBSRCP) $(OCLIB) $(DAP2) ${DAP4} liblib  \
 $(NCGEN3) $(NCGEN) $(NCDUMP) \
 $(TESTDIRS) \
 docs $(EXAMPLES) \
 $(UDUNITS) $(LIBCF)
 
 # Remove these generated files, for a distclean.
-DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings
+DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings test_common.sh
 
 # The nc-config script helps the user build programs with netCDF.
 bin_SCRIPTS = nc-config
@@ -182,6 +185,14 @@ check_nc_config:
 	$(CC) `./nc-config --cflags` test_prog.c -o test_prog `./nc-config --libs`
 	./test_prog
 
+# Build nc_test/test_common.sh
+# Complicated by need to create during distcheck
+# which uses a read-only source tree
+#all-local:
+#	rm -f ${top_builddir}/nc_test/test_common.sh
+#	cat /dev/null > ${top_builddir}/nc_test/test_common.sh
+#	chmod a+x ${top_builddir}/nc_test/test_common.sh
+#	sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${top_srcdir}/test_common.in >>${top_builddir}/test_common.sh
 
 install-data-hook:
 

@@ -9,7 +9,7 @@
 #ifndef _ERR_MACROS_H
 #define _ERR_MACROS_H
 
-#include <config.h>
+#include "config.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>

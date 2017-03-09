@@ -22,13 +22,24 @@ bin_PROGRAMS += nccopy
 nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c \
 utils.h utils.c dimmap.h dimmap.c
 
+if USE_NETCDF4
+noinst_PROGRAMS = nc4print
+nc4print_SOURCES = nc4print.c
+endif
+
+# Conditionally build the ocprint program, but do not install
+if ENABLE_DAP
+bin_PROGRAMS += ocprint
+ocprint_SOURCES=ocprint.c
+endif
+
 # This is the man page.
 man_MANS = ncdump.1 nccopy.1
 
 if BUILD_TESTSETS
 #if !BUILD_DLL
 # These tests are run for both netCDF-4 and non-netCDF-4 builds.
-check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8 bom tst_dimsizes
+check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8 bom tst_dimsizes nctrunc
 
 TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
 tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh      \

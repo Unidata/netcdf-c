@@ -259,14 +259,9 @@ main(int argc, char **argv)
 #define D_SMALL_LEN2 66
       int stat = NC_NOERR;
       int ncid;
-      int nvars, ndims, ngatts, unlimdimid;
-      int contig;
-      int ndims_in, natts_in, dimids_in;
-      int small_dimid, medium_dimid, large_dimid;
+      int small_dimid;
       int small_varid;
-      char var_name_in[NC_MAX_NAME + 1];
-      size_t chunks[1], chunksize_in;
-      nc_type xtype_in;
+      size_t chunks[1];
 
       /* Create a netcdf-4 file with three dimensions. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
