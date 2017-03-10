@@ -299,7 +299,7 @@ int nc2dbl ( const nc_type xtype, const void *p, double *result)
     if ( ! p ) return 2;
     if ( ! result ) return 3;
     switch (xtype) {
-        case NC_CHAR:   *result = *((signed char *)    p); break;
+        case NC_CHAR:   *result = *((char *)           p); break;
         case NC_BYTE:   *result = *((signed char *)    p); break;
         case NC_UBYTE:  *result = *((unsigned char *)  p); break;
         case NC_SHORT:  *result = *((short *)          p); break;
