@@ -45,7 +45,9 @@ are set when opening a binary file on Windows. */
    #define fdopen _fdopen
    #define write _write
    #define strtoll _strtoi64
-#endif
+#endif /*_MSC_VER */
+
+#cmakedefine const
 
 /* Define if building universal (internal helper macro) */
 #cmakedefine AC_APPLE_UNIVERSAL_BUILD 1
@@ -447,6 +449,27 @@ are set when opening a binary file on Windows. */
 /* Define to the version of this package. */
 #cmakedefine PACKAGE_VERSION "${netCDF_VERSION}"
 
+/* The size of `ulonglong` as computed by sizeof. */
+#cmakedefine SIZEOF_ULONGLONG @SIZEOF_ULONGLONG@
+
+/* The size of `longlong` as computed by sizeof. */
+#cmakedefine SIZEOF_LONGLONG @SIZEOF_LONGLONG@
+
+/* The size of `uchar` as computed by sizeof. */
+#cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
+
+/* The size of `ssize_t` as computed by sizeof. */
+#cmakedefine SIZEOF_SSIZE_T @SIZEOF_SSIZE_T@
+
+/* The size of `__int64` found on Windows systems. */
+#cmakedefine SIZEOF___INT64 ${SIZEOF___INT64}
+
+/* The size of `void*` as computed by sizeof. */
+#cmakedefine SIZEOF_VOIDSTAR ${SIZEOF_VOIDSTAR}
+
+/* The size of `short` as computed by sizeof. */
+#cmakedefine SIZEOF_OFF64_T ${SIZEOF_OFF64_T}
+
 /* The size of `double', as computed by sizeof. */
 #cmakedefine SIZEOF_DOUBLE ${SIZEOF_DOUBLE}
 
@@ -594,9 +617,6 @@ are set when opening a binary file on Windows. */
 #ifndef __CHAR_UNSIGNED__
 #cmakedefine  __CHAR_UNSIGNED__
 #endif
-
-/* Define to empty if `const' does not conform to ANSI C. */
-#cmakedefine const
 
 /* Define to `long int' if <sys/types.h> does not define. */
 #cmakedefine off_t long int
