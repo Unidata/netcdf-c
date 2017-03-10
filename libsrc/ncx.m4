@@ -948,7 +948,7 @@ ifdef(`ERANGE_FILL', `dnl
         *cp++ = 0xff;
     else
         *cp++ = 0;
-    *cp = (uchar)(signed)*ip;
+    *cp = (uchar)*ip;
 
     return err;
 }
@@ -1050,7 +1050,7 @@ APIPrefix`x_put_'NC_TYPE(int)_schar(void *xp, const schar *ip, void *fillp)
 		*cp++ = 0x00;
 		*cp++ = 0x00;
 	}
-	*cp = (uchar)(signed)*ip;
+	*cp = (uchar)*ip;
 	return NC_NOERR;
 }
 
@@ -2426,7 +2426,7 @@ dnl
 define(`NCX_GETN_Byte_Body',dnl
 `dnl
 	(void) memcpy(tp, *xpp, (size_t)nelems);
-	*xpp = (void *)((schar *)(*xpp) + nelems);
+	*xpp = (void *)((char *)(*xpp) + nelems);
 	return NC_NOERR;
 ')dnl
 dnl dnl dnl
@@ -2441,7 +2441,7 @@ define(`NCX_PAD_GETN_Byte_Body',dnl
 		rndup = X_ALIGN - rndup;
 
 	(void) memcpy(tp, *xpp, (size_t)nelems);
-	*xpp = (void *)((schar *)(*xpp) + nelems + rndup);
+	*xpp = (void *)((char *)(*xpp) + nelems + rndup);
 
 	return NC_NOERR;
 ')dnl

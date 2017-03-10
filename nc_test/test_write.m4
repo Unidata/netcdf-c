@@ -1976,7 +1976,7 @@ TestFunc(rename_att)(AttVarArgs)
                     error("get_att_text: %s", APIFunc(strerror)(err));
                 for (k = 0; k < attlength; k++) {
                     expect = hash(datatype, -1, &k);
-                    IF (text[k] != (char)(signed)expect)
+                    IF (text[k] != (char)expect)
                         error("get_att_text: unexpected value");
                 }
             } else {

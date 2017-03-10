@@ -26,13 +26,12 @@
 
     /* Limits of external types (based on those in ncx.h) */
 
-#ifdef __CHAR_UNSIGNED__
-#define X_CHAR_MIN	SCHAR_MIN
-#define X_CHAR_MAX	SCHAR_MAX
-#else
-#define X_CHAR_MIN	CHAR_MIN
-#define X_CHAR_MAX	CHAR_MAX
-#endif //__unsigned_char__
+/* Note: In CDF format specification, NC_CHAR is for text characters, which
+ * is considered an 8-bit unsigned integer. Since it is for printable text
+ * characters, its values should range from 0 (X_CHAR_MIN) to 255 (X_CHAR_MAX).
+ */
+#define X_CHAR_MIN      0
+#define X_CHAR_MAX      255
 
 #define X_BYTE_MIN	(-128)
 #define X_BYTE_MAX	127
@@ -205,7 +204,7 @@ extern "C" {
 # include <sys/types.h>
 #endif
 
-typedef signed char text;
+typedef char text;
 typedef signed char schar;
 
 #ifndef HAVE_USHORT

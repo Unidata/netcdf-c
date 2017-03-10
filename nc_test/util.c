@@ -299,7 +299,7 @@ int nc2dbl ( const nc_type xtype, const void *p, double *result)
     if ( ! p ) return 2;
     if ( ! result ) return 3;
     switch (xtype) {
-        case NC_CHAR:   *result = *((signed char *)    p); break;
+        case NC_CHAR:   *result = *((char *)          p); break;
         case NC_BYTE:   *result = *((signed char *)    p); break;
         case NC_UBYTE:  *result = *((unsigned char *)  p); break;
         case NC_SHORT:  *result = *((short *)          p); break;
@@ -838,13 +838,13 @@ put_atts(int ncid)
     int  j;		/* index of attribute */
     int  allInRange;
     double att[MAX_NELS];
-    char signed catt[MAX_NELS];
+    char catt[MAX_NELS];
 
     for (i = -1; i < numVars; i++) {
 	for (j = 0; j < NATTS(i); j++) {
 	    if (ATT_TYPE(i,j) == NC_CHAR) {
 		for (k = 0; k < ATT_LEN(i,j); k++) {
-          catt[k] = hash(ATT_TYPE(i,j), -1, &k);
+                    catt[k] = (char) hash(ATT_TYPE(i,j), -1, &k);
 		}
 		err = nc_put_att_text(ncid, i, ATT_NAME(i,j),
 		    ATT_LEN(i,j), catt);
@@ -879,7 +879,7 @@ put_vars(int ncid)
     int  i;
     size_t  j;
     double value[MAX_NELS];
-    signed char text[MAX_NELS];
+    char text[MAX_NELS];
     int  allInRange;
 
     for (j = 0; j < MAX_RANK; j++)
@@ -889,7 +889,7 @@ put_vars(int ncid)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) error("toMixedBase");
 	    if (var_name[i][0] == 'c') {
-		text[j] = (signed char) hash(var_type[i], var_rank[i], index);
+		text[j] = (char) hash(var_type[i], var_rank[i], index);
 	    } else {
 		value[j]  = hash(var_type[i], var_rank[i], index);
 		allInRange = allInRange && inRange(value[j], var_type[i]);
@@ -979,7 +979,7 @@ void
 check_vars(int  ncid)
 {
     size_t index[MAX_RANK];
-    signed char  text, name[NC_MAX_NAME];
+    char  text, name[NC_MAX_NAME];
     int  i, err;		/* status */
     size_t  j;
     int nok = 0;      /* count of valid comparisons */
@@ -987,7 +987,6 @@ check_vars(int  ncid)
     double value, expect;
     nc_type xtype;
     size_t length;
-    signed char tmp_char;
 
     for (i = 0; i < numVars; i++) {
         isChar = var_type[i] == NC_CHAR;
@@ -1016,7 +1015,7 @@ check_vars(int  ncid)
           	err = nc_get_var1_text(ncid, i, index, &text);
             IF (err)
 		    error("nc_get_var1_text: %s", nc_strerror(err));
-            IF (text != expect) {
+            IF (text != (char)expect) {
               error("Var %s [%lu] value read %hhd not that expected %g ",
                   var_name[i], j, text, expect);
 		    print_n_size_t(var_rank[i], index);
@@ -1058,7 +1057,7 @@ check_atts(int  ncid)
     nc_type xtype;
     char name[NC_MAX_NAME];
     size_t length;
-    signed char text[MAX_NELS];
+    char text[MAX_NELS];
     double value[MAX_NELS];
     double expect;
     int nok = 0;      /* count of valid comparisons */
@@ -1083,7 +1082,7 @@ check_atts(int  ncid)
 		    error("nc_get_att_text: %s", nc_strerror(err));
 		for (k = 0; k < ATT_LEN(i,j); k++) {
 		    expect = hash(xtype, -1, &k);
-		    IF (text[k] != expect) {
+		    IF (text[k] != (char)expect) {
 			error("nc_get_att_text: unexpected value");
             	    } else {
               		nok++;
