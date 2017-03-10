@@ -261,7 +261,7 @@ yytext[MAXTRST-1] = '\0';
 
 compound|struct|structure {return lexdebug(COMPOUND);}
 enum				{return lexdebug(ENUM);}
-opaque				{return lexdebug(OPAQUE);}
+opaque				{return lexdebug(OPAQUE_);}
 
 float|real		{return lexdebug(FLOAT_K);}
 char			{return lexdebug(CHAR_K);}

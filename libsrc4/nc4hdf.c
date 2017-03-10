@@ -561,6 +561,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   hsize_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
   char *name_to_use;
   int need_to_extend = 0;
+  int extend_possible = 0;
   int retval = NC_NOERR, range_error = 0, i, d2;
   void *bufr = NULL;
 #ifndef HDF5_CONVERT
@@ -742,6 +743,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 	  assert(dim && dim->dimid == var->dimids[d2]);
           if (dim->unlimited)
             {
+	      extend_possible = 1;
               if (start[d2] + count[d2] > fdims[d2])
                 {
                   xtend_size[d2] = (long long unsigned)(start[d2] + count[d2]);
@@ -764,7 +766,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
 #ifdef USE_PARALLEL4
       /* Check if anyone wants to extend */
-      if (h5->parallel && NC_COLLECTIVE == var->parallel_access)
+      if (extend_possible && h5->parallel && NC_COLLECTIVE == var->parallel_access)
         {
           /* Form consensus opinion among all processes about whether to perform
            * collective I/O
@@ -3661,7 +3663,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
   NC_DIM_INFO_T *dim;
   int retval = NC_NOERR;
   int i;
-  
+
   assert(grp && grp->name);
   LOG((4, "%s: grp->name %s", __func__, grp->name));
 
@@ -3674,11 +3676,12 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
    * try and find a dimension for them. */
   for (i=0; i < grp->vars.nelems; i++)
     {
+      int ndims;
+      int d;
       var = grp->vars.value[i];
       if (!var) continue;
       /* Check all vars and see if dim[i] != NULL if dimids[i] valid. */
-      int ndims = var->ndims;
-      int d;
+      ndims = var->ndims;
       for (d = 0; d < ndims; d++)
 	{
 	  if (var->dim[d] == NULL) {
@@ -3799,7 +3802,6 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                         free(h5dimlen);
                         return retval;
                       }
-                      grp->ndims++;
                       dim->dimid = grp->nc4_info->next_dimid++;
                       sprintf(phony_dim_name, "phony_dim_%d", dim->dimid);
                       if (!(dim->name = strdup(phony_dim_name))) {

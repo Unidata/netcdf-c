@@ -335,6 +335,7 @@ swapn2b(void *dst, const void *src, IntType nn)
 inline static void
 swap4b(void *dst, const void *src)
 {
+
     /* copy over, make the below swap in-place */
     uint32_t tmp = *(uint32_t*)src;
     tmp = SWAP4(tmp);
@@ -374,6 +375,17 @@ swap4b(void *dst, const void *src)
     op[2] = ip[1];
     op[3] = ip[0];
     */
+
+  /*
+  uint32_t* op32 = (uint32_t*)(dst);
+    const uint32_t* ip32 = (const uint32_t*)(src);
+
+    *op32 = (((*ip32)                              ) << 24) |
+    (((*ip32) & 0x0000ff00u) <<  8) |
+    (((*ip32) & 0x00ff0000u) >>  8) |
+    (((*ip32)                              ) >> 24);
+
+*/
 }
 # endif /* !vax */
 

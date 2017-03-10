@@ -10,6 +10,12 @@
 #include "ncio.h"
 #include "fbits.h"
 
+#ifndef HAVE_STDINT_H
+#include "pstdint.h"
+#else
+#include <stdint.h>
+#endif /* HAVE_STDINT_H */
+
 /*
  * An external data representation interface.
 

@@ -1261,6 +1261,7 @@ print_enum_type(int ncid, nc_type typeid) {
     char safe_buf[SAFE_BUF_LEN];
     char *delim;
     int64_t data;	    /* space for data of any primitive type */
+    void* raw;
     char *esc_btn;
     char *esc_tn;
     char *esc_mn;
@@ -1283,30 +1284,31 @@ print_enum_type(int ncid, nc_type typeid) {
 	if (f == type_nfields - 1)
 	    delim = "} ;\n";
 	NC_CHECK( nc_inq_enum_member(ncid, typeid, f, memname, &data) );
+	raw = (void*)&data;
 	switch (base_nc_type) {
 	case NC_BYTE:
-	    memval = *(char *)&data;
+	    memval = *(char *)raw;
 	    break;
 	case NC_SHORT:
-	    memval = *(short *)&data;
+	    memval = *(short *)raw;
 	    break;
 	case NC_INT:
-	    memval = *(int *)&data;
+	    memval = *(int *)raw;
 	    break;
 	case NC_UBYTE:
-	    memval = *(unsigned char *)&data;
+	    memval = *(unsigned char *)raw;
 	    break;
 	case NC_USHORT:
-	    memval = *(unsigned short *)&data;
+	    memval = *(unsigned short *)raw;
 	    break;
 	case NC_UINT:
-	    memval = *(unsigned int *)&data;
+	    memval = *(unsigned int *)raw;
 	    break;
 	case NC_INT64:
-	    memval = *(int64_t *)&data;
+	    memval = *(int64_t *)raw;
 	    break;
 	case NC_UINT64:
-	    memval = *(uint64_t *)&data;
+	    memval = *(uint64_t *)raw;
 	    break;
 	default:
 	    error("Bad base type for enum!");
