@@ -6,13 +6,22 @@
 #include "occompile.h"
 #include "ocdebug.h"
 
+/* If enabled, then DAS attributes that cannot
+   be connected to any variable will be shown as
+   global attributes. No obvious reason to enable
+   except possibly for debugging purposes.
+*/
+#undef SHOWORPHAN
+
 static const unsigned int MAX_UINT = 0xffffffff;
 
 static OCerror mergedas1(OCnode* dds, OCnode* das);
 static OCerror mergedods1(OCnode* dds, OCnode* das);
-static OCerror mergeother1(OCnode* root, OCnode* das);
 static char* pathtostring(OClist* path, char* separator);
 static void computefullname(OCnode* node);
+#ifdef SHOWORPHAN
+static OCerror mergeother1(OCnode* root, OCnode* das);
+#endif
 
 /* Process ocnodes to fix various semantic issues*/
 void
@@ -334,6 +343,8 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 	if(das == NULL) continue;
 	mergedods1(ddsroot,das);
     }
+
+#ifdef SHOWORPHAN
     /* 6. Assign other orphan attributes, which means
 	  construct their full name and assign as a global attribute. */
     for(i=0;i<oclistlength(dasnodes);i++) {
@@ -341,6 +352,7 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 	if(das == NULL) continue;
 	mergeother1(ddsroot, das);
     }
+#endif
 
 done:
     /* cleanup*/
@@ -406,6 +418,7 @@ mergedods1(OCnode* dds, OCnode* dods)
     return OCTHROW(stat);
 }
 
+#ifdef SHOWORPHAN
 static OCerror
 mergeother1(OCnode* root, OCnode* das)
 {
@@ -433,6 +446,7 @@ mergeother1(OCnode* root, OCnode* das)
 	stat = OC_EDAS;
     return OCTHROW(stat);
 }
+#endif
 
 static void
 ocuncorrelate(OCnode* root)

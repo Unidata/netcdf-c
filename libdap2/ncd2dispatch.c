@@ -769,8 +769,6 @@ fprintf(stderr,"buildvars.candidate=|%s|\n",var->ncfullname);
  	    }
         }
 
-
-
 	definename = getdefinename(var);
 
 #ifdef DEBUG1
