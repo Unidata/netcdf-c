@@ -1299,10 +1299,10 @@ CHECK_TYPE_SIZE("__int64"   SIZEOF___INT_64)
 CHECK_TYPE_SIZE("int64_t"   SIZEOF_INT64_T)
 CHECK_TYPE_SIZE("uint64_t"  SIZEOF_UINT64_T)
 CHECK_TYPE_SIZE("unsigned char"      SIZEOF_UCHAR)
-CHECK_TYPE_SIZE("unsigned short int" SIZEOF_USHORT)
-CHECK_TYPE_SIZE("unsigned int"       SIZEOF_UINT)
-CHECK_TYPE_SIZE("long long"          SIZEOF_LONGLONG)
-CHECK_TYPE_SIZE("unsigned long long" SIZEOF_ULONGLONG)
+CHECK_TYPE_SIZE("unsigned short int" SIZEOF_UNSIGNED_SHORT_INT)
+CHECK_TYPE_SIZE("unsigned int"       SIZEOF_UNSIGNED_INT)
+CHECK_TYPE_SIZE("long long"          SIZEOF_LONG_LONG)
+CHECK_TYPE_SIZE("unsigned long long" SIZEOF_UNSIGNED_LONG_LONG)
 
 # On windows systems, we redefine off_t as __int64
 # to enable LFS. This is true on 32 and 64 bit system.s
