@@ -14,7 +14,10 @@ dnl
  */
 /* $Id: putget.m4 2783 2014-10-26 05:19:35Z wkliao $ */
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>

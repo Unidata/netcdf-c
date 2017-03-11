@@ -5,7 +5,10 @@
 /* $Id: winceio.c,v 1.2 2010/05/04 17:30:04 dmh Exp $ */
 /* Dennis Heimbigner 2010-3-04 */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>	/* DEBUG */

@@ -32,7 +32,6 @@
  *
  */
 
-#include <config.h> /* output of 'configure' */
 #include "rnd.h"
 #include <stddef.h> /* size_t */
 #include <errno.h>
