@@ -121,7 +121,10 @@ tst_ncf213.cdl tst_ncf213.nc tst_h_scalar.cdl tst_h_scalar.nc           \
 tst_mud4_chars.cdl tst_mud4_chars.nc                                    \
 inttags.nc inttags4.nc tst_inttags.cdl tst_inttags4.cdl                 \
 tst_dimsize_classic.nc tst_dimsize_64offset.nc tst_dimsize_64data.nc    \
-nc4_fileinfo.nc hdf5_fileinfo.hdf
+nc4_fileinfo.nc hdf5_fileinfo.hdf \
+ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc \
+ref_tst_compounds.nc ref_tst_dims.nc ref_tst_interops4.nc \
+ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc
 
 # These files all have to be included with the distribution.
 EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl		\
@@ -158,3 +161,6 @@ tst_ncgen4_diff.sh tst_ncgen4_cycle.sh ref_ctest.c ref_ctest64.c
 
 CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl tst_bug324.nc
 DISTCLEANFILES = results
+
+clean-local:
+	-rm -rf results

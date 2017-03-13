@@ -3,7 +3,10 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "nc3internal.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -85,11 +88,7 @@ fault_v1hs(v1hs *gsp, size_t extent)
 
 	if(gsp->base != NULL)
 	{
-#ifdef __arm__
-		const ptrdiff_t incr = (signed char *)gsp->pos - (signed char *)gsp->base;
-#else
-        const ptrdiff_t incr = (char *)gsp->pos - (char *)gsp->base;
-#endif
+		const ptrdiff_t incr = (char *)gsp->pos - (char *)gsp->base;
 		status = rel_v1hs(gsp);
 		if(status)
 			return status;
@@ -107,11 +106,7 @@ fault_v1hs(v1hs *gsp, size_t extent)
 
 	gsp->pos = gsp->base;
 
-#ifdef __arm__
-	gsp->end = (signed char *)gsp->base + gsp->extent;
-#else
-    gsp->end = (char *)gsp->base + gsp->extent;
-#endif
+	gsp->end = (char *)gsp->base + gsp->extent;
     return NC_NOERR;
 }
 
@@ -128,13 +123,8 @@ fprintf(stderr, "nextread %lu, remaining %lu\n",
 	(unsigned long)nextread,
 	(unsigned long)((char *)gsp->end - (char *)gsp->pos));
 #endif
-#ifdef __arm__
-if((signed char *)gsp->pos + nextread <= (signed char *)gsp->end)
-        return NC_NOERR;
-#else
- if((char *)gsp->pos + nextread <= (char *)gsp->end)
-        return NC_NOERR;
-#endif
+    if((char *)gsp->pos + nextread <= (char *)gsp->end)
+	return NC_NOERR;
 
     return fault_v1hs(gsp, nextread);
 }
@@ -150,10 +140,12 @@ v1h_put_size_t(v1hs *psp, const size_t *sp)
 		status = check_v1hs(psp, X_SIZEOF_INT64);
 	else
 		status = check_v1hs(psp, X_SIZEOF_SIZE_T);
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
  		return status;
-        if (psp->version == 5)
-		return ncx_put_int64(&psp->pos, *sp);
+        if (psp->version == 5) {
+                unsigned long long tmp = (unsigned long long) (*sp);
+		return ncx_put_uint64(&psp->pos, tmp);
+        }
         else
 	    return ncx_put_size_t(&psp->pos, sp);
 }
@@ -167,11 +159,11 @@ v1h_get_size_t(v1hs *gsp, size_t *sp)
 		status = check_v1hs(gsp, X_SIZEOF_INT64);
 	else
 		status = check_v1hs(gsp, X_SIZEOF_SIZE_T);
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
 		return status;
         if (gsp->version == 5) {
-		long long tmp=0;
-		status = ncx_get_int64((const void **)(&gsp->pos), &tmp);
+		unsigned long long tmp=0;
+		status = ncx_get_uint64((const void **)(&gsp->pos), &tmp);
 		*sp = (size_t)tmp;
 		return status;
         }
@@ -187,18 +179,10 @@ v1h_get_size_t(v1hs *gsp, size_t *sp)
 static int
 v1h_put_nc_type(v1hs *psp, const nc_type *typep)
 {
-	const int itype = (int) *typep;
-	int status = check_v1hs(psp, X_SIZEOF_INT);
-    if(status != NC_NOERR)
-		return status;
-	status =  ncx_put_int_int(psp->pos, &itype);
-
-#ifdef __arm__
-	psp->pos = (void *)((signed char *)psp->pos + X_SIZEOF_INT);
-#else
-    psp->pos = (void *)((char *)psp->pos + X_SIZEOF_INT);
-#endif
-
+    const unsigned int itype = (unsigned int) *typep;
+    int status = check_v1hs(psp, X_SIZEOF_INT);
+    if(status != NC_NOERR) return status;
+    status =  ncx_put_uint32(&psp->pos, itype);
     return status;
 }
 
@@ -207,16 +191,10 @@ v1h_put_nc_type(v1hs *psp, const nc_type *typep)
 static int
 v1h_get_nc_type(v1hs *gsp, nc_type *typep)
 {
-	int type = 0;
-	int status = check_v1hs(gsp, X_SIZEOF_INT);
-    if(status != NC_NOERR)
-		return status;
-	status =  ncx_get_int_int(gsp->pos, &type);
-#ifdef __arm__
-	gsp->pos = (void *)((signed char *)gsp->pos + X_SIZEOF_INT);
-#else
-    gsp->pos = (void *)((char *)gsp->pos + X_SIZEOF_INT);
-#endif
+    unsigned int type = 0;
+    int status = check_v1hs(gsp, X_SIZEOF_INT);
+    if(status != NC_NOERR) return status;
+    status =  ncx_get_uint32((const void**)(&gsp->pos), &type);
     if(status != NC_NOERR)
 		return status;
 
@@ -248,16 +226,10 @@ v1h_get_nc_type(v1hs *gsp, nc_type *typep)
 static int
 v1h_put_NCtype(v1hs *psp, NCtype type)
 {
-	const int itype = (int) type;
-	int status = check_v1hs(psp, X_SIZEOF_INT);
-    if(status != NC_NOERR)
-		return status;
-	status = ncx_put_int_int(psp->pos, &itype);
-#ifdef __arm__
-    psp->pos = (void *)((signed char *)psp->pos + X_SIZEOF_INT);
-#else
-	psp->pos = (void *)((char *)psp->pos + X_SIZEOF_INT);
-#endif
+    const unsigned int itype = (unsigned int) type;
+    int status = check_v1hs(psp, X_SIZEOF_INT);
+    if(status != NC_NOERR) return status;
+    status = ncx_put_uint32(&psp->pos, itype);
     return status;
 }
 
@@ -265,21 +237,13 @@ v1h_put_NCtype(v1hs *psp, NCtype type)
 static int
 v1h_get_NCtype(v1hs *gsp, NCtype *typep)
 {
-	int type = 0;
-	int status = check_v1hs(gsp, X_SIZEOF_INT);
-    if(status != NC_NOERR)
-		return status;
-	status =  ncx_get_int_int(gsp->pos, &type);
-
-#ifdef __arm__
-	gsp->pos = (void *)((signed char *)gsp->pos + X_SIZEOF_INT);
-#else
-    gsp->pos = (void *)((char *)gsp->pos + X_SIZEOF_INT);
-#endif
-    if(status != NC_NOERR)
-		return status;
-	/* else */
-	*typep = (NCtype) type;
+    unsigned int type = 0;
+    int status = check_v1hs(gsp, X_SIZEOF_INT);
+    if(status != NC_NOERR) return status;
+    status =  ncx_get_uint32((const void**)(&gsp->pos), &type);
+    if(status != NC_NOERR) return status;
+    /* else */
+    *typep = (NCtype) type;
     return NC_NOERR;
 }
 
@@ -340,11 +304,11 @@ static int
 v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 {
 	int status;
-	size_t nchars = 0;
+	size_t padding, nchars = 0;
 	NC_string *ncstrp;
 
 	status = v1h_get_size_t(gsp, &nchars);
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
 		return status;
 
 	ncstrp = new_NC_string(nchars, NULL);
@@ -352,7 +316,6 @@ v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 	{
 		return NC_ENOMEM;
 	}
-
 
 #if 0
 /* assert(ncstrp->nchars == nchars || ncstrp->nchars - nchars < X_ALIGN); */
@@ -362,22 +325,33 @@ v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 
 	status = check_v1hs(gsp, _RNDUP(ncstrp->nchars, X_ALIGN));
 #endif
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
 		goto unwind_alloc;
 
 	status = ncx_pad_getn_text((const void **)(&gsp->pos),
 		 nchars, ncstrp->cp);
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
 		goto unwind_alloc;
+
+	padding = _RNDUP(X_SIZEOF_CHAR * ncstrp->nchars, X_ALIGN)
+		- X_SIZEOF_CHAR * ncstrp->nchars;
+	if (padding > 0) {
+		/* CDF specification: Header padding uses null (\x00) bytes. */
+		char pad[X_ALIGN-1];
+		memset(pad, 0, X_ALIGN-1);
+		if (memcmp((char*)gsp->pos-padding, pad, padding) != 0) {
+			free_NC_string(ncstrp);
+			return NC_EINVAL;
+		}
+	}
 
 	*ncstrpp = ncstrp;
 
-    return NC_NOERR;
+	return NC_NOERR;
 
 unwind_alloc:
 	free_NC_string(ncstrp);
 	return status;
-
 }
 
 /* End NC_string */
@@ -614,6 +588,28 @@ ncx_len_NC_attr(const NC_attr *attrp, int version)
 #undef MIN
 #define MIN(mm,nn) (((mm) < (nn)) ? (mm) : (nn))
 
+/*----< ncmpix_len_nctype() >------------------------------------------------*/
+/* return the length of external data type */
+static int
+ncmpix_len_nctype(nc_type type) {
+    switch(type) {
+        case NC_BYTE:
+        case NC_CHAR:
+        case NC_UBYTE:  return X_SIZEOF_CHAR;
+        case NC_SHORT:  return X_SIZEOF_SHORT;
+        case NC_USHORT: return X_SIZEOF_USHORT;
+        case NC_INT:    return X_SIZEOF_INT;
+        case NC_UINT:   return X_SIZEOF_UINT;
+        case NC_FLOAT:  return X_SIZEOF_FLOAT;
+        case NC_DOUBLE: return X_SIZEOF_DOUBLE;
+        case NC_INT64:  return X_SIZEOF_INT64;
+        case NC_UINT64: return X_SIZEOF_UINT64;
+        default: fprintf(stderr,"ncmpix_len_nctype bad type %d\n",type);
+                 assert(0);
+    }
+    return 0;
+}
+
 /*
  * Put the values of an attribute
  * The loop is necessary since attrp->nelems
@@ -626,7 +622,7 @@ v1h_put_NC_attrV(v1hs *psp, const NC_attr *attrp)
 	const size_t perchunk =  psp->extent;
 	size_t remaining = attrp->xsz;
 	void *value = attrp->xvalue;
-	size_t nbytes;
+	size_t nbytes, padding;
 
 	assert(psp->extent % X_ALIGN == 0);
 
@@ -634,23 +630,24 @@ v1h_put_NC_attrV(v1hs *psp, const NC_attr *attrp)
 		nbytes = MIN(perchunk, remaining);
 
 		status = check_v1hs(psp, nbytes);
-        if(status != NC_NOERR)
+		if(status != NC_NOERR)
 			return status;
 
 		(void) memcpy(psp->pos, value, nbytes);
 
-#ifdef __arm__
-		psp->pos = (void *)((signed char *)psp->pos + nbytes);
-		value = (void *)((signed char *)value + nbytes);
-#else
-        psp->pos = (void *)((char *)psp->pos + nbytes);
+		psp->pos = (void *)((char *)psp->pos + nbytes);
 		value = (void *)((char *)value + nbytes);
-#endif
-        remaining -= nbytes;
+        	remaining -= nbytes;
 
 	} while(remaining != 0);
 
-    return NC_NOERR;
+	padding = attrp->xsz - ncmpix_len_nctype(attrp->type) * attrp->nelems;
+	if (padding > 0) {
+		/* CDF specification: Header padding uses null (\x00) bytes. */
+		memset((char*)psp->pos-padding, 0, padding);
+	}
+
+	return NC_NOERR;
 }
 
 /* Write a NC_attr to the header */
@@ -691,29 +688,34 @@ v1h_get_NC_attrV(v1hs *gsp, NC_attr *attrp)
 	const size_t perchunk =  gsp->extent;
 	size_t remaining = attrp->xsz;
 	void *value = attrp->xvalue;
-	size_t nget;
+	size_t nget, padding;
 
 	do {
 		nget = MIN(perchunk, remaining);
 
 		status = check_v1hs(gsp, nget);
-        if(status != NC_NOERR)
+		if(status != NC_NOERR)
 			return status;
 
 		(void) memcpy(value, gsp->pos, nget);
-#ifdef __arm__
-		gsp->pos = (void *)((signed char *)gsp->pos + nget);
-		value = (void *)((signed char *)value + nget);
-#else
-        gsp->pos = (void *)((char *)gsp->pos + nget);
-		value = (void *)((char *)value + nget);
-#endif
+		gsp->pos = (void*)((unsigned char *)gsp->pos + nget);
 
-        remaining -= nget;
+		value = (void *)((signed char *)value + nget);
+
+		remaining -= nget;
 
 	} while(remaining != 0);
 
-    return NC_NOERR;
+	padding = attrp->xsz - ncmpix_len_nctype(attrp->type) * attrp->nelems;
+	if (padding > 0) {
+		/* CDF specification: Header padding uses null (\x00) bytes. */
+		char pad[X_ALIGN-1];
+		memset(pad, 0, X_ALIGN-1);
+		if (memcmp((char*)gsp->pos-padding, pad, (size_t)padding) != 0)
+			return NC_EINVAL;
+	}
+
+	return NC_NOERR;
 }
 
 
@@ -939,7 +941,7 @@ v1h_put_NC_var(v1hs *psp, const NC_var *varp)
         if(status != NC_NOERR)
 			return status;
 		status = ncx_putn_longlong_int(&psp->pos,
-				varp->ndims, varp->dimids);
+				varp->ndims, varp->dimids, NULL);
         if(status != NC_NOERR)
 			return status;
 	}
@@ -948,7 +950,7 @@ v1h_put_NC_var(v1hs *psp, const NC_var *varp)
         if(status != NC_NOERR)
 		return status;
 	    status = ncx_putn_int_int(&psp->pos,
-			varp->ndims, varp->dimids);
+			varp->ndims, varp->dimids, NULL);
         if(status != NC_NOERR)
 		return status;
 	}
@@ -1345,21 +1347,23 @@ ncx_put_NC(const NC3_INFO* ncp, void **xpp, off_t offset, size_t extent)
 	}
 
 	if (ps.version == 5)
-	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic5), ncmagic5);
+	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic5), ncmagic5, NULL);
 	else if (ps.version == 2)
-	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic), ncmagic);
+	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic), ncmagic, NULL);
 	else
-	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic1), ncmagic1);
-    if(status != NC_NOERR)
+	  status = ncx_putn_schar_schar(&ps.pos, sizeof(ncmagic1), ncmagic1, NULL);
+	if(status != NC_NOERR)
 		goto release;
 
 	{
 	const size_t nrecs = NC_get_numrecs(ncp);
-       	if (ps.version == 5)
-	    status = ncx_put_int64(&ps.pos, nrecs);
+	if (ps.version == 5) {
+            unsigned long long tmp = (unsigned long long) nrecs;
+	    status = ncx_put_uint64(&ps.pos, tmp);
+        }
        	else
 	    status = ncx_put_size_t(&ps.pos, &nrecs);
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
 		goto release;
 	}
 
@@ -1486,8 +1490,8 @@ nc_get_NC(NC3_INFO* ncp)
 	{
 	size_t nrecs = 0;
        	if (gs.version == 5) {
-		long long tmp = 0;
-		status = ncx_get_int64((const void **)(&gs.pos), &tmp);
+		unsigned long long tmp = 0;
+		status = ncx_get_uint64((const void **)(&gs.pos), &tmp);
 		nrecs = (size_t)tmp;
        	}
        	else
@@ -1497,11 +1501,8 @@ nc_get_NC(NC3_INFO* ncp)
 	NC_set_numrecs(ncp, nrecs);
 	}
 
-#ifdef __arm__
-	assert((signed char *)gs.pos < (signed char *)gs.end);
-#else
-    assert((char *)gs.pos < (char *)gs.end);
-#endif
+	assert((char *)gs.pos < (char *)gs.end);
+
 	status = v1h_get_NC_dimarray(&gs, &ncp->dims);
     if(status != NC_NOERR)
 		goto unwind_get;

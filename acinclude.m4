@@ -749,3 +749,25 @@ esac
 
 ])# AX_C_FLOAT_WORDS_BIGENDIAN
 
+dnl Find the full path of a header file
+dnl
+dnl UD_CHECK_HEADER_PATH(file, [action-if-found], [action-if-not-found])
+dnl Example:
+dnl UD_CHECK_HEADER_PATH([math.h])
+dnl AC_MSG_NOTICE([ac_cv_header_path_math_h=$ac_cv_header_path_math_h])
+dnl
+dnl
+AC_DEFUN([UD_CHECK_HEADER_PATH],
+[
+    AS_VAR_PUSHDEF([ac_Path], [ac_cv_header_path_$1])dnl
+    AC_CACHE_CHECK(
+       [for full path of header file $1], [ac_Path],
+       [AC_PREPROC_IFELSE(
+           [AC_LANG_PROGRAM([[#include <$1>]])],
+           [AS_VAR_SET([ac_Path], [`sed -n '/\.h"/s/.*"\(.*\)".*/\1/p' conftest.i | grep -m 1 $1`])],
+           [AC_MSG_RESULT([not found])]
+       )])
+    AS_VAR_SET_IF([ac_Path], [$2], [$3])
+    AS_VAR_POPDEF([ac_Path])dnl
+])
+

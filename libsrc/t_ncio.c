@@ -4,7 +4,10 @@
  */
 /* $Id: t_ncio.c,v 1.10 2010/05/26 11:11:26 ed Exp $ */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

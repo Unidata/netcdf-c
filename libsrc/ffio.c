@@ -7,7 +7,10 @@
 /* added correction by John Sheldon and Hans Vahlenkamp 15.4.1998*/
 
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>	/* DEBUG */

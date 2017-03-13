@@ -4,7 +4,10 @@
  */
 /* $Id: var.c,v 1.144 2010/05/30 00:50:35 russ Exp $ */
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "nc3internal.h"
 #include <stdlib.h>
 #include <string.h>
