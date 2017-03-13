@@ -22,7 +22,11 @@ dnl
 #include <sys/types.h>  /* open() */
 #include <sys/stat.h>   /* open() */
 #include <fcntl.h>      /* open() */
+#ifdef _MSC_VER
+#include <io.h>
+#else
 #include <unistd.h>     /* read() */
+#endif
 
 #include "tests.h"
 #include "math.h"

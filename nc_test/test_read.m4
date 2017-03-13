@@ -22,7 +22,11 @@ dnl
 #include <sys/types.h> /* open() */
 #include <sys/stat.h>  /* open() */
 #include <fcntl.h>     /* open() */
+#ifdef _MSC_VER
+#include <io.h>
+#else
 #include <unistd.h>    /* unlink(), write() */
+#endif
 #include <errno.h>     /* errno, strerror() */
 
 #include "tests.h"
@@ -2044,4 +2048,3 @@ TestFunc(inq_attid)(AttVarArgs)
         error("close: %s", APIFunc(strerror)(err));
     return nok;
 }
-
