@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_write.m4 2655 2016-11-25 21:03:48Z wkliao $ */
+/* $Id: test_write.m4 2687 2016-12-08 18:32:13Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -1650,7 +1650,7 @@ TestFunc(put_att)(AttVarArgs)
     int varid;
     int i;
     int j;
-    IntType k;
+    IntType k, ndx[1];
     int err;
     double buf[MAX_NELS];       /* (void *) buffer */
     char *p;                    /* (void *) pointer */
@@ -1691,7 +1691,8 @@ TestFunc(put_att)(AttVarArgs)
             ELSE_NOK
             p = (char *) buf;
             for (k=0; k<length; k++) {
-                value = hash(datatype, -1, &k);
+                ndx[0] = k;
+                value = hash(datatype, -1, ndx);
                 if (!inRange(value, datatype))
                     value = 0;
                 err = dbl2nc(value, datatype, p);
@@ -1783,7 +1784,7 @@ TestFunc(copy_att)(AttVarArgs)
             IF (err != NC_NOERR)
                 error("copy_att: %s", APIFunc(strerror)(err));
             ELSE_NOK
-            err = APIFunc(copy_att)(ncid_in, varid, name, ncid_out, varid);
+            err = APIFunc(copy_att)(ncid_out, varid, name, ncid_out, varid);
             IF (err != NC_NOERR)
                 error("source = target: %s", APIFunc(strerror)(err));
             ELSE_NOK
@@ -1888,7 +1889,7 @@ TestFunc(rename_att)(AttVarArgs)
     int err;
     int i;
     int j;
-    IntType  k;
+    IntType k, ndx[1];
     int attnum;
     char *attname;
     char name[NC_MAX_NAME];
@@ -1975,7 +1976,8 @@ TestFunc(rename_att)(AttVarArgs)
                 IF (err != NC_NOERR)
                     error("get_att_text: %s", APIFunc(strerror)(err));
                 for (k = 0; k < attlength; k++) {
-                    expect = hash(datatype, -1, &k);
+                    ndx[0] = k;
+                    expect = hash(datatype, -1, ndx);
                     IF (text[k] != (char)expect)
                         error("get_att_text: unexpected value");
                 }
@@ -1984,7 +1986,8 @@ TestFunc(rename_att)(AttVarArgs)
                 IF (err != NC_NOERR)
                     error("get_att_double: %s", APIFunc(strerror)(err));
                 for (k = 0; k < attlength; k++) {
-                    expect = hash(datatype, -1, &k);
+                    ndx[0] = k;
+                    expect = hash(datatype, -1, ndx);
                     if (inRange(expect, datatype)) {
                         IF (!equal(value[k],expect,datatype,NCT_DOUBLE))
                             error("get_att_double: unexpected value");

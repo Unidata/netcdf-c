@@ -10,7 +10,7 @@ dnl
  *  Copyright (C) 2003, Northwestern University and Argonne National Laboratory
  *  See COPYRIGHT notice in top-level directory.
  */
-/* $Id: test_put.m4 2655 2016-11-25 21:03:48Z wkliao $ */
+/* $Id: test_put.m4 2672 2016-12-03 19:23:53Z wkliao $ */
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -267,7 +267,7 @@ check_atts_$1(int ncid, int numGatts, int numVars)
     int i, j, cdf_format, err;
     int canConvert;      /* Both text or both numeric */
     int nok = 0;         /* count of valid comparisons */
-    IntType k, length;
+    IntType k, length, ndx[1];
     nc_type datatype;
     IntType nInExtRange;  /* number values within external range */
     IntType nInIntRange;  /* number values within internal range */
@@ -293,7 +293,8 @@ check_atts_$1(int ncid, int numGatts, int numVars)
             assert(length <= MAX_NELS);
             nInIntRange = nInExtRange = 0;
             for (k = 0; k < length; k++) {
-                expect[k] = hash4(cdf_format, datatype, -1, &k, NCT_ITYPE($1));
+                ndx[0] = k;
+                expect[k] = hash4(cdf_format, datatype, -1, ndx, NCT_ITYPE($1));
                 if (inRange3(cdf_format, expect[k], datatype, NCT_ITYPE($1))) {
                     ++nInExtRange;
                     if (CheckRange($1, expect[k]))
@@ -1381,7 +1382,7 @@ int
 TestFunc(att)_text(AttVarArgs)
 {
     int i, j, err, ncid, nok=0;
-    IntType k;
+    IntType k, ndx[1];
     text value[MAX_NELS];
 
     err = FileCreate(scratch, NC_NOCLOBBER);
@@ -1424,7 +1425,8 @@ TestFunc(att)_text(AttVarArgs)
                 ELSE_NOK
 
                 for (k = 0; k < ATT_LEN(i,j); k++) {
-                    double dtmp = hash(ATT_TYPE(i,j), -1, &k);
+                    ndx[0] = k;
+                    double dtmp = hash(ATT_TYPE(i,j), -1, ndx);
                     value[k] = (text)dtmp;
                 }
                 err = PutAtt(text)(ncid, i, ATT_NAME(i,j), ATT_LEN(i,j), value);
@@ -1456,7 +1458,7 @@ TestFunc(att)_$1(AttVarArgs)
 {
     int i, j, err, ncid, cdf_format, nok=0;
     int allInExtRange;  /* all values within external range? */
-    IntType k;
+    IntType k, ndx[1];
     $1 value[MAX_NELS];
 
     err = FileCreate(scratch, NC_NOCLOBBER);
@@ -1506,7 +1508,8 @@ TestFunc(att)_$1(AttVarArgs)
                 ELSE_NOK
 
                 for (allInExtRange = 1, k = 0; k < ATT_LEN(i,j); k++) {
-                    value[k] = hash_$1(cdf_format,ATT_TYPE(i,j), -1, &k, NCT_ITYPE($1));
+                    ndx[0] = k;
+                    value[k] = hash_$1(cdf_format,ATT_TYPE(i,j), -1, ndx, NCT_ITYPE($1));
                     IfCheckTextChar($1, ATT_TYPE(i,j))
                         allInExtRange &= inRange3(cdf_format, (double)value[k], ATT_TYPE(i,j), NCT_ITYPE($1));
                 }

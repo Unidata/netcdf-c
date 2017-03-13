@@ -3,7 +3,10 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "nc3internal.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -85,11 +88,7 @@ fault_v1hs(v1hs *gsp, size_t extent)
 
 	if(gsp->base != NULL)
 	{
-#ifdef __arm__
-		const ptrdiff_t incr = (signed char *)gsp->pos - (signed char *)gsp->base;
-#else
-        const ptrdiff_t incr = (char *)gsp->pos - (char *)gsp->base;
-#endif
+		const ptrdiff_t incr = (char *)gsp->pos - (char *)gsp->base;
 		status = rel_v1hs(gsp);
 		if(status)
 			return status;
@@ -107,11 +106,7 @@ fault_v1hs(v1hs *gsp, size_t extent)
 
 	gsp->pos = gsp->base;
 
-#ifdef __arm__
-	gsp->end = (signed char *)gsp->base + gsp->extent;
-#else
-    gsp->end = (char *)gsp->base + gsp->extent;
-#endif
+	gsp->end = (char *)gsp->base + gsp->extent;
     return NC_NOERR;
 }
 
@@ -128,13 +123,8 @@ fprintf(stderr, "nextread %lu, remaining %lu\n",
 	(unsigned long)nextread,
 	(unsigned long)((char *)gsp->end - (char *)gsp->pos));
 #endif
-#ifdef __arm__
-if((signed char *)gsp->pos + nextread <= (signed char *)gsp->end)
-        return NC_NOERR;
-#else
- if((char *)gsp->pos + nextread <= (char *)gsp->end)
-        return NC_NOERR;
-#endif
+    if((char *)gsp->pos + nextread <= (char *)gsp->end)
+	return NC_NOERR;
 
     return fault_v1hs(gsp, nextread);
 }
@@ -645,14 +635,9 @@ v1h_put_NC_attrV(v1hs *psp, const NC_attr *attrp)
 
 		(void) memcpy(psp->pos, value, nbytes);
 
-#ifdef __arm__
-		psp->pos = (void *)((signed char *)psp->pos + nbytes);
-		value = (void *)((signed char *)value + nbytes);
-#else
-        psp->pos = (void *)((char *)psp->pos + nbytes);
+		psp->pos = (void *)((char *)psp->pos + nbytes);
 		value = (void *)((char *)value + nbytes);
-#endif
-        remaining -= nbytes;
+        	remaining -= nbytes;
 
 	} while(remaining != 0);
 
@@ -713,11 +698,7 @@ v1h_get_NC_attrV(v1hs *gsp, NC_attr *attrp)
 			return status;
 
 		(void) memcpy(value, gsp->pos, nget);
-#ifdef __arm__
-		gsp->pos = (void *)((signed char *)gsp->pos + nget);
-#else
-        gsp->pos = (void*)((unsigned char *)gsp->pos + nget);
-#endif
+		gsp->pos = (void*)((unsigned char *)gsp->pos + nget);
 
 		value = (void *)((signed char *)value + nget);
 
@@ -1520,11 +1501,8 @@ nc_get_NC(NC3_INFO* ncp)
 	NC_set_numrecs(ncp, nrecs);
 	}
 
-#ifdef __arm__
-	assert((signed char *)gs.pos < (signed char *)gs.end);
-#else
-    assert((char *)gs.pos < (char *)gs.end);
-#endif
+	assert((char *)gs.pos < (char *)gs.end);
+
 	status = v1h_get_NC_dimarray(&gs, &ncp->dims);
     if(status != NC_NOERR)
 		goto unwind_get;

@@ -9,6 +9,10 @@ dnl
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "nc3internal.h"
 #include "ncdispatch.h"
 #include "nc3dispatch.h"
