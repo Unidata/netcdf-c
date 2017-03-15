@@ -62,7 +62,6 @@ IF(ENABLE_TESTS)
 IF(USE_NETCDF4)
   ADD_EXECUTABLE(tst_fileinfo tst_fileinfo.c)
   TARGET_LINK_LIBRARIES(tst_fileinfo netcdf)
-  add_sh_test(ncdump tst_fileinfo)
 ENDIF()
 
 IF(MSVC)
@@ -86,8 +85,15 @@ IF(MSVC)
     ${CMAKE_CURRENT_BINARY_DIR})
   SET_TARGET_PROPERTIES(tst_dimsizes PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
     ${CMAKE_CURRENT_BINARY_DIR})
-  SET_TARGET_PROPERTIES(tst_fileinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
-    ${CMAKE_CURRENT_BINARY_DIR})
+
+  IF(USE_NETCDF4)
+    SET_TARGET_PROPERTIES(tst_fileinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(tst_fileinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(tst_fileinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+      ${CMAKE_CURRENT_BINARY_DIR})
+  ENDIF()
 ENDIF()
 
   # Base tests
@@ -107,6 +113,7 @@ ENDIF()
   add_sh_test(ncdump run_utf8_tests)
   IF(USE_NETCDF4)
     add_sh_test(ncdump run_utf8_nc4_tests)
+    add_sh_test(ncdump tst_fileinfo)
   ENDIF(USE_NETCDF4)
 
   add_sh_test(ncdump tst_nccopy3)
@@ -115,7 +122,7 @@ ENDIF()
   add_sh_test(ncdump tst_formatx3)
   add_sh_test(ncdump tst_bom)
   add_sh_test(ncdump tst_dimsizes)
-
+  
   # The following test script invokes
   # gcc directly.
   IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)

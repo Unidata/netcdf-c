@@ -106,7 +106,7 @@
      TYPES = 287,
      COMPOUND = 288,
      ENUM = 289,
-     OPAQUE = 290,
+     OPAQUE_ = 290,
      OPAQUESTRING = 291,
      GROUP = 292,
      PATH = 293,
@@ -160,7 +160,7 @@
 #define TYPES 287
 #define COMPOUND 288
 #define ENUM 289
-#define OPAQUE 290
+#define OPAQUE_ 290
 #define OPAQUESTRING 291
 #define GROUP 292
 #define PATH 293
@@ -338,7 +338,7 @@ Datalist*      datalist;
 NCConstant       constant;
 }
 /* Line 193 of yacc.c.  */
-#line 342 "ncgeny.c"
+#line 342 "ncgen.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -351,7 +351,7 @@ NCConstant       constant;
 
 
 /* Line 216 of yacc.c.  */
-#line 355 "ncgeny.c"
+#line 355 "ncgen.tab.c"
 
 #ifdef short
 # undef short
@@ -726,7 +726,7 @@ static const char *const yytname[] =
   "BYTE_CONST", "SHORT_CONST", "INT_CONST", "INT64_CONST", "UBYTE_CONST",
   "USHORT_CONST", "UINT_CONST", "UINT64_CONST", "FLOAT_CONST",
   "DOUBLE_CONST", "DIMENSIONS", "VARIABLES", "NETCDF", "DATA", "TYPES",
-  "COMPOUND", "ENUM", "OPAQUE", "OPAQUESTRING", "GROUP", "PATH",
+  "COMPOUND", "ENUM", "OPAQUE_", "OPAQUESTRING", "GROUP", "PATH",
   "FILLMARKER", "NIL", "_FILLVALUE", "_FORMAT", "_STORAGE", "_CHUNKSIZES",
   "_DEFLATELEVEL", "_SHUFFLE", "_ENDIANNESS", "_NOFILL", "_FLETCHER32",
   "_NCPROPS", "_ISNETCDF4", "_SUPERBLOCK", "DATASETID", "'{'", "'}'",
@@ -2732,7 +2732,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
 
 
 /* Line 1267 of yacc.c.  */
-#line 2736 "ncgeny.c"
+#line 2736 "ncgen.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);

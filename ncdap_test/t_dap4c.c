@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netcdf.h>
+#include "netcdf.h"
+#include "t_srcdir.h"
 
 #define VAR "i32"
 
@@ -21,15 +22,11 @@ main()
     size_t count[1];
     int ok = 1;    
 
-    char* topsrcdir;
+    const char* topsrcdir;
     char url[4096];
 
-    /* Assume that TESTS_ENVIRONMENT was set */
-    topsrcdir = getenv("TOPSRCDIR");
-    if(topsrcdir == NULL) {
-        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
-        exit(1);
-    }    
+    topsrcdir = gettopsrcdir();
+
     strcpy(url,"file://");
     strcat(url,topsrcdir);
     strcat(url,"/ncdap_test/testdata3/test.02");

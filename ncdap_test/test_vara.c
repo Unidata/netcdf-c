@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netcdf.h>
+#include "netcdf.h"
+#include "t_srcdir.h"
 
 /* The DDS in netcdf classic form is as follows: 
 netcdf test {
@@ -75,15 +76,11 @@ main()
     int retval;
     size_t start[RANK];
     size_t count[RANK];
-    char* topsrcdir;
+    const char* topsrcdir;
     char url[4096];
 
-    /* Assume that TESTS_ENVIRONMENT was set */
-    topsrcdir = getenv("TOPSRCDIR");
-    if(topsrcdir == NULL) {
-        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
-        exit(1);
-    }    
+    topsrcdir = gettopsrcdir();
+
     strcpy(url,"file://");
     strcat(url,topsrcdir);
     strcat(url,"/ncdap_test/testdata3/test.06");

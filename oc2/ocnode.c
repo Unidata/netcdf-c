@@ -10,9 +10,10 @@ static const unsigned int MAX_UINT = 0xffffffff;
 
 static OCerror mergedas1(OCnode* dds, OCnode* das);
 static OCerror mergedods1(OCnode* dds, OCnode* das);
-static OCerror mergeother1(OCnode* root, OCnode* das);
 static char* pathtostring(OClist* path, char* separator);
 static void computefullname(OCnode* node);
+static OCerror mergeother1(OCnode* root, OCnode* das);
+static OCerror mergeother(OCnode* ddsroot, OClist* dasnodes);
 
 /* Process ocnodes to fix various semantic issues*/
 void
@@ -334,13 +335,14 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 	if(das == NULL) continue;
 	mergedods1(ddsroot,das);
     }
+
     /* 6. Assign other orphan attributes, which means
-	  construct their full name and assign as a global attribute. */
-    for(i=0;i<oclistlength(dasnodes);i++) {
-	OCnode* das = (OCnode*)oclistget(dasnodes,i);
-	if(das == NULL) continue;
-	mergeother1(ddsroot, das);
-    }
+	  construct their full name and assign as a global attribute.
+	  This is complicated because some servers (e.g. thredds) returns
+          attributes for variables that were not referenced in the DDS.
+          These we continue to suppress.
+     */
+    mergeother(ddsroot,dasnodes);
 
 done:
     /* cleanup*/
@@ -362,6 +364,11 @@ mergedas1(OCnode* dds, OCnode* das)
     for(i=0;i<oclistlength(das->subnodes);i++) {
 	OCnode* attnode = (OCnode*)oclistget(das->subnodes,i);
 	if(attnode->octype == OC_Attribute) {
+	    if(dds->octype == OC_Atomic
+		|| dds->octype == OC_Sequence
+		|| dds->octype == OC_Structure
+		|| dds->octype == OC_Grid)
+	        attnode->att.var = dds;
 	    OCattribute* att = makeattribute(attnode->name,
 						attnode->etype,
 						attnode->att.values);
@@ -407,6 +414,19 @@ mergedods1(OCnode* dds, OCnode* dods)
 }
 
 static OCerror
+mergeother(OCnode* ddsroot, OClist* dasnodes)
+{
+    OCerror stat = OC_NOERR;
+    int i;
+    for(i=0;i<oclistlength(dasnodes);i++) {
+	OCnode* das = (OCnode*)oclistget(dasnodes,i);
+	if(das == NULL) continue;
+	if((stat = mergeother1(ddsroot, das))) break;
+    }
+    return stat;
+}
+
+static OCerror
 mergeother1(OCnode* root, OCnode* das)
 {
     OCerror stat = OC_NOERR;
@@ -414,6 +434,9 @@ mergeother1(OCnode* root, OCnode* das)
 
     OCASSERT(root != NULL);
     if(root->attributes == NULL) root->attributes = oclistnew();
+
+    /* Only include if this is not connected to a variable */
+    if(das->att.var != NULL) goto done;
 
     if(das->octype == OC_Attribute) {
         /* compute the full name of this attribute */
@@ -431,6 +454,7 @@ mergeother1(OCnode* root, OCnode* das)
 	}	
     } else
 	stat = OC_EDAS;
+done:
     return OCTHROW(stat);
 }
 

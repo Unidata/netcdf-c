@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "netcdf.h"
+#include "t_srcdir.h"
 
 
 #undef GENERATE
@@ -111,7 +112,7 @@ int main()
     int ncid, varid;
     int ncstat = NC_NOERR;
     char* url;
-    char* topsrcdir;
+    const char* topsrcdir;
     size_t len;
 #ifndef USE_NETCDF4
     int i,j;
@@ -121,12 +122,8 @@ int main()
 	server downtime issues
      */
     
-    /* Assume that TESTS_ENVIRONMENT was set */
-    topsrcdir = getenv("TOPSRCDIR");
-    if(topsrcdir == NULL) {
-        fprintf(stderr,"$abs_top_srcdir not defined: using '../'");
-	topsrcdir = "..";
-    }    
+    topsrcdir = gettopsrcdir();
+
     len = strlen("file://") + strlen(topsrcdir) + strlen("/ncdap_test/testdata3/test.02") + 1;
 #ifdef DEBUG
     len += strlen("[log][show=fetch]");
@@ -146,6 +143,7 @@ int main()
 
     /* open file, get varid */
     CHECK(nc_open(url, NC_NOWRITE, &ncid));
+    
     /* extract the string case for netcdf-3*/
 #ifndef USE_NETCDF4
     CHECK(nc_inq_varid(ncid, "s", &varid));

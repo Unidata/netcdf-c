@@ -71,7 +71,7 @@
      TYPES = 287,
      COMPOUND = 288,
      ENUM = 289,
-     OPAQUE = 290,
+     OPAQUE_ = 290,
      OPAQUESTRING = 291,
      GROUP = 292,
      PATH = 293,
@@ -125,7 +125,7 @@
 #define TYPES 287
 #define COMPOUND 288
 #define ENUM 289
-#define OPAQUE 290
+#define OPAQUE_ 290
 #define OPAQUESTRING 291
 #define GROUP 292
 #define PATH 293
@@ -160,7 +160,7 @@ Datalist*      datalist;
 NCConstant       constant;
 }
 /* Line 1529 of yacc.c.  */
-#line 164 "ncgeny.h"
+#line 164 "ncgen.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

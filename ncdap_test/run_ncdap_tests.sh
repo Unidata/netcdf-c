@@ -6,7 +6,13 @@
 # will be executed in a different directory
 # than the ontaining it; so capture the path to this script
 # as the location of the source directory.
-srcdir=`dirname $0`
+
+topsrcdir=`topsrcdir`
+if test "x$topsrcdir" != x ; then
+   srcdir="${topsrcdir}/ncdap_test"
+else
+  srcdir=`dirname $0`
+fi
 cd $srcdir
 srcdir=`pwd`
 if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
@@ -20,8 +26,8 @@ if test ${tmp} = ${srcdir} ; then
   srcdir=${tmp}
 fi
 echo "srcdir=${srcdir}"
+
 # Also compute the build directory
-#builddir=`pwd`/..
 builddir=${srcdir}/..
 echo "builddir=${builddir}"
 
