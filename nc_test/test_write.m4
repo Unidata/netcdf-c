@@ -35,10 +35,6 @@ dnl
 #include "tests.h"
 #include "math.h"
 
-#ifndef HAVE_SSIZE_T
-typedef int ssize_t;
-#endif
-
 define(`EXPECT_ERR',`error("expecting $1 but got %s",nc_err_code_name($2));')dnl
 
 define(`IntType', `ifdef(`PNETCDF',`MPI_Offset',`size_t')')dnl

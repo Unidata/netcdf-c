@@ -33,10 +33,6 @@ dnl
 #endif
 #include <errno.h>     /* errno, strerror() */
 
-#ifndef HAVE_SSIZE_T
-typedef int ssize_t;
-#endif
-
 #include "tests.h"
 
 define(`EXPECT_ERR',`error("expecting $1 but got %s",nc_err_code_name($2));')dnl

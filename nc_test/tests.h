@@ -18,6 +18,10 @@
 #endif
 #include "error.h"
 
+#ifndef HAVE_SSIZE_T
+typedef int ssize_t;
+#endif
+
 #if defined(_CRAY) && !defined(_CRAYIEEE) && !defined(__crayx1)
 #define CRAYFLOAT 1 /* CRAY Floating point */
 #elif defined(_SX) && defined(_FLOAT2)	/* NEC SUPER-UX in CRAY mode */
