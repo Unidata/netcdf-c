@@ -19,6 +19,10 @@ dnl (MPI_Offset vs. size_t), and function name substrings for external data
 dnl types.
 dnl
 
+#if defined (_WIN32) || defined (_WIN64)
+#include <io.h>
+#endif
+
 #include <sys/types.h>  /* open() */
 #include <sys/stat.h>   /* open() */
 #include <fcntl.h>      /* open() */
@@ -30,6 +34,10 @@ dnl
 
 #include "tests.h"
 #include "math.h"
+
+#ifndef HAVE_SSIZE_T
+typedef int ssize_t;
+#endif
 
 define(`EXPECT_ERR',`error("expecting $1 but got %s",nc_err_code_name($2));')dnl
 

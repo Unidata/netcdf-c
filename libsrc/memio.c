@@ -35,7 +35,7 @@
 #endif
 
 #ifndef HAVE_SSIZE_T
-#define ssize_t int
+typedef int ssize_t;
 #endif
 
 #ifndef SEEK_SET

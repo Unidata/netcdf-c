@@ -19,6 +19,10 @@ dnl (MPI_Offset vs. size_t), and function name substrings for external data
 dnl types.
 dnl
 
+#if defined (_WIN32) || defined (_WIN64)
+#include <io.h>
+#endif
+
 #include <sys/types.h> /* open() */
 #include <sys/stat.h>  /* open() */
 #include <fcntl.h>     /* open() */
@@ -28,6 +32,10 @@ dnl
 #include <unistd.h>    /* unlink(), write() */
 #endif
 #include <errno.h>     /* errno, strerror() */
+
+#ifndef HAVE_SSIZE_T
+typedef int ssize_t;
+#endif
 
 #include "tests.h"
 
