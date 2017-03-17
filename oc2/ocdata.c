@@ -14,9 +14,9 @@ static OCerror ocread(OCdata*, XXDR*, char*, size_t, size_t, size_t);
 static void
 octrace(char* proc, OCstate* state, OCdata* data)
 {
-    OCbytes* buffer = ocbytesnew();
+    NCbytes* buffer = ncbytesnew();
     ocdumpdatapath(state,data,buffer);
-    fprintf(stderr,"%s: %s\n",proc,ocbytescontents(buffer));
+    fprintf(stderr,"%s: %s\n",proc,ncbytescontents(buffer));
 }
 
 #else

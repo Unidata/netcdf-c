@@ -14,7 +14,7 @@ static OCerror mergeother1(OCnode* root, OCnode* das);
 static char* pathtostring(NClist* path, char* separator);
 static void computefullname(OCnode* node);
 static OCerror mergeother1(OCnode* root, OCnode* das);
-static OCerror mergeother(OCnode* ddsroot, OClist* dasnodes);
+static OCerror mergeother(OCnode* ddsroot, NClist* dasnodes);
 
 /* Process ocnodes to fix various semantic issues*/
 void
@@ -415,12 +415,12 @@ mergedods1(OCnode* dds, OCnode* dods)
 }
 
 static OCerror
-mergeother(OCnode* ddsroot, OClist* dasnodes)
+mergeother(OCnode* ddsroot, NClist* dasnodes)
 {
     OCerror stat = OC_NOERR;
     int i;
-    for(i=0;i<oclistlength(dasnodes);i++) {
-	OCnode* das = (OCnode*)oclistget(dasnodes,i);
+    for(i=0;i<nclistlength(dasnodes);i++) {
+	OCnode* das = (OCnode*)nclistget(dasnodes,i);
 	if(das == NULL) continue;
 	if((stat = mergeother1(ddsroot, das))) break;
     }

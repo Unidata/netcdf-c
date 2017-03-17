@@ -61,10 +61,10 @@ occompile(OCstate* state, OCnode* xroot)
 
 #ifdef OCDEBUG
 {
-    OCbytes* buffer = ocbytesnew();
+    Ncbytes* buffer = ncbytesnew();
     ocdumpdatatree(state,data,buffer,0);
-    fprintf(stderr,"datatree:\n%s",ocbytescontents(buffer));
-    ocbytesfree(buffer);
+    fprintf(stderr,"datatree:\n%s",ncbytescontents(buffer));
+    ncbytesfree(buffer);
 }
 #endif
     return OCTHROW(ocstat);

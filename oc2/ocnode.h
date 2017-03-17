@@ -36,7 +36,7 @@ typedef struct OCattribute {
 typedef struct OCattinfo {
     int isglobal; /* is this supposed to be a global attribute set?*/
     int isdods;   /* is this a global DODS_XXX  attribute set */
-    OClist* values; /* oclist<char*>*/
+    NClist* values; /* oclist<char*>*/
     struct OCnode* var; /* containing var else null */
 } OCattinfo;
 
