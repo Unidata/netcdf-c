@@ -2,11 +2,12 @@
    Copyright 2005 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test netcdf-4 variables. 
+   Test netcdf-4 variables.
    $Id: tst_large.c,v 1.5 2009/05/18 10:26:24 ed Exp $
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include "netcdf.h"
 #include "ncdispatch.h"
 
@@ -32,7 +33,7 @@ main(int argc, char **argv)
       int j;
 
       /* Create phony data. */
-      for (j = 0; j < DIM2; j++) 
+      for (j = 0; j < DIM2; j++)
 	 vals[j] = 9 * (j + 11); /* note vals[j] is 99 when j==0 */
 
       /* Create file with 2 dims and one var. */
@@ -61,5 +62,3 @@ main(int argc, char **argv)
 
    FINAL_RESULTS;
 }
-
-

@@ -182,14 +182,14 @@ typedef enum ListClass {
 } ListClass;
 
 struct Generator {
-    void* state;
-        int (*charconstant)(Generator*,Bytebuffer*,...);
-        int (*constant)(Generator*,NCConstant*,Bytebuffer*,...);
-        int (*listbegin)(Generator*,ListClass,size_t,Bytebuffer*,int*,...);
-        int (*list)(Generator*,ListClass,int,size_t,Bytebuffer*,...);
-        int (*listend)(Generator*,ListClass,int,size_t,Bytebuffer*,...);
-	int (*vlendecl)(Generator*,Bytebuffer*,struct Symbol*,int,size_t,...);
-        int (*vlenstring)(Generator*,Bytebuffer*,int*,size_t*,...);
+    void* globalstate; /* per-generator; per list state is in the method args where needed */
+    int (*charconstant)(Generator*,struct Symbol*,Bytebuffer*,...);
+    int (*constant)(Generator*,struct Symbol*,NCConstant*,Bytebuffer*,...);
+    int (*listbegin)(Generator*,struct Symbol*,void*,ListClass,size_t,Bytebuffer*,int*,...);
+    int (*list)(Generator*,struct Symbol*,void*,ListClass,int,size_t,Bytebuffer*,...);
+    int (*listend)(Generator*,struct Symbol*,void*,ListClass,int,size_t,Bytebuffer*,...);
+    int (*vlendecl)(Generator*,struct Symbol*,Bytebuffer*,int,size_t,...);
+    int (*vlenstring)(Generator*,struct Symbol*,Bytebuffer*,int*,size_t*,...);
 };
 
 extern int generator_getstate(Generator*,void**);

@@ -16,13 +16,17 @@
 
 # capture the build directory
 # Do a hack to remove e.g. c: for CYGWIN
-builddir=`pwd`/..
-if test "x$TOPSRCDIR" != x ; then
-srcdir="$TOPSRCDIR/ncdap_test"
+
+topsrcdir=`topsrcdir`
+if test "x$topsrcdir" != x ; then
+  srcdir="$topsrcdir/ncdap_test"
 else
-srcdir=`dirname $0`
+  srcdir=`dirname $0`
 fi
-# canonical
+
+builddir=`pwd`/..
+
+# canonical form
 cd $srcdir
 srcdir=`pwd`
 

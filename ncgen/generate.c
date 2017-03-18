@@ -29,13 +29,13 @@ static void generate_fieldarray(Symbol*, NCConstant*, Dimset*, Bytebuffer*, Data
 int
 generator_getstate(Generator* generator ,void** statep)
 {
-    if(statep) *statep = (void*)generator->state;
+    if(statep) *statep = (void*)generator->globalstate;
     return 1;
 }
 
 int generator_reset(Generator* generator, void* state)
 {
-    generator->state = state;
+    generator->globalstate = state;
     return 1;
 }
 
@@ -63,13 +63,13 @@ generate_attrdata(Symbol* asym, Generator* generator, Writer writer, Bytebuffer*
     } else {
 	int uid;
 	size_t count;
-        generator->listbegin(generator,LISTATTR,asym->data->length,codebuf,&uid);
+        generator->listbegin(generator,asym,NULL,LISTATTR,asym->data->length,codebuf,&uid);
         for(count=0;count<asym->data->length;count++) {
             NCConstant* con = datalistith(asym->data,count);
-            generator->list(generator,LISTATTR,uid,count,codebuf);
+            generator->list(generator,asym,NULL,LISTATTR,uid,count,codebuf);
             generate_basetype(asym->typ.basetype,con,codebuf,NULL,generator);
 	}
-        generator->listend(generator,LISTATTR,uid,count,codebuf);
+        generator->listend(generator,asym,NULL,LISTATTR,uid,count,codebuf);
     }
     writer(generator,asym,codebuf,0,NULL,NULL);
 }
@@ -149,7 +149,7 @@ generate_array(Symbol* vsym,
         if(typecode == NC_CHAR) {
             Bytebuffer* charbuf = bbNew();
             gen_chararray(dimset,0,vsym->data,charbuf,filler);
-	    generator->charconstant(generator,code,charbuf);
+	    generator->charconstant(generator,vsym,code,charbuf);
 	    /* Create an odometer to get the dimension info */
             odom = newodometer(dimset,NULL,NULL);
             writer(generator,vsym,code,odom->rank,odom->start,odom->count);
@@ -170,13 +170,13 @@ generate_array(Symbol* vsym,
                 if(nelems == 0)
 		    break;
                 bbClear(code);
-                generator->listbegin(generator,LISTDATA,vsym->data->length,code,&uid);
+                generator->listbegin(generator,vsym,NULL,LISTDATA,vsym->data->length,code,&uid);
                 for(i=0;i<nelems;i++) {
                     NCConstant* con = datalistith(vsym->data,i+offset);
-                    generator->list(generator,LISTDATA,uid,i,code);
+                    generator->list(generator,vsym,NULL,LISTDATA,uid,i,code);
                     generate_basetype(basetype,con,code,filler,generator);
                 }
-                generator->listend(generator,LISTDATA,uid,i,code);
+                generator->listend(generator,vsym,NULL,LISTDATA,uid,i,code);
                 writer(generator,vsym,code,rank,odom->start,odom->count);
             }
 	}
@@ -237,20 +237,20 @@ generate_arrayr(Symbol* vsym,
         if(typecode == NC_CHAR) {
             Bytebuffer* charbuf = bbNew();
             gen_chararray(dimset,dimindex,list,charbuf,filler);
-	    generator->charconstant(generator,code,charbuf);
+	    generator->charconstant(generator,vsym,code,charbuf);
 	    bbFree(charbuf);
 	} else {
             /* build a special odometer to walk the last few dimensions */
             subodom = newsubodometer(odom,dimset,dimindex,rank);
-            generator->listbegin(generator,LISTDATA,list->length,code,&uid);
+            generator->listbegin(generator,vsym,NULL,LISTDATA,list->length,code,&uid);
             for(i=0;odometermore(subodom);i++) {
                 size_t offset = odometeroffset(subodom);
                 NCConstant* con = datalistith(list,offset);
-                generator->list(generator,LISTDATA,uid,i,code);
+                generator->list(generator,vsym,NULL,LISTDATA,uid,i,code);
                 generate_basetype(basetype,con,code,filler,generator);
                 odometerincr(subodom);
             }
-            generator->listend(generator,LISTDATA,uid,i,code);
+            generator->listend(generator,vsym,NULL,LISTDATA,uid,i,code);
             odometerfree(subodom); subodom = NULL;
 	}
     } else {/* !islastgroup */
@@ -291,6 +291,7 @@ void
 generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* filler, Generator* generator)
 {
     Datalist* data;
+    int offsetbase = 0;
 
     switch (tsym->subclass) {
 
@@ -310,7 +311,6 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
             ASSERT(fill->length == 1);
             con = &fill->data[0];
             if(!islistconst(con)) {
-
               if(con)
                 semerror(con->lineno,"Compound data fill value is not enclosed in {..}");
               else
@@ -334,14 +334,14 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
           semerror(con->lineno,"Datalist longer than the number of compound fields");
             break;
         }
-        generator->listbegin(generator,LISTCOMPOUND,listlength(tsym->subnodes),codebuf,&uid);
+        generator->listbegin(generator,tsym,&offsetbase,LISTCOMPOUND,listlength(tsym->subnodes),codebuf,&uid);
         for(i=0;i<nfields;i++) {
             Symbol* field = (Symbol*)listget(tsym->subnodes,i);
             con = datalistith(data,i);
-            generator->list(generator,LISTCOMPOUND,uid,i,codebuf);
+            generator->list(generator,field,&offsetbase,LISTCOMPOUND,uid,i,codebuf);
             generate_basetype(field,con,codebuf,NULL,generator);
         }
-        generator->listend(generator,LISTCOMPOUND,uid,i,codebuf);
+        generator->listend(generator,tsym,&offsetbase,LISTCOMPOUND,uid,i,codebuf);
         } break;
 
     case NC_VLEN: {
@@ -366,18 +366,18 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         vlenbuf = bbNew();
         if(tsym->typ.basetype->typ.typecode == NC_CHAR) {
             gen_charvlen(data,vlenbuf);
-            generator->vlenstring(generator,vlenbuf,&uid,&count);
+            generator->vlenstring(generator,tsym,vlenbuf,&uid,&count);
         } else {
-            generator->listbegin(generator,LISTVLEN,data->length,codebuf,&uid);
+            generator->listbegin(generator,tsym,NULL,LISTVLEN,data->length,codebuf,&uid);
             for(count=0;count<data->length;count++) {
               NCConstant* con;
-                generator->list(generator,LISTVLEN,uid,count,vlenbuf);
+                generator->list(generator,tsym,NULL,LISTVLEN,uid,count,vlenbuf);
                 con = datalistith(data,count);
                 generate_basetype(tsym->typ.basetype,con,vlenbuf,NULL,generator);
             }
-            generator->listend(generator,LISTVLEN,uid,count,codebuf,(void*)vlenbuf);
+            generator->listend(generator,tsym,NULL,LISTVLEN,uid,count,codebuf,(void*)vlenbuf);
         }
-        generator->vlendecl(generator,codebuf,tsym,uid,count,vlenbuf);
+        generator->vlendecl(generator,tsym,codebuf,uid,count,vlenbuf);
         bbFree(vlenbuf);
         } break;
 
@@ -416,18 +416,18 @@ generate_fieldarray(Symbol* basetype, NCConstant* con, Dimset* dimset,
     if(chartype) {
         Bytebuffer* charbuf = bbNew();
         gen_chararray(dimset,0,data,charbuf,filler);
-        generator->charconstant(generator,codebuf,charbuf);
+        generator->charconstant(generator,basetype,codebuf,charbuf);
         bbFree(charbuf);
     } else {
         int uid;
         size_t xproduct = crossproduct(dimset,0,rank); /* compute total number of elements */
-        generator->listbegin(generator,LISTFIELDARRAY,xproduct,codebuf,&uid);
+        generator->listbegin(generator,basetype,NULL,LISTFIELDARRAY,xproduct,codebuf,&uid);
         for(i=0;i<xproduct;i++) {
             con = (data == NULL ? NULL : datalistith(data,i));
-            generator->list(generator,LISTFIELDARRAY,uid,i,codebuf);
+            generator->list(generator,basetype,NULL,LISTFIELDARRAY,uid,i,codebuf);
             generate_basetype(basetype,con,codebuf,NULL,generator);
         }
-        generator->listend(generator,LISTFIELDARRAY,uid,i,codebuf);
+        generator->listend(generator,basetype,NULL,LISTFIELDARRAY,uid,i,codebuf);
     }
 }
 
@@ -538,7 +538,7 @@ generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
     default:
         break;
     }
-    generator->constant(generator,&target,codebuf);
+    generator->constant(generator,basetype,&target,codebuf);
 
     return;
 }

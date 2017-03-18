@@ -210,14 +210,15 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	ok = 0;
 	switch (etype) {
 	case NC_BYTE: {
-		char tmp[128];
-		
-		unsigned char* p = (unsigned char*)dstmem;
+	    char* p = (unsigned char*)dstmem;
 #ifdef _MSC_VER
-		ok = sscanf(s,"%hC%n",p,&nread);
-		_ASSERTE(_CrtCheckMemory());
+	    int ival;
+	    ok = sscanf(s,"%d%n",&ival,&nread);
+	    _ASSERTE(_CrtCheckMemory());
+	    if(ival < NC_MIN_BYTE || ival > NC_MAX_BYTE) ok = 0;
+	    *p = (char)ival;
 #else	
-		ok = sscanf(s,"%hhu%n",p,&nread);
+	   ok = sscanf(s,"%hhu%n",p,&nread);
 #endif
 	    } break;
 	case NC_CHAR: {
@@ -243,12 +244,15 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	case NC_UBYTE: {
 	    unsigned char* p = (unsigned char*)dstmem;
 #ifdef _MSC_VER
-		ok = sscanf(s, "%hc%n", p,&nread);
-		_ASSERTE(_CrtCheckMemory());
+	    unsigned int uval;
+	    ok = sscanf(s,"%u%n",&uval,&nread);
+	    _ASSERTE(_CrtCheckMemory());
+	    if(uval > NC_MAX_UBYTE) ok = 0;
+	    *p = (unsigned char)uval;
 #else
 	    ok = sscanf(s,"%hhu%n",p,&nread);
 #endif
-		} break;
+	    } break;
 	case NC_USHORT: {
 	    unsigned short* p = (unsigned short*)dstmem;
 	    ok = sscanf(s,"%hu%n",p,&nread);

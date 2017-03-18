@@ -2,10 +2,11 @@
    Copyright 2010 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test netcdf files a bit. 
+   Test netcdf files a bit.
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include "netcdf.h"
 
 #define FILE_NAME "tst_files6.nc"
@@ -16,11 +17,11 @@ main(int argc, char **argv)
    printf("\n*** Testing netcdf file functions some more.\n");
    printf("*** testing Jeff Whitaker's test...");
    {
-#define DIM_NAME "xc"      
-#define DIM_LEN 134      
+#define DIM_NAME "xc"
+#define DIM_LEN 134
 #define VAR_NAME1 "var1"
 #define VAR_NAME2 "var2"
-      
+
       int ncid, dimid, varid1, varid2, dimid_in;
       int ndims_in, natts_in;
       size_t len_in;
@@ -38,22 +39,20 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, NC_CLOBBER|NC_NETCDF4, &ncid)) ERR;
       if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
       if (strcmp(name_in, DIM_NAME) || len_in != DIM_LEN) ERR;
-      if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims_in, 
+      if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims_in,
 		     &dimid_in, &natts_in)) ERR;
-      if (strcmp(name_in, VAR_NAME1) || xtype_in != NC_FLOAT || 
+      if (strcmp(name_in, VAR_NAME1) || xtype_in != NC_FLOAT ||
 	  ndims_in != 1 || dimid_in != 0 || natts_in != 0) ERR;
-      if (nc_inq_var(ncid, 1, name_in, &xtype_in, &ndims_in, 
+      if (nc_inq_var(ncid, 1, name_in, &xtype_in, &ndims_in,
 		     &dimid_in, &natts_in)) ERR;
-      if (strcmp(name_in, VAR_NAME2) || xtype_in != NC_FLOAT || 
+      if (strcmp(name_in, VAR_NAME2) || xtype_in != NC_FLOAT ||
 	  ndims_in != 1 || dimid_in != 0 || natts_in != 0) ERR;
-      if (nc_inq_var(ncid, 2, name_in, &xtype_in, &ndims_in, 
+      if (nc_inq_var(ncid, 2, name_in, &xtype_in, &ndims_in,
 		     &dimid_in, &natts_in)) ERR;
-      if (strcmp(name_in, DIM_NAME) || xtype_in != NC_FLOAT || 
+      if (strcmp(name_in, DIM_NAME) || xtype_in != NC_FLOAT ||
 	  ndims_in != 1 || dimid_in != 0 || natts_in != 0) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
-
-

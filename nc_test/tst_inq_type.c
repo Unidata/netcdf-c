@@ -13,6 +13,7 @@
 
 #include "config.h"
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <netcdf.h>
 
 #ifdef USE_PNETCDF

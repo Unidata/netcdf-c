@@ -1,4 +1,4 @@
-netcdf c0 {
+netcdf c0_4 {
 dimensions:
 	Dr = UNLIMITED ; // (2 currently)
 	D1 = 1 ;
@@ -20,7 +20,7 @@ variables:
 		s:b = 0b, 127b, -128b, -1b ;
 		s:s = -32768s, 0s, 32767s ;
 	int i ;
-		i:i = -2147483647, 0, 2147483647L ;
+		i:i = -2147483647, 0, 2147483647 ;
 		i:f = -1.e+36f, 0.f, 1.e+36f ;
 		i:d = -1.e+308, 0., 1.e+308 ;
 	float f ;
@@ -28,9 +28,9 @@ variables:
 	double d ;
 		d:c = "abcd\tZ$&" ;
 	int64 i64 ;
-		i64:att_int64 = 1LL ;
+		i64:att_int64 = 1 ;
 	uint64 ui64 ;
-		ui64:att_uint64 = 1ULL ;
+		ui64:att_uint64 = 1 ;
 	char cr(Dr) ;
 	byte br(Dr) ;
 	short sr(Dr) ;
@@ -127,9 +127,9 @@ data:
 
  d = -10 ;
 
- i64 = 9223372036854775807LL;
+ i64 = 9223372036854775807;
 
- ui64 = 18446744073709551615ULL;
+ ui64 = 18446744073709551615;
 
  cr = "ab" ;
 
@@ -389,4 +389,8 @@ data:
  var-name-dashes = -1 ;
 
  var.name.dots = -2 ;
+
+ var+name+plusses = _ ;
+
+ var@name@ats = _ ;
 }

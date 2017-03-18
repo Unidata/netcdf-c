@@ -190,19 +190,13 @@ swapn2b(void *dst, const void *src, size_t nn)
 void
 swap4b(void *dst, const void *src)
 {
-    unsigned int *op = dst;
-    const char *ip = src;
-    unsigned int tempIn;
-    unsigned int tempOut;
+    uint32_t* op32 = (uint32_t*)(dst);
+    const uint32_t* ip32 = (const uint32_t*)(src);
 
-    tempIn = *(unsigned int *)(ip+0);
-    tempOut =
-    ( tempIn << 24) |
-    ((tempIn & 0x0000ff00) << 8) |
-    ((tempIn & 0x00ff0000) >> 8) |
-    ( tempIn >> 24);
-
-    *(float *)op = *(float *)(&tempOut);
+    *op32 = (((*ip32)                              ) << 24) |
+    (((*ip32) & 0x0000ff00u) <<  8) |
+    (((*ip32) & 0x00ff0000u) >>  8) |
+    (((*ip32)                              ) >> 24);
 }
 # endif /* !vax */
 

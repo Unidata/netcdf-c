@@ -8,6 +8,7 @@
    $Id: cdm_sea_soundings.c,v 1.5 2010/05/25 13:53:04 ed Exp $
 */
 #include <nc_tests.h>
+#include "err_macros.h"
 
 #define FILE_NAME "cdm_sea_soundings.nc"
 #define DIM_NAME "Sounding"
@@ -36,7 +37,7 @@ main(int argc, char **argv)
 
    printf("\n*** Testing netcdf-4 CDM compliance: sea soundings.\n");
    printf("*** creating simple sea sounding file...");
-      
+
    /* Create a netcdf-4 file. */
    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
@@ -68,7 +69,7 @@ main(int argc, char **argv)
 
    /* Free the memory the phony data are using. */
     for (i = 0; i < DIM_LEN; i++)
-       free(data[i].temp_vl.p); 
+       free(data[i].temp_vl.p);
 
    /* Print out our number of errors, if any, and exit badly. */
    if (total_err)
@@ -76,9 +77,7 @@ main(int argc, char **argv)
       printf("%d errors detected! Sorry!\n", total_err);
       return 2;
    }
-   
+
    printf("*** Tests successful!\n");
    return 0;
 }
-
-

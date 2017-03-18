@@ -9,6 +9,7 @@
 */
 
 #include "nc_tests.h"
+#include "err_macros.h"
 #include <hdf5.h>
 #include <H5DSpublic.h>
 

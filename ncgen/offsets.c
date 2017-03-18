@@ -28,12 +28,15 @@ Author: D. Heimbigner 10/7/2008
 #include        "includes.h"
 #else
 #include        <stdlib.h>
+#include        <stdio.h>
 #include        <string.h>
 #include        <assert.h>
 #endif
 
-
 #ifdef OFFSETTEST
+
+static void* emalloc(size_t);
+
 typedef int nc_type;
 typedef struct nc_vlen_t {
     size_t len;
@@ -53,6 +56,11 @@ typedef struct nc_vlen_t {
 #define	NC_INT64 	10	/* signed 8-byte int */
 #define	NC_UINT64 	11	/* unsigned 8-byte int */
 #define	NC_STRING 	12	/* string */
+#define	NC_STRING 	12	/* string */
+#define	NC_VLEN 	13	
+#define	NC_OPAQUE 	14	
+#define	NC_ENUM 	15	
+#define	NC_COMPOUND 	16	
 #endif
 
 #include        "offsets.h"
@@ -75,6 +83,8 @@ Given the alignments for the various common primitive types,
 it is assumed that one can use them anywhere to construct
 the layout of a struct of such types.
 It seems to work for HDF5 for a wide variety of machines.
+Note that technically, this is compiler dependent, but in practice
+all compilers seem to mimic the gcc rules.
 */
 
 #define COMP_ALIGNMENT(DST,TYPE)  {\
@@ -82,13 +92,11 @@ It seems to work for HDF5 for a wide variety of machines.
     DST.typename = #TYPE ;        \
     DST.alignment = (size_t)((char*)(&(tmp.x)) - (char*)(&tmp));}
 
-
 char* ctypenames[NCTYPES] = {
 (char*)NULL,
 "char","unsigned char",
 "short","unsigned short",
 "int","unsigned int",
-"long","unsigned long",
 "long long","unsigned long long",
 "float","double",
 "void*","nc_vlen_t"
@@ -117,7 +125,9 @@ nctypealignment(nc_type nctype)
       case NC_STRING: index = PTRINDEX; break;
       case NC_VLEN: index = NCVLENINDEX; break;
       case NC_OPAQUE: index = UCHARINDEX; break;
-      default: PANIC1("nctypealignment: bad type code: %d",nctype);
+      default:
+	fprintf(stderr,"nctypealignment: bad type code: %d",nctype);
+	exit(1);
     }
     align = &vec[index];
     return align->alignment;
@@ -139,8 +149,6 @@ compute_alignments(void)
     COMP_ALIGNMENT(set.ushortalign,unsigned short);
     COMP_ALIGNMENT(set.intalign,int);
     COMP_ALIGNMENT(set.uintalign,unsigned int);
-    COMP_ALIGNMENT(set.longalign,long);
-    COMP_ALIGNMENT(set.ulongalign,unsigned long);
     COMP_ALIGNMENT(set.longlongalign,long long);
     COMP_ALIGNMENT(set.ulonglongalign,unsigned long long);
     COMP_ALIGNMENT(set.floatalign,float);
@@ -155,8 +163,6 @@ compute_alignments(void)
     COMP_ALIGNMENT(vec[USHORTINDEX],unsigned short);
     COMP_ALIGNMENT(vec[INTINDEX],int);
     COMP_ALIGNMENT(vec[UINTINDEX],unsigned int);
-    COMP_ALIGNMENT(vec[LONGINDEX],long);
-    COMP_ALIGNMENT(vec[ULONGINDEX],unsigned long);
     COMP_ALIGNMENT(vec[LONGLONGINDEX],long long);
     COMP_ALIGNMENT(vec[ULONGLONGINDEX],unsigned long long);
     COMP_ALIGNMENT(vec[FLOATINDEX],float);
@@ -167,19 +173,28 @@ compute_alignments(void)
 
 #ifdef OFFSETTEST
 
+/* Compute the alignment of TYPE when it is preceded
+   by a field of type TYPE1
+*/
 #define COMP_ALIGNMENT1(DST,TYPE1,TYPE)  {\
     struct {TYPE1 f1; TYPE x;} tmp; \
     DST.typename = #TYPE ;        \
     DST.alignment = (size_t)((char*)(&(tmp.x)) - (char*)(&tmp));}
 
+/* Compute the alignment of TYPE when it is preceded
+   by a field of type TYPE1 and a field of type TYPE2
+*/
 #define COMP_ALIGNMENT2(DST,TYPE1,TYPE2,TYPE)  {\
     struct {TYPE1 f1, TYPE2 f2; TYPE x;} tmp;   \
     DST.typename = #TYPE ;                      \
     DST.alignment = (size_t)((char*)(&(tmp.x)) - (char*)(&tmp));}
 
+/* Compute the alignment of TYPE when it is preceded
+   by a field of type TYPE1 and a field of type TYPE2
+*/
 #define COMP_SIZE0(DST,TYPE1,TYPE2)  {\
     struct {TYPE1 c; TYPE2 x;} tmp; \
-    DST = sizeof(tmp); }g
+    DST = sizeof(tmp); }
 
 static char*
 padname(char* name)
@@ -217,14 +232,12 @@ verify(Typealignvec* vec)
     COMP_SIZE0(sizes8[4],unsigned short,char);
     COMP_SIZE0(sizes8[5],int,char);
     COMP_SIZE0(sizes8[6],unsigned int,char);
-    COMP_SIZE0(sizes8[7],long,char);
-    COMP_SIZE0(sizes8[8],unsigned long,char);
-    COMP_SIZE0(sizes8[9],long long,char);
-    COMP_SIZE0(sizes8[10],unsigned long long,char);
-    COMP_SIZE0(sizes8[11],float,char);
-    COMP_SIZE0(sizes8[12],double,char) ;
-    COMP_SIZE0(sizes8[13],void*,char);
-    COMP_SIZE0(sizes8[14],nc_vlen_t,char);
+    COMP_SIZE0(sizes8[7],long long,char);
+    COMP_SIZE0(sizes8[8],unsigned long long,char);
+    COMP_SIZE0(sizes8[9],float,char);
+    COMP_SIZE0(sizes8[10],double,char) ;
+    COMP_SIZE0(sizes8[11],void*,char);
+    COMP_SIZE0(sizes8[12],nc_vlen_t,char);
 
     COMP_SIZE0(sizes16[1],char,short);
     COMP_SIZE0(sizes16[2],unsigned char,short);
@@ -232,14 +245,12 @@ verify(Typealignvec* vec)
     COMP_SIZE0(sizes16[4],unsigned short,short);
     COMP_SIZE0(sizes16[5],int,short);
     COMP_SIZE0(sizes16[6],unsigned int,short);
-    COMP_SIZE0(sizes16[7],long,short);
-    COMP_SIZE0(sizes16[8],unsigned long,short);
-    COMP_SIZE0(sizes16[9],long long,short);
-    COMP_SIZE0(sizes16[10],unsigned long long,short);
-    COMP_SIZE0(sizes16[11],float,short);
-    COMP_SIZE0(sizes16[12],double,short) ;
-    COMP_SIZE0(sizes16[13],void*,short);
-    COMP_SIZE0(sizes16[14],nc_vlen_t*,short);
+    COMP_SIZE0(sizes16[7],long long,short);
+    COMP_SIZE0(sizes16[8],unsigned long long,short);
+    COMP_SIZE0(sizes16[9],float,short);
+    COMP_SIZE0(sizes16[10],double,short) ;
+    COMP_SIZE0(sizes16[11],void*,short);
+    COMP_SIZE0(sizes16[12],nc_vlen_t*,short);
 
     COMP_SIZE0(sizes32[1],char,int);
     COMP_SIZE0(sizes32[2],unsigned char,int);
@@ -247,14 +258,12 @@ verify(Typealignvec* vec)
     COMP_SIZE0(sizes32[4],unsigned short,int);
     COMP_SIZE0(sizes32[5],int,int);
     COMP_SIZE0(sizes32[6],unsigned int,int);
-    COMP_SIZE0(sizes32[7],long,int);
-    COMP_SIZE0(sizes32[8],unsigned long,int);
-    COMP_SIZE0(sizes32[9],long long,int);
-    COMP_SIZE0(sizes32[10],unsigned long long,int);
-    COMP_SIZE0(sizes32[11],float,int);
-    COMP_SIZE0(sizes32[12],double,int) ;
-    COMP_SIZE0(sizes32[13],void*,int);
-    COMP_SIZE0(sizes32[14],nc_vlen_t*,int);
+    COMP_SIZE0(sizes32[7],long long,int);
+    COMP_SIZE0(sizes32[8],unsigned long long,int);
+    COMP_SIZE0(sizes32[9],float,int);
+    COMP_SIZE0(sizes32[10],double,int) ;
+    COMP_SIZE0(sizes32[11],void*,int);
+    COMP_SIZE0(sizes32[12],nc_vlen_t*,int);
 
     COMP_ALIGNMENT1(vec16[1],char,short);
     COMP_ALIGNMENT1(vec16[2],unsigned char,short);
@@ -262,14 +271,12 @@ verify(Typealignvec* vec)
     COMP_ALIGNMENT1(vec16[4],unsigned short,short);
     COMP_ALIGNMENT1(vec16[5],int,short);
     COMP_ALIGNMENT1(vec16[6],unsigned int,short);
-    COMP_ALIGNMENT1(vec32[7],long,short);
-    COMP_ALIGNMENT1(vec32[8],unsigned long,short);
-    COMP_ALIGNMENT1(vec32[9],long long,short);
-    COMP_ALIGNMENT1(vec32[10],unsigned long long,short);
-    COMP_ALIGNMENT1(vec16[11],float,short);
-    COMP_ALIGNMENT1(vec16[12],double,short);
-    COMP_ALIGNMENT1(vec16[13],void*,short);
-    COMP_ALIGNMENT1(vec16[14],nc_vlen_t*,short);
+    COMP_ALIGNMENT1(vec32[7],long long,short);
+    COMP_ALIGNMENT1(vec32[8],unsigned long long,short);
+    COMP_ALIGNMENT1(vec16[9],float,short);
+    COMP_ALIGNMENT1(vec16[10],double,short);
+    COMP_ALIGNMENT1(vec16[11],void*,short);
+    COMP_ALIGNMENT1(vec16[12],nc_vlen_t*,short);
 
     COMP_ALIGNMENT1(vec32[1],char,short);
     COMP_ALIGNMENT1(vec32[2],unsigned char,short);
@@ -277,14 +284,12 @@ verify(Typealignvec* vec)
     COMP_ALIGNMENT1(vec32[4],unsigned short,short);
     COMP_ALIGNMENT1(vec32[5],int,int);
     COMP_ALIGNMENT1(vec32[6],unsigned int,int);
-    COMP_ALIGNMENT1(vec32[7],long,int);
-    COMP_ALIGNMENT1(vec32[8],unsigned long,int);
-    COMP_ALIGNMENT1(vec32[9],long long,int);
-    COMP_ALIGNMENT1(vec32[10],unsigned long long,int);
-    COMP_ALIGNMENT1(vec32[11],float,int);
-    COMP_ALIGNMENT1(vec32[12],double,int);
-    COMP_ALIGNMENT1(vec32[13],void*,int);
-    COMP_ALIGNMENT1(vec32[14],nc_vlen_t*,int);
+    COMP_ALIGNMENT1(vec32[7],long long,int);
+    COMP_ALIGNMENT1(vec32[8],unsigned long long,int);
+    COMP_ALIGNMENT1(vec32[9],float,int);
+    COMP_ALIGNMENT1(vec32[10],double,int);
+    COMP_ALIGNMENT1(vec32[11],void*,int);
+    COMP_ALIGNMENT1(vec32[12],nc_vlen_t*,int);
 
     for(i=0;i<NCTYPES;i++) {
 	printf("%s: size=%2d  alignment=%2d\n",
@@ -299,6 +304,17 @@ verify(Typealignvec* vec)
 		padname(vec[i].typename),sizes32[i],vec32[i].alignment);
     }
 
+}
+
+void *
+emalloc(size_t bytes) {
+    size_t *memory;
+    memory = malloc(bytes);
+    if(memory == 0) {
+	printf("malloc failed\n");
+	exit(2);
+    }
+    return memory;
 }
 
 int

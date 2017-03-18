@@ -328,7 +328,8 @@ NCD2_open(const char * path, int mode,
     dapcomm->oc.rawurltext = strdup(path);
 #endif
 
-    ncuriparse(dapcomm->oc.rawurltext,&dapcomm->oc.url);
+    ncstat = ncuriparse(dapcomm->oc.rawurltext,&dapcomm->oc.url);
+	if (!ncstat) goto done;
 
     /* parse the client parameters */
     ncuridecodeparams(dapcomm->oc.url);

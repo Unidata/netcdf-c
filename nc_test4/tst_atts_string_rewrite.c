@@ -14,6 +14,7 @@
 #include <netcdf.h>
 #include <config.h>
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <string.h>
 
 #define FILE_NAME "tst_atts_string_rewrite.nc"

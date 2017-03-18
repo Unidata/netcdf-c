@@ -8,6 +8,7 @@
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
@@ -18,7 +19,7 @@
 #define LEN 4
 
 int
-main() 
+main()
 {
    int ncid, dimids[RANK_P], time_id, p_id;
    int ndims, dimids_in[RANK_P];
@@ -87,7 +88,7 @@ main()
    if (nc_close(ncid)) ERR;
 
    SUMMARIZE_ERR;
-   
+
    FINAL_RESULTS;
    return 0;
 }

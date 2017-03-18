@@ -9,6 +9,7 @@
 
 #include <netcdf.h>
 #include <nc_tests.h>
+#include "err_macros.h"
 
 #define FILE_NAME "tst_chunking.nc"
 #define VAR_RANK 7

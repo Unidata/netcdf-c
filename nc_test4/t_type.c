@@ -4,11 +4,12 @@
    This test program is only built if netCDF-4 is disabled. It tests
    the netCDF-3 version of nc_inq_type().
 
- $Id: t_type.c,v 2.3 2010/05/26 21:43:33 dmh Exp $ 
+ $Id: t_type.c,v 2.3 2010/05/26 21:43:33 dmh Exp $
  */
 
 #include <config.h>
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>

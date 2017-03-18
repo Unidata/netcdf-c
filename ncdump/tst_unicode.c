@@ -8,6 +8,7 @@
    $Id: tst_unicode.c,v 1.12 2008/10/20 01:48:08 ed Exp $
 */
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <netcdf.h>
@@ -66,7 +67,7 @@ main(int argc, char **argv)
    if (nc_close(ncid)) ERR;
 
    /* Check it out. */
-   
+
    /* Reopen the file. */
    if (nc_open(FILE7_NAME, NC_NOWRITE, &ncid)) ERR;
    if (nc_inq_varid(ncid, UNAME, &varid)) ERR;
@@ -75,7 +76,7 @@ main(int argc, char **argv)
        /* Note, name was normalized before storing, so retrieved name
 	  won't match original unnormalized name.  Check that we get
 	  normalized version, instead.  */
-       
+
        /* NFC normalized UTF-8 for Unicode 8-character "Hello" in Greek */
        unsigned char norm_utf8[] = {
 	   0xCE, 0x9A,	  /* GREEK CAPITAL LETTER KAPPA  : 2-bytes utf8 */
@@ -83,7 +84,7 @@ main(int argc, char **argv)
 	   0xCE, 0xBB,	  /* GREEK SMALL LETTER ALPHA    : 2-bytes utf8 */
 	   0xCE, 0xB7,	  /* GREEK SMALL LETTER ETA      : 2-bytes utf8 */
 	   0xCE, 0xBC,	  /* GREEK SMALL LETTER MU       : 2-bytes utf8 */
-	   0xCE, 0xAD,    /* GREEK SMALL LETTER EPSILON WITH TONOS 
+	   0xCE, 0xAD,    /* GREEK SMALL LETTER EPSILON WITH TONOS
 			                                 : 2-bytes utf8 */
 	   0xCF, 0x81,	  /* GREEK SMALL LETTER RHO      : 2-bytes utf8 */
 	   0xCE, 0xB1,	  /* GREEK SMALL LETTER ALPHA    : 2-bytes utf8 */
@@ -98,8 +99,8 @@ main(int argc, char **argv)
    if (nc_get_att_text(ncid, varid, UNITS, strings_in)) ERR;
    strings_in[att_len] = '\0';	/* null terminate, because nc_get_att_text doesn't */
    if (strncmp(UNAME, strings_in, UNAMELEN) != 0) ERR;
-   if (nc_close(ncid)) ERR; 
-   
+   if (nc_close(ncid)) ERR;
+
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

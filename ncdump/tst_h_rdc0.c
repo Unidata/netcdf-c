@@ -8,6 +8,7 @@
    $Id: tst_h_rdc0.c,v 1.5 2010/06/01 15:34:53 ed Exp $
 */
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <hdf5.h>
 
 #define FILE_NAME "c0.nc"
@@ -24,7 +25,7 @@ main()
       hsize_t num_obj, i;
       char obj_name[MAX_NAME];
 
-      if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR; 
+      if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
       if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
 
       /* Find the variables. Read their metadata and attributes. */

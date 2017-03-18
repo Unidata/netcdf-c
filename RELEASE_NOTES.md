@@ -5,10 +5,24 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-> Note: The combination of netCDF-C library versions earlier than 4.4.1 and libhdf5 1.10.0+ should be avoided, as they will result in binary files not readable by systems using earlier libhdf5 versions.
+## Important Notes
+
+* **The combination of netCDF-C library versions earlier than 4.4.1 and libhdf5 1.10.0+ should be avoided, as they will result in binary files not readable by systems using earlier libhdf5 versions.**
 
 ## 4.4.2 - TBD
 
+* [Upgrade][Bug] Corrected an issue regarding how "orphaned" DAS attributes were handled. See [GitHub #376](https://github.com/Unidata/netcdf-c/pull/376) for more information.
+* [Upgrade] Update utf8proc.[ch] to use the version now maintained by the Julia Language project (https://github.com/JuliaLang/utf8proc/blob/master/LICENSE.md).
+* [Bug] Addressed conversion problem with Windows sscanf.  This primarily affected some OPeNDAP URLs on Windows.  See [GitHub #365](https://github.com/Unidata/netcdf-c/issues/365) and [GitHub #366](https://github.com/Unidata/netcdf-c/issues/366) for more information.
+* [Enhancement] Added support for HDF5 collective metadata operations when available. Patch submitted by Greg Sjaardema, see [Pull request #335](https://github.com/Unidata/netcdf-c/pull/335) for more information.
+* [Bug] Addressed a potential type punning issue. See [GitHub #351](https://github.com/Unidata/netcdf-c/issues/351) for more information.
+* [Bug] Addressed an issue where netCDF wouldn't build on Windows systems using MSVC 2012. See [GitHub #304](https://github.com/Unidata/netcdf-c/issues/304) for more information.
+* [Bug] Fixed an issue related to potential type punning, see [GitHub #344](https://github.com/Unidata/netcdf-c/issues/344) for more information.
+* [Enhancement] Incorporated an enhancement provided by Greg Sjaardema, which may improve read/write times for some complex files.  Basically, linked lists were replaced in some locations where it was safe to use an array/table.  See [Pull request #328](https://github.com/Unidata/netcdf-c/pull/328) for more information.
+
+## 4.4.1.1 - November 21, 2016
+
+* [Bug] Fixed an issue where `ncgen` would potentially crash or write incorrect netCDF4 binary data under very specific circumstances.  This bug did *not* affect data written on 32-bit systems or by using the netCDF library; it was specific to `ncgen`.  This would only happen when writing a compound data type containing an 8-byte data type followed by a 4-byte data type *and* the 4-byte data type was not properly aligned; this would *possibly* result in incorrect padding. This did not affect 32-bit systems, or data written directly by the library.  See [GitHub #323](https://github.com/Unidata/netcdf-c/issues/323) for more information.
 * [Documentation] Updated documentation related to netCDF variable names and DAP2 access to reflect the undefined behavior potentially observed when DAP2 reserved keywords are used as netCDF variable names. See [GitHub #308](https://github.com/Unidata/netcdf-c/issues/308) for more information.
 * [Bug] Fixed an issue with `nc_inq_type()` not returning proper value in some circumstances.  See [GitHub #317](https://github.com/Unidata/netcdf-c/issues/317) for more information.
 * [Bug] Corrected an issue related to test failures when `--disable-utilities` or `-DENABLE_UTILITIES=OFF` are specified when building with autotools or cmake, respectively.  See [GitHub #313](https://github.com/Unidata/netcdf-c/issues/313) for more information.

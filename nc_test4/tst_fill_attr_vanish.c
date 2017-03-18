@@ -14,6 +14,7 @@
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
@@ -86,8 +87,8 @@ int main()
 
   /* Query existing attribute. */
   {
-    printf("**** Checking that attribute still exists:\t");
     char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    printf("**** Checking that attribute still exists:\t");
     if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
     else {printf("%s\n",attval);}
     free(attval);
@@ -99,8 +100,8 @@ int main()
 
   /* Query existing attribute. */
   {
-    printf("**** Checking that attribute still exists, pre-write:\t");
     char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    printf("**** Checking that attribute still exists, pre-write:\t");
     if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
     else {printf("%s\n",attval);}
     free(attval);
@@ -119,8 +120,8 @@ int main()
 
   /* Query existing attribute. */
   {
-    printf("**** Checking that attribute still exists:\t");
     char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    printf("**** Checking that attribute still exists:\t");
     if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
     else {printf("%s\n",attval);}
     free(attval);

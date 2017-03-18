@@ -9,6 +9,7 @@
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include "netcdf.h"
 
 #define FILE_NAME "tst_large2.nc"
@@ -35,11 +36,11 @@ int main(int argc, char **argv)
       char file_name[NC_MAX_NAME * 2 + 1];
       float *data;
       int this_format[NUM_FORMATS] = {NC_64BIT_OFFSET, NC_NETCDF4};
-      char format_name[NUM_FORMATS][NC_MAX_NAME + 1] = 
+      char format_name[NUM_FORMATS][NC_MAX_NAME + 1] =
 	 {"64-bit offset", "netCDF-4"};
       int i, j, f;
 
-      printf("sizes: int - %d, size_t - %d, and int * - %d\n", 
+      printf("sizes: int - %d, size_t - %d, and int * - %d\n",
 	     sizeof(int), sizeof(size_t), sizeof(int *));
 
       /* Allocate room for one slab of data. */
@@ -80,9 +81,9 @@ int main(int argc, char **argv)
 	    for (i = 0; i < LAT_LEN; i++)
 	       for (j = 0; j < LON_LEN; j++)
 	       {
-		  if (data[j + LON_LEN * i] != (start[0] + i + j) % 19) 
+		  if (data[j + LON_LEN * i] != (start[0] + i + j) % 19)
 		  {
-		     printf("error on start[0]: %d i: %d j: %d expected %d got %g\n", 
+		     printf("error on start[0]: %d i: %d j: %d expected %d got %g\n",
 			    start[0], i, j, (start[0] + i + j), data[j + LON_LEN * i]);
 		     ERR_RET;
 		  }
@@ -99,5 +100,3 @@ int main(int argc, char **argv)
 
    FINAL_RESULTS;
 }
-
-

@@ -62,7 +62,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
 {
   NC_VAR_INFO_T *var;
   NC_GRP_INFO_T *child_grp;
-  int d;
+  int d, i;
   int retval;
 
   assert(grp && grp->name && dimid >= 0 && dimscaleid >= 0);
@@ -74,7 +74,10 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
       return retval;
 
   /* Find any vars that use this dimension id. */
-  for (var = grp->var; var; var = var->l.next)
+  for (i=0; i < grp->vars.nelems; i++)
+  {
+    var = grp->vars.value[i];
+    if (!var) continue;
     for (d = 0; d < var->ndims; d++)
       if (var->dimids[d] == dimid && !var->dimscale)
         {
@@ -87,7 +90,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
               var->dimscale_attached[d] = NC_TRUE;
             }
         }
-
+  }
   return NC_NOERR;
 }
 
@@ -102,7 +105,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
 {
   NC_VAR_INFO_T *var;
   NC_GRP_INFO_T *child_grp;
-  int d;
+  int d, i;
   int retval;
 
   assert(grp && grp->name && dimid >= 0 && dimscaleid >= 0);
@@ -114,7 +117,10 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
       return retval;
 
   /* Find any vars that use this dimension id. */
-  for (var = grp->var; var; var = var->l.next)
+  for (i=0; i < grp->vars.nelems; i++)
+  {
+    var = grp->vars.value[i];
+    if (!var) continue;
     for (d = 0; d < var->ndims; d++)
       if (var->dimids[d] == dimid && !var->dimscale)
         {
@@ -128,7 +134,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                 var->dimscale_attached[d] = NC_FALSE;
               }
         }
-
+  }
   return NC_NOERR;
 }
 
@@ -139,11 +145,11 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
   NC_VAR_INFO_T *var;
 
   /* Find the requested varid. */
-  for (var = grp->var; var; var = var->l.next)
-    if (var->varid == varid)
-      break;
-  if (!var)
-    return NC_ENOTVAR;
+   if (varid < 0 || varid >= grp->vars.nelems)
+     return NC_ENOTVAR;
+   var = grp->vars.value[varid];
+   if (!var) return NC_ENOTVAR;
+   assert(var->varid == varid);
 
   /* Open this dataset if necessary. */
   if (!var->hdf_datasetid)
@@ -548,6 +554,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   hsize_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
   char *name_to_use;
   int need_to_extend = 0;
+  int extend_possible = 0;
   int retval = NC_NOERR, range_error = 0, i, d2;
   void *bufr = NULL;
 #ifndef HDF5_CONVERT
@@ -716,6 +723,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 	  assert(dim && dim->dimid == var->dimids[d2]);
           if (dim->unlimited)
             {
+	      extend_possible = 1;
               if (start[d2] + count[d2] > fdims[d2])
                 {
                   xtend_size[d2] = (long long unsigned)(start[d2] + count[d2]);
@@ -738,7 +746,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
 #ifdef USE_PARALLEL4
       /* Check if anyone wants to extend */
-      if (h5->parallel && NC_COLLECTIVE == var->parallel_access)
+      if (extend_possible && h5->parallel && NC_COLLECTIVE == var->parallel_access)
         {
           /* Form consensus opinion among all processes about whether to perform
            * collective I/O
@@ -844,7 +852,7 @@ int
 nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
              const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
 {
-  NC_GRP_INFO_T *grp, *g;
+  NC_GRP_INFO_T *grp;
   NC_HDF5_FILE_INFO_T *h5;
   NC_VAR_INFO_T *var;
   NC_DIM_INFO_T *dim;
@@ -1463,13 +1471,11 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
 static int
 var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid)
 {
-  NC_GRP_INFO_T *g;
   hid_t plistid = 0, access_plistid = 0, typeid = 0, spaceid = 0;
   hsize_t chunksize[H5S_MAX_RANK], dimsize[H5S_MAX_RANK], maxdimsize[H5S_MAX_RANK];
   int d;
   void *fillp = NULL;
   NC_DIM_INFO_T *dim = NULL;
-  int dims_found = 0;
   char *name_to_use;
   int retval = NC_NOERR;
 
@@ -1886,24 +1892,14 @@ write_nc3_strict_att(hid_t hdf_grpid)
   int one = 1, num, a;
   char att_name[NC_MAX_HDF5_NAME + 1];
   int retval = NC_NOERR;
+  htri_t attr_exists;
 
   /* If the attribute already exists, call that a success and return
    * NC_NOERR. */
-  if ((num = H5Aget_num_attrs(hdf_grpid)) < 0)
+  if ((attr_exists = H5Aexists(hdf_grpid, NC3_STRICT_ATT_NAME)) < 0)
     return NC_EHDFERR;
-  for (a = 0; a < num; a++)
-    {
-      if ((attid = H5Aopen_idx(hdf_grpid, (unsigned int)a)) < 0)
-        BAIL(NC_EHDFERR);
-      if (H5Aget_name(attid, NC_MAX_HDF5_NAME, att_name) < 0)
-        BAIL(NC_EHDFERR);
-      if (H5Aclose(attid) < 0)
-            return NC_EFILEMETA;
-      if (strcmp(att_name, NC3_STRICT_ATT_NAME)==0)
-        {
-          return NC_NOERR;
-        }
-    }
+  if (attr_exists)
+    return NC_NOERR;
 
   /* Create the attribute to mark this as a file that needs to obey
    * strict netcdf-3 rules. */
@@ -1983,13 +1979,14 @@ attach_dimscales(NC_GRP_INFO_T *grp)
 {
   NC_VAR_INFO_T *var;
   NC_DIM_INFO_T *dim1;
-  NC_GRP_INFO_T *g;
-  int d;
+  int d, i;
   int retval = NC_NOERR;
 
   /* Attach dimension scales. */
-  for (var = grp->var; var; var = var->l.next)
+  for (i=0; i < grp->vars.nelems; i++)
     {
+      var = grp->vars.value[i];
+      if (!var) continue;
       /* Scales themselves do not attach. But I really wish they
        * would. */
       if (var->dimscale)
@@ -2284,6 +2281,7 @@ static int
 write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
   int retval;
+  int i;
 
   /* If there's no dimscale dataset for this dim, create one,
    * and mark that it should be hidden from netCDF as a
@@ -2355,20 +2353,23 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
   /* Did we extend an unlimited dimension? */
   if (dim->extended)
     {
-      NC_VAR_INFO_T *v1;
+      NC_VAR_INFO_T *v1 = NULL;
 
       assert(dim->unlimited);
       /* If this is a dimension without a variable, then update
        * the secret length information at the end of the NAME
        * attribute. */
-      for (v1 = grp->var; v1; v1 = v1->l.next)
-        if (!strcmp(v1->name, dim->name))
+      for (i=0; i < grp->vars.nelems; i++)
+      {
+	if (grp->vars.value[i] && !strcmp(grp->vars.value[i]->name, dim->name))
+	{
+	  v1 = grp->vars.value[i];
           break;
-
+	}
+      }
       if (v1)
         {
           hsize_t *new_size = NULL;
-          NC_DIM_INFO_T *dim1;
           int d1;
 
           /* Extend the dimension scale dataset to reflect the new
@@ -2415,10 +2416,13 @@ nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_
   NC_GRP_INFO_T *child_grp;
   int last_dimid = -1;
   int retval;
+  int i;
 
   /* Iterate over variables in this group */
-  for (var = grp->var; var; var = var->l.next)
+  for (i=0; i < grp->vars.nelems; i++)
     {
+      var = grp->vars.value[i];
+      if (!var) continue;
       /* Only matters for dimension scale variables, with non-scalar dimensionality */
       if (var->dimscale && var->ndims)
         {
@@ -2471,10 +2475,11 @@ nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_
 int
 nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
 {
-  NC_DIM_INFO_T *dim;
-  NC_VAR_INFO_T *var;
-  NC_GRP_INFO_T *child_grp;
+  NC_DIM_INFO_T *dim = NULL;
+  NC_VAR_INFO_T *var = NULL;
+  NC_GRP_INFO_T *child_grp = NULL;
   int coord_varid = -1;
+  int var_index = 0;
 
   int retval;
   assert(grp && grp->name && grp->hdf_grpid);
@@ -2486,7 +2491,8 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
   /* Set the pointers to the beginning of the list of dims & vars in this
    * group. */
   dim = grp->dim;
-  var = grp->var;
+  if (var_index < grp->vars.nelems)
+    var = grp->vars.value[var_index];
 
   /* Because of HDF5 ordering the dims and vars have to be stored in
    * this way to ensure that the dims and coordinate vars come out in
@@ -2513,12 +2519,16 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
 
       /* Write each var. When we get to the coord var we are waiting
        * for (if any), then we break after writing it. */
-      for (wrote_coord = NC_FALSE; var && !wrote_coord; var = var->l.next)
+      for (wrote_coord = NC_FALSE; var && !wrote_coord; )
         {
           if ((retval = write_var(var, grp, bad_coord_order)))
             return retval;
           if (found_coord && var->varid == coord_varid)
             wrote_coord = NC_TRUE;
+	  if (++var_index < grp->vars.nelems)
+	    var = grp->vars.value[var_index];
+	  else
+	    var = NULL;
         }
     } /* end while */
 
@@ -3552,6 +3562,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
   NC_VAR_INFO_T *var;
   NC_DIM_INFO_T *dim;
   int retval = NC_NOERR;
+  int i;
 
   assert(grp && grp->name);
   LOG((4, "%s: grp->name %s", __func__, grp->name));
@@ -3563,11 +3574,14 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 
   /* Check all the vars in this group. If they have dimscale info,
    * try and find a dimension for them. */
-  for (var = grp->var; var; var = var->l.next)
+  for (i=0; i < grp->vars.nelems; i++)
     {
-      /* Check all vars and see if dim[i] != NULL if dimids[i] valid. */
-      int ndims = var->ndims;
+      int ndims;
       int d;
+      var = grp->vars.value[i];
+      if (!var) continue;
+      /* Check all vars and see if dim[i] != NULL if dimids[i] valid. */
+      ndims = var->ndims;
       for (d = 0; d < ndims; d++)
 	{
 	  if (var->dim[d] == NULL) {
@@ -3684,7 +3698,6 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                         free(h5dimlen);
                         return retval;
                       }
-                      grp->ndims++;
                       dim->dimid = grp->nc4_info->next_dimid++;
                       sprintf(phony_dim_name, "phony_dim_%d", dim->dimid);
                       if (!(dim->name = strdup(phony_dim_name))) {
@@ -3767,7 +3780,7 @@ nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int is_long,
 
   *len = type->size;
 
-  LOG((5, "type->size ", type->size));
+  LOG((5, "type->size: %d", type->size));
 
   return NC_NOERR;
 }
@@ -3894,7 +3907,6 @@ reportopenobjectsT(int log, hid_t fid, int ntypes, unsigned int* otypes)
     idlist = (hid_t*)malloc(sizeof(hid_t)*maxobjs);
     for(t=0;t<ntypes;t++) {
 	unsigned int ot = otypes[t];
-	if(ot < 0) break;
         ocount = H5Fget_obj_ids(fid,ot,maxobjs,idlist);
 	for(i=0;i<ocount;i++) {
 	    hid_t o = idlist[i];
@@ -3981,11 +3993,8 @@ done:
 static int
 NC4_get_strict_att(NC_HDF5_FILE_INFO_T* h5)
 {
-    int ncstat = NC_NOERR;
-    size_t size;
     hid_t grp = -1;
     hid_t attid = -1;
-    herr_t herr = 0;
 
     /* Get root group */
     grp = h5->root_grp->hdf_grpid; /* get root group */
@@ -4052,5 +4061,3 @@ NC4_walk(hid_t gid, int* countp)
     }
     return ncstat;
 }
-
-

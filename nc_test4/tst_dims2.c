@@ -2,18 +2,19 @@
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
-   Test netcdf-4 dimensions some more. 
+   Test netcdf-4 dimensions some more.
 
    $Id: tst_dims2.c,v 1.17 2010/05/25 13:53:04 ed Exp $
 */
 
 #include <config.h>
 #include <nc_tests.h>
+#include "err_macros.h"
 
 #define FILE_NAME "tst_dims2.nc"
 
 #define NDIMS1 1
-#define NDIMS2 2      
+#define NDIMS2 2
 
 int
 main(int argc, char **argv)
@@ -320,7 +321,7 @@ main(int argc, char **argv)
 	    count[1] = j;
 	 else
 	    count[1] = 1000-j;
-       
+
 	 if (nc_put_vara_int(ncid, varid, start, count, value)) ERR;
 	 time_recs = MAX(time_recs, start[0] + count[0]);
 	 beam_recs = MAX(beam_recs, start[1] + count[1]);
@@ -395,7 +396,7 @@ main(int argc, char **argv)
 
       /* Reopen and write some more time values. */
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-      
+
       /* Write some more time values. */
       index[1] = 0;
       count[0] = 1;

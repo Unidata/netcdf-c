@@ -159,8 +159,7 @@ data:
 
  d2 = -1e+308, 1e+308 ;
 
-// c3 = "\001\300." ; This is actually illegal utf8
-   c3 = "\001\177." ;
+ c3 = "\001\177." ;
 
  b3 = -128, 127, -1 ;
 
@@ -382,4 +381,8 @@ data:
  var-name-dashes = -1 ;
 
  var.name.dots = -2 ;
+
+ var+name+plusses = _ ;
+
+ var@name@ats = _;
 }

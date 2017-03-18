@@ -1,4 +1,5 @@
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
@@ -23,7 +24,7 @@ Also, leave the files around so we can test with ncdump.
 */
 
 int
-main(int argc, char **argv) 
+main(int argc, char **argv)
 {
     int ncid;
     size_t dimsize;
@@ -73,7 +74,7 @@ main(int argc, char **argv)
 	if ((stat=nc_inq_dimlen(ncid, dimid, &dimsize))) ERRSTAT(stat);
 	if(dimsize != DIMMAX64DATA) ERR;
 	if ((stat=nc_close(ncid))) ERRSTAT(stat);
-    }      
+    }
 
     SUMMARIZE_ERR;
     FINAL_RESULTS;

@@ -10,6 +10,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include <nc_tests.h>
+#include "err_macros.h"
 
 #define FILE_NAME "tst_compounds.nc"
 #define SVC_REC "Service_Record"

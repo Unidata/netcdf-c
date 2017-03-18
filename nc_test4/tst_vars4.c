@@ -2,11 +2,12 @@
    Copyright 2005 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test netcdf-4 variables. 
+   Test netcdf-4 variables.
    $Id$
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 
 #define FILE_NAME "tst_vars4.nc"
 
@@ -63,9 +64,3 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
-
-
-
-
-
-

@@ -2,10 +2,11 @@
    Copyright 2010 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test netcdf files a bit. 
+   Test netcdf files a bit.
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include "netcdf.h"
 
 #define FILE_NAME "tst_files.nc"
@@ -55,5 +56,3 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
-
-

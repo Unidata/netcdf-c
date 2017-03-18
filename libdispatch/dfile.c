@@ -166,6 +166,10 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
 #ifdef HAVE_SYS_STAT_H
 	    struct stat st;
 #endif
+#ifdef HAVE_FILE_LENGTH_I64
+          __int64 file_len = 0;
+#endif
+
 	    if(path == NULL || strlen(path)==0)
 		{status = NC_EINVAL; goto done;}
 
@@ -179,19 +183,19 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
 
         /* Windows and fstat have some issues, this will work around that. */
 #ifdef HAVE_FILE_LENGTH_I64
-        __int64 file_len = 0;
-        if((file_len = _filelengthi64(fileno(fp))) < 0) {
-          fclose(fp);
-          status = errno;
-          goto done;
-        }
+          if((file_len = _filelengthi64(fileno(fp))) < 0) {
+            fclose(fp);
+            status = errno;
+            goto done;
+          }
 
-        if(file_len < MAGIC_NUMBER_LEN) {
-          fclose(fp);
-          status = NC_ENOTNC;
-          goto done;
-        }
-#else
+
+          if(file_len < MAGIC_NUMBER_LEN) {
+            fclose(fp);
+            status = NC_ENOTNC;
+            goto done;
+          }
+else
 
 	    if(!(fstat(fileno(fp),&st) == 0)) {
 	        fclose(fp);
@@ -206,7 +210,7 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
 	    }
 #endif //HAVE_FILE_LENGTH_I64
 
-#endif
+#endif //HAVE_SYS_STAT_H
 
 	    i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
 	    fclose(fp);

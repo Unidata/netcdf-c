@@ -6,6 +6,7 @@
 */
 #include <config.h>
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <hdf5.h>
 #include <H5DSpublic.h>
 #include <mfhdf.h>
@@ -37,7 +38,7 @@ main(int argc, char **argv)
    {
 
       /* Open with netCDF */
-      if (nc_open(CHUNKEDFILE, NC_NOWRITE, &ncid)) ERR; 
+      if (nc_open(CHUNKEDFILE, NC_NOWRITE, &ncid)) ERR;
 
       /* Get a variable id */
       if(nc_inq_varid(ncid,CHUNKEDVAR,&varid)) ERR;
@@ -60,13 +61,13 @@ main(int argc, char **argv)
 	    ERR;
 	}
       }
-      if (nc_close(ncid)) ERR; 
+      if (nc_close(ncid)) ERR;
    }
-   
+
    printf("\n*** Testing HDF4/NetCDF-4 chunking API: contiguous...\n");
    {
       /* Open with netCDF */
-      if (nc_open(CONTIGFILE, NC_NOWRITE, &ncid)) ERR; 
+      if (nc_open(CONTIGFILE, NC_NOWRITE, &ncid)) ERR;
 
       /* Get a variable id */
       if(nc_inq_varid(ncid,CONTIGVAR,&varid)) ERR;
@@ -83,10 +84,9 @@ main(int argc, char **argv)
 	ERR;
       }
 
-      if (nc_close(ncid)) ERR; 
+      if (nc_close(ncid)) ERR;
    }
 
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
-

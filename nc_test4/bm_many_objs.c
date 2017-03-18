@@ -7,6 +7,7 @@ redistribution conditions.
 
 #include <config.h>
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <netcdf.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +28,7 @@ int main(int argc, char **argv)
     int g, grp, numgrp;
     char gname[16];
     int v, var, numvar, vn, vleft, nvars;
-    
+
     if(argc > 2) { 	/* Usage */
 	printf("NetCDF performance test, writing many groups and variables.\n");
 	printf("Usage:\t%s [N]\n", argv[0]);
@@ -58,11 +59,11 @@ int main(int argc, char **argv)
 	}
     }
     nc_close(ncid);
-    
+
     /*  create new file */
     if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-    /* create N variables, printing time after every 1000.  
-     * Put NC_MAX_VARS variables per group (even though netcdf4 non-classic 
+    /* create N variables, printing time after every 1000.
+     * Put NC_MAX_VARS variables per group (even though netcdf4 non-classic
      * format does not limit variable count), create the necessary number
      * of groups to hold nitem variables. */
     numvar = nitem;
@@ -71,7 +72,7 @@ int main(int argc, char **argv)
     vleft = numvar - (NC_MAX_VARS * (numgrp - 1));
     if (gettimeofday(&start_time, NULL))
 	ERR;
-    
+
     for(g = 1; g < numgrp + 1; g++) {
 	sprintf(gname, "group%d", g);
 	if (nc_def_grp(ncid, gname, &grp)) ERR;
