@@ -37,7 +37,7 @@ endif # USE_NETCDF4
 
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
 		ncf199.nc c5.nc compound_datasize_test.nc compound_datasize_test2.nc \
-		tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl tst_ncf199.cdl tst_gattenum.nc \
+		tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl tst_ncf199.cdl tst_tst_gattenum.nc \
 		tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl
 
 # These rules are used if someone wants to rebuild ncgenl.c or ncgeny.c
