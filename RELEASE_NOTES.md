@@ -11,6 +11,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.2 - TBD
 
+* [Enhancement] Modified netCDF4 to use ASCII for NC_CHAR.  See [Github Pull request #316](https://github.com/Unidata/netcdf-c/pull/316) for more information.
 * [Upgrade][Bug] Corrected an issue regarding how "orphaned" DAS attributes were handled. See [GitHub #376](https://github.com/Unidata/netcdf-c/pull/376) for more information.
 * [Upgrade] Update utf8proc.[ch] to use the version now maintained by the Julia Language project (https://github.com/JuliaLang/utf8proc/blob/master/LICENSE.md).
 * [Bug] Addressed conversion problem with Windows sscanf.  This primarily affected some OPeNDAP URLs on Windows.  See [GitHub #365](https://github.com/Unidata/netcdf-c/issues/365) and [GitHub #366](https://github.com/Unidata/netcdf-c/issues/366) for more information.
