@@ -27,8 +27,9 @@ main(int argc, char **argv)
       int ncid, i;
       char *data_in[ATT_LEN];
       char *data[ATT_LEN] = {"An appeaser is one who feeds a crocodile — "
-			     "hoping it will eat him last."};
-
+                             "hoping it will eat him last. "
+                             "Here are some non-ASCII characters: "
+                             "\x00\xAA\xBB\xFF"};
 
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_put_att(ncid, NC_GLOBAL, ATT_NAME, NC_STRING, ATT_LEN, data)) ERR;
