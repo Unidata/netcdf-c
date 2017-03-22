@@ -625,7 +625,7 @@ data are written). In that case the specified endian type will be used
 in HDF5 (for example, a H5T_STD_I16LE will be used for NC_SHORT, if
 little-endian has been specified for that variable.)
 - NC_BYTE = H5T_NATIVE_SCHAR
-- NC_UBYTE = H5T_NATIVE_SCHAR
+- NC_UBYTE = H5T_NATIVE_UCHAR
 - NC_CHAR = H5T_C_S1
 - NC_STRING = variable length array of H5T_C_S1
 - NC_SHORT = H5T_NATIVE_SHORT
