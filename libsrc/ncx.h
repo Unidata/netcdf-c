@@ -155,15 +155,9 @@
 
 /* End ncx_len */
 
-#ifdef __CHAR_UNSIGNED__
-	/* 'char' is unsigned, declare ncbyte as 'signed char' */
+#ifndef HAVE_SCHAR
 typedef signed char schar;
-
-#else
-	/* 'char' is signed */
-typedef char schar;
-
-#endif	/* __CHAR_UNSIGNED__ */
+#endif
 
 /*
  * Primitive numeric conversion functions.

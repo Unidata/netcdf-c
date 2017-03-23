@@ -369,6 +369,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #cmakedefine HAVE_SYS_WAIT_H 1
 
+/* Define to 1 if the system has the type `schar'. */
+#cmakedefine HAVE_SCHAR 1
+
 /* Define to 1 if the system has the type `uchar'. */
 #cmakedefine HAVE_UCHAR 1
 

@@ -186,6 +186,7 @@ typedef struct NC_var {
 	nc_type type;		/* the discriminant */
 	size_t len;		/* the total length originally allocated */
 	off_t begin;
+	int no_fill;		/* whether fill mode is ON or OFF */
 } NC_var;
 
 typedef struct NC_vararray {

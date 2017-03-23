@@ -517,6 +517,15 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
    return status;
 }
 
+int
+nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
+{
+    NC* ncp;
+    int stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) return stat;
+    return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
+}
+
 #ifdef USE_NETCDF4
 /** \ingroup variables
 
@@ -707,15 +716,6 @@ nc_def_var_chunking(int ncid, int varid, int storage,
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->def_var_chunking(ncid, varid, storage,
 					   chunksizesp);
-}
-
-int
-nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
 }
 
 int
