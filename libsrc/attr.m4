@@ -843,6 +843,10 @@ NC3_put_att(
 
         /* Fill value must have exactly one value */
         if (nelems != 1) return NC_EINVAL;
+
+        /* Only allow for variables defined in initial define mode */
+        if (ncp->old != NULL && varid < ncp->old->vars.nelems)
+            return NC_ELATEFILL; /* try put attribute for an old variable */
     }
 
     attrpp = NC_findattr(ncap, name);

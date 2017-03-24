@@ -2369,6 +2369,22 @@ ifdef(`PNETCDF', `
             ELSE_NOK
         }
     }
+    /* enter redef mode and add a new variable, check NC_ELATEFILL */
+    err = APIFunc(redef)(ncid);
+    IF (err != NC_NOERR)
+        error("redef: %s", APIFunc(strerror)(err));
+
+    /* it is not allowed to define fill value when variable already exists */
+    err = APIFunc(def_var_fill)(ncid, 0, 0, &value);
+    IF (err != NC_ELATEFILL)
+        error("redef: expect NC_ELATEFILL but got %s", nc_err_code_name(err));
+    err = APIFunc(def_var)(ncid, "new_var", NC_INT, 0, NULL, &varid);
+    IF (err != NC_NOERR)
+        error("redef: %s", APIFunc(strerror)(err));
+    err = APIFunc(def_var_fill)(ncid, varid, 0, &value);
+    IF (err != NC_NOERR)
+        error("def_var_fill: %s", APIFunc(strerror)(err));
+
     err = APIFunc(close)(ncid);
     IF (err != NC_NOERR)
         error("close: %s", APIFunc(strerror)(err));
