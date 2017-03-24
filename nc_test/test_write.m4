@@ -2238,10 +2238,12 @@ TestFunc(set_fill)(VarArgs)
     IF (err != NC_NOERR)
         error("enddef: %s", APIFunc(strerror)(err));
     err = APIFunc(set_fill)(ncid, NC_FILL, &old_fillmode);
-ifdef(`PNETCDF',
-    `IF (err != NC_ENOTINDEFINE)
-        error("expecting NC_ENOTINDEFINE but got %s", nc_err_code_name(err));',
-    `IF (err)
+ifdef(`PNETCDF',`
+    IF (err != NC_ENOTINDEFINE)
+        error("expecting NC_ENOTINDEFINE but got %s", nc_err_code_name(err));
+    IF (old_fillmode != NC_NOFILL)
+        error("Unexpected old fill mode: %d", old_fillmode);',`
+    IF (err)
         error("nc_set_fill: %s", nc_strerror(err));
     IF (old_fillmode != NC_FILL)
         error("Unexpected old fill mode: %d", old_fillmode);')dnl
@@ -2324,6 +2326,13 @@ ifdef(`PNETCDF', `
                 error("put_att_double: %s", APIFunc(strerror)(err));
         }
     }
+
+ifdef(`PNETCDF',`
+    err = APIFunc(set_fill)(ncid, NC_FILL, &old_fillmode);
+    IF (err)
+        error("set_fill: %s", APIFunc(strerror)(err));
+    IF (old_fillmode != NC_NOFILL)
+        error("Unexpected old fill mode: %d", old_fillmode);')dnl
 
     /* data mode. write records */
     err = APIFunc(enddef)(ncid);

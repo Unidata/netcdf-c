@@ -620,11 +620,6 @@ NC3_del_att(int ncid, int varid, const char *uname)
 		return NC_ENOTATT;
 			/* end inline NC_findattr() */
 
-	/* deleting attribute _FillValue means disabling fill mode */
-	if (varid != NC_GLOBAL && !strcmp(uname, _FillValue)) {
-		ncp->vars.value[varid]->no_fill = 1;
-	}
-
 	/* shuffle down */
 	for(attrid++; (size_t) attrid < ncap->nelems; attrid++)
 	{
@@ -842,17 +837,12 @@ NC3_put_att(
 	return NC_EINVAL; /* Null arg */
 
     /* if this is the _FillValue attribute */
-    if (varid != NC_GLOBAL && !strcmp(name, "_FillValue")) {
-        NC_var *varp = ncp->vars.value[varid];
+    if (varid != NC_GLOBAL && !strcmp(name, _FillValue)) {
+        /* Fill value must be of the same data type */
+        if (type != ncp->vars.value[varid]->type) return NC_EBADTYPE;
 
-        /* Fill value must be same type and have exactly one value */
-        if (type != varp->type)
-            return NC_EBADTYPE;
-
+        /* Fill value must have exactly one value */
         if (nelems != 1) return NC_EINVAL;
-
-        /* enable the fill mode for this variable */
-        varp->no_fill = 0;
     }
 
     attrpp = NC_findattr(ncap, name);
