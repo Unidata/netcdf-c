@@ -37,7 +37,8 @@ apply.
 \param value Pointer to one or more values.
 
 \returns ::NC_NOERR No error.
-\returns ::NC_EINVAL More than one value for _FillValue or trying to set global _FillValue.
+\returns ::NC_EINVAL More than one value for _FillValue.
+\returns ::NC_EGLOBAL Trying to set global _FillValue.
 \returns ::NC_ENOTVAR Couldn't find varid.
 \returns ::NC_EBADTYPE Fill value and var must be same type.
 \returns ::NC_ENOMEM Out of memory
@@ -55,7 +56,7 @@ nc_put_att_string(int ncid, int varid, const char *name,
     if(stat != NC_NOERR) return stat;
     /* set global _FillValue is not allowed */
     if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-        return NC_EINVAL;
+        return NC_EGLOBAL;
     return ncp->dispatch->put_att(ncid, varid, name, NC_STRING,
 				  len, (void*)value, NC_STRING);
 }
@@ -90,7 +91,8 @@ apply.
 \param value Pointer to one or more values.
 
 \returns ::NC_NOERR No error.
-\returns ::NC_EINVAL More than one value for _FillValue or trying to set global _FillValue.
+\returns ::NC_EINVAL More than one value for _FillValue.
+\returns ::NC_EGLOBAL Trying to set global _FillValue.
 \returns ::NC_ENOTVAR Couldn't find varid.
 \returns ::NC_EBADTYPE Fill value and var must be same type.
 \returns ::NC_ENOMEM Out of memory
@@ -146,7 +148,7 @@ int nc_put_att_text(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, NC_CHAR, len,
 				 (void *)value, NC_CHAR);
 }
@@ -188,7 +190,8 @@ apply.
 \param value Pointer to one or more values.
 
 \returns ::NC_NOERR No error.
-\returns ::NC_EINVAL More than one value for _FillValue or trying to set global _FillValue.
+\returns ::NC_EINVAL More than one value for _FillValue.
+\returns ::NC_EGLOBAL Trying to set global _FillValue.
 \returns ::NC_ENOTVAR Couldn't find varid.
 \returns ::NC_EBADTYPE Fill value and var must be same type.
 \returns ::NC_ENOMEM Out of memory
@@ -240,7 +243,7 @@ nc_put_att(int ncid, int varid, const char *name, nc_type xtype,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 value, xtype);
 }
@@ -254,7 +257,7 @@ nc_put_att_schar(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_BYTE);
 }
@@ -268,7 +271,7 @@ nc_put_att_uchar(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_UBYTE);
 }
@@ -282,7 +285,7 @@ nc_put_att_short(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_SHORT);
 }
@@ -296,7 +299,7 @@ nc_put_att_int(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_INT);
 }
@@ -310,7 +313,7 @@ nc_put_att_long(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, longtype);
 }
@@ -324,7 +327,7 @@ nc_put_att_float(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_FLOAT);
 }
@@ -338,7 +341,7 @@ nc_put_att_double(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_DOUBLE);
 }
@@ -352,7 +355,7 @@ nc_put_att_ubyte(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_UBYTE);
 }
@@ -366,7 +369,7 @@ nc_put_att_ushort(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_USHORT);
 }
@@ -380,7 +383,7 @@ nc_put_att_uint(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_UINT);
 }
@@ -395,7 +398,7 @@ nc_put_att_longlong(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_INT64);
 }
@@ -410,7 +413,7 @@ nc_put_att_ulonglong(int ncid, int varid, const char *name,
    if(stat != NC_NOERR) return stat;
    /* set global _FillValue is not allowed */
    if (varid == NC_GLOBAL && name != NULL && !strcmp(name, _FillValue))
-       return NC_EINVAL;
+       return NC_EGLOBAL;
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_UINT64);
 }
