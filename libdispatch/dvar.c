@@ -523,6 +523,7 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
     NC* ncp;
     int stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) return stat;
+    if(varid == NC_GLOBAL) return NC_EGLOBAL;
     return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
 }
 
