@@ -272,6 +272,7 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
+   if(varid == NC_GLOBAL) return NC_EGLOBAL;
    TRACE(nc_inq_var_fill);
    return ncp->dispatch->inq_var_all(
       ncid, varid,
