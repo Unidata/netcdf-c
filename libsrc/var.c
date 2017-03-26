@@ -487,6 +487,7 @@ out :
 		case NC_CHAR :
 		case NC_UBYTE :
 		case NC_SHORT :
+		case NC_USHORT :
 		        if( varp->len%4 != 0 )
 			{
 			        varp->len += 4 - varp->len%4; /* round up */

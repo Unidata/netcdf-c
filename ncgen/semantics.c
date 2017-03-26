@@ -422,6 +422,11 @@ processeconstrefs(void)
 {
     unsigned long i;
     /* locate all the datalist and walk them recursively */
+    for(i=0;i<listlength(gattdefs);i++) {
+	Symbol* att = (Symbol*)listget(gattdefs,i);
+	if(att->data != NULL && listlength(att->data) > 0)
+	    processeconstrefsR(att->data);
+    }
     for(i=0;i<listlength(attdefs);i++) {
 	Symbol* att = (Symbol*)listget(attdefs,i);
 	if(att->data != NULL && listlength(att->data) > 0)

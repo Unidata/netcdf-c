@@ -417,10 +417,6 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    if((unsigned long) ndims > X_INT_MAX) /* Backward compat */
       BAIL(NC_EINVAL);
 
-   /* Classic model files have a limit on number of vars. */
-   if(h5->cmode & NC_CLASSIC_MODEL && h5->nvars >= NC_MAX_VARS)
-      BAIL(NC_EMAXVARS);
-
    /* Check that this name is not in use as a var, grp, or type. */
    if ((retval = nc4_check_dup_name(grp, norm_name)))
       BAIL(retval);
