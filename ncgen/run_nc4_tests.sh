@@ -54,5 +54,8 @@ validateNC "compound_datasize_test" "compound_datasize_test" -k nc4
 echo "*** github issue 323 test 2"
 validateNC "compound_datasize_test2" "compound_datasize_test2"  -k nc4
 
+echo "*** Global Attribute with Enum type"
+validateNC "tst_gattenum" "tst_gattenum"  -k nc4
+
 echo "*** Test successful!"
 exit 0

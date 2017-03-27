@@ -80,5 +80,5 @@ ADD_CUSTOM_TARGET(makeparser DEPENDS ncgentab.h)
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ncgen.y ncgenl.c ncgen.l internals.html c0.cdl c0_4.cdl ref_camrun.cdl ncf199.cdl CMakeLists.txt Makefile.am ncgen.1)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ncgen.y ncgenl.c ncgen.l internals.html c0.cdl c0_4.cdl ref_camrun.cdl ncf199.cdl tst_gattenum.cdl CMakeLists.txt Makefile.am ncgen.1)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
