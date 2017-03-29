@@ -14,7 +14,7 @@ tst_*.nc t_nc.nc large_files.nc quick_large_files.nc \
 tst_diskless.nc tst_diskless2.nc \
 tst_diskless3.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl \
 tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc nc_test_cdf5.nc \
-unlim.nc tst_inq_type.nc
+unlim.nc tst_inq_type.nc tst_elatefill.nc
 
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm \
@@ -22,7 +22,7 @@ TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm \
 	tst_meta tst_inq_type tst_utf8_validate tst_utf8_phrases
 
 if USE_NETCDF4
-TESTPROGRAMS += tst_atts tst_put_vars
+TESTPROGRAMS += tst_atts tst_put_vars tst_elatefill
 endif
 
 if USE_PNETCDF
