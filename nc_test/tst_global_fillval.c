@@ -36,7 +36,7 @@ main(int argc, char **argv)
         err = nc_create(FILE_NAME, cmode, &ncid); ERR
 
         err = nc_put_att_int(ncid, NC_GLOBAL, "_FillValue", NC_INT, 1, &fillv);
-        if (err != NC_EINVAL) {
+        if (err != NC_EGLOBAL) {
           toterrs++;
           printf("%13s Error at line %d: expecting NC_EINVAL but got %d\n",
                    formatnames[i],__LINE__,err);
