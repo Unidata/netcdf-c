@@ -20,6 +20,8 @@
 
 #define FILE_NAME "tst_elatefill.nc"
 
+#define ERR {if(err!=NC_NOERR)printf("Error at line %d: %s\n",__LINE__,nc_strerror(err));}
+
 int
 main(int argc, char **argv)
 {
