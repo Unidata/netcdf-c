@@ -13,17 +13,17 @@
 
 #include "config.h"
 #include <nc_tests.h>
-#include "err_macros.h"
 #include <stdio.h>
 #include <netcdf.h>
 
 #define FILE_NAME "tst_global_fillval.nc"
 
-#define ERR {if(err!=NC_NOERR){printf("Error at line %d: %s\n",__LINE__,nc_strerror(err)); break;}}
+#define ERR {if(err!=NC_NOERR){printf("Error at line %d: %s\n",__LINE__,nc_strerror(err)); toterrs++; break;}}
 int
 main(int argc, char **argv)
 {
     int i, ncid, cmode, err, fillv=9;
+    int toterrs = 0;
     int formats[5]={0,
                     NC_64BIT_OFFSET,
                     NC_64BIT_DATA,
@@ -36,10 +36,14 @@ main(int argc, char **argv)
         err = nc_create(FILE_NAME, cmode, &ncid); ERR
 
         err = nc_put_att_int(ncid, NC_GLOBAL, "_FillValue", NC_INT, 1, &fillv);
-        if (err != NC_EINVAL)
-            printf("%13s Error at line %d: expecting NC_EINVAL but got %d\n",
+        if (err != NC_EINVAL) {
+          toterrs++;
+          printf("%13s Error at line %d: expecting NC_EINVAL but got %d\n",
                    formatnames[i],__LINE__,err);
-        err = nc_close(ncid); ERR
+        }
+        err = nc_close(ncid); ERR;
+
     }
-    return 0;
+    printf("Total errors: %d\n",toterrs);
+    return toterrs;
 }
