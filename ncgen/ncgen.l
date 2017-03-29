@@ -839,7 +839,7 @@ collecttag(char* text, char** stagp)
     stag[MAXTAGLEN] = '\0';
     if(stag[0] == 'U' || stag[0] == 'u') {
 	hasU = 1;
-    memmove(stag,stag+1,MAXTAGLEN);
+        memmove(stag,stag+1,MAXTAGLEN);
 	staglen--;
     } else if(stag[staglen-1] == 'U' || stag[staglen-1] == 'u') {
 	hasU = 1;
@@ -847,7 +847,7 @@ collecttag(char* text, char** stagp)
 	stag[staglen] = '\0';
     }
     if(strlen(stag) == 0 && hasU) {
-	tag = NC_UINT64;
+	tag = NC_UINT;
     } else if(strlen(stag) == 1) {
 	switch (stag[0]) {
 	case 'B': case 'b': tag = (hasU ? NC_UBYTE : NC_BYTE); break;

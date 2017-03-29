@@ -57,5 +57,8 @@ validateNC "compound_datasize_test2" "compound_datasize_test2"  -k nc4
 echo "*** Global Attribute with Enum type"
 validateNC "tst_gattenum" "tst_gattenum"  -k nc4
 
+echo "*** Integer constant with just 'u' suffix"
+validateNC "tst_usuffix" "tst_usuffix"  -k nc4
+
 echo "*** Test successful!"
 exit 0
