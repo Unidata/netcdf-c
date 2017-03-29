@@ -2129,7 +2129,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
     hid_t pid = 0;
     unsigned crt_order_flags = 0;
     H5_index_t iter_index;
-    int retval = NC_NOERR; /* everything worked! */
+    int i, retval = NC_NOERR; /* everything worked! */
 
     assert(grp && grp->name);
     LOG((3, "%s: grp->name %s", __func__, grp->name));
@@ -2216,6 +2216,10 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
     /* Scan the group for global (i.e. group-level) attributes. */
     if ((retval = read_grp_atts(grp)))
 	BAIL(retval);
+
+   /* when exiting define mode, mark all variable written */
+   for (i=0; i<grp->vars.nelems; i++)
+      grp->vars.value[i]->written_to = NC_TRUE;
 
 exit:
     /* Clean up local information on error, if anything remains */
