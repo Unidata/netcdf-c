@@ -16,7 +16,8 @@ This file contains a high-level description of this package's evolution. Release
 (1) using "dap4:" as the url protocol, or
 (2) appending "#protocol=dap4" to the end of the url, or
 (3) appending "#dap4" to the end of the url 
-Note that dap4 is disabled by default until the testserver situation is resolved.
+Note that dap4 is enabled by default but remote-testing is
+disbled until the testserver situation is resolved.
 * [Enhancement] The remote testing server can now be specified with the '--with-testserver" option to ./configure.
 * [Refactor] the oc2 library is no longer independent of the main netcdf-c library. For example, it now uses ncuri, nclist, and ncbytes instead of its homegrown equivalents.
 * [Enhancement] Modified netCDF4 to use ASCII for NC_CHAR.  See [Github Pull request #316](https://github.com/Unidata/netcdf-c/pull/316) for more information.

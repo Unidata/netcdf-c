@@ -328,6 +328,9 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
+# --enable-dap => enable-dap4
+enable_dap4=$enable_dap
+
 # Curl support is required if and only if any of these flags are set:
 # 1. --enable-dap
 
@@ -804,16 +807,6 @@ AC_MSG_NOTICE([--enable-dap requires --enable-diskless])
 AC_MSG_NOTICE([dap support disabled])
 enable_dap=no
 fi
-
-# Set flags for dap4
-## Capture the state of the --enable-dap4 (Temporary)
-#enable_dap4=$enable_dap
-AC_MSG_CHECKING([whether DAP4 client(s) are to be built])
-AC_ARG_ENABLE([dap4],
-                 [AS_HELP_STRING([--enable-dap4],
-                                 [build with DAP4 client support (default off).])])
-test "x$enable_dap4" = xyes || enable_dap4=no
-AC_MSG_RESULT($enable_dap4)
 
 # disable dap4 if netcdf-4 is disabled
 if test "x$enable_netcdf_4" = "xno" ; then
