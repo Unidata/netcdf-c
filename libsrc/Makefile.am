@@ -47,7 +47,7 @@ EXTRA_DIST = attr.m4 ncx.m4 putget.m4 $(man_MANS) CMakeLists.txt XGetopt.c
 
 # This tells make how to turn .m4 files into .c files.
 .m4.c:
-	m4 $(AM_M4FLAGS) $(M4FLAGS) -s $< >${srcdir}/$@
+	m4 $(AM_M4FLAGS) $(M4FLAGS) -s $< > $@
 
 # The C API man page.
 man_MANS = netcdf.3

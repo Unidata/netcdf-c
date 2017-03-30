@@ -22,7 +22,7 @@ TARGET_LINK_LIBRARIES(nc_test
   )
 
 # Some extra stand-alone tests
-SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta tst_inq_type)
+SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta tst_inq_type tst_global_fillval)
 
 IF(NOT HAVE_BASH)
   SET(TESTS ${TESTS} tst_atts3)
@@ -31,6 +31,7 @@ ENDIF()
 IF(USE_NETCDF4)
   SET(TESTS ${TESTS} tst_atts)
   SET(TESTS ${TESTS} tst_put_vars)
+  SET(TESTS ${TESTS} tst_elatefill)
 ENDIF()
 
 IF(USE_PNETCDF)
