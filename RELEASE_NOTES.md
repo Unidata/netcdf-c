@@ -15,6 +15,7 @@ Note that dap4 is enabled by default but remote-testing is
 disbled until the testserver situation is resolved.
 * [Enhancement] The remote testing server can now be specified with the '--with-testserver" option to ./configure.
 * [Upgrade] The bash based test scripts have been upgraded to use a common test_common.sh include file that isolates build specific information.
+* [Upgrade] The bash based test scripts have been upgraded to use a common test_common.sh include file that isolates build specific information.
 * [Refactor] the oc2 library is no longer independent of the main netcdf-c library. For example, it now uses ncuri, nclist, and ncbytes instead of its homegrown equivalents.
 * [Bug Fix] `NC_EGLOBAL` is now properly returned when attempting to set a global `_FillValue` attribute. See [GitHub #388](https://github.com/Unidata/netcdf-c/issues/388) and [GitHub #389](https://github.com/Unidata/netcdf-c/issues/389) for more information.
 * [Bug Fix] Corrected an issue where data loss would occur when `_FillValue` was mistakenly allowed to be redefined.  See [Github #390](https://github.com/Unidata/netcdf-c/issues/390), [GitHub #387](https://github.com/Unidata/netcdf-c/pull/387) for more information.
