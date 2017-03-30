@@ -523,6 +523,13 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
 	 BAIL(NC_ENOMEM);
    }
 
+   /* Set variables no_fill to match the database default
+    * unless the variable type is variable length (NC_STRING or NC_VLEN)
+    * or is user-defined type.
+    */
+   if (var->type_info->nc_type_class < NC_STRING)
+      var->no_fill = h5->fill_mode;
+
    /* Assign dimensions to the variable */
    /* At the same time, check to see if this is a coordinate
     * variable. If so, it will have the same name as one of its
