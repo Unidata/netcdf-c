@@ -20,7 +20,7 @@ URL="$DTS/test.03"
 ECODE=0
 echo "Test extended format output for a DAP2  file"
 rm -f tmp
-${NCDUMP} -K $URL >tmp
+${NCDUMP} -K "${URL}" >tmp
 if ! grep 'DAP2 mode=00000000' <tmp ; then
 echo "*** Fail: extended format for a DAP2 file"
 ECODE=1

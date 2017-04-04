@@ -1,7 +1,7 @@
 #! /bin/sh
 # test-driver - basic testsuite driver script.
 
-scriptversion=2017-02-05.22; # UTC
+scriptversion=2017-04-02.20; # UTC
 
 # Copyright (C) 2011-2014 Free Software Foundation, Inc.
 #
@@ -117,13 +117,13 @@ trap "st=141; $do_exit" 13
 trap "st=143; $do_exit" 15
 
 # Test script is run here.
-if isshellscript $1 ; then
-bash -x "$@" >$log_file 2>&1
-estatus=$?
-else
+#if isshellscript $1 ; then
+#bash -x "$@" >$log_file 2>&1
+#estatus=$?
+#else
 "$@" >$log_file 2>&1
 estatus=$?
-fi
+#fi
 
 if test $enable_hard_errors = no && test $estatus -eq 99; then
   tweaked_estatus=1

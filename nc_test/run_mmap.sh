@@ -1,5 +1,6 @@
 #!/bin/sh
 
+
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
@@ -27,7 +28,7 @@ rm -f $FILE1
 ${execdir}/tst_diskless mmap persist
 if test -f $FILE1 ; then
 echo "**** $FILE1 created"
-# ../ncdump/ncdump $FILE1
+# ${NCDUMP} $FILE1
 echo "PASS: diskless+mmap netCDF classic file with persistence"
 else
 echo "#### $FILE1 not created"

@@ -863,9 +863,11 @@ AC_C_BIGENDIAN
 SLEEPCMD=""
 PLTFORMOUT="$(uname | cut -d '_' -f 1)"
 if test "$PLTFORMOUT" = "CYGWIN"; then
+   ISCYGWIN=yes
    SLEEPCMD="sleep 5"
    AC_MSG_NOTICE([Pausing between sizeof() checks to mitigate a Cygwin issue.])
 fi
+AM_CONDITIONAL(ISCYGWIN, [test "x$ISCYGWIN" = xyes])
 
 $SLEEPCMD
 AC_CHECK_SIZEOF(short)

@@ -204,8 +204,6 @@ RESULTSDIR="./results"
 # Locate some tools
 if test "x$leakcheck" = x1 ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
-else
-VALGRIND=
 fi
 if test "x$timing" = "x1" ; then TIMECMD="time"; else TIMECMD=""; fi
 

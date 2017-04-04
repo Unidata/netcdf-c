@@ -26,9 +26,9 @@ ${execdir}/tst_empty_vlen_unlim
 # if this is useful.
 #echo "Validating Files with ncdump."
 #echo "======================================"
-#../ncdump/ncdump -s tst_empty_vlen_unlim.nc
+#${NCDUMP} -s tst_empty_vlen_unlim.nc
 #echo "---------------------------------------"
-#../ncdump/ncdump -s tst_empty_vlen_lim.nc
+#${NCDUMP} -s tst_empty_vlen_lim.nc
 #echo "======================================"
 
 

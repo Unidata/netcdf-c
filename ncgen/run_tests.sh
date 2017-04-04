@@ -2,11 +2,16 @@
 # This shell script runs the ncgen tests.
 # $Id: run_tests.sh,v 1.10 2010/04/04 22:06:03 dmh Exp $
 
+export SETX=1
+set -x
+
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 echo "*** Testing ncgen."
 set -e
+
+#VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
 
 validateNC() {
     BASENAME=$1

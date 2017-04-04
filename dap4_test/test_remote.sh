@@ -67,7 +67,7 @@ for f in $F ; do
     if test "x$NOCSUM" = x1; then
 	URL="[ucar.checksummode=none]${URL}"
     fi
-    if ! ${VG} ${NCDUMP} ${URL} > ./results/${f}.dmp; then
+    if ! ${VG} ${NCDUMP} "${URL}" > ./results/${f}.dmp; then
         failure "${URL}"
     fi
     if test "x${TEST}" = x1 ; then
@@ -81,3 +81,4 @@ for f in $F ; do
 done
 
 finish
+

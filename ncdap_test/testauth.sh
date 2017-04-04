@@ -205,7 +205,7 @@ if test "x$RCEMBED" = x1 ; then
   URL="${PROTO}://${BASICCOMBO}@${URLSERVER}/$URLPATH"
   unset NETRC
   # Invoke ncdump to extract a file the URL
-  echo "command: ${NCDUMP} -h $URL > $OUTPUT"
+  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
   ${NCDUMP} -h "$URL" > $OUTPUT
   show
 fi
@@ -222,7 +222,7 @@ if test "x$RCLOCAL" = x1 ; then
   createrc $LOCALRC
 
   # Invoke ncdump to extract a file using the URL
-  echo "command: ${NCDUMP} -h $URL > $OUTPUT"
+  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
   ${NCDUMP} -h "$URL" > $OUTPUT
   show
 fi
@@ -235,7 +235,7 @@ if test "x$RCHOME" = x1 ; then
   createrc $HOMERC
 
   # Invoke ncdump to extract a file the URL
-  echo "command: ${NCDUMP} -h $URL > $OUTPUT"
+  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
   ${NCDUMP} -h "$URL" > $OUTPUT
   show
 fi
@@ -248,7 +248,7 @@ if test "x$RCSPEC" == x1 ; then
   createrc $SPECRC
 
   # Invoke ncdump to extract a file the URL
-  echo "command: ${NCDUMP} -h $URL > $OUTPUT"
+  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
   ${NCDUMP} -h "$URL" > $OUTPUT
   show
 fi
@@ -263,7 +263,7 @@ if test "x$RCENV" = x1 ; then
   createrc $DAPRCFILE
 
   # Invoke ncdump to extract a file the URL
-  echo "command: ${NCDUMP} -h $URL > $OUTPUT"
+  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
   ${NCDUMP} -h "$URL" > $OUTPUT
   show
   export DAPRCFILE=
@@ -280,7 +280,7 @@ if test "x$RCPREC" = x1 ; then
   createrc $LOCALRC
 
   # Invoke ncdump to extract a file using the URL
-  echo "command: ${NCDUMP} -h $URL > $OUTPUT"
+  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
   ${NCDUMP} -h "$URL" > $OUTPUT
   ${NCDUMP} -h "$URL"
   show

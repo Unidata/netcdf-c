@@ -1,7 +1,6 @@
 TOPSRCDIR=@TOPSRCDIR@
 TOPBUILDDIR=@TOPBUILDDIR@
 
-
 # Figure out various locations in the src/build tree.
 # This is relatively fragile code and is essentially
 # specific to netcdf-c. It does, however, have the virtue
@@ -141,10 +140,11 @@ ncgenc0="${top_srcdir}/ncgen/c0.cdl"
 ncgenc04="${top_srcdir}/ncgen/c0_4.cdl"
 
 # Hack to see is valgrind is available
-if valgrind --version >/dev/null ; then
-VALGRIND="valgrind --leak-check=full"
-fi
+# Use subshell to keep quiet
+#(set +x ; if valgrind --version ; then exit 1 ; else exit 0 ; fi) >& /dev/null
+#if test "x$?" = x1 ; then
+#VALGRIND="valgrind --leak-check=full"
+#fi
 
 # Make sure we are in builddir (not execdir)
 cd $builddir
-

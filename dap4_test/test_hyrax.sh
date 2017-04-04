@@ -29,7 +29,7 @@ if test "x${RESET}" = x1 ; then rm -fr ${BASELINEH}/*.dmp ; fi
 for f in $F ; do
     URL="dap4://test.opendap.org:8080/opendap/nc4_test_files/${f}${FRAG}"
     echo "testing: $URL"
-    if ! ../ncdump/ncdump ${URL} > ./results/${f}.hyrax; then
+    if ! ${NCDUMP} "${URL}" > ./results/${f}.hyrax; then
         failure "${URL}"
     fi
     if test "x${TEST}" = x1 ; then
@@ -44,3 +44,4 @@ done
 
 echo "*** Pass"
 exit 0
+

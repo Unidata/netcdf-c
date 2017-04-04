@@ -23,9 +23,8 @@
 /* Utilities */
 #include "netcdf.h"
 #include "ncuri.h"
-#include "nclist.h"
-#include "nclog.h"
 #include "ncbytes.h"
+#include "nclog.h"
 
 #ifdef WIN32
 /*#include <windows.h>*/
@@ -330,18 +329,6 @@ main(int argc, char **argv)
 	nullfree(ocopt.constraint);
 	ocopt.constraint = NULL;
     }        
-#if 0
-    /* If -U was used, then it added to anything in the URL */
-    if(ncbyteslength(ocopt.userparams) > 0) {
-	NCbytes* buf = ncbytesnew();
-	if(ocopt.url->fraglist != NULL) {
-	    ncbytescat(buf,ocopt.url->fraglist);
-	    if(ncbyteslength(ocopt.userparams) > 0)
-	        ncbytescat(buf,ncbytescontents(ocopt.userparams));
-	}
-	ocopt.url->params = ncbytesdup(buf);
-    }
-#endif
     /* Rebuild the url string */
     if(ocopt.surl != NULL) free(ocopt.surl);
     ocopt.surl = ncuribuild(ocopt.url,NULL,NULL,NCURIALL);

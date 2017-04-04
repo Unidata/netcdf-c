@@ -45,6 +45,7 @@ int optind;
 #include "indent.h"
 #include "isnan.h"
 #include "cdl.h"
+#include "nclog.h"
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h" /* to get name of the special properties file */
@@ -2228,6 +2229,7 @@ main(int argc, char *argv[])
 	    nc_set_log_level(level);
 	  }
 #endif
+	  ncsetlogging(1);
 	  break;
         case '?':
 	  usage();

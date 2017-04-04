@@ -224,7 +224,6 @@ done:
     if(ret) {
 	freeInfo(d4info);
         nc->dispatchdata = NULL;
-	fprintf(stderr,"XXX: %d\n",ret); fflush(stderr);
     }
     return THROW(ret);
 }

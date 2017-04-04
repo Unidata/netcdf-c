@@ -18,13 +18,6 @@
 extern "C" {
 #endif
 
-	/* We use EXTERNL instead of extern.
-	   On Windows system, EXTERNL has been defined (see netcdf.h) such
-	   that symbols are properly exported/imported between
-	   libraries and executables.  On non-windows systems,
-	   EXTERNL is defined as extern. */
-
-
 extern int
 NC4_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
