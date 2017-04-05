@@ -1087,10 +1087,10 @@ if test "x$enable_parallel" = xyes; then
 fi
 
 AC_ARG_ENABLE([erange_fill],
-   [AS_HELP_STRING([--disable-erange-fill],
-                   [Disable use of fill value when out-of-range type
-                    conversion causes NC_ERANGE error. @<:@default: enabled@:>@])],
-   [enable_erange_fill=${enableval}], [enable_erange_fill=yes]
+   [AS_HELP_STRING([--enable-erange-fill],
+                   [Enable use of fill value when out-of-range type
+                    conversion causes NC_ERANGE error. @<:@default: disabled@:>@])],
+   [enable_erange_fill=${enableval}], [enable_erange_fill=no]
 )
 
 AC_ARG_ENABLE([relax-coord-bound],

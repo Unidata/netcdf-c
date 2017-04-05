@@ -1018,10 +1018,10 @@ IF(ENABLE_PNETCDF)
 ENDIF()
 
 # Options to enable use of fill values for elements casuing NC_ERANGE
-SET(STATUS_ERANGE_FILL "ON")
-OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." ON)
-IF(NOT ENABLE_ERANGE_FILL)
-  SET(STATUS_ERANGE_FILL "OFF")
+SET(STATUS_ERANGE_FILL "OFF")
+OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OF)
+IF(ENABLE_ERANGE_FILL)
+  SET(STATUS_ERANGE_FILL "ON")
 ENDIF()
 
 # Options to use a more relaxed coordinate argument boundary check
