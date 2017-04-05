@@ -19,8 +19,7 @@
  * NC_EBADNAME-- not valid utf8
  */
 
-int
-nc_utf8_validate(const unsigned char* name)
+int nc_utf8_validate(const unsigned char* name)
 {
     int ncstat = NC_NOERR;
     const nc_utf8proc_uint8_t *str;
@@ -93,6 +92,5 @@ nc_utf8_normalize(const unsigned char* utf8, unsigned char** normalp)
     } else
 	if(normalp) *normalp = (unsigned char*)retval;
 done:
-    return ncstat;	
+    return ncstat;
 }
-
