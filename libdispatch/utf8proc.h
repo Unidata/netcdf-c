@@ -391,7 +391,7 @@ typedef nc_utf8proc_int32_t (*nc_utf8proc_custom_func)(nc_utf8proc_int32_t codep
  * Array containing the byte lengths of a UTF-8 encoded codepoint based
  * on the first byte.
  */
-const nc_utf8proc_int8_t nc_utf8proc_utf8class[256];
+//const nc_utf8proc_int8_t nc_utf8proc_utf8class[256];
 
 /**
  * Returns the utf8proc API version as a string MAJOR.MINOR.PATCH
