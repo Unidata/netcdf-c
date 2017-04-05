@@ -38,11 +38,7 @@ typedef struct NC {
 typedef struct {
 	/* all xdr'd */
 	size_t nchars;
-#ifdef __arm__
-  signed char *cp;
-#else
   char *cp;
-#endif
 
 } NC_string;
 
@@ -55,17 +51,10 @@ free_NC_string(NC_string *ncstrp);
 extern int
 NC_check_name(const char *name);
 
-#ifdef __arm__
-extern NC_string *
-new_NC_string(size_t slen, const signed char *str);
-extern int
-set_NC_string(NC_string *ncstrp, const signed char *str);
-#else
 extern NC_string *
 new_NC_string(size_t slen, const char *str);
 extern int
 set_NC_string(NC_string *ncstrp, const char *str);
-#endif
 
 
 /* End defined in string.c */

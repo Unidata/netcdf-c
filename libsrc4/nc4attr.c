@@ -55,6 +55,18 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
    if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
       BAIL(NC_EBADGRPID);
 
+   /* Check varid */
+   if (varid != NC_GLOBAL) {
+       if (varid < 0 || varid >= grp->vars.nelems)
+	   return NC_ENOTVAR;
+       if (grp->vars.value[varid] == NULL)
+           return NC_ENOTVAR;
+       assert(grp->vars.value[varid]->varid == varid);
+   }
+
+   if (name == NULL)
+       BAIL(NC_EBADNAME);
+
    /* Normalize name. */
    if ((retval = nc4_normalize_name(name, norm_name)))
       BAIL(retval);
@@ -221,17 +233,7 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    int i;
    int res;
 
-   if (!name)
-      return NC_EBADNAME;
    assert(nc && NC4_DATA(nc));
-
-   LOG((1, "nc4_put_att: ncid 0x%x varid %d name %s "
-	"file_type %d mem_type %d len %d", ncid, varid,
-	name, file_type, mem_type, len));
-
-   /* If len is not zero, then there must be some data. */
-   if (len && !data)
-      return NC_EINVAL;
 
    /* Find info for this file and group, and set pointer to each. */
    h5 = NC4_DATA(nc);
@@ -241,19 +243,6 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    /* If the file is read-only, return an error. */
    if (h5->no_write)
      return NC_EPERM;
-
-   /* Check and normalize the name. */
-   if ((retval = nc4_check_name(name, norm_name)))
-      return retval;
-
-   if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {
-	const char** sp;
-	for(sp = NC_RESERVED_SPECIAL_LIST;*sp;sp++) {
-	    if(strcmp(name,*sp)==0) {
-		return NC_ENOTATT; /* Not settable */
-	    }
-	}
-    }
 
    /* Find att, if it exists. */
    if (varid == NC_GLOBAL)
@@ -268,9 +257,33 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       assert(var->varid == varid);
    }
 
+   if (!name)
+      return NC_EBADNAME;
+
+   /* Check and normalize the name. */
+   if ((retval = nc4_check_name(name, norm_name)))
+      return retval;
+
+   if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {
+	const char** sp;
+	for(sp = NC_RESERVED_SPECIAL_LIST;*sp;sp++) {
+	    if(strcmp(name,*sp)==0) {
+		return NC_ENOTATT; /* Not settable */
+	    }
+	}
+    }
+
    for (att = *attlist; att; att = att->l.next)
      if (!strcmp(att->name, norm_name))
        break;
+
+   /* If len is not zero, then there must be some data. */
+   if (len && !data)
+      return NC_EINVAL;
+
+   LOG((1, "nc4_put_att: ncid 0x%x varid %d name %s "
+	"file_type %d mem_type %d len %d", ncid, varid,
+	name, file_type, mem_type, len));
 
    if (!att)
    {
@@ -821,12 +834,6 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
    NC *nc;
    NC_HDF5_FILE_INFO_T *h5;
 
-   if (!name || strlen(name) > NC_MAX_NAME)
-      return NC_EBADNAME;
-
-   LOG((3, "nc4_put_att_tc: ncid 0x%x varid %d name %s file_type %d "
-	"mem_type %d len %d", ncid, varid, name, file_type, mem_type, len));
-
    /* The length needs to be positive (cast needed for braindead
       systems with signed size_t). */
    if((unsigned long) len > X_INT_MAX)
@@ -839,6 +846,26 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
    /* get netcdf-4 metadata */
    h5 = NC4_DATA(nc);
    assert(h5);
+
+   /* Check varid */
+   if (varid != NC_GLOBAL) {
+       /* Find info for this file and group, and set pointer to each. */
+       NC_GRP_INFO_T *grp;
+       if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
+          return NC_EBADGRPID;
+
+       if (varid < 0 || varid >= grp->vars.nelems)
+	   return NC_ENOTVAR;
+       if (grp->vars.value[varid] == NULL)
+           return NC_ENOTVAR;
+       assert(grp->vars.value[varid]->varid == varid);
+   }
+
+   if (!name || strlen(name) > NC_MAX_NAME)
+      return NC_EBADNAME;
+
+   LOG((3, "nc4_put_att_tc: ncid 0x%x varid %d name %s file_type %d "
+	"mem_type %d len %d", ncid, varid, name, file_type, mem_type, len));
 
    if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {
       const char** reserved = NC_RESERVED_ATT_LIST;

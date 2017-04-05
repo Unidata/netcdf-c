@@ -984,14 +984,14 @@ IF(ENABLE_PNETCDF)
   FIND_LIBRARY(PNETCDF NAMES pnetcdf)
   FIND_PATH(PNETCDF_INCLUDE_DIR pnetcdf.h)
   IF(NOT PNETCDF)
-    MESSAGE(STATUS "Cannot find PNetCDF library. Disabling PNetCDF support.")
+    MESSAGE(STATUS "Cannot find PnetCDF library. Disabling PnetCDF support.")
     SET(USE_PNETCDF OFF CACHE BOOL "")
   ELSE(NOT PNETCDF)
     SET(USE_PARALLEL ON CACHE BOOL "")
 
-    # Check PNetCDF version. Must be >= 1.6.0
+    # Check PnetCDF version. Must be >= 1.6.0
     set(pnetcdf_h "${PNETCDF_INCLUDE_DIR}/pnetcdf.h" )
-    message(STATUS "PNetCDF include file ${pnetcdf_h} will be searched for version")
+    message(STATUS "PnetCDF include file ${pnetcdf_h} will be searched for version")
     file(STRINGS "${pnetcdf_h}" pnetcdf_major_string REGEX "^#define PNETCDF_VERSION_MAJOR")
     string(REGEX REPLACE "[^0-9]" "" pnetcdf_major "${pnetcdf_major_string}")
     file(STRINGS "${pnetcdf_h}" pnetcdf_minor_string REGEX "^#define PNETCDF_VERSION_MINOR")
@@ -999,7 +999,7 @@ IF(ENABLE_PNETCDF)
     file(STRINGS "${pnetcdf_h}" pnetcdf_sub_string REGEX "^#define PNETCDF_VERSION_SUB")
     string(REGEX REPLACE "[^0-9]" "" pnetcdf_sub "${pnetcdf_sub_string}")
     set(pnetcdf_version "${pnetcdf_major}.${pnetcdf_minor}.${pnetcdf_sub}")
-    message(STATUS "Found PNetCDF version ${pnetcdf_version}")
+    message(STATUS "Found PnetCDF version ${pnetcdf_version}")
 
     if(${pnetcdf_version} VERSION_GREATER "1.6.0")
       SET(STATUS_PNETCDF "ON")
@@ -1008,11 +1008,64 @@ IF(ENABLE_PNETCDF)
       # pnetcdf => parallel
       SET(STATUS_PARALLEL ON)
       SET(USE_PARALLEL ON)
-      MESSAGE(STATUS "Using PNetCDF Library: ${PNETCDF}")
+      MESSAGE(STATUS "Using PnetCDF Library: ${PNETCDF}")
     ELSE()
-      MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.1 or later; found version ${pnetcdf_version}. PNetCDF is disabled")
+      MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.1 or later; found version ${pnetcdf_version}. PnetCDF is disabled")
     ENDIF()
   ENDIF(NOT PNETCDF)
+ENDIF()
+
+# Options to enable use of fill values for elements casuing NC_ERANGE
+SET(STATUS_ERANGE_FILL "ON")
+OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." ON)
+IF(NOT ENABLE_ERANGE_FILL)
+  SET(STATUS_ERANGE_FILL "OFF")
+ENDIF()
+
+# Options to use a more relaxed coordinate argument boundary check
+SET(STATUS_RELAX_COORD_BOUND "OFF")
+OPTION(ENABLE_RELAX_COORD_BOUND "Enable a more relaxed boundary error check NC_EINVALCOORDS to allow coordinate start argument equal to dimension size when argument count is zero." OFF)
+IF(ENABLE_RELAX_COORD_BOUND)
+  SET(STATUS_RELAX_COORD_BOUND "ON")
+ENDIF()
+
+# check and conform with PnetCDF settings on ERANGE_FILL and RELAX_COORD_BOUND
+IF(STATUS_PNETCDF)
+  file(STRINGS "${pnetcdf_h}" enable_erange_fill_pnetcdf REGEX "^#define PNETCDF_ERANGE_FILL")
+  string(REGEX REPLACE "[^0-9]" "" erange_fill_pnetcdf "${enable_erange_fill_pnetcdf}")
+  IF("x${erange_fill_pnetcdf}" STREQUAL "x1")
+     IF(NOT STATUS_ERANGE_FILL)
+       MESSAGE(WARNING "Enable erange-fill to conform with PnetCDF setting")
+       SET(STATUS_ERANGE_FILL "ON")
+     ENDIF()
+  ELSE()
+     IF(STATUS_ERANGE_FILL)
+       MESSAGE(WARNING "Disable erange-fill to conform with PnetCDF setting")
+       SET(STATUS_ERANGE_FILL "OFF")
+     ENDIF()
+  ENDIF()
+  file(STRINGS "${pnetcdf_h}" relax_coord_bound_pnetcdf REGEX "^#define PNETCDF_RELAX_COORD_BOUND")
+  string(REGEX REPLACE "[^0-9]" "" relax_coord_bound "${relax_coord_bound_pnetcdf}")
+  IF("x${relax_coord_bound}" STREQUAL "x1")
+     IF(NOT STATUS_RELAX_COORD_BOUND)
+       MESSAGE(WARNING "Enable relax-coord-bound to conform with PnetCDF setting")
+       SET(STATUS_RELAX_COORD_BOUND "ON")
+     ENDIF()
+  ELSE()
+     IF(STATUS_RELAX_COORD_BOUND)
+       MESSAGE(WARNING "Disable relax-coord-bound to conform with PnetCDF setting")
+       SET(STATUS_RELAX_COORD_BOUND "OFF")
+     ENDIF()
+  ENDIF()
+ENDIF()
+
+IF(STATUS_ERANGE_FILL)
+  SET(M4FLAGS "-DERANGE_FILL" CACHE STRING "")
+ENDIF()
+
+IF(STATUS_RELAX_COORD_BOUND)
+  MESSAGE(STATUS "Enabling a more relatexed check for NC_EINVALCOORDS")
+  ADD_DEFINITIONS(-DRELAX_COORD_BOUND)
 ENDIF()
 
 # Enable Parallel Tests.
@@ -1242,9 +1295,13 @@ ENDIF(SIZEOF_PTRDIFF_T)
 
 # __int64 is used on Windows for large file support.
 CHECK_TYPE_SIZE("__int64"   SIZEOF___INT_64)
-CHECK_TYPE_SIZE("uchar"     SIZEOF_UCHAR)
 CHECK_TYPE_SIZE("int64_t"   SIZEOF_INT64_T)
 CHECK_TYPE_SIZE("uint64_t"  SIZEOF_UINT64_T)
+CHECK_TYPE_SIZE("unsigned char"      SIZEOF_UCHAR)
+CHECK_TYPE_SIZE("unsigned short int" SIZEOF_USHORT)
+CHECK_TYPE_SIZE("unsigned int"       SIZEOF_UINT)
+CHECK_TYPE_SIZE("long long"          SIZEOF_LONGLONG)
+CHECK_TYPE_SIZE("unsigned long long" SIZEOF_ULONGLONG)
 
 # On windows systems, we redefine off_t as __int64
 # to enable LFS. This is true on 32 and 64 bit system.s
@@ -1338,7 +1395,7 @@ IF(HAVE_M4)
   ADD_CUSTOM_COMMAND(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
     COMMAND ${NC_M4}
-    ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+    ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
     VERBATIM
     )
 ENDIF(HAVE_M4)
@@ -1806,6 +1863,7 @@ is_enabled(USE_DAP HAS_DAP)
 is_enabled(USE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
+is_enabled(STATUS_RELAX_COORD_BOUND RELAX_COORD_BOUND)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
