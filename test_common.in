@@ -24,9 +24,9 @@ TOPBUILDDIR=@TOPBUILDDIR@
 # and the notion of a VS configuration type like Debug or Release.
 # When using VS, executables are placed in a subdirectory of the build
 # directory. That subdirectory is named by the configuration type.
-# Thus one finds ncdump.exe in $top_builddir/ncdump/Debug instead of 
+# Thus one finds ncdump.exe in $top_builddir/ncdump/Debug instead of
 # $top_builddir/ncdump.
-# 
+#
 # An additional issue is the extension of an executable: .exe vs nothing.
 # This code attempts to figure out which is used.
 
@@ -40,7 +40,7 @@ TOPBUILDDIR=@TOPBUILDDIR@
 #               stuff (.nc, .cdl, etc) is stored.
 # 5. execdir - absolute path of the directory into which executables are
 #              placed. For all but the VS case, execdir == builddir.
-# 
+#
 # The following are defined to support inter-directory references.
 # 6. NCDUMP - absolute path to the ncdump.exe executable
 # 7. NCCOPY - absolute path to the nccopy.exe executable
@@ -50,7 +50,7 @@ TOPBUILDDIR=@TOPBUILDDIR@
 # Allow global set -x mechanism
 if test "x$SETX" = x1 ; then set -x ; fi
 
-# We assume that TOPSRCDIR and TOPBUILDDIR are defined 
+# We assume that TOPSRCDIR and TOPBUILDDIR are defined
 # At the top of this shell script
 top_srcdir="$TOPSRCDIR"
 top_builddir="$TOPBUILDDIR"
@@ -75,12 +75,12 @@ fi
 # Compute execdir as well as a suffix to use for accessing
 # executables. Note that the leading '/' is needed to avoid
 # occurrences of ...//... in a path
-if test "x$CMAKE_CONFIG_TYPE" != x ; then
+#if test "x$CMAKE_CONFIG_TYPE" != x ; then
   # Assume case #4: visual studio
-  VS="/${CMAKE_CONFIG_TYPE}"
-else
+#  VS="/${CMAKE_CONFIG_TYPE}"
+#else
   VS=
-fi
+#fi
 execdir="${builddir}$VS"
 
 # pick off the last component as the relative name of this directory
@@ -118,7 +118,7 @@ else
   ext=""
 fi
 
-# We need to locate certain executables (and other things) 
+# We need to locate certain executables (and other things)
 # Find the relevant directory
 NCDUMP="${top_builddir}/ncdump${VS}/ncdump${ext}"
 NCCOPY="${top_builddir}/ncdump${VS}/nccopy${ext}"
