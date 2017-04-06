@@ -1026,8 +1026,8 @@ ENDIF()
 
 # Options to use a more relaxed coordinate argument boundary check
 SET(STATUS_RELAX_COORD_BOUND "OFF")
-OPTION(ENABLE_RELAX_COORD_BOUND "Enable a more relaxed boundary error check NC_EINVALCOORDS to allow coordinate start argument equal to dimension size when argument count is zero." OFF)
-IF(ENABLE_RELAX_COORD_BOUND)
+OPTION(ENABLE_ZERO_LENGTH_COORD_BOUND "Enable a more relaxed boundary error check NC_EINVALCOORDS to allow coordinate start argument equal to dimension size when argument count is zero." OFF)
+IF(ENABLE_ZERO_LENGTH_COORD_BOUND)
   SET(STATUS_RELAX_COORD_BOUND "ON")
 ENDIF()
 
