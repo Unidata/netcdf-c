@@ -43,7 +43,7 @@ resultclean() {
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINERAW}/*.dmp ; fi
 for f in $F ; do
     echo "testing: $f"
-    URL="[dap4]file:${DAPTESTFILES}/${f}"
+    URL="[dap4]file://${DAPTESTFILES}/${f}"
     if ! ${VG} ${NCDUMP} "${URL}" > ./results/${f}.dmp; then
         failure "${URL}"
     fi
