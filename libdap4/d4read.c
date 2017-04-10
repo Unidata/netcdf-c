@@ -8,7 +8,6 @@
 static int readpacket(NCD4INFO* state, NCURI*, NCbytes*, NCD4mode, long*);
 static int readfile(const NCURI*, const char* suffix, NCbytes* packet);
 static int readfiletofile(const NCURI*, const char* suffix, FILE* stream, d4size_t*);
-static void cvtpath(const char* inpath, char* outpath);
 
 int
 NCD4_readDMR(NCD4INFO* state)
@@ -155,23 +154,21 @@ readfile(const NCURI* uri, const char* suffix, NCbytes* packet)
     d4size_t totalread = 0;
     NCbytes* tmp = ncbytesnew();
     char* filename = NULL;
-    char* cvtname = NULL;
 
     ncbytescat(tmp,uri->path);
     if(suffix != NULL) ncbytescat(tmp,suffix);
     ncbytesnull(tmp);
     filename = ncbytesextract(tmp);
     ncbytesfree(tmp);
-    cvtname = (char*)malloc(strlen(filename)+strlen("/cygdrive/X/")+1);
-    cvtpath(filename,cvtname);
     flags = O_RDONLY;
 #ifdef O_BINARY
     flags |= O_BINARY;
 #endif
-    fd = open(cvtname,flags);
+    fprintf(stderr,"XXXX: d4read.c(line %d) open: path=|%s|\n",__LINE__,filename); fflush(stderr);
+    fd = open(filename,flags);
     if(fd < 0) {
-	nclog(NCLOGERR,"open failed:%s",cvtname);
-	fprintf(stderr,"XXX: open failed: flags=0x%x file=%s\n",flags,cvtname); fflush(stderr);
+	nclog(NCLOGERR,"open failed:%s",filename);
+	fprintf(stderr,"XXX: open failed: flags=0x%x file=%s\n",flags,filename); fflush(stderr);
 	stat = NC_ENOTFOUND;
 	goto done;
     }
@@ -209,82 +206,6 @@ done:
 fprintf(stderr,"readfile: filesize=%lu totalread=%lu\n",
 		(unsigned long)filesize,(unsigned long)totalread);
 #endif
-    nullfree(cvtname);
     if(fd >= 0) close(fd);
     return THROW(stat);
-}
-
-
-/**************************************************/
-/* Support conversion of cygwin /cygdrive paths to windows drive: format
-   and vice versa
-*/
-
-#ifdef _MSC_VER
-static const int isvs = 1;
-#else
-static const int isvs = 0;
-#endif
-
-static char* drive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-static size_t cdlen = 10; /* strlen("/cygdrive/") */
-
-static void
-cvtpath(const char* inpath, char* outpath)
-{
-    int iswin = 0;
-
-    /* Quick discriminant */
-    if(strlen(inpath) < 2) 
-	iswin = 0;
-    else if(strchr(drive,inpath[0]) != NULL && inpath[1] == ':')
-	iswin = 1;
-    else
-	iswin = 0;
-
-    /* 4 cases isvs X iswin */
-    if(isvs && iswin)
-	goto pass; /* nothing to do */
-
-    if(!isvs && !iswin)
-	goto pass; /* nothing to do */
-
-    if(isvs && !iswin) { /* Convert cygwin to windows but using forward slash*/
-        size_t cdlen = strlen("/cygdrive/");
-        int letter;
-        int slash;
-        if(strlen(inpath) < cdlen+1)
-	    goto pass; /* not cygwin */
-        letter = inpath[cdlen];
-        slash = inpath[cdlen+1];
-        if(memcmp(inpath,"/cygdrive/",cdlen)==0
-	   && strchr(drive,letter) != NULL
-           && (slash == '/' || slash == '\0')) { /* cygwin path */
-	    outpath[0] = (char)letter;
-	    outpath[1] = ':';
-	    strcpy(&outpath[2],&inpath[cdlen+1]);
-	    goto done;
-	} else
-	    goto pass; /* not cygwin */
-    }
-
-    if(!isvs && iswin) { /* Convert windows to cygwin; also '\\' -> '/' */
-	char* p;
-        char lc[2];
-	lc[0] = inpath[0];
-	lc[1] = '\0';
-	strcpy(outpath,"/cygdrive/");
-	strcat(outpath,lc);
-	strcat(outpath,&inpath[2]);
-	for(p=outpath;*p;p++) {
-	    if(*p == '\\') *p = '/';
-	}
-	goto done;
-    }
-
-pass:
-    strcpy(outpath,inpath);
-
-done:
-    return;
 }
