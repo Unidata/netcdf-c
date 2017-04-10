@@ -120,6 +120,7 @@ typedef bool nc_utf8proc_bool;
 #endif
 #include <limits.h>
 
+#ifndef UTF8PROC_EXPORTS
 #ifdef _WIN32
 #  ifdef UTF8PROC_EXPORTS
 #    define UTF8PROC_DLLEXPORT __declspec(dllexport)
@@ -130,6 +131,7 @@ typedef bool nc_utf8proc_bool;
 #  define UTF8PROC_DLLEXPORT __attribute__ ((visibility("default")))
 #else
 #  define UTF8PROC_DLLEXPORT
+#endif
 #endif
 
 #ifdef __cplusplus

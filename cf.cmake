@@ -2,16 +2,8 @@
 NC4=1
 DAP=1
 
-# Is visual studio being used?
-VS=yes
-#CYGWIN=yes
-
-if test "x$VS" = x ; then
-#CC=mpicc
-CC=gcc
-fi
-
-export CC
+#export CC=mpicc
+export CC=gcc
 
 FLAGS="-DCMAKE_PREFIX_PATH=c:/tools/nccmake"
 FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=d:/ignore"
@@ -29,17 +21,21 @@ FLAGS="$FLAGS -DENABLE_DAP_REMOTE_TESTS=true"
 FLAGS="$FLAGS -DENABLE_TESTS=true"
 FLAGS="$FLAGS -DENABLE_EXAMPLES=false"
 #FLAGS="$FLAGS -DENABLE_HDF4=true"
+FLAGS="$FLAGS -DENABLE_DYNAMIC_LOADING=false"
 
 rm -fr build
 mkdir build
 cd build
 
-cmake $FLAGS ..
-# We must use Release config here because Debug will invoke a runtime dialog box.
+NCLIB=`pwd`
+NCLIB="${NCLIB}/build/liblib"
 
-# If missing, appears to default to Debug
-VSCFG=RelWithDebInfo
-CFG="--config $VSCFG"
-export PATH="/cygdrive/d/git/dap4/build/liblib/${VSCFG}:$PATH"
-cmake --build . ${CFG}
-cmake --build . ${CFG} --target RUN_TESTS
+G="-GUnix Makefiles"
+cmake "${G}" $FLAGS ..
+#cmake "${G}" --build .
+
+#cmake "${G}" --build . --target test
+make all
+export PATH="${NCLIB}:${PATH}"
+make test
+exit
