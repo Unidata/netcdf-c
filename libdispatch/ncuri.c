@@ -18,6 +18,7 @@
 #include "netcdf.h"
 
 #define NCURIDEBUG
+#define WINDEBUG
 
 #ifdef NCURIDEBUG
 #define THROW(n) {ret=(n); goto done;}
@@ -912,3 +913,96 @@ parselist(char* ptext, NClist* list)
     }
     return ret;
 }
+
+/**************************************************/
+/**************************************************/
+/*
+Code to provide some path conversion code so that
+paths extracted from URLs can be passed to open/fopen
+for Windows. Other cases will be added as needed.
+Assumptions:
+1. a leading single alpha-character path element
+   will be interpreted as a windows drive letter.
+2. a leading '/cygdrive/X' will be converted to
+   a drive letter X if X is alpha-char.
+3. Forward slashes will be converted to backslashes.
+*/
+
+#if defined(_WIN32) || defined(WINDEBUG)
+
+/* Define legal windows drive letters */
+static char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+static size_t cdlen = 10; /* strlen("/cygdrive/") */
+
+char* /* caller frees */
+NCpathcvt(const char* path)
+{
+    char* outpath = NULL; 
+    char* p;
+    char* q;
+    size_t pathlen;
+
+    if(path == NULL) return NULL; /* defensive driving */
+    pathlen = strlen(path);
+
+    /* 1. look for MSYS path /D/... */
+    if(pathlen >= 2
+	&& (path[0] == '/' || path[0] == '\\')
+	&& strchr(windrive,path[1]) != NULL
+	&& (path[2] == '/' || path[2] == '\\' || path[2] == '\0')) {
+	/* Assume this is a mingw path */
+	outpath = (char*)malloc(pathlen+3); /* conservative */
+	if(outpath == NULL) return NULL;
+	q = outpath;
+	*q++ = path[1];
+	*q++ = ':';
+	strncpy(q,&path[2],pathlen);
+	if(strlen(outpath) == 2)
+	    strcat(outpath,"/");
+	goto slashtrans;
+    }
+
+    /* 2. Look for leading /cygdrive/D where D is a single-char drive letter */
+    if(pathlen >= (cdlen+1)
+	&& memcmp(path,"/cygdrive/",cdlen)==0
+	&& strchr(windrive,path[cdlen]) != NULL
+	&& (path[cdlen+1] == '/'
+	    || path[cdlen+1] == '\\'
+	    || path[cdlen+1] == '\0')) {
+	/* Assume this is a cygwin path */
+	outpath = (char*)malloc(pathlen+1); /* conservative */
+	if(outpath == NULL) return NULL;
+	outpath[0] = path[cdlen];
+	outpath[1] = ':';
+	strncpy(&outpath[2],&path[cdlen+1],pathlen);
+	if(strlen(outpath) == 2)
+	    strcat(outpath,"/");
+	goto slashtrans;
+    }
+
+    /* 3. Other: just pass thru */
+    outpath = strdup(path);
+    if(outpath == NULL) return NULL;
+
+slashtrans:
+    /* In all cases, translate '/' -> '\\' */
+    p = outpath;
+    for(;*p;p++) {
+	if(*p == '/') {*p = '\\';}
+    }
+    return outpath;
+}
+
+#else
+
+/* Noop if we are not running under Windows OS */
+char*
+NCpathcvt(const char* path)
+{
+
+    return strdup(path); /* just pass thru */
+}
+
+#endif
+

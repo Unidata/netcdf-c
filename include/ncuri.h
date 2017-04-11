@@ -85,6 +85,9 @@ extern char* ncuriencode(char* s, char* allowable);
 extern char* ncuridecode(char* s);
 extern char* ncuridecodeonly(char* s, char*);
 
+/* path converter; caller frees result */
+extern char* NCpathcvt(const char* path);
+
 #if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__) || defined(__CPLUSPLUS)
 }
 #endif
