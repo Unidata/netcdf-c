@@ -54,12 +54,10 @@ NULL
 
 /* Path conversion tests */
 static Test PATHTESTS[] = {
-/*
 {"/xxx/a/b","\\xxx\\a\\b"},
 {"d:/x/y","d:\\x\\y"},
 {"/cygdrive/d/x/y","d:\\x\\y"},
 {"/d/x/y","d:\\x\\y"},
-*/
 {"/cygdrive/d","d:\\"},
 {"/d","d:\\"},
 {NULL,NULL}

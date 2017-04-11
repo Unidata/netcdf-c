@@ -18,7 +18,6 @@
 #include "netcdf.h"
 
 #define NCURIDEBUG
-#define WINDEBUG
 
 #ifdef NCURIDEBUG
 #define THROW(n) {ret=(n); goto done;}
@@ -928,8 +927,6 @@ Assumptions:
 3. Forward slashes will be converted to backslashes.
 */
 
-#if defined(_WIN32) || defined(WINDEBUG)
-
 /* Define legal windows drive letters */
 static char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -975,7 +972,7 @@ NCpathcvt(const char* path)
 	if(outpath == NULL) return NULL;
 	outpath[0] = path[cdlen];
 	outpath[1] = ':';
-	strncpy(&outpath[2],&path[cdlen+1],pathlen);
+	strcpy(&outpath[2],&path[cdlen+1]);
 	if(strlen(outpath) == 2)
 	    strcat(outpath,"/");
 	goto slashtrans;
@@ -993,16 +990,3 @@ slashtrans:
     }
     return outpath;
 }
-
-#else
-
-/* Noop if we are not running under Windows OS */
-char*
-NCpathcvt(const char* path)
-{
-
-    return strdup(path); /* just pass thru */
-}
-
-#endif
-
