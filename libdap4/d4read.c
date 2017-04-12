@@ -165,7 +165,16 @@ readfile(const NCURI* uri, const char* suffix, NCbytes* packet)
     flags |= O_BINARY;
 #endif
     fprintf(stderr,"XXXX: d4read.c(line %d) open: path=|%s|\n",__LINE__,filename); fflush(stderr);
+   {
+#ifdef _WIN32
+    char* cvtname = NCpathcvt(filename);
+    if(cvtname == NULL) {stat = NC_ENOMEM; goto done;}
+    fd = open(cvtname,flags);
+    free(cvtname);    
+#else
     fd = open(filename,flags);
+#endif
+   }
     if(fd < 0) {
 	nclog(NCLOGERR,"open failed:%s",filename);
 	fprintf(stderr,"XXX: open failed: flags=0x%x file=%s\n",flags,filename); fflush(stderr);
