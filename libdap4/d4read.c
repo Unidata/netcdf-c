@@ -3,6 +3,9 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#include "ncwinpath.h"
+
+/* Do conversion if this code was compiled via Vis. Studio or Mingw */
 
 /*Forward*/
 static int readpacket(NCD4INFO* state, NCURI*, NCbytes*, NCD4mode, long*);
@@ -164,20 +167,12 @@ readfile(const NCURI* uri, const char* suffix, NCbytes* packet)
 #ifdef O_BINARY
     flags |= O_BINARY;
 #endif
-    fprintf(stderr,"XXXX: d4read.c(line %d) open: path=|%s|\n",__LINE__,filename); fflush(stderr);
-   {
-#ifdef _WIN32
-    char* cvtname = NCpathcvt(filename);
-    if(cvtname == NULL) {stat = NC_ENOMEM; goto done;}
-    fd = open(cvtname,flags);
-    free(cvtname);    
-#else
-    fd = open(filename,flags);
-#endif
-   }
+fprintf(stderr,"XXX: flags=0x%x file=%s\n",flags,filename);
+    fd = NCopen2(filename,flags);
     if(fd < 0) {
 	nclog(NCLOGERR,"open failed:%s",filename);
-	fprintf(stderr,"XXX: open failed: flags=0x%x file=%s\n",flags,filename); fflush(stderr);
+	fprintf(stderr,"XXX: open failed: flags=0x%x file=%s\n",flags,filename);
+        fflush(stderr);
 	stat = NC_ENOTFOUND;
 	goto done;
     }

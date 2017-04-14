@@ -22,10 +22,10 @@ Research/Unidata. See COPYRIGHT file for more info.
 #endif
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
+#include "ncwinpath.h"
 
 extern int NC_initialized;
 extern int NC_finalized;
-
 
 /** \defgroup datasets NetCDF File and Data I/O
 
@@ -1632,7 +1632,7 @@ stored.
 \returns ::NC_NOERR No error.
 */
 int
-NC_create(const char *path, int cmode, size_t initialsz,
+NC_create(const char *path0, int cmode, size_t initialsz,
 	  int basepe, size_t *chunksizehintp, int useparallel,
 	  void* parameters, int *ncidp)
 {
@@ -1643,10 +1643,10 @@ NC_create(const char *path, int cmode, size_t initialsz,
    int model = NC_FORMATX_UNDEFINED; /* one of the NC_FORMATX values */
    int isurl = 0;   /* dap or cdmremote or neither */
    int xcmode = 0; /* for implied cmode flags */
-   char* newpath = NULL;
+   char* path = NULL;
 
    TRACE(nc_create);
-   if(path == NULL)
+   if(path0 == NULL)
 	return NC_EINVAL;
    /* Initialize the dispatch table. The function pointers in the
     * dispatch table will depend on how netCDF was built
@@ -1657,17 +1657,32 @@ NC_create(const char *path, int cmode, size_t initialsz,
 	 return stat;
    }
 
+#ifdef WINPATH
+   /* Need to do path conversion */
+   path = NCpathcvt(path0);
+fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
+#else
+   path = nulldup(path0);
+#endif
+
 #ifdef USE_REFCOUNT
    /* If this path is already open, then fail */
    ncp = find_in_NCList_by_name(path);
-   if(ncp != NULL)
+   if(ncp != NULL) {
+	nullfree(path);
 	return NC_ENFILE;
+   }
 #endif
 
-    model = NC_urlmodel(path,cmode,&newpath);
-    isurl = (model != 0);
-    if(!isurl)
-	newpath = strdup(path);
+    {
+	char* newpath = NULL;
+        model = NC_urlmodel(path,cmode,&newpath);
+        isurl = (model != 0);
+        if(isurl) {
+	    nullfree(path);
+	    path = newpath;
+	}
+    }
 
    /* Look to the incoming cmode for hints */
    if(model == NC_FORMATX_UNDEFINED) {
@@ -1746,8 +1761,8 @@ NC_create(const char *path, int cmode, size_t initialsz,
    }
 
    /* Create the NC* instance and insert its dispatcher */
-   stat = new_NC(dispatcher,newpath,cmode,&ncp);
-   nullfree(newpath); newpath = NULL; /* no longer needed */
+   stat = new_NC(dispatcher,path,cmode,&ncp);
+   nullfree(path); path = NULL; /* no longer needed */
    
    if(stat) return stat;
 
@@ -1800,7 +1815,7 @@ NC_open(const char *path0, int cmode,
    int isurl = 0;
    int version = 0;
    int flags = 0;
-   char* path = nulldup(path0);
+   char* path = NULL;
 
    TRACE(nc_open);
    if(!NC_initialized) {
@@ -1808,10 +1823,19 @@ NC_open(const char *path0, int cmode,
       if(stat) return stat;
    }
 
+#ifdef WINPATH
+   /* Need to do path conversion */
+   path = NCpathcvt(path0);
+fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
+#else
+   path = nulldup(path0);
+#endif
+
 #ifdef USE_REFCOUNT
    /* If this path is already open, then bump the refcount and return it */
    ncp = find_in_NCList_by_name(path);
    if(ncp != NULL) {
+	nullfree(path);
 	ncp->refcount++;
 	if(ncidp) *ncidp = ncp->ext_ncid;
 	return NC_NOERR;
@@ -1825,7 +1849,8 @@ NC_open(const char *path0, int cmode,
 	if(isurl) {
 	    nullfree(path);
 	    path = newpath;
-	}
+	} else
+	    nullfree(newpath);
     }
     if(model == 0) {
 	version = 0;

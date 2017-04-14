@@ -46,6 +46,7 @@ int optind;
 #include "isnan.h"
 #include "cdl.h"
 #include "nclog.h"
+#include "ncwinpath.h"
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h" /* to get name of the special properties file */
@@ -339,7 +340,7 @@ fileopen(const char* path, void** memp, size_t* sizep)
 #ifdef vms
     fd = open(path, oflags, 0, "ctx=stm");
 #else
-    fd  = open(path, oflags);
+    fd  = NCopen2(path, oflags);
 #endif
     if(fd < 0) {
 	status = errno;

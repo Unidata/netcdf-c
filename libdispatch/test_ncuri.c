@@ -12,8 +12,6 @@ Test the ncuri parsing
 #include <string.h>
 #include "ncuri.h"
 
-#define WINDEBUG 1
-
 typedef struct Test {
     char* url;
     char* expected;
@@ -50,17 +48,6 @@ static char* XTESTS[] = {
 "file://x/y",
 "[dap4http://localhost:8081/x",
 NULL
-};
-
-/* Path conversion tests */
-static Test PATHTESTS[] = {
-{"/xxx/a/b","\\xxx\\a\\b"},
-{"d:/x/y","d:\\x\\y"},
-{"/cygdrive/d/x/y","d:\\x\\y"},
-{"/d/x/y","d:\\x\\y"},
-{"/cygdrive/d","d:\\"},
-{"/d","d:\\"},
-{NULL,NULL}
 };
 
 int
@@ -102,22 +89,6 @@ main(int argc, char** argv)
 	    failcount++;
 	}
     }
-
-#if defined(_WIN32) || defined(WINDEBUG)
-    for(test=PATHTESTS;test->url;test++) {
-	int ret = 0;
-	char* cvt = NCpathcvt(test->url);
-	if(cvt == NULL) {
-	    fprintf(stderr,"TEST returned NULL: %s\n",test->url);
-	    exit(1);
-	}
-	if(strcmp(cvt,test->expected) != 0) {
-	    fprintf(stderr,"NCpathcvt failed:: input: |%s| expected=|%s| actual=|%s|\n",test->url,test->expected,cvt);
-	    failcount++;
-	}
-	free(cvt);
-    }
-#endif /* _WIN32 */
 
     fprintf(stderr,"%s test_ncuri\n",failcount > 0 ? "***FAIL":"***PASS");
     return (failcount > 0 ? 1 : 0);

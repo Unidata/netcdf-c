@@ -7,6 +7,7 @@
 
 #include "includes.h"
 #include "ncoffsets.h"
+#include "ncwinpath.h"
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -453,7 +454,7 @@ main(
     if (argc > 0 && strcmp(argv[0], "-") != 0) {
 	char bom[4];
 	size_t count;
-	if ((fp = fopen(argv[0], "r")) == NULL) {
+	if ((fp = NCfopen(argv[0], "r")) == NULL) {
 	    derror ("can't open file %s for reading: ", argv[0]);
 	    perror("");
 	    return(7);

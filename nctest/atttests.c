@@ -698,9 +698,6 @@ test_ncattcopy(path1, path2)
 	error("%s: ncendef failed", pname);
 	ncclose(cdfid); return ++nerrs;
     }
-if(strcmp(path1, "nctest_netcdf4.nc")==0) {
-int x=0;
-}  
     /* first (source) netcdf is in data mode */
     /* create second netCDF to copy attributes to */
     if ((cdfid2 = nccreate(path2, NC_CLOBBER)) == -1) {
