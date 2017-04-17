@@ -1940,6 +1940,44 @@ havetable:
 	del_from_NCList(ncp);
 	free_NC(ncp);
    }
+
+   /*
+    * If the file is a classic format, check that the variable
+    * and dimension count do not exceed the values specified
+    * by NC_MAX_DIMS and NC_MAX_VARS
+    *
+    * If the mode argument passed by the client code contains
+    * either NC_IGNORE_MAX_DIMS or NC_IGNORE_MAX_VARS, then
+    * the client code is specifying that it can correctly handle
+    * "invalid" netCDF files which may have dim and var counts
+    * exceeding NC_MAX_DIMS and NC_MAX_VARS
+    */
+
+   if (model != NC_FORMATX_NC4 ||
+       (model == NC_FORMATX_NC4 && (cmode & NC_CLASSIC_MODEL))) {
+     if (!(cmode & NC_IGNORE_MAX_DIMS)) {
+       int ndims = 0;
+       nc_inq_ndims(ncp->ext_ncid, &ndims);
+       if (ndims > NC_MAX_DIMS) {
+	 fprintf(stderr,
+		 "WARNING: File contains %d dimensions which exceeds the maximum allowed value of %d\n",
+		 ndims, NC_MAX_DIMS);
+	 return NC_EMAXDIMS;
+       }
+     }
+
+     if (!(cmode & NC_IGNORE_MAX_VARS)) {
+       int nvars = 0;
+       nc_inq_nvars(ncp->ext_ncid, &nvars);
+       if (nvars > NC_MAX_VARS) {
+	 fprintf(stderr,
+		 "WARNING: File contains %d variables which exceeds the maximum allowed value of %d\n",
+		 nvars, NC_MAX_VARS);
+	 return NC_EMAXVARS;
+       }
+     }
+   }
+
    return stat;
 }
 
