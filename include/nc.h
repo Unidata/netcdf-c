@@ -73,10 +73,6 @@ set_NC_string(NC_string *ncstrp, const char *str);
 extern int
 NC_check_id(int ncid, NC **ncpp);
 
-/* Create a pseudo file descriptor that does not
-   overlap real file descriptors */
-extern int nc__pseudofd(void);
-
 /* This function gets a current default create flag */
 extern int nc_get_default_format(void);
 
@@ -94,5 +90,27 @@ extern int new_NC(struct NC_Dispatch*, const char*, int, NC**);
 
 /* Defined in nc.c */
 extern int ncdebug;
+
+
+extern int NC_get_vara(int ncid, int varid, const size_t *start, const size_t *edges, void *value, nc_type memtype);
+extern int NC_get_vars(int ncid, int varid, const size_t *start, const size_t *edges, const ptrdiff_t *stride, void *value, nc_type memtype);
+extern int NC_get_varm(int ncid, int varid, const size_t *start, const size_t *edges, const ptrdiff_t *stride, const ptrdiff_t* map, void *value, nc_type memtype);
+
+extern int NC_put_vara(int ncid, int varid, const size_t *start, const size_t *edges, const void *value, nc_type memtype);
+extern int NC_put_vars(int ncid, int varid, const size_t *start, const size_t *edges, const ptrdiff_t *stride, const void *value, nc_type memtype);
+extern int NC_put_varm(int ncid, int varid, const size_t *start, const size_t *edges, const ptrdiff_t *stride, const ptrdiff_t* map, const void *value, nc_type memtype);
+
+extern int NC_get_att(int ncid, int varid, const char *name, void *value, nc_type xtype);
+extern int NC_put_att(int ncid, int varid, const char *name, nc_type type, size_t len, const void *value, nc_type memtype);
+
+extern int
+NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
+               int *ndimsp, int *dimidsp, int *nattsp,
+               int *shufflep, int *deflatep, int *deflate_levelp,
+               int *fletcher32p, int *contiguousp, size_t *chunksizesp,
+               int *no_fill, void *fill_valuep, int *endiannessp,
+	       int *options_maskp, int *pixels_per_blockp);
+
+extern int nc__pseudofd(void);
 
 #endif /* _NC_H_ */
