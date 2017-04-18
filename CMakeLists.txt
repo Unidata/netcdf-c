@@ -980,14 +980,12 @@ OPTION(ENABLE_PNETCDF "Build with parallel I/O for classic and 64-bit offset fil
 IF(ENABLE_PNETCDF)
   # Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
   # Does the user want to turn on PNETCDF read ability?
-  SET(USE_PNETCDF ON CACHE BOOL "")
   FIND_LIBRARY(PNETCDF NAMES pnetcdf)
   FIND_PATH(PNETCDF_INCLUDE_DIR pnetcdf.h)
   IF(NOT PNETCDF)
     MESSAGE(STATUS "Cannot find PNetCDF library. Disabling PNetCDF support.")
     SET(USE_PNETCDF OFF CACHE BOOL "")
   ELSE(NOT PNETCDF)
-    SET(USE_PARALLEL ON CACHE BOOL "")
 
     # Check PNetCDF version. Must be >= 1.6.0
     set(pnetcdf_h "${PNETCDF_INCLUDE_DIR}/pnetcdf.h" )
@@ -1007,7 +1005,8 @@ IF(ENABLE_PNETCDF)
       SET(HAVE_LIBPNETCDF ON)
       # pnetcdf => parallel
       SET(STATUS_PARALLEL ON)
-      SET(USE_PARALLEL ON)
+      SET(USE_PARALLEL ON CACHE BOOL "")
+      SET(USE_PNETCDF ON CACHE BOOL "")
       MESSAGE(STATUS "Using PNetCDF Library: ${PNETCDF}")
     ELSE()
       MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.1 or later; found version ${pnetcdf_version}. PNetCDF is disabled")
