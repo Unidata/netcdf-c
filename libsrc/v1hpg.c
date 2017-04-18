@@ -340,11 +340,11 @@ static int
 v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 {
 	int status;
-	size_t nchars = 0;
+	size_t padding, nchars = 0;
 	NC_string *ncstrp;
 
 	status = v1h_get_size_t(gsp, &nchars);
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
 		return status;
 
 	ncstrp = new_NC_string(nchars, NULL);
@@ -352,7 +352,6 @@ v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 	{
 		return NC_ENOMEM;
 	}
-
 
 #if 0
 /* assert(ncstrp->nchars == nchars || ncstrp->nchars - nchars < X_ALIGN); */
@@ -362,22 +361,33 @@ v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 
 	status = check_v1hs(gsp, _RNDUP(ncstrp->nchars, X_ALIGN));
 #endif
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
 		goto unwind_alloc;
 
 	status = ncx_pad_getn_text((const void **)(&gsp->pos),
 		 nchars, ncstrp->cp);
-    if(status != NC_NOERR)
+	if(status != NC_NOERR)
 		goto unwind_alloc;
+
+	padding = _RNDUP(X_SIZEOF_CHAR * ncstrp->nchars, X_ALIGN)
+		- X_SIZEOF_CHAR * ncstrp->nchars;
+	if (padding > 0) {
+		/* CDF specification: Header padding uses null (\x00) bytes. */
+		char pad[X_ALIGN-1];
+		memset(pad, 0, X_ALIGN-1);
+		if (memcmp((char*)gsp->pos-padding, pad, padding) != 0) {
+			free_NC_string(ncstrp);
+			return NC_EINVAL;
+		}
+	}
 
 	*ncstrpp = ncstrp;
 
-    return NC_NOERR;
+	return NC_NOERR;
 
 unwind_alloc:
 	free_NC_string(ncstrp);
 	return status;
-
 }
 
 /* End NC_string */
@@ -614,6 +624,28 @@ ncx_len_NC_attr(const NC_attr *attrp, int version)
 #undef MIN
 #define MIN(mm,nn) (((mm) < (nn)) ? (mm) : (nn))
 
+/*----< ncmpix_len_nctype() >------------------------------------------------*/
+/* return the length of external data type */
+static int
+ncmpix_len_nctype(nc_type type) {
+    switch(type) {
+        case NC_BYTE:
+        case NC_CHAR:
+        case NC_UBYTE:  return X_SIZEOF_CHAR;
+        case NC_SHORT:  return X_SIZEOF_SHORT;
+        case NC_USHORT: return X_SIZEOF_USHORT;
+        case NC_INT:    return X_SIZEOF_INT;
+        case NC_UINT:   return X_SIZEOF_UINT;
+        case NC_FLOAT:  return X_SIZEOF_FLOAT;
+        case NC_DOUBLE: return X_SIZEOF_DOUBLE;
+        case NC_INT64:  return X_SIZEOF_INT64;
+        case NC_UINT64: return X_SIZEOF_UINT64;
+        default: fprintf(stderr,"ncmpix_len_nctype bad type %d\n",type);
+                 assert(0);
+    }
+    return 0;
+}
+
 /*
  * Put the values of an attribute
  * The loop is necessary since attrp->nelems
@@ -626,7 +658,7 @@ v1h_put_NC_attrV(v1hs *psp, const NC_attr *attrp)
 	const size_t perchunk =  psp->extent;
 	size_t remaining = attrp->xsz;
 	void *value = attrp->xvalue;
-	size_t nbytes;
+	size_t nbytes, padding;
 
 	assert(psp->extent % X_ALIGN == 0);
 
@@ -634,7 +666,7 @@ v1h_put_NC_attrV(v1hs *psp, const NC_attr *attrp)
 		nbytes = MIN(perchunk, remaining);
 
 		status = check_v1hs(psp, nbytes);
-        if(status != NC_NOERR)
+		if(status != NC_NOERR)
 			return status;
 
 		(void) memcpy(psp->pos, value, nbytes);
@@ -643,14 +675,20 @@ v1h_put_NC_attrV(v1hs *psp, const NC_attr *attrp)
 		psp->pos = (void *)((signed char *)psp->pos + nbytes);
 		value = (void *)((signed char *)value + nbytes);
 #else
-        psp->pos = (void *)((char *)psp->pos + nbytes);
+		psp->pos = (void *)((char *)psp->pos + nbytes);
 		value = (void *)((char *)value + nbytes);
 #endif
-        remaining -= nbytes;
+		remaining -= nbytes;
 
 	} while(remaining != 0);
 
-    return NC_NOERR;
+	padding = attrp->xsz - ncmpix_len_nctype(attrp->type) * attrp->nelems;
+	if (padding > 0) {
+		/* CDF specification: Header padding uses null (\x00) bytes. */
+		memset((char*)psp->pos-padding, 0, padding);
+	}
+
+	return NC_NOERR;
 }
 
 /* Write a NC_attr to the header */
@@ -691,13 +729,13 @@ v1h_get_NC_attrV(v1hs *gsp, NC_attr *attrp)
 	const size_t perchunk =  gsp->extent;
 	size_t remaining = attrp->xsz;
 	void *value = attrp->xvalue;
-	size_t nget;
+	size_t nget, padding;
 
 	do {
 		nget = MIN(perchunk, remaining);
 
 		status = check_v1hs(gsp, nget);
-        if(status != NC_NOERR)
+		if(status != NC_NOERR)
 			return status;
 
 		(void) memcpy(value, gsp->pos, nget);
@@ -705,15 +743,24 @@ v1h_get_NC_attrV(v1hs *gsp, NC_attr *attrp)
 		gsp->pos = (void *)((signed char *)gsp->pos + nget);
 		value = (void *)((signed char *)value + nget);
 #else
-        gsp->pos = (void *)((char *)gsp->pos + nget);
+		gsp->pos = (void *)((char *)gsp->pos + nget);
 		value = (void *)((char *)value + nget);
 #endif
 
-        remaining -= nget;
+		remaining -= nget;
 
 	} while(remaining != 0);
 
-    return NC_NOERR;
+	padding = attrp->xsz - ncmpix_len_nctype(attrp->type) * attrp->nelems;
+	if (padding > 0) {
+		/* CDF specification: Header padding uses null (\x00) bytes. */
+		char pad[X_ALIGN-1];
+		memset(pad, 0, X_ALIGN-1);
+		if (memcmp((char*)gsp->pos-padding, pad, (size_t)padding) != 0)
+			return NC_EINVAL;
+	}
+
+	return NC_NOERR;
 }
 
 
