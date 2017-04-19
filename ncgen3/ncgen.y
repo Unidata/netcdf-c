@@ -29,7 +29,9 @@ typedef struct Symbol {		/* symbol table entry */
 	} *YYSTYPE1;
 
 /* True if string a equals string b*/
+#ifndef STREQ
 #define	STREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
+#endif
 #define NC_UNSPECIFIED ((nc_type)0)	/* unspecified (as yet) type */
 
 #define YYSTYPE YYSTYPE1

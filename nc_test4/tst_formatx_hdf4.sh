@@ -2,6 +2,9 @@
 # This shell script tests the output several previous tests.
 # $Id: tst_output.sh,v 1.17 2010/05/14 16:21:15 ed Exp $
 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 FILE=tst_interops2.h4
 
 ECODE=0
@@ -12,7 +15,7 @@ set -e
 
 echo "Test extended format output for a HDF4 file"
 rm -f tmp
-../ncdump/ncdump -K $FILE >tmp
+${NCDUMP} -K $FILE >tmp
 if ! fgrep 'HDF4 mode=00001000' <tmp ; then
 TMP=`cat tmp`
 echo "*** Fail: extended format for an HDF4 file: result=" $TMP

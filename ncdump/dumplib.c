@@ -9,7 +9,7 @@
  * definition for va_list from the GNU C compiler.
  */
 
-#include <config.h>
+#include "config.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -9,6 +9,7 @@
 #define DEBUG
 
 #include "netcdf.h"
+#include "nctestserver.h"
 
 #undef NOEMBED
 #undef NOLOCAL
@@ -20,12 +21,11 @@
 #define RC ".ocrc"
 #define SPECRC "./ocrc"
 
-#define DEFAULTTESTSERVER "remotetest.unidata.ucar.edu"
 #define USERPWD "tiggeUser:tigge"
 #define COOKIEFILE "./cookies"
 
-#define URL1 "https://%s@%s/thredds/dodsC/restrict/testData.nc"
-#define URL2 "https://%s/thredds/dodsC/restrict/testData.nc"
+#define URL1 "https://%s@%s/dodsC/restrict/testData.nc"
+#define URL2 "https://%s/dodsC/restrict/testData.nc"
 #define URL3 "https://%s@thredds-test.ucar.edu/thredds/dodsC/restrict/testData.nc"
 
 /* Embedded user:pwd */
@@ -63,7 +63,7 @@ main(int argc, char** argv)
 
     fprintf(stderr,"Testing: Authorization\n");
 
-    dfaltsvc = DEFAULTTESTSERVER;
+    dfaltsvc = nc_findtestserver("thredds",0,REMOTETESTSERVERS);
     snprintf(url1,sizeof(url1),URL1,USERPWD,dfaltsvc); /* embedded */
     snprintf(url2,sizeof(url2),URL2,dfaltsvc); /* using rc file */
 

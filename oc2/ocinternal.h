@@ -40,9 +40,10 @@
 #define CURL_DISABLE_TYPECHECK 1
 #include <curl/curl.h>
 
-#include "oclist.h"
-#include "ocbytes.h"
-#include "ocuri.h"
+#include "netcdf.h"
+#include "nclist.h"
+#include "ncbytes.h"
+#include "ncuri.h"
 
 #ifndef HAVE_STRNDUP
 /* Not all systems have strndup, so provide one*/
@@ -69,10 +70,10 @@ typedef struct OCdata OCdata;
 struct OCTriplestore;
 
 /* Define the internal node classification values */
-#define OC_None  0
-#define OC_State 1
-#define OC_Node  2
-#define OC_Data  3
+#define OC_None  ((unsigned int)0)
+#define OC_State ((unsigned int)1)
+#define OC_Node  ((unsigned int)2)
+#define OC_Data  ((unsigned int)3)
 
 /* Define a magic number to mark externally visible oc objects */
 #define OCMAGIC ((unsigned int)0x0c0c0c0c) /*clever, huh*/
@@ -96,7 +97,7 @@ typedef struct OCheader {
 #include "ocdata.h"
 #include "occonstraints.h"
 #include "ocutil.h"
-#include "oclog.h"
+#include "nclog.h"
 #include "xxdr.h"
 #include "ocdatatypes.h"
 #include "occompile.h"
@@ -134,7 +135,9 @@ typedef struct OCheader {
 #define DFALTMAXPACKETSIZE 0x3000000 /*approximately 50M bytes*/
 
 /* Default user agent string (will have version appended)*/
+#ifndef DFALTUSERAGENT
 #define DFALTUSERAGENT "oc"
+#endif
 
 /* Hold known curl flags */
 
@@ -175,9 +178,9 @@ extern struct OCGLOBALSTATE {
 /*! Specifies the OCstate = non-opaque version of OClink */
 struct OCstate {
     OCheader header; /* class=OC_State */
-    OClist* trees; /* list<OCNODE*> ; all root objects */
-    OCURI* uri; /* base URI*/
-    OCbytes* packet; /* shared by all trees during construction */
+    NClist* trees; /* list<OCNODE*> ; all root objects */
+    NCURI* uri; /* base URI*/
+    NCbytes* packet; /* shared by all trees during construction */
     struct OCerrdata {/* Hold info for an error return from server */
 	char* code;
 	char* message;
@@ -234,7 +237,7 @@ typedef struct OCtree
     char* text;
     struct OCnode* root; /* cross link */
     struct OCstate* state; /* cross link */
-    OClist* nodes; /* all nodes in tree*/
+    NClist* nodes; /* all nodes in tree*/
     /* when dxdclass == OCDATADDS */
     struct {
 	char*   memory;   /* allocated memory if OC_ONDISK is not set */
@@ -256,7 +259,7 @@ typedef struct OCtree
 #if 0
 /* Location: ceparselex.c*/
 extern int cedebug;
-extern OClist* CEparse(OCstate*,char* input);
+extern NClist* CEparse(OCstate*,char* input);
 #endif
 
 extern OCerror ocopen(OCstate** statep, const char* url);

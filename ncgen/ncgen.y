@@ -13,7 +13,7 @@
 static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 */
 #include        "includes.h"
-#include        "offsets.h"
+#include        "ncoffsets.h"
 #include        "ncgeny.h"
 #include        "ncgen.h"
 
@@ -27,7 +27,9 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #define YY_NO_INPUT 1
 
 /* True if string a equals string b*/
+#ifndef STREQ
 #define STREQ(a, b)     (*(a) == *(b) && strcmp((a), (b)) == 0)
+#endif
 #define VLENSIZE  (sizeof(nc_vlen_t))
 #define MAXFLOATDIM 4294967295.0
 

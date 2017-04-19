@@ -10,13 +10,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "nclist.h"
-#include "ncbytes.h"
-#include "nclog.h"
-
-#include "netcdf.h"
-#include "dceconstraints.h"
-#include "dapdebug.h"
+#include "dapincludes.h"
 #include "dceparselex.h"
 
 #define DEBUG

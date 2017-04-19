@@ -84,14 +84,23 @@ are set when opening a binary file on Windows. */
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF 1
 
-/* if true, build DAP Client */
+/* if true, build DAP2 and DAP4 Client */
 #cmakedefine ENABLE_DAP 1
+
+/* if true, build DAP4 Client */
+#cmakedefine ENABLE_DAP4 1
+
+/* if true, build DAP4 Client */
+#cmakedefine ENABLE_DAP4 1
 
 /* if true, enable DAP group names */
 #cmakedefine ENABLE_DAP_GROUPS 1
 
 /* if true, do remote tests */
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+
+/* define the possible sources for remote test servers */
+#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
 
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
@@ -511,6 +520,9 @@ are set when opening a binary file on Windows. */
 
 /* The size of `ushort', as computed by sizeof. */
 #cmakedefine SIZEOF_USHORT ${SIZEOF_USHORT}
+
+/* The size of `void*', as computed by sizeof. */
+#cmakedefine SIZEOF_VOIDP ${SIZEOF_VOIDP}
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be

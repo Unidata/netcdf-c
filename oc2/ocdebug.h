@@ -26,7 +26,7 @@
    to catch the failure. Turing it on incurs a significant
    performance penalty, so it is off by default.*/
 
-#define OCCATCHERROR
+#undef OCCATCHERROR
 
 #define OCPANIC(msg) assert(ocpanic(msg))
 #define OCPANIC1(msg,arg) assert(ocpanic(msg,arg))
@@ -96,7 +96,6 @@ extern CURLcode ocreportcurlerror(struct OCstate* state, CURLcode cstat);
 #define OCCATCH(e) (e)
 #define OCCATCHCHK(e)
 #define OCGOTO(label) goto label
-#define CURLERR(s,e) (e)
 #define OCCURLERR(s,e) (e)
 #define CURLERR(e) (e)
 #endif

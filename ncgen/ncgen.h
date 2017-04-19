@@ -57,6 +57,7 @@
 #define NEGNC_INFINITEF (-NC_INFINITEF)
 #define NEGNC_INFINITE (-NC_INFINITEF)
 #endif
+
 /* nc_class is one of:
         NC_GRP NC_DIM NC_VAR NC_ATT NC_TYPE
 */

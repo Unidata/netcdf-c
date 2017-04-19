@@ -2,17 +2,11 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
 #endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -27,8 +21,8 @@
 #include "occurlfunctions.h"
 
 /*Forward*/
-static int readpacket(OCstate* state, OCURI*, OCbytes*, OCdxd, long*);
-static int readfile(const char* path, const char* suffix, OCbytes* packet);
+static int readpacket(OCstate* state, NCURI*, NCbytes*, OCdxd, long*);
+static int readfile(const char* path, const char* suffix, NCbytes* packet);
 static int readfiletofile(const char* path, const char* suffix, FILE* stream, off_t*);
 
 int
@@ -37,7 +31,7 @@ readDDS(OCstate* state, OCtree* tree)
     int stat = OC_NOERR;
     long lastmodified = -1;
 
-    ocurisetconstraints(state->uri,tree->constraint);
+    ncurisetquery(state->uri,tree->constraint);
 
 #ifdef OCDEBUG
 fprintf(stderr,"readDDS:\n");
@@ -54,7 +48,7 @@ readDAS(OCstate* state, OCtree* tree)
 {
     int stat = OC_NOERR;
 
-    ocurisetconstraints(state->uri,tree->constraint);
+    ncurisetquery(state->uri,tree->constraint);
 #ifdef OCDEBUG
 fprintf(stderr,"readDAS:\n");
 #endif
@@ -65,7 +59,7 @@ fprintf(stderr,"readDAS:\n");
 
 #if 0
 int
-readversion(OCstate* state, OCURI* url, OCbytes* packet)
+readversion(OCstate* state, NCURI* url, NCbytes* packet)
 {
    return readpacket(state,url,packet,OCVER,NULL);
 }
@@ -84,7 +78,7 @@ ocdxdextension(OCdxd dxd)
 }
 
 static int
-readpacket(OCstate* state, OCURI* url,OCbytes* packet,OCdxd dxd,long* lastmodified)
+readpacket(OCstate* state, NCURI* url,NCbytes* packet,OCdxd dxd,long* lastmodified)
 {
    int stat = OC_NOERR;
    int fileprotocol = 0;
@@ -97,15 +91,13 @@ readpacket(OCstate* state, OCURI* url,OCbytes* packet,OCdxd dxd,long* lastmodifi
    if(fileprotocol && !state->curlflags.proto_file) {
         /* Short circuit file://... urls*/
 	/* We do this because the test code always needs to read files*/
-	fetchurl = ocuribuild(url,NULL,NULL,0);
+	fetchurl = ncuribuild(url,NULL,NULL,NCURIBASE);
 	stat = readfile(fetchurl,suffix,packet);
     } else {
-	int flags = 0;
-	if(!fileprotocol) {
-	    flags |= OCURICONSTRAINTS;
-	}
-	flags |= OCURIENCODE;
-        fetchurl = ocuribuild(url,NULL,suffix,flags);
+	int flags = NCURIBASE;
+	if(!fileprotocol) flags |= NCURIQUERY;
+	flags |= NCURIENCODE;
+        fetchurl = ncuribuild(url,NULL,suffix,flags);
 	MEMCHECK(fetchurl,OC_ENOMEM);
 	if(ocdebug > 0)
             {fprintf(stderr,"fetch url=%s\n",fetchurl); fflush(stderr);}
@@ -119,7 +111,7 @@ readpacket(OCstate* state, OCURI* url,OCbytes* packet,OCdxd dxd,long* lastmodifi
 #ifdef OCDEBUG
   {
 fprintf(stderr,"readpacket: packet.size=%lu\n",
-		(unsigned long)ocbyteslength(packet));
+		(unsigned long)ncbyteslength(packet));
   }
 #endif
     return OCTHROW(stat);
@@ -135,28 +127,27 @@ readDATADDS(OCstate* state, OCtree* tree, OCflags flags)
 fprintf(stderr,"readDATADDS:\n");
 #endif
     if((flags & OCONDISK) == 0) {
-        ocurisetconstraints(state->uri,tree->constraint);
+        ncurisetquery(state->uri,tree->constraint);
         stat = readpacket(state,state->uri,state->packet,OCDATADDS,&lastmod);
         if(stat == OC_NOERR)
             state->datalastmodified = lastmod;
-        tree->data.datasize = ocbyteslength(state->packet);
+        tree->data.datasize = ncbyteslength(state->packet);
     } else { /*((flags & OCONDISK) != 0) */
-        OCURI* url = state->uri;
+        NCURI* url = state->uri;
         int fileprotocol = 0;
         char* readurl = NULL;
 
         fileprotocol = (strcmp(url->protocol,"file")==0);
 
         if(fileprotocol && !state->curlflags.proto_file) {
-            readurl = ocuribuild(url,NULL,NULL,0);
+            readurl = ncuribuild(url,NULL,NULL,NCURIBASE);
             stat = readfiletofile(readurl, ".dods", tree->data.file, &tree->data.datasize);
         } else {
-            int flags = 0;
-            if(!fileprotocol) flags |= OCURICONSTRAINTS;
-            flags |= OCURIENCODE;
-	    flags |= OCURIUSERPWD;
-            ocurisetconstraints(url,tree->constraint);
-            readurl = ocuribuild(url,NULL,".dods",flags);
+            int flags = NCURIBASE;
+            if(!fileprotocol) flags |= NCURIQUERY;
+            flags |= NCURIENCODE;
+            ncurisetquery(url,tree->constraint);
+            readurl = ncuribuild(url,NULL,".dods",flags);
             MEMCHECK(readurl,OC_ENOMEM);
             if (ocdebug > 0) 
                 {fprintf(stderr, "fetch url=%s\n", readurl);fflush(stderr);}
@@ -176,21 +167,21 @@ static int
 readfiletofile(const char* path, const char* suffix, FILE* stream, off_t* sizep)
 {
     int stat = OC_NOERR;
-    OCbytes* packet = ocbytesnew();
+    NCbytes* packet = ncbytesnew();
     size_t len;
     /* check for leading file:/// */
     if(ocstrncmp(path,"file:///",8)==0) path += 7; /* assume absolute path*/
     stat = readfile(path,suffix,packet);
 #ifdef OCDEBUG
 fprintf(stderr,"readfiletofile: packet.size=%lu\n",
-		(unsigned long)ocbyteslength(packet));
+		(unsigned long)ncbyteslength(packet));
 #endif
     if(stat != OC_NOERR) goto unwind;
-    len = oclistlength(packet);
+    len = nclistlength(packet);
     if(stat == OC_NOERR) {
 	size_t written;
         fseek(stream,0,SEEK_SET);
-	written = fwrite(ocbytescontents(packet),1,len,stream);
+	written = fwrite(ncbytescontents(packet),1,len,stream);
 	if(written != len) {
 #ifdef OCDEBUG
 fprintf(stderr,"readfiletofile: written!=length: %lu :: %lu\n",
@@ -201,12 +192,12 @@ fprintf(stderr,"readfiletofile: written!=length: %lu :: %lu\n",
     }
     if(sizep != NULL) *sizep = len;
 unwind:
-    ocbytesfree(packet);
+    ncbytesfree(packet);
     return OCTHROW(stat);
 }
 
 static int
-readfile(const char* path, const char* suffix, OCbytes* packet)
+readfile(const char* path, const char* suffix, NCbytes* packet)
 {
     int stat = OC_NOERR;
     char buf[1024];
@@ -225,14 +216,14 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
 #endif
     fd = open(filename,flags);
     if(fd < 0) {
-	oclog(OCLOGERR,"open failed:%s",filename);
+	nclog(NCLOGERR,"open failed:%s",filename);
 	return OCTHROW(OC_EOPEN);
     }
     /* Get the file size */
     filesize = lseek(fd,(off_t)0,SEEK_END);
     if(filesize < 0) {
 	stat = OC_EIO;
-	oclog(OCLOGERR,"lseek failed: %s",filename);
+	nclog(NCLOGERR,"lseek failed: %s",filename);
 	goto done;
     }
     /* Move file pointer back to the beginning of the file */
@@ -244,15 +235,15 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
 	    break; /*eof*/
 	else if(count <  0) {
 	    stat = OC_EIO;
-	    oclog(OCLOGERR,"read failed: %s",filename);
+	    nclog(NCLOGERR,"read failed: %s",filename);
 	    goto done;
 	}
-	ocbytesappendn(packet,buf,(unsigned long)count);
+	ncbytesappendn(packet,buf,(unsigned long)count);
 	totalread += count;
     }
     if(totalread < filesize) {
 	stat = OC_EIO;
-	oclog(OCLOGERR,"short read: |%s|=%lu read=%lu\n",
+	nclog(NCLOGERR,"short read: |%s|=%lu read=%lu\n",
 		filename,(unsigned long)filesize,(unsigned long)totalread);
         goto done;
     }

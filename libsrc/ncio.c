@@ -97,44 +97,44 @@ ncio_open(const char *path, int ioflags,
 /* wrapper functions for the ncio dispatch table */
 
 int
-ncio_rel(ncio *const nciop, off_t offset, int rflags)
+ncio_rel(ncio* const nciop, off_t offset, int rflags)
 {
     return nciop->rel(nciop,offset,rflags);
 }
 
 int
-ncio_get(ncio *const nciop, off_t offset, size_t extent,
+ncio_get(ncio* const nciop, off_t offset, size_t extent,
 			int rflags, void **const vpp)
 {
     return nciop->get(nciop,offset,extent,rflags,vpp);
 }
 
 int
-ncio_move(ncio *const nciop, off_t to, off_t from, size_t nbytes, int rflags)
+ncio_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int rflags)
 {
     return nciop->move(nciop,to,from,nbytes,rflags);
 }
 
 int
-ncio_sync(ncio *const nciop)
+ncio_sync(ncio* const nciop)
 {
     return nciop->sync(nciop);
 }
 
 int
-ncio_filesize(ncio *nciop, off_t *filesizep)
+ncio_filesize(ncio* const nciop, off_t *filesizep)
 {
     return nciop->filesize(nciop,filesizep);
 }
 
 int
-ncio_pad_length(ncio* nciop, off_t length)
+ncio_pad_length(ncio* const nciop, off_t length)
 {
     return nciop->pad_length(nciop,length);
 }
 
 int
-ncio_close(ncio *nciop, int doUnlink)
+ncio_close(ncio* const nciop, int doUnlink)
 {
     /* close and release all resources associated
        with nciop, including nciop

@@ -4,6 +4,8 @@
 #include <string.h>
 #include <netcdf.h>
 
+extern char* nc_findtestserver(const char* path, int isdap4);
+
 #define DTSTEST "/dts/test.06"
 
 /* The DDS in netcdf classic form is as follows: 
@@ -82,7 +84,7 @@ main()
     const char* svc = NULL;
     
     /* Find Test Server */
-    svc = NC_findtestserver("dts");
+    svc = nc_findtestserver("dts",0);
     if(svc == NULL) {
 	fprintf(stderr,"Cannot locate test server\n");
 	exit(1);
