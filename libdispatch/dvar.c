@@ -727,4 +727,13 @@ nc_def_var_endian(int ncid, int varid, int endian)
     return ncp->dispatch->def_var_endian(ncid,varid,endian);
 }
 
+int
+nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms)
+{
+    NC* ncp;
+    int stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) return stat;
+    return ncp->dispatch->def_var_filter(ncid,varid,id,nparams,parms);
+}
+
 #endif /* USE_NETCDF4 */

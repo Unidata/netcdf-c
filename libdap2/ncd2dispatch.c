@@ -6,6 +6,7 @@
 #include "dapincludes.h"
 #include "ncd2dispatch.h"
 #include "ncoffsets.h"
+#include "netcdf_filter.h"
 
 #ifdef _MSC_VER
 #include <crtdbg.h>
@@ -172,6 +173,7 @@ NCD2_def_var_fletcher32,
 NCD2_def_var_chunking,
 NCD2_def_var_fill,
 NCD2_def_var_endian,
+NCD2_def_var_filter,
 NCD2_set_var_chunk_cache,
 NCD2_get_var_chunk_cache,
 
@@ -2372,7 +2374,9 @@ NCD2_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                int* shufflep, int* deflatep, int* deflate_levelp,
                int* fletcher32p, int* contiguousp, size_t* chunksizesp,
                int* no_fill, void* fill_valuep, int* endiannessp,
-	       int* options_maskp, int* pixels_per_blockp)
+	       int* options_maskp, int* pixels_per_blockp,
+	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+               )
 {
     NC* drno;
     int ret;
@@ -2382,7 +2386,9 @@ NCD2_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                shufflep, deflatep, deflate_levelp,
                fletcher32p, contiguousp, chunksizesp,
                no_fill, fill_valuep, endiannessp,
-	       options_maskp, pixels_per_blockp);
+	       options_maskp, pixels_per_blockp,
+	       idp,nparamsp,params
+	       );
     return THROW(ret);
 }
 
@@ -2758,6 +2764,16 @@ NCD2_def_var_endian(int ncid, int p2, int p3)
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
     ret = nc_def_var_endian(getnc3id(drno), p2, p3);
+    return THROW(ret);
+}
+
+int
+NCD2_def_var_filter(int ncid, int varid, unsigned int id, size_t n, const unsigned int* params)
+{
+    NC* drno;
+    int ret;
+    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
+    ret = nc_def_var_filter(getnc3id(drno), varid, id, n, params);
     return THROW(ret);
 }
 

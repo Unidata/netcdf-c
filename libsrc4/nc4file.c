@@ -1702,8 +1702,17 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
             var->pixels_per_block = cd_values[1];
             break;
 
-         default:
-            LOG((1, "Yikes! Unknown filter type found on dataset!"));
+	default:
+            var->filterid = filter;
+	    var->nparams = cd_nelems;
+	    if(cd_nelems == 0)
+	        var->params = NULL;
+	    else {
+	        var->params = (unsigned int*)malloc(sizeof(unsigned int)*var->nparams);
+		if(var->params == NULL)
+		    BAIL(NC_ENOMEM);
+		memcpy(var->params,cd_values,sizeof(unsigned int)*var->nparams);
+	    }
             break;
       }
    }

@@ -57,45 +57,48 @@ extern int ncgdebug;
     UINT_K = 267,
     INT64_K = 268,
     UINT64_K = 269,
-    IDENT = 270,
-    TERMSTRING = 271,
-    CHAR_CONST = 272,
-    BYTE_CONST = 273,
-    SHORT_CONST = 274,
-    INT_CONST = 275,
-    INT64_CONST = 276,
-    UBYTE_CONST = 277,
-    USHORT_CONST = 278,
-    UINT_CONST = 279,
-    UINT64_CONST = 280,
-    FLOAT_CONST = 281,
-    DOUBLE_CONST = 282,
-    DIMENSIONS = 283,
-    VARIABLES = 284,
-    NETCDF = 285,
-    DATA = 286,
-    TYPES = 287,
-    COMPOUND = 288,
-    ENUM = 289,
-    OPAQUE_ = 290,
-    OPAQUESTRING = 291,
-    GROUP = 292,
-    PATH = 293,
-    FILLMARKER = 294,
-    NIL = 295,
-    _FILLVALUE = 296,
-    _FORMAT = 297,
-    _STORAGE = 298,
-    _CHUNKSIZES = 299,
-    _DEFLATELEVEL = 300,
-    _SHUFFLE = 301,
-    _ENDIANNESS = 302,
-    _NOFILL = 303,
-    _FLETCHER32 = 304,
-    _NCPROPS = 305,
-    _ISNETCDF4 = 306,
-    _SUPERBLOCK = 307,
-    DATASETID = 308
+    STRING_K = 270,
+    IDENT = 271,
+    TERMSTRING = 272,
+    CHAR_CONST = 273,
+    BYTE_CONST = 274,
+    SHORT_CONST = 275,
+    INT_CONST = 276,
+    INT64_CONST = 277,
+    UBYTE_CONST = 278,
+    USHORT_CONST = 279,
+    UINT_CONST = 280,
+    UINT64_CONST = 281,
+    FLOAT_CONST = 282,
+    DOUBLE_CONST = 283,
+    DIMENSIONS = 284,
+    VARIABLES = 285,
+    NETCDF = 286,
+    DATA = 287,
+    TYPES = 288,
+    COMPOUND = 289,
+    ENUM = 290,
+    OPAQUE_ = 291,
+    OPAQUESTRING = 292,
+    GROUP = 293,
+    PATH = 294,
+    FILLMARKER = 295,
+    NIL = 296,
+    _FILLVALUE = 297,
+    _FORMAT = 298,
+    _STORAGE = 299,
+    _CHUNKSIZES = 300,
+    _DEFLATELEVEL = 301,
+    _SHUFFLE = 302,
+    _ENDIANNESS = 303,
+    _NOFILL = 304,
+    _FLETCHER32 = 305,
+    _NCPROPS = 306,
+    _ISNETCDF4 = 307,
+    _SUPERBLOCK = 308,
+    _FILTERID = 309,
+    _FILTERPARMS = 310,
+    DATASETID = 311
   };
 #endif
 
@@ -104,16 +107,16 @@ extern int ncgdebug;
 
 union YYSTYPE
 {
-#line 138 "ncgen.y" /* yacc.c:1909  */
+#line 141 "ncgen.y" /* yacc.c:1909  */
 
 Symbol* sym;
 unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
 long           mark; /* track indices into the sequence*/
 int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
-NCConstant       constant;
+NCConstant     constant;
 
-#line 117 "ncgeny.h" /* yacc.c:1909  */
+#line 120 "ncgeny.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

@@ -186,7 +186,11 @@ typedef struct NC_VAR_INFO
    int sdsid;
    int hdf4_data_type;
 #endif /* USE_HDF4 */
-   /* Stuff below for diskless data files. */
+   /* Stuff for arbitrary filters */
+   unsigned int filterid;
+   size_t nparams;
+   unsigned int* params;
+   /* Stuff for diskless data files. */
    void *diskless_data;
 } NC_VAR_INFO_T;
 

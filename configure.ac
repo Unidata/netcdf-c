@@ -1267,6 +1267,17 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
 
+# Control filter test(s)
+AC_MSG_CHECKING([If filter_test should be enabled (default is no)])
+AC_ARG_ENABLE([filter-test],
+              [AS_HELP_STRING([--enable-filter-test],
+                              [enable filter test])])
+test "x$enable_filter_test" = xyes || enable_filter_test=no
+AC_MSG_RESULT($enable_filter_test)
+# Define a Generic AM_CONDITIONAL to allow disabling
+# of arbitrary parts of Makefile.am files
+AM_CONDITIONAL(ENABLE_FILTER_TEST, [test x$enable_filter_test = xyes])
+
 AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
 AC_SUBST(HAS_DAP4,[$enable_dap4])
@@ -1390,6 +1401,7 @@ AC_CONFIG_FILES([Makefile
                  docs/images/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
+                 nc_test4/filter_test/Makefile
                  nc_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile
@@ -1401,3 +1413,4 @@ AC_CONFIG_FILES([Makefile
 AC_OUTPUT()
 
 cat libnetcdf.settings
+

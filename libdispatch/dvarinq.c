@@ -122,7 +122,8 @@ nc_inq_var(int ncid, int varid, char *name, nc_type *xtypep,
    TRACE(nc_inq_var);
    return ncp->dispatch->inq_var_all(ncid, varid, name, xtypep, ndimsp,
 				     dimidsp, nattsp, NULL, NULL, NULL,
-				     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+				     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+				     NULL,NULL,NULL);
 }
 
 /**
@@ -295,7 +296,8 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
       NULL, /*fillvaluep*/
       NULL, /*endianp*/
       NULL, /*optionsmaskp*/
-      NULL /*pixelsp*/
+      NULL, /*pixelsp*/
+      NULL,NULL,NULL
       );
 }
 
@@ -350,8 +352,8 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
       NULL, /*fillvaluep*/
       NULL, /*endianp*/
       options_maskp, /*optionsmaskp*/
-      pixels_per_blockp /*pixelsp*/
-      );
+      pixels_per_blockp, /*pixelsp*/
+      NULL, NULL, NULL);
 }
 
 /** \ingroup variables
@@ -398,7 +400,8 @@ nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
       NULL, /*fillvaluep*/
       NULL, /*endianp*/
       NULL, /*optionsmaskp*/
-      NULL /*pixelsp*/
+      NULL, /*pixelsp*/
+      NULL, NULL, NULL
       );
 }
 
@@ -471,7 +474,8 @@ nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
    TRACE(nc_inq_var_chunking);
    return ncp->dispatch->inq_var_all(ncid, varid, NULL, NULL, NULL, NULL,
 				     NULL, NULL, NULL, NULL, NULL, storagep,
-				     chunksizesp, NULL, NULL, NULL, NULL, NULL);
+				     chunksizesp, NULL, NULL, NULL, NULL, NULL,
+                                     NULL, NULL, NULL);
 }
 
 /** \ingroup variables
@@ -521,7 +525,8 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
       fill_valuep, /*fillvaluep*/
       NULL, /*endianp*/
       NULL, /*optionsmaskp*/
-      NULL /*pixelsp*/
+      NULL, /*pixelsp*/
+      NULL, NULL, NULL
       );
 }
 
@@ -570,8 +575,8 @@ nc_inq_var_endian(int ncid, int varid, int *endianp)
       NULL, /*fillvaluep*/
       endianp, /*endianp*/
       NULL, /*optionsmaskp*/
-      NULL /*pixelsp*/
-      );
+      NULL, /*pixelsp*/
+      NULL, NULL, NULL);
 }
 
 /*! Return number and list of unlimited dimensions.
@@ -607,6 +612,58 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
 					unlimdimidsp);
 }
 
+/** \ingroup variables
+Find the filter (if any) associated with a variable.
+
+This is a wrapper for nc_inq_var_all().
+
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as
+nc_inq_ncid().
+
+\param varid Variable ID
+
+\param idp Storage which will get the filter id.
+
+\param nparamsp Storage which will get the number of parameters to the filter
+
+\param params Storage which will get associated parameters. Note
+the caller must allocate and free.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
+\returns ::NC_EFILTER No filter defined.
+*/
+int
+nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsigned int* params)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) return stat;
+   TRACE(nc_inq_var_filter);
+   return ncp->dispatch->inq_var_all(
+      ncid, varid,
+      NULL, /*name*/
+      NULL, /*xtypep*/
+      NULL, /*ndimsp*/
+      NULL, /*dimidsp*/
+      NULL, /*nattsp*/
+      NULL, /*shufflep*/
+      NULL, /*deflatep*/
+      NULL, /*deflatelevelp*/
+      NULL, /*fletcher32p*/
+      NULL, /*contiguousp*/
+      NULL, /*chunksizep*/
+      NULL, /*nofillp*/
+      NULL, /*fillvaluep*/
+      NULL, /*endianp*/
+      NULL, /*optionsmaskp*/
+      NULL, /*pixelsp*/
+      idp, nparamsp, params);
+}
+
 #endif /* USE_NETCDF4 */
 
 /*!
@@ -631,7 +688,10 @@ Used in libdap2 and libdap4.
 @param[out] endiannessp       Pointer to memory to store endianness value. One of ::NC_ENDIAN_BIG ::NC_ENDIAN_LITTLE ::NC_ENDIAN_NATIVE
 @param[out] options_maskp     Pointer to memory to store mask options information.
 @param[out] pixels_per_blockp Pointer to memory to store pixels-per-block information for chunked data.
-
+@param[out] idp Pointer to memory to store filter id.
+@param[out] nparamsp Pointer to memory to store filter parameter count.
+@param[out] params Pointer to vector of unsigned integers into which
+to store filter parameters.
 \note Expose access to nc_inq_var_all().
 
 \internal
@@ -645,7 +705,9 @@ NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *shufflep, int *deflatep, int *deflate_levelp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                int *no_fill, void *fill_valuep, int *endiannessp,
-	       int *options_maskp, int *pixels_per_blockp)
+	       int *options_maskp, int *pixels_per_blockp,
+	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+               )
 {
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);
@@ -658,7 +720,8 @@ NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       no_fill, fill_valuep,
       endiannessp,
       options_maskp,
-      pixels_per_blockp);
+      pixels_per_blockp,
+      idp,nparamsp,params);
 }
 
 /*! \} */  /* End of named group ...*/

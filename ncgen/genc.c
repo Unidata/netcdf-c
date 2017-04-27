@@ -59,6 +59,7 @@ gen_ncc(const char *filename)
     codeline("#include <stdio.h>");
     codeline("#include <stdlib.h>");
     codeline("#include <netcdf.h>");
+    codeline("#include <netcdf_filter.h>");
     codeline("");
     codeflush();
 
@@ -107,6 +108,21 @@ gen_ncc(const char *filename)
                 }
                 bbprintf0(stmt,"static size_t %s_chunksizes[%d] = {",
                             cname(var),special->nchunks);
+                codedump(stmt);
+                codedump(tmp);
+                codeline("} ;");
+            }
+            if(special->flags & _FILTERPARMS_FLAG) {
+                int i;
+                unsigned int* params = special->_FilterParams;
+                if(special->nparams == 0 || params == NULL) continue;
+                bbClear(tmp);
+                for(i=0;i<special->nparams;i++) {
+                    bbprintf(tmp,"%s%luU",
+                            (i == 0?"":", "),params[i]);
+                }
+                bbprintf0(stmt,"static unsigned int %s_filterparams[%d] = {",
+                            cname(var),special->nparams);
                 codedump(stmt);
                 codedump(tmp);
                 codeline("} ;");
@@ -494,6 +510,47 @@ genc_definespecialattributes(Symbol* vsym)
         codedump(stmt);
         codelined(1,"check_err(stat,__LINE__,__FILE__);");
     }
+    if(special->flags & _FILTERID_FLAG) {
+	/* Special check for alternate way to specify _Deflate */
+	if(special->_FilterID == ZIP_ID) {
+	    unsigned int level;
+	    if(special->nparams == 0 || special->_FilterParams == NULL)
+		level = 9; /* default */
+	    else
+		level = special->_FilterParams[0];
+	    if(level < 0 || level > 9)
+		derror("Illegal deflate level");		
+	    else {
+	        bbprintf0(stmt,
+	                "    stat = nc_def_var_deflate(%s, %s, %s, %d, %d);\n",
+	                groupncid(vsym->container),
+	                varncid(vsym),
+	                (special->_Shuffle == 1?"NC_SHUFFLE":"NC_NOSHUFFLE"),
+	                (level >= 0?1:0),
+			level);
+	        codedump(stmt);
+	    }
+	} else {
+	        bbprintf0(stmt,
+	                "    stat = nc_def_var_filter(%s, %s, %u, %lu, ",
+	                groupncid(vsym->container),
+	                varncid(vsym),
+			special->_FilterID,
+			special->nparams
+			);
+	        codedump(stmt);
+	        if(special->nparams == 0 || special->_FilterParams == NULL)
+	            codepartial("NULL");
+        	else {
+	            bbprintf0(stmt,"%s_filterparams",cname(vsym));
+	            codedump(stmt);
+		}
+	        codeline(");");
+	}
+        codelined(1,"check_err(stat,__LINE__,__FILE__);");
+    }
+
+
 }
 #endif /*USE_NETCDF4*/
 

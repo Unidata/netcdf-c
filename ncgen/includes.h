@@ -47,7 +47,7 @@
 #include "util.h"
 #include "debug.h"
 #include "nc.h"
-
+#include "netcdf_filter.h"
 #ifdef USE_NETCDF4
 #include "nc4internal.h"
 #endif

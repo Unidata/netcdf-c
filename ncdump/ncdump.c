@@ -34,8 +34,9 @@ int optind;
 #include <locale.h>
 #endif	/* HAVE_LOCALE_H */
 
-#include "netcdf_mem.h"
 #include "netcdf.h"
+#include "netcdf_mem.h"
+#include "netcdf_filter.h"
 #include "utils.h"
 #include "nccomps.h"
 #include "nctime0.h"		/* new iso time and calendar stuff */
@@ -1050,6 +1051,29 @@ pr_att_specials(
 		break;
 	    }
 	    printf(" ;\n");
+	}
+    }
+    /* _Filter */
+    {
+	unsigned int id;
+	size_t nparams;
+	unsigned int* params = NULL;
+	if(nc_inq_var_filter(ncid, varid, &id, &nparams, NULL) == NC_NOERR
+	   && id > 0) {
+	    if(nparams > 0) {
+	        params = (unsigned int*)malloc(sizeof(unsigned int)*nparams);
+	        NC_CHECK(nc_inq_var_filter(ncid, varid, &id, &nparams, params));
+	    }
+	    pr_att_name(ncid,varp->name,NC_ATT_FILTERID);
+	    printf(" = %u ;\n",id);
+	    if(nparams > 0) {
+	        int i;
+	        pr_att_name(ncid,varp->name,NC_ATT_FILTERPARMS);
+		printf(" =");
+		for(i=0;i<nparams;i++)	
+		    printf(" %u",params[i]);
+	        printf(" ;\n");
+	    }
 	}
     }
     {
