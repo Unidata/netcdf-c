@@ -1810,7 +1810,7 @@ NC_open(const char *path0, int cmode,
    NC* ncp = NULL;
    NC_Dispatch* dispatcher = NULL;
    int inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
-   int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
+   int diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
    /* Need pieces of information for now to decide model*/
    int model = 0;
    int isurl = 0;
