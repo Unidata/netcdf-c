@@ -1810,6 +1810,7 @@ NC_open(const char *path0, int cmode,
    NC* ncp = NULL;
    NC_Dispatch* dispatcher = NULL;
    int inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
+   int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
    /* Need pieces of information for now to decide model*/
    int model = 0;
    int isurl = 0;
@@ -1857,6 +1858,7 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 	/* Try to find dataset type */
 	if(useparallel) flags |= NC_MPIIO;
 	if(inmemory) flags |= NC_INMEMORY;
+	if(diskless) flags |= NC_DISKLESS;
 	stat = NC_check_file_type(path,flags,parameters,&model,&version);
         if(stat == NC_NOERR) {
    	if(model == 0)
