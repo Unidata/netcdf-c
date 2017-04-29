@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.2 - TBD
 
+* [Enhancement] Full support for using HDF5 dynamic filters, both for
+reading and writing. See the file docs/filters.md.
 * [Enhancement] DAP4 is now included. Since dap2 is the default for urls, dap4 must be specified by
 (1) using "dap4:" as the url protocol, or
 (2) appending "#protocol=dap4" to the end of the url, or
