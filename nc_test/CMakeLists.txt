@@ -8,7 +8,7 @@ add_definitions(-D"TOPBINDIR=${CMAKE_BINARY_DIR}")
 
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
 
-SET (nc_test_m4_SOURCES test_get test_put)
+SET (nc_test_m4_SOURCES test_get test_put test_read test_write)
 FOREACH (F ${nc_test_m4_SOURCES})
   GEN_m4(${F})
 ENDFOREACH()
@@ -102,5 +102,5 @@ ENDIF()
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} test_get.m4 test_put.m4 ref_tst_diskless2.cdl)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} test_get.m4 test_put.m4 test_read.m4 test_write.m4 ref_tst_diskless2.cdl)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

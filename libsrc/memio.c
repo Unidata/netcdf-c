@@ -9,7 +9,10 @@
 #define lseek64 lseek
 #endif
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -34,7 +37,7 @@
 #endif
 
 #ifndef HAVE_SSIZE_T
-#define ssize_t int
+typedef int ssize_t;
 #endif
 
 #ifndef SEEK_SET
