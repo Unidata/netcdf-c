@@ -59,7 +59,7 @@ main(int argc, const char* argv[])
     int ncid;
     int rh_id;
     T rh_vals[HRAPY*HRAPX];
-    size_t i;
+    int i;
 #ifdef MEM
     int fd;
     char buffer[1000000];
