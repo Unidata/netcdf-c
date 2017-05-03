@@ -382,9 +382,8 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
         (void)close(fd);
     }
 
-    /* Return 8192 as large values cause: https://github.com/Unidata/netcdf-c/issues/401 Why? 
-     Note: File modes use: blksize(fd); */
-    sizehint = 8192;
+    /* Use half the filesize as the blocksize ; why? */
+    sizehint = filesize/2;
 
     fd = nc__pseudofd();
     *((int* )&nciop->fd) = fd;
