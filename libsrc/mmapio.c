@@ -373,6 +373,10 @@ fprintf(stderr,"mmapio_open: initial memory: %lu/%lu\n",(unsigned long)mmapio->m
     /* Use half the filesize as the blocksize */
     sizehint = filesize/2;
 
+    /* sizehint must be multiple of 8 */
+    sizehint = (sizehint / 8) * 8;
+    if(sizehint < 8) sizehint = 8;
+
     fd = nc__pseudofd();
     *((int* )&nciop->fd) = fd; 
 
