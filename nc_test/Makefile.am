@@ -59,7 +59,7 @@ check_PROGRAMS += $(TESTPROGRAMS)
 
 # Build Diskless test helpers
 if BUILD_DISKLESS
-check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4
+check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4 tst_diskless5
 if USE_NETCDF4
 check_PROGRAMS += tst_diskless2
 endif
@@ -69,7 +69,7 @@ TESTS = $(TESTPROGRAMS)
 
 if BUILD_UTILITIES
 if BUILD_DISKLESS
-TESTS += run_diskless.sh
+TESTS += run_diskless.sh run_diskless5.sh
 if BUILD_MMAP
 TESTS += run_mmap.sh
 endif
@@ -97,11 +97,12 @@ endif # USE_VALGRIND_TESTS
 # Distribute the .c files so that m4 isn't required on the users
 # machine.
 EXTRA_DIST = test_get.m4 test_put.m4 run_valgrind_tests.sh \
-run_diskless.sh run_diskless2.sh run_mmap.sh run_pnetcdf_test.sh \
+run_diskless.sh run_diskless2.sh run_diskless5.sh \
+run_mmap.sh run_pnetcdf_test.sh \
 test_read.m4 test_write.m4
 
 # ref_tst_diskless2.cdl is for diff comparison and to produce tst_diskless2.c
-EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt
+EXTRA_DIST += ref_tst_diskless2.cdl tst_diskless5.cdl CMakeLists.txt
 
 # Only clean these on maintainer-clean, because they require m4 to
 # regenerate.

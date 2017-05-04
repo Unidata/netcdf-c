@@ -7,10 +7,11 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.4.2 - TBD
 
+* [Bug Fix] Corrected an issue with diskless file access, see [Pull Request #400](https://github.com/Unidata/netcdf-c/issues/400) and [Pull Request #403](https://github.com/Unidata/netcdf-c/issues/403) for more information.
 * [Enhancement] DAP4 is now included. Since dap2 is the default for urls, dap4 must be specified by
 (1) using "dap4:" as the url protocol, or
 (2) appending "#protocol=dap4" to the end of the url, or
-(3) appending "#dap4" to the end of the url 
+(3) appending "#dap4" to the end of the url
 Note that dap4 is enabled by default but remote-testing is
 disbled until the testserver situation is resolved.
 * [Enhancement] The remote testing server can now be specified with the '--with-testserver" option to ./configure.
