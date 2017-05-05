@@ -2,7 +2,7 @@
 #NB=1
 DB=1
 #X=-x
-#FAST=1
+FAST=1
 
 HDF5=1
 DAP=1
@@ -54,24 +54,8 @@ MALLOC_CHECK=""
 CPPFLAGS=""
 LDFLAGS=""
 
-CFLAGS="-g -O0 $CFLAGS"
-
-case "$HOST" in
-  mort)
-	CFLAGS="-std=c99 $CFLAGS"
-	;;
-  yakov)
-	CFLAGS="-std=c99 $CFLAGS"
-	;;
-  spock)
-  	  CFLAGS="-Wdeclaration-after-statement -Wall $CFLAGS"
-	;;
-  spike)
-	CFLAGS="-Wall $CFLAGS"
-	;;
-  *)
-	;;
-esac
+#CFLAGS="-g -O0 $CFLAGS"
+CFLAGS="-g $CFLAGS"
 
 MAKE=make
 IGNORE="test 0 = 1"
@@ -86,7 +70,8 @@ if test "x$HDF4" = "x1" ; then
 LDFLAGS="$LDFLAGS -ljpeg"
 fi
 
-if test "x$DAP" = "x1" -o "x$CDMR" = "x1" -o "x$RPC" = "x1" ; then
+export PKG_CONFIG_PATH=/usr/lib/pkgconfig
+if test "x$DAP" = "x1" ; then
 if curl-config --version >/dev/null ; then
 TMP=`curl-config --cflags`
 CPPFLAGS="$TMP $CPPFLAGS"
@@ -95,8 +80,7 @@ LDFLAGS="$TMP $LDFLAGS"
 TMP=`curl-config --prefix`
 LD_LIBRARY_PATH="$TMP/lib:$LD_LIBRARY_PATH"
 else
-  echo "Cannot find curl-config"
-  exit 1
+  LDFLAGS="${LDFLAGS} -lcurl"  
 fi
 fi
 
@@ -111,11 +95,12 @@ FLAGS="$FLAGS --disable-examples"
 #FLAGS="$FLAGS --enable-dap-long-tests"
 #FLAGS="$FLAGS --enable-ffio"
 #FLAGS="$FLAGS --enable-benchmarks"
-#FLAGS="$FLAGS --enable-extra-tests"
+FLAGS="$FLAGS --enable-extreme-numbers"
+FLAGS="$FLAGS --enable-extra-tests"
 #FLAGS="$FLAGS --enable-large-file-tests"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
-FLAGS="$FLAGS --enable-dap-auth-tests"
+#FLAGS="$FLAGS --enable-dap-auth-tests" -- requires a new remotetest server
 #FLAGS="$FLAGS --enable-doxygen"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
@@ -127,6 +112,8 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --enable-jna"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
+#FLAGS="$FLAGS --enable-dap4"
+#FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"

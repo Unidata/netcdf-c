@@ -24,18 +24,6 @@
 #include "nc.h"
 #include "ncuri.h"
 
-#if defined(DLL_NETCDF) /* Defined when library is a DLL */
-# if defined(DLL_EXPORT) /* Define when building the library. */
-#  define MSC_NCDISPATCH_EXTRA __declspec(dllexport)
-# else
-#  define MSC_NCDISPATCH_EXTRA __declspec(dllimport)
-# endif
-#else
-#  define MSC_NCDISPATCH_EXTRA
-#endif
-
-#define NCD_EXTERNL MSC_NCDISPATCH_EXTRA extern
-
 #define longtype ((sizeof(long) == sizeof(int) ? NC_INT : NC_INT64))
 
 #define X_INT_MAX	2147483647
@@ -127,14 +115,19 @@ typedef struct NC_Dispatch NC_Dispatch;
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
-NCD_EXTERNL NC_Dispatch* NC3_dispatch_table;
-NCD_EXTERNL int NC3_initialize(void);
-NCD_EXTERNL int NC3_finalize(void);
+extern NC_Dispatch* NC3_dispatch_table;
+extern int NC3_initialize(void);
+extern int NC3_finalize(void);
 
-#ifdef USE_DAP
+#ifdef ENABLE_DAP
 extern NC_Dispatch* NCD2_dispatch_table;
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
+#endif
+#ifdef ENABLE_DAP4
+extern NC_Dispatch* NCD4_dispatch_table;
+extern int NCD4_initialize(void);
+extern int NCD4_finalize(void);
 #endif
 
 #ifdef USE_PNETCDF
@@ -147,12 +140,6 @@ extern int NCP_finalize(void);
 extern NC_Dispatch* NC4_dispatch_table;
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
-#endif
-
-#ifdef USE_DAP
-extern NC_Dispatch* NCD4_dispatch_table;
-extern int NCD4_initialize(void);
-extern int NCD4_finalize(void);
 #endif
 
 /* Vectors of ones and zeros */
@@ -343,23 +330,31 @@ extern NC_Dispatch* NC_get_dispatch_override(void);
 extern void NC_set_dispatch_override(NC_Dispatch*);
 #endif
 
-/* Does the path look like a url? */
-extern int NC_testurl(const char* path);
-/* Return model (0 or 3 or 4) as specified by the url */
-extern int NC_urlmodel(const char* path);
+/* Return model as specified by the url, if any;
+   return a modified url suitable for passing to curl
+*/
+extern int NC_urlmodel(const char* path, int mode, char** newurl);
 
 /* allow access url parse and params without exposing nc_url.h */
 extern int NCDAP_urlparse(const char* s, void** dapurl);
 extern void NCDAP_urlfree(void* dapurl);
 extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 
-/* Test for specific set of servers */
-NCD_EXTERNL char* NC_findtestserver(const char*, const char**);
-NCD_EXTERNL int nc_open_mem(const char*, int, size_t, void*, int*);
-NCD_EXTERNL int nc_finalize();
+#if defined(DLL_NETCDF)
+# if defined(DLL_EXPORT)
+#  define NCC_EXTRA __declspec(dllexport)
+#else
+#  define NCC_EXTRA __declspec(dllimport)
+# endif
+NCC_EXTRA extern int nc__testurl(const char* path, char** basename);
+#else
+extern int
+ nc__testurl(const char* parth, char** basename);
+#endif
 
 /* Ping a specific server */
-extern int NCDAP_ping(const char*);
+extern int NCDAP2_ping(const char*);
+extern int NCDAP4_ping(const char*);
 
 /* Misc */
 
@@ -385,7 +380,9 @@ extern int NC_argc;
 extern char* NC_argv[];
 extern int NC_initialized;
 
-NCD_EXTERNL int nc_initialize();
+extern int nc_initialize();
+extern int nc_finalize();
+
 
 
 /**

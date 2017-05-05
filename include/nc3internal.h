@@ -8,7 +8,7 @@
 /*
  *	netcdf library 'private' data structures, objects and interfaces
  */
-#include <config.h>
+#include "config.h"
 #include <stddef.h>	/* size_t */
 #ifndef HAVE_STDINT_H
 #  include "pstdint.h"	/* attempts to define uint32_t etc portably */
@@ -17,9 +17,9 @@
 #endif /* HAVE_STDINT_H */
 #include <sys/types.h>	/* off_t */
 #ifdef USE_PARALLEL
-#include <netcdf_par.h>
+#include "netcdf_par.h"
 #else
-#include <netcdf.h>
+#include "netcdf.h"
 #endif /* USE_PARALLEL */
 
 /* Always needed */
@@ -388,6 +388,12 @@ NC_sync(NC3_INFO* ncp);
 
 extern int
 NC_calcsize(const NC3_INFO* ncp, off_t *filesizep);
+
+extern int
+NC3_inq_default_fill_value(int xtype, void *fillp);
+
+extern int
+NC3_inq_var_fill(const NC_var *varp, void *fill_value);
 
 /* End defined in nc.c */
 /* Begin defined in v1hpg.c */

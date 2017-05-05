@@ -13,12 +13,16 @@ cc="@CMAKE_C_COMPILER@"
 cflags="-I@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
 libs="-L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@ @NC_LIBS@"
 
-has_dap="@USE_DAP@"
-if [ -z $has_dap ]; then
-    has_dap="no"
-else
-    has_dap="yes"
+if [ -z "@USE_DAP@" -o -z "@ENABLE_DAP2@" ] ; then
+has_dap2=ON
 fi
+if [ -z $has_dap2 ]; then
+    has_dap2="no"
+else
+    has_dap2="yes"
+fi
+
+has_dap4="@ENABLE_DAP4"
 
 has_nc2="@BUILD_V2@"
 
@@ -118,7 +122,9 @@ Available values for OPTION include:
   --has-c++     whether C++ API is installed
   --has-c++4    whether netCDF-4 C++ API is installed
   --has-fortran whether Fortran API is installed
-  --has-dap     whether OPeNDAP is enabled in this build
+  --has-dap2    whether OPeNDAP (DAP2) is enabled in this build
+  --has-dap4    whether DAP4 is enabled in this build
+  --has-dap     same as --has-dp (Deprecated)
   --has-nc2     whether NetCDF-2 API is enabled
   --has-nc4     whether NetCDF-4/HDF-5 is enabled in this build
   --has-hdf5    whether HDF5 is used in build (always the same as --has-nc4)
@@ -193,6 +199,8 @@ if [ -f "$nfconf" ]; then
         echo
 fi
         echo "  --has-dap   -> $has_dap"
+        echo "  --has-dap2  -> $has_dap2"
+        echo "  --has-dap4  -> $has_dap4"
         echo "  --has-nc2   -> $has_nc2"
         echo "  --has-nc4   -> $has_nc4"
         echo "  --has-hdf5  -> $has_hdf5"
@@ -240,7 +248,15 @@ while test $# -gt 0; do
 	;;
 
     --has-dap)
-       	echo $has_dap
+       	echo $has_dap2 $has_dap4
+       	;;
+
+    --has-dap2)
+       	echo $has_dap2
+       	;;
+
+    --has-dap4)
+       	echo $has_dap4
        	;;
 
     --has-nc2)

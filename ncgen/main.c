@@ -6,7 +6,8 @@
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/main.c,v 1.33 2010/05/26 21:43:36 dmh Exp $ */
 
 #include "includes.h"
-#include "offsets.h"
+#include "ncoffsets.h"
+#include "ncwinpath.h"
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -453,7 +454,7 @@ main(
     if (argc > 0 && strcmp(argv[0], "-") != 0) {
 	char bom[4];
 	size_t count;
-	if ((fp = fopen(argv[0], "r")) == NULL) {
+	if ((fp = NCfopen(argv[0], "r")) == NULL) {
 	    derror ("can't open file %s for reading: ", argv[0]);
 	    perror("");
 	    return(7);
@@ -580,7 +581,6 @@ END_OF_MAIN()
 void
 init_netcdf(void) /* initialize global counts, flags */
 {
-    compute_alignments();
     memset((void*)&nullconstant,0,sizeof(NCConstant));
     fillconstant = nullconstant;
     fillconstant.nctype = NC_FILLVALUE;

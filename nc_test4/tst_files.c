@@ -502,8 +502,11 @@ test_redef(int format)
 
    /* Add att. */
    ret = nc_put_att_uchar(ncid, NC_GLOBAL, REDEF_ATT3_NAME, NC_BYTE, 1, &uchar_out);
-   if (format != NC_FORMAT_NETCDF4 && ret) ERR;
-   else if (format == NC_FORMAT_NETCDF4 && ret != NC_ERANGE) ERR;
+   if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_64BIT_DATA)
+   {
+      if (ret != NC_ERANGE) ERR;
+   }
+   else if (ret) ERR;
 
    /* Check it out. */
    if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -539,7 +542,7 @@ test_redef(int format)
    if (nc_get_att_int(ncid, NC_GLOBAL, REDEF_ATT2_NAME, &int_in)) ERR;
    if (int_in != short_out) ERR;
    ret = nc_get_att_uchar(ncid, NC_GLOBAL, REDEF_ATT3_NAME, &uchar_in);
-   if (format == NC_FORMAT_NETCDF4)
+   if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_64BIT_DATA)
    {
       if (ret != NC_ERANGE) ERR;
    }

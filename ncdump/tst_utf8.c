@@ -9,7 +9,7 @@
    $Id: tst_utf8.c,v 1.10 2008/10/20 01:48:07 ed Exp $
 */
 
-#include <config.h>
+#include "config.h"
 #include <stdlib.h>
 #include <nc_tests.h>
 #include <err_macros.h>

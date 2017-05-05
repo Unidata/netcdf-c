@@ -38,11 +38,7 @@ typedef struct NC {
 typedef struct {
 	/* all xdr'd */
 	size_t nchars;
-#ifdef __arm__
-  signed char *cp;
-#else
-  char *cp;
-#endif
+	char *cp;
 
 } NC_string;
 
@@ -55,18 +51,10 @@ free_NC_string(NC_string *ncstrp);
 extern int
 NC_check_name(const char *name);
 
-#ifdef __arm__
-extern NC_string *
-new_NC_string(size_t slen, const signed char *str);
-extern int
-set_NC_string(NC_string *ncstrp, const signed char *str);
-#else
 extern NC_string *
 new_NC_string(size_t slen, const char *str);
 extern int
 set_NC_string(NC_string *ncstrp, const char *str);
-#endif
-
 
 /* End defined in string.c */
 
@@ -77,16 +65,8 @@ NC_check_id(int ncid, NC **ncpp);
    overlap real file descriptors */
 extern int nc__pseudofd(void);
 
-/* This function sets a default create flag that will be logically
-   or'd to whatever flags are passed into nc_create for all future
-   calls to nc_create.
-   Valid default create flags are NC_64BIT_OFFSET, NC_CLOBBER,
-   NC_LOCK, NC_SHARE. */
-extern int nc_set_default_format(int format, int *old_formatp);
-
 /* This function gets a current default create flag */
 extern int nc_get_default_format(void);
-
 
 extern int add_to_NCList(NC*);
 extern void del_from_NCList(NC*);/* does not free object */
@@ -99,5 +79,8 @@ extern int iterate_NCList(int i,NC**); /* Walk from 0 ...; ERANGE return => stop
 /* Defined in nc.c */
 extern void free_NC(NC*);
 extern int new_NC(struct NC_Dispatch*, const char*, int, NC**);
+
+/* Defined in nc.c */
+extern int ncdebug;
 
 #endif /* _NC_H_ */

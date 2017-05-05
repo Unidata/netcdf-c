@@ -14,9 +14,9 @@ static OCerror ocread(OCdata*, XXDR*, char*, size_t, size_t, size_t);
 static void
 octrace(char* proc, OCstate* state, OCdata* data)
 {
-    OCbytes* buffer = ocbytesnew();
+    NCbytes* buffer = ncbytesnew();
     ocdumpdatapath(state,data,buffer);
-    fprintf(stderr,"%s: %s\n",proc,ocbytescontents(buffer));
+    fprintf(stderr,"%s: %s\n",proc,ncbytescontents(buffer));
 }
 
 #else
@@ -320,7 +320,7 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
 
     case OC_Int32: case OC_UInt32: case OC_Float32:
 	xxdr_setpos(xdrs,data->xdroffset+xdrstart);
-	if(!xxdr_getbytes(xdrs,memory,xdrtotal)) {OCTHROW(OC_EDATADDS); goto xdrfail;}
+	if(!xxdr_getbytes(xdrs,memory,xdrtotal)) {goto xdrfail;}
 	if(!xxdr_network_order) {
 	    unsigned int* p;
 	    for(p=(unsigned int*)memory,i=0;i<count;i++,p++) {
@@ -331,7 +331,7 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
 	
     case OC_Int64: case OC_UInt64:
 	xxdr_setpos(xdrs,data->xdroffset+xdrstart);
-	if(!xxdr_getbytes(xdrs,memory,xdrtotal)) {OCTHROW(OC_EDATADDS); goto xdrfail;}
+	if(!xxdr_getbytes(xdrs,memory,xdrtotal)) {goto xdrfail;}
 	if(!xxdr_network_order) {
 	    unsigned long long* llp;
 	    for(llp=(unsigned long long*)memory,i=0;i<count;i++,llp++) {
@@ -342,7 +342,7 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
 
     case OC_Float64:
 	xxdr_setpos(xdrs,data->xdroffset+xdrstart);
-	if(!xxdr_getbytes(xdrs,memory,xdrtotal)) {OCTHROW(OC_EDATADDS); goto xdrfail;}
+	if(!xxdr_getbytes(xdrs,memory,xdrtotal)) {goto xdrfail;}
 	{
 	    double* dp;
 	    for(dp=(double*)memory,i=0;i<count;i++,dp++) {
@@ -360,13 +360,13 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
            its memory size */
         xxdr_setpos(xdrs,data->xdroffset+xdrstart);
         if(scalar) {
-	    if(!xxdr_ushort(xdrs,(unsigned short*)memory)) {OCTHROW(OC_EDATADDS); goto xdrfail;}
+	    if(!xxdr_ushort(xdrs,(unsigned short*)memory)) {goto xdrfail;}
 	} else {
 	    unsigned short* sp = (unsigned short*)memory;
 	    for(i=0;i<count;i++,sp++) {
 	        unsigned int tmp;
 		if(!xxdr_getbytes(xdrs,(char*)&tmp,(off_t)XDRUNIT))
-		    {OCTHROW(OC_EDATADDS); goto xdrfail;}
+		    {goto xdrfail;}
 		/* convert from network order if necessary */
 		if(!xxdr_network_order)
 		    swapinline32(&tmp);
@@ -383,12 +383,12 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
 	if(scalar) {
 	    /* scalar bytes are stored in xdr as int */
 	    xxdr_setpos(xdrs,data->xdroffset+xdrstart);
-	    if(!xxdr_uchar(xdrs,(unsigned char*)memory)) {OCTHROW(OC_EDATADDS); goto xdrfail;}
+	    if(!xxdr_uchar(xdrs,(unsigned char*)memory)) {goto xdrfail;}
 	} else {
 	    /* the xdroffset will always be at the start of the
                packed data, so we need to add the start count to it */
 	    xxdr_setpos(xdrs,data->xdroffset+xdrstart);
-	    if(!xxdr_getbytes(xdrs,memory,xdrtotal)) {OCTHROW(OC_EDATADDS); goto xdrfail;}
+	    if(!xxdr_getbytes(xdrs,memory,xdrtotal)) {goto xdrfail;}
 	}
 	break;
 
@@ -404,7 +404,7 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
             xxdr_setpos(xdrs,offset);
             /* get the string */
 	    if(!xxdr_string(xdrs,sp,&len))
-		{OCTHROW(OC_EDATADDS); goto xdrfail;}
+		{goto xdrfail;}
 	}
         } break;
 
@@ -414,7 +414,7 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
     return OC_NOERR;
 
 xdrfail:
-    oclog(OCLOGERR,"DAP DATADDS packet is apparently too short");
+    nclog(NCLOGERR,"DAP DATADDS packet is apparently too short");
     return OCTHROW(OC_EDATADDS);
 }
 

@@ -4,7 +4,10 @@
  */
 /* $Id: var.c,v 1.144 2010/05/30 00:50:35 russ Exp $ */
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "nc3internal.h"
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +18,9 @@
 #include "ncutf8.h"
 
 #ifndef OFF_T_MAX
-//#define OFF_T_MAX (~ (off_t) 0 - (~ (off_t) 0 << (CHAR_BIT * sizeof (off_t) - 1)))
+#if 0
+#define OFF_T_MAX (~ (off_t) 0 - (~ (off_t) 0 << (CHAR_BIT * sizeof (off_t) - 1)))
+#endif
 
 /* The behavior above is undefined, re: bitshifting a negative value, according
    to warnings thrown by clang/gcc.  An alternative OFF_T_MAX was written

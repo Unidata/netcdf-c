@@ -11,7 +11,7 @@ for conditions of use.
 #ifndef _NC_TESTS_H
 #define _NC_TESTS_H
 
-#include <config.h>
+#include "config.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>

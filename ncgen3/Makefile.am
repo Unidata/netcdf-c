@@ -2,6 +2,8 @@
 # Copyright 2005, see the COPYRIGHT file for more information.
 # This file builds and runs the ncgen program.
 
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 

@@ -632,8 +632,12 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       assert(dim && dim->dimid == var->dimids[d2]);
       if (!dim->unlimited)
         {
+#ifdef RELAX_COORD_BOUND
           if (start[d2] > (hssize_t)fdims[d2] ||
               (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
+#else
+          if (start[d2] >= (hssize_t)fdims[d2])
+#endif
             BAIL_QUIET(NC_EINVALCOORDS);
           if (start[d2] + count[d2] > fdims[d2])
             BAIL_QUIET(NC_EEDGE);
@@ -965,8 +969,12 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 	  BAIL(retval);
 
         /* Check for out of bound requests. */
+#ifdef RELAX_COORD_BOUND
         if (start[d2] > (hssize_t)ulen ||
             (start[d2] == (hssize_t)ulen && count[d2] > 0))
+#else
+        if (start[d2] >= (hssize_t)ulen && ulen > 0)
+#endif
           BAIL_QUIET(NC_EINVALCOORDS);
         if (start[d2] + count[d2] > ulen)
           BAIL_QUIET(NC_EEDGE);
@@ -989,8 +997,12 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
     else
       {
         /* Check for out of bound requests. */
+#ifdef RELAX_COORD_BOUND
         if (start[d2] > (hssize_t)fdims[d2] ||
             (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
+#else
+        if (start[d2] >= (hssize_t)fdims[d2])
+#endif
           BAIL_QUIET(NC_EINVALCOORDS);
         if (start[d2] + count[d2] > fdims[d2])
           BAIL_QUIET(NC_EEDGE);
@@ -1960,8 +1972,7 @@ static int
 write_nc3_strict_att(hid_t hdf_grpid)
 {
   hid_t attid = 0, spaceid = 0;
-  int one = 1, num, a;
-  char att_name[NC_MAX_HDF5_NAME + 1];
+  int one = 1;
   int retval = NC_NOERR;
   htri_t attr_exists;
 

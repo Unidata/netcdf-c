@@ -1,6 +1,9 @@
 #!/bin/sh
 # Run test_chunk_hdf4 passing ${src_dir}
-set -x
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 CHUNKED=chunked.hdf4
 CONTIG=contiguous.hdf4
 

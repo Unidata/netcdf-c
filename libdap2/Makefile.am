@@ -15,12 +15,12 @@ EXTRA_DIST = CMakeLists.txt
 
 LDADD=
 
-SRC= constraints.c dapcvt.c dapalign.c dapodom.c daputil.c	\
+SRC= constraints.c dapcvt.c dapodom.c daputil.c	\
 ncdaperr.c cdf.c cache.c dapdump.c dapdebug.c dapattr.c		\
-ncd2dispatch.c getvara.c dceconstraints.c dcetab.c	\
+ncd2dispatch.c getvara.c dceconstraints.c dcetab.c		\
 dceparse.c dcelex.c
 
-HDRS= nccommon.h constraints.h ncd2dispatch.h ncdap.h dapalign.h	\
+HDRS= nccommon.h constraints.h ncd2dispatch.h dapincludes.h 	\
 dapodom.h getvara.h dapnc.h daputil.h dapdebug.h dapdump.h		\
 dceconstraints.h dcetab.h dceparselex.h
 
@@ -29,7 +29,7 @@ if USE_NETCDF4
 #HDRS +=constraints4.h ncd4dispatch.h ncdap4.h
 endif
 
-if BUILD_DAP
+if ENABLE_DAP
 
 if USE_NETCDF4
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc4
@@ -49,7 +49,7 @@ libdap2_la_LIBADD =
 #	 ${top_builddir}/oc2/liboc.la			\
 #	 ${top_builddir}/libdispatch/libdispatch.la
 #
-endif # BUILD_DAP
+endif # ENABLE_DAP
 
 # These rule are used if someone wants to rebuild the grammar files.
 # Otherwise never invoked, but records how to do it.

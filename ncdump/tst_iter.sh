@@ -1,5 +1,8 @@
 #!/bin/sh
-if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+. ../test_common.sh
+
 # This shell script runs an ncdump bug test for netcdf
 # Test if the nciter code is working [NCF-154]
 
@@ -41,9 +44,9 @@ $CC ./iter.c -o iter.exe
 ./iter.exe >>iter.cdl
 
 # echo "*** create iter.nc "
-../ncgen/ncgen -k nc3 -o iter.nc ./iter.cdl
+${NCGEN} -k nc3 -o iter.nc ./iter.cdl
 echo "*** dumping iter.nc to iter.dmp"
-./ncdump iter.nc > iter.dmp
+${NCDUMP} iter.nc > iter.dmp
 echo "*** reformat iter.dmp"
 mv iter.dmp iter.tmp
 sed -e 's/\([0-9][,]\) /\1@/g' <iter.tmp |tr '@' '\n' |sed -e '/^$/d' >./iter.dmp

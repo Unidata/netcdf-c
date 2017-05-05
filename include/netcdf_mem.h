@@ -12,23 +12,11 @@
 #ifndef NETCDF_MEM_H
 #define NETCDF_MEM_H 1
 
+#include <netcdf.h>
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
-
-/* Declaration modifiers for DLL support (MSC et al) */
-#if defined(DLL_NETCDF) /* define when library is a DLL */
-#  if defined(DLL_EXPORT) /* define when building the library */
-#   define MSC_EXTRA __declspec(dllexport)
-#  else
-#   define MSC_EXTRA __declspec(dllimport)
-#  endif
-#include <io.h>
-#else
-#define MSC_EXTRA
-#endif	/* defined(DLL_NETCDF) */
-
-# define EXTERNL MSC_EXTRA extern
 
 EXTERNL int nc_open_mem(const char* path, int mode, size_t size, void* memory, int* ncidp);
 

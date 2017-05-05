@@ -5,8 +5,9 @@ Test part variable fetch code
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netcdf.h>
-#include <ncdispatch.h>
+#include "netcdf.h"
+#include "ncdispatch.h"
+#include "nctestserver.h"
 
 /* The DDS in netcdf classic form is as follows: 
 netcdf ingrid {
@@ -99,14 +100,7 @@ main()
     const char* svc = NULL;
 
     /* Find Test Server */
-    svc = getenv("DTSTESTSERVER");
-    if(svc != NULL) {
-        const char* dtstestserver[2];
-	dtstestserver[0] = svc;
-	dtstestserver[1] = NULL;
-        svc = NC_findtestserver("dts",dtstestserver);
-    } else 	
-        svc = NC_findtestserver("dts",NULL);
+    svc = nc_findtestserver("dts",0,REMOTETESTSERVERS);
 
     if(svc == NULL) {
 	fprintf(stderr,"Cannot locate test server\n");

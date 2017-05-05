@@ -1,5 +1,8 @@
 #!/bin/sh
 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 # This shell runs a bunch of benchmarks on some specific files
 # available at Unidata. If you want to run this shell, you need these
 # data files.

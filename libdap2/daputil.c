@@ -12,51 +12,15 @@
 #include "oc.h"
 extern int oc_dumpnode(OClink, OCddsnode);
 
-#include "ncdap.h"
-#include "dapalign.h"
+#include "dapincludes.h"
+#include "ncoffsets.h"
 
 #define LBRACKET '['
 #define RBRACKET ']'
 
 
 static char* repairname(const char* name, const char* badchars);
-
-/**************************************************/
-/**
- * Provide a hidden interface to allow utilities
- * to check if a given path name is really an ncdap3 url.
- * If no, return null, else return basename of the url
- * minus any extension.
- */
-
-int
-nc__testurl(const char* path, char** basenamep)
-{
-    NCURI* uri;
-    int ok = ncuriparse(path,&uri);
-    if(ok) {
-	char* slash = (uri->file == NULL ? NULL : strrchr(uri->file, '/'));
-	char* dot;
-	if(slash == NULL) slash = (char*)path; else slash++;
-    slash = nulldup(slash);
-
-    if(slash == NULL)
-      dot = NULL;
-    else
-      dot = strrchr(slash, '.');
-
-    if(dot != NULL &&  dot != slash) *dot = '\0';
-
-	if(basenamep)
-      *basenamep=slash;
-    else  {
-      if(slash)
-        free(slash);
-    }
-    ncurifree(uri);
-    }
-    return ok;
-}
+static int nccpadding(unsigned long offset, int alignment);
 
 /**************************************************/
 
@@ -272,8 +236,7 @@ dapparamvalue(NCDAPCOMMON* nccomm, const char* key)
     const char* value;
 
     if(nccomm == NULL || key == NULL) return 0;
-    if(!ncurilookup(nccomm->oc.url,key,&value))
-	return NULL;
+    value=ncurilookup(nccomm->oc.url,key);
     return value;
 }
 
@@ -289,7 +252,7 @@ dapparamcheck(NCDAPCOMMON* nccomm, const char* key, const char* subkey)
     char* p;
 
     if(nccomm == NULL || key == NULL) return 0;
-    if(!ncurilookup(nccomm->oc.url,key,&value))
+    if((value=ncurilookup(nccomm->oc.url,key)) == NULL)
 	return 0;
     if(subkey == NULL) return 1;
     p = strstr(value,subkey);
@@ -733,7 +696,7 @@ dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
 
     if(SHOWFETCH) {
 	/* Build uri string minus the constraint and #tag */
-	char* baseurl = ncuribuild(nccomm->oc.url,NULL,ext,0);
+	char* baseurl = ncuribuild(nccomm->oc.url,NULL,ext,NCURIBASE);
 	if(ce == NULL)
             LOG1(NCLOGNOTE,"fetch: %s",baseurl);
 	else
@@ -836,3 +799,25 @@ repairname(const char* name, const char* badchars)
     *q = '\0'; /* ensure trailing null */
     return newname;
 }
+
+char*
+dap_getselection(NCURI* uri)
+{
+    char* p;
+    char* q = uri->query;
+    if(q == NULL) return NULL;
+    p = strchr(q,'&');
+    if(p == NULL) return NULL;
+    return strdup(p+1);
+}
+
+/* Compute padding */
+static int
+nccpadding(unsigned long offset, int alignment)
+{
+    int pad,rem;
+    rem = (alignment==0?0:(offset % alignment));
+    pad = (rem==0?0:(alignment - rem));
+    return pad;
+}
+

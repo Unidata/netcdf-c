@@ -7,7 +7,7 @@
 ##################################
 
 #Minimum required CMake Version
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.6.1)
 
 #Project Name
 project(netCDF C)
@@ -101,10 +101,10 @@ INCLUDE(${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 INCLUDE(CheckCCompilerFlag)
 FIND_PACKAGE(PkgConfig QUIET)
 
-# Check for Big Endian
+# A check to see if the system is big endian
 TEST_BIG_ENDIAN(BIGENDIAN)
 IF(${BIGENDIAN})
-    SET(WORDS_BIGENDIAN "1")
+  SET(WORDS_BIGENDIAN "1")
 ENDIF(${BIGENDIAN})
 
 # A macro to check if a C linker supports a particular flag.
@@ -627,6 +627,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
           SET(HDF5_C_LIBRARY ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
           SET(HDF5_C_LIBRARY_hdf5 ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
           SET(HDF5_HL_LIBRARY ${HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
+
       	  SET(HDF5_LIBRARIES ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY} ${HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
         ENDIF()
       ENDIF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
@@ -644,14 +645,20 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       SET(HDF5_C_LIBRARY hdf5)
     ENDIF()
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
+ 
+  # There is a missing case in the above code so default it
+  IF("${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
+    SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
+  ENDIF()
 
   ###
-  # The following options are not used in Windows.
+  # The following options are not used in Windows currently.
   ###
   IF(NOT MSVC)
     # Find out if HDF5 was built with parallel support.
     # Do that by checking for the targets H5Pget_fapl_mpiposx and
     # H5Pget_fapl_mpio in ${HDF5_LIB}.
+
     CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
     CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
     IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
@@ -751,10 +758,15 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 
-# Option to Build DAP Client
-OPTION(ENABLE_DAP "Enable DAP Client." ON)
+# Option to Build DAP2+DAP4 Clients
+OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 IF(ENABLE_DAP)
   SET(USE_DAP ON)
+  SET(ENABLE_DAP2 ON)
+  SET(ENABLE_DAP4 ON)
+  IF(NOT ENABLE_NETCDF_4)
+    SET(ENABLE_DAP4 OFF)
+  ENDIF()
   FIND_PACKAGE(CURL)
   IF(NOT CURL_LIBRARY)
     MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
@@ -793,8 +805,9 @@ IF(ENABLE_DAP)
   #include <curl/curl.h>
   int main() {int x = CURLOPT_CHUNK_BGN_FUNCTION;}" HAVE_CURLOPT_CHUNK_BGN_FUNCTION)
 
-
-
+ELSE()
+  SET(ENABLE_DAP2 OFF)
+  SET(ENABLE_DAP4 OFF)
 ENDIF()
 
 # Check to see if libtool supports
@@ -811,14 +824,10 @@ ENDIF()
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
-
-IF(ENABLE_DAP_REMOTE_TESTS)
-  OPTION(ENABLE_DAP_AUTH_TESTS "Enable DAP remote authorization tests." OFF)
-ENDIF()
-
+SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu,jetstream.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # If netCDF4 and DAP, Option for DAP groups.
-IF(ENABLE_NETCDF_4 AND USE_DAP)
+IF(ENABLE_NETCDF_4 AND ENABLE_DAP2)
   OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
 ELSE()
   SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
@@ -984,14 +993,14 @@ IF(ENABLE_PNETCDF)
   FIND_LIBRARY(PNETCDF NAMES pnetcdf)
   FIND_PATH(PNETCDF_INCLUDE_DIR pnetcdf.h)
   IF(NOT PNETCDF)
-    MESSAGE(STATUS "Cannot find PNetCDF library. Disabling PNetCDF support.")
+    MESSAGE(STATUS "Cannot find PnetCDF library. Disabling PnetCDF support.")
     SET(USE_PNETCDF OFF CACHE BOOL "")
   ELSE(NOT PNETCDF)
     SET(USE_PARALLEL ON CACHE BOOL "")
 
-    # Check PNetCDF version. Must be >= 1.6.0
+    # Check PnetCDF version. Must be >= 1.6.0
     set(pnetcdf_h "${PNETCDF_INCLUDE_DIR}/pnetcdf.h" )
-    message(STATUS "PNetCDF include file ${pnetcdf_h} will be searched for version")
+    message(STATUS "PnetCDF include file ${pnetcdf_h} will be searched for version")
     file(STRINGS "${pnetcdf_h}" pnetcdf_major_string REGEX "^#define PNETCDF_VERSION_MAJOR")
     string(REGEX REPLACE "[^0-9]" "" pnetcdf_major "${pnetcdf_major_string}")
     file(STRINGS "${pnetcdf_h}" pnetcdf_minor_string REGEX "^#define PNETCDF_VERSION_MINOR")
@@ -999,7 +1008,7 @@ IF(ENABLE_PNETCDF)
     file(STRINGS "${pnetcdf_h}" pnetcdf_sub_string REGEX "^#define PNETCDF_VERSION_SUB")
     string(REGEX REPLACE "[^0-9]" "" pnetcdf_sub "${pnetcdf_sub_string}")
     set(pnetcdf_version "${pnetcdf_major}.${pnetcdf_minor}.${pnetcdf_sub}")
-    message(STATUS "Found PNetCDF version ${pnetcdf_version}")
+    message(STATUS "Found PnetCDF version ${pnetcdf_version}")
 
     if(${pnetcdf_version} VERSION_GREATER "1.6.0")
       SET(STATUS_PNETCDF "ON")
@@ -1008,11 +1017,64 @@ IF(ENABLE_PNETCDF)
       # pnetcdf => parallel
       SET(STATUS_PARALLEL ON)
       SET(USE_PARALLEL ON)
-      MESSAGE(STATUS "Using PNetCDF Library: ${PNETCDF}")
+      MESSAGE(STATUS "Using PnetCDF Library: ${PNETCDF}")
     ELSE()
-      MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.1 or later; found version ${pnetcdf_version}. PNetCDF is disabled")
+      MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.1 or later; found version ${pnetcdf_version}. PnetCDF is disabled")
     ENDIF()
   ENDIF(NOT PNETCDF)
+ENDIF()
+
+# Options to enable use of fill values for elements casuing NC_ERANGE
+SET(STATUS_ERANGE_FILL "OFF")
+OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OF)
+IF(ENABLE_ERANGE_FILL)
+  SET(STATUS_ERANGE_FILL "ON")
+ENDIF()
+
+# Options to use a more relaxed coordinate argument boundary check
+SET(STATUS_RELAX_COORD_BOUND "OFF")
+OPTION(ENABLE_ZERO_LENGTH_COORD_BOUND "Enable a more relaxed boundary error check NC_EINVALCOORDS to allow coordinate start argument equal to dimension size when argument count is zero." OFF)
+IF(ENABLE_ZERO_LENGTH_COORD_BOUND)
+  SET(STATUS_RELAX_COORD_BOUND "ON")
+ENDIF()
+
+# check and conform with PnetCDF settings on ERANGE_FILL and RELAX_COORD_BOUND
+IF(STATUS_PNETCDF)
+  file(STRINGS "${pnetcdf_h}" enable_erange_fill_pnetcdf REGEX "^#define PNETCDF_ERANGE_FILL")
+  string(REGEX REPLACE "[^0-9]" "" erange_fill_pnetcdf "${enable_erange_fill_pnetcdf}")
+  IF("x${erange_fill_pnetcdf}" STREQUAL "x1")
+     IF(NOT STATUS_ERANGE_FILL)
+       MESSAGE(WARNING "Enable erange-fill to conform with PnetCDF setting")
+       SET(STATUS_ERANGE_FILL "ON")
+     ENDIF()
+  ELSE()
+     IF(STATUS_ERANGE_FILL)
+       MESSAGE(WARNING "Disable erange-fill to conform with PnetCDF setting")
+       SET(STATUS_ERANGE_FILL "OFF")
+     ENDIF()
+  ENDIF()
+  file(STRINGS "${pnetcdf_h}" relax_coord_bound_pnetcdf REGEX "^#define PNETCDF_RELAX_COORD_BOUND")
+  string(REGEX REPLACE "[^0-9]" "" relax_coord_bound "${relax_coord_bound_pnetcdf}")
+  IF("x${relax_coord_bound}" STREQUAL "x1")
+     IF(NOT STATUS_RELAX_COORD_BOUND)
+       MESSAGE(WARNING "Enable relax-coord-bound to conform with PnetCDF setting")
+       SET(STATUS_RELAX_COORD_BOUND "ON")
+     ENDIF()
+  ELSE()
+     IF(STATUS_RELAX_COORD_BOUND)
+       MESSAGE(WARNING "Disable relax-coord-bound to conform with PnetCDF setting")
+       SET(STATUS_RELAX_COORD_BOUND "OFF")
+     ENDIF()
+  ENDIF()
+ENDIF()
+
+IF(STATUS_ERANGE_FILL)
+  SET(M4FLAGS "-DERANGE_FILL" CACHE STRING "")
+ENDIF()
+
+IF(STATUS_RELAX_COORD_BOUND)
+  MESSAGE(STATUS "Enabling a more relatexed check for NC_EINVALCOORDS")
+  ADD_DEFINITIONS(-DRELAX_COORD_BOUND)
 ENDIF()
 
 # Enable Parallel Tests.
@@ -1148,6 +1210,9 @@ CHECK_INCLUDE_FILE("stdbool.h"   HAVE_STDBOOL_H)
 CHECK_INCLUDE_FILE("locale.h"  HAVE_LOCALE_H)
 CHECK_INCLUDE_FILE("stdint.h"  HAVE_STDINT_H)
 CHECK_INCLUDE_FILE("stdio.h"   HAVE_STDIO_H)
+IF(MSVC)
+CHECK_INCLUDE_FILE("io.h"      HAVE_IO_H)
+ENDIF(MSVC)
 CHECK_INCLUDE_FILE("stdlib.h"  HAVE_STDLIB_H)
 CHECK_INCLUDE_FILE("stdarg.h"    HAVE_STDARG_H)
 CHECK_INCLUDE_FILE("strings.h"   HAVE_STRINGS_H)
@@ -1195,7 +1260,9 @@ CHECK_SYMBOL_EXISTS(vprintf "stdio.h" HAVE_VPRINTF)
 SET(HAVE_ST_BLKSIZE ${HAVE_STRUCT_STAT_ST_BLKSIZE})
 
 # Type checks
-CHECK_TYPE_SIZE("void*"     SIZEOF_VOIDSTAR)
+# Aliases for automake consistency
+SET(SIZEOF_VOIDSTAR ${CMAKE_SIZEOF_VOID_P})
+SET(SIZEOF_VOIDP ${SIZEOF_VOIDSTAR})
 CHECK_TYPE_SIZE("char"      SIZEOF_CHAR)
 CHECK_TYPE_SIZE("double"    SIZEOF_DOUBLE)
 CHECK_TYPE_SIZE("float"     SIZEOF_FLOAT)
@@ -1242,9 +1309,13 @@ ENDIF(SIZEOF_PTRDIFF_T)
 
 # __int64 is used on Windows for large file support.
 CHECK_TYPE_SIZE("__int64"   SIZEOF___INT_64)
-CHECK_TYPE_SIZE("uchar"     SIZEOF_UCHAR)
 CHECK_TYPE_SIZE("int64_t"   SIZEOF_INT64_T)
 CHECK_TYPE_SIZE("uint64_t"  SIZEOF_UINT64_T)
+CHECK_TYPE_SIZE("unsigned char"      SIZEOF_UCHAR)
+CHECK_TYPE_SIZE("unsigned short int" SIZEOF_UNSIGNED_SHORT_INT)
+CHECK_TYPE_SIZE("unsigned int"       SIZEOF_UNSIGNED_INT)
+CHECK_TYPE_SIZE("long long"          SIZEOF_LONGLONG)
+CHECK_TYPE_SIZE("unsigned long long" SIZEOF_ULONGLONG)
 
 # On windows systems, we redefine off_t as __int64
 # to enable LFS. This is true on 32 and 64 bit system.s
@@ -1313,6 +1384,7 @@ ENDIF(ENABLE_MMAP)
 ################################
 
 # Macro to append files to the EXTRA_DIST files.
+# Note: can only be used in subdirectories because of the use of PARENT_SCOPE
 SET(EXTRA_DIST "")
 MACRO(ADD_EXTRA_DIST files)
   FOREACH(F ${files})
@@ -1338,7 +1410,7 @@ IF(HAVE_M4)
   ADD_CUSTOM_COMMAND(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
     COMMAND ${NC_M4}
-    ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+    ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
     VERBATIM
     )
 ENDIF(HAVE_M4)
@@ -1442,7 +1514,9 @@ MACRO(add_bin_test prefix F)
       PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
       )
   ENDIF()
-  ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
+  ADD_TEST(${prefix}_${F}
+           ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F}
+           )
   IF(MSVC)
     SET_PROPERTY(TEST ${prefix}_${F} PROPERTY FOLDER "tests/")
     SET_TARGET_PROPERTIES(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
@@ -1462,7 +1536,8 @@ MACRO(print_conf_summary)
   MESSAGE("")
   MESSAGE(STATUS "Building Shared Libraries:     ${BUILD_SHARED_LIBS}")
   MESSAGE(STATUS "Building netCDF-4:             ${ENABLE_NETCDF_4}")
-  MESSAGE(STATUS "Building DAP Support:          ${ENABLE_DAP}")
+  MESSAGE(STATUS "Building DAP2 Support:         ${ENABLE_DAP2}")
+  MESSAGE(STATUS "Building DAP4 Support:         ${ENABLE_DAP4}")
   MESSAGE(STATUS "Building Utilities:            ${BUILD_UTILITIES}")
   IF(CMAKE_PREFIX_PATH)
     MESSAGE(STATUS "CMake Prefix Path:             ${CMAKE_PREFIX_PATH}")
@@ -1479,7 +1554,6 @@ MACRO(print_conf_summary)
   MESSAGE("Tests Enabled:              ${ENABLE_TESTS}")
   IF(ENABLE_TESTS)
     MESSAGE(STATUS "DAP Remote Tests:  ${ENABLE_DAP_REMOTE_TESTS}")
-    MESSAGE(STATUS "DAP AUTH Tests:    ${ENABLE_DAP_AUTH_TESTS}")
     MESSAGE(STATUS "Extra Tests:       ${ENABLE_EXTRA_TESTS}")
     MESSAGE(STATUS "Coverage Tests:    ${ENABLE_COVERAGE_TESTS}")
     MESSAGE(STATUS "Parallel Tests:    ${ENABLE_PARALLEL_TESTS}")
@@ -1615,9 +1689,13 @@ IF(USE_HDF5)
   add_subdirectory(libsrc4)
 ENDIF(USE_HDF5)
 
-IF(USE_DAP)
+IF(ENABLE_DAP2)
   ADD_SUBDIRECTORY(oc2)
   ADD_SUBDIRECTORY(libdap2)
+ENDIF()
+
+IF(ENABLE_DAP4)
+  ADD_SUBDIRECTORY(libdap4)
 ENDIF()
 
 add_subdirectory(liblib)
@@ -1647,10 +1725,12 @@ IF(ENABLE_TESTS)
     ADD_SUBDIRECTORY(nc_test4)
     ADD_SUBDIRECTORY(h5_test)
   ENDIF()
-  IF(USE_DAP AND ENABLE_DAP_REMOTE_TESTS)
+  IF(ENABLE_DAP2)
     ADD_SUBDIRECTORY(ncdap_test)
   ENDIF()
-
+  IF(ENABLE_DAP4)
+    ADD_SUBDIRECTORY(dap4_test)
+  ENDIF()
   IF(ENABLE_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
   ENDIF()
@@ -1742,7 +1822,8 @@ configure_file(
 
 FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
 configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
-  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY)
+  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY
+  NEWLINE_STYLE LF)
 FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
   DESTINATION ${netCDF_BINARY_DIR}/
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
@@ -1802,10 +1883,12 @@ is_enabled(USE_SZIP HAS_SZIP)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
-is_enabled(USE_DAP HAS_DAP)
+is_enabled(ENABLE_DAP HAS_DAP)
+is_enabled(ENABLE_DAP4 HAS_DAP4)
 is_enabled(USE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
+is_enabled(STATUS_RELAX_COORD_BOUND RELAX_COORD_BOUND)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -1838,6 +1921,14 @@ configure_file(
 
 FILE(COPY ${netCDF_SOURCE_DIR}/include/netcdf_meta.h
   DESTINATION ${netCDF_BINARY_DIR}/include/)
+
+#####
+# Build test_common.sh
+#####
+SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_SOURCE_DIR}/test_common.in)
+SET(TOPSRCDIR "${CMAKE_SOURCE_DIR}")
+SET(TOPBUILDDIR "${CMAKE_BINARY_DIR}")
+configure_file(${CMAKE_SOURCE_DIR}/test_common.in ${CMAKE_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
 ####
 # Export files

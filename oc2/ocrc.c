@@ -9,9 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "netcdf.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
-#include "oclog.h"
+#include "nclog.h"
 
 #define OCRCFILEENV "DAPRCFILE"
 
@@ -49,20 +50,20 @@ occredentials_in_url(const char *url)
 static OCerror
 ocextract_credentials(const char *url, char **userpwd, char **result_url)
 {
-    OCURI* parsed = NULL;
-    if(!ocuriparse(url,&parsed))
+    NCURI* parsed = NULL;
+    if(ncuriparse(url,&parsed) != NCU_OK)
 	return OCTHROW(OC_EBADURL);
-    if(parsed->userpwd == NULL) {
-	ocurifree(parsed);
+    if(parsed->user != NULL || parsed->password == NULL) {
+	ncurifree(parsed);
 	return OCTHROW(OC_EBADURL);
     }
-    if(userpwd) *userpwd = strdup(parsed->userpwd);
-    ocurifree(parsed);
+    if(userpwd) *userpwd = combinecredentials(parsed->user,parsed->password);
+    ncurifree(parsed);
     return OC_NOERR;
 }
 
 char*
-occombinehostport(const OCURI* uri)
+occombinehostport(const NCURI* uri)
 {
     char* hp;
     int len = 0;
@@ -95,7 +96,7 @@ combinecredentials(const char* user, const char* pwd)
     userPassSize = strlen(user) + strlen(pwd) + 2;
     userPassword = malloc(sizeof(char) * userPassSize);
     if (!userPassword) {
-        oclog(OCLOGERR,"Out of Memory\n");
+        nclog(NCLOGERR,"Out of Memory\n");
 	return NULL;
     }
     occopycat(userPassword,userPassSize-1,3,user,":",pwd);
@@ -204,11 +205,11 @@ ocparseproxy(OCstate* state, char* v)
      state->proxy.password[p_len] = '\0';
 #endif /*0*/
      if (ocdebug > 1) {
-         oclog(OCLOGNOTE,"host name: %s", state->proxy.host);
+         nclog(NCLOGNOTE,"host name: %s", state->proxy.host);
 #ifdef INSECURE
-         oclog(OCLOGNOTE,"user+pwd: %s", state->proxy.userpwd);
+         nclog(NCLOGNOTE,"user+pwd: %s", state->proxy.userpwd);
 #endif
-         oclog(OCLOGNOTE,"port number: %d", state->proxy.port);
+         nclog(NCLOGNOTE,"port number: %d", state->proxy.port);
     }
     if(v) free(v);
     return OC_NOERR;
@@ -228,7 +229,7 @@ sorttriplestore(struct OCTriplestore* store)
 
     sorted = (struct OCTriple*)malloc(sizeof(struct OCTriple)*store->ntriples);
     if(sorted == NULL) {
-        oclog(OCLOGERR,"sorttriplestore: out of memory");
+        nclog(NCLOGERR,"sorttriplestore: out of memory");
         return;
     }
 
@@ -280,7 +281,7 @@ ocrc_compile(const char* path)
 
     in_file = fopen(path, "r"); /* Open the file to read it */
     if (in_file == NULL) {
-        oclog(OCLOGERR, "Could not open configuration file: %s",path);
+        nclog(NCLOGERR, "Could not open configuration file: %s",path);
         return OC_EPERM;
     }
 
@@ -290,7 +291,7 @@ ocrc_compile(const char* path)
         if(!rcreadline(in_file,line0,sizeof(line0))) break;
         linecount++;
         if(linecount >= MAXRCLINES) {
-            oclog(OCLOGERR, ".rc has too many lines");
+            nclog(NCLOGERR, ".rc has too many lines");
             return 0;
         }
         line = line0;
@@ -300,7 +301,7 @@ ocrc_compile(const char* path)
         rctrim(line);  /* trim leading and trailing blanks */
 	if(strlen(line) == 0) continue;
         if(strlen(line) >= MAXRCLINESIZE) {
-            oclog(OCLOGERR, "%s line too long: %s",path,line0);
+            nclog(NCLOGERR, "%s line too long: %s",path,line0);
             continue; /* ignore it */
         }
         /* setup */
@@ -308,18 +309,18 @@ ocrc_compile(const char* path)
         ocrc->triples[ocrc->ntriples].key[0] = '\0';
         ocrc->triples[ocrc->ntriples].value[0] = '\0';
         if(line[0] == LTAG) {
-	    OCURI* uri;
+	    NCURI* uri;
             char* url = ++line;
             char* rtag = strchr(line,RTAG);
             if(rtag == NULL) {
-                oclog(OCLOGERR, "Malformed [url] in %s entry: %s",path,line);
+                nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
                 continue;
             }
             line = rtag + 1;
             *rtag = '\0';
             /* compile the url and pull out the host */
-	    if(!ocuriparse(url,&uri)) {
-                oclog(OCLOGERR, "Malformed [url] in %s entry: %s",path,line);
+	    if(ncuriparse(url,&uri) != NCU_OK) {
+                nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
 		continue;
 	    }
             strncpy(ocrc->triples[ocrc->ntriples].host,uri->host,MAXRCLINESIZE-1);
@@ -327,7 +328,7 @@ ocrc_compile(const char* path)
                 strncat(ocrc->triples[ocrc->ntriples].host,":",MAXRCLINESIZE-1);
                 strncat(ocrc->triples[ocrc->ntriples].host,uri->port,MAXRCLINESIZE-1);
 	    }
-	    ocurifree(uri);
+	    ncurifree(uri);
         }
         /* split off key and value */
         key=line;
@@ -363,7 +364,7 @@ ocrc_load(void)
     char* path = NULL;
 
     if(ocglobalstate.rc.ignore) {
-        oclog(OCLOGDBG,"No runtime configuration file specified; continuing");
+        nclog(NCLOGDBG,"No runtime configuration file specified; continuing");
 	return OC_NOERR;
     }
     if(ocglobalstate.rc.loaded) return OC_NOERR;
@@ -392,12 +393,12 @@ ocrc_load(void)
 	}
     }
     if(path == NULL) {
-        oclog(OCLOGDBG,"Cannot find runtime configuration file; continuing");
+        nclog(NCLOGDBG,"Cannot find runtime configuration file; continuing");
     } else {
 	if(ocdebug > 0)
 	    fprintf(stderr, "RC file: %s\n", path);
         if(ocrc_compile(path) == 0) {
-	    oclog(OCLOGERR, "Error parsing %s\n",path);
+	    nclog(NCLOGERR, "Error parsing %s\n",path);
 	    stat = OC_ERCFILE;
 	}
     }
@@ -413,7 +414,7 @@ ocrc_process(OCstate* state)
 {
     OCerror stat = OC_NOERR;
     char* value = NULL;
-    OCURI* uri = state->uri;
+    NCURI* uri = state->uri;
     char* url_userpwd = NULL;
     char* url_hostport = NULL;
 
@@ -426,7 +427,7 @@ ocrc_process(OCstate* state)
        to getinfo e.g. user:pwd from url
     */
 
-    url_userpwd = uri->userpwd;
+    url_userpwd = combinecredentials(uri->user,uri->password);
     url_hostport = occombinehostport(uri);
     if(url_hostport == NULL)
 	return OC_ENOMEM;
@@ -435,23 +436,23 @@ ocrc_process(OCstate* state)
     if(value != NULL) {
         if(atoi(value)) state->curlflags.compress = 1;
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.DEFLATE: %ld", state->curlflags.compress);
+            nclog(NCLOGNOTE,"HTTP.DEFLATE: %ld", state->curlflags.compress);
     }
     if((value = ocrc_lookup("HTTP.VERBOSE",url_hostport)) != NULL) {
         if(atoi(value)) state->curlflags.verbose = 1;
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.VERBOSE: %ld", state->curlflags.verbose);
+            nclog(NCLOGNOTE,"HTTP.VERBOSE: %ld", state->curlflags.verbose);
     }
     if((value = ocrc_lookup("HTTP.TIMEOUT",url_hostport)) != NULL) {
         if(atoi(value)) state->curlflags.timeout = atoi(value);
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.TIMEOUT: %ld", state->curlflags.timeout);
+            nclog(NCLOGNOTE,"HTTP.TIMEOUT: %ld", state->curlflags.timeout);
     }
     if((value = ocrc_lookup("HTTP.USERAGENT",url_hostport)) != NULL) {
         if(atoi(value)) state->curlflags.useragent = strdup(value);
         if(state->curlflags.useragent == NULL) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.USERAGENT: %s", state->curlflags.useragent);
+            nclog(NCLOGNOTE,"HTTP.USERAGENT: %s", state->curlflags.useragent);
     }
 
     if(
@@ -463,14 +464,14 @@ ocrc_process(OCstate* state)
         state->curlflags.cookiejar = strdup(value);
         if(state->curlflags.cookiejar == NULL) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.COOKIEJAR: %s", state->curlflags.cookiejar);
+            nclog(NCLOGNOTE,"HTTP.COOKIEJAR: %s", state->curlflags.cookiejar);
     }
 
     if((value = ocrc_lookup("HTTP.PROXY_SERVER",url_hostport)) != NULL) {
         stat = ocparseproxy(state,value);
         if(stat != OC_NOERR) goto done;
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.PROXY_SERVER: %s", value);
+            nclog(NCLOGNOTE,"HTTP.PROXY_SERVER: %s", value);
     }
 
     if((value = ocrc_lookup("HTTP.SSL.VALIDATE",url_hostport)) != NULL) {
@@ -478,7 +479,7 @@ ocrc_process(OCstate* state)
 	    state->ssl.verifypeer = 1;
 	    state->ssl.verifyhost = 1;
             if(ocdebug > 0)
-                oclog(OCLOGNOTE,"HTTP.SSL.VALIDATE: %ld", 1);
+                nclog(NCLOGNOTE,"HTTP.SSL.VALIDATE: %ld", 1);
 	}
     }
 
@@ -486,35 +487,35 @@ ocrc_process(OCstate* state)
         state->ssl.certificate = strdup(value);
         if(state->ssl.certificate == NULL) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.SSL.CERTIFICATE: %s", state->ssl.certificate);
+            nclog(NCLOGNOTE,"HTTP.SSL.CERTIFICATE: %s", state->ssl.certificate);
     }
 
     if((value = ocrc_lookup("HTTP.SSL.KEY",url_hostport)) != NULL) {
         state->ssl.key = strdup(value);
         if(state->ssl.key == NULL) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.SSL.KEY: %s", state->ssl.key);
+            nclog(NCLOGNOTE,"HTTP.SSL.KEY: %s", state->ssl.key);
     }
 
     if((value = ocrc_lookup("HTTP.SSL.KEYPASSWORD",url_hostport)) != NULL) {
         state->ssl.keypasswd = strdup(value);
         if(state->ssl.keypasswd == NULL) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.SSL.KEYPASSWORD: %s", state->ssl.keypasswd);
+            nclog(NCLOGNOTE,"HTTP.SSL.KEYPASSWORD: %s", state->ssl.keypasswd);
     }
 
     if((value = ocrc_lookup("HTTP.SSL.CAINFO",url_hostport)) != NULL) {
         state->ssl.cainfo = strdup(value);
         if(state->ssl.cainfo == NULL) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.SSL.CAINFO: %s", state->ssl.cainfo);
+            nclog(NCLOGNOTE,"HTTP.SSL.CAINFO: %s", state->ssl.cainfo);
     }
 
     if((value = ocrc_lookup("HTTP.SSL.CAPATH",url_hostport)) != NULL) {
         state->ssl.capath = strdup(value);
         if(state->ssl.capath == NULL) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.SSL.CAPATH: %s", state->ssl.capath);
+            nclog(NCLOGNOTE,"HTTP.SSL.CAPATH: %s", state->ssl.capath);
     }
 
     if((value = ocrc_lookup("HTTP.SSL.VERIFYPEER",url_hostport)) != NULL) {
@@ -528,7 +529,7 @@ ocrc_process(OCstate* state)
             tf = 1; /* default if not null */
         state->ssl.verifypeer = tf;
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.SSL.VERIFYPEER: %d", state->ssl.verifypeer);
+            nclog(NCLOGNOTE,"HTTP.SSL.VERIFYPEER: %d", state->ssl.verifypeer);
 	free(s);
     }
 
@@ -538,7 +539,7 @@ ocrc_process(OCstate* state)
         state->curlflags.netrc = strdup(value);
         if(state->curlflags.netrc == NULL) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"HTTP.NETRC: %s", state->curlflags.netrc);
+            nclog(NCLOGNOTE,"HTTP.NETRC: %s", state->curlflags.netrc);
     }
 
     { /* Handle various cases for user + password */
@@ -673,12 +674,12 @@ ocreadrc(void)
 	}
     }
     if(path == NULL) {
-        oclog(OCLOGDBG,"Cannot find runtime configuration file; continuing");
+        nclog(NCLOGDBG,"Cannot find runtime configuration file; continuing");
     } else {
 	if(ocdebug > 0)
 	    fprintf(stderr, "DODS RC file: %s\n", path);
         if(ocdodsrc_read(path) == 0) {
-	    oclog(OCLOGERR, "Error parsing %s\n",path);
+	    nclog(NCLOGERR, "Error parsing %s\n",path);
 	    stat = OC_ERCFILE;
 	}
     }
@@ -715,7 +716,7 @@ rc_search(const char* prefix, const char* rcname, char** pathp)
     /* see if file is readable */
     f = fopen(path,"r");
     if(f != NULL)
-        oclog(OCLOGDBG, "Found rc file=%s",path);
+        nclog(NCLOGDBG, "Found rc file=%s",path);
 done:
     if(f == NULL || stat != OC_NOERR) {
       if(path != NULL)

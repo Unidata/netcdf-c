@@ -32,7 +32,7 @@
  *
  */
 
-#include <config.h> /* output of 'configure' */
+#include "config.h" /* output of 'configure' */
 #include "rnd.h"
 #include <stddef.h> /* size_t */
 #include <errno.h>
@@ -231,19 +231,19 @@ extern int
 ncx_get_schar_double(const void *xp, double *ip);
 
 extern int
-ncx_put_schar_schar(void *xp, const schar *ip);
+ncx_put_schar_schar(void *xp, const schar *ip, void *fillp);
 extern int
-ncx_put_schar_uchar(void *xp, const uchar *ip);
+ncx_put_schar_uchar(void *xp, const uchar *ip, void *fillp);
 extern int
-ncx_put_schar_short(void *xp, const short *ip);
+ncx_put_schar_short(void *xp, const short *ip, void *fillp);
 extern int
-ncx_put_schar_int(void *xp, const int *ip);
+ncx_put_schar_int(void *xp, const int *ip, void *fillp);
 extern int
-ncx_put_schar_long(void *xp, const long *ip);
+ncx_put_schar_long(void *xp, const long *ip, void *fillp);
 extern int
-ncx_put_schar_float(void *xp, const float *ip);
+ncx_put_schar_float(void *xp, const float *ip, void *fillp);
 extern int
-ncx_put_schar_double(void *xp, const double *ip);
+ncx_put_schar_double(void *xp, const double *ip, void *fillp);
 #endif
 
 /*
@@ -275,8 +275,17 @@ ncx_put_int32(void **xpp, const int ip);
 extern int
 ncx_put_int64(void **xpp, const long long ip);
 
+extern int
+ncx_get_uint32(const void **xpp, unsigned int *ip);
+extern int
+ncx_get_uint64(const void **xpp, unsigned long long *ip);
+extern int
+ncx_put_uint32(void **xpp, const unsigned int ip);
+extern int
+ncx_put_uint64(void **xpp, const unsigned long long ip);
+
 extern int ncx_get_int_int(const void *xp, int *ip);
-extern int ncx_put_int_int(void *xp, const int *ip);
+extern int ncx_put_int_int(void *xp, const int *ip, void *fillp);
 
 /*
  * Aggregate numeric conversion functions.
@@ -366,50 +375,50 @@ extern int
 ncx_pad_getn_schar_ulonglong(const void **xpp, size_t nelems, ulonglong *ip);
 
 extern int
-ncx_putn_schar_schar (void **xpp, size_t nelems, const schar   *ip);
+ncx_putn_schar_schar (void **xpp, size_t nelems, const schar   *ip, void *fillp);
 extern int
-ncx_putn_schar_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_putn_schar_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_putn_schar_short (void **xpp, size_t nelems, const short  *ip);
+ncx_putn_schar_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_putn_schar_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_putn_schar_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_putn_schar_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_putn_schar_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_putn_schar_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_putn_schar_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_putn_schar_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_schar_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_schar_float (void **xpp, size_t nelems, const float  *ip);
+ncx_putn_schar_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_putn_schar_double(void **xpp, size_t nelems, const double  *ip);
+ncx_putn_schar_double(void **xpp, size_t nelems, const double  *ip, void *fillp);
 extern int
-ncx_putn_schar_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_putn_schar_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_putn_schar_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_putn_schar_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 extern int
-ncx_pad_putn_schar_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_pad_putn_schar_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_pad_putn_schar_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_pad_putn_schar_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_pad_putn_schar_short (void **xpp, size_t nelems, const short  *ip);
+ncx_pad_putn_schar_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_pad_putn_schar_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_pad_putn_schar_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_pad_putn_schar_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_pad_putn_schar_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_pad_putn_schar_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_pad_putn_schar_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_pad_putn_schar_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_pad_putn_schar_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_pad_putn_schar_float (void **xpp, size_t nelems, const float  *ip);
+ncx_pad_putn_schar_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_pad_putn_schar_double(void **xpp, size_t nelems, const double *ip);
+ncx_pad_putn_schar_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_pad_putn_schar_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_pad_putn_schar_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_pad_putn_schar_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_pad_putn_schar_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 /*---- uchar ----------------------------------------------------------------*/
 extern int
@@ -459,50 +468,50 @@ extern int
 ncx_pad_getn_uchar_ulonglong(const void **xpp, size_t nelems, ulonglong *ip);
 
 extern int
-ncx_putn_uchar_schar (void **xpp, size_t nelems, const schar   *ip);
+ncx_putn_uchar_schar (void **xpp, size_t nelems, const schar   *ip, void *fillp);
 extern int
-ncx_putn_uchar_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_putn_uchar_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_putn_uchar_short (void **xpp, size_t nelems, const short  *ip);
+ncx_putn_uchar_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_putn_uchar_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_putn_uchar_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_putn_uchar_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_putn_uchar_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_putn_uchar_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_putn_uchar_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_putn_uchar_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_uchar_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_uchar_float (void **xpp, size_t nelems, const float  *ip);
+ncx_putn_uchar_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_putn_uchar_double(void **xpp, size_t nelems, const double  *ip);
+ncx_putn_uchar_double(void **xpp, size_t nelems, const double  *ip, void *fillp);
 extern int
-ncx_putn_uchar_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_putn_uchar_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_putn_uchar_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_putn_uchar_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 extern int
-ncx_pad_putn_uchar_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_pad_putn_uchar_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_pad_putn_uchar_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_pad_putn_uchar_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_pad_putn_uchar_short (void **xpp, size_t nelems, const short  *ip);
+ncx_pad_putn_uchar_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_pad_putn_uchar_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_pad_putn_uchar_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_pad_putn_uchar_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_pad_putn_uchar_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_pad_putn_uchar_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_pad_putn_uchar_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_pad_putn_uchar_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_pad_putn_uchar_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_pad_putn_uchar_float (void **xpp, size_t nelems, const float  *ip);
+ncx_pad_putn_uchar_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_pad_putn_uchar_double(void **xpp, size_t nelems, const double *ip);
+ncx_pad_putn_uchar_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_pad_putn_uchar_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_pad_putn_uchar_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_pad_putn_uchar_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_pad_putn_uchar_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 /*---- short ----------------------------------------------------------------*/
 extern int
@@ -552,50 +561,50 @@ extern int
 ncx_pad_getn_short_ulonglong(const void **xpp, size_t nelems, ulonglong *ip);
 
 extern int
-ncx_putn_short_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_putn_short_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_putn_short_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_putn_short_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_putn_short_short (void **xpp, size_t nelems, const short  *ip);
+ncx_putn_short_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_putn_short_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_putn_short_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_putn_short_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_putn_short_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_putn_short_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_putn_short_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_putn_short_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_short_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_short_float (void **xpp, size_t nelems, const float  *ip);
+ncx_putn_short_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_putn_short_double(void **xpp, size_t nelems, const double *ip);
+ncx_putn_short_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_putn_short_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_putn_short_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_putn_short_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_putn_short_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 extern int
-ncx_pad_putn_short_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_pad_putn_short_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_pad_putn_short_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_pad_putn_short_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_pad_putn_short_short (void **xpp, size_t nelems, const short  *ip);
+ncx_pad_putn_short_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_pad_putn_short_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_pad_putn_short_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_pad_putn_short_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_pad_putn_short_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_pad_putn_short_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_pad_putn_short_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_pad_putn_short_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_pad_putn_short_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_pad_putn_short_float (void **xpp, size_t nelems, const float  *ip);
+ncx_pad_putn_short_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_pad_putn_short_double(void **xpp, size_t nelems, const double *ip);
+ncx_pad_putn_short_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_pad_putn_short_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_pad_putn_short_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_pad_putn_short_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_pad_putn_short_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 /*---- ushort ---------------------------------------------------------------*/
 extern int
@@ -645,50 +654,50 @@ extern int
 ncx_pad_getn_ushort_ulonglong(const void **xpp, size_t nelems, ulonglong *ip);
 
 extern int
-ncx_putn_ushort_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_putn_ushort_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_putn_ushort_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_putn_ushort_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_putn_ushort_short (void **xpp, size_t nelems, const short  *ip);
+ncx_putn_ushort_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_putn_ushort_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_putn_ushort_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_putn_ushort_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_putn_ushort_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_putn_ushort_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_putn_ushort_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_putn_ushort_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_ushort_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_ushort_float (void **xpp, size_t nelems, const float  *ip);
+ncx_putn_ushort_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_putn_ushort_double(void **xpp, size_t nelems, const double *ip);
+ncx_putn_ushort_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_putn_ushort_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_putn_ushort_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_putn_ushort_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_putn_ushort_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 extern int
-ncx_pad_putn_ushort_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_pad_putn_ushort_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_pad_putn_ushort_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_pad_putn_ushort_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_pad_putn_ushort_short (void **xpp, size_t nelems, const short  *ip);
+ncx_pad_putn_ushort_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_pad_putn_ushort_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_pad_putn_ushort_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_pad_putn_ushort_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_pad_putn_ushort_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_pad_putn_ushort_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_pad_putn_ushort_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_pad_putn_ushort_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_pad_putn_ushort_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_pad_putn_ushort_float (void **xpp, size_t nelems, const float  *ip);
+ncx_pad_putn_ushort_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_pad_putn_ushort_double(void **xpp, size_t nelems, const double *ip);
+ncx_pad_putn_ushort_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_pad_putn_ushort_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_pad_putn_ushort_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_pad_putn_ushort_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_pad_putn_ushort_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 /*---- int ------------------------------------------------------------------*/
 extern int
@@ -717,29 +726,29 @@ extern int
 ncx_getn_int_ulonglong(const void **xpp, size_t nelems, ulonglong *ip);
 
 extern int
-ncx_putn_int_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_putn_int_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_putn_int_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_putn_int_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_putn_int_short (void **xpp, size_t nelems, const short  *ip);
+ncx_putn_int_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_putn_int_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_putn_int_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_putn_int_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_putn_int_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_putn_int_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_putn_int_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_putn_int_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_int_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_long_long (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_long_long (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_int_float (void **xpp, size_t nelems, const float  *ip);
+ncx_putn_int_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_putn_int_double(void **xpp, size_t nelems, const double *ip);
+ncx_putn_int_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_putn_int_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_putn_int_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_putn_int_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_putn_int_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 /*---- uint -----------------------------------------------------------------*/
 extern int
@@ -768,29 +777,29 @@ extern int
 ncx_getn_uint_ulonglong(const void **xpp, size_t nelems, ulonglong *ip);
 
 extern int
-ncx_putn_uint_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_putn_uint_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_putn_uint_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_putn_uint_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_putn_uint_short (void **xpp, size_t nelems, const short  *ip);
+ncx_putn_uint_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_putn_uint_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_putn_uint_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_putn_uint_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_putn_uint_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_putn_uint_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_putn_uint_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_putn_uint_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_uint_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_long_long (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_long_long (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_uint_float (void **xpp, size_t nelems, const float  *ip);
+ncx_putn_uint_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_putn_uint_double(void **xpp, size_t nelems, const double *ip);
+ncx_putn_uint_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_putn_uint_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_putn_uint_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_putn_uint_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_putn_uint_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 /*---- float ----------------------------------------------------------------*/
 extern int
@@ -817,27 +826,27 @@ extern int
 ncx_getn_float_ulonglong(const void **xpp, size_t nelems, ulonglong *ip);
 
 extern int
-ncx_putn_float_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_putn_float_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_putn_float_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_putn_float_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_putn_float_short (void **xpp, size_t nelems, const short  *ip);
+ncx_putn_float_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_putn_float_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_putn_float_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_putn_float_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_putn_float_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_putn_float_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_putn_float_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_putn_float_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_float_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_float_float (void **xpp, size_t nelems, const float  *ip);
+ncx_putn_float_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_putn_float_double(void **xpp, size_t nelems, const double *ip);
+ncx_putn_float_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_putn_float_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_putn_float_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_putn_float_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_putn_float_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 /*---- double ---------------------------------------------------------------*/
 extern int
@@ -864,27 +873,27 @@ extern int
 ncx_getn_double_ulonglong(const void **xpp, size_t nelems, ulonglong *ip);
 
 extern int
-ncx_putn_double_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_putn_double_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_putn_double_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_putn_double_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_putn_double_short (void **xpp, size_t nelems, const short  *ip);
+ncx_putn_double_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_putn_double_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_putn_double_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_putn_double_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_putn_double_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_putn_double_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_putn_double_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_putn_double_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_double_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_double_float (void **xpp, size_t nelems, const float  *ip);
+ncx_putn_double_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_putn_double_double(void **xpp, size_t nelems, const double *ip);
+ncx_putn_double_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_putn_double_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_putn_double_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_putn_double_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_putn_double_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 /*---- longlong ----------------------------------------------------------------*/
 extern int
@@ -911,27 +920,27 @@ extern int
 ncx_getn_longlong_ulonglong(const void **xpp, size_t nelems, ulonglong *ip);
 
 extern int
-ncx_putn_longlong_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_putn_longlong_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_putn_longlong_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_putn_longlong_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_putn_longlong_short (void **xpp, size_t nelems, const short  *ip);
+ncx_putn_longlong_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_putn_longlong_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_putn_longlong_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_putn_longlong_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_putn_longlong_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_putn_longlong_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_putn_longlong_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_putn_longlong_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_longlong_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_longlong_float (void **xpp, size_t nelems, const float  *ip);
+ncx_putn_longlong_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_putn_longlong_double(void **xpp, size_t nelems, const double *ip);
+ncx_putn_longlong_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_putn_longlong_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_putn_longlong_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_putn_longlong_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_putn_longlong_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 /*---- ulonglong ---------------------------------------------------------------*/
 extern int
@@ -958,27 +967,27 @@ extern int
 ncx_getn_ulonglong_ulonglong(const void **xpp, size_t nelems, ulonglong *ip);
 
 extern int
-ncx_putn_ulonglong_schar (void **xpp, size_t nelems, const schar  *ip);
+ncx_putn_ulonglong_schar (void **xpp, size_t nelems, const schar  *ip, void *fillp);
 extern int
-ncx_putn_ulonglong_uchar (void **xpp, size_t nelems, const uchar  *ip);
+ncx_putn_ulonglong_uchar (void **xpp, size_t nelems, const uchar  *ip, void *fillp);
 extern int
-ncx_putn_ulonglong_short (void **xpp, size_t nelems, const short  *ip);
+ncx_putn_ulonglong_short (void **xpp, size_t nelems, const short  *ip, void *fillp);
 extern int
-ncx_putn_ulonglong_ushort(void **xpp, size_t nelems, const ushort *ip);
+ncx_putn_ulonglong_ushort(void **xpp, size_t nelems, const ushort *ip, void *fillp);
 extern int
-ncx_putn_ulonglong_int   (void **xpp, size_t nelems, const int    *ip);
+ncx_putn_ulonglong_int   (void **xpp, size_t nelems, const int    *ip, void *fillp);
 extern int
-ncx_putn_ulonglong_uint  (void **xpp, size_t nelems, const uint   *ip);
+ncx_putn_ulonglong_uint  (void **xpp, size_t nelems, const uint   *ip, void *fillp);
 extern int
-ncx_putn_ulonglong_long  (void **xpp, size_t nelems, const long   *ip);
+ncx_putn_ulonglong_long  (void **xpp, size_t nelems, const long   *ip, void *fillp);
 extern int
-ncx_putn_ulonglong_float (void **xpp, size_t nelems, const float  *ip);
+ncx_putn_ulonglong_float (void **xpp, size_t nelems, const float  *ip, void *fillp);
 extern int
-ncx_putn_ulonglong_double(void **xpp, size_t nelems, const double *ip);
+ncx_putn_ulonglong_double(void **xpp, size_t nelems, const double *ip, void *fillp);
 extern int
-ncx_putn_ulonglong_longlong (void **xpp, size_t nelems, const longlong  *ip);
+ncx_putn_ulonglong_longlong (void **xpp, size_t nelems, const longlong  *ip, void *fillp);
 extern int
-ncx_putn_ulonglong_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
+ncx_putn_ulonglong_ulonglong(void **xpp, size_t nelems, const ulonglong *ip, void *fillp);
 
 
 /*
@@ -986,21 +995,6 @@ ncx_putn_ulonglong_ulonglong(void **xpp, size_t nelems, const ulonglong *ip);
  */
 
 /* read ASCII characters */
-#ifdef __arm__
-
-extern int
-ncx_getn_text(const void **xpp, size_t nchars, signed char *cp);
-extern int
-ncx_pad_getn_text(const void **xpp, size_t nchars, signed char *cp);
-
-/* write ASCII characters */
-extern int
-ncx_putn_text(void **xpp, size_t nchars, const signed char *cp);
-extern int
-ncx_pad_putn_text(void **xpp, size_t nchars, const signed char *cp);
-
-#else // ifdef __arm__
-
 extern int
 ncx_getn_text(const void **xpp, size_t nchars, char *cp);
 extern int
@@ -1012,7 +1006,6 @@ ncx_putn_text(void **xpp, size_t nchars, const char *cp);
 extern int
 ncx_pad_putn_text(void **xpp, size_t nchars, const char *cp);
 
-#endif //ifdef __arm__
 
 /* for symmetry */
 #define ncx_getn_char_char(xpp, nelems, fillp) ncx_getn_text(xpp, nelems, fillp)

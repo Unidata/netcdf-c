@@ -20,9 +20,14 @@ extern int NC4_initialize(void);
 extern int NC4_finalize(void);
 #endif
 
-#ifdef USE_DAP
+#ifdef ENABLE_DAP2
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
+#endif
+
+#ifdef ENABLE_DAP4
+extern int NCD4_initialize(void);
+extern int NCD4_finalize(void);
 #endif
 
 #ifdef USE_PNETCDF
@@ -59,8 +64,11 @@ nc_initialize()
 
     /* Initialize each active protocol */
     if((stat = NC3_initialize())) goto done;
-#ifdef USE_DAP
+#ifdef ENABLE_DAP
     if((stat = NCD2_initialize())) goto done;
+#endif
+#ifdef ENABLE_DAP4
+    if((stat = NCD4_initialize())) goto done;
 #endif
 #ifdef USE_PNETCDF
     if((stat = NCP_initialize())) goto done;
@@ -94,8 +102,11 @@ nc_finalize(void)
 
     /* Finalize each active protocol */
 
-#ifdef USE_DAP
+#ifdef ENABLE_DAP2
     if((stat = NCD2_finalize())) return stat;
+#endif
+#ifdef ENABLE_DAP4
+    if((stat = NCD4_finalize())) return stat;
 #endif
 
 #ifdef USE_PNETCDF

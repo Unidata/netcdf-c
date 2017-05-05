@@ -143,6 +143,7 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
    NC* ncp;
    int memtypelen;
    size_t vartypelen;
+   size_t nels;
    char* value = (char*)value0;
    size_t numrecs;
    size_t varshape[NC_MAX_VAR_DIMS];
@@ -200,9 +201,18 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
 
    /* Do various checks and fixups on start/edges/stride */
    simplestride = 1; /* assume so */
+   nels = 1;
    for(i=0;i<rank;i++) {
 	size_t dimlen;
 	mystart[i] = (start == NULL ? 0 : start[i]);
+        /* illegal value checks */
+	dimlen = (i == 0 && isrecvar ? numrecs : varshape[i]);
+        /* mystart is unsigned, never < 0 */
+#ifdef RELAX_COORD_BOUND
+	if (mystart[i] > dimlen) return NC_EINVALCOORDS;
+#else
+	if (mystart[i] >= dimlen) return NC_EINVALCOORDS;
+#endif
 	if(edges == NULL) {
 	   if(i == 0 && isrecvar)
   	      myedges[i] = numrecs - start[i];
@@ -210,23 +220,23 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
 	      myedges[i] = varshape[i] - mystart[i];
 	} else
 	    myedges[i] = edges[i];
-	if(myedges[i] == 0)
-	    return NC_NOERR; /* cannot read anything */
+#ifdef RELAX_COORD_BOUND
+	if (mystart[i] == dimlen && myedges[i] > 0) return NC_EINVALCOORDS;
+#endif
+        /* myedges is unsigned, never < 0 */
+	if(mystart[i] + myedges[i] > dimlen)
+	  return NC_EEDGE;
 	mystride[i] = (stride == NULL ? 1 : stride[i]);
 	if(mystride[i] <= 0
 	   /* cast needed for braindead systems with signed size_t */
            || ((unsigned long) mystride[i] >= X_INT_MAX))
            return NC_ESTRIDE;
   	if(mystride[i] != 1) simplestride = 0;
-        /* illegal value checks */
-	dimlen = (i == 0 && isrecvar ? numrecs : varshape[i]);
-        /* mystart is unsigned, never < 0 */
-	if(mystart[i] >= dimlen)
-	  return NC_EINVALCOORDS;
-        /* myedges is unsigned, never < 0 */
-	if(mystart[i] + myedges[i] > dimlen)
-	  return NC_EEDGE;
+        if(myedges[i] == 0)
+          nels = 0;
    }
+   if(nels == 0)
+      return NC_NOERR; /* cannot read anything */
    if(simplestride) {
       return NC_get_vara(ncid, varid, mystart, myedges, value, memtype);
    }
@@ -376,17 +386,26 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
       mymap = mystride + varndims;
 
       /*
-       * Initialize I/O parameters.
+       * Check start, edges
        */
       for (idim = maxidim; idim >= 0; --idim)
       {
+	 size_t dimlen =
+	    idim == 0 && isrecvar
+	    ? numrecs
+	    : varshape[idim];
+
 	 mystart[idim] = start != NULL
 	    ? start[idim]
 	    : 0;
 
-	 if (edges != NULL && edges[idim] == 0)
+#ifdef RELAX_COORD_BOUND
+	 if (mystart[idim] > dimlen)
+#else
+	 if (mystart[idim] >= dimlen)
+#endif
 	 {
-	    status = NC_NOERR;    /* read/write no data */
+	    status = NC_EINVALCOORDS;
 	    goto done;
 	 }
 
@@ -404,6 +423,33 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 	 else
 	    myedges[idim] = varshape[idim] - mystart[idim];
 #endif
+
+#ifdef RELAX_COORD_BOUND
+	 if (mystart[idim] == dimlen && myedges[idim] > 0)
+	 {
+	    status = NC_EINVALCOORDS;
+	    goto done;
+	 }
+#endif
+
+	 if (mystart[idim] + myedges[idim] > dimlen)
+	 {
+	    status = NC_EEDGE;
+	    goto done;
+	 }
+      }
+
+
+      /*
+       * Initialize I/O parameters.
+       */
+      for (idim = maxidim; idim >= 0; --idim)
+      {
+	 if (edges != NULL && edges[idim] == 0)
+	 {
+	    status = NC_NOERR;    /* read/write no data */
+	    goto done;
+	 }
 
 	 mystride[idim] = stride != NULL
 	    ? stride[idim]
@@ -429,30 +475,6 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 	 length[idim] = ((size_t)mymap[idim]) * myedges[idim];
 	 stop[idim] = (mystart[idim] + myedges[idim] * (size_t)mystride[idim]);
       }
-
-      /*
-       * Check start, edges
-       */
-      for (idim = maxidim; idim >= 0; --idim)
-      {
-	 size_t dimlen =
-	    idim == 0 && isrecvar
-	    ? numrecs
-	    : varshape[idim];
-	 if (mystart[idim] >= dimlen)
-	 {
-	    status = NC_EINVALCOORDS;
-	    goto done;
-	 }
-
-	 if (mystart[idim] + myedges[idim] > dimlen)
-	 {
-	    status = NC_EEDGE;
-	    goto done;
-	 }
-
-      }
-
 
       /* Lower body */
       /*

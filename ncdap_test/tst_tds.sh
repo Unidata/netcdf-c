@@ -26,7 +26,6 @@ fi
 
 cd ${builddir}/ncdap_test
 
-#set -x
 quiet=0
 cache=1
 leakcheck=0
@@ -94,8 +93,6 @@ NCCOPY="${builddir}/ncdump/nccopy"
 
 if test "x$leakcheck" = x1 ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
-else
-VALGRIND=
 fi
 
 rm -fr ${RESULTSDIR}

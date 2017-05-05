@@ -7,7 +7,7 @@
 extern int curlopen(CURL** curlp);
 extern void curlclose(CURL*);
 
-extern OCerror ocfetchurl(CURL*, const char*, OCbytes*, long*, struct OCcredentials*);
+extern OCerror ocfetchurl(CURL*, const char*, NCbytes*, long*, struct OCcredentials*);
 extern OCerror ocfetchurl_file(CURL*, const char*, FILE*, off_t*, long*);
 
 extern long ocfetchhttpcode(CURL* curl);

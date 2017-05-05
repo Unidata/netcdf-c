@@ -1,8 +1,8 @@
-/*! \page dap_support DAP Support
+/*! \page dap2 DAP2 Support
 
 \tableofcontents
 
-\section dap_introduction OPeNDAP Introduction
+\section dap_introduction DAP2 (OPeNDAP) Introduction
 
 Beginning with netCDF version 4.1, optional support is provided for
 accessing data through OPeNDAP servers using the DAP protocol.
@@ -30,15 +30,12 @@ See the following pages for more information.
 
 - \subpage dap_accessing_data
 - <a href="auth.html">netCDF Authorization Support</a>
-- \subpage esg
 - \subpage dap_to_netcdf
 - \subpage dap2_reserved_keywords
 - \subpage var_dim_trans
 - \subpage var_name_trans
 
 \page dap_accessing_data Accessing OPeNDAP Data
-
-\tableofcontents
 
 In order to access an OPeNDAP data source through the netCDF API, the
 file name normally used is replaced with a URL with a specific
@@ -182,8 +179,6 @@ variables:
 
 \page dap_to_netcdf DAP to NetCDF Translation Rules
 
-\tableofcontents
-
 Currently only one translation available: DAP 2 Protocol to netCDF-3.
 There used to be a DAP 2 Protocol to netCDF-4 translation
 but that has been removed until the DAP4 protocol is available.
@@ -251,8 +246,6 @@ within grids are left out in order to mimic the behavior of libnc-dap.
 
 \page dap2_reserved_keywords DAP2 Reserved Keywords
 
-\tableofcontents
-
 In the OPeNDAP DAP2 protocol, there are a number of reserved keywords.  These keywords are case insensitive and if you use one as a netCDF variable name, you may encounter odd behavior such as case changes (depending on the client DDS/DAS parser).  The list of reserved keywords as used by the netCDF-C library parser are as follows:
 
 - alias
@@ -280,8 +273,6 @@ In the OPeNDAP DAP2 protocol, there are a number of reserved keywords.  These ke
 
 
 \page var_dim_trans Variable Dimension Translation
-
-\tableofcontents
 
 A variable's rank is determined from three sources.
 - The variable has the dimensions associated with the field it
@@ -376,8 +367,6 @@ dimensions:
 \endcode
 
 \page var_name_trans Variable Name Translation
-
-\tableofcontents
 
 The steps for variable name translation are as follows.
 

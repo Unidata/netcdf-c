@@ -3,19 +3,10 @@
 */
 
 #include "config.h"
+
+#include <stdlib.h>
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
-
-#ifdef NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
-#ifndef HAVE_SSIZE_T
-#ifdef SSIZE_T
-#define ssize_t SSIZE_T
-#else
-#define ssize_t int
-#endif
-#define HAVE_SSIZE_T
 #endif
 
 #include "ocinternal.h"
@@ -48,19 +39,19 @@ static char*
 dent2(int n) {return dent(n+4);}
 
 static void
-tabto(int pos, OCbytes* buffer)
+tabto(int pos, NCbytes* buffer)
 {
     int bol,len,pad;
-    len = ocbyteslength(buffer);
+    len = ncbyteslength(buffer);
     /* find preceding newline */
     for(bol=len-1;;bol--) {
-	int c = ocbytesget(buffer,(size_t)bol);
+	int c = ncbytesget(buffer,(size_t)bol);
 	if(c < 0) break;
 	if(c == '\n') {bol++; break;}
     }
     len = (len - bol);
     pad = (pos - len);
-    while(pad-- > 0) ocbytescat(buffer," ");
+    while(pad-- > 0) ncbytescat(buffer," ");
 }
 
 void
@@ -92,8 +83,8 @@ dumpocnode1(OCnode* node, int depth)
         fprintf(stdout,"[%2d]%s ",depth,dent(depth));
 	fprintf(stdout,"dataset %s\n",
 		(node->name?node->name:""));
-	for(n=0;n<oclistlength(node->subnodes);n++) {
-	    dumpocnode1((OCnode*)oclistget(node->subnodes,n),depth+1);
+	for(n=0;n<nclistlength(node->subnodes);n++) {
+	    dumpocnode1((OCnode*)nclistget(node->subnodes,n),depth+1);
 	}
     } break;
 
@@ -104,8 +95,8 @@ dumpocnode1(OCnode* node, int depth)
 	dumpdimensions(node);
 	fprintf(stdout," &%lx",(unsigned long)node);
 	fprintf(stdout,"\n");
-	for(n=0;n<oclistlength(node->subnodes);n++) {
-	    dumpocnode1((OCnode*)oclistget(node->subnodes,n),depth+1);
+	for(n=0;n<nclistlength(node->subnodes);n++) {
+	    dumpocnode1((OCnode*)nclistget(node->subnodes,n),depth+1);
 	}
     } break;
 
@@ -116,8 +107,8 @@ dumpocnode1(OCnode* node, int depth)
 	dumpdimensions(node);
 	fprintf(stdout," &%lx",(unsigned long)node);
 	fprintf(stdout,"\n");
-	for(n=0;n<oclistlength(node->subnodes);n++) {
-	    dumpocnode1((OCnode*)oclistget(node->subnodes,n),depth+1);
+	for(n=0;n<nclistlength(node->subnodes);n++) {
+	    dumpocnode1((OCnode*)nclistget(node->subnodes,n),depth+1);
 	}
     } break;
 
@@ -130,10 +121,10 @@ dumpocnode1(OCnode* node, int depth)
 	fprintf(stdout," &%lx",(unsigned long)node);
 	fprintf(stdout,"\n");
 	fprintf(stdout,"%sarray:\n",dent2(depth+1));
-	dumpocnode1((OCnode*)oclistget(node->subnodes,0),depth+2);
+	dumpocnode1((OCnode*)nclistget(node->subnodes,0),depth+2);
 	fprintf(stdout,"%smaps:\n",dent2(depth+1));
-	for(i=1;i<oclistlength(node->subnodes);i++) {
-	    dumpocnode1((OCnode*)oclistget(node->subnodes,i),depth+2);
+	for(i=1;i<nclistlength(node->subnodes);i++) {
+	    dumpocnode1((OCnode*)nclistget(node->subnodes,i),depth+2);
 	}
     } break;
 
@@ -141,8 +132,8 @@ dumpocnode1(OCnode* node, int depth)
         fprintf(stdout,"[%2d]%s ",depth,dent(depth));
 	if(node->name == NULL) OCPANIC("Attribute without name");
 	fprintf(stdout,"%s %s",octypetostring(node->etype),node->name);
-	for(n=0;n<oclistlength(node->att.values);n++) {
-	    char* value = (char*)oclistget(node->att.values,n);
+	for(n=0;n<nclistlength(node->att.values);n++) {
+	    char* value = (char*)nclistget(node->att.values,n);
 	    if(n > 0) fprintf(stdout,",");
 	    fprintf(stdout," %s",value);
 	}
@@ -153,8 +144,8 @@ dumpocnode1(OCnode* node, int depth)
     case OC_Attributeset: {
         fprintf(stdout,"[%2d]%s ",depth,dent(depth));
 	fprintf(stdout,"%s:\n",node->name?node->name:"Attributes");
-	for(n=0;n<oclistlength(node->subnodes);n++) {
-	    dumpocnode1((OCnode*)oclistget(node->subnodes,n),depth+1);
+	for(n=0;n<nclistlength(node->subnodes);n++) {
+	    dumpocnode1((OCnode*)nclistget(node->subnodes,n),depth+1);
 	}
     } break;
 
@@ -164,8 +155,8 @@ dumpocnode1(OCnode* node, int depth)
 
     if(node->attributes != NULL) {
 	unsigned int i;
-	for(i=0;i<oclistlength(node->attributes);i++) {
-	    OCattribute* att = (OCattribute*)oclistget(node->attributes,i);
+	for(i=0;i<nclistlength(node->attributes);i++) {
+	    OCattribute* att = (OCattribute*)nclistget(node->attributes,i);
 	    fprintf(stdout,"%s[%s=",dent2(depth+2),att->name);
 	    if(att->nvalues == 0)
 		OCPANIC("Attribute.nvalues == 0");
@@ -190,7 +181,7 @@ dumpdimensions(OCnode* node)
 {
     unsigned int i;
     for(i=0;i<node->array.rank;i++) {
-        OCnode* dim = (OCnode*)oclistget(node->array.dimensions,i);
+        OCnode* dim = (OCnode*)nclistget(node->array.dimensions,i);
         fprintf(stdout,"[%s=%lu]",
 			(dim->name?dim->name:"?"),
 			(unsigned long)dim->dim.declsize);
@@ -221,18 +212,18 @@ void
 ocdumpclause(OCprojectionclause* ref)
 {
     unsigned int i;
-    OClist* path = oclistnew();
+    NClist* path = nclistnew();
     occollectpathtonode(ref->node,path);
-    for(i=0;i<oclistlength(path);i++) {
-        OClist* sliceset;
-	OCnode* node = (OCnode*)oclistget(path,i);
+    for(i=0;i<nclistlength(path);i++) {
+        NClist* sliceset;
+	OCnode* node = (OCnode*)nclistget(path,i);
 	if(node->tree != NULL) continue; /* leave off the root node*/
 	fprintf(stdout,"%s%s",(i>0?PATHSEPARATOR:""),node->name);
-	sliceset = (OClist*)oclistget(ref->indexsets,i);
+	sliceset = (NClist*)nclistget(ref->indexsets,i);
 	if(sliceset != NULL) {
 	    unsigned int j;
-	    for(j=0;j<oclistlength(sliceset);j++) {
-	        OCslice* slice = (OCslice*)oclistget(sliceset,j);
+	    for(j=0;j<nclistlength(sliceset);j++) {
+	        OCslice* slice = (OCslice*)nclistget(sliceset,j);
 	        ocdumpslice(slice);
 	    }
 	}
@@ -502,34 +493,34 @@ ocdd(OCstate* state, OCnode* root, int xdrencoded, int level)
 }
 
 void
-ocdumpdata(OCstate* state, OCdata* data, OCbytes* buffer, int frominstance)
+ocdumpdata(OCstate* state, OCdata* data, NCbytes* buffer, int frominstance)
 {
     char tmp[1024];
     OCnode* pattern = data->pattern;
     snprintf(tmp,sizeof(tmp),"%lx:",(unsigned long)data);
-    ocbytescat(buffer,tmp);
+    ncbytescat(buffer,tmp);
     if(!frominstance) {
-        ocbytescat(buffer," node=");
-        ocbytescat(buffer,pattern->name);
+        ncbytescat(buffer," node=");
+        ncbytescat(buffer,pattern->name);
     }
     snprintf(tmp,sizeof(tmp)," xdroffset=%ld",(unsigned long)data->xdroffset);
-    ocbytescat(buffer,tmp);
+    ncbytescat(buffer,tmp);
     if(data->pattern->octype == OC_Atomic) {
         snprintf(tmp,sizeof(tmp)," xdrsize=%ld",(unsigned long)data->xdrsize);
-        ocbytescat(buffer,tmp);
+        ncbytescat(buffer,tmp);
     }
     if(ociscontainer(pattern->octype)) {
         snprintf(tmp,sizeof(tmp)," ninstances=%d",(int)data->ninstances);
-        ocbytescat(buffer,tmp);
+        ncbytescat(buffer,tmp);
     } else if(pattern->etype == OC_String || pattern->etype == OC_URL) {
         snprintf(tmp,sizeof(tmp)," nstrings=%d",(int)data->nstrings);
-        ocbytescat(buffer,tmp);
+        ncbytescat(buffer,tmp);
     }
-    ocbytescat(buffer," container=");
+    ncbytescat(buffer," container=");
     snprintf(tmp,sizeof(tmp),"%lx",(unsigned long)data->container);
-    ocbytescat(buffer,tmp);
-    ocbytescat(buffer," mode=");
-    ocbytescat(buffer,ocdtmodestring(data->datamode,0));
+    ncbytescat(buffer,tmp);
+    ncbytescat(buffer," mode=");
+    ncbytescat(buffer,ocdtmodestring(data->datamode,0));
 }
 
 /*
@@ -543,7 +534,7 @@ static const char* header =
 "Depth Offset   Index Flags Size Type     Name\n";
 
 void
-ocdumpdatatree(OCstate* state, OCdata* data, OCbytes* buffer, int depth)
+ocdumpdatatree(OCstate* state, OCdata* data, NCbytes* buffer, int depth)
 {
     size_t i,rank;
     OCnode* pattern;
@@ -554,7 +545,7 @@ ocdumpdatatree(OCstate* state, OCdata* data, OCbytes* buffer, int depth)
 
     /* If this is the first call, then dump a header line */
     if(depth == 0) {
-	ocbytescat(buffer,header);
+	ncbytescat(buffer,header);
     }
 
     /* get info about the pattern */
@@ -567,12 +558,12 @@ ocdumpdatatree(OCstate* state, OCdata* data, OCbytes* buffer, int depth)
 
     /* Dump the depth first */
     snprintf(tmp,sizeof(tmp),"[%03d]",depth);
-    ocbytescat(buffer,tmp);
+    ncbytescat(buffer,tmp);
 
     tabto(tabstops[++tabstop],buffer);
 
     snprintf(tmp,sizeof(tmp),"%08lu",(unsigned long)data->xdroffset);
-    ocbytescat(buffer,tmp);
+    ncbytescat(buffer,tmp);
 
     tabto(tabstops[++tabstop],buffer);
 
@@ -581,13 +572,13 @@ ocdumpdatatree(OCstate* state, OCdata* data, OCbytes* buffer, int depth)
        || fisset(data->datamode,OCDT_ELEMENT)
        || fisset(data->datamode,OCDT_RECORD)) {
         snprintf(tmp,sizeof(tmp),"%04lu ",(unsigned long)data->index);
-        ocbytescat(buffer,tmp);
+        ncbytescat(buffer,tmp);
     }
 
     tabto(tabstops[++tabstop],buffer);
 
     /* Dump the mode flags in compact form */
-    ocbytescat(buffer,ocdtmodestring(data->datamode,1));
+    ncbytescat(buffer,ocdtmodestring(data->datamode,1));
 
     tabto(tabstops[++tabstop],buffer);
 
@@ -598,7 +589,7 @@ ocdumpdatatree(OCstate* state, OCdata* data, OCbytes* buffer, int depth)
     } else {
         snprintf(tmp,sizeof(tmp),"%04lu",(unsigned long)data->xdrsize);
     }
-    ocbytescat(buffer,tmp);
+    ncbytescat(buffer,tmp);
 
     tabto(tabstops[++tabstop],buffer);
 
@@ -607,19 +598,19 @@ ocdumpdatatree(OCstate* state, OCdata* data, OCbytes* buffer, int depth)
     } else { /*must be container*/
 	typename = octypetoddsstring(pattern->octype);
     }
-    ocbytescat(buffer,typename);
+    ncbytescat(buffer,typename);
 
     tabto(tabstops[++tabstop],buffer);
 
     if(!occopycat(tmp,sizeof(tmp),1,pattern->name))
 	return;
-    ocbytescat(buffer,tmp);
+    ncbytescat(buffer,tmp);
 
     if(rank > 0) {
 	snprintf(tmp,sizeof(tmp),"[%lu]",(unsigned long)crossproduct);
-	ocbytescat(buffer,tmp);
+	ncbytescat(buffer,tmp);
     }
-    ocbytescat(buffer,"\n");
+    ncbytescat(buffer,"\n");
 
     /* dump the sub-instance, which might be fields, records, or elements */
     if(!fisset(data->datamode,OCDT_ATOMIC)) {
@@ -629,7 +620,7 @@ ocdumpdatatree(OCstate* state, OCdata* data, OCbytes* buffer, int depth)
 }
 
 void
-ocdumpdatapath(OCstate* state, OCdata* data, OCbytes* buffer)
+ocdumpdatapath(OCstate* state, OCdata* data, NCbytes* buffer)
 {
     int i;
     OCdata* path[1024];
@@ -648,8 +639,8 @@ ocdumpdatapath(OCstate* state, OCdata* data, OCbytes* buffer)
     for(i=i-1;i>=0;i--) {
 	pathdata = path[i];
 	pattern = pathdata->pattern;
-	ocbytescat(buffer,"/");
-	ocbytescat(buffer,pattern->name);
+	ncbytescat(buffer,"/");
+	ncbytescat(buffer,pattern->name);
 	/* Check the mode of the next step in path */
 	if(i > 0) {
 	    OCdata* next = path[i-1];
@@ -657,14 +648,14 @@ ocdumpdatapath(OCstate* state, OCdata* data, OCbytes* buffer)
 		|| fisset(next->datamode,OCDT_ELEMENT)
 		|| fisset(next->datamode,OCDT_RECORD)) {
 		snprintf(tmp,sizeof(tmp),".%lu",(unsigned long)next->index);
-	        ocbytescat(buffer,tmp);
+	        ncbytescat(buffer,tmp);
 	    }
 	}
 	if(pattern->octype == OC_Atomic) {
 	    if(pattern->array.rank > 0) {
 	        off_t xproduct = octotaldimsize(pattern->array.rank,pattern->array.sizes);
 	        snprintf(tmp,sizeof(tmp),"[0..%lu]",(unsigned long)xproduct-1);
-	        ocbytescat(buffer,tmp);
+	        ncbytescat(buffer,tmp);
 	    }
 	}
 	isrecord = 0;
@@ -676,16 +667,16 @@ ocdumpdatapath(OCstate* state, OCdata* data, OCbytes* buffer)
     /* Add suffix to path */
     if(ociscontainer(pattern->octype)) {
         /* add the container type, except distinguish record and sequence */
-	ocbytescat(buffer,":");
+	ncbytescat(buffer,":");
 	if(isrecord)
-	    ocbytescat(buffer,"Record");
+	    ncbytescat(buffer,"Record");
 	else
-	    ocbytescat(buffer,octypetoddsstring(pattern->octype));
+	    ncbytescat(buffer,octypetoddsstring(pattern->octype));
     } else if(ocisatomic(pattern->octype)) {
 	/* add the atomic etype */
-	ocbytescat(buffer,":");
-	ocbytescat(buffer,octypetoddsstring(pattern->etype));
+	ncbytescat(buffer,":");
+	ncbytescat(buffer,octypetoddsstring(pattern->etype));
     }
     snprintf(tmp,sizeof(tmp),"->0x%0lx",(unsigned long)pathdata);
-    ocbytescat(buffer,tmp);
+    ncbytescat(buffer,tmp);
 }
