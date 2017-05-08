@@ -683,7 +683,7 @@ move_vars_r(NC3_INFO *gnu, NC3_INFO *old)
  * Given a valid ncp, return NC_EVARSIZE if any variable has a bad len
  * (product of non-rec dim sizes too large), else return NC_NOERR.
  */
-static int
+int
 NC_check_vlens(NC3_INFO *ncp)
 {
     NC_var **vpp;
