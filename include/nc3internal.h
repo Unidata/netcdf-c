@@ -389,6 +389,12 @@ NC_sync(NC3_INFO* ncp);
 extern int
 NC_calcsize(const NC3_INFO* ncp, off_t *filesizep);
 
+extern int
+NC3_inq_default_fill_value(int xtype, void *fillp);
+
+extern int
+NC3_inq_var_fill(const NC_var *varp, void *fill_value);
+
 /* End defined in nc.c */
 /* Begin defined in v1hpg.c */
 
@@ -417,6 +423,9 @@ extern int
 nc_put_rec(int ncid, size_t recnum, void *const *datap);
 
 /* End defined in putget.c */
+
+extern int
+NC_check_vlens(NC3_INFO *ncp);
 
 /* Define accessors for the dispatchdata */
 #define NC3_DATA(nc) ((NC3_INFO*)(nc)->dispatchdata)

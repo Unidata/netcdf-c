@@ -7,7 +7,11 @@
 /* added correction by John Sheldon and Hans Vahlenkamp 15.4.1998*/
 
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>	/* DEBUG */
 #include <string.h>
@@ -145,7 +149,7 @@ fgrow2(const int fd, const off_t len)
 /* Begin ffio */
 
 static int
-ffio_pgout(ncio *const nciop, 
+ffio_pgout(ncio *const nciop,
 	off_t const offset,  const size_t extent,
 	const void *const vp, off_t *posp)
 {
@@ -215,7 +219,7 @@ ffio_pgin(ncio *const nciop,
 typedef struct ncio_ffio {
 	off_t pos;
 	/* buffer */
-	off_t	bf_offset; 
+	off_t	bf_offset;
 	size_t	bf_extent;
 	size_t	bf_cnt;
 	void	*bf_base;
@@ -263,7 +267,7 @@ ncio_ffio_get(ncio *const nciop,
 #ifdef X_ALIGN
 	size_t rem;
 #endif
-	
+
 	if(fIsSet(rflags, RGN_WRITE) && !fIsSet(nciop->ioflags, NC_WRITE))
 		return EPERM; /* attempt to write readonly file */
 
@@ -337,7 +341,7 @@ ncio_ffio_move(ncio *const nciop, off_t to, off_t from,
 			size_t nbytes, int rflags)
 {
 	int status = NC_NOERR;
-	off_t lower = from;	
+	off_t lower = from;
 	off_t upper = to;
 	char *base;
 	size_t diff = upper - lower;
@@ -347,11 +351,11 @@ ncio_ffio_move(ncio *const nciop, off_t to, off_t from,
 
 	if(to == from)
 		return NC_NOERR; /* NOOP */
-	
+
 	if(to > from)
 	{
 		/* growing */
-		lower = from;	
+		lower = from;
 		upper = to;
 	}
 	else
@@ -371,10 +375,10 @@ ncio_ffio_move(ncio *const nciop, off_t to, off_t from,
 		return status;
 
 	if(to > from)
-		(void) memmove(base + diff, base, nbytes); 
+		(void) memmove(base + diff, base, nbytes);
 	else
-		(void) memmove(base, base + diff, nbytes); 
-		
+		(void) memmove(base, base + diff, nbytes);
+
 	(void) ncio_ffio_rel(nciop, lower, RGN_MODIFIED);
 
 	return status;
@@ -495,7 +499,7 @@ ncio_free(ncio *nciop)
 
 	if(nciop->free != NULL)
 		nciop->free(nciop->pvt);
-	
+
 	free(nciop);
 }
 
@@ -507,7 +511,7 @@ ncio_ffio_new(const char *path, int ioflags)
 	size_t sz_path = M_RNDUP(strlen(path) +1);
 	size_t sz_ncio_pvt;
 	ncio *nciop;
- 
+
 #if ALWAYS_NC_SHARE /* DEBUG */
 	fSet(ioflags, NC_SHARE);
 #endif
@@ -520,7 +524,7 @@ ncio_ffio_new(const char *path, int ioflags)
 	nciop = (ncio *) malloc(sz_ncio + sz_path + sz_ncio_pvt);
 	if(nciop == NULL)
 		return NULL;
-	
+
 	nciop->ioflags = ioflags;
 	*((int *)&nciop->fd) = -1; /* cast away const */
 
@@ -586,7 +590,7 @@ ncio_ffio_assign(const char *filename) {
 	if(envstr == (char *) NULL) {
 		 envstr = "bufa:336:2";		/* this should be macroized */
 	}
-	
+
 	/* Insertion by Olaf Heudecker, AWI-Bremerhaven, 12.8.1998
 	   to allow more versatile FFIO-assigns */
 	/* this is unnecessary and could have been included
@@ -803,8 +807,8 @@ unwind_new:
 }
 
 
-/* 
- * Get file size in bytes.  
+/*
+ * Get file size in bytes.
  * Is use of ffseek() really necessary, or could we use standard fstat() call
  * and get st_size member?
  */
@@ -818,7 +822,7 @@ ncio_ffio_filesize(ncio *nciop, off_t *filesizep)
 
     current = ffseek(nciop->fd, 0, SEEK_CUR);  /* save current */
     *filesizep = ffseek(nciop->fd, 0, SEEK_END); /* get size */
-    reset = ffseek(nciop->fd, current, SEEK_SET); /* reset */ 
+    reset = ffseek(nciop->fd, current, SEEK_SET); /* reset */
 
     if(reset != current)
 	return EINVAL;
@@ -855,7 +859,7 @@ ncio_ffio_pad_length(ncio *nciop, off_t length)
 }
 
 
-static int 
+static int
 ncio_ffio_close(ncio *nciop, int doUnlink)
 {
 	/*
@@ -872,7 +876,7 @@ ncio_ffio_close(ncio *nciop, int doUnlink)
 	status = nciop->sync(nciop);
 
 	(void) ffclose(nciop->fd);
-	
+
 	if(doUnlink)
 		(void) unlink(nciop->path);
 

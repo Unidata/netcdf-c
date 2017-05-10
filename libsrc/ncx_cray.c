@@ -8,6 +8,10 @@
 #error "ncx_cray.c is a cray specific implementation"
 #endif
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /*
  * An external data representation interface.
  */

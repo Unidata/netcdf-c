@@ -9,7 +9,10 @@
 #define lseek64 lseek
 #endif
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -34,7 +37,7 @@
 #endif
 
 #ifndef HAVE_SSIZE_T
-#define ssize_t int
+typedef int ssize_t;
 #endif
 
 #ifndef SEEK_SET
@@ -381,6 +384,10 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
 
     /* Use half the filesize as the blocksize ; why? */
     sizehint = filesize/2;
+
+    /* sizehint must be multiple of 8 */
+    sizehint = (sizehint / 8) * 8;
+    if(sizehint < 8) sizehint = 8;
 
     fd = nc__pseudofd();
     *((int* )&nciop->fd) = fd;

@@ -128,6 +128,7 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    nc_type vartype = NC_NAT;
    NC* ncp;
    size_t vartypelen;
+   size_t nels;
    int memtypelen;
    const char* value = (const char*)value0;
    int nrecdims;                /* number of record dims for a variable */
@@ -189,9 +190,26 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 
    /* Do various checks and fixups on start/edges/stride */
    isstride1 = 1; /* assume so */
+   nels = 1;
    for(i=0;i<rank;i++) {
 	size_t dimlen;
 	mystart[i] = (start == NULL ? 0 : start[i]);
+#if 0
+	dimlen = (i == 0 && isrecvar ? numrecs : varshape[i]);
+	if(i == 0 && isrecvar) {/*do nothing*/}
+#else
+        /* illegal value checks */
+	dimlen = varshape[i];
+	if(is_recdim[i]) {/*do nothing*/}
+#endif
+        else {
+	  /* mystart is unsigned, will never be < 0 */
+#ifdef RELAX_COORD_BOUND
+	  if (mystart[i] > dimlen) return NC_EINVALCOORDS;
+#else
+          if (mystart[i] >= dimlen) return NC_EINVALCOORDS;
+#endif
+       }
 	if(edges == NULL) {
 #if 0
 	   if(i == 0 && isrecvar)
@@ -204,31 +222,27 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 	      myedges[i] = varshape[i] - mystart[i];
 	} else
 	    myedges[i] = edges[i];
-	if(myedges[i] == 0)
-	    return NC_NOERR; /* cannot write anything */
+#ifdef RELAX_COORD_BOUND
+	if(!is_recdim[i]) {
+	  if (mystart[i] == dimlen && myedges[i] > 0)
+              return NC_EINVALCOORDS;
+        }
+#endif
+	if(!is_recdim[i]) {
+          /* myediges is unsigned, will never be < 0 */
+	  if(mystart[i] + myedges[i] > dimlen)
+	    return NC_EEDGE;
+        }
 	mystride[i] = (stride == NULL ? 1 : stride[i]);
 	if(mystride[i] <= 0
 	   /* cast needed for braindead systems with signed size_t */
            || ((unsigned long) mystride[i] >= X_INT_MAX))
            return NC_ESTRIDE;
   	if(mystride[i] != 1) isstride1 = 0;
-        /* illegal value checks */
-#if 0
-	dimlen = (i == 0 && isrecvar ? numrecs : varshape[i]);
-	if(i == 0 && isrecvar) {/*do nothing*/}
-#else
-	dimlen = varshape[i];
-	if(is_recdim[i]) {/*do nothing*/}
-#endif
-        else {
-	  /* mystart is unsigned, will never be < 0 */
-	  if(mystart[i] > dimlen)
-	    return NC_EINVALCOORDS;
-          /* myediges is unsigned, will never be < 0 */
-	  if(mystart[i] + myedges[i] > dimlen)
-	    return NC_EEDGE;
-       }
+        nels *= myedges[i];
    }
+   if(nels == 0)
+      return NC_NOERR; /* cannot write anything */
    if(isstride1) {
       return NC_put_vara(ncid, varid, mystart, myedges, value, memtype);
    }
@@ -380,7 +394,7 @@ NCDEFAULT_put_varm(
       mymap = mystride + varndims;
 
       /*
-       * Initialize I/O parameters.
+       * Check start, edges
        */
       for (idim = maxidim; idim >= 0; --idim)
       {
@@ -388,17 +402,44 @@ NCDEFAULT_put_varm(
 	    ? start[idim]
 	    : 0;
 
+	 myedges[idim] = edges != NULL
+	    ? edges[idim]
+	    : idim == 0 && isrecvar
+    	        ? numrecs - mystart[idim]
+	        : varshape[idim] - mystart[idim];
+      }
+
+      for (idim = isrecvar; idim <= maxidim; ++idim)
+      {
+#ifdef RELAX_COORD_BOUND
+	 if (mystart[idim] > varshape[idim] ||
+	    (mystart[idim] == varshape[idim] && myedges[idim] > 0))
+#else
+         if (mystart[idim] >= varshape[idim])
+#endif
+	 {
+	    status = NC_EINVALCOORDS;
+	    goto done;
+	 }
+
+	 if (mystart[idim] + myedges[idim] > varshape[idim])
+	 {
+	    status = NC_EEDGE;
+	    goto done;
+	 }
+      }
+
+      /*
+       * Initialize I/O parameters.
+       */
+      for (idim = maxidim; idim >= 0; --idim)
+      {
 	 if (edges != NULL && edges[idim] == 0)
 	 {
 	    status = NC_NOERR;    /* read/write no data */
 	    goto done;
 	 }
 
-	 myedges[idim] = edges != NULL
-	    ? edges[idim]
-	    : idim == 0 && isrecvar
-    	        ? numrecs - mystart[idim]
-	        : varshape[idim] - mystart[idim];
 	 mystride[idim] = stride != NULL
 	    ? stride[idim]
 	    : 1;
@@ -411,23 +452,6 @@ NCDEFAULT_put_varm(
 	 iocount[idim] = 1;
 	 length[idim] = ((size_t)mymap[idim]) * myedges[idim];
 	 stop[idim] = mystart[idim] + myedges[idim] * (size_t)mystride[idim];
-      }
-
-      /*
-       * Check start, edges
-       */
-      for (idim = isrecvar; idim < maxidim; ++idim)
-      {
-	 if (mystart[idim] > varshape[idim])
-	 {
-	    status = NC_EINVALCOORDS;
-	    goto done;
-	 }
-	 if (mystart[idim] + myedges[idim] > varshape[idim])
-	 {
-	    status = NC_EEDGE;
-	    goto done;
-	 }
       }
 
       /* Lower body */

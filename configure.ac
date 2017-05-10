@@ -891,6 +891,13 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
 
 $SLEEPCMD
+if test "$ac_cv_type_uchar" = yes ; then
+   AC_CHECK_SIZEOF(uchar)
+else
+   AC_CHECK_SIZEOF(unsigned char)
+fi
+
+$SLEEPCMD
 if test "$ac_cv_type_ushort" = yes ; then
    AC_CHECK_SIZEOF(ushort)
 else
@@ -1110,6 +1117,83 @@ if test "x$enable_parallel" = xyes; then
   AC_DEFINE([USE_PARALLEL], [1], [if true, pnetcdf or parallel netcdf-4 is in use])
 fi
 
+AC_ARG_ENABLE([erange_fill],
+   [AS_HELP_STRING([--enable-erange-fill],
+                   [Enable use of fill value when out-of-range type
+                    conversion causes NC_ERANGE error. @<:@default: disabled@:>@])],
+   [enable_erange_fill=${enableval}], [enable_erange_fill=no]
+)
+
+AC_ARG_ENABLE([zero-length-coord-bound],
+   [AS_HELP_STRING([--enable-zero-length-coord-bound],
+                   [Enable a more relaxed boundary error check NC_EINVALCOORDS
+                    to allow coordinate start argument equal to dimension size
+                    when argument count is zero. @<:@default: disabled@:>@])],
+   [enable_zero_length_coord_bound=${enableval}], [enable_zero_length_coord_bound=no]
+)
+
+# check PnetCDF's settings on enable_erange_fill and relax_coord_bound
+if test "x$enable_pnetcdf" = xyes; then
+   UD_CHECK_HEADER_PATH([pnetcdf.h])
+
+   AC_MSG_CHECKING([if erange-fill is enabled in PnetCDF])
+   erange_fill_pnetcdf=`grep PNETCDF_ERANGE_FILL ${ac_cv_header_path_pnetcdf_h}`
+   if test "x$erange_fill_pnetcdf" = x; then
+      erange_fill_pnetcdf=no
+   else
+      erange_fill_pnetcdf=`echo ${erange_fill_pnetcdf} | cut -d' ' -f3`
+      if test "x$coord_bound_pnetcdf" = x0; then
+          enable_erange_fill_pnetcdf=no
+      else
+          enable_erange_fill_pnetcdf=yes
+      fi
+   fi
+   AC_MSG_NOTICE([$enable_erange_fill_pnetcdf])
+   if test "$enable_erange_fill" != "$enable_erange_fill_pnetcdf"; then
+      if test "$enable_erange_fill_pnetcdf" = yes; then
+         AC_MSG_WARN([Enable erange-fill to conform with PnetCDF setting])
+      else
+         AC_MSG_WARN([Disable erange-fill to conform with PnetCDF setting])
+      fi
+      enable_erange_fill=$enable_erange_fill_pnetcdf
+   fi
+
+   AC_MSG_CHECKING([if relax-coord-bound is enabled in PnetCDF])
+   relax_coord_bound_pnetcdf=`grep PNETCDF_RELAX_COORD_BOUND ${ac_cv_header_path_pnetcdf_h}`
+   if test "x$relax_coord_bound_pnetcdf" = x; then
+      elax_coord_bound_pnetcdf=no
+   else
+      coord_bound_pnetcdf=`echo ${relax_coord_bound_pnetcdf} | cut -d' ' -f3`
+      if test "x$coord_bound_pnetcdf" = x0; then
+          relax_coord_bound_pnetcdf=no
+      else
+          relax_coord_bound_pnetcdf=yes
+      fi
+   fi
+   AC_MSG_NOTICE([$relax_coord_bound_pnetcdf])
+   if test "$enable_zero_length_coord_bound" != "$relax_coord_bound_pnetcdf"; then
+      if test "$relax_coord_bound_pnetcdf" = yes; then
+         AC_MSG_WARN([Enable relax-coord-bound to conform with PnetCDF setting])
+      else
+         AC_MSG_WARN([Disable relax-coord-bound to conform with PnetCDF setting])
+      fi
+      enable_zero_length_coord_bound=$relax_coord_bound_pnetcdf
+   fi
+fi
+
+if test "x$enable_erange_fill" = xyes ; then
+   if test "x$M4FLAGS" = x ; then
+      M4FLAGS="-DERANGE_FILL"
+   else
+      M4FLAGS="$M4FLAGS -DERANGE_FILL"
+   fi
+fi
+AC_SUBST(M4FLAGS)
+
+if test "x$enable_zero_length_coord_bound" = xyes; then
+   AC_DEFINE([RELAX_COORD_BOUND], [1], [if true, NC_EINVALCOORDS check is more relaxed])
+fi
+
 # Check for downloading/building fortran via postinstall script.
 if test "x$enable_remote_fortran_bootstrap" = xyes; then
    AC_DEFINE([BUILD_FORTRAN], 1, [If true, will attempt to download and build netcdf-fortran.])
@@ -1293,6 +1377,7 @@ AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
 AC_SUBST(HAS_DISKLESS,[$enable_diskless])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
+AC_SUBST(RELAX_COORD_BOUND,[$enable_relax_coord_bound])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
