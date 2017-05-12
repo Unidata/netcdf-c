@@ -193,7 +193,7 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
             status = NC_ENOTNC;
             goto done;
           }
-else
+#else
 	  { int fno = fileno(fp);
 	    if(!(fstat(fno,&st) == 0)) {
 	        fclose(fp);
