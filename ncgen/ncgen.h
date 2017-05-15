@@ -93,8 +93,7 @@ various C global variables
 #define _ISNETCDF4_FLAG     0x200
 #define _SUPERBLOCK_FLAG    0x400
 #define _FORMAT_FLAG        0x800
-#define _FILTERID_FLAG      0x1000
-#define _FILTERPARMS_FLAG   0x2000
+#define _FILTER_FLAG        0x1000
 
 extern struct Specialtoken {
     char* name;

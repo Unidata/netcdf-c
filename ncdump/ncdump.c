@@ -1064,16 +1064,14 @@ pr_att_specials(
 	        params = (unsigned int*)malloc(sizeof(unsigned int)*nparams);
 	        NC_CHECK(nc_inq_var_filter(ncid, varid, &id, &nparams, params));
 	    }
-	    pr_att_name(ncid,varp->name,NC_ATT_FILTERID);
-	    printf(" = %u ;\n",id);
+	    pr_att_name(ncid,varp->name,NC_ATT_FILTER);
+	    printf(" = \"%u",id);
 	    if(nparams > 0) {
 	        int i;
-	        pr_att_name(ncid,varp->name,NC_ATT_FILTERPARMS);
-		printf(" =");
 		for(i=0;i<nparams;i++)	
-		    printf(" %u",params[i]);
-	        printf(" ;\n");
+		    printf(",%u",params[i]);
 	    }
+	    printf("\" ;\n");
 	}
     }
     {

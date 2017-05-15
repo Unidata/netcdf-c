@@ -19,8 +19,8 @@ BZIP2SRC=\
 PLUGINSRC=H5Zbzip2.c
 PLUGINHDRS=h5bzip2.h
 
-bin_PROGRAMS = fake
-fake_SOURCES = fake.c H5Zbzip2.c ${BZIP2SRC}
+#bin_PROGRAMS = fake
+#fake_SOURCES = fake.c H5Zbzip2.c ${BZIP2SRC}
 
 # Link to our assembled library.
 test_filter_LDFLAGS = ${top_builddir}/liblib/libnetcdf.la
@@ -35,8 +35,9 @@ LIBNAME=lib${FILTERNAME}.so
 endif
 
 EXTRA_DIST=${PLUGINSRC} ${BZIP2SRC} ${PLUGINHDRS} ${BZIP2HDRS} \
-	tst_filter.sh bzip2.cdl CMakeLists.txt
-CLEANFILES = ${LIBNAME} *.nc *.dump
+	tst_filter.sh bzip2.cdl unfiltered.cdl filtered.cdl ref_bzip2.c \
+        CMakeLists.txt
+CLEANFILES = ${LIBNAME} *.nc *.dump tmp
 
 if ENABLE_FILTER_TEST
 
@@ -44,8 +45,11 @@ check_PROGRAMS = test_filter
 TESTS = tst_filter.sh
 
 all-local:
-	gcc -fPIC -g -O0 -shared \
-	-o ${LIBNAME} ${PLUGINSRC} ${BZIP2OBJ} \
+	SDIR=${srcdir} ;\
+	for f in ${PLUGINSRC} ${BZIP2SRC} ; do \
+        DLLSRC="$${DLLSRC} $${SDIR}/$$f" ; \
+	done ; \
+	gcc -g -O0 -shared -o ${LIBNAME} $${DLLSRC} \
 	-L/usr/local/lib -lhdf5_hl -lhdf5 -lz
 endif
 

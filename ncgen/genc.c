@@ -112,7 +112,7 @@ gen_ncc(const char *filename)
                 codedump(tmp);
                 codeline("} ;");
             }
-            if(special->flags & _FILTERPARMS_FLAG) {
+            if(special->flags & _FILTER_FLAG) {
                 int i;
                 unsigned int* params = special->_FilterParams;
                 if(special->nparams == 0 || params == NULL) continue;
@@ -510,7 +510,7 @@ genc_definespecialattributes(Symbol* vsym)
         codedump(stmt);
         codelined(1,"check_err(stat,__LINE__,__FILE__);");
     }
-    if(special->flags & _FILTERID_FLAG) {
+    if(special->flags & _FILTER_FLAG) {
 	/* Special check for alternate way to specify _Deflate */
 	if(special->_FilterID == ZIP_ID) {
 	    unsigned int level;

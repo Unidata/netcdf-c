@@ -1,5 +1,5 @@
-
-# Cannot yet use cmake to test
+# This cmake file is here as a placeholder.
+# It cannot yet be used to run the filter test.
 
 if(ENABLE_FILTER_TEST)
 SET(BZIP2SRC blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c)

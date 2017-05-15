@@ -8,6 +8,7 @@
 
 #include "config.h"		/* for USE_NETCDF4 macro */
 #include <stdlib.h>
+#include <stdio.h>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -15,7 +16,10 @@
 #include <unistd.h>
 #endif
 #include <string.h>
-#include <netcdf.h>
+#include "netcdf.h"
+#ifdef USE_NETCDF4
+#include "netcdf_filter.h"
+#endif
 #include "nciter.h"
 #include "utils.h"
 #include "chunkspec.h"
@@ -38,6 +42,33 @@ int optind;
 
 #ifndef USE_NETCDF4
 #define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */
+#endif
+
+/* Ascii characters requiring escaping as lead*/
+#define ESCAPESD "0123456789"
+#define ESCAPES " !\"#$%&'()*,:;<=>?[]\\^`{|}~"
+
+#ifdef USE_NETCDF4
+
+/* The unique id for a variable requires also the enclosing group id */
+typedef struct VarID {
+    int grpid;
+    int varid;
+} VarID;
+
+#define MAX_FILTER_SPECS 64
+#define MAX_FILTER_PARAMS 256
+
+struct FilterSpec {
+    char* fqn;
+    unsigned int filterid;
+    size_t nparams;
+    unsigned int* params;
+};
+
+static int nfilterspecs = 0; /* Number of defined filter specs */
+static struct FilterSpec filterspecs[MAX_FILTER_SPECS];
+
 #endif
 
 /* Global variables for command-line requests */
@@ -126,6 +157,146 @@ nc_inq_parid(int ncid, const char *fullname, int *locidp) {
        free(parent);
     return NC_NOERR;
 }
+
+/* Compute the fully qualified name of a  (grpid,varid) pair; caller must free */
+static int
+computeFQN(VarID vid, char** fqnp)
+{
+    int stat = NC_NOERR;
+    size_t len;
+    char* fqn = NULL;
+    char vname[NC_MAX_NAME+1];
+    char escname[(2*NC_MAX_NAME)+1];
+    int first;
+    char *p, *q;
+
+    if((stat = nc_inq_grpname_full(vid.grpid,&len,NULL))) goto done;
+    fqn = (char*)malloc(len+1+(2*NC_MAX_NAME)+1);
+    if(fqn == NULL) {stat = NC_ENOMEM; goto done;}
+    if((stat=nc_inq_grpname_full(vid.grpid,&len,fqn))) goto done;
+    fqn[len] = '\0'; /* guarantee */
+    if((stat=nc_inq_varname(vid.grpid,vid.varid,vname))) goto done;
+    vname[NC_MAX_NAME] = '\0';
+    if(strlen(fqn) > 1) strcat(fqn,"/");
+    p = vname;
+    q = escname;
+    for(first=1;*p;first=0) {
+	if((first && strchr(ESCAPESD,*p) != NULL)
+           || strchr(ESCAPES,*p) != NULL) *q++ = '\\';
+	*q++ = *p++;
+    }
+    *q++ = '\0'; /* guarantee */
+    strcat(fqn,escname);
+done:
+    if(stat == NC_NOERR && fqnp != NULL) *fqnp = fqn;
+    return stat;
+}
+
+#if 0
+static int
+parseFQN(int ncid, const char* fqn0, VarID* idp)
+{
+    int stat = NC_NOERR;
+    char* fqn;
+    VarID vid;
+    char* p;
+    char* q;
+    char* segment;
+    
+    vid.grpid = ncid;
+    if(fqn0 == NULL || fqn0[1] != '/')
+	{stat = NC_EBADNAME; goto done;}
+    fqn = strdup(fqn0+1); /* skip leading '/'*/
+    p = fqn;
+    for(;;) {
+	int newgrp;
+	segment = p;
+	q = p;
+        while(*p != '\0' && *p != '/') {
+	    if(*p == '\\') p++;
+	    *q++ = *p++;
+	}
+        if(*p == '\0') break;
+	*p++ = '\0';
+	if((stat=nc_inq_grp_ncid(vid.grpid,segment,&newgrp))) goto done;
+	vid.grpid = newgrp;
+    }
+    /* Segment should point to the varname */
+    if((stat=nc_inq_varid(vid.grpid,segment,&vid.varid))) goto done;
+done:
+    if(fqn) free(fqn);
+    if(stat == NC_NOERR && idp != NULL) *idp = vid;
+    return stat;
+}    
+#endif
+
+
+static int
+parsefilterspec(const char* optarg0, struct FilterSpec* spec)
+{
+    char* p;
+    char* q;
+    char* optarg = NULL;
+    char* remainder = NULL;
+    unsigned int params[MAX_FILTER_PARAMS];
+    int nparams = 0;
+  
+    if(optarg0 == NULL || strlen(optarg0) == 0) return 0;
+    optarg = strdup(optarg0);
+    
+    /* Collect the fqn, taking escapes into account */
+    p = optarg;
+    remainder = NULL;
+    for(;*p;p++) {
+	if(*p == '\\') p++;
+	else if(*p == ',') {*p = '\0'; remainder = p+1; break;}
+	else if(*p == '\0') {remainder = p; break;}
+	/* else continue */
+    }
+    if(strlen(optarg) == 0) return 0; /* fqn does not exist */
+    /* Make sure leading '/' is in place */
+    if(optarg[0]=='/')
+	spec->fqn = strdup(optarg);
+    else {
+        spec->fqn = (char*)malloc(1+strlen(optarg)+1);
+	strcpy(spec->fqn,"/");
+        strcat(spec->fqn,optarg);
+    }
+
+    /* Get filterid */
+    q = (p = remainder);
+    for(;;) {
+	if(*p == ',') {*p = '\0'; remainder = p+1; break;}
+	else if(*p == '\0') {remainder = p; break;}
+	else if(strchr("0123456789",*p) == NULL) return 0; /* not a number */
+	/* else continue */
+	p++;
+    }
+    if(strlen(q) == 0) return 0; /* id does not exist */
+    sscanf(q,"%u",&spec->filterid);
+
+    /* Collect the parameters */
+    q = (p = remainder);
+    for(;;) {
+	int c = *p;
+	if(c == ',' || c == '\0') {
+	    unsigned int parm;
+	    *p++ = '\0';
+	    if(strlen(q) == 0) return 0; /* bad param */
+	    sscanf(q,"%u",&parm);
+	    params[nparams++] = parm;
+	    q = p;
+	    if(c == '\0') break;
+	} else if(strchr("0123456789",*p) == NULL) return 0; /* not a number */
+	/* else continue */
+	p++;
+    }
+    spec->nparams = nparams;
+    spec->params = (unsigned int*)malloc(sizeof(unsigned int)*nparams);
+    memcpy(spec->params,params,(sizeof(unsigned int)*nparams));
+    return 1;
+}
+
 
 /* Return size of chunk in bytes for a variable varid in a group igrp, or 0 if
  * layout is contiguous */
@@ -567,6 +738,67 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
     return stat;
 }
 
+/* Copy netCDF-4 specific variable filter properties */
+/* Watch out if input is netcdf-3 */
+static int
+copy_var_filter(int igrp, int varid, int ogrp, int o_varid)
+{
+    int stat = NC_NOERR;
+#ifdef USE_NETCDF4
+    VarID vid = {igrp,varid};
+    VarID ovid = {ogrp,o_varid};
+    /* handle filter parameters, copying from input, overriding with command-line options */
+    unsigned int filterid = 0;
+    size_t nparams = 0;
+    unsigned int* params = NULL;
+    struct FilterSpec spec;
+    int i, found;
+    char* ofqn = NULL;
+    int format, oformat;
+
+    /* Get file format of the input and output */
+    if((stat=nc_inq_format(vid.grpid,&format))) goto done;
+    if((stat=nc_inq_format(ovid.grpid,&oformat))) goto done;
+
+    if(oformat != NC_FORMAT_NETCDF4 && oformat != NC_FORMAT_NETCDF4_CLASSIC)
+	goto done; /* Can only use filter when output is netcdf4 */
+
+    /* Compute the output vid's FQN */
+    if((stat = computeFQN(ovid,&ofqn))) goto done;
+    /* See if any filter spec is defined for this output variable */
+    for(found=0,i=0;i<nfilterspecs;i++) {
+	if(strcmp(filterspecs[i].fqn,ofqn)==0) {spec = filterspecs[i]; found = 1; break;}
+    }
+    if(!found) {
+	spec.filterid = 0; /* marker to indicate not filter to apply */
+	if((oformat == NC_FORMAT_NETCDF4
+            || oformat != NC_FORMAT_NETCDF4_CLASSIC)
+	   && (format == NC_FORMAT_NETCDF4
+               || format != NC_FORMAT_NETCDF4_CLASSIC)
+	) {
+	    /* Only bother to look if both input and  output are netcdf-4 */
+	    if((stat=nc_inq_var_filter(vid.grpid,vid.varid,&spec.filterid,&spec.nparams,NULL)))
+	        goto done;
+	    if(spec.filterid > 0) {/* input has a filter */
+  	        spec.params = (unsigned int*)malloc(sizeof(unsigned int)*spec.nparams);
+	        if((stat=nc_inq_var_filter(vid.grpid,vid.varid,&spec.filterid,&spec.nparams,spec.params)))
+		    goto done;
+	    }
+	}
+    }
+    /* Apply filter spec if any */
+    if(spec.filterid > 0) {/* Apply filter */
+	if((stat=nc_def_var_filter(ovid.grpid,ovid.varid,spec.filterid,spec.nparams,spec.params)))
+	        goto done;
+    }
+done:
+    /* Cleanup */
+    if(spec.filterid > 0 && spec.nparams > 0 && spec.params != NULL)
+	free(spec.params);
+#endif /*USE_NETCDF4*/
+    return stat;
+}
+
 /* Set output variable o_varid (in group ogrp) to use chunking
  * specified on command line, only called for classic format input and
  * netCDF-4 format output, so no existing chunk lengths to override. */
@@ -849,6 +1081,7 @@ copy_var(int igrp, int varid, int ogrp)
 		/* Set compression if specified in command line option */
 		NC_CHECK(set_var_compressed(ogrp, o_varid));
 	    }
+	    NC_CHECK(copy_var_filter(igrp, varid, ogrp, o_varid));
 	}
     }
 #endif	/* USE_NETCDF4 */
@@ -1539,6 +1772,7 @@ usage(void)
   [-h n]    set size in bytes of chunk_cache for chunked variables\n\
   [-e n]    set number of elements that chunk_cache can hold\n\
   [-r]      read whole input file into diskless file on open (classic or 64-bit offset or cdf5 formats only)\n\
+  [-F filterspec] specify the compression algorithm to apply to an output variable.\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
@@ -1555,6 +1789,9 @@ main(int argc, char**argv)
     char* inputfile = NULL;
     char* outputfile = NULL;
     int c;
+#ifdef USE_NETCDF4
+    struct FilterSpec filterspec;
+#endif
 
 /* table of formats for legal -k values */
     struct Kvalues {
@@ -1609,7 +1846,7 @@ main(int argc, char**argv)
        usage();
     }
 
-    while ((c = getopt(argc, argv, "k:3467d:sum:c:h:e:rwxg:G:v:V:")) != -1) {
+    while ((c = getopt(argc, argv, "k:3467d:sum:c:h:e:rwxg:G:v:V:F:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Format names:
@@ -1723,6 +1960,19 @@ main(int argc, char**argv)
 	    /* make list of names of variables specified */
 	    make_lvars (optarg, &option_nlvars, &option_lvars);
 	    option_varstruct = false;
+	    break;
+	case 'F': /* optional filter spec for a specified variable */
+#ifdef USE_NETCDF4
+	    if(!parsefilterspec(optarg,&filterspec)) usage();
+	    if(nfilterspecs >= (MAX_FILTER_SPECS-1))
+		error("too many -F filterspecs\n");
+	    filterspecs[nfilterspecs] = filterspec;
+	    nfilterspecs++;		
+	    // Force output to be netcdf-4
+	    option_kind = NC_FORMAT_NETCDF4;
+#else
+	    error("-F requires netcdf-4");
+#endif
 	    break;
 	default: 
 	    usage();

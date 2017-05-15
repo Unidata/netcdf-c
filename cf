@@ -114,6 +114,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --enable-dap4"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
+FLAGS="$FLAGS --enable-filter-test"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"

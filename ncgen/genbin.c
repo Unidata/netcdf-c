@@ -241,7 +241,7 @@ genbin_definespecialattributes(Symbol* var)
                                  NULL);
         check_err(stat,__LINE__,__FILE__);
     }
-    if(special->flags & _FILTERID_FLAG) {
+    if(special->flags & _FILTER_FLAG) {
 	/* Special check for alternate way to specify _Deflate */
 	if(special->_FilterID == ZIP_ID) {
 	    unsigned int level;

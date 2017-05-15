@@ -18,7 +18,6 @@
 #define NC_ATT_STORAGE     "_Storage"
 #define NC_ATT_NOFILL      "_NoFill"
 #define NC_ATT_NETCDF4     "_NetCDF4"
-#define NC_ATT_FILTERID    "_Filter_ID"
-#define NC_ATT_FILTERPARMS "_Filter_Parameters"
+#define NC_ATT_FILTER      "_Filter"
 
 #endif	/*_CDL_H_ */

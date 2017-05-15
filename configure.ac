@@ -1358,6 +1358,10 @@ AC_ARG_ENABLE([filter-test],
                               [enable filter test])])
 test "x$enable_filter_test" = xyes || enable_filter_test=no
 AC_MSG_RESULT($enable_filter_test)
+if test "x$enable_netcdf_4" = xno ; then
+AC_MSG_WARN([disabling --enable-filter-test; it requires netcdf-4])
+enable_filter_test=no
+fi
 # Define a Generic AM_CONDITIONAL to allow disabling
 # of arbitrary parts of Makefile.am files
 AM_CONDITIONAL(ENABLE_FILTER_TEST, [test x$enable_filter_test = xyes])

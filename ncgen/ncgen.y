@@ -122,6 +122,7 @@ static int containsfills(Datalist* list);
 static void datalistextend(Datalist* dl, NCConstant* con);
 static void vercheck(int ncid);
 static long long extractint(NCConstant con);
+static int parsefilterflag(const char* sdata0, Specialdata* special);
 
 int yylex(void);
 
@@ -199,8 +200,7 @@ NCConstant     constant;
 	_NCPROPS
 	_ISNETCDF4
 	_SUPERBLOCK
-	_FILTERID
-	_FILTERPARMS
+	_FILTER
 	DATASETID
 
 %type <sym> ident typename primtype dimd varspec
@@ -749,12 +749,10 @@ attrdecl:
 	    {$$ = makespecial(_SHUFFLE_FLAG,$1,NULL,(void*)&$5,1);}
 	| type_var_ref ':' _ENDIANNESS '=' conststring
 	    {$$ = makespecial(_ENDIAN_FLAG,$1,NULL,(void*)&$5,1);}
+	| type_var_ref ':' _FILTER '=' conststring
+	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)&$5,1);}
 	| type_var_ref ':' _NOFILL '=' constbool
 	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)&$5,1);}
-	| type_var_ref ':' _FILTERID '=' constint
-	    {$$ = makespecial(_FILTERID_FLAG,$1,NULL,(void*)&$5,1);}
-	| type_var_ref ':' _FILTERPARMS '=' intlist
-	    {$$ = makespecial(_FILTERPARMS_FLAG,$1,NULL,(void*)$5,0);}
 	| ':' _FORMAT '=' conststring
 	    {$$ = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)&$4,1);}
 	;
@@ -1201,6 +1199,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     case _STORAGE_FLAG:
     case _NCPROPS_FLAG:
     case _ENDIAN_FLAG:
+    case _FILTER_FLAG:
 	iconst.nctype = NC_STRING;
 	convert1(con,&iconst);
 	if(iconst.nctype == NC_STRING)
@@ -1219,18 +1218,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	break;
     case _CHUNKSIZES_FLAG:
     case _FILLVALUE_FLAG:
-    case _FILTERPARMS_FLAG:
 	/* Handle below */
 	break;
-    case _FILTERID_FLAG:
-	iconst.nctype = NC_UINT;
-	convert1(con,&iconst);
-	if(iconst.nctype != NC_UINT) {
-	     derror("%s: illegal filter id value",specialname(tag));
-        }
-	udata = iconst.value.uint32v;
-	break;
-
     default: PANIC1("unexpected special tag: %d",tag);
     }
 
@@ -1340,26 +1329,11 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 special->flags |= _STORAGE_FLAG;
                 special->_Storage = NC_CHUNKED;
                 } break;
-          case _FILTERID_FLAG:
-                special->_FilterID = udata;
-                special->flags |= _FILTERID_FLAG;
+          case _FILTER_FLAG:
+		/* Parse the filter spec */
+		if(parsefilterflag(sdata,special))
+                    special->flags |= _FILTER_FLAG;
                 break;
-          case _FILTERPARMS_FLAG: {
-                int i;
-                special->nparams = list->length;
-                special->_FilterParams = (size_t*)emalloc(sizeof(size_t)*special->nparams);
-                for(i=0;i<special->nparams;i++) {
-                    iconst.nctype = NC_UINT;
-                    convert1(&list->data[i],&iconst);
-                    if(iconst.nctype == NC_UINT) {
-                        special->_FilterParams[i] = iconst.value.uint32v;
-                    } else {
-                        efree(special->_FilterParams);
-                        derror("%s: illegal filter parameter value",specialname(tag));
-                    }
-                }
-                special->flags |= _FILTERPARMS_FLAG;
-                } break;
             default: PANIC1("makespecial: illegal token: %d",tag);
          }
     }
@@ -1463,6 +1437,63 @@ specialname(int tag)
 	    return spp->name;
     }
     return "<unknown>";
+}
+
+/*
+Parse a filter spec string and store it in special
+*/
+static int
+parsefilterflag(const char* sdata0, Specialdata* special)
+{
+    char* p;
+    char* sdata = NULL;
+    int stat;
+    size_t count;
+    unsigned int* ulist = NULL;
+
+    if(sdata0 == NULL || strlen(sdata0) == 0) goto fail;
+    sdata = strdup(sdata0);
+
+    /* Count number of unsigned integers and delimit */
+    p=sdata;
+    for(count=0;;count++) {
+        char* q = strchr(p,',');
+	if(q == NULL) break;
+	*q++ = '\0'; /* delimit */
+	p = q;
+    }
+    count++; /* for final piece */
+
+    /* Start by collecting the filter id */
+    p = sdata;
+    stat = sscanf(p,"%u",&special->_FilterID);
+    if(stat != 1) goto fail;
+    count--;  /* actual param count minus the id */
+
+    ulist = (unsigned int*)malloc(sizeof(unsigned int)*(count));
+    if(ulist == NULL) goto fail;
+
+    special->nparams = count;
+    for(count=0;count < special->nparams ;) {
+        unsigned int uval;
+        p = p + strlen(p) + 1; /* move to next param */
+	stat = sscanf(p,"%u",&uval);
+	if(stat != 1) goto fail;
+	ulist[count++] = uval;
+    }
+    special->_FilterParams = ulist;
+    ulist = NULL; /* avoid duplicate free */
+
+    if(sdata) free(sdata);
+    if(ulist) free(ulist);
+    return 1;
+fail:
+    if(sdata) free(sdata);
+    if(ulist) free(ulist);
+    if(special) special->_FilterID = 0;
+    derror("Malformed filter spec: %s",sdata);
+
+    return 0;
 }
 
 /*

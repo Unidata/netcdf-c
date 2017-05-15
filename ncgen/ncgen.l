@@ -132,8 +132,7 @@ struct Specialtoken specials[] = {
 {"_NCProperties",_NCPROPS,_NCPROPS_FLAG},
 {"_IsNetcdf4",_ISNETCDF4,_ISNETCDF4_FLAG},
 {"_SuperblockVersion",_SUPERBLOCK,_SUPERBLOCK_FLAG},
-{"_Filter_ID",_FILTERID,_FILTERID_FLAG},
-{"_Filter_Parameters",_FILTERPARMS,_FILTERPARMS_FLAG},
+{"_Filter",_FILTER,_FILTER_FLAG},
 {NULL,0} /* null terminate */
 };
 
@@ -212,7 +211,7 @@ NUMBER       [+-]?[0-9][0-9]*[Uu]?([BbSs]|[Ll]|[Ll][Ll])?
 DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
-SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"|"_Filter_ID"|"_Filter_Parameters"
+SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"|"_Filter"
 
 USASCII   [\x01-\x7F]
 

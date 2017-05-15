@@ -1,5 +1,5 @@
 # Visual Studio
-#VS=1
+VS=1
 
 # Is netcdf-4 and/or DAP enabled?
 NC4=1
@@ -32,20 +32,25 @@ cd build
 NCLIB=`pwd`
 
 if test "x$VS" != x ; then
+CMAKE=/cygdrive/c/tools/CMake/bin/cmake
 # Visual Studio
 #CFG="RelWithDebInfo"
 CFG="Release"
 NCLIB="${NCLIB}/build/liblib/$CFG"
 export PATH="${NCLIB}:${PATH}"
-cmake $FLAGS ..
-cmake --build . --config ${CFG}
-cmake --build . --config ${CFG} --target RUN_TESTS
+$CMAKE $FLAGS ..
+$CMAKE --build . --config ${CFG}
+$CMAKE --build . --config ${CFG} --target RUN_TESTS
 else
 # GCC
+CMAKE=/usr/bin/cmake.exe
 NCLIB="${NCLIB}/build/liblib"
+export PATH="${NCLIB}:${PATH}"
 G="-GUnix Makefiles"
-cmake "${G}" $FLAGS ..
+#$CMAKE "${G}" $FLAGS ..
+$CMAKE $FLAGS ..
 make all
 make test
 fi
 exit
+p
