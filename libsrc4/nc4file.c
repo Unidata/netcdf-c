@@ -287,10 +287,10 @@ nc4typelen(nc_type type)
    return -1;
 }
 
+
+#if 0
+/* Use NC_check_file_type in libdispatch/dfile.c */
 /* Given a filename, check to see if it is a HDF5 file. */
-#define MAGIC_NUMBER_LEN 4
-#define NC_HDF5_FILE 1
-#define NC_HDF4_FILE 2
 static int
 nc_check_for_hdf(const char *path, int flags, void* parameters, int *hdf_file)
 {
@@ -366,6 +366,7 @@ nc_check_for_hdf(const char *path, int flags, void* parameters, int *hdf_file)
    }
    return NC_NOERR;
 }
+#endif
 
 /* Create a HDF5/netcdf-4 file. */
 
@@ -2821,7 +2822,8 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 	 int use_parallel, void *parameters, NC_Dispatch *dispatch, NC *nc_file)
 {
    int res;
-   int hdf_file = 0;
+   int is_hdf5_file = 0;
+   int is_hdf4_file = 0;
 #ifdef USE_PARALLEL4
    NC_MPI_INFO mpidfalt = {MPI_COMM_WORLD, MPI_INFO_NULL};
 #endif
@@ -2863,17 +2865,25 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* USE_PARALLEL_POSIX */
 
    /* Figure out if this is a hdf4 or hdf5 file. */
-   if ((res = nc_check_for_hdf(path, use_parallel, parameters, &hdf_file)))
-	return res;
-
+   /* Use NC_check_file_type in libdispatch/dfile.c */
+   {
+	int model = 0;
+	int version = 0;
+        if((res=NC_check_file_type(path,use_parallel,parameters,&model,&version)))
+	    return res;
+	if(model == NC_FORMATX_NC4 && version == 5)
+	    is_hdf5_file = 1;
+	else if(model == NC_FORMATX_NC4 && version == 4)
+	    is_hdf4_file = 1;
+    }
    /* Depending on the type of file, open it. */
    nc_file->int_ncid = nc_file->ext_ncid;
-   if (hdf_file == NC_HDF5_FILE)
+   if (is_hdf5_file)
        res = nc4_open_file(path, mode, parameters, nc_file);
 #ifdef USE_HDF4
-   else if (hdf_file == NC_HDF4_FILE && inmemory)
+   else if (is_hdf_file && inmemory)
 	return NC_EDISKLESS;
-   else if (hdf_file == NC_HDF4_FILE)
+   else if (is_hdf4_file)
        res = nc4_open_hdf4_file(path, mode, nc_file);
 #endif /* USE_HDF4 */
    else

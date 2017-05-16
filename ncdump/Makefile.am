@@ -163,7 +163,9 @@ run_utf8_nc4_tests.sh							\
 tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl                      \
 tst_inttags.sh tst_inttags4.sh                                          \
 CMakeLists.txt XGetopt.c tst_bom.sh tst_inmemory_nc3.sh                 \
-tst_dimsizes.sh tst_inmemory_nc4.sh tst_fileinfo.sh
+tst_dimsizes.sh tst_inmemory_nc4.sh tst_fileinfo.sh                     \
+test_corrupt_magic.nc
+
 
 # CDL files and Expected results
 SUBDIRS=cdl expected

@@ -27,6 +27,9 @@ Research/Unidata. See COPYRIGHT file for more info.
 extern int NC_initialized;
 extern int NC_finalized;
 
+/* To be consistent with H5Fis_hdf5, use the complete HDF5 magic number */
+static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
+
 /** \defgroup datasets NetCDF File and Data I/O
 
 NetCDF opens datasets as files or remote access URLs.
@@ -84,9 +87,9 @@ NC_interpret_magic_number(char* magic, int* model, int* version, int use_paralle
 {
     int status = NC_NOERR;
     /* Look at the magic number */
-    /* Ignore the first byte for HDF */
 #ifdef USE_NETCDF4
-    if(magic[1] == 'H' && magic[2] == 'D' && magic[3] == 'F') {
+    /* Use the complete magic number string for HDF5 */
+    if(memcmp(magic,HDF5_SIGNATURE,sizeof(HDF5_SIGNATURE))==0) {
 	*model = NC_FORMATX_NC4;
 	*version = 5;
 #ifdef USE_HDF4
@@ -120,7 +123,8 @@ Given an existing file, figure out its format
 and return that format value (NC_FORMATX_XXX)
 in model arg.
 */
-static int NC_check_file_type(const char *path, int flags, void *parameters,
+int
+NC_check_file_type(const char *path, int flags, void *parameters,
 		   int* model, int* version)
 {
    char magic[MAGIC_NUMBER_LEN];
@@ -136,11 +140,15 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
 	if(meminfo == NULL || meminfo->size < MAGIC_NUMBER_LEN)
 	    {status = NC_EDISKLESS; goto done;}
 	memcpy(magic,meminfo->memory,MAGIC_NUMBER_LEN);
-    } else {/* presumably a real file */
-       /* Get the 4-byte magic from the beginning of the file. Don't use posix
-        * for parallel, use the MPI functions instead. */
+        /* Look at the magic number */
+        status = NC_interpret_magic_number(magic,model,version,use_parallel);
+	goto done;
+    }
+    /* presumably a real file */
+    /* Get the magic bytes  from the beginning of the file. Don't use posix
+     * for parallel, use the MPI functions instead. */
 #ifdef USE_PARALLEL
-	if (use_parallel) {
+    if (use_parallel) {
 	    MPI_File fh;
 	    MPI_Status mstatus;
 	    int retval;
@@ -217,8 +225,6 @@ else
 	    if(i != 1)
 		{status = errno; goto done;}
 	}
-    } /* !inmemory */
-
     /* Look at the magic number */
     status = NC_interpret_magic_number(magic,model,version,use_parallel);
 
