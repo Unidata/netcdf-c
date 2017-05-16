@@ -2881,7 +2881,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    if (is_hdf5_file)
        res = nc4_open_file(path, mode, parameters, nc_file);
 #ifdef USE_HDF4
-   else if (is_hdf_file && inmemory)
+   else if (is_hdf4_file && inmemory)
 	return NC_EDISKLESS;
    else if (is_hdf4_file)
        res = nc4_open_hdf4_file(path, mode, nc_file);
