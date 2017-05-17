@@ -5,6 +5,8 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . ${srcdir}/d4test_common.sh
 
+echo "test_remote.sh:"
+
 #BIG=1
 #NOCSUM=1
 

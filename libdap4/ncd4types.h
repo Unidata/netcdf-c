@@ -13,6 +13,12 @@ are defined here.
 
 #undef COMPILEBYDEFAULT
 
+/*
+Control if struct fields can be map targets.
+Currently turned off because semantics are unclear.
+*/
+#undef ALLOWFIELDMAPS
+
 #define long64 long long
 #define ncerror int
 
