@@ -7,7 +7,7 @@
    $Id$
 */
 
-#include <config.h>
+#include "config.h"
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <stdlib.h>

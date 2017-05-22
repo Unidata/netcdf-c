@@ -1,4 +1,14 @@
-SET(ncgen_FILES generate.c main.c cdata.c bindata.c genchar.c cvt.c data.c debug.c escapes.c genc.c genbin.c generr.c genlib.c getfill.c odom.c offsets.c semantics.c ncgeny.c dump.c util.c bytebuffer.c list.c genf77.c f77data.c genj.c jdata.c nc_iter.c ConvertUTF.c ncgen.h )
+IF(BUILD_SHARED_LIBS AND WIN32)
+  remove_definitions(-DDLL_EXPORT)
+  remove_definitions(-DDLL_NETCDF)
+ENDIF()
+
+SET(ncgen_FILES generate.c main.c cdata.c bindata.c genchar.c cvt.c data.c debug.c escapes.c genc.c genbin.c generr.c genlib.c getfill.c odom.c semantics.c ncgeny.c dump.c util.c bytebuffer.c list.c genf77.c f77data.c genj.c jdata.c nc_iter.c ConvertUTF.c ncgen.h)
+
+# don't add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+
 
 IF(USE_X_GETOPT)
   SET(ncgen_FILES ${ncgen_FILES} XGetopt.c)

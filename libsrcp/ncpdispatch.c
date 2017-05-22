@@ -189,7 +189,7 @@ NCP__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t
     assert(nc5);
 
     /* causes implicitly defined warning; may be because of old installed pnetcdf? */
-#if 0
+#if 1
     /* In PnetCDF ncmpi__enddef() is only implemented in v1.5.0 and later */
     status = ncmpi__enddef(nc->int_ncid, mpi_h_minfree, mpi_v_align,
                            mpi_v_minfree, mpi_r_align);
@@ -441,6 +441,7 @@ NCP_get_att(
     if(status != NC_NOERR) return status;
 
     status = NCP_inq_att(ncid,varid,name,&xtype,NULL);
+    if(status != NC_NOERR) return status;
 
     if(memtype == NC_NAT) memtype = xtype;
 
@@ -487,6 +488,14 @@ NCP_put_att(
     int status;
     MPI_Offset mpilen;
 
+    /* check if ncid is valid */
+    status = NC_check_id(ncid, &nc);
+    if(status != NC_NOERR) return status;
+
+    /* check if varid is valid */
+    status = ncmpi_inq_varnatts(nc->int_ncid, varid, NULL);
+    if (status != NC_NOERR) return status;
+
     if (!name || (strlen(name) > NC_MAX_NAME))
 	return NC_EBADNAME;
 
@@ -494,9 +503,6 @@ NCP_put_att(
        systems with signed size_t). */
     if(((unsigned long) len) > X_INT_MAX)
 	return NC_EINVAL;
-
-    status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
 
     mpilen = len;
 

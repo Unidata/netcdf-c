@@ -35,11 +35,11 @@ char dim_name[NDIMS][3];
 size_t dim_len[NDIMS];
 char var_name[NVARS][2+MAX_RANK];
 nc_type var_type[NVARS];
-size_t var_rank[NVARS];
+int var_rank[NVARS];
 int var_dimid[NVARS][MAX_RANK];
 size_t var_shape[NVARS][MAX_RANK];
 size_t var_nels[NVARS];
-size_t var_natts[NVARS];
+int var_natts[NVARS];
 char att_name[NVARS][MAX_NATTS][2];
 char gatt_name[NGATTS][3];
 nc_type att_type[NVARS][NGATTS];
@@ -156,7 +156,7 @@ main(int argc, char *argv[])
        /* Initialize global variables defining test file */
        init_gvars();
 
-	/* Write the test file, needed for the read-only tests below. */
+       /* Write the test file, needed for the read-only tests below. */
        write_file(testfile);
 
 	/* delete any existing scratch netCDF file */
@@ -355,6 +355,8 @@ main(int argc, char *argv[])
 	NC_TEST(nc_copy_att);
 	NC_TEST(nc_rename_att);
 	NC_TEST(nc_del_att);
+	NC_TEST(nc_against_pnetcdf);
+        /* keep below the last test, as it changes the default file format */
 	NC_TEST(nc_set_default_format);
     }
 

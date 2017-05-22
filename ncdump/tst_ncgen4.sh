@@ -1,5 +1,8 @@
 #!/bin/sh
-if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+. ../test_common.sh
+
 verbose=1
 set -e
 
@@ -12,21 +15,8 @@ set -e
 # 4. Add the new files into cdl4/Makefile.am
 #    and expected4/Makefile.am 
 
-if test "x$builddir" = "x"; then builddir=`pwd`; fi
-if test "x$srcdir" = "x"; then srcdir=`dirname $0`; fi
-
-# Make buildir absolute
-cd $builddir
-builddir=`pwd`
-
-# Make srcdir be absolute
-cd $srcdir
-srcdir=`pwd`
-cd $builddir
 
 export verbose
-export srcdir
-export builddir
 
 KFLAG=1 ; export KFLAG
 echo "*** Performing diff tests: k=1"

@@ -22,7 +22,7 @@ char atomic_name[NUM_ATOMIC_TYPES][NC_MAX_NAME + 1] = {"none", "byte", "char",
 						       "ushort", "uint",
 						       "int64", "uint64", "string"};
 
-EXTERNL int
+extern int
 NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2, 
 		  nc_type typeid2, int *equalp)
 {
@@ -81,7 +81,7 @@ NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
 }
 
 /* Get the id of a type from the name. */
-EXTERNL int
+extern int
 NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 {
    NC_GRP_INFO_T *grp;
@@ -323,7 +323,7 @@ NC4_insert_compound(int ncid, nc_type typeid1, const char *name, size_t offset,
 }
 
 /* Insert a named array into a compound type. */
-EXTERNL int
+extern int
 NC4_insert_array_compound(int ncid, int typeid1, const char *name, 
 			 size_t offset, nc_type field_typeid,
 			 int ndims, const int *dim_sizesp)

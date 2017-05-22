@@ -3,6 +3,7 @@
 # $Id: run_nc4_tests.sh,v 1.4 2010/05/18 20:05:23 dmh Exp $
 
 if test "x$srcdir" = x ; then srcdir="."; fi
+. ../test_common.sh
 
 ##
 # Function to test a netCDF CDL file.
@@ -23,11 +24,10 @@ validateNC() {
     ARGS=$@
 
     echo "*** generating $BASENAME.nc ***"
-    ./ncgen $ARGS -o $BASENAME.nc $INFILE
-    ../ncdump/ncdump $BASENAME.nc | sed 's/e+0/e+/g' > $TMPFILE
+    ${NCGEN} $ARGS -o $BASENAME.nc $INFILE
+    ${NCDUMP} $BASENAME.nc | sed 's/e+0/e+/g' > $TMPFILE
     echo "*** comparing binary against source CDL file *** "
     diff -b -w $INFILE $TMPFILE
-
 }
 
 
@@ -42,7 +42,7 @@ echo "*** creating netCDF-4 classic model file c0_4c.nc from c0.cdl..."
 validateNC "c0" "c0_4c" -k nc7 -b
 
 echo "*** creating C code for CAM file ref_camrun.cdl..."
-./ncgen -lc $srcdir/ref_camrun.cdl >ref_camrun.c
+${NCGEN} -lc $srcdir/ref_camrun.cdl >ref_camrun.c
 
 echo "*** test for jira NCF-199 bug"
 validateNC "ncf199" "ncf199" -k nc4
@@ -56,6 +56,9 @@ validateNC "compound_datasize_test2" "compound_datasize_test2"  -k nc4
 
 echo "*** Global Attribute with Enum type"
 validateNC "tst_gattenum" "tst_gattenum"  -k nc4
+
+echo "*** Integer constant with just 'u' suffix"
+validateNC "tst_usuffix" "tst_usuffix"  -k nc4
 
 echo "*** Test successful!"
 exit 0

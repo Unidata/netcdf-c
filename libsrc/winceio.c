@@ -5,7 +5,11 @@
 /* $Id: winceio.c,v 1.2 2010/05/04 17:30:04 dmh Exp $ */
 /* Dennis Heimbigner 2010-3-04 */
 
+
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>	/* DEBUG */
@@ -68,7 +72,7 @@ fgrow(FILE* f, const off_t len)
     int status = NC_NOERR;
     long pos = ftell(f);
     long size;
-    pos = ftell(f);    
+    pos = ftell(f);
     status = fseek(f,0,SEEK_END);
     if(ferror(f)) return EIO;
     size = ftell(f);
@@ -99,7 +103,7 @@ fgrow2(FILE* f, const off_t len)
     int status = NC_NOERR;
     long pos = ftell(f);
     long size;
-    pos = ftell(f);    
+    pos = ftell(f);
     status = fseek(f,0,SEEK_END);
     if(ferror(f)) return EIO;
     size = ftell(f);
@@ -121,7 +125,7 @@ fgrow2(FILE* f, const off_t len)
 /* Begin ffio */
 
 static int
-fileio_pgout(ncio *const nciop, 
+fileio_pgout(ncio *const nciop,
 	off_t const offset,  const size_t extent,
 	const void *const vp, off_t *posp)
 {
@@ -180,7 +184,7 @@ fileio_pgin(ncio *const nciop,
 typedef struct ncio_ffio {
 	off_t pos;
 	/* buffer */
-	off_t	bf_offset; 
+	off_t	bf_offset;
 	size_t	bf_extent;
 	size_t	bf_cnt;
 	void	*bf_base;
@@ -230,7 +234,7 @@ ncio_fileio_get(ncio *const nciop,
 #ifdef X_ALIGN
 	size_t rem;
 #endif
-	
+
 	if(fIsSet(rflags, RGN_WRITE) && !fIsSet(nciop->ioflags, NC_WRITE))
 		return EPERM; /* attempt to write readonly file */
 
@@ -304,7 +308,7 @@ ncio_fileio_move(ncio *const nciop, off_t to, off_t from,
 			size_t nbytes, int rflags)
 {
 	int status = NC_NOERR;
-	off_t lower = from;	
+	off_t lower = from;
 	off_t upper = to;
 	char *base;
 	size_t diff = upper - lower;
@@ -315,11 +319,11 @@ ncio_fileio_move(ncio *const nciop, off_t to, off_t from,
 
 	if(to == from)
 		return NC_NOERR; /* NOOP */
-	
+
 	if(to > from)
 	{
 		/* growing */
-		lower = from;	
+		lower = from;
 		upper = to;
 	}
 	else
@@ -339,10 +343,10 @@ ncio_fileio_move(ncio *const nciop, off_t to, off_t from,
 		return status;
 
 	if(to > from)
-		(void) memmove(base + diff, base, nbytes); 
+		(void) memmove(base + diff, base, nbytes);
 	else
-		(void) memmove(base, base + diff, nbytes); 
-		
+		(void) memmove(base, base + diff, nbytes);
+
 	(void) ncio_fileio_rel(nciop, lower, RGN_MODIFIED);
 
 	return status;
@@ -426,7 +430,7 @@ ncio_free(ncio *nciop)
 
 	if(nciop->free != NULL)
 		nciop->free(nciop->pvt);
-	
+
 	free(nciop);
 }
 
@@ -437,7 +441,7 @@ ncio_new(const char *path, int ioflags)
 	size_t sz_path = M_RNDUP(strlen(path) +1);
 	size_t sz_ncio_pvt;
 	ncio *nciop;
- 
+
 #if ALWAYS_NC_SHARE /* DEBUG */
 	fSet(ioflags, NC_SHARE);
 #endif
@@ -450,7 +454,7 @@ ncio_new(const char *path, int ioflags)
 	nciop = (ncio *) malloc(sz_ncio + sz_path + sz_ncio_pvt);
 	if(nciop == NULL)
 		return NULL;
-	
+
 	nciop->ioflags = ioflags;
 	*((int *)&nciop->fd) = -1; /* cast away const */
 
@@ -511,7 +515,7 @@ ncio_create(const char *path, int ioflags,
 	    if(f != NULL) { /* do not overwrite */
 		(void)fclose(f);
 		return EEXIST;
-	    }		
+	    }
 	}
 
 	f = fopen(path, oflags);
@@ -651,8 +655,8 @@ unwind_new:
 }
 
 
-/* 
- * Get file size in bytes.  
+/*
+ * Get file size in bytes.
  * Is use of fstatus = fseek() really necessary, or could we use standard fstat() call
  * and get st_size member?
  */
@@ -672,7 +676,7 @@ ncio_filesize(ncio *nciop, off_t *filesizep)
     status = fseek(f, 0, SEEK_END); /* get size */
     if(ferror(f)) return EIO;
     *filesizep = ftell(f);
-    status = fseek(f, current, SEEK_SET); /* reset */ 
+    status = fseek(f, current, SEEK_SET); /* reset */
     if(ferror(f)) return EIO;
     return NC_NOERR;
 }
@@ -710,7 +714,7 @@ ncio_pad_length(ncio *nciop, off_t length)
 }
 
 
-int 
+int
 ncio_close(ncio *nciop, int doUnlink)
 {
 	int status = NC_NOERR;
@@ -726,7 +730,7 @@ ncio_close(ncio *nciop, int doUnlink)
 	(void) fclose(f);
 
 	descriptors[nciop->fd] = NULL;
-	
+
 	if(doUnlink)
 		(void) unlink(nciop->path);
 

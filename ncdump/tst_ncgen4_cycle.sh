@@ -1,5 +1,7 @@
 #!/bin/sh
-if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+. ../test_common.sh
 
 . ${srcdir}/tst_ncgen_shared.sh
 
@@ -34,14 +36,14 @@ for x in ${TESTSET} ; do
   else
     rm -f ${x}.nc ${x}.dmp
     # step 1: use original cdl to build the .nc
-    ${builddir}/../ncgen/ncgen -b -k${KFLAG} -o ${x}.nc ${cdl}/${x}.cdl
+    ${NCGEN} -b -k${KFLAG} -o ${x}.nc ${cdl}/${x}.cdl
     # step 2: dump .nc file
-    ${builddir}/../ncdump/ncdump ${headflag} ${specflag} ${x}.nc > ${x}.dmp
+    ${NCDUMP} ${headflag} ${specflag} ${x}.nc > ${x}.dmp
     # step 3: use ncgen and the ncdump output to (re-)build the .nc
     rm -f ${x}.nc
-    ${builddir}/../ncgen/ncgen -b -k${KFLAG} -o ${x}.nc ${x}.dmp
+    ${NCGEN} -b -k${KFLAG} -o ${x}.nc ${x}.dmp
     # step 4: dump .nc file again
-    ${builddir}/../ncdump/ncdump ${headflag} ${specflag} ${x}.nc > ${x}.dmp2
+    ${NCDUMP} ${headflag} ${specflag} ${x}.nc > ${x}.dmp2
     # compare the two ncdump outputs
     if diff -b -w ${x}.dmp ${x}.dmp2 ; then ok=1; else ok=0; fi
     if test "x$ok" = "x1" ; then

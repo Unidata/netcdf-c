@@ -1,5 +1,8 @@
 #!/bin/sh
 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 # This shell runs a bunch of benchmarks on some specific files
 # available at Unidata.
 
@@ -27,7 +30,7 @@ for ((s=0; s < 2 ; s++))
 do
     for ((d=0; d <= 9 ; d=d+2))
     do
-	cmd="./bm_file $h -f 3 -o $TMP/$d1-2d.nc4 -c 0:${d}:${s}:${c0}:${c1}"
+	cmd="${execdir}/bm_file $h -f 3 -o $TMP/$d1-2d.nc4 -c 0:${d}:${s}:${c0}:${c1}"
 	for ((v=1; v < 12; v++))
 	do
 	    cmd="$cmd,${v}:${d}:${s}:${c0}:${c1}"
@@ -59,7 +62,7 @@ for ((s=0; s < 2 ; s++))
 do
     for ((d=0; d <= 9 ; d++))
     do
-	cmd="./bm_file $h -f 3 -o $TMP/$d1.nc4 -c 0:${d}:${s}:${c0}:${c1}:${c2} $TMP/$d1.nc3"
+	cmd="${execdir}/bm_file $h -f 3 -o $TMP/$d1.nc4 -c 0:${d}:${s}:${c0}:${c1}:${c2} $TMP/$d1.nc3"
 	echo "cmd=$cmd"
 	if ! ($cmd >> $out1); then
 	    exit 1;
@@ -79,7 +82,7 @@ do
     do
 	for c3 in 10 100 200 500
 	do
-	    cmd="./bm_file $h -f 3 -o $TMP/$d1.nc4 -c 0:${d}:${s}:${c0}:${c1}:${c2} $TMP/$d1.nc3"
+	    cmd="${execdir}/bm_file $h -f 3 -o $TMP/$d1.nc4 -c 0:${d}:${s}:${c0}:${c1}:${c2} $TMP/$d1.nc3"
 	    echo "cmd=$cmd"
 	    if ! ($cmd >> $out1); then
 		exit 1;

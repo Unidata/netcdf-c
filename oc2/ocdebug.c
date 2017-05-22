@@ -26,7 +26,7 @@ occatch(OCerror err)
 int
 xxdrerror(void)
 {
-    oclog(OCLOGERR,"xdr failure");
+    nclog(NCLOGERR,"xdr failure");
     return OCCATCH(OC_EDATADDS);
 }
 
@@ -41,7 +41,7 @@ void*
 ocmalloc(size_t size)
 {
     void* memory = calloc(size,1); /* use calloc to zero memory*/
-    if(memory == NULL) oclog(OCLOGERR,"ocmalloc: out of memory");
+    if(memory == NULL) nclog(NCLOGERR,"ocmalloc: out of memory");
     return memory;
 }
 

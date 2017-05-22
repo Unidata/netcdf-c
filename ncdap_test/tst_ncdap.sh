@@ -59,8 +59,6 @@ RESULTSDIR="./results"
 NCDUMP="${builddir}/ncdump/ncdump $FLAGS"
 if test "x$leakcheck" = "x1" ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
-else
-VALGRIND=
 fi
 
 rm -fr ${RESULTSDIR}

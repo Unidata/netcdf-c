@@ -3,9 +3,9 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "ncdap.h"
+#include "dapincludes.h"
 #include "ncd2dispatch.h"
-#include "dapalign.h"
+#include "ncoffsets.h"
 
 #ifdef _MSC_VER
 #include <crtdbg.h>
@@ -26,9 +26,6 @@
 static char* constrainableprotocols[] = {"http", "https",NULL};
 
 static int ncd2initialized = 0;
-
-size_t dap_one[NC_MAX_VAR_DIMS];
-size_t dap_zero[NC_MAX_VAR_DIMS];
 
 /* Forward */
 static NCerror buildncstructures(NCDAPCOMMON*);
@@ -189,15 +186,7 @@ static NC_Dispatch NCD2_dispatcher;
 int
 NCD2_initialize(void)
 {
-    int i;
-
     NCD2_dispatch_table = &NCD2_dispatch_base;
-    /* Local Initialization */
-    compute_nccalignments();
-    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
-	dap_one[i] = 1;
-	dap_zero[i] = 0;
-    }
     ncd2initialized = 1;
 #ifdef DEBUG
     /* force logging to go to stderr */
@@ -304,7 +293,7 @@ NCD2_open(const char * path, int mode,
 
     if(path == NULL)
 	return NC_EDAPURL;
-    if(dispatch == NULL) PANIC("NC3D_open: no dispatch table");
+    if(dispatch == NULL) PANIC("NCD3_open: no dispatch table");
 
     /* Setup our NC and NCDAPCOMMON state*/
 
@@ -336,11 +325,8 @@ NCD2_open(const char * path, int mode,
     dapcomm->oc.rawurltext = strdup(path);
 #endif
 
-    ncstat = ncuriparse(dapcomm->oc.rawurltext,&dapcomm->oc.url);
-	if (!ncstat) goto done;
-
-    /* parse the client parameters */
-    ncuridecodeparams(dapcomm->oc.url);
+    if(ncuriparse(dapcomm->oc.rawurltext,&dapcomm->oc.url) != NCU_OK)
+	{ncstat = NC_EURL; goto done;}
 
     if(!constrainable(dapcomm->oc.url))
 	SETFLAG(dapcomm->controls,NCF_UNCONSTRAINABLE);
@@ -360,9 +346,9 @@ NCD2_open(const char * path, int mode,
 
     /* fail if we are unconstrainable but have constraints */
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
-	if(dapcomm->oc.url->constraint != NULL) {
+	if(dapcomm->oc.url->query != NULL) {
 	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
-		   dapcomm->oc.url->constraint);
+		   dapcomm->oc.url->query);
 	    ncstat = THROW(NC_EDAPCONSTRAINT);
 	    goto done;
 	}
@@ -382,7 +368,7 @@ NCD2_open(const char * path, int mode,
            force default format temporarily in case user changed it.
 	*/
 	{
-	    int new = NC_CLASSIC_MODEL;
+	    int new = 0; /* format netcdf-3 */
 	    int old = 0;
 	    nc_set_default_format(new,&old); /* save and change */
             ncstat = nc_create(tmpname,NC_DISKLESS|NC_CLASSIC_MODEL,&nc3id);
@@ -400,12 +386,11 @@ NCD2_open(const char * path, int mode,
     dapcomm->oc.dapconstraint->selections = nclistnew();
 
      /* Parse constraints to make sure they are syntactically correct */
-     ncstat = dapparsedapconstraints(dapcomm,dapcomm->oc.url->constraint,dapcomm->oc.dapconstraint);
+     ncstat = dapparsedapconstraints(dapcomm,dapcomm->oc.url->query,dapcomm->oc.dapconstraint);
      if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Construct a url for oc minus any constraint and params*/
-    dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,
-				      (NCURISTD ^ NCURICONSTRAINTS));
+    dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURIBASE);
 
     /* Pass to OC */
     ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
@@ -543,16 +528,16 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
     /* using the modified constraint, rebuild the constraint string */
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
 	/* ignore all constraints */
-	dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,0);
+	dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURIBASE);
     } else {
 	char* constraintstring = dcebuildconstraintstring(dapcomm->oc.dapconstraint);
-        ncurisetconstraints(dapcomm->oc.url,constraintstring);
+        ncurisetquery(dapcomm->oc.url,constraintstring);
 	nullfree(constraintstring);
-        dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURICONSTRAINTS);
+        dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURISVC);
     }
 
 #ifdef DEBUG
-fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
+fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->query);
 #endif
 
     /* Estimate the variable sizes */
@@ -636,7 +621,6 @@ buildncstructures(NCDAPCOMMON* dapcomm)
 {
     NCerror ncstat = NC_NOERR;
     CDFnode* dds = dapcomm->cdf.ddsroot;
-    NC* ncsub;
 
     ncstat = buildglobalattrs(dapcomm,dds);
     if(ncstat != NC_NOERR) goto done;
@@ -995,7 +979,7 @@ getdefinename(CDFnode* node)
 }
 
 int
-NCDAP_ping(const char* url)
+NCDAP2_ping(const char* url)
 {
     OCerror ocstat = OC_NOERR;
     ocstat = oc_ping(url);
@@ -1756,6 +1740,7 @@ done:
 static NCerror
 freeNCDAPCOMMON(NCDAPCOMMON* dapcomm)
 {
+    if(dapcomm == NULL) return NC_NOERR;
     freenccache(dapcomm,dapcomm->cdf.cache);
     nclistfree(dapcomm->cdf.projectedvars);
     nullfree(dapcomm->cdf.recorddimname);
@@ -1845,8 +1830,8 @@ computeseqcountconstraints(NCDAPCOMMON* dapcomm, CDFnode* seq, NCbytes* seqcount
 	}
     }
     /* Finally, add in any selection from the original URL */
-    if(dapcomm->oc.url->selection != NULL)
-        ncbytescat(seqcountconstraints,dapcomm->oc.url->selection);
+    if(dap_getselection(dapcomm->oc.url) != NULL)
+        ncbytescat(seqcountconstraints,dap_getselection(dapcomm->oc.url));
     nclistfree(path);
     return NC_NOERR;
 }
@@ -1993,7 +1978,7 @@ fetchpatternmetadata(NCDAPCOMMON* dapcomm)
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE))
 	ce = NULL;
     else
-        ce = nulldup(dapcomm->oc.url->selection);
+        ce = nulldup(dap_getselection(dapcomm->oc.url));
 
     /* Get selection constrained DDS */
     ncstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDDS,&ocroot);

@@ -6,10 +6,11 @@
 #include <assert.h>
 #include <string.h>
 
+#include "netcdf.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "ocdump.h"
-#include "oclog.h"
+#include "nclog.h"
 #include "occlientparams.h"
 #include "occurlfunctions.h"
 #include "ochttp.h"
@@ -234,12 +235,12 @@ oc_dds_properties(OCobject link,
     if(atomtypep) *atomtypep = node->etype;
     if(rankp) *rankp = node->array.rank;
     if(containerp) *containerp = (OCobject)node->container;
-    if(nsubnodesp) *nsubnodesp = oclistlength(node->subnodes);
+    if(nsubnodesp) *nsubnodesp = nclistlength(node->subnodes);
     if(nattrp) {
         if(node->octype == OC_Attribute) {
-            *nattrp = oclistlength(node->att.values);
+            *nattrp = nclistlength(node->att.values);
         } else {
-            *nattrp = oclistlength(node->attributes);
+            *nattrp = nclistlength(node->attributes);
 	}
     }
     return OCTHROW(OC_NOERR);
@@ -290,7 +291,7 @@ oc_dds_nsubnodes(OCobject link, OCobject ddsnode, size_t* nsubnodesp)
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,node,ddsnode);
 
-    if(nsubnodesp) *nsubnodesp = oclistlength(node->subnodes);
+    if(nsubnodesp) *nsubnodesp = nclistlength(node->subnodes);
     return OCTHROW(OC_NOERR);
 }
 
@@ -376,9 +377,9 @@ oc_dds_attr_count(OCobject link, OCobject ddsnode, size_t* nattrp)
 
     if(nattrp) {
         if(node->octype == OC_Attribute) {
-            *nattrp = oclistlength(node->att.values);
+            *nattrp = nclistlength(node->att.values);
         } else {
-            *nattrp = oclistlength(node->attributes);
+            *nattrp = nclistlength(node->attributes);
 	}
     }
     return OCTHROW(OC_NOERR);
@@ -454,10 +455,10 @@ oc_dds_ithfield(OCobject link, OCobject ddsnode, size_t index, OCobject* fieldno
     if(!ociscontainer(node->octype))
 	return OCTHROW(OC_EBADTYPE);
 
-    if(index >= oclistlength(node->subnodes))
+    if(index >= nclistlength(node->subnodes))
 	return OCTHROW(OC_EINDEX);
 
-    field = (OCnode*)oclistget(node->subnodes,index);
+    field = (OCnode*)nclistget(node->subnodes,index);
     if(fieldnodep) *fieldnodep = (OCobject)field;
     return OCTHROW(OC_NOERR);
 }
@@ -597,7 +598,7 @@ oc_dds_dimensions(OCobject link, OCobject ddsnode, OCobject* dims)
     if(node->array.rank == 0) return OCTHROW(OCTHROW(OC_ESCALAR));
     if(dims != NULL) {
         for(i=0;i<node->array.rank;i++) {
-            OCnode* dim = (OCnode*)oclistget(node->array.dimensions,i);
+            OCnode* dim = (OCnode*)nclistget(node->array.dimensions,i);
 	    dims[i] = (OCobject)dim;
 	}
     }
@@ -628,7 +629,7 @@ oc_dds_ithdimension(OCobject link, OCobject ddsnode, size_t index, OCobject* dim
 
     if(node->array.rank == 0) return OCTHROW(OCTHROW(OC_ESCALAR));
     if(index >= node->array.rank) return OCTHROW(OCTHROW(OC_EINDEX));
-    dimid = (OCobject)oclistget(node->array.dimensions,index);
+    dimid = (OCobject)nclistget(node->array.dimensions,index);
     if(dimidp) *dimidp = dimid;
     return OCTHROW(OC_NOERR);
 }
@@ -687,7 +688,7 @@ oc_dds_dimensionsizes(OCobject link, OCobject ddsnode, size_t* dimsizes)
     if(dimsizes != NULL) {
 	size_t i;
         for(i=0;i<node->array.rank;i++) {
-            OCnode* dim = (OCnode*)oclistget(node->array.dimensions,i);
+            OCnode* dim = (OCnode*)nclistget(node->array.dimensions,i);
 	    dimsizes[i] = dim->dim.declsize;
 	}
     }
@@ -733,9 +734,9 @@ oc_dds_attr(OCobject link, OCobject ddsnode, size_t index,
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,node,ddsnode);
 
-    nattrs = oclistlength(node->attributes);
+    nattrs = nclistlength(node->attributes);
     if(index >= nattrs) return OCTHROW(OCTHROW(OC_EINDEX));
-    attr = (OCattribute*)oclistget(node->attributes,index);
+    attr = (OCattribute*)nclistget(node->attributes,index);
     if(namep) *namep = strdup(attr->name);
     if(octypep) *octypep = attr->etype;
     if(nvaluesp) *nvaluesp = attr->nvalues;
@@ -783,7 +784,7 @@ oc_das_attr_count(OCobject link, OCobject dasnode, size_t* nvaluesp)
     OCVERIFY(OC_Node,dasnode);
     OCDEREF(OCnode*,attr,dasnode);
     if(attr->octype != OC_Attribute) return OCTHROW(OCTHROW(OC_EBADTYPE));
-    if(nvaluesp) *nvaluesp = oclistlength(attr->att.values);
+    if(nvaluesp) *nvaluesp = nclistlength(attr->att.values);
     return OCTHROW(OC_NOERR);
 }
 
@@ -818,10 +819,10 @@ oc_das_attr(OCobject link, OCobject dasnode, size_t index, OCtype* atomtypep, ch
     OCDEREF(OCnode*,attr,dasnode);
 
     if(attr->octype != OC_Attribute) return OCTHROW(OCTHROW(OC_EBADTYPE));
-    nvalues = oclistlength(attr->att.values);
+    nvalues = nclistlength(attr->att.values);
     if(index >= nvalues) return OCTHROW(OCTHROW(OC_EINDEX));
     if(atomtypep) *atomtypep = attr->etype;
-    if(valuep) *valuep = nulldup((char*)oclistget(attr->att.values,index));
+    if(valuep) *valuep = nulldup((char*)nclistget(attr->att.values,index));
     return OCTHROW(OC_NOERR);
 }
 
@@ -1966,17 +1967,17 @@ oc_data_ddpath(OCobject link, OCobject datanode, char** resultp)
 {
     OCstate* state;
     OCdata* data;
-    OCbytes* buffer;
+    NCbytes* buffer;
 
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
 
-    buffer = ocbytesnew();
+    buffer = ncbytesnew();
     ocdumpdatapath(state,data,buffer);
-    if(resultp) *resultp = ocbytesdup(buffer);
-    ocbytesfree(buffer);
+    if(resultp) *resultp = ncbytesdup(buffer);
+    ncbytesfree(buffer);
     return OCTHROW(OC_NOERR);
 }
 
@@ -1985,16 +1986,16 @@ oc_data_ddtree(OCobject link, OCobject ddsroot)
 {
     OCstate* state;
     OCdata* data;
-    OCbytes* buffer;
+    NCbytes* buffer;
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
     OCVERIFY(OC_Data,ddsroot);
     OCDEREF(OCdata*,data,ddsroot);
 
-    buffer = ocbytesnew();
+    buffer = ncbytesnew();
     ocdumpdatatree(state,data,buffer,0);
-    fprintf(stderr,"%s\n",ocbytescontents(buffer));
-    ocbytesfree(buffer);
+    fprintf(stderr,"%s\n",ncbytescontents(buffer));
+    ncbytesfree(buffer);
     return OCTHROW(OC_NOERR);
 }
 
@@ -2083,11 +2084,11 @@ oc_set_netrc(OClink* link, const char* file)
 
     if(file == NULL || strlen(file) == 0)
 	return OC_EINVAL;
-    oclog(OCLOGDBG,"OC: using netrc file: %s",file);
+    nclog(OCLOGDBG,"OC: using netrc file: %s",file);
     /* See if it exists and is readable; complain if not */
     f = fopen(file,"r");
     if(f == NULL)
-	oclog(OCLOGWARN,"OC: netrc file is not readable; continuing");
+	nclog(NCLOGWARN,"OC: netrc file is not readable; continuing");
     else {
 	fclose(f);
     }

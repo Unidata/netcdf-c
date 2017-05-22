@@ -8,7 +8,8 @@
 - \subpage netcdf_data_set_components
 - \subpage netcdf_perf_chunking
 - \subpage netcdf_utilities_guide
-- \subpage dap_support
+- \subpage dap2
+- \subpage dap4
 - \subpage BestPractices
 - \subpage users_guide_appendices
 

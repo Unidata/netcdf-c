@@ -1,4 +1,4 @@
-SET(dap2_SOURCES constraints.c dapcvt.c dapalign.c dapodom.c daputil.c ncdaperr.c cdf.c cache.c dapdump.c dapdebug.c dapattr.c ncd2dispatch.c getvara.c dceconstraints.c dcetab.c dceparse.c dcelex.c)
+SET(dap2_SOURCES constraints.c dapcvt.c dapodom.c daputil.c ncdaperr.c cdf.c cache.c dapdump.c dapdebug.c dapattr.c ncd2dispatch.c getvara.c dceconstraints.c dcetab.c dceparse.c dcelex.c)
 
 add_library(dap2 OBJECT ${dap2_SOURCES})
 

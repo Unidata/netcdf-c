@@ -5,12 +5,21 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## Important Notes
-
-* **The combination of netCDF-C library versions earlier than 4.4.1 and libhdf5 1.10.0+ should be avoided, as they will result in binary files not readable by systems using earlier libhdf5 versions.**
-
 ## 4.4.2 - TBD
 
+* [Bug Fix] Corrected an issue with diskless file access, see [Pull Request #400](https://github.com/Unidata/netcdf-c/issues/400) and [Pull Request #403](https://github.com/Unidata/netcdf-c/issues/403) for more information.
+* [Enhancement] DAP4 is now included. Since dap2 is the default for urls, dap4 must be specified by
+(1) using "dap4:" as the url protocol, or
+(2) appending "#protocol=dap4" to the end of the url, or
+(3) appending "#dap4" to the end of the url
+Note that dap4 is enabled by default but remote-testing is
+disbled until the testserver situation is resolved.
+* [Enhancement] The remote testing server can now be specified with the '--with-testserver" option to ./configure.
+* [Upgrade] The bash based test scripts have been upgraded to use a common test_common.sh include file that isolates build specific information.
+* [Upgrade] The bash based test scripts have been upgraded to use a common test_common.sh include file that isolates build specific information.
+* [Refactor] the oc2 library is no longer independent of the main netcdf-c library. For example, it now uses ncuri, nclist, and ncbytes instead of its homegrown equivalents.
+* [Bug Fix] `NC_EGLOBAL` is now properly returned when attempting to set a global `_FillValue` attribute. See [GitHub #388](https://github.com/Unidata/netcdf-c/issues/388) and [GitHub #389](https://github.com/Unidata/netcdf-c/issues/389) for more information.
+* [Bug Fix] Corrected an issue where data loss would occur when `_FillValue` was mistakenly allowed to be redefined.  See [Github #390](https://github.com/Unidata/netcdf-c/issues/390), [GitHub #387](https://github.com/Unidata/netcdf-c/pull/387) for more information.
 * [Enhancement] Modified netCDF4 to use ASCII for NC_CHAR.  See [Github Pull request #316](https://github.com/Unidata/netcdf-c/pull/316) for more information.
 * [Upgrade][Bug] Corrected an issue regarding how "orphaned" DAS attributes were handled. See [GitHub #376](https://github.com/Unidata/netcdf-c/pull/376) for more information.
 * [Upgrade] Update utf8proc.[ch] to use the version now maintained by the Julia Language project (https://github.com/JuliaLang/utf8proc/blob/master/LICENSE.md).

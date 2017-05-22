@@ -50,7 +50,7 @@ extern int num_spaces;
 /* This is the severity level of messages which will be logged. Use
    severity 0 for errors, 1 for important log messages, 2 for less
    important, etc. */
-int nc_log_level = -1;
+int nc_log_level = NC_TURN_OFF_LOGGING;
 
 #endif /* LOGGING */
 
@@ -1603,3 +1603,4 @@ NC4_show_metadata(int ncid)
 #endif /*LOGGING*/
    return retval;
 }
+

@@ -1,11 +1,8 @@
 #!/bin/sh
-if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 
-if test "x$srcdir" = "x"; then srcdir=`pwd`; fi
-if test "x$builddir" = "x"; then builddir=`pwd`; fi
-#for sunos
-export srcdir;
-export builddir;
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+. ../test_common.sh
+
 
 . ${srcdir}/tst_ncgen_shared.sh
 
@@ -38,10 +35,10 @@ for x in ${TESTSET} ; do
 	if test "x${t}" = "x${x}" ; then isxfail=1; fi
 	done
   rm -f ${x}.nc ${x}.dmp
-  ${builddir}/../ncgen/ncgen -b -k${KFLAG} -o ${x}.nc ${cdl}/${x}.cdl
+  ${NCGEN} -b -k${KFLAG} -o ${x}.nc ${cdl}/${x}.cdl
   # dump .nc file
   # if windows, we need to remove any leading 0's in exponents.
-  ${builddir}/../ncdump/ncdump ${headflag} ${specflag} ${x}.nc | sed 's/e+0/e+/g' > ${x}.dmp
+  ${NCDUMP} ${headflag} ${specflag} ${x}.nc | sed 's/e+0/e+/g' > ${x}.dmp
   # compare the expected (silently if XFAIL)
   if test "x$isxfail" = "x1" -a "x$SHOWXFAILS" = "x" ; then
     if diff -b -bw ${expected}/${x}.dmp ${x}.dmp >/dev/null 2>&1; then ok=1; else ok=0; fi

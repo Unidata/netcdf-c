@@ -6,7 +6,7 @@
    $Id: tst_vars.c,v 1.49 2009/12/30 12:03:48 ed Exp $
 */
 
-#include <nc_tests.h>
+#include "nc_tests.h"
 #include "err_macros.h"
 #include "netcdf.h"
 

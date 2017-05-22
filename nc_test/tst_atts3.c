@@ -136,7 +136,7 @@ main(int argc, char **argv)
     signed char schar_in[ATT_LEN], schar_out[ATT_LEN] = {NC_MIN_BYTE, 1, NC_MAX_BYTE};
     unsigned char uchar_in[ATT_LEN];
     short short_in[ATT_LEN], short_out[ATT_LEN] = {NC_MIN_SHORT, -128, NC_MAX_SHORT};
-    int int_in[ATT_LEN], int_out[ATT_LEN] = {-100000, 128, 100000};
+    int int_in[ATT_LEN], int_out[ATT_LEN] = {-100000, 127, 100000};
     float float_in[ATT_LEN], float_out[ATT_LEN] = {-0.5, 0.25, 0.125};
     double double_in[ATT_LEN], double_out[ATT_LEN] = {-0.25, .5, 0.125};
     long long longlong_in[ATT_LEN] = {-1LL, -1LL, -1LL};
@@ -211,8 +211,10 @@ main(int argc, char **argv)
        * supported C types. though the conversion may encounter
        * out-of-range values */
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_INT_NAME, uchar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+        if (i == 0 || i == 2) continue;
 	if (uchar_in[i] != (unsigned char) int_out[i]) ERR;
+      }
 
       /* This was bug NCF-171: on 32-bit platforms, bad values returned */
       if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_INT_NAME, longlong_in)) ERR;
@@ -346,8 +348,10 @@ main(int argc, char **argv)
       for (i = 0; i < ATT_LEN; i++)
 	 if (short_in[i] != short_out[i]) ERR;
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_INT_NAME, short_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+          if (i == 0 || i == 2) continue;
 	  if (short_in[i] != (short) int_out[i]) ERR;
+      }
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_FLOAT_NAME, short_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	  if (short_in[i] != (short) float_out[i]) ERR;
@@ -360,11 +364,15 @@ main(int argc, char **argv)
       for (i = 0; i < ATT_LEN; i++)
 	 if (schar_in[i] != schar_out[i]) ERR;
       if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_SHORT_NAME, schar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+         if (i == 0 || i == 2) continue;
 	 if (schar_in[i] != (signed char) short_out[i]) ERR;
+      }
       if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_INT_NAME, schar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+         if (i == 0 || i == 2) continue;
 	 if (schar_in[i] != (signed char) int_out[i]) ERR;
+      }
       if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_FLOAT_NAME, schar_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (schar_in[i] != (signed char) float_out[i]) ERR;
@@ -373,22 +381,25 @@ main(int argc, char **argv)
 	 if (schar_in[i] != (signed char) double_out[i]) ERR;
 
       /* Read all atts (except text) as uchar. */
-      /* Shouldn't this get an NC_ERANGE error for storing -128 into an unsigned char?  Possible bug ... */
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, uchar_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (uchar_in[i] != (unsigned char) schar_out[i]) ERR;
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_SHORT_NAME, uchar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
-	 if (uchar_in[i] != (unsigned char) short_out[i]) ERR;
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_INT_NAME, uchar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+         if (i == 0 || i == 2) continue;
 	 if (uchar_in[i] != (unsigned char) int_out[i]) ERR;
+      }
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_FLOAT_NAME, uchar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+         if (i == 0) continue;
 	 if (uchar_in[i] != (unsigned char) float_out[i]) ERR;
+      }
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, uchar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+         if (i == 0) continue;
 	 if (uchar_in[i] != (unsigned char) double_out[i]) ERR;
+      }
 
       /* Read all atts (except text) into long long variable. */
       if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_SCHAR_NAME, longlong_in)) ERR;

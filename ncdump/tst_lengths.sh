@@ -1,20 +1,14 @@
 #!/bin/sh
-if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 
-if test "x$srcdir" = x ; then
-srcdir=`pwd`
-fi
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+. ../test_common.sh
 
 # It is unreasonable to test actual lengths of files
 # (even netcdf-3 files).
 #However, the files created in this script are used in later ones
 
-../ncgen/ncgen -b ${srcdir}/small.cdl
-../ncgen/ncgen -b ${srcdir}/small2.cdl
-
-exit
-
-
+${NCGEN} -b ${srcdir}/small.cdl
+${NCGEN} -b ${srcdir}/small2.cdl
 
 # This shell script tests lengths of small netcdf files and tests 
 # that rewriting a numeric value doesn't change file length
@@ -50,81 +44,83 @@ exit
 # echo "netcdf small {variables: byte t; data: t = 1;}" > small.cdl
 set -e
 
-
 echo ""
 echo "*** testing length of classic file"
-../ncgen/ncgen -b ${srcdir}/small.cdl
+${NCGEN} -b ${srcdir}/small.cdl
 if test `wc -c < small.nc` != 68; then
     exit 1
 fi
 
 #echo "*** testing length of classic file written with NOFILL"
-#../ncgen/ncgen -b -x ${srcdir}/small.cdl
+#${NCGEN} -b -x ${srcdir}/small.cdl
 #if test `wc -c < small.nc` != 68; then
 #    exit 1
 #fi
 
 echo "*** testing length of rewritten classic file"
-../ncgen/ncgen -b ${srcdir}/small.cdl && ./rewrite-scalar small.nc t
+${NCGEN} -b ${srcdir}/small.cdl && ${execdir}/rewrite-scalar small.nc t
 #if test `wc -c < small.nc` != 68; then
 #    exit 1
 #fi
 
 echo "*** testing length of rewritten classic file written with NOFILL"
-../ncgen/ncgen -b -x ${srcdir}/small.cdl && ./rewrite-scalar small.nc t
+${NCGEN} -b -x ${srcdir}/small.cdl && ${execdir}/rewrite-scalar small.nc t
 #if test `wc -c < small.nc` != 68; then
 #    exit 1
 #fi
 
 echo "*** testing length of 64-bit offset file"
-../ncgen/ncgen -b -k64-bit-offset ${srcdir}/small.cdl
+${NCGEN} -b -k64-bit-offset ${srcdir}/small.cdl
 #if test `wc -c < small.nc` != 72; then
 #    exit 1
 #fi
 
 echo "*** testing length of 64-bit offset file written with NOFILL"
-../ncgen/ncgen -b -k64-bit-offset -x ${srcdir}/small.cdl
+${NCGEN} -b -k64-bit-offset -x ${srcdir}/small.cdl
 #if test `wc -c < small.nc` != 72; then
 #    exit 1
 #fi
 
 echo "*** testing length of rewritten 64-bit offset file"
-../ncgen/ncgen -b -k64-bit-offset ${srcdir}/small.cdl && ./rewrite-scalar small.nc t
+${NCGEN} -b -k64-bit-offset ${srcdir}/small.cdl && ${execdir}/rewrite-scalar small.nc t
 #if test `wc -c < small.nc` != 72; then
 #    exit 1
 #fi
 
 echo "*** testing length of rewritten 64-bit offset file written with NOFILL"
-../ncgen/ncgen -b -k64-bit-offset -x ${srcdir}/small.cdl && ./rewrite-scalar small.nc t
+${NCGEN} -b -k64-bit-offset -x ${srcdir}/small.cdl && ${execdir}/rewrite-scalar small.nc t
 #if test `wc -c < small.nc` != 72; then
 #    exit 1
 #fi
 
 echo "*** testing length of 64-bit data file"
-../ncgen/ncgen -b -k64-bit-data ${srcdir}/small.cdl
+${NCGEN} -b -k64-bit-data ${srcdir}/small.cdl
 if test `wc -c < small.nc` != 104; then
     exit 1
 fi
 
 echo "*** testing length of 64-bit data file"
-../ncgen/ncgen -b -5 ${srcdir}/small.cdl
+${NCGEN} -b -5 ${srcdir}/small.cdl
 if test `wc -c < small.nc` != 104; then
     exit 1
 fi
 echo "*** testing length of 64-bit data file written with NOFILL"
-../ncgen/ncgen -b -5 -x ${srcdir}/small.cdl
+${NCGEN} -b -5 -x ${srcdir}/small.cdl
 #if test `wc -c < small.nc` != 104; then
 #    exit 1
 #fi
 
 echo "*** testing length of rewritten 64-bit data file"
-../ncgen/ncgen -b -5 ${srcdir}/small.cdl && ./rewrite-scalar small.nc t
-if test `wc -c < small.nc` != 104; then
+${NCGEN} -b -5 ${srcdir}/small.cdl && ${execdir}/rewrite-scalar small.nc t
+# Watch out, it appears that the CDF-5 files are being rounded up to next page size
+# So, we need to truncate them wrt nul's in order to check size.
+# Bad hack, but what else can I do?
+if test `${execdir}/nctrunc <small.nc |wc -c` != 104; then
     exit 1
 fi
 
 echo "*** testing length of rewritten 64-bit data file written with NOFILL"
-../ncgen/ncgen -b -5 -x ${srcdir}/small.cdl && ./rewrite-scalar small.nc t
+${NCGEN} -b -5 -x ${srcdir}/small.cdl && ${execdir}/rewrite-scalar small.nc t
 #if test `wc -c < small.nc` != 104; then
 #    exit 1
 #fi
@@ -133,55 +129,55 @@ echo "*** testing length of rewritten 64-bit data file written with NOFILL"
 # test with only one record variable of type byte or short, which need
 # not be 4-byte aligned
 echo "*** testing length of one-record-variable classic file"
-../ncgen/ncgen -b ${srcdir}/small2.cdl
+${NCGEN} -b ${srcdir}/small2.cdl
 #if test `wc -c < small2.nc` != 101; then
 #    exit 1
 #fi
 
 echo "*** testing length of one-record-variable 64-bit data file"
-../ncgen/ncgen -b -5 ${srcdir}/small2.cdl
+${NCGEN} -b -5 ${srcdir}/small2.cdl
 if test `wc -c < small2.nc` != 161; then
     exit 1
 fi
 
 echo "*** testing length of one-record-variable 64-bit data file"
-../ncgen/ncgen -b -5 ${srcdir}/small2.cdl
+${NCGEN} -b -5 ${srcdir}/small2.cdl
 if test `wc -c < small2.nc` != 161; then
     exit 1
 fi
 
 echo "*** testing length of one-record-variable 64-bit data file written with NOFILL"
-../ncgen/ncgen -b -5 -x ${srcdir}/small2.cdl
+${NCGEN} -b -5 -x ${srcdir}/small2.cdl
 if test `wc -c < small2.nc` != 161; then
     exit 1
 fi
 
 echo "*** testing length of one-record-variable classic file written with NOFILL"
-../ncgen/ncgen -b -x ${srcdir}/small2.cdl
+${NCGEN} -b -x ${srcdir}/small2.cdl
 if test `wc -c < small2.nc` != 101; then
     exit 1
 fi
 
 echo "*** testing length of one-record-variable classic file written with NOFILL"
-../ncgen/ncgen -b -x ${srcdir}/small2.cdl
+${NCGEN} -b -x ${srcdir}/small2.cdl
 if test `wc -c < small2.nc` != 101; then
     exit 1
 fi
 
 echo "*** testing length of one-record-variable classic file written with NOFILL"
-../ncgen/ncgen -b -x ${srcdir}/small2.cdl
+${NCGEN} -b -x ${srcdir}/small2.cdl
 #if test `wc -c < small2.nc` != 101; then
 #    exit 1
 #fi
 
 echo "*** testing length of one-record-variable 64-bit offset file"
-../ncgen/ncgen -b -k64-bit-offset ${srcdir}/small2.cdl
+${NCGEN} -b -k64-bit-offset ${srcdir}/small2.cdl
 #if test `wc -c < small2.nc` != 105; then
 #    exit 1
 #fi
 
 echo "*** testing length of one-record-variable 64-bit offset file written with NOFILL"
-../ncgen/ncgen -b -k64-bit-offset -x ${srcdir}/small2.cdl
+${NCGEN} -b -k64-bit-offset -x ${srcdir}/small2.cdl
 #if test `wc -c < small2.nc` != 105; then
 #    exit 1
 #fi

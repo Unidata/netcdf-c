@@ -1,5 +1,8 @@
 #!/bin/sh
 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 # This shell runs the HDF4 tests with valgrind.
 
 # $Id: run_hdf4_valgrind_tests.sh,v 1.1 2009/07/13 14:53:52 ed Exp $

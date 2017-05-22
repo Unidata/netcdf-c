@@ -46,7 +46,10 @@ on 1 byte), but shoehorning those bytes into integers efficiently is messy.
 */
 /* #define SELF_TEST 1 */
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>      /* defines printf for tests */
 #include <time.h>       /* defines time_t for timings in the test */
 #ifndef HAVE_STDINT_H

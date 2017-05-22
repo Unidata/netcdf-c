@@ -14,6 +14,7 @@ cflags="-I${includedir} @CPPFLAGS@"
 libs="-L${libdir} @NC_LIBS@"
 
 has_dap="@HAS_DAP@"
+has_dap4="@HAS_DAP4@"
 has_nc2="@HAS_NC2@"
 has_nc4="@HAS_NC4@"
 has_hdf4="@HAS_HDF4@"
@@ -65,7 +66,8 @@ Available values for OPTION include:
   --has-c++     whether C++ API is installed
   --has-c++4    whether netCDF-4 C++ API is installed
   --has-fortran whether Fortran API is installed
-  --has-dap     whether OPeNDAP is enabled in this build
+  --has-dap     whether OPeNDAP (DAP2) is enabled in this build
+  --has-dap4    whether DAP4 is enabled in this build
   --has-nc2     whether NetCDF-2 API is enabled
   --has-nc4     whether NetCDF-4/HDF-5 is enabled in this build
   --has-hdf5    whether HDF5 is used in build (always the same as --has-nc4)
@@ -140,6 +142,7 @@ if [ -f "$nfconf" ]; then
         echo
 fi
         echo "  --has-dap   -> $has_dap"
+        echo "  --has-dap4  -> $has_dap4"
         echo "  --has-nc2   -> $has_nc2"
         echo "  --has-nc4   -> $has_nc4"
         echo "  --has-hdf5  -> $has_hdf5"
@@ -188,6 +191,10 @@ while test $# -gt 0; do
 
     --has-dap)
        	echo $has_dap
+       	;;
+
+    --has-dap4)
+       	echo $has_dap4
        	;;
 
     --has-nc2)

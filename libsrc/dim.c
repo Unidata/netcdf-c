@@ -4,6 +4,10 @@
  */
 /* $Id: dim.c,v 1.83 2010/05/25 17:54:15 dmh Exp $ */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "nc3internal.h"
 #include <stdlib.h>
 #include <string.h>
