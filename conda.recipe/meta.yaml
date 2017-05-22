@@ -35,7 +35,6 @@ requirements:
 
 test:
   commands:
-    - ncdump -h http://geoport-dev.whoi.edu/thredds/dodsC/estofs/atlantic
-    # FIXME: the next two are failing at the moment.
-    - ncdump -h http://thredds.ucar.edu/thredds/dodsC/grib/NCEP/GFS/Global_0p5deg/GFS_Global_0p5deg_20170215_1200.grib2
     - ncdump -h https://data.nodc.noaa.gov/thredds/dodsC/ioos/sccoos/scripps_pier/scripps_pier-2016.nc
+    - ncdump -h http://oos.soest.hawaii.edu/thredds/dodsC/hioos/model/atm/ncep_pac/NCEP_Pacific_Atmospheric_Model_best.ncd
+    - ncdump -h http://oos.soest.hawaii.edu/thredds/dodsC/usgs_dem_10m_tinian
