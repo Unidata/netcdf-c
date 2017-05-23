@@ -49,6 +49,12 @@ are set when opening a binary file on Windows. */
 
 #cmakedefine const
 
+#ifndef _FILE_OFFSET_BITS
+#cmakedefine _FILE_OFFSET_BITS ${FILE_OFFSET_BITS}
+#cmakedefine _LARGEFILE64_SOURCE
+#cmakedefine _LARGEFILE_SOURCE
+#endif
+
 /* Define if building universal (internal helper macro) */
 #cmakedefine AC_APPLE_UNIVERSAL_BUILD 1
 
