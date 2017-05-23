@@ -166,6 +166,8 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
 	    size_t i;
 #ifdef HAVE_FILE_LENGTH_I64
           __int64 file_len = 0;
+#else
+          struct stat st;
 #endif
 
 	    if(path == NULL || strlen(path)==0)
@@ -1763,7 +1765,7 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
    /* Create the NC* instance and insert its dispatcher */
    stat = new_NC(dispatcher,path,cmode,&ncp);
    nullfree(path); path = NULL; /* no longer needed */
-   
+
    if(stat) return stat;
 
    /* Add to list of known open files and define ext_ncid */
