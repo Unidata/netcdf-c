@@ -22,7 +22,7 @@ man_MANS = ncgen.1
 
 # These files all need to be distributed.
 EXTRA_DIST = ncgen.y ncgen.l ncgenl.c $(man_MANS) internals.html	\
-run_tests.sh run_nc4_tests.sh c0.cdl c0_4.cdl ref_camrun.cdl \
+c0.cdl c0_4.cdl ref_camrun.cdl \
 ncf199.cdl CMakeLists.txt XGetopt.c c5.cdl \
 compound_datasize_test.cdl compound_datasize_test2.cdl \
 tst_gattenum.cdl tst_usuffix.cdl
