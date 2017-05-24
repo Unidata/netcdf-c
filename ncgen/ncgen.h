@@ -41,22 +41,46 @@
 #define NC_NIL       32
 
 /* Must be a better way to do this */
-#ifndef INFINITE
 #ifdef _MSC_VER
+
+#ifndef INFINITE
 #define NC_INFINITE (DBL_MAX+DBL_MAX)
 #define NC_INFINITEF NC_INFINITE
-#define NAN (NC_INFINITE-NC_INFINITE)
-#define NANF NAN
 #else
+#define NC_INFINITE INFINITE
+#define NC_INFINITEF NC_INFINITE
+#endif /*INFINITE*/
+
+#ifndef NAN
+#define NC_NAN (NC_INFINITE-NC_INFINITE)
+#define NC_NANF NC_NAN
+#else
+#define NC_NAN NAN
+#define NC_NANF NC_NAN
+#endif /*NAN*/
+
+#else /*!_MSC_VER*/
+
+#ifndef INFINITE
 #define NC_INFINITE (1.0/0.0)
 #define NC_INFINITEF (1.0f/0.0f)
-#define NAN (0.0/0.0)
-#define NANF (0.0f/0.0f)
-#endif
+#else
+#define NC_INFINITE INFINITE
+#define NC_INFINITEF NC_INFINITE
+#endif /*INFINITE*/
+
+#ifndef NAN
+#define NC_NAN (0.0/0.0)
+#define NC_NANF (0.0f/0.0f)
+#else
+#define NC_NAN NAN
+#define NC_NANF NC_NAN
+#endif /*NAN*/
+
+#endif /*!_MSC_VER*/
 
 #define NEGNC_INFINITEF (-NC_INFINITEF)
 #define NEGNC_INFINITE (-NC_INFINITEF)
-#endif
 
 /* nc_class is one of:
         NC_GRP NC_DIM NC_VAR NC_ATT NC_TYPE

@@ -5,10 +5,10 @@
 /* $Id: cvt.c,v 1.2 2010/05/24 19:59:56 dmh Exp $ */
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/cvt.c,v 1.2 2010/05/24 19:59:56 dmh Exp $ */
 
-#include        "includes.h"
-#include        "bytebuffer.h"
-#include		"../ncdump/isnan.h"
-#include	    <math.h>
+#include "includes.h"
+#include "bytebuffer.h"
+#include "../ncdump/isnan.h"
+#include <math.h>
 
 static char stmp[256];
 
@@ -373,7 +373,7 @@ case CASE(NC_FLOAT,NC_FLOAT):
     tmp.floatv = src->value.floatv;
     break;
 case CASE(NC_FLOAT,NC_DOUBLE):
-    tmp.doublev = (isnan(src->value.floatv)?NAN:(double)src->value.floatv);
+    tmp.doublev = (isnan(src->value.floatv)?NC_NAN:(double)src->value.floatv);
     break;
 case CASE(NC_DOUBLE,NC_BYTE):
     tmp.uint8v	= (unsigned char)src->value.doublev;
@@ -400,7 +400,7 @@ case CASE(NC_DOUBLE,NC_INT64):
     tmp.int64v	 = (long long)src->value.doublev;
     break;
 case CASE(NC_DOUBLE,NC_FLOAT):
-    tmp.floatv = (isnan(src->value.doublev)?NANF:(float)src->value.doublev);
+    tmp.floatv = (isnan(src->value.doublev)?NC_NANF:(float)src->value.doublev);
     break;
 case CASE(NC_DOUBLE,NC_DOUBLE):
     tmp.doublev = (double)src->value.doublev;

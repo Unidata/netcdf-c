@@ -120,8 +120,6 @@ NCfopen(const char* path, const char* flags)
 {
     FILE* f = NULL;
     char* cvtname = NCpathcvt(path);
-fprintf(stderr,"XXXX: path=|%s| cvtpath=|%s|\n",path,cvtname?cvtname:"null");
-fflush(stderr);
     if(cvtname == NULL) return NULL;
     f = fopen(cvtname,flags);
     free(cvtname);    
@@ -133,11 +131,7 @@ int
 NCopen3(const char* path, int flags, int mode)
 {
     int fd = -1;
-    fprintf(stderr,"XXXX: path=|%s|\n",path);
-    fflush(stderr);
     char* cvtname = NCpathcvt(path);
-    fprintf(stderr,"XXXX: path=|%s| cvtpath=|%s|\n",path,cvtname?cvtname:"null");
-    fflush(stderr);
     if(cvtname == NULL) return -1;
     fd = open(cvtname,flags,mode);
     free(cvtname);    

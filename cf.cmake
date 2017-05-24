@@ -1,5 +1,5 @@
 # Visual Studio
-#VS=1
+VS=1
 
 # Is netcdf-4 and/or DAP enabled?
 NC4=1
@@ -24,6 +24,7 @@ FLAGS="$FLAGS -DENABLE_TESTS=true"
 FLAGS="$FLAGS -DENABLE_EXAMPLES=false"
 #FLAGS="$FLAGS -DENABLE_HDF4=true"
 FLAGS="$FLAGS -DENABLE_DYNAMIC_LOADING=false"
+#FLAGS="$FLAGS -DENABLE_LARGE_FILE_TESTS=true"
 
 rm -fr build
 mkdir build

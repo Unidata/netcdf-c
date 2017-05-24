@@ -295,7 +295,7 @@ DoubleInf|-?Infinity { /* missing value (pre-2.4 backward compatibility) */
 		return lexdebug(DOUBLE_CONST);
 		}
 NaN|nan { /* missing value (pre-2.4 backward compatibility) */
-		double_val = NAN;
+		double_val = NC_NAN;
 		specialconstants = 1;
 		return lexdebug(DOUBLE_CONST);
 		}
@@ -310,7 +310,7 @@ FloatInf|-?Infinityf|-?Inff {/* missing value (pre-2.4 backward compatibility)*/
 		return lexdebug(FLOAT_CONST);
 		}
 NaNf|nanf { /* missing value (pre-2.4 backward compatibility) */
-		float_val = NANF;
+		float_val = NC_NANF;
 		specialconstants = 1;
 		return lexdebug(FLOAT_CONST);
 		}
@@ -355,7 +355,8 @@ NIL|nil|Nil {
 		    q = p;
 		    while((c=*p++)) {if(c > ' ') *q++ = c;}
 		    *q = '\0';
-		    datasetname = bbDup(lextext);
+		    if(datasetname == NULL)
+			datasetname = bbDup(lextext);
 		    BEGIN(INITIAL);
 		    return lexdebug(DATASETID);
 		}
