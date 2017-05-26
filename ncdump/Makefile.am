@@ -8,6 +8,9 @@
 include $(top_srcdir)/lib_flags.am
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+
 TESTS_ENVIRONMENT=CC=${CC}
 
 # This is the program we're building, and it's sources.
@@ -49,6 +52,7 @@ tst_dimsizes.sh
 if USE_NETCDF4
 check_PROGRAMS += tst_fileinfo
 TESTS += tst_fileinfo.sh
+TESTS += tst_hdf5_offset.sh
 endif
 
 if LARGE_FILE_TESTS
@@ -164,7 +168,7 @@ tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl                      \
 tst_inttags.sh tst_inttags4.sh                                          \
 CMakeLists.txt XGetopt.c tst_bom.sh tst_inmemory_nc3.sh                 \
 tst_dimsizes.sh tst_inmemory_nc4.sh tst_fileinfo.sh                     \
-test_corrupt_magic.nc
+test_corrupt_magic.nc tst_hdf5_offset.sh
 
 
 # CDL files and Expected results

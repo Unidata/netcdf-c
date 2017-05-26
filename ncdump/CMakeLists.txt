@@ -128,6 +128,7 @@ ENDIF()
   IF(USE_NETCDF4)
     add_sh_test(ncdump run_utf8_nc4_tests)
     add_sh_test(ncdump tst_fileinfo)
+    add_sh_test(ncdump tst_hdf5_offset)
   ENDIF(USE_NETCDF4)
 
   add_sh_test(ncdump tst_nccopy3)
