@@ -28,8 +28,6 @@ ENDIF(BUILD_UTILITIES)
 BUILD_BIN_TEST(tst_empty_vlen_unlim)
 ADD_SH_TEST(nc_test4 run_empty_vlen_test)
 
-
-
 IF(NOT MSVC)
   SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
 ENDIF()

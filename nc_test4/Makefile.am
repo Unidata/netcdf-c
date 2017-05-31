@@ -148,13 +148,13 @@ usi_01.* thetau_01.* tst_*.nc tst_*.h5                                  \
 tst_grp_rename.cdl tst_grp_rename.nc tst_grp_rename.dmp ref_grp_rename.cdl \
 foo1.nc tst_interops2.h4 tst_h5_endians.nc tst_h4_lendian.h4 test.nc \
 tst_atts_string_rewrite.nc tst_empty_vlen_unlim.nc tst_empty_vlen_lim.nc \
-tst_parallel4_simplerw_coll.nc tst_fill_attr_vanish.nc tst_rehash.nc \
-contiguous.hdf4 chunked.hdf4
+tst_parallel4_simplerw_coll.nc tst_fill_attr_vanish.nc tst_rehash.nc
 
 if USE_HDF4_FILE_TESTS
 DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
 AMSR_E_L3_DailyLand_V06_20020619.hdf			\
 MYD29.A2009152.0000.005.2009153124331.hdf		\
 MYD29.A2002185.0000.005.2007160150627.hdf		\
-MOD29.A2000055.0005.005.2006267200024.hdf
+MOD29.A2000055.0005.005.2006267200024.hdf       \
+contiguous.hdf4 chunked.hdf4
 endif # HDF4_FILE_TESTS

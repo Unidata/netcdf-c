@@ -1,5 +1,5 @@
 #!/bin/sh
-# Run test_chunk_hdf4 passing ${src_dir}
+# Run test_chunk_hdf4 passing ${srcdir}
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
@@ -10,8 +10,8 @@ CONTIG=contiguous.hdf4
 echo ""
 echo "*** Testing hdf4 chunking..."
 
-if test "x${src_dir}" = "x" ; then
-src_dir="."
+if test "x${srcdir}" = "x" ; then
+srcdir="."
 fi
 
 # Move the data sets into place
