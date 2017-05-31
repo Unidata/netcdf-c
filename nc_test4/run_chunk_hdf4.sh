@@ -20,8 +20,8 @@ if test -f ./${CHUNKED} ; then
 ISDISTCHECK=0
 else
 ISDISTCHECK=1
-cp ${src_dir}/${CHUNKED} .
-cp ${src_dir}/${CONTIG} .
+cp ${srcdir}/${CHUNKED} .
+cp ${srcdir}/${CONTIG} .
 fi
 
 if ./tst_chunk_hdf4 ; then
