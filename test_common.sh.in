@@ -1,7 +1,7 @@
 set -e
 
-TOPSRCDIR=@abs_top_srcdir@
-TOPBUILDDIR=@abs_top_builddir@
+TOPSRCDIR=@TOPSRCDIR@
+TOPBUILDDIR=@TOPBUILDDIR@
 
 # Figure out various locations in the src/build tree.
 # This is relatively fragile code and is essentially

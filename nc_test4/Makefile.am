@@ -135,7 +135,7 @@ run_grp_rename.sh tst_formatx_hdf4.sh run_chunk_hdf4.sh \
 tst_h5_endians.c tst_h4_lendian.c tst_atts_string_rewrite.c \
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c run_empty_vlen_test.sh \
 ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh \
-tdset.h5 tst_hdf4_read_var.sh
+tdset.h5 tst_hdf4_read_var.sh contiguous.hdf4 chunked.hdf4
 
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
@@ -155,6 +155,6 @@ DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
 AMSR_E_L3_DailyLand_V06_20020619.hdf			\
 MYD29.A2009152.0000.005.2009153124331.hdf		\
 MYD29.A2002185.0000.005.2007160150627.hdf		\
-MOD29.A2000055.0005.005.2006267200024.hdf       \
-contiguous.hdf4 chunked.hdf4
+MOD29.A2000055.0005.005.2006267200024.hdf
+
 endif # HDF4_FILE_TESTS

@@ -1438,10 +1438,10 @@ AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 abs_top_builddir=`pwd`
 cd $srcdir
 abs_top_srcdir=`pwd`
-#cd $abs_top_builddir
+cd $abs_top_builddir
 #AC_CONFIG_FILES(test_common.sh.in)
-#rm -f ${abs_top_builddir}/test_common.sh
-#sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
+rm -f ${abs_top_builddir}/test_common.sh
+sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
 
 #####
 # End netcdf_meta.h definitions.
@@ -1451,7 +1451,6 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
-                 test_common.sh
 	             libnetcdf.settings
 		         postinstall.sh
 		         include/netcdf_meta.h
