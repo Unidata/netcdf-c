@@ -25,7 +25,7 @@ tst_h_scalar tst_rename tst_h5_endians tst_atts_string_rewrite 		\
 tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash
 
 # Temporary I hope
-if !ISCYGWIN 
+if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
 endif
 
@@ -131,8 +131,7 @@ run_get_hdf4_files.sh run_valgrind_tests.sh run_valgrind_tests2.sh	\
 run_bm_ar4.sh ref_tst_compounds.nc run_hdf4_valgrind_tests.sh		\
 ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
 ref_tst_interops4.nc run_get_knmi_files.sh CMakeLists.txt               \
-run_grp_rename.sh tst_formatx_hdf4.sh                                   \
-run_chunk_hdf4.sh contiguous.hdf4 chunked.hdf4 \
+run_grp_rename.sh tst_formatx_hdf4.sh run_chunk_hdf4.sh \
 tst_h5_endians.c tst_h4_lendian.c tst_atts_string_rewrite.c \
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c run_empty_vlen_test.sh \
 ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh \
@@ -149,7 +148,8 @@ usi_01.* thetau_01.* tst_*.nc tst_*.h5                                  \
 tst_grp_rename.cdl tst_grp_rename.nc tst_grp_rename.dmp ref_grp_rename.cdl \
 foo1.nc tst_interops2.h4 tst_h5_endians.nc tst_h4_lendian.h4 test.nc \
 tst_atts_string_rewrite.nc tst_empty_vlen_unlim.nc tst_empty_vlen_lim.nc \
-tst_parallel4_simplerw_coll.nc tst_fill_attr_vanish.nc tst_rehash.nc
+tst_parallel4_simplerw_coll.nc tst_fill_attr_vanish.nc tst_rehash.nc \
+contiguous.hdf4 chunked.hdf4
 
 if USE_HDF4_FILE_TESTS
 DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
