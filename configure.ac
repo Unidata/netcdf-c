@@ -71,6 +71,9 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat1.nc:nc_test4/ref_hdf5_compat1.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 
+AC_CONFIG_LINKS([nc_test4/ref_chunked.hdf4:nc_test4/ref_chunked.hdf4])
+AC_CONFIG_LINKS([nc_test4/ref_contiguous.hdf4:nc_test4/ref_contiguous.hdf4])
+
 # This call is required by automake.
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
@@ -1439,6 +1442,7 @@ abs_top_builddir=`pwd`
 cd $srcdir
 abs_top_srcdir=`pwd`
 cd $abs_top_builddir
+#AC_CONFIG_FILES(test_common.sh.in)
 rm -f ${abs_top_builddir}/test_common.sh
 sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
 
@@ -1484,5 +1488,7 @@ AC_CONFIG_FILES([Makefile
 		 ],
                  [test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()
+
+    mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh
 
 cat libnetcdf.settings

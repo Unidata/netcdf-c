@@ -1928,7 +1928,7 @@ FILE(COPY ${netCDF_SOURCE_DIR}/include/netcdf_meta.h
 SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_SOURCE_DIR}/test_common.in)
 SET(TOPSRCDIR "${CMAKE_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_BINARY_DIR}")
-configure_file(${CMAKE_SOURCE_DIR}/test_common.in ${CMAKE_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
+configure_file(${CMAKE_SOURCE_DIR}/test_common.sh.in ${CMAKE_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
 ####
 # Export files

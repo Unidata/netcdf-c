@@ -2196,9 +2196,9 @@ APIPrefix`x_get_size_t'(const void **xpp,  size_t *ulp)
 	/* similar to get_ix_int */
 	const uchar *cp = (const uchar *) *xpp;
 
-	*ulp  = (size_t)(*cp++ << 24);
-	*ulp |= (size_t)(*cp++ << 16);
-	*ulp |= (size_t)(*cp++ << 8);
+	*ulp  = (unsigned)(*cp++ << 24);
+	*ulp |= (*cp++ << 16);
+	*ulp |= (*cp++ << 8);
 	*ulp |= *cp;
 
 	*xpp = (const void *)((const char *)(*xpp) + X_SIZEOF_SIZE_T);

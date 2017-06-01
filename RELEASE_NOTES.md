@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.5 - TBD
 
+* [Bug Fix] Corrected an error with how dimsizes might be read. See [Github #410](https://github.com/unidata/netcdf-c/issues/410) for more information.
 * [Bug Fix] Corrected an issue where 'make check' would fail if 'make' or 'make all' had not run first.  See [Github #339](https://github.com/Unidata/netcdf-c/issues/339) for more information.
 * [Bug Fix] Corrected an issue on Windows with Large file tests. See [Github #385](https://github.com/Unidata/netcdf-c/issues/385]) for more information.
 * [Bug Fix] Corrected an issue with diskless file access, see [Pull Request #400](https://github.com/Unidata/netcdf-c/issues/400) and [Pull Request #403](https://github.com/Unidata/netcdf-c/issues/403) for more information.
