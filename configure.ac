@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.5.0-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.5.1-development], [support-netcdf@unidata.ucar.edu])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
