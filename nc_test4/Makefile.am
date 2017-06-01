@@ -135,7 +135,7 @@ run_grp_rename.sh tst_formatx_hdf4.sh run_chunk_hdf4.sh \
 tst_h5_endians.c tst_h4_lendian.c tst_atts_string_rewrite.c \
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c run_empty_vlen_test.sh \
 ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh \
-tdset.h5 tst_hdf4_read_var.sh contiguous.hdf4 chunked.hdf4
+tdset.h5 tst_hdf4_read_var.sh ref_contiguous.hdf4 ref_chunked.hdf4
 
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\

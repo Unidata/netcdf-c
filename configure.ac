@@ -71,8 +71,8 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat1.nc:nc_test4/ref_hdf5_compat1.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 
-AC_CONFIG_LINKS([nc_test4/chunked.hdf4:nc_test4/chunked.hdf4])
-AC_CONFIG_LINKS([nc_test4/contiguous.hdf4:nc_test4/contiguous.hdf4])
+AC_CONFIG_LINKS([nc_test4/ref_chunked.hdf4:nc_test4/ref_chunked.hdf4])
+AC_CONFIG_LINKS([nc_test4/ref_contiguous.hdf4:nc_test4/ref_contiguous.hdf4])
 
 # This call is required by automake.
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
