@@ -17,7 +17,7 @@ if test "x$srcdir" = x ; then srcdir="."; fi
 ##
 validateNC() {
     BASENAME=$1
-    INFILE=$srcdir/$1.cdl
+    INFILE=$top_srcdir/ncgen/$1.cdl
     TMPFILE=tst_$2.cdl
     shift
     shift
@@ -42,7 +42,7 @@ echo "*** creating netCDF-4 classic model file c0_4c.nc from c0.cdl..."
 validateNC "c0" "c0_4c" -k nc7 -b
 
 echo "*** creating C code for CAM file ref_camrun.cdl..."
-${NCGEN} -lc $srcdir/ref_camrun.cdl >ref_camrun.c
+${NCGEN} -lc $top_srcdir/ncgen/ref_camrun.cdl >ref_camrun.c
 
 echo "*** test for jira NCF-199 bug"
 validateNC "ncf199" "ncf199" -k nc4
