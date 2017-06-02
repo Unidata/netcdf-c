@@ -3,6 +3,18 @@
 
 #ifdef _MSC_VER
 
+/* Prevent an issue where there is a circular inclusion
+   of winsock.h/windows.h.  This weird state occurs with
+   libdap4 and hdf4 support. The solution comes from the
+   following URL, found after a bit of research.
+
+   Added in support of the 4.5.0-rc1.  Hello, future generations.
+
+   * https://stackoverflow.com/questions/1372480/c-redefinition-header-files-winsock2-h
+
+   */
+   #define _WINSOCKAPI_
+
    #if _MSC_VER>=1900
      #define STDC99
    #endif
