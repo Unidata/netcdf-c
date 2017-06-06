@@ -44,4 +44,3 @@ extern int nc_utf8_normalize(const unsigned char* str, unsigned char** normalp);
 extern int nc_utf8_to_utf16(const unsigned char* s8, unsigned short** utf16p, size_t* lenp);
 
 #endif /*NCUTF8_H*/
-
