@@ -19,8 +19,6 @@ conditions.
 #include "ncutf8.h"
 #include "H5DSpublic.h"
 
-#define MEGABYTE 1048576
-
 #undef DEBUGH5
 
 #ifdef DEBUGH5

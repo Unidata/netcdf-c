@@ -42,7 +42,6 @@ typedef enum {GET, PUT} NC_PG_T;
 typedef enum {VAR, DIM, ATT} NC_OBJ_T;
 
 #define NC_MAX_HDF5_NAME (NC_MAX_NAME + 10)
-#define NC_V2_ERR (-1)
 
 /* The name of the root group. */
 #define NC_GROUP_NAME "/"
@@ -77,10 +76,6 @@ typedef enum {VAR, DIM, ATT} NC_OBJ_T;
 
 /* These have to do with creating chuncked datasets in HDF5. */
 #define NC_HDF5_UNLIMITED_DIMSIZE (0)
-#define NC_HDF5_CHUNKSIZE_FACTOR (10)
-#define NC_HDF5_MIN_CHUNK_SIZE (2)
-
-#define NC_EMPTY_SCALE "NC_EMPTY_SCALE"
 
 /* This is an attribute I had to add to handle multidimensional
  * coordinate variables. */
@@ -286,15 +281,10 @@ typedef struct NC_GRP_INFO
    int natts;
 } NC_GRP_INFO_T;
 
-/* These constants apply to the cmode parameter in the
- * HDF5_FILE_INFO_T defined below. */
-#define NC_CREAT 2	/* in create phase, cleared by ncendef */
+/* This constant applies to the flags parameter in the
+ * HDF5_FILE_INFO_T defined below.
+ */
 #define NC_INDEF 8	/* in define mode, cleared by ncendef */
-#define NC_NSYNC 0x10	/* synchronise numrecs on change */
-#define NC_HSYNC 0x20	/* synchronise whole header on change */
-#define NC_NDIRTY 0x40	/* numrecs has changed */
-#define NC_HDIRTY 0x80  /* header info has changed */
-
 
 /* This is the metadata we need to keep track of for each
    netcdf-4/HDF5 file. */
