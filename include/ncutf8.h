@@ -30,5 +30,18 @@ extern int nc_utf8_validate(const unsigned char * name);
  */
 extern int nc_utf8_normalize(const unsigned char* str, unsigned char** normalp);
 
+/*
+ * Convert a normalized utf8 string to utf16. This is approximate
+ * because it just does the truncation version of conversion for
+ * each 32-bit codepoint to get the corresponding utf16.
+ * Return codes:
+ * NC_NOERR -- success
+ * NC_ENOMEM -- out of memory
+ * NC_EINVAL -- invalid argument or internal error
+ * NC_EBADNAME-- not valid utf16
+ */
+
+extern int nc_utf8_to_utf16(const unsigned char* s8, unsigned short** utf16p, size_t* lenp);
+
 #endif /*NCUTF8_H*/
 
