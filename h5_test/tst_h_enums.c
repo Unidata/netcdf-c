@@ -49,7 +49,7 @@ main()
       short data_in[DIM1_LEN];
       int i;
       short val[NUM_VALS];
-      char love_how[NUM_VALS][STR_LEN + 1] = {"Depth", "Bredth", 
+      char love_how[NUM_VALS][STR_LEN + 1] = {"Depth", "Breadth", 
 						  "Height", "Level", 
 						  "Freely", "Purely", 
 						  "Passionately", "Lost", 
@@ -120,7 +120,7 @@ main()
 	 if (the_value != val[i]) ERR;
 	 member_name = H5Tget_member_name(typeid, i);
 	 if (strcmp(member_name, love_how[i])) ERR;
-	 free(member_name);
+	 H5free_memory(member_name);
       }
 
       /* Now read the data in the attribute and make sure it's what we
@@ -234,7 +234,7 @@ main()
 	 if (the_value != val[i]) ERR;
 	 member_name = H5Tget_member_name(typeid, i);
 	 if (strcmp(member_name, lang[i])) ERR;
-	 free(member_name);
+	 H5free_memory(member_name);
       }
 
       /* Now read the data in the dataset and make sure it's what we
