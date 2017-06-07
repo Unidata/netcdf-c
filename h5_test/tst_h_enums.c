@@ -8,6 +8,7 @@
 */
 #include "h5_err_macros.h"
 #include <hdf5.h>
+#include "config.h"
 
 #define FILE_NAME "tst_h_enums.h5"
 #define DIM1_LEN 12
@@ -49,11 +50,11 @@ main()
       short data_in[DIM1_LEN];
       int i;
       short val[NUM_VALS];
-      char love_how[NUM_VALS][STR_LEN + 1] = {"Depth", "Bredth", 
-						  "Height", "Level", 
-						  "Freely", "Purely", 
-						  "Passionately", "Lost", 
-						  "Breath", "Smiles", 
+      char love_how[NUM_VALS][STR_LEN + 1] = {"Depth", "Breadth",
+						  "Height", "Level",
+						  "Freely", "Purely",
+						  "Passionately", "Lost",
+						  "Breath", "Smiles",
 						  "Tears", "After Death"};
 /*      H5T_class_t type_class;*/
       size_t size;
@@ -62,18 +63,18 @@ main()
       char *member_name;
       htri_t types_equal;
       hid_t base_hdf_typeid;
-	 
-      
+
+
       for (i=0; i < NUM_VALS; i++)
 	 val[i] = i*2;
       for (i=0; i < DIM1_LEN; i++)
 	 data[i] = i*2;
-      
+
       /* Open file. */
-      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
+      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
       if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
-      
+
       /* Create enum type. */
       /* Both methods do the same thing, but Quincey says to prefer
        * H5Tcreate_enum. */
@@ -83,7 +84,7 @@ main()
       /* Insert some values. */
       for (i=0; i<NUM_VALS; i++)
 	 if (H5Tenum_insert(typeid, love_how[i], &val[i]) < 0) ERR;
-      
+
       /* Write an attribute of this type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
       if ((attid = H5Acreate(grpid, ATT_NAME, typeid, spaceid,
@@ -94,10 +95,10 @@ main()
       if (H5Aclose(attid) < 0 ||
 	  H5Tclose(typeid) < 0 ||
 	  H5Gclose(grpid) < 0 ||
-	  H5Fclose(fileid) < 0) ERR; 
+	  H5Fclose(fileid) < 0) ERR;
 
       /* Reopen the file. */
-      if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, 
+      if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR,
 			    H5P_DEFAULT)) < 0) ERR;
       if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
 
@@ -112,7 +113,7 @@ main()
       if ((base_hdf_typeid = H5Tget_super(typeid)) < 0) ERR;
       if ((types_equal = H5Tequal(base_hdf_typeid, H5T_NATIVE_SHORT)) < 0) ERR;
       if (!types_equal) ERR;
-      
+
       /* Check each value and number in the enum. */
       for (i=0; i < NUM_VALS; i++)
       {
@@ -120,7 +121,11 @@ main()
 	 if (the_value != val[i]) ERR;
 	 member_name = H5Tget_member_name(typeid, i);
 	 if (strcmp(member_name, love_how[i])) ERR;
-	 free(member_name);
+#ifdef HDF5_HAS_H5FREE
+	 H5free_memory(member_name);
+#else
+     free(member_name);
+#endif
       }
 
       /* Now read the data in the attribute and make sure it's what we
@@ -133,13 +138,13 @@ main()
       if (H5Aclose(attid) < 0 ||
 	  H5Tclose(typeid) < 0 ||
 	  H5Gclose(grpid) < 0 ||
-	  H5Fclose(fileid) < 0) ERR; 
+	  H5Fclose(fileid) < 0) ERR;
    }
    SUMMARIZE_ERR;
 
    printf("*** Checking HDF5 enum type missing values...");
    {
-#define NUM_LANG 4      
+#define NUM_LANG 4
 #define VAR_LANG_NAME "Programming_Language"
 #define FV_NAME "_FillValue"
 #define GRP_NAME2 "NetCDF_Programming"
@@ -165,39 +170,39 @@ main()
       val[1] = Fortran;
       val[2] = CPP;
       val[3] = MISSING;
-	 
+
       /* Open file. */
-      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
+      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
       if ((grpid = H5Gcreate(fileid, GRP_NAME2, 0)) < 0) ERR;
-      
+
       /* Create enum type. */
       if ((typeid =  H5Tenum_create(H5T_NATIVE_SHORT)) < 0) ERR;
 
       /* Insert some values. */
       for (i=0; i<NUM_LANG; i++)
 	 if (H5Tenum_insert(typeid, lang[i], &val[i]) < 0) ERR;
-      
+
       /* Create a dataset of this enum type, with fill value. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
       if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
       if (H5Pset_fill_value(plistid, typeid, &fill_value) < 0) ERR;
-      if ((datasetid = H5Dcreate(grpid, VAR_LANG_NAME, typeid, 
+      if ((datasetid = H5Dcreate(grpid, VAR_LANG_NAME, typeid,
 				 spaceid, plistid)) < 0) ERR;
 
       /* Create a netCDFstyle _FillValue attribute, though it will be
        * ignored by HDF5. */
       if ((att_spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, FV_NAME, typeid, att_spaceid, 
+      if ((attid = H5Acreate(grpid, FV_NAME, typeid, att_spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, &fill_value) < 0) ERR;
 
       /* Write one value, the rest will end up set to MISSING. */
       if ((mem_spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
       if ((file_spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, 
+      if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
 			      start, NULL, count, NULL) < 0) ERR;
-      if (H5Dwrite(datasetid, typeid, mem_spaceid, file_spaceid, 
+      if (H5Dwrite(datasetid, typeid, mem_spaceid, file_spaceid,
 		   H5P_DEFAULT, &data_point) < 0) ERR;
 
       /* Close everything. */
@@ -209,7 +214,7 @@ main()
 	  H5Pclose(plistid) < 0 ||
 	  H5Tclose(typeid) < 0 ||
 	  H5Gclose(grpid) < 0 ||
-	  H5Fclose(fileid) < 0) ERR; 
+	  H5Fclose(fileid) < 0) ERR;
 
       /* Reopen the file. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
@@ -226,7 +231,7 @@ main()
       if ((base_hdf_typeid = H5Tget_super(typeid)) < 0) ERR;
       if ((types_equal = H5Tequal(base_hdf_typeid, H5T_NATIVE_SHORT)) < 0) ERR;
       if (!types_equal) ERR;
-      
+
       /* Check each value and number in the enum. */
       for (i=0; i < NUM_LANG; i++)
       {
@@ -234,7 +239,11 @@ main()
 	 if (the_value != val[i]) ERR;
 	 member_name = H5Tget_member_name(typeid, i);
 	 if (strcmp(member_name, lang[i])) ERR;
-	 free(member_name);
+#ifdef HDF5_HAS_H5FREE
+	 H5free_memory(member_name);
+#else
+     free(member_name);
+#endif
       }
 
       /* Now read the data in the dataset and make sure it's what we
@@ -260,12 +269,12 @@ main()
 /* #define GRP_NAME3 "STOP!" */
 
 /*       hid_t fileid, grpid,  typeid; */
-      
+
 /*       /\* Open file. *\/ */
 /*       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,  */
 /* 			      H5P_DEFAULT)) < 0) ERR; */
 /*       if ((grpid = H5Gcreate(fileid, GRP_NAME3, 0)) < 0) ERR; */
-      
+
 /*       /\* Create enum type. *\/ */
 /*       if ((typeid =  H5Tenum_create(H5T_NATIVE_SHORT)) < 0) ERR; */
 

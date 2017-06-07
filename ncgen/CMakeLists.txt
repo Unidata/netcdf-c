@@ -42,10 +42,15 @@ FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 IF(ENABLE_TESTS)
   FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
   FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
-  add_sh_test(ncgen run_tests)
-  IF(USE_NETCDF4)
-    add_sh_test(ncgen run_nc4_tests)
-  ENDIF()
+
+  ##
+  # The following tests were moved to ncdump/, to ensure
+  # that they are run in the proper order.
+  ##
+  #add_sh_test(ncgen run_tests)
+  #IF(USE_NETCDF4)
+  #  add_sh_test(ncgen run_nc4_tests)
+  #ENDIF()
 ENDIF()
 
 SET(MAN_FILES ncgen.1)

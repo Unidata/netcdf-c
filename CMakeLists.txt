@@ -25,14 +25,14 @@ set(PACKAGE "netCDF" CACHE STRING "")
 #####
 
 SET(NC_VERSION_MAJOR 4)
-SET(NC_VERSION_MINOR 4)
-SET(NC_VERSION_PATCH 2)
+SET(NC_VERSION_MINOR 5)
+SET(NC_VERSION_PATCH 1)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
-SET(netCDF_LIB_VERSION 11.4.0)
-SET(netCDF_SO_VERSION 11)
+SET(netCDF_LIB_VERSION 13)
+SET(netCDF_SO_VERSION 13)
 SET(PACKAGE_VERSION ${VERSION})
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
@@ -645,7 +645,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       SET(HDF5_C_LIBRARY hdf5)
     ENDIF()
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
- 
+
   # There is a missing case in the above code so default it
   IF("${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
@@ -1860,6 +1860,7 @@ SET(host_cpu "${cpu}")
 SET(host_vendor "${osname}")
 SET(host_os "${osrel}")
 SET(abs_top_builddir "${CMAKE_BINARY_DIR}")
+SET(abs_top_srcdir "${CMAKE_SOURCE_DIR}")
 
 SET(CC_VERSION "${CMAKE_C_COMPILER}")
 

@@ -11,10 +11,10 @@
 #include <H5DSpublic.h>
 #include <mfhdf.h>
 
-#define CHUNKEDFILE "chunked.hdf4"
+#define CHUNKEDFILE "ref_chunked.hdf4"
 #define CHUNKEDVAR "LandWater"
 
-#define CONTIGFILE "contiguous.hdf4"
+#define CONTIGFILE "ref_contiguous.hdf4"
 #define CONTIGVAR "pres"
 
 #define LAT_LEN 3
