@@ -1860,6 +1860,7 @@ SET(host_cpu "${cpu}")
 SET(host_vendor "${osname}")
 SET(host_os "${osrel}")
 SET(abs_top_builddir "${CMAKE_BINARY_DIR}")
+SET(abs_top_srcdir "${CMAKE_SOURCE_DIR}")
 
 SET(CC_VERSION "${CMAKE_C_COMPILER}")
 
