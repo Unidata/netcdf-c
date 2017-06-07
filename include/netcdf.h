@@ -101,9 +101,6 @@ extern "C" {
 #define NC_MAX_INT64 (9223372036854775807LL)
 #define NC_MIN_INT64 (-9223372036854775807LL-1)
 #define NC_MAX_UINT64 (18446744073709551615ULL)
-#define X_INT64_MAX     (9223372036854775807LL)
-#define X_INT64_MIN     (-X_INT64_MAX - 1)
-#define X_UINT64_MAX    (18446744073709551615ULL)
 /**@}*/
 
 /** Name of fill value attribute.  If you wish a variable to use a
