@@ -109,7 +109,7 @@ EXTRA_DIST += ref_tst_diskless2.cdl tst_diskless5.cdl CMakeLists.txt
 #MAINTAINERCLEANFILES = test_get.c test_put.c
 
 all:
-	cp $(top_srcdir)/libsrc/ncx.c .
+	cp $(top_builddir)/libsrc/ncx.c .
 
 CLEANFILES += ncx.c
 
