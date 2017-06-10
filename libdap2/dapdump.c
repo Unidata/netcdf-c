@@ -156,10 +156,10 @@ dumpdata1(nc_type nctype, size_t index, char* data)
 	fprintf(stdout,"'%c' %hhd",data[index],data[index]);
 	break;
     case NC_BYTE:
-	fprintf(stdout,"%hdB",((signed char*)data)[index]);
+	fprintf(stdout,"%hhdB",((signed char*)data)[index]);
 	break;
     case NC_UBYTE:
-	fprintf(stdout,"%huB",((unsigned char*)data)[index]);
+	fprintf(stdout,"%hhuB",((unsigned char*)data)[index]);
 	break;
     case NC_SHORT:
 	fprintf(stdout,"%hdS",((short*)data)[index]);

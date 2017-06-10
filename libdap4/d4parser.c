@@ -525,7 +525,7 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
 	vlentype->basetype = var->basetype;
 	/* Use name <fqnname>_t */
 	strncpy(name,fqnname,sizeof(name));
-	strncat(name,"_t",sizeof(name));	
+	strncat(name,"_t", sizeof(name) - strlen(name) - 1);
         SETNAME(vlentype,name);
         /* Set the basetype */
         var->basetype = vlentype;
@@ -540,7 +540,7 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
         classify(group,structtype);
 	/* Use name <fqnname>_base */
 	strncpy(name,fqnname,sizeof(name));
-	strncat(name,"_base",sizeof(name));	
+	strncat(name,"_base", sizeof(name) - strlen(name) - 1);
         SETNAME(structtype,name);
         /* Parse Fields into type */
         if((ret = parseFields(parser,structtype,xml))) goto done;    
@@ -549,7 +549,7 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
         classify(group,vlentype);
 	/* Use name <xname>_t */
 	strncpy(name,fqnname,sizeof(name));
-	strncat(name,"_t",sizeof(name));	
+	strncat(name,"_t", sizeof(name) - strlen(name) - 1);
         SETNAME(vlentype,name);
 	vlentype->basetype = structtype;
         /* Set the basetype */

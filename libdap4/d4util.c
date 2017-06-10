@@ -361,7 +361,7 @@ NCD4_mktmp(const char* base, char** tmpnamep)
 
     strncpy(tmp,base,sizeof(tmp));
 #ifdef HAVE_MKSTEMP
-    strncat(tmp,"XXXXXX",sizeof(tmp));
+    strncat(tmp,"XXXXXX", sizeof(tmp) - strlen(tmp) - 1);
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
     mask=umask(0077);

@@ -153,7 +153,7 @@ readfile(const NCURI* uri, const char* suffix, NCbytes* packet)
     char buf[1024];
     int fd = -1;
     int flags = 0;
-    d4size_t filesize = 0;
+    off_t filesize = 0;
     d4size_t totalread = 0;
     NCbytes* tmp = ncbytesnew();
     char* filename = NULL;
@@ -187,7 +187,7 @@ fprintf(stderr,"XXX: flags=0x%x file=%s\n",flags,filename);
     (void)lseek(fd,(d4size_t)0,SEEK_SET);
     stat = NC_NOERR;
     for(totalread=0;;) {
-	d4size_t count = (d4size_t)read(fd,buf,sizeof(buf));
+	ssize_t count = (d4size_t)read(fd,buf,sizeof(buf));
 	if(count == 0)
 	    break; /*eof*/
 	else if(count <  0) {
