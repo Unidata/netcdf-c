@@ -5,10 +5,6 @@ environment:
       CONDA_INSTALL_LOCN: C:\\Miniconda-x64
 
     - TARGET_ARCH: x64
-      CONDA_PY: 34
-      CONDA_INSTALL_LOCN: C:\\Miniconda3-x64
-
-    - TARGET_ARCH: x64
       CONDA_PY: 36
       CONDA_INSTALL_LOCN: C:\\Miniconda35-x64
 
