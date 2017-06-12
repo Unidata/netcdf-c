@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.5.0 - TBD
 
-### 4.5.0-rc1 - June 2, 2017
+### 4.5.0-rc1 - June 5, 2017
 
 * [Enhancement] DAP4 is now included. Since dap2 is the default for urls, dap4 must be specified by
 (1) using "dap4:" as the url protocol, or
