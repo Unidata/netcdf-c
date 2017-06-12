@@ -20,7 +20,7 @@ requirements:
     - curl
     - zlib 1.2.*
     - hdf4
-    - hdf5 1.8.17|1.8.17.*
+    - hdf5 1.8.18
     - vc 9  # [win and py27]
     - vc 10  # [win and py34]
     - vc 14  # [win and py>=35]
@@ -28,7 +28,7 @@ requirements:
     - curl
     - zlib 1.2.*
     - hdf4
-    - hdf5 1.8.17|1.8.17.*
+    - hdf5 1.8.18
     - vc 9  # [win and py27]
     - vc 10  # [win and py34]
     - vc 14  # [win and py>=35]
