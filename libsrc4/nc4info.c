@@ -170,11 +170,9 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
       herr = 0;
     }
  done:
-    if(ncstat != NC_NOERR) {
-      if(text != NULL) {
-        free(text);
-        text = NULL;
-      }
+    if(text != NULL) {
+      free(text);
+      text = NULL;
     }
 
     if(attid >= 0) HCHECK((H5Aclose(attid)));

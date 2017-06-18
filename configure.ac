@@ -1442,9 +1442,10 @@ abs_top_builddir=`pwd`
 cd $srcdir
 abs_top_srcdir=`pwd`
 cd $abs_top_builddir
-#AC_CONFIG_FILES(test_common.sh.in)
-rm -f ${abs_top_builddir}/test_common.sh
-sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
+
+AC_CONFIG_FILES(test_common.sh:test_common.in)
+#rm -f ${abs_top_builddir}/test_common.sh
+#sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
 
 #####
 # End netcdf_meta.h definitions.
@@ -1489,6 +1490,6 @@ AC_CONFIG_FILES([Makefile
                  [test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()
 
-    mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh
+    #mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh
 
 cat libnetcdf.settings

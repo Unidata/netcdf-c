@@ -33,6 +33,7 @@
 
 #include "list.h"
 #include "bytebuffer.h"
+#include "nctime.h"
 
 /* Local Configuration flags*/
 #define ENABLE_BINARY

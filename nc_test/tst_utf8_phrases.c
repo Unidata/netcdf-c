@@ -269,7 +269,7 @@ trim(const char* s)
     int i;
     size_t l = strlen(s);
     char* t = strdup(s);
-    for(i=l-1;l >= 0; i--) {
+    for(i=l-1;i >= 0; i--) {
         if(t[i] != ' ') break;
     }
     t[i+1] = '\0';
