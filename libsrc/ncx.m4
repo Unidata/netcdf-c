@@ -999,7 +999,11 @@ get_ix_int(const void *xp, ix_int *ip)
 {
 	const uchar *cp = (const uchar *) xp;
 
+#if INT_MAX  >= X_INT_MAX
+	*ip = (ix_int)((unsigned)(*cp++) << 24);
+#else
 	*ip = *cp++ << 24;
+#endif
 #if SIZEOF_IX_INT > X_SIZEOF_INT
 	if (*ip & 0x80000000)
 	{
