@@ -10,12 +10,6 @@ variables:
 	int exp.i ;
 	short exp.g(exp.g_0, exp.g_1, exp.g_2) ;
 	short exp.f(exp.f_0, exp.f_1) ;
-
-// global attributes:
-		:Facility.PrincipleInvestigator = "Mark Abbott\n",
-			"Ph.D" ;
-		:Facility.DataCenter = "COAS Environmental Computer Facility" ;
-		:Facility.DrifterType = "MetOcean WOCE/OCM" ;
 data:
 
  exp.j = 1 ;

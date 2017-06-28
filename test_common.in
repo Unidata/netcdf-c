@@ -115,12 +115,12 @@ else
   ext=""
 fi
 
-# We need to locate certain executables (and other things)
-# and capture absolute paths
-NCDUMP="${top_builddir}/ncdump${VS}/ncdump${ext}"
-NCCOPY="${top_builddir}/ncdump${VS}/nccopy${ext}"
-NCGEN="${top_builddir}/ncgen${VS}/ncgen${ext}"
-NCGEN3="${top_builddir}/ncgen3${VS}/ncgen3${ext}"
+# We need to locate certain executables (and other things),
+# capture absolute paths, and make visible
+export NCDUMP="${top_builddir}/ncdump${VS}/ncdump${ext}"
+export NCCOPY="${top_builddir}/ncdump${VS}/nccopy${ext}"
+export NCGEN="${top_builddir}/ncgen${VS}/ncgen${ext}"
+export NCGEN3="${top_builddir}/ncgen3${VS}/ncgen3${ext}"
 
 # Temporary hacks (until we have a test_utils directory)
 # to locate certain specific test files

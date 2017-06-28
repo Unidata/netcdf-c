@@ -112,6 +112,7 @@ typedef struct NCCDF {
     size_t smallsizelimit; /* what constitutes a small object? */
     size_t totalestimatedsize;
     const char* separator; /* constant; do not free */
+    /* Following fields should be set from the unconstrained dds only */
     /* global string dimension */
     struct CDFnode* globalstringdim;
     char* recorddimname; /* From DODS_EXTRA */
