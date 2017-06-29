@@ -7,6 +7,10 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.5.0 - TBD
 
+### 4.5.0-rc2 - TBD
+
+* [Bug Fix] Addressed an issue where ncgen would not respect keyword case. See [GitHub #310](https://github.com/Unidata/netcdf-c/issues/310) for more information.
+
 ### 4.5.0-rc1 - June 5, 2017
 
 * [Enhancement] DAP4 is now included. Since dap2 is the default for urls, dap4 must be specified by
