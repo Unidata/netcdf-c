@@ -8,6 +8,6 @@ set -e
 #X="-x"
 #grind="checkleaks"
 
-#exec sh $X ${srcdir}/tst_ncdap.sh "$srcdir" "$builddir" "file3" $grind
-exec sh $X ${srcdir}/tst_ncdap.sh "$srcdir" "$builddir" "dds3" $grind
+exec sh $X ${srcdir}/tst_ncdap.sh "$srcdir" "$builddir" "file" $grind
+#exec sh $X ${srcdir}/tst_ncdap.sh "$srcdir" "$builddir" "dds" $grind
 
