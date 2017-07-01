@@ -1,5 +1,5 @@
 #include "includes.h"
-#include "offsets.h"
+#include "ncoffsets.h"
 
 #ifdef ENABLE_JAVA
 

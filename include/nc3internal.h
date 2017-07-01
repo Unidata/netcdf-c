@@ -8,7 +8,7 @@
 /*
  *	netcdf library 'private' data structures, objects and interfaces
  */
-#include <config.h>
+#include "config.h"
 #include <stddef.h>	/* size_t */
 #ifndef HAVE_STDINT_H
 #  include "pstdint.h"	/* attempts to define uint32_t etc portably */
@@ -17,9 +17,9 @@
 #endif /* HAVE_STDINT_H */
 #include <sys/types.h>	/* off_t */
 #ifdef USE_PARALLEL
-#include <netcdf_par.h>
+#include "netcdf_par.h"
 #else
-#include <netcdf.h>
+#include "netcdf.h"
 #endif /* USE_PARALLEL */
 
 /* Always needed */
@@ -424,6 +424,9 @@ extern int
 nc_put_rec(int ncid, size_t recnum, void *const *datap);
 
 /* End defined in putget.c */
+
+extern int
+NC_check_vlens(NC3_INFO *ncp);
 
 /* Define accessors for the dispatchdata */
 #define NC3_DATA(nc) ((NC3_INFO*)(nc)->dispatchdata)

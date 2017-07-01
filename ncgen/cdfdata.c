@@ -6,7 +6,7 @@
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/cdfdata.c,v 1.4 2010/05/24 19:59:56 dmh Exp $ */
 
 #include "includes.h"
-#include "offsets.h"
+#include "ncoffsets.h"
 
 #ifdef ENABLE_BINARY
 

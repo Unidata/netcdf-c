@@ -170,11 +170,9 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
       herr = 0;
     }
  done:
-    if(ncstat != NC_NOERR) {
-      if(text != NULL) {
-        free(text);
-        text = NULL;
-      }
+    if(text != NULL) {
+      free(text);
+      text = NULL;
     }
 
     if(attid >= 0) HCHECK((H5Aclose(attid)));
@@ -243,13 +241,6 @@ NC4_buildpropinfo(struct NCPROPINFO* info,char** propdatap)
     /* Force null termination */
     propdata[total] = '\0';
     *propdatap = propdata;
-
-    /* propdatap is checked against being NULL above already. */
-    //if(propdatap) {
-    //  *propdatap = propdata;
-    //} else {
-    //  free(propdata);
-    //}
 
     return NC_NOERR;
 }

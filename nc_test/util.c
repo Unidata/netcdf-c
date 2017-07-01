@@ -20,21 +20,25 @@ print_nok(int nok)
 int
 inRange(const double value, const nc_type xtype)
 {
-    switch (xtype) {
-        case NC_CHAR:   return value >= X_CHAR_MIN   && value <= X_CHAR_MAX;
-        case NC_BYTE:   return value >= X_BYTE_MIN   && value <= X_BYTE_MAX;
-        case NC_SHORT:  return value >= X_SHORT_MIN  && value <= X_SHORT_MAX;
-        case NC_INT:    return value >= X_INT_MIN    && value <= X_INT_MAX;
-        case NC_FLOAT:  return value >= X_FLOAT_MIN  && value <= X_FLOAT_MAX;
-        case NC_DOUBLE: return value >= X_DOUBLE_MIN && value <= X_DOUBLE_MAX;
-        case NC_UBYTE:  return value >= 0            && value <= X_UCHAR_MAX;
-        case NC_USHORT: return value >= 0            && value <= X_USHORT_MAX;
-        case NC_UINT:   return value >= 0            && value <= X_UINT_MAX;
-        case NC_INT64:  return value >= X_INT64_MIN  && value <= X_INT64_MAX;
-        case NC_UINT64: return value >= 0            && value <= X_UINT64_MAX;
-	default:  assert(0);
-                  return(0);
-    }
+  switch (xtype) {
+    double min = 0.0;
+    double max = 0.0;
+
+
+  case NC_CHAR:   return value >= X_CHAR_MIN   && value <= X_CHAR_MAX;
+  case NC_BYTE:   return value >= X_BYTE_MIN   && value <= X_BYTE_MAX;
+  case NC_SHORT:  return value >= X_SHORT_MIN  && value <= X_SHORT_MAX;
+  case NC_INT:    return value >= X_INT_MIN    && value <= X_INT_MAX;
+  case NC_FLOAT:  return value >= X_FLOAT_MIN  && value <= X_FLOAT_MAX;
+  case NC_DOUBLE: return value >= X_DOUBLE_MIN && value <= X_DOUBLE_MAX;
+  case NC_UBYTE:  return value >= 0            && value <= X_UCHAR_MAX;
+  case NC_USHORT: return value >= 0            && value <= X_USHORT_MAX;
+  case NC_UINT:   return value >= 0            && value <= X_UINT_MAX;
+  case NC_INT64:  return value >= X_INT64_MIN  && value <= X_INT64_MAX;
+  case NC_UINT64: return value >= 0            && value <= X_UINT64_MAX;
+  default:  assert(0);
+    return(0);
+  }
 }
 
 static int

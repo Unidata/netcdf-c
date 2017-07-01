@@ -20,7 +20,7 @@ dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
 dvarinq.c dinternal.c ddispatch.c dutf8.c                               \
 nclog.c dstring.c                           \
 ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c                        \
-nc.c nclistmgr.c
+nc.c nclistmgr.c drc.c doffsets.c dwinpath.c
 
 # Add the utf8 codebase
 libdispatch_la_SOURCES += utf8proc.c utf8proc.h
@@ -64,3 +64,10 @@ ncsettings.c: $(top_srcdir)/libnetcdf.settings ncsettings.hdr
 	sed -e 's/\(.*\)/\"\1\\n\"/' | \
 	cat >> ncsettings.c
 	echo ';' >> ncsettings.c
+
+# Unit tests
+test_ncuri_SOURCES = test_ncuri.c ncuri.c ncbytes.c nclist.c
+test_pathcvt_SOURCES = test_pathcvt.c dwinpath.c
+check_PROGRAMS = test_ncuri test_pathcvt
+TESTS = test_ncuri test_pathcvt
+

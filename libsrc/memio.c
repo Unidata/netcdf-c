@@ -19,12 +19,14 @@
 #include <string.h>
 #ifdef _MSC_VER /* Microsoft Compilers */
 #include <io.h>
-#else
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+
 #include "ncdispatch.h"
 #include "nc3internal.h"
 
@@ -382,6 +384,10 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
 
     /* Use half the filesize as the blocksize ; why? */
     sizehint = filesize/2;
+
+    /* sizehint must be multiple of 8 */
+    sizehint = (sizehint / 8) * 8;
+    if(sizehint < 8) sizehint = 8;
 
     fd = nc__pseudofd();
     *((int* )&nciop->fd) = fd;

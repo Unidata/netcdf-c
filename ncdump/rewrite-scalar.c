@@ -9,7 +9,7 @@
  * $Id: rewrite-scalar.c,v 1.3 2008/10/20 01:48:08 ed Exp $
  *********************************************************************/
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #include <netcdf.h>
 

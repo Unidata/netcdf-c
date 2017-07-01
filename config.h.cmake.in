@@ -3,6 +3,18 @@
 
 #ifdef _MSC_VER
 
+/* Prevent an issue where there is a circular inclusion
+   of winsock.h/windows.h.  This weird state occurs with
+   libdap4 and hdf4 support. The solution comes from the
+   following URL, found after a bit of research.
+
+   Added in support of the 4.5.0-rc1.  Hello, future generations.
+
+   * https://stackoverflow.com/questions/1372480/c-redefinition-header-files-winsock2-h
+
+   */
+   #define _WINSOCKAPI_
+
    #if _MSC_VER>=1900
      #define STDC99
    #endif
@@ -49,6 +61,12 @@ are set when opening a binary file on Windows. */
 
 #cmakedefine const
 
+#ifndef _FILE_OFFSET_BITS
+#cmakedefine _FILE_OFFSET_BITS ${_FILE_OFFSET_BITS}
+#cmakedefine _LARGEFILE64_SOURCE
+#cmakedefine _LARGEFILE_SOURCE
+#endif
+
 /* Define if building universal (internal helper macro) */
 #cmakedefine AC_APPLE_UNIVERSAL_BUILD 1
 
@@ -84,14 +102,23 @@ are set when opening a binary file on Windows. */
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF 1
 
-/* if true, build DAP Client */
+/* if true, build DAP2 and DAP4 Client */
 #cmakedefine ENABLE_DAP 1
+
+/* if true, build DAP4 Client */
+#cmakedefine ENABLE_DAP4 1
+
+/* if true, build DAP4 Client */
+#cmakedefine ENABLE_DAP4 1
 
 /* if true, enable DAP group names */
 #cmakedefine ENABLE_DAP_GROUPS 1
 
 /* if true, do remote tests */
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+
+/* define the possible sources for remote test servers */
+#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
 
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
@@ -159,6 +186,13 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the <fcntl.h> header file. */
 #cmakedefine HAVE_FCNTL_H 1
 
+/* Define to 1 if you have the BaseTsd.h header file. */
+#cmakedefine HAVE_BASETSD_H @HAVE_BASETSD_H@
+
+/* Define if we have filelengthi64. */
+#cmakedefine HAVE_FILE_LENGTH_I64 @HAVE_FILE_LENGTH_I64@
+
+
 /* Define to 1 if you have the `fsync' function. */
 #cmakedefine HAVE_FSYNC 1
 
@@ -194,6 +228,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the <hdf5.h> header file. */
 #cmakedefine HAVE_HDF5_H 1
+
+/* Define to 1 if you have the <hdf5.h> header file. */
+#cmakedefine HAVE_HDF5_HL_H 1
 
 /* Define to 1 if the system has the type `int64'. */
 #cmakedefine HAVE_INT64 1
@@ -306,11 +343,17 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `strdup' function. */
 #cmakedefine HAVE_STRDUP 1
 
+/* Define to 1 if you have the `strndup` function. */
+#cmakedefine HAVE_STRNDUP
+
 /* Define to 1 if you have the `strerror' function. */
 #cmakedefine HAVE_STRERROR 1
 
 /* Define to 1 if you have the <strings.h> header file. */
 #cmakedefine HAVE_STRINGS_H 1
+
+/* Define to 1 if you have the <signal.h> header file. */
+#cmakedefine HAVE_SIGNAL_H 1
 
 /* Define to 1 if you have the <string.h> header file. */
 #cmakedefine HAVE_STRING_H 1
@@ -332,6 +375,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `strtoull' function. */
 #cmakedefine HAVE_STRTOULL 1
+
+/* Define to 1 if you have the `stroull' function. */
+#cmakedefine HAVE_STROULL 1
 
 /* Define to 1 if `st_blksize' is a member of `struct stat'. */
 #cmakedefine HAVE_STRUCT_STAT_ST_BLKSIZE 1
@@ -422,6 +468,18 @@ are set when opening a binary file on Windows. */
 /* no IEEE float on this platform */
 #cmakedefine NO_IEEE_FLOAT 1
 
+#cmakedefine BUILD_V2 1
+#cmakedefine ENABLE_DOXYGEN 1
+#cmakedefine ENABLE_INTERNAL_DOCS 1
+#cmakedefine VALGRIND_TESTS 1
+#cmakedefine ENABLE_CDMREMOTE 1
+#cmakedefine USE_HDF5 1
+#cmakedefine ENABLE_FILEINFO 1
+#cmakedefine TEST_PARALLEL ${TEST_PARALLEL}
+#cmakedefine BUILD_RPC 1
+#cmakedefine USE_X_GETOPT 1
+#cmakedefine ENABLE_EXTREME_NUMBERS 1
+
 /* do not build the netCDF version 2 API */
 #cmakedefine NO_NETCDF_2 1
 
@@ -457,6 +515,9 @@ are set when opening a binary file on Windows. */
 
 /* The size of `longlong` as computed by sizeof. */
 #cmakedefine SIZEOF_LONGLONG @SIZEOF_LONGLONG@
+
+/* The size of `char` as computed by sizeof. */
+#cmakedefine SIZEOF_CHAR @SIZEOF_CHAR@
 
 /* The size of `uchar` as computed by sizeof. */
 #cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
@@ -514,6 +575,9 @@ are set when opening a binary file on Windows. */
 
 /* The size of `ushort', as computed by sizeof. */
 #cmakedefine SIZEOF_USHORT ${SIZEOF_USHORT}
+
+/* The size of `void*', as computed by sizeof. */
+#cmakedefine SIZEOF_VOIDP ${SIZEOF_VOIDP}
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
@@ -609,9 +673,6 @@ are set when opening a binary file on Windows. */
 #ifndef _DARWIN_USE_64_BIT_INODE
 # define _DARWIN_USE_64_BIT_INODE 1
 #endif
-
-/* Number of bits in a file offset, on hosts where this is settable. */
-#cmakedefine _FILE_OFFSET_BITS ${_FILE_OFFSET_BITS}
 
 /* Define for large files, on AIX-style hosts. */
 #cmakedefine _LARGE_FILES ${_LARGE_FILES}

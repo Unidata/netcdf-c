@@ -45,8 +45,9 @@ extern int num_spaces;
 #define MIN_DEFLATE_LEVEL 0
 #define MAX_DEFLATE_LEVEL 9
 
-static int
-read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att);
+/*Forward*/
+static int read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att);
+static void hdf5free(void* memory);
 
 /* Custom iteration callback data */
 typedef struct {
@@ -635,7 +636,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    LOG((2, "cmode after applying default format: 0x%x", cmode));
 
    nc_file->int_ncid = nc_file->ext_ncid;
-   res = nc4_create_file(path, cmode, comm, info, nc_file);
+   res = nc4_create_file(nc_file->path, cmode, comm, info, nc_file);
 
    return res;
 }
@@ -1399,27 +1400,11 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                      break;
                }
 
-#ifndef JNA
-
-               /* Free the member name (which HDF5 allocated for us). */
-			   /* On Windows using the microsoft runtime, it is an error
-				  for one library to free memory allocated by a different library.
-                  IF it is available, we should use H5free_memory*/
-
-#ifdef HDF5_HAS_H5FREE
-               if(member_name != NULL) H5free_memory(member_name);
-#else
-#ifndef _MSC_VER
-               if(member_name != NULL) free(member_name);
-#endif
-#endif
-#endif
+	       hdf5free(member_name);
 	       member_name = NULL;
             }
-#ifndef JNA
-	    if(member_name != NULL)
-		free(member_name);
-#endif
+	    hdf5free(member_name);
+	    member_name = NULL;	    	
 	    if(retval) /* error exit from loop */
 		return retval;
          }
@@ -1543,17 +1528,11 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 		  break;
                }
 
-#ifndef JNA
-               /* Free the member name (which HDF5 allocated for us). */
-               if(member_name != NULL) free(member_name);
-#endif
+	       hdf5free(member_name);
 	       member_name = NULL;
             }
-
-#ifndef JNA
-	    if(member_name != NULL)
-		free(member_name);
-#endif
+	    hdf5free(member_name);
+	    member_name = NULL;
         if(value) free(value);
         if(retval) /* error exit from loop */
           return retval;
@@ -2129,7 +2108,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
     hid_t pid = 0;
     unsigned crt_order_flags = 0;
     H5_index_t iter_index;
-    int retval = NC_NOERR; /* everything worked! */
+    int i, retval = NC_NOERR; /* everything worked! */
 
     assert(grp && grp->name);
     LOG((3, "%s: grp->name %s", __func__, grp->name));
@@ -2216,6 +2195,10 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
     /* Scan the group for global (i.e. group-level) attributes. */
     if ((retval = read_grp_atts(grp)))
 	BAIL(retval);
+
+   /* when exiting define mode, mark all variable written */
+   for (i=0; i<grp->vars.nelems; i++)
+      grp->vars.value[i]->written_to = NC_TRUE;
 
 exit:
     /* Clean up local information on error, if anything remains */
@@ -2984,12 +2967,22 @@ static int NC4_enddef(int ncid)
 {
   NC *nc;
    NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_GRP_INFO_T *grp;
+   int i;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
    if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
    assert(nc4_info);
+
+   /* Find info for this file and group */
+   if (!(grp = nc4_rec_find_grp(nc4_info->root_grp, (ncid & GRP_ID_MASK))))
+      return NC_EBADGRPID;
+
+   /* when exiting define mode, mark all variable written */
+   for (i=0; i<grp->vars.nelems; i++)
+      grp->vars.value[i]->written_to = NC_TRUE;
 
    return nc4_enddef_netcdf4_file(nc4_info);
 }
@@ -3328,3 +3321,24 @@ nc_use_parallel_enabled()
    return 0;
 }
 #endif /* USE_PARALLEL4 */
+
+
+/*
+Wrap HDF5 allocated memory free operations
+*/
+
+static void
+hdf5free(void* memory)
+{
+#ifndef JNA
+    /* On Windows using the microsoft runtime, it is an error
+       for one library to free memory allocated by a different library.*/
+#ifdef HDF5_HAS_H5FREE
+    if(memory != NULL) H5free_memory(memory);
+#else
+#ifndef _MSC_VER
+	if(memory != NULL) free(memory);
+#endif
+#endif
+#endif
+}

@@ -6,35 +6,40 @@
 
 /* For MinGW Build */
 
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <stdio.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
 
 /* Windows platforms, including MinGW, Cygwin, Visual Studio */
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #include <winbase.h>
 #include <io.h>
-#else
-#include <unistd.h>
 #endif
 
-#include <assert.h>
-#include <stdlib.h>
-#include <errno.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #ifndef NC_NOERR
 #define NC_NOERR 0
 #endif
-
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#include <fcntl.h>
-#include <string.h>
 
 #ifndef HAVE_SSIZE_T
 typedef int ssize_t;
@@ -113,16 +118,16 @@ static int ncio_spx_close(ncio *nciop, int doUnlink);
  * @par fd File Descriptor.
  * @return -1 on error, length of file (in bytes) otherwise.
  */
-static size_t nc_get_filelen(const int fd) {
+static off_t nc_get_filelen(const int fd) {
 
-  size_t flen;
+  off_t flen;
 
 #ifdef HAVE_FILE_LENGTH_I64
   __int64 file_len = 0;
   if ((file_len = _filelengthi64(fd)) < 0) {
     return file_len;
   }
-  flen = (size_t)file_len;
+  flen = (off_t)file_len;
 
 #else
   int res = 0;
@@ -173,7 +178,8 @@ pagesize(void)
 static size_t
 blksize(int fd)
 {
-#if defined(HAVE_ST_BLKSIZE)
+#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
+#ifdef HAVE_SYS_STAT_H
 	struct stat sb;
 	if (fstat(fd, &sb) > -1)
 	{
@@ -182,6 +188,7 @@ blksize(int fd)
 		return 8192;
 	}
 	/* else, silent in the face of error */
+#endif
 #endif
 	return (size_t) 2 * pagesize();
 }
@@ -236,7 +243,7 @@ fgrow2(const int fd, const off_t len)
   */
 
 
-  size_t file_len = nc_get_filelen(fd);
+  off_t file_len = nc_get_filelen(fd);
   if(file_len < 0) return errno;
   if(len <= file_len)
     return NC_NOERR;

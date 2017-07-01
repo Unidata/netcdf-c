@@ -61,10 +61,10 @@ occompile(OCstate* state, OCnode* xroot)
 
 #ifdef OCDEBUG
 {
-    OCbytes* buffer = ocbytesnew();
+    Ncbytes* buffer = ncbytesnew();
     ocdumpdatatree(state,data,buffer,0);
-    fprintf(stderr,"datatree:\n%s",ocbytescontents(buffer));
-    ocbytesfree(buffer);
+    fprintf(stderr,"datatree:\n%s",ncbytescontents(buffer));
+    ncbytesfree(buffer);
 }
 #endif
     return OCTHROW(ocstat);
@@ -77,7 +77,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
     size_t i;
     OCdata* data = NULL;
     size_t nelements = 0;
-    OClist* records = NULL;
+    NClist* records = NULL;
 
     /* Allocate instance for this node */
     data = newocdata(xnode);
@@ -136,10 +136,10 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
 
     case OC_Sequence:
 	/* Since we do not know the # records beforehand,
-           use a oclist to collect the record instances.
+           use a list to collect the record instances.
         */
 	fset(data->datamode,OCDT_SEQUENCE);
-	records = oclistnew();
+	records = nclistnew();
 	for(nelements=0;;nelements++) {
             /* pick up the sequence record begin marker*/
             char tmp[sizeof(unsigned int)];
@@ -154,22 +154,22 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
 		/* Capture the back link */
 		record->container = data;
 		record->index = nelements;
-		oclistpush(records,(void*)record);
+		nclistpush(records,(void*)record);
 		record = NULL;
             } else if(tmp[0] == EndOfSequence) {
                 break; /* we are done with the this sequence instance*/
             } else {
-		oclog(OCLOGERR,"missing/invalid begin/end record marker\n");
+		nclog(NCLOGERR,"missing/invalid begin/end record marker\n");
                 ocstat = OC_EINVALCOORDS;
 		goto fail;
             }
 	}
-        OCASSERT(nelements == oclistlength(records));
+        OCASSERT(nelements == nclistlength(records));
 	/* extract the content */
 	data->ninstances = nelements;
-	data->instances = (OCdata**)oclistdup(records);
+	data->instances = (OCdata**)nclistdup(records);
 	MEMGOTO(data,ocstat,fail);
-	oclistfree(records);	    
+	nclistfree(records);	    
 	records = NULL;
         break;
 
@@ -200,9 +200,9 @@ fail:
     ocerrorstring(xxdrs);
 
     if(records != NULL) {
-	for(i=0;i<oclistlength(records);i++)
-	    ocdata_free(state,(OCdata*)oclistget(records,i));
-	oclistfree(records);
+	for(i=0;i<nclistlength(records);i++)
+	    ocdata_free(state,(OCdata*)nclistget(records,i));
+	nclistfree(records);
     }
 
     if(data != NULL)
@@ -243,7 +243,7 @@ occompilefields(OCstate* state, OCdata* data, XXDR* xxdrs, int istoplevel)
     OCnode* xnode = data->pattern;
 
     assert(data != NULL);
-    nelements = oclistlength(xnode->subnodes);
+    nelements = nclistlength(xnode->subnodes);
     if(nelements == 0)
 	goto done;
     data->instances = (OCdata**)malloc(nelements*sizeof(OCdata*));
@@ -251,7 +251,7 @@ occompilefields(OCstate* state, OCdata* data, XXDR* xxdrs, int istoplevel)
     for(i=0;i<nelements;i++) {
         OCnode* fieldnode;
         OCdata* fieldinstance;
-	fieldnode = (OCnode*)oclistget(xnode->subnodes,i);
+	fieldnode = (OCnode*)nclistget(xnode->subnodes,i);
         ocstat = occompile1(state,fieldnode,xxdrs,&fieldinstance);
 	if(ocstat != OC_NOERR)
 	    goto fail;
@@ -266,7 +266,7 @@ occompilefields(OCstate* state, OCdata* data, XXDR* xxdrs, int istoplevel)
     /* If top-level, then link the OCnode to the OCdata directly */
     if(istoplevel) {
 	for(i=0;i<nelements;i++) {
-            OCnode* fieldnode = (OCnode*)oclistget(xnode->subnodes,i);
+            OCnode* fieldnode = (OCnode*)nclistget(xnode->subnodes,i);
             OCdata* fieldinstance = data->instances[i];
 	    fieldnode->data = fieldinstance;
 	}
@@ -459,7 +459,7 @@ ocerrorstring(XXDR* xdrs)
     if(ocstrncmp(data,tag,sizeof(tag))==0) {
 	char* p;
         if((p=strchr(data,'}')) != NULL) *(++p)='\0';
-        oclog(OCLOGERR,"Server error: %s",data);
+        nclog(NCLOGERR,"Server error: %s",data);
         /* Since important, report to stderr as well */
         fprintf(stderr,"Server error: %s",data);
 	return 1;

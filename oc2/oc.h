@@ -582,10 +582,7 @@ extern OCerror oc_ping(const char* url);
    data chunk returned by the server for a given tree.
    Zero implies it is not defined.
 */
-/* For some reason, the MSVC compiler doesn't like this. */
-#ifndef _WIN32
 extern OCerror oc_raw_xdrsize(OClink,OCddsnode,off_t*);
-#endif
 
 #ifdef __cplusplus
 }

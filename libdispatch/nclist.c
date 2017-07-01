@@ -47,6 +47,21 @@ nclistfree(NClist* l)
   return TRUE;
 }
 
+/*
+Free a list and its contents
+*/
+int
+nclistfreeall(NClist* l)
+{
+  unsigned long i;
+  if(l == NULL) return TRUE;
+  for(i=0;i<l->length;i++) {
+      void* value = l->content[i];
+      if(value != NULL) free(value);
+  }
+  return nclistfree(l);
+}
+
 int
 nclistsetalloc(NClist* l, unsigned long sz)
 {
@@ -81,6 +96,7 @@ nclistget(NClist* l, unsigned long index)
   return l->content[index];
 }
 
+/* Insert at position i of l; will overwrite previous value */
 int
 nclistset(NClist* l, unsigned long index, void* elem)
 {
@@ -94,11 +110,11 @@ nclistset(NClist* l, unsigned long index, void* elem)
 int
 nclistinsert(NClist* l, unsigned long index, void* elem)
 {
-  int i; /* do not make unsigned */
+  long i; /* do not make unsigned */
   if(l == NULL) return FALSE;
   if(index > l->length) return FALSE;
   nclistsetalloc(l,0);
-  for(i=(int)l->length;i>index;i--) l->content[i] = l->content[i-1];
+  for(i=(long)l->length;i>index;i--) l->content[i] = l->content[i-1];
   l->content[index] = elem;
   l->length++;
   return TRUE;
@@ -183,8 +199,6 @@ nclistelemremove(NClist* l, void* elem)
 }
 
 
-
-
 /* Extends nclist to include a unique operator 
    which remove duplicate values; NULL values removed
    return value is always 1.
@@ -218,4 +232,14 @@ nclistclone(NClist* l)
     *clone = *l;
     clone->content = nclistdup(l);
     return clone;
+}
+
+void*
+nclistextract(NClist* l)
+{
+    void* result = l->content;
+    l->alloc = 0;
+    l->length = 0;
+    l->content = NULL;
+    return result;
 }

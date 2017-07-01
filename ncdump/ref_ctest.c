@@ -5,7 +5,7 @@
 void
 check_err(const int stat, const int line, const char *file) {
     if (stat != NC_NOERR) {
-	   (void) fprintf(stderr, "line %d of %s: %s\n", line, file, nc_strerror(stat));
+	   (void) fprintf(stderr, "ZZZ: line %d of %s: %s\n", line, file, nc_strerror(stat));
         exit(1);
     }
 }

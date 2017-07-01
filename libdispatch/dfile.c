@@ -20,14 +20,12 @@ Research/Unidata. See COPYRIGHT file for more info.
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
 #include "ncdispatch.h"
+#include "netcdf_mem.h"
+#include "ncwinpath.h"
 
 extern int NC_initialized;
 extern int NC_finalized;
-
 
 /** \defgroup datasets NetCDF File and Data I/O
 
@@ -166,11 +164,10 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
 	{
 	    FILE *fp;
 	    size_t i;
-#ifdef HAVE_SYS_STAT_H
-	    struct stat st;
-#endif
 #ifdef HAVE_FILE_LENGTH_I64
           __int64 file_len = 0;
+#else
+          struct stat st;
 #endif
 
 	    if(path == NULL || strlen(path)==0)
@@ -198,19 +195,19 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
             status = NC_ENOTNC;
             goto done;
           }
-else
-
-	    if(!(fstat(fileno(fp),&st) == 0)) {
+#else
+	  { int fno = fileno(fp);
+	    if(!(fstat(fno,&st) == 0)) {
 	        fclose(fp);
 	        status = errno;
 	        goto done;
 	    }
-
 	    if(st.st_size < MAGIC_NUMBER_LEN) {
-          fclose(fp);
-          status = NC_ENOTNC;
-          goto done;
+              fclose(fp);
+              status = NC_ENOTNC;
+              goto done;
 	    }
+	  }
 #endif //HAVE_FILE_LENGTH_I64
 
 #endif //HAVE_SYS_STAT_H
@@ -1586,33 +1583,20 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
 
    /* Do a quick triage on xtype */
    if(xtype <= NC_NAT) return NC_EBADTYPE;
-   /* See if the ncid is valid */
+   /* For compatibility, we need to allow inq about
+      atomic types, even if ncid is ill-defined */
+   if(xtype <= ATOMICTYPEMAX4) {
+      if(name) strncpy(name,NC_atomictypename(xtype),NC_MAX_NAME);
+      if(size) *size = NC_atomictypelen(xtype);
+      return NC_NOERR;
+   }
+   /* Apparently asking about a user defined type, so we need
+      a valid ncid */
    stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) { /* bad ncid; do what we can */
-       /* For compatibility, we need to allow inq about
-          atomic types, even if ncid is ill-defined */
-	if(xtype <= ATOMICTYPEMAX4) {
-            if(name) strncpy(name,NC_atomictypename(xtype),NC_MAX_NAME);
-            if(size) *size = NC_atomictypelen(xtype);
-            return NC_NOERR;
-	} else
-	    return NC_EBADTYPE;
-   } else { /* have good ncid */
-      return ncp->dispatch->inq_type(ncid,xtype,name,size);
-   }
-#if 0
-       int maxtype;
-       int format;
-   nc_inq_format(ncid, &format);
-   switch (format) {
-   case NC_FORMAT_NETCDF4_CLASSIC: /*fall thru*/
-   case NC_FORMAT_64BIT_OFFSET: /*fall thru*/
-   case NC_FORMAT_CLASSIC: maxtype = ATOMICTYPEMAX3; break;
-   case NC_FORMAT_NETCDF4: maxtype = ATOMICTYPEMAX4; break;
-   case NC_FORMAT_CDF5: maxtype = ATOMICTYPEMAX5; break;
-   default: return NC_EINVAL;
-   }
-#endif
+   if(stat != NC_NOERR) /* bad ncid */
+      return NC_EBADTYPE;
+   /* have good ncid */
+   return ncp->dispatch->inq_type(ncid,xtype,name,size);
 }
 
 /**
@@ -1650,7 +1634,7 @@ stored.
 \returns ::NC_NOERR No error.
 */
 int
-NC_create(const char *path, int cmode, size_t initialsz,
+NC_create(const char *path0, int cmode, size_t initialsz,
 	  int basepe, size_t *chunksizehintp, int useparallel,
 	  void* parameters, int *ncidp)
 {
@@ -1661,8 +1645,11 @@ NC_create(const char *path, int cmode, size_t initialsz,
    int model = NC_FORMATX_UNDEFINED; /* one of the NC_FORMATX values */
    int isurl = 0;   /* dap or cdmremote or neither */
    int xcmode = 0; /* for implied cmode flags */
+   char* path = NULL;
 
    TRACE(nc_create);
+   if(path0 == NULL)
+	return NC_EINVAL;
    /* Initialize the dispatch table. The function pointers in the
     * dispatch table will depend on how netCDF was built
     * (with/without netCDF-4, DAP, CDMREMOTE). */
@@ -1672,15 +1659,32 @@ NC_create(const char *path, int cmode, size_t initialsz,
 	 return stat;
    }
 
+#ifdef WINPATH
+   /* Need to do path conversion */
+   path = NCpathcvt(path0);
+fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
+#else
+   path = nulldup(path0);
+#endif
+
 #ifdef USE_REFCOUNT
    /* If this path is already open, then fail */
    ncp = find_in_NCList_by_name(path);
-   if(ncp != NULL)
+   if(ncp != NULL) {
+	nullfree(path);
 	return NC_ENFILE;
+   }
 #endif
 
-   if((isurl = NC_testurl(path)))
-	model = NC_urlmodel(path);
+    {
+	char* newpath = NULL;
+        model = NC_urlmodel(path,cmode,&newpath);
+        isurl = (model != 0);
+        if(isurl) {
+	    nullfree(path);
+	    path = newpath;
+	}
+    }
 
    /* Look to the incoming cmode for hints */
    if(model == NC_FORMATX_UNDEFINED) {
@@ -1738,9 +1742,6 @@ NC_create(const char *path, int cmode, size_t initialsz,
    if((cmode & NC_MPIIO) && (cmode & NC_MPIPOSIX))
       return  NC_EINVAL;
 
-#ifdef OBSOLETE
-   dispatcher = NC_get_dispatch_override();
-#endif
    if (dispatcher == NULL)
    {
 
@@ -1763,6 +1764,8 @@ NC_create(const char *path, int cmode, size_t initialsz,
 
    /* Create the NC* instance and insert its dispatcher */
    stat = new_NC(dispatcher,path,cmode,&ncp);
+   nullfree(path); path = NULL; /* no longer needed */
+
    if(stat) return stat;
 
    /* Add to list of known open files and define ext_ncid */
@@ -1774,7 +1777,7 @@ NC_create(const char *path, int cmode, size_t initialsz,
 #endif
 
    /* Assume create will fill in remaining ncp fields */
-   if ((stat = dispatcher->create(path, cmode, initialsz, basepe, chunksizehintp,
+   if ((stat = dispatcher->create(ncp->path, cmode, initialsz, basepe, chunksizehintp,
 				   useparallel, parameters, dispatcher, ncp))) {
 	del_from_NCList(ncp); /* oh well */
 	free_NC(ncp);
@@ -1800,7 +1803,7 @@ For open, we have the following pieces of information to use to determine the di
 \returns ::NC_NOERR No error.
 */
 int
-NC_open(const char *path, int cmode,
+NC_open(const char *path0, int cmode,
 	int basepe, size_t *chunksizehintp,
         int useparallel, void* parameters,
         int *ncidp)
@@ -1809,11 +1812,13 @@ NC_open(const char *path, int cmode,
    NC* ncp = NULL;
    NC_Dispatch* dispatcher = NULL;
    int inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
+   int diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
    /* Need pieces of information for now to decide model*/
    int model = 0;
    int isurl = 0;
    int version = 0;
    int flags = 0;
+   char* path = NULL;
 
    TRACE(nc_open);
    if(!NC_initialized) {
@@ -1821,10 +1826,19 @@ NC_open(const char *path, int cmode,
       if(stat) return stat;
    }
 
+#ifdef WINPATH
+   /* Need to do path conversion */
+   path = NCpathcvt(path0);
+fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
+#else
+   path = nulldup(path0);
+#endif
+
 #ifdef USE_REFCOUNT
    /* If this path is already open, then bump the refcount and return it */
    ncp = find_in_NCList_by_name(path);
    if(ncp != NULL) {
+	nullfree(path);
 	ncp->refcount++;
 	if(ncidp) *ncidp = ncp->ext_ncid;
 	return NC_NOERR;
@@ -1832,15 +1846,21 @@ NC_open(const char *path, int cmode,
 #endif
 
    if(!inmemory) {
-       isurl = NC_testurl(path);
-       if(isurl)
-           model = NC_urlmodel(path);
+	char* newpath = NULL;
+        model = NC_urlmodel(path,cmode,&newpath);
+        isurl = (model != 0);
+	if(isurl) {
+	    nullfree(path);
+	    path = newpath;
+	} else
+	    nullfree(newpath);
     }
     if(model == 0) {
 	version = 0;
 	/* Try to find dataset type */
 	if(useparallel) flags |= NC_MPIIO;
 	if(inmemory) flags |= NC_INMEMORY;
+	if(diskless) flags |= NC_DISKLESS;
 	stat = NC_check_file_type(path,flags,parameters,&model,&version);
         if(stat == NC_NOERR) {
    	if(model == 0)
@@ -1855,9 +1875,13 @@ NC_open(const char *path, int cmode,
    }
 
    /* Force flag consistentcy */
-   if(model == NC_FORMATX_NC4)
+   if(model == NC_FORMATX_NC4 || model == NC_FORMATX_DAP4)
       cmode |= NC_NETCDF4;
-   else if(model == NC_FORMATX_NC3) {
+   else if(model == NC_FORMATX_DAP2) {
+      cmode &= ~NC_NETCDF4;
+      cmode &= ~NC_PNETCDF;
+      cmode &= ~NC_64BIT_OFFSET;
+   } else if(model == NC_FORMATX_NC3) {
       cmode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
       /* User may want to open file using the pnetcdf library */
       if(cmode & NC_PNETCDF) {
@@ -1886,20 +1910,17 @@ NC_open(const char *path, int cmode,
      return  NC_EINVAL;
 
    /* override any other table choice */
-#ifdef OBSOLETE
-   dispatcher = NC_get_dispatch_override();
-#endif
    if(dispatcher != NULL) goto havetable;
 
    /* Figure out what dispatcher to use */
-#if  defined(USE_CDMREMOTE)
-   if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCR))
-	dispatcher = NCCR_dispatch_table;
-   else
-#endif
-#if defined(USE_DAP)
+#if defined(ENABLE_DAP)
    if(model == (NC_FORMATX_DAP2))
 	dispatcher = NCD2_dispatch_table;
+   else
+#endif
+#if defined(ENABLE_DAP4)
+   if(model == (NC_FORMATX_DAP4))
+	dispatcher = NCD4_dispatch_table;
    else
 #endif
 #if  defined(USE_PNETCDF)
@@ -1919,8 +1940,12 @@ NC_open(const char *path, int cmode,
 
 havetable:
 
+   if(dispatcher == NULL)
+	return NC_ENOTNC;
+
    /* Create the NC* instance and insert its dispatcher */
    stat = new_NC(dispatcher,path,cmode,&ncp);
+   nullfree(path); path = NULL; /* no longer need path */
    if(stat) return stat;
 
    /* Add to list of known open files */
@@ -1932,7 +1957,7 @@ havetable:
 #endif
 
    /* Assume open will fill in remaining ncp fields */
-   stat = dispatcher->open(path, cmode, basepe, chunksizehintp,
+   stat = dispatcher->open(ncp->path, cmode, basepe, chunksizehintp,
 			   useparallel, parameters, dispatcher, ncp);
    if(stat == NC_NOERR) {
      if(ncidp) *ncidp = ncp->ext_ncid;

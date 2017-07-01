@@ -23,6 +23,7 @@ dnl
 #include <assert.h>
 
 #include "netcdf.h"
+#include "nc3dispatch.h"
 #include "nc3internal.h"
 #include "ncx.h"
 #include "fbits.h"
@@ -33,7 +34,6 @@ dnl
 #    include <stdio.h>
 #  endif
 #endif
-#include "nc3dispatch.h"
 
 
 #undef MIN  /* system may define MIN somewhere and complain */

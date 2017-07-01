@@ -61,13 +61,17 @@ main(int argc, char **argv)
 
       printf("**** testing simple fill value attribute creation...");
       {
+         int status;
          /* Create a netcdf-4 file with one scalar var. Add fill
           * value. */
          if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
          if (nc_def_var(ncid, VAR_NAME, NC_BYTE, 0, NULL, &varid)) ERR;
+         if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value)) ERR;
          if (nc_enddef(ncid)) ERR;
          if (nc_redef(ncid)) ERR;
-         if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value)) ERR;
+         status = nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value);
+         if (status != NC_ELATEFILL)
+             printf("Error at line %d: expecting NC_ELATEFILL but got %s\n",__LINE__,nc_strerror(status));
          if (nc_close(ncid)) ERR;
 
          /* Open the file and check. */
@@ -94,8 +98,6 @@ main(int argc, char **argv)
          if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
          if (nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimids[0])) ERR;
          if (nc_def_var(ncid, VAR_NAME, NC_BYTE, NUM_DIMS, dimids, &varid)) ERR;
-         if (nc_enddef(ncid)) ERR;
-         if (nc_redef(ncid)) ERR;
          if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value)) ERR;
          if (nc_enddef(ncid)) ERR;
 

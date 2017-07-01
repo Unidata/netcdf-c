@@ -25,14 +25,14 @@ set(PACKAGE "netCDF" CACHE STRING "")
 #####
 
 SET(NC_VERSION_MAJOR 4)
-SET(NC_VERSION_MINOR 4)
-SET(NC_VERSION_PATCH 2)
+SET(NC_VERSION_MINOR 5)
+SET(NC_VERSION_PATCH 1)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
-SET(netCDF_LIB_VERSION 11.4.0)
-SET(netCDF_SO_VERSION 11)
+SET(netCDF_LIB_VERSION 13)
+SET(netCDF_SO_VERSION 13)
 SET(PACKAGE_VERSION ${VERSION})
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
@@ -646,6 +646,11 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
+  # There is a missing case in the above code so default it
+  IF("${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
+    SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
+  ENDIF()
+
   ###
   # The following options are not used in Windows currently.
   ###
@@ -753,10 +758,15 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 
-# Option to Build DAP Client
-OPTION(ENABLE_DAP "Enable DAP Client." ON)
+# Option to Build DAP2+DAP4 Clients
+OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 IF(ENABLE_DAP)
   SET(USE_DAP ON)
+  SET(ENABLE_DAP2 ON)
+  SET(ENABLE_DAP4 ON)
+  IF(NOT ENABLE_NETCDF_4)
+    SET(ENABLE_DAP4 OFF)
+  ENDIF()
   FIND_PACKAGE(CURL)
   IF(NOT CURL_LIBRARY)
     MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
@@ -795,8 +805,9 @@ IF(ENABLE_DAP)
   #include <curl/curl.h>
   int main() {int x = CURLOPT_CHUNK_BGN_FUNCTION;}" HAVE_CURLOPT_CHUNK_BGN_FUNCTION)
 
-
-
+ELSE()
+  SET(ENABLE_DAP2 OFF)
+  SET(ENABLE_DAP4 OFF)
 ENDIF()
 
 # Check to see if libtool supports
@@ -813,14 +824,10 @@ ENDIF()
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
-
-IF(ENABLE_DAP_REMOTE_TESTS)
-  OPTION(ENABLE_DAP_AUTH_TESTS "Enable DAP remote authorization tests." OFF)
-ENDIF()
-
+SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu,jetstream.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # If netCDF4 and DAP, Option for DAP groups.
-IF(ENABLE_NETCDF_4 AND USE_DAP)
+IF(ENABLE_NETCDF_4 AND ENABLE_DAP2)
   OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
 ELSE()
   SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
@@ -1018,16 +1025,16 @@ IF(ENABLE_PNETCDF)
 ENDIF()
 
 # Options to enable use of fill values for elements casuing NC_ERANGE
-SET(STATUS_ERANGE_FILL "ON")
-OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." ON)
-IF(NOT ENABLE_ERANGE_FILL)
-  SET(STATUS_ERANGE_FILL "OFF")
+SET(STATUS_ERANGE_FILL "OFF")
+OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OF)
+IF(ENABLE_ERANGE_FILL)
+  SET(STATUS_ERANGE_FILL "ON")
 ENDIF()
 
 # Options to use a more relaxed coordinate argument boundary check
 SET(STATUS_RELAX_COORD_BOUND "OFF")
-OPTION(ENABLE_RELAX_COORD_BOUND "Enable a more relaxed boundary error check NC_EINVALCOORDS to allow coordinate start argument equal to dimension size when argument count is zero." OFF)
-IF(ENABLE_RELAX_COORD_BOUND)
+OPTION(ENABLE_ZERO_LENGTH_COORD_BOUND "Enable a more relaxed boundary error check NC_EINVALCOORDS to allow coordinate start argument equal to dimension size when argument count is zero." OFF)
+IF(ENABLE_ZERO_LENGTH_COORD_BOUND)
   SET(STATUS_RELAX_COORD_BOUND "ON")
 ENDIF()
 
@@ -1253,7 +1260,9 @@ CHECK_SYMBOL_EXISTS(vprintf "stdio.h" HAVE_VPRINTF)
 SET(HAVE_ST_BLKSIZE ${HAVE_STRUCT_STAT_ST_BLKSIZE})
 
 # Type checks
-CHECK_TYPE_SIZE("void*"     SIZEOF_VOIDSTAR)
+# Aliases for automake consistency
+SET(SIZEOF_VOIDSTAR ${CMAKE_SIZEOF_VOID_P})
+SET(SIZEOF_VOIDP ${SIZEOF_VOIDSTAR})
 CHECK_TYPE_SIZE("char"      SIZEOF_CHAR)
 CHECK_TYPE_SIZE("double"    SIZEOF_DOUBLE)
 CHECK_TYPE_SIZE("float"     SIZEOF_FLOAT)
@@ -1380,6 +1389,7 @@ ENDIF(ENABLE_MMAP)
 ################################
 
 # Macro to append files to the EXTRA_DIST files.
+# Note: can only be used in subdirectories because of the use of PARENT_SCOPE
 SET(EXTRA_DIST "")
 MACRO(ADD_EXTRA_DIST files)
   FOREACH(F ${files})
@@ -1509,7 +1519,9 @@ MACRO(add_bin_test prefix F)
       PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
       )
   ENDIF()
-  ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
+  ADD_TEST(${prefix}_${F}
+           ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F}
+           )
   IF(MSVC)
     SET_PROPERTY(TEST ${prefix}_${F} PROPERTY FOLDER "tests/")
     SET_TARGET_PROPERTIES(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
@@ -1529,7 +1541,8 @@ MACRO(print_conf_summary)
   MESSAGE("")
   MESSAGE(STATUS "Building Shared Libraries:     ${BUILD_SHARED_LIBS}")
   MESSAGE(STATUS "Building netCDF-4:             ${ENABLE_NETCDF_4}")
-  MESSAGE(STATUS "Building DAP Support:          ${ENABLE_DAP}")
+  MESSAGE(STATUS "Building DAP2 Support:         ${ENABLE_DAP2}")
+  MESSAGE(STATUS "Building DAP4 Support:         ${ENABLE_DAP4}")
   MESSAGE(STATUS "Building Utilities:            ${BUILD_UTILITIES}")
   IF(CMAKE_PREFIX_PATH)
     MESSAGE(STATUS "CMake Prefix Path:             ${CMAKE_PREFIX_PATH}")
@@ -1546,7 +1559,6 @@ MACRO(print_conf_summary)
   MESSAGE("Tests Enabled:              ${ENABLE_TESTS}")
   IF(ENABLE_TESTS)
     MESSAGE(STATUS "DAP Remote Tests:  ${ENABLE_DAP_REMOTE_TESTS}")
-    MESSAGE(STATUS "DAP AUTH Tests:    ${ENABLE_DAP_AUTH_TESTS}")
     MESSAGE(STATUS "Extra Tests:       ${ENABLE_EXTRA_TESTS}")
     MESSAGE(STATUS "Coverage Tests:    ${ENABLE_COVERAGE_TESTS}")
     MESSAGE(STATUS "Parallel Tests:    ${ENABLE_PARALLEL_TESTS}")
@@ -1682,9 +1694,13 @@ IF(USE_HDF5)
   add_subdirectory(libsrc4)
 ENDIF(USE_HDF5)
 
-IF(USE_DAP)
+IF(ENABLE_DAP2)
   ADD_SUBDIRECTORY(oc2)
   ADD_SUBDIRECTORY(libdap2)
+ENDIF()
+
+IF(ENABLE_DAP4)
+  ADD_SUBDIRECTORY(libdap4)
 ENDIF()
 
 add_subdirectory(liblib)
@@ -1714,10 +1730,12 @@ IF(ENABLE_TESTS)
     ADD_SUBDIRECTORY(nc_test4)
     ADD_SUBDIRECTORY(h5_test)
   ENDIF()
-  IF(USE_DAP AND ENABLE_DAP_REMOTE_TESTS)
+  IF(ENABLE_DAP2)
     ADD_SUBDIRECTORY(ncdap_test)
   ENDIF()
-
+  IF(ENABLE_DAP4)
+    ADD_SUBDIRECTORY(dap4_test)
+  ENDIF()
   IF(ENABLE_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
   ENDIF()
@@ -1809,7 +1827,8 @@ configure_file(
 
 FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
 configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
-  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY)
+  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY
+  NEWLINE_STYLE LF)
 FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
   DESTINATION ${netCDF_BINARY_DIR}/
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
@@ -1846,6 +1865,7 @@ SET(host_cpu "${cpu}")
 SET(host_vendor "${osname}")
 SET(host_os "${osrel}")
 SET(abs_top_builddir "${CMAKE_BINARY_DIR}")
+SET(abs_top_srcdir "${CMAKE_SOURCE_DIR}")
 
 SET(CC_VERSION "${CMAKE_C_COMPILER}")
 
@@ -1869,7 +1889,8 @@ is_enabled(USE_SZIP HAS_SZIP)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
-is_enabled(USE_DAP HAS_DAP)
+is_enabled(ENABLE_DAP HAS_DAP)
+is_enabled(ENABLE_DAP4 HAS_DAP4)
 is_enabled(USE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
@@ -1906,6 +1927,14 @@ configure_file(
 
 FILE(COPY ${netCDF_SOURCE_DIR}/include/netcdf_meta.h
   DESTINATION ${netCDF_BINARY_DIR}/include/)
+
+#####
+# Build test_common.sh
+#####
+SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_SOURCE_DIR}/test_common.in)
+SET(TOPSRCDIR "${CMAKE_SOURCE_DIR}")
+SET(TOPBUILDDIR "${CMAKE_BINARY_DIR}")
+configure_file(${CMAKE_SOURCE_DIR}/test_common.in ${CMAKE_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
 ####
 # Export files

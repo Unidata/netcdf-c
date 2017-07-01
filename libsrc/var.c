@@ -19,7 +19,9 @@
 #include "nc3dispatch.h"
 
 #ifndef OFF_T_MAX
-//#define OFF_T_MAX (~ (off_t) 0 - (~ (off_t) 0 << (CHAR_BIT * sizeof (off_t) - 1)))
+#if 0
+#define OFF_T_MAX (~ (off_t) 0 - (~ (off_t) 0 << (CHAR_BIT * sizeof (off_t) - 1)))
+#endif
 
 /* The behavior above is undefined, re: bitshifting a negative value, according
    to warnings thrown by clang/gcc.  An alternative OFF_T_MAX was written

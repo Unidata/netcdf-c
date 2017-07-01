@@ -1,18 +1,10 @@
 #!/bin/sh
-if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+. ../test_common.sh
+
 verbose=1
 set -e
-if test "x$builddir" = "x"; then builddir=`pwd`; fi
-if test "x$srcdir" = "x"; then srcdir=`dirname $0`; fi
-
-# Make buildir absolute
-cd $builddir
-builddir=`pwd`
-
-# Make srcdir be absolute
-cd $srcdir
-srcdir=`pwd`
-cd $builddir
 
 # Setup
 PASS=1
@@ -29,9 +21,9 @@ dotest() {
 K=$1
 for f in $2 ; do
   echo "Testing ${f}"
-  ${builddir}/../ncgen/ncgen -$K -o ./results/${f}.nc ${srcdir}/${f}.cdl
-  ./ncdump ./results/${f}.nc > ./results/${f}.cdl
-  ./ncdump -Xm ./results/${f}.nc > ./results/${f}.cdx
+  ${NCGEN} -$K -o ./results/${f}.nc ${srcdir}/${f}.cdl
+  ${NCDUMP} ./results/${f}.nc > ./results/${f}.cdl
+  ${NCDUMP} -Xm ./results/${f}.nc > ./results/${f}.cdx
   diff -w ./results/${f}.cdl ./results/${f}.cdx &> ./results/${f}.diff
   if test -s ./results/${f}.diff ; then
     echo "***FAIL: $f"

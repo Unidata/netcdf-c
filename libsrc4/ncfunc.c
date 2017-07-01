@@ -12,7 +12,7 @@ conditions.
 */
 
 #include "nc4internal.h"
-#include "nc3dispatch.h"
+#include "nc4dispatch.h"
 
 /* This will return the length of a netcdf data type in bytes. Since
    we haven't added any new types, I just call the v3 function.

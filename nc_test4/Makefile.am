@@ -20,9 +20,15 @@ tst_enums tst_coords tst_coords2 tst_coords3 tst_vars3 tst_vars4	\
 tst_chunks tst_chunks2 tst_utf8 tst_fills tst_fills2 tst_fillbug	\
 tst_xplatform tst_xplatform2 tst_h_atts2 tst_endian_fill tst_atts	\
 t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
-tst_vars2 tst_files5 tst_files6 tst_sync tst_h_strbug tst_h_refs        \
-tst_h_scalar tst_rename tst_h5_endians tst_atts_string_rewrite \
+tst_vars2 tst_files5 tst_files6 tst_sync         			\
+tst_h_scalar tst_rename tst_h5_endians tst_atts_string_rewrite 		\
 tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash
+
+# Temporary I hope
+if !ISCYGWIN
+NC4_TESTS += tst_h_strbug tst_h_refs
+endif
+
 
 check_PROGRAMS = $(NC4_TESTS) renamegroup tst_empty_vlen_unlim
 
@@ -125,12 +131,11 @@ run_get_hdf4_files.sh run_valgrind_tests.sh run_valgrind_tests2.sh	\
 run_bm_ar4.sh ref_tst_compounds.nc run_hdf4_valgrind_tests.sh		\
 ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
 ref_tst_interops4.nc run_get_knmi_files.sh CMakeLists.txt               \
-run_grp_rename.sh tst_formatx_hdf4.sh                                   \
-run_chunk_hdf4.sh contiguous.hdf4 chunked.hdf4 \
+run_grp_rename.sh tst_formatx_hdf4.sh run_chunk_hdf4.sh \
 tst_h5_endians.c tst_h4_lendian.c tst_atts_string_rewrite.c \
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c run_empty_vlen_test.sh \
 ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh \
-tdset.h5 tst_hdf4_read_var.sh
+tdset.h5 tst_hdf4_read_var.sh ref_contiguous.hdf4 ref_chunked.hdf4
 
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
@@ -151,4 +156,6 @@ AMSR_E_L3_DailyLand_V06_20020619.hdf			\
 MYD29.A2009152.0000.005.2009153124331.hdf		\
 MYD29.A2002185.0000.005.2007160150627.hdf		\
 MOD29.A2000055.0005.005.2006267200024.hdf
+
+
 endif # HDF4_FILE_TESTS

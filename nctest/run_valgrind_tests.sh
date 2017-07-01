@@ -1,5 +1,8 @@
 #!/bin/sh
 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 # This shell runs the tests with valgrind.
 
 # $Id: run_valgrind_tests.sh,v 1.9 2010/01/26 20:24:18 ed Exp $

@@ -22,22 +22,33 @@ bin_PROGRAMS += nccopy
 nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c \
 utils.h utils.c dimmap.h dimmap.c
 
+if USE_NETCDF4
+noinst_PROGRAMS = nc4print
+nc4print_SOURCES = nc4print.c
+endif
+
+# Conditionally build the ocprint program, but do not install
+if ENABLE_DAP
+bin_PROGRAMS += ocprint
+ocprint_SOURCES=ocprint.c
+endif
+
 # This is the man page.
 man_MANS = ncdump.1 nccopy.1
 
 if BUILD_TESTSETS
 #if !BUILD_DLL
 # These tests are run for both netCDF-4 and non-netCDF-4 builds.
-check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8 bom tst_dimsizes
+check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8 bom tst_dimsizes nctrunc
 
 TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
 tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh      \
 tst_nccopy3.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh \
-tst_dimsizes.sh
+tst_dimsizes.sh run_ncgen_tests.sh
 
 if USE_NETCDF4
 check_PROGRAMS += tst_fileinfo
-TESTS += tst_fileinfo.sh
+TESTS += tst_fileinfo.sh run_ncgen_nc4_tests.sh
 endif
 
 if LARGE_FILE_TESTS
@@ -152,14 +163,22 @@ run_utf8_nc4_tests.sh							\
 tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl                      \
 tst_inttags.sh tst_inttags4.sh                                          \
 CMakeLists.txt XGetopt.c tst_bom.sh tst_inmemory_nc3.sh                 \
-tst_dimsizes.sh tst_inmemory_nc4.sh tst_fileinfo.sh
+tst_dimsizes.sh tst_inmemory_nc4.sh tst_fileinfo.sh run_ncgen_tests.sh  \
+run_ncgen_nc4_tests.sh
 
 # CDL files and Expected results
 SUBDIRS=cdl expected
 EXTRA_DIST += tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh	\
 tst_ncgen4_diff.sh tst_ncgen4_cycle.sh ref_ctest.c ref_ctest64.c
 
-CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl tst_bug324.nc
+CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl \
+	c5.nc compound_datasize_test.nc compound_datasize_test2.nc \
+	ncf199.nc ref_camrun.c tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl \
+	tst_c0_64.cdl tst_compound_datasize_test.cdl \
+	tst_compound_datasize_test2.cdl tst_gattenum.nc \
+	tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl \
+	tst_usuffix.nc tst_bug324.nc
+
 DISTCLEANFILES = results
 
 clean-local:

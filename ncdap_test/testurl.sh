@@ -1,5 +1,4 @@
 #!/bin/sh
-#set -x
 
 #NOP=1
 #NOS=1
@@ -17,32 +16,13 @@
 # capture the build directory
 # Do a hack to remove e.g. c: for CYGWIN
 
-topsrcdir=`topsrcdir`
-if test "x$topsrcdir" != x ; then
-  srcdir="$topsrcdir/ncdap_test"
-else
-  srcdir=`dirname $0`
-fi
-
-builddir=`pwd`/..
-
-# canonical form
-cd $srcdir
-srcdir=`pwd`
-
-# Hack for CYGWIN
-if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
-    srcdir=`echo $srcdir | sed 's/\/c\//c:\//g'`
-    builddir=`echo $builddir | sed 's/\/c\//c:\//g'`
-fi
-cd ${builddir}/ncdap_test
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
 
 OCLOGFILE=stderr
 if test "x$DBG" = x1 ; then
 SHOW=1
 fi
-
-NCDUMP=$builddir/ncdump/ncdump
 
 URL="http://remotetest.unidata.ucar.edu/dts/test.03"
 

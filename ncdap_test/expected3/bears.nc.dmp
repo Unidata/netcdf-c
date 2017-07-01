@@ -7,8 +7,7 @@ dimensions:
 variables:
 	short l(l) ;
 	char bears(i, j, maxStrlen64) ;
-		bears:act = "text string\n",
-			"\t123" ;
+		bears:act = "text string\\012\\011123" ;
 		bears:acs = -40s ;
 		bears:acl = 17000 ;
 		bears:acf = -2.f, 1.f, 0.f ;
@@ -20,10 +19,10 @@ variables:
 	double cross(i, j) ;
 
 // global attributes:
-		:history = "This is an example of a multi-line global\n",
-			"attribute.  It could be used for representing the\n",
-			"processing history of the data, for example." ;
+		:history = "This is an example of a multi-line global\\012attribute.  It could be used for representing the\\012processing history of the data, for example." ;
 		:DODS_EXTRA.Unlimited_Dimension = "k" ;
+		:i.i_1.attr3_1 = "17" ;
+		:i.i_1.attr3_2 = 19., 23., 27. ;
 data:
 
  l = 10, 9, 8 ;

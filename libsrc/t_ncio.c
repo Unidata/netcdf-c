@@ -13,7 +13,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-#include "ncio.h" 
+#include "ncio.h"
 #ifndef NC_NOERR
 #define NC_NOERR 0
 #endif
@@ -108,7 +108,7 @@ modify_ex(off_t offset, size_t extent, void *vp)
 
 	while(cp < end)
 	{
-		*cp++ = (unsigned char) (cp - obuf); 
+		*cp++ = (unsigned char) (cp - obuf);
 	}
 }
 
@@ -268,7 +268,7 @@ main(int ac, char *av[])
 
 
 	}
-	
+
 	if(!create)
 	{
 		status = ncio_open(path, flags,

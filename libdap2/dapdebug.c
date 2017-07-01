@@ -6,15 +6,18 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "dapincludes.h"
 #include "nclog.h"
-#include "ncdap.h"
 
 int ncdap3debug = 0;
 
 #ifdef CATCHERROR
 /* Place breakpoint here to catch errors close to where they occur*/
 int
-dapbreakpoint(int err) {return err;}
+dapbreakpoint(int err)
+{
+    return err;
+}
 
 int
 dapthrow(int err)

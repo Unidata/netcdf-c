@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "ncdap.h"
+#include "dapincludes.h"
 
 #define OCCHECK(exp) if((ocstat = (exp))) {THROWCHK(ocstat); goto done;}
 
@@ -87,16 +87,20 @@ fprintf(stderr,"%s.dimname=%s\n",node->ocname,node->dodsspecial.dimname);
 		    } else node->dodsspecial.dimname = NULL;
 		} else if(strcmp(ocname,"DODS.Unlimited_Dimension")==0
 		   || strcmp(ocname,"DODS_EXTRA.Unlimited_Dimension")==0) {
-		    if(values != NULL) {
-		        if(nccomm->cdf.recorddimname != NULL)
+		    char* val0 = NULL;
+		    if(values != NULL)
+			val0 = values[0];
+		    if(val0 != NULL) {
+		        if(nccomm->cdf.recorddimname != NULL) {
+                            if(strcmp(nccomm->cdf.recorddimname,val0)!=0)
 		            nclog(NCLOGWARN,"Duplicate DODS_EXTRA:Unlimited_Dimension specifications");
-			else
+			} else {
 		            nccomm->cdf.recorddimname = nulldup(values[0]);
 #ifdef DEBUG
 fprintf(stderr,"%s.Unlimited_Dimension=%s\n",node->ocname,nccomm->cdf.recorddimname);
 #endif
+			}
 		    }
-
 		}
 	    }
 	    /* clean up */
@@ -115,7 +119,13 @@ done:
     return THROW(ncstat);
 }
 
-/* Build an NCattribute */
+/*
+Build an NCattribute
+from a DAP attribute.
+As of Jun 27, 2017, we modify
+to suppress nul characters and terminate
+the name at the first nul.
+*/
 static NCerror
 buildattribute(char* name, nc_type ptype,
                size_t nvalues, char** values, NCattribute** attp)
@@ -130,9 +140,10 @@ buildattribute(char* name, nc_type ptype,
     att->etype = ptype;
 
     att->values = nclistnew();
-    for(i=0;i<nvalues;i++)
-	nclistpush(att->values,(void*)nulldup(values[i]));
-
+    for(i=0;i<nvalues;i++) {
+	char* copy = nulldup(values[i]);
+	nclistpush(att->values,(void*)copy);
+    }
     if(attp) *attp = att;
     else
       free(att);
@@ -399,14 +410,19 @@ fprintf(stderr,"%s.dimname=%s\n",dds->ocname,dds->dodsspecial.dimname);
 #endif
 		    } else dds->dodsspecial.dimname = NULL;
 		} else if(strcmp(dodsname,"Unlimited_Dimension")==0) {
-		    if(nccomm->cdf.recorddimname != NULL) {
-		        nclog(NCLOGWARN,"Duplicate DODS_EXTRA:Unlimited_Dimension specifications");
-		    } else if(nclistlength(stringvalues) > 0) {
-		        char* stringval = (char*)nclistget(stringvalues,0);
-			nccomm->cdf.recorddimname = nulldup(stringval);
+		    char* stringval = NULL;
+		    if(nclistlength(stringvalues) > 0)
+	                stringval = (char*)nclistget(stringvalues,0);
+		    if(stringval != NULL) {
+		        if(nccomm->cdf.recorddimname != NULL) {
+			   if(strcmp(stringval,nccomm->cdf.recorddimname) != 0)
+		            nclog(NCLOGWARN,"Duplicate DODS_EXTRA:Unlimited_Dimension specifications");
+		        } else {
+			    nccomm->cdf.recorddimname = nulldup(stringval);
 #ifdef DEBUG
 fprintf(stderr,"%s.Unlimited_Dimension=%s\n",dds->ocname,nccomm->cdf.recorddimname);
 #endif
+		        }
 		    }
 		} /* else ignore */
 	        nullfree(dodsname);

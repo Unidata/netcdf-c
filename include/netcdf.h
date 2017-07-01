@@ -20,10 +20,6 @@ See \ref copyright file for more info.
 #include <malloc.h>
 #endif
 
-#ifdef _WIN64
-#include <sys/stat.h>
-#endif
-
 /*! The nc_type type is just an int. */
 typedef int nc_type;
 
@@ -105,9 +101,6 @@ extern "C" {
 #define NC_MAX_INT64 (9223372036854775807LL)
 #define NC_MIN_INT64 (-9223372036854775807LL-1)
 #define NC_MAX_UINT64 (18446744073709551615ULL)
-#define X_INT64_MAX     (9223372036854775807LL)
-#define X_INT64_MIN     (-X_INT64_MAX - 1)
-#define X_UINT64_MAX    (18446744073709551615ULL)
 /**@}*/
 
 /** Name of fill value attribute.  If you wish a variable to use a
@@ -406,7 +399,9 @@ by the desired type. */
 #define NC_EDAPSVC      (-70)      /**< DAP server error */
 #define NC_EDAS		(-71)      /**< Malformed or inaccessible DAS */
 #define NC_EDDS		(-72)      /**< Malformed or inaccessible DDS */
+#define NC_EDMR         NC_EDDS    /**< Dap4 alias */
 #define NC_EDATADDS	(-73)      /**< Malformed or inaccessible DATADDS */
+#define NC_EDATADAP     NC_EDATADDS    /**< Dap4 alias */
 #define NC_EDAPURL	(-74)      /**< Malformed DAP URL */
 #define NC_EDAPCONSTRAINT (-75)    /**< Malformed DAP Constraint*/
 #define NC_ETRANSLATION (-76)      /**< Untranslatable construct */
@@ -484,9 +479,9 @@ by the desired type. */
 #  else
 #   define MSC_EXTRA __declspec(dllimport)
 #  endif
-#include <io.h>
+#  include <io.h>
 #else
-#define MSC_EXTRA
+#  define MSC_EXTRA
 #endif	/* defined(DLL_NETCDF) */
 
 # define EXTERNL MSC_EXTRA extern
@@ -1948,7 +1943,7 @@ ncrecget(int ncid, long recnum, void **datap);
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
-/* EXTERNL int nc_finalize(); */
+EXTERNL int nc_finalize();
 
 /* End v2.4 backward compatibility */
 #endif /*!NO_NETCDF_2*/

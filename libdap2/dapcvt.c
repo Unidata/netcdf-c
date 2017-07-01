@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 #include "config.h"
-#include "ncdap.h"
+#include "dapincludes.h"
 
 #ifdef _MSC_VER
 #include <crtdbg.h>
@@ -210,7 +210,7 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	ok = 0;
 	switch (etype) {
 	case NC_BYTE: {
-	    char* p = (unsigned char*)dstmem;
+	    char* p = (char*)dstmem;
 #ifdef _MSC_VER
 	    int ival;
 	    ok = sscanf(s,"%d%n",&ival,&nread);

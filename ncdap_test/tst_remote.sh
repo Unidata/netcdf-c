@@ -1,26 +1,25 @@
 #!/bin/sh
 
+if test "x$SETX" != x ; then set -x ; fi
 set -e
 
 quiet=0
 leakcheck=0
 timing=0
 
-# Figure our dst server
-DTS=`./nctestserver dts ${DTSTESTSERVER}`
+# Figure our dst server; if none, then just stop
+DTS=`${execdir}/findtestserver dap2 dts`
 if test "x$DTS" = "x" ; then
-echo "cannot locate test server for dts"
+echo "WARNING: Cannot locate test server for dts"
 exit
 fi
 
 PARAMS="[log]"
 #PARAMS="${PARAMS}[show=fetch]"
 
-
 # Determine If we're on OSX or Linux
 
 myplatform=`uname -a | cut -d" " -f 1`
-
 
 #OCLOGFILE=/dev/null
 OCLOGFILE="" ; export OCLOGFILE
@@ -28,7 +27,7 @@ OCLOGFILE="" ; export OCLOGFILE
 # Capture arguments
 srcdir="$1"
 builddir="$2"
-mode="$3"
+#ignored mode="$3"
 if test "x$4" = "x" ; then cache=1 ; else cache=0; fi
 longtests="$5"
 
@@ -182,30 +181,16 @@ testfile.nc \
 text.nc \
 "
 
-case "$mode" in
-3)
-    EXPECTED="$expected3"
-    TITLE="DAP to netCDF-3 translation"
-    PARAMS="${PARAMS}[netcdf3]"
-    XFAILTESTS="$XFAILTESTS3"
-    SVCFAILTESTS="$SVCFAILTESTS3"
-    ;;
-4)
-    EXPECTED="$expected4"
-    TITLE="DAP to netCDF-4 translation"
-    PARAMS="${PARAMS}[netcdf4]"
-    XFAILTESTS="$XFAILTESTS4"
-    SVCFAILTESTS="$SVCFAILTESTS4"
-    ;;
-esac
+TITLE="DAP to netCDF-3 translation"
+EXPECTED="$expected3"
+PARAMS="${PARAMS}[netcdf3]"
+XFAILTESTS="$XFAILTESTS3"
+SVCFAILTESTS="$SVCFAILTESTS3"
 
 RESULTSDIR="./results"
 # Locate some tools
-NCDUMP="${builddir}/ncdump/ncdump"
 if test "x$leakcheck" = x1 ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
-else
-VALGRIND=
 fi
 if test "x$timing" = "x1" ; then TIMECMD="time"; else TIMECMD=""; fi
 

@@ -6,6 +6,8 @@
 #ifndef NCCOMMON_H
 #define NCCOMMON_H 1
 
+#include "dapincludes.h"
+
 /* Mnemonics */
 #ifndef BOOL
 #define BOOL int
@@ -56,41 +58,6 @@ struct NCcache;
 struct NCslice;
 struct NCsegment;
 struct OClist;
-/**************************************************/
-/*
-Collect single bit flags that
-affect the operation of the system.
-*/
-
-typedef unsigned int NCFLAGS;
-#  define SETFLAG(controls,flag) ((controls.flags) |= (flag))
-#  define CLRFLAG(controls,flag) ((controls.flags) &= ~(flag))
-#  define FLAGSET(controls,flag) (((controls.flags) & (flag)) != 0)
-
-/* Defined flags */
-#define NCF_NC3             (0x0001) /* DAP->netcdf-3 */
-#define NCF_NC4             (0x0002) /* DAP->netcdf-4 */
-#define NCF_NCDAP           (0x0004) /* Do libnc-dap mimic */
-#define NCF_CACHE           (0x0008) /* Cache enabled/disabled */
-#define NCF_UPGRADE         (0x0010) /* Do proper type upgrades */
-#define NCF_UNCONSTRAINABLE (0x0020) /* Not a constrainable URL */
-#define NCF_SHOWFETCH       (0x0040) /* show fetch calls */
-#define NCF_ONDISK          (0x0080) /* cause oc to store data on disk */
-#define NCF_WHOLEVAR        (0x0100) /* retrieve only whole variables (as opposed to partial variable) into cache */
-#define NCF_PREFETCH        (0x0200) /* Cache prefetch enabled/disabled */
-#define NCF_PREFETCH_EAGER  (0x0400) /* Do eager prefetch; 0=>lazy */
-#define NCF_PREFETCH_ALL    (0x0800) /* Prefetch all variables */
-#ifdef COLUMBIA_HACK
-#define NCF_COLUMBIA        (0x80000000) /* Hack for columbia server */
-#endif
-
-/* Define all the default on flags */
-#define DFALT_ON_FLAGS (NCF_CACHE|NCF_PREFETCH)
-
-typedef struct NCCONTROLS {
-    NCFLAGS  flags;
-} NCCONTROLS;
-
 struct NCTMODEL {
     int translation;
     char* model;
@@ -145,14 +112,11 @@ typedef struct NCCDF {
     size_t smallsizelimit; /* what constitutes a small object? */
     size_t totalestimatedsize;
     const char* separator; /* constant; do not free */
+    /* Following fields should be set from the unconstrained dds only */
     /* global string dimension */
     struct CDFnode* globalstringdim;
     char* recorddimname; /* From DODS_EXTRA */
     struct CDFnode* recorddim;
-#if 0
-    /* libncdap4 only */
-    NClist*  usertypes; /* nodes which will represent netcdf types */
-#endif
 } NCCDF;
 
 /* Define a structure holding common info for NCDAP */

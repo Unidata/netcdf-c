@@ -6,9 +6,8 @@
 
 #include "config.h"
 #include <stdlib.h>
-#include "nc.h"
-#include "ncdispatch.h"
 #include "nc4dispatch.h"
+#include "nc.h"
 
 static NC_Dispatch NC4_dispatcher = {
 

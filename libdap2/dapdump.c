@@ -7,7 +7,7 @@
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
-#include "ncdap.h"
+#include "dapincludes.h"
 #include "dapdump.h"
 #include "dceconstraints.h"
 

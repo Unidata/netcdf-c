@@ -45,6 +45,10 @@
 #include "utf8proc_data.c"
 
 
+/**
+ * Array containing the byte lengths of a UTF-8 encoded codepoint based
+ * on the first byte.
+ */
 const nc_utf8proc_int8_t nc_utf8proc_utf8class[256] = {
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,

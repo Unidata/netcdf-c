@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.4.2-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.5.1-development], [support-netcdf@unidata.ucar.edu])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -25,8 +25,8 @@ AC_INIT([netCDF], [4.4.2-development], [support-netcdf@unidata.ucar.edu])
 : ${CFLAGS=""}
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
-AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=4
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=2
+AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=5
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 #####
@@ -70,6 +70,9 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat1.nc:nc_test4/ref_hdf5_compat1.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
+
+AC_CONFIG_LINKS([nc_test4/ref_chunked.hdf4:nc_test4/ref_chunked.hdf4])
+AC_CONFIG_LINKS([nc_test4/ref_contiguous.hdf4:nc_test4/ref_contiguous.hdf4])
 
 # This call is required by automake.
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
@@ -320,13 +323,16 @@ AC_ARG_ENABLE([logging],
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
 
-## Capture the state of the --enable-dap flag
-AC_MSG_CHECKING([whether DAP client is to be built])
+## Capture the state of the --enable-dap flag => enable dap2+dap4
+AC_MSG_CHECKING([whether DAP client(s) are to be built])
 AC_ARG_ENABLE([dap],
                  [AS_HELP_STRING([--disable-dap],
                                  [build without DAP client support.])])
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
+
+# --enable-dap => enable-dap4
+enable_dap4=$enable_dap
 
 # Curl support is required if and only if any of these flags are set:
 # 1. --enable-dap
@@ -385,19 +391,33 @@ fi
 AC_MSG_RESULT($enable_dap_auth_tests)
 
 # Control if groups are supported in [netcdf4]dap2 code
-AC_MSG_CHECKING([whether [netcdf4] group names should be enabled (default on)])
+AC_MSG_CHECKING([whether [netcdf4] group names for DAP2 hould be enabled (default on)])
 AC_ARG_ENABLE([dap-groups],
               [AS_HELP_STRING([--disable-dap-groups],
-                                 [disable [netcdf4] dap group names])])
-test "x$enable_groups" = xno || enable_dap_groups=yes
-if test "x$enable_dap" = "xno" -o "x$enable_enable_netcdf_4" = "xno" ; then
-  AC_MSG_NOTICE([dap groups disabled because dap disabled or netcdf-4 disabled])
+                                 [disable [netcdf4] DAP2 group names])])
+test "x$enable_dap_groups" = xno || enable_dap_groups=yes
+AC_MSG_RESULT($enable_dap_groups)
+if test "x$enable_dap" = "xno" ; then
+  AC_MSG_NOTICE([DAP2 groups is being disabled because DAP2 support is  disabled or netcdf-4 disabled])
   enable_dap_groups=no
 fi
-AC_MSG_RESULT($enable_dap_groups)
 if test "x$enable_dap_groups" = xyes; then
 AC_DEFINE([ENABLE_DAP_GROUPS], [1], [if true, enable DAP group names])
 fi
+
+# Did the user specify a list of test servers to try for remote tests?
+AC_MSG_CHECKING([which remote test server(s) to use])
+AC_ARG_WITH([testservers],
+              [AS_HELP_STRING([--with-testservers=<host+port>,<host+port>...],
+                              [Specify the testserver(s) to try for remote tests.])],
+            [REMOTETESTSERVERS=$with_testservers], [REMOTETESTSERVERS=no])
+msg="$REMOTETESTSERVERS"
+if test "x$REMOTETESTSERVERS" = xno ; then
+  msg="remotetest.unidata.ucar.edu,jetstream.unidata.ucar.edu (defaults)"
+  REMOTETESTSERVERS=remotetest.unidata.ucar.edu,jetstream.unidata.ucar.edu
+fi
+AC_MSG_RESULT([$msg])
+AC_DEFINE_UNQUOTED([REMOTETESTSERVERS], ["$REMOTETESTSERVERS"], [the testservers for remote tests.])
 
 # Set the config.h flags
 if test "x$enable_dap" = xyes; then
@@ -788,6 +808,17 @@ AC_MSG_RESULT($enable_diskless)
 if test "x$enable_dap" = "xyes" -a "xenable_diskless" = xno  ; then
 AC_MSG_NOTICE([--enable-dap requires --enable-diskless])
 AC_MSG_NOTICE([dap support disabled])
+enable_dap=no
+fi
+
+# disable dap4 if netcdf-4 is disabled
+if test "x$enable_netcdf_4" = "xno" ; then
+    AC_MSG_WARN([netcdf-4 not enabled; disabling DAP4])
+    enable_dap4=no
+fi
+
+if test "x$enable_dap4" = xyes; then
+   AC_DEFINE([ENABLE_DAP4], [1], [if true, build DAP4 Client])
 fi
 
 # check for useful, but not essential, memio support
@@ -822,9 +853,9 @@ AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
+AC_CHECK_TYPES([size_t, ssize_t, ptrdiff_t, uchar, longlong, ushort, uint, int64, uint64 off_t])
 AC_TYPE_SIZE_T
 AC_TYPE_OFF_T
-AC_CHECK_TYPES([size_t, ssize_t, ptrdiff_t, schar, uchar, longlong, ushort, uint, int64, uint64])
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
@@ -835,9 +866,11 @@ AC_C_BIGENDIAN
 SLEEPCMD=""
 PLTFORMOUT="$(uname | cut -d '_' -f 1)"
 if test "$PLTFORMOUT" = "CYGWIN"; then
+   ISCYGWIN=yes
    SLEEPCMD="sleep 5"
    AC_MSG_NOTICE([Pausing between sizeof() checks to mitigate a Cygwin issue.])
 fi
+AM_CONDITIONAL(ISCYGWIN, [test "x$ISCYGWIN" = xyes])
 
 $SLEEPCMD
 AC_CHECK_SIZEOF(short)
@@ -855,6 +888,8 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(off_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF(size_t)
+$SLEEPCMD
+AC_CHECK_SIZEOF(unsigned long long)
 $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
 
@@ -878,10 +913,6 @@ if test "$ac_cv_type_uint" = yes ; then
 else
    AC_CHECK_SIZEOF(unsigned int)
 fi
-
-$SLEEPCMD
-AC_CHECK_SIZEOF(unsigned long long)
-
 $SLEEPCMD
 if test "$ac_cv_type_ushort" = yes ; then
    AC_CHECK_SIZEOF(ushort)
@@ -896,12 +927,15 @@ else
 fi
 $SLEEPCMD
 AC_CHECK_SIZEOF(ptrdiff_t)
-
+$SLEEPCDM
+AC_CHECK_SIZEOF(ssize_t)
+$SLEEPCMD
+AC_CHECK_SIZEOF([void*])
 
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
    AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
      AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
-     opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
+     DAP clients with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
 fi
 
 # We need the math library
@@ -1087,18 +1121,18 @@ if test "x$enable_parallel" = xyes; then
 fi
 
 AC_ARG_ENABLE([erange_fill],
-   [AS_HELP_STRING([--disable-erange-fill],
-                   [Disable use of fill value when out-of-range type
-                    conversion causes NC_ERANGE error. @<:@default: enabled@:>@])],
-   [enable_erange_fill=${enableval}], [enable_erange_fill=yes]
+   [AS_HELP_STRING([--enable-erange-fill],
+                   [Enable use of fill value when out-of-range type
+                    conversion causes NC_ERANGE error. @<:@default: disabled@:>@])],
+   [enable_erange_fill=${enableval}], [enable_erange_fill=no]
 )
 
-AC_ARG_ENABLE([relax-coord-bound],
-   [AS_HELP_STRING([--enable-relax-coord-bound],
+AC_ARG_ENABLE([zero-length-coord-bound],
+   [AS_HELP_STRING([--enable-zero-length-coord-bound],
                    [Enable a more relaxed boundary error check NC_EINVALCOORDS
                     to allow coordinate start argument equal to dimension size
                     when argument count is zero. @<:@default: disabled@:>@])],
-   [enable_relax_coord_bound=${enableval}], [enable_relax_coord_bound=no]
+   [enable_zero_length_coord_bound=${enableval}], [enable_zero_length_coord_bound=no]
 )
 
 # check PnetCDF's settings on enable_erange_fill and relax_coord_bound
@@ -1130,7 +1164,7 @@ if test "x$enable_pnetcdf" = xyes; then
    AC_MSG_CHECKING([if relax-coord-bound is enabled in PnetCDF])
    relax_coord_bound_pnetcdf=`grep PNETCDF_RELAX_COORD_BOUND ${ac_cv_header_path_pnetcdf_h}`
    if test "x$relax_coord_bound_pnetcdf" = x; then
-      relax_coord_bound_pnetcdf=no
+      elax_coord_bound_pnetcdf=no
    else
       coord_bound_pnetcdf=`echo ${relax_coord_bound_pnetcdf} | cut -d' ' -f3`
       if test "x$coord_bound_pnetcdf" = x0; then
@@ -1140,13 +1174,13 @@ if test "x$enable_pnetcdf" = xyes; then
       fi
    fi
    AC_MSG_NOTICE([$relax_coord_bound_pnetcdf])
-   if test "$enable_relax_coord_bound" != "$relax_coord_bound_pnetcdf"; then
+   if test "$enable_zero_length_coord_bound" != "$relax_coord_bound_pnetcdf"; then
       if test "$relax_coord_bound_pnetcdf" = yes; then
          AC_MSG_WARN([Enable relax-coord-bound to conform with PnetCDF setting])
       else
          AC_MSG_WARN([Disable relax-coord-bound to conform with PnetCDF setting])
       fi
-      enable_relax_coord_bound=$relax_coord_bound_pnetcdf
+      enable_zero_length_coord_bound=$relax_coord_bound_pnetcdf
    fi
 fi
 
@@ -1159,7 +1193,7 @@ if test "x$enable_erange_fill" = xyes ; then
 fi
 AC_SUBST(M4FLAGS)
 
-if test "x$enable_relax_coord_bound" = xyes; then
+if test "x$enable_zero_length_coord_bound" = xyes; then
    AC_DEFINE([RELAX_COORD_BOUND], [1], [if true, NC_EINVALCOORDS check is more relaxed])
 fi
 
@@ -1209,6 +1243,10 @@ AM_CONDITIONAL(BUILD_PARALLEL, [test x$enable_parallel = xyes])
 AM_CONDITIONAL(TEST_PARALLEL4, [test "x$enable_parallel4" = xyes -a "x$enable_parallel_tests" = xyes])
 AM_CONDITIONAL(BUILD_DAP, [test "x$enable_dap" = xyes])
 AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
+# Provide protocol specific flags
+AM_CONDITIONAL(ENABLE_DAP, [test "x$enable_dap" = xyes])
+AM_CONDITIONAL(ENABLE_DAP4, [test "x$enable_dap4" = xyes])
+
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
@@ -1318,6 +1356,7 @@ fi
 
 AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
+AC_SUBST(HAS_DAP4,[$enable_dap4])
 AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
@@ -1389,12 +1428,24 @@ AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
 AX_SET_META([NC_HAS_HDF5],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_SZIP],[$ac_cv_func_H5Z_SZIP],[yes])
 AX_SET_META([NC_HAS_DAP],[$enable_dap],[yes])
+AX_SET_META([NC_HAS_DAP4],[$enable_dap4],[yes])
 AX_SET_META([NC_HAS_DISKLESS],[$enable_diskless],[yes])
 AX_SET_META([NC_HAS_MMAP],[$enable_mmap],[yes])
 AX_SET_META([NC_HAS_JNA],[$enable_jna],[yes])
 AX_SET_META([NC_HAS_PNETCDF],[$enable_pnetcdf],[yes])
 AX_SET_META([NC_HAS_PARALLEL],[$enable_parallel],[yes])
 AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
+
+# Automake says that this is always run in top_builddir
+# and that srcdir is defined (== top_srcdir)
+abs_top_builddir=`pwd`
+cd $srcdir
+abs_top_srcdir=`pwd`
+cd $abs_top_builddir
+
+AC_CONFIG_FILES(test_common.sh:test_common.in)
+#rm -f ${abs_top_builddir}/test_common.sh
+#sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
 
 #####
 # End netcdf_meta.h definitions.
@@ -1409,14 +1460,9 @@ AC_CONFIG_FILES([Makefile
 		         include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
-                 docs/Makefile
-                 docs/images/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
                  libsrcp/Makefile
-                 nctest/Makefile
-                 nc_test4/Makefile
-                 nc_test/Makefile
                  ncdump/Makefile
                  ncgen3/Makefile
                  ncgen/Makefile
@@ -1425,16 +1471,25 @@ AC_CONFIG_FILES([Makefile
                  examples/CDL/Makefile
                  oc2/Makefile
                  libdap2/Makefile
+                 libdap4/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl/Makefile
                  ncdump/expected/Makefile
+                 docs/Makefile
+                 docs/images/Makefile
+                 nctest/Makefile
+                 nc_test4/Makefile
+                 nc_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile
                  ncdap_test/expected3/Makefile
                  ncdap_test/expectremote3/Makefile
+                 dap4_test/Makefile
 		 ],
                  [test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()
+
+    #mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh
 
 cat libnetcdf.settings

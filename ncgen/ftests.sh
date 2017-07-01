@@ -1,6 +1,5 @@
 #!/bin/sh
-#set -e
-#set -x
+
 echo "*** ftests.sh: testing ncgen4 -lf77"
 
 INSTALL=/tmp/install

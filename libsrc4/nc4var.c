@@ -523,6 +523,13 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
 	 BAIL(NC_ENOMEM);
    }
 
+   /* Set variables no_fill to match the database default
+    * unless the variable type is variable length (NC_STRING or NC_VLEN)
+    * or is user-defined type.
+    */
+   if (var->type_info->nc_type_class < NC_STRING)
+      var->no_fill = h5->fill_mode;
+
    /* Assign dimensions to the variable */
    /* At the same time, check to see if this is a coordinate
     * variable. If so, it will have the same name as one of its
@@ -1426,4 +1433,18 @@ NC4_get_vara(int ncid, int varid, const size_t *startp,
             const size_t *countp, void *ip, int memtype)
 {
    return nc4_get_vara_tc(ncid, varid, memtype, 0, startp, countp, ip);
+}
+
+void
+nc4verify(int ncid, char* name)
+{
+   NC_GRP_INFO_T *grp;
+   NC_HDF5_FILE_INFO_T *h5;
+   int retval;
+
+   /* Find info for this file and group, and set pointer to each. */
+   retval = nc4_find_grp_h5(ncid, &grp, &h5);
+   assert(grp && h5);
+   retval = nc4_check_dup_name(grp, name);
+   return;
 }

@@ -77,6 +77,7 @@
 /** @} */
 
 #include <stdlib.h>
+#include "ncexternl.h"
 
 #if defined(_MSC_VER) && _MSC_VER < 1800
 // MSVC prior to 2013 lacked stdbool.h and inttypes.h
@@ -119,18 +120,6 @@ typedef ptrdiff_t nc_utf8proc_ssize_t;
 typedef bool nc_utf8proc_bool;
 #endif
 #include <limits.h>
-
-#ifdef _WIN32
-#  ifdef UTF8PROC_EXPORTS
-#    define UTF8PROC_DLLEXPORT __declspec(dllexport)
-#  else
-#    define UTF8PROC_DLLEXPORT __declspec(dllimport)
-#  endif
-#elif __GNUC__ >= 4
-#  define UTF8PROC_DLLEXPORT __attribute__ ((visibility("default")))
-#else
-#  define UTF8PROC_DLLEXPORT
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -391,7 +380,7 @@ typedef nc_utf8proc_int32_t (*nc_utf8proc_custom_func)(nc_utf8proc_int32_t codep
  * Array containing the byte lengths of a UTF-8 encoded codepoint based
  * on the first byte.
  */
-const nc_utf8proc_int8_t nc_utf8proc_utf8class[256];
+//const nc_utf8proc_int8_t nc_utf8proc_utf8class[256];
 
 /**
  * Returns the utf8proc API version as a string MAJOR.MINOR.PATCH
@@ -416,7 +405,7 @@ const char *nc_utf8proc_errmsg(nc_utf8proc_ssize_t errcode);
  * In case of success, the number of bytes read is returned; otherwise, a
  * negative error code is returned.
  */
-UTF8PROC_DLLEXPORT nc_utf8proc_ssize_t nc_utf8proc_iterate(const nc_utf8proc_uint8_t *str, nc_utf8proc_ssize_t strlen, nc_utf8proc_int32_t *codepoint_ref);
+EXTERNL nc_utf8proc_ssize_t nc_utf8proc_iterate(const nc_utf8proc_uint8_t *str, nc_utf8proc_ssize_t strlen, nc_utf8proc_int32_t *codepoint_ref);
 
 /**
  * Check if a codepoint is valid (regardless of whether it has been
@@ -683,13 +672,13 @@ nc_utf8proc_ssize_t nc_utf8proc_map_custom(
  */
 /** @{ */
 /** NFD normalization (@ref UTF8PROC_DECOMPOSE). */
-UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFD(const nc_utf8proc_uint8_t *str);
+EXTERNL nc_utf8proc_uint8_t *nc_utf8proc_NFD(const nc_utf8proc_uint8_t *str);
 /** NFC normalization (@ref UTF8PROC_COMPOSE). */
-UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFC(const nc_utf8proc_uint8_t *str);
+EXTERNL nc_utf8proc_uint8_t *nc_utf8proc_NFC(const nc_utf8proc_uint8_t *str);
 /** NFKD normalization (@ref UTF8PROC_DECOMPOSE and @ref UTF8PROC_COMPAT). */
-UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFKD(const nc_utf8proc_uint8_t *str);
+EXTERNL nc_utf8proc_uint8_t *nc_utf8proc_NFKD(const nc_utf8proc_uint8_t *str);
 /** NFKC normalization (@ref UTF8PROC_COMPOSE and @ref UTF8PROC_COMPAT). */
-UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFKC(const nc_utf8proc_uint8_t *str);
+EXTERNL nc_utf8proc_uint8_t *nc_utf8proc_NFKC(const nc_utf8proc_uint8_t *str);
 /** @} */
 
 #ifdef __cplusplus
