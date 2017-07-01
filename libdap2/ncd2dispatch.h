@@ -156,6 +156,9 @@ NCD2_rename_var(int ncid, int varid, const char *name);
 extern int
 NCD2_var_par_access(int, int, int);
 
+EXTERNL int
+NCD2_def_var_fill(int, int, int, const void *);
+
   /* netCDF4 API only */
 #ifdef USE_NETCDF4
   extern int

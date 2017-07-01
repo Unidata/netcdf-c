@@ -92,9 +92,9 @@
 #define X_INT_MIN	(-2147483647-1)
 #define X_INT_MAX	2147483647
 #define X_UINT_MAX	4294967295U
-#define X_LONGLONG_MIN	(-9223372036854775807LL-1LL)
-#define X_LONGLONG_MAX	9223372036854775807LL
-#define X_ULONGLONG_MAX	18446744073709551615ULL
+#define X_INT64_MIN	(-9223372036854775807LL-1LL)
+#define X_INT64_MAX	9223372036854775807LL
+#define X_UINT64_MAX	18446744073709551615ULL
 #define X_FLOAT_MAX	3.402823466e+38f
 #define X_FLOAT_MIN	(-X_FLOAT_MAX)
 #define X_FLT_MAX	X_FLOAT_MAX	/* alias compatible with limits.h */
@@ -156,15 +156,9 @@
 
 /* End ncx_len */
 
-#ifdef __CHAR_UNSIGNED__
-	/* 'char' is unsigned, declare ncbyte as 'signed char' */
+#ifndef HAVE_SCHAR
 typedef signed char schar;
-
-#else
-	/* 'char' is signed */
-typedef char schar;
-
-#endif	/* __CHAR_UNSIGNED__ */
+#endif
 
 /*
  * Primitive numeric conversion functions.

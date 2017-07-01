@@ -54,8 +54,7 @@ MALLOC_CHECK=""
 CPPFLAGS=""
 LDFLAGS=""
 
-#CFLAGS="-g -O0 $CFLAGS"
-CFLAGS="-g $CFLAGS"
+CFLAGS="-g -O0 $CFLAGS -Wno-undefined"
 
 MAKE=make
 IGNORE="test 0 = 1"

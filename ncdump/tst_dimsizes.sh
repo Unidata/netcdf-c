@@ -1,6 +1,8 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+#set -e
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 echo "*** Test Maximum dimension sizes X mode"
@@ -48,4 +50,3 @@ fi
 rm -f tmp tst_dimsize_classic.nc tst_dimsize_64offset.nc tst_dimsize_64data.nc
 
 exit $RETURN
-

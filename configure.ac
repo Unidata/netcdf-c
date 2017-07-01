@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.4.2-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.5.1-development], [support-netcdf@unidata.ucar.edu])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -25,8 +25,8 @@ AC_INIT([netCDF], [4.4.2-development], [support-netcdf@unidata.ucar.edu])
 : ${CFLAGS=""}
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
-AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=4
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=2
+AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=5
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 #####
@@ -70,6 +70,9 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat1.nc:nc_test4/ref_hdf5_compat1.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
+
+AC_CONFIG_LINKS([nc_test4/ref_chunked.hdf4:nc_test4/ref_chunked.hdf4])
+AC_CONFIG_LINKS([nc_test4/ref_contiguous.hdf4:nc_test4/ref_contiguous.hdf4])
 
 # This call is required by automake.
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
@@ -1439,8 +1442,10 @@ abs_top_builddir=`pwd`
 cd $srcdir
 abs_top_srcdir=`pwd`
 cd $abs_top_builddir
-rm -f ${abs_top_builddir}/test_common.sh
-sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
+
+AC_CONFIG_FILES(test_common.sh:test_common.in)
+#rm -f ${abs_top_builddir}/test_common.sh
+#sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
 
 #####
 # End netcdf_meta.h definitions.
@@ -1484,5 +1489,7 @@ AC_CONFIG_FILES([Makefile
 		 ],
                  [test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()
+
+    #mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh
 
 cat libnetcdf.settings

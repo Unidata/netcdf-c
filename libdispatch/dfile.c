@@ -166,6 +166,8 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
 	    size_t i;
 #ifdef HAVE_FILE_LENGTH_I64
           __int64 file_len = 0;
+#else
+          struct stat st;
 #endif
 
 	    if(path == NULL || strlen(path)==0)
@@ -193,7 +195,7 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
             status = NC_ENOTNC;
             goto done;
           }
-else
+#else
 	  { int fno = fileno(fp);
 	    if(!(fstat(fno,&st) == 0)) {
 	        fclose(fp);
@@ -1763,7 +1765,7 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
    /* Create the NC* instance and insert its dispatcher */
    stat = new_NC(dispatcher,path,cmode,&ncp);
    nullfree(path); path = NULL; /* no longer needed */
-   
+
    if(stat) return stat;
 
    /* Add to list of known open files and define ext_ncid */
@@ -1810,6 +1812,7 @@ NC_open(const char *path0, int cmode,
    NC* ncp = NULL;
    NC_Dispatch* dispatcher = NULL;
    int inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
+   int diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
    /* Need pieces of information for now to decide model*/
    int model = 0;
    int isurl = 0;
@@ -1857,6 +1860,7 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 	/* Try to find dataset type */
 	if(useparallel) flags |= NC_MPIIO;
 	if(inmemory) flags |= NC_INMEMORY;
+	if(diskless) flags |= NC_DISKLESS;
 	stat = NC_check_file_type(path,flags,parameters,&model,&version);
         if(stat == NC_NOERR) {
    	if(model == 0)

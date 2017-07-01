@@ -6,6 +6,9 @@
 #include "dapincludes.h"
 #include "ncd2dispatch.h"
 #include "ncoffsets.h"
+#ifdef DEBUG2
+#include "dapdump.h"
+#endif
 
 #ifdef _MSC_VER
 #include <crtdbg.h>
@@ -135,6 +138,7 @@ NCDEFAULT_put_varm,
 NCD2_inq_var_all,
 
 NCD2_var_par_access,
+NCD2_def_var_fill,
 
 #ifdef USE_NETCDF4
 NCD2_show_metadata,
@@ -170,7 +174,6 @@ NCD2_def_opaque,
 NCD2_def_var_deflate,
 NCD2_def_var_fletcher32,
 NCD2_def_var_chunking,
-NCD2_def_var_fill,
 NCD2_def_var_endian,
 NCD2_set_var_chunk_cache,
 NCD2_get_var_chunk_cache,
@@ -2020,7 +2023,7 @@ fetchpatternmetadata(NCDAPCOMMON* dapcomm)
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     }
 
-#ifdef DEBUG
+#ifdef DEBUG2
 fprintf(stderr,"full pattern:\n%s",dumptree(dapcomm->cdf.fullddsroot));
 #endif
 
@@ -2061,7 +2064,7 @@ fetchconstrainedmetadata(NCDAPCOMMON* dapcomm)
             if(ncstat) goto fail;
 	}
 
-#ifdef DEBUG
+#ifdef DEBUG2
 fprintf(stderr,"constrained:\n%s",dumptree(dapcomm->cdf.ddsroot));
 #endif
 
@@ -2071,7 +2074,6 @@ fprintf(stderr,"constrained:\n%s",dumptree(dapcomm->cdf.ddsroot));
                                dapcomm->oc.ocdasroot);
             if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 	}
-
         /* map the constrained DDS to the unconstrained DDS */
         ncstat = mapnodes(dapcomm->cdf.ddsroot,dapcomm->cdf.fullddsroot);
         if(ncstat) goto fail;
@@ -2412,6 +2414,16 @@ NCD2_var_par_access(int ncid, int p2, int p3)
     return THROW(NC_ENOPAR);
 }
 
+int
+NCD2_def_var_fill(int ncid, int p2, int p3, const void* p4)
+{
+    NC* drno;
+    int ret;
+    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
+    ret = nc_def_var_fill(getnc3id(drno), p2, p3, p4);
+    return THROW(ret);
+}
+
 
 #ifdef USE_NETCDF4
 
@@ -2738,16 +2750,6 @@ NCD2_def_var_chunking(int ncid, int p2, int p3, const size_t* p4)
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
     ret = nc_def_var_chunking(getnc3id(drno), p2, p3, p4);
-    return THROW(ret);
-}
-
-int
-NCD2_def_var_fill(int ncid, int p2, int p3, const void* p4)
-{
-    NC* drno;
-    int ret;
-    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_def_var_fill(getnc3id(drno), p2, p3, p4);
     return THROW(ret);
 }
 

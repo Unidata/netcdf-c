@@ -6,6 +6,8 @@
 #ifndef NCUTF8_H
 #define NCUTF8_H 1
 
+#include "ncexternl.h"
+
 /* Provide a wrapper around whatever utf8 library we use. */
 
 /*
@@ -15,7 +17,7 @@
  * NC_ENOMEM -- out of memory
  * NC_EBADNAME-- not valid utf8
  */
-extern int nc_utf8_validate(const unsigned char * name);
+EXTERNL int nc_utf8_validate(const unsigned char * name);
 
 /*
  * Apply NFC normalization to a string.
@@ -28,7 +30,19 @@ extern int nc_utf8_validate(const unsigned char * name);
  * NC_ENOMEM -- out of memory
  * NC_EBADNAME -- other failure
  */
-extern int nc_utf8_normalize(const unsigned char* str, unsigned char** normalp);
+EXTERNL int nc_utf8_normalize(const unsigned char* str, unsigned char** normalp);
+
+/*
+ * Convert a normalized utf8 string to utf16. This is approximate
+ * because it just does the truncation version of conversion for
+ * each 32-bit codepoint to get the corresponding utf16.
+ * Return codes:
+ * NC_NOERR -- success
+ * NC_ENOMEM -- out of memory
+ * NC_EINVAL -- invalid argument or internal error
+ * NC_EBADNAME-- not valid utf16
+ */
+
+EXTERNL int nc_utf8_to_utf16(const unsigned char* s8, unsigned short** utf16p, size_t* lenp);
 
 #endif /*NCUTF8_H*/
-

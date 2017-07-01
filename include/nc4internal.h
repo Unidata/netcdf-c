@@ -66,6 +66,9 @@ typedef enum {VAR, DIM, ATT} NC_OBJ_T;
 #define X_LONG_MIN	X_INT_MIN
 #define X_LONG_MAX	X_INT_MAX
 #define X_UINT_MAX	4294967295U
+#define X_INT64_MIN	(-9223372036854775807LL-1LL)
+#define X_INT64_MAX	9223372036854775807LL
+#define X_UINT64_MAX	18446744073709551615ULL
 #ifdef WIN32 /* Windows, of course, has to be a *little* different. */
 #define X_FLOAT_MAX	3.402823466e+38f
 #else

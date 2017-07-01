@@ -158,13 +158,17 @@ NC3_def_var(int ncid, const char *name,
 
 extern int
 NC3_inq_var(int ncid, int varid, char *name,
-	 nc_type *xtypep, int *ndimsp, int *dimidsp, int *nattsp);
+	 nc_type *xtypep, int *ndimsp, int *dimidsp, int *nattsp,
+	 int *no_fill, void *fill_valuep);
 
 extern int
 NC3_inq_varid(int ncid, const char *name, int *varidp);
 
 extern int
 NC3_rename_var(int ncid, int varid, const char *name);
+
+EXTERNL int
+NC3_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value);
 
 
 extern int
