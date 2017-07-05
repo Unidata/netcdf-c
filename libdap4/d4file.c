@@ -9,7 +9,7 @@
 #include "d4read.h"
 #include "d4curlfunctions.h"
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER
 #include <process.h>
 #include <direct.h>
 #endif
@@ -29,6 +29,7 @@ static void freeInfo(NCD4INFO*);
 static int paramcheck(NCD4INFO*, const char* key, const char* subkey);
 static const char* getparam(NCD4INFO* info, const char* key);
 static int set_curl_properties(NCD4INFO*);
+static void d4removecookies(const char* path);
 
 /**************************************************/
 /* Constants */
@@ -294,7 +295,6 @@ freeCurl(NCD4curl* curl)
     nullfree(curl->errdata.code);
     nullfree(curl->errdata.message);
     nullfree(curl->curlflags.useragent);
-    nullfree(curl->curlflags.cookiejar);
     nullfree(curl->curlflags.netrc);
     nullfree(curl->ssl.certificate);
     nullfree(curl->ssl.key);
@@ -304,6 +304,9 @@ freeCurl(NCD4curl* curl)
     nullfree(curl->proxy.host);
     nullfree(curl->proxy.userpwd);
     nullfree(curl->creds.userpwd);
+    if(curl->curlflags.createdflags & COOKIECREATED)
+        d4removecookies(curl->curlflags.cookiejar);
+    nullfree(curl->curlflags.cookiejar);
 }
 
 /* Define the set of protocols known to be constrainable */
@@ -353,32 +356,28 @@ set_curl_properties(NCD4INFO* d4info)
 
     if(d4info->curl->curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
-	char tmp[4096+1];
         int ok;
-#if defined(_WIN32) || defined(_WIN64)
-	int pid = _getpid();
-#else
-	pid_t pid = getpid();
-#endif
-	snprintf(tmp,sizeof(tmp)-1,"%s/%s.%ld/",NCD4_globalstate->tempdir,"netcdf",(long)pid);
-
-#if defined(_WIN32) || defined(_WIN64)
-	ok = _mkdir(tmp);
-#else
-	ok = mkdir(tmp,S_IRUSR | S_IWUSR | S_IXUSR);
-#endif
-	if(ok != 0 && errno != EEXIST) {
-	    fprintf(stderr,"Cannot create cookie directory\n");
-	    goto fail;
-	}
+        char* path = NULL;
+        char* name = NULL;
+        int len;
 	errno = 0;
 	/* Create the unique cookie file name */
-	ok = NCD4_mktmp(tmp,&d4info->curl->curlflags.cookiejar);
-	d4info->curl->curlflags.createdflags |= COOKIECREATED;
+        len =
+	  strlen(NCD4_globalstate->tempdir)
+	  + 1 /* '/' */
+	  + strlen("ncd4cookies");
+        path = (char*)malloc(len+1);
+        if(path == NULL) return NC_ENOMEM;
+	snprintf(path,len,"%s/nc4cookies",NCD4_globalstate->tempdir);
+	/* Create the unique cookie file name */
+        ok = NCD4_mktmp(path,&name);
+        free(path);
 	if(ok != NC_NOERR && errno != EEXIST) {
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    goto fail;
 	}
+	d4info->curl->curlflags.cookiejar = name;
+	d4info->curl->curlflags.createdflags |= COOKIECREATED;
 	errno = 0;
     }
     assert(d4info->curl->curlflags.cookiejar != NULL);
@@ -488,4 +487,14 @@ getparam(NCD4INFO* info, const char* key)
     if((value=ncurilookup(info->uri,key)) == NULL)
 	return NULL;
     return value;
+}
+
+static void
+d4removecookies(const char* path)
+{
+#ifdef _MSC_VER
+    DeleteFile(path);
+#else
+    remove(path);
+#endif
 }

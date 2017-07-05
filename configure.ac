@@ -790,6 +790,9 @@ AC_CHECK_HEADERS([sys/resource.h])
 # Check for <stdbool.h> that conforms to C99 requirements
 AC_HEADER_STDBOOL
 
+# See if we have ftw.h to walk directory trees
+AC_CHECK_HEADERS([ftw.h])
+
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
                 strdup strcasecmp strtod strtoll strtoull strstr \
