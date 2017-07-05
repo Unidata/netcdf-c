@@ -19,6 +19,9 @@
 
 #define NCURIDEBUG
 
+/* Extra debug info */
+#undef NCXDEBUG
+
 #ifdef NCURIDEBUG
 #define THROW(n) {ret=(n); goto done;}
 #else
@@ -314,10 +317,7 @@ ncuriparse(const char* uri0, NCURI** durip)
 	    if(strlen(pp)==0)
 		{THROW(NCU_EUSRPWD);} /* we have empty password */
 	    tmp.password = pp;	    
-	    /* compress usr+pwd out of tmp.host */
-	    rem = strlen(newhost);
-	    memmove(tmp.host,newhost,rem);
-	    tmp.host[rem] = EOFCHAR;
+	    tmp.host = newhost;
 	}
 	/* Breakup host into host + port */
 	pp = tmp.host;

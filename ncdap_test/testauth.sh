@@ -43,8 +43,7 @@ fi
 
 BASICCOMBO="tiggeUser:tigge"
 BADCOMBO="tiggeUser:xxxxx"
-#http://remotetest.unidata.ucar.edu/thredds/dodsC/restrict/testData.nc.html
-URLPATH="thredds/dodsC/restrict/testData.nc"
+URLPATH="thredds/dodsC/testRestrictedDataset/testData2.nc"
 PROTO=http
 if test "x$LOCAL" = x ; then
 URLSERVER="remotetest.unidata.ucar.edu"
