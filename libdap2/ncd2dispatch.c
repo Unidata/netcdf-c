@@ -6,6 +6,9 @@
 #include "dapincludes.h"
 #include "ncd2dispatch.h"
 #include "ncoffsets.h"
+#ifdef DEBUG2
+#include "dapdump.h"
+#endif
 
 #ifdef _MSC_VER
 #include <crtdbg.h>
@@ -2020,7 +2023,7 @@ fetchpatternmetadata(NCDAPCOMMON* dapcomm)
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     }
 
-#ifdef DEBUG
+#ifdef DEBUG2
 fprintf(stderr,"full pattern:\n%s",dumptree(dapcomm->cdf.fullddsroot));
 #endif
 
@@ -2061,7 +2064,7 @@ fetchconstrainedmetadata(NCDAPCOMMON* dapcomm)
             if(ncstat) goto fail;
 	}
 
-#ifdef DEBUG
+#ifdef DEBUG2
 fprintf(stderr,"constrained:\n%s",dumptree(dapcomm->cdf.ddsroot));
 #endif
 
@@ -2071,7 +2074,6 @@ fprintf(stderr,"constrained:\n%s",dumptree(dapcomm->cdf.ddsroot));
                                dapcomm->oc.ocdasroot);
             if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 	}
-
         /* map the constrained DDS to the unconstrained DDS */
         ncstat = mapnodes(dapcomm->cdf.ddsroot,dapcomm->cdf.fullddsroot);
         if(ncstat) goto fail;
