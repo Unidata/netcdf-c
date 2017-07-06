@@ -46,5 +46,3 @@ bison:: dap.y
 	rm -f dap.tab.c dap.tab.h
 	bison --debug -d -p dap dap.y
 	mv dap.tab.c dapy.c; mv dap.tab.h dapy.h
-
-

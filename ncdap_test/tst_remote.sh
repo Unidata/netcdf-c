@@ -1,8 +1,6 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi
-. ../test_common.sh
-
+if test "x$SETX" != x ; then set -x ; fi
 set -e
 
 quiet=0
@@ -29,7 +27,7 @@ OCLOGFILE="" ; export OCLOGFILE
 # Capture arguments
 srcdir="$1"
 builddir="$2"
-mode="$3"
+#ignored mode="$3"
 if test "x$4" = "x" ; then cache=1 ; else cache=0; fi
 longtests="$5"
 
@@ -183,22 +181,11 @@ testfile.nc \
 text.nc \
 "
 
-case "$mode" in
-3)
-    EXPECTED="$expected3"
-    TITLE="DAP to netCDF-3 translation"
-    PARAMS="${PARAMS}[netcdf3]"
-    XFAILTESTS="$XFAILTESTS3"
-    SVCFAILTESTS="$SVCFAILTESTS3"
-    ;;
-4)
-    EXPECTED="$expected4"
-    TITLE="DAP to netCDF-4 translation"
-    PARAMS="${PARAMS}[netcdf4]"
-    XFAILTESTS="$XFAILTESTS4"
-    SVCFAILTESTS="$SVCFAILTESTS4"
-    ;;
-esac
+TITLE="DAP to netCDF-3 translation"
+EXPECTED="$expected3"
+PARAMS="${PARAMS}[netcdf3]"
+XFAILTESTS="$XFAILTESTS3"
+SVCFAILTESTS="$SVCFAILTESTS3"
 
 RESULTSDIR="./results"
 # Locate some tools
