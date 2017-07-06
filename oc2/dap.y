@@ -52,7 +52,7 @@ int dapdebug = 0;
 
 start:
 	  dataset datasetbody
-	| dataset datasetbody SCAN_DATA
+	| dataset datasetbody SCAN_DATA /* The SCAN_DATA indicates serialized data follows */
 	| attr attributebody
 	| err errorbody
         | error {dap_unrecognizedresponse(parsestate); YYABORT;}
@@ -245,29 +245,29 @@ errorprog : /*empty*/ {$$=null;} | SCAN_PROG    '=' WORD_WORD ';' {$$=$3;}
 */
 name:
           WORD_WORD      {$$=dapdecode(parsestate->lexstate,$1);}
-	| SCAN_ALIAS     {$$=strdup("alias");}
-	| SCAN_ARRAY     {$$=strdup("array");}
-	| SCAN_ATTR      {$$=strdup("attributes");}
-	| SCAN_BYTE      {$$=strdup("byte");}
-	| SCAN_DATASET   {$$=strdup("dataset");}
-	| SCAN_DATA      {$$=strdup("data");}
-	| SCAN_ERROR     {$$=strdup("error");}
-	| SCAN_FLOAT32   {$$=strdup("float32");}
-	| SCAN_FLOAT64   {$$=strdup("float64");}
-	| SCAN_GRID      {$$=strdup("grid");}
-	| SCAN_INT16     {$$=strdup("int16");}
-	| SCAN_INT32     {$$=strdup("int32");}
-	| SCAN_MAPS      {$$=strdup("maps");}
-	| SCAN_SEQUENCE  {$$=strdup("sequence");}
-	| SCAN_STRING    {$$=strdup("string");}
-	| SCAN_STRUCTURE {$$=strdup("structure");}
-	| SCAN_UINT16    {$$=strdup("uint16");}
-	| SCAN_UINT32    {$$=strdup("uint32");}
-	| SCAN_URL       {$$=strdup("url");}
-	| SCAN_CODE      {$$=strdup("code");}
-	| SCAN_MESSAGE   {$$=strdup("message");}
-	| SCAN_PROG      {$$=strdup("program");}
-	| SCAN_PTYPE     {$$=strdup("program_type");}
+	| SCAN_ALIAS     {$$=strdup($1);}
+	| SCAN_ARRAY     {$$=strdup($1);}
+	| SCAN_ATTR      {$$=strdup($1);}
+	| SCAN_BYTE      {$$=strdup($1);}
+	| SCAN_DATASET   {$$=strdup($1);}
+	| SCAN_DATA      {$$=strdup($1);}
+	| SCAN_ERROR     {$$=strdup($1);}
+	| SCAN_FLOAT32   {$$=strdup($1);}
+	| SCAN_FLOAT64   {$$=strdup($1);}
+	| SCAN_GRID      {$$=strdup($1);}
+	| SCAN_INT16     {$$=strdup($1);}
+	| SCAN_INT32     {$$=strdup($1);}
+	| SCAN_MAPS      {$$=strdup($1);}
+	| SCAN_SEQUENCE  {$$=strdup($1);}
+	| SCAN_STRING    {$$=strdup($1);}
+	| SCAN_STRUCTURE {$$=strdup($1);}
+	| SCAN_UINT16    {$$=strdup($1);}
+	| SCAN_UINT32    {$$=strdup($1);}
+	| SCAN_URL       {$$=strdup($1);}
+	| SCAN_CODE      {$$=strdup($1);}
+	| SCAN_MESSAGE   {$$=strdup($1);}
+	| SCAN_PROG      {$$=strdup($1);}
+	| SCAN_PTYPE     {$$=strdup($1);}
 	;
 
 %%

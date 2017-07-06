@@ -30,12 +30,12 @@ main(int argc, char **argv)
     size_t dimsize;
     int dimid;
     int stat = NC_NOERR;
-
+    nc_set_log_level(5);
     printf("\n*** Testing Max Dimension Sizes\n");
 
     printf("\n|size_t|=%lu\n",(unsigned long)sizeof(size_t));
 
-    printf("\n*** Writing Max Dimension Size For NC_CLASSIC\n");
+    printf("\n*** Writing Max Dimension Size (%d) For NC_CLASSIC\n",DIMMAXCLASSIC);
     if ((stat=nc_create(FILECLASSIC, NC_CLOBBER, &ncid))) ERRSTAT(stat);
     dimsize = DIMMAXCLASSIC;
     if ((stat=nc_def_dim(ncid, "testdim", dimsize, &dimid))) ERRSTAT(stat);
@@ -48,10 +48,11 @@ main(int argc, char **argv)
     if(dimsize != DIMMAXCLASSIC) ERR;
     if ((stat=nc_close(ncid))) ERRSTAT(stat);
 
-    printf("\n*** Writing Max Dimension Size For NC_64BIT_OFFSET\n");
+    printf("\n*** Writing Max Dimension Size (%u) For NC_64BIT_OFFSET\n",DIMMAX64OFFSET);
     if ((stat=nc_create(FILE64OFFSET, NC_CLOBBER | NC_64BIT_OFFSET, &ncid))) ERRSTAT(stat);
     dimsize = DIMMAX64OFFSET;
     if ((stat=nc_def_dim(ncid, "testdim", dimsize, &dimid))) ERRSTAT(stat);
+    if ((stat=nc_enddef(ncid))) ERRSTAT(stat);
     if ((stat=nc_close(ncid))) ERRSTAT(stat);
 
     printf("\n*** Reading Max Dimension Size For NC_64BIT_OFFSET\n");
@@ -62,7 +63,7 @@ main(int argc, char **argv)
     if ((stat=nc_close(ncid))) ERRSTAT(stat);
 
     if(sizeof(size_t) == 8) {
-        printf("\n*** Writing Max Dimension Size For NC_64BIT_DATA\n");
+      printf("\n*** Writing Max Dimension Size (%llu) For NC_64BIT_DATA\n",DIMMAX64DATA);
         if ((stat=nc_create(FILE64DATA, NC_CLOBBER | NC_64BIT_DATA, &ncid))) ERRSTAT(stat);
         dimsize = (size_t)DIMMAX64DATA;
         if ((stat=nc_def_dim(ncid, "testdim", dimsize, &dimid))) ERRSTAT(stat);

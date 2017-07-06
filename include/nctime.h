@@ -4,6 +4,9 @@
  *   $Id: nctime.h,v 1.6 2010/03/18 19:24:26 russ Exp $
  *********************************************************************/
 
+#ifndef _NCTIME_H
+#define _NCTIME_H
+
 struct bounds_node{
     int ncid;	  /* group (or file) in which variable with associated
 		   * bounds variable resides */
@@ -14,7 +17,7 @@ struct bounds_node{
 
 typedef struct bounds_node bounds_node_t;
 
-/* 
+/*
  * This code was extracted with permission from the CDMS time
  * conversion and arithmetic routines developed by Bob Drach, Lawrence
  * Livermore National Laboratory as part of the cdtime library.
@@ -158,4 +161,4 @@ extern int cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* uni
 #endif /* DLL Considerations. */
 
 
-
+#endif /* ifdef */

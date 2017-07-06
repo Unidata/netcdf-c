@@ -1745,7 +1745,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    /* Create the NC* instance and insert its dispatcher */
    stat = new_NC(dispatcher,path,cmode,&ncp);
    nullfree(path); path = NULL; /* no longer needed */
-   
+
    if(stat) return stat;
 
    /* Add to list of known open files and define ext_ncid */

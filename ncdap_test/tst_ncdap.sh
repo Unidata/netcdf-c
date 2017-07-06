@@ -1,5 +1,7 @@
 #!/bin/sh
 
+if test "x$SETX" != x ; then set -x ; fi
+
 quiet=0
 leakcheck=0
 
@@ -17,25 +19,13 @@ mode="$3"
 # Locate the testdata and expected directory
 testdata3="${srcdir}/testdata3"
 expected3="${srcdir}/expected3"
-expected4="${srcdir}/expected4"
+
+TITLE="DAP to netCDF-3 translation"
+EXPECTED="$expected3"
+PARAMS="${PARAMS}[cache]"
 
 # get the list of test files
 . ${srcdir}/tst_ncdap_shared.sh
-
-FLAGS=
-
-case "$mode" in
-*3)
-    EXPECTED="$expected3"
-    TITLE="DAP to netCDF-3 translation"
-    PARAMS="${PARAMS}[cache]"
-    ;;
-*4)
-    EXPECTED="$expected4"
-    TITLE="DAP to netCDF-4 translation"
-    PARAMS="${PARAMS}[netcdf4][cache]"
-    ;;
-esac
 
 case "$mode" in
 file*)
@@ -55,8 +45,7 @@ remote*)
 esac
 
 RESULTSDIR="./results"
-# Locate some tools
-NCDUMP="${builddir}/ncdump/ncdump $FLAGS"
+#
 if test "x$leakcheck" = "x1" ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
 fi
@@ -84,7 +73,8 @@ for x in ${TESTSET} ; do
     if test "x${t}" = "x${x}" ; then isxfail=1; fi
   done
   ok=1
-  if ${VALGRIND} ${NCDUMP} "${url}" > ${x}.dmp ; then ok=$ok; else ok=0; fi
+  echo command: ${VALGRIND} ${NCDUMP} ${FLAGS} "${url}"
+  if ${VALGRIND} ${NCDUMP} ${FLAGS} "${url}" > ${x}.dmp ; then ok=$ok; else ok=0; fi
   # compare with expected
   if diff -w ${EXPECTED}/${x}.dmp ${x}.dmp ; then ok=$ok; else ok=0; fi
   if test "$ok" = 1 ; then
@@ -119,7 +109,6 @@ echo "pwd=" `pwd`
 
 totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
-
 
 echo "*** PASSED: ${okcount}/${totalcount} ; ${xfailcount} expected failures ; ${failcount} unexpected failures"
 
