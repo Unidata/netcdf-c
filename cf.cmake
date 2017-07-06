@@ -1,5 +1,5 @@
 # Visual Studio
-#VS=1
+VS=1
 
 # Is netcdf-4 and/or DAP enabled?
 NC4=1
