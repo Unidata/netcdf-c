@@ -13,7 +13,7 @@
    * https://stackoverflow.com/questions/1372480/c-redefinition-header-files-winsock2-h
 
    */
-   #define _WINSOCKAPI_
+/*   #define _WINSOCKAPI_*/
 
    #if _MSC_VER>=1900
      #define STDC99

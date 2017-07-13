@@ -1,5 +1,12 @@
 # Visual Studio
 VS=1
+#VSSETUP=1
+
+if test "x$VSSETUP" = x1 ; then
+CFG="Debug"
+else
+CFG="Release"
+fi
 
 # Is netcdf-4 and/or DAP enabled?
 NC4=1
@@ -33,13 +40,13 @@ NCLIB=`pwd`
 
 if test "x$VS" != x ; then
 # Visual Studio
-#CFG="RelWithDebInfo"
-CFG="Release"
 NCLIB="${NCLIB}/build/liblib/$CFG"
 export PATH="${NCLIB}:${PATH}"
 cmake $FLAGS ..
+if test "x$VSSETUP" = x ; then
 cmake --build . --config ${CFG}
 cmake --build . --config ${CFG} --target RUN_TESTS
+fi
 else
 # GCC
 NCLIB="${NCLIB}/build/liblib"

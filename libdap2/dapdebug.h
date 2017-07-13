@@ -5,7 +5,7 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#if 0
+#if 1
 #define DAPDEBUG 1
 #define OCDEBUG 1
 #endif
@@ -51,11 +51,11 @@ extern int dappanic(const char* fmt, ...);
 
 #ifdef CATCHERROR
 /* Place breakpoint on dapbreakpoint to catch errors close to where they occur*/
-#define THROW(e) dapthrow(e)
-#define THROWCHK(e) (void)dapthrow(e)
+#define THROW(e) dapthrow(e,__LINE__,__FILE__)
+#define THROWCHK(e) (void)dapthrow(e,__LINE__,__FILE__)
 
 extern int dapbreakpoint(int err);
-extern int dapthrow(int err);
+extern int dapthrow(int err, int lineno, const char* filename);
 #else
 #define THROW(e) (e)
 #define THROWCHK(e)

@@ -19,6 +19,7 @@
 #include "ochttp.h"
 #include "ocread.h"
 #include "occurlfunctions.h"
+#include "ncwinpath.h"
 
 /*Forward*/
 static int readpacket(OCstate* state, NCURI*, NCbytes*, OCdxd, long*);
@@ -214,10 +215,11 @@ readfile(const char* path, const char* suffix, NCbytes* packet)
 #ifdef O_BINARY
     flags |= O_BINARY;
 #endif
-    fd = open(filename,flags);
+    fd = NCopen2(filename,flags);
     if(fd < 0) {
-	nclog(NCLOGERR,"open failed:%s",filename);
-	return OCTHROW(OC_EOPEN);
+	nclog(NCLOGERR,"open failed: %s file=|%s|",ocerrstring(errno),filename);
+	stat = OC_EOPEN;
+	goto done;
     }
     /* Get the file size */
     filesize = lseek(fd,(off_t)0,SEEK_END);

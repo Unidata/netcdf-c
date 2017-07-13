@@ -10,13 +10,14 @@
 #include <stdio.h>
 #include "ncexternl.h"
 
+#ifndef WINPATH
 #ifdef _MSC_VER
 #define WINPATH 1
 #endif
 #ifdef __MINGW32__
 #define WINPATH 1
 #endif
-
+#endif
 
 /* path converter */
 EXTERNL char* NCpathcvt(const char* path);

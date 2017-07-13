@@ -18,6 +18,8 @@
 #include "ncexternl.h"
 #include "ncwinpath.h"
 
+#undef PATHDEBUG
+
 /*
 Code to provide some path conversion code so that
 cygwin and (some) mingw paths can be passed to open/fopen
@@ -47,7 +49,7 @@ NCpathcvt(const char* path)
     char* q;
     size_t pathlen;
 
-    if(path == NULL) return NULL; /* defensive driving */
+    if(path == NULL) goto done; /* defensive driving */
     pathlen = strlen(path);
 
     /* 1. look for MSYS path /D/... */
@@ -57,7 +59,7 @@ NCpathcvt(const char* path)
 	&& (path[2] == '/' || path[2] == '\\' || path[2] == '\0')) {
 	/* Assume this is a mingw path */
 	outpath = (char*)malloc(pathlen+3); /* conservative */
-	if(outpath == NULL) return NULL;
+	if(outpath == NULL) goto done;
 	q = outpath;
 	*q++ = path[1];
 	*q++ = ':';
@@ -76,8 +78,8 @@ NCpathcvt(const char* path)
 	    || path[cdlen+1] == '\0')) {
 	/* Assume this is a cygwin path */
 	outpath = (char*)malloc(pathlen+1); /* conservative */
-	if(outpath == NULL) return NULL;
-	outpath[0] = path[cdlen];
+	if(outpath == NULL) goto done;
+	outpath[0] = path[cdlen]; /* drive letter */
 	outpath[1] = ':';
 	strcpy(&outpath[2],&path[cdlen+1]);
 	if(strlen(outpath) == 2)
@@ -99,12 +101,29 @@ NCpathcvt(const char* path)
     goto done;
 
 slashtrans:
-    /* In all #1 or #2 cases, translate '/' -> '\\' */
+      /* In order to help debugging, and if not using MSC_VER or MINGW,
+	 convert back slashes to forward, else convert forward to back
+      */
     p = outpath;
+    /* In all #1 or #2 cases, translate '/' -> '\\' */
     for(;*p;p++) {
 	if(*p == '/') {*p = '\\';}
     }
+#ifdef PATHDEBUG
+#ifndef _MSC_VER
+    /* Convert '\' back to '/' */
+    for(;*p;p++) {
+	if(*p == '\\') {*p = '/';}
+    }
+#endif /*!_MSC_VER*/
+#endif /*PATHDEBUG*/
+
 done:
+#ifdef PATHDEBUG
+fprintf(stderr,"XXXX: inpath=|%s| outpath=|%s|\n",
+        path?path:"NULL",outpath?outpath:"NULL");
+fflush(stderr);
+#endif
     return outpath;
 }
 
@@ -120,8 +139,6 @@ NCfopen(const char* path, const char* flags)
 {
     FILE* f = NULL;
     char* cvtname = NCpathcvt(path);
-fprintf(stderr,"XXXX: path=|%s| cvtpath=|%s|\n",path,cvtname?cvtname:"null");
-fflush(stderr);
     if(cvtname == NULL) return NULL;
     f = fopen(cvtname,flags);
     free(cvtname);    
@@ -133,10 +150,8 @@ int
 NCopen3(const char* path, int flags, int mode)
 {
     int fd = -1;
-    fprintf(stderr,"XXXX: path=|%s|\n",path);
     fflush(stderr);
     char* cvtname = NCpathcvt(path);
-    fprintf(stderr,"XXXX: path=|%s| cvtpath=|%s|\n",path,cvtname?cvtname:"null");
     fflush(stderr);
     if(cvtname == NULL) return -1;
     fd = open(cvtname,flags,mode);

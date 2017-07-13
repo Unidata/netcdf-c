@@ -13,6 +13,7 @@
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "nclog.h"
+#include "ncwinpath.h"
 
 #define OCRCFILEENV "DAPRCFILE"
 
@@ -279,7 +280,7 @@ ocrc_compile(const char* path)
 
     ocrc->ntriples = 0; /* reset; nothing to free */
 
-    in_file = fopen(path, "r"); /* Open the file to read it */
+    in_file = NCfopen(path, "r"); /* Open the file to read it */
     if (in_file == NULL) {
         nclog(NCLOGERR, "Could not open configuration file: %s",path);
         return OC_EPERM;
@@ -714,9 +715,7 @@ rc_search(const char* prefix, const char* rcname, char** pathp)
 	goto done;
     }
     /* see if file is readable */
-    f = fopen(path,"r");
-    if(f != NULL)
-        nclog(NCLOGDBG, "Found rc file=%s",path);
+    f = NCfopen(path,"r");
 done:
     if(f == NULL || stat != OC_NOERR) {
       if(path != NULL)
