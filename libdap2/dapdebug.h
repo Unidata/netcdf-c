@@ -27,7 +27,7 @@
 
 #undef PARSEDEBUG
 /* Warning: setting CATCHERROR has significant performance impact */
-#define CATCHERROR
+#undef CATCHERROR
 
 #include <stdarg.h>
 #include <assert.h>
