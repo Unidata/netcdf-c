@@ -34,7 +34,7 @@ check_PROGRAMS += findtestserver
 findtestserver_SOURCES = findtestserver.c
 
 if BUILD_UTILITIES
-TESTS += tst_remote3.sh tst_formatx.sh
+TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh
 endif
 
 TESTS += test_partvar testurl.sh
