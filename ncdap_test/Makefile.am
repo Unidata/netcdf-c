@@ -82,7 +82,7 @@ EXTRA_DIST = tst_ncdap3.sh  \
              tst_longremote3.sh \
              tst_ncdap.sh tst_ncdap_shared.sh tst_remote.sh \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
-			t_ncf330.c
+	     t_ncf330.c tst_ber.sh
 
 CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a test_nstride_cached *.exe
 
