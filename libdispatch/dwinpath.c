@@ -16,9 +16,8 @@
 #endif
 
 #include "ncexternl.h"
-#include "ncwinpath.h"
 
-#undef PATHDEBUG
+#include "ncwinpath.h"
 
 /*
 Code to provide some path conversion code so that
@@ -40,6 +39,9 @@ static char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 static size_t cdlen = 10; /* strlen("/cygdrive/") */
 
+static int pathdebug = -1;
+static int pathformat = -1;
+
 EXTERNL
 char* /* caller frees */
 NCpathcvt(const char* path)
@@ -50,6 +52,17 @@ NCpathcvt(const char* path)
     size_t pathlen;
 
     if(path == NULL) goto done; /* defensive driving */
+
+    /* Check for path debug env vars */
+    if(pathformat < 0) {
+	const char* s = getenv("NCPATHFORMAT");
+        pathformat = (s == NULL ? 0 : 1);
+    }
+    if(pathdebug < 0) {
+	const char* s = getenv("NCPATHDEBUG");
+        pathdebug = (s == NULL ? 0 : 1);
+    }
+
     pathlen = strlen(path);
 
     /* 1. look for MSYS path /D/... */
@@ -109,21 +122,22 @@ slashtrans:
     for(;*p;p++) {
 	if(*p == '/') {*p = '\\';}
     }
-#ifdef PATHDEBUG
+    if(pathformat > 0) {
 #ifndef _MSC_VER
-    /* Convert '\' back to '/' */
-    for(;*p;p++) {
-	if(*p == '\\') {*p = '/';}
+	p = outpath;
+        /* Convert '\' back to '/' */
+        for(;*p;p++) {
+            if(*p == '\\') {*p = '/';}
+	}
     }
 #endif /*!_MSC_VER*/
-#endif /*PATHDEBUG*/
 
 done:
-#ifdef PATHDEBUG
-fprintf(stderr,"XXXX: inpath=|%s| outpath=|%s|\n",
-        path?path:"NULL",outpath?outpath:"NULL");
-fflush(stderr);
-#endif
+    if(pathdebug) {
+        fprintf(stderr,"XXXX: inpath=|%s| outpath=|%s|\n",
+            path?path:"NULL",outpath?outpath:"NULL");
+        fflush(stderr);
+    }
     return outpath;
 }
 
