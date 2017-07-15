@@ -2,6 +2,8 @@
 VS=1
 #VSSETUP=1
 
+#export NCPATHDEBUG=1
+
 if test "x$VSSETUP" = x1 ; then
 CFG="Debug"
 else

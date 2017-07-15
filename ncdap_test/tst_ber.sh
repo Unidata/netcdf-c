@@ -6,7 +6,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 export NCPATHDEBUG=1
-#export NCPATHFORMAT=1
 
 F="ber-2002-10-01.nc"
 PWD=`pwd`

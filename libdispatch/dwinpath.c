@@ -16,8 +16,9 @@
 #endif
 
 #include "ncexternl.h"
-
 #include "ncwinpath.h"
+
+#undef PATHFORMAT
 
 /*
 Code to provide some path conversion code so that
@@ -40,7 +41,6 @@ static char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 static size_t cdlen = 10; /* strlen("/cygdrive/") */
 
 static int pathdebug = -1;
-static int pathformat = -1;
 
 EXTERNL
 char* /* caller frees */
@@ -54,10 +54,6 @@ NCpathcvt(const char* path)
     if(path == NULL) goto done; /* defensive driving */
 
     /* Check for path debug env vars */
-    if(pathformat < 0) {
-	const char* s = getenv("NCPATHFORMAT");
-        pathformat = (s == NULL ? 0 : 1);
-    }
     if(pathdebug < 0) {
 	const char* s = getenv("NCPATHDEBUG");
         pathdebug = (s == NULL ? 0 : 1);
@@ -122,7 +118,7 @@ slashtrans:
     for(;*p;p++) {
 	if(*p == '/') {*p = '\\';}
     }
-    if(pathformat > 0) {
+#ifdef PATHFORMAT
 #ifndef _MSC_VER
 	p = outpath;
         /* Convert '\' back to '/' */
@@ -131,6 +127,7 @@ slashtrans:
 	}
     }
 #endif /*!_MSC_VER*/
+#endif /*PATHFORMAT*/
 
 done:
     if(pathdebug) {
