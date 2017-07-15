@@ -8,6 +8,9 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
+LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/liblib
 AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
