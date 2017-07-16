@@ -32,8 +32,6 @@ test.sds2 test.sds3 test.sds4 test.sds5 \
 test.sds6 test.sds7 test.vs1 \
 test.vs2 test.vs3 test.vs4 test.vs5 whoi"
 
-# ber-2002-10-01.nc
-
 ACTUALDATA2=\
 "123bears.nc 123.nc bears.nc \
 ceopL2AIRS2-2.nc \
@@ -41,6 +39,7 @@ data.nc fnoc1.nc \
 in1.nc in_2.nc in.nc \
 in_no_three_double_dmn.nc in_v.nc saco1.nc \
 test.nc text.nc \
+ber-2002-10-01.nc \
 kwcase.nc"
 
 # XFAIL tests should be a subset of the other tests; this is used
