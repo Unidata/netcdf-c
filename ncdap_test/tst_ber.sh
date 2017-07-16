@@ -8,11 +8,10 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 export NCPATHDEBUG=1
 
 F="ber-2002-10-01.nc"
-PWD=`pwd`
-EXPECTED="${PWD}/expected3"
+EXPECTED="${srcdir}/expected3"
 
 URL='[log][cache]file://'
-URL="${URL}${PWD}/testdata3/$F"
+URL="${URL}${srcdir}/testdata3/$F"
 rm -f ./tmp
 ${NCDUMP} "${URL}" >./tmp
 diff -w ${EXPECTED}/$F.dmp ./tmp
