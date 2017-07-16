@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include "ncexternl.h"
 
+#define WINPATH
 #ifndef WINPATH
 #ifdef _MSC_VER
 #define WINPATH 1
