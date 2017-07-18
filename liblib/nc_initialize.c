@@ -35,6 +35,11 @@ extern int NCP_initialize(void);
 extern int NCP_finalize(void);
 #endif
 
+#ifdef _MSC_VER
+#include <io.h>
+#include <fcntl.h>
+#endif
+
 int NC_argc = 1;
 char* NC_argv[] = {"nc_initialize",NULL};
 
@@ -58,6 +63,11 @@ nc_initialize()
     if(NC_initialized) return NC_NOERR;
     NC_initialized = 1;
     NC_finalized = 0;
+
+#ifdef _MSC_VER
+    /* Force binary mode */
+    _set_fmode(_O_BINARY);
+#endif
 
     /* Do general initialization */
     if((stat = NCDISPATCH_initialize())) goto done;
