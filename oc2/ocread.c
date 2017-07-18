@@ -13,6 +13,9 @@
 #endif
 #ifdef _WIN32
 #include <io.h>
+#ifndef O_BINARY
+#define O_BINARY _O_BINARY
+#endif
 #endif
 #include "ocinternal.h"
 #include "ocdebug.h"
