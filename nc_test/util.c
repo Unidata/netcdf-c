@@ -1252,14 +1252,14 @@ char* nc_err_code_name(int err)
         case (NC_ENOTINDEFINE):			return "NC_ENOTINDEFINE";
         case (NC_EINDEFINE):			return "NC_EINDEFINE";
         case (NC_EINVALCOORDS):			return "NC_EINVALCOORDS";
-        case (NC_EMAXDIMS):			return "NC_EMAXDIMS";
+        case (NC_EMAXDIMS):			return "NC_EMAXDIMS"; /* not enforced after 4.5.0 */
         case (NC_ENAMEINUSE):			return "NC_ENAMEINUSE";
         case (NC_ENOTATT):			return "NC_ENOTATT";
-        case (NC_EMAXATTS):			return "NC_EMAXATTS";
+        case (NC_EMAXATTS):			return "NC_EMAXATTS"; /* not enforced after 4.5.0 */
         case (NC_EBADTYPE):			return "NC_EBADTYPE";
         case (NC_EBADDIM):			return "NC_EBADDIM";
         case (NC_EUNLIMPOS):			return "NC_EUNLIMPOS";
-        case (NC_EMAXVARS):			return "NC_EMAXVARS";
+        case (NC_EMAXVARS):			return "NC_EMAXVARS"; /* not enforced after 4.5.0 */
         case (NC_ENOTVAR):			return "NC_ENOTVAR";
         case (NC_EGLOBAL):			return "NC_EGLOBAL";
         case (NC_ENOTNC):			return "NC_ENOTNC";

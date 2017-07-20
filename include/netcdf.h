@@ -342,11 +342,11 @@ larger than the corresponding dimension length will cause an error. */
 /** NC_MAX_DIMS exceeded. Max number of dimensions exceeded in a
 classic or 64-bit offset file, or an netCDF-4 file with
 ::NC_CLASSIC_MODEL on. */
-#define	NC_EMAXDIMS	(-41)
+#define	NC_EMAXDIMS	(-41) /* not enforced after 4.5.0 */
 
 #define	NC_ENAMEINUSE	(-42)	   /**< String match to name in use */
 #define NC_ENOTATT	(-43)	   /**< Attribute not found */
-#define	NC_EMAXATTS	(-44)	   /**< NC_MAX_ATTRS exceeded */
+#define	NC_EMAXATTS	(-44)	   /**< NC_MAX_ATTRS exceeded */ /* not enforced after 4.5.0 */
 #define NC_EBADTYPE	(-45)	   /**< Not a netcdf data type */
 #define NC_EBADDIM	(-46)	   /**< Invalid dimension id or name */
 #define NC_EUNLIMPOS	(-47)	   /**< NC_UNLIMITED in the wrong index */
@@ -354,7 +354,7 @@ classic or 64-bit offset file, or an netCDF-4 file with
 /** NC_MAX_VARS exceeded. Max number of variables exceeded in a
 classic or 64-bit offset file, or an netCDF-4 file with
 ::NC_CLASSIC_MODEL on. */
-#define	NC_EMAXVARS	(-48)
+#define	NC_EMAXVARS	(-48) /* not enforced after 4.5.0 */
 
 /** Variable not found.
 

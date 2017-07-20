@@ -609,11 +609,6 @@ NC3_def_var( int ncid, const char *name, nc_type type,
 		return NC_EINVAL;
 	}
 
-	if(ncp->vars.nelems >= NC_MAX_VARS)
-	{
-		return NC_EMAXVARS;
-	}
-
 	varid = NC_findvar(&ncp->vars, name, &varp);
 	if(varid != -1)
 	{
