@@ -47,7 +47,6 @@ test_partvar_SOURCES = test_partvar.c
 test_varm3_SOURCES = test_varm3.c
 test_nstride_cached_SOURCES = test_nstride_cached.c
 
-#t_auth_SOURCES = t_auth.c
 t_misc_SOURCES = t_misc.c
 
 TESTS += test_varm3
@@ -62,9 +61,8 @@ check_PROGRAMS += test_varm3
 check_PROGRAMS += t_ncf330
 
 if ENABLE_DAP_AUTH_TESTS
-#check_PROGRAMS += t_auth t_auth1
-#TESTS += t_auth
-TESTS += testauth.sh
+TESTS += testbasicauth.sh
+TESTS += testcontainerauth.sh
 endif
 
 endif #ENABLE_DAP_REMOTE_TESTS
