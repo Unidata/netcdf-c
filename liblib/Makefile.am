@@ -71,7 +71,7 @@ libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 endif #USE_NETCDF4
 
 if ISCYGWIN
-# Force binary mode
+# Force binary mode for file read/write
 AM_LDFLAGS += -lbinmode
 endif
 

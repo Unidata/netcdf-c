@@ -19,7 +19,7 @@
 #endif
 #endif
 
-/* path converter */
+/* Path Converter */
 EXTERNL char* NCpathcvt(const char* path);
 
 #ifdef WINPATH
