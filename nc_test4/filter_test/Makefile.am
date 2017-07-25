@@ -44,13 +44,20 @@ if ENABLE_FILTER_TEST
 check_PROGRAMS = test_filter
 TESTS = tst_filter.sh
 
-all-local:
+# In order to create the bzip shared object,
+# we provide an explicit target for it that
+# must be invoked before 'make check'
+
+# You may need to change this if HDF5 is installed elsewhere
+HDF5LIBDIR = /usr/local/lib
+# Ditto for zlib
+ZLIBDIR = ${HDF5LIBDIR}
+
+makebzip2::
 	SDIR=${srcdir} ;\
 	for f in ${PLUGINSRC} ${BZIP2SRC} ; do \
         DLLSRC="$${DLLSRC} $${SDIR}/$$f" ; \
 	done ; \
 	gcc -g -O0 -shared -o ${LIBNAME} $${DLLSRC} \
-	-L/usr/local/lib -lhdf5_hl -lhdf5 -lz
+	-L${HDF5LIBDIR} -lhdf5_hl -lhdf5 -L${ZLIBDIR} -lz
 endif
-
-

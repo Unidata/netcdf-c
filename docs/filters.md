@@ -207,8 +207,11 @@ using bzip2. The test case is fragile and is only known to work for Linux
 and Cygwin. To avoid spurious failures, it must be explicitly
 invoked by entering the directory and issuing the command
 ````
-make clean all check
+make clean all makebzip2 check
 ````
+Note that the Make target 'makebzip2' creates the bzip2 shared object.
+It is the target most likely to fail when executed on an untested or
+non-standard platform.
 
 Although it is fragile, this test can  serve as a complete example for building
 plugins for other filters.

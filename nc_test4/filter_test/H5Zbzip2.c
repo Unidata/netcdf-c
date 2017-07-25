@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <hdf5.h>
+/* Older versions of the hdf library may define H5PL_type_t here */
+#include <H5PLextern.h>
 #include "h5bzip2.h"
 
 
