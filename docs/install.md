@@ -118,7 +118,7 @@ Next, specify where you want to install HDF5 in another shell variable, for exam
 ~~~~{.py}
     $ # Build and install HDF5
     $ H5DIR=/usr/local
-    $ ./configure --with-zlib=${ZDIR} --prefix=${H5DIR} --eanble-hl
+    $ ./configure --with-zlib=${ZDIR} --prefix=${H5DIR}
     $ make check
     $ make install   # or sudo make install, if root permissions required
 ~~~~
