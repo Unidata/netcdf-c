@@ -602,15 +602,15 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
 
    /* Check the cmode for validity. */
    if((cmode & ILLEGAL_CREATE_FLAGS) != 0)
-      return NC_EINVAL;
+      {res = NC_EINVAL; goto done;}
 
    /* Cannot have both */
    if((cmode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
-      return NC_EINVAL;
+      {res = NC_EINVAL; goto done;}
 
    /* Currently no parallel diskless io */
    if((cmode & (NC_MPIIO | NC_MPIPOSIX)) && (cmode & NC_DISKLESS))
-      return NC_EINVAL;
+      {res = NC_EINVAL; goto done;}
 
 #ifndef USE_PARALLEL_POSIX
 /* If the HDF5 library has been compiled without the MPI-POSIX VFD, alias
@@ -636,8 +636,10 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    LOG((2, "cmode after applying default format: 0x%x", cmode));
 
    nc_file->int_ncid = nc_file->ext_ncid;
-   res = nc4_create_file(nc_file->path, cmode, comm, info, nc_file);
 
+   res = nc4_create_file(path, cmode, comm, info, nc_file);
+
+done:
    return res;
 }
 
@@ -2845,11 +2847,11 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 
    /* Check the mode for validity */
    if((mode & ILLEGAL_OPEN_FLAGS) != 0)
-      return NC_EINVAL;
+      {res = NC_EINVAL; goto done;}
 
    /* Cannot have both */
    if((mode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
-      return NC_EINVAL;
+      {res = NC_EINVAL; goto done;}
 
 #ifndef USE_PARALLEL_POSIX
 /* If the HDF5 library has been compiled without the MPI-POSIX VFD, alias
@@ -2864,7 +2866,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 
    /* Figure out if this is a hdf4 or hdf5 file. */
    if ((res = nc_check_for_hdf(path, use_parallel, parameters, &hdf_file)))
-	return res;
+	goto done;
 
    /* Depending on the type of file, open it. */
    nc_file->int_ncid = nc_file->ext_ncid;
@@ -2872,12 +2874,13 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
        res = nc4_open_file(path, mode, parameters, nc_file);
 #ifdef USE_HDF4
    else if (hdf_file == NC_HDF4_FILE && inmemory)
-	return NC_EDISKLESS;
+	{res = NC_EDISKLESS; goto done;}
    else if (hdf_file == NC_HDF4_FILE)
        res = nc4_open_hdf4_file(path, mode, nc_file);
 #endif /* USE_HDF4 */
    else
-         assert(0); /* should never happen */
+       assert(0); /* should never happen */
+done:
    return res;
 }
 
