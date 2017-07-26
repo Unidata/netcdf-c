@@ -12,7 +12,7 @@ EXPECTED="${srcdir}/expected3"
 URL='[log][cache]file://'
 URL="${URL}${srcdir}/testdata3/$F"
 rm -f ./tmp
-${NCDUMP} "${URL}" |tr -d '\r' > ./tmp
+${NCDUMP} "${URL}" | sed 's/\\r//g' > ./tmp
 diff -w ${EXPECTED}/$F.dmp ./tmp
 #cleanup
 rm -f ./tmp
