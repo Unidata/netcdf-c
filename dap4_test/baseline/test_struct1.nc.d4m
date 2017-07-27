@@ -6,7 +6,6 @@ types:
   }; // s_t
 variables:
 	s_t s ;
-		string s:_edu.ucar.maps = "/s.x", "/s.y" ;
 
 // global attributes:
 		:_DAP4_Little_Endian = 1UB ;
