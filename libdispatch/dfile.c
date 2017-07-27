@@ -139,7 +139,8 @@ done:
 /*!
 Given an existing file, figure out its format
 and return that format value (NC_FORMATX_XXX)
-in model arg.
+in model arg. Assume any path conversion was
+already performed at a higher level.
 */
 int
 NC_check_file_type(const char *path, int flags, void *parameters,
@@ -1806,8 +1807,11 @@ NC_open(const char *path0, int cmode,
       if(stat) return stat;
    }
 
+   /* Attempt to do file path conversion: note that this will do
+      nothing if path is a 'file:...' url, so it will need to be
+      repeated in protocol code: libdap2 and libdap4
+    */
 #ifdef WINPATH
-   /* Need to do path conversion */
    path = NCpathcvt(path0);
 #else
    path = nulldup(path0);

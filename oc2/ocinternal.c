@@ -25,6 +25,7 @@
 #include "ochttp.h"
 #include "ocread.h"
 #include "dapparselex.h"
+#include "ncwinpath.h"
 
 #define DATADDSFILE "datadds"
 
@@ -387,7 +388,7 @@ createtempfile(OCstate* state, OCtree* tree)
 #endif
     tree->data.filename = name; /* remember our tmp file name */
     name = NULL;
-    tree->data.file = fopen(tree->data.filename,"w+");
+    tree->data.file = NCfopen(tree->data.filename,"w+");
     if(tree->data.file == NULL) return OC_EOPEN;
     /* unlink the temp file so it will automatically be reclaimed */
     if(ocdebug == 0) unlink(tree->data.filename);
@@ -640,17 +641,17 @@ ocset_curlproperties(OCstate* state)
 	FILE* f = NULL;
 	char* fname = state->curlflags.cookiejar;
 	/* See if the file exists already */
-        f = fopen(fname,"r");
+        f = NCfopen(fname,"r");
 	if(f == NULL) {
 	    /* Ok, create it */
-	    f = fopen(fname,"w+");
+	    f = NCfopen(fname,"w+");
 	    if(f == NULL) {
 	        fprintf(stderr,"Cookie file cannot be read and written: %s\n",fname);
 	        {stat = OC_EPERM; goto fail;}
 	    }
 	} else { /* test if file can be written */
 	    fclose(f);
-	    f = fopen(fname,"r+");
+	    f = NCfopen(fname,"r+");
 	    if(f == NULL) {
 	        fprintf(stderr,"Cookie file is cannot be written: %s\n",fname);
 	        {stat = OC_EPERM; goto fail;}

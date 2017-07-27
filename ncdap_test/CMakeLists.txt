@@ -28,6 +28,7 @@ IF(ENABLE_TESTS)
     BUILD_BIN_TEST(findtestserver)
 
     IF(BUILD_UTILITIES)
+      add_sh_test(ncdap tst_ber)
       add_sh_test(ncdap tst_remote3)
 # not yet      add_sh_test(ncdap tst_hyrax)
     ENDIF(BUILD_UTILITIES)

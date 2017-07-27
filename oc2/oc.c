@@ -14,6 +14,7 @@
 #include "occlientparams.h"
 #include "occurlfunctions.h"
 #include "ochttp.h"
+#include "ncwinpath.h"
 
 #undef TRACK
 
@@ -2085,11 +2086,10 @@ oc_set_netrc(OClink* link, const char* file)
     if(file == NULL || strlen(file) == 0)
 	return OC_EINVAL;
     nclog(OCLOGDBG,"OC: using netrc file: %s",file);
-    /* See if it exists and is readable; complain if not */
-    f = fopen(file,"r");
-    if(f == NULL)
-	nclog(NCLOGWARN,"OC: netrc file is not readable; continuing");
-    else {
+    /* See if it exists and is readable; ignore if not */
+    f = NCfopen(file,"r");
+    if(f != NULL) { /* Log what rc file is being used */
+	nclog(NCLOGNOTE,"OC: netrc file found: %s",file);
 	fclose(f);
     }
     return OCTHROW(ocset_netrc(state,file));
@@ -2142,7 +2142,7 @@ oc_set_rcfile(const char* rcfile)
     if(rcfile == NULL) {
 	ocglobalstate.rc.ignore = 1;
     } else {
-        FILE* f = fopen(rcfile,"r");
+        FILE* f = NCfopen(rcfile,"r");
         if(f == NULL) {
 	    stat = (OC_ERCFILE);
 	    goto done;
