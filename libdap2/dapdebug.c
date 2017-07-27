@@ -20,9 +20,10 @@ dapbreakpoint(int err)
 }
 
 int
-dapthrow(int err)
+dapthrow(int err, int lineno, const char* filename)
 {
     if(err == 0) return err;
+    fprintf(stderr,"$dapthrow: err=%d line=%d file=%s\n",err,lineno,filename); fflush(stderr);
     return dapbreakpoint(err);
 }
 #endif

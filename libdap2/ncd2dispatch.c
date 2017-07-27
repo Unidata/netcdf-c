@@ -283,7 +283,7 @@ NCD2_get_vars(int ncid, int varid,
 
 /* See ncd2dispatch.c for other version */
 int
-NCD2_open(const char * path, int mode,
+NCD2_open(const char* path, int mode,
                int basepe, size_t *chunksizehintp,
  	       int useparallel, void* mpidata,
                NC_Dispatch* dispatch, NC* drno)
@@ -295,13 +295,15 @@ NCD2_open(const char * path, int mode,
     int nc3id = -1;
 
     if(path == NULL)
-	return NC_EDAPURL;
-    if(dispatch == NULL) PANIC("NCD3_open: no dispatch table");
+	{ncstat = NC_EDAPURL; goto done;}
+    if(dispatch == NULL)
+	PANIC("NCD3_open: no dispatch table");
 
     /* Setup our NC and NCDAPCOMMON state*/
 
     dapcomm = (NCDAPCOMMON*)calloc(1,sizeof(NCDAPCOMMON));
-    if(dapcomm == NULL) {ncstat = NC_ENOMEM; goto done;}
+    if(dapcomm == NULL)
+	{ncstat = NC_ENOMEM; goto done;}
 
     NCD2_DATA_SET(drno,dapcomm);
     drno->int_ncid = nc__pseudofd(); /* create a unique id */
