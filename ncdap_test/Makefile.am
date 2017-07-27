@@ -92,9 +92,6 @@ t_dap3a.c: t_dap.c
 	echo "#define NETCDF3ONLY" > ./t_dap3a.c
 	cat t_dap.c >> t_dap3a.c
 
-t_dap4a.c: t_dap.c
-	cat t_dap.c >> ./t_dap4a.c
-
 # One last thing
 BUILT_SOURCES = .dodsrc
 

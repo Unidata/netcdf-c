@@ -251,6 +251,7 @@ main()
     }
     printf("*** %s: stride case 3\n",(fail?"Fail":"Pass"));
 
+    nc_close(ncid);
     return fail;
 
 }
