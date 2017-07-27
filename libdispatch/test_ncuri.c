@@ -35,11 +35,13 @@ static Test TESTS[] = {
 {"[dap4]http://localhost:8081/x#show=fetch&log","http://localhost:8081/x#dap4&show=fetch&log"},
 /* suffix param tests with constraint*/
 {"http://localhost:8081/x?dap4.ce=x#dap4&show=fetch&log","http://localhost:8081/x?dap4.ce=x#dap4&show=fetch&log"},
+/* Test embedded user+pwd */
+{"http://tiggeUser:tigge@localhost:8081/thredds/dodsC/restrict/testData.nc",
+ "http://tiggeUser:tigge@localhost:8081/thredds/dodsC/restrict/testData.nc"},
 /* Misc. */
 {"http://localhost","http://localhost/"},
 {"http:///x","http:///x"},
 {"file:///home/osboxes/git/dap4/dap4_test/daptestfiles/test_anon_dim.2.syn#dap4&debug=copy&substratename=./results/test_anon_dim.2.syn.nc","file:///home/osboxes/git/dap4/dap4_test/daptestfiles/test_anon_dim.2.syn#dap4&debug=copy&substratename=./results/test_anon_dim.2.syn.nc"},
-
 {NULL,NULL}
 };
 

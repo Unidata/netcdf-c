@@ -5,6 +5,8 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . ${srcdir}/d4test_common.sh
 
+echo "test_meta.sh:"
+
 cd ${DMRTESTFILES}
 F=`ls -1 *.dmr | sed -e 's/[.]dmr//g' | tr '\r\n' '  '`
 cd $WD

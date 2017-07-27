@@ -10,10 +10,14 @@
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
-#if defined(_WIN32) || defined(_WIN64)
+#if _MSC_VER
 #include <io.h>
 #include <direct.h>
 #include <process.h>
+#endif
+
+#ifdef HAVE_FTW_H
+#include <ftw.h>
 #endif
 
 #include <errno.h>
@@ -29,28 +33,16 @@
 
 #define DATADDSFILE "datadds"
 
-#if 0
-/* Note: TMPPATH must end in '/' */
-#ifdef __CYGWIN__
-#define TMPPATH1 "/cygdrive/c/temp/datadds"
-#define TMPPATH2 "./datadds"
-#elif defined(_WIN32) || defined(_WIN64)
-#define TMPPATH1 "c:\\temp\\datadds"
-#define TMPPATH2 ".\\datadds"
-#else
-#define TMPPATH1 "/tmp/datadds"
-#define TMPPATH2 "./datadds"
-#endif
-#endif
-
 #define CLBRACE '{'
 #define CRBRACE '}'
 
+/*Forward*/
 static OCerror ocextractddsinmemory(OCstate*,OCtree*,int);
 static OCerror ocextractddsinfile(OCstate*,OCtree*,int);
 static char* constraintescape(const char* url);
 static OCerror createtempfile(OCstate*,OCtree*);
 static int dataError(XXDR* xdrs, OCstate*);
+static void ocremovefile(const char* path);
 
 static OCerror ocset_curlproperties(OCstate*);
 
@@ -89,7 +81,7 @@ ocinternalinitialize(void)
 	char* p;
 	char* q;
 	char cwd[4096];
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER
         tempdir = getenv("TEMP");
 #else
 	tempdir = "/tmp";
@@ -106,7 +98,7 @@ ocinternalinitialize(void)
 	    *q = *p;
 	}
 	*q = '\0';
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER
 #else
         /* Canonicalize */
 	for(p=ocglobalstate.tempdir;*p;p++) {
@@ -133,7 +125,7 @@ ocinternalinitialize(void)
 	    *q = *p;
 	}
 	*q = '\0';
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER
 #else
         /* Canonicalize */
 	for(p=home;*p;p++) {
@@ -390,8 +382,9 @@ createtempfile(OCstate* state, OCtree* tree)
     name = NULL;
     tree->data.file = NCfopen(tree->data.filename,"w+");
     if(tree->data.file == NULL) return OC_EOPEN;
-    /* unlink the temp file so it will automatically be reclaimed */
-    if(ocdebug == 0) unlink(tree->data.filename);
+    /* make the temp file so it will automatically be reclaimed on close */
+    if(ocdebug == 0)
+	ocremovefile(tree->data.filename);
     return stat;
 
 fail:
@@ -423,19 +416,11 @@ occlose(OCstate* state)
     ocfree(state->error.message);
     ocfree(state->curlflags.useragent);
     if(state->curlflags.cookiejar) {
-#if 0
         if(state->curlflags.createdflags & COOKIECREATED)
-	    unlink(state->curlflags.cookiejar);
-#endif
+            ocremovefile(state->curlflags.cookiejar);
 	ocfree(state->curlflags.cookiejar);
     }
-    if(state->curlflags.netrc != NULL) {
-#if 0
-        if(state->curlflags.createdflags & NETRCCREATED)
-	    unlink(state->curlflags.netrc);
-#endif
-	ocfree(state->curlflags.netrc);
-    }
+    ocfree(state->curlflags.netrc);
     ocfree(state->ssl.certificate);
     ocfree(state->ssl.key);
     ocfree(state->ssl.keypasswd);
@@ -607,26 +592,23 @@ ocset_curlproperties(OCstate* state)
 
     if(state->curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
-	char tmp[OCPATHMAX+1];
         int stat;
-#if defined(_WIN32) || defined(_WIN64)
-	int pid = _getpid();
-#else
-	pid_t pid = getpid();
-#endif
-	snprintf(tmp,sizeof(tmp)-1,"%s/%s.%ld/",ocglobalstate.tempdir,OCDIR,(long)pid);
-#ifdef _WIN32
-	stat = mkdir(tmp);
-#else
-	stat = mkdir(tmp,S_IRUSR | S_IWUSR | S_IXUSR);
-#endif
-	if(stat != 0 && errno != EEXIST) {
-	    fprintf(stderr,"Cannot create cookie directory\n");
-	    goto fail;
-	}
+        char* path = NULL;
+        char* name = NULL;
+        int len;
 	errno = 0;
 	/* Create the unique cookie file name */
-	stat = ocmktmp(tmp,&state->curlflags.cookiejar);
+        len =
+	  strlen(ocglobalstate.tempdir)
+	  + 1 /* '/' */
+	  + strlen("occookies");
+        path = (char*)malloc(len+1);
+        if(path == NULL) return OC_ENOMEM;
+        occopycat(path,len,3,ocglobalstate.tempdir,"/","occookies");
+        stat = ocmktmp(path,&name);
+fprintf(stderr,"%s => %s\n",state->uri->uri,name); fflush(stderr);
+        free(path);
+	state->curlflags.cookiejar = name;
 	state->curlflags.createdflags |= COOKIECREATED;
 	if(stat != OC_NOERR && errno != EEXIST) {
 	    fprintf(stderr,"Cannot create cookie file\n");
@@ -756,4 +738,14 @@ ocset_netrc(OCstate* state, const char* path)
 	return OCTHROW(OC_ENOMEM);
     stat = ocset_curlflag(state,CURLOPT_NETRC);
     return stat;
+}
+
+static void
+ocremovefile(const char* path)
+{
+#ifdef _MSC_VER
+    DeleteFile(path);
+#else
+    remove(path);
+#endif
 }
