@@ -241,8 +241,7 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
   	if(mystride[i] != 1) isstride1 = 0;
         nels *= myedges[i];
    }
-   if(nels == 0)
-      return NC_NOERR; /* cannot write anything */
+   
    if(isstride1) {
       return NC_put_vara(ncid, varid, mystart, myedges, value, memtype);
    }
