@@ -246,6 +246,14 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
       return NC_put_vara(ncid, varid, mystart, myedges, value, memtype);
    }
 
+   if(nels == 0) {
+      /* This should be here instead of before NC_put_vara call to 
+       * avoid hang in parallel write for single stride.
+       * Still issue with parallel hang if stride > 1
+       */
+      return NC_NOERR; /* cannot write anything */
+   }
+	   
    /* Initial version uses and odometer to walk the variable
       and read each value one at a time. This can later be optimized
       to read larger chunks at a time.
