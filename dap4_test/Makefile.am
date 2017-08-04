@@ -68,7 +68,8 @@ clean-local: clean-local-check
 clean-local-check:
 	-rm -rf results
 	-rm -f .dodsrc .daprc
-    -find . -name 'tmp_*' -exec rm {} \;
+	-rm -f tmp_*
+    #-find . -name 'tmp_*' -exec rm {} \;
 
 # The shell file maketests.sh is used to build the testdata
 # for dap4 testing. It creates and fills the directories
