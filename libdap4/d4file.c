@@ -105,23 +105,23 @@ NCD4_open(const char * path, int mode,
 
 	    if(FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY))
 		ncflags |= NC_WRITE;
-	    
+
 	    nc_set_default_format(new,&old); /* save and change */
-            ret = nc_create(tmpname,ncflags,&d4info->substrate.nc4id);
+        ret = nc_create(tmpname,ncflags,&d4info->substrate.nc4id);
 	    nc_set_default_format(old,&new); /* restore */
 	}
-        if(ret != NC_NOERR) goto done;
+    if(ret != NC_NOERR) goto done;
 	/* Avoid fill */
 	nc_set_fill(getnc4id(nc),NC_NOFILL,NULL);
     }
 
     /* Turn on logging; only do this after oc_open*/
     if((value = ncurilookup(d4info->uri,"log")) != NULL) {
-	ncloginit();
-        if(nclogopen(value))
+      ncloginit();
+      if(nclogopen(value))
 	    ncsetlogging(1);
-	ncloginit();
-        if(nclogopen(value))
+      ncloginit();
+      if(nclogopen(value))
 	    ncsetlogging(1);
     }
 
@@ -134,7 +134,7 @@ NCD4_open(const char * path, int mode,
 	/* create the connection */
         if((ret=NCD4_curlopen(&curl))!= NC_NOERR) goto done;
 	d4info->curl->curl = curl;
-        if((ret=set_curl_properties(d4info))!= NC_NOERR) goto done;	
+        if((ret=set_curl_properties(d4info))!= NC_NOERR) goto done;
         /* Set the one-time curl flags */
         if((ret=NCD4_set_flags_perlink(d4info))!= NC_NOERR) goto done;
 #if 1 /* temporarily make per-link */
@@ -283,7 +283,7 @@ freeInfo(NCD4INFO* d4info)
 	fclose(d4info->data.ondiskfile);
     nullfree(d4info->substrate.filename);
     NCD4_reclaimMeta(d4info->substrate.metadata);
-    free(d4info);    
+    free(d4info);
 }
 
 static void
@@ -445,7 +445,7 @@ applyclientparamcontrols(NCD4INFO* info)
 }
 
 static void
-applyclientmetacontrols(NCD4meta* meta)    
+applyclientmetacontrols(NCD4meta* meta)
 {
     NCD4INFO* info = meta->controller;
     const char* value = getparam(info,"checksummode");
