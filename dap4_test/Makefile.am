@@ -76,3 +76,5 @@ clean-local-check:
 # in the GenerateRaw.java program in the thredds tree.
 maketests::
 	bash ./maketests.sh
+
+CLEANFILES = tmp_*
