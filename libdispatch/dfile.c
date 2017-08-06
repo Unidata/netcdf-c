@@ -1659,6 +1659,10 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	 return stat;
    }
 
+#ifndef USE_DISKLESS
+   cmode &= (~ NC_DISKLESS); /* Force off */
+#endif
+
 #ifdef WINPATH
    /* Need to do path conversion */
    path = NCpathcvt(path0);
@@ -1811,8 +1815,8 @@ NC_open(const char *path0, int cmode,
    int stat = NC_NOERR;
    NC* ncp = NULL;
    NC_Dispatch* dispatcher = NULL;
-   int inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
-   int diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
+   int inmemory = 0;
+   int diskless = 0;
    /* Need pieces of information for now to decide model*/
    int model = 0;
    int isurl = 0;
@@ -1825,6 +1829,14 @@ NC_open(const char *path0, int cmode,
       stat = nc_initialize();
       if(stat) return stat;
    }
+
+#ifndef USE_DISKLESS
+   /* Clean up cmode */
+   cmode &= (~ NC_DISKLESS);
+#endif
+
+   inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
+   diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
 
 #ifdef WINPATH
    /* Need to do path conversion */

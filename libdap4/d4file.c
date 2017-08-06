@@ -93,21 +93,32 @@ NCD4_open(const char * path, int mode,
 	else
             snprintf(tmpname,sizeof(tmpname),"tmp_%d",nc->int_ncid);
 
-        /* Now, use the file to create the hidden, in-memory netcdf file.
+        /* Now, use the file to create the hidden substrate netcdf file.
 	   We want this hidden file to always be NC_NETCDF4, so we need to
            force default format temporarily in case user changed it.
+	   If diskless is enabled, then create file in-memory, else
+           create an actual temporary file in the file system.
 	*/
 	{
 	    int new = NC_NETCDF4;
 	    int old = 0;
-	    int ncflags = NC_DISKLESS|NC_NETCDF4|NC_CLOBBER;
-
-	    if(FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY))
+	    int ncid = 0;
+	    int ncflags = NC_NETCDF4|NC_CLOBBER;
+#ifdef USE_DISKLESS
+	    ncflags |= NC_DISKLESS;
+#endif
+	    if(FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY)) {
+		/* Cause data to be dumped to real file */
 		ncflags |= NC_WRITE;
-	    
+		ncflags &= ~(NC_DISKLESS); /* use real file */
+	    }
 	    nc_set_default_format(new,&old); /* save and change */
-            ret = nc_create(tmpname,ncflags,&d4info->substrate.nc4id);
+            ret = nc_create(tmpname,ncflags,&ncid);
 	    nc_set_default_format(old,&new); /* restore */
+	    d4info->substrate.realfile = ((ncflags & NC_DISKLESS) == 0);
+	    d4info->substrate.filename = strdup(tmpname);
+	    if(tmpname == NULL) ret = NC_ENOMEM;
+	    d4info->substrate.nc4id = ncid;
 	}
         if(ret != NC_NOERR) goto done;
 	/* Avoid fill */
@@ -280,7 +291,21 @@ freeInfo(NCD4INFO* d4info)
     nullfree(d4info->data.ondiskfilename);
     if(d4info->data.ondiskfile != NULL)
 	fclose(d4info->data.ondiskfile);
-    nullfree(d4info->substrate.filename);
+    if(d4info->substrate.realfile
+	&& !FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY)) {
+	/* We used real file, so we need to delete the temp file
+           unless we are debugging.
+	   Assume caller has done nc_close|nc_abort on the ncid.
+           Note that in theory, this should not be necessary since
+           AFAIK the substrate file is still in def mode, and
+           when aborted, it should be deleted. But that is not working
+           for some reason, so we delete it ourselves.
+	*/
+	if(d4info->substrate.filename != NULL) {
+	    unlink(d4info->substrate.filename);
+	}
+    }
+    nullfree(d4info->substrate.filename); /* always reclaim */
     NCD4_reclaimMeta(d4info->substrate.metadata);
     free(d4info);    
 }

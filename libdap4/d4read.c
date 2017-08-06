@@ -167,7 +167,6 @@ readfile(const NCURI* uri, const char* suffix, NCbytes* packet)
 #ifdef O_BINARY
     flags |= O_BINARY;
 #endif
-fprintf(stderr,"XXX: flags=0x%x file=%s\n",flags,filename);
     fd = NCopen2(filename,flags);
     if(fd < 0) {
 	nclog(NCLOGERR,"open failed:%s",filename);

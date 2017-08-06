@@ -15,7 +15,7 @@ STEM=`echo $f | cut -d. -f 1`
 if test -e ${CDLTESTFILES}/${STEM}.cdl ; then
   CDL="${CDL} ${STEM}"
 else
-  echo "Not found: ${CDLTESTFILES}/${STEM}.cdl"
+  echo "Not found: ${CDLTESTFILES}/${STEM}.cdl; ignored"
 fi
 done
 
