@@ -25,10 +25,7 @@ extern int nc4_vararray_add(NC_GRP_INFO_T *grp,
 #ifdef USE_HDF4
 #include <mfhdf.h>
 #endif
-
-#ifdef USE_DISKLESS
 #include <hdf5_hl.h>
-#endif
 
 /* When we have open objects at file close, should
    we log them or print to stdout. Default is to log
@@ -302,9 +299,7 @@ nc_check_for_hdf(const char *path, int flags, void* parameters, int *hdf_file)
    MPI_Info info = MPI_INFO_NULL;
 #endif
    int inmemory = ((flags & NC_INMEMORY) == NC_INMEMORY);
-#ifdef USE_DISKLESS
    NC_MEM_INFO* meminfo = (NC_MEM_INFO*)parameters;
-#endif
 
 #ifdef USE_PARALLEL4
    if(use_parallel) {
@@ -2233,9 +2228,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    int retval;
    NC_HDF5_FILE_INFO_T* nc4_info = NULL;
    int inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
-#ifdef USE_DISKLESS
    NC_MEM_INFO* meminfo = (NC_MEM_INFO*)parameters;
-#endif
 #ifdef USE_PARALLEL4
    NC_MPI_INFO* mpiinfo = (NC_MPI_INFO*)parameters;
    int comm_duped = 0;          /* Whether the MPI Communicator was duplicated */

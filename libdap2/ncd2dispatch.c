@@ -366,26 +366,34 @@ NCD2_open(const char* path, int mode,
         /* Create fake file name: exact name must be unique,
            but is otherwise irrelevant because we are using NC_DISKLESS
         */
-        snprintf(tmpname,sizeof(tmpname),"%d",drno->int_ncid);
+        snprintf(tmpname,sizeof(tmpname),"tmp_%d",drno->int_ncid);
 
         /* Now, use the file to create the hidden, in-memory netcdf file.
 	   We want this hidden file to always be NC_CLASSIC, so we need to
            force default format temporarily in case user changed it.
+	   If diskless is enabled, then create file in-memory, else
+           create an actual temporary file in the file system.
 	*/
 	{
 	    int new = 0; /* format netcdf-3 */
 	    int old = 0;
+	    int ncflags = NC_CLOBBER|NC_CLASSIC_MODEL;
+#ifdef USE_DISKLESS
+	    ncflags |= NC_DISKLESS;
+#endif
 	    nc_set_default_format(new,&old); /* save and change */
-            ncstat = nc_create(tmpname,NC_DISKLESS|NC_CLASSIC_MODEL,&nc3id);
+            ncstat = nc_create(tmpname,ncflags,&nc3id);
 	    nc_set_default_format(old,&new); /* restore */
+	    dapcomm->substrate.realfile = ((ncflags & NC_DISKLESS) != 0);
+	    dapcomm->substrate.filename = strdup(tmpname);
+	    if(tmpname == NULL) ncstat = NC_ENOMEM;
+	    dapcomm->substrate.nc3id = nc3id;
 	}
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-	dapcomm->nc3id = nc3id;
 	/* Avoid fill */
 	nc_set_fill(nc3id,NC_NOFILL,NULL);
 
     }
-
     dapcomm->oc.dapconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
     dapcomm->oc.dapconstraint->projections = nclistnew();
     dapcomm->oc.dapconstraint->selections = nclistnew();
@@ -675,7 +683,7 @@ builddims(NCDAPCOMMON* dapcomm)
     if(dapcomm->cdf.recorddim != NULL) {
 	CDFnode* unlimited = dapcomm->cdf.recorddim;
 	definename = getdefinename(unlimited);
-        ncstat = nc_def_dim(dapcomm->nc3id,
+        ncstat = nc_def_dim(dapcomm->substrate.nc3id,
 			definename,
 			NC_UNLIMITED,
 			&unlimited->ncid);
@@ -683,7 +691,7 @@ builddims(NCDAPCOMMON* dapcomm)
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
         /* get the id for the substrate */
-        ncstat = NC_check_id(dapcomm->nc3id,&ncsub);
+        ncstat = NC_check_id(dapcomm->substrate.nc3id,&ncsub);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 #if 0
 	nc3sub = (NC3_INFO*)&ncsub->dispatchdata;
@@ -702,7 +710,7 @@ builddims(NCDAPCOMMON* dapcomm)
 fprintf(stderr,"define: dim: %s=%ld\n",dim->ncfullname,(long)dim->dim.declsize);
 #endif
 	definename = getdefinename(dim);
-        ncstat = nc_def_dim(dapcomm->nc3id,definename,dim->dim.declsize,&dimid);
+        ncstat = nc_def_dim(dapcomm->substrate.nc3id,definename,dim->dim.declsize,&dimid);
         if(ncstat != NC_NOERR) {
           THROWCHK(ncstat); nullfree(definename); goto done;
 	}
@@ -774,7 +782,7 @@ fprintf(stderr,"[%ld]",dim->dim.declsize);
  }
 fprintf(stderr,"\n");
 #endif
-        ncstat = nc_def_var(dapcomm->nc3id,
+        ncstat = nc_def_var(dapcomm->substrate.nc3id,
 		        definename,
                         var->externaltype,
                         ncrank,
@@ -835,7 +843,7 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 	    }
 	}
         if(ncbyteslength(buf) > 0) {
-            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_sequence_dimensions",
+            ncstat = nc_put_att_text(dapcomm->substrate.nc3id,NC_GLOBAL,"_sequence_dimensions",
 	           ncbyteslength(buf),ncbytescontents(buf));
 	}
     }
@@ -846,12 +854,12 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 
     if(dapparamcheck(dapcomm,"show","translate")) {
         /* Add a global attribute to show the translation */
-        ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_translate",
+        ncstat = nc_put_att_text(dapcomm->substrate.nc3id,NC_GLOBAL,"_translate",
 	           strlen("netcdf-3"),"netcdf-3");
     }
     if(dapparamcheck(dapcomm,"show","url")) {
 	if(dapcomm->oc.rawurltext != NULL)
-            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_url",
+            ncstat = nc_put_att_text(dapcomm->substrate.nc3id,NC_GLOBAL,"_url",
 				       strlen(dapcomm->oc.rawurltext),dapcomm->oc.rawurltext);
     }
     if(dapparamcheck(dapcomm,"show","dds")) {
@@ -862,7 +870,7 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 	    /* replace newlines with spaces*/
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
-            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_dds",strlen(nltxt),nltxt);
+            ncstat = nc_put_att_text(dapcomm->substrate.nc3id,NC_GLOBAL,"_dds",strlen(nltxt),nltxt);
 	    nullfree(nltxt);
 	}
     }
@@ -873,7 +881,7 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 	if(txt != NULL) {
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
-            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_das",strlen(nltxt),nltxt);
+            ncstat = nc_put_att_text(dapcomm->substrate.nc3id,NC_GLOBAL,"_das",strlen(nltxt),nltxt);
 	    nullfree(nltxt);
 	}
     }
@@ -915,9 +923,9 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	}
         dapexpandescapes(newstring);
 	if(newstring[0]=='\0')
-	    ncstat = nc_put_att_text(dapcomm->nc3id,varid,att->name,1,newstring);
+	    ncstat = nc_put_att_text(dapcomm->substrate.nc3id,varid,att->name,1,newstring);
 	else
-	    ncstat = nc_put_att_text(dapcomm->nc3id,varid,att->name,strlen(newstring),newstring);
+	    ncstat = nc_put_att_text(dapcomm->substrate.nc3id,varid,att->name,strlen(newstring),newstring);
 	free(newstring);
         if(ncstat) goto done;
     } else {
@@ -947,7 +955,7 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	_ASSERTE(_CrtCheckMemory());
 #endif
     if(ncstat) {nullfree(mem); goto done;}
-    ncstat = nc_put_att(dapcomm->nc3id,varid,att->name,atype,nvalues,mem);
+    ncstat = nc_put_att(dapcomm->substrate.nc3id,varid,att->name,atype,nvalues,mem);
 #ifdef _MSC_VER
 	_ASSERTE(_CrtCheckMemory());
 #endif
@@ -1765,6 +1773,11 @@ freeNCDAPCOMMON(NCDAPCOMMON* dapcomm)
 
     dcefree((DCEnode*)dapcomm->oc.dapconstraint);
     dapcomm->oc.dapconstraint = NULL;
+
+    /* Note that the ncio layer will figure out that the tmp file needs to be deleted,
+       so we do not have to do it.
+    */
+    nullfree(dapcomm->substrate.filename); /* always reclaim */
 
     free(dapcomm);
 
