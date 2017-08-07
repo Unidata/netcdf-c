@@ -1670,6 +1670,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 #else
    path = nulldup(path0);
+#endif
 
 #ifdef USE_REFCOUNT
    /* If this path is already open, then fail */
