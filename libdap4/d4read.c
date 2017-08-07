@@ -49,16 +49,16 @@ NCD4_readDAP(NCD4INFO* state, int flags)
             ncurisetconstraints(url,state->constraint);
 #endif
 	    readurl = ncuribuild(url,NULL,".dods",NCURISVC);
-	    if(readurl == NULL) 
+	    if(readurl == NULL)
 		return THROW(NC_ENOMEM);
-            if (state->debug > 0) 
+            if (state->debug > 0)
                 {fprintf(stderr, "fetch url=%s\n", readurl);fflush(stderr);}
             stat = NCD4_fetchurl_file(state->curl, readurl, state->data.ondiskfile,
                                    &state->data.datasize, &lastmod);
             nullfree(readurl);
             if(stat == NC_NOERR)
                 state->data.daplastmodified = lastmod;
-            if (state->debug > 0) 
+            if (state->debug > 0)
                 {fprintf(stderr,"fetch complete\n"); fflush(stderr);}
         }
     }
@@ -167,9 +167,7 @@ readfile(const NCURI* uri, const char* suffix, NCbytes* packet)
 #ifdef O_BINARY
     flags |= O_BINARY;
 #endif
-#ifdef D4DEBUGPARSER
-fprintf(stderr,"XXX: flags=0x%x file=%s\n",flags,filename);
-#endif
+
     fd = NCopen2(filename,flags);
     if(fd < 0) {
 	nclog(NCLOGERR,"open failed:%s",filename);

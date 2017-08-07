@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.5.0 - TBD
 
-### 4.5.0-rc2 - August 4, 201
+### 4.5.0-rc2 - August 7, 2017
 
 * [Bug Fix] Addressed an issue with how cmake was implementing large file support on 32-bit systems. See [GitHub #385](https://github.com/Unidata/netcdf-c/issues/385) for more information.
 * [Bug Fix] Addressed an issue where ncgen would not respect keyword case. See [GitHub #310](https://github.com/Unidata/netcdf-c/issues/310) for more information.

@@ -126,7 +126,11 @@ typedef struct NCDAPCOMMON {
     NCCDF cdf;
     NCOC oc;
     NCCONTROLS controls; /* Control flags and parameters */
-    int nc3id; /* nc3 file ncid used to hold metadata */
+    struct {
+	int realfile; /* 1 => we created actual temp file */
+	char* filename; /* of the substrate file */
+        int nc3id; /* substrate nc4 file ncid used to hold metadata; not same as external id  */
+    } substrate;
 } NCDAPCOMMON;
 
 /**************************************************/
@@ -306,6 +310,6 @@ extern int nc__opendap(void);
 
 #define getncid(drno) (((NC*)drno)->ext_ncid)
 #define getdap(drno) ((NCDAPCOMMON*)((NC*)drno)->dispatchdata)
-#define getnc3id(drno) (getdap(drno)->nc3id)
+#define getnc3id(drno) (getdap(drno)->substrate.nc3id)
 
 #endif /*NCCOMMON_H*/

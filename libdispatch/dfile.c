@@ -141,7 +141,7 @@ NC_check_file_type(const char *path, int flags, void *parameters,
     } else {/* presumably a real file */
        /* Get the 4-byte magic from the beginning of the file. Don't use posix
         * for parallel, use the MPI functions instead. */
-      
+
 #ifdef USE_PARALLEL
 	if (use_parallel) {
 	    MPI_File fh;
@@ -1660,7 +1660,17 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	 return stat;
    }
 
+#ifndef USE_DISKLESS
+   cmode &= (~ NC_DISKLESS); /* Force off */
+#endif
+
+#ifdef WINPATH
+   /* Need to do path conversion */
+   path = NCpathcvt(path0);
+fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
+#else
    path = nulldup(path0);
+#endif
 
 #ifdef USE_REFCOUNT
    /* If this path is already open, then fail */
@@ -1806,8 +1816,8 @@ NC_open(const char *path0, int cmode,
    int stat = NC_NOERR;
    NC* ncp = NULL;
    NC_Dispatch* dispatcher = NULL;
-   int inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
-   int diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
+   int inmemory = 0;
+   int diskless = 0;
    /* Need pieces of information for now to decide model*/
    int model = 0;
    int isurl = 0;
@@ -1825,6 +1835,16 @@ NC_open(const char *path0, int cmode,
       nothing if path is a 'file:...' url, so it will need to be
       repeated in protocol code: libdap2 and libdap4
     */
+
+#ifndef USE_DISKLESS
+   /* Clean up cmode */
+   cmode &= (~ NC_DISKLESS);
+#endif
+
+   inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
+   diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
+
+
 #ifdef WINPATH
    path = NCpathcvt(path0);
 #else
