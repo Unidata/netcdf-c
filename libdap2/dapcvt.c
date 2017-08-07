@@ -209,17 +209,16 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 
 	ok = 0;
 	switch (etype) {
-	case NC_BYTE: {
+	case NC_BYTE: { /* Note that in DAP2, this is unsigned 8-bit integer */
+	    /*Needs special handling because Windows sscanf does not do %hhd*/
 	    char* p = (char*)dstmem;
-#ifdef _MSC_VER
 	    int ival;
 	    ok = sscanf(s,"%d%n",&ival,&nread);
+#ifdef _MSC_VER
 	    _ASSERTE(_CrtCheckMemory());
-	    if(ival < NC_MIN_BYTE || ival > NC_MAX_BYTE) ok = 0;
-	    *p = (char)ival;
-#else	
-	   ok = sscanf(s,"%hhu%n",p,&nread);
 #endif
+	    if(ival < 0 || ival > NC_MAX_UBYTE) ok = 0;
+	    *p = (char)ival;
 	    } break;
 	case NC_CHAR: {
 	    signed char* p = (signed char*)dstmem;

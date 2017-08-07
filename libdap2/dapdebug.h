@@ -27,7 +27,7 @@
 
 #undef PARSEDEBUG
 /* Warning: setting CATCHERROR has significant performance impact */
-#define CATCHERROR
+#undef CATCHERROR
 
 #include <stdarg.h>
 #include <assert.h>
@@ -51,11 +51,11 @@ extern int dappanic(const char* fmt, ...);
 
 #ifdef CATCHERROR
 /* Place breakpoint on dapbreakpoint to catch errors close to where they occur*/
-#define THROW(e) dapthrow(e)
-#define THROWCHK(e) (void)dapthrow(e)
+#define THROW(e) dapthrow(e,__LINE__,__FILE__)
+#define THROWCHK(e) (void)dapthrow(e,__LINE__,__FILE__)
 
 extern int dapbreakpoint(int err);
-extern int dapthrow(int err);
+extern int dapthrow(int err, int lineno, const char* filename);
 #else
 #define THROW(e) (e)
 #define THROWCHK(e)

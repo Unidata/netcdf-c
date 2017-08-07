@@ -5,6 +5,8 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . ${srcdir}/d4test_common.sh
 
+echo "test_data.sh:"
+
 cd ${DAPTESTFILES}
 F=`ls -1 *.dap | sed -e 's/[.]dap//g' | tr '\r\n' '  '`
 cd $WD
