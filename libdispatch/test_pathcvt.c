@@ -12,7 +12,6 @@ Test the NCpathcvt
 #include <string.h>
 #include "ncwinpath.h"
 
-#undef WINDEBUG
 #undef VERBOSE
 
 typedef struct Test {

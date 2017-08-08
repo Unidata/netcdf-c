@@ -172,6 +172,7 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
  done:
     if(text != NULL) {
       free(text);
+      text = NULL;
     }
 
     if(attid >= 0) HCHECK((H5Aclose(attid)));

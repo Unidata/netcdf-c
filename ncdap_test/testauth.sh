@@ -3,6 +3,9 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+# Enable if using localhost
+LOCAL=1
+
 RCEMBED=1
 RCLOCAL=1
 RCHOME=1
@@ -40,10 +43,13 @@ fi
 
 BASICCOMBO="tiggeUser:tigge"
 BADCOMBO="tiggeUser:xxxxx"
-URLSERVER="remotetest.unidata.ucar.edu"
-#http://remotetest.unidata.ucar.edu/thredds/dodsC/restrict/testData.nc.html
-URLPATH="thredds/dodsC/restrict/testData.nc"
+URLPATH="thredds/dodsC/testRestrictedDataset/testData2.nc"
 PROTO=http
+if test "x$LOCAL" = x ; then
+URLSERVER="remotetest.unidata.ucar.edu"
+else
+URLSERVER="localhost:8081"
+fi
 
 # See if we need to override
 if test "x$URS" != "x" ; then

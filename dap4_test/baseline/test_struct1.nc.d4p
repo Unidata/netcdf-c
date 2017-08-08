@@ -11,10 +11,7 @@
     </Structure>
   </Types>
   <Variables>
-    <Struct name="s" type="/s">
-      <Map name="/s.x"/>
-      <Map name="/s.y"/>
-    </Struct>
+    <Struct name="s" type="/s"/>
   </Variables>
   <Attribute name="_DAP4_Little_Endian" type="UInt8">
     <Value value="1"/>

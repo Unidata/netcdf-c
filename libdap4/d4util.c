@@ -207,7 +207,7 @@ backslashEscape(const char* s)
 }
 
 /* Parse an fqn into a sequence of names;
-   initially using '/', then '.' */
+   using '/', and then (conditionally) '.' */
 int
 NCD4_parseFQN(const char* fqn0, NClist* pieces)
 {
@@ -239,6 +239,7 @@ NCD4_parseFQN(const char* fqn0, NClist* pieces)
 	    break;
 	}
     }
+#ifdef ALLOWFIELDMAPS
     /* Step 2, walk the final piece to break up based on '.' */
     for(p=start;*p;) {
 	switch(*p) {
@@ -255,6 +256,7 @@ NCD4_parseFQN(const char* fqn0, NClist* pieces)
 	    break;
 	}
     }
+#endif
     count++; /* acct for last piece */
     /* Step 3: capture and de-scape the pieces */
     for(p=fqn;count > 0;count--) {

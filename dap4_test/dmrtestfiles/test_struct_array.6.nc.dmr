@@ -10,8 +10,6 @@
         <Int32 name="y"/>
         <Dim size="2"/>
         <Dim size="2"/>
-        <Map name="/s.x"/>
-        <Map name="/s.y"/>
     </Structure>
     <Attribute name="_dap4.ce" type="String">
         <Value value="/s[0:2:3][0:1]"/>
