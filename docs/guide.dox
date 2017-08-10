@@ -1373,20 +1373,16 @@ about 1.15e+18 bytes. Note also that all sizes are really 4 bytes less
 than the ones given below. For example the maximum size of a fixed
 variable in netCDF 3.6 classic format is really 2 GiB - 4 bytes.
 
-Limit 	No LFS 	v3.5 	v3.6/classic 	v3.6/64-bit offset 	v4.0/netCDF-4
+Limits                                     | No LFS     |  v3.5   |  v3.6/classic |  v3.6/64-bit offset |    v4.0/netCDF-4
+-------------------------------------------|------------|---------|---------------|---------------------|-----------------
+Max File Size                              | 2 GiB      | 8 EiB   |  8 EiB        |  8 EiB              | unlimited
+Max Number of Fixed Vars > 2 GiB           |     0      | 1 (last)|  1 (last)     |  2^32               | unlimited
+Max Record Vars w/ Rec Size > 2 GiB        |     0      | 1 (last)|  1 (last)     |  2^32               | unlimited
+Max Size of Fixed/Record Size of Record Var| 2 GiB      | 2 GiB   |  2 GiB        |  4 GiB              | unlimited
+Max Record Size                            | 2 GiB/nrecs| 4 GiB   |  8 EiB/nrecs  |  8 EiB/nrecs        | unlimited
 
-Max File Size 	2 GiB 	8 EiB 	8 EiB 	8 EiB 	??
-
-Max Number of Fixed Vars > 2 GiB 	0 	1 (last) 	1 (last) 	2^32 	??
-
-Max Record Vars w/ Rec Size > 2 GiB 	0 	1 (last) 	1 (last) 	2^32 	??
-
-Max Size of Fixed/Record Size of Record Var 	2 GiB 	2 GiB 	2 GiB 	4 GiB 	??
-
-Max Record Size 	2 GiB/nrecs 	4 GiB 	8 EiB/nrecs 	8 EiB/nrecs 	??
-
-For more information about the different file formats of netCDF See
-Which Format.
+For more information about the different file formats of netCDF see
+\ref select_format "How to Select the Format".
 
 \section offset_format_limitations NetCDF 64-bit Offset Format Limitations
 
