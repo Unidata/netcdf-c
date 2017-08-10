@@ -34,11 +34,12 @@ test.vs2 test.vs3 test.vs4 test.vs5 whoi"
 
 ACTUALDATA2=\
 "123bears.nc 123.nc bears.nc \
-ber-2002-10-01.nc ceopL2AIRS2-2.nc \
+ceopL2AIRS2-2.nc \
 data.nc fnoc1.nc \
 in1.nc in_2.nc in.nc \
 in_no_three_double_dmn.nc in_v.nc saco1.nc \
 test.nc text.nc \
+ber-2002-10-01.nc \
 kwcase.nc"
 
 # XFAIL tests should be a subset of the other tests; this is used

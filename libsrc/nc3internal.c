@@ -1113,7 +1113,7 @@ NC3_open(const char * path, int ioflags,
 
 #if defined(LOCKNUMREC) /* && _CRAYMPP */
 	if (status = NC_init_pe(nc3, basepe)) {
-		return status;
+	    goto unwind_alloc;
 	}
 #else
 	/*
@@ -1121,9 +1121,11 @@ NC3_open(const char * path, int ioflags,
 	 */
 	if(basepe != 0) {
         if(nc3) free(nc3);
-        return NC_EINVAL;
+        status = NC_EINVAL;
+	goto unwind_alloc;
     }
 #endif
+
         status = ncio_open(path, ioflags, 0, 0, &nc3->chunk, parameters,
 			       &nc3->nciop, NULL);
 	if(status)

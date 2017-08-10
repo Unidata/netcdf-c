@@ -790,6 +790,9 @@ AC_CHECK_HEADERS([sys/resource.h])
 # Check for <stdbool.h> that conforms to C99 requirements
 AC_HEADER_STDBOOL
 
+# See if we have ftw.h to walk directory trees
+AC_CHECK_HEADERS([ftw.h])
+
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
                 strdup strcasecmp strtod strtoll strtoull strstr \
@@ -804,11 +807,10 @@ AC_ARG_ENABLE([diskless],
 test "x$enable_diskless" = xno || enable_diskless=yes
 AC_MSG_RESULT($enable_diskless)
 
-# Check for enable DAP
-if test "x$enable_dap" = "xyes" -a "xenable_diskless" = xno  ; then
-AC_MSG_NOTICE([--enable-dap requires --enable-diskless])
-AC_MSG_NOTICE([dap support disabled])
-enable_dap=no
+# If DAP enabled and diskless not enabled, then warn of consequences
+if test "x$enable_dap" = "xyes" -a "x$enable_diskless" = xno  ; then
+AC_MSG_NOTICE([Warning: DAP support is enabled but diskless support is disabled.])
+AC_MSG_NOTICE([=> temporary files will be created + reclaimed when using DAP.])
 fi
 
 # disable dap4 if netcdf-4 is disabled

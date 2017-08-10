@@ -19,10 +19,7 @@
     </Structure>
   </Types>
   <Variables>
-    <Struct name="x" type="/x">
-      <Map name="/x_field1.x"/>
-      <Map name="/x_field1.y"/>
-    </Struct>
+    <Struct name="x" type="/x"/>
   </Variables>
   <Attribute name="_DAP4_Little_Endian" type="UInt8">
     <Value value="1"/>

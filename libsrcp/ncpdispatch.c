@@ -9,6 +9,7 @@
 #include <mpi.h>
 #include "nc.h"
 #include "ncdispatch.h"
+
 /* Must follow netcdf.h */
 #include <pnetcdf.h>
 
@@ -50,15 +51,15 @@ NCP_create(const char *path, int cmode,
 
     /* Check the cmode for only valid flags*/
     if(cmode & ~LEGAL_CREATE_FLAGS)
-	return NC_EINVAL;
+	{res = NC_EINVAL; goto done;}
 
     /* Cannot have both MPIO flags */
     if((cmode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
-	return NC_EINVAL;
+	{res = NC_EINVAL; goto done;}
 
     /* Cannot have both NC_64BIT_OFFSET & NC_64BIT_DATA */
     if((cmode & (NC_64BIT_OFFSET|NC_64BIT_DATA)) == (NC_64BIT_OFFSET|NC_64BIT_DATA))
- 	return NC_EINVAL;
+	{res = NC_EINVAL; goto done;}
 
     default_format = nc_get_default_format();
     /* if (default_format == NC_FORMAT_CLASSIC) then we respect the format set in cmode */
@@ -72,14 +73,17 @@ NCP_create(const char *path, int cmode,
     }
 
     /* No MPI environment initialized */
-    if (mpidata == NULL) return NC_ENOPAR;
+    if (mpidata == NULL)
+	{res = NC_ENOPAR; goto done;}
 
     comm = ((NC_MPI_INFO *)mpidata)->comm;
     info = ((NC_MPI_INFO *)mpidata)->info;
 
     /* Create our specific NCP_INFO instance */
+
     nc5 = (NCP_INFO*)calloc(1,sizeof(NCP_INFO));
-    if(nc5 == NULL) return NC_ENOMEM;
+    if(nc5 == NULL)
+	{res = NC_ENOMEM; goto done;}
 
     /* Link nc5 and nc */
     NCP_DATA_SET(nc,nc5);
@@ -97,9 +101,11 @@ NCP_create(const char *path, int cmode,
     */
     /* PnetCDF recognizes the flags below for create and ignores NC_LOCK and  NC_SHARE */
     cmode &= (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_64BIT_OFFSET | NC_64BIT_DATA);
+
     res = ncmpi_create(comm, path, cmode, info, &(nc->int_ncid));
 
     if(res && nc5 != NULL) free(nc5); /* reclaim allocated space */
+done:
     return res;
 }
 
@@ -116,16 +122,15 @@ NCP_open(const char *path, int cmode,
 
     /* Check the cmode for only valid flags*/
     if(cmode & ~LEGAL_OPEN_FLAGS)
-	return NC_EINVAL;
+	{res = NC_EINVAL; goto done;}
 
     /* Cannot have both MPIO flags */
     if((cmode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
-	return NC_EINVAL;
+	{res = NC_EINVAL; goto done;}
 
     /* Appears that this comment is wrong; allow 64 bit offset*/
     /* Cannot have 64 bit offset flag */
-    /* if(cmode & (NC_64BIT_OFFSET)) return NC_EINVAL; */
-
+    /* if(cmode & (NC_64BIT_OFFSET)) {res = NC_EINVAL; goto done;} */
     if(mpidata != NULL) {
         comm = ((NC_MPI_INFO *)mpidata)->comm;
         info = ((NC_MPI_INFO *)mpidata)->info;
@@ -145,7 +150,7 @@ NCP_open(const char *path, int cmode,
 
     /* Create our specific NCP_INFO instance */
     nc5 = (NCP_INFO*)calloc(1,sizeof(NCP_INFO));
-    if(nc5 == NULL) return NC_ENOMEM;
+    if(nc5 == NULL) {res = NC_ENOMEM; goto done;}
 
     /* Link nc5 and nc */
     NCP_DATA_SET(nc,nc5);
@@ -157,7 +162,7 @@ NCP_open(const char *path, int cmode,
 	res = ncmpi_begin_indep_data(nc->int_ncid);
 	nc5->pnetcdf_access_mode = NC_INDEPENDENT;
     }
-
+done:
     return res;
 }
 
