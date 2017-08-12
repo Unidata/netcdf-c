@@ -459,8 +459,8 @@ NCD4_rcprocess(NCD4INFO* info)
 	if(userpwd == NULL && user != NULL && pwd != NULL) {
 	    char creds[NC_MAX_PATH];
 	    strncpy(creds,user,sizeof(creds));
-	    strncat(creds,":",sizeof(creds));
-	    strncat(creds,pwd,sizeof(creds));	  
+	    strncat(creds,":", sizeof(creds) - strlen(creds) - 1);
+	    strncat(creds,pwd, sizeof(creds) - strlen(creds) - 1);
             rcsetinfocurlflag(info,"HTTP.USERPASSWORD",creds);
 	} else if(userpwd != NULL)
             rcsetinfocurlflag(info,"HTTP.USERPASSWORD",userpwd);
