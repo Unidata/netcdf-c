@@ -47,7 +47,7 @@ test_big_var(const char *testfile) {
     int nval_in;
 
     /* Define the file with one large variable. */
-    if (nc_create(testfile, cflag|NC_64BIT_DATA, &ncid)) ERR;
+    if (nc_create(testfile, cflag, &ncid)) ERR;
     if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
     if (nc_def_dim(ncid, "dim1", DIM1, &dimids[0])) ERR;
     if (nc_def_dim(ncid, "dim2", DIM2 - 1, &dimids[1])) ERR;
@@ -79,7 +79,7 @@ test_large_byte_var(const char *testfile) {
     size_t start[NUMDIMS], count[NUMDIMS];
     int j;
 
-    if (nc_create(testfile, NC_CLOBBER|NC_64BIT_DATA, &ncid)) ERR;
+    if (nc_create(testfile, NC_CLOBBER, &ncid)) ERR;
     if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
     if (nc_def_dim(ncid, "dim1", DIM1, &dimids[0])) ERR;
     if (nc_def_dim(ncid, "dim2", DIM2, &dimids[1])) ERR;
@@ -117,7 +117,7 @@ test_large_short_var(const char *testfile) {
     size_t index[2];
     int cflag = NC_CLOBBER;
 
-    if (nc_create(testfile, cflag|NC_64BIT_DATA, &ncid)) ERR;
+    if (nc_create(testfile, cflag, &ncid)) ERR;
     if (nc_def_dim(ncid, "dim3", DIM3, &dimids[0])) ERR;
     if (nc_def_dim(ncid, "dim4", DIM4, &dimids[1])) ERR;
     if (nc_def_var(ncid, "var", NC_SHORT, NUMDIMS, dimids, &varid)) ERR;
@@ -173,6 +173,28 @@ main(int argc, char **argv) {
        test_large_short_var(testfile);
        (void) remove(testfile);
        SUMMARIZE_ERR;
+    }
+
+    /* Test CDF5 */
+    {
+      i = NC_64BIT_DATA;
+      nc_set_default_format(i, NULL);
+
+       printf("*** testing format %d with a variable with 2**32 values...", i);
+       test_big_var(testfile);
+       (void) remove(testfile);
+       SUMMARIZE_ERR;
+
+       printf("*** testing format %d with a byte variable with > 2**32 values...", i);
+       test_large_byte_var(testfile);
+       (void) remove(testfile);
+       SUMMARIZE_ERR;
+
+       printf("*** testing format %d with a short variable with > 2**32 values...", i);
+       test_large_short_var(testfile);
+       (void) remove(testfile);
+       SUMMARIZE_ERR;
+
     }
 
     FINAL_RESULTS;
