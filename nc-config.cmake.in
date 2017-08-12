@@ -96,12 +96,16 @@ fi
 
 has_cxx="no"
 has_cxx4="no"
-if type -p ncxx4-config > /dev/null 2>&1; then
+
+ncxxconf=$(which ncxx-config 2>/dev/null)
+ncxx4conf=$(which ncxx4-config 2>/dev/null)
+
+if [ -f "$ncxx4conf" ]; then
   cxx4=`ncxx4-config --cxx`
   cxx4flags=`ncxx4-config --cflags`
   cxx4libs=`ncxx4-config --libs`
   has_cxx4="yes"
-elif type -p ncxx-config > /dev/null 2>&1; then
+elif [ -f "$ncxxconf" ]; then
   cxx=`ncxx-config --cxx`
   cxxflags=`ncxx-config --cflags`
   cxxlibs=`ncxx-config --libs`
@@ -139,13 +143,13 @@ Available values for OPTION include:
   --version     Library version
 
 EOF
-if type -p ncxx4-config > /dev/null 2>&1; then
+if [ -f "$ncxx4conf" ]; then
     cat <<EOF
   --cxx4        C++ compiler for netCDF-4 C++ library
   --cxx4flags   flags needed to compile a C++ program
   --cxx4libs    libraries needed to link a C++ program
 EOF
-elif type -p ncxx-config > /dev/null 2>&1; then
+elif [ -f "$ncxxconf" ]; then
     cat <<EOF
   --cxx         C++ compiler
   --cxxflags    flags needed to compile a C++ program
@@ -176,14 +180,14 @@ all()
         echo "  --has-c++   -> $has_cxx"
         echo "  --cxx       -> $cxx"
 
-if type -p ncxx-config > /dev/null 2>&1; then
+if [ -f "$ncxxconf" ]; then
         echo "  --cxxflags  -> $cxxflags"
         echo "  --cxxlibs   -> $cxxlibs"
 fi
         echo
         echo "  --has-c++4  -> $has_cxx4"
         echo "  --cxx4      -> $cxx4"
-if type -p ncxx4-config > /dev/null 2>&1; then
+if [ -f "$ncxx4conf" ]; then
         echo "  --cxx4flags -> $cxx4flags"
         echo "  --cxx4libs  -> $cxx4libs"
 fi

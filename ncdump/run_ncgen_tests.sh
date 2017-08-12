@@ -12,7 +12,7 @@ set -e
 
 validateNC() {
     BASENAME=$1
-    INFILE=$srcdir/$1.cdl
+    INFILE=$top_srcdir/ncgen/$1.cdl
     TMPFILE=tst_$2.cdl
     shift
     shift
@@ -38,7 +38,7 @@ echo "*** creating 64-bit offset file c0_64.nc from c0.cdl..."
 validateNC c0 "c0_64" -k 64-bit-offset -b
 
 echo "*** creating 64-bit offset file c5.nc from c5.cdl..."
-${NCGEN} -k 64-bit-data -b -o c5.nc $srcdir/c5.cdl
+${NCGEN} -k 64-bit-data -b -o c5.nc $top_srcdir/ncgen/c5.cdl
 if [ ! -f c5.nc ]; then
     echo "Failure."
     exit 1

@@ -54,8 +54,7 @@ MALLOC_CHECK=""
 CPPFLAGS=""
 LDFLAGS=""
 
-CFLAGS="-g -O0 $CFLAGS"
-CFLAGS="-g $CFLAGS"
+CFLAGS="-g -O0 $CFLAGS -Wno-undefined"
 
 MAKE=make
 IGNORE="test 0 = 1"
@@ -112,9 +111,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --enable-jna"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
-#FLAGS="$FLAGS --enable-dap4"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
-FLAGS="$FLAGS --enable-filter-test"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"

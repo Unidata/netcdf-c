@@ -197,7 +197,14 @@ ENDIF()
       add_sh_test(ncdump tst_netcdf4_4)
     ENDIF()
 
-
+    ###
+    # Some test reordering was required to ensure these tests
+    # only ran after ncdump was built.
+    ###
+    add_sh_test(ncdump run_ncgen_tests)
+    IF(USE_NETCDF4)
+      add_sh_test(ncdump run_ncgen_nc4_tests)
+    ENDIF()
 
     IF(NOT MSVC)
       add_sh_test(ncdump tst_nccopy4)

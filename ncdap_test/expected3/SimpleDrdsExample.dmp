@@ -157,6 +157,12 @@ variables:
 	double Drifters.rellon3hr(Drifters) ;
 		Drifters.rellon3hr:Description = "Relative Longitude: Change in longitude in the last 3 hours as determined by the GPS subsystem (Rlon3)" ;
 		Drifters.rellon3hr:units = "degrees_east" ;
+
+// global attributes:
+		:Facility.PrincipleInvestigator = "Mark Abbott\n",
+			"Ph.D" ;
+		:Facility.DataCenter = "COAS Environmental Computer Facility" ;
+		:Facility.DrifterType = "MetOcean WOCE/OCM" ;
 data:
 
  Drifters.battery = 1000, 886.994922779284, 573.519986072456, 
