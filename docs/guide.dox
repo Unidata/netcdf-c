@@ -84,7 +84,15 @@ affecting existing programs. The physical representation of netCDF
 data is designed to be independent of the computer on which the data
 were written.
 
-Unidata supports the netCDF interfaces for C (see <a href="http://www.unidata.ucar.edu/netcdf/docs/" >NetCDF-C User's Guide</a>), FORTRAN 77 (see <a href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f77/index.html#Top" >NetCDF Fortran 77 Interface Guide</a>), FORTRAN 90 (see <a href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f90/index.html" >NetCDF Fortran 90 Interface Guide</a>), and C++ (see <a href="http://www.unidata.ucar.edu/netcdf/documentation/historic/cxx4/index.html" >NetCDF C++ Interface Guide</a>).
+Unidata supports the netCDF interfaces for C (see <a
+href="http://www.unidata.ucar.edu/netcdf/docs/" >NetCDF-C User's
+Guide</a>), FORTRAN 77 (see <a
+href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f77/index.html#Top"
+>NetCDF Fortran 77 Interface Guide</a>), FORTRAN 90 (see <a
+href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f90/index.html"
+>NetCDF Fortran 90 Interface Guide</a>), and C++ (see <a
+href="http://www.unidata.ucar.edu/netcdf/documentation/historic/cxx4/index.html"
+>NetCDF C++ Interface Guide</a>).
 
 The netCDF library is supported for various UNIX operating systems. A
 MS Windows port is also available. The software is also ported and
@@ -154,8 +162,7 @@ Users are encouraged to use netCDF classic format to distribute data,
 for maximum portability.
 
 To select 64-bit offset or netCDF-4 format files, C programmers should
-use flag NC_64BIT_OFFSET or NC_NETCDF4 in function nc_create. See
-nc_create.
+use flag NC_64BIT_OFFSET or NC_NETCDF4 in function nc_create().
 
 In Fortran, use flag nf_64bit_offset or nf_format_netcdf4 in function
 NF_CREATE. See NF_CREATE.
@@ -176,7 +183,7 @@ previous version of netCDF. It has maximum portability, and is still
 the default netCDF format.
 
 For some users, the various 2 GiB format limitations of the classic
-format become a problem. (see Classic Limitations).  1.4.2 NetCDF
+format become a problem. (see \ref limitations).  1.4.2 NetCDF
 64-bit Offset Format
 
 For these users, 64-bit offset format is a natural choice. It greatly
@@ -303,8 +310,8 @@ COMPOUND types allow users to organize data in new ways.
 With the classic netCDF file format, there are constraints that limit
 how a dataset is structured to store more than 2 GiBytes (a GiByte is
 2^30 or 1,073,741,824 bytes, as compared to a Gbyte, which is
-1,000,000,000 bytes.) of data in a single netCDF dataset. (see Classic
-Limitations). This limitation is a result of 32-bit offsets used for
+1,000,000,000 bytes.) of data in a single netCDF dataset. (see \ref
+limitations). This limitation is a result of 32-bit offsets used for
 storing relative offsets within a classic netCDF format file. Since
 one of the goals of netCDF is portable data, and some file systems
 still can't deal with files larger than 2 GiB, it is best to keep
@@ -1352,7 +1359,7 @@ this section applies only to systems with LFS.
 The original binary format of netCDF (classic format) limits the size
 of data files by using a signed 32-bit offset within its internal
 structure. Files larger than 2 GiB can be created, with certain
-limitations. See Classic Limitations.
+limitations. See \ref limitations.
 
 In version 3.6.0, netCDF included its first-ever variant of the
 underlying data format. The new format introduced in 3.6.0 uses 64-bit
