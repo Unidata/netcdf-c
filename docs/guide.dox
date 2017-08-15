@@ -136,7 +136,8 @@ floating-point standard is used for floating-point data
 representation.
 
 Descriptions of the overall structure of netCDF classic and 64-bit
-offset files are provided later in this manual. See Structure.
+offset files are provided later in this manual. See
+\ref file_structure_and_performance.
 
 The details of the classic and 64-bit offset formats are described in
 an appendix. See File Format. However, users are discouraged from
@@ -258,7 +259,7 @@ designing and implementing netCDF, it is still possible to use the
 netCDF interface to access data in inefficient ways: for example, by
 requesting a slice of data that requires a single value from each
 record. Advice on how to use the interface efficiently is provided in
-Structure.
+\ref file_structure_and_performance.
 
 The use of HDF5 as a data format adds significant overhead in metadata
 operations, less so in data access operations. We continue to study
@@ -318,8 +319,8 @@ one of the goals of netCDF is portable data, and some file systems
 still can't deal with files larger than 2 GiB, it is best to keep
 files that must be portable below this limit. Nevertheless, it is
 possible to create and access netCDF files larger than 2 GiB on
-platforms that provide support for such files (see Large File
-Support).
+platforms that provide support for such files (see
+large_file_support).
 
 The new 64-bit offset format allows large files, and makes it easy to
 create to create fixed variables of about 4 GiB, and record variables
@@ -691,7 +692,7 @@ Attributes may be added to a netCDF dataset long after it is first
 defined, so you don't have to anticipate all potentially useful
 attributes. However adding new attributes to an existing classic or
 64-bit offset format dataset can incur the same expense as copying the
-dataset. For a more extensive discussion see Structure.
+dataset. For a more extensive discussion see \ref file_structure_and_performance.
 
 \section differences_atts_vars Differences between Attributes and Variables
 
