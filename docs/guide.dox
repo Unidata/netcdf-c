@@ -183,12 +183,13 @@ previous version of netCDF. It has maximum portability, and is still
 the default netCDF format.
 
 For some users, the various 2 GiB format limitations of the classic
-format become a problem. (see \ref limitations).  1.4.2 NetCDF
-64-bit Offset Format
+format become a problem. (see \ref limitations).
+
+\subsection netcdf_64bit_offset_format NetCDF 64-bit Offset Format
 
 For these users, 64-bit offset format is a natural choice. It greatly
-eases the size restrictions of netCDF classic files (see 64 bit Offset
-Limitations).
+eases the size restrictions of netCDF classic files (see \ref
+limitations).
 
 Files with the 64-bit offsets are identified with a “CDF\002” at the
 beginning of the file. In this documentation this format is called
