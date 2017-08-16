@@ -97,6 +97,8 @@ BUILT_SOURCES = .dodsrc
 
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
+	echo "MISC.PROP1=prop1" > .dodsrc
+	echo "[http://ucar.edu]MISC.PROP2=prop2" > .dodsrc
 
 clean-local: clean-local-check
 

@@ -585,14 +585,14 @@ ocrc_locate(char* key, char* hostport)
     if(hostport == NULL) hostport = "";
     /* Assume that the triple store has been properly sorted */
     for(found=0,i=0;i<ocrc->ntriples;i++,triple++) {
-        size_t hplen = strlen(triple->host);
+        size_t hplen = (triple->host?strlen(triple->host):0);
         int t;
         if(strcmp(key,triple->key) != 0) continue; /* keys do not match */
         /* If the triple entry has no url, then use it
            (because we have checked all other cases)*/
         if(hplen == 0) {found=1;break;}
         /* do hostport match */
-        t = strcmp(hostport,triple->host);
+        t = strcmp(hostport,triple->host?triple->host:"");
         if(t ==  0) {found=1; break;}
     }
     return (found?triple:NULL);
@@ -746,11 +746,14 @@ ocrc_triple_iterate(char* key, char* url, struct OCTriple* prev)
     if(next == NULL)
       return NULL;
     for(; strlen(next->key) > 0; next++) {
+      const char* host = "";
       /* See if key as prefix still matches */
       int cmp = strcmp(key,next->key);
       if(cmp != 0) {next = NULL; break;} /* key mismatch */
       /* compare url */
-      cmp = ocstrncmp(url,next->host,strlen(next->host));
+      if(next->host != NULL)
+	host = next->host;
+      cmp = ocstrncmp(url,host,strlen(host));
       if(cmp ==  0) break;
     }
     return next;

@@ -174,7 +174,7 @@ rccompile(const char* path)
         rctrim(triple->value);
 #ifdef D4DEBUG
 	fprintf(stderr,"rc: host=%s key=%s value=%s\n",
-		triple->host,triple->key,triple->valu);
+		triple->host?triple->host:"--",triple->key,triple->value);
 #endif
 	nclistpush(rc,triple);
 	triple = NULL;
@@ -518,8 +518,10 @@ storedump(char* msg, NClist* triples)
     }
     for(i=0;i<nclistlength(triples);i++) {
 	NCD4triple* t = (NCD4triple*)nclistget(triples,i);
-        fprintf(stderr,"\t%s\t%s\t%s\n",
-                (strlen(t->host)==0?"--":t->host),t->key,t->value);
+	const char* host = "--";
+	if(t->host != NULL && strlen(t->host) > 0)
+	    host = t->host;
+        fprintf(stderr,"\t%s\t%s\t%s\n",host,t->key,t->value);
     }
     fflush(stderr);
 }

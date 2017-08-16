@@ -58,8 +58,11 @@ CLEANFILES = *.exe
 # One last thing
 BUILT_SOURCES = .daprc
 
+# Make sure we have a non-empty .daprc to do minimal rc testing
 .daprc:
 	echo "#DAPRC" >.daprc
+	echo "MISC.PROP1=prop1" > .dodsrc
+	echo "[http://ucar.edu]MISC.PROP2=prop2" > .dodsrc
 
 clean-local: clean-local-check
 
