@@ -23,8 +23,10 @@ static void rcorder(NClist* rc);
 static char* rcreadline(char**);
 static int rcsearch(const char* prefix, const char* rcname, char** pathp);
 static void rctrim(char* text);
-static void storedump(char* msg, NClist* triples);
 static int rcsetinfocurlflag(NCD4INFO*, const char* flag, const char* value);
+#ifdef D4DEBUG
+static void storedump(char* msg, NClist* triples);
+#endif
 
 /* Define default rc files and aliases, also defines search order*/
 static char* rcfilenames[] = {".daprc",".dodsrc",NULL};
@@ -97,7 +99,9 @@ rcorder(NClist* rc)
 	    }
 	}
     }
+#ifdef D4DEBUG
     storedump("reorder:",rc);
+#endif
 }
 
 
@@ -506,6 +510,7 @@ NCD4_rclookup(char* key, char* hostport)
     return (triple == NULL ? NULL : triple->value);
 }
 
+#ifdef D4DEBUG
 static void
 storedump(char* msg, NClist* triples)
 {
@@ -525,6 +530,7 @@ storedump(char* msg, NClist* triples)
     }
     fflush(stderr);
 }
+#endif
 
 /**
  * Prefix must end in '/'
