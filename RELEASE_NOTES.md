@@ -10,6 +10,9 @@ This file contains a high-level description of this package's evolution. Release
 reading and writing. See the file docs/filters.md.
 * [Bug Fix] Corrected an issue with diskless file access, see [Pull Request #400](https://github.com/Unidata/netcdf-c/issues/400) and [Pull Request #403](https://github.com/Unidata/netcdf-c/issues/403) for more information.
 
+* [Bug Fix] Corrected an issue where `NC_64BIT_DATA` files were being read incorrectly by ncdump, despite the data having been written correctly.  See [GitHub #457](https://github.com/Unidata/netcdf-c/issues/457) for more information.
+* [Bug Fix] Corrected a potential stack buffer overflow.  See [GitHub #450](https://github.com/Unidata/netcdf-c/pull/450) for more information.
+
 ### 4.5.0-rc2 - August 7, 2017
 
 * [Bug Fix] Addressed an issue with how cmake was implementing large file support on 32-bit systems. See [GitHub #385](https://github.com/Unidata/netcdf-c/issues/385) for more information.

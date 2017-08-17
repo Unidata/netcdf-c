@@ -102,11 +102,12 @@ nc4_check_name(const char *name, char *norm_name)
    retval = nc_utf8_normalize((const unsigned char *)name,(unsigned char**)&temp);
    if(retval != NC_NOERR)
       return retval;
-   if( strlen(temp) > NC_MAX_NAME )
-   {
-       free(temp);
-       return NC_EMAXNAME;
+
+   if(strlen(temp) > NC_MAX_NAME) {
+     free(temp);
+     return NC_EMAXNAME;
    }
+
    strcpy(norm_name, temp);
    free(temp);
 
@@ -1608,4 +1609,3 @@ NC4_show_metadata(int ncid)
 #endif /*LOGGING*/
    return retval;
 }
-
