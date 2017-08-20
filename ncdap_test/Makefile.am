@@ -8,6 +8,9 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/liblib
 AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
@@ -34,7 +37,7 @@ check_PROGRAMS += findtestserver
 findtestserver_SOURCES = findtestserver.c
 
 if BUILD_UTILITIES
-TESTS += tst_remote3.sh tst_formatx.sh
+TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh
 endif
 
 TESTS += test_partvar testurl.sh
@@ -77,7 +80,7 @@ EXTRA_DIST = tst_ncdap3.sh  \
              tst_longremote3.sh \
              tst_ncdap.sh tst_ncdap_shared.sh tst_remote.sh \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
-			t_ncf330.c
+	     t_ncf330.c tst_ber.sh
 
 CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a test_nstride_cached *.exe
 
@@ -86,9 +89,6 @@ CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds data
 t_dap3a.c: t_dap.c
 	echo "#define NETCDF3ONLY" > ./t_dap3a.c
 	cat t_dap.c >> t_dap3a.c
-
-t_dap4a.c: t_dap.c
-	cat t_dap.c >> ./t_dap4a.c
 
 # One last thing
 BUILT_SOURCES = .dodsrc

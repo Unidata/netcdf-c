@@ -116,7 +116,7 @@ typedef struct OCheader {
 #define nullstring(s) (s==NULL?"(null)":s)
 #define PATHSEPARATOR "."
 
-#define OCDIR "oc"
+#define OCCOOKIEDIR "occookies"
 
 /* Define infinity for memory size */
 #if SIZEOF_SIZE_T == 4 
@@ -199,7 +199,6 @@ struct OCstate {
 	char* useragent; /*CURLOPT_USERAGENT*/
 	/* track which of these are created by oc */
 #define COOKIECREATED 1
-#define NETRCCREATED 2
 	int createdflags;
 	char* cookiejar; /*CURLOPT_COOKIEJAR,CURLOPT_COOKIEFILE*/
 	char* netrc; /*CURLOPT_NETRC,CURLOPT_NETRC_FILE*/
