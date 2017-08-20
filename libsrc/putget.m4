@@ -704,15 +704,15 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 	size_t remaining = varp->xsz * nelems;
 	int status = NC_NOERR;
 	void *xp;
-        void *fillp;
+        void *fillp=NULL;
 
 	if(nelems == 0)
 		return NC_NOERR;
 
 	assert(value != NULL);
 
-        fillp = malloc(varp->xsz);
-	status = NC3_inq_var_fill(varp, fillp);
+        ifdef(`ERANGE_FILL',`fillp = malloc(varp->xsz);
+        status = NC3_inq_var_fill(varp, fillp);')
 
 	for(;;)
 	{
@@ -741,7 +741,7 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 		value += nput;
 
 	}
-        free(fillp);
+        ifdef(`ERANGE_FILL',`free(fillp);')
 
 	return status;
 }
