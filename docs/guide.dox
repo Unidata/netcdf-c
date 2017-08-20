@@ -140,7 +140,7 @@ offset files are provided later in this manual. See
 \ref file_structure_and_performance.
 
 The details of the classic and 64-bit offset formats are described in
-an appendix. See File Format. However, users are discouraged from
+an appendix. See \ref netcdf_format. However, users are discouraged from
 using the format specification to develop independent low-level
 software for reading and writing netCDF files, because this could lead
 to compatibility problems if the format is ever modified.
@@ -170,7 +170,7 @@ NF_CREATE. See NF_CREATE.
 
 It is also possible to change the default creation format, to convert
 a large body of code without changing every create call. C programmers
-see nc_set_default_format. Fortran programs see NF_SET_DEFAULT_FORMAT.
+see nc_set_default_format(). Fortran programs see NF_SET_DEFAULT_FORMAT.
 
 \subsection classic_format NetCDF Classic Format
 
@@ -220,7 +220,9 @@ NetCDF-4 files can't be read by any version of the netCDF library
 previous to 4.0. (But they can be read by HDF5, version 1.8.0 or
 better).
 
-For more discussion of format issues see The NetCDF Tutorial.
+For more discussion of format issues see <a
+href="http://www.unidata.ucar.edu/software/netcdf/docs/tutorial_8dox.html">The
+NetCDF Tutorial</a>.
 
 \section architecture NetCDF Library Architecture
 
@@ -278,7 +280,7 @@ Attributes play a vital role in providing ancillary information. It is
 important to use all the relevant standard attributes using the
 relevant conventions. For a description of reserved attributes (used
 by the netCDF library) and attribute conventions for generic
-application software, see Attribute Conventions.
+application software, see \ref attribute_conventions.
 
 A number of groups have defined their own additional conventions and
 styles for netCDF data. Descriptions of these conventions, as well as
@@ -320,11 +322,11 @@ still can't deal with files larger than 2 GiB, it is best to keep
 files that must be portable below this limit. Nevertheless, it is
 possible to create and access netCDF files larger than 2 GiB on
 platforms that provide support for such files (see
-large_file_support).
+\ref large_file_support).
 
 The new 64-bit offset format allows large files, and makes it easy to
 create to create fixed variables of about 4 GiB, and record variables
-of about 4 GiB per record. (see 64 bit Offset Limitations). However,
+of about 4 GiB per record. (see \ref netcdf_64bit_offset_format). However,
 old netCDF applications will not be able to read the 64-bit offset
 files until they are upgraded to at least version 3.6.0 of netCDF
 (i.e. the version in which 64-bit offset format was introduced).
@@ -552,17 +554,17 @@ for variables with dimensions, or
 for scalar variables.
 
 In the above CDL example there are six variables. As discussed below,
-four of these are coordinate variables (See coordinate_variables). The
-remaining variables (sometimes called primary variables), temp and rh,
-contain what is usually thought of as the data. Each of these
-variables has the unlimited dimension time as its first dimension, so
-they are called record variables. A variable that is not a record
-variable has a fixed length (number of data values) given by the
-product of its dimension lengths. The length of a record variable is
-also the product of its dimension lengths, but in this case the
-product is variable because it involves the length of the unlimited
-dimension, which can vary. The length of the unlimited dimension is
-the number of records.
+four of these are coordinate variables (See \ref
+coordinate_variables). The remaining variables (sometimes called
+primary variables), temp and rh, contain what is usually thought of as
+the data. Each of these variables has the unlimited dimension time as
+its first dimension, so they are called record variables. A variable
+that is not a record variable has a fixed length (number of data
+values) given by the product of its dimension lengths. The length of a
+record variable is also the product of its dimension lengths, but in
+this case the product is variable because it involves the length of
+the unlimited dimension, which can vary. The length of the unlimited
+dimension is the number of records.
 
 \section coordinate_variables Coordinate Variables
 
@@ -662,7 +664,7 @@ For the netCDF classic model, the type and length of each attribute
 are not explicitly declared in CDL; they are derived from the values
 assigned to the attribute. All values of an attribute must be of the
 same type. The notation used for constant values of the various netCDF
-types is discussed later (see CDL Constants).
+types is discussed later (see \ref cdl_syntax).
 
 The extended CDL syntax for the enhanced data model supported by
 netCDF-4 allows optional type specifications, including user-defined
@@ -686,7 +688,7 @@ attribute conventions and it is strongly recommended that these be
 followed unless there are good reasons for not doing so. For
 information about units, long_name, valid_min, valid_max, valid_range,
 scale_factor, add_offset, _FillValue, and other conventional
-attributes, see Attribute Conventions.
+attributes, see \ref attribute_conventions.
 
 Attributes may be added to a netCDF dataset long after it is first
 defined, so you don't have to anticipate all potentially useful
@@ -760,7 +762,10 @@ characters.
 Some widely used conventions restrict names to only alphanumeric
 characters or underscores.
 
-\note Note that, when using the DAP2 protocol to access netCDF data, there are \em reserved keywords, the use of which may result in undefined behavior.  See \ref dap2_reserved_keywords for more information.
+\note Note that, when using the DAP2 protocol to access netCDF data,
+there are \em reserved keywords, the use of which may result in
+undefined behavior.  See \ref dap2_reserved_keywords for more
+information.
 
 \section archival Is NetCDF a Good Archive Format?
 
@@ -1091,11 +1096,11 @@ access.
 
 \section c_array_section_access A C Example of Array-Section Access
 
-Assume that in our earlier example of a netCDF dataset (see Network
-Common Data Form Language (CDL)), we wish to read a cross-section of
-all the data for the temp variable at one level (say, the second), and
-assume that there are currently three records (time values) in the
-netCDF dataset. Recall that the dimensions are defined as
+Assume that in our earlier example of a netCDF dataset, we wish to
+read a cross-section of all the data for the temp variable at one
+level (say, the second), and assume that there are currently three
+records (time values) in the netCDF dataset. Recall that the
+dimensions are defined as
 
 \code
        lat = 5, lon = 10, level = 4, time = unlimited;
@@ -1260,24 +1265,22 @@ datasets self-describing. A disadvantage of this organization is that
 any operation on a netCDF dataset that requires the header to grow
 (or, less likely, to shrink), for example adding new dimensions or new
 variables, requires moving the data by copying it. This expense is
-incurred when the enddef function is called: nc_enddef in C (see
-nc_enddef), NF_ENDDEF in Fortran (see NF_ENDDEF), after a previous
-call to the redef function: nc_redef in C (see nc_redef) or NF_REDEF
-in Fortran (see NF_REDEF). If you create all necessary dimensions,
-variables, and attributes before writing data, and avoid later
-additions and renamings of netCDF components that require more space
-in the header part of the file, you avoid the cost associated with
-later changing the header.
+incurred when the enddef function is called: nc_enddef() in C,
+NF_ENDDEF() in Fortran, after a previous call to the redef function:
+nc_redef() in C or NF_REDEF() in Fortran. If you create all necessary
+dimensions, variables, and attributes before writing data, and avoid
+later additions and renamings of netCDF components that require more
+space in the header part of the file, you avoid the cost associated
+with later changing the header.
 
 Alternatively, you can use an alternative version of the enddef
 function with two underbar characters instead of one to explicitly
 reserve extra space in the file header when the file is created: in C
-nc__enddef (see nc__enddef), in Fortran NF__ENDDEF (see NF__ENDDEF),
-after a previous call to the redef function. This avoids the expense
-of moving all the data later by reserving enough extra space in the
-header to accommodate anticipated changes, such as the addition of new
-attributes or the extension of existing string attributes to hold
-longer strings.
+nc__enddef(), in Fortran NF__ENDDEF(), after a previous call to the
+redef function. This avoids the expense of moving all the data later
+by reserving enough extra space in the header to accommodate
+anticipated changes, such as the addition of new attributes or the
+extension of existing string attributes to hold longer strings.
 
 When the size of the header is changed, data in the file is moved, and
 the location of data values in the file changes. If another program is
@@ -1367,7 +1370,7 @@ In version 3.6.0, netCDF included its first-ever variant of the
 underlying data format. The new format introduced in 3.6.0 uses 64-bit
 file offsets in place of the 32-bit offsets. There are still some
 limits on the sizes of variables, but the new format can create very
-large datasets. See 64 bit Offset Limitations.
+large datasets. See \ref netcdf_64bit_offset_format.
 
 NetCDF-4 variables and files can be any size supported by the
 underlying file system.
@@ -1501,8 +1504,8 @@ dataset while other processes read it.
 Data reads and writes are no more atomic than calls to stdio fread()
 and fwrite(). An nc_sync/NF_SYNC call is analogous to the fflush call
 in the C standard I/O library, writing unwritten buffered data so
-other processes can read it; The C function nc_sync (see nc_sync), or
-the Fortran function NF_SYNC (see NF_SYNC), also brings header changes
+other processes can read it; The C function nc_sync(), or
+the Fortran function NF_SYNC(), also brings header changes
 up-to-date (for example, changes to attribute values). Opening the
 file with the NC_SHARE (in C) or the NF_SHARE (in Fortran) is
 analogous to setting a stdio stream to be unbuffered with the _IONBF
@@ -1616,7 +1619,7 @@ script. Currently they are set to 10 and 64 MB.)
 
 To change the default chunk cache size, use the set_chunk_cache
 function before opening the file with nc_set_chunk_cache(). Fortran 77
-programmers see NF_SET_CHUNK_CACHE). Fortran 90 programmers use the
+programmers see NF_SET_CHUNK_CACHE()). Fortran 90 programmers use the
 optional cache_size, cache_nelems, and cache_preemption parameters to
 nf90_open/nf90_create to change the chunk size before opening the
 file.
@@ -1624,11 +1627,17 @@ file.
 To change the per-variable cache size, use the set_var_chunk_cache
 function at any time on an open file. C programmers see
 nc_set_var_chunk_cache(), Fortran 77 programmers see
-NF_SET_VAR_CHUNK_CACHE, ).
+NF_SET_VAR_CHUNK_CACHE().
 
 \section default_chunking_4_1 The Default Chunking Scheme
 
-Unfortunately, there are no general-purpose chunking defaults that are optimal for all uses. Different patterns of access lead to different chunk shapes and sizes for optimum access. Optimizing for a single specific pattern of access can degrade performance for other access patterns.  By creating or rewriting datasets using appropriate chunking, it is sometimes possible to support efficient access for multiple patterns of access.
+Unfortunately, there are no general-purpose chunking defaults that are
+optimal for all uses. Different patterns of access lead to different
+chunk shapes and sizes for optimum access. Optimizing for a single
+specific pattern of access can degrade performance for other access
+patterns.  By creating or rewriting datasets using appropriate
+chunking, it is sometimes possible to support efficient access for
+multiple patterns of access.
 
 If you don't know or can't anticipate what access patterns will be most common, or you want to store a variable in a way that will support reasonable access along any of its dimensions, you can use the library's default chunking strategy.
 
