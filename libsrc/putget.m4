@@ -711,8 +711,10 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 
 	assert(value != NULL);
 
-        ifdef(`ERANGE_FILL',`fillp = malloc(varp->xsz);
-        status = NC3_inq_var_fill(varp, fillp);')
+#ifdef ERANGE_FILL
+        fillp = malloc(varp->xsz);
+        status = NC3_inq_var_fill(varp, fillp);
+#endif
 
 	for(;;)
 	{
@@ -741,7 +743,9 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 		value += nput;
 
 	}
-        ifdef(`ERANGE_FILL',`free(fillp);')
+#ifdef ERANGE_FILL
+        free(fillp);
+#endif
 
 	return status;
 }
