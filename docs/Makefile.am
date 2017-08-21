@@ -11,7 +11,7 @@ EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html \
     building-with-cmake.md CMakeLists.txt \
     groups.dox install.md notes.md install-fortran.md \
     all-error-codes.md cmake_faq.md credits.md \
-    auth.html obsolete/fan_utils.html bestpractices.md
+    auth.md obsolete/fan_utils.html bestpractices.md
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:
@@ -51,7 +51,7 @@ endif
 
 doxyfile.stamp:
 	$(DOXYGEN) Doxyfile \
-	cp auth.html obsolete/fan_utils.html html
+	cp auth.md obsolete/fan_utils.html html
 
 CLEANFILES = doxyfile.stamp html latex man
 
@@ -62,13 +62,3 @@ CLEANFILES = doxyfile.stamp html latex man
 web-tarball: doxyfile.stamp
 	cd html; tar cf ../netcdf_docs.tar *
 	gzip -f netcdf_docs.tar
-
-# When oc2/auth.html.in is changed, you should generate auth.html
-# using the following process.
-oc2-auth:
-	cat ${top_srcdir}/oc2/auth.html.in \
-	| sed -e '/<OC>/d' \
-	| sed -e 's|^<NC>||' \
-	| sed -e 's|zz|netcdf|g' -e 's|ZZ|netCDF|g' \
-	| sed -e '/stylesheet/r${top_srcdir}/oc2/oc.css' -e '/stylesheet/d' \
-	> auth.html
