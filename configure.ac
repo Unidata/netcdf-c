@@ -1192,6 +1192,7 @@ if test "x$enable_erange_fill" = xyes ; then
    else
       M4FLAGS="$M4FLAGS -DERANGE_FILL"
    fi
+   AC_DEFINE([ERANGE_FILL], [1], [if true, use _FillValue for NC_ERANGE data elements])
 fi
 AC_SUBST(M4FLAGS)
 
