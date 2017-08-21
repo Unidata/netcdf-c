@@ -29,7 +29,7 @@ DDS and DAS, refer to the OPeNDAP web site http://opendap.org.
 See the following pages for more information.
 
 - \subpage dap_accessing_data
-- <a href="auth.html">netCDF Authorization Support</a>
+- <a href="auth.md">netCDF Authorization Support</a>
 - \subpage dap_to_netcdf
 - \subpage dap2_reserved_keywords
 - \subpage var_dim_trans
