@@ -25,11 +25,12 @@ It is strongly recommended that applicable conventions be followed unless there 
 
 <p>
 
-> It is not necessary to define your own _FillValue attribute for a variable if the default fill value for the type of the variable is adequate. However, use of the default fill value for data type byte is not recommended. Note that if you change the value of this attribute, the changed value applies only to subsequent writes; previously written data are not changed.
+> If _FillValue is undefined, it is assumed that there are no unwritten data-values. Generic applications needing to write a value to represent undefined or missing values may use either `_FillValue` or `missing_value` for this purpose. It is legal (but not recommended) for the fill value to be within the valid range of the data.
 
 <p>
 
-> Generic applications often need to write a value to represent undefined or missing values. The fill value provides an appropriate value for this purpose because it is normally outside the valid range and therefore treated as missing when read by generic applications. It is legal (but not recommended) for the fill value to be within the valid range.
+> Note that if you change the value of this attribute, the changed value applies only to subsequent writes; previously written data are not changed.
+
 
 `missing_value`
 
