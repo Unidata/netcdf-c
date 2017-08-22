@@ -36,7 +36,8 @@ endif
 
 EXTRA_DIST=${PLUGINSRC} ${BZIP2SRC} ${PLUGINHDRS} ${BZIP2HDRS} \
 	tst_filter.sh bzip2.cdl unfiltered.cdl filtered.cdl ref_bzip2.c \
-        CMakeLists.txt
+	H5Ztemplate.c \
+	CMakeLists.txt
 CLEANFILES = ${LIBNAME} *.nc *.dump tmp
 
 if ENABLE_FILTER_TEST

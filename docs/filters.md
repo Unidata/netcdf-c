@@ -1,3 +1,7 @@
+Filter Support in netCDF-4 (Enhanced)
+============================
+<!-- double header is needed to workaround doxygen bug -->
+
 Filter Support in netCDF-4 (Enhanced) {#compress}
 =================================
 
@@ -51,6 +55,11 @@ representing the compression level.
 It is legal to provide a zero-length set of parameters.
 Defaults are not provided, so this assumes that
 the filter can operate with zero parameters.
+
+Filter ids are assigned by the HDF group. See [4]
+for a current list of assigned filter ids.
+Note that ids above 32767 can be used for testing without
+registration.
 
 The first two pieces of  information can be provided in one of three ways:
 using __ncgen__, via an API call, or via command line parameters to __nccopy__.
@@ -129,6 +138,78 @@ The "-F" option can be used repeatedly as long as the variable name
 part is different. A different filter id and parameters can be
 specified for each occurrence.
 
+Note that if the input file has compressed variables, that fact
+will be invisble to nccopy because it is handled within the
+netcdf-c/hdf5 library code. This is true for any program that calls
+the netcdf-c library.
+
+Parameter Encoding {#ParamEncode}
+==========
+
+The parameters passed to a filter are encoded in a vector
+of 32-bit unsigned integers. It may be that the parameters
+required by a filter can naturally be encoded as unsigned integers.
+The bzip2 compression filter, for example, expects a single
+integer value from zero thru nine. This encodes naturally as a
+single unsigned integer.
+
+Note that signed integers and single-precision (32-bit) float values
+also can easily be represented as 32 bit unsigned integers by
+proper casting to an unsigned integer so that the bit pattern
+is preserved. Simple integer values of type short or char
+(or the unsigned versions) can also be mapped to an unsigned
+integer by either sign extension or just padding with zeros in some
+consistent way.
+
+Machine byte order (aka endian-ness) is an issue for passing
+parameters. You might define the parameters when compressing
+on a little endian machine, but later do the decompression
+on a big endian machine. Byte order is not an issue for 32-bit values because
+HDF5 takes care of converting them between the local machine byte order
+and network byte order.
+
+Parameters whose size is larger than 32-bits present a byte order problem.
+This typically includes double precision floats or (signed or unsigned)
+64-bit integers. For these cases, the machine byte order must be
+handled by the compression code. This is because HDF5 will treat,
+for example, an unsigned long long as two 32-bit unsigned integers
+and will convert each to network order separately. This means that
+on a machine whose byte order is different than the machine in which
+the parameters were initially created, the two integers are out of order
+and must be swapped to get the correct unsigned long long value.
+Consider this example. Suppose we have this little endian unsigned long long.
+
+    1000000230000004
+
+In network byte order, it will be stored as two 32-bit integers.
+
+    20000001 40000003
+
+On a big endian machine, this will be given to the filter in that form.
+
+    2000000140000003
+
+But note that the proper big endian unsigned long long form is this.
+
+4000000320000001
+
+So, the two words need to be swapped.
+
+But consider the case when both original and final machines are big endian.
+
+1. 4000000320000001
+2. 40000003 20000001
+3. 40000003 20000001
+
+where #1 is the original number, #2 is the network order and
+#3 is the what is given to the filter. In this case we do not
+want to swap words.
+
+The solution is to forcibly encode the original number in network
+byte order (big-endian) so that the filter always assumes it is getting
+its parameters in network order and will always do swapping as needed.
+This is irritating, but one needs to be aware of it.
+
 Dynamic Loading Process {#Process}
 ==========
 
@@ -189,7 +270,7 @@ Debugging plugins can be very difficult. You will probably
 need to use the old printf approach for debugging the filter itself.
 
 One case worth mentioning is when you have a dataset that is
-using an unkown filter. For this situation, you need to
+using an unknown filter. For this situation, you need to
 identify what filter(s) are used in the dataset. This can
 be accomplished using this command.
 ````
@@ -222,4 +303,4 @@ References {#References}
 1. https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf
 2. https://support.hdfgroup.org/HDF5/doc/TechNotes/TechNote-HDF5-CompressionTroubleshooting.pdf
 3. https://support.hdfgroup.org/services/filters.html
-
+4. https://support.hdfgroup.org/services/contributions.html#filters

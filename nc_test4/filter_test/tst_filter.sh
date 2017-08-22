@@ -91,7 +91,6 @@ echo "*** Pass: ncgen dynamic filter"
 fi
 
 #cleanup
-rm -f ${LIBNAME}
 rm -f ./bzip*.nc ./unfiltered.nc ./filtered.nc ./tmp ./tmp2 *.dump bzip*hdr.*
 rm -fr ./test_bzip2.c
 exit 0
