@@ -91,9 +91,8 @@ combinecredentials(const char* user, const char* pwd)
     int userPassSize;
     char *userPassword;
 
-    if(user == NULL) user = "";
-    if(pwd == NULL) pwd = "";
-
+    if(user == NULL || pwd == NULL)
+	return NULL;	
     userPassSize = strlen(user) + strlen(pwd) + 2;
     userPassword = malloc(sizeof(char) * userPassSize);
     if (!userPassword) {
