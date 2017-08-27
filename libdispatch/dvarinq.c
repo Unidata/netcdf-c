@@ -6,6 +6,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 */
 
 #include "ncdispatch.h"
+#include "netcdf_filter.h"
 
 /** \name Learning about Variables
 
@@ -122,7 +123,7 @@ nc_inq_var(int ncid, int varid, char *name, nc_type *xtypep,
    TRACE(nc_inq_var);
    return ncp->dispatch->inq_var_all(ncid, varid, name, xtypep, ndimsp,
 				     dimidsp, nattsp, NULL, NULL, NULL,
-				     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+				     NULL, NULL, NULL, NULL, NULL, NULL,
 				     NULL,NULL,NULL);
 }
 
@@ -295,8 +296,6 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
       NULL, /*endianp*/
-      NULL, /*optionsmaskp*/
-      NULL, /*pixelsp*/
       NULL,NULL,NULL
       );
 }
@@ -304,12 +303,11 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
 /** \ingroup variables
 Learn the szip settings of a variable.
 
-This function returns the szip settings for a variable. NetCDF does
-not allow variables to be created with szip (due to license problems
-with the szip library), but we do enable read-only access of HDF5
-files with szip compression.
+This function returns the szip settings for a variable.
+With the introduction of general filter support,
+szip inquiry is converted to use the filter interface.
 
-This is a wrapper for nc_inq_var_all().
+This is a wrapper for nc_inq_var_filter().
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
@@ -327,15 +325,22 @@ here. \ref ignored_if_null.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTNC4 Not a netCDF-4 file.
 \returns ::NC_ENOTVAR Invalid variable ID.
+\returns ::NC_EFILTER Variable is not szip encoded
 */
 int
 nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
 {
    NC* ncp;
+   unsigned int id;
+   size_t nparams;
+   unsigned int params[2];
+
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
    TRACE(nc_inq_var_szip);
-   return ncp->dispatch->inq_var_all(
+
+   /* Verify id and nparams */
+   stat = ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
       NULL, /*xtypep*/
@@ -351,9 +356,39 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
       NULL, /*endianp*/
-      options_maskp, /*optionsmaskp*/
-      pixels_per_blockp, /*pixelsp*/
-      NULL, NULL, NULL);
+      &id,
+      &nparams,
+      NULL
+      );
+   if(stat != NC_NOERR) return stat;
+   if(id != H5Z_FILTER_SZIP || nparams != 2)
+	return NC_EFILTER; /* not szip or bad # params */
+   /* Get params */
+   stat = ncp->dispatch->inq_var_all(
+      ncid, varid,
+      NULL, /*name*/
+      NULL, /*xtypep*/
+      NULL, /*ndimsp*/
+      NULL, /*dimidsp*/
+      NULL, /*nattsp*/
+      NULL, /*shufflep*/
+      NULL, /*deflatep*/
+      NULL, /*deflatelevelp*/
+      NULL, /*fletcher32p*/
+      NULL, /*contiguousp*/
+      NULL, /*chunksizep*/
+      NULL, /*nofillp*/
+      NULL, /*fillvaluep*/
+      NULL, /*endianp*/
+      &id,
+      &nparams,
+      params
+      );
+   if(stat != NC_NOERR) return stat;
+   /* Param[0] should be options_mask, Param[1] should be pixels_per_block */
+   if(options_maskp) *options_maskp = (int)params[0];
+   if(pixels_per_blockp) *pixels_per_blockp = (int)params[1];
+   return NC_NOERR;
 }
 
 /** \ingroup variables
@@ -399,8 +434,6 @@ nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
       NULL, /*endianp*/
-      NULL, /*optionsmaskp*/
-      NULL, /*pixelsp*/
       NULL, NULL, NULL
       );
 }
@@ -474,7 +507,7 @@ nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
    TRACE(nc_inq_var_chunking);
    return ncp->dispatch->inq_var_all(ncid, varid, NULL, NULL, NULL, NULL,
 				     NULL, NULL, NULL, NULL, NULL, storagep,
-				     chunksizesp, NULL, NULL, NULL, NULL, NULL,
+				     chunksizesp, NULL, NULL, NULL,
                                      NULL, NULL, NULL);
 }
 
@@ -524,8 +557,6 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
       no_fill, /*nofillp*/
       fill_valuep, /*fillvaluep*/
       NULL, /*endianp*/
-      NULL, /*optionsmaskp*/
-      NULL, /*pixelsp*/
       NULL, NULL, NULL
       );
 }
@@ -574,8 +605,6 @@ nc_inq_var_endian(int ncid, int varid, int *endianp)
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
       endianp, /*endianp*/
-      NULL, /*optionsmaskp*/
-      NULL, /*pixelsp*/
       NULL, NULL, NULL);
 }
 
@@ -659,8 +688,6 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
       NULL, /*endianp*/
-      NULL, /*optionsmaskp*/
-      NULL, /*pixelsp*/
       idp, nparamsp, params);
 }
 
@@ -705,7 +732,6 @@ NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *shufflep, int *deflatep, int *deflate_levelp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                int *no_fill, void *fill_valuep, int *endiannessp,
-	       int *options_maskp, int *pixels_per_blockp,
 	       unsigned int* idp, size_t* nparamsp, unsigned int* params
                )
 {
@@ -719,8 +745,6 @@ NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       contiguousp, chunksizesp,
       no_fill, fill_valuep,
       endiannessp,
-      options_maskp,
-      pixels_per_blockp,
       idp,nparamsp,params);
 }
 

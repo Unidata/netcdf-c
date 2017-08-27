@@ -179,9 +179,6 @@ typedef struct NC_VAR_INFO
    int deflate_level;
    nc_bool_t shuffle;           /* True if var has shuffle filter applied */
    nc_bool_t fletcher32;        /* True if var has fletcher32 filter applied */
-   nc_bool_t szip;              /* True if var has szip filter applied */
-   int options_mask;
-   int pixels_per_block;
    size_t chunk_cache_size, chunk_cache_nelems;
    float chunk_cache_preemption;
 #ifdef USE_HDF4

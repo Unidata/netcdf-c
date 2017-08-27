@@ -2,8 +2,6 @@
   Copyright 2008, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 
-  This program tests the large file bug in netCDF 3.6.2,
-  creating byte and short variables larger than 4 GiB.
 */
 
 #include "config.h"

@@ -1,23 +1,25 @@
 # Test c output
-T=tst_misc
+T=tst_szip
 #CMD=valgrind --leak-check=full
 CMD=gdb --args
 
 #PAR=1
+SZIP=1
 
-CFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -g -O0 -I.. -I../include
+CFLAGS = -Wall -Wno-unused-variable -Wno-unused-function -g -O0 -I.. -I../include
+
+LDFLAGS = ../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -ldl -lcurl -lm
 
 ifdef PAR
 CC=mpicc
-#CC=/usr/local/bin/mpicc
-LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  -ldl -lcurl -lpnetcdf -lmpich -lm
+LDFLAGS += -lmpich
 else
 CC=gcc
-#LDFLAGS=../liblib/.libs/libnetcdf.a  -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
-LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  -ldl -lm -lcurl
 endif
 
-#	cd .. ; ${MAKE} all
+ifdef SZIP
+LDFLAGS += -lsz -laec
+endif
 
 LLP=/usr/local/lib:${LD_LIBRARY_PATH}
 

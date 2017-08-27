@@ -672,7 +672,6 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *shufflep, int *deflatep, int *deflate_levelp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                int *no_fill, void *fill_valuep, int *endiannessp,
-	       int *options_maskp, int *pixels_per_blockp,
 	       unsigned int* idp, size_t* nparamsp, unsigned int* params
                )
 {
@@ -752,13 +751,6 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       *shufflep = (int)var->shuffle;
    if (fletcher32p)
       *fletcher32p = (int)var->fletcher32;
-   /* NOTE: No interface for returning szip flag currently (but it should never
-    *   be set).
-    */
-   if (options_maskp)
-      *options_maskp = var->options_mask;
-   if (pixels_per_blockp)
-      *pixels_per_blockp = var->pixels_per_block;
 
    if (idp)
       *idp = var->filterid;
@@ -1081,7 +1073,7 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
 
    retval = NC4_inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, NULL,
                            NULL, NULL, NULL, NULL, contiguousp, cs, NULL,
-                           NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+                           NULL, NULL, NULL, NULL, NULL);
 
    /* Copy from size_t array. */
    if (*contiguousp == NC_CHUNKED)
@@ -1195,7 +1187,18 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const u
     if (var->created)
       return NC_ELATEDEF;
 
-    if(0) {
+#ifdef HAVE_H5Z_SZIP
+    if(id == H5Z_FILTER_SZIP) {
+	if(nparams != 2)
+	    return NC_EFILTER; /* incorrect no. of parameters */
+    }    
+#else /*!HAVE_H5Z_SZIP*/
+    if(id == H5Z_FILTER_SZIP)
+	return NC_EFILTER; /* Not allowed */
+#endif
+
+#if 0
+   {
 	unsigned int fcfg = 0;
 	herr_t herr = H5Zget_filter_info(id,&fcfg);
 	if(herr < 0)
@@ -1204,6 +1207,8 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const u
 	   || (H5Z_FILTER_CONFIG_DECODE_ENABLED & fcfg) == 0)
 	    return NC_EFILTER;
     }
+#endif /*0*/
+
     var->filterid = id;
     var->nparams = nparams;
     var->params = NULL;

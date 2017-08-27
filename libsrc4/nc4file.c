@@ -1691,14 +1691,6 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
             var->deflate_level = cd_values[0];
             break;
 
-         case H5Z_FILTER_SZIP:
-            var->szip = NC_TRUE;
-            if (cd_nelems != CD_NELEMS_SZIP)
-               BAIL(NC_EHDFERR);
-	    var->options_mask = cd_values[0];
-            var->pixels_per_block = cd_values[1];
-            break;
-
 	default:
             var->filterid = filter;
 	    var->nparams = cd_nelems;

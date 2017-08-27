@@ -14,6 +14,11 @@
 
 #include <netcdf.h>
 
+/* Must match values in <H5Zpublic.h> */
+#ifndef H5Z_FILTER_SZIP
+#define H5Z_FILTER_SZIP 4
+#endif
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
