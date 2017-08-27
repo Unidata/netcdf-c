@@ -46,6 +46,10 @@ IF(USE_HDF4)
   SET(NC4_TESTS ${NC4_TESTS} tst_interops2)
 ENDIF()
 
+IF(USE_SZIP)
+  SET(NC4_TESTS ${NC4_TESTS} tst_szip)
+ENDIF()
+
 IF(BUILD_BENCHMARKS)
   add_sh_test(nc_test4 run_bm_test1)
   add_sh_test(nc_test4 run_bm_elena)
