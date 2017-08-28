@@ -49,10 +49,15 @@ The file must be called one of the following names:
 ".daprc" or ".dodsrc".
 If both ".daprc" and ".dodsrc" exist, then
 the ".daprc" file will take precedence.
+It is strongly suggested that you pick one of the two names
+and use it always. Otherwise you may observe unexpected results
+when the netcdf-c library finds one that you did not intend.
 
 The rc file is searched for first in the current directory
 and then in the home directory (as defined by the HOME environment
-variable).
+variable). It is strongly suggested that you pick a uniform location
+and use it always. Otherwise you may observe unexpected results
+when the netcdf-c library get an rc file you did not expect.
 
 The rc file format is a series of lines of the general form:
 
