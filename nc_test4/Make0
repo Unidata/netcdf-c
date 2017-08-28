@@ -34,9 +34,9 @@ cmp::
 cpp::
 	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt
 
-H5=H5szip_example
-EXT=testszip.nc
-hdf5::
+H5=H5testszip
+#EXT=testszip.nc
+h5::
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
 	${CC} -o h5 ${CFLAGS} ${H5}.c ${SRC} ${LDFLAGS}; \
 	${CMD} ./h5 ${EXT}

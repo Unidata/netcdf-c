@@ -108,8 +108,8 @@ endif # USE_HDF4
 
 # Szip Tests
 if USE_SZIP
-check_PROGRAMS += tst_szip
-TESTS += tst_szip
+check_PROGRAMS += tst_szip h5testszip.c
+TESTS += tst_szip.sh
 endif
 
 
