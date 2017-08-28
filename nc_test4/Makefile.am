@@ -106,6 +106,13 @@ endif # USE_HDF4_FILE_TESTS
 #-lhdf5 -lz
 endif # USE_HDF4
 
+# Szip Tests
+if USE_SZIP
+check_PROGRAMS += tst_szip
+TESTS += tst_szip
+endif
+
+
 # This will run a bunch of the test programs with valgrind, the memory
 # checking tool. (Valgrind must be present for this to work.)
 if USE_VALGRIND_TESTS

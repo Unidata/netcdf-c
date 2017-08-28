@@ -1,5 +1,5 @@
 # Visual Studio
-VS=1
+#VS=1
 #VSSETUP=1
 
 #export NCPATHDEBUG=1
@@ -16,8 +16,10 @@ DAP=1
 
 if test "x$VS" != x ; then
 FLAGS="-DCMAKE_PREFIX_PATH=c:/tools/nccmake"
-fi
 FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=d:/ignore"
+else
+FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=/tmp/ignore"
+fi
 
 if test "x$DAP" = x ; then
 FLAGS="$FLAGS -DENABLE_DAP=false"

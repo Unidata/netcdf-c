@@ -6,6 +6,7 @@ FAST=1
 
 HDF5=1
 DAP=1
+SZIP=1
 #HDF4=1
 #PNETCDF=1
 #PAR4=1
@@ -67,6 +68,10 @@ fi
 
 if test "x$HDF4" = "x1" ; then
 LDFLAGS="$LDFLAGS -ljpeg"
+fi
+
+if test "x$SZIP" = "x1" ; then
+LDFLAGS="$LDFLAGS -lsz -laec"
 fi
 
 export PKG_CONFIG_PATH=/usr/lib/pkgconfig

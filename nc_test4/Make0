@@ -29,7 +29,14 @@ all:: cmp
 
 cmp::
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
-	${CC} -o t ${CFLAGS} ${T}.c ${SRC} ${LDFLAGS}; \
+	${CC} -o t ${CFLAGS} ${T}.c ${SRC} ${LDFLAGS}
 
 cpp::
 	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt
+
+H5=H5szip_example
+EXT=testszip.nc
+hdf5::
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${CC} -o h5 ${CFLAGS} ${H5}.c ${SRC} ${LDFLAGS}; \
+	${CMD} ./h5 ${EXT}

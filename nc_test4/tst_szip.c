@@ -16,14 +16,18 @@
 #include "netcdf.h"
 #include "netcdf_filter.h"
 
-#define PLAIN
-#undef USECLOSE
+#undef PLAIN
+#define USECLOSE
 
 /* Szip Constants. */
 #define HDF5_FILTER_SZIP 4
-#define H5_SZIP_EC_OPTION_MASK 4
-#define H5_SZIP_NN_OPTION_MASK 32
 #define H5_SZIP_MAX_PIXELS_PER_BLOCK 32
+
+/* Option Mask Flags (Refere to HDF5 szip documentation)  */
+#define H5_SZIP_ALLOW_K13_OPTION_MASK 1 /*Allows k split = 13 compression mode. (Default)*/
+#define H5_SZIP_CHIP_OPTION_MASK      2 /*Compresses exactly as in hardware*/
+#define H5_SZIP_EC_OPTION_MASK        4 /*Selects entropy coding method. (Default)*/
+#define H5_SZIP_NN_OPTION_MASK       32 /*Selects nearest neighbor coding method*/
 
 #define NX 500
 #define NY 600
@@ -50,7 +54,10 @@ main(void)
     if(nc_def_dim(ncid, "y", dims[1], &dimids[1])) ERR;
 
     /* Create a dimensioned variable */
-    if(nc_def_var(ncid, "var", NC_FLOAT, 2, dimids, &varid)) ERR;
+    if(nc_def_var(ncid, "datasetF32", NC_FLOAT, 2, dimids, &varid)) ERR;
+
+    /* no fill */
+    if(nc_def_var_fill(ncid, varid, 1, NULL)) ERR;
 
     /* Define chunking for the variable:
     * the raw data is to be partitioned into 100x100 element chunks.
@@ -67,7 +74,12 @@ main(void)
      */
     szip_params[0] = H5_SZIP_NN_OPTION_MASK;
     szip_params[1] = H5_SZIP_MAX_PIXELS_PER_BLOCK;
-    if(nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, szip_params)) ERR;
+    { int stat = nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, szip_params);
+       if(stat) {
+         fprintf(stderr,"XXX: %d %s\b",stat,nc_strerror(stat));
+         ERR;
+       }
+    }
 #endif
 
     if(nc_enddef(ncid)) ERR;
@@ -82,11 +94,11 @@ main(void)
     /* Write the array to the file */
     if(nc_put_var_float(ncid, varid, &buf[0][0])) ERR;
 
-#if USECLOSE
+#ifdef USECLOSE
     /* Close and re-open the file */
     if(nc_close(ncid)) ERR;
-    if(nc_open("testszip.nc", NC_NETCDF4. &ncid)) ERR;
-    if(nc_inq_varid(ncid, "var", &varid)) ERR;
+    if(nc_open("testszip.nc", NC_NETCDF4, &ncid)) ERR;
+    if(nc_inq_varid(ncid, "datasetF32", &varid)) ERR;
 #endif
 
     /*
