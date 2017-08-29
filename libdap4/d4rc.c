@@ -524,7 +524,7 @@ storedump(char* msg, NClist* triples)
     for(i=0;i<nclistlength(triples);i++) {
 	NCD4triple* t = (NCD4triple*)nclistget(triples,i);
         fprintf(stderr,"\t%s\t%s\t%s\n",
-                (strlen(t->host)==0?"--":t->host),t->key,t->value);
+                (t->host == NULL || strlen(t->host)==0?"--":t->host),t->key,t->value);
     }
     fflush(stderr);
 }
