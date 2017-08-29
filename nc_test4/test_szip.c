@@ -34,15 +34,20 @@
 #define CH_NX 100
 #define CH_NY 25
 
+
+static void initialize(void);
+static int compare(void);
+
+static float buf[NX][NY];
+static float buf_r[NX][NY];
+
 int
 main(void)
 {
     int ncid, varid, dimids[2];
     size_t dims[2], chunk_size[2];
-    float buf[NX][NY];
-    float buf_r[NX][NY];
-    int i, j;
     unsigned int szip_params[2]; /* [0]=options_mask [1]=pixels_per_block */
+    int errcnt = 0;
 
     /* Create a new file using read/write access. */
     if(nc_create("testszip.nc", NC_CLOBBER|NC_NETCDF4, &ncid)) ERR;
@@ -84,12 +89,7 @@ main(void)
 
     if(nc_enddef(ncid)) ERR;
 
-    /* Initialize data buffer with some bogus data. */
-    for(i=0; i < NX; i++) {
-        for(j=0; j < NY; j++) {
-            buf[i][j] = (float)(i + j);
-	}
-    }
+    initialize();
 
     /* Write the array to the file */
     if(nc_put_var_float(ncid, varid, &buf[0][0])) ERR;
@@ -111,18 +111,46 @@ main(void)
     if(nc_get_var_float(ncid, varid, &buf_r[0][0])) ERR;
 
     /* Do comparison */
-    for (i=0; i < NX; i++) {
-        for (j=0; j < NY; j++) {
-	    if(buf[i][j] != buf_r[i][j]) {
-		printf("mismatch: [%d][%d]: write = %f read=%f\n",
-			i,j,buf[i][j],buf_r[i][j]);
-	    }
-	}
-    }
+    errcnt = compare();
 
     if(nc_close(ncid)) ERR;
 
+    if(errcnt) ERR;
+
     SUMMARIZE_ERR;
     FINAL_RESULTS;
-    return 0;
+
+    return (errcnt==0?0:1);
 }
+
+static int
+compare()
+{
+    int i,j;
+    int errs = 0;
+    
+    /* Do comparison */
+    for (i=0; i < NX; i++) {
+	for (j=0; j < NY; j++) {
+            if(buf[i][j] != buf_r[i][j]) {
+		errs++;
+	        printf("mismatch: [%d][%d]: write = %f read=%f\n",
+		        i,j,buf[i][j],buf_r[i][j]);
+	}
+     }
+   }
+   return errs;
+}
+
+static void
+initialize(void)
+{
+   int i, j;
+   /* Initialize data buffer with some bogus data. */
+   for(i=0; i < NX; i++) {
+     for(j=0; j < NY; j++) {
+       buf[i][j] = (float)(i + j);
+     }
+   }
+}
+

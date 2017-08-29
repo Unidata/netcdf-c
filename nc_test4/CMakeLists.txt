@@ -47,7 +47,8 @@ IF(USE_HDF4)
 ENDIF()
 
 IF(USE_SZIP)
-  SET(NC4_TESTS ${NC4_TESTS} tst_szip)
+  SET(NC4_TESTS ${NC4_TESTS} test_szip)
+  add_sh_test(nc_test4 tst_szip)
 ENDIF()
 
 IF(BUILD_BENCHMARKS)

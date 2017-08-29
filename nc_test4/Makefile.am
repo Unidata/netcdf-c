@@ -108,7 +108,7 @@ endif # USE_HDF4
 
 # Szip Tests
 if USE_SZIP
-check_PROGRAMS += tst_szip h5testszip.c
+check_PROGRAMS += test_szip h5testszip
 TESTS += tst_szip.sh
 endif
 
@@ -142,8 +142,8 @@ run_grp_rename.sh tst_formatx_hdf4.sh run_chunk_hdf4.sh \
 tst_h5_endians.c tst_h4_lendian.c tst_atts_string_rewrite.c \
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c run_empty_vlen_test.sh \
 ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh \
-tdset.h5 tst_hdf4_read_var.sh ref_contiguous.hdf4 ref_chunked.hdf4
-
+tdset.h5 tst_hdf4_read_var.sh ref_contiguous.hdf4 ref_chunked.hdf4      \
+tst_szip.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt			\
@@ -155,7 +155,8 @@ usi_01.* thetau_01.* tst_*.nc tst_*.h5                                  \
 tst_grp_rename.cdl tst_grp_rename.nc tst_grp_rename.dmp ref_grp_rename.cdl \
 foo1.nc tst_interops2.h4 tst_h5_endians.nc tst_h4_lendian.h4 test.nc \
 tst_atts_string_rewrite.nc tst_empty_vlen_unlim.nc tst_empty_vlen_lim.nc \
-tst_parallel4_simplerw_coll.nc tst_fill_attr_vanish.nc tst_rehash.nc
+tst_parallel4_simplerw_coll.nc tst_fill_attr_vanish.nc tst_rehash.nc    \
+testszip.nc test.h5
 
 if USE_HDF4_FILE_TESTS
 DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\

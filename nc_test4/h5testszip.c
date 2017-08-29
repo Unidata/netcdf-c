@@ -10,8 +10,8 @@
 #define CH_NX 100
 #define CH_NY 25
 
-static void initialize();
-static int compare();
+static void initialize(void);
+static int compare(void);
 
 static float buf[NX][NY];
 static float buf_r[NX][NY];
@@ -93,8 +93,8 @@ writeszip()
    return 1;
 }
 
-int
-read()
+static int
+readszip()
 {
     hid_t file;
     hid_t dataset32;
@@ -123,7 +123,7 @@ read()
 }
 
 static int
-compare()
+compare(void)
 {
     int i,j;
     int errs = 0;
@@ -156,21 +156,27 @@ initialize(void)
 int
 main(int argc, char** argv)
 {
-    if(argc > 1)
+    int extfile = 0;
+    if(argc > 1) {
 	filename = argv[1];
+	extfile = 1;
+    }
 
     initialize();
-    if(argc > 1) {
+    if(!extfile) {
 	if(!writeszip()) {
 	    fprintf(stderr,"writeszip failed.\n");
-	    return 1;
+	    goto fail;
 	}
     }
 
     if(!readszip()) {
 	fprintf(stderr,"openfile failed.\n");
-	return 1;
+	goto fail;
     }
-
+    fprintf(stderr,"***PASS\n");
     return 0;
+fail:
+    fprintf(stderr,"***FAIL\n");
+    return 1;
 }
