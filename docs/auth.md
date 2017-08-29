@@ -1,5 +1,5 @@
 netCDF Authorization Support
-============================
+======================================
 <!-- double header is needed to workaround doxygen bug -->
 
 # netCDF Authorization Support {#Header}
@@ -38,8 +38,11 @@ This username and password will be used if the server asks for
 authentication. Note that only simple password authentication
 is supported in this format.
 Specifically note that [redirection-based](#REDIR)
-authorization will not work with this because the username and password
-will only be used on the initial request, not the redirection
+authorization may not work with this because the username and password
+will only be used on the initial request, not the redirection.
+Note also that the `user:password` form may contain characters that must be
+escaped. See the <a href="#USERPWDESCAPE">password escaping</a> section to see
+how to properly escape the user and password.
 
 ## RC File Authentication {#DODSRC}
 The netcdf library supports an _rc_ file mechanism to allow the passing
@@ -134,6 +137,27 @@ specifies the absolute path of the .netrc file.
 See [redirection authorization](#REDIR)
 for information about using .netrc.
 
+## Password Escaping {#USERPWDESCAPE}
+With current password rules, it is is not unlikely that the password
+will contain characters that need to be escaped. Similarly, the user
+may contain characters such as '@' that need to be escaped. To support this,
+it is assumed that all occurrences of `user:`password` use URL (i.e. %%XX)
+escaping for at least the characters in the table below.
+Note that escaping must be used when the user+pwd is embedded in the URL.
+It must also be used when the user+pwd is specified in the `.dodsrc/.daprc` file
+via HTTP.CREDENTIALS.USERPASSWORD.
+Escaping should not be used in the `.netrc` file.
+
+The relevant characters and their escapes are as follows.
+<table>
+<tr><th>Character</th><th>Escaped Form</th>
+<tr><td>'@'</td><td>%40</td>
+<tr><td>':'</td><td>%3a</td>
+<tr><td>'?'</td><td>%3f</td>
+<tr><td>'#'</td><td>%23</td>
+<tr><td>'/'</td><td>%2f</td>
+</table>
+
 ## Redirection-Based Authentication {#REDIR}
 
 Some sites provide authentication by using a third party site
@@ -150,16 +174,18 @@ using the _https_ protocol (note the use of _https_ instead of _http_).
 4. URS sends a redirect (with authorization information) to send
 the client back to the SOI to actually obtain the data.
 
-It turns out that libcurl uses the password in the `.daprc`
-file (or from the url)
-only for the initial connection. This causes problems because
-the redirected connection is the one that actually requires the password.
-This is where the `.netrc` file comes in. Libcurl will use `.netrc` for
-the redirected connection. It is possible to cause libcurl to use
-the `.daprc` password always, but this introduces a security hole
-because it may send the initial user+pwd to the redirection site.
-In summary, if you are using redirection, then you must create a `.netrc`
-file to hold the password for the site to which the redirection is sent.
+It turns out that libcurl, by default, uses the password in the
+`.daprc` file (or from the url) for all connections that request
+a password.  This causes problems because only the the specific
+redirected connection is the one that actually requires the password.
+This is where the `.netrc` file comes in. Libcurl will use `.netrc`
+for the redirected connection. It is possible to cause libcurl
+to use the `.daprc` password always, but this introduces a
+security hole because it may send the initial user+pwd to every
+server in the redirection chain.
+In summary, if you are using redirection, then you are
+''strongly'' encouraged to create a `.netrc` file to hold the
+password for the site to which the redirection is sent.
 
 The format of this `.netrc` file will contain lines that
 typically look like this.
@@ -170,10 +196,13 @@ where the machine, mmmmmm, is the hostname of the machine to
 which the client is redirected for authorization, and the
 login and password are those needed to authenticate on that machine.
 
-The `.netrc` file can be specified by
+The location of the `.netrc` file can be specified by
 putting the following line in your `.daprc`/`.dodsrc` file.
 
     HTTP.NETRC=<path to netrc file>
+
+If not specified, then libcurl will look first in the current
+directory, and then in the HOME directory.
 
 One final note. In using this, you MUST
 to specify a real file in the file system to act as the

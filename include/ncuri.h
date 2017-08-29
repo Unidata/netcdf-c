@@ -21,11 +21,11 @@
 #define NCU_ECONSTRAINTS  (11)
 
 /* Define flags to control what is included by ncuribuild*/
-#define NCURIPATH    1
-#define NCURIPWD     2
-#define NCURIQUERY   4
-#define NCURIFRAG    8
-#define NCURIENCODE  16 /* If output should be encoded */
+#define NCURIPATH      1
+#define NCURIPWD       2
+#define NCURIQUERY     4
+#define NCURIFRAG      8
+#define NCURIENCODE    16 /* If output should be encoded */
 #define NCURIBASE    (NCURIPWD|NCURIPATH)
 #define NCURISVC     (NCURIQUERY|NCURIBASE) /* for sending to server  */
 #define NCURIALL     (NCURIPATH|NCURIPWD|NCURIQUERY|NCURIFRAG) /* for rebuilding after changes */
@@ -81,9 +81,11 @@ extern const char* ncurilookup(NCURI*, const char* param);
 extern const char* ncuriquerylookup(NCURI*, const char* param);
 
 /* URL Encode/Decode */
-extern char* ncuriencode(char* s, char* allowable);
 extern char* ncuridecode(char* s);
-extern char* ncuridecodeonly(char* s, char*);
+/* Encode using specified character set */
+extern char* ncuriencodeonly(char* s, char* allowable);
+/* Encode user or pwd */
+extern char* ncuriencodeuserpwd(char* s);
 
 #if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__) || defined(__CPLUSPLUS)
 }

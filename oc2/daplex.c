@@ -11,6 +11,8 @@
 
 #undef URLCVT /* NEVER turn this on */
 
+#define DECODE_IDENTIFIERS
+
 #define DAP2ENCODE
 #ifdef DAP2ENCODE
 #define KEEPSLASH

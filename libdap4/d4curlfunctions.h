@@ -20,7 +20,6 @@ extern ncerror NCD4_set_flags_perfetch(NCD4INFO*);
 extern ncerror NCD4_set_flags_perlink(NCD4INFO*);
 
 extern ncerror NCD4_set_curlflag(NCD4INFO*,int);
-extern ncerror NCD4_set_curlstate(NCD4INFO* state, int flag, void* value);
 
 extern void NCD4_curl_debug(NCD4INFO* state);
 

@@ -63,6 +63,10 @@ static char* pathallow =
 static char* queryallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
 
+/* user+pwd allow = path allow - "@:?#/" */
+static char* userpwdallow =
+"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!$&'()*+,-.;=_~";
+
 #ifndef HAVE_STRNCMP
 #define strndup ncstrndup
 /* Not all systems have strndup, so provide one*/
@@ -345,8 +349,13 @@ ncuriparse(const char* uri0, NCURI** durip)
     /* save original uri */
     duri->uri = strdup(uri0);
     duri->protocol = nulldup(tmp.protocol);
-    duri->user = nulldup(tmp.user);
-    duri->password = nulldup(tmp.password);
+    /* before saving, we need to decode the user+pwd */
+    duri->user = NULL;
+    duri->password = NULL;
+    if(tmp.user != NULL) 
+        duri->user = ncuridecode(tmp.user);
+    if(tmp.password != NULL)
+        duri->password = ncuridecode(tmp.password);
     duri->host = nulldup(tmp.host);
     duri->port = nulldup(tmp.port);
     if(tmp.path != NULL) {
@@ -530,9 +539,14 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
     ncbytescat(buf,"://"); /* this will produce file:///... */
 
     if((flags & NCURIPWD) && duri->user != NULL && duri->password != NULL) {
-	ncbytescat(buf,duri->user);
+	/* The user and password must be encoded */
+        char* encoded = ncuriencodeonly(duri->user,userpwdallow);
+	ncbytescat(buf,encoded);
+	nullfree(encoded);
 	ncbytescat(buf,":");
-	ncbytescat(buf,duri->password);
+	encoded = ncuriencodeonly(duri->password,userpwdallow);
+	ncbytescat(buf,encoded);
+	nullfree(encoded);
 	ncbytescat(buf,"@");
     }
     if(duri->host != NULL) ncbytescat(buf,duri->host);
@@ -544,7 +558,7 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
 	if(duri->path == NULL)
 	    ncbytescat(buf,"/");
 	else if(encode) {
-	    char* encoded = ncuriencode(duri->path,pathallow);
+	    char* encoded = ncuriencodeonly(duri->path,pathallow);
 	    ncbytescat(buf,encoded);
 	    nullfree(encoded);
 	} else 	
@@ -566,7 +580,7 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
 	    if(p[1] != NULL && strlen(p[1]) > 0) {
 		ncbytescat(buf,"=");
 		if(encode) {
-		    char* encoded = ncuriencode(p[1],queryallow);
+		    char* encoded = ncuriencodeonly(p[1],queryallow);
 		    ncbytescat(buf,encoded);
 	            nullfree(encoded);
 		} else 	
@@ -583,7 +597,7 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
 	    if(p[1] != NULL && strlen(p[1]) > 0) {
 		ncbytescat(buf,"=");
 		if(encode) {
-		    char* encoded = ncuriencode(p[1],queryallow);
+		    char* encoded = ncuriencodeonly(p[1],queryallow);
 		    ncbytescat(buf,encoded);
 	            nullfree(encoded);
 		} else 	
@@ -720,8 +734,8 @@ static char* hexchars = "0123456789abcdefABCDEF";
 static void
 toHex(unsigned int b, char hex[2])
 {
-    hex[0] = hexchars[(b >> 4) & 0xff];
-    hex[1] = hexchars[(b) & 0xff];
+    hex[0] = hexchars[(b >> 4) & 0xf];
+    hex[1] = hexchars[(b) & 0xf];
 }
 
 
@@ -734,6 +748,14 @@ fromHex(int c)
     return 0;
 }
 
+/*
+Support encode of user and password fields
+*/
+char*
+ncuriencodeuserpwd(char* s)
+{
+    return ncuriencodeonly(s,userpwdallow);
+}
 
 /* Return a string representing encoding of input; caller must free;
    watch out: will encode whole string, so watch what you give it.
@@ -741,7 +763,7 @@ fromHex(int c)
  */
 
 char*
-ncuriencode(char* s, char* allowable)
+ncuriencodeonly(char* s, char* allowable)
 {
     size_t slen;
     char* encoded;
@@ -760,12 +782,10 @@ ncuriencode(char* s, char* allowable)
         } else {
             /* search allowable */
             int c2;
-	    char* a = allowable;
-	    while((c2=*a++)) {
-		if(c == c2) break;
-	    }
-            if(c2) {*outptr++ = (char)c;}
-            else {
+	    char* p = strchr(allowable,c);
+	    if(p != NULL) {
+                *outptr++ = (char)c;
+            } else {
 		char hex[2];
 		toHex(c,hex);
 		*outptr++ = '%';
@@ -778,18 +798,9 @@ ncuriencode(char* s, char* allowable)
     return encoded;
 }
 
-/* Return a string representing decoding of input; caller must free;*/
+/* Return a string representing decoding of input. Caller must free */
 char*
 ncuridecode(char* s)
-{
-    return ncuridecodeonly(s,NULL);
-}
-
-/* Return a string representing decoding of input only for specified
-   characters;  caller must free
-*/
-char*
-ncuridecodeonly(char* s, char* only)
 {
     size_t slen;
     char* decoded;
@@ -805,19 +816,15 @@ ncuridecodeonly(char* s, char* only)
     outptr = decoded;
     inptr = s;
     while((c = (unsigned int)*inptr++)) {
-	if(c == '+' && only != NULL && strchr(only,'+') != NULL)
-	    *outptr++ = ' ';
-	else if(c == '%') {
+	if(c == '%') {
             /* try to pull two hex more characters */
 	    if(inptr[0] != EOFCHAR && inptr[1] != EOFCHAR
 		&& strchr(hexchars,inptr[0]) != NULL
 		&& strchr(hexchars,inptr[1]) != NULL) {
 		/* test conversion */
 		int xc = (fromHex(inptr[0]) << 4) | (fromHex(inptr[1]));
-		if(only == NULL || strchr(only,xc) != NULL) {
-		    inptr += 2; /* decode it */
-		    c = (unsigned int)xc;
-                }
+		inptr += 2; /* decode it */
+		c = (unsigned int)xc;
             }
         }
         *outptr++ = (char)c;

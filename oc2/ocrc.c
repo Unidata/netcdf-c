@@ -26,7 +26,6 @@ static OCerror rc_search(const char* prefix, const char* rcfile, char** pathp);
 
 static int rcreadline(FILE* f, char* more, int morelen);
 static void rctrim(char* text);
-static char* combinecredentials(const char* user, const char* pwd);
 
 static void storedump(char* msg, struct OCTriple*, int ntriples);
 
@@ -48,17 +47,49 @@ occredentials_in_url(const char *url)
     return 0;
 }
 
+/*
+Given form user:pwd, parse into user and pwd
+and do %xx unescaping
+*/
 static OCerror
-ocextract_credentials(const char *url, char **userpwd, char **result_url)
+parsecredentials(const char* userpwd, char** userp, char** pwdp)
+{
+    char* user = NULL;
+    char* pwd = NULL;
+
+    if(userpwd == NULL)
+	return OC_EINVAL;
+    user = strdup(userpwd);
+    if(user == NULL)
+	return NC_ENOMEM;
+    pwd = strchr(user,':');
+    if(pwd == NULL)
+	return OC_EINVAL;
+    *pwd = '\0';
+    pwd++;
+    if(userp)
+	*userp = ncuridecode(user);
+    if(pwdp)
+	*pwdp = ncuridecode(pwd);
+    free(user);
+    return OC_NOERR;
+}
+
+static OCerror
+ocextract_credentials(const char *url, char **user, char** pwd, char **result_url)
 {
     NCURI* parsed = NULL;
-    if(ncuriparse(url,&parsed) != NCU_OK)
+
+    if(url == NULL || ncuriparse(url,&parsed) != NCU_OK)
 	return OCTHROW(OC_EBADURL);
     if(parsed->user != NULL || parsed->password == NULL) {
 	ncurifree(parsed);
 	return OCTHROW(OC_EBADURL);
     }
-    if(userpwd) *userpwd = combinecredentials(parsed->user,parsed->password);
+    if(user)
+	*user = parsed->user;
+    if(pwd)
+	*pwd = parsed->password;
     ncurifree(parsed);
     return OC_NOERR;
 }
@@ -85,23 +116,40 @@ occombinehostport(const NCURI* uri)
     return hp;
 }
 
+#if 0
+/*
+Combine user and pwd into the user:pwd form.
+Note that we must %xx escape the user and the pwd
+*/
 static char*
 combinecredentials(const char* user, const char* pwd)
 {
     int userPassSize;
     char *userPassword;
+    char *escapeduser = NULL;
+    char* escapedpwd = NULL;
 
     if(user == NULL || pwd == NULL)
 	return NULL;	
-    userPassSize = strlen(user) + strlen(pwd) + 2;
+ 
+    userPassSize = 3*strlen(user) + 3*strlen(pwd) + 2; /* times 3 for escapes */
     userPassword = malloc(sizeof(char) * userPassSize);
     if (!userPassword) {
         nclog(NCLOGERR,"Out of Memory\n");
 	return NULL;
     }
-    occopycat(userPassword,userPassSize-1,3,user,":",pwd);
+    escapeduser = ncuriencodeuserpwd(user);
+    escapedpwd = ncuriencodeuserpwd(pwd);
+    if(escapeduser == NULL || escapedpwd == NULL) {
+        nclog(NCLOGERR,"Out of Memory\n");
+	return NULL;
+    }
+    occopycat(userPassword,userPassSize-1,3,escapeduser,":",escapedpwd);
+    free(escapeduser);
+    free(escapedpwd);
     return userPassword;
 }
+#endif
 
 static int
 rcreadline(FILE* f, char* more, int morelen)
@@ -157,7 +205,7 @@ ocparseproxy(OCstate* state, char* v)
 	return OC_NOERR; /* nothing there*/
     if (occredentials_in_url(v)) {
         char *result_url = NULL;
-        ocextract_credentials(v, &state->proxy.userpwd, &result_url);
+        ocextract_credentials(v, &state->proxy.user, &state->proxy.pwd, &result_url);
         v = result_url;
     }
     /* allocating a bit more than likely needed ... */
@@ -207,7 +255,7 @@ ocparseproxy(OCstate* state, char* v)
      if (ocdebug > 1) {
          nclog(NCLOGNOTE,"host name: %s", state->proxy.host);
 #ifdef INSECURE
-         nclog(NCLOGNOTE,"user+pwd: %s", state->proxy.userpwd);
+         nclog(NCLOGNOTE,"user+pwd: %s+%s", state->proxy.user,state->proxy.pwd);
 #endif
          nclog(NCLOGNOTE,"port number: %d", state->proxy.port);
     }
@@ -415,7 +463,6 @@ ocrc_process(OCstate* state)
     OCerror stat = OC_NOERR;
     char* value = NULL;
     NCURI* uri = state->uri;
-    char* url_userpwd = NULL;
     char* url_hostport = NULL;
 
     if(!ocglobalstate.initialized)
@@ -427,7 +474,6 @@ ocrc_process(OCstate* state)
        to getinfo e.g. user:pwd from url
     */
 
-    url_userpwd = combinecredentials(uri->user,uri->password);
     url_hostport = occombinehostport(uri);
     if(url_hostport == NULL)
 	return OC_ENOMEM;
@@ -544,21 +590,28 @@ ocrc_process(OCstate* state)
 
     { /* Handle various cases for user + password */
 	/* First, see if the user+pwd was in the original url */
-	char* userpwd = NULL;
 	char* user = NULL;
 	char* pwd = NULL;
-	if(url_userpwd != NULL)
-	    userpwd = url_userpwd;
-	else {
+	if(uri->user != NULL && uri->password != NULL) {
+	    user = uri->user;
+	    pwd = uri->password;
+	} else {
    	    user = ocrc_lookup("HTTP.CREDENTIALS.USER",url_hostport);
 	    pwd = ocrc_lookup("HTTP.CREDENTIALS.PASSWORD",url_hostport);
-	    userpwd = ocrc_lookup("HTTP.CREDENTIALS.USERPASSWORD",url_hostport);
 	}
-	if(userpwd == NULL && user != NULL && pwd != NULL) {
-	    userpwd = combinecredentials(user,pwd);
-	    state->creds.userpwd = userpwd;
-	} else if(userpwd != NULL)
-	    state->creds.userpwd = strdup(userpwd);
+	if(user != NULL && pwd != NULL) {
+            state->creds.user = strdup(user);
+            state->creds.pwd = strdup(pwd);
+	} else {
+	    /* Could not get user and pwd, so try USERPASSWORD */
+	    const char* userpwd = ocrc_lookup("HTTP.CREDENTIALS.USERPASSWORD",url_hostport);
+	    if(userpwd != NULL) {
+		stat = parsecredentials(userpwd,&user,&pwd);
+		if(stat) goto done;
+                state->creds.user = user;
+                state->creds.pwd = pwd;
+	    }
+        }
     }
 
 done:

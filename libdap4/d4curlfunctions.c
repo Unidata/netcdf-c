@@ -56,9 +56,11 @@ set_curlflag(NCD4INFO* state, int flag)
 {
     int ret = NC_NOERR;
     switch (flag) {
-    case CURLOPT_USERPWD:
-        if(state->curl->creds.userpwd != NULL) {
-	    CHECK(state, CURLOPT_USERPWD, state->curl->creds.userpwd);
+    case CURLOPT_USERPWD: /* Do both user and pwd */
+        if(state->curl->creds.user != NULL
+           && state->curl->creds.pwd != NULL) {
+	    CHECK(state, CURLOPT_USERNAME, state->curl->creds.user);
+	    CHECK(state, CURLOPT_PASSWORD, state->curl->creds.pwd);
             CHECK(state, CURLOPT_HTTPAUTH, (OPTARG)CURLAUTH_ANY);
 	}
 	break;
@@ -107,8 +109,10 @@ set_curlflag(NCD4INFO* state, int flag)
 	if(state->curl->proxy.host != NULL) {
 	    CHECK(state, CURLOPT_PROXY, state->curl->proxy.host);
 	    CHECK(state, CURLOPT_PROXYPORT, (OPTARG)(long)state->curl->proxy.port);
-	    if(state->curl->proxy.userpwd) {
-                CHECK(state, CURLOPT_PROXYUSERPWD, state->curl->proxy.userpwd);
+	    if(state->curl->proxy.user != NULL
+	       && state->curl->proxy.pwd != NULL) {
+                CHECK(state, CURLOPT_PROXYUSERNAME, state->curl->proxy.user);
+                CHECK(state, CURLOPT_PROXYPASSWORD, state->curl->proxy.pwd);
 #ifdef CURLOPT_PROXYAUTH
 	        CHECK(state, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
 #endif
@@ -264,6 +268,7 @@ NCD4_curl_protocols(NCD4globalstate* state)
 }
 
 
+#if 0
 /*
 "Inverse" of set_curlflag;
 Given a flag and value, it updates state.
@@ -349,6 +354,7 @@ NCD4_set_curlstate(NCD4INFO* state, int flag, void* value)
 done:
     return THROW(ret);
 }
+#endif
 
 void
 NCD4_curl_printerror(NCD4INFO* state)

@@ -18,7 +18,6 @@ extern OCerror ocset_flags_perfetch(OCstate*);
 extern OCerror ocset_flags_perlink(OCstate*);
 
 extern OCerror ocset_curlflag(OCstate*,int);
-extern OCerror ocset_curlstate(OCstate* state, int flag, void* value);
 
 extern void oc_curl_debug(OCstate* state);
 

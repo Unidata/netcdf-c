@@ -94,9 +94,10 @@ ocset_curlflag(OCstate* state, int flag)
 
     switch (flag) {
 
-    case CURLOPT_USERPWD:
-        if(state->creds.userpwd != NULL) {
-	    CHECK(state, CURLOPT_USERPWD, state->creds.userpwd);
+    case CURLOPT_USERPWD: /* Does both user and pwd */
+        if(state->creds.user != NULL && state->creds.pwd != NULL) {
+	    CHECK(state, CURLOPT_USERNAME, state->creds.user);
+	    CHECK(state, CURLOPT_PASSWORD, state->creds.pwd);
             CHECK(state, CURLOPT_HTTPAUTH, (OPTARG)CURLAUTH_ANY);
 	}
 	break;
@@ -155,8 +156,9 @@ ocset_curlflag(OCstate* state, int flag)
 	if(state->proxy.host != NULL) {
 	    CHECK(state, CURLOPT_PROXY, state->proxy.host);
 	    CHECK(state, CURLOPT_PROXYPORT, (OPTARG)(long)state->proxy.port);
-	    if(state->proxy.userpwd) {
-                CHECK(state, CURLOPT_PROXYUSERPWD, state->proxy.userpwd);
+	    if(state->proxy.user != NULL && state->proxy.pwd != NULL) {
+                CHECK(state, CURLOPT_PROXYUSERNAME, state->proxy.user);
+                CHECK(state, CURLOPT_PROXYPASSWORD, state->proxy.pwd);
 #ifdef CURLOPT_PROXYAUTH
 	        CHECK(state, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
 #endif
@@ -340,6 +342,7 @@ oc_curl_protocols(struct OCGLOBALSTATE* state)
 }
 
 
+#if 0
 /*
 "Inverse" of ocset_curlflag;
 Given a flag and value, it updates state.
@@ -352,9 +355,14 @@ ocset_curlstate(OCstate* state, int flag, void* value)
 
     switch (flag) {
 
-    case CURLOPT_USERPWD:
-        if(state->creds.userpwd != NULL) free(state->creds.userpwd);
-	state->creds.userpwd = strdup((char*)value);
+    case CURLOPT_USERNAME:
+        if(state->creds.user != NULL) free(state->creds.user);
+	state->creds.user = strdup((char*)value);
+	break;
+
+    case CURLOPT_PASSWORD:
+        if(state->creds.pwd != NULL) free(state->creds.pwd);
+	state->creds.pwd = strdup((char*)value);
 	break;
 
     case CURLOPT_COOKIEJAR: case CURLOPT_COOKIEFILE:
@@ -443,3 +451,4 @@ ocset_curlstate(OCstate* state, int flag, void* value)
 done:
     return stat;
 }
+#endif

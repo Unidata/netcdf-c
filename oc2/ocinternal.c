@@ -427,8 +427,10 @@ occlose(OCstate* state)
     ocfree(state->ssl.cainfo);
     ocfree(state->ssl.capath);
     ocfree(state->proxy.host);
-    ocfree(state->proxy.userpwd);
-    ocfree(state->creds.userpwd);
+    ocfree(state->proxy.user);
+    ocfree(state->proxy.pwd);
+    ocfree(state->creds.user);
+    ocfree(state->creds.pwd);
     if(state->curl != NULL) occurlclose(state->curl);
     ocfree(state);
 }
