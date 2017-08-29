@@ -3,7 +3,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-set -x
 # For a netCDF-4 build, test nccopy on netCDF files in this directory
 
 set -e
