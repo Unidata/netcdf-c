@@ -798,7 +798,7 @@ ncuriencodeonly(char* s, char* allowable)
     return encoded;
 }
 
-/* Return a string representing decoding of input. Caller must free */
+/* Return a string representing decoding of input; caller must free;*/
 char*
 ncuridecode(char* s)
 {
@@ -828,6 +828,49 @@ ncuridecode(char* s)
             }
         }
         *outptr++ = (char)c;
+    }
+    *outptr = EOFCHAR;
+    return decoded;
+}
+
+/*
+Partially decode a string. Only characters in 'decodeset'
+are decoded. Return decoded string; caller must free.
+*/
+char*
+ncuridecodepartial(char* s, const char* decodeset)
+{
+    size_t slen;
+    char* decoded;
+    char* outptr;
+    char* inptr;
+    unsigned int c;
+
+    if (s == NULL || decodeset == NULL) return NULL;
+
+    slen = strlen(s);
+    decoded = (char*)malloc(slen+1); /* Should be max we need */
+
+    outptr = decoded;
+    inptr = s;
+    while((c = (unsigned int)*inptr++)) {
+	if(c == '+' && strchr(decodeset,'+') != NULL)
+	    *outptr++ = ' ';
+	else if(c == '%') {
+            /* try to pull two hex more characters */
+	    if(inptr[0] != EOFCHAR && inptr[1] != EOFCHAR
+		&& strchr(hexchars,inptr[0]) != NULL
+		&& strchr(hexchars,inptr[1]) != NULL) {
+		/* test conversion */
+		int xc = (fromHex(inptr[0]) << 4) | (fromHex(inptr[1]));
+		if(strchr(decodeset,xc) != NULL) {
+		    inptr += 2; /* decode it */
+		    c = (unsigned int)xc;
+		}
+            }
+            *outptr++ = (char)c; /* pass either the % or decoded char */
+        } else /* Not a % char */
+            *outptr++ = (char)c;
     }
     *outptr = EOFCHAR;
     return decoded;

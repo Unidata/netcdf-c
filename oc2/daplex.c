@@ -11,7 +11,8 @@
 
 #undef URLCVT /* NEVER turn this on */
 
-#define DECODE_IDENTIFIERS
+/* Do we %xx decode all or part of a DAP Identifer: see dapdecode() */
+#undef DECODE_IDENTIFIERS
 
 #define DAP2ENCODE
 #ifdef DAP2ENCODE
@@ -358,7 +359,7 @@ daplexcleanup(DAPlexstate** lexstatep)
       (alphanum+"_!~*'-\"") then it is decoded, otherwise not.
 */
 #ifndef DECODE_IDENTIFIERS
-static char* decodelist =
+static char* decodeset = /* Specify which characters are decoded */
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_!~*'-\"";
 #endif
 
@@ -367,9 +368,9 @@ dapdecode(DAPlexstate* lexstate, char* name)
 {
     char* decoded = NULL;
 #ifdef DECODE_IDENTIFIERS
-    decoded = ncuridecode(name);
+    decoded = ncuridecode(name); /* Decode everything */
 #else
-    decoded = ncuridecodeonly(name,decodelist);
+    decoded = ncuridecodepartial(name,decodeset); /* Decode selected */
 #endif
     nclistpush(lexstate->reclaim,(void*)decoded);
     return decoded;

@@ -82,6 +82,8 @@ extern const char* ncuriquerylookup(NCURI*, const char* param);
 
 /* URL Encode/Decode */
 extern char* ncuridecode(char* s);
+/* Partial decode */
+extern char* ncuridecodepartial(char* s, const char* decodeset);
 /* Encode using specified character set */
 extern char* ncuriencodeonly(char* s, char* allowable);
 /* Encode user or pwd */
