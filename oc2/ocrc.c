@@ -420,8 +420,8 @@ ocrc_load(void)
     /* locate the configuration files in the following order:
        1. specified by set_rcfile
        2. set by DAPRCFILE env variable
-       3. '.'
-       4. $HOME
+       3. '.'/<rcfile>
+       4. $HOME/<rcfile>
     */
     if(ocglobalstate.rc.rcfile != NULL) { /* always use this */
 	path = strdup(ocglobalstate.rc.rcfile);
