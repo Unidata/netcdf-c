@@ -13,6 +13,8 @@ are defined here.
 
 #undef COMPILEBYDEFAULT
 
+#include "ncrc.h"
+
 /*
 Control if struct fields can be map targets.
 Currently turned off because semantics are unclear.
@@ -261,31 +263,6 @@ typedef struct NCD4parser {
 
 /**************************************************/
 
-typedef struct NCD4triple {
-        char* host; /* includes port if specified */
-        char* key;
-        char* value;
-} NCD4triple;
-
-
-/**************************************************/
-
-/* Collect global state info in one place */
-struct NCD4globalstate {
-    struct {
-        int proto_file;
-        int proto_https;
-    } curl;
-    char* tempdir; /* track a usable temp dir */
-    char* home; /* track $HOME for use in creating $HOME/.oc dir */
-    struct {
-	int ignore; /* if 1, then do not use any rc file */
-	int loaded;
-        NClist* rc; /*NClist<NCD4triple>; the rc file triple store fields*/
-        char* rcfile; /* specified rcfile; overrides anything else */
-    } rc;
-};
-
 /* Curl info */
 struct NCD4curl {
     CURL* curl; /* curl handle*/
@@ -296,42 +273,7 @@ struct NCD4curl {
 	long  httpcode;
 	char  errorbuf[CURL_ERROR_SIZE]; /* CURLOPT_ERRORBUFFER*/
     } errdata;
-    struct curlflags {
-        int proto_file; /* Is file: supported? */
-        int proto_https; /* is https: supported? */
-	int compress; /*CURLOPT_ENCODING*/
-	int verbose; /*CURLOPT_ENCODING*/
-	int timeout; /*CURLOPT_TIMEOUT*/
-	int maxredirs; /*CURLOPT_MAXREDIRS*/
-	char* useragent; /*CURLOPT_USERAGENT*/
-	/* track which of these are created by oc */
-#define COOKIECREATED 1
-#define NETRCCREATED 2
-	int createdflags;
-	char* cookiejar; /*CURLOPT_COOKIEJAR,CURLOPT_COOKIEFILE*/
-	char* netrc; /*CURLOPT_NETRC,CURLOPT_NETRC_FILE*/
-    } curlflags;
-    struct ssl {
-	int   verifypeer; /* CURLOPT_SSL_VERIFYPEER;
-                             do not do this when cert might be self-signed
-                             or temporarily incorrect */
-	int   verifyhost; /* CURLOPT_SSL_VERIFYHOST; for client-side verification */
-        char* certificate; /*CURLOPT_SSLCERT*/
-	char* key; /*CURLOPT_SSLKEY*/
-	char* keypasswd; /*CURLOPT_SSLKEYPASSWD*/
-        char* cainfo; /* CURLOPT_CAINFO; certificate authority */
-	char* capath;  /*CURLOPT_CAPATH*/
-    } ssl;
-    struct proxy {
-	char *host; /*CURLOPT_PROXY*/
-	int port; /*CURLOPT_PROXYPORT*/
-	char* user; /*CURLOPT_PROXYUSERNAME*/
-	char* pwd; /*CURLOPT_PROXYPASSWORD*/
-    } proxy;
-    struct credentials {
-	char *user; /*CURLOPT_USERNAME*/
-	char *pwd; /*CURLOPT_PASSWORD*/
-    } creds;
+    NCRCinfo rcinfo;
 };
 
 /**************************************************/

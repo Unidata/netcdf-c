@@ -11,6 +11,7 @@
 #include "ocdebug.h"
 #include "ocdump.h"
 #include "nclog.h"
+#include "ncrc.h"
 #include "occlientparams.h"
 #include "occurlfunctions.h"
 #include "ochttp.h"
@@ -56,7 +57,6 @@ oc_open(const char* url, OCobject* linkp)
 {
     OCerror ocerr;
     OCstate* state = NULL;
-    if(!ocglobalstate.initialized) oc_initialize();
     ocerr = ocopen(&state,url);
     if(ocerr == OC_NOERR && linkp) {
       *linkp = (OCobject)(state);
@@ -2119,44 +2119,6 @@ oc_set_useragent(OCobject link, const char* agent)
 }
 
 /*!
-Set the absolute path to use for the rc file.
-WARNING: this MUST be called before any other
-call in order for this to take effect.
-
-\param[in] rcfile The path to use. If NULL, or "",
-                  then do not use any rcfile.
-
-\retval OC_NOERR if the request succeeded.
-\retval OC_ERCFILE if the file failed to load
-*/
-
-OCerror
-oc_set_rcfile(const char* rcfile)
-{
-    OCerror stat = OC_NOERR;
-    if(rcfile != NULL && strlen(rcfile) == 0)
-	rcfile = NULL;
-
-    if(!ocglobalstate.initialized)
-	ocinternalinitialize(); /* so ocglobalstate is defined, but not triplestore */
-    if(rcfile == NULL) {
-	ocglobalstate.rc.ignore = 1;
-    } else {
-        FILE* f = NCfopen(rcfile,"r");
-        if(f == NULL) {
-	    stat = (OC_ERCFILE);
-	    goto done;
-        }
-        fclose(f);
-        ocglobalstate.rc.rcfile = strdup(rcfile);
-        /* (re) load the rcfile and esp the triplestore*/
-        stat = ocrc_load();
-    }
-done:
-    return OCTHROW(stat);
-}
-
-/*!
 Force the curl library to trace its actions.
 
 \param[in] link The link through which the server is accessed.
@@ -2172,23 +2134,6 @@ oc_trace_curl(OCobject link)
     OCDEREF(OCstate*,state,link);
     oc_curl_debug(state);
     return OCTHROW(OC_NOERR);
-}
-
-OCerror
-oc_initialize(void)
-{
-    OCerror status = OC_NOERR;
-    if(!ocglobalstate.initialized) {
-        /* Clean up before re-initializing */
-	if(ocglobalstate.tempdir != NULL) free(ocglobalstate.tempdir);
-	if(ocglobalstate.home != NULL) free(ocglobalstate.home);
-	if(ocglobalstate.rc.rcfile != NULL) free(ocglobalstate.rc.rcfile);
-    }
-    ocglobalstate.initialized = 0;
-    status = ocinternalinitialize();
-    /* (re) load the rcfile */
-    status =  ocrc_load();
-    return OCTHROW(status);
 }
 
 /**@}*/

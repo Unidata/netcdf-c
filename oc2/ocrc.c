@@ -323,7 +323,7 @@ ocrc_compile(const char* path)
     char line0[MAXRCLINESIZE+1];
     FILE *in_file = NULL;
     int linecount = 0;
-    struct OCTriplestore* ocrc = &ocglobalstate.rc.daprc;
+    struct OCTriplestore* ocrc = &ncrc_globalstate.rc.daprc;
 
     ocrc->ntriples = 0; /* reset; nothing to free */
 
@@ -400,7 +400,7 @@ ocrc_compile(const char* path)
         ocrc->ntriples++;
     }
     fclose(in_file);
-    sorttriplestore(&ocglobalstate.rc.daprc);
+    sorttriplestore(&ncrc_globalstate.rc.daprc);
     return 1;
 }
 
@@ -411,11 +411,11 @@ ocrc_load(void)
     OCerror stat = OC_NOERR;
     char* path = NULL;
 
-    if(ocglobalstate.rc.ignore) {
+    if(ncrc_globalstate.rc.ignore) {
         nclog(NCLOGDBG,"No runtime configuration file specified; continuing");
 	return OC_NOERR;
     }
-    if(ocglobalstate.rc.loaded) return OC_NOERR;
+    if(ncrc_globalstate.rc.loaded) return OC_NOERR;
 
     /* locate the configuration files in the following order:
        1. specified by set_rcfile
@@ -423,8 +423,8 @@ ocrc_load(void)
        3. '.'/<rcfile>
        4. $HOME/<rcfile>
     */
-    if(ocglobalstate.rc.rcfile != NULL) { /* always use this */
-	path = strdup(ocglobalstate.rc.rcfile);
+    if(ncrc_globalstate.rc.rcfile != NULL) { /* always use this */
+	path = strdup(ncrc_globalstate.rc.rcfile);
     } else if(getenv(OCRCFILEENV) != NULL && strlen(getenv(OCRCFILEENV)) > 0) {
         path = strdup(getenv(OCRCFILEENV));
     } else {
@@ -433,7 +433,7 @@ ocrc_load(void)
 	for(rcname=rcfilenames;!found && *rcname;rcname++) {
 	    stat = rc_search(".",*rcname,&path);
     	    if(stat == OC_NOERR && path == NULL)  /* try $HOME */
-	        stat = rc_search(ocglobalstate.home,*rcname,&path);
+	        stat = rc_search(ncrc_globalstate.home,*rcname,&path);
 	    if(stat != OC_NOERR)
 		goto done;
 	    if(path != NULL)
@@ -451,7 +451,7 @@ ocrc_load(void)
 	}
     }
 done:
-    ocglobalstate.rc.loaded = 1; /* even if not exists */
+    ncrc_globalstate.rc.loaded = 1; /* even if not exists */
     if(path != NULL)
 	free(path);
     return stat;
@@ -465,12 +465,12 @@ ocrc_process(OCstate* state)
     NCURI* uri = state->uri;
     char* url_hostport = NULL;
 
-    if(!ocglobalstate.initialized)
+    if(!ncrc_globalstate.initialized)
 	ocinternalinitialize();
-    if(!ocglobalstate.rc.loaded)
+    if(!ncrc_globalstate.rc.loaded)
 	ocrc_load();
     /* Note, we still must do this function even if
-       ocglobalstate.rc.ignore is set in order
+       ncrc_globalstate.rc.ignore is set in order
        to getinfo e.g. user:pwd from url
     */
 
@@ -623,12 +623,12 @@ static struct OCTriple*
 ocrc_locate(char* key, char* hostport)
 {
     int i,found;
-    struct OCTriplestore* ocrc = &ocglobalstate.rc.daprc;
+    struct OCTriplestore* ocrc = &ncrc_globalstate.rc.daprc;
     struct OCTriple* triple;
 
-    if(ocglobalstate.rc.ignore)
+    if(ncrc_globalstate.rc.ignore)
 	return NULL;
-    if(!ocglobalstate.rc.loaded)
+    if(!ncrc_globalstate.rc.loaded)
 	ocrc_load();
 
     triple = ocrc->triples;
@@ -665,7 +665,7 @@ static void
 storedump(char* msg, struct OCTriple* triples, int ntriples)
 {
     int i;
-    struct OCTriplestore* ocrc = &ocglobalstate.rc.daprc;
+    struct OCTriplestore* ocrc = &ncrc_globalstate.rc.daprc;
 
     if(msg != NULL) fprintf(stderr,"%s\n",msg);
     if(ocrc == NULL) {
@@ -711,15 +711,15 @@ ocreadrc(void)
     char* path = NULL;
     /* locate the configuration files: first if specified,
        then '.',  then $HOME */
-    if(ocglobalstate.rc.rcfile != NULL) { /* always use this */
-	path = ocglobalstate.rc.rcfile;
+    if(ncrc_globalstate.rc.rcfile != NULL) { /* always use this */
+	path = ncrc_globalstate.rc.rcfile;
     } else {
 	char** rcname;
 	int found = 0;
 	for(rcname=rcfilenames;!found && *rcname;rcname++) {
 	    stat = rc_search(".",*rcname,&path);
     	    if(stat == OC_NOERR && path == NULL)  /* try $HOME */
-	        stat = rc_search(ocglobalstate.home,*rcname,&path);
+	        stat = rc_search(ncrc_globalstate.home,*rcname,&path);
 	    if(stat != OC_NOERR)
 		goto done;
 	    if(path != NULL)

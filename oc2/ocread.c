@@ -17,6 +17,7 @@
 #define O_BINARY _O_BINARY
 #endif
 #endif
+#include "ncrc.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "ochttp.h"

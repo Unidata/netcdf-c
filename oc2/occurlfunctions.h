@@ -23,7 +23,7 @@ extern void oc_curl_debug(OCstate* state);
 
 extern void oc_curl_printerror(OCstate* state);
 extern int ocrc_netrc_required(OCstate* state);
-extern void oc_curl_protocols(struct OCGLOBALSTATE*);
+extern void oc_curl_protocols(NCRCglobalstate*);
 
 /* From occurlflags.c */
 extern struct OCCURLFLAG* occurlflags(void);

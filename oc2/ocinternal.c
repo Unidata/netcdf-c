@@ -22,6 +22,7 @@
 
 #include <errno.h>
 
+#include "ncrc.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "occlientparams.h"
@@ -48,13 +49,15 @@ static OCerror ocset_curlproperties(OCstate*);
 
 extern OCnode* makeunlimiteddimension(void);
 
-/* Collect global state info in one place */
-struct OCGLOBALSTATE ocglobalstate;
+int ocinitialized = 0;
 
 OCerror
 ocinternalinitialize(void)
 {
     int stat = OC_NOERR;
+
+    if(ocinitialized) return OC_NOERR;
+    ocinitialized = 1;
 
 #if 0
     if(sizeof(off_t) != sizeof(void*)) {
@@ -66,80 +69,15 @@ ocinternalinitialize(void)
     }
 #endif
 
-    if(!ocglobalstate.initialized) {
-      CURLcode cstat = CURLE_OK;
-      cstat = curl_global_init(CURL_GLOBAL_ALL);
-      if(cstat != CURLE_OK)
+     CURLcode cstat = CURLE_OK;
+     cstat = curl_global_init(CURL_GLOBAL_ALL);
+     if(cstat != CURLE_OK)
 	fprintf(stderr,"curl_global_init failed!\n");
-      memset((void*)&ocglobalstate,0,sizeof(ocglobalstate));
-      ocglobalstate.initialized = 1;
-    }
-
-    /* Capture temp dir*/
-    {
-	char* tempdir;
-	char* p;
-	char* q;
-	char cwd[4096];
-#ifdef _MSC_VER
-        tempdir = getenv("TEMP");
-#else
-	tempdir = "/tmp";
-#endif
-        if(tempdir == NULL) {
-	    fprintf(stderr,"Cannot find a temp dir; using ./\n");
-	    tempdir = getcwd(cwd,sizeof(cwd));
-	    if(tempdir == NULL || *tempdir == '\0') tempdir = ".";
-	}
-        ocglobalstate.tempdir= (char*)malloc(strlen(tempdir) + 1);
-	for(p=tempdir,q=ocglobalstate.tempdir;*p;p++,q++) {
-	    if((*p == '/' && *(p+1) == '/')
-	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
-	    *q = *p;
-	}
-	*q = '\0';
-#ifdef _MSC_VER
-#else
-        /* Canonicalize */
-	for(p=ocglobalstate.tempdir;*p;p++) {
-	    if(*p == '\\') {*p = '/'; };
-	}
-	*q = '\0';
-#endif
-    }
-
-    /* Capture $HOME */
-    {
-	char* p;
-	char* q;
-        char* home = getenv("HOME");
-
-        if(home == NULL) {
-	    /* use tempdir */
-	    home = ocglobalstate.tempdir;
-	}
-        ocglobalstate.home = (char*)malloc(strlen(home) + 1);
-	for(p=home,q=ocglobalstate.home;*p;p++,q++) {
-	    if((*p == '/' && *(p+1) == '/')
-	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
-	    *q = *p;
-	}
-	*q = '\0';
-#ifdef _MSC_VER
-#else
-        /* Canonicalize */
-	for(p=home;*p;p++) {
-	    if(*p == '\\') {*p = '/'; };
-	}
-#endif
-    }
 
     /* Compute some xdr related flags */
     xxdr_init();
 
-    ncloginit();
-
-    oc_curl_protocols(&ocglobalstate); /* see what protocols are supported */
+    oc_curl_protocols(&ncrc_globalstate); /* see what protocols are supported */
 
     return OCTHROW(stat);
 }
@@ -366,12 +304,12 @@ createtempfile(OCstate* state, OCtree* tree)
     int len;
 
     len =
-	  strlen(ocglobalstate.tempdir)
+	  strlen(ncrc_globalstate.tempdir)
 	  + 1 /* '/' */
 	  + strlen(DATADDSFILE);
     path = (char*)malloc(len+1);
     if(path == NULL) return OC_ENOMEM;
-    occopycat(path,len,3,ocglobalstate.tempdir,"/",DATADDSFILE);
+    occopycat(path,len,3,ncrc_globalstate.tempdir,"/",DATADDSFILE);
     stat = ocmktmp(path,&name);
     free(path);
     if(stat != OC_NOERR) goto fail;
@@ -601,12 +539,12 @@ ocset_curlproperties(OCstate* state)
 	errno = 0;
 	/* Create the unique cookie file name */
         len =
-	  strlen(ocglobalstate.tempdir)
+	  strlen(ncrc_globalstate.tempdir)
 	  + 1 /* '/' */
 	  + strlen("occookies");
         path = (char*)malloc(len+1);
         if(path == NULL) return OC_ENOMEM;
-        occopycat(path,len,3,ocglobalstate.tempdir,"/","occookies");
+        occopycat(path,len,3,ncrc_globalstate.tempdir,"/","occookies");
         stat = ocmktmp(path,&name);
 fprintf(stderr,"%s => %s\n",state->uri->uri,name); fflush(stderr);
         free(path);

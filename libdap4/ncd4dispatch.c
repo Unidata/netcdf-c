@@ -63,14 +63,6 @@ NCD4_initialize(void)
 int
 NCD4_finalize(void)
 {
-    if(NCD4_globalstate != NULL) {
-        nullfree(NCD4_globalstate->tempdir);
-        nullfree(NCD4_globalstate->home);
-	nclistfree(NCD4_globalstate->rc.rc);
-	nullfree(NCD4_globalstate->rc.rcfile);
-	free(NCD4_globalstate);
-	NCD4_globalstate = NULL;
-    }
     return THROW(NC_NOERR);
 }
 

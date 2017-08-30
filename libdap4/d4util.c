@@ -408,21 +408,6 @@ NCD4_hostport(NCURI* uri, char* space, size_t len)
     }
 }
 
-#if 0
-void
-NCD4_userpwd(NCURI* uri, char* space, size_t len)
-{
-    if(space != NULL && len > 0) {
-	space[0] = '\0'; /* so we can use strncat */
-        if(uri->user != NULL && uri->password != NULL) {
-            strncat(space,uri->user,len);
-            strncat(space,":",len);
-            strncat(space,uri->password,len);
-	}
-    }
-}
-#endif
-
 #ifdef BLOB
 void
 NCD4_saveblob(NCD4meta* meta, void* mem)
