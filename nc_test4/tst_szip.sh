@@ -10,15 +10,15 @@ set -e
 rm -f testnc.h5 testszip.nc
 
 echo "*** Testing tst_szip "
-./test_szip
+${execdir}/test_szip
 echo "***Passed"
 
 echo "*** Testing h5testszip "
-./h5testszip
+${execdir}/h5testszip
 echo "***Passed"
 
 echo "*** Testing h5testszip on testszip.nc"
-./h5testszip ./testszip.nc
+${execdir}/h5testszip ./testszip.nc
 echo "***Passed"
 
 rm -f testnc.h5 testszip.nc

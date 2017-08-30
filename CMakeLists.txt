@@ -1028,6 +1028,7 @@ SET(STATUS_ERANGE_FILL "OFF")
 OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OF)
 IF(ENABLE_ERANGE_FILL)
   SET(STATUS_ERANGE_FILL "ON")
+  ADD_DEFINITIONS(-DERANGE_FILL)
 ENDIF()
 
 # Options to use a more relaxed coordinate argument boundary check
