@@ -71,9 +71,6 @@ NCDISPATCH_initialize(void)
 	NC_coord_zero[i] = 0;
     }
 
-    /* Load RC File */
-    status = NC_rcload();
-
     /* Capture temp dir*/
     {
 	char* tempdir;
@@ -133,6 +130,8 @@ NCDISPATCH_initialize(void)
 #endif
     }
 
+    /* Now load RC File */
+    status = NC_rcload();
     ncloginit();
 
     return status;

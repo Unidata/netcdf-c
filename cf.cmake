@@ -16,8 +16,9 @@ DAP=1
 
 if test "x$VS" != x ; then
 FLAGS="-DCMAKE_PREFIX_PATH=c:/tools/nccmake"
+else
+FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=`pwd`/ignore"
 fi
-FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=d:/ignore"
 
 if test "x$DAP" = x ; then
 FLAGS="$FLAGS -DENABLE_DAP=false"
