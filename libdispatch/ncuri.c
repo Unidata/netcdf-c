@@ -63,9 +63,9 @@ static char* pathallow =
 static char* queryallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
 
-/* user+pwd allow = path allow - "@:?#/" */
+/* user+pwd allow = path allow - "@:" */
 static char* userpwdallow =
-"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!$&'()*+,-.;=_~";
+"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!$&'()*+,-.;=_~?#/";
 
 #ifndef HAVE_STRNCMP
 #define strndup ncstrndup

@@ -676,7 +676,7 @@ storedump(char* msg, struct OCTriple* triples, int ntriples)
     if(ntriples < 0 ) ntriples= ocrc->ntriples;
     for(i=0;i<ntriples;i++) {
         fprintf(stderr,"\t%s\t%s\t%s\n",
-                (strlen(triples[i].host)==0?"--":triples[i].host),
+                (triples[i].host == NULL || strlen(triples[i].host)==0?"--":triples[i].host),
                 triples[i].key,
                 triples[i].value);
     }
