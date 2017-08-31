@@ -84,7 +84,7 @@ extern NCerror NCD4_getvarx(int ncid, int varid,
 /* From d4http.c */
 extern long NCD4_fetchhttpcode(CURL* curl);
 extern int NCD4_fetchurl_file(CURL* curl, const char* url, FILE* stream, d4size_t* sizep, long* filetime);
-extern int NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime, struct credentials* creds);
+extern int NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime);
 extern int NCD4_curlopen(CURL** curlp);
 extern void NCD4_curlclose(CURL* curl);
 extern int NCD4_fetchlastmodified(CURL* curl, char* url, long* filetime);

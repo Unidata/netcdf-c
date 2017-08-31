@@ -139,6 +139,8 @@ The second column is the affected curl_easy_setopt option(s), if any.
 <tr><td>HTTP.SSL.VERIFYPEER</td><td>CURLOPT_SSL_VERIFYPEER</td>
 <tr><td>HTTP.SSL.VALIDATE</td><td>CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST</td>
 <tr><td>HTTP.CREDENTIALS.USERPASSWORD</td><td>CURLOPT_USERPASSWORD</td>
+<tr><td>HTTP.CREDENTIALS.USERNAME</td><td>CURLOPT_USERNAME</td>
+<tr><td>HTTP.CREDENTIALS.PASSWORD</td><td>CURLOPT_PASSWORD</td>
 <tr><td>HTTP.NETRC</td><td>N.A.</td><td>Specify path of the .netrc file</td>
 </table>
 
@@ -152,6 +154,15 @@ The value must be of the form "username:password".
 See the <a href="#USERPWDESCAPE">password escaping</a> section
 to see how this value must escape certain characters.
 Also see <a href="#REDIR">redirection authorization</a>
+for important additional information.
+
+The pair of keys
+HTTP.CREDENTIALS.USERNAME and HTTP.CREDENTIALS.PASSWORD
+can be used as an alternative to HTTP.CREDENTIALS.USERPASSWORD
+to set the simple password authentication.
+If present, they take precedence over HTTP.CREDENTIALS.USERPASSWORD.
+The values do not need to be escaped.
+See <a href="#REDIR">redirection authorization</a>
 for important additional information.
 
 ### Cookie Jar
@@ -207,7 +218,8 @@ If the user+pwd is embedded in the URL, then '@' and ':' __must__ be escaped.
 If the user+pwd is the value for 
 the HTTP.CREDENTIALS.USERPASSWORD key in the _rc_ file, then
 ':' __must__ be escaped.
-Escaping should __not__ be used in the `.netrc` file.
+Escaping should __not__ be used in the `.netrc` file nor in
+HTTP.CREDENTIALS.USERNAME or HTTPCREDENTIALS.PASSWORD.
 
 The relevant escape codes are as follows.
 <table>
@@ -305,6 +317,8 @@ the code is definitive.
 <tr><td>HTTP.SSL.CAPATH</td><td>CUROPT_SSLCAPATH</td>
 <tr><td>HTTP.SSL.VERIFYPEER</td><td>CUROPT_SSL_VERIFYPEER</td>
 <tr><td>HTTP.CREDENTIALS.USERPASSWORD</td><td>CUROPT_USERPASSWORD</td>
+<tr><td>HTTP.CREDENTIALS.USERNAME</td><td>CUROPT_USERNAME</td>
+<tr><td>HTTP.CREDENTIALS.PASSWORD</td><td>CUROPT_PASSWORD</td>
 <tr><td>HTTP.NETRC</td><td>CURLOPT_NETRC,CURLOPT_NETRC_FILE</td>
 </table>
 

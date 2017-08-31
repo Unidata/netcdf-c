@@ -65,6 +65,11 @@ NCD4_open(const char * path, int mode,
     if(ncuriparse(nc->path,&d4info->uri) != NCU_OK)
 	{ret = NC_EDAPURL; goto done;}
 
+    /* Load auth info from rc file */
+    if((ret = NC_authsetup(&d4info->auth, d4info->uri)))
+	goto done;
+    NCD4_curl_protocols(d4info);
+
     if(!constrainable(d4info->uri))
 	SETFLAG(d4info->controls.flags,NCF_UNCONSTRAINABLE);
 
@@ -307,6 +312,7 @@ freeInfo(NCD4INFO* d4info)
     }
     nullfree(d4info->substrate.filename); /* always reclaim */
     NCD4_reclaimMeta(d4info->substrate.metadata);
+    NC_authclear(&d4info->auth);
     free(d4info);    
 }
 
@@ -318,7 +324,6 @@ freeCurl(NCD4curl* curl)
     ncbytesfree(curl->packet);
     nullfree(curl->errdata.code);
     nullfree(curl->errdata.message);
-    NC_rcclear(&curl->rcinfo);
 }
 
 /* Define the set of protocols known to be constrainable */
@@ -343,30 +348,24 @@ set_curl_properties(NCD4INFO* d4info)
 {
     int ret = NC_NOERR;
 
-    /* defaults first */
-    NCD4_rcdefault(d4info);
-
-    /* extract the relevant triples into d4info */
-    NCD4_rcprocess(d4info);
-
-    if(d4info->curl->rcinfo.curlflags.useragent == NULL) {
+    if(d4info->auth.curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len+1);
 	strncpy(agent,DFALTUSERAGENT,len);
 	strncat(agent,VERSION,len);
-        d4info->curl->rcinfo.curlflags.useragent = agent;
+        d4info->auth.curlflags.useragent = agent;
     }
 
     /* Some servers (e.g. thredds and columbia) appear to require a place
        to put cookies in order for some security functions to work
     */
-    if(d4info->curl->rcinfo.curlflags.cookiejar != NULL
-       && strlen(d4info->curl->rcinfo.curlflags.cookiejar) == 0) {
-	free(d4info->curl->rcinfo.curlflags.cookiejar);
-	d4info->curl->rcinfo.curlflags.cookiejar = NULL;
+    if(d4info->auth.curlflags.cookiejar != NULL
+       && strlen(d4info->auth.curlflags.cookiejar) == 0) {
+	free(d4info->auth.curlflags.cookiejar);
+	d4info->auth.curlflags.cookiejar = NULL;
     }
 
-    if(d4info->curl->rcinfo.curlflags.cookiejar == NULL) {
+    if(d4info->auth.curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
         int ok;
         char* path = NULL;
@@ -388,16 +387,16 @@ set_curl_properties(NCD4INFO* d4info)
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    goto fail;
 	}
-	d4info->curl->rcinfo.curlflags.cookiejar = name;
-	d4info->curl->rcinfo.curlflags.createdflags |= COOKIECREATED;
+	d4info->auth.curlflags.cookiejar = name;
+	d4info->auth.curlflags.cookiejarcreated = 1;
 	errno = 0;
     }
-    assert(d4info->curl->rcinfo.curlflags.cookiejar != NULL);
+    assert(d4info->auth.curlflags.cookiejar != NULL);
 
     /* Make sure the cookie jar exists and can be read and written */
     {
 	FILE* f = NULL;
-	char* fname = d4info->curl->rcinfo.curlflags.cookiejar;
+	char* fname = d4info->auth.curlflags.cookiejar;
 	/* See if the file exists already */
         f = fopen(fname,"r");
 	if(f == NULL) {

@@ -93,7 +93,7 @@ readpacket(OCstate* state, NCURI* url,NCbytes* packet,OCdxd dxd,long* lastmodifi
 
    fileprotocol = (strcmp(url->protocol,"file")==0);
 
-   if(fileprotocol && !state->curlflags.proto_file) {
+   if(fileprotocol && !state->auth.curlflags.proto_file) {
         /* Short circuit file://... urls*/
 	/* We do this because the test code always needs to read files*/
 	fetchurl = ncuribuild(url,NULL,NULL,NCURIBASE);
@@ -106,7 +106,7 @@ readpacket(OCstate* state, NCURI* url,NCbytes* packet,OCdxd dxd,long* lastmodifi
 	MEMCHECK(fetchurl,OC_ENOMEM);
 	if(ocdebug > 0)
             {fprintf(stderr,"fetch url=%s\n",fetchurl); fflush(stderr);}
-        stat = ocfetchurl(curl,fetchurl,packet,lastmodified,&state->creds);
+        stat = ocfetchurl(curl,fetchurl,packet,lastmodified);
 	if(stat)
 	    oc_curl_printerror(state);
 	if(ocdebug > 0)
@@ -144,7 +144,7 @@ fprintf(stderr,"readDATADDS:\n");
 
         fileprotocol = (strcmp(url->protocol,"file")==0);
 
-        if(fileprotocol && !state->curlflags.proto_file) {
+        if(fileprotocol && !state->auth.curlflags.proto_file) {
             readurl = ncuribuild(url,NULL,NULL,NCURIBASE);
             stat = readfiletofile(readurl, ".dods", tree->data.file, &tree->data.datasize);
         } else {

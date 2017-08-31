@@ -6,7 +6,6 @@
 
 #include "config.h"
 
-
 #if defined(_WIN32) || defined(_WIN64)
 #include <malloc.h>
 #endif
@@ -41,6 +40,7 @@
 #include <curl/curl.h>
 
 #include "netcdf.h"
+#include "ncauth.h"
 #include "nclist.h"
 #include "ncbytes.h"
 #include "ncuri.h"
@@ -172,42 +172,8 @@ struct OCstate {
     } error;
     CURL* curl; /* curl handle*/
     char curlerror[CURL_ERROR_SIZE];
-    struct OCcurlflags {
-        int proto_file; /* Is file: supported? */
-        int proto_https; /* is https: supported? */
-	int compress; /*CURLOPT_ENCODING*/
-	int verbose; /*CURLOPT_ENCODING*/
-	int timeout; /*CURLOPT_TIMEOUT*/
-	int maxredirs; /*CURLOPT_MAXREDIRS*/
-	char* useragent; /*CURLOPT_USERAGENT*/
-	/* track which of these are created by oc */
-#define COOKIECREATED 1
-	int createdflags;
-	char* cookiejar; /*CURLOPT_COOKIEJAR,CURLOPT_COOKIEFILE*/
-	char* netrc; /*CURLOPT_NETRC,CURLOPT_NETRC_FILE*/
-    } curlflags;
-    struct OCSSL {
-	int   verifypeer; /* CURLOPT_SSL_VERIFYPEER;
-                             do not do this when cert might be self-signed
-                             or temporarily incorrect */
-	int   verifyhost; /* CURLOPT_SSL_VERIFYHOST; for client-side verification */
-        char* certificate; /*CURLOPT_SSLCERT*/
-	char* key; /*CURLOPT_SSLKEY*/
-	char* keypasswd; /*CURLOPT_SSLKEYPASSWD*/
-        char* cainfo; /* CURLOPT_CAINFO; certificate authority */
-	char* capath;  /*CURLOPT_CAPATH*/
-    } ssl;
-    struct OCproxy {
-	char *host; /*CURLOPT_PROXY*/
-	int port; /*CURLOPT_PROXYPORT*/
-	char* user; /*CURLOPT_PROXYUSERNAME*/
-	char* pwd; /*CURLOPT_PROXYPASSWORD*/
-    } proxy;
-    struct OCcredentials {
-	char *user; /*CURLOPT_USERNAME*/
-	char *pwd; /*CURLOPT_PASSWORD*/
-    } creds;
     void* usercurldata;
+    NCauth auth; /* curl auth data */
     long ddslastmodified;
     long datalastmodified;
 };

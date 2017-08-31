@@ -37,7 +37,7 @@ NCD4_readDAP(NCD4INFO* state, int flags)
     } else { /*((flags & NCF_ONDISK) != 0) */
         NCURI* url = state->uri;
         int fileprotocol = (strcmp(url->protocol,"file")==0);
-        if(fileprotocol && !state->curl->rcinfo.curlflags.proto_file) {
+        if(fileprotocol && !state->auth.curlflags.proto_file) {
             stat = readfiletofile(url, ".dap", state->data.ondiskfile, &state->data.datasize);
         } else {
 	    char* readurl = NULL;
@@ -86,7 +86,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, long* las
 
     fileprotocol = (strcmp(url->protocol,"file")==0);
 
-    if(fileprotocol && !state->curl->rcinfo.curlflags.proto_file) {
+    if(fileprotocol && !state->auth.curlflags.proto_file) {
 	/* Short circuit file://... urls*/
 	/* We do this because the test code always needs to read files*/
 	stat = readfile(url,suffix,packet);
@@ -99,7 +99,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, long* las
 	MEMCHECK(fetchurl);
 	if(state->debug > 0)
             {fprintf(stderr,"fetch url=%s\n",fetchurl); fflush(stderr);}
-        stat = NCD4_fetchurl(curl,fetchurl,packet,lastmodified,&state->curl->rcinfo.creds);
+        stat = NCD4_fetchurl(curl,fetchurl,packet,lastmodified);
         nullfree(fetchurl);
 	if(stat) goto fail;
 	if(state->debug > 0)

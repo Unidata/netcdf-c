@@ -3,7 +3,6 @@ Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
 See LICENSE.txt for license information.
 */
 
-
 #include "config.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -36,10 +35,9 @@ static char* rcreadline(char** nextlinep);
 static void rctrim(char* text);
 static NClist* rcorder(NClist* rc);
 static int rccompile(const char* path);
-static int rcsetinfocurlflag(NCRCinfo* info, const char* flag, const char* value);
 static struct NCTriple* rclocate(const char* key, const char* hostport);
 static int rcsearch(const char* prefix, const char* rcname, char** pathp);
-static int parsecredentials(const char* userpwd, char** userp, char** pwdp);
+static void rcfreetriples(NClist* rc);
 #ifdef D4DEBUG
 static void storedump(char* msg, NClist* triples);
 #endif
@@ -58,11 +56,11 @@ NC_rcload(void)
     int ret = NC_NOERR;
     char* path = NULL;
 
-    if(ncrc_globalstate.rc.ignore) {
+    if(ncrc_globalstate.rcinfo.ignore) {
         nclog(NCLOGDBG,"No runtime configuration file specified; continuing");
 	return (NC_NOERR);
     }
-    if(ncrc_globalstate.rc.loaded) return (NC_NOERR);
+    if(ncrc_globalstate.rcinfo.loaded) return (NC_NOERR);
 
     /* locate the configuration files in the following order:
        1. specified by NC_set_rcfile
@@ -70,8 +68,8 @@ NC_rcload(void)
        3. ./<rcfile> (current directory)
        4. $HOME/<rcfile>
     */
-    if(ncrc_globalstate.rc.rcfile != NULL) { /* always use this */
-	path = strdup(ncrc_globalstate.rc.rcfile);
+    if(ncrc_globalstate.rcinfo.rcfile != NULL) { /* always use this */
+	path = strdup(ncrc_globalstate.rcinfo.rcfile);
     } else if(getenv(RCFILEENV) != NULL && strlen(getenv(RCFILEENV)) > 0) {
         path = strdup(getenv(RCFILEENV));
     } else {
@@ -99,108 +97,8 @@ NC_rcload(void)
 	}
     }
 done:
-    ncrc_globalstate.rc.loaded = 1; /* even if not exists */
+    ncrc_globalstate.rcinfo.loaded = 1; /* even if not exists */
     nullfree(path);
-    return (ret);
-}
-
-int
-NC_parseproxy(NCRCinfo* info, const char* surl)
-{
-    int ret = NC_NOERR;
-    NCURI* uri = NULL;
-    if(surl == NULL || strlen(surl) == 0)
-	return (NC_NOERR); /* nothing there*/
-    if(ncuriparse(surl,&uri) != NCU_OK)
-	return (NC_EURL);
-    info->proxy.user = uri->user;
-    info->proxy.pwd = uri->password;
-    info->proxy.host = strdup(uri->host);
-    if(uri->port != NULL)
-        info->proxy.port = atoi(uri->port);
-    else
-        info->proxy.port = 80;
-    return (ret);
-}
-
-int
-NC_rcprocess(NCRCinfo* info, NCURI* url)
-{
-    int ret = NC_NOERR;
-    char* url_hostport = NULL;
-
-    if(!ncrc_globalstate.rc.loaded)
-	NC_rcload();
-
-    if(url != NULL)
-	url_hostport = NC_combinehostport(url->host,url->port);    
-
-    /* Note, we still must do this function even if
-       ncrc_globalstate.rc.ignore is set in order
-       to getinfo e.g. host+port  from url
-    */
-
-    rcsetinfocurlflag(info,"HTTP.DEFLATE",
-		      NC_rclookup("HTTP.DEFLATE",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.VERBOSE",
-			NC_rclookup("HTTP.VERBOSE",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.TIMEOUT",
-			NC_rclookup("HTTP.TIMEOUT",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.USERAGENT",
-			NC_rclookup("HTTP.USERAGENT",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.COOKIEFILE",
-			NC_rclookup("HTTP.COOKIEFILE",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.COOKIE_FILE",
-			NC_rclookup("HTTP.COOKIE_FILE",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.COOKIEJAR",
-			NC_rclookup("HTTP.COOKIEJAR",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.COOKIE_JAR",
-			NC_rclookup("HTTP.COOKIE_JAR",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.PROXY_SERVER",
-			NC_rclookup("HTTP.PROXY_SERVER",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.SSL.VALIDATE",
-			NC_rclookup("HTTP.SSL.VALIDATE",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.SSL.CERTIFICATE",
-			NC_rclookup("HTTP.SSL.CERTIFICATE",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.SSL.KEY",
-			NC_rclookup("HTTP.SSL.KEY",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.SSL.KEYPASSWORD",
-			NC_rclookup("HTTP.SSL.KEYPASSWORD",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.SSL.CAINFO",
-			NC_rclookup("HTTP.SSL.CAINFO",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.SSL.CAPATH",
-			NC_rclookup("HTTP.SSL.CAPATH",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.SSL.VERIFYPEER",
-			NC_rclookup("HTTP.SSL.VERIFYPEER",url_hostport));
-    rcsetinfocurlflag(info,"HTTP.NETRC",
-			NC_rclookup("HTTP.NETRC",url_hostport));
-    { /* Handle various cases for user + password */
-	/* First, see if the user+pwd was in the original url */
-	char* user = NULL;
-	char* pwd = NULL;
-	if(url->user != NULL && url->password != NULL) {
-	    user = url->user;
-	    pwd = url->password;
-	} else {
-   	    user = NC_rclookup("HTTP.CREDENTIALS.USER",url_hostport);
-	    pwd = NC_rclookup("HTTP.CREDENTIALS.PASSWORD",url_hostport);
-	}
-	if(user != NULL && pwd != NULL) {
-            user = strdup(user); /* so we can consistently reclaim */
-            pwd = strdup(pwd);
-	} else {
-	    /* Could not get user and pwd, so try USERPASSWORD */
-	    const char* userpwd = NC_rclookup("HTTP.CREDENTIALS.USERPASSWORD",url_hostport);
-	    if(userpwd != NULL) {
-		ret = parsecredentials(userpwd,&user,&pwd);
-		if(ret) return ret;
-	    }
-        }
-        rcsetinfocurlflag(info,"HTTP.USERNAME",user);
-        rcsetinfocurlflag(info,"HTTP.PASSWORD",pwd);
-	nullfree(user);
-	nullfree(pwd);
-    }
     return (ret);
 }
 
@@ -213,20 +111,6 @@ NC_rclookup(const char* key, const char* hostport)
 {
     struct NCTriple* triple = rclocate(key,hostport);
     return (triple == NULL ? NULL : triple->value);
-}
-
-void
-NC_rcfreetriples(NClist* rc)
-{
-    int i;
-    for(i=0;i<nclistlength(rc);i++) {
-	NCTriple* t = (NCTriple*)nclistget(rc,i);
-	nullfree(t->host);
-	nullfree(t->key);
-	nullfree(t->value);
-	free(t);
-    }
-    nclistfree(rc);
 }
 
 /*!
@@ -255,8 +139,10 @@ NC_set_rcfile(const char* rcfile)
         goto done;
     }
     fclose(f);
-    nullfree(ncrc_globalstate.rc.rcfile);
-    ncrc_globalstate.rc.rcfile = strdup(rcfile);
+    nullfree(ncrc_globalstate.rcinfo.rcfile);
+    ncrc_globalstate.rcinfo.rcfile = strdup(rcfile);
+    /* Clear ncrc_globalstate.rcinfo */
+    NC_rcclear(&ncrc_globalstate.rcinfo);    
     /* (re) load the rcfile and esp the triplestore*/
     stat = NC_rcload();
 done:
@@ -267,28 +153,23 @@ void
 NC_rcclear(NCRCinfo* info)
 {
     if(info == NULL) return;
-    if(info->curlflags.createdflags & COOKIECREATED) {
-#ifdef _MSC_VER
-        DeleteFile(curl->curlflags.cookiejar);
-#else
-        remove(curl->curlflags.cookiejar);
-#endif
-    }
-    nullfree(info->curlflags.useragent);
-    nullfree(info->curlflags.cookiejar);
-    nullfree(info->curlflags.netrc);
-    nullfree(info->ssl.certificate);
-    nullfree(info->ssl.key);
-    nullfree(info->ssl.keypasswd);
-    nullfree(info->ssl.cainfo);
-    nullfree(info->ssl.capath);
-    nullfree(info->proxy.host);
-    nullfree(info->proxy.user);
-    nullfree(info->proxy.pwd);
-    nullfree(info->creds.user);
-    nullfree(info->creds.pwd);
+    nullfree(info->rcfile);
+    rcfreetriples(info->triples);
 }
 
+void
+rcfreetriples(NClist* rc)
+{
+    int i;
+    for(i=0;i<nclistlength(rc);i++) {
+	NCTriple* t = (NCTriple*)nclistget(rc,i);
+	nullfree(t->host);
+	nullfree(t->key);
+	nullfree(t->value);
+	free(t);
+    }
+    nclistfree(rc);
+}
 
 /**************************************************/
 /* RC processing functions */
@@ -369,7 +250,7 @@ static int
 rccompile(const char* path)
 {
     int ret = NC_NOERR;
-    NClist* rc = ncrc_globalstate.rc.triples;
+    NClist* rc = ncrc_globalstate.rcinfo.triples;
     char* contents = NULL;
     NCbytes* tmp = ncbytesnew();
     NCURI* uri = NULL;
@@ -381,7 +262,7 @@ rccompile(const char* path)
     }
     contents = ncbytesextract(tmp);
     if(contents == NULL) contents = strdup("");
-    NC_rcfreetriples(rc); /* clear out any old data */
+    rcfreetriples(rc); /* clear out any old data */
     rc = nclistnew();
     nextline = contents;
     for(;;) {
@@ -450,154 +331,6 @@ done:
     return (ret);
 }
 
-static int
-rcsetinfocurlflag(NCRCinfo* info, const char* flag, const char* value)
-{
-    int ret = NC_NOERR;
-    if(value == NULL) goto done;
-    if(strcmp(flag,"HTTP.DEFLATE")==0) {
-        if(atoi(value)) info->curlflags.compress = 1;
-#ifdef D4DEBUG
-        nclog(NCLOGNOTE,"HTTP.DEFLATE: %ld", infoflags.compress);
-#endif
-    }
-    if(strcmp(flag,"HTTP.VERBOSE")==0) {
-        if(atoi(value)) info->curlflags.verbose = 1;
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.VERBOSE: %ld", info->curlflags.verbose);
-#endif
-    }
-    if(strcmp(flag,"HTTP.TIMEOUT")==0) {
-        if(atoi(value)) info->curlflags.timeout = atoi(value);
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.TIMEOUT: %ld", info->curlflags.timeout);
-#endif
-    }
-    if(strcmp(flag,"HTTP.USERAGENT")==0) {
-        if(atoi(value)) info->curlflags.useragent = strdup(value);
-        MEMCHECK(info->curlflags.useragent);
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.USERAGENT: %s", info->curlflags.useragent);
-#endif
-    }
-    if(
-	strcmp(flag,"HTTP.COOKIEFILE")==0
-        || strcmp(flag,"HTTP.COOKIE_FILE")==0
-        || strcmp(flag,"HTTP.COOKIEJAR")==0
-        || strcmp(flag,"HTTP.COOKIE_JAR")==0
-      ) {
-	nullfree(info->curlflags.cookiejar);
-        info->curlflags.cookiejar = strdup(value);
-        MEMCHECK(info->curlflags.cookiejar);
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.COOKIEJAR: %s", info->curlflags.cookiejar);
-#endif
-    }
-    if(strcmp(flag,"HTTP.PROXY_SERVER")==0) {
-        ret = NC_parseproxy(info,value);
-        if(ret != NC_NOERR) goto done;
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.PROXY_SERVER: %s", value);
-#endif
-    }
-    if(strcmp(flag,"HTTP.SSL.VALIDATE")==0) {
-        if(atoi(value)) {
-	    info->ssl.verifypeer = 1;
-	    info->ssl.verifyhost = 1;
-#ifdef D4DEBUG
-                nclog(NCLOGNOTE,"HTTP.SSL.VALIDATE: %ld", 1);
-#endif
-	}
-    }
-
-    if(strcmp(flag,"HTTP.SSL.CERTIFICATE")==0) {
-	nullfree(info->ssl.certificate);
-        info->ssl.certificate = strdup(value);
-        MEMCHECK(info->ssl.certificate);
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.CERTIFICATE: %s", info->ssl.certificate);
-#endif
-    }
-
-    if(strcmp(flag,"HTTP.SSL.KEY")==0) {
-	nullfree(info->ssl.key);
-        info->ssl.key = strdup(value);
-        MEMCHECK(info->ssl.key);
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.KEY: %s", info->ssl.key);
-#endif
-    }
-
-    if(strcmp(flag,"HTTP.SSL.KEYPASSWORD")==0) {
-	nullfree(info->ssl.keypasswd) ;
-        info->ssl.keypasswd = strdup(value);
-        MEMCHECK(info->ssl.keypasswd);
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.KEYPASSWORD: %s", info->ssl.keypasswd);
-#endif
-    }
-
-    if(strcmp(flag,"HTTP.SSL.CAINFO")==0) {
-	nullfree(info->ssl.cainfo) ;
-        info->ssl.cainfo = strdup(value);
-        MEMCHECK(info->ssl.cainfo);
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.CAINFO: %s", info->ssl.cainfo);
-#endif
-    }
-
-    if(strcmp(flag,"HTTP.SSL.CAPATH")==0) {
-	nullfree(info->ssl.capath) ;
-        info->ssl.capath = strdup(value);
-        MEMCHECK(info->ssl.capath);
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.CAPATH: %s", info->ssl.capath);
-#endif
-    }
-
-    if(strcmp(flag,"HTTP.SSL.VERIFYPEER")==0) {
-        const char* s = value;
-        int tf = 0;
-        if(s == NULL || strcmp(s,"0")==0 || strcasecmp(s,"false")==0)
-            tf = 0;
-        else if(strcmp(s,"1")==0 || strcasecmp(s,"true")==0)
-            tf = 1;
-        else
-            tf = 1; /* default if not null */
-        info->ssl.verifypeer = tf;
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.VERIFYPEER: %d", info->ssl.verifypeer);
-#endif
-    }
-
-    if(strcmp(flag,"HTTP.NETRC")==0) {
-        nullfree(info->curlflags.netrc);
-        info->curlflags.netrc = strdup(value);
-        MEMCHECK(info->curlflags.netrc);
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.NETRC: %s", info->curlflags.netrc);
-#endif
-    }
-
-    if(strcmp(flag,"HTTP.CREDENTIALS.USERNAME")==0) {
-        nullfree(info->creds.user);
-        info->creds.user = strdup(value);
-        MEMCHECK(info->creds.user);
-    }
-    if(strcmp(flag,"HTTP.CREDENTIALS.PASSWORD")==0) {
-        nullfree(info->creds.pwd);
-        info->creds.pwd = strdup(value);
-        MEMCHECK(info->creds.pwd);
-    }
-
-done:
-    return (ret);
-
-nomem:
-    return (NC_ENOMEM);
-}
-
-
 /**
  * (Internal) Locate a triple by property key and host+port (may be null or "").
  * If duplicate keys, first takes precedence.
@@ -606,13 +339,11 @@ static struct NCTriple*
 rclocate(const char* key, const char* hostport)
 {
     int i,found;
-    NClist* rc = ncrc_globalstate.rc.triples;
+    NClist* rc = ncrc_globalstate.rcinfo.triples;
     NCTriple* triple = NULL;
 
-    if(ncrc_globalstate.rc.ignore)
+    if(ncrc_globalstate.rcinfo.ignore)
 	return NULL;
-    if(!ncrc_globalstate.rc.loaded)
-	NC_rcload();
 
     if(key == NULL || rc == NULL) return NULL;
     if(hostport == NULL) hostport = "";
@@ -670,34 +401,6 @@ done:
       path = NULL;
     }
     return (ret);
-}
-
-/*
-Given form user:pwd, parse into user and pwd
-and do %xx unescaping
-*/
-static int
-parsecredentials(const char* userpwd, char** userp, char** pwdp)
-{
-    char* user = NULL;
-    char* pwd = NULL;
-
-    if(userpwd == NULL)
-	return NC_EINVAL;
-    user = strdup(userpwd);
-    if(user == NULL)
-	return NC_ENOMEM;
-    pwd = strchr(user,':');
-    if(pwd == NULL)
-	return NC_EINVAL;
-    *pwd = '\0';
-    pwd++;
-    if(userp)
-	*userp = ncuridecode(user);
-    if(pwdp)
-	*pwdp = ncuridecode(pwd);
-    free(user);
-    return NC_NOERR;
 }
 
 #ifdef D4DEBUG

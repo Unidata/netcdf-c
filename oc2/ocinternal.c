@@ -77,8 +77,6 @@ ocinternalinitialize(void)
     /* Compute some xdr related flags */
     xxdr_init();
 
-    oc_curl_protocols(&ncrc_globalstate); /* see what protocols are supported */
-
     return OCTHROW(stat);
 }
 
@@ -110,6 +108,9 @@ ocopen(OCstate** statep, const char* url)
     state->packet = ncbytesnew();
     ncbytessetalloc(state->packet,DFALTPACKETSIZE); /*initial reasonable size*/
 
+    /* Initialize auth info from rc file */
+    stat = NC_authsetup(&state->auth, state->uri);
+
     /* capture curl properties for this link from rc file1*/
     stat = ocset_curlproperties(state);
     if(stat != OC_NOERR) goto fail;
@@ -119,6 +120,8 @@ ocopen(OCstate** statep, const char* url)
 #if 1 /* temporarily make per-link */
     if((stat=ocset_flags_perfetch(state))!= OC_NOERR) goto fail;
 #endif
+
+    oc_curl_protocols(state); /* see what protocols are supported */
 
     if(statep) *statep = state;
     else {
@@ -352,24 +355,8 @@ occlose(OCstate* state)
     ncbytesfree(state->packet);
     ocfree(state->error.code);
     ocfree(state->error.message);
-    ocfree(state->curlflags.useragent);
-    if(state->curlflags.cookiejar) {
-        if(state->curlflags.createdflags & COOKIECREATED)
-            ocremovefile(state->curlflags.cookiejar);
-	ocfree(state->curlflags.cookiejar);
-    }
-    ocfree(state->curlflags.netrc);
-    ocfree(state->ssl.certificate);
-    ocfree(state->ssl.key);
-    ocfree(state->ssl.keypasswd);
-    ocfree(state->ssl.cainfo);
-    ocfree(state->ssl.capath);
-    ocfree(state->proxy.host);
-    ocfree(state->proxy.user);
-    ocfree(state->proxy.pwd);
-    ocfree(state->creds.user);
-    ocfree(state->creds.pwd);
     if(state->curl != NULL) occurlclose(state->curl);
+    NC_authclear(&state->auth);
     ocfree(state);
 }
 
@@ -508,15 +495,11 @@ static OCerror
 ocset_curlproperties(OCstate* state)
 {
     OCerror stat = OC_NOERR;
-
-    /* extract the relevant triples int state */
-    ocrc_process(state);
-
-    if(state->curlflags.useragent == NULL) {
+    if(state->auth.curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len+1);
 	if(occopycat(agent,len,2,DFALTUSERAGENT,VERSION))
-	    state->curlflags.useragent = agent;
+	    state->auth.curlflags.useragent = agent;
 	else
 	    free(agent);
     }
@@ -524,13 +507,13 @@ ocset_curlproperties(OCstate* state)
     /* Some servers (e.g. thredds and columbia) appear to require a place
        to put cookies in order for some security functions to work
     */
-    if(state->curlflags.cookiejar != NULL
-       && strlen(state->curlflags.cookiejar) == 0) {
-	free(state->curlflags.cookiejar);
-	state->curlflags.cookiejar = NULL;
+    if(state->auth.curlflags.cookiejar != NULL
+       && strlen(state->auth.curlflags.cookiejar) == 0) {
+	free(state->auth.curlflags.cookiejar);
+	state->auth.curlflags.cookiejar = NULL;
     }
 
-    if(state->curlflags.cookiejar == NULL) {
+    if(state->auth.curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
         int stat;
         char* path = NULL;
@@ -548,20 +531,20 @@ ocset_curlproperties(OCstate* state)
         stat = ocmktmp(path,&name);
 fprintf(stderr,"%s => %s\n",state->uri->uri,name); fflush(stderr);
         free(path);
-	state->curlflags.cookiejar = name;
-	state->curlflags.createdflags |= COOKIECREATED;
+	state->auth.curlflags.cookiejar = name;
+	state->auth.curlflags.cookiejarcreated = 1;
 	if(stat != OC_NOERR && errno != EEXIST) {
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    goto fail;
 	}
 	errno = 0;
     }
-    OCASSERT(state->curlflags.cookiejar != NULL);
+    OCASSERT(state->auth.curlflags.cookiejar != NULL);
 
     /* Make sure the cookie jar exists and can be read and written */
     {
 	FILE* f = NULL;
-	char* fname = state->curlflags.cookiejar;
+	char* fname = state->auth.curlflags.cookiejar;
 	/* See if the file exists already */
         f = NCfopen(fname,"r");
 	if(f == NULL) {
@@ -588,7 +571,7 @@ fprintf(stderr,"%s => %s\n",state->uri->uri,name); fflush(stderr);
     if(ocrc_netrc_required(state)) {
 	/* WARNING: it appears that a user+pwd was specified specifically, then
            the netrc file will be completely disabled. */
-	if(state->creds.userpwd != NULL) {
+	if(state->auth.creds.userpwd != NULL) {
   	    nclog(NCLOGWARN,"The rc file specifies both netrc and user+pwd; this will cause curl to ignore the netrc file");
 	}
 	stat = oc_build_netrc(state);
@@ -658,10 +641,10 @@ OCerror
 ocset_useragent(OCstate* state, const char* agent)
 {
     OCerror stat = OC_NOERR;
-    if(state->curlflags.useragent != NULL)
-	free(state->curlflags.useragent);
-    state->curlflags.useragent = strdup(agent);
-    if(state->curlflags.useragent == NULL)
+    if(state->auth.curlflags.useragent != NULL)
+	free(state->auth.curlflags.useragent);
+    state->auth.curlflags.useragent = strdup(agent);
+    if(state->auth.curlflags.useragent == NULL)
 	return OCTHROW(OC_ENOMEM);
     stat = ocset_curlflag(state,CURLOPT_USERAGENT);
     return stat;
@@ -671,10 +654,10 @@ OCerror
 ocset_netrc(OCstate* state, const char* path)
 {
     OCerror stat = OC_NOERR;
-    if(state->curlflags.netrc != NULL)
-	free(state->curlflags.netrc);
-    state->curlflags.netrc = strdup(path);
-    if(state->curlflags.netrc == NULL)
+    if(state->auth.curlflags.netrc != NULL)
+	free(state->auth.curlflags.netrc);
+    state->auth.curlflags.netrc = strdup(path);
+    if(state->auth.curlflags.netrc == NULL)
 	return OCTHROW(OC_ENOMEM);
     stat = ocset_curlflag(state,CURLOPT_NETRC);
     return stat;

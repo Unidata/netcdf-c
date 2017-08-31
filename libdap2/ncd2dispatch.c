@@ -5,6 +5,7 @@
 
 #include "dapincludes.h"
 #include "ncd2dispatch.h"
+#include "ncrc.h"
 #include "ncoffsets.h"
 #ifdef DEBUG2
 #include "dapdump.h"
@@ -13,8 +14,6 @@
 #ifdef _MSC_VER
 #include <crtdbg.h>
 #endif
-
-#define NCRCFILE "NCRCFILE"
 
 #ifdef HAVE_GETRLIMIT
 #  ifdef HAVE_SYS_RESOURCE_H
@@ -197,12 +196,6 @@ NCD2_initialize(void)
     if(nclogopen(NULL))
         ncsetlogging(1); /* turn it on */
 #endif
-    /* Look at env vars for rc file location */
-    if(getenv(NCRCFILE) != NULL) {
-	const char* ncrcfile = getenv(NCRCFILE);
-	if(oc_set_rcfile(ncrcfile) != OC_NOERR)
-	    return NC_EAUTH;
-    }
     return NC_NOERR;
 }
 

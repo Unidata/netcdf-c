@@ -14,6 +14,7 @@ are defined here.
 #undef COMPILEBYDEFAULT
 
 #include "ncrc.h"
+#include "ncauth.h"
 
 /*
 Control if struct fields can be map targets.
@@ -273,7 +274,6 @@ struct NCD4curl {
 	long  httpcode;
 	char  errorbuf[CURL_ERROR_SIZE]; /* CURLOPT_ERRORBUFFER*/
     } errdata;
-    NCRCinfo rcinfo;
 };
 
 /**************************************************/
@@ -307,6 +307,7 @@ struct NCD4INFO {
 	NCD4translation translation;
 	char substratename[NC_MAX_NAME];
     } controls;
+    NCauth auth;
 };
 
 #endif /*D4TYPES_H*/

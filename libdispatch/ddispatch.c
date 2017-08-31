@@ -71,6 +71,9 @@ NCDISPATCH_initialize(void)
 	NC_coord_zero[i] = 0;
     }
 
+    /* Load RC File */
+    status = NC_rcload();
+
     /* Capture temp dir*/
     {
 	char* tempdir;
@@ -139,10 +142,9 @@ int
 NCDISPATCH_finalize(void)
 {
     int status = NC_NOERR;
-    nullfree(ncrc_globalstate->tempdir);
-    nullfree(ncrc_globalstate->home);
-    NC_freetriples(ncrc_globalstate->rc.triples);
-    nullfree(ncrc_globalstate->rc.rcfile);
+    nullfree(ncrc_globalstate.tempdir);
+    nullfree(ncrc_globalstate.home);
+    NC_rcclear(&ncrc_globalstate.rcinfo);
     memset(&ncrc_globalstate,0,sizeof(NCRCglobalstate));
     return status;
 }

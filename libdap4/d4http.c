@@ -87,8 +87,7 @@ fail:
 }
 
 int
-NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime,
-           struct credentials* creds)
+NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
 {
     int ret = NC_NOERR;
     CURLcode cstat = CURLE_OK;
@@ -291,7 +290,7 @@ NCD4_ping(const char* url)
 
     /* Try to get the file */
     buf = ncbytesnew();
-    ret = NCD4_fetchurl(curl,url,buf,NULL,NULL);
+    ret = NCD4_fetchurl(curl,url,buf,NULL);
     if(ret == NC_NOERR) {
         /* Don't trust curl to return an error when request gets 404 */
         long http_code = 0;

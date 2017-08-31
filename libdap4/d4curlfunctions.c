@@ -57,37 +57,37 @@ set_curlflag(NCD4INFO* state, int flag)
     int ret = NC_NOERR;
     switch (flag) {
     case CURLOPT_USERPWD: /* Do both user and pwd */
-        if(state->curl->rcinfo.creds.user != NULL
-           && state->curl->rcinfo.creds.pwd != NULL) {
-	    CHECK(state, CURLOPT_USERNAME, state->curl->rcinfo.creds.user);
-	    CHECK(state, CURLOPT_PASSWORD, state->curl->rcinfo.creds.pwd);
+        if(state->auth.creds.user != NULL
+           && state->auth.creds.pwd != NULL) {
+	    CHECK(state, CURLOPT_USERNAME, state->auth.creds.user);
+	    CHECK(state, CURLOPT_PASSWORD, state->auth.creds.pwd);
             CHECK(state, CURLOPT_HTTPAUTH, (OPTARG)CURLAUTH_ANY);
 	}
 	break;
     case CURLOPT_COOKIEJAR: case CURLOPT_COOKIEFILE:
-        if(state->curl->rcinfo.curlflags.cookiejar) {
+        if(state->auth.curlflags.cookiejar) {
 	    /* Assume we will read and write cookies to same place */
-	    CHECK(state, CURLOPT_COOKIEJAR, state->curl->rcinfo.curlflags.cookiejar);
-	    CHECK(state, CURLOPT_COOKIEFILE, state->curl->rcinfo.curlflags.cookiejar);
+	    CHECK(state, CURLOPT_COOKIEJAR, state->auth.curlflags.cookiejar);
+	    CHECK(state, CURLOPT_COOKIEFILE, state->auth.curlflags.cookiejar);
         }
 	break;
     case CURLOPT_NETRC: case CURLOPT_NETRC_FILE:
-	if(state->curl->rcinfo.curlflags.netrc) {
+	if(state->auth.curlflags.netrc) {
 	    CHECK(state, CURLOPT_NETRC, (OPTARG)CURL_NETRC_REQUIRED);
-	    CHECK(state, CURLOPT_NETRC_FILE, state->curl->rcinfo.curlflags.netrc);
+	    CHECK(state, CURLOPT_NETRC_FILE, state->auth.curlflags.netrc);
         }
 	break;
     case CURLOPT_VERBOSE:
-	if(state->curl->rcinfo.curlflags.verbose)
+	if(state->auth.curlflags.verbose)
 	    CHECK(state, CURLOPT_VERBOSE, (OPTARG)1L);
 	break;
     case CURLOPT_TIMEOUT:
-	if(state->curl->rcinfo.curlflags.timeout)
-	    CHECK(state, CURLOPT_TIMEOUT, (OPTARG)((long)state->curl->rcinfo.curlflags.timeout));
+	if(state->auth.curlflags.timeout)
+	    CHECK(state, CURLOPT_TIMEOUT, (OPTARG)((long)state->auth.curlflags.timeout));
 	break;
     case CURLOPT_USERAGENT:
-        if(state->curl->rcinfo.curlflags.useragent)
-	    CHECK(state, CURLOPT_USERAGENT, state->curl->rcinfo.curlflags.useragent);
+        if(state->auth.curlflags.useragent)
+	    CHECK(state, CURLOPT_USERAGENT, state->auth.curlflags.useragent);
 	break;
     case CURLOPT_FOLLOWLOCATION:
         CHECK(state, CURLOPT_FOLLOWLOCATION, (OPTARG)1L);
@@ -100,19 +100,19 @@ set_curlflag(NCD4INFO* state, int flag)
 	break;
     case CURLOPT_ENCODING:
 #ifdef CURLOPT_ENCODING
-	if(state->curl->rcinfo.curlflags.compress) {
+	if(state->auth.curlflags.compress) {
 	    CHECK(state, CURLOPT_ENCODING,"deflate, gzip");
         }
 #endif
 	break;
     case CURLOPT_PROXY:
-	if(state->curl->rcinfo.proxy.host != NULL) {
-	    CHECK(state, CURLOPT_PROXY, state->curl->rcinfo.proxy.host);
-	    CHECK(state, CURLOPT_PROXYPORT, (OPTARG)(long)state->curl->rcinfo.proxy.port);
-	    if(state->curl->rcinfo.proxy.user != NULL
-	       && state->curl->rcinfo.proxy.pwd != NULL) {
-                CHECK(state, CURLOPT_PROXYUSERNAME, state->curl->rcinfo.proxy.user);
-                CHECK(state, CURLOPT_PROXYPASSWORD, state->curl->rcinfo.proxy.pwd);
+	if(state->auth.proxy.host != NULL) {
+	    CHECK(state, CURLOPT_PROXY, state->auth.proxy.host);
+	    CHECK(state, CURLOPT_PROXYPORT, (OPTARG)(long)state->auth.proxy.port);
+	    if(state->auth.proxy.user != NULL
+	       && state->auth.proxy.pwd != NULL) {
+                CHECK(state, CURLOPT_PROXYUSERNAME, state->auth.proxy.user);
+                CHECK(state, CURLOPT_PROXYPASSWORD, state->auth.proxy.pwd);
 #ifdef CURLOPT_PROXYAUTH
 	        CHECK(state, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
 #endif
@@ -123,7 +123,7 @@ set_curlflag(NCD4INFO* state, int flag)
     case CURLOPT_SSLCERT: case CURLOPT_SSLKEY:
     case CURLOPT_SSL_VERIFYPEER: case CURLOPT_SSL_VERIFYHOST:
     {
-        struct ssl* ssl = &state->curl->rcinfo.ssl;
+        struct ssl* ssl = &state->auth.ssl;
         CHECK(state, CURLOPT_SSL_VERIFYPEER, (OPTARG)(ssl->verifypeer?1L:0L));
         CHECK(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(ssl->verifyhost?1L:0L));
         if(ssl->certificate)
@@ -195,7 +195,7 @@ set_curl_options(NCD4INFO* state)
 
     NCD4_hostport(state->uri,hostport,sizeof(hostport));
 
-    store = ncrc_globalstate.rc.triples;
+    store = ncrc_globalstate.rcinfo.triples;
 
     for(i=0;i<nclistlength(store);i++) {
         struct CURLFLAG* flag;
@@ -241,7 +241,7 @@ cvt(char* value, enum CURLFLAGTYPE type)
 void
 NCD4_curl_debug(NCD4INFO* state)
 {
-    state->curl->rcinfo.curlflags.verbose = 1;
+    state->auth.curlflags.verbose = 1;
     set_curlflag(state,CURLOPT_VERBOSE);
     set_curlflag(state,CURLOPT_ERRORBUFFER);
 }
@@ -252,18 +252,18 @@ NCD4_curl_debug(NCD4INFO* state)
        "file://..." &/or "https://..." urls.
 */
 void
-NCD4_curl_protocols(NCRCglobalstate* state)
+NCD4_curl_protocols(NCD4INFO* state)
 {
     const char* const* proto; /*weird*/
     curl_version_info_data* curldata;
     curldata = curl_version_info(CURLVERSION_NOW);
     for(proto=curldata->protocols;*proto;proto++) {
-        if(strcmp("file",*proto)==0) {state->curl.proto_file=1;}
-        if(strcmp("http",*proto)==0) {state->curl.proto_https=1;}
+        if(strcmp("file",*proto)==0) {state->auth.curlflags.proto_file=1;}
+        if(strcmp("http",*proto)==0) {state->auth.curlflags.proto_https=1;}
     }
 #ifdef D4DEBUG	
-    nclog(NCLOGNOTE,"Curl file:// support = %d",state->curl.proto_file);
-    nclog(NCLOGNOTE,"Curl https:// support = %d",state->curl.proto_https);
+    nclog(NCLOGNOTE,"Curl file:// support = %d",state->auth.curlflags.proto_file);
+    nclog(NCLOGNOTE,"Curl https:// support = %d",state->auth.curlflags.proto_https);
 #endif
 }
 

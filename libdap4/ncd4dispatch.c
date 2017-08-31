@@ -56,7 +56,7 @@ NCD4_initialize(void)
     /* Init global state */
     globalinit();
     /* Load rc file */
-    NCD4_rcload();    
+    NC_rcload();    
     return THROW(NC_NOERR);
 }
 
@@ -788,82 +788,11 @@ static int
 globalinit(void)
 {
     int stat = NC_NOERR;
-    if(NCD4_globalstate != NULL) return stat;
-    NCD4_globalstate = (NCD4globalstate*)calloc(1,sizeof(NCD4globalstate));
-    if(NCD4_globalstate == NULL) {
-	nclog(NCLOGERR, "Out of memory");
-	return stat;
-    }
-
-    /* Capture temp dir*/
-    {
-	char* tempdir;
-	char* p;
-	char* q;
-	char cwd[NC_MAX_PATH];
-#if defined(_WIN32) || defined(_WIN64)
-        tempdir = getenv("TEMP");
-#else
-	tempdir = "/tmp";
-#endif
-        if(tempdir == NULL) {
-	    fprintf(stderr,"Cannot find a temp dir; using ./\n");
-#if defined(_WIN32) || defined(_WIN64)
-	    tempdir = getcwd(cwd,sizeof(cwd));
-#else
-	    tempdir = getcwd(cwd,sizeof(cwd));
-#endif
-	    if(tempdir == NULL || *tempdir == '\0') tempdir = ".";
-	}
-        NCD4_globalstate->tempdir= (char*)malloc(strlen(tempdir) + 1);
-	for(p=tempdir,q=NCD4_globalstate->tempdir;*p;p++,q++) {
-	    if((*p == '/' && *(p+1) == '/')
-	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
-	    *q = *p;
-	}
-	*q = '\0';
-#if defined(_WIN32) || defined(_WIN64)
-#else
-        /* Canonicalize */
-	for(p=NCD4_globalstate->tempdir;*p;p++) {
-	    if(*p == '\\') {*p = '/'; };
-	}
-	*q = '\0';
-#endif
-    }
-
-    /* Capture $HOME */
-    {
-	char* p;
-	char* q;
-        char* home = getenv("HOME");
-
-        if(home == NULL) {
-	    /* use tempdir */
-	    home = NCD4_globalstate->tempdir;
-	}
-        NCD4_globalstate->home = (char*)malloc(strlen(home) + 1);
-	for(p=home,q=NCD4_globalstate->home;*p;p++,q++) {
-	    if((*p == '/' && *(p+1) == '/')
-	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
-	    *q = *p;
-	}
-	*q = '\0';
-#if defined(_WIN32) || defined(_WIN64)
-#else
-        /* Canonicalize */
-	for(p=home;*p;p++) {
-	    if(*p == '\\') {*p = '/'; };
-	}
-#endif
-    }
-
     {
 	CURLcode cstat = curl_global_init(CURL_GLOBAL_DEFAULT);
 	if(cstat != CURLE_OK)
 	    fprintf(stderr,"curl_global_init failed!\n");
     }
-    NCD4_curl_protocols(NCD4_globalstate); /* see what protocols are supported */
     return stat;
 }
 

@@ -87,8 +87,7 @@ fail:
 }
 
 OCerror
-ocfetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime,
-           struct OCcredentials* creds)
+ocfetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
 {
 	OCerror stat = OC_NOERR;
 	CURLcode cstat = CURLE_OK;
@@ -99,25 +98,6 @@ ocfetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime,
 	cstat = CURLERR(CURLERR(curl_easy_setopt(curl, CURLOPT_URL, (void*)url)));
 	if (cstat != CURLE_OK)
 		goto fail;
-	
-#if 0
-	if(creds != NULL && creds->password != NULL  && creds->username != NULL) {
-	    /* Set user and password */
-#if defined (HAVE_CURLOPT_USERNAME) && defined (HAVE_CURLOPT_PASSWORD)
-	    cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_USERNAME, creds->username));
-	    if (cstat != CURLE_OK)
-		goto fail;
-	    cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_PASSWORD, creds->password));
-	    if (cstat != CURLE_OK)
-		goto fail;
-#else		
-		snprintf(tbuf,1023,"%s:%s",creds->username,creds->password);	
-		cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_USERPWD, tbuf));
-		if (cstat != CURLE_OK)
-			goto fail;
-#endif
-	}
-#endif
 
 	/* send all data to this function  */
 	cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback));
@@ -348,7 +328,7 @@ ocping(const char* url)
 
     /* Try to get the file */
     buf = ncbytesnew();
-    stat = ocfetchurl(curl,url,buf,NULL,NULL);
+    stat = ocfetchurl(curl,url,buf,NULL);
     if(stat == OC_NOERR) {
 	/* Don't trust curl to return an error when request gets 404 */
 	long http_code = 0;
