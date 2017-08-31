@@ -134,12 +134,12 @@ The second column is the affected curl_easy_setopt option(s), if any.
 <tr><td>HTTP.SSL.CERTIFICATE</td><td>CURLOPT_SSLCERT</td>
 <tr><td>HTTP.SSL.KEY</td><td>CURLOPT_SSLKEY</td>
 <tr><td>HTTP.SSL.KEYPASSWORD</td><td>CURLOPT_KEYPASSWORD</td>
-<tr><td>HTTP.SSL.CAINFO</td><td>CURLOPT_SSLCAINFO</td>
-<tr><td>HTTP.SSL.CAPATH</td><td>CURLOPT_SSLCAPATH</td>
+<tr><td>HTTP.SSL.CAINFO</td><td>CURLOPT_CAINFO</td>
+<tr><td>HTTP.SSL.CAPATH</td><td>CURLOPT_CAPATH</td>
 <tr><td>HTTP.SSL.VERIFYPEER</td><td>CURLOPT_SSL_VERIFYPEER</td>
 <tr><td>HTTP.SSL.VALIDATE</td><td>CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST</td>
 <tr><td>HTTP.CREDENTIALS.USERPASSWORD</td><td>CURLOPT_USERPASSWORD</td>
-<tr><td>HTTP.NETRC</td><td>N.A.</td><td>Specify path of the .netrc file</td>
+<tr><td>HTTP.NETRC</td><td>CURLOPT_NETRC,CURLOPT_NETRC_FILE</td>
 </table>
 
 ### Password Authentication
@@ -301,8 +301,8 @@ the code is definitive.
 <tr><td>HTTP.SSL.CERTIFICATE</td><td>CUROPT_SSLCERT</td>
 <tr><td>HTTP.SSL.KEY</td><td>CUROPT_SSLKEY</td>
 <tr><td>HTTP.SSL.KEYPASSWORD</td><td>CUROPT_KEYPASSWORD</td>
-<tr><td>HTTP.SSL.CAINFO</td><td>CUROPT_SSLCAINFO</td>
-<tr><td>HTTP.SSL.CAPATH</td><td>CUROPT_SSLCAPATH</td>
+<tr><td>HTTP.SSL.CAINFO</td><td>CUROPT_CAINFO</td>
+<tr><td>HTTP.SSL.CAPATH</td><td>CUROPT_CAPATH</td>
 <tr><td>HTTP.SSL.VERIFYPEER</td><td>CUROPT_SSL_VERIFYPEER</td>
 <tr><td>HTTP.CREDENTIALS.USERPASSWORD</td><td>CUROPT_USERPASSWORD</td>
 <tr><td>HTTP.NETRC</td><td>CURLOPT_NETRC,CURLOPT_NETRC_FILE</td>
