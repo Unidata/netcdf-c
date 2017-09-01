@@ -43,7 +43,7 @@ check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8 bom tst_dimsizes n
 
 TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
 tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh      \
-tst_nccopy3.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh \
+tst_nccopy3.sh tst_nccopy3_subset.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh \
 tst_dimsizes.sh run_ncgen_tests.sh
 
 if USE_NETCDF4
@@ -164,12 +164,12 @@ tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl                      \
 tst_inttags.sh tst_inttags4.sh                                          \
 CMakeLists.txt XGetopt.c tst_bom.sh tst_inmemory_nc3.sh                 \
 tst_dimsizes.sh tst_inmemory_nc4.sh tst_fileinfo.sh run_ncgen_tests.sh  \
-run_ncgen_nc4_tests.sh
+run_ncgen_nc4_tests.sh tst_nccopy3_subset.sh ref_nccopy3_subset.nc
 
 # CDL files and Expected results
 SUBDIRS=cdl expected
 EXTRA_DIST += tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh	\
-tst_ncgen4_diff.sh tst_ncgen4_cycle.sh ref_ctest.c ref_ctest64.c
+tst_ncgen4_diff.sh tst_ncgen4_cycle.sh ref_ctest.c ref_ctest64.c \
 
 CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl \
 	c5.nc compound_datasize_test.nc compound_datasize_test2.nc \
@@ -177,7 +177,7 @@ CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl \
 	tst_c0_64.cdl tst_compound_datasize_test.cdl \
 	tst_compound_datasize_test2.cdl tst_gattenum.nc \
 	tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl \
-	tst_usuffix.nc tst_bug324.nc
+	tst_usuffix.nc tst_bug324.nc nccopy3_subset_out.nc
 
 DISTCLEANFILES = results
 

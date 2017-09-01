@@ -131,6 +131,7 @@ ENDIF()
   ENDIF(USE_NETCDF4)
 
   add_sh_test(ncdump tst_nccopy3)
+  add_sh_test(ncdump tst_nccopy3_subset)
   add_sh_test(ncdump tst_charfill)
 
   add_sh_test(ncdump tst_formatx3)
