@@ -1233,8 +1233,14 @@ CHECK_INCLUDE_FILE("BaseTsd.h"  HAVE_BASETSD_H)
 CHECK_INCLUDE_FILE("stddef.h"   HAVE_STDDEF_H)
 CHECK_INCLUDE_FILE("memory.h"  HAVE_MEMORY_H)
 CHECK_INCLUDE_FILE("string.h"  HAVE_STRING_H)
-CHECK_INCLUDE_FILE("winsock2.h" HAVE_WINSOCK2_H)
 CHECK_INCLUDE_FILE("ftw.h"  HAVE_FTW_H)
+
+# Need a temporary hack to force winsock2.h to be presumed missing
+# Necessary for combination of Cygwin+Visual Studio Community Edition.
+OPTION(ENABLE_WINSOCK2 "Allow winsock2.h checking." ON)
+IF(ENABLE_WINSOCK2)
+CHECK_INCLUDE_FILE("winsock2.h" HAVE_WINSOCK2_H)
+ENDIF()
 
 CHECK_INCLUDE_FILES("time.h;sys/time.h" TIME_WITH_SYS_TIME)
 
