@@ -5,21 +5,25 @@ See LICENSE.txt for license information.
 
 
 #include "config.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "netcdf.h"
 #include "ncbytes.h"
 #include "ncuri.h"
 #include "ncauth.h"
 #include "nclog.h"
 #include "ncwinpath.h"
+
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
 
 #undef MEMCHECK
 #define MEMCHECK(x) if((x)==NULL) {goto nomem;} else {}
@@ -111,6 +115,8 @@ NC_authsetup(NCauth* auth, NCURI* uri)
 			NC_rclookup("HTTP.COOKIEJAR",uri_hostport));
     setauthfield(auth,"HTTP.COOKIE_JAR",
 			NC_rclookup("HTTP.COOKIE_JAR",uri_hostport));
+    setauthfield(auth,"HTTP.PROXY.SERVER",
+			NC_rclookup("HTTP.PROXY.SERVER",uri_hostport));
     setauthfield(auth,"HTTP.PROXY_SERVER",
 			NC_rclookup("HTTP.PROXY_SERVER",uri_hostport));
     setauthfield(auth,"HTTP.SSL.VALIDATE",
@@ -229,11 +235,11 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
             nclog(NCLOGNOTE,"HTTP.COOKIEJAR: %s", auth->curlflags.cookiejar);
 #endif
     }
-    if(strcmp(flag,"HTTP.PROXY_SERVER")==0) {
+    if(strcmp(flag,"HTTP.PROXY.SERVER")==0 || strcmp(flag,"HTTP.PROXY_SERVER")==0) {
         ret = NC_parseproxy(auth,value);
         if(ret != NC_NOERR) goto done;
 #ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.PROXY_SERVER: %s", value);
+            nclog(NCLOGNOTE,"HTTP.PROXY.SERVER: %s", value);
 #endif
     }
     if(strcmp(flag,"HTTP.SSL.VALIDATE")==0) {

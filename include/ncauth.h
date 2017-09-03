@@ -17,7 +17,6 @@ Every curl connection will need a copy of this.
 
 typedef struct NCauth {
     struct curlflags {
-        int proto_file; /* Is file: supported? */
         int proto_https; /* is https: supported? */
 	int compress; /*CURLOPT_ENCODING*/
 	int verbose; /*CURLOPT_ENCODING*/

@@ -54,6 +54,6 @@ extern char* NC_backslashEscape(const char* s);
 extern char* NC_backslashUnescape(const char* esc);
 extern char* NC_entityescape(const char* s);
 extern int NC_readfile(const char* filename, NCbytes* content);
-extern int NC_mktmp(const char* base, char** tmpnamep);
+extern char* NC_mktmp(const char* base);
 
 #endif /*NCRC_H*/

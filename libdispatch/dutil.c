@@ -23,6 +23,7 @@
 #include "ncuri.h"
 #include "ncbytes.h"
 #include "nclog.h"
+#include "ncwinpath.h"
 
 #define NC_MAX_PATH 4096
 
@@ -167,7 +168,11 @@ NC_readfile(const char* filename, NCbytes* content)
     FILE* stream = NULL;
     char part[1024];
 
-    stream = fopen(filename,"r");
+#ifdef _MSC_VER
+    stream = NCfopen(filename,"r");
+#else
+    stream = NCfopen(filename,"rb");
+#endif
     if(stream == NULL) {ret=errno; goto done;}
     for(;;) {
 	size_t count = fread(part, 1, sizeof(part), stream);
@@ -183,39 +188,60 @@ done:
 }
 
 /**
-Wrap mktmp and return the generated name
+Wrap mktmp and return the generated path,
+or null if failed.
+Base is the base file path. XXXXX is appended
+to allow mktmp add its unique id.
+Return the generated path.
 */
 
-int
-NC_mktmp(const char* base, char** tmpnamep)
+char*
+NC_mktmp(const char* base)
 {
     int fd;
+    char* cvtpath = NULL;
     char tmp[NC_MAX_PATH];
 #ifdef HAVE_MKSTEMP
     mode_t mask;
 #endif
 
-    strncpy(tmp,base,sizeof(tmp));
+    /* Make sure that this path conversion has been applied */
+    cvtpath = NCpathcvt(base);
+    strncpy(tmp,cvtpath,sizeof(tmp));
+    nullfree(cvtpath);
+	strncat(tmp, "XXXXXX", sizeof(tmp));
+
 #ifdef HAVE_MKSTEMP
-    strncat(tmp,"XXXXXX",sizeof(tmp)-strlen(tmp));
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
     mask=umask(0077);
     fd = mkstemp(tmp);
     (void)umask(mask);
 #else /* !HAVE_MKSTEMP */
-    /* Need to simulate by using some kind of pseudo-random number */
     {
-	int rno = rand();
-	char spid[7];
-	if(rno < 0) rno = -rno;
-        snprintf(spid,sizeof(spid),"%06d",rno);
-        strncat(tmp,spid,sizeof(tmp));
-#if defined(_WIN32) || defined(_WIN64)
-        fd=open(tmp,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
-#  else
-        fd=open(tmp,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
-#  endif
+#ifdef HAVE_MKTEMP
+#ifdef _MSC_VER
+        /* Use _mktemp_s */
+	_mktemp_s(tmp,sizeof(tmp)-1);
+#else /*!_MSC_VER*/
+        mktemp(tmp);
+	tmo[sizeof[tmp]-1] = '\0';
+#endif
+#else /* !HAVE_MKTEMP */
+	/* Need to simulate by using some kind of pseudo-random number */
+	{
+	    int rno = rand();
+	    char spid[7];
+	    if(rno < 0) rno = -rno;
+            snprintf(spid,sizeof(spid),"%06d",rno);
+            strncat(tmp,spid,sizeof(tmp));
+	}
+#endif /* HAVE_MKTEMP */
+#ifdef _MSC_VER
+        fd=NCopen3(tmp,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
+#else
+        fd=NCopen3(tmp,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
+#endif
     }
 #endif /* !HAVE_MKSTEMP */
     if(fd < 0) {
@@ -223,7 +249,6 @@ NC_mktmp(const char* base, char** tmpnamep)
        return (NC_EPERM);
     } else
 	close(fd);
-    if(tmpnamep) *tmpnamep = strdup(tmp);
-    return (NC_NOERR);
+    return strdup(tmp);
 }
 

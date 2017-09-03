@@ -6,7 +6,7 @@
 
 #include "config.h"
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER
 #include <malloc.h>
 #endif
 
@@ -162,7 +162,7 @@ struct OCTriplestore {
 struct OCstate {
     OCheader header; /* class=OC_State */
     NClist* trees; /* list<OCNODE*> ; all root objects */
-    NCURI* uri; /* base URI*/
+    NCURI* uri; /* parsed base URI*/
     NCbytes* packet; /* shared by all trees during construction */
     struct OCerrdata {/* Hold info for an error return from server */
 	char* code;

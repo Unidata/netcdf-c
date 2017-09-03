@@ -258,11 +258,9 @@ NCD4_curl_protocols(NCD4INFO* state)
     curl_version_info_data* curldata;
     curldata = curl_version_info(CURLVERSION_NOW);
     for(proto=curldata->protocols;*proto;proto++) {
-        if(strcmp("file",*proto)==0) {state->auth.curlflags.proto_file=1;}
         if(strcmp("http",*proto)==0) {state->auth.curlflags.proto_https=1;}
     }
 #ifdef D4DEBUG	
-    nclog(NCLOGNOTE,"Curl file:// support = %d",state->auth.curlflags.proto_file);
     nclog(NCLOGNOTE,"Curl https:// support = %d",state->auth.curlflags.proto_https);
 #endif
 }

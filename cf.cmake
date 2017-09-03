@@ -1,6 +1,9 @@
 # Visual Studio
 VS=1
-#VSSETUP=1
+
+if test "x$1" = xsetup ; then
+VSSETUP=1
+fi
 
 #export NCPATHDEBUG=1
 

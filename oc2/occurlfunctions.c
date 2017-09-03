@@ -226,9 +226,7 @@ oc_curl_printerror(OCstate* state)
     fprintf(stderr,"curl error details: %s\n",state->curlerror);
 }
 
-/* Determine if this version of curl supports
-       "file://..." &/or "https://..." urls.
-*/
+/* See if http: protocol is supported */
 void
 oc_curl_protocols(OCstate* state)
 {
@@ -236,11 +234,9 @@ oc_curl_protocols(OCstate* state)
     curl_version_info_data* curldata;
     curldata = curl_version_info(CURLVERSION_NOW);
     for(proto=curldata->protocols;*proto;proto++) {
-        if(strcmp("file",*proto)==0) {state->auth.curlflags.proto_file=1;}
-        if(strcmp("http",*proto)==0) {state->auth.curlflags.proto_https=1;}
-    }
-    if(ocdebug > 0) {
-        nclog(NCLOGNOTE,"Curl file:// support = %d",state->auth.curlflags.proto_file);
-        nclog(NCLOGNOTE,"Curl https:// support = %d",state->auth.curlflags.proto_https);
+        if(strcmp("http",*proto)==0)
+	    state->auth.curlflags.proto_https=1;
     }
 }
+
+

@@ -125,12 +125,14 @@ will have HTTP.VERBOSE set to 0 because its host+port matches the example above.
 ## Authorization-Related Keys {#AUTHKEYS}
 
 The currently defined set of authorization-related keys are as follows.
-The second column is the affected curl_easy_setopt option(s), if any.
+The second column is the affected curl_easy_setopt option(s), if any
+(see reference #1).
 <table>
 <tr><th>Key</th><th>Affected curl_easy_setopt Options</th><th>Notes</th>
 <tr><td>HTTP.COOKIEJAR</td><td>CURLOPT_COOKIEJAR</td>
 <tr><td>HTTP.COOKIEFILE</td><td>CURLOPT_COOKIEJAR</td><td>Alias for CURLOPT_COOKIEJAR</td>
-<tr><td>HTTP.PROXY_SERVER</td><td>CURLOPT_PROXY, CURLOPT_PROXYPORT, CURLOPT_PROXYUSERPWD</td>
+<tr><td>HTTP.PROXY.SERVER</td><td>CURLOPT_PROXY, CURLOPT_PROXYPORT, CURLOPT_PROXYUSERPWD</td>
+<tr><td>HTTP.PROXY_SERVER</td><td>CURLOPT_PROXY, CURLOPT_PROXYPORT, CURLOPT_PROXYUSERPWD</td><td>Decprecated: use HTTP.PROXY.SERVER</td>
 <tr><td>HTTP.SSL.CERTIFICATE</td><td>CURLOPT_SSLCERT</td>
 <tr><td>HTTP.SSL.KEY</td><td>CURLOPT_SSLKEY</td>
 <tr><td>HTTP.SSL.KEYPASSWORD</td><td>CURLOPT_KEYPASSWORD</td>
@@ -191,14 +193,18 @@ specifies the password for accessing the HTTP.SSL.CERTIFICAT/HTTP.SSL.key file.
 HTTP.SSL.CAPATH
 specifies the path to a directory containing
 trusted certificates for validating server sertificates.
+See reference #2 for more info.
 
 HTTP.SSL.VALIDATE
 is a boolean (1/0) value that if true (1)
 specifies that the client should verify the server's presented certificate.
 
-HTTP.PROXY_SERVER
+HTTP.PROXY.SERVER
 specifies the url for accessing the proxy:
 e.g. *http://[username:password@]host[:port]*
+
+HTTP.PROXY_SERVER
+deprecated; use HTTP.PROXY.SERVER
 
 HTTP.NETRC
 specifies the absolute path of the .netrc file.
@@ -296,6 +302,11 @@ This requires setting the following entries:
 
 Note that the first two are there to support re-direction based authentication.
 
+## References
+
+1. https://curl.haxx.se/libcurl/c/curl_easy_setopt.html
+2. https://curl.haxx.se/docs/ssl-compared.html
+
 ## Appendix A. All RC-File Keys {#allkeys}
 
 For completeness, this is the list of all rc-file keys.
@@ -309,6 +320,7 @@ the code is definitive.
 <tr><td>HTTP.USERAGENT</td><td>CUROPT_USERAGENT</td>
 <tr><td>HTTP.COOKIEJAR</td><td>CUROPT_COOKIEJAR</td>
 <tr><td>HTTP.COOKIE_JAR</td><td>CUROPT_COOKIEJAR</td>
+<tr valign="top"><td>HTTP.PROXY.SERVER</td><td>CURLOPT_PROXY,<br>CURLOPT_PROXYPORT,<br>CURLOPT_PROXYUSERPWD</td>
 <tr valign="top"><td>HTTP.PROXY_SERVER</td><td>CURLOPT_PROXY,<br>CURLOPT_PROXYPORT,<br>CURLOPT_PROXYUSERPWD</td>
 <tr><td>HTTP.SSL.CERTIFICATE</td><td>CUROPT_SSLCERT</td>
 <tr><td>HTTP.SSL.KEY</td><td>CUROPT_SSLKEY</td>

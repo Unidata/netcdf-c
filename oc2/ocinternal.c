@@ -90,7 +90,10 @@ ocopen(OCstate** statep, const char* url)
     NCURI* tmpurl = NULL;
     CURL* curl = NULL; /* curl handle*/
 
-    if(ncuriparse(url,&tmpurl) != NCU_OK) {OCTHROWCHK(stat=OC_EBADURL); goto fail;}
+    if(ncuriparse(url,&tmpurl) != NCU_OK) {
+	OCTHROWCHK(stat=OC_EBADURL);
+	goto fail;
+    }
 
     stat = occurlopen(&curl);
     if(stat != OC_NOERR) {OCTHROWCHK(stat); goto fail;}
@@ -121,8 +124,7 @@ ocopen(OCstate** statep, const char* url)
     if((stat=ocset_flags_perfetch(state))!= OC_NOERR) goto fail;
 #endif
 
-    oc_curl_protocols(state); /* see what protocols are supported */
-
+    oc_curl_protocols(state);
     if(statep) *statep = state;
     else {
       if(state != NULL) ocfree(state);
@@ -204,7 +206,8 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     state->error.httpcode = ocfetchhttpcode(state->curl);
     if(stat != OC_NOERR) {
 	if(state->error.httpcode >= 400) {
-	    nclog(NCLOGWARN,"oc_open: Could not read url; http error = %l",state->error.httpcode);
+	    nclog(NCLOGWARN,"oc_open: Could not read url (%s); http error = %l",
+		  state->uri,state->error.httpcode);
 	} else {
 	    nclog(NCLOGWARN,"oc_open: Could not read url");
 	}
@@ -303,7 +306,7 @@ createtempfile(OCstate* state, OCtree* tree)
 {
     int stat = OC_NOERR;
     char* path = NULL;
-    char* name = NULL;
+    char* tmppath = NULL;
     int len;
 
     len =
@@ -313,14 +316,14 @@ createtempfile(OCstate* state, OCtree* tree)
     path = (char*)malloc(len+1);
     if(path == NULL) return OC_ENOMEM;
     occopycat(path,len,3,ncrc_globalstate.tempdir,"/",DATADDSFILE);
-    stat = ocmktmp(path,&name);
+    tmppath = NC_mktmp(path);
     free(path);
     if(stat != OC_NOERR) goto fail;
 #ifdef OCDEBUG
-    nclog(NCLOGNOTE,"oc_open: creating tmp file: %s",name);
+    nclog(NCLOGNOTE,"oc_open: creating tmp file: %s",tmppath);
 #endif
-    tree->data.filename = name; /* remember our tmp file name */
-    name = NULL;
+    tree->data.filename = tmppath; /* remember our tmp file name */
+    tmppath = NULL;
     tree->data.file = NCfopen(tree->data.filename,"w+");
     if(tree->data.file == NULL) return OC_EOPEN;
     /* make the temp file so it will automatically be reclaimed on close */
@@ -329,9 +332,9 @@ createtempfile(OCstate* state, OCtree* tree)
     return stat;
 
 fail:
-    if(name != NULL) {
-        nclog(NCLOGERR,"oc_open: attempt to create tmp file failed: %s",name);
-	free(name);
+    if(tmppath != NULL) {
+        nclog(NCLOGERR,"oc_open: attempt to create tmp file failed: %s",tmppath);
+	free(tmppath);
     } else {
         nclog(NCLOGERR,"oc_open: attempt to create tmp file failed: NULL");
     }
@@ -515,9 +518,9 @@ ocset_curlproperties(OCstate* state)
 
     if(state->auth.curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
-        int stat;
+		int stat = NC_NOERR;
         char* path = NULL;
-        char* name = NULL;
+        char* tmppath = NULL;
         int len;
 	errno = 0;
 	/* Create the unique cookie file name */
@@ -525,13 +528,13 @@ ocset_curlproperties(OCstate* state)
 	  strlen(ncrc_globalstate.tempdir)
 	  + 1 /* '/' */
 	  + strlen("occookies");
-        path = (char*)malloc(len+1);
+        path = (char*)calloc(1,len+1);
         if(path == NULL) return OC_ENOMEM;
         occopycat(path,len,3,ncrc_globalstate.tempdir,"/","occookies");
-        stat = ocmktmp(path,&name);
-fprintf(stderr,"%s => %s\n",state->uri->uri,name); fflush(stderr);
+        tmppath = NC_mktmp(path);
+fprintf(stderr,"Cookie File: %s: %s\n",state->uri->uri,tmppath); fflush(stderr);
         free(path);
-	state->auth.curlflags.cookiejar = name;
+	state->auth.curlflags.cookiejar = tmppath;
 	state->auth.curlflags.cookiejarcreated = 1;
 	if(stat != OC_NOERR && errno != EEXIST) {
 	    fprintf(stderr,"Cannot create cookie file\n");
@@ -672,3 +675,4 @@ ocremovefile(const char* path)
     remove(path);
 #endif
 }
+

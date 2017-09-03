@@ -55,7 +55,7 @@ object is to be returned.
 OCerror
 oc_open(const char* url, OCobject* linkp)
 {
-    OCerror ocerr;
+	OCerror ocerr = OC_NOERR;
     OCstate* state = NULL;
     ocerr = ocopen(&state,url);
     if(ocerr == OC_NOERR && linkp) {
