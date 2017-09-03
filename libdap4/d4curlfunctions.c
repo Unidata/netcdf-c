@@ -191,9 +191,9 @@ set_curl_options(NCD4INFO* state)
     int ret = NC_NOERR;
     NClist* store = NULL;
     int i;
-    char hostport[NC_MAX_PATH];
+    char* hostport = NULL;
 
-    NCD4_hostport(state->uri,hostport,sizeof(hostport));
+    hostport = NC_combinehostport(state->uri);
 
     store = ncrc_globalstate.rcinfo.triples;
 
@@ -204,7 +204,7 @@ set_curl_options(NCD4INFO* state)
         const char* flagname;
         if(strncmp("CURL.",triple->key,5) != 0) continue; /* not a curl flag */
         /* do hostport prefix comparison */
-        if(hostport[0] != '\0') {
+        if(hostport != NULL) {
           int t = strncmp(hostport,triple->host,hostlen);
           if(t !=  0) continue;
         }
@@ -214,6 +214,7 @@ set_curl_options(NCD4INFO* state)
         ret = set_curlopt(state,flag->flag,cvt(triple->value,flag->type));
     }
  done:
+    nullfree(hostport);
     return THROW(ret);
 }
 

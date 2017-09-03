@@ -369,7 +369,7 @@ set_curl_properties(NCD4INFO* d4info)
 	/* If no cookie file was defined, define a default */
         int ok;
         char* path = NULL;
-        char* name = NULL;
+        char* newpath = NULL;
         int len;
 	errno = 0;
 	/* Create the unique cookie file name */
@@ -381,13 +381,13 @@ set_curl_properties(NCD4INFO* d4info)
         if(path == NULL) return NC_ENOMEM;
 	snprintf(path,len,"%s/nc4cookies",ncrc_globalstate.tempdir);
 	/* Create the unique cookie file name */
-        ok = NCD4_mktmp(path,&name);
+        newpath = NC_mktmp(path);
         free(path);
-	if(ok != NC_NOERR && errno != EEXIST) {
+	if(newpath == NULL) {
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    goto fail;
 	}
-	d4info->auth.curlflags.cookiejar = name;
+	d4info->auth.curlflags.cookiejar = newpath;
 	d4info->auth.curlflags.cookiejarcreated = 1;
 	errno = 0;
     }

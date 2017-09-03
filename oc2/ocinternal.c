@@ -532,7 +532,6 @@ ocset_curlproperties(OCstate* state)
         if(path == NULL) return OC_ENOMEM;
         occopycat(path,len,3,ncrc_globalstate.tempdir,"/","occookies");
         tmppath = NC_mktmp(path);
-fprintf(stderr,"Cookie File: %s: %s\n",state->uri->uri,tmppath); fflush(stderr);
         free(path);
 	state->auth.curlflags.cookiejar = tmppath;
 	state->auth.curlflags.cookiejarcreated = 1;
