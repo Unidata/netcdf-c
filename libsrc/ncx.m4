@@ -16,11 +16,14 @@ dnl
 #endif
 
 dnl
-dnl If the m4 macro "ERANGE_FILL" is defined, the I/O to data elements
-dnl that cause NC_ERANGE will be filled with the NC default fill values.
+dnl If "ERANGE_FILL" is defined, the data elements that cause NC_ERANGE will
+dnl be filled with the NC default fill values.
 dnl
 
-define(`SKIP_LOOP', `ifdef(`ERANGE_FILL', `$1++; $2++; continue;')')
+define(`SKIP_LOOP', `
+#ifdef ERANGE_FILL
+            $1++; $2++; continue;
+#endif')
 
 dnl
 dnl The command-line m4 macro "PNETCDF" is to differentiate PnetCDF and netCDF
@@ -79,7 +82,9 @@ ifdef(`PNETCDF',,`define(`DEBUG_ASSIGN_ERROR',`$1 = $2;')')
 dnl
 dnl *fillp is the fill value in internal representation
 dnl
-define(`FillValue', `ifdef(`ERANGE_FILL', `ifelse(
+define(`FillValue', `
+#ifdef ERANGE_FILL
+            ifelse(
 `$1', `schar',     `if (fillp != NULL) memcpy($2, fillp, 1);',dnl
 `$1', `uchar',     `if (fillp != NULL) memcpy($2, fillp, 1);',dnl
 `$1', `short',     `if (fillp != NULL) memcpy($2, fillp, 2);',dnl
@@ -93,7 +98,8 @@ define(`FillValue', `ifdef(`ERANGE_FILL', `ifelse(
 `$1', `longlong',  `if (fillp != NULL) memcpy($2, fillp, 8);',dnl
 `$1', `int64',     `if (fillp != NULL) memcpy($2, fillp, 8);',dnl
 `$1', `ulonglong', `if (fillp != NULL) memcpy($2, fillp, 8);',dnl
-`$1', `uint64',    `if (fillp != NULL) memcpy($2, fillp, 8);')')')dnl
+`$1', `uint64',    `if (fillp != NULL) memcpy($2, fillp, 8);')
+#endif')dnl
 
 dnl
 dnl
@@ -623,7 +629,9 @@ dnl For GET APIs boundary check
 dnl
 define(`GETF_CheckBND',
 `if (xx > (double)Upcase($1)_MAX || xx < Dmin($1)) {
-            ifdef(`ERANGE_FILL',`*ip = FillDefaultValue($1);')
+#ifdef ERANGE_FILL
+            *ip = FillDefaultValue($1);
+#endif
             DEBUG_RETURN_ERROR(NC_ERANGE)
         }
 	*ip = ($1)xx;')dnl
@@ -637,7 +645,9 @@ define(`GETF_CheckBND2',
 `if (xx == Upcase($1)_MAX)      *ip = Upcase($1)_MAX;
 	else if (xx == Upcase($1)_MIN) *ip = Upcase($1)_MIN;')
 	else if (xx > (double)Upcase($1)_MAX || xx < Dmin($1)) {
-            ifdef(`ERANGE_FILL',`*ip = FillDefaultValue($1);')
+#ifdef ERANGE_FILL
+            *ip = FillDefaultValue($1);
+#endif
             DEBUG_RETURN_ERROR(NC_ERANGE)
         }
 	else *ip = ($1)xx;')
@@ -691,19 +701,23 @@ ifelse(`$3', `1',
     if (xx > Imax($2)'`ifelse(index(`$1',`u'), 0, ,
                               index(`$2',`u'), 0, ,
                               ` || xx < Imin($2)')'`) {
-ifdef(`ERANGE_FILL',`dnl
+#ifdef ERANGE_FILL
         *ip = FillDefaultValue($2);
-        DEBUG_RETURN_ERROR(NC_ERANGE)',`
-        DEBUG_ASSIGN_ERROR(err, NC_ERANGE)')
+        DEBUG_RETURN_ERROR(NC_ERANGE)
+#else
+        DEBUG_ASSIGN_ERROR(err, NC_ERANGE)
+#endif
     }'
 `#'endif
 
 `ifelse(index(`$1',`u'), 0, , index(`$2',`u'), 0,`dnl
     if (xx < 0) {
-ifdef(`ERANGE_FILL',`dnl
+#ifdef ERANGE_FILL
         *ip = FillDefaultValue($2);
-        DEBUG_RETURN_ERROR(NC_ERANGE)',`
-        DEBUG_ASSIGN_ERROR(err, NC_ERANGE)') /* because ip is unsigned */
+        DEBUG_RETURN_ERROR(NC_ERANGE)
+#else
+        DEBUG_ASSIGN_ERROR(err, NC_ERANGE) /* because ip is unsigned */
+#endif
     }')'dnl
 
     *ip = ($2) xx;
@@ -728,11 +742,17 @@ APIPrefix`x_put_'NC_TYPE($1)_$2(void *xp, const $2 *ip, void *fillp)
     ifelse(`$2', `double', `if (*ip > Xmax($1) || *ip < DXmin($1)) {
         FillValue($1, &xx)
         DEBUG_ASSIGN_ERROR(err, NC_ERANGE)
-    } ifdef(`ERANGE_FILL',`else')',
+    }
+#ifdef ERANGE_FILL
+    else
+#endif',
         `$2', `float',  `if (*ip > (double)Xmax($1) || *ip < FXmin($1)) {
         FillValue($1, &xx)
         DEBUG_ASSIGN_ERROR(err, NC_ERANGE)
-    } ifdef(`ERANGE_FILL',`else')')
+    }
+#ifdef ERANGE_FILL
+    else
+#endif')
         xx = (ix_$1)*ip;
 
     put_ix_$1(xp, &xx);
@@ -763,13 +783,19 @@ ifelse(`$3', `1',
                                 ` || *ip < Xmin($1)')'`) {
         FillValue($1, &xx)
         DEBUG_ASSIGN_ERROR(err, NC_ERANGE)
-    } ifdef(`ERANGE_FILL',`else')
+    }
+#ifdef ERANGE_FILL
+    else
+#endif
 `#'endif
 ifelse(index(`$1',`u'), 0, `ifelse(index(`$2',`u'), 0, ,`dnl
     if (*ip < 0) {
         FillValue($1, &xx)
         DEBUG_ASSIGN_ERROR(err, NC_ERANGE) /* because xp is unsigned */
-    } ifdef(`ERANGE_FILL',`else')
+    }
+#ifdef ERANGE_FILL
+    else
+#endif
 ')')dnl
         xx = (ix_$1)*ip;
 
@@ -937,13 +963,15 @@ APIPrefix`x_put_'NC_TYPE(ushort)_schar(void *xp, const schar *ip, void *fillp)
     int err=NC_NOERR;
     uchar *cp;
     if (*ip < 0) {
-ifdef(`ERANGE_FILL', `dnl
+#ifdef ERANGE_FILL
         if (fillp != NULL) memcpy(xp, fillp, 2);
 #ifndef WORDS_BIGENDIAN
         swapn2b(xp, xp, 1);
 #endif
-        DEBUG_RETURN_ERROR(NC_ERANGE)',`dnl
-        DEBUG_ASSIGN_ERROR(err, NC_ERANGE)')
+        DEBUG_RETURN_ERROR(NC_ERANGE)
+#else
+        DEBUG_ASSIGN_ERROR(err, NC_ERANGE)
+#endif
     }
 
     cp = (uchar *) xp;
@@ -1146,11 +1174,12 @@ APIPrefix`x_put_'NC_TYPE(uint)_schar(void *xp, const schar *ip, void *fillp)
 {
     uchar *cp;
     if (*ip < 0) {
-ifdef(`ERANGE_FILL', `dnl
+#ifdef ERANGE_FILL
         if (fillp != NULL) memcpy(xp, fillp, 4);
 #ifndef WORDS_BIGENDIAN
         swapn4b(xp, xp, 1);
-#endif')
+#endif
+#endif
         DEBUG_RETURN_ERROR(NC_ERANGE)
     }
 
@@ -1628,10 +1657,14 @@ APIPrefix`x_put_'NC_TYPE(float)_float(void *xp, const float *ip, void *fillp)
     int err=NC_NOERR;
     float *_ip=ip;
 #ifdef NO_IEEE_FLOAT
-    ifdef(`ERANGE_FILL',`float tmp;')
+#ifdef ERANGE_FILL
+    float tmp;
+#endif
     if (*ip > X_FLOAT_MAX || *ip < X_FLOAT_MIN) {
         FillValue(float, &tmp)
-        ifdef(`ERANGE_FILL',`_ip = &tmp;')
+#ifdef ERANGE_FILL
+        _ip = &tmp;
+#endif
         DEBUG_ASSIGN_ERROR(err, NC_ERANGE)
     }
 #endif
@@ -1947,11 +1980,19 @@ APIPrefix`x_get_'NC_TYPE(double)_float(const void *xp, float *ip)
     double xx;
     get_ix_double(xp, &xx);
     if (xx > FLT_MAX) {
-        ifdef(`ERANGE_FILL', `*ip = NC_FILL_FLOAT;', `*ip = FLT_MAX;')
+#ifdef ERANGE_FILL
+        *ip = NC_FILL_FLOAT;
+#else
+        *ip = FLT_MAX;
+#endif
         DEBUG_RETURN_ERROR(NC_ERANGE)
     }
     if (xx < (-FLT_MAX)) {
-        ifdef(`ERANGE_FILL', `*ip = NC_FILL_FLOAT;', `*ip = (-FLT_MAX);')
+#ifdef ERANGE_FILL
+        *ip = NC_FILL_FLOAT;
+#else
+        *ip = (-FLT_MAX);
+#endif
         DEBUG_RETURN_ERROR(NC_ERANGE)
     }
     *ip = (float) xx;
@@ -1987,7 +2028,10 @@ APIPrefix`x_put_'NC_TYPE(double)_float(void *xp, const float *ip, void *fillp)
     if ((double)(*ip) > X_DOUBLE_MAX || (double)(*ip) < X_DOUBLE_MIN) {
         FillValue(double, &xx)
         DEBUG_ASSIGN_ERROR(err, NC_ERANGE)
-    } ifdef(`ERANGE_FILL',`else')
+    }
+#ifdef ERANGE_FILL
+    else
+#endif
 #endif
         xx = (double) *ip;
 
@@ -2002,10 +2046,14 @@ APIPrefix`x_put_'NC_TYPE(double)_double(void *xp, const double *ip, void *fillp)
     int err=NC_NOERR;
     double *_ip = ip;
 #ifdef NO_IEEE_FLOAT
-    ifdef(`ERANGE_FILL',`double tmp=NC_FILL_DOUBLE;')
+#ifdef ERANGE_FILL
+    double tmp=NC_FILL_DOUBLE;
+#endif
     if (*ip > X_DOUBLE_MAX || *ip < X_DOUBLE_MIN) {
         FillValue(double, &tmp)
-        ifdef(`ERANGE_FILL',`_ip = &tmp;')
+#ifdef ERANGE_FILL
+        _ip = &tmp;
+#endif
         DEBUG_ASSIGN_ERROR(err, NC_ERANGE)
     }
 #endif
@@ -2468,7 +2516,9 @@ APIPrefix`x_getn_'NC_TYPE($1)_$2(const void **xpp, IntType nelems, $2 *tp)
         ifelse(index(`$1',`u'), 0, ,
                index(`$2',`u'), 0, `
         if (*xp < 0) {
-            ifdef(`ERANGE_FILL',`*tp = FillDefaultValue($2);')
+#ifdef ERANGE_FILL
+            *tp = FillDefaultValue($2);
+#endif
             DEBUG_ASSIGN_ERROR(status, NC_ERANGE) /* because tp is unsigned */
             SKIP_LOOP(xp, tp)
         }')dnl
@@ -2500,7 +2550,9 @@ APIPrefix`x_pad_getn_'NC_TYPE($1)_$2(const void **xpp, IntType nelems, $2 *tp)
         ifelse(index(`$1',`u'), 0, ,
                index(`$2',`u'), 0, `
         if (*xp < 0) {
-            ifdef(`ERANGE_FILL', `*tp = FillDefaultValue($2);')
+#ifdef ERANGE_FILL
+            *tp = FillDefaultValue($2);
+#endif
             DEBUG_ASSIGN_ERROR(status, NC_ERANGE) /* because tp is unsigned */
             SKIP_LOOP(xp, tp)
         }')dnl
