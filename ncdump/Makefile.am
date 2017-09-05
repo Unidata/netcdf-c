@@ -135,7 +135,7 @@ tst_dimsize_classic.nc tst_dimsize_64offset.nc tst_dimsize_64data.nc    \
 nc4_fileinfo.nc hdf5_fileinfo.hdf \
 ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc \
 ref_tst_compounds.nc ref_tst_dims.nc ref_tst_interops4.nc \
-ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc
+ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc nccopy3_subset_out.nc
 
 # These files all have to be included with the distribution.
 EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl		\
