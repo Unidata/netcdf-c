@@ -14,7 +14,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 echo ""
 
-INFILE=ref_nccopy3_subset.nc
+INFILE=${TOPSRCDIR}/ncdump/ref_nccopy3_subset.nc
 OUTFILE=nccopy3_subset_out.nc
 
 echo "*** Testing netCDF-3 nccopy -v/-V flags on $IN"
