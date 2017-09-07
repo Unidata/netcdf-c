@@ -309,8 +309,7 @@ fprintf(stderr, "    REC %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 		    return NC_EVARSIZE;
 		}
 #endif
-		if((*vpp)->len != UINT32_MAX) /* flag for vars >= 2**32 bytes */
-		    ncp->recsize += (*vpp)->len;
+		ncp->recsize += (*vpp)->len;
 		last = (*vpp);
 	}
 
