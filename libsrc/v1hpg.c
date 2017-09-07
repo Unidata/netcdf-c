@@ -927,6 +927,7 @@ static int
 v1h_put_NC_var(v1hs *psp, const NC_var *varp)
 {
 	int status;
+    size_t vsize;
 
 	status = v1h_put_NC_string(psp, varp->name);
     if(status != NC_NOERR)
@@ -963,9 +964,19 @@ v1h_put_NC_var(v1hs *psp, const NC_var *varp)
     if(status != NC_NOERR)
 		return status;
 
-	status = v1h_put_size_t(psp, &varp->len);
-    if(status != NC_NOERR)
-		return status;
+    /* write vsize to header.
+     * CDF format specification: The vsize field is actually redundant, because
+     * its value may be computed from other information in the header. The
+     * 32-bit vsize field is not large enough to contain the size of variables
+     * that require more than 2^32 - 4 bytes, so 2^32 - 1 is used in the vsize
+     * field for such variables.
+     */
+    vsize = varp->len;
+    if (varp->len > 4294967292UL && (psp->version == NC_FORMAT_CLASSIC ||
+                                     psp->version == NC_FORMAT_64BIT_OFFSET))
+        vsize = 4294967295UL; /* 2^32-1 */
+    status = v1h_put_size_t(psp, &vsize);
+    if(status != NC_NOERR) return status;
 
 	status = check_v1hs(psp, psp->version == 1 ? 4 : 8); /*begin*/
     if(status != NC_NOERR)
