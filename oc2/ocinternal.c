@@ -606,7 +606,6 @@ ocset_curlproperties(OCstate* state)
         if(path == NULL) return OC_ENOMEM;
         occopycat(path,len,3,ocglobalstate.tempdir,"/","occookies");
         stat = ocmktmp(path,&name);
-fprintf(stderr,"%s => %s\n",state->uri->uri,name); fflush(stderr);
         free(path);
 	state->curlflags.cookiejar = name;
 	state->curlflags.createdflags |= COOKIECREATED;
