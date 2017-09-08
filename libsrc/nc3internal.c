@@ -214,6 +214,7 @@ fprintf(stderr, "    VAR %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 #endif
                 if( sizeof_off_t == 4 && (index > X_OFF_MAX || index < 0) )
 		{
+                    ncp->begin_var = 0;
 		    return NC_EVARSIZE;
                 }
 		(*vpp)->begin = index;
@@ -284,6 +285,7 @@ fprintf(stderr, "    REC %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 #endif
                 if( sizeof_off_t == 4 && (index > X_OFF_MAX || index < 0) )
 		{
+                    ncp->begin_var = 0;
 		    return NC_EVARSIZE;
                 }
 		(*vpp)->begin = index;
@@ -306,6 +308,7 @@ fprintf(stderr, "    REC %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 #if SIZEOF_OFF_T == SIZEOF_SIZE_T && SIZEOF_SIZE_T == 4
 		if( ncp->recsize > X_UINT_MAX - (*vpp)->len )
 		{
+                    ncp->begin_var = 0;
 		    return NC_EVARSIZE;
 		}
 #endif
