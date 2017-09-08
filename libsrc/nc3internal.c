@@ -155,6 +155,7 @@ NC_begins(NC3_INFO* ncp,
 	size_t ii, j;
 	int sizeof_off_t;
 	off_t index = 0;
+	off_t old_ncp_begin_var;
 	NC_var **vpp;
 	NC_var *last = NULL;
 	NC_var *first_var = NULL;       /* first "non-record" var */
@@ -175,6 +176,8 @@ NC_begins(NC3_INFO* ncp,
 
 	if(ncp->vars.nelems == 0)
 		return NC_NOERR;
+
+        old_ncp_begin_var = ncp->begin_var;
 
 	/* only (re)calculate begin_var if there is not sufficient space in header
 	   or start of non-record variables is not aligned as requested by valign */
@@ -214,7 +217,7 @@ fprintf(stderr, "    VAR %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 #endif
                 if( sizeof_off_t == 4 && (index > X_OFF_MAX || index < 0) )
 		{
-                    ncp->begin_var = 0;
+                    ncp->begin_var = old_ncp_begin_var;
 		    return NC_EVARSIZE;
                 }
 		(*vpp)->begin = index;
@@ -285,7 +288,7 @@ fprintf(stderr, "    REC %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 #endif
                 if( sizeof_off_t == 4 && (index > X_OFF_MAX || index < 0) )
 		{
-                    ncp->begin_var = 0;
+                    ncp->begin_var = old_ncp_begin_var;
 		    return NC_EVARSIZE;
                 }
 		(*vpp)->begin = index;
@@ -308,7 +311,7 @@ fprintf(stderr, "    REC %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 #if SIZEOF_OFF_T == SIZEOF_SIZE_T && SIZEOF_SIZE_T == 4
 		if( ncp->recsize > X_UINT_MAX - (*vpp)->len )
 		{
-                    ncp->begin_var = 0;
+                    ncp->begin_var = old_ncp_begin_var;
 		    return NC_EVARSIZE;
 		}
 #endif
