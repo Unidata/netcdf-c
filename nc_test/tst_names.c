@@ -24,8 +24,8 @@
 #define NDIMS 1
 #define DIMLEN 1
 
-#define ERROR {printf("Error at line %d: %s\n",__LINE__,nc_strerror(res)); continue;}
-#define ERRORI {printf("Error at line %d (loop=%d): %s\n",__LINE__,i,nc_strerror(res)); continue;}
+#define ERROR {printf("Error at line %d: %s\n",__LINE__,nc_strerror(res)); nerrs++; continue;}
+#define ERRORI {printf("Error at line %d (loop=%d): %s\n",__LINE__,i,nc_strerror(res)); nerrs++; continue;}
 
 int
 main(int argc, char **argv)
@@ -201,6 +201,7 @@ main(int argc, char **argv)
        "x\xEF\xBF\xBE",		/* other illegal code positions */
        "x\xEF\xBF\xBF"
    };
+   int nerrs=0;
    int i, j;
 #define NUM_BAD (sizeof notvalid / sizeof notvalid[0])
 #define NUM_GOOD (sizeof valid / sizeof valid[0])
@@ -327,6 +328,7 @@ main(int argc, char **argv)
 
        SUMMARIZE_ERR;
    }
+   total_err += nerrs;
    FINAL_RESULTS;
 
 #ifdef TEST_PNETCDF
