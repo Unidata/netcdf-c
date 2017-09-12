@@ -1230,11 +1230,6 @@ NC_computeshapes(NC3_INFO* ncp)
 		{
 	  		if(first_rec == NULL)
 				first_rec = *vpp;
-			if((*vpp)->len == UINT32_MAX &&
-                           (fIsSet(ncp->flags, NC_64BIT_OFFSET) ||
-                            fIsSet(ncp->flags, NC_64BIT_DATA))) /* Flag for large last record */
-                            ncp->recsize += (*vpp)->dsizes[0] * (*vpp)->xsz;
-			else
 			    ncp->recsize += (*vpp)->len;
 		}
 		else
