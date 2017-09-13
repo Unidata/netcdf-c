@@ -701,17 +701,14 @@ NC_check_vlens(NC3_INFO *ncp)
     if(ncp->vars.nelems == 0)
 	return NC_NOERR;
 
-    if (fIsSet(ncp->flags,NC_64BIT_DATA)) {
-	/* CDF5 format allows many large vars */
-        return NC_NOERR;
-    }
-    if (fIsSet(ncp->flags,NC_64BIT_OFFSET) && sizeof(off_t) > 4) {
+    if (fIsSet(ncp->flags,NC_64BIT_DATA)) /* CDF-5 */
+	vlen_max = X_INT64_MAX - 3; /* "- 3" handles rounded-up size */
+    else if (fIsSet(ncp->flags,NC_64BIT_OFFSET) && sizeof(off_t) > 4)
 	/* CDF2 format and LFS */
 	vlen_max = X_UINT_MAX - 3; /* "- 3" handles rounded-up size */
-    } else {
-	/* CDF1 format */
+    else /* CDF1 format */
 	vlen_max = X_INT_MAX - 3;
-    }
+
     /* Loop through vars, first pass is for non-record variables.   */
     large_vars_count = 0;
     rec_vars_count = 0;
@@ -720,6 +717,8 @@ NC_check_vlens(NC3_INFO *ncp)
 	if( !IS_RECVAR(*vpp) ) {
 	    last = 0;
 	    if( NC_check_vlen(*vpp, vlen_max) == 0 ) {
+                if (fIsSet(ncp->flags,NC_64BIT_DATA)) /* too big for CDF-5 */
+                    return NC_EVARSIZE;
 		large_vars_count++;
 		last = 1;
 	    }
