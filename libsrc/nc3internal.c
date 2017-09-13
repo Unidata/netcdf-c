@@ -747,6 +747,8 @@ NC_check_vlens(NC3_INFO *ncp)
 	    if( IS_RECVAR(*vpp) ) {
 		last = 0;
 		if( NC_check_vlen(*vpp, vlen_max) == 0 ) {
+                    if (fIsSet(ncp->flags,NC_64BIT_DATA)) /* too big for CDF-5 */
+                        return NC_EVARSIZE;
 		    large_vars_count++;
 		    last = 1;
 		}
