@@ -107,6 +107,10 @@ are set when opening a binary file on Windows. */
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF 1
 
+/* if true, enable CDF5 Support */
+#cmakedefine ENABLE_CDF5
+#cmakedefine USE_CDF5
+
 /* if true, build DAP2 and DAP4 Client */
 #cmakedefine ENABLE_DAP 1
 
