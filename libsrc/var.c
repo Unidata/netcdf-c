@@ -484,6 +484,10 @@ NC_var_shape(NC_var *varp, const NC_dimarray *dims)
 
 
 out :
+
+    /* No variable size can be > X_INT64_MAX - 3 */
+    if (0 == NC_check_vlen(varp, X_INT64_MAX-3)) return NC_EVARSIZE;
+
     /*
      * For CDF-1 and CDF-2 formats, the total number of array elements
      * cannot exceed 2^32, unless this variable is the last fixed-size
