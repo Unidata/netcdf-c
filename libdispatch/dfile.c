@@ -104,10 +104,12 @@ NC_interpret_magic_number(char* magic, int* model, int* version, int use_paralle
          } else if(magic[3] == '\002') {
             *version = 2; /* netcdf classic version 2 */
 	    *model = NC_FORMATX_NC3;
-         } else if(magic[3] == '\005') {
-            *version = 5; /* cdf5 (including pnetcdf) file */
+#ifdef USE_CDF5
+        } else if(magic[3] == '\005') {
+          *version = 5; /* cdf5 (including pnetcdf) file */
 	    *model = NC_FORMATX_NC3;
-	 } else
+#endif
+     } else
 	    {status = NC_ENOTNC; goto done;}
      } else
         {status = NC_ENOTNC; goto done;}

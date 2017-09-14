@@ -1,7 +1,20 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
+
+# This shell script runs the ncdump tests.
+# get some config.h parameters
+if test -f ${top_builddir}/config.h ; then
+  if fgrep -e '#define USE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
+    USE_CDF5=1
+  else
+    USE_CDF5=0
+  fi
+else
+  echo "Cannot locate config.h"
+  exit 1
+fi
 
 # This shell script tests the output several previous tests.
 
@@ -28,17 +41,20 @@ echo "*** Fail: extended format for a 64-bit classic file"
 ECODE=1
 fi
 
-echo "Test extended format output for a 64-bit CDF-5 classic file"
-rm -f tmp
-${NCGEN} -k5 -b -o ./test.nc $srcdir/ref_tst_small.cdl
-${NCDUMP} -K test.nc >tmp
-if ! grep -F '64-bit data mode=00000020' <tmp ; then
-echo "*** Fail: extended format for a 64-bit CDF-5 classic file"
-ECODE=1
+
+# Only do following test if USE_CDF5 is true.
+
+if [ "x$USE_CDF5" == "x1" ]; then
+    echo "Test extended format output for a 64-bit CDF-5 classic file"
+    rm -f tmp
+    ${NCGEN} -k5 -b -o ./test.nc $srcdir/ref_tst_small.cdl
+    ${NCDUMP} -K test.nc >tmp
+    if ! grep -F '64-bit data mode=00000020' <tmp ; then
+        echo "*** Fail: extended format for a 64-bit CDF-5 classic file"
+        ECODE=1
+    fi
 fi
 
 rm -f tmp test.nc
 
 exit $ECODE
-
-

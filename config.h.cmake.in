@@ -108,8 +108,8 @@ are set when opening a binary file on Windows. */
 #cmakedefine DLL_NETCDF 1
 
 /* if true, enable CDF5 Support */
-#cmakedefine ENABLE_CDF5
-#cmakedefine USE_CDF5
+#cmakedefine ENABLE_CDF5 1
+#cmakedefine USE_CDF5 1
 
 /* if true, build DAP2 and DAP4 Client */
 #cmakedefine ENABLE_DAP 1
