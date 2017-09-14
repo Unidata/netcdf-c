@@ -1720,11 +1720,13 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 	    model = NC_FORMATX_NC4;
 	    break;
 #endif
+#ifdef USE_CDF5
 	 case NC_FORMAT_CDF5:
 	    xcmode |= NC_64BIT_DATA;
 	    model = NC_FORMATX_NC3;
 	    break;
-	 case NC_FORMAT_64BIT_OFFSET:
+#endif
+      case NC_FORMAT_64BIT_OFFSET:
 	    xcmode |= NC_64BIT_OFFSET;
 	    model = NC_FORMATX_NC3;
 	    break;
