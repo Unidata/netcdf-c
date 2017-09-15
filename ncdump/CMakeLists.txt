@@ -223,7 +223,7 @@ ENDIF()
   ENDIF()
 
   add_sh_test(ncdump tst_inttags)
-  IF(USE_NETCDF4)
+  IF(USE_CDF5)
     add_sh_test(ncdump tst_inttags4)
   ENDIF()
 

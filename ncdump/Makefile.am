@@ -62,6 +62,10 @@ TESTS += tst_inmemory_nc4.sh
 endif
 endif
 
+if USE_CDF5
+TESTS += tst_inttags4.sh
+endif
+
 if USE_NETCDF4
 # NetCDF-4 has some extra tests.
 check_PROGRAMS += tst_create_files tst_h_rdc0 tst_group_data		\
@@ -69,7 +73,7 @@ tst_enum_data tst_opaque_data tst_string_data tst_vlen_data tst_comp	\
 tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug tst_compress \
 tst_chunking tst_h_scalar tst_bug324
 
-TESTS += tst_inttags4.sh tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
+TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
 tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug	\
 tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh             \
