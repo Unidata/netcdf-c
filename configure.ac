@@ -454,6 +454,8 @@ if test "x$enable_cdf5" = xyes; then
    AC_DEFINE([ENABLE_CDF5], [1], [if true, enable CDF5 Support])
 fi
 
+AM_CONDITIONAL(USE_CDF5, [test x$enable_cdf5 = xyes ])
+AM_CONDITIONAL(ENABLE_CDF5, [test x$enable_cdf5 = xyes ])
 
 # Does the user want to do some extra tests?
 AC_MSG_CHECKING([whether netCDF extra tests should be run (developers only)])
