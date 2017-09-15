@@ -1532,6 +1532,10 @@ nc_get_NC(NC3_INFO* ncp)
     if(status != NC_NOERR)
 		goto unwind_get;
 
+	status = NC_check_voffs(ncp);
+    if(status != NC_NOERR)
+		goto unwind_get;
+
 unwind_get:
 	(void) rel_v1hs(&gs);
 	return status;

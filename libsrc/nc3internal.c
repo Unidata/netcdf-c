@@ -767,6 +767,59 @@ NC_check_vlens(NC3_INFO *ncp)
     return NC_NOERR;
 }
 
+/*----< NC_check_voffs() >---------------------------------------------------*/
+/*
+ * Given a valid ncp, check whether the file starting offsets (begin) of all
+ * variables follows the same increasing order as they were defined.
+ */
+int
+NC_check_voffs(NC3_INFO *ncp)
+{
+    size_t i;
+    off_t prev_off;
+    NC_var *varp;
+
+    if (ncp->vars.nelems == 0) return NC_NOERR;
+
+    /* Loop through vars, first pass is for non-record variables */
+    prev_off = ncp->begin_var;
+    for (i=0; i<ncp->vars.nelems; i++) {
+        varp = ncp->vars.value[i];
+        if (IS_RECVAR(varp)) continue;
+
+        if (varp->begin < prev_off) {
+#if 0
+            fprintf(stderr,"Variable \"%s\" begin offset (%lld) is less than previous variable end offset (%lld)\n", varp->name->cp, varp->begin, prev_off);
+#endif
+            return NC_ENOTNC;
+        }
+        prev_off = varp->begin + varp->len;
+    }
+
+    if (ncp->begin_rec < prev_off) {
+#if 0
+        fprintf(stderr,"Record variable section begin offset (%lld) is less than fix-sized variable section end offset (%lld)\n", varp->begin, prev_off);
+#endif
+        return NC_ENOTNC;
+    }
+
+    /* Loop through vars, second pass is for record variables */
+    prev_off = ncp->begin_rec;
+    for (i=0; i<ncp->vars.nelems; i++) {
+        varp = ncp->vars.value[i];
+        if (!IS_RECVAR(varp)) continue;
+
+        if (varp->begin < prev_off) {
+#if 0
+            fprintf(stderr,"Variable \"%s\" begin offset (%lld) is less than previous variable end offset (%lld)\n", varp->name->cp, varp->begin, prev_off);
+#endif
+            return NC_ENOTNC;
+        }
+        prev_off = varp->begin + varp->len;
+    }
+
+    return NC_NOERR;
+}
 
 /*
  *  End define mode.
@@ -787,6 +840,9 @@ NC_endef(NC3_INFO *ncp,
 	if(status != NC_NOERR)
 	    return status;
 	status = NC_begins(ncp, h_minfree, v_align, v_minfree, r_align);
+	if(status != NC_NOERR)
+	    return status;
+	status = NC_check_voffs(ncp);
 	if(status != NC_NOERR)
 	    return status;
 

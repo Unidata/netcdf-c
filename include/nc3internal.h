@@ -427,6 +427,9 @@ nc_put_rec(int ncid, size_t recnum, void *const *datap);
 extern int
 NC_check_vlens(NC3_INFO *ncp);
 
+extern int
+NC_check_voffs(NC3_INFO *ncp);
+
 /* Define accessors for the dispatchdata */
 #define NC3_DATA(nc) ((NC3_INFO*)(nc)->dispatchdata)
 #define NC3_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
