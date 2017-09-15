@@ -130,6 +130,7 @@ main(int argc, char *argv[])
 	     fprintf(stderr, "\n\nSwitching to 64-bit offset format.\n");
 	     strcpy(testfile, "nc_test_64bit.nc");
 	     break;
+#ifdef USE_CDF5
 	  case NC_FORMAT_CDF5:
 	     nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	     fprintf(stderr, "\n\nSwitching to 64-bit data format.\n");
@@ -138,6 +139,9 @@ main(int argc, char *argv[])
              numVars  = NVARS;
              numTypes = NTYPES;
 	     break;
+#else
+         continue;
+#endif
 	  case NC_FORMAT_NETCDF4_CLASSIC:
 	  case NC_FORMAT_NETCDF4: /* actually it's _CLASSIC. */
 #ifdef USE_NETCDF4
