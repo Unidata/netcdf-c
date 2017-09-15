@@ -62,7 +62,7 @@ TESTS += tst_inmemory_nc4.sh
 endif
 endif
 
-if USE_CDF5
+if USE_NETCDF4
 TESTS += tst_inttags4.sh
 endif
 
