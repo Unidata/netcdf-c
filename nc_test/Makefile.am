@@ -105,6 +105,12 @@ test_read.m4 test_write.m4
 # ref_tst_diskless2.cdl is for diff comparison and to produce tst_diskless2.c
 EXTRA_DIST += ref_tst_diskless2.cdl tst_diskless5.cdl CMakeLists.txt
 
+# bad_cdf5_begin.nc is a CDF-5 file with bad variable starting file offsets.
+# It is to be used by tst_open_cdf5.c to see if it can report NC_ENOTNC.
+EXTRA_DIST += bad_cdf5_begin.nc
+TESTS += run_cdf5.sh
+check_PROGRAMS += tst_open_cdf5
+
 # Only clean these on maintainer-clean, because they require m4 to
 # regenerate.
 #MAINTAINERCLEANFILES = test_get.c test_put.c
