@@ -8,7 +8,7 @@ set -e
 echo "*** Test netcdf-4 integer constant suffixes"
 
 echo "*** creating inttags4.nc from inttags4.cdl..."
-${NCGEN} -lb -o -k nc4 inttags4.nc $srcdir/inttags4.cdl
+${NCGEN} -lb -k nc4 -o inttags4.nc $srcdir/inttags4.cdl
 echo "*** creating tst_inttags4.cdl from inttags4.nc..."
 ${NCDUMP} inttags4.nc > tst_inttags4.cdl
 echo "*** comparing tst_inttags4.cdl to ref_inttags4.nc..."

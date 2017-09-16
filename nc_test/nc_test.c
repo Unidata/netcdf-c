@@ -9,6 +9,8 @@ int numVars;   /* number of variables */
 int numTypes;  /* number of netCDF data types to test */
 
 #include "tests.h"
+#include "config.h"
+
 
 /*
  * Test driver for netCDF-3 interface.  This program performs tests against
