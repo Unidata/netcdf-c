@@ -5,8 +5,8 @@
 /* When using NetCDF 4.4.1 ad prior to create a CDF-5 file and defining a small
  * variable after a big variable (> 2^32-3 bytes), the file starting offset of
  * the small variable (and all variables defined after the big variable) is
- * calculated incorrectly. This test program detects this big by checks the
- * contents of the overlapped.
+ * calculated incorrectly. This test program detects this bug by checking the
+ * contents of the possible overlaps between the two variables.
  */
 
 #define ERR {if(err!=NC_NOERR){printf("Error at line %d in %s: %s\n", __LINE__,__FILE__, nc_strerror(err));nerrs++;}}
