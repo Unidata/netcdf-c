@@ -107,7 +107,7 @@ EXTRA_DIST += ref_tst_diskless2.cdl tst_diskless5.cdl CMakeLists.txt
 
 # bad_cdf5_begin.nc is a CDF-5 file with bad variable starting file offsets.
 # It is to be used by tst_open_cdf5.c to see if it can report NC_ENOTNC.
-EXTRA_DIST += bad_cdf5_begin.nc
+EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
 TESTS += run_cdf5.sh
 check_PROGRAMS += tst_open_cdf5
 
