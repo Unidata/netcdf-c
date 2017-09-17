@@ -15,7 +15,7 @@ CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
 tst_*.nc t_nc.nc large_files.nc quick_large_files.nc \
 tst_diskless.nc tst_diskless2.nc \
 tst_diskless3.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl \
-tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc \
+tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc nc_test_cdf5.nc \
 unlim.nc tst_inq_type.nc tst_elatefill.nc tst_global_fillval.nc
 
 check_PROGRAMS =
@@ -111,8 +111,10 @@ if ENABLE_CDF5
    # detect and report error code NC_ENOTNC.
    TESTS          += run_cdf5.sh
    check_PROGRAMS += tst_open_cdf5
+if LARGE_FILE_TESTS
    TESTPROGRAMS   += tst_large_cdf5 tst_cdf5_begin
-   CLEANFILES     += nc_test_cdf5.nc tst_large_cdf5.nc tst_cdf5_begin.nc
+   CLEANFILES     += tst_large_cdf5.nc tst_cdf5_begin.nc
+endif
 endif
 
 # Only clean these on maintainer-clean, because they require m4 to
