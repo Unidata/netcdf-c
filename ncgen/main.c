@@ -498,6 +498,13 @@ main(
 
     /* Compute the k_flag (1st pass) using rules in the man page (ncgen.1).*/
 
+#ifndef USE_CDF5
+    if(k_flag == NC_FORMAT_CDF5) {
+      derror("Output format CDF5 requested, but netcdf was built without cdf5 support.");
+      return 0;
+    }
+#endif
+
 #ifndef USE_NETCDF4
     if(enhanced_flag) {
 	derror("CDL input is enhanced mode, but --disable-netcdf4 was specified during build");
