@@ -80,6 +80,13 @@ else
     has_szlib="yes"
 fi
 
+has_cdf5="@USE_CDF5@"
+if [ -z "has_cdf5" -o "$has_cdf5" = "OFF" ]; then
+    has_cdf5="no"
+else
+    has_cdf5="yes"
+fi
+
 
 version="@PACKAGE@ @VERSION@"
 
@@ -141,6 +148,7 @@ Available values for OPTION include:
   --has-logging whether logging is enabled with --enable-logging.
   --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
   --has-szlib   whether szlib is included in build
+  --has-cdf5    whether cdf5 support is included in build
   --libs        library linking information for netcdf
   --prefix      Install prefix
   --includedir  Include directory
@@ -217,6 +225,7 @@ fi
         echo "  --has-logging-> $has_logging"
         echo "  --has-pnetcdf-> $has_pnetcdf"
         echo "  --has-szlib -> $has_szlib"
+        echo "  --has-cdf5 -> $has_cdf5"
 	echo
         echo "  --prefix    -> $prefix"
         echo "  --includedir-> $includedir"
@@ -295,6 +304,10 @@ while test $# -gt 0; do
     --has-szlib)
        	echo $has_szlib
        	;;
+
+    --has-cdf5)
+        echo $has_cdf5
+        ;;
 
      --libs)
        	echo $libs
