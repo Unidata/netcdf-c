@@ -132,9 +132,10 @@ main(int argc, char *argv[])
 	     fprintf(stderr, "\n\nSwitching to 64-bit offset format.\n");
 	     strcpy(testfile, "nc_test_64bit.nc");
 	     break;
-#ifdef USE_CDF5
+
 	  case NC_FORMAT_CDF5:
-	     nc_set_default_format(NC_FORMAT_CDF5, NULL);
+#ifdef USE_CDF5
+        nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	     fprintf(stderr, "\n\nSwitching to 64-bit data format.\n");
 	     strcpy(testfile, "nc_test_cdf5.nc");
              numGatts = NGATTS;
