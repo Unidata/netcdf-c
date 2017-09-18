@@ -1428,8 +1428,12 @@ copy(char* infile, char* outfile)
 	create_mode |= NC_64BIT_OFFSET;
 	break;
     case NC_FORMAT_CDF5:
-	create_mode |= NC_64BIT_DATA;
-	break;
+#ifdef USE_CDF5
+      create_mode |= NC_64BIT_DATA;
+#else
+      error("netCDF library built without CDF5 support, can't create CDF5 files");
+      break;
+#endif
 #ifdef USE_NETCDF4
     case NC_FORMAT_NETCDF4:
 	create_mode |= NC_NETCDF4;
