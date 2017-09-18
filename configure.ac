@@ -1016,10 +1016,14 @@ if test "x$enable_netcdf_4" = xyes; then
    fi
 
    # The user may have built HDF5 with the SZLIB library.
+   enable_szlib=no
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
-    AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
+    enable_szlib=yes
+    AC_SEARCH_LIBS([ SZ_Compress], [szip sz], [], [])
   	AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
+
+
 
    if test "x$ac_cv_func_H5free_memory" = xyes; then
       AC_DEFINE([HDF5_HAS_H5FREE], [1], [if true, H5free_memory() will be used to free hdf5-allocated memory in nc4file.])
@@ -1383,7 +1387,7 @@ AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_LOGGING, [$enable_logging])
-AC_SUBST(HAS_SZLIB,[$ac_cv_func_H4Z_SZIP])
+AC_SUBST(HAS_SZLIB,[$enable_szlib])
 AC_SUBST(HAS_PARALLEL,[$enable_parallel])
 AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
 AC_SUBST(HAS_DISKLESS,[$enable_diskless])
