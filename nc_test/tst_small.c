@@ -54,8 +54,11 @@ static int file_create(const char *filename, int cmode, int *ncid)
 
 #ifdef USE_PNETCDF
     if (default_format == NC_FORMAT_CLASSIC ||
-        default_format == NC_FORMAT_64BIT_OFFSET ||
-        || default_format == NC_FORMAT_64BIT_DATA)
+        default_format == NC_FORMAT_64BIT_OFFSET
+#ifdef USE_CDF5
+        || default_format == NC_FORMAT_64BIT_DATA
+#endif
+        )
         err = nc_create_par(filename, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
