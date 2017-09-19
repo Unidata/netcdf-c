@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 # For a netCDF-3 build, test nccopy on netCDF files in this directory
@@ -8,8 +8,25 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 echo ""
 
-TESTFILES='c0 c0tmp ctest0 ctest0_64 small small2 test0 test1
+# get some config.h parameters
+if test -f ${top_builddir}/config.h ; then
+  if fgrep -e '#define USE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
+    HAVE_CDF5=1
+  else
+    HAVE_CDF5=0
+  fi
+else
+  echo "Cannot locate config.h"
+  exit 1
+fi
+
+TESTFILES='c0 c0tmp ctest0 ctest0_64 test0 test1
  tst_calendars tst_mslp tst_mslp_64 tst_ncml tst_small tst_utf8 utf8'
+
+if [ "x$HAVE_CDF5" == "x1" ]; then
+    TESTFILES="$TESTFILES small small2"
+fi
+
 
 echo "*** Testing netCDF-3 features of nccopy on ncdump/*.nc files"
 for i in $TESTFILES ; do
