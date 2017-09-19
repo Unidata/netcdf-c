@@ -23,7 +23,7 @@ fi
 TESTFILES='c0 c0tmp ctest0 ctest0_64 test0 test1
  tst_calendars tst_mslp tst_mslp_64 tst_ncml tst_small tst_utf8 utf8'
 
-if [ "x$HAVE_CDF5" == "x1" ]; then
+if test "x$HAVE_CDF5" = x1 ; then 
     TESTFILES="$TESTFILES small small2"
 fi
 
