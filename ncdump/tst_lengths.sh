@@ -106,7 +106,7 @@ ${NCGEN} -b -k64-bit-offset -x ${srcdir}/small.cdl && ${execdir}/rewrite-scalar 
 #fi
 
 # The following tests only occur if we have CDF5.
-if [ "x$HAVE_CDF5" == "x1" ]; then
+if test "x$HAVE_CDF5" = x1 ; then
 
     echo "*** testing length of 64-bit data file"
     ${NCGEN} -b -k64-bit-data ${srcdir}/small.cdl
@@ -152,7 +152,7 @@ ${NCGEN} -b ${srcdir}/small2.cdl
 #fi
 
 # The following tests only occur if we have CDF5.
-if [ "x$HAVE_CDF5" == "x1" ]; then
+if test "x$HAVE_CDF5" = x1 ; then
 
     echo "*** testing length of one-record-variable 64-bit data file"
     ${NCGEN} -b -5 ${srcdir}/small2.cdl
