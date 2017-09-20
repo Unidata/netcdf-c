@@ -144,7 +144,7 @@ ref_tst_compounds.nc ref_tst_dims.nc ref_tst_interops4.nc \
 ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc nccopy3_subset_out.nc
 
 # These files all have to be included with the distribution.
-EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0_ncdump.cdl		\
+EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl \
 ref_ctest1_nc4.cdl ref_ctest1_nc4c.cdl ref_tst_solar_1.cdl		\
 ref_tst_solar_2.cdl tst_netcdf4.sh tst_netcdf4_4.sh ref_tst_small.cdl	\
 tst_lengths.sh tst_ncml.cdl ref1.ncml ref_tst_group_data.cdl		\
