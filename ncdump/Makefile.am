@@ -115,8 +115,8 @@ endif
 endif BUILD_TESTSETS
 
 CLEANFILES = test0.nc test1_ncdump.cdl test1_ncdump.nc test2_ncdump.cdl ctest1.cdl	\
-test1_cdf5.nc test1_cdf5.cdl test0_cdf5.nc test0_cdf5.cdl test2_cdf5.nc test2_cdf5.cdl \
-test0_offset.nc test0_offset.cdl test1_offset.nc test1_offset.cdl test2_offset.nc test2_offset.cdl \
+test1_cdf5.nc test1_cdf5.cdl test0_cdf5.nc test2_cdf5.nc test2_cdf5.cdl \
+test0_offset.nc test1_offset.nc test1_offset.cdl test2_offset.nc test2_offset.cdl \
 ctest0.nc ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl c0.nc c0_4.nc small.nc	\
 small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc	\
 tmp.cdl tst_vlen_data.nc tst_utf8.nc tst_special_atts.nc		\
