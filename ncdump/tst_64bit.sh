@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
@@ -22,9 +24,9 @@ set -e
 echo "*** creating test0_offset.nc from test0.cdl..."
 ${NCGEN} -b -k2 -o test0_offset.nc $srcdir/test0.cdl
 echo "*** creating test1_offset.cdl from test0_offset.nc..."
-${NCDUMP} -n test1 test0_offset.nc > test1_offset.cdl
+${NCDUMP} -n test1_offset test0_offset.nc > test1_offset.cdl
 echo "*** creating test1_offset.nc from test1_offset.cdl..."
-${NCGEN} -b -k2 -o test1_offset.nc test1.cdl
+${NCGEN} -b -k2 -o test1_offset.nc test1_offset.cdl
 echo "*** creating test2_offset.cdl from test1.nc..."
 ${NCDUMP} test1_offset.nc > test2_offset.cdl
 cmp test1_offset.cdl test2_offset.cdl
@@ -36,11 +38,11 @@ echo ""
 echo "*** Testing ncgen and ncdump with CDF5 format."
 set -e
 echo "*** creating test0_cdf5.nc from test0.cdl..."
-${NCGEN} -b -k5 -O test0_cdf5.nc $srcdir/test0.cdl
+${NCGEN} -b -k5 -o test0_cdf5.nc $srcdir/test0.cdl
 echo "*** creating test1_cdf5.cdl from test0_cdf5.nc..."
-${NCDUMP} -n test1 test0_cdf5.nc > test1_cdf5.cdl
+${NCDUMP} -n test1_cdf5 test0_cdf5.nc > test1_cdf5.cdl
 echo "*** creating test1_cdf5.nc from test1_cdf5.cdl..."
-${NCGEN} -b -k5 -o test1_cdf5.nc test1.cdl
+${NCGEN} -b -k5 -o test1_cdf5.nc test1_cdf5.cdl
 echo "*** creating test2_cdf5.cdl from test1_cdf5.nc..."
 ${NCDUMP} test1_cdf5.nc > test2_cdf5.cdl
 cmp test1_cdf5.cdl test2_cdf5.cdl

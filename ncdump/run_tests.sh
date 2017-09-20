@@ -16,9 +16,9 @@ ${NCDUMP} tst_small.nc > tst_small.cdl
 diff -b -w tst_small.cdl $srcdir/ref_tst_small.cdl
 
 echo "*** creating test0_ncdump.nc from test0.cdl..."
-${NCGEN} -o tst0_ncdump.nc -b $srcdir/test0.cdl
+${NCGEN} -o test0_ncdump.nc -b $srcdir/test0.cdl
 echo "*** creating test1_ncdump.cdl from test0_ncdump.nc..."
-${NCDUMP} -n test1 test0_ncdump.nc > test1_ncdump.cdl
+${NCDUMP} -n test1_ncdump test0_ncdump.nc > test1_ncdump.cdl
 echo "*** creating test1_ncdump.nc from test1_ncdump.cdl..."
 ${NCGEN} -b test1_ncdump.cdl
 echo "*** creating test2_ncdump.cdl from test1_ncdump.nc..."
