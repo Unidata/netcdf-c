@@ -50,7 +50,7 @@ echo "*** creating 64-bit offset file c0_64.nc from c0.cdl..."
 
 validateNC c0 "c0_64" -k 64-bit-offset -b
 
-if [ "x$USE_CDF5" == "x1" ]; then
+if test "x$USE_CDF5" = x1 ; then
 
     echo "*** creating 64-bit data file c5.nc from c5.cdl..."
     ${NCGEN} -k 64-bit-data -b -o c5.nc $top_srcdir/ncgen/c5.cdl

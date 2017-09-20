@@ -44,7 +44,7 @@ fi
 
 # Only do following test if USE_CDF5 is true.
 
-if [ "x$USE_CDF5" == "x1" ]; then
+if test "x$USE_CDF5" = x1 ; then
     echo "Test extended format output for a 64-bit CDF-5 classic file"
     rm -f tmp
     ${NCGEN} -k5 -b -o ./test.nc $srcdir/ref_tst_small.cdl
