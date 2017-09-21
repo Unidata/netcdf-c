@@ -603,6 +603,8 @@ NC3_def_var( int ncid, const char *name, nc_type type,
 	if(status != NC_NOERR)
 		return status;
 
+        if (ndims > NC_MAX_VAR_DIMS) return NC_EMAXDIMS;
+
 		/* cast needed for braindead systems with signed size_t */
 	if((unsigned long) ndims > X_INT_MAX) /* Backward compat */
 	{
