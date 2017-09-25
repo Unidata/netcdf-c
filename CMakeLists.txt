@@ -810,11 +810,11 @@ IF(ENABLE_DAP)
   #include <curl/curl.h>
   int main() {int x = CURLOPT_CHUNK_BGN_FUNCTION;}" HAVE_CURLOPT_CHUNK_BGN_FUNCTION)
 
-  # Check to see if CURLINFO_HTTP_CODE is defined.
+  # Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
   # It showed up in curl 7.10.7.
   CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
-  int main() {int x = CURLINFO_HTTP_CODE;}" HAVE_CURLINFO_HTTP_CODE)
+  int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
 
 ELSE()
   SET(ENABLE_DAP2 OFF)

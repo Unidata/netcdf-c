@@ -14,12 +14,12 @@
 
    */
 
-#cmakedefine HAVE_WINSOCK2_H
+/* #cmakedefine HAVE_WINSOCK2_H
 
 #ifdef HAVE_WINSOCK2_H
    #define _WINSOCKAPI_
 #endif
-
+*/
    #if _MSC_VER>=1900
      #define STDC99
    #endif
@@ -152,7 +152,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_CURLINFO_RESPONSE_CODE 1
 
 /* Is CURLINFO_HTTP_CODE defined */
-#cmakedefine HAVE_CURLINFO_HTTP_CODE 1
+#cmakedefine HAVE_CURLINFO_HTTP_CONNECTCODE 1
 
 /* Is CURLOPT_CHUNK_BGN_FUNCTION defined */
 #cmakedefine HAVE_CURLOPT_CHUNK_BGN_FUNCTION 1
