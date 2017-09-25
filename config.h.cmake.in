@@ -151,6 +151,9 @@ are set when opening a binary file on Windows. */
 /* Is CURLINFO_RESPONSE_CODE defined */
 #cmakedefine HAVE_CURLINFO_RESPONSE_CODE 1
 
+/* Is CURLINFO_HTTP_CODE defined */
+#cmakedefine HAVE_CURLINFO_HTTP_CODE 1
+
 /* Is CURLOPT_CHUNK_BGN_FUNCTION defined */
 #cmakedefine HAVE_CURLOPT_CHUNK_BGN_FUNCTION 1
 
