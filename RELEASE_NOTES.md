@@ -1,4 +1,4 @@
-Release Notes       {#RELEASE_NOTES}
+qRelease Notes       {#RELEASE_NOTES}
 =============
 
 \brief Release notes file for the netcdf-c package.
@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.5.0 - TBD
 
+* [Bug] Corrected an issue where older versions of curl might fail. See [GitHub #487](https://github.com/Unidata/netcdf-c/issues/487) for more information.
 * [Enhancement] Added options to enable/disable `CDF5` support at configure time for autotools and cmake-based builds.  The options are `--enable/disable-cdf5` and `ENABLE_CDF5`, respectively.  See [Github #484](https://github.com/Unidata/netcdf-c/issues/484) for more information.
 * [Bug Fix] Corrected an issue when subsetting a netcdf3 file via `nccopy -v/-V`. See [Github #425](https://github.com/Unidata/netcdf-c/issues/425) and [Github #463](https://github.com/Unidata/netcdf-c/issues/463) for more information.
 * [Bug Fix] Corrected `--has-dap` and `--has-dap4` output for cmake-based builds. See [GitHub #473](https://github.com/Unidata/netcdf-c/pull/473) for more information.
