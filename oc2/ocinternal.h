@@ -6,7 +6,6 @@
 
 #include "config.h"
 
-
 #if defined(_WIN32) || defined(_WIN64)
 #include <malloc.h>
 #endif
@@ -38,6 +37,9 @@
 #endif
 
 #define CURL_DISABLE_TYPECHECK 1
+
+/* _WINSOCKAPI_ causes curl.h to throw a syntax error */
+#undef _WINSOCKAPI_
 #include <curl/curl.h>
 
 #include "netcdf.h"

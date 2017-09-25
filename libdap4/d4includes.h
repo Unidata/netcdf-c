@@ -15,6 +15,8 @@
 #include <unistd.h>
 #endif
 
+/* _WINSOCKAPI_ causes curl.h to throw a syntax error */
+#undef _WINSOCKAPI_
 #include <curl/curl.h>
 
 #ifdef HAVE_SYS_TIME_H

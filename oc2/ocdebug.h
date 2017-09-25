@@ -14,8 +14,6 @@
 #include <stdarg.h>
 #endif
 
-#include <curl/curl.h>
-
 #include "oc.h"
 #include "ocinternal.h"
 

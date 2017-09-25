@@ -2,7 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* _WINSOCKAPI_ causes curl.h to throw a syntax error */
+#undef _WINSOCKAPI_
 #include <curl/curl.h>
+
 #include "netcdf.h"
 
 #define MAXSERVERURL 4096

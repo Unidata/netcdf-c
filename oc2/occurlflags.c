@@ -2,7 +2,6 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
-#include <curl/curl.h>
 #include "ocinternal.h"
 #include "occurlfunctions.h"
 #include "ocdebug.h"
