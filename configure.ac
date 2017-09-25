@@ -442,11 +442,11 @@ AC_MSG_RESULT([$enable_dap_long_tests])
 AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
 
 # Check whether we want to enable CDF5 support.
-AC_MSG_CHECKING([whether CDF5 support should be enabled (default on)])
+AC_MSG_CHECKING([whether CDF5 support should be enabled (default off)])
 AC_ARG_ENABLE([cdf5],
-              [AS_HELP_STRING([--disable-cdf5],
-                              [build without CDF5 support.])])
-test "x$enable_cdf5" = xno || enable_cdf5=yes
+              [AS_HELP_STRING([--enable-cdf5],
+                              [build with CDF5 support.])])
+test "x$enable_cdf5" = xyes || enable_cdf5=no
 AC_MSG_RESULT($enable_cdf5)
 
 if test "x$enable_cdf5" = xyes; then
