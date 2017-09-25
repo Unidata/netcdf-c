@@ -11,12 +11,6 @@
 /* Mnemonic */
 #define OPTARG void*
 
-/* Condition on libcurl version */
-/* Set up an alias as needed */
-#ifndef HAVE_CURLOPT_KEYPASSWD
-#define CURLOPT_KEYPASSWD CURLOPT_SSLKEYPASSWD
-#endif
-
 #define NETRCFILETAG "HTTP.NETRC"
 
 #define CHECK(state,flag,value) {if(check(state,flag,(void*)value) != OC_NOERR) {goto done;}}

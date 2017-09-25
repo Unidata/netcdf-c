@@ -9,6 +9,15 @@
 #define _CURLFUNCTION_H_
 
 
+/* Condition on libcurl version */
+/* Set up an alias as needed */
+#ifndef HAVE_CURLOPT_KEYPASSWD
+#define CURLOPT_KEYPASSWD CURLOPT_SSLKEYPASSWD
+#endif
+#ifndef HAVE_CURLINFO_RESPONSE_CODE
+#define CURLINFO_RESPONSE_CODE CURLINFO_HTTP_CODE
+#endif
+
 extern OCerror ocset_curlopt(OCstate* state, int flag, void* value);
 
 struct OCCURLFLAG* occurlflagbyflag(int flag);
