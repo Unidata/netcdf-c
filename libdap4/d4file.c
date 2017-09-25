@@ -327,8 +327,10 @@ freeCurl(NCD4curl* curl)
     nullfree(curl->ssl.cainfo);
     nullfree(curl->ssl.capath);
     nullfree(curl->proxy.host);
-    nullfree(curl->proxy.userpwd);
-    nullfree(curl->creds.userpwd);
+    nullfree(curl->proxy.user);
+    nullfree(curl->proxy.pwd);
+    nullfree(curl->creds.user);
+    nullfree(curl->creds.pwd);
     if(curl->curlflags.createdflags & COOKIECREATED)
         d4removecookies(curl->curlflags.cookiejar);
     nullfree(curl->curlflags.cookiejar);
