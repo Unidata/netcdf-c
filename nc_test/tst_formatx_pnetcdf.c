@@ -66,6 +66,7 @@ int main(int argc, char* argv[])
 	ecode = 1;
 	ERR;
     }
+    if (nc_close(ncid)) ERR;
 
     /* test CDF-2 file format */
     cmode = NC_PNETCDF | NC_CLOBBER | NC_64BIT_OFFSET;
@@ -84,6 +85,7 @@ int main(int argc, char* argv[])
 	ecode = 1;
 	ERR;
     }
+    if (nc_close(ncid)) ERR;
 
     /* test CDF-5 file format */
     cmode = NC_PNETCDF | NC_CLOBBER | NC_64BIT_DATA;
@@ -102,8 +104,7 @@ int main(int argc, char* argv[])
 	ecode = 1;
 	ERR;
     }
-
-    if (nc_abort(ncid)) ERR;
+    if (nc_close(ncid)) ERR;
 
 fn_exit:
     MPI_Finalize();

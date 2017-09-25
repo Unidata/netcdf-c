@@ -22,7 +22,12 @@ else
     has_dap2="yes"
 fi
 
-has_dap4="@ENABLE_DAP4"
+has_dap4="@ENABLE_DAP4@"
+if [ -z $has_dap4 -o "$has_dap4" = "OFF" ]; then
+    has_dap4="no"
+else
+    has_dap4="yes"
+fi
 
 has_nc2="@BUILD_V2@"
 
@@ -128,7 +133,7 @@ Available values for OPTION include:
   --has-fortran whether Fortran API is installed
   --has-dap2    whether OPeNDAP (DAP2) is enabled in this build
   --has-dap4    whether DAP4 is enabled in this build
-  --has-dap     same as --has-dp (Deprecated)
+  --has-dap     same as --has-dap2 (Deprecated)
   --has-nc2     whether NetCDF-2 API is enabled
   --has-nc4     whether NetCDF-4/HDF-5 is enabled in this build
   --has-hdf5    whether HDF5 is used in build (always the same as --has-nc4)
@@ -202,7 +207,7 @@ if [ -f "$nfconf" ]; then
         echo "  --has-f03   -> $has_f03"
         echo
 fi
-        echo "  --has-dap   -> $has_dap"
+        echo "  --has-dap   -> $has_dap2"
         echo "  --has-dap2  -> $has_dap2"
         echo "  --has-dap4  -> $has_dap4"
         echo "  --has-nc2   -> $has_nc2"
@@ -252,7 +257,7 @@ while test $# -gt 0; do
 	;;
 
     --has-dap)
-       	echo $has_dap2 $has_dap4
+       	echo $has_dap2
        	;;
 
     --has-dap2)

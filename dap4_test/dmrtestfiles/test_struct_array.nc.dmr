@@ -12,8 +12,6 @@
         <Int32 name="y"/>
         <Dim name="/dx"/>
         <Dim name="/dy"/>
-        <Map name="/s.x"/>
-        <Map name="/s.y"/>
     </Structure>
     <Attribute name="_DAP4_Little_Endian" type="UInt8">
         <Value value="1"/>

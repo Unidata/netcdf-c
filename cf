@@ -111,7 +111,6 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --enable-jna"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
-#FLAGS="$FLAGS --enable-dap4"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
 
 if test "x$PAR4" != x1 ; then

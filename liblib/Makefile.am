@@ -70,6 +70,11 @@ libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 
 endif #USE_NETCDF4
 
+if ISCYGWIN
+# Force binary mode for file read/write
+AM_LDFLAGS += -lbinmode
+endif
+
 # We need at least one source file
 libnetcdf_la_SOURCES = nc_initialize.c
 EXTRA_DIST=CMakeLists.txt
