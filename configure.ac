@@ -1378,6 +1378,7 @@ AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
 
 AC_SUBST(NC_LIBS,[$NC_LIBS])
+AC_SUBST(HAS_DAP,[$enable_dap])
 AC_SUBST(HAS_DAP2,[$enable_dap])
 AC_SUBST(HAS_DAP4,[$enable_dap4])
 AC_SUBST(HAS_NC2,[$nc_build_v2])

@@ -13,10 +13,8 @@ cc="@CMAKE_C_COMPILER@"
 cflags="-I@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
 libs="-L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@ @NC_LIBS@"
 
-if [ -z "@USE_DAP@" -o -z "@ENABLE_DAP2@" ] ; then
-has_dap2=ON
-fi
-if [ -z $has_dap2 ]; then
+has_dap2="@ENABLE_DAP2@"
+if [ -z $has_dap2 -o "$has_dap2" = "OFF" ]; then
     has_dap2="no"
 else
     has_dap2="yes"
@@ -80,8 +78,8 @@ else
     has_szlib="yes"
 fi
 
-has_cdf5="@USE_CDF5@"
-if [ -z "has_cdf5" -o "$has_cdf5" = "OFF" ]; then
+has_cdf5="@ENABLE_CDF5@"
+if [ -z "has_cdf5" -o "$has_cdf5" = "OFF" -o "$has_cdf5" = "FALSE" ]; then
     has_cdf5="no"
 else
     has_cdf5="yes"
