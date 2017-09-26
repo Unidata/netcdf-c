@@ -13,6 +13,12 @@ are defined here.
 
 #undef COMPILEBYDEFAULT
 
+/*
+Control if struct fields can be map targets.
+Currently turned off because semantics are unclear.
+*/
+#undef ALLOWFIELDMAPS
+
 #define long64 long long
 #define ncerror int
 
@@ -217,7 +223,8 @@ typedef struct NCD4serial {
 /* This will be passed out of the parse */
 struct NCD4meta {
     NCD4INFO* controller;
-    int ncid; /* root ncid of the substrate netcdf-4 file; copy of NCD4parse argument*/
+    int ncid; /* root ncid of the substrate netcdf-4 file;
+		 warning: copy of NCD4Info.substrate.nc4id */
     NCD4node* root;
     NCD4mode  mode; /* Are we reading DMR (only) or DAP (includes DMR) */
     NClist* allnodes; /*list<NCD4node>*/
@@ -345,6 +352,7 @@ struct NCD4INFO {
         long daplastmodified;
     } data;
     struct {
+	int realfile; /* 1 => we created actual temp file */
 	char* filename; /* of the substrate file */
         int nc4id; /* substrate nc4 file ncid used to hold metadata; not same as external id  */
 	NCD4meta* metadata;

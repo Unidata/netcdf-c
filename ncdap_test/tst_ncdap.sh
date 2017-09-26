@@ -74,9 +74,9 @@ for x in ${TESTSET} ; do
   done
   ok=1
   echo command: ${VALGRIND} ${NCDUMP} ${FLAGS} "${url}"
-  if ${VALGRIND} ${NCDUMP} ${FLAGS} "${url}" > ${x}.dmp ; then ok=$ok; else ok=0; fi
+  if ${VALGRIND} ${NCDUMP} ${FLAGS} "${url}" | sed 's/\\r//g' > ${x}.dmp ; then ok=$ok; else ok=0; fi
   # compare with expected
-  if diff -w ${EXPECTED}/${x}.dmp ${x}.dmp ; then ok=$ok; else ok=0; fi
+  if diff -w ${EXPECTED}/${x}.dmp ${x}.dmp  ; then ok=$ok; else ok=0; fi
   if test "$ok" = 1 ; then
     status=0  # succeed
   elif test "x$isxfail" = "x0" ; then
@@ -84,7 +84,7 @@ for x in ${TESTSET} ; do
   else
     status=2  # xfail
   fi
-  
+
   case "$status" in
   0)
     passcount=`expr $passcount + 1`

@@ -2,7 +2,6 @@ SET(abs_top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
 
 remove_definitions(-DDLL_EXPORT)
 
-
 ADD_SUBDIRECTORY(baseline)
 ADD_SUBDIRECTORY(baselineraw)
 ADD_SUBDIRECTORY(baselineremote)
