@@ -29,6 +29,7 @@ HDF4 Support:		@HAS_HDF4@
 NetCDF-4 API:		@HAS_NC4@
 NC-4 Parallel Support:	@HAS_PARALLEL4@
 PNetCDF Support:	@HAS_PNETCDF@
+PIO Support:	        @HAS_PIO@
 DAP2 Support:		@HAS_DAP@
 DAP4 Support:		@HAS_DAP4@
 Diskless Support:	@HAS_DISKLESS@

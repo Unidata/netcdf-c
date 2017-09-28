@@ -1095,8 +1095,21 @@ if test "x$pnetcdf_conflict" = xyes ; then
   enable_pnetcdf=no
 fi
 
-# Now, set enable_parallel if either pnetcdf or parallel4 is set
-if test "x$enable_pnetcdf" = xyes -o "x$enable_parallel4" = xyes; then
+# Does the user want to use the PIO library?
+AC_MSG_CHECKING([whether PIO parallel I/O libary should be enabled])
+AC_ARG_ENABLE([pio], [AS_HELP_STRING([--enable-pio],
+              [build with PIO parallel I/O libary for HPC IO performance])])
+test "x$enable_pio" = xyes || enable_pio=no
+AC_MSG_RESULT($enable_pio)
+
+# See if the pio lib is available and of the
+# right version (2.3.2 or later)
+if test "x$enable_pio" = xyes; then
+  AC_CHECK_LIB([pio], [PIOc_create], [],[AC_MSG_ERROR([Can't find or link to the PIO library. See config.log for errors.])])
+fi
+
+# Now, set enable_parallel if pnetcdf, parallel4, or pio is set
+if test "x$enable_pnetcdf" = xyes -o "x$enable_parallel4" = xyes -o "x$enable_pio" = xyes; then
 enable_parallel=yes
 else
 enable_parallel=no
@@ -1115,6 +1128,10 @@ fi
 
 if test "x$enable_pnetcdf" = xyes; then
   AC_DEFINE([USE_PNETCDF], [1], [if true, parallel netCDF is used])
+fi
+
+if test "x$enable_pnetcdf" = xyes; then
+  AC_DEFINE([USE_PIO], [1], [if true, PIO parallel IO library is used])
 fi
 
 # If enable_parallel is in use, enable it in the C code. Also add some stuff to netcdf.h.
@@ -1265,6 +1282,7 @@ AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
 AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
 AM_CONDITIONAL(BUILD_FORTRAN, [test x$enable_remote_fortran_bootstrap = xyes])
 AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
+AM_CONDITIONAL(USE_PIO, [test x$enable_pio = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
 AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
@@ -1364,6 +1382,7 @@ AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
+AC_SUBST(HAS_PIO,[$enable_pio])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_LOGGING, [$enable_logging])
 AC_SUBST(HAS_SZLIB,[$ac_cv_func_H4Z_SZIP])
@@ -1436,6 +1455,7 @@ AX_SET_META([NC_HAS_DISKLESS],[$enable_diskless],[yes])
 AX_SET_META([NC_HAS_MMAP],[$enable_mmap],[yes])
 AX_SET_META([NC_HAS_JNA],[$enable_jna],[yes])
 AX_SET_META([NC_HAS_PNETCDF],[$enable_pnetcdf],[yes])
+AX_SET_META([NC_HAS_PIO],[$enable_pio],[yes])
 AX_SET_META([NC_HAS_PARALLEL],[$enable_parallel],[yes])
 AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 
