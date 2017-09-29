@@ -11,7 +11,7 @@
 #include "ncdispatch.h"
 
 /* Must follow netcdf.h */
-#include <pnetcdf.h>
+/* #include <pnetcdf.h> */
 
 typedef struct NCP_INFO
 {
