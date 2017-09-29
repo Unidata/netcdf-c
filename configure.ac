@@ -1098,15 +1098,9 @@ fi
 # Does the user want to use the PIO library?
 AC_MSG_CHECKING([whether PIO parallel I/O libary should be enabled])
 AC_ARG_ENABLE([pio], [AS_HELP_STRING([--enable-pio],
-              [build with PIO parallel I/O libary for HPC IO performance])])
+              [build with PIO parallel I/O features for HPC IO performance])])
 test "x$enable_pio" = xyes || enable_pio=no
 AC_MSG_RESULT($enable_pio)
-
-# See if the pio lib is available and of the
-# right version (2.3.2 or later)
-if test "x$enable_pio" = xyes; then
-  AC_CHECK_LIB([pio], [PIOc_create], [],[AC_MSG_ERROR([Can't find or link to the PIO library. See config.log for errors.])])
-fi
 
 # Now, set enable_parallel if pnetcdf, parallel4, or pio is set
 if test "x$enable_pnetcdf" = xyes -o "x$enable_parallel4" = xyes -o "x$enable_pio" = xyes; then
