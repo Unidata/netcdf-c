@@ -308,6 +308,7 @@ int main()
         printf("ncstat=%d %s",ncstat,nc_strerror(ncstat));
         exit(1);
     }
+    nc_close(ncid);
     return 0;
 }
 

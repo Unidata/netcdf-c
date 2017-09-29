@@ -43,7 +43,7 @@ check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8 bom tst_dimsizes n
 
 TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
 tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh      \
-tst_nccopy3.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh \
+tst_nccopy3.sh tst_nccopy3_subset.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh \
 tst_dimsizes.sh run_ncgen_tests.sh
 
 if USE_NETCDF4
@@ -135,7 +135,7 @@ tst_dimsize_classic.nc tst_dimsize_64offset.nc tst_dimsize_64data.nc    \
 nc4_fileinfo.nc hdf5_fileinfo.hdf \
 ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc \
 ref_tst_compounds.nc ref_tst_dims.nc ref_tst_interops4.nc \
-ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc
+ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc nccopy3_subset_out.nc
 
 # These files all have to be included with the distribution.
 EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl		\
@@ -163,10 +163,11 @@ run_utf8_nc4_tests.sh							\
 tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl                      \
 tst_inttags.sh tst_inttags4.sh                                          \
 CMakeLists.txt XGetopt.c tst_bom.sh tst_inmemory_nc3.sh                 \
-tst_dimsizes.sh tst_inmemory_nc4.sh tst_fileinfo.sh run_ncgen_tests.sh  \
-run_ncgen_nc4_tests.sh							\
+tst_dimsizes.sh tst_inmemory_nc4.sh tst_fileinfo.sh run_ncgen_tests.sh  \							
 test_360_day_1900.nc test_365_day_1900.nc test_366_day_1900.nc          \
-ref_test_360_day_1900.cdl ref_test_365_day_1900.cdl ref_test_366_day_1900.cdl
+ref_test_360_day_1900.cdl ref_test_365_day_1900.cdl ref_test_366_day_1900.cdl \
+run_ncgen_nc4_tests.sh tst_nccopy3_subset.sh ref_nccopy3_subset.nc
+
 
 # CDL files and Expected results
 SUBDIRS=cdl expected
@@ -179,7 +180,7 @@ CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl \
 	tst_c0_64.cdl tst_compound_datasize_test.cdl \
 	tst_compound_datasize_test2.cdl tst_gattenum.nc \
 	tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl \
-	tst_usuffix.nc tst_bug324.nc
+	tst_usuffix.nc tst_bug324.nc nccopy3_subset_out.nc
 
 DISTCLEANFILES = results
 

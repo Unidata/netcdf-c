@@ -1027,6 +1027,7 @@ SET(STATUS_ERANGE_FILL "OFF")
 OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OF)
 IF(ENABLE_ERANGE_FILL)
   SET(STATUS_ERANGE_FILL "ON")
+  ADD_DEFINITIONS(-DERANGE_FILL)
 ENDIF()
 
 # Options to use a more relaxed coordinate argument boundary check
@@ -1232,6 +1233,8 @@ CHECK_INCLUDE_FILE("BaseTsd.h"  HAVE_BASETSD_H)
 CHECK_INCLUDE_FILE("stddef.h"   HAVE_STDDEF_H)
 CHECK_INCLUDE_FILE("memory.h"  HAVE_MEMORY_H)
 CHECK_INCLUDE_FILE("string.h"  HAVE_STRING_H)
+CHECK_INCLUDE_FILE("winsock2.h" HAVE_WINSOCK2_H)
+CHECK_INCLUDE_FILE("ftw.h"  HAVE_FTW_H)
 
 CHECK_INCLUDE_FILES("time.h;sys/time.h" TIME_WITH_SYS_TIME)
 

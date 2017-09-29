@@ -108,7 +108,7 @@ NCD4_makeFQN(NCD4node* node)
     size_t estimate;
 
     for(estimate=0;g != NULL;g=g->container) {
-	estimate += strlen(g->name);		
+	estimate += strlen(g->name);
 	nclistinsert(path,0,g);
     }
     estimate = (estimate*2) + 2*nclistlength(path);
@@ -132,7 +132,7 @@ NCD4_makeFQN(NCD4node* node)
 	int last = nclistlength(path)-1;
 	NCD4node* n = (NCD4node*)nclistget(path,last);
 	char* name = NCD4_makeName(n,".");
-	strcat(fqn,"/");	
+	strcat(fqn,"/");
 	strcat(fqn,name);
 	nullfree(name);
     }
@@ -162,7 +162,7 @@ NCD4_makeName(NCD4node* elem, const char* sep)
     }
 
     fqn = (char*)malloc(estimate+1);
-    if(fqn == NULL) goto done;    
+    if(fqn == NULL) goto done;
     fqn[0] = '\0';
 
     for(i=0;i<nclistlength(path);i++) {
@@ -207,7 +207,7 @@ backslashEscape(const char* s)
 }
 
 /* Parse an fqn into a sequence of names;
-   initially using '/', then '.' */
+   using '/', and then (conditionally) '.' */
 int
 NCD4_parseFQN(const char* fqn0, NClist* pieces)
 {
@@ -239,6 +239,7 @@ NCD4_parseFQN(const char* fqn0, NClist* pieces)
 	    break;
 	}
     }
+#ifdef ALLOWFIELDMAPS
     /* Step 2, walk the final piece to break up based on '.' */
     for(p=start;*p;) {
 	switch(*p) {
@@ -246,7 +247,7 @@ NCD4_parseFQN(const char* fqn0, NClist* pieces)
 	    p+=2;
 	    break;
 	case '.': /*capture the piece name */
-	    *p++ = '\0';	    
+	    *p++ = '\0';
 	    start = p;
 	    count++;
 	    break;
@@ -255,13 +256,14 @@ NCD4_parseFQN(const char* fqn0, NClist* pieces)
 	    break;
 	}
     }
+#endif
     count++; /* acct for last piece */
     /* Step 3: capture and de-scape the pieces */
     for(p=fqn;count > 0;count--) {
 	char* descaped = NCD4_deescape(p);
 	nclistpush(pieces,descaped);
 	p = p + strlen(p) + 1; /* skip past the terminating nul */
-    }        
+    }
     if(fqn != NULL) free(fqn);
     return THROW(ret);
 }
@@ -361,7 +363,7 @@ NCD4_mktmp(const char* base, char** tmpnamep)
 
     strncpy(tmp,base,sizeof(tmp));
 #ifdef HAVE_MKSTEMP
-    strncat(tmp,"XXXXXX",sizeof(tmp));
+    strncat(tmp,"XXXXXX",sizeof(tmp)-strlen(tmp));
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
     mask=umask(0077);
@@ -374,7 +376,7 @@ NCD4_mktmp(const char* base, char** tmpnamep)
 	char spid[7];
 	if(rno < 0) rno = -rno;
         snprintf(spid,sizeof(spid),"%06d",rno);
-        strncat(tmp,spid,sizeof(tmp));	
+        strncat(tmp,spid,sizeof(tmp));
 #if defined(_WIN32) || defined(_WIN64)
         fd=open(tmp,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
 #  else
@@ -383,7 +385,7 @@ NCD4_mktmp(const char* base, char** tmpnamep)
     }
 #endif /* !HAVE_MKSTEMP */
     if(fd < 0) {
-       nclog(NCLOGERR, "Could not create temp file: %s",tmp);	
+       nclog(NCLOGERR, "Could not create temp file: %s",tmp);
        return THROW(NC_EPERM);
     } else
 	close(fd);
@@ -449,4 +451,3 @@ NCD4_errorNC(int code, const int line, const char* file)
 {
     return NCD4_error(code,line,file,nc_strerror(code));
 }
-

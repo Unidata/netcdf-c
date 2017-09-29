@@ -118,9 +118,11 @@ done:
 /*!
 Given an existing file, figure out its format
 and return that format value (NC_FORMATX_XXX)
-in model arg.
+in model arg. Assume any path conversion was
+already performed at a higher level.
 */
-static int NC_check_file_type(const char *path, int flags, void *parameters,
+static int
+NC_check_file_type(const char *path, int flags, void *parameters,
 		   int* model, int* version)
 {
    char magic[MAGIC_NUMBER_LEN];
@@ -139,6 +141,7 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
     } else {/* presumably a real file */
        /* Get the 4-byte magic from the beginning of the file. Don't use posix
         * for parallel, use the MPI functions instead. */
+
 #ifdef USE_PARALLEL
 	if (use_parallel) {
 	    MPI_File fh;
@@ -169,26 +172,24 @@ static int NC_check_file_type(const char *path, int flags, void *parameters,
 #else
           struct stat st;
 #endif
-
-	    if(path == NULL || strlen(path)==0)
+          if(path == NULL || strlen(path)==0)
 		{status = NC_EINVAL; goto done;}
 
-	    if (!(fp = fopen(path, "r")))
+	  if (!(fp = fopen(path, "r")))
 		{status = errno; goto done;}
 
 #ifdef HAVE_SYS_STAT_H
-	    /* The file must be at least MAGIC_NUMBER_LEN in size,
+	  /* The file must be at least MAGIC_NUMBER_LEN in size,
 	       or otherwise the following fread will exhibit unexpected
   	       behavior. */
 
-        /* Windows and fstat have some issues, this will work around that. */
+          /* Windows and fstat have some issues, this will work around that. */
 #ifdef HAVE_FILE_LENGTH_I64
           if((file_len = _filelengthi64(fileno(fp))) < 0) {
             fclose(fp);
             status = errno;
             goto done;
           }
-
 
           if(file_len < MAGIC_NUMBER_LEN) {
             fclose(fp);
@@ -1659,6 +1660,10 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	 return stat;
    }
 
+#ifndef USE_DISKLESS
+   cmode &= (~ NC_DISKLESS); /* Force off */
+#endif
+
 #ifdef WINPATH
    /* Need to do path conversion */
    path = NCpathcvt(path0);
@@ -1811,8 +1816,8 @@ NC_open(const char *path0, int cmode,
    int stat = NC_NOERR;
    NC* ncp = NULL;
    NC_Dispatch* dispatcher = NULL;
-   int inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
-   int diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
+   int inmemory = 0;
+   int diskless = 0;
    /* Need pieces of information for now to decide model*/
    int model = 0;
    int isurl = 0;
@@ -1826,10 +1831,22 @@ NC_open(const char *path0, int cmode,
       if(stat) return stat;
    }
 
+   /* Attempt to do file path conversion: note that this will do
+      nothing if path is a 'file:...' url, so it will need to be
+      repeated in protocol code: libdap2 and libdap4
+    */
+
+#ifndef USE_DISKLESS
+   /* Clean up cmode */
+   cmode &= (~ NC_DISKLESS);
+#endif
+
+   inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
+   diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
+
+
 #ifdef WINPATH
-   /* Need to do path conversion */
    path = NCpathcvt(path0);
-fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 #else
    path = nulldup(path0);
 #endif

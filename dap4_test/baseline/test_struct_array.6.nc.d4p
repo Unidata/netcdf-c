@@ -17,8 +17,6 @@
     <Struct name="s" type="/s">
       <Dim name="/_Anonymous2"/>
       <Dim name="/_Anonymous2"/>
-      <Map name="/s.x"/>
-      <Map name="/s.y"/>
     </Struct>
   </Variables>
   <Attribute name="_dap4.ce" type="String">
