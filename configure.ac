@@ -1495,6 +1495,7 @@ AC_CONFIG_FILES([Makefile
                  oc2/Makefile
                  libdap2/Makefile
                  libdap4/Makefile
+                 libpio/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl/Makefile
@@ -1504,6 +1505,7 @@ AC_CONFIG_FILES([Makefile
                  nctest/Makefile
                  nc_test4/Makefile
                  nc_test/Makefile
+                 pio_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile
                  ncdap_test/expected3/Makefile
