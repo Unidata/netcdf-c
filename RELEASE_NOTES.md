@@ -1,4 +1,4 @@
-qRelease Notes       {#RELEASE_NOTES}
+Release Notes       {#RELEASE_NOTES}
 =============
 
 \brief Release notes file for the netcdf-c package.
@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.5.0 - TBD
 
-### 4.5.0-rc3 - September 27, 2017
+### 4.5.0-rc3 - September 29, 2017
 
 * [Update] Due to ongoing issues, native CDF5 support has been disabled by **default**.  You can use the options mentioned below (`--enable-cdf5` or `-DENABLE_CDF5=TRUE` for `configure` or `cmake`, respectively).  Just be aware that for the time being, Reading/Writing CDF5 files on 32-bit platforms may result in unexpected behavior when using extremely large variables.  For 32-bit platforms it is best to continue using `NC_FORMAT_64BIT_OFFSET`.
 * [Bug] Corrected an issue where older versions of curl might fail. See [GitHub #487](https://github.com/Unidata/netcdf-c/issues/487) for more information.
