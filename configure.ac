@@ -1124,8 +1124,15 @@ if test "x$enable_pnetcdf" = xyes; then
   AC_DEFINE([USE_PNETCDF], [1], [if true, parallel netCDF is used])
 fi
 
-if test "x$enable_pnetcdf" = xyes; then
+if test "x$enable_pio" = xyes; then
   AC_DEFINE([USE_PIO], [1], [if true, PIO parallel IO library is used])
+  AC_DEFINE([_NETCDF], [1], [needed for PIO code])
+  if test "x$enable_netcdf_4" = xyes; then      
+    AC_DEFINE([_NETCDF4], [1], [needed for PIO code])
+  fi
+  if test "x$enable_pnetcdf" = xyes; then      
+    AC_DEFINE([_PNETCDF], [1], [needed for PIO code])
+  fi
 fi
 
 # If enable_parallel is in use, enable it in the C code. Also add some stuff to netcdf.h.
