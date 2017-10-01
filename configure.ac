@@ -861,6 +861,12 @@ AC_TYPE_OFF_T
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
+# Used for parallel IO builds with PIO.
+AC_CHECK_TYPE([MPI_Offset], [], [], [#include <mpi.h>])
+if test "x${ac_cv_type_MPI_Offset}" = xyes; then
+   AC_CHECK_SIZEOF([MPI_Offset], [], [#include <mpi.h>])
+fi
+
 ###
 # Crude hack to work around an issue
 # in Cygwin.
@@ -1102,12 +1108,31 @@ AC_ARG_ENABLE([pio], [AS_HELP_STRING([--enable-pio],
 test "x$enable_pio" = xyes || enable_pio=no
 AC_MSG_RESULT($enable_pio)
 
+if test "x$enable_pio" = xyes -a "x$enable_logging" = xyes; then
+   AC_DEFINE([PIO_ENABLE_LOGGING], [1], [log messages from library])
+fi
+
+# The PIO version.
+if test "x$enable_pio" = xyes; then
+   AC_DEFINE([PIO_VERSION_MAJOR], [2], [PIO major version])
+   AC_DEFINE([PIO_VERSION_MINOR], [3], [PIO minor version])
+   AC_DEFINE([PIO_VERSION_PATCH], [0], [PIO patch version])
+fi
+
 # Now, set enable_parallel if pnetcdf, parallel4, or pio is set
 if test "x$enable_pnetcdf" = xyes -o "x$enable_parallel4" = xyes -o "x$enable_pio" = xyes; then
 enable_parallel=yes
 else
 enable_parallel=no
 fi
+
+AC_MSG_CHECKING([whether a PIO_BUFFER_SIZE was specified (only used with PIO/pnetcdf)])
+AC_ARG_WITH([piobuffersize],
+              [AS_HELP_STRING([--with-piobuffersize=<integer>],
+                              [Specify buffer size for PIO.])],
+            [PIO_BUFFER_SIZE=$with_piobuffersize], [PIO_BUFFER_SIZE=134217728])
+AC_MSG_RESULT([$PIO_BUFFER_SIZE])
+AC_DEFINE_UNQUOTED([PIO_BUFFER_SIZE], [$PIO_BUFFER_SIZE], [buffer size for darray data.])
 
 if test "x$hdf5_parallel" = xyes; then
   # Provide more precise parallel control
