@@ -17,5 +17,17 @@ PIO_TESTS = test_iosystem2
 
 check_PROGRAMS = $(PIO_TESTS)
 
-TESTS = $(PIO_TESTS)
-test_iosystem2_SOURCES = test_iosystem2.c
+test_iosystem2_SOURCES = test_iosystem2.c pio_tests.h test_common.c
+
+# Tests will run from a bash script.
+TESTS = run_tests.sh
+
+# Bash script needs all tests built.
+run_tests.sh : $(PIO_TESTS)
+
+# Distribute the test script.
+EXTRA_DIST = run_tests.sh
+
+# Clean up files produced during testing.
+CLEANFILES = *.nc *.log
+

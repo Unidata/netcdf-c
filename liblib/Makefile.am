@@ -70,6 +70,12 @@ libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 
 endif #USE_NETCDF4
 
+# + pio
+if USE_PIO
+AM_CPPFLAGS += -I${top_srcdir}/libpio
+libnetcdf_la_LIBADD += ${top_builddir}/libpio/libnetcdfpio.la
+endif # USE_PIO
+
 if ISCYGWIN
 # Force binary mode for file read/write
 AM_LDFLAGS += -lbinmode

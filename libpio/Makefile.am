@@ -19,7 +19,7 @@ endif # BUILD_DLL
 libnetcdfpio_la_SOURCES = piodispatch.c bget.c pioc_sc.c pio_darray.c	\
 pio_get_nc.c pio_lists.c pio_nc4.c pio_put_nc.c pio_spmd.c		\
 pioc_support.c pio_darray_int.c pio_file.c pio_getput_int.c pio_msg.c	\
-pio_nc.c pio_rearrange.c pio_varm.c
+pioc.c pio_nc.c pio_rearrange.c pio_varm.c
 
 noinst_LTLIBRARIES = libnetcdfpio.la
 
