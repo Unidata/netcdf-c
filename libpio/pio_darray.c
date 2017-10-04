@@ -486,8 +486,10 @@ int PIOc_write_darray(int ncid, int varid, int ioid, PIO_Offset arraylen, void *
     int mpierr = MPI_SUCCESS;  /* Return code from MPI functions. */
     int ierr = PIO_NOERR;      /* Return code. */
 
-    LOG((1, "PIOc_write_darray ncid = %d varid = %d ioid = %d arraylen = %d",
+   LOG((1, "PIOc_write_darray ncid = %d varid = %d ioid = %d arraylen = %d", 
          ncid, varid, ioid, arraylen));
+   if (fillvalue)
+       LOG((1, "fillvalue %g", *((float *)fillvalue))); 
 
     /* Get the file info. */
     if ((ierr = pio_get_file(ncid, &file)))
@@ -531,7 +533,11 @@ int PIOc_write_darray(int ncid, int varid, int ioid, PIO_Offset arraylen, void *
     /* Check that if the user passed a fill value, it is correct. */
     if (fillvalue)
         if (memcmp(fillvalue, vdesc->fillvalue, vdesc->pio_type_size))
+        {
+            LOG((3, "howdy again *((float *)vdesc->fillvalue) %g *((float *)fillvalue) %g",
+                 *((float *)vdesc->fillvalue), *((float *)fillvalue)));
             return pio_err(ios, file, PIO_EINVAL, __FILE__, __LINE__);
+        }
     
     /* Move to end of list or the entry that matches this ioid. */
     for (wmb = &file->buffer; wmb->next; wmb = wmb->next)

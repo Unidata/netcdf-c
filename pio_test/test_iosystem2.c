@@ -31,7 +31,7 @@ int create_file(MPI_Comm comm, int iosysid, int format, char *filename,
 
     /* Create the file. */
     if ((ret = PIOc_createfile(iosysid, &ncid, &format, filename, NC_CLOBBER)))
-        return ret;
+        ERR(ret);
 
     /* Use the ncid to set the IO system error handler. This function
      * is deprecated. */
@@ -42,23 +42,23 @@ int create_file(MPI_Comm comm, int iosysid, int format, char *filename,
 
     /* Define a dimension. */
     if ((ret = PIOc_def_dim(ncid, dimname, PIO_TF_MAX_STR_LEN, &dimid)))
-        return ret;
+        ERR(ret);
 
     /* Define a 1-D variable. */
     if ((ret = PIOc_def_var(ncid, attname, NC_CHAR, 1, &dimid, &varid)))
-        return ret;
+        ERR(ret);
 
     /* Write an attribute. */
     if ((ret = PIOc_put_att_text(ncid, varid, attname, strlen(filename), filename)))
-        return ret;
+        ERR(ret);
 
     /* End define mode. */
     if ((ret = PIOc_enddef(ncid)))
-        return ret;
+        ERR(ret);
 
     /* Close the file. */
     if ((ret = PIOc_closefile(ncid)))
-        return ret;
+        ERR(ret);
 
     return PIO_NOERR;
 }
@@ -72,7 +72,7 @@ int check_file(MPI_Comm comm, int iosysid, int format, int ncid, char *filename,
 
     /* Check the file. */
     if ((ret = PIOc_inq_dimid(ncid, dimname, &dimid)))
-        return ret;
+        ERR(ret);
 
     return PIO_NOERR;
 }
@@ -86,16 +86,16 @@ int open_and_check_file(MPI_Comm comm, int iosysid, int iotype, int *ncid, char 
 
     /* Open the file. */
     if ((ret = PIOc_openfile(iosysid, ncid, &iotype, fname, mode)))
-        return ret;
+        ERR(ret);
 
     /* Check the file. */
     if ((ret = check_file(comm, iosysid, iotype, *ncid, fname, attname, dimname, my_rank)))
-        return ret;
+        ERR(ret);
 
     /* Close the file, maybe. */
     if (!disable_close)
         if ((ret = PIOc_closefile(*ncid)))
-            return ret;
+            ERR(ret);
 
     return PIO_NOERR;
 }
@@ -205,7 +205,7 @@ int main(int argc, char **argv)
 
     /* Finalize test. */
     if ((ret = pio_test_finalize(&test_comm)))
-        return ret;
+        ERR(ret);
 
     printf("%d %s SUCCESS!!\n", my_rank, TEST_NAME);
 
