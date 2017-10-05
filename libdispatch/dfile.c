@@ -1610,11 +1610,10 @@ Create a file, calling the appropriate dispatch create call.
 
 For create, we have the following pieces of information to use to
 determine the dispatch table:
-- table specified by override
 - path
 - cmode
 
-\param path The file name of the new netCDF dataset.
+\param path0 The file name of the new netCDF dataset.
 
 \param cmode The creation mode flag, the same as in nc_create().
 
