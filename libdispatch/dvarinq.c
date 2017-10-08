@@ -6,7 +6,13 @@ Research/Unidata. See COPYRIGHT file for more info.
 */
 
 #include "ncdispatch.h"
-#include "netcdf_filter.h"
+#ifdef USE_NETCDF4
+#include <hdf5.h>
+#endif
+
+#ifndef H5Z_FILTER_SZIP
+#define H5Z_FILTER_SZIP 4
+#endif
 
 /** \name Learning about Variables
 
@@ -245,7 +251,6 @@ nc_inq_varnatts(int ncid, int varid, int *nattsp)
 		     nattsp);
 }
 
-#ifdef USE_NETCDF4
 /** \ingroup variables
 Learn the storage and deflate settings for a variable.
 
@@ -298,97 +303,6 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
       NULL, /*endianp*/
       NULL,NULL,NULL
       );
-}
-
-/** \ingroup variables
-Learn the szip settings of a variable.
-
-This function returns the szip settings for a variable.
-With the introduction of general filter support,
-szip inquiry is converted to use the filter interface.
-
-This is a wrapper for nc_inq_var_filter().
-
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
-nc_create(), nc_def_grp(), or associated inquiry functions such as
-nc_inq_ncid().
-
-\param varid Variable ID
-
-\param options_maskp The szip options mask will be copied to this
-pointer. \ref ignored_if_null.
-
-\param pixels_per_blockp The szip pixels per block will be copied
-here. \ref ignored_if_null.
-
-\returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTNC4 Not a netCDF-4 file.
-\returns ::NC_ENOTVAR Invalid variable ID.
-\returns ::NC_EFILTER Variable is not szip encoded
-*/
-int
-nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
-{
-   NC* ncp;
-   unsigned int id;
-   size_t nparams;
-   unsigned int params[2];
-
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   TRACE(nc_inq_var_szip);
-
-   /* Verify id and nparams */
-   stat = ncp->dispatch->inq_var_all(
-      ncid, varid,
-      NULL, /*name*/
-      NULL, /*xtypep*/
-      NULL, /*ndimsp*/
-      NULL, /*dimidsp*/
-      NULL, /*nattsp*/
-      NULL, /*shufflep*/
-      NULL, /*deflatep*/
-      NULL, /*deflatelevelp*/
-      NULL, /*fletcher32p*/
-      NULL, /*contiguousp*/
-      NULL, /*chunksizep*/
-      NULL, /*nofillp*/
-      NULL, /*fillvaluep*/
-      NULL, /*endianp*/
-      &id,
-      &nparams,
-      NULL
-      );
-   if(stat != NC_NOERR) return stat;
-   if(id != H5Z_FILTER_SZIP || nparams != 2)
-	return NC_EFILTER; /* not szip or bad # params */
-   /* Get params */
-   stat = ncp->dispatch->inq_var_all(
-      ncid, varid,
-      NULL, /*name*/
-      NULL, /*xtypep*/
-      NULL, /*ndimsp*/
-      NULL, /*dimidsp*/
-      NULL, /*nattsp*/
-      NULL, /*shufflep*/
-      NULL, /*deflatep*/
-      NULL, /*deflatelevelp*/
-      NULL, /*fletcher32p*/
-      NULL, /*contiguousp*/
-      NULL, /*chunksizep*/
-      NULL, /*nofillp*/
-      NULL, /*fillvaluep*/
-      NULL, /*endianp*/
-      &id,
-      &nparams,
-      params
-      );
-   if(stat != NC_NOERR) return stat;
-   /* Param[0] should be options_mask, Param[1] should be pixels_per_block */
-   if(options_maskp) *options_maskp = (int)params[0];
-   if(pixels_per_blockp) *pixels_per_blockp = (int)params[1];
-   return NC_NOERR;
 }
 
 /** \ingroup variables
@@ -633,12 +547,16 @@ This function will return one of the following values.
 int
 nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
 {
+#ifndef USE_NETCDF4
+    return NC_ENOTNC4;
+#else
     NC* ncp;
     int stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) return stat;
-   TRACE(nc_inq_unlimdims);
+    TRACE(nc_inq_unlimdims);
     return ncp->dispatch->inq_unlimdims(ncid, nunlimdimsp,
 					unlimdimidsp);
+#endif
 }
 
 /** \ingroup variables
@@ -691,7 +609,97 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
       idp, nparamsp, params);
 }
 
-#endif /* USE_NETCDF4 */
+/** \ingroup variables
+Learn the szip settings of a variable.
+Similar to nc_inq_var_deflate.
+
+This function returns the szip settings for a variable.
+With the introduction of general filter support,
+szip inquiry is converted to use the filter interface.
+
+This is a wrapper for nc_inq_var_filter().
+
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as
+nc_inq_ncid().
+
+\param varid Variable ID
+
+\param options_maskp The szip options mask will be copied to this
+pointer. \ref ignored_if_null.
+
+\param pixels_per_blockp The szip pixels per block will be copied
+here. \ref ignored_if_null.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file.
+\returns ::NC_ENOTVAR Invalid variable ID.
+\returns ::NC_EFILTER Variable is not szip encoded
+*/
+int
+nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
+{
+   NC* ncp;
+   unsigned int id;
+   size_t nparams;
+   unsigned int params[2];
+
+   int stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) return stat;
+   TRACE(nc_inq_var_szip);
+
+   /* Verify id and nparams */
+   stat = ncp->dispatch->inq_var_all(
+      ncid, varid,
+      NULL, /*name*/
+      NULL, /*xtypep*/
+      NULL, /*ndimsp*/
+      NULL, /*dimidsp*/
+      NULL, /*nattsp*/
+      NULL, /*shufflep*/
+      NULL, /*deflatep*/
+      NULL, /*deflatelevelp*/
+      NULL, /*fletcher32p*/
+      NULL, /*contiguousp*/
+      NULL, /*chunksizep*/
+      NULL, /*nofillp*/
+      NULL, /*fillvaluep*/
+      NULL, /*endianp*/
+      &id,
+      &nparams,
+      NULL
+      );
+   if(stat != NC_NOERR) return stat;
+   if(id != H5Z_FILTER_SZIP || nparams != 2)
+	return NC_EFILTER; /* not szip or bad # params */
+   /* Get params */
+   stat = ncp->dispatch->inq_var_all(
+      ncid, varid,
+      NULL, /*name*/
+      NULL, /*xtypep*/
+      NULL, /*ndimsp*/
+      NULL, /*dimidsp*/
+      NULL, /*nattsp*/
+      NULL, /*shufflep*/
+      NULL, /*deflatep*/
+      NULL, /*deflatelevelp*/
+      NULL, /*fletcher32p*/
+      NULL, /*contiguousp*/
+      NULL, /*chunksizep*/
+      NULL, /*nofillp*/
+      NULL, /*fillvaluep*/
+      NULL, /*endianp*/
+      &id,
+      &nparams,
+      params
+      );
+   if(stat != NC_NOERR) return stat;
+   /* Param[0] should be options_mask, Param[1] should be pixels_per_block */
+   if(options_maskp) *options_maskp = (int)params[0];
+   if(pixels_per_blockp) *pixels_per_blockp = (int)params[1];
+   return NC_NOERR;
+}
 
 /*!
 
@@ -713,8 +721,6 @@ Used in libdap2 and libdap4.
 @param[out] no_fill           Pointer to memory to store whether or not there is a fill value associated with the variable.
 @param[out] fill_valuep       Pointer to memory to store the fill value (if one exists) for the variable.
 @param[out] endiannessp       Pointer to memory to store endianness value. One of ::NC_ENDIAN_BIG ::NC_ENDIAN_LITTLE ::NC_ENDIAN_NATIVE
-@param[out] options_maskp     Pointer to memory to store mask options information.
-@param[out] pixels_per_blockp Pointer to memory to store pixels-per-block information for chunked data.
 @param[out] idp Pointer to memory to store filter id.
 @param[out] nparamsp Pointer to memory to store filter parameter count.
 @param[out] params Pointer to vector of unsigned integers into which

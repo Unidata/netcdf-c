@@ -10,7 +10,6 @@
 #include <stdlib.h>
 
 #include "netcdf.h"
-#include "netcdf_filter.h"
 
 //#define BASELINE 1
 
@@ -102,6 +101,8 @@ check(int err,int line)
 {
     if(err != NC_NOERR) {
 	fprintf(stderr,"fail (%d): %s\n",line,nc_strerror(err));
+	fflush(stderr);
+	exit(1);
     }
     return NC_NOERR;
 }

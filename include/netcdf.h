@@ -863,6 +863,14 @@ nc_def_var_endian(int ncid, int varid, int endian);
 EXTERNL int
 nc_inq_var_endian(int ncid, int varid, int *endianp);
 
+/* Define a filter for a variable */
+EXTERNL int
+nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms);
+
+/* Learn about the filter on a variable */
+EXTERNL int
+nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparams, unsigned int* params);
+
 /* Set the fill mode (classic or 64-bit offset files only). */
 EXTERNL int
 nc_set_fill(int ncid, int fillmode, int *old_modep);

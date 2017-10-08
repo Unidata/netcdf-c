@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
-#include <netcdf_filter.h>
 
 
 static size_t var_chunksizes[4] = {4, 4, 4, 4} ;

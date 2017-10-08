@@ -1,5 +1,5 @@
 # Visual Studio
-#VS=1
+VS=1
 #VSSETUP=1
 
 #export NCPATHDEBUG=1

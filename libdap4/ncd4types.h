@@ -325,10 +325,12 @@ struct NCD4curl {
     struct proxy {
 	char *host; /*CURLOPT_PROXY*/
 	int port; /*CURLOPT_PROXYPORT*/
-	char* userpwd; /*CURLOPT_PROXYUSERPWD*/
+	char* user; /*CURLOPT_PROXYUSERNAME*/
+	char* pwd; /*CURLOPT_PROXYPASSWORD*/
     } proxy;
     struct credentials {
-	char *userpwd; /*CURLOPT_USERPWD*/
+	char *user; /*CURLOPT_USERNAME*/
+	char *pwd; /*CURLOPT_PASSWORD*/
     } creds;
 };
 

@@ -258,7 +258,7 @@ const char *nc_strerror(int ncerr1)
       case NC_EDISKLESS:
 	 return "NetCDF: Error in using diskless access";
       case NC_EFILTER:
-	 return "NetCDF: Error in filter id or parameters";
+	 return "NetCDF: Filter error: bad id or parameters or filter library non-existent";
       default:
 #ifdef USE_PNETCDF
         /* The behavior of ncmpi_strerror here is to return

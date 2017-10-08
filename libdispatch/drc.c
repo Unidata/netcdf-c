@@ -1,7 +1,7 @@
-/*********************************************************************
-  *   Copyright 2016, UCAR/Unidata
-  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
-  *********************************************************************/
+/*
+Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
+See LICENSE.txt for license information.
+*/
 
 #include "config.h"
 #ifdef HAVE_UNISTD_H

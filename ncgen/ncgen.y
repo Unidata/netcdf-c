@@ -1410,15 +1410,19 @@ datalistextend(Datalist* dl, NCConstant* con)
     dlappend(dl,con);
 }
 
+/*
+Try to infer the file type from the
+kinds of constructs used in the cdl file.
+*/
 static void
 vercheck(int tid)
 {
     switch (tid) {
-    case NC_UBYTE: markcdf5("netCDF4/5 type: UBYTE"); break;
-    case NC_USHORT: markcdf5("netCDF4/5 type: USHORT"); break;
-    case NC_UINT: markcdf5("netCDF4/5 type: UINT"); break;
-    case NC_INT64: markcdf5("netCDF4/5 type: INT64"); break;
-    case NC_UINT64: markcdf5("netCDF4/5 type: UINT64"); break;
+    case NC_UBYTE: markcdf4("netCDF4/5 type: UBYTE"); break;
+    case NC_USHORT: markcdf4("netCDF4/5 type: USHORT"); break;
+    case NC_UINT: markcdf4("netCDF4/5 type: UINT"); break;
+    case NC_INT64: markcdf4("netCDF4/5 type: INT64"); break;
+    case NC_UINT64: markcdf4("netCDF4/5 type: UINT64"); break;
     case NC_STRING: markcdf4("netCDF4 type: STRING"); break;
     case NC_VLEN: markcdf4("netCDF4 type: VLEN"); break;
     case NC_OPAQUE: markcdf4("netCDF4 type: OPAQUE"); break;
@@ -1445,54 +1449,26 @@ Parse a filter spec string and store it in special
 static int
 parsefilterflag(const char* sdata0, Specialdata* special)
 {
-    char* p;
-    char* sdata = NULL;
-    int stat;
-    size_t count;
-    unsigned int* ulist = NULL;
+    unsigned int* params = NULL;
+    size_t nparams;
+    unsigned int id;
 
-    if(sdata0 == NULL || strlen(sdata0) == 0) goto fail;
-    sdata = strdup(sdata0);
+    if(!NC_parsefilterspec(sdata0,&id,&nparams,*params))
+	goto fail;
 
-    /* Count number of unsigned integers and delimit */
-    p=sdata;
-    for(count=0;;count++) {
-        char* q = strchr(p,',');
-	if(q == NULL) break;
-	*q++ = '\0'; /* delimit */
-	p = q;
+    if(special) {
+        /* Store the id */
+        special->_FilterID = id;
+        /* And the parameter info */
+        special->nparams = nparams;
+        special->_FilterParams = params;
+        ulist = NULL; /* avoid duplicate free */
     }
-    count++; /* for final piece */
-
-    /* Start by collecting the filter id */
-    p = sdata;
-    stat = sscanf(p,"%u",&special->_FilterID);
-    if(stat != 1) goto fail;
-    count--;  /* actual param count minus the id */
-
-    ulist = (unsigned int*)malloc(sizeof(unsigned int)*(count));
-    if(ulist == NULL) goto fail;
-
-    special->nparams = count;
-    for(count=0;count < special->nparams ;) {
-        unsigned int uval;
-        p = p + strlen(p) + 1; /* move to next param */
-	stat = sscanf(p,"%u",&uval);
-	if(stat != 1) goto fail;
-	ulist[count++] = uval;
-    }
-    special->_FilterParams = ulist;
-    ulist = NULL; /* avoid duplicate free */
-
-    if(sdata) free(sdata);
-    if(ulist) free(ulist);
     return 1;
 fail:
-    if(sdata) free(sdata);
-    if(ulist) free(ulist);
+    if(params) free(params);
     if(special) special->_FilterID = 0;
     derror("Malformed filter spec: %s",sdata);
-
     return 0;
 }
 

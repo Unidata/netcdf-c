@@ -17,9 +17,8 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 # The source files.
 libdispatch_la_SOURCES = dparallel.c dcopy.c dfile.c ddim.c datt.c	\
 dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
-dvarinq.c dinternal.c ddispatch.c dutf8.c                               \
-nclog.c dstring.c                           \
-ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c                        \
+dvarinq.c dinternal.c ddispatch.c dutf8.c dstring.c                     \
+nclog.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c                 \
 nc.c nclistmgr.c drc.c doffsets.c dwinpath.c
 
 # Add the utf8 codebase
@@ -28,7 +27,7 @@ libdispatch_la_SOURCES += utf8proc.c utf8proc.h
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
 libdispatch_la_SOURCES += dgroup.c dvlen.c dcompound.c dtype.c denum.c	\
-dopaque.c ncaux.c
+dopaque.c dfilter.c ncaux.c
 endif # USE_NETCDF4
 
 # Turn on pre-processor flag when building a DLL for windows.

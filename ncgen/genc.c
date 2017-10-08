@@ -59,7 +59,6 @@ gen_ncc(const char *filename)
     codeline("#include <stdio.h>");
     codeline("#include <stdlib.h>");
     codeline("#include <netcdf.h>");
-    codeline("#include <netcdf_filter.h>");
     codeline("");
     codeflush();
 

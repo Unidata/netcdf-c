@@ -54,7 +54,8 @@ HDF5LIBDIR = /usr/local/lib
 # Ditto for zlib
 ZLIBDIR = ${HDF5LIBDIR}
 
-makebzip2::
+BUILT_SOURCES = ${LIBNAME}
+${LIBNAME}:
 	SDIR=${srcdir} ;\
 	for f in ${PLUGINSRC} ${BZIP2SRC} ; do \
         DLLSRC="$${DLLSRC} $${SDIR}/$$f" ; \

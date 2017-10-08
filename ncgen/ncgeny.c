@@ -3434,15 +3434,19 @@ datalistextend(Datalist* dl, NCConstant* con)
     dlappend(dl,con);
 }
 
+/*
+Try to infer the file type from the
+kinds of constructs used in the cdl file.
+*/
 static void
 vercheck(int tid)
 {
     switch (tid) {
-    case NC_UBYTE: markcdf5("netCDF4/5 type: UBYTE"); break;
-    case NC_USHORT: markcdf5("netCDF4/5 type: USHORT"); break;
-    case NC_UINT: markcdf5("netCDF4/5 type: UINT"); break;
-    case NC_INT64: markcdf5("netCDF4/5 type: INT64"); break;
-    case NC_UINT64: markcdf5("netCDF4/5 type: UINT64"); break;
+    case NC_UBYTE: markcdf4("netCDF4/5 type: UBYTE"); break;
+    case NC_USHORT: markcdf4("netCDF4/5 type: USHORT"); break;
+    case NC_UINT: markcdf4("netCDF4/5 type: UINT"); break;
+    case NC_INT64: markcdf4("netCDF4/5 type: INT64"); break;
+    case NC_UINT64: markcdf4("netCDF4/5 type: UINT64"); break;
     case NC_STRING: markcdf4("netCDF4 type: STRING"); break;
     case NC_VLEN: markcdf4("netCDF4 type: VLEN"); break;
     case NC_OPAQUE: markcdf4("netCDF4 type: OPAQUE"); break;

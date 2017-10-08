@@ -16,14 +16,14 @@
 #define MEMCHECK(x) if((x)==NULL) {goto nomem;} else {}
 
 /* Forward */
-static char* extract_credentials(NCURI*);
 static int rccompile(const char* path);
 static struct NCD4triple* rclocate(char* key, char* hostport);
-static void rcorder(NClist* rc);
+static NClist* rcorder(NClist* rc);
 static char* rcreadline(char**);
 static int rcsearch(const char* prefix, const char* rcname, char** pathp);
 static void rctrim(char* text);
 static int rcsetinfocurlflag(NCD4INFO*, const char* flag, const char* value);
+static int parsecredentials(const char* userpwd, char** userp, char** pwdp);
 #ifdef D4DEBUG
 static void storedump(char* msg, NClist* triples);
 #endif
@@ -80,30 +80,34 @@ rctrim(char* text)
     }
 }
 
-/* Order the triples: put all those with urls first */
-static void
+/* Order the triples: those with urls must be first,
+   but otherwise relative order does not matter.
+*/
+static NClist*
 rcorder(NClist* rc)
 {
     int i,j;
     int len = nclistlength(rc);
-    if(rc == NULL || len == 0) return;
+    NClist* newrc = nclistnew();
+    if(rc == NULL || len == 0) return newrc;
+    /* Two passes: 1) pull triples with host */
     for(i=0;i<len;i++) {
-	NCD4triple* ti = nclistget(rc,i);
+        NCD4triple* ti = nclistget(rc,i);
+	if(ti->host == NULL) continue;
+	nclistpush(newrc,ti);
+    }
+    /* pass 2 pull triples without host*/
+    for(i=0;i<len;i++) {
+        NCD4triple* ti = nclistget(rc,i);
 	if(ti->host != NULL) continue;
-	for(j=i;j<len;j++) {
-	    NCD4triple* tj = nclistget(rc,j);
-	    if(tj->host != NULL) {/*swap*/
-		NCD4triple* t = ti;
-		nclistset(rc,i,tj);		
-		nclistset(rc,j,t);
-	    }
-	}
+	nclistpush(newrc,ti);
     }
 #ifdef D4DEBUG
-    storedump("reorder:",rc);
+    storedump("reorder:",newrc);
 #endif
-}
+    return newrc;
 
+}
 
 /* Create a triple store from a file */
 static int
@@ -373,10 +377,15 @@ rcsetinfocurlflag(NCD4INFO* info, const char* flag, const char* value)
 #endif
     }
 
-    if(strcmp(flag,"HTTP.CREDENTIALS.USERPASSWORD")==0) {
-        nullfree(info->curl->creds.userpwd);
-        info->curl->creds.userpwd = strdup(value);
-        MEMCHECK(info->curl->creds.userpwd);
+    if(strcmp(flag,"HTTP.CREDENTIALS.USERNAME")==0) {
+        nullfree(info->curl->creds.user);
+        info->curl->creds.user = strdup(value);
+        MEMCHECK(info->curl->creds.user);
+    }
+    if(strcmp(flag,"HTTP.CREDENTIALS.PASSWORD")==0) {
+        nullfree(info->curl->creds.pwd);
+        info->curl->creds.pwd = strdup(value);
+        MEMCHECK(info->curl->creds.pwd);
     }
 
 done:
@@ -390,9 +399,7 @@ int
 NCD4_rcprocess(NCD4INFO* info)
 {
     int ret = NC_NOERR;
-    char userpwd[NC_MAX_PATH];
     char hostport[NC_MAX_PATH];
-    char* url_userpwd = userpwd; /* WATCH OUT: points to previous variable */
     char* url_hostport = hostport; /* WATCH OUT: points to previous variable */
     NCURI* uri = info->uri;
 
@@ -403,15 +410,12 @@ NCD4_rcprocess(NCD4INFO* info)
 
     /* Note, we still must do this function even if
        NCD4_globalstate->rc.ignore is set in order
-       to getinfo e.g. user:pwd from url
+       to getinfo e.g. host+port  from url
     */
 
+    url_hostport = NULL;
     if(uri != NULL) {
-        NCD4_userpwd(uri,url_userpwd,sizeof(userpwd));
         NCD4_hostport(uri,url_hostport,sizeof(hostport));
-    } else {
-	url_hostport = NULL;
-	url_userpwd = NULL;
     }
 
     rcsetinfocurlflag(info,"HTTP.DEFLATE",
@@ -450,29 +454,38 @@ NCD4_rcprocess(NCD4INFO* info)
 			NCD4_rclookup("HTTP.NETRC",url_hostport));
     { /* Handle various cases for user + password */
 	/* First, see if the user+pwd was in the original url */
-	char* userpwd = NULL;
 	char* user = NULL;
 	char* pwd = NULL;
-	if(url_userpwd != NULL)
-	    userpwd = url_userpwd;
-	else {
+	if(uri->user != NULL && uri->password != NULL) {
+	    user = uri->user;
+	    pwd = uri->password;
+	} else {
    	    user = NCD4_rclookup("HTTP.CREDENTIALS.USER",url_hostport);
 	    pwd = NCD4_rclookup("HTTP.CREDENTIALS.PASSWORD",url_hostport);
-	    userpwd = NCD4_rclookup("HTTP.CREDENTIALS.USERPASSWORD",url_hostport);
 	}
-	if(userpwd == NULL && user != NULL && pwd != NULL) {
-	    char creds[NC_MAX_PATH];
-	    strncpy(creds,user,sizeof(creds));
-	    strncat(creds,":",sizeof(creds));
-	    strncat(creds,pwd,sizeof(creds));	  
-            rcsetinfocurlflag(info,"HTTP.USERPASSWORD",creds);
-	} else if(userpwd != NULL)
-            rcsetinfocurlflag(info,"HTTP.USERPASSWORD",userpwd);
+	if(user != NULL && pwd != NULL) {
+            user = strdup(user); /* so we can consistently reclaim */
+            pwd = strdup(pwd);
+	} else {
+	    /* Could not get user and pwd, so try USERPASSWORD */
+	    const char* userpwd = NCD4_rclookup("HTTP.CREDENTIALS.USERPASSWORD",url_hostport);
+	    if(userpwd != NULL) {
+		ret = parsecredentials(userpwd,&user,&pwd);
+		if(ret) return ret;
+	    }
+        }
+        rcsetinfocurlflag(info,"HTTP.USERNAME",user);
+        rcsetinfocurlflag(info,"HTTP.PASSWORD",pwd);
+	nullfree(user);
+	nullfree(pwd);
     }
-
     return THROW(ret);
 }
 
+/**
+ * (Internal) Locate a triple by property key and host+port (may be null or "").
+ * If duplicate keys, first takes precedence.
+ */
 static struct NCD4triple*
 rclocate(char* key, char* hostport)
 {
@@ -503,6 +516,10 @@ rclocate(char* key, char* hostport)
     return (found?triple:NULL);
 }
 
+/**
+ * Locate a triple by property key and host+port (may be null|"")
+ * If duplicate keys, first takes precedence.
+ */
 char*
 NCD4_rclookup(char* key, char* hostport)
 {
@@ -524,13 +541,16 @@ storedump(char* msg, NClist* triples)
     for(i=0;i<nclistlength(triples);i++) {
 	NCD4triple* t = (NCD4triple*)nclistget(triples,i);
         fprintf(stderr,"\t%s\t%s\t%s\n",
-                (t->host == NULL || strlen(t->host)==0?"--":t->host),t->key,t->value);
+
+                ((t->host == NULL || strlen(t->host)==0)?"--":t->host),t->key,t->value);
+
     }
     fflush(stderr);
 }
 #endif
 
 /**
+ * Locate rc file by searching in directory prefix.
  * Prefix must end in '/'
  */
 static
@@ -592,7 +612,8 @@ NCD4_parseproxy(NCD4INFO* info, const char* surl)
 	return THROW(NC_NOERR); /* nothing there*/
     if(ncuriparse(surl,&uri) != NCU_OK)
 	return THROW(NC_EURL);
-    info->curl->proxy.userpwd = extract_credentials(uri);
+    info->curl->proxy.user = uri->user;
+    info->curl->proxy.pwd = uri->password;
     info->curl->proxy.host = strdup(uri->host);
     if(uri->port != NULL)
         info->curl->proxy.port = atoi(uri->port);
@@ -601,15 +622,32 @@ NCD4_parseproxy(NCD4INFO* info, const char* surl)
     return THROW(ret);
 }
 
-/* Caller must free result_url */
-static char*
-extract_credentials(NCURI* url)
+/*
+Given form user:pwd, parse into user and pwd
+and do %xx unescaping
+*/
+static int
+parsecredentials(const char* userpwd, char** userp, char** pwdp)
 {
-    char tmp[NC_MAX_PATH];
-    if(url->user == NULL || url->password == NULL)
-	return NULL;
-    NCD4_userpwd(url,tmp,sizeof(tmp));
-    return strdup(tmp);
+    char* user = NULL;
+    char* pwd = NULL;
+
+    if(userpwd == NULL)
+	return NC_EINVAL;
+    user = strdup(userpwd);
+    if(user == NULL)
+	return NC_ENOMEM;
+    pwd = strchr(user,':');
+    if(pwd == NULL)
+	return NC_EINVAL;
+    *pwd = '\0';
+    pwd++;
+    if(userp)
+	*userp = ncuridecode(user);
+    if(pwdp)
+	*pwdp = ncuridecode(pwd);
+    free(user);
+    return NC_NOERR;
 }
 
 int

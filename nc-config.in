@@ -21,7 +21,11 @@ has_hdf4="@HAS_HDF4@"
 has_pnetcdf="@HAS_PNETCDF@"
 has_hdf5="@HAS_HDF5@"
 has_logging="@HAS_LOGGING@"
+has_cdf5="@HAS_CDF5@"
+has_szlib="@HAS_SZLIB@"
 version="@PACKAGE_NAME@ @PACKAGE_VERSION@"
+
+
 
 has_fortran="no"
 has_f90="no"
@@ -79,8 +83,9 @@ Available values for OPTION include:
   --has-logging whether logging is enabled with --enable-logging.
   --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
   --has-szlib   whether szlib is included in build
+  --has-cdf5    whether cdf5 support is included in build
   --libs        library linking information for netcdf
-  --prefix      Install prefix
+  --prefix      Install prefixx
   --includedir  Include directory
   --libdir      Library directory
   --version     Library version
@@ -154,6 +159,7 @@ fi
         echo "  --has-logging-> $has_logging"
         echo "  --has-pnetcdf-> $has_pnetcdf"
         echo "  --has-szlib -> $has_szlib"
+        echo "  --has-cdf5 -> $has_cdf5"
 	echo
         echo "  --prefix    -> $prefix"
         echo "  --includedir-> $includedir"
@@ -228,6 +234,10 @@ while test $# -gt 0; do
     --has-szlib)
        	echo $has_szlib
        	;;
+
+    --has-cdf5)
+        echo $has_cdf5
+        ;;
 
      --libs)
        	echo $libs

@@ -408,6 +408,7 @@ NCD4_hostport(NCURI* uri, char* space, size_t len)
     }
 }
 
+#if 0
 void
 NCD4_userpwd(NCURI* uri, char* space, size_t len)
 {
@@ -420,6 +421,7 @@ NCD4_userpwd(NCURI* uri, char* space, size_t len)
 	}
     }
 }
+#endif
 
 #ifdef BLOB
 void

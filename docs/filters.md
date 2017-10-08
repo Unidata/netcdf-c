@@ -66,16 +66,42 @@ using __ncgen__, via an API call, or via command line parameters to __nccopy__.
 In any case, remember that filtering also requires setting chunking, so the
 variable must also be marked with chunking information.
 
+Using The API {#API}
+-------------
+The necessary API methods are included in __netcdf.h__ by default.
+One API method is for setting the filter to be used
+when writing a variable. The relevant signature is
+as follows.
+````
+int nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms);
+````
+This must be invoked after the variable has been created and before
+__nc_enddef__ is invoked.
+
+A second API methods makes it possible to query a variable to
+obtain information about any associated filter using this signature.
+````
+int nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparams, unsigned int* params);
+
+````
+The filter id wil be returned in the __idp__ argument (if non-NULL),
+the number of parameters in __nparamsp__ and the actual parameters in
+__params__.  As is usual with the netcdf API, one is expected to call
+this function twice. The first time to get __nparams__ and the
+second to get the parameters in client-allocated memory.
+
 Using ncgen {#NCGEN}
 -------------
 
 In a CDL file, compression of a variable can be specified
 by annotating it with the following attribute:
 
-1. ''_Filter'' -- a string containing a comma separated list of
-unsigned integers specifying (1) the filter id to apply, and (2)
-a vector of unsigned integers representing the
+* ''_Filter'' -- a string containing a comma separated list of
+constants specifying (1) the filter id to apply, and (2)
+a vector of constants representing the
 parameters for controlling the operation of the specified filter.
+See the section on the <a href="#Syntax">parameter encoding syntax</a>
+for the details on the allowable kinds of constants.
 
 This is a "special" attribute, which means that
 it will normally be invisible when using
@@ -97,30 +123,6 @@ data:
 }
 ````
 
-Using The API {#API}
--------------
-The include file, __netcdf_filter.h__ defines
-an API method for setting the filter to be used
-when writing a variable. The relevant signature is
-as follows.
-````
-int nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms);
-````
-This must be invoked after the variable has been created and before
-__nc_enddef__ is invoked.
-
-It is also possible to query a variable to obtain information about
-any associated filter using this signature.
-````
-int nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparams, unsigned int* params);
-
-````
-The filter id wil be returned in the __idp__ argument (if non-NULL),
-the number of parameters in __nparamsp__ and the actual parameters in
-__params__.  As is usual with the netcdf API, one is expected to call
-this function twice. The first time to get __nparams__ and the
-second to get the parameters in client-allocated memory.
-
 Using nccopy {#NCCOPY}
 -------------
 When copying a netcdf file using __nccopy__ it is possible
@@ -133,6 +135,8 @@ Assume that __unfiltered.nc__ has a chunked but not bzip2 compressed
 variable named "var". This command will create that variable in
 the __filtered.nc__ output file but using filter with id 307
 (i.e. bzip2) and with parameter(s) 9 indicating the compression level.
+See the section on the <a href="#Syntax">parameter encoding syntax</a>
+for the details on the allowable kinds of constants.
 
 The "-F" option can be used repeatedly as long as the variable name
 part is different. A different filter id and parameters can be
@@ -146,7 +150,7 @@ the netcdf-c library.
 Parameter Encoding {#ParamEncode}
 ==========
 
-The parameters passed to a filter are encoded in a vector
+The parameters passed to a filter are encoded internally as a vector
 of 32-bit unsigned integers. It may be that the parameters
 required by a filter can naturally be encoded as unsigned integers.
 The bzip2 compression filter, for example, expects a single
@@ -209,6 +213,51 @@ The solution is to forcibly encode the original number in network
 byte order (big-endian) so that the filter always assumes it is getting
 its parameters in network order and will always do swapping as needed.
 This is irritating, but one needs to be aware of it.
+
+Filter Specification Syntax {#Syntax}
+==========
+
+Both of the utilities
+<a href="#NCGEN">__ncgen__</a>
+and
+<a href="#NCCOPY">__nccopy__</a>
+allow the specification of filter parameters.
+These specifications consist of a sequence of comma
+separated constants. The constants are converted
+within the utility to a proper set of unsigned int
+constants (see the <a href="#ParamEncode">parameter encoding section</a>).
+
+To simplify things, various kinds of constants can be specified
+rather than just simple unsigned integers. The utilities will encode
+them properly using the rules specified in 
+the <a href="#ParamEncode">parameter encoding section</a>.
+
+The currently supported constants are as follows.
+<table>
+<tr halign="center"><th>Example<th>Type<th>Format Tag<th>Notes
+<tr><td>-17b<td>signed 8-bit byte<td>b|B<td>
+<tr><td>23ub<td>unsigned 8-bit byte<td>u|U b|B<td>
+<tr><td>-25S<td>signed 16-bit short<td>s|S<td>
+<tr><td>27US<td>unsigned 16-bit short<td>u|U s|S<td>
+<tr><td>-77<td>implicit signed 32-bit integer<td>Leading minus sign and no tag<td>
+<tr><td>77<td>implicit unsigned 32-bit integer<td>No tag<td>
+<tr><td>93U<td>explicit unsigned 32-bit integer<td>u|U<td>
+<tr><td>789f<td>32-bit float<td>f|F<td>
+<tr><td>12345678.12345678d<td>64-bit double<td>d|D<td>Network byte order
+<tr><td>-9223372036854775807L<td>64-bit signed long long<td>l|L<td>Network byte order
+<tr><td>18446744073709551615UL<td>64-bit unsigned long long<td>u|U l|L<td>Network byte order
+</table>
+Some things to note.
+
+1. In all cases, except for an untagged positive integer,
+   the format tag is required and determines how the constant
+   is converted to one or two unsigned int values.
+   The positive integer case is for backward compatibility.
+2. For signed byte and short, the value is sign extended to 32 bits
+   and then treated as an unsigned int value.
+3. For double, and signed|unsigned long long, they are converted
+   to network byte order and then treated as two unsigned int values.
+   This is consistent with the <a href="#ParamEncode">parameter encoding</a>.
 
 Dynamic Loading Process {#Process}
 ==========
@@ -296,6 +345,43 @@ non-standard platform.
 
 Although it is fragile, this test can  serve as a complete example for building
 plugins for other filters.
+
+Appendix A. Byte Swap Code {#AppendixA}
+==========
+Since in some cases, it is necessary for a filter to
+byte swap from network byte order to little endian, This appendix
+provides sample code for doing this. It also provides
+a code snippet for testing if the machine is big-endian.
+
+Byte swap an 8-byte chunk of memory
+-------
+````
+static void
+byteswap8(unsigned char* mem)
+{
+    unsigned char c;
+    c = mem[0];
+    mem[0] = mem[7];
+    mem[7] = c;
+    c = mem[1];
+    mem[1] = mem[6];
+    mem[6] = c;
+    c = mem[2];
+    mem[2] = mem[5];
+    mem[5] = c;
+    c = mem[3];
+    mem[3] = mem[4];
+    mem[4] = c;
+}
+
+````
+
+Test for Big-Endian Machine
+-------
+````
+static const unsigned char b[4] = {0x0,0x0,0x0,0x1}; /* value 1 in big-endian*/
+int bigendian = (1 == *(unsigned int*)b);
+````
 
 References {#References}
 ==========

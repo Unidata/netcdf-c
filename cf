@@ -19,11 +19,6 @@ if test "x$PNETCDF" = x1 -o "x$PAR4" = x1 ; then
 MPIO=1
 fi
 
-#RPC=1
-
-#M32=1
-#M64=1
-
 CFLAGS=""
 #CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
 CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign -Wno-format ${CFLAGS}"
@@ -46,6 +41,11 @@ fi
 # HDF4=>HDF5
 if test "x$HDF4" = x1 ; then
 HDF5=1
+fi
+
+# !HDF5=>!SZIP
+if test "x$HDF5" != x1 ; then
+SZIP=0
 fi
 
 CC=gcc
@@ -105,7 +105,7 @@ FLAGS="$FLAGS --enable-extra-tests"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 #FLAGS="$FLAGS --enable-dap-auth-tests" -- requires a new remotetest server
-#FLAGS="$FLAGS --enable-doxygen"
+FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-mmap"

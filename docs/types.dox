@@ -22,9 +22,10 @@ The atomic external types supported by the netCDF interface are:
 - ::NC_UINT64 	64-bit unsigned integer *
 - ::NC_FLOAT 	32-bit floating point
 - ::NC_DOUBLE 	64-bit floating point
-- ::NC_STRING 	variable length character string *
+- ::NC_STRING 	variable length character string +
 
-\remark{* These types are available only for CDF5 (NC_CDF5) and netCDF-4 format (NC_NETCDF4) files. All the unsigned ints (except \ref NC_CHAR), the 64-bit ints, and string type are for CDF5 or netCDF-4 files only.}
+\remark * These types are available only for CDF5 (NC_CDF5) and netCDF-4 format (NC_NETCDF4) files. All the unsigned ints (except \ref NC_CHAR) and the 64-bit ints are for CDF5 or netCDF-4 files only.
+\remark + These types are available only for netCDF-4 (NC_NETCDF4) files.
 
 These types were chosen to provide a reasonably wide range of
 trade-offs between data precision and number of bits required for each

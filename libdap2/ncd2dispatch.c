@@ -6,7 +6,6 @@
 #include "dapincludes.h"
 #include "ncd2dispatch.h"
 #include "ncoffsets.h"
-#include "netcdf_filter.h"
 #ifdef DEBUG2
 #include "dapdump.h"
 #endif

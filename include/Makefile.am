@@ -4,7 +4,7 @@
 # This automake file generates the Makefile to build the include
 # directory.
 
-include_HEADERS = netcdf.h netcdf_meta.h netcdf_filter.h
+include_HEADERS = netcdf.h netcdf_meta.h
 
 if BUILD_PARALLEL
 include_HEADERS += netcdf_par.h
@@ -19,7 +19,7 @@ nclist.h ncuri.h ncutf8.h ncdispatch.h ncdimscale.h		\
 netcdf_f.h err_macros.h ncbytes.h nchashmap.h ceconstraints.h rnd.h	\
 nclog.h ncconfigure.h nc4internal.h nctime.h nc3internal.h \
 onstack.h nc_hashmap.h ncrc.h ncoffsets.h nctestserver.h \
-nc4dispatch.h nc3dispatch.h ncexternl.h ncwinpath.h
+nc4dispatch.h nc3dispatch.h ncexternl.h ncwinpath.h ncfilter.h
 
 if USE_DAP
 noinst_HEADERS += ncdap.h

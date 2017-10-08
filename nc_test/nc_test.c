@@ -9,6 +9,8 @@ int numVars;   /* number of variables */
 int numTypes;  /* number of netCDF data types to test */
 
 #include "tests.h"
+#include "config.h"
+
 
 /*
  * Test driver for netCDF-3 interface.  This program performs tests against
@@ -130,14 +132,19 @@ main(int argc, char *argv[])
 	     fprintf(stderr, "\n\nSwitching to 64-bit offset format.\n");
 	     strcpy(testfile, "nc_test_64bit.nc");
 	     break;
+
 	  case NC_FORMAT_CDF5:
-	     nc_set_default_format(NC_FORMAT_CDF5, NULL);
+#ifdef USE_CDF5
+        nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	     fprintf(stderr, "\n\nSwitching to 64-bit data format.\n");
 	     strcpy(testfile, "nc_test_cdf5.nc");
              numGatts = NGATTS;
              numVars  = NVARS;
              numTypes = NTYPES;
 	     break;
+#else
+         continue;
+#endif
 	  case NC_FORMAT_NETCDF4_CLASSIC:
 	  case NC_FORMAT_NETCDF4: /* actually it's _CLASSIC. */
 #ifdef USE_NETCDF4

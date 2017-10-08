@@ -14,7 +14,6 @@
 #include "nc_tests.h"
 #include "err_macros.h"
 #include "netcdf.h"
-#include "netcdf_filter.h"
 
 #undef PLAIN
 #define USECLOSE

@@ -748,7 +748,6 @@ INPUT = \
     @abs_top_srcdir@/RELEASE_NOTES.md \
     @abs_top_srcdir@/docs/install.md \
     @abs_top_srcdir@/docs/install-fortran.md \
-    @abs_top_srcdir@/docs/dispatch.dox \
     @abs_top_srcdir@/docs/types.dox \
     @abs_top_srcdir@/docs/internal.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
