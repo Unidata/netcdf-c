@@ -63,7 +63,6 @@ to be used for different types of back-ends, for example, the HDF5
 library, or a DAP client accessing remote data.
 - \ref nc_dispatch
 - \ref adding_dispatch
-- \ref dispatch_notes
 - \ref put_vara_dispatch
 - \ref put_attr_dispatch
 
