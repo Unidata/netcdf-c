@@ -604,6 +604,14 @@ int PIOc_InitDecomp(int iosysid, int pio_type, int ndims, const int *gdimlen, in
     return PIO_NOERR;
 }
 
+int nc_init_decomp(int iosysid, int pio_type, int ndims, const int *gdimlen, int maplen,
+		   const PIO_Offset *compmap, int *ioidp, int rearranger,
+		   const PIO_Offset *iostart, const PIO_Offset *iocount)
+{
+    return PIOc_init_decomp(iosysid, pio_type, ndims, gdimlen, maplen, compmap, ioidp, rearranger,
+			    iostart, iocount);
+}
+
 /**
  * Initialize the decomposition used with distributed arrays. The
  * decomposition describes how the data will be distributed between

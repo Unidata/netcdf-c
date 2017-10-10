@@ -18,7 +18,7 @@
 #define MIN_NTASKS 4
 
 /* The name of this test. */
-#define TEST_NAME "test_darray_1d"
+#define TEST_NAME "tst_darray_1d"
 
 /* Number of processors that will do IO. */
 #define NUM_IO_PROCS 1
@@ -68,15 +68,15 @@ int create_decomposition_1d(int ntasks, int my_rank, int iosysid, int pio_type, 
 
     PIO_Offset compdof[elements_per_pe];
 
-    /* Don't forget to add 1! */
-    compdof[0] = my_rank + 1;
+    /* No need to add 1! */
+    compdof[0] = my_rank;
 
     /* This means fill value will be used here. */
     compdof[1] = 0;
 
     /* Create the PIO decomposition for this test. */
-    if ((ret = PIOc_InitDecomp(iosysid, pio_type, NDIM, dim_len_1d, elements_per_pe,
-                               compdof, ioid, NULL, NULL, NULL)))
+    if ((ret = nc_init_decomp(iosysid, pio_type, NDIM, dim_len_1d, elements_per_pe,
+			      compdof, ioid, NULL, NULL, NULL)))
         ERR(ret);
 
     return 0;
