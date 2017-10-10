@@ -24,7 +24,9 @@ test_decomp_uneven test_decomps test_rearr test_darray_async_simple	\
 test_darray_async test_darray_async_many test_darray_2sync		\
 test_async_multicomp test_async_multi2 test_async_manyproc
 
-check_PROGRAMS = $(PIO_TESTS)
+NC_PIO_TESTS = tst_darray_async
+
+check_PROGRAMS = $(PIO_TESTS) $(NC_PIO_TESTS)
 
 # Source code for each test.
 test_async_mpi_SOURCES = test_async_mpi.c
@@ -63,11 +65,13 @@ test_async_multicomp_SOURCES = test_async_multicomp.c test_common.c pio_tests.h
 test_async_multi2_SOURCES = test_async_multi2.c test_common.c pio_tests.h
 test_async_manyproc_SOURCES = test_async_manyproc.c test_common.c pio_tests.h
 
+tst_darray_async_SOURCES = tst_darray_async.c test_common.c pio_tests.h
+
 # Tests will run from a bash script.
 TESTS = run_tests.sh
 
 # Bash script needs all tests built.
-run_tests.sh : $(PIO_TESTS)
+run_tests.sh : $(PIO_TESTS) $(NC_PIO_TESTS)
 
 # Distribute the test script.
 EXTRA_DIST = run_tests.sh
