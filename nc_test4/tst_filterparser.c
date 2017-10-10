@@ -23,8 +23,8 @@ static const unsigned int baseline[] = {
 77,  /* 4 signed int*/
 93,  /* 5 unsigned int*/
 1145389056U, /* 6 float*/
-697067329, 2723935171,    /* 7-8 double*/
-128, 16777216,            /* 9-10 signed long long*/
+3287505826, 1097305129,   /* 7-8 double*/
+1, 2147483648,            /* 9-10 signed long long*/
 4294967295, 4294967295,   /* 11-12 unsigned long long*/
 /* Edge cases */
 2147483647,   /* 13 max signed int*/
@@ -105,21 +105,21 @@ main(int argc, char **argv)
 	report("uf.f");
     ud.ui[0] = params[7];
     ud.ui[1] = params[8];
-#ifndef WORD_BIGENDIAN
+#ifdef WORD_BIGENDIAN
     byteswap8((unsigned char*)&ud.d);
 #endif
     if(ud.d != (double)12345678.12345678)
 	report("ud.d");
     ul.ui[0] = params[9];
     ul.ui[1] = params[10];
-#ifndef WORD_BIGENDIAN
+#ifdef WORD_BIGENDIAN
     byteswap8((unsigned char*)&ul.ll);
 #endif
     if(ul.ll != -9223372036854775807LL)
 	report("ul.ll");
     ul.ui[0] = params[11];
     ul.ui[1] = params[12];
-#ifndef WORD_BIGENDIAN
+#ifdef WORD_BIGENDIAN
     byteswap8((unsigned char*)&ul.ull);
 #endif
     if(ul.ull != 18446744073709551615ULL)
@@ -248,7 +248,7 @@ parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsigned 
 	    if(stat != 1) goto fail;
 	    /* convert to network byte order */
 	    memcpy(mem,&vald,sizeof(mem));
-#ifndef WORDS_BIGENDIAN	    
+#ifdef WORDS_BIGENDIAN	    
 	    byteswap8(mem);  /* convert little endian to big endian */
 #endif
 	    vector = (unsigned int*)mem;
@@ -263,7 +263,7 @@ parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsigned 
 	    if(stat != 1) goto fail;
 	    /* convert to network byte order */
 	    memcpy(mem,&val64u,sizeof(mem));
-#ifndef WORDS_BIGENDIAN	    
+#ifdef WORDS_BIGENDIAN	    
 	    byteswap8(mem);  /* convert little endian to big endian */
 #endif
 	    vector = (unsigned int*)mem;

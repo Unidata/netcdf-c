@@ -19,7 +19,9 @@ Common utilities related to filters.
 
 
 /* Forward */
+#ifdef WORDS_BIGENDIAN
 static void byteswap8(unsigned char* mem);
+#endif
 
 /**************************************************/
 /*
@@ -134,8 +136,8 @@ NC_parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsign
 	    if(stat != 1) goto fail;
 	    /* convert to network byte order */
 	    memcpy(mem,&vald,sizeof(mem));
-#ifndef WORDS_BIGENDIAN	    
-	    byteswap8(mem);  /* convert little endian to big endian */
+#ifdef WORDS_BIGENDIAN
+	    byteswap8(mem);  /* convert big endian to little endian */
 #endif
 	    vector = (unsigned int*)mem;
 	    ulist[nparams++] = vector[0];
@@ -149,8 +151,8 @@ NC_parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsign
 	    if(stat != 1) goto fail;
 	    /* convert to network byte order */
 	    memcpy(mem,&val64u,sizeof(mem));
-#ifndef WORDS_BIGENDIAN	    
-	    byteswap8(mem);  /* convert little endian to big endian */
+#ifdef WORDS_BIGENDIAN	    
+	    byteswap8(mem);  /* convert big endian to little endian */
 #endif
 	    vector = (unsigned int*)mem;
 	    ulist[nparams++] = vector[0];
@@ -175,6 +177,7 @@ fail:
     return 0;
 }
 
+#ifdef WORDS_BIGENDIAN
 /* Byte swap an 8-byte integer in place */
 static void
 byteswap8(unsigned char* mem)
@@ -193,3 +196,4 @@ byteswap8(unsigned char* mem)
     mem[3] = mem[4];
     mem[4] = c;
 }
+#endif

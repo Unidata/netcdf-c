@@ -166,14 +166,15 @@ integer by either sign extension or just padding with zeros in some
 consistent way.
 
 Machine byte order (aka endian-ness) is an issue for passing
-parameters. You might define the parameters when compressing
-on a little endian machine, but later do the decompression
-on a big endian machine. Byte order is not an issue for 32-bit values because
-HDF5 takes care of converting them between the local machine byte order
-and network byte order.
+some kinds of parameters. You might define the parameters when
+compressing on a little endian machine, but later do the
+decompression on a big endian machine. Byte order is not an
+issue for 32-bit values because HDF5 takes care of converting
+them between the local machine byte order and network byte
+order.
 
 Parameters whose size is larger than 32-bits present a byte order problem.
-This typically includes double precision floats or (signed or unsigned)
+This typically includes double precision floats and (signed or unsigned)
 64-bit integers. For these cases, the machine byte order must be
 handled by the compression code. This is because HDF5 will treat,
 for example, an unsigned long long as two 32-bit unsigned integers
@@ -209,10 +210,12 @@ where #1 is the original number, #2 is the network order and
 #3 is the what is given to the filter. In this case we do not
 want to swap words.
 
-The solution is to forcibly encode the original number in network
-byte order (big-endian) so that the filter always assumes it is getting
-its parameters in network order and will always do swapping as needed.
-This is irritating, but one needs to be aware of it.
+The solution is to forcibly encode the original number using some
+specified endianness so that the filter always assumes it is getting
+its parameters in that order and will always do swapping as needed.
+This is irritating, but one needs to be aware of it. Since most
+machines are little-endian. We choose to use that as the endianness
+for handling 64 bit entities.
 
 Filter Specification Syntax {#Syntax}
 ==========
@@ -349,9 +352,10 @@ plugins for other filters.
 Appendix A. Byte Swap Code {#AppendixA}
 ==========
 Since in some cases, it is necessary for a filter to
-byte swap from network byte order to little endian, This appendix
+byte swap from little-endian to big-endian, This appendix
 provides sample code for doing this. It also provides
-a code snippet for testing if the machine is big-endian.
+a code snippet for testing if the machine the
+endianness of a machine.
 
 Byte swap an 8-byte chunk of memory
 -------
@@ -359,7 +363,7 @@ Byte swap an 8-byte chunk of memory
 static void
 byteswap8(unsigned char* mem)
 {
-    unsigned char c;
+    register unsigned char c;
     c = mem[0];
     mem[0] = mem[7];
     mem[7] = c;
@@ -376,11 +380,11 @@ byteswap8(unsigned char* mem)
 
 ````
 
-Test for Big-Endian Machine
+Test for Machine Endianness
 -------
 ````
 static const unsigned char b[4] = {0x0,0x0,0x0,0x1}; /* value 1 in big-endian*/
-int bigendian = (1 == *(unsigned int*)b);
+int endianness = (1 == *(unsigned int*)b); /* 1=>big 0=>little endian
 ````
 
 References {#References}
