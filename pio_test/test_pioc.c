@@ -754,10 +754,14 @@ int define_metadata(int ncid, int my_rank, int flavor)
     /* This does not work for pnetcdf, but probably should. */
     if (flavor != PIO_IOTYPE_PNETCDF)
     {
+	int local_nofill;
+	
         if ((ret = PIOc_inq_var_fill(ncid, varid, NULL, &int_fill_in)))
             ERR(ret);
         if (int_fill_in != int_fill)
             ERR(ERR_WRONG);
+        if ((ret = PIOc_inq_var_fill(ncid, varid, &local_nofill, NULL)))
+            ERR(ret);
         if ((ret = PIOc_inq_var_fill(ncid, varid, NULL, NULL)))
             ERR(ret);
     }

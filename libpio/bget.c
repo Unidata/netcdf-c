@@ -619,7 +619,9 @@ bufsize requested_size;
     //   maxsize=requested_size;
     //   printf("%s %d %d\n",__FILE__,__LINE__,maxsize);
     // }
+    LOG((3, "about to allocate %d", requested_size));
     buf = malloc(requested_size);
+    LOG((3, "allocated %d", requested_size));
     //    printf("bget allocate %ld %x\n",requested_size,buf);
     return(buf);
 #endif

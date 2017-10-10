@@ -2486,7 +2486,6 @@ int PIOc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
                 ierr = nc_inq_var_fill(file->fh, varid, no_fill, fill_valuep);
                 if (no_fill)
                     ierr = find_fill_value(file->fh, varid, xtype, fill_valuep);
-                LOG((3, "*((float *)fill_valuep) %g", *((float *)fill_valuep)));
             }
 #endif /* _NETCDF */
         }

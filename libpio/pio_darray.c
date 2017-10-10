@@ -528,7 +528,7 @@ int PIOc_write_darray(int ncid, int varid, int ioid, PIO_Offset arraylen, void *
     /* If we don't know the fill value for this var, get it. */
     if (!vdesc->fillvalue)
         if ((ierr = find_var_fillvalue(file, varid, vdesc)))
-            return pio_err(ios, file, PIO_EBADID, __FILE__, __LINE__);
+            return pio_err(ios, file, ierr, __FILE__, __LINE__);
 
     /* Check that if the user passed a fill value, it is correct. */
     if (fillvalue)
@@ -548,9 +548,13 @@ int PIOc_write_darray(int ncid, int varid, int ioid, PIO_Offset arraylen, void *
     /* If we did not find an existing wmb entry, create a new wmb. */
     if (wmb->ioid != ioid || wmb->recordvar != vdesc->rec_var)
     {
-        /* Allocate a buffer. */
+	/* Allocate a buffer. */
+	LOG((3, "about to allocate multibuffer, size %d", sizeof(wmulti_buffer)));
         if (!(wmb->next = bget((bufsize)sizeof(wmulti_buffer))))
             return pio_err(ios, file, PIO_ENOMEM, __FILE__, __LINE__);
+        /* if (!(wmb->next = malloc(sizeof(wmulti_buffer)))) */
+        /*     return pio_err(ios, file, PIO_ENOMEM, __FILE__, __LINE__); */
+	LOG((3, "allocated multibuffer, size %d", sizeof(wmulti_buffer)));
 
         /* Set pointer to newly allocated buffer and initialize.*/
         wmb = wmb->next;

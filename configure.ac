@@ -1112,11 +1112,12 @@ if test "x$enable_pio" = xyes -a "x$enable_logging" = xyes; then
    AC_DEFINE([PIO_ENABLE_LOGGING], [1], [log messages from library])
 fi
 
-# The PIO version.
+# The PIO version and other necessary PIO values.
 if test "x$enable_pio" = xyes; then
    AC_DEFINE([PIO_VERSION_MAJOR], [2], [PIO major version])
    AC_DEFINE([PIO_VERSION_MINOR], [3], [PIO minor version])
    AC_DEFINE([PIO_VERSION_PATCH], [0], [PIO patch version])
+   AC_DEFINE([PIO_USE_MALLOC], [1], [PIO always uses malloc in netCDF integration])
 fi
 
 # Now, set enable_parallel if pnetcdf, parallel4, or pio is set
