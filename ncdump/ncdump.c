@@ -1060,7 +1060,7 @@ pr_att_specials(
 	if(nc_inq_var_filter(ncid, varid, &id, &nparams, NULL) == NC_NOERR
 	   && id > 0) {
 	    if(nparams > 0) {
-	        params = (unsigned int*)malloc(sizeof(unsigned int)*nparams);
+	        params = (unsigned int*)calloc(1,sizeof(unsigned int)*nparams);
 	        NC_CHECK(nc_inq_var_filter(ncid, varid, &id, &nparams, params));
 	    }
 	    pr_att_name(ncid,varp->name,NC_ATT_FILTER);

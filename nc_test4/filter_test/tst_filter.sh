@@ -6,11 +6,13 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 export HDF5_PLUGIN_PATH=`pwd`
 
+# Which test cases to exercise
 API=1
 NG=1
 NCP=1
 UNK=1
 NGC=1
+MISC=1
 
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent
@@ -23,6 +25,16 @@ cat $1 \
   | cat > $2
 }
 
+# Function to extract _Filter attribute from a file
+# These attributes might be platform dependent
+getfilterattr() {
+sed -e '/var:_Filter/p' -ed <$1 >$2
+}
+
+trimleft() {
+sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
+}
+
 if test "x$API" = x1 ; then
 echo "*** Testing dynamic filters using API"
 rm -f ./bzip2.nc ./bzip2.dump ./tmp
@@ -32,6 +44,25 @@ $NCDUMP -s ./bzip2.nc > ./tmp
 sclean ./tmp ./bzip2.dump
 diff -b -w ${srcdir}/bzip2.cdl ./bzip2.dump
 echo "*** Pass: API dynamic filter"
+fi
+
+if test "x$MISC" = x1 ; then
+echo
+echo "*** Testing dynamic filters parameter passing"
+rm -f ./testmisc.nc tmp tmp2
+${execdir}/test_misc
+# Verify the parameters via ncdump
+$NCDUMP -s ./testmisc.nc > ./tmp
+# Extract the parameters
+getfilterattr ./tmp ./tmp2
+rm -f ./tmp
+trimleft ./tmp2 ./tmp
+rm -f ./tmp2
+cat >./tmp2 <<EOF
+var:_Filter = "32768,1,4294967279,23,4294967271,27,77,93,1145389056,697067329,2723935171,128,16777216,4294967295,4294967295" ;
+EOF
+diff -b -w ./tmp ./tmp2
+echo "*** Pass: parameter passing"
 fi
 
 if test "x$NG" = x1 ; then
@@ -93,4 +124,5 @@ fi
 #cleanup
 rm -f ./bzip*.nc ./unfiltered.nc ./filtered.nc ./tmp ./tmp2 *.dump bzip*hdr.*
 rm -fr ./test_bzip2.c
+rm -fr ./testmisc.nc
 exit 0

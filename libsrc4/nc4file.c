@@ -1562,11 +1562,10 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    char att_name[NC_MAX_HDF5_NAME + 1];
 
 #define CD_NELEMS_ZLIB 1
-#define CD_NELEMS_SZIP 4
    H5Z_filter_t filter;
    int num_filters;
-   unsigned int cd_values[CD_NELEMS_SZIP];
-   size_t cd_nelems = CD_NELEMS_SZIP;
+   unsigned int cd_values_zip[CD_NELEMS_ZLIB];
+   size_t cd_nelems = CD_NELEMS_ZLIB;
    hid_t propid = 0;
    H5D_fill_value_t fill_status;
    H5D_layout_t layout;
@@ -1643,7 +1642,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    var->hash = hash_fast(var->name, strlen(var->name));
    /* Find out what filters are applied to this HDF5 dataset,
     * fletcher32, deflate, and/or shuffle. All other filters are
-    * ignored. */
+    * just dumped */
    if ((propid = H5Dget_create_plist(datasetid)) < 0)
       BAIL(NC_EHDFERR);
 #ifdef EXTRA_TESTS
@@ -1672,7 +1671,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    for (f = 0; f < num_filters; f++)
    {
       if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
-                                   cd_values, 0, NULL, NULL)) < 0)
+                                   cd_values_zip, 0, NULL, NULL)) < 0)
          BAIL(NC_EHDFERR);
       switch (filter)
       {
@@ -1686,9 +1685,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
          case H5Z_FILTER_DEFLATE:
             var->deflate = NC_TRUE;
-            if (cd_nelems != CD_NELEMS_ZLIB || cd_values[0] > MAX_DEFLATE_LEVEL)
+            if (cd_nelems != CD_NELEMS_ZLIB || cd_values_zip[0] > MAX_DEFLATE_LEVEL)
                BAIL(NC_EHDFERR);
-            var->deflate_level = cd_values[0];
+            var->deflate_level = cd_values_zip[0];
             break;
 
 	default:
@@ -1697,10 +1696,13 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 	    if(cd_nelems == 0)
 	        var->params = NULL;
 	    else {
-	        var->params = (unsigned int*)malloc(sizeof(unsigned int)*var->nparams);
+		/* We have to re-read the parameters based on actual nparams */
+	        var->params = (unsigned int*)calloc(1,sizeof(unsigned int)*var->nparams);
 		if(var->params == NULL)
 		    BAIL(NC_ENOMEM);
-		memcpy(var->params,cd_values,sizeof(unsigned int)*var->nparams);
+                if((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
+                                   var->params, 0, NULL, NULL)) < 0)
+		    BAIL(NC_EHDFERR);
 	    }
             break;
       }

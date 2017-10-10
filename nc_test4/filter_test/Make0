@@ -1,5 +1,5 @@
 # Test c output
-T=test_filter
+T=test_misc
 #CMD=valgrind --leak-check=full
 CMD=gdb --args
 

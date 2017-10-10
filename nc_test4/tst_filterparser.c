@@ -1,4 +1,3 @@
-
 /*
   Copyright 2008, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
@@ -17,20 +16,20 @@
 #define PARAMS_ID 32768
 
 static const unsigned int baseline[] = {
--17, /*0 signed int*/
-23,  /*1 unsigned int*/
--25, /*2 signed int*/
-27,  /*3 unsigned int*/
-77,  /*4 signed int*/
-93,  /*5 unsigned int*/
-1145389056U, /*6 float*/
-697067329, 2723935171,    /*7-8 double*/
-128, 16777216,            /*9-10 signed long long*/
-4294967295, 4294967295,   /*11-12 unsigned long long*/
+-17, /* 0 signed int*/
+23,  /* 1 unsigned int*/
+-25, /* 2 signed int*/
+27,  /* 3 unsigned int*/
+77,  /* 4 signed int*/
+93,  /* 5 unsigned int*/
+1145389056U, /* 6 float*/
+697067329, 2723935171,    /* 7-8 double*/
+128, 16777216,            /* 9-10 signed long long*/
+4294967295, 4294967295,   /* 11-12 unsigned long long*/
 /* Edge cases */
-2147483647,   /*13 max signed int*/
--2147483648,  /*14 min signed int*/
-4294967295    /*15 max unsigned int with no trailing U*/
+2147483647,   /* 13 max signed int*/
+-2147483648,  /* 14 min signed int*/
+4294967295    /* 15 max unsigned int with no trailing U*/
 };
 
 static const char* spec = 
