@@ -427,8 +427,10 @@ occlose(OCstate* state)
     ocfree(state->ssl.cainfo);
     ocfree(state->ssl.capath);
     ocfree(state->proxy.host);
-    ocfree(state->proxy.userpwd);
-    ocfree(state->creds.userpwd);
+    ocfree(state->proxy.user);
+    ocfree(state->proxy.pwd);
+    ocfree(state->creds.user);
+    ocfree(state->creds.pwd);
     if(state->curl != NULL) occurlclose(state->curl);
     ocfree(state);
 }
@@ -606,7 +608,6 @@ ocset_curlproperties(OCstate* state)
         if(path == NULL) return OC_ENOMEM;
         occopycat(path,len,3,ocglobalstate.tempdir,"/","occookies");
         stat = ocmktmp(path,&name);
-fprintf(stderr,"%s => %s\n",state->uri->uri,name); fflush(stderr);
         free(path);
 	state->curlflags.cookiejar = name;
 	state->curlflags.createdflags |= COOKIECREATED;

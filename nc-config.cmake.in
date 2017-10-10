@@ -13,10 +13,8 @@ cc="@CMAKE_C_COMPILER@"
 cflags="-I@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
 libs="-L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@ @NC_LIBS@"
 
-if [ -z "@USE_DAP@" -o -z "@ENABLE_DAP2@" ] ; then
-has_dap2=ON
-fi
-if [ -z $has_dap2 ]; then
+has_dap2="@ENABLE_DAP2@"
+if [ -z $has_dap2 -o "$has_dap2" = "OFF" ]; then
     has_dap2="no"
 else
     has_dap2="yes"
@@ -32,52 +30,59 @@ fi
 has_nc2="@BUILD_V2@"
 
 
-if [ -z $has_nc2 -o "$has_nc2" = "OFF" ]; then
+if [ -z "$has_nc2" -o "$has_nc2" = "OFF" ]; then
     has_nc2="no"
 else
     has_nc2="yes"
 fi
 
 has_nc4="@USE_NETCDF4@"
-if [ -z $has_nc4 ]; then
+if [ -z "$has_nc4" -o "$has_nc4" = "OFF" ]; then
     has_nc4="no"
 else
     has_nc4="yes"
 fi
 
 has_logging="@ENABLE_LOGGING@"
-if [ -z $has_logging ]; then
+if [ -z "$has_logging" -o "$has_logging" = "OFF" ]; then
     has_logging="no"
 else
     has_logging="yes"
 fi
 
 has_hdf4="@USE_HDF4@"
-if [ -z $has_hdf4 ]; then
+if [ -z "$has_hdf4" -o "$has_hdf4" = "OFF" ]; then
     has_hdf4="no"
 else
     has_hdf4="yes"
 fi
 
 has_pnetcdf="@USE_PNETCDF@"
-if [ -z $has_pnetcdf ]; then
+if [ -z "$has_pnetcdf" -o "$has_pnetcdf" = "OFF" ]; then
     has_pnetcdf="no"
 else
     has_pnetcdf="yes"
 fi
 
 has_hdf5="@USE_HDF5@"
-if [ -z $has_hdf5 -o "$has_hdf5" = "OFF" ]; then
+if [ -z "$has_hdf5" -o "$has_hdf5" = "OFF" ]; then
     has_hdf5="no"
 else
     has_hdf5="yes"
 fi
 
 has_szlib="@USE_SZLIB@"
-if [ -z $has_szlib ]; then
+if [ -z "$has_szlib" -o "$has_szlib" = "OFF" ]; then
     has_szlib="no"
 else
     has_szlib="yes"
+fi
+
+has_cdf5="@ENABLE_CDF5@"
+if [ -z "has_cdf5" -o "$has_cdf5" = "OFF" -o "$has_cdf5" = "FALSE" ]; then
+    has_cdf5="no"
+else
+    has_cdf5="yes"
 fi
 
 
@@ -141,6 +146,7 @@ Available values for OPTION include:
   --has-logging whether logging is enabled with --enable-logging.
   --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
   --has-szlib   whether szlib is included in build
+  --has-cdf5    whether cdf5 support is included in build
   --libs        library linking information for netcdf
   --prefix      Install prefix
   --includedir  Include directory
@@ -217,6 +223,7 @@ fi
         echo "  --has-logging-> $has_logging"
         echo "  --has-pnetcdf-> $has_pnetcdf"
         echo "  --has-szlib -> $has_szlib"
+        echo "  --has-cdf5 -> $has_cdf5"
 	echo
         echo "  --prefix    -> $prefix"
         echo "  --includedir-> $includedir"
@@ -295,6 +302,10 @@ while test $# -gt 0; do
     --has-szlib)
        	echo $has_szlib
        	;;
+
+    --has-cdf5)
+        echo $has_cdf5
+        ;;
 
      --libs)
        	echo $libs

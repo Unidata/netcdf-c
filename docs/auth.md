@@ -1,5 +1,5 @@
 netCDF Authorization Support
-============================
+======================================
 <!-- double header is needed to workaround doxygen bug -->
 
 # netCDF Authorization Support {#Header}
@@ -37,29 +37,92 @@ directly insert the username and the password into a url in this form.
 This username and password will be used if the server asks for
 authentication. Note that only simple password authentication
 is supported in this format.
+
 Specifically note that [redirection-based](#REDIR)
-authorization will not work with this because the username and password
-will only be used on the initial request, not the redirection
+authorization may work with this but it is a security risk.
+This is because the username and password
+may be sent to each server in the redirection chain.
+
+Note also that the `user:password` form may contain characters that must be
+escaped. See the <a href="#USERPWDESCAPE">password escaping</a> section to see
+how to properly escape the user and password.
 
 ## RC File Authentication {#DODSRC}
 The netcdf library supports an _rc_ file mechanism to allow the passing
 of a number of parameters to libnetcdf and libcurl.
+Locating the _rc_ file is a multi-step process.
+
+### Search Order
 
 The file must be called one of the following names:
 ".daprc" or ".dodsrc".
 If both ".daprc" and ".dodsrc" exist, then
 the ".daprc" file will take precedence.
 
-The rc file is searched for first in the current directory
-and then in the home directory (as defined by the HOME environment
-variable).
+It is strongly suggested that you pick one of the two names
+and use it always. Otherwise you may observe unexpected results
+when the netcdf-c library finds one that you did not intend.
+
+The search for an _rc_ file looks in the following places in this order.
+
+1. Check for the environment variable named _DAPRCFILE_.
+   This will specify the full path for the _rc_ file
+   (not just the containing directory).
+2. Search the current working directory (`./`) looking
+   for (in order) .daprc or .dodsrc.
+3. Search the HOME directory (`$HOME`) looking
+   for (in order) .daprc or .dodsrc. The HOME environment
+   variable is used to define the directory in which to search.
+
+It is strongly suggested that you pick a uniform location
+and use it always. Otherwise you may observe unexpected results
+when the netcdf-c library get an rc file you did not expect.
+
+### RC File Format
 
 The rc file format is a series of lines of the general form:
 
     [<host:port>]<key>=<value>
 
-where the bracket-enclosed host:port is optional and will be discussed
-subsequently.
+where the bracket-enclosed host:port is optional.
+
+### URL Constrained RC File Entries
+
+Each line of the rc file can begin with
+a host+port enclosed in square brackets.
+The form is "host:port".
+If the port is not specified
+then the form is just "host".
+The reason that more of the url is not used is that
+libcurl's authorization grain is not any finer than host level.
+
+Examples.
+
+    [remotetest.unidata.ucar.edu]HTTP.VERBOSE=1
+
+or
+
+    [fake.ucar.edu:9090]HTTP.VERBOSE=0
+
+If the url request from, say, the _netcdf_open_ method
+has a host+port matching one of the prefixes in the rc file, then
+the corresponding entry will be used, otherwise ignored.
+This means that an entry with a matching host+port will take
+precedence over an entry without a host+port.
+
+For example, the URL
+
+    http://remotetest.unidata.ucar.edu/thredds/dodsC/testdata/testData.nc
+
+will have HTTP.VERBOSE set to 1 because its host matches the example above.
+
+Similarly,
+
+    http://fake.ucar.edu:9090/dts/test.01
+
+will have HTTP.VERBOSE set to 0 because its host+port matches the example above.
+
+## Authorization-Related Keys {#AUTHKEYS}
 
 The currently defined set of authorization-related keys are as follows.
 The second column is the affected curl_easy_setopt option(s), if any.
@@ -71,12 +134,12 @@ The second column is the affected curl_easy_setopt option(s), if any.
 <tr><td>HTTP.SSL.CERTIFICATE</td><td>CURLOPT_SSLCERT</td>
 <tr><td>HTTP.SSL.KEY</td><td>CURLOPT_SSLKEY</td>
 <tr><td>HTTP.SSL.KEYPASSWORD</td><td>CURLOPT_KEYPASSWORD</td>
-<tr><td>HTTP.SSL.CAINFO</td><td>CURLOPT_SSLCAINFO</td>
-<tr><td>HTTP.SSL.CAPATH</td><td>CURLOPT_SSLCAPATH</td>
+<tr><td>HTTP.SSL.CAINFO</td><td>CURLOPT_CAINFO</td>
+<tr><td>HTTP.SSL.CAPATH</td><td>CURLOPT_CAPATH</td>
 <tr><td>HTTP.SSL.VERIFYPEER</td><td>CURLOPT_SSL_VERIFYPEER</td>
 <tr><td>HTTP.SSL.VALIDATE</td><td>CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST</td>
 <tr><td>HTTP.CREDENTIALS.USERPASSWORD</td><td>CURLOPT_USERPASSWORD</td>
-<tr><td>HTTP.NETRC</td><td>N.A.</td><td>Specify path of the .netrc file</td>
+<tr><td>HTTP.NETRC</td><td>CURLOPT_NETRC,CURLOPT_NETRC_FILE</td>
 </table>
 
 ### Password Authentication
@@ -86,7 +149,9 @@ HTTP.CREDENTIALS.USERPASSWORD
 can be used to set the simple password authentication.
 This is an alternative to setting it in the url.
 The value must be of the form "username:password".
-See <a href="#REDIR">redirection authorization</a>
+See the <a href="#USERPWDESCAPE">password escaping</a> section
+to see how this value must escape certain characters.
+Also see <a href="#REDIR">redirection authorization</a>
 for important additional information.
 
 ### Cookie Jar
@@ -129,6 +194,29 @@ specifies the absolute path of the .netrc file.
 See [redirection authorization](#REDIR)
 for information about using .netrc.
 
+## Password Escaping {#USERPWDESCAPE}
+
+With current password rules, it is is not unlikely that the password
+will contain characters that need to be escaped. Similarly, the user
+may contain characters such as '@' that need to be escaped. To support this,
+it is assumed that all occurrences of `user:password` use URL (i.e. %%XX)
+escaping for at least the characters in the table below.
+
+The minimum set of characters that must be escaped depends on the location.
+If the user+pwd is embedded in the URL, then '@' and ':' __must__ be escaped.
+If the user+pwd is the value for 
+the HTTP.CREDENTIALS.USERPASSWORD key in the _rc_ file, then
+':' __must__ be escaped.
+Escaping should __not__ be used in the `.netrc` file.
+
+The relevant escape codes are as follows.
+<table>
+<tr><th>Character</th><th>Escaped Form</th>
+<tr><td>'@'</td><td>%40</td>
+<tr><td>':'</td><td>%3a</td>
+</table>
+Additional characters can be escaped if desired.
+
 ## Redirection-Based Authentication {#REDIR}
 
 Some sites provide authentication by using a third party site
@@ -145,16 +233,18 @@ using the _https_ protocol (note the use of _https_ instead of _http_).
 4. URS sends a redirect (with authorization information) to send
 the client back to the SOI to actually obtain the data.
 
-It turns out that libcurl uses the password in the `.daprc`
-file (or from the url)
-only for the initial connection. This causes problems because
-the redirected connection is the one that actually requires the password.
-This is where the `.netrc` file comes in. Libcurl will use `.netrc` for
-the redirected connection. It is possible to cause libcurl to use
-the `.daprc` password always, but this introduces a security hole
-because it may send the initial user+pwd to the redirection site.
-In summary, if you are using redirection, then you must create a `.netrc`
-file to hold the password for the site to which the redirection is sent.
+It turns out that libcurl, by default, uses the password in the
+`.daprc` file (or from the url) for all connections that request
+a password.  This causes problems because only the the specific
+redirected connection is the one that actually requires the password.
+This is where the `.netrc` file comes in. Libcurl will use `.netrc`
+for the redirected connection. It is possible to cause libcurl
+to use the `.daprc` password always, but this introduces a
+security hole because it may send the initial user+pwd to every
+server in the redirection chain.
+In summary, if you are using redirection, then you are
+''strongly'' encouraged to create a `.netrc` file to hold the
+password for the site to which the redirection is sent.
 
 The format of this `.netrc` file will contain lines that
 typically look like this.
@@ -165,51 +255,18 @@ where the machine, mmmmmm, is the hostname of the machine to
 which the client is redirected for authorization, and the
 login and password are those needed to authenticate on that machine.
 
-The `.netrc` file can be specified by
+The location of the `.netrc` file can be specified by
 putting the following line in your `.daprc`/`.dodsrc` file.
 
     HTTP.NETRC=<path to netrc file>
+
+If not specified, then libcurl will look first in the current
+directory, and then in the HOME directory.
 
 One final note. In using this, you MUST
 to specify a real file in the file system to act as the
 cookie jar file (HTTP.COOKIEJAR) so that the
 redirect site can properly pass back authorization information.
-
-## URL Constrained RC File Entries {#URLCONS}
-
-Each line of the rc file can begin with
-a host+port enclosed in square brackets.
-The form is "host:port".
-If the port is not specified
-then the form is just "host".
-The reason that more of the url is not used is that
-libcurl's authorization grain is not any finer than host level.
-
-Examples.
-
-    [remotetest.unidata.ucar.edu]HTTP.VERBOSE=1
-
-or
-
-    [fake.ucar.edu:9090]HTTP.VERBOSE=0
-
-If the url request from, say, the _netcdf_open_ method
-has a host+port matching one of the prefixes in the rc file, then
-the corresponding entry will be used, otherwise ignored.
-This means that an entry with a matching host+port will take
-precedence over an entry without a host+port.
-
-For example, the URL
-
-    http://remotetest.unidata.ucar.edu/thredds/dodsC/testdata/testData.nc
-
-will have HTTP.VERBOSE set to 1 because its host matches the example above.
-
-Similarly,
-
-    http://fake.ucar.edu:9090/dts/test.01
-
-will have HTTP.VERBOSE set to 0 because its host+port matches the example above.
 
 ## Client-Side Certificates {#CLIENTCERTS}
 
@@ -244,8 +301,8 @@ the code is definitive.
 <tr><td>HTTP.SSL.CERTIFICATE</td><td>CUROPT_SSLCERT</td>
 <tr><td>HTTP.SSL.KEY</td><td>CUROPT_SSLKEY</td>
 <tr><td>HTTP.SSL.KEYPASSWORD</td><td>CUROPT_KEYPASSWORD</td>
-<tr><td>HTTP.SSL.CAINFO</td><td>CUROPT_SSLCAINFO</td>
-<tr><td>HTTP.SSL.CAPATH</td><td>CUROPT_SSLCAPATH</td>
+<tr><td>HTTP.SSL.CAINFO</td><td>CUROPT_CAINFO</td>
+<tr><td>HTTP.SSL.CAPATH</td><td>CUROPT_CAPATH</td>
 <tr><td>HTTP.SSL.VERIFYPEER</td><td>CUROPT_SSL_VERIFYPEER</td>
 <tr><td>HTTP.CREDENTIALS.USERPASSWORD</td><td>CUROPT_USERPASSWORD</td>
 <tr><td>HTTP.NETRC</td><td>CURLOPT_NETRC,CURLOPT_NETRC_FILE</td>

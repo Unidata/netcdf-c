@@ -63,13 +63,17 @@ endif
 endif
 
 if USE_NETCDF4
+TESTS += tst_inttags4.sh
+endif
+
+if USE_NETCDF4
 # NetCDF-4 has some extra tests.
 check_PROGRAMS += tst_create_files tst_h_rdc0 tst_group_data		\
 tst_enum_data tst_opaque_data tst_string_data tst_vlen_data tst_comp	\
 tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug tst_compress \
 tst_chunking tst_h_scalar tst_bug324
 
-TESTS += tst_inttags4.sh tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
+TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
 tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug	\
 tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh             \
@@ -110,7 +114,10 @@ endif
 
 endif BUILD_TESTSETS
 
-CLEANFILES = test0.nc test1.cdl test1.nc test2.cdl ctest1.cdl	\
+CLEANFILES = test0.nc test1_ncdump.cdl test1_ncdump.nc test2_ncdump.cdl \
+test1.cdl test0_ncdump.nc ctest1.cdl \
+test1_cdf5.nc test1_cdf5.cdl test0_cdf5.nc test2_cdf5.nc test2_cdf5.cdl \
+test0_offset.nc test1_offset.nc test1_offset.cdl test2_offset.nc test2_offset.cdl \
 ctest0.nc ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl c0.nc c0_4.nc small.nc	\
 small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc	\
 tmp.cdl tst_vlen_data.nc tst_utf8.nc tst_special_atts.nc		\
@@ -138,7 +145,7 @@ ref_tst_compounds.nc ref_tst_dims.nc ref_tst_interops4.nc \
 ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc nccopy3_subset_out.nc
 
 # These files all have to be included with the distribution.
-EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl		\
+EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl \
 ref_ctest1_nc4.cdl ref_ctest1_nc4c.cdl ref_tst_solar_1.cdl		\
 ref_tst_solar_2.cdl tst_netcdf4.sh tst_netcdf4_4.sh ref_tst_small.cdl	\
 tst_lengths.sh tst_ncml.cdl ref1.ncml ref_tst_group_data.cdl		\
