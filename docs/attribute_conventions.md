@@ -33,6 +33,9 @@ It is strongly recommended that applicable conventions be followed unless there 
 
 > **Note that if you change the value of this attribute, the changed value applies only to subsequent writes; previously written data are not changed.**
 
+`_NoFill`
+
+> This attribute is not treated in any special way by the library or conforming generic application, but it is interpreted by the `ncgen` utility when converting a CDL file to a binary netCDF files.  It is the equivalent of applying `nc_set_fill(ncid, NC_NOFILL, null)`.
 
 `missing_value`
 
