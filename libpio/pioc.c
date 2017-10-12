@@ -785,6 +785,13 @@ int PIOc_InitDecomp_bc(int iosysid, int pio_type, int ndims, const int *gdimlen,
  * @ingroup PIO_init
  * @author Jim Edwards, Ed Hartnett
  */
+int nc_init_intracomm(MPI_Comm comp_comm, int num_iotasks, int stride, int base,
+		      int rearr, int *iosysidp)
+{
+    return PIOc_Init_Intracomm(comp_comm, num_iotasks, stride, base, rearr, iosysidp);
+}
+
+/* Internal version of function. */
 int PIOc_Init_Intracomm(MPI_Comm comp_comm, int num_iotasks, int stride, int base,
                         int rearr, int *iosysidp)
 {
@@ -1015,6 +1022,12 @@ int PIOc_set_hint(int iosysid, const char *hint, const char *hintval)
  * @ingroup PIO_finalize
  * @author Jim Edwards, Ed Hartnett
  */
+int nc_finalize2(int iosysid)
+{
+    return PIOc_finalize(iosysid);
+}
+
+/* Internal function. */
 int PIOc_finalize(int iosysid)
 {
     iosystem_desc_t *ios;

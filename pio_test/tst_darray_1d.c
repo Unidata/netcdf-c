@@ -72,11 +72,11 @@ int create_decomposition_1d(int ntasks, int my_rank, int iosysid, int pio_type, 
     compdof[0] = my_rank;
 
     /* This means fill value will be used here. */
-    compdof[1] = 0;
+    compdof[1] = -1;
 
     /* Create the PIO decomposition for this test. */
     if ((ret = nc_init_decomp(iosysid, pio_type, NDIM, dim_len_1d, elements_per_pe,
-			      compdof, ioid, NULL, NULL, NULL)))
+    				compdof, ioid, 0, NULL, NULL)))
         ERR(ret);
 
     return 0;
@@ -702,12 +702,12 @@ int test_decomp_read_write(int iosysid, int ioid, int num_flavors, int *flavor, 
         /* Create the filename. */
         sprintf(filename, "decomp_%s_iotype_%d.nc", TEST_NAME, flavor[fmt]);
 
-        if ((ret = PIOc_write_nc_decomp(iosysid, filename, 0, ioid, NULL, NULL, 0)))
+        if ((ret = nc_write_decomp(iosysid, filename, 0, ioid, NULL, NULL, 0)))
             return ret;
 
         /* Read the data. */
-        if ((ret = PIOc_read_nc_decomp(iosysid, filename, &ioid2, test_comm, pio_type,
-                                       title_in, history_in, &fortran_order_in)))
+        if ((ret = nc_read_decomp(iosysid, filename, &ioid2, test_comm, pio_type,
+				  title_in, history_in, &fortran_order_in)))
             return ret;
 
         /* Check the results. */
@@ -784,7 +784,7 @@ int test_decomp_read_write(int iosysid, int ioid, int num_flavors, int *flavor, 
         }
 
         /* Free the PIO decomposition. */
-        if ((ret = PIOc_freedecomp(iosysid, ioid2)))
+        if ((ret = nc_free_decomp(iosysid, ioid2)))
             ERR(ret);
     }
     return PIO_NOERR;
@@ -835,8 +835,8 @@ int main(int argc, char **argv)
         {
             /* Initialize the PIO IO system. This specifies how many and
              * which processors are involved in I/O. */
-            if ((ret = PIOc_Init_Intracomm(test_comm, TARGET_NTASKS, ioproc_stride,
-                                           ioproc_start, rearranger[r], &iosysid)))
+            if ((ret = nc_init_intracomm(test_comm, TARGET_NTASKS, ioproc_stride,
+					 ioproc_start, rearranger[r], &iosysid)))
                 return ret;
 
             /* Run tests for each data type. */
@@ -863,12 +863,12 @@ int main(int argc, char **argv)
                     return ret;
 
                 /* Free the PIO decomposition. */
-                if ((ret = PIOc_freedecomp(iosysid, ioid)))
+                if ((ret = nc_free_decomp(iosysid, ioid)))
                     ERR(ret);
             }
 
             /* Finalize PIO system. */
-            if ((ret = PIOc_finalize(iosysid)))
+            if ((ret = nc_finalize2(iosysid)))
                 return ret;
         } /* next rearranger */
 

@@ -724,6 +724,11 @@ void free_region_list(io_region *top)
  * @returns 0 for success, error code otherwise.
  * @author Jim Edwards
  */
+int nc_free_decomp(int iosysid, int ioid)
+{
+    return PIOc_freedecomp(iosysid, ioid);
+}
+
 int PIOc_freedecomp(int iosysid, int ioid)
 {
     iosystem_desc_t *ios;
@@ -973,6 +978,13 @@ int PIOc_readmap_from_f90(const char *file, int *ndims, int **gdims, PIO_Offset 
  * used, or to zero if C array ordering is used.
  * @returns 0 for success, error code otherwise.
  */
+int nc_write_decomp(int iosysid, const char *filename, int cmode, int ioid,
+		    char *title, char *history, int fortran_order)
+{
+    return PIOc_write_nc_decomp(iosysid, filename, cmode, ioid, title,
+				history, fortran_order);
+}
+
 int PIOc_write_nc_decomp(int iosysid, const char *filename, int cmode, int ioid,
                          char *title, char *history, int fortran_order)
 {
@@ -1072,6 +1084,13 @@ int PIOc_write_nc_decomp(int iosysid, const char *filename, int cmode, int ioid,
  * ordering is used, or to zero if C array ordering is used.
  * @returns 0 for success, error code otherwise.
  */
+int nc_read_decomp(int iosysid, const char *filename, int *ioidp, MPI_Comm comm,
+		   int pio_type, char *title, char *history, int *fortran_order)
+{
+    return PIOc_read_nc_decomp(iosysid, filename, ioidp, comm, pio_type, title,
+			       history, fortran_order);
+}
+
 int PIOc_read_nc_decomp(int iosysid, const char *filename, int *ioidp, MPI_Comm comm,
                         int pio_type, char *title, char *history, int *fortran_order)
 {

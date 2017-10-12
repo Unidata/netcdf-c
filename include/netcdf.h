@@ -1732,16 +1732,6 @@ nc_set_log_level(int new_level);
 EXTERNL int
 nc_show_metadata(int ncid);
 
-/* PIO functions. */
-#ifndef PIO_Offset
-typedef long long int PIO_Offset;
-#endif
-
-/* Init decomposition with 0-based compmap array. */
-int nc_init_decomp(int iosysid, int pio_type, int ndims, const int *gdimlen, int maplen,
-		   const PIO_Offset *compmap, int *ioidp, int rearranger,
-		   const PIO_Offset *iostart, const PIO_Offset *iocount);
-
 /* End {put,get}_var */
 
 /* #ifdef _CRAYMPP */

@@ -45,6 +45,37 @@ extern int
 nc_open_par_fortran(const char *path, int mode, int comm,
 		    int info, int *ncidp);
 
+/* PIO functions. */
+#ifndef PIO_Offset
+typedef long long int PIO_Offset;
+#endif
+
+/* Init decomposition with 0-based compmap array. */
+extern int
+nc_init_decomp(int iosysid, int pio_type, int ndims, const int *gdimlen, int maplen,
+	       const PIO_Offset *compmap, int *ioidp, int rearranger,
+	       const PIO_Offset *iostart, const PIO_Offset *iocount);
+
+/* Read a decomposition file. */
+int nc_read_decomp(int iosysid, const char *filename, int *ioidp, MPI_Comm comm,
+		   int pio_type, char *title, char *history, int *fortran_order);
+
+/* Write a decomposition file. */
+int nc_write_decomp(int iosysid, const char *filename, int cmode, int ioid,
+		    char *title, char *history, int fortran_order);
+
+/* Creates an MPI intracommunicator between a set of IO tasks and one
+ * or more sets of computational tasks. */
+extern int
+nc_init_intracomm(MPI_Comm comp_comm, int num_iotasks, int stride, int base,
+		  int rearr, int *iosysidp);
+
+/* Free a decomposition map. */
+int nc_free_decomp(int iosysid, int ioid);    
+
+/* Finalize an IO system for PIO. */
+int nc_finalize2(int iosysid);
+
 #if defined(__cplusplus)
 }
 #endif
