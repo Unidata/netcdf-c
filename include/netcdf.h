@@ -157,6 +157,8 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 #define NC_PNETCDF       (NC_MPIIO) /**< Use parallel-netcdf library; alias for NC_MPIIO. */
 
+#define NC_PIO           0x9000  /**< Read from memory. Mode flag for nc_open() or nc_create(). */
+
 /** Format specifier for nc_set_default_format() and returned
  *  by nc_inq_format. This returns the format as provided by
  *  the API. See nc_inq_format_extended to see the true file format.
@@ -206,6 +208,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMATX_PNETCDF   (4)
 #define NC_FORMATX_DAP2      (5)
 #define NC_FORMATX_DAP4      (6)
+#define NC_FORMATX_PIO       (7)
 #define NC_FORMATX_UNDEFINED (0)
 
   /* To avoid breaking compatibility (such as in the python library),
@@ -218,6 +221,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMAT_NC4       NC_FORMATX_NC4 /**< \deprecated As of 4.4.0, use NC_FORMATX_NC4 */
 #define NC_FORMAT_NC_HDF4   NC_FORMATX_NC_HDF4 /**< \deprecated As of 4.4.0, use NC_FORMATX_HDF4 */
 #define NC_FORMAT_PNETCDF   NC_FORMATX_PNETCDF /**< \deprecated As of 4.4.0, use NC_FORMATX_PNETCDF */
+#define NC_FORMAT_PIO       NC_FORMATX_PIO /**< \deprecated As of 4.4.0, use NC_FORMATX_PIO */
 #define NC_FORMAT_DAP2      NC_FORMATX_DAP2 /**< \deprecated As of 4.4.0, use NC_FORMATX_DAP2 */
 #define NC_FORMAT_DAP4      NC_FORMATX_DAP4 /**< \deprecated As of 4.4.0, use NC_FORMATX_DAP4 */
 #define NC_FORMAT_UNDEFINED NC_FORMATX_UNDEFINED /**< \deprecated As of 4.4.0, use NC_FORMATX_UNDEFINED */

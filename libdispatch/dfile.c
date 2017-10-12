@@ -1705,6 +1705,12 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 	model = NC_FORMATX_PNETCDF;
       else
 #endif
+#ifdef USE_PIO
+      /* PIO is used for parallel io. */
+      if((cmode & NC_PIO) == NC_PIO)
+	model = NC_FORMATX_PIO;
+      else
+#endif
 	{}
     }
     if(model == NC_FORMATX_UNDEFINED) {

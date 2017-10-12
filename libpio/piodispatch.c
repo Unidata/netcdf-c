@@ -33,7 +33,7 @@ typedef struct PIO_INFO
 
 /* Define accessors for the dispatchdata */
 #define PIO_DATA(nc) ((PIO_INFO*)(nc)->dispatchdata)
-#define PIO_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
+#define PIO_DATA_SET(nc, data) ((nc)->dispatchdata = (void*)(data))
 
 /* Cannot have NC_MPIPOSIX flag, ignore NC_MPIIO as PnetCDF use MPIIO */
 static const int LEGAL_CREATE_FLAGS = (NC_NOCLOBBER | NC_64BIT_OFFSET | NC_CLASSIC_MODEL |
@@ -109,33 +109,26 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
 }
 
 static int
-PIO_open(const char *path, int cmode,
-         int basepe, size_t *chunksizehintp,
-         int use_parallel, void* mpidata,
-         struct NC_Dispatch* table, NC* nc)
+PIO_open(const char *path, int cmode, int basepe, size_t *chunksizehintp,
+         int use_parallel, void* mpidata, struct NC_Dispatch* table, NC* nc)
 {
-    int res;
     PIO_INFO* nc5;
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
+    int res;
 
     /* Check the cmode for only valid flags*/
     if (cmode & ~LEGAL_OPEN_FLAGS)
-    {res = NC_EINVAL; goto done;}
+	return NC_EINVAL;
 
     /* Cannot have both MPIO flags */
     if ((cmode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
-    {res = NC_EINVAL; goto done;}
+	return NC_EINVAL;
 
-    /* Appears that this comment is wrong; allow 64 bit offset*/
-    /* Cannot have 64 bit offset flag */
-    /* if (cmode & (NC_64BIT_OFFSET)) {res = NC_EINVAL; goto done;} */
-    if (mpidata != NULL) {
+    if (mpidata)
+    {
         comm = ((NC_MPI_INFO *)mpidata)->comm;
         info = ((NC_MPI_INFO *)mpidata)->info;
-    } else {
-        comm = MPI_COMM_WORLD;
-        info = MPI_INFO_NULL;
     }
 
     /* PnetCDF recognizes the flags NC_WRITE and NC_NOCLOBBER for file open
@@ -144,24 +137,24 @@ PIO_open(const char *path, int cmode,
      * file is already in one of the CDF-formats, and setting these 2 flags
      * will not change the format of that file.
      */
-
     cmode &= (NC_WRITE | NC_NOCLOBBER);
 
     /* Create our specific PIO_INFO instance */
-    nc5 = (PIO_INFO*)calloc(1,sizeof(PIO_INFO));
-    if (nc5 == NULL) {res = NC_ENOMEM; goto done;}
+    if (!(nc5 = (PIO_INFO *)calloc(1,sizeof(PIO_INFO))))
+	return NC_ENOMEM;
 
     /* Link nc5 and nc */
-    PIO_DATA_SET(nc,nc5);
+    PIO_DATA_SET(nc, nc5);
 
     res = PIOc_open(comm, path, cmode, &(nc->int_ncid));
 
     /* Default to independent access, like netCDF-4/HDF5 files. */
-    if (!res) {
+    if (!res)
+    {
         /* res = PIOc_begin_indep_data(nc->int_ncid); */
         nc5->pnetcdf_access_mode = NC_INDEPENDENT;
     }
-done:
+
     return res;
 }
 

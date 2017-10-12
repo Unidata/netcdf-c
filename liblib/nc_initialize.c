@@ -35,6 +35,11 @@ extern int NCP_initialize(void);
 extern int NCP_finalize(void);
 #endif
 
+#ifdef USE_PIO
+extern int PIO_initialize(void);
+extern int PIO_finalize(void);
+#endif
+
 #ifdef _MSC_VER
 #include <io.h>
 #include <fcntl.h>
