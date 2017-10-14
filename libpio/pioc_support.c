@@ -1720,6 +1720,12 @@ int PIOc_writemap_from_f90(const char *file, int ndims, const int *gdims,
 int PIOc_createfile_int(int iosysid, int *ncidp, int *iotype, const char *filename,
                         int mode)
 {
+    return PIOc_createfile_int2(iosysid, ncidp, iotype, filename, mode, 0, NULL, NULL, NULL);
+}
+    
+int PIOc_createfile_int2(int iosysid, int *ncidp, int *iotype, const char *filename,
+			 int mode, int use_parallel, void* mpidata, struct NC_Dispatch* table, NC* nc)
+{
     iosystem_desc_t *ios;  /* Pointer to io system information. */
     file_desc_t *file;     /* Pointer to file information. */
     int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */

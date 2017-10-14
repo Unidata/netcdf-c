@@ -157,7 +157,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 #define NC_PNETCDF       (NC_MPIIO) /**< Use parallel-netcdf library; alias for NC_MPIIO. */
 
-#define NC_PIO           0x9000  /**< Read from memory. Mode flag for nc_open() or nc_create(). */
+#define NC_PIO           0x0040  /**< Read from memory. Mode flag for nc_open() or nc_create(). */
 
 /** Format specifier for nc_set_default_format() and returned
  *  by nc_inq_format. This returns the format as provided by

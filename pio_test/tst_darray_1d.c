@@ -160,6 +160,10 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
                     pio_type, with_fillvalue);
 
             /* Create the netCDF output file. */
+	    printf("my_rank %d about to create %s\n", my_rank, filename);
+            /* if ((ret = nc_create(filename, NC_PIO, &ncid))) */
+            /*     ERR(ret); */
+	    /* printf("my_rank %d created %s ncid %d\n", my_rank, filename, ncid); */
             if ((ret = PIOc_createfile(iosysid, &ncid, &flavor[fmt], filename, PIO_CLOBBER)))
                 ERR(ret);
 
@@ -812,7 +816,7 @@ int main(int argc, char **argv)
 
     /* Initialize test. */
     if ((ret = pio_test_init2(argc, argv, &my_rank, &ntasks, MIN_NTASKS,
-                              MIN_NTASKS, -1, &test_comm)))
+                              MIN_NTASKS, 3, &test_comm)))
         ERR(ERR_INIT);
 
     if ((ret = PIOc_set_iosystem_error_handling(PIO_DEFAULT, PIO_RETURN_ERROR, NULL)))
@@ -848,9 +852,9 @@ int main(int argc, char **argv)
                     return ret;
 
                 /* Test decomposition read/write. */
-                if ((ret = test_decomp_read_write(iosysid, ioid, num_flavors, flavor, my_rank,
-                                                  test_type[t], rearranger[r], test_comm)))
-                    return ret;
+                /* if ((ret = test_decomp_read_write(iosysid, ioid, num_flavors, flavor, my_rank, */
+                /*                                   test_type[t], rearranger[r], test_comm))) */
+                /*     return ret; */
 
                 /* Run tests. */
                 if ((ret = test_darray_fill(iosysid, ioid, test_type[t], num_flavors, flavor,

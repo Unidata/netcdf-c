@@ -1770,6 +1770,11 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 	dispatcher = NCP_dispatch_table;
       else
 #endif
+#ifdef USE_PIO
+      if(model == (NC_FORMATX_PIO))
+	dispatcher = PIO_dispatch_table;
+      else
+#endif
       if(model == (NC_FORMATX_NC3))
  	dispatcher = NC3_dispatch_table;
       else

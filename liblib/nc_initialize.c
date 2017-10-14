@@ -88,6 +88,9 @@ nc_initialize()
 #ifdef USE_PNETCDF
     if((stat = NCP_initialize())) goto done;
 #endif
+#ifdef USE_PIO
+    if((stat = PIO_initialize())) goto done;
+#endif
 #ifdef USE_NETCDF4
     if((stat = NC4_initialize())) goto done;
     stat = NC4_fileinfo_init();

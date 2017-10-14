@@ -37,10 +37,10 @@ typedef struct PIO_INFO
 
 /* Cannot have NC_MPIPOSIX flag, ignore NC_MPIIO as PnetCDF use MPIIO */
 static const int LEGAL_CREATE_FLAGS = (NC_NOCLOBBER | NC_64BIT_OFFSET | NC_CLASSIC_MODEL |
-				       NC_SHARE | NC_LOCK | NC_64BIT_DATA | NC_MPIIO);
+				       NC_SHARE | NC_LOCK | NC_64BIT_DATA | NC_MPIIO | NC_PIO);
 
 static const int LEGAL_OPEN_FLAGS = (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_LOCK |
-				     NC_CLASSIC_MODEL | NC_64BIT_OFFSET | NC_64BIT_DATA | NC_MPIIO);
+				     NC_CLASSIC_MODEL | NC_64BIT_OFFSET | NC_64BIT_DATA | NC_MPIIO | NC_PIO);
 
 /**************************************************/
 
@@ -80,11 +80,11 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
     }
 
     /* No MPI environment initialized */
-    if (mpidata == NULL)
-	return NC_ENOPAR;
+    /* if (mpidata == NULL) */
+    /* 	return NC_ENOPAR; */
 
-    comm = ((NC_MPI_INFO *)mpidata)->comm;
-    info = ((NC_MPI_INFO *)mpidata)->info;
+    /* comm = ((NC_MPI_INFO *)mpidata)->comm; */
+    /* info = ((NC_MPI_INFO *)mpidata)->info; */
 
     /* Create our specific PIO_INFO instance */
 
@@ -100,7 +100,9 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
     /* PnetCDF recognizes the flags below for create and ignores NC_LOCK and  NC_SHARE */
     cmode &= (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_64BIT_OFFSET | NC_64BIT_DATA);
 
-    res = PIOc_create(last_iosysid, path, cmode, &(nc->int_ncid));
+    int iotype = PIO_IOTYPE_NETCDF;
+    res = PIOc_createfile_int2(last_iosysid, &(nc->int_ncid), iotype, path, cmode,
+			       use_parallel, mpidata, table, nc);
 
     if (res && nc5)
 	free(nc5); /* reclaim allocated space */

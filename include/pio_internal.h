@@ -12,6 +12,8 @@
 
 #include <config.h>
 #include <pio.h>
+#include <nc.h>
+#include <ncdispatch.h>
 
 /* These are the sizes of types in netCDF files. Do not replace these
  * constants with sizeof() calls for C types. They are not the
@@ -152,8 +154,12 @@ extern "C" {
     int get_var_desc(int varid, var_desc_t **varlist, var_desc_t **var_desc);
     int delete_var_desc(int varid, var_desc_t **varlist);
 
-    /* Create a file (internal function). */
+    /* Create a file (legacy internal function). */
     int PIOc_createfile_int(int iosysid, int *ncidp, int *iotype, const char *filename, int mode);
+
+    /* Create a file (internal function). */
+    int PIOc_createfile_int2(int iosysid, int *ncidp, int *iotype, const char *filename,
+			     int mode, int use_parallel, void* mpidata, struct NC_Dispatch* table, NC* nc);
 
     /* Open a file with optional retry as netCDF-classic if first
      * iotype does not work. */
