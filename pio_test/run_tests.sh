@@ -23,12 +23,12 @@ PIO_TESTS='test_async_mpi test_spmd test_rearr test_intercomm2 test_async_simple
 #NC_PIO_TESTS=tst_darray_async
 NC_PIO_TESTS=tst_darray_1d
 
-for TEST in $PIO_TESTS
-do
-    success=false
-    echo "running ${TEST}"
-    mpiexec -n 4 ./${TEST} && success=true || break
-done
+# for TEST in $PIO_TESTS
+# do
+#     success=false
+#     echo "running ${TEST}"
+#     mpiexec -n 4 ./${TEST} && success=true || break
+# done
 
 for TEST in $NC_PIO_TESTS
 do
