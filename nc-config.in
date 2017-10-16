@@ -239,6 +239,10 @@ while test $# -gt 0; do
         echo $has_cdf5
         ;;
 
+    --has-parallel)
+        echo $has_parallel
+        ;;
+
      --libs)
        	echo $libs
        	;;
