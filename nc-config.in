@@ -83,6 +83,7 @@ Available values for OPTION include:
   --has-logging whether logging is enabled with --enable-logging.
   --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
   --has-szlib   whether szlib is included in build
+  --has-parallel whether has parallel IO support via hdf5 and/or pnetcdf
   --has-cdf5    whether cdf5 support is included in build
   --libs        library linking information for netcdf
   --prefix      Install prefixx
