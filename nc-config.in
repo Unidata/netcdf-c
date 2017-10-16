@@ -160,6 +160,7 @@ fi
         echo "  --has-logging-> $has_logging"
         echo "  --has-pnetcdf-> $has_pnetcdf"
         echo "  --has-szlib -> $has_szlib"
+        echo "  --has-parallel -> $has_parallel"
         echo "  --has-cdf5 -> $has_cdf5"
 	echo
         echo "  --prefix    -> $prefix"

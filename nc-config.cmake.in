@@ -316,6 +316,8 @@ while test $# -gt 0; do
         ;;
 
     --libs)
+        ;;
+
     --has-parallel)
 	    echo $has_parallel
 	    ;;
