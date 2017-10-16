@@ -1118,9 +1118,13 @@ fi
 # Now, set enable_parallel if either pnetcdf or parallel4 is set
 if test "x$enable_pnetcdf" = xyes -o "x$enable_parallel4" = xyes; then
 enable_parallel=yes
+AC_DEFINE([USE_PARALLEL], [1], [if true, enable parallel support])
 else
 enable_parallel=no
+AC_DEFINE([USE_PARALLEL], [0], [if true, enable parallel support])
 fi
+
+AM_CONDITIONAL(ENABLE_PARALLEL, [test x$enable_parallel = xyes ])
 
 if test "x$hdf5_parallel" = xyes; then
   # Provide more precise parallel control

@@ -23,6 +23,7 @@ has_hdf5="@HAS_HDF5@"
 has_logging="@HAS_LOGGING@"
 has_cdf5="@HAS_CDF5@"
 has_szlib="@HAS_SZLIB@"
+has_parallel="@HAS_PARALLEL@"
 version="@PACKAGE_NAME@ @PACKAGE_VERSION@"
 
 
