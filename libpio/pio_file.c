@@ -248,13 +248,13 @@ int PIOc_closefile(int ncid)
         {
 #ifdef _NETCDF4
         case PIO_IOTYPE_NETCDF4P:
-            ierr = nc_close(file->fh);
+            ierr = NC4_close(file->fh);
             break;
         case PIO_IOTYPE_NETCDF4C:
 #endif
         case PIO_IOTYPE_NETCDF:
             if (ios->io_rank == 0)
-                ierr = nc_close(file->fh);
+                ierr = NC3_close(file->fh);
             break;
 #ifdef _PNETCDF
         case PIO_IOTYPE_PNETCDF:

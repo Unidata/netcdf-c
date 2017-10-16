@@ -12,6 +12,7 @@
 #include "nc.h"
 #include "ncdispatch.h"
 #include <pio.h>
+#include <pio_internal.h>
 
 int last_iosysid;
 
@@ -50,8 +51,8 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
 {
     int res, default_format;
     PIO_INFO *nc5;
-    MPI_Comm comm = MPI_COMM_WORLD;
-    MPI_Info info = MPI_INFO_NULL;
+    /* MPI_Comm comm = MPI_COMM_WORLD; */
+    /* MPI_Info info = MPI_INFO_NULL; */
 
     /* Check the cmode for only valid flags*/
     if (cmode & ~LEGAL_CREATE_FLAGS)
@@ -92,7 +93,7 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
 	return NC_ENOMEM;
 
     /* Link nc5 and nc */
-    PIO_DATA_SET(nc, nc5);
+    nc->dispatchdata = (void *)nc5;
 
     /* Fix up the cmode by keeping only essential flags;
        these are the flags that are the same in netcf.h and pnetcdf.h
@@ -101,8 +102,11 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
     cmode &= (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_64BIT_OFFSET | NC_64BIT_DATA);
 
     int iotype = PIO_IOTYPE_NETCDF;
-    res = PIOc_createfile_int2(last_iosysid, &(nc->int_ncid), iotype, path, cmode,
+    int pio_ncid;
+    res = PIOc_createfile_int2(last_iosysid, &pio_ncid, &iotype, path, cmode,
 			       use_parallel, mpidata, table, nc);
+    LOG((2, "PIOc_createfile_int2 called res %d pio_ncid %d", res, pio_ncid));
+    nc->ext_ncid = pio_ncid;
 
     if (res && nc5)
 	free(nc5); /* reclaim allocated space */
@@ -145,8 +149,8 @@ PIO_open(const char *path, int cmode, int basepe, size_t *chunksizehintp,
     if (!(nc5 = (PIO_INFO *)calloc(1,sizeof(PIO_INFO))))
 	return NC_ENOMEM;
 
-    /* Link nc5 and nc */
-    PIO_DATA_SET(nc, nc5);
+    /* /\* Link nc5 and nc *\/ */
+    /* PIO_DATA_SET(nc, nc5); */
 
     res = PIOc_open(comm, path, cmode, &(nc->int_ncid));
 
@@ -174,28 +178,20 @@ PIO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t
 {
     int status;
     NC* nc;
-    PIO_INFO* nc5;
-    MPI_Offset mpi_h_minfree = h_minfree;
-    MPI_Offset mpi_v_align   = v_align;
-    MPI_Offset mpi_v_minfree = v_minfree;
-    MPI_Offset mpi_r_align   = r_align;
+    /* PIO_INFO* nc5; */
+    /* MPI_Offset mpi_h_minfree = h_minfree; */
+    /* MPI_Offset mpi_v_align   = v_align; */
+    /* MPI_Offset mpi_v_minfree = v_minfree; */
+    /* MPI_Offset mpi_r_align   = r_align; */
 
     status = NC_check_id(ncid, &nc);
     if (status != NC_NOERR)
         return status;
 
-    nc5 = PIO_DATA(nc);
-    assert(nc5);
+    /* nc5 = PIO_DATA(nc); */
+    /* assert(nc5); */
 
-    /* causes implicitly defined warning; may be because of old installed pnetcdf? */
-#if 1
-    /* In PnetCDF PIOc__enddef() is only implemented in v1.5.0 and later */
-    status = PIOc_enddef(nc->int_ncid);
-    /* status = PIOc__enddef(nc->int_ncid, mpi_h_minfree, mpi_v_align, */
-    /*                        mpi_v_minfree, mpi_r_align); */
-#else
-    status = PIOc_enddef(nc->int_ncid);
-#endif
+    status = PIOc_enddef(nc->ext_ncid);
 
     if (!status) {
         /* if (nc5->pnetcdf_access_mode == NC_INDEPENDENT) */
@@ -238,7 +234,7 @@ PIO_close(int ncid)
     int status = NC_check_id(ncid, &nc);
     if (status != NC_NOERR) goto done;
 
-    status = PIOc_closefile(nc->int_ncid);
+    status = PIOc_closefile(nc->ext_ncid);
 
 done:
     nc5 = PIO_DATA(nc);
@@ -1035,7 +1031,7 @@ static int
 PIO_var_par_access(int ncid, int varid, int par_access)
 {
     NC *nc;
-    PIO_INFO* nc5;
+    /* PIO_INFO* nc5; */
     int status;
 
     if (par_access != NC_INDEPENDENT && par_access != NC_COLLECTIVE)
@@ -1044,8 +1040,8 @@ PIO_var_par_access(int ncid, int varid, int par_access)
     status = NC_check_id(ncid, &nc);
     if (status != NC_NOERR) return status;
 
-    nc5 = PIO_DATA(nc);
-    assert(nc5);
+    /* nc5 = PIO_DATA(nc); */
+    /* assert(nc5); */
 
     /* if (par_access == nc5->pnetcdf_access_mode) */
     /*     return NC_NOERR; */

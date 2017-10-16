@@ -25,11 +25,7 @@ int my_rank;
 FILE *LOG_FILE = NULL;
 #endif /* PIO_ENABLE_LOGGING */
 
-/**
- * The PIO library maintains its own set of ncids. This is the next
- * ncid number that will be assigned.
- */
-extern int pio_next_ncid;
+int pio_next_ncid;
 
 /** The default error handler used when iosystem cannot be located. */
 extern int default_error_handler;
@@ -1808,10 +1804,12 @@ int PIOc_createfile_int2(int iosysid, int *ncidp, int *iotype, const char *filen
 #ifdef _NETCDF4
         case PIO_IOTYPE_NETCDF4P:
             mode = mode |  NC_MPIIO | NC_NETCDF4;
-            LOG((2, "Calling nc_create_par io_comm = %d mode = %d fh = %d",
+            LOG((2, "Calling NC4_create io_comm = %d mode = %d fh = %d",
                  ios->io_comm, mode, file->fh));
-            ierr = nc_create_par(filename, mode, ios->io_comm, ios->info, &file->fh);
-            LOG((2, "nc_create_par returned %d file->fh = %d", ierr, file->fh));
+	    ierr = NC4_create(filename, mode, 0, 0, NULL, use_parallel, mpidata, table, nc);
+            /* ierr = nc_create_par(filename, mode, ios->io_comm, ios->info, &file->fh); */
+	    file->fh = nc->int_ncid;
+            LOG((2, "NC4_create returned %d file->fh %d", ierr, file->fh));
             break;
         case PIO_IOTYPE_NETCDF4C:
             mode = mode | NC_NETCDF4;
@@ -1819,8 +1817,11 @@ int PIOc_createfile_int2(int iosysid, int *ncidp, int *iotype, const char *filen
         case PIO_IOTYPE_NETCDF:
             if (!ios->io_rank)
             {
-                LOG((2, "Calling nc_create mode = %d", mode));
-                ierr = nc_create(filename, mode, &file->fh);
+                LOG((2, "Calling NC3_create mode %d", mode));
+                /* ierr = nc_create(filename, mode, &file->fh); */
+		ierr = NC3_create(filename, mode, 0, 0, NULL, use_parallel, mpidata, table, nc);
+                LOG((2, "Called NC3_create nc->ext_ncid %d", nc->ext_ncid));
+		file->fh = nc->ext_ncid;
             }
             break;
 #ifdef _PNETCDF
@@ -1849,21 +1850,22 @@ int PIOc_createfile_int2(int iosysid, int *ncidp, int *iotype, const char *filen
     if ((mpierr = MPI_Bcast(&file->writable, 1, MPI_INT, ios->ioroot, ios->my_comm)))
         return check_mpi(file, mpierr, __FILE__, __LINE__);
 
-    /* Broadcast next ncid to all tasks from io root, necessary
-     * because files may be opened on mutilple iosystems, causing the
-     * underlying library to reuse ncids. Hilarious confusion
-     * ensues. */
-    if (ios->async)
-    {
-        LOG((3, "createfile bcasting pio_next_ncid %d", pio_next_ncid));
-        if ((mpierr = MPI_Bcast(&pio_next_ncid, 1, MPI_INT, ios->ioroot, ios->my_comm)))
-            return check_mpi(file, mpierr, __FILE__, __LINE__);
-        LOG((3, "createfile bcast pio_next_ncid %d", pio_next_ncid));
-    }
+    /* /\* Broadcast next ncid to all tasks from io root, necessary */
+    /*  * because files may be opened on mutilple iosystems, causing the */
+    /*  * underlying library to reuse ncids. Hilarious confusion */
+    /*  * ensues. *\/ */
+    /* if (ios->async) */
+    /* { */
+    /*     LOG((3, "createfile bcasting pio_next_ncid %d", pio_next_ncid)); */
+    /*     if ((mpierr = MPI_Bcast(&pio_next_ncid, 1, MPI_INT, ios->ioroot, ios->my_comm))) */
+    /*         return check_mpi(file, mpierr, __FILE__, __LINE__); */
+    /*     LOG((3, "createfile bcast pio_next_ncid %d", pio_next_ncid)); */
+    /* } */
 
     /* Assign the PIO ncid. */
-    file->pio_ncid = pio_next_ncid++;
-    LOG((2, "file->fh = %d file->pio_ncid = %d", file->fh, file->pio_ncid));
+    file->pio_ncid = nc->ext_ncid;
+    LOG((2, "file->fh %d file->pio_ncid %d nc->ext_ncid %d", file->fh, file->pio_ncid,
+	 nc->ext_ncid));
 
     /* Return the ncid to the caller. */
     *ncidp = file->pio_ncid;
@@ -2048,9 +2050,9 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
          * learn about type. */
         if (iotype == PIO_IOTYPE_PNETCDF)
         {
+#ifdef _PNETCDF
             PIO_Offset type_size;
             
-#ifdef _PNETCDF
             if ((ret = ncmpi_inq_var(ncid, v, NULL, &my_type, &var_ndims, NULL, NULL)))
                 return pio_err(NULL, file, ret, __FILE__, __LINE__);
             (*pio_type)[v] = (int)my_type;
@@ -2548,13 +2550,20 @@ int pioc_change_def(int ncid, int is_enddef)
 #endif /* _PNETCDF */
         if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
         {
-            if (is_enddef)
-            {
-                LOG((3, "pioc_change_def calling nc_enddef file->fh = %d", file->fh));
-                ierr = nc_enddef(file->fh);
-            }
-            else
-                ierr = nc_redef(file->fh);
+	    if (file->iotype == PIO_IOTYPE_NETCDF)
+	    {
+		if (is_enddef)
+		    ierr = NC3__enddef(file->fh, 0, 0, 0, 0);
+		else
+		    ierr = NC3_redef(file->fh);
+	    }
+	    else
+	    {
+		if (is_enddef)
+		    ierr = NC4__enddef(file->fh, 0, 0, 0, 0);
+		else
+		    ierr = NC4_redef(file->fh);
+	    }
         }
     }
 

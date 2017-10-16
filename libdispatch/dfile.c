@@ -1801,7 +1801,8 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 	del_from_NCList(ncp); /* oh well */
 	free_NC(ncp);
      } else {
-       if(ncidp)*ncidp = ncp->ext_ncid;
+       if(ncidp)
+	   *ncidp = ncp->ext_ncid;
      }
    return stat;
 }

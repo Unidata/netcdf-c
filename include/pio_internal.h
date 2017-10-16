@@ -14,6 +14,8 @@
 #include <pio.h>
 #include <nc.h>
 #include <ncdispatch.h>
+#include <nc3dispatch.h>
+#include <nc4dispatch.h>
 
 /* These are the sizes of types in netCDF files. Do not replace these
  * constants with sizeof() calls for C types. They are not the
