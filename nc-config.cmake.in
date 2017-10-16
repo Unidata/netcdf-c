@@ -79,7 +79,7 @@ else
 fi
 
 has_cdf5="@ENABLE_CDF5@"
-if [ -z "has_cdf5" -o "$has_cdf5" = "OFF" -o "$has_cdf5" = "FALSE" ]; then
+if [ -z "$has_cdf5" -o "$has_cdf5" = "OFF" -o "$has_cdf5" = "FALSE" ]; then
     has_cdf5="no"
 else
     has_cdf5="yes"
@@ -315,13 +315,11 @@ while test $# -gt 0; do
         echo $has_cdf5
         ;;
 
-    --libs)
-        ;;
-
     --has-parallel)
 	    echo $has_parallel
 	    ;;
 
+    --libs)
        	echo $libs
        	;;
 
