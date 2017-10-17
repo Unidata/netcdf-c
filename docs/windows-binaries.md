@@ -28,8 +28,8 @@ These libraries have been built using Visual Studio 2012.  The downloads are ins
 
 The included dependencies and versions are as follows:
 
-* `libhdf5`: 1.8.17
-* `libcurl`: 7.35.0
+* `libhdf5`: 1.8.19
+* `libcurl`: 7.55.1
 * `zlib`:    1.2.8
 
 ## Latest Release (netCDF-C 4.5.0) {#msvc-latest-release}
