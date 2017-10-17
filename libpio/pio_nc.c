@@ -103,7 +103,7 @@ int PIOc_inq(int ncid, int *ndimsp, int *nvarsp, int *ngattsp, int *unlimdimidp)
              * to netCDF developers. */
             int tmp_ndims, tmp_nvars, tmp_ngatts, tmp_unlimdimid;
             LOG((2, "PIOc_inq calling classic nc_inq"));
-            ierr = nc_inq(file->fh, &tmp_ndims, &tmp_nvars, &tmp_ngatts, &tmp_unlimdimid);
+            ierr = NC3_inq(file->fh, &tmp_ndims, &tmp_nvars, &tmp_ngatts, &tmp_unlimdimid);
             LOG((2, "PIOc_inq calling classic nc_inq"));
             if (unlimdimidp)
                 LOG((2, "classic tmp_unlimdimid = %d", tmp_unlimdimid));
@@ -121,7 +121,7 @@ int PIOc_inq(int ncid, int *ndimsp, int *nvarsp, int *ngattsp, int *unlimdimidp)
         else if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
         {
             LOG((2, "PIOc_inq calling netcdf-4 nc_inq"));
-            ierr = nc_inq(file->fh, ndimsp, nvarsp, ngattsp, unlimdimidp);
+            ierr = NC4_inq(file->fh, ndimsp, nvarsp, ngattsp, unlimdimidp);
         }
 
         LOG((2, "PIOc_inq netcdf call returned %d", ierr));
@@ -269,7 +269,7 @@ int PIOc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
             return check_mpi(file, mpierr, __FILE__, __LINE__);
     }
 
-    LOG((2, "file->iotype = %d", file->iotype));
+    LOG((2, "file->iotype %d file->do_io", file->iotype, file->do_io));
     /* If this is an IO task, then call the netCDF function. */
     if (ios->ioproc)
     {
@@ -277,7 +277,7 @@ int PIOc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
         {
             LOG((2, "netcdf"));
             int tmp_unlimdimid;
-            ierr = nc_inq_unlimdim(file->fh, &tmp_unlimdimid);
+            ierr = NC3_inq_unlimdim(file->fh, &tmp_unlimdimid);
             LOG((2, "classic tmp_unlimdimid = %d", tmp_unlimdimid));
             tmp_nunlimdims = tmp_unlimdimid >= 0 ? 1 : 0;
             if (nunlimdimsp)
@@ -305,7 +305,7 @@ int PIOc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
         {
             LOG((2, "PIOc_inq calling netcdf-4 nc_inq_unlimdims"));
             int *tmp_unlimdimids;
-            ierr = nc_inq_unlimdims(file->fh, &tmp_nunlimdims, NULL);
+            ierr = NC4_inq_unlimdims(file->fh, &tmp_nunlimdims, NULL);
             if (!ierr)
             {
                 if (nunlimdimsp)
@@ -314,7 +314,7 @@ int PIOc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
                 if (!(tmp_unlimdimids = malloc(tmp_nunlimdims * sizeof(int))))
                     ierr = PIO_ENOMEM;
                 if (!ierr)
-                    ierr = nc_inq_unlimdims(file->fh, &tmp_nunlimdims, tmp_unlimdimids);
+                    ierr = NC4_inq_unlimdims(file->fh, &tmp_nunlimdims, tmp_unlimdimids);
                 if (unlimdimidsp)
                     for (int d = 0; d < tmp_nunlimdims; d++)
                     {
@@ -412,8 +412,12 @@ int PIOc_inq_type(int ncid, nc_type xtype, char *name, PIO_Offset *sizep)
             ierr = pioc_pnetcdf_inq_type(ncid, xtype, name, sizep);
 #endif /* _PNETCDF */
 
-        if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-            ierr = nc_inq_type(file->fh, xtype, name, (size_t *)sizep);
+        if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+            ierr = NC3_inq_type(file->fh, xtype, name, (size_t *)sizep);
+#ifdef _NETCDF4
+        else if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
+            ierr = NC4_inq_type(file->fh, xtype, name, (size_t *)sizep);
+#endif /* _NETCDF4 */
         LOG((2, "PIOc_inq_type netcdf call returned %d", ierr));
     }
 
@@ -1939,8 +1943,12 @@ int PIOc_def_dim(int ncid, const char *name, PIO_Offset len, int *idp)
             ierr = ncmpi_def_dim(file->fh, name, len, idp);
 #endif /* _PNETCDF */
 
-        if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-            ierr = nc_def_dim(file->fh, name, (size_t)len, idp);
+        if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+            ierr = NC3_def_dim(file->fh, name, (size_t)len, idp);
+#ifdef _NETCDF4
+        else if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
+            ierr = NC4_def_dim(file->fh, name, (size_t)len, idp);
+#endif /* _NETCDF4 */
     }
 
     /* Broadcast and check the return code. */
@@ -2022,6 +2030,7 @@ int PIOc_def_var(int ncid, const char *name, nc_type xtype, int ndims,
         /* How many unlimited dims are present in the file? */
         if ((ierr = PIOc_inq_unlimdims(ncid, &nunlimdims, NULL)))
             return check_netcdf(file, ierr, __FILE__, __LINE__);
+	LOG((3, "nunlimdims %d", nunlimdims));
 
         if (nunlimdims)
         {
@@ -2058,6 +2067,7 @@ int PIOc_def_var(int ncid, const char *name, nc_type xtype, int ndims,
             }
         }
     }
+    LOG((3, "rec_var %d invalid_unlim_dim %d", rec_var, invalid_unlim_dim));
 
     /* If using async, and not an IO task, then send parameters. */
     if (ios->async)
@@ -2108,6 +2118,7 @@ int PIOc_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     if (invalid_unlim_dim)
         return PIO_EINVAL;
 
+    LOG((3, "ios->ioproc %d", ios->ioproc));
     /* If this is an IO task, then call the netCDF function. */
     if (ios->ioproc)
     {
@@ -2115,17 +2126,20 @@ int PIOc_def_var(int ncid, const char *name, nc_type xtype, int ndims,
         if (file->iotype == PIO_IOTYPE_PNETCDF)
             ierr = ncmpi_def_var(file->fh, name, xtype, ndims, dimidsp, &varid);
 #endif /* _PNETCDF */
-
-        if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-            ierr = nc_def_var(file->fh, name, xtype, ndims, dimidsp, &varid);
+	LOG((3, "about to call NC3_def_var"));
+        if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+            ierr = NC3_def_var(file->fh, name, xtype, ndims, dimidsp, &varid);
 #ifdef _NETCDF4
+        else if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
+            ierr = NC4_def_var(file->fh, name, xtype, ndims, dimidsp, &varid);
+
         /* For netCDF-4 serial files, turn on compression for this variable. */
         if (!ierr && file->iotype == PIO_IOTYPE_NETCDF4C)
-            ierr = nc_def_var_deflate(file->fh, varid, 0, 1, 1);
+            ierr = NC4_def_var_deflate(file->fh, varid, 0, 1, 1);
 
         /* For netCDF-4 parallel files, set parallel access to collective. */
         if (!ierr && file->iotype == PIO_IOTYPE_NETCDF4P)
-            ierr = nc_var_par_access(file->fh, varid, NC_COLLECTIVE);
+            ierr = NC4_var_par_access(file->fh, varid, NC_COLLECTIVE);
 #endif /* _NETCDF4 */
     }
 
@@ -2146,6 +2160,7 @@ int PIOc_def_var(int ncid, const char *name, nc_type xtype, int ndims,
                                mpi_type_size, &file->varlist)))
         return pio_err(ios, NULL, ierr, __FILE__, __LINE__);
     file->nvars++;
+    LOG((3, "def_var succeded, file->nvars %d", file->nvars));
 
     return PIO_NOERR;
 }

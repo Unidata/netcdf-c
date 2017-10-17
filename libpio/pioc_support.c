@@ -2537,7 +2537,7 @@ int pioc_change_def(int ncid, int is_enddef)
     LOG((3, "pioc_change_def ios->ioproc = %d", ios->ioproc));
     if (ios->ioproc)
     {
-        LOG((3, "pioc_change_def calling netcdf function file->fh = %d file->do_io = %d iotype = %d",
+        LOG((3, "pioc_change_def calling netcdf function file->fh %d file->do_io %d iotype %d",
              file->fh, file->do_io, file->iotype));
 #ifdef _PNETCDF
         if (file->iotype == PIO_IOTYPE_PNETCDF)
@@ -2553,17 +2553,19 @@ int pioc_change_def(int ncid, int is_enddef)
 	    if (file->iotype == PIO_IOTYPE_NETCDF)
 	    {
 		if (is_enddef)
-		    ierr = NC3__enddef(file->fh, 0, 0, 0, 0);
+		    ierr = NC3__enddef(file->fh, 0, 1, 0, 1);
 		else
 		    ierr = NC3_redef(file->fh);
 	    }
+#ifdef _NETCDF4
 	    else
 	    {
 		if (is_enddef)
-		    ierr = NC4__enddef(file->fh, 0, 0, 0, 0);
+		    ierr = NC4__enddef(file->fh, 0, 1, 0, 1);
 		else
 		    ierr = NC4_redef(file->fh);
 	    }
+#endif /* _NETCDF4 */
         }
     }
 

@@ -173,13 +173,13 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
 /*             if ((ret = PIOc_set_fill(ncid, NC_FILL, NULL))) */
 /*                 ERR(ret); */
 
-/*             /\* Define netCDF dimensions and variable. *\/ */
-/*             if ((ret = PIOc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid))) */
-/*                 ERR(ret); */
+            /* Define netCDF dimensions and variable. */
+            if ((ret = PIOc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)))
+                ERR(ret);
 
-/*             /\* Define a variable. *\/ */
-/*             if ((ret = PIOc_def_var(ncid, VAR_NAME, pio_type, NDIM, &dimid, &varid))) */
-/*                 ERR(ret); */
+            /* Define a variable. */
+            if ((ret = PIOc_def_var(ncid, VAR_NAME, pio_type, NDIM, &dimid, &varid)))
+                ERR(ret);
 
             /* End define mode. */
             if ((ret = nc_enddef(ncid)))
