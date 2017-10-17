@@ -25,7 +25,7 @@ It is strongly recommended that applicable conventions be followed unless there 
 
 <p>
 
-> If _FillValue is undefined, it is assumed that there are no unwritten data-values. Generic applications needing to write a value to represent undefined or missing values may use either `_FillValue` or `missing_value` for this purpose. It is legal (but not recommended) for the fill value to be within the valid range of the data.
+> It is not necessary to define your own _FillValue attribute for a variable if the default fill value for the type of the variable is adequate. However, use of the default fill value for data type byte is not recommended. Note that if you change the value of this attribute, the changed value applies only to subsequent writes; previously written data are not changed.
 
 <p>
 
@@ -33,6 +33,9 @@ It is strongly recommended that applicable conventions be followed unless there 
 
 > **Note that if you change the value of this attribute, the changed value applies only to subsequent writes; previously written data are not changed.**
 
+`_NoFill`
+
+> This attribute is not treated in any special way by the library or conforming generic application, but it is interpreted by the `ncgen` utility when converting a CDL file to a binary netCDF files.  It is the equivalent of applying `nc_set_fill(ncid, NC_NOFILL, null)`.
 
 `missing_value`
 
