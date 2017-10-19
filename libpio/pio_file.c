@@ -439,13 +439,16 @@ int PIOc_sync(int ncid)
             {
 #ifdef _NETCDF4
             case PIO_IOTYPE_NETCDF4P:
-                ierr = nc_sync(file->fh);
+                ierr = NC4_sync(file->fh);
                 break;
             case PIO_IOTYPE_NETCDF4C:
+                if (ios->io_rank == 0)
+		    ierr = NC4_sync(file->fh);
+                break;
 #endif
             case PIO_IOTYPE_NETCDF:
                 if (ios->io_rank == 0)
-                    ierr = nc_sync(file->fh);
+                    ierr = NC3_sync(file->fh);
                 break;
 #ifdef _PNETCDF
             case PIO_IOTYPE_PNETCDF:

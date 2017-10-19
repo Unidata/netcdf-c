@@ -170,11 +170,11 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
             /*     ERR(ret); */
 
             /* Turn on fill mode. */
-            if ((ret = PIOc_set_fill(ncid, NC_FILL, NULL)))
+            if ((ret = nc_set_fill(ncid, NC_FILL, NULL)))
                 ERR(ret);
 
             /* Define netCDF dimensions and variable. */
-            if ((ret = PIOc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)))
+            if ((ret = nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)))
                 ERR(ret);
 
             /* Define a variable. */
