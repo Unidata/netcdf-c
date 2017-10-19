@@ -166,8 +166,6 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
             if ((ret = nc_create(filename, NC_PIO, &ncid)))
                 ERR(ret);
 	    printf("my_rank %d created %s ncid %d\n", my_rank, filename, ncid);
-            /* if ((ret = PIOc_createfile(iosysid, &ncid, &flavor[fmt], filename, PIO_CLOBBER))) */
-            /*     ERR(ret); */
 
             /* Turn on fill mode. */
             if ((ret = nc_set_fill(ncid, NC_FILL, NULL)))
@@ -185,9 +183,9 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
             if ((ret = nc_enddef(ncid)))
                 ERR(ret);
 
-/*             /\* Get the size of the type. *\/ */
-/*             if ((ret = PIOc_inq_type(ncid, pio_type, NULL, &type_size))) */
-/*                 return ret; */
+            /* Get the size of the type. */
+            if ((ret = nc_inq_type(ncid, pio_type, NULL, &type_size)))
+                return ret;
 
 /*             /\* Initialize some data. *\/ */
 /*             signed char byte_test_data[2] = {my_rank, my_rank}; */
