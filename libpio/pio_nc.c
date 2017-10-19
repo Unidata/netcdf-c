@@ -18,6 +18,14 @@
 #include <pio.h>
 #include <pio_internal.h>
 
+
+int NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
+		    int *ndimsp, int *dimidsp, int *nattsp, 
+		    int *shufflep, int *deflatep, int *deflate_levelp,
+		    int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
+		    int *no_fill, void *fill_valuep, int *endiannessp, 
+		    int *options_maskp, int *pixels_per_blockp);
+
 /**
  * @ingroup PIO_inq
  * The PIO-C interface for the NetCDF function nc_inq.
@@ -909,6 +917,298 @@ int PIOc_inq_var(int ncid, int varid, char *name, nc_type *xtypep, int *ndimsp,
     if (nattsp)
         if ((mpierr = MPI_Bcast(nattsp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
             return check_mpi(file, mpierr, __FILE__, __LINE__);
+
+    return PIO_NOERR;
+}
+
+int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
+		     int *ndimsp, int *dimidsp, int *nattsp,
+		     int *shufflep, int *deflatep, int *deflate_levelp,
+		     int *fletcher32p, int *contiguousp, size_t *chunksizesp,
+		     int *no_fill, void *fill_valuep, int *endiannessp,
+		     int *options_maskp, int *pixels_per_blockp)
+{
+    iosystem_desc_t *ios;
+    file_desc_t *file;
+    int ndims = 0;    /* The number of dimensions for this variable. */
+    var_desc_t *vdesc;        /* Info about the var. */
+    int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */
+    int ret;
+
+    LOG((1, "PIOc_inq_var_all ncid = %d varid = %d", ncid, varid));
+
+    /* Get the file info, based on the ncid. */
+    if ((ret = pio_get_file(ncid, &file)))
+        return pio_err(NULL, NULL, ret, __FILE__, __LINE__);
+    ios = file->iosystem;
+
+    /* Get info about variable. */
+    if ((ret = get_var_desc(varid, &file->varlist, &vdesc)))
+        return pio_err(ios, file, ret, __FILE__, __LINE__);
+
+    /* If async is in use, and this is not an IO task, bcast the parameters. */
+    if (ios->async)
+    {
+        if (!ios->ioproc)
+        {
+            int msg = PIO_MSG_INQ_VAR_ALL;
+            char name_present = name ? true : false;
+            char xtype_present = xtypep ? true : false;
+            char ndims_present = ndimsp ? true : false;
+            char dimids_present = dimidsp ? true : false;
+            char natts_present = nattsp ? true : false;
+            char shuffle_present = shufflep ? true : false;
+            char deflate_present = deflatep ? true : false;
+            char deflate_level_present = deflate_levelp ? true : false;
+            char fletcher32_present = fletcher32p ? true : false;
+            char contiguous_present = contiguousp ? true : false;
+            char chunksizes_present = chunksizesp ? true : false;
+            char no_fill_present = no_fill ? true : false;
+            char fill_value_present = fill_valuep ? true : false;
+            char endianness_present = endiannessp ? true : false;
+            char options_mask_present = options_maskp ? true : false;
+            char pixels_per_block_present = pixels_per_blockp ? true : false;
+
+            if (ios->compmaster == MPI_ROOT)
+                mpierr = MPI_Send(&msg, 1,MPI_INT, ios->ioroot, 1, ios->union_comm);
+
+            if (!mpierr)
+                mpierr = MPI_Bcast(&ncid, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&varid, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&name_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&xtype_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&ndims_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&dimids_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&natts_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&shuffle_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&deflate_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&deflate_level_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&fletcher32_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&contiguous_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&chunksizes_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&no_fill_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&fill_value_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&endianness_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&options_mask_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&pixels_per_block_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+	    if (!mpierr)
+                mpierr = MPI_Bcast(&vdesc->pio_type_size, 1, MPI_INT, ios->compmaster, ios->intercomm);
+	    if (!mpierr)
+                mpierr = MPI_Bcast(&vdesc->ndims, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            LOG((2, "PIOc_inq_var_all name_present %d xtype_present %d ndims_present %d "
+		 "dimids_present %d, natts_present %d  shuffle_present %d deflate_present %d "
+		 "deflate_level_present %d fletcher32_present %d contiguous_present %d "
+		 "chunksizes_present %d no_fill_present %d fill_value_present %d "
+		 "endianness_present %d options_mask_present %d pixels_per_block_present %d"
+		 "vdesc->pio_type_size %d",
+                 name_present, xtype_present, ndims_present, dimids_present, natts_present,
+		 shuffle_present, deflate_present, deflate_level_present, fletcher32_present,
+		 contiguous_present, chunksizes_present, no_fill_present, fill_value_present,
+		 endianness_present, options_mask_present, pixels_per_block_present,
+		 vdesc->pio_type_size));
+        }
+
+        /* Handle MPI errors. */
+        if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
+            return check_mpi(file, mpierr2, __FILE__, __LINE__);
+        if (mpierr)
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    }
+
+    /* Call the netCDF layer. */
+    if (ios->ioproc)
+    {
+        LOG((2, "Calling the netCDF layer"));
+#ifdef _PNETCDF
+        if (file->iotype == PIO_IOTYPE_PNETCDF)
+        {
+            ret = ncmpi_inq_varndims(file->fh, varid, &ndims);
+            LOG((2, "from pnetcdf ndims = %d", ndims));
+            if (!ret)
+                ret = ncmpi_inq_var(file->fh, varid, name, xtypep, ndimsp, dimidsp, nattsp);
+        }
+#endif /* _PNETCDF */
+
+        if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+        {
+	    char my_name[NC_MAX_NAME + 1];
+	    nc_type my_xtype;
+	    int my_ndims = 0, my_natts = 0;
+	    int my_shuffle, my_deflate, my_deflate_level, my_fletcher32, my_contiguous;
+	    int my_no_fill, my_endianness, my_options_mask, my_pixels_per_block;
+	    void *my_fill_value = NULL;
+
+	    /* We must call NC3_inq_var_all twice, the first time to
+	     * learn the type and the number of dimensions. */
+	    ret = NC3_inq_var_all(file->fh, varid, NULL, &my_xtype, &my_ndims, NULL, NULL,
+	    			  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+	    int my_dimids[my_ndims];
+	    size_t my_chunksizes[my_ndims];
+	    size_t type_size = NC_atomictypelen(my_xtype);
+
+	    /* Allocate memory for fill value if needed. */
+	    if (fill_valuep)
+		if (!(my_fill_value = malloc(type_size)))
+		    ret = PIO_ENOMEM;
+
+	    /* Call NC3_inq_var_all again to get the rest of the values. */
+	    if (!ret)
+		ret = NC3_inq_var_all(file->fh, varid, my_name, &my_xtype, &my_ndims, my_dimids,
+				      &my_natts, &my_shuffle, &my_deflate, &my_deflate_level,
+				      &my_fletcher32, &my_contiguous, my_chunksizes, &my_no_fill,
+				      my_fill_value, &my_endianness, &my_options_mask,
+				      &my_pixels_per_block);
+	    if (!ret)
+	    {
+		LOG((3, "my_name = %s my_xtype = %d my_ndims = %d my_natts = %d",  my_name,
+		     my_xtype, my_ndims, my_natts));
+
+		if (name)
+		    strcpy(name, my_name);
+		if (xtypep)
+		    *xtypep = my_xtype;
+		if (ndimsp)
+		    *ndimsp = my_ndims;
+		if (dimidsp)
+		    for (int d = 0; d < ndims; d++)
+			dimidsp[d] = my_dimids[d];
+		if (nattsp)
+		    *nattsp = my_natts;
+		if (shufflep)
+		    *shufflep = my_shuffle;
+		if (deflatep)
+		    *deflatep = my_deflate;
+		if (deflate_levelp)
+		    *deflate_levelp = my_deflate_level;
+		if (fletcher32p)
+		    *fletcher32p = my_fletcher32;
+		if (contiguousp)
+		    *contiguousp = my_contiguous;
+		if (chunksizesp)
+		    for (int d = 0; d < ndims; d++)
+			chunksizesp[d] = my_chunksizes[d];
+		if (no_fill)
+		    *no_fill = my_no_fill;
+		if (fill_valuep)
+		    memcpy(fill_valuep, my_fill_value, type_size);
+		if (endiannessp)
+		    *endiannessp = my_endianness;
+		if (options_maskp)
+		    *options_maskp = my_options_mask;
+		if (pixels_per_blockp)
+		    *pixels_per_blockp = my_pixels_per_block;
+	    }
+
+	    /* Free memory used for fill value. */
+	    if (fill_valuep)
+		free(my_fill_value);
+	    
+        }
+#ifdef _NETCDF4
+        if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) && file->do_io)
+	{
+	}
+#endif /* _NETCDF4 */
+	
+        if (ndimsp)
+            LOG((2, "PIOc_inq_var ndims = %d ret = %d", *ndimsp, ret));
+    }
+
+    /* Broadcast and check the return code. */
+    if ((mpierr = MPI_Bcast(&ret, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+        return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (ret)
+        return check_netcdf(file, ret, __FILE__, __LINE__);
+
+    /* Broadcast the results for non-null pointers. */
+    if (name)
+    {
+        int slen;
+        if (ios->iomaster == MPI_ROOT)
+            slen = strlen(name);
+        if ((mpierr = MPI_Bcast(&slen, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+        if ((mpierr = MPI_Bcast((void *)name, slen + 1, MPI_CHAR, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    }
+    if (xtypep)
+        if ((mpierr = MPI_Bcast(xtypep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+
+    if (ndimsp)
+    {
+        LOG((2, "PIOc_inq_var about to Bcast ndims = %d ios->ioroot = %d ios->my_comm = %d",
+             *ndimsp, ios->ioroot, ios->my_comm));
+        if ((mpierr = MPI_Bcast(ndimsp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+        LOG((2, "PIOc_inq_var Bcast ndims = %d", *ndimsp));
+    }
+    if (dimidsp)
+    {
+        if ((mpierr = MPI_Bcast(&ndims, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+        if ((mpierr = MPI_Bcast(dimidsp, ndims, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    }
+    if (nattsp)
+        if ((mpierr = MPI_Bcast(nattsp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (shufflep)
+        if ((mpierr = MPI_Bcast(shufflep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (deflatep)
+        if ((mpierr = MPI_Bcast(deflatep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (deflate_levelp)
+        if ((mpierr = MPI_Bcast(deflate_levelp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (fletcher32p)
+        if ((mpierr = MPI_Bcast(fletcher32p, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (contiguousp)
+        if ((mpierr = MPI_Bcast(contiguousp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (chunksizesp)
+    {
+        if ((mpierr = MPI_Bcast(&ndims, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+        if ((mpierr = MPI_Bcast(chunksizesp, ndims, MPI_OFFSET, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    }
+    if (shufflep)
+        if ((mpierr = MPI_Bcast(shufflep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (shufflep)
+        if ((mpierr = MPI_Bcast(shufflep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (shufflep)
+        if ((mpierr = MPI_Bcast(shufflep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (shufflep)
+        if ((mpierr = MPI_Bcast(shufflep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (shufflep)
+        if ((mpierr = MPI_Bcast(shufflep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+	
 
     return PIO_NOERR;
 }
@@ -1812,8 +2112,13 @@ int PIOc_set_fill(int ncid, int fillmode, int *old_modep)
         }
 #endif /* _PNETCDF */
 
-        if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-            ierr = nc_set_fill(file->fh, fillmode, old_modep);
+        if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+            ierr = NC3_set_fill(file->fh, fillmode, old_modep);
+#ifdef _NETCDF4
+        if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+	    file->do_io)
+            ierr = NC4_set_fill(file->fh, fillmode, old_modep);
+#endif /* _NETCDF4 */
     }
 
     /* Broadcast and check the return code. */
@@ -2157,7 +2462,7 @@ int PIOc_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 
     /* Add to the list of var_desc_t structs for this file. */
     if ((ierr = add_to_varlist(varid, rec_var, xtype, (int)pio_type_size, mpi_type,
-                               mpi_type_size, &file->varlist)))
+                               mpi_type_size, ndims, &file->varlist)))
         return pio_err(ios, NULL, ierr, __FILE__, __LINE__);
     file->nvars++;
     LOG((3, "def_var succeded, file->nvars %d", file->nvars));
@@ -2472,9 +2777,9 @@ int PIOc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
             {
                 if (file->writable)
                 {
-                    ierr = nc_set_fill(file->fh, NC_NOFILL, no_fill);
+                    ierr = NC3_set_fill(file->fh, NC_NOFILL, no_fill);
                     if (!ierr)
-                        ierr = nc_set_fill(file->fh, *no_fill, NULL);
+                        ierr = NC3_set_fill(file->fh, *no_fill, NULL);
                 }
                 else
                 {

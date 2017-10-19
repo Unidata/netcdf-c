@@ -1054,6 +1054,140 @@ int inq_var_handler(iosystem_desc_t *ios)
 }
 
 /**
+ * Do an inq_var on a netCDF variable. This function is only run on
+ * IO tasks.
+ *
+ * @param ios pointer to the iosystem_desc_t.
+ * @returns 0 for success, error code otherwise.
+ */
+int inq_var_all_handler(iosystem_desc_t *ios)
+{
+    int ncid;
+    int varid;
+    char name_present, xtype_present, ndims_present, dimids_present, natts_present;
+    char shuffle_present, deflate_present, deflate_level_present, fletcher32_present;
+    char contiguous_present, chunksizes_present, no_fill_present, fill_value_present;
+    char endianness_present, options_mask_present, pixels_per_block_present;
+    char name[NC_MAX_NAME + 1], *namep = NULL;
+    nc_type xtype, *xtypep = NULL;
+    int *ndimsp = NULL, *dimidsp = NULL, *nattsp = NULL;
+    int *shufflep = NULL, *deflatep = NULL, *deflate_levelp = NULL, *fletcher32p = NULL;
+    int *contiguousp = NULL, *no_fillp = NULL;
+    size_t *chunksizesp = NULL;
+    int shuffle, deflate, deflate_level, fletcher32, contiguous, no_fill;
+    int endianness, options_mask, pixels_per_block;
+    void *fill_valuep = NULL;
+    int *endiannessp = NULL, *options_maskp = NULL, *pixels_per_blockp = NULL;
+    int ndims, dimids[NC_MAX_DIMS], natts;
+    int pio_type_size, ndim1;
+    int mpierr;
+
+    LOG((1, "inq_var_handler"));
+    assert(ios);
+
+    /* Get the parameters for this function that the the comp master
+     * task is broadcasting. */
+    if ((mpierr = MPI_Bcast(&ncid, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&varid, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&name_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&xtype_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&ndims_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&dimids_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&natts_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&shuffle_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&deflate_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&deflate_level_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&fletcher32_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&contiguous_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&chunksizes_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&no_fill_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&fill_value_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&endianness_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&options_mask_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&pixels_per_block_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&pio_type_size, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&ndim1, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    LOG((2, "inq_var_all_handler name_present %d xtype_present %d ndims_present %d "
+	 "dimids_present %d, natts_present %d  shuffle_present %d deflate_present %d "
+	 "deflate_level_present %d fletcher32_present %d contiguous_present %d "
+	 "chunksizes_present %d no_fill_present %d fill_value_present %d "
+	 "endianness_present %d options_mask_present %d pixels_per_block_present %d"
+	 "pio_type_size %d ndim1 %d",
+	 name_present, xtype_present, ndims_present, dimids_present, natts_present,
+	 shuffle_present, deflate_present, deflate_level_present, fletcher32_present,
+	 contiguous_present, chunksizes_present, no_fill_present, fill_value_present,
+	 endianness_present, options_mask_present, pixels_per_block_present, pio_type_size,
+	 ndim1));
+
+    /* Set the non-NULL pointers. */
+    if (name_present)
+        namep = name;
+    if (xtype_present)
+        xtypep = &xtype;
+    if (ndims_present)
+        ndimsp = &ndims;
+    if (dimids_present)
+        dimidsp = dimids;
+    if (natts_present)
+        nattsp = &natts;
+    if (shuffle_present)
+	shufflep = &shuffle;
+    if (deflate_present)
+	deflatep = &deflate;
+    if (deflate_level_present)
+	deflate_levelp = &deflate_level;
+    if (fletcher32_present)
+	fletcher32p = &fletcher32;
+    if (contiguous_present)
+	contiguousp = &contiguous;
+    if (chunksizes_present)
+	if (!(chunksizesp = malloc(ndim1 * sizeof(size_t))))
+            return pio_err(ios, NULL, PIO_ENOMEM, __FILE__, __LINE__);	    
+    if (no_fill_present)
+	no_fillp = &no_fill;
+    if (fill_value_present)
+	if (!(fill_valuep = malloc(pio_type_size)))
+            return pio_err(ios, NULL, PIO_ENOMEM, __FILE__, __LINE__);	    
+    if (endianness_present)
+	endiannessp = &endianness;
+    if (options_mask_present)
+	options_maskp = &options_mask;
+    if (pixels_per_block_present)
+	pixels_per_blockp = &pixels_per_block;
+
+    /* Call the inq function to get the values. */
+    PIOc_inq_var_all(ncid, varid, namep, xtypep, ndimsp, dimidsp, nattsp, shufflep, deflatep,
+		     deflate_levelp, fletcher32p, contiguousp, chunksizesp, no_fillp, fill_valuep,
+		     endiannessp, options_maskp, pixels_per_blockp);
+
+    /* Release storage. */
+    if (fill_value_present)
+	free(fill_valuep);
+
+    return PIO_NOERR;
+}
+
+/**
  * Do an inq_var_chunking on a netCDF variable. This function is only
  * run on IO tasks.
  *
@@ -2627,6 +2761,9 @@ int pio_msg_handler2(int io_rank, int component_count, iosystem_desc_t **iosys,
             break;
         case PIO_MSG_INQ_VAR:
             ret = inq_var_handler(my_iosys);
+            break;
+        case PIO_MSG_INQ_VAR_ALL:
+            ret = inq_var_all_handler(my_iosys);
             break;
         case PIO_MSG_INQ_VAR_CHUNKING:
             ret = inq_var_chunking_handler(my_iosys);

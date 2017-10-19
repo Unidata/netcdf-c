@@ -15,7 +15,9 @@
 #include <nc.h>
 #include <ncdispatch.h>
 #include <nc3dispatch.h>
+#ifdef _NETCDF4
 #include <nc4dispatch.h>
+#endif
 
 /* These are the sizes of types in netCDF files. Do not replace these
  * constants with sizeof() calls for C types. They are not the
@@ -152,7 +154,7 @@ extern "C" {
     
     /* List operations for var_desc_t list. */
     int add_to_varlist(int varid, int rec_var, int pio_type, int pio_type_size,
-                       MPI_Datatype mpi_type, int mpi_type_size, var_desc_t **varlist);
+                       MPI_Datatype mpi_type, int mpi_type_size, int ndims, var_desc_t **varlist);
     int get_var_desc(int varid, var_desc_t **varlist, var_desc_t **var_desc);
     int delete_var_desc(int varid, var_desc_t **varlist);
 
@@ -384,6 +386,7 @@ enum PIO_MSG
     PIO_MSG_INQ_VARID,
     PIO_MSG_DEF_VAR,
     PIO_MSG_INQ_VAR,
+    PIO_MSG_INQ_VAR_ALL,
     PIO_MSG_PUT_ATT_DOUBLE,
     PIO_MSG_PUT_ATT_INT,
     PIO_MSG_RENAME_ATT,

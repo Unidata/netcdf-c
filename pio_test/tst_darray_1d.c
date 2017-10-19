@@ -169,9 +169,9 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
             /* if ((ret = PIOc_createfile(iosysid, &ncid, &flavor[fmt], filename, PIO_CLOBBER))) */
             /*     ERR(ret); */
 
-/*             /\* Turn on fill mode. *\/ */
-/*             if ((ret = PIOc_set_fill(ncid, NC_FILL, NULL))) */
-/*                 ERR(ret); */
+            /* Turn on fill mode. */
+            if ((ret = PIOc_set_fill(ncid, NC_FILL, NULL)))
+                ERR(ret);
 
             /* Define netCDF dimensions and variable. */
             if ((ret = PIOc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)))
@@ -846,8 +846,7 @@ int main(int argc, char **argv)
                 return ret;
 
             /* Run tests for each data type. */
-            /* for (int t = 0; t < NUM_TYPES_TO_TEST; t++) */
-            for (int t = 0; t < 1; t++)
+            for (int t = 0; t < NUM_TYPES_TO_TEST; t++)
             {
                 /* Decompose the data over the tasks. */
                 if ((ret = create_decomposition_1d(TARGET_NTASKS, my_rank, iosysid, test_type[t],

@@ -144,6 +144,9 @@ typedef struct var_desc_t
     /** The size in bytes of a datum of MPI type mpitype. */
     int mpi_type_size;
 
+    /** THe number of dims for this var. */
+    int ndims;
+
     /** Pointer to next var in list. */
     struct var_desc_t *next;
 } var_desc_t;
@@ -882,6 +885,12 @@ extern "C" {
     int PIOc_inq_varid(int ncid, const char *name, int *varidp);
     int PIOc_inq_var(int ncid, int varid, char *name, nc_type *xtypep, int *ndimsp, int *dimidsp,
                      int *nattsp);
+    int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
+			 int *ndimsp, int *dimidsp, int *nattsp,
+			 int *shufflep, int *deflatep, int *deflate_levelp,
+			 int *fletcher32p, int *contiguousp, size_t *chunksizesp,
+			 int *no_fill, void *fill_valuep, int *endiannessp,
+			 int *options_maskp, int *pixels_per_blockp);
     int PIOc_inq_varname(int ncid, int varid, char *name);
     int PIOc_inq_vartype(int ncid, int varid, nc_type *xtypep);
     int PIOc_inq_varndims(int ncid, int varid, int *ndimsp);

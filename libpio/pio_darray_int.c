@@ -163,7 +163,9 @@ int write_darray_multi_par(file_desc_t *file, int nvars, int fndims, const int *
 {
     iosystem_desc_t *ios;  /* Pointer to io system information. */
     var_desc_t *vdesc;    /* Pointer to var info struct. */
+#ifdef _PNETCDF
     int dsize;             /* Data size (for one region). */
+#endif /* _PNETCDF */
     int ierr = PIO_NOERR;
 
     /* Check inputs. */
@@ -195,13 +197,15 @@ int write_darray_multi_par(file_desc_t *file, int nvars, int fndims, const int *
     /* If this is an IO task write the data. */
     if (ios->ioproc)
     {
-        int rrcnt = 0; /* Number of subarray requests (pnetcdf only). */
         void *bufptr;
         size_t start[fndims];
         size_t count[fndims];
         int ndims = iodesc->ndims;
+#ifdef _PNETCDF
+        int rrcnt = 0; /* Number of subarray requests (pnetcdf only). */
         PIO_Offset *startlist[num_regions]; /* Array of start arrays for ncmpi_iput_varn(). */
         PIO_Offset *countlist[num_regions]; /* Array of count  arrays for ncmpi_iput_varn(). */
+#endif /* _PNETCDF */
 
         LOG((3, "num_regions = %d", num_regions));
 
@@ -794,11 +798,13 @@ int pio_read_darray_nc(file_desc_t *file, io_desc_t *iodesc, int vid, void *iobu
         io_region *region;
         size_t start[fndims];
         size_t count[fndims];
-        size_t tmp_bufsize = 1;
         void *bufptr;
+#ifdef _PNETCDF
+        size_t tmp_bufsize = 1;
         int rrlen = 0;
         PIO_Offset *startlist[iodesc->maxregions];
         PIO_Offset *countlist[iodesc->maxregions];
+#endif /* _PNETCDF */
 
         /* buffer is incremented by byte and loffset is in terms of
            the iodessc->mpitype so we need to multiply by the size of
@@ -814,7 +820,6 @@ int pio_read_darray_nc(file_desc_t *file, io_desc_t *iodesc, int vid, void *iobu
         /* For each regions, read the data. */
         for (int regioncnt = 0; regioncnt < iodesc->maxregions; regioncnt++)
         {
-            tmp_bufsize = 1;
             if (region == NULL || iodesc->llen == 0)
             {
                 /* No data for this region. */
@@ -1277,12 +1282,12 @@ int pio_read_darray_nc_serial(file_desc_t *file, io_desc_t *iodesc, int vid,
  */
 int flush_output_buffer(file_desc_t *file, bool force, PIO_Offset addsize)
 {
-    int mpierr;  /* Return code from MPI functions. */
     int ierr = PIO_NOERR;
 
 #ifdef _PNETCDF
     var_desc_t *vdesc;
     PIO_Offset usage = 0;
+    int mpierr;  /* Return code from MPI functions. */
 
     /* Check inputs. */
     pioassert(file, "invalid input", __FILE__, __LINE__);

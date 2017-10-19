@@ -1958,13 +1958,17 @@ int check_unlim_use(int ncid)
  * @param mpi_type_size gets an array (length nvars) of the size of
  * the MPI type for each var in the file. This array must be freed by
  * caller.
+ * @param ndim gets an array (length nvars) of the number of
+ * dimensions for each var in the file. This array must be freed by
+ * caller.
  *
  * @return 0 for success, error code otherwise.
  * @ingroup PIO_openfile
  * @author Ed Hartnett
  */
 int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int **rec_var,
-                      int **pio_type, int **pio_type_size, int **mpi_type, int **mpi_type_size)
+                      int **pio_type, int **pio_type_size, int **mpi_type, int **mpi_type_size,
+		      int **nvar)
 {
     int nunlimdims;        /* The number of unlimited dimensions. */
     int unlimdimid;
@@ -2174,6 +2178,7 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
     int *pio_type_size = NULL;
     int *mpi_type = NULL;
     int *mpi_type_size = NULL;
+    int *ndim = NULL;
     int mpierr = MPI_SUCCESS, mpierr2;  /** Return code from MPI function codes. */
     int ierr = PIO_NOERR;      /* Return code from function calls. */
 
@@ -2256,7 +2261,7 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
                 break;
 
             if ((ierr = inq_file_metadata(file, file->fh, PIO_IOTYPE_NETCDF4P, &nvars, &rec_var, &pio_type,
-                                          &pio_type_size, &mpi_type, &mpi_type_size)))
+                                          &pio_type_size, &mpi_type, &mpi_type_size, &ndim)))
                 break;
             LOG((2, "PIOc_openfile_retry:nc_open_par filename = %s mode = %d imode = %d ierr = %d",
                  filename, mode, imode, ierr));
@@ -2272,7 +2277,7 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
                 if ((ierr = check_unlim_use(file->fh)))
                     break;
                 ierr = inq_file_metadata(file, file->fh, PIO_IOTYPE_NETCDF4C, &nvars, &rec_var, &pio_type,
-                                         &pio_type_size, &mpi_type, &mpi_type_size);
+                                         &pio_type_size, &mpi_type, &mpi_type_size, &ndim);
             }
             break;
 #endif /* _NETCDF4 */
@@ -2283,7 +2288,7 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
                 if ((ierr = nc_open(filename, mode, &file->fh)))
                     break;
                 ierr = inq_file_metadata(file, file->fh, PIO_IOTYPE_NETCDF, &nvars, &rec_var, &pio_type,
-                                         &pio_type_size, &mpi_type, &mpi_type_size);
+                                         &pio_type_size, &mpi_type, &mpi_type_size, &ndim);
             }
             break;
 
@@ -2302,7 +2307,7 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
 
             if (!ierr)
                 ierr = inq_file_metadata(file, file->fh, PIO_IOTYPE_PNETCDF, &nvars, &rec_var, &pio_type,
-                                         &pio_type_size, &mpi_type, &mpi_type_size);
+                                         &pio_type_size, &mpi_type, &mpi_type_size, &ndim);
             break;
 #endif
 
@@ -2333,7 +2338,7 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
                     if ((ierr = nc_open(filename, mode, &file->fh)))
                         return pio_err(ios, file, ierr, __FILE__, __LINE__);
                     if ((ierr = inq_file_metadata(file, file->fh, PIO_IOTYPE_NETCDF, &nvars, &rec_var, &pio_type,
-                                                  &pio_type_size, &mpi_type, &mpi_type_size)))
+                                                  &pio_type_size, &mpi_type, &mpi_type_size, &ndim)))
                         return pio_err(ios, file, ierr, __FILE__, __LINE__);
                 }
                 else
@@ -2386,6 +2391,8 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
             return pio_err(ios, file, PIO_ENOMEM, __FILE__, __LINE__);                    
         if (!(mpi_type_size = malloc(nvars * sizeof(int))))
             return pio_err(ios, file, PIO_ENOMEM, __FILE__, __LINE__);                    
+        if (!(ndim = malloc(nvars * sizeof(int))))
+            return pio_err(ios, file, PIO_ENOMEM, __FILE__, __LINE__);                    
     }
     if (nvars)
     {
@@ -2398,6 +2405,8 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
         if ((mpierr = MPI_Bcast(mpi_type, nvars, MPI_INT, ios->ioroot, ios->my_comm)))
             return check_mpi(file, mpierr, __FILE__, __LINE__);
         if ((mpierr = MPI_Bcast(mpi_type_size, nvars, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+        if ((mpierr = MPI_Bcast(ndim, nvars, MPI_INT, ios->ioroot, ios->my_comm)))
             return check_mpi(file, mpierr, __FILE__, __LINE__);
     }
 
@@ -2415,7 +2424,7 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
     /* Add info about the variables to the file_desc_t struct. */
     for (int v = 0; v < nvars; v++)
         if ((ierr = add_to_varlist(v, rec_var[v], pio_type[v], pio_type_size[v], mpi_type[v],
-                                   mpi_type_size[v], &file->varlist)))
+                                   mpi_type_size[v], ndim[v], &file->varlist)))
             return pio_err(ios, NULL, ierr, __FILE__, __LINE__);
     file->nvars = nvars;
 
@@ -2432,6 +2441,8 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
             free(mpi_type);
         if (mpi_type_size)
             free(mpi_type_size);
+        if (ndim)
+            free(ndim);
     }
 
     LOG((2, "Opened file %s file->pio_ncid = %d file->fh = %d ierr = %d",
