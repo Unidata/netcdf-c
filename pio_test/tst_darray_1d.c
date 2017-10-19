@@ -178,7 +178,7 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
                 ERR(ret);
 
             /* Define a variable. */
-            if ((ret = PIOc_def_var(ncid, VAR_NAME, pio_type, NDIM, &dimid, &varid)))
+            if ((ret = nc_def_var(ncid, VAR_NAME, pio_type, NDIM, &dimid, &varid)))
                 ERR(ret);
 
             /* End define mode. */

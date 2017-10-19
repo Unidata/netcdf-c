@@ -533,16 +533,12 @@ PIO_def_var(int ncid, const char *name, nc_type xtype,
             int ndims, const int *dimidsp, int *varidp)
 {
     NC* nc;
-    PIO_INFO* nc5;
     int status;
 
-    status = NC_check_id(ncid, &nc);
-    if (status != NC_NOERR) return status;
-    nc5 = PIO_DATA(nc);
-    assert(nc5);
+    if ((status = NC_check_id(ncid, &nc)) != NC_NOERR)
+	return status;
 
-    status = PIOc_def_var(nc->ext_ncid,name,xtype,ndims,dimidsp,varidp);
-    return status;
+    return PIOc_def_var(nc->ext_ncid, name, xtype, ndims, dimidsp, varidp);
 }
 
 static int
