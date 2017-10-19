@@ -225,8 +225,10 @@ main(int argc, char **argv)
        NC_FORMAT_CLASSIC
        ,
        NC_FORMAT_64BIT_OFFSET
+#ifdef ENABLE_CDF5
        ,
        NC_FORMAT_CDF5
+#endif
 #ifdef USE_NETCDF4
        ,
        NC_FORMAT_NETCDF4
