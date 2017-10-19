@@ -197,9 +197,12 @@ main(int argc, char **argv)
        "x\xED\xAE\x80\xED\xB0\x80",
        "x\xED\xAE\x80\xED\xBF\xBF",
        "x\xED\xAF\xBF\xED\xB0\x80",
-       "x\xED\xAF\xBF\xED\xBF\xBF",
-       "x\xEF\xBF\xBE",		/* other illegal code positions */
+       "x\xED\xAF\xBF\xED\xBF\xBF"
+#if 0
+       /* The two below is legal since UTF8PROC_VERSION_MAJOR 2 */
+       "x\xEF\xBF\xBE",         /* other illegal code positions */
        "x\xEF\xBF\xBF"
+#endif
    };
    int nerrs=0;
    int i, j;
