@@ -423,7 +423,8 @@ int PIOc_inq_type(int ncid, nc_type xtype, char *name, PIO_Offset *sizep)
         if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
             ierr = NC3_inq_type(file->fh, xtype, name, (size_t *)sizep);
 #ifdef _NETCDF4
-        else if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
+        else if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+		 file->do_io)
             ierr = NC4_inq_type(file->fh, xtype, name, (size_t *)sizep);
 #endif /* _NETCDF4 */
         LOG((2, "PIOc_inq_type netcdf call returned %d", ierr));

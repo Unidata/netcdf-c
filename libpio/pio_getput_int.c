@@ -890,8 +890,6 @@ int PIOc_put_vars_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
     char start_present = start ? true : false;    /* Is start non-NULL? */
     char count_present = count ? true : false;    /* Is count non-NULL? */
     char stride_present = stride ? true : false;  /* Is stride non-NULL? */
-    var_desc_t *vdesc;
-    int *request;
     nc_type vartype;   /* The type of the var we are reading from. */
     int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */
     int ierr;          /* Return code from function calls. */
@@ -1009,6 +1007,9 @@ int PIOc_put_vars_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
     if (ios->ioproc)
     {
 #ifdef _PNETCDF
+	int *request;
+	var_desc_t *vdesc;
+	
         if (file->iotype == PIO_IOTYPE_PNETCDF)
         {
             /* Scalars have to be handled differently. */

@@ -43,6 +43,9 @@ static const int LEGAL_CREATE_FLAGS = (NC_NOCLOBBER | NC_64BIT_OFFSET | NC_CLASS
 static const int LEGAL_OPEN_FLAGS = (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_LOCK |
 				     NC_CLASSIC_MODEL | NC_64BIT_OFFSET | NC_64BIT_DATA | NC_MPIIO | NC_PIO);
 
+int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filename,
+			 int mode, int retry, struct NC_Dispatch *table, NC *nc);
+
 /**************************************************/
 
 static int
@@ -118,9 +121,8 @@ static int
 PIO_open(const char *path, int cmode, int basepe, size_t *chunksizehintp,
          int use_parallel, void* mpidata, struct NC_Dispatch* table, NC* nc)
 {
-    PIO_INFO* nc5;
-    MPI_Comm comm = MPI_COMM_WORLD;
-    MPI_Info info = MPI_INFO_NULL;
+    /* MPI_Comm comm = MPI_COMM_WORLD; */
+    /* MPI_Info info = MPI_INFO_NULL; */
     int res;
 
     /* Check the cmode for only valid flags*/
@@ -131,11 +133,11 @@ PIO_open(const char *path, int cmode, int basepe, size_t *chunksizehintp,
     if ((cmode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
 	return NC_EINVAL;
 
-    if (mpidata)
-    {
-        comm = ((NC_MPI_INFO *)mpidata)->comm;
-        info = ((NC_MPI_INFO *)mpidata)->info;
-    }
+    /* if (mpidata) */
+    /* { */
+    /*     comm = ((NC_MPI_INFO *)mpidata)->comm; */
+    /*     info = ((NC_MPI_INFO *)mpidata)->info; */
+    /* } */
 
     /* PnetCDF recognizes the flags NC_WRITE and NC_NOCLOBBER for file open
      * and ignores NC_LOCK, NC_SHARE, NC_64BIT_OFFSET, and NC_64BIT_DATA.
@@ -143,23 +145,11 @@ PIO_open(const char *path, int cmode, int basepe, size_t *chunksizehintp,
      * file is already in one of the CDF-formats, and setting these 2 flags
      * will not change the format of that file.
      */
-    cmode &= (NC_WRITE | NC_NOCLOBBER);
+    /* cmode &= (NC_WRITE | NC_NOCLOBBER); */
 
-    /* Create our specific PIO_INFO instance */
-    if (!(nc5 = (PIO_INFO *)calloc(1,sizeof(PIO_INFO))))
-	return NC_ENOMEM;
-
-    /* /\* Link nc5 and nc *\/ */
-    /* PIO_DATA_SET(nc, nc5); */
-
-    res = PIOc_open(comm, path, cmode, &(nc->ext_ncid));
-
-    /* Default to independent access, like netCDF-4/HDF5 files. */
-    if (!res)
-    {
-        /* res = PIOc_begin_indep_data(nc->ext_ncid); */
-        nc5->pnetcdf_access_mode = NC_INDEPENDENT;
-    }
+    int ncid;
+    int iotype = PIO_IOTYPE_NETCDF;
+    res = PIOc_openfile_retry2(last_iosysid, &ncid, &iotype, path, cmode, 0, table, nc);
 
     return res;
 }
@@ -546,7 +536,8 @@ PIO_inq_varid(int ncid, const char *name, int *varidp)
 {
     NC* nc;
     int status = NC_check_id(ncid, &nc);
-    if (status != NC_NOERR) return status;
+    if (status != NC_NOERR)
+	return status;
     return PIOc_inq_varid(nc->ext_ncid,name,varidp);
 }
 
@@ -995,29 +986,20 @@ PIO_put_varm(int ncid,
 }
 
 static int
-PIO_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
-                int *ndimsp, int *dimidsp, int *nattsp,
-                int *shufflep, int *deflatep, int *deflate_levelp,
-                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
-                int *no_fill, void *fill_valuep, int *endiannessp,
-                int *options_maskp, int *pixels_per_blockp)
+PIO_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, int *ndimsp, int *dimidsp,
+		int *nattsp, int *shufflep, int *deflatep, int *deflate_levelp, int *fletcher32p,
+		int *contiguousp, size_t *chunksizesp, int *no_fill, void *fill_valuep,
+		int *endiannessp, int *options_maskp, int *pixels_per_blockp)
 {
     int status;
-    NC* nc;
+    NC *nc;
 
-    status = NC_check_id(ncid, &nc);
-    if (status != NC_NOERR) return status;
+    if (!(status = NC_check_id(ncid, &nc)))
+	return status;
 
-    status = PIOc_inq_var(nc->ext_ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp);
-    if (status) return status;
-    if (shufflep) *shufflep = 0;
-    if (deflatep) *deflatep = 0;
-    if (fletcher32p) *fletcher32p = 0;
-    if (contiguousp) *contiguousp = NC_CONTIGUOUS;
-    if (no_fill) *no_fill = 1;
-    if (endiannessp) return NC_ENOTNC4;
-    if (options_maskp) return NC_ENOTNC4;
-    return NC_NOERR;
+    return PIOc_inq_var_all(nc->ext_ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp, shufflep,
+			    deflatep, deflate_levelp, fletcher32p, contiguousp, chunksizesp,
+			    no_fill, fill_valuep, endiannessp, options_maskp, pixels_per_blockp);
 }
 
 static int

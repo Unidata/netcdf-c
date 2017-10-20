@@ -1968,7 +1968,7 @@ int check_unlim_use(int ncid)
  */
 int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int **rec_var,
                       int **pio_type, int **pio_type_size, int **mpi_type, int **mpi_type_size,
-		      int **nvar)
+		      int **ndim)
 {
     int nunlimdims;        /* The number of unlimited dimensions. */
     int unlimdimid;
@@ -1976,18 +1976,27 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
     int mpierr;
     int ret;
 
+    LOG((2, "inq_file_metadata file %s ncid %d iotype %d", file, ncid, iotype));
+
     if (iotype == PIO_IOTYPE_PNETCDF)
     {
 #ifdef _PNETCDF
         if ((ret = ncmpi_inq_nvars(ncid, nvars)))
-            return pio_err(NULL, file, PIO_ENOMEM, __FILE__, __LINE__);
+            return pio_err(NULL, file, ret, __FILE__, __LINE__);
 #endif /* _PNETCDF */
     }
+    else if (iotype == PIO_IOTYPE_NETCDF)
+    {
+        if ((ret = NC3_inq(ncid, NULL, nvars, NULL, NULL)))
+            return pio_err(NULL, file, ret, __FILE__, __LINE__);
+    }
+#ifdef _NETCDF4
     else
     {
-        if ((ret = nc_inq_nvars(ncid, nvars)))
-            return pio_err(NULL, file, PIO_ENOMEM, __FILE__, __LINE__);
+        if ((ret = NC4_inq(ncid, NULL, nvars, NULL, NULL)))
+            return pio_err(NULL, file, ret, __FILE__, __LINE__);
     }
+#endif /* _NETCDF4 */
 
     if (*nvars)
     {
@@ -2000,6 +2009,8 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
         if (!(*mpi_type = malloc(*nvars * sizeof(int))))
             return PIO_ENOMEM;
         if (!(*mpi_type_size = malloc(*nvars * sizeof(int))))
+            return PIO_ENOMEM;
+        if (!(*ndim = malloc(*nvars * sizeof(int))))
             return PIO_ENOMEM;
     }
 
@@ -2014,14 +2025,14 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
     }
     else if (iotype == PIO_IOTYPE_NETCDF)
     {
-        if ((ret = nc_inq_unlimdim(ncid, &unlimdimid)))
+        if ((ret = NC3_inq_unlimdim(ncid, &unlimdimid)))
             return pio_err(NULL, file, ret, __FILE__, __LINE__);
         nunlimdims = unlimdimid == -1 ? 0 : 1;
     }
     else
     {
 #ifdef _NETCDF4
-        if ((ret = nc_inq_unlimdims(ncid, &nunlimdims, NULL)))
+        if ((ret = NC4_inq_unlimdims(ncid, &nunlimdims, NULL)))
             return pio_err(NULL, file, ret, __FILE__, __LINE__);
 #endif /* _NETCDF4 */
     }
@@ -2038,7 +2049,7 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
         else
         {
 #ifdef _NETCDF4
-            if ((ret = nc_inq_unlimdims(ncid, NULL, unlimdimids)))
+            if ((ret = NC4_inq_unlimdims(ncid, NULL, unlimdimids)))
                 return pio_err(NULL, file, ret, __FILE__, __LINE__);
 #endif /* _NETCDF4 */
         }
@@ -2065,17 +2076,34 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
             (*pio_type_size)[v] = type_size;
 #endif /* _PNETCDF */            
         }
-        else
+        else if (iotype == PIO_IOTYPE_NETCDF)
         {
             size_t type_size;
             
-            if ((ret = nc_inq_var(ncid, v, NULL, &my_type, &var_ndims, NULL, NULL)))
+            if ((ret = NC3_inq_var_all(ncid, v, NULL, &my_type, &var_ndims, NULL, NULL,
+				       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
                 return pio_err(NULL, file, ret, __FILE__, __LINE__);
             (*pio_type)[v] = (int)my_type;
-            if ((ret = nc_inq_type(ncid, (*pio_type)[v], NULL, &type_size)))
+            if ((ret = NC3_inq_type(ncid, (*pio_type)[v], NULL, &type_size)))
                 return check_netcdf(file, ret, __FILE__, __LINE__);
             (*pio_type_size)[v] = type_size;
+	    (*ndim)[v] = var_ndims;
         }
+#ifdef _NETCDF4
+	else
+        {
+            size_t type_size;
+            
+            if ((ret = NC4_inq_var_all(ncid, v, NULL, &my_type, &var_ndims, NULL, NULL,
+				       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
+                return pio_err(NULL, file, ret, __FILE__, __LINE__);
+            (*pio_type)[v] = (int)my_type;
+            if ((ret = NC4_inq_type(ncid, (*pio_type)[v], NULL, &type_size)))
+                return check_netcdf(file, ret, __FILE__, __LINE__);
+            (*pio_type_size)[v] = type_size;
+	    (*ndim)[v] = var_ndims;
+        }
+#endif /* _NETCDF4 */	    
 
         /* Get the MPI type corresponding with the PIO type. */
         if ((ret = find_mpi_type((*pio_type)[v], &(*mpi_type)[v], NULL)))
@@ -2096,11 +2124,20 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
                     return pio_err(NULL, file, ret, __FILE__, __LINE__);
 #endif /* _PNETCDF */                
             }
-            else
+            else if (iotype == PIO_IOTYPE_NETCDF)
             {
-                if ((ret = nc_inq_vardimid(ncid, v, var_dimids)))
-                    return pio_err(NULL, file, ret, __FILE__, __LINE__);
+		if ((ret = NC3_inq_var_all(ncid, v, NULL, NULL, NULL, var_dimids, NULL,
+					   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
+		    return pio_err(NULL, file, ret, __FILE__, __LINE__);		
             }
+#ifdef _NETCDF4
+	    else
+            {
+		if ((ret = NC4_inq_var_all(ncid, v, NULL, NULL, NULL, var_dimids, NULL,
+					   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
+		    return pio_err(NULL, file, ret, __FILE__, __LINE__);		
+            }
+#endif /* _NETCDF4 */
             
             /* Check against each variable dimid agains each unlimited
              * dimid. */
@@ -2141,33 +2178,8 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
     return PIO_NOERR;
 }
 
-/**
- * Open an existing file using PIO library. This is an internal
- * function. Depending on the value of the retry parameter, a failed
- * open operation will be handled differently. If retry is non-zero,
- * then a failed attempt to open a file with netCDF-4 (serial or
- * parallel), or parallel-netcdf will be followed by an attempt to
- * open the file as a serial classic netCDF file. This is an important
- * feature to some NCAR users. The functionality is exposed to the
- * user as PIOc_openfile() (which does the retry), and PIOc_open()
- * (which does not do the retry).
- *
- * Input parameters are read on comp task 0 and ignored elsewhere.
- *
- * @param iosysid: A defined pio system descriptor (input)
- * @param ncidp: A pio file descriptor (output)
- * @param iotype: A pio output format (input)
- * @param filename: The filename to open
- * @param mode: The netcdf mode for the open operation
- * @param retry: non-zero to automatically retry with netCDF serial
- * classic.
- *
- * @return 0 for success, error code otherwise.
- * @ingroup PIO_openfile
- * @author Jim Edwards, Ed Hartnett
- */
-int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filename,
-                        int mode, int retry)
+int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filename,
+			 int mode, int retry, struct NC_Dispatch *table, NC *nc)
 {
     iosystem_desc_t *ios;      /* Pointer to io system information. */
     file_desc_t *file;         /* Pointer to file information. */
@@ -2210,7 +2222,7 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
     if (file->iotype == PIO_IOTYPE_NETCDF4P || file->iotype == PIO_IOTYPE_PNETCDF ||
         ios->io_rank == 0)
         file->do_io = 1;
-
+    
     /* If async is in use, and this is not an IO task, bcast the parameters. */
     if (ios->async)
     {
@@ -2249,29 +2261,28 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
 #ifdef _NETCDF4
 
         case PIO_IOTYPE_NETCDF4P:
-#ifdef _MPISERIAL
-            ierr = nc_open(filename, mode, &file->fh);
-#else
+	    
+	    file->fh = nc->ext_ncid;
+	    
             imode = mode |  NC_MPIIO;
-            if ((ierr = nc_open_par(filename, imode, ios->io_comm, ios->info, &file->fh)))
+	    if ((ierr = NC4_open(filename, mode, 0, NULL, 1, NULL, table, nc)))
                 break;
-
+	    
             /* Check the vars for valid use of unlim dims. */
             if ((ierr = check_unlim_use(file->fh)))
                 break;
-
+	    
             if ((ierr = inq_file_metadata(file, file->fh, PIO_IOTYPE_NETCDF4P, &nvars, &rec_var, &pio_type,
                                           &pio_type_size, &mpi_type, &mpi_type_size, &ndim)))
                 break;
             LOG((2, "PIOc_openfile_retry:nc_open_par filename = %s mode = %d imode = %d ierr = %d",
                  filename, mode, imode, ierr));
-#endif
             break;
-
+	    
         case PIO_IOTYPE_NETCDF4C:
             if (ios->io_rank == 0)
             {
-                if ((ierr = nc_open(filename, mode, &file->fh)))
+		if ((ierr = NC4_open(filename, mode, 0, NULL, 0, NULL, table, nc)))
                     break;
                 /* Check the vars for valid use of unlim dims. */
                 if ((ierr = check_unlim_use(file->fh)))
@@ -2281,17 +2292,18 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
             }
             break;
 #endif /* _NETCDF4 */
-
+	    
         case PIO_IOTYPE_NETCDF:
             if (ios->io_rank == 0)
             {
-                if ((ierr = nc_open(filename, mode, &file->fh)))
+                if ((ierr = NC3_open(filename, mode, 0, NULL, 0, NULL, table, nc)))
                     break;
+		file->fh = nc->ext_ncid;
                 ierr = inq_file_metadata(file, file->fh, PIO_IOTYPE_NETCDF, &nvars, &rec_var, &pio_type,
                                          &pio_type_size, &mpi_type, &mpi_type_size, &ndim);
             }
             break;
-
+	    
 #ifdef _PNETCDF
         case PIO_IOTYPE_PNETCDF:
             ierr = ncmpi_open(ios->io_comm, filename, mode, ios->info, &file->fh);
@@ -2364,6 +2376,7 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
     }
 
     /* Broadcast writability to all tasks. */
+    LOG((3, "Bcasting file->writable %d", file->writable));
     if ((mpierr = MPI_Bcast(&file->writable, 1, MPI_INT, ios->ioroot, ios->my_comm)))
         return check_mpi(file, mpierr, __FILE__, __LINE__);
 
@@ -2377,6 +2390,7 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
     
     if ((mpierr = MPI_Bcast(&nvars, 1, MPI_INT, ios->ioroot, ios->my_comm)))
         return check_mpi(file, mpierr, __FILE__, __LINE__);
+    LOG((3, "after Bcasting nvars %d", nvars));
 
     /* Non io tasks need to allocate to store info about variables. */
     if (nvars && !rec_var)
@@ -2413,7 +2427,7 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
     /* Create the ncid that the user will see. This is necessary
      * because otherwise ncids will be reused if files are opened
      * on multiple iosystems. */
-    file->pio_ncid = pio_next_ncid++;
+    file->pio_ncid = nc->ext_ncid;
 
     /* Return the PIO ncid to the user. */
     *ncidp = file->pio_ncid;
@@ -2451,6 +2465,37 @@ int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filena
     return ierr;
 }
 
+/**
+ * Open an existing file using PIO library. This is an internal
+ * function. Depending on the value of the retry parameter, a failed
+ * open operation will be handled differently. If retry is non-zero,
+ * then a failed attempt to open a file with netCDF-4 (serial or
+ * parallel), or parallel-netcdf will be followed by an attempt to
+ * open the file as a serial classic netCDF file. This is an important
+ * feature to some NCAR users. The functionality is exposed to the
+ * user as PIOc_openfile() (which does the retry), and PIOc_open()
+ * (which does not do the retry).
+ *
+ * Input parameters are read on comp task 0 and ignored elsewhere.
+ *
+ * @param iosysid: A defined pio system descriptor (input)
+ * @param ncidp: A pio file descriptor (output)
+ * @param iotype: A pio output format (input)
+ * @param filename: The filename to open
+ * @param mode: The netcdf mode for the open operation
+ * @param retry: non-zero to automatically retry with netCDF serial
+ * classic.
+ *
+ * @return 0 for success, error code otherwise.
+ * @ingroup PIO_openfile
+ * @author Jim Edwards, Ed Hartnett
+ */
+int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filename,
+                        int mode, int retry)
+{
+    return PIOc_openfile_retry2(iosysid, ncidp, iotype, filename, mode, retry, NULL, NULL);
+}
+	
 /**
  * Internal function to provide inq_type function for pnetcdf.
  *
