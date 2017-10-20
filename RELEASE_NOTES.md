@@ -5,7 +5,7 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.5.0 - October 18, 2017
+## 4.5.0 - October 20, 2017
 
 * Corrected an issue which could potential result in a hang while using parallel file I/O. See [Github #449](https://github.com/Unidata/netcdf-c/pull/449) for more information.
 * Addressed an issue with `ncdump` not properly handling dates on a 366 day calendar. See [GitHub #359](https://github.com/Unidata/netcdf-c/issues/359) for more information.
