@@ -1833,6 +1833,7 @@ NC_open(const char *path0, int cmode,
    NC_Dispatch* dispatcher = NULL;
    int inmemory = 0;
    int diskless = 0;
+   int use_pio = 0;
    /* Need pieces of information for now to decide model*/
    int model = 0;
    int isurl = 0;
@@ -1858,7 +1859,7 @@ NC_open(const char *path0, int cmode,
 
    inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
-
+   use_pio = ((cmode & NC_PIO) == NC_PIO);
 
 #ifdef WINPATH
    path = NCpathcvt(path0);
@@ -1945,6 +1946,11 @@ NC_open(const char *path0, int cmode,
    if(dispatcher != NULL) goto havetable;
 
    /* Figure out what dispatcher to use */
+#if defined(USE_PIO)
+    if (use_pio)
+        dispatcher = PIO_dispatch_table;
+    else
+#endif
 #if defined(ENABLE_DAP)
    if(model == (NC_FORMATX_DAP2))
 	dispatcher = NCD2_dispatch_table;
