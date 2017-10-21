@@ -1122,6 +1122,8 @@ else
 enable_parallel=no
 fi
 
+AM_CONDITIONAL(ENABLE_PARALLEL, [test x$enable_parallel = xyes ])
+
 if test "x$hdf5_parallel" = xyes; then
   # Provide more precise parallel control
   AC_DEFINE([HDF5_PARALLEL], [1], [if true, hdf5 has parallelism enabled])
