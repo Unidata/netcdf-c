@@ -759,16 +759,25 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
+# Option to turn on CDF5 support.
+OPTION(ENABLE_CDF5 "Enable CDF5 Support." OFF)
+IF(ENABLE_CDF5)
+    SET(USE_CDF5 ON CACHE BOOL "")
+ENDIF(ENABLE_CDF5)
 
 # Option to Build DAP2+DAP4 Clients
 OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 IF(ENABLE_DAP)
-  SET(USE_DAP ON)
-  SET(ENABLE_DAP2 ON)
-  SET(ENABLE_DAP4 ON)
-  IF(NOT ENABLE_NETCDF_4)
-    SET(ENABLE_DAP4 OFF)
-  ENDIF()
+  SET(USE_DAP ON CACHE BOOL "")
+  SET(ENABLE_DAP2 ON CACHE BOOL "")
+
+
+  IF(ENABLE_NETCDF_4)
+    SET(ENABLE_DAP4 ON CACHE BOOL "")
+  ELSE(ENABLE_NETCDF_4)
+    SET(ENABLE_DAP4 OFF CACHE BOOL "")
+  ENDIF(ENABLE_NETCDF_4)
+
   FIND_PACKAGE(CURL)
   IF(NOT CURL_LIBRARY)
     MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
@@ -806,6 +815,12 @@ IF(ENABLE_DAP)
   CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_CHUNK_BGN_FUNCTION;}" HAVE_CURLOPT_CHUNK_BGN_FUNCTION)
+
+  # Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
+  # It showed up in curl 7.10.7.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
 
 ELSE()
   SET(ENABLE_DAP2 OFF)
@@ -1029,6 +1044,7 @@ SET(STATUS_ERANGE_FILL "OFF")
 OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OF)
 IF(ENABLE_ERANGE_FILL)
   SET(STATUS_ERANGE_FILL "ON")
+  ADD_DEFINITIONS(-DERANGE_FILL)
 ENDIF()
 
 # Options to use a more relaxed coordinate argument boundary check
@@ -1887,11 +1903,13 @@ is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
 is_enabled(ENABLE_DAP HAS_DAP)
+is_enabled(ENABLE_DAP HAS_DAP2)
 is_enabled(ENABLE_DAP4 HAS_DAP4)
 is_enabled(USE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
 is_enabled(STATUS_RELAX_COORD_BOUND RELAX_COORD_BOUND)
+is_enabled(USE_CDF5 HAS_CDF5)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
