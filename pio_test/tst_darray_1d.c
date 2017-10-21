@@ -269,8 +269,8 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
              * value (instead of 2, as indicated by arraylen), but due
              * to the decomposition, only the first value is used in
              * the output. */
-            /* if ((ret = PIOc_write_darray(ncid, varid, ioid, arraylen, test_data, fillvalue))) */
-            /*     ERR(ret); */
+            if ((ret = PIOc_write_darray(ncid, varid, ioid, arraylen, test_data, fillvalue)))
+                ERR(ret);
 
             /* Close the netCDF file. */
             if ((ret = nc_close(ncid)))

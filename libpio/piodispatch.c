@@ -458,26 +458,20 @@ PIO_get_att(
 }
 
 int
-PIO_put_att(
-    int ncid,
-    int varid,
-    const char *name,
-    nc_type xtype,
-    size_t len,
-    const void *ip,
-    nc_type memtype)
+PIO_put_att(int ncid, int varid, const char *name, nc_type xtype, size_t len,
+	    const void *ip, nc_type memtype)
 {
-    NC* nc;
+    NC *nc;
     int status;
     MPI_Offset mpilen;
 
     /* check if ncid is valid */
-    status = NC_check_id(ncid, &nc);
-    if (status != NC_NOERR) return status;
+    if ((status = NC_check_id(ncid, &nc)))
+	return status;
 
     /* check if varid is valid */
-    status = PIOc_inq_varnatts(nc->ext_ncid, varid, NULL);
-    if (status != NC_NOERR) return status;
+    if ((status = PIOc_inq_varnatts(nc->ext_ncid, varid, NULL)))
+	return status;
 
     if (!name || (strlen(name) > NC_MAX_NAME))
         return NC_EBADNAME;
@@ -488,34 +482,7 @@ PIO_put_att(
         return NC_EINVAL;
 
     mpilen = len;
-
-    switch (memtype) {
-    case NC_CHAR:
-        return PIOc_put_att_text(nc->ext_ncid, varid, name, mpilen, (char*)ip);
-    case NC_BYTE:
-        return PIOc_put_att_schar(nc->ext_ncid, varid, name, xtype, mpilen, (signed char*)ip);
-    case NC_SHORT:
-        return PIOc_put_att_short(nc->ext_ncid, varid, name, xtype, mpilen, (short*)ip);
-    case NC_INT:
-        return PIOc_put_att_int(nc->ext_ncid, varid, name, xtype, mpilen, (int*)ip);
-    case NC_FLOAT:
-        return PIOc_put_att_float(nc->ext_ncid, varid, name, xtype, mpilen, (float*)ip);
-    case NC_DOUBLE:
-        return PIOc_put_att_double(nc->ext_ncid, varid, name, xtype, mpilen, (double*)ip);
-    case NC_UBYTE:
-        return PIOc_put_att_uchar(nc->ext_ncid, varid, name, xtype, mpilen, (unsigned char*)ip);
-    case NC_USHORT:
-        return PIOc_put_att_ushort(nc->ext_ncid, varid, name, xtype, mpilen, (unsigned short*)ip);
-    case NC_UINT:
-        return PIOc_put_att_uint(nc->ext_ncid, varid, name, xtype, mpilen, (unsigned int*)ip);
-    case NC_INT64:
-        return PIOc_put_att_longlong(nc->ext_ncid, varid, name, xtype, mpilen, (long long*)ip);
-    case NC_UINT64:
-        return PIOc_put_att_ulonglong(nc->ext_ncid, varid, name, xtype, mpilen, (unsigned long long*)ip);
-    default:
-        break;
-    }
-    return NC_EBADTYPE;
+    return PIOc_put_att_tc(nc->ext_ncid, varid, name, xtype, mpilen, memtype, ip);
 }
 
 static int

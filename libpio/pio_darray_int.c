@@ -628,8 +628,19 @@ int recv_and_write_data(file_desc_t *file, const int *varids, const int *frame,
                     }
 
                     /* Call the netCDF functions to write the data. */
-                    if ((ierr = nc_put_vara(file->fh, varids[nv], start, count, bufptr)))
-                        return check_netcdf2(ios, NULL, ierr, __FILE__, __LINE__);
+		    if (file->iotype == PIO_IOTYPE_NETCDF)
+		    {
+			if ((ierr = NC3_put_vara(file->fh, varids[nv], start, count, bufptr, vdesc->pio_type)))
+			    return check_netcdf2(ios, NULL, ierr, __FILE__, __LINE__);
+		    }
+#ifdef _NETCDF4
+		    if (file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P)
+		    {
+			if ((ierr = NC4_put_vara(file->fh, varids[nv], start, count, bufptr, vdesc->pio_type)))
+			    return check_netcdf2(ios, NULL, ierr, __FILE__, __LINE__);
+		    }		    
+#endif /* _NETCDF4 */
+		    
 
                 } /* next var */
 

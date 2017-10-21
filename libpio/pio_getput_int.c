@@ -157,56 +157,15 @@ int PIOc_put_att_tc(int ncid, int varid, const char *name, nc_type atttype,
         }
 #endif /* _PNETCDF */
 
-        if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-        {
-            switch(memtype)
-            {
-            case NC_CHAR:
-                ierr = nc_put_att_text(file->fh, varid, name, len, op);
-                break;
-            case NC_BYTE:
-                ierr = nc_put_att_schar(file->fh, varid, name, atttype, len, op);
-                break;
-            case NC_SHORT:
-                ierr = nc_put_att_short(file->fh, varid, name, atttype, len, op);
-                break;
-            case NC_INT:
-                ierr = nc_put_att_int(file->fh, varid, name, atttype, len, op);
-                break;
-            case PIO_LONG_INTERNAL:
-                ierr = nc_put_att_long(file->fh, varid, name, atttype, len, op);
-                break;
-            case NC_FLOAT:
-                ierr = nc_put_att_float(file->fh, varid, name, atttype, len, op);
-                break;
-            case NC_DOUBLE:
-                ierr = nc_put_att_double(file->fh, varid, name, atttype, len, op);
-                break;
+        if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+	    ierr = NC3_put_att(file->fh, varid, name, atttype, len, op, memtype);
+
 #ifdef _NETCDF4
-            case NC_UBYTE:
-                ierr = nc_put_att_uchar(file->fh, varid, name, atttype, len, op);
-                break;
-            case NC_USHORT:
-                ierr = nc_put_att_ushort(file->fh, varid, name, atttype, len, op);
-                break;
-            case NC_UINT:
-                ierr = nc_put_att_uint(file->fh, varid, name, atttype, len, op);
-                break;
-            case NC_INT64:
-                LOG((3, "about to call nc_put_att_longlong"));
-                ierr = nc_put_att_longlong(file->fh, varid, name, atttype, len, op);
-                break;
-            case NC_UINT64:
-                ierr = nc_put_att_ulonglong(file->fh, varid, name, atttype, len, op);
-                break;
-                /* case NC_STRING: */
-                /*      ierr = nc_put_att_string(file->fh, varid, name, atttype, len, op); */
-                /*      break; */
+	if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+	    file->do_io)
+	    ierr = NC4_put_att(file->fh, varid, name, atttype, len, op, memtype);	    
 #endif /* _NETCDF4 */
-            default:
-                return pio_err(ios, file, PIO_EBADTYPE, __FILE__, __LINE__);
-            }
-        }
+	    
     }
 
     /* Broadcast and check the return code. */
@@ -379,56 +338,14 @@ int PIOc_get_att_tc(int ncid, int varid, const char *name, nc_type memtype, void
         }
 #endif /* _PNETCDF */
 
-        if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-        {
-            switch(memtype)
-            {
-            case NC_CHAR:
-                ierr = nc_get_att_text(file->fh, varid, name, ip);
-                break;
-            case NC_BYTE:
-                ierr = nc_get_att_schar(file->fh, varid, name, ip);
-                break;
-            case NC_SHORT:
-                ierr = nc_get_att_short(file->fh, varid, name, ip);
-                break;
-            case NC_INT:
-                ierr = nc_get_att_int(file->fh, varid, name, ip);
-                break;
-            case PIO_LONG_INTERNAL:
-                ierr = nc_get_att_long(file->fh, varid, name, ip);
-                break;
-            case NC_FLOAT:
-                ierr = nc_get_att_float(file->fh, varid, name, ip);
-                break;
-            case NC_DOUBLE:
-                ierr = nc_get_att_double(file->fh, varid, name, ip);
-                break;
+        if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+	    ierr = NC3_get_att(file->fh, varid, name, ip, memtype);	    
 #ifdef _NETCDF4
-            case NC_UBYTE:
-                ierr = nc_get_att_uchar(file->fh, varid, name, ip);
-                break;
-            case NC_USHORT:
-                ierr = nc_get_att_ushort(file->fh, varid, name, ip);
-                break;
-            case NC_UINT:
-                ierr = nc_get_att_uint(file->fh, varid, name, ip);
-                break;
-            case NC_INT64:
-                LOG((3, "about to call nc_get_att_longlong"));
-                ierr = nc_get_att_longlong(file->fh, varid, name, ip);
-                break;
-            case NC_UINT64:
-                ierr = nc_get_att_ulonglong(file->fh, varid, name, ip);
-                break;
-                /* case NC_STRING: */
-                /*      ierr = nc_get_att_string(file->fh, varid, name, ip); */
-                /*      break; */
+
+        if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+	    file->do_io)
+	    ierr = NC4_get_att(file->fh, varid, name, ip, memtype);	    	    
 #endif /* _NETCDF4 */
-            default:
-                return pio_err(ios, file, PIO_EBADTYPE, __FILE__, __LINE__);
-            }
-        }
     }
 
     /* Broadcast and check the return code. */
