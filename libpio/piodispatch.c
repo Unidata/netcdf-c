@@ -294,7 +294,6 @@ PIO_inq(int ncid,
 static int
 PIO_inq_type(int ncid, nc_type typeid, char* name, size_t* size)
 {
-    /* Assert mode & NC_FORMAT_CDF5 */
     if (typeid < NC_BYTE || typeid >= NC_STRING)
         return NC_EBADTYPE;
     if (name)
@@ -535,8 +534,8 @@ PIO_get_vara(int ncid,
     status = NC_check_id(ncid, &nc);
     if (status != NC_NOERR) return status;
 
-    nc5 = PIO_DATA(nc);
-    assert(nc5);
+    /* nc5 = PIO_DATA(nc); */
+    /* assert(nc5); */
 
     /* get variable's rank */
     status= PIOc_inq_varndims(nc->ext_ncid, varid, &rank);
@@ -961,7 +960,7 @@ PIO_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, int *ndimsp, i
     int status;
     NC *nc;
 
-    if (!(status = NC_check_id(ncid, &nc)))
+    if ((status = NC_check_id(ncid, &nc)))
 	return status;
 
     return PIOc_inq_var_all(nc->ext_ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp, shufflep,

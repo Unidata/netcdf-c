@@ -107,7 +107,7 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
     void *fillvalue;
     void *test_data_in;
     void *expected_in;
-    PIO_Offset type_size;             /* Size of the data type. */
+    size_t type_size;             /* Size of the data type. */
     /* My rank as each type. */
     signed char my_byte_rank = my_rank;
     char my_char_rank = my_rank;
@@ -281,28 +281,32 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
             /*     ERR(ret); */
             if ((ret = nc_open(filename, PIO_NOWRITE|NC_PIO, &ncid)))
                 ERR(ret);
-/*             /\* Allocate space for data. *\/ */
-/*             if (!(test_data_in = malloc(type_size * arraylen))) */
-/*                 ERR(PIO_ENOMEM); */
+            /* Allocate space for data. */
+            if (!(test_data_in = malloc(type_size * arraylen)))
+                ERR(PIO_ENOMEM);
 
-/*             /\* Read the data. *\/ */
-/*             if ((ret = PIOc_read_darray(ncid, varid, ioid, arraylen, test_data_in))) */
-/*                 ERR(ret); */
+            /* Read the data. */
+            if ((ret = PIOc_read_darray(ncid, varid, ioid, arraylen, test_data_in)))
+                ERR(ret);
 
-/*             /\* Check the (first) result. *\/ */
-/*             if (memcmp(test_data_in, expected_in, type_size)) */
-/*                 return ERR_WRONG; */
+            /* Check the (first) result. */
+            if (memcmp(test_data_in, expected_in, type_size))
+                return ERR_WRONG;
 
-/*             /\* Free resources. *\/ */
-/*             free(test_data_in); */
+            /* Free resources. */
+            free(test_data_in);
 
-/*             /\* Get a buffer big enough to hold the global array. *\/ */
-/*             if (!(bufr = malloc(DIM_LEN * type_size))) */
-/*                 return PIO_ENOMEM; */
+	    int my_type;
+            if ((ret = nc_inq_vartype(ncid, varid, &my_type)))
+                return ret;
+	    
+            /* Get a buffer big enough to hold the global array. */
+            if (!(bufr = malloc(DIM_LEN * type_size)))
+                return PIO_ENOMEM;
 
-/*             /\* Get the whole array with good old get_var(). *\/ */
-/*             if ((ret = PIOc_get_var(ncid, varid, bufr))) */
-/*                 return ret; */
+            /* Get the whole array with good old get_var(). */
+            if ((ret = nc_get_var(ncid, varid, bufr)))
+                return ret;
 
 /*             /\* Check the results. The first four values are 0, 1, 2, 3, */
 /*              * and the rest are the default fill value of the type. *\/ */

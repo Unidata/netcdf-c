@@ -944,6 +944,7 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     file_desc_t *file;
     int ndims = 0;    /* The number of dimensions for this variable. */
     var_desc_t *vdesc;        /* Info about the var. */
+    size_t type_size;    
     int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */
     int ret;
 
@@ -1098,7 +1099,7 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 		if (ndimsp)
 		    *ndimsp = my_ndims;
 		if (dimidsp)
-		    for (int d = 0; d < ndims; d++)
+		    for (int d = 0; d < my_ndims; d++)
 			dimidsp[d] = my_dimids[d];
 		if (nattsp)
 		    *nattsp = my_natts;
@@ -1129,10 +1130,13 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	    ret = NC3_inq_var_all(file->fh, varid, NULL, &my_xtype, &my_ndims, NULL, NULL,
 				  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 	    LOG((3, "ret %d my_xtype %d my_ndims %d", ret, my_xtype, my_ndims));
+
+	    /* Remember the number of dims for later use. */
+	    ndims = my_ndims;
 	    
 	    int my_dimids[my_ndims];
 	    size_t my_chunksizes[my_ndims];
-	    size_t type_size = NC_atomictypelen(my_xtype);
+	    type_size = NC_atomictypelen(my_xtype);
 	    
 	    /* Allocate memory for fill value if needed. */
 	    if (fill_valuep)
@@ -1259,22 +1263,21 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	if ((mpierr = MPI_Bcast(chunksizesp, ndims, MPI_OFFSET, ios->ioroot, ios->my_comm)))
 	    return check_mpi(file, mpierr, __FILE__, __LINE__);
     }
-    if (shufflep)
-	if ((mpierr = MPI_Bcast(shufflep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+    if (no_fill)
+	if ((mpierr = MPI_Bcast(no_fill, 1, MPI_INT, ios->ioroot, ios->my_comm)))
 	    return check_mpi(file, mpierr, __FILE__, __LINE__);
-    if (shufflep)
-	if ((mpierr = MPI_Bcast(shufflep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+    if (fill_valuep)
+	if ((mpierr = MPI_Bcast(fill_valuep, type_size, MPI_CHAR, ios->ioroot, ios->my_comm)))
 	    return check_mpi(file, mpierr, __FILE__, __LINE__);
-    if (shufflep)
-	if ((mpierr = MPI_Bcast(shufflep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+    if (endiannessp)
+	if ((mpierr = MPI_Bcast(endiannessp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
 	    return check_mpi(file, mpierr, __FILE__, __LINE__);
-    if (shufflep)
-	if ((mpierr = MPI_Bcast(shufflep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+    if (options_maskp)
+	if ((mpierr = MPI_Bcast(options_maskp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
 	    return check_mpi(file, mpierr, __FILE__, __LINE__);
-    if (shufflep)
-	if ((mpierr = MPI_Bcast(shufflep, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+    if (pixels_per_blockp)
+	if ((mpierr = MPI_Bcast(pixels_per_blockp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
 	    return check_mpi(file, mpierr, __FILE__, __LINE__);
-	
 
     return PIO_NOERR;
 }

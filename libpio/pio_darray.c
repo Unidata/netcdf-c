@@ -719,6 +719,9 @@ int PIOc_read_darray(int ncid, int varid, int ioid, PIO_Offset arraylen,
     size_t rlen = 0;       /* the length of data in iobuf. */
     int ierr;           /* Return code. */
 
+    LOG((1, "PIOc_read_darray ncid %d varid %d ioid %d arraylen %d", ncid, varid, ioid,
+	 arraylen));
+    
     /* Get the file info. */
     if ((ierr = pio_get_file(ncid, &file)))
         return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
