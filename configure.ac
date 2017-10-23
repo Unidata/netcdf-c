@@ -1155,6 +1155,8 @@ AC_ARG_WITH([piobuffersize],
 AC_MSG_RESULT([$PIO_BUFFER_SIZE])
 AC_DEFINE_UNQUOTED([PIO_BUFFER_SIZE], [$PIO_BUFFER_SIZE], [buffer size for darray data.])
 
+AM_CONDITIONAL(ENABLE_PARALLEL, [test x$enable_parallel = xyes ])
+
 if test "x$hdf5_parallel" = xyes; then
   # Provide more precise parallel control
   AC_DEFINE([HDF5_PARALLEL], [1], [if true, hdf5 has parallelism enabled])

@@ -79,12 +79,18 @@ else
 fi
 
 has_cdf5="@ENABLE_CDF5@"
-if [ -z "has_cdf5" -o "$has_cdf5" = "OFF" -o "$has_cdf5" = "FALSE" ]; then
+if [ -z "$has_cdf5" -o "$has_cdf5" = "OFF" -o "$has_cdf5" = "FALSE" ]; then
     has_cdf5="no"
 else
     has_cdf5="yes"
 fi
 
+has_parallel="@USE_PARALLEL@"
+if [ -z $has_parallel ]; then
+    has_parallel="no"
+else
+    has_parallel="yes"
+fi
 
 version="@PACKAGE@ @VERSION@"
 
@@ -129,29 +135,30 @@ Usage: nc-config [OPTION]
 
 Available values for OPTION include:
 
-  --help        display this help message and exit
-  --all         display all options
-  --cc          C compiler
-  --cflags      pre-processor and compiler flags
-  --has-c++     whether C++ API is installed
-  --has-c++4    whether netCDF-4 C++ API is installed
-  --has-fortran whether Fortran API is installed
-  --has-dap2    whether OPeNDAP (DAP2) is enabled in this build
-  --has-dap4    whether DAP4 is enabled in this build
-  --has-dap     same as --has-dap2 (Deprecated)
-  --has-nc2     whether NetCDF-2 API is enabled
-  --has-nc4     whether NetCDF-4/HDF-5 is enabled in this build
-  --has-hdf5    whether HDF5 is used in build (always the same as --has-nc4)
-  --has-hdf4    whether HDF4 was used in build
-  --has-logging whether logging is enabled with --enable-logging.
-  --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
-  --has-szlib   whether szlib is included in build
-  --has-cdf5    whether cdf5 support is included in build
-  --libs        library linking information for netcdf
-  --prefix      Install prefix
-  --includedir  Include directory
-  --libdir      Library directory
-  --version     Library version
+  --help         display this help message and exit
+  --all          display all options
+  --cc           C compiler
+  --cflags       pre-processor and compiler flags
+  --has-c++      whether C++ API is installed
+  --has-c++4     whether netCDF-4 C++ API is installed
+  --has-fortran  whether Fortran API is installed
+  --has-dap2     whether OPeNDAP (DAP2) is enabled in this build
+  --has-dap4     whether DAP4 is enabled in this build
+  --has-dap      same as --has-dap2 (Deprecated)
+  --has-nc2      whether NetCDF-2 API is enabled
+  --has-nc4      whether NetCDF-4/HDF-5 is enabled in this build
+  --has-hdf5     whether HDF5 is used in build (always the same as --has-nc4)
+  --has-hdf4     whether HDF4 was used in build
+  --has-logging  whether logging is enabled with --enable-logging.
+  --has-pnetcdf  whether parallel-netcdf (a.k.a. pnetcdf) was used in build
+  --has-szlib    whether szlib is included in build
+  --has-parallel whether has parallel IO support via hdf5 and/or pnetcdf
+  --libs         library linking information for netcdf
+  --prefix       Install prefix
+  --includedir   Include directory
+  --libdir       Library directory
+  --version      Library version
+
 
 EOF
 if [ -f "$ncxx4conf" ]; then
@@ -224,7 +231,8 @@ fi
         echo "  --has-pnetcdf-> $has_pnetcdf"
         echo "  --has-szlib -> $has_szlib"
         echo "  --has-cdf5 -> $has_cdf5"
-	echo
+	    echo "  --has-parallel-> $has_parallel"
+	    echo
         echo "  --prefix    -> $prefix"
         echo "  --includedir-> $includedir"
         echo "  --libdir    -> $libdir"
@@ -307,7 +315,11 @@ while test $# -gt 0; do
         echo $has_cdf5
         ;;
 
-     --libs)
+    --has-parallel)
+	    echo $has_parallel
+	    ;;
+
+    --libs)
        	echo $libs
        	;;
 

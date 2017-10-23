@@ -28,9 +28,6 @@
 static int cuErrOpts;			     /* Error options */
 static int cuErrorOccurred = 0;		     /* True iff cdError was called */
 
-#define CU_FATAL 1			     /* Exit immediately on fatal error */
-#define CU_VERBOSE 2			     /* Report errors */
-
 #define CD_DEFAULT_BASEYEAR "1979"	     /* Default base year for relative time (no 'since' clause) */
 #define VALCMP(a,b) ((a)<(b)?-1:(b)<(a)?1:0)
 
@@ -57,8 +54,9 @@ cdTrim(char* s, int n)
 	return;
 }
 
-static
-void cdError(char *fmt, ...){
+static void
+cdError(char *fmt, ...)
+{
 	va_list args;
 	
 	cuErrorOccurred = 1;
@@ -75,6 +73,7 @@ void cdError(char *fmt, ...){
 }
 
 #define ISLEAP(year,timeType)	((timeType & Cd366) || (((timeType) & CdHasLeap) && (!((year) % 4) && (((timeType) & CdJulianType) || (((year) % 100) || !((year) % 400))))))
+
 static int mon_day_cnt[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
 static int days_sum[12] = {0,31,59,90,120,151,181,212,243,273,304,334};
 
@@ -120,11 +119,13 @@ CdMonthDay(int *doy, CdTime *date)
 	}
 	date->month	= 0;
 	for (i = 0; i < 12; i++) {
+		int delta;
 		(date->month)++;
 		date->day = (short)idoy;
-		if ((idoy -= ((date->timeType & Cd365) ? (mon_day_cnt[date->month-1]) : 30)) <= 0) {
-			return;
-		}
+		delta = ((date->timeType & Cd365) || (date->timeType & Cd366) ? (mon_day_cnt[date->month-1]) : 30);
+	        idoy -= delta;
+		if(idoy <= 0)
+		    return;
 	}
 	return;
 }
@@ -1172,4 +1173,12 @@ cdRel2Iso(cdCalenType timetype, char* relunits, int separator, double reltime, c
 	cdComp2Iso(timetype, separator, comptime, chartime);
 
 	return;
+}
+
+int
+cdSetErrOpts(int opts)
+{
+    int old = cuErrOpts;
+    cuErrOpts = opts;
+    return old;
 }
