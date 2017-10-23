@@ -296,17 +296,17 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
             /* Free resources. */
             free(test_data_in);
 
-	    int my_type;
-            if ((ret = nc_inq_vartype(ncid, varid, &my_type)))
-                return ret;
+	    /* int my_type; */
+            /* if ((ret = nc_inq_vartype(ncid, varid, &my_type))) */
+            /*     return ret; */
 	    
-            /* Get a buffer big enough to hold the global array. */
-            if (!(bufr = malloc(DIM_LEN * type_size)))
-                return PIO_ENOMEM;
+            /* /\* Get a buffer big enough to hold the global array. *\/ */
+            /* if (!(bufr = malloc(DIM_LEN * type_size))) */
+            /*     return PIO_ENOMEM; */
 
-            /* Get the whole array with good old get_var(). */
-            if ((ret = nc_get_var(ncid, varid, bufr)))
-                return ret;
+            /* /\* Get the whole array with good old get_var(). *\/ */
+            /* if ((ret = nc_get_var(ncid, varid, bufr))) */
+            /*     return ret; */
 
 /*             /\* Check the results. The first four values are 0, 1, 2, 3, */
 /*              * and the rest are the default fill value of the type. *\/ */
