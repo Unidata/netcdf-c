@@ -21,10 +21,6 @@ int
 inRange(const double value, const nc_type xtype)
 {
   switch (xtype) {
-    double min = 0.0;
-    double max = 0.0;
-
-
   case NC_CHAR:   return value >= X_CHAR_MIN   && value <= X_CHAR_MAX;
   case NC_BYTE:   return value >= X_BYTE_MIN   && value <= X_BYTE_MAX;
   case NC_SHORT:  return value >= X_SHORT_MIN  && value <= X_SHORT_MAX;
