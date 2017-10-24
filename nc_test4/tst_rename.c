@@ -173,7 +173,7 @@ main(int argc, char **argv)
 #define RANK_g1_lon 1
 
             /* IDs of file, groups, dimensions, variables, attributes */
-            int ncid, g1_grp, lon_dim, lon_var, g1_lon_var, units_att;
+            int ncid, g1_grp, lon_dim, lon_var, g1_lon_var;
             size_t lon_len = 4;
             char *data_in;
 
@@ -222,8 +222,6 @@ main(int argc, char **argv)
             /* reopen the file again and see if renamed attribute exists and
                has expected value */
             {
-              nc_type att_type;
-              size_t att_len;
 
               if (nc_open(file_names[format], NC_NOWRITE, &ncid)) ERR;
               if (nc_inq_grp_ncid(ncid, GRP_NAME, &g1_grp)) ERR;
