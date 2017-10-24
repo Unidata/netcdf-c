@@ -329,7 +329,5 @@ int main(int argc, char *argv[])
    else
       printf(" *** success!\n");
 
-   nc_finalize();
-
    return 2 ? errors : 0;
 }
