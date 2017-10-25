@@ -131,7 +131,7 @@ ncrc_lookup(NCTripleStore* store, char* key, char* tag)
 static const NCTriple*
 rc_locate(NCTripleStore* rc, char* key, char* tag)
 {
-    int i,found;
+    int i;
 
     if(ncrc_ignore || !ncrc_loaded || rc->triples == NULL)
 	return NULL;
@@ -139,14 +139,14 @@ rc_locate(NCTripleStore* rc, char* key, char* tag)
 
     if(tag == NULL) tag = "";
     /* Assume that the triple store has been properly sorted */
-    for(found=0,i=0;i<nclistlength(rc->triples);i++) {
+    for(i=0;i<nclistlength(rc->triples);i++) {
 	NCTriple* triple = (NCTriple*)nclistget(rc->triples,i);
         size_t taglen = strlen(triple->tag);
         int t;
         if(strcmp(key,triple->key) != 0) continue; /* keys do not match */
         /* If the triple entry has no tag, then use it
            (because we have checked all other cases)*/
-        if(taglen == 0) {found=1;break;}
+        if(taglen == 0) {break;}
         /* do tag match */
         t = strcmp(tag,triple->tag);
         if(t ==  0) return triple;
@@ -257,7 +257,6 @@ rc_compile(const char* path)
     buf =  ncbytesnew();
     for(;;) {
         int c;
-	int pos;
 	char* line;
 	size_t len,count;
 	char* value;

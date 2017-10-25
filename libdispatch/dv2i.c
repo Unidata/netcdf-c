@@ -261,7 +261,7 @@ nc_inq_rec(
     if (recvarids != NULL)
 	for (varid = 0; varid < nrvars; varid++)
 	    recvarids[varid] = rvarids[varid];
-
+    
     if (recsizes != NULL)
 	for (varid = 0; varid < nrvars; varid++) {
 	    size_t rsize;
@@ -270,7 +270,7 @@ nc_inq_rec(
 		return status;
 	    recsizes[varid] = rsize;
 	}
-	return NC_NOERR;
+    return NC_NOERR;
 }
 
 
