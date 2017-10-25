@@ -32,14 +32,12 @@ main()
     char fsdata[]   = "fixed-length string";
     char *v1ddata[DIM1] = {"strings","of","variable","length"};
     int i;
-    char ch;
 
     printf("\n*** Creating file for checking fix to bugs in accessing strings from HDF5 non-netcdf-4 file.\n");
     {
 	hid_t fileid, scalar_spaceid, vstypeid, fstypeid, vsattid, fsattid, vsdsetid, fsdsetid;
-	hid_t class;
 	size_t type_size = FSTR_LEN;
-	hid_t v1dattid, v1ddsetid;
+	hid_t v1ddsetid;
 	hid_t v1dspaceid;
 	hsize_t dims[1] = {DIM1};
 
@@ -128,7 +126,7 @@ main()
 
     printf("*** Checking reading variable-length HDF5 string att through netCDF-4 API...");
     {
-	int ncid, varid, ndims;
+	int ncid;
 	nc_type type;
 	size_t len;
 	char *data_in;
@@ -145,7 +143,7 @@ main()
 
     printf("*** Checking reading fixed-length HDF5 string att through netCDF-4 API...");
     {
-	int ncid, varid, ndims;
+	int ncid;
 	nc_type type;
 	size_t len;
 	char *data_in;
