@@ -7,7 +7,6 @@
 #include <config.h>
 #include <stdlib.h>
 #include <nc_tests.h>
-#include "err_macros.h"
 #include <netcdf.h>
 #include <string.h>
 
@@ -280,7 +279,7 @@ static int
 test(const struct Test* tests, const char* title)
 {
     int status = NC_NOERR;
-    int i,failures = 0;
+    int failures = 0;
     const struct Test* p;
 
     fprintf(stderr,"Testing %s...\n",title);
@@ -328,9 +327,7 @@ fail:
 int
 main(int argc, char** argv)
 {
-    int i, status;
     int failures = 0;
-    int tstcnt = 0;
 
     printf("\n Testing UTF-8 sequences.\n");
     failures += test(utf8currency,"Currencies");
