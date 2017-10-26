@@ -14,11 +14,7 @@
 #include "err_macros.h"
 #include <hdf5.h>
 
-#define FILE_NAME "tst_h_atts2.h5"
 #define REF_FILE_NAME "tst_xplatform2_3.nc"
-#define MAX_LEN 80
-#define NUM_ATTS 1
-#define ATT_NAME "King_John"
 #define NUM_OBJ 3
 
 int
