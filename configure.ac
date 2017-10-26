@@ -1081,10 +1081,13 @@ AC_MSG_RESULT($enable_pnetcdf)
 
 # See if the pnetcdf lib is available and of the
 # right version (1.6.0 or later)
-
 if test "x$enable_pnetcdf" = xyes; then
   pnetcdf_conflict=no
   AC_CHECK_LIB([pnetcdf], [ncmpi_create], [],[pnetcdf_conflict=yes])
+
+  if test "x$pnetcdf_conflict" = xyes ; then
+     AC_MSG_ERROR([Cannot link to pnetcdf library.])
+  fi   
 
   # Pnetcdf did not support utf-8 until 1.6.0
 
@@ -1105,14 +1108,8 @@ if test "x$enable_pnetcdf" = xyes; then
   AC_MSG_CHECKING([Is libpnetcdf version 1.6.0 or later?])
   AC_MSG_RESULT([$pnetcdf16])
   if test x$pnetcdf16 = xno; then
-    AC_MSG_WARN([--enable-pnetcdf requires version 1.6.0 or later; disabling])
-    pnetcdf_conflict=yes
+    AC_MSG_ERROR([--enable-pnetcdf requires version 1.6.0 or later])
   fi
-fi
-
-if test "x$pnetcdf_conflict" = xyes ; then
-  AC_MSG_WARN([Cannot link to pnetcdf library, --enable-pnetcdf disabled.])
-  enable_pnetcdf=no
 fi
 
 # Now, set enable_parallel if either pnetcdf or parallel4 is set
@@ -1175,7 +1172,7 @@ if test "x$enable_pnetcdf" = xyes; then
           enable_erange_fill_pnetcdf=yes
       fi
    fi
-   AC_MSG_NOTICE([$enable_erange_fill_pnetcdf])
+   AC_MSG_RESULT([$enable_erange_fill_pnetcdf])
    if test "$enable_erange_fill" != "$enable_erange_fill_pnetcdf"; then
       if test "$enable_erange_fill_pnetcdf" = yes; then
          AC_MSG_WARN([Enable erange-fill to conform with PnetCDF setting])
@@ -1197,7 +1194,7 @@ if test "x$enable_pnetcdf" = xyes; then
           relax_coord_bound_pnetcdf=yes
       fi
    fi
-   AC_MSG_NOTICE([$relax_coord_bound_pnetcdf])
+   AC_MSG_RESULT([$relax_coord_bound_pnetcdf])
    if test "$enable_zero_length_coord_bound" != "$relax_coord_bound_pnetcdf"; then
       if test "$relax_coord_bound_pnetcdf" = yes; then
          AC_MSG_WARN([Enable relax-coord-bound to conform with PnetCDF setting])
