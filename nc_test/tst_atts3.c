@@ -140,14 +140,6 @@ main(int argc, char **argv)
     float float_in[ATT_LEN], float_out[ATT_LEN] = {-0.5, 0.25, 0.125};
     double double_in[ATT_LEN], double_out[ATT_LEN] = {-0.25, .5, 0.125};
     long long longlong_in[ATT_LEN] = {-1LL, -1LL, -1LL};
-#ifdef USE_NETCDF4
-    long long_in[ATT_LEN];
-    unsigned short ushort_in[ATT_LEN], ushort_out[ATT_LEN] = {0, 128, NC_MAX_USHORT};
-    unsigned int uint_in[ATT_LEN], uint_out[ATT_LEN] = {0, 128, NC_MAX_UINT};
-    long long longlong_out[ATT_LEN] = {-3123456789LL, 128LL, 3123456789LL};
-    unsigned long long ulonglong_in[ATT_LEN] = {NC_MAX_UINT64, NC_MAX_UINT64, NC_MAX_UINT64};
-    unsigned long long ulonglong_out[ATT_LEN] = {0LL, 128LL, 3123456789LL};
-#endif
 
 #ifdef TEST_PNETCDF
    MPI_Init(&argc, &argv);

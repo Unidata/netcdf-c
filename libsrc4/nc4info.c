@@ -104,7 +104,6 @@ NC4_get_propattr(NC_HDF5_FILE_INFO_T* h5)
     hid_t aspace = -1;
     hid_t atype = -1;
     hid_t ntype = -1;
-    herr_t herr = 0;
     char* text = NULL;
 
     /* Get root group */
@@ -112,7 +111,6 @@ NC4_get_propattr(NC_HDF5_FILE_INFO_T* h5)
     /* Try to extract the NCPROPS attribute */
     if(H5Aexists(grp,NCPROPS) > 0) { /* Does exist */
         attid = H5Aopen_name(grp, NCPROPS);
-	herr = -1;
 	aspace = H5Aget_space(attid); /* dimensions of attribute data */
         atype = H5Aget_type(attid);
 	/* Verify that atype and size */
@@ -129,7 +127,6 @@ NC4_get_propattr(NC_HDF5_FILE_INFO_T* h5)
 	text[size] = '\0';
 	/* Try to parse text */
 	ncstat = NC4_properties_parse(&h5->fileinfo->propattr,text);
-	herr = 0;
     }
 done:
     if(attid >= 0) HCHECK((H5Aclose(attid)));
@@ -148,7 +145,6 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
     hid_t attid = -1;
     hid_t aspace = -1;
     hid_t atype = -1;
-    herr_t herr = 0;
     char* text = NULL;
 
     /* Get root group */
@@ -159,7 +155,6 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
       if(text == NULL || ncstat != NC_NOERR) {
         goto done;
       }
-      herr = -1;
       /* Create a datatype to refer to. */
       HCHECK((atype = H5Tcopy(H5T_C_S1)));
       HCHECK((H5Tset_cset(atype, H5T_CSET_ASCII)));
@@ -167,7 +162,6 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
       HCHECK((aspace = H5Screate(H5S_SCALAR)));
       HCHECK((attid = H5Acreate(grp, NCPROPS, atype, aspace, H5P_DEFAULT)));
       HCHECK((H5Awrite(attid, atype, text)));
-      herr = 0;
     }
  done:
     if(text != NULL) {
