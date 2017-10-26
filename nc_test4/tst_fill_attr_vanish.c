@@ -34,20 +34,11 @@
 int main()
 {
   int ncid, dimids[RANK_P], time_id, p_id, test_id, status;
-  int ndims, dimids_in[RANK_P];
-
   int test_data[1] = {1};
   size_t test_start[1] = {0}, test_count[1] = {1};
   int test_fill_val[] = {5};
-
-
   double data[1] = {3.14159};
   size_t start[1] = {0}, count[1] = {1};
-  float ddata[1][4][3];
-  static float P_data[LEN];
-  size_t cor[RANK_P] = {0, 1, 0};
-  size_t edg[RANK_P] = {1, 1, LEN};
-  float pfills[] = {3};
 
   printf("\n*** Testing for a netCDF-4 fill-value bug.\n");
   printf("*** Creating a file with no _FillValue defined. ***\n");

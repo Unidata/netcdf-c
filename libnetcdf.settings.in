@@ -34,3 +34,4 @@ DAP4 Support:		@HAS_DAP4@
 Diskless Support:	@HAS_DISKLESS@
 MMap Support:		@HAS_MMAP@
 JNA Support:		@HAS_JNA@
+CDF5 Support:		@HAS_CDF5@

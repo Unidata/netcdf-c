@@ -113,7 +113,7 @@ int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant       constant;
 
-#line 117 "ncgeny.h" /* yacc.c:1909  */
+#line 117 "ncgen.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

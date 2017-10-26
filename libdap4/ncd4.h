@@ -129,7 +129,6 @@ extern int NCD4_getToplevelVars(NCD4meta* meta, NCD4node* group, NClist* topleve
 /* From d4util.c */
 extern d4size_t NCD4_dimproduct(NCD4node* node);
 extern void NCD4_hostport(NCURI* uri, char* space, size_t len);
-extern void NCD4_userpwd(NCURI* uri, char* space, size_t len);
 extern size_t NCD4_typesize(nc_type tid);
 extern int NCD4_isLittleEndian(void);/* Return 1 if this machine is little endian */
 extern int NCD4_errorNC(int code, const int line, const char* file);

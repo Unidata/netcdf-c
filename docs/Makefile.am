@@ -5,7 +5,7 @@
 
 # These files will be included with the dist.
 EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html \
-    mainpage.dox tutorial.dox dispatch.dox \
+    mainpage.dox tutorial.dox \
     guide.dox types.dox cdl.dox \
     architecture.dox internal.dox windows-binaries.md \
     building-with-cmake.md CMakeLists.txt \

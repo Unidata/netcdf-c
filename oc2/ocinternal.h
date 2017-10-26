@@ -217,10 +217,12 @@ struct OCstate {
     struct OCproxy {
 	char *host; /*CURLOPT_PROXY*/
 	int port; /*CURLOPT_PROXYPORT*/
-	char* userpwd; /*CURLOPT_PROXYUSERPWD*/
+	char* user; /*CURLOPT_PROXYUSERNAME*/
+	char* pwd; /*CURLOPT_PROXYPASSWORD*/
     } proxy;
     struct OCcredentials {
-	char *userpwd; /*CURLOPT_USERPWD*/
+	char *user; /*CURLOPT_USERNAME*/
+	char *pwd; /*CURLOPT_PASSWORD*/
     } creds;
     void* usercurldata;
     long ddslastmodified;
