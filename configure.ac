@@ -1054,20 +1054,30 @@ fi
 #    a. do not want to use it for netcdf4
 #    b. do want to use it for netcdf4
 
-# Should we suppress parallel io for netcdf-4?
+# Should we provide parallel io for netcdf-4?
 if test "x$enable_netcdf_4" = xyes ; then
-     AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
-     AC_ARG_ENABLE([parallel4], [AS_HELP_STRING([--disable-parallel4],
-                                          [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5]  )])
-  test "x$enable_parallel4" = xno || enable_parallel4=yes
-  AC_MSG_RESULT($enable_parallel4)
+   AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
+   AC_ARG_ENABLE([parallel4],
+	[AS_HELP_STRING([--disable-parallel4],
+                        [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5])],
+			[user_set_parallel4=${enableval}])
+   test "x$enable_parallel4" = xno || enable_parallel4=yes
+   AC_MSG_RESULT($enable_parallel4)
+
+   # If user wants parallel IO for netCDF-4, make sure HDF5 can provide it.
+   if test "x$enable_parallel4" = xyes; then
+      if test "x$hdf5_parallel" = xno; then
+      	 # If user specifically asked for parallel4, then error out.
+	 if test "x$user_set_parallel4" = xyes; then
+	    AC_MSG_ERROR([Paralllel IO in netCDF-4 requested, but HDF5 does not provide parallel IO.])
+	 fi
+         # User didn't specify, so disable parallel4
+	 enable_parallel4=no
+	 AC_MSG_WARN([Parallel io disabled for netcdf-4 because hdf5 does not support])
+      fi
+   fi
 else
-  enable_parallel4=no
-fi
-if test "x$hdf5_parallel" = xno; then
-  # hdf5 does not support parallel io, so disable parallel4
-  enable_parallel4=no
-  AC_MSG_WARN([Parallel io disabled for netcdf-4 because hdf5 does not support])
+   enable_parallel4=no
 fi
 
 # We have already tested for parallel io in netcdf4
