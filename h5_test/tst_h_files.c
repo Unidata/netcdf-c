@@ -32,7 +32,6 @@ main()
       int obj_class;
       char obj_name[STR_LEN + 1];
       H5T_class_t class;
-      size_t type_size;
       int j, k;
       hid_t tmp1;
 
