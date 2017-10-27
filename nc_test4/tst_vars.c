@@ -1124,6 +1124,7 @@ main(int argc, char **argv)
    printf("*** testing fill values for 2D unlimited dimension variable...");
    {
 #define D1_NAME "unlimited"
+#define D1_LEN 4
 #define D1_TARGET 3
 #define D2_NAME "fixed"
 #define D2_LEN 3
@@ -1136,7 +1137,7 @@ main(int argc, char **argv)
       size_t index[ND1];
       int varid;
       int no_fill;
-      int data = TARGET_VALUE, data_in[D1_TARGET][D2_LEN], fill_value_in;
+      int data = TARGET_VALUE, data_in[D1_LEN][D2_LEN], fill_value_in;
       int i, j;
 
       /* Create a netcdf-4 file with one dim and 1 NC_USHORT var. */

@@ -1176,7 +1176,7 @@ if test "x$enable_pnetcdf" = xyes; then
       erange_fill_pnetcdf=no
    else
       erange_fill_pnetcdf=`echo ${erange_fill_pnetcdf} | cut -d' ' -f3`
-      if test "x$coord_bound_pnetcdf" = x0; then
+      if test "x$erange_fill_pnetcdf" = x0; then
           enable_erange_fill_pnetcdf=no
       else
           enable_erange_fill_pnetcdf=yes
