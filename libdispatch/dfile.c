@@ -1926,8 +1926,12 @@ NC_open(const char *path0, int cmode,
      cmode |= NC_64BIT_DATA;
    }
 
-   if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX))
-     return  NC_EINVAL;
+   /* Invalid to use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
+    * mind! */
+   if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX)) {
+       nullfree(path);       
+       return NC_EINVAL;
+   }
 
    /* override any other table choice */
    if(dispatcher != NULL) goto havetable;
