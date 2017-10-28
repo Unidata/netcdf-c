@@ -14,7 +14,6 @@
 
 #include "config.h"
 #include <nc_tests.h>
-#include "err_macros.h"
 #include <stdio.h>
 #include <netcdf.h>
 
@@ -26,7 +25,7 @@ int
 main(int argc, char **argv)
 {
     int ncid, dimid, varid, err;
-    int no_fill, fillv, buf[10];
+    int fillv;
 
     err = nc_create(FILE_NAME, NC_NETCDF4, &ncid); ERR_CHK;
     err = nc_def_dim(ncid, "dim", 10, &dimid); ERR_CHK;

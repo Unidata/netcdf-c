@@ -561,7 +561,9 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
   hsize_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
   char *name_to_use;
   int need_to_extend = 0;
+#ifdef USE_PARALLEL4
   int extend_possible = 0;
+#endif
   int retval = NC_NOERR, range_error = 0, i, d2;
   void *bufr = NULL;
 #ifndef HDF5_CONVERT
@@ -743,7 +745,9 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 	  assert(dim && dim->dimid == var->dimids[d2]);
           if (dim->unlimited)
             {
-	      extend_possible = 1;
+#ifdef USE_PARALLEL4
+		extend_possible = 1;
+#endif
               if (start[d2] + count[d2] > fdims[d2])
                 {
                   xtend_size[d2] = (long long unsigned)(start[d2] + count[d2]);
@@ -3994,7 +3998,7 @@ reportobject(int log, hid_t id, unsigned int type)
 	LOG((0,"Type = %s(%8u) name='%s'",typename,id,name));
 #endif
     } else {
-	fprintf(stderr,"Type = %s(%8u) name='%s'",typename,id,name);
+	fprintf(stderr,"Type = %s(%8u) name='%s'",typename,(unsigned int)id,name);
     }
 }
 
@@ -4013,7 +4017,7 @@ reportopenobjectsT(int log, hid_t fid, int ntypes, unsigned int* otypes)
         LOG((0,"\nReport: open objects on %d\n",fid));
 #endif
     } else {
-        fprintf(stdout,"\nReport: open objects on %d\n",fid);
+        fprintf(stdout,"\nReport: open objects on %d\n",(int)fid);
     }
     maxobjs = H5Fget_obj_count(fid,H5F_OBJ_ALL);
     if(idlist != NULL) free(idlist);

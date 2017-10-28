@@ -5,9 +5,13 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.5.X - TBD
+## 4.6.0 - TBD
 * [Enhancement] Full support for using HDF5 dynamic filters, both for
 reading and writing. See the file docs/filters.md.
+
+## 4.5.1 - TBD
+
+* Corrected a memory overflow in `tst_h_dimscales`, see [Github #511](https://github.com/Unidata/netcdf-c/issues/511), [Github #505](https://github.com/Unidata/netcdf-c/issues/505), [Github #363](https://github.com/Unidata/netcdf-c/issues/363) and [Github #244](https://github.com/Unidata/netcdf-c/issues/244) for more information.
 
 ## 4.5.0 - October 20, 2017
 
