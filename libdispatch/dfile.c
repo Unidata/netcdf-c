@@ -104,10 +104,12 @@ NC_interpret_magic_number(char* magic, int* model, int* version, int use_paralle
          } else if(magic[3] == '\002') {
             *version = 2; /* netcdf classic version 2 */
 	    *model = NC_FORMATX_NC3;
-         } else if(magic[3] == '\005') {
-            *version = 5; /* cdf5 (including pnetcdf) file */
+#ifdef USE_CDF5
+        } else if(magic[3] == '\005') {
+          *version = 5; /* cdf5 (including pnetcdf) file */
 	    *model = NC_FORMATX_NC3;
-	 } else
+#endif
+     } else
 	    {status = NC_ENOTNC; goto done;}
      } else
         {status = NC_ENOTNC; goto done;}
@@ -1608,11 +1610,10 @@ Create a file, calling the appropriate dispatch create call.
 
 For create, we have the following pieces of information to use to
 determine the dispatch table:
-- table specified by override
 - path
 - cmode
 
-\param path The file name of the new netCDF dataset.
+\param path0 The file name of the new netCDF dataset.
 
 \param cmode The creation mode flag, the same as in nc_create().
 
@@ -1720,11 +1721,13 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 	    model = NC_FORMATX_NC4;
 	    break;
 #endif
+#ifdef USE_CDF5
 	 case NC_FORMAT_CDF5:
 	    xcmode |= NC_64BIT_DATA;
 	    model = NC_FORMATX_NC3;
 	    break;
-	 case NC_FORMAT_64BIT_OFFSET:
+#endif
+      case NC_FORMAT_64BIT_OFFSET:
 	    xcmode |= NC_64BIT_OFFSET;
 	    model = NC_FORMATX_NC3;
 	    break;
@@ -1923,8 +1926,12 @@ NC_open(const char *path0, int cmode,
      cmode |= NC_64BIT_DATA;
    }
 
-   if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX))
-     return  NC_EINVAL;
+   /* Invalid to use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
+    * mind! */
+   if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX)) {
+       nullfree(path);       
+       return NC_EINVAL;
+   }
 
    /* override any other table choice */
    if(dispatcher != NULL) goto havetable;

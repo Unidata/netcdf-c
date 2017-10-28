@@ -24,7 +24,7 @@ NCD4_fetchhttpcode(CURL* curl)
 #ifdef HAVE_CURLINFO_RESPONSE_CODE
     cstat = curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE,&httpcode);
 #else
-    cstat = curl_easy_getinfo(curl,CURLINFO_HTTP_CODE,&httpcode);
+    cstat = curl_easy_getinfo(curl,CURLINFO_HTTP_CONNECTCODE,&httpcode);
 #endif
     if(cstat != CURLE_OK) {
 	httpcode = 0;
@@ -320,7 +320,7 @@ curlerrtoncerr(CURLcode cstat)
     switch (cstat) {
     case CURLE_OK: return THROW(NC_NOERR);
     case CURLE_URL_MALFORMAT:
-	return THROW(NC_EURL);   
+	return THROW(NC_EURL);
     case CURLE_COULDNT_RESOLVE_HOST:
     case CURLE_COULDNT_CONNECT:
     case CURLE_REMOTE_ACCESS_DENIED:
@@ -337,5 +337,5 @@ curlerrtoncerr(CURLcode cstat)
     case CURLE_SSL_CACERT_BADFILE:
     default: break;
     }
-    return THROW(NC_ECURL);	
+    return THROW(NC_ECURL);
 }

@@ -23,11 +23,7 @@ ocfetchhttpcode(CURL* curl)
     long httpcode = 200;
     CURLcode cstat = CURLE_OK;
     /* Extract the http code */
-#ifdef HAVE_CURLINFO_RESPONSE_CODE
     cstat = CURLERR(curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE,&httpcode));
-#else
-    cstat = curl_easy_getinfo(curl,CURLINFO_HTTP_CODE,&httpcode);
-#endif
     if(cstat != CURLE_OK) httpcode = 0;
     return httpcode;
 }
