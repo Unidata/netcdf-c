@@ -399,6 +399,7 @@ int find_var_fillvalue(file_desc_t *file, int varid, var_desc_t *vdesc)
     /* Find out PIO data type of var. */
     if ((ierr = PIOc_inq_vartype(file->pio_ncid, varid, &pio_type)))
         return pio_err(ios, NULL, ierr, __FILE__, __LINE__);
+    LOG((3, "pio_type %d", pio_type));
 
     /* Find out length of type. */
     if ((ierr = PIOc_inq_type(file->pio_ncid, pio_type, NULL, &type_size)))
@@ -488,8 +489,6 @@ int PIOc_write_darray(int ncid, int varid, int ioid, PIO_Offset arraylen, void *
 
    LOG((1, "PIOc_write_darray ncid = %d varid = %d ioid = %d arraylen = %d", 
          ncid, varid, ioid, arraylen));
-   if (fillvalue)
-       LOG((1, "fillvalue %g", *((float *)fillvalue))); 
 
     /* Get the file info. */
     if ((ierr = pio_get_file(ncid, &file)))
@@ -529,15 +528,12 @@ int PIOc_write_darray(int ncid, int varid, int ioid, PIO_Offset arraylen, void *
     if (!vdesc->fillvalue)
         if ((ierr = find_var_fillvalue(file, varid, vdesc)))
             return pio_err(ios, file, ierr, __FILE__, __LINE__);
+    LOG((3, "found fill value"));
 
     /* Check that if the user passed a fill value, it is correct. */
     if (fillvalue)
         if (memcmp(fillvalue, vdesc->fillvalue, vdesc->pio_type_size))
-        {
-            LOG((3, "howdy again *((float *)vdesc->fillvalue) %g *((float *)fillvalue) %g",
-                 *((float *)vdesc->fillvalue), *((float *)fillvalue)));
             return pio_err(ios, file, PIO_EINVAL, __FILE__, __LINE__);
-        }
     
     /* Move to end of list or the entry that matches this ioid. */
     for (wmb = &file->buffer; wmb->next; wmb = wmb->next)
@@ -723,6 +719,9 @@ int PIOc_read_darray(int ncid, int varid, int ioid, PIO_Offset arraylen,
     size_t rlen = 0;       /* the length of data in iobuf. */
     int ierr;           /* Return code. */
 
+    LOG((1, "PIOc_read_darray ncid %d varid %d ioid %d arraylen %d", ncid, varid, ioid,
+	 arraylen));
+    
     /* Get the file info. */
     if ((ierr = pio_get_file(ncid, &file)))
         return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
