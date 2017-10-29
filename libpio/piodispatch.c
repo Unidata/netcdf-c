@@ -5,7 +5,7 @@
  * @date 10/10/17
  *********************************************************************/
 
-/* WARNING: Order of mpi.h, nc.h, and pnetcdf.h is important */
+/* WARNING: Order of mpi.h, nc.h, and pio.h is important */
 #include "config.h"
 #include <stdlib.h>
 #include <mpi.h>
@@ -19,22 +19,22 @@ int last_iosysid;
 /* Must follow netcdf.h */
 /* #include <pnetcdf.h> */
 
-typedef struct PIO_INFO
-{
-    /* pnetcdf_file will be true if the file is created/opened with the
-     * parallel-netcdf library. pnetcdf_access_mode keeps track of
-     * whether independpent or collective mode is
-     * desired. pnetcdf_ndims keeps track of how many dims each var
-     * has, which I need to know to convert start, count, and stride
-     * arrays from size_t to MPI_Offset. (I can't use an inq function
-     * to find out the number of dims, because these are collective in
-     * pnetcdf.) */
-    int pnetcdf_access_mode;
-} PIO_INFO;
+/* typedef struct PIO_INFO */
+/* { */
+/*     /\* pnetcdf_file will be true if the file is created/opened with the */
+/*      * parallel-netcdf library. pnetcdf_access_mode keeps track of */
+/*      * whether independpent or collective mode is */
+/*      * desired. pnetcdf_ndims keeps track of how many dims each var */
+/*      * has, which I need to know to convert start, count, and stride */
+/*      * arrays from size_t to MPI_Offset. (I can't use an inq function */
+/*      * to find out the number of dims, because these are collective in */
+/*      * pnetcdf.) *\/ */
+/*     int pnetcdf_access_mode; */
+/* } PIO_INFO; */
 
 /* Define accessors for the dispatchdata */
-#define PIO_DATA(nc) ((PIO_INFO*)(nc)->dispatchdata)
-#define PIO_DATA_SET(nc, data) ((nc)->dispatchdata = (void*)(data))
+/* #define PIO_DATA(nc) ((PIO_INFO*)(nc)->dispatchdata) */
+/* #define PIO_DATA_SET(nc, data) ((nc)->dispatchdata = (void*)(data)) */
 
 /* Cannot have NC_MPIPOSIX flag, ignore NC_MPIIO as PnetCDF use MPIIO */
 static const int LEGAL_CREATE_FLAGS = (NC_NOCLOBBER | NC_64BIT_OFFSET | NC_CLASSIC_MODEL |
@@ -53,9 +53,11 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
            int use_parallel, void* mpidata, struct NC_Dispatch* table, NC* nc)
 {
     int res, default_format;
-    PIO_INFO *nc5;
+    /* PIO_INFO *nc5; */
     /* MPI_Comm comm = MPI_COMM_WORLD; */
     /* MPI_Info info = MPI_INFO_NULL; */
+
+    LOG((1, "PIO_create path %s cmode %d use_parallel %d", path, cmode, use_parallel));
 
     /* Check the cmode for only valid flags*/
     if (cmode & ~LEGAL_CREATE_FLAGS)
@@ -90,13 +92,10 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
     /* comm = ((NC_MPI_INFO *)mpidata)->comm; */
     /* info = ((NC_MPI_INFO *)mpidata)->info; */
 
-    /* Create our specific PIO_INFO instance */
-
-    if (!(nc5 = (PIO_INFO *)calloc(1, sizeof(PIO_INFO))))
-	return NC_ENOMEM;
-
     /* Link nc5 and nc */
-    nc->dispatchdata = (void *)nc5;
+    /* if (!(nc->dispatchdata = calloc(1, sizeof(PIO_INFO)))) */
+    /* 	return NC_ENOMEM; */
+    /* LOG((2, "allocated nc->dispatchdata %d", nc->dispatchdata)); */
 
     /* Fix up the cmode by keeping only essential flags;
        these are the flags that are the same in netcf.h and pnetcdf.h
@@ -111,8 +110,9 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
     LOG((2, "PIOc_createfile_int2 called res %d pio_ncid %d", res, pio_ncid));
     nc->ext_ncid = pio_ncid;
 
-    if (res && nc5)
-	free(nc5); /* reclaim allocated space */
+    /* Free this extra memory if there was a problem with create. */
+    /* if (res && nc5) */
+    /* 	free(nc5); /\* reclaim allocated space *\/ */
 
     return res;
 }
@@ -203,15 +203,15 @@ static int
 PIO_abort(int ncid)
 {
     NC* nc;
-    PIO_INFO* nc5;
+    /* PIO_INFO* nc5; */
     int status = NC_check_id(ncid, &nc);
     if (status != NC_NOERR) goto done;
 
     /* status = PIOc_abort(nc->ext_ncid); */
 
 done:
-    nc5 = PIO_DATA(nc);
-    if (nc5 != NULL) free(nc5); /* reclaim allocated space */
+    /* nc5 = PIO_DATA(nc); */
+    /* if (nc5 != NULL) free(nc5); /\* reclaim allocated space *\/ */
     return status;
 }
 
@@ -220,15 +220,18 @@ static int
 PIO_close(int ncid)
 {
     NC* nc;
-    PIO_INFO* nc5;
-    int status = NC_check_id(ncid, &nc);
-    if (status != NC_NOERR) goto done;
-
+    int status;
+    
+    LOG((2, "PIO_close ncid %d", ncid));
+    if ((status = NC_check_id(ncid, &nc)))
+	return status;
+    
     status = PIOc_closefile(nc->ext_ncid);
 
-done:
-    nc5 = PIO_DATA(nc);
-    if (nc5 != NULL) free(nc5); /* reclaim allocated space */
+    /* LOG((2, "nc->dispatchdata %d", nc->dispatchdata)); */
+    /* if (nc->dispatchdata) */
+    /* 	free(nc->dispatchdata); /\* reclaim allocated space *\/ */
+    
     return status;
 }
 
@@ -525,7 +528,7 @@ PIO_get_vara(int ncid,
              nc_type memtype)
 {
     NC* nc;
-    PIO_INFO* nc5;
+    /* PIO_INFO* nc5; */
     int status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS];
     int d;
@@ -591,7 +594,7 @@ PIO_put_vara(int ncid,
              nc_type memtype)
 {
     NC* nc;
-    PIO_INFO* nc5;
+    /* PIO_INFO* nc5; */
     int status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS];
     int d;
@@ -600,8 +603,8 @@ PIO_put_vara(int ncid,
     status = NC_check_id(ncid, &nc);
     if (status != NC_NOERR) return status;
 
-    nc5 = PIO_DATA(nc);
-    assert(nc5);
+    /* nc5 = PIO_DATA(nc); */
+    /* assert(nc5); */
 
     /* get variable's rank */
     status = PIOc_inq_varndims(nc->ext_ncid, varid, &rank);
@@ -658,7 +661,7 @@ PIO_get_vars(int ncid,
              nc_type memtype)
 {
     NC* nc;
-    PIO_INFO* nc5;
+    /* PIO_INFO* nc5; */
     int status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS], mpi_stride[NC_MAX_VAR_DIMS];
     int d;
@@ -667,8 +670,8 @@ PIO_get_vars(int ncid,
     status = NC_check_id(ncid, &nc);
     if (status != NC_NOERR) return status;
 
-    nc5 = PIO_DATA(nc);
-    assert(nc5);
+    /* nc5 = PIO_DATA(nc); */
+    /* assert(nc5); */
 
     /* get variable's rank */
     status= PIOc_inq_varndims(nc->ext_ncid, varid, &rank);
@@ -725,7 +728,7 @@ PIO_put_vars(int ncid,
              nc_type memtype)
 {
     NC* nc;
-    PIO_INFO* nc5;
+    /* PIO_INFO* nc5; */
     int status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS], mpi_stride[NC_MAX_VAR_DIMS];
     int d;
@@ -734,8 +737,8 @@ PIO_put_vars(int ncid,
     status = NC_check_id(ncid, &nc);
     if (status != NC_NOERR) return status;
 
-    nc5 = PIO_DATA(nc);
-    assert(nc5);
+    /* nc5 = PIO_DATA(nc); */
+    /* assert(nc5); */
 
     /* get variable's rank */
     status = PIOc_inq_varndims(nc->ext_ncid, varid, &rank);
