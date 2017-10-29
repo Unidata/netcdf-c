@@ -330,7 +330,7 @@ main(int argc, char **argv)
          int dimid[NDIMS_1], var_dimids[VAR_DIMS] = {2, 0, 1};
          float fill_value = -9999.0f;
          char long_name[] = PRES_MAX_WIND;
-         int i, attid[NUM_ATTS];
+         int i;
 
          ncid = nccreate(FILE_NAME, NC_NETCDF4);
 
@@ -364,8 +364,7 @@ main(int argc, char **argv)
          /* Now add a fill value. This will acutually cause HDF5 to
           * destroy the dataset and recreate it, recreating also the
           * three attributes that are attached to it. */
-         attid[3] = ncattput(ncid, varid, _FillValue, NC_FLOAT,
-                             1, &fill_value);
+	 ncattput(ncid, varid, _FillValue, NC_FLOAT, 1, &fill_value);
 
          /* Check to ensure the atts have their expected attnums. */
          if (nc_inq_attid(ncid, 0, LONG_NAME, &attnum_in)) ERR;

@@ -42,7 +42,7 @@ static int decodeEconst(NCD4meta* builder, NCD4node* enumtype, const char* nameo
 static int downConvert(union ATOMICS* converter, NCD4node* type);
 static void freeStringMemory(char** mem, int count);
 static size_t getDimrefs(NCD4node* var, int* dimids);
-static size_t getDimsizes(NCD4node* var, size_t* dimsizes);
+static size_t getDimsizes(NCD4node* var, int* dimsizes);
 static void reclaimNode(NCD4node* node);
 static d4size_t getpadding(d4size_t offset, size_t alignment);
 static int markdapsize(NCD4meta* meta);
@@ -523,7 +523,7 @@ buildCompound(NCD4meta* builder, NCD4node* cmpdtype, NCD4node* group, char* name
     /* Step 3: add the fields to type */
     for(i=0;i<nclistlength(cmpdtype->vars);i++) {  
 	int rank;
-	size_t dimsizes[NC_MAX_VAR_DIMS];
+	int dimsizes[NC_MAX_VAR_DIMS];
         NCD4node* field = (NCD4node*)nclistget(cmpdtype->vars,i);
 	rank = nclistlength(field->dims);
         if(rank == 0) { /* scalar */
@@ -681,13 +681,13 @@ getDimrefs(NCD4node* var, int* dimids)
 }
 
 static size_t
-getDimsizes(NCD4node* var, size_t* dimsizes)
+getDimsizes(NCD4node* var, int* dimsizes)
 {
     int i;
     int rank = nclistlength(var->dims);
     for(i=0;i<rank;i++) {
 	NCD4node* dim = (NCD4node*)nclistget(var->dims,i);
-	dimsizes[i] = dim->dim.size;
+	dimsizes[i] = (int)dim->dim.size;
     }
     return rank;
 }

@@ -24,6 +24,7 @@ has_hdf5="@HAS_HDF5@"
 has_logging="@HAS_LOGGING@"
 has_cdf5="@HAS_CDF5@"
 has_szlib="@HAS_SZLIB@"
+has_parallel="@HAS_PARALLEL@"
 version="@PACKAGE_NAME@ @PACKAGE_VERSION@"
 
 
@@ -85,6 +86,7 @@ Available values for OPTION include:
   --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
   --has-pio     whether PIO parallel IO library was used in build
   --has-szlib   whether szlib is included in build
+  --has-parallel whether has parallel IO support via hdf5 and/or pnetcdf
   --has-cdf5    whether cdf5 support is included in build
   --libs        library linking information for netcdf
   --prefix      Install prefixx
@@ -162,6 +164,7 @@ fi
         echo "  --has-pnetcdf-> $has_pnetcdf"
         echo "  --has-pio   -> $has_pio"
         echo "  --has-szlib -> $has_szlib"
+        echo "  --has-parallel -> $has_parallel"
         echo "  --has-cdf5 -> $has_cdf5"
 	echo
         echo "  --prefix    -> $prefix"
@@ -244,6 +247,10 @@ while test $# -gt 0; do
 
     --has-cdf5)
         echo $has_cdf5
+        ;;
+
+    --has-parallel)
+        echo $has_parallel
         ;;
 
      --libs)

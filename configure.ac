@@ -1155,6 +1155,8 @@ AC_ARG_WITH([piobuffersize],
 AC_MSG_RESULT([$PIO_BUFFER_SIZE])
 AC_DEFINE_UNQUOTED([PIO_BUFFER_SIZE], [$PIO_BUFFER_SIZE], [buffer size for darray data.])
 
+AM_CONDITIONAL(ENABLE_PARALLEL, [test x$enable_parallel = xyes ])
+
 if test "x$hdf5_parallel" = xyes; then
   # Provide more precise parallel control
   AC_DEFINE([HDF5_PARALLEL], [1], [if true, hdf5 has parallelism enabled])
@@ -1211,7 +1213,7 @@ if test "x$enable_pnetcdf" = xyes; then
       erange_fill_pnetcdf=no
    else
       erange_fill_pnetcdf=`echo ${erange_fill_pnetcdf} | cut -d' ' -f3`
-      if test "x$coord_bound_pnetcdf" = x0; then
+      if test "x$erange_fill_pnetcdf" = x0; then
           enable_erange_fill_pnetcdf=no
       else
           enable_erange_fill_pnetcdf=yes
