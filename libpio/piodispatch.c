@@ -526,7 +526,6 @@ PIO_get_vara(int ncid, int varid, const size_t* startp, const size_t* countp,
              void* ip, nc_type memtype)
 {
     NC* nc;
-    /* PIO_INFO* nc5; */
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS];
     int d;
     int rank = 0;
@@ -534,9 +533,6 @@ PIO_get_vara(int ncid, int varid, const size_t* startp, const size_t* countp,
 
     if ((status = NC_check_id(ncid, &nc)))
 	return status;
-
-    /* nc5 = PIO_DATA(nc); */
-    /* assert(nc5); */
 
     /* get variable's rank */
     if ((status= PIOc_inq_varndims(nc->ext_ncid, varid, &rank)))
@@ -549,10 +545,7 @@ PIO_get_vara(int ncid, int varid, const size_t* startp, const size_t* countp,
         mpi_count[d] = countp[d];
     }
 
-    if (memtype == NC_NAT)
-        if ((status = PIOc_inq_vartype(nc->ext_ncid, varid, &memtype)))
-	    return status;
-
+    /* Call the PIO function to do a get_vara. */
     if ((status == PIOc_get_vara_tc(nc->ext_ncid, varid, mpi_start, mpi_count, memtype, ip)))
 	return status;
 
