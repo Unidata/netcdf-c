@@ -297,8 +297,7 @@ main(
               derror("%s: output language is null", progname);
               return(1);
             }
-            lang_name = (char*) emalloc(strlen(optarg)+1);
-	    (void)strcpy(lang_name, optarg);
+            lang_name = estrdup(optarg);
 	    for(langs=legallanguages;langs->name != NULL;langs++) {
               if(strcmp(lang_name,langs->name)==0) {
 	  	l_flag = langs->flag;
@@ -348,27 +347,20 @@ main(
                        5 (=> classic 64 bit data aka CDF-5)
 		   */
 	    struct Kvalues* kvalue;
-	    char *kind_name = (optarg != NULL
-				? (char *) emalloc(strlen(optarg)+1)
-				: emalloc(1));
-	    if (! kind_name) {
-		derror ("%s: out of memory", progname);
-		return(1);
-	    }
-            if(optarg != NULL)
-              (void)strcpy(kind_name, optarg);
+            if(optarg == NULL) {
+                derror("-k flag has no value");
+		return 2;
+            }
             for(kvalue=legalkinds;kvalue->name;kvalue++) {
-              if(strcmp(kind_name,kvalue->name) == 0) {
-                k_flag = kvalue->k_flag;
-                break;
-              }
+                if(strcmp(optarg,kvalue->name) == 0) {
+                  k_flag = kvalue->k_flag;
+                  break;
+                }
             }
             if(kvalue->name == NULL) {
-                derror("Invalid format: %s",kind_name);
-	        nullfree(kind_name);
+                derror("Invalid format: %s",optarg);
                 return 2;
             }
-	    nullfree(kind_name);
 	} break;
 	case '3':		/* output format is classic (netCDF-3) */
 	    k_flag = NC_FORMAT_CLASSIC;

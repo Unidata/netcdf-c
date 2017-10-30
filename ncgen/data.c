@@ -84,7 +84,7 @@ Datasrc*
 allocdatasrc(void)
 {
     Datasrc* src;
-    src = emalloc(sizeof(Datasrc));
+    src = ecalloc(sizeof(Datasrc));
     src->data = NULL;
     src->index = 0;
     src->length = 0;
@@ -274,13 +274,13 @@ cloneconstant(NCConstant* con)
     char* s;
     switch (newcon.nctype) {
     case NC_STRING:
-	s = (char*)emalloc(newcon.value.stringv.len+1);
+	s = (char*)ecalloc(newcon.value.stringv.len+1);
 	memcpy(s,newcon.value.stringv.stringv,newcon.value.stringv.len);
 	s[newcon.value.stringv.len] = '\0';
 	newcon.value.stringv.stringv = s;
 	break;
     case NC_OPAQUE:
-	s = (char*)emalloc(newcon.value.opaquev.len+1);
+	s = (char*)ecalloc(newcon.value.opaquev.len+1);
 	memcpy(s,newcon.value.opaquev.stringv,newcon.value.opaquev.len);
 	s[newcon.value.opaquev.len] = '\0';
 	newcon.value.opaquev.stringv = s;
@@ -675,7 +675,7 @@ indented(int n)
 {
     char* indentation;
     if(dent == NULL) {
-	dent = (char*)emalloc(INDENTMAX+1);
+	dent = (char*)ecalloc(INDENTMAX+1);
 	memset((void*)dent,' ',INDENTMAX);
 	dent[INDENTMAX] = '\0';	
     }
@@ -700,7 +700,7 @@ dlsetalloc(Datalist* dl, size_t newalloc)
     if(dl->alloc > 0)
         newdata = (NCConstant*)erealloc((void*)dl->data,sizeof(NCConstant)*newalloc);
     else {
-        newdata = (NCConstant*)emalloc(sizeof(NCConstant)*newalloc);
+        newdata = (NCConstant*)ecalloc(sizeof(NCConstant)*newalloc);
         memset((void*)newdata,0,sizeof(NCConstant)*newalloc);
     }
     dl->alloc = newalloc;
@@ -714,9 +714,9 @@ builddatalist(int initial)
     Datalist* ci;
     if(initial <= 0) initial = DATALISTINIT;
     initial++; /* for header*/
-    ci = (Datalist*)emalloc(sizeof(Datalist));
+    ci = (Datalist*)ecalloc(sizeof(Datalist));
     memset((void*)ci,0,sizeof(Datalist)); /* only clear the hdr*/
-    ci->data = (NCConstant*)emalloc(sizeof(NCConstant)*initial);
+    ci->data = (NCConstant*)ecalloc(sizeof(NCConstant)*initial);
     memset((void*)ci->data,0,sizeof(NCConstant)*initial);
     ci->alloc = initial;
     ci->length = 0;
