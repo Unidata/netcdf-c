@@ -871,7 +871,7 @@ AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
-AC_CHECK_TYPES([size_t, ssize_t, ptrdiff_t, uchar, longlong, ushort, uint, int64, uint64 off_t])
+AC_CHECK_TYPES([size_t, ssize_t, ptrdiff_t, schar, uchar, longlong, ushort, uint, int64, uint64 off_t])
 AC_TYPE_SIZE_T
 AC_TYPE_OFF_T
 AC_C_CHAR_UNSIGNED
@@ -1169,7 +1169,7 @@ if test "x$enable_pnetcdf" = xyes; then
       erange_fill_pnetcdf=no
    else
       erange_fill_pnetcdf=`echo ${erange_fill_pnetcdf} | cut -d' ' -f3`
-      if test "x$coord_bound_pnetcdf" = x0; then
+      if test "x$erange_fill_pnetcdf" = x0; then
           enable_erange_fill_pnetcdf=no
       else
           enable_erange_fill_pnetcdf=yes
