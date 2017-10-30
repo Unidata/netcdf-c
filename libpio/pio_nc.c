@@ -789,150 +789,6 @@ int PIOc_inq_var(int ncid, int varid, char *name, nc_type *xtypep, int *ndimsp,
 			    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
-/*     iosystem_desc_t *ios; */
-/*     file_desc_t *file; */
-/*     int ndims = 0;    /\* The number of dimensions for this variable. *\/ */
-/*     int ierr; */
-/*     int mpierr = MPI_SUCCESS, mpierr2;  /\* Return code from MPI function codes. *\/ */
-
-/*     LOG((1, "PIOc_inq_var ncid = %d varid = %d", ncid, varid)); */
-
-/*     /\* Get the file info, based on the ncid. *\/ */
-/*     if ((ierr = pio_get_file(ncid, &file))) */
-/*         return pio_err(NULL, NULL, ierr, __FILE__, __LINE__); */
-/*     ios = file->iosystem; */
-
-/*     /\* If async is in use, and this is not an IO task, bcast the parameters. *\/ */
-/*     if (ios->async) */
-/*     { */
-/*         if (!ios->ioproc) */
-/*         { */
-/*             int msg = PIO_MSG_INQ_VAR; */
-/*             char name_present = name ? true : false; */
-/*             char xtype_present = xtypep ? true : false; */
-/*             char ndims_present = ndimsp ? true : false; */
-/*             char dimids_present = dimidsp ? true : false; */
-/*             char natts_present = nattsp ? true : false; */
-
-/*             if (ios->compmaster == MPI_ROOT) */
-/*                 mpierr = MPI_Send(&msg, 1,MPI_INT, ios->ioroot, 1, ios->union_comm); */
-
-/*             if (!mpierr) */
-/*                 mpierr = MPI_Bcast(&ncid, 1, MPI_INT, ios->compmaster, ios->intercomm); */
-/*             if (!mpierr) */
-/*                 mpierr = MPI_Bcast(&varid, 1, MPI_INT, ios->compmaster, ios->intercomm); */
-/*             if (!mpierr) */
-/*                 mpierr = MPI_Bcast(&name_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm); */
-/*             if (!mpierr) */
-/*                 mpierr = MPI_Bcast(&xtype_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm); */
-/*             if (!mpierr) */
-/*                 mpierr = MPI_Bcast(&ndims_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm); */
-/*             if (!mpierr) */
-/*                 mpierr = MPI_Bcast(&dimids_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm); */
-/*             if (!mpierr) */
-/*                 mpierr = MPI_Bcast(&natts_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm); */
-/*             LOG((2, "PIOc_inq_var name_present = %d xtype_present = %d ndims_present = %d " */
-/*                  "dimids_present = %d, natts_present = %d nattsp = %d", */
-/*                  name_present, xtype_present, ndims_present, dimids_present, natts_present, nattsp)); */
-/*         } */
-
-/*         /\* Handle MPI errors. *\/ */
-/*         if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm))) */
-/*             return check_mpi(file, mpierr2, __FILE__, __LINE__); */
-/*         if (mpierr) */
-/*             return check_mpi(file, mpierr, __FILE__, __LINE__); */
-/*     } */
-
-/*     /\* Call the netCDF layer. *\/ */
-/*     if (ios->ioproc) */
-/*     { */
-/*         LOG((2, "Calling the netCDF layer")); */
-/* #ifdef _PNETCDF */
-/*         if (file->iotype == PIO_IOTYPE_PNETCDF) */
-/*         { */
-/*             ierr = ncmpi_inq_varndims(file->fh, varid, &ndims); */
-/*             LOG((2, "from pnetcdf ndims = %d", ndims)); */
-/*             if (!ierr) */
-/*                 ierr = ncmpi_inq_var(file->fh, varid, name, xtypep, ndimsp, dimidsp, nattsp); */
-/*         } */
-/* #endif /\* _PNETCDF *\/ */
-
-/*         if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io) */
-/*         { */
-/*             ierr = nc_inq_varndims(file->fh, varid, &ndims); */
-/*             LOG((3, "nc_inq_varndims called ndims = %d", ndims)); */
-/*             if (!ierr) */
-/*             { */
-/*                 char my_name[NC_MAX_NAME + 1]; */
-/*                 nc_type my_xtype; */
-/*                 int my_ndims = 0, my_dimids[ndims], my_natts = 0; */
-/*                 ierr = nc_inq_var(file->fh, varid, my_name, &my_xtype, &my_ndims, my_dimids, &my_natts); */
-/*                 LOG((3, "my_name = %s my_xtype = %d my_ndims = %d my_natts = %d",  my_name, my_xtype, my_ndims, my_natts)); */
-/*                 if (!ierr) */
-/*                 { */
-/*                     if (name) */
-/*                         strcpy(name, my_name); */
-/*                     if (xtypep) */
-/*                         *xtypep = my_xtype; */
-/*                     if (ndimsp) */
-/*                         *ndimsp = my_ndims; */
-/*                     if (dimidsp) */
-/*                     { */
-/*                         for (int d = 0; d < ndims; d++) */
-/*                             dimidsp[d] = my_dimids[d]; */
-/*                     } */
-/*                     if (nattsp) */
-/*                         *nattsp = my_natts; */
-/*                 } */
-/*             } */
-/*         } */
-/*         if (ndimsp) */
-/*             LOG((2, "PIOc_inq_var ndims = %d ierr = %d", *ndimsp, ierr)); */
-/*     } */
-
-/*     /\* Broadcast and check the return code. *\/ */
-/*     if ((mpierr = MPI_Bcast(&ierr, 1, MPI_INT, ios->ioroot, ios->my_comm))) */
-/*         return check_mpi(file, mpierr, __FILE__, __LINE__); */
-/*     if (ierr) */
-/*         return check_netcdf(file, ierr, __FILE__, __LINE__); */
-
-/*     /\* Broadcast the results for non-null pointers. *\/ */
-/*     if (name) */
-/*     { */
-/*         int slen; */
-/*         if (ios->iomaster == MPI_ROOT) */
-/*             slen = strlen(name); */
-/*         if ((mpierr = MPI_Bcast(&slen, 1, MPI_INT, ios->ioroot, ios->my_comm))) */
-/*             return check_mpi(file, mpierr, __FILE__, __LINE__); */
-/*         if ((mpierr = MPI_Bcast((void *)name, slen + 1, MPI_CHAR, ios->ioroot, ios->my_comm))) */
-/*             return check_mpi(file, mpierr, __FILE__, __LINE__); */
-/*     } */
-/*     if (xtypep) */
-/*         if ((mpierr = MPI_Bcast(xtypep, 1, MPI_INT, ios->ioroot, ios->my_comm))) */
-/*             return check_mpi(file, mpierr, __FILE__, __LINE__); */
-
-/*     if (ndimsp) */
-/*     { */
-/*         LOG((2, "PIOc_inq_var about to Bcast ndims = %d ios->ioroot = %d ios->my_comm = %d", */
-/*              *ndimsp, ios->ioroot, ios->my_comm)); */
-/*         if ((mpierr = MPI_Bcast(ndimsp, 1, MPI_INT, ios->ioroot, ios->my_comm))) */
-/*             return check_mpi(file, mpierr, __FILE__, __LINE__); */
-/*         LOG((2, "PIOc_inq_var Bcast ndims = %d", *ndimsp)); */
-/*     } */
-/*     if (dimidsp) */
-/*     { */
-/*         if ((mpierr = MPI_Bcast(&ndims, 1, MPI_INT, ios->ioroot, ios->my_comm))) */
-/*             return check_mpi(file, mpierr, __FILE__, __LINE__); */
-/*         if ((mpierr = MPI_Bcast(dimidsp, ndims, MPI_INT, ios->ioroot, ios->my_comm))) */
-/*             return check_mpi(file, mpierr, __FILE__, __LINE__); */
-/*     } */
-/*     if (nattsp) */
-/*         if ((mpierr = MPI_Bcast(nattsp, 1, MPI_INT, ios->ioroot, ios->my_comm))) */
-/*             return check_mpi(file, mpierr, __FILE__, __LINE__); */
-
-/*     return PIO_NOERR; */
-/* } */
-
 int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 		     int *ndimsp, int *dimidsp, int *nattsp,
 		     int *shufflep, int *deflatep, int *deflate_levelp,
@@ -940,13 +796,13 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 		     int *no_fill, void *fill_valuep, int *endiannessp,
 		     int *options_maskp, int *pixels_per_blockp)
 {
-    iosystem_desc_t *ios;
-    file_desc_t *file;
-    int ndims = 0;    /* The number of dimensions for this variable. */
-    var_desc_t *vdesc;        /* Info about the var. */
-    size_t type_size;    
+    iosystem_desc_t *ios;  /* Pointer to iosystem info. */
+    file_desc_t *file;  /* Pointer to PIO file info. */
+    int ndims = 0;      /* The number of dimensions for this variable. */
+    var_desc_t *vdesc;  /* Info about the var. */
+    size_t type_size;   /* Size (in bytes) of the type of this var. */ 
     int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */
-    int ret;
+    int ret;            /* Return code. */
 
     LOG((1, "PIOc_inq_var_all ncid = %d varid = %d", ncid, varid));
 
@@ -1072,6 +928,7 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	    ret = NC3_inq_var_all(file->fh, varid, NULL, &my_xtype, &my_ndims, NULL, NULL,
 				  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 	    LOG((3, "ret %d my_xtype %d my_ndims %d", ret, my_xtype, my_ndims));
+	    ndims = my_ndims;
 	    
 	    int my_dimids[my_ndims];
 	    size_t type_size = NC_atomictypelen(my_xtype);

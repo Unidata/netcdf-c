@@ -313,19 +313,19 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
 	    if (my_dimids[0] != 0)
 		ERR(ERR_WRONG);
 	    size_t my_dimlen;
-            /* if ((ret = nc_inq_dimlen(ncid, 0, &my_dimlen))) */
-            /*     return ret; */
-	    /* printf("my_rank %d my_dimlen %d\n", my_rank, my_dimlen); */
-	    /* /\* if (my_dimlen != DIM_LEN) *\/ */
-	    /* /\* 	ERR(ERR_WRONG); *\/ */
+            if ((ret = nc_inq_dimlen(ncid, 0, &my_dimlen)))
+                return ret;
+	    printf("my_rank %d my_dimlen %d type_size %d\n", my_rank, my_dimlen, type_size);
+	    if (my_dimlen != DIM_LEN)
+	    	ERR(ERR_WRONG);
 	    
-            /* /\* Get a buffer big enough to hold the global array. *\/ */
-            /* if (!(bufr = malloc(DIM_LEN * type_size))) */
-            /*     return PIO_ENOMEM; */
+            /* Get a buffer big enough to hold the global array. */
+            if (!(bufr = malloc(DIM_LEN * type_size)))
+                return PIO_ENOMEM;
 
-            /* /\* Get the whole array with good old get_var(). *\/ */
-	    /* size_t start[NDIM] = {0}; */
-	    /* size_t count[NDIM] = {DIM_LEN}; */
+            /* Get the whole array with good old get_var(). */
+	    size_t start[NDIM] = {0};
+	    size_t count[NDIM] = {DIM_LEN};
             /* if ((ret = nc_get_vara(ncid, varid, start, count, bufr))) */
             /*     return ret; */
 
@@ -391,7 +391,7 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
 /*             } */
 
             /* Release buffer. */
-            /* free(bufr); */
+            free(bufr);
 
             /* Close the netCDF file. */
             if ((ret = nc_close(ncid)))
