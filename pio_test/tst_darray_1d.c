@@ -167,142 +167,167 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
                 ERR(ret);
 	    printf("my_rank %d created %s ncid %d\n", my_rank, filename, ncid);
 
-/*             /\* Turn on fill mode. *\/ */
-/*             if ((ret = nc_set_fill(ncid, NC_FILL, NULL))) */
-/*                 ERR(ret); */
+            /* Turn on fill mode. */
+            if ((ret = nc_set_fill(ncid, NC_FILL, NULL)))
+                ERR(ret);
 
-/*             /\* Define netCDF dimensions and variable. *\/ */
-/*             if ((ret = nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid))) */
-/*                 ERR(ret); */
+            /* Define netCDF dimensions and variable. */
+            if ((ret = nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)))
+                ERR(ret);
 
-/*             /\* Define a variable. *\/ */
-/*             if ((ret = nc_def_var(ncid, VAR_NAME, pio_type, NDIM, &dimid, &varid))) */
-/*                 ERR(ret); */
+            /* Define a variable. */
+            if ((ret = nc_def_var(ncid, VAR_NAME, pio_type, NDIM, &dimid, &varid)))
+                ERR(ret);
 
-/*             /\* End define mode. *\/ */
-/*             if ((ret = nc_enddef(ncid))) */
-/*                 ERR(ret); */
+            /* End define mode. */
+            if ((ret = nc_enddef(ncid)))
+                ERR(ret);
 
-/*             /\* Get the size of the type. *\/ */
-/*             if ((ret = nc_inq_type(ncid, pio_type, NULL, &type_size))) */
-/*                 return ret; */
+            /* Get the size of the type. */
+            if ((ret = nc_inq_type(ncid, pio_type, NULL, &type_size)))
+                return ret;
 
-/*             /\* Initialize some data. *\/ */
-/*             signed char byte_test_data[2] = {my_rank, my_rank}; */
-/*             char char_test_data[2] = {my_rank, my_rank}; */
-/*             short short_test_data[2] = {my_rank, my_rank}; */
-/*             int int_test_data[2] = {my_rank, my_rank}; */
-/*             float float_test_data[2] = {my_rank, my_rank}; */
-/*             double double_test_data[2] = {my_rank, my_rank}; */
-/* #ifdef _NETCDF4 */
-/*             unsigned char ubyte_test_data[2] = {my_rank, my_rank}; */
-/*             unsigned short ushort_test_data[2] = {my_rank, my_rank}; */
-/*             unsigned int uint_test_data[2] = {my_rank, my_rank}; */
-/*             long long int64_test_data[2] = {my_rank, my_rank}; */
-/*             unsigned long long uint64_test_data[2] = {my_rank, my_rank}; */
-/* #endif /\* _NETCDF4 *\/ */
+            /* Initialize some data. */
+            signed char byte_test_data[2] = {my_rank, my_rank};
+            char char_test_data[2] = {my_rank, my_rank};
+            short short_test_data[2] = {my_rank, my_rank};
+            int int_test_data[2] = {my_rank, my_rank};
+            float float_test_data[2] = {my_rank, my_rank};
+            double double_test_data[2] = {my_rank, my_rank};
+#ifdef _NETCDF4
+            unsigned char ubyte_test_data[2] = {my_rank, my_rank};
+            unsigned short ushort_test_data[2] = {my_rank, my_rank};
+            unsigned int uint_test_data[2] = {my_rank, my_rank};
+            long long int64_test_data[2] = {my_rank, my_rank};
+            unsigned long long uint64_test_data[2] = {my_rank, my_rank};
+#endif /* _NETCDF4 */
 
-/*             switch (pio_type) */
-/*             { */
-/*             case PIO_BYTE: */
-/*                 test_data = byte_test_data; */
-/*                 fillvalue = with_fillvalue ? &byte_fill : NULL; */
-/*                 expected_in = &my_byte_rank; */
-/*                 break; */
-/*             case PIO_CHAR: */
-/*                 test_data = char_test_data; */
-/*                 fillvalue = with_fillvalue ? &char_fill : NULL; */
-/*                 expected_in = &my_char_rank; */
-/*                 break; */
-/*             case PIO_SHORT: */
-/*                 test_data = short_test_data; */
-/*                 fillvalue = with_fillvalue ? &short_fill : NULL; */
-/*                 expected_in = &my_short_rank; */
-/*                 break; */
-/*             case PIO_INT: */
-/*                 test_data = int_test_data; */
-/*                 fillvalue = with_fillvalue ? &int_fill : NULL; */
-/*                 expected_in = &my_rank; */
-/*                 break; */
-/*             case PIO_FLOAT: */
-/*                 test_data = float_test_data; */
-/*                 fillvalue = with_fillvalue ? &float_fill : NULL; */
-/*                 expected_in = &my_float_rank; */
-/*                 break; */
-/*             case PIO_DOUBLE: */
-/*                 test_data = double_test_data; */
-/*                 fillvalue = with_fillvalue ? &double_fill : NULL; */
-/*                 expected_in = &my_double_rank; */
-/*                 break; */
-/* #ifdef _NETCDF4 */
-/*             case PIO_UBYTE: */
-/*                 test_data = ubyte_test_data; */
-/*                 fillvalue = with_fillvalue ? &ubyte_fill : NULL; */
-/*                 expected_in = &my_ubyte_rank; */
-/*                 break; */
-/*             case PIO_USHORT: */
-/*                 test_data = ushort_test_data; */
-/*                 fillvalue = with_fillvalue ? &ushort_fill : NULL; */
-/*                 expected_in = &my_ushort_rank; */
-/*                 break; */
-/*             case PIO_UINT: */
-/*                 test_data = uint_test_data; */
-/*                 fillvalue = with_fillvalue ? &uint_fill : NULL; */
-/*                 expected_in = &my_uint_rank; */
-/*                 break; */
-/*             case PIO_INT64: */
-/*                 test_data = int64_test_data; */
-/*                 fillvalue = with_fillvalue ? &int64_fill : NULL; */
-/*                 expected_in = &my_int64_rank; */
-/*                 break; */
-/*             case PIO_UINT64: */
-/*                 test_data = uint64_test_data; */
-/*                 fillvalue = with_fillvalue ? &uint64_fill : NULL; */
-/*                 expected_in = &my_uint64_rank; */
-/*                 break; */
-/* #endif /\* _NETCDF4 *\/ */
-/*             default: */
-/*                 return ERR_WRONG; */
-/*             } */
+            switch (pio_type)
+            {
+            case PIO_BYTE:
+                test_data = byte_test_data;
+                fillvalue = with_fillvalue ? &byte_fill : NULL;
+                expected_in = &my_byte_rank;
+                break;
+            case PIO_CHAR:
+                test_data = char_test_data;
+                fillvalue = with_fillvalue ? &char_fill : NULL;
+                expected_in = &my_char_rank;
+                break;
+            case PIO_SHORT:
+                test_data = short_test_data;
+                fillvalue = with_fillvalue ? &short_fill : NULL;
+                expected_in = &my_short_rank;
+                break;
+            case PIO_INT:
+                test_data = int_test_data;
+                fillvalue = with_fillvalue ? &int_fill : NULL;
+                expected_in = &my_rank;
+                break;
+            case PIO_FLOAT:
+                test_data = float_test_data;
+                fillvalue = with_fillvalue ? &float_fill : NULL;
+                expected_in = &my_float_rank;
+                break;
+            case PIO_DOUBLE:
+                test_data = double_test_data;
+                fillvalue = with_fillvalue ? &double_fill : NULL;
+                expected_in = &my_double_rank;
+                break;
+#ifdef _NETCDF4
+            case PIO_UBYTE:
+                test_data = ubyte_test_data;
+                fillvalue = with_fillvalue ? &ubyte_fill : NULL;
+                expected_in = &my_ubyte_rank;
+                break;
+            case PIO_USHORT:
+                test_data = ushort_test_data;
+                fillvalue = with_fillvalue ? &ushort_fill : NULL;
+                expected_in = &my_ushort_rank;
+                break;
+            case PIO_UINT:
+                test_data = uint_test_data;
+                fillvalue = with_fillvalue ? &uint_fill : NULL;
+                expected_in = &my_uint_rank;
+                break;
+            case PIO_INT64:
+                test_data = int64_test_data;
+                fillvalue = with_fillvalue ? &int64_fill : NULL;
+                expected_in = &my_int64_rank;
+                break;
+            case PIO_UINT64:
+                test_data = uint64_test_data;
+                fillvalue = with_fillvalue ? &uint64_fill : NULL;
+                expected_in = &my_uint64_rank;
+                break;
+#endif /* _NETCDF4 */
+            default:
+                return ERR_WRONG;
+            }
 
-/*             /\* Write the data. Our test_data contains only one real */
-/*              * value (instead of 2, as indicated by arraylen), but due */
-/*              * to the decomposition, only the first value is used in */
-/*              * the output. *\/ */
-/*             if ((ret = PIOc_write_darray(ncid, varid, ioid, arraylen, test_data, fillvalue))) */
-/*                 ERR(ret); */
+            /* Write the data. Our test_data contains only one real
+             * value (instead of 2, as indicated by arraylen), but due
+             * to the decomposition, only the first value is used in
+             * the output. */
+            if ((ret = PIOc_write_darray(ncid, varid, ioid, arraylen, test_data, fillvalue)))
+                ERR(ret);
 
             /* Close the netCDF file. */
             if ((ret = nc_close(ncid)))
                 ERR(ret);
 
-            /* /\* Reopen the file. *\/ */
-            /* /\* if ((ret = PIOc_openfile2(iosysid, &ncid, &flavor[fmt], filename, PIO_NOWRITE))) *\/ */
-            /* /\*     ERR(ret); *\/ */
-            /* if ((ret = nc_open(filename, PIO_NOWRITE|NC_PIO, &ncid))) */
+            /* Reopen the file. */
+            /* if ((ret = PIOc_openfile2(iosysid, &ncid, &flavor[fmt], filename, PIO_NOWRITE))) */
             /*     ERR(ret); */
-            /* /\* Allocate space for data. *\/ */
-            /* if (!(test_data_in = malloc(type_size * arraylen))) */
-            /*     ERR(PIO_ENOMEM); */
+            if ((ret = nc_open(filename, PIO_NOWRITE|NC_PIO, &ncid)))
+                ERR(ret);
+            /* Allocate space for data. */
+            if (!(test_data_in = malloc(type_size * arraylen)))
+                ERR(PIO_ENOMEM);
 
-            /* /\* Read the data. *\/ */
-            /* if ((ret = PIOc_read_darray(ncid, varid, ioid, arraylen, test_data_in))) */
-            /*     ERR(ret); */
+            /* Read the data. */
+            if ((ret = PIOc_read_darray(ncid, varid, ioid, arraylen, test_data_in)))
+                ERR(ret);
 
-            /* /\* Check the (first) result. *\/ */
-            /* if (memcmp(test_data_in, expected_in, type_size)) */
-            /*     return ERR_WRONG; */
+            /* Check the (first) result. */
+            if (memcmp(test_data_in, expected_in, type_size))
+                return ERR_WRONG;
 
-            /* /\* Free resources. *\/ */
-            /* free(test_data_in); */
+            /* Free resources. */
+            free(test_data_in);
 
-	    /* int my_type; */
-            /* if ((ret = nc_inq_vartype(ncid, varid, &my_type))) */
+	    /* Check some metadata. */
+	    int my_type;
+            if ((ret = nc_inq_vartype(ncid, varid, &my_type)))
+                return ret;
+	    if (my_type != pio_type)
+		ERR(ERR_WRONG);
+	    int my_ndims;
+            if ((ret = nc_inq_varndims(ncid, varid, &my_ndims)))
+                return ret;
+	    if (my_ndims != NDIM)
+		ERR(ERR_WRONG);
+	    int my_dimids[NDIM];
+            if ((ret = nc_inq_vardimid(ncid, varid, my_dimids)))
+                return ret;
+	    if (my_dimids[0] != 0)
+		ERR(ERR_WRONG);
+	    size_t my_dimlen;
+            /* if ((ret = nc_inq_dimlen(ncid, 0, &my_dimlen))) */
             /*     return ret; */
+	    /* printf("my_rank %d my_dimlen %d\n", my_rank, my_dimlen); */
+	    /* /\* if (my_dimlen != DIM_LEN) *\/ */
+	    /* /\* 	ERR(ERR_WRONG); *\/ */
 	    
             /* /\* Get a buffer big enough to hold the global array. *\/ */
             /* if (!(bufr = malloc(DIM_LEN * type_size))) */
             /*     return PIO_ENOMEM; */
+
+            /* /\* Get the whole array with good old get_var(). *\/ */
+	    /* size_t start[NDIM] = {0}; */
+	    /* size_t count[NDIM] = {DIM_LEN}; */
+            /* if ((ret = nc_get_vara(ncid, varid, start, count, bufr))) */
+            /*     return ret; */
 
             /* /\* Get the whole array with good old get_var(). *\/ */
             /* if ((ret = nc_get_var(ncid, varid, bufr))) */
@@ -365,12 +390,12 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
 /*                 } */
 /*             } */
 
-/*             /\* Release buffer. *\/ */
-/*             free(bufr); */
+            /* Release buffer. */
+            /* free(bufr); */
 
             /* Close the netCDF file. */
-            /* if ((ret = nc_close(ncid))) */
-            /*     ERR(ret); */
+            if ((ret = nc_close(ncid)))
+                ERR(ret);
         } /* with_fillvalue */
     } /* next iotype */
 

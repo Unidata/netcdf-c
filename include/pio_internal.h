@@ -337,6 +337,8 @@ extern "C" {
     int PIOc_get_var1_tc(int ncid, int varid, const PIO_Offset *index, nc_type xtype,
                          void *buf);
     int PIOc_get_var_tc(int ncid, int varid, nc_type xtype, void *buf);
+    int PIOc_get_vara_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Offset *count,
+			 nc_type xtype, void *buf);
 
     /* Generalized put functions. */
     int PIOc_put_vars_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Offset *count,

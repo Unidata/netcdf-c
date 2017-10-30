@@ -204,17 +204,18 @@ PIO_abort(int ncid)
 {
     NC* nc;
     /* PIO_INFO* nc5; */
-    int status = NC_check_id(ncid, &nc);
-    if (status != NC_NOERR) goto done;
+    int status;
+
+    if ((status = NC_check_id(ncid, &nc)))
+	return status;
 
     /* status = PIOc_abort(nc->ext_ncid); */
 
-done:
+/* done: */
     /* nc5 = PIO_DATA(nc); */
     /* if (nc5 != NULL) free(nc5); /\* reclaim allocated space *\/ */
     return status;
 }
-
 
 static int
 PIO_close(int ncid)
@@ -334,10 +335,11 @@ PIO_inq_dim(int ncid, int dimid, char *name, size_t* lenp)
     int status;
     NC* nc;
     MPI_Offset mpilen;
-    status = NC_check_id(ncid, &nc);
-    if (status != NC_NOERR) return status;
-    status = PIOc_inq_dim(nc->ext_ncid,dimid,name,&mpilen);
-    if (lenp) *lenp = mpilen;
+    if ((status = NC_check_id(ncid, &nc)))
+	return status;
+    status = PIOc_inq_dim(nc->ext_ncid, dimid, name, &mpilen);
+    if (lenp)
+	*lenp = mpilen;
     return status;
 }
 
@@ -520,69 +522,41 @@ PIO_rename_var(int ncid, int varid, const char *name)
 }
 
 static int
-PIO_get_vara(int ncid,
-             int varid,
-             const size_t* startp,
-             const size_t* countp,
-             void* ip,
-             nc_type memtype)
+PIO_get_vara(int ncid, int varid, const size_t* startp, const size_t* countp,
+             void* ip, nc_type memtype)
 {
     NC* nc;
     /* PIO_INFO* nc5; */
-    int status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS];
     int d;
     int rank = 0;
+    int status;
 
-    status = NC_check_id(ncid, &nc);
-    if (status != NC_NOERR) return status;
+    if ((status = NC_check_id(ncid, &nc)))
+	return status;
 
     /* nc5 = PIO_DATA(nc); */
     /* assert(nc5); */
 
     /* get variable's rank */
-    status= PIOc_inq_varndims(nc->ext_ncid, varid, &rank);
-    if (status) return status;
+    if ((status= PIOc_inq_varndims(nc->ext_ncid, varid, &rank)))
+	return status;
 
     /* We must convert the start and count arrays to MPI_Offset type. */
-    for (d = 0; d < rank; d++) {
+    for (d = 0; d < rank; d++)
+    {
         mpi_start[d] = startp[d];
         mpi_count[d] = countp[d];
     }
 
-    if (memtype == NC_NAT) {
-        status = PIOc_inq_vartype(nc->ext_ncid, varid, &memtype);
-        if (status) return status;
-    }
+    if (memtype == NC_NAT)
+        if ((status = PIOc_inq_vartype(nc->ext_ncid, varid, &memtype)))
+	    return status;
 
-    switch(memtype)
-    {
-    case NC_BYTE:
-        status=PIOc_get_vara_schar(nc->ext_ncid, varid, mpi_start, mpi_count, ip); break;
-    case NC_CHAR:
-        status=PIOc_get_vara_text(nc->ext_ncid, varid, mpi_start, mpi_count, ip); break;
-    case NC_SHORT:
-        status=PIOc_get_vara_short(nc->ext_ncid, varid, mpi_start, mpi_count, ip); break;
-    case NC_INT:
-        status=PIOc_get_vara_int(nc->ext_ncid, varid, mpi_start, mpi_count, ip); break;
-    case NC_FLOAT:
-        status=PIOc_get_vara_float(nc->ext_ncid, varid, mpi_start, mpi_count, ip); break;
-    case NC_DOUBLE:
-        status=PIOc_get_vara_double(nc->ext_ncid, varid, mpi_start, mpi_count, ip); break;
-    case NC_UBYTE:
-        status=PIOc_get_vara_uchar(nc->ext_ncid, varid, mpi_start, mpi_count, ip); break;
-    case NC_USHORT:
-        status=PIOc_get_vara_ushort(nc->ext_ncid, varid, mpi_start, mpi_count, ip); break;
-    case NC_UINT:
-        status=PIOc_get_vara_uint(nc->ext_ncid, varid, mpi_start, mpi_count, ip); break;
-    case NC_INT64:
-        status=PIOc_get_vara_longlong(nc->ext_ncid, varid, mpi_start, mpi_count, ip); break;
-    case NC_UINT64:
-        status=PIOc_get_vara_ulonglong(nc->ext_ncid, varid, mpi_start, mpi_count, ip); break;
-    default:
-        status = NC_EBADTYPE;
-    }
-    return status;
+    if ((status == PIOc_get_vara_tc(nc->ext_ncid, varid, mpi_start, mpi_count, memtype, ip)))
+	return status;
+
+    return NC_NOERR;
 }
 
 static int

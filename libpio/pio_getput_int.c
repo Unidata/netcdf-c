@@ -603,6 +603,237 @@ int PIOc_get_vars_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
 }
 
 /**
+ * Internal PIO function which provides a type-neutral interface to
+ * nc_get_vara.
+ *
+ * Users should not call this function directly. Instead, call one of
+ * the derived functions, depending on the type of data you are
+ * reading: PIOc_get_vars_text(), PIOc_get_vars_uchar(),
+ * PIOc_get_vars_schar(), PIOc_get_vars_ushort(),
+ * PIOc_get_vars_short(), PIOc_get_vars_uint(), PIOc_get_vars_int(),
+ * PIOc_get_vars_long(), PIOc_get_vars_float(),
+ * PIOc_get_vars_double(), PIOc_get_vars_ulonglong(),
+ * PIOc_get_vars_longlong()
+ *
+ * This routine is called collectively by all tasks in the
+ * communicator ios.union_comm.
+ *
+ * @param ncid identifies the netCDF file
+ * @param varid the variable ID number
+ * @param start an array of start indicies (must have same number of
+ * entries as variable has dimensions). If NULL, indices of 0 will be
+ * used.
+ * @param count an array of counts (must have same number of entries
+ * as variable has dimensions). If NULL, counts matching the size of
+ * the variable will be used.
+ * @param stride an array of strides (must have same number of
+ * entries as variable has dimensions). If NULL, strides of 1 will be
+ * used.
+ * @param xtype the netCDF type of the data being passed in buf. Data
+ * will be automatically covnerted from the type of the variable being
+ * read from to this type. If NC_NAT then the variable's file type
+ * will be used. Use special PIO_LONG_INTERNAL for _long() functions.
+ * @param buf pointer to the data to be written.
+ * @return PIO_NOERR on success, error code otherwise.
+ * @author Ed Hartnett
+ */
+int PIOc_get_vara_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Offset *count,
+                     nc_type xtype, void *buf)
+{
+    iosystem_desc_t *ios;  /* Pointer to io system information. */
+    file_desc_t *file;     /* Pointer to file information. */
+    int ndims;             /* The number of dimensions in the variable. */
+    PIO_Offset typelen;    /* Size (in bytes) of the data type of data in buf. */
+    PIO_Offset num_elem = 1; /* Number of data elements in the buffer. */
+    nc_type vartype;         /* The type of the var we are reading from. */
+    char start_present = start ? true : false;
+    char count_present = count ? true : false;
+    int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */
+    int ierr;                           /* Return code. */
+
+    LOG((1, "PIOc_get_vara_tc ncid %d varid %d xtype %d start_present %d "
+         "count_present %d", ncid, varid, xtype, start_present, count_present));
+
+    /* Find the info about this file. */
+    if ((ierr = pio_get_file(ncid, &file)))
+        return pio_err(NULL, NULL, ierr, __FILE__, __LINE__);
+    ios = file->iosystem;
+
+    /* User must provide a place to put some data. */
+    if (!buf)
+        return pio_err(ios, file, PIO_EINVAL, __FILE__, __LINE__);
+
+    /* Run these on all tasks if async is not in use, but only on
+     * non-IO tasks if async is in use. */
+    if (!ios->async || !ios->ioproc)
+    {
+        /* Get the type of this var. */
+        if ((ierr = PIOc_inq_vartype(ncid, varid, &vartype)))
+            return check_netcdf(file, ierr, __FILE__, __LINE__);
+
+        /* If no type was specified, use the var type. */
+        if (xtype == NC_NAT)
+            xtype = vartype;
+
+        /* Handle _long() calls with an special type. */
+        if (xtype == PIO_LONG_INTERNAL)
+            typelen = sizeof(long int);
+        else
+        {
+            if ((ierr = PIOc_inq_type(ncid, xtype, NULL, &typelen)))
+                return check_netcdf(file, ierr, __FILE__, __LINE__);
+        }
+
+        /* Get the number of dims for this var. */
+        if ((ierr = PIOc_inq_varndims(ncid, varid, &ndims)))
+            return check_netcdf(file, ierr, __FILE__, __LINE__);
+        LOG((3, "ndims = %d", ndims));
+
+        /* Only scalar vars can pass NULL for start/count. */
+        pioassert(ndims == 0 || (start && count), "need start/count", __FILE__, __LINE__);
+
+        /* How many elements in buf? (For scalars, ndims is 0 and
+         * num_elem will remain 1). */
+        for (int vd = 0; vd < ndims; vd++)
+            num_elem *= count[vd];
+        LOG((2, "PIOc_get_vars_tc num_elem = %d", num_elem));
+    }
+
+    /* If async is in use, and this is not an IO task, bcast the parameters. */
+    if (ios->async)
+    {
+        if (!ios->ioproc)
+        {
+            int msg = PIO_MSG_GET_VARA;
+
+            if (ios->compmaster == MPI_ROOT)
+                mpierr = MPI_Send(&msg, 1, MPI_INT, ios->ioroot, 1, ios->union_comm);
+
+            /* Send the function parameters and associated informaiton
+             * to the msg handler. */
+            if (!mpierr)
+                mpierr = MPI_Bcast(&ncid, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&varid, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&ndims, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&start_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr && start_present)
+                mpierr = MPI_Bcast((PIO_Offset *)start, ndims, MPI_OFFSET, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&count_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr && count_present)
+                mpierr = MPI_Bcast((PIO_Offset *)count, ndims, MPI_OFFSET, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&xtype, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&num_elem, 1, MPI_OFFSET, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+                mpierr = MPI_Bcast(&typelen, 1, MPI_OFFSET, ios->compmaster, ios->intercomm);
+            LOG((2, "PIOc_get_vars_tc ncid %d varid %d ndims %d start_present %d "
+                 "count_present %d xtype %d num_elem %d", ncid, varid,
+                 ndims, start_present, count_present, xtype, num_elem));
+        }
+
+        /* Handle MPI errors. */
+        if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
+            return check_mpi(file, mpierr2, __FILE__, __LINE__);
+        if (mpierr)
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+
+        /* Broadcast values currently only known on computation tasks to IO tasks. */
+        if ((mpierr = MPI_Bcast(&num_elem, 1, MPI_OFFSET, ios->comproot, ios->my_comm)))
+            check_mpi(file, mpierr, __FILE__, __LINE__);
+        if ((mpierr = MPI_Bcast(&typelen, 1, MPI_OFFSET, ios->comproot, ios->my_comm)))
+            check_mpi(file, mpierr, __FILE__, __LINE__);
+        if ((mpierr = MPI_Bcast(&xtype, 1, MPI_INT, ios->comproot, ios->my_comm)))
+            check_mpi(file, mpierr, __FILE__, __LINE__);
+    }
+
+    /* If this is an IO task, then call the netCDF function. */
+    if (ios->ioproc)
+    {
+        LOG((2, "file->iotype = %d xtype = %d file->do_io = %d", file->iotype, xtype, file->do_io));
+#ifdef _PNETCDF
+        if (file->iotype == PIO_IOTYPE_PNETCDF)
+        {
+            LOG((2, "pnetcdf calling ncmpi_get_vars_*() file->fh = %d varid = %d", file->fh, varid));
+            /* Turn on independent access for pnetcdf file. */
+            if ((ierr = ncmpi_begin_indep_data(file->fh)))
+                return pio_err(ios, file, ierr, __FILE__, __LINE__);
+
+            /* Only the IO master does the IO, so we are not really
+             * getting parallel IO here. */
+            if (ios->iomaster == MPI_ROOT)
+            {
+                switch(xtype)
+                {
+                case NC_BYTE:
+                    ierr = ncmpi_get_vara_schar(file->fh, varid, start, count, buf);
+                    break;
+                case NC_CHAR:
+                    ierr = ncmpi_get_vara_text(file->fh, varid, start, count, buf);
+                    break;
+                case NC_SHORT:
+                    ierr = ncmpi_get_vara_short(file->fh, varid, start, count, buf);
+                    break;
+                case NC_INT:
+                    ierr = ncmpi_get_vara_int(file->fh, varid, start, count, buf);
+                    break;
+                case PIO_LONG_INTERNAL:
+                    ierr = ncmpi_get_vara_long(file->fh, varid, start, count, buf);
+                    break;
+                case NC_FLOAT:
+                    ierr = ncmpi_get_vara_float(file->fh, varid, start, count, buf);
+                    break;
+                case NC_DOUBLE:
+                    ierr = ncmpi_get_vara_double(file->fh, varid, start, count, buf);
+                    break;
+                default:
+                    return pio_err(ios, file, PIO_EBADIOTYPE, __FILE__, __LINE__);
+                }
+            }
+
+            /* Turn off independent access for pnetcdf file. */
+            if ((ierr = ncmpi_end_indep_data(file->fh)))
+                return pio_err(ios, file, ierr, __FILE__, __LINE__);
+        }
+#endif /* _PNETCDF */
+	LOG((3, "about to call NCDEFAULT_get_vars"));
+        if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+	{
+	    ierr = NC3_get_vara(file->fh, varid, (size_t *)start, (size_t *)count,
+				buf, xtype);
+	}
+#ifdef _NETCDF4
+        if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+	    file->do_io)
+	{
+	    ierr = NC4_get_vara(file->fh, varid, (size_t *)start, (size_t *)count,
+				buf, xtype);
+	}
+#endif /* _NETCDF4 */
+	LOG((3, "called NC_get_vara ierr %d", ierr));
+    }
+    
+    /* Broadcast and check the return code. */
+    if ((mpierr = MPI_Bcast(&ierr, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+        return check_mpi(file, mpierr, __FILE__, __LINE__);
+    if (ierr)
+        return check_netcdf(file, ierr, __FILE__, __LINE__);
+
+    /* Send the data. */
+    LOG((2, "PIOc_get_vara_tc bcasting data num_elem = %d typelen = %d ios->ioroot = %d", num_elem,
+         typelen, ios->ioroot));
+    if ((mpierr = MPI_Bcast(buf, num_elem * typelen, MPI_BYTE, ios->ioroot, ios->my_comm)))
+        return check_mpi(file, mpierr, __FILE__, __LINE__);
+    LOG((2, "PIOc_get_vars_tc bcasting data complete"));
+
+    return PIO_NOERR;
+}
+
+/**
  * Get one value of a variable of any type. This is an internal
  * function.
  *
