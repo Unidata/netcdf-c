@@ -27,8 +27,8 @@ extern void parse_init(void);
 extern int ncgparse(void);
 
 /* For error messages */
-char* progname;
-char* cdlname;
+char* progname; /* Global: not reclaimed */
+char* cdlname; /* Global: not reclaimed */
 
 /* option flags */
 int nofill_flag;
@@ -213,7 +213,6 @@ main(
     int c;
     FILE *fp;
 	struct Languages* langs;
-    char* lang_name;
 #ifdef __hpux
     setlocale(LC_CTYPE,"");
 #endif
@@ -221,8 +220,8 @@ main(
     init_netcdf();
 
     opterr = 1;			/* print error message if bad option */
-    progname = ubasename(argv[0]);
-    cdlname = "-";
+    progname = nulldup(ubasename(argv[0]));
+    cdlname = NULL;
     netcdf_name = NULL;
     datasetname = NULL;
     l_flag = 0;
@@ -289,6 +288,7 @@ main(
 	  exit(0);
         case 'l': /* specify language, instead of using -c or -f or -b */
 	{
+            char* lang_name = NULL;
 	    if(l_flag != 0) {
               fprintf(stderr,"Please specify only one language\n");
               return 1;
@@ -307,8 +307,10 @@ main(
 	    }
 	    if(langs->name == NULL) {
               derror("%s: output language %s not implemented",progname, lang_name);
+              nullfree(lang_name);
               return(1);
 	    }
+            nullfree(lang_name);
 	}; break;
 	case 'L':
 	    ncloglevel = atoi(optarg);
@@ -363,8 +365,10 @@ main(
             }
             if(kvalue->name == NULL) {
                 derror("Invalid format: %s",kind_name);
+	        nullfree(kind_name);
                 return 2;
             }
+	    nullfree(kind_name);
 	} break;
 	case '3':		/* output format is classic (netCDF-3) */
 	    k_flag = NC_FORMAT_CLASSIC;
@@ -481,13 +485,12 @@ main(
 		break;
 	    }
 	}
+    }
 
-	cdlname = (char*)emalloc(NC_MAX_NAME);
-	cdlname = nulldup(argv[0]);
-	if(cdlname != NULL) {
-	  if(strlen(cdlname) > NC_MAX_NAME)
-	    cdlname[NC_MAX_NAME] = '\0';
-	}
+    cdlname = nulldup(argv[0]);
+    if(cdlname != NULL) {
+	if(strlen(cdlname) > NC_MAX_NAME)
+	  cdlname[NC_MAX_NAME] = '\0';
     }
 
     parse_init();
