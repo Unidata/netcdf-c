@@ -161,10 +161,8 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
                     pio_type, with_fillvalue);
 
             /* Create the netCDF output file. */
-	    printf("my_rank %d about to create %s\n", my_rank, filename);
             if ((ret = nc_create(filename, NC_PIO, &ncid)))
                 ERR(ret);
-	    printf("my_rank %d created %s ncid %d\n", my_rank, filename, ncid);
 
             /* Turn on fill mode. */
             if ((ret = nc_set_fill(ncid, NC_FILL, NULL)))
@@ -312,7 +310,6 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
 	    size_t my_dimlen;
             if ((ret = nc_inq_dimlen(ncid, 0, &my_dimlen)))
                 return ret;
-	    printf("my_rank %d my_dimlen %d type_size %d\n", my_rank, my_dimlen, type_size);
 	    if (my_dimlen != DIM_LEN)
 	    	ERR(ERR_WRONG);
 	    
@@ -383,13 +380,13 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
 
             /* Release buffer. */
             free(bufr);
-
+	    
             /* Close the netCDF file. */
             if ((ret = nc_close(ncid)))
                 ERR(ret);
         } /* with_fillvalue */
     } /* next iotype */
-
+    
     return PIO_NOERR;
 }
 
@@ -418,7 +415,7 @@ int test_darray_fill_unlim(int iosysid, int ioid, int pio_type, int num_flavors,
     void *fillvalue;
     void *test_data_in;
     void *expected_in;
-    PIO_Offset type_size;             /* Size of the data type. */
+    size_t type_size;             /* Size of the data type. */
 
     /* My rank as each type. */
     signed char my_byte_rank = my_rank;
@@ -791,10 +788,6 @@ int test_decomp_read_write(int iosysid, int ioid, int num_flavors, int *flavor, 
                 return pio_err(ios, NULL, PIO_EBADID, __FILE__, __LINE__);
             if (iodesc->ioid != ioid2 || iodesc->maplen != EXPECTED_MAPLEN || iodesc->ndims != NDIM)
                 return ERR_WRONG;
-            /* if (iodesc->nrecvs != 1) */
-            /*     return ERR_WRONG; */
-            /* if (iodesc->num_aiotasks != TARGET_NTASKS) */
-            /*     return ERR_WRONG; */
             if (iodesc->ndof != EXPECTED_MAPLEN)
                 return ERR_WRONG;
             if (iodesc->rearranger != rearranger || iodesc->maxregions != 1)
@@ -837,7 +830,7 @@ int main(int argc, char **argv)
 
     /* Initialize test. */
     if ((ret = pio_test_init2(argc, argv, &my_rank, &ntasks, MIN_NTASKS,
-                              MIN_NTASKS, 3, &test_comm)))
+                              MIN_NTASKS, -1, &test_comm)))
         ERR(ERR_INIT);
 
     if ((ret = PIOc_set_iosystem_error_handling(PIO_DEFAULT, PIO_RETURN_ERROR, NULL)))
@@ -873,9 +866,9 @@ int main(int argc, char **argv)
                     return ret;
 
                 /* Test decomposition read/write. */
-                /* if ((ret = test_decomp_read_write(iosysid, ioid, num_flavors, flavor, my_rank, */
-                /*                                   test_type[t], rearranger[r], test_comm))) */
-                /*     return ret; */
+                if ((ret = test_decomp_read_write(iosysid, ioid, num_flavors, flavor, my_rank,
+                                                  test_type[t], rearranger[r], test_comm)))
+                    return ret;
 
                 /* Run tests. */
                 if ((ret = test_darray_fill(iosysid, ioid, test_type[t], num_flavors, flavor,

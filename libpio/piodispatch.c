@@ -324,9 +324,11 @@ static int
 PIO_inq_dimid(int ncid, const char *name, int *idp)
 {
     NC* nc;
-    int status = NC_check_id(ncid, &nc);
-    if (status != NC_NOERR) return status;
-    return PIOc_inq_dimid(nc->ext_ncid,name,idp);
+    int status;
+
+    if ((status = NC_check_id(ncid, &nc)))
+	return status;
+    return PIOc_inq_dimid(nc->ext_ncid, name, idp);
 }
 
 static int

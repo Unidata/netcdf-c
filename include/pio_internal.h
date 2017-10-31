@@ -346,6 +346,8 @@ extern "C" {
     int PIOc_put_var1_tc(int ncid, int varid, const PIO_Offset *index, nc_type xtype,
                          const void *op);
     int PIOc_put_var_tc(int ncid, int varid, nc_type xtype, const void *op);
+    int PIOc_put_vara_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Offset *count,
+			 nc_type xtype, const void *buf);
 
     /* An internal replacement for a function pnetcdf does not
      * have. */

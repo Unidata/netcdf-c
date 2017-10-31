@@ -361,7 +361,7 @@ int PIOc_get_vars_longlong(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_text(int ncid, int varid, const PIO_Offset *start,
                        const PIO_Offset *count, char *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_CHAR, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_CHAR, buf);
 }
 
 /**
@@ -385,7 +385,7 @@ int PIOc_get_vara_text(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_uchar(int ncid, int varid, const PIO_Offset *start,
                         const PIO_Offset *count, unsigned char *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_UBYTE, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_UBYTE, buf);
 }
 
 /**
@@ -409,7 +409,7 @@ int PIOc_get_vara_uchar(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_schar(int ncid, int varid, const PIO_Offset *start,
                         const PIO_Offset *count, signed char *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_BYTE, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_BYTE, buf);
 }
 
 /**
@@ -434,7 +434,7 @@ int PIOc_get_vara_schar(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_ushort(int ncid, int varid, const PIO_Offset *start,
                          const PIO_Offset *count, unsigned short *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_USHORT, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_USHORT, buf);
 }
 
 /**
@@ -458,7 +458,7 @@ int PIOc_get_vara_ushort(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_short(int ncid, int varid, const PIO_Offset *start,
                         const PIO_Offset *count, short *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_SHORT, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_SHORT, buf);
 }
 
 /**
@@ -482,7 +482,7 @@ int PIOc_get_vara_short(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_long(int ncid, int varid, const PIO_Offset *start,
                        const PIO_Offset *count, long *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, PIO_LONG_INTERNAL, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, PIO_LONG_INTERNAL, buf);
 }
 
 /**
@@ -506,7 +506,7 @@ int PIOc_get_vara_long(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_uint(int ncid, int varid, const PIO_Offset *start,
                        const PIO_Offset *count, unsigned int *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_UINT, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_UINT, buf);
 }
 
 /**
@@ -530,7 +530,7 @@ int PIOc_get_vara_uint(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_int(int ncid, int varid, const PIO_Offset *start,
                       const PIO_Offset *count, int *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_INT, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_INT, buf);
 }
 
 /**
@@ -554,7 +554,7 @@ int PIOc_get_vara_int(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_float(int ncid, int varid, const PIO_Offset *start,
                         const PIO_Offset *count, float *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_FLOAT, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_FLOAT, buf);
 }
 
 /**
@@ -578,7 +578,7 @@ int PIOc_get_vara_float(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_double(int ncid, int varid, const PIO_Offset *start,
                          const PIO_Offset *count, double *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_DOUBLE, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_DOUBLE, buf);
 }
 
 /**
@@ -603,7 +603,7 @@ int PIOc_get_vara_double(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_ulonglong(int ncid, int varid, const PIO_Offset *start,
                             const PIO_Offset *count, unsigned long long *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_UINT64, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_UINT64, buf);
 }
 
 /**
@@ -627,7 +627,7 @@ int PIOc_get_vara_ulonglong(int ncid, int varid, const PIO_Offset *start,
 int PIOc_get_vara_longlong(int ncid, int varid, const PIO_Offset *start,
                            const PIO_Offset *count, long long *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_INT64, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_INT64, buf);
 }
 
 /**
@@ -1139,7 +1139,7 @@ int PIOc_get_var1(int ncid, int varid, const PIO_Offset *index, void *buf)
 int PIOc_get_vara(int ncid, int varid, const PIO_Offset *start, const PIO_Offset *count,
                   void *buf)
 {
-    return PIOc_get_vars_tc(ncid, varid, start, count, NULL, NC_NAT, buf);
+    return PIOc_get_vara_tc(ncid, varid, start, count, NC_NAT, buf);
 }
 
 /**

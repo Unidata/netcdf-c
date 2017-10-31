@@ -80,29 +80,31 @@ int PIOc_openfile2(int iosysid, int *ncidp, int *iotype, const char *filename,
  */
 int PIOc_open(int iosysid, const char *path, int mode, int *ncidp)
 {
-    int iotype;
+    /* int iotype; */
 
-    LOG((1, "PIOc_open iosysid = %d path = %s mode = %x", iosysid, path, mode));
+    /* LOG((1, "PIOc_open iosysid = %d path = %s mode = %x", iosysid, path, mode)); */
 
-    /* Figure out the iotype. */
-    if (mode & NC_NETCDF4)
-    {
-        if (mode & NC_MPIIO || mode & NC_MPIPOSIX)
-            iotype = PIO_IOTYPE_NETCDF4P;
-        else
-            iotype = PIO_IOTYPE_NETCDF4C;
-    }
-    else
-    {
-        if (mode & NC_PNETCDF || mode & NC_MPIIO)
-            iotype = PIO_IOTYPE_PNETCDF;
-        else
-            iotype = PIO_IOTYPE_NETCDF;
-    }
+    /* /\* Figure out the iotype. *\/ */
+    /* if (mode & NC_NETCDF4) */
+    /* { */
+    /*     if (mode & NC_MPIIO || mode & NC_MPIPOSIX) */
+    /*         iotype = PIO_IOTYPE_NETCDF4P; */
+    /*     else */
+    /*         iotype = PIO_IOTYPE_NETCDF4C; */
+    /* } */
+    /* else */
+    /* { */
+    /*     if (mode & NC_PNETCDF || mode & NC_MPIIO) */
+    /*         iotype = PIO_IOTYPE_PNETCDF; */
+    /*     else */
+    /*         iotype = PIO_IOTYPE_NETCDF; */
+    /* } */
 
-    /* Open the file. If the open fails, do not retry as serial
-     * netCDF. Just return the error code. */
-    return PIOc_openfile_retry(iosysid, ncidp, &iotype, path, mode, 0);
+    /* /\* Open the file. If the open fails, do not retry as serial */
+    /*  * netCDF. Just return the error code. *\/ */
+    /* return PIOc_openfile_retry(iosysid, ncidp, &iotype, path, mode, 0); */
+    mode |= NC_PIO;
+    return nc_open(path, mode, ncidp);
 }
 
 /**
@@ -126,32 +128,33 @@ int PIOc_open(int iosysid, const char *path, int mode, int *ncidp)
 int PIOc_createfile(int iosysid, int *ncidp, int *iotype, const char *filename,
                     int mode)
 {
-    iosystem_desc_t *ios;  /* Pointer to io system information. */
-    int ret;               /* Return code from function calls. */
+    /* iosystem_desc_t *ios;  /\* Pointer to io system information. *\/ */
+    /* int ret;               /\* Return code from function calls. *\/ */
 
-    /* Get the IO system info from the id. */
-    if (!(ios = pio_get_iosystem_from_id(iosysid)))
-        return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
+    /* /\* Get the IO system info from the id. *\/ */
+    /* if (!(ios = pio_get_iosystem_from_id(iosysid))) */
+    /*     return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__); */
 
-    LOG((1, "PIOc_createfile iosysid = %d iotype = %d filename = %s mode = %d",
-         iosysid, *iotype, filename, mode));
+    /* LOG((1, "PIOc_createfile iosysid = %d iotype = %d filename = %s mode = %d", */
+    /*      iosysid, *iotype, filename, mode)); */
 
-    /* Create the file. */
-    if ((ret = PIOc_createfile_int(iosysid, ncidp, iotype, filename, mode)))
-        return pio_err(ios, NULL, ret, __FILE__, __LINE__);
+    /* /\* Create the file. *\/ */
+    /* if ((ret = PIOc_createfile_int(iosysid, ncidp, iotype, filename, mode))) */
+    /*     return pio_err(ios, NULL, ret, __FILE__, __LINE__); */
 
-    /* Run this on all tasks if async is not in use, but only on
-     * non-IO tasks if async is in use. (Because otherwise, in async
-     * mode, set_fill would be called twice by each IO task, since
-     * PIOc_createfile() will already be called on each IO task.) */
-    if (!ios->async || !ios->ioproc)
-    {
-        /* Set the fill mode to NOFILL. */
-        if ((ret = PIOc_set_fill(*ncidp, NC_NOFILL, NULL)))
-            return ret;
-    }
+    /* /\* Run this on all tasks if async is not in use, but only on */
+    /*  * non-IO tasks if async is in use. (Because otherwise, in async */
+    /*  * mode, set_fill would be called twice by each IO task, since */
+    /*  * PIOc_createfile() will already be called on each IO task.) *\/ */
+    /* if (!ios->async || !ios->ioproc) */
+    /* { */
+    /*     /\* Set the fill mode to NOFILL. *\/ */
+    /*     if ((ret = PIOc_set_fill(*ncidp, NC_NOFILL, NULL))) */
+    /*         return ret; */
+    /* } */
 
-    return ret;
+    mode |= NC_PIO;
+    return nc_create(filename, mode, ncidp);
 }
 
 /**
@@ -169,25 +172,27 @@ int PIOc_createfile(int iosysid, int *ncidp, int *iotype, const char *filename,
  */
 int PIOc_create(int iosysid, const char *filename, int cmode, int *ncidp)
 {
-    int iotype;            /* The PIO IO type. */
+    /* int iotype;            /\* The PIO IO type. *\/ */
 
-    /* Figure out the iotype. */
-    if (cmode & NC_NETCDF4)
-    {
-        if (cmode & NC_MPIIO || cmode & NC_MPIPOSIX)
-            iotype = PIO_IOTYPE_NETCDF4P;
-        else
-            iotype = PIO_IOTYPE_NETCDF4C;
-    }
-    else
-    {
-        if (cmode & NC_PNETCDF || cmode & NC_MPIIO)
-            iotype = PIO_IOTYPE_PNETCDF;
-        else
-            iotype = PIO_IOTYPE_NETCDF;
-    }
+    /* /\* Figure out the iotype. *\/ */
+    /* if (cmode & NC_NETCDF4) */
+    /* { */
+    /*     if (cmode & NC_MPIIO || cmode & NC_MPIPOSIX) */
+    /*         iotype = PIO_IOTYPE_NETCDF4P; */
+    /*     else */
+    /*         iotype = PIO_IOTYPE_NETCDF4C; */
+    /* } */
+    /* else */
+    /* { */
+    /*     if (cmode & NC_PNETCDF || cmode & NC_MPIIO) */
+    /*         iotype = PIO_IOTYPE_PNETCDF; */
+    /*     else */
+    /*         iotype = PIO_IOTYPE_NETCDF; */
+    /* } */
 
-    return PIOc_createfile_int(iosysid, ncidp, &iotype, filename, cmode);
+    /* return PIOc_createfile_int(iosysid, ncidp, &iotype, filename, cmode); */
+    cmode |= NC_PIO;
+    return nc_create(filename, cmode, ncidp);
 }
 
 /**

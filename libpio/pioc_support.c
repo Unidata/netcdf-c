@@ -1206,7 +1206,7 @@ int pioc_write_nc_decomp_int(iosystem_desc_t *ios, const char *filename, int cmo
     LOG((3, "max_maplen = %d", max_maplen));
 
     /* Create the netCDF decomp file. */
-    if ((ret = PIOc_create(ios->iosysid, filename, cmode | NC_WRITE, &ncid)))
+    if ((ret = PIOc_create(ios->iosysid, filename, cmode, &ncid)))
         return pio_err(ios, NULL, ret, __FILE__, __LINE__);
 
     /* Write an attribute with the version of this file. */

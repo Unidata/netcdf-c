@@ -126,11 +126,14 @@ int PIOc_inq(int ncid, int *ndimsp, int *nvarsp, int *ngattsp, int *unlimdimidp)
             if (unlimdimidp)
                 LOG((2, "classic unlimdimid = %d", *unlimdimidp));
         }
-        else if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
+#ifdef _NETCDF4
+        else if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+		 file->do_io)
         {
             LOG((2, "PIOc_inq calling netcdf-4 nc_inq"));
             ierr = NC4_inq(file->fh, ndimsp, nvarsp, ngattsp, unlimdimidp);
         }
+#endif /* _NETCDF4 */
 
         LOG((2, "PIOc_inq netcdf call returned %d", ierr));
     }
@@ -746,8 +749,13 @@ int PIOc_inq_dimid(int ncid, const char *name, int *idp)
             ierr = ncmpi_inq_dimid(file->fh, name, idp);
 #endif /* _PNETCDF */
 
-        if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-            ierr = nc_inq_dimid(file->fh, name, idp);
+        if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+            ierr = NC3_inq_dimid(file->fh, name, idp);
+#ifdef _NETCDF4	    
+        if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+	    file->do_io)
+            ierr = NC4_inq_dimid(file->fh, name, idp);
+#endif /* _NETCDF4 */
     }
     LOG((3, "nc_inq_dimid call complete ierr = %d", ierr));
 
@@ -972,7 +980,8 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	    
 	}
 #ifdef _NETCDF4
-	if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) && file->do_io)
+	if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+	    file->do_io)
 	{
 	    char my_name[NC_MAX_NAME + 1];
 	    nc_type my_xtype;
@@ -984,7 +993,7 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	    /* We must call NC3_inq_var_all twice, the first time to
 	     * learn the type and the number of dimensions. */
 	    LOG((3, "calling NC3_inq_var_all to learn type and number of dims"));
-	    ret = NC3_inq_var_all(file->fh, varid, NULL, &my_xtype, &my_ndims, NULL, NULL,
+	    ret = NC4_inq_var_all(file->fh, varid, NULL, &my_xtype, &my_ndims, NULL, NULL,
 				  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 	    LOG((3, "ret %d my_xtype %d my_ndims %d", ret, my_xtype, my_ndims));
 
@@ -1286,8 +1295,13 @@ int PIOc_inq_varid(int ncid, const char *name, int *varidp)
 	    ierr = ncmpi_inq_varid(file->fh, name, varidp);
 #endif /* _PNETCDF */
 
-	if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-	    ierr = nc_inq_varid(file->fh, name, varidp);
+        if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+	    ierr = NC3_inq_varid(file->fh, name, varidp);
+#ifdef _NETCDF4	    
+        if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+	    file->do_io)
+	    ierr = NC4_inq_varid(file->fh, name, varidp);
+#endif /* _NETCDF4 */
     }
 
     /* Broadcast and check the return code. */
@@ -1511,8 +1525,13 @@ int PIOc_inq_attname(int ncid, int varid, int attnum, char *name)
 	    ierr = ncmpi_inq_attname(file->fh, varid, attnum, name);
 #endif /* _PNETCDF */
 
-	if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-	    ierr = nc_inq_attname(file->fh, varid, attnum, name);
+	if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+	    ierr = NC3_inq_attname(file->fh, varid, attnum, name);
+#ifdef _NETCDF4
+        if ((file->iotype == PIO_IOTYPE_NETCDF4C ||file->iotype == PIO_IOTYPE_NETCDF4P) &&
+	    file->do_io)
+	    ierr = NC4_inq_attname(file->fh, varid, attnum, name);
+#endif /* _NETCDF4 */	    
 	LOG((2, "PIOc_inq_attname netcdf call returned %d", ierr));
     }
 
@@ -1609,8 +1628,13 @@ int PIOc_inq_attid(int ncid, int varid, const char *name, int *idp)
 	    ierr = ncmpi_inq_attid(file->fh, varid, name, idp);
 #endif /* _PNETCDF */
 
-	if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-	    ierr = nc_inq_attid(file->fh, varid, name, idp);
+	if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+	    ierr = NC3_inq_attid(file->fh, varid, name, idp);
+#ifdef _NETCDF4
+        if ((file->iotype == PIO_IOTYPE_NETCDF4C ||file->iotype == PIO_IOTYPE_NETCDF4P) &&
+	    file->do_io)
+	    ierr = NC4_inq_attid(file->fh, varid, name, idp);
+#endif /* _NETCDF4 */	    
 	LOG((2, "PIOc_inq_attname netcdf call returned %d", ierr));
     }
 
@@ -1699,8 +1723,13 @@ int PIOc_rename_dim(int ncid, int dimid, const char *name)
 	    ierr = ncmpi_rename_dim(file->fh, dimid, name);
 #endif /* _PNETCDF */
 
-	if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-	    ierr = nc_rename_dim(file->fh, dimid, name);
+	if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+	    ierr = NC3_rename_dim(file->fh, dimid, name);
+#ifdef _NETCDF4
+        else if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+		 file->do_io)
+	    ierr = NC4_rename_dim(file->fh, dimid, name);	    
+#endif /* _NETCDF4 */
 	LOG((2, "PIOc_inq netcdf call returned %d", ierr));
     }
 
@@ -1785,8 +1814,13 @@ int PIOc_rename_var(int ncid, int varid, const char *name)
 	    ierr = ncmpi_rename_var(file->fh, varid, name);
 #endif /* _PNETCDF */
 
-	if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-	    ierr = nc_rename_var(file->fh, varid, name);
+	if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+	    ierr = NC4_rename_var(file->fh, varid, name);
+#ifdef _NETCDF4
+        else if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+		 file->do_io)
+	    ierr = NC4_rename_var(file->fh, varid, name);
+#endif /* _NETCDF4 */
 	LOG((2, "PIOc_inq netcdf call returned %d", ierr));
     }
 
@@ -1877,8 +1911,13 @@ int PIOc_rename_att(int ncid, int varid, const char *name,
 	    ierr = ncmpi_rename_att(file->fh, varid, name, newname);
 #endif /* _PNETCDF */
 
-	if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-	    ierr = nc_rename_att(file->fh, varid, name, newname);
+	if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+	    ierr = NC3_rename_att(file->fh, varid, name, newname);
+#ifdef _NETCDF4
+        else if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+		 file->do_io)
+	    ierr = NC4_rename_att(file->fh, varid, name, newname);
+#endif /* _NETCDF4 */
     }
 
     /* Broadcast and check the return code. */
@@ -1961,8 +2000,13 @@ int PIOc_del_att(int ncid, int varid, const char *name)
 	    ierr = ncmpi_del_att(file->fh, varid, name);
 #endif /* _PNETCDF */
 
-	if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
-	    ierr = nc_del_att(file->fh, varid, name);
+	if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
+	    ierr = NC3_del_att(file->fh, varid, name);
+#ifdef _NETCDF4
+        else if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+		 file->do_io)
+	    ierr = NC4_del_att(file->fh, varid, name);
+#endif /* _NETCDF4 */
     }
 
     /* Broadcast and check the return code. */
@@ -2183,7 +2227,8 @@ int PIOc_def_dim(int ncid, const char *name, PIO_Offset len, int *idp)
 	if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
 	    ierr = NC3_def_dim(file->fh, name, (size_t)len, idp);
 #ifdef _NETCDF4
-	else if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
+	else if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+	    file->do_io)
 	    ierr = NC4_def_dim(file->fh, name, (size_t)len, idp);
 #endif /* _NETCDF4 */
     }
@@ -2367,7 +2412,8 @@ int PIOc_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 	if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
 	    ierr = NC3_def_var(file->fh, name, xtype, ndims, dimidsp, &varid);
 #ifdef _NETCDF4
-	else if (file->iotype != PIO_IOTYPE_PNETCDF && file->do_io)
+	else if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
+	    file->do_io)
 	    ierr = NC4_def_var(file->fh, name, xtype, ndims, dimidsp, &varid);
 
 	/* For netCDF-4 serial files, turn on compression for this variable. */

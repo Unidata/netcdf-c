@@ -839,6 +839,86 @@ int put_vars_handler(iosystem_desc_t *ios)
     return PIO_NOERR;
 }
 
+/** Handle var put operations. This code only runs on IO tasks.
+ *
+ * @param ios pointer to the iosystem_desc_t.
+ * @returns 0 for success, PIO_EIO for MPI Bcast errors, or error code
+ * from netCDF base function.
+ * @internal
+ * @author Ed Hartnett
+ */
+int put_vara_handler(iosystem_desc_t *ios)
+{
+    int ncid;
+    int varid;
+    PIO_Offset typelen;  /* Length (in bytes) of this type. */
+    nc_type xtype;       /* Type of the data being written. */
+    char start_present;  /* Zero if user passed a NULL start. */
+    char count_present;  /* Zero if user passed a NULL count. */
+    PIO_Offset *startp = NULL;
+    PIO_Offset *countp = NULL;
+    int ndims;           /* Number of dimensions. */
+    void *buf;           /* Buffer for data storage. */
+    PIO_Offset num_elem; /* Number of data elements in the buffer. */
+    int mpierr;          /* Error code from MPI function calls. */
+
+    LOG((1, "put_vara_handler"));
+    assert(ios);
+
+    /* Get the parameters for this function that the the comp master
+     * task is broadcasting. */
+    if ((mpierr = MPI_Bcast(&ncid, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&varid, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&ndims, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+
+    /* Now we know how big to make these arrays. */
+    PIO_Offset start[ndims], count[ndims];
+
+    if ((mpierr = MPI_Bcast(&start_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if (start_present)
+        if ((mpierr = MPI_Bcast(start, ndims, MPI_OFFSET, 0, ios->intercomm)))
+            return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    LOG((1, "put_vars_handler getting start[0] = %d ndims = %d", start[0], ndims));
+    if ((mpierr = MPI_Bcast(&count_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if (count_present)
+        if ((mpierr = MPI_Bcast(count, ndims, MPI_OFFSET, 0, ios->intercomm)))
+            return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&xtype, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&num_elem, 1, MPI_OFFSET, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&typelen, 1, MPI_OFFSET, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    LOG((1, "put_vars_handler ncid %d varid %d ndims %d start_present %d count_present %d "
+	 "xtype %d num_elem %d typelen %d", ncid, varid, ndims, start_present,
+	 count_present, xtype, num_elem, typelen));
+
+    /* Allocate room for our data. */
+    if (!(buf = malloc(num_elem * typelen)))
+        return pio_err(ios, NULL, PIO_ENOMEM, __FILE__, __LINE__);
+
+    /* Get the data. */
+    if ((mpierr = MPI_Bcast(buf, num_elem * typelen, MPI_BYTE, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+
+    /* Set the non-NULL pointers. */
+    if (start_present)
+        startp = start;
+    if (count_present)
+        countp = count;
+
+    PIOc_put_vara_tc(ncid, varid, startp, countp, xtype, buf);
+
+    free(buf);
+
+    return PIO_NOERR;
+}
+
 /** Handle var get operations. This code only runs on IO tasks.
  *
  * @param ios pointer to the iosystem_desc_t.
@@ -1004,20 +1084,18 @@ int get_vara_handler(iosystem_desc_t *ios)
     int ncid;
     int varid;
     int mpierr;
-    PIO_Offset typelen; /** Length (in bytes) of this type. */
-    nc_type xtype; /**
-                    * Type of the data being written. */
+    PIO_Offset typelen; /* Length (in bytes) of this type. */
+    nc_type xtype; /* Type of the data being written. */
     PIO_Offset *start;
     PIO_Offset *count;
-    PIO_Offset *stride;
     char start_present;
     char count_present;
     PIO_Offset *startp = NULL, *countp = NULL;
-    int ndims; /** Number of dimensions. */
-    void *buf; /** Buffer for data storage. */
-    PIO_Offset num_elem; /** Number of data elements in the buffer. */
+    int ndims; /* Number of dimensions. */
+    void *buf; /* Buffer for data storage. */
+    PIO_Offset num_elem; /* Number of data elements in the buffer. */
 
-    LOG((1, "get_vars_handler"));
+    LOG((1, "get_vara_handler"));
     assert(ios);
 
     /* Get the parameters for this function that the the comp master
@@ -1052,7 +1130,7 @@ int get_vara_handler(iosystem_desc_t *ios)
         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
     if ((mpierr = MPI_Bcast(&typelen, 1, MPI_OFFSET, 0, ios->intercomm)))
         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
-    LOG((1, "get_vars_handler ncid %d varid %d ndims %d xtype %d num_elem %d "
+    LOG((1, "get_vara_handler ncid %d varid %d ndims %d xtype %d num_elem %d "
 	 "typelen %d", ncid, varid, ndims, xtype, num_elem, typelen));
 
     /* Allocate room for our data. */
@@ -1067,56 +1145,6 @@ int get_vara_handler(iosystem_desc_t *ios)
         countp = count;
 
     PIOc_get_vara_tc(ncid, varid, startp, countp, xtype, buf);
-
-/*     /\* Call the function to read the data. *\/ */
-/*     switch(xtype) */
-/*     { */
-/*     case NC_BYTE: */
-/*         PIOc_get_vara_schar(ncid, varid, startp, countp, buf); */
-/*         break; */
-/*     case NC_CHAR: */
-/*         PIOc_get_vara_text(ncid, varid, startp, countp, buf); */
-/*         break; */
-/*     case NC_SHORT: */
-/*         PIOc_get_vara_short(ncid, varid, startp, countp, buf); */
-/*         break; */
-/*     case NC_INT: */
-/*         PIOc_get_vara_int(ncid, varid, startp, countp, buf); */
-/*         break; */
-/*     case PIO_LONG_INTERNAL: */
-/*         PIOc_get_vara_long(ncid, varid, startp, countp, buf); */
-/*         break; */
-/*     case NC_FLOAT: */
-/*         PIOc_get_vara_float(ncid, varid, startp, countp, buf); */
-/*         break; */
-/*     case NC_DOUBLE: */
-/*         PIOc_get_vara_double(ncid, varid, startp, countp, buf); */
-/*         break; */
-/* #ifdef _NETCDF4 */
-/*     case NC_UBYTE: */
-/*         PIOc_get_vara_uchar(ncid, varid, startp, countp, buf); */
-/*         break; */
-/*     case NC_USHORT: */
-/*         PIOc_get_vara_ushort(ncid, varid, startp, countp, buf); */
-/*         break; */
-/*     case NC_UINT: */
-/*         PIOc_get_vara_uint(ncid, varid, startp, countp, buf); */
-/*         break; */
-/*     case NC_INT64: */
-/*         PIOc_get_vara_longlong(ncid, varid, startp, countp, buf); */
-/*         break; */
-/*     case NC_UINT64: */
-/*         PIOc_get_vara_ulonglong(ncid, varid, startp, countp, buf); */
-/*         break; */
-/*         /\* case NC_STRING: *\/ */
-/*         /\*      PIOc_get_vara_string(ncid, varid, startp, countp, *\/ */
-/*         /\*                                (void *)buf); *\/ */
-/*         /\*      break; *\/ */
-/*         /\*    default:*\/ */
-/*         /\* PIOc_get_vara(ncid, varid, startp, countp, *\/ */
-/*         /\*                   buf); *\/ */
-/* #endif /\* _NETCDF4 *\/ */
-/*     } */
 
     /* Free resourses. */
     free(buf);
@@ -2935,6 +2963,9 @@ int pio_msg_handler2(int io_rank, int component_count, iosystem_desc_t **iosys,
             break;
         case PIO_MSG_GET_VARA:
             ret = get_vara_handler(my_iosys);
+            break;
+        case PIO_MSG_PUT_VARA:
+            ret = put_vara_handler(my_iosys);
             break;
         case PIO_MSG_PUT_VARS:
             ret = put_vars_handler(my_iosys);
