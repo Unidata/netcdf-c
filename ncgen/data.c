@@ -688,22 +688,13 @@ void
 dlextend(Datalist* dl)
 {
     size_t newalloc;
-    newalloc = (dl->alloc > 0?2*dl->alloc:1);
-    dlsetalloc(dl,newalloc);
-}
-
-void
-dlsetalloc(Datalist* dl, size_t newalloc)
-{
-    NCConstant* newdata;
-    if(newalloc <= 0) newalloc = 1;
-    if(dl->alloc > 0)
-        newdata = (NCConstant*)erealloc((void*)dl->data,sizeof(NCConstant)*newalloc);
-    else {
-        newdata = (NCConstant*)ecalloc(sizeof(NCConstant)*newalloc);
-        memset((void*)newdata,0,sizeof(NCConstant)*newalloc);
-    }
+    NCConstant* newdata = NULL;
+    newalloc = (dl->alloc > 0?2*dl->alloc:2);
+    newdata = (NCConstant*)ecalloc(newalloc*sizeof(NCConstant));
+    if(dl->length > 0)
+        memcpy(newdata,dl->data,sizeof(NCConstant)*dl->length);
     dl->alloc = newalloc;
+    nullfree(dl->data);
     dl->data = newdata;
 }
 
@@ -726,7 +717,8 @@ builddatalist(int initial)
 void
 dlappend(Datalist* dl, NCConstant* constant)
 {
-    if(dl->length >= dl->alloc) dlextend(dl);
+    if(dl->length >= dl->alloc)
+	dlextend(dl);
     if(constant == NULL) constant = &nullconstant;
     dl->data[dl->length++] = *constant;
 }

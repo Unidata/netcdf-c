@@ -632,7 +632,7 @@ void check_err2(const int stat, const int cdlline, const int line, const char* f
 	H5Eprint1(stderr);
 #endif
 	fflush(stderr);
-	exit(1);
+        finalize_netcdf(1);
     }
 }
 

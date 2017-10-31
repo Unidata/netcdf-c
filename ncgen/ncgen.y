@@ -949,7 +949,6 @@ install(const char *sname)
 {
     Symbol* sp;
     sp = (Symbol*) ecalloc (sizeof (struct Symbol));
-    memset((void*)sp,0,sizeof(struct Symbol));
     sp->name = nulldup(sname);
     sp->next = symlist;
     sp->lineno = lineno;
@@ -1048,7 +1047,7 @@ makeconstdata(nc_type nctype)
 	    break; /* no associated value*/
 #endif
 
-	case NC_FILLVALUE:
+ 	case NC_FILLVALUE:
 	    break; /* no associated value*/
 
 	default:
@@ -1382,7 +1381,8 @@ containsfills(Datalist* list)
         for(i=0;i<list->length;i++,con++) {
 	    if(con->nctype == NC_COMPOUND) {
 	        if(containsfills(con->value.compoundv)) return 1;
-	    } else if(con->nctype == NC_FILLVALUE) return 1;
+	    } else if(con->nctype == NC_FILLVALUE)
+		return 1;
 	}
     }
     return 0;

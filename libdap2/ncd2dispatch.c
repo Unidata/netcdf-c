@@ -209,6 +209,7 @@ NCD2_initialize(void)
 int
 NCD2_finalize(void)
 {
+    curl_global_cleanup();
     return NC_NOERR;
 }
 

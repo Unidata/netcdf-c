@@ -196,4 +196,9 @@ extern char *cdlname; /* name from the command line */
 
 extern const char* specialname(int tag);
 
+extern void init_netcdf(void);
+extern void finalize_netcdf(int);
+extern void parse_init(void);
+extern int ncgparse(void);
+
 #endif /*!NC_GENLIB_H*/

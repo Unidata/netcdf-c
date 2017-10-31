@@ -3,7 +3,7 @@
 DB=1
 #X=-x
 FAST=1
-MEM=1
+#MEM=1
 
 HDF5=1
 DAP=1

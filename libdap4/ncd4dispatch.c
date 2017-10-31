@@ -71,6 +71,7 @@ NCD4_finalize(void)
 	free(NCD4_globalstate);
 	NCD4_globalstate = NULL;
     }
+    curl_global_cleanup();
     return THROW(NC_NOERR);
 }
 

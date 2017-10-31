@@ -28,7 +28,7 @@ bbFail(void)
     fflush(stdout);
     fprintf(stderr,"bytebuffer failure\n");
     fflush(stderr);
-    if(bbdebug) exit(1);
+    if(bbdebug) abort();
     return FALSE;
 }
 

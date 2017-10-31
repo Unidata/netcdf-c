@@ -22,10 +22,6 @@ int optind;
 /* Default is netcdf-3 mode 1 */
 #define DFALTCMODE 0
 
-extern void init_netcdf(void);
-extern void parse_init(void);
-extern int ncgparse(void);
-
 /* For error messages */
 char* progname; /* Global: not reclaimed */
 char* cdlname; /* Global: not reclaimed */
@@ -210,6 +206,7 @@ main(
 	int argc,
 	char *argv[])
 {
+    int code = 0;
     int c;
     FILE *fp;
 	struct Languages* langs;
@@ -285,7 +282,7 @@ main(
 	  break;
 	case 'H':
 	  usage();
-	  exit(0);
+	  goto done;
         case 'l': /* specify language, instead of using -c or -f or -b */
 	{
             char* lang_name = NULL;
@@ -410,19 +407,19 @@ main(
 #ifndef ENABLE_C
     if(c_flag) {
 	  fprintf(stderr,"C not currently supported\n");
-	  exit(1);
+	  code=1; goto done;
     }
 #endif
 #ifndef ENABLE_BINARY
     if(l_flag == L_BINARY) {
 	  fprintf(stderr,"Binary netcdf not currently supported\n");
-	  exit(1);
+	  code=1; goto done;
     }
 #endif
 #ifndef ENABLE_JAVA
     if(l_flag == L_JAVA) {
 	  fprintf(stderr,"Java not currently supported\n");
-	  exit(1);
+	  code=1; goto done;
     }
 #else
     if(l_flag == L_JAVA && mainname != NULL && strcmp(mainname,"main")==0)
@@ -431,7 +428,7 @@ main(
 #ifndef ENABLE_F77
     if(l_flag == L_F77) {
 	  fprintf(stderr,"F77 not currently supported\n");
-	  exit(1);
+	  code=1; goto done;
     }
 #endif
 
@@ -576,7 +573,9 @@ main(
     if(!syntax_only && error_count == 0)
         define_netcdf();
 
-    return 0;
+done:
+    finalize_netcdf(code);
+    return code;
 }
 END_OF_MAIN()
 
@@ -590,4 +589,11 @@ init_netcdf(void) /* initialize global counts, flags */
     codebuffer = bbNew();
     stmt = bbNew();
     error_count = 0; /* Track # of errors */
+}
+
+void
+finalize_netcdf(int retcode)
+{
+    nc_finalize();
+    exit(retcode);
 }
