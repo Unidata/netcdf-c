@@ -16,6 +16,12 @@
 #include <stdio.h>
 #include <netcdf.h>
 
+#ifdef USE_CDF5
+#define NUMFORMATS 5
+#else
+#define NUMFORMATS 4
+#endif
+
 #define FILE_NAME "tst_global_fillval.nc"
 
 #define ERR {if(err!=NC_NOERR){printf("Error at line %d: %s\n",__LINE__,nc_strerror(err)); toterrs++; break;}}
@@ -24,21 +30,29 @@ main(int argc, char **argv)
 {
     int i, ncid, cmode, err, fillv=9;
     int toterrs = 0;
-    int formats[5]={0,
-                    NC_64BIT_OFFSET,
-                    NC_64BIT_DATA,
-                    NC_NETCDF4,
-                    NC_CLASSIC_MODEL | NC_NETCDF4};
-    char *formatnames[5]={"CDF-1", "CDF-2", "CDF-5", "NETCDF4", "CLASSIC_MODEL"};
+    int formats[NUMFORMATS]={0,
+                             NC_64BIT_OFFSET,
+#ifdef USE_CDF5
+                             NC_64BIT_DATA,
+#endif
+                             NC_NETCDF4,
+                             NC_CLASSIC_MODEL | NC_NETCDF4};
+    char *formatnames[NUMFORMATS]={"CDF-1",
+                                   "CDF-2",
+#ifdef USE_CDF5
+                                   "CDF-5",
+#endif
+                                   "NETCDF4",
+                                   "CLASSIC_MODEL"};
 
-    for (i=0; i<5; i++) {
+    for (i=0; i<NUMFORMATS; i++) {
         cmode = NC_CLOBBER | formats[i];
         err = nc_create(FILE_NAME, cmode, &ncid); ERR
 
         err = nc_put_att_int(ncid, NC_GLOBAL, "_FillValue", NC_INT, 1, &fillv);
-        if (err != NC_EGLOBAL) {
+        if (err != 0) {
           toterrs++;
-          printf("%13s Error at line %d: expecting NC_EINVAL but got %d\n",
+          printf("%13s Error at line %d: expecting 0 but got %d\n",
                    formatnames[i],__LINE__,err);
         }
         err = nc_close(ncid); ERR;

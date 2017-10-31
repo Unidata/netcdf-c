@@ -38,7 +38,7 @@ int main() {
   int be_dbl_varid;
   int ed;
   int failures = 0;
-  int retval = 0;
+  int retval;
 
   printf("* Checking that endianness is properly read from file.\n");
   printf("** Generating test files.\n");
@@ -48,36 +48,51 @@ int main() {
   {
 
     printf("*** Creating a file via netcdf API: %s.\n",FILE_NAME_NC);
-    retval = nc_create(FILE_NAME_NC, NC_NETCDF4 | NC_CLOBBER, &ncid);
+    if ((retval = nc_create(FILE_NAME_NC, NC_NETCDF4 | NC_CLOBBER, &ncid)))
+	return retval;
 
-    retval = nc_def_dim(ncid, DIM_NAME, NDIM, &dimid);
+    if ((retval = nc_def_dim(ncid, DIM_NAME, NDIM, &dimid)))
+	return retval;
 
     /* Little-Endian Float */
-    retval = nc_def_var(ncid, LE_FLOAT_VARNAME, NC_FLOAT, 1, &dimid, &le_float_varid);
-    retval = nc_def_var_endian(ncid, le_float_varid, NC_ENDIAN_LITTLE);
+    if ((retval = nc_def_var(ncid, LE_FLOAT_VARNAME, NC_FLOAT, 1, &dimid, &le_float_varid)))
+	return retval;
+    if ((retval = nc_def_var_endian(ncid, le_float_varid, NC_ENDIAN_LITTLE)))
+	return retval;
 
     /* Big-Endian Float */
-    retval = nc_def_var(ncid, BE_FLOAT_VARNAME, NC_FLOAT, 1, &dimid, &be_float_varid);
-    retval = nc_def_var_endian(ncid, be_float_varid, NC_ENDIAN_BIG);
+    if ((retval = nc_def_var(ncid, BE_FLOAT_VARNAME, NC_FLOAT, 1, &dimid, &be_float_varid)))
+	return retval;
+    if ((retval = nc_def_var_endian(ncid, be_float_varid, NC_ENDIAN_BIG)))
+	return retval;
 
     /* Little-Endian Int */
-    retval = nc_def_var(ncid, LE_INT_VARNAME, NC_INT, 1, &dimid, &le_int_varid);
-    retval = nc_def_var_endian(ncid, le_int_varid, NC_ENDIAN_LITTLE);
+    if ((retval = nc_def_var(ncid, LE_INT_VARNAME, NC_INT, 1, &dimid, &le_int_varid)))
+	return retval;
+    if ((retval = nc_def_var_endian(ncid, le_int_varid, NC_ENDIAN_LITTLE)))
+	return retval;
 
     /* Big-Endian Int */
-    retval = nc_def_var(ncid, BE_INT_VARNAME, NC_INT, 1, &dimid, &be_int_varid);
-    retval = nc_def_var_endian(ncid, be_int_varid, NC_ENDIAN_BIG);
+    if ((retval = nc_def_var(ncid, BE_INT_VARNAME, NC_INT, 1, &dimid, &be_int_varid)))
+	return retval;
+    if ((retval = nc_def_var_endian(ncid, be_int_varid, NC_ENDIAN_BIG)))
+	return retval;
 
     /* Little-Endian Double */
-    retval = nc_def_var(ncid, LE_DBL_VARNAME, NC_DOUBLE, 1, &dimid, &le_dbl_varid);
-    retval = nc_def_var_endian(ncid, le_dbl_varid, NC_ENDIAN_LITTLE);
+    if ((retval = nc_def_var(ncid, LE_DBL_VARNAME, NC_DOUBLE, 1, &dimid, &le_dbl_varid)))
+	return retval;
+    if ((retval = nc_def_var_endian(ncid, le_dbl_varid, NC_ENDIAN_LITTLE)))
+	return retval;
 
     /* Big-Endian Double */
-    retval = nc_def_var(ncid, BE_DBL_VARNAME, NC_DOUBLE, 1, &dimid, &be_dbl_varid);
-    retval = nc_def_var_endian(ncid, be_dbl_varid, NC_ENDIAN_BIG);
+    if ((retval = nc_def_var(ncid, BE_DBL_VARNAME, NC_DOUBLE, 1, &dimid, &be_dbl_varid)))
+	return retval;
+    if ((retval = nc_def_var_endian(ncid, be_dbl_varid, NC_ENDIAN_BIG)))
+	return retval;
 
 
-    retval = nc_close(ncid);
+    if ((retval = nc_close(ncid)))
+	return retval;
   }
 
   /*
@@ -95,40 +110,54 @@ int main() {
     be_dbl_varid = 0;
 
     printf("*** %s\n",FILE_NAME_NC);
-    retval = nc_open(FILE_NAME_NC, NC_NETCDF4 | NC_NOWRITE, &ncid);
+    if ((retval = nc_open(FILE_NAME_NC, NC_NETCDF4 | NC_NOWRITE, &ncid)))
+	return retval;
 
-    retval = nc_inq_varid(ncid,LE_FLOAT_VARNAME,&le_float_varid);
-    retval = nc_inq_varid(ncid,BE_FLOAT_VARNAME,&be_float_varid);
-    retval = nc_inq_varid(ncid,LE_INT_VARNAME,&le_int_varid);
-    retval = nc_inq_varid(ncid,BE_INT_VARNAME,&be_int_varid);
-    retval = nc_inq_varid(ncid,LE_DBL_VARNAME,&le_dbl_varid);
-    retval = nc_inq_varid(ncid,BE_DBL_VARNAME,&be_dbl_varid);
+    if ((retval = nc_inq_varid(ncid,LE_FLOAT_VARNAME,&le_float_varid)))
+	return retval;
+    if ((retval = nc_inq_varid(ncid,BE_FLOAT_VARNAME,&be_float_varid)))
+	return retval;
+    if ((retval = nc_inq_varid(ncid,LE_INT_VARNAME,&le_int_varid)))
+	return retval;
+    if ((retval = nc_inq_varid(ncid,BE_INT_VARNAME,&be_int_varid)))
+	return retval;
+    if ((retval = nc_inq_varid(ncid,LE_DBL_VARNAME,&le_dbl_varid)))
+	return retval;
+    if ((retval = nc_inq_varid(ncid,BE_DBL_VARNAME,&be_dbl_varid)))
+	return retval;
 
     printf("\tLittle-Endian Float...\t");
-    retval = nc_inq_var_endian(ncid,le_float_varid,&ed);
+    if ((retval = nc_inq_var_endian(ncid,le_float_varid,&ed)))
+	return retval;
     if(ed == NC_ENDIAN_LITTLE) printf("passed\n"); else {printf("failed\n"); failures++;}
 
     printf("\tBig-Endian Float...\t");
-    retval = nc_inq_var_endian(ncid,be_float_varid,&ed);
+    if ((retval = nc_inq_var_endian(ncid,be_float_varid,&ed)))
+	return retval;
     if(ed == NC_ENDIAN_BIG) printf("passed\n"); else {printf("failed\n"); failures++;}
 
     printf("\tLittle-Endian Int...\t");
-    retval = nc_inq_var_endian(ncid,le_int_varid,&ed);
+    if ((retval = nc_inq_var_endian(ncid,le_int_varid,&ed)))
+	return retval;
     if(ed == NC_ENDIAN_LITTLE) printf("passed\n"); else {printf("failed\n"); failures++;}
 
     printf("\tBig-Endian Int...\t");
-    retval = nc_inq_var_endian(ncid,be_int_varid,&ed);
+    if ((retval = nc_inq_var_endian(ncid,be_int_varid,&ed)))
+	return retval;
     if(ed == NC_ENDIAN_BIG) printf("passed\n"); else {printf("failed\n"); failures++;}
 
     printf("\tLittle-Endian Double...\t");
-    retval = nc_inq_var_endian(ncid,le_dbl_varid,&ed);
+    if ((retval = nc_inq_var_endian(ncid,le_dbl_varid,&ed)))
+	return retval;
     if(ed == NC_ENDIAN_LITTLE) printf("passed\n"); else {printf("failed\n"); failures++;}
 
     printf("\tBig-Endian Double...\t");
-    retval = nc_inq_var_endian(ncid,be_dbl_varid,&ed);
+    if ((retval = nc_inq_var_endian(ncid,be_dbl_varid,&ed)))
+	return retval;
     if(ed == NC_ENDIAN_BIG) printf("passed\n"); else {printf("failed\n"); failures++;}
 
-    retval = nc_close(ncid);
+    if ((retval = nc_close(ncid)))
+	return retval;
   }
 
   printf("** Failures Returned: [%d]\n",failures);
