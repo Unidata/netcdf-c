@@ -37,10 +37,10 @@ int last_iosysid;
 /* #define PIO_DATA_SET(nc, data) ((nc)->dispatchdata = (void*)(data)) */
 
 /* Cannot have NC_MPIPOSIX flag, ignore NC_MPIIO as PnetCDF use MPIIO */
-static const int LEGAL_CREATE_FLAGS = (NC_NOCLOBBER | NC_64BIT_OFFSET | NC_CLASSIC_MODEL |
+static const int LEGAL_CREATE_FLAGS = (NC_NOCLOBBER | NC_64BIT_OFFSET | NC_CLASSIC_MODEL | NC_NETCDF4 |
 				       NC_SHARE | NC_LOCK | NC_64BIT_DATA | NC_MPIIO | NC_PIO);
 
-static const int LEGAL_OPEN_FLAGS = (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_LOCK |
+static const int LEGAL_OPEN_FLAGS = (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_LOCK | NC_NETCDF4 |
 				     NC_CLASSIC_MODEL | NC_64BIT_OFFSET | NC_64BIT_DATA | NC_MPIIO | NC_PIO);
 
 int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filename,
@@ -75,15 +75,11 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
     
     /* if (default_format == NC_FORMAT_CLASSIC) then we respect the format set in cmode */
     if (default_format == NC_FORMAT_64BIT_OFFSET)
-    {
-        if (!(cmode & NC_64BIT_OFFSET)) /* check if cmode has NC_64BIT_OFFSET already */
-            cmode |= NC_64BIT_OFFSET;
-    }
+	cmode |= NC_64BIT_OFFSET;
     else if (default_format == NC_FORMAT_CDF5)
-    {
-        if (!(cmode & NC_64BIT_DATA)) /* check if cmode has NC_64BIT_DATA already */
-            cmode |= NC_64BIT_DATA;
-    }
+	cmode |= NC_64BIT_DATA;
+    else if (default_format == NC_NETCDF4)
+	cmode |= NC_NETCDF4;
 
     /* No MPI environment initialized */
     /* if (mpidata == NULL) */
@@ -100,15 +96,23 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
     /* Fix up the cmode by keeping only essential flags;
        these are the flags that are the same in netcf.h and pnetcdf.h
     */
-    /* PnetCDF recognizes the flags below for create and ignores NC_LOCK and  NC_SHARE */
-    cmode &= (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_64BIT_OFFSET | NC_64BIT_DATA);
+    /* /\* PnetCDF recognizes the flags below for create and ignores NC_LOCK and  NC_SHARE *\/ */
+    /* cmode &= (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_64BIT_OFFSET | NC_64BIT_DATA); */
 
     int iotype = PIO_IOTYPE_NETCDF;
-    int pio_ncid;
-    res = PIOc_createfile_int2(last_iosysid, &pio_ncid, &iotype, path, cmode,
+    if (cmode & NC_NETCDF4)
+    {
+	if (cmode & NC_SHARE)
+	    iotype = PIO_IOTYPE_NETCDF4P;
+	else
+	    iotype = PIO_IOTYPE_NETCDF4C;
+    }
+    else if (cmode & NC_PNETCDF)
+	iotype = PIO_IOTYPE_PNETCDF;
+
+    res = PIOc_createfile_int2(last_iosysid, &nc->ext_ncid, &iotype, path, cmode,
 			       use_parallel, mpidata, table, nc);
-    LOG((2, "PIOc_createfile_int2 called res %d pio_ncid %d", res, pio_ncid));
-    nc->ext_ncid = pio_ncid;
+    LOG((2, "PIOc_createfile_int2 called res %d nc->ext_ncid %d", res, nc->ext_ncid));
 
     /* Free this extra memory if there was a problem with create. */
     /* if (res && nc5) */
@@ -149,6 +153,15 @@ PIO_open(const char *path, int cmode, int basepe, size_t *chunksizehintp,
 
     int ncid;
     int iotype = PIO_IOTYPE_NETCDF;
+    if (cmode & NC_NETCDF4)
+    {
+	if (cmode & NC_SHARE)
+	    iotype = PIO_IOTYPE_NETCDF4P;
+	else
+	    iotype = PIO_IOTYPE_NETCDF4C;
+    }
+    else if (cmode & NC_PNETCDF)
+	iotype = PIO_IOTYPE_PNETCDF;
     res = PIOc_openfile_retry2(last_iosysid, &ncid, &iotype, path, cmode, 0, table, nc);
 
     return res;

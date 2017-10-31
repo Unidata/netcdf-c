@@ -1694,6 +1694,13 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 
    /* Look to the incoming cmode for hints */
    if(model == NC_FORMATX_UNDEFINED) {
+#ifdef USE_PIO
+      /* PIO is used for parallel io. Must be checked first because
+       * mode flag can include both NC_PIO and NC_NETCDF4. */
+      if((cmode & NC_PIO) == NC_PIO)
+	model = NC_FORMATX_PIO;
+      else
+#endif
 #ifdef USE_NETCDF4
       if((cmode & NC_NETCDF4) == NC_NETCDF4)
 	model = NC_FORMATX_NC4;
@@ -1703,12 +1710,6 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
       /* pnetcdf is used for parallel io on CDF-1, CDF-2, and CDF-5 */
       if((cmode & NC_MPIIO) == NC_MPIIO)
 	model = NC_FORMATX_PNETCDF;
-      else
-#endif
-#ifdef USE_PIO
-      /* PIO is used for parallel io. */
-      if((cmode & NC_PIO) == NC_PIO)
-	model = NC_FORMATX_PIO;
       else
 #endif
 	{}

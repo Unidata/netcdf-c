@@ -154,14 +154,23 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
             flavor[fmt] != PIO_IOTYPE_NETCDF4P)
             continue;
 
-        for (int with_fillvalue = 0; with_fillvalue < NUM_FILLVALUE_PRESENT_TESTS; with_fillvalue++)
+        /* for (int with_fillvalue = 0; with_fillvalue < NUM_FILLVALUE_PRESENT_TESTS; with_fillvalue++) */
+        for (int with_fillvalue = 0; with_fillvalue < 1; with_fillvalue++)
         {
+	    int mode = NC_PIO;
+	    
             /* Create the filename. */
             sprintf(filename, "data_%s_iotype_%d_pio_type_%d_with_fillvalue_%d.nc", TEST_NAME, flavor[fmt],
                     pio_type, with_fillvalue);
 
+	    /* Set the mode flag. */
+	    if (flavor[fmt] == PIO_IOTYPE_NETCDF4C || flavor[fmt] == PIO_IOTYPE_NETCDF4P)
+		mode |= NC_NETCDF4;
+	    if (flavor[fmt] == PIO_IOTYPE_NETCDF4P)
+		mode |= NC_SHARE;
+	    
             /* Create the netCDF output file. */
-            if ((ret = nc_create(filename, NC_PIO, &ncid)))
+            if ((ret = nc_create(filename, mode, &ncid)))
                 ERR(ret);
 
             /* Turn on fill mode. */
@@ -452,6 +461,8 @@ int test_darray_fill_unlim(int iosysid, int ioid, int pio_type, int num_flavors,
      * available ways. */
     for (int fmt = 0; fmt < num_flavors; fmt++)
     {
+	int cmode = NC_PIO|NC_CLOBBER;
+	
         /* BYTE and CHAR don't work with pnetcdf. Don't know why yet. */
         if (flavor[fmt] == PIO_IOTYPE_PNETCDF && (pio_type == PIO_BYTE || pio_type == PIO_CHAR))
             continue;
@@ -465,8 +476,13 @@ int test_darray_fill_unlim(int iosysid, int ioid, int pio_type, int num_flavors,
         sprintf(filename, "data_%s_iotype_%d_pio_type_%d_unlim.nc", TEST_NAME, flavor[fmt],
                 pio_type);
 
+	if (flavor[fmt] == PIO_IOTYPE_NETCDF4C || flavor[fmt] == PIO_IOTYPE_NETCDF4P)
+	    cmode |= NC_NETCDF4;
+	if (flavor[fmt] == PIO_IOTYPE_NETCDF4P)
+	    cmode |= NC_SHARE;
+
         /* Create the netCDF output file. */
-	if ((ret = nc_create(filename, NC_PIO|NC_CLOBBER, &ncid)))
+	if ((ret = nc_create(filename, cmode, &ncid)))
 	    ERR(ret);
 
         /* Turn on fill mode. */
@@ -830,7 +846,7 @@ int main(int argc, char **argv)
 
     /* Initialize test. */
     if ((ret = pio_test_init2(argc, argv, &my_rank, &ntasks, MIN_NTASKS,
-                              MIN_NTASKS, -1, &test_comm)))
+                              MIN_NTASKS, 3, &test_comm)))
         ERR(ERR_INIT);
 
     if ((ret = PIOc_set_iosystem_error_handling(PIO_DEFAULT, PIO_RETURN_ERROR, NULL)))
@@ -849,7 +865,8 @@ int main(int argc, char **argv)
         if ((ret = get_iotypes(&num_flavors, flavor)))
             ERR(ret);
 
-        for (int r = 0; r < NUM_REARRANGERS_TO_TEST; r++)
+        /* for (int r = 0; r < NUM_REARRANGERS_TO_TEST; r++) */
+        for (int r = 0; r < 1; r++)
         {
             /* Initialize the PIO IO system. This specifies how many and
              * which processors are involved in I/O. */
@@ -858,27 +875,28 @@ int main(int argc, char **argv)
                 return ret;
 
             /* Run tests for each data type. */
-            for (int t = 0; t < NUM_TYPES_TO_TEST; t++)
+            /* for (int t = 0; t < NUM_TYPES_TO_TEST; t++) */
+            for (int t = 0; t < 1; t++)
             {
                 /* Decompose the data over the tasks. */
                 if ((ret = create_decomposition_1d(TARGET_NTASKS, my_rank, iosysid, test_type[t],
                                                    &ioid)))
                     return ret;
 
-                /* Test decomposition read/write. */
-                if ((ret = test_decomp_read_write(iosysid, ioid, num_flavors, flavor, my_rank,
-                                                  test_type[t], rearranger[r], test_comm)))
-                    return ret;
+                /* /\* Test decomposition read/write. *\/ */
+                /* if ((ret = test_decomp_read_write(iosysid, ioid, num_flavors, flavor, my_rank, */
+                /*                                   test_type[t], rearranger[r], test_comm))) */
+                /*     return ret; */
 
                 /* Run tests. */
                 if ((ret = test_darray_fill(iosysid, ioid, test_type[t], num_flavors, flavor,
                                             my_rank, test_comm)))
                     return ret;
 
-                /* Run tests. */
-                if ((ret = test_darray_fill_unlim(iosysid, ioid, test_type[t], num_flavors,
-                                                  flavor, my_rank, test_comm)))
-                    return ret;
+                /* /\* Run tests. *\/ */
+                /* if ((ret = test_darray_fill_unlim(iosysid, ioid, test_type[t], num_flavors, */
+                /*                                   flavor, my_rank, test_comm))) */
+                /*     return ret; */
 
                 /* Free the PIO decomposition. */
                 if ((ret = nc_free_decomp(iosysid, ioid)))

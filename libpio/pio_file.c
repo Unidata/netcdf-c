@@ -154,6 +154,10 @@ int PIOc_createfile(int iosysid, int *ncidp, int *iotype, const char *filename,
     /* } */
 
     mode |= NC_PIO;
+    if (*iotype == PIO_IOTYPE_NETCDF4C || *iotype == PIO_IOTYPE_NETCDF4P)
+	mode |= NC_NETCDF4;
+    if (*iotype == PIO_IOTYPE_NETCDF4P)
+	mode |= NC_SHARE;
     return nc_create(filename, mode, ncidp);
 }
 
