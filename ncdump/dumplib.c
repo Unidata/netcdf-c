@@ -1313,9 +1313,16 @@ nctime_val_tostring(const ncvar_t *varp, safebuf_t *sfbf, const void *valp) {
     double vv = to_double(varp, valp);
     int separator = formatting_specs.iso_separator ? 'T' : ' ';
     if(isfinite(vv)) {
+	int oldopts = 0;
+	int newopts = 0;
 	int res;
 	sout[0]='"';
+	/* Make nctime dump error messages */
+	oldopts = cdSetErrOpts(0);
+	newopts = oldopts | CU_VERBOSE;
+	cdSetErrOpts(newopts);
 	cdRel2Iso(varp->timeinfo->calendar, varp->timeinfo->units, separator, vv, &sout[1]);
+	cdSetErrOpts(oldopts);
 	res = strlen(sout);
 	sout[res++] = '"';
 	sout[res] = '\0';

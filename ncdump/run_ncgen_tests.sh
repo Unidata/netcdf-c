@@ -8,6 +8,19 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 echo "*** Testing ncgen."
 set -e
 
+# This shell script runs the ncdump tests.
+# get some config.h parameters
+if test -f ${top_builddir}/config.h ; then
+  if fgrep -e '#define USE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
+    CDF5=1
+  else
+    CDF5=0
+  fi
+else
+  echo "Cannot locate config.h"
+  exit 1
+fi
+
 #VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
 
 validateNC() {
@@ -37,11 +50,15 @@ echo "*** creating 64-bit offset file c0_64.nc from c0.cdl..."
 
 validateNC c0 "c0_64" -k 64-bit-offset -b
 
-echo "*** creating 64-bit offset file c5.nc from c5.cdl..."
-${NCGEN} -k 64-bit-data -b -o c5.nc $top_srcdir/ncgen/c5.cdl
-if [ ! -f c5.nc ]; then
-    echo "Failure."
-    exit 1
+if test "x$USE_CDF5" = x1 ; then
+
+    echo "*** creating 64-bit data file c5.nc from c5.cdl..."
+    ${NCGEN} -k 64-bit-data -b -o c5.nc $top_srcdir/ncgen/c5.cdl
+    if [ ! -f c5.nc ]; then
+        echo "Failure."
+        exit 1
+    fi
+
 fi
 
 echo "*** Test successful!"
