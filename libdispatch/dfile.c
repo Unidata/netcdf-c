@@ -1748,7 +1748,10 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 	cmode &= ~(NC_64BIT_OFFSET); /*NC_64BIT_DATA=>NC_64BIT_OFFSET*/
 
    if((cmode & NC_MPIIO) && (cmode & NC_MPIPOSIX))
-      return  NC_EINVAL;
+   {
+       nullfree(path);       
+       return  NC_EINVAL;
+   }
 
    if (dispatcher == NULL)
    {
@@ -1767,7 +1770,10 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
       if(model == (NC_FORMATX_NC3))
  	dispatcher = NC3_dispatch_table;
       else
-	 return NC_ENOTNC;
+      {
+	  nullfree(path);
+	  return NC_ENOTNC;
+      }
    }
 
    /* Create the NC* instance and insert its dispatcher */
