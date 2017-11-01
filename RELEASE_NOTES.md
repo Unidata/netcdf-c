@@ -8,6 +8,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.5.1 - TBD
 
+* Corrected a number of memory issues identified in `ncgen`.  See [GitHub #558 for more information](https://github.com/Unidata/netcdf-c/pull/558).
 * Corrected a memory overflow in `tst_h_dimscales`, see [Github #511](https://github.com/Unidata/netcdf-c/issues/511), [Github #505](https://github.com/Unidata/netcdf-c/issues/505), [Github #363](https://github.com/Unidata/netcdf-c/issues/363) and [Github #244](https://github.com/Unidata/netcdf-c/issues/244) for more information.
 
 ## 4.5.0 - October 20, 2017
