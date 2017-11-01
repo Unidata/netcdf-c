@@ -1234,10 +1234,13 @@ nc_close(int ncid)
 #endif
    {
 
-	   stat = ncp->dispatch->close(ncid);
+       stat = ncp->dispatch->close(ncid);
        /* Remove from the nc list */
-       del_from_NCList(ncp);
-       free_NC(ncp);
+       if (!stat)
+       {
+	   del_from_NCList(ncp);
+	   free_NC(ncp);
+       }
    }
    return stat;
 }
