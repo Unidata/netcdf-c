@@ -89,12 +89,14 @@ att_read_var_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
             {
 	      if ((retval = nc4_att_list_del(&att_info->var->att, att)))
 		BAIL(retval);
+	      att = NULL;
             }
 	  else
 	    BAIL(retval);
 	}
 
-      att->created = NC_TRUE;
+      if (att)
+	  att->created = NC_TRUE;
 
       if (attid > 0 && H5Aclose(attid) < 0)
 	BAIL2(NC_EHDFERR);
