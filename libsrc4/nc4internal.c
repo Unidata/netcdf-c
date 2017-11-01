@@ -1427,8 +1427,6 @@ nc4_normalize_name(const char *name, char *norm_name)
    return NC_NOERR;
 }
 
-/* Print out a bunch of info to stderr about the metadata for
-   debugging purposes. */
 #ifdef LOGGING
 /* Use this to set the global log level. Set it to NC_TURN_OFF_LOGGING
    (-1) to turn off all logging. Set it to 0 to show only errors, and
@@ -1587,6 +1585,18 @@ log_metadata_nc(NC *nc)
    return rec_print_metadata(h5->root_grp, 0);
 }
 
+#else /* LOGGING */
+#ifdef SET_LOG_LEVEL
+/* If logging is not enabled, define an empty nc_set_log_level()
+ * function. This way, users can include nc_set_log_level() in their
+ * codes, and not get link errors when they link to a netCDF build
+ * that does not support logging. */
+int
+nc_set_log_level(int new_level)
+{
+    return 0;
+}
+#endif /* SET_LOG_LEVEL */
 #endif /*LOGGING */
 
 /* Show the in-memory metadata for a netcdf file. */

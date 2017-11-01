@@ -1711,22 +1711,15 @@ EXTERNL int
 nc_get_var_ubyte(int ncid, int varid, unsigned char *ip);
 /* End Deprecated */
 
-#ifdef LOGGING
-
-/* Set the log level. 0 shows only errors, 1 only major messages,
- * etc., to 5, which shows way too much information. */
-EXTERNL int
-nc_set_log_level(int new_level);
-
 /* Use this to turn off logging by calling
    nc_log_level(NC_TURN_OFF_LOGGING) */
 #define NC_TURN_OFF_LOGGING (-1)
 
-#else /* not LOGGING */
-
-#define nc_set_log_level(e)
-
-#endif /* LOGGING */
+/* Set the log level. 0 shows only errors, 1 only major messages,
+ * etc., to 5, which shows way too much information. If logging is not
+ * enabled in the build, this function does nothing. */
+EXTERNL int
+nc_set_log_level(int new_level);
 
 /* Show the netCDF library's in-memory metadata for a file. */
 EXTERNL int
