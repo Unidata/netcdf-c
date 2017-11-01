@@ -109,11 +109,6 @@ EXTRA_DIST += ref_tst_diskless2.cdl tst_diskless5.cdl CMakeLists.txt
 # regenerate.
 #MAINTAINERCLEANFILES = test_get.c test_put.c
 
-all:
-	cp $(top_srcdir)/libsrc/ncx.c .
-
-CLEANFILES += ncx.c
-
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
 	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
