@@ -3141,7 +3141,7 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
-   if(h5 != NULL)
+   if(!retval && h5 != NULL)
        free(h5);
    return retval;
 }
