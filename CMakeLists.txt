@@ -367,6 +367,13 @@ IF(ENABLE_LOGGING)
   SET(LOGGING ON)
 ENDIF()
 
+# Option Logging, only valid for netcdf4.
+OPTION(ENABLE_SET_LOG_LEVEL "Enable empty nc_set_log_level() when logging is off." ON)
+IF(ENABLE_SET_LOG_LEVEL)
+  ADD_DEFINITIONS(-DSET_LOG_LEVEL)
+  SET(SET_LOG_LEVEL ON)
+ENDIF()
+
 # Option to automatically build netcdf-fortran.
 IF(NOT MSVC)
   OPTION(ENABLE_REMOTE_FORTRAN_BOOTSTRAP "Download and build netcdf-fortran automatically (EXPERIMENTAL)." OFF)
