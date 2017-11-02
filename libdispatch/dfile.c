@@ -1669,7 +1669,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    /* If the user ask for a netCDF-4 file, and the library was built
     * without netCDF-4, then return an error.*/
    if (cmode & NC_NETCDF4)
-       return NC_EINVAL;
+       return NC_ENOTBUILT;
 #endif /* USE_NETCDF4 undefined */   
 
 #ifdef WINPATH
