@@ -305,61 +305,25 @@ there. */
  */
 #define NC_ISSYSERR(err)	((err) > 0)
 
-#define	NC_NOERR	0   /**< No Error */
+#define	NC_NOERR	0          /**< No Error */
 #define NC2_ERR         (-1)       /**< Returned for all errors in the v2 API. */
-
-/** Not a netcdf id.
-
-The specified netCDF ID does not refer to an
-open netCDF dataset. */
-#define	NC_EBADID	(-33)
+#define	NC_EBADID	(-33)      /**< Not a netcdf id. */
 #define	NC_ENFILE	(-34)	   /**< Too many netcdfs open */
 #define	NC_EEXIST	(-35)	   /**< netcdf file exists && NC_NOCLOBBER */
 #define	NC_EINVAL	(-36)	   /**< Invalid Argument */
 #define	NC_EPERM	(-37)	   /**< Write to read only */
-
-/** Operation not allowed in data mode. This is returned for netCDF
-classic or 64-bit offset files, or for netCDF-4 files, when they were
-been created with ::NC_CLASSIC_MODEL flag in nc_create(). */
-#define NC_ENOTINDEFINE	(-38)
-
-/** Operation not allowed in define mode.
-
-The specified netCDF is in define mode rather than data mode.
-
-With netCDF-4/HDF5 files, this error will not occur, unless
-::NC_CLASSIC_MODEL was used in nc_create().
- */
-#define	NC_EINDEFINE	(-39)
-
-/** Index exceeds dimension bound.
-
-The specified corner indices were out of range for the rank of the
-specified variable. For example, a negative index or an index that is
-larger than the corresponding dimension length will cause an error. */
-#define	NC_EINVALCOORDS	(-40)
-
-/** NC_MAX_DIMS exceeded. Max number of dimensions exceeded in a
-classic or 64-bit offset file, or an netCDF-4 file with
-::NC_CLASSIC_MODEL on. */
-#define	NC_EMAXDIMS	(-41)
-
+#define NC_ENOTINDEFINE	(-38)      /**< Operation not allowed in data mode. */
+#define	NC_EINDEFINE	(-39)      /**< Operation not allowed in define mode. */
+#define	NC_EINVALCOORDS	(-40)      /**< Index exceeds dimension bound. */
+#define	NC_EMAXDIMS	(-41)      /**< NC_MAX_DIMS exceeded. */
 #define	NC_ENAMEINUSE	(-42)	   /**< String match to name in use */
 #define NC_ENOTATT	(-43)	   /**< Attribute not found */
 #define	NC_EMAXATTS	(-44)	   /**< NC_MAX_ATTRS exceeded */
 #define NC_EBADTYPE	(-45)	   /**< Not a netcdf data type */
 #define NC_EBADDIM	(-46)	   /**< Invalid dimension id or name */
 #define NC_EUNLIMPOS	(-47)	   /**< NC_UNLIMITED in the wrong index */
-
-/** NC_MAX_VARS exceeded. Max number of variables exceeded in a
-classic or 64-bit offset file, or an netCDF-4 file with
-::NC_CLASSIC_MODEL on. */
-#define	NC_EMAXVARS	(-48)
-
-/** Variable not found.
-
-The variable ID is invalid for the specified netCDF dataset. */
-#define NC_ENOTVAR	(-49)
+#define	NC_EMAXVARS	(-48)      /**< NC_MAX_VARS exceeded. */
+#define NC_ENOTVAR	(-49)      /**< Variable not found. */
 #define NC_EGLOBAL	(-50)	   /**< Action prohibited on NC_GLOBAL varid */
 #define NC_ENOTNC	(-51)	   /**< Not a netcdf file */
 #define NC_ESTS        	(-52)	   /**< In Fortran, string too short */
@@ -375,7 +339,7 @@ referenced data out of range for the rank of the specified
 variable. For example, an edge length that is larger than the
 corresponding dimension length minus the corner index will cause an
 error. */
-#define NC_EEDGE	(-57)
+#define NC_EEDGE	(-57)      /**< Start+count exceeds dimension bound. */
 #define NC_ESTRIDE	(-58)	   /**< Illegal stride */
 #define NC_EBADNAME	(-59)	   /**< Attribute or variable name contains illegal characters */
 /* N.B. following must match value in ncx.h */
@@ -416,9 +380,7 @@ by the desired type. */
    error codes < -100 so that errors can be added to netcdf-3 if
    needed. */
 #define NC4_FIRST_ERROR  (-100)
-
-/** Error at HDF5 layer. */
-#define NC_EHDFERR       (-101)
+#define NC_EHDFERR       (-101)    /**< Error at HDF5 layer. */
 #define NC_ECANTREAD     (-102)    /**< Can't read. */
 #define NC_ECANTWRITE    (-103)    /**< Can't write. */
 #define NC_ECANTCREATE   (-104)    /**< Can't create. */
@@ -429,9 +391,7 @@ by the desired type. */
 #define NC_ENOCOMPOUND   (-109)    /**< Not a compound type. */
 #define NC_EATTEXISTS    (-110)    /**< Attribute already exists. */
 #define NC_ENOTNC4       (-111)    /**< Attempting netcdf-4 operation on netcdf-3 file. */
-
-/** Attempting netcdf-4 operation on strict nc3 netcdf-4 file. */
-#define NC_ESTRICTNC3    (-112)
+#define NC_ESTRICTNC3    (-112)    /**< Attempting netcdf-4 operation on strict nc3 netcdf-4 file. */
 #define NC_ENOTNC3       (-113)    /**< Attempting netcdf-3 operation on netcdf-4 file. */
 #define NC_ENOPAR        (-114)    /**< Parallel operation on file opened for non-parallel access. */
 #define NC_EPARINIT      (-115)    /**< Error initializing for parallel access. */
