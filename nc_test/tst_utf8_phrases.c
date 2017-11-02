@@ -317,9 +317,12 @@ test(const struct Test* tests, const char* title)
 	    }
 	}
 	pf = "Pass";
+	free(normal);
 fail:
         fprintf(stderr,"%s: %s %s\n",pf,id,description);
         fflush(stderr);
+	free(id);
+	free(description);
     }
     return failures;
 }

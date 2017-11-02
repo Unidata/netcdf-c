@@ -94,7 +94,7 @@ unlimited dimensions.
 \returns ::NC_ENOTINDEFINE Not in define mode.
 \returns ::NC_EDIMSIZE Invalid dimension size.
 \returns ::NC_EUNLIMIT NC_UNLIMITED size already in use
-\returns ::NC_EMAXDIMS NC_MAX_DIMS exceeded
+\returns ::NC_EMAXDIMS NC_MAX_DIMS exceeded [not enforced after 4.5.0]
 \returns ::NC_ENAMEINUSE String match to name in use
 \returns ::NC_ENOMEM Memory allocation (malloc) failure
 \returns ::NC_EPERM Write to read only

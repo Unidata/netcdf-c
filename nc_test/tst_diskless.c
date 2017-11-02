@@ -197,7 +197,7 @@ printf("*** testing diskless file with scalar vars...");
 
     /* Create some atts. They will help document my data forever. */
     if (nc_put_att_text(ncid, NC_GLOBAL, ATT0_NAME,
-    sizeof(ATT0_TEXT) + 1, ATT0_TEXT)) ERR;
+			sizeof(ATT0_TEXT), ATT0_TEXT)) ERR;
 
     /* Create dimensions: money is limited, but fun is not! */
     if (nc_def_dim(ncid, DIM0_NAME, NC_UNLIMITED, &dimid[0])) ERR;
@@ -222,6 +222,7 @@ printf("*** testing diskless file with scalar vars...");
     /* Check attributes - they will be needed by future generations
     * of scientists to understand my data. */
     if (nc_get_att_text(ncid, NC_GLOBAL, ATT0_NAME, att0_in)) ERR;
+    att0_in[sizeof(ATT0_TEXT)] = '\0';
     if (strcmp(att0_in, ATT0_TEXT)) ERR;
 
     /* Check dimensions. */
