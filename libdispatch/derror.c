@@ -257,6 +257,8 @@ const char *nc_strerror(int ncerr1)
 	    "when netCDF was built.";
       case NC_EDISKLESS:
 	 return "NetCDF: Error in using diskless access";
+      case NC_EMPI:
+	 return "NetCDF: MPI operation failed.";
       default:
 #ifdef USE_PNETCDF
         /* The behavior of ncmpi_strerror here is to return
