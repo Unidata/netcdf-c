@@ -1,7 +1,7 @@
 # blocklist
 branches:
   except:
-  - .*[.]dmh
+  - /.*[.]dmh/
 
 sudo: required
 language: c
