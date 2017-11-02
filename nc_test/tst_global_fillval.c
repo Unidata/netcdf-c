@@ -9,55 +9,55 @@
 
    * https://github.com/Unidata/netcdf-c/issues/388
    * https://github.com/Unidata/netcdf-c/pull/389
-*/
+
+   Modified by Ed Hartnett, see:
+   https://github.com/Unidata/netcdf-c/issues/392
+   */
 
 #include "config.h"
 #include <nc_tests.h>
-#include <stdio.h>
-#include <netcdf.h>
-
-#ifdef USE_CDF5
-#define NUMFORMATS 5
-#else
-#define NUMFORMATS 4
-#endif
+#include "err_macros.h"
 
 #define FILE_NAME "tst_global_fillval.nc"
 
-#define ERR {if(err!=NC_NOERR){printf("Error at line %d: %s\n",__LINE__,nc_strerror(err)); toterrs++; break;}}
 int
 main(int argc, char **argv)
 {
-    int i, ncid, cmode, err, fillv=9;
-    int toterrs = 0;
-    int formats[NUMFORMATS]={0,
-                             NC_64BIT_OFFSET,
+    printf("*** testing proper elatefill return...");    
+    {
+	int num_formats = 2;
+	int n = 0;
+
+	/* Determine how many formats are in use. */
 #ifdef USE_CDF5
-                             NC_64BIT_DATA,
+	num_formats++;
 #endif
-                             NC_NETCDF4,
-                             NC_CLASSIC_MODEL | NC_NETCDF4};
-    char *formatnames[NUMFORMATS]={"CDF-1",
-                                   "CDF-2",
+#ifdef USE_NETCDF4
+	num_formats += 2;
+#endif
+    
+	int formats[num_formats];
+	formats[n++] = 0;
+	formats[n++] = NC_64BIT_OFFSET;
 #ifdef USE_CDF5
-                                   "CDF-5",
+	formats[n++] = NC_64BIT_DATA;
 #endif
-                                   "NETCDF4",
-                                   "CLASSIC_MODEL"};
+#ifdef USE_NETCDF4
+	formats[n++] = NC_NETCDF4;
+	formats[n++] = NC_CLASSIC_MODEL | NC_NETCDF4;
+#endif
 
-    for (i=0; i<NUMFORMATS; i++) {
-        cmode = NC_CLOBBER | formats[i];
-        err = nc_create(FILE_NAME, cmode, &ncid); ERR
+	for (int i = 0; i < num_formats; i++)
+	{
+	    int ncid, cmode, fillv = 9;
+	
+	    cmode = NC_CLOBBER | formats[i];
+	    if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
+	    if (nc_put_att_int(ncid, NC_GLOBAL, "_FillValue", NC_INT, 1, &fillv)) ERR;
+	    if (nc_close(ncid)) ERR;
 
-        err = nc_put_att_int(ncid, NC_GLOBAL, "_FillValue", NC_INT, 1, &fillv);
-        if (err != 0) {
-          toterrs++;
-          printf("%13s Error at line %d: expecting 0 but got %d\n",
-                   formatnames[i],__LINE__,err);
-        }
-        err = nc_close(ncid); ERR;
-
+	}
     }
-    printf("Total errors: %d\n",toterrs);
-    return toterrs;
+    SUMMARIZE_ERR;
+    FINAL_RESULTS;    
 }

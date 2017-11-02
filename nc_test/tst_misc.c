@@ -61,8 +61,21 @@ main(int argc, char **argv)
    }
 
    SUMMARIZE_ERR;
+#ifndef USE_NETCDF4   
+   printf("*** Trying to create netCDF-4 file without netCDF-4...");
+   {
+       int ncid;
+       int ret;
+       
+       if (!(ret = nc_create(FILE_NAME, NC_CLOBBER|NC_NETCDF4, &ncid)))
+	   ERR;
+   }
+   SUMMARIZE_ERR;
+#endif /* USE_NETCDF4 undefined */
+   
 #ifdef TEST_PNETCDF
    MPI_Finalize();
 #endif
+   
    FINAL_RESULTS;
 }
