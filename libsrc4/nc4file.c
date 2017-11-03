@@ -89,12 +89,14 @@ att_read_var_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
             {
 	      if ((retval = nc4_att_list_del(&att_info->var->att, att)))
 		BAIL(retval);
+	      att = NULL;
             }
 	  else
 	    BAIL(retval);
 	}
 
-      att->created = NC_TRUE;
+      if (att)
+	  att->created = NC_TRUE;
 
       if (attid > 0 && H5Aclose(attid) < 0)
 	BAIL2(NC_EHDFERR);
@@ -282,84 +284,6 @@ nc4typelen(nc_type type)
 	 return 8;
    }
    return -1;
-}
-
-/* Given a filename, check to see if it is a HDF5 file. */
-#define MAGIC_NUMBER_LEN 4
-#define NC_HDF5_FILE 1
-#define NC_HDF4_FILE 2
-static int
-nc_check_for_hdf(const char *path, int flags, void* parameters, int *hdf_file)
-{
-   char blob[MAGIC_NUMBER_LEN];
-#ifdef USE_PARALLEL4
-   int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
-   NC_MPI_INFO* mpiinfo = (NC_MPI_INFO*)parameters;
-   MPI_Comm comm = MPI_COMM_WORLD;
-   MPI_Info info = MPI_INFO_NULL;
-#endif
-   int inmemory = ((flags & NC_INMEMORY) == NC_INMEMORY);
-   NC_MEM_INFO* meminfo = (NC_MEM_INFO*)parameters;
-
-#ifdef USE_PARALLEL4
-   if(use_parallel) {
-       comm = mpiinfo->comm;
-       info = mpiinfo->info;
-   }
-#endif
-
-   assert(hdf_file);
-   LOG((3, "%s: path %s", __func__, path));
-
-   /* HDF5 function handles possible user block at beginning of file */
-   if(!inmemory && H5Fis_hdf5(path))
-   {
-       *hdf_file = NC_HDF5_FILE;
-   } else {
-
-/* Get the 4-byte blob from the beginning of the file. Don't use posix
- * for parallel, use the MPI functions instead. */
-#ifdef USE_PARALLEL4
-       if (!inmemory && use_parallel)
-       {
-	   MPI_File fh;
-	   MPI_Status status;
-	   int retval;
-	   if ((retval = MPI_File_open(comm, (char *)path, MPI_MODE_RDONLY,
-				       info, &fh)) != MPI_SUCCESS)
-	       return NC_EPARINIT;
-	   if ((retval = MPI_File_read(fh, blob, MAGIC_NUMBER_LEN, MPI_CHAR,
-				       &status)) != MPI_SUCCESS)
-	       return NC_EPARINIT;
-	   if ((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
-	       return NC_EPARINIT;
-       }
-       else
-#endif /* USE_PARALLEL4 */
-       if(!inmemory) {
-	   FILE *fp;
-	   if (!(fp = fopen(path, "r")) ||
-	       fread(blob, MAGIC_NUMBER_LEN, 1, fp) != 1) {
-
-	     if(fp) fclose(fp);
-	     return errno;
-	   }
-	   fclose(fp);
-       } else { /*inmemory*/
-	  if(meminfo->size < MAGIC_NUMBER_LEN)
-	    return NC_ENOTNC;
-	  memcpy(blob,meminfo->memory,MAGIC_NUMBER_LEN);
-       }
-
-       /* Check for HDF4. */
-       if (memcmp(blob, "\016\003\023\001", 4)==0)
-	   *hdf_file = NC_HDF4_FILE;
-       else if (memcmp(blob, "HDF", 3)==0)
-	   *hdf_file = NC_HDF5_FILE;
-       else
-	   *hdf_file = 0;
-   }
-   return NC_NOERR;
 }
 
 /* Create a HDF5/netcdf-4 file. */
@@ -2816,7 +2740,8 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 	 int use_parallel, void *parameters, NC_Dispatch *dispatch, NC *nc_file)
 {
    int res;
-   int hdf_file = 0;
+   int is_hdf5_file = 0;
+   int is_hdf4_file = 0;
 #ifdef USE_PARALLEL4
    NC_MPI_INFO mpidfalt = {MPI_COMM_WORLD, MPI_INFO_NULL};
 #endif
@@ -2858,21 +2783,22 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* USE_PARALLEL_POSIX */
 
    /* Figure out if this is a hdf4 or hdf5 file. */
-   if ((res = nc_check_for_hdf(path, use_parallel, parameters, &hdf_file)))
-	goto done;
-
+   if(nc_file->model == NC_FORMATX_NC4)
+	is_hdf5_file = 1;
+   else if(nc_file->model == NC_FORMATX_NC_HDF4)
+	is_hdf4_file = 1;
    /* Depending on the type of file, open it. */
    nc_file->int_ncid = nc_file->ext_ncid;
-   if (hdf_file == NC_HDF5_FILE)
+   if (is_hdf5_file)
        res = nc4_open_file(path, mode, parameters, nc_file);
 #ifdef USE_HDF4
-   else if (hdf_file == NC_HDF4_FILE && inmemory)
+   else if (is_hdf4_file && inmemory)
 	{res = NC_EDISKLESS; goto done;}
-   else if (hdf_file == NC_HDF4_FILE)
+   else if (is_hdf4_file)
        res = nc4_open_hdf4_file(path, mode, nc_file);
 #endif /* USE_HDF4 */
    else
-       assert(0); /* should never happen */
+       res = NC_ENOTNC;
 done:
    return res;
 }
