@@ -24,7 +24,6 @@
 
 #include "ocinternal.h"
 #include "ocdebug.h"
-#include "occlientparams.h"
 #include "occurlfunctions.h"
 #include "ochttp.h"
 #include "ocread.h"
