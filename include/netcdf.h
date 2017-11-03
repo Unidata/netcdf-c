@@ -451,8 +451,7 @@ by the desired type. */
 #define NC_EDISKLESS     (-129)    /**< Error in using diskless  access. */
 #define NC_ECANTEXTEND   (-130)    /**< Attempt to extend dataset during ind. I/O operation. */
 #define NC_EMPI          (-131)    /**< MPI operation failed. */
-#define NC_ENOTENABLED   (-132)    /**< Feature not supported in this build. */
-#define NC4_LAST_ERROR   (-132)   
+#define NC4_LAST_ERROR   (-131)   
 
 /* This is used in netCDF-4 files for dimensions without coordinate
  * vars. */

@@ -1652,17 +1652,11 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    TRACE(nc_create);
    if(path0 == NULL)
 	return NC_EINVAL;
-   /* Initialize the dispatch table. The function pointers in the
-    * dispatch table will depend on how netCDF was built
-    * (with/without netCDF-4, DAP, CDMREMOTE). */
-   if(!NC_initialized)
-   {
-      if ((stat = nc_initialize()))
-	 return stat;
-   }
 
 #ifndef USE_DISKLESS
-   cmode &= (~ NC_DISKLESS); /* Force off */
+   /* If diskless is requested, but not built, return error. */
+   if (cmode & NC_DISKLESS)
+       return NC_ENOTBUILT;       
 #endif
    
 #ifndef USE_NETCDF4
@@ -1671,6 +1665,15 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    if (cmode & NC_NETCDF4)
        return NC_ENOTBUILT;
 #endif /* USE_NETCDF4 undefined */   
+
+   /* Initialize the dispatch table. The function pointers in the
+    * dispatch table will depend on how netCDF was built
+    * (with/without netCDF-4, DAP, CDMREMOTE). */
+   if(!NC_initialized)
+   {
+      if ((stat = nc_initialize()))
+	 return stat;
+   }
 
 #ifdef WINPATH
    /* Need to do path conversion */
