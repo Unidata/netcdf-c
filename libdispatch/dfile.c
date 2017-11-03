@@ -1606,6 +1606,64 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
 \internal
 \ingroup dispatch
 
+Check the create mode for sanity.
+
+\param cmode The creation mode flag.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_ENOTBUILT Requested feature not built into library
+\returns ::NC_NINVAL Invalid combination of modes.
+*/
+static int
+check_create_mode(int cmode)
+{
+    int mode_format;
+
+    /* This is a clever check to see if more than one format bit is
+    * set. */
+    mode_format = (cmode & NC_NETCDF4) | (cmode & NC_64BIT_OFFSET) |
+       (cmode & NC_CDF5);
+   if (mode_format && (mode_format & (mode_format - 1)))
+       return NC_EINVAL;
+
+   /* Can't use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
+    * mind! */
+   if (cmode & NC_MPIIO && cmode & NC_MPIPOSIX)
+       return NC_EINVAL;
+
+   /* Can't use both parallel and diskless. */
+   if ((cmode & NC_MPIIO && cmode & NC_DISKLESS) ||
+       (cmode & NC_MPIPOSIX && cmode & NC_DISKLESS))
+       return NC_EINVAL;
+
+#ifndef USE_DISKLESS
+   /* If diskless is requested, but not built, return error. */
+   if (cmode & NC_DISKLESS)
+       return NC_ENOTBUILT;       
+#endif
+   
+#ifndef USE_NETCDF4
+   /* If the user ask for a netCDF-4 file, and the library was built
+    * without netCDF-4, then return an error.*/
+   if (cmode & NC_NETCDF4)
+       return NC_ENOTBUILT;
+#endif /* USE_NETCDF4 undefined */
+
+#ifndef USE_PARALLEL
+   /* If parallel support is not included, these mode flags won't
+    * work. */
+   if (cmode & NC_PNETCDF || cmode & NC_MPIPOSIX)
+       return NC_ENOTBUILT;
+#endif /* USE_PARALLEL */
+
+   /* Well I guess there is some sanity in the world after all. */
+   return NC_NOERR;
+}
+
+/**
+\internal
+\ingroup dispatch
+
 Create a file, calling the appropriate dispatch create call.
 
 For create, we have the following pieces of information to use to
@@ -1653,18 +1711,9 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    if(path0 == NULL)
 	return NC_EINVAL;
 
-#ifndef USE_DISKLESS
-   /* If diskless is requested, but not built, return error. */
-   if (cmode & NC_DISKLESS)
-       return NC_ENOTBUILT;       
-#endif
-   
-#ifndef USE_NETCDF4
-   /* If the user ask for a netCDF-4 file, and the library was built
-    * without netCDF-4, then return an error.*/
-   if (cmode & NC_NETCDF4)
-       return NC_ENOTBUILT;
-#endif /* USE_NETCDF4 undefined */   
+   /* Check the mode flag for sanity. */
+   if ((stat = check_create_mode(cmode)))
+       return stat;
 
    /* Initialize the dispatch table. The function pointers in the
     * dispatch table will depend on how netCDF was built
