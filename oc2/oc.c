@@ -12,7 +12,6 @@
 #include "ocdump.h"
 #include "nclog.h"
 #include "ncrc.h"
-#include "occlientparams.h"
 #include "occurlfunctions.h"
 #include "ochttp.h"
 #include "ncwinpath.h"
