@@ -323,6 +323,17 @@ AC_ARG_ENABLE([logging],
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
 
+# Does the user want to build without nc_set_log_level()? Perhaps
+# because they already defined their own in order to silence build
+# errors.
+AC_MSG_CHECKING([whether netCDF-4 no-op nc_set_log_level function should be included when logging is disabled])
+AC_ARG_ENABLE([set-log-level],
+              [AS_HELP_STRING([--disable-set-log-level],
+                              [disables the nc_set_log_level() function. \
+			      Ignored if netCDF-4 is not enabled or --enable-logging is used.])])
+test "x$enable_set_log_level" = xno || enable_set_log_level=yes
+AC_MSG_RESULT([$enable_set_log_level])
+
 ## Capture the state of the --enable-dap flag => enable dap2+dap4
 AC_MSG_CHECKING([whether DAP client(s) are to be built])
 AC_ARG_ENABLE([dap],
@@ -1242,6 +1253,11 @@ if test "x$enable_logging" = xyes; then
    AC_DEFINE([LOGGING], 1, [If true, turn on logging.])
 fi
 
+# If logging is off, we still will include an empty nc_set_log_level()
+# function, unless the user disables it. */
+if test "x$enable_set_log_level" = xyes -a "x$enable_logging" = xno; then
+   AC_DEFINE([SET_LOG_LEVEL], 1, [If true, include the nc_set_log_level() function.])
+fi
 
 # Like other libraries, udunits and libcf
 # are no long part of the netcdf distribution.

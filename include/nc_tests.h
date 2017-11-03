@@ -20,6 +20,7 @@ for conditions of use.
 #include "netcdf_par.h"
 #endif
 #include "netcdf.h"
+#include <nc_logging.h>
 //#include "err_macros.h"
 
 

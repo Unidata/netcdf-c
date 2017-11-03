@@ -1427,12 +1427,19 @@ nc4_normalize_name(const char *name, char *norm_name)
    return NC_NOERR;
 }
 
-/* Print out a bunch of info to stderr about the metadata for
-   debugging purposes. */
 #ifdef LOGGING
-/* Use this to set the global log level. Set it to NC_TURN_OFF_LOGGING
-   (-1) to turn off all logging. Set it to 0 to show only errors, and
-   to higher numbers to show more and more logging details. */
+/** \ingroup v2_api
+
+Set the logging level.
+
+Use this to set the global log level. Set it to NC_TURN_OFF_LOGGING
+(-1) to turn off all logging. Set it to 0 to show only errors, and to
+higher numbers to show more and more logging details. 
+
+\param new_level the new logging level.
+
+\returns 0 for success.
+*/
 int
 nc_set_log_level(int new_level)
 {
@@ -1587,6 +1594,29 @@ log_metadata_nc(NC *nc)
    return rec_print_metadata(h5->root_grp, 0);
 }
 
+#else /* LOGGING */
+#ifdef SET_LOG_LEVEL
+/* If logging is not enabled, define an empty nc_set_log_level()
+ * function. This way,  */
+/** \ingroup v2_api
+
+This has no effect since the library was built without configure
+option --enable-logging.
+
+This function is included so users can use nc_set_log_level() in their
+codes, and not get link errors when they link to a netCDF build that
+does not support logging.
+
+\param new_level the new logging level (ignored).
+
+\returns 0 always.
+*/
+int
+nc_set_log_level(int new_level)
+{
+    return 0;
+}
+#endif /* SET_LOG_LEVEL */
 #endif /*LOGGING */
 
 /* Show the in-memory metadata for a netcdf file. */
