@@ -115,20 +115,20 @@ const char *nc_strerror(int ncerr1)
       case NC_EINVALCOORDS:
 	 return "NetCDF: Index exceeds dimension bound";
       case NC_EMAXDIMS:
-	 return "NetCDF: NC_MAX_DIMS exceeded";
+	 return "NetCDF: NC_MAX_DIMS exceeded"; /* not enforced after 4.5.0 */
       case NC_ENAMEINUSE:
 	 return "NetCDF: String match to name in use";
       case NC_ENOTATT:
 	 return "NetCDF: Attribute not found";
       case NC_EMAXATTS:
-	 return "NetCDF: NC_MAX_ATTRS exceeded";
+	 return "NetCDF: NC_MAX_ATTRS exceeded"; /* not enforced after 4.5.0 */
       case NC_EBADTYPE:
 	 return "NetCDF: Not a valid data type or _FillValue type mismatch";
       case NC_EBADDIM:
 	 return "NetCDF: Invalid dimension ID or name";
       case NC_EUNLIMPOS:
 	 return "NetCDF: NC_UNLIMITED in the wrong index";
-      case NC_EMAXVARS:	 return "NetCDF: NC_MAX_VARS exceeded";
+      case NC_EMAXVARS:	 return "NetCDF: NC_MAX_VARS exceeded"; /* not enforced after 4.5.0 */
       case NC_ENOTVAR:
 	 return "NetCDF: Variable not found";
       case NC_EGLOBAL:

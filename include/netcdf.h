@@ -307,30 +307,66 @@ there. */
 
 #define NC_NOERR        0          /**< No Error */
 #define NC2_ERR         (-1)       /**< Returned for all errors in the v2 API. */
-#define NC_EBADID       (-33)      /**< Not a netcdf id. */
-#define NC_ENFILE       (-34)      /**< Too many netcdfs open */
-#define NC_EEXIST       (-35)      /**< netcdf file exists && NC_NOCLOBBER */
-#define NC_EINVAL       (-36)      /**< Invalid Argument */
-#define NC_EPERM        (-37)      /**< Write to read only */
-#define NC_ENOTINDEFINE (-38)      /**< Operation not allowed in data mode. */
-#define NC_EINDEFINE    (-39)      /**< Operation not allowed in define mode. */
-#define NC_EINVALCOORDS (-40)      /**< Index exceeds dimension bound. */
-#define NC_EMAXDIMS     (-41)      /**< NC_MAX_DIMS exceeded. */
-#define NC_ENAMEINUSE   (-42)      /**< String match to name in use */
-#define NC_ENOTATT      (-43)      /**< Attribute not found */
-#define NC_EMAXATTS     (-44)      /**< NC_MAX_ATTRS exceeded */
-#define NC_EBADTYPE     (-45)      /**< Not a netcdf data type */
-#define NC_EBADDIM      (-46)      /**< Invalid dimension id or name */
-#define NC_EUNLIMPOS    (-47)      /**< NC_UNLIMITED in the wrong index */
-#define NC_EMAXVARS     (-48)      /**< NC_MAX_VARS exceeded. */
-#define NC_ENOTVAR      (-49)      /**< Variable not found. */
-#define NC_EGLOBAL      (-50)      /**< Action prohibited on NC_GLOBAL varid */
-#define NC_ENOTNC       (-51)      /**< Not a netcdf file */
-#define NC_ESTS         (-52)      /**< In Fortran, string too short */
-#define NC_EMAXNAME     (-53)      /**< NC_MAX_NAME exceeded */
-#define NC_EUNLIMIT     (-54)      /**< NC_UNLIMITED size already in use */
-#define NC_ENORECVARS   (-55)      /**< nc_rec op when there are no record vars */
-#define NC_ECHAR        (-56)      /**< Attempt to convert between text & numbers */
+
+/** Not a netcdf id.
+
+The specified netCDF ID does not refer to an
+open netCDF dataset. */
+#define	NC_EBADID	(-33)
+#define	NC_ENFILE	(-34)	   /**< Too many netcdfs open */
+#define	NC_EEXIST	(-35)	   /**< netcdf file exists && NC_NOCLOBBER */
+#define	NC_EINVAL	(-36)	   /**< Invalid Argument */
+#define	NC_EPERM	(-37)	   /**< Write to read only */
+
+/** Operation not allowed in data mode. This is returned for netCDF
+classic or 64-bit offset files, or for netCDF-4 files, when they were
+been created with ::NC_CLASSIC_MODEL flag in nc_create(). */
+#define NC_ENOTINDEFINE	(-38)
+
+/** Operation not allowed in define mode.
+
+The specified netCDF is in define mode rather than data mode.
+
+With netCDF-4/HDF5 files, this error will not occur, unless
+::NC_CLASSIC_MODEL was used in nc_create().
+ */
+#define	NC_EINDEFINE	(-39)
+
+/** Index exceeds dimension bound.
+
+The specified corner indices were out of range for the rank of the
+specified variable. For example, a negative index or an index that is
+larger than the corresponding dimension length will cause an error. */
+#define	NC_EINVALCOORDS	(-40)
+
+/** NC_MAX_DIMS exceeded. Max number of dimensions exceeded in a
+classic or 64-bit offset file, or an netCDF-4 file with
+::NC_CLASSIC_MODEL on. */
+#define	NC_EMAXDIMS	(-41) /* not enforced after 4.5.0 */
+
+#define	NC_ENAMEINUSE	(-42)	   /**< String match to name in use */
+#define NC_ENOTATT	(-43)	   /**< Attribute not found */
+#define	NC_EMAXATTS	(-44)	   /**< NC_MAX_ATTRS exceeded */ /* not enforced after 4.5.0 */
+#define NC_EBADTYPE	(-45)	   /**< Not a netcdf data type */
+#define NC_EBADDIM	(-46)	   /**< Invalid dimension id or name */
+#define NC_EUNLIMPOS	(-47)	   /**< NC_UNLIMITED in the wrong index */
+
+/** NC_MAX_VARS exceeded. Max number of variables exceeded in a
+classic or 64-bit offset file, or an netCDF-4 file with
+::NC_CLASSIC_MODEL on. */
+#define	NC_EMAXVARS	(-48) /* not enforced after 4.5.0 */
+
+/** Variable not found.
+
+The variable ID is invalid for the specified netCDF dataset. */
+#define NC_ENOTVAR	(-49)
+#define NC_EGLOBAL	(-50)	   /**< Action prohibited on NC_GLOBAL varid */
+#define NC_ENOTNC	(-51)	   /**< Not a netcdf file */
+#define NC_ESTS        	(-52)	   /**< In Fortran, string too short */
+#define NC_EMAXNAME    	(-53)	   /**< NC_MAX_NAME exceeded */
+#define NC_EUNLIMIT    	(-54)	   /**< NC_UNLIMITED size already in use */
+#define NC_ENORECVARS  	(-55)	   /**< nc_rec op when there are no record vars */
+#define NC_ECHAR	(-56)	   /**< Attempt to convert between text & numbers */
 
 /** Start+count exceeds dimension bound.
 
