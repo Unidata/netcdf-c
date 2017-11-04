@@ -1199,6 +1199,15 @@ constrainable(NCURI* durl)
    return 0;
 }
 
+static const char*
+paramlookup(NCDAPCOMMON* state, const char* key)
+{
+    const char* value = NULL;
+    if(state == NULL || key == NULL || state->oc.url == NULL) return NULL;
+    value = ncurilookup(state->oc.url,key);
+    return value;
+}
+
 /* Note: this routine only applies some common
    client parameters, other routines may apply
    specific ones.
@@ -1219,17 +1228,17 @@ applyclientparams(NCDAPCOMMON* nccomm)
     ASSERT(nccomm->oc.url != NULL);
 
     nccomm->cdf.cache->cachelimit = DFALTCACHELIMIT;
-    value = oc_clientparam_get(conn,"cachelimit");
+    value = paramlookup(nccomm,"cachelimit");
     limit = getlimitnumber(value);
     if(limit > 0) nccomm->cdf.cache->cachelimit = limit;
 
     nccomm->cdf.fetchlimit = DFALTFETCHLIMIT;
-    value = oc_clientparam_get(conn,"fetchlimit");
+    value = paramlookup(nccomm,"fetchlimit");
     limit = getlimitnumber(value);
     if(limit > 0) nccomm->cdf.fetchlimit = limit;
 
     nccomm->cdf.smallsizelimit = DFALTSMALLLIMIT;
-    value = oc_clientparam_get(conn,"smallsizelimit");
+    value = paramlookup(nccomm,"smallsizelimit");
     limit = getlimitnumber(value);
     if(limit > 0) nccomm->cdf.smallsizelimit = limit;
 
@@ -1241,23 +1250,23 @@ applyclientparams(NCDAPCOMMON* nccomm)
       }
     }
 #endif
-    value = oc_clientparam_get(conn,"cachecount");
+    value = paramlookup(nccomm,"cachecount");
     limit = getlimitnumber(value);
     if(limit > 0) nccomm->cdf.cache->cachecount = limit;
     /* Ignore limit if not caching */
     if(!FLAGSET(nccomm->controls,NCF_CACHE))
         nccomm->cdf.cache->cachecount = 0;
 
-    if(oc_clientparam_get(conn,"nolimit") != NULL)
+    if(paramlookup(nccomm,"nolimit") != NULL)
 	dfaltseqlim = 0;
-    value = oc_clientparam_get(conn,"limit");
+    value = paramlookup(nccomm,"limit");
     if(value != NULL && strlen(value) != 0) {
         if(sscanf(value,"%d",&len) && len > 0) dfaltseqlim = len;
     }
     nccomm->cdf.defaultsequencelimit = dfaltseqlim;
 
     /* allow embedded _ */
-    value = oc_clientparam_get(conn,"stringlength");
+    value = paramlookup(nccomm,"stringlength");
     if(value != NULL && strlen(value) != 0) {
         if(sscanf(value,"%d",&len) && len > 0) dfaltstrlen = len;
     }
@@ -1272,7 +1281,7 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	pathstr = makeocpathstring(conn,var->ocnode,".");
 	strncat(tmpname,pathstr,NC_MAX_NAME);
 	nullfree(pathstr);
-	value = oc_clientparam_get(conn,tmpname);
+	value = paramlookup(nccomm,tmpname);
         if(value != NULL && strlen(value) != 0) {
             if(sscanf(value,"%d",&len) && len > 0) var->maxstringlength = len;
 	}
@@ -1285,11 +1294,11 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	strcpy(tmpname,"nolimit_");
 	pathstr = makeocpathstring(conn,var->ocnode,".");
 	strncat(tmpname,pathstr,NC_MAX_NAME);
-	if(oc_clientparam_get(conn,tmpname) != NULL)
+	if(paramlookup(nccomm,tmpname) != NULL)
 	    var->sequencelimit = 0;
 	strcpy(tmpname,"limit_");
 	strncat(tmpname,pathstr,NC_MAX_NAME);
-	value = oc_clientparam_get(conn,tmpname);
+	value = paramlookup(nccomm,tmpname);
         if(value != NULL && strlen(value) != 0) {
             if(sscanf(value,"%d",&len) && len > 0)
 		var->sequencelimit = len;
@@ -1298,7 +1307,7 @@ applyclientparams(NCDAPCOMMON* nccomm)
     }
 
     /* test for the appropriate fetch flags */
-    value = oc_clientparam_get(conn,"fetch");
+    value = paramlookup(nccomm,"fetch");
     if(value != NULL && strlen(value) > 0) {
 	if(value[0] == 'd' || value[0] == 'D') {
             SETFLAG(nccomm->controls,NCF_ONDISK);
@@ -1306,7 +1315,7 @@ applyclientparams(NCDAPCOMMON* nccomm)
     }
 
     /* test for the force-whole-var flag */
-    value = oc_clientparam_get(conn,"wholevar");
+    value = paramlookup(nccomm,"wholevar");
     if(value != NULL) {
         SETFLAG(nccomm->controls,NCF_WHOLEVAR);
     }
