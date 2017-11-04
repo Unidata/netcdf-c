@@ -27,7 +27,9 @@ test_vara_SOURCES = test_vara.c t_srcdir.h
 if ENABLE_DAP
 check_PROGRAMS += t_dap3a test_cvt3 test_vara
 TESTS += t_dap3a test_cvt3 test_vara
+if BUILD_UTILITIES
 TESTS += tst_ncdap3.sh
+endif
 
 # remote tests are optional
 # because the server may be down or inaccessible
@@ -37,10 +39,10 @@ check_PROGRAMS += findtestserver
 findtestserver_SOURCES = findtestserver.c
 
 if BUILD_UTILITIES
-TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh
+TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh
 endif
 
-TESTS += test_partvar testurl.sh
+TESTS += test_partvar
 
 if ENABLE_DAP_LONG_TESTS
  TESTS += tst_longremote3.sh
