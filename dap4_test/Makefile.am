@@ -25,12 +25,12 @@ test_parse_SOURCES = test_parse.c test_common.h
 test_meta_SOURCES = test_meta.c test_common.h
 test_data_SOURCES = test_data.c test_common.h
 TESTS += test_parse.sh
-TESTS += test_meta.sh
-TESTS += test_data.sh
 
 if BUILD_UTILITIES
 # These rely on ncdump
 TESTS += test_raw.sh
+TESTS += test_meta.sh
+TESTS += test_data.sh
 endif
 
 if ENABLE_DAP_REMOTE_TESTS
