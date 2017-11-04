@@ -1618,6 +1618,7 @@ layer nc_create and nc_open functions.
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOTBUILT Requested feature not built into library
 \returns ::NC_NINVAL Invalid combination of modes.
+\author Ed Hartnett
 */
 static int
 check_mode(int is_create, int mode)
@@ -1638,11 +1639,24 @@ check_mode(int is_create, int mode)
 	if (mode & NC_MPIIO && mode & NC_MPIPOSIX)
 	    return NC_EINVAL;
 	
-	/* Can't use both parallel and diskless. */
-	if ((mode & NC_MPIIO && mode & NC_DISKLESS) ||
-	    (mode & NC_MPIPOSIX && mode & NC_DISKLESS))
-	    return NC_EINVAL;
     }
+    else
+    {
+	/* For open calls, no format may be specified. You get the
+	 * format that goes with the file. */
+	/* if (mode & NC_NETCDF4 || mode & NC_CDF5 || mode & NC_64BIT_OFFSET) */
+	/*     return NC_EINVAL; */
+    }
+
+    /* Can't use both parallel and diskless, for either open or create. */
+    if ((mode & NC_MPIIO && mode & NC_DISKLESS) ||
+	(mode & NC_MPIPOSIX && mode & NC_DISKLESS))
+	return NC_EINVAL;
+
+    /* Can't use both types of parallel at the same time, for open or
+     * create. */
+    if ((mode & NC_MPIIO && mode & NC_MPIPOSIX))
+	return NC_EINVAL;
     
 #ifndef USE_DISKLESS
    /* If diskless is requested, but not built, return error. */
@@ -1891,7 +1905,7 @@ NC_open(const char *path0, int cmode,
         int useparallel, void* parameters,
         int *ncidp)
 {
-   int stat = NC_NOERR;
+   int stat;
    NC* ncp = NULL;
    NC_Dispatch* dispatcher = NULL;
    int inmemory = 0;
@@ -1904,6 +1918,11 @@ NC_open(const char *path0, int cmode,
    char* path = NULL;
 
    TRACE(nc_open);
+
+   /* Check the mode flag for sanity. */
+   if ((stat = check_mode(0, cmode)))
+       return stat;
+   
    if(!NC_initialized) {
       stat = nc_initialize();
       if(stat) return stat;
