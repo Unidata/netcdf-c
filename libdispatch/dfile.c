@@ -1606,7 +1606,12 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
 \internal
 \ingroup dispatch
 
-Check the create mode for sanity.
+Check the create and open mode parameters for sanity.
+
+Some create and mode flags cannot be combined. Others can only be used
+ifcorresponding library features are enabled during the build. This
+function does a pre-check of the mode flag before calling the dispatch
+layer nc_create and nc_open functions.
 
 \param cmode The creation mode flag.
 
@@ -1615,44 +1620,49 @@ Check the create mode for sanity.
 \returns ::NC_NINVAL Invalid combination of modes.
 */
 static int
-check_create_mode(int cmode)
+check_mode(int is_create, int mode)
 {
     int mode_format;
 
-    /* This is a clever check to see if more than one format bit is
-    * set. */
-    mode_format = (cmode & NC_NETCDF4) | (cmode & NC_64BIT_OFFSET) |
-       (cmode & NC_CDF5);
-   if (mode_format && (mode_format & (mode_format - 1)))
-       return NC_EINVAL;
-
-   /* Can't use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
-    * mind! */
-   if (cmode & NC_MPIIO && cmode & NC_MPIPOSIX)
-       return NC_EINVAL;
-
-   /* Can't use both parallel and diskless. */
-   if ((cmode & NC_MPIIO && cmode & NC_DISKLESS) ||
-       (cmode & NC_MPIPOSIX && cmode & NC_DISKLESS))
-       return NC_EINVAL;
-
+    if (is_create)
+    {
+	/* This is a clever check to see if more than one format bit is
+	 * set. */
+	mode_format = (mode & NC_NETCDF4) | (mode & NC_64BIT_OFFSET) |
+	    (mode & NC_CDF5);
+	if (mode_format && (mode_format & (mode_format - 1)))
+	    return NC_EINVAL;
+	
+	/* Can't use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
+	 * mind! */
+	if (mode & NC_MPIIO && mode & NC_MPIPOSIX)
+	    return NC_EINVAL;
+	
+	/* Can't use both parallel and diskless. */
+	if ((mode & NC_MPIIO && mode & NC_DISKLESS) ||
+	    (mode & NC_MPIPOSIX && mode & NC_DISKLESS))
+	    return NC_EINVAL;
+    }
+    
 #ifndef USE_DISKLESS
    /* If diskless is requested, but not built, return error. */
-   if (cmode & NC_DISKLESS)
+   if (mode & NC_DISKLESS)
+       return NC_ENOTBUILT;       
+   if (mode & NC_INMEMORY)
        return NC_ENOTBUILT;       
 #endif
    
 #ifndef USE_NETCDF4
    /* If the user ask for a netCDF-4 file, and the library was built
     * without netCDF-4, then return an error.*/
-   if (cmode & NC_NETCDF4)
+   if (mode & NC_NETCDF4)
        return NC_ENOTBUILT;
 #endif /* USE_NETCDF4 undefined */
 
 #ifndef USE_PARALLEL
    /* If parallel support is not included, these mode flags won't
     * work. */
-   if (cmode & NC_PNETCDF || cmode & NC_MPIPOSIX)
+   if (mode & NC_PNETCDF || mode & NC_MPIPOSIX)
        return NC_ENOTBUILT;
 #endif /* USE_PARALLEL */
 
@@ -1712,7 +1722,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	return NC_EINVAL;
 
    /* Check the mode flag for sanity. */
-   if ((stat = check_create_mode(cmode)))
+   if ((stat = check_mode(1, cmode)))
        return stat;
 
    /* Initialize the dispatch table. The function pointers in the
