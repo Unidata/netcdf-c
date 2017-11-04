@@ -86,7 +86,7 @@ rctrim(char* text)
 static NClist*
 rcorder(NClist* rc)
 {
-    int i,j;
+    int i;
     int len = nclistlength(rc);
     NClist* newrc = nclistnew();
     if(rc == NULL || len == 0) return newrc;
