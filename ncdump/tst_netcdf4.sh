@@ -86,7 +86,15 @@ ${NCDUMP} -c -s tst_special_atts.nc \
 echo "*** comparing tst_special_atts.cdl with ref_tst_special_atts.cdl..."
 diff -b tst_special_atts.cdl $srcdir/ref_tst_special_atts.cdl
 
+echo ""
+echo "*** Testing ncdump on file with corrupted header "
+rm -f ./ignore
+if ${NCDUMP} ${srcdir}/test_corrupt_magic.nc > ./ignore 2>&1 ; then
+echo "***Fail: ncdump should have failed on test_corrupt_magic.nc"
+else
+echo "***XFail: ncdump properly failed on test_corrupt_magic.nc"
+fi
+rm -fr ./ignore
+
 echo "*** All ncgen and ncdump test output for netCDF-4 format passed!"
 exit 0
-
-

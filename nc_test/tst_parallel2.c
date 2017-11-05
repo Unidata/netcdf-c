@@ -221,11 +221,12 @@ main(int argc, char **argv)
     MPE_Log_event(e_close, 0, "end close file");
 #endif /* USE_MPE */
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (mpi_rank == 0)
+	remove(file_name);
+
     /* Shut down MPI. */
     MPI_Finalize();
-
-    /* Delete this large file. */
-    remove(file_name); 
 
 #ifdef DEBUG
     if (!mpi_rank)
