@@ -29,7 +29,8 @@
 #define X_INT_MAX	2147483647
 
 /* Given a filename, check its magic number */
-#define MAGIC_NUMBER_LEN 4
+/* Change magic number size from 4 to 8 to be more precise for HDF5 */
+#define MAGIC_NUMBER_LEN 8
 #define MAGIC_HDF5_FILE 1
 #define MAGIC_HDF4_FILE 2
 #define MAGIC_CDF1_FILE 1 /* std classic format */
