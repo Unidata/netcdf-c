@@ -113,7 +113,7 @@ att_read_var_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
 }
 
 /* Define the illegal mode flags */
-static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET);
+static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET|NC_CDF5);
 
 static const int ILLEGAL_CREATE_FLAGS = (NC_NOWRITE|NC_MMAP|NC_INMEMORY|NC_64BIT_OFFSET|NC_CDF5);
 
@@ -1556,12 +1556,8 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    NC_VAR_INFO_T *var = NULL;
    hid_t access_pid = 0;
    int incr_id_rc = 0;          /* Whether the dataset ID's ref count has been incremented */
-   int natts, a, d;
-   const char** reserved;
-
-   NC_ATT_INFO_T *att;
+   int d;
    att_iter_info att_info;         /* Custom iteration information */
-   char att_name[NC_MAX_HDF5_NAME + 1];
 
 #define CD_NELEMS_ZLIB 1
 #define CD_NELEMS_SZIP 4

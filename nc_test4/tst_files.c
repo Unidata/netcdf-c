@@ -75,6 +75,9 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
+      /* Try to open with wrong flags - these will fail. */
+      if (nc_open(FILE_NAME, NC_CDF5, &ncid) != NC_EINVAL) ERR;
+
       /* Recreate it again. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimids[0])) ERR;
