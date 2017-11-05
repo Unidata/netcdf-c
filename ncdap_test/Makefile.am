@@ -102,5 +102,6 @@ clean-local: clean-local-check
 
 clean-local-check:
 	-rm -rf results
-	-rm .dodsrc
+	-rm -f .dodsrc
+
 
