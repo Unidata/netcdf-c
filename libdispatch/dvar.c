@@ -162,7 +162,7 @@ element of the dimids array.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTINDEFINE Not in define mode.
 \returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
-\returns ::NC_EMAXVARS NC_MAX_VARS exceeded
+\returns ::NC_EMAXVARS NC_MAX_VARS exceeded [Not enforced after 4.5.0]
 \returns ::NC_EBADTYPE Bad type.
 \returns ::NC_EINVAL Invalid input.
 \returns ::NC_ENAMEINUSE Name already in use.

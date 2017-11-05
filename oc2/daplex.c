@@ -40,16 +40,28 @@ static char* ddsworddelims =
   "{}[]:;=,";
 
 /* Define 1 and > 1st legal characters */
+/* Note: for some reason I added # and removed !~'"
+   what was I thinking?
+*/
 static char* ddswordchars1 =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\.*!~'\"";
 static char* ddswordcharsn =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*#";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\.*!~'\"";
+
+/* This includes sharp and colon for historical reasons */
 static char* daswordcharsn =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*#:";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\.*#:!~'\"";
+
+/* Need to remove '.' to allow for fqns */
 static char* cewordchars1 =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\*!~'\"";
 static char* cewordcharsn =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\*!~'\"";
 
 /* Current sets of legal characters */
 /*
