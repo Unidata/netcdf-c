@@ -108,6 +108,12 @@ int main(int argc, char **argv) {
     test_type(ncid, NC_STRING,"NC_STRING");
 
     if(nc_close(ncid)) ERR;
+
+    /* Try and open with incorrect flags. Open will fail. */
+    if (nc_open(FILE_NAME, 0, &ncid)) ERR;
+    if(nc_close(ncid)) ERR;
+    if (!nc_open(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+    /* if (nc_open(FILE_NAME, NC_NETCDF4, &ncid) != NC_EINVAL) ERR; */
   }
 
 #ifdef USE_NETCDF4

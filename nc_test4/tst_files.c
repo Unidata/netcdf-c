@@ -77,6 +77,8 @@ main(int argc, char **argv)
 
       /* Try to open with wrong flags - these will fail. */
       if (nc_open(FILE_NAME, NC_CDF5, &ncid) != NC_EINVAL) ERR;
+      if (nc_open(FILE_NAME, NC_MMAP, &ncid) != NC_EINVAL) ERR;
+      if (nc_open(FILE_NAME, NC_64BIT_OFFSET, &ncid) != NC_EINVAL) ERR;
 
       /* Recreate it again. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
