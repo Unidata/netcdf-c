@@ -401,6 +401,10 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    if (h5->cmode & NC_CLASSIC_MODEL && xtype > NC_DOUBLE)
       BAIL(NC_ESTRICTNC3);
 
+   /* For classic files */
+   if (h5->cmode & NC_CLASSIC_MODEL && ndims > NC_MAX_VAR_DIMS)
+      BAIL(NC_EMAXDIMS);
+
    /* cast needed for braindead systems with signed size_t */
    if((unsigned long) ndims > X_INT_MAX) /* Backward compat */
       BAIL(NC_EINVAL);
