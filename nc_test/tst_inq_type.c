@@ -109,10 +109,12 @@ int main(int argc, char **argv) {
 
     if(nc_close(ncid)) ERR;
 
-    /* Try and open with incorrect flags. Open will fail. */
-    if (nc_open(FILE_NAME, 0, &ncid)) ERR;
-    if(nc_close(ncid)) ERR;
-    if (!nc_open(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+    /* /\* Re-open the file to make sure we can read it. *\/ */
+    /* if (nc_open(FILE_NAME, 0, &ncid)) ERR; */
+    /* if(nc_close(ncid)) ERR; */
+
+    /* /\* Try and open with incorrect flags. Open will fail. *\/ */
+    /* if (!nc_open(FILE_NAME, NC_NETCDF4, &ncid)) ERR; */
     /* if (nc_open(FILE_NAME, NC_NETCDF4, &ncid) != NC_EINVAL) ERR; */
   }
 
