@@ -2841,7 +2841,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
       {res = NC_EINVAL; goto done;}
 
    /* Cannot have both */
-   assert(!(mode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX));
+   assert(!(mode & NC_MPIIO && mode & NC_MPIPOSIX));
 
 #ifndef USE_PARALLEL_POSIX
 /* If the HDF5 library has been compiled without the MPI-POSIX VFD, alias
