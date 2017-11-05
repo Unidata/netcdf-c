@@ -140,7 +140,5 @@ main(int argc, char **argv)
    }
    SUMMARIZE_ERR;
 
-   nc_finalize();
-
    FINAL_RESULTS;
 }
