@@ -57,7 +57,7 @@ size_t nciterbuffersize;
 struct Vlendata* vlendata;
 
 char *netcdf_name; /* command line -o file name */
-char *datasetname; /* name from the netcdf <name> {} */
+char *datasetname; /* name from the netcdf <name> {} || from -N */
 
 extern FILE *ncgin;
 
@@ -200,6 +200,8 @@ usage(void)
 " [-o outfile]"
 " [-P]"
 " [-x]"
+" [-N datasetname]"
+" [-L loglevel]"
 " [file ... ]",
 	   progname);
     derror("netcdf library version %s", nc_inq_libvers());
@@ -250,7 +252,7 @@ main(
     (void) par_io_init(32, 32);
 #endif
 
-    while ((c = getopt(argc, argv, "134567bB:cdD:fhHk:l:M:no:Pv:xL:")) != EOF)
+    while ((c = getopt(argc, argv, "134567bB:cdD:fhHk:l:M:no:Pv:xL:N:")) != EOF)
       switch(c) {
 	case 'd':
 	  debug = 1;
@@ -323,6 +325,9 @@ main(
 	  break;
 	case 'o':		/* to explicitly specify output name */
 	  netcdf_name = nulldup(optarg);
+	  break;
+	case 'N':		/* to explicitly specify dataset name */
+	  datasetname = nulldup(optarg);
 	  break;
 	case 'x': /* set nofill mode to speed up creation of large files */
 	  nofill_flag = 1;
