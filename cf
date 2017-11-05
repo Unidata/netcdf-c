@@ -7,7 +7,7 @@ FAST=1
 HDF5=1
 DAP=1
 #HDF4=1
-#PNETCDF=1
+PNETCDF=1
 #PAR4=1
 
 if test $# != 0 ; then
@@ -152,19 +152,11 @@ FLAGS="$FLAGS --disable-dap"
 fi
 
 if test "x$MPIO" = x1 ; then
-  if test -f /machine/local_mpich2 ; then
-    MPI1=/machine/local_mpich2
-    MPI2=/machine/local_par7
-    MPI3=/machine/local_par
-  else
-    MPI1=/usr/local
-    MPI2=${MPI1}
-    MPI3=${MPI1}
-  fi
-  PATH=${PATH}:${MPI1}/bin
-  CC="${MPI1}/bin/mpicc"
-  CPPFLAGS="-I${MPI2}/include -I${MPI1}/include -I${MPI3}/include"
-  LDFLAGS="-L${MPI2}/lib -L${MPI1}/lib -L${MPI3}/lib"
+  MPIDIR=/usr/lib64/mpich
+  PATH="${PATH}:${MPIDIR}/bin"
+  CC="${MPIDIR}/bin/mpicc"
+  CPPFLAGS="-I${MPIDIR}/include"
+  LDFLAGS="$LDFLAGS -L${MPIDIR}"
   LDLIBS="-lmpich"
   FLAGS="$FLAGS --enable-pnetcdf"
   FLAGS="$FLAGS --enable-parallel-tests"
