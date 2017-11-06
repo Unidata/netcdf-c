@@ -29,7 +29,6 @@ static void freeInfo(NCD4INFO*);
 static int paramcheck(NCD4INFO*, const char* key, const char* subkey);
 static const char* getparam(NCD4INFO* info, const char* key);
 static int set_curl_properties(NCD4INFO*);
-static void d4removecookies(const char* path);
 
 /**************************************************/
 /* Constants */
@@ -65,6 +64,11 @@ NCD4_open(const char * path, int mode,
     /* Parse url and params */
     if(ncuriparse(nc->path,&d4info->uri) != NCU_OK)
 	{ret = NC_EDAPURL; goto done;}
+
+    /* Load auth info from rc file */
+    if((ret = NC_authsetup(&d4info->auth, d4info->uri)))
+	goto done;
+    NCD4_curl_protocols(d4info);
 
     if(!constrainable(d4info->uri))
 	SETFLAG(d4info->controls.flags,NCF_UNCONSTRAINABLE);
@@ -308,6 +312,7 @@ freeInfo(NCD4INFO* d4info)
     }
     nullfree(d4info->substrate.filename); /* always reclaim */
     NCD4_reclaimMeta(d4info->substrate.metadata);
+    NC_authclear(&d4info->auth);
     free(d4info);    
 }
 
@@ -319,21 +324,6 @@ freeCurl(NCD4curl* curl)
     ncbytesfree(curl->packet);
     nullfree(curl->errdata.code);
     nullfree(curl->errdata.message);
-    nullfree(curl->curlflags.useragent);
-    nullfree(curl->curlflags.netrc);
-    nullfree(curl->ssl.certificate);
-    nullfree(curl->ssl.key);
-    nullfree(curl->ssl.keypasswd);
-    nullfree(curl->ssl.cainfo);
-    nullfree(curl->ssl.capath);
-    nullfree(curl->proxy.host);
-    nullfree(curl->proxy.user);
-    nullfree(curl->proxy.pwd);
-    nullfree(curl->creds.user);
-    nullfree(curl->creds.pwd);
-    if(curl->curlflags.createdflags & COOKIECREATED)
-        d4removecookies(curl->curlflags.cookiejar);
-    nullfree(curl->curlflags.cookiejar);
 }
 
 /* Define the set of protocols known to be constrainable */
@@ -358,61 +348,55 @@ set_curl_properties(NCD4INFO* d4info)
 {
     int ret = NC_NOERR;
 
-    /* defaults first */
-    NCD4_rcdefault(d4info);
-
-    /* extract the relevant triples into d4info */
-    NCD4_rcprocess(d4info);
-
-    if(d4info->curl->curlflags.useragent == NULL) {
+    if(d4info->auth.curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len+1);
 	strncpy(agent,DFALTUSERAGENT,len);
 	strncat(agent,VERSION,len);
-        d4info->curl->curlflags.useragent = agent;
+        d4info->auth.curlflags.useragent = agent;
     }
 
     /* Some servers (e.g. thredds and columbia) appear to require a place
        to put cookies in order for some security functions to work
     */
-    if(d4info->curl->curlflags.cookiejar != NULL
-       && strlen(d4info->curl->curlflags.cookiejar) == 0) {
-	free(d4info->curl->curlflags.cookiejar);
-	d4info->curl->curlflags.cookiejar = NULL;
+    if(d4info->auth.curlflags.cookiejar != NULL
+       && strlen(d4info->auth.curlflags.cookiejar) == 0) {
+	free(d4info->auth.curlflags.cookiejar);
+	d4info->auth.curlflags.cookiejar = NULL;
     }
 
-    if(d4info->curl->curlflags.cookiejar == NULL) {
+    if(d4info->auth.curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
         int ok;
         char* path = NULL;
-        char* name = NULL;
+        char* newpath = NULL;
         int len;
 	errno = 0;
 	/* Create the unique cookie file name */
         len =
-	  strlen(NCD4_globalstate->tempdir)
+	  strlen(ncrc_globalstate.tempdir)
 	  + 1 /* '/' */
 	  + strlen("ncd4cookies");
         path = (char*)malloc(len+1);
         if(path == NULL) return NC_ENOMEM;
-	snprintf(path,len,"%s/nc4cookies",NCD4_globalstate->tempdir);
+	snprintf(path,len,"%s/nc4cookies",ncrc_globalstate.tempdir);
 	/* Create the unique cookie file name */
-        ok = NCD4_mktmp(path,&name);
+        newpath = NC_mktmp(path);
         free(path);
-	if(ok != NC_NOERR && errno != EEXIST) {
+	if(newpath == NULL) {
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    goto fail;
 	}
-	d4info->curl->curlflags.cookiejar = name;
-	d4info->curl->curlflags.createdflags |= COOKIECREATED;
+	d4info->auth.curlflags.cookiejar = newpath;
+	d4info->auth.curlflags.cookiejarcreated = 1;
 	errno = 0;
     }
-    assert(d4info->curl->curlflags.cookiejar != NULL);
+    assert(d4info->auth.curlflags.cookiejar != NULL);
 
     /* Make sure the cookie jar exists and can be read and written */
     {
 	FILE* f = NULL;
-	char* fname = d4info->curl->curlflags.cookiejar;
+	char* fname = d4info->auth.curlflags.cookiejar;
 	/* See if the file exists already */
         f = fopen(fname,"r");
 	if(f == NULL) {
@@ -516,12 +500,3 @@ getparam(NCD4INFO* info, const char* key)
     return value;
 }
 
-static void
-d4removecookies(const char* path)
-{
-#ifdef _MSC_VER
-    DeleteFile(path);
-#else
-    remove(path);
-#endif
-}
