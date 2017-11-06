@@ -355,7 +355,8 @@ NIL|nil|Nil {
 		    q = p;
 		    while((c=*p++)) {if(c > ' ') *q++ = c;}
 		    *q = '\0';
-		    datasetname = bbDup(lextext);
+		    if(datasetname == NULL)
+		        datasetname = bbDup(lextext);
 		    BEGIN(INITIAL);
 		    return lexdebug(DATASETID);
 		}

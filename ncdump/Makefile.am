@@ -8,6 +8,9 @@
 include $(top_srcdir)/lib_flags.am
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+
 TESTS_ENVIRONMENT=CC=${CC}
 
 # This is the program we're building, and it's sources.
@@ -48,7 +51,9 @@ tst_dimsizes.sh run_ncgen_tests.sh
 
 if USE_NETCDF4
 check_PROGRAMS += tst_fileinfo
-TESTS += tst_fileinfo.sh run_ncgen_nc4_tests.sh
+TESTS += tst_fileinfo.sh
+TESTS += tst_hdf5_offset.sh
+TESTS += run_ncgen_nc4_tests.sh
 endif
 
 if LARGE_FILE_TESTS
@@ -173,7 +178,11 @@ CMakeLists.txt XGetopt.c tst_bom.sh tst_inmemory_nc3.sh                 \
 tst_dimsizes.sh tst_inmemory_nc4.sh tst_fileinfo.sh run_ncgen_tests.sh  \
 test_360_day_1900.nc test_365_day_1900.nc test_366_day_1900.nc          \
 ref_test_360_day_1900.cdl ref_test_365_day_1900.cdl ref_test_366_day_1900.cdl \
-run_ncgen_nc4_tests.sh tst_nccopy3_subset.sh ref_nccopy3_subset.nc
+tst_hdf5_offset.sh run_ncgen_nc4_tests.sh tst_nccopy3_subset.sh ref_nccopy3_subset.nc test_corrupt_magic.nc
+
+# The L512.bin file is file containing exactly 512 bytes each of value 0.
+# It is used for creating hdf5 files with varying offsets for testing.
+EXTRA_DIST += L512.bin
 
 # CDL files and Expected results
 SUBDIRS=cdl expected
