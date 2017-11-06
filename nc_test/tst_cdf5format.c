@@ -16,6 +16,7 @@
 #define NDIM2 2
 #define FILENAME "tst_cdf5format.nc"
 
+/* Write a file with 2 dims and 6 vars, including some sample data. */
 int
 write2(int ncid, int parallel)
 {
@@ -71,6 +72,7 @@ write2(int ncid, int parallel)
    return 0;
 }
 
+/* Add some attributes to the vars of an open file. */
 int
 extend(int ncid)
 {
@@ -89,6 +91,7 @@ extend(int ncid)
    return NC_NOERR;
 }
 
+/* Read the file and check the data. */
 int
 read2(int ncid)
 {
@@ -132,43 +135,48 @@ int main(int argc, char* argv[])
    if (rank > 0)
       return 2;
 
-   /* pnetcdf->cdf5 */
    printf("\nWrite using PNETCDF; Read using classic netCDF...");
-    
-   /* Create a netCDF classic file with pnetcdf. */
-   cmode = NC_PNETCDF | NC_CLOBBER;
-   if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR;
-   if (write2(ncid, 1)) ERR;
-   if (nc_close(ncid)) ERR;
+   {
+      /* Create a netCDF classic file with pnetcdf. */
+      cmode = NC_PNETCDF | NC_CLOBBER;
+      if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR;
+      if (write2(ncid, 1)) ERR;
+      if (nc_close(ncid)) ERR;
+      
+      /* Re-open the file with pnetCDF (parallel) and add var attributes. */
+      if (nc_open_par(FILENAME, NC_WRITE|NC_PNETCDF, comm, info, &ncid)) ERR;
+      if (extend(ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+      
+      /* Open with classic and check. */
+      if (nc_open(FILENAME, 0, &ncid)) ERR;
+      if (read2(ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
 
-   /* Re-open the file with netCDF (parallel) and add var attributes. */
-   if (nc_open_par(FILENAME, NC_WRITE|NC_PNETCDF, comm, info, &ncid)) ERR;
-   if (extend(ncid)) ERR;
-   if (nc_close(ncid)) ERR;
+   printf("\nWrite using CDF-5; Read using PNETCDF...");
+   {
+      /* Create a file with CDF5. */
+      cmode = NC_CDF5 | NC_CLOBBER;
+      if (nc_create(FILENAME, cmode, &ncid)) ERR;
+      if (write2(ncid, 0)) ERR;
+      if (nc_close(ncid)) ERR;
+      
+      /* Re-open the file with CDF5 and add some atts. */
+      if (nc_open(FILENAME, NC_WRITE, &ncid)) ERR;
+      if (extend(ncid)) ERR;
+      if (nc_close(ncid)) ERR;
 
-   if (nc_open(FILENAME, 0, &ncid)) ERR;
-   if (read2(ncid)) ERR;
-   if (nc_close(ncid)) ERR;
-
-   /* cdf5->pnetcdf */
-   printf("\nWrite using CDF-5; Read using PNETCDF\n");
-   cmode = NC_CDF5 | NC_CLOBBER;
-   if (nc_create(FILENAME, cmode, &ncid)) ERR;
-   if (write2(ncid, 0)) ERR;
-   if (nc_close(ncid)) ERR;
-   
-   /* re-open the file with netCDF (parallel) and enter define mode */
-   if (nc_open(FILENAME, NC_WRITE|NC_CDF5, &ncid)) ERR;
-   if (extend(ncid)) ERR;
-   if (nc_close(ncid)) ERR;
-
-   cmode = NC_PNETCDF | NC_NOCLOBBER;
-   if (nc_open_par(FILENAME, cmode, comm, info, &ncid)) ERR;
-   if (read2(ncid)) ERR;
-   if (nc_close(ncid)) ERR;
+      /* Re-open with pnetcdf and check. */
+      cmode = NC_PNETCDF | NC_NOCLOBBER;
+      if (nc_open_par(FILENAME, cmode, comm, info, &ncid)) ERR;
+      if (read2(ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
 
    MPI_Finalize();
-   SUMMARIZE_ERR;
    FINAL_RESULTS;
    return 0;
 }
