@@ -32,6 +32,6 @@ extern ncerror NCD4_set_curlflag(NCD4INFO*,int);
 extern void NCD4_curl_debug(NCD4INFO* state);
 
 extern struct CURLFLAG* NCD4_curlflagbyname(const char* name);
-extern void NCD4_curl_protocols(NCD4globalstate* state);
+extern void NCD4_curl_protocols(NCD4INFO*);
 
 #endif /*D4CURLFUNCTIONS_H*/

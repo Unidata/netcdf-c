@@ -19,7 +19,6 @@ SRC= \
 d4crc32.c \
 d4curlfunctions.c \
 d4curlflags.c \
-d4rc.c \
 d4fix.c \
 d4data.c \
 d4file.c \
