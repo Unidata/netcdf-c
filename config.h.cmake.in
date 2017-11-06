@@ -295,6 +295,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `mkstemp' function. */
 #cmakedefine HAVE_MKSTEMP 1
 
+/* Define to 1 if you have the `mktemp' function. */
+#cmakedefine HAVE_MKTEMP 1
+
 /* Define to 1 if you have a working `mmap' system call. */
 #cmakedefine HAVE_MMAP 1
 
