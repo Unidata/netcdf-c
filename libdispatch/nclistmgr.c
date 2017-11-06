@@ -8,6 +8,7 @@
 #include <string.h>
 #include <assert.h>
 #include "nc.h"
+#include <ncdispatch.h>
 
 #define ID_SHIFT (16)
 #define NCFILELISTLENGTH 0x10000
@@ -60,6 +61,49 @@ add_to_NCList(NC* ncp)
     ncp->ext_ncid = new_id;
     return NC_NOERR;
 }
+
+#ifdef USE_PIO
+/**
+ * Add to the NC list of open files, for PIO. 
+ *
+ * @param ncp pointer to the NC struct.
+ * @param parameters pointer to NC_MPI_INFO struct with special MPI
+ * info.
+ *
+ * @returns 0 on success, error code otherwise.
+ * @author Ed Hartnett
+ */
+int
+pio_add_to_NCList(NC* ncp, void *parameters)
+{
+    int i;
+    int new_id;
+    NC_MPI_INFO *data = parameters;
+    
+    if(nc_filelist == NULL) {
+	if (!(nc_filelist = calloc(1, sizeof(NC*)*NCFILELISTLENGTH)))
+	    return NC_ENOMEM;
+	numfiles = 0;
+    }
+#ifdef USE_REFCOUNT
+    /* Check the refcount */
+    if(ncp->refcount > 0)
+	return NC_NOERR;
+#endif
+
+    new_id = 0; /* id's begin at 1 */
+    for(i=1; i < NCFILELISTLENGTH; i++) {
+	if(nc_filelist[i] == NULL) {new_id = i; break;}
+    }
+    if(new_id == 0) return NC_ENOMEM; /* no more slots */
+    nc_filelist[new_id] = ncp;
+    numfiles++;
+    new_id = (new_id << ID_SHIFT);
+    ncp->ext_ncid = new_id;
+    return NC_NOERR;
+}
+#endif /* USE_PIO */
+
 
 void
 del_from_NCList(NC* ncp)
