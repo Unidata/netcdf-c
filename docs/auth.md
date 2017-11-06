@@ -125,12 +125,14 @@ will have HTTP.VERBOSE set to 0 because its host+port matches the example above.
 ## Authorization-Related Keys {#AUTHKEYS}
 
 The currently defined set of authorization-related keys are as follows.
-The second column is the affected curl_easy_setopt option(s), if any.
+The second column is the affected curl_easy_setopt option(s), if any
+(see reference #1).
 <table>
 <tr><th>Key</th><th>Affected curl_easy_setopt Options</th><th>Notes</th>
 <tr><td>HTTP.COOKIEJAR</td><td>CURLOPT_COOKIEJAR</td>
 <tr><td>HTTP.COOKIEFILE</td><td>CURLOPT_COOKIEJAR</td><td>Alias for CURLOPT_COOKIEJAR</td>
-<tr><td>HTTP.PROXY_SERVER</td><td>CURLOPT_PROXY, CURLOPT_PROXYPORT, CURLOPT_PROXYUSERPWD</td>
+<tr><td>HTTP.PROXY.SERVER</td><td>CURLOPT_PROXY, CURLOPT_PROXYPORT, CURLOPT_PROXYUSERPWD</td>
+<tr><td>HTTP.PROXY_SERVER</td><td>CURLOPT_PROXY, CURLOPT_PROXYPORT, CURLOPT_PROXYUSERPWD</td><td>Decprecated: use HTTP.PROXY.SERVER</td>
 <tr><td>HTTP.SSL.CERTIFICATE</td><td>CURLOPT_SSLCERT</td>
 <tr><td>HTTP.SSL.KEY</td><td>CURLOPT_SSLKEY</td>
 <tr><td>HTTP.SSL.KEYPASSWORD</td><td>CURLOPT_KEYPASSWORD</td>
@@ -139,7 +141,9 @@ The second column is the affected curl_easy_setopt option(s), if any.
 <tr><td>HTTP.SSL.VERIFYPEER</td><td>CURLOPT_SSL_VERIFYPEER</td>
 <tr><td>HTTP.SSL.VALIDATE</td><td>CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST</td>
 <tr><td>HTTP.CREDENTIALS.USERPASSWORD</td><td>CURLOPT_USERPASSWORD</td>
-<tr><td>HTTP.NETRC</td><td>CURLOPT_NETRC,CURLOPT_NETRC_FILE</td>
+<tr><td>HTTP.CREDENTIALS.USERNAME</td><td>CURLOPT_USERNAME</td>
+<tr><td>HTTP.CREDENTIALS.PASSWORD</td><td>CURLOPT_PASSWORD</td>
+<tr><td>HTTP.NETRC</td><td>N.A.</td><td>Specify path of the .netrc file</td>
 </table>
 
 ### Password Authentication
@@ -152,6 +156,15 @@ The value must be of the form "username:password".
 See the <a href="#USERPWDESCAPE">password escaping</a> section
 to see how this value must escape certain characters.
 Also see <a href="#REDIR">redirection authorization</a>
+for important additional information.
+
+The pair of keys
+HTTP.CREDENTIALS.USERNAME and HTTP.CREDENTIALS.PASSWORD
+can be used as an alternative to HTTP.CREDENTIALS.USERPASSWORD
+to set the simple password authentication.
+If present, they take precedence over HTTP.CREDENTIALS.USERPASSWORD.
+The values do not need to be escaped.
+See <a href="#REDIR">redirection authorization</a>
 for important additional information.
 
 ### Cookie Jar
@@ -180,14 +193,18 @@ specifies the password for accessing the HTTP.SSL.CERTIFICAT/HTTP.SSL.key file.
 HTTP.SSL.CAPATH
 specifies the path to a directory containing
 trusted certificates for validating server sertificates.
+See reference #2 for more info.
 
 HTTP.SSL.VALIDATE
 is a boolean (1/0) value that if true (1)
 specifies that the client should verify the server's presented certificate.
 
-HTTP.PROXY_SERVER
+HTTP.PROXY.SERVER
 specifies the url for accessing the proxy:
 e.g. *http://[username:password@]host[:port]*
+
+HTTP.PROXY_SERVER
+deprecated; use HTTP.PROXY.SERVER
 
 HTTP.NETRC
 specifies the absolute path of the .netrc file.
@@ -207,7 +224,8 @@ If the user+pwd is embedded in the URL, then '@' and ':' __must__ be escaped.
 If the user+pwd is the value for 
 the HTTP.CREDENTIALS.USERPASSWORD key in the _rc_ file, then
 ':' __must__ be escaped.
-Escaping should __not__ be used in the `.netrc` file.
+Escaping should __not__ be used in the `.netrc` file nor in
+HTTP.CREDENTIALS.USERNAME or HTTPCREDENTIALS.PASSWORD.
 
 The relevant escape codes are as follows.
 <table>
@@ -284,6 +302,11 @@ This requires setting the following entries:
 
 Note that the first two are there to support re-direction based authentication.
 
+## References
+
+1. https://curl.haxx.se/libcurl/c/curl_easy_setopt.html
+2. https://curl.haxx.se/docs/ssl-compared.html
+
 ## Appendix A. All RC-File Keys {#allkeys}
 
 For completeness, this is the list of all rc-file keys.
@@ -297,6 +320,7 @@ the code is definitive.
 <tr><td>HTTP.USERAGENT</td><td>CUROPT_USERAGENT</td>
 <tr><td>HTTP.COOKIEJAR</td><td>CUROPT_COOKIEJAR</td>
 <tr><td>HTTP.COOKIE_JAR</td><td>CUROPT_COOKIEJAR</td>
+<tr valign="top"><td>HTTP.PROXY.SERVER</td><td>CURLOPT_PROXY,<br>CURLOPT_PROXYPORT,<br>CURLOPT_PROXYUSERPWD</td>
 <tr valign="top"><td>HTTP.PROXY_SERVER</td><td>CURLOPT_PROXY,<br>CURLOPT_PROXYPORT,<br>CURLOPT_PROXYUSERPWD</td>
 <tr><td>HTTP.SSL.CERTIFICATE</td><td>CUROPT_SSLCERT</td>
 <tr><td>HTTP.SSL.KEY</td><td>CUROPT_SSLKEY</td>
@@ -305,6 +329,8 @@ the code is definitive.
 <tr><td>HTTP.SSL.CAPATH</td><td>CUROPT_CAPATH</td>
 <tr><td>HTTP.SSL.VERIFYPEER</td><td>CUROPT_SSL_VERIFYPEER</td>
 <tr><td>HTTP.CREDENTIALS.USERPASSWORD</td><td>CUROPT_USERPASSWORD</td>
+<tr><td>HTTP.CREDENTIALS.USERNAME</td><td>CUROPT_USERNAME</td>
+<tr><td>HTTP.CREDENTIALS.PASSWORD</td><td>CUROPT_PASSWORD</td>
 <tr><td>HTTP.NETRC</td><td>CURLOPT_NETRC,CURLOPT_NETRC_FILE</td>
 </table>
 

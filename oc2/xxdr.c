@@ -57,7 +57,7 @@
 #include <sys/types.h>
 #endif
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #include <wchar.h>
 #include <sys/types.h>
 #endif
