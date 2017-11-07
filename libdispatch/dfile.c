@@ -1657,6 +1657,10 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    int xcmode = 0; /* for implied cmode flags */
    char* path = NULL;
 
+#ifdef USE_PIO
+   int use_pio = ((cmode & NC_PIO) == NC_PIO);
+#endif /* USE_PIO */
+
    TRACE(nc_create);
    if(path0 == NULL)
 	return NC_EINVAL;
@@ -1802,7 +1806,14 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    if(stat) return stat;
 
    /* Add to list of known open files and define ext_ncid */
+#ifdef USE_PIO
+   if (use_pio)
+      pio_add_to_NCList(ncp);
+   else
+      add_to_NCList(ncp);
+#else
    add_to_NCList(ncp);
+#endif /* USE_PIO */
 
 #ifdef USE_REFCOUNT
    /* bump the refcount */
@@ -1847,7 +1858,6 @@ NC_open(const char *path0, int cmode,
    NC_Dispatch* dispatcher = NULL;
    int inmemory = 0;
    int diskless = 0;
-   int use_pio = 0;
    /* Need pieces of information for now to decide model*/
    int model = 0;
    int isurl = 0;
@@ -1873,7 +1883,9 @@ NC_open(const char *path0, int cmode,
 
    inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
-   use_pio = ((cmode & NC_PIO) == NC_PIO);
+#ifdef USE_PIO
+   int use_pio = ((cmode & NC_PIO) == NC_PIO);
+#endif /* USE_PIO */
 
 #ifdef WINPATH
    path = NCpathcvt(path0);
