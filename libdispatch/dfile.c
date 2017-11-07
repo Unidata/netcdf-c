@@ -23,6 +23,9 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
 #include "ncwinpath.h"
+#ifdef USE_PIO
+#include <pio.h>
+#endif /* USE_PIO */
 
 /* If Defined, then use only stdio for all magic number io;
    otherwise use stdio or mpio as required.
@@ -2012,7 +2015,10 @@ havetable:
 
    /* Add to list of known open files */
 #ifdef USE_PIO
-   pio_add_to_NCList(ncp, (NC_MPI_INFO *)parameters);
+   if (use_pio)
+      pio_add_to_NCList(ncp);
+   else
+      add_to_NCList(ncp);
 #else
    add_to_NCList(ncp);
 #endif /* USE_PIO */

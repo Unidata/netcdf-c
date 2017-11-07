@@ -14,7 +14,7 @@
 #include <pio.h>
 #include <pio_internal.h>
 
-int last_iosysid;
+int current_iosysid;
 
 /* Must follow netcdf.h */
 /* #include <pnetcdf.h> */
@@ -47,6 +47,19 @@ int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filen
 			 int mode, int retry, struct NC_Dispatch *table, NC *nc);
 
 /**************************************************/
+
+int set_iosysid(int iosysid)
+{
+   current_iosysid = iosysid;
+   return NC_NOERR;
+}
+
+int get_iosysid(int *iosysidp)
+{
+   if (iosysidp)
+      *iosysidp = current_iosysid;
+   return NC_NOERR;
+}
 
 static int
 PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *chunksizehintp,
@@ -110,7 +123,7 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
     else if (cmode & NC_PNETCDF)
 	iotype = PIO_IOTYPE_PNETCDF;
 
-    res = PIOc_createfile_int2(last_iosysid, &nc->ext_ncid, &iotype, path, cmode,
+    res = PIOc_createfile_int2(current_iosysid, &nc->ext_ncid, &iotype, path, cmode,
 			       use_parallel, mpidata, table, nc);
     LOG((2, "PIOc_createfile_int2 called res %d nc->ext_ncid %d", res, nc->ext_ncid));
 
@@ -162,7 +175,7 @@ PIO_open(const char *path, int cmode, int basepe, size_t *chunksizehintp,
     }
     else if (cmode & NC_PNETCDF)
 	iotype = PIO_IOTYPE_PNETCDF;
-    res = PIOc_openfile_retry2(last_iosysid, &ncid, &iotype, path, cmode, 0, table, nc);
+    res = PIOc_openfile_retry2(current_iosysid, &ncid, &iotype, path, cmode, 0, table, nc);
 
     return res;
 }

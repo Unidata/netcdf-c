@@ -73,7 +73,7 @@ extern int NC_check_file_type(const char *path, int flags, void *parameters, int
 
 extern int add_to_NCList(NC*);
 #ifdef USE_PIO
-extern int pio_add_to_NCList(NC*, void *parameters);
+extern int pio_add_to_NCList(NC*);
 #endif /* USE_PIO */
 extern void del_from_NCList(NC*);/* does not free object */
 extern NC* find_in_NCList(int ext_ncid);

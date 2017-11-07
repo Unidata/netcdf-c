@@ -1672,6 +1672,14 @@ nc_put_var_string(int ncid, int varid, const char **op);
 EXTERNL int
 nc_get_var_string(int ncid, int varid, char **ip);
 
+/* These are functions for PIO. They only function if library was
+ * built with --enable-pio. */
+EXTERNL int
+get_iosysid(int *iosysidp);
+
+EXTERNL int
+set_iosysid(int iosysid);
+
 /* Begin Deprecated, same as functions with "_ubyte" replaced by "_uchar" */
 EXTERNL int
 nc_put_att_ubyte(int ncid, int varid, const char *name, nc_type xtype,

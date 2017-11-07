@@ -18,7 +18,7 @@ int default_error_handler = PIO_INTERNAL_ERROR;
  * used (see pio_sc.c). */
 extern int blocksize;
 
-extern int last_iosysid;
+extern int current_iosysid;
 
 /* Used when assiging decomposition IDs. */
 int pio_next_ioid = 512;
@@ -927,7 +927,7 @@ int PIOc_Init_Intracomm(MPI_Comm comp_comm, int num_iotasks, int stride, int bas
     *iosysidp = pio_add_to_iosystem_list(ios);
 
     /* Remember this value. */
-    last_iosysid = *iosysidp;
+    current_iosysid = *iosysidp;
 
     /* Allocate buffer space for compute nodes. */
     if ((ret = compute_buffer_init(ios)))
