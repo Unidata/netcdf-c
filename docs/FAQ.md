@@ -864,7 +864,7 @@ model format file foo4c.nc, you could use:
   nccopy -k netCDF-4-classic foo3.nc foo4c.nc
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you have installed [NCO](http://www.unidata.ucar.edu/software/netcdf/docs/software.html#NCO), the NCO
+If you have installed [NCO](http://www.unidata.ucar.edu/software/netcdf/software.html#NCO), the NCO
 utility "ncks" can be used to accomplish the same task, as follows:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~ {.boldcode}
