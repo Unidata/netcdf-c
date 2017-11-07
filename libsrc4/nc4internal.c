@@ -40,12 +40,6 @@ extern size_t nc4_chunk_cache_size;
 extern size_t nc4_chunk_cache_nelems;
 extern float nc4_chunk_cache_preemption;
 
-/* This is to track opened HDF5 objects to make sure they are
- * closed. */
-#ifdef EXTRA_TESTS
-extern int num_spaces;
-#endif /* EXTRA_TESTS */
-
 #ifdef LOGGING
 /* This is the severity level of messages which will be logged. Use
    severity 0 for errors, 1 for important log messages, 2 for less
@@ -146,9 +140,7 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid, size_t *maxlen
        BAIL(retval);
      if ((spaceid = H5Dget_space(datasetid)) < 0)
        BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-     num_spaces++;
-#endif
+
      /* If it's a scalar dataset, it has length one. */
      if (H5Sget_simple_extent_type(spaceid) == H5S_SCALAR)
      {
@@ -182,9 +174,6 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid, size_t *maxlen
   exit:
    if (spaceid > 0 && H5Sclose(spaceid) < 0)
       BAIL2(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_spaces--;
-#endif
    if (h5dimlen) free(h5dimlen);
    if (h5dimlenmax) free(h5dimlenmax);
    return retval;
