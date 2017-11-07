@@ -65,11 +65,12 @@ main(int argc, char **argv)
    unsigned char uchar_out[DIM1_LEN] = {0, 128, 255};
    int format[MAX_NUM_FORMATS];
    int num_formats;
+   int f = 0;
 
    printf("\n*** Testing netcdf data conversion.\n");
    determine_test_formats(&num_formats, format);
 
-   for (int f = 0; f < num_formats; f++)
+   for (f = 0; f < num_formats; f++)
    {
       printf("*** Testing conversion in netCDF %s files... ", format_name[f]);
       create_file(format[f], uchar_out);
