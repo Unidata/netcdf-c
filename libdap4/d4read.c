@@ -37,7 +37,7 @@ NCD4_readDAP(NCD4INFO* state, int flags)
     } else { /*((flags & NCF_ONDISK) != 0) */
         NCURI* url = state->uri;
         int fileprotocol = (strcmp(url->protocol,"file")==0);
-        if(fileprotocol && !state->curl->curlflags.proto_file) {
+        if(fileprotocol) {
             stat = readfiletofile(url, ".dap", state->data.ondiskfile, &state->data.datasize);
         } else {
 	    char* readurl = NULL;
@@ -86,7 +86,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, long* las
 
     fileprotocol = (strcmp(url->protocol,"file")==0);
 
-    if(fileprotocol && !state->curl->curlflags.proto_file) {
+    if(fileprotocol) {
 	/* Short circuit file://... urls*/
 	/* We do this because the test code always needs to read files*/
 	stat = readfile(url,suffix,packet);
@@ -99,7 +99,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, long* las
 	MEMCHECK(fetchurl);
 	if(state->debug > 0)
             {fprintf(stderr,"fetch url=%s\n",fetchurl); fflush(stderr);}
-        stat = NCD4_fetchurl(curl,fetchurl,packet,lastmodified,&state->curl->creds);
+        stat = NCD4_fetchurl(curl,fetchurl,packet,lastmodified);
         nullfree(fetchurl);
 	if(stat) goto fail;
 	if(state->debug > 0)
@@ -151,10 +151,6 @@ readfile(const NCURI* uri, const char* suffix, NCbytes* packet)
 {
     int stat = NC_NOERR;
     char buf[1024];
-    int fd = -1;
-    int flags = 0;
-    d4size_t filesize = 0;
-    d4size_t totalread = 0;
     NCbytes* tmp = ncbytesnew();
     char* filename = NULL;
 
@@ -163,53 +159,7 @@ readfile(const NCURI* uri, const char* suffix, NCbytes* packet)
     ncbytesnull(tmp);
     filename = ncbytesextract(tmp);
     ncbytesfree(tmp);
-    flags = O_RDONLY;
-#ifdef O_BINARY
-    flags |= O_BINARY;
-#endif
 
-    fd = NCopen2(filename,flags);
-    if(fd < 0) {
-	nclog(NCLOGERR,"open failed:%s",filename);
-	fprintf(stderr,"XXX: open failed: flags=0x%x file=%s\n",flags,filename);
-        fflush(stderr);
-	stat = NC_ENOTFOUND;
-	goto done;
-    }
-    /* Get the file size */
-    filesize = lseek(fd,(d4size_t)0,SEEK_END);
-    if(filesize < 0) {
-	stat = NC_EIO;
-	nclog(NCLOGERR,"lseek failed: %s",filename);
-	goto done;
-    }
-    /* Move file pointer back to the beginning of the file */
-    (void)lseek(fd,(d4size_t)0,SEEK_SET);
-    stat = NC_NOERR;
-    for(totalread=0;;) {
-	d4size_t count = (d4size_t)read(fd,buf,sizeof(buf));
-	if(count == 0)
-	    break; /*eof*/
-	else if(count <  0) {
-	    stat = NC_EIO;
-	    nclog(NCLOGERR,"read failed: %s",filename);
-	    goto done;
-	}
-	ncbytesappendn(packet,buf,(unsigned long)count);
-	totalread += count;
-    }
-    if(totalread < filesize) {
-	stat = NC_EIO;
-	nclog(NCLOGERR,"short read: |%s|=%lu read=%lu\n",
-		filename,(unsigned long)filesize,(unsigned long)totalread);
-        goto done;
-    }
-
-done:
-#ifdef D4DEBUG
-fprintf(stderr,"readfile: filesize=%lu totalread=%lu\n",
-		(unsigned long)filesize,(unsigned long)totalread);
-#endif
-    if(fd >= 0) close(fd);
+    stat = NC_readfile(filename,packet);
     return THROW(stat);
 }

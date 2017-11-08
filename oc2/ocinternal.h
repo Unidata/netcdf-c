@@ -6,8 +6,7 @@
 
 #include "config.h"
 
-
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER
 #include <malloc.h>
 #endif
 
@@ -41,6 +40,7 @@
 #include <curl/curl.h>
 
 #include "netcdf.h"
+#include "ncauth.h"
 #include "nclist.h"
 #include "ncbytes.h"
 #include "ncuri.h"
@@ -158,28 +158,11 @@ struct OCTriplestore {
    } triples[MAXRCLINES];
 };
 
-/* Collect global state info in one place */
-extern struct OCGLOBALSTATE {
-    int initialized;
-    struct {
-        int proto_file;
-        int proto_https;
-    } curl;
-    char* tempdir; /* track a usable temp dir */
-    char* home; /* track $HOME for use in creating $HOME/.oc dir */
-    struct {
-	int ignore; /* if 1, then do not use any rc file */
-	int loaded;
-        struct OCTriplestore daprc; /* the rc file triple store fields*/
-        char* rcfile; /* specified rcfile; overrides anything else */
-    } rc;
-} ocglobalstate;
-
 /*! Specifies the OCstate = non-opaque version of OClink */
 struct OCstate {
     OCheader header; /* class=OC_State */
     NClist* trees; /* list<OCNODE*> ; all root objects */
-    NCURI* uri; /* base URI*/
+    NCURI* uri; /* parsed base URI*/
     NCbytes* packet; /* shared by all trees during construction */
     struct OCerrdata {/* Hold info for an error return from server */
 	char* code;
@@ -189,42 +172,8 @@ struct OCstate {
     } error;
     CURL* curl; /* curl handle*/
     char curlerror[CURL_ERROR_SIZE];
-    struct OCcurlflags {
-        int proto_file; /* Is file: supported? */
-        int proto_https; /* is https: supported? */
-	int compress; /*CURLOPT_ENCODING*/
-	int verbose; /*CURLOPT_ENCODING*/
-	int timeout; /*CURLOPT_TIMEOUT*/
-	int maxredirs; /*CURLOPT_MAXREDIRS*/
-	char* useragent; /*CURLOPT_USERAGENT*/
-	/* track which of these are created by oc */
-#define COOKIECREATED 1
-	int createdflags;
-	char* cookiejar; /*CURLOPT_COOKIEJAR,CURLOPT_COOKIEFILE*/
-	char* netrc; /*CURLOPT_NETRC,CURLOPT_NETRC_FILE*/
-    } curlflags;
-    struct OCSSL {
-	int   verifypeer; /* CURLOPT_SSL_VERIFYPEER;
-                             do not do this when cert might be self-signed
-                             or temporarily incorrect */
-	int   verifyhost; /* CURLOPT_SSL_VERIFYHOST; for client-side verification */
-        char* certificate; /*CURLOPT_SSLCERT*/
-	char* key; /*CURLOPT_SSLKEY*/
-	char* keypasswd; /*CURLOPT_SSLKEYPASSWD*/
-        char* cainfo; /* CURLOPT_CAINFO; certificate authority */
-	char* capath;  /*CURLOPT_CAPATH*/
-    } ssl;
-    struct OCproxy {
-	char *host; /*CURLOPT_PROXY*/
-	int port; /*CURLOPT_PROXYPORT*/
-	char* user; /*CURLOPT_PROXYUSERNAME*/
-	char* pwd; /*CURLOPT_PROXYPASSWORD*/
-    } proxy;
-    struct OCcredentials {
-	char *user; /*CURLOPT_USERNAME*/
-	char *pwd; /*CURLOPT_PASSWORD*/
-    } creds;
     void* usercurldata;
+    NCauth auth; /* curl auth data */
     long ddslastmodified;
     long datalastmodified;
 };
@@ -262,6 +211,9 @@ typedef struct OCtree
 extern int cedebug;
 extern NClist* CEparse(OCstate*,char* input);
 #endif
+
+extern int ocinitialized;
+
 
 extern OCerror ocopen(OCstate** statep, const char* url);
 extern void occlose(OCstate* state);

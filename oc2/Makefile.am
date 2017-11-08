@@ -17,7 +17,7 @@ occompile.c occurlfunctions.c \
 ocdata.c ocdebug.c ocdump.c  \
 ocinternal.c ocnode.c \
 ochttp.c \
-ocrc.c ocread.c ocutil.c \
+ocread.c ocutil.c \
 occurlflags.c \
 xxdr.c
 
