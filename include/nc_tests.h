@@ -24,6 +24,7 @@ for conditions of use.
 
 
 #define NC_TESTS_MAX_DIMS 1024 /**< NC_MAX_DIMS for tests.  Allows different NC_MAX_DIMS values without breaking this test with a heap or stack overflow. */
+#define MAX_NUM_FORMATS 5 /**< Max number of available binary formats. */
 
 /** Useful define for tests. */
 /** \{ */
