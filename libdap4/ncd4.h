@@ -84,7 +84,7 @@ extern NCerror NCD4_getvarx(int ncid, int varid,
 /* From d4http.c */
 extern long NCD4_fetchhttpcode(CURL* curl);
 extern int NCD4_fetchurl_file(CURL* curl, const char* url, FILE* stream, d4size_t* sizep, long* filetime);
-extern int NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime, struct credentials* creds);
+extern int NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime);
 extern int NCD4_curlopen(CURL** curlp);
 extern void NCD4_curlclose(CURL* curl);
 extern int NCD4_fetchlastmodified(CURL* curl, char* url, long* filetime);
@@ -128,16 +128,13 @@ extern int NCD4_getToplevelVars(NCD4meta* meta, NCD4node* group, NClist* topleve
 
 /* From d4util.c */
 extern d4size_t NCD4_dimproduct(NCD4node* node);
-extern void NCD4_hostport(NCURI* uri, char* space, size_t len);
 extern size_t NCD4_typesize(nc_type tid);
 extern int NCD4_isLittleEndian(void);/* Return 1 if this machine is little endian */
 extern int NCD4_errorNC(int code, const int line, const char* file);
 extern int NCD4_error(int code, const int line, const char* file, const char* fmt, ...);
 extern char* NCD4_makeFQN(NCD4node* node);
 extern char* NCD4_makeName(NCD4node*,const char* sep);
-extern int NCD4_mktmp(const char* base, char** tmpnamep);
 extern int NCD4_parseFQN(const char* fqn0, NClist* pieces);
-extern int NCD4_readfile(const char* filename, NCbytes* content);
 extern char* NCD4_deescape(const char* esc);
 extern char* NCD4_entityescape(const char* s);
 
