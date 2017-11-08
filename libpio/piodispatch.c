@@ -48,13 +48,39 @@ int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filen
 
 /**************************************************/
 
-int set_iosysid(int iosysid)
+/**
+ * Set the current iosysid.
+ *
+ * The IO system ID is required for nc_create() and nc_open() to
+ * support PIO. This function sets the value of the current IO System
+ * ID. Call this function before creating or opening a file to change
+ * the IO system ID for that file.
+ *
+ * @param iosysid the new IO system ID.
+ *
+ * @returns 0 for success.
+ * @author Ed Hartnett
+ */
+int nc_set_iosysid(int iosysid)
 {
    current_iosysid = iosysid;
    return NC_NOERR;
 }
 
-int get_iosysid(int *iosysidp)
+/**
+ * Get the current iosysid.
+ *
+ * The IO system ID is required for nc_create() and nc_open() to
+ * support PIO. This function gets the value of the current IO System
+ * ID. 
+ *
+ * @param iosysidp a pointer that gets the current IO system
+ * ID. Ignored if NULL.
+ *
+ * @returns 0 for success.
+ * @author Ed Hartnett
+ */
+int nc_get_iosysid(int *iosysidp)
 {
    if (iosysidp)
       *iosysidp = current_iosysid;

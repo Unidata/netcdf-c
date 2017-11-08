@@ -90,8 +90,11 @@ add_to_NCList(NC* ncp)
  *
  * This function is for PIO. It's possible for different processors on
  * the communicator to have different slots used up in their
- * nc_filelist[] array. This function takes a proposed ncid and checks
- * that it is free with all tasks on the communicator.
+ * nc_filelist[] array. Hilarious confusion ensues.
+ *
+ * This function takes a proposed ncid and checks that it is free with
+ * all tasks on the communicator. It uses the current_iosysid, which
+ * can be changed with a call to nc_set_iosysid().
  *
  * @param new_id the proposed ncid to be checked.
  * @param id_ok pointer to an int that will get 0 if the proposed ncid
@@ -101,25 +104,46 @@ add_to_NCList(NC* ncp)
  * @author Ed Hartnett
  * @internal
  */
-static int
-pio_check_ncid(int new_id, int *id_ok)
+int
+PIOc_check_ncid(int new_id, int *id_ok)
 {
     iosystem_desc_t *ios;
     int id_available = 1;
-    int mpierr;
+    int mpierr = MPI_SUCCESS, mpierr2;
     int ret;
-    
-   if (id_ok)
-      *id_ok = 1;
+
+    /* Must provide pointer. */
+    assert(id_ok);
 
    /* Use the current ID to find the IO system info. */
    if (!(ios = pio_get_iosystem_from_id(current_iosysid)))
       return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
    
-   /* Broadcast proposed ncid to all tasks from io root, necessary
-    * because files may be opened on mutilple iosystems, causing the
-    * underlying library to reuse ncids. Hilarious confusion
-    * ensues. */
+    /* Assume it's OK. */
+    *id_ok = 1;
+
+    /* Only in async mode do we care. */
+    if (!ios->async)
+       return NC_NOERR;
+
+    /* If using async, and not an IO task, then send parameters. */
+    if (!ios->ioproc)
+    {
+       int msg = PIO_MSG_CHECK_NCID;
+       
+       if (ios->compmaster == MPI_ROOT)
+	  mpierr = MPI_Send(&msg, 1,MPI_INT, ios->ioroot, 1, ios->union_comm);
+       
+       if (!mpierr)
+	  mpierr = MPI_Bcast(&new_id, 1, MPI_INT, ios->compmaster, ios->intercomm);
+    }
+    
+    /* Handle MPI errors. */
+    if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
+       return check_mpi2(ios, NULL, mpierr2, __FILE__, __LINE__);
+    if (mpierr)
+       return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+
    if (ios->async)
    {
       int iorank;
@@ -166,13 +190,16 @@ pio_check_ncid(int new_id, int *id_ok)
       }
 
       /* Report result to caller. */
-      if (id_ok)
-	 *id_ok = id_available;
+      *id_ok = id_available;
       
       /* Free resources on ioroot task. */
       if (ok_array)
 	 free(ok_array);
    }
+
+   /* Broadcast results. */
+   if ((mpierr = MPI_Bcast(id_ok, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+      return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
    
    return NC_NOERR;
 }
@@ -219,7 +246,7 @@ pio_add_to_NCList(NC* ncp)
        }
 
        /* Check that this ID is OK, if we are using PIO. */
-       if ((ret = pio_check_ncid(new_id, &id_ok)))
+       if ((ret = PIOc_check_ncid(new_id, &id_ok)))
 	  return ret;
     }
     

@@ -1577,6 +1577,11 @@ int PIOc_init_async(MPI_Comm world, int num_io_procs, int *io_proc_list,
         /* Add this id to the list of PIO iosystem ids. */
         iosysidp[cmp] = pio_add_to_iosystem_list(my_iosys);
         LOG((2, "new iosys ID added to iosystem_list iosysidp[%d] = %d", cmp, iosysidp[cmp]));
+
+	/* Remember this value. */
+	if (in_cmp)
+	   current_iosysid = iosysidp[cmp];
+	   
     } /* next computational component */
 
     /* Now call the function from which the IO tasks will not return
