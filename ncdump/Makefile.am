@@ -44,6 +44,12 @@ if BUILD_TESTSETS
 # These tests are run for both netCDF-4 and non-netCDF-4 builds.
 check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8 bom tst_dimsizes nctrunc
 
+# These two code files are copied into the test directory, or
+# generated from ncgen. They must be marked as nodist, or else
+# distcheck builds get confused about these files.
+nodist_ctest_SOURCES = ctest.c
+nodist_ctest64_SOURCES = ctest64.c
+
 TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
 tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh      \
 tst_nccopy3.sh tst_nccopy3_subset.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh \
@@ -94,6 +100,13 @@ tst_h_rdc0_CPPFLAGS = -I${top_srcdir}/nc_test ${AM_CPPFLAGS}
 endif #!USE_NETCDF4
 #endif #!BUILD_DLL
 
+TESTS += tst_ncgen4_classic.sh
+if USE_NETCDF4
+TESTS += tst_ncgen4.sh
+endif
+
+endif BUILD_TESTSETS
+
 # Can't run ncgen to generate ctest.c and ctest64.c on cross-compiles.
 BUILT_SOURCES = ctest.c ctest64.c
 if EXTRA_TESTS
@@ -111,13 +124,7 @@ ctest64.c:
 endif
 
 #if !BUILD_DLL
-TESTS += tst_ncgen4_classic.sh
-if USE_NETCDF4
-TESTS += tst_ncgen4.sh
-endif
 #endif
-
-endif BUILD_TESTSETS
 
 CLEANFILES = test0.nc test1_ncdump.cdl test1_ncdump.nc test2_ncdump.cdl \
 test1.cdl test0_ncdump.nc ctest1.cdl \
