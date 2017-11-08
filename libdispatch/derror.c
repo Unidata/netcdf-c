@@ -16,9 +16,6 @@ Research/Unidata. See COPYRIGHT file for more info.
 static const char nc_libvers[] = PACKAGE_VERSION " of "__DATE__" "__TIME__" $";
 
 /**
-\defgroup lib_version Library Version
-  Functions related to querying the library version.
-
   Return the library version.
 
   \returns short string that contains the version information for the
@@ -194,8 +191,6 @@ const char *nc_strerror(int ncerr1)
 	 return "NetCDF: Authorization failure";
       case NC_ENOTFOUND:
 	 return "NetCDF: file not found";
-      case NC_ECANTEXTEND:
-	return "NetCDF: Attempt to extend dataset during NC_INDEPENDENT I/O operation. Use nc_var_par_access to set mode NC_COLLECTIVE before extending variable.";
       case NC_ECANTREMOVE:
 	 return "NetCDF: cannot delete file";
       case NC_EHDFERR:
@@ -257,8 +252,11 @@ const char *nc_strerror(int ncerr1)
 	    "when netCDF was built.";
       case NC_EDISKLESS:
 	 return "NetCDF: Error in using diskless access";
-      case NC_EMPI:
-	 return "NetCDF: MPI operation failed.";
+      case NC_ECANTEXTEND:
+	return "NetCDF: Attempt to extend dataset during NC_INDEPENDENT I/O operation. Use nc_var_par_access to set mode NC_COLLECTIVE before extending variable.";
+      case NC_EMPI: return "NetCDF: MPI operation failed.";
+      case NC_ERCFILE:
+	return "NetCDF: RC File Failure.";
       default:
 #ifdef USE_PNETCDF
         /* The behavior of ncmpi_strerror here is to return

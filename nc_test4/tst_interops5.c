@@ -194,14 +194,10 @@ main(int argc, char **argv)
       hid_t fileid, grpid, spaceid, datasetid;
       int data_out[DIM1_LEN], data_in[DIM1_LEN];
       hsize_t dims[1] = {DIM1_LEN};
-      H5Z_filter_t filter;
-      int num_filters;
       hid_t propid;
-      unsigned int flags, cd_values[NUM_CD_ELEM], filter_config;
-      size_t cd_nelems = NUM_CD_ELEM;
-      size_t namelen = MAX_NAME;
-      char name[MAX_NAME + 1], name_in[MAX_NAME + 1];
+      char name_in[MAX_NAME + 1];
       int ncid, ndims_in, nvars_in, ngatts_in, unlimdimid_in, ngrps_in;
+      int nc_grpid;
       int dimid_in[1], natts_in;
 
       nc_type xtype_in;
@@ -236,19 +232,19 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims_in, &nvars_in, &ngatts_in, &unlimdimid_in)) ERR;
       if (ndims_in != 0 || nvars_in != 0 || ngatts_in != 0 || unlimdimid_in != -1) ERR;
-      if (nc_inq_grps(ncid, &ngrps_in, &grpid)) ERR;
+      if (nc_inq_grps(ncid, &ngrps_in, &nc_grpid)) ERR;
       if (ngrps_in != 1) ERR;
-      if (nc_inq(grpid, &ndims_in, &nvars_in, &ngatts_in, &unlimdimid_in)) ERR;
+      if (nc_inq(nc_grpid, &ndims_in, &nvars_in, &ngatts_in, &unlimdimid_in)) ERR;
       if (ndims_in != 1 || nvars_in != 1 || ngatts_in != 0 || unlimdimid_in != -1) ERR;
 
       /* Check the variable. */
-      if (nc_inq_var(grpid, 0, name_in, &xtype_in, &ndims_in, dimid_in,
+      if (nc_inq_var(nc_grpid, 0, name_in, &xtype_in, &ndims_in, dimid_in,
       		     &natts_in)) ERR;
       if (strcmp(name_in, BATTLE_RECORD) || xtype_in != NC_INT || ndims_in != 1 ||
       	  dimid_in[0] != 0 || natts_in != 0) ERR;
 
       /* Check the data. */
-      if (nc_get_var(grpid, 0, data_in)) ERR;
+      if (nc_get_var(nc_grpid, 0, data_in)) ERR;
       for (i = 0; i < DIM1_LEN; i++)
 	 if (data_in[i] != data_out[i]) ERR;
 
