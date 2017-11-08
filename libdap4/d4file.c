@@ -426,7 +426,6 @@ fail:
 static void
 applyclientparamcontrols(NCD4INFO* info)
 {
-    NCD4meta* meta = info->substrate.metadata;
     const char* value;
 
     /* clear the flags */

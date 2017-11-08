@@ -35,6 +35,14 @@ if USE_PNETCDF
 TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar tst_formatx_pnetcdf
 endif
 
+if TEST_PARALLEL4
+if USE_PNETCDF
+if USE_CDF5
+TESTPROGRAMS += tst_cdf5format
+endif
+endif
+endif
+
 # These are the source files for the main workhorse test program,
 # nc_test. If you pass nc_test, you are doing well.
 nc_test_SOURCES = nc_test.c error.c test_get.c test_put.c \
