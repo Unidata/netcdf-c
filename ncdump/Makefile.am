@@ -40,13 +40,10 @@ endif
 man_MANS = ncdump.1 nccopy.1
 
 if BUILD_TESTSETS
-#if !BUILD_DLL
 # These tests are run for both netCDF-4 and non-netCDF-4 builds.
 check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8 bom tst_dimsizes nctrunc
 
-# These two code files are copied into the test directory, or
-# generated from ncgen. They must be marked as nodist, or else
-# distcheck builds get confused about these files.
+# These two code files are copied or generated. Mark them as nodist.
 nodist_ctest_SOURCES = ctest.c
 nodist_ctest64_SOURCES = ctest64.c
 
@@ -98,7 +95,6 @@ endif # EXTRA_TESTS
 tst_h_rdc0_CPPFLAGS = -I${top_srcdir}/nc_test ${AM_CPPFLAGS}
 
 endif #!USE_NETCDF4
-#endif #!BUILD_DLL
 
 TESTS += tst_ncgen4_classic.sh
 if USE_NETCDF4
@@ -122,9 +118,6 @@ ctest.c:
 ctest64.c:
 	cp $(top_srcdir)/ncdump/ref_ctest64.c $(top_builddir)/ncdump/ctest64.c
 endif
-
-#if !BUILD_DLL
-#endif
 
 CLEANFILES = test0.nc test1_ncdump.cdl test1_ncdump.nc			\
 test2_ncdump.cdl test1.cdl test0_ncdump.nc ctest1.cdl test1_cdf5.nc	\
