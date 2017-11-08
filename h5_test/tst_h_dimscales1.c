@@ -77,8 +77,8 @@ main()
           H5Dclose(var3_datasetid) < 0 ||
           H5Sclose(var1_spaceid) < 0 ||
           H5Sclose(var3_spaceid) < 0 ||
-          H5Sclose(dimscale_spaceid) < 0) ERR;
-      if (H5Gclose(grpid) < 0 ||
+          H5Sclose(dimscale_spaceid) < 0 ||
+	  H5Gclose(grpid) < 0 ||
           H5Fclose(fileid) < 0) ERR;
    }
    SUMMARIZE_ERR;
