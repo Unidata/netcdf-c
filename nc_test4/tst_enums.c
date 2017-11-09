@@ -304,8 +304,13 @@ main(int argc, char **argv)
       /* Close the file. */
       if (nc_close(ncid) != NC_EINVAL) ERR;
 
+      unsigned char ubyte_value = 42;
+      if (nc_redef(ncid)) ERR;
+      if (nc_insert_enum(ncid, typeid, "name", &ubyte_value)) ERR;
+      if (nc_close(ncid)) ERR;      
    }
 
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
+
