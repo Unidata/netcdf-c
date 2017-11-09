@@ -73,11 +73,13 @@ full functionality. (See \ref architecture).
 Requirements {#netcdf_requirements}
 ----------------------------------
 
-* For netCDF-4 support
-  * HDF5 1.8.9 or later.
-  * HDF5 1.10.1 or later.
+* For netCDF-4 support:
+  * Either HDF5 1.8.9 or later,
+  * or HDF5 1.10.1 or later.
 * zlib 1.2.5 or later (for netCDF-4 compression)
 * curl 7.18.0 or later (for DAP remote access client support)
+
+Note: When building netCDF-C library versions older than 4.4.1, use only HDF5 1.8.x versions.  Combining older netCDF-C versions with newer HDF5 1.10 versions will create superblock 3 files that are not readable by lots of older software.  See <a href="http://www.unidata.ucar.edu/blogs/news/entry/netcdf-4-4-1">this announcement</a> for more details.
 
 
 CMake and Windows support {#sub}
