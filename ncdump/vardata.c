@@ -533,7 +533,6 @@ vardata(
     int id;
     size_t nels;
     size_t ncols;
-    size_t nrows;
     int vrank = vp->ndims;
 
     int level = 0;
@@ -576,7 +575,6 @@ vardata(
 	if (vrank > 1)
 	  add[vrank-2] = 1;
     }
-    nrows = nels/ncols;		/* number of "rows" */
     vals = emalloc(ncols * vp->tinfo->size);
 
     NC_CHECK(print_rows(level, ncid, varid, vp, vdims, cor, edg, vals, marks_pending));
