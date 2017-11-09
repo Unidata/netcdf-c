@@ -385,7 +385,7 @@ NC_hashmap_verify(NC_hashmap* hash, NC_dim** dims)
     for(i=0;i<hash->size;i++) {
 	hEntry* e = &hash->table[i];
 	if(e->flags == ACTIVE) {
-	    fprintf(stderr,"[%lu] key=%lu data=%ld",i,e->key,e->data-1);
+           fprintf(stderr,"[%d] key=%lu data=%ld",(int)i,e->key,e->data-1);
 	    if(dims != NULL) {
 	        fprintf(stderr," name=%s",dims[e->data-1]->name->cp);
 	    }	
