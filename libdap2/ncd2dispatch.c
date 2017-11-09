@@ -1192,6 +1192,7 @@ constrainable(NCURI* durl)
    return 0;
 }
 
+/* Lookup a parameter key; case insensitive */
 static const char*
 paramlookup(NCDAPCOMMON* state, const char* key)
 {
@@ -1260,21 +1261,29 @@ applyclientparams(NCDAPCOMMON* nccomm)
 
     /* allow embedded _ */
     value = paramlookup(nccomm,"stringlength");
+    if(value == NULL) 
+        value = paramlookup(nccomm,"maxstrlen");
     if(value != NULL && strlen(value) != 0) {
         if(sscanf(value,"%d",&len) && len > 0) dfaltstrlen = len;
-    }
+    } 
     nccomm->cdf.defaultstringlength = dfaltstrlen;
 
     /* String dimension limits apply to variables */
     for(i=0;i<nclistlength(nccomm->cdf.ddsroot->tree->varnodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->varnodes,i);
-	/* Define the client param stringlength for this variable*/
+	/* Define the client param stringlength/maxstrlen for this variable*/
+	/* create the variable path name */
+	pathstr = makeocpathstring(conn,var->ocnode,".");
 	var->maxstringlength = 0; /* => use global dfalt */
 	strcpy(tmpname,"stringlength_");
-	pathstr = makeocpathstring(conn,var->ocnode,".");
 	strncat(tmpname,pathstr,NC_MAX_NAME);
-	nullfree(pathstr);
 	value = paramlookup(nccomm,tmpname);
+	if(value == NULL) {
+	    strcpy(tmpname,"maxstrlen_");
+	    strncat(tmpname,pathstr,NC_MAX_NAME);
+	    value = paramlookup(nccomm,tmpname);
+        }
+	nullfree(pathstr);
         if(value != NULL && strlen(value) != 0) {
             if(sscanf(value,"%d",&len) && len > 0) var->maxstringlength = len;
 	}

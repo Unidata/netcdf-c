@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#NOP=1
+#NOP=1 
 #NOS=1
 #NOB=1
 
@@ -30,6 +30,7 @@ PREFIX="[log][show=fetch]"
 SUFFIX="log&show=fetch"
 BOTHP="[log][show=fetch]"
 BOTHS="noprefetch&fetch=disk"
+STRLEN="[maxstrlen=16]"
 
 locreset () {
     rm -f ./tmp ./errtmp
@@ -60,6 +61,20 @@ buildurl $PREFIX ""
 echo "command: ${NCDUMP} -h $url"
 ${NCDUMP} -h "$url" >./tmp 2> ./errtmp
 if test "x${SHOW}" = x1 ; then cat ./tmp ; fi
+
+# Test that maxstrlen works as alias for stringlength
+echo "***Testing maxstrlen=stringlength alias"
+buildurl $STRLEN ""
+# Invoke ncdump to extract the URL
+echo "command: ${NCDUMP} -h $url"
+${NCDUMP} "$url" >./tmp 2> ./errtmp
+if test "x${SHOW}" = x1 ; then cat ./tmp ; fi
+# Look for the value of maxStrlen in output cdl
+if ! fgrep -i "maxstrlen = 16" ./tmp ; then
+echo "***Fail: maxStrlen not recognized"
+fgrep -i "maxstrlen16 = 16" ./tmp > ./errtmp
+fi
+
 fi
 
 locreset
@@ -90,5 +105,3 @@ if test "x$pass" = x0 ; then
 fi
 echo "***PASS"
 exit 0
-
-
