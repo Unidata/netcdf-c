@@ -1,4 +1,5 @@
-/*! \page dap2 DAP2 Support
+/*!
+\page dap2 DAP2 Support
 
 \tableofcontents
 
@@ -35,7 +36,7 @@ See the following pages for more information.
 - \subpage var_dim_trans
 - \subpage var_name_trans
 
-\page dap_accessing_data Accessing OPeNDAP Data
+\section dap_accessing_data Accessing OPeNDAP Data
 
 In order to access an OPeNDAP data source through the netCDF API, the
 file name normally used is replaced with a URL with a specific
@@ -177,13 +178,13 @@ variables:
 }
 \endcode
 
-\page dap_to_netcdf DAP to NetCDF Translation Rules
+\section dap_to_netcdf DAP to NetCDF Translation Rules
 
 Currently only one translation available: DAP 2 Protocol to netCDF-3.
 There used to be a DAP 2 Protocol to netCDF-4 translation
 but that has been removed until the DAP4 protocol is available.
 
-\section nc3_trans_rules netCDF-3 Translation Rules
+\subsection nc3_trans_rules netCDF-3 Translation Rules
 
 The current default translation code translates the OPeNDAP protocol
 to netCDF-3 (classic). This netCDF-3 translation converts an OPeNDAP
@@ -225,7 +226,7 @@ Dataset {
 } D1;
 \endcode
 
-\section var_def Variable Definition
+\subsection var_def Variable Definition
 
 The set of netCDF variables is derived from the fields with primitive
 base types as they occur in Sequences, Grids, and Structures. The
@@ -244,7 +245,7 @@ within grids are left out in order to mimic the behavior of libnc-dap.
     lon
 \endcode
 
-\page dap2_reserved_keywords DAP2 Reserved Keywords
+\section dap2_reserved_keywords DAP2 Reserved Keywords
 
 In the OPeNDAP DAP2 protocol, there are a number of reserved keywords.  These keywords are case insensitive and if you use one as a netCDF variable name, you may encounter odd behavior such as case changes (depending on the client DDS/DAS parser).  The list of reserved keywords as used by the netCDF-C library parser are as follows:
 
@@ -272,7 +273,7 @@ In the OPeNDAP DAP2 protocol, there are a number of reserved keywords.  These ke
 - program
 
 
-\page var_dim_trans Variable Dimension Translation
+\section var_dim_trans Variable Dimension Translation
 
 A variable's rank is determined from three sources.
 - The variable has the dimensions associated with the field it
@@ -287,7 +288,7 @@ containers is a DAP DDS Sequence. This is discussed more fully below.
 If the type of the netCDF variable is char, then an extra string
 dimension is added as the last dimension.
 
-\section dim_trans Dimension translation
+\subsection dim_trans Dimension translation
 
 For dimensions, the rules are as follows.
 
@@ -366,7 +367,7 @@ dimensions:
   S1.FS2.f2_0 = 2 ;
 \endcode
 
-\page var_name_trans Variable Name Translation
+\section var_name_trans Variable Name Translation
 
 The steps for variable name translation are as follows.
 
@@ -435,7 +436,7 @@ int S1.FS2.f1(lat, lat) ;
 Note that this is incorrect because it dimensions S1.FS2.f1(2,2)
 rather than S1.FS2.f1(2,3).
 
-\section dap_translation Translating DAP DDS Sequences
+\subsection dap_translation Translating DAP DDS Sequences
 
 Any variable (as determined above) that is contained directly or
 indirectly by a Sequence is subject to revision of its rank using the
@@ -552,7 +553,7 @@ performance.
 
 Currently, a limited set of client parameters is
 recognized. Parameters not listed here are ignored, but no error is
-signalled.
+signalled. All names are case insensitive.
 
 Parameter Name Legal Values Semantics
 - "log" | "log=<file>" - Turn on logging and send the log output to
@@ -568,10 +569,11 @@ Parameter Name Legal Values Semantics
   enabled, then this can be helpful in checking to see the access
   behavior of the netCDF code.
 - "stringlength=NN" - Specify the default string length to use for
-  string dimensions. The default is 64.
+  string dimensions. The default is 64. The name "maxstrlen" is an
+  alias for "stringlength".
 - "stringlength_<var>=NN" - Specify the default string length to use
   for a string dimension for the specified variable. The default is
-  64.
+  64. The name "maxstrlen_<var>" is an alias for "stringlength_<var>".
 - "cache" - This enables caching.
 - "cachelimit=NN" - Specify the maximum amount of space allowed for
   the cache.
