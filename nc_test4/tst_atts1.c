@@ -4,7 +4,7 @@
 
    Test attributes.
 
-   $Id$
+   @author Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -12,7 +12,7 @@
 #include "netcdf.h"
 #include <signal.h>
 
-#define FILE_NAME "tst_atts.nc"
+#define FILE_NAME "tst_atts1.nc"
 #define FILE_NAME2 "tst_atts_2.nc"
 #define VAR1_NAME "Horace_Rumpole"
 #define VAR2_NAME "Claude_Erskine-Brown"

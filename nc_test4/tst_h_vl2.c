@@ -4,13 +4,13 @@
 
    This program excersizes HDF5 variable length array code.
 
-   $Id: tst_h_vl2.c,v 1.5 2010/06/01 15:34:52 ed Exp $
+   @author Ed Hartnett
 */
 #include <nc_tests.h>
 #include <hdf5.h>
 #include <nc_logging.h>
 
-#define FILE_NAME "tst_vl.nc"
+#define FILE_NAME "tst_h_vl.nc"
 int
 main()
 {
