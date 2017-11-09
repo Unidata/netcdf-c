@@ -4,6 +4,8 @@
 
    Test that NetCDF-4 can read a bunch of HDF4 files pulled in from
    the FTP site.
+
+   @author Ed Hartnett
 */
 
 #include <config.h>
@@ -11,7 +13,7 @@
 #include "err_macros.h"
 #include <mfhdf.h>
 
-#define FILE_NAME "tst_interops2.h4"
+#define FILE_NAME "tst_interops3.h4"
 
 int
 main(int argc, char **argv)
