@@ -170,11 +170,13 @@ NC_check_file_type(const char *path, int flags, void *parameters,
     int status = NC_NOERR;
 
     int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
+#ifdef USE_PARALLEL
 #ifdef USE_STDIO
     int use_parallel = 0;
 #else
     int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
 #endif
+#endif /* USE_PARALLEL */
     int inmemory = (diskless && ((flags & NC_INMEMORY) == NC_INMEMORY));
     struct MagicFile file;
 
@@ -2053,7 +2055,7 @@ openmagic(struct MagicFile* file)
 	/* Get its length */
 	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
 	file->filelen = (long long)meminfo->size;
-fprintf(stderr,"XXX: openmagic: memory=0x%llx size=%ld\n",meminfo->memory,meminfo->size);
+fprintf(stderr,"XXX: openmagic: memory=0x%llx size=%ld\n",(long long unsigned int)meminfo->memory,meminfo->size);
 	goto done;
     }
 #ifdef USE_PARALLEL
@@ -2119,7 +2121,7 @@ readmagic(struct MagicFile* file, long pos, char* magic)
     if(file->inmemory) {
 	char* mempos;
 	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
-fprintf(stderr,"XXX: readmagic: memory=0x%llx size=%ld\n",meminfo->memory,meminfo->size);
+fprintf(stderr,"XXX: readmagic: memory=0x%llx size=%ld\n",(long long unsigned int)meminfo->memory,meminfo->size);
 fprintf(stderr,"XXX: readmagic: pos=%ld filelen=%lld\n",pos,file->filelen);
 	if((pos + MAGIC_NUMBER_LEN) > meminfo->size)
 	    {status = NC_EDISKLESS; goto done;}
