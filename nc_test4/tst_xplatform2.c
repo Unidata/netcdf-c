@@ -558,7 +558,6 @@ main(int argc, char **argv)
 #define NUM_OBJ 3
    
    printf("\n*** Checking HDF5 attribute functions some more.\n");
-#ifdef EXTRA_TESTS
    printf("*** Opening tst_xplatform2_3.nc...");
    {
       hid_t fileid, grpid, attid;
@@ -651,6 +650,5 @@ main(int argc, char **argv)
 	  H5Fclose(fileid) < 0) ERR;
    }
    SUMMARIZE_ERR;
-#endif /* EXTRA_TESTS */
    FINAL_RESULTS;
 }

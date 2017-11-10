@@ -362,7 +362,6 @@ main()
    }
 
    SUMMARIZE_ERR;
-#ifdef EXTRA_TESTS
    printf("*** Checking that unlimited dimscale file can be read...");
 
    {
@@ -780,6 +779,5 @@ main()
    }
 
    SUMMARIZE_ERR;
-#endif
    FINAL_RESULTS;
 }
