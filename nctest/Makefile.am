@@ -33,11 +33,9 @@ compare_test_files.log: nctest.log
 
 # This will the test program with valgrind, the memory checking
 # tool. (Valgrind must be present for this to work.)
-if EXTRA_TESTS
 if USE_VALGRIND_TESTS
 TESTS += run_valgrind_tests.sh
 endif # USE_VALGRIND_TESTS
-endif # EXTRA_TESTS
 
 # These are the source files for the nctest program.
 nctest_SOURCES = add.c add.h atttests.c cdftests.c dimtests.c driver.c	\
