@@ -105,7 +105,6 @@ main() {/* create data.nc */
        if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
-#ifdef EXTRA_TESTS
     printf("*** testing opening of many files...");
     {
        int i, ncid;
@@ -121,6 +120,5 @@ main() {/* create data.nc */
        /*printf("last ncid: %d\n", ncid);*/
     }
     SUMMARIZE_ERR;
-#endif
     FINAL_RESULTS;
 }
