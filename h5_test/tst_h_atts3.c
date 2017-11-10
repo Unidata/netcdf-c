@@ -35,7 +35,6 @@ int
 main()
 {
    printf("\n*** Checking HDF5 attribute functions some more.\n");
-#ifdef EXTRA_TESTS
    printf("*** Creating tst_xplatform2_3.nc with HDF only...");
    {
       hid_t fapl_id, fcpl_id;
@@ -308,6 +307,5 @@ main()
 	 free(vc_out[i].p);
    }
    SUMMARIZE_ERR;
-#endif /* EXTRA_TESTS */
    FINAL_RESULTS;
 }
