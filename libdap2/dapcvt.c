@@ -217,7 +217,8 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 #ifdef _MSC_VER
 	    _ASSERTE(_CrtCheckMemory());
 #endif
-	    if(ival < 0 || ival > NC_MAX_UBYTE) ok = 0;
+	    /* For back compatibility, we allow any value, but force conversion */
+	    ival = (ival & 0xFF);
 	    *p = (char)ival;
 	    } break;
 	case NC_CHAR: {
@@ -246,7 +247,8 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	    unsigned int uval;
 	    ok = sscanf(s,"%u%n",&uval,&nread);
 	    _ASSERTE(_CrtCheckMemory());
-	    if(uval > NC_MAX_UBYTE) ok = 0;
+	    /* For back compatibility, we allow any value, but force conversion */
+	    uval = (uval & 0xFF);
 	    *p = (unsigned char)uval;
 #else
 	    ok = sscanf(s,"%hhu%n",p,&nread);

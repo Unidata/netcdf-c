@@ -462,7 +462,7 @@ AC_MSG_CHECKING([whether netCDF extra tests should be run (developers only)])
 AC_ARG_ENABLE([extra-tests],
               [AS_HELP_STRING([--enable-extra-tests],
                               [enable some extra tests that may not pass because of known issues])])
-test "x$enable_extra_tests" = xno || enable_extra_tests=yes
+test "x$enable_extra_tests" = xyes || enable_extra_tests=no
 AC_MSG_RESULT($enable_extra_tests)
 if test "x$enable_extra_tests" = xyes; then
    AC_DEFINE([EXTRA_TESTS], [1], [if true, run extra tests which may not work yet])
@@ -812,7 +812,7 @@ AC_CHECK_HEADERS([ftw.h])
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
                 strdup strcasecmp strtod strtoll strtoull strstr \
-		mkstemp rand random memcmp \
+		mkstemp mktemp rand random memcmp \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
 # Does the user want to use NC_DISKLESS?

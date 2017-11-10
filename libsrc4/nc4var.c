@@ -17,12 +17,6 @@ conditions.
 #define MIN_DEFLATE_LEVEL 0
 #define MAX_DEFLATE_LEVEL 9
 
-/* This is to track opened HDF5 objects to make sure they are
- * closed. */
-#ifdef EXTRA_TESTS
-extern int num_plists;
-#endif /* EXTRA_TESTS */
-
 /* One meg is the minimum buffer size. */
 #define ONE_MEG 1048576
 
@@ -45,9 +39,6 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    {
       if ((access_pid = H5Pcreate(H5P_DATASET_ACCESS)) < 0)
 	 return NC_EHDFERR;
-#ifdef EXTRA_TESTS
-      num_plists++;
-#endif
       if (H5Pset_chunk_cache(access_pid, var->chunk_cache_nelems,
 			     var->chunk_cache_size,
 			     var->chunk_cache_preemption) < 0)
@@ -59,9 +50,6 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 	 return NC_EHDFERR;
       if (H5Pclose(access_pid) < 0)
 	 return NC_EHDFERR;
-#ifdef EXTRA_TESTS
-      num_plists--;
-#endif
    }
 
    return NC_NOERR;
@@ -412,6 +400,10 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    /* For classic files, only classic types are allowed. */
    if (h5->cmode & NC_CLASSIC_MODEL && xtype > NC_DOUBLE)
       BAIL(NC_ESTRICTNC3);
+
+   /* For classic files */
+   if (h5->cmode & NC_CLASSIC_MODEL && ndims > NC_MAX_VAR_DIMS)
+      BAIL(NC_EMAXDIMS);
 
    /* cast needed for braindead systems with signed size_t */
    if((unsigned long) ndims > X_INT_MAX) /* Backward compat */

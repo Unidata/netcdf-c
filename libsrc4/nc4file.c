@@ -32,13 +32,6 @@ extern int nc4_vararray_add(NC_GRP_INFO_T *grp,
 */
 #define LOGOPEN 1
 
-/* This is to track opened HDF5 objects to make sure they are
- * closed. */
-#ifdef EXTRA_TESTS
-extern int num_plists;
-extern int num_spaces;
-#endif /* EXTRA_TESTS */
-
 #define MIN_DEFLATE_LEVEL 0
 #define MAX_DEFLATE_LEVEL 9
 
@@ -286,84 +279,6 @@ nc4typelen(nc_type type)
    return -1;
 }
 
-/* Given a filename, check to see if it is a HDF5 file. */
-#define MAGIC_NUMBER_LEN 4
-#define NC_HDF5_FILE 1
-#define NC_HDF4_FILE 2
-static int
-nc_check_for_hdf(const char *path, int flags, void* parameters, int *hdf_file)
-{
-   char blob[MAGIC_NUMBER_LEN];
-#ifdef USE_PARALLEL4
-   int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
-   NC_MPI_INFO* mpiinfo = (NC_MPI_INFO*)parameters;
-   MPI_Comm comm = MPI_COMM_WORLD;
-   MPI_Info info = MPI_INFO_NULL;
-#endif
-   int inmemory = ((flags & NC_INMEMORY) == NC_INMEMORY);
-   NC_MEM_INFO* meminfo = (NC_MEM_INFO*)parameters;
-
-#ifdef USE_PARALLEL4
-   if(use_parallel) {
-       comm = mpiinfo->comm;
-       info = mpiinfo->info;
-   }
-#endif
-
-   assert(hdf_file);
-   LOG((3, "%s: path %s", __func__, path));
-
-   /* HDF5 function handles possible user block at beginning of file */
-   if(!inmemory && H5Fis_hdf5(path))
-   {
-       *hdf_file = NC_HDF5_FILE;
-   } else {
-
-/* Get the 4-byte blob from the beginning of the file. Don't use posix
- * for parallel, use the MPI functions instead. */
-#ifdef USE_PARALLEL4
-       if (!inmemory && use_parallel)
-       {
-	   MPI_File fh;
-	   MPI_Status status;
-	   int retval;
-	   if ((retval = MPI_File_open(comm, (char *)path, MPI_MODE_RDONLY,
-				       info, &fh)) != MPI_SUCCESS)
-	       return NC_EPARINIT;
-	   if ((retval = MPI_File_read(fh, blob, MAGIC_NUMBER_LEN, MPI_CHAR,
-				       &status)) != MPI_SUCCESS)
-	       return NC_EPARINIT;
-	   if ((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
-	       return NC_EPARINIT;
-       }
-       else
-#endif /* USE_PARALLEL4 */
-       if(!inmemory) {
-	   FILE *fp;
-	   if (!(fp = fopen(path, "r")) ||
-	       fread(blob, MAGIC_NUMBER_LEN, 1, fp) != 1) {
-
-	     if(fp) fclose(fp);
-	     return errno;
-	   }
-	   fclose(fp);
-       } else { /*inmemory*/
-	  if(meminfo->size < MAGIC_NUMBER_LEN)
-	    return NC_ENOTNC;
-	  memcpy(blob,meminfo->memory,MAGIC_NUMBER_LEN);
-       }
-
-       /* Check for HDF4. */
-       if (memcmp(blob, "\016\003\023\001", 4)==0)
-	   *hdf_file = NC_HDF4_FILE;
-       else if (memcmp(blob, "HDF", 3)==0)
-	   *hdf_file = NC_HDF5_FILE;
-       else
-	   *hdf_file = 0;
-   }
-   return NC_NOERR;
-}
-
 /* Create a HDF5/netcdf-4 file. */
 
 static int
@@ -417,16 +332,8 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
     * fail if there are any open objects in the file. */
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists++;
-#endif
-#ifdef EXTRA_TESTS
    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI))
       BAIL(NC_EHDFERR);
-#else
-   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG))
-      BAIL(NC_EHDFERR);
-#endif /* EXTRA_TESTS */
 
 #ifdef USE_PARALLEL4
    /* If this is a parallel file create, set up the file creation
@@ -492,9 +399,6 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* Create the property list. */
    if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists++;
-#endif
 
    /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
    if (H5Pset_obj_track_times(fcpl_id,0)<0)
@@ -529,10 +433,6 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* Release the property lists. */
    if (H5Pclose(fapl_id) < 0 || H5Pclose(fcpl_id) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists--;
-   num_plists--;
-#endif
 
    /* Define mode gets turned on automatically on create. */
    nc4_info->flags |= NC_INDEF;
@@ -546,9 +446,6 @@ exit: /*failure exit*/
 #ifdef USE_PARALLEL4
    if (comm_duped) MPI_Comm_free(&nc4_info->comm);
    if (info_duped) MPI_Info_free(&nc4_info->info);
-#endif
-#ifdef EXTRA_TESTS
-   num_plists--;
 #endif
    if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if(!nc4_info) return retval;
@@ -768,9 +665,6 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
    /* How many dimensions are there? */
    if (!ret && (spaceid = H5Aget_space(coord_attid)) < 0) ret++;
-#ifdef EXTRA_TESTS
-   num_spaces++;
-#endif
    if (!ret && (npoints = H5Sget_simple_extent_npoints(spaceid)) < 0) ret++;
 
    /* Check that the number of points is the same as the number of dimensions
@@ -788,9 +682,6 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
    /* Set my HDF5 IDs free! */
    if (spaceid >= 0 && H5Sclose(spaceid) < 0) ret++;
-#ifdef EXTRA_TESTS
-   num_spaces--;
-#endif
    if (coord_att_typeid >= 0 && H5Tclose(coord_att_typeid) < 0) ret++;
    if (coord_attid >= 0 && H5Aclose(coord_attid) < 0) ret++;
    return ret ? NC_EATTMETA : NC_NOERR;
@@ -1105,9 +996,6 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
    /* Get len. */
    if ((spaceid = H5Aget_space(attid)) < 0)
       BAIL(NC_EATTMETA);
-#ifdef EXTRA_TESTS
-   num_spaces++;
-#endif
    if ((att_ndims = H5Sget_simple_extent_ndims(spaceid)) < 0)
       BAIL(NC_EATTMETA);
    if ((att_npoints = H5Sget_simple_extent_npoints(spaceid)) < 0)
@@ -1246,9 +1134,6 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       BAIL(NC_EHDFERR);
    if (H5Sclose(spaceid) < 0)
       return NC_EHDFERR;
-#ifdef EXTRA_TESTS
-   num_spaces--;
-#endif
 
    return NC_NOERR;
 
@@ -1257,9 +1142,6 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       BAIL2(NC_EHDFERR);
    if (spaceid > 0 && H5Sclose(spaceid) < 0)
       BAIL2(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_spaces--;
-#endif
    return retval;
 }
 
@@ -1558,7 +1440,6 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    int incr_id_rc = 0;          /* Whether the dataset ID's ref count has been incremented */
    int d;
    att_iter_info att_info;         /* Custom iteration information */
-
 #define CD_NELEMS_ZLIB 1
 #define CD_NELEMS_SZIP 4
    H5Z_filter_t filter;
@@ -1601,9 +1482,6 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Get the current chunk cache settings. */
    if ((access_pid = H5Dget_access_plist(datasetid)) < 0)
       BAIL(NC_EVARMETA);
-#ifdef EXTRA_TESTS
-   num_plists++;
-#endif
 
    /* Learn about current chunk cache settings. */
    if ((H5Pget_chunk_cache(access_pid, &(var->chunk_cache_nelems),
@@ -1644,9 +1522,6 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     * ignored. */
    if ((propid = H5Dget_create_plist(datasetid)) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists++;
-#endif /* EXTRA_TESTS */
 
    /* Get the chunking info for non-scalar vars. */
    if ((layout = H5Pget_layout(propid)) < -1)
@@ -1828,14 +1703,8 @@ exit:
    }
    if (access_pid && H5Pclose(access_pid) < 0)
       BAIL2(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists--;
-#endif
    if (propid > 0 && H5Pclose(propid) < 0)
       BAIL2(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists--;
-#endif
    return retval;
 }
 
@@ -1932,9 +1801,6 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Get the dimension information for this dataset. */
    if ((spaceid = H5Dget_space(datasetid)) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_spaces++;
-#endif
    if ((ndims = H5Sget_simple_extent_ndims(spaceid)) < 0)
       BAIL(NC_EHDFERR);
 
@@ -1966,9 +1832,6 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 exit:
    if (spaceid && H5Sclose(spaceid) <0)
       BAIL2(retval);
-#ifdef EXTRA_TESTS
-   num_spaces--;
-#endif
 
    return retval;
 }
@@ -2248,16 +2111,8 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
 
-#ifdef EXTRA_TESTS
-   num_plists++;
-#endif
-#ifdef EXTRA_TESTS
    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI))
       BAIL(NC_EHDFERR);
-#else
-   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG))
-      BAIL(NC_EHDFERR);
-#endif
 
 #ifdef USE_PARALLEL4
    /* If this is a parallel file create, set up the file creation
@@ -2351,9 +2206,6 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    /* Close the property list. */
    if (H5Pclose(fapl_id) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-   num_plists--;
-#endif
 
    NC4_get_fileinfo(nc4_info,NULL);
 
@@ -2363,9 +2215,6 @@ exit:
 #ifdef USE_PARALLEL4
    if (comm_duped) MPI_Comm_free(&nc4_info->comm);
    if (info_duped) MPI_Info_free(&nc4_info->info);
-#endif
-#ifdef EXTRA_TESTS
-   num_plists--;
 #endif
    if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if (!nc4_info) return retval;
@@ -2814,7 +2663,8 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 	 int use_parallel, void *parameters, NC_Dispatch *dispatch, NC *nc_file)
 {
    int res;
-   int hdf_file = 0;
+   int is_hdf5_file = 0;
+   int is_hdf4_file = 0;
 #ifdef USE_PARALLEL4
    NC_MPI_INFO mpidfalt = {MPI_COMM_WORLD, MPI_INFO_NULL};
 #endif
@@ -2855,21 +2705,22 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* USE_PARALLEL_POSIX */
 
    /* Figure out if this is a hdf4 or hdf5 file. */
-   if ((res = nc_check_for_hdf(path, use_parallel, parameters, &hdf_file)))
-	goto done;
-
+   if(nc_file->model == NC_FORMATX_NC4)
+	is_hdf5_file = 1;
+   else if(nc_file->model == NC_FORMATX_NC_HDF4)
+	is_hdf4_file = 1;
    /* Depending on the type of file, open it. */
    nc_file->int_ncid = nc_file->ext_ncid;
-   if (hdf_file == NC_HDF5_FILE)
+   if (is_hdf5_file)
        res = nc4_open_file(path, mode, parameters, nc_file);
 #ifdef USE_HDF4
-   else if (hdf_file == NC_HDF4_FILE && inmemory)
+   else if (is_hdf4_file && inmemory)
 	{res = NC_EDISKLESS; goto done;}
-   else if (hdf_file == NC_HDF4_FILE)
+   else if (is_hdf4_file)
        res = nc4_open_hdf4_file(path, mode, nc_file);
 #endif /* USE_HDF4 */
    else
-       assert(0); /* should never happen */
+       res = NC_ENOTNC;
 done:
    return res;
 }
@@ -3136,7 +2987,7 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
-   if(h5 != NULL)
+   if(!retval && h5 != NULL)
        free(h5);
    return retval;
 }
@@ -3295,17 +3146,6 @@ nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
 
    return sync_netcdf4_file(h5);
 }
-
-#ifdef EXTRA_TESTS
-int
-nc_exit()
-{
-   if (num_plists || num_spaces)
-      return NC_EHDFERR;
-
-   return NC_NOERR;
-}
-#endif /* EXTRA_TESTS */
 
 #ifdef USE_PARALLEL4
 int

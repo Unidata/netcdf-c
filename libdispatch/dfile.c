@@ -24,8 +24,37 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include "netcdf_mem.h"
 #include "ncwinpath.h"
 
+/* If Defined, then use only stdio for all magic number io;
+   otherwise use stdio or mpio as required.
+ */
+#define USE_STDIO
+
+/**
+Sort info for open/read/close of
+file when searching for magic numbers
+*/
+struct MagicFile {
+    const char* path;
+    long long filelen;
+    int use_parallel;
+    int inmemory;
+    void* parameters;
+    FILE* fp;
+#ifdef USE_PARALLEL
+    MPI_File fh;
+#endif
+};
+
+static int openmagic(struct MagicFile* file);
+static int readmagic(struct MagicFile* file, long pos, char* magic);
+static int closemagic(struct MagicFile* file);
+static void printmagic(const char* tag, char* magic,struct MagicFile*);
+
 extern int NC_initialized;
 extern int NC_finalized;
+
+/* To be consistent with H5Fis_hdf5, use the complete HDF5 magic number */
+static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
 
 /** \defgroup datasets NetCDF File and Data I/O
 
@@ -63,56 +92,66 @@ interfaces, the rest of this chapter presents a detailed description
 of the interfaces for these operations.
 */
 
-
 /*!
   Interpret the magic number found in the header of a netCDF file.
-
   This function interprets the magic number/string contained in the header of a netCDF file and sets the appropriate NC_FORMATX flags.
 
   @param[in] magic Pointer to a character array with the magic number block.
   @param[out] model Pointer to an integer to hold the corresponding netCDF type.
   @param[out] version Pointer to an integer to hold the corresponding netCDF version.
-  @param[in] use_parallel 1 if using parallel, 0 if not.
-  @return Returns an error code or 0 on success.
+  @returns NC_NOERR if a legitimate file type found
+  @returns NC_ENOTNC otherwise
 
 \internal
 \ingroup datasets
 
 */
 static int
-NC_interpret_magic_number(char* magic, int* model, int* version, int use_parallel)
+NC_interpret_magic_number(char* magic, int* model, int* version)
 {
     int status = NC_NOERR;
     /* Look at the magic number */
-    /* Ignore the first byte for HDF */
+    *model = 0;
+    *version = 0;
 #ifdef USE_NETCDF4
-    if(magic[1] == 'H' && magic[2] == 'D' && magic[3] == 'F') {
+    /* Use the complete magic number string for HDF5 */
+    if(memcmp(magic,HDF5_SIGNATURE,sizeof(HDF5_SIGNATURE))==0) {
 	*model = NC_FORMATX_NC4;
-	*version = 5;
-#ifdef USE_HDF4
-    } else if(magic[0] == '\016' && magic[1] == '\003'
-              && magic[2] == '\023' && magic[3] == '\001') {
-	*model = NC_FORMATX_NC4;
-	*version = 4;
+	*version = 5; /* redundant */
+	goto done;
+    }
 #endif
-    } else
+#if defined(USE_NETCDF4) && defined(USE_HDF4)
+    if(magic[0] == '\016' && magic[1] == '\003'
+              && magic[2] == '\023' && magic[3] == '\001') {
+	*model = NC_FORMATX_NC_HDF4;
+	*version = 4; /* redundant */
+	goto done;
+    }
 #endif
     if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') {
         if(magic[3] == '\001') {
             *version = 1; /* netcdf classic version 1 */
 	    *model = NC_FORMATX_NC3;
-         } else if(magic[3] == '\002') {
+	    goto done;	    
+	}
+        if(magic[3] == '\002') {
             *version = 2; /* netcdf classic version 2 */
 	    *model = NC_FORMATX_NC3;
+	    goto done;
+        }
 #ifdef USE_CDF5
-        } else if(magic[3] == '\005') {
+        if(magic[3] == '\005') {
           *version = 5; /* cdf5 (including pnetcdf) file */
-	    *model = NC_FORMATX_NC3;
+	  *model = NC_FORMATX_NC3;
+	  goto done;
+	}
 #endif
-     } else
-	    {status = NC_ENOTNC; goto done;}
-     } else
-        {status = NC_ENOTNC; goto done;}
+     }
+     /* No match  */
+     status = NC_ENOTNC;
+     goto done;
+
 done:
      return status;
 }
@@ -123,112 +162,78 @@ and return that format value (NC_FORMATX_XXX)
 in model arg. Assume any path conversion was
 already performed at a higher level.
 */
-static int
+int
 NC_check_file_type(const char *path, int flags, void *parameters,
 		   int* model, int* version)
 {
-   char magic[MAGIC_NUMBER_LEN];
-   int status = NC_NOERR;
-   int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
-   int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
-   int inmemory = (diskless && ((flags & NC_INMEMORY) == NC_INMEMORY));
+    char magic[MAGIC_NUMBER_LEN];
+    int status = NC_NOERR;
+
+    int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
+#ifdef USE_STDIO
+    int use_parallel = 0;
+#else
+    int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
+#endif
+    int inmemory = (diskless && ((flags & NC_INMEMORY) == NC_INMEMORY));
+    struct MagicFile file;
 
    *model = 0;
+   *version = 0;
 
-    if(inmemory)  {
-	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)parameters;
-	if(meminfo == NULL || meminfo->size < MAGIC_NUMBER_LEN)
-	    {status = NC_EDISKLESS; goto done;}
-	memcpy(magic,meminfo->memory,MAGIC_NUMBER_LEN);
-    } else {/* presumably a real file */
-       /* Get the 4-byte magic from the beginning of the file. Don't use posix
-        * for parallel, use the MPI functions instead. */
-
+    memset((void*)&file,0,sizeof(file));   
+    file.path = path; /* do not free */
+    file.parameters = parameters;
+    if(inmemory && parameters == NULL)
+	{status = NC_EDISKLESS; goto done;}
+    if(inmemory) {
+        file.inmemory = inmemory;
+	goto next;
+    }
+    /* presumably a real file */
 #ifdef USE_PARALLEL
-	if (use_parallel) {
-	    MPI_File fh;
-	    MPI_Status mstatus;
-	    int retval;
-	    MPI_Comm comm = MPI_COMM_WORLD;
-	    MPI_Info info = MPI_INFO_NULL;
-
-	    if(parameters != NULL) {
-	        comm = ((NC_MPI_INFO*)parameters)->comm;
-		info = ((NC_MPI_INFO*)parameters)->info;
-	    }
-	    if((retval = MPI_File_open(comm,(char*)path,MPI_MODE_RDONLY,info,
-				       &fh)) != MPI_SUCCESS)
-		{status = NC_EPARINIT; goto done;}
-	    if((retval = MPI_File_read(fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,
-				 &mstatus)) != MPI_SUCCESS)
-		{status = NC_EPARINIT; goto done;}
-	    if((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
-		{status = NC_EPARINIT; goto done;}
-	} else
+    /* for parallel, use the MPI functions instead (why?) */
+    if (use_parallel) {
+	file.use_parallel = use_parallel;
+	goto next;
+    }
 #endif /* USE_PARALLEL */
-	{
-	    FILE *fp;
-	    size_t i;
-#ifdef HAVE_FILE_LENGTH_I64
-          __int64 file_len = 0;
-#else
-          struct stat st;
-#endif
-          if(path == NULL || strlen(path)==0)
-		{status = NC_EINVAL; goto done;}
 
-	  if (!(fp = fopen(path, "r")))
-		{status = errno; goto done;}
-
-#ifdef HAVE_SYS_STAT_H
-	  /* The file must be at least MAGIC_NUMBER_LEN in size,
-	       or otherwise the following fread will exhibit unexpected
-  	       behavior. */
-
-          /* Windows and fstat have some issues, this will work around that. */
-#ifdef HAVE_FILE_LENGTH_I64
-          if((file_len = _filelengthi64(fileno(fp))) < 0) {
-            fclose(fp);
-            status = errno;
-            goto done;
-          }
-
-          if(file_len < MAGIC_NUMBER_LEN) {
-            fclose(fp);
-            status = NC_ENOTNC;
-            goto done;
-          }
-#else
-	  { int fno = fileno(fp);
-	    if(!(fstat(fno,&st) == 0)) {
-	        fclose(fp);
-	        status = errno;
-	        goto done;
-	    }
-	    if(st.st_size < MAGIC_NUMBER_LEN) {
-              fclose(fp);
-              status = NC_ENOTNC;
-              goto done;
-	    }
-	  }
-#endif //HAVE_FILE_LENGTH_I64
-
-#endif //HAVE_SYS_STAT_H
-
-	    i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
-	    fclose(fp);
-	    if(i == 0)
-		{status = NC_ENOTNC; goto done;}
-	    if(i != 1)
-		{status = errno; goto done;}
-	}
-    } /* !inmemory */
-
+next:
+    status = openmagic(&file);
+    if(status != NC_NOERR) {goto done;}
+    /* Verify we have a large enough file */
+    if(file.filelen < MAGIC_NUMBER_LEN)
+	{status = NC_ENOTNC; goto done;}
+    if((status = readmagic(&file,0L,magic)) != NC_NOERR) {
+	status = NC_ENOTNC;
+	*model = 0;
+	*version = 0;
+	goto done;
+    }
     /* Look at the magic number */
-    status = NC_interpret_magic_number(magic,model,version,use_parallel);
+    if(NC_interpret_magic_number(magic,model,version) == NC_NOERR
+       && *model != 0)
+        goto done; /* found something */
 
+    /* Remaining case is to search forward at starting at 512
+       and doubling to see if we have HDF5 magic number */
+    {
+	long pos = 512L;
+        for(;;) {
+	    if((pos+MAGIC_NUMBER_LEN) > file.filelen)
+		{status = NC_ENOTNC; goto done;}
+            if((status = readmagic(&file,pos,magic)) != NC_NOERR)
+	        {status = NC_ENOTNC; goto done; }
+            NC_interpret_magic_number(magic,model,version);
+            if(*model == NC_FORMATX_NC4) break;
+	    /* double and try again */
+	    pos = 2*pos;
+        }
+    }    
 done:
-   return status;
+    closemagic(&file);
+    return status;
 }
 
 /**  \ingroup datasets
@@ -1234,10 +1239,13 @@ nc_close(int ncid)
 #endif
    {
 
-	   stat = ncp->dispatch->close(ncid);
+       stat = ncp->dispatch->close(ncid);
        /* Remove from the nc list */
-       del_from_NCList(ncp);
-       free_NC(ncp);
+       if (!stat)
+       {
+	   del_from_NCList(ncp);
+	   free_NC(ncp);
+       }
    }
    return stat;
 }
@@ -1751,7 +1759,6 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 #ifdef WINPATH
    /* Need to do path conversion */
    path = NCpathcvt(path0);
-fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
 #else
    path = nulldup(path0);
 #endif
@@ -1860,7 +1867,7 @@ fprintf(stderr,"XXX: path0=%s path=%s\n",path0,path); fflush(stderr);
    }
 
    /* Create the NC* instance and insert its dispatcher */
-   stat = new_NC(dispatcher,path,cmode,&ncp);
+   stat = new_NC(dispatcher,path,cmode,model,&ncp);
    nullfree(path); path = NULL; /* no longer needed */
 
    if(stat) return stat;
@@ -1994,7 +2001,7 @@ NC_open(const char *path0, int cmode,
    }
 
    /* Force flag consistentcy */
-   if(model == NC_FORMATX_NC4 || model == NC_FORMATX_DAP4)
+   if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4)
       cmode |= NC_NETCDF4;
    else if(model == NC_FORMATX_DAP2) {
       cmode &= ~NC_NETCDF4;
@@ -2052,7 +2059,7 @@ NC_open(const char *path0, int cmode,
    else
 #endif
 #if defined(USE_NETCDF4)
-   if(model == (NC_FORMATX_NC4))
+   if(model == (NC_FORMATX_NC4) || model == (NC_FORMATX_NC_HDF4))
 	dispatcher = NC4_dispatch_table;
    else
 #endif
@@ -2071,7 +2078,7 @@ havetable:
    }
 
    /* Create the NC* instance and insert its dispatcher */
-   stat = new_NC(dispatcher,path,cmode,&ncp);
+   stat = new_NC(dispatcher,path,cmode,model,&ncp);
    nullfree(path); path = NULL; /* no longer need path */
    if(stat) return stat;
 
@@ -2122,4 +2129,167 @@ nc__pseudofd(void)
 #endif
     }
     return pseudofd++;
+}
+
+/**
+\internal
+\ingroup datasets
+Provide open, read and close for use when searching for magic numbers
+*/
+static int
+openmagic(struct MagicFile* file)
+{
+    int status = NC_NOERR;
+    if(file->inmemory) {
+	/* Get its length */
+	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
+	file->filelen = (long long)meminfo->size;
+fprintf(stderr,"XXX: openmagic: memory=0x%llx size=%ld\n",meminfo->memory,meminfo->size);
+	goto done;
+    }
+#ifdef USE_PARALLEL
+    if (file->use_parallel) {
+	MPI_Status mstatus;
+	int retval;
+	MPI_Offset size;
+	MPI_Comm comm = MPI_COMM_WORLD;
+	MPI_Info info = MPI_INFO_NULL;
+        if(file->parameters != NULL) {
+	    comm = ((NC_MPI_INFO*)file->parameters)->comm;
+	    info = ((NC_MPI_INFO*)file->parameters)->info;
+	}
+	if((retval = MPI_File_open(comm,(char*)file->path,MPI_MODE_RDONLY,info,
+				       &file->fh)) != MPI_SUCCESS)
+	    {status = NC_EPARINIT; goto done;}
+	/* Get its length */
+	if((retval=MPI_File_get_size(file->fh, &size)) != MPI_SUCCESS)
+	    {status = NC_EPARINIT; goto done;}
+	file->filelen = (long long)size;
+	goto done;
+    }
+#endif /* USE_PARALLEL */
+    {
+        if(file->path == NULL || strlen(file->path)==0)
+	    {status = NC_EINVAL; goto done;}
+#ifdef _MSC_VER
+        file->fp = fopen(file->path, "rb");
+#else
+        file->fp = fopen(file->path, "r");
+#endif
+	if(file->fp == NULL)
+	    {status = errno; goto done;}
+	/* Get its length */
+	{
+#ifdef _MSC_VER
+	int fd = fileno(file->fp);
+	__int64 len64 = _filelengthi64(fd);
+	if(len64 < 0)
+            {status = errno; goto done;}
+	file->filelen = (long long)len64;
+#else
+	long size;
+	if((status = fseek(file->fp, 0L, SEEK_END)) < 0)
+	    {status = errno; goto done;}
+	size = ftell(file->fp);
+	file->filelen = (long long)size;
+#endif
+	rewind(file->fp);
+	}
+	goto done;
+    }
+
+done:
+    return status;
+}
+
+static int
+readmagic(struct MagicFile* file, long pos, char* magic)
+{
+    int status = NC_NOERR;
+    memset(magic,0,MAGIC_NUMBER_LEN);
+    if(file->inmemory) {
+	char* mempos;
+	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
+fprintf(stderr,"XXX: readmagic: memory=0x%llx size=%ld\n",meminfo->memory,meminfo->size);
+fprintf(stderr,"XXX: readmagic: pos=%ld filelen=%lld\n",pos,file->filelen);
+	if((pos + MAGIC_NUMBER_LEN) > meminfo->size)
+	    {status = NC_EDISKLESS; goto done;}
+	mempos = ((char*)meminfo->memory) + pos;
+	memcpy((void*)magic,mempos,MAGIC_NUMBER_LEN);
+printmagic("XXX: readmagic",magic,file);
+	goto done;
+    }
+#ifdef USE_PARALLEL
+    if (file->use_parallel) {
+	MPI_Status mstatus;
+	int retval;
+	MPI_Offset offset;
+	offset = pos;
+	if((retval = MPI_File_seek(file->fh, offset, MPI_SEEK_SET)) != MPI_SUCCESS)
+	    {status = NC_EPARINIT; goto done;}	
+	if((retval = MPI_File_read(file->fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,
+				 &mstatus)) != MPI_SUCCESS)
+	    {status = NC_EPARINIT; goto done;}
+	goto done;
+    }
+#endif /* USE_PARALLEL */
+    {
+	size_t count;
+	int i = fseek(file->fp,pos,SEEK_SET);
+	if(i < 0)
+	    {status = errno; goto done;}
+	for(i=0;i<MAGIC_NUMBER_LEN;) {/* make sure to read proper # of bytes */
+	    count=fread(&magic[i],1,(MAGIC_NUMBER_LEN-i),file->fp);
+	    if(count == 0 || ferror(file->fp))
+		{status = errno; goto done;}
+	    i += count;
+	}
+	goto done;
+    }
+done:
+    if(file && file->fp) clearerr(file->fp);
+    return status;
+}
+
+static int
+closemagic(struct MagicFile* file)
+{
+    int status = NC_NOERR;
+    if(file->inmemory) goto done; /* noop*/
+#ifdef USE_PARALLEL
+    if (file->use_parallel) {
+	MPI_Status mstatus;
+	int retval;
+	if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
+		{status = NC_EPARINIT; goto done;}
+	goto done;
+    }
+#endif
+    {
+	if(file->fp) fclose(file->fp);
+	goto done;
+    }
+done:
+    return status;
+}
+
+static void
+printmagic(const char* tag, char* magic, struct MagicFile* f)
+{
+    int i;
+    fprintf(stderr,"%s: inmem=%d ispar=%d magic=",tag,f->inmemory,f->use_parallel);
+    for(i=0;i<MAGIC_NUMBER_LEN;i++) {
+        unsigned int c = (unsigned int)magic[i];
+	c = c & 0x000000FF;
+	if(c == '\n')
+	    fprintf(stderr," 0x%0x/'\\n'",c);
+	else if(c == '\r')
+	    fprintf(stderr," 0x%0x/'\\r'",c);
+	else if(c < ' ')
+	    fprintf(stderr," 0x%0x/'?'",c);
+	else
+	    fprintf(stderr," 0x%0x/'%c'",c,c);
+    }
+    fprintf(stderr,"\n");
+    fflush(stderr);
 }
