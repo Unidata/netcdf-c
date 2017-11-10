@@ -390,11 +390,7 @@ main(int argc, char **argv)
       /* Open the file with HDF5 while netcdf still has it open. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       /* Turn this off for*/
-#ifdef EXTRA_TESTS
       if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI)) ERR;
-#else
-      if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG)) ERR;
-#endif
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
       if (H5Pclose(fapl_id) < 0) ERR;
       if (H5Fclose(fileid) < 0) ERR;
