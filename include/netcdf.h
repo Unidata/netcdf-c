@@ -447,7 +447,6 @@ by the desired type. */
 #define NC_EDISKLESS     (-129)    /**< Error in using diskless  access. */
 #define NC_ECANTEXTEND   (-130)    /**< Attempt to extend dataset during ind. I/O operation. */
 #define NC_EMPI          (-131)    /**< MPI operation failed. */
-
 #define NC_ERCFILE       (-132)    /**< RC file failure */
 
 #define NC4_LAST_ERROR   (-132)

@@ -106,7 +106,7 @@ att_read_var_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
 }
 
 /* Define the illegal mode flags */
-static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET);
+static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET|NC_CDF5);
 
 static const int ILLEGAL_CREATE_FLAGS = (NC_NOWRITE|NC_MMAP|NC_INMEMORY|NC_64BIT_OFFSET|NC_CDF5);
 
@@ -2690,9 +2690,8 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    if((mode & ILLEGAL_OPEN_FLAGS) != 0)
       {res = NC_EINVAL; goto done;}
 
-   /* Cannot have both */
-   if((mode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
-      {res = NC_EINVAL; goto done;}
+   /* Cannot have both. Already checked in dispatch layer. */
+   assert(!(mode & NC_MPIIO && mode & NC_MPIPOSIX));
 
 #ifndef USE_PARALLEL_POSIX
 /* If the HDF5 library has been compiled without the MPI-POSIX VFD, alias

@@ -41,7 +41,6 @@ int test_type(int ncid, int type, char* tstring) {
 }
 
 int main(int argc, char **argv) {
-
    int ncid=0;
 
    printf("\n* Testing nc_inq_type with netcdf-3\n");
