@@ -2690,7 +2690,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    if((mode & ILLEGAL_OPEN_FLAGS) != 0)
       {res = NC_EINVAL; goto done;}
 
-   /* Cannot have both */
+   /* Cannot have both. Already checked in dispatch layer. */
    assert(!(mode & NC_MPIIO && mode & NC_MPIPOSIX));
 
 #ifndef USE_PARALLEL_POSIX

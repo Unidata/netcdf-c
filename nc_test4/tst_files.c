@@ -3,7 +3,7 @@
    See COPYRIGHT file for conditions of use.
 
    Test internal netcdf-4 file code.
-   $Id: tst_files.c,v 1.42 2010/05/18 12:30:05 ed Exp $
+   @author Ed Hartnett
 */
 
 #include <config.h>
@@ -32,6 +32,7 @@ int
 main(int argc, char **argv)
 {
    printf("\n*** Testing netcdf-4 file functions.\n");
+   printf("*** testing version string...");
    {
       char str[NC_MAX_NAME+1];
 
@@ -39,20 +40,17 @@ main(int argc, char **argv)
        * version string, but it is always smaller than NC_MAX_NAME. */
       if (strlen(nc_inq_libvers()) > NC_MAX_NAME) ERR;
       strcpy(str, nc_inq_libvers());
-      printf("*** testing version %s...", str);
    }
    SUMMARIZE_ERR;
    printf("*** testing with bad inputs...");
    {
       int ncid;
 
-      /* Make sure bad create mode causes failure. */
-      /*if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;*/
-
       /* Create an empty file. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
+      /* Check a bunch of invalid parameters to make sure they fail. */
       if (nc_open(FILE_NAME, NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
       if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_CDF5, &ncid) != NC_EINVAL) ERR;
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CDF5, &ncid) != NC_EINVAL) ERR;
@@ -62,6 +60,52 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_DISKLESS|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
    }
    SUMMARIZE_ERR;
+   printf("*** testing NetCDF-4 file cannot be opened with other format flags...");
+   {
+      int ncid;
+
+      /* Create an empty file. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open it. These will all work. */
+      if (nc_open(FILE_NAME, 0, &ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+      if (nc_open(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Try and open netCDF-4 file specifying other binary
+       * formats. That won't work you clown! */
+      if (nc_open(FILE_NAME, NC_CDF5, &ncid) != NC_EINVAL) ERR;
+      if (nc_open(FILE_NAME, NC_64BIT_OFFSET, &ncid) != NC_EINVAL) ERR;
+   }
+   SUMMARIZE_ERR;
+#ifdef ENABLE_CDF5
+   printf("*** testing CDF5 file cannot be opened with other format flags...");
+   {
+      int ncid;
+
+      /* Create an empty file. */
+      if (nc_create(FILE_NAME, NC_CDF5, &ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open it. These will all work. */
+      if (nc_open(FILE_NAME, 0, &ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+      if (nc_open(FILE_NAME, NC_CDF5, &ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Try and open netCDF-4 file specifying other binary
+       * formats. That won't work you clown! */
+      /* if (nc_open(FILE_NAME, NC_NETCDF4, &ncid) != NC_EINVAL) ERR; */
+      /* if (nc_open(FILE_NAME, NC_64BIT_OFFSET, &ncid) != NC_EINVAL) ERR; */
+   }
+   SUMMARIZE_ERR;
+#endif /* ENABLE_CDF5 */
    printf("*** testing simple opens and creates...");
    {
       int ncid, ncid2, ncid3, varid, dimids[2];
