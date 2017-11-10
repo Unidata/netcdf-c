@@ -332,13 +332,8 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
     * fail if there are any open objects in the file. */
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI))
       BAIL(NC_EHDFERR);
-#else
-   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG))
-      BAIL(NC_EHDFERR);
-#endif /* EXTRA_TESTS */
 
 #ifdef USE_PARALLEL4
    /* If this is a parallel file create, set up the file creation
@@ -2116,13 +2111,8 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
 
-#ifdef EXTRA_TESTS
    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI))
       BAIL(NC_EHDFERR);
-#else
-   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG))
-      BAIL(NC_EHDFERR);
-#endif
 
 #ifdef USE_PARALLEL4
    /* If this is a parallel file create, set up the file creation
@@ -3002,7 +2992,7 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
-   if(h5 != NULL)
+   if(!retval && h5 != NULL)
        free(h5);
    return retval;
 }

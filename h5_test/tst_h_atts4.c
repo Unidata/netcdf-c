@@ -36,7 +36,6 @@ int
 main()
 {
    printf("\n*** Checking HDF5 attribute functions for memory leaks.\n");
-#ifdef EXTRA_TESTS
    printf("*** Checking vlen of compound file...");
    {
 #define NUM_OBJ_2 2
@@ -181,6 +180,5 @@ main()
       free(vc_out);
    }
    SUMMARIZE_ERR;
-#endif /* EXTRA_TESTS */
    FINAL_RESULTS;
 }
