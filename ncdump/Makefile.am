@@ -93,7 +93,7 @@ tst_h_rdc0_CPPFLAGS = -I${top_srcdir}/nc_test ${AM_CPPFLAGS}
 endif #!USE_NETCDF4
 
 TESTS += tst_ncgen4_classic.sh
-eif USE_NETCDF4
+if USE_NETCDF4
 TESTS += tst_ncgen4.sh
 endif
 
