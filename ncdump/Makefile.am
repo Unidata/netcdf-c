@@ -166,7 +166,7 @@ EXTRA_DIST += L512.bin
 # CDL files and Expected results
 SUBDIRS=cdl expected
 EXTRA_DIST += tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh   \
-tst_ncgen4_diff.sh tst_ncgen4_cycle.sh
+tst_ncgen4_diff.sh tst_ncgen4_cycle.sh tst_ctest.sh
 
 CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl        \
 c5.nc compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc    \
