@@ -8,16 +8,16 @@ ENDIF()
 # Before, these .nc files were placed in the same place as the
 # .c file: namely build/ncdump.
 # This complicates the shell tests that use it.
-ADD_CUSTOM_COMMAND(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CONFIG_TYPE}/ctest.c
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest.c"
-  "${CMAKE_CURRENT_BINARY_DIR}/ctest.c"
-  )
-ADD_CUSTOM_COMMAND(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ctest64.c
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest64.c"
-  "${CMAKE_CURRENT_BINARY_DIR}/ctest64.c"
-  )
+# ADD_CUSTOM_COMMAND(
+#   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CONFIG_TYPE}/ctest.c
+#   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest.c"
+#   "${CMAKE_CURRENT_BINARY_DIR}/ctest.c"
+#   )
+# ADD_CUSTOM_COMMAND(
+#   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ctest64.c
+#   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest64.c"
+#   "${CMAKE_CURRENT_BINARY_DIR}/ctest64.c"
+#   )
 
 SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.c)
 SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c)
@@ -118,8 +118,8 @@ ENDIF()
   ## Start adding tests in the appropriate order
   add_sh_test(ncdump run_tests)
   add_sh_test(ncdump tst_64bit)
-  add_bin_test(ncdump ctest)
-  add_bin_test(ncdump ctest64)
+  add_bin_test(ncdump ret_ctest)
+  add_bin_test(ncdump ref_ctest64)
   add_sh_test(ncdump tst_output)
   add_sh_test(ncdump tst_lengths)
   add_sh_test(ncdump tst_calendars)
