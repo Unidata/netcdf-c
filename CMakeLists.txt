@@ -851,7 +851,7 @@ ENDIF()
 # Enable some developer-only tests
 OPTION(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
 IF(ENABLE_EXTRA_TESTS)
-  SET(EXTRA_TESTS OFF)
+  SET(EXTRA_TESTS ON)
 ENDIF()
 
 # Option to use bundled XGetopt in place of getopt(). This is mostly useful
