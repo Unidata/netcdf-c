@@ -24,6 +24,10 @@ ${NCGEN} -k nc7 -b -o c0.nc ${ncgenc0}
 # echo "*** comparing c1.cdl with ref_ctest1_nc4c.cdl..."
 diff -b c1.cdl $srcdir/ref_ctest1_nc4c.cdl
 
+echo ""
+echo "*** Testing ncdump reading files created in this test "
+${execdir}/tst_h_rdc0
+
 echo "*** Testing ncdump output for netCDF-4 features."
 ${NCDUMP} tst_solar_1.nc | sed 's/e+0/e+/g' > tst_solar_1.cdl
 # echo "*** comparing tst_solar_1.cdl with ref_tst_solar_1.cdl..."
