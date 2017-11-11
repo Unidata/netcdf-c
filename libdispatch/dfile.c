@@ -20,6 +20,8 @@ Research/Unidata. See COPYRIGHT file for more info.
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
+#include <unistd.h> /* lseek() */
+
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
 #include "ncwinpath.h"
@@ -2092,17 +2094,17 @@ fprintf(stderr,"XXX: openmagic: memory=0x%llx size=%ld\n",meminfo->memory,meminf
 	    {status = errno; goto done;}
 	/* Get its length */
 	{
-#ifdef _MSC_VER
 	int fd = fileno(file->fp);
+#ifdef _MSC_VER
 	__int64 len64 = _filelengthi64(fd);
 	if(len64 < 0)
             {status = errno; goto done;}
 	file->filelen = (long long)len64;
 #else
-	long size;
-	if((status = fseek(file->fp, 0L, SEEK_END)) < 0)
+	off_t size;
+	size = lseek(fd, 0, SEEK_END);
+	if(size == -1)
 	    {status = errno; goto done;}
-	size = ftell(file->fp);
 	file->filelen = (long long)size;
 #endif
 	rewind(file->fp);
