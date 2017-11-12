@@ -2,7 +2,7 @@
 # Copyright 2005, see the COPYRIGHT file for more information.
 # This file builds and runs the ncdump program.
 
-# $Id: Makefile.am,v 1.147 2010/05/29 00:50:39 dmh Exp $
+# Ed Hartnett, Dennis Heimbigner
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -82,13 +82,7 @@ tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans               \
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug      \
 tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh             \
 tst_grp_spec.sh tst_mud.sh tst_h_scalar tst_h_scalar.sh tst_formatx4.sh \
-tst_bug324 run_utf8_nc4_tests.sh
-
-if EXTRA_TESTS
-TESTS += run_back_comp_tests.sh
-endif # EXTRA_TESTS
-
-tst_h_rdc0_CPPFLAGS = -I${top_srcdir}/nc_test ${AM_CPPFLAGS}
+tst_bug324 run_utf8_nc4_tests.sh run_back_comp_tests.sh
 
 endif #!USE_NETCDF4
 
