@@ -168,12 +168,12 @@ SUBDIRS=cdl expected
 EXTRA_DIST += tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh   \
 tst_ncgen4_diff.sh tst_ncgen4_cycle.sh tst_ctest.sh
 
-CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl        \
-c5.nc compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc    \
-ref_camrun.c tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl        \
-tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl          \
-tst_gattenum.nc tst_ncf199.cdl tst_tst_gattenum.cdl                     \
-tst_tst_usuffix.cdl tst_usuffix.nc tst_bug324.nc                        \
+CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl	\
+c5.nc compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc	\
+ref_camrun.c tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl	\
+tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl		\
+tst_gattenum.nc tst_ncf199.cdl tst_tst_gattenum.cdl			\
+tst_tst_usuffix.cdl tst_usuffix.nc tst_bug324.nc ctest.c ctest64.c	\
 nccopy3_subset_out.nc
 
 DISTCLEANFILES = results
