@@ -157,7 +157,7 @@ tst_fileinfo.sh run_ncgen_tests.sh test_360_day_1900.nc                 \
 test_365_day_1900.nc test_366_day_1900.nc ref_test_360_day_1900.cdl     \
 ref_test_365_day_1900.cdl ref_test_366_day_1900.cdl                     \
 tst_hdf5_offset.sh run_ncgen_nc4_tests.sh tst_nccopy3_subset.sh         \
-ref_nccopy3_subset.nc test_corrupt_magic.nc c0.cdl
+ref_nccopy3_subset.nc test_corrupt_magic.nc 
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
