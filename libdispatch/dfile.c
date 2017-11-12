@@ -2063,7 +2063,6 @@ fprintf(stderr,"XXX: openmagic: memory=0x%llx size=%ld\n",meminfo->memory,meminf
     }
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	MPI_Offset size;
 	MPI_Comm comm = MPI_COMM_WORLD;
@@ -2137,12 +2136,8 @@ printmagic("XXX: readmagic",magic,file);
     if (file->use_parallel) {
 	MPI_Status mstatus;
 	int retval;
-	MPI_Offset offset;
-	offset = pos;
-	if((retval = MPI_File_seek(file->fh, offset, MPI_SEEK_SET)) != MPI_SUCCESS)
-	    {status = NC_EPARINIT; goto done;}	
-	if((retval = MPI_File_read(file->fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,
-				 &mstatus)) != MPI_SUCCESS)
+	if((retval = MPI_File_read_at_all(file->fh, pos, magic,
+                     MAGIC_NUMBER_LEN, MPI_CHAR, &mstatus)) != MPI_SUCCESS)
 	    {status = NC_EPARINIT; goto done;}
 	goto done;
     }
@@ -2172,7 +2167,6 @@ closemagic(struct MagicFile* file)
     if(file->inmemory) goto done; /* noop*/
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
 		{status = NC_EPARINIT; goto done;}
