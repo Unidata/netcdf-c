@@ -14,10 +14,10 @@ ${execdir}/ref_ctest
 ${NCGEN} -lc -o ctest0.nc $srcdir/../ncgen/c0.cdl > ctest.c
 diff -b ctest.c $srcdir/ref_ctest.c
 
-# echo "*** Testing that ncgen with c0.cdl for 64-bit offset format."
-# ${execdir}/ref_ctest64
-# ${NCGEN}  -k2 -lc -o ctest0_64.nc $srcdir/../ncgen/c0.cdl > ctest64.c
-# diff -b ctest64.c $srcdir/ref_ctest64.c
+echo "*** Testing that ncgen with c0.cdl for 64-bit offset format."
+${execdir}/ref_ctest64
+${NCGEN}  -k2 -lc -o ctest0_64.nc $srcdir/../ncgen/c0.cdl > ctest64.c
+diff -b ctest64.c $srcdir/ref_ctest64.c
 
 echo "*** All tests of ncgen with ctest.c and ctest64.c passed!"
 exit 0
