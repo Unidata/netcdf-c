@@ -102,7 +102,7 @@ ENDIF()
   ## Start adding tests in the appropriate order
   add_sh_test(ncdump run_tests)
   add_sh_test(ncdump tst_64bit)
-  add_bin_test(ncdump ret_ctest)
+  add_bin_test(ncdump ref_ctest)
   add_bin_test(ncdump ref_ctest64)
   add_sh_test(ncdump tst_ctest)
   add_sh_test(ncdump tst_output)
