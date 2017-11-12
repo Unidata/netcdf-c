@@ -11,8 +11,8 @@ set -e
 echo ""
 echo "*** Testing that ncgen produces correct C code from c0.cdl."
 ${execdir}/ref_ctest
-# ${NCGEN} -lc -o ctest0.nc $srcdir/../ncgen/c0.cdl > ctest.c
-# diff -b ctest.c $srcdir/ref_ctest.c
+${NCGEN} -lc -o ctest0.nc $srcdir/../ncgen/c0.cdl > ctest.c
+diff -b ctest.c $srcdir/ref_ctest.c
 
 # echo "*** Testing that ncgen with c0.cdl for 64-bit offset format."
 # ${execdir}/ref_ctest64
