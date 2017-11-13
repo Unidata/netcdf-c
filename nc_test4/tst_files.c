@@ -2,12 +2,11 @@
    Copyright 2005 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test internal netcdf-4 file code.
-   $Id: tst_files.c,v 1.42 2010/05/18 12:30:05 ed Exp $
+   Test netcdf-4 file code.
+   Ed Hartnett
 */
 
 #include <config.h>
-#include "netcdf.h"
 #include <nc_tests.h>
 #include "err_macros.h"
 
@@ -53,10 +52,14 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
+      /* This will fail. */
       if (nc_open(FILE_NAME, NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
 
+      /* These will all fail due to incorrect mode flag combinations. */
       if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_NETCDF4, &ncid) != NC_EINVAL) ERR;
       if (nc_create(FILE_NAME, NC_CLASSIC_MODEL|NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
+      if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_CDF5, &ncid) != NC_EINVAL) ERR;
+      if (nc_create(FILE_NAME, NC_NETCDF4|NC_CDF5, &ncid) != NC_EINVAL) ERR;
       if (nc_create(FILE_NAME, NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
    }
    SUMMARIZE_ERR;
