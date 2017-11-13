@@ -164,7 +164,7 @@ Datalist*      datalist;
 NCConstant     constant;
 }
 /* Line 1529 of yacc.c.  */
-#line 168 "ncgeny.h"
+#line 168 "ncgen.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
