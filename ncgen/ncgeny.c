@@ -348,7 +348,7 @@ Datalist*      datalist;
 NCConstant     constant;
 }
 /* Line 193 of yacc.c.  */
-#line 352 "ncgeny.c"
+#line 352 "ncgen.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -361,7 +361,7 @@ NCConstant     constant;
 
 
 /* Line 216 of yacc.c.  */
-#line 365 "ncgeny.c"
+#line 365 "ncgen.tab.c"
 
 #ifdef short
 # undef short
@@ -2761,7 +2761,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
 
 
 /* Line 1267 of yacc.c.  */
-#line 2765 "ncgeny.c"
+#line 2765 "ncgen.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
