@@ -23,6 +23,9 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
 #include "ncwinpath.h"
+#ifdef USE_PIO
+#include <pio.h>
+#endif /* USE_PIO */
 
 /* If Defined, then use only stdio for all magic number io;
    otherwise use stdio or mpio as required.
@@ -1657,6 +1660,10 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    int xcmode = 0; /* for implied cmode flags */
    char* path = NULL;
 
+#ifdef USE_PIO
+   int use_pio = ((cmode & NC_PIO) == NC_PIO);
+#endif /* USE_PIO */
+
    TRACE(nc_create);
    if(path0 == NULL)
 	return NC_EINVAL;
@@ -1701,6 +1708,13 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
    /* Look to the incoming cmode for hints */
    if(model == NC_FORMATX_UNDEFINED) {
+#ifdef USE_PIO
+      /* PIO is used for parallel io. Must be checked first because
+       * mode flag can include both NC_PIO and NC_NETCDF4. */
+      if((cmode & NC_PIO) == NC_PIO)
+	model = NC_FORMATX_PIO;
+      else
+#endif
 #ifdef USE_NETCDF4
       if((cmode & NC_NETCDF4) == NC_NETCDF4)
 	model = NC_FORMATX_NC4;
@@ -1774,6 +1788,11 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	dispatcher = NCP_dispatch_table;
       else
 #endif
+#ifdef USE_PIO
+      if(model == (NC_FORMATX_PIO))
+	dispatcher = PIO_dispatch_table;
+      else
+#endif
       if(model == (NC_FORMATX_NC3))
  	dispatcher = NC3_dispatch_table;
       else
@@ -1790,7 +1809,14 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    if(stat) return stat;
 
    /* Add to list of known open files and define ext_ncid */
+#ifdef USE_PIO
+   if (use_pio)
+      pio_add_to_NCList(ncp);
+   else
+      add_to_NCList(ncp);
+#else
    add_to_NCList(ncp);
+#endif /* USE_PIO */
 
 #ifdef USE_REFCOUNT
    /* bump the refcount */
@@ -1803,7 +1829,8 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	del_from_NCList(ncp); /* oh well */
 	free_NC(ncp);
      } else {
-       if(ncidp)*ncidp = ncp->ext_ncid;
+       if(ncidp)
+	   *ncidp = ncp->ext_ncid;
      }
    return stat;
 }
@@ -1859,7 +1886,9 @@ NC_open(const char *path0, int cmode,
 
    inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
-
+#ifdef USE_PIO
+   int use_pio = ((cmode & NC_PIO) == NC_PIO);
+#endif /* USE_PIO */
 
 #ifdef WINPATH
    path = NCpathcvt(path0);
@@ -1955,6 +1984,11 @@ NC_open(const char *path0, int cmode,
    if(dispatcher != NULL) goto havetable;
 
    /* Figure out what dispatcher to use */
+#if defined(USE_PIO)
+    if (use_pio)
+        dispatcher = PIO_dispatch_table;
+    else
+#endif
 #if defined(ENABLE_DAP)
    if(model == (NC_FORMATX_DAP2))
 	dispatcher = NCD2_dispatch_table;
@@ -1995,7 +2029,14 @@ havetable:
    if(stat) return stat;
 
    /* Add to list of known open files */
+#ifdef USE_PIO
+   if (use_pio)
+      pio_add_to_NCList(ncp);
+   else
+      add_to_NCList(ncp);
+#else
    add_to_NCList(ncp);
+#endif /* USE_PIO */
 
 #ifdef USE_REFCOUNT
    /* bump the refcount */
@@ -2056,12 +2097,12 @@ openmagic(struct MagicFile* file)
 	/* Get its length */
 	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
 	file->filelen = (long long)meminfo->size;
-fprintf(stderr,"XXX: openmagic: memory=0x%llx size=%ld\n",meminfo->memory,meminfo->size);
+fprintf(stderr,"XXX: openmagic: memory=0x%llx size=%ld\n",
+		(long long unsigned int)meminfo->memory,meminfo->size);
 	goto done;
     }
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	MPI_Offset size;
 	MPI_Comm comm = MPI_COMM_WORLD;
@@ -2122,7 +2163,8 @@ readmagic(struct MagicFile* file, long pos, char* magic)
     if(file->inmemory) {
 	char* mempos;
 	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
-fprintf(stderr,"XXX: readmagic: memory=0x%llx size=%ld\n",meminfo->memory,meminfo->size);
+fprintf(stderr,"XXX: readmagic: memory=0x%llx size=%ld\n",
+		(long long unsigned int)meminfo->memory,meminfo->size);
 fprintf(stderr,"XXX: readmagic: pos=%ld filelen=%lld\n",pos,file->filelen);
 	if((pos + MAGIC_NUMBER_LEN) > meminfo->size)
 	    {status = NC_EDISKLESS; goto done;}
@@ -2170,7 +2212,6 @@ closemagic(struct MagicFile* file)
     if(file->inmemory) goto done; /* noop*/
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
 		{status = NC_EPARINIT; goto done;}

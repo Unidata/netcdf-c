@@ -72,6 +72,9 @@ extern int nc_get_default_format(void);
 extern int NC_check_file_type(const char *path, int flags, void *parameters, int* model, int* version);
 
 extern int add_to_NCList(NC*);
+#ifdef USE_PIO
+extern int pio_add_to_NCList(NC*);
+#endif /* USE_PIO */
 extern void del_from_NCList(NC*);/* does not free object */
 extern NC* find_in_NCList(int ext_ncid);
 extern NC* find_in_NCList_by_name(const char*);
