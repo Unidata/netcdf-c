@@ -1,6 +1,9 @@
 # Visual Studio
 VS=1
-#VSSETUP=1
+
+if test "x$1" = xsetup ; then
+VSSETUP=1
+fi
 
 #export NCPATHDEBUG=1
 
@@ -16,9 +19,8 @@ DAP=1
 
 if test "x$VS" != x ; then
 FLAGS="-DCMAKE_PREFIX_PATH=c:/tools/nccmake"
-FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=d:/ignore"
 else
-FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=/tmp/ignore"
+FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=`pwd`/ignore"
 fi
 
 if test "x$DAP" = x ; then
@@ -35,6 +37,8 @@ FLAGS="$FLAGS -DENABLE_TESTS=true"
 FLAGS="$FLAGS -DENABLE_EXAMPLES=false"
 #FLAGS="$FLAGS -DENABLE_HDF4=true"
 FLAGS="$FLAGS -DENABLE_DYNAMIC_LOADING=false"
+FLAGS="$FLAGS -DENABLE_WINSOCK2=false"
+#FLAGS="$FLAGS -DENABLE_LARGE_FILE_TESTS=true"
 
 rm -fr build
 mkdir build

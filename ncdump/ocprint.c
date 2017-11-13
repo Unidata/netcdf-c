@@ -340,9 +340,6 @@ main(int argc, char **argv)
     }
 
     if(ocopt.rcfile != NULL) {
-        if(strlen(ocopt.rcfile) == 0 || strcmp(NORC,ocopt.rcfile)==0)
-	    {free(ocopt.rcfile); ocopt.rcfile = NULL;}
-	oc_set_rcfile(ocopt.rcfile);
     }
 
     if (ocopt.debug.verbose)

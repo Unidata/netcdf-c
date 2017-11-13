@@ -462,7 +462,7 @@ AC_MSG_CHECKING([whether netCDF extra tests should be run (developers only)])
 AC_ARG_ENABLE([extra-tests],
               [AS_HELP_STRING([--enable-extra-tests],
                               [enable some extra tests that may not pass because of known issues])])
-test "x$enable_extra_tests" = xno || enable_extra_tests=yes
+test "x$enable_extra_tests" = xyes || enable_extra_tests=no
 AC_MSG_RESULT($enable_extra_tests)
 if test "x$enable_extra_tests" = xyes; then
    AC_DEFINE([EXTRA_TESTS], [1], [if true, run extra tests which may not work yet])
@@ -812,7 +812,7 @@ AC_CHECK_HEADERS([ftw.h])
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
                 strdup strcasecmp strtod strtoll strtoull strstr \
-		mkstemp rand random memcmp \
+		mkstemp mktemp rand random memcmp \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
 # Does the user want to use NC_DISKLESS?
@@ -871,7 +871,7 @@ AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
-AC_CHECK_TYPES([size_t, ssize_t, ptrdiff_t, uchar, longlong, ushort, uint, int64, uint64 off_t])
+AC_CHECK_TYPES([size_t, ssize_t, ptrdiff_t, schar, uchar, longlong, ushort, uint, int64, uint64 off_t])
 AC_TYPE_SIZE_T
 AC_TYPE_OFF_T
 AC_C_CHAR_UNSIGNED
@@ -1054,20 +1054,30 @@ fi
 #    a. do not want to use it for netcdf4
 #    b. do want to use it for netcdf4
 
-# Should we suppress parallel io for netcdf-4?
+# Should we provide parallel io for netcdf-4?
 if test "x$enable_netcdf_4" = xyes ; then
-     AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
-     AC_ARG_ENABLE([parallel4], [AS_HELP_STRING([--disable-parallel4],
-                                          [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5]  )])
-  test "x$enable_parallel4" = xno || enable_parallel4=yes
-  AC_MSG_RESULT($enable_parallel4)
+   AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
+   AC_ARG_ENABLE([parallel4],
+	[AS_HELP_STRING([--disable-parallel4],
+                        [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5])],
+			[user_set_parallel4=${enableval}])
+   test "x$enable_parallel4" = xno || enable_parallel4=yes
+   AC_MSG_RESULT($enable_parallel4)
+
+   # If user wants parallel IO for netCDF-4, make sure HDF5 can provide it.
+   if test "x$enable_parallel4" = xyes; then
+      if test "x$hdf5_parallel" = xno; then
+      	 # If user specifically asked for parallel4, then error out.
+	 if test "x$user_set_parallel4" = xyes; then
+	    AC_MSG_ERROR([Paralllel IO in netCDF-4 requested, but HDF5 does not provide parallel IO.])
+	 fi
+         # User didn't specify, so disable parallel4
+	 enable_parallel4=no
+	 AC_MSG_WARN([Parallel io disabled for netcdf-4 because hdf5 does not support])
+      fi
+   fi
 else
-  enable_parallel4=no
-fi
-if test "x$hdf5_parallel" = xno; then
-  # hdf5 does not support parallel io, so disable parallel4
-  enable_parallel4=no
-  AC_MSG_WARN([Parallel io disabled for netcdf-4 because hdf5 does not support])
+   enable_parallel4=no
 fi
 
 # We have already tested for parallel io in netcdf4
@@ -1081,10 +1091,13 @@ AC_MSG_RESULT($enable_pnetcdf)
 
 # See if the pnetcdf lib is available and of the
 # right version (1.6.0 or later)
-
 if test "x$enable_pnetcdf" = xyes; then
   pnetcdf_conflict=no
   AC_CHECK_LIB([pnetcdf], [ncmpi_create], [],[pnetcdf_conflict=yes])
+
+  if test "x$pnetcdf_conflict" = xyes ; then
+     AC_MSG_ERROR([Cannot link to pnetcdf library.])
+  fi   
 
   # Pnetcdf did not support utf-8 until 1.6.0
 
@@ -1105,14 +1118,8 @@ if test "x$enable_pnetcdf" = xyes; then
   AC_MSG_CHECKING([Is libpnetcdf version 1.6.0 or later?])
   AC_MSG_RESULT([$pnetcdf16])
   if test x$pnetcdf16 = xno; then
-    AC_MSG_WARN([--enable-pnetcdf requires version 1.6.0 or later; disabling])
-    pnetcdf_conflict=yes
+    AC_MSG_ERROR([--enable-pnetcdf requires version 1.6.0 or later])
   fi
-fi
-
-if test "x$pnetcdf_conflict" = xyes ; then
-  AC_MSG_WARN([Cannot link to pnetcdf library, --enable-pnetcdf disabled.])
-  enable_pnetcdf=no
 fi
 
 # Now, set enable_parallel if either pnetcdf or parallel4 is set
@@ -1175,7 +1182,7 @@ if test "x$enable_pnetcdf" = xyes; then
           enable_erange_fill_pnetcdf=yes
       fi
    fi
-   AC_MSG_NOTICE([$enable_erange_fill_pnetcdf])
+   AC_MSG_RESULT([$enable_erange_fill_pnetcdf])
    if test "$enable_erange_fill" != "$enable_erange_fill_pnetcdf"; then
       if test "$enable_erange_fill_pnetcdf" = yes; then
          AC_MSG_WARN([Enable erange-fill to conform with PnetCDF setting])
@@ -1197,7 +1204,7 @@ if test "x$enable_pnetcdf" = xyes; then
           relax_coord_bound_pnetcdf=yes
       fi
    fi
-   AC_MSG_NOTICE([$relax_coord_bound_pnetcdf])
+   AC_MSG_RESULT([$relax_coord_bound_pnetcdf])
    if test "$enable_zero_length_coord_bound" != "$relax_coord_bound_pnetcdf"; then
       if test "$relax_coord_bound_pnetcdf" = yes; then
          AC_MSG_WARN([Enable relax-coord-bound to conform with PnetCDF setting])

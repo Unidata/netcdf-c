@@ -23,7 +23,6 @@ main(int argc, char **argv)
 {
     int nc_argc = argc;
     int nc_argv = argv;
-    nc_initialize();
 
     printf("\n*** Create some files for testing benchmarks.\n");
 
@@ -301,6 +300,5 @@ main(int argc, char **argv)
     }
     SUMMARIZE_ERR;
 
-    nc_finalize();
     FINAL_RESULTS;
 }
