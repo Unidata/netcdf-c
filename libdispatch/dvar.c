@@ -162,7 +162,7 @@ element of the dimids array.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTINDEFINE Not in define mode.
 \returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
-\returns ::NC_EMAXVARS NC_MAX_VARS exceeded
+\returns ::NC_EMAXVARS NC_MAX_VARS exceeded [Not enforced after 4.5.0]
 \returns ::NC_EBADTYPE Bad type.
 \returns ::NC_EINVAL Invalid input.
 \returns ::NC_ENAMEINUSE Name already in use.
@@ -520,6 +520,12 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
 #ifdef USE_NETCDF4
 /** \ingroup variables
 
+Change the cache settings for a chunked variable. This function allows
+users to control the amount of memory used in the per-variable chunk
+cache at the HDF5 level. Changing the chunk cache only has effect
+until the file is closed. Once re-opened, the variable chunk cache
+returns to its default value.
+
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
@@ -542,6 +548,34 @@ chunks.
 \returns ::NC_ENOTVAR Invalid variable ID.
 \returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
 \returns ::NC_EINVAL Invalid input
+
+\section nc_def_var_chunk_cache_example Example
+
+In this example from nc_test4/tst_coords.c, a variable is defined, and
+the chunk cache settings are changed for that variable.
+
+\code
+   printf("**** testing setting cache values for coordinate variables...");
+   {
+#define RANK_1 1
+#define DIM0_NAME "d0"
+#define CACHE_SIZE 1000000
+#define CACHE_NELEMS 1009
+#define CACHE_PREEMPTION .90
+
+      int ncid, dimid, varid;
+      char name_in[NC_MAX_NAME + 1];
+
+      if (nc_create(FILE_NAME, NC_CLASSIC_MODEL|NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM0_NAME, NC_UNLIMITED, &dimid)) ERR;
+      if (nc_def_var(ncid, DIM0_NAME, NC_DOUBLE, 1, &dimid, &varid)) ERR;
+      if (nc_set_var_chunk_cache(ncid, varid, CACHE_SIZE, CACHE_NELEMS, CACHE_PREEMPTION)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      ...
+   }
+   SUMMARIZE_ERR;
+\endcode
  */
 int
 nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
@@ -555,6 +589,8 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
 }
 
 /** \ingroup variables
+
+Get the per-variable chunk cache settings from the HDF5 layer.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
@@ -578,7 +614,8 @@ chunks are always preempted before other chunks. \ref ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTVAR Invalid variable ID.
-\returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
+\returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
+netcdf-4 file.
 \returns ::NC_EINVAL Invalid input
 */
 int
@@ -614,6 +651,81 @@ nc_free_string(size_t len, char **data)
    return NC_NOERR;
 }
 
+/** \ingroup variables
+
+Set the compression settings for a netCDF-4/HDF5 variable.
+
+This function must be called after nc_def_var and before nc_enddef or
+any functions which writes data to the file.
+
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as
+nc_inq_ncid().
+
+\param varid Variable ID
+
+\param shuffle True to turn on the shuffle filter.
+
+\param deflate True to turn on deflation for this variable.
+
+\param deflate_level A number between 0 (no compression) and 9
+(maximum compression).
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
+\returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
+not netCDF-4/HDF5.
+\returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
+netcdf-4 file.
+\returns ::NC_ELATEDEF Too late to change settings for this variable.
+\returns ::NC_EINVAL Invalid input
+
+\section nc_def_var_deflate_example Example
+
+Here is an example from /examples/C/simple_xy_nc4_wr.c using
+nc_def_var_deflate to create a variable and then turn on the shuffle
+filter and compression.
+
+\code
+#include <netcdf.h>
+#define NDIMS 2
+#define NX 6
+#define NY 12
+
+   int ncid, x_dimid, y_dimid, varid;
+   int dimids[NDIMS];
+   int shuffle, deflate, deflate_level;
+   int data_out[NX][NY];
+   int x, y, retval;
+
+   shuffle = NC_SHUFFLE;
+   deflate = 1;
+   deflate_level = 1;
+   ...
+   if ((retval = nc_create(FILE_NAME, NC_NETCDF4, &ncid)))
+      ERR(retval);
+
+   if ((retval = nc_def_dim(ncid, "x", NX, &x_dimid)))
+      ERR(retval);
+   if ((retval = nc_def_dim(ncid, "y", NY, &y_dimid)))
+      ERR(retval);
+
+   dimids[0] = x_dimid;
+   dimids[1] = y_dimid;
+
+   if ((retval = nc_def_var(ncid, "data", NC_INT, NDIMS,
+                            dimids, &varid)))
+      ERR(retval);
+
+   ...
+
+   if ((retval = nc_def_var_deflate(ncid, varid, shuffle, deflate,
+                                    deflate_level)))
+      ERR(retval);
+        ...
+\endcode
+*/
 int
 nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_level)
 {
@@ -623,6 +735,32 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
     return ncp->dispatch->def_var_deflate(ncid,varid,shuffle,deflate,deflate_level);
 }
 
+/** \ingroup variables
+
+Set checksum for a var.
+
+This function must be called after nc_def_var and before nc_enddef or
+any functions which writes data to the file.
+
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as
+nc_inq_ncid().
+
+\param varid Variable ID
+
+\param fletcher32 True to turn on Fletcher32 checksums for this
+variable.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
+\returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
+not netCDF-4/HDF5.
+\returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
+netcdf-4 file.
+\returns ::NC_ELATEDEF Too late to change settings for this variable.
+\returns ::NC_EINVAL Invalid input
+*/
 int
 nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 {
@@ -636,32 +774,59 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 
 \ingroup variables
 
-The function nc_def_var_chunking sets the chunking parameters for a variable in a netCDF-4 file. It can set the chunk sizes to get chunked storage, or it can set the contiguous flag to get contiguous storage.
+The function nc_def_var_chunking sets the chunking parameters for a
+variable in a netCDF-4 file. It can set the chunk sizes to get chunked
+storage, or it can set the contiguous flag to get contiguous storage.
 
-The total size of a chunk must be less than 4 GiB. That is, the product of all chunksizes and the size of the data (or the size of nc_vlen_t for VLEN types) must be less than 4 GiB.
+The total size of a chunk must be less than 4 GiB. That is, the
+product of all chunksizes and the size of the data (or the size of
+nc_vlen_t for VLEN types) must be less than 4 GiB.
 
-This function may only be called after the variable is defined, but before nc_enddef is called. Once the chunking parameters are set for a variable, they cannot be changed.
+This function may only be called after the variable is defined, but
+before nc_enddef is called. Once the chunking parameters are set for a
+variable, they cannot be changed.
 
-Note that this does not work for scalar variables. Only non-scalar variables can have chunking.
+Note that this does not work for scalar variables. Only non-scalar
+variables can have chunking.
 
+\param[in] ncid NetCDF ID, from a previous call to nc_open or
+nc_create.
 
+\param[in] varid Variable ID.
 
-@param[in] ncid NetCDF ID, from a previous call to nc_open or nc_create.
-@param[in] varid Variable ID.
-@param[in] storage If ::NC_CONTIGUOUS, then contiguous storage is used for this variable. Variables with one or more unlimited dimensions cannot use contiguous storage. If contiguous storage is turned on, the chunksizes parameter is ignored. If ::NC_CHUNKED, then chunked storage is used for this variable. Chunk sizes may be specified with the chunksizes parameter or default sizes will be used if that parameter is NULL.
-@param[in] chunksizesp A pointer to an array list of chunk sizes. The array must have one chunksize for each dimension of the variable. If ::NC_CONTIGUOUS storage is set, then the chunksizes parameter is ignored.
+\param[in] storage If ::NC_CONTIGUOUS, then contiguous storage is used
+for this variable. Variables with one or more unlimited dimensions
+cannot use contiguous storage. If contiguous storage is turned on, the
+chunksizes parameter is ignored. If ::NC_CHUNKED, then chunked storage
+is used for this variable. Chunk sizes may be specified with the
+chunksizes parameter or default sizes will be used if that parameter
+is NULL.
 
-@returns ::NC_NOERR No error.
-@returns ::NC_EBADID Bad ID.
-@returns ::NC_ENOTNC4 Not a netCDF-4 file.
-@returns ::NC_ELATEDEF This variable has already been the subject of a nc_enddef call.  In netCDF-4 files nc_enddef will be called automatically for any data read or write. Once nc_enddef has been called after the nc_def_var call for a variable, it is impossible to set the chunking for that variable.
-@returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for netCDF classic or 64-bit offset files, or for netCDF-4 files, when they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
-@returns ::NC_EPERM Attempt to create object in read-only file.
-@returns ::NC_EBADCHUNK Retunrs if the chunk size specified for a variable is larger than the length of the dimensions associated with variable.
+\param[in] chunksizesp A pointer to an array list of chunk sizes. The
+array must have one chunksize for each dimension of the variable. If
+::NC_CONTIGUOUS storage is set, then the chunksizes parameter is
+ignored.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ID.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file.
+\returns ::NC_ELATEDEF This variable has already been the subject of a
+nc_enddef call.  In netCDF-4 files nc_enddef will be called
+automatically for any data read or write. Once nc_enddef has been
+called after the nc_def_var call for a variable, it is impossible to
+set the chunking for that variable.
+\returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for
+netCDF classic or 64-bit offset files, or for netCDF-4 files, when
+they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
+\returns ::NC_EPERM Attempt to create object in read-only file.
+\returns ::NC_EBADCHUNK Retunrs if the chunk size specified for a
+variable is larger than the length of the dimensions associated with
+variable.
 
 \section nc_def_var_chunking_example Example
 
-In this example from libsrc4/tst_vars2.c, chunksizes are set with nc_var_def_chunking, and checked with nc_var_inq_chunking.
+In this example from libsrc4/tst_vars2.c, chunksizes are set with
+nc_var_def_chunking, and checked with nc_var_inq_chunking.
 
 \code
         printf("**** testing chunking...");
@@ -696,7 +861,6 @@ In this example from libsrc4/tst_vars2.c, chunksizes are set with nc_var_def_chu
               if (chunksize[d] != chunksize_in[d]) ERR;
            if (storage_in != NC_CHUNKED) ERR;
 \endcode
-
 */
 int
 nc_def_var_chunking(int ncid, int varid, int storage,
@@ -709,6 +873,68 @@ nc_def_var_chunking(int ncid, int varid, int storage,
 					   chunksizesp);
 }
 
+/*! Set the fill value for a netCDF4/HDF5 variable.
+
+\ingroup variables
+
+\param ncid NetCDF ID, from a previous call to nc_open or
+nc_create.
+
+\param varid Variable ID.
+
+\param no_fill Set to NC_NOFILL to turn off fill mode for this
+variable. Set to NC_FILL (the default) to turn on fill mode for the
+variable.
+
+\param fill_value the fill value to be used for this variable. Must be
+the same type as the variable.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ID.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file.
+\returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for
+netCDF classic or 64-bit offset files, or for netCDF-4 files, when
+they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
+\returns ::NC_EPERM Attempt to create object in read-only file.
+
+\section nc_def_var_fill_example Example
+
+In this example from libsrc4/tst_vars.c, a variable is defined, and
+the fill mode turned off. Then nc_inq_fill() is used to check that the
+setting is correct. Then some data are written to the variable. Since
+the data that are written do not cover the full extent of the
+variable, the missing values will just be random. If fill value mode
+was turned on, the missing values would get the fill value.
+
+\code
+#define DIM7_LEN 2
+#define DIM7_NAME "dim_7_from_Indiana"
+#define VAR7_NAME "var_7_from_Idaho"
+#define NDIMS 1
+      int dimids[NDIMS];
+      size_t index[NDIMS];
+      int varid;
+      int no_fill;
+      unsigned short ushort_data = 42, ushort_data_in, fill_value_in;
+
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM7_NAME, DIM7_LEN, &dimids[0])) ERR;
+      if (nc_def_var(ncid, VAR7_NAME, NC_USHORT, NDIMS, dimids,
+		     &varid)) ERR;
+      if (nc_def_var_fill(ncid, varid, 1, NULL)) ERR;
+
+      if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value_in)) ERR;
+      if (!no_fill) ERR;
+
+      index[0] = 1;
+      if (nc_put_var1_ushort(ncid, varid, index, &ushort_data)) ERR;
+
+      index[0] = 0;
+      if (nc_get_var1_ushort(ncid, varid, index, &ushort_data_in)) ERR;
+
+      if (nc_close(ncid)) ERR;
+\endcode
+*/
 int
 nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
@@ -718,6 +944,71 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
     return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
 }
 
+/*! Define endianness of a variable.
+
+\ingroup variables
+
+With this function the endianness (i.e. order of bits in integers) can
+be changed on a per-variable basis. By default, the endianness is the
+same as the default endianness of the platform. But with
+nc_def_var_endianness the endianness can be explicitly set for a
+variable.
+
+This function may only be called after the variable is defined, but
+before nc_enddef is called. 
+
+\param[in] ncid NetCDF ID, from a previous call to nc_open or
+nc_create.
+
+\param[in] varid Variable ID.
+
+\param[in] endian NC_ENDIAN_NATIVE to select the native endianness of
+the platform (the default), NC_ENDIAN_LITTLE to use little-endian,
+NC_ENDIAN_BIG to use big-endian.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ID.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file.
+\returns ::NC_ELATEDEF This variable has already been the subject of a
+nc_enddef call. In netCDF-4 files nc_enddef will be called
+automatically for any data read or write. Once nc_enddef has been
+called after the nc_def_var call for a variable, it is impossible to
+set the chunking for that variable.
+\returns ::NC_ENOTINDEFINE Not in define mode. This is returned for
+netCDF classic or 64-bit offset files, or for netCDF-4 files, when
+they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
+\returns ::NC_EPERM Attempt to create object in read-only file.
+
+\section nc_def_var_endian_example Example
+
+In this example from libsrc4/tst_vars2.c, a variable is created, and
+the endianness set to NC_ENDIAN_BIG.
+
+\code
+#define NDIMS4 1
+#define DIM4_NAME "Joe"
+#define VAR_NAME4 "Ed"
+#define DIM4_LEN 10
+   {
+      int dimids[NDIMS4], dimids_in[NDIMS4];
+      int varid;
+      int ndims, nvars, natts, unlimdimid;
+      nc_type xtype_in;
+      char name_in[NC_MAX_NAME + 1];
+      int data[DIM4_LEN], data_in[DIM4_LEN];
+      int endian_in;
+      int i;
+
+      for (i = 0; i < DIM4_LEN; i++)
+         data[i] = i;
+
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM4_NAME, DIM4_LEN, &dimids[0])) ERR;
+      if (dimids[0] != 0) ERR;
+      if (nc_def_var(ncid, VAR_NAME4, NC_INT, NDIMS4, dimids, &varid)) ERR;
+      if (nc_def_var_endian(ncid, varid, NC_ENDIAN_BIG)) ERR;
+\endcode
+*/
 int
 nc_def_var_endian(int ncid, int varid, int endian)
 {

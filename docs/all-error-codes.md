@@ -15,14 +15,14 @@ NetCDF Error Code Listing {#nc-error-codes}
 #define NC_ENOTINDEFINE (-38)   // Operation not allowed in data mode
 #define NC_EINDEFINE    (-39)   // Operation not allowed in define mode
 #define NC_EINVALCOORDS (-40)   // Index exceeds dimension bound
-#define NC_EMAXDIMS     (-41)   // NC_MAX_DIMS exceeded
+#define NC_EMAXDIMS     (-41)   // NC_MAX_DIMS exceeded  [not enforced after 4.5.0]
 #define NC_ENAMEINUSE   (-42)   // String match to name in use
 #define NC_ENOTATT      (-43)   // Attribute not found
-#define NC_EMAXATTS     (-44)   // NC_MAX_ATTRS exceeded
+#define NC_EMAXATTS     (-44)   // NC_MAX_ATTRS exceeded  [not enforced after 4.5.0]
 #define NC_EBADTYPE     (-45)   // Not a netcdf data type
 #define NC_EBADDIM      (-46)   // Invalid dimension id or name
 #define NC_EUNLIMPOS    (-47)   // NC_UNLIMITED in the wrong index
-#define NC_EMAXVARS     (-48)   // NC_MAX_VARS exceeded
+#define NC_EMAXVARS     (-48)   // NC_MAX_VARS exceeded  [not enforced after 4.5.0]
 #define NC_ENOTVAR      (-49)   // Variable not found
 #define NC_EGLOBAL      (-50)   // Action prohibited on NC_GLOBAL varid
 #define NC_ENOTNC       (-51)   // Not a netcdf file

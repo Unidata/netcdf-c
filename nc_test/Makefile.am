@@ -17,7 +17,7 @@ tst_diskless.nc tst_diskless2.nc \
 tst_diskless3.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl \
 tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc nc_test_cdf5.nc \
 unlim.nc tst_inq_type.nc tst_elatefill.nc tst_global_fillval.nc \
-tst_large_cdf5.nc
+tst_large_cdf5.nc tst_max_var_dims.nc
 
 check_PROGRAMS =
 
@@ -25,7 +25,7 @@ check_PROGRAMS =
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm \
 	tst_names tst_nofill tst_nofill2 tst_nofill3 tst_atts3 \
 	tst_meta tst_inq_type tst_utf8_validate tst_utf8_phrases \
-	tst_global_fillval
+	tst_global_fillval tst_max_var_dims
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts tst_put_vars tst_elatefill
@@ -33,6 +33,14 @@ endif
 
 if USE_PNETCDF
 TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar tst_formatx_pnetcdf
+endif
+
+if TEST_PARALLEL4
+if USE_PNETCDF
+if USE_CDF5
+TESTPROGRAMS += tst_cdf5format
+endif
+endif
 endif
 
 # These are the source files for the main workhorse test program,
@@ -108,11 +116,6 @@ EXTRA_DIST += ref_tst_diskless2.cdl tst_diskless5.cdl CMakeLists.txt
 # Only clean these on maintainer-clean, because they require m4 to
 # regenerate.
 #MAINTAINERCLEANFILES = test_get.c test_put.c
-
-all:
-	cp $(top_srcdir)/libsrc/ncx.c .
-
-CLEANFILES += ncx.c
 
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
