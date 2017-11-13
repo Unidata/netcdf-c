@@ -3549,26 +3549,54 @@ Parse a filter spec string and store it in special
 static int
 parsefilterflag(const char* sdata0, Specialdata* special)
 {
-    unsigned int* params = NULL;
-    size_t nparams;
-    unsigned int id;
+    char* p;
+    char* sdata = NULL;
+    int stat;
+    size_t count;
+    unsigned int* ulist = NULL;
 
-    if(!NC_parsefilterspec(sdata0,&id,&nparams,*params))
-	goto fail;
+    if(sdata0 == NULL || strlen(sdata0) == 0) goto fail;
+    sdata = strdup(sdata0);
 
-    if(special) {
-        /* Store the id */
-        special->_FilterID = id;
-        /* And the parameter info */
-        special->nparams = nparams;
-        special->_FilterParams = params;
-        ulist = NULL; /* avoid duplicate free */
+    /* Count number of unsigned integers and delimit */
+    p=sdata;
+    for(count=0;;count++) {
+        char* q = strchr(p,',');
+	if(q == NULL) break;
+	*q++ = '\0'; /* delimit */
+	p = q;
     }
+    count++; /* for final piece */
+
+    /* Start by collecting the filter id */
+    p = sdata;
+    stat = sscanf(p,"%u",&special->_FilterID);
+    if(stat != 1) goto fail;
+    count--;  /* actual param count minus the id */
+
+    ulist = (unsigned int*)malloc(sizeof(unsigned int)*(count));
+    if(ulist == NULL) goto fail;
+
+    special->nparams = count;
+    for(count=0;count < special->nparams ;) {
+        unsigned int uval;
+        p = p + strlen(p) + 1; /* move to next param */
+	stat = sscanf(p,"%u",&uval);
+	if(stat != 1) goto fail;
+	ulist[count++] = uval;
+    }
+    special->_FilterParams = ulist;
+    ulist = NULL; /* avoid duplicate free */
+
+    if(sdata) free(sdata);
+    if(ulist) free(ulist);
     return 1;
 fail:
-    if(params) free(params);
+    if(sdata) free(sdata);
+    if(ulist) free(ulist);
     if(special) special->_FilterID = 0;
     derror("Malformed filter spec: %s",sdata);
+
     return 0;
 }
 
