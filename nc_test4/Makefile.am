@@ -20,9 +20,9 @@ tst_interops6 tst_enums tst_coords tst_coords2 tst_coords3 tst_vars3	\
 tst_vars4 tst_chunks tst_chunks2 tst_utf8 tst_fills tst_fills2		\
 tst_fillbug tst_xplatform tst_xplatform2 tst_endian_fill tst_atts	\
 t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
-tst_vars2 tst_files5 tst_files6 tst_sync tst_h_scalar tst_rename	\
-tst_h5_endians tst_atts_string_rewrite tst_hdf5_file_compat		\
-tst_fill_attr_vanish tst_rehash
+tst_vars2 tst_files5 tst_files6 tst_sync         			\
+tst_h_scalar tst_rename tst_h5_endians tst_atts_string_rewrite 		\
+tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_filterparser
 
 # Temporary I hope
 if !ISCYGWIN
@@ -106,6 +106,15 @@ endif # USE_HDF4_FILE_TESTS
 #-lhdf5 -lz
 endif # USE_HDF4
 
+# Szip Tests (requires ncdump)
+if USE_SZIP
+if BUILD_UTILITIES
+check_PROGRAMS += test_szip h5testszip
+TESTS += tst_szip.sh
+endif
+endif
+
+
 # This will run a bunch of the test programs with valgrind, the memory
 # checking tool. (Valgrind must be present for this to work.)
 if USE_VALGRIND_TESTS
@@ -135,8 +144,8 @@ run_grp_rename.sh tst_formatx_hdf4.sh run_chunk_hdf4.sh \
 tst_h5_endians.c tst_h4_lendian.c tst_atts_string_rewrite.c \
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c run_empty_vlen_test.sh \
 ref_hdf5_compat1.nc ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh \
-tdset.h5 tst_hdf4_read_var.sh ref_contiguous.hdf4 ref_chunked.hdf4
-
+tdset.h5 tst_hdf4_read_var.sh ref_contiguous.hdf4 ref_chunked.hdf4      \
+tst_szip.sh ref_szip.h5 ref_szip.cdl
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt			\
@@ -148,7 +157,8 @@ usi_01.* thetau_01.* tst_*.nc tst_*.h5                                  \
 tst_grp_rename.cdl tst_grp_rename.nc tst_grp_rename.dmp ref_grp_rename.cdl \
 foo1.nc tst_interops2.h4 tst_h5_endians.nc tst_h4_lendian.h4 test.nc \
 tst_atts_string_rewrite.nc tst_empty_vlen_unlim.nc tst_empty_vlen_lim.nc \
-tst_parallel4_simplerw_coll.nc tst_fill_attr_vanish.nc tst_rehash.nc
+tst_parallel4_simplerw_coll.nc tst_fill_attr_vanish.nc tst_rehash.nc    \
+testszip.nc test.h5 szip_dump.cdl
 
 if USE_HDF4_FILE_TESTS
 DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
@@ -157,5 +167,6 @@ MYD29.A2009152.0000.005.2009153124331.hdf		\
 MYD29.A2002185.0000.005.2007160150627.hdf		\
 MOD29.A2000055.0005.005.2006267200024.hdf
 
-
 endif # HDF4_FILE_TESTS
+
+SUBDIRS=filter_test

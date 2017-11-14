@@ -67,7 +67,7 @@ void usage( void );
 int main( int argc, char** argv );
 
 /* Define tables vs modes for legal -k values*/
-struct Kvalues legalkinds[NKVALUES] = {
+struct Kvalues legalkinds[] = {
     /* NetCDF-3 classic format (32-bit offsets) */
     {"classic", NC_FORMAT_CLASSIC}, /* canonical format name */
     {"nc3", NC_FORMAT_CLASSIC},	    /* short format name */
