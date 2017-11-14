@@ -1173,6 +1173,9 @@ NCP_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     if(contiguousp) *contiguousp = NC_CONTIGUOUS;
     if(no_fill) *no_fill = 1;
     if(endiannessp) return NC_ENOTNC4;
+    if(idp) return NC_ENOTNC4;
+    if(nparamsp) return NC_ENOTNC4;
+    if(params) return NC_ENOTNC4;
     return NC_NOERR;
 }
 
