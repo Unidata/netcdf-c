@@ -887,7 +887,10 @@ variable. Set to NC_FILL (the default) to turn on fill mode for the
 variable.
 
 \param fill_value the fill value to be used for this variable. Must be
-the same type as the variable.
+the same type as the variable. This must point to enough free memory
+to hold one element of the data type of the variable. (For example, an
+NC_INT will require 4 bytes for it's fill value, which is also an
+NC_INT.)
 
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad ID.
