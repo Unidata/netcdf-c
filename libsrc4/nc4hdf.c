@@ -1528,21 +1528,31 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     }
 
   /* If the user wants to shuffle the data, set that up now. */
-  if (var->shuffle)
+  if (var->shuffle) {
     if (H5Pset_shuffle(plistid) < 0)
       BAIL(NC_EHDFERR);
+  }
 
   /* If the user wants to deflate the data, set that up now. */
-  if (var->deflate)
+  if (var->deflate) {
     if (H5Pset_deflate(plistid, var->deflate_level) < 0)
       BAIL(NC_EHDFERR);
-
-  /* Szip? NO! We don't want anyone to produce szipped netCDF files! */
-  /* #ifdef USE_SZIP */
-  /*    if (var->options_mask) */
-  /*       if (H5Pset_szip(plistid, var->options_mask, var->bits_per_pixel) < 0) */
-  /*          BAIL(NC_EHDFERR); */
-  /* #endif */
+  } else if(var->filterid) {
+    /* Handle szip case here */
+    if(var->filterid == H5Z_FILTER_SZIP) {
+	int options_mask;
+	int bits_per_pixel;
+	if(var->nparams != 2)
+	    BAIL(NC_EFILTER);
+	options_mask = (int)var->params[0];
+	bits_per_pixel = (int)var->params[1];
+        if(H5Pset_szip(plistid, options_mask, bits_per_pixel) < 0)
+           BAIL(NC_EFILTER);
+    } else {
+        if(H5Pset_filter(plistid, var->filterid, H5Z_FLAG_MANDATORY, var->nparams, var->params) < 0)
+            BAIL(NC_EFILTER);
+    }
+  }
 
   /* If the user wants to fletcher error correcton, set that up now. */
   if (var->fletcher32)
@@ -1569,7 +1579,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
        * has not specified chunksizes, use contiguous variable for
        * better performance. */
 
-      if(!var->shuffle && !var->deflate && !var->options_mask &&
+      if(!var->shuffle && !var->deflate &&
          !var->fletcher32 && (var->chunksizes == NULL || !var->chunksizes[0])) {
 #ifdef USE_HDF4
         NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
