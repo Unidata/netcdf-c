@@ -452,9 +452,9 @@ by the desired type. */
 #define NC_ECANTEXTEND   (-130)    /**< Attempt to extend dataset during ind. I/O operation. */
 #define NC_EMPI          (-131)    /**< MPI operation failed. */
 
-#define NC_ERCFILE       (-132)    /**< RC file failure */
-
-#define NC4_LAST_ERROR   (-132)
+#define NC_EFILTER       (-132)    /**< Filter operation failed. */
+#define NC_ERCFILE       (-133)    /**< RC file failure */
+#define NC4_LAST_ERROR   (-134)
 
 /* This is used in netCDF-4 files for dimensions without coordinate
  * vars. */
@@ -463,7 +463,6 @@ by the desired type. */
 /* This is here at the request of the NCO team to support our
  * mistake of having chunksizes be first ints, then size_t. Doh! */
 #define NC_HAVE_NEW_CHUNKING_API 1
-
 
 /*Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
 #define NC_EURL         (NC_EDAPURL)   /* Malformed URL */
@@ -863,6 +862,14 @@ nc_def_var_endian(int ncid, int varid, int endian);
 /* Learn about the endianness of a variable. */
 EXTERNL int
 nc_inq_var_endian(int ncid, int varid, int *endianp);
+
+/* Define a filter for a variable */
+EXTERNL int
+nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms);
+
+/* Learn about the filter on a variable */
+EXTERNL int
+nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparams, unsigned int* params);
 
 /* Set the fill mode (classic or 64-bit offset files only). */
 EXTERNL int

@@ -1,6 +1,5 @@
 #!/bin/sh
 
-export SETX=1
 #export NCPATHDEBUG=1
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi

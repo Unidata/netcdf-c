@@ -664,7 +664,8 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *shufflep, int *deflatep, int *deflate_levelp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                int *no_fill, void *fill_valuep, int *endiannessp,
-	       int *options_maskp, int *pixels_per_blockp)
+	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+               )
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
@@ -742,13 +743,13 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       *shufflep = (int)var->shuffle;
    if (fletcher32p)
       *fletcher32p = (int)var->fletcher32;
-   /* NOTE: No interface for returning szip flag currently (but it should never
-    *   be set).
-    */
-   if (options_maskp)
-      *options_maskp = var->options_mask;
-   if (pixels_per_blockp)
-      *pixels_per_blockp = var->pixels_per_block;
+
+   if (idp)
+      *idp = var->filterid;
+   if (nparamsp)
+      *nparamsp = (var->params == NULL ? 0 : var->nparams);
+   if (params && var->params != NULL)
+	memcpy(params,var->params,var->nparams*sizeof(unsigned int));
 
    /* Fill value stuff. */
    if (no_fill)
@@ -1064,7 +1065,7 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
 
    retval = NC4_inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, NULL,
                            NULL, NULL, NULL, NULL, contiguousp, cs, NULL,
-                           NULL, NULL, NULL, NULL);
+                           NULL, NULL, NULL, NULL, NULL);
 
    /* Copy from size_t array. */
    if (*contiguousp == NC_CHUNKED)
@@ -1141,6 +1142,74 @@ NC4_def_var_endian(int ncid, int varid, int endianness)
 {
    return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL,
                            NULL, NULL, NULL, &endianness);
+}
+
+int
+NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms)
+{
+   int retval = NC_NOERR;
+   NC *nc;
+   NC_GRP_INFO_T *grp;
+   NC_HDF5_FILE_INFO_T *h5;
+   NC_VAR_INFO_T *var;
+   NC_DIM_INFO_T *dim;
+
+   LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+   /* Find info for this file and group, and set pointer to each. */
+   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+      return retval;
+
+   assert(nc && grp && h5);
+
+    /* Find the var. */
+    if (varid < 0 || varid >= grp->vars.nelems)
+        return NC_ENOTVAR;
+    var = grp->vars.value[varid];
+    if (!var) return NC_ENOTVAR;
+    assert(var->varid == varid);
+
+   /* Can't turn on parallel and filters */
+   if (nc->mode & (NC_MPIIO | NC_MPIPOSIX)) {
+	 return NC_EINVAL;
+   }
+
+    /* If the HDF5 dataset has already been created, then it is too
+    * late to set all the extra stuff. */
+    if (var->created)
+      return NC_ELATEDEF;
+
+#ifdef HAVE_H5Z_SZIP
+    if(id == H5Z_FILTER_SZIP) {
+	if(nparams != 2)
+	    return NC_EFILTER; /* incorrect no. of parameters */
+    }    
+#else /*!HAVE_H5Z_SZIP*/
+    if(id == H5Z_FILTER_SZIP)
+	return NC_EFILTER; /* Not allowed */
+#endif
+
+#if 0
+   {
+	unsigned int fcfg = 0;
+	herr_t herr = H5Zget_filter_info(id,&fcfg);
+	if(herr < 0)
+	    return NC_EFILTER;
+	if((H5Z_FILTER_CONFIG_ENCODE_ENABLED & fcfg) == 0
+	   || (H5Z_FILTER_CONFIG_DECODE_ENABLED & fcfg) == 0)
+	    return NC_EFILTER;
+    }
+#endif /*0*/
+
+    var->filterid = id;
+    var->nparams = nparams;
+    var->params = NULL;
+    if(parms != NULL) {
+	var->params = (unsigned int*)calloc(nparams,sizeof(unsigned int));
+	if(var->params == NULL) return NC_ENOMEM;
+	memcpy(var->params,parms,sizeof(unsigned int)*var->nparams);
+    }
+    return NC_NOERR;
 }
 
 /* Get var id from name. */

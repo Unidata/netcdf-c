@@ -5,8 +5,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . ${srcdir}/d4test_common.sh
 
-set -x
-
 # Compute the set of testfiles
 PUSHD ${srcdir}/daptestfiles
 F=`ls -1d *.dap`
