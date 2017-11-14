@@ -77,15 +77,10 @@ occurred. Otherwise, the returned status indicates an error. Possible
 causes of errors include:
 
 \returns ::NC_NOERR No error.
-
 \returns ::NC_EINVAL Invalid parameters.
-
 \returns ::NC_ENOTNC Not a netCDF file.
-
 \returns ::NC_ENOMEM Out of memory.
-
 \returns ::NC_EHDFERR HDF5 error. (NetCDF-4 files only.)
-
 \returns ::NC_EDIMMETA Error in netCDF-4 dimension metadata. (NetCDF-4
 files only.)
 
@@ -130,10 +125,39 @@ nc_open_par(const char *path, int mode, MPI_Comm comm,
 #endif /* USE_PARALLEL */
 }
 
-/*! \ingroup datasets
+/**
 
- Fortran needs to pass MPI comm/info as integers.
+Fortran needs to pass MPI comm/info as integers.
 
+\param path File name for netCDF dataset to be opened. 
+
+\param mode The mode flag may include NC_WRITE (for read/write
+access), NC_MPIIO or NC_MPIPOSIX (not both) for parallel netCDF-4 I/O,
+or NC_PNETCDF for parallel-netcdf parallel I/O access for a netCDF
+classic or CDF5 file.
+
+\param comm the MPI communicator to be used.
+
+\param info MPI info or MPI_INFO_NULL.
+
+\param ncidp Pointer to location where returned netCDF ID is to be
+stored.
+
+nc_open_par() returns the value NC_NOERR if no errors
+occurred. Otherwise, the returned status indicates an error. Possible
+causes of errors include:
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EINVAL Invalid parameters.
+\returns ::NC_ENOTNC Not a netCDF file.
+\returns ::NC_ENOMEM Out of memory.
+\returns ::NC_EHDFERR HDF5 error. (NetCDF-4 files only.)
+\returns ::NC_EDIMMETA Error in netCDF-4 dimension metadata. (NetCDF-4
+files only.)
+
+\ingroup datasets
+\internal
+\author Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_open_par_fortran(const char *path, int mode, int comm,
