@@ -340,14 +340,10 @@ Note that nc_create(path,cmode,ncidp) is equivalent to the invocation of
 nc__create(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp).
 
 \returns ::NC_NOERR No error.
-
 \returns ::NC_ENOMEM System out of memory.
-
 \returns ::NC_EHDFERR HDF5 error (netCDF-4 files only).
-
 \returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
 HDF5 file. (netCDF-4 files only).
-
 \returns ::NC_EDISKLESS if there was an error in creating the
 in-memory file.
 
@@ -490,6 +486,14 @@ stored.
 \note This function uses the same return codes as the nc_create()
 function.
 
+\returns ::NC_NOERR No error.
+\returns ::NC_ENOMEM System out of memory.
+\returns ::NC_EHDFERR HDF5 error (netCDF-4 files only).
+\returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
+HDF5 file. (netCDF-4 files only).
+\returns ::NC_EDISKLESS if there was an error in creating the
+in-memory file.
+
 <h1>Examples</h1>
 
 In this example we create a netCDF dataset named foo_large.nc; we want
@@ -511,7 +515,7 @@ and initial size for the file.
 \endcode
 
 \ingroup datasets
-
+\author Glenn Davis, Russ Rew, Dennis Heimbigner
 */
 int
 nc__create(const char *path, int cmode, size_t initialsz,
