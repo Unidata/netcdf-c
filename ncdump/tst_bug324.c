@@ -63,7 +63,7 @@ main(int argc, char **argv)
     /* Check file can be opened and read correctly */
     {
 	int format;
-	int ndims, nvars, ngatts, xdimid, nunlim;
+	int ndims, nvars, ngatts, xdimid;
 	nc_type lat_type, h_type;
 	int lat_rank, lat_natts, h_rank, h_natts;
 	if (nc_open(FILENAME, NC_NOWRITE, &ncid)) ERR;
