@@ -417,13 +417,13 @@ The output of the configuration step is a project file based on the appropriate 
 
 | **Option** | **Autotools** | **CMake** |
 | :------- | :---- | :----- |
-Specify Install Location | --prefix=PREFIX | -D"CMAKE\_INSTALL\_PREFIX=PREFIX"
-Enable/Disable netCDF-4 | --enable-netcdf-4<br>--disable-netcdf-4 | -D"ENABLE\_NETCDF\_4=ON" <br> -D"ENABLE\_NETCDF\_4=OFF"
-Enable/Disable DAP | --enable-dap <br> --disable-dap | -D"ENABLE\_DAP=ON" <br> -D"ENABLE\_DAP=OFF"
-Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -D"BUILD\_UTILITIES=ON" <br> -D"BUILD\_UTILITIES=OFF"
-Specify shared/Static Libraries | --enable-shared <br> --enable-static | -D"BUILD\_SHARED\_LIBS=ON" <br> -D"BUILD\_SHARED\_LIBS=OFF"
-Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -D"ENABLE\_TESTS=ON" <br> -D"ENABLE\_TESTS=OFF"
-Specify a custom library location | Use *CFLAGS* and *LDFLAGS* | -D"CMAKE\_PREFIX\_PATH=/usr/custom_libs/"
+Specify Install Location | --prefix=PREFIX | -D"CMAKE_INSTALL_PREFIX=PREFIX"
+Enable/Disable netCDF-4 | --enable-netcdf-4<br>--disable-netcdf-4 | -D"ENABLE_NETCDF_4=ON" <br> -D"ENABLE_NETCDF_4=OFF"
+Enable/Disable DAP | --enable-dap <br> --disable-dap | -D"ENABLE_DAP=ON" <br> -D"ENABLE_DAP=OFF"
+Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -D"BUILD_UTILITIES=ON" <br> -D"BUILD_UTILITIES=OFF"
+Specify shared/Static Libraries | --enable-shared <br> --enable-static | -D"BUILD_SHARED_LIBS=ON" <br> -D"BUILD_SHARED_LIBS=OFF"
+Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -D"ENABLE_TESTS=ON" <br> -D"ENABLE_TESTS=OFF"
+Specify a custom library location | Use *CFLAGS* and *LDFLAGS* | -D"CMAKE_PREFIX_PATH=/usr/custom_libs/"
 
 A full list of *basic* options can be found by invoking `cmake [Source Directory] -L`. To enable a list of *basic* and *advanced* options, one would invoke `cmake [Source Directory] -LA`.
 
@@ -473,4 +473,5 @@ or
 
 ## See Also {#cmake_see_also}
 
-For further information regarding netCDF and CMake, see \ref cmake_faq
+For further information regarding netCDF and CMake, see \ref cmake_faq.
+
