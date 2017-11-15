@@ -1,17 +1,89 @@
-/** \file dparallel.c
-This file has the parallel I/O functions which correspond to the serial I/O functions.
+/** \file
+
+This file has the parallel I/O functions which correspond to the
+serial I/O functions.
 
 Copyright 2010 University Corporation for Atmospheric
 Research/Unidata. See COPYRIGHT file for more info.
 */
-
 #include "config.h"
 #include "ncdispatch.h"
 
 /**
+Create a netCDF file for parallel I/O.
 
- This function creates a file for use with parallel I/O.
+This function creates a new netCDF file for parallel I/O access.
 
+Parallel I/O access is only available in library build which support
+parallel I/O. To support parallel I/O, netCDF must be built with
+netCDF-4 enabled, and with a HDF5 library that supports parallel I/O,
+or with support for the parallel-netcdf library via the
+enable-pnetcdf option.
+
+See nc_create() for a fuller discussion of file creation.
+
+\note When opening a netCDF-4 file HDF5 error reporting is turned off,
+if it is on. This doesn't stop the HDF5 error stack from recording the
+errors, it simply stops their display to the user through stderr.
+
+\param path The file name of the new netCDF dataset.
+
+\param cmode The creation mode flag. The following flags are available:
+  NC_NOCLOBBER (do not overwrite existing file),
+  NC_NETCDF4 (create netCDF-4/HDF5 file),
+  NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
+  NC_PNETCDF.
+
+\param comm the MPI communicator to be used.
+
+\param info MPI info or MPI_INFO_NULL.
+
+\param ncidp Pointer to location where returned netCDF ID is to be
+stored.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_ENOPAR Library was not built with parallel I/O features.
+\returns ::NC_EINVAL Invalid input parameters.
+\returns ::NC_ENOMEM System out of memory.
+\returns ::NC_ENOTNC Binary format could not be determined.
+\returns ::NC_EHDFERR HDF5 error (netCDF-4 files only).
+\returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
+HDF5 file. (netCDF-4 files only).
+
+<h1>Example</h1>
+
+In this example from nc_test4/tst_parallel.c, a file is create for
+parallel I/O.
+
+\code
+    int mpi_size, mpi_rank;
+    MPI_Comm comm = MPI_COMM_WORLD;
+    MPI_Info info = MPI_INFO_NULL;
+    int ncid, v1id, dimids[NDIMS];
+    char file_name[NC_MAX_NAME + 1];
+
+    MPI_Init(&argc,&argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
+    sprintf(file_name, "%s/%s", TEMP_LARGE, FILE);
+    if ((res = nc_create_par(file_name, NC_NETCDF4|NC_MPIIO, comm,
+			     info, &ncid))) ERR;
+
+    if (nc_def_dim(ncid, "d1", DIMSIZE, dimids)) ERR;
+    if (nc_def_dim(ncid, "d2", DIMSIZE, &dimids[1])) ERR;
+    if (nc_def_dim(ncid, "d3", NUM_SLABS, &dimids[2])) ERR;
+
+    if ((res = nc_def_var(ncid, "v1", NC_INT, NDIMS, dimids, &v1id))) ERR;
+
+    if ((res = nc_enddef(ncid))) ERR;
+
+    ...
+
+    if ((res = nc_close(ncid)))	ERR;
+\endcode
+\author Ed Hartnett, Dennis Heimbigner
+\ingroup datasets
 */
 int nc_create_par(const char *path, int cmode, MPI_Comm comm,
 	      MPI_Info info, int *ncidp)
@@ -33,7 +105,7 @@ int nc_create_par(const char *path, int cmode, MPI_Comm comm,
 #endif /* USE_PARALLEL */
 }
 
-/** \ingroup datasets
+/**
 Open an existing netCDF file for parallel I/O.
 
 This function opens an existing netCDF dataset for parallel I/O
@@ -58,7 +130,7 @@ path will return the same ncid value.
 if it is on. This doesn't stop the HDF5 error stack from recording the
 errors, it simply stops their display to the user through stderr.
 
-\param path File name for netCDF dataset to be opened. 
+\param path File name for netCDF dataset to be opened.
 
 \param mode The mode flag may include NC_WRITE (for read/write
 access), NC_MPIIO or NC_MPIPOSIX (not both) for parallel netCDF-4 I/O,
@@ -77,15 +149,10 @@ occurred. Otherwise, the returned status indicates an error. Possible
 causes of errors include:
 
 \returns ::NC_NOERR No error.
-
 \returns ::NC_EINVAL Invalid parameters.
-
 \returns ::NC_ENOTNC Not a netCDF file.
-
 \returns ::NC_ENOMEM Out of memory.
-
 \returns ::NC_EHDFERR HDF5 error. (NetCDF-4 files only.)
-
 \returns ::NC_EDIMMETA Error in netCDF-4 dimension metadata. (NetCDF-4
 files only.)
 
@@ -93,7 +160,7 @@ files only.)
 
 Here is an example using nc_open_par() from examples/C/parallel_vara.c.
 
-@code
+\code
 #include <mpi.h>
 #include <netcdf.h>
 #include <netcdf_par.h>
@@ -103,7 +170,9 @@ Here is an example using nc_open_par() from examples/C/parallel_vara.c.
    ...
     omode = NC_PNETCDF | NC_NOWRITE;
     err = nc_open_par(filename, omode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); FATAL_ERR
-@endcode
+\endcode
+\author Ed Hartnett, Dennis Heimbigner
+\ingroup datasets
 */
 int
 nc_open_par(const char *path, int mode, MPI_Comm comm,
@@ -130,10 +199,39 @@ nc_open_par(const char *path, int mode, MPI_Comm comm,
 #endif /* USE_PARALLEL */
 }
 
-/*! \ingroup datasets
+/**
+This is the same as nc_open_par(), but accepts the MPI comm/info as
+integers.
 
- Fortran needs to pass MPI comm/info as integers.
+\param path File name for netCDF dataset to be opened.
 
+\param mode The mode flag may include NC_WRITE (for read/write
+access), NC_MPIIO or NC_MPIPOSIX (not both) for parallel netCDF-4 I/O,
+or NC_PNETCDF for parallel-netcdf parallel I/O access for a netCDF
+classic or CDF5 file.
+
+\param comm the MPI communicator to be used.
+
+\param info MPI info or MPI_INFO_NULL.
+
+\param ncidp Pointer to location where returned netCDF ID is to be
+stored.
+
+nc_open_par() returns the value NC_NOERR if no errors
+occurred. Otherwise, the returned status indicates an error. Possible
+causes of errors include:
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EINVAL Invalid parameters.
+\returns ::NC_ENOTNC Not a netCDF file.
+\returns ::NC_ENOMEM Out of memory.
+\returns ::NC_EHDFERR HDF5 error. (NetCDF-4 files only.)
+\returns ::NC_EDIMMETA Error in netCDF-4 dimension metadata. (NetCDF-4
+files only.)
+
+\author Ed Hartnett
+\ingroup datasets
+\internal
 */
 int
 nc_open_par_fortran(const char *path, int mode, int comm,
@@ -159,7 +257,6 @@ nc_open_par_fortran(const char *path, int mode, int comm,
 #endif
 }
 
-/*  */
 /**\ingroup datasets
 
 This function will change the parallel access of a variable from
@@ -174,13 +271,9 @@ nc_inq_ncid().
 \param par_access NC_COLLECTIVE or NC_INDEPENDENT.
 
 \returns ::NC_NOERR No error.
-
 \returns ::NC_EBADID Invalid ncid passed.
-
 \returns ::NC_ENOTVAR Invalid varid passed.
-
 \returns ::NC_ENOPAR LFile was not opened with nc_open_par/nc_create_var.
-
 \returns ::NC_EINVAL Invalid par_access specified.
 
 <h1>Example</h1>
@@ -222,6 +315,8 @@ parallel access of a variable and then writes to it.
     err = nc_put_vara_int(ncid, varid, start, count, &buf[0][0]); ERR
 
 \endcode
+\author Ed Hartnett, Dennis Heimbigner
+\ingroup datasets
  */
 int
 nc_var_par_access(int ncid, int varid, int par_access)
@@ -240,7 +335,40 @@ nc_var_par_access(int ncid, int varid, int par_access)
 #endif
 }
 
-/* when calling from fortran: convert MPI_Comm and MPI_Info to C */
+/**
+Create a netCDF file for parallel access from the Fortran API.
+
+This function calls nc_create_par() after converting the MPI comm and
+info from Fortran to C, if necessary.
+
+\param path The file name of the new netCDF dataset.
+
+\param cmode The creation mode flag. The following flags are available:
+  NC_NOCLOBBER (do not overwrite existing file),
+  NC_NETCDF4 (create netCDF-4/HDF5 file),
+  NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
+  NC_PNETCDF.
+
+\param comm the MPI communicator to be used.
+
+\param info MPI info or MPI_INFO_NULL.
+
+\param ncidp Pointer to location where returned netCDF ID is to be
+stored.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_ENOPAR Library was not built with parallel I/O features.
+\returns ::NC_EINVAL Invalid input parameters.
+\returns ::NC_ENOMEM System out of memory.
+\returns ::NC_ENOTNC Binary format could not be determined.
+\returns ::NC_EHDFERR HDF5 error (netCDF-4 files only).
+\returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
+HDF5 file. (netCDF-4 files only).
+
+\author Ed Hartnett, Dennis Heimbigner
+\ingroup datasets
+\internal
+*/
 int
 nc_create_par_fortran(const char *path, int cmode, int comm,
 		      int info, int *ncidp)
