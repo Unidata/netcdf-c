@@ -94,6 +94,7 @@ NC4_def_var_fletcher32,
 NC4_def_var_chunking,
 NC4_def_var_fill,
 NC4_def_var_endian,
+NC4_def_var_filter,
 NC4_set_var_chunk_cache,
 NC4_get_var_chunk_cache,
 
