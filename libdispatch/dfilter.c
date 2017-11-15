@@ -166,8 +166,10 @@ NC_parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsign
     /* Now return results */
     if(idp) *idp = id;
     if(nparamsp) *nparamsp = nparams;
-    if(paramsp) *paramsp = ulist;
-    ulist = NULL; /* avoid duplicate free */
+    if(paramsp) {
+       *paramsp = ulist;
+       ulist = NULL; /* avoid duplicate free */
+    }
     if(sdata) free(sdata);
     if(ulist) free(ulist);
     return 1;
