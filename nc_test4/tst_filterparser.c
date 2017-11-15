@@ -59,7 +59,9 @@ static int nerrs = 0;
 static int parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsigned int** paramsp);
 #endif
 
+#ifdef WORD_BIGENDIAN
 static void byteswap8(unsigned char* mem);
+#endif
 
 static void
 report(const char* which)
@@ -72,7 +74,7 @@ report(const char* which)
 static void
 mismatch(size_t i, unsigned int baseline, unsigned int params)
 {
-    fprintf(stderr,"mismatch: [%d] baseline=%ud spec=%ud\n",i,baseline,params);
+   fprintf(stderr,"mismatch: [%d] baseline=%ud spec=%ud\n",(int)i,baseline,params);
     fflush(stderr);
     nerrs++;
 }
@@ -85,6 +87,8 @@ main(int argc, char **argv)
     unsigned int id = 0;
     size_t i,nparams = 0;
     unsigned int* params = NULL;
+
+    printf("\nTesting filter parser.\n");
 
 #ifdef USE_INTERNAL
     stat = parsefilterspec(spec,&id,&nparams,&params);
@@ -125,9 +129,16 @@ main(int argc, char **argv)
     if(ul.ull != 18446744073709551615ULL)
 	report("ul.ull");
 
+    if (params)
+       free(params);
+
+    if (!nerrs)
+       printf("SUCCESS!!\n");
+
     return (nerrs > 0 ? 1 : 0);
 }
 
+#ifdef WORD_BIGENDIAN
 /* Byte swap an 8-byte integer in place */
 static void
 byteswap8(unsigned char* mem)
@@ -146,6 +157,7 @@ byteswap8(unsigned char* mem)
     mem[3] = mem[4];
     mem[4] = c;
 }
+#endif
 
 #ifdef USE_INTERNAL
 static int
