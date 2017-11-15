@@ -1,13 +1,14 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 2.3.  */
 
-/* Bison interface for Yacc-like parsers in C
+/* Skeleton interface for Bison's Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
+   This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +16,9 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -30,100 +33,143 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_NCG_NCGEN_TAB_H_INCLUDED
-# define YY_NCG_NCGEN_TAB_H_INCLUDED
-/* Debug traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 1
-#endif
-#if YYDEBUG
-extern int ncgdebug;
-#endif
-
-/* Token type.  */
+/* Tokens.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
-  enum yytokentype
-  {
-    NC_UNLIMITED_K = 258,
-    CHAR_K = 259,
-    BYTE_K = 260,
-    SHORT_K = 261,
-    INT_K = 262,
-    FLOAT_K = 263,
-    DOUBLE_K = 264,
-    UBYTE_K = 265,
-    USHORT_K = 266,
-    UINT_K = 267,
-    INT64_K = 268,
-    UINT64_K = 269,
-    IDENT = 270,
-    TERMSTRING = 271,
-    CHAR_CONST = 272,
-    BYTE_CONST = 273,
-    SHORT_CONST = 274,
-    INT_CONST = 275,
-    INT64_CONST = 276,
-    UBYTE_CONST = 277,
-    USHORT_CONST = 278,
-    UINT_CONST = 279,
-    UINT64_CONST = 280,
-    FLOAT_CONST = 281,
-    DOUBLE_CONST = 282,
-    DIMENSIONS = 283,
-    VARIABLES = 284,
-    NETCDF = 285,
-    DATA = 286,
-    TYPES = 287,
-    COMPOUND = 288,
-    ENUM = 289,
-    OPAQUE_ = 290,
-    OPAQUESTRING = 291,
-    GROUP = 292,
-    PATH = 293,
-    FILLMARKER = 294,
-    NIL = 295,
-    _FILLVALUE = 296,
-    _FORMAT = 297,
-    _STORAGE = 298,
-    _CHUNKSIZES = 299,
-    _DEFLATELEVEL = 300,
-    _SHUFFLE = 301,
-    _ENDIANNESS = 302,
-    _NOFILL = 303,
-    _FLETCHER32 = 304,
-    _NCPROPS = 305,
-    _ISNETCDF4 = 306,
-    _SUPERBLOCK = 307,
-    DATASETID = 308
-  };
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     NC_UNLIMITED_K = 258,
+     CHAR_K = 259,
+     BYTE_K = 260,
+     SHORT_K = 261,
+     INT_K = 262,
+     FLOAT_K = 263,
+     DOUBLE_K = 264,
+     UBYTE_K = 265,
+     USHORT_K = 266,
+     UINT_K = 267,
+     INT64_K = 268,
+     UINT64_K = 269,
+     STRING_K = 270,
+     IDENT = 271,
+     TERMSTRING = 272,
+     CHAR_CONST = 273,
+     BYTE_CONST = 274,
+     SHORT_CONST = 275,
+     INT_CONST = 276,
+     INT64_CONST = 277,
+     UBYTE_CONST = 278,
+     USHORT_CONST = 279,
+     UINT_CONST = 280,
+     UINT64_CONST = 281,
+     FLOAT_CONST = 282,
+     DOUBLE_CONST = 283,
+     DIMENSIONS = 284,
+     VARIABLES = 285,
+     NETCDF = 286,
+     DATA = 287,
+     TYPES = 288,
+     COMPOUND = 289,
+     ENUM = 290,
+     OPAQUE_ = 291,
+     OPAQUESTRING = 292,
+     GROUP = 293,
+     PATH = 294,
+     FILLMARKER = 295,
+     NIL = 296,
+     _FILLVALUE = 297,
+     _FORMAT = 298,
+     _STORAGE = 299,
+     _CHUNKSIZES = 300,
+     _DEFLATELEVEL = 301,
+     _SHUFFLE = 302,
+     _ENDIANNESS = 303,
+     _NOFILL = 304,
+     _FLETCHER32 = 305,
+     _NCPROPS = 306,
+     _ISNETCDF4 = 307,
+     _SUPERBLOCK = 308,
+     _FILTER = 309,
+     DATASETID = 310
+   };
 #endif
+/* Tokens.  */
+#define NC_UNLIMITED_K 258
+#define CHAR_K 259
+#define BYTE_K 260
+#define SHORT_K 261
+#define INT_K 262
+#define FLOAT_K 263
+#define DOUBLE_K 264
+#define UBYTE_K 265
+#define USHORT_K 266
+#define UINT_K 267
+#define INT64_K 268
+#define UINT64_K 269
+#define STRING_K 270
+#define IDENT 271
+#define TERMSTRING 272
+#define CHAR_CONST 273
+#define BYTE_CONST 274
+#define SHORT_CONST 275
+#define INT_CONST 276
+#define INT64_CONST 277
+#define UBYTE_CONST 278
+#define USHORT_CONST 279
+#define UINT_CONST 280
+#define UINT64_CONST 281
+#define FLOAT_CONST 282
+#define DOUBLE_CONST 283
+#define DIMENSIONS 284
+#define VARIABLES 285
+#define NETCDF 286
+#define DATA 287
+#define TYPES 288
+#define COMPOUND 289
+#define ENUM 290
+#define OPAQUE_ 291
+#define OPAQUESTRING 292
+#define GROUP 293
+#define PATH 294
+#define FILLMARKER 295
+#define NIL 296
+#define _FILLVALUE 297
+#define _FORMAT 298
+#define _STORAGE 299
+#define _CHUNKSIZES 300
+#define _DEFLATELEVEL 301
+#define _SHUFFLE 302
+#define _ENDIANNESS 303
+#define _NOFILL 304
+#define _FLETCHER32 305
+#define _NCPROPS 306
+#define _ISNETCDF4 307
+#define _SUPERBLOCK 308
+#define _FILTER 309
+#define DATASETID 310
 
-/* Value type.  */
+
+
+
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
-union YYSTYPE
+typedef union YYSTYPE
+#line 142 "ncgen.y"
 {
-#line 138 "ncgen.y" /* yacc.c:1909  */
-
 Symbol* sym;
 unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
 long           mark; /* track indices into the sequence*/
 int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
-NCConstant       constant;
-
-#line 117 "ncgeny.h" /* yacc.c:1909  */
-};
-
-typedef union YYSTYPE YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
+NCConstant     constant;
+}
+/* Line 1529 of yacc.c.  */
+#line 168 "ncgen.tab.h"
+	YYSTYPE;
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
-
 
 extern YYSTYPE ncglval;
 
-int ncgparse (void);
-
-#endif /* !YY_NCG_NCGEN_TAB_H_INCLUDED  */
