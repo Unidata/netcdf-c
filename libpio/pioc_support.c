@@ -25,7 +25,8 @@ int my_rank;
 FILE *LOG_FILE = NULL;
 #endif /* PIO_ENABLE_LOGGING */
 
-int pio_next_ncid;
+/* PIO assigns its own IDs. */
+extern int pio_next_ncid;
 
 /** The default error handler used when iosystem cannot be located. */
 extern int default_error_handler;
@@ -1850,19 +1851,20 @@ int PIOc_createfile_int2(int iosysid, int *ncidp, int *iotype, const char *filen
     if ((mpierr = MPI_Bcast(&file->writable, 1, MPI_INT, ios->ioroot, ios->my_comm)))
         return check_mpi(file, mpierr, __FILE__, __LINE__);
 
-    /* /\* Broadcast next ncid to all tasks from io root, necessary */
-    /*  * because files may be opened on mutilple iosystems, causing the */
-    /*  * underlying library to reuse ncids. Hilarious confusion */
-    /*  * ensues. *\/ */
-    /* if (ios->async) */
-    /* { */
-    /*     LOG((3, "createfile bcasting pio_next_ncid %d", pio_next_ncid)); */
-    /*     if ((mpierr = MPI_Bcast(&pio_next_ncid, 1, MPI_INT, ios->ioroot, ios->my_comm))) */
-    /*         return check_mpi(file, mpierr, __FILE__, __LINE__); */
-    /*     LOG((3, "createfile bcast pio_next_ncid %d", pio_next_ncid)); */
-    /* } */
+    /* Broadcast next ncid to all tasks from io root, necessary
+     * because files may be opened on mutilple iosystems, causing the
+     * underlying library to reuse ncids. Hilarious confusion
+     * ensues. */
+    if (ios->async)
+    {
+        LOG((3, "createfile bcasting pio_next_ncid %d", pio_next_ncid));
+        if ((mpierr = MPI_Bcast(&pio_next_ncid, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+            return check_mpi(file, mpierr, __FILE__, __LINE__);
+        LOG((3, "createfile bcast pio_next_ncid %d", pio_next_ncid));
+    }
 
     /* Assign the PIO ncid. */
+    nc->ext_ncid = pio_next_ncid++;
     file->pio_ncid = nc->ext_ncid;
     LOG((2, "file->fh %d file->pio_ncid %d nc->ext_ncid %d", file->fh, file->pio_ncid,
 	 nc->ext_ncid));
@@ -2095,7 +2097,8 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
             size_t type_size;
             
             if ((ret = NC4_inq_var_all(ncid, v, NULL, &my_type, &var_ndims, NULL, NULL,
-				       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
+				       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                                       NULL, NULL, NULL, NULL)))
                 return pio_err(NULL, file, ret, __FILE__, __LINE__);
             (*pio_type)[v] = (int)my_type;
             if ((ret = NC4_inq_type(ncid, (*pio_type)[v], NULL, &type_size)))
@@ -2134,7 +2137,8 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
 	    else
             {
 		if ((ret = NC4_inq_var_all(ncid, v, NULL, NULL, NULL, var_dimids, NULL,
-					   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
+					   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                                           NULL, NULL, NULL)))
 		    return pio_err(NULL, file, ret, __FILE__, __LINE__);		
             }
 #endif /* _NETCDF4 */

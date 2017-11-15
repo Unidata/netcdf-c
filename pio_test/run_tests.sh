@@ -23,8 +23,9 @@ printf 'running PIO tests...\n'
 #PIO_TESTS='test_async_simple'
 
 #NC_PIO_TESTS=tst_darray_async
-NC_PIO_TESTS=tst_darray_1d
+#NC_PIO_TESTS=tst_darray_1d
 success1=true
+success2=true
 for TEST in $PIO_TESTS
 do
     success1=false

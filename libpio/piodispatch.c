@@ -979,7 +979,7 @@ static int
 PIO_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, int *ndimsp, int *dimidsp,
 		int *nattsp, int *shufflep, int *deflatep, int *deflate_levelp, int *fletcher32p,
 		int *contiguousp, size_t *chunksizesp, int *no_fill, void *fill_valuep,
-		int *endiannessp, int *options_maskp, int *pixels_per_blockp)
+		int *endiannessp, unsigned int* idp, size_t *nparamsp, unsigned int *paramsp)
 {
     int status;
     NC *nc;
@@ -989,7 +989,7 @@ PIO_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, int *ndimsp, i
 
     return PIOc_inq_var_all(nc->ext_ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp, shufflep,
 			    deflatep, deflate_levelp, fletcher32p, contiguousp, chunksizesp,
-			    no_fill, fill_valuep, endiannessp, options_maskp, pixels_per_blockp);
+			    no_fill, fill_valuep, endiannessp, idp, nparamsp, paramsp);
 }
 
 static int
@@ -1318,6 +1318,12 @@ PIO_def_var_endian(int ncid, int varid, int endianness)
     return NC_ENOTNC4;
 }
 
+static int
+PIO_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms)
+{
+    return NC_ENOTNC4;
+}
+
 #endif /*USE_NETCDF4*/
 
 /**************************************************/
@@ -1409,6 +1415,7 @@ NC_Dispatch PIO_dispatcher = {
     PIO_def_var_chunking,
     PIO_def_var_fill,
     PIO_def_var_endian,
+    PIO_def_var_filter,
     PIO_set_var_chunk_cache,
     PIO_get_var_chunk_cache,
 #endif /*USE_NETCDF4*/

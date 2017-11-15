@@ -1233,7 +1233,7 @@ int inq_var_all_handler(iosystem_desc_t *ios)
     char name_present, xtype_present, ndims_present, dimids_present, natts_present;
     char shuffle_present, deflate_present, deflate_level_present, fletcher32_present;
     char contiguous_present, chunksizes_present, no_fill_present, fill_value_present;
-    char endianness_present, options_mask_present, pixels_per_block_present;
+    char endianness_present, idp_present, nparamsp_present, paramsp_present;
     char name[NC_MAX_NAME + 1], *namep = NULL;
     nc_type xtype, *xtypep = NULL;
     int *ndimsp = NULL, *dimidsp = NULL, *nattsp = NULL;
@@ -1241,9 +1241,11 @@ int inq_var_all_handler(iosystem_desc_t *ios)
     int *contiguousp = NULL, *no_fillp = NULL;
     size_t *chunksizesp = NULL;
     int shuffle, deflate, deflate_level, fletcher32, contiguous, no_fill;
-    int endianness, options_mask, pixels_per_block;
+    int endianness;
+    unsigned int my_id, *idp = NULL;
+    size_t my_nparams, *nparamsp = NULL;
     void *fill_valuep = NULL;
-    int *endiannessp = NULL, *options_maskp = NULL, *pixels_per_blockp = NULL;
+    int *endiannessp = NULL;
     int ndims, dimids[NC_MAX_DIMS], natts;
     int pio_type_size, ndim1;
     int mpierr;
@@ -1283,11 +1285,11 @@ int inq_var_all_handler(iosystem_desc_t *ios)
         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
     if ((mpierr = MPI_Bcast(&fill_value_present, 1, MPI_CHAR, 0, ios->intercomm)))
         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
-    if ((mpierr = MPI_Bcast(&endianness_present, 1, MPI_CHAR, 0, ios->intercomm)))
+    if ((mpierr = MPI_Bcast(&idp_present, 1, MPI_CHAR, 0, ios->intercomm)))
         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
-    if ((mpierr = MPI_Bcast(&options_mask_present, 1, MPI_CHAR, 0, ios->intercomm)))
+    if ((mpierr = MPI_Bcast(&nparamsp_present, 1, MPI_CHAR, 0, ios->intercomm)))
         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
-    if ((mpierr = MPI_Bcast(&pixels_per_block_present, 1, MPI_CHAR, 0, ios->intercomm)))
+    if ((mpierr = MPI_Bcast(&paramsp_present, 1, MPI_CHAR, 0, ios->intercomm)))
         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
     if ((mpierr = MPI_Bcast(&pio_type_size, 1, MPI_INT, 0, ios->intercomm)))
         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
@@ -1297,12 +1299,12 @@ int inq_var_all_handler(iosystem_desc_t *ios)
 	 "dimids_present %d, natts_present %d  shuffle_present %d deflate_present %d "
 	 "deflate_level_present %d fletcher32_present %d contiguous_present %d "
 	 "chunksizes_present %d no_fill_present %d fill_value_present %d "
-	 "endianness_present %d options_mask_present %d pixels_per_block_present %d"
+	 "endianness_present %d idp_present %d nparamsp_present %d paramsp_present"
 	 "pio_type_size %d ndim1 %d",
 	 name_present, xtype_present, ndims_present, dimids_present, natts_present,
 	 shuffle_present, deflate_present, deflate_level_present, fletcher32_present,
 	 contiguous_present, chunksizes_present, no_fill_present, fill_value_present,
-	 endianness_present, options_mask_present, pixels_per_block_present, pio_type_size,
+	 endianness_present, idp_present, nparamsp_present, paramsp_present, pio_type_size,
 	 ndim1));
 
     /* Set the non-NULL pointers. */
@@ -1336,15 +1338,15 @@ int inq_var_all_handler(iosystem_desc_t *ios)
             return pio_err(ios, NULL, PIO_ENOMEM, __FILE__, __LINE__);	    
     if (endianness_present)
 	endiannessp = &endianness;
-    if (options_mask_present)
-	options_maskp = &options_mask;
-    if (pixels_per_block_present)
-	pixels_per_blockp = &pixels_per_block;
+    if (idp_present)
+       idp = &my_id;
+    if (nparamsp_present)
+       nparamsp = &my_nparams;
 
     /* Call the inq function to get the values. */
     PIOc_inq_var_all(ncid, varid, namep, xtypep, ndimsp, dimidsp, nattsp, shufflep, deflatep,
 		     deflate_levelp, fletcher32p, contiguousp, chunksizesp, no_fillp, fill_valuep,
-		     endiannessp, options_maskp, pixels_per_blockp);
+		     endiannessp, idp, nparamsp, NULL);
 
     /* Release storage. */
     if (fill_value_present)

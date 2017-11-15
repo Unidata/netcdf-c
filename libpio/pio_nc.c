@@ -794,7 +794,8 @@ int PIOc_inq_var(int ncid, int varid, char *name, nc_type *xtypep, int *ndimsp,
                  int *dimidsp, int *nattsp)
 {
     return PIOc_inq_var_all(ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp,
-			    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+			    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                            NULL, NULL, NULL);
 }
 
 int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
@@ -802,7 +803,7 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 		     int *shufflep, int *deflatep, int *deflate_levelp,
 		     int *fletcher32p, int *contiguousp, size_t *chunksizesp,
 		     int *no_fill, void *fill_valuep, int *endiannessp,
-		     int *options_maskp, int *pixels_per_blockp)
+                     unsigned int *idp, size_t *nparamsp, unsigned int *paramsp)
 {
     iosystem_desc_t *ios;  /* Pointer to iosystem info. */
     file_desc_t *file;  /* Pointer to PIO file info. */
@@ -843,8 +844,9 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	    char no_fill_present = no_fill ? true : false;
 	    char fill_value_present = fill_valuep ? true : false;
 	    char endianness_present = endiannessp ? true : false;
-	    char options_mask_present = options_maskp ? true : false;
-	    char pixels_per_block_present = pixels_per_blockp ? true : false;
+	    char idp_present = idp ? true : false;
+	    char nparamsp_present = nparamsp ? true : false;
+	    char paramsp_present = paramsp ? true : false;
 
 	    if (ios->compmaster == MPI_ROOT)
 		mpierr = MPI_Send(&msg, 1,MPI_INT, ios->ioroot, 1, ios->union_comm);
@@ -882,9 +884,11 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	    if (!mpierr)
 		mpierr = MPI_Bcast(&endianness_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
 	    if (!mpierr)
-		mpierr = MPI_Bcast(&options_mask_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+		mpierr = MPI_Bcast(&idp_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
 	    if (!mpierr)
-		mpierr = MPI_Bcast(&pixels_per_block_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+		mpierr = MPI_Bcast(&nparamsp_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+	    if (!mpierr)
+		mpierr = MPI_Bcast(&paramsp_present, 1, MPI_CHAR, ios->compmaster, ios->intercomm);
 	    if (!mpierr)
 		mpierr = MPI_Bcast(&vdesc->pio_type_size, 1, MPI_INT, ios->compmaster, ios->intercomm);
 	    if (!mpierr)
@@ -893,12 +897,12 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 		 "dimids_present %d, natts_present %d  shuffle_present %d deflate_present %d "
 		 "deflate_level_present %d fletcher32_present %d contiguous_present %d "
 		 "chunksizes_present %d no_fill_present %d fill_value_present %d "
-		 "endianness_present %d options_mask_present %d pixels_per_block_present %d"
+		 "endianness_present %d idp_present %d nparamsp_present %d paramsp_present %d"
 		 "vdesc->pio_type_size %d",
 		 name_present, xtype_present, ndims_present, dimids_present, natts_present,
 		 shuffle_present, deflate_present, deflate_level_present, fletcher32_present,
 		 contiguous_present, chunksizes_present, no_fill_present, fill_value_present,
-		 endianness_present, options_mask_present, pixels_per_block_present,
+		 endianness_present, idp_present, nparamsp_present, paramsp_present,
 		 vdesc->pio_type_size));
 	}
 
@@ -929,6 +933,7 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	    nc_type my_xtype;
 	    int my_ndims = 0, my_natts = 0, my_no_fill;
 	    void *my_fill_value = NULL;
+            int my_endianness;
 
 	    /* We must call NC3_inq_var_all twice, the first time to
 	     * learn the type and the number of dimensions. */
@@ -987,14 +992,17 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	    nc_type my_xtype;
 	    int my_ndims = 0, my_natts = 0;
 	    int my_shuffle, my_deflate, my_deflate_level, my_fletcher32, my_contiguous;
-	    int my_no_fill, my_endianness, my_options_mask, my_pixels_per_block;
+	    int my_no_fill, my_idp, my_paramsp;
+            size_t my_nparamsp;
 	    void *my_fill_value = NULL;
+            int my_endianness;
 
 	    /* We must call NC3_inq_var_all twice, the first time to
 	     * learn the type and the number of dimensions. */
 	    LOG((3, "calling NC3_inq_var_all to learn type and number of dims"));
 	    ret = NC4_inq_var_all(file->fh, varid, NULL, &my_xtype, &my_ndims, NULL, NULL,
-				  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+				  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                                  NULL, NULL, NULL);
 	    LOG((3, "ret %d my_xtype %d my_ndims %d", ret, my_xtype, my_ndims));
 
 	    /* Remember the number of dims for later use. */
@@ -1014,8 +1022,8 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 		ret = NC4_inq_var_all(file->fh, varid, my_name, &my_xtype, &my_ndims, my_dimids,
 				      &my_natts, &my_shuffle, &my_deflate, &my_deflate_level,
 				      &my_fletcher32, &my_contiguous, my_chunksizes, &my_no_fill,
-				      my_fill_value, &my_endianness, &my_options_mask,
-				      &my_pixels_per_block);
+				      my_fill_value, &my_endianness, &my_idp,
+				      &my_nparamsp, NULL); 
 	    LOG((3, "called NC3_inq_var_all again, ret %d", ret));
 	    if (!ret)
 	    {
@@ -1052,10 +1060,10 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 		    memcpy(fill_valuep, my_fill_value, type_size);
 		if (endiannessp)
 		    *endiannessp = my_endianness;
-		if (options_maskp)
-		    *options_maskp = my_options_mask;
-		if (pixels_per_blockp)
-		    *pixels_per_blockp = my_pixels_per_block;
+		if (idp)
+		    *idp = my_idp;
+		if (nparamsp)
+		    *nparamsp = my_nparamsp;
 	    }
 	    
 	    /* Free memory used for fill value. */
@@ -1135,14 +1143,11 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     if (fill_valuep)
 	if ((mpierr = MPI_Bcast(fill_valuep, type_size, MPI_CHAR, ios->ioroot, ios->my_comm)))
 	    return check_mpi(file, mpierr, __FILE__, __LINE__);
-    if (endiannessp)
-	if ((mpierr = MPI_Bcast(endiannessp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+    if (idp)
+	if ((mpierr = MPI_Bcast(idp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
 	    return check_mpi(file, mpierr, __FILE__, __LINE__);
-    if (options_maskp)
-	if ((mpierr = MPI_Bcast(options_maskp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
-	    return check_mpi(file, mpierr, __FILE__, __LINE__);
-    if (pixels_per_blockp)
-	if ((mpierr = MPI_Bcast(pixels_per_blockp, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+    if (nparamsp)
+	if ((mpierr = MPI_Bcast(nparamsp, 1, MPI_OFFSET, ios->ioroot, ios->my_comm)))
 	    return check_mpi(file, mpierr, __FILE__, __LINE__);
 
     return PIO_NOERR;

@@ -890,7 +890,7 @@ extern "C" {
 			 int *shufflep, int *deflatep, int *deflate_levelp,
 			 int *fletcher32p, int *contiguousp, size_t *chunksizesp,
 			 int *no_fill, void *fill_valuep, int *endiannessp,
-			 int *options_maskp, int *pixels_per_blockp);
+                         unsigned int* idp, size_t* nparamsp, unsigned int* params);
     int PIOc_inq_varname(int ncid, int varid, char *name);
     int PIOc_inq_vartype(int ncid, int varid, nc_type *xtypep);
     int PIOc_inq_varndims(int ncid, int varid, int *ndimsp);
