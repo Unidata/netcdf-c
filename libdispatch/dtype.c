@@ -39,7 +39,7 @@ type). Read attributes of the new type with nc_get_att (see
 /** \{ */
 
 
-/** \internal
+/** 
 \ingroup user_types
 Learn if two types are equal
 
@@ -55,6 +55,7 @@ the two types are equal, a zero if they are not equal.
 \returns ::NC_EBADTYPE Bad type id.
 \returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
+\author Dennis Heimbigner, Ward Fisher
  */
 int
 nc_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
@@ -87,6 +88,7 @@ found.
 \returns ::NC_EBADTYPE Bad type id.
 \returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
+\author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc_inq_typeid(int ncid, const char *name, nc_type *typeidp)
@@ -130,6 +132,7 @@ compound types. \ref ignored_if_null.
 \returns ::NC_EBADTYPE Bad type id.
 \returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
+\author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc_inq_user_type(int ncid, nc_type xtype, char *name, size_t *size,
