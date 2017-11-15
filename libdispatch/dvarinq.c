@@ -11,6 +11,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 #endif
 
 #ifndef H5Z_FILTER_SZIP
+/** ID of HDF SZIP filter. */
 #define H5Z_FILTER_SZIP 4
 #endif
 
@@ -180,7 +181,8 @@ nc_inq_vartype(int ncid, int varid, nc_type *typep)
 		     NULL, NULL);
 }
 
-/** Learn how many dimensions are associated with a variable.
+/** 
+Learn how many dimensions are associated with a variable.
 \ingroup variables
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
@@ -202,7 +204,8 @@ nc_inq_varndims(int ncid, int varid, int *ndimsp)
    return nc_inq_var(ncid, varid, NULL, NULL, ndimsp, NULL, NULL);
 }
 
-/** Learn the dimension IDs associated with a variable.
+/** 
+Learn the dimension IDs associated with a variable.
 \ingroup variables
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
@@ -225,7 +228,8 @@ nc_inq_vardimid(int ncid, int varid, int *dimidsp)
 		     dimidsp, NULL);
 }
 
-/** Learn how many attributes are associated with a variable.
+/** 
+Learn how many attributes are associated with a variable.
 \ingroup variables
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
@@ -522,7 +526,8 @@ nc_inq_var_endian(int ncid, int varid, int *endianp)
       NULL, NULL, NULL);
 }
 
-/*! Return number and list of unlimited dimensions.
+/**
+Return number and list of unlimited dimensions.
 
 In netCDF-4 files, it's possible to have multiple unlimited
 dimensions. This function returns a list of the unlimited dimension
@@ -531,18 +536,59 @@ ids visible in a group.
 Dimensions are visible in a group if they have been defined in that
 group, or any ancestor group.
 
-\param ncid NetCDF group ID, from a previous call to nc_open, nc_create, nc_def_grp, etc.
-\param nunlimdimsp A pointer to an int which will get the number of visible unlimited dimensions. Ignored if NULL.
-\param unlimdimidsp A pointer to an already allocated array of int which will get the ids of all visible unlimited dimensions. Ignored if NULL. To allocate the correct length for this array, call nc_inq_unlimdims with a NULL for this parameter and use the nunlimdimsp parameter to get the number of visible unlimited dimensions.
+\param ncid NetCDF file and group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), etc.
+
+\param nunlimdimsp A pointer to an int which will get the number of
+visible unlimited dimensions. Ignored if NULL.
+
+\param unlimdimidsp A pointer to an already allocated array of int
+which will get the ids of all visible unlimited dimensions. Ignored if
+NULL. To allocate the correct length for this array, call
+nc_inq_unlimdims with a NULL for this parameter and use the
+nunlimdimsp parameter to get the number of visible unlimited
+dimensions.
+
+\section nc_inq_unlimdims_example Example
+
+Here is an example from nc_test4/tst_dims.c. In this example we create
+a file with two unlimited dimensions, and then call nc_inq_unlimdims()
+to check that there are 2 unlimited dimensions, and that they have
+dimids 0 and 1.
+
+\code
+     #include <netcdf.h>
+        ...
+#define ROMULUS "Romulus"
+#define REMUS "Remus"
+#define DIMS2 2
+   printf("*** Testing file with two unlimited dimensions...");
+   {
+      int ncid, dimid[DIMS2];
+      int unlimdimid_in[DIMS2];
+      int nunlimdims_in;
+
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, REMUS, NC_UNLIMITED, &dimid[0])) ERR;
+      if (nc_def_dim(ncid, ROMULUS, NC_UNLIMITED, &dimid[1])) ERR;
+
+      ...
+      if (nc_inq_unlimdims(ncid, &nunlimdims_in, unlimdimid_in)) ERR;
+      if (nunlimdims_in != 2 || unlimdimid_in[0] != 0 || unlimdimid_in[1] != 1) ERR;
+\endcode
 
 This function will return one of the following values.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad group id.
-\returns ::NC_ENOTNC4 Attempting a netCDF-4 operation on a netCDF-3 file. NetCDF-4 operations can only be performed on files defined with a create mode which includes flag HDF5. (see nc_open).
-\returns ::NC_ESTRICTNC3 This file was created with the strict netcdf-3 flag, therefore netcdf-4 operations are not allowed. (see nc_open).
+\returns ::NC_ENOTNC4 Attempting a netCDF-4 operation on a netCDF-3
+file. NetCDF-4 operations can only be performed on files defined with
+a create mode which includes flag HDF5. (see nc_open).
+\returns ::NC_ESTRICTNC3 This file was created with the strict
+netcdf-3 flag, therefore netcdf-4 operations are not allowed. (see
+nc_open).
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
-
+\author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
@@ -559,7 +605,7 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
 #endif
 }
 
-/** \ingroup variables
+/** 
 Find the filter (if any) associated with a variable.
 
 This is a wrapper for nc_inq_var_all().
@@ -572,7 +618,8 @@ nc_inq_ncid().
 
 \param idp Storage which will get the filter id.
 
-\param nparamsp Storage which will get the number of parameters to the filter
+\param nparamsp Storage which will get the number of parameters to the
+filter
 
 \param params Storage which will get associated parameters. Note
 the caller must allocate and free.
@@ -582,6 +629,8 @@ the caller must allocate and free.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTVAR Invalid variable ID.
 \returns ::NC_EFILTER No filter defined.
+\ingroup variables
+\author Dennis Heimbigner
 */
 int
 nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsigned int* params)
@@ -702,35 +751,52 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
 }
 
 /*!
+Learn all about a variable.
 
-Used in libdap2 and libdap4.
-
-@param[in] ncid               ncid for file.
-@param[in] varid              varid for variable in question.
-@param[out] name              Pointer to memory to contain the name of the variable.
-@param[out] xtypep            Pointer to memory to contain the type of the variable.
-@param[out] ndimsp            Pointer to memory to store the number of associated dimensions for the variable.
-@param[out] dimidsp           Pointer to memory to store the dimids associated with the variable.
-@param[out] nattsp            Pointer to memory to store the number of attributes associated with the variable.
-@param[out] shufflep          Pointer to memory to store shuffle information associated with the variable.
-@param[out] deflatep          Pointer to memory to store compression type associated with the variable.
-@param[out] deflate_levelp    Pointer to memory to store compression level associated with the variable.
-@param[out] fletcher32p       Pointer to memory to store compression information associated with the variable.
-@param[out] contiguousp       Pointer to memory to store contiguous-data information associated with the variable.
-@param[out] chunksizesp       Pointer to memory to store chunksize information associated with the variable.
-@param[out] no_fill           Pointer to memory to store whether or not there is a fill value associated with the variable.
-@param[out] fill_valuep       Pointer to memory to store the fill value (if one exists) for the variable.
-@param[out] endiannessp       Pointer to memory to store endianness value. One of ::NC_ENDIAN_BIG ::NC_ENDIAN_LITTLE ::NC_ENDIAN_NATIVE
+@param[in] ncid ncid for file.
+@param[in] varid varid for variable in question.
+@param[out] name Pointer to memory to contain the name of the
+variable.
+@param[out] xtypep Pointer to memory to contain the type of the
+variable.
+@param[out] ndimsp Pointer to memory to store the number of associated
+dimensions for the variable.
+@param[out] dimidsp Pointer to memory to store the dimids associated
+with the variable.
+@param[out] nattsp Pointer to memory to store the number of attributes
+associated with the variable.
+@param[out] shufflep Pointer to memory to store shuffle information
+associated with the variable.
+@param[out] deflatep Pointer to memory to store compression type
+associated with the variable.
+@param[out] deflate_levelp Pointer to memory to store compression
+level associated with the variable.
+@param[out] fletcher32p Pointer to memory to store compression
+information associated with the variable.
+@param[out] contiguousp Pointer to memory to store contiguous-data
+information associated with the variable.
+@param[out] chunksizesp Pointer to memory to store chunksize
+information associated with the variable.
+@param[out] no_fill Pointer to memory to store whether or not there is
+a fill value associated with the variable.
+@param[out] fill_valuep Pointer to memory to store the fill value (if
+one exists) for the variable.
+@param[out] endiannessp Pointer to memory to store endianness
+value. One of ::NC_ENDIAN_BIG ::NC_ENDIAN_LITTLE ::NC_ENDIAN_NATIVE
 @param[out] idp Pointer to memory to store filter id.
 @param[out] nparamsp Pointer to memory to store filter parameter count.
 @param[out] params Pointer to vector of unsigned integers into which
 to store filter parameters.
 \note Expose access to nc_inq_var_all().
 
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Bad varid.
+\returns ::NC_ENOMEM Out of memory.
+\returns ::NC_EINVAL Invalid input.
+\author Ed Hartnett, Dennis Heimbigner
 \internal
 \ingroup variables
-
-
 */
 int
 NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,

@@ -140,6 +140,7 @@ else
    AC_SUBST([DOXYGEN_HEADER_FILE], [])
    AC_SUBST([DOXYGEN_SEARCHENGINE], ["YES"])
 fi
+AC_SUBST([DOXYGEN_SERVER_BASED_SEARCH], ["NO"])
 
 AC_ARG_ENABLE([doxygen-pdf-output],
     [AS_HELP_STRING([--enable-doxygen-pdf-output],
