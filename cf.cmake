@@ -48,19 +48,19 @@ NCLIB=`pwd`
 
 if test "x$VS" != x ; then
 # Visual Studio
+#CFG="RelWithDebInfo"
+CFG="Release"
 NCLIB="${NCLIB}/build/liblib/$CFG"
 export PATH="${NCLIB}:${PATH}"
 cmake $FLAGS ..
-if test "x$VSSETUP" = x ; then
 cmake --build . --config ${CFG}
 cmake --build . --config ${CFG} --target RUN_TESTS
-fi
 else
 # GCC
 NCLIB="${NCLIB}/build/liblib"
 G="-GUnix Makefiles"
 cmake "${G}" $FLAGS ..
-make all
-make test
+#make all
+#make test
 fi
 exit
