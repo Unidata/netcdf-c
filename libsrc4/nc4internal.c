@@ -1071,6 +1071,10 @@ nc4_var_del(NC_VAR_INFO_T *var)
    if (var->dimscale_attached)
       free(var->dimscale_attached);
 
+   /* Release parameter information. */
+   if (var->params)
+      free(var->params);
+
    /* Delete the var. */
    free(var);
 
