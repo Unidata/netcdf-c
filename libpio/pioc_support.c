@@ -1809,7 +1809,7 @@ int PIOc_createfile_int2(int iosysid, int *ncidp, int *iotype, const char *filen
                  ios->io_comm, mode, file->fh));
 	    ierr = NC4_create(filename, mode, 0, 0, NULL, use_parallel, mpidata, table, nc);
             /* ierr = nc_create_par(filename, mode, ios->io_comm, ios->info, &file->fh); */
-	    file->fh = nc->int_ncid;
+	    file->fh = nc->ext_ncid;
             LOG((2, "NC4_create returned %d file->fh %d", ierr, file->fh));
             break;
         case PIO_IOTYPE_NETCDF4C:
@@ -1819,10 +1819,8 @@ int PIOc_createfile_int2(int iosysid, int *ncidp, int *iotype, const char *filen
             if (!ios->io_rank)
             {
                 LOG((2, "Calling NC3_create mode %d", mode));
-                /* ierr = nc_create(filename, mode, &file->fh); */
 		ierr = NC3_create(filename, mode, 0, 0, NULL, use_parallel, mpidata, table, nc);
                 LOG((2, "Called NC3_create nc->ext_ncid %d", nc->ext_ncid));
-		file->fh = nc->ext_ncid;
             }
             break;
 #ifdef _PNETCDF
@@ -1864,13 +1862,15 @@ int PIOc_createfile_int2(int iosysid, int *ncidp, int *iotype, const char *filen
     }
 
     /* Assign the PIO ncid. */
-    nc->ext_ncid = pio_next_ncid++;
+    nc->ext_ncid = pio_next_ncid << ID_SHIFT;
     file->pio_ncid = nc->ext_ncid;
+    file->fh = nc->ext_ncid;
+    pio_next_ncid++;
     LOG((2, "file->fh %d file->pio_ncid %d nc->ext_ncid %d", file->fh, file->pio_ncid,
 	 nc->ext_ncid));
 
     /* Return the ncid to the caller. */
-    *ncidp = file->pio_ncid;
+    *ncidp = nc->ext_ncid;
 
     /* Add the struct with this files info to the global list of
      * open files. */

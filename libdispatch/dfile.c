@@ -1810,6 +1810,8 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
    /* Add to list of known open files and define ext_ncid */
 #ifdef USE_PIO
+   /* PIO adds to the list after the create, because PIO needs to
+    * determine its own ext_ncid. */
    if (!use_pio)
       add_to_NCList(ncp);
 #else

@@ -72,6 +72,9 @@ void pio_log(int severity, const char *fmt, ...);
       __typeof__ (b) _b = (b);			\
       _a < _b ? _a : _b; })
 
+/** This is used in the netCDF layer to shift the ncid. */
+#define ID_SHIFT (16)
+
 #define MAX_GATHER_BLOCK_SIZE 0
 #define PIO_REQUEST_ALLOC_CHUNK 16
 
