@@ -73,7 +73,9 @@ full functionality. (See \ref architecture).
 Requirements {#netcdf_requirements}
 ----------------------------------
 
-* HDF5 1.8.9 or later (for netCDF-4 support)
+* For netCDF-4 support
+  * HDF5 1.8.9 or later.
+  * HDF5 1.10.1 or later.
 * zlib 1.2.5 or later (for netCDF-4 compression)
 * curl 7.18.0 or later (for DAP remote access client support)
 
@@ -95,7 +97,15 @@ HDF5 and zlib packages are available from the <a href="http://www.hdfgroup.org/d
 
 ### Optional: szip support {#op_szip_support}
 
-*Optionally*, you can also build netCDF-4 with the szip library (a.k.a. szlib). If building with szlib, get szip 2.0 or later. NetCDF cannot create szipped data files, but can read HDF5 data files that have used szip. To determine whether license restrictions on the use of szip apply to your situation, see the <a href="http://www.hdfgroup.org/doc_resource/SZIP/">web page on szip compression in HDF products</a>.
+*Optionally*, you can also build netCDF-4 with the szip library (a.k.a. szlib). If building with szlib, get szip 2.0 or later. Technically, we mean that
+the HDF5 library is built with szip support. The netcdf build will then
+inherit szip support from the HDF5 library.
+If you intend to write files with szip compression, then we suggest that you
+use [libaec](https://gitlab.dkrz.de/k202009/libaec.git)
+to avoid patent problems. That library can be used as a 
+drop-in replacement for the standard szip library.
+If you plan to use the standard szip library, 
+then determine whether license restrictions on the use of szip apply to your situation. See the <a href="http://www.hdfgroup.org/doc_resource/SZIP/">web page on szip compression in HDF products</a>.
 
 If `make check` fails for either `zlib` or `HDF5`, the problem must be resolved before the netCDF-4 installation can continue. For HDF5 problems, see the <a href="http://www.hdfgroup.org/services/support.html">HDF5 help services</a>.
 

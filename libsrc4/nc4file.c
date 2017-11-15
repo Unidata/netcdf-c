@@ -332,13 +332,8 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
     * fail if there are any open objects in the file. */
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI))
       BAIL(NC_EHDFERR);
-#else
-   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG))
-      BAIL(NC_EHDFERR);
-#endif /* EXTRA_TESTS */
 
 #ifdef USE_PARALLEL4
    /* If this is a parallel file create, set up the file creation
@@ -1446,11 +1441,10 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    int d;
    att_iter_info att_info;         /* Custom iteration information */
 #define CD_NELEMS_ZLIB 1
-#define CD_NELEMS_SZIP 4
    H5Z_filter_t filter;
    int num_filters;
-   unsigned int cd_values[CD_NELEMS_SZIP];
-   size_t cd_nelems = CD_NELEMS_SZIP;
+   unsigned int cd_values_zip[CD_NELEMS_ZLIB];
+   size_t cd_nelems = CD_NELEMS_ZLIB;
    hid_t propid = 0;
    H5D_fill_value_t fill_status;
    H5D_layout_t layout;
@@ -1524,7 +1518,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    var->hash = hash_fast(var->name, strlen(var->name));
    /* Find out what filters are applied to this HDF5 dataset,
     * fletcher32, deflate, and/or shuffle. All other filters are
-    * ignored. */
+    * just dumped */
    if ((propid = H5Dget_create_plist(datasetid)) < 0)
       BAIL(NC_EHDFERR);
 
@@ -1550,7 +1544,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    for (f = 0; f < num_filters; f++)
    {
       if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
-                                   cd_values, 0, NULL, NULL)) < 0)
+                                   cd_values_zip, 0, NULL, NULL)) < 0)
          BAIL(NC_EHDFERR);
       switch (filter)
       {
@@ -1564,21 +1558,25 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
          case H5Z_FILTER_DEFLATE:
             var->deflate = NC_TRUE;
-            if (cd_nelems != CD_NELEMS_ZLIB || cd_values[0] > MAX_DEFLATE_LEVEL)
+            if (cd_nelems != CD_NELEMS_ZLIB || cd_values_zip[0] > MAX_DEFLATE_LEVEL)
                BAIL(NC_EHDFERR);
-            var->deflate_level = cd_values[0];
+            var->deflate_level = cd_values_zip[0];
             break;
 
-         case H5Z_FILTER_SZIP:
-            var->szip = NC_TRUE;
-            if (cd_nelems != CD_NELEMS_SZIP)
-               BAIL(NC_EHDFERR);
-	    var->options_mask = cd_values[0];
-            var->pixels_per_block = cd_values[1];
-            break;
-
-         default:
-            LOG((1, "Yikes! Unknown filter type found on dataset!"));
+	default:
+            var->filterid = filter;
+	    var->nparams = cd_nelems;
+	    if(cd_nelems == 0)
+	        var->params = NULL;
+	    else {
+		/* We have to re-read the parameters based on actual nparams */
+	        var->params = (unsigned int*)calloc(1,sizeof(unsigned int)*var->nparams);
+		if(var->params == NULL)
+		    BAIL(NC_ENOMEM);
+                if((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
+                                   var->params, 0, NULL, NULL)) < 0)
+		    BAIL(NC_EHDFERR);
+	    }
             break;
       }
    }
@@ -2116,13 +2114,8 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
 
-#ifdef EXTRA_TESTS
    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI))
       BAIL(NC_EHDFERR);
-#else
-   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG))
-      BAIL(NC_EHDFERR);
-#endif
 
 #ifdef USE_PARALLEL4
    /* If this is a parallel file create, set up the file creation
@@ -2998,7 +2991,7 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
-   if(h5 != NULL)
+   if(!retval && h5 != NULL)
        free(h5);
    return retval;
 }
