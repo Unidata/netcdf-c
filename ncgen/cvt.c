@@ -642,3 +642,18 @@ convertstringtochars(NCConstant* str)
     }
     return dl;
 }
+
+unsigned int
+convertFilterID(const char* id)
+{
+    unsigned int nid = 0;
+    int ok = 0;
+    struct FilterID* f;
+
+    /* for now, must be an integer */
+    ok = sscanf(id,"%u",&nid);
+    if(ok == 1)
+	return nid;
+    return 0; /* Not a recognizable id */
+}
+

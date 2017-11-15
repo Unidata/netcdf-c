@@ -531,11 +531,15 @@ buildCompound(NCD4meta* builder, NCD4node* cmpdtype, NCD4node* group, char* name
 					field->name, field->meta.offset,
 					field->basetype->meta.id)));
         } else if(rank > 0) { /* array  */
+  	    int idimsizes[NC_MAX_VAR_DIMS];
+	    int j;
 	    getDimsizes(field,dimsizes);
+	    /* nc_insert_array_compound: dimsizes arg is not size_t */
+	    for(j=0;j<rank;j++) idimsizes[j] = (int)dimsizes[j];
             NCCHECK((nc_insert_array_compound(group->meta.id, cmpdtype->meta.id,
 					      field->name, field->meta.offset,
 					      field->basetype->meta.id,
-					      rank, dimsizes)));
+					      rank, idimsizes)));
 	}
     }
 

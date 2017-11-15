@@ -759,6 +759,7 @@ INPUT = \
     @abs_top_srcdir@/docs/tutorial.dox \
     @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/auth.md \
+    @abs_top_srcdir@/docs/filters.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
     @abs_top_srcdir@/docs/FAQ.md \
     @abs_top_srcdir@/docs/known_problems.md \
