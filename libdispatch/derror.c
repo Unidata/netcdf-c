@@ -252,6 +252,8 @@ const char *nc_strerror(int ncerr1)
 	    "when netCDF was built.";
       case NC_EDISKLESS:
 	 return "NetCDF: Error in using diskless access";
+      case NC_EFILTER:
+	 return "NetCDF: Filter error: bad id or parameters or filter library non-existent";
       case NC_ECANTEXTEND:
 	return "NetCDF: Attempt to extend dataset during NC_INDEPENDENT I/O operation. Use nc_var_par_access to set mode NC_COLLECTIVE before extending variable.";
       case NC_EMPI: return "NetCDF: MPI operation failed.";
