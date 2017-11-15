@@ -28,6 +28,9 @@ TESTPROGRAMS = nctest tst_rename
 check_PROGRAMS = $(TESTPROGRAMS)
 TESTS = $(TESTPROGRAMS) compare_test_files.sh
 
+# compare_test_files depends on nctest executing first.
+compare_test_files.log: nctest.log 
+
 # This will the test program with valgrind, the memory checking
 # tool. (Valgrind must be present for this to work.)
 if USE_VALGRIND_TESTS
