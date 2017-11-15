@@ -509,9 +509,9 @@ case CASE(NC_OPAQUE,NC_CHAR):
     tmp.charv	= *(char*)bytes;
   break;
 case CASE(NC_OPAQUE,NC_BYTE):
-  if(bytes)
-    tmp.uint8v	= *(unsigned char*)bytes;
-    break;
+   if(bytes)
+      tmp.uint8v	= *(unsigned char*)bytes;
+   break;
 case CASE(NC_OPAQUE,NC_UBYTE):
   if(bytes)  
     tmp.uint8v	= *(unsigned char*)bytes;
