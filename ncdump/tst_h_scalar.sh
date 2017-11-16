@@ -9,6 +9,7 @@ set -e
 echo ""
 echo "*** Running ncdump scalar test."
 
+${execdir}/tst_h_scalar
 # echo "*** dumping tst_h_scalar.nc to tst_h_scalar.cdl..."
 ${NCDUMP} tst_h_scalar.nc > tst_h_scalar.cdl
 # echo "*** comparing tst_h_scalar.cdl with ref_tst_h_scalar.cdl..."

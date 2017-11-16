@@ -140,22 +140,22 @@ ENDIF()
   ENDIF(BUILD_DISKLESS)
 
   IF(USE_NETCDF4)
-    add_bin_test(ncdump tst_create_files)
-    add_bin_test(ncdump tst_group_data)
-    add_bin_test(ncdump tst_enum_data)
-    add_bin_test(ncdump tst_opaque_data)
-    add_bin_test(ncdump tst_string_data)
-    add_bin_test(ncdump tst_vlen_data)
-    add_bin_test(ncdump tst_comp)
-    add_bin_test(ncdump tst_comp2)
-    add_bin_test(ncdump tst_nans)
-    add_bin_test(ncdump tst_h_scalar)
     add_sh_test(ncdump tst_formatx4)
     # Add this test by hand, as it is also called from a script.
     # Editing the script would break autotools compatibility.
     add_bin_test_no_prefix(tst_special_atts)
     add_bin_test_no_prefix(tst_compress)
     add_bin_test_no_prefix(tst_chunking)
+    add_bin_test_no_prefix(ncdump tst_create_files)
+    add_bin_test_no_prefix(ncdump tst_group_data)
+    add_bin_test_no_prefix(ncdump tst_enum_data)
+    add_bin_test_no_prefix(ncdump tst_opaque_data)
+    add_bin_test_no_prefix(ncdump tst_string_data)
+    add_bin_test_no_prefix(ncdump tst_vlen_data)
+    add_bin_test_no_prefix(ncdump tst_comp)
+    add_bin_test_no_prefix(ncdump tst_comp2)
+    add_bin_test_no_prefix(ncdump tst_nans)
+    add_bin_test_no_prefix(ncdump tst_h_scalar)
 
 
     ###
