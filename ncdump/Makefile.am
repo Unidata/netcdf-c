@@ -75,14 +75,15 @@ if USE_NETCDF4
 check_PROGRAMS += tst_create_files tst_h_rdc0 tst_group_data            \
 tst_enum_data tst_opaque_data tst_string_data tst_vlen_data tst_comp    \
 tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug             \
-tst_compress tst_chunking tst_h_scalar tst_bug324
+tst_compress tst_chunking tst_h_scalar
 
-TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data  \
-tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans               \
-tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug      \
-tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh             \
-tst_grp_spec.sh tst_mud.sh tst_h_scalar tst_h_scalar.sh tst_formatx4.sh \
-tst_bug324 run_utf8_nc4_tests.sh run_back_comp_tests.sh
+TESTS += tst_create_files tst_group_data tst_enum_data			\
+tst_opaque_data tst_string_data tst_vlen_data tst_comp tst_comp2	\
+tst_nans tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode		\
+tst_fillbug tst_fillbug.sh tst_netcdf4_4.sh tst_compress		\
+tst_nccopy4.sh tst_grp_spec.sh tst_mud.sh tst_h_scalar			\
+tst_h_scalar.sh tst_formatx4.sh run_utf8_nc4_tests.sh			\
+run_back_comp_tests.sh
 
 endif #!USE_NETCDF4
 
@@ -167,7 +168,7 @@ c5.nc compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc	\
 ref_camrun.c tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl	\
 tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl		\
 tst_gattenum.nc tst_ncf199.cdl tst_tst_gattenum.cdl			\
-tst_tst_usuffix.cdl tst_usuffix.nc tst_bug324.nc ctest.c ctest64.c	\
+tst_tst_usuffix.cdl tst_usuffix.nc ctest.c ctest64.c			\
 nccopy3_subset_out.nc
 
 DISTCLEANFILES = results
