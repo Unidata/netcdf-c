@@ -4,7 +4,7 @@
 
    Create a test file with a string data for ncdump to read.
 
-   $Id: tst_string_data.c,v 1.7 2009/01/28 18:19:48 russ Exp $
+   Russ Rew
 */
 
 #include <nc_tests.h>

@@ -44,13 +44,15 @@ if BUILD_TESTSETS
 check_PROGRAMS = rewrite-scalar ref_ctest ref_ctest64 ncdump tst_utf8   \
 bom tst_dimsizes nctrunc
 
-TESTS = tst_ctest.sh tst_inttags.sh run_tests.sh tst_64bit.sh	\
-ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh	\
-run_utf8_tests.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
-tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
-tst_dimsizes.sh run_ncgen_tests.sh
+TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest		\
+ref_ctest64 tst_ctest.sh tst_output.sh tst_lengths.sh			\
+tst_calendars.sh run_utf8_tests.sh tst_nccopy3.sh			\
+tst_nccopy3_subset.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh	\
+tst_bom.sh tst_dimsizes.sh run_ncgen_tests.sh
 
-tst_nccopy3.log:run_utf8_tests.log
+tst_ctest.log: ref_ctest.log ref_ctest64.log
+tst_output.log: tst_ctest.log
+tst_nccopy3.log: run_utf8_tests.log tst_output.log
 
 if USE_NETCDF4
 check_PROGRAMS += tst_fileinfo
@@ -79,13 +81,14 @@ tst_enum_data tst_opaque_data tst_string_data tst_vlen_data tst_comp    \
 tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug             \
 tst_compress tst_chunking tst_h_scalar
 
-TESTS += tst_create_files tst_group_data tst_enum_data			\
-tst_opaque_data tst_string_data tst_vlen_data tst_comp tst_comp2	\
-tst_nans tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode		\
-tst_fillbug tst_fillbug.sh tst_netcdf4_4.sh tst_compress		\
-tst_nccopy4.sh tst_grp_spec.sh tst_mud.sh tst_h_scalar			\
-tst_h_scalar.sh tst_formatx4.sh run_utf8_nc4_tests.sh			\
-run_back_comp_tests.sh
+# Run C programs from shell scripts, and shell scripts from here.
+TESTS += tst_netcdf4.sh tst_fillbug.sh tst_netcdf4_4.sh		\
+tst_nccopy4.sh tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh	\
+tst_formatx4.sh run_utf8_nc4_tests.sh run_back_comp_tests.sh
+
+# Record a dependency between test scripts.
+tst_nccopy4.log: tst_netcdf4.log tst_fillbug.log tst_netcdf4_4.log	\
+tst_h_scalar.log tst_ctest.log
 
 endif #!USE_NETCDF4
 
