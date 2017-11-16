@@ -302,7 +302,7 @@ main(int argc, char **argv)
       }
       SUMMARIZE_ERR;
 
-#ifndef NO_NETCDF_2
+#if NC_HAS_NC2
       /* The following test is an attempt to recreate a problem occurring
          in the cxx tests. The file is created in c++ in nctsts.cpp. */
       printf("**** testing fill value with example from cxx tests in v2 api...");
@@ -387,7 +387,7 @@ main(int argc, char **argv)
          ncclose(ncid);
       }
       SUMMARIZE_ERR;
-#endif /* NO_NETCDF_2 */
+#endif /* NC_HAS_NC2 */
    }
 
    printf("**** testing create order varids...");
@@ -485,6 +485,7 @@ main(int argc, char **argv)
    }
    SUMMARIZE_ERR;
 
+#if NC_HAS_NC2
 #define VAR_DIMS2 2
    printf("*** testing 2D array of NC_FLOAT with v2 API...");
    {
@@ -509,6 +510,7 @@ main(int argc, char **argv)
       if (nvars != 1 || ndims != 2 || natts != 0 || recdim != -1) ERR;
       ncclose(ncid);
    }
+#endif /* NC_HAS_NC2 */
    SUMMARIZE_ERR;
 
 #define NDIMS 3
