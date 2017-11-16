@@ -150,7 +150,6 @@ ENDIF()
     add_bin_test(ncdump tst_comp2)
     add_bin_test(ncdump tst_nans)
     add_bin_test(ncdump tst_h_scalar)
-    add_bin_test(ncdump tst_bug324)
     add_sh_test(ncdump tst_formatx4)
     # Add this test by hand, as it is also called from a script.
     # Editing the script would break autotools compatibility.
