@@ -304,7 +304,7 @@ nc_inq_rec(
 		return status;
 	    recsizes[varid] = rsize;
 	}
-	return NC_NOERR;
+    return NC_NOERR;
 }
 
 /** \ingroup v2_api
