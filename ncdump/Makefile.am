@@ -44,11 +44,13 @@ if BUILD_TESTSETS
 check_PROGRAMS = rewrite-scalar ref_ctest ref_ctest64 ncdump tst_utf8   \
 bom tst_dimsizes nctrunc
 
-TESTS = tst_ctest.sh tst_inttags.sh run_tests.sh tst_64bit.sh		\
-ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh tst_utf8	\
-run_utf8_tests.sh tst_nccopy3.sh tst_nccopy3_subset.sh			\
-tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh			\
+TESTS = tst_ctest.sh tst_inttags.sh run_tests.sh tst_64bit.sh	\
+ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh	\
+run_utf8_tests.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
+tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
 tst_dimsizes.sh run_ncgen_tests.sh
+
+tst_nccopy3.log:run_utf8_tests.log
 
 if USE_NETCDF4
 check_PROGRAMS += tst_fileinfo
