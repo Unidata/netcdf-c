@@ -3,7 +3,7 @@
    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 variables.
-   $Id: tst_h_files3.c,v 1.2 2010/02/05 17:06:28 ed Exp $
+   @author Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -17,7 +17,7 @@
 
 #define MAX_LEN 30
 #define TMP_FILE_NAME "tst_files2_tmp.out"
-#define FILE_NAME "tst_files2_1.nc"
+#define FILE_NAME "tst_h_files3.nc"
 #define MILLION 1000000
 
 void *last_sbrk;

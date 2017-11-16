@@ -103,7 +103,6 @@ main()
         hid_t dcplid;
 	hid_t scalar_spaceid;
         hid_t vlstr_typeid, fixstr_typeid;
-	hid_t attid;
 
         /* Create scalar dataspace */
 	if ((scalar_spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
@@ -183,7 +182,6 @@ main()
     printf("*** Revise file through netCDF-4 API...");
     {
 	int ncid, varid;
-        int ret;
         char *vlstr;
 
 	if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
