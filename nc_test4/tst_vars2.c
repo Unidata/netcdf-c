@@ -9,6 +9,7 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include "netcdf.h"
+#include "netcdf_meta.h"
 
 #define FILE_NAME "tst_vars2.nc"
 #define NUM_DIMS 1
