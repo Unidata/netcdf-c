@@ -54,8 +54,8 @@ tst_nccopy3_subset.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh	\
 tst_bom.sh tst_dimsizes.sh run_ncgen_tests.sh
 
 # Record dependencies between test scripts.
-tst_nccopy3.log: tst_calendars.log tst_utf8.log run_utf8_tests.log	\
-tst_output.log tst_64bit.log run_tests.log
+tst_nccopy3.log: tst_calendars.log run_utf8_tests.log tst_output.log	\
+tst_64bit.log run_tests.log
 run_ncgen_tests.log: tst_output.log tst_nccopy3.log
 tst_ctest.log: ref_ctest.log ref_ctest64.log
 tst_output.log: tst_ctest.log
