@@ -6,8 +6,7 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+TEST_EXTENSIONS = .sh
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/libdap4
@@ -34,7 +33,6 @@ TESTS += test_data.sh
 endif
 
 # Note which tests depend on other tests. Necessary for make -j check.
-TEST_EXTENSIONS = .sh
 test_raw.log: test_parse.log
 test_meta.log: test_raw.log
 test_data.log: test_meta.log
