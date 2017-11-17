@@ -156,8 +156,6 @@ ENDIF()
     add_bin_test_no_prefix(tst_comp2)
     add_bin_test_no_prefix(tst_nans)
     add_bin_test_no_prefix(tst_h_scalar)
-    add_bin_test_no_prefix(tst_h_rdc0)
-
 
     ###
     # This test fails on Visual Studio builds with bash.
@@ -172,6 +170,7 @@ ENDIF()
     # is different, but the result is actually correct.
     #IF(NOT MSVC)
     add_sh_test(ncdump tst_netcdf4)
+    add_bin_test_no_prefix(tst_h_rdc0)
     #ENDIF()
 
     add_bin_test(ncdump tst_unicode)
