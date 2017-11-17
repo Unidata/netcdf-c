@@ -100,15 +100,15 @@ ENDIF()
   # keep it from being too bad.
 
   ## Start adding tests in the appropriate order
-  add_bin_test_no_prefix(tst_utf8)  
-  add_bin_test_no_prefix(ref_ctest)
-  add_bin_test_no_prefix(ref_ctest64)
   add_sh_test(ncdump run_tests)
   add_sh_test(ncdump tst_64bit)
+  add_bin_test_no_prefix(ref_ctest)
+  add_bin_test_no_prefix(ref_ctest64)
   add_sh_test(ncdump tst_ctest)
   add_sh_test(ncdump tst_output)
   add_sh_test(ncdump tst_lengths)
   add_sh_test(ncdump tst_calendars)
+  add_bin_test(ncdump tst_utf8)
   add_sh_test(ncdump run_utf8_tests)
   IF(USE_NETCDF4)
     add_sh_test(ncdump run_utf8_nc4_tests)
@@ -140,22 +140,24 @@ ENDIF()
   ENDIF(BUILD_DISKLESS)
 
   IF(USE_NETCDF4)
+    add_bin_test(ncdump tst_create_files)
+    add_bin_test(ncdump tst_group_data)
+    add_bin_test(ncdump tst_enum_data)
+    add_bin_test(ncdump tst_opaque_data)
+    add_bin_test(ncdump tst_string_data)
+    add_bin_test(ncdump tst_vlen_data)
+    add_bin_test(ncdump tst_comp)
+    add_bin_test(ncdump tst_comp2)
+    add_bin_test(ncdump tst_nans)
+    add_bin_test(ncdump tst_h_scalar)
+    add_bin_test(ncdump tst_bug324)
     add_sh_test(ncdump tst_formatx4)
     # Add this test by hand, as it is also called from a script.
     # Editing the script would break autotools compatibility.
     add_bin_test_no_prefix(tst_special_atts)
     add_bin_test_no_prefix(tst_compress)
     add_bin_test_no_prefix(tst_chunking)
-    add_bin_test_no_prefix(tst_create_files)
-    add_bin_test_no_prefix(tst_group_data)
-    add_bin_test_no_prefix(tst_enum_data)
-    add_bin_test_no_prefix(tst_opaque_data)
-    add_bin_test_no_prefix(tst_string_data)
-    add_bin_test_no_prefix(tst_vlen_data)
-    add_bin_test_no_prefix(tst_comp)
-    add_bin_test_no_prefix(tst_comp2)
-    add_bin_test_no_prefix(tst_nans)
-    add_bin_test_no_prefix(tst_h_scalar)
+
 
     ###
     # This test fails on Visual Studio builds with bash.
@@ -170,13 +172,13 @@ ENDIF()
     # is different, but the result is actually correct.
     #IF(NOT MSVC)
     add_sh_test(ncdump tst_netcdf4)
-    add_bin_test_no_prefix(tst_h_rdc0)
+    add_bin_test(ncdump tst_h_rdc0)
     #ENDIF()
 
     add_bin_test(ncdump tst_unicode)
 
-    add_bin_test_no_prefix(tst_fillbug)
-    add_sh_test(ncdump tst_fillbug)
+    add_bin_test(ncdump tst_fillbug)
+    add_sh_test(ncdump_sh tst_fillbug)
 
     IF(NOT MSVC)
       add_sh_test(ncdump tst_netcdf4_4)
