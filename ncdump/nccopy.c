@@ -722,9 +722,6 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid)
     VarID vid = {igrp,varid};
     VarID ovid = {ogrp,o_varid};
     /* handle filter parameters, copying from input, overriding with command-line options */
-    unsigned int filterid = 0;
-    size_t nparams = 0;
-    unsigned int* params = NULL;
     struct FilterSpec spec;
     int i, found;
     char* ofqn = NULL;

@@ -33,5 +33,6 @@ echo "*** Performing diff tests: k=4"
 sh  ${srcdir}/tst_ncgen4_diff.sh
 echo "*** Performing cycle tests: k=4"
 sh  ${srcdir}/tst_ncgen4_cycle.sh
+rm -rf ${RESULTSDIR}
 exit
 

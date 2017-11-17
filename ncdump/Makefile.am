@@ -8,6 +8,9 @@
 include $(top_srcdir)/lib_flags.am
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
+# Note which tests depend on other tests. Necessary for make -j check.
+TEST_EXTENSIONS = .sh
+
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 
@@ -49,14 +52,15 @@ ref_ctest64 tst_ctest.sh tst_output.sh tst_lengths.sh			\
 tst_calendars.sh run_utf8_tests.sh tst_nccopy3.sh			\
 tst_nccopy3_subset.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh	\
 tst_bom.sh tst_dimsizes.sh run_ncgen_tests.sh
-
+tst_nccopy3.log: tst_calendars.log tst_utf8.log run_utf8_tests.log	\
+tst_output.log tst_64bit.log run_tests.log
+run_ncgen_tests.log: tst_output.log tst_nccopy3.log
 tst_ctest.log: ref_ctest.log ref_ctest64.log
 tst_output.log: tst_ctest.log
-tst_nccopy3.log: run_utf8_tests.log tst_output.log
 
 if USE_NETCDF4
 check_PROGRAMS += tst_fileinfo
-TESTS += tst_fileinfo.sh tst_hdf5_offset.sh run_ncgen_nc4_tests.sh
+TESTS += tst_fileinfo.sh tst_hdf5_offset.sh 
 endif
 
 if LARGE_FILE_TESTS
@@ -84,18 +88,27 @@ tst_compress tst_chunking tst_h_scalar
 # Run C programs from shell scripts, and shell scripts from here.
 TESTS += tst_netcdf4.sh tst_fillbug.sh tst_netcdf4_4.sh		\
 tst_nccopy4.sh tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh	\
-tst_formatx4.sh run_utf8_nc4_tests.sh run_back_comp_tests.sh
+tst_formatx4.sh run_utf8_nc4_tests.sh run_back_comp_tests.sh	\
+run_ncgen_nc4_tests.sh
 
-# Record a dependency between test scripts.
+# Record dependencies between test scripts.
+tst_netcdf4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
+tst_formatx4.log
 tst_nccopy4.log: tst_netcdf4.log tst_fillbug.log tst_netcdf4_4.log	\
 tst_h_scalar.log tst_ctest.log
+run_ncgen_nc4_tests.log: run_ncgen_tests.log tst_output.log \
+tst_nccopy3.log
 
 endif #!USE_NETCDF4
 
 TESTS += tst_ncgen4_classic.sh
+tst_ncgen4_classic.log: tst_formatx3.log tst_output.log	\
+tst_nccopy3.log run_ncgen_tests.log
+
 if USE_NETCDF4
 TESTS += tst_ncgen4.sh
 endif
+tst_ncgen4.log: tst_ncgen4_classic.log tst_formatx4.log
 
 endif BUILD_TESTSETS
 
