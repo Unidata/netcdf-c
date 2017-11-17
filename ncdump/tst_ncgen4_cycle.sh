@@ -16,6 +16,7 @@ fi
 
 echo "*** Cycle testing ncgen with -k${KFLAG}"
 
+mkdir ${RESULTSDIR}
 cd ${RESULTSDIR}
 for x in ${TESTSET} ; do
   test "x$verbose" = x1 && echo "*** Testing: ${x}"
@@ -61,6 +62,7 @@ totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
 
 echo "*** PASSED: ${okcount}/${totalcount} ; ${failcount} unexpected failures; ${xfailcount} expected failures ignored"
+rm -rf ${RESULTSDIR}
 
 if test $failcount -gt 0 ; then
   exit 1

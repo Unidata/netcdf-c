@@ -10,8 +10,8 @@ verbose=0
 export verbose
 
 KFLAG=1 ; export KFLAG
-sh  ${srcdir}/tst_ncgen4_diff.sh
-sh  ${srcdir}/tst_ncgen4_cycle.sh
+bash -x  ${srcdir}/tst_ncgen4_diff.sh
+bash -x  ${srcdir}/tst_ncgen4_cycle.sh
 exit 0
 
 
