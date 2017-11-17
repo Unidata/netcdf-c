@@ -11,20 +11,21 @@ cd ${DMRTESTFILES}
 F=`ls -1 *.dmr | sed -e 's/[.]dmr//' |tr '\r\n' '  '`
 cd $WD
 
+mkdir ./results_test_parse
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINE}/*.d4p ; fi
 for f in $F ; do
     echo "testing: $f"
-    if ! ${VG} ${execdir}/test_parse ${DMRTESTFILES}/${f}.dmr > ./results/${f}.d4p ; then
+    if ! ${VG} ${execdir}/test_parse ${DMRTESTFILES}/${f}.dmr > ./results_test_parse/${f}.d4p ; then
 	failure "${f}"
     fi
     if test "x${TEST}" = x1 ; then
-	if ! diff -wBb ${BASELINE}/${f}.d4p ./results/${f}.d4p ; then
+	if ! diff -wBb ${BASELINE}/${f}.d4p ./results_test_parse/${f}.d4p ; then
 	    failure "${f}"
 	fi
     elif test "x${DIFF}" = x1 ; then
-	echo "diff -wBb ${DMRTESTFILES}/${f}.dmr ./results/${f}.d4p"
+	echo "diff -wBb ${DMRTESTFILES}/${f}.dmr ./results_test_parse/${f}.d4p"
 	rm -f ./tmp
-	cat ./results/${f}.d4p \
+	cat ./results_test_parse/${f}.d4p \
 	| sed -e '/<Dimensions>/d' -e '/<Types>'/d -e '/<Variables>'/d -e '/<Groups>'/d \
 	| sed -e '/<\/Dimensions>/d' -e '/<\/Types>'/d -e '/<\/Variables>'/d -e '/<\/Groups>'/d  \
 	| sed -e '/_edu.ucar.opaque.size/,+2d' \
@@ -34,9 +35,10 @@ for f in $F ; do
 	fi
     elif test "x${RESET}" = x1 ; then
 	echo "${f}:" 
-	cp ./results/${f}.d4p ${BASELINE}/${f}.d4p	
+	cp ./results_test_parse/${f}.d4p ${BASELINE}/${f}.d4p	
     fi
 done
+rm -rf ./results_test_parse
 
 finish
 
