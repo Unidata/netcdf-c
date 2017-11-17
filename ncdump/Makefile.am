@@ -52,6 +52,8 @@ ref_ctest64 tst_ctest.sh tst_output.sh tst_lengths.sh			\
 tst_calendars.sh run_utf8_tests.sh tst_nccopy3.sh			\
 tst_nccopy3_subset.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh	\
 tst_bom.sh tst_dimsizes.sh run_ncgen_tests.sh
+
+# Record dependencies between test scripts.
 tst_nccopy3.log: tst_calendars.log tst_utf8.log run_utf8_tests.log	\
 tst_output.log tst_64bit.log run_tests.log
 run_ncgen_tests.log: tst_output.log tst_nccopy3.log
@@ -98,6 +100,7 @@ tst_nccopy4.log: tst_netcdf4.log tst_fillbug.log tst_netcdf4_4.log	\
 tst_h_scalar.log tst_ctest.log
 run_ncgen_nc4_tests.log: run_ncgen_tests.log tst_output.log \
 tst_nccopy3.log
+run_utf8_nc4_tests.log: run_utf8_tests.log
 
 endif #!USE_NETCDF4
 
