@@ -156,6 +156,7 @@ ENDIF()
     add_bin_test_no_prefix(tst_comp2)
     add_bin_test_no_prefix(tst_nans)
     add_bin_test_no_prefix(tst_h_scalar)
+    add_bin_test_no_prefix(tst_h_rdc0)
 
 
     ###
@@ -170,7 +171,6 @@ ENDIF()
     # Known failure on MSVC; the number of 0's padding
     # is different, but the result is actually correct.
     #IF(NOT MSVC)
-    add_bin_test_no_prefix(tst_h_rdc0)
     add_sh_test(ncdump tst_netcdf4)
     #ENDIF()
 
