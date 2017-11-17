@@ -100,10 +100,11 @@ ENDIF()
   # keep it from being too bad.
 
   ## Start adding tests in the appropriate order
-  add_sh_test(ncdump run_tests)
-  add_sh_test(ncdump tst_64bit)
+  add_bin_test_no_prefix(tst_utf8)  
   add_bin_test_no_prefix(ref_ctest)
   add_bin_test_no_prefix(ref_ctest64)
+  add_sh_test(ncdump run_tests)
+  add_sh_test(ncdump tst_64bit)
   add_sh_test(ncdump tst_ctest)
   add_sh_test(ncdump tst_output)
   add_sh_test(ncdump tst_lengths)
