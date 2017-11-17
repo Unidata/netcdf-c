@@ -33,6 +33,12 @@ TESTS += test_meta.sh
 TESTS += test_data.sh
 endif
 
+# Note which tests depend on other tests. Necessary for make -j check.
+TEST_EXTENSIONS = .sh
+test_raw.log: test_parse.log
+test_meta.log: test_raw.log
+test_data.log: test_meta.log
+
 if ENABLE_DAP_REMOTE_TESTS
 # Note: This program name was changed to findtestserver4
 # to avoid cmake complaint about duplicate targets.
