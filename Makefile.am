@@ -70,16 +70,6 @@ if USE_PNETCDF
 LIBSRCP = libsrcp
 endif
 
-# Build UDUNITS?
-#if BUILD_UDUNITS
-#UDUNITS = udunits
-#endif
-
-# Build libcf?
-#if BUILD_LIBCF
-#LIBCF = libcf
-#endif
-
 # Define Test directories
 if BUILD_TESTSETS
 TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)

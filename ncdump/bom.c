@@ -11,9 +11,9 @@
 /* BOM Sequences */
 static char* U8   = "\xEF\xBB\xBF";    /* UTF-8 */
 static char* BE32 = "\x00\x00\xFE\xFF"; /* UTF-32; big-endian */
-static char* LE32 = "\xFF\xFE";       /* UTF-32; little-endian */
+/* static char* LE32 = "\xFF\xFE";       /\* UTF-32; little-endian *\/ */
 static char* BE16 = "\xFE\xFF";       /* UTF-16; big-endian */
-static char* LE16 = "\xFF\xFE";       /* UTF-16; little-endian */
+/* static char* LE16 = "\xFF\xFE";       /\* UTF-16; little-endian *\/ */
 
 int
 main(int argc, char** argv)
