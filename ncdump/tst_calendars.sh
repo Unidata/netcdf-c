@@ -23,7 +23,7 @@ TSTS="test_360_day_1900 test_365_day_1900 test_366_day_1900"
 for t in $TSTS ; do
   rm -f ./${t}.cdl
   echo "create: ${t}.cdl from ${t}.nc"
-  ${NCDUMP} -n ${t} -t $srcdir/${t}.nc > ${t}.cdl
+  ${NCDUMP} -n ${t} -t $srcdir/ref_${t}.nc > ${t}.cdl
   echo "compare: ${t}.cdl ref_${t}.cdl"
   diff -b ${t}.cdl $srcdir/ref_${t}.cdl
   rm -f ${t}.cdl
