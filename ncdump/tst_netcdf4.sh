@@ -114,10 +114,10 @@ diff -b tst_special_atts.cdl $srcdir/ref_tst_special_atts.cdl
 echo ""
 echo "*** Testing ncdump on file with corrupted header "
 rm -f ./ignore_tst_netcdf4
-if ${NCDUMP} ${srcdir}/test_corrupt_magic.nc > ./ignore_tst_netcdf4 2>&1 ; then
-echo "***Fail: ncdump should have failed on test_corrupt_magic.nc"
+if ${NCDUMP} ${srcdir}/ref_test_corrupt_magic.nc > ./ignore_tst_netcdf4 2>&1 ; then
+echo "***Fail: ncdump should have failed on ref_test_corrupt_magic.nc"
 else
-echo "***XFail: ncdump properly failed on test_corrupt_magic.nc"
+echo "***XFail: ncdump properly failed on ref_test_corrupt_magic.nc"
 fi
 rm -fr ./ignore_tst_netcdf4
 

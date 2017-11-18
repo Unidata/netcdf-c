@@ -124,13 +124,13 @@ ref_tst_ncf213.cdl tst_h_scalar.sh run_utf8_nc4_tests.sh		\
 tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl tst_inttags.sh	\
 tst_inttags4.sh CMakeLists.txt XGetopt.c tst_bom.sh			\
 tst_inmemory_nc3.sh tst_dimsizes.sh tst_inmemory_nc4.sh			\
-tst_fileinfo.sh run_ncgen_tests.sh test_360_day_1900.nc			\
-test_365_day_1900.nc test_366_day_1900.nc ref_test_360_day_1900.cdl	\
-ref_test_365_day_1900.cdl ref_test_366_day_1900.cdl			\
-tst_hdf5_offset.sh run_ncgen_nc4_tests.sh tst_nccopy3_subset.sh		\
-ref_nccopy3_subset.nc test_corrupt_magic.nc tst_ncgen_shared.sh		\
-tst_ncgen4.sh tst_ncgen4_classic.sh tst_ncgen4_diff.sh			\
-tst_ncgen4_cycle.sh tst_ctest.sh
+tst_fileinfo.sh run_ncgen_tests.sh ref_test_360_day_1900.nc		\
+ref_test_365_day_1900.nc ref_test_366_day_1900.nc			\
+ref_test_360_day_1900.cdl ref_test_365_day_1900.cdl			\
+ref_test_366_day_1900.cdl tst_hdf5_offset.sh run_ncgen_nc4_tests.sh	\
+tst_nccopy3_subset.sh ref_nccopy3_subset.nc ref_test_corrupt_magic.nc	\
+tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh			\
+tst_ncgen4_diff.sh tst_ncgen4_cycle.sh tst_ctest.sh
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
@@ -139,38 +139,23 @@ EXTRA_DIST += L512.bin
 # CDL files and Expected results
 SUBDIRS = cdl expected
 
-CLEANFILES = test0.nc test1_ncdump.cdl test1_ncdump.nc			\
-test2_ncdump.cdl test1.cdl test0_ncdump.nc ctest1.cdl test1_cdf5.nc	\
-test1_cdf5.cdl test0_cdf5.nc test2_cdf5.nc test2_cdf5.cdl		\
-test0_offset.nc test1_offset.nc test1_offset.cdl test2_offset.nc	\
-test2_offset.cdl ctest0.nc ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl	\
-c0.nc c0_4.nc small.nc small2.nc c0tmp.nc c1.ncml utf8.cdl		\
-utf8_64.cdl utf8.nc utf8_64.nc tmp.cdl tst_vlen_data.nc tst_utf8.nc	\
-tst_special_atts.nc tst_unicode.nc tst_solar_2.nc tst_string_data.nc	\
-tst_calendars.nc tst_nans.nc tst_opaque_data.nc tst_solar_cmp.nc	\
-tst_enum_data.nc tst_solar_1.nc tst_mslp_64.nc tst_mslp.nc		\
-tst_bug321.nc tst_comp2.nc tst_ncml.nc tst_fillbug.nc			\
-tst_group_data.nc tst_small.nc tst_comp.nc tst_unicode.cdl		\
-tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl tst_enum_data.cdl	\
-tst_small.cdl tst_times.cdl tst_solar_2.cdl tst_string_data.cdl		\
-tst_fillbug.cdl tst_opaque_data.cdl tst_compounds4.cdl tst_utf8.cdl	\
-tst_compounds3.cdl tst_special_atts.cdl tst_nans.cdl			\
-tst_format_att_64.cdl tst_vlen_data.cdl tst_solar_1.cdl			\
-tst_format_att.cdl tst_inflated.nc tmp_subset.cdl tst_inflated4.nc	\
-tst_deflated.nc tst_chunking.nc tmp*.nc tst_charfill.nc			\
-tmp_tst_charfill.cdl iter.* tst_nc_test_netcdf4_4_0.cdl tst_mud4.nc	\
-tst_mud4.cdl tst_mud4-bc.cdl tst_ncf213.cdl tst_ncf213.nc		\
-tst_h_scalar.cdl tst_h_scalar.nc tst_mud4_chars.cdl tst_mud4_chars.nc	\
-inttags.nc inttags4.nc tst_inttags.cdl tst_inttags4.cdl			\
-tst_dimsize_classic.nc tst_dimsize_64offset.nc tst_dimsize_64data.nc	\
-nc4_fileinfo.nc hdf5_fileinfo.hdf ref_hdf5_compat1.nc			\
-ref_hdf5_compat2.nc ref_hdf5_compat3.nc ref_tst_compounds.nc		\
-ref_tst_dims.nc ref_tst_interops4.nc ref_tst_xplatform2_1.nc		\
-ref_tst_xplatform2_2.nc nccopy3_subset_out.nc results/*.nc		\
-results/*.dmp results/*.dmp2 tmp*.cdl c5.nc compound_datasize_test.nc	\
-compound_datasize_test2.nc ncf199.nc ref_camrun.c tst_c0.cdl		\
-tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl				\
+CLEANFILES = tst_*.nc tmp*.nc test*.nc iter.* tmp*.cdl			\
+test1_ncdump.cdl test2_ncdump.cdl test1.cdl ctest1.cdl test1_cdf5.cdl	\
+test2_cdf5.cdl test1_offset.cdl test2_offset.cdl ctest0.nc		\
+ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl c0.nc c0_4.nc small.nc	\
+small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc	\
+tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl	\
+tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl		\
+tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl			\
+tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl			\
+tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl			\
+tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl			\
+tst_nc_test_netcdf4_4_0.cdl tst_mud4.cdl tst_mud4-bc.cdl		\
+tst_ncf213.cdl tst_h_scalar.cdl tst_mud4_chars.cdl inttags.nc		\
+inttags4.nc tst_inttags.cdl tst_inttags4.cdl nc4_fileinfo.nc		\
+hdf5_fileinfo.hdf nccopy3_subset_out.nc c5.nc				\
+compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc		\
+tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl			\
 tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl		\
-tst_gattenum.nc tst_ncf199.cdl tst_tst_gattenum.cdl			\
-tst_tst_usuffix.cdl tst_usuffix.nc ctest.c ctest64.c			\
-nccopy3_subset_out.nc
+tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl ctest.c		\
+ctest64.c nccopy3_subset_out.nc camrun.c
