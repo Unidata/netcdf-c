@@ -52,7 +52,7 @@ tst_bom.sh tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh
 
 # Record dependencies between classic test scripts.
 tst_nccopy3.log: tst_calendars.log run_utf8_tests.log tst_output.log	\
-tst_64bit.log run_tests.log
+tst_64bit.log run_tests.log tst_lengths.log
 run_ncgen_tests.log: tst_output.log tst_nccopy3.log
 tst_ctest.log: ref_ctest.log ref_ctest64.log
 tst_output.log: tst_ctest.log
