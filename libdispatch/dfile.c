@@ -170,11 +170,13 @@ NC_check_file_type(const char *path, int flags, void *parameters,
     int status = NC_NOERR;
 
     int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
+#ifdef USE_PARALLEL
 #ifdef USE_STDIO
     int use_parallel = 0;
 #else
     int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
 #endif
+#endif /* USE_PARALLEL */
     int inmemory = (diskless && ((flags & NC_INMEMORY) == NC_INMEMORY));
     struct MagicFile file;
 
@@ -340,14 +342,10 @@ Note that nc_create(path,cmode,ncidp) is equivalent to the invocation of
 nc__create(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp).
 
 \returns ::NC_NOERR No error.
-
 \returns ::NC_ENOMEM System out of memory.
-
 \returns ::NC_EHDFERR HDF5 error (netCDF-4 files only).
-
 \returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
 HDF5 file. (netCDF-4 files only).
-
 \returns ::NC_EDISKLESS if there was an error in creating the
 in-memory file.
 
@@ -490,6 +488,14 @@ stored.
 \note This function uses the same return codes as the nc_create()
 function.
 
+\returns ::NC_NOERR No error.
+\returns ::NC_ENOMEM System out of memory.
+\returns ::NC_EHDFERR HDF5 error (netCDF-4 files only).
+\returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
+HDF5 file. (netCDF-4 files only).
+\returns ::NC_EDISKLESS if there was an error in creating the
+in-memory file.
+
 <h1>Examples</h1>
 
 In this example we create a netCDF dataset named foo_large.nc; we want
@@ -511,7 +517,7 @@ and initial size for the file.
 \endcode
 
 \ingroup datasets
-
+\author Glenn Davis, Russ Rew, Dennis Heimbigner
 */
 int
 nc__create(const char *path, int cmode, size_t initialsz,
@@ -2127,7 +2133,7 @@ openmagic(struct MagicFile* file)
 	/* Get its length */
 	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
 	file->filelen = (long long)meminfo->size;
-fprintf(stderr,"XXX: openmagic: memory=0x%llx size=%ld\n",meminfo->memory,meminfo->size);
+fprintf(stderr,"XXX: openmagic: memory=0x%llx size=%ld\n",(long long unsigned int)meminfo->memory,meminfo->size);
 	goto done;
     }
 #ifdef USE_PARALLEL
@@ -2193,7 +2199,7 @@ readmagic(struct MagicFile* file, long pos, char* magic)
     if(file->inmemory) {
 	char* mempos;
 	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
-fprintf(stderr,"XXX: readmagic: memory=0x%llx size=%ld\n",meminfo->memory,meminfo->size);
+fprintf(stderr,"XXX: readmagic: memory=0x%llx size=%ld\n",(long long unsigned int)meminfo->memory,meminfo->size);
 fprintf(stderr,"XXX: readmagic: pos=%ld filelen=%lld\n",pos,file->filelen);
 	if((pos + MAGIC_NUMBER_LEN) > meminfo->size)
 	    {status = NC_EDISKLESS; goto done;}
