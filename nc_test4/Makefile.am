@@ -3,7 +3,7 @@
 # See COPYRIGHT file for conditions of use.
 #
 # This entire directory will be skipped if netCDF-4 is not enabled.
-#
+# Ed Hartnett
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -29,7 +29,6 @@ if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
 endif
 
-
 check_PROGRAMS = $(NC4_TESTS) renamegroup tst_empty_vlen_unlim
 
 # Add these if large file tests are turned on.
@@ -40,7 +39,7 @@ endif
 TESTS = $(NC4_TESTS)
 
 if BUILD_UTILITIES
-	TESTS += run_grp_rename.sh tst_misc.sh
+TESTS += run_grp_rename.sh tst_misc.sh
 endif
 
 TESTS += run_empty_vlen_test.sh
@@ -77,9 +76,8 @@ tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 #WARNING: test_knmi depends on run_get_knmi_files.sh,
 # so they must appear in the appropriate order.
 TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
-run_bm_test2.sh run_tst_chunks.sh tst_files2 tst_files3	\
-tst_ar5 tst_h_files3 tst_mem                                            \
-run_get_knmi_files.sh tst_knmi
+run_bm_test2.sh run_tst_chunks.sh tst_files2 tst_files3 tst_ar5		\
+tst_h_files3 tst_mem run_get_knmi_files.sh tst_knmi
 
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL4
@@ -97,13 +95,17 @@ endif # BUILD_BENCHMARKS
 # These are the tests for HDF4.
 if USE_HDF4
 check_PROGRAMS += tst_interops2 tst_chunk_hdf4 tst_h4_lendian
-TESTS += tst_interops2  tst_formatx_hdf4.sh run_chunk_hdf4.sh tst_h4_lendian
+
+if BUILD_UTILITIES
+# This test script depends on ncdump.
+TESTS += tst_formatx_hdf4.sh 
+endif # BUILD_UTILITIES
+
+TESTS += run_chunk_hdf4.sh tst_h4_lendian
 if USE_HDF4_FILE_TESTS
 check_PROGRAMS += tst_interops3
 TESTS += run_get_hdf4_files.sh tst_interops3 tst_hdf4_read_var.sh
 endif # USE_HDF4_FILE_TESTS
-#tst_interops2_LDADD = ${lib_LTLIBRARIES} -lmfhdf -ldf -ljpeg -lhdf5_hl	\
-#-lhdf5 -lz
 endif # USE_HDF4
 
 # Szip Tests (requires ncdump)
