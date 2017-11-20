@@ -691,7 +691,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Z_SZIP "" USE_SZIP)
   IF(USE_SZIP)
-    FIND_LIBRARY(SZIP NAMES szip sz)
+    FIND_LIBRARY(SZIP NAMES sz szip)
     IF(SZIP)
       SET(HAVE_H5Z_SZIP 1)
       SET(SZIP_LIBRARY ${SZIP})
