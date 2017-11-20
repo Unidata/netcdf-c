@@ -42,10 +42,6 @@ IF(LARGE_FILE_TESTS)
 ENDIF()
 
 
-IF(USE_HDF4)
-  SET(NC4_TESTS ${NC4_TESTS} tst_interops2)
-ENDIF()
-
 IF(USE_SZIP)
   BUILD_BIN_TEST(test_szip)
   BUILD_BIN_TEST(h5testszip)
@@ -84,6 +80,7 @@ ENDFOREACH()
 # immediately above this comment.
 IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
     add_sh_test(nc_test4 run_get_hdf4_files)
+    add_bin_test_no_prefix(tst_interops2)
     add_bin_test(nc_test4 tst_interops3)
     add_bin_test(nc_test4 tst_bug324)
     add_sh_test(nc_test4 tst_formatx_hdf4)
