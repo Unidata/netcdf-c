@@ -55,7 +55,7 @@ check_PROGRAMS += tst_fileinfo
 TESTS += tst_fileinfo.sh tst_hdf5_offset.sh run_ncgen_nc4_tests.sh
 endif
 
-if USE_STRICT_NULL_BYTE_HEADER_PADDING
+if !USE_STRICT_NULL_BYTE_HEADER_PADDING
 TESTS += tst_null_byte_padding.sh
 endif
 
