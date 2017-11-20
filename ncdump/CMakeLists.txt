@@ -3,6 +3,22 @@ IF(BUILD_SHARED_LIBS AND WIN32)
   remove_definitions(-DDLL_NETCDF)
 ENDIF()
 
+# These generate some files used in ncdump testing
+# Specifically, they generate ctest0.nc ctest0_64.nc
+# Before, these .nc files were placed in the same place as the
+# .c file: namely build/ncdump.
+# This complicates the shell tests that use it.
+ADD_CUSTOM_COMMAND(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CONFIG_TYPE}/ctest.c
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest.c"
+  "${CMAKE_CURRENT_BINARY_DIR}/ctest.c"
+  )
+ADD_CUSTOM_COMMAND(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ctest64.c
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest64.c"
+  "${CMAKE_CURRENT_BINARY_DIR}/ctest64.c"
+  )
+
 SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.c)
 SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c)
 
@@ -102,9 +118,8 @@ ENDIF()
   ## Start adding tests in the appropriate order
   add_sh_test(ncdump run_tests)
   add_sh_test(ncdump tst_64bit)
-  add_bin_test_no_prefix(ref_ctest)
-  add_bin_test_no_prefix(ref_ctest64)
-  add_sh_test(ncdump tst_ctest)
+  add_bin_test(ncdump ctest)
+  add_bin_test(ncdump ctest64)
   add_sh_test(ncdump tst_output)
   add_sh_test(ncdump tst_lengths)
   add_sh_test(ncdump tst_calendars)
@@ -140,17 +155,17 @@ ENDIF()
   ENDIF(BUILD_DISKLESS)
 
   IF(USE_NETCDF4)
-    add_bin_test_no_prefix(tst_create_files)
-    add_bin_test_no_prefix(tst_group_data)
-    add_bin_test_no_prefix(tst_enum_data)
-    add_bin_test_no_prefix(tst_opaque_data)
-    add_bin_test_no_prefix(tst_string_data)
-    add_bin_test_no_prefix(tst_vlen_data)
-    add_bin_test_no_prefix(tst_comp)
-    add_bin_test_no_prefix(tst_comp2)
-    add_bin_test_no_prefix(tst_nans)
-    add_bin_test_no_prefix(tst_h_scalar)
-    add_bin_test_no_prefix(tst_bug324)
+    add_bin_test(ncdump tst_create_files)
+    add_bin_test(ncdump tst_group_data)
+    add_bin_test(ncdump tst_enum_data)
+    add_bin_test(ncdump tst_opaque_data)
+    add_bin_test(ncdump tst_string_data)
+    add_bin_test(ncdump tst_vlen_data)
+    add_bin_test(ncdump tst_comp)
+    add_bin_test(ncdump tst_comp2)
+    add_bin_test(ncdump tst_nans)
+    add_bin_test(ncdump tst_h_scalar)
+    add_bin_test(ncdump tst_bug324)
     add_sh_test(ncdump tst_formatx4)
     # Add this test by hand, as it is also called from a script.
     # Editing the script would break autotools compatibility.
@@ -172,7 +187,7 @@ ENDIF()
     # is different, but the result is actually correct.
     #IF(NOT MSVC)
     add_sh_test(ncdump tst_netcdf4)
-    add_bin_test_no_prefix(tst_h_rdc0)
+    add_bin_test(ncdump tst_h_rdc0)
     #ENDIF()
 
     add_bin_test(ncdump tst_unicode)
