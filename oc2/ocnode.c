@@ -6,8 +6,6 @@
 #include "occompile.h"
 #include "ocdebug.h"
 
-static const unsigned int MAX_UINT = 0xffffffff;
-
 static OCerror mergedas1(OCnode* dds, OCnode* das);
 static OCerror mergedods1(OCnode* dds, OCnode* das);
 static OCerror mergeother1(OCnode* root, OCnode* das);

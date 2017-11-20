@@ -204,9 +204,7 @@ static int
 readfile(const char* path, const char* suffix, NCbytes* packet)
 {
     int stat = OC_NOERR;
-    char buf[1024];
     char filename[1024];
-    int flags = 0;
     /* check for leading file:/// */
     if(ocstrncmp(path,"file://",7)==0) path += 7; /* assume absolute path*/
     if(!occopycat(filename,sizeof(filename),2,path,(suffix != NULL ? suffix : "")))
