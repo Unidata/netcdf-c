@@ -442,6 +442,21 @@ AC_MSG_RESULT([$enable_dap_long_tests])
 
 AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
 
+# Check whether we want to enable strict null byte header padding.
+# See https://github.com/Unidata/netcdf-c/issues/652 for more information.
+AC_MSG_CHECKING([whether to enable strict null-byte header padding when reading (default off)])
+AC_ARG_ENABLE([strict-null-byte-header-padding],
+    [AS_HELP_STRING([--enable-strict-null-byte-header-padding],
+                    [enable strict null-byte header padding when reading netCDF3 files.])])
+test "x$enable_strict_null_byte_header_padding" = xyes || enable_strict_null_byte_header_padding=no
+AC_MSG_RESULT($enable_strict_null_byte_header_padding)
+
+if test "x$enable_strict_null_byte_header_padding" = xyes; then
+   AC_DEFINE([USE_STRICT_NULL_BYTE_HEADER_PADDING], [1], [if true, enable strict null byte header padding])
+fi
+
+AM_CONDITIONAL(USE_STRICT_NULL_BYTE_HEADER_PADDING, [test x$enable_strict_null_byte_header_padding = xyes ])
+
 # Check whether we want to enable CDF5 support.
 AC_MSG_CHECKING([whether CDF5 support should be enabled (default off)])
 AC_ARG_ENABLE([cdf5],
@@ -1098,7 +1113,7 @@ if test "x$enable_pnetcdf" = xyes; then
 
   if test "x$pnetcdf_conflict" = xyes ; then
      AC_MSG_ERROR([Cannot link to pnetcdf library.])
-  fi   
+  fi
 
   # Pnetcdf did not support utf-8 until 1.6.0
 
@@ -1279,6 +1294,7 @@ AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
 # Provide protocol specific flags
 AM_CONDITIONAL(ENABLE_DAP, [test "x$enable_dap" = xyes])
 AM_CONDITIONAL(ENABLE_DAP4, [test "x$enable_dap4" = xyes])
+AM_CONDITIONAL(USE_STRICT_NULL_BYTE_HEADER_PADDING, [test x$enable_strict_null_byte_header_padding = xyes])
 AM_CONDITIONAL(ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
@@ -1545,4 +1561,3 @@ AC_OUTPUT()
     #mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh
 
 cat libnetcdf.settings
-
