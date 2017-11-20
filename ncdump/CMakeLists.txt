@@ -116,6 +116,10 @@ ENDIF()
     add_sh_test(ncdump tst_hdf5_offset)
   ENDIF(USE_NETCDF4)
 
+  IF(NOT USE_STRICT_NULL_BYTE_HEADER_PADDING)
+    add_sh_test(ncdump tst_null_byte_padding)
+  ENDIF(NOT USE_STRICT_NULL_BYTE_HEADER_PADDING)
+
   add_sh_test(ncdump tst_nccopy3)
   add_sh_test(ncdump tst_nccopy3_subset)
   add_sh_test(ncdump tst_charfill)
