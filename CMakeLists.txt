@@ -504,7 +504,7 @@ ENDIF()
 # Option to allow for strict null file padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information
 OPTION(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
-SET(USE_STRICT_NULL_BYTE_HEADER_PADDING OFF CACHE BOOL "")
+
 IF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
   SET(USE_STRICT_NULL_BYTE_HEADER_PADDING ON CACHE BOOL "")
 ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
