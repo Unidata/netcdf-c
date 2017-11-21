@@ -10,6 +10,8 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
+TESTS_ENVIRONMENT=CC=${CC}
+XFAIL_TESTS=""
 
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump
@@ -58,6 +60,11 @@ tst_ctest.log: ref_ctest.log ref_ctest64.log
 tst_output.log: tst_ctest.log
 tst_ncgen4_classic.log: tst_formatx3.log tst_output.log	\
 tst_nccopy3.log run_ncgen_tests.log
+
+TESTS += tst_null_byte_padding.sh
+if USE_STRICT_NULL_BYTE_HEADER_PADDING
+XFAIL_TESTS += tst_null_byte_padding.sh
+endif
 
 if LARGE_FILE_TESTS
 TESTS += tst_iter.sh
@@ -130,7 +137,8 @@ ref_test_360_day_1900.cdl ref_test_365_day_1900.cdl			\
 ref_test_366_day_1900.cdl tst_hdf5_offset.sh run_ncgen_nc4_tests.sh	\
 tst_nccopy3_subset.sh ref_nccopy3_subset.nc ref_test_corrupt_magic.nc	\
 tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh			\
-tst_ncgen4_diff.sh tst_ncgen4_cycle.sh tst_ctest.sh
+tst_ncgen4_diff.sh tst_ncgen4_cycle.sh tst_ctest.sh \
+tst_null_byte_padding.sh
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
