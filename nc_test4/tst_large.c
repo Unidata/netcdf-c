@@ -2,8 +2,9 @@
    Copyright 2005 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test netcdf-4 variables.
-   $Id: tst_large.c,v 1.5 2009/05/18 10:26:24 ed Exp $
+   Test netcdf-4 large file fill values.
+
+   Ed Hartnett.
 */
 
 #include <nc_tests.h>
@@ -12,11 +13,9 @@
 #include "ncdispatch.h"
 
 #define FILE_NAME "tst_large.nc"
-#define NUMDIMS 2		/* rank of each variable in tests */
+#define NUMDIMS 2               /* rank of each variable in tests */
 #define DIM1 2048
-#define DIM2 2097153		/* DIM1*DIM2*sizeof(char)   > 2**32 */
-
-
+#define DIM2 2097153            /* DIM1*DIM2*sizeof(char)   > 2**32 */
 
 int
 main(int argc, char **argv)
@@ -34,7 +33,7 @@ main(int argc, char **argv)
 
       /* Create phony data. */
       for (j = 0; j < DIM2; j++)
-	 vals[j] = 9 * (j + 11); /* note vals[j] is 99 when j==0 */
+         vals[j] = 9 * (j + 11); /* note vals[j] is 99 when j==0 */
 
       /* Create file with 2 dims and one var. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
@@ -49,14 +48,13 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Reopen and read a value. */
-/*       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR; */
-/*       if (nc_inq_varid(ncid, "var", &varid)) ERR; */
-/*       if (nc_get_var1_schar(ncid, varid, index, &char_val_in)) ERR; */
-/*       if (char_val_in != 99)	/\* see above, the value written when start[0]==0, j==0 *\/ */
-/* 	 ERR; */
-/*       if (nc_close(ncid)) ERR; */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_varid(ncid, "var", &varid)) ERR;
+      if (nc_get_var1_schar(ncid, varid, index, &char_val_in)) ERR;
+      if (char_val_in != 99)    /* see above, the value written when start[0]==0, j==0 */
+         ERR;
+      if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-
    FINAL_RESULTS;
 }

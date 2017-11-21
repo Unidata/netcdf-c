@@ -173,11 +173,13 @@ NC_check_file_type(const char *path, int flags, void *parameters,
     int status = NC_NOERR;
 
     int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
+#ifdef USE_PARALLEL
 #ifdef USE_STDIO
     int use_parallel = 0;
 #else
     int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
 #endif
+#endif /* USE_PARALLEL */
     int inmemory = (diskless && ((flags & NC_INMEMORY) == NC_INMEMORY));
     struct MagicFile file;
 
