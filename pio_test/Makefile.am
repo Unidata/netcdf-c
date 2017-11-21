@@ -25,8 +25,10 @@ test_darray_async test_darray_async_many test_darray_2sync		\
 test_async_multicomp test_async_multi2 test_async_manyproc
 
 #NC_PIO_TESTS = tst_darray_async tst_darray_1d
+NC_PIO_TESTS = tst_darray_1d
 
 #check_PROGRAMS = $(PIO_TESTS) $(NC_PIO_TESTS)
+check_PROGRAMS = $(NC_PIO_TESTS)
 
 # Source code for each test.
 # test_async_mpi_SOURCES = test_async_mpi.c
@@ -66,7 +68,7 @@ test_async_multicomp test_async_multi2 test_async_manyproc
 # test_async_manyproc_SOURCES = test_async_manyproc.c test_common.c pio_tests.h
 
 # tst_darray_async_SOURCES = tst_darray_async.c test_common.c pio_tests.h
-# tst_darray_1d_SOURCES = tst_darray_1d.c test_common.c pio_tests.h
+tst_darray_1d_SOURCES = tst_darray_1d.c test_common.c pio_tests.h
 
 # Tests will run from a bash script.
 TESTS = run_tests.sh

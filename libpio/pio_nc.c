@@ -18,14 +18,6 @@
 #include <pio.h>
 #include <pio_internal.h>
 
-
-int NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
-		    int *ndimsp, int *dimidsp, int *nattsp, 
-		    int *shufflep, int *deflatep, int *deflate_levelp,
-		    int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
-		    int *no_fill, void *fill_valuep, int *endiannessp, 
-		    int *options_maskp, int *pixels_per_blockp);
-
 /**
  * @ingroup PIO_inq
  * The PIO-C interface for the NetCDF function nc_inq.
@@ -933,13 +925,13 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	    nc_type my_xtype;
 	    int my_ndims = 0, my_natts = 0, my_no_fill;
 	    void *my_fill_value = NULL;
-            int my_endianness;
 
 	    /* We must call NC3_inq_var_all twice, the first time to
 	     * learn the type and the number of dimensions. */
 	    LOG((3, "calling NC3_inq_var_all to learn type and number of dims"));
 	    ret = NC3_inq_var_all(file->fh, varid, NULL, &my_xtype, &my_ndims, NULL, NULL,
-				  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+				  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                                  NULL, NULL);
 	    LOG((3, "ret %d my_xtype %d my_ndims %d", ret, my_xtype, my_ndims));
 	    ndims = my_ndims;
 	    
@@ -955,7 +947,7 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	    if (!ret)
 		ret = NC3_inq_var_all(file->fh, varid, my_name, &my_xtype, &my_ndims, my_dimids,
 				      &my_natts, NULL, NULL, NULL, NULL, NULL, NULL, &my_no_fill,
-				      my_fill_value, NULL, NULL, NULL);
+				      my_fill_value, NULL, NULL, NULL, NULL);
 	    LOG((3, "called NC3_inq_var_all again, ret %d", ret));
 	    if (!ret)
 	    {
@@ -992,7 +984,10 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	    nc_type my_xtype;
 	    int my_ndims = 0, my_natts = 0;
 	    int my_shuffle, my_deflate, my_deflate_level, my_fletcher32, my_contiguous;
-	    int my_no_fill, my_idp, my_paramsp;
+	    int my_no_fill;
+            /* Not handling params yet due to complexity. */
+            /* void *my_paramsp; */
+            unsigned int my_idp;
             size_t my_nparamsp;
 	    void *my_fill_value = NULL;
             int my_endianness;
@@ -1022,8 +1017,7 @@ int PIOc_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 		ret = NC4_inq_var_all(file->fh, varid, my_name, &my_xtype, &my_ndims, my_dimids,
 				      &my_natts, &my_shuffle, &my_deflate, &my_deflate_level,
 				      &my_fletcher32, &my_contiguous, my_chunksizes, &my_no_fill,
-				      my_fill_value, &my_endianness, &my_idp,
-				      &my_nparamsp, NULL); 
+				      my_fill_value, &my_endianness, &my_idp, &my_nparamsp, NULL); 
 	    LOG((3, "called NC3_inq_var_all again, ret %d", ret));
 	    if (!ret)
 	    {

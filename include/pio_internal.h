@@ -381,12 +381,6 @@ extern "C" {
    int determine_procs(int num_io_procs, int component_count, int *num_procs_per_comp,
 		       int **proc_list, int **my_proc_list);
 
-   int NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
-		       int *ndimsp, int *dimidsp, int *nattsp, 
-		       int *shufflep, int *deflatep, int *deflate_levelp,
-		       int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
-		       int *no_fill, void *fill_valuep, int *endiannessp, 
-		       int *options_maskp, int *pixels_per_blockp);
 #if defined(__cplusplus)
 }
 #endif

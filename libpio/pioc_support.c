@@ -2083,7 +2083,8 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
             size_t type_size;
             
             if ((ret = NC3_inq_var_all(ncid, v, NULL, &my_type, &var_ndims, NULL, NULL,
-				       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
+				       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                                       NULL, NULL, NULL)))
                 return pio_err(NULL, file, ret, __FILE__, __LINE__);
             (*pio_type)[v] = (int)my_type;
             if ((ret = NC3_inq_type(ncid, (*pio_type)[v], NULL, &type_size)))
@@ -2130,7 +2131,8 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
             else if (iotype == PIO_IOTYPE_NETCDF)
             {
 		if ((ret = NC3_inq_var_all(ncid, v, NULL, NULL, NULL, var_dimids, NULL,
-					   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
+					   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                                           NULL, NULL, NULL, NULL)))
 		    return pio_err(NULL, file, ret, __FILE__, __LINE__);		
             }
 #ifdef _NETCDF4

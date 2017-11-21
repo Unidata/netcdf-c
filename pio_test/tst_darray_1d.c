@@ -275,124 +275,124 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
           * value (instead of 2, as indicated by arraylen), but due
           * to the decomposition, only the first value is used in
           * the output. */
-         /* if ((ret = PIOc_write_darray(ncid, varid, ioid, arraylen, test_data, fillvalue))) */
-         /*    ERR(ret); */
+         if ((ret = PIOc_write_darray(ncid, varid, ioid, arraylen, test_data, fillvalue)))
+            ERR(ret);
 
          /* Close the netCDF file. */
          if ((ret = nc_close(ncid)))
             ERR(ret);
 
          /* Reopen the file. */
-/*          if ((ret = nc_open(filename, PIO_NOWRITE|NC_PIO, &ncid))) */
-/*             ERR(ret); */
-/*          /\* Allocate space for data. *\/ */
-/*          if (!(test_data_in = malloc(type_size * arraylen))) */
-/*             ERR(PIO_ENOMEM); */
+         if ((ret = nc_open(filename, PIO_NOWRITE|NC_PIO, &ncid)))
+            ERR(ret);
+         /* Allocate space for data. */
+         if (!(test_data_in = malloc(type_size * arraylen)))
+            ERR(PIO_ENOMEM);
 
-/*          /\* Read the data. *\/ */
-/*          if ((ret = PIOc_read_darray(ncid, varid, ioid, arraylen, test_data_in))) */
-/*             ERR(ret); */
+         /* Read the data. */
+         if ((ret = PIOc_read_darray(ncid, varid, ioid, arraylen, test_data_in)))
+            ERR(ret);
 
-/*          /\* Check the (first) result. *\/ */
-/*          if (memcmp(test_data_in, expected_in, type_size)) */
-/*             return ERR_WRONG; */
+         /* Check the (first) result. */
+         if (memcmp(test_data_in, expected_in, type_size))
+            return ERR_WRONG;
 
-/*          /\* Free resources. *\/ */
-/*          free(test_data_in); */
+         /* Free resources. */
+         free(test_data_in);
 
-/*          /\* Check some metadata. *\/ */
-/*          int my_type; */
-/*          if ((ret = nc_inq_vartype(ncid, varid, &my_type))) */
-/*             return ret; */
-/*          if (my_type != pio_type) */
-/*             ERR(ERR_WRONG); */
-/*          int my_ndims; */
-/*          if ((ret = nc_inq_varndims(ncid, varid, &my_ndims))) */
-/*             return ret; */
-/*          if (my_ndims != NDIM) */
-/*             ERR(ERR_WRONG); */
-/*          int my_dimids[NDIM]; */
-/*          if ((ret = nc_inq_vardimid(ncid, varid, my_dimids))) */
-/*             return ret; */
-/*          if (my_dimids[0] != 0) */
-/*             ERR(ERR_WRONG); */
-/*          size_t my_dimlen; */
-/*          if ((ret = nc_inq_dimlen(ncid, 0, &my_dimlen))) */
-/*             return ret; */
-/*          if (my_dimlen != DIM_LEN) */
-/*             ERR(ERR_WRONG); */
+         /* Check some metadata. */
+         int my_type;
+         if ((ret = nc_inq_vartype(ncid, varid, &my_type)))
+            return ret;
+         if (my_type != pio_type)
+            ERR(ERR_WRONG);
+         int my_ndims;
+         if ((ret = nc_inq_varndims(ncid, varid, &my_ndims)))
+            return ret;
+         if (my_ndims != NDIM)
+            ERR(ERR_WRONG);
+         int my_dimids[NDIM];
+         if ((ret = nc_inq_vardimid(ncid, varid, my_dimids)))
+            return ret;
+         if (my_dimids[0] != 0)
+            ERR(ERR_WRONG);
+         size_t my_dimlen;
+         if ((ret = nc_inq_dimlen(ncid, 0, &my_dimlen)))
+            return ret;
+         if (my_dimlen != DIM_LEN)
+            ERR(ERR_WRONG);
 	    
-/*          /\* Get a buffer big enough to hold the global array. *\/ */
-/*          if (!(bufr = malloc(DIM_LEN * type_size))) */
-/*             return PIO_ENOMEM; */
+         /* Get a buffer big enough to hold the global array. */
+         if (!(bufr = malloc(DIM_LEN * type_size)))
+            return PIO_ENOMEM;
 
-/*          /\* Get the whole array with good old get_var(). *\/ */
-/*          if ((ret = nc_get_var(ncid, varid, bufr))) */
-/*             return ret; */
+         /* Get the whole array with good old get_var(). */
+         if ((ret = nc_get_var(ncid, varid, bufr)))
+            return ret;
 
-/*          /\* Check the results. The first four values are 0, 1, 2, 3, */
-/*           * and the rest are the default fill value of the type. *\/ */
-/*          for (int e = 0; e < DIM_LEN; e++) */
-/*          { */
-/*             switch (pio_type) */
-/*             { */
-/*             case PIO_BYTE: */
-/*                if (((signed char *)bufr)[e] != (e < 4 ? e : NC_FILL_BYTE)) */
-/*                   return ERR_WRONG; */
-/*                break; */
-/*             case PIO_CHAR: */
-/*                if (((char *)bufr)[e] != (e < 4 ? e : NC_FILL_CHAR)) */
-/*                   return ERR_WRONG; */
-/*                break; */
-/*             case PIO_SHORT: */
-/*                if (((short *)bufr)[e] != (e < 4 ? e : NC_FILL_SHORT)) */
-/*                   return ERR_WRONG; */
-/*                break; */
-/*             case PIO_INT: */
-/*                if (((int *)bufr)[e] != (e < 4 ? e : NC_FILL_INT)) */
-/*                   return ERR_WRONG; */
-/*                break; */
-/*             case PIO_FLOAT: */
-/*                if (((float *)bufr)[e] != (e < 4 ? e : NC_FILL_FLOAT)) */
-/*                   return ERR_WRONG; */
-/*                break; */
-/*             case PIO_DOUBLE: */
-/*                if (((double *)bufr)[e] != (e < 4 ? e : NC_FILL_DOUBLE)) */
-/*                   return ERR_WRONG; */
-/*                break; */
-/* #ifdef _NETCDF4 */
-/*             case PIO_UBYTE: */
-/*                if (((unsigned char *)bufr)[e] != (e < 4 ? e : NC_FILL_UBYTE)) */
-/*                   return ERR_WRONG; */
-/*                break; */
-/*             case PIO_USHORT: */
-/*                if (((unsigned short *)bufr)[e] != (e < 4 ? e : NC_FILL_USHORT)) */
-/*                   return ERR_WRONG; */
-/*                break; */
-/*             case PIO_UINT: */
-/*                if (((unsigned int *)bufr)[e] != (e < 4 ? e : NC_FILL_UINT)) */
-/*                   return ERR_WRONG; */
-/*                break; */
-/*             case PIO_INT64: */
-/*                if (((long long *)bufr)[e] != (e < 4 ? e : NC_FILL_INT64)) */
-/*                   return ERR_WRONG; */
-/*                break; */
-/*             case PIO_UINT64: */
-/*                if (((unsigned long long *)bufr)[e] != (e < 4 ? e : NC_FILL_UINT64)) */
-/*                   return ERR_WRONG; */
-/*                break; */
-/* #endif /\* _NETCDF4 *\/ */
-/*             default: */
-/*                return ERR_WRONG; */
-/*             } */
-/*          } */
+         /* Check the results. The first four values are 0, 1, 2, 3,
+          * and the rest are the default fill value of the type. */
+         for (int e = 0; e < DIM_LEN; e++)
+         {
+            switch (pio_type)
+            {
+            case PIO_BYTE:
+               if (((signed char *)bufr)[e] != (e < 4 ? e : NC_FILL_BYTE))
+                  return ERR_WRONG;
+               break;
+            case PIO_CHAR:
+               if (((char *)bufr)[e] != (e < 4 ? e : NC_FILL_CHAR))
+                  return ERR_WRONG;
+               break;
+            case PIO_SHORT:
+               if (((short *)bufr)[e] != (e < 4 ? e : NC_FILL_SHORT))
+                  return ERR_WRONG;
+               break;
+            case PIO_INT:
+               if (((int *)bufr)[e] != (e < 4 ? e : NC_FILL_INT))
+                  return ERR_WRONG;
+               break;
+            case PIO_FLOAT:
+               if (((float *)bufr)[e] != (e < 4 ? e : NC_FILL_FLOAT))
+                  return ERR_WRONG;
+               break;
+            case PIO_DOUBLE:
+               if (((double *)bufr)[e] != (e < 4 ? e : NC_FILL_DOUBLE))
+                  return ERR_WRONG;
+               break;
+#ifdef _NETCDF4
+            case PIO_UBYTE:
+               if (((unsigned char *)bufr)[e] != (e < 4 ? e : NC_FILL_UBYTE))
+                  return ERR_WRONG;
+               break;
+            case PIO_USHORT:
+               if (((unsigned short *)bufr)[e] != (e < 4 ? e : NC_FILL_USHORT))
+                  return ERR_WRONG;
+               break;
+            case PIO_UINT:
+               if (((unsigned int *)bufr)[e] != (e < 4 ? e : NC_FILL_UINT))
+                  return ERR_WRONG;
+               break;
+            case PIO_INT64:
+               if (((long long *)bufr)[e] != (e < 4 ? e : NC_FILL_INT64))
+                  return ERR_WRONG;
+               break;
+            case PIO_UINT64:
+               if (((unsigned long long *)bufr)[e] != (e < 4 ? e : NC_FILL_UINT64))
+                  return ERR_WRONG;
+               break;
+#endif /* _NETCDF4 */
+            default:
+               return ERR_WRONG;
+            }
+         }
 
-/*          /\* Release buffer. *\/ */
-/*          free(bufr); */
+         /* Release buffer. */
+         free(bufr);
 	    
-/*          /\* Close the netCDF file. *\/ */
-/*          if ((ret = nc_close(ncid))) */
-/*             ERR(ret); */
+         /* Close the netCDF file. */
+         if ((ret = nc_close(ncid)))
+            ERR(ret);
       } /* with_fillvalue */
    } /* next iotype */
     
