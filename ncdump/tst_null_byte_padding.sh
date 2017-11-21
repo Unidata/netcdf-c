@@ -11,7 +11,7 @@ set -e
 
 echo ""
 echo "*** Testing compatibility with non-null-byte padded test file."
-${NCDUMP} ref_null_byte_padding_test.nc
+${NCDUMP} $srcdir/ref_null_byte_padding_test.nc
 
 echo "Passed."
 exit 0
