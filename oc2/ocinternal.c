@@ -315,7 +315,7 @@ createtempfile(OCstate* state, OCtree* tree)
     path = (char*)malloc(len+1);
     if(path == NULL) return OC_ENOMEM;
     occopycat(path,len,3,ncrc_globalstate.tempdir,"/",DATADDSFILE);
-    tmppath = NC_mktmp(path);
+    if (!(tmppath = NC_mktmp(path))) goto fail;
     free(path);
     if(stat != OC_NOERR) goto fail;
 #ifdef OCDEBUG
@@ -530,7 +530,7 @@ ocset_curlproperties(OCstate* state)
         path = (char*)calloc(1,len+1);
         if(path == NULL) return OC_ENOMEM;
         occopycat(path,len,3,ncrc_globalstate.tempdir,"/","occookies");
-        tmppath = NC_mktmp(path);
+        if (!(tmppath = NC_mktmp(path))) goto fail;
         free(path);
 	state->auth.curlflags.cookiejar = tmppath;
 	state->auth.curlflags.cookiejarcreated = 1;
