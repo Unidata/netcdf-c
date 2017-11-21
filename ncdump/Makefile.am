@@ -12,7 +12,7 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 #TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 
 TESTS_ENVIRONMENT=CC=${CC}
-
+XFAIL_TESTS=""
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump
 ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime0.c        \
@@ -55,8 +55,9 @@ check_PROGRAMS += tst_fileinfo
 TESTS += tst_fileinfo.sh tst_hdf5_offset.sh run_ncgen_nc4_tests.sh
 endif
 
-if !USE_STRICT_NULL_BYTE_HEADER_PADDING
 TESTS += tst_null_byte_padding.sh
+if USE_STRICT_NULL_BYTE_HEADER_PADDING
+XFAIL_TESTS += tst_null_byte_padding.sh
 endif
 
 if LARGE_FILE_TESTS
