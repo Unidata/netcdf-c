@@ -123,8 +123,8 @@ NCD4_makeFQN(NCD4node* node)
 	/* Add in the group name */
 	char* escaped = backslashEscape(elem->name);
 	if(escaped == NULL) {free(fqn); fqn = NULL; goto done;}
-	strcat(fqn,"/");
-	strcat(fqn,escaped);
+	strlcat(fqn,"/",estimate);
+	strlcat(fqn,escaped,estimate);
 	free(escaped);
     }
     /* Add in the final name part (if not group) */
@@ -132,8 +132,8 @@ NCD4_makeFQN(NCD4node* node)
 	int last = nclistlength(path)-1;
 	NCD4node* n = (NCD4node*)nclistget(path,last);
 	char* name = NCD4_makeName(n,".");
-	strcat(fqn,"/");
-	strcat(fqn,name);
+	strlcat(fqn,"/",estimate);
+	strlcat(fqn,name,estimate);
 	nullfree(name);
     }
 
@@ -170,8 +170,8 @@ NCD4_makeName(NCD4node* elem, const char* sep)
 	char* escaped = backslashEscape(elem->name);
 	if(escaped == NULL) {free(fqn); fqn = NULL; goto done;}
 	if(i > 0)
-	    strcat(fqn,sep);
-	strcat(fqn,escaped);
+	    strlcat(fqn,sep,estimate);
+	strlcat(fqn,escaped,estimate);
 	free(escaped);
     }
 done:
