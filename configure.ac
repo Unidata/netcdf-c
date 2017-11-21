@@ -443,7 +443,7 @@ AC_MSG_RESULT([$enable_dap_long_tests])
 AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
 
 # Check whether we want to enable strict null byte header padding.
-# See https://github.com/Unidata/netcdf-c/issues/652 for more information.
+# See https://github.com/Unidata/netcdf-c/issues/657 for more information.
 AC_MSG_CHECKING([whether to enable strict null-byte header padding when reading (default off)])
 AC_ARG_ENABLE([strict-null-byte-header-padding],
     [AS_HELP_STRING([--enable-strict-null-byte-header-padding],
