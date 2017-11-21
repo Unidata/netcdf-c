@@ -53,7 +53,7 @@ EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
 	     daptestfiles dmrtestfiles cdltestfiles nctestfiles \
 	     baseline baselineraw baselineremote CMakeLists.txt
 
-CLEANFILES = *.exe
+CLEANFILES = *.exe tmp_*
 
 # One last thing
 BUILT_SOURCES = .daprc
