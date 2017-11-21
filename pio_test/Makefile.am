@@ -24,55 +24,55 @@ test_decomp_uneven test_decomps test_rearr test_darray_async_simple	\
 test_darray_async test_darray_async_many test_darray_2sync		\
 test_async_multicomp test_async_multi2 test_async_manyproc
 
-NC_PIO_TESTS = tst_darray_async tst_darray_1d
+#NC_PIO_TESTS = tst_darray_async tst_darray_1d
 
-check_PROGRAMS = $(PIO_TESTS) $(NC_PIO_TESTS)
+#check_PROGRAMS = $(PIO_TESTS) $(NC_PIO_TESTS)
 
 # Source code for each test.
-test_async_mpi_SOURCES = test_async_mpi.c
-test_intercomm2_SOURCES = test_intercomm2.c test_common.c pio_tests.h
-test_async_simple_SOURCES = test_async_simple.c test_common.c pio_tests.h
-test_async_3proc_SOURCES = test_async_3proc.c test_common.c pio_tests.h
-test_async_4proc_SOURCES = test_async_4proc.c test_common.c pio_tests.h
-test_iosystem2_simple_SOURCES = test_iosystem2_simple.c test_common.c pio_tests.h
-test_iosystem2_simple2_SOURCES = test_iosystem2_simple2.c test_common.c pio_tests.h
-test_iosystem2_SOURCES = test_iosystem2.c test_common.c pio_tests.h
-test_iosystem3_simple_SOURCES = test_iosystem3_simple.c test_common.c pio_tests.h
-test_iosystem3_simple2_SOURCES = test_iosystem3_simple2.c test_common.c pio_tests.h
-test_iosystem3_SOURCES = test_iosystem3.c test_common.c pio_tests.h
-test_pioc_SOURCES = test_pioc.c test_common.c test_shared.c pio_tests.h
-test_pioc_unlim_SOURCES = test_pioc_unlim.c test_common.c test_shared.c pio_tests.h
-test_pioc_putget_SOURCES = test_pioc_putget.c test_common.c test_shared.c pio_tests.h
-test_pioc_fill_SOURCES = test_pioc_fill.c test_common.c test_shared.c pio_tests.h
-test_darray_SOURCES = test_darray.c test_common.c pio_tests.h
-test_darray_multi_SOURCES = test_darray_multi.c test_common.c pio_tests.h
-test_darray_multivar_SOURCES = test_darray_multivar.c test_common.c pio_tests.h
-test_darray_multivar2_SOURCES = test_darray_multivar2.c test_common.c pio_tests.h
-test_darray_multivar3_SOURCES = test_darray_multivar3.c test_common.c pio_tests.h
-test_darray_1d_SOURCES = test_darray_1d.c test_common.c pio_tests.h
-test_darray_3d_SOURCES = test_darray_3d.c test_common.c pio_tests.h
-test_decomp_uneven_SOURCES = test_decomp_uneven.c test_common.c pio_tests.h
-test_decomps_SOURCES = test_decomps.c test_common.c pio_tests.h
-test_rearr_SOURCES = test_rearr.c test_common.c pio_tests.h
-test_darray_async_simple_SOURCES = test_darray_async_simple.c test_common.c pio_tests.h
-test_darray_async_SOURCES = test_darray_async.c test_common.c pio_tests.h
-test_darray_async_many_SOURCES = test_darray_async_many.c test_common.c pio_tests.h
-test_darray_2sync_SOURCES = test_darray_2sync.c test_common.c pio_tests.h
-test_spmd_SOURCES = test_spmd.c test_common.c pio_tests.h
-test_intercomm2_SOURCES = test_async_simple.c test_common.c pio_tests.h
-test_async_3proc_SOURCES = test_async_3proc.c test_common.c pio_tests.h
-test_async_multicomp_SOURCES = test_async_multicomp.c test_common.c pio_tests.h
-test_async_multi2_SOURCES = test_async_multi2.c test_common.c pio_tests.h
-test_async_manyproc_SOURCES = test_async_manyproc.c test_common.c pio_tests.h
+# test_async_mpi_SOURCES = test_async_mpi.c
+# test_intercomm2_SOURCES = test_intercomm2.c test_common.c pio_tests.h
+# test_async_simple_SOURCES = test_async_simple.c test_common.c pio_tests.h
+# test_async_3proc_SOURCES = test_async_3proc.c test_common.c pio_tests.h
+# test_async_4proc_SOURCES = test_async_4proc.c test_common.c pio_tests.h
+# test_iosystem2_simple_SOURCES = test_iosystem2_simple.c test_common.c pio_tests.h
+# test_iosystem2_simple2_SOURCES = test_iosystem2_simple2.c test_common.c pio_tests.h
+# test_iosystem2_SOURCES = test_iosystem2.c test_common.c pio_tests.h
+# test_iosystem3_simple_SOURCES = test_iosystem3_simple.c test_common.c pio_tests.h
+# test_iosystem3_simple2_SOURCES = test_iosystem3_simple2.c test_common.c pio_tests.h
+# test_iosystem3_SOURCES = test_iosystem3.c test_common.c pio_tests.h
+# test_pioc_SOURCES = test_pioc.c test_common.c test_shared.c pio_tests.h
+# test_pioc_unlim_SOURCES = test_pioc_unlim.c test_common.c test_shared.c pio_tests.h
+# test_pioc_putget_SOURCES = test_pioc_putget.c test_common.c test_shared.c pio_tests.h
+# test_pioc_fill_SOURCES = test_pioc_fill.c test_common.c test_shared.c pio_tests.h
+# test_darray_SOURCES = test_darray.c test_common.c pio_tests.h
+# test_darray_multi_SOURCES = test_darray_multi.c test_common.c pio_tests.h
+# test_darray_multivar_SOURCES = test_darray_multivar.c test_common.c pio_tests.h
+# test_darray_multivar2_SOURCES = test_darray_multivar2.c test_common.c pio_tests.h
+# test_darray_multivar3_SOURCES = test_darray_multivar3.c test_common.c pio_tests.h
+# test_darray_1d_SOURCES = test_darray_1d.c test_common.c pio_tests.h
+# test_darray_3d_SOURCES = test_darray_3d.c test_common.c pio_tests.h
+# test_decomp_uneven_SOURCES = test_decomp_uneven.c test_common.c pio_tests.h
+# test_decomps_SOURCES = test_decomps.c test_common.c pio_tests.h
+# test_rearr_SOURCES = test_rearr.c test_common.c pio_tests.h
+# test_darray_async_simple_SOURCES = test_darray_async_simple.c test_common.c pio_tests.h
+# test_darray_async_SOURCES = test_darray_async.c test_common.c pio_tests.h
+# test_darray_async_many_SOURCES = test_darray_async_many.c test_common.c pio_tests.h
+# test_darray_2sync_SOURCES = test_darray_2sync.c test_common.c pio_tests.h
+# test_spmd_SOURCES = test_spmd.c test_common.c pio_tests.h
+# test_intercomm2_SOURCES = test_async_simple.c test_common.c pio_tests.h
+# test_async_3proc_SOURCES = test_async_3proc.c test_common.c pio_tests.h
+# test_async_multicomp_SOURCES = test_async_multicomp.c test_common.c pio_tests.h
+# test_async_multi2_SOURCES = test_async_multi2.c test_common.c pio_tests.h
+# test_async_manyproc_SOURCES = test_async_manyproc.c test_common.c pio_tests.h
 
-tst_darray_async_SOURCES = tst_darray_async.c test_common.c pio_tests.h
-tst_darray_1d_SOURCES = tst_darray_1d.c test_common.c pio_tests.h
+# tst_darray_async_SOURCES = tst_darray_async.c test_common.c pio_tests.h
+# tst_darray_1d_SOURCES = tst_darray_1d.c test_common.c pio_tests.h
 
 # Tests will run from a bash script.
 TESTS = run_tests.sh
 
 # Bash script needs all tests built.
-run_tests.sh : $(PIO_TESTS) $(NC_PIO_TESTS)
+#run_tests.sh : $(PIO_TESTS) $(NC_PIO_TESTS)
 
 # Distribute the test script.
 EXTRA_DIST = run_tests.sh
