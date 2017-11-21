@@ -1,8 +1,7 @@
 /*
  * This program tests darrays with async, using the netCDF API.
  *
- * @author Ed Hartnett
- * @date 10/10/17
+ * Ed Hartnett 10/10/17
  */
 #include <config.h>
 #include <pio.h>
@@ -483,11 +482,11 @@ int main(int argc, char **argv)
     MPI_Comm test_comm; /* A communicator for this test. */
 #ifdef _NETCDF4
 #define NUM_TYPES_TO_TEST 11
-    int test_type[NUM_TYPES_TO_TEST] = {PIO_BYTE, PIO_CHAR, PIO_SHORT, PIO_INT, PIO_FLOAT, PIO_DOUBLE,
-                                        PIO_UBYTE, PIO_USHORT, PIO_UINT, PIO_INT64, PIO_UINT64};
+    /* int test_type[NUM_TYPES_TO_TEST] = {PIO_BYTE, PIO_CHAR, PIO_SHORT, PIO_INT, PIO_FLOAT, PIO_DOUBLE, */
+    /*                                     PIO_UBYTE, PIO_USHORT, PIO_UINT, PIO_INT64, PIO_UINT64}; */
 #else
 #define NUM_TYPES_TO_TEST 6
-    int test_type[NUM_TYPES_TO_TEST] = {PIO_BYTE, PIO_CHAR, PIO_SHORT, PIO_INT, PIO_FLOAT, PIO_DOUBLE};
+    /* int test_type[NUM_TYPES_TO_TEST] = {PIO_BYTE, PIO_CHAR, PIO_SHORT, PIO_INT, PIO_FLOAT, PIO_DOUBLE}; */
 #endif /* _NETCDF4 */
     int ret;     /* Return code. */
 
@@ -529,10 +528,10 @@ int main(int argc, char **argv)
             /* This code runs only on computation components. */
             if (my_rank)
             {
-                /* Run the simple darray async test. */
-                if ((ret = run_darray_async_test(iosysid, my_rank, test_comm, comp_comm[0], num_flavors,
-                                                 flavor, test_type[t])))
-                    return ret;
+                /* /\* Run the simple darray async test. *\/ */
+                /* if ((ret = run_darray_async_test(iosysid, my_rank, test_comm, comp_comm[0], num_flavors, */
+                /*                                  flavor, test_type[t]))) */
+                /*     return ret; */
 
                 /* Finalize PIO system. */
                 if ((ret = PIOc_finalize(iosysid)))
