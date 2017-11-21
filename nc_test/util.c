@@ -1319,7 +1319,8 @@ char* nc_err_code_name(int err)
         case (NC_EDISKLESS):			return "NC_EDISKLESS";
         case (NC_ECANTEXTEND):			return "NC_ECANTEXTEND";
         case (NC_EMPI):				return "NC_EMPI";
-        // case (NC_EURL):				return "NC_EURL";
+    case (NC_ENULLPAD):             return "NC_NULLPAD";
+          // case (NC_EURL):				return "NC_EURL";
         // case (NC_ECONSTRAINT):			return "NC_ECONSTRAINT";
 #ifdef USE_PNETCDF
         case (NC_ESMALL):			return "NC_ESMALL";
