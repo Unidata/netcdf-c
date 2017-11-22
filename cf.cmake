@@ -1,5 +1,5 @@
 # Visual Studio
-VS=1
+#VS=1
 
 if test "x$1" = xsetup ; then
 VSSETUP=1

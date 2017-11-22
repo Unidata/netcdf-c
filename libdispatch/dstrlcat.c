@@ -17,11 +17,12 @@
  */
 
 #include "config.h"
+
+#ifndef HAVE_STRLCAT
+
 #include <stdlib.h>
 #include <string.h>
-#ifdef HAVE_SYS_DEFS_H
-#include <sys/cdefs.h>
-#endif
+
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -34,7 +35,7 @@
  * If retval >= dsize, truncation occurred.
  */
 size_t
-strlcat(char * __restrict dst, const char * __restrict src, size_t dsize)
+strlcat(char *  dst, const char *  src, size_t dsize)
 {
 	const char *odst = dst;
 	const char *osrc = src;
@@ -60,3 +61,4 @@ strlcat(char * __restrict dst, const char * __restrict src, size_t dsize)
 
 	return(dlen + (src - osrc));	/* count does not include NUL */
 }
+#endif
