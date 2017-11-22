@@ -36,7 +36,7 @@ The included dependencies and versions are as follows:
 
 Configuration		| 32-bit 						| 64-bit |
 :-------------------|:--------							|:-------|
-netCDF 3		| [netCDFmajor.minor.point-NC3-32.exe][r1]		| [netCDFmajor.minor.point-NC3-64.exe][r6]
+netCDF 3		| [netCDFmajor.minor.point-NC3-32.exe][r1]		| [netCDFmajor.minor.point-NC3-64.exe][r5]
 netCDF3+DAP		| [netCDFmajor.minor.point-NC3-DAP-32.exe][r2]	| [netCDFmajor.minor.point-NC3-DAP-64.exe][r6]
 netCDF4			| [netCDFmajor.minor.point-NC4-32.exe][r3]		| [netCDFmajor.minor.point-NC4-64.exe][r7]
 netCDF4+DAP		| [netCDFmajor.minor.point-NC4-DAP-32.exe][r4]	| [netCDFmajor.minor.point-NC4-DAP-64.exe][r8]
@@ -64,7 +64,7 @@ When installed, the netCDF libraries are placed in the specified locations, alon
 [r2]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-DAP-32.exe
 [r3]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-32.exe
 [r4]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-DAP-32.exe
-[r6]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-64.exe
+[r5]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-64.exe
 [r6]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-DAP-64.exe
 [r7]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-64.exe
 [r8]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-DAP-64.exe

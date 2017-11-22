@@ -5,6 +5,8 @@
    This program sets up HDF5 files that contain scalar attributes and
    variables, of both string and numeric datatypes.  ncdump should handle
    all of these.
+
+   Russ Rew
 */
 
 #include <nc_tests.h>
