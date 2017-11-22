@@ -2504,7 +2504,7 @@ TestFunc(set_default_format)(void)
 int
 TestFunc(delete)(void)
 {
-    int err, nok=0;;
+    int err, nok=0;
     int ncid;
 
     err = FileCreate(scratch, NC_CLOBBER, &ncid);

@@ -365,14 +365,15 @@ mergedas1(OCnode* dds, OCnode* das)
     for(i=0;i<nclistlength(das->subnodes);i++) {
 	OCnode* attnode = (OCnode*)nclistget(das->subnodes,i);
 	if(attnode->octype == OC_Attribute) {
+            OCattribute* att;
 	    if(dds->octype == OC_Atomic
 		|| dds->octype == OC_Sequence
 		|| dds->octype == OC_Structure
 		|| dds->octype == OC_Grid)
 	        attnode->att.var = dds;
-	    OCattribute* att = makeattribute(attnode->name,
-						attnode->etype,
-						attnode->att.values);
+            att = makeattribute(attnode->name,
+                                attnode->etype,
+                                attnode->att.values);
             nclistpush(dds->attributes,(void*)att);
 	}
     }
