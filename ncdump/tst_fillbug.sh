@@ -8,6 +8,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 echo ""
 echo "*** Running ncdump bug test."
 
+${execdir}/tst_fillbug
 # echo "*** dumping tst_fillbug.nc to tst_fillbug.cdl..."
 ${NCDUMP} tst_fillbug.nc > tst_fillbug.cdl
 # echo "*** comparing tst_fillbug.cdl with ref_tst_fillbug.cdl..."

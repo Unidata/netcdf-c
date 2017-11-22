@@ -27,6 +27,9 @@ TESTPROGRAMS = nctest tst_rename
 check_PROGRAMS = $(TESTPROGRAMS)
 TESTS = $(TESTPROGRAMS) compare_test_files.sh
 
+# Note which tests depend on other tests. Necessary for make -j check.
+TEST_EXTENSIONS = .sh
+
 # compare_test_files depends on nctest executing first.
 compare_test_files.log: nctest.log 
 

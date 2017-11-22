@@ -9,6 +9,9 @@ set -e
 echo ""
 echo "*** Testing ncgen and ncdump for UTF8 support..."
 
+# Run tst_utf8.c to produce test file tst_utf8.nc.
+${execdir}/tst_utf8
+
 if test "x$builddir" = x ; then
 builddir="."
 fi

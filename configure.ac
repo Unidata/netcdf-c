@@ -3,6 +3,7 @@
 
 # This is part of Unidata's netCDF package. Copyright 2005-2012, see
 # the COPYRIGHT file for more information.
+# Ed Hartnett, Ward Fisher, Dennis Heimbigner
 
 # Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
 # and to exp otherwise.
@@ -473,18 +474,6 @@ fi
 AM_CONDITIONAL(USE_CDF5, [test x$enable_cdf5 = xyes ])
 AM_CONDITIONAL(ENABLE_CDF5, [test x$enable_cdf5 = xyes ])
 
-# Does the user want to do some extra tests?
-AC_MSG_CHECKING([whether netCDF extra tests should be run (developers only)])
-AC_ARG_ENABLE([extra-tests],
-              [AS_HELP_STRING([--enable-extra-tests],
-                              [enable some extra tests that may not pass because of known issues])])
-test "x$enable_extra_tests" = xyes || enable_extra_tests=no
-AC_MSG_RESULT($enable_extra_tests)
-if test "x$enable_extra_tests" = xyes; then
-   AC_DEFINE([EXTRA_TESTS], [1], [if true, run extra tests which may not work yet])
-fi
-AM_CONDITIONAL(EXTRA_TESTS, [test x$enable_extra_tests = xyes])
-
 # Does the user want to use the ffio module?
 AC_MSG_CHECKING([whether FFIO will be used])
 AC_ARG_ENABLE([ffio],
@@ -508,19 +497,6 @@ if test "x$enable_stdio" = xyes; then
    AC_DEFINE([USE_STDIO], [1], [if true, use stdio instead of posixio])
 fi
 AM_CONDITIONAL(USE_STDIO, [test x$enable_stdio = xyes])
-
-# Does the user want to enable the user-provided NEC-SX vectorization
-# patch.
-dnl AC_MSG_CHECKING([whether netCDF NEC-SX vectorization patch is enabled])
-dnl AC_ARG_ENABLE([sx-vectorization],
-dnl               [AS_HELP_STRING([--enable-sx-vectorization],
-dnl                               [enable a user-provided performance patch to allow \
-dnl 			      vectorization of type conversions on NEC SX machines.])])
-dnl test "x$enable_sx_vectorization" = xyes || enable_sx_vectorization=no
-dnl AC_MSG_RESULT([$enable_sx_vectorization])
-dnl if test "x$enable_sx_vectorization" = xyes; then
-dnl    AC_DEFINE([SX_VECTORIZATION], 1, [if true, turn on vectorization patch for NEC SX])
-dnl fi
 
 nc_build_c=yes
 nc_build_v2=yes
