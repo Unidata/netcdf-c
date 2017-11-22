@@ -9,8 +9,8 @@ ENDFOREACH()
 
 SET_TESTS_PROPERTIES(cdl_do_comps PROPERTIES DEPENDS cdl_create_sample_files)
 SET_TESTS_PROPERTIES(cdl_do_comps PROPERTIES DEPENDS C_tests_simple_xy_wr)
-SET_TESTS_PROPERTIES(cdl_do_comps PROPERTIES DEPENDS C_tests_sfc_pres_temp)
-SET_TESTS_PROPERTIES(cdl_do_comps PROPERTIES DEPENDS C_test_pres_temp_4D)
+SET_TESTS_PROPERTIES(cdl_do_comps PROPERTIES DEPENDS C_tests_sfc_pres_temp_wr)
+SET_TESTS_PROPERTIES(cdl_do_comps PROPERTIES DEPENDS C_test_pres_temp_4D_wr)
 
 
 SET(CLEANFILES simple_xy.nc sfc_pres_temp.nc pres_temp_4D.nc)
