@@ -303,9 +303,9 @@ v1h_put_NC_string(v1hs *psp, const NC_string *ncstrp)
 static int
 v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 {
-	int status;
-	size_t padding, nchars = 0;
-	NC_string *ncstrp;
+	int status = 0;
+	size_t padding = 0, nchars = 0;
+	NC_string *ncstrp = NULL;
 
 	status = v1h_get_size_t(gsp, &nchars);
 	if(status != NC_NOERR)
@@ -335,15 +335,18 @@ v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 
 	padding = _RNDUP(X_SIZEOF_CHAR * ncstrp->nchars, X_ALIGN)
 		- X_SIZEOF_CHAR * ncstrp->nchars;
+
+#if USE_STRICT_NULL_BYTE_HEADER_PADDING
 	if (padding > 0) {
 		/* CDF specification: Header padding uses null (\x00) bytes. */
 		char pad[X_ALIGN-1];
 		memset(pad, 0, X_ALIGN-1);
 		if (memcmp((char*)gsp->pos-padding, pad, padding) != 0) {
 			free_NC_string(ncstrp);
-			return NC_EINVAL;
+			return NC_ENULLPAD;
 		}
 	}
+#endif
 
 	*ncstrpp = ncstrp;
 
@@ -618,11 +621,11 @@ ncmpix_len_nctype(nc_type type) {
 static int
 v1h_put_NC_attrV(v1hs *psp, const NC_attr *attrp)
 {
-	int status;
+	int status = 0;
 	const size_t perchunk =  psp->extent;
 	size_t remaining = attrp->xsz;
 	void *value = attrp->xvalue;
-	size_t nbytes, padding;
+	size_t nbytes = 0, padding = 0;
 
 	assert(psp->extent % X_ALIGN == 0);
 
@@ -640,6 +643,7 @@ v1h_put_NC_attrV(v1hs *psp, const NC_attr *attrp)
         	remaining -= nbytes;
 
 	} while(remaining != 0);
+
 
 	padding = attrp->xsz - ncmpix_len_nctype(attrp->type) * attrp->nelems;
 	if (padding > 0) {
@@ -707,13 +711,16 @@ v1h_get_NC_attrV(v1hs *gsp, NC_attr *attrp)
 	} while(remaining != 0);
 
 	padding = attrp->xsz - ncmpix_len_nctype(attrp->type) * attrp->nelems;
+
+#if USE_STRICT_NULL_BYTE_HEADER_PADDING
 	if (padding > 0) {
 		/* CDF specification: Header padding uses null (\x00) bytes. */
 		char pad[X_ALIGN-1];
 		memset(pad, 0, X_ALIGN-1);
 		if (memcmp((char*)gsp->pos-padding, pad, (size_t)padding) != 0)
-			return NC_EINVAL;
+			return NC_ENULLPAD;
 	}
+#endif
 
 	return NC_NOERR;
 }

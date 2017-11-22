@@ -1,14 +1,14 @@
 #!/bin/sh
 # This shell script runs the ncdump tests.
-# $Id: run_nc4_tests.sh,v 1.4 2010/05/18 20:05:23 dmh Exp $
+# Dennis Heimbigner
 
 if test "x$srcdir" = x ; then srcdir="."; fi
 . ../test_common.sh
 
 ##
 # Function to test a netCDF CDL file.
-# 1. Generate binary nc.
-# Use ncdump to compare against original CDL file.
+# First generate binary nc. Then use ncdump to compare against
+# original CDL file.
 # Input: CDL file name, minus the suffix, output filename
 # Other input: arguments.
 #
@@ -30,8 +30,6 @@ validateNC() {
     diff -b -w $INFILE $TMPFILE
 }
 
-
-
 echo "*** Testing ncgen for netCDF-4."
 set -e
 
@@ -42,7 +40,7 @@ echo "*** creating netCDF-4 classic model file c0_4c.nc from c0.cdl..."
 validateNC "c0" "c0_4c" -k nc7 -b
 
 echo "*** creating C code for CAM file ref_camrun.cdl..."
-${NCGEN} -lc $top_srcdir/ncgen/ref_camrun.cdl >ref_camrun.c
+${NCGEN} -lc $top_srcdir/ncgen/ref_camrun.cdl > camrun.c
 
 echo "*** test for jira NCF-199 bug"
 validateNC "ncf199" "ncf199" -k nc4
