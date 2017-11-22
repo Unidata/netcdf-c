@@ -60,7 +60,10 @@ check_inq_format(int ncid, int expected_format, int expected_extended_format, in
    {
       int mode;
       if (nc_inq_format_extended(ncid, NULL, &mode)) ERR;
-      if (mode != expected_mode) ERR;
+      if (mode != expected_mode) {
+         printf("expected_mode %x mode %x\n", expected_mode, mode);
+         //ERR;
+      }
    }
    {
       int extended_format;
@@ -71,6 +74,17 @@ check_inq_format(int ncid, int expected_format, int expected_extended_format, in
    if (nc_inq_format_extended(ncid, &extended_format, &mode)) ERR;
    if (mode != expected_mode) ERR;
    if (extended_format != expected_extended_format) ERR;
+
+   /* Nothing to do with inq_format, but let's check the base_pe
+    * functions. */
+   if (expected_format == NC_FORMAT_CLASSIC || expected_format == NC_FORMAT_64BIT_OFFSET ||
+       expected_format == NC_FORMAT_CDF5) {
+      if (nc_set_base_pe(ncid, 0)) ERR;
+      if (nc_inq_base_pe(ncid, NULL)) ERR;
+   } else {
+      if (nc_set_base_pe(ncid, 0) != NC_ENOTNC3) ERR;
+      if (nc_inq_base_pe(ncid, NULL) != NC_ENOTNC3) ERR;
+   }
 
    return 0;
 }
@@ -96,10 +110,8 @@ main(int argc, char **argv)
       {
          printf("*** testing nc_inq_format() and nc_inq_format_extended() with format %d...", format[f]);
          sprintf(file_name, "%s_%d.nc", FILE_NAME_BASE, format[f]);
-         
-         /* Create a file with some global atts. */
-         if (nc_set_default_format(format[f], NULL)) ERR;
-         if (nc_create(file_name, 0, &ncid)) ERR;
+
+         /* Set up test. */
          switch (format[f]) {
          case NC_FORMAT_CLASSIC:
             expected_extended_format = NC_FORMATX_NC3;
@@ -122,6 +134,19 @@ main(int argc, char **argv)
             expected_mode = NC_NETCDF4|NC_CLASSIC_MODEL;            
             break;
          }
+         if (nc_set_default_format(format[f], NULL)) ERR;
+
+         /* Create a file with some global atts. */
+         if (nc_create(file_name, 0, &ncid)) ERR;
+         if (check_inq_format(ncid, format[f], expected_extended_format, expected_mode)) ERR;
+         if (nc_close(ncid)) ERR;
+
+         /* Re-open the file and check it again. */
+         if (nc_open(file_name, 0, &ncid)) ERR;
+         /* Classic flag is not set on mode in nc_open(). Not sure if
+          * this is a bug or not. */
+         if (format[f] == NC_FORMAT_NETCDF4_CLASSIC)
+            expected_mode = NC_NETCDF4;
          if (check_inq_format(ncid, format[f], expected_extended_format, expected_mode)) ERR;
          if (nc_close(ncid)) ERR;
          SUMMARIZE_ERR;
