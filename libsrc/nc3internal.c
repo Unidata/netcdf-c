@@ -1570,7 +1570,7 @@ NC3_inq_base_pe(int ncid, int *pe)
 	/*
 	 * !_CRAYMPP, only pe 0 is valid
 	 */
-	*pe = 0;
+	if (pe) *pe = 0;
 #endif /* _CRAYMPP && LOCKNUMREC */
 	return NC_NOERR;
 }

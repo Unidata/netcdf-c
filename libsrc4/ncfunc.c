@@ -1,25 +1,31 @@
 /*
+Copyright 2003, University Corporation for Atmospheric Research. See
+netcdf-4/docs/COPYRIGHT file for copying and redistribution
+conditions.
 
 This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
 HDF5 backend for netCDF, depending on your point of view.
 
-This file handles the nc_ calls, calling the appropriate nc3 or nc4
-function, depending on ncid.
+This file handles the (useless) *_base_pe() functions, and the
+inq_format functions.
 
-Copyright 2003, University Corporation for Atmospheric Research. See
-netcdf-4/docs/COPYRIGHT file for copying and redistribution
-conditions.
+@author Ed Hartnett, Dennis Heimbigner
+
 */
 
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 
-/* This will return the length of a netcdf data type in bytes. Since
-   we haven't added any new types, I just call the v3 function.
-   Ed Hartnett 10/43/03
+/**
+ * This function only does anything for netcdf-3 files. 
+ * 
+ * \param ncid File ID (ignored).
+ * \param pe Processor element (ignored).
+ *
+ * \returns NC_ENOTNC3 - Not a netCDF classic format file.
+ * \internal
+ * \author Ed Hartnett
 */
-
-/* This function only does anything for netcdf-3 files. */
 int
 NC4_set_base_pe(int ncid, int pe)
 {
