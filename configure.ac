@@ -804,6 +804,8 @@ AC_FUNC_VPRINTF
 AC_CHECK_HEADERS([sys/resource.h])
 #fi
 
+AC_CHECK_HEADERS([sys/cdefs.h])
+
 # Check for <stdbool.h> that conforms to C99 requirements
 AC_HEADER_STDBOOL
 

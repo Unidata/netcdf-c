@@ -380,8 +380,8 @@ mergedas1(NCDAPCOMMON* nccomm, OClink conn, CDFnode* dds, OCddsnode das)
 		}
 	        OCCHECK(oc_inq_name(conn,attnode,&dodsname));
 		/* Compute new special name */
-		strcpy(newname,"_DODS_");
-		strcat(newname,dodsname);
+		strncpy(newname,"_DODS_",sizeof(newname));
+		strlcat(newname,dodsname,sizeof(newname));
 	        ncstat = buildattribute(newname,
 				        octypetonc(ocetype),
 				        stringvalues,

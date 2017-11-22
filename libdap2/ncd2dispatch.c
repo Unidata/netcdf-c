@@ -316,10 +316,13 @@ NCD2_open(const char* path, int mode,
 #endif
 
 #ifdef OCCOMPILEBYDEFAULT
+    { int rullen = 0;
     /* set the compile flag by default */
-    dapcomm->oc.rawurltext = (char*)emalloc(strlen(path)+strlen("[compile]")+1);
-    strcpy(dapcomm->oc.rawurltext,"[compile]");
-    strcat(dapcomm->oc.rawurltext, path);
+    rullen = strlen(path)+strlen("[compile]");;
+    dapcomm->oc.rawurltext = (char*)emalloc(rullen+1);
+    strncpy(dapcomm->oc.rawurltext,"[compile]",rullen);
+    strlcat(dapcomm->oc.rawurltext, path, rullen+1);
+    }
 #else
     dapcomm->oc.rawurltext = strdup(path);
 #endif
@@ -906,14 +909,14 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	    newlen += (1+strlen(s));
 	}
     if(newlen > 0)
-      newstring = (char*)malloc(newlen);
+      newstring = (char*)malloc(newlen+1);
 
     MEMCHECK(newstring,NC_ENOMEM);
 	newstring[0] = '\0';
 	for(i=0;i<nvalues;i++) {
 	    char* s = (char*)nclistget(att->values,i);
-	    if(i > 0) strcat(newstring,"\n");
-	    strcat(newstring,s);
+	    if(i > 0) strlcat(newstring,"\n",newlen);
+	    strlcat(newstring,s,newlen);
 	}
         dapexpandescapes(newstring);
 	if(newstring[0]=='\0')
@@ -1137,11 +1140,13 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 	    nullfree(dim->ncbasename);
 	    if(dim->dim.index1 > 0) {/* need to fix conflicting names (see above) */
 	        char sindex[64];
+		size_t baselen;
 		snprintf(sindex,sizeof(sindex),"_%d",dim->dim.index1);
-		dim->ncbasename = (char*)malloc(strlen(sindex)+strlen(legalname)+1);
+		baselen = strlen(sindex)+strlen(legalname)+1;
+		dim->ncbasename = (char*)malloc(baselen);
 		if(dim->ncbasename == NULL) {nullfree(legalname); return NC_ENOMEM;}
-		strcpy(dim->ncbasename,legalname);
-		strcat(dim->ncbasename,sindex);
+		strncpy(dim->ncbasename,legalname,baselen);
+		strlcat(dim->ncbasename,sindex,baselen);
 		nullfree(legalname);
 	    } else {/* standard case */
 	        dim->ncbasename = legalname;
@@ -1271,9 +1276,9 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->varnodes,i);
 	/* Define the client param stringlength for this variable*/
 	var->maxstringlength = 0; /* => use global dfalt */
-	strcpy(tmpname,"stringlength_");
+	strncpy(tmpname,"stringlength_",sizeof(tmpname));
 	pathstr = makeocpathstring(conn,var->ocnode,".");
-	strncat(tmpname,pathstr,NC_MAX_NAME);
+	strlcat(tmpname,pathstr,sizeof(tmpname));
 	nullfree(pathstr);
 	value = paramlookup(nccomm,tmpname);
         if(value != NULL && strlen(value) != 0) {
@@ -1285,13 +1290,13 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->nodes,i);
 	if(var->nctype != NC_Sequence) continue;
 	var->sequencelimit = dfaltseqlim;
-	strcpy(tmpname,"nolimit_");
+	strncpy(tmpname,"nolimit_",sizeof(tmpname));
 	pathstr = makeocpathstring(conn,var->ocnode,".");
-	strncat(tmpname,pathstr,NC_MAX_NAME);
+	strlcat(tmpname,pathstr,sizeof(tmpname));
 	if(paramlookup(nccomm,tmpname) != NULL)
 	    var->sequencelimit = 0;
-	strcpy(tmpname,"limit_");
-	strncat(tmpname,pathstr,NC_MAX_NAME);
+	strncpy(tmpname,"limit_",sizeof(tmpname));
+	strlcat(tmpname,pathstr,sizeof(tmpname));
 	value = paramlookup(nccomm,tmpname);
         if(value != NULL && strlen(value) != 0) {
             if(sscanf(value,"%d",&len) && len > 0)

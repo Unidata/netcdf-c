@@ -81,9 +81,9 @@ main()
 
     topsrcdir = gettopsrcdir();
 
-    strcpy(url,"file://");
-    strcat(url,topsrcdir);
-    strcat(url,"/ncdap_test/testdata3/test.06");
+    strncpy(url,"file://",sizeof(url));
+    strlcat(url,topsrcdir,sizeof(url));
+    strlcat(url,"/ncdap_test/testdata3/test.06",sizeof(url));
 
     printf("test_vara: url=%s\n",url);
 

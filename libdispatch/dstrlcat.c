@@ -16,11 +16,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
-#include <sys/types.h>
+#include "config.h"
+#include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_SYS_DEFS_H
+#include <sys/cdefs.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
 
 /*
  * Appends src to string dst of size dsize (unlike strncat, dsize is the

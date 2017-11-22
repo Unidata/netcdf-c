@@ -447,8 +447,8 @@ simplepathstring(NClist* names,  char* separator)
     result[0] = '\0';
     for(i=0;i<nclistlength(names);i++) {
 	char* segment = (char*)nclistget(names,i);
-	if(i > 0) strcat(result,separator);
-	strcat(result,segment);
+	if(i > 0) strlcat(result,separator,len-1);
+	strlcat(result,segment,len-1);
     }
     return result;
 }
@@ -776,10 +776,12 @@ repairname(const char* name, const char* badchars)
     const char *p;
     char *q;
     int c;
+    int nnlen = 0;
 
     if(name == NULL) return NULL;
-    newname = (char*)malloc(1+(3*strlen(name))); /* max needed */
-    newname[0] = '\0'; /* so we can use strcat */
+    nnlen = (3*strlen(name)); /* max needed */
+    newname = (char*)malloc(1+nnlen); /* max needed */
+    newname[0] = '\0'; /* so we can use strlcat */
     for(p=name,q=newname;(c=*p);p++) {
         if(strchr(badchars,c) != NULL) {
 	    int digit;
@@ -790,11 +792,11 @@ repairname(const char* name, const char* badchars)
             digit = (c & 0x0f);
 	    newchar[2] = hexdigits[digit];
 	    newchar[3] = '\0';
-            strcat(newname,newchar);
+            strlcat(newname,newchar,nnlen);
             q += 3; /*strlen(newchar)*/
         } else
             *q++ = c;
-	*q = '\0'; /* so we can always do strcat */
+	*q = '\0'; /* so we can always do strlcat */
     }
     *q = '\0'; /* ensure trailing null */
     return newname;
