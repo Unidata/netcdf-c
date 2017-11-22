@@ -1621,14 +1621,12 @@ NC3_inq_format(int ncid, int *formatp)
  * associated with an open file.
  *
  * \param ncid the ID of the open file.
-
  * \param formatp a pointer that gets the extended format. Note that
  * this is not the same as the format provided by nc_inq_format(). The
  * extended foramt indicates the dispatch layer model. Classic, 64-bit
  * offset, and CDF5 files all have an extended format of
  * ::NC_FORMATX_NC3. Ignored if NULL.
- *
- * \modep a pointer that gets the open/create mode associated with
+ * \param modep a pointer that gets the open/create mode associated with
  * this file. Ignored if NULL.
  *
  * \returns NC_NOERR No error.

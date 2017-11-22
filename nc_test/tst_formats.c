@@ -12,6 +12,7 @@
 #include "err_macros.h"
 
 #define FILE_NAME_BASE "tst_formats"
+#define HDF4_FILE "ref_contiguous.hdf4"
 
 /* Determine how many formats are available, and what they are. */
 void
@@ -55,7 +56,10 @@ check_inq_format(int ncid, int expected_format, int expected_extended_format, in
    if (nc_inq_format(ncid + 66000, NULL) != NC_EBADID) ERR;
    if (nc_inq_format(ncid, NULL)) ERR;
    if (nc_inq_format(ncid, &format)) ERR;
-   if (format != expected_format) ERR;
+   if (format != expected_format) {
+      printf("format %d expected_format %d\n", format, expected_format);      
+      ERR;
+   }
    if (nc_inq_format_extended(ncid + 66000, &extended_format, &mode) != NC_EBADID) ERR;
    {
       int mode;
@@ -92,19 +96,18 @@ check_inq_format(int ncid, int expected_format, int expected_extended_format, in
 int
 main(int argc, char **argv)
 {
-   int format[MAX_NUM_FORMATS];
-   int num_formats;
-   char file_name[NC_MAX_NAME + 1];
-   int f;
-
-   /* How many formats to be tested? */
-   determine_test_formats(&num_formats, format);
-      
    printf("\n*** Testing netcdf format functions.\n");
    {
       int ncid;
       int expected_mode;
       int expected_extended_format;
+      char file_name[NC_MAX_NAME + 1];
+      int f;
+      int format[MAX_NUM_FORMATS];
+      int num_formats;
+
+      /* How many formats to be tested? */
+      determine_test_formats(&num_formats, format);
 
       for (f = 0; f < num_formats; f++)
       {
@@ -136,7 +139,7 @@ main(int argc, char **argv)
          }
          if (nc_set_default_format(format[f], NULL)) ERR;
 
-         /* Create a file with some global atts. */
+         /* Create a file. */
          if (nc_create(file_name, 0, &ncid)) ERR;
          if (check_inq_format(ncid, format[f], expected_extended_format, expected_mode)) ERR;
          if (nc_close(ncid)) ERR;
@@ -152,5 +155,25 @@ main(int argc, char **argv)
          SUMMARIZE_ERR;
       } /* next format */
    }
+#ifdef USE_HDF4
+   printf("\n*** Testing netcdf format functions for HDF4.\n");
+   {
+      int ncid;
+      int expected_mode;
+      int expected_extended_format;
+
+      printf("*** testing nc_inq_format() and nc_inq_format_extended() with HDF4...");
+
+      /* Set up test. */
+      expected_extended_format = NC_FORMATX_NC_HDF4;
+      expected_mode = NC_NETCDF4;
+
+      /* Open a HDF4 file and check it. */
+      if (nc_open(HDF4_FILE, 0, &ncid)) ERR;
+      if (check_inq_format(ncid, NC_FORMAT_NETCDF4, expected_extended_format, expected_mode)) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+#endif /* USE_HDF4 */
    FINAL_RESULTS;
 }
