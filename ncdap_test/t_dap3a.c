@@ -124,20 +124,20 @@ int main()
     
     topsrcdir = gettopsrcdir();
 
-    len = strlen("file://") + strlen(topsrcdir) + strlen("/ncdap_test/testdata3/test.02") + 1;
+    len = strlen("file://") + strlen(topsrcdir) + strlen("/ncdap_test/testdata3/test.02");
 #ifdef DEBUG
     len += strlen("[log][show=fetch]");
 #endif
-    url = (char*)malloc(len);
+    url = (char*)malloc(len+1);
     url[0] = '\0';
 
 #ifdef DEBUG
-    strcat(url,"[log][show=fetch]");
+    strlcat(url,"[log][show=fetch]",len);
 #endif
 
-    strcat(url,"file://");
-    strcat(url,topsrcdir);
-    strcat(url,"/ncdap_test/testdata3/test.02");
+    strlcat(url,"file://",len);
+    strlcat(url,topsrcdir,len);
+    strlcat(url,"/ncdap_test/testdata3/test.02",len);
 
     printf("*** Test: var conversions on URL: %s\n",url);
 

@@ -92,15 +92,14 @@ pathtostring(NClist* path, char* separator)
 	slen += strlen(node->name);
     }
     slen += ((len-1)*strlen(separator));
-    slen += 1;   /* for null terminator*/
-    pathname = (char*)ocmalloc((size_t)slen);
+    pathname = (char*)ocmalloc((size_t)slen+1); /* +1 for null terminator*/
     MEMCHECK(pathname,NULL);
     pathname[0] = '\0';
     for(i=0;i<len;i++) {
 	OCnode* node = (OCnode*)nclistget(path,(size_t)i);
 	if(node->container == NULL || node->name == NULL) continue;
-	if(strlen(pathname) > 0) strcat(pathname,separator);
-        strcat(pathname,node->name);
+	if(strlen(pathname) > 0) strlcat(pathname,separator,slen);
+        strlcat(pathname,node->name,slen);
     }
     return pathname;
 }
@@ -399,13 +398,12 @@ mergedods1(OCnode* dds, OCnode* dods)
             */
 	    size_t len =   strlen(attnode->name)
                          + strlen(dods->name)
-			 + strlen(".")
-			 + 1; /*null*/
-	    char* newname = (char*)malloc(len);
+			 + strlen(".");
+	    char* newname = (char*)malloc(len+1);
 	    if(newname == NULL) return OC_ENOMEM;
-	    strcpy(newname,dods->name);
-	    strcat(newname,".");
-	    strcat(newname,attnode->name);
+	    strncpy(newname,dods->name,len);
+	    strlcat(newname,".",len);
+	    strlcat(newname,attnode->name,len);
 	    att = makeattribute(newname,attnode->etype,attnode->att.values);
 	    free(newname);
             nclistpush(dds->attributes,(void*)att);
