@@ -24,7 +24,10 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include "netcdf_mem.h"
 #include "ncwinpath.h"
 
-#define DEBUG
+/* If Defined, then use only stdio for all magic number io;
+   otherwise use stdio or mpio as required.
+ */
+#undef DEBUG
 
 /**
 Sort info for open/read/close of
@@ -2127,7 +2130,7 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 	mempos = ((char*)meminfo->memory) + pos;
 	memcpy((void*)magic,mempos,MAGIC_NUMBER_LEN);
 #ifdef DEBUG
-printmagic("XXX: readmagic",magic,file);
+	printmagic("XXX: readmagic",magic,file);
 #endif
 	goto done;
     }
