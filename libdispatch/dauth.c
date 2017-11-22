@@ -66,6 +66,7 @@ NC_combinehostport(NCURI* uri)
     size_t len;
     char* host = NULL;
     char* port = NULL;
+    char* hp = NULL;
     if(uri == NULL) return NULL;
     host = uri->host;
     port = uri->port;
@@ -73,7 +74,7 @@ NC_combinehostport(NCURI* uri)
     if(port != NULL && strlen(port) == 0) port = NULL;
     len = strlen(host);
     if(port != NULL) len += (1+strlen(port));
-    char* hp = (char*)malloc(len+1);
+    hp = (char*)malloc(len+1);
     if(hp == NULL) return NULL;
     strncpy(hp,host,len);
     if(port != NULL) {

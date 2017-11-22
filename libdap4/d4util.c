@@ -102,6 +102,7 @@ char*
 NCD4_makeFQN(NCD4node* node)
 {
     char* fqn = NULL;
+    char* escaped;
     int i;
     NCD4node* g = node;
     NClist* path = nclistnew();
@@ -121,7 +122,7 @@ NCD4_makeFQN(NCD4node* node)
 	NCD4node* elem = (NCD4node*)nclistget(path,i);
 	if(elem->sort != NCD4_GROUP) break;
 	/* Add in the group name */
-	char* escaped = backslashEscape(elem->name);
+	escaped = backslashEscape(elem->name);
 	if(escaped == NULL) {free(fqn); fqn = NULL; goto done;}
 	strcat(fqn,"/");
 	strcat(fqn,escaped);
@@ -342,8 +343,8 @@ NCD4_saveblob(NCD4meta* meta, void* mem)
 int
 NCD4_error(int code, const int line, const char* file, const char* fmt, ...)
 {
-    fprintf(stderr,"(%s:%d) ",file,line);
     va_list argv;
+    fprintf(stderr,"(%s:%d) ",file,line);
     va_start(argv,fmt);
     vfprintf(stderr,fmt,argv);
     fprintf(stderr,"\n");
