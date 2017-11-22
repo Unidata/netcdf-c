@@ -7,12 +7,7 @@ FOREACH(F ${CDL_EXAMPLE_TESTS})
   add_sh_test(cdl ${F})
 ENDFOREACH()
 
-FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} simple_xy.cdl sfc_pres_temp.cdl pres_temp_4D.cdl CMakeLists.txt Makefile.am create_sample_files.sh do_comps.sh)
-
-ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
-
+SET_TESTS_PROPERTIES(cdl_do_comps PROPERTIES DEPENDS cdo_create_sample_files)
 
 SET(CLEANFILES simple_xy.nc sfc_pres_temp.nc pres_temp_4D.nc)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
-
