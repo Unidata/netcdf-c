@@ -8,11 +8,11 @@
 include $(top_srcdir)/lib_flags.am
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-
+# Note which tests depend on other tests. Necessary for make -j check.
+TEST_EXTENSIONS = .sh
 TESTS_ENVIRONMENT=CC=${CC}
 XFAIL_TESTS=""
+
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump
 ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime0.c        \
@@ -25,6 +25,7 @@ bin_PROGRAMS += nccopy
 nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c     \
 utils.h utils.c dimmap.h dimmap.c
 
+# A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_NETCDF4
 noinst_PROGRAMS = nc4print
 nc4print_SOURCES = nc4print.c
@@ -40,20 +41,25 @@ endif
 man_MANS = ncdump.1 nccopy.1
 
 if BUILD_TESTSETS
-# These tests are run for both netCDF-4 and non-netCDF-4 builds.
+# C programs needed by shell scritps for classic tests.
 check_PROGRAMS = rewrite-scalar ref_ctest ref_ctest64 ncdump tst_utf8   \
 bom tst_dimsizes nctrunc
 
-TESTS = tst_ctest.sh tst_inttags.sh run_tests.sh tst_64bit.sh		\
-ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh tst_utf8	\
-run_utf8_tests.sh tst_nccopy3.sh tst_nccopy3_subset.sh			\
-tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh			\
-tst_dimsizes.sh run_ncgen_tests.sh
+# Tests for classic and 64-bit offset files.
+TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest		\
+ref_ctest64 tst_ctest.sh tst_output.sh tst_lengths.sh			\
+tst_calendars.sh run_utf8_tests.sh tst_nccopy3.sh			\
+tst_nccopy3_subset.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh	\
+tst_bom.sh tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh
 
-if USE_NETCDF4
-check_PROGRAMS += tst_fileinfo
-TESTS += tst_fileinfo.sh tst_hdf5_offset.sh run_ncgen_nc4_tests.sh
-endif
+# Record dependencies between classic test scripts.
+tst_nccopy3.log: tst_calendars.log run_utf8_tests.log tst_output.log	\
+tst_64bit.log run_tests.log tst_lengths.log
+run_ncgen_tests.log: tst_output.log tst_nccopy3.log
+tst_ctest.log: ref_ctest.log ref_ctest64.log
+tst_output.log: tst_ctest.log
+tst_ncgen4_classic.log: tst_formatx3.log tst_output.log	\
+tst_nccopy3.log run_ncgen_tests.log
 
 TESTS += tst_null_byte_padding.sh
 if USE_STRICT_NULL_BYTE_HEADER_PADDING
@@ -64,6 +70,33 @@ if LARGE_FILE_TESTS
 TESTS += tst_iter.sh
 endif
 
+if USE_NETCDF4
+# NetCDF-4 has some extra C programs to build. These will be run by
+# the shell script tests.
+check_PROGRAMS += tst_fileinfo tst_create_files tst_h_rdc0	\
+tst_group_data tst_enum_data tst_opaque_data tst_string_data	\
+tst_vlen_data tst_comp tst_comp2 tst_nans tst_special_atts	\
+tst_unicode tst_fillbug tst_compress tst_chunking tst_h_scalar
+
+# Tests for netCDF-4 behavior.
+TESTS += tst_fileinfo.sh tst_hdf5_offset.sh tst_inttags4.sh		\
+tst_netcdf4.sh tst_fillbug.sh tst_netcdf4_4.sh tst_nccopy4.sh		\
+tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
+run_utf8_nc4_tests.sh run_back_comp_tests.sh run_ncgen_nc4_tests.sh	\
+tst_ncgen4.sh
+
+# Record dependencies between netcdf-4 test scripts.
+tst_netcdf4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
+tst_formatx4.log
+tst_nccopy4.log: tst_netcdf4.log tst_fillbug.log tst_netcdf4_4.log	\
+tst_h_scalar.log tst_ctest.log
+run_ncgen_nc4_tests.log: run_ncgen_tests.log tst_output.log \
+tst_nccopy3.log
+run_utf8_nc4_tests.log: run_utf8_tests.log
+tst_ncgen4.log: tst_ncgen4_classic.log tst_formatx4.log
+endif #!USE_NETCDF4
+
+# Add diskless checks if needed.
 if BUILD_DISKLESS
 TESTS += tst_inmemory_nc3.sh
 if USE_NETCDF4
@@ -71,112 +104,66 @@ TESTS += tst_inmemory_nc4.sh
 endif
 endif
 
-if USE_NETCDF4
-TESTS += tst_inttags4.sh
-endif
-
-if USE_NETCDF4
-# NetCDF-4 has some extra tests.
-check_PROGRAMS += tst_create_files tst_h_rdc0 tst_group_data            \
-tst_enum_data tst_opaque_data tst_string_data tst_vlen_data tst_comp    \
-tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug             \
-tst_compress tst_chunking tst_h_scalar tst_bug324
-
-TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data  \
-tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans               \
-tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug      \
-tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh             \
-tst_grp_spec.sh tst_mud.sh tst_h_scalar tst_h_scalar.sh tst_formatx4.sh \
-tst_bug324 run_utf8_nc4_tests.sh run_back_comp_tests.sh
-
-endif #!USE_NETCDF4
-
-TESTS += tst_ncgen4_classic.sh
-if USE_NETCDF4
-TESTS += tst_ncgen4.sh
-endif
-
 endif BUILD_TESTSETS
 
-CLEANFILES = test0.nc test1_ncdump.cdl test1_ncdump.nc                  \
-test2_ncdump.cdl test1.cdl test0_ncdump.nc ctest1.cdl test1_cdf5.nc     \
-test1_cdf5.cdl test0_cdf5.nc test2_cdf5.nc test2_cdf5.cdl               \
-test0_offset.nc test1_offset.nc test1_offset.cdl test2_offset.nc        \
-test2_offset.cdl ctest0.nc ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl   \
-c0.nc c0_4.nc small.nc small2.nc c0tmp.nc c1.ncml utf8.cdl              \
-utf8_64.cdl utf8.nc utf8_64.nc tmp.cdl tst_vlen_data.nc tst_utf8.nc     \
-tst_special_atts.nc tst_unicode.nc tst_solar_2.nc tst_string_data.nc    \
-tst_calendars.nc tst_nans.nc tst_opaque_data.nc tst_solar_cmp.nc        \
-tst_enum_data.nc tst_solar_1.nc tst_mslp_64.nc tst_mslp.nc              \
-tst_bug321.nc tst_comp2.nc tst_ncml.nc tst_fillbug.nc                   \
-tst_group_data.nc tst_small.nc tst_comp.nc tst_unicode.cdl              \
-tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl tst_enum_data.cdl    \
-tst_small.cdl tst_times.cdl tst_solar_2.cdl tst_string_data.cdl         \
-tst_fillbug.cdl tst_opaque_data.cdl tst_compounds4.cdl tst_utf8.cdl     \
-tst_compounds3.cdl tst_special_atts.cdl tst_nans.cdl                    \
-tst_format_att_64.cdl tst_vlen_data.cdl tst_solar_1.cdl                 \
-tst_format_att.cdl tst_inflated.nc tmp_subset.cdl tst_inflated4.nc      \
-tst_deflated.nc tst_chunking.nc tmp*.nc tst_charfill.nc                 \
-tmp_tst_charfill.cdl iter.* tst_nc_test_netcdf4_4_0.cdl tst_mud4.nc     \
-tst_mud4.cdl tst_mud4-bc.cdl tst_ncf213.cdl tst_ncf213.nc               \
-tst_h_scalar.cdl tst_h_scalar.nc tst_mud4_chars.cdl tst_mud4_chars.nc   \
-inttags.nc inttags4.nc tst_inttags.cdl tst_inttags4.cdl                 \
-tst_dimsize_classic.nc tst_dimsize_64offset.nc tst_dimsize_64data.nc    \
-nc4_fileinfo.nc hdf5_fileinfo.hdf ref_hdf5_compat1.nc                   \
-ref_hdf5_compat2.nc ref_hdf5_compat3.nc ref_tst_compounds.nc            \
-ref_tst_dims.nc ref_tst_interops4.nc ref_tst_xplatform2_1.nc            \
-ref_tst_xplatform2_2.nc nccopy3_subset_out.nc
-
 # These files all have to be included with the distribution.
-EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl          \
-ref_ctest1_nc4.cdl ref_ctest1_nc4c.cdl ref_tst_solar_1.cdl              \
-ref_tst_solar_2.cdl tst_netcdf4.sh tst_netcdf4_4.sh ref_tst_small.cdl   \
-tst_lengths.sh tst_ncml.cdl ref1.ncml ref_tst_group_data.cdl            \
-ref_tst_enum_data.cdl ref_tst_opaque_data.cdl ref_tst_string_data.cdl   \
-ref_tst_vlen_data.cdl ref_tst_comp.cdl ref_tst_unicode.cdl              \
-ref_tst_nans.cdl small.cdl small2.cdl $(man_MANS) run_utf8_tests.sh     \
-ref_tst_utf8.cdl ref_tst_fillbug.cdl tst_fillbug.sh tst_calendars.cdl   \
-tst_calendars.sh ref_times.cdl ref_tst_special_atts.cdl                 \
-ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl       \
-ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc      \
-ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl          \
-tst_bug321.cdl ref_tst_format_att.cdl ref_tst_format_att_64.cdl         \
-tst_nccopy3.sh tst_nccopy4.sh ref_nc_test_netcdf4_4_0.nc                \
-run_back_comp_tests.sh ref_nc_test_netcdf4.cdl                          \
-ref_tst_special_atts3.cdl tst_brecs.cdl ref_tst_grp_spec0.cdl           \
-ref_tst_grp_spec.cdl tst_grp_spec.sh ref_tst_charfill.cdl               \
-tst_charfill.cdl tst_charfill.sh tst_iter.sh tst_mud.sh                 \
-ref_tst_mud4.cdl ref_tst_mud4-bc.cdl ref_tst_mud4_chars.cdl             \
-inttags.cdl inttags4.cdl ref_inttags.cdl ref_inttags4.cdl               \
-ref_tst_ncf213.cdl tst_h_scalar.sh run_utf8_nc4_tests.sh                \
-tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl tst_inttags.sh       \
-tst_inttags4.sh CMakeLists.txt XGetopt.c tst_bom.sh                     \
-tst_inmemory_nc3.sh tst_dimsizes.sh tst_inmemory_nc4.sh                 \
-tst_fileinfo.sh run_ncgen_tests.sh test_360_day_1900.nc                 \
-test_365_day_1900.nc test_366_day_1900.nc ref_test_360_day_1900.cdl     \
-ref_test_365_day_1900.cdl ref_test_366_day_1900.cdl                     \
-tst_hdf5_offset.sh run_ncgen_nc4_tests.sh tst_nccopy3_subset.sh         \
-ref_nccopy3_subset.nc test_corrupt_magic.nc ref_null_byte_padding_test.nc \
-tst_null_byte_padding.sh
+EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl		\
+ref_ctest1_nc4.cdl ref_ctest1_nc4c.cdl ref_tst_solar_1.cdl		\
+ref_tst_solar_2.cdl tst_netcdf4.sh tst_netcdf4_4.sh ref_tst_small.cdl	\
+tst_lengths.sh tst_ncml.cdl ref1.ncml ref_tst_group_data.cdl		\
+ref_tst_enum_data.cdl ref_tst_opaque_data.cdl ref_tst_string_data.cdl	\
+ref_tst_vlen_data.cdl ref_tst_comp.cdl ref_tst_unicode.cdl		\
+ref_tst_nans.cdl small.cdl small2.cdl $(man_MANS) run_utf8_tests.sh	\
+ref_tst_utf8.cdl ref_tst_fillbug.cdl tst_fillbug.sh tst_calendars.cdl	\
+tst_calendars.sh ref_times.cdl ref_tst_special_atts.cdl			\
+ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl	\
+ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc	\
+ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl		\
+tst_bug321.cdl ref_tst_format_att.cdl ref_tst_format_att_64.cdl		\
+tst_nccopy3.sh tst_nccopy4.sh ref_nc_test_netcdf4_4_0.nc		\
+run_back_comp_tests.sh ref_nc_test_netcdf4.cdl				\
+ref_tst_special_atts3.cdl tst_brecs.cdl ref_tst_grp_spec0.cdl		\
+ref_tst_grp_spec.cdl tst_grp_spec.sh ref_tst_charfill.cdl		\
+tst_charfill.cdl tst_charfill.sh tst_iter.sh tst_mud.sh			\
+ref_tst_mud4.cdl ref_tst_mud4-bc.cdl ref_tst_mud4_chars.cdl		\
+inttags.cdl inttags4.cdl ref_inttags.cdl ref_inttags4.cdl		\
+ref_tst_ncf213.cdl tst_h_scalar.sh run_utf8_nc4_tests.sh		\
+tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl tst_inttags.sh	\
+tst_inttags4.sh CMakeLists.txt XGetopt.c tst_bom.sh			\
+tst_inmemory_nc3.sh tst_dimsizes.sh tst_inmemory_nc4.sh			\
+tst_fileinfo.sh run_ncgen_tests.sh ref_test_360_day_1900.nc		\
+ref_test_365_day_1900.nc ref_test_366_day_1900.nc			\
+ref_test_360_day_1900.cdl ref_test_365_day_1900.cdl			\
+ref_test_366_day_1900.cdl tst_hdf5_offset.sh run_ncgen_nc4_tests.sh	\
+tst_nccopy3_subset.sh ref_nccopy3_subset.nc ref_test_corrupt_magic.nc	\
+tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh			\
+tst_ncgen4_diff.sh tst_ncgen4_cycle.sh tst_ctest.sh \
+tst_null_byte_padding.sh ref_null_byte_padding_test.nc
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
 EXTRA_DIST += L512.bin
 
 # CDL files and Expected results
-SUBDIRS=cdl expected
-EXTRA_DIST += tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh   \
-tst_ncgen4_diff.sh tst_ncgen4_cycle.sh tst_ctest.sh
+SUBDIRS = cdl expected
 
-CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl	\
-c5.nc compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc	\
-ref_camrun.c tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl	\
+CLEANFILES = tst_*.nc tmp*.nc test*.nc iter.* tmp*.cdl			\
+test1_ncdump.cdl test2_ncdump.cdl test1.cdl ctest1.cdl test1_cdf5.cdl	\
+test2_cdf5.cdl test1_offset.cdl test2_offset.cdl ctest0.nc		\
+ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl c0.nc c0_4.nc small.nc	\
+small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc	\
+tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl	\
+tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl		\
+tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl			\
+tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl			\
+tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl			\
+tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl			\
+tst_nc_test_netcdf4_4_0.cdl tst_mud4.cdl tst_mud4-bc.cdl		\
+tst_ncf213.cdl tst_h_scalar.cdl tst_mud4_chars.cdl inttags.nc		\
+inttags4.nc tst_inttags.cdl tst_inttags4.cdl nc4_fileinfo.nc		\
+hdf5_fileinfo.hdf nccopy3_subset_out.nc c5.nc				\
+compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc		\
+tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl			\
 tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl		\
-tst_gattenum.nc tst_ncf199.cdl tst_tst_gattenum.cdl			\
-tst_tst_usuffix.cdl tst_usuffix.nc tst_bug324.nc ctest.c ctest64.c	\
-nccopy3_subset_out.nc
-
-DISTCLEANFILES = results
-
-clean-local:
-	-rm -rf results
+tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl ctest.c		\
+ctest64.c nccopy3_subset_out.nc camrun.c

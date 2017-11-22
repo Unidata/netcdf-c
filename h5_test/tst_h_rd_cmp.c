@@ -2,7 +2,7 @@
    Copyright 2007 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test HDF5 compound types. 
+n   Test HDF5 compound types. 
 */
 
 #include "h5_err_macros.h"

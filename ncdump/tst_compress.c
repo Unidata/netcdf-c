@@ -4,7 +4,7 @@
 
    Create a compressible test file for nccopy to compress.
 
-   $Id$
+   Russ Rew, Ward Fisher, Dennis Heimbigner
 */
 
 #include "config.h"
