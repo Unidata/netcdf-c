@@ -1,9 +1,9 @@
 #!/bin/sh
+# This shell script runs extra tests ncdump for netcdf-4
+# Dennis Heimbigner, Ward Fisher
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
-
-# This shell script runs extra tests ncdump for netcdf-4
 
 set -e
 
@@ -19,12 +19,14 @@ echo "*** Running extra netcdf-4 tests."
 #
 # Short term solution, use sed when on windows/MSYS to 
 # remove the './','../../ncdump'.
-# 
+#
+
+echo "*** running tst_string_data to create test files..."
+${execdir}/tst_string_data
 
 if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then # MINGW Platforms
 
     echo "*** dumping tst_string_data.nc to tst_string_data.cdl..."
-
     ${NCDUMP} tst_string_data.nc > tst_string_data.cdl
     TMPNAME=`head -n 1 tst_string_data.cdl | cut -d" " -f 2`
     NEWNAME=`basename $TMPNAME`

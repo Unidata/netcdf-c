@@ -12,7 +12,6 @@
 int
 main(int argc, char** argv)
 {
-    long pos = 0;
     unsigned char buffer[BUFLEN];
     size_t count, red, avail, trunc;
     unsigned char* p = buffer;

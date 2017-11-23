@@ -501,6 +501,14 @@ IF(ENABLE_NETCDF_4)
   SET(ENABLE_NETCDF4 ON CACHE BOOL "")
 ENDIF()
 
+# Option to allow for strict null file padding.
+# See https://github.com/Unidata/netcdf-c/issues/657 for more information
+OPTION(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
+
+IF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
+  SET(USE_STRICT_NULL_BYTE_HEADER_PADDING ON CACHE BOOL "")
+ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
+
 # Option for building RPC
 OPTION(ENABLE_RPC "Enable RPC Client and Server." OFF)
 IF(ENABLE_RPC)
@@ -826,7 +834,6 @@ ELSE()
   SET(ENABLE_DAP4 OFF)
 ENDIF()
 
-# Check to see if libtool supports
 
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
