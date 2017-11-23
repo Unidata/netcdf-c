@@ -19,6 +19,8 @@ do
     fi
 done
 
+${execdir}/tst_interops3
+
 echo "SUCCESS!!!"
 
 exit 0

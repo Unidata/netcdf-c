@@ -104,7 +104,7 @@ endif # BUILD_UTILITIES
 TESTS += run_chunk_hdf4.sh tst_h4_lendian
 if USE_HDF4_FILE_TESTS
 check_PROGRAMS += tst_interops3
-TESTS += run_get_hdf4_files.sh tst_interops3 tst_hdf4_read_var.sh
+TESTS += run_get_hdf4_files.sh tst_hdf4_read_var.sh
 endif # USE_HDF4_FILE_TESTS
 endif # USE_HDF4
 
@@ -115,7 +115,6 @@ check_PROGRAMS += test_szip h5testszip
 TESTS += tst_szip.sh
 endif
 endif
-
 
 # This will run a bunch of the test programs with valgrind, the memory
 # checking tool. (Valgrind must be present for this to work.)
