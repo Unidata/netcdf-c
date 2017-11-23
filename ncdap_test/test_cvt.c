@@ -110,7 +110,7 @@ int main()
 {
     int ncid, varid;
     int ncstat = NC_NOERR;
-    char* url;
+    char url[8192];
     const char* topsrcdir;
     size_t len;
 #ifndef USE_NETCDF4
@@ -123,20 +123,15 @@ int main()
     
     topsrcdir = gettopsrcdir();
 
-    len = strlen("file://") + strlen(topsrcdir) + strlen("/ncdap_test/testdata3/test.02");
-#ifdef DEBUG
-    len += strlen("[log][show=fetch]");
-#endif
-    url = (char*)malloc(len+1);
     url[0] = '\0';
 
 #ifdef DEBUG
-    strlcat(url,"[log][show=fetch]",len);
+    strlcat(url,"[log][show=fetch]",sizeof(url));
 #endif
 
-    strlcat(url,"file://",len);
-    strlcat(url,topsrcdir,len);
-    strlcat(url,"/ncdap_test/testdata3/test.02",len);
+    strlcat(url,"file://",sizeof(url));
+    strlcat(url,topsrcdir,sizeof(url));
+    strlcat(url,"/ncdap_test/testdata3/test.02",sizeof(url));
 
     printf("*** Test: var conversions on URL: %s\n",url);
 

@@ -400,6 +400,7 @@ mergedods1(OCnode* dds, OCnode* dods)
 	    size_t len =   strlen(attnode->name)
                          + strlen(dods->name)
 			 + strlen(".");
+	    len++; /*strlcat nul*/
 	    char* newname = (char*)malloc(len+1);
 	    if(newname == NULL) return OC_ENOMEM;
 	    strncpy(newname,dods->name,len);

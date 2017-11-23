@@ -319,9 +319,10 @@ NCD2_open(const char* path, int mode,
     { int rullen = 0;
     /* set the compile flag by default */
     rullen = strlen(path)+strlen("[compile]");;
+    rullen++; /* strlcat nul */
     dapcomm->oc.rawurltext = (char*)emalloc(rullen+1);
     strncpy(dapcomm->oc.rawurltext,"[compile]",rullen);
-    strlcat(dapcomm->oc.rawurltext, path, rullen+1);
+    strlcat(dapcomm->oc.rawurltext, path, rullen);
     }
 #else
     dapcomm->oc.rawurltext = strdup(path);
@@ -908,10 +909,9 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	    char* s = (char*)nclistget(att->values,i);
 	    newlen += (1+strlen(s));
 	}
-    if(newlen > 0)
-      newstring = (char*)malloc(newlen+1);
-
-    MEMCHECK(newstring,NC_ENOMEM);
+	newlen++; /* for strlcat nul */
+        newstring = (char*)malloc(newlen+1);
+        MEMCHECK(newstring,NC_ENOMEM);
 	newstring[0] = '\0';
 	for(i=0;i<nvalues;i++) {
 	    char* s = (char*)nclistget(att->values,i);
@@ -1142,8 +1142,9 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 	        char sindex[64];
 		size_t baselen;
 		snprintf(sindex,sizeof(sindex),"_%d",dim->dim.index1);
-		baselen = strlen(sindex)+strlen(legalname)+1;
-		dim->ncbasename = (char*)malloc(baselen);
+		baselen = strlen(sindex)+strlen(legalname);
+		baselen++; /* for strlcat nul */
+		dim->ncbasename = (char*)malloc(baselen+1);
 		if(dim->ncbasename == NULL) {nullfree(legalname); return NC_ENOMEM;}
 		strncpy(dim->ncbasename,legalname,baselen);
 		strlcat(dim->ncbasename,sindex,baselen);

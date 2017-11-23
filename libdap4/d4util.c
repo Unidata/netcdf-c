@@ -112,11 +112,12 @@ NCD4_makeFQN(NCD4node* node)
 	nclistinsert(path,0,g);
     }
     estimate = (estimate*2) + 2*nclistlength(path);
-    /* start at 1 to avoid dataset */
+    estimate++; /*strlcat nul*/
     fqn = (char*)malloc(estimate+1);
     if(fqn == NULL) goto done;
     fqn[0] = '\0';
     /* Create the group-based fqn prefix */
+    /* start at 1 to avoid dataset */
     for(i=1;i<nclistlength(path);i++) {
 	NCD4node* elem = (NCD4node*)nclistget(path,i);
 	if(elem->sort != NCD4_GROUP) break;
@@ -160,7 +161,7 @@ NCD4_makeName(NCD4node* elem, const char* sep)
 	nclistinsert(path,0,n);
 	estimate += (1+(2*strlen(n->name)));
     }
-
+    estimate++; /*strlcat nul*/
     fqn = (char*)malloc(estimate+1);
     if(fqn == NULL) goto done;
     fqn[0] = '\0';

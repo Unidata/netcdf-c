@@ -349,8 +349,10 @@ set_curl_properties(NCD4INFO* d4info)
     int ret = NC_NOERR;
 
     if(d4info->auth.curlflags.useragent == NULL) {
-        size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
-	char* agent = (char*)malloc(len+1);
+	char* agent;
+        size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION);
+	len++; /*strlcat nul*/
+	agent = (char*)malloc(len+1);
 	strncpy(agent,DFALTUSERAGENT,len);
 	strlcat(agent,VERSION,len);
         d4info->auth.curlflags.useragent = agent;

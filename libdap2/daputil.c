@@ -442,13 +442,13 @@ simplepathstring(NClist* names,  char* separator)
 	len += strlen(name);
 	len += strlen(separator);
     }
-    len++; /* null terminator */
-    result = (char*)malloc(len);
+    len++; /* room for strlcat to null terminate */
+    result = (char*)malloc(len+1);
     result[0] = '\0';
     for(i=0;i<nclistlength(names);i++) {
 	char* segment = (char*)nclistget(names,i);
-	if(i > 0) strlcat(result,separator,len-1);
-	strlcat(result,segment,len-1);
+	if(i > 0) strlcat(result,separator,len);
+	strlcat(result,segment,len);
     }
     return result;
 }
@@ -780,6 +780,7 @@ repairname(const char* name, const char* badchars)
 
     if(name == NULL) return NULL;
     nnlen = (3*strlen(name)); /* max needed */
+    nnlen++; /* room for strlcat to add nul */
     newname = (char*)malloc(1+nnlen); /* max needed */
     newname[0] = '\0'; /* so we can use strlcat */
     for(p=name,q=newname;(c=*p);p++) {
