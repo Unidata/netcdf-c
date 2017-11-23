@@ -302,7 +302,3 @@ strdup(const char* s)
 #endif
 
 /**************************************************/
-/* Include dstrlcat so we can control it with HAVE_STRLCAT */
-#ifdef HAVE_STRLCAT
-#include "dstrlcat.c"
-#endif
