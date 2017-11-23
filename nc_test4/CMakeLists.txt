@@ -79,8 +79,8 @@ ENDFOREACH()
 # This must go after the 'foreach' stanza
 # immediately above this comment.
 IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
-    add_sh_test(nc_test4 run_get_hdf4_files)
     add_bin_test_no_prefix(tst_interops2)
+    add_sh_test(nc_test4 run_get_hdf4_files)
     add_bin_test(nc_test4 tst_interops3)
     add_bin_test(nc_test4 tst_bug324)
     add_sh_test(nc_test4 tst_formatx_hdf4)
