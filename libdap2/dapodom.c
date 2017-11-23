@@ -79,14 +79,14 @@ dapodom_print(Dapodometer* odom)
     char tmp[64];
     line[0] = '\0';
     if(odom->rank == 0) {
-	strcat(line,"[]");
+	strlcat(line,"[]",sizeof(line));
     } else for(i=0;i<odom->rank;i++) {
 	sprintf(tmp,"[%lu/%lu:%lu:%lu]",
 		(size_t)odom->index[i],
 		(size_t)odom->start[i],
 		(size_t)odom->stride[i],
 		(size_t)odom->length[i]);
-	strcat(line,tmp);	
+	strlcat(line,tmp,sizeof(line));	
     }
     return line;
 }

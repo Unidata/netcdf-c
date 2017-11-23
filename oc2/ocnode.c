@@ -399,13 +399,13 @@ mergedods1(OCnode* dds, OCnode* dods)
             */
 	    size_t len =   strlen(attnode->name)
                          + strlen(dods->name)
-			 + strlen(".")
-			 + 1; /*null*/
-	    char* newname = (char*)malloc(len);
+			 + strlen(".");
+	    len++; /*strlcat nul*/
+	    char* newname = (char*)malloc(len+1);
 	    if(newname == NULL) return OC_ENOMEM;
-	    strcpy(newname,dods->name);
-	    strcat(newname,".");
-	    strcat(newname,attnode->name);
+	    strncpy(newname,dods->name,len);
+	    strlcat(newname,".",len);
+	    strlcat(newname,attnode->name,len);
 	    att = makeattribute(newname,attnode->etype,attnode->att.values);
 	    free(newname);
             nclistpush(dds->attributes,(void*)att);
