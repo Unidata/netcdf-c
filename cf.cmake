@@ -1,8 +1,17 @@
 # Visual Studio
-#VS=1
 
-if test "x$1" = xsetup ; then
-VSSETUP=1
+case "$1" in
+vs|VS) VS=1 ;;
+linux|nix) unset VS ;;
+*) echo "Must specify env: vs|linux"; exit 1; ;;
+esac
+
+if test "x$VS" = x1 ; then
+  if test "x$2" = xsetup ; then
+    VSSETUP=1
+  else
+    unset VSSETUP
+  fi
 fi
 
 #export NCPATHDEBUG=1

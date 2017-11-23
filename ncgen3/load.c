@@ -15,10 +15,6 @@
 #include "ncgen.h"
 #include "genlib.h"
 
-#ifndef HAVE_STRLCAT
-extern size_t strlcat(char *dst, const char *src, size_t siz);
-#endif
-
 extern int netcdf_flag;
 extern int c_flag;
 extern int fortran_flag;
