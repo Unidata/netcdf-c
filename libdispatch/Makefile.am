@@ -43,7 +43,7 @@ libnetcdf2_la_SOURCES = dv2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
 
-EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c dstrlcat.c
+EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c
 
 # Build ncsettings.c as follows:
 # 1. copy ncsettings.hdr to ncsettings.c
