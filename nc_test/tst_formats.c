@@ -155,25 +155,5 @@ main(int argc, char **argv)
          SUMMARIZE_ERR;
       } /* next format */
    }
-#ifdef USE_HDF4
-   printf("\n*** Testing netcdf format functions for HDF4.\n");
-   {
-      int ncid;
-      int expected_mode;
-      int expected_extended_format;
-
-      printf("*** testing nc_inq_format() and nc_inq_format_extended() with HDF4...");
-
-      /* Set up test. */
-      expected_extended_format = NC_FORMATX_NC_HDF4;
-      expected_mode = NC_NETCDF4;
-
-      /* Open a HDF4 file and check it. */
-      if (nc_open(HDF4_FILE, 0, &ncid)) ERR;
-      if (check_inq_format(ncid, NC_FORMAT_NETCDF4, expected_extended_format, expected_mode)) ERR;
-      if (nc_close(ncid)) ERR;
-   }
-   SUMMARIZE_ERR;
-#endif /* USE_HDF4 */
    FINAL_RESULTS;
 }
