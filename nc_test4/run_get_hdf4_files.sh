@@ -1,11 +1,18 @@
 #!/bin/sh
 
-# This shell gets files from the netCDF ftp site for testing.
+# This shell gets some sample HDF4 files from the netCDF ftp site for
+# testing. Then it runs program tst_interops3 on the test file to
+# check that HDF4 reading works.
 
-# $Id: run_get_hdf4_files.sh,v 1.4 2009/07/15 15:16:05 ed Exp $
+# Ed Hartnett
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
 
 set -e
 echo ""
+echo "Getting HDF4 sample files from Unidata FTP site..."
+
 file_list="AMSR_E_L2_Rain_V10_200905312326_A.hdf AMSR_E_L3_DailyLand_V06_20020619.hdf \
     MYD29.A2009152.0000.005.2009153124331.hdf MYD29.A2002185.0000.005.2007160150627.hdf \
     MOD29.A2000055.0005.005.2006267200024.hdf"
@@ -19,6 +26,9 @@ do
     fi
 done
 
+
+echo ""
+echo "Running test program to check HDF4 sample files..."
 ${execdir}/tst_interops3
 
 echo "SUCCESS!!!"
