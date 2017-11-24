@@ -11,7 +11,7 @@ include $(top_srcdir)/lib_flags.am
 # Link to our assembled library.
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
-# These are netCDF-4 test programs.
+# These are netCDF-4 C test programs which are built and run.
 NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4		\
 tst_vars tst_varms tst_unlim_vars tst_converts tst_converts2 tst_grps	\
 tst_grps2 tst_compounds tst_compounds2 tst_compounds3 tst_opaques	\
@@ -29,14 +29,15 @@ if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
 endif
 
+# Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) renamegroup tst_empty_vlen_unlim
+TESTS = $(NC4_TESTS)
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
 check_PROGRAMS += tst_large tst_large2
+TESTS += tst_large tst_large2
 endif
-
-TESTS = $(NC4_TESTS)
 
 if BUILD_UTILITIES
 TESTS += run_grp_rename.sh tst_misc.sh
@@ -49,11 +50,6 @@ if BUILD_V2
 check_PROGRAMS += tst_v2
 TESTS += tst_v2
 endif # BUILD_V2
-
-if LARGE_FILE_TESTS
-check_PROGRAMS += tst_large
-TESTS += tst_large
-endif # LARGE_FILE_TESTS
 
 # If benchmarks were turned on, build and run a bunch more tests.
 if BUILD_BENCHMARKS
