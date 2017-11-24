@@ -59,8 +59,7 @@ endif # LARGE_FILE_TESTS
 if BUILD_BENCHMARKS
 check_PROGRAMS += tst_create_files bm_file tst_chunks3 tst_ar4	\
 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts	\
-tst_files2 tst_files3 tst_ar5 tst_h_files3 tst_mem tst_knmi     \
-bm_netcdf4_recs
+tst_files2 tst_files3 tst_ar5 tst_mem tst_knmi bm_netcdf4_recs
 
 bm_netcdf4_recs_SOURCES = bm_netcdf4_recs.c tst_utils.c
 bm_many_atts_SOURCES = bm_many_atts.c tst_utils.c
@@ -77,7 +76,7 @@ tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 # so they must appear in the appropriate order.
 TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
 run_bm_test2.sh run_tst_chunks.sh tst_files2 tst_files3 tst_ar5		\
-tst_h_files3 tst_mem run_get_knmi_files.sh tst_knmi
+tst_mem run_get_knmi_files.sh tst_knmi
 
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL4
