@@ -6,8 +6,12 @@ Release Notes       {#RELEASE_NOTES}
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
 ## 4.6.0 - TBD
+
 * [Enhancement] Full support for using HDF5 dynamic filters, both for
 reading and writing. See the file docs/filters.md.
+
+* [Enhancement] Begin replacing (almost) all uses of strncat with strlcat
+  to improve avoidance of memory buffer overflows.
 
 ## 4.5.1 - TBD
 
