@@ -682,12 +682,14 @@ groupncid(Symbol* sym)
     } else {
         char* grptmp;
 	const char* tmp1;
+	size_t len;
         if(sym == NULL) return groupncid(rootgroup);
         ASSERT(sym->objectclass == NC_GRP);
         tmp1 = cname(sym);
-        grptmp = poolalloc(strlen(tmp1)+strlen("_grp")+1);
-        strcpy(grptmp,tmp1);
-        strcat(grptmp,"_grp");
+        len = (strlen(tmp1)+strlen("_grp")+1); /*+1 for strlcat*/
+        grptmp = poolalloc(len+1);
+        strncpy(grptmp,tmp1,len);
+        strlcat(grptmp,"_grp",len);
         return grptmp;
     }
 #else
@@ -702,12 +704,14 @@ typencid(Symbol* tsym)
 {
     char* typtmp;
     const char* tmp1;
+    size_t len;
     if(tsym->subclass == NC_PRIM)
 	return nctype(tsym->typ.typecode);
     tmp1 = ctypename(tsym);
-    typtmp = poolalloc(strlen(tmp1)+strlen("_typ")+1);
-    strcpy(typtmp,tmp1);
-    strcat(typtmp,"_typ");
+    len = (strlen(tmp1)+strlen("_typ")+1); /*+1 for strlcat */
+    typtmp = poolalloc(len+1);
+    strncpy(typtmp,tmp1,len);
+    strlcat(typtmp,"_typ",len);
     return typtmp;
 }
 
@@ -718,10 +722,12 @@ varncid(Symbol* vsym)
 {
     const char* tmp1;
     char* vartmp;
+    size_t len;
     tmp1 = cname(vsym);
-    vartmp = poolalloc(strlen(tmp1)+strlen("_id")+1);
-    strcpy(vartmp,tmp1);
-    strcat(vartmp,"_id");
+    len = (strlen(tmp1)+strlen("_id")+1);
+    vartmp = poolalloc(len+1);
+    strncpy(vartmp,tmp1,len);
+    strlcat(vartmp,"_id",len);
     return vartmp;
 }
 
@@ -732,10 +738,12 @@ dimncid(Symbol* dsym)
 {
     const char* tmp1;
     char* dimtmp;
+    size_t len;
     tmp1 = cname(dsym);
-    dimtmp = poolalloc(strlen(tmp1)+strlen("_dim")+1);
-    strcpy(dimtmp,tmp1);
-    strcat(dimtmp,"_dim");
+    len = (strlen(tmp1)+strlen("_dim")+1);
+    dimtmp = poolalloc(len);
+    strncpy(dimtmp,tmp1,len);
+    strlcat(dimtmp,"_dim",len);
     return dimtmp;
 }
 

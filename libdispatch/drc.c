@@ -376,13 +376,13 @@ rcsearch(const char* prefix, const char* rcname, char** pathp)
     int plen = strlen(prefix);
     int rclen = strlen(rcname);
     int ret = NC_NOERR;
-
     size_t pathlen = plen+rclen+1; /*+1 for '/' */
+    pathlen++; /*strlcat*/    
     path = (char*)malloc(pathlen+1); /* +1 for nul*/
     if(path == NULL) {ret = NC_ENOMEM;	goto done;}
     strncpy(path,prefix,pathlen);
-    strncat(path,"/",pathlen);
-    strncat(path,rcname,pathlen);
+    strlcat(path,"/",pathlen);
+    strlcat(path,rcname,pathlen);
     /* see if file is readable */
     f = fopen(path,"r");
     if(f != NULL)

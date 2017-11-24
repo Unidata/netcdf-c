@@ -66,6 +66,7 @@ NCpathcvt(const char* path)
 	&& (path[0] == '/' || path[0] == '\\')
 	&& strchr(windrive,path[1]) != NULL
 	&& (path[2] == '/' || path[2] == '\\' || path[2] == '\0')) {
+	pathlen++; /*strlcat*/
 	/* Assume this is a mingw path */
 	outpath = (char*)malloc(pathlen+3); /* conservative */
 	if(outpath == NULL) goto done;
@@ -74,7 +75,7 @@ NCpathcvt(const char* path)
 	*q++ = ':';
 	strncpy(q,&path[2],pathlen);
 	if(strlen(outpath) == 2)
-	    strcat(outpath,"/");
+	    strlcat(outpath,"/",pathlen);
 	goto slashtrans;
     }
 
@@ -85,14 +86,15 @@ NCpathcvt(const char* path)
 	&& (path[cdlen+1] == '/'
 	    || path[cdlen+1] == '\\'
 	    || path[cdlen+1] == '\0')) {
+	pathlen++; /*strlcat*/
 	/* Assume this is a cygwin path */
 	outpath = (char*)malloc(pathlen+1); /* conservative */
 	if(outpath == NULL) goto done;
 	outpath[0] = path[cdlen]; /* drive letter */
 	outpath[1] = ':';
-	strcpy(&outpath[2],&path[cdlen+1]);
+	strncpy(&outpath[2],&path[cdlen+1],pathlen-2);
 	if(strlen(outpath) == 2)
-	    strcat(outpath,"/");
+	    strlcat(outpath,"/",pathlen);
 	goto slashtrans;
     }
 

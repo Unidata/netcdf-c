@@ -70,12 +70,14 @@ escapify(char* s0, int quote, size_t len)
 {
     int i;
     char* result;
-    result = poolalloc(1+4*len); /* overkill to support maximal expansion*/
+    size_t rlen = (4*len); /* overkill to support maximal expansion*/
+    rlen++; /*strlcat*/
+    result = poolalloc(1+rlen);
     result[0] = '\0';
     for(i=0;i<len;i++) {
 	char tmp[8];
 	escapifychar((unsigned int)s0[i],tmp,quote);
-        strcat(result,tmp);
+        strlcat(result,tmp,rlen);
     }
     return result;        
 }
@@ -428,7 +430,7 @@ jcodify (const char *name)
 /* FORTRAN does escapes differently than e.g. C */
 
 char*
-f77escapifychar(unsigned int c, char* s0)
+f77escapifychar(unsigned int c, char* s0, size_t slen)
 {
     char* s = s0;
     s0[0] = '\0';
@@ -439,7 +441,7 @@ f77escapifychar(unsigned int c, char* s0)
     } else {
 	char tmp[32];
 	nprintf(tmp,sizeof(tmp),"//char(%u)",c);	
-	strcat(s,tmp);
+	strlcat(s,tmp,slen);
 	s += strlen(tmp);
     }
     *s = '\0';
@@ -475,7 +477,7 @@ f77quotestring(Bytebuffer* databuf)
 	    else if(lastcharescaped && !thischarescaped) bbCat(databuf,"//'");
 	} else if(!thischarescaped)
 	    bbAppend(databuf,'\'');
-	f77escapifychar(c,tmp);
+	f77escapifychar(c,tmp,sizeof(tmp));
 	if(i == 0 && thischarescaped)
             bbCat(databuf,tmp+2);
 	else
@@ -506,40 +508,30 @@ char*
 fqnescape(const char* s)
 {
     const char* p;
-    char* q;
+    char* newname = NULL;
     int c;
-    int l = strlen(s);
+    size_t l = strlen(s);
 
 /*
 1234567
 _SLASH_
 _DOT__
 */
-    char* newname = poolalloc(l*7+1);
+    l = l*7; /* overkill */
+    l++;
+    newname = poolalloc(l);
     *newname = '\0';
-    for(q=newname,p=s;(c=*p++);) {
-#if 0
-        if(c == '/' || c == '.') {
-	    /* Do hex escape */
-	    int hex1 = (c & 0x0f);
-	    int hex2 = ((c >> 4) & 0x0f);
-	    *q++ = 'X';
-            *q++ = hexdigits[hex1];
-            *q++ = hexdigits[hex2];
-        } else
-	    *q++ = c;
-#else
+    for(p=s;(c=*p++);) {
         if(c == '/') {
-	    strcat(q,"_SLASH_");
-	    q += 7;
+	    strlcat(newname,"_SLASH_",l);
         } else if(c == '.') {
-	    strcat(q,"_DOT_");
-	    q += 5;
+	    strlcat(newname,"_DOT_",l);
 	} else {
-	    *q++ = c;
-	    *q = '\0';
+	    char x[2];
+	    x[0] = c;
+	    x[1] = '\0';
+	    strlcat(newname,x,l);
 	}
-#endif
     }
     return newname;
 }

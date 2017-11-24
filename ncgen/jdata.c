@@ -81,10 +81,12 @@ j_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf,.
     case NC_STRING: { /* handle separately */
 	char* escaped = escapify(con->value.stringv.stringv,
 				 '"',con->value.stringv.len);
-	special = poolalloc(1+2+strlen(escaped));
-	strcpy(special,"\"");
-	strcat(special,escaped);
-	strcat(special,"\"");
+	size_t slen = 1+2+strlen(escaped);
+	slen++; /* strlcat nul */
+	special = poolalloc(slen);
+	strncpy(special,"\"",slen);
+	strlcat(special,escaped,slen);
+	strlcat(special,"\"",slen);
 	} break;
 
     default: PANIC1("ncstype: bad type code: %d",con->nctype);

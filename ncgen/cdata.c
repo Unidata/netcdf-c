@@ -88,25 +88,27 @@ c_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf,.
 	} else {
 	    char* escaped = escapify(con->value.stringv.stringv,
 				 '"',con->value.stringv.len);
-	    special = poolalloc(1+2+strlen(escaped));
-	    strcpy(special,"\"");
-	    strcat(special,escaped);
-	    strcat(special,"\"");
+	    size_t len = (2+strlen(escaped)+1);
+	    special = poolalloc(1+len);
+	    strncpy(special,"\"",len);
+	    strlcat(special,escaped,len);
+	    strlcat(special,"\"",len);
 	}
 	} break;
     case NC_OPAQUE: {
 	char* p;
 	int bslen;
 	bslen=(4*con->value.opaquev.len);
+	bslen++; /*strlcat*/
 	special = poolalloc(bslen+2+1);
-	strcpy(special,"\"");
+	strncpy(special,"\"",bslen);
 	p = con->value.opaquev.stringv;
 	while(*p) {
-	    strcat(special,"\\x");
-	    strncat(special,p,2);	    	    
+	    strlcat(special,"\\x",bslen);
+	    strlcat(special,p,bslen);	    	    
 	    p += 2;	
 	}
-	strcat(special,"\"");
+	strlcat(special,"\"",bslen);
 	} break;
 
     default: PANIC1("ncstype: bad type code: %d",con->nctype);

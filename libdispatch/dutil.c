@@ -209,7 +209,7 @@ NC_mktmp(const char* base)
     cvtpath = NCpathcvt(base);
     strncpy(tmp,cvtpath,sizeof(tmp));
     nullfree(cvtpath);
-	strncat(tmp, "XXXXXX", sizeof(tmp));
+	strlcat(tmp, "XXXXXX", sizeof(tmp));
 
 #ifdef HAVE_MKSTEMP
     /* Note Potential problem: old versions of this function
@@ -234,7 +234,7 @@ NC_mktmp(const char* base)
 	    char spid[7];
 	    if(rno < 0) rno = -rno;
             snprintf(spid,sizeof(spid),"%06d",rno);
-            strncat(tmp,spid,sizeof(tmp));
+            strlcat(tmp,spid,sizeof(tmp));
 	}
 #endif /* HAVE_MKTEMP */
 #ifdef _MSC_VER

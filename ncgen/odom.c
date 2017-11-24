@@ -67,7 +67,7 @@ odometerprint(Odometer* odom)
     char tmp[64];
     line[0] = '\0';
     if(odom->origin->rank == 0) {
-	strcat(line,"[]");
+	strlcat(line,"[]",sizeof(line));
     } else for(i=0;i<odom->rank;i++) {
 	int ioffset = i + odom->offset;
 	sprintf(tmp,"[%lu/%lu..%lu:%lu]",
@@ -76,7 +76,7 @@ odometerprint(Odometer* odom)
 		(unsigned long)odom->origin->declsize[ioffset],
 		(unsigned long)odom->origin->count[ioffset]
 	       );
-	strcat(line,tmp);	
+	strlcat(line,tmp,sizeof(line));	
     }
     return line;
 }

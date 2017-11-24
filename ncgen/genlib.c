@@ -16,7 +16,7 @@ The output file name is chosen by using the following in priority order:
 void
 define_netcdf(void)
 {
-    char filename[2048+1];
+    char filename[2048+1]; /* +1 for strlcat */
 
     /* Rule for specifying the dataset name:
 	1. use -o name
@@ -27,23 +27,23 @@ define_netcdf(void)
 	file name, but oh well.
     */
     if(netcdf_name) { /* -o flag name */
-      strncpy(filename,netcdf_name,2048);
+      strncpy(filename,netcdf_name,sizeof(filename));
     } else { /* construct a usable output file name */
 	if (cdlname != NULL && strcmp(cdlname,"-") != 0) {/* cmd line name */
 	    char* p;
 
-	    strncpy(filename,cdlname,2048);
+	    strncpy(filename,cdlname,sizeof(filename));
 	    /* remove any suffix and prefix*/
 	    p = strrchr(filename,'.');
 	    if(p != NULL) {*p= '\0';}
 	    p = strrchr(filename,'/');
-	    if(p != NULL) {memmove(filename,(p+1),2048);}
+	    if(p != NULL) {memmove(filename,(p+1),sizeof(filename));}
 	    
        } else {/* construct name from dataset name */
-	    strncpy(filename,datasetname,2048); /* Reserve space for extension, terminating '\0' */
+	    strncpy(filename,datasetname,sizeof(filename)); /* Reserve space for extension, terminating '\0' */
         }
         /* Append the proper extension */
-	strncat(filename,binary_ext,2048-(strlen(filename) + strlen(binary_ext)));
+	strlcat(filename,binary_ext,sizeof(filename));
     }
 
     /* Execute exactly one of these */
@@ -104,6 +104,7 @@ topfqn(Symbol* sym)
 
 #ifdef USE_NETCDF4
     if(!usingclassic) {
+	size_t len;
         parent = sym->container;
         /* Recursively compute parent fqn */
         if(parent == NULL) { /* implies this is the rootgroup */
@@ -116,10 +117,12 @@ topfqn(Symbol* sym)
         parentfqn = parent->fqn;
     
         fqnname = fqnescape(sym->name);
-        fqn = (char*)malloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);    
-        strcpy(fqn,parentfqn);
-        strcat(fqn,"/");
-        strcat(fqn,fqnname);
+        len = (strlen(fqnname) + strlen(parentfqn) + 1);
+        len++; /* strlcat nul*/
+        fqn = (char*)malloc(len+1);
+        strncpy(fqn,parentfqn,len);
+        strlcat(fqn,"/",len);
+        strlcat(fqn,fqnname,len);
         sym->fqn = fqn;
     } else
 #endif /*USE_NETCDF4*/
@@ -140,6 +143,7 @@ nestedfqn(Symbol* sym)
     char* fqn;
     char* fqnname;
     Symbol* parent;
+    size_t len;
     
     if(sym->fqn != NULL)
 	return; /* already defined */
@@ -151,10 +155,12 @@ nestedfqn(Symbol* sym)
     assert(parent->fqn != NULL);
 
     fqnname = fqnescape(sym->name);
-    fqn = (char*)malloc(strlen(fqnname) + strlen(parent->fqn) + 1 + 1);    
-    strcpy(fqn,parent->fqn);
-    strcat(fqn,".");
-    strcat(fqn,fqnname);
+    len = (strlen(fqnname) + strlen(parent->fqn) + 1);
+    len++; /* strlcat nul*/
+    fqn = (char*)malloc(len+1);
+    strncpy(fqn,parent->fqn,len);
+    strlcat(fqn,".",len);
+    strlcat(fqn,fqnname,len);
     sym->fqn = fqn;
 }
 
@@ -170,6 +176,7 @@ attfqn(Symbol* sym)
     char* fqnname;
     char* parentfqn;
     Symbol* parent;
+    size_t len;
     
     if(sym->fqn != NULL)
 	return; /* already defined */
@@ -183,10 +190,12 @@ attfqn(Symbol* sym)
 	parentfqn = parent->fqn;
 
     fqnname = fqnescape(sym->name);
-    fqn = (char*)malloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);    
-    strcpy(fqn,parentfqn);
-    strcat(fqn,"_");
-    strcat(fqn,fqnname);
+    len = (strlen(fqnname) + strlen(parentfqn) + 1);
+    len++; /* strlcat nul*/
+    fqn = (char*)malloc(len+1);
+    strncpy(fqn,parentfqn,len);
+    strlcat(fqn,"_",len);
+    strlcat(fqn,fqnname,len);
     sym->fqn = fqn;
 }
 
@@ -210,17 +219,17 @@ cprefixed(List* prefix, char* suffix, char* separator)
 	slen += (strlen(sym->name)+strlen(separator));
     }
     slen += strlen(suffix);
-    slen++; /* for null terminator*/
-    result = poolalloc(slen);
+    slen++; /* for strlcat */
+    result = poolalloc(slen+1);
     result[0] = '\0';
     /* Leave off the root*/
     i = (rootgroup == (Symbol*)listget(prefix,0))?1:0;
     for(;i<plen;i++) {
 	Symbol* sym = (Symbol*)listget(prefix,i);
-        strcat(result,sym->name); /* append "<prefix[i]/>"*/
-	strcat(result,separator);
+        strlcat(result,sym->name,slen); /* append "<prefix[i]/>"*/
+	strlcat(result,separator,slen);
     }    
-    strcat(result,suffix); /* append "<suffix>"*/
+    strlcat(result,suffix,slen); /* append "<suffix>"*/
     return result;
 }
 #endif /*0*/

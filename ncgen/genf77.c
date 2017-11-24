@@ -401,10 +401,13 @@ f77varncid(Symbol* vsym)
 {
     const char* tmp1;
     char* vartmp;
+    size_t len;
     tmp1 = f77name(vsym);
-    vartmp = poolalloc(strlen(tmp1)+strlen("_id")+1);
-    strcpy(vartmp,tmp1);
-    strcat(vartmp,"_id");
+    len = (strlen(tmp1)+strlen("_id"));
+    len++; /* for strlcat */
+    vartmp = poolalloc(len+1);
+    strncpy(vartmp,tmp1,len);
+    strlcat(vartmp,"_id",len);
     return vartmp;
 }
 
@@ -415,10 +418,13 @@ f77dimncid(Symbol* dsym)
 {
     const char* tmp1;
     char* dimtmp;
+    size_t len;
     tmp1 = f77name(dsym);
-    dimtmp = poolalloc(strlen(tmp1)+strlen("_dim")+1);
-    strcpy(dimtmp,tmp1);
-    strcat(dimtmp,"_dim");
+    len = (strlen(tmp1)+strlen("_dim"));
+    len++; /* for strlcat */
+    dimtmp = poolalloc(len+1);
+    strncpy(dimtmp,tmp1,len);
+    strlcat(dimtmp,"_dim",len);
     return dimtmp;
 }
 
@@ -591,17 +597,17 @@ f77prefixed(List* prefix, char* suffix, char* separator)
 	slen += (strlen(sym->name)+strlen(separator));
     }
     slen += strlen(suffix);
-    slen++; /* for null terminator*/
-    result = poolalloc(slen);
+    slen++; /* for strlcat */
+    result = poolalloc(slen+1);
     result[0] = '\0';
     /* Leave off the root*/
     i = (rootgroup == (Symbol*)listget(prefix,0))?1:0;
     for(;i<plen;i++) {
 	Symbol* sym = (Symbol*)listget(prefix,i);
-        strcat(result,sym->name); /* append "<prefix[i]/>"*/
-	strcat(result,separator);
+        strlcat(result,sym->name,slen); /* append "<prefix[i]/>"*/
+	strlcat(result,separator,slen);
     }    
-    strcat(result,suffix); /* append "<suffix>"*/
+    strlcat(result,suffix,slen); /* append "<suffix>"*/
     return result;
 }
 #endif
