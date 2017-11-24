@@ -18,6 +18,7 @@
 #include "ncexternl.h"
 #include "ncwinpath.h"
 
+/* Debugging aid */
 #undef PATHFORMAT
 
 /*
@@ -38,7 +39,9 @@ Rules:
 /* Define legal windows drive letters */
 static char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-static size_t cdlen = 10; /* strlen("/cygdrive/") */
+#define CDPATH "/cygdrive/"
+
+static const size_t cdlen = 10; /*strlen(CDPATH)*/
 
 static int pathdebug = -1;
 
@@ -47,9 +50,9 @@ char* /* caller frees */
 NCpathcvt(const char* path)
 {
     char* outpath = NULL; 
-    char* p;
-    char* q;
     size_t pathlen;
+    char* p;
+    size_t outlen = 0; /*|outpath|*/
 
     if(path == NULL) goto done; /* defensive driving */
 
@@ -60,55 +63,65 @@ NCpathcvt(const char* path)
     }
 
     pathlen = strlen(path);
+    if(pathlen == 0) goto done;
 
-    /* 1. look for MSYS path /D/... */
+    /* Allocate outpath of maximal size needed */
+    outlen = pathlen+3+1; /* conservative */
+    outlen++; /*strlcat*/
+    outpath = (char*)malloc(outlen+1);
+    if(outpath == NULL) goto done;
+    outpath[0] = '\0'; /* so we can use strlcat */
+
+    /* 1. look for MSYS path /D[/|0]... => only can occur if |path| >= 2;
+	  Also assumes that path has trailing nul not counted in pathlen.
+     */
     if(pathlen >= 2
 	&& (path[0] == '/' || path[0] == '\\')
 	&& strchr(windrive,path[1]) != NULL
 	&& (path[2] == '/' || path[2] == '\\' || path[2] == '\0')) {
-	pathlen++; /*strlcat*/
 	/* Assume this is a mingw path */
-	outpath = (char*)malloc(pathlen+3); /* conservative */
-	if(outpath == NULL) goto done;
-	q = outpath;
-	*q++ = path[1];
-	*q++ = ':';
-	strncpy(q,&path[2],pathlen);
-	if(strlen(outpath) == 2)
-	    strlcat(outpath,"/",pathlen);
+	outpath[0] = path[1];
+	outpath[1] = ':';
+	outpath[2] = '\0';
+	if(path[2] != '\0') {
+	    strlcat(outpath,&path[2],outlen);
+	} else
+	    strlcat(outpath,"/",outlen);
 	goto slashtrans;
     }
 
     /* 2. Look for leading /cygdrive/D where D is a single-char drive letter */
-    if(pathlen >= (cdlen+1)
-	&& memcmp(path,"/cygdrive/",cdlen)==0
-	&& strchr(windrive,path[cdlen]) != NULL
-	&& (path[cdlen+1] == '/'
-	    || path[cdlen+1] == '\\'
-	    || path[cdlen+1] == '\0')) {
-	pathlen++; /*strlcat*/
-	/* Assume this is a cygwin path */
-	outpath = (char*)malloc(pathlen+1); /* conservative */
-	if(outpath == NULL) goto done;
-	outpath[0] = path[cdlen]; /* drive letter */
-	outpath[1] = ':';
-	strncpy(&outpath[2],&path[cdlen+1],pathlen-2);
-	if(strlen(outpath) == 2)
-	    strlcat(outpath,"/",pathlen);
-	goto slashtrans;
-    }
+    if(pathlen >= (cdlen+1)) {
+	int drive = path[cdlen];
+	int next = path[cdlen+1];
+	if(memcmp(path,CDPATH,cdlen)==0
+	   && strchr(windrive,drive) != NULL
+	   && (next == '/' || next == '\\' || next == '\0')) {
+	    /* Assume this is a cygwin path */
+	    outpath[0] = drive;
+	    outpath[1] = ':';
+	    outpath[2] = '\0';
+	    if(next != '\0')
+		strlcat(outpath,&path[cdlen+1],outlen);
+	    else
+	        strlcat(outpath,"/",outlen);
+	    goto slashtrans;
+	}
+    } /* else fall thru */
 
-    /* 3. Look for leading D: where D is a single-char drive letter */
+    /* 3. Look for leading D: where D is a single-char drive letter
+          => standard windows path
+     */
     if(pathlen >= 2
 	&& strchr(windrive,path[0]) != NULL
 	&& path[1] == ':'
-	&& (path[2] == '\0' || path[2] == '/'  || path[2] == '\\')) {
-	outpath = strdup(path);
+	&& (path[2] == '\0' || path[2] == '/' || path[2] == '\\')) {
+	strlcat(outpath,path,outlen);
 	goto slashtrans;
     }
 
     /* 4. Other: just pass thru */
-    outpath = strdup(path);
+    strlcat(outpath,path,outlen);
     goto done;
 
 slashtrans:

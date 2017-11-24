@@ -67,6 +67,6 @@ ncsettings.c: $(top_srcdir)/libnetcdf.settings ncsettings.hdr
 
 # Unit tests
 test_ncuri_SOURCES = test_ncuri.c ncuri.c ncbytes.c nclist.c
-test_pathcvt_SOURCES = test_pathcvt.c dwinpath.c
+test_pathcvt_SOURCES = test_pathcvt.c dwinpath.c dstring.c dutf8.c utf8proc.c
 check_PROGRAMS = test_ncuri test_pathcvt
 TESTS = test_ncuri test_pathcvt
