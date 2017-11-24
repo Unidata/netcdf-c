@@ -57,7 +57,6 @@ main(int argc, char **argv)
    char testfile[NC_MAX_NAME];
    int format[MAX_NUM_FORMATS];
    int num_formats;
-   int f = 0;
    int i, nerrs = 0;
 
    ncopts &= ~NC_FATAL;	/* make errors nonfatal */
