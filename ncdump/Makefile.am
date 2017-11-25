@@ -52,7 +52,8 @@ run_utf8_tests.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
 tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
 tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh
 
-# Record dependencies between classic test scripts.
+# The tst_nccopy3.sh test uses output from a bunch of other
+# tests. This records the dependency so parallel builds work.
 tst_nccopy3.log: tst_calendars.log run_utf8_tests.log tst_output.log	\
 tst_64bit.log run_tests.log tst_lengths.log
 
@@ -80,7 +81,8 @@ tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
 run_utf8_nc4_tests.sh run_back_comp_tests.sh run_ncgen_nc4_tests.sh	\
 tst_ncgen4.sh
 
-# Record dependencies between netcdf-4 test scripts.
+# The tst_nccopy4.sh test script depends on the output of a bunch of
+# other tests. Record dependencies so parallel builds work.
 tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
 tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log 
 endif #!USE_NETCDF4
