@@ -9,14 +9,14 @@ set -e
 
 echo ""
 echo "*** Testing ncgen and ncdump for netCDF-4 format."
-${NCGEN} -k nc4 -b -o c0_4_tst_netcdf4.nc ${ncgenc04}
-${NCDUMP} -n c1 c0_4_tst_netcdf4.nc | sed 's/e+0/e+/g' > c1_4_tst_netcdf4.cdl
-diff -b c1_4_tst_netcdf4.cdl $srcdir/ref_ctest1_nc4.cdl
+${NCGEN} -k nc4 -b -o tst_netcdf4_c0_4.nc ${ncgenc04}
+${NCDUMP} -n c1 tst_netcdf4_c0_4.nc | sed 's/e+0/e+/g' > tst_netcdf4_c1_4.cdl
+diff -b tst_netcdf4_c1_4.cdl $srcdir/ref_ctest1_nc4.cdl
 
-echo "*** Creating test output c0_tst_netcdf4.nc."
-${NCGEN} -k nc7 -b -o c0_tst_netcdf4.nc ${ncgenc0}
+echo "*** Creating test output tst_netcdf4_c0.nc."
+${NCGEN} -k nc7 -b -o tst_netcdf4_c0.nc ${ncgenc0}
 
-echo "*** Testing that program tst_h_rdc0 can read c0_tst_netcdf4.nc."
+echo "*** Testing that program tst_h_rdc0 can read tst_netcdf4_c0.nc."
 ${execdir}/tst_h_rdc0
 
 echo "*** Running tst_create_files.c to create test files."

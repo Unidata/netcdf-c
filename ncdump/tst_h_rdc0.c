@@ -14,7 +14,7 @@
 #include "err_macros.h"
 #include <hdf5.h>
 
-#define FILE_NAME "c0_tst_netcdf4.nc"
+#define FILE_NAME "tst_netcdf4_c0.nc"
 #define MAX_NAME 1024
 
 int
