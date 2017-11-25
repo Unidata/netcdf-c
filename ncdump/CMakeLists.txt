@@ -174,10 +174,10 @@ ENDIF()
 
     # Known failure on MSVC; the number of 0's padding
     # is different, but the result is actually correct.
-    #IF(NOT MSVC)
-    add_sh_test(ncdump tst_netcdf4)
-    build_bin_test_no_prefix(tst_h_rdc0)
-    #ENDIF()
+    IF(HAVE_BASH)
+      add_sh_test(ncdump tst_netcdf4)
+      build_bin_test_no_prefix(tst_h_rdc0)
+    ENDIF()
 
     add_bin_test_no_prefix(tst_unicode)
 
