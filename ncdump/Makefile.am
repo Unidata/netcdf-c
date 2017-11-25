@@ -86,10 +86,8 @@ run_utf8_nc4_tests.sh run_back_comp_tests.sh run_ncgen_nc4_tests.sh	\
 tst_ncgen4.sh
 
 # Record dependencies between netcdf-4 test scripts.
-tst_netcdf4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
-tst_formatx4.log
-tst_nccopy4.log: tst_netcdf4.log tst_fillbug.log tst_netcdf4_4.log	\
-tst_h_scalar.log tst_ctest.log
+tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
+tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log tst_ctest.log
 run_ncgen_nc4_tests.log: run_ncgen_tests.log tst_output.log \
 tst_nccopy3.log
 run_utf8_nc4_tests.log: run_utf8_tests.log

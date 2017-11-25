@@ -16,6 +16,8 @@ echo "*** creating c0.nc from c0.cdl..."
 ${NCGEN} -b -o c0.nc ${ncgenc0}
 echo "*** creating c1.cdl from c0.nc..."
 ${NCDUMP} -n c1 ${builddir}/c0.nc | sed 's/e+0/e+/g' > c1.cdl
+echo "*** comparing c1.cdl with ref_ctest1_nc4c.cdl..."
+diff -b c1.cdl $srcdir/ref_ctest1_nc4c.cdl
 echo "*** comparing ncdump of C program output (ctest1.cdl) with c1.cdl..."
 diff -b c1.cdl ctest1.cdl
 echo "*** test output for ncdump -k"
