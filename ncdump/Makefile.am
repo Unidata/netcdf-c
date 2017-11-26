@@ -83,7 +83,7 @@ tst_ncgen4.sh
 # The tst_nccopy4.sh test script depends on the output of a bunch of
 # other tests. Record dependencies so parallel builds work.
 tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
-tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log 
+tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log
 endif #!USE_NETCDF4
 
 # Add diskless checks if needed.
@@ -118,16 +118,17 @@ tst_charfill.cdl tst_charfill.sh tst_iter.sh tst_mud.sh			\
 ref_tst_mud4.cdl ref_tst_mud4-bc.cdl ref_tst_mud4_chars.cdl		\
 inttags.cdl inttags4.cdl ref_inttags.cdl ref_inttags4.cdl		\
 ref_tst_ncf213.cdl tst_h_scalar.sh run_utf8_nc4_tests.sh		\
-tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl ref_tst_nc4_utf8_4.cdl \
-tst_inttags.sh tst_inttags4.sh CMakeLists.txt XGetopt.c tst_bom.sh			\
-tst_inmemory_nc3.sh tst_dimsizes.sh tst_inmemory_nc4.sh			\
-tst_fileinfo.sh run_ncgen_tests.sh ref_test_360_day_1900.nc		\
-ref_test_365_day_1900.nc ref_test_366_day_1900.nc			\
-ref_test_360_day_1900.cdl ref_test_365_day_1900.cdl			\
-ref_test_366_day_1900.cdl tst_hdf5_offset.sh run_ncgen_nc4_tests.sh	\
-tst_nccopy3_subset.sh ref_nccopy3_subset.nc ref_test_corrupt_magic.nc	\
-tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh			\
-tst_ncgen4_diff.sh tst_ncgen4_cycle.sh tst_null_byte_padding.sh		\
+tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl			\
+ref_tst_nc4_utf8_4.cdl tst_inttags.sh tst_inttags4.sh CMakeLists.txt	\
+XGetopt.c tst_bom.sh tst_inmemory_nc3.sh tst_dimsizes.sh		\
+tst_inmemory_nc4.sh tst_fileinfo.sh run_ncgen_tests.sh			\
+ref_test_360_day_1900.nc ref_test_365_day_1900.nc			\
+ref_test_366_day_1900.nc ref_test_360_day_1900.cdl			\
+ref_test_365_day_1900.cdl ref_test_366_day_1900.cdl			\
+tst_hdf5_offset.sh run_ncgen_nc4_tests.sh tst_nccopy3_subset.sh		\
+ref_nccopy3_subset.nc ref_test_corrupt_magic.nc tst_ncgen_shared.sh	\
+tst_ncgen4.sh tst_ncgen4_classic.sh tst_ncgen4_diff.sh			\
+tst_ncgen4_cycle.sh tst_null_byte_padding.sh				\
 ref_null_byte_padding_test.nc
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
@@ -142,17 +143,16 @@ test1_ncdump.cdl test2_ncdump.cdl test1.cdl ctest1.cdl test1_cdf5.cdl	\
 test2_cdf5.cdl test1_offset.cdl test2_offset.cdl ctest0.nc		\
 ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl c0.nc c0_4.nc small.nc	\
 small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc	\
-nc4_utf8.cdl nc4_utf8.nc \
-tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl	\
-tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl		\
-tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl			\
-tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl			\
-tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl			\
-tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl			\
-tst_nc_test_netcdf4_4_0.cdl tst_mud4.cdl tst_mud4-bc.cdl		\
-tst_ncf213.cdl tst_h_scalar.cdl tst_mud4_chars.cdl inttags.nc		\
-inttags4.nc tst_inttags.cdl tst_inttags4.cdl nc4_fileinfo.nc		\
-hdf5_fileinfo.hdf nccopy3_subset_out.nc c5.nc				\
+nc4_utf8.cdl nc4_utf8.nc tst_unicode.cdl tst_group_data.cdl		\
+tst_compounds2.cdl tst_comp.cdl tst_enum_data.cdl tst_small.cdl		\
+tst_times.cdl tst_solar_2.cdl tst_string_data.cdl tst_fillbug.cdl	\
+tst_opaque_data.cdl tst_compounds4.cdl tst_utf8.cdl			\
+tst_compounds3.cdl tst_special_atts.cdl tst_nans.cdl			\
+tst_format_att_64.cdl tst_vlen_data.cdl tst_solar_1.cdl			\
+tst_format_att.cdl tst_nc_test_netcdf4_4_0.cdl tst_mud4.cdl		\
+tst_mud4-bc.cdl tst_ncf213.cdl tst_h_scalar.cdl tst_mud4_chars.cdl	\
+inttags.nc inttags4.nc tst_inttags.cdl tst_inttags4.cdl			\
+nc4_fileinfo.nc hdf5_fileinfo.hdf nccopy3_subset_out.nc c5.nc		\
 compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc		\
 tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl			\
 tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl		\
