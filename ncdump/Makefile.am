@@ -139,13 +139,14 @@ EXTRA_DIST += L512.bin
 SUBDIRS = cdl expected
 
 CLEANFILES = tst_*.nc tmp*.nc test*.nc iter.* tmp*.cdl			\
-test1_ncdump.cdl test2_ncdump.cdl test1.cdl ctest1.cdl test1_cdf5.cdl	\
-test2_cdf5.cdl test1_offset.cdl test2_offset.cdl ctest0.nc		\
-ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl c0.nc c0_4.nc small.nc	\
-small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc	\
-nc4_utf8.cdl nc4_utf8.nc tst_unicode.cdl tst_group_data.cdl		\
-tst_compounds2.cdl tst_comp.cdl tst_enum_data.cdl tst_small.cdl		\
-tst_times.cdl tst_solar_2.cdl tst_string_data.cdl tst_fillbug.cdl	\
+tst_output_*.cdl tst_output_*.c tst_utf8_*.cdl test1_ncdump.cdl		\
+test2_ncdump.cdl test1.cdl ctest1.cdl test1_cdf5.cdl test2_cdf5.cdl	\
+test1_offset.cdl test2_offset.cdl ctest0.nc ctest0_64.nc c1.cdl		\
+c1_4.cdl ctest1_64.cdl c0.nc c0_4.nc small.nc small2.nc c0tmp.nc	\
+c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc nc4_utf8.cdl		\
+nc4_utf8.nc tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl	\
+tst_comp.cdl tst_enum_data.cdl tst_small.cdl tst_times.cdl		\
+tst_solar_2.cdl tst_string_data.cdl tst_fillbug.cdl			\
 tst_opaque_data.cdl tst_compounds4.cdl tst_utf8.cdl			\
 tst_compounds3.cdl tst_special_atts.cdl tst_nans.cdl			\
 tst_format_att_64.cdl tst_vlen_data.cdl tst_solar_1.cdl			\
