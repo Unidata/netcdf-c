@@ -10,7 +10,6 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
-TESTS_ENVIRONMENT=CC=${CC}
 XFAIL_TESTS=""
 
 # This is the program we're building, and it's sources.
