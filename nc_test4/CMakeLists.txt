@@ -88,8 +88,6 @@ IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
     add_sh_test(nc_test4 run_chunk_hdf4)
     add_bin_test(nc_test4 tst_h4_lendian)
     add_sh_test(nc_test4 tst_hdf4_read_var)
-
-    SET_TESTS_PROPERTIES(nc_test4_tst_interops3 PROPERTIES DEPENDS nc_test4_run_get_hdf4_files)
 ENDIF()
 
 IF(TEST_PARALLEL4)
