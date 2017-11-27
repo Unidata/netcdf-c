@@ -27,7 +27,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 /* If Defined, then use only stdio for all magic number io;
    otherwise use stdio or mpio as required.
  */
-#define USE_STDIO
+#undef DEBUG
 
 /**
 Sort info for open/read/close of
@@ -48,7 +48,9 @@ struct MagicFile {
 static int openmagic(struct MagicFile* file);
 static int readmagic(struct MagicFile* file, long pos, char* magic);
 static int closemagic(struct MagicFile* file);
+#ifdef DEBUG
 static void printmagic(const char* tag, char* magic,struct MagicFile*);
+#endif
 
 extern int NC_initialized;
 extern int NC_finalized;
@@ -171,11 +173,7 @@ NC_check_file_type(const char *path, int flags, void *parameters,
 
     int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
 #ifdef USE_PARALLEL
-#ifdef USE_STDIO
-    int use_parallel = 0;
-#else
     int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
-#endif
 #endif /* USE_PARALLEL */
     int inmemory = (diskless && ((flags & NC_INMEMORY) == NC_INMEMORY));
     struct MagicFile file;
@@ -2062,7 +2060,6 @@ openmagic(struct MagicFile* file)
 	/* Get its length */
 	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
 	file->filelen = (long long)meminfo->size;
-fprintf(stderr,"XXX: openmagic: memory=0x%llx size=%ld\n",(long long unsigned int)meminfo->memory,meminfo->size);
 	goto done;
     }
 #ifdef USE_PARALLEL
@@ -2128,13 +2125,13 @@ readmagic(struct MagicFile* file, long pos, char* magic)
     if(file->inmemory) {
 	char* mempos;
 	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
-fprintf(stderr,"XXX: readmagic: memory=0x%llx size=%ld\n",(long long unsigned int)meminfo->memory,meminfo->size);
-fprintf(stderr,"XXX: readmagic: pos=%ld filelen=%lld\n",pos,file->filelen);
 	if((pos + MAGIC_NUMBER_LEN) > meminfo->size)
 	    {status = NC_EDISKLESS; goto done;}
 	mempos = ((char*)meminfo->memory) + pos;
 	memcpy((void*)magic,mempos,MAGIC_NUMBER_LEN);
-printmagic("XXX: readmagic",magic,file);
+#ifdef DEBUG
+	printmagic("XXX: readmagic",magic,file);
+#endif
 	goto done;
     }
 #ifdef USE_PARALLEL
@@ -2191,6 +2188,7 @@ done:
     return status;
 }
 
+#ifdef DEBUG
 static void
 printmagic(const char* tag, char* magic, struct MagicFile* f)
 {
@@ -2211,3 +2209,4 @@ printmagic(const char* tag, char* magic, struct MagicFile* f)
     fprintf(stderr,"\n");
     fflush(stderr);
 }
+#endif

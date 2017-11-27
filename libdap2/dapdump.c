@@ -584,7 +584,7 @@ dumpslice(DCEslice* slice)
                 (unsigned long)slice->stride,
                 (unsigned long)slice->last);
     }
-    strcat(buf,tmp);
+    strlcat(buf,tmp,sizeof(buf));
     return strdup(tmp);
 }
 
