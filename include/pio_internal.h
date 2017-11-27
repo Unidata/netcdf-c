@@ -171,6 +171,11 @@ extern "C" {
    int PIOc_createfile_int2(int iosysid, int *ncidp, int *iotype, const char *filename,
 			    int mode, int use_parallel, void* mpidata, struct NC_Dispatch* table, NC* nc);
 
+   /* Create a file (internal function). */
+   int PIOc_createfile_int3(int iosysid, int *ncidp, int *iotype, const char *filename,
+			    int mode, int use_parallel, void* mpidata, struct NC_Dispatch* table, NC* nc,
+                            int send_msg);
+
    /* Open a file with optional retry as netCDF-classic if first
     * iotype does not work. */
    int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filename, int mode,
@@ -599,7 +604,8 @@ enum PIO_MSG
    PIO_MSG_PUT_ATT,
    PIO_MSG_INQ_TYPE,
    PIO_MSG_INQ_UNLIMDIMS,
-   PIO_MSG_CHECK_NCID
+   PIO_MSG_CHECK_NCID,
+   PIO_MSG_NC_CREATE
 };
 
 #endif /* __PIO_INTERNAL__ */

@@ -149,9 +149,9 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
     else if (cmode & NC_PNETCDF)
 	iotype = PIO_IOTYPE_PNETCDF;
 
-    res = PIOc_createfile_int2(current_iosysid, &nc->ext_ncid, &iotype, path, cmode,
-			       use_parallel, mpidata, table, nc);
-    LOG((2, "PIOc_createfile_int2 called res %d nc->ext_ncid %d", res, nc->ext_ncid));
+    res = PIOc_createfile_int3(current_iosysid, &nc->ext_ncid, &iotype, path, cmode,
+			       use_parallel, mpidata, table, nc, false);
+    LOG((2, "PIOc_createfile_int3 called res %d nc->ext_ncid %d", res, nc->ext_ncid));
 
     /* Free this extra memory if there was a problem with create. */
     /* if (res && nc5) */

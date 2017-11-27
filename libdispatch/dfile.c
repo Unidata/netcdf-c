@@ -25,6 +25,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include "ncwinpath.h"
 #ifdef USE_PIO
 #include <pio.h>
+#include <pio_internal.h>
 #endif /* USE_PIO */
 
 /* If Defined, then use only stdio for all magic number io;
@@ -58,6 +59,11 @@ extern int NC_finalized;
 
 /* To be consistent with H5Fis_hdf5, use the complete HDF5 magic number */
 static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
+
+#ifdef USE_PIO
+/* This is the current IO system ID for netCDF functions. */
+extern int current_iosysid;
+#endif /* USE_PIO */
 
 /** \defgroup datasets NetCDF File and Data I/O
 
@@ -1717,10 +1723,64 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 #ifdef USE_PIO
       /* PIO is used for parallel io. Must be checked first because
        * mode flag can include both NC_PIO and NC_NETCDF4. */
-      if((cmode & NC_PIO) == NC_PIO)
-	model = NC_FORMATX_PIO;
+      if((cmode & NC_PIO) == NC_PIO) {
+         iosystem_desc_t *ios;         
+         int iotype = PIO_IOTYPE_NETCDF;
+
+         /* Set the dispatch model to PIO. */
+         model = NC_FORMATX_PIO;
+
+         /* Determine the PIO IO type from the cmode flag. */
+         if (cmode & NC_NETCDF4)
+         {
+            if (cmode & NC_SHARE)
+               iotype = PIO_IOTYPE_NETCDF4P;
+            else
+               iotype = PIO_IOTYPE_NETCDF4C;
+         }
+         else if (cmode & NC_PNETCDF)
+            iotype = PIO_IOTYPE_PNETCDF;
+
+         /* Get the IO system info from the iosysid. */
+         if (!(ios = pio_get_iosystem_from_id(current_iosysid)))
+            return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
+
+         /* For async mode, send message to IO root task to kick of file create. */
+         if (ios->async)
+         {
+            int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */
+            
+            if (!ios->ioproc)
+            {
+               int msg = PIO_MSG_NC_CREATE;
+               size_t len = strlen(path0);
+
+               /* Send the message to the message handler. */
+               if (ios->compmaster == MPI_ROOT)
+                  mpierr = MPI_Send(&msg, 1, MPI_INT, ios->ioroot, 1, ios->union_comm);
+
+               /* Send the parameters of the function call. */
+               if (!mpierr)
+                  mpierr = MPI_Bcast(&len, 1, MPI_INT, ios->compmaster, ios->intercomm);
+               if (!mpierr)
+                  mpierr = MPI_Bcast((void *)path0, len + 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+               if (!mpierr)
+                  mpierr = MPI_Bcast(&iotype, 1, MPI_INT, ios->compmaster, ios->intercomm);
+               if (!mpierr)
+                  mpierr = MPI_Bcast(&cmode, 1, MPI_INT, ios->compmaster, ios->intercomm);
+               if (!mpierr)
+                  mpierr = MPI_Bcast(&current_iosysid, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            }
+
+            /* Handle MPI errors. */
+            if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
+               return check_mpi2(ios, NULL, mpierr2, __FILE__, __LINE__);
+            if (mpierr)
+               return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+         }
+      }
       else
-#endif
+#endif /* USE_PIO */
 #ifdef USE_NETCDF4
       if((cmode & NC_NETCDF4) == NC_NETCDF4)
 	model = NC_FORMATX_NC4;

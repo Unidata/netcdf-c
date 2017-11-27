@@ -22,6 +22,9 @@ extern int my_rank;
 extern int pio_log_level;
 #endif /* PIO_ENABLE_LOGGING */
 
+/* This is the current IO system ID for netCDF functions. */
+extern int current_iosysid;
+
 /**
  * This function is run on the IO tasks to handle nc_inq_type*()
  * functions.
@@ -190,6 +193,57 @@ int create_file_handler(iosystem_desc_t *ios)
 
     /* Call the create file function. */
     PIOc_createfile(ios->iosysid, &ncid, &iotype, filename, mode);
+    
+    LOG((1, "create_file_handler succeeded!"));
+    return PIO_NOERR;
+}
+
+/**
+ * This function is run on the IO tasks to create a netCDF file from
+ * within netCDF.
+ *
+ * @param ios pointer to the iosystem info.
+ * @returns 0 for success, PIO_EIO for MPI Bcast errors, or error code
+ * from netCDF base function.
+ * @internal
+ * @author Ed Hartnett
+ */
+int nc_create_file_handler(iosystem_desc_t *ios)
+{
+    int ncid;
+    int len;
+    int iotype;
+    int mode;
+    int mpierr;
+    int use_parallel;
+
+    LOG((1, "nc_create_file_handler comproot = %d", ios->comproot));
+    assert(ios);
+
+    /* Get the parameters for this function that the he comp master
+     * task is broadcasting. */
+    if ((mpierr = MPI_Bcast(&len, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+
+    /* Get space for the filename. */
+    char filename[len + 1];
+
+    if ((mpierr = MPI_Bcast(filename, len + 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&iotype, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&mode, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&current_iosysid, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    LOG((1, "create_file_handler got parameters len = %d filename = %s iotype = %d mode = %d",
+         len, filename, iotype, mode));
+
+    /* Is parallel in use? */
+    use_parallel = (mode & NC_SHARE) ? 1 : 0;
+
+    /* Call the create file function. */
+    NC_create(filename, mode, 0, 0, NULL, use_parallel, NULL, &ncid);
     
     LOG((1, "create_file_handler succeeded!"));
     return PIO_NOERR;
@@ -1284,6 +1338,8 @@ int inq_var_all_handler(iosystem_desc_t *ios)
     if ((mpierr = MPI_Bcast(&no_fill_present, 1, MPI_CHAR, 0, ios->intercomm)))
         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
     if ((mpierr = MPI_Bcast(&fill_value_present, 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&endianness_present, 1, MPI_CHAR, 0, ios->intercomm)))
         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
     if ((mpierr = MPI_Bcast(&idp_present, 1, MPI_CHAR, 0, ios->intercomm)))
         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
@@ -2890,6 +2946,9 @@ int pio_msg_handler2(int io_rank, int component_count, iosystem_desc_t **iosys,
             break;
         case PIO_MSG_CREATE_FILE:
             ret = create_file_handler(my_iosys);
+            break;
+        case PIO_MSG_NC_CREATE:
+            ret = nc_create_file_handler(my_iosys);
             break;
         case PIO_MSG_SYNC:
             ret = sync_file_handler(my_iosys);
