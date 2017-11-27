@@ -47,6 +47,8 @@ main(int argc, char** argv)
     if((ret=nc_close(ncid))) goto done;
 
 done:
+#ifdef DEBUG
     fprintf(stderr,"code=%d %s\n",ret,nc_strerror(ret));
+#endif
     return (ret ? 1 : 0);
 }
