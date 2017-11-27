@@ -5,7 +5,7 @@
    Use HDF5 to read c0.nc, a file created by ncdump. This check was
    added to detect a problem in the early HDF5 1.8.0 releases.
 
-   $Id: tst_h_rdc0.c,v 1.5 2010/06/01 15:34:53 ed Exp $
+   Ed Hartnett
 */
 #include <nc_tests.h>
 #include "err_macros.h"

@@ -454,7 +454,8 @@ by the desired type. */
 
 #define NC_EFILTER       (-132)    /**< Filter operation failed. */
 #define NC_ERCFILE       (-133)    /**< RC file failure */
-#define NC4_LAST_ERROR   (-134)
+#define NC_ENULLPAD      (-134)    /**< Header Bytes not Null-Byte padded */
+#define NC4_LAST_ERROR   (-135)
 
 /* This is used in netCDF-4 files for dimensions without coordinate
  * vars. */

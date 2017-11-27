@@ -16,6 +16,10 @@ TESTFILES='tst_comp tst_comp2 tst_enum_data tst_fillbug
  tst_solar_cmp tst_special_atts tst_string_data tst_unicode
  tst_vlen_data'
 
+# Run these programs to create some test files.
+${execdir}/tst_comp2
+${execdir}/tst_compress
+
 echo "*** Testing netCDF-4 features of nccopy on ncdump/*.nc files"
 for i in $TESTFILES ; do
     echo "*** Test nccopy $i.nc copy_of_$i.nc ..."
