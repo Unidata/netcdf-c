@@ -113,19 +113,20 @@ NCD4_makeFQN(NCD4node* node)
 	nclistinsert(path,0,g);
     }
     estimate = (estimate*2) + 2*nclistlength(path);
-    /* start at 1 to avoid dataset */
+    estimate++; /*strlcat nul*/
     fqn = (char*)malloc(estimate+1);
     if(fqn == NULL) goto done;
     fqn[0] = '\0';
     /* Create the group-based fqn prefix */
+    /* start at 1 to avoid dataset */
     for(i=1;i<nclistlength(path);i++) {
 	NCD4node* elem = (NCD4node*)nclistget(path,i);
 	if(elem->sort != NCD4_GROUP) break;
 	/* Add in the group name */
 	escaped = backslashEscape(elem->name);
 	if(escaped == NULL) {free(fqn); fqn = NULL; goto done;}
-	strcat(fqn,"/");
-	strcat(fqn,escaped);
+	strlcat(fqn,"/",estimate);
+	strlcat(fqn,escaped,estimate);
 	free(escaped);
     }
     /* Add in the final name part (if not group) */
@@ -133,8 +134,8 @@ NCD4_makeFQN(NCD4node* node)
 	int last = nclistlength(path)-1;
 	NCD4node* n = (NCD4node*)nclistget(path,last);
 	char* name = NCD4_makeName(n,".");
-	strcat(fqn,"/");
-	strcat(fqn,name);
+	strlcat(fqn,"/",estimate);
+	strlcat(fqn,name,estimate);
 	nullfree(name);
     }
 
@@ -161,7 +162,7 @@ NCD4_makeName(NCD4node* elem, const char* sep)
 	nclistinsert(path,0,n);
 	estimate += (1+(2*strlen(n->name)));
     }
-
+    estimate++; /*strlcat nul*/
     fqn = (char*)malloc(estimate+1);
     if(fqn == NULL) goto done;
     fqn[0] = '\0';
@@ -171,8 +172,8 @@ NCD4_makeName(NCD4node* elem, const char* sep)
 	char* escaped = backslashEscape(elem->name);
 	if(escaped == NULL) {free(fqn); fqn = NULL; goto done;}
 	if(i > 0)
-	    strcat(fqn,sep);
-	strcat(fqn,escaped);
+	    strlcat(fqn,sep,estimate);
+	strlcat(fqn,escaped,estimate);
 	free(escaped);
     }
 done:
