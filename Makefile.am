@@ -82,8 +82,8 @@ endif
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
 SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc $(LIBSRC4_DIR)	\
-$(LIBSRCP) $(OCLIB) $(DAP2) ${DAP4} liblib $(NCGEN3) $(NCGEN)		\
-$(NCDUMP) $(TESTDIRS) docs $(EXAMPLES) $(UDUNITS) $(LIBCF)
+$(LIBSRCP) $(LIBPIO) $(OCLIB) $(DAP2) ${DAP4} liblib $(NCGEN3) $(NCGEN)		\
+$(NCDUMP) $(TESTDIRS) docs $(EXAMPLES)
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings	\
