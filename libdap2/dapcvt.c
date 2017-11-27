@@ -236,10 +236,22 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	case NC_FLOAT: {
 	    float* p = (float*)dstmem;
 	    ok = sscanf(s,"%g%n",p,&nread);
+#if defined(_MSC_VER) && (_MSC_VER == 1500)
+	    if (!_strnicmp(s, "NaN", 3)) {
+	      ok = 1;
+	      nread = 3;
+	    }
+#endif
 	    } break;
 	case NC_DOUBLE: {
 	    double* p = (double*)dstmem;
 	    ok = sscanf(s,"%lg%n",p,&nread);
+#if defined(_MSC_VER) && (_MSC_VER == 1500)
+	    if (!_strnicmp(s, "NaN", 3)) {
+	      ok = 1;
+	      nread = 3;
+	    }
+#endif
 	    } break;
 	case NC_UBYTE: {
 	    unsigned char* p = (unsigned char*)dstmem;
