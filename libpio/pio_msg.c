@@ -214,8 +214,8 @@ int nc_create_file_handler(iosystem_desc_t *ios)
     int len;
     int iotype;
     int mode;
-    int mpierr;
     int use_parallel;
+    int mpierr;
 
     LOG((1, "nc_create_file_handler comproot = %d", ios->comproot));
     assert(ios);
@@ -2346,6 +2346,60 @@ int open_file_handler(iosystem_desc_t *ios)
 }
 
 /**
+ * This function is run on the IO tasks to open a netCDF file.
+ *
+ *
+ * @param ios pointer to the iosystem_desc_t.
+ * @returns 0 for success, PIO_EIO for MPI Bcast errors, or error code
+ * from netCDF base function.
+ * @internal
+ * @author Ed Hartnett
+ */
+int nc_open_file_handler(iosystem_desc_t *ios)
+{
+    int ncid;
+    int len;
+    int iotype;
+    int mode;
+    int use_parallel;
+    int mpierr;
+    int ret;
+
+    LOG((1, "nc_open_file_handler comproot = %d", ios->comproot));
+    assert(ios);
+
+    /* Get the parameters for this function that the he comp master
+     * task is broadcasting. */
+    if ((mpierr = MPI_Bcast(&len, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    LOG((2, "nc_open_file_handler got parameter len = %d", len));
+
+    /* Get space for the filename. */
+    char filename[len + 1];
+
+    if ((mpierr = MPI_Bcast(filename, len + 1, MPI_CHAR, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&iotype, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&mode, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    if ((mpierr = MPI_Bcast(&current_iosysid, 1, MPI_INT, 0, ios->intercomm)))
+        return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+    LOG((2, "nc_open_file_handler got parameters len = %d filename = %s iotype = %d mode = %d",
+         len, filename, iotype, mode));
+
+    /* Is parallel in use? */
+    use_parallel = (mode & NC_SHARE) ? 1 : 0;
+
+    /* Call the open file function. Errors are handling within
+     * function, so return code can be ignored. */
+    ret = NC_open(filename, mode, 0, NULL, use_parallel, NULL, &ncid);
+    LOG((2, "nc_open_file_handler returned from NC_open ret %d", ret));
+
+    return PIO_NOERR;
+}
+
+/**
  * This function is run on the IO tasks to delete a netCDF file.
  *
  * @param ios pointer to the iosystem_desc_t data.
@@ -2959,6 +3013,9 @@ int pio_msg_handler2(int io_rank, int component_count, iosystem_desc_t **iosys,
             break;
         case PIO_MSG_OPEN_FILE:
             ret = open_file_handler(my_iosys);
+            break;
+        case PIO_MSG_NC_OPEN:
+            ret = nc_open_file_handler(my_iosys);
             break;
         case PIO_MSG_CLOSE_FILE:
             ret = close_file_handler(my_iosys);

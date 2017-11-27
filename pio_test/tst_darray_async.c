@@ -66,7 +66,7 @@ int check_darray_file(int iosysid, char *data_filename, int iotype, int my_rank,
     int ret;
 
     /* Reopen the file. */
-    if ((ret = PIOc_openfile(iosysid, &ncid, &iotype, data_filename, NC_NOWRITE)))
+    if ((ret = nc_open(data_filename, NC_PIO|NC_NOWRITE, &ncid)))
         ERR(ret);
 
     /* Get the size of the type. */
@@ -215,7 +215,7 @@ int check_darray_file(int iosysid, char *data_filename, int iotype, int my_rank,
     free(data_in_norec);
 
     /* Close the file. */
-    if ((ret = PIOc_closefile(ncid)))
+    if ((ret = nc_close(ncid)))
         ERR(ret);
 
     return 0;
@@ -460,8 +460,8 @@ int run_darray_async_test(int iosysid, int my_rank, MPI_Comm test_comm, MPI_Comm
         free(my_data_multi);
 
         /* Check the file for correctness. */
-        /* if ((ret = check_darray_file(iosysid, data_filename, PIO_IOTYPE_NETCDF, my_rank, piotype))) */
-        /*     ERR(ret); */
+        if ((ret = check_darray_file(iosysid, data_filename, PIO_IOTYPE_NETCDF, my_rank, piotype)))
+            ERR(ret);
 
     } /* next iotype */
 
@@ -518,7 +518,8 @@ int main(int argc, char **argv)
         int mpierr;
 
         /* Run the test for each data type. */
-        for (int t = 0; t < NUM_TYPES_TO_TEST; t++)
+        /* for (int t = 0; t < NUM_TYPES_TO_TEST; t++) */
+        for (int t = 0; t < 1; t++)
         {
             if ((ret = PIOc_init_async(test_comm, NUM_IO_PROCS, NULL, COMPONENT_COUNT,
                                        &num_computation_procs, NULL, &io_comm, comp_comm,

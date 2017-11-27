@@ -43,9 +43,6 @@ static const int LEGAL_CREATE_FLAGS = (NC_NOCLOBBER | NC_64BIT_OFFSET | NC_CLASS
 static const int LEGAL_OPEN_FLAGS = (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_LOCK | NC_NETCDF4 |
 				     NC_CLASSIC_MODEL | NC_64BIT_OFFSET | NC_64BIT_DATA | NC_MPIIO | NC_PIO);
 
-int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filename,
-			 int mode, int retry, struct NC_Dispatch *table, NC *nc);
-
 /**************************************************/
 
 /**
@@ -201,7 +198,7 @@ PIO_open(const char *path, int cmode, int basepe, size_t *chunksizehintp,
     }
     else if (cmode & NC_PNETCDF)
 	iotype = PIO_IOTYPE_PNETCDF;
-    res = PIOc_openfile_retry2(current_iosysid, &ncid, &iotype, path, cmode, 0, table, nc);
+    res = PIOc_openfile_retry3(current_iosysid, &ncid, &iotype, path, cmode, 0, table, nc, false);
 
     return res;
 }

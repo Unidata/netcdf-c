@@ -888,10 +888,10 @@ int main(int argc, char **argv)
             /*                                   test_type[t], rearranger[r], test_comm))) */
             /*     return ret; */
 
-            /* Run tests. */
-            if ((ret = test_darray_fill(iosysid, ioid, test_type[t], num_flavors, flavor,
-                                        my_rank, test_comm)))
-               return ret;
+            /* /\* Run tests. *\/ */
+            /* if ((ret = test_darray_fill(iosysid, ioid, test_type[t], num_flavors, flavor, */
+            /*                             my_rank, test_comm))) */
+            /*    return ret; */
 
             /* /\* Run tests. *\/ */
             /* if ((ret = test_darray_fill_unlim(iosysid, ioid, test_type[t], num_flavors, */

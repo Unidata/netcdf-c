@@ -181,6 +181,10 @@ extern "C" {
    int PIOc_openfile_retry(int iosysid, int *ncidp, int *iotype, const char *filename, int mode,
 			   int retry);
 
+   /* Open a file from witnin netCDF. */
+   int PIOc_openfile_retry3(int iosysid, int *ncidp, int *iotype, const char *filename,
+                            int mode, int retry, struct NC_Dispatch *table, NC *nc, int send_msg);
+
    /* Given PIO type, find MPI type and type size. */
    int find_mpi_type(int pio_type, MPI_Datatype *mpi_type, int *type_size);
 
@@ -605,7 +609,8 @@ enum PIO_MSG
    PIO_MSG_INQ_TYPE,
    PIO_MSG_INQ_UNLIMDIMS,
    PIO_MSG_CHECK_NCID,
-   PIO_MSG_NC_CREATE
+   PIO_MSG_NC_CREATE,
+   PIO_MSG_NC_OPEN
 };
 
 #endif /* __PIO_INTERNAL__ */

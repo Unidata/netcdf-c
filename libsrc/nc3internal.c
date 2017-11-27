@@ -21,6 +21,9 @@
 #include "nc3internal.h"
 #include "rnd.h"
 #include "ncx.h"
+#ifdef USE_PIO
+#include "pio_internal.h"
+#endif /* USE_PIO */
 
 /* These have to do with version numbers. */
 #define MAGIC_NUM_LEN 4
@@ -1110,6 +1113,9 @@ NC3_open(const char * path, int ioflags,
 	int status;
 	NC3_INFO* nc3 = NULL;
 
+        LOG((1, "NC3_open path %s ioflags %x basepe %d use_parallel %d", path,
+             ioflags, basepe, use_parallel));
+
 	/* Create our specific NC3_INFO instance */
 	nc3 = new_NC3INFO(chunksizehintp);
 
@@ -1152,6 +1158,7 @@ NC3_open(const char * path, int ioflags,
 	}
 
 	status = nc_get_NC(nc3);
+        LOG((3, "nc_get_NC status %d", status));
 	if(status != NC_NOERR)
 		goto unwind_ioc;
 
@@ -1161,6 +1168,7 @@ NC3_open(const char * path, int ioflags,
 	/* Link nc3 and nc */
         NC3_DATA_SET(nc,nc3);
 	nc->int_ncid = nc3->nciop->fd;
+        LOG((3, "nc->int_ncid %d", nc->int_ncid));        
 
 	return NC_NOERR;
 

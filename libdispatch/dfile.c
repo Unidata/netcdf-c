@@ -1903,7 +1903,10 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    /* PIO adds to the file list after the create to check for
     * collisions in ncid. */
    if (use_pio)
+   {
       add_to_NCList(ncp);
+   }
+   
 #endif
    
    return stat;
@@ -2059,13 +2062,65 @@ NC_open(const char *path0, int cmode,
 
    /* Figure out what dispatcher to use */
 #if defined(USE_PIO)
-    if (use_pio)
-        dispatcher = PIO_dispatch_table;
-    else
+   if (use_pio) {
+      dispatcher = PIO_dispatch_table;
+      iosystem_desc_t *ios;         
+      int iotype = PIO_IOTYPE_NETCDF;
+
+      /* Determine the PIO IO type from the cmode flag. */
+      if (cmode & NC_NETCDF4)
+      {
+         if (cmode & NC_SHARE)
+            iotype = PIO_IOTYPE_NETCDF4P;
+         else
+            iotype = PIO_IOTYPE_NETCDF4C;
+      }
+      else if (cmode & NC_PNETCDF)
+         iotype = PIO_IOTYPE_PNETCDF;
+
+      /* Get the IO system info from the iosysid. */
+      if (!(ios = pio_get_iosystem_from_id(current_iosysid)))
+         return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
+
+      /* If async is in use, and this is not an IO task, bcast the parameters. */
+      if (ios->async)
+      {
+         int msg = PIO_MSG_NC_OPEN;
+         size_t len = strlen(path0);
+         int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */
+
+         if (!ios->ioproc)
+         {
+            /* Send the message to the message handler. */
+            if (ios->compmaster == MPI_ROOT)
+               mpierr = MPI_Send(&msg, 1, MPI_INT, ios->ioroot, 1, ios->union_comm);
+
+            /* Send the parameters of the function call. */
+            if (!mpierr)
+               mpierr = MPI_Bcast(&len, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+               mpierr = MPI_Bcast((void *)path0, len + 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+               mpierr = MPI_Bcast(&iotype, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+               mpierr = MPI_Bcast(&cmode, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            if (!mpierr)
+               mpierr = MPI_Bcast(&current_iosysid, 1, MPI_INT, ios->compmaster, ios->intercomm);
+         }
+
+         /* Handle MPI errors. */
+         if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
+            return check_mpi2(ios, NULL, mpierr2, __FILE__, __LINE__);
+         if (mpierr)
+            return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+      }
+      
+   }
+   else
 #endif
 #if defined(ENABLE_DAP)
    if(model == (NC_FORMATX_DAP2))
-	dispatcher = NCD2_dispatch_table;
+      dispatcher = NCD2_dispatch_table;
    else
 #endif
 #if defined(ENABLE_DAP4)
@@ -2102,13 +2157,13 @@ havetable:
    nullfree(path); path = NULL; /* no longer need path */
    if(stat) return stat;
 
-   /* Add to list of known open files */
 #ifdef USE_PIO
-   if (use_pio)
-      pio_add_to_NCList(ncp);
-   else
+   /* PIO adds to the list after the create, because PIO needs to
+    * determine its own ext_ncid. */
+   if (!use_pio)
       add_to_NCList(ncp);
 #else
+   /* Add to list of known open files */
    add_to_NCList(ncp);
 #endif /* USE_PIO */
 
@@ -2121,7 +2176,16 @@ havetable:
    stat = dispatcher->open(ncp->path, cmode, basepe, chunksizehintp,
 			   useparallel, parameters, dispatcher, ncp);
    if(stat == NC_NOERR) {
+
+#ifdef USE_PIO
+      /* PIO adds to the file list after the create to check for
+       * collisions in ncid. */
+      /* if (use_pio) { */
+      /*    add_to_NCList(ncp); */
+      /* } */
+#endif
      if(ncidp) *ncidp = ncp->ext_ncid;
+     
    } else {
 	del_from_NCList(ncp);
 	free_NC(ncp);

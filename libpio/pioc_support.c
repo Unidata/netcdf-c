@@ -1986,7 +1986,7 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
    int mpierr;
    int ret;
 
-   LOG((2, "inq_file_metadata file %s ncid %d iotype %d", file, ncid, iotype));
+   LOG((2, "inq_file_metadata ncid %d iotype %d", ncid, iotype));
 
    if (iotype == PIO_IOTYPE_PNETCDF)
    {
@@ -1997,8 +1997,10 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
    }
    else if (iotype == PIO_IOTYPE_NETCDF)
    {
+      LOG((3, "about to call NC3_inq ncid %d", ncid));
       if ((ret = NC3_inq(ncid, NULL, nvars, NULL, NULL)))
          return pio_err(NULL, file, ret, __FILE__, __LINE__);
+      LOG((3, "called NC3_inq ret %d", ret));      
    }
 #ifdef _NETCDF4
    else
@@ -2195,6 +2197,13 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
 int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filename,
 			 int mode, int retry, struct NC_Dispatch *table, NC *nc)
 {
+   return PIOc_openfile_retry3(iosysid, ncidp, iotype, filename, mode, retry, NULL, NULL,
+                               true);
+}
+
+int PIOc_openfile_retry3(int iosysid, int *ncidp, int *iotype, const char *filename,
+			 int mode, int retry, struct NC_Dispatch *table, NC *nc, int send_msg)
+{
    iosystem_desc_t *ios;      /* Pointer to io system information. */
    file_desc_t *file;         /* Pointer to file information. */
    int imode;                 /* Internal mode val for netcdf4 file open. */
@@ -2218,8 +2227,8 @@ int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filen
    if (*iotype < PIO_IOTYPE_PNETCDF || *iotype > PIO_IOTYPE_NETCDF4P)
       return pio_err(ios, NULL, PIO_EINVAL, __FILE__, __LINE__);
 
-   LOG((2, "PIOc_openfile_retry iosysid = %d iotype = %d filename = %s mode = %d retry = %d",
-        iosysid, *iotype, filename, mode, retry));
+   LOG((2, "PIOc_openfile_retry3 iosysid %d iotype %d filename %s mode %d "
+        "retry %d send_msg %d", iosysid, *iotype, filename, mode, retry, send_msg));
 
    /* Allocate space for the file info. */
    if (!(file = calloc(sizeof(*file), 1)))
@@ -2238,7 +2247,7 @@ int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filen
       file->do_io = 1;
     
    /* If async is in use, and this is not an IO task, bcast the parameters. */
-   if (ios->async)
+   if (send_msg && ios->async)
    {
       int msg = PIO_MSG_OPEN_FILE;
       size_t len = strlen(filename);
@@ -2310,11 +2319,11 @@ int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filen
       case PIO_IOTYPE_NETCDF:
          if (ios->io_rank == 0)
          {
+            LOG((2, "about to call NC3_open filename %s mode %x table %d nc %d", filename, mode, table, nc));
             if ((ierr = NC3_open(filename, mode, 0, NULL, 0, NULL, table, nc)))
                break;
+            LOG((2, "done with NC3_open ierr %d nc->ext_ncid %d", ierr, nc->ext_ncid));
             file->fh = nc->ext_ncid;
-            ierr = inq_file_metadata(file, file->fh, PIO_IOTYPE_NETCDF, &nvars, &rec_var, &pio_type,
-                                     &pio_type_size, &mpi_type, &mpi_type_size, &ndim);
          }
          break;
 	    
@@ -2406,6 +2415,32 @@ int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filen
       return check_mpi(file, mpierr, __FILE__, __LINE__);
    LOG((3, "after Bcasting nvars %d", nvars));
 
+   /* Create the ncid that the user will see. This is necessary
+    * because otherwise ncids will be reused if files are opened
+    * on multiple iosystems. */
+   nc->ext_ncid = pio_next_ncid << ID_SHIFT;
+   file->pio_ncid = nc->ext_ncid;
+   file->fh = nc->ext_ncid;
+   pio_next_ncid++;
+   
+   /* Return the PIO ncid to the user. */
+   *ncidp = file->pio_ncid;
+
+   /* Add this file to the list of currently open files. */
+   pio_add_to_file_list(file);
+   add_to_NCList(nc);
+
+   /* Learn about the metadata in this file. */
+   if (ios->ioproc)
+      if ((ierr = inq_file_metadata(file, file->fh, file->iotype, &nvars, &rec_var, &pio_type,
+                                    &pio_type_size, &mpi_type, &mpi_type_size, &ndim)))
+         return pio_err(ios, file, ierr, __FILE__, __LINE__);                          
+
+   /* All tasks need to know how many vars. */
+   if ((mpierr = MPI_Bcast(&nvars, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+      return check_mpi(file, mpierr, __FILE__, __LINE__);
+   LOG((3, "after inq_file_metadata nvars %d", nvars));
+   
    /* Non io tasks need to allocate to store info about variables. */
    if (nvars && !rec_var)
    {
@@ -2422,6 +2457,8 @@ int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filen
       if (!(ndim = malloc(nvars * sizeof(int))))
          return pio_err(ios, file, PIO_ENOMEM, __FILE__, __LINE__);                    
    }
+
+   /* Broadcast metadata so all tasks have it. */
    if (nvars)
    {
       if ((mpierr = MPI_Bcast(rec_var, nvars, MPI_INT, ios->ioroot, ios->my_comm)))
@@ -2437,17 +2474,6 @@ int PIOc_openfile_retry2(int iosysid, int *ncidp, int *iotype, const char *filen
       if ((mpierr = MPI_Bcast(ndim, nvars, MPI_INT, ios->ioroot, ios->my_comm)))
          return check_mpi(file, mpierr, __FILE__, __LINE__);
    }
-
-   /* Create the ncid that the user will see. This is necessary
-    * because otherwise ncids will be reused if files are opened
-    * on multiple iosystems. */
-   file->pio_ncid = nc->ext_ncid;
-
-   /* Return the PIO ncid to the user. */
-   *ncidp = file->pio_ncid;
-
-   /* Add this file to the list of currently open files. */
-   pio_add_to_file_list(file);
 
    /* Add info about the variables to the file_desc_t struct. */
    for (int v = 0; v < nvars; v++)
