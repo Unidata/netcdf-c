@@ -1769,11 +1769,12 @@ NC3_inq_var_fill(const NC_var *varp, void *fill_value)
      */
     attrpp = NC_findattr(&varp->attrs, _FillValue);
     if ( attrpp != NULL ) {
+        const void *xp;
         /* User defined fill value */
         if ( (*attrpp)->type != varp->type || (*attrpp)->nelems != 1 )
             return NC_EBADTYPE;
 
-        const void *xp = (*attrpp)->xvalue;
+        xp = (*attrpp)->xvalue;
         /* value stored in xvalue is in external representation, may need byte-swap */
         switch(varp->type) {
             case NC_CHAR:   return ncx_getn_text               (&xp, 1,               (char*)fill_value);
