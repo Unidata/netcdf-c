@@ -246,7 +246,7 @@ NC_mktmp(const char* base)
 #endif /* !HAVE_MKSTEMP */
     if(fd < 0) {
        nclog(NCLOGERR, "Could not create temp file: %s",tmp);
-       return (NC_EPERM);
+       return NULL;
     } else
 	close(fd);
     return strdup(tmp);
