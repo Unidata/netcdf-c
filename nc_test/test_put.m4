@@ -1382,6 +1382,7 @@ int
 TestFunc(att)_text(AttVarArgs)
 {
     int i, j, err, ncid, nok=0;
+    double dtmp;
     IntType k, ndx[1];
     text value[MAX_NELS];
 
@@ -1426,7 +1427,7 @@ TestFunc(att)_text(AttVarArgs)
 
                 for (k = 0; k < ATT_LEN(i,j); k++) {
                     ndx[0] = k;
-                    double dtmp = hash(ATT_TYPE(i,j), -1, ndx);
+                    dtmp = hash(ATT_TYPE(i,j), -1, ndx);
                     value[k] = (text)dtmp;
                 }
                 err = PutAtt(text)(ncid, i, ATT_NAME(i,j), ATT_LEN(i,j), value);

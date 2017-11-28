@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . ../test_common.sh
 
@@ -12,9 +12,9 @@ set -e
 
 echo ""
 
-rm -f utf8.nc utf8.cdl
+rm -f nc4_utf8.nc nc4_utf8.cdl
 echo "*** creating enhanced file with utf8 characters..."
-${NCGEN} -4 -b -o utf8.nc ${srcdir}/ref_tst_utf8_4.cdl
+${NCGEN} -4 -b -o nc4_utf8.nc ${srcdir}/ref_tst_nc4_utf8_4.cdl
 echo "*** dump and compare utf8 output..."
-${NCDUMP} utf8.nc > utf8.cdl
-diff -b -w utf8.cdl ${srcdir}/ref_tst_utf8_4.cdl
+${NCDUMP} nc4_utf8.nc > nc4_utf8.cdl
+diff -b -w nc4_utf8.cdl ${srcdir}/ref_tst_nc4_utf8_4.cdl

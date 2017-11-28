@@ -85,6 +85,8 @@ EXTRA_DIST = tst_ncdap3.sh  \
 	     t_ncf330.c tst_ber.sh
 
 CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a test_nstride_cached *.exe
+# This should only be left behind if using parallel io
+CLEANFILES += tmp_*
 
 # This rule are used if someone wants to rebuild t_dap3a.c
 # Otherwise never invoked, but records how to do it.
