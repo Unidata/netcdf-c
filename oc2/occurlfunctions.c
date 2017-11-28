@@ -28,8 +28,8 @@ check(OCstate* state, int flag, void* value)
     } else {
 	char show[65];
 	char* s = (char*)value;
-	strncpy(show,s,64);
-	show[64] = '\0';
+	strncpy(show,s,sizeof(show)-1);
+	show[sizeof(show)-1] = '\0';
 	OCDBG2("%s=%s",name,show);
     }
 #endif
