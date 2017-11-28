@@ -50,11 +50,6 @@ extern char double_att_fmt[];
 extern "C" {
 #endif
 
-#ifndef HAVE_STRLCAT
-/* Append src to dst of size siz */
-extern size_t strlcat(char *dst, const char *src, size_t siz);
-#endif /* ! HAVE_STRLCAT */
-
 /* In case different formats specified with -d option, set them here. */
 extern void	set_formats ( int flt_digs, int dbl_digs );
 
