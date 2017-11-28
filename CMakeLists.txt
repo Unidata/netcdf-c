@@ -1002,7 +1002,6 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
   ENDIF()
 ENDIF()
 
-
 # Options to enable parallel IO, tests.
 SET(STATUS_PNETCDF "OFF")
 OPTION(ENABLE_PNETCDF "Build with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
@@ -1106,6 +1105,12 @@ IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
   IF(USE_NETCDF4)
     SET(TEST_PARALLEL4 ON CACHE BOOL "")
   ENDIF()
+ENDIF()
+
+# Enable special filter test; experimental when using cmake.
+OPTION(ENABLE_FILTER_TEST "Enable special filter test. Ignored if netCDF4 is not enabled" OFF)
+IF(USE_NETCDF4)
+  SET(ENABLE_FILTER_TEST OFF CACHE BOOL "")
 ENDIF()
 
 # Determine whether or not to generate documentation.
@@ -1248,6 +1253,7 @@ CHECK_INCLUDE_FILE("sys/types.h" HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE("sys/wait.h"  HAVE_SYS_WAIT_H)
 CHECK_INCLUDE_FILE("sys/mman.h"  HAVE_SYS_MMAN_H)
 CHECK_INCLUDE_FILE("sys/resource.h" HAVE_SYS_RESOURCE_H)
+CHECK_INCLUDE_FILE("sys/cdefs.h" HAVE_SYS_CDEFS_H)
 CHECK_INCLUDE_FILE("fcntl.h"  HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("inttypes.h"  HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE("pstdint.h"  HAVE_PSTDINT_H)

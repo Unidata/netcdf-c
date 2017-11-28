@@ -101,7 +101,6 @@ main()
 	exit(0);
     }
 
-    strcpy(url,URL);
     snprintf(url,sizeof(url),URL,svc);
 
     for (idim=0; idim<5; idim++) {

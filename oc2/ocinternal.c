@@ -54,6 +54,7 @@ OCerror
 ocinternalinitialize(void)
 {
     int stat = OC_NOERR;
+    CURLcode cstat = CURLE_OK;
 
     if(ocinitialized) return OC_NOERR;
     ocinitialized = 1;
@@ -68,7 +69,6 @@ ocinternalinitialize(void)
     }
 #endif
 
-     CURLcode cstat = CURLE_OK;
      cstat = curl_global_init(CURL_GLOBAL_ALL);
      if(cstat != CURLE_OK)
 	fprintf(stderr,"curl_global_init failed!\n");
