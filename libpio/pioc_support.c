@@ -1998,8 +1998,9 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
    else if (iotype == PIO_IOTYPE_NETCDF)
    {
       LOG((3, "about to call NC3_inq ncid %d", ncid));
-      if ((ret = NC3_inq(ncid, NULL, nvars, NULL, NULL)))
-         return pio_err(NULL, file, ret, __FILE__, __LINE__);
+      if (file->do_io)
+         if ((ret = NC3_inq(ncid, NULL, nvars, NULL, NULL)))
+            return pio_err(NULL, file, ret, __FILE__, __LINE__);
       LOG((3, "called NC3_inq ret %d", ret));      
    }
 #ifdef _NETCDF4
@@ -2037,8 +2038,9 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
    }
    else if (iotype == PIO_IOTYPE_NETCDF)
    {
-      if ((ret = NC3_inq_unlimdim(ncid, &unlimdimid)))
-         return pio_err(NULL, file, ret, __FILE__, __LINE__);
+      if (file->do_io)
+         if ((ret = NC3_inq_unlimdim(ncid, &unlimdimid)))
+            return pio_err(NULL, file, ret, __FILE__, __LINE__);
       nunlimdims = unlimdimid == -1 ? 0 : 1;
    }
    else
@@ -2092,10 +2094,11 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
       {
          size_t type_size;
             
-         if ((ret = NC3_inq_var_all(ncid, v, NULL, &my_type, &var_ndims, NULL, NULL,
-                                    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                                    NULL, NULL, NULL)))
-            return pio_err(NULL, file, ret, __FILE__, __LINE__);
+         if (file->do_io)
+            if ((ret = NC3_inq_var_all(ncid, v, NULL, &my_type, &var_ndims, NULL, NULL,
+                                       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                                       NULL, NULL, NULL)))
+               return pio_err(NULL, file, ret, __FILE__, __LINE__);
          (*pio_type)[v] = (int)my_type;
          if ((ret = NC3_inq_type(ncid, (*pio_type)[v], NULL, &type_size)))
             return check_netcdf(file, ret, __FILE__, __LINE__);
@@ -2140,10 +2143,11 @@ int inq_file_metadata(file_desc_t *file, int ncid, int iotype, int *nvars, int *
          }
          else if (iotype == PIO_IOTYPE_NETCDF)
          {
-            if ((ret = NC3_inq_var_all(ncid, v, NULL, NULL, NULL, var_dimids, NULL,
-                                       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                                       NULL, NULL, NULL, NULL)))
-               return pio_err(NULL, file, ret, __FILE__, __LINE__);		
+            if (file->do_io)
+               if ((ret = NC3_inq_var_all(ncid, v, NULL, NULL, NULL, var_dimids, NULL,
+                                          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                                          NULL, NULL, NULL, NULL)))
+                  return pio_err(NULL, file, ret, __FILE__, __LINE__);		
          }
 #ifdef _NETCDF4
          else
@@ -2411,10 +2415,6 @@ int PIOc_openfile_retry3(int iosysid, int *ncidp, int *iotype, const char *filen
          return check_mpi(file, mpierr, __FILE__, __LINE__);
    }
     
-   if ((mpierr = MPI_Bcast(&nvars, 1, MPI_INT, ios->ioroot, ios->my_comm)))
-      return check_mpi(file, mpierr, __FILE__, __LINE__);
-   LOG((3, "after Bcasting nvars %d", nvars));
-
    /* Create the ncid that the user will see. This is necessary
     * because otherwise ncids will be reused if files are opened
     * on multiple iosystems. */
@@ -2431,7 +2431,7 @@ int PIOc_openfile_retry3(int iosysid, int *ncidp, int *iotype, const char *filen
    add_to_NCList(nc);
 
    /* Learn about the metadata in this file. */
-   if (ios->ioproc)
+   if (ios->ioproc && file->do_io)
       if ((ierr = inq_file_metadata(file, file->fh, file->iotype, &nvars, &rec_var, &pio_type,
                                     &pio_type_size, &mpi_type, &mpi_type_size, &ndim)))
          return pio_err(ios, file, ierr, __FILE__, __LINE__);                          
