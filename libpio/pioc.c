@@ -114,7 +114,21 @@ int PIOc_Set_File_Error_Handling(int ncid, int method)
  * @param ncid the ncid of the open file
  * @param varid the variable ID
  * @returns 0 on success, error code otherwise
+ * @author Ed Hartnett
+ */
+int nc_advanceframe(int ncid, int varid)
+{
+   return PIOc_advanceframe(ncid, varid);
+}
+
+/**
+ * Increment the unlimited dimension of the given variable.
+ *
+ * @param ncid the ncid of the open file
+ * @param varid the variable ID
+ * @returns 0 on success, error code otherwise
  * @author Jim Edwards, Ed Hartnett
+ * @internal
  */
 int PIOc_advanceframe(int ncid, int varid)
 {
@@ -174,7 +188,24 @@ int PIOc_advanceframe(int ncid, int varid)
  * first record, 1 for the second
  * @return PIO_NOERR for no error, or error code.
  * @ingroup PIO_setframe
+ * @author Ed Hartnett
+ */
+int nc_setframe(int ncid, int varid, int frame)
+{
+   return PIOc_setframe(ncid, varid, frame);
+}
+
+/**
+ * Set the unlimited dimension of the given variable
+ *
+ * @param ncid the ncid of the file.
+ * @param varid the varid of the variable
+ * @param frame the value of the unlimited dimension.  In c 0 for the
+ * first record, 1 for the second
+ * @return PIO_NOERR for no error, or error code.
+ * @ingroup PIO_setframe
  * @author Jim Edwards, Ed Hartnett
+ * @internal
  */
 int PIOc_setframe(int ncid, int varid, int frame)
 {
@@ -308,7 +339,26 @@ int PIOc_Set_IOSystem_Error_Handling(int iosysid, int method)
  * if NULL.
  * @returns 0 for success, error code otherwise.
  * @ingroup PIO_error_method
+ * @author Ed Hartnett
+ */
+int nc_set_iosystem_error_handling(int iosysid, int method, int *old_method)
+{
+   return PIOc_set_iosystem_error_handling(iosysid, method, old_method);
+}
+
+/**
+ * Set the error handling method used for subsequent calls for this IO
+ * system.
+ *
+ * @param iosysid the IO system ID. Passing PIO_DEFAULT instead
+ * changes the default error handling for the library.
+ * @param method the error handling method
+ * @param old_method pointer to int that will get old method. Ignored
+ * if NULL.
+ * @returns 0 for success, error code otherwise.
+ * @ingroup PIO_error_method
  * @author Jim Edwards, Ed Hartnett
+ * @internal
  */
 int PIOc_set_iosystem_error_handling(int iosysid, int method, int *old_method)
 {
@@ -1206,6 +1256,95 @@ int PIOc_iotype_available(int iotype)
    default:
       return 0;
    }
+}
+
+/**
+ * Library initialization used when IO tasks are distinct from compute
+ * tasks.
+ *
+ * This is a collective call.  Input parameters are read on
+ * comp_rank=0 values on other tasks are ignored.  This variation of
+ * PIO_init sets up a distinct set of tasks to handle IO, these tasks
+ * do not return from this call.  Instead they go to an internal loop
+ * and wait to receive further instructions from the computational
+ * tasks.
+ *
+ * Sequence of Events to do Asynch I/O
+ * -----------------------------------
+ *
+ * Here is the sequence of events that needs to occur when an IO
+ * operation is called from the collection of compute tasks.  I'm
+ * going to use pio_put_var because write_darray has some special
+ * characteristics that make it a bit more complicated...
+ *
+ * Compute tasks call pio_put_var with an integer argument
+ *
+ * The MPI_Send sends a message from comp_rank=0 to io_rank=0 on
+ * union_comm (a comm defined as the union of io and compute tasks)
+ * msg is an integer which indicates the function being called, in
+ * this case the msg is PIO_MSG_PUT_VAR_INT
+ *
+ * The iotasks now know what additional arguments they should expect
+ * to receive from the compute tasks, in this case a file handle, a
+ * variable id, the length of the array and the array itself.
+ *
+ * The iotasks now have the information they need to complete the
+ * operation and they call the pio_put_var routine.  (In pio1 this bit
+ * of code is in pio_get_put_callbacks.F90.in)
+ *
+ * After the netcdf operation is completed (in the case of an inq or
+ * get operation) the result is communicated back to the compute
+ * tasks.
+ *
+ * @param world the communicator containing all the available tasks.
+ *
+ * @param num_io_procs the number of processes for the IO component.
+ *
+ * @param io_proc_list an array of lenth num_io_procs with the
+ * processor number for each IO processor. If NULL then the IO
+ * processes are assigned starting at processes 0.
+ *
+ * @param component_count number of computational components
+ *
+ * @param num_procs_per_comp an array of int, of length
+ * component_count, with the number of processors in each computation
+ * component.
+ *
+ * @param proc_list an array of arrays containing the processor
+ * numbers for each computation component. If NULL then the
+ * computation components are assigned processors sequentially
+ * starting with processor num_io_procs.
+ *
+ * @param user_io_comm pointer to an MPI_Comm. If not NULL, it will
+ * get an MPI duplicate of the IO communicator. (It is a full
+ * duplicate and later must be freed with MPI_Free() by the caller.)
+ *
+ * @param user_comp_comm pointer to an array of pointers to MPI_Comm;
+ * the array is of length component_count. If not NULL, it will get an
+ * MPI duplicate of each computation communicator. (These are full
+ * duplicates and each must later be freed with MPI_Free() by the
+ * caller.)
+ *
+ * @param rearranger the default rearranger to use for decompositions
+ * in this IO system. Only PIO_REARR_BOX is supported for
+ * async. Support for PIO_REARR_SUBSET will be provided in a future
+ * version.
+ *
+ * @param iosysidp pointer to array of length component_count that
+ * gets the iosysid for each component.
+ *
+ * @return PIO_NOERR on success, error code otherwise.
+ * @ingroup PIO_init
+ * @author Ed Hartnett
+ */
+int nc_init_async(MPI_Comm world, int num_io_procs, int *io_proc_list,
+                    int component_count, int *num_procs_per_comp, int **proc_list,
+                    MPI_Comm *user_io_comm, MPI_Comm *user_comp_comm, int rearranger,
+                    int *iosysidp)
+{
+   return PIOc_init_async(world, num_io_procs, io_proc_list, component_count,
+                          num_procs_per_comp, proc_list, user_io_comm, user_comp_comm,
+                          rearranger, iosysidp);
 }
 
 /**

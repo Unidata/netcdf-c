@@ -466,7 +466,62 @@ int find_var_fillvalue(file_desc_t *file, int varid, var_desc_t *vdesc)
  * data.
  * @returns 0 for success, non-zero error code for failure.
  * @ingroup PIO_write_darray
+ * @author Ed Hartnett
+ */
+int nc_write_darray(int ncid, int varid, int ioid, PIO_Offset arraylen, void *array,
+                    void *fillvalue)
+{
+   return PIOc_write_darray(ncid, varid, ioid, arraylen, array, fillvalue);
+}
+
+/**
+ * Write a distributed array to the output file.
+ *
+ * This routine aggregates output on the compute nodes and only sends
+ * it to the IO nodes when the compute buffer is full or when a flush
+ * is triggered.
+ *
+ * Internally, this function will:
+ * <ul>
+ * <li>Locate info about this file, decomposition, and variable.
+ * <li>If we don't have a fillvalue for this variable, determine one
+ * and remember it for future calls.
+ * <li>Initialize or find the multi_buffer for this record/var.
+ * <li>Find out how much free space is available in the multi buffer
+ * and flush if needed.
+ * <li>Store the new user data in the mutli buffer.
+ * <li>If needed (only for subset rearranger), fill in gaps in data
+ * with fillvalue.
+ * <li>Remember the frame value (i.e. record number) of this data if
+ * there is one.
+ * </ul>
+ *
+ * NOTE: The write multi buffer wmulti_buffer is the cache on compute
+ * nodes that will collect and store multiple variables before sending
+ * them to the io nodes. Aggregating variables in this way leads to a
+ * considerable savings in communication expense. Variables in the wmb
+ * array must have the same decomposition and base data size and we
+ * also need to keep track of whether each is a recordvar (has an
+ * unlimited dimension) or not.
+ *
+ * @param ncid the ncid of the open netCDF file.
+ * @param varid the ID of the variable that these data will be written
+ * to.
+ * @param ioid the I/O description ID as passed back by
+ * PIOc_InitDecomp().
+ * @param arraylen the length of the array to be written. This should
+ * be at least the length of the local component of the distrubited
+ * array. (Any values beyond length of the local component will be
+ * ignored.)
+ * @param array pointer to an array of length arraylen with the data
+ * to be written. This is a pointer to the distributed portion of the
+ * array that is on this task.
+ * @param fillvalue pointer to the fill value to be used for missing
+ * data.
+ * @returns 0 for success, non-zero error code for failure.
+ * @ingroup PIO_write_darray
  * @author Jim Edwards, Ed Hartnett
+ * @internal
  */
 int PIOc_write_darray(int ncid, int varid, int ioid, PIO_Offset arraylen, void *array,
                       void *fillvalue)
@@ -707,7 +762,31 @@ int PIOc_write_darray(int ncid, int varid, int ioid, PIO_Offset arraylen, void *
  * processor.
  * @return 0 for success, error code otherwise.
  * @ingroup PIO_read_darray
+ * @author Ed Hartnett
+ */
+int nc_read_darray(int ncid, int varid, int ioid, PIO_Offset arraylen,
+                   void *array)
+{
+   return PIOc_read_darray(ncid, varid, ioid, arraylen, array);
+}
+
+/**
+ * Read a field from a file to the IO library.
+ *
+ * @param ncid identifies the netCDF file
+ * @param varid the variable ID to be read
+ * @param ioid: the I/O description ID as passed back by
+ * PIOc_InitDecomp().
+ * @param arraylen: the length of the array to be read. This
+ * is the length of the distrubited array. That is, the length of
+ * the portion of the data that is on the processor.
+ * @param array: pointer to the data to be read. This is a
+ * pointer to the distributed portion of the array that is on this
+ * processor.
+ * @return 0 for success, error code otherwise.
+ * @ingroup PIO_read_darray
  * @author Jim Edwards, Ed Hartnett
+ * @internal
  */
 int PIOc_read_darray(int ncid, int varid, int ioid, PIO_Offset arraylen,
                      void *array)
