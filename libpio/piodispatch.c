@@ -139,7 +139,9 @@ PIO_create(const char *path, int cmode, size_t initialsz, int basepe, size_t *ch
     if (cmode & NC_NETCDF4)
     {
 	if (cmode & NC_SHARE)
+        {
 	    iotype = PIO_IOTYPE_NETCDF4P;
+        }
 	else
 	    iotype = PIO_IOTYPE_NETCDF4C;
     }

@@ -33,17 +33,11 @@ int pio_next_ncid = 513;
 int PIOc_openfile(int iosysid, int *ncidp, int *iotype, const char *filename,
                   int mode)
 {
-   LOG((1, "PIOc_openfile iosysid %d *iotype %d filename %s mode %d", iosysid,
-	iotype ? *iotype: 0, filename, mode));
-   return PIOc_openfile_retry(iosysid, ncidp, iotype, filename, mode, 1);
+   return PIOc_openfile2(iosysid, ncidp, iotype, filename, mode);
 }
 
 /**
  * Open an existing file using PIO library.
- *
- * This is like PIOc_openfile(), but if the open fails, this function
- * will not try to open again as netCDF serial before giving
- * up. Input parameters are read on comp task 0 and ignored elsewhere.
  *
  * Note that the file is opened with default fill mode, NOFILL for
  * pnetcdf, and FILL for netCDF classic and netCDF-4 files.
@@ -60,9 +54,37 @@ int PIOc_openfile(int iosysid, int *ncidp, int *iotype, const char *filename,
 int PIOc_openfile2(int iosysid, int *ncidp, int *iotype, const char *filename,
                    int mode)
 {
+   iosystem_desc_t *ios;  /* Pointer to io system information. */
+   int ret;               /* Return code from function calls. */
+
    LOG((1, "PIOc_openfile2 iosysid %d *iotype %d filename %s mode %d", iosysid,
 	iotype ? *iotype : 0, filename, mode));
-   return PIOc_openfile_retry(iosysid, ncidp, iotype, filename, mode, 0);
+
+   /* Get the IO system info from the id. */
+   if (!(ios = pio_get_iosystem_from_id(iosysid)))
+      return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
+
+   /* Set this as the current IO system ID. */
+   if ((ret = nc_set_iosysid(iosysid)))
+      return ret;
+
+   /* Turn on PIO. */
+   mode |= NC_PIO;
+
+   /* Set the mode flag based on io type. */
+   if (*iotype == PIO_IOTYPE_NETCDF4C)
+      mode |= NC_NETCDF4;
+   if (*iotype == PIO_IOTYPE_NETCDF4P)
+      mode |= NC_NETCDF4 | NC_SHARE | NC_MPIIO;
+   if (*iotype == PIO_IOTYPE_PNETCDF)
+      mode |= NC_PNETCDF;
+   
+   if (*iotype == PIO_IOTYPE_PNETCDF || *iotype == PIO_IOTYPE_NETCDF4P)
+      ret = nc_open_par(filename, mode, ios->io_comm, MPI_INFO_NULL, ncidp);
+   else
+      ret = nc_open(filename, mode, ncidp);
+
+   return ret;
 }
 
 /**
@@ -80,8 +102,19 @@ int PIOc_openfile2(int iosysid, int *ncidp, int *iotype, const char *filename,
  */
 int PIOc_open(int iosysid, const char *path, int mode, int *ncidp)
 {
-   mode |= NC_PIO;
-   return nc_open(path, mode, ncidp);
+   int iotype = PIO_IOTYPE_NETCDF;
+
+   if (mode & NC_PNETCDF)
+      iotype = PIO_IOTYPE_PNETCDF;
+   if (mode & NC_NETCDF4)
+   {
+      if (mode & NC_SHARE)
+         iotype = PIO_IOTYPE_NETCDF4P;
+      else
+         iotype = PIO_IOTYPE_NETCDF4C;
+   }
+   
+   return PIOc_openfile2(iosysid, ncidp, &iotype, path, mode);
 }
 
 /**
@@ -105,16 +138,31 @@ int PIOc_open(int iosysid, const char *path, int mode, int *ncidp)
 int PIOc_createfile(int iosysid, int *ncidp, int *iotype, const char *filename,
                     int mode)
 {
+   iosystem_desc_t *ios;  /* Pointer to io system information. */
    int ret;               /* Return code from function calls. */
 
+   /* Get the IO system info from the id. */
+   if (!(ios = pio_get_iosystem_from_id(iosysid)))
+      return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
+
+   /* Set this as the current IO system ID. */
    if ((ret = nc_set_iosysid(iosysid)))
       return ret;
+
+   /* Based on the IO type, come up with create mode. */
    mode |= NC_PIO;
    if (*iotype == PIO_IOTYPE_NETCDF4C || *iotype == PIO_IOTYPE_NETCDF4P)
       mode |= NC_NETCDF4;
    if (*iotype == PIO_IOTYPE_NETCDF4P)
       mode |= NC_SHARE;
-   return nc_create(filename, mode, ncidp);
+
+   /* Call nc_create/nc_create_par to create the file. */
+   if (*iotype == PIO_IOTYPE_PNETCDF || *iotype == PIO_IOTYPE_NETCDF4P)
+      ret = nc_create_par(filename, mode, ios->io_comm, MPI_INFO_NULL, ncidp);
+   else
+      ret = nc_create(filename, mode, ncidp);
+
+   return ret;
 }
 
 /**
@@ -123,17 +171,27 @@ int PIOc_createfile(int iosysid, int *ncidp, int *iotype, const char *filename,
  * parameters are read on comp task 0 and ignored elsewhere.
  *
  * @param iosysid : A defined pio system descriptor (input)
- * @param cmode : The netcdf mode for the create operation.
+ * @param mode : The netcdf mode for the create operation.
  * @param filename : The filename to open
  * @param ncidp : A pio file descriptor (output)
  * @return 0 for success, error code otherwise.
  * @ingroup PIO_create
  * @author Ed Hartnett
  */
-int PIOc_create(int iosysid, const char *filename, int cmode, int *ncidp)
+int PIOc_create(int iosysid, const char *filename, int mode, int *ncidp)
 {
-   cmode |= NC_PIO;
-   return nc_create(filename, cmode, ncidp);
+   int iotype = PIO_IOTYPE_NETCDF;
+
+   if (mode & NC_PNETCDF)
+      iotype = PIO_IOTYPE_PNETCDF;
+   if (mode & NC_NETCDF4)
+   {
+      if (mode & NC_SHARE)
+         iotype = PIO_IOTYPE_NETCDF4P;
+      else
+         iotype = PIO_IOTYPE_NETCDF4C;
+   }
+   return PIOc_createfile(iosysid, ncidp, &iotype, filename, mode);
 }
 
 /**
