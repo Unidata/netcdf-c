@@ -142,8 +142,7 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
 
    /* Use PIO to create the example file in each of the four
     * available ways. */
-   /* for (int fmt = 0; fmt < num_flavors; fmt++) */
-   for (int fmt = 0; fmt < 1; fmt++)
+   for (int fmt = 0; fmt < num_flavors; fmt++)
    {
       /* BYTE and CHAR don't work with pnetcdf. Don't know why yet. */
       if (flavor[fmt] == PIO_IOTYPE_PNETCDF && (pio_type == PIO_BYTE || pio_type == PIO_CHAR))
@@ -154,8 +153,7 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
           flavor[fmt] != PIO_IOTYPE_NETCDF4P)
          continue;
 
-      /* for (int with_fillvalue = 0; with_fillvalue < NUM_FILLVALUE_PRESENT_TESTS; with_fillvalue++) */
-      for (int with_fillvalue = 0; with_fillvalue < 1; with_fillvalue++)
+      for (int with_fillvalue = 0; with_fillvalue < NUM_FILLVALUE_PRESENT_TESTS; with_fillvalue++)
       {
          int mode = NC_PIO;
 	    
@@ -829,24 +827,24 @@ int main(int argc, char **argv)
 {
 #define NUM_REARRANGERS_TO_TEST 2
    int rearranger[NUM_REARRANGERS_TO_TEST] = {PIO_REARR_BOX, PIO_REARR_SUBSET};
-/* #ifdef _NETCDF4 */
-/* #define NUM_TYPES_TO_TEST 11 */
-/*     int test_type[NUM_TYPES_TO_TEST] = {PIO_BYTE, PIO_CHAR, PIO_SHORT, PIO_INT, PIO_FLOAT, PIO_DOUBLE, */
-/*                                         PIO_UBYTE, PIO_USHORT, PIO_UINT, PIO_INT64, PIO_UINT64}; */
-/* #else */
+#ifdef _NETCDF4
+#define NUM_TYPES_TO_TEST 11
+    int test_type[NUM_TYPES_TO_TEST] = {PIO_BYTE, PIO_CHAR, PIO_SHORT, PIO_INT, PIO_FLOAT, PIO_DOUBLE,
+                                        PIO_UBYTE, PIO_USHORT, PIO_UINT, PIO_INT64, PIO_UINT64};
+#else
 #define NUM_TYPES_TO_TEST 6
    int test_type[NUM_TYPES_TO_TEST] = {PIO_BYTE, PIO_CHAR, PIO_SHORT, PIO_INT, PIO_FLOAT, PIO_DOUBLE};
-/* #endif /\* _NETCDF4 *\/ */
+#endif /* _NETCDF4 */
    int my_rank;
    int ntasks;
-   int num_flavors; /* Number of PIO netCDF flavors in this build. */
+   int num_flavors;         /* Number of PIO netCDF flavors in this build. */
    int flavor[NUM_FLAVORS]; /* iotypes for the supported netCDF IO flavors. */
-   MPI_Comm test_comm; /* A communicator for this test. */
-   int ret;         /* Return code. */
+   MPI_Comm test_comm;      /* A communicator for this test. */
+   int ret;                 /* Return code. */
 
    /* Initialize test. */
    if ((ret = pio_test_init2(argc, argv, &my_rank, &ntasks, MIN_NTASKS,
-                             MIN_NTASKS, 3, &test_comm)))
+                             MIN_NTASKS, -1, &test_comm)))
       ERR(ERR_INIT);
 
    if ((ret = PIOc_set_iosystem_error_handling(PIO_DEFAULT, PIO_RETURN_ERROR, NULL)))
@@ -865,8 +863,7 @@ int main(int argc, char **argv)
       if ((ret = get_iotypes(&num_flavors, flavor)))
          ERR(ret);
 
-      /* for (int r = 0; r < NUM_REARRANGERS_TO_TEST; r++) */
-      for (int r = 0; r < 1; r++)
+      for (int r = 0; r < NUM_REARRANGERS_TO_TEST; r++)
       {
          /* Initialize the PIO IO system. This specifies how many and
           * which processors are involved in I/O. */
@@ -875,8 +872,7 @@ int main(int argc, char **argv)
             return ret;
 
          /* Run tests for each data type. */
-         /* for (int t = 0; t < NUM_TYPES_TO_TEST; t++) */
-         for (int t = 0; t < 1; t++)
+         for (int t = 0; t < NUM_TYPES_TO_TEST; t++)
          {
             /* Decompose the data over the tasks. */
             if ((ret = create_decomposition_1d(TARGET_NTASKS, my_rank, iosysid, test_type[t],
@@ -893,10 +889,10 @@ int main(int argc, char **argv)
                                         my_rank, test_comm)))
                return ret;
 
-            /* /\* Run tests. *\/ */
-            /* if ((ret = test_darray_fill_unlim(iosysid, ioid, test_type[t], num_flavors, */
-            /*                                   flavor, my_rank, test_comm))) */
-            /*     return ret; */
+            /* Run tests. */
+            if ((ret = test_darray_fill_unlim(iosysid, ioid, test_type[t], num_flavors,
+                                              flavor, my_rank, test_comm)))
+                return ret;
 
             /* Free the PIO decomposition. */
             if ((ret = nc_free_decomp(iosysid, ioid)))

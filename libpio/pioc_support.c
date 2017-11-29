@@ -1813,15 +1813,21 @@ int PIOc_createfile_int3(int iosysid, int *ncidp, int *iotype, const char *filen
 #ifdef _NETCDF4
       case PIO_IOTYPE_NETCDF4P:
          mode = mode |  NC_MPIIO | NC_NETCDF4;
-         LOG((2, "Calling NC4_create io_comm = %d mode = %d fh = %d",
-              ios->io_comm, mode, file->fh));
+         LOG((2, "Calling NC4_create io_comm = %d mode = %d fh = %d", ios->io_comm, mode,
+              file->fh));
          ierr = NC4_create(filename, mode, 0, 0, NULL, use_parallel, mpidata, table, nc);
-         /* ierr = nc_create_par(filename, mode, ios->io_comm, ios->info, &file->fh); */
-         file->fh = nc->ext_ncid;
-         LOG((2, "NC4_create returned %d file->fh %d", ierr, file->fh));
+         LOG((2, "NC4_create returned %d", ierr));
          break;
       case PIO_IOTYPE_NETCDF4C:
          mode = mode | NC_NETCDF4;
+         if (file->do_io)
+         {
+            LOG((2, "Calling NC4_create io_comm = %d mode = %d fh = %d",
+                 ios->io_comm, mode, file->fh));
+            ierr = NC4_create(filename, mode, 0, 0, NULL, 0, mpidata, table, nc);
+            LOG((2, "NC4_create returned %d", ierr));
+         }
+         break;
 #endif
       case PIO_IOTYPE_NETCDF:
          if (!ios->io_rank)
@@ -1908,23 +1914,25 @@ int check_unlim_use(int ncid)
    int ierr;        /* Return code. */
 
    /* Are there 2 or more unlimited dims in this file? */
-   if ((ierr = nc_inq_unlimdims(ncid, &nunlimdims, NULL)))
+   if ((ierr = NC4_inq_unlimdims(ncid, &nunlimdims, NULL)))
       return ierr;
    if (nunlimdims < 2)
       return PIO_NOERR;
 
    /* How many vars in file? */
-   if ((ierr = nc_inq_nvars(ncid, &nvars)))
+   if ((ierr = NC4_inq(ncid, NULL, &nvars, NULL, NULL)))
       return ierr;
 
    /* Check each var. */
    for (int v = 0; v < nvars && !ierr; v++)
    {
       int nvardims;
-      if ((ierr = nc_inq_varndims(ncid, v, &nvardims)))
+      if ((ierr = NC4_inq_var_all(ncid, v, NULL, NULL, &nvardims, NULL, NULL, NULL, NULL, NULL,
+                                  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
          return ierr;
       int vardimid[nvardims];
-      if ((ierr = nc_inq_vardimid(ncid, v, vardimid)))
+      if ((ierr = NC4_inq_var_all(ncid, v, NULL, NULL, NULL, vardimid, NULL, NULL, NULL, NULL,
+                                  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
          return ierr;
 
       /* Check all var dimensions, except the first. If we find
@@ -1932,11 +1940,11 @@ int check_unlim_use(int ncid)
       for (int vd = 1; vd < nvardims; vd++)
       {
          size_t dimlen;
-         if ((ierr = nc_inq_dimlen(ncid, vardimid[vd], &dimlen)))
+         if ((ierr = NC4_inq_dim(ncid, vardimid[vd], NULL, &dimlen)))
             return ierr;
          if (dimlen == NC_UNLIMITED)
          {
-            nc_close(ncid);
+            NC4_close(ncid);
             return PIO_EINVAL;
          }
       }
@@ -2294,29 +2302,13 @@ int PIOc_openfile_retry3(int iosysid, int *ncidp, int *iotype, const char *filen
          imode = mode |  NC_MPIIO;
          if ((ierr = NC4_open(filename, mode, 0, NULL, 1, NULL, table, nc)))
             break;
-	    
-         /* Check the vars for valid use of unlim dims. */
-         if ((ierr = check_unlim_use(file->fh)))
-            break;
-	    
-         if ((ierr = inq_file_metadata(file, file->fh, PIO_IOTYPE_NETCDF4P, &nvars, &rec_var, &pio_type,
-                                       &pio_type_size, &mpi_type, &mpi_type_size, &ndim)))
-            break;
          LOG((2, "PIOc_openfile_retry:nc_open_par filename = %s mode = %d imode = %d ierr = %d",
               filename, mode, imode, ierr));
          break;
 	    
       case PIO_IOTYPE_NETCDF4C:
-         if (ios->io_rank == 0)
-         {
-            if ((ierr = NC4_open(filename, mode, 0, NULL, 0, NULL, table, nc)))
-               break;
-            /* Check the vars for valid use of unlim dims. */
-            if ((ierr = check_unlim_use(file->fh)))
-               break;
-            ierr = inq_file_metadata(file, file->fh, PIO_IOTYPE_NETCDF4C, &nvars, &rec_var, &pio_type,
-                                     &pio_type_size, &mpi_type, &mpi_type_size, &ndim);
-         }
+         if (file->do_io)
+            ierr = NC4_open(filename, mode, 0, NULL, 0, NULL, table, nc);
          break;
 #endif /* _NETCDF4 */
 	    
@@ -2327,7 +2319,6 @@ int PIOc_openfile_retry3(int iosysid, int *ncidp, int *iotype, const char *filen
             if ((ierr = NC3_open(filename, mode, 0, NULL, 0, NULL, table, nc)))
                break;
             LOG((2, "done with NC3_open ierr %d nc->ext_ncid %d", ierr, nc->ext_ncid));
-            file->fh = nc->ext_ncid;
          }
          break;
 	    
@@ -2352,39 +2343,6 @@ int PIOc_openfile_retry3(int iosysid, int *ncidp, int *iotype, const char *filen
 
       default:
          return pio_err(ios, file, PIO_EBADIOTYPE, __FILE__, __LINE__);
-      }
-
-      /* If the caller requested a retry, and we failed to open a
-         file due to an incompatible type of NetCDF, try it once
-         with just plain old basic NetCDF. */
-      if (retry)
-      {
-         LOG((2, "retry error code ierr = %d io_rank %d", ierr, ios->io_rank));
-         if ((ierr == NC_ENOTNC || ierr == NC_EINVAL) && (file->iotype != PIO_IOTYPE_NETCDF))
-         {
-            if (ios->iomaster == MPI_ROOT)
-               printf("PIO2 pio_file.c retry NETCDF\n");
-
-            /* reset ierr on all tasks */
-            ierr = PIO_NOERR;
-
-            /* reset file markers for NETCDF on all tasks */
-            file->iotype = PIO_IOTYPE_NETCDF;
-
-            /* open netcdf file serially on main task */
-            if (ios->io_rank == 0)
-            {
-               if ((ierr = nc_open(filename, mode, &file->fh)))
-                  return pio_err(ios, file, ierr, __FILE__, __LINE__);
-               if ((ierr = inq_file_metadata(file, file->fh, PIO_IOTYPE_NETCDF, &nvars, &rec_var, &pio_type,
-                                             &pio_type_size, &mpi_type, &mpi_type_size, &ndim)))
-                  return pio_err(ios, file, ierr, __FILE__, __LINE__);
-            }
-            else
-               file->do_io = 0;
-         }
-         LOG((2, "retry nc_open(%s) : fd = %d, iotype = %d, do_io = %d, ierr = %d",
-              filename, file->fh, file->iotype, file->do_io, ierr));
       }
    }
 
@@ -2432,9 +2390,17 @@ int PIOc_openfile_retry3(int iosysid, int *ncidp, int *iotype, const char *filen
 
    /* Learn about the metadata in this file. */
    if (ios->ioproc && file->do_io)
+   {
+      /* Check the vars for valid use of unlim dims in netCDF-4 files. */
+      if (file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P)
+         if ((ierr = check_unlim_use(file->fh)))
+            return pio_err(ios, file, ierr, __FILE__, __LINE__);
+
+      /* Learn important metadata things about the file. */
       if ((ierr = inq_file_metadata(file, file->fh, file->iotype, &nvars, &rec_var, &pio_type,
                                     &pio_type_size, &mpi_type, &mpi_type_size, &ndim)))
-         return pio_err(ios, file, ierr, __FILE__, __LINE__);                          
+         return pio_err(ios, file, ierr, __FILE__, __LINE__);
+   }
 
    /* All tasks need to know how many vars. */
    if ((mpierr = MPI_Bcast(&nvars, 1, MPI_INT, ios->ioroot, ios->my_comm)))
