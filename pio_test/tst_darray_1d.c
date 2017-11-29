@@ -168,6 +168,13 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
             mode |= NC_SHARE;
 	    
          /* Create the netCDF output file. */
+         int cmode = NC_PIO;
+         if (flavor[fmt] == PIO_IOTYPE_NETCDF4C)
+            cmode |= NC_NETCDF4;
+         if (flavor[fmt] == PIO_IOTYPE_NETCDF4P)
+            cmode |= NC_NETCDF4 | NC_SHARE;
+         if (flavor[fmt] == PIO_IOTYPE_PNETCDF)
+            cmode |= NC_PNETCDF;
          if ((ret = nc_create(filename, mode, &ncid)))
             ERR(ret);
 

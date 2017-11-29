@@ -242,8 +242,18 @@ int nc_create_file_handler(iosystem_desc_t *ios)
     /* Is parallel in use? */
     use_parallel = (mode & NC_SHARE) ? 1 : 0;
 
+    /* If parallel is in use, set the communicator to the IO comm. */
+    NC_MPI_INFO *mpi_infop = NULL;
+    NC_MPI_INFO mpi_info;
+    if (use_parallel)
+    {
+       mpi_info.comm = ios->io_comm;
+       mpi_info.info = MPI_INFO_NULL;
+       mpi_infop = &mpi_info;
+    }
+
     /* Call the create file function. */
-    NC_create(filename, mode, 0, 0, NULL, use_parallel, NULL, &ncid);
+    NC_create(filename, mode, 0, 0, NULL, use_parallel, mpi_infop, &ncid);
     
     LOG((1, "create_file_handler succeeded!"));
     return PIO_NOERR;
@@ -2391,9 +2401,19 @@ int nc_open_file_handler(iosystem_desc_t *ios)
     /* Is parallel in use? */
     use_parallel = (mode & NC_SHARE) ? 1 : 0;
 
+    /* If parallel is in use, set the communicator to the IO comm. */
+    NC_MPI_INFO *mpi_infop = NULL;
+    NC_MPI_INFO mpi_info;
+    if (use_parallel)
+    {
+       mpi_info.comm = ios->io_comm;
+       mpi_info.info = MPI_INFO_NULL;
+       mpi_infop = &mpi_info;
+    }
+    
     /* Call the open file function. Errors are handling within
      * function, so return code can be ignored. */
-    ret = NC_open(filename, mode, 0, NULL, use_parallel, NULL, &ncid);
+    ret = NC_open(filename, mode, 0, NULL, use_parallel, mpi_infop, &ncid);
     LOG((2, "nc_open_file_handler returned from NC_open ret %d", ret));
 
     return PIO_NOERR;

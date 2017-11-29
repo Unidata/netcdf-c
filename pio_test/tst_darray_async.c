@@ -254,8 +254,7 @@ int run_darray_async_test(int iosysid, int my_rank, MPI_Comm test_comm, MPI_Comm
 /*         ERR(ret); */
 
    /* Test each available iotype. */
-   /* for (int fmt = 0; fmt < num_flavors; fmt++) */
-   for (int fmt = 0; fmt < 1; fmt++)
+   for (int fmt = 0; fmt < num_flavors; fmt++)
    {
       int ncid;
       size_t type_size;
@@ -356,7 +355,14 @@ int run_darray_async_test(int iosysid, int my_rank, MPI_Comm test_comm, MPI_Comm
       /* Create sample output file. */
       sprintf(data_filename, "data_%s_iotype_%d_piotype_%d.nc", TEST_NAME, flavor[fmt],
               piotype);
-      if ((ret = nc_create(data_filename, NC_PIO,  &ncid)))
+      int cmode = NC_PIO;
+      if (flavor[fmt] == PIO_IOTYPE_NETCDF4C)
+         cmode |= NC_NETCDF4;
+      if (flavor[fmt] == PIO_IOTYPE_NETCDF4P)
+         cmode |= NC_NETCDF4 | NC_SHARE;
+      if (flavor[fmt] == PIO_IOTYPE_PNETCDF)
+         cmode |= NC_PNETCDF;
+      if ((ret = nc_create(data_filename, cmode,  &ncid)))
          ERR(ret);
 
       /* Find the size of the type. */
@@ -492,7 +498,7 @@ int main(int argc, char **argv)
 
    /* Initialize test. */
    if ((ret = pio_test_init2(argc, argv, &my_rank, &ntasks, MIN_NTASKS,
-                             TARGET_NTASKS, 3, &test_comm)))
+                             TARGET_NTASKS, -1, &test_comm)))
       ERR(ERR_INIT);
    if ((ret = nc_set_iosystem_error_handling(PIO_DEFAULT, PIO_RETURN_ERROR, NULL)))
       return ret;
