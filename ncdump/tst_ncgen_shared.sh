@@ -144,4 +144,3 @@ passcount=0
 xfailcount=0
 
 rm -fr $RESULTSDIR
-#mkdir $RESULTSDIR
