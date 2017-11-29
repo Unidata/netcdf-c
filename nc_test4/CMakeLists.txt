@@ -79,17 +79,15 @@ ENDFOREACH()
 # This must go after the 'foreach' stanza
 # immediately above this comment.
 IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
-    add_sh_test(nc_test4 run_get_hdf4_files)
     add_bin_test_no_prefix(tst_interops2)
-    add_bin_test(nc_test4 tst_interops3)
+    build_bin_test_no_prefix(tst_interops3)
+    add_sh_test(nc_test4 run_get_hdf4_files)
     add_bin_test(nc_test4 tst_bug324)
     add_sh_test(nc_test4 tst_formatx_hdf4)
     build_bin_test(tst_chunk_hdf4)
     add_sh_test(nc_test4 run_chunk_hdf4)
     add_bin_test(nc_test4 tst_h4_lendian)
     add_sh_test(nc_test4 tst_hdf4_read_var)
-
-    SET_TESTS_PROPERTIES(nc_test4_tst_interops3 PROPERTIES DEPENDS nc_test4_run_get_hdf4_files)
 ENDIF()
 
 IF(TEST_PARALLEL4)

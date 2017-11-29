@@ -16,7 +16,8 @@ if test "x$srcdir" = x ; then srcdir="."; fi
 #     $ validateNC compound_datasize_test -k nc4
 ##
 validateNC() {
-    BASENAME=$1
+    ORIGNAME=$1
+    BASENAME=tst_$1_run_ncgen_nc4_tests
     INFILE=$top_srcdir/ncgen/$1.cdl
     TMPFILE=tst_$2.cdl
     shift
@@ -25,7 +26,7 @@ validateNC() {
 
     echo "*** generating $BASENAME.nc ***"
     ${NCGEN} $ARGS -o $BASENAME.nc $INFILE
-    ${NCDUMP} $BASENAME.nc | sed 's/e+0/e+/g' > $TMPFILE
+    ${NCDUMP} -n $ORIGNAME $BASENAME.nc | sed 's/e+0/e+/g' > $TMPFILE
     echo "*** comparing binary against source CDL file *** "
     diff -b -w $INFILE $TMPFILE
 }

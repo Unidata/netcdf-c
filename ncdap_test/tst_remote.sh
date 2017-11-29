@@ -187,7 +187,7 @@ PARAMS="${PARAMS}[netcdf3]"
 XFAILTESTS="$XFAILTESTS3"
 SVCFAILTESTS="$SVCFAILTESTS3"
 
-RESULTSDIR="./results"
+RESULTSDIR="./results_tst_remote"
 # Locate some tools
 if test "x$leakcheck" = x1 ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
@@ -325,6 +325,7 @@ cd ..
 
 done
 
+rm -fr ${RESULTSDIR}
 totalcount=`expr $passcount + $failcount + $xfailcount + $svcfailcount`
 okcount=`expr $passcount + $xfailcount + $svcfailcount`
 
