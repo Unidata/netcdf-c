@@ -886,10 +886,10 @@ int main(int argc, char **argv)
                                                &ioid)))
                return ret;
 
-            /* /\* Test decomposition read/write. *\/ */
-            /* if ((ret = test_decomp_read_write(iosysid, ioid, num_flavors, flavor, my_rank, */
-            /*                                   test_type[t], rearranger[r], test_comm))) */
-            /*     return ret; */
+            /* Test decomposition read/write. */
+            if ((ret = test_decomp_read_write(iosysid, ioid, num_flavors, flavor, my_rank,
+                                              test_type[t], rearranger[r], test_comm)))
+                return ret;
 
             /* Run tests. */
             if ((ret = test_darray_fill(iosysid, ioid, test_type[t], num_flavors, flavor,

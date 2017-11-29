@@ -239,19 +239,19 @@ int run_darray_async_test(int iosysid, int my_rank, MPI_Comm test_comm, MPI_Comm
                              compdof, &ioid, PIO_REARR_BOX, NULL, NULL)))
       ERR(ret);
 
-/*     /\* Write the decomp file (on appropriate tasks). *\/ */
-/*     if ((ret = PIOc_write_nc_decomp(iosysid, decomp_filename, 0, ioid, NULL, NULL, 0))) */
-/*         return ret; */
+    /* Write the decomp file (on appropriate tasks). */
+    if ((ret = PIOc_write_nc_decomp(iosysid, decomp_filename, 0, ioid, NULL, NULL, 0)))
+        return ret;
 
-/*     int fortran_order; */
-/*     int ioid2; */
-/*     if ((ret = PIOc_read_nc_decomp(iosysid, decomp_filename, &ioid2, comp_comm, */
-/*                                    PIO_INT, NULL, NULL, &fortran_order))) */
-/*         return ret; */
+    int fortran_order;
+    int ioid2;
+    if ((ret = PIOc_read_nc_decomp(iosysid, decomp_filename, &ioid2, comp_comm,
+                                   PIO_INT, NULL, NULL, &fortran_order)))
+        return ret;
 
-/*     /\* Free the decomposition. *\/ */
-/*     if ((ret = PIOc_freedecomp(iosysid, ioid2))) */
-/*         ERR(ret); */
+    /* Free the decomposition. */
+    if ((ret = PIOc_freedecomp(iosysid, ioid2)))
+        ERR(ret);
 
    /* Test each available iotype. */
    for (int fmt = 0; fmt < num_flavors; fmt++)
