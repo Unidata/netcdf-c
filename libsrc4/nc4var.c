@@ -1152,7 +1152,6 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const u
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
-   NC_DIM_INFO_T *dim;
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 

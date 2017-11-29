@@ -2,7 +2,8 @@
    Copyright 2007 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test HDF5 compound types. 
+   Test HDF5 compound types.
+   Ed Hartnett
 */
 
 #include "h5_err_macros.h"
@@ -20,7 +21,7 @@ main()
    hid_t datasetid;
    hsize_t dims[1];
    char dummy[] = "                                 ";
-   struct s1 
+   struct s1
    {
       unsigned char c1;
       double d;
@@ -46,7 +47,7 @@ main()
       /* Open file and create group. */
       if ((access_plist = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if (H5Pset_fclose_degree(access_plist, H5F_CLOSE_STRONG)) ERR;
-      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
+      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                               access_plist)) < 0) ERR;
 
       /* Create a simple compound type. */
@@ -60,11 +61,11 @@ main()
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
 
       /* Create a dataset of this compound type. */
-      if ((datasetid = H5Dcreate(fileid, VAR_NAME, typeid, spaceid, 
+      if ((datasetid = H5Dcreate(fileid, VAR_NAME, typeid, spaceid,
                                  H5P_DEFAULT)) < 0) ERR;
 
       /* Write some data. */
-      if (H5Dwrite(datasetid, typeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, 
+      if (H5Dwrite(datasetid, typeid, H5S_ALL, H5S_ALL, H5P_DEFAULT,
                    data) < 0) ERR;
 
       /* Release all resources. */
@@ -75,7 +76,7 @@ main()
    }
    SUMMARIZE_ERR;
    printf("*** Checking packing of HDF5 compound types...");
-   {   
+   {
       /* Open file. */
       if ((access_plist = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if (H5Pset_fclose_degree(access_plist, H5F_CLOSE_STRONG)) ERR;
@@ -92,10 +93,38 @@ main()
       /* Get type. */
       if ((typeid = H5Dget_type(datasetid)) < 0) ERR;
 
-/*   if ((native_type = H5Tget_native_type(typeid, H5T_DIR_DEFAULT)) < 0) ERR;*/
+      /* Read the data. */
+      if (H5Dread(datasetid, typeid, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                  data) < 0) ERR;
+
+      /* Check the data. */
+      for (i=0; i<DIM1_LEN; i++)
+         if (data[i].c1 != 126 || data[i].d != -9999999) ERR;
+
+      /* Release all resources. */
+      if (H5Fclose(fileid) < 0) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** Checking packing of HDF5 compound types...");
+   {
+      /* Open file. */
+      if ((access_plist = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+      if (H5Pset_fclose_degree(access_plist, H5F_CLOSE_STRONG)) ERR;
+      if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, access_plist)) < 0) ERR;
+
+      /* Open dataset. */
+      if ((datasetid = H5Dopen1(fileid, VAR_NAME)) < 0) ERR;
+
+      /* Check space. */
+      if ((spaceid = H5Dget_space(datasetid)) < 0) ERR;
+      if (H5Sget_simple_extent_ndims(spaceid) != 1) ERR;
+      if (H5Sget_simple_extent_npoints(spaceid) != DIM1_LEN) ERR;
+
+      /* Get type. */
+      if ((typeid = H5Dget_type(datasetid)) < 0) ERR;
 
       /* Read the data. */
-      if (H5Dread(datasetid, typeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, 
+      if (H5Dread(datasetid, typeid, H5S_ALL, H5S_ALL, H5P_DEFAULT,
                   data) < 0) ERR;
 
       /* Check the data. */

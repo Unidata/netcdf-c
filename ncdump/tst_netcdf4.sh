@@ -8,87 +8,61 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 
 echo ""
-echo "*** Testing ncgen and ncdump test output for netCDF-4 format."
-# echo "*** creating netcdf-4 file c0_4.nc from c0_4.cdl..."
-${NCGEN} -k nc4 -b -o c0_4.nc ${ncgenc04}
-# echo "*** creating c1_4.cdl from c0_4.nc..."
-${NCDUMP} -n c1 c0_4.nc | sed 's/e+0/e+/g' > c1_4.cdl
-# echo "*** comparing c1_4.cdl with ref_ctest1_nc4.cdl..."
-diff -b c1_4.cdl $srcdir/ref_ctest1_nc4.cdl
+echo "*** Testing ncgen and ncdump for netCDF-4 format."
+${NCGEN} -k nc4 -b -o tst_netcdf4_c0_4.nc ${ncgenc04}
+${NCDUMP} -n c1 tst_netcdf4_c0_4.nc | sed 's/e+0/e+/g' > tst_netcdf4_c1_4.cdl
+diff -b tst_netcdf4_c1_4.cdl $srcdir/ref_ctest1_nc4.cdl
 
-echo "*** Testing ncgen and ncdump test output for netCDF-4 classic format."
-# echo "*** creating netcdf-4 classic file c0.nc from c0.cdl..."
-${NCGEN} -k nc7 -b -o c0.nc ${ncgenc0}
-# echo "*** creating c1.cdl from c0.nc..."
+echo "*** Creating test output tst_netcdf4_c0.nc."
+${NCGEN} -k nc7 -b -o tst_netcdf4_c0.nc ${ncgenc0}
 
-echo "*** Testing that program tst_h_rdc0 can read c0.cdl."
+echo "*** Testing that program tst_h_rdc0 can read tst_netcdf4_c0.nc."
 ${execdir}/tst_h_rdc0
-
-# echo "*** comparing c1.cdl with ref_ctest1_nc4c.cdl..."
-diff -b c1.cdl $srcdir/ref_ctest1_nc4c.cdl
 
 echo "*** Running tst_create_files.c to create test files."
 ${execdir}/tst_create_files
 echo "*** Testing tst_create_files output for netCDF-4 features."
 ${NCDUMP} tst_solar_1.nc | sed 's/e+0/e+/g' > tst_solar_1.cdl
-# echo "*** comparing tst_solar_1.cdl with ref_tst_solar_1.cdl..."
 diff -b tst_solar_1.cdl $srcdir/ref_tst_solar_1.cdl
 ${NCDUMP} tst_solar_2.nc | sed 's/e+0/e+/g' > tst_solar_2.cdl
-# echo "*** comparing tst_solar_2.cdl with ref_tst_solar_2.cdl..."
 diff -b tst_solar_2.cdl $srcdir/ref_tst_solar_2.cdl
 
 echo "*** Running tst_group_data.c to create test files."
 ${execdir}/tst_group_data
 ${NCDUMP} tst_group_data.nc | sed 's/e+0/e+/g' > tst_group_data.cdl
-# echo "*** comparing tst_group_data.cdl with ref_tst_group_data.cdl..."
 diff -b tst_group_data.cdl $srcdir/ref_tst_group_data.cdl
 
-# Temporary hack to skip a couple tests that won't work in windows
-# without changing the format of the string. See:
-#
-# http://www.mingw.org/wiki/Posix_path_conversion
-
-if [[ "$OSTYPE" != 'msys' ]]; then
 echo "*** Testing -v option with absolute name and groups..."
 ${NCDUMP} -v /g2/g3/var tst_group_data.nc | sed 's/e+0/e+/g' > tst_group_data.cdl
-# echo "*** comparing tst_group_data.cdl with ref_tst_group_data_v23.cdl..."
 diff -b tst_group_data.cdl $srcdir/ref_tst_group_data_v23.cdl
-fi
 
 echo "*** Testing -v option with relative name and groups..."
 ${NCDUMP} -v var,var2 tst_group_data.nc | sed 's/e+0/e+/g' > tst_group_data.cdl
-# echo "*** comparing tst_group_data.cdl with ref_tst_group_data.cdl..."
 diff -b tst_group_data.cdl $srcdir/ref_tst_group_data.cdl
 
 echo "*** Running tst_enum_data.c to create test files."
 ${execdir}/tst_enum_data
 ${NCDUMP} tst_enum_data.nc | sed 's/e+0/e+/g' > tst_enum_data.cdl
-# echo "*** comparing tst_enum_data.cdl with ref_tst_enum_data.cdl..."
 diff -b tst_enum_data.cdl $srcdir/ref_tst_enum_data.cdl
 
 echo "*** Running tst_opaque_data.c to create test files."
 ${execdir}/tst_opaque_data
 ${NCDUMP} tst_opaque_data.nc | sed 's/e+0/e+/g' > tst_opaque_data.cdl
-# echo "*** comparing tst_opaque_data.cdl with ref_tst_opaque_data.cdl..."
 diff -b tst_opaque_data.cdl $srcdir/ref_tst_opaque_data.cdl
 
 echo "*** Running tst_vlen_data.c to create test files."
 ${execdir}/tst_vlen_data
 ${NCDUMP} tst_vlen_data.nc | sed 's/e+0/e+/g' > tst_vlen_data.cdl
-# echo "*** comparing tst_vlen_data.cdl with ref_tst_vlen_data.cdl..."
 diff -b tst_vlen_data.cdl $srcdir/ref_tst_vlen_data.cdl
 
 echo "*** Running tst_comp.c to create test files."
 ${execdir}/tst_comp
 ${NCDUMP} tst_comp.nc | sed 's/e+0/e+/g' > tst_comp.cdl
-# echo "*** comparing tst_comp.cdl with ref_tst_comp.cdl..."
 diff -b tst_comp.cdl $srcdir/ref_tst_comp.cdl
-# echo "*** creating tst_nans.cdl from tst_nans.nc"
 
 echo "*** Running tst_nans.c to create test files."
 ${execdir}/tst_nans
 ${NCDUMP} tst_nans.nc | sed 's/e+0/e+/g' > tst_nans.cdl
-# echo "*** comparing ncdump of generated file with ref_tst_nans.cdl ..."
 diff -b tst_nans.cdl $srcdir/ref_tst_nans.cdl
 
 # Do unicode test only if it exists => BUILD_UTF8 is true
