@@ -369,7 +369,6 @@ set_curl_properties(NCD4INFO* d4info)
 
     if(d4info->auth.curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
-        int ok;
         char* path = NULL;
         char* newpath = NULL;
         int len;
