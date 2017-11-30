@@ -1070,15 +1070,15 @@ int PIOc_set_hint(int iosysid, const char *hint, const char *hintval)
 }
 
 /**
- * Clean up internal data structures, free MPI resources, and exit the
- * pio library.
+ * Clean up internal data structures, free MPI resources, and shut
+ * down an IO system.
  *
  * @param iosysid: the io system ID provided by PIOc_Init_Intracomm().
  * @returns 0 for success or non-zero for error.
  * @ingroup PIO_finalize
- * @author Jim Edwards, Ed Hartnett
+ * @author Ed Hartnett
  */
-int nc_finalize2(int iosysid)
+int nc_free_iosystem(int iosysid)
 {
    return PIOc_finalize(iosysid);
 }

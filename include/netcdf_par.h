@@ -97,7 +97,7 @@ extern "C" {
    int nc_free_decomp(int iosysid, int ioid);
 
    /* Finalize an IO system for PIO. */
-   int nc_finalize2(int iosysid);
+   int nc_free_iosystem(int iosysid);
 
 #if defined(__cplusplus)
 }

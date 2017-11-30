@@ -907,7 +907,7 @@ int main(int argc, char **argv)
          }
 
          /* Finalize PIO system. */
-         if ((ret = nc_finalize2(iosysid)))
+         if ((ret = nc_free_iosystem(iosysid)))
             return ret;
       } /* next rearranger */
 
