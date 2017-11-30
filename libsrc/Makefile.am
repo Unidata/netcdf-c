@@ -8,11 +8,6 @@ include $(top_srcdir)/lib_flags.am
 
 libnetcdf3_la_CPPFLAGS = ${AM_CPPFLAGS}
 
-# Turn on a pre-processor flag when building a DLL for windows.
-if BUILD_DLL
-libnetcdf3_la_CPPFLAGS += -DDLL_EXPORT
-endif # BUILD_DLL
-
 # These files comprise the netCDF-3 classic library code.
 libnetcdf3_la_SOURCES = v1hpg.c \
 putget.c attr.c nc3dispatch.c nc3internal.c var.c dim.c ncx.c nc_hashmap.c \

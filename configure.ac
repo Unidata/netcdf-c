@@ -83,20 +83,6 @@ AC_CONFIG_SRCDIR([include/netcdf.h])
 
 AC_MSG_NOTICE([checking user options])
 
-# If --enable-dll is specified the DLL will be built. This only works
-# on mingw.
-AC_MSG_CHECKING([whether a win32 DLL is desired])
-AC_ARG_ENABLE([dll],
-              [AS_HELP_STRING([--enable-dll],
-                              [build a win32 DLL (only works on mingw)])])
-test "x$enable_dll" = xyes || enable_dll=no
-AC_MSG_RESULT([$enable_dll])
-if test "x$enable_dll" = xyes; then
-   AC_DEFINE(DLL_NETCDF, 1, [set this only when building a DLL under MinGW])
-   AC_DEFINE(DLL_EXPORT, 1, [set this only when building a DLL under MinGW])
-fi
-AM_CONDITIONAL(BUILD_DLL, [test x$enable_dll = xyes])
-
 # Did the user specify a default minimum blocksize (NCIO_MINBLOCKSIZE) for posixio?
 AC_MSG_CHECKING([whether a NCIO_MINBLOCKSIZE was specified])
 AC_ARG_WITH([minblocksize],
@@ -348,13 +334,8 @@ fi
 # See if the user provided us with a curl library
 # Do an initial lib test for curl, but suppress the default action
 AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
-#AC_CHECK_LIB([curl.dll],[curl_easy_setopt])
 # If curl is required but there is no curl, then complain
 if test $require_curl = yes ; then
-  # Removed. Why assume no curl if we are building DLL?
-  #if test $enable_dll = yes ; then
-  #  AC_MSG_NOTICE([libcurl not found; continuing])
-  #elif test $found_curl = no ; then
   if test $found_curl = no ; then
     AC_MSG_NOTICE([libcurl not found; disabling remote protocol(s) support])
     enable_dap=no
@@ -712,7 +693,7 @@ CFLAGS="$SAVECFLAGS"
 # Set up libtool.
 AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.2])
-LT_INIT(win32-dll)
+LT_INIT()
 
 # Valgrind tests don't work with shared builds because of some libtool
 # weirdness.
