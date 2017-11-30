@@ -112,7 +112,6 @@ int main()
     int ncstat = NC_NOERR;
     char url[8192];
     const char* topsrcdir;
-    size_t len;
 #ifndef USE_NETCDF4
     int i,j;
 #endif

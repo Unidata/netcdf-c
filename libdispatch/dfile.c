@@ -2166,6 +2166,15 @@ done:
     return status;
 }
 
+/** 
+ * Close the file opened to check for magic number. 
+ * 
+ * @param file pointer to the MagicFile struct for this open file.
+ * @returns NC_NOERR for success
+ * @returns NC_EPARINIT if there was a problem closing file with MPI
+ * (parallel builds only).
+ * @author Dennis Heimbigner
+ */
 static int
 closemagic(struct MagicFile* file)
 {
