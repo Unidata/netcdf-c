@@ -268,8 +268,6 @@ SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
 # End Compiler Configuration
 ################################
 
-
-
 ##
 # Configuration for post-install RPath
 # Adapted from http://www.cmake.org/Wiki/CMake_RPATH_handling
