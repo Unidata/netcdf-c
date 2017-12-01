@@ -1713,8 +1713,22 @@ exit:
 }
 
 /**
+ * @internal
+ *
+ * This function will change the parallel access of a variable from
+ * independent to collective.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param par_access NC_COLLECTIVE or NC_INDEPENDENT.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Invalid ncid passed.
+ * @returns ::NC_ENOTVAR Invalid varid passed.
+ * @returns ::NC_ENOPAR LFile was not opened with nc_open_par/nc_create_var.
+ * @returns ::NC_EINVAL Invalid par_access specified.
  * @returns ::NC_NOERR for success
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 NC4_var_par_access(int ncid, int varid, int par_access)
@@ -1757,28 +1771,17 @@ NC4_var_par_access(int ncid, int varid, int par_access)
 #endif /* USE_PARALLEL4 */
 }
 
-/**
- * @returns ::NC_NOERR for success
- * @author Ed Hartnett
- */
-static int
-nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
-                const size_t *startp, const size_t *countp, const void *op)
-{
-   NC *nc;
-
-   LOG((2, "%s: ncid 0x%x varid %d mem_type %d mem_type_is_long %d",
-        __func__, ncid, varid, mem_type, mem_type_is_long));
-
-   if (!(nc = nc4_find_nc_file(ncid,NULL)))
-      return NC_EBADID;
-
-   return nc4_put_vara(nc, ncid, varid, startp, countp, mem_type,
-                       mem_type_is_long, (void *)op);
-}
-
 #ifdef USE_HDF4
 /**
+ * @internal Get data from an HDF4 SD dataset.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param startp Array of start indicies.
+ * @param countp Array of counts.
+ * @param mem_nc_type The type of these data after it is read into memory.
+ * @param is_long Ignored for HDF4.
+ * @param data pointer that gets the data.
  * @returns ::NC_NOERR for success
  * @author Ed Hartnett
  */
@@ -1812,56 +1815,70 @@ nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp,
 }
 #endif /* USE_HDF4 */
 
-/* Get an array. */
 /**
+ * @internal Write an array of data to a variable. This is called by
+ * nc_put_vara() and other nc_put_vara_* functions, for netCDF-4
+ * files.
+ * 
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param startp Array of start indicies.
+ * @param countp Array of counts.
+ * @param memtype The type of these data in memory.
+ * @param data pointer that gets the data.
+ *
  * @returns ::NC_NOERR for success
- * @author Ed Hartnett
- */
-static int
-nc4_get_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
-                const size_t *startp, const size_t *countp, void *ip)
-{
-   NC *nc;
-   NC_HDF5_FILE_INFO_T* h5;
-
-   LOG((2, "%s: ncid 0x%x varid %d mem_type %d mem_type_is_long %d",
-        __func__, ncid, varid, mem_type, mem_type_is_long));
-
-   if (!(nc = nc4_find_nc_file(ncid,&h5)))
-      return NC_EBADID;
-
-#ifdef USE_HDF4
-   /* Handle HDF4 cases. */
-   if (h5->hdf4)
-      return nc4_get_hdf4_vara(nc, ncid, varid, startp, countp, mem_type,
-                               mem_type_is_long, (void *)ip);
-#endif /* USE_HDF4 */
-
-   /* Handle HDF5 cases. */
-   return nc4_get_vara(nc, ncid, varid, startp, countp, mem_type,
-                       mem_type_is_long, (void *)ip);
-}
-
-/**
- * @returns ::NC_NOERR for success
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 NC4_put_vara(int ncid, int varid, const size_t *startp,
              const size_t *countp, const void *op, int memtype)
 {
-   return nc4_put_vara_tc(ncid, varid, memtype, 0, startp, countp, op);
+   NC *nc;
+
+   if (!(nc = nc4_find_nc_file(ncid, NULL)))
+      return NC_EBADID;
+
+   return nc4_put_vara(nc, ncid, varid, startp, countp, memtype, 0, (void *)op);
 }
 
-
-/* Read an array of values. */
 /**
+ * Read an array of values. This is called by nc_get_vara() for
+ * netCDF-4 files, as well as all the other nc_get_vara_*
+ * functions. HDF4 files are handled as a special case.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param startp Array of start indicies.
+ * @param countp Array of counts.
+ * @param mem_nc_type The type of these data after it is read into memory.
+ * @param is_long Ignored for HDF4.
+ * @param data pointer that gets the data.
+
  * @returns ::NC_NOERR for success
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 NC4_get_vara(int ncid, int varid, const size_t *startp,
              const size_t *countp, void *ip, int memtype)
 {
-   return nc4_get_vara_tc(ncid, varid, memtype, 0, startp, countp, ip);
+   NC *nc;
+   NC_HDF5_FILE_INFO_T* h5;
+
+   LOG((2, "%s: ncid 0x%x varid %d memtype %d", __func__, ncid, varid,
+        memtype));
+
+   if (!(nc = nc4_find_nc_file(ncid, &h5)))
+      return NC_EBADID;
+
+#ifdef USE_HDF4
+   /* Handle HDF4 cases. */
+   if (h5->hdf4)
+      return nc4_get_hdf4_vara(nc, ncid, varid, startp, countp, memtype,
+                               0, (void *)ip);
+#endif /* USE_HDF4 */
+
+   /* Handle HDF5 cases. */
+   return nc4_get_vara(nc, ncid, varid, startp, countp, memtype,
+                       0, (void *)ip);
 }
