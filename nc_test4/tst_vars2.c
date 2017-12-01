@@ -3,7 +3,7 @@
     See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 variables.
-   $Id: tst_vars2.c,v 1.35 2010/01/25 21:01:08 ed Exp $
+   Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -682,6 +682,17 @@ main(int argc, char **argv)
       if (dimids[0] != 0) ERR;
       if (nc_def_var(ncid, VAR_NAME5, NC_INT, NDIMS5, dimids, &varid)) ERR;
       if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, chunksize)) ERR;
+
+      /* Try to set var cache with bad parameters. They will be
+       * rejected. */
+      if (nc_set_var_chunk_cache(ncid + MILLION, varid, CACHE_SIZE, CACHE_NELEMS,
+                                 CACHE_PREEMPTION) != NC_EBADID) ERR;
+      if (nc_set_var_chunk_cache(ncid, varid + TEST_VAL_42, CACHE_SIZE, CACHE_NELEMS,
+                                 CACHE_PREEMPTION) != NC_ENOTVAR) ERR;
+      if (nc_set_var_chunk_cache(ncid, varid, CACHE_SIZE, CACHE_NELEMS,
+                                 CACHE_PREEMPTION + TEST_VAL_42) != NC_EINVAL) ERR;
+
+      /* Set the cache. */
       if (nc_set_var_chunk_cache(ncid, varid, CACHE_SIZE, CACHE_NELEMS, CACHE_PREEMPTION)) ERR;
       if (nc_put_var_int(ncid, varid, data)) ERR;
 
@@ -703,10 +714,20 @@ main(int argc, char **argv)
       for (i = 0; i < DIM5_LEN; i++)
          if (data[i] != data_in[i])
 	    ERR_RET;
+
+      /* Check that some bad parameter values are rejected properly. */
+      if (nc_get_var_chunk_cache(ncid + MILLION, varid, &cache_size_in, &cache_nelems_in,
+				 &cache_preemption_in) != NC_EBADID) ERR;
+      if (nc_get_var_chunk_cache(ncid, varid + TEST_VAL_42, &cache_size_in, &cache_nelems_in,
+				 &cache_preemption_in) != NC_ENOTVAR) ERR;
+
+      /* Get the var chunk cache settings. */
       if (nc_get_var_chunk_cache(ncid, varid, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in)) ERR;
       if (cache_size_in != CACHE_SIZE || cache_nelems_in != CACHE_NELEMS ||
 	  cache_preemption_in != CACHE_PREEMPTION) ERR;
+      /* THis should also work, pointlessly. */
+      if (nc_get_var_chunk_cache(ncid, varid, NULL, NULL, NULL)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check the same stuff. */

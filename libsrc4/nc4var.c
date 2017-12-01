@@ -80,6 +80,7 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @returns ::NC_ENOTVAR Invalid variable ID.
  * @returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
  * @returns ::NC_EINVAL Invalid input.
+ * @returns ::NC_EHDFERR HDF5 error.
  * @author Ed Hartnett
  */
 int
@@ -475,6 +476,7 @@ int nc4_vararray_add(NC_GRP_INFO_T *grp,
  * @returns ::NC_EMAXDIMS Classic model file exceeds ::NC_MAX_VAR_DIMS.
  * @returns ::NC_ESTRICTNC3 Attempting to create netCDF-4 type var in
  * classic model file
+ * @returns ::NC_EBADNAME Bad name.
  * @returns ::NC_EBADTYPE Bad type.
  * @returns ::NC_EBADTYPEID Type not found.
  * @returns ::NC_ENOMEM Out of memory.
@@ -538,6 +540,10 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    if (h5->no_write)
       BAIL(NC_EPERM);
 
+   /* If there for non-scalar vars, dim IDs must be provided. */
+   if (ndims && !dimidsp)
+      BAIL(NC_EINVAL);      
+
    /* Check all the dimids to make sure they exist. */
    for (d = 0; d < ndims; d++)
       if ((retval = nc4_find_dim(grp, dimidsp[d], &dim, NULL)))
@@ -552,21 +558,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          LOG((4, "dimid[%d] %d", dd, dimidsp[dd]));
    }
 #endif
-
-   /* Add a new var. */
-   if ((retval = nc4_var_add(&var)))
-      BAIL(retval);
-
-   /* Now fill in the values in the var info structure. */
-   if (!(var->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
-      BAIL(NC_ENOMEM);
-   strcpy(var->name, norm_name);
-   var->hash = hash_fast(norm_name, strlen(norm_name));
-   var->varid = grp->nvars++;
-   var->ndims = ndims;
-   var->is_new_var = NC_TRUE;
-
-   nc4_vararray_add(grp, var);
 
    /* If this is a user-defined type, there is a type_info struct with
     * all the type information. For atomic types, fake up a type_info
@@ -621,6 +612,21 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       if (nc4_find_type(grp->nc4_info, xtype, &type_info))
          BAIL(NC_EBADTYPE);
    }
+
+   /* Add a new var. */
+   if ((retval = nc4_var_add(&var)))
+      BAIL(retval);
+
+   /* Now fill in the values in the var info structure. */
+   if (!(var->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
+      BAIL(NC_ENOMEM);
+   strcpy(var->name, norm_name);
+   var->hash = hash_fast(norm_name, strlen(norm_name));
+   var->varid = grp->nvars++;
+   var->ndims = ndims;
+   var->is_new_var = NC_TRUE;
+
+   nc4_vararray_add(grp, var);
 
    /* Point to the type, and increment its ref. count */
    var->type_info = type_info;

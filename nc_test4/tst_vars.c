@@ -3,7 +3,7 @@
    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 variables.
-   $Id: tst_vars.c,v 1.49 2009/12/30 12:03:48 ed Exp $
+   Ed Hartnett
 */
 
 #include "nc_tests.h"
@@ -340,6 +340,18 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimids[0])) ERR;
       if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimids[1])) ERR;
       if (nc_def_dim(ncid, DIM3_NAME, DIM3_LEN, &dimids[2])) ERR;
+
+#define BAD_NAME "dd//d/  "
+      /* These attempts will fail due to bad paramters. */
+      if (nc_def_var(ncid + MILLION, VAR_BYTE_NAME, NC_BYTE, 2, dimids, &byte_varid)
+          != NC_EBADID) ERR;
+      if (nc_def_var(ncid, BAD_NAME, NC_BYTE, 2, dimids, &byte_varid) != NC_EBADNAME) ERR;
+      if (nc_def_var(ncid, VAR_BYTE_NAME, 0, 2, dimids, &byte_varid) != NC_EBADTYPE) ERR;
+      if (nc_def_var(ncid, VAR_BYTE_NAME, TEST_VAL_42, 2, dimids, &byte_varid) != NC_EBADTYPE) ERR;
+      if (nc_def_var(ncid, VAR_BYTE_NAME, NC_BYTE, -2, dimids, &byte_varid) != NC_EINVAL) ERR;
+      if (nc_def_var(ncid, VAR_BYTE_NAME, NC_BYTE, 2, NULL, &byte_varid) != NC_EINVAL) ERR;
+
+      /* Now create our variables. */
       if (nc_def_var(ncid, VAR_BYTE_NAME, NC_BYTE, 2, dimids, &byte_varid)) ERR;
       if (nc_def_var(ncid, VAR_CHAR_NAME, NC_CHAR, 3, dimids, &char_varid)) ERR;
       if (nc_def_var(ncid, VAR_SHORT_NAME, NC_SHORT, 2, dimids, &short_varid)) ERR;
