@@ -100,19 +100,13 @@ NC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-
-   /* An attempt to do any of these things on a netCDF-3 file is
-    * ignored with no error. */
-   if (!h5)
-      return NC_NOERR;
-
    assert(nc && grp && h5);
 
    /* Find the var. */
    if (varid < 0 || varid >= grp->vars.nelems)
       return NC_ENOTVAR;
-   var = grp->vars.value[varid];
-   if (!var) return NC_ENOTVAR;
+   if (!(var = grp->vars.value[varid]))
+      return NC_ENOTVAR;
    assert(var->varid == varid);
 
    /* Set the values. */
