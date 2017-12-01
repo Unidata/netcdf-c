@@ -622,7 +622,7 @@ main(int argc, char **argv)
 #define DIM4_LEN 10
    {
       int dimids[NDIMS4], dimids_in[NDIMS4];
-      int varid;
+      int varid, varid1;
       int ndims, nvars, natts, unlimdimid;
       nc_type xtype_in;
       char name_in[NC_MAX_NAME + 1];
@@ -677,6 +677,10 @@ main(int argc, char **argv)
 
       /* Open the file and check the same stuff. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+
+      /* This won't work. */
+      if (nc_def_var(ncid, "this_wont_work", NC_BYTE, NDIMS4, dimids,
+                     &varid1) != NC_EPERM) ERR;
 
       if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
       if (ndims != NDIMS4 || nvars != 1 || natts != 0 ||
