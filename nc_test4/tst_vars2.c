@@ -124,7 +124,7 @@ main(int argc, char **argv)
          if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
 
          /* This will not work because file was opened read-only. */
-         if (nc_rename_var(ncid, 0, "something_very_new") != NC_EPERM) ERR;
+          if (nc_rename_var(ncid, 0, "something_very_new") != NC_EPERM) ERR;
 
          /* Check metadata. */
          if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
@@ -453,6 +453,12 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+
+      /* These won't work. */
+      if (nc_rename_var(ncid + TEST_VAL_42, 0, "az") != NC_EBADID) ERR;
+      if (nc_rename_var(ncid + MILLION, 0, "az") != NC_EBADID) ERR;
+
+      /* Rename the var. */
       if (nc_rename_var(ncid, 0, "az")) ERR;
       if (nc_close(ncid)) ERR;
    }

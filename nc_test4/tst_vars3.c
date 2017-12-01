@@ -12,6 +12,7 @@
 
 #define FILE_NAME "tst_vars3.nc"
 #define NDIMS1 1
+#define NDIMS2 2
 #define D_SMALL "small_dim"
 #define D_SMALL_LEN 16
 #define D_MEDIUM "medium_dim"
@@ -375,6 +376,25 @@ main(int argc, char **argv)
       if (nc_inq_varid(ncid, SCALAR_VARNAME, &varid)) ERR;
       if (nc_inq_varname(ncid, varid, varname_in)) ERR;
       if (strcmp(varname_in, SCALAR_VARNAME) != 0) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing bad inputs to put/get_vara calls...");
+   {
+      int ncid, dimid[NDIMS2], varid;
+      size_t start[NDIMS2] = {0, 0}, count[NDIMS2] = {NX, NY};
+      double double_data[NX * NY];
+
+      /* Create file with two dims, one 2D var. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, ZD1_NAME, NX, &dimid[0])) ERR;
+      if (nc_def_dim(ncid, D2_NAME, NY, &dimid[1])) ERR;
+      if (nc_def_var(ncid, ZD1_NAME, NC_DOUBLE, NDIMS2, dimid, &varid)) ERR;
+      if (nc_enddef(ncid)) ERR;
+
+      /* Try to write some data, but fail. */
+      if (nc_put_vara_double(ncid + MILLION, 0, start, count, double_data) != NC_EBADID) ERR;
+
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
