@@ -685,9 +685,8 @@ netcdf-4 file.
 \returns ::NC_ESTRICTNC3 Attempting to create netCDF-4 type var in
 classic model file
 \returns ::NC_EBADTYPE Bad type.
-\returns ::NC_EBADTYPEID Type not found.
 \returns ::NC_ENOMEM Out of memory.
-\returns ::NC_EHDF5ERR Error returned by HDF5 layer.
+\returns ::NC_EHDFERR Error returned by HDF5 layer.
 \returns ::NC_EINVAL Invalid input
 
 \section nc_def_var_deflate_example Example
