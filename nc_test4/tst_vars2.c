@@ -123,6 +123,9 @@ main(int argc, char **argv)
          /* Open the file and check. */
          if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
 
+         /* This will not work because file was opened read-only. */
+         if (nc_rename_var(ncid, 0, "something_very_new") != NC_EPERM) ERR;
+
          /* Check metadata. */
          if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
          if (nvars_in != 1 || varids_in[0] != 0) ERR;
@@ -404,6 +407,17 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, DIMNAME, 1, &dimid)) ERR;
       if (nc_enddef(ncid)) ERR;
       if (nc_redef(ncid)) ERR;
+
+      /* Check that these netCDF-4 things will fail on this classic
+       * model file. */
+      if (nc_def_var(ncid, DIMNAME, NC_UINT, 1, &dimid, &xvarid) != NC_ESTRICTNC3) ERR;
+      if (nc_def_var(ncid, DIMNAME, NC_INT, NC_MAX_VAR_DIMS + 1, &dimid,
+                     &xvarid) != NC_EMAXDIMS) ERR;
+      if (nc_enddef(ncid)) ERR;
+      if (nc_def_var(ncid, DIMNAME, NC_INT, 1, &dimid, &xvarid) != NC_ENOTINDEFINE) ERR;
+      if (nc_redef(ncid)) ERR;
+
+      /* Define the variable for the test. */
       if (nc_def_var(ncid, DIMNAME, NC_INT, 1, &dimid, &xvarid)) ERR;
       if (nc_put_att_text(ncid, xvarid, UNITS, strlen(units), units)) ERR;
       if (nc_def_var(ncid, VARNAME, NC_INT, 1, &dimid, &varid)) ERR;
@@ -446,12 +460,18 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("**** testing dimension and variable renaming...");
    {
-      /* This test contributed by Jeff Whitaker of NOAA - Thanks Jeff! */
-      int  ncid, lat_dim, time_dim, lon_dim, wind_id;
+      /* This test based on code contributed by Jeff Whitaker of NOAA
+       * - Thanks Jeff! */
+      int  ncid, lat_dim, time_dim, lon_dim, wind_id, temp2_id;
       size_t lat_len = 73, time_len = 10, lon_len = 145;
       int wind_dims[RANK_wind], wind_slobber[1], cdf_goober[1];
+      char too_long_name[NC_MAX_NAME + 2];
 
-      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      /* Set up a name that is too long for netCDF. */
+      memset(too_long_name, 'a', NC_MAX_NAME + 1);
+      too_long_name[NC_MAX_NAME + 1] = 0;
+
+      if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
 
       /* define dimensions */
       if (nc_def_dim(ncid, "lon", lon_len, &lon_dim)) ERR;
@@ -465,6 +485,7 @@ main(int argc, char **argv)
       /* define variables */
       wind_dims[0] = lon_dim;
       if (nc_def_var(ncid, "temp", NC_FLOAT, RANK_wind, wind_dims, &wind_id)) ERR;
+      if (nc_def_var(ncid, "temp2", NC_FLOAT, RANK_wind, wind_dims, &temp2_id)) ERR;
 
       if (nc_put_att_text(ncid, wind_id, "bar", 3, "foo")) ERR;
       wind_slobber[0] = 3;
@@ -478,6 +499,14 @@ main(int argc, char **argv)
       /* rename dimension */
       if (nc_rename_dim(ncid, lon_dim, "longitude")) ERR;
       if (nc_inq_varid(ncid, "temp", &wind_id)) ERR;
+
+      /* These won't work due to bad paramters. */
+      if (nc_rename_var(ncid + MILLION, wind_id, "wind") != NC_EBADID) ERR;
+      if (nc_rename_var(ncid, wind_id + TEST_VAL_42, "wind") != NC_ENOTVAR) ERR;
+      if (nc_rename_var(ncid, wind_id, BAD_NAME) != NC_EBADNAME) ERR;
+      if (nc_rename_var(ncid, wind_id, too_long_name) != NC_EMAXNAME) ERR;
+      if (nc_rename_var(ncid, wind_id, "temp2") != NC_ENAMEINUSE) ERR;
+      if (nc_rename_var(ncid, wind_id, "windy") != NC_ENOTINDEFINE) ERR;
 
       /* rename variable */
       if (nc_rename_var(ncid, wind_id, "wind")) ERR;
