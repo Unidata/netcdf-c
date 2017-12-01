@@ -37,6 +37,7 @@ for conditions of use.
 #define SIXTY_FOUR_MEG (SIXTEEN_MEG * 4)
 #define ONE_TWENTY_EIGHT_MEG (SIXTEEN_MEG * 8)
 #define TEST_VAL_42 42
+#define BAD_NAME "dd//d/  "
 /** \} */
 
 #ifdef USE_PNETCDF

@@ -341,7 +341,6 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimids[1])) ERR;
       if (nc_def_dim(ncid, DIM3_NAME, DIM3_LEN, &dimids[2])) ERR;
 
-#define BAD_NAME "dd//d/  "
       /* These attempts will fail due to bad paramters. */
       if (nc_def_var(ncid + MILLION, VAR_BYTE_NAME, NC_BYTE, 2, dimids, &byte_varid)
           != NC_EBADID) ERR;
