@@ -679,6 +679,15 @@ not netCDF-4/HDF5.
 \returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
 netcdf-4 file.
 \returns ::NC_ELATEDEF Too late to change settings for this variable.
+\returns ::NC_ENOTINDEFINE Not in define mode.
+\returns ::NC_EPERM File is read only.
+\returns ::NC_EMAXDIMS Classic model file exceeds ::NC_MAX_VAR_DIMS.
+\returns ::NC_ESTRICTNC3 Attempting to create netCDF-4 type var in
+classic model file
+\returns ::NC_EBADTYPE Bad type.
+\returns ::NC_EBADTYPEID Type not found.
+\returns ::NC_ENOMEM Out of memory.
+\returns ::NC_EHDF5ERR Error returned by HDF5 layer.
 \returns ::NC_EINVAL Invalid input
 
 \section nc_def_var_deflate_example Example
