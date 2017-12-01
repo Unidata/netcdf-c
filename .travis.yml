@@ -1,3 +1,9 @@
+# blocklist
+branches:
+  except:
+  - /.*[.]dmh/
+  - /.*[.]wif/
+
 sudo: required
 language: c
 services:
