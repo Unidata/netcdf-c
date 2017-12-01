@@ -503,6 +503,7 @@ main(int argc, char **argv)
       /* These won't work due to bad paramters. */
       if (nc_rename_var(ncid + MILLION, wind_id, "wind") != NC_EBADID) ERR;
       if (nc_rename_var(ncid, wind_id + TEST_VAL_42, "wind") != NC_ENOTVAR) ERR;
+      if (nc_rename_var(ncid, -TEST_VAL_42, "wind") != NC_ENOTVAR) ERR;
       if (nc_rename_var(ncid, wind_id, BAD_NAME) != NC_EBADNAME) ERR;
       if (nc_rename_var(ncid, wind_id, too_long_name) != NC_EMAXNAME) ERR;
       if (nc_rename_var(ncid, wind_id, "temp2") != NC_ENAMEINUSE) ERR;
@@ -696,6 +697,7 @@ main(int argc, char **argv)
       char name_in[NC_MAX_NAME + 1];
       int data[DIM5_LEN], data_in[DIM5_LEN];
       size_t chunksize[NDIMS5] = {5};
+      size_t bad_chunksize[NDIMS5] = {-5};
       size_t chunksize_in[NDIMS5];
       int storage_in;
       size_t cache_size_in, cache_nelems_in;
@@ -709,7 +711,16 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM5_NAME, DIM5_LEN, &dimids[0])) ERR;
       if (dimids[0] != 0) ERR;
+
+      /* Define the variable. */
       if (nc_def_var(ncid, VAR_NAME5, NC_INT, NDIMS5, dimids, &varid)) ERR;
+
+      /* This will fail due to bad chunk size. */
+      printf("ret = %d\n", nc_def_var_chunking(ncid, varid, NC_CHUNKED, bad_chunksize));
+      if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, bad_chunksize) !=
+          NC_EBADCHUNK) ERR;
+
+      /* Define the chunking. */
       if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, chunksize)) ERR;
 
       /* Try to set var cache with bad parameters. They will be
@@ -799,7 +810,7 @@ main(int argc, char **argv)
       int storage_in;
       size_t cache_size_in, cache_nelems_in;
       float cache_preemption_in;
-      int i, d;
+      int i;
 
       for (i = 0; i < DIM5_LEN; i++)
          data[i] = i;

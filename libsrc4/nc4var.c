@@ -183,12 +183,6 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-
-   /* Attempting to do any of these things on a netCDF-3 file produces
-    * an error. */
-   if (!h5)
-      return NC_ENOTNC4;
-
    assert(nc && grp && h5);
 
    /* Find the var. */
@@ -472,9 +466,8 @@ int nc4_vararray_add(NC_GRP_INFO_T *grp,
  * classic model file
  * @returns ::NC_EBADNAME Bad name.
  * @returns ::NC_EBADTYPE Bad type.
- * @returns ::NC_EBADTYPEID Type not found.
  * @returns ::NC_ENOMEM Out of memory.
- * @returns ::NC_EHDF5ERR Error returned by HDF5 layer.
+ * @returns ::NC_EHDFERR Error returned by HDF5 layer.
  * @returns ::NC_EINVAL Invalid input
  * @author Ed Hartnett, Dennis Heimbigner
  */
@@ -1216,7 +1209,7 @@ NC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
  * @param ncid File ID.
  * @param varid Variable ID.
  * @param contiguous Pointer to contiguous setting.
- * @param chunksizes Array of chunksizes.
+ * @param chunksizesp Array of chunksizes.
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ncid.
@@ -1356,27 +1349,15 @@ nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
    return retval;
 }
 
-/* Define fill value behavior for a variable. This must be done after
-   nc_def_var and before nc_enddef.
-   * @returns ::NC_NOERR for success
-   * @author Ed Hartnett
-   */
 /**
- * @internal This functions sets extra stuff about a netCDF-4 variable which
- * must be set before the enddef but after the def_var.
+ * @internal This functions sets fill value and no_fill mode for a
+ * netCDF-4 variable. It is called by nc_def_var_fill().
  *
  * @note All pointer parameters may be NULL, in which case they are ignored.
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param shuffle Pointer to shuffle setting. 
- * @param deflate Pointer to deflate setting.
- * @param deflate_level Pointer to deflate level.
- * @param fletcher32 Pointer to fletcher32 setting.
- * @param contiguous Pointer to contiguous setting.
- * @param chunksizes Array of chunksizes.
- * @param no_fill Pointer to no_fill setting.
+ * @param no_fill No_fill setting.
  * @param fill_value Pointer to fill value.
- * @param endianness Pointer to endianness setting.
  *
  * @returns ::NC_NOERR for success
  * @returns ::NC_EBADID Bad ncid.
@@ -1389,7 +1370,6 @@ nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
  * @returns ::NC_ENOTINDEFINE Not in define mode.
  * @returns ::NC_EPERM File is read only.
  * @returns ::NC_EINVAL Invalid input
- * @returns ::NC_EBADCHUNK Bad chunksize.
  * @author Ed Hartnett
  */
 int
@@ -1399,27 +1379,14 @@ NC4_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
                            NULL, &no_fill, fill_value, NULL);
 }
 
-
-/* Define the endianness of a variable.
- * @returns ::NC_NOERR for success
- * @author Ed Hartnett
- */
 /**
- * @internal This functions sets extra stuff about a netCDF-4 variable which
- * must be set before the enddef but after the def_var.
+ * @internal This functions sets endianness for a netCDF-4
+ * variable. Called by nc_def_var_endian().
  *
  * @note All pointer parameters may be NULL, in which case they are ignored.
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param shuffle Pointer to shuffle setting. 
- * @param deflate Pointer to deflate setting.
- * @param deflate_level Pointer to deflate level.
- * @param fletcher32 Pointer to fletcher32 setting.
- * @param contiguous Pointer to contiguous setting.
- * @param chunksizes Array of chunksizes.
- * @param no_fill Pointer to no_fill setting.
- * @param fill_value Pointer to fill value.
- * @param endianness Pointer to endianness setting.
+ * @param endianness Endianness setting.
  *
  * @returns ::NC_NOERR for success
  * @returns ::NC_EBADID Bad ncid.
@@ -1432,7 +1399,6 @@ NC4_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
  * @returns ::NC_ENOTINDEFINE Not in define mode.
  * @returns ::NC_EPERM File is read only.
  * @returns ::NC_EINVAL Invalid input
- * @returns ::NC_EBADCHUNK Bad chunksize.
  * @author Ed Hartnett
  */
 int
@@ -1818,8 +1784,8 @@ nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp,
  * @param varid Variable ID.
  * @param startp Array of start indicies.
  * @param countp Array of counts.
+ * @param op pointer that gets the data.
  * @param memtype The type of these data in memory.
- * @param data pointer that gets the data.
  *
  * @returns ::NC_NOERR for success
  * @author Ed Hartnett, Dennis Heimbigner
@@ -1845,9 +1811,8 @@ NC4_put_vara(int ncid, int varid, const size_t *startp,
  * @param varid Variable ID.
  * @param startp Array of start indicies.
  * @param countp Array of counts.
- * @param mem_nc_type The type of these data after it is read into memory.
- * @param is_long Ignored for HDF4.
- * @param data pointer that gets the data.
+ * @param ip pointer that gets the data.
+ * @param memtype The type of these data after it is read into memory.
 
  * @returns ::NC_NOERR for success
  * @author Ed Hartnett, Dennis Heimbigner
