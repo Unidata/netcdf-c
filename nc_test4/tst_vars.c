@@ -184,6 +184,12 @@ create_4D_example(char *file_name, int cmode)
    for (rec = 0; rec < NREC; rec++)
    {
       start[0] = rec;
+
+      /* This won't work due to bad id. */
+      if (nc_put_vara_float(ncid + MILLION, pres_varid, start, count,
+                            &pres_out[0][0][0]) != NC_EBADID) ERR;
+      
+      /* Now write the data. */
       if (nc_put_vara_float(ncid, pres_varid, start, count,
 				      &pres_out[0][0][0])) ERR;
       if (nc_put_vara_float(ncid, temp_varid, start, count,
