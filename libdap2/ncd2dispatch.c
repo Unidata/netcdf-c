@@ -653,7 +653,6 @@ builddims(NCDAPCOMMON* dapcomm)
     NCerror ncstat = NC_NOERR;
     int dimid;
     NClist* dimset = NULL;
-    NC* drno = dapcomm->controller;
     NC* ncsub;
     char* definename;
 
@@ -738,7 +737,6 @@ buildvars(NCDAPCOMMON* dapcomm)
     NCerror ncstat = NC_NOERR;
     int varid;
     NClist* varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
-    NC* drno = dapcomm->controller;
     char* definename;
 
     ASSERT((varnodes != NULL));
@@ -816,7 +814,6 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
     char *nltxt, *p;
     NCbytes* buf = NULL;
     NClist* cdfnodes;
-    NC* drno = dapcomm->controller;
 
     if(root->attributes != NULL) {
         for(i=0;i<nclistlength(root->attributes);i++) {
@@ -895,7 +892,6 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
     int i;
     NCerror ncstat = NC_NOERR;
     unsigned int nvalues = nclistlength(att->values);
-    NC* drno = dapcomm->controller;
 
     /* If the type of the attribute is string, then we need*/
     /* to convert to a single character string by concatenation.
