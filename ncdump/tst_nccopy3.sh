@@ -1,9 +1,12 @@
 #!/bin/sh
+# For a netCDF-3 build, test nccopy on netCDF files in this
+# directory. This test depends on a bunch of other ncdump tests
+# running first, to produce the data files that are used to test
+# nccopy.
+# Dennis Heimbigner
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
-
-# For a netCDF-3 build, test nccopy on netCDF files in this directory
 
 set -e
 echo ""
@@ -20,8 +23,8 @@ else
   exit 1
 fi
 
-TESTFILES='c0 c0tmp ctest0 ctest0_64 test0_offset test1_offset
- tst_calendars tst_mslp tst_mslp_64 tst_ncml tst_small tst_utf8 utf8'
+TESTFILES='tst_output_c0 tst_output_c0tmp ctest0 ctest0_64 test0_offset test1_offset
+ tst_calendars tst_mslp tst_mslp_64 tst_ncml tst_small tst_utf8'
 
 if test "x$HAVE_CDF5" = x1 ; then
     TESTFILES="$TESTFILES small small2"

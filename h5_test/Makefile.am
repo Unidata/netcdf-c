@@ -7,6 +7,7 @@
 # only use HDF5; these tests don't use netCDF at all.
 #
 # If one of these tests fails, then netCDF-4 will not work correctly.
+# Ed Hartnett, Ward Fisher
 
 # Set AM_CPPFLAGS and AM_LDFLAGS based on user choices.
 include $(top_srcdir)/lib_flags.am
@@ -46,7 +47,8 @@ endif # USE_VALGRIND_TESTS
 # We must include these files in the distribution.
 EXTRA_DIST = run_par_tests.sh run_valgrind_tests.sh		\
 ref_tst_h_compounds.h5 ref_tst_h_compounds2.h5 run_par_tests.sh	\
-run_valgrind_tests.sh ref_tst_compounds.nc h5_err_macros.h CMakeLists.txt
+run_valgrind_tests.sh ref_tst_compounds.nc h5_err_macros.h	\
+CMakeLists.txt
 
 # Clean up test results.
 CLEANFILES = tst_h_*.h5
