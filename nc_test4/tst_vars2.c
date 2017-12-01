@@ -720,6 +720,8 @@ main(int argc, char **argv)
                                  CACHE_PREEMPTION) != NC_ENOTVAR) ERR;
       if (nc_set_var_chunk_cache(ncid, varid, CACHE_SIZE, CACHE_NELEMS,
                                  CACHE_PREEMPTION + TEST_VAL_42) != NC_EINVAL) ERR;
+      if (nc_set_var_chunk_cache(ncid, varid, CACHE_SIZE, CACHE_NELEMS,
+                                 CACHE_PREEMPTION - TEST_VAL_42) != NC_EINVAL) ERR;
 
       /* Set the cache. */
       if (nc_set_var_chunk_cache(ncid, varid, CACHE_SIZE, CACHE_NELEMS, CACHE_PREEMPTION)) ERR;
@@ -776,6 +778,92 @@ main(int argc, char **argv)
       for (d = 0; d < NDIMS5; d++)
 	 if (chunksize[d] != chunksize_in[d]) ERR;
       if (storage_in != NC_CHUNKED) ERR;
+      if (nc_get_var_int(ncid, varid, data_in)) ERR;
+      for (i = 0; i < DIM5_LEN; i++)
+         if (data[i] != data_in[i])
+	    ERR_RET;
+      if (nc_close(ncid)) ERR;
+   }
+
+   SUMMARIZE_ERR;
+   printf("**** testing netCDF-4 functions on netCDF-3 files...");
+   {
+      int dimids[NDIMS5], dimids_in[NDIMS5];
+      int varid;
+      int ndims, nvars, natts, unlimdimid;
+      nc_type xtype_in;
+      char name_in[NC_MAX_NAME + 1];
+      int data[DIM5_LEN], data_in[DIM5_LEN];
+      size_t chunksize[NDIMS5] = {5};
+      size_t chunksize_in[NDIMS5];
+      int storage_in;
+      size_t cache_size_in, cache_nelems_in;
+      float cache_preemption_in;
+      int i, d;
+
+      for (i = 0; i < DIM5_LEN; i++)
+         data[i] = i;
+
+      /* Create a netcdf classic file with one dim and one var. */
+      if (nc_create(FILE_NAME, 0, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM5_NAME, DIM5_LEN, &dimids[0])) ERR;
+      if (dimids[0] != 0) ERR;
+      if (nc_def_var(ncid, VAR_NAME5, NC_INT, NDIMS5, dimids, &varid)) ERR;
+
+      /* These will return error. */
+      if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, chunksize) != NC_ENOTNC4) ERR;
+      if (nc_set_var_chunk_cache(ncid, varid, CACHE_SIZE, CACHE_NELEMS,
+                                 CACHE_PREEMPTION) != NC_ENOTNC4) ERR;
+
+      if (nc_enddef(ncid)) ERR;
+      if (nc_put_var_int(ncid, varid, data)) ERR;
+
+      /* Check stuff. */
+      if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
+      if (ndims != NDIMS5 || nvars != 1 || natts != 0 ||
+          unlimdimid != -1) ERR;
+      if (nc_inq_varids(ncid, &nvars, varids_in)) ERR;
+      if (nvars != 1) ERR;
+      if (varids_in[0] != 0) ERR;
+      if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in, &natts)) ERR;
+      if (strcmp(name_in, VAR_NAME5) || xtype_in != NC_INT || ndims != 1 || natts != 0 ||
+	  dimids_in[0] != 0) ERR;
+
+      /* This call fails. */
+      if (nc_get_var_chunk_cache(ncid, varid, &cache_size_in, &cache_nelems_in,
+				 &cache_preemption_in) != NC_ENOTNC4) ERR;
+
+      /* This call passes but does nothing. */
+      if (nc_inq_var_chunking(ncid, 0, &storage_in, chunksize_in)) ERR;
+
+      if (nc_get_var_int(ncid, varid, data_in)) ERR;
+      for (i = 0; i < DIM5_LEN; i++)
+         if (data[i] != data_in[i])
+	    ERR_RET;
+
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file and check the same stuff. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+
+      /* Check stuff. */
+      if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
+      if (ndims != NDIMS5 || nvars != 1 || natts != 0 ||
+          unlimdimid != -1) ERR;
+      if (nc_inq_varids(ncid, &nvars, varids_in)) ERR;
+      if (nvars != 1) ERR;
+      if (varids_in[0] != 0) ERR;
+      if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in, &natts)) ERR;
+      if (strcmp(name_in, VAR_NAME5) || xtype_in != NC_INT || ndims != 1 || natts != 0 ||
+	  dimids_in[0] != 0) ERR;
+
+      /* This call fails. */
+      if (nc_get_var_chunk_cache(ncid, varid, &cache_size_in, &cache_nelems_in,
+				 &cache_preemption_in) != NC_ENOTNC4) ERR;
+
+      /* This call passes but does nothing. */
+      if (nc_inq_var_chunking(ncid, 0, &storage_in, chunksize_in)) ERR;
+      
       if (nc_get_var_int(ncid, varid, data_in)) ERR;
       for (i = 0; i < DIM5_LEN; i++)
          if (data[i] != data_in[i])
