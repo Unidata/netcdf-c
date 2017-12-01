@@ -335,6 +335,8 @@ main(int argc, char **argv)
    printf("*** testing simple variables...");
 
    {
+      int bad_dimids[3] = {1, 2, 5}; /* "Three sir!" */
+      
       /* Create a file with a variable of each type. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimids[0])) ERR;
@@ -342,13 +344,22 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, DIM3_NAME, DIM3_LEN, &dimids[2])) ERR;
 
       /* These attempts will fail due to bad paramters. */
-      if (nc_def_var(ncid + MILLION, VAR_BYTE_NAME, NC_BYTE, 2, dimids, &byte_varid)
-          != NC_EBADID) ERR;
-      if (nc_def_var(ncid, BAD_NAME, NC_BYTE, 2, dimids, &byte_varid) != NC_EBADNAME) ERR;
-      if (nc_def_var(ncid, VAR_BYTE_NAME, 0, 2, dimids, &byte_varid) != NC_EBADTYPE) ERR;
-      if (nc_def_var(ncid, VAR_BYTE_NAME, TEST_VAL_42, 2, dimids, &byte_varid) != NC_EBADTYPE) ERR;
-      if (nc_def_var(ncid, VAR_BYTE_NAME, NC_BYTE, -2, dimids, &byte_varid) != NC_EINVAL) ERR;
-      if (nc_def_var(ncid, VAR_BYTE_NAME, NC_BYTE, 2, NULL, &byte_varid) != NC_EINVAL) ERR;
+      if (nc_def_var(ncid + MILLION, VAR_BYTE_NAME, NC_BYTE, 2, dimids,
+                     &byte_varid) != NC_EBADID) ERR;
+      if (nc_def_var(ncid + TEST_VAL_42, VAR_BYTE_NAME, NC_BYTE, 2, dimids,
+                     &byte_varid) != NC_EBADID) ERR;
+      if (nc_def_var(ncid, BAD_NAME, NC_BYTE, 2, dimids,
+                     &byte_varid) != NC_EBADNAME) ERR;
+      if (nc_def_var(ncid, VAR_BYTE_NAME, 0, 2, dimids,
+                     &byte_varid) != NC_EBADTYPE) ERR;
+      if (nc_def_var(ncid, VAR_BYTE_NAME, TEST_VAL_42, 2, dimids,
+                     &byte_varid) != NC_EBADTYPE) ERR;
+      if (nc_def_var(ncid, VAR_BYTE_NAME, NC_BYTE, -2, dimids,
+                     &byte_varid) != NC_EINVAL) ERR;
+      if (nc_def_var(ncid, VAR_BYTE_NAME, NC_BYTE, 2, NULL,
+                     &byte_varid) != NC_EINVAL) ERR;
+      if (nc_def_var(ncid, VAR_BYTE_NAME, NC_BYTE, 3, bad_dimids,
+                     &byte_varid) != NC_EBADDIM) ERR;
 
       /* Now create our variables. */
       if (nc_def_var(ncid, VAR_BYTE_NAME, NC_BYTE, 2, dimids, &byte_varid)) ERR;
@@ -836,6 +847,10 @@ main(int argc, char **argv)
 
       /* Open the file and check the same stuff. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+
+      /* Can't define a var! */
+      if (nc_def_var(ncid, "this_wont_work", NC_INT, NDIMS4, dimids, &varid)
+          != NC_EPERM) ERR;
 
       if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
       if (ndims != NDIMS4 || nvars != NVARS4 || natts != 0 ||
