@@ -649,12 +649,30 @@ main(int argc, char **argv)
       if (nc_inq_varids(ncid, &nvars, varids_in)) ERR;
       if (nvars != 1) ERR;
       if (varids_in[0] != 0) ERR;
+
+      /* Test some bad parameter values. */
+      if (nc_inq_var(ncid + MILLION, 0, name_in, &xtype_in, &ndims,
+                     dimids_in, &natts) != NC_EBADID) ERR;
+      if (nc_inq_var(ncid + TEST_VAL_42, 0, name_in, &xtype_in, &ndims,
+                     dimids_in, &natts) != NC_EBADID) ERR;
+      if (nc_inq_var(ncid, -TEST_VAL_42, name_in, &xtype_in, &ndims,
+                     dimids_in, &natts) != NC_ENOTVAR) ERR;
+      if (nc_inq_var(ncid, 1, name_in, &xtype_in, &ndims,
+                     dimids_in, &natts) != NC_ENOTVAR) ERR;
+      if (nc_inq_var(ncid, TEST_VAL_42, name_in, &xtype_in, &ndims,
+                     dimids_in, &natts) != NC_ENOTVAR) ERR;
+
+      /* Now pass correct parameters. */
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims,
                      dimids_in, &natts)) ERR;
       if (strcmp(name_in, VAR_NAME4) || xtype_in != NC_INT ||
           ndims != 1 || natts != 0 || dimids_in[0] != 0) ERR;
       if (nc_inq_var_endian(ncid, 0, &endian_in)) ERR;
       if (endian_in != NC_ENDIAN_BIG) ERR;
+
+      /* This also works, uselessly. */
+      if (nc_inq_var(ncid, 0, name_in, NULL, NULL, NULL, NULL)) ERR;
+      
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check the same stuff. */
@@ -716,7 +734,6 @@ main(int argc, char **argv)
       if (nc_def_var(ncid, VAR_NAME5, NC_INT, NDIMS5, dimids, &varid)) ERR;
 
       /* This will fail due to bad chunk size. */
-      printf("ret = %d\n", nc_def_var_chunking(ncid, varid, NC_CHUNKED, bad_chunksize));
       if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, bad_chunksize) !=
           NC_EBADCHUNK) ERR;
 

@@ -105,9 +105,8 @@ NC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
    /* Find the var. */
    if (varid < 0 || varid >= grp->vars.nelems)
       return NC_ENOTVAR;
-   if (!(var = grp->vars.value[varid]))
-      return NC_ENOTVAR;
-   assert(var->varid == varid);
+   var = grp->vars.value[varid];
+   assert(var && var->varid == varid);
 
    /* Set the values. */
    var->chunk_cache_size = size;
@@ -189,8 +188,7 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
    if (varid < 0 || varid >= grp->vars.nelems)
       return NC_ENOTVAR;
    var = grp->vars.value[varid];
-   if (!var) return NC_ENOTVAR;
-   assert(var->varid == varid);
+   assert(var && var->varid == varid);
 
    /* Give the user what they want. */
    if (sizep)
@@ -823,8 +821,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    if (varid < 0 || varid >= grp->vars.nelems)
       return NC_ENOTVAR;
    var = grp->vars.value[varid];
-   if (!var) return NC_ENOTVAR;
-   assert(var->varid == varid);
+   assert(var && var->varid == varid);
 
    /* Copy the data to the user's data buffers. */
    if (name)

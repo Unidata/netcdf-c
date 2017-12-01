@@ -4,7 +4,7 @@
 
    Test netcdf-4 compound type feature.
 
-   $Id: tst_compounds.c,v 1.45 2010/05/25 13:53:03 ed Exp $
+   Ed Hartnett
 */
 
 #include <config.h>
@@ -56,6 +56,12 @@ main(int argc, char **argv)
 			     NC_COMPOUND_OFFSET(struct s1, i1), NC_INT)) ERR;
       if (nc_insert_compound(ncid, typeid, DATES_WITH_ALIENS,
 			     NC_COMPOUND_OFFSET(struct s1, i2), NC_INT)) ERR;
+
+      /* This won't work due to bad typeid. */
+      if (nc_def_var(ncid, SERVICE_RECORD, typeid + TEST_VAL_42, 0, NULL,
+                     &varid) != NC_EBADTYPE) ERR;
+
+      /* Define the variable. */
       if (nc_def_var(ncid, SERVICE_RECORD, typeid, 0, NULL, &varid)) ERR;
       if (nc_put_var(ncid, varid, &data)) ERR;
       if (nc_close(ncid)) ERR;
