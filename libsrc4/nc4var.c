@@ -1263,7 +1263,7 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
                             NULL, NULL, NULL, NULL, NULL);
 
    /* Copy from size_t array. */
-   if (*contiguousp == NC_CHUNKED)
+   if (chunksizesp && var->contiguous == NC_CHUNKED)
       for (i = 0; i < var->ndims; i++)
       {
          chunksizesp[i] = (int)cs[i];
