@@ -13,7 +13,7 @@
 
 #define FILE_NAME "tst_vars2.nc"
 #define NUM_DIMS 1
-#define NUM_VARS 2
+#define NUM_VARS 3
 #define DIM1_LEN NC_UNLIMITED
 #define DIM1_NAME "Hoplites_Engaged"
 #define VAR_NAME "Battle_of_Marathon"
@@ -738,6 +738,7 @@ main(int argc, char **argv)
 #define DIM5_NAME "D5"
 #define VAR_NAME5 "V5"
 #define VAR_NAME5_1 "V5_1"
+#define VAR_NAME5_2 "V5_2"
 #define DIM5_LEN 1000
 #define CACHE_SIZE 32000000
 #define CACHE_NELEMS 1009
@@ -747,7 +748,7 @@ main(int argc, char **argv)
 #define CACHE_PREEMPTION2 .50
 
       int dimids[NDIMS5], dimids_in[NDIMS5];
-      int varid, varid1;
+      int varid, varid1, varid2;
       int ndims, nvars, natts, unlimdimid;
       nc_type xtype_in;
       char name_in[NC_MAX_NAME + 1];
@@ -841,9 +842,9 @@ main(int argc, char **argv)
                                    chunksize_int_in) != NC_EBADID) ERR;
       if (nc_inq_var_chunking_ints(ncid, -1, &storage_in,
                                    chunksize_int_in) != NC_ENOTVAR) ERR;
-      if (nc_inq_var_chunking_ints(ncid, varid1 + 1, &storage_in,
+      if (nc_inq_var_chunking_ints(ncid, varid + 1, &storage_in,
                                    chunksize_int_in) != NC_ENOTVAR) ERR;
-      if (nc_inq_var_chunking_ints(ncid, varid1 + TEST_VAL_42, &storage_in,
+      if (nc_inq_var_chunking_ints(ncid, varid + TEST_VAL_42, &storage_in,
                                    chunksize_int_in) != NC_ENOTVAR) ERR;
       
       /* Now check with the fortran versions of the var_chunking. */
@@ -854,9 +855,9 @@ main(int argc, char **argv)
          chunksize_int[d] = chunksize[d] * 2;
 
       /* Check that some bad parameter values are rejected properly. */
-      if (nc_def_var_chunking_ints(ncid + MILLION, varid1, NC_CHUNKED,
+      if (nc_def_var_chunking_ints(ncid + MILLION, varid, NC_CHUNKED,
                                    chunksize_int) != NC_EBADID) ERR;
-      if (nc_def_var_chunking_ints(ncid + TEST_VAL_42, varid1, NC_CHUNKED,
+      if (nc_def_var_chunking_ints(ncid + TEST_VAL_42, varid, NC_CHUNKED,
                                    chunksize_int) != NC_EBADID) ERR;
       if (nc_def_var_chunking_ints(ncid, -1, NC_CHUNKED,
                                    chunksize_int) != NC_ENOTVAR) ERR;
@@ -868,6 +869,7 @@ main(int argc, char **argv)
       if (nc_def_var_chunking_ints(ncid, varid, NC_CHUNKED, chunksize_int) != NC_ELATEDEF) ERR;
       if (nc_redef(ncid)) ERR;
       if (nc_def_var(ncid, VAR_NAME5_1, NC_INT, NDIMS5, dimids, &varid1)) ERR;
+      if (nc_def_var(ncid, VAR_NAME5_2, NC_INT, 0, NULL, &varid2)) ERR;
       if (nc_def_var_chunking_ints(ncid, varid1, NC_CHUNKED, chunksize_int)) ERR;
       if (nc_inq_var_chunking_ints(ncid, varid1, NULL, chunksize_int_in)) ERR;
       for (d = 0; d < NDIMS5; d++)
@@ -881,7 +883,7 @@ main(int argc, char **argv)
 				 &cache_preemption_in) != NC_EBADID) ERR;
       if (nc_get_var_chunk_cache(ncid, varid + TEST_VAL_42, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
-      if (nc_get_var_chunk_cache(ncid, varid1 + 1, &cache_size_in, &cache_nelems_in,
+      if (nc_get_var_chunk_cache(ncid, varid2 + 1, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
       if (nc_get_var_chunk_cache(ncid, -TEST_VAL_42, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
@@ -910,10 +912,10 @@ main(int argc, char **argv)
 
       /* Check stuff. */
       if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
-      if (ndims != NDIMS5 || nvars != 2 || natts != 0 ||
+      if (ndims != NDIMS5 || nvars != NUM_VARS || natts != 0 ||
           unlimdimid != -1) ERR;
       if (nc_inq_varids(ncid, &nvars, varids_in)) ERR;
-      if (nvars != 2) ERR;
+      if (nvars != NUM_VARS) ERR;
       if (varids_in[0] != 0 || varids_in[1] != 1) ERR;
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in, &natts)) ERR;
       if (strcmp(name_in, VAR_NAME5) || xtype_in != NC_INT || ndims != 1 || natts != 0 ||
