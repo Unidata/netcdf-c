@@ -736,6 +736,8 @@ main(int argc, char **argv)
       float cache_preemption_in;
       int cache_size_int_in, cache_nelems_int_in;
       int cache_preemption_int_in;
+      int cache_size_int_default, cache_nelems_int_default;
+      int cache_preemption_int_default;
       int i, d;
 
       for (i = 0; i < DIM5_LEN; i++)
@@ -854,9 +856,38 @@ main(int argc, char **argv)
                                       (int)(CACHE_PREEMPTION2 * 100))) ERR;
       if (nc_get_var_chunk_cache_ints(ncid, varid, &cache_size_int_in, &cache_nelems_int_in,
                                       &cache_preemption_int_in)) ERR;
-      if (cache_size_int_in != CACHE_SIZE2 / MEGABYTE) ERR;
-      if (cache_nelems_int_in != CACHE_NELEMS2) ERR;
-      if (cache_preemption_int_in != (int)(CACHE_PREEMPTION2 * 100)) ERR;
+      if (cache_size_int_in != CACHE_SIZE2 / MEGABYTE || cache_nelems_int_in != CACHE_NELEMS2 ||
+          cache_preemption_int_in != (int)(CACHE_PREEMPTION2 * 100)) ERR;
+
+      /* Passing negative values to the _int function causes them to
+       * be ignored and a default setting used. Set all to negative to
+       * get defaults.. */
+      if (nc_set_var_chunk_cache_ints(ncid, varid, -CACHE_SIZE / MEGABYTE, -CACHE_NELEMS2,
+                                      -(int)(CACHE_PREEMPTION2 * 100))) ERR;
+      if (nc_get_var_chunk_cache_ints(ncid, varid, &cache_size_int_default, &cache_nelems_int_default,
+                                      &cache_preemption_int_default)) ERR;
+
+      /* Now set the size only. */
+      if (nc_set_var_chunk_cache_ints(ncid, varid, CACHE_SIZE / MEGABYTE, -CACHE_NELEMS2,
+                                      -(int)(CACHE_PREEMPTION2 * 100))) ERR;
+      if (nc_get_var_chunk_cache_ints(ncid, varid, &cache_size_int_in, &cache_nelems_int_in,
+                                      &cache_preemption_int_in)) ERR;
+      if (cache_size_int_in != CACHE_SIZE / MEGABYTE || cache_nelems_int_in != cache_nelems_int_default ||
+          cache_preemption_int_in != cache_preemption_int_default) ERR;
+      /* Now set the nelems only. */
+      if (nc_set_var_chunk_cache_ints(ncid, varid, -CACHE_SIZE / MEGABYTE, CACHE_NELEMS,
+                                      -(int)(CACHE_PREEMPTION2 * 100))) ERR;
+      if (nc_get_var_chunk_cache_ints(ncid, varid, &cache_size_int_in, &cache_nelems_int_in,
+                                      &cache_preemption_int_in)) ERR;
+      if (cache_size_int_in != cache_size_int_default || cache_nelems_int_in != CACHE_NELEMS ||
+          cache_preemption_int_in != cache_preemption_int_default) ERR;
+      /* Now set the preemption only. */
+      if (nc_set_var_chunk_cache_ints(ncid, varid, -CACHE_SIZE / MEGABYTE, -CACHE_NELEMS,
+                                      (int)(CACHE_PREEMPTION2 * 100))) ERR;
+      if (nc_get_var_chunk_cache_ints(ncid, varid, &cache_size_int_in, &cache_nelems_int_in,
+                                      &cache_preemption_int_in)) ERR;
+      if (cache_size_int_in != cache_size_int_default || cache_nelems_int_in != cache_nelems_int_default ||
+          cache_preemption_int_in != (int)(CACHE_PREEMPTION2 * 100)) ERR;
       
       if (nc_close(ncid)) ERR;
    }
