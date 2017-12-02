@@ -977,17 +977,11 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
+   assert(nc && grp && h5);
 
 #ifdef USE_HDF4
    ishdf4 = h5->hdf4;
 #endif
-
-   /* Attempting to do any of these things on a netCDF-3 file produces
-    * an error. */
-   if (!h5)
-      return NC_ENOTNC4;
-
-   assert(nc && grp && h5);
 
    /* Find the var. */
    if (varid < 0 || varid >= grp->vars.nelems)
