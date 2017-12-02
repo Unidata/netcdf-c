@@ -9,6 +9,7 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include "netcdf.h"
+#include "netcdf_f.h"
 
 #define FILE_NAME "tst_vars2.nc"
 #define NUM_DIMS 1
@@ -717,6 +718,9 @@ main(int argc, char **argv)
 #define CACHE_SIZE 32000000
 #define CACHE_NELEMS 1009
 #define CACHE_PREEMPTION .75
+#define CACHE_SIZE2 64000000
+#define CACHE_NELEMS2 2000
+#define CACHE_PREEMPTION2 .50
 
       int dimids[NDIMS5], dimids_in[NDIMS5];
       int varid;
@@ -730,6 +734,8 @@ main(int argc, char **argv)
       int storage_in;
       size_t cache_size_in, cache_nelems_in;
       float cache_preemption_in;
+      int cache_size_int_in, cache_nelems_int_in;
+      int cache_preemption_int_in;
       int i, d;
 
       for (i = 0; i < DIM5_LEN; i++)
@@ -809,6 +815,16 @@ main(int argc, char **argv)
 	  cache_preemption_in != CACHE_PREEMPTION) ERR;
       /* THis should also work, pointlessly. */
       if (nc_get_var_chunk_cache(ncid, varid, NULL, NULL, NULL)) ERR;
+
+      /* Check the _int version of this function, used by the F77 API. */
+      if (nc_get_var_chunk_cache_ints(ncid, varid, &cache_size_int_in, &cache_nelems_int_in,
+                                      &cache_preemption_int_in)) ERR;
+      if (cache_size_int_in != CACHE_SIZE / MEGABYTE) ERR;
+      if (cache_nelems_int_in != CACHE_NELEMS) ERR;
+      if (cache_preemption_int_in != (int)(CACHE_PREEMPTION * 100)) ERR;
+      /* THis should also work, pointlessly. */
+      if (nc_get_var_chunk_cache_ints(ncid, varid, NULL, NULL, NULL)) ERR;
+
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check the same stuff. */
@@ -832,6 +848,16 @@ main(int argc, char **argv)
       for (i = 0; i < DIM5_LEN; i++)
          if (data[i] != data_in[i])
 	    ERR_RET;
+
+      /* Use the _int function to change the var chunk cache settings. */
+      if (nc_set_var_chunk_cache_ints(ncid, varid, CACHE_SIZE2 / MEGABYTE, CACHE_NELEMS2,
+                                      (int)(CACHE_PREEMPTION2 * 100))) ERR;
+      if (nc_get_var_chunk_cache_ints(ncid, varid, &cache_size_int_in, &cache_nelems_int_in,
+                                      &cache_preemption_int_in)) ERR;
+      if (cache_size_int_in != CACHE_SIZE2 / MEGABYTE) ERR;
+      if (cache_nelems_int_in != CACHE_NELEMS2) ERR;
+      if (cache_preemption_int_in != (int)(CACHE_PREEMPTION2 * 100)) ERR;
+      
       if (nc_close(ncid)) ERR;
    }
 

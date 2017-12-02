@@ -3,7 +3,7 @@
    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 variables.
-   Ed Hartnett
+   Ed Hartnett, Ward Fisher
 */
 
 #include "nc_tests.h"

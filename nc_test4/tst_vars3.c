@@ -3,7 +3,7 @@
    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 variables.
-   $Id: tst_vars3.c,v 1.29 2010/04/30 18:21:52 ed Exp $
+   Ed Hartnett, Russ Rew, Dennis Heimbigner, Ward Fisher
 */
 
 #include <nc_tests.h>
