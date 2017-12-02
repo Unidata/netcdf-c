@@ -987,8 +987,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    if (varid < 0 || varid >= grp->vars.nelems)
       return NC_ENOTVAR;
    var = grp->vars.value[varid];
-   if (!var) return NC_ENOTVAR;
-   assert(var->varid == varid);
+   assert(var && var->varid == varid);
 
    /* Can't turn on contiguous and deflate/fletcher32/szip. */
    if (contiguous)

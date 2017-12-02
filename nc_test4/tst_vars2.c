@@ -32,6 +32,11 @@ main(int argc, char **argv)
    char name_in[NC_MAX_NAME + 1];
    int attnum_in;
    int cnum;
+   char too_long_name[NC_MAX_NAME + 2];
+
+   /* Set up a name that is too long for netCDF. */
+   memset(too_long_name, 'a', NC_MAX_NAME + 1);
+   too_long_name[NC_MAX_NAME + 1] = 0;
 
    printf("\n*** Testing netcdf-4 variable functions, even more.\n");
    for (cnum = 0; cnum < MAX_CNUM; cnum++)
@@ -472,11 +477,6 @@ main(int argc, char **argv)
       int  ncid, lat_dim, time_dim, lon_dim, wind_id, temp2_id;
       size_t lat_len = 73, time_len = 10, lon_len = 145;
       int wind_dims[RANK_wind], wind_slobber[1], cdf_goober[1];
-      char too_long_name[NC_MAX_NAME + 2];
-
-      /* Set up a name that is too long for netCDF. */
-      memset(too_long_name, 'a', NC_MAX_NAME + 1);
-      too_long_name[NC_MAX_NAME + 1] = 0;
 
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
 
@@ -503,9 +503,26 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       if (nc_inq_dimid(ncid, "lon", &lon_dim)) ERR;
 
+      /* THese won't work due to bad params. */
+      if (nc_rename_dim(ncid + MILLION, lon_dim, "longitude") != NC_EBADID) ERR;
+      if (nc_rename_dim(ncid + TEST_VAL_42, lon_dim, "longitude") != NC_EBADID) ERR;
+
       /* rename dimension */
       if (nc_rename_dim(ncid, lon_dim, "longitude")) ERR;
+
+      /* These will fail due to bad params. */
+      if (nc_inq_varid(ncid + MILLION, "temp", &wind_id) != NC_EBADID) ERR;
+      if (nc_inq_varid(ncid + TEST_VAL_42, "temp", &wind_id) != NC_EBADID) ERR;
+      if (nc_inq_varid(ncid, NULL, &wind_id) != NC_EINVAL) ERR;
+      if (nc_inq_varid(ncid, "not_a_real_name", &wind_id) != NC_ENOTVAR) ERR;
+      if (nc_inq_varid(ncid, BAD_NAME, &wind_id) != NC_ENOTVAR) ERR;
+      if (nc_inq_varid(ncid, too_long_name, &wind_id) != NC_EMAXNAME) ERR;
+
+      /* Now get the variable ID. */
       if (nc_inq_varid(ncid, "temp", &wind_id)) ERR;
+
+      /* THis also works, pointlessly. */
+      if (nc_inq_varid(ncid, "temp", NULL)) ERR;
 
       /* These won't work due to bad paramters. */
       if (nc_rename_var(ncid + MILLION, wind_id, "wind") != NC_EBADID) ERR;
@@ -518,6 +535,11 @@ main(int argc, char **argv)
 
       /* rename variable */
       if (nc_rename_var(ncid, wind_id, "wind")) ERR;
+
+      /* Enter define mode and rename it to something longer. */
+      if (nc_redef(ncid)) ERR;
+      if (nc_rename_var(ncid, wind_id, "windy")) ERR;      
+      if (nc_inq_varid(ncid, "windy", &wind_id)) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -756,6 +778,12 @@ main(int argc, char **argv)
                               chunksize) != NC_EBADID) ERR;
       if (nc_def_var_chunking(ncid + TEST_VAL_42, varid, NC_CHUNKED,
                               chunksize) != NC_EBADID) ERR;
+      if (nc_def_var_chunking(ncid, varid + TEST_VAL_42, NC_CHUNKED,
+                              chunksize) != NC_ENOTVAR) ERR;
+      if (nc_def_var_chunking(ncid, varid + 1, NC_CHUNKED,
+                              chunksize) != NC_ENOTVAR) ERR;
+      if (nc_def_var_chunking(ncid, -1, NC_CHUNKED,
+                              chunksize) != NC_ENOTVAR) ERR;
       if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, bad_chunksize) !=
           NC_EBADCHUNK) ERR;
 
