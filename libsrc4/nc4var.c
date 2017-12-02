@@ -488,7 +488,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    assert(grp && h5);
 
    /* If it's not in define mode, strict nc3 files error out,
-    * otherwise switch to define mode. */
+    * otherwise switch to define mode. This will also check that the
+    * file is writable. */
    if (!(h5->flags & NC_INDEF))
    {
       if (h5->cmode & NC_CLASSIC_MODEL)
@@ -496,6 +497,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       if ((retval = NC4_redef(ncid)))
          BAIL(retval);
    }
+   assert(!h5->no_write);
 
    /* Check and normalize the name. */
    if ((retval = nc4_check_name(name, norm_name)))
@@ -520,10 +522,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    /* Check that this name is not in use as a var, grp, or type. */
    if ((retval = nc4_check_dup_name(grp, norm_name)))
       BAIL(retval);
-
-   /* If the file is read-only, return an error. */
-   if (h5->no_write)
-      BAIL(NC_EPERM);
 
    /* If there for non-scalar vars, dim IDs must be provided. */
    if (ndims && !dimidsp)

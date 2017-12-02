@@ -801,14 +801,14 @@ main(int argc, char **argv)
       /* Check that some bad parameter values are rejected properly. */
       if (nc_get_var_chunk_cache(ncid + MILLION, varid, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_EBADID) ERR;
+      if (nc_get_var_chunk_cache(ncid + 1, -TEST_VAL_42, &cache_size_in, &cache_nelems_in,
+				 &cache_preemption_in) != NC_EBADID) ERR;
       if (nc_get_var_chunk_cache(ncid, varid + TEST_VAL_42, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
       if (nc_get_var_chunk_cache(ncid, varid + 1, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
       if (nc_get_var_chunk_cache(ncid, -TEST_VAL_42, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
-      if (nc_get_var_chunk_cache(ncid + 1, -TEST_VAL_42, &cache_size_in, &cache_nelems_in,
-				 &cache_preemption_in) != NC_EBADID) ERR;
 
       /* Get the var chunk cache settings. */
       if (nc_get_var_chunk_cache(ncid, varid, &cache_size_in, &cache_nelems_in,
@@ -854,6 +854,14 @@ main(int argc, char **argv)
       /* Use the _int function to change the var chunk cache settings. */
       if (nc_set_var_chunk_cache_ints(ncid, varid, CACHE_SIZE2 / MEGABYTE, CACHE_NELEMS2,
                                       (int)(CACHE_PREEMPTION2 * 100))) ERR;
+
+      /* These will fail due to bad ncid and group ID. */
+      if (nc_get_var_chunk_cache_ints(ncid + MILLION, varid, &cache_size_int_in, &cache_nelems_int_in,
+                                      &cache_preemption_int_in) != NC_EBADID) ERR;
+      if (nc_get_var_chunk_cache_ints(ncid + TEST_VAL_42, varid, &cache_size_int_in, &cache_nelems_int_in,
+                                      &cache_preemption_int_in) != NC_EBADID) ERR;
+
+      /* Now get the settings. */
       if (nc_get_var_chunk_cache_ints(ncid, varid, &cache_size_int_in, &cache_nelems_int_in,
                                       &cache_preemption_int_in)) ERR;
       if (cache_size_int_in != CACHE_SIZE2 / MEGABYTE || cache_nelems_int_in != CACHE_NELEMS2 ||
