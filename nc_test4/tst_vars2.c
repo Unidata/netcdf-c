@@ -751,7 +751,11 @@ main(int argc, char **argv)
       /* Define the variable. */
       if (nc_def_var(ncid, VAR_NAME5, NC_INT, NDIMS5, dimids, &varid)) ERR;
 
-      /* This will fail due to bad chunk size. */
+      /* These will fail due to bad parameters. */
+      if (nc_def_var_chunking(ncid + MILLION, varid, NC_CHUNKED,
+                              chunksize) != NC_EBADID) ERR;
+      if (nc_def_var_chunking(ncid + TEST_VAL_42, varid, NC_CHUNKED,
+                              chunksize) != NC_EBADID) ERR;
       if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, bad_chunksize) !=
           NC_EBADCHUNK) ERR;
 
