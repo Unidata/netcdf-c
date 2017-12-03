@@ -1,16 +1,18 @@
-/** \file \internal
-Internal netcdf-4 functions.
-
-This file contains functions internal to the netcdf4 library. None of
-the functions in this file are exposed in the exetnal API. These
-functions all relate to the manipulation of netcdf-4's in-memory
-buffer of metadata information, i.e. the linked list of NC
-structs.
-
-Copyright 2003-2011, University Corporation for Atmospheric
-Research. See the COPYRIGHT file for copying and redistribution
-conditions.
-
+/**
+ * @file
+ * @internal
+ * Internal netcdf-4 functions.
+ *
+ * This file contains functions internal to the netcdf4 library. None of
+ * the functions in this file are exposed in the exetnal API. These
+ * functions all relate to the manipulation of netcdf-4's in-memory
+ * buffer of metadata information, i.e. the linked list of NC
+ * structs.
+ * 
+ * Copyright 2003-2011, University Corporation for Atmospheric
+ * Research. See the COPYRIGHT file for copying and redistribution
+ * conditions.
+ * @author Ed Hartnett
 */
 #include "config.h"
 #include "nc4internal.h"
@@ -32,7 +34,6 @@ h5catch(void* ignored)
     return 0;
 }
 #endif
-
 
 /* These are the default chunk cache sizes for HDF5 files created or
  * opened with netCDF-4. */
@@ -259,6 +260,18 @@ nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grpp, NC_HDF5_FILE_INFO_T **h5p)
     return NC_NOERR;
 }
 
+/**
+ * @internal Find info for this file and group, and set pointer to each. 
+ *
+ * @param ncid File and group ID.
+ * @param nc Pointer that gets a pointer to the file's NC struct.
+ * @param grpp Pointer that gets a pointer to the group struct.
+ * @param h5p Pointer that gets HDF5 file struct.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EBADID Bad ncid.
+ * @author Ed Hartnett 
+*/
 int
 nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
 		   NC_HDF5_FILE_INFO_T **h5p)
@@ -287,7 +300,15 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
     return NC_NOERR;
 }
 
-/* Recursively hunt for a group id. */
+/**
+ * @internal Recursively hunt for a group id. 
+ *
+ * @param start_grp Pointer to group where search should be started.
+ * @param tartget_nc_grpid Group ID to be found.
+ *
+ * @returns Pointer to group info struct, or NULL if not found.
+ * @author Ed Hartnett
+*/
 NC_GRP_INFO_T *
 nc4_rec_find_grp(NC_GRP_INFO_T *start_grp, int target_nc_grpid)
 {
@@ -309,8 +330,18 @@ nc4_rec_find_grp(NC_GRP_INFO_T *start_grp, int target_nc_grpid)
    return NULL;
 }
 
-/* Given an ncid and varid, get pointers to the group and var
- * metadata. */
+/**
+ * @internal Given an ncid and varid, get pointers to the group and var
+ * metadata. 
+ *
+ * @param nc Pointer to file's NC struct.
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param grp Pointer that gets pointer to group info.
+ * @param var Pointer that gets pointer to var info.
+ *
+ * @returns NC_NOERR No error.
+ */
 int
 nc4_find_g_var_nc(NC *nc, int ncid, int varid,
 		  NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var)
@@ -324,7 +355,7 @@ nc4_find_g_var_nc(NC *nc, int ncid, int varid,
    /* It is possible for *grp to be NULL. If it is,
       return an error. */
    if(*grp == NULL)
-     return NC_ENOTVAR;
+     return NC_EBADID;
 
    /* Find the var info. */
    if (varid < 0 || varid >= (*grp)->vars.nelems)
@@ -334,7 +365,18 @@ nc4_find_g_var_nc(NC *nc, int ncid, int varid,
    return NC_NOERR;
 }
 
-/* Find a dim in a grp (or parents). */
+/**
+ * @internal Find a dim in a grp (or its parents). 
+ *
+ * @param grp Pointer to group info struct.
+ * @param dimid Dimension ID to find.
+ * @param dim Pointer that gets pointer to dim info if found.
+ * @param dim_grp Pointer that gets pointer to group info of group that contians dimension. 
+ * 
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_BADDIM Dimension not found.
+ * @author Ed Hartnett
+ */
 int
 nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
 	     NC_GRP_INFO_T **dim_grp)

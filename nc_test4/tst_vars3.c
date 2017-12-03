@@ -398,8 +398,7 @@ main(int argc, char **argv)
 
       /* Try to write some data, but fail. */
       if (nc_put_vara_double(ncid + MILLION, 0, start, count, double_data) != NC_EBADID) ERR;
-      /* This should return NC_EBADID, but returns NC_ENOTVAR. */
-      if (nc_put_vara_double(ncid + TEST_VAL_42, 0, start, count, double_data) != NC_ENOTVAR) ERR;
+      if (nc_put_vara_double(ncid + TEST_VAL_42, 0, start, count, double_data) != NC_EBADID) ERR;
 
       if (nc_close(ncid)) ERR;
    }
