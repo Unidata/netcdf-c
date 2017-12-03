@@ -296,7 +296,7 @@ nc_rename_var(int ncid, int varid, const char *name)
 @ingroup variables
 @internal Does a variable have a record dimension?
 
-@oaram ncid File ID.
+@param ncid File ID.
 @param varid Variable ID.
 @param nrecs Pointer that gets number of records.
 
@@ -324,15 +324,14 @@ NC_is_recvar(int ncid, int varid, size_t* nrecs)
 
 /**
 @ingroup variables
-
 @internal Get the number of record dimensions for a variable and an
 array that identifies which of a variable's dimensions are record
-dimensions.  Intended to be used instead of NC_is_recvar(), which
+dimensions. Intended to be used instead of NC_is_recvar(), which
 doesn't work for netCDF-4 variables which have multiple unlimited
 dimensions or an unlimited dimension that is not the first of a
 variable's dimensions.
 
-@oaram ncid File ID.
+@param ncid File ID.
 @param varid Variable ID.
 @param nrecdimsp Pointer that gets number of record dims.
 @param is_recdim Pointer that gets 1 if there is one or more record
