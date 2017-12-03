@@ -1,20 +1,27 @@
-/*
-This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
-HDF5 backend for netCDF, depending on your point of view.
-
-This file handles the nc4 groups.
-
-Copyright 2005, University Corporation for Atmospheric Research. See
-netcdf-4/docs/COPYRIGHT file for copying and redistribution
-conditions.
-
-$Id: nc4grp.c,v 1.44 2010/05/25 17:54:23 dmh Exp $
+/**
+ * @file 
+ * @internal This file is part of netcdf-4, a netCDF-like interface
+ * for HDF5, or a HDF5 backend for netCDF, depending on your point of
+ * view.
+ *
+ * This file handles the nc4 groups.
+ *
+ * Copyright 2005, University Corporation for Atmospheric Research. See
+ * netcdf-4/docs/COPYRIGHT file for copying and redistribution
+ * conditions.
+ * 
+ * @author Ed Hartnett
 */
-
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 
-/* Create a group. It's ncid is returned in the new_ncid pointer. */
+/**
+ * @internal Create a group. It's ncid is returned in the new_ncid
+ * pointer. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
@@ -61,7 +68,12 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
    return NC_NOERR;
 }
 
-/* Rename a group. */
+/**
+ * @internal Rename a group. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 NC4_rename_grp(int grpid, const char *name)
 {
@@ -129,8 +141,13 @@ NC4_rename_grp(int grpid, const char *name)
    return NC_NOERR;
 }
 
-/* Given an ncid and group name (NULL gets root group), return
- * the ncid of that group. */
+/**
+ * @internal Given an ncid and group name (NULL gets root group),
+ * return the ncid of that group. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 NC4_inq_ncid(int ncid, const char *name, int *grp_ncid)
 {
@@ -166,8 +183,13 @@ NC4_inq_ncid(int ncid, const char *name, int *grp_ncid)
    return NC_ENOGRP;
 }
 
-/* Given a location id, return the number of groups it contains, and
- * an array of their locids. */
+/**
+ * @internal Given a location id, return the number of groups it
+ * contains, and an array of their locids. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 NC4_inq_grps(int ncid, int *numgrps, int *ncids)
 {
@@ -210,7 +232,13 @@ NC4_inq_grps(int ncid, int *numgrps, int *ncids)
    return NC_NOERR;
 }
 
-/* Given locid, find name of group. (Root group is named "/".) */
+/**
+ * @internal Given locid, find name of group. (Root group is named
+ * "/".) 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 NC4_inq_grpname(int ncid, char *name)
 {
@@ -234,10 +262,15 @@ NC4_inq_grpname(int ncid, char *name)
    return NC_NOERR;
 }
 
-/* Find the full path name to the group represented by ncid. Either
- * pointer argument may be NULL; pass a NULL for the third parameter
- * to get the length of the full path name. The length will not
- * include room for a null pointer. */
+/**
+ * @internal Find the full path name to the group represented by
+ * ncid. Either pointer argument may be NULL; pass a NULL for the
+ * third parameter to get the length of the full path name. The length
+ * will not include room for a null pointer. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 NC4_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
 {
@@ -290,11 +323,15 @@ NC4_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
 
    return ret;
 }
-
-/* Find the parent ncid of a group. For the root group, return
- * NC_ENOGRP error.  *Now* I know what kind of tinfoil hat wearing nut
- * job would call this function with a NULL pointer for parent_ncid -
- * Russ Rew!! */
+/**
+ * @internal Find the parent ncid of a group. For the root group,
+ * return NC_ENOGRP error.  *Now* I know what kind of tinfoil hat
+ * wearing nut job would call this function with a NULL pointer for
+ * parent_ncid - Russ Rew!! 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 NC4_inq_grp_parent(int ncid, int *parent_ncid)
 {
@@ -324,7 +361,12 @@ NC4_inq_grp_parent(int ncid, int *parent_ncid)
    return NC_NOERR;
 }
 
-/* Given a full name and ncid, find group ncid. */
+/**
+ * @internal Given a full name and ncid, find group ncid. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 NC4_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
 {
@@ -383,7 +425,12 @@ NC4_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
    return NC_NOERR;
 }
 
-/* Get a list of ids for all the variables in a group. */
+/**
+ * @internal Get a list of ids for all the variables in a group. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 NC4_inq_varids(int ncid, int *nvars, int *varids)
 {
@@ -432,8 +479,14 @@ NC4_inq_varids(int ncid, int *nvars, int *varids)
    return NC_NOERR;
 }
 
-/* This is the comparison function used for sorting dim ids. Integer
-   comparison: returns negative if b > a and positive if a > b. */
+/**
+ * @internal This is the comparison function used for sorting dim
+ * ids. Integer comparison: returns negative if b > a and positive if
+ * a > b. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int int_cmp(const void *a, const void *b)
 {
    const int *ia = (const int *)a; 
@@ -441,9 +494,14 @@ int int_cmp(const void *a, const void *b)
    return *ia  - *ib; 
 }
 
-/* Find all dimids for a location. This finds all dimensions in a
- * group, with or without any of its parents, depending on last
- * parameter. */
+/**
+ * @internal Find all dimids for a location. This finds all dimensions
+ * in a group, with or without any of its parents, depending on last
+ * parameter. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int 
 NC4_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
 {

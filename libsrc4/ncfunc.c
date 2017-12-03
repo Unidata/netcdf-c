@@ -1,30 +1,30 @@
-/*
-  Copyright 2003, University Corporation for Atmospheric Research. See
-  netcdf-4/docs/COPYRIGHT file for copying and redistribution
-  conditions.
-
-  This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
-  HDF5 backend for netCDF, depending on your point of view.
-
-  This file handles the (useless) *_base_pe() functions, and the
-  inq_format functions.
-
-  @author Ed Hartnett, Dennis Heimbigner
-
+/**
+ * @internal
+ *
+ * Copyright 2003, University Corporation for Atmospheric
+ * Research. See netcdf-4/docs/COPYRIGHT file for copying and
+ * redistribution conditions.
+ *
+ * This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
+ * HDF5 backend for netCDF, depending on your point of view.
+ *
+ * This file handles the (useless) *_base_pe() functions, and the
+ * inq_format functions.
+ *
+ * @author Ed Hartnett, Dennis Heimbigner
 */
 
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 
 /**
- * This function only does anything for netcdf-3 files.
+ * @internal This function only does anything for netcdf-3 files.
  *
- * \param ncid File ID (ignored).
- * \param pe Processor element (ignored).
+ * @param ncid File ID (ignored).
+ * @param pe Processor element (ignored).
  *
- * \returns ::NC_ENOTNC3 Not a netCDF classic format file.
- * \internal
- * \author Ed Hartnett
+ * @return ::NC_ENOTNC3 Not a netCDF classic format file.
+ * @author Ed Hartnett
  */
 int
 NC4_set_base_pe(int ncid, int pe)
@@ -33,15 +33,14 @@ NC4_set_base_pe(int ncid, int pe)
 }
 
 /**
- * This function only does anything for netcdf-3 files.
+ * @internal This function only does anything for netcdf-3 files.
  *
- * \param ncid File ID (ignored).
- * \param pe Pointer to processor element. Ignored if NULL. Gets a 0
+ * @param ncid File ID (ignored).
+ * @param pe Pointer to processor element. Ignored if NULL. Gets a 0
  * if present.
  *
- * \returns ::NC_ENOTNC3 Not a netCDF classic format file.
- * \internal
- * \author Ed Hartnett
+ * @return ::NC_ENOTNC3 Not a netCDF classic format file.
+ * @author Ed Hartnett
  */
 int
 NC4_inq_base_pe(int ncid, int *pe)
@@ -50,16 +49,15 @@ NC4_inq_base_pe(int ncid, int *pe)
 }
 
 /**
- * Get the format (i.e. NC_FORMAT_NETCDF4 pr
+ * @internal Get the format (i.e. NC_FORMAT_NETCDF4 pr
  * NC_FORMAT_NETCDF4_CLASSIC) of an open netCDF-4 file.
  *
- * \param ncid File ID (ignored).
- * \param formatp Pointer that gets the constant indicating format.
+ * @param ncid File ID (ignored).
+ * @param formatp Pointer that gets the constant indicating format.
 
- * \returns ::NC_NOERR No error.
- * \returns ::NC_EBADID Bad ncid.
- * \internal
- * \author Ed Hartnett
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
  */
 int
 NC4_inq_format(int ncid, int *formatp)
@@ -87,22 +85,21 @@ NC4_inq_format(int ncid, int *formatp)
 }
 
 /**
- * Return the extended format (i.e. the dispatch model), plus the mode
- * associated with an open file.
+ * @internal Return the extended format (i.e. the dispatch model),
+ * plus the mode associated with an open file.
  *
- * \param ncid File ID (ignored).
- * \param formatp a pointer that gets the extended format. Note that
+ * @param ncid File ID (ignored).
+ * @param formatp a pointer that gets the extended format. Note that
  * this is not the same as the format provided by nc_inq_format(). The
  * extended foramt indicates the dispatch layer model. NetCDF-4 files
  * will always get NC_FORMATX_NC4 for netCDF files, NC_FORMATX_HDF4
  * for HDF4 files.
- * \param modep a pointer that gets the open/create mode associated with
+ * @param modep a pointer that gets the open/create mode associated with
  * this file. Ignored if NULL.
 
- * \returns ::NC_NOERR No error.
- * \returns ::NC_EBADID Bad ncid.
- * \internal
- * \author Dennis Heimbigner
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Dennis Heimbigner
  */
 int
 NC4_inq_format_extended(int ncid, int *formatp, int *modep)
