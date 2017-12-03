@@ -62,11 +62,10 @@ set_auto(void* func, void *client_data)
 #endif
 }
 
-/*
-Provide a function to do any necessary initialization
-of the HDF5 library.
+/**
+ * @internal Provide a function to do any necessary initialization of
+ * the HDF5 library.
 */
-
 void
 nc4_hdf5_initialize(void)
 {
@@ -76,7 +75,16 @@ nc4_hdf5_initialize(void)
     nc4_hdf5_initialized = 1;
 }
 
-/* Check and normalize and name. */
+/**
+ * @internal Check and normalize and name. 
+ *
+ * @param name Name to normalize.
+ * @param norm_name The normalized name.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EMAXNAME Name too long.
+ * @author Dennis Heimbigner
+ */
 int
 nc4_check_name(const char *name, char *norm_name)
 {
@@ -109,8 +117,18 @@ nc4_check_name(const char *name, char *norm_name)
    return NC_NOERR;
 }
 
-/* Given a varid, return the maximum length of a dimension using dimid */
-
+/**
+ * @internal Given a varid, return the maximum length of a dimension
+ * using dimid.
+ *
+ * @param grp Pointer to group info struct.
+ * @param varid Variable ID.
+ * @param dimid Dimension ID.
+ * @param maxlen Pointer that gets the max length.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
 static int
 find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid, size_t *maxlen)
 {
@@ -180,8 +198,13 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid, size_t *maxlen
    return retval;
 }
 
-/* Given an NC pointer, add the necessary stuff for a
- * netcdf-4 file. */
+/**
+ * @internal Given an NC pointer, add the necessary stuff for a
+ * netcdf-4 file. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
 int
 nc4_nc4f_list_add(NC *nc, const char *path, int mode)
 {
@@ -210,9 +233,14 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
 			   NULL, nc, NC_GROUP_NAME, NULL);
 }
 
-/* Given an ncid, find the relevant group and return a pointer to it,
- * return an error of this is not a netcdf-4 file (or if strict nc3 is
- * turned on for this file.) */
+/**
+ * @internal Given an ncid, find the relevant group and return a
+ * pointer to it, return an error of this is not a netcdf-4 file (or
+ * if strict nc3 is turned on for this file.) 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp)
 {
@@ -234,9 +262,14 @@ nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp)
    return NC_NOERR;
 }
 
-/* Given an ncid, find the relevant group and return a pointer to it,
- * also set a pointer to the nc4_info struct of the related file. For
- * netcdf-3 files, *h5 will be set to NULL. */
+/**
+ * @internal Given an ncid, find the relevant group and return a
+ * pointer to it, also set a pointer to the nc4_info struct of the
+ * related file. For netcdf-3 files, *h5 will be set to NULL. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grpp, NC_HDF5_FILE_INFO_T **h5p)
 {
@@ -268,8 +301,8 @@ nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grpp, NC_HDF5_FILE_INFO_T **h5p)
  * @param grpp Pointer that gets a pointer to the group struct.
  * @param h5p Pointer that gets HDF5 file struct.
  *
- * @returns NC_NOERR No error.
- * @returns NC_EBADID Bad ncid.
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett 
 */
 int
@@ -306,7 +339,7 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
  * @param start_grp Pointer to group where search should be started.
  * @param target_nc_grpid Group ID to be found.
  *
- * @returns Pointer to group info struct, or NULL if not found.
+ * @return Pointer to group info struct, or NULL if not found.
  * @author Ed Hartnett
 */
 NC_GRP_INFO_T *
@@ -340,7 +373,7 @@ nc4_rec_find_grp(NC_GRP_INFO_T *start_grp, int target_nc_grpid)
  * @param grp Pointer that gets pointer to group info.
  * @param var Pointer that gets pointer to var info.
  *
- * @returns NC_NOERR No error.
+ * @return ::NC_NOERR No error.
  */
 int
 nc4_find_g_var_nc(NC *nc, int ncid, int varid,
@@ -373,8 +406,8 @@ nc4_find_g_var_nc(NC *nc, int ncid, int varid,
  * @param dim Pointer that gets pointer to dim info if found.
  * @param dim_grp Pointer that gets pointer to group info of group that contians dimension. 
  * 
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADDIM Dimension not found.
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADDIM Dimension not found.
  * @author Ed Hartnett
  */
 int
@@ -407,7 +440,12 @@ nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
    return NC_NOERR;
 }
 
-/* Find a var (by name) in a grp. */
+/**
+ * @internal Find a var (by name) in a grp. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
 {
@@ -427,7 +465,12 @@ nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
    return NC_NOERR;
 }
 
-/* Recursively hunt for a HDF type id. */
+/**
+ * @internal Recursively hunt for a HDF type id. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 NC_TYPE_INFO_T *
 nc4_rec_find_hdf_type(NC_GRP_INFO_T *start_grp, hid_t target_hdf_typeid)
 {
@@ -456,7 +499,12 @@ nc4_rec_find_hdf_type(NC_GRP_INFO_T *start_grp, hid_t target_hdf_typeid)
    return NULL;
 }
 
-/* Recursively hunt for a netCDF type by name. */
+/**
+ * @internal Recursively hunt for a netCDF type by name. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 NC_TYPE_INFO_T *
 nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name)
 {
@@ -481,6 +529,12 @@ nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name)
 }
 
 /* Recursively hunt for a netCDF type id. */
+/**
+ * @internal 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 NC_TYPE_INFO_T *
 nc4_rec_find_nc_type(const NC_GRP_INFO_T *start_grp, nc_type target_nc_typeid)
 {
@@ -511,7 +565,17 @@ nc4_rec_find_nc_type(const NC_GRP_INFO_T *start_grp, nc_type target_nc_typeid)
    return NULL;
 }
 
-/* Use a netCDF typeid to find a type in a type_list. */
+/**
+ * @internal Use a netCDF typeid to find a type in a type_list.
+ *
+ * @param h5 Pointer to HDF5 file info struct.
+ * @param typeid The netCDF type ID.
+ * @param type Pointer to pointer to the list of type info structs.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+*/
 int
 nc4_find_type(const NC_HDF5_FILE_INFO_T *h5, nc_type typeid, NC_TYPE_INFO_T **type)
 {
@@ -531,9 +595,18 @@ nc4_find_type(const NC_HDF5_FILE_INFO_T *h5, nc_type typeid, NC_TYPE_INFO_T **ty
    return NC_NOERR;
 }
 
-/* Find the actual length of a dim by checking the length of that dim
- * in all variables that use it, in grp or children. **len must be
- * initialized to zero before this function is called. */
+/**
+ * @internal Find the actual length of a dim by checking the length of
+ * that dim in all variables that use it, in grp or children. **len
+ * must be initialized to zero before this function is called.
+ *
+ * @param grp Pointer to group info struct.
+ * @param dimid Dimension ID.
+ * @param len Pointer to pointer that gets length.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 {
@@ -570,6 +643,20 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 }
 
 /* Given a group, find an att. */
+/**
+ * @internal 
+ *
+ * @param grp Pointer to group info struct.
+ * @param varid Variable ID.
+ * @param name Name to of attribute.
+ * @param attnum Number of attribute.
+ * @param att Pointer to pointer that gets attribute info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOTVAR Variable not found.
+ * @return ::NC_ENOTATT Attribute not found.
+ * @author Ed Hartnett
+*/
 int
 nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 		 NC_ATT_INFO_T **att)
@@ -608,8 +695,21 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
    return NC_ENOTATT;
 }
 
-/* Given an ncid, varid, and name or attnum, find and return pointer
-   to NC_ATT_INFO_T metadata. */
+/**
+ * @internal Given an ncid, varid, and name or attnum, find and return
+ * pointer to NC_ATT_INFO_T metadata.
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param name Name to of attribute.
+ * @param attnum Number of attribute.
+ * @param att Pointer to pointer that gets attribute info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOTVAR Variable not found.
+ * @return ::NC_ENOTATT Attribute not found.
+ * @author Ed Hartnett
+*/
 int
 nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
 	    NC_ATT_INFO_T **att)
@@ -652,8 +752,15 @@ nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
 }
 
 
-/* Given an id, walk the list and find the appropriate
-   NC. */
+/**
+ * @internal Given an id, walk the list and find the appropriate NC.
+ *
+ * @param ext_ncid File/group ID to find.
+ * @param h5p Pointer to pointer that gets the HDF5 file info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett, Dennis Heimbigner
+*/
 NC*
 nc4_find_nc_file(int ext_ncid, NC_HDF5_FILE_INFO_T** h5p)
 {
@@ -670,7 +777,15 @@ nc4_find_nc_file(int ext_ncid, NC_HDF5_FILE_INFO_T** h5p)
    return nc;
 }
 
-/* Add object to the end of a list. */
+/**
+ * @internal Add object to the end of a list. 
+ *
+ * @param list List
+ * @param obj Pointer to object to add.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 static void
 obj_list_add(NC_LIST_NODE_T **list, NC_LIST_NODE_T *obj)
 {
@@ -690,7 +805,15 @@ obj_list_add(NC_LIST_NODE_T **list, NC_LIST_NODE_T *obj)
       *list = obj;
 }
 
-/* Remove object from a list. */
+/**
+ * @internal Remove object from a list. 
+ *
+ * @param list List
+ * @param obj Pointer to object to delete.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 static void
 obj_list_del(NC_LIST_NODE_T **list, NC_LIST_NODE_T *obj)
 {
@@ -704,7 +827,15 @@ obj_list_del(NC_LIST_NODE_T **list, NC_LIST_NODE_T *obj)
       ((NC_LIST_NODE_T *)obj->next)->prev = obj->prev;
 }
 
-/* Return a pointer to the new var. */
+/**
+ * @internal Return a pointer to the new var. 
+ *
+ * @param var Pointer to pointer that gets variable info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+*/
 int
 nc4_var_add(NC_VAR_INFO_T **var)
 {
@@ -728,7 +859,15 @@ nc4_var_add(NC_VAR_INFO_T **var)
    return NC_NOERR;
 }
 
-/* Add to the beginning of a dim list. */
+/**
+ * @internal Add to the beginning of a dim list.
+ *
+ * @param list List of dimension info structs.
+ * @param dim Pointer to pointer that gets the new dim info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_dim_list_add(NC_DIM_INFO_T **list, NC_DIM_INFO_T **dim)
 {
@@ -747,7 +886,15 @@ nc4_dim_list_add(NC_DIM_INFO_T **list, NC_DIM_INFO_T **dim)
    return NC_NOERR;
 }
 
-/* Add to the end of an att list. */
+/**
+ * @internal Add to the end of an att list.
+ *
+ * @param list List of att info structs.
+ * @param att Pointer to pointer that gets the new att info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_att_list_add(NC_ATT_INFO_T **list, NC_ATT_INFO_T **att)
 {
@@ -766,8 +913,20 @@ nc4_att_list_add(NC_ATT_INFO_T **list, NC_ATT_INFO_T **att)
    return NC_NOERR;
 }
 
-/* Add to the end of a group list. Can't use 0 as a new_nc_grpid -
- * it's reserverd for the root group. */
+/**
+ * @internal Add to the end of a group list. Can't use 0 as a
+ * new_nc_grpid - it's reserverd for the root group.
+ *
+ * @param list List
+ * @param new_nc_grpid New group ID.
+ * @param parent_grp The parent group.
+ * @param nc Pointer to the file's NC struct.
+ * @param name Name of the group.
+ * @param grp Pointer to pointer that gets new group info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_grp_list_add(NC_GRP_INFO_T **list, int new_nc_grpid,
 		 NC_GRP_INFO_T *parent_grp, NC *nc,
@@ -801,10 +960,19 @@ nc4_grp_list_add(NC_GRP_INFO_T **list, int new_nc_grpid,
    return NC_NOERR;
 }
 
-/* Names for groups, variables, and types must not be the same. This
- * function checks that a proposed name is not already in
+/**
+ * @internal Names for groups, variables, and types must not be the
+ * same. This function checks that a proposed name is not already in
  * use. Normalzation of UTF8 strings should happen before this
- * function is called. */
+ * function is called.
+ *
+ * @param grp Pointer to group info struct.
+ * @param name Name to check.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENAMEINUSE Name is in use.
+ * @author Ed Hartnett
+*/
 int
 nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
 {
@@ -836,7 +1004,19 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
    return NC_NOERR;
 }
 
-/* Add to the end of a type list. */
+/**
+ * @internal Add to the end of a type list. 
+ *
+ * @param grp Pointer to group info struct.
+ * @param size Size of type in bytes.
+ * @param name Name of type.
+ * @param type Pointer that gets pointer to new type info
+ * struct. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+*/
 int
 nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
                   NC_TYPE_INFO_T **type)
@@ -866,7 +1046,22 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
    return NC_NOERR;
 }
 
-/* Add to the end of a compound field list. */
+/**
+ * @internal Add to the end of a compound field list. 
+ *
+ * @param list Pointer to pointer of list of field info structs.
+ * @param fieldid The ID of this field.
+ * @param name Name of the field.
+ * @param offset Offset in bytes.
+ * @param field_hdf_typeid The HDF5 type ID of the field.
+ * @param native_typeid The HDF5 native type ID of the field.
+ * @param xtype The netCDF type of the field.
+ * @param ndims The number of dimensions of the field.
+ * @param dim_sizesp An array of dim sizes for the field.
+ * 
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_field_list_add(NC_FIELD_INFO_T **list, int fieldid, const char *name,
 		   size_t offset, hid_t field_hdf_typeid, hid_t native_typeid,
@@ -914,7 +1109,18 @@ nc4_field_list_add(NC_FIELD_INFO_T **list, int fieldid, const char *name,
    return NC_NOERR;
 }
 
-/* Add a member to an enum type. */
+/**
+ * @internal Add a member to an enum type. 
+ *
+ * @param list Pointer to pointer of list of enum member info structs.
+ * @param size Size in bytes of new member.
+ * @param name Name of the member.
+ * @param value Value to associate with member.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+*/
 int
 nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
 		    const char *name, const void *value)
@@ -947,7 +1153,15 @@ nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
    return NC_NOERR;
 }
 
-/* Delete a field from a field list, and nc_free the memory. */
+/**
+ * @internal Delete a field from a field list, and nc_free the memory.
+ *
+ * @param list Pointer to pointer of list of field info structs.
+ * @param field Pointer to field info of field to delete.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 static void
 field_list_del(NC_FIELD_INFO_T **list, NC_FIELD_INFO_T *field)
 {
@@ -964,7 +1178,14 @@ field_list_del(NC_FIELD_INFO_T **list, NC_FIELD_INFO_T *field)
    free(field);
 }
 
-/* Free allocated space for type information. */
+/**
+ * @internal Free allocated space for type information. 
+ *
+ * @param type Pointer to type info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_type_free(NC_TYPE_INFO_T *type)
 {
@@ -1041,7 +1262,14 @@ nc4_type_free(NC_TYPE_INFO_T *type)
    return NC_NOERR;
 }
 
-/* Delete a var, and free the memory. */
+/**
+ * @internal  Delete a var, and free the memory. 
+ *
+ * @param var Pointer to the var info struct of var to delete.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_var_del(NC_VAR_INFO_T *var)
 {
@@ -1123,7 +1351,15 @@ nc4_var_del(NC_VAR_INFO_T *var)
    return NC_NOERR;
 }
 
-/* Delete a type from a type list, and nc_free the memory. */
+/**
+ * @internal Delete a type from a type list, and nc_free the memory.
+ *
+ * @param list Pointer to pointer of list of types.
+ * @param type Pointer to type info struct of type to delete.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 static int
 type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
 {
@@ -1134,7 +1370,15 @@ type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
    return nc4_type_free(type);
 }
 
-/* Delete a del from a var list, and nc_free the memory. */
+/**
+ * @internal Delete a del from a var list, and nc_free the memory.
+ *
+ * @param list Pointer to pointer of list of dims.
+ * @param dim Pointer to dim info struct of type to delete.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim)
 {
@@ -1149,8 +1393,16 @@ nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim)
    return NC_NOERR;
 }
 
-/* Remove a NC_GRP_INFO_T from the linked list. This will nc_free the
-   memory too. */
+/**
+ * @internal Remove a NC_GRP_INFO_T from the linked list. This will
+ * nc_free the memory too.
+ *
+ * @param list Pointer to pointer of list of group info structs.
+ * @param grp Pointer to group info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 static void
 grp_list_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
 {
@@ -1160,8 +1412,16 @@ grp_list_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    free(grp);
 }
 
-/* Recursively delete the data for a group (and everything it
- * contains) in our internal metadata store. */
+/**
+ * @internal Recursively delete the data for a group (and everything
+ * it contains) in our internal metadata store.
+ *
+ * @param list Pointer to pointer of list.
+ * @param grp Pointer to group info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
 {
@@ -1265,8 +1525,15 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    return NC_NOERR;
 }
 
-/* Remove a NC_ATT_INFO_T from the linked list. This will nc_free the
-   memory too.
+/**
+ * @internal Remove a NC_ATT_INFO_T from the linked list. This will
+ * nc_free the memory too.
+ *
+ * @param list Pointer to pointer of list.
+ * @param att Pointer to attribute info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
 */
 int
 nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att)
@@ -1315,7 +1582,18 @@ nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att)
    return NC_NOERR;
 }
 
-/* Break a coordinate variable to separate the dimension and the variable */
+/**
+ * @internal Break a coordinate variable to separate the dimension and
+ * the variable.
+ *
+ * @param grp Pointer to group info struct.
+ * @param coord_var Pointer to variable info struct.
+ * @param dim Pointer to dimension info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @author Quincey Koziol
+*/
 int
 nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim)
 {
@@ -1355,7 +1633,17 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
    return NC_NOERR;
 }
 
-/* Reform a coordinate variable from a dimension and a variable */
+/**
+ * @internal Reform a coordinate variable from a dimension and a
+ * variable
+ *
+ * @param grp Pointer to group info struct.
+ * @param var Pointer to variable info struct.
+ * @param dim Pointer to dimension info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Quincey Koziol
+*/
 int
 nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 {
@@ -1441,10 +1729,19 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
    return retval;
 }
 
-/* Normalize a UTF8 name. Put the result in norm_name, which can be
- * NC_MAX_NAME + 1 in size. This function makes sure the free() gets
- * called on the return from utf8proc_NFC, and also ensures that the
- * name is not too long. */
+/**
+ * @internal Normalize a UTF8 name. Put the result in norm_name, which
+ * can be NC_MAX_NAME + 1 in size. This function makes sure the free()
+ * gets called on the return from utf8proc_NFC, and also ensures that
+ * the name is not too long.
+ *
+ * @param name Name to normalize.
+ * @param norm_name The normalized name.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EMAXNAME Name too long.
+ * @author Dennis Heimbigner
+*/
 int
 nc4_normalize_name(const char *name, char *norm_name)
 {
@@ -1465,9 +1762,16 @@ nc4_normalize_name(const char *name, char *norm_name)
 /* Print out a bunch of info to stderr about the metadata for
    debugging purposes. */
 #ifdef LOGGING
-/* Use this to set the global log level. Set it to NC_TURN_OFF_LOGGING
-   (-1) to turn off all logging. Set it to 0 to show only errors, and
-   to higher numbers to show more and more logging details. */
+/**
+ * Use this to set the global log level. Set it to NC_TURN_OFF_LOGGING
+ * (-1) to turn off all logging. Set it to 0 to show only errors, and
+ * to higher numbers to show more and more logging details.
+ *
+ * @param new_level The new logging level.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc_set_log_level(int new_level)
 {
@@ -1498,8 +1802,16 @@ nc_set_log_level(int new_level)
    return 0;
 }
 
-/* Recursively print the metadata of a group. */
 #define MAX_NESTS 10
+/**
+ * @internal Recursively print the metadata of a group. 
+ *
+ * @param grp Pointer to group info struct.
+ * @param tab_count Number of tabs.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 static int
 rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
 {
@@ -1600,9 +1912,14 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
    return NC_NOERR;
 }
 
-/* Print out the internal metadata for a file. This is useful to check
- * that netCDF is working! Nonetheless, this function will print
- * nothing if logging is not set to at least two. */
+/**
+ * @internal Print out the internal metadata for a file. This is
+ * useful to check that netCDF is working! Nonetheless, this function
+ * will print nothing if logging is not set to at least two. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 log_metadata_nc(NC *nc)
 {
@@ -1624,7 +1941,12 @@ log_metadata_nc(NC *nc)
 
 #endif /*LOGGING */
 
-/* Show the in-memory metadata for a netcdf file. */
+/**
+ * @internal Show the in-memory metadata for a netcdf file.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 NC4_show_metadata(int ncid)
 {
