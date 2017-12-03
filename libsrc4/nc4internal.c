@@ -304,7 +304,7 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
  * @internal Recursively hunt for a group id. 
  *
  * @param start_grp Pointer to group where search should be started.
- * @param tartget_nc_grpid Group ID to be found.
+ * @param target_nc_grpid Group ID to be found.
  *
  * @returns Pointer to group info struct, or NULL if not found.
  * @author Ed Hartnett
@@ -374,7 +374,7 @@ nc4_find_g_var_nc(NC *nc, int ncid, int varid,
  * @param dim_grp Pointer that gets pointer to group info of group that contians dimension. 
  * 
  * @returns ::NC_NOERR No error.
- * @returns ::NC_BADDIM Dimension not found.
+ * @returns ::NC_EBADDIM Dimension not found.
  * @author Ed Hartnett
  */
 int
