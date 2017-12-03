@@ -542,6 +542,20 @@ main(int argc, char **argv)
       if (nc_rename_var(ncid, wind_id, "windy")) ERR;      
       if (nc_inq_varid(ncid, "windy", &wind_id)) ERR;
       if (nc_close(ncid)) ERR;
+
+      /* Try again without classic. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+
+      /* define dimension */
+      if (nc_def_dim(ncid, "lon", lon_len, &lon_dim)) ERR;
+
+      /* define variable */
+      wind_dims[0] = lon_dim;
+      if (nc_def_var(ncid, "temp", NC_FLOAT, RANK_wind, wind_dims, &wind_id)) ERR;
+      if (nc_enddef(ncid)) ERR;
+      if (nc_rename_var(ncid, wind_id, "windy")) ERR;            
+      if (nc_close(ncid)) ERR;
+      
    }
    SUMMARIZE_ERR;
 
@@ -873,6 +887,7 @@ main(int argc, char **argv)
       if (nc_def_var_chunking(ncid, varid2, NC_CHUNKED, chunksize)) ERR;
       if (nc_def_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int)) ERR;
       if (nc_def_var_chunking_ints(ncid, varid1, NC_CHUNKED, chunksize_int)) ERR;
+      if (nc_inq_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int_in)) ERR;      
       if (nc_inq_var_chunking_ints(ncid, varid1, NULL, chunksize_int_in)) ERR;
       for (d = 0; d < NDIMS5; d++)
 	 if (chunksize_int_in[d] != chunksize[d] * 2) ERR;
