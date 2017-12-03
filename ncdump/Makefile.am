@@ -10,7 +10,6 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
-TESTS_ENVIRONMENT=CC=${CC}
 XFAIL_TESTS=""
 
 # This is the program we're building, and it's sources.
@@ -46,20 +45,16 @@ check_PROGRAMS = rewrite-scalar ref_ctest ref_ctest64 ncdump tst_utf8   \
 bom tst_dimsizes nctrunc
 
 # Tests for classic and 64-bit offset files.
-TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest		\
-ref_ctest64 tst_ctest.sh tst_output.sh tst_lengths.sh			\
-tst_calendars.sh run_utf8_tests.sh tst_nccopy3.sh			\
-tst_nccopy3_subset.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh	\
-tst_bom.sh tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh
+TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest	\
+ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh	\
+run_utf8_tests.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
+tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
+tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh
 
-# Record dependencies between classic test scripts.
+# The tst_nccopy3.sh test uses output from a bunch of other
+# tests. This records the dependency so parallel builds work.
 tst_nccopy3.log: tst_calendars.log run_utf8_tests.log tst_output.log	\
 tst_64bit.log run_tests.log tst_lengths.log
-run_ncgen_tests.log: tst_output.log tst_nccopy3.log
-tst_ctest.log: ref_ctest.log ref_ctest64.log
-tst_output.log: tst_ctest.log
-tst_ncgen4_classic.log: tst_formatx3.log tst_output.log	\
-tst_nccopy3.log run_ncgen_tests.log
 
 TESTS += tst_null_byte_padding.sh
 if USE_STRICT_NULL_BYTE_HEADER_PADDING
@@ -85,15 +80,10 @@ tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
 run_utf8_nc4_tests.sh run_back_comp_tests.sh run_ncgen_nc4_tests.sh	\
 tst_ncgen4.sh
 
-# Record dependencies between netcdf-4 test scripts.
-tst_netcdf4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
-tst_formatx4.log
-tst_nccopy4.log: tst_netcdf4.log tst_fillbug.log tst_netcdf4_4.log	\
-tst_h_scalar.log tst_ctest.log
-run_ncgen_nc4_tests.log: run_ncgen_tests.log tst_output.log \
-tst_nccopy3.log
-run_utf8_nc4_tests.log: run_utf8_tests.log
-tst_ncgen4.log: tst_ncgen4_classic.log tst_formatx4.log
+# The tst_nccopy4.sh test script depends on the output of a bunch of
+# other tests. Record dependencies so parallel builds work.
+tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
+tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log
 endif #!USE_NETCDF4
 
 # Add diskless checks if needed.
@@ -128,17 +118,18 @@ tst_charfill.cdl tst_charfill.sh tst_iter.sh tst_mud.sh			\
 ref_tst_mud4.cdl ref_tst_mud4-bc.cdl ref_tst_mud4_chars.cdl		\
 inttags.cdl inttags4.cdl ref_inttags.cdl ref_inttags4.cdl		\
 ref_tst_ncf213.cdl tst_h_scalar.sh run_utf8_nc4_tests.sh		\
-tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl ref_tst_nc4_utf8_4.cdl \
-tst_inttags.sh tst_inttags4.sh CMakeLists.txt XGetopt.c tst_bom.sh			\
-tst_inmemory_nc3.sh tst_dimsizes.sh tst_inmemory_nc4.sh			\
-tst_fileinfo.sh run_ncgen_tests.sh ref_test_360_day_1900.nc		\
-ref_test_365_day_1900.nc ref_test_366_day_1900.nc			\
-ref_test_360_day_1900.cdl ref_test_365_day_1900.cdl			\
-ref_test_366_day_1900.cdl tst_hdf5_offset.sh run_ncgen_nc4_tests.sh	\
-tst_nccopy3_subset.sh ref_nccopy3_subset.nc ref_test_corrupt_magic.nc	\
-tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh			\
-tst_ncgen4_diff.sh tst_ncgen4_cycle.sh tst_ctest.sh \
-tst_null_byte_padding.sh ref_null_byte_padding_test.nc
+tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl			\
+ref_tst_nc4_utf8_4.cdl tst_inttags.sh tst_inttags4.sh CMakeLists.txt	\
+XGetopt.c tst_bom.sh tst_inmemory_nc3.sh tst_dimsizes.sh		\
+tst_inmemory_nc4.sh tst_fileinfo.sh run_ncgen_tests.sh			\
+ref_test_360_day_1900.nc ref_test_365_day_1900.nc			\
+ref_test_366_day_1900.nc ref_test_360_day_1900.cdl			\
+ref_test_365_day_1900.cdl ref_test_366_day_1900.cdl			\
+tst_hdf5_offset.sh run_ncgen_nc4_tests.sh tst_nccopy3_subset.sh		\
+ref_nccopy3_subset.nc ref_test_corrupt_magic.nc tst_ncgen_shared.sh	\
+tst_ncgen4.sh tst_ncgen4_classic.sh tst_ncgen4_diff.sh			\
+tst_ncgen4_cycle.sh tst_null_byte_padding.sh				\
+ref_null_byte_padding_test.nc
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
@@ -148,11 +139,12 @@ EXTRA_DIST += L512.bin
 SUBDIRS = cdl expected
 
 CLEANFILES = tst_*.nc tmp*.nc test*.nc iter.* tmp*.cdl			\
-test1_ncdump.cdl test2_ncdump.cdl test1.cdl ctest1.cdl test1_cdf5.cdl	\
-test2_cdf5.cdl test1_offset.cdl test2_offset.cdl ctest0.nc		\
-ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl c0.nc c0_4.nc small.nc	\
-small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc	\
-nc4_utf8.cdl nc4_utf8.nc \
+tst_output_*.cdl tst_output_*.c tst_utf8_*.cdl tst_tst8.cdl		\
+tst_netcdf4_*.cdl test1_ncdump.cdl test2_ncdump.cdl test1.cdl		\
+ctest1.cdl test1_cdf5.cdl test2_cdf5.cdl test1_offset.cdl		\
+test2_offset.cdl ctest0.nc ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl	\
+c0.nc c0_4.nc small.nc small2.nc c0tmp.nc c1.ncml utf8.cdl		\
+utf8_64.cdl utf8.nc utf8_64.nc nc4_utf8.cdl nc4_utf8.nc			\
 tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl	\
 tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl		\
 tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl			\
