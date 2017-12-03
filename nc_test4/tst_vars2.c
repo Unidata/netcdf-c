@@ -1385,6 +1385,37 @@ main(int argc, char **argv)
 
    }
    SUMMARIZE_ERR;
+   printf("**** testing error conditions on nc_def_var functions...");
+   {
+      int ncid;
+      int dimids[NDIMS6];
+      int varid;
+      int num_models = 2;
+      int m;
+      int mode = NC_NETCDF4;
+
+      /* Test without and with classic model. */
+      for (m = 0; m < num_models; m++)
+      {
+         if (m)
+            mode |= NC_CLASSIC_MODEL;
+
+         /* Create a netcdf-4 file. */
+         if (nc_create(FILE_NAME, mode, &ncid)) ERR;
+         if (nc_def_dim(ncid, DIM8_NAME, TEST_VAL_42, &dimids[0])) ERR;
+         if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS6, dimids, &varid)) ERR;
+
+         /* Set the var to contiguous. */
+         if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;
+
+         /* Now defalte can't be set. */
+         if (nc_def_var_deflate(ncid, varid, 0, 1, 4)) ERR;
+
+         if (nc_close(ncid)) ERR;
+      }
+
+   }
+   SUMMARIZE_ERR;
 #define NDIMS6 1
 #define DIM8_NAME "num_monkeys"
 #define DIM9_NAME "num_coconuts"
