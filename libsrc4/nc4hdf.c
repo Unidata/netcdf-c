@@ -1,16 +1,18 @@
-/*
-  This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
-  HDF5 backend for netCDF, depending on your point of view.
-
-  This file contains functions internal to the netcdf4 library. None of
-  the functions in this file are exposed in the exetnal API. These
-  functions handle the HDF interface.
-
-  Copyright 2003, University Corporation for Atmospheric
-  Research. See the COPYRIGHT file for copying and redistribution
-  conditions.
-
-  $Id: nc4hdf.c,v 1.273 2010/05/27 21:34:14 dmh Exp $
+/**
+ *
+ * @file
+ * This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
+ * HDF5 backend for netCDF, depending on your point of view.
+ *
+ * This file contains functions internal to the netcdf4 library. None of
+ * the functions in this file are exposed in the exetnal API. These
+ * functions handle the HDF interface.
+ *
+ * Copyright 2003, University Corporation for Atmospheric
+ * Research. See the COPYRIGHT file for copying and redistribution
+ * conditions.
+ *
+ * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
 */
 
 #include "config.h"
@@ -535,11 +537,21 @@ set_par_access(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
 }
 #endif
 
-/* Write an array of data to a variable. When it comes right down to
- * it, this is what netCDF-4 is all about, this is *the* function, the
- * big enchilda, the grand poo-bah, the alpha dog, the head honcho,
- * the big cheese, the mighty kahuna, the top bananna, the high
- * muckity-muck, numero uno. Well, you get the idea.  */
+/**
+ * @internal Write an array of data to a variable.
+ *
+ * @param nc Pointer to the file NC struct.
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param startp Array of start indicies.
+ * @param countp Array of counts.
+ * @param mem_nc_type The type of the data in memory.
+ * @param is_long True only if NC_LONG is the memory type.
+ * @param data The data to be written.
+ *
+ * @returns NC_NOERR No error.
+ * @author Ed Hartnett
+ */
 int
 nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
              const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
