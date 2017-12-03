@@ -3,7 +3,7 @@
  * This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
  * HDF5 backend for netCDF, depending on your point of view.
 
- * This file handles the nc4 variable functions.
+ * This file handles the NetCDF-4 variable functions.
 
  * Copyright 2003-2006, University Corporation for Atmospheric
  * Research. See COPYRIGHT file for copying and redistribution
