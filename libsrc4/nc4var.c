@@ -1091,8 +1091,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     * cache size? */
    if (!var->contiguous && (chunksizes || deflate || contiguous))
    {
-      /* Determine default chunksizes for this variable. */
-      if (!var->chunksizes[0])
+      /* Determine default chunksizes for this variable (do nothing
+       * for scalar vars). */
+      if (var->chunksizes && !var->chunksizes[0])
          if ((retval = nc4_find_default_chunksizes2(grp, var)))
             return retval;
 
