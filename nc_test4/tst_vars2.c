@@ -870,6 +870,8 @@ main(int argc, char **argv)
       if (nc_redef(ncid)) ERR;
       if (nc_def_var(ncid, VAR_NAME5_1, NC_INT, NDIMS5, dimids, &varid1)) ERR;
       if (nc_def_var(ncid, VAR_NAME5_2, NC_INT, 0, NULL, &varid2)) ERR;
+      if (nc_def_var_chunking(ncid, varid2, NC_CHUNKED, chunksize)) ERR;
+      if (nc_def_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int)) ERR;
       if (nc_def_var_chunking_ints(ncid, varid1, NC_CHUNKED, chunksize_int)) ERR;
       if (nc_inq_var_chunking_ints(ncid, varid1, NULL, chunksize_int_in)) ERR;
       for (d = 0; d < NDIMS5; d++)

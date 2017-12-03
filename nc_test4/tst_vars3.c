@@ -264,6 +264,10 @@ main(int argc, char **argv)
       if (nc_inq_var(ncid, 1, NULL, NULL, &ndims, dimids_in, NULL)) ERR;
       if (ndims != 3 || dimids_in[0] != 0 || dimids_in[1] != 2 || dimids_in[2] != 1) ERR;
 
+      /* These will not work due to bad parameters. */
+      if (nc_get_vara(ncid + MILLION, 1, cor, edg, P_data) != NC_EBADID) ERR;
+      if (nc_get_vara(ncid + TEST_VAL_42, 1, cor, edg, P_data) != NC_EBADID) ERR;
+      
       /* Read the record of non-existent data. */
       if (nc_get_vara(ncid, 1, cor, edg, P_data)) ERR;
       for (i = 0; i < LEN; i++)
@@ -394,6 +398,7 @@ main(int argc, char **argv)
 
       /* Try to write some data, but fail. */
       if (nc_put_vara_double(ncid + MILLION, 0, start, count, double_data) != NC_EBADID) ERR;
+      /* if (nc_put_vara_double(ncid + TEST_VAL_42, 0, start, count, double_data) != NC_EBADID) ERR; */
 
       if (nc_close(ncid)) ERR;
    }
