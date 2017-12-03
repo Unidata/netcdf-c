@@ -792,6 +792,9 @@ INPUT = \
     @abs_top_srcdir@/libsrc4/nc4var.c \
     @abs_top_srcdir@/libsrc4/nc4hdf.c \
     @abs_top_srcdir@/libsrc4/nc4internal.c \
+    @abs_top_srcdir@/libsrc4/nc4type.c \
+    @abs_top_srcdir@/libsrc4/nc4grp.c \
+    @abs_top_srcdir@/libsrc4/ncfunc.c \
     @abs_top_srcdir@/examples/C/simple_xy_wr.c \
     @abs_top_srcdir@/examples/C/simple_xy_rd.c \
     @abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \
