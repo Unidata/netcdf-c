@@ -21,10 +21,76 @@
 #include "nc4dispatch.h"
 #include "ncdispatch.h"
 
-static int nc4_get_att_special(NC_HDF5_FILE_INFO_T*, const char*,
-                               nc_type*, nc_type, size_t*, int*, int, void*);
-
 int nc4typelen(nc_type type);
+
+/**
+ * @internal Get special informatation about the attrobute.
+ *
+ * @param h5 Pointer to HDF5 file info struct.
+ * @param name Name of attribute.
+ * @param filetypep Pointer that gets type of the attribute data in
+ * file.
+ * @param mem_type Type of attribute data in memory.
+ * @param lenp Pointer that gets length of attribute array.
+ * @param attnump Pointer that gets the attribute number.
+ * @param is_long True if attribute data is of type NC_LONG.
+ * @param data Attribute data.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Dennis Heimbigner
+ */
+static int
+nc4_get_att_special(NC_HDF5_FILE_INFO_T* h5, const char* name,
+                    nc_type* filetypep, nc_type mem_type, size_t* lenp,
+                    int* attnump, int is_long, void* data)
+{
+   /* Fail if asking for att id */
+   if(attnump)
+      return NC_EATTMETA;
+
+   if(strcmp(name,NCPROPS)==0) {
+      char* propdata = NULL;
+      int stat = NC_NOERR;
+      int len;
+      if(h5->fileinfo->propattr.version == 0)
+         return NC_ENOTATT;
+      if(mem_type == NC_NAT) mem_type = NC_CHAR;
+      if(mem_type != NC_CHAR)
+         return NC_ECHAR;
+      if(filetypep) *filetypep = NC_CHAR;
+      stat = NC4_buildpropinfo(&h5->fileinfo->propattr, &propdata);
+      if(stat != NC_NOERR) return stat;
+      len = strlen(propdata);
+      if(lenp) *lenp = len;
+      if(data) strncpy((char*)data,propdata,len+1);
+      free(propdata);
+   } else if(strcmp(name,ISNETCDF4ATT)==0
+             || strcmp(name,SUPERBLOCKATT)==0) {
+      unsigned long long iv = 0;
+      if(filetypep) *filetypep = NC_INT;
+      if(lenp) *lenp = 1;
+      if(strcmp(name,SUPERBLOCKATT)==0)
+         iv = (unsigned long long)h5->fileinfo->superblockversion;
+      else /* strcmp(name,ISNETCDF4ATT)==0 */
+         iv = NC4_isnetcdf4(h5);
+      if(mem_type == NC_NAT) mem_type = NC_INT;
+      if(data)
+         switch (mem_type) {
+         case NC_BYTE: *((char*)data) = (char)iv; break;
+         case NC_SHORT: *((short*)data) = (short)iv; break;
+         case NC_INT: *((int*)data) = (int)iv; break;
+         case NC_UBYTE: *((unsigned char*)data) = (unsigned char)iv; break;
+         case NC_USHORT: *((unsigned short*)data) = (unsigned short)iv; break;
+         case NC_UINT: *((unsigned int*)data) = (unsigned int)iv; break;
+         case NC_INT64: *((long long*)data) = (long long)iv; break;
+         case NC_UINT64: *((unsigned long long*)data) = (unsigned long long)iv; break;
+         default:
+            return NC_ERANGE;
+         }
+   }
+   return NC_NOERR;
+}
 
 /**
  * @internal Get or put attribute metadata from our linked list of
@@ -605,8 +671,8 @@ exit:
  * @param ncid File and group ID.
  * @param varid Variable ID.
  * @param name Name of attribute.
- * @param xtype Pointer that gets type of attribute.
- * @oaram lenp Pointer that gets length of attribute data array.
+ * @param xtypep Pointer that gets type of attribute.
+ * @param lenp Pointer that gets length of attribute data array.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
@@ -1000,74 +1066,6 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
    /* Otherwise, handle things the netcdf-4 way. */
    return nc4_put_att(ncid, nc, varid, name, file_type, mem_type, len,
                       mem_type_is_long, op);
-}
-
-/**
- * @internal Get special informatation about the attrobute.
- *
- * @param h5 Pointer to HDF5 file info struct.
- * @param name Name of attribute.
- * @param filetypep Pointer that gets type of the attribute data in
- * file.
- * @param mem_type Type of attribute data in memory.
- * @param len Length of attribute array.
- * @param is_long True if attribute data is of type NC_LONG.
- * @param data Attribute data.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @author Dennis Heimbigner
- */
-static int
-nc4_get_att_special(NC_HDF5_FILE_INFO_T* h5, const char* name,
-                    nc_type* filetypep, nc_type mem_type, size_t* lenp,
-                    int* attnump, int is_long, void* data)
-{
-   /* Fail if asking for att id */
-   if(attnump)
-      return NC_EATTMETA;
-
-   if(strcmp(name,NCPROPS)==0) {
-      char* propdata = NULL;
-      int stat = NC_NOERR;
-      int len;
-      if(h5->fileinfo->propattr.version == 0)
-         return NC_ENOTATT;
-      if(mem_type == NC_NAT) mem_type = NC_CHAR;
-      if(mem_type != NC_CHAR)
-         return NC_ECHAR;
-      if(filetypep) *filetypep = NC_CHAR;
-      stat = NC4_buildpropinfo(&h5->fileinfo->propattr, &propdata);
-      if(stat != NC_NOERR) return stat;
-      len = strlen(propdata);
-      if(lenp) *lenp = len;
-      if(data) strncpy((char*)data,propdata,len+1);
-      free(propdata);
-   } else if(strcmp(name,ISNETCDF4ATT)==0
-             || strcmp(name,SUPERBLOCKATT)==0) {
-      unsigned long long iv = 0;
-      if(filetypep) *filetypep = NC_INT;
-      if(lenp) *lenp = 1;
-      if(strcmp(name,SUPERBLOCKATT)==0)
-         iv = (unsigned long long)h5->fileinfo->superblockversion;
-      else /* strcmp(name,ISNETCDF4ATT)==0 */
-         iv = NC4_isnetcdf4(h5);
-      if(mem_type == NC_NAT) mem_type = NC_INT;
-      if(data)
-         switch (mem_type) {
-         case NC_BYTE: *((char*)data) = (char)iv; break;
-         case NC_SHORT: *((short*)data) = (short)iv; break;
-         case NC_INT: *((int*)data) = (int)iv; break;
-         case NC_UBYTE: *((unsigned char*)data) = (unsigned char)iv; break;
-         case NC_USHORT: *((unsigned short*)data) = (unsigned short)iv; break;
-         case NC_UINT: *((unsigned int*)data) = (unsigned int)iv; break;
-         case NC_INT64: *((long long*)data) = (long long)iv; break;
-         case NC_UINT64: *((unsigned long long*)data) = (unsigned long long)iv; break;
-         default:
-            return NC_ERANGE;
-         }
-   }
-   return NC_NOERR;
 }
 
 /**

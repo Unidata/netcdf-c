@@ -16,7 +16,9 @@
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 
-#define NUM_ATOMIC_TYPES 13
+#define NUM_ATOMIC_TYPES 13 /**< Number of netCDF atomic types. */
+
+/** @internal Names of atomic types. */
 char atomic_name[NUM_ATOMIC_TYPES][NC_MAX_NAME + 1] = {"none", "byte", "char", 
 						       "short", "int", "float", 
 						       "double", "ubyte",
@@ -25,14 +27,14 @@ char atomic_name[NUM_ATOMIC_TYPES][NC_MAX_NAME + 1] = {"none", "byte", "char",
 
 /* The sizes of types may vary from platform to platform, but within
  * netCDF files, type sizes are fixed. */
-#define NC_CHAR_LEN sizeof(char)
-#define NC_STRING_LEN sizeof(char *)
-#define NC_BYTE_LEN 1
-#define NC_SHORT_LEN 2
-#define NC_INT_LEN 4
-#define NC_FLOAT_LEN 4
-#define NC_DOUBLE_LEN 8
-#define NC_INT64_LEN 8
+#define NC_CHAR_LEN sizeof(char)      /**< @internal Size of char. */
+#define NC_STRING_LEN sizeof(char *)  /**< @internal Size of char *. */
+#define NC_BYTE_LEN 1     /**< @internal Size of byte. */
+#define NC_SHORT_LEN 2    /**< @internal Size of short. */
+#define NC_INT_LEN 4      /**< @internal Size of int. */
+#define NC_FLOAT_LEN 4    /**< @internal Size of float. */
+#define NC_DOUBLE_LEN 8   /**< @internal Size of double. */
+#define NC_INT64_LEN 8    /**< @internal Size of int64. */
 
 /**
  * @internal Determine if two types are equal.
@@ -43,7 +45,10 @@ char atomic_name[NUM_ATOMIC_TYPES][NC_MAX_NAME + 1] = {"none", "byte", "char",
  * @param typeid2 Second type ID.
  * @param equalp Pointer that will get 1 if the two types are equal.
  *
- * @return NC_NOERR No error.
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EBADTYPE Type not found.
+ * @return ::NC_EINVAL Invalid type.
  * @author Ed Hartnett
  */
 extern int
@@ -111,7 +116,11 @@ NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
  * @param name Name of type.
  * @param typeidp Pointer that will get the type ID.
  *
- * @return NC_NOERR No error.
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EINVAL Bad size.
+ * @return ::NC_ENOTNC4 User types in netCDF-4 files only.
+ * @return ::NC_EBADTYPE Type not found.
  * @author Ed Hartnett
  */
 extern int
@@ -238,6 +247,8 @@ NC4_inq_typeids(int ncid, int *ntypes, int *typeids)
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_ENOTNC4 User types in netCDF-4 files only.
  * @return ::NC_EINVAL Bad size.
+ * @return ::NC_EMAXNAME Name is too long.
+ * @return ::NC_EBADNAME Name breaks netCDF name rules.
  * @author Ed Hartnett
 */
 static int
@@ -374,6 +385,8 @@ NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EMAXNAME Name is too long.
+ * @return ::NC_EBADNAME Name breaks netCDF name rules.
  * @author Ed Hartnett
 */
 int
@@ -393,6 +406,8 @@ NC4_def_compound(int ncid, size_t size, const char *name, nc_type *typeidp)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EMAXNAME Name is too long.
+ * @return ::NC_EBADNAME Name breaks netCDF name rules.
  * @author Ed Hartnett
 */
 int
@@ -407,9 +422,17 @@ NC4_insert_compound(int ncid, nc_type typeid1, const char *name, size_t offset,
  * @internal Insert a named array into a compound type.
  *
  * @param ncid File and group ID.
+ * @param typeid1 Type ID.
+ * @param name Name of the array field.
+ * @param offset Offset in bytes.
+ * @param field_typeid Type of field.
+ * @param ndims Number of dims for field.
+ * @param dim_sizesp Array of dim sizes.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EMAXNAME Name is too long.
+ * @return ::NC_EBADNAME Name breaks netCDF name rules.
  * @author Ed Hartnett
 */
 extern int
@@ -629,6 +652,7 @@ find_nc4_file(int ncid, NC **nc)
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EBADTYPE Type not found.
+ * @return ::NC_EBADFIELD Field not found.
  * @author Ed Hartnett
 */
 int
@@ -685,6 +709,8 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EMAXNAME Name is too long.
+ * @return ::NC_EBADNAME Name breaks netCDF name rules.
  * @author Ed Hartnett
 */
 int
@@ -705,6 +731,8 @@ NC4_def_opaque(int ncid, size_t datum_size, const char *name,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EMAXNAME Name is too long.
+ * @return ::NC_EBADNAME Name breaks netCDF name rules.
  * @author Ed Hartnett
 */
 int
@@ -724,6 +752,8 @@ NC4_def_vlen(int ncid, const char *name, nc_type base_typeid,
  * @param typeidp Pointer that gets new type ID.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EMAXNAME Name is too long.
+ * @return ::NC_EBADNAME Name breaks netCDF name rules.
  * @author Ed Hartnett
 */
 int
@@ -834,6 +864,8 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EBADTYPE Type not found.
+ * @return ::NC_EINVAL Bad idx.
  * @author Ed Hartnett
 */
 int
@@ -891,7 +923,7 @@ NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EBADTYPE Type not found.
- * @return ::NC_ETYPEDEFINED Type already defined.
+ * @return ::NC_ETYPDEFINED Type already defined.
  * @author Ed Hartnett
 */
 int

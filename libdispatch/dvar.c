@@ -1049,6 +1049,18 @@ nc_def_var_endian(int ncid, int varid, int endian)
     return ncp->dispatch->def_var_endian(ncid,varid,endian);
 }
 
+/**
+ * Define a new variable filter.
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param id
+ * @param nparams Number of filter parameters.
+ * @param parms Filter parameters.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
+ */
 int
 nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms)
 {

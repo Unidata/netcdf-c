@@ -1,11 +1,12 @@
-/* Copyright 2010 University Corporation for Atmospheric
-   Research/Unidata. See COPYRIGHT file for more info.
-
-   This file has the var and att copy functions.
-
-   "$Id: copy.c,v 1.1 2010/06/01 15:46:49 ed Exp $"
+/**
+ * @file
+ * Copyright 2010 University Corporation for Atmospheric
+ * Research/Unidata. See COPYRIGHT file for more info.
+ *
+ * This file has the var and att copy functions.
+ *
+ * @author Dennis Heimbigner
 */
-
 #include "ncdispatch.h"
 #include "nc_logging.h"
 
@@ -229,25 +230,33 @@ NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2)
 
 #endif /* USE_NETCDF4 */
 
-/* This will copy a variable that is an array of primitive type and
-   its attributes from one file to another, assuming dimensions in the
-   output file are already defined and have same dimension IDs and
-   length.  However it doesn't work for copying netCDF-4 variables of
-   type string or a user-defined type.
-
-   This function works even if the files are different formats,
-   (for example, one netcdf classic, the other netcdf-4).
-
-   If you're copying into a classic-model file, from a netcdf-4 file,
-   you must be copying a variable of one of the six classic-model
-   types, and similarly for the attributes.
-
-   For large netCDF-3 files, this can be a very inefficient way to
-   copy data from one file to another, because adding a new variable
-   to the target file may require more space in the header and thus
-   result in moving data for other variables in the target file. This
-   is not a problem for netCDF-4 files, which support efficient
-   addition of variables without moving data for other variables.
+/**
+ * This will copy a variable that is an array of primitive type and
+ * its attributes from one file to another, assuming dimensions in the
+ * output file are already defined and have same dimension IDs and
+ * length.  However it doesn't work for copying netCDF-4 variables of
+ * type string or a user-defined type.
+ *
+ * This function works even if the files are different formats,
+ * (for example, one netcdf classic, the other netcdf-4).
+ *
+ * If you're copying into a classic-model file, from a netcdf-4 file,
+ * you must be copying a variable of one of the six classic-model
+ * types, and similarly for the attributes.
+ *
+ * For large netCDF-3 files, this can be a very inefficient way to
+ * copy data from one file to another, because adding a new variable
+ * to the target file may require more space in the header and thus
+ * result in moving data for other variables in the target file. This
+ * is not a problem for netCDF-4 files, which support efficient
+ * addition of variables without moving data for other variables.
+ *
+ * @param ncid_in File ID to copy from.
+ * @param varid_in Variable ID to copy.
+ * @param ncid_out File ID to copy to.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_copy_var(int ncid_in, int varid_in, int ncid_out)
@@ -576,16 +585,26 @@ NC_copy_att(int ncid_in, int varid_in, const char *name,
    return res;
 }
 
-/* Copy an attribute from one open file to another.
-
-   Special programming challenge: this function must work even if one
-   of the other of the files is a netcdf version 1.0 file (i.e. not
-   HDF5). So only use top level netcdf api functions.
-
-   From the netcdf-3 docs: The output netCDF dataset should be in
-   define mode if the attribute to be copied does not already exist
-   for the target variable, or if it would cause an existing target
-   attribute to grow.
+/**
+ * Copy an attribute from one open file to another.
+ *
+ * Special programming challenge: this function must work even if one
+ * of the other of the files is a netcdf version 1.0 file (i.e. not
+ * HDF5). So only use top level netcdf api functions.
+ *
+ * From the netcdf-3 docs: The output netCDF dataset should be in
+ * define mode if the attribute to be copied does not already exist
+ * for the target variable, or if it would cause an existing target
+ * attribute to grow.
+ *
+ * @param ncid_in File ID to copy from.
+ * @param varid_in Variable ID to copy from.
+ * @param name Name of attribute to copy.
+ * @param ncid_out File ID to copy to.
+ * @param varid_out Variable ID to copy to.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_copy_att(int ncid_in, int varid_in, const char *name,
