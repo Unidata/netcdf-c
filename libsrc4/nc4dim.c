@@ -1,22 +1,34 @@
-/*
-
-This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
-HDF5 backend for netCDF, depending on your point of view.
-
-This file handles the nc4 dimension functions.
-
-Copyright 2003-5, University Corporation for Atmospheric Research. See
-the COPYRIGHT file for copying and redistribution conditions.
-
-$Id: nc4dim.c,v 1.41 2010/05/25 17:54:23 dmh Exp $
+/**
+ * @file 
+ * @internal This file is part of netcdf-4, a netCDF-like interface
+ * for HDF5, or a HDF5 backend for netCDF, depending on your point of
+ * view.
+ *
+ * This file handles the nc4 dimension functions.
+ *
+ * Copyright 2003-5, University Corporation for Atmospheric Research. See
+ * the COPYRIGHT file for copying and redistribution conditions.
+ * 
+ * @author Ed Hartnett
 */
 
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 
-/* Netcdf-4 files might have more than one unlimited dimension, but
-   return the first one anyway. */
-/* Note that this code is inconsistent with nc_inq */
+/**
+ * @internal Netcdf-4 files might have more than one unlimited
+ * dimension, but return the first one anyway.
+ *  
+ * @note that this code is inconsistent with nc_inq 
+ *
+ * @param ncid File and group ID.
+ * @param unlimdimidsp Pointer that gets ID of first unlimited
+ * dimension, or -1.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
 int 
 NC4_inq_unlimdim(int ncid, int *unlimdimidp)
 {
@@ -52,8 +64,28 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
    return NC_NOERR;
 }
 
-/* Dimensions are defined in attributes attached to the appropriate
-   group in the data file. */
+/**
+ * @internal Dimensions are defined in attributes attached to the
+ * appropriate group in the data file.
+ *
+ * @param ncid File and group ID.
+ * @param name Name of the new dimension.
+ * @param len Length of the new dimension.
+ * @param idp Pointer that gets the ID of the new dimension. Ignored
+ * if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EMAXNAME Name is too long.
+ * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_EINVAL Invalid input.
+ * @return ::NC_EPERM Read-only file.
+ * @return ::NC_EUNLIMIT Only one unlimited dim for classic model.
+ * @return ::NC_ENOTINDEFINE Not in define mode.
+ * @return ::NC_EDIMSIZE Dim length too large.
+ * @return ::NC_ENAMEINUSE Name already in use in group.
+ * @author Ed Hartnett
+ */
 int
 NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
 {
@@ -135,7 +167,18 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    return retval;
 }
 
-/* Given dim name, find its id. */
+/**
+ * @internal Given dim name, find its id.
+ *
+ * @param ncid File and group ID.
+ * @param name Name of the dimension to find.
+ * @param idp Pointer that gets dimension ID.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EBADDIM Dimension not found.
+ * @author Ed Hartnett
+ */
 int
 NC4_inq_dimid(int ncid, const char *name, int *idp)
 {
@@ -176,9 +219,21 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
    return NC_EBADDIM;
 }
 
-/* Find out name and len of a dim. For an unlimited dimension, the
-   length is the largest length so far written. If the name of lenp
-   pointers are NULL, they will be ignored. */
+/**
+ * @internal Find out name and len of a dim. For an unlimited
+ * dimension, the length is the largest length so far written. If the
+ * name of lenp pointers are NULL, they will be ignored.
+ *
+ * @param ncid File and group ID.
+ * @param dimid Dimension ID.
+ * @param name Pointer that gets name of the dimension.
+ * @param lenp Pointer that gets length of dimension.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EDIMSIZE Dimension length too large.
+ * @author Ed Hartnett
+ */
 int
 NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 {
@@ -234,7 +289,25 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
    return ret;
 }
 
-/* Rename a dimension, for those who like to prevaricate. */
+/**
+ * @internal Rename a dimension, for those who like to prevaricate.
+ *
+ * @param ncid File and group ID.
+ * @param dimid Dimension ID.
+ * @param name New dimension name.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EHDFERR HDF5 returned error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EINVAL Name must be provided.
+ * @return ::NC_ENAMEINUSE Name is already in use in group.
+ * @return ::NC_EMAXNAME Name is too long.
+ * @return ::NC_EBADDIM Dimension not found.
+ * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_EDIMMETA Unable to delete HDF5 dataset.
+ * @author Ed Hartnett
+ */
 int
 NC4_rename_dim(int ncid, int dimid, const char *name)
 {
@@ -339,10 +412,21 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    return NC_NOERR;
 }
 
-/* Returns an array of unlimited dimension ids.The user can get the
-   number of unlimited dimensions by first calling this with NULL for
-   the second pointer.
-*/
+/**
+ * @internal Returns an array of unlimited dimension ids.The user can
+ * get the number of unlimited dimensions by first calling this with
+ * NULL for the second pointer.
+ *
+ * @param ncid File and group ID.
+ * @param nunlimdimsp Pointer that gets the number of unlimited
+ * dimensions. Ignored if NULL.
+ * @param unlimdimidsp Pointer that gets arrray of unlimited dimension
+ * ID. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
 int 
 NC4_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp) 
 {
