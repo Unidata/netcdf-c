@@ -11,7 +11,7 @@ include $(top_srcdir)/lib_flags.am
 # Link to our assembled library.
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
-# These are netCDF-4 test programs.
+# These are netCDF-4 C test programs which are built and run.
 NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4		\
 tst_vars tst_varms tst_unlim_vars tst_converts tst_converts2 tst_grps	\
 tst_grps2 tst_compounds tst_compounds2 tst_compounds3 tst_opaques	\
@@ -29,14 +29,15 @@ if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
 endif
 
+# Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) renamegroup tst_empty_vlen_unlim
+TESTS = $(NC4_TESTS)
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
 check_PROGRAMS += tst_large tst_large2
+TESTS += tst_large tst_large2
 endif
-
-TESTS = $(NC4_TESTS)
 
 if BUILD_UTILITIES
 TESTS += run_grp_rename.sh tst_misc.sh
@@ -50,17 +51,11 @@ check_PROGRAMS += tst_v2
 TESTS += tst_v2
 endif # BUILD_V2
 
-if LARGE_FILE_TESTS
-check_PROGRAMS += tst_large
-TESTS += tst_large
-endif # LARGE_FILE_TESTS
-
 # If benchmarks were turned on, build and run a bunch more tests.
 if BUILD_BENCHMARKS
 check_PROGRAMS += tst_create_files bm_file tst_chunks3 tst_ar4	\
 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts	\
-tst_files2 tst_files3 tst_ar5 tst_h_files3 tst_mem tst_knmi     \
-bm_netcdf4_recs
+tst_files2 tst_files3 tst_ar5 tst_mem tst_knmi bm_netcdf4_recs
 
 bm_netcdf4_recs_SOURCES = bm_netcdf4_recs.c tst_utils.c
 bm_many_atts_SOURCES = bm_many_atts.c tst_utils.c
@@ -77,7 +72,7 @@ tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 # so they must appear in the appropriate order.
 TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
 run_bm_test2.sh run_tst_chunks.sh tst_files2 tst_files3 tst_ar5		\
-tst_h_files3 tst_mem run_get_knmi_files.sh tst_knmi
+tst_mem run_get_knmi_files.sh tst_knmi
 
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL4
@@ -104,7 +99,7 @@ endif # BUILD_UTILITIES
 TESTS += run_chunk_hdf4.sh tst_h4_lendian
 if USE_HDF4_FILE_TESTS
 check_PROGRAMS += tst_interops3
-TESTS += run_get_hdf4_files.sh tst_interops3 tst_hdf4_read_var.sh
+TESTS += run_get_hdf4_files.sh tst_hdf4_read_var.sh
 endif # USE_HDF4_FILE_TESTS
 endif # USE_HDF4
 
@@ -115,7 +110,6 @@ check_PROGRAMS += test_szip h5testszip
 TESTS += tst_szip.sh
 endif
 endif
-
 
 # This will run a bunch of the test programs with valgrind, the memory
 # checking tool. (Valgrind must be present for this to work.)
