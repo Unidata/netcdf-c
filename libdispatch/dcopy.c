@@ -11,8 +11,20 @@
 #include "nc_logging.h"
 
 #ifdef USE_NETCDF4
-/* Compare two netcdf types for equality. Must have the ncids as well,
-   to find user-defined types. */
+/**
+ * @internal Compare two netcdf types for equality. Must have the
+ * ncids as well, to find user-defined types. 
+ *
+ * @param ncid1 File ID.
+ * @param typeid1 Type ID.
+ * @param ncid2 File ID.
+ * @param typeid2 Type ID.
+ * @param equalp Pointer that gets 1 of the types are equal, 0
+ * otherwise.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 static int
 NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2,
 		    int *equalp)
@@ -138,8 +150,18 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2,
    return ret;
 }
 
-/* Recursively hunt for a netCDF type id. (Code from nc4internal.c);
-   Return matching typeid or 0 if not found. */
+/**
+ * @internal Recursively hunt for a netCDF type id. (Code from
+ * nc4internal.c); Return matching typeid or 0 if not found. 
+ *
+ * @param ncid1 File ID.
+ * @param tid1 Type ID.
+ * @param ncid2 File ID.
+ * @param tid2 Pointer that gets type ID of equal type.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 static int
 NC_rec_find_nc_type(int ncid1, nc_type tid1, int ncid2, nc_type* tid2)
 {
@@ -202,8 +224,18 @@ NC_rec_find_nc_type(int ncid1, nc_type tid1, int ncid2, nc_type* tid2)
    return NC_EBADTYPE; /* not found */
 }
 
-/* Given a type in one file, find its equal (if any) in another
- * file. It sounds so simple, but it's a real pain! */
+/**
+ * @internal Given a type in one file, find its equal (if any) in
+ * another file. It sounds so simple, but it's a real pain! 
+ *
+ * @param ncid1 File ID.
+ * @param xtype1 Type ID.
+ * @param ncid2 File ID.
+ * @param xtype2 Pointer that gets type ID of equal type.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 static int
 NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2)
 {
@@ -486,6 +518,19 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
    return retval;
 }
 
+/**
+ * Copy an attribute from one open file to another. This is called by
+ * nc_copy_att().
+ *
+ * @param ncid_in File ID to copy from.
+ * @param varid_in Variable ID to copy from.
+ * @param name Name of attribute to copy.
+ * @param ncid_out File ID to copy to.
+ * @param varid_out Variable ID to copy to.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+*/
 static int
 NC_copy_att(int ncid_in, int varid_in, const char *name,
 	    int ncid_out, int varid_out)
