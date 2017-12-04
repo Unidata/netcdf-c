@@ -184,8 +184,6 @@ NCD2_get_var_chunk_cache,
 
 NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */
 
-static NC_Dispatch NCD2_dispatcher;
-
 int
 NCD2_initialize(void)
 {
