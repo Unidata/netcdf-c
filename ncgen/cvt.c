@@ -648,7 +648,6 @@ convertFilterID(const char* id)
 {
     unsigned int nid = 0;
     int ok = 0;
-    struct FilterID* f;
 
     /* for now, must be an integer */
     ok = sscanf(id,"%u",&nid);
