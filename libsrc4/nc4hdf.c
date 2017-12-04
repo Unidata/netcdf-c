@@ -25,9 +25,15 @@
 #include "netcdf_par.h"
 #endif
 
-#define NC3_STRICT_ATT_NAME "_nc3_strict"
+#define NC3_STRICT_ATT_NAME "_nc3_strict" /**< @internal Indicates classic model. */
 
-#define NC_HDF5_MAX_NAME 1024
+#define NC_HDF5_MAX_NAME 1024 /**< @internal Max size of HDF5 name. */
+
+#define MAXNAME 1024 /**< Max HDF5 name. */
+
+/** @internal HDF5 object types. */
+static unsigned int OTYPES[5] = {H5F_OBJ_FILE, H5F_OBJ_DATASET, H5F_OBJ_GROUP,
+                                 H5F_OBJ_DATATYPE, H5F_OBJ_ATTR};
 
 /**
  * @internal Flag attributes in a linked list as dirty.
@@ -527,8 +533,14 @@ exit:
 /**
  * @internal Do some common check for nc4_put_vara and
  * nc4_get_vara. These checks have to be done when both reading and
- * writing data. 
+ * writing data.
  *
+ * @param mem_nc_type Pointer to type of data in memory.
+ * @param var Pointer to var info struct.
+ * @param h5 Pointer to HDF5 file info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
  */
 static int
 check_for_vara(nc_type *mem_nc_type, NC_VAR_INFO_T *var, NC_HDF5_FILE_INFO_T *h5)
@@ -1504,7 +1516,17 @@ exit:
    return retval;
 }
 
-/* Write all the dirty atts in an attlist. */
+/**
+ * @internal Write all the dirty atts in an attlist. 
+ *
+ * @param attlist Pointer to the list if attributes.
+ * @param varid Variable ID.
+ * @param grp Pointer to group info struct.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+*/
 static int
 write_attlist(NC_ATT_INFO_T *attlist, int varid, NC_GRP_INFO_T *grp)
 {
@@ -1526,16 +1548,24 @@ write_attlist(NC_ATT_INFO_T *attlist, int varid, NC_GRP_INFO_T *grp)
 }
 
 
-/* This function is a bit of a hack. Turns out that HDF5 dimension
- * scales cannot themselves have scales attached. This leaves
- * multidimensional coordinate variables hosed. So this function
- * writes a special attribute for such a variable, which has the ids
- * of all the dimensions for that coordinate variable. This sucks,
- * really. But that's the way the cookie crumbles. Better luck next
- * time. This function also contains a new way of dealing with HDF5
- * error handling, abandoning the BAIL macros for a more organic and
- * natural approach, made with whole grains, and locally-grown
- * vegetables. */
+/**
+ * @internal This function is a bit of a hack. Turns out that HDF5
+ * dimension scales cannot themselves have scales attached. This
+ * leaves multidimensional coordinate variables hosed. So this
+ * function writes a special attribute for such a variable, which has
+ * the ids of all the dimensions for that coordinate variable. This
+ * sucks, really. But that's the way the cookie crumbles. Better luck
+ * next time. This function also contains a new way of dealing with
+ * HDF5 error handling, abandoning the BAIL macros for a more organic
+ * and natural approach, made with whole grains, and locally-grown
+ * vegetables. 
+ *
+ * @param var Pointer to var info struct.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+ */
 static int
 write_coord_dimids(NC_VAR_INFO_T *var)
 {
@@ -1556,7 +1586,16 @@ write_coord_dimids(NC_VAR_INFO_T *var)
    return ret ? NC_EHDFERR : 0;
 }
 
-/* Write a special attribute for the netCDF-4 dimension ID. */
+/**
+ * @internal Write a special attribute for the netCDF-4 dimension ID. 
+ *
+ * @param datasetid HDF5 datasset ID.
+ * @param dimid NetCDF dimension ID.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+*/
 static int
 write_netcdf4_dimid(hid_t datasetid, int dimid)
 {
@@ -1595,7 +1634,16 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
    return NC_NOERR;
 }
 
-/* This function creates the HDF5 dataset for a variable. */
+/**
+ * @internal This function creates the HDF5 dataset for a variable. 
+ *
+ * @param grp Pointer to group info struct.
+ * @param var Pointer to variable info struct.
+ * @param write_dimid True to write dimid.
+ *
+ * @return ::NC_NOERR
+ * @author Ed Hartnett
+*/
 static int
 var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid)
 {
@@ -1855,7 +1903,16 @@ exit:
    return retval;
 }
 
-/* Adjust the chunk cache of a var for better performance. */
+/**
+ * @internal Adjust the chunk cache of a var for better
+ * performance. 
+ *
+ * @param grp Pointer to group info struct.
+ * @param var Pointer to var info struct.
+ *
+ * @return NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
 {
@@ -1894,8 +1951,16 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
    return NC_NOERR;
 }
 
-/* Create a HDF5 defined type from a NC_TYPE_INFO_T struct, and commit
- * it to the file. */
+/**
+ * @internal Create a HDF5 defined type from a NC_TYPE_INFO_T struct,
+ * and commit it to the file. 
+ *
+ * @param grp Pointer to group info struct.
+ * @param type Pointer to type info struct.
+ *
+ * @return NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 static int
 commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 {
@@ -2014,8 +2079,16 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    return NC_NOERR;
 }
 
-/* Write an attribute, with value 1, to indicate that strict NC3 rules
- * apply to this file. */
+/**
+ * @internal Write an attribute, with value 1, to indicate that strict
+ * NC3 rules apply to this file. 
+ *
+ * @param hdf_grpid HDF5 group ID.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+ */
 static int
 write_nc3_strict_att(hid_t hdf_grpid)
 {
@@ -2049,6 +2122,14 @@ exit:
    return retval;
 }
 
+/**
+ * @internal Create a HDF5 group.
+ *
+ * @param grp Pointer to group info struct.
+ *
+ * @return NC_NOERR No error.
+ * @author Ed Hartnett
+ */
 static int
 create_group(NC_GRP_INFO_T *grp)
 {
@@ -2095,10 +2176,17 @@ exit:
    return retval;
 }
 
-/* After all the datasets of the file have been read, it's time to
- * sort the wheat from the chaff. Which of the datasets are netCDF
- * dimensions, and which are coordinate variables, and which are
- * non-coordinate variables. */
+/**
+ * @internal After all the datasets of the file have been read, it's
+ * time to sort the wheat from the chaff. Which of the datasets are
+ * netCDF dimensions, and which are coordinate variables, and which
+ * are non-coordinate variables. 
+ *
+ * @param grp Pointer to group info struct. 
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 static int
 attach_dimscales(NC_GRP_INFO_T *grp)
 {
@@ -2163,6 +2251,16 @@ exit:
    return retval;
 }
 
+/**
+ * @internal Does a variable exist?
+ *
+ * @param grpid HDF5 group ID.
+ * @param name Name of variable.
+ * @param exists Pointer that gets 1 of the variable exists, 0 otherwise.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
 static int
 var_exists(hid_t grpid, char *name, nc_bool_t *exists)
 {
@@ -2189,10 +2287,20 @@ var_exists(hid_t grpid, char *name, nc_bool_t *exists)
    return NC_NOERR;
 }
 
-/* This function writes a variable. The principle difficulty comes
- * from the possibility that this is a coordinate variable, and was
- * already written to the file as a dimension-only dimscale. If this
- * occurs, then it must be deleted and recreated. */
+/**
+ * @internal This function writes a variable. The principle difficulty
+ * comes from the possibility that this is a coordinate variable, and
+ * was already written to the file as a dimension-only dimscale. If
+ * this occurs, then it must be deleted and recreated. 
+ *
+ * @param var Pointer to variable info struct.
+ * @param grp Pointer to group info struct.
+ * @param write_dimid
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+*/
 static int
 write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
@@ -2402,6 +2510,18 @@ exit:
    return retval;
 }
 
+/**
+ * @internal Write a dimension.
+ *
+ * @param dim Pointer to dim info struct.
+ * @param grp Pointer to group info struct.
+ * @param write_dimid
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EPERM Read-only file.
+ * @returns ::NC_EHDFERR HDF5 returned error.
+ * @author Ed Hartnett
+ */
 static int
 write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
@@ -2523,12 +2643,22 @@ exit:
    return retval;
 }
 
-/* Recursively determine if there is a mismatch between order of
- * coordinate creation and associated dimensions in this group or any
- * subgroups, to find out if we have to handle that situation.  Also
- * check if there are any multidimensional coordinate variables
- * defined, which require the same treatment to fix a potential bug
- * when such variables occur in subgroups. */
+/**
+ * @internal Recursively determine if there is a mismatch between
+ * order of coordinate creation and associated dimensions in this
+ * group or any subgroups, to find out if we have to handle that
+ * situation.  Also check if there are any multidimensional coordinate
+ * variables defined, which require the same treatment to fix a
+ * potential bug when such variables occur in subgroups. 
+ *
+ * @param grp Pointer to group info struct.
+ * @param bad_coord_orderp Pointer that gets 1 if there is a bad
+ * coordinate order.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+*/
 int
 nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp)
 {
@@ -2588,10 +2718,18 @@ nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_
    return NC_NOERR;
 }
 
-
-/* Recursively write all the metadata in a group. Groups and types
- * have all already been written.  Propagate bad cooordinate order to
- * subgroups, if detected. */
+/**
+ * @internal Recursively write all the metadata in a group. Groups and
+ * types have all already been written. Propagate bad cooordinate
+ * order to subgroups, if detected.
+ *
+ * @param grp Pointer to group info struct.
+ * @param bad_coord_order 1 if there is a bad coordinate order.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+*/
 int
 nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
 {
@@ -2663,7 +2801,15 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
    return NC_NOERR;
 }
 
-/* Recursively write all groups and types. */
+/**
+ * @internal Recursively write all groups and types. 
+ *
+ * @param grp Pointer to group info struct.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+*/
 int
 nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
 {
@@ -3687,9 +3833,18 @@ nc4_convert_type(const void *src, void *dest,
    return NC_NOERR;
 }
 
-/* In our first pass through the data, we may have encountered
- * variables before encountering their dimscales, so go through the
- * vars in this file and make sure we've got a dimid for each. */
+/**
+ * @internal In our first pass through the data, we may have
+ * encountered variables before encountering their dimscales, so go
+ * through the vars in this file and make sure we've got a dimid for
+ * each. 
+ *
+ * @param grp Pointer to group info struct.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+*/
 int
 nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 {
@@ -3859,7 +4014,19 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
    return retval;
 }
 
-/* Get the length, in bytes, of one element of a type in memory. */
+/**
+ * @internal Get the length, in bytes, of one element of a type in
+ * memory. 
+ *
+ * @param h5 Pointer to HDF5 file info struct.
+ * @param xtype NetCDF type ID.
+ * @param is_long True only if NC_LONG is the memory type.
+ * @param len Pointer that gets lenght in bytes.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EBADTYPE Type not found
+ * @author Ed Hartnett
+*/
 int
 nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int is_long,
                     size_t *len)
@@ -3918,7 +4085,18 @@ nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int is_long,
    return NC_NOERR;
 }
 
-/* Get the class of a type */
+/**
+ * @internal Get the class of a type 
+ *
+ * @param h5 Pointer to the HDF5 file info struct.
+ * @param xtype NetCDF type ID.
+ * @param type_class Pointer that gets class of type, NC_INT,
+ * NC_FLOAT, NC_CHAR, or NC_STRING, NC_ENUM, NC_VLEN, NC_COMPOUND, or
+ * NC_OPAQUE.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+*/
 int
 nc4_get_typeclass(const NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int *type_class)
 {
@@ -3979,15 +4157,18 @@ exit:
    return retval;
 }
 
-int
-NC4_test_netcdf4(void)
-{
-   return NC_NOERR;
-}
+/**
+ * @internal
+ *
+ * @param log
+ * @param id HDF5 ID.
+ * @param type
+ *
+ * @return NC_NOERR No error.
+ */
 void
 reportobject(int log, hid_t id, unsigned int type)
 {
-#   define MAXNAME 1024
    char name[MAXNAME];
    ssize_t len;
    const char* typename = NULL;
@@ -4018,8 +4199,16 @@ reportobject(int log, hid_t id, unsigned int type)
    }
 }
 
-static unsigned int OTYPES[5] = {H5F_OBJ_FILE, H5F_OBJ_DATASET, H5F_OBJ_GROUP, H5F_OBJ_DATATYPE, H5F_OBJ_ATTR};
-
+/**
+ * @internal
+ *
+ * @param log
+ * @param fid HDF5 ID.
+ * @param ntypes Number of types.
+ * @param otypes Pointer that gets number of open types.
+ *
+ * @return ::NC_NOERR No error.
+ */
 static void
 reportopenobjectsT(int log, hid_t fid, int ntypes, unsigned int* otypes)
 {
@@ -4049,6 +4238,14 @@ reportopenobjectsT(int log, hid_t fid, int ntypes, unsigned int* otypes)
    if(idlist != NULL) free(idlist);
 }
 
+/**
+ * @internal Report open objects.
+ *
+ * @param log
+ * @param fid HDF5 file ID.
+ *
+ * @return NC_NOERR No error.
+ */
 void
 reportopenobjects(int log, hid_t fid)
 {

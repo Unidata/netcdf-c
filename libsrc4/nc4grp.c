@@ -24,6 +24,7 @@
  * @param new_ncid Pointer that gets ncid for new group.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
  * @return ::NC_ESTRICTNC3 Classic model in use for this file.
  * @return ::NC_ENOTNC4 Not a netCDF-4 file.
  * @author Ed Hartnett
@@ -81,10 +82,12 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
  * @param name New name for group.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
  * @return ::NC_ENOTNC4 Not a netCDF-4 file.
  * @return ::NC_EPERM File opened read-only.
  * @return ::NC_EBADGRPID Renaming root forbidden.
  * @return ::NC_EHDFERR HDF5 function returned error.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
 */
 int
@@ -160,8 +163,12 @@ NC4_rename_grp(int grpid, const char *name)
  *
  * @param ncid File and group ID.
  * @param name Pointer that gets name.
+ * @param grp_ncid Pointer that gets group ncid.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTNC4 Not a netCDF-4 file.
+ * @return ::NC_ENOGRP Group not found.
  * @author Ed Hartnett
 */
 int
@@ -204,8 +211,11 @@ NC4_inq_ncid(int ncid, const char *name, int *grp_ncid)
  * contains, and an array of their locids. 
  *
  * @param ncid File and group ID.
-
+ * @param numgrps Pointer that gets number of groups. Ignored if NULL.
+ * @param ncids Pointer that gets array of ncids. Ignored if NULL.
+ *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
 */
 int
@@ -258,6 +268,7 @@ NC4_inq_grps(int ncid, int *numgrps, int *ncids)
  * @param name Pointer that gets name.
 
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
 */
 int
@@ -294,6 +305,8 @@ NC4_inq_grpname(int ncid, char *name)
  * @param full_name Pointer that gets name.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
 */
 int
@@ -348,6 +361,7 @@ NC4_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
 
    return ret;
 }
+
 /**
  * @internal Find the parent ncid of a group. For the root group,
  * return NC_ENOGRP error.  *Now* I know what kind of tinfoil hat
@@ -355,7 +369,11 @@ NC4_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
  * parent_ncid - Russ Rew!! 
  *
  * @param ncid File and group ID.
+ * @param parent_ncid Pointer that gets the ncid of parent group.
+ *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOGRP Root has no parent.
  * @author Ed Hartnett
 */
 int
@@ -391,7 +409,14 @@ NC4_inq_grp_parent(int ncid, int *parent_ncid)
  * @internal Given a full name and ncid, find group ncid. 
  *
  * @param ncid File and group ID.
+ * @param full_name Full name of group.
+ * @param grp_ncid Pointer that gets ncid of group.
+ *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOGRP Group not found.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EINVAL Name is required.
  * @author Ed Hartnett
 */
 int
@@ -456,7 +481,11 @@ NC4_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
  * @internal Get a list of ids for all the variables in a group. 
  *
  * @param ncid File and group ID.
+ * @param nvars Pointer that gets number of vars in group.
+ * @param varids Pointer that gets array of var IDs.
+ *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
 */
 int
@@ -531,8 +560,13 @@ int int_cmp(const void *a, const void *b)
  * parameter. 
  *
  * @param ncid File and group ID.
-
+ * @param ndims Pointer that gets number of dimensions available in group.
+ * @param dimids Pointer that gets dim IDs.
+ * @param include_parents If non-zero, include dimensions from parent
+ * groups.
+ *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
 */
 int 

@@ -12,7 +12,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include <pnetcdf.h>  /* for ncmpi_strerror() */
 #endif
 
-/* Tell the user the version of netCDF. */
+/** @internal The version of netCDF. */
 static const char nc_libvers[] = PACKAGE_VERSION " of "__DATE__" "__TIME__" $";
 
 /**

@@ -22,7 +22,7 @@
  * @note that this code is inconsistent with nc_inq 
  *
  * @param ncid File and group ID.
- * @param unlimdimidsp Pointer that gets ID of first unlimited
+ * @param unlimdimidp Pointer that gets ID of first unlimited
  * dimension, or -1.
  *
  * @return ::NC_NOERR No error.

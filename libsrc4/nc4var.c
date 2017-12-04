@@ -14,17 +14,15 @@
 #include "nc4dispatch.h"
 #include <math.h>
 
-/* Min and max deflate levels tolerated by HDF5. */
-#define MIN_DEFLATE_LEVEL 0
-#define MAX_DEFLATE_LEVEL 9
-
-/* One meg is the minimum buffer size. */
-#define ONE_MEG 1048576
-
 /* Szip options. */
-#define NC_SZIP_EC_OPTION_MASK 4
-#define NC_SZIP_NN_OPTION_MASK 32
-#define NC_SZIP_MAX_PIXELS_PER_BLOCK 32
+#define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
+#define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
+#define NC_SZIP_MAX_PIXELS_PER_BLOCK 32 /**< @internal SZIP max pixels per block. */
+
+/** @internal Default size for unlimited dim chunksize */
+#define DEFAULT_1D_UNLIM_SIZE (4096)
+
+#define NC_ARRAY_GROWBY 4 /**< @internal Amount to grow array. */
 
 extern int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info,
                                       void *fill_value);
@@ -282,6 +280,9 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
 /**
  * @internal Determine some default chunksizes for a variable.
  *
+ * @param grp Pointer to the group info.
+ * @param var Pointer to the var info.
+ *
  * @returns ::NC_NOERR for success
  * @returns ::NC_EBADID Bad ncid.
  * @returns ::NC_ENOTVAR Invalid variable ID.
@@ -325,7 +326,6 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    /* Special case to avoid 1D vars with unlim dim taking huge amount
       of space (DEFAULT_CHUNK_SIZE bytes). Instead we limit to about
       4KB */
-#define DEFAULT_1D_UNLIM_SIZE (4096) /* TODO: make build-time parameter? */
    if (var->ndims == 1 && num_unlim == 1) {
       if (DEFAULT_CHUNK_SIZE / type_size <= 0)
          suggested_size = 1;
@@ -400,16 +400,17 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    return NC_NOERR;
 }
 
-#define NC_ARRAY_GROWBY 4
 /**
  * @internal Grow the variable array.
+ *
+ * @param grp Pointer to the group info.
+ * @param var Pointer to the var info.
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_ENOMEM Out of memory.
  * @author Dennis Heimbigner
  */
-int nc4_vararray_add(NC_GRP_INFO_T *grp,
-                     NC_VAR_INFO_T *var)
+int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    NC_VAR_INFO_T **vp = NULL;
 
@@ -1014,8 +1015,8 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    if (deflate && deflate_level)
    {
       if (*deflate)
-         if (*deflate_level < MIN_DEFLATE_LEVEL ||
-             *deflate_level > MAX_DEFLATE_LEVEL)
+         if (*deflate_level < NC_MIN_DEFLATE_LEVEL ||
+             *deflate_level > NC_MAX_DEFLATE_LEVEL)
             return NC_EINVAL;
 
       /* For scalars, just ignore attempt to deflate. */
