@@ -733,7 +733,7 @@ compileAttrValues(NCD4meta* builder, NCD4node* basetype, NClist* values, void** 
     if(!ISTYPE(truebase->sort) || (truebase->meta.id > NC_MAX_ATOMIC_TYPE))
         FAIL(NC_EBADTYPE,"Illegal attribute type: %s",basetype->name);
     size = NCD4_typesize(truebase->meta.id);
-    if((memory = (char*)d4alloc(count*size))==NULL)
+    if((memory = (unsigned char*)d4alloc(count*size))==NULL)
         return THROW(NC_ENOMEM);
     p = memory;
     for(i=0;i<count;i++) {
@@ -784,17 +784,17 @@ convertString(union ATOMICS* converter, NCD4node* type, const char* s)
     case NC_SHORT:
     case NC_INT:
     case NC_INT64:
-	if(sscanf(s,"%lld",&converter->i64) != 1) return THROW(NC_ERANGE);
+	if(sscanf(s,"%lld",&converter->i64[0]) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_UBYTE:
     case NC_USHORT:
     case NC_UINT:
     case NC_UINT64:
-	if(sscanf(s,"%llu",&converter->u64) != 1) return THROW(NC_ERANGE);
+	if(sscanf(s,"%llu",&converter->u64[0]) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_FLOAT:
     case NC_DOUBLE:
-	if(sscanf(s,"%lf",&converter->f64) != 1) return THROW(NC_ERANGE);
+	if(sscanf(s,"%lf",&converter->f64[0]) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_CHAR:
 	converter->i8[0] = s[0];

@@ -150,7 +150,6 @@ static int
 readfile(const NCURI* uri, const char* suffix, NCbytes* packet)
 {
     int stat = NC_NOERR;
-    char buf[1024];
     NCbytes* tmp = ncbytesnew();
     char* filename = NULL;
 
