@@ -19,7 +19,13 @@
  * @internal Create a group. It's ncid is returned in the new_ncid
  * pointer. 
  *
+ * @param parent_ncid Parent group.
+ * @param name Name of new group.
+ * @param new_ncid Pointer that gets ncid for new group.
+ *
  * @return ::NC_NOERR No error.
+ * @return ::NC_ESTRICTNC3 Classic model in use for this file.
+ * @return ::NC_ENOTNC4 Not a netCDF-4 file.
  * @author Ed Hartnett
 */
 int
@@ -71,7 +77,14 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 /**
  * @internal Rename a group. 
  *
+ * @param grpid Group ID.
+ * @param name New name for group.
+ *
  * @return ::NC_NOERR No error.
+ * @return ::NC_ENOTNC4 Not a netCDF-4 file.
+ * @return ::NC_EPERM File opened read-only.
+ * @return ::NC_EBADGRPID Renaming root forbidden.
+ * @return ::NC_EHDFERR HDF5 function returned error.
  * @author Ed Hartnett
 */
 int
@@ -145,6 +158,9 @@ NC4_rename_grp(int grpid, const char *name)
  * @internal Given an ncid and group name (NULL gets root group),
  * return the ncid of that group. 
  *
+ * @param ncid File and group ID.
+ * @param name Pointer that gets name.
+ *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
 */
@@ -187,6 +203,8 @@ NC4_inq_ncid(int ncid, const char *name, int *grp_ncid)
  * @internal Given a location id, return the number of groups it
  * contains, and an array of their locids. 
  *
+ * @param ncid File and group ID.
+
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
 */
@@ -236,6 +254,9 @@ NC4_inq_grps(int ncid, int *numgrps, int *ncids)
  * @internal Given locid, find name of group. (Root group is named
  * "/".) 
  *
+ * @param ncid File and group ID.
+ * @param name Pointer that gets name.
+
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
 */
@@ -267,6 +288,10 @@ NC4_inq_grpname(int ncid, char *name)
  * ncid. Either pointer argument may be NULL; pass a NULL for the
  * third parameter to get the length of the full path name. The length
  * will not include room for a null pointer. 
+ *
+ * @param ncid File and group ID.
+ * @param lenp Pointer that gets length of full name.
+ * @param full_name Pointer that gets name.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
@@ -329,6 +354,7 @@ NC4_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
  * wearing nut job would call this function with a NULL pointer for
  * parent_ncid - Russ Rew!! 
  *
+ * @param ncid File and group ID.
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
 */
@@ -364,6 +390,7 @@ NC4_inq_grp_parent(int ncid, int *parent_ncid)
 /**
  * @internal Given a full name and ncid, find group ncid. 
  *
+ * @param ncid File and group ID.
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
 */
@@ -428,6 +455,7 @@ NC4_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
 /**
  * @internal Get a list of ids for all the variables in a group. 
  *
+ * @param ncid File and group ID.
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
 */
@@ -484,7 +512,10 @@ NC4_inq_varids(int ncid, int *nvars, int *varids)
  * ids. Integer comparison: returns negative if b > a and positive if
  * a > b. 
  *
- * @return ::NC_NOERR No error.
+ * @param a A pointer to an item to compare to b.
+ * @param b A pointer to an item to compare to a.
+ *
+ * @return a - b
  * @author Ed Hartnett
 */
 int int_cmp(const void *a, const void *b)
@@ -499,6 +530,8 @@ int int_cmp(const void *a, const void *b)
  * in a group, with or without any of its parents, depending on last
  * parameter. 
  *
+ * @param ncid File and group ID.
+
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
 */
