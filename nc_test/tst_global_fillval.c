@@ -27,6 +27,7 @@ main(int argc, char **argv)
     {
 	int num_formats = 2;
 	int n = 0;
+        int i;
 
 	/* Determine how many formats are in use. */
 #ifdef USE_CDF5
@@ -47,7 +48,7 @@ main(int argc, char **argv)
 	formats[n++] = NC_CLASSIC_MODEL | NC_NETCDF4;
 #endif
 
-	for (int i = 0; i < num_formats; i++)
+	for (i = 0; i < num_formats; i++)
 	{
 	    int ncid, cmode, fillv = 9;
 	
