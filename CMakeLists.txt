@@ -1840,6 +1840,8 @@ SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
 STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
 STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
 STRING(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+STRING(REPLACE "-lhdf5::hdf5-static" "-lhdf5" NC_LIBS ${NC_LIBS})
+STRING(REPLACE "-lhdf5::hdf5_hl-static" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
 
 
 STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
