@@ -1797,10 +1797,6 @@ IF(MSVC)
   DESTINATION ${CMAKE_INSTALL_BINDIR}
   COMPONENT dependencies)
 
-  #INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
-  #  INSTALL(FILES ${ALL_TLL_LIBS}
-  #  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  #  COMPONENT dependencies)
 ENDIF()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -1842,6 +1838,10 @@ ENDFOREACH()
 SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
 
 STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
+STRING(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+
+
 STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 
 LIST(REMOVE_DUPLICATES NC_LIBS)
