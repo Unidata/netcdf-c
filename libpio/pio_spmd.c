@@ -22,11 +22,11 @@
  */
 int ceil2(int i)
 {
-    int p = 1;
-    while (p < i)
-        p *= 2;
+   int p = 1;
+   while (p < i)
+      p *= 2;
 
-    return(p);
+   return(p);
 }
 
 /**
@@ -41,9 +41,9 @@ int ceil2(int i)
  */
 int pair(int np, int p, int k)
 {
-    int q = (p + 1) ^ k ;
-    int pair = (q > np - 1) ? -1 : q;
-    return pair;
+   int q = (p + 1) ^ k ;
+   int pair = (q > np - 1) ? -1 : q;
+   return pair;
 }
 
 /**
@@ -77,299 +77,299 @@ int pio_swapm(void *sendbuf, int *sendcounts, int *sdispls, MPI_Datatype *sendty
               void *recvbuf, int *recvcounts, int *rdispls, MPI_Datatype *recvtypes,
               MPI_Comm comm, rearr_comm_fc_opt_t *fc)
 {
-    int ntasks;  /* Number of tasks in communicator comm. */
-    int my_rank; /* Rank of this task in comm. */
-    int tag;
-    int offset_t;
-    int steps;
-    int istep;
-    int rstep;
-    int p;
-    int maxreq;
-    int maxreqh;
-    int hs = 1; /* Used for handshaking. */
-    void *ptr;
-    MPI_Status status; /* Not actually used - replace with MPI_STATUSES_IGNORE. */
-    int mpierr;  /* Return code from MPI functions. */
+   int ntasks;  /* Number of tasks in communicator comm. */
+   int my_rank; /* Rank of this task in comm. */
+   int tag;
+   int offset_t;
+   int steps;
+   int istep;
+   int rstep;
+   int p;
+   int maxreq;
+   int maxreqh;
+   int hs = 1; /* Used for handshaking. */
+   void *ptr;
+   MPI_Status status; /* Not actually used - replace with MPI_STATUSES_IGNORE. */
+   int mpierr;  /* Return code from MPI functions. */
 
-    LOG((2, "pio_swapm fc->hs = %d fc->isend = %d fc->max_pend_req = %d", fc->hs,
-         fc->isend, fc->max_pend_req));
+   LOG((2, "pio_swapm fc->hs = %d fc->isend = %d fc->max_pend_req = %d", fc->hs,
+        fc->isend, fc->max_pend_req));
 
-    /* Get my rank and size of communicator. */
-    if ((mpierr = MPI_Comm_size(comm, &ntasks)))
-        return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-    if ((mpierr = MPI_Comm_rank(comm, &my_rank)))
-        return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+   /* Get my rank and size of communicator. */
+   if ((mpierr = MPI_Comm_size(comm, &ntasks)))
+      return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+   if ((mpierr = MPI_Comm_rank(comm, &my_rank)))
+      return check_mpi(NULL, mpierr, __FILE__, __LINE__);
 
-    LOG((2, "ntasks = %d my_rank = %d", ntasks, my_rank));
+   LOG((2, "ntasks = %d my_rank = %d", ntasks, my_rank));
 
-    /* Now we know the size of these arrays. */
-    int swapids[ntasks];
-    MPI_Request rcvids[ntasks];
-    MPI_Request sndids[ntasks];
-    MPI_Request hs_rcvids[ntasks];
+   /* Now we know the size of these arrays. */
+   int swapids[ntasks];
+   MPI_Request rcvids[ntasks];
+   MPI_Request sndids[ntasks];
+   MPI_Request hs_rcvids[ntasks];
 
-    /* Print some debugging info, if logging is enabled. */
+   /* Print some debugging info, if logging is enabled. */
 #if PIO_ENABLE_LOGGING
-    {
-        for (int p = 0; p < ntasks; p++)
-            LOG((3, "sendcounts[%d] = %d sdispls[%d] = %d sendtypes[%d] = %d recvcounts[%d] = %d "
-                 "rdispls[%d] = %d recvtypes[%d] = %d", p, sendcounts[p], p, sdispls[p], p,
-                 sendtypes[p], p, recvcounts[p], p, rdispls[p], p, recvtypes[p]));
-    }
+   {
+      for (int p = 0; p < ntasks; p++)
+         LOG((3, "sendcounts[%d] = %d sdispls[%d] = %d sendtypes[%d] = %d recvcounts[%d] = %d "
+              "rdispls[%d] = %d recvtypes[%d] = %d", p, sendcounts[p], p, sdispls[p], p,
+              sendtypes[p], p, recvcounts[p], p, rdispls[p], p, recvtypes[p]));
+   }
 #endif /* PIO_ENABLE_LOGGING */
 
-    /* If fc->max_pend_req == 0 no throttling is requested and the default
-     * mpi_alltoallw function is used. */
-    if (fc->max_pend_req == 0)
-    {
-        /* Call the MPI alltoall without flow control. */
-        LOG((3, "Calling MPI_Alltoallw without flow control."));
-        if ((mpierr = MPI_Alltoallw(sendbuf, sendcounts, sdispls, sendtypes, recvbuf,
-                                    recvcounts, rdispls, recvtypes, comm)))
-            return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-        return PIO_NOERR;
-    }
+   /* If fc->max_pend_req == 0 no throttling is requested and the default
+    * mpi_alltoallw function is used. */
+   if (fc->max_pend_req == 0)
+   {
+      /* Call the MPI alltoall without flow control. */
+      LOG((3, "Calling MPI_Alltoallw without flow control."));
+      if ((mpierr = MPI_Alltoallw(sendbuf, sendcounts, sdispls, sendtypes, recvbuf,
+                                  recvcounts, rdispls, recvtypes, comm)))
+         return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+      return PIO_NOERR;
+   }
 
-    /* an index for communications tags */
-    offset_t = ntasks;
+   /* an index for communications tags */
+   offset_t = ntasks;
 
-    /* Send to self. */
-    if (sendcounts[my_rank] > 0)
-    {
-        void *sptr, *rptr;
-        tag = my_rank + offset_t;
-        sptr = (char *)sendbuf + sdispls[my_rank];
-        rptr = (char *)recvbuf + rdispls[my_rank];
+   /* Send to self. */
+   if (sendcounts[my_rank] > 0)
+   {
+      void *sptr, *rptr;
+      tag = my_rank + offset_t;
+      sptr = (char *)sendbuf + sdispls[my_rank];
+      rptr = (char *)recvbuf + rdispls[my_rank];
 
-        /*
-          MPI_Type_get_extent(sendtypes[my_rank], &lb, &extent);
-          printf("%s %d %d %d\n",__FILE__,__LINE__,extent, lb);
-          MPI_Type_get_extent(recvtypes[my_rank], &lb, &extent);
-          printf("%s %d %d %d\n",__FILE__,__LINE__,extent, lb);
-        */
+      /*
+        MPI_Type_get_extent(sendtypes[my_rank], &lb, &extent);
+        printf("%s %d %d %d\n",__FILE__,__LINE__,extent, lb);
+        MPI_Type_get_extent(recvtypes[my_rank], &lb, &extent);
+        printf("%s %d %d %d\n",__FILE__,__LINE__,extent, lb);
+      */
 
 #ifdef ONEWAY
-        /* If ONEWAY is true we will post mpi_sendrecv comms instead
-         * of irecv/send. */
-        if ((mpierr = MPI_Sendrecv(sptr, sendcounts[my_rank],sendtypes[my_rank],
-                                   my_rank, tag, rptr, recvcounts[my_rank], recvtypes[my_rank],
-                                   my_rank, tag, comm, &status)))
-            return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+      /* If ONEWAY is true we will post mpi_sendrecv comms instead
+       * of irecv/send. */
+      if ((mpierr = MPI_Sendrecv(sptr, sendcounts[my_rank],sendtypes[my_rank],
+                                 my_rank, tag, rptr, recvcounts[my_rank], recvtypes[my_rank],
+                                 my_rank, tag, comm, &status)))
+         return check_mpi(NULL, mpierr, __FILE__, __LINE__);
 #else
-        if ((mpierr = MPI_Irecv(rptr, recvcounts[my_rank], recvtypes[my_rank],
-                                my_rank, tag, comm, rcvids)))
-            return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-        if ((mpierr = MPI_Send(sptr, sendcounts[my_rank], sendtypes[my_rank],
-                               my_rank, tag, comm)))
-            return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+      if ((mpierr = MPI_Irecv(rptr, recvcounts[my_rank], recvtypes[my_rank],
+                              my_rank, tag, comm, rcvids)))
+         return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+      if ((mpierr = MPI_Send(sptr, sendcounts[my_rank], sendtypes[my_rank],
+                             my_rank, tag, comm)))
+         return check_mpi(NULL, mpierr, __FILE__, __LINE__);
 
-        if ((mpierr = MPI_Wait(rcvids, &status)))
-            return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+      if ((mpierr = MPI_Wait(rcvids, &status)))
+         return check_mpi(NULL, mpierr, __FILE__, __LINE__);
 #endif
-    }
+   }
 
-    LOG((2, "Done sending to self... sending to other procs"));
+   LOG((2, "Done sending to self... sending to other procs"));
 
-    /* When send to self is complete there is nothing left to do if
-     * ntasks==1. */
-    if (ntasks == 1)
-        return PIO_NOERR;
+   /* When send to self is complete there is nothing left to do if
+    * ntasks==1. */
+   if (ntasks == 1)
+      return PIO_NOERR;
 
-    for (int i = 0; i < ntasks; i++)
-    {
-        rcvids[i] = MPI_REQUEST_NULL;
-        swapids[i] = 0;
-    }
+   for (int i = 0; i < ntasks; i++)
+   {
+      rcvids[i] = MPI_REQUEST_NULL;
+      swapids[i] = 0;
+   }
 
-    if (fc->isend)
-        for (int i = 0; i < ntasks; i++)
-            sndids[i] = MPI_REQUEST_NULL;
+   if (fc->isend)
+      for (int i = 0; i < ntasks; i++)
+         sndids[i] = MPI_REQUEST_NULL;
 
-    if (fc->hs)
-        for (int i = 0; i < ntasks; i++)
-            hs_rcvids[i] = MPI_REQUEST_NULL;
+   if (fc->hs)
+      for (int i = 0; i < ntasks; i++)
+         hs_rcvids[i] = MPI_REQUEST_NULL;
 
-    steps = 0;
-    for (istep = 0; istep < ceil2(ntasks) - 1; istep++)
-    {
-        p = pair(ntasks, istep, my_rank);
-        if (p >= 0 && (sendcounts[p] > 0 || recvcounts[p] > 0))
-            swapids[steps++] = p;
-    }
+   steps = 0;
+   for (istep = 0; istep < ceil2(ntasks) - 1; istep++)
+   {
+      p = pair(ntasks, istep, my_rank);
+      if (p >= 0 && (sendcounts[p] > 0 || recvcounts[p] > 0))
+         swapids[steps++] = p;
+   }
 
-    LOG((3, "steps=%d", steps));
+   LOG((3, "steps=%d", steps));
 
-    if (steps == 0)
-        return PIO_NOERR;
+   if (steps == 0)
+      return PIO_NOERR;
 
-    if (steps == 1)
-    {
-        maxreq = 1;
-        maxreqh = 1;
-    }
-    else
-    {
-        if (fc->max_pend_req == PIO_REARR_COMM_UNLIMITED_PEND_REQ)
-        {
-            maxreq = steps;
-            maxreqh = steps;
-        }
-        else if (fc->max_pend_req > 1 && fc->max_pend_req < steps)
-        {
-            maxreq = fc->max_pend_req;
-            maxreqh = maxreq / 2;
-        }
-        else if (fc->max_pend_req == 1)
-        {
-            /* Note that steps >= 2 here */
-            maxreq = 2;
-            maxreqh = 1;
-        }
-        else
-        {
-            maxreq = steps;
-            maxreqh = steps;
-        }
-    }
+   if (steps == 1)
+   {
+      maxreq = 1;
+      maxreqh = 1;
+   }
+   else
+   {
+      if (fc->max_pend_req == PIO_REARR_COMM_UNLIMITED_PEND_REQ)
+      {
+         maxreq = steps;
+         maxreqh = steps;
+      }
+      else if (fc->max_pend_req > 1 && fc->max_pend_req < steps)
+      {
+         maxreq = fc->max_pend_req;
+         maxreqh = maxreq / 2;
+      }
+      else if (fc->max_pend_req == 1)
+      {
+         /* Note that steps >= 2 here */
+         maxreq = 2;
+         maxreqh = 1;
+      }
+      else
+      {
+         maxreq = steps;
+         maxreqh = steps;
+      }
+   }
 
-    LOG((2, "fc->max_pend_req=%d, maxreq=%d, maxreqh=%d", fc->max_pend_req, maxreq, maxreqh));
+   LOG((2, "fc->max_pend_req=%d, maxreq=%d, maxreqh=%d", fc->max_pend_req, maxreq, maxreqh));
 
-    /* If handshaking is in use, do a nonblocking recieve to listen
-     * for it. */
-    if (fc->hs)
-    {
-        for (istep = 0; istep < maxreq; istep++)
-        {
-            p = swapids[istep];
-            if (sendcounts[p] > 0)
-            {
-                tag = my_rank + offset_t;
-                if ((mpierr = MPI_Irecv(&hs, 1, MPI_INT, p, tag, comm, hs_rcvids + istep)))
-                    return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-            }
-        }
-    }
-
-    /* Post up to maxreq irecv's. */
-    for (istep = 0; istep < maxreq; istep++)
-    {
-        p = swapids[istep];
-        if (recvcounts[p] > 0)
-        {
-            tag = p + offset_t;
-            ptr = (char *)recvbuf + rdispls[p];
-
-            if ((mpierr = MPI_Irecv(ptr, recvcounts[p], recvtypes[p], p, tag, comm,
-                                    rcvids + istep)))
-                return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-
-            if (fc->hs)
-                if ((mpierr = MPI_Send(&hs, 1, MPI_INT, p, tag, comm)))
-                    return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-        }
-    }
-
-    /* Tell the paired task that this tasks' has posted it's irecvs'. */
-    rstep = maxreq;
-    for (istep = 0; istep < steps; istep++)
-    {
-        p = swapids[istep];
-        if (sendcounts[p] > 0)
-        {
+   /* If handshaking is in use, do a nonblocking recieve to listen
+    * for it. */
+   if (fc->hs)
+   {
+      for (istep = 0; istep < maxreq; istep++)
+      {
+         p = swapids[istep];
+         if (sendcounts[p] > 0)
+         {
             tag = my_rank + offset_t;
-            /* If handshake is enabled don't post sends until the
-             * receiving task has posted recvs. */
-            if (fc->hs)
-            {
-                if ((mpierr = MPI_Wait(hs_rcvids + istep, &status)))
-                    return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-                hs_rcvids[istep] = MPI_REQUEST_NULL;
-            }
-            ptr = (char *)sendbuf + sdispls[p];
+            if ((mpierr = MPI_Irecv(&hs, 1, MPI_INT, p, tag, comm, hs_rcvids + istep)))
+               return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+         }
+      }
+   }
 
-            /* On some software stacks MPI_Irsend() is either not available, not
-             * a major issue anymore, or is buggy. With PIO1 we have found that
-             * although the code correctly posts receives before the irsends,
-             * on some systems (software stacks) the code hangs. However the
-             * code works fine with isends. The USE_MPI_ISEND_FOR_FC macro should be
-             * used to choose between mpi_irsends and mpi_isends - the default
-             * is still mpi_irsend
-             */
-            if (fc->hs && fc->isend)
-            {
-#ifdef USE_MPI_ISEND_FOR_FC
-                if ((mpierr = MPI_Isend(ptr, sendcounts[p], sendtypes[p], p, tag, comm,
-                                        sndids + istep)))
-                    return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-#else
-                if ((mpierr = MPI_Irsend(ptr, sendcounts[p], sendtypes[p], p, tag, comm,
-                                         sndids + istep)))
-                    return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-#endif
-            }
-            else if (fc->isend)
-            {
-                if ((mpierr = MPI_Isend(ptr, sendcounts[p], sendtypes[p], p, tag, comm,
-                                        sndids + istep)))
-                    return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-            }
-            else
-            {
-                if ((mpierr = MPI_Send(ptr, sendcounts[p], sendtypes[p], p, tag, comm)))
-                    return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-            }
-        }
+   /* Post up to maxreq irecv's. */
+   for (istep = 0; istep < maxreq; istep++)
+   {
+      p = swapids[istep];
+      if (recvcounts[p] > 0)
+      {
+         tag = p + offset_t;
+         ptr = (char *)recvbuf + rdispls[p];
 
-        /* We did comms in sets of size max_reqs, if istep > maxreqh-1
-         * then there is a remainder that must be handled. */
-        if (istep > maxreqh - 1)
-        {
-            p = istep - maxreqh;
-            if (rcvids[p] != MPI_REQUEST_NULL)
-            {
-                if ((mpierr = MPI_Wait(rcvids + p, &status)))
-                    return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-                rcvids[p] = MPI_REQUEST_NULL;
-            }
-            if (rstep < steps)
-            {
-                p = swapids[rstep];
-                if (fc->hs && sendcounts[p] > 0)
-                {
-                    tag = my_rank + offset_t;
-                    if ((mpierr = MPI_Irecv(&hs, 1, MPI_INT, p, tag, comm, hs_rcvids+rstep)))
-                        return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-                }
-                if (recvcounts[p] > 0)
-                {
-                    tag = p + offset_t;
-
-                    ptr = (char *)recvbuf + rdispls[p];
-                    if ((mpierr = MPI_Irecv(ptr, recvcounts[p], recvtypes[p], p, tag, comm, rcvids + rstep)))
-                        return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-                    if (fc->hs)
-                        if ((mpierr = MPI_Send(&hs, 1, MPI_INT, p, tag, comm)))
-                            return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-                }
-                rstep++;
-            }
-        }
-    }
-
-    /* If steps > 0 there could still be outstanding messages, wait for
-     * them here. */
-    if (steps > 0)
-    {
-        LOG((2, "Waiting for outstanding msgs"));
-        if ((mpierr = MPI_Waitall(steps, rcvids, MPI_STATUSES_IGNORE)))
+         if ((mpierr = MPI_Irecv(ptr, recvcounts[p], recvtypes[p], p, tag, comm,
+                                 rcvids + istep)))
             return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-        if (fc->isend)
-            if ((mpierr = MPI_Waitall(steps, sndids, MPI_STATUSES_IGNORE)))
-                return check_mpi(NULL, mpierr, __FILE__, __LINE__);
-    }
 
-    return PIO_NOERR;
+         if (fc->hs)
+            if ((mpierr = MPI_Send(&hs, 1, MPI_INT, p, tag, comm)))
+               return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+      }
+   }
+
+   /* Tell the paired task that this tasks' has posted it's irecvs'. */
+   rstep = maxreq;
+   for (istep = 0; istep < steps; istep++)
+   {
+      p = swapids[istep];
+      if (sendcounts[p] > 0)
+      {
+         tag = my_rank + offset_t;
+         /* If handshake is enabled don't post sends until the
+          * receiving task has posted recvs. */
+         if (fc->hs)
+         {
+            if ((mpierr = MPI_Wait(hs_rcvids + istep, &status)))
+               return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+            hs_rcvids[istep] = MPI_REQUEST_NULL;
+         }
+         ptr = (char *)sendbuf + sdispls[p];
+
+         /* On some software stacks MPI_Irsend() is either not available, not
+          * a major issue anymore, or is buggy. With PIO1 we have found that
+          * although the code correctly posts receives before the irsends,
+          * on some systems (software stacks) the code hangs. However the
+          * code works fine with isends. The USE_MPI_ISEND_FOR_FC macro should be
+          * used to choose between mpi_irsends and mpi_isends - the default
+          * is still mpi_irsend
+          */
+         if (fc->hs && fc->isend)
+         {
+#ifdef USE_MPI_ISEND_FOR_FC
+            if ((mpierr = MPI_Isend(ptr, sendcounts[p], sendtypes[p], p, tag, comm,
+                                    sndids + istep)))
+               return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+#else
+            if ((mpierr = MPI_Irsend(ptr, sendcounts[p], sendtypes[p], p, tag, comm,
+                                     sndids + istep)))
+               return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+#endif
+         }
+         else if (fc->isend)
+         {
+            if ((mpierr = MPI_Isend(ptr, sendcounts[p], sendtypes[p], p, tag, comm,
+                                    sndids + istep)))
+               return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+         }
+         else
+         {
+            if ((mpierr = MPI_Send(ptr, sendcounts[p], sendtypes[p], p, tag, comm)))
+               return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+         }
+      }
+
+      /* We did comms in sets of size max_reqs, if istep > maxreqh-1
+       * then there is a remainder that must be handled. */
+      if (istep > maxreqh - 1)
+      {
+         p = istep - maxreqh;
+         if (rcvids[p] != MPI_REQUEST_NULL)
+         {
+            if ((mpierr = MPI_Wait(rcvids + p, &status)))
+               return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+            rcvids[p] = MPI_REQUEST_NULL;
+         }
+         if (rstep < steps)
+         {
+            p = swapids[rstep];
+            if (fc->hs && sendcounts[p] > 0)
+            {
+               tag = my_rank + offset_t;
+               if ((mpierr = MPI_Irecv(&hs, 1, MPI_INT, p, tag, comm, hs_rcvids+rstep)))
+                  return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+            }
+            if (recvcounts[p] > 0)
+            {
+               tag = p + offset_t;
+
+               ptr = (char *)recvbuf + rdispls[p];
+               if ((mpierr = MPI_Irecv(ptr, recvcounts[p], recvtypes[p], p, tag, comm, rcvids + rstep)))
+                  return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+               if (fc->hs)
+                  if ((mpierr = MPI_Send(&hs, 1, MPI_INT, p, tag, comm)))
+                     return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+            }
+            rstep++;
+         }
+      }
+   }
+
+   /* If steps > 0 there could still be outstanding messages, wait for
+    * them here. */
+   if (steps > 0)
+   {
+      LOG((2, "Waiting for outstanding msgs"));
+      if ((mpierr = MPI_Waitall(steps, rcvids, MPI_STATUSES_IGNORE)))
+         return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+      if (fc->isend)
+         if ((mpierr = MPI_Waitall(steps, sndids, MPI_STATUSES_IGNORE)))
+            return check_mpi(NULL, mpierr, __FILE__, __LINE__);
+   }
+
+   return PIO_NOERR;
 }
 
 /**

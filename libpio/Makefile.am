@@ -3,6 +3,7 @@
 
 # This automake file is in charge of building the libpio directory,
 # which contains the code which calls the PIO parallel IO library.
+# Ed Hartnett
 
 include $(top_srcdir)/lib_flags.am
 

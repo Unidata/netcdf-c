@@ -658,8 +658,8 @@ int PIOc_InitDecomp(int iosysid, int pio_type, int ndims, const int *gdimlen, in
 }
 
 int nc_init_decomp(int iosysid, int pio_type, int ndims, const int *gdimlen, int maplen,
-		   const PIO_Offset *compmap, int *ioidp, int rearranger,
-		   const PIO_Offset *iostart, const PIO_Offset *iocount)
+                   const PIO_Offset *compmap, int *ioidp, int rearranger,
+                   const PIO_Offset *iostart, const PIO_Offset *iocount)
 {
    return PIOc_init_decomp(iosysid, pio_type, ndims, gdimlen, maplen, compmap, ioidp, rearranger,
                            iostart, iocount);
@@ -839,7 +839,7 @@ int PIOc_InitDecomp_bc(int iosysid, int pio_type, int ndims, const int *gdimlen,
  * @author Jim Edwards, Ed Hartnett
  */
 int nc_init_intracomm(MPI_Comm comp_comm, int num_iotasks, int stride, int base,
-		      int rearr, int *iosysidp)
+                      int rearr, int *iosysidp)
 {
    return PIOc_Init_Intracomm(comp_comm, num_iotasks, stride, base, rearr, iosysidp);
 }
@@ -946,7 +946,7 @@ int PIOc_Init_Intracomm(MPI_Comm comp_comm, int num_iotasks, int stride, int bas
    /* Create a group for the IO tasks. */
    if ((mpierr = MPI_Group_incl(compgroup, ios->num_iotasks, ios->ioranks,
                                 &iogroup)))
-      return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);    
+      return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
 
    /* Create an MPI communicator for the IO tasks. */
    if ((mpierr = MPI_Comm_create(ios->comp_comm, iogroup, &ios->io_comm)))
@@ -1338,9 +1338,9 @@ int PIOc_iotype_available(int iotype)
  * @author Ed Hartnett
  */
 int nc_init_async(MPI_Comm world, int num_io_procs, int *io_proc_list,
-                    int component_count, int *num_procs_per_comp, int **proc_list,
-                    MPI_Comm *user_io_comm, MPI_Comm *user_comp_comm, int rearranger,
-                    int *iosysidp)
+                  int component_count, int *num_procs_per_comp, int **proc_list,
+                  MPI_Comm *user_io_comm, MPI_Comm *user_comp_comm, int rearranger,
+                  int *iosysidp)
 {
    return PIOc_init_async(world, num_io_procs, io_proc_list, component_count,
                           num_procs_per_comp, proc_list, user_io_comm, user_comp_comm,
@@ -1454,7 +1454,7 @@ int PIOc_init_async(MPI_Comm world, int num_io_procs, int *io_proc_list,
    /* Determine which tasks to use for each computational component. */
    if ((ret = determine_procs(num_io_procs, component_count, num_procs_per_comp,
                               proc_list, my_proc_list)))
-      return pio_err(NULL, NULL, ret, __FILE__, __LINE__);        
+      return pio_err(NULL, NULL, ret, __FILE__, __LINE__);
 
    /* Get rank of this task in world. */
    if ((ret = MPI_Comm_rank(world, &my_rank)))
@@ -1686,7 +1686,7 @@ int PIOc_init_async(MPI_Comm world, int num_io_procs, int *io_proc_list,
          if ((ret = MPI_Comm_rank(my_iosys->union_comm, &my_iosys->union_rank)))
             return check_mpi(NULL, ret, __FILE__, __LINE__);
          LOG((3, "my_iosys->union_rank %d", my_iosys->union_rank));
-            
+
          /* Set my_comm to union_comm for async. */
          my_iosys->my_comm = my_iosys->union_comm;
          LOG((3, "intracomm created for union cmp = %d union_rank = %d union_comm = %d",
@@ -1721,7 +1721,7 @@ int PIOc_init_async(MPI_Comm world, int num_io_procs, int *io_proc_list,
       /* Remember this value. */
       if (in_cmp)
          current_iosysid = iosysidp[cmp];
-	   
+
    } /* next computational component */
 
    /* Now call the function from which the IO tasks will not return

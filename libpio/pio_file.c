@@ -58,7 +58,7 @@ int PIOc_openfile2(int iosysid, int *ncidp, int *iotype, const char *filename,
    int ret;               /* Return code from function calls. */
 
    LOG((1, "PIOc_openfile2 iosysid %d *iotype %d filename %s mode %d", iosysid,
-	iotype ? *iotype : 0, filename, mode));
+        iotype ? *iotype : 0, filename, mode));
 
    /* Get the IO system info from the id. */
    if (!(ios = pio_get_iosystem_from_id(iosysid)))
@@ -78,7 +78,7 @@ int PIOc_openfile2(int iosysid, int *ncidp, int *iotype, const char *filename,
       mode |= NC_NETCDF4 | NC_SHARE | NC_MPIIO;
    if (*iotype == PIO_IOTYPE_PNETCDF)
       mode |= NC_PNETCDF;
-   
+
    if (*iotype == PIO_IOTYPE_PNETCDF || *iotype == PIO_IOTYPE_NETCDF4P)
       ret = nc_open_par(filename, mode, ios->io_comm, MPI_INFO_NULL, ncidp);
    else
@@ -113,7 +113,7 @@ int PIOc_open(int iosysid, const char *path, int mode, int *ncidp)
       else
          iotype = PIO_IOTYPE_NETCDF4C;
    }
-   
+
    return PIOc_openfile2(iosysid, ncidp, &iotype, path, mode);
 }
 
@@ -219,7 +219,7 @@ int PIOc_closefile(int ncid)
     * use, but only on non-IO tasks if async is in use. */
    if (!ios->async || !ios->ioproc)
       if (file->writable)
-	 PIOc_sync(ncid);
+         PIOc_sync(ncid);
 
    /* If async is in use and this is a comp tasks, then the compmaster
     * sends a msg to the pio_msg_handler running on the IO master and
@@ -229,20 +229,20 @@ int PIOc_closefile(int ncid)
    {
       if (!ios->ioproc)
       {
-	 int msg = PIO_MSG_CLOSE_FILE;
+         int msg = PIO_MSG_CLOSE_FILE;
 
-	 if (ios->compmaster == MPI_ROOT)
-	    mpierr = MPI_Send(&msg, 1, MPI_INT, ios->ioroot, 1, ios->union_comm);
+         if (ios->compmaster == MPI_ROOT)
+            mpierr = MPI_Send(&msg, 1, MPI_INT, ios->ioroot, 1, ios->union_comm);
 
-	 if (!mpierr)
-	    mpierr = MPI_Bcast(&ncid, 1, MPI_INT, ios->compmaster, ios->intercomm);
+         if (!mpierr)
+            mpierr = MPI_Bcast(&ncid, 1, MPI_INT, ios->compmaster, ios->intercomm);
       }
 
       /* Handle MPI errors. */
       if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
-	 return check_mpi(file, mpierr2, __FILE__, __LINE__);
+         return check_mpi(file, mpierr2, __FILE__, __LINE__);
       if (mpierr)
-	 return check_mpi(file, mpierr, __FILE__, __LINE__);
+         return check_mpi(file, mpierr, __FILE__, __LINE__);
    }
 
    /* If this is an IO task, then call the netCDF function. */
@@ -252,26 +252,26 @@ int PIOc_closefile(int ncid)
       {
 #ifdef _NETCDF4
       case PIO_IOTYPE_NETCDF4P:
-	 ierr = NC4_close(file->fh);
-	 break;
+         ierr = NC4_close(file->fh);
+         break;
       case PIO_IOTYPE_NETCDF4C:
-	 if (ios->io_rank == 0)
+         if (ios->io_rank == 0)
             ierr = NC4_close(file->fh);
-	 break;
+         break;
 #endif
       case PIO_IOTYPE_NETCDF:
-	 if (ios->io_rank == 0)
-	    ierr = NC3_close(file->fh);
-	 break;
+         if (ios->io_rank == 0)
+            ierr = NC3_close(file->fh);
+         break;
 #ifdef _PNETCDF
       case PIO_IOTYPE_PNETCDF:
-	 if (file->writable)
-	    ierr = ncmpi_buffer_detach(file->fh);
-	 ierr = ncmpi_close(file->fh);
-	 break;
+         if (file->writable)
+            ierr = ncmpi_buffer_detach(file->fh);
+         ierr = ncmpi_close(file->fh);
+         break;
 #endif
       default:
-	 return pio_err(ios, file, PIO_EBADIOTYPE, __FILE__, __LINE__);
+         return pio_err(ios, file, PIO_EBADIOTYPE, __FILE__, __LINE__);
       }
    }
 
@@ -315,23 +315,23 @@ int PIOc_deletefile(int iosysid, const char *filename)
    {
       if (!ios->ioproc)
       {
-	 if (ios->comp_rank==0)
-	    mpierr = MPI_Send(&msg, 1,MPI_INT, ios->ioroot, 1, ios->union_comm);
+         if (ios->comp_rank==0)
+            mpierr = MPI_Send(&msg, 1,MPI_INT, ios->ioroot, 1, ios->union_comm);
 
-	 len = strlen(filename);
-	 if (!mpierr)
-	    mpierr = MPI_Bcast(&len, 1, MPI_INT, ios->compmaster, ios->intercomm);
-	 if (!mpierr)
-	    mpierr = MPI_Bcast((void *)filename, len + 1, MPI_CHAR, ios->compmaster,
-			       ios->intercomm);
-	 LOG((2, "Bcast len = %d filename = %s", len, filename));
+         len = strlen(filename);
+         if (!mpierr)
+            mpierr = MPI_Bcast(&len, 1, MPI_INT, ios->compmaster, ios->intercomm);
+         if (!mpierr)
+            mpierr = MPI_Bcast((void *)filename, len + 1, MPI_CHAR, ios->compmaster,
+                               ios->intercomm);
+         LOG((2, "Bcast len = %d filename = %s", len, filename));
       }
 
       /* Handle MPI errors. */
       if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
-	 return check_mpi2(ios, NULL, mpierr2, __FILE__, __LINE__);
+         return check_mpi2(ios, NULL, mpierr2, __FILE__, __LINE__);
       if (mpierr)
-	 return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
       LOG((3, "done hanlding errors mpierr = %d", mpierr));
    }
 
@@ -344,10 +344,10 @@ int PIOc_deletefile(int iosysid, const char *filename)
       mpierr = MPI_Barrier(ios->io_comm);
 
       if (!mpierr && ios->io_rank == 0)
-	 ierr = nc_delete(filename);
+         ierr = nc_delete(filename);
 
       if (!mpierr)
-	 mpierr = MPI_Barrier(ios->io_comm);
+         mpierr = MPI_Barrier(ios->io_comm);
    }
    LOG((2, "PIOc_deletefile ierr = %d", ierr));
 
@@ -391,28 +391,28 @@ int PIOc_sync(int ncid)
    {
       if (file->writable)
       {
-	 wmulti_buffer *wmb, *twmb;
+         wmulti_buffer *wmb, *twmb;
 
-	 LOG((3, "PIOc_sync checking buffers"));
-	 wmb = &file->buffer;
-	 while (wmb)
-	 {
-	    /* If there are any data arrays waiting in the
-	     * multibuffer, flush it. */
-	    if (wmb->num_arrays > 0)
-	       flush_buffer(ncid, wmb, true);
-	    twmb = wmb;
-	    wmb = wmb->next;
-	    if (twmb == &file->buffer)
-	    {
-	       twmb->ioid = -1;
-	       twmb->next = NULL;
-	    }
-	    else
-	    {
-	       brel(twmb);
-	    }
-	 }
+         LOG((3, "PIOc_sync checking buffers"));
+         wmb = &file->buffer;
+         while (wmb)
+         {
+            /* If there are any data arrays waiting in the
+             * multibuffer, flush it. */
+            if (wmb->num_arrays > 0)
+               flush_buffer(ncid, wmb, true);
+            twmb = wmb;
+            wmb = wmb->next;
+            if (twmb == &file->buffer)
+            {
+               twmb->ioid = -1;
+               twmb->next = NULL;
+            }
+            else
+            {
+               brel(twmb);
+            }
+         }
       }
    }
 
@@ -421,20 +421,20 @@ int PIOc_sync(int ncid)
    {
       if (!ios->ioproc)
       {
-	 int msg = PIO_MSG_SYNC;
+         int msg = PIO_MSG_SYNC;
 
-	 if (ios->compmaster == MPI_ROOT)
-	    mpierr = MPI_Send(&msg, 1, MPI_INT, ios->ioroot, 1, ios->union_comm);
+         if (ios->compmaster == MPI_ROOT)
+            mpierr = MPI_Send(&msg, 1, MPI_INT, ios->ioroot, 1, ios->union_comm);
 
-	 if (!mpierr)
-	    mpierr = MPI_Bcast(&ncid, 1, MPI_INT, ios->compmaster, ios->intercomm);
+         if (!mpierr)
+            mpierr = MPI_Bcast(&ncid, 1, MPI_INT, ios->compmaster, ios->intercomm);
       }
 
       /* Handle MPI errors. */
       if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
-	 check_mpi(file, mpierr2, __FILE__, __LINE__);
+         check_mpi(file, mpierr2, __FILE__, __LINE__);
       if (mpierr)
-	 return check_mpi(file, mpierr, __FILE__, __LINE__);
+         return check_mpi(file, mpierr, __FILE__, __LINE__);
    }
 
    /* Call the sync function on IO tasks. */
@@ -442,30 +442,30 @@ int PIOc_sync(int ncid)
    {
       if (ios->ioproc)
       {
-	 switch(file->iotype)
-	 {
+         switch(file->iotype)
+         {
 #ifdef _NETCDF4
-	 case PIO_IOTYPE_NETCDF4P:
-	    ierr = NC4_sync(file->fh);
-	    break;
-	 case PIO_IOTYPE_NETCDF4C:
-	    if (ios->io_rank == 0)
-	       ierr = NC4_sync(file->fh);
-	    break;
+         case PIO_IOTYPE_NETCDF4P:
+            ierr = NC4_sync(file->fh);
+            break;
+         case PIO_IOTYPE_NETCDF4C:
+            if (ios->io_rank == 0)
+               ierr = NC4_sync(file->fh);
+            break;
 #endif
-	 case PIO_IOTYPE_NETCDF:
-	    if (ios->io_rank == 0)
-	       ierr = NC3_sync(file->fh);
-	    break;
+         case PIO_IOTYPE_NETCDF:
+            if (ios->io_rank == 0)
+               ierr = NC3_sync(file->fh);
+            break;
 #ifdef _PNETCDF
-	 case PIO_IOTYPE_PNETCDF:
-	    flush_output_buffer(file, true, 0);
-	    ierr = ncmpi_sync(file->fh);
-	    break;
+         case PIO_IOTYPE_PNETCDF:
+            flush_output_buffer(file, true, 0);
+            ierr = ncmpi_sync(file->fh);
+            break;
 #endif
-	 default:
-	    return pio_err(ios, file, PIO_EBADIOTYPE, __FILE__, __LINE__);
-	 }
+         default:
+            return pio_err(ios, file, PIO_EBADIOTYPE, __FILE__, __LINE__);
+         }
       }
       LOG((2, "PIOc_sync ierr = %d", ierr));
    }
