@@ -1942,6 +1942,7 @@ NC_open(const char *path0, int cmode,
    int version = 0;
    int flags = 0;
    char* path = NULL;
+   int use_pio = 0; /* Assume no PIO. */
 
    TRACE(nc_open);
    if(!NC_initialized) {
@@ -1952,7 +1953,7 @@ NC_open(const char *path0, int cmode,
    /* Attempt to do file path conversion: note that this will do
       nothing if path is a 'file:...' url, so it will need to be
       repeated in protocol code: libdap2 and libdap4
-    */
+   */
 
 #ifndef USE_DISKLESS
    /* Clean up cmode */
@@ -1962,7 +1963,7 @@ NC_open(const char *path0, int cmode,
    inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
 #ifdef USE_PIO
-   int use_pio = ((cmode & NC_PIO) == NC_PIO);
+   use_pio = ((cmode & NC_PIO) == NC_PIO);
 #endif /* USE_PIO */
 
 #ifdef WINPATH
@@ -1975,45 +1976,46 @@ NC_open(const char *path0, int cmode,
    /* If this path is already open, then bump the refcount and return it */
    ncp = find_in_NCList_by_name(path);
    if(ncp != NULL) {
-	nullfree(path);
-	ncp->refcount++;
-	if(ncidp) *ncidp = ncp->ext_ncid;
-	return NC_NOERR;
+      nullfree(path);
+      ncp->refcount++;
+      if(ncidp) *ncidp = ncp->ext_ncid;
+      return NC_NOERR;
    }
 #endif
 
    if(!inmemory) {
-	char* newpath = NULL;
-        model = NC_urlmodel(path,cmode,&newpath);
-        isurl = (model != 0);
-	if(isurl) {
-	    nullfree(path);
-	    path = newpath;
-	} else
-	    nullfree(newpath);
-    }
-    if(model == 0) {
-	version = 0;
-	/* Try to find dataset type */
-	if(useparallel) flags |= NC_MPIIO;
-	if(inmemory) flags |= NC_INMEMORY;
-	if(diskless) flags |= NC_DISKLESS;
-	stat = NC_check_file_type(path,flags,parameters,&model,&version);
-        if(stat == NC_NOERR) {
-	    if(model == 0) {
-		nullfree(path);       		
-		return NC_ENOTNC;
-	    }
-	} else {
-	    /* presumably not a netcdf file */
-	    nullfree(path);       			    
-	    return stat;
-	}
-    }
+      char* newpath = NULL;
+      model = NC_urlmodel(path,cmode,&newpath);
+      isurl = (model != 0);
+      if(isurl) {
+         nullfree(path);
+         path = newpath;
+      } else
+         nullfree(newpath);
+   }
 
    if(model == 0) {
-	fprintf(stderr,"Model == 0\n");
-	return NC_ENOTNC;
+      version = 0;
+      /* Try to find dataset type */
+      if(useparallel) flags |= NC_MPIIO;
+      if(inmemory) flags |= NC_INMEMORY;
+      if(diskless) flags |= NC_DISKLESS;
+      stat = NC_check_file_type(path,flags,parameters,&model,&version);
+      if(stat == NC_NOERR) {
+         if(model == 0) {
+            nullfree(path);       		
+            return NC_ENOTNC;
+         }
+      } else {
+         /* presumably not a netcdf file */
+         nullfree(path);       			    
+         return stat;
+      }
+   }
+
+   if(model == 0) {
+      fprintf(stderr,"Model == 0\n");
+      return NC_ENOTNC;
    }
 
    /* Force flag consistentcy */
@@ -2040,30 +2042,31 @@ NC_open(const char *path0, int cmode,
        */
       if(version == 2) cmode |= NC_64BIT_OFFSET;
       else if(version == 5) {
-        cmode |= NC_64BIT_DATA;
-        cmode &= ~(NC_64BIT_OFFSET); /*NC_64BIT_DATA=>NC_64BIT_OFFSET*/
+         cmode |= NC_64BIT_DATA;
+         cmode &= ~(NC_64BIT_OFFSET); /*NC_64BIT_DATA=>NC_64BIT_OFFSET*/
       }
    } else if(model == NC_FORMATX_PNETCDF) {
-     cmode &= ~(NC_NETCDF4|NC_64BIT_OFFSET);
-     cmode |= NC_64BIT_DATA;
+      cmode &= ~(NC_NETCDF4|NC_64BIT_OFFSET);
+      cmode |= NC_64BIT_DATA;
    }
-
+   
    /* Invalid to use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
     * mind! */
    if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX)) {
-       nullfree(path);       
-       return NC_EINVAL;
+      nullfree(path);       
+      return NC_EINVAL;
    }
 
    /* override any other table choice */
    if(dispatcher != NULL) goto havetable;
 
-   /* Figure out what dispatcher to use */
 #if defined(USE_PIO)
    if (use_pio) {
-      dispatcher = PIO_dispatch_table;
       iosystem_desc_t *ios;         
       int iotype = PIO_IOTYPE_NETCDF;
+
+      /* Set the dispatcher to PIO. */
+      dispatcher = PIO_dispatch_table;
 
       /* Determine the PIO IO type from the cmode flag. */
       if (cmode & NC_NETCDF4)
@@ -2114,40 +2117,47 @@ NC_open(const char *path0, int cmode,
       }
       
    }
-   else
-#endif
+#endif /* USE_PIO */
+   
+   /* Figure out what dispatcher to use, if needed. (PIO may already
+    * have set it.) */
+   if (!dispatcher) {
+      switch (model) {
 #if defined(ENABLE_DAP)
-   if(model == (NC_FORMATX_DAP2))
-      dispatcher = NCD2_dispatch_table;
-   else
+      case NC_FORMATX_DAP2:
+         dispatcher = NCD2_dispatch_table;
+         break;
 #endif
 #if defined(ENABLE_DAP4)
-   if(model == (NC_FORMATX_DAP4))
-	dispatcher = NCD4_dispatch_table;
-   else
+      case NC_FORMATX_DAP4:
+         dispatcher = NCD4_dispatch_table;
+         break;
 #endif
 #if  defined(USE_PNETCDF)
-   if(model == (NC_FORMATX_PNETCDF))
-	dispatcher = NCP_dispatch_table;
-   else
+      case NC_FORMATX_PNETCDF:
+         dispatcher = NCP_dispatch_table;
+         break;
 #endif
 #if defined(USE_NETCDF4)
-   if(model == (NC_FORMATX_NC4) || model == (NC_FORMATX_NC_HDF4))
-	dispatcher = NC4_dispatch_table;
-   else
+      case NC_FORMATX_NC4:
+      case NC_FORMATX_NC_HDF4:
+         dispatcher = NC4_dispatch_table;
+         break;
 #endif
-   if(model == (NC_FORMATX_NC3))
-	dispatcher = NC3_dispatch_table;
-   else {
-       nullfree(path);              
-       return  NC_ENOTNC;
+      case NC_FORMATX_NC3:
+         dispatcher = NC3_dispatch_table;
+         break;
+      default:
+         nullfree(path);              
+         return NC_ENOTNC;
+      }
    }
-
+   
 havetable:
 
    if(dispatcher == NULL) {
-       nullfree(path);              
-       return NC_ENOTNC;
+      nullfree(path);              
+      return NC_ENOTNC;
    }
 
    /* Create the NC* instance and insert its dispatcher */
@@ -2172,7 +2182,7 @@ havetable:
 
    /* Assume open will fill in remaining ncp fields */
    stat = dispatcher->open(ncp->path, cmode, basepe, chunksizehintp,
-			   useparallel, parameters, dispatcher, ncp);
+                           useparallel, parameters, dispatcher, ncp);
    if(stat == NC_NOERR) {
 
 #ifdef USE_PIO
@@ -2182,11 +2192,11 @@ havetable:
       /*    add_to_NCList(ncp); */
       /* } */
 #endif
-     if(ncidp) *ncidp = ncp->ext_ncid;
+      if(ncidp) *ncidp = ncp->ext_ncid;
      
    } else {
-	del_from_NCList(ncp);
-	free_NC(ncp);
+      del_from_NCList(ncp);
+      free_NC(ncp);
    }
    return stat;
 }

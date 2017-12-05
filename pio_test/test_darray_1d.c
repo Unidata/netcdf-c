@@ -152,8 +152,7 @@ int test_darray_fill(int iosysid, int ioid, int pio_type, int num_flavors, int *
             flavor[fmt] != PIO_IOTYPE_NETCDF4P)
             continue;
 
-        /* for (int with_fillvalue = 0; with_fillvalue < NUM_FILLVALUE_PRESENT_TESTS; with_fillvalue++) */
-        for (int with_fillvalue = 0; with_fillvalue < 1; with_fillvalue++)
+        for (int with_fillvalue = 0; with_fillvalue < NUM_FILLVALUE_PRESENT_TESTS; with_fillvalue++)
         {
             /* Create the filename. */
             sprintf(filename, "data_%s_iotype_%d_pio_type_%d_with_fillvalue_%d.nc", TEST_NAME, flavor[fmt],
@@ -831,8 +830,7 @@ int main(int argc, char **argv)
         if ((ret = get_iotypes(&num_flavors, flavor)))
             ERR(ret);
 
-        /* for (int r = 0; r < NUM_REARRANGERS_TO_TEST; r++) */
-        for (int r = 0; r < 1; r++)
+        for (int r = 0; r < NUM_REARRANGERS_TO_TEST; r++)
         {
             /* Initialize the PIO IO system. This specifies how many and
              * which processors are involved in I/O. */

@@ -1484,7 +1484,8 @@ int main(int argc, char **argv)
         for (int r = 0; r < NUM_REARRANGERS; r++)
         {
             /* Test code with 1, 2, 3, and 4 io tasks. */
-            for (int numio = 1; numio <= TARGET_NTASKS; numio++)
+            /* for (int numio = 1; numio <= TARGET_NTASKS; numio++) */
+            for (int numio = 1; numio <= 1; numio++)
             {
                 int iosysid;
                 int rearranger = r ? PIO_REARR_SUBSET : PIO_REARR_BOX;
