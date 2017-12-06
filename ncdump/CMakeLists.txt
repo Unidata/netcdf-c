@@ -196,14 +196,13 @@ ENDIF()
       add_sh_test(ncdump run_ncgen_nc4_tests)
     ENDIF()
 
-    IF(NOT MSVC)
-      add_sh_test(ncdump tst_nccopy4)
-    ENDIF()
-
     add_sh_test(ncdump tst_grp_spec)
     add_sh_test(ncdump tst_mud)
     add_sh_test(ncdump_shell tst_h_scalar)
-
+    add_sh_test(ncdump tst_nccopy4)
+    SET(TST_NCCOPY4_DEPS ncdump_run_ncgen_tests ncdump_tst_output ncdump_tst_ncgen4 ncdump_tst_fillbug ncdump_tst_netcdf4_4 ncdump_shell_tst_h_scalar)
+    SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES DEPENDS $(TST_NCCOPY4_DEPS))
+    SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
   ENDIF()
 
   add_sh_test(ncdump tst_ncgen4_classic)

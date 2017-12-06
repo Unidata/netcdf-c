@@ -13,3 +13,5 @@ ADD_TEST(nctest ${EXECUTABLE_OUTPUT_PATH}/nctest)
 
 add_bin_test_no_prefix(tst_rename)
 add_sh_test(nctest compare_test_files)
+
+SET_TESTS_PROPERTIES(nctest_compare_test_files PROPERTIES DEPENDS nctest)
