@@ -233,7 +233,7 @@ int run_darray_async_test(int iosysid, int my_rank, MPI_Comm test_comm, MPI_Comm
     char decomp_filename[PIO_MAX_NAME + 1];
     int ret;
 
-    sprintf(decomp_filename, "decomp_rdat_%s_.nc", TEST_NAME);
+    sprintf(decomp_filename, "decomp_rdat_%s.nc", TEST_NAME);
 
     /* Create the PIO decomposition for this test. */
     if ((ret = PIOc_init_decomp(iosysid, piotype, NDIM2, &dim_len[1], elements_per_pe,
@@ -493,7 +493,7 @@ int main(int argc, char **argv)
 
     /* Initialize test. */
     if ((ret = pio_test_init2(argc, argv, &my_rank, &ntasks, MIN_NTASKS,
-                              TARGET_NTASKS, -1, &test_comm)))
+                              TARGET_NTASKS, 3, &test_comm)))
         ERR(ERR_INIT);
     if ((ret = PIOc_set_iosystem_error_handling(PIO_DEFAULT, PIO_RETURN_ERROR, NULL)))
         return ret;

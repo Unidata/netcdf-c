@@ -1910,6 +1910,76 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    return stat;
 }
 
+#ifdef USE_PIO
+/**
+ * @internal This handles special needs for PIO file opens. It
+ * determines the IO type, and, for async cases, sends message and
+ * paramters to IO master to start NC_open() call there.
+ *
+ * @param cmode The open mode flag.
+ * @param path0 The path of the file to be opened.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EIO Error in MPI calls.
+ * @author Ed Hartnett
+ */
+int
+handle_pio_open(int cmode, const char *path0)
+{
+   iosystem_desc_t *ios;         
+   int iotype = PIO_IOTYPE_NETCDF;
+
+   /* Determine the PIO IO type from the cmode flag. */
+   if (cmode & NC_NETCDF4)
+   {
+      if (cmode & NC_SHARE)
+         iotype = PIO_IOTYPE_NETCDF4P;
+      else
+         iotype = PIO_IOTYPE_NETCDF4C;
+   }
+   else if (cmode & NC_PNETCDF)
+      iotype = PIO_IOTYPE_PNETCDF;
+
+   /* Get the IO system info from the iosysid. */
+   if (!(ios = pio_get_iosystem_from_id(current_iosysid)))
+      return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
+
+   /* If async is in use, and this is not an IO task, bcast the parameters. */
+   if (ios->async)
+   {
+      int msg = PIO_MSG_NC_OPEN;
+      size_t len = strlen(path0);
+      int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */
+
+      if (!ios->ioproc)
+      {
+         /* Send the message to the message handler. */
+         if (ios->compmaster == MPI_ROOT)
+            mpierr = MPI_Send(&msg, 1, MPI_INT, ios->ioroot, 1, ios->union_comm);
+
+         /* Send the parameters of the function call. */
+         if (!mpierr)
+            mpierr = MPI_Bcast(&len, 1, MPI_INT, ios->compmaster, ios->intercomm);
+         if (!mpierr)
+            mpierr = MPI_Bcast((void *)path0, len + 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+         if (!mpierr)
+            mpierr = MPI_Bcast(&iotype, 1, MPI_INT, ios->compmaster, ios->intercomm);
+         if (!mpierr)
+            mpierr = MPI_Bcast(&cmode, 1, MPI_INT, ios->compmaster, ios->intercomm);
+         if (!mpierr)
+            mpierr = MPI_Bcast(&current_iosysid, 1, MPI_INT, ios->compmaster, ios->intercomm);
+      }
+
+      /* Handle MPI errors. */
+      if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
+         return check_mpi2(ios, NULL, mpierr2, __FILE__, __LINE__);
+      if (mpierr)
+         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+   }
+   return NC_NOERR;
+}
+#endif /* USE_PIO */
+
 /**
 \internal
 \ingroup dispatch
@@ -1943,6 +2013,7 @@ NC_open(const char *path0, int cmode,
    int flags = 0;
    char* path = NULL;
    int use_pio = 0; /* Assume no PIO. */
+   int ret;
 
    TRACE(nc_open);
    if(!NC_initialized) {
@@ -2061,61 +2132,17 @@ NC_open(const char *path0, int cmode,
    if(dispatcher != NULL) goto havetable;
 
 #if defined(USE_PIO)
+   /* Handle special needs of PIO opens. */
    if (use_pio) {
-      iosystem_desc_t *ios;         
-      int iotype = PIO_IOTYPE_NETCDF;
-
       /* Set the dispatcher to PIO. */
       dispatcher = PIO_dispatch_table;
 
-      /* Determine the PIO IO type from the cmode flag. */
-      if (cmode & NC_NETCDF4)
-      {
-         if (cmode & NC_SHARE)
-            iotype = PIO_IOTYPE_NETCDF4P;
-         else
-            iotype = PIO_IOTYPE_NETCDF4C;
+      /* Determine IO type and (for async) send message and params to
+       * IO master to call NC_open(). */
+      if ((ret = handle_pio_open(cmode, path0))) {
+         nullfree(path);
+         return ret;
       }
-      else if (cmode & NC_PNETCDF)
-         iotype = PIO_IOTYPE_PNETCDF;
-
-      /* Get the IO system info from the iosysid. */
-      if (!(ios = pio_get_iosystem_from_id(current_iosysid)))
-         return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
-
-      /* If async is in use, and this is not an IO task, bcast the parameters. */
-      if (ios->async)
-      {
-         int msg = PIO_MSG_NC_OPEN;
-         size_t len = strlen(path0);
-         int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */
-
-         if (!ios->ioproc)
-         {
-            /* Send the message to the message handler. */
-            if (ios->compmaster == MPI_ROOT)
-               mpierr = MPI_Send(&msg, 1, MPI_INT, ios->ioroot, 1, ios->union_comm);
-
-            /* Send the parameters of the function call. */
-            if (!mpierr)
-               mpierr = MPI_Bcast(&len, 1, MPI_INT, ios->compmaster, ios->intercomm);
-            if (!mpierr)
-               mpierr = MPI_Bcast((void *)path0, len + 1, MPI_CHAR, ios->compmaster, ios->intercomm);
-            if (!mpierr)
-               mpierr = MPI_Bcast(&iotype, 1, MPI_INT, ios->compmaster, ios->intercomm);
-            if (!mpierr)
-               mpierr = MPI_Bcast(&cmode, 1, MPI_INT, ios->compmaster, ios->intercomm);
-            if (!mpierr)
-               mpierr = MPI_Bcast(&current_iosysid, 1, MPI_INT, ios->compmaster, ios->intercomm);
-         }
-
-         /* Handle MPI errors. */
-         if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
-            return check_mpi2(ios, NULL, mpierr2, __FILE__, __LINE__);
-         if (mpierr)
-            return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
-      }
-      
    }
 #endif /* USE_PIO */
    
