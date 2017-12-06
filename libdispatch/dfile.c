@@ -1974,24 +1974,24 @@ handle_pio_open(iosystem_desc_t *ios, int cmode, const char *path0)
    return NC_NOERR;
 }
 /**
- * @internal Broadcast the model value to all tasks. When function is
- * complete all tasks will have the same model value, the one that
+ * @internal Broadcast an integer to all tasks. When function is
+ * complete all tasks will have the integer value, the one that
  * started on the IO root.
  *
  * @param ios Pointer to IO system info struct.
- * @param model Pointer to the model value to be broadcast.
+ * @param model Pointer to the int value to be broadcast.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EIO MPI function error.
  * @author Ed Hartnett
  */
 static int
-broadcast_model(iosystem_desc_t *ios, int *model)
+broadcast_some_int(iosystem_desc_t *ios, int *some_int)
 {
    int mpierr; /* Return code from MPI call. */
 
-   /* Broadcast the model. */
-   if ((mpierr = MPI_Bcast(model, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+   /* Broadcast the some_int. */
+   if ((mpierr = MPI_Bcast(some_int, 1, MPI_INT, ios->ioroot, ios->my_comm)))
       return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
    
    return NC_NOERR;
@@ -2130,7 +2130,7 @@ NC_open(const char *path0, int cmode,
 #ifdef USE_PIO
    /* If PIO is in use, send the model from the IO tasks to all tasks. */
    if (use_pio) {
-      if ((stat = broadcast_model(ios, &model)))
+      if ((stat = broadcast_some_int(ios, &model)))
          return pio_err(ios, NULL, stat, __FILE__, __LINE__);         
    }
 #endif /* USE_PIO */
@@ -2217,8 +2217,8 @@ havetable:
    if(stat) return stat;
 
 #ifdef USE_PIO
-   /* PIO adds to the list after the create, because PIO needs to
-    * determine its own ext_ncid. */
+   /* PIO adds to the list in PIOc_openfile_retry3(), because PIO
+    * needs to determine its own ext_ncid. */
    if (!use_pio)
       add_to_NCList(ncp);
 #else
@@ -2234,6 +2234,16 @@ havetable:
    /* Assume open will fill in remaining ncp fields */
    stat = dispatcher->open(ncp->path, cmode, basepe, chunksizehintp,
                            useparallel, parameters, dispatcher, ncp);
+
+#ifdef USE_PIO
+   /* If PIO is in use, send the return code from the IO master to all tasks. */
+   if (use_pio) {
+      int ret;
+      if ((ret = broadcast_some_int(ios, &stat)))
+         return pio_err(ios, NULL, ret, __FILE__, __LINE__);         
+   }
+#endif /* USE_PIO */
+
    if(stat == NC_NOERR) {
 
 #ifdef USE_PIO
@@ -2248,6 +2258,9 @@ havetable:
    } else {
       del_from_NCList(ncp);
       free_NC(ncp);
+#ifdef USE_PIO
+      return pio_err(ios, NULL, stat, __FILE__, __LINE__);
+#endif /* USE_PIO */
    }
    return stat;
 }

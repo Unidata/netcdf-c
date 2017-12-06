@@ -2396,14 +2396,20 @@ int PIOc_openfile_retry3(int iosysid, int *ncidp, int *iotype, const char *filen
    {
       /* Check the vars for valid use of unlim dims in netCDF-4 files. */
       if (file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P)
-         if ((ierr = check_unlim_use(file->fh)))
-            return pio_err(ios, file, ierr, __FILE__, __LINE__);
+         ierr = check_unlim_use(file->fh);
 
       /* Learn important metadata things about the file. */
-      if ((ierr = inq_file_metadata(file, file->fh, file->iotype, &nvars, &rec_var, &pio_type,
-                                    &pio_type_size, &mpi_type, &mpi_type_size, &ndim)))
-         return pio_err(ios, file, ierr, __FILE__, __LINE__);
+      if (!ierr)
+         ierr = inq_file_metadata(file, file->fh, file->iotype, &nvars, &rec_var, &pio_type,
+                                  &pio_type_size, &mpi_type, &mpi_type_size, &ndim);
    }
+
+   /* All tasks need to know the result of the metadata check. */
+   if ((mpierr = MPI_Bcast(&ierr, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+      return check_mpi(file, mpierr, __FILE__, __LINE__);
+   LOG((3, "after inq_file_metadata ierr %d", nvars));
+   if (ierr)
+      return check_netcdf(file, ierr, __FILE__, __LINE__);
 
    /* All tasks need to know how many vars. */
    if ((mpierr = MPI_Bcast(&nvars, 1, MPI_INT, ios->ioroot, ios->my_comm)))
