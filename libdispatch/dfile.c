@@ -1924,9 +1924,8 @@ NC_create(const char *path0, int cmode, size_t initialsz,
  * @author Ed Hartnett
  */
 int
-handle_pio_open(int cmode, const char *path0)
+handle_pio_open(iosystem_desc_t *ios, int cmode, const char *path0)
 {
-   iosystem_desc_t *ios;         
    int iotype = PIO_IOTYPE_NETCDF;
 
    /* Determine the PIO IO type from the cmode flag. */
@@ -1939,10 +1938,6 @@ handle_pio_open(int cmode, const char *path0)
    }
    else if (cmode & NC_PNETCDF)
       iotype = PIO_IOTYPE_PNETCDF;
-
-   /* Get the IO system info from the iosysid. */
-   if (!(ios = pio_get_iosystem_from_id(current_iosysid)))
-      return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
 
    /* If async is in use, and this is not an IO task, bcast the parameters. */
    if (ios->async)
@@ -1976,6 +1971,29 @@ handle_pio_open(int cmode, const char *path0)
       if (mpierr)
          return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
    }
+   return NC_NOERR;
+}
+/**
+ * @internal Broadcast the model value to all tasks. When function is
+ * complete all tasks will have the same model value, the one that
+ * started on the IO root.
+ *
+ * @param ios Pointer to IO system info struct.
+ * @param model Pointer to the model value to be broadcast.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EIO MPI function error.
+ * @author Ed Hartnett
+ */
+static int
+broadcast_model(iosystem_desc_t *ios, int *model)
+{
+   int mpierr; /* Return code from MPI call. */
+
+   /* Broadcast the model. */
+   if ((mpierr = MPI_Bcast(model, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+      return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+   
    return NC_NOERR;
 }
 #endif /* USE_PIO */
@@ -2012,8 +2030,11 @@ NC_open(const char *path0, int cmode,
    int version = 0;
    int flags = 0;
    char* path = NULL;
-   int use_pio = 0; /* Assume no PIO. */
-   int ret;
+   int use_pio = 0;       /* Assume no PIO. */
+   int ioproc = 1;        /* Assume all tasks participate in IO. */
+#ifdef USE_PIO
+   iosystem_desc_t *ios;  /* For PIO, a pointer to IO system info. */
+#endif /* USE_PIO */
 
    TRACE(nc_open);
    if(!NC_initialized) {
@@ -2033,8 +2054,26 @@ NC_open(const char *path0, int cmode,
 
    inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
+
 #ifdef USE_PIO
    use_pio = ((cmode & NC_PIO) == NC_PIO);
+
+   /* Handle special needs of PIO opens. */
+   if (use_pio) {
+      /* Set the dispatcher to PIO. */
+      dispatcher = PIO_dispatch_table;
+
+      /* Get the IO system info from the iosysid. */
+      if (!(ios = pio_get_iosystem_from_id(current_iosysid)))
+         return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
+
+      /* Determine IO type and (for async) send message and params to
+       * IO master to call NC_open(). */
+      if ((stat = handle_pio_open(ios, cmode, path0))) {
+         nullfree(path);
+         return stat;
+      }
+   }
 #endif /* USE_PIO */
 
 #ifdef WINPATH
@@ -2131,21 +2170,6 @@ NC_open(const char *path0, int cmode,
    /* override any other table choice */
    if(dispatcher != NULL) goto havetable;
 
-#if defined(USE_PIO)
-   /* Handle special needs of PIO opens. */
-   if (use_pio) {
-      /* Set the dispatcher to PIO. */
-      dispatcher = PIO_dispatch_table;
-
-      /* Determine IO type and (for async) send message and params to
-       * IO master to call NC_open(). */
-      if ((ret = handle_pio_open(cmode, path0))) {
-         nullfree(path);
-         return ret;
-      }
-   }
-#endif /* USE_PIO */
-   
    /* Figure out what dispatcher to use, if needed. (PIO may already
     * have set it.) */
    if (!dispatcher) {
