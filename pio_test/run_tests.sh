@@ -20,8 +20,8 @@ printf 'running PIO tests...\n'
 # 'test_darray_3d test_decomp_uneven test_decomps test_darray_async_simple '\
 # 'test_darray_async test_darray_async_many test_darray_2sync test_async_multicomp '
 
-#BROKEN=tst_rearr
-PIO_TESTS='test_darray_1d test_async_mpi test_spmd  test_intercomm2 test_async_simple '
+PIO_TESTS='test_darray_1d test_async_mpi '\
+'test_async_mpi test_spmd test_rearr test_intercomm2 test_async_simple '
 #'test_async_3proc test_async_4proc test_iosystem2_simple test_iosystem2_simple2 '
 NC_PIO_TESTS='tst_darray_async tst_darray_1d'
 success1=true

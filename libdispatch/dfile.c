@@ -2055,6 +2055,11 @@ NC_open(const char *path0, int cmode,
    inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
 
+   /* Invalid to use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
+    * mind! */
+   if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX))
+      return NC_EINVAL;
+
 #ifdef USE_PIO
    use_pio = ((cmode & NC_PIO) == NC_PIO);
 
@@ -2066,6 +2071,9 @@ NC_open(const char *path0, int cmode,
       /* Get the IO system info from the iosysid. */
       if (!(ios = pio_get_iosystem_from_id(current_iosysid)))
          return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
+
+      /* Does this task participate in IO? */
+      ioproc = ios->ioproc;
 
       /* Determine IO type and (for async) send message and params to
        * IO master to call NC_open(). */
@@ -2110,23 +2118,22 @@ NC_open(const char *path0, int cmode,
       if(useparallel) flags |= NC_MPIIO;
       if(inmemory) flags |= NC_INMEMORY;
       if(diskless) flags |= NC_DISKLESS;
-      stat = NC_check_file_type(path,flags,parameters,&model,&version);
-      if(stat == NC_NOERR) {
-         if(model == 0) {
-            nullfree(path);       		
-            return NC_ENOTNC;
+      if (ioproc) {
+         if ((stat = NC_check_file_type(path,flags,parameters,&model,&version))) {
+            /* presumably not a netcdf file */
+            nullfree(path);       			    
+            return stat;
          }
-      } else {
-         /* presumably not a netcdf file */
-         nullfree(path);       			    
-         return stat;
       }
    }
 
-   if(model == 0) {
-      fprintf(stderr,"Model == 0\n");
-      return NC_ENOTNC;
+#ifdef USE_PIO
+   /* If PIO is in use, send the model from the IO tasks to all tasks. */
+   if (use_pio) {
+      if ((stat = broadcast_model(ios, &model)))
+         return pio_err(ios, NULL, stat, __FILE__, __LINE__);         
    }
+#endif /* USE_PIO */
 
    /* Force flag consistentcy */
    if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4)
@@ -2160,13 +2167,6 @@ NC_open(const char *path0, int cmode,
       cmode |= NC_64BIT_DATA;
    }
    
-   /* Invalid to use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
-    * mind! */
-   if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX)) {
-      nullfree(path);       
-      return NC_EINVAL;
-   }
-
    /* override any other table choice */
    if(dispatcher != NULL) goto havetable;
 

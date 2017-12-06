@@ -2291,6 +2291,8 @@ int PIOc_openfile_retry3(int iosysid, int *ncidp, int *iotype, const char *filen
    /* If this is an IO task, then call the netCDF function. */
    if (ios->ioproc)
    {
+      NC_MPI_INFO parameters;
+      
       switch (file->iotype)
       {
 #ifdef _NETCDF4
@@ -2298,9 +2300,10 @@ int PIOc_openfile_retry3(int iosysid, int *ncidp, int *iotype, const char *filen
       case PIO_IOTYPE_NETCDF4P:
 
          file->fh = nc->ext_ncid;
-
          imode = mode |  NC_MPIIO;
-         if ((ierr = NC4_open(filename, mode, 0, NULL, 1, NULL, table, nc)))
+         parameters.comm = ios->io_comm;
+         parameters.info = MPI_INFO_NULL;
+         if ((ierr = NC4_open(filename, mode, 0, NULL, 1, (void *)&parameters, table, nc)))
             break;
          LOG((2, "PIOc_openfile_retry:nc_open_par filename = %s mode = %d imode = %d ierr = %d",
               filename, mode, imode, ierr));
