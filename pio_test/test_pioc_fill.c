@@ -803,7 +803,7 @@ int main(int argc, char **argv)
     init_arrays();
 
     /* Change the 5th arg to 3 to turn on logging. */
-    if ((ret = run_test_main(argc, argv, MIN_NTASKS, TARGET_NTASKS, -1,
+    if ((ret = run_test_main(argc, argv, MIN_NTASKS, TARGET_NTASKS, 3,
                              TEST_NAME, dim_len, COMPONENT_COUNT, NUM_IO_PROCS)))
         return ret;
 
