@@ -72,6 +72,7 @@ if BUILD_DISKLESS
 TESTS += run_diskless.sh run_diskless5.sh
 if BUILD_MMAP
 TESTS += run_mmap.sh
+run_mmap.log: run_diskless.log
 endif
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
