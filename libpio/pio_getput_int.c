@@ -1291,10 +1291,6 @@ int PIOc_put_vara_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
    if (!buf)
       return pio_err(ios, file, PIO_EINVAL, __FILE__, __LINE__);
 
-   /* If no type was specified, use the var type. */
-   if (xtype == NC_NAT)
-      xtype = vartype;
-
    /* Run these on all tasks if async is not in use, but only on
     * non-IO tasks if async is in use. */
    if (!ios->async || !ios->ioproc)
@@ -1303,9 +1299,9 @@ int PIOc_put_vara_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
       if ((ierr = PIOc_inq_vartype(ncid, varid, &vartype)))
          return check_netcdf(file, ierr, __FILE__, __LINE__);
 
-      /* /\* If no type was specified, use the var type. *\/ */
-      /* if (xtype == NC_NAT) */
-      /*     xtype = vartype; */
+      /* If no type was specified, use the var type. */
+      if (xtype == NC_NAT)
+         xtype = vartype;
 
       /* Get the number of dims for this var. */
       if ((ierr = PIOc_inq_varndims(ncid, varid, &ndims)))

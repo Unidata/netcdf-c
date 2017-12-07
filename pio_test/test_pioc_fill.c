@@ -449,9 +449,13 @@ int create_putget_file(int iosysid, int flavor, int *dim_len, int *varid, const 
     if (PIOc_set_fill(ncid + TEST_VAL_42, NC_FILL, &old_mode) != PIO_EBADID)
         ERR(ret);
 
+    /* Turn off fill mode. */
+    if ((ret = PIOc_set_fill(ncid, NC_NOFILL, NULL)))
+        ERR(ret);
     /* Turn on fill mode. */
     if ((ret = PIOc_set_fill(ncid, NC_FILL, &old_mode)))
         ERR(ret);
+    /* Old mode was off. */
     if (old_mode != NC_NOFILL)
         ERR(ERR_WRONG);
 
@@ -803,7 +807,7 @@ int main(int argc, char **argv)
     init_arrays();
 
     /* Change the 5th arg to 3 to turn on logging. */
-    if ((ret = run_test_main(argc, argv, MIN_NTASKS, TARGET_NTASKS, 3,
+    if ((ret = run_test_main(argc, argv, MIN_NTASKS, TARGET_NTASKS, -1,
                              TEST_NAME, dim_len, COMPONENT_COUNT, NUM_IO_PROCS)))
         return ret;
 

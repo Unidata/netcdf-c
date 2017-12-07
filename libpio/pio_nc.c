@@ -2561,16 +2561,16 @@ int PIOc_def_var_fill(int ncid, int varid, int fill_mode, const void *fill_value
       {
          LOG((2, "defining fill value attribute for netCDF classic file"));
          if (file->do_io)
-            ierr = nc_put_att(file->fh, varid, _FillValue, xtype, 1, fill_valuep);
+            ierr = NC3_put_att(file->fh, varid, _FillValue, xtype, 1, fill_valuep, xtype);
       }
       else
       {
 #ifdef _NETCDF4
          if (file->do_io)
-            ierr = nc_def_var_fill(file->fh, varid, fill_mode, fill_valuep);
+            ierr = NC4_put_att(file->fh, varid, _FillValue, xtype, 1, fill_valuep, xtype);            
 #endif
       }
-      LOG((2, "after def_var_fill ierr = %d", ierr));
+      LOG((2, "after writing fill value att ierr = %d", ierr));
    }
 
    /* Broadcast and check the return code. */
