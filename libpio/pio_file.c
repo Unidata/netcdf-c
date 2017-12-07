@@ -108,7 +108,7 @@ int PIOc_open(int iosysid, const char *path, int mode, int *ncidp)
       iotype = PIO_IOTYPE_PNETCDF;
    if (mode & NC_NETCDF4)
    {
-      if (mode & NC_SHARE)
+      if (mode & NC_SHARE || mode & NC_MPIIO)
          iotype = PIO_IOTYPE_NETCDF4P;
       else
          iotype = PIO_IOTYPE_NETCDF4C;
@@ -186,7 +186,7 @@ int PIOc_create(int iosysid, const char *filename, int mode, int *ncidp)
       iotype = PIO_IOTYPE_PNETCDF;
    if (mode & NC_NETCDF4)
    {
-      if (mode & NC_SHARE)
+      if (mode & NC_SHARE || mode & NC_MPIIO)
          iotype = PIO_IOTYPE_NETCDF4P;
       else
          iotype = PIO_IOTYPE_NETCDF4C;
