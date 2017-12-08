@@ -227,7 +227,7 @@ int PIOc_put_vars_int(int ncid, int varid, const PIO_Offset *start, const PIO_Of
 int PIOc_put_vars_long(int ncid, int varid, const PIO_Offset *start, const PIO_Offset *count,
                        const PIO_Offset *stride, const long *op)
 {
-   return PIOc_put_vars_tc(ncid, varid, start, count, stride, PIO_LONG_INTERNAL, op);
+   return PIOc_put_vars_tc(ncid, varid, start, count, stride, LONGTYPE, op);
 }
 
 /**
@@ -523,7 +523,7 @@ int PIOc_put_var1_float(int ncid, int varid, const PIO_Offset *index, const floa
  */
 int PIOc_put_var1_long(int ncid, int varid, const PIO_Offset *index, const long *op)
 {
-   return PIOc_put_var1_tc(ncid, varid, index, PIO_LONG_INTERNAL, op);
+   return PIOc_put_var1_tc(ncid, varid, index, LONGTYPE, op);
 }
 
 /**
@@ -778,7 +778,7 @@ int PIOc_put_vara_int(int ncid, int varid, const PIO_Offset *start,
 int PIOc_put_vara_long(int ncid, int varid, const PIO_Offset *start,
                        const PIO_Offset *count, const long *op)
 {
-   return PIOc_put_vara_tc(ncid, varid, start, count, PIO_LONG_INTERNAL, op);
+   return PIOc_put_vara_tc(ncid, varid, start, count, LONGTYPE, op);
 }
 
 /**
@@ -1058,7 +1058,7 @@ int PIOc_put_var_int(int ncid, int varid, const int *op)
  */
 int PIOc_put_var_long(int ncid, int varid, const long *op)
 {
-   return PIOc_put_var_tc(ncid, varid, PIO_LONG_INTERNAL, op);
+   return PIOc_put_var_tc(ncid, varid, LONGTYPE, op);
 }
 
 /**

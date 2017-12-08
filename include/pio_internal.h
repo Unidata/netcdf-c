@@ -29,6 +29,8 @@
 #define NETCDF_INT_FLOAT_SIZE 4
 #define NETCDF_DOUBLE_INT64_SIZE 8
 
+#define LONGTYPE ((sizeof(long) == sizeof(int) ? NC_INT : NC_INT64))
+
 /* It seems that some versions of openmpi fail to define
  * MPI_OFFSET. */
 #ifdef OMPI_OFFSET_DATATYPE

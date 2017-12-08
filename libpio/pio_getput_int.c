@@ -1020,9 +1020,9 @@ int PIOc_put_vars_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
       if ((ierr = PIOc_inq_vartype(ncid, varid, &vartype)))
          return check_netcdf(file, ierr, __FILE__, __LINE__);
 
-      /* /\* If no type was specified, use the var type. *\/ */
-      /* if (xtype == NC_NAT) */
-      /*     xtype = vartype; */
+      /* If no type was specified, use the var type. */
+      if (xtype == NC_NAT)
+          xtype = vartype;
 
       /* Get the number of dims for this var. */
       if ((ierr = PIOc_inq_varndims(ncid, varid, &ndims)))
@@ -1103,7 +1103,7 @@ int PIOc_put_vars_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
       LOG((2, "PIOc_put_vars_tc bcast from comproot"));
       if ((mpierr = MPI_Bcast(&ndims, 1, MPI_INT, ios->comproot, ios->my_comm)))
          return check_mpi(file, mpierr, __FILE__, __LINE__);
-      if ((mpierr = MPI_Bcast(&xtype, 1, MPI_INT, ios->comproot, ios->my_comm)))
+      if ((mpierr = MPI_Bcast(&ndims, 1, MPI_INT, ios->comproot, ios->my_comm)))
          return check_mpi(file, mpierr, __FILE__, __LINE__);
       LOG((2, "PIOc_put_vars_tc complete bcast from comproot ndims = %d", ndims));
    }
