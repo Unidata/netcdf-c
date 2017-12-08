@@ -12,6 +12,10 @@ AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include -I$(top_srcdir)/libsrc
 
+
+# Note which tests depend on other tests. necessary for make -j check
+TEST_EXTENSIONS = .sh
+
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names       \
 tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type      \
@@ -68,6 +72,7 @@ if BUILD_DISKLESS
 TESTS += run_diskless.sh run_diskless5.sh
 if BUILD_MMAP
 TESTS += run_mmap.sh
+run_mmap.log: run_diskless.log
 endif
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh

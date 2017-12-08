@@ -3,10 +3,13 @@
 # See COPYRIGHT file for conditions of use.
 #
 # This entire directory will be skipped if netCDF-4 is not enabled.
-# Ed Hartnett
+# Ed Hartnett, Ward Fisher
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
+
+# Note which tests depend on other tests. necessary for make -j check
+TEST_EXTENSIONS = .sh
 
 # Link to our assembled library.
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
@@ -93,13 +96,16 @@ check_PROGRAMS += tst_interops2 tst_chunk_hdf4 tst_h4_lendian
 
 if BUILD_UTILITIES
 # This test script depends on ncdump.
-TESTS += tst_formatx_hdf4.sh 
+TESTS += tst_formatx_hdf4.sh
 endif # BUILD_UTILITIES
 
 TESTS += run_chunk_hdf4.sh tst_h4_lendian
 if USE_HDF4_FILE_TESTS
 check_PROGRAMS += tst_interops3
 TESTS += run_get_hdf4_files.sh tst_hdf4_read_var.sh
+
+tst_hdf4_read_var.log: tst_interops2.log
+
 endif # USE_HDF4_FILE_TESTS
 endif # USE_HDF4
 

@@ -121,6 +121,8 @@ ENDIF()
   ENDIF(USE_STRICT_NULL_BYTE_HEADER_PADDING)
 
   add_sh_test(ncdump tst_nccopy3)
+  SET_TESTS_PROPERTIES(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
+
   add_sh_test(ncdump tst_nccopy3_subset)
   add_sh_test(ncdump tst_charfill)
 
