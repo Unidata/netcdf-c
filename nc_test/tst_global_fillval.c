@@ -20,12 +20,24 @@
 
 #define FILE_NAME "tst_global_fillval.nc"
 
+/* Unweildy, but currently this structure must be used
+   to accomodate Visual Studio */
+#if defined USE_NETCDF4 && USE_CDF5
+#define num_formats 5
+#elif USE_NETCDF4
+#define num_formats 4
+#elif USE_CDF
+#define num_formats 3
+#else
+#define num_formats 2
+#endif
+
 int
 main(int argc, char **argv)
 {
-    printf("*** testing proper elatefill return...");    
+    printf("*** testing proper elatefill return...");
     {
-	int num_formats = 2;
+
 	int n = 0;
         int i;
 
@@ -33,10 +45,7 @@ main(int argc, char **argv)
 #ifdef USE_CDF5
 	num_formats++;
 #endif
-#ifdef USE_NETCDF4
-	num_formats += 2;
-#endif
-    
+
 	int formats[num_formats];
 	formats[n++] = 0;
 	formats[n++] = NC_64BIT_OFFSET;
@@ -51,7 +60,7 @@ main(int argc, char **argv)
 	for (i = 0; i < num_formats; i++)
 	{
 	    int ncid, cmode, fillv = 9;
-	
+
 	    cmode = NC_CLOBBER | formats[i];
 	    if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
 	    if (nc_put_att_int(ncid, NC_GLOBAL, "_FillValue", NC_INT, 1, &fillv)) ERR;
@@ -60,5 +69,5 @@ main(int argc, char **argv)
 	}
     }
     SUMMARIZE_ERR;
-    FINAL_RESULTS;    
+    FINAL_RESULTS;
 }
