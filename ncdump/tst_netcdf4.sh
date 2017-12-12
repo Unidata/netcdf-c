@@ -2,7 +2,7 @@
 # This shell script tests ncdump for netcdf-4
 # Ed Hartnett, Dennis Heimbigner
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 set -e
@@ -33,7 +33,7 @@ ${NCDUMP} tst_group_data.nc | sed 's/e+0/e+/g' > tst_group_data.cdl
 diff -b tst_group_data.cdl $srcdir/ref_tst_group_data.cdl
 
 echo "*** Testing -v option with absolute name and groups..."
-${NCDUMP} -v /g2/g3/var tst_group_data.nc | sed 's/e+0/e+/g' > tst_group_data.cdl
+${NCDUMP} -v g2/g3/var tst_group_data.nc | sed 's/e+0/e+/g' > tst_group_data.cdl
 diff -b tst_group_data.cdl $srcdir/ref_tst_group_data_v23.cdl
 
 echo "*** Testing -v option with relative name and groups..."

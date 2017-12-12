@@ -92,7 +92,7 @@ IF(ENABLE_TESTS)
         ${CMAKE_CURRENT_BINARY_DIR})
 
   ENDIF(USE_NETCDF4)
-ENDIF()
+ENDIF(MSVC)
 
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
@@ -169,25 +169,30 @@ ENDIF()
     # It passes, but technically fails because the scientific
     # formatting omits a 0.
     ###
-    IF(EXTRA_TESTS AND NOT MSVC)
+    IF(EXTRA_TESTS)
       add_sh_test(ncdump run_back_comp_tests)
-    ENDIF()
+      IF(MSVC)
+        SET_TESTS_PROPERTIES(ncdump_run_back_comp_tests PROPERTIES WILL_FAIL TRUE)
+      ENDIF(MSVC)
+    ENDIF(EXTRA_TESTS)
 
     # Known failure on MSVC; the number of 0's padding
     # is different, but the result is actually correct.
-    IF(NOT MSVC)
     add_sh_test(ncdump tst_netcdf4)
     build_bin_test_no_prefix(tst_h_rdc0)
-    ENDIF()
+    IF(MSVC)
+      SET_TESTS_PROPERTIES(ncdump_tst_netcdf4 PROPERTIES WILL_FAIL TRUE)
+    ENDIF(MSVC)
 
     build_bin_test_no_prefix(tst_unicode)
 
     build_bin_test_no_prefix(tst_fillbug)
     add_sh_test(ncdump_sh tst_fillbug)
 
-    IF(NOT MSVC)
-      add_sh_test(ncdump tst_netcdf4_4)
-    ENDIF()
+    add_sh_test(ncdump tst_netcdf4_4)
+    IF(MSVC)
+      SET_TESTS_PROPERTIES(ncdump_tst_netcdf4_4 PROPERTIES WILL_FAIL TRUE)
+    ENDIF(MSVC)
 
     ###
     # Some test reordering was required to ensure these tests
@@ -196,27 +201,25 @@ ENDIF()
     add_sh_test(ncdump run_ncgen_tests)
     IF(USE_NETCDF4)
       add_sh_test(ncdump run_ncgen_nc4_tests)
-    ENDIF()
+    ENDIF(USE_NETCDF4)
 
     add_sh_test(ncdump tst_grp_spec)
     add_sh_test(ncdump tst_mud)
     add_sh_test(ncdump_shell tst_h_scalar)
-    add_sh_test(ncdump tst_nccopy4)
-    SET(TST_NCCOPY4_DEPS ncdump_run_ncgen_tests ncdump_tst_output ncdump_tst_ncgen4 ncdump_tst_fillbug ncdump_tst_netcdf4_4 ncdump_shell_tst_h_scalar)
-    SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES DEPENDS $(TST_NCCOPY4_DEPS))
-    SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
-  ENDIF()
 
-  add_sh_test(ncdump tst_ncgen4_classic)
-  IF(USE_NETCDF4)
-    add_sh_test(ncdump tst_ncgen4)
-  ENDIF()
+    add_sh_test(ncdump tst_nccopy4)
+    SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
+
+    IF(USE_NETCDF4)
+      add_sh_test(ncdump tst_ncgen4)
+    ENDIF(USE_NETCDF4)
 
   add_sh_test(ncdump tst_inttags)
   IF(USE_NETCDF4)
     add_sh_test(ncdump tst_inttags4)
-  ENDIF()
+  ENDIF(USE_NETCDF4)
 
+ENDIF()
 
 ENDIF()
 
