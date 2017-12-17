@@ -66,17 +66,29 @@ MPI to the I/O component.
 
 Create an async IO System with nc_init_async().
 
-# Distributed Arrays and Decompositions
+# Opening/Creating Files with PIO
+
+Use the NC_PIO mode flag with nc_create()/nc_open() to engage PIO.
+
+# Distributed Arrays
 
 Distributed arrays allow users to distribute the contents of a netCDF
 variable or record across many processors. The netCDF library will do
 the book-keeping to merge the elements of the distributed array
 together as needded for writing.
 
+## Decompositions
+
 To describe how an array is to be distributed, the user must create a
 decomposition with nc_init_decomp(). A decomposition ID is returned,
 which must be provided when doing distributed reads and writes. The
 descomposition resources can be freed with nc_free_decomp().
+
+## Writing a Distributed Array
+
+The function nc_write_darray() is used to write one record of a
+variable from a distributed array. Each computation task will call
+nc_write_darray() with their local portion of the global array.
 
 
 
