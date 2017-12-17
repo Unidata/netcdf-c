@@ -1,7 +1,7 @@
 /*
  * Tests for PIO data reading and writing routines.
  *
- * @author Ed Hartnett
+ * Ed Hartnett
  */
 #include <config.h>
 #include <pio.h>
@@ -578,26 +578,26 @@ int putget_write_var1_nt(int ncid, int *varid, PIO_Offset *index, int flavor)
     if ((ret = PIOc_put_var1(ncid, varid[3], index, &int_data)))
         return ret;
 
-    if ((ret = PIOc_put_var1(ncid, varid[4], index, &int_data)))
+    /* if ((ret = PIOc_put_var1(ncid, varid[4], index, &int_data))) */
+    /*     return ret; */
+
+    if ((ret = PIOc_put_var1(ncid, varid[4], index, &float_data)))
         return ret;
 
-    if ((ret = PIOc_put_var1(ncid, varid[5], index, &float_data)))
-        return ret;
-
-    if ((ret = PIOc_put_var1(ncid, varid[6], index, &double_data)))
+    if ((ret = PIOc_put_var1(ncid, varid[5], index, &double_data)))
         return ret;
 
     if (flavor == PIO_IOTYPE_NETCDF4C || flavor == PIO_IOTYPE_NETCDF4P)
     {
-        if ((ret = PIOc_put_var1(ncid, varid[7], index, &ubyte_data)))
+        if ((ret = PIOc_put_var1(ncid, varid[6], index, &ubyte_data)))
             return ret;
-        if ((ret = PIOc_put_var1(ncid, varid[8], index, &ushort_data)))
+        if ((ret = PIOc_put_var1(ncid, varid[7], index, &ushort_data)))
             return ret;
-        if ((ret = PIOc_put_var1(ncid, varid[9], index, &uint_data)))
+        if ((ret = PIOc_put_var1(ncid, varid[8], index, &uint_data)))
             return ret;
-        if ((ret = PIOc_put_var1(ncid, varid[10], index, &int64_data)))
+        if ((ret = PIOc_put_var1(ncid, varid[9], index, &int64_data)))
             return ret;
-        if ((ret = PIOc_put_var1(ncid, varid[11], index, &uint64_data)))
+        if ((ret = PIOc_put_var1(ncid, varid[10], index, &uint64_data)))
             return ret;
     }
 
@@ -664,26 +664,26 @@ int putget_write_var_nt(int ncid, int *varid, int flavor)
     if ((ret = PIOc_put_var(ncid, varid[3], (int *)int_array)))
         return ret;
 
-    if ((ret = PIOc_put_var(ncid, varid[4], (int *)int_array)))
+    /* if ((ret = PIOc_put_var(ncid, varid[4], (int *)int_array))) */
+    /*     return ret; */
+
+    if ((ret = PIOc_put_var(ncid, varid[4], (float *)float_array)))
         return ret;
 
-    if ((ret = PIOc_put_var(ncid, varid[5], (float *)float_array)))
-        return ret;
-
-    if ((ret = PIOc_put_var(ncid, varid[6], (double *)double_array)))
+    if ((ret = PIOc_put_var(ncid, varid[5], (double *)double_array)))
         return ret;
 
     if (flavor == PIO_IOTYPE_NETCDF4C || flavor == PIO_IOTYPE_NETCDF4P)
     {
-        if ((ret = PIOc_put_var(ncid, varid[7], (unsigned char *)ubyte_array)))
+        if ((ret = PIOc_put_var(ncid, varid[6], (unsigned char *)ubyte_array)))
             return ret;
-        if ((ret = PIOc_put_var(ncid, varid[8], (unsigned short *)ushort_array)))
+        if ((ret = PIOc_put_var(ncid, varid[7], (unsigned short *)ushort_array)))
             return ret;
-        if ((ret = PIOc_put_var(ncid, varid[9], (unsigned int *)uint_array)))
+        if ((ret = PIOc_put_var(ncid, varid[8], (unsigned int *)uint_array)))
             return ret;
-        if ((ret = PIOc_put_var(ncid, varid[10], (long long *)int64_array)))
+        if ((ret = PIOc_put_var(ncid, varid[9], (long long *)int64_array)))
             return ret;
-        if ((ret = PIOc_put_var(ncid, varid[11], (unsigned long long *)uint64_array)))
+        if ((ret = PIOc_put_var(ncid, varid[10], (unsigned long long *)uint64_array)))
             return ret;
     }
 
@@ -777,7 +777,7 @@ int test_read_att(int ncid, int *varid, int flavor)
     short short_array_in[ATT_LEN];
     unsigned char ubyte_array_in[ATT_LEN];
     int int_array_in[ATT_LEN];
-    long int long_array_in[ATT_LEN];
+    /* long int long_array_in[ATT_LEN]; */
     float float_array_in[ATT_LEN];
     double double_array_in[ATT_LEN];
     unsigned short ushort_array_in[ATT_LEN];
@@ -811,8 +811,8 @@ int test_read_att(int ncid, int *varid, int flavor)
             return ERR_WRONG;
         if (int_array_in[x] != int_array[x][0])
             return ERR_WRONG;
-        if (long_array_in[x] != long_array[x][0])
-            return ERR_WRONG;
+        /* if (long_array_in[x] != long_array[x][0]) */
+        /*     return ERR_WRONG; */
         if (float_array_in[x] != float_array[x][0])
             return ERR_WRONG;
         if (double_array_in[x] != double_array[x][0])
@@ -911,26 +911,26 @@ int putget_write_vara_nt(int ncid, int *varid, PIO_Offset *start, PIO_Offset *co
     if ((ret = PIOc_put_vara(ncid, varid[3], start, count, (int *)int_array)))
         return ret;
 
-    if ((ret = PIOc_put_vara(ncid, varid[4], start, count, (int *)int_array)))
+    /* if ((ret = PIOc_put_vara(ncid, varid[4], start, count, (int *)int_array))) */
+    /*     return ret; */
+
+    if ((ret = PIOc_put_vara(ncid, varid[4], start, count, (float *)float_array)))
         return ret;
 
-    if ((ret = PIOc_put_vara(ncid, varid[5], start, count, (float *)float_array)))
-        return ret;
-
-    if ((ret = PIOc_put_vara(ncid, varid[6], start, count, (double *)double_array)))
+    if ((ret = PIOc_put_vara(ncid, varid[5], start, count, (double *)double_array)))
         return ret;
 
     if (flavor == PIO_IOTYPE_NETCDF4C || flavor == PIO_IOTYPE_NETCDF4P)
     {
-        if ((ret = PIOc_put_vara(ncid, varid[7], start, count, (unsigned char *)ubyte_array)))
+        if ((ret = PIOc_put_vara(ncid, varid[6], start, count, (unsigned char *)ubyte_array)))
             return ret;
-        if ((ret = PIOc_put_vara(ncid, varid[8], start, count, (unsigned short *)ushort_array)))
+        if ((ret = PIOc_put_vara(ncid, varid[7], start, count, (unsigned short *)ushort_array)))
             return ret;
-        if ((ret = PIOc_put_vara(ncid, varid[9], start, count, (unsigned int *)uint_array)))
+        if ((ret = PIOc_put_vara(ncid, varid[8], start, count, (unsigned int *)uint_array)))
             return ret;
-        if ((ret = PIOc_put_vara(ncid, varid[10], start, count, (long long *)int64_array)))
+        if ((ret = PIOc_put_vara(ncid, varid[9], start, count, (long long *)int64_array)))
             return ret;
-        if ((ret = PIOc_put_vara(ncid, varid[11], start, count, (unsigned long long *)uint64_array)))
+        if ((ret = PIOc_put_vara(ncid, varid[10], start, count, (unsigned long long *)uint64_array)))
             return ret;
     }
 
@@ -999,26 +999,26 @@ int putget_write_vars_nt(int ncid, int *varid, PIO_Offset *start, PIO_Offset *co
     if ((ret = PIOc_put_vars(ncid, varid[3], start, count, stride, (int *)int_array)))
         return ret;
 
-    if ((ret = PIOc_put_vars(ncid, varid[4], start, count, stride, (int *)int_array)))
+    /* if ((ret = PIOc_put_vars(ncid, varid[4], start, count, stride, (int *)int_array))) */
+    /*     return ret; */
+
+    if ((ret = PIOc_put_vars(ncid, varid[4], start, count, stride, (float *)float_array)))
         return ret;
 
-    if ((ret = PIOc_put_vars(ncid, varid[5], start, count, stride, (float *)float_array)))
-        return ret;
-
-    if ((ret = PIOc_put_vars(ncid, varid[6], start, count, stride, (double *)double_array)))
+    if ((ret = PIOc_put_vars(ncid, varid[5], start, count, stride, (double *)double_array)))
         return ret;
 
     if (flavor == PIO_IOTYPE_NETCDF4C || flavor == PIO_IOTYPE_NETCDF4P)
     {
-        if ((ret = PIOc_put_vars(ncid, varid[7], start, count, stride, (unsigned char *)ubyte_array)))
+        if ((ret = PIOc_put_vars(ncid, varid[6], start, count, stride, (unsigned char *)ubyte_array)))
             return ret;
-        if ((ret = PIOc_put_vars(ncid, varid[8], start, count, stride, (unsigned short *)ushort_array)))
+        if ((ret = PIOc_put_vars(ncid, varid[7], start, count, stride, (unsigned short *)ushort_array)))
             return ret;
-        if ((ret = PIOc_put_vars(ncid, varid[9], start, count, stride, (unsigned int *)uint_array)))
+        if ((ret = PIOc_put_vars(ncid, varid[8], start, count, stride, (unsigned int *)uint_array)))
             return ret;
-        if ((ret = PIOc_put_vars(ncid, varid[10], start, count, stride, (long long *)int64_array)))
+        if ((ret = PIOc_put_vars(ncid, varid[9], start, count, stride, (long long *)int64_array)))
             return ret;
-        if ((ret = PIOc_put_vars(ncid, varid[11], start, count, stride, (unsigned long long *)uint64_array)))
+        if ((ret = PIOc_put_vars(ncid, varid[10], start, count, stride, (unsigned long long *)uint64_array)))
             return ret;
     }
 
@@ -1033,7 +1033,7 @@ int putget_read_var1(int ncid, int *varid, PIO_Offset *index, int flavor)
     short short_data_in;
     unsigned char ubyte_data_in;
     int int_data_in;
-    long int long_data_in;
+    /* long int long_data_in; */
     float float_data_in;
     double double_data_in;
     unsigned short ushort_data_in;
@@ -1160,40 +1160,40 @@ int putget_read_var1_nt(int ncid, int *varid, PIO_Offset *index, int flavor)
     if (int_data_in != int_data)
         return ERR_WRONG;
 
-    if ((ret = PIOc_get_var1(ncid, varid[4], index, &int_data_in)))
-        return ret;
-    if (int_data_in != int_data)
-        return ERR_WRONG;
+    /* if ((ret = PIOc_get_var1(ncid, varid[4], index, &int_data_in))) */
+    /*     return ret; */
+    /* if (int_data_in != int_data) */
+    /*     return ERR_WRONG; */
 
-    if ((ret = PIOc_get_var1(ncid, varid[5], index, &float_data_in)))
+    if ((ret = PIOc_get_var1(ncid, varid[4], index, &float_data_in)))
         return ret;
     if (float_data_in != float_data)
         return ERR_WRONG;
 
-    if ((ret = PIOc_get_var1(ncid, varid[6], index, &double_data_in)))
+    if ((ret = PIOc_get_var1(ncid, varid[5], index, &double_data_in)))
         return ret;
     if (double_data_in != double_data)
         return ERR_WRONG;
 
     if (flavor == PIO_IOTYPE_NETCDF4C || flavor == PIO_IOTYPE_NETCDF4P)
     {
-        if ((ret = PIOc_get_var1(ncid, varid[7], index, &ubyte_data_in)))
+        if ((ret = PIOc_get_var1(ncid, varid[6], index, &ubyte_data_in)))
             return ret;
         if (ubyte_data_in != ubyte_data)
             return ERR_WRONG;
-        if ((ret = PIOc_get_var1(ncid, varid[8], index, &ushort_data_in)))
+        if ((ret = PIOc_get_var1(ncid, varid[7], index, &ushort_data_in)))
             return ret;
         if (ushort_data_in != ushort_data)
             return ERR_WRONG;
-        if ((ret = PIOc_get_var1(ncid, varid[9], index, &uint_data_in)))
+        if ((ret = PIOc_get_var1(ncid, varid[8], index, &uint_data_in)))
             return ret;
         if (uint_data_in != uint_data)
             return ERR_WRONG;
-        if ((ret = PIOc_get_var1(ncid, varid[10], index, &int64_data_in)))
+        if ((ret = PIOc_get_var1(ncid, varid[9], index, &int64_data_in)))
             return ret;
         if (int64_data_in != int64_data)
             return ERR_WRONG;
-        if ((ret = PIOc_get_var1(ncid, varid[11], index, &uint64_data_in)))
+        if ((ret = PIOc_get_var1(ncid, varid[10], index, &uint64_data_in)))
             return ret;
         if (uint64_data_in != uint64_data)
             return ERR_WRONG;
@@ -1217,7 +1217,7 @@ int putget_read_var(int ncid, int *varid, int unlim, int flavor)
     short short_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned char ubyte_array_in[X_DIM_LEN][Y_DIM_LEN];
     int int_array_in[X_DIM_LEN][Y_DIM_LEN];
-    long int long_array_in[X_DIM_LEN][Y_DIM_LEN];
+    /* long int long_array_in[X_DIM_LEN][Y_DIM_LEN]; */
     float float_array_in[X_DIM_LEN][Y_DIM_LEN];
     double double_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned short ushort_array_in[X_DIM_LEN][Y_DIM_LEN];
@@ -1261,8 +1261,8 @@ int putget_read_var(int ncid, int *varid, int unlim, int flavor)
                 return ERR_WRONG;
             if (int_array_in[x][y] != int_array[x][y])
                 return ERR_WRONG;
-            if (long_array_in[x][y] != long_array[x][y])
-                return ERR_WRONG;
+            /* if (long_array_in[x][y] != long_array[x][y]) */
+            /*     return ERR_WRONG; */
             if (float_array_in[x][y] != float_array[x][y])
                 return ERR_WRONG;
             if (double_array_in[x][y] != double_array[x][y])
@@ -1316,7 +1316,7 @@ int putget_read_var_nt(int ncid, int *varid, int unlim, int flavor)
     short short_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned char ubyte_array_in[X_DIM_LEN][Y_DIM_LEN];
     int int_array_in[X_DIM_LEN][Y_DIM_LEN];
-    int int_array_in2[X_DIM_LEN][Y_DIM_LEN];
+    /* int int_array_in2[X_DIM_LEN][Y_DIM_LEN]; */
     float float_array_in[X_DIM_LEN][Y_DIM_LEN];
     double double_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned short ushort_array_in[X_DIM_LEN][Y_DIM_LEN];
@@ -1342,11 +1342,11 @@ int putget_read_var_nt(int ncid, int *varid, int unlim, int flavor)
         return ret;
     if ((ret = PIOc_get_var(ncid, varid[3], (int *)int_array_in)))
         return ret;
-    if ((ret = PIOc_get_var(ncid, varid[4], (int *)int_array_in2)))
+    /* if ((ret = PIOc_get_var(ncid, varid[4], (int *)int_array_in2))) */
+    /*     return ret; */
+    if ((ret = PIOc_get_var(ncid, varid[4], (float *)float_array_in)))
         return ret;
-    if ((ret = PIOc_get_var(ncid, varid[5], (float *)float_array_in)))
-        return ret;
-    if ((ret = PIOc_get_var(ncid, varid[6], (double *)double_array_in)))
+    if ((ret = PIOc_get_var(ncid, varid[5], (double *)double_array_in)))
         return ret;
     for (x = 0; x < X_DIM_LEN; x++)
     {
@@ -1360,8 +1360,8 @@ int putget_read_var_nt(int ncid, int *varid, int unlim, int flavor)
                 return ERR_WRONG;
             if (int_array_in[x][y] != int_array[x][y])
                 return ERR_WRONG;
-            if (int_array_in2[x][y] != int_array[x][y])
-                return ERR_WRONG;
+            /* if (int_array_in2[x][y] != int_array[x][y]) */
+            /*     return ERR_WRONG; */
             if (float_array_in[x][y] != float_array[x][y])
                 return ERR_WRONG;
             if (double_array_in[x][y] != double_array[x][y])
@@ -1371,15 +1371,15 @@ int putget_read_var_nt(int ncid, int *varid, int unlim, int flavor)
 
     if (flavor == PIO_IOTYPE_NETCDF4C || flavor == PIO_IOTYPE_NETCDF4P)
     {
-        if ((ret = PIOc_get_var(ncid, varid[7], (unsigned char *)ubyte_array_in)))
+        if ((ret = PIOc_get_var(ncid, varid[6], (unsigned char *)ubyte_array_in)))
             return ret;
-        if ((ret = PIOc_get_var(ncid, varid[8], (unsigned short *)ushort_array_in)))
+        if ((ret = PIOc_get_var(ncid, varid[7], (unsigned short *)ushort_array_in)))
             return ret;
-        if ((ret = PIOc_get_var(ncid, varid[9], (unsigned int *)uint_array_in)))
+        if ((ret = PIOc_get_var(ncid, varid[8], (unsigned int *)uint_array_in)))
             return ret;
-        if ((ret = PIOc_get_var(ncid, varid[10], (long long *)int64_array_in)))
+        if ((ret = PIOc_get_var(ncid, varid[9], (long long *)int64_array_in)))
             return ret;
-        if ((ret = PIOc_get_var(ncid, varid[11], (unsigned long long *)uint64_array_in)))
+        if ((ret = PIOc_get_var(ncid, varid[10], (unsigned long long *)uint64_array_in)))
             return ret;
         for (x = 0; x < X_DIM_LEN; x++)
             for (y = 0; y < Y_DIM_LEN; y++)
@@ -1409,7 +1409,7 @@ int putget_read_vara(int ncid, int *varid, PIO_Offset *start, PIO_Offset *count,
     short short_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned char ubyte_array_in[X_DIM_LEN][Y_DIM_LEN];
     int int_array_in[X_DIM_LEN][Y_DIM_LEN];
-    long int long_array_in[X_DIM_LEN][Y_DIM_LEN];
+    /* long int long_array_in[X_DIM_LEN][Y_DIM_LEN]; */
     float float_array_in[X_DIM_LEN][Y_DIM_LEN];
     double double_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned short ushort_array_in[X_DIM_LEN][Y_DIM_LEN];
@@ -1446,8 +1446,8 @@ int putget_read_vara(int ncid, int *varid, PIO_Offset *start, PIO_Offset *count,
                 return ERR_WRONG;
             if (int_array_in[x][y] != int_array[x][y])
                 return ERR_WRONG;
-            if (long_array_in[x][y] != long_array[x][y])
-                return ERR_WRONG;
+            /* if (long_array_in[x][y] != long_array[x][y]) */
+            /*     return ERR_WRONG; */
             if (float_array_in[x][y] != float_array[x][y])
                 return ERR_WRONG;
             if (double_array_in[x][y] != double_array[x][y])
@@ -1496,7 +1496,7 @@ int putget_read_vars(int ncid, int *varid, PIO_Offset *start, PIO_Offset *count,
     short short_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned char ubyte_array_in[X_DIM_LEN][Y_DIM_LEN];
     int int_array_in[X_DIM_LEN][Y_DIM_LEN];
-    long int long_array_in[X_DIM_LEN][Y_DIM_LEN];
+    /* long int long_array_in[X_DIM_LEN][Y_DIM_LEN]; */
     float float_array_in[X_DIM_LEN][Y_DIM_LEN];
     double double_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned short ushort_array_in[X_DIM_LEN][Y_DIM_LEN];
@@ -1533,8 +1533,8 @@ int putget_read_vars(int ncid, int *varid, PIO_Offset *start, PIO_Offset *count,
                 return ERR_WRONG;
             if (int_array_in[x][y] != int_array[x][y])
                 return ERR_WRONG;
-            if (long_array_in[x][y] != long_array[x][y])
-                return ERR_WRONG;
+            /* if (long_array_in[x][y] != long_array[x][y]) */
+            /*     return ERR_WRONG; */
             if (float_array_in[x][y] != float_array[x][y])
                 return ERR_WRONG;
             if (double_array_in[x][y] != double_array[x][y])
@@ -1583,7 +1583,7 @@ int putget_read_vara_nt(int ncid, int *varid, PIO_Offset *start, PIO_Offset *cou
     short short_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned char ubyte_array_in[X_DIM_LEN][Y_DIM_LEN];
     int int_array_in[X_DIM_LEN][Y_DIM_LEN];
-    int int_array_in2[X_DIM_LEN][Y_DIM_LEN];
+    /* int int_array_in2[X_DIM_LEN][Y_DIM_LEN]; */
     float float_array_in[X_DIM_LEN][Y_DIM_LEN];
     double double_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned short ushort_array_in[X_DIM_LEN][Y_DIM_LEN];
@@ -1601,11 +1601,11 @@ int putget_read_vara_nt(int ncid, int *varid, PIO_Offset *start, PIO_Offset *cou
         return ret;
     if ((ret = PIOc_get_vara(ncid, varid[3], start, count, (int *)int_array_in)))
         return ret;
-    if ((ret = PIOc_get_vara(ncid, varid[4], start, count, (int *)int_array_in2)))
+    /* if ((ret = PIOc_get_vara(ncid, varid[4], start, count, (int *)int_array_in2))) */
+    /*     return ret; */
+    if ((ret = PIOc_get_vara(ncid, varid[4], start, count, (float *)float_array_in)))
         return ret;
-    if ((ret = PIOc_get_vara(ncid, varid[5], start, count, (float *)float_array_in)))
-        return ret;
-    if ((ret = PIOc_get_vara(ncid, varid[6], start, count, (double *)double_array_in)))
+    if ((ret = PIOc_get_vara(ncid, varid[5], start, count, (double *)double_array_in)))
         return ret;
 
     for (x = 0; x < X_DIM_LEN; x++)
@@ -1620,8 +1620,8 @@ int putget_read_vara_nt(int ncid, int *varid, PIO_Offset *start, PIO_Offset *cou
                 return ERR_WRONG;
             if (int_array_in[x][y] != int_array[x][y])
                 return ERR_WRONG;
-            if (int_array_in2[x][y] != int_array[x][y])
-                return ERR_WRONG;
+            /* if (int_array_in2[x][y] != int_array[x][y]) */
+            /*     return ERR_WRONG; */
             if (float_array_in[x][y] != float_array[x][y])
                 return ERR_WRONG;
             if (double_array_in[x][y] != double_array[x][y])
@@ -1631,16 +1631,16 @@ int putget_read_vara_nt(int ncid, int *varid, PIO_Offset *start, PIO_Offset *cou
 
     if (flavor == PIO_IOTYPE_NETCDF4C || flavor == PIO_IOTYPE_NETCDF4P)
     {
-        if ((ret = PIOc_get_vara(ncid, varid[7], start, count, (unsigned char *)ubyte_array_in)))
+        if ((ret = PIOc_get_vara(ncid, varid[6], start, count, (unsigned char *)ubyte_array_in)))
             return ret;
 
-        if ((ret = PIOc_get_vara(ncid, varid[8], start, count, (unsigned short *)ushort_array_in)))
+        if ((ret = PIOc_get_vara(ncid, varid[7], start, count, (unsigned short *)ushort_array_in)))
             return ret;
-        if ((ret = PIOc_get_vara(ncid, varid[9], start, count, (unsigned int *)uint_array_in)))
+        if ((ret = PIOc_get_vara(ncid, varid[8], start, count, (unsigned int *)uint_array_in)))
             return ret;
-        if ((ret = PIOc_get_vara(ncid, varid[10], start, count, (long long *)int64_array_in)))
+        if ((ret = PIOc_get_vara(ncid, varid[9], start, count, (long long *)int64_array_in)))
             return ret;
-        if ((ret = PIOc_get_vara(ncid, varid[11], start, count, (unsigned long long *)uint64_array_in)))
+        if ((ret = PIOc_get_vara(ncid, varid[10], start, count, (unsigned long long *)uint64_array_in)))
             return ret;
         for (x = 0; x < X_DIM_LEN; x++)
             for (y = 0; y < Y_DIM_LEN; y++)
@@ -1670,7 +1670,7 @@ int putget_read_vars_nt(int ncid, int *varid, PIO_Offset *start, PIO_Offset *cou
     short short_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned char ubyte_array_in[X_DIM_LEN][Y_DIM_LEN];
     int int_array_in[X_DIM_LEN][Y_DIM_LEN];
-    int int_array_in2[X_DIM_LEN][Y_DIM_LEN];
+    /* int int_array_in2[X_DIM_LEN][Y_DIM_LEN]; */
     float float_array_in[X_DIM_LEN][Y_DIM_LEN];
     double double_array_in[X_DIM_LEN][Y_DIM_LEN];
     unsigned short ushort_array_in[X_DIM_LEN][Y_DIM_LEN];
@@ -1688,11 +1688,11 @@ int putget_read_vars_nt(int ncid, int *varid, PIO_Offset *start, PIO_Offset *cou
         return ret;
     if ((ret = PIOc_get_vars(ncid, varid[3], start, count, stride, (int *)int_array_in)))
         return ret;
-    if ((ret = PIOc_get_vars(ncid, varid[4], start, count, stride, (int *)int_array_in2)))
+    /* if ((ret = PIOc_get_vars(ncid, varid[4], start, count, stride, (int *)int_array_in2))) */
+    /*     return ret; */
+    if ((ret = PIOc_get_vars(ncid, varid[4], start, count, stride, (float *)float_array_in)))
         return ret;
-    if ((ret = PIOc_get_vars(ncid, varid[5], start, count, stride, (float *)float_array_in)))
-        return ret;
-    if ((ret = PIOc_get_vars(ncid, varid[6], start, count, stride, (double *)double_array_in)))
+    if ((ret = PIOc_get_vars(ncid, varid[5], start, count, stride, (double *)double_array_in)))
         return ret;
 
     for (x = 0; x < X_DIM_LEN; x++)
@@ -1707,8 +1707,8 @@ int putget_read_vars_nt(int ncid, int *varid, PIO_Offset *start, PIO_Offset *cou
                 return ERR_WRONG;
             if (int_array_in[x][y] != int_array[x][y])
                 return ERR_WRONG;
-            if (int_array_in2[x][y] != int_array[x][y])
-                return ERR_WRONG;
+            /* if (int_array_in2[x][y] != int_array[x][y]) */
+            /*     return ERR_WRONG; */
             if (float_array_in[x][y] != float_array[x][y])
                 return ERR_WRONG;
             if (double_array_in[x][y] != double_array[x][y])
@@ -1718,16 +1718,16 @@ int putget_read_vars_nt(int ncid, int *varid, PIO_Offset *start, PIO_Offset *cou
 
     if (flavor == PIO_IOTYPE_NETCDF4C || flavor == PIO_IOTYPE_NETCDF4P)
     {
-        if ((ret = PIOc_get_vars(ncid, varid[7], start, count, stride, (unsigned char *)ubyte_array_in)))
+        if ((ret = PIOc_get_vars(ncid, varid[6], start, count, stride, (unsigned char *)ubyte_array_in)))
             return ret;
 
-        if ((ret = PIOc_get_vars(ncid, varid[8], start, count, stride, (unsigned short *)ushort_array_in)))
+        if ((ret = PIOc_get_vars(ncid, varid[7], start, count, stride, (unsigned short *)ushort_array_in)))
             return ret;
-        if ((ret = PIOc_get_vars(ncid, varid[9], start, count, stride, (unsigned int *)uint_array_in)))
+        if ((ret = PIOc_get_vars(ncid, varid[8], start, count, stride, (unsigned int *)uint_array_in)))
             return ret;
-        if ((ret = PIOc_get_vars(ncid, varid[10], start, count, stride, (long long *)int64_array_in)))
+        if ((ret = PIOc_get_vars(ncid, varid[9], start, count, stride, (long long *)int64_array_in)))
             return ret;
-        if ((ret = PIOc_get_vars(ncid, varid[11], start, count, stride, (unsigned long long *)uint64_array_in)))
+        if ((ret = PIOc_get_vars(ncid, varid[10], start, count, stride, (unsigned long long *)uint64_array_in)))
             return ret;
         for (x = 0; x < X_DIM_LEN; x++)
             for (y = 0; y < Y_DIM_LEN; y++)
@@ -1907,15 +1907,12 @@ int test_putget(int iosysid, int num_flavors, int *flavor, int my_rank,
     int dim_len[NDIM] = {NC_UNLIMITED, X_DIM_LEN, Y_DIM_LEN};
 
 #define NUM_ACCESS 8
-    /* for (int unlim = 0; unlim < 2; unlim++) */
-    for (int unlim = 0; unlim < 1; unlim++)
-        /* for (int access = 0; access < NUM_ACCESS; access++) */
-        for (int access = 0; access < 1; access++)
+    for (int unlim = 0; unlim < 2; unlim++)
+        for (int access = 0; access < NUM_ACCESS; access++)
         {
             /* Use PIO to create the example file in each of the four
              * available ways. */
-            /* for (int fmt = 0; fmt < num_flavors; fmt++) */
-            for (int fmt = 0; fmt < 1; fmt++)
+            for (int fmt = 0; fmt < num_flavors; fmt++)
             {
                 char filename[PIO_MAX_NAME + 1]; /* Test filename. */
                 char iotype_name[PIO_MAX_NAME + 1];
@@ -2008,7 +2005,7 @@ int test_putget(int iosysid, int num_flavors, int *flavor, int my_rank,
                 if ((ret = PIOc_closefile(ncid)))
                     ERR(ret);
 
-                /* /\* Access to read it. *\/ */
+                /* Access to read it. */
                 if ((ret = PIOc_openfile2(iosysid, &ncid, &(flavor[fmt]), filename, PIO_NOWRITE)))
                     ERR(ret);
 
@@ -2037,11 +2034,11 @@ int test_all(int iosysid, int num_flavors, int *flavor, int my_rank, MPI_Comm te
         MPIERR(ret);
 
     /* Test attribute stuff. */
-    /* if ((ret = test_atts_byte(iosysid, num_flavors, flavor, my_rank, test_comm))) */
-    /*     return ret; */
+    if ((ret = test_atts_byte(iosysid, num_flavors, flavor, my_rank, test_comm)))
+        return ret;
 
-    /* if ((ret = test_atts_int64(iosysid, num_flavors, flavor, my_rank, test_comm))) */
-    /*     return ret; */
+    if ((ret = test_atts_int64(iosysid, num_flavors, flavor, my_rank, test_comm)))
+        return ret;
 
     /* Test read/write stuff. */
     if ((ret = test_putget(iosysid, num_flavors, flavor, my_rank, test_comm)))
@@ -2056,7 +2053,7 @@ int main(int argc, char **argv)
     /* Initialize data arrays with sample data. */
     init_arrays();
 
-    return run_test_main(argc, argv, MIN_NTASKS, TARGET_NTASKS, 3,
+    return run_test_main(argc, argv, MIN_NTASKS, TARGET_NTASKS, -1,
                          TEST_NAME, dim_len, COMPONENT_COUNT, NUM_IO_PROCS);
 
     return 0;

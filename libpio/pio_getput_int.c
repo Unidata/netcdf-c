@@ -428,6 +428,14 @@ int PIOc_get_vars_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
    if (!buf)
       return pio_err(ios, file, PIO_EINVAL, __FILE__, __LINE__);
 
+   if (file->iotype == PIO_IOTYPE_NETCDF || file->iotype == PIO_IOTYPE_NETCDF4C
+       || file->iotype == PIO_IOTYPE_NETCDF4P)
+   {
+      LOG((3, "about to call NCDEFAULT_get_vars"));
+      return NCDEFAULT_get_vars(file->fh, varid, (size_t *)start, (size_t *)count,
+                                (ptrdiff_t *)stride, buf, xtype);
+   }
+
    /* Run these on all tasks if async is not in use, but only on
     * non-IO tasks if async is in use. */
    if (!ios->async || !ios->ioproc)
@@ -569,21 +577,6 @@ int PIOc_get_vars_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
             return pio_err(ios, file, ierr, __FILE__, __LINE__);
       }
 #endif /* _PNETCDF */
-      LOG((3, "about to call NCDEFAULT_get_vars"));
-      if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
-      {
-         ierr = NCDEFAULT_get_vars(file->fh, varid, (size_t *)start, (size_t *)count,
-                                   (ptrdiff_t *)stride, buf, xtype);
-      }
-#ifdef _NETCDF4
-      if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
-          file->do_io)
-      {
-         ierr = NCDEFAULT_get_vars(file->fh, varid, (size_t *)start, (size_t *)count,
-                                   (ptrdiff_t *)stride, buf, xtype);
-      }
-#endif /* _NETCDF4 */
-      LOG((3, "called NCDEFAULT_get_vars ierr %d", ierr));
    }
 
    /* Broadcast and check the return code. */
@@ -1008,9 +1001,11 @@ int PIOc_put_vars_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
    if (!buf)
       return pio_err(ios, file, PIO_EINVAL, __FILE__, __LINE__);
 
-   /* If no type was specified, use the var type. */
-   if (xtype == NC_NAT)
-      xtype = vartype;
+   if (file->iotype == PIO_IOTYPE_NETCDF || file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P)
+   {
+      return NCDEFAULT_put_vars(file->fh, varid, (size_t *)start, (size_t *)count,
+                                (ptrdiff_t *)stride, buf, xtype);
+   }
 
    /* Run these on all tasks if async is not in use, but only on
     * non-IO tasks if async is in use. */
@@ -1103,10 +1098,14 @@ int PIOc_put_vars_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
       LOG((2, "PIOc_put_vars_tc bcast from comproot"));
       if ((mpierr = MPI_Bcast(&ndims, 1, MPI_INT, ios->comproot, ios->my_comm)))
          return check_mpi(file, mpierr, __FILE__, __LINE__);
-      if ((mpierr = MPI_Bcast(&ndims, 1, MPI_INT, ios->comproot, ios->my_comm)))
+      if ((mpierr = MPI_Bcast(&vartype, 1, MPI_INT, ios->comproot, ios->my_comm)))
          return check_mpi(file, mpierr, __FILE__, __LINE__);
-      LOG((2, "PIOc_put_vars_tc complete bcast from comproot ndims = %d", ndims));
+      LOG((2, "PIOc_put_vars_tc complete bcast from comproot ndims %d vartype %d", ndims, vartype));
    }
+
+   /* If no type was specified, use the var type. */
+   if (xtype == NC_NAT)
+      xtype = vartype;
 
    /* If this is an IO task, then call the netCDF function. */
    if (ios->ioproc)
@@ -1240,19 +1239,6 @@ int PIOc_put_vars_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
       LOG((2, "PIOc_put_vars_tc calling netcdf function file->iotype = %d",
            file->iotype));
 
-      if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
-      {
-         ierr = NCDEFAULT_put_vars(file->fh, varid, (size_t *)start, (size_t *)count,
-                                   (ptrdiff_t *)stride, buf, xtype);
-      }
-#ifdef _NETCDF4
-      if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
-          file->do_io)
-      {
-         ierr = NCDEFAULT_put_vars(file->fh, varid, (size_t *)start, (size_t *)count,
-                                   (ptrdiff_t *)stride, buf, xtype);
-      }
-#endif /* _NETCDF4 */
    }
 
    /* Broadcast and check the return code. */
@@ -1323,6 +1309,10 @@ int PIOc_put_vara_tc(int ncid, int varid, const PIO_Offset *start, const PIO_Off
       if (count)
          for (int vd = 0; vd < ndims; vd++)
             num_elem *= count[vd];
+
+      /* If no data are to be written, we are done. */
+      if (!num_elem)
+         return PIO_NOERR;
    }
 
    /* If async is in use, and this is not an IO task, bcast the parameters. */
