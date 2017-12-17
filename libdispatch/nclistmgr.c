@@ -9,9 +9,6 @@
 #include <assert.h>
 #include "nc.h"
 #include <ncdispatch.h>
-#ifdef USE_PIO
-#include <pio_internal.h>
-#endif /* USE_PIO */
 
 #define ID_SHIFT (16)
 #define NCFILELISTLENGTH 0x10000
@@ -20,12 +17,6 @@
 static NC** nc_filelist = NULL;
 
 static int numfiles = 0;
-
-#ifdef USE_PIO
-/* This is used to look up the IO system ID info to check that a new
- * ncid is acceptable to all tasks. */
-extern int current_iosysid;
-#endif
 
 /* Common */
 int
