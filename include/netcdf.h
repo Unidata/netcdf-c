@@ -157,7 +157,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 #define NC_PNETCDF       (NC_MPIIO) /**< Use parallel-netcdf library; alias for NC_MPIIO. */
 
-#define NC_PIO           0x0040  /**< Read from memory. Mode flag for nc_open() or nc_create(). */
+#define NC_PIO           0x0040  /**< Use PIO. Mode flag for nc_open() or nc_create(). */
 
 /** Format specifier for nc_set_default_format() and returned
  *  by nc_inq_format. This returns the format as provided by
@@ -1679,14 +1679,6 @@ nc_put_var_string(int ncid, int varid, const char **op);
 
 EXTERNL int
 nc_get_var_string(int ncid, int varid, char **ip);
-
-/* These are functions for PIO. They only function if library was
- * built with --enable-pio. */
-EXTERNL int
-nc_get_iosysid(int *iosysidp);
-
-EXTERNL int
-nc_set_iosysid(int iosysid);
 
 /* Begin Deprecated, same as functions with "_ubyte" replaced by "_uchar" */
 EXTERNL int

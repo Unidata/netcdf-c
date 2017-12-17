@@ -77,6 +77,14 @@ extern "C" {
                  MPI_Comm *user_io_comm, MPI_Comm *user_comp_comm, int rearranger,
                  int *iosysidp);
    
+   /* These are functions for PIO. They only function if library was
+    * built with --enable-pio. */
+   extern int
+   nc_get_iosysid(int *iosysidp);
+   
+   extern int
+   nc_set_iosysid(int iosysid);
+   
    extern int
    nc_set_iosystem_error_handling(int iosysid, int method, int *old_method);
    

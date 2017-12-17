@@ -1686,37 +1686,6 @@ int sync_file_handler(iosystem_desc_t *ios)
 }
 
 /**
- * This function is run on the IO tasks to sync a netCDF file.
- *
- * @param ios pointer to the iosystem_desc_t.
- * @returns 0 for success, PIO_EIO for MPI Bcast errors, or error code
- * from netCDF base function.
- * @internal
- * @author Ed Hartnett
- */
-int check_ncid_handler(iosystem_desc_t *ios)
-{
-   int ncid;
-   int id_ok;
-   int mpierr;
-
-   LOG((1, "check_ncid_handler"));
-   assert(ios);
-
-   /* Get the parameters for this function that the comp master
-    * task is broadcasting. */
-   if ((mpierr = MPI_Bcast(&ncid, 1, MPI_INT, 0, ios->intercomm)))
-      return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
-   LOG((1, "check_ncid_handler got parameter ncid = %d", ncid));
-
-   /* Call the sync file function. */
-   PIOc_check_ncid(ncid, &id_ok);
-
-   LOG((2, "check_ncid_handler succeeded!"));
-   return PIO_NOERR;
-}
-
-/**
  * This function is run on the IO tasks to set the record dimension
  * value for a netCDF variable.
  *
@@ -3168,9 +3137,6 @@ int pio_msg_handler2(int io_rank, int component_count, iosystem_desc_t **iosys,
          break;
       case PIO_MSG_SET_FILL:
          ret = set_fill_handler(my_iosys);
-         break;
-      case PIO_MSG_CHECK_NCID:
-         ret = check_ncid_handler(my_iosys);
          break;
       case PIO_MSG_EXIT:
          finalize++;
