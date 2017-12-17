@@ -1814,7 +1814,7 @@ int PIOc_rename_var(int ncid, int varid, const char *name)
 #endif /* _PNETCDF */
 
       if (file->iotype == PIO_IOTYPE_NETCDF && file->do_io)
-         ierr = NC4_rename_var(file->fh, varid, name);
+         ierr = NC3_rename_var(file->fh, varid, name);
 #ifdef _NETCDF4
       else if ((file->iotype == PIO_IOTYPE_NETCDF4C || file->iotype == PIO_IOTYPE_NETCDF4P) &&
                file->do_io)
