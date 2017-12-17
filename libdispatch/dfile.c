@@ -2128,9 +2128,12 @@ NC_open(const char *path0, int cmode,
    }
 
 #ifdef USE_PIO
-   /* If PIO is in use, send the model from the IO tasks to all tasks. */
+   /* If PIO is in use, send the model and version from the IO tasks
+    * to all tasks. */
    if (use_pio) {
       if ((stat = broadcast_some_int(ios, &model)))
+         return pio_err(ios, NULL, stat, __FILE__, __LINE__);         
+      if ((stat = broadcast_some_int(ios, &version)))
          return pio_err(ios, NULL, stat, __FILE__, __LINE__);         
    }
 #endif /* USE_PIO */

@@ -42,11 +42,12 @@ int PIOc_openfile(int iosysid, int *ncidp, int *iotype, const char *filename,
  * Note that the file is opened with default fill mode, NOFILL for
  * pnetcdf, and FILL for netCDF classic and netCDF-4 files.
  *
- * @param iosysid : A defined pio system descriptor (input)
- * @param ncidp : A pio file descriptor (output)
- * @param iotype : A pio output format (input)
- * @param filename : The filename to open
- * @param mode : The netcdf mode for the open operation
+ * @param iosysid A defined pio system descriptor.
+ * @param ncidp Pointer that gets ncid of opened file. Must be
+ * provided.
+ * @param iotype A pio output format.
+ * @param filename The filename to open
+ * @param mode The netcdf mode for the open operation
  * @return 0 for success, error code otherwise.
  * @ingroup PIO_openfile
  * @author Ed Hartnett
@@ -60,6 +61,13 @@ int PIOc_openfile2(int iosysid, int *ncidp, int *iotype, const char *filename,
    LOG((1, "PIOc_openfile2 iosysid %d *iotype %d filename %s mode %d", iosysid,
         iotype ? *iotype : 0, filename, mode));
 
+   /* Check some parameters. */
+   if (!ncidp || !filename || !iotype)
+      return NC_EINVAL;
+   if (*iotype != PIO_IOTYPE_NETCDF && *iotype != PIO_IOTYPE_PNETCDF &&
+       *iotype != PIO_IOTYPE_NETCDF4C && *iotype != PIO_IOTYPE_NETCDF4P)
+      return NC_EINVAL;
+   
    /* Get the IO system info from the id. */
    if (!(ios = pio_get_iosystem_from_id(iosysid)))
       return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
