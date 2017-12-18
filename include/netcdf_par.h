@@ -15,15 +15,32 @@
 
 #include <mpi.h>
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
 
 /** Use with nc_var_par_access() to set parallel access to independent. */
 #define NC_INDEPENDENT 0
+
 /** Use with nc_var_par_access() to set parallel access to collective. */
 #define NC_COLLECTIVE 1
 
+/** Pass this to PIOc_set_iosystem_error_handling() as the iosysid in
+ * order to set default error handling. */
+#define NC_PIO_DEFAULT (-1)
+
+/**
+ * These are the supported error handlers for PIO.
+ */
+enum NC_PIO_ERROR_HANDLERS
+{
+   /** Errors cause abort. */
+   NC_PIO_INTERNAL_ERROR = (-51),
+
+   /** Errors are returned to caller with no internal action. */
+   NC_PIO_RETURN_ERROR = (-53)
+};
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
    /* Create a file and enable parallel I/O. */
    extern int
    nc_create_par(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
