@@ -38,6 +38,18 @@ enum NC_PIO_ERROR_HANDLERS
    NC_PIO_RETURN_ERROR = (-53)
 };
 
+/**
+ * These are the supported output data rearrangement methods.
+ */
+enum NC_PIO_REARRANGERS
+{
+   /** Box rearranger. */
+   NC_PIO_REARR_BOX = 1,
+
+   /** Subset rearranger. */
+   NC_PIO_REARR_SUBSET = 2
+};
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
