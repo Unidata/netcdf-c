@@ -79,16 +79,34 @@ together as needded for writing.
 
 ## Decompositions
 
-To describe how an array is to be distributed, the user must create a
+To describe how the data from a netCDF variable or variable record is
+to be distributed across processors, the user must create a
 decomposition with nc_init_decomp(). A decomposition ID is returned,
 which must be provided when doing distributed reads and writes. The
-descomposition resources can be freed with nc_free_decomp().
+decomposition resources can be freed with nc_free_decomp().
+
+### Saving Decomposition to File
+
+A decomposition can be save to a (netCDF) file with
+nc_write_decomp(). This is useful for debugging decompositions, or
+saving them.
+
+### Reading a Decomposition from File
+
+A decomposition file can be read with nc_read_decomp(). This returns a
+decompositon ID, just as if nc_init_decomp() were called (which it is,
+but nc_read_decomp()). The resulting decomposition ID must be freed
+after use, exactly as if it were created with an nc_init_decom() call.
 
 ## Writing a Distributed Array
 
 The function nc_write_darray() is used to write one record of a
 variable from a distributed array. Each computation task will call
 nc_write_darray() with their local portion of the global array.
+
+
+
+
 
 
 
