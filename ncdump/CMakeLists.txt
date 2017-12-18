@@ -180,9 +180,9 @@ ENDIF(MSVC)
     # is different, but the result is actually correct.
     add_sh_test(ncdump tst_netcdf4)
     build_bin_test_no_prefix(tst_h_rdc0)
-    IF(MSVC)
-      SET_TESTS_PROPERTIES(ncdump_tst_netcdf4 PROPERTIES WILL_FAIL TRUE)
-    ENDIF(MSVC)
+    #IF(MSVC)
+    #  SET_TESTS_PROPERTIES(ncdump_tst_netcdf4 PROPERTIES WILL_FAIL TRUE)
+    #ENDIF(MSVC)
 
     build_bin_test_no_prefix(tst_unicode)
 
