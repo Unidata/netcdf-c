@@ -9,13 +9,6 @@ include $(top_srcdir)/lib_flags.am
 
 libnetcdfpio_la_CPPFLAGS = ${AM_CPPFLAGS}
 
-# This is the code for a dispatch table for PIO
-
-# Turn on a pre-processor flag when building a DLL for windows.
-if BUILD_DLL
-libnetcdfpio_la_CPPFLAGS += -DDLL_EXPORT
-endif # BUILD_DLL
-
 # These files comprise the PIO dispatch library code.
 libnetcdfpio_la_SOURCES = piodispatch.c bget.c pioc_sc.c pio_darray.c	\
 pio_get_nc.c pio_lists.c pio_nc4.c pio_put_nc.c pio_spmd.c		\
