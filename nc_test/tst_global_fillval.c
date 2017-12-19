@@ -42,9 +42,6 @@ main(int argc, char **argv)
         int i;
 
 	/* Determine how many formats are in use. */
-#ifdef USE_CDF5
-	num_formats++;
-#endif
 
 	int formats[num_formats];
 	formats[n++] = 0;
