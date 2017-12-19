@@ -22,6 +22,9 @@ tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type      \
 tst_utf8_validate tst_utf8_phrases tst_global_fillval                   \
 tst_max_var_dims tst_formats
 
+tst_formats_SOURCES = tst_formats.c tst_common.c
+tst_global_fillval_SOURCES = tst_global_fillval.c tst_common.c
+
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts tst_put_vars tst_elatefill
 endif

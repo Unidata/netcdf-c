@@ -12,7 +12,7 @@
 
    Modified by Ed Hartnett, see:
    https://github.com/Unidata/netcdf-c/issues/392
-   */
+*/
 
 #include "config.h"
 #include <nc_tests.h>
@@ -20,54 +20,31 @@
 
 #define FILE_NAME "tst_global_fillval.nc"
 
-/* Unweildy, but currently this structure must be used
-   to accomodate Visual Studio */
-#if defined USE_NETCDF4 && USE_CDF5
-#define num_formats 5
-#elif USE_NETCDF4
-#define num_formats 4
-#elif USE_CDF
-#define num_formats 3
-#else
-#define num_formats 2
-#endif
-
 int
 main(int argc, char **argv)
 {
-    printf("*** testing proper elatefill return...");
-    {
+   int format[MAX_NUM_FORMATS];
+   int num_formats;
 
-	int n = 0;
-        int i;
+   /* How many formats to be tested? */
+   determine_test_formats(&num_formats, format);
 
-	/* Determine how many formats are in use. */
-#ifdef USE_CDF5
-	num_formats++;
-#endif
+   printf("*** testing proper elatefill return...");
+   {
 
-	int formats[num_formats];
-	formats[n++] = 0;
-	formats[n++] = NC_64BIT_OFFSET;
-#ifdef USE_CDF5
-	formats[n++] = NC_64BIT_DATA;
-#endif
-#ifdef USE_NETCDF4
-	formats[n++] = NC_NETCDF4;
-	formats[n++] = NC_CLASSIC_MODEL | NC_NETCDF4;
-#endif
+      int i;
 
-	for (i = 0; i < num_formats; i++)
-	{
-	    int ncid, cmode, fillv = 9;
+      for (i = 0; i < num_formats; i++)
+      {
+         int ncid, fillv = 9;
 
-	    cmode = NC_CLOBBER | formats[i];
-	    if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
-	    if (nc_put_att_int(ncid, NC_GLOBAL, "_FillValue", NC_INT, 1, &fillv)) ERR;
-	    if (nc_close(ncid)) ERR;
+         if (nc_set_default_format(format[i], NULL)) ERR;
+         if (nc_create(FILE_NAME, 0, &ncid)) ERR;
+         if (nc_put_att_int(ncid, NC_GLOBAL, "_FillValue", NC_INT, 1, &fillv)) ERR;
+         if (nc_close(ncid)) ERR;
 
-	}
-    }
-    SUMMARIZE_ERR;
-    FINAL_RESULTS;
+      }
+   }
+   SUMMARIZE_ERR;
+   FINAL_RESULTS;
 }

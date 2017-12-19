@@ -14,37 +14,6 @@
 #define FILE_NAME_BASE "tst_formats"
 #define HDF4_FILE "ref_contiguous.hdf4"
 
-/* Determine how many formats are available, and what they are. */
-void
-determine_test_formats(int *num_formats, int *format)
-{
-   int ind = 0;
-   int num;
-
-   /* Check inputs. */
-   assert(num_formats && format);
-
-   /* We always have classic and 64-bit offset */
-   num = 2;
-   format[ind++] = NC_FORMAT_CLASSIC;
-   format[ind++] = NC_FORMAT_64BIT_OFFSET;
-
-   /* Do we have netCDF-4 and netCDF-4 classic? */
-#ifdef USE_NETCDF4
-   num += 2;
-   format[ind++] = NC_FORMAT_NETCDF4;
-   format[ind++] = NC_FORMAT_NETCDF4_CLASSIC;
-#endif /* USE_NETCDF4 */
-
-   /* Do we have CDF5? */
-#ifdef ENABLE_CDF5
-   num++;
-   format[ind++] = NC_FORMAT_CDF5;
-#endif /* ENABLE_CDF5 */
-
-   *num_formats = num;
-}
-
 /* Function to test nc_inq_format(). */
 int
 check_inq_format(int ncid, int expected_format, int expected_extended_format, int expected_mode)

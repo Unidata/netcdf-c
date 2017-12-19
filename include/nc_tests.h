@@ -26,6 +26,9 @@ for conditions of use.
 #define NC_TESTS_MAX_DIMS 1024 /**< NC_MAX_DIMS for tests.  Allows different NC_MAX_DIMS values without breaking this test with a heap or stack overflow. */
 #define MAX_NUM_FORMATS 5 /**< Max number of available binary formats. */
 
+/* Prototype for function to determine available formats for testing. */
+void determine_test_formats(int *num_formats, int *format);
+
 /** Useful define for tests. */
 /** \{ */
 #define MEGABYTE 1048576
