@@ -61,8 +61,30 @@ main(int argc, char **argv)
    }
 
    SUMMARIZE_ERR;
+#ifndef USE_NETCDF4   
+   printf("*** Trying to create netCDF-4 file without netCDF-4...");
+   {
+       int ncid;
+       
+       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid) != NC_ENOTBUILT)
+	   ERR;
+   }
+   SUMMARIZE_ERR;
+#endif /* USE_NETCDF4 undefined */
+#ifndef USE_DISKLESS   
+   printf("*** Trying to create diskless file without diskless...");
+   {
+       int ncid;
+       
+       if (nc_create(FILE_NAME, NC_DISKLESS, &ncid) != NC_ENOTBUILT)
+	   ERR;
+   }
+   SUMMARIZE_ERR;
+#endif /* USE_DISKLESS undefined */
+   
 #ifdef TEST_PNETCDF
    MPI_Finalize();
 #endif
+   
    FINAL_RESULTS;
 }

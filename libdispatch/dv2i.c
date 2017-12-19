@@ -30,10 +30,11 @@ documentation.
 The V2 API is tested in test directory nctest.
 */
 
-/* The subroutines in error.c emit no messages unless NC_VERBOSE bit
+/** The subroutines in error.c emit no messages unless NC_VERBOSE bit
  * is on.  They call exit() when NC_FATAL bit is on. */
 int ncopts = (NC_FATAL | NC_VERBOSE) ;
-int ncerr = NC_NOERR ;
+
+int ncerr = NC_NOERR ; /**< V2 API error code. */
 
 #if SIZEOF_LONG == SIZEOF_SIZE_T
 /*
@@ -41,13 +42,15 @@ int ncerr = NC_NOERR ;
  * to 'size_t' or 'ptrdiff_t'. Use dummy macros.
  */
 
-# define NDIMS_DECL
+# define NDIMS_DECL  /**< NDIMS declaration */
+
+/** @internal Declaration. */
 # define A_DECL(name, type, ndims, rhs) \
 	const type *const name = ((const type *)(rhs))
 
-# define A_FREE(name)
+# define A_FREE(name)  /**< Free a variable. */
 
-# define A_INIT(lhs, type, ndims, rhs)
+# define A_INIT(lhs, type, ndims, rhs)  /**< Init a variable */
 	
 #else 
 /*
@@ -115,11 +118,19 @@ static void* nvmalloc(off_t size) {
 
 #endif
 
-typedef signed char schar;
+typedef signed char schar;  /**< Signed character type. */
 
-/*
+/**
  * Computes number of record variables in an open netCDF file, and an array of
  * the record variable ids, if the array parameter is non-null.
+ *
+ * @param ncid File ID.
+ * @param nrecvarsp Pointer that gets number of record variables.
+ * @param recvarids Pointer that gets array of record variable IDs.
+ *
+ * @return ::NC_NOERR No error.
+ * @return -1 on error.
+ * @author Russ Rew
  */
 static int
 numrecvars(int ncid, int* nrecvarsp, int *recvarids)
@@ -163,9 +174,15 @@ numrecvars(int ncid, int* nrecvarsp, int *recvarids)
 }
 
 
-/*
+/**
  * Computes record size (in bytes) of the record variable with a specified
  * variable id.  Returns size as 0 if not a record variable.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param recsizep Pointer that gets record size.
+ *
+ * @return size, or 0 if not a record variable
  */
 static int
 ncrecsize(int ncid, int varid, size_t *recsizep)
@@ -207,9 +224,17 @@ ncrecsize(int ncid, int varid, size_t *recsizep)
 }
 
 
-/*
+/**
  * Retrieves the dimension sizes of a variable with a specified variable id in
- * an open netCDF file.  Returns -1 on error.
+ * an open netCDF file.  
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param sizes Pointer that gets sizes.
+ *
+ * @return ::NC_NOERR No error.
+ * @return -1 on error.
+ * @author Russ Rew
  */
 static int
 dimsizes(int ncid, int varid, size_t *sizes)

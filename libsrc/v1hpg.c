@@ -304,8 +304,11 @@ static int
 v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 {
 	int status = 0;
-	size_t padding = 0, nchars = 0;
+	size_t nchars = 0;
 	NC_string *ncstrp = NULL;
+#if USE_STRICT_NULL_BYTE_HEADER_PADDING
+        size_t padding = 0;        
+#endif /* USE_STRICT_NULL_BYTE_HEADER_PADDING */
 
 	status = v1h_get_size_t(gsp, &nchars);
 	if(status != NC_NOERR)
@@ -333,10 +336,10 @@ v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 	if(status != NC_NOERR)
 		goto unwind_alloc;
 
+#if USE_STRICT_NULL_BYTE_HEADER_PADDING
 	padding = _RNDUP(X_SIZEOF_CHAR * ncstrp->nchars, X_ALIGN)
 		- X_SIZEOF_CHAR * ncstrp->nchars;
 
-#if USE_STRICT_NULL_BYTE_HEADER_PADDING
 	if (padding > 0) {
 		/* CDF specification: Header padding uses null (\x00) bytes. */
 		char pad[X_ALIGN-1];
@@ -692,7 +695,10 @@ v1h_get_NC_attrV(v1hs *gsp, NC_attr *attrp)
 	const size_t perchunk =  gsp->extent;
 	size_t remaining = attrp->xsz;
 	void *value = attrp->xvalue;
-	size_t nget, padding;
+	size_t nget;
+#if USE_STRICT_NULL_BYTE_HEADER_PADDING
+	size_t padding;
+#endif /* USE_STRICT_NULL_BYTE_HEADER_PADDING */
 
 	do {
 		nget = MIN(perchunk, remaining);
@@ -710,9 +716,8 @@ v1h_get_NC_attrV(v1hs *gsp, NC_attr *attrp)
 
 	} while(remaining != 0);
 
-	padding = attrp->xsz - ncmpix_len_nctype(attrp->type) * attrp->nelems;
-
 #if USE_STRICT_NULL_BYTE_HEADER_PADDING
+	padding = attrp->xsz - ncmpix_len_nctype(attrp->type) * attrp->nelems;
 	if (padding > 0) {
 		/* CDF specification: Header padding uses null (\x00) bytes. */
 		char pad[X_ALIGN-1];
