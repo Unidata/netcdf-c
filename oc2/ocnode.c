@@ -482,7 +482,7 @@ occorrelater(OCnode* dds, OCnode* dxd)
     if(dxd->name != NULL && dxd->name != NULL
        && strcmp(dxd->name,dds->name) != 0) {
 	OCTHROWCHK((ocstat = OC_EINVAL)); goto fail;
-    } else if(dxd->name != dxd->name) { /* test NULL==NULL */
+    } else if(dxd->name != dds->name) { /* test NULL==NULL */
 	OCTHROWCHK((ocstat = OC_EINVAL)); goto fail;
     }
 
