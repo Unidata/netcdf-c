@@ -22,7 +22,7 @@
 
 /* Unweildy, but currently this structure must be used
    to accomodate Visual Studio */
-#if defined USE_NETCDF4 && USE_CDF5
+#if defined(USE_NETCDF4) && defined (USE_CDF5)
 #define num_formats 5
 #elif USE_NETCDF4
 #define num_formats 4
