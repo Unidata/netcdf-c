@@ -96,6 +96,12 @@ check_inq_format(int ncid, int expected_format, int expected_extended_format, in
 int
 main(int argc, char **argv)
 {
+   int format[MAX_NUM_FORMATS];
+   int num_formats;
+   
+   /* How many formats to be tested? */
+   determine_test_formats(&num_formats, format);
+
    printf("\n*** Testing netcdf format functions.\n");
    {
       int ncid;
@@ -103,12 +109,7 @@ main(int argc, char **argv)
       int expected_extended_format;
       char file_name[NC_MAX_NAME + 1];
       int f;
-      int format[MAX_NUM_FORMATS];
-      int num_formats;
-
-      /* How many formats to be tested? */
-      determine_test_formats(&num_formats, format);
-
+   
       for (f = 0; f < num_formats; f++)
       {
          printf("*** testing nc_inq_format() and nc_inq_format_extended() with format %d...", format[f]);
@@ -154,6 +155,77 @@ main(int argc, char **argv)
          if (nc_close(ncid)) ERR;
          SUMMARIZE_ERR;
       } /* next format */
+
+      {
+#define NUM_TEST_TYPES 1
+#define NUM_VARS 1
+#define NUM_DIMS 2
+#define DIM_0_NAME "dim_0"
+#define DIM_1_NAME "dim_1"
+#define DIM_1_LEN 2
+         for (f = 0; f < num_formats; f++)
+         {
+            nc_type test_type[NUM_TEST_TYPES] = {NC_INT};
+            int ncid, varid[NUM_VARS], dimid[NUM_DIMS];
+            int t;
+            
+            printf("*** testing fill values with format %d...", format[f]);
+            sprintf(file_name, "%s_file_values_%d.nc", FILE_NAME_BASE, format[f]);
+
+            /* Set the format for the test. */
+            if (nc_set_default_format(format[f], NULL)) ERR;
+
+            /* Create a file. */
+            if (nc_create(file_name, 0, &ncid)) ERR;
+
+            /* Create dims. */
+            if (nc_def_dim(ncid, DIM_0_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+            if (nc_def_dim(ncid, DIM_1_NAME, DIM_1_LEN, &dimid[1])) ERR;
+
+            for (t = 0; t < NUM_TEST_TYPES; t++)
+            {
+               char var_name[NC_MAX_NAME + 1];
+               
+               sprintf(var_name, "var_type_%d", test_type[t]);
+               
+               /* Create a var of each type. */
+               if (nc_def_var(ncid, var_name, test_type[t], NUM_DIMS, dimid,
+                              &varid[t])) ERR;
+               
+            } /* next type */
+
+            /* End define mode. */
+            if (nc_enddef(ncid)) ERR;
+
+            /* Write to each var. */
+            for (t = 0; t < NUM_TEST_TYPES; t++)
+            {
+               size_t start[NUM_DIMS] = {1, 0};
+               size_t count[NUM_DIMS] = {1, 1};
+               int data = TEST_VAL_42;
+               
+               if (nc_put_vara(ncid, varid[t], start, count, &data)) ERR;
+            }            
+            if (nc_close(ncid)) ERR;
+
+            /* Check the files for correctness. */
+            if (nc_open(file_name, NC_NOWRITE, &ncid)) ERR;
+
+            for (t = 0; t < NUM_TEST_TYPES; t++)
+            {
+               int data_in[4];
+               if (nc_get_var(ncid, varid[t], data_in)) ERR;
+               if (data_in[0] != NC_FILL_INT) ERR;
+               if (data_in[1] != NC_FILL_INT) ERR;
+               if (data_in[2] != TEST_VAL_42) ERR;
+               if (data_in[3] != NC_FILL_INT) ERR;
+            }
+            
+            if (nc_close(ncid)) ERR;
+      
+            SUMMARIZE_ERR;
+         } /* next format */
+      }
    }
    FINAL_RESULTS;
 }
