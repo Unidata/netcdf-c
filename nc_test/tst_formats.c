@@ -74,7 +74,7 @@ determine_test_formats(int *num_formats, int *format, int *num_types,
    /* Do we have CDF5? */
 #ifdef ENABLE_CDF5
    num++;
-   num_types[ind] = 12;
+   num_types[ind] = 11;
    format[ind++] = NC_FORMAT_CDF5;
 #endif /* ENABLE_CDF5 */
 
@@ -370,16 +370,15 @@ main(int argc, char **argv)
 
                   /* Get fill value settings. */
                   {
+#ifdef USE_NETCDF4
                      int no_fill;
                      double fill_value;
 
                      /* This only works for netCDF-4 formats. */
                      if (format[f] != NC_FORMAT_NETCDF4 && format[f] != NC_FORMAT_NETCDF4_CLASSIC)
                         continue;
-#ifdef USE_NETCDF4
                      /* Get the fill value settings. */
                      if (nc_inq_var_fill(ncid, varid[t], &no_fill, &fill_value)) ERR;
-#endif /* USE_NETCDF4 */
                      if (use_fill && no_fill) ERR;
                      if (!use_fill && !no_fill)
                      {
@@ -387,6 +386,7 @@ main(int argc, char **argv)
                         /* ERR; */
                      }
                      if (use_fill && memcmp(&fill_value, data_fill[t], type_size)) ERR;
+#endif /* USE_NETCDF4 */
                   }
                }
             
