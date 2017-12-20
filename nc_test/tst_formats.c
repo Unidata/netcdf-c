@@ -265,7 +265,7 @@ main(int argc, char **argv)
                char *string_fill[] = {"x"};
                void *data_fill[NUM_ENHANCED_TYPES] = {&byte_fill, &char_fill, &short_fill, &int_fill, &float_fill,
                                                       &double_fill, &ubyte_fill, &ushort_fill, &uint_fill, &int64_fill,
-                                                      &uint64_fill, &string_fill};
+                                                      &uint64_fill, string_fill};
                int t;
                int old_mode;
 
