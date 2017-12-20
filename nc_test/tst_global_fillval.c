@@ -41,7 +41,7 @@ main(int argc, char **argv)
     num_formats++;
 #endif
 
-    formats = malloc(sizeof(int)*(unsigned long)num_formats);
+    formats = malloc(sizeof(int)*num_formats);
 
 
 	formats[n++] = 0;
