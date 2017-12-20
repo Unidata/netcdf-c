@@ -222,7 +222,7 @@ main(int argc, char **argv)
             unsigned int uint_data = NC_MAX_SHORT + TEST_VAL_42;
             long long int int64_data = ((long long int)-NC_MAX_INT * 2);
             unsigned long long int uint64_data = ((unsigned long long int)NC_MAX_INT * 2);
-            char string_data[] = "x";
+            char *string_data[] = {"x"};
             void *data[NUM_ENHANCED_TYPES] = {&byte_data, &char_data, &short_data, &int_data, &float_data,
                                               &double_data, &ubyte_data, &ushort_data, &uint_data, &int64_data,
                                               &uint64_data, string_data};
@@ -262,17 +262,16 @@ main(int argc, char **argv)
                unsigned int uint_fill = default_fill ? NC_FILL_UINT : NC_FILL_UINT - TEST_VAL_42;
                long long int int64_fill = default_fill ? NC_FILL_INT64 : NC_FILL_INT64 + TEST_VAL_42;
                unsigned long long int uint64_fill = default_fill ? NC_FILL_UINT64 : NC_FILL_UINT64 - TEST_VAL_42;
-               char *string_fill = default_fill ? NC_FILL_STRING : ((char *)"x");
+               char *string_fill[] = {"x"};
                void *data_fill[NUM_ENHANCED_TYPES] = {&byte_fill, &char_fill, &short_fill, &int_fill, &float_fill,
                                                       &double_fill, &ubyte_fill, &ushort_fill, &uint_fill, &int64_fill,
                                                       &uint64_fill, &string_fill};
                int t;
                int old_mode;
-            
-               printf("*** testing fill values and 1 unlimited dim with format %d fill combo %d...",
-                      format[f], fill_combo);
-               sprintf(file_name, "%s_file_values_f_%d_fill_combo_%d.nc", FILE_NAME_BASE,
+
+               sprintf(file_name, "%s_fill_format_%d_fill_combo_%d.nc", FILE_NAME_BASE,
                        format[f], fill_combo);
+               printf("*** testing fill values and 1 unlimited in file %s...", file_name);
 
                /* Set the format for the test. */
                if (nc_set_default_format(format[f], NULL)) ERR;
@@ -293,20 +292,18 @@ main(int argc, char **argv)
                {
                   char var_name[NC_MAX_NAME + 1];
 
-                  /* Probles with string type. See github issue #726. Skipping
-                   * NC_STRING for now. */
-                  if (test_type[t] == NC_STRING)
-                     continue;
-
                   sprintf(var_name, "var_type_%d", test_type[t]);
                
                   /* Create a var of each type. */
                   if (nc_def_var(ncid, var_name, test_type[t], NUM_DIMS, dimid,
                                  &varid[t])) ERR;
 
-                  /* Fill mode is turned off per variable for netCDF-4. */
-                  if (!use_fill && (format[f] == NC_FORMAT_NETCDF4 || format[f] == NC_FORMAT_NETCDF4_CLASSIC))
-                     if (nc_def_var_fill(ncid, varid[t], NC_NOFILL, NULL)) ERR;
+                  /* Fill mode is turned off per variable for
+                   * netCDF-4. This fails for NC_STRING type, see
+                   * github issue #727. */
+                  if (format[f] == NC_FORMAT_NETCDF4 || format[f] == NC_FORMAT_NETCDF4_CLASSIC)
+                     if (!use_fill && test_type[t] != NC_STRING)
+                        if (nc_def_var_fill(ncid, varid[t], NC_NOFILL, NULL)) ERR;
 
                   /* If not using default fill values, set a custom
                    * fill value for this var. */
@@ -324,13 +321,15 @@ main(int argc, char **argv)
                {
                   size_t start[NUM_DIMS] = {1, 0};
                   size_t count[NUM_DIMS] = {1, 1};
-               
-                  /* Probles with string type. See github issue #726. Skipping
-                   * NC_STRING for now. */
-                  if (test_type[t] == NC_STRING)
-                     continue;
 
-                  if (nc_put_vara(ncid, varid[t], start, count, data[t])) ERR;
+                  if (test_type[t] == NC_STRING)
+                  {
+                     if (nc_put_vara_string(ncid, varid[t], start, count, data[t])) ERR;
+                  }
+                  else
+                  {
+                     if (nc_put_vara(ncid, varid[t], start, count, data[t])) ERR;
+                  }
                }
                if (nc_close(ncid)) ERR;
 
