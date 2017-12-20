@@ -34,7 +34,7 @@ main(int argc, char **argv)
 	/* Determine how many formats are in use. */
 
 #ifdef USE_NETCDF4
-    num_formats++;
+    num_formats += 2;
 #endif
 
 #ifdef USE_CDF5
