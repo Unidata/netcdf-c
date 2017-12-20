@@ -224,80 +224,26 @@ main(int argc, char **argv)
             void *data[NUM_ENHANCED_TYPES] = {&byte_data, &char_data, &short_data, &int_data, &float_data,
                                               &double_data, &ubyte_data, &ushort_data, &uint_data, &int64_data,
                                               &uint64_data, string_data};
-            int t;
-            
-            printf("*** testing fill values and 1 unlimited dim with format %d...", format[f]);
-            sprintf(file_name, "%s_file_values_f_%d.nc", FILE_NAME_BASE, format[f]);
-
-            /* Set the format for the test. */
-            if (nc_set_default_format(format[f], NULL)) ERR;
-            /* if (nc_set_log_level(3)) ERR; */
-
-            /* Create a file. */
-            if (nc_create(file_name, 0, &ncid)) ERR;
-
-            /* Create dims. */
-            if (nc_def_dim(ncid, DIM_0_NAME, NC_UNLIMITED, &dimid[0])) ERR;
-            if (nc_def_dim(ncid, DIM_1_NAME, DIM_1_LEN, &dimid[1])) ERR;
-
-            for (t = 0; t < num_types[f]; t++)
-            {
-               char var_name[NC_MAX_NAME + 1];
-
-               /* Probles with string type. See github issue #726. Skipping
-                * NC_STRING for now. */
-               if (test_type[t] == NC_STRING)
-                  continue;
-
-               sprintf(var_name, "var_type_%d", test_type[t]);
-               
-               /* Create a var of each type. */
-               if (nc_def_var(ncid, var_name, test_type[t], NUM_DIMS, dimid,
-                              &varid[t])) ERR;
-               
-            } /* next type */
-
-            /* End define mode. */
-            if (nc_enddef(ncid)) ERR;
-
-            /* Write to each var. */
-            for (t = 0; t < num_types[f]; t++)
-            {
-               size_t start[NUM_DIMS] = {1, 0};
-               size_t count[NUM_DIMS] = {1, 1};
-               
-               /* Probles with string type. See github issue #726. Skipping
-                * NC_STRING for now. */
-               if (test_type[t] == NC_STRING)
-                  continue;
-
-               if (nc_put_vara(ncid, varid[t], start, count, data[t])) ERR;
-            }
-            if (nc_close(ncid)) ERR;
-
-            /* Check the files for correctness. */
-            if (nc_open(file_name, NC_NOWRITE, &ncid)) ERR;
-
-            for (t = 0; t < num_types[f]; t++)
-            {
 #define NUM_VALUES 4
-               signed char byte_data_in[NUM_VALUES];
-               unsigned char char_data_in[NUM_VALUES];
-               short int short_data_in[NUM_VALUES];
-               int int_data_in[NUM_VALUES];
-               float float_data_in[NUM_VALUES];
-               double double_data_in[NUM_VALUES];
-               unsigned char ubyte_data_in[NUM_VALUES];
-               unsigned short int ushort_data_in[NUM_VALUES];
-               unsigned int uint_data_in[NUM_VALUES];
-               long long int int64_data_in[NUM_VALUES];
-               unsigned long long int uint64_data_in[NUM_VALUES];
-               char *string_data_in[NUM_VALUES];
-               void *data_in[NUM_ENHANCED_TYPES] = {byte_data_in, char_data_in, short_data_in, int_data_in,
-                                                    float_data_in, double_data_in, ubyte_data_in,
-                                                    ushort_data_in, uint_data_in, int64_data_in,
-                                                    uint64_data_in, string_data_in};
-               int default_fill = 1;
+            signed char byte_data_in[NUM_VALUES];
+            unsigned char char_data_in[NUM_VALUES];
+            short int short_data_in[NUM_VALUES];
+            int int_data_in[NUM_VALUES];
+            float float_data_in[NUM_VALUES];
+            double double_data_in[NUM_VALUES];
+            unsigned char ubyte_data_in[NUM_VALUES];
+            unsigned short int ushort_data_in[NUM_VALUES];
+            unsigned int uint_data_in[NUM_VALUES];
+            long long int int64_data_in[NUM_VALUES];
+            unsigned long long int uint64_data_in[NUM_VALUES];
+            char *string_data_in[NUM_VALUES];
+            void *data_in[NUM_ENHANCED_TYPES] = {byte_data_in, char_data_in, short_data_in, int_data_in,
+                                                 float_data_in, double_data_in, ubyte_data_in,
+                                                 ushort_data_in, uint_data_in, int64_data_in,
+                                                 uint64_data_in, string_data_in};
+            int default_fill;
+            for (default_fill = 0; default_fill < 2; default_fill++)
+            {
                signed char byte_fill = default_fill ? NC_FILL_BYTE : NC_FILL_BYTE + TEST_VAL_42;
                unsigned char char_fill = default_fill ? NC_FILL_CHAR : NC_FILL_CHAR + TEST_VAL_42;
                short int short_fill = default_fill ? NC_FILL_SHORT : NC_FILL_SHORT + TEST_VAL_42;
@@ -313,31 +259,94 @@ main(int argc, char **argv)
                void *data_fill[NUM_ENHANCED_TYPES] = {&byte_fill, &char_fill, &short_fill, &int_fill, &float_fill,
                                                       &double_fill, &ubyte_fill, &ushort_fill, &uint_fill, &int64_fill,
                                                       &uint64_fill, &string_fill};
-               
-               int type_size;
-
-               /* For some reason nc_get_var() does not work with
-                * string type. See github issue #726. Skipping
-                * NC_STRING for now. */
-               if (test_type[t] == NC_STRING)
-                  continue;
-
-               /* Get length of this type. */
-               type_size = nctypelen(test_type[t]);
-               
-               /* printf("Getting data from var %d f %d type_size %d\n", varid[t], f, type_size); */
-               if (nc_get_var(ncid, varid[t], data_in[t])) ERR;
-
-               /* Check data values. */
-               if (memcmp(data_in[t], data_fill[t], type_size)) ERR;
-               if (memcmp(data_in[t] + type_size, data_fill[t], type_size)) ERR;
-               if (memcmp(data_in[t] + type_size * 2, data[t], type_size)) ERR;
-               if (memcmp(data_in[t] + type_size * 3, data_fill[t], type_size)) ERR;
-            }
+               int t;
             
-            if (nc_close(ncid)) ERR;
-      
-            SUMMARIZE_ERR;
+               printf("*** testing fill values and 1 unlimited dim with format %d default fill %d...",
+                      format[f], default_fill);
+               sprintf(file_name, "%s_file_values_f_%d_default_fill_%d.nc", FILE_NAME_BASE, format[f],
+                       default_fill);
+
+               /* Set the format for the test. */
+               if (nc_set_default_format(format[f], NULL)) ERR;
+               /* if (nc_set_log_level(3)) ERR; */
+
+               /* Create a file. */
+               if (nc_create(file_name, 0, &ncid)) ERR;
+
+               /* Create dims. */
+               if (nc_def_dim(ncid, DIM_0_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+               if (nc_def_dim(ncid, DIM_1_NAME, DIM_1_LEN, &dimid[1])) ERR;
+
+               for (t = 0; t < num_types[f]; t++)
+               {
+                  char var_name[NC_MAX_NAME + 1];
+
+                  /* Probles with string type. See github issue #726. Skipping
+                   * NC_STRING for now. */
+                  if (test_type[t] == NC_STRING)
+                     continue;
+
+                  sprintf(var_name, "var_type_%d", test_type[t]);
+               
+                  /* Create a var of each type. */
+                  if (nc_def_var(ncid, var_name, test_type[t], NUM_DIMS, dimid,
+                                 &varid[t])) ERR;
+
+                  /* If not using default fill values, set a custom
+                   * fill value for this var. */
+                  if (!default_fill)
+                     if (nc_put_att(ncid, varid[t], _FillValue, test_type[t], 1, data_fill[t])) ERR;
+               
+               } /* next type */
+
+               /* End define mode. */
+               if (nc_enddef(ncid)) ERR;
+
+               /* Write to each var. */
+               for (t = 0; t < num_types[f]; t++)
+               {
+                  size_t start[NUM_DIMS] = {1, 0};
+                  size_t count[NUM_DIMS] = {1, 1};
+               
+                  /* Probles with string type. See github issue #726. Skipping
+                   * NC_STRING for now. */
+                  if (test_type[t] == NC_STRING)
+                     continue;
+
+                  if (nc_put_vara(ncid, varid[t], start, count, data[t])) ERR;
+               }
+               if (nc_close(ncid)) ERR;
+
+               /* Check the files for correctness. */
+               if (nc_open(file_name, NC_NOWRITE, &ncid)) ERR;
+
+               for (t = 0; t < num_types[f]; t++)
+               {
+               
+                  int type_size;
+
+                  /* For some reason nc_get_var() does not work with
+                   * string type. See github issue #726. Skipping
+                   * NC_STRING for now. */
+                  if (test_type[t] == NC_STRING)
+                     continue;
+
+                  /* Get length of this type. */
+                  type_size = nctypelen(test_type[t]);
+               
+                  /* printf("Getting data from var %d f %d type_size %d\n", varid[t], f, type_size); */
+                  if (nc_get_var(ncid, varid[t], data_in[t])) ERR;
+
+                  /* Check data values. */
+                  if (memcmp(data_in[t], data_fill[t], type_size)) ERR;
+                  if (memcmp(data_in[t] + type_size, data_fill[t], type_size)) ERR;
+                  if (memcmp(data_in[t] + type_size * 2, data[t], type_size)) ERR;
+                  if (memcmp(data_in[t] + type_size * 3, data_fill[t], type_size)) ERR;
+               }
+            
+               if (nc_close(ncid)) ERR;
+               SUMMARIZE_ERR;
+            } /* next default_fill */
          } /* next format */
       }
    }
