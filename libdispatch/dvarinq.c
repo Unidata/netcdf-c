@@ -429,28 +429,28 @@ nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
                                      NULL, NULL, NULL);
 }
 
-/** \ingroup variables
-Learn the fill mode of a variable.
-
-The fill mode of a variable is set by nc_def_var_fill().
-
-This is a wrapper for nc_inq_var_all().
-
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
-nc_create(), nc_def_grp(), or associated inquiry functions such as
-nc_inq_ncid().
-
-\param varid Variable ID
-
-\param no_fill Pointer to an integer which will get a 1 if no_fill
-mode is set for this variable. \ref ignored_if_null.
-
-\param fill_valuep A pointer which will get the fill value for this
-variable. \ref ignored_if_null.
-
-\returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTVAR Invalid variable ID.
+/**
+ * @ingroup variables
+ * Learn the fill mode and fill value of a variable.
+ *
+ * The fill mode of a variable is set by nc_def_var_fill().
+ *
+ * This is a wrapper for nc_inq_var_all().
+ *
+ * @param ncid NetCDF or group ID, from a previous call to nc_open(),
+ * nc_create(), nc_def_grp(), or associated inquiry functions such as
+ * nc_inq_ncid().
+ * @param varid Variable ID
+ * @param no_fill Pointer to an integer which will get a 1 if no_fill
+ * mode is set for this variable. (Note that it is set to 1, not to
+ * NC_FILL). \ref ignored_if_null.
+ * @param fill_valuep A pointer which will get the fill value for this
+ * variable. \ref ignored_if_null.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Invalid variable ID.
+ * @author Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)

@@ -206,6 +206,8 @@ main(int argc, char **argv)
 #define DIM_0_NAME "dim_0"
 #define DIM_1_NAME "dim_1"
 #define DIM_1_LEN 2
+#define NUM_VALUES 4
+#define NUM_FILL_COMBOS 3
          for (f = 0; f < num_formats; f++)
          {
             int ncid, varid[NUM_ENHANCED_TYPES], dimid[NUM_DIMS];
@@ -224,7 +226,6 @@ main(int argc, char **argv)
             void *data[NUM_ENHANCED_TYPES] = {&byte_data, &char_data, &short_data, &int_data, &float_data,
                                               &double_data, &ubyte_data, &ushort_data, &uint_data, &int64_data,
                                               &uint64_data, string_data};
-#define NUM_VALUES 4
             signed char byte_data_in[NUM_VALUES];
             unsigned char char_data_in[NUM_VALUES];
             short int short_data_in[NUM_VALUES];
@@ -241,9 +242,15 @@ main(int argc, char **argv)
                                                  float_data_in, double_data_in, ubyte_data_in,
                                                  ushort_data_in, uint_data_in, int64_data_in,
                                                  uint64_data_in, string_data_in};
-            int default_fill;
-            for (default_fill = 0; default_fill < 2; default_fill++)
+            int fill_combo;
+
+            /* We test three combinations of fill value
+             * settings. First, no_fill, second fill with default fill
+             * values, third, fill with custom fill values. */
+            for (fill_combo = 0; fill_combo < NUM_FILL_COMBOS; fill_combo++)
             {
+               int default_fill = fill_combo == 1 ? 1 : 0;
+               int use_fill = fill_combo ? 1 : 0;
                signed char byte_fill = default_fill ? NC_FILL_BYTE : NC_FILL_BYTE + TEST_VAL_42;
                unsigned char char_fill = default_fill ? NC_FILL_CHAR : NC_FILL_CHAR + TEST_VAL_42;
                short int short_fill = default_fill ? NC_FILL_SHORT : NC_FILL_SHORT + TEST_VAL_42;
@@ -260,11 +267,12 @@ main(int argc, char **argv)
                                                       &double_fill, &ubyte_fill, &ushort_fill, &uint_fill, &int64_fill,
                                                       &uint64_fill, &string_fill};
                int t;
+               int old_mode;
             
-               printf("*** testing fill values and 1 unlimited dim with format %d default fill %d...",
-                      format[f], default_fill);
-               sprintf(file_name, "%s_file_values_f_%d_default_fill_%d.nc", FILE_NAME_BASE, format[f],
-                       default_fill);
+               printf("*** testing fill values and 1 unlimited dim with format %d fill combo %d...",
+                      format[f], fill_combo);
+               sprintf(file_name, "%s_file_values_f_%d_fill_combo_%d.nc", FILE_NAME_BASE,
+                       format[f], fill_combo);
 
                /* Set the format for the test. */
                if (nc_set_default_format(format[f], NULL)) ERR;
@@ -272,6 +280,10 @@ main(int argc, char **argv)
 
                /* Create a file. */
                if (nc_create(file_name, 0, &ncid)) ERR;
+
+               /* Nofill is set on a file level for classic formats. */
+               if (!use_fill && format[f] != NC_FORMAT_NETCDF4 && format[f] != NC_FORMAT_NETCDF4_CLASSIC)
+                  if (nc_set_fill(ncid, NC_NOFILL, &old_mode)) ERR;
 
                /* Create dims. */
                if (nc_def_dim(ncid, DIM_0_NAME, NC_UNLIMITED, &dimid[0])) ERR;
@@ -292,10 +304,15 @@ main(int argc, char **argv)
                   if (nc_def_var(ncid, var_name, test_type[t], NUM_DIMS, dimid,
                                  &varid[t])) ERR;
 
+                  /* Fill mode is turned off per variable for netCDF-4. */
+                  if (!use_fill && (format[f] == NC_FORMAT_NETCDF4 || format[f] == NC_FORMAT_NETCDF4_CLASSIC))
+                     if (nc_def_var_fill(ncid, varid[t], NC_NOFILL, NULL)) ERR;
+
                   /* If not using default fill values, set a custom
                    * fill value for this var. */
-                  if (!default_fill)
-                     if (nc_put_att(ncid, varid[t], _FillValue, test_type[t], 1, data_fill[t])) ERR;
+                  if (use_fill && !default_fill)
+                     if (nc_put_att(ncid, varid[t], _FillValue, test_type[t], 1,
+                                    data_fill[t])) ERR;
                
                } /* next type */
 
@@ -322,7 +339,6 @@ main(int argc, char **argv)
 
                for (t = 0; t < num_types[f]; t++)
                {
-               
                   int type_size;
 
                   /* For some reason nc_get_var() does not work with
@@ -337,16 +353,42 @@ main(int argc, char **argv)
                   /* printf("Getting data from var %d f %d type_size %d\n", varid[t], f, type_size); */
                   if (nc_get_var(ncid, varid[t], data_in[t])) ERR;
 
-                  /* Check data values. */
-                  if (memcmp(data_in[t], data_fill[t], type_size)) ERR;
-                  if (memcmp(data_in[t] + type_size, data_fill[t], type_size)) ERR;
+                  /* There is one real data value. */
                   if (memcmp(data_in[t] + type_size * 2, data[t], type_size)) ERR;
-                  if (memcmp(data_in[t] + type_size * 3, data_fill[t], type_size)) ERR;
+
+                  /* The other three values were not written. They
+                   * will contain fill values if fill mode was on. */
+                  if (use_fill)
+                  {                     
+                     if (memcmp(data_in[t], data_fill[t], type_size)) ERR;
+                     if (memcmp(data_in[t] + type_size, data_fill[t], type_size)) ERR;
+                     if (memcmp(data_in[t] + type_size * 3, data_fill[t], type_size)) ERR;
+                  }
+
+                  /* Get fill value settings. */
+                  {
+                     int no_fill;
+                     double fill_value;
+
+                     /* This only works for netCDF-4 formats. */
+                     if (format[f] != NC_FORMAT_NETCDF4 && format[f] != NC_FORMAT_NETCDF4_CLASSIC)
+                        continue;
+
+                     /* Get the fill value settings. */
+                     if (nc_inq_var_fill(ncid, varid[t], &no_fill, &fill_value)) ERR;
+                     if (use_fill && no_fill) ERR;
+                     if (!use_fill && !no_fill)
+                     {
+                        printf("no_fill %d\n", no_fill);
+                        /* ERR; */
+                     }
+                     if (use_fill && memcmp(&fill_value, data_fill[t], type_size)) ERR;
+                  }
                }
             
                if (nc_close(ncid)) ERR;
                SUMMARIZE_ERR;
-            } /* next default_fill */
+            } /* next fill_combo */
          } /* next format */
       }
    }
