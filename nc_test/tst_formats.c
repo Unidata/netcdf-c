@@ -301,9 +301,11 @@ main(int argc, char **argv)
                   /* Fill mode is turned off per variable for
                    * netCDF-4. This fails for NC_STRING type, see
                    * github issue #727. */
+#ifdef USE_NETCDF4
                   if (format[f] == NC_FORMAT_NETCDF4 || format[f] == NC_FORMAT_NETCDF4_CLASSIC)
                      if (!use_fill && test_type[t] != NC_STRING)
                         if (nc_def_var_fill(ncid, varid[t], NC_NOFILL, NULL)) ERR;
+#endif /* USE_NETCDF4 */
 
                   /* If not using default fill values, set a custom
                    * fill value for this var. */
@@ -372,9 +374,10 @@ main(int argc, char **argv)
                      /* This only works for netCDF-4 formats. */
                      if (format[f] != NC_FORMAT_NETCDF4 && format[f] != NC_FORMAT_NETCDF4_CLASSIC)
                         continue;
-
+#ifdef USE_NETCDF4
                      /* Get the fill value settings. */
                      if (nc_inq_var_fill(ncid, varid[t], &no_fill, &fill_value)) ERR;
+#endif /* USE_NETCDF4 */
                      if (use_fill && no_fill) ERR;
                      if (!use_fill && !no_fill)
                      {
