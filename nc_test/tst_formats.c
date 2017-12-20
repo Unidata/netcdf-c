@@ -326,7 +326,9 @@ main(int argc, char **argv)
 
                   if (test_type[t] == NC_STRING)
                   {
+#ifdef USE_NETCDF4
                      if (nc_put_vara_string(ncid, varid[t], start, count, data[t])) ERR;
+#endif
                   }
                   else
                   {
