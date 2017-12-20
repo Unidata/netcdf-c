@@ -10,7 +10,7 @@
    * https://github.com/Unidata/netcdf-c/issues/388
    * https://github.com/Unidata/netcdf-c/pull/389
 
-   Modified by Ed Hartnett, see:
+   Modified by Ed Hartnett, Ward Fisher, see:
    https://github.com/Unidata/netcdf-c/issues/392
    */
 
@@ -19,6 +19,7 @@
 #include "err_macros.h"
 
 #define FILE_NAME "tst_global_fillval.nc"
+
 
 int
 main(int argc, char **argv)
