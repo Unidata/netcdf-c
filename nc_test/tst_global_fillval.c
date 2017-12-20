@@ -41,11 +41,6 @@ main(int argc, char **argv)
 	int n = 0;
         int i;
 
-	/* Determine how many formats are in use. */
-#ifdef USE_CDF5
-	num_formats++;
-#endif
-
 	int formats[num_formats];
 	formats[n++] = 0;
 	formats[n++] = NC_64BIT_OFFSET;
