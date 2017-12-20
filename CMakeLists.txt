@@ -691,6 +691,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
   ENDIF()
 
+  find_package(Threads REQUIRED)
+
   ###
   # The following options are not used in Windows currently.
   ###
