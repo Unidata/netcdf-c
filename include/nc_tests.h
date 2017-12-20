@@ -22,9 +22,10 @@ for conditions of use.
 #include "netcdf.h"
 //#include "err_macros.h"
 
-
 #define NC_TESTS_MAX_DIMS 1024 /**< NC_MAX_DIMS for tests.  Allows different NC_MAX_DIMS values without breaking this test with a heap or stack overflow. */
 #define MAX_NUM_FORMATS 5 /**< Max number of available binary formats. */
+#define NUM_CLASSIC_TYPES 6 /**< Number of classic types. */
+#define NUM_ENHANCED_TYPES 12 /**< Number of types including enhanced types. */
 
 /** Useful define for tests. */
 /** \{ */
