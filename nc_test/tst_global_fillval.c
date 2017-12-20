@@ -20,18 +20,6 @@
 
 #define FILE_NAME "tst_global_fillval.nc"
 
-/* Unweildy, but currently this structure must be used
-   to accomodate Visual Studio */
-#if defined(USE_NETCDF4) && defined (USE_CDF5)
-#define num_formats 5
-#elif USE_NETCDF4
-#define num_formats 4
-#elif USE_CDF
-#define num_formats 3
-#else
-#define num_formats 2
-#endif
-
 int
 main(int argc, char **argv)
 {
@@ -39,11 +27,22 @@ main(int argc, char **argv)
     {
 
 	int n = 0;
-        int i;
-
+    int i;
+    int num_formats = 2;
+    int *formats = NULL;
 	/* Determine how many formats are in use. */
 
-	int formats[num_formats];
+#ifdef USE_NETCDF4
+    num_formats++;
+#endif
+
+#ifdef USE_CDF5
+    num_formats++;
+#endif
+
+    formats = malloc(sizeof(int)*(unsigned long)num_formats);
+
+
 	formats[n++] = 0;
 	formats[n++] = NC_64BIT_OFFSET;
 #ifdef USE_CDF5
@@ -56,15 +55,17 @@ main(int argc, char **argv)
 
 	for (i = 0; i < num_formats; i++)
 	{
-	    int ncid, cmode, fillv = 9;
 
-	    cmode = NC_CLOBBER | formats[i];
-	    if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
-	    if (nc_put_att_int(ncid, NC_GLOBAL, "_FillValue", NC_INT, 1, &fillv)) ERR;
-	    if (nc_close(ncid)) ERR;
+      int ncid, cmode, fillv = 9;
+      cmode = NC_CLOBBER | formats[i];
+      if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
+      if (nc_put_att_int(ncid, NC_GLOBAL, "_FillValue", NC_INT, 1, &fillv)) ERR;
+      if (nc_close(ncid)) ERR;
 
 	}
+    free(formats);
     }
+
     SUMMARIZE_ERR;
     FINAL_RESULTS;
 }
