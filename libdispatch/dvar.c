@@ -538,6 +538,79 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
    return status;
 }
 
+/*! Set the fill value for a variable.
+
+\ingroup variables
+
+\param ncid NetCDF ID, from a previous call to nc_open or
+nc_create.
+
+\param varid Variable ID.
+
+\param no_fill Set to NC_NOFILL to turn off fill mode for this
+variable. Set to NC_FILL (the default) to turn on fill mode for the
+variable.
+
+\param fill_value the fill value to be used for this variable. Must be
+the same type as the variable. This must point to enough free memory
+to hold one element of the data type of the variable. (For example, an
+NC_INT will require 4 bytes for it's fill value, which is also an
+NC_INT.)
+
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ID.
+ * @returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for
+netCDF classic, 64-bit offset, or 64-bit data files, or for netCDF-4 files,
+when they were created with NC_STRICT_NC3 flag. See \ref nc_create.
+ * @returns ::NC_EPERM Attempt to create object in read-only file.
+
+\section nc_def_var_fill_example Example
+
+In this example from libsrc4/tst_vars.c, a variable is defined, and
+the fill mode turned off. Then nc_inq_fill() is used to check that the
+setting is correct. Then some data are written to the variable. Since
+the data that are written do not cover the full extent of the
+variable, the missing values will just be random. If fill value mode
+was turned on, the missing values would get the fill value.
+
+\code
+#define DIM7_LEN 2
+#define DIM7_NAME "dim_7_from_Indiana"
+#define VAR7_NAME "var_7_from_Idaho"
+#define NDIMS 1
+      int dimids[NDIMS];
+      size_t index[NDIMS];
+      int varid;
+      int no_fill;
+      unsigned short ushort_data = 42, ushort_data_in, fill_value_in;
+
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM7_NAME, DIM7_LEN, &dimids[0])) ERR;
+      if (nc_def_var(ncid, VAR7_NAME, NC_USHORT, NDIMS, dimids,
+		     &varid)) ERR;
+      if (nc_def_var_fill(ncid, varid, 1, NULL)) ERR;
+
+      if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value_in)) ERR;
+      if (!no_fill) ERR;
+
+      index[0] = 1;
+      if (nc_put_var1_ushort(ncid, varid, index, &ushort_data)) ERR;
+
+      index[0] = 0;
+      if (nc_get_var1_ushort(ncid, varid, index, &ushort_data_in)) ERR;
+
+      if (nc_close(ncid)) ERR;
+\endcode
+*/
+int
+nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
+{
+    NC* ncp;
+    int stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) return stat;
+    return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
+}
+
 #ifdef USE_NETCDF4
 /** \ingroup variables
 
@@ -897,80 +970,6 @@ nc_def_var_chunking(int ncid, int varid, int storage,
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->def_var_chunking(ncid, varid, storage,
 					   chunksizesp);
-}
-
-/*! Set the fill value for a netCDF4/HDF5 variable.
-
-\ingroup variables
-
-\param ncid NetCDF ID, from a previous call to nc_open or
-nc_create.
-
-\param varid Variable ID.
-
-\param no_fill Set to NC_NOFILL to turn off fill mode for this
-variable. Set to NC_FILL (the default) to turn on fill mode for the
-variable.
-
-\param fill_value the fill value to be used for this variable. Must be
-the same type as the variable. This must point to enough free memory
-to hold one element of the data type of the variable. (For example, an
-NC_INT will require 4 bytes for it's fill value, which is also an
-NC_INT.)
-
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ID.
- * @returns ::NC_ENOTNC4 Not a netCDF-4 file.
- * @returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for
-netCDF classic or 64-bit offset files, or for netCDF-4 files, when
-they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
- * @returns ::NC_EPERM Attempt to create object in read-only file.
-
-\section nc_def_var_fill_example Example
-
-In this example from libsrc4/tst_vars.c, a variable is defined, and
-the fill mode turned off. Then nc_inq_fill() is used to check that the
-setting is correct. Then some data are written to the variable. Since
-the data that are written do not cover the full extent of the
-variable, the missing values will just be random. If fill value mode
-was turned on, the missing values would get the fill value.
-
-\code
-#define DIM7_LEN 2
-#define DIM7_NAME "dim_7_from_Indiana"
-#define VAR7_NAME "var_7_from_Idaho"
-#define NDIMS 1
-      int dimids[NDIMS];
-      size_t index[NDIMS];
-      int varid;
-      int no_fill;
-      unsigned short ushort_data = 42, ushort_data_in, fill_value_in;
-
-      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-      if (nc_def_dim(ncid, DIM7_NAME, DIM7_LEN, &dimids[0])) ERR;
-      if (nc_def_var(ncid, VAR7_NAME, NC_USHORT, NDIMS, dimids,
-		     &varid)) ERR;
-      if (nc_def_var_fill(ncid, varid, 1, NULL)) ERR;
-
-      if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value_in)) ERR;
-      if (!no_fill) ERR;
-
-      index[0] = 1;
-      if (nc_put_var1_ushort(ncid, varid, index, &ushort_data)) ERR;
-
-      index[0] = 0;
-      if (nc_get_var1_ushort(ncid, varid, index, &ushort_data_in)) ERR;
-
-      if (nc_close(ncid)) ERR;
-\endcode
-*/
-int
-nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
 }
 
 /**
