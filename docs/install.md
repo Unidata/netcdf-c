@@ -97,7 +97,15 @@ HDF5 and zlib packages are available from the <a href="http://www.hdfgroup.org/d
 
 ### Optional: szip support {#op_szip_support}
 
-*Optionally*, you can also build netCDF-4 with the szip library (a.k.a. szlib). If building with szlib, get szip 2.0 or later. NetCDF cannot create szipped data files, but can read HDF5 data files that have used szip. To determine whether license restrictions on the use of szip apply to your situation, see the <a href="http://www.hdfgroup.org/doc_resource/SZIP/">web page on szip compression in HDF products</a>.
+*Optionally*, you can also build netCDF-4 with the szip library (a.k.a. szlib). If building with szlib, get szip 2.0 or later. Technically, we mean that
+the HDF5 library is built with szip support. The netcdf build will then
+inherit szip support from the HDF5 library.
+If you intend to write files with szip compression, then we suggest that you
+use [libaec](https://gitlab.dkrz.de/k202009/libaec.git)
+to avoid patent problems. That library can be used as a 
+drop-in replacement for the standard szip library.
+If you plan to use the standard szip library, 
+then determine whether license restrictions on the use of szip apply to your situation. See the <a href="http://www.hdfgroup.org/doc_resource/SZIP/">web page on szip compression in HDF products</a>.
 
 If `make check` fails for either `zlib` or `HDF5`, the problem must be resolved before the netCDF-4 installation can continue. For HDF5 problems, see the <a href="http://www.hdfgroup.org/services/support.html">HDF5 help services</a>.
 
@@ -409,13 +417,13 @@ The output of the configuration step is a project file based on the appropriate 
 
 | **Option** | **Autotools** | **CMake** |
 | :------- | :---- | :----- |
-Specify Install Location | --prefix=PREFIX | -D"CMAKE\_INSTALL\_PREFIX=PREFIX"
-Enable/Disable netCDF-4 | --enable-netcdf-4<br>--disable-netcdf-4 | -D"ENABLE\_NETCDF\_4=ON" <br> -D"ENABLE\_NETCDF\_4=OFF"
-Enable/Disable DAP | --enable-dap <br> --disable-dap | -D"ENABLE\_DAP=ON" <br> -D"ENABLE\_DAP=OFF"
-Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -D"BUILD\_UTILITIES=ON" <br> -D"BUILD\_UTILITIES=OFF"
-Specify shared/Static Libraries | --enable-shared <br> --enable-static | -D"BUILD\_SHARED\_LIBS=ON" <br> -D"BUILD\_SHARED\_LIBS=OFF"
-Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -D"ENABLE\_TESTS=ON" <br> -D"ENABLE\_TESTS=OFF"
-Specify a custom library location | Use *CFLAGS* and *LDFLAGS* | -D"CMAKE\_PREFIX\_PATH=/usr/custom_libs/"
+Specify Install Location | --prefix=PREFIX | -D"CMAKE_INSTALL_PREFIX=PREFIX"
+Enable/Disable netCDF-4 | --enable-netcdf-4<br>--disable-netcdf-4 | -D"ENABLE_NETCDF_4=ON" <br> -D"ENABLE_NETCDF_4=OFF"
+Enable/Disable DAP | --enable-dap <br> --disable-dap | -D"ENABLE_DAP=ON" <br> -D"ENABLE_DAP=OFF"
+Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -D"BUILD_UTILITIES=ON" <br> -D"BUILD_UTILITIES=OFF"
+Specify shared/Static Libraries | --enable-shared <br> --enable-static | -D"BUILD_SHARED_LIBS=ON" <br> -D"BUILD_SHARED_LIBS=OFF"
+Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -D"ENABLE_TESTS=ON" <br> -D"ENABLE_TESTS=OFF"
+Specify a custom library location | Use *CFLAGS* and *LDFLAGS* | -D"CMAKE_PREFIX_PATH=/usr/custom_libs/"
 
 A full list of *basic* options can be found by invoking `cmake [Source Directory] -L`. To enable a list of *basic* and *advanced* options, one would invoke `cmake [Source Directory] -LA`.
 
@@ -465,4 +473,5 @@ or
 
 ## See Also {#cmake_see_also}
 
-For further information regarding netCDF and CMake, see \ref cmake_faq
+For further information regarding netCDF and CMake, see \ref cmake_faq.
+

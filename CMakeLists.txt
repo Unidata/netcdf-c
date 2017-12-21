@@ -501,6 +501,14 @@ IF(ENABLE_NETCDF_4)
   SET(ENABLE_NETCDF4 ON CACHE BOOL "")
 ENDIF()
 
+# Option to allow for strict null file padding.
+# See https://github.com/Unidata/netcdf-c/issues/657 for more information
+OPTION(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
+
+IF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
+  SET(USE_STRICT_NULL_BYTE_HEADER_PADDING ON CACHE BOOL "")
+ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
+
 # Option for building RPC
 OPTION(ENABLE_RPC "Enable RPC Client and Server." OFF)
 IF(ENABLE_RPC)
@@ -689,10 +697,11 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_deflate "" HAVE_H5PSET_DEFLATE)
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5P_SZIP "" USE_SZIP)
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Z_SZIP "" USE_SZIP)
   IF(USE_SZIP)
     FIND_LIBRARY(SZIP NAMES szip sz)
     IF(SZIP)
+      SET(HAVE_H5Z_SZIP 1)
       SET(SZIP_LIBRARY ${SZIP})
       SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${SZIP})
     ELSE()
@@ -825,7 +834,6 @@ ELSE()
   SET(ENABLE_DAP4 OFF)
 ENDIF()
 
-# Check to see if libtool supports
 
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
@@ -994,7 +1002,6 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
   ENDIF()
 ENDIF()
 
-
 # Options to enable parallel IO, tests.
 SET(STATUS_PNETCDF "OFF")
 OPTION(ENABLE_PNETCDF "Build with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
@@ -1098,6 +1105,12 @@ IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
   IF(USE_NETCDF4)
     SET(TEST_PARALLEL4 ON CACHE BOOL "")
   ENDIF()
+ENDIF()
+
+# Enable special filter test; experimental when using cmake.
+OPTION(ENABLE_FILTER_TEST "Enable special filter test. Ignored if netCDF4 is not enabled" OFF)
+IF(USE_NETCDF4)
+  SET(ENABLE_FILTER_TEST OFF CACHE BOOL "")
 ENDIF()
 
 # Determine whether or not to generate documentation.
@@ -1240,6 +1253,7 @@ CHECK_INCLUDE_FILE("sys/types.h" HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE("sys/wait.h"  HAVE_SYS_WAIT_H)
 CHECK_INCLUDE_FILE("sys/mman.h"  HAVE_SYS_MMAN_H)
 CHECK_INCLUDE_FILE("sys/resource.h" HAVE_SYS_RESOURCE_H)
+CHECK_INCLUDE_FILE("sys/cdefs.h" HAVE_SYS_CDEFS_H)
 CHECK_INCLUDE_FILE("fcntl.h"  HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("inttypes.h"  HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE("pstdint.h"  HAVE_PSTDINT_H)
@@ -1510,7 +1524,7 @@ ENDMACRO()
 MACRO(build_bin_test_no_prefix F)
   build_bin_test(${F})
   IF(MSVC)
-    SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
+    #SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
     SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
       ${CMAKE_CURRENT_BINARY_DIR})
     SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
@@ -1783,10 +1797,6 @@ IF(MSVC)
   DESTINATION ${CMAKE_INSTALL_BINDIR}
   COMPONENT dependencies)
 
-  #INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
-  #  INSTALL(FILES ${ALL_TLL_LIBS}
-  #  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  #  COMPONENT dependencies)
 ENDIF()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -1828,6 +1838,12 @@ ENDFOREACH()
 SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
 
 STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
+STRING(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+STRING(REPLACE "-lhdf5::hdf5-static" "-lhdf5" NC_LIBS ${NC_LIBS})
+STRING(REPLACE "-lhdf5::hdf5_hl-static" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+
+
 STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 
 LIST(REMOVE_DUPLICATES NC_LIBS)

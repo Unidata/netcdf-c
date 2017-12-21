@@ -759,6 +759,7 @@ INPUT = \
     @abs_top_srcdir@/docs/tutorial.dox \
     @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/auth.md \
+    @abs_top_srcdir@/docs/filters.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
     @abs_top_srcdir@/docs/FAQ.md \
     @abs_top_srcdir@/docs/known_problems.md \
@@ -787,7 +788,18 @@ INPUT = \
     @abs_top_srcdir@/libdispatch/dparallel.c \
     @abs_top_srcdir@/libdispatch/derror.c \
     @abs_top_srcdir@/libdispatch/dv2i.c \
+    @abs_top_srcdir@/libdispatch/dcopy.c \
     @abs_top_srcdir@/libsrc4/nc4file.c \
+    @abs_top_srcdir@/libsrc4/nc4var.c \
+    @abs_top_srcdir@/libsrc4/nc4hdf.c \
+    @abs_top_srcdir@/libsrc4/nc4internal.c \
+    @abs_top_srcdir@/libsrc4/nc4type.c \
+    @abs_top_srcdir@/libsrc4/nc4grp.c \
+    @abs_top_srcdir@/libsrc4/ncfunc.c \
+    @abs_top_srcdir@/libsrc4/nc4dim.c \
+    @abs_top_srcdir@/libsrc4/nc4attr.c \
+    @abs_top_srcdir@/libsrc4/nc4info.c \
+    @abs_top_srcdir@/libsrc4/nc4dispatch.c \
     @abs_top_srcdir@/examples/C/simple_xy_wr.c \
     @abs_top_srcdir@/examples/C/simple_xy_rd.c \
     @abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \

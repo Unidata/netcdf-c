@@ -1866,8 +1866,8 @@ checking be used for all netCDF function calls.
 ----------
 
 
-CMake {#cmake_faq}
-==============================================
+CMake-Related Frequently Asked Questions {#cmake_faq}
+========================================
 
 Below are a list of commonly-asked questions regarding NetCDF and CMake.
 

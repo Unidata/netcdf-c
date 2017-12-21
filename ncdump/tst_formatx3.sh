@@ -24,19 +24,19 @@ echo ""
 echo "*** Testing extended file format output."
 set -e
 echo "Test extended format output for a netcdf-3 file"
-rm -f tmp
-${NCGEN} -k nc3 -b -o ./test.nc $srcdir/ref_tst_small.cdl
-${NCDUMP} -K test.nc >tmp
-if ! grep 'classic mode=00000000' <tmp ; then
+rm -f tmp_tst_formatx3
+${NCGEN} -k nc3 -b -o ./tst_formatx3.nc $srcdir/ref_tst_small.cdl
+${NCDUMP} -K tst_formatx3.nc >tmp_tst_formatx3
+if ! grep 'classic mode=00000000' <tmp_tst_formatx3 ; then
 echo "*** Fail: extended format for a classic file"
 ECODE=1
 fi
 
 echo "Test extended format output for a 64-bit offset netcdf-3 file"
-rm -f tmp
-${NCGEN} -k nc6 -b -o ./test.nc $srcdir/ref_tst_small.cdl
-${NCDUMP} -K test.nc >tmp
-if ! grep '64-bit offset mode=00000200' <tmp ; then
+rm -f tmp_tst_formatx3
+${NCGEN} -k nc6 -b -o ./tst_formatx3.nc $srcdir/ref_tst_small.cdl
+${NCDUMP} -K tst_formatx3.nc >tmp_tst_formatx3
+if ! grep '64-bit offset mode=00000200' <tmp_tst_formatx3 ; then
 echo "*** Fail: extended format for a 64-bit classic file"
 ECODE=1
 fi
@@ -46,15 +46,15 @@ fi
 
 if test "x$USE_CDF5" = x1 ; then
     echo "Test extended format output for a 64-bit CDF-5 classic file"
-    rm -f tmp
-    ${NCGEN} -k5 -b -o ./test.nc $srcdir/ref_tst_small.cdl
-    ${NCDUMP} -K test.nc >tmp
-    if ! grep -F '64-bit data mode=00000020' <tmp ; then
+    rm -f tmp_tst_formatx3
+    ${NCGEN} -k5 -b -o ./tst_formatx3.nc $srcdir/ref_tst_small.cdl
+    ${NCDUMP} -K tst_formatx3.nc >tmp_tst_formatx3
+    if ! grep -F '64-bit data mode=00000020' <tmp_tst_formatx3 ; then
         echo "*** Fail: extended format for a 64-bit CDF-5 classic file"
         ECODE=1
     fi
 fi
 
-rm -f tmp test.nc
+rm -f tmp_tst_formatx3 tst_formatx3.nc
 
 exit $ECODE

@@ -1,8 +1,17 @@
 # Visual Studio
-VS=1
 
-if test "x$1" = xsetup ; then
-VSSETUP=1
+case "$1" in
+vs|VS) VS=1 ;;
+linux|nix) unset VS ;;
+*) echo "Must specify env: vs|linux"; exit 1; ;;
+esac
+
+if test "x$VS" = x1 ; then
+  if test "x$2" = xsetup ; then
+    VSSETUP=1
+  else
+    unset VSSETUP
+  fi
 fi
 
 #export NCPATHDEBUG=1
@@ -48,19 +57,19 @@ NCLIB=`pwd`
 
 if test "x$VS" != x ; then
 # Visual Studio
+#CFG="RelWithDebInfo"
+CFG="Release"
 NCLIB="${NCLIB}/build/liblib/$CFG"
 export PATH="${NCLIB}:${PATH}"
 cmake $FLAGS ..
-if test "x$VSSETUP" = x ; then
 cmake --build . --config ${CFG}
 cmake --build . --config ${CFG} --target RUN_TESTS
-fi
 else
 # GCC
 NCLIB="${NCLIB}/build/liblib"
 G="-GUnix Makefiles"
 cmake "${G}" $FLAGS ..
-make all
-make test
+#make all
+#make test
 fi
 exit
