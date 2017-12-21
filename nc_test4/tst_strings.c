@@ -244,7 +244,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-   printf("*** testing long string variable...");
+   printf("*** testing string variables with fill values...");
    {
 #define VAR_NAME2 "empty"
 #define ATT_NAME2 "empty"
@@ -426,14 +426,18 @@ main(int argc, char **argv)
 	 "any of the rights and freedoms set forth herein."
       };
       char *empty_string[] = {""};
+      char *my_string_fill[] = {"fill_string"};
 
-#define NUM_DIM_COMBOS 3
+#define NUM_DIM_COMBOS 4
       int dim_combo;
+
       for (dim_combo = 0; dim_combo < NUM_DIM_COMBOS; dim_combo++)
       {
          char filename[NC_MAX_NAME + 1];
          int dim_len = dim_combo ? NC_UNLIMITED : DHR_LEN;
          int expected_unlimdimid = dim_combo ? 0 : -1;
+         char *default_fill = ((char *)"");
+         char **string_fillp = dim_combo == 3 ? my_string_fill : &default_fill;
          char *data_in;
 
          sprintf(filename, "%s_dim_combo_%d.nc", TEST_NAME, dim_combo);
@@ -445,6 +449,8 @@ main(int argc, char **argv)
 
          /* Create a scalar variable for the empty string. */
          if (nc_def_var(ncid, VAR_NAME2, NC_STRING, 0, NULL, &varid2)) ERR;
+         if (dim_combo == 3)
+            if (nc_put_att(ncid, varid, _FillValue, NC_STRING, 1, my_string_fill)) ERR;
 
          /* Check some stuff. */
          if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -466,9 +472,9 @@ main(int argc, char **argv)
                size_t new_start[NDIMS];
                size_t *my_startp = start;
 
-               /* For dim_combo 2, skip every other record. */
+               /* For dim_combo 2 or 3 skip every other record. */
                new_start[0] = start[0] + counter++;
-               if (dim_combo == 2)
+               if (dim_combo >= 2)
                   my_startp = new_start;
 
                /* Write a record. */
@@ -495,10 +501,21 @@ main(int argc, char **argv)
 
          /* Check declaration. */
          if (nc_inq_varid(ncid, VAR_NAME1, &varid)) ERR;
-         if (nc_inq_var(ncid, varid, var_name, &var_type, &var_ndims,
-                        var_dimids, &var_natts)) ERR;
+         if (nc_inq_var(ncid, varid, var_name, &var_type, &var_ndims, var_dimids,
+                        &var_natts)) ERR;
          if (var_type != NC_STRING || strcmp(var_name, VAR_NAME1) || var_ndims != NDIMS ||
              var_dimids[0] != dimids[0]) ERR;
+
+         /* Check fill value stuff. */
+         {
+            int no_fill;
+            char *fill_value_in[1];
+            
+            if (nc_inq_var_fill(ncid, varid, &no_fill, (char **)fill_value_in)) ERR;
+            if (no_fill) ERR;
+            if (strcmp(fill_value_in[0], *string_fillp)) ERR;
+            if (nc_free_string(1, fill_value_in)) ERR;            
+         }
 
          if (dim_combo < 2)
          {
@@ -527,7 +544,7 @@ main(int argc, char **argv)
                }
                else
                {
-                  if (strcmp(data_in, NC_FILL_STRING)) ERR;
+                  if (strcmp(data_in, *string_fillp)) ERR;
                }
                if (nc_free_string(1, &data_in)) ERR;
             }

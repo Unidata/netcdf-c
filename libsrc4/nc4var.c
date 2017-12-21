@@ -743,8 +743,12 @@ exit:
 }
 
 /**
- * @internal Get all the information about a variable. Pass NULL for whatever
- * you don't care about. 
+ * @internal Get all the information about a variable. Pass NULL for
+ * whatever you don't care about. This is the internal function called
+ * by nc_inq_var(), nc_inq_var_deflate(), nc_inq_var_fletcher32(),
+ * nc_inq_var_chunking(), nc_inq_var_chunking_ints(),
+ * nc_inq_var_fill(), nc_inq_var_endian(), nc_inq_var_filter(), and
+ * nc_inq_var_szip().
  *
  * @param ncid File ID.
  * @param varid Variable ID.
@@ -798,9 +802,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-
-   assert(nc);
-   assert(grp && h5);
+   assert(nc && grp && h5);
 
    /* Walk through the list of vars, and return the info about the one
       with a matching varid. If the varid is -1, find the global
@@ -880,9 +882,9 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       {
          if (var->type_info->nc_type_class == NC_STRING)
          {
-            if (*(char **)var->fill_value) {
-
-               if (!(fill_valuep = calloc(1, sizeof(char *))))
+            if (*(char **)var->fill_value)
+            {
+               if (!(*(char **)fill_valuep = calloc(1, sizeof(char *))))
                   return NC_ENOMEM;
 
                if (!(*(char **)fill_valuep = strdup(*(char **)var->fill_value)))
@@ -892,7 +894,8 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                }
             }
          }
-         else {
+         else
+         {
             assert(var->type_info->size);
             memcpy(fill_valuep, var->fill_value, var->type_info->size);
          }
