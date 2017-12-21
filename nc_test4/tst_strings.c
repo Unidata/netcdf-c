@@ -560,5 +560,44 @@ main(int argc, char **argv)
       } /* next dim_combo */
    }
    SUMMARIZE_ERR;
+
+   printf("*** Testing a file that causes ncdump problems...");
+   {
+#define NUM_DIMS 2
+#define DIM_0_NAME "dim_0"
+#define DIM_1_NAME "dim_1"
+#define DIM_1_LEN 2
+#define FILE_NAME_NCDUMP "tst_strings_ncdump_problem.nc"
+#define VAR_NAME_NCDUMP "var_string"
+      int ncid, varid, dimid[NUM_DIMS];
+      char *string_data[] = {"x"};
+
+      /* Create a file. */
+      if (nc_create(FILE_NAME_NCDUMP, NC_NETCDF4, &ncid)) ERR;
+
+      /* Create dims. */
+      if (nc_def_dim(ncid, DIM_0_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+      if (nc_def_dim(ncid, DIM_1_NAME, DIM_1_LEN, &dimid[1])) ERR;
+               
+      /* Create a var. */
+      if (nc_def_var(ncid, VAR_NAME_NCDUMP, NC_STRING, NUM_DIMS, dimid, &varid)) ERR;
+
+      /* Check that you can't turn off fill mode for NC_STRING variables. */
+      if (nc_def_var_fill(ncid, varid, NC_NOFILL, NULL) != NC_EINVAL) ERR;
+
+      /* End define mode. */
+      if (nc_enddef(ncid)) ERR;
+
+      /* Write to each var. */
+      for (int t = 0; t < 1; t++)
+      {
+         size_t start[NUM_DIMS] = {1, 0};
+         size_t count[NUM_DIMS] = {1, 1};
+
+         if (nc_put_vara_string(ncid, varid, start, count, (const char **)string_data)) ERR;
+      }
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

@@ -1105,6 +1105,10 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    /* Are we setting a fill modes? */
    if (no_fill)
    {
+      /* NC_STRING types may not turn off fill mode. It's disallowed
+       * by HDF5 and will cause a HDF5 error later. */
+      if (var->type_info->nc_typeid == NC_STRING)
+         return NC_EINVAL;
       if (*no_fill)
          var->no_fill = NC_TRUE;
       else
