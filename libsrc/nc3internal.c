@@ -490,12 +490,13 @@ fillerup(NC3_INFO *ncp)
 	NC_var **varpp;
 
 	assert(!NC_readonly(ncp));
-	assert(NC_dofill(ncp));
 
 	/* loop thru vars */
 	varpp = ncp->vars.value;
 	for(ii = 0; ii < ncp->vars.nelems; ii++, varpp++)
 	{
+		if ((*varpp)->no_fill) continue;
+
 		if(IS_RECVAR(*varpp))
 		{
 			/* skip record variables */
@@ -538,6 +539,9 @@ fill_added_recs(NC3_INFO *gnu, NC3_INFO *old)
 		for(; varid < (int)gnu->vars.nelems; varid++)
 		    {
 			const NC_var *const gnu_varp = *(gnu_varpp + varid);
+
+			if (gnu_varp->no_fill) continue;
+
 			if(!IS_RECVAR(gnu_varp))
 			    {
 				/* skip non-record variables */
@@ -566,6 +570,9 @@ fill_added(NC3_INFO *gnu, NC3_INFO *old)
 	for(; varid < (int)gnu->vars.nelems; varid++)
 	{
 		const NC_var *const gnu_varp = *(gnu_varpp + varid);
+
+		if (gnu_varp->no_fill) continue; 
+
 		if(IS_RECVAR(gnu_varp))
 		{
 			/* skip record variables */
@@ -840,7 +847,7 @@ NC_endef(NC3_INFO *ncp,
 	if(status != NC_NOERR)
 		return status;
 
-	if(NC_dofill(ncp))
+	/* fill mode is now per variable */
 	{
 		if(NC_IsNew(ncp))
 		{
@@ -1432,7 +1439,7 @@ int
 NC3_set_fill(int ncid,
 	int fillmode, int *old_mode_ptr)
 {
-	int status;
+	int i, status;
 	NC *nc;
 	NC3_INFO* nc3;
 	int oldmode;
@@ -1472,6 +1479,14 @@ NC3_set_fill(int ncid,
 
 	if(old_mode_ptr != NULL)
 		*old_mode_ptr = oldmode;
+
+	/* loop thru all variables to set/overwrite its fill mode */
+	for (i=0; i<nc3->vars.nelems; i++)
+		nc3->vars.value[i]->no_fill = (fillmode == NC_NOFILL);
+
+	/* once the file's fill mode is set, any new variables defined after
+	 * this call will check NC_dofill(nc3) and set their no_fill accordingly.
+	 * See NC3_def_var() */
 
 	return NC_NOERR;
 }
