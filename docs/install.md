@@ -76,6 +76,7 @@ Requirements {#netcdf_requirements}
 * For netCDF-4 support:
   * Either HDF5 1.8.9 or later,
   * or HDF5 1.10.1 or later.
+
 * zlib 1.2.5 or later (for netCDF-4 compression)
 * curl 7.18.0 or later (for DAP remote access client support)
 
