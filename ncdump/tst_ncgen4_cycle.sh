@@ -16,6 +16,7 @@ fi
 
 echo "*** Cycle testing ncgen with -k${KFLAG}"
 
+mkdir ${RESULTSDIR}
 cd ${RESULTSDIR}
 for x in ${TESTSET} ; do
   test "x$verbose" = x1 && echo "*** Testing: ${x}"
@@ -34,18 +35,19 @@ for x in ${TESTSET} ; do
 	echo "xfail test: ${x}: ignored"
         xfailcount=`expr $xfailcount + 1`	
   else
-    rm -f ${x}.nc ${x}.dmp
+    rm -f ${x}_$$.nc ${x}_$$.dmp
     # step 1: use original cdl to build the .nc
-    ${NCGEN} -b -k${KFLAG} -o ${x}.nc ${cdl}/${x}.cdl
+    ${NCGEN} -b -k${KFLAG} -o ${x}_$$.nc ${cdl}/${x}.cdl
     # step 2: dump .nc file
-    ${NCDUMP} ${headflag} ${specflag} ${x}.nc > ${x}.dmp
+    ${NCDUMP} ${headflag} ${specflag} -n ${x} ${x}_$$.nc > ${x}_$$.dmp
     # step 3: use ncgen and the ncdump output to (re-)build the .nc
-    rm -f ${x}.nc
-    ${NCGEN} -b -k${KFLAG} -o ${x}.nc ${x}.dmp
+    rm -f ${x}_$$.nc
+    ${NCGEN} -b -k${KFLAG} -o ${x}_$$.nc ${x}_$$.dmp
     # step 4: dump .nc file again
-    ${NCDUMP} ${headflag} ${specflag} ${x}.nc > ${x}.dmp2
+    ${NCDUMP} ${headflag} ${specflag} -n ${x} ${x}_$$.nc > ${x}_$$.dmp2
     # compare the two ncdump outputs
-    if diff -b -w ${x}.dmp ${x}.dmp2 ; then ok=1; else ok=0; fi
+    if diff -b -w ${x}_$$.dmp ${x}_$$.dmp2 ; then ok=1; else ok=0; fi
+    rm -f ${x}_$$.nc ${x}_$$.dmp
     if test "x$ok" = "x1" ; then
       test "x$verbose" = x1 && echo "*** SUCCEED: ${x}"
       passcount=`expr $passcount + 1`
@@ -61,6 +63,7 @@ totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
 
 echo "*** PASSED: ${okcount}/${totalcount} ; ${failcount} unexpected failures; ${xfailcount} expected failures ignored"
+rm -rf ${RESULTSDIR}
 
 if test $failcount -gt 0 ; then
   exit 1

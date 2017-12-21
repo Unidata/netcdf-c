@@ -18,8 +18,7 @@ AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 EXTRA_DIST = ref_nctest_classic.nc ref_nctest_64bit_offset.nc	\
 compare_test_files.sh run_valgrind_tests.sh CMakeLists.txt
 
-CLEANFILES = nctest_classic.nc nctest_64bit_offset.nc	\
-nctest_netcdf4.nc test2.nc temp.tmp tst_*.nc            \
+CLEANFILES = nctest_*.nc test2.nc temp.tmp tst_*.nc	\
 nctest_classic.cdl ref_nctest_classic.cdl
 
 # Run nctest and the script that compares the output with the
@@ -27,6 +26,12 @@ nctest_classic.cdl ref_nctest_classic.cdl
 TESTPROGRAMS = nctest tst_rename
 check_PROGRAMS = $(TESTPROGRAMS)
 TESTS = $(TESTPROGRAMS) compare_test_files.sh
+
+# Note which tests depend on other tests. Necessary for make -j check.
+TEST_EXTENSIONS = .sh
+
+# compare_test_files depends on nctest executing first.
+compare_test_files.log: nctest.log 
 
 # This will the test program with valgrind, the memory checking
 # tool. (Valgrind must be present for this to work.)

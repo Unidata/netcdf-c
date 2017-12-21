@@ -111,6 +111,9 @@ are set when opening a binary file on Windows. */
 #cmakedefine ENABLE_CDF5 1
 #cmakedefine USE_CDF5 1
 
+/* if true, enable strict null byte header padding. */
+#cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
+
 /* if true, build DAP2 and DAP4 Client */
 #cmakedefine ENABLE_DAP 1
 
@@ -406,6 +409,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `sysconf' function. */
 #cmakedefine HAVE_SYSCONF 1
+
+/* Define to 1 if you have the <sys/cdefs.h> header file. */
+#cmakedefine HAVE_SYS_CDEFS_H 1
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */

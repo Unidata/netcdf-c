@@ -12,13 +12,14 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include <pnetcdf.h>  /* for ncmpi_strerror() */
 #endif
 
-/* Tell the user the version of netCDF. */
+/** @internal The version string for the library, used by
+ * nc_inq_libvers(). */
 static const char nc_libvers[] = PACKAGE_VERSION " of "__DATE__" "__TIME__" $";
 
 /**
-  Return the library version.
+Return the library version.
 
-  \returns short string that contains the version information for the
+\returns short string that contains the version information for the
 library.
  */
 const char *
@@ -252,11 +253,15 @@ const char *nc_strerror(int ncerr1)
 	    "when netCDF was built.";
       case NC_EDISKLESS:
 	 return "NetCDF: Error in using diskless access";
+      case NC_EFILTER:
+	 return "NetCDF: Filter error: bad id or parameters or filter library non-existent";
       case NC_ECANTEXTEND:
 	return "NetCDF: Attempt to extend dataset during NC_INDEPENDENT I/O operation. Use nc_var_par_access to set mode NC_COLLECTIVE before extending variable.";
       case NC_EMPI: return "NetCDF: MPI operation failed.";
       case NC_ERCFILE:
 	return "NetCDF: RC File Failure.";
+   case NC_ENULLPAD:
+     return "NetCDF: File fails strict Null-Byte Header check.";
       default:
 #ifdef USE_PNETCDF
         /* The behavior of ncmpi_strerror here is to return

@@ -40,20 +40,21 @@ resultclean() {
   fi
 }
 
+mkdir ./results_test_raw
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINERAW}/*.dmp ; fi
 for f in $F ; do
     echo "testing: $f"
     URL="[dap4]file://${DAPTESTFILES}/${f}"
-    if ! ${VG} ${NCDUMP} "${URL}" > ./results/${f}.dmp; then
+    if ! ${VG} ${NCDUMP} "${URL}" > ./results_test_raw/${f}.dmp; then
         failure "${URL}"
     fi
     if test "x${TEST}" = x1 ; then
-	if ! diff -wBb ${BASELINERAW}/${f}.dmp ./results/${f}.dmp ; then
+	if ! diff -wBb ${BASELINERAW}/${f}.dmp ./results_test_raw/${f}.dmp ; then
 	    failure "diff ${f}.dmp"
 	fi
     elif test "x${RESET}" = x1 ; then
 	echo "${f}:" 
-	cp ./results/${f}.dmp ${BASELINERAW}/${f}.dmp
+	cp ./results_test_raw/${f}.dmp ${BASELINERAW}/${f}.dmp
     elif test "x${DIFF}" = x1 ; then
 	echo "hdrtest: ${f}"
 	rm -f ./tr1 ./tr2 ./tb1 ./tb2
@@ -63,6 +64,7 @@ for f in $F ; do
 	fi
     fi
 done
+rm -rf ./results_test_raw
 
 finish
 

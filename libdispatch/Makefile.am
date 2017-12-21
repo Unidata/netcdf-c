@@ -28,17 +28,12 @@ libdispatch_la_SOURCES += utf8proc.c utf8proc.h
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
 libdispatch_la_SOURCES += dgroup.c dvlen.c dcompound.c dtype.c denum.c	\
-dopaque.c ncaux.c
+dopaque.c dfilter.c ncaux.c
 endif # USE_NETCDF4
-
-# Turn on pre-processor flag when building a DLL for windows.
-if BUILD_DLL
-libdispatch_la_CPPFLAGS += -DDLL_EXPORT
-endif # BUILD_DLL
 
 # Add V2 API convenience library if needed.
 if BUILD_V2
-noinst_LTLIBRARIES += libnetcdf2.la 
+noinst_LTLIBRARIES += libnetcdf2.la
 libnetcdf2_la_SOURCES = dv2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
@@ -70,4 +65,3 @@ test_ncuri_SOURCES = test_ncuri.c ncuri.c ncbytes.c nclist.c
 test_pathcvt_SOURCES = test_pathcvt.c dwinpath.c
 check_PROGRAMS = test_ncuri test_pathcvt
 TESTS = test_ncuri test_pathcvt
-

@@ -172,8 +172,8 @@ fi
 
 set -e
 
-rm -fr results
-mkdir results
+rm -fr results_ctests
+mkdir results_ctests
 
 failcount=0
 passcount=0
@@ -190,7 +190,7 @@ for x in ${TESTSET} ; do
     if test "$x" = "$s" ; then isxfail=1; fi
   done
   ok=0;
-  cd results
+  cd results_ctests
   if ${NCGEN4} -lc -k${KFLAG} ${cdl}/${x}.cdl >${x}.c
     then ok=1; else ok=0; fi
   if $CC ${INCL} -c ${x}.c
@@ -204,7 +204,7 @@ for x in ${TESTSET} ; do
   cd ..
 if test 1 = 1; then
   # compare with expected
-  if diff -b -w ${expected}/${x}.dmp results/${x}.dmp
+  if diff -b -w ${expected}/${x}.dmp results_ctests/${x}.dmp
     then ok=1; else ok=0; fi
   if test "$ok" = "1" ; then
     echo "*** PASS: ${x}"
@@ -221,6 +221,7 @@ done
 
 totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
+rm -fr results_ctests
 
 echo "PASSED: ${okcount}/${totalcount} ; ${xfailcount} expected failures ; ${failcount} unexpected failures"
 
