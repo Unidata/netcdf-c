@@ -770,7 +770,7 @@ main(int argc, char **argv)
       char name_in[NC_MAX_NAME + 1];
       int data[DIM5_LEN], data_in[DIM5_LEN];
       size_t chunksize[NDIMS5] = {5};
-      size_t bad_chunksize[NDIMS5] = {-5};
+      size_t bad_chunksize[NDIMS5] = {-5}; /* Converted to large positive number since size_t is unsigned. */
       size_t chunksize_in[NDIMS5];
       int chunksize_int[NDIMS5];
       int chunksize_int_in[NDIMS5];

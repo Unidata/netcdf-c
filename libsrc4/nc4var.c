@@ -264,14 +264,11 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
       dprod = (double)sizeof(hvl_t);
    else
       dprod = (double)type_len;
+   
    for (d = 0; d < var->ndims; d++)
-   {
-      if (chunksizes[d] < 1)
-         return NC_EINVAL;
-      dprod *= (double) chunksizes[d];
-   }
+      dprod *= (double)chunksizes[d];
 
-   if (dprod > (double) NC_MAX_UINT)
+   if (dprod > (double)NC_MAX_UINT)
       return NC_EBADCHUNK;
 
    return NC_NOERR;
@@ -1073,7 +1070,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
        * big, and that their total size of chunk is less than 4 GB. */
       if (chunksizes)
       {
-
          if ((retval = check_chunksizes(grp, var, chunksizes)))
             return retval;
          for (d = 0; d < var->ndims; d++) {
