@@ -26,7 +26,7 @@
 #define num_formats 5
 #elif USE_NETCDF4
 #define num_formats 4
-#elif USE_CDF
+#elif USE_CDF5
 #define num_formats 3
 #else
 #define num_formats 2
@@ -35,7 +35,7 @@
 int
 main(int argc, char **argv)
 {
-    printf("*** testing proper elatefill return...");
+   printf("*** testing proper elatefill return on %d formats %d...", num_formats, USE_CDF5);
     {
 
 	int n = 0;

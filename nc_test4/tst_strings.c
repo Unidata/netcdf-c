@@ -571,6 +571,7 @@ main(int argc, char **argv)
 #define VAR_NAME_NCDUMP "var_string"
       int ncid, varid, dimid[NUM_DIMS];
       char *string_data[] = {"x"};
+      int t;
 
       /* Create a file. */
       if (nc_create(FILE_NAME_NCDUMP, NC_NETCDF4, &ncid)) ERR;
@@ -589,7 +590,7 @@ main(int argc, char **argv)
       if (nc_enddef(ncid)) ERR;
 
       /* Write to each var. */
-      for (int t = 0; t < 1; t++)
+      for (t = 0; t < 1; t++)
       {
          size_t start[NUM_DIMS] = {1, 0};
          size_t count[NUM_DIMS] = {1, 1};
