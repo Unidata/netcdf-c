@@ -559,6 +559,7 @@ main(int argc, char **argv)
    }
    SUMMARIZE_ERR;
 
+#ifndef NO_NETCDF_2
 #define VAR_DIMS2 2
    printf("*** testing 2D array of NC_FLOAT with v2 API...");
    {
@@ -584,6 +585,7 @@ main(int argc, char **argv)
       ncclose(ncid);
    }
    SUMMARIZE_ERR;
+#endif /* NO_NETCDF_2 */
 
 #define NDIMS 3
 #define NNAMES 4
