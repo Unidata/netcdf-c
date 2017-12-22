@@ -35,7 +35,6 @@
 int
 main(int argc, char **argv)
 {
-   printf("*** testing proper elatefill return on %d formats %d...", num_formats, USE_CDF5);
     {
 
 	int n = 0;
