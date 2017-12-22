@@ -25,7 +25,8 @@ tst_fillbug tst_xplatform tst_xplatform2 tst_endian_fill tst_atts	\
 t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_scalar tst_rename	\
 tst_h5_endians tst_atts_string_rewrite tst_hdf5_file_compat		\
-tst_fill_attr_vanish tst_rehash tst_filterparser tst_bug324
+tst_fill_attr_vanish tst_rehash tst_filterparser tst_bug324		\
+tst_put_vars tst_elatefill
 
 # Temporary I hope
 if !ISCYGWIN

@@ -1389,6 +1389,7 @@ main(int argc, char **argv)
    {
       int ncid;
       int dimids[NDIMS1];
+      int bad_dimids[NDIMS1] = {42};
       int varid;
       int num_models = 2;
       int m;
@@ -1406,6 +1407,11 @@ main(int argc, char **argv)
          /* Create a netcdf-4 file. */
          if (nc_create(FILE_NAME, mode, &ncid)) ERR;
          if (nc_def_dim(ncid, DIM8_NAME, TEST_VAL_42, &dimids[0])) ERR;
+
+         /* This won't work. */
+         if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, bad_dimids, &varid) != NC_EBADDIM) ERR;
+
+         /* This will work. */
          if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, dimids, &varid)) ERR;
 
          /* Set the var to contiguous. */

@@ -23,7 +23,7 @@ tst_utf8_validate tst_utf8_phrases tst_global_fillval                   \
 tst_max_var_dims tst_formats
 
 if USE_NETCDF4
-TESTPROGRAMS += tst_atts tst_put_vars tst_elatefill
+TESTPROGRAMS += tst_atts
 endif
 
 if USE_PNETCDF
@@ -106,7 +106,7 @@ tst_diskless5.cdl CMakeLists.txt
 CLEANFILES = tst_*.nc nc_test_classic.nc nc_test_64bit.nc		\
 nc_test_netcdf4.nc t_nc.nc large_files.nc quick_large_files.nc		\
 tst_diskless3_file.cdl tst_diskless3_memory.cdl tst_diskless4.cdl	\
-nc_test_cdf5.nc unlim.nc benchmark.nc
+nc_test_cdf5.nc benchmark.nc
 
 # Only clean these on maintainer-clean, because they require m4 to
 # regenerate.
