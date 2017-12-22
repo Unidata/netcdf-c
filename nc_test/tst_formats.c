@@ -134,24 +134,37 @@ check_inq_format(int ncid, int expected_format, int expected_extended_format,
 
 /* Check fill value settings for netCDF-4 files. */
 int check_fill_settings(int ncid, int varid, void *data_fill,
-                        int type_size, int use_fill)
+                        int type_size, int use_fill, int test_type)
 {
+   /* printf("check_fill_settings ncid %d varid %d type_size %d use_fill %d\n", ncid, varid, type_size, use_fill); */
 #ifdef USE_NETCDF4
    int no_fill;
    double fill_value;
+   char *string_fill_value[1];
 
-   /* Get the fill value settings. */
-   if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value)) ERR;
-
-   /* Is the fill setting correct? */
-   if (use_fill && no_fill) ERR;
-   if (!use_fill && !no_fill) ERR;
-
-   /* If using fill value, is the fill_value correct? */
-   if (use_fill && memcmp(&fill_value, data_fill, type_size))
+   /* Is the fill setting correct? Strings always have fill mode on. */
+   if (test_type == NC_STRING)
    {
-      printf("bad fill_value for varid %d\n", varid);
-      ERR;
+      if (nc_inq_var_fill(ncid, varid, &no_fill, (char **)string_fill_value)) ERR;
+      if (no_fill) ERR;
+      if (memcmp(string_fill_value[0], *(char **)data_fill, type_size)) ERR;
+      if (nc_free_string(1, (char **)string_fill_value)) ERR;
+   }
+   else
+   {
+      /* Get the fill value settings. */
+      if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value)) ERR;
+
+      /* Is the fill setting correct? */
+      if (use_fill && no_fill) ERR;
+      if (!use_fill && !no_fill) ERR;
+
+      /* If using fill value, is the fill_value correct? */
+      if (use_fill && memcmp(&fill_value, data_fill, type_size))
+      {
+         printf("bad fill_value for varid %d\n", varid);
+         ERR;
+      }
    }
 #endif /* USE_NETCDF4 */
    return NC_NOERR;
@@ -276,7 +289,7 @@ main(int argc, char **argv)
           * values, third, fill with custom fill values. */
          for (fill_combo = 0; fill_combo < NUM_FILL_COMBOS; fill_combo++)
          {
-            int default_fill = fill_combo == 1 ? 1 : 0;
+            int default_fill = fill_combo <= 1 ? 1 : 0;
             int use_fill = fill_combo ? 1 : 0;
             signed char byte_fill = default_fill ? NC_FILL_BYTE : NC_FILL_BYTE + TEST_VAL_42;
             unsigned char char_fill = default_fill ? NC_FILL_CHAR : NC_FILL_CHAR + TEST_VAL_42;
@@ -356,7 +369,7 @@ main(int argc, char **argv)
                /* Check the fill settings of netCDF-4 files. */
                if (format[f] == NC_FORMAT_NETCDF4 || format[f] == NC_FORMAT_NETCDF4_CLASSIC)
                   if (check_fill_settings(ncid, varid[t], data_fill[t], type_size,
-                                          use_fill)) ERR;
+                                          use_fill, test_type[t])) ERR;
             } /* next type */
 
             /* End define mode. */
@@ -415,7 +428,7 @@ main(int argc, char **argv)
                /* Check the fill settings of netCDF-4 files. */
                if (format[f] == NC_FORMAT_NETCDF4 || format[f] == NC_FORMAT_NETCDF4_CLASSIC)
                   if (check_fill_settings(ncid, varid[t], data_fill[t], type_size,
-                                          use_fill)) ERR;
+                                          use_fill, test_type[t])) ERR;
             }
             
             if (nc_close(ncid)) ERR;
