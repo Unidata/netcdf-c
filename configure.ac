@@ -852,6 +852,12 @@ AC_TYPE_OFF_T
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
+# Used for parallel IO builds with PIO.
+AC_CHECK_TYPE([MPI_Offset], [], [], [#include <mpi.h>])
+if test "x${ac_cv_type_MPI_Offset}" = xyes; then
+   AC_CHECK_SIZEOF([MPI_Offset], [], [#include <mpi.h>])
+fi
+
 ###
 # Crude hack to work around an issue
 # in Cygwin.
@@ -1097,12 +1103,39 @@ if test "x$enable_pnetcdf" = xyes; then
   fi
 fi
 
-# Now, set enable_parallel if either pnetcdf or parallel4 is set
-if test "x$enable_pnetcdf" = xyes -o "x$enable_parallel4" = xyes; then
+# Does the user want to use the PIO library?
+AC_MSG_CHECKING([whether PIO parallel I/O libary should be enabled])
+AC_ARG_ENABLE([pio], [AS_HELP_STRING([--enable-pio],
+              [build with PIO parallel I/O features for HPC IO performance])])
+test "x$enable_pio" = xyes || enable_pio=no
+AC_MSG_RESULT($enable_pio)
+
+if test "x$enable_pio" = xyes -a "x$enable_logging" = xyes; then
+   AC_DEFINE([PIO_ENABLE_LOGGING], [1], [log messages from library])
+fi
+
+# The PIO version and other necessary PIO values.
+if test "x$enable_pio" = xyes; then
+   AC_DEFINE([PIO_VERSION_MAJOR], [2], [PIO major version])
+   AC_DEFINE([PIO_VERSION_MINOR], [3], [PIO minor version])
+   AC_DEFINE([PIO_VERSION_PATCH], [0], [PIO patch version])
+   AC_DEFINE([PIO_USE_MALLOC], [1], [PIO always uses malloc in netCDF integration])
+fi
+
+# Now, set enable_parallel if pnetcdf, parallel4, or pio is set
+if test "x$enable_pnetcdf" = xyes -o "x$enable_parallel4" = xyes -o "x$enable_pio" = xyes; then
 enable_parallel=yes
 else
 enable_parallel=no
 fi
+
+AC_MSG_CHECKING([whether a PIO_BUFFER_SIZE was specified (only used with PIO/pnetcdf)])
+AC_ARG_WITH([piobuffersize],
+              [AS_HELP_STRING([--with-piobuffersize=<integer>],
+                              [Specify buffer size for PIO.])],
+            [PIO_BUFFER_SIZE=$with_piobuffersize], [PIO_BUFFER_SIZE=134217728])
+AC_MSG_RESULT([$PIO_BUFFER_SIZE])
+AC_DEFINE_UNQUOTED([PIO_BUFFER_SIZE], [$PIO_BUFFER_SIZE], [buffer size for darray data.])
 
 AM_CONDITIONAL(ENABLE_PARALLEL, [test x$enable_parallel = xyes ])
 
@@ -1119,6 +1152,17 @@ fi
 
 if test "x$enable_pnetcdf" = xyes; then
   AC_DEFINE([USE_PNETCDF], [1], [if true, parallel netCDF is used])
+fi
+
+if test "x$enable_pio" = xyes; then
+  AC_DEFINE([USE_PIO], [1], [if true, PIO parallel IO library is used])
+  AC_DEFINE([_NETCDF], [1], [needed for PIO code])
+  if test "x$enable_netcdf_4" = xyes; then      
+    AC_DEFINE([_NETCDF4], [1], [needed for PIO code])
+  fi
+  if test "x$enable_pnetcdf" = xyes; then      
+    AC_DEFINE([_PNETCDF], [1], [needed for PIO code])
+  fi
 fi
 
 # If enable_parallel is in use, enable it in the C code. Also add some stuff to netcdf.h.
@@ -1243,6 +1287,7 @@ AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
 AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
 AM_CONDITIONAL(BUILD_FORTRAN, [test x$enable_remote_fortran_bootstrap = xyes])
 AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
+AM_CONDITIONAL(USE_PIO, [test x$enable_pio = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
 AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
@@ -1359,6 +1404,7 @@ AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_CDF5,[$enable_cdf5])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
+AC_SUBST(HAS_PIO,[$enable_pio])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_LOGGING, [$enable_logging])
 AC_SUBST(HAS_SZLIB,[$enable_szlib])
@@ -1431,6 +1477,7 @@ AX_SET_META([NC_HAS_DISKLESS],[$enable_diskless],[yes])
 AX_SET_META([NC_HAS_MMAP],[$enable_mmap],[yes])
 AX_SET_META([NC_HAS_JNA],[$enable_jna],[yes])
 AX_SET_META([NC_HAS_PNETCDF],[$enable_pnetcdf],[yes])
+AX_SET_META([NC_HAS_PIO],[$enable_pio],[yes])
 AX_SET_META([NC_HAS_PARALLEL],[$enable_parallel],[yes])
 AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
@@ -1471,6 +1518,7 @@ AC_CONFIG_FILES([Makefile
                  oc2/Makefile
                  libdap2/Makefile
                  libdap4/Makefile
+                 libpio/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl/Makefile
@@ -1481,6 +1529,7 @@ AC_CONFIG_FILES([Makefile
                  nc_test4/Makefile
                  nc_test4/filter_test/Makefile
                  nc_test/Makefile
+                 pio_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile
                  ncdap_test/expected3/Makefile

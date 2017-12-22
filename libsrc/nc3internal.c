@@ -21,6 +21,9 @@
 #include "nc3internal.h"
 #include "rnd.h"
 #include "ncx.h"
+#ifdef USE_PIO
+#include "pio_internal.h"
+#endif /* USE_PIO */
 
 /* These have to do with version numbers. */
 #define MAGIC_NUM_LEN 4

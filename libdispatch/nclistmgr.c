@@ -8,6 +8,7 @@
 #include <string.h>
 #include <assert.h>
 #include "nc.h"
+#include <ncdispatch.h>
 
 #define ID_SHIFT (16)
 #define NCFILELISTLENGTH 0x10000
@@ -33,6 +34,16 @@ free_NCList(void)
     nc_filelist = NULL;
 }
 
+/** 
+ * Add a file to the array of open files. 
+ * 
+ * @param ncp pointer of the NC struct to add to the list iof files.
+ *
+ * @returns 0 for success
+ * @returns NC_ENOMEM out of memory or no more open file slots.
+ * @author Dennis Heimbigner.
+ * @internal
+ */
 int
 add_to_NCList(NC* ncp)
 {
@@ -50,10 +61,23 @@ add_to_NCList(NC* ncp)
 #endif
 
     new_id = 0; /* id's begin at 1 */
-    for(i=1; i < NCFILELISTLENGTH; i++) {
-	if(nc_filelist[i] == NULL) {new_id = i; break;}
+
+#ifdef USE_PIO
+    /* IF PIO is being used on this file, it will have already set the
+     * ext_ncid. Otherwise, ext_ncid will be zero. */
+    if (ncp->ext_ncid) {
+       new_id = ncp->ext_ncid >> ID_SHIFT;
+       /* Is this ncid already being used? */
+       if (nc_filelist[new_id])
+          return NC_ENFILE;
     }
-    if(new_id == 0) return NC_ENOMEM; /* no more slots */
+#endif /* USE_PIO */
+    if (!new_id) {
+       for(i=1; i < NCFILELISTLENGTH; i++) {
+          if(nc_filelist[i] == NULL) {new_id = i; break;}
+       }
+       if(new_id == 0) return NC_ENOMEM; /* no more slots */
+    }
     nc_filelist[new_id] = ncp;
     numfiles++;
     new_id = (new_id << ID_SHIFT);

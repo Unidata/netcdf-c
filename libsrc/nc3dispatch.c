@@ -29,15 +29,6 @@
 #define NC_STRING (12)
 #endif
 
-
-static int NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
-               int *ndimsp, int *dimidsp, int *nattsp, 
-               int *shufflep, int *deflatep, int *deflate_levelp,
-               int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
-               int *no_fill, void *fill_valuep, int *endiannessp, 
-	       unsigned int* idp, size_t* nparamsp, unsigned int* params
-               );
-
 static int NC3_var_par_access(int,int,int);
 
 #ifdef USE_NETCDF4
@@ -189,7 +180,7 @@ NC3_finalize(void)
     return NC_NOERR;
 }
 
-static int
+int
 NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
                int *ndimsp, int *dimidsp, int *nattsp, 
                int *shufflep, int *deflatep, int *deflate_levelp,
