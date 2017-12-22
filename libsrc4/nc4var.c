@@ -986,12 +986,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    var = grp->vars.value[varid];
    assert(var && var->varid == varid);
 
-   /* Can't turn on contiguous and deflate/fletcher32/szip. */
-   if (contiguous)
-      if ((*contiguous != NC_CHUNKED && deflate) ||
-          (*contiguous != NC_CHUNKED && fletcher32))
-         return NC_EINVAL;
-
    /* Can't turn on parallel and deflate/fletcher32/szip/shuffle. */
    if (nc->mode & (NC_MPIIO | NC_MPIPOSIX)) {
       if (deflate || fletcher32 || shuffle)

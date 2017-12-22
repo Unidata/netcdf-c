@@ -18,7 +18,7 @@
 #define DIM1_NAME "Hoplites_Engaged"
 #define VAR_NAME "Battle_of_Marathon"
 #define LOSSES_NAME "Miltiades_Losses"
-
+#define NDIMS1 1
 #define MAX_CNUM 4
 
 int
@@ -770,7 +770,7 @@ main(int argc, char **argv)
       char name_in[NC_MAX_NAME + 1];
       int data[DIM5_LEN], data_in[DIM5_LEN];
       size_t chunksize[NDIMS5] = {5};
-      size_t bad_chunksize[NDIMS5] = {-5}; /* Converted to large positive number since size_t is unsigned. */
+      size_t bad_chunksize[NDIMS5] = {-5}; /* Converted to large pos number since size_t is unsigned. */
       size_t chunksize_in[NDIMS5];
       int chunksize_int[NDIMS5];
       int chunksize_int_in[NDIMS5];
@@ -1086,18 +1086,17 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("**** testing contiguous storage...");
    {
-#define NDIMS6 1
 #define DIM6_NAME "D5"
 #define VAR_NAME6 "V5"
 #define DIM6_LEN 100
 
-      int dimids[NDIMS6], dimids_in[NDIMS6];
+      int dimids[NDIMS1], dimids_in[NDIMS1];
       int varid;
       int ndims, nvars, natts, unlimdimid;
       nc_type xtype_in;
       char name_in[NC_MAX_NAME + 1];
       int data[DIM6_LEN], data_in[DIM6_LEN];
-      size_t chunksize_in[NDIMS6];
+      size_t chunksize_in[NDIMS1];
       int storage_in;
       int i;
 
@@ -1108,13 +1107,13 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM6_NAME, DIM6_LEN, &dimids[0])) ERR;
       if (dimids[0] != 0) ERR;
-      if (nc_def_var(ncid, VAR_NAME6, NC_INT, NDIMS6, dimids, &varid)) ERR;
+      if (nc_def_var(ncid, VAR_NAME6, NC_INT, NDIMS1, dimids, &varid)) ERR;
       if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;
       if (nc_put_var_int(ncid, varid, data)) ERR;
 
       /* Check stuff. */
       if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
-      if (ndims != NDIMS6 || nvars != 1 || natts != 0 ||
+      if (ndims != NDIMS1 || nvars != 1 || natts != 0 ||
           unlimdimid != -1) ERR;
       if (nc_inq_varids(ncid, &nvars, varids_in)) ERR;
       if (nvars != 1) ERR;
@@ -1135,7 +1134,7 @@ main(int argc, char **argv)
 
       /* Check stuff. */
       if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
-      if (ndims != NDIMS6 || nvars != 1 || natts != 0 ||
+      if (ndims != NDIMS1 || nvars != 1 || natts != 0 ||
           unlimdimid != -1) ERR;
       if (nc_inq_varids(ncid, &nvars, varids_in)) ERR;
       if (nvars != 1) ERR;
@@ -1349,7 +1348,6 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-#define NDIMS6 1
 #define DIM8_NAME "num_monkeys"
 #define DIM9_NAME "num_coconuts"
 #define DIM9_LEN 10
@@ -1358,17 +1356,17 @@ main(int argc, char **argv)
    printf("**** testing that contiguous storage can't be turned on for vars with unlimited dims or filters...");
    {
       int ncid;
-      int dimids[NDIMS6];
+      int dimids[NDIMS1];
       int varid, varid2;
-      size_t chunksize_in[NDIMS6];
+      size_t chunksize_in[NDIMS1];
       int storage_in;
 
       /* Create a netcdf-4 file with one dim and some vars. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM8_NAME, NC_UNLIMITED, &dimids[0])) ERR;
-      if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS6, dimids, &varid)) ERR;
+      if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, dimids, &varid)) ERR;
       if (nc_def_dim(ncid, DIM9_NAME, DIM9_LEN, &dimids[0])) ERR;
-      if (nc_def_var(ncid, VAR_NAME9, NC_INT, NDIMS6, dimids, &varid2)) ERR;
+      if (nc_def_var(ncid, VAR_NAME9, NC_INT, NDIMS1, dimids, &varid2)) ERR;
       if (nc_def_var_deflate(ncid, varid2, 0, 1, 4)) ERR;
 
       /* This won't work because of the umlimited dimension. */
@@ -1390,7 +1388,7 @@ main(int argc, char **argv)
    printf("**** testing error conditions on nc_def_var functions...");
    {
       int ncid;
-      int dimids[NDIMS6];
+      int dimids[NDIMS1];
       int varid;
       int num_models = 2;
       int m;
@@ -1399,26 +1397,37 @@ main(int argc, char **argv)
       /* Test without and with classic model. */
       for (m = 0; m < num_models; m++)
       {
+         int contiguous_in;
+         size_t chunksizes_in[NDIMS1];
+         
          if (m)
             mode |= NC_CLASSIC_MODEL;
 
          /* Create a netcdf-4 file. */
          if (nc_create(FILE_NAME, mode, &ncid)) ERR;
          if (nc_def_dim(ncid, DIM8_NAME, TEST_VAL_42, &dimids[0])) ERR;
-         if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS6, dimids, &varid)) ERR;
+         if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, dimids, &varid)) ERR;
 
          /* Set the var to contiguous. */
          if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;
 
-         /* Now defalte can't be set. */
+         /* Now defalte will change the var to chunked. */
          if (nc_def_var_deflate(ncid, varid, 0, 1, 4)) ERR;
+         if (nc_inq_var_chunking(ncid, varid, &contiguous_in, chunksizes_in)) ERR;
+         if (contiguous_in) ERR;
 
+         /* Now I can't turn contiguous on, because deflate is on. */
+         if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL) != NC_EINVAL) ERR;
+
+         /* Turn off deflation. */
+         if (nc_def_var_deflate(ncid, varid, 0, 0, 0)) ERR;
+
+         /* Now I can make it contiguous again. */
+         if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;         
          if (nc_close(ncid)) ERR;
       }
-
    }
    SUMMARIZE_ERR;
-#define NDIMS6 1
 #define DIM8_NAME "num_monkeys"
 #define DIM9_NAME "num_coconuts"
 #define DIM9_LEN 10
@@ -1427,17 +1436,17 @@ main(int argc, char **argv)
    printf("**** testing that contiguous storage can't be turned on for vars with unlimited dims or filters...");
    {
       int ncid;
-      int dimids[NDIMS6];
+      int dimids[NDIMS1];
       int varid, varid2;
-      size_t chunksize_in[NDIMS6];
+      size_t chunksize_in[NDIMS1];
       int storage_in;
 
       /* Create a netcdf-4 file with one dim and some vars. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM8_NAME, NC_UNLIMITED, &dimids[0])) ERR;
-      if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS6, dimids, &varid)) ERR;
+      if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, dimids, &varid)) ERR;
       if (nc_def_dim(ncid, DIM9_NAME, DIM9_LEN, &dimids[0])) ERR;
-      if (nc_def_var(ncid, VAR_NAME9, NC_INT, NDIMS6, dimids, &varid2)) ERR;
+      if (nc_def_var(ncid, VAR_NAME9, NC_INT, NDIMS1, dimids, &varid2)) ERR;
       if (nc_def_var_deflate(ncid, varid2, 0, 1, 4)) ERR;
 
       /* This won't work because of the umlimited dimension. */
