@@ -1360,6 +1360,7 @@ main(int argc, char **argv)
 #define DIM9_LEN 10
 #define VAR_NAME8 "John_Clayton"
 #define VAR_NAME9 "Lord_Greystoke"
+#define VAR_NAME10 "Jane_Porter"
    printf("**** testing that contiguous storage can't be turned on for vars with unlimited dims or filters...");
    {
       int ncid;
@@ -1406,6 +1407,7 @@ main(int argc, char **argv)
       int dimids[NDIMS1];
       int bad_dimids[NDIMS1] = {42};
       int varid;
+      int varid_scalar;
       int num_models = 2;
       int m;
       int mode = NC_NETCDF4;
@@ -1415,6 +1417,7 @@ main(int argc, char **argv)
       {
          int contiguous_in;
          size_t chunksizes_in[NDIMS1];
+         int shuffle_in, deflate_in, deflate_level_in;
          
          if (m)
             mode |= NC_CLASSIC_MODEL;
@@ -1429,6 +1432,7 @@ main(int argc, char **argv)
 
          /* This will work. */
          if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, dimids, &varid)) ERR;
+         if (nc_def_var(ncid, VAR_NAME10, NC_INT, 0, NULL, &varid_scalar)) ERR;
 
          /* Set the var to contiguous. */
          if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;
@@ -1443,6 +1447,14 @@ main(int argc, char **argv)
 
          /* Turn off deflation. */
          if (nc_def_var_deflate(ncid, varid, 0, 0, 0)) ERR;
+         if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
+         if (shuffle_in || deflate_in) ERR;
+         if (nc_inq_var_deflate(ncid, varid, NULL, NULL, NULL)) ERR;
+
+         /* Deflate is ignored for scalar. */
+         if (nc_def_var_deflate(ncid, varid_scalar, 0, 1, 4)) ERR;         
+         if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
+         if (shuffle_in || deflate_in) ERR;
 
          /* Turn on shuffle. */
          if (nc_def_var_deflate(ncid, varid, 1, 0, 0)) ERR;

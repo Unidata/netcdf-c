@@ -688,6 +688,8 @@ nc_free_string(size_t len, char **data)
  * to chunked data, with default chunksizes. Use nc_def_var_chunking()
  * to tune performance with user-defined chunksizes.
  *
+ * If this function is called on a scalar variable, it is ignored.
+ *
  * @param ncid NetCDF or group ID, from a previous call to nc_open(),
  * nc_create(), nc_def_grp(), or associated inquiry functions such as
  * nc_inq_ncid().
