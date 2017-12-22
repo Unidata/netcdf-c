@@ -964,12 +964,15 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
-   NC_DIM_INFO_T *dim;
    int d;
    int retval;
    nc_bool_t ishdf4 = NC_FALSE; /* Use this to avoid so many ifdefs */
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+   /* All or none of these will be provided. */
+   assert((deflate && deflate_level && shuffle) ||
+          (!deflate && !deflate_level && !shuffle));
 
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
@@ -997,12 +1000,8 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    if (var->created)
       return NC_ELATEDEF;
 
-   /* Check compression options. */
-   if (deflate && !deflate_level)
-      return NC_EINVAL;
-
    /* Valid deflate level? */
-   if (deflate && deflate_level)
+   if (deflate)
    {
       if (*deflate)
          if (*deflate_level < NC_MIN_DEFLATE_LEVEL ||
@@ -1013,8 +1012,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       if (!var->ndims)
          return NC_NOERR;
 
-      /* Well, if we couldn't find any errors, I guess we have to take
-       * the users settings. Darn! */
+      /* Accept the deflate setting. */
       var->contiguous = NC_FALSE;
       var->deflate = *deflate;
       if (*deflate)
@@ -1044,13 +1042,11 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       if (var->deflate || var->fletcher32 || var->shuffle)
          return NC_EINVAL;
 
-      if (!ishdf4) {
+      if (!ishdf4)
+      {
          for (d = 0; d < var->ndims; d++)
-         {
-            dim = var->dim[d];
-            if (dim->unlimited)
+            if (var->dim[d]->unlimited)
                return NC_EINVAL;
-         }
          var->contiguous = NC_TRUE;
       }
    }

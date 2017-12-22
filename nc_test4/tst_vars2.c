@@ -66,15 +66,22 @@ main(int argc, char **argv)
 	    return 1;
       }
 
+#define FILE_NAME2 "tst_vars2_latefill.nc"
       printf("**** testing simple fill value attribute creation...");
       {
          int status;
+         int schar_data = 0;
+         size_t index[1] = {0};
+         int dimid;
+         
          /* Create a netcdf-4 file with one scalar var. Add fill
           * value. */
-         if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
-         if (nc_def_var(ncid, VAR_NAME, NC_BYTE, 0, NULL, &varid)) ERR;
+         if (nc_create(FILE_NAME2, cmode, &ncid)) ERR;
+         if (nc_def_dim(ncid, VAR_NAME, TEST_VAL_42, &dimid)) ERR;
+         if (nc_def_var(ncid, VAR_NAME, NC_BYTE, 1, &dimid, &varid)) ERR;
          if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value)) ERR;
          if (nc_enddef(ncid)) ERR;
+         if (nc_put_var1(ncid, varid, index, &schar_data)) ERR;
          if (nc_redef(ncid)) ERR;
          status = nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value);
          if (status != NC_ELATEFILL)
@@ -82,7 +89,7 @@ main(int argc, char **argv)
          if (nc_close(ncid)) ERR;
 
          /* Open the file and check. */
-         if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+         if (nc_open(FILE_NAME2, NC_WRITE, &ncid)) ERR;
          if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
          if (nvars_in != 1 || varids_in[0] != 0) ERR;
          if (nc_inq_varname(ncid, 0, name_in)) ERR;
@@ -1409,7 +1416,8 @@ main(int argc, char **argv)
          if (nc_def_dim(ncid, DIM8_NAME, TEST_VAL_42, &dimids[0])) ERR;
 
          /* This won't work. */
-         if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, bad_dimids, &varid) != NC_EBADDIM) ERR;
+         if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, bad_dimids,
+                        &varid) != NC_EBADDIM) ERR;
 
          /* This will work. */
          if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, dimids, &varid)) ERR;
