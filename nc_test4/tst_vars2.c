@@ -1374,6 +1374,14 @@ main(int argc, char **argv)
       if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, dimids, &varid)) ERR;
       if (nc_def_dim(ncid, DIM9_NAME, DIM9_LEN, &dimids[0])) ERR;
       if (nc_def_var(ncid, VAR_NAME9, NC_INT, NDIMS1, dimids, &varid2)) ERR;
+
+      /* These will fail due to bad paramters. */
+      if (nc_def_var_deflate(ncid, varid2, 0, 1,
+                             NC_MIN_DEFLATE_LEVEL - 1) != NC_EINVAL) ERR;
+      if (nc_def_var_deflate(ncid, varid2, 0, 1,
+                             NC_MAX_DEFLATE_LEVEL + 1) != NC_EINVAL) ERR;
+
+      /* This will work. */
       if (nc_def_var_deflate(ncid, varid2, 0, 1, 4)) ERR;
 
       /* This won't work because of the umlimited dimension. */
@@ -1435,6 +1443,24 @@ main(int argc, char **argv)
 
          /* Turn off deflation. */
          if (nc_def_var_deflate(ncid, varid, 0, 0, 0)) ERR;
+
+         /* Turn on shuffle. */
+         if (nc_def_var_deflate(ncid, varid, 1, 0, 0)) ERR;
+         
+         /* Now I can't turn contiguous on, because shuffle is on. */
+         if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL) != NC_EINVAL) ERR;
+
+         /* Turn off shuffle. */
+         if (nc_def_var_deflate(ncid, varid, 0, 0, 0)) ERR;
+
+         /* Turn on fletcher32. */
+         if (nc_def_var_fletcher32(ncid, varid, 1)) ERR;
+
+         /* Now I can't turn contiguous on, because fletcher32 is on. */
+         if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL) != NC_EINVAL) ERR;
+
+         /* Turn off fletcher32. */
+         if (nc_def_var_fletcher32(ncid, varid, 0)) ERR;
 
          /* Now I can make it contiguous again. */
          if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;         
