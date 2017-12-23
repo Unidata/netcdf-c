@@ -762,6 +762,8 @@ main(int argc, char **argv)
 #define VAR_NAME5 "V5"
 #define VAR_NAME5_1 "V5_1"
 #define VAR_NAME5_2 "V5_2"
+#define VAR_NAME5_3 "V5_3"
+#define VAR_NAME5_4 "V5_4"
 #define DIM5_LEN 1000
 #define CACHE_SIZE 32000000
 #define CACHE_NELEMS 1009
@@ -769,15 +771,17 @@ main(int argc, char **argv)
 #define CACHE_SIZE2 64000000
 #define CACHE_NELEMS2 2000
 #define CACHE_PREEMPTION2 .50
+#define NVAR4 5
 
       int dimids[NDIMS5], dimids_in[NDIMS5];
-      int varid, varid1, varid2;
+      int varid, varid1, varid2, varid3, varid4;
       int ndims, nvars, natts, unlimdimid;
       nc_type xtype_in;
       char name_in[NC_MAX_NAME + 1];
       int data[DIM5_LEN], data_in[DIM5_LEN];
       size_t chunksize[NDIMS5] = {5};
       size_t bad_chunksize[NDIMS5] = {-5}; /* Converted to large pos number since size_t is unsigned. */
+      size_t large_chunksize[NDIMS5] = {(size_t)NC_MAX_INT + (size_t)1}; /* Too big for inq_var_chunking_ints(). */
       size_t chunksize_in[NDIMS5];
       int chunksize_int[NDIMS5];
       int chunksize_int_in[NDIMS5];
@@ -872,10 +876,13 @@ main(int argc, char **argv)
       
       /* Now check with the fortran versions of the var_chunking. */
       if (nc_inq_var_chunking_ints(ncid, 0, &storage_in, chunksize_int_in)) ERR;
+      if (storage_in != NC_CHUNKED) ERR;
       for (d = 0; d < NDIMS5; d++)
 	 if (chunksize_int_in[d] != chunksize[d]) ERR;
       for (d = 0; d < NDIMS5; d++)
          chunksize_int[d] = chunksize[d] * 2;
+      if (nc_inq_var_chunking_ints(ncid, 0, &storage_in, NULL)) ERR;
+      if (storage_in != NC_CHUNKED) ERR;
 
       /* Check that some bad parameter values are rejected properly. */
       if (nc_def_var_chunking_ints(ncid + MILLION, varid, NC_CHUNKED,
@@ -893,14 +900,20 @@ main(int argc, char **argv)
       if (nc_redef(ncid)) ERR;
       if (nc_def_var(ncid, VAR_NAME5_1, NC_INT, NDIMS5, dimids, &varid1)) ERR;
       if (nc_def_var(ncid, VAR_NAME5_2, NC_INT, 0, NULL, &varid2)) ERR;
+      if (nc_def_var(ncid, VAR_NAME5_3, NC_INT, 0, NULL, &varid3)) ERR;
+      if (nc_def_var(ncid, VAR_NAME5_4, NC_INT, NDIMS5, dimids, &varid4)) ERR;
       if (nc_def_var_chunking(ncid, varid2, NC_CHUNKED, chunksize)) ERR;
+      if (nc_def_var_chunking(ncid, varid3, NC_CONTIGUOUS, NULL)) ERR;
+      if (nc_def_var_chunking(ncid, varid4, NC_CHUNKED, large_chunksize) != NC_EBADCHUNK) ERR;
       if (nc_def_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int)) ERR;
       if (nc_def_var_chunking_ints(ncid, varid1, NC_CHUNKED, chunksize_int)) ERR;
-      if (nc_inq_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int_in)) ERR;      
+      if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;      
       if (nc_inq_var_chunking_ints(ncid, varid1, NULL, chunksize_int_in)) ERR;
       for (d = 0; d < NDIMS5; d++)
 	 if (chunksize_int_in[d] != chunksize[d] * 2) ERR;
-      if (nc_inq_var_chunking_ints(ncid, varid1, NULL, NULL)) ERR;
+      if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;      
+      if (nc_inq_var_chunking_ints(ncid, varid3, &storage_in, NULL)) ERR;
+      if (storage_in != NC_CONTIGUOUS) ERR;
 
       /* Check that some bad parameter values are rejected properly. */
       if (nc_get_var_chunk_cache(ncid + MILLION, varid, &cache_size_in, &cache_nelems_in,
@@ -909,7 +922,7 @@ main(int argc, char **argv)
 				 &cache_preemption_in) != NC_EBADID) ERR;
       if (nc_get_var_chunk_cache(ncid, varid + TEST_VAL_42, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
-      if (nc_get_var_chunk_cache(ncid, varid2 + 1, &cache_size_in, &cache_nelems_in,
+      if (nc_get_var_chunk_cache(ncid, varid4 + 1, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
       if (nc_get_var_chunk_cache(ncid, -TEST_VAL_42, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
@@ -938,10 +951,10 @@ main(int argc, char **argv)
 
       /* Check stuff. */
       if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
-      if (ndims != NDIMS5 || nvars != NUM_VARS || natts != 0 ||
+      if (ndims != NDIMS5 || nvars != NVAR4 || natts != 0 ||
           unlimdimid != -1) ERR;
       if (nc_inq_varids(ncid, &nvars, varids_in)) ERR;
-      if (nvars != NUM_VARS) ERR;
+      if (nvars != NVAR4) ERR;
       if (varids_in[0] != 0 || varids_in[1] != 1) ERR;
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in, &natts)) ERR;
       if (strcmp(name_in, VAR_NAME5) || xtype_in != NC_INT || ndims != 1 || natts != 0 ||
@@ -1513,6 +1526,40 @@ main(int argc, char **argv)
       if (storage_in != NC_CHUNKED) ERR;
       if (nc_inq_var_chunking(ncid, varid2, &storage_in, chunksize_in)) ERR;
       if (storage_in != NC_CHUNKED) ERR;
+      if (nc_close(ncid)) ERR;
+
+   }
+   SUMMARIZE_ERR;
+#define DIM10_NAME "num_monkeys"
+#define DIM11_NAME "num_hats"
+#define VAR_NAME11 "Silly_Sally"
+#define NDIM2 2
+   printf("**** testing very large chunksizes...");
+   {
+      int ncid;
+      int dimid[NDIM2];
+      int varid;
+      size_t chunksize[NDIM2] = {1, (size_t)NC_MAX_INT + (size_t)1};
+      size_t chunksize_in[NDIM2];
+      int chunksize_int_in[NDIM2];
+      int storage_in;
+
+      /* Create a netcdf-4 file. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM10_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+      if (nc_def_dim(ncid, DIM11_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+      if (nc_def_var(ncid, VAR_NAME11, NC_BYTE, NDIM2, dimid, &varid)) ERR;
+      if (nc_inq_var_chunking(ncid, varid, &storage_in, chunksize_in)) ERR;
+      if (storage_in != NC_CHUNKED) ERR;
+
+      /* Set a large chunksize. */
+      if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, chunksize)) ERR;
+      if (nc_inq_var_chunking(ncid, varid, &storage_in, chunksize_in)) ERR;
+      if (storage_in != NC_CHUNKED) ERR;
+      if (chunksize_in[0] != chunksize[0] || chunksize_in[1] != chunksize[1]) ERR;
+      if (nc_inq_var_chunking_ints(ncid, varid, &storage_in, chunksize_int_in) != NC_ERANGE) ERR;
+
+      /* Close the file. */
       if (nc_close(ncid)) ERR;
 
    }
