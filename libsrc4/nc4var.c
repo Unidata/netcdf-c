@@ -966,7 +966,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    NC_VAR_INFO_T *var;
    int d;
    int retval;
-   nc_bool_t ishdf4 = NC_FALSE; /* Use this to avoid so many ifdefs */
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
@@ -979,9 +978,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       return retval;
    assert(nc && grp && h5);
 
-#ifdef USE_HDF4
-   ishdf4 = h5->hdf4;
-#endif
+   /* Trying to write to a read-only file? No way, Jose! */
+   if (h5->no_write)
+      return NC_EPERM;
 
    /* Find the var. */
    if (varid < 0 || varid >= grp->vars.nelems)
@@ -1042,17 +1041,14 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       if (var->deflate || var->fletcher32 || var->shuffle)
          return NC_EINVAL;
 
-      if (!ishdf4)
-      {
-         for (d = 0; d < var->ndims; d++)
-            if (var->dim[d]->unlimited)
-               return NC_EINVAL;
-         var->contiguous = NC_TRUE;
-      }
+      for (d = 0; d < var->ndims; d++)
+         if (var->dim[d]->unlimited)
+            return NC_EINVAL;
+      var->contiguous = NC_TRUE;
    }
 
    /* Chunksizes anyone? */
-   if (!ishdf4 && contiguous && *contiguous == NC_CHUNKED)
+   if (contiguous && *contiguous == NC_CHUNKED)
    {
       var->contiguous = NC_FALSE;
 

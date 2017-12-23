@@ -694,7 +694,11 @@ nc_free_string(size_t len, char **data)
  * nc_create(), nc_def_grp(), or associated inquiry functions such as
  * nc_inq_ncid().
  * @param varid Variable ID
- * @param shuffle True to turn on the shuffle filter.
+ * @param shuffle True to turn on the shuffle filter. The shuffle
+ * filter can assist with the compression of integer data by changing
+ * the byte order in the data stream. It makes no sense to use the
+ * shuffle filter without setting a deflate level, or to use shuffle
+ * on non-integer data.
  * @param deflate True to turn on deflation for this variable.
  * @param deflate_level A number between 0 (no compression) and 9
  * (maximum compression).
