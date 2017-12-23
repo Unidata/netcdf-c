@@ -608,6 +608,14 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
     NC* ncp;
     int stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) return stat;
+
+    /* Dennis Heimbigner: (Using NC_GLOBAL is ilegal, as this API) has no
+     * provision for specifying the type of the fillvalue, it must of necessity
+     * be using the type of the variable to interpret the bytes of the
+     * fill_value argument.
+     */
+    if (varid == NC_GLOBAL) return NC_EGLOBAL;
+
     return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
 }
 
