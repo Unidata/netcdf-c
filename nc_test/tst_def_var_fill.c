@@ -21,6 +21,14 @@
     } \
 }
 
+#define EXP_ERR(exp) { \
+    if (err != exp) { \
+        nerrs++; \
+        printf("Error at line %d in %s: expecting %s but got %s\n", \
+        __LINE__,__FILE__,#exp, nc_strerror(err)); \
+    } \
+}
+
 #define NY 8
 #define NX 5
 
@@ -53,6 +61,7 @@ int main(int argc, char** argv) {
     err = nc_def_var(ncid, "var_fill",   NC_INT, 2, dimid, &varid[1]); CHECK_ERR
 
     /* set fill mode for variables */
+    err = nc_def_var_fill(ncid, NC_GLOBAL, 0, NULL); EXP_ERR(NC_EGLOBAL)
     err = nc_def_var_fill(ncid, varid[0], 1, NULL); CHECK_ERR
     err = nc_def_var_fill(ncid, varid[1], 0, NULL); CHECK_ERR
 
