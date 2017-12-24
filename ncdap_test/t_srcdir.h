@@ -5,11 +5,14 @@ static const char*
 gettopsrcdir(void)
 {
     const char* topsrcdir;
-    topsrcdir = STRINGIFY(TOPSRCDIR);
+    topsrcdir = getenv("TOPSRCDIR");
     if(topsrcdir == NULL) {
-        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined\n");
-        exit(1);
-    }    
+        topsrcdir = STRINGIFY(TOPSRCDIR);
+        if(topsrcdir == NULL) {
+            fprintf(stderr,"*** FAIL: Neither $abs_top_srcdir nor env var TOPSRCDIR defined\n");
+            exit(1);
+        }
+    }
     fprintf(stderr,"topsrcdir=%s\n",topsrcdir);
     return topsrcdir;
 }
