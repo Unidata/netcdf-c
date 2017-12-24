@@ -911,6 +911,8 @@ main(int argc, char **argv)
       if (nc_inq_var_chunking_ints(ncid, varid1, NULL, chunksize_int_in)) ERR;
       for (d = 0; d < NDIMS5; d++)
 	 if (chunksize_int_in[d] != chunksize[d] * 2) ERR;
+      if (nc_inq_var_chunking_ints(ncid, varid1, &storage_in, NULL)) ERR;
+      if (storage_in != NC_CHUNKED) ERR;
       if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;      
       if (nc_inq_var_chunking_ints(ncid, varid3, &storage_in, NULL)) ERR;
       if (storage_in != NC_CONTIGUOUS) ERR;
