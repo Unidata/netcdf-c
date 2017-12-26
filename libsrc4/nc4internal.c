@@ -1636,10 +1636,8 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
    int retval = NC_NOERR;
 
    /* Sanity checks */
-   assert(dim->coord_var == coord_var);
-   assert(coord_var->dim[0] == dim);
-   assert(coord_var->dimids[0] == dim->dimid);
-   assert(0 == dim->hdf_dimscaleid);
+   assert(dim->coord_var == coord_var && coord_var->dim[0] == dim &&
+          coord_var->dimids[0] == dim->dimid && !dim->hdf_dimscaleid);
 
    /* If we're replacing an existing dimscale dataset, go to
     * every var in the file and detach this dimension scale. */
