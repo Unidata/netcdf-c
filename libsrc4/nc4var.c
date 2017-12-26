@@ -1551,6 +1551,9 @@ NC4_rename_var(int ncid, int varid, const char *name)
    int retval = NC_NOERR;
    int i;
 
+   if (!name)
+      return NC_EINVAL;
+
    LOG((2, "%s: ncid 0x%x varid %d name %s",
         __func__, ncid, varid, name));
 

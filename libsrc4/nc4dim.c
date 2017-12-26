@@ -327,9 +327,7 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))      
       return retval;
-
-   assert(nc);
-   assert(h5 && grp);
+   assert(nc && h5 && grp);
    
    /* Trying to write to a read-only file? No way, Jose! */
    if (h5->no_write)
