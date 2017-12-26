@@ -1560,8 +1560,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-
-   assert(h5);
+   assert(h5 && grp && h5);
 
    /* Is the new name too long? */
    if (strlen(name) > NC_MAX_NAME)

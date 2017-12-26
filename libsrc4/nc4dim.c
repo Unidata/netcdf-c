@@ -368,8 +368,8 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
 
    /* Give the dimension its new name in metadata. UTF8 normalization
     * has been done. */
-   if(dim->name)
-      free(dim->name);
+   assert(dim->name);
+   free(dim->name);
    if (!(dim->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
       return NC_ENOMEM;
    strcpy(dim->name, norm_name);

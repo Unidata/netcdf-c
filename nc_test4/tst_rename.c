@@ -99,7 +99,7 @@ main(int argc, char **argv)
       float rh_in[DIM_LEN];
       int ii;
 
-      fprintf(stderr,"*** Test renaming coordinate variable and its dimension for %s...\n",
+      fprintf(stderr,"*** Test renaming coordinate variable and its dimension for %s...",
               fmt_names[format]);
       {
          if (create_test_file(file_names[format], formats[format])) ERR;
@@ -109,9 +109,20 @@ main(int argc, char **argv)
          if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
          if (check_file(ncid, OVAR_NAME, OVAR2_NAME, ODIM_NAME)) ERR;
          if (nc_redef(ncid)) ERR; /* omitting this and nc_enddef call eliminates bug */
+
+         /* This will not work. */
+         if (nc_rename_dim(ncid, dimid, NULL) != NC_EINVAL) ERR;
+
+         /* Rename the dim. */
          if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
+
          /* This should work, but fails. */
          /* if (check_file(ncid, OVAR_NAME, OVAR2_NAME, NDIM_NAME)) ERR; */
+
+         /* This will not work. */
+         if (nc_rename_var(ncid, varid, NULL) != NC_EINVAL) ERR;
+
+         /* Rename the var. */
          if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR;
          if (nc_enddef(ncid)) ERR;
          if (nc_get_var_int(ncid, varid, lats_in)) ERR;
@@ -128,55 +139,61 @@ main(int argc, char **argv)
       }
       SUMMARIZE_ERR;               
 
-      fprintf(stderr,"*** Test renaming just coordinate variable for %s...\n",
+      fprintf(stderr,"*** Test renaming just coordinate variable for %s...",
               fmt_names[format]);
-      if (create_test_file(file_names[format], formats[format])) ERR;
-      if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
-      if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
-      if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
-      if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
-      if (nc_redef(ncid)) ERR;  /* omitting this and nc_enddef call eliminates bug */
-      /* if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR; */
-      if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR;
-      if (nc_enddef(ncid)) ERR;
-      if (nc_get_var_int(ncid, varid, lats_in)) ERR;
-      for (ii = 0; ii < DIM_LEN; ii++) {
-         if (lats_in[ii] != lats[ii])
-            fprintf(stderr, "\tlats_in[%d] is %d, should be %d\n", ii, lats_in[ii], lats[ii]);
+      {
+         if (create_test_file(file_names[format], formats[format])) ERR;
+         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
+         if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
+         if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
+         if (nc_redef(ncid)) ERR;  /* omitting this and nc_enddef call eliminates bug */
+         /* if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR; */
+         if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         if (nc_get_var_int(ncid, varid, lats_in)) ERR;
+         for (ii = 0; ii < DIM_LEN; ii++) {
+            if (lats_in[ii] != lats[ii])
+               fprintf(stderr, "\tlats_in[%d] is %d, should be %d\n", ii, lats_in[ii], lats[ii]);
+         }
+         if (nc_get_var_float(ncid, var2id, rh_in)) ERR;
+         for (ii = 0; ii < DIM_LEN; ii++) {
+            if (rh_in[ii] != rh[ii])
+               fprintf(stderr, "\trh_in[%d] is %g, should be %g\n", ii, rh_in[ii], rh[ii]);
+         }
+         if (nc_close(ncid)) ERR;
       }
-      if (nc_get_var_float(ncid, var2id, rh_in)) ERR;
-      for (ii = 0; ii < DIM_LEN; ii++) {
-         if (rh_in[ii] != rh[ii])
-            fprintf(stderr, "\trh_in[%d] is %g, should be %g\n", ii, rh_in[ii], rh[ii]);
-      }
-      if (nc_close(ncid)) ERR;
+      SUMMARIZE_ERR;               
 
-
-      fprintf(stderr,"*** Test renaming just coordinate dimension for %s...\n",
+      fprintf(stderr,"*** Test renaming just coordinate dimension for %s...",
               fmt_names[format]);
-      if (create_test_file(file_names[format], formats[format])) ERR;
-      if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
-      if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
-      if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
-      if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
-      if (nc_redef(ncid)) ERR; /* omitting this and nc_enddef call eliminates bug */
-      if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
-      /* if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR; */
-      if (nc_enddef(ncid)) ERR;
-      if (nc_get_var_int(ncid, varid, lats_in)) ERR;
-      for (ii = 0; ii < DIM_LEN; ii++) {
-         if (lats_in[ii] != lats[ii])
-            fprintf(stderr, "\tlats_in[%d] is %d, should be %d\n", ii, lats_in[ii], lats[ii]);
+      {
+         if (create_test_file(file_names[format], formats[format])) ERR;
+         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
+         if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
+         if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
+         if (nc_redef(ncid)) ERR; /* omitting this and nc_enddef call eliminates bug */
+         if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
+         /* if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR; */
+         if (nc_enddef(ncid)) ERR;
+         if (nc_get_var_int(ncid, varid, lats_in)) ERR;
+         for (ii = 0; ii < DIM_LEN; ii++) {
+            if (lats_in[ii] != lats[ii])
+               fprintf(stderr, "\tlats_in[%d] is %d, should be %d\n", ii, lats_in[ii], lats[ii]);
+         }
+         if (nc_get_var_float(ncid, var2id, rh_in)) ERR;
+         for (ii = 0; ii < DIM_LEN; ii++) {
+            if (rh_in[ii] != rh[ii])
+               fprintf(stderr, "\trh_in[%d] is %g, should be %g\n", ii, rh_in[ii], rh[ii]);
+         }
+         if (nc_close(ncid)) ERR;
       }
-      if (nc_get_var_float(ncid, var2id, rh_in)) ERR;
-      for (ii = 0; ii < DIM_LEN; ii++) {
-         if (rh_in[ii] != rh[ii])
-            fprintf(stderr, "\trh_in[%d] is %g, should be %g\n", ii, rh_in[ii], rh[ii]);
-      }
-      if (nc_close(ncid)) ERR;
+      SUMMARIZE_ERR;               
 
-      if (formats[format] == NC_FORMAT_NETCDF4) {
-         printf("*** Test renaming attribute in sub-group for %s...\n",
+      if (formats[format] == NC_FORMAT_NETCDF4)
+      {
+         printf("*** Test renaming attribute in sub-group for %s...",
                 fmt_names[format]);
          {
 #define DIMNAME "lon"
