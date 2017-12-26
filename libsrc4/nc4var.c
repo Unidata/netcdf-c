@@ -594,7 +594,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          BAIL(NC_EBADTYPE);
    }
 
-   /* Add a new var. */
+   /* Create a new var and fill in some HDF5 cache setting values. */
    if ((retval = nc4_var_add(&var)))
       BAIL(retval);
 
@@ -668,14 +668,10 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          }
       }
 
-      /* Check for unlimited dimension and turn off contiguous storage */
-      /* (unless HDF4 file) */
-#ifdef USE_HDF4
-      if (dim->unlimited && !h5->hdf4)
-#else
-         if (dim->unlimited)
-#endif
-            var->contiguous = NC_FALSE;
+      /* Check for unlimited dimension and turn off contiguous
+       * storage. */
+      if (dim->unlimited)
+         var->contiguous = NC_FALSE;
 
       /* Track dimensions for variable */
       var->dimids[d] = dimidsp[d];

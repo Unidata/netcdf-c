@@ -89,7 +89,7 @@ main(int argc, char **argv)
    int format;
 
    fprintf(stderr,"*** Testing netcdf rename bugs and fixes.\n");
-   /* nc_set_log_level(5); */
+   nc_set_log_level(5);
 
    for(format = 0; format < NUM_FORMATS; format++)
    {

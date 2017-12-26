@@ -103,8 +103,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    /* Find our global metadata structure. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-
-   assert(h5 && nc /*& grp*/);
+   assert(h5 && nc && grp);
 
    /* If the file is read-only, return an error. */
    if (h5->no_write)
