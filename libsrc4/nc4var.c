@@ -679,7 +679,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    }
 
    /* Determine default chunksizes for this variable. (Even for
-    * variables which may be contiguous. */
+    * variables which may be contiguous.) */
    LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
         var->ndims, var->name));
    if (var->ndims)

@@ -514,6 +514,7 @@ main(int argc, char **argv)
       /* THese won't work due to bad params. */
       if (nc_rename_dim(ncid + MILLION, lon_dim, "longitude") != NC_EBADID) ERR;
       if (nc_rename_dim(ncid + TEST_VAL_42, lon_dim, "longitude") != NC_EBADID) ERR;
+      if (nc_rename_dim(ncid, lon_dim, NULL) != NC_EINVAL) ERR;
 
       /* rename dimension */
       if (nc_rename_dim(ncid, lon_dim, "longitude")) ERR;
@@ -540,6 +541,7 @@ main(int argc, char **argv)
       if (nc_rename_var(ncid, wind_id, too_long_name) != NC_EMAXNAME) ERR;
       if (nc_rename_var(ncid, wind_id, "temp2") != NC_ENAMEINUSE) ERR;
       if (nc_rename_var(ncid, wind_id, "windy") != NC_ENOTINDEFINE) ERR;
+      if (nc_rename_var(ncid, wind_id, NULL) != NC_EINVAL) ERR;
 
       /* rename variable */
       if (nc_rename_var(ncid, wind_id, "wind")) ERR;

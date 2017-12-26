@@ -100,8 +100,34 @@ main(int argc, char **argv)
       float rh_in[DIM_LEN];
       int ii;
 
-      fprintf(stderr,"*** Test renaming coordinate variable and its dimension for %s...",
-              fmt_names[format]);
+      printf("*** testing renaming before enddef for %s...", fmt_names[format]);
+      {
+         int ncid, varid, var2id;
+         int dims[VAR_RANK];
+         
+         if (nc_set_default_format(formats[format], NULL)) ERR;
+         if (nc_create(file_names[format], 0, &ncid)) ERR;
+         if (nc_def_dim(ncid, ODIM_NAME, DIM_LEN, &dims[0])) ERR;
+         if (nc_def_var(ncid, OVAR_NAME, NC_INT, VAR_RANK, dims, &varid)) ERR;
+         if (nc_def_var(ncid, OVAR2_NAME, NC_FLOAT, VAR_RANK, dims, &var2id)) ERR;
+
+         /* Now rename the dim. */
+         if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
+         if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR;         
+         
+         if (nc_enddef(ncid)) ERR;    /* not necessary for netCDF-4 files */
+         if (nc_put_var_int(ncid, varid, lats)) ERR;
+         if (nc_put_var_float(ncid, var2id, rh)) ERR;
+         if (nc_close(ncid)) ERR;
+
+         /* Reopen and check. */
+         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         if (check_file(ncid, NVAR_NAME, OVAR2_NAME, NDIM_NAME)) ERR;
+         if (nc_close(ncid)) ERR;
+      }
+      SUMMARIZE_ERR;               
+      
+      printf("*** testing renaming after enddef for %s...", fmt_names[format]);
       {
          if (create_test_file(file_names[format], formats[format])) ERR;
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
@@ -111,9 +137,6 @@ main(int argc, char **argv)
          if (check_file(ncid, OVAR_NAME, OVAR2_NAME, ODIM_NAME)) ERR;
          if (nc_redef(ncid)) ERR;
 
-         /* This will not work. */
-         if (nc_rename_dim(ncid, dimid, NULL) != NC_EINVAL) ERR;
-
          /* Rename the dim. */
          if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
 
@@ -122,9 +145,6 @@ main(int argc, char **argv)
          /* if (nc_enddef(ncid)) ERR; */
          /* if (nc_redef(ncid)) ERR; /\* omitting this and nc_enddef call eliminates bug *\/ */
          /* if (check_file(ncid, OVAR_NAME, OVAR2_NAME, NDIM_NAME)) ERR; */
-
-         /* This will not work. */
-         if (nc_rename_var(ncid, varid, NULL) != NC_EINVAL) ERR;
 
          /* Rename the var. */
          if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR;
