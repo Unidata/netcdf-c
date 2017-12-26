@@ -89,6 +89,7 @@ main(int argc, char **argv)
    int format;
 
    fprintf(stderr,"*** Testing netcdf rename bugs and fixes.\n");
+   /* nc_set_log_level(5); */
 
    for(format = 0; format < NUM_FORMATS; format++)
    {
@@ -108,7 +109,7 @@ main(int argc, char **argv)
          if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
          if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
          if (check_file(ncid, OVAR_NAME, OVAR2_NAME, ODIM_NAME)) ERR;
-         if (nc_redef(ncid)) ERR; /* omitting this and nc_enddef call eliminates bug */
+         if (nc_redef(ncid)) ERR;
 
          /* This will not work. */
          if (nc_rename_dim(ncid, dimid, NULL) != NC_EINVAL) ERR;
@@ -116,7 +117,10 @@ main(int argc, char **argv)
          /* Rename the dim. */
          if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
 
-         /* This should work, but fails. */
+         /* This should work, but fails, because enddef creates a HDF5
+          * dataset called "tal" when we rename the dim. */
+         /* if (nc_enddef(ncid)) ERR; */
+         /* if (nc_redef(ncid)) ERR; /\* omitting this and nc_enddef call eliminates bug *\/ */
          /* if (check_file(ncid, OVAR_NAME, OVAR2_NAME, NDIM_NAME)) ERR; */
 
          /* This will not work. */

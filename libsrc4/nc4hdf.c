@@ -41,19 +41,15 @@ static unsigned int OTYPES[5] = {H5F_OBJ_FILE, H5F_OBJ_DATASET, H5F_OBJ_GROUP,
  * @param attlist List of attributes, may be NULL.
  *
  * @return NC_NOERR No error.
+ * @author Ward Fisher
  */
 static int
-flag_atts_dirty(NC_ATT_INFO_T **attlist) {
-
+flag_atts_dirty(NC_ATT_INFO_T **attlist)
+{
    NC_ATT_INFO_T *att = NULL;
 
-   if(attlist == NULL) {
-      return NC_NOERR;
-   }
-
-   for(att = *attlist; att; att = att->l.next) {
+   for (att = *attlist; att; att = att->l.next) 
       att->dirty = NC_TRUE;
-   }
 
    return NC_NOERR;
 
@@ -113,12 +109,13 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
 }
 
 /**
- * @internal This function is needed to handle one special case: what
- * if the user defines a dim, writes metadata, then goes back into
- * define mode and adds a coordinate var for the already existing
- * dim. In that case, I need to recreate the dim's dimension scale
- * dataset, and then I need to go to every var in the file which uses
- * that dimension, and attach the new dimension scale.
+ * @internal This function is needed to handle some special cases,
+ * including the rename of a dimension, or a late addition of a
+ * coodinate var on a file where one has been added at enddef for a
+ * dim without a coordinate var. In these cases, we need to recreate
+ * the dim's dimension scale dataset, and then we need to go to every
+ * var in the file which uses that dimension, and attach the new
+ * dimension scale.
  *
  * @param grp Pointer to group info struct.
  * @param dimid Dimension ID.
@@ -145,7 +142,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
          return retval;
 
    /* Find any vars that use this dimension id. */
-   for (i=0; i < grp->vars.nelems; i++)
+   for (i = 0; i < grp->vars.nelems; i++)
    {
       var = grp->vars.value[i];
       if (!var) continue;
@@ -1526,7 +1523,7 @@ exit:
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 static int
 write_attlist(NC_ATT_INFO_T *attlist, int varid, NC_GRP_INFO_T *grp)
 {
@@ -1595,7 +1592,7 @@ write_coord_dimids(NC_VAR_INFO_T *var)
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 static int
 write_netcdf4_dimid(hid_t datasetid, int dimid)
 {
@@ -1643,7 +1640,7 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
  *
  * @return ::NC_NOERR
  * @author Ed Hartnett
-*/
+ */
 static int
 var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid)
 {
@@ -1912,7 +1909,7 @@ exit:
  *
  * @return NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
 {
@@ -1960,7 +1957,7 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
  *
  * @return NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int
 commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 {
@@ -2186,7 +2183,7 @@ exit:
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int
 attach_dimscales(NC_GRP_INFO_T *grp)
 {
@@ -2300,7 +2297,7 @@ var_exists(hid_t grpid, char *name, nc_bool_t *exists)
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 static int
 write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
@@ -2315,14 +2312,11 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    {
       replace_existing_var = NC_TRUE;
       var->fill_val_changed = NC_FALSE;
-      /* If the variable is going to be replaced,
-         we need to flag any other attributes associated
-         with the variable as 'dirty', or else
-         *only* the fill value attribute will be copied over
-         and the rest will be lost.  See:
 
-         * https://github.com/Unidata/netcdf-c/issues/239 */
-
+      /* If the variable is going to be replaced, we need to flag any
+       * other attributes associated with the variable as 'dirty', or
+       * else *only* the fill value attribute will be copied over and
+       * the rest will be lost. */
       flag_atts_dirty(&var->att);
    }
 
@@ -2532,7 +2526,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
     * and mark that it should be hidden from netCDF as a
     * variable. (That is, it should appear as a dimension
     * without an associated variable.) */
-   if (0 == dim->hdf_dimscaleid)
+   if (!dim->hdf_dimscaleid)
    {
       hid_t spaceid, create_propid;
       hsize_t dims[1], max_dims[1], chunk_dims[1] = {1};
@@ -2541,7 +2535,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       LOG((4, "%s: creating dim %s", __func__, dim->name));
 
       /* Sanity check */
-      assert(NULL == dim->coord_var);
+      assert(!dim->coord_var);
 
       /* Create a property list. If this dimension scale is
        * unlimited (i.e. it's an unlimited dimension), then set
@@ -2549,8 +2543,8 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       if ((create_propid = H5Pcreate(H5P_DATASET_CREATE)) < 0)
          BAIL(NC_EHDFERR);
 
-      /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
-      if (H5Pset_obj_track_times(create_propid,0)<0)
+      /* Turn of HDF5 tracking of times for this dimscale dataset. */
+      if (H5Pset_obj_track_times(create_propid, 0) < 0)
          BAIL(NC_EHDFERR);
 
       dims[0] = dim->len;
@@ -2647,9 +2641,9 @@ exit:
  * @internal Recursively determine if there is a mismatch between
  * order of coordinate creation and associated dimensions in this
  * group or any subgroups, to find out if we have to handle that
- * situation.  Also check if there are any multidimensional coordinate
+ * situation. Also check if there are any multidimensional coordinate
  * variables defined, which require the same treatment to fix a
- * potential bug when such variables occur in subgroups. 
+ * potential bug when such variables occur in subgroups.
  *
  * @param grp Pointer to group info struct.
  * @param bad_coord_orderp Pointer that gets 1 if there is a bad
@@ -2658,7 +2652,7 @@ exit:
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp)
 {
@@ -2729,7 +2723,7 @@ nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
 {
@@ -2738,14 +2732,16 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
    NC_GRP_INFO_T *child_grp = NULL;
    int coord_varid = -1;
    int var_index = 0;
-
    int retval;
+
    assert(grp && grp->name && grp->hdf_grpid);
-   LOG((3, "%s: grp->name %s, bad_coord_order %d", __func__, grp->name, bad_coord_order));
+   LOG((3, "%s: grp->name %s, bad_coord_order %d", __func__, grp->name,
+        bad_coord_order));
 
    /* Write global attributes for this group. */
    if ((retval = write_attlist(grp->att, NC_GLOBAL, grp)))
       return retval;
+
    /* Set the pointers to the beginning of the list of dims & vars in this
     * group. */
    dim = grp->dim;
@@ -2809,7 +2805,7 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
 {
@@ -2870,7 +2866,7 @@ nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
  * @returns NC_NOERR No error.
  * @returns NC_EBADTYPE Type not found.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_convert_type(const void *src, void *dest,
                  const nc_type src_type, const nc_type dest_type,
@@ -3844,7 +3840,7 @@ nc4_convert_type(const void *src, void *dest,
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 {
@@ -4026,7 +4022,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
  * @returns NC_NOERR No error.
  * @returns NC_EBADTYPE Type not found
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int is_long,
                     size_t *len)
@@ -4096,7 +4092,7 @@ nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int is_long,
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_get_typeclass(const NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int *type_class)
 {
@@ -4323,7 +4319,7 @@ static int NC4_walk(hid_t, int*);
  *
  * @returns NC_NOERR No error.
  * @author Dennis Heimbigner.
-*/
+ */
 int
 NC4_isnetcdf4(struct NC_HDF5_FILE_INFO* h5)
 {
@@ -4355,7 +4351,7 @@ done:
  *
  * @returns NC_NOERR No error.
  * @author Dennis Heimbigner.
-*/
+ */
 static int
 NC4_get_strict_att(NC_HDF5_FILE_INFO_T* h5)
 {

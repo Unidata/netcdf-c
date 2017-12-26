@@ -1645,14 +1645,16 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
                                    dim->dimid, coord_var->hdf_datasetid)))
       return retval;
 
-   /* Allow attached dimscales to be tracked on the [former] coordinate variable */
+   /* Allow attached dimscales to be tracked on the [former]
+    * coordinate variable */
    if (coord_var->ndims)
    {
       /* Coordinate variables shouldn't have dimscales attached */
-      assert(NULL == coord_var->dimscale_attached);
+      assert(!coord_var->dimscale_attached);
 
       /* Allocate space for tracking them */
-      if (NULL == (coord_var->dimscale_attached = calloc(coord_var->ndims, sizeof(nc_bool_t))))
+      if (!(coord_var->dimscale_attached = calloc(coord_var->ndims,
+                                                  sizeof(nc_bool_t))))
          return NC_ENOMEM;
    }
 
