@@ -1526,7 +1526,9 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    while (dim)
    {
       LOG((4, "%s: deleting dim %s", __func__, dim->name));
-      /* Close HDF5 dataset associated with this dim. */
+      /* If this is a dim without a coordinate variable, then close
+       * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this
+       * dim. */
       if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
          return NC_EHDFERR;
       d = dim->l.next;
@@ -1636,8 +1638,9 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
    int retval = NC_NOERR;
 
    /* Sanity checks */
-   assert(dim->coord_var == coord_var && coord_var->dim[0] == dim &&
-          coord_var->dimids[0] == dim->dimid && !dim->hdf_dimscaleid);
+   assert(grp && coord_var && dim && dim->coord_var == coord_var &&
+          coord_var->dim[0] == dim && coord_var->dimids[0] == dim->dimid &&
+          !dim->hdf_dimscaleid);
 
    /* If we're replacing an existing dimscale dataset, go to
     * every var in the file and detach this dimension scale. */
@@ -1671,7 +1674,7 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
 
 /**
  * @internal Reform a coordinate variable from a dimension and a
- * variable
+ * variable.
  *
  * @param grp Pointer to group info struct.
  * @param var Pointer to variable info struct.
@@ -1728,7 +1731,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
       var->dimscale_attached = NULL;
    }
 
-   /* Use variable's dataset ID for the dimscale ID */
+   /* Use variable's dataset ID for the dimscale ID. */
    if (dim->hdf_dimscaleid && grp != NULL)
    {
       if (H5Dclose(dim->hdf_dimscaleid) < 0)

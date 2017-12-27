@@ -2304,7 +2304,9 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    nc_bool_t replace_existing_var = NC_FALSE;
    int retval;
 
-   LOG((4, "%s: writing var %s", __func__, var->name));
+   assert(var && grp);
+   LOG((4, "%s: writing var %s write_dimid %d", __func__, var->name,
+        write_dimid));
 
    /* If the variable has already been created & the fill value changed,
     * indicate that the existing variable should be replaced. */
@@ -2644,6 +2646,8 @@ exit:
  * situation. Also check if there are any multidimensional coordinate
  * variables defined, which require the same treatment to fix a
  * potential bug when such variables occur in subgroups.
+ *
+ * This function is called from sync_netcdf4_file().
  *
  * @param grp Pointer to group info struct.
  * @param bad_coord_orderp Pointer that gets 1 if there is a bad

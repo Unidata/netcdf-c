@@ -2188,7 +2188,7 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Add a var to the linked list, and get its metadata,
     * unless this is one of those funny dimscales that are a
     * dimension in netCDF but not a variable. (Spooky!) */
-   if (NULL == dim || (dim && !dim->hdf_dimscaleid))
+   if (!dim || (dim && !dim->hdf_dimscaleid))
       if ((retval = read_var(grp, datasetid, obj_name, ndims, dim)))
          BAIL(retval);
 
@@ -3280,7 +3280,7 @@ static int NC4_enddef(int ncid)
    NC_GRP_INFO_T *grp;
    int i;
 
-   LOG((1, "%s: ncid 0x%x", __func__, ncid));
+   LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
    if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;

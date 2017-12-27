@@ -126,7 +126,7 @@ typedef struct NC_DIM_INFO
    nc_bool_t unlimited;         /* True if the dimension is unlimited */
    nc_bool_t extended;          /* True if the dimension needs to be extended */
    nc_bool_t too_long;          /* True if len is too big to fit in local size_t. */
-   hid_t hdf_dimscaleid;
+   hid_t hdf_dimscaleid;        /* Non-zero if a DIM_WITHOUT_VARIABLE dataset is in use (no coord var). */
    HDF5_OBJID_T hdf5_objid;
    struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */
 } NC_DIM_INFO_T;

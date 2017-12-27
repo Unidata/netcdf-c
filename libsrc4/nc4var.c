@@ -531,7 +531,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          BAIL(retval);
 
    /* These degrubbing messages sure are handy! */
-   LOG((3, "%s: name %s type %d ndims %d", __func__, norm_name, xtype, ndims));
+   LOG((2, "%s: name %s type %d ndims %d", __func__, norm_name, xtype, ndims));
 #ifdef LOGGING
    {
       int dd;
@@ -646,23 +646,28 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          BAIL(retval);
 
       /* Check for dim index 0 having the same name, in the same group */
-      if (d == 0 && dim_grp == grp && dim->hash == var->hash && strcmp(dim->name, norm_name) == 0)
+      if (d == 0 && dim_grp == grp && dim->hash == var->hash &&
+          strcmp(dim->name, norm_name) == 0)
       {
          var->dimscale = NC_TRUE;
          dim->coord_var = var;
 
-         /* Use variable's dataset ID for the dimscale ID */
+         /* Use variable's dataset ID for the dimscale ID. So delete
+          * the HDF5 DIM_WITHOUT_VARIABLE dataset that was created for
+          * this dim. */
          if (dim->hdf_dimscaleid)
          {
             /* Detach dimscale from any variables using it */
             if ((retval = rec_detach_scales(grp, dimidsp[d], dim->hdf_dimscaleid)) < 0)
                BAIL(retval);
 
+            /* Close the HDF5 DIM_WITHOUT_VARIABLE dataset. */
             if (H5Dclose(dim->hdf_dimscaleid) < 0)
                BAIL(NC_EHDFERR);
             dim->hdf_dimscaleid = 0;
 
-            /* Now delete the dataset (it will be recreated later, if necessary) */
+            /* Now delete the DIM_WITHOUT_VARIABLE dataset (it will be
+             * recreated later, if necessary). */
             if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
                BAIL(NC_EDIMMETA);
          }
