@@ -2296,7 +2296,7 @@ var_exists(hid_t grpid, char *name, nc_bool_t *exists)
  *
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Quincey Koziol
  */
 static int
 write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
@@ -2390,13 +2390,23 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    /* If this is not a dimension scale, do this stuff. */
    if (var->was_coord_var && var->dimscale_attached)
    {
-      /* If the variable already exists in the file, Remove any dimension scale
-       * attributes from it, if they exist. */
-      /* (The HDF5 Dimension Scale API should really have an API routine
-       * for making a dataset not a scale. -QAK) */
+      /* If the variable already exists in the file, Remove any
+       * dimension scale attributes from it, if they
+       * exist. Unfortunately the HDF5 Dimension Scale API does not
+       * have an API routine for making a dataset not a scale. */
       if (var->created)
       {
          htri_t attr_exists;
+
+         /* If the variable dataset has an optional NC_DIMID_ATT_NAME
+          * attribute, delete it. */
+         if ((attr_exists = H5Aexists(var->hdf_datasetid, NC_DIMID_ATT_NAME)) < 0)
+            BAIL(NC_EHDFERR);
+         if (attr_exists)
+         {
+            if (H5Adelete(var->hdf_datasetid, NC_DIMID_ATT_NAME) < 0)
+               BAIL(NC_EHDFERR);
+         }
 
          /* (We could do a better job here and verify that the attributes are
           * really dimension scale 'CLASS' & 'NAME' attributes, but that would be

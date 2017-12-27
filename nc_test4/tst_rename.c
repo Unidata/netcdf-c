@@ -92,10 +92,9 @@ main(int argc, char **argv)
    int format;
 
    fprintf(stderr,"*** Testing netcdf rename bugs and fixes.\n");
-   nc_set_log_level(5);
+   /* nc_set_log_level(5); */
 
-   /* for(format = 0; format < NUM_FORMATS; format++) */
-   for(format = 0; format < 1; format++)
+   for(format = 0; format < NUM_FORMATS; format++)
    {
       int ncid, dimid, varid, var2id;
       int lats[DIM_LEN] = {-90, 90};
@@ -104,33 +103,61 @@ main(int argc, char **argv)
       float rh_in[DIM_LEN];
       int ii;
 
-      /* printf("*** testing renaming before enddef for %s...", fmt_names[format]); */
-      /* { */
-      /*    int ncid, varid, var2id; */
-      /*    int dimid; */
+      printf("*** testing renaming before enddef for %s...", fmt_names[format]);
+      {
+         int ncid, varid, var2id;
+         int dimid;
          
-      /*    if (nc_set_default_format(formats[format], NULL)) ERR; */
-      /*    if (nc_create(file_names[format], 0, &ncid)) ERR; */
-      /*    if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR; */
-      /*    if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, &dimid, &varid)) ERR; */
-      /*    if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, &dimid, &var2id)) ERR; */
+         if (nc_set_default_format(formats[format], NULL)) ERR;
+         if (nc_create(file_names[format], 0, &ncid)) ERR;
+         if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR;
+         if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, &dimid, &varid)) ERR;
+         if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, &dimid, &var2id)) ERR;
 
-      /*    /\* Now rename the dim. *\/ */
-      /*    if (nc_rename_dim(ncid, dimid, TAL)) ERR; */
-      /*    if (nc_rename_var(ncid, varid, TAL)) ERR;          */
+         /* Now rename the dim. */
+         if (nc_rename_dim(ncid, dimid, TAL)) ERR;
+         if (nc_rename_var(ncid, varid, TAL)) ERR;
          
-      /*    if (nc_enddef(ncid)) ERR;    /\* not necessary for netCDF-4 files *\/ */
-      /*    if (nc_put_var_int(ncid, varid, lats)) ERR; */
-      /*    if (nc_put_var_float(ncid, var2id, rh)) ERR; */
-      /*    if (nc_close(ncid)) ERR; */
+         if (nc_enddef(ncid)) ERR;    /* not necessary for netCDF-4 files */
+         if (nc_put_var_int(ncid, varid, lats)) ERR;
+         if (nc_put_var_float(ncid, var2id, rh)) ERR;
+         if (nc_close(ncid)) ERR;
 
-      /*    /\* Reopen and check. *\/ */
-      /*    if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR; */
-      /*    if (check_file(ncid, TAL, RH, TAL)) ERR; */
-      /*    if (nc_close(ncid)) ERR; */
-      /* } */
-      /* SUMMARIZE_ERR;                */
-      
+         /* Reopen and check. */
+         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         if (check_file(ncid, TAL, RH, TAL)) ERR;
+         if (nc_close(ncid)) ERR;
+      }
+      SUMMARIZE_ERR;
+
+      printf("*** testing renaming after enddef for %s...", fmt_names[format]);
+      {
+         int ncid, varid, var2id;
+         int dimid;
+         
+         if (nc_set_default_format(formats[format], NULL)) ERR;
+         if (nc_create(file_names[format], 0, &ncid)) ERR;
+         if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR;
+         if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, &dimid, &varid)) ERR;
+         if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, &dimid, &var2id)) ERR;
+         if (nc_enddef(ncid)) ERR;    /* not necessary for netCDF-4 files */
+         if (nc_redef(ncid)) ERR;    /* not necessary for netCDF-4 files */
+
+         /* Now rename the dim. */
+         if (nc_rename_dim(ncid, dimid, TAL)) ERR;
+         if (nc_enddef(ncid)) ERR;    /* not necessary for netCDF-4 files */
+         
+         if (nc_put_var_int(ncid, varid, lats)) ERR;
+         if (nc_put_var_float(ncid, var2id, rh)) ERR;
+         if (nc_close(ncid)) ERR;
+
+         /* Reopen and check. */
+         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         if (check_file(ncid, LAT, RH, TAL)) ERR;
+         if (nc_close(ncid)) ERR;
+      }
+      SUMMARIZE_ERR;
+
       printf("*** testing renaming after enddef for %s...", fmt_names[format]);
       {
          if (create_test_file(file_names[format], formats[format])) ERR;
@@ -159,137 +186,137 @@ main(int argc, char **argv)
          if (check_file(ncid, LAT, RH, TAL)) ERR;
          if (nc_close(ncid)) ERR;
       }
-      SUMMARIZE_ERR;               
+      SUMMARIZE_ERR;
 
-/*       fprintf(stderr,"*** Test renaming just coordinate variable for %s...", */
-/*               fmt_names[format]); */
-/*       { */
-/*          if (create_test_file(file_names[format], formats[format])) ERR; */
-/*          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR; */
-/*          if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR; */
-/*          if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR; */
-/*          if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR; */
-/*          if (nc_redef(ncid)) ERR;  /\* omitting this and nc_enddef call eliminates bug *\/ */
-/*          /\* if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR; *\/ */
-/*          if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR; */
-/*          if (nc_enddef(ncid)) ERR; */
-/*          if (nc_get_var_int(ncid, varid, lats_in)) ERR; */
-/*          for (ii = 0; ii < DIM_LEN; ii++) { */
-/*             if (lats_in[ii] != lats[ii]) */
-/*                fprintf(stderr, "\tlats_in[%d] is %d, should be %d\n", ii, lats_in[ii], lats[ii]); */
-/*          } */
-/*          if (nc_get_var_float(ncid, var2id, rh_in)) ERR; */
-/*          for (ii = 0; ii < DIM_LEN; ii++) { */
-/*             if (rh_in[ii] != rh[ii]) */
-/*                fprintf(stderr, "\trh_in[%d] is %g, should be %g\n", ii, rh_in[ii], rh[ii]); */
-/*          } */
-/*          if (nc_close(ncid)) ERR; */
-/*       } */
-/*       SUMMARIZE_ERR;                */
+      fprintf(stderr,"*** Test renaming just coordinate variable for %s...",
+              fmt_names[format]);
+      {
+         if (create_test_file(file_names[format], formats[format])) ERR;
+         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
+         if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
+         if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
+         if (nc_redef(ncid)) ERR;  /* omitting this and nc_enddef call eliminates bug */
+         /* if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR; */
+         if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         if (nc_get_var_int(ncid, varid, lats_in)) ERR;
+         for (ii = 0; ii < DIM_LEN; ii++) {
+            if (lats_in[ii] != lats[ii])
+               fprintf(stderr, "\tlats_in[%d] is %d, should be %d\n", ii, lats_in[ii], lats[ii]);
+         }
+         if (nc_get_var_float(ncid, var2id, rh_in)) ERR;
+         for (ii = 0; ii < DIM_LEN; ii++) {
+            if (rh_in[ii] != rh[ii])
+               fprintf(stderr, "\trh_in[%d] is %g, should be %g\n", ii, rh_in[ii], rh[ii]);
+         }
+         if (nc_close(ncid)) ERR;
+      }
+      SUMMARIZE_ERR;
 
-/*       fprintf(stderr,"*** Test renaming just coordinate dimension for %s...", */
-/*               fmt_names[format]); */
-/*       { */
-/*          if (create_test_file(file_names[format], formats[format])) ERR; */
-/*          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR; */
-/*          if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR; */
-/*          if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR; */
-/*          if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR; */
-/*          if (nc_redef(ncid)) ERR; /\* omitting this and nc_enddef call eliminates bug *\/ */
-/*          if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR; */
-/*          /\* if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR; *\/ */
-/*          if (nc_enddef(ncid)) ERR; */
-/*          if (nc_get_var_int(ncid, varid, lats_in)) ERR; */
-/*          for (ii = 0; ii < DIM_LEN; ii++) { */
-/*             if (lats_in[ii] != lats[ii]) */
-/*                fprintf(stderr, "\tlats_in[%d] is %d, should be %d\n", ii, lats_in[ii], lats[ii]); */
-/*          } */
-/*          if (nc_get_var_float(ncid, var2id, rh_in)) ERR; */
-/*          for (ii = 0; ii < DIM_LEN; ii++) { */
-/*             if (rh_in[ii] != rh[ii]) */
-/*                fprintf(stderr, "\trh_in[%d] is %g, should be %g\n", ii, rh_in[ii], rh[ii]); */
-/*          } */
-/*          if (nc_close(ncid)) ERR; */
-/*       } */
-/*       SUMMARIZE_ERR;                */
+      fprintf(stderr,"*** Test renaming just coordinate dimension for %s...",
+              fmt_names[format]);
+      {
+         if (create_test_file(file_names[format], formats[format])) ERR;
+         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
+         if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
+         if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
+         if (nc_redef(ncid)) ERR; /* omitting this and nc_enddef call eliminates bug */
+         if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
+         /* if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR; */
+         if (nc_enddef(ncid)) ERR;
+         if (nc_get_var_int(ncid, varid, lats_in)) ERR;
+         for (ii = 0; ii < DIM_LEN; ii++) {
+            if (lats_in[ii] != lats[ii])
+               fprintf(stderr, "\tlats_in[%d] is %d, should be %d\n", ii, lats_in[ii], lats[ii]);
+         }
+         if (nc_get_var_float(ncid, var2id, rh_in)) ERR;
+         for (ii = 0; ii < DIM_LEN; ii++) {
+            if (rh_in[ii] != rh[ii])
+               fprintf(stderr, "\trh_in[%d] is %g, should be %g\n", ii, rh_in[ii], rh[ii]);
+         }
+         if (nc_close(ncid)) ERR;
+      }
+      SUMMARIZE_ERR;
 
-/*       if (formats[format] == NC_FORMAT_NETCDF4) */
-/*       { */
-/*          printf("*** Test renaming attribute in sub-group for %s...", */
-/*                 fmt_names[format]); */
-/*          { */
-/* #define DIMNAME "lon" */
-/* #define VARNAME "lon" */
-/* #define G1_VARNAME "lon" */
-/* #define OLD_NAME "units" */
-/* #define NEW_NAME "new_units" */
-/* #define CONTENTS "degrees_east" */
-/* #define RANK_lon 1 */
-/* #define GRP_NAME "g1" */
-/* #define RANK_g1_lon 1 */
+      if (formats[format] == NC_FORMAT_NETCDF4)
+      {
+         printf("*** Test renaming attribute in sub-group for %s...",
+                fmt_names[format]);
+         {
+#define DIMNAME "lon"
+#define VARNAME "lon"
+#define G1_VARNAME "lon"
+#define OLD_NAME "units"
+#define NEW_NAME "new_units"
+#define CONTENTS "degrees_east"
+#define RANK_lon 1
+#define GRP_NAME "g1"
+#define RANK_g1_lon 1
 
-/*             /\* IDs of file, groups, dimensions, variables, attributes *\/ */
-/*             int ncid, g1_grp, lon_dim, lon_var, g1_lon_var; */
-/*             size_t lon_len = 4; */
-/*             char *data_in; */
+            /* IDs of file, groups, dimensions, variables, attributes */
+            int ncid, g1_grp, lon_dim, lon_var, g1_lon_var;
+            size_t lon_len = 4;
+            char *data_in;
 
-/*             /\* variable shapes *\/ */
-/*             int lon_dims[RANK_lon]; */
-/*             int g1_lon_dims[RANK_g1_lon]; */
+            /* variable shapes */
+            int lon_dims[RANK_lon];
+            int g1_lon_dims[RANK_g1_lon];
 
-/*             if (!(data_in = malloc(strlen(CONTENTS) + 1))) ERR; */
+            if (!(data_in = malloc(strlen(CONTENTS) + 1))) ERR;
 
-/*             /\* Create test file *\/ */
-/*             if (nc_create(file_names[format], NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR; */
-/*             /\* Create subgroup and outer dimension *\/ */
-/*             if (nc_def_grp(ncid, GRP_NAME, &g1_grp)) ERR; */
-/*             if (nc_def_dim(ncid, DIMNAME, lon_len, &lon_dim)) ERR; */
-/*             /\* Create outer variable and subgroup variable *\/ */
-/*             lon_dims[0] = lon_dim; */
-/*             if (nc_def_var(ncid, VARNAME, NC_FLOAT, RANK_lon, lon_dims, &lon_var)) ERR; */
-/*             g1_lon_dims[0] = lon_dim; */
-/*             if (nc_def_var(g1_grp, G1_VARNAME, NC_FLOAT, RANK_g1_lon, g1_lon_dims, &g1_lon_var)) ERR; */
-/*             /\* assign per-variable attributes *\/ */
-/*             if (nc_put_att_text(ncid, lon_var, OLD_NAME, strlen(CONTENTS), CONTENTS)) ERR; */
-/*             if (nc_put_att_text(g1_grp, g1_lon_var, OLD_NAME, strlen(CONTENTS), CONTENTS)) ERR; */
-/*             if (nc_enddef (ncid)) ERR; */
-/*             /\* write variable data *\/ */
-/*             { */
-/*                float lon_data[4] = {0, 90, 180, 270}; */
-/*                size_t start[] = {0}; */
-/*                size_t count[] = {4}; */
-/*                if (nc_put_vara(ncid, lon_var, start, count, lon_data)) ERR; */
-/*             } */
-/*             { */
-/*                float g1_lon_data[4] = {0, 90, 180, 270}; */
-/*                size_t start[] = {0}; */
-/*                size_t count[] = {4}; */
-/*                if (nc_put_vara(g1_grp, g1_lon_var, start, count, g1_lon_data)) ERR; */
-/*             } */
-/*             if (nc_close(ncid)) ERR; */
+            /* Create test file */
+            if (nc_create(file_names[format], NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+            /* Create subgroup and outer dimension */
+            if (nc_def_grp(ncid, GRP_NAME, &g1_grp)) ERR;
+            if (nc_def_dim(ncid, DIMNAME, lon_len, &lon_dim)) ERR;
+            /* Create outer variable and subgroup variable */
+            lon_dims[0] = lon_dim;
+            if (nc_def_var(ncid, VARNAME, NC_FLOAT, RANK_lon, lon_dims, &lon_var)) ERR;
+            g1_lon_dims[0] = lon_dim;
+            if (nc_def_var(g1_grp, G1_VARNAME, NC_FLOAT, RANK_g1_lon, g1_lon_dims, &g1_lon_var)) ERR;
+            /* assign per-variable attributes */
+            if (nc_put_att_text(ncid, lon_var, OLD_NAME, strlen(CONTENTS), CONTENTS)) ERR;
+            if (nc_put_att_text(g1_grp, g1_lon_var, OLD_NAME, strlen(CONTENTS), CONTENTS)) ERR;
+            if (nc_enddef (ncid)) ERR;
+            /* write variable data */
+            {
+               float lon_data[4] = {0, 90, 180, 270};
+               size_t start[] = {0};
+               size_t count[] = {4};
+               if (nc_put_vara(ncid, lon_var, start, count, lon_data)) ERR;
+            }
+            {
+               float g1_lon_data[4] = {0, 90, 180, 270};
+               size_t start[] = {0};
+               size_t count[] = {4};
+               if (nc_put_vara(g1_grp, g1_lon_var, start, count, g1_lon_data)) ERR;
+            }
+            if (nc_close(ncid)) ERR;
 
-/*             /\* reopen the file and rename the attribute in the subgroup *\/ */
-/*             if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR; */
-/*             if (nc_inq_grp_ncid(ncid, GRP_NAME, &g1_grp)) ERR; */
-/*             if (nc_inq_varid(g1_grp,VARNAME,&g1_lon_var)) ERR; */
-/*             if (nc_rename_att(g1_grp, g1_lon_var, OLD_NAME, NEW_NAME)) ERR; */
-/*             if (nc_close(ncid)) ERR; */
+            /* reopen the file and rename the attribute in the subgroup */
+            if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+            if (nc_inq_grp_ncid(ncid, GRP_NAME, &g1_grp)) ERR;
+            if (nc_inq_varid(g1_grp,VARNAME,&g1_lon_var)) ERR;
+            if (nc_rename_att(g1_grp, g1_lon_var, OLD_NAME, NEW_NAME)) ERR;
+            if (nc_close(ncid)) ERR;
 
-/*             /\* reopen the file again and see if renamed attribute exists and */
-/*                has expected value *\/ */
-/*             { */
+            /* reopen the file again and see if renamed attribute exists and
+               has expected value */
+            {
 
-/*                if (nc_open(file_names[format], NC_NOWRITE, &ncid)) ERR; */
-/*                if (nc_inq_grp_ncid(ncid, GRP_NAME, &g1_grp)) ERR; */
-/*                if (nc_inq_varid(g1_grp, VARNAME, &g1_lon_var)) ERR; */
-/*                if (nc_get_att_text(g1_grp, g1_lon_var, NEW_NAME, data_in)) ERR; */
-/*                if (strncmp(CONTENTS, data_in, strlen(CONTENTS))) ERR; */
-/*                if (nc_close(ncid)) ERR; */
-/*             } */
-/*             free(data_in); */
-/*          } */
-/*          SUMMARIZE_ERR;          */
-   /* } /\* next format *\/ */
-   }
+               if (nc_open(file_names[format], NC_NOWRITE, &ncid)) ERR;
+               if (nc_inq_grp_ncid(ncid, GRP_NAME, &g1_grp)) ERR;
+               if (nc_inq_varid(g1_grp, VARNAME, &g1_lon_var)) ERR;
+               if (nc_get_att_text(g1_grp, g1_lon_var, NEW_NAME, data_in)) ERR;
+               if (strncmp(CONTENTS, data_in, strlen(CONTENTS))) ERR;
+               if (nc_close(ncid)) ERR;
+            }
+            free(data_in);
+         }
+         SUMMARIZE_ERR;
+      }
+   } /* next format */
    FINAL_RESULTS;
 }

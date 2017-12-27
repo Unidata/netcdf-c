@@ -2253,22 +2253,29 @@ nc4_rec_read_metadata_cb_list_add(NC4_rec_read_metadata_obj_info_t **head,
 }
 
 /**
- * @internal Callback function called from nc4_rec_read_metadata().
+ * @internal Callback function called from
+ * nc4_rec_read_metadata(). This function is called for each HDF5
+ * object in a group.
+ *
+ * This function passes back HDF5 error codes, because it is a
+ * callback that is called from within HDF5.
  *
  * @param grpid HDF5 group ID.
  * @param name Name of object.
  * @param info Info struct for object.
  * @param _op_data Pointer to data.
  *
- * @return ::NC_NOERR No error.
- * @return H5_ITER_ERROR HDF5 error.
+ * @return H5_ITER_CONT Object was processed successfully, iteration
+ * should continue.
+ * @return H5_ITER_ERROR Error. Iteration will stop.
  * @author Ed Hartnett
  */
 static int
 nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
                          void *_op_data)
 {
-   NC4_rec_read_metadata_ud_t *udata = (NC4_rec_read_metadata_ud_t *)_op_data; /* Pointer to user data for callback */
+   /* Pointer to user data for callback */
+   NC4_rec_read_metadata_ud_t *udata = (NC4_rec_read_metadata_ud_t *)_op_data; 
    NC4_rec_read_metadata_obj_info_t oinfo;    /* Pointer to info for object */
    int retval = H5_ITER_CONT;
 
@@ -2283,6 +2290,7 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
    if (H5Gget_objinfo(oinfo.oid, ".", 1, &oinfo.statbuf) < 0)
       BAIL(H5_ITER_ERROR);
 
+   /* Save name of object. */
    strncpy(oinfo.oname, name, NC_MAX_NAME);
 
    /* Add object to list, for later */
@@ -2291,10 +2299,9 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
    case H5G_GROUP:
       LOG((3, "found group %s", oinfo.oname));
 
-      /* Defer descending into child group immediately, so that the types
-       *     in the current group can be processed and be ready for use by
-       *     vars in the child group(s).
-       */
+      /* Defer descending into child group immediately, so that the
+       * types in the current group can be processed and be ready for
+       * use by vars in the child group(s). */
       if (nc4_rec_read_metadata_cb_list_add(&udata->grps_head, &udata->grps_tail, &oinfo))
          BAIL(H5_ITER_ERROR);
       break;
@@ -2307,11 +2314,10 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
       if ((retval = read_dataset(udata->grp, oinfo.oid, oinfo.oname, &oinfo.statbuf)))
       {
          /* Allow NC_EBADTYPID to transparently skip over datasets
-          *  which have a datatype that netCDF-4 doesn't undertand
-          *  (currently), but break out of iteration for other
-          *  errors.
-          */
-         if(NC_EBADTYPID != retval)
+          * which have a datatype that netCDF-4 doesn't undertand
+          * (currently), but break out of iteration for other
+          * errors. */
+         if (retval != NC_EBADTYPID)
             BAIL(H5_ITER_ERROR);
          else
             retval = H5_ITER_CONT;
@@ -2368,7 +2374,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 {
    NC4_rec_read_metadata_ud_t udata;   /* User data for iteration */
    NC4_rec_read_metadata_obj_info_t *oinfo;    /* Pointer to info for object */
-   hsize_t idx=0;
+   hsize_t idx = 0;
    hid_t pid = 0;
    unsigned crt_order_flags = 0;
    H5_index_t iter_index;
