@@ -10,6 +10,9 @@
 #define FILE_NAME3 "tst_rename_fix3.nc"
 #define FILE_NAME4 "tst_rename_fix4.nc"
 #define ODIM_NAME "lat"         /* name for coord dim */
+#define LAT "lat"
+#define TAL "tal"
+#define RH "rh"
 #define NDIM_NAME "tal"         /* new name for coord dim */
 #define OVAR_NAME "lat"         /* name for coord var */
 #define NVAR_NAME "tal"         /* new name for coord var */
@@ -33,9 +36,9 @@ create_test_file(char *path, int format)
 
    if (nc_set_default_format(format, NULL)) ERR;
    if (nc_create(path, 0, &ncid)) ERR;
-   if (nc_def_dim(ncid, ODIM_NAME, DIM_LEN, &dims[0])) ERR;
-   if (nc_def_var(ncid, OVAR_NAME, NC_INT, VAR_RANK, dims, &varid)) ERR;
-   if (nc_def_var(ncid, OVAR2_NAME, NC_FLOAT, VAR_RANK, dims, &var2id)) ERR;
+   if (nc_def_dim(ncid, LAT, DIM_LEN, &dims[0])) ERR;
+   if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, dims, &varid)) ERR;
+   if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, dims, &var2id)) ERR;
    if (nc_enddef(ncid)) ERR;    /* not necessary for netCDF-4 files */
    if (nc_put_var_int(ncid, varid, lats)) ERR;
    if (nc_put_var_float(ncid, var2id, rh)) ERR;
@@ -107,13 +110,13 @@ main(int argc, char **argv)
          
          if (nc_set_default_format(formats[format], NULL)) ERR;
          if (nc_create(file_names[format], 0, &ncid)) ERR;
-         if (nc_def_dim(ncid, ODIM_NAME, DIM_LEN, &dims[0])) ERR;
-         if (nc_def_var(ncid, OVAR_NAME, NC_INT, VAR_RANK, dims, &varid)) ERR;
-         if (nc_def_var(ncid, OVAR2_NAME, NC_FLOAT, VAR_RANK, dims, &var2id)) ERR;
+         if (nc_def_dim(ncid, LAT, DIM_LEN, &dims[0])) ERR;
+         if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, dims, &varid)) ERR;
+         if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, dims, &var2id)) ERR;
 
          /* Now rename the dim. */
-         if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
-         if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR;         
+         if (nc_rename_dim(ncid, dimid, TAL)) ERR;
+         if (nc_rename_var(ncid, varid, TAL)) ERR;         
          
          if (nc_enddef(ncid)) ERR;    /* not necessary for netCDF-4 files */
          if (nc_put_var_int(ncid, varid, lats)) ERR;
@@ -122,7 +125,7 @@ main(int argc, char **argv)
 
          /* Reopen and check. */
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
-         if (check_file(ncid, NVAR_NAME, OVAR2_NAME, NDIM_NAME)) ERR;
+         if (check_file(ncid, TAL, RH, TAL)) ERR;
          if (nc_close(ncid)) ERR;
       }
       SUMMARIZE_ERR;               
@@ -131,24 +134,24 @@ main(int argc, char **argv)
       {
          if (create_test_file(file_names[format], formats[format])) ERR;
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
-         if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
-         if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
-         if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
-         if (check_file(ncid, OVAR_NAME, OVAR2_NAME, ODIM_NAME)) ERR;
+         if (nc_inq_dimid(ncid, LAT, &dimid)) ERR;
+         if (nc_inq_varid(ncid, LAT, &varid)) ERR;
+         if (nc_inq_varid(ncid, RH, &var2id)) ERR;
+         if (check_file(ncid, LAT, RH, LAT)) ERR;
          if (nc_redef(ncid)) ERR;
 
          /* Rename the dim. */
-         if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
+         if (nc_rename_dim(ncid, dimid, TAL)) ERR;
 
          /* This should work, but fails, because enddef creates a HDF5
           * dataset called "tal" when we rename the dim. */
          /* if (nc_enddef(ncid)) ERR; */
          /* if (nc_redef(ncid)) ERR; /\* omitting this and nc_enddef call eliminates bug *\/ */
-         /* if (check_file(ncid, OVAR_NAME, OVAR2_NAME, NDIM_NAME)) ERR; */
 
          /* Rename the var. */
-         if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR;
+         if (nc_rename_var(ncid, varid, TAL)) ERR;
          if (nc_enddef(ncid)) ERR;
+         if (check_file(ncid, TAL, RH, TAL)) ERR;         
          if (nc_get_var_int(ncid, varid, lats_in)) ERR;
          for (ii = 0; ii < DIM_LEN; ii++) {
             if (lats_in[ii] != lats[ii])
