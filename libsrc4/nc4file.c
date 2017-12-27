@@ -3078,17 +3078,18 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
  * @param basepe Ignored by this function.
  * @param chunksizehintp Ignored by this function.
  * @param use_parallel 0 for sequential, non-zero for parallel I/O.
- * @param parameters pointer to struct holding extra data (e.g. for parallel I/O)
- * layer. Ignored if NULL.
+ * @param parameters pointer to struct holding extra data (e.g. for
+ * parallel I/O) layer. Ignored if NULL.
  * @param dispatch Pointer to the dispatch table for this file.
  * @param nc_file Pointer to an instance of NC.
  *
  * @return ::NC_NOERR No error.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner, Quincey Koziol
  */
 int
 NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-         int use_parallel, void *parameters, NC_Dispatch *dispatch, NC *nc_file)
+         int use_parallel, void *parameters, NC_Dispatch *dispatch,
+         NC *nc_file)
 {
    int res;
    int is_hdf5_file = 0;
@@ -3104,8 +3105,8 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 
    assert(nc_file && path);
 
-   LOG((1, "%s: path %s mode %d params %x",
-        __func__, path, mode, parameters));
+   LOG((1, "%s: path %s mode %d params %x", __func__, path, mode,
+        parameters));
 
 #ifdef USE_PARALLEL4
    if (!inmemory && use_parallel && parameters == NULL)
@@ -3117,18 +3118,17 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
       nc4_hdf5_initialize();
 
    /* Check the mode for validity */
-   if((mode & ILLEGAL_OPEN_FLAGS) != 0)
-   {res = NC_EINVAL; goto done;}
+   if (mode & ILLEGAL_OPEN_FLAGS)
+      return  NC_EINVAL;
 
    /* Cannot have both */
-   if((mode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
-   {res = NC_EINVAL; goto done;}
+   if ((mode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
+      return NC_EINVAL;
 
 #ifndef USE_PARALLEL_POSIX
-/* If the HDF5 library has been compiled without the MPI-POSIX VFD, alias
- *      the NC_MPIPOSIX flag to NC_MPIIO. -QAK
- */
-   if(mode & NC_MPIPOSIX)
+   /* If the HDF5 library has been compiled without the MPI-POSIX VFD,
+    * alias the NC_MPIPOSIX flag to NC_MPIIO. */
+   if (mode & NC_MPIPOSIX)
    {
       mode &= ~NC_MPIPOSIX;
       mode |= NC_MPIIO;
@@ -3136,25 +3136,28 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* USE_PARALLEL_POSIX */
 
    /* Figure out if this is a hdf4 or hdf5 file. */
-   if(nc_file->model == NC_FORMATX_NC4)
+   if (nc_file->model == NC_FORMATX_NC4)
       is_hdf5_file = 1;
 #ifdef USE_HDF4
-   else if(nc_file->model == NC_FORMATX_NC_HDF4)
+   else if (nc_file->model == NC_FORMATX_NC_HDF4)
+   {
+      if (inmemory)
+         return NC_EDISKLESS;
       is_hdf4_file = 1;
+   }
 #endif /* USE_HDF4 */
+
    /* Depending on the type of file, open it. */
    nc_file->int_ncid = nc_file->ext_ncid;
    if (is_hdf5_file)
       res = nc4_open_file(path, mode, parameters, nc_file);
 #ifdef USE_HDF4
-   else if (is_hdf4_file && inmemory)
-   {res = NC_EDISKLESS; goto done;}
    else if (is_hdf4_file)
       res = nc4_open_hdf4_file(path, mode, nc_file);
 #endif /* USE_HDF4 */
    else
       res = NC_ENOTNC;
-done:
+
    return res;
 }
 
