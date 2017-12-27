@@ -922,21 +922,18 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
             BAIL(NC_EPARINIT);
       }
 #else /* USE_PARALLEL_POSIX */
-      /* Should not happen! Code in NC4_create/NC4_open should alias the
-       *        NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
-       *        available in HDF5. -QAK
-       */
+      /* Should not happen! */
       else /* MPI/POSIX */
          BAIL(NC_EPARINIT);
 #endif /* USE_PARALLEL_POSIX */
 
       /* Keep copies of the MPI Comm & Info objects */
-      if (MPI_SUCCESS != MPI_Comm_dup(comm, &nc4_info->comm))
+      if (MPI_Comm_dup(comm, &nc4_info->comm) != MPI_SUCCESS)
          BAIL(NC_EMPI);
       comm_duped++;
-      if (MPI_INFO_NULL != info)
+      if (info != MPI_INFO_NULL)
       {
-         if (MPI_SUCCESS != MPI_Info_dup(info, &nc4_info->info))
+         if (MPI_Info_dup(info, &nc4_info->info) != MPI_SUCCESS)
             BAIL(NC_EMPI);
          info_duped++;
       }
@@ -947,10 +944,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       }
    }
 #else /* only set cache for non-parallel... */
-   if(cmode & NC_DISKLESS) {
+   if (cmode & NC_DISKLESS) 
       if (H5Pset_fapl_core(fapl_id, 4096, persist))
          BAIL(NC_EDISKLESS);
-   }
+
    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
                     nc4_chunk_cache_preemption) < 0)
       BAIL(NC_EHDFERR);
@@ -967,7 +964,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0)
       BAIL(NC_EHDFERR);
 
-   /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
+   /* Turn off time tracking of HDF5 objects. */
    if (H5Pset_obj_track_times(fcpl_id,0)<0)
       BAIL(NC_EHDFERR);
 
@@ -981,15 +978,15 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
                                             H5P_CRT_ORDER_INDEXED)) < 0)
       BAIL(NC_EHDFERR);
 
-   /* Create the file. */
 #ifdef HDF5_HAS_COLL_METADATA_OPS
-   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
+   /* Turn on collective metadata reads and writes. */
+   H5Pset_all_coll_metadata_ops(fapl_id, 1);
    H5Pset_coll_metadata_write(fapl_id, 1);
 #endif
 
+   /* Create the file. The error code is system error EACCES instead
+    * of NC_EFILEMETADATA because that is the more likely problem. */
    if ((nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
-      /*Change the return error from NC_EFILEMETADATA to
-        System error EACCES because that is the more likely problem */
       BAIL(EACCES);
 
    /* Open the root group. */
@@ -1004,9 +1001,13 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* Define mode gets turned on automatically on create. */
    nc4_info->flags |= NC_INDEF;
 
-   NC4_get_fileinfo(nc4_info,&globalpropinfo);
-   NC4_put_propattr(nc4_info);
+   /* Get the HDF5 superblock and read and parse the special
+    * _NCProperties attribute. */
+   NC4_get_fileinfo(nc4_info, &globalpropinfo);
 
+   /* Write the _NCProperties attribute. */
+   NC4_put_propattr(nc4_info);
+   
    return NC_NOERR;
 
 exit: /*failure exit*/
@@ -2471,9 +2472,9 @@ exit:
 }
 
 /**
- * @internal Open a netcdf-4 file. Things have already been kicked off
- * in ncfunc.c in nc_open, but here the netCDF-4 part of opening a
- * file is handled. 
+ * @internal Open a netcdf-4 file. This is called by NC4_open(), which
+ * is called by nc_open() after it decides to use the netCDF-4
+ * dispatch table.
  *
  * @param path The file name of the new file.
  * @param mode The open mode flag.
@@ -2481,6 +2482,9 @@ exit:
  * @param nc Pointer to NC file info.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 returned error.
+ * @return ::NC_EPARINIT Parallel IO initialization error.
+ * @return ::NC_EMPI MPI function returned error.
  * @author Ed Hartnett, Dennis Heimbigner
 */
 static int
@@ -2492,9 +2496,9 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    int retval;
    NC_HDF5_FILE_INFO_T* nc4_info = NULL;
    int inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
-   NC_MEM_INFO* meminfo = (NC_MEM_INFO*)parameters;
+   NC_MEM_INFO *meminfo = (NC_MEM_INFO *)parameters;
 #ifdef USE_PARALLEL4
-   NC_MPI_INFO* mpiinfo = (NC_MPI_INFO*)parameters;
+   NC_MPI_INFO *mpiinfo = (NC_MPI_INFO *)parameters;
    int comm_duped = 0;          /* Whether the MPI Communicator was duplicated */
    int info_duped = 0;          /* Whether the MPI Info object was duplicated */
 #endif /* !USE_PARALLEL4 */
@@ -2537,21 +2541,18 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
             BAIL(NC_EPARINIT);
       }
 #else /* USE_PARALLEL_POSIX */
-      /* Should not happen! Code in NC4_create/NC4_open should alias the
-       *        NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
-       *        available in HDF5. -QAK
-       */
+      /* Should not happen! */
       else /* MPI/POSIX */
          BAIL(NC_EPARINIT);
 #endif /* USE_PARALLEL_POSIX */
 
       /* Keep copies of the MPI Comm & Info objects */
-      if (MPI_SUCCESS != MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm))
+      if (MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm) != MPI_SUCCESS)
          BAIL(NC_EMPI);
       comm_duped++;
-      if (MPI_INFO_NULL != mpiinfo->info)
+      if (mpiinfo->info != MPI_INFO_NULL)
       {
-         if (MPI_SUCCESS != MPI_Info_dup(mpiinfo->info, &nc4_info->info))
+         if (MPI_Info_dup(mpiinfo->info, &nc4_info->info) != MPI_SUCCESS)
             BAIL(NC_EMPI);
          info_duped++;
       }
@@ -2569,13 +2570,13 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
         __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems, nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
 
-   /* The NetCDF-3.x prototype contains an mode option NC_SHARE for
-      multiple processes accessing the dataset concurrently.  As there
-      is no HDF5 equivalent, NC_SHARE is treated as NC_NOWRITE. */
 #ifdef HDF5_HAS_COLL_METADATA_OPS
-   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
+   /* Set metadata I/O mode for read operations to collective. */
+   H5Pset_all_coll_metadata_ops(fapl_id, 1);
 #endif
-   if(inmemory) {
+   
+   if (inmemory)
+   {
       if((nc4_info->hdfid = H5LTopen_file_image(meminfo->memory,meminfo->size,
                                                 H5LT_FILE_IMAGE_DONT_COPY|H5LT_FILE_IMAGE_DONT_RELEASE
              )) < 0)
@@ -2585,7 +2586,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       BAIL(NC_EHDFERR);
 
    /* Does the mode specify that this file is read-only? */
-   if ((mode & NC_WRITE) == 0)
+   if (!(mode & NC_WRITE))
       nc4_info->no_write = NC_TRUE;
 
    /* Now read in all the metadata. Some types and dimscale
@@ -2610,7 +2611,9 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if (H5Pclose(fapl_id) < 0)
       BAIL(NC_EHDFERR);
 
-   NC4_get_fileinfo(nc4_info,NULL);
+   /* Get the HDF5 superblock and read and parse the special
+    * _NCProperties attribute. */
+   NC4_get_fileinfo(nc4_info, NULL);
 
    return NC_NOERR;
 

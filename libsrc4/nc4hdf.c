@@ -4277,8 +4277,8 @@ NC4_hdf5get_libversion(unsigned* major,unsigned* minor,unsigned* release)
  * @param h5 Pointer to HDF5 file info struct.
  * @param idp Pointer that gets superblock version.
  *
- * @returns NC_NOERR No error.
- * @returns NC_EHDFERR HDF5 returned error.
+ * @return NC_NOERR No error.
+ * @return NC_EHDFERR HDF5 returned error.
  * @author Dennis Heimbigner
  */
 int
