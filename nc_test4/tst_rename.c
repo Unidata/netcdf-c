@@ -106,13 +106,13 @@ main(int argc, char **argv)
       printf("*** testing renaming before enddef for %s...", fmt_names[format]);
       {
          int ncid, varid, var2id;
-         int dims[VAR_RANK];
+         int dimid;
          
          if (nc_set_default_format(formats[format], NULL)) ERR;
          if (nc_create(file_names[format], 0, &ncid)) ERR;
-         if (nc_def_dim(ncid, LAT, DIM_LEN, &dims[0])) ERR;
-         if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, dims, &varid)) ERR;
-         if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, dims, &var2id)) ERR;
+         if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR;
+         if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, &dimid, &varid)) ERR;
+         if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, &dimid, &var2id)) ERR;
 
          /* Now rename the dim. */
          if (nc_rename_dim(ncid, dimid, TAL)) ERR;
