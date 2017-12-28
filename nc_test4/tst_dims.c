@@ -209,7 +209,7 @@ main(int argc, char **argv)
       if (nc_rename_var(ncid, varid, VAR_NAME2)) ERR;
       if (nc_close(ncid)) ERR;
 
-
+      return 0;
       /* reopen file, check coordinate dimension and associated variable names */
       /* Should be just like they created the file with DIM_NAME2 & VAR_NAME2 to
        *  begin with.

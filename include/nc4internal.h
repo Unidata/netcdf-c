@@ -102,6 +102,12 @@ typedef enum {VAR, DIM, ATT} NC_OBJ_T;
  * as the netCDF dimid. */
 #define NC_DIMID_ATT_NAME "_Netcdf4Dimid"
 
+/** This is the name of the class HDF5 dimension scale attribute. */
+#define HDF5_DIMSCALE_CLASS_ATT_NAME "CLASS"
+
+/** This is the name of the name HDF5 dimension scale attribute. */
+#define HDF5_DIMSCALE_NAME_ATT_NAME "NAME"
+
 /* Boolean type, to make the code easier to read */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 

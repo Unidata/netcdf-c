@@ -2285,6 +2285,55 @@ var_exists(hid_t grpid, char *name, nc_bool_t *exists)
 }
 
 /**
+ * @internal Convert a coordinate variable HDF5 dataset into one that
+ * is not a coordinate variable. This happens during renaming of vars
+ * and dims. This function removes the HDF5 NAME and CLASS attributes
+ * associated with dimension scales, and also the NC_DIMID_ATT_NAME
+ * attribute which may be present, and, if it does, holds the dimid of
+ * the coordinate variable. 
+ *
+ * @param hdf_datasetid The HDF5 dataset ID of the coordinate variable dataset.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 error.
+ * @author Ed Hartnett
+ */
+int
+remove_coord_atts(hid_t hdf_datasetid)
+{
+   htri_t attr_exists;
+   
+   /* If the variable dataset has an optional NC_DIMID_ATT_NAME
+    * attribute, delete it. */
+   if ((attr_exists = H5Aexists(hdf_datasetid, NC_DIMID_ATT_NAME)) < 0)
+      return NC_EHDFERR;
+   if (attr_exists)
+   {
+      if (H5Adelete(hdf_datasetid, NC_DIMID_ATT_NAME) < 0)
+         return NC_EHDFERR;
+   }
+   
+   /* (We could do a better job here and verify that the attributes are
+    * really dimension scale 'CLASS' & 'NAME' attributes, but that would be
+    * poking about in the HDF5 DimScale internal data) */
+   if ((attr_exists = H5Aexists(hdf_datasetid, HDF5_DIMSCALE_CLASS_ATT_NAME)) < 0)
+      return NC_EHDFERR;
+   if (attr_exists)
+   {
+      if (H5Adelete(hdf_datasetid, HDF5_DIMSCALE_CLASS_ATT_NAME) < 0)
+         return NC_EHDFERR;
+   }
+   if ((attr_exists = H5Aexists(hdf_datasetid, HDF5_DIMSCALE_NAME_ATT_NAME)) < 0)
+      return NC_EHDFERR;
+   if (attr_exists)
+   {
+      if (H5Adelete(hdf_datasetid, HDF5_DIMSCALE_NAME_ATT_NAME) < 0)
+         return NC_EHDFERR;
+   }
+   return NC_NOERR;
+}
+
+/**
  * @internal This function writes a variable. The principle difficulty
  * comes from the possibility that this is a coordinate variable, and
  * was already written to the file as a dimension-only dimscale. If
@@ -2396,35 +2445,8 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
        * have an API routine for making a dataset not a scale. */
       if (var->created)
       {
-         htri_t attr_exists;
-
-         /* If the variable dataset has an optional NC_DIMID_ATT_NAME
-          * attribute, delete it. */
-         if ((attr_exists = H5Aexists(var->hdf_datasetid, NC_DIMID_ATT_NAME)) < 0)
-            BAIL(NC_EHDFERR);
-         if (attr_exists)
-         {
-            if (H5Adelete(var->hdf_datasetid, NC_DIMID_ATT_NAME) < 0)
-               BAIL(NC_EHDFERR);
-         }
-
-         /* (We could do a better job here and verify that the attributes are
-          * really dimension scale 'CLASS' & 'NAME' attributes, but that would be
-          * poking about in the HDF5 DimScale internal data) */
-         if ((attr_exists = H5Aexists(var->hdf_datasetid, "CLASS")) < 0)
-            BAIL(NC_EHDFERR);
-         if (attr_exists)
-         {
-            if (H5Adelete(var->hdf_datasetid, "CLASS") < 0)
-               BAIL(NC_EHDFERR);
-         }
-         if ((attr_exists = H5Aexists(var->hdf_datasetid, "NAME")) < 0)
-            BAIL(NC_EHDFERR);
-         if (attr_exists)
-         {
-            if (H5Adelete(var->hdf_datasetid, "NAME") < 0)
-               BAIL(NC_EHDFERR);
-         }
+         if ((retval = remove_coord_atts(var->hdf_datasetid)))
+            BAIL(retval);
       }
 
       if (var->dimscale_attached)

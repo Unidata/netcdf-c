@@ -1638,7 +1638,6 @@ nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att)
 int
 nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim)
 {
-   htri_t attr_exists;
    int retval = NC_NOERR;
 
    /* Sanity checks */
@@ -1665,22 +1664,9 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
          return NC_ENOMEM;
    }
 
-/* #define HDF5_DIMSCALE_CLASS_ATT_NAME "CLASS" */
-/* #define HDF5_DIMSCALE_NAME_ATT_NAME "NAME" */
-/*    if ((attr_exists = H5Aexists(coord_var->hdf_datasetid, HDF5_DIMSCALE_CLASS_ATT_NAME)) < 0) */
-/*       return NC_EHDFERR; */
-/*    if (attr_exists) */
-/*    { */
-/*       if (H5Adelete(coord_var->hdf_datasetid, HDF5_DIMSCALE_CLASS_ATT_NAME) < 0) */
-/*          return NC_EHDFERR; */
-/*    } */
-/*    if ((attr_exists = H5Aexists(coord_var->hdf_datasetid, HDF5_DIMSCALE_NAME_ATT_NAME)) < 0) */
-/*       return NC_EHDFERR; */
-/*    if (attr_exists) */
-/*    { */
-/*       if (H5Adelete(coord_var->hdf_datasetid, HDF5_DIMSCALE_NAME_ATT_NAME) < 0) */
-/*          return NC_EHDFERR; */
-/*    } */
+   /* Remove the atts that go with being a coordinate var. */
+   /* if ((retval = remove_coord_atts(coord_var->hdf_datasetid))) */
+   /*    return retval; */
    
    /* Detach dimension from variable */
    coord_var->dimscale = NC_FALSE;
