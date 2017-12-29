@@ -1260,16 +1260,13 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
                             NULL, NULL, NULL, NULL, NULL);
 
    /* Copy from size_t array. */
-   if (chunksizesp)
+   if (chunksizesp && var->contiguous == NC_CHUNKED)
    {
-      if (var->contiguous == NC_CHUNKED)
+      for (i = 0; i < var->ndims; i++)
       {
-         for (i = 0; i < var->ndims; i++)
-         {
-            chunksizesp[i] = (int)cs[i];
-            if (cs[i] > NC_MAX_INT)
-               retval = NC_ERANGE;
-         }
+         chunksizesp[i] = (int)cs[i];
+         if (cs[i] > NC_MAX_INT)
+            retval = NC_ERANGE;
       }
    }
    
