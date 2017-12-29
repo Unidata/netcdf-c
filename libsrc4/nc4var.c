@@ -654,40 +654,30 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          BAIL(retval);
 
       /* Check for dim index 0 having the same name, in the same group */
-      /* if (d == 0 && dim_grp == grp && dim->hash == var->hash && */
-      /*     strcmp(dim->name, norm_name) == 0) */
-      if (d == 0)
+      if (d == 0 && dim_grp == grp && dim->hash == var->hash &&
+          strcmp(dim->name, norm_name) == 0)
       {
-         if (dim_grp == grp)
+         var->dimscale = NC_TRUE;
+         dim->coord_var = var;
+         
+         /* Use variable's dataset ID for the dimscale ID. So delete
+          * the HDF5 DIM_WITHOUT_VARIABLE dataset that was created for
+          * this dim. */
+         if (dim->hdf_dimscaleid)
          {
-            if (dim->hash == var->hash)
-            {
-               if (strcmp(dim->name, norm_name) == 0)
-               {
-                  var->dimscale = NC_TRUE;
-                  dim->coord_var = var;
-                  
-                  /* Use variable's dataset ID for the dimscale ID. So delete
-                   * the HDF5 DIM_WITHOUT_VARIABLE dataset that was created for
-                   * this dim. */
-                  if (dim->hdf_dimscaleid)
-                  {
-                     /* Detach dimscale from any variables using it */
-                     if ((retval = rec_detach_scales(grp, dimidsp[d], dim->hdf_dimscaleid)) < 0)
-                        BAIL(retval);
-                     
-                     /* Close the HDF5 DIM_WITHOUT_VARIABLE dataset. */
-                     if (H5Dclose(dim->hdf_dimscaleid) < 0)
-                        BAIL(NC_EHDFERR);
-                     dim->hdf_dimscaleid = 0;
-                     
-                     /* Now delete the DIM_WITHOUT_VARIABLE dataset (it will be
-                      * recreated later, if necessary). */
-                     if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
-                        BAIL(NC_EDIMMETA);
-                  }
-               }
-            }
+            /* Detach dimscale from any variables using it */
+            if ((retval = rec_detach_scales(grp, dimidsp[d], dim->hdf_dimscaleid)) < 0)
+               BAIL(retval);
+            
+            /* Close the HDF5 DIM_WITHOUT_VARIABLE dataset. */
+            if (H5Dclose(dim->hdf_dimscaleid) < 0)
+               BAIL(NC_EHDFERR);
+            dim->hdf_dimscaleid = 0;
+            
+            /* Now delete the DIM_WITHOUT_VARIABLE dataset (it will be
+             * recreated later, if necessary). */
+            if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
+               BAIL(NC_EDIMMETA);
          }
       }
 
@@ -724,25 +714,18 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
     * and this var has the same name. */
    for (dim = grp->dim; dim; dim = dim->l.next)
    {
-      /* if (dim->hash == var->hash && !strcmp(dim->name, norm_name) && */
-      /*     (!var->ndims || dimidsp[0] != dim->dimid)) */
-      if (dim->hash == var->hash)
+      if (dim->hash == var->hash && !strcmp(dim->name, norm_name) &&
+          (!var->ndims || dimidsp[0] != dim->dimid))
       {
-         if (!strcmp(dim->name, norm_name))
-         {
-            if (!var->ndims || dimidsp[0] != dim->dimid)
-            {
-               /* Set a different hdf5 name for this variable to avoid name
-                * clash. */
-               if (strlen(norm_name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
-                  BAIL(NC_EMAXNAME);
-               if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) +
-                                              strlen(norm_name) + 1) * sizeof(char))))
-                  BAIL(NC_ENOMEM);
-               
-               sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, norm_name);
-            }
-         }
+         /* Set a different hdf5 name for this variable to avoid name
+          * clash. */
+         if (strlen(norm_name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
+            BAIL(NC_EMAXNAME);
+         if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) +
+                                        strlen(norm_name) + 1) * sizeof(char))))
+            BAIL(NC_ENOMEM);
+         
+         sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, norm_name);
       }
    }
 
@@ -1277,14 +1260,19 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
                             NULL, NULL, NULL, NULL, NULL);
 
    /* Copy from size_t array. */
-   if (chunksizesp && var->contiguous == NC_CHUNKED)
-      for (i = 0; i < var->ndims; i++)
+   if (chunksizesp)
+   {
+      if (var->contiguous == NC_CHUNKED)
       {
-         chunksizesp[i] = (int)cs[i];
-         if (cs[i] > NC_MAX_INT)
-            retval = NC_ERANGE;
+         for (i = 0; i < var->ndims; i++)
+         {
+            chunksizesp[i] = (int)cs[i];
+            if (cs[i] > NC_MAX_INT)
+               retval = NC_ERANGE;
+         }
       }
-
+   }
+   
    if (var->ndims)
       free(cs);
    return retval;
