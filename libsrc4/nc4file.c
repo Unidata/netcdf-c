@@ -1810,6 +1810,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Add a variable to the end of the group's var list. */
    if ((retval = nc4_var_add(&var)))
       BAIL(retval);
+   assert(var);
 
    /* Fill in what we already know. */
    var->hdf_datasetid = datasetid;
@@ -2882,6 +2883,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       /* Add a variable. */
       if ((retval = nc4_var_add(&var)))
          return retval;
+      assert(var);
 
       var->varid = grp->nvars++;
       var->created = NC_TRUE;
