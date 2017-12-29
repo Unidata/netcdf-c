@@ -2033,15 +2033,15 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
    /* Now read all the attributes of this variable, ignoring the
       ones that hold HDF5 dimension scale information. */
-
    att_info.var = var;
    att_info.grp = grp;
-
    if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
                     att_read_var_callbk, &att_info)) < 0)
       BAIL(NC_EATTMETA);
 
-   nc4_vararray_add(grp, var);
+   /* Grow the variable array. */
+   if ((retval = nc4_vararray_add(grp, var)))
+      BAIL(retval);
 
    /* Is this a deflated variable with a chunksize greater than the
     * current cache size? */
@@ -2887,7 +2887,9 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       var->created = NC_TRUE;
       var->written_to = NC_TRUE;
 
-      nc4_vararray_add(grp, var);
+      /* Grow the variable array. */
+      if ((retval = nc4_vararray_add(grp, var)))
+         return retval;
 
       /* Open this dataset in HDF4 file. */
       if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL)

@@ -332,7 +332,8 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
          suggested_size = DEFAULT_CHUNK_SIZE / type_size;
       var->chunksizes[0] = suggested_size / type_size;
       LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-           "chunksize %ld", __func__, var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[0]));
+           "chunksize %ld", __func__, var->name, d, DEFAULT_CHUNK_SIZE, num_values,
+           type_size, var->chunksizes[0]));
    }
    if (var->ndims > 1 && var->ndims == num_unlim) { /* all dims unlimited */
       suggested_size = pow((double)DEFAULT_CHUNK_SIZE/type_size, 1.0/(double)(var->ndims));
@@ -340,7 +341,8 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
       {
          var->chunksizes[d] = suggested_size ? suggested_size : 1;
          LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-              "chunksize %ld", __func__, var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
+              "chunksize %ld", __func__, var->name, d, DEFAULT_CHUNK_SIZE, num_values,
+              type_size, var->chunksizes[d]));
       }
    }
 
@@ -407,7 +409,8 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @returns ::NC_ENOMEM Out of memory.
  * @author Dennis Heimbigner
  */
-int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+int
+nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    NC_VAR_INFO_T **vp = NULL;
 
@@ -607,7 +610,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    var->ndims = ndims;
    var->is_new_var = NC_TRUE;
 
-   nc4_vararray_add(grp, var);
+   /* Grow the variable array. */
+   if ((retval = nc4_vararray_add(grp, var)))
+      BAIL(retval);
 
    /* Point to the type, and increment its ref. count */
    var->type_info = type_info;

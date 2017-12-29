@@ -12,6 +12,8 @@
 #define ODIM_NAME "lat"         /* name for coord dim */
 #define LAT "lat"
 #define TAL "tal"
+#define TAL1 "tal1"
+#define TAL2 "tal2"
 #define RH "rh"
 #define NDIM_NAME "tal"         /* new name for coord dim */
 #define OVAR_NAME "lat"         /* name for coord var */
@@ -57,6 +59,9 @@ check_file(int ncid, char *var0_name, char *var1_name, char *dim_name)
    float rh_in[DIM_LEN];
    int ii;
 
+   /* printf("checking for vars %s and %s, dim %s\n", var0_name, var1_name, */
+   /*        dim_name); */
+   
    /* Check vars. */
    if (nc_inq_varid(ncid, var0_name, &varid)) ERR;
    if (varid != 0) ERR;
@@ -92,7 +97,7 @@ main(int argc, char **argv)
    int format;
 
    fprintf(stderr,"*** Testing netcdf rename bugs and fixes.\n");
-   nc_set_log_level(5);
+   /* nc_set_log_level(5); */
 
    for(format = 0; format < NUM_FORMATS; format++)
    {
@@ -103,32 +108,89 @@ main(int argc, char **argv)
       float rh_in[DIM_LEN];
       int ii;
 
-      /* printf("*** testing renaming before enddef for %s...", fmt_names[format]); */
-      /* { */
-      /*    int ncid, varid, var2id; */
-      /*    int dimid; */
+      printf("*** testing renaming before enddef for %s...", fmt_names[format]);
+      {
+         int ncid, varid, var2id;
+         int dimid;
          
-      /*    if (nc_set_default_format(formats[format], NULL)) ERR; */
-      /*    if (nc_create(file_names[format], 0, &ncid)) ERR; */
-      /*    if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR; */
-      /*    if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, &dimid, &varid)) ERR; */
-      /*    if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, &dimid, &var2id)) ERR; */
+         if (nc_set_default_format(formats[format], NULL)) ERR;
+         if (nc_create(file_names[format], 0, &ncid)) ERR;
+         if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR;
+         if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, &dimid, &varid)) ERR;
+         if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, &dimid, &var2id)) ERR;
 
-      /*    /\* Now rename the dim. *\/ */
-      /*    if (nc_rename_dim(ncid, dimid, TAL)) ERR; */
-      /*    if (nc_rename_var(ncid, varid, TAL)) ERR; */
+         /* Now rename the dim. */
+         if (nc_rename_dim(ncid, dimid, TAL)) ERR;
+         if (nc_rename_var(ncid, varid, TAL)) ERR;
          
-      /*    if (nc_enddef(ncid)) ERR;    /\* not necessary for netCDF-4 files *\/ */
-      /*    if (nc_put_var_int(ncid, varid, lats)) ERR; */
-      /*    if (nc_put_var_float(ncid, var2id, rh)) ERR; */
-      /*    if (nc_close(ncid)) ERR; */
+         if (nc_enddef(ncid)) ERR;    /* not necessary for netCDF-4 files */
+         if (nc_put_var_int(ncid, varid, lats)) ERR;
+         if (nc_put_var_float(ncid, var2id, rh)) ERR;
+         if (nc_close(ncid)) ERR;
 
-      /*    /\* Reopen and check. *\/ */
-      /*    if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR; */
-      /*    if (check_file(ncid, TAL, RH, TAL)) ERR; */
-      /*    if (nc_close(ncid)) ERR; */
-      /* } */
-      /* SUMMARIZE_ERR; */
+         /* Reopen and check. */
+         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         if (check_file(ncid, TAL, RH, TAL)) ERR;
+         if (nc_close(ncid)) ERR;
+      }
+      SUMMARIZE_ERR;
+
+      printf("*** testing renaming after enddef for %s...", fmt_names[format]);
+      {
+         int ncid, varid, var2id;
+         int dimid;
+         
+         if (nc_set_default_format(formats[format], NULL)) ERR;
+         if (nc_create(file_names[format], 0, &ncid)) ERR;
+         if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR;
+         if (nc_def_var(ncid, TAL1, NC_INT, VAR_RANK, &dimid, &varid)) ERR;
+         if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, &dimid, &var2id)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         if (nc_redef(ncid)) ERR; 
+
+         if (nc_rename_var(ncid, varid, TAL2)) ERR;
+         /* if (nc_rename_dim(ncid, dimid, TAL)) ERR; */
+         if (nc_enddef(ncid)) ERR; 
+         
+         if (nc_put_var_int(ncid, varid, lats)) ERR;
+         if (nc_put_var_float(ncid, var2id, rh)) ERR;
+         if (nc_close(ncid)) ERR;
+
+         /* Reopen and check. */
+         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
+         /* if (check_file(ncid, TAL2, RH, LAT)) ERR; */
+         if (nc_close(ncid)) ERR;
+      }
+      SUMMARIZE_ERR;
+      printf("*** testing renaming after enddef for %s...", fmt_names[format]);
+      {
+         int ncid, varid, var2id;
+         int dimid;
+         
+         if (nc_set_default_format(formats[format], NULL)) ERR;
+         if (nc_create(file_names[format], 0, &ncid)) ERR;
+         if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR;
+         if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, &dimid, &varid)) ERR;
+         if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, &dimid, &var2id)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         if (nc_redef(ncid)) ERR;
+
+         if (nc_rename_var(ncid, varid, TAL)) ERR;
+         if (nc_rename_dim(ncid, dimid, TAL)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         
+         if (nc_put_var_int(ncid, varid, lats)) ERR;
+         if (nc_put_var_float(ncid, var2id, rh)) ERR;
+         if (nc_close(ncid)) ERR;
+
+         /* Reopen and check. */
+         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
+         /* if (check_file(ncid, TAL, RH, TAL)) ERR; */
+         if (nc_close(ncid)) ERR;
+      }
+      SUMMARIZE_ERR;
 
       printf("*** testing renaming after enddef for %s...", fmt_names[format]);
       {
@@ -145,7 +207,7 @@ main(int argc, char **argv)
 
          /* Now rename the dim. */
          if (nc_rename_dim(ncid, dimid, TAL)) ERR;
-         /* if (nc_rename_var(ncid, varid, TAL)) ERR;          */
+         if (nc_rename_var(ncid, varid, TAL)) ERR;
          if (nc_enddef(ncid)) ERR;    /* not necessary for netCDF-4 files */
          
          if (nc_put_var_int(ncid, varid, lats)) ERR;
@@ -154,12 +216,12 @@ main(int argc, char **argv)
 
          /* Reopen and check. */
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
-         if (check_file(ncid, LAT, RH, TAL)) ERR;
+         /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
          /* if (check_file(ncid, TAL, RH, TAL)) ERR; */
          if (nc_close(ncid)) ERR;
       }
       SUMMARIZE_ERR;
-
+      
       printf("*** testing renaming after enddef for %s...", fmt_names[format]);
       {
          if (create_test_file(file_names[format], formats[format])) ERR;

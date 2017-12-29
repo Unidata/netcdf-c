@@ -239,6 +239,10 @@ For classic format, 64-bit offset format, and netCDF-4/HDF5 with
 classic mode, if the new name is longer than the old name, the netCDF
 dataset must be in define mode.
 
+For netCDF-4/HDF5 files, renaming the variable changes the order of
+the variables in the file. The renamed variable becomes the last
+variable in the file.
+
 @param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
