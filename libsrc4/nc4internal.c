@@ -1636,7 +1636,8 @@ nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att)
  * @author Quincey Koziol, Ed Hartnett
  */
 int
-nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim)
+nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var,
+                    NC_DIM_INFO_T *dim)
 {
    int retval = NC_NOERR;
 
@@ -1644,6 +1645,8 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
    assert(grp && coord_var && dim && dim->coord_var == coord_var &&
           coord_var->dim[0] == dim && coord_var->dimids[0] == dim->dimid &&
           !dim->hdf_dimscaleid);
+   LOG((3, "%s dim %s was associated with var %s, but now has different name",
+        __func__, dim->name, coord_var->name));
 
    /* If we're replacing an existing dimscale dataset, go to
     * every var in the file and detach this dimension scale. */
@@ -1655,7 +1658,7 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
     * coordinate variable */
    if (coord_var->ndims)
    {
-      /* Coordinate variables shouldn't have dimscales attached */
+      /* Coordinate variables shouldn't have dimscales attached. */
       assert(!coord_var->dimscale_attached);
 
       /* Allocate space for tracking them */
@@ -1696,6 +1699,9 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
    int need_to_reattach_scales = 0;
    int retval = NC_NOERR;
 
+   assert(grp && var && dim);
+   LOG((3, "%s: dim->name %s var->name %s", __func__, dim->name, var->name));
+   
    /* Detach dimscales from the [new] coordinate variable */
    if (var->dimscale_attached)
    {

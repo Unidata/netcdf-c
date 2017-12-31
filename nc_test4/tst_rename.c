@@ -188,22 +188,22 @@ main(int argc, char **argv)
          /* This will cause dimscale-only dataset LAT to be
           * deleted. Existing dataset TAL will become the dimscale
           * dataset. Dataset RH will re-point to dimscale TAL. */
-         /* if (nc_rename_dim(ncid, dimid, TAL)) ERR; */
-         /* if (nc_enddef(ncid)) ERR; */
+         if (nc_rename_dim(ncid, dimid, TAL)) ERR;
+         if (nc_enddef(ncid)) ERR;
 
-         /* /\* Varids have changed, so get them again. *\/ */
-         /* if (nc_inq_varid(ncid, TAL, &varid)) ERR; */
-         /* if (nc_inq_varid(ncid, RH, &var2id)) ERR; */
+         /* Varids have changed, so get them again. */
+         if (nc_inq_varid(ncid, TAL, &varid)) ERR;
+         if (nc_inq_varid(ncid, RH, &var2id)) ERR;
 
-         /* /\* Write some data. *\/ */
-         /* if (nc_put_var_int(ncid, varid, lats)) ERR; */
-         /* if (nc_put_var_float(ncid, var2id, rh)) ERR; */
+         /* Write some data. */
+         if (nc_put_var_int(ncid, varid, lats)) ERR;
+         if (nc_put_var_float(ncid, var2id, rh)) ERR;
          if (nc_close(ncid)) ERR;
 
          /* Reopen and check. */
-         /* if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR; */
-         /* if (check_file(ncid, TAL, RH, TAL)) ERR; */
-         /* if (nc_close(ncid)) ERR; */
+         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         if (check_file(ncid, TAL, RH, TAL)) ERR;
+         if (nc_close(ncid)) ERR;
       }
       SUMMARIZE_ERR;
 

@@ -349,12 +349,17 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
       return NC_EBADDIM;
    dim = tmp_dim;
 
-   /* Check for renaming dimension w/o variable */
+   /* Check for renaming dimension w/o variable. */
    if (dim->hdf_dimscaleid)
    {
       /* Sanity check */
       assert(!dim->coord_var);
+      LOG((3, "dim %s is a dim without variable", dim->name));
 
+      /* Detach dimscale from any variables using it */
+      if ((retval = rec_detach_scales(grp, dimid, dim->hdf_dimscaleid)) < 0)
+         return retval;
+      
       /* Close the HDF5 dataset */
       if (H5Dclose(dim->hdf_dimscaleid) < 0) 
          return NC_EHDFERR;
@@ -372,10 +377,11 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    if (!(dim->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
       return NC_ENOMEM;
    strcpy(dim->name, norm_name);
-
    dim->hash = hash_fast(norm_name, strlen(norm_name));
+   LOG((3, "dim is now named %s", dim->name));
    
-   /* Check if dimension was a coordinate variable, but names are different now */
+   /* Check if dimension was a coordinate variable, but names are
+    * different now */
    if (dim->coord_var && strcmp(dim->name, dim->coord_var->name))
    {
       /* Break up the coordinate variable */
@@ -383,24 +389,24 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
          return retval;
    }
 
-   /* Check if dimension should become a coordinate variable */
+   /* Check if dimension should become a coordinate variable. */
    if (!dim->coord_var)
    {
       NC_VAR_INFO_T *var;
 
-      /* Attempt to find a variable with the same name as the dimension in
-       * the current group. */
+      /* Attempt to find a variable with the same name as the
+       * dimension in the current group. */
       if ((retval = nc4_find_var(grp, dim->name, &var)))
          return retval;
 
-      /* Check if we found a variable and the variable has the dimension in
-       * index 0. */
+      /* Check if we found a variable and the variable has the
+       * dimension in index 0. */
       if (var && var->dim[0] == dim)
       {
           /* Sanity check */
           assert(var->dimids[0] == dim->dimid);
 
-          /* Reform the coordinate variable */
+          /* Reform the coordinate variable. */
           if ((retval = nc4_reform_coord_var(grp, var, dim)))
              return retval;
       }

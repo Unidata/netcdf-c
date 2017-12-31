@@ -48,7 +48,7 @@ flag_atts_dirty(NC_ATT_INFO_T **attlist)
 {
    NC_ATT_INFO_T *att = NULL;
 
-   for (att = *attlist; att; att = att->l.next) 
+   for (att = *attlist; att; att = att->l.next)
       att->dirty = NC_TRUE;
 
    return NC_NOERR;
@@ -99,6 +99,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                  __func__, var->dimids[d], var->name));
             if (var->created)
             {
+               LOG((4, "%s: attaching scale d %d", __func__, d));
                if (H5DSattach_scale(var->hdf_datasetid, dimscaleid, d) < 0)
                   return NC_EHDFERR;
                var->dimscale_attached[d] = NC_TRUE;
@@ -114,7 +115,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
  * coodinate var on a file where one has been added at enddef for a
  * dim without a coordinate var. In these cases, we need to recreate
  * the dim's dimension scale dataset, and then we need to go to every
- * var in the file which uses that dimension, and attach the new
+ * var in the file which uses that dimension, and detach the old
  * dimension scale.
  *
  * @param grp Pointer to group info struct.
@@ -134,7 +135,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
    int retval;
 
    assert(grp && grp->name && dimid >= 0 && dimscaleid >= 0);
-   LOG((3, "%s: grp->name %s", __func__, grp->name));
+   LOG((3, "%s: grp->name %s dimid %d", __func__, grp->name, dimid));
 
    /* If there are any child groups, detach dimscale there, if needed. */
    for (child_grp = grp->children; child_grp; child_grp = child_grp->l.next)
@@ -154,6 +155,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
             if (var->created)
                if (var->dimscale_attached && var->dimscale_attached[d])
                {
+                  LOG((4, "%s: detaching scale d %d", __func__, d));
                   if (H5DSdetach_scale(var->hdf_datasetid, dimscaleid, d) < 0)
                      return NC_EHDFERR;
                   var->dimscale_attached[d] = NC_FALSE;
@@ -570,7 +572,7 @@ check_for_vara(nc_type *mem_nc_type, NC_VAR_INFO_T *var, NC_HDF5_FILE_INFO_T *h5
 
 #ifdef LOGGING
 /**
- * @intarnal Print some debug info about dimensions to the log. 
+ * @intarnal Print some debug info about dimensions to the log.
  */
 static void
 log_dim_info(NC_VAR_INFO_T *var, hsize_t *fdims, hsize_t *fmaxdims,
@@ -1387,7 +1389,7 @@ exit:
 }
 
 /**
- * @internal Write an attribute. 
+ * @internal Write an attribute.
  *
  * @param grp Pointer to group info struct.
  * @param varid Variable ID or NC_GLOBAL.
@@ -1514,7 +1516,7 @@ exit:
 }
 
 /**
- * @internal Write all the dirty atts in an attlist. 
+ * @internal Write all the dirty atts in an attlist.
  *
  * @param attlist Pointer to the list if attributes.
  * @param varid Variable ID.
@@ -1555,7 +1557,7 @@ write_attlist(NC_ATT_INFO_T *attlist, int varid, NC_GRP_INFO_T *grp)
  * next time. This function also contains a new way of dealing with
  * HDF5 error handling, abandoning the BAIL macros for a more organic
  * and natural approach, made with whole grains, and locally-grown
- * vegetables. 
+ * vegetables.
  *
  * @param var Pointer to var info struct.
  *
@@ -1584,7 +1586,7 @@ write_coord_dimids(NC_VAR_INFO_T *var)
 }
 
 /**
- * @internal Write a special attribute for the netCDF-4 dimension ID. 
+ * @internal Write a special attribute for the netCDF-4 dimension ID.
  *
  * @param datasetid HDF5 datasset ID.
  * @param dimid NetCDF dimension ID.
@@ -1632,7 +1634,7 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
 }
 
 /**
- * @internal This function creates the HDF5 dataset for a variable. 
+ * @internal This function creates the HDF5 dataset for a variable.
  *
  * @param grp Pointer to group info struct.
  * @param var Pointer to variable info struct.
@@ -1902,7 +1904,7 @@ exit:
 
 /**
  * @internal Adjust the chunk cache of a var for better
- * performance. 
+ * performance.
  *
  * @param grp Pointer to group info struct.
  * @param var Pointer to var info struct.
@@ -1950,7 +1952,7 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
 
 /**
  * @internal Create a HDF5 defined type from a NC_TYPE_INFO_T struct,
- * and commit it to the file. 
+ * and commit it to the file.
  *
  * @param grp Pointer to group info struct.
  * @param type Pointer to type info struct.
@@ -2078,7 +2080,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
 /**
  * @internal Write an attribute, with value 1, to indicate that strict
- * NC3 rules apply to this file. 
+ * NC3 rules apply to this file.
  *
  * @param hdf_grpid HDF5 group ID.
  *
@@ -2177,9 +2179,9 @@ exit:
  * @internal After all the datasets of the file have been read, it's
  * time to sort the wheat from the chaff. Which of the datasets are
  * netCDF dimensions, and which are coordinate variables, and which
- * are non-coordinate variables. 
+ * are non-coordinate variables.
  *
- * @param grp Pointer to group info struct. 
+ * @param grp Pointer to group info struct.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
@@ -2228,6 +2230,7 @@ attach_dimscales(NC_GRP_INFO_T *grp)
                   else
                      dim_datasetid = dim1->hdf_dimscaleid;
                   assert(dim_datasetid > 0);
+                  LOG((4, "%s: attaching scale d %d", __func__, d));
                   if (H5DSattach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
                      BAIL(NC_EHDFERR);
                   var->dimscale_attached[d] = NC_TRUE;
@@ -2290,7 +2293,7 @@ var_exists(hid_t grpid, char *name, nc_bool_t *exists)
  * and dims. This function removes the HDF5 NAME and CLASS attributes
  * associated with dimension scales, and also the NC_DIMID_ATT_NAME
  * attribute which may be present, and, if it does, holds the dimid of
- * the coordinate variable. 
+ * the coordinate variable.
  *
  * @param hdf_datasetid The HDF5 dataset ID of the coordinate variable dataset.
  *
@@ -2302,7 +2305,7 @@ int
 remove_coord_atts(hid_t hdf_datasetid)
 {
    htri_t attr_exists;
-   
+
    /* If the variable dataset has an optional NC_DIMID_ATT_NAME
     * attribute, delete it. */
    if ((attr_exists = H5Aexists(hdf_datasetid, NC_DIMID_ATT_NAME)) < 0)
@@ -2312,7 +2315,7 @@ remove_coord_atts(hid_t hdf_datasetid)
       if (H5Adelete(hdf_datasetid, NC_DIMID_ATT_NAME) < 0)
          return NC_EHDFERR;
    }
-   
+
    /* (We could do a better job here and verify that the attributes are
     * really dimension scale 'CLASS' & 'NAME' attributes, but that would be
     * poking about in the HDF5 DimScale internal data) */
@@ -2337,7 +2340,7 @@ remove_coord_atts(hid_t hdf_datasetid)
  * @internal This function writes a variable. The principle difficulty
  * comes from the possibility that this is a coordinate variable, and
  * was already written to the file as a dimension-only dimscale. If
- * this occurs, then it must be deleted and recreated. 
+ * this occurs, then it must be deleted and recreated.
  *
  * @param var Pointer to variable info struct.
  * @param grp Pointer to group info struct.
@@ -2455,6 +2458,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
          /* If this is a regular var, detach all its dim scales. */
          for (d = 0; d < var->ndims; d++)
+         {
             if (var->dimscale_attached[d])
             {
                hid_t dim_datasetid;  /* Dataset ID for dimension */
@@ -2468,10 +2472,12 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
                   dim_datasetid = dim1->hdf_dimscaleid;
                assert(dim_datasetid > 0);
 
+               LOG((4, "%s: detaching scale d %d", __func__, d));
                if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
                   BAIL(NC_EHDFERR);
                var->dimscale_attached[d] = NC_FALSE;
             }
+         }
       }
    }
 
@@ -2834,7 +2840,7 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
 }
 
 /**
- * @internal Recursively write all groups and types. 
+ * @internal Recursively write all groups and types.
  *
  * @param grp Pointer to group info struct.
  *
@@ -3869,7 +3875,7 @@ nc4_convert_type(const void *src, void *dest,
  * @internal In our first pass through the data, we may have
  * encountered variables before encountering their dimscales, so go
  * through the vars in this file and make sure we've got a dimid for
- * each. 
+ * each.
  *
  * @param grp Pointer to group info struct.
  *
@@ -4048,7 +4054,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 
 /**
  * @internal Get the length, in bytes, of one element of a type in
- * memory. 
+ * memory.
  *
  * @param h5 Pointer to HDF5 file info struct.
  * @param xtype NetCDF type ID.
@@ -4118,7 +4124,7 @@ nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int is_long,
 }
 
 /**
- * @internal Get the class of a type 
+ * @internal Get the class of a type
  *
  * @param h5 Pointer to the HDF5 file info struct.
  * @param xtype NetCDF type ID.
