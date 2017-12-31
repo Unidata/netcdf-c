@@ -21,8 +21,8 @@
 #include "ncutf8.h"
 #include "H5DSpublic.h"
 
-#undef DEBUGH5
-
+/* #undef DEBUGH5 */
+#define DEBUGH5 1
 #ifdef DEBUGH5
 /**
  * @internal Provide a catchable error reporting function
@@ -1693,10 +1693,11 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
 int
 nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 {
+   int need_to_reattach_scales = 0;
    int retval = NC_NOERR;
 
    /* Detach dimscales from the [new] coordinate variable */
-   if(var->dimscale_attached)
+   if (var->dimscale_attached)
    {
       int dims_detached = 0;
       int finished = 0;
@@ -1704,8 +1705,9 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 
       /* Loop over all dimensions for variable */
       for (d = 0; d < var->ndims && !finished; d++)
+      {
          /* Is there a dimscale attached to this axis? */
-         if(var->dimscale_attached[d])
+         if (var->dimscale_attached[d])
          {
             NC_GRP_INFO_T *g;
 
@@ -1714,6 +1716,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
                NC_DIM_INFO_T *dim1;
 
                for (dim1 = g->dim; dim1 && !finished; dim1 = dim1->l.next)
+               {
                   if (var->dimids[d] == dim1->dimid)
                   {
                      hid_t dim_datasetid;  /* Dataset ID for dimension */
@@ -1723,15 +1726,23 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
                         dim_datasetid = dim1->coord_var->hdf_datasetid;
                      else
                         dim_datasetid = dim1->hdf_dimscaleid;
-                     assert(dim_datasetid > 0);
-                     if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
-                        BAIL(NC_EHDFERR);
+
+                     /* dim_datasetid may be 0 in some cases when
+                      * renames of dims and vars are happening. In
+                      * this case, the scale has already been
+                      * detached. */
+                     if (dim_datasetid > 0)
+                        if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+                           BAIL(NC_EHDFERR);
+                     need_to_reattach_scales++;
                      var->dimscale_attached[d] = NC_FALSE;
                      if (dims_detached++ == var->ndims)
                         finished++;
                   }
+               }
             }
          }
+      } /* next variable dimension */
 
       /* Release & reset the array tracking attached dimscales */
       free(var->dimscale_attached);
@@ -1756,7 +1767,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
    dim->coord_var = var;
 
    /* Check if this variable used to be a coord. var */
-   if (var->was_coord_var && grp != NULL)
+   if (need_to_reattach_scales || (var->was_coord_var && grp != NULL))
    {
       /* Reattach the scale everywhere it is used. */
       /* (Recall that netCDF dimscales are always 1-D) */

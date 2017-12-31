@@ -59,14 +59,12 @@ check_file(int ncid, char *var0_name, char *var1_name, char *dim_name)
    float rh_in[DIM_LEN];
    int ii;
 
-   /* printf("checking for vars %s and %s, dim %s\n", var0_name, var1_name, */
-   /*        dim_name); */
+   printf("checking for vars %s and %s, dim %s\n", var0_name, var1_name,
+          dim_name);
    
-   /* Check vars. */
+   /* Check vars. Ids will change because of rename. */
    if (nc_inq_varid(ncid, var0_name, &varid)) ERR;
-   if (varid != 0) ERR;
    if (nc_inq_varid(ncid, var1_name, &var2id)) ERR;
-   if (var2id != 1) ERR;
 
    /* Check dim. */
    if (nc_inq_dimid(ncid, dim_name, &dimid)) ERR;
@@ -97,9 +95,9 @@ main(int argc, char **argv)
    int format;
 
    fprintf(stderr,"*** Testing netcdf rename bugs and fixes.\n");
-   /* nc_set_log_level(5); */
+   nc_set_log_level(5);
 
-   for(format = 0; format < NUM_FORMATS; format++)
+   for (format = 0; format < NUM_FORMATS; format++)
    {
       int ncid, dimid, varid, var2id;
       int lats[DIM_LEN] = {-90, 90};
@@ -146,37 +144,9 @@ main(int argc, char **argv)
          if (nc_def_var(ncid, TAL1, NC_INT, VAR_RANK, &dimid, &varid)) ERR;
          if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, &dimid, &var2id)) ERR;
          if (nc_enddef(ncid)) ERR;
-         if (nc_redef(ncid)) ERR; 
-
-         if (nc_rename_var(ncid, varid, TAL2)) ERR;
-         /* if (nc_rename_dim(ncid, dimid, TAL)) ERR; */
-         if (nc_enddef(ncid)) ERR; 
-         
-         if (nc_put_var_int(ncid, varid, lats)) ERR;
-         if (nc_put_var_float(ncid, var2id, rh)) ERR;
-         if (nc_close(ncid)) ERR;
-
-         /* Reopen and check. */
-         if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
-         /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
-         /* if (check_file(ncid, TAL2, RH, LAT)) ERR; */
-         if (nc_close(ncid)) ERR;
-      }
-      SUMMARIZE_ERR;
-      printf("*** testing renaming after enddef for %s...", fmt_names[format]);
-      {
-         int ncid, varid, var2id;
-         int dimid;
-         
-         if (nc_set_default_format(formats[format], NULL)) ERR;
-         if (nc_create(file_names[format], 0, &ncid)) ERR;
-         if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR;
-         if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, &dimid, &varid)) ERR;
-         if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, &dimid, &var2id)) ERR;
-         if (nc_enddef(ncid)) ERR;
          if (nc_redef(ncid)) ERR;
 
-         if (nc_rename_var(ncid, varid, TAL)) ERR;
+         if (nc_rename_var(ncid, varid, TAL2)) ERR;
          if (nc_rename_dim(ncid, dimid, TAL)) ERR;
          if (nc_enddef(ncid)) ERR;
          
@@ -186,9 +156,54 @@ main(int argc, char **argv)
 
          /* Reopen and check. */
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
-         /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
-         /* if (check_file(ncid, TAL, RH, TAL)) ERR; */
+         if (check_file(ncid, TAL2, RH, TAL)) ERR;
          if (nc_close(ncid)) ERR;
+      }
+      SUMMARIZE_ERR;
+      printf("*** testing more renaming after enddef for %s...", fmt_names[format]);
+      {
+         int ncid, varid, var2id;
+         int dimid;
+         
+         /* This will create a HDF5 file with two datasets, RH, and
+          * LAT. LAT is a dimscale. RH points to dimscale LAT. Life is
+          * so simple. */
+         if (nc_set_default_format(formats[format], NULL)) ERR;
+         if (nc_create(file_names[format], 0, &ncid)) ERR;
+         if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR;
+         if (nc_def_var(ncid, LAT, NC_INT, VAR_RANK, &dimid, &varid)) ERR;
+         if (nc_def_var(ncid, RH, NC_FLOAT, VAR_RANK, &dimid, &var2id)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         if (nc_redef(ncid)) ERR;
+
+         /* This will cause dataset LAT to be renamed TAL. It will no
+          * longer be a dimscale. Dataset LAT will be created as a
+          * dimscale without a variable. Datasets RH and TAL will
+          * re-point to (new) dimscale LAT. */
+         if (nc_rename_var(ncid, varid, TAL)) ERR;
+         if (nc_enddef(ncid)) ERR;
+
+         if (nc_redef(ncid)) ERR;
+
+         /* This will cause dimscale-only dataset LAT to be
+          * deleted. Existing dataset TAL will become the dimscale
+          * dataset. Dataset RH will re-point to dimscale TAL. */
+         /* if (nc_rename_dim(ncid, dimid, TAL)) ERR; */
+         /* if (nc_enddef(ncid)) ERR; */
+
+         /* /\* Varids have changed, so get them again. *\/ */
+         /* if (nc_inq_varid(ncid, TAL, &varid)) ERR; */
+         /* if (nc_inq_varid(ncid, RH, &var2id)) ERR; */
+
+         /* /\* Write some data. *\/ */
+         /* if (nc_put_var_int(ncid, varid, lats)) ERR; */
+         /* if (nc_put_var_float(ncid, var2id, rh)) ERR; */
+         if (nc_close(ncid)) ERR;
+
+         /* Reopen and check. */
+         /* if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR; */
+         /* if (check_file(ncid, TAL, RH, TAL)) ERR; */
+         /* if (nc_close(ncid)) ERR; */
       }
       SUMMARIZE_ERR;
 

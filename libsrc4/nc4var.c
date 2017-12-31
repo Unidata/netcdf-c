@@ -1611,7 +1611,8 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return NC_ENOTINDEFINE;
 
    /* Change the HDF5 file, if this var has already been created
-      there. */
+      there. Should we check here to ensure there is not already a
+      dimscale dataset of name name??? */
    if (var->created)
    {
       if (H5Gmove(grp->hdf_grpid, var->name, name) < 0)
