@@ -48,7 +48,8 @@ create_test_file(char *path, int format)
    return 0;
 }
 
-/* Check the file. */
+/* Check the file that was produced by create_test_file(). Only the
+ * names have been changed... */
 int
 check_file(int ncid, char *var0_name, char *var1_name, char *dim_name)
 {
@@ -59,8 +60,8 @@ check_file(int ncid, char *var0_name, char *var1_name, char *dim_name)
    float rh_in[DIM_LEN];
    int ii;
 
-   printf("checking for vars %s and %s, dim %s\n", var0_name, var1_name,
-          dim_name);
+   /* printf("checking for vars %s and %s, dim %s\n", var0_name, var1_name, */
+   /*        dim_name); */
    
    /* Check vars. Ids will change because of rename. */
    if (nc_inq_varid(ncid, var0_name, &varid)) ERR;
@@ -85,6 +86,22 @@ check_file(int ncid, char *var0_name, char *var1_name, char *dim_name)
    return 0;
 }
 
+/* Check the file created in Charlie Zender's test. See github
+ * #597. */
+int
+check_charlies_file(char *file, char *dim_name, char *var_name)
+{
+   int ncid;
+   int varid, dimid;
+   
+   if (nc_open(file, 0, &ncid)) ERR;
+   if (nc_inq_varid(ncid, var_name, &varid)) ERR;
+   if (nc_inq_dimid(ncid, dim_name, &dimid)) ERR;
+   if (varid || dimid) ERR;
+   if (nc_close(ncid)) ERR;
+   return NC_NOERR;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -98,6 +115,7 @@ main(int argc, char **argv)
    nc_set_log_level(5);
 
    for (format = 0; format < NUM_FORMATS; format++)
+   /* for (format = 0; format < 1; format++) */
    {
       int ncid, dimid, varid, var2id;
       int lats[DIM_LEN] = {-90, 90};
@@ -105,6 +123,57 @@ main(int argc, char **argv)
       float rh[DIM_LEN] = {0.25, 0.75};
       float rh_in[DIM_LEN];
       int ii;
+
+      fprintf(stderr,"*** Test Charlie's test for renaming...");
+      {
+#define CHARLIE_TEST_FILE "tst_charlie_rename_coord_dim.nc"
+#define LON "lon"
+#define LONGITUDE "longitude"
+#define DIM1_LEN 4
+#define NDIM1 1
+         int ncid, dimid, varid;
+         float data[DIM1_LEN] = {0, 90.0, 180.0, 270.0};
+
+         /* Create a nice, simple file. This file will contain one
+          * dataset, "lon", which is a dimscale. */
+         if (nc_create(CHARLIE_TEST_FILE, NC_NETCDF4, &ncid)) ERR;
+         if (nc_def_dim(ncid, LON, DIM1_LEN, &dimid)) ERR;
+         if (nc_def_var(ncid, LON, NC_FLOAT, NDIM1, &dimid, &varid)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         if (nc_put_var_float(ncid, varid, data)) ERR;
+         if (nc_close(ncid)) ERR;
+         return 0;
+
+         /* Check the file. */
+         if (check_charlies_file(CHARLIE_TEST_FILE, LON, LON)) ERR;
+
+         /* Open the file and rename the dimension. This will cause
+          * lon to stop being a coord var and dimscale, and create a
+          * new dimscale without var dataset "longitude". Dataset
+          * "lon" will point to "longitude" as its dimscale. */
+         if (nc_open(CHARLIE_TEST_FILE, NC_WRITE, &ncid)) ERR;
+         if (nc_redef(ncid)) ERR;
+         if (nc_rename_dim(ncid, 0, LONGITUDE)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         if (nc_close(ncid)) ERR;
+
+         /* Reopen the file to check. */
+         if (check_charlies_file(CHARLIE_TEST_FILE, LONGITUDE, LON)) ERR;
+
+         /* Open the file and rename the variable. This will remove
+          * the dimscale-only dataset "longitude" and rename the
+          * extisting dataset "lon" to "longitude". Variable
+          * "longitude" will become a coordinate var. */
+         if (nc_open(CHARLIE_TEST_FILE, NC_WRITE, &ncid)) ERR;
+         if (nc_redef(ncid)) ERR;
+         if (nc_rename_var(ncid, 0, LONGITUDE)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         if (nc_close(ncid)) ERR;
+
+         /* Reopen the file to check. */
+         if (check_charlies_file(CHARLIE_TEST_FILE, LONGITUDE, LONGITUDE)) ERR;
+      }
+      SUMMARIZE_ERR;
 
       printf("*** testing renaming before enddef for %s...", fmt_names[format]);
       {
@@ -239,6 +308,8 @@ main(int argc, char **argv)
       
       printf("*** testing renaming after enddef for %s...", fmt_names[format]);
       {
+         /* Create a file with datasets LAT, RH. LAT is a dimscale. RH
+          * points to LAT. */
          if (create_test_file(file_names[format], formats[format])) ERR;
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
          if (nc_inq_dimid(ncid, LAT, &dimid)) ERR;
@@ -247,23 +318,24 @@ main(int argc, char **argv)
          if (check_file(ncid, LAT, RH, LAT)) ERR;
          if (nc_redef(ncid)) ERR;
 
-         /* Rename the dim. */
+         /* Rename the dim. This creates new dataset TAL. LAT is no
+          * longer a dimscale. RH is repointed to TAL. LAT is pointed
+          * to TAL. */
          if (nc_rename_dim(ncid, dimid, TAL)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         if (nc_redef(ncid)) ERR;
 
-         /* /\* This should work, but fails, because enddef creates a HDF5 */
-         /*  * dataset called "tal" when we rename the dim. *\/ */
-         /* if (nc_enddef(ncid)) ERR; */
-         /* /\* if (nc_redef(ncid)) ERR; /\\* omitting this and nc_enddef call eliminates bug *\\/ *\/ */
-
-         /* /\* Rename the var. *\/ */
-         /* /\* if (nc_rename_var(ncid, varid, TAL)) ERR; *\/ */
-         /* /\* if (nc_enddef(ncid)) ERR; *\/ */
-         /* if (check_file(ncid, LAT, RH, TAL)) ERR;          */
+         /* Rename the var. This will remove dimscale-only dataset
+          * TAL. LAT will become a dimscale. RH will point to LAT. */
+         if (nc_rename_var(ncid, varid, TAL)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
          if (nc_close(ncid)) ERR;
 
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
          if (check_file(ncid, LAT, RH, TAL)) ERR;
          if (nc_close(ncid)) ERR;
+         return 0;
       }
       SUMMARIZE_ERR;
 

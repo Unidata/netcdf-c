@@ -356,18 +356,9 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
       assert(!dim->coord_var);
       LOG((3, "dim %s is a dim without variable", dim->name));
 
-      /* Detach dimscale from any variables using it */
-      if ((retval = rec_detach_scales(grp, dimid, dim->hdf_dimscaleid)) < 0)
+      /* Delete the dimscale-only dataset. */
+      if ((retval = delete_existing_dimscale_dataset(grp, dimid, dim)))
          return retval;
-      
-      /* Close the HDF5 dataset */
-      if (H5Dclose(dim->hdf_dimscaleid) < 0) 
-         return NC_EHDFERR;
-      dim->hdf_dimscaleid = 0;
-            
-      /* Now delete the dataset (it will be recreated later, if necessary) */
-      if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
-         return NC_EDIMMETA;
    }
 
    /* Give the dimension its new name in metadata. UTF8 normalization

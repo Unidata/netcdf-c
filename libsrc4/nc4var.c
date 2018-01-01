@@ -1567,8 +1567,8 @@ NC4_rename_var(int ncid, int varid, const char *name)
    if (!name)
       return NC_EINVAL;
 
-   LOG((2, "%s: ncid 0x%x varid %d name %s",
-        __func__, ncid, varid, name));
+   LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid,
+        name));
 
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
@@ -1615,6 +1615,15 @@ NC4_rename_var(int ncid, int varid, const char *name)
       dimscale dataset of name name??? */
    if (var->created)
    {
+      /* Is there an existing dimscale-only dataset of this name? If
+       * so, it must be deleted. */
+      if (var->ndims && var->dim[0]->hdf_dimscaleid)
+      {
+         if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->dimid, var->dim[0])))
+            return retval;
+      }
+      
+      LOG((3, "Moving dataset %s to %s", var->name, name));
       if (H5Gmove(grp->hdf_grpid, var->name, name) < 0)
          BAIL(NC_EHDFERR);
    }
@@ -1625,6 +1634,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return NC_ENOMEM;
    strcpy(var->name, name);
    var->hash = nn_hash;
+   LOG((3, "var is now %s", var->name));
 
    /* Check if this was a coordinate variable previously, but names are different now */
    if (var->dimscale && strcmp(var->name, var->dim[0]->name))

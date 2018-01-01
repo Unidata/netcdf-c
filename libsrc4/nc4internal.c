@@ -1622,10 +1622,12 @@ nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att)
 
 /**
  * @internal Break a coordinate variable to separate the dimension and
- * the variable. This is called for example when a dim is renamed, and
- * a coord variable exists. In this case, the coord variable must
- * stay, but it is no longer a coord variable. This function changes a
- * coord var into an ordinary variable.
+ * the variable. 
+ *
+ * This is called from nc_rename_dim() and nc_rename_var(). In some
+ * renames, the coord variable must stay, but it is no longer a coord
+ * variable. This function changes a coord var into an ordinary
+ * variable.
  *
  * @param grp Pointer to group info struct.
  * @param coord_var Pointer to variable info struct.
@@ -1679,6 +1681,51 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var,
    coord_var->was_coord_var = NC_TRUE;
    coord_var->became_coord_var = NC_FALSE;
 
+   return NC_NOERR;
+}
+
+/**
+ * @internal Delete an existing dimscale-only dataset.
+ *
+ * A dimscale-only HDF5 dataset is created when a dim is defined
+ * without an accompanying coordinate variable.
+ *
+ * Sometimes, during renames, or late creation of variables, an
+ * existing, dimscale-only dataset must be removed. This means
+ * detatching all variables that use the dataset, then closing and
+ * unlinking it.
+ *
+ * @param grp The grp of the dimscale-only dataset to be deleted, or a
+ * higher group in the heirarchy (ex. root group).
+ * @param dim Pointer to the dim with the dimscale-only dataset to be
+ * deleted.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 error.
+ * @author Ed Hartnett
+ */
+int
+delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim)
+{
+   int retval;
+
+   assert(grp && dim);
+   LOG((2, "%s: deleting dimscale dataset %s dimid %d", __func__, dim->name,
+        dimid));
+   
+   /* Detach dimscale from any variables using it */
+   if ((retval = rec_detach_scales(grp, dimid, dim->hdf_dimscaleid)) < 0)
+      return retval;
+      
+   /* Close the HDF5 dataset */
+   if (H5Dclose(dim->hdf_dimscaleid) < 0) 
+      return NC_EHDFERR;
+   dim->hdf_dimscaleid = 0;
+            
+   /* Now delete the dataset. */
+   if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
+      return NC_EHDFERR;
+   
    return NC_NOERR;
 }
 
@@ -1738,9 +1785,11 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
                       * this case, the scale has already been
                       * detached. */
                      if (dim_datasetid > 0)
+                     {
+                        LOG((3, "detaching scale from %s", var->name));
                         if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
                            BAIL(NC_EHDFERR);
-                     need_to_reattach_scales++;
+                     }
                      var->dimscale_attached[d] = NC_FALSE;
                      if (dims_detached++ == var->ndims)
                         finished++;
@@ -1753,11 +1802,13 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
       /* Release & reset the array tracking attached dimscales */
       free(var->dimscale_attached);
       var->dimscale_attached = NULL;
+      need_to_reattach_scales++;
    }
 
    /* Use variable's dataset ID for the dimscale ID. */
    if (dim->hdf_dimscaleid && grp != NULL)
    {
+      LOG((3, "closing and unlinking dimscale dataset %s", dim->name));
       if (H5Dclose(dim->hdf_dimscaleid) < 0)
          BAIL(NC_EHDFERR);
       dim->hdf_dimscaleid = 0;

@@ -93,6 +93,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
       var = grp->vars.value[i];
       if (!var) continue;
       for (d = 0; d < var->ndims; d++)
+      {
          if (var->dimids[d] == dimid && !var->dimscale)
          {
             LOG((2, "%s: attaching scale for dimid %d to var %s",
@@ -105,18 +106,21 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                var->dimscale_attached[d] = NC_TRUE;
             }
          }
+      }
    }
    return NC_NOERR;
 }
 
 /**
- * @internal This function is needed to handle some special cases,
- * including the rename of a dimension, or a late addition of a
- * coodinate var on a file where one has been added at enddef for a
- * dim without a coordinate var. In these cases, we need to recreate
- * the dim's dimension scale dataset, and then we need to go to every
- * var in the file which uses that dimension, and detach the old
- * dimension scale.
+ * @internal Given a dimid, detach the associated dimension scale from
+ * all HDF5 datasets that refer to it.
+ *
+ * This function is needed to handle some special cases, including the
+ * rename of a dimension, or a late addition of a coodinate var on a
+ * file where one has been added at enddef for a dim without a
+ * coordinate var. In these cases, we need to recreate the dim's
+ * dimension scale dataset, and then we need to go to every var in the
+ * file which uses that dimension, and detach the old dimension scale.
  *
  * @param grp Pointer to group info struct.
  * @param dimid Dimension ID.
