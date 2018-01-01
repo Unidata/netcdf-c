@@ -24,6 +24,12 @@ libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD =
 CLEANFILES =
 
+# Turn on some extra stuff when building a DLL for windows.
+if BUILD_DLL
+libnetcdf_la_LDFLAGS += -no-undefined -Wl,--output-def,netcdfdll.def
+libnetcdf_la_CPPFLAGS += -DDLL_EXPORT
+endif # BUILD_DLL
+
 # The v2 API...
 if BUILD_V2
 libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libnetcdf2.la

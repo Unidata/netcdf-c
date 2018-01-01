@@ -151,6 +151,10 @@ check_nc_config:
 
 install-data-hook:
 
+if BUILD_DLL
+	cp liblib/netcdfdll.def $(DESTDIR)${prefix}/bin
+endif # BUILD_DLL
+
 	@echo ''
 	@echo '+-------------------------------------------------------------+'
 	@echo '| Congratulations! You have successfully installed netCDF!    |'
