@@ -3,6 +3,8 @@
  *   See netcdf/README file for copying and redistribution conditions.
  *   $Id: isnan.h,v 1.3 2008/04/23 22:05:00 russ Exp $
  *********************************************************************/
+#ifndef _ISNAN_H
+#define _ISNAN_H
 
 #include "config.h"
 
@@ -20,3 +22,5 @@
 #if ! (defined(isfinite) || HAVE_DECL_ISFINITE)
 #define isfinite(x) (!(isinf(x)||isnan(x)))
 #endif /* !HAVE_DECL_ISFINITE */
+
+#endif /* _ISNAN_H */
