@@ -21,8 +21,7 @@
 #include "ncutf8.h"
 #include "H5DSpublic.h"
 
-/* #undef DEBUGH5 */
-#define DEBUGH5 1
+#undef DEBUGH5
 #ifdef DEBUGH5
 /**
  * @internal Provide a catchable error reporting function
