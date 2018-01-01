@@ -3,6 +3,9 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 /* $Id: rnd.h,v 2.13 1996/12/11 05:46:54 davis Exp $ */
+#ifndef _RND_H
+#define _RND_H
+
 #ifndef _RNDUP
 
 /* useful for aligning memory */
@@ -15,3 +18,5 @@
 #define	M_RNDDOWN(x)  __RNDDOWN(x, M_RND_UNIT)
 
 #endif
+
+#endif /* _RND_H */
