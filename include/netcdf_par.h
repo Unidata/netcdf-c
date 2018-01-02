@@ -24,39 +24,27 @@ extern "C" {
 /** Use with nc_var_par_access() to set parallel access to collective. */
 #define NC_COLLECTIVE 1
 
-/* Declaration modifiers for DLL support (MSC et al) */
-#if defined(DLL_NETCDF) /* define when library is a DLL */
-#  if defined(DLL_EXPORT) /* define when building the library */
-#   define MSC_EXTRA __declspec(dllexport)
-#  else
-#   define MSC_EXTRA __declspec(dllimport)
-#  endif
-#  include <io.h>
-#else
-#define MSC_EXTRA  /**< Needed for DLL build. */
-#endif  /* defined(DLL_NETCDF) */
-
 #define EXTERNL MSC_EXTRA extern /**< Needed for DLL build. */
 
 /* Create a file and enable parallel I/O. */
-EXTERNL int
+extern int
 nc_create_par(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 	      int *ncidp);
 
 /* Open a file and enable parallel I/O. */
-EXTERNL int
+extern int
 nc_open_par(const char *path, int mode, MPI_Comm comm, MPI_Info info,
 	    int *ncidp);
 
 /* Change a variable from independent (the default) to collective
  * access. */
-EXTERNL int
+extern int
 nc_var_par_access(int ncid, int varid, int par_access);
 
-EXTERNL int
+extern int
 nc_create_par_fortran(const char *path, int cmode, int comm,
 		      int info, int *ncidp);
-EXTERNL int
+extern int
 nc_open_par_fortran(const char *path, int mode, int comm,
 		    int info, int *ncidp);
 
