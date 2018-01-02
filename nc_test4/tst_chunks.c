@@ -303,7 +303,7 @@ main(int argc, char **argv)
 
     /* Create a netcdf4 file with 1 dimension. */
     if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-    if (nc_def_dim(ncid, unlimdimid, NC_UNLIMITED, &unlim_dimid)) ERR;
+    if (nc_def_dim(ncid, D_UNLIM, NC_UNLIMITED, &unlim_dimid)) ERR;
 
     /* Add one var with one chunksize */
     if (nc_def_var(ncid, V_UNLIM_ONE, NC_USHORT, NDIMS1, &unlim_dimid, &first_unlim_varid)) ERR;
