@@ -298,7 +298,7 @@ main(int argc, char **argv)
     int second_unlim_varid;
     size_t first_chunks[1];
     size_t second_chunks[1];
-    size_t start[1], count[1]
+    size_t start[1], count[1];
     unsigned short first_data[2] = {0, 1}, second_data[3] = {2, 3, 4};
 
     /* Create a netcdf4 file with 1 dimension. */
