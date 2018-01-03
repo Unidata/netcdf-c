@@ -7,11 +7,9 @@ FOREACH(F ${CDL_EXAMPLE_TESTS})
   add_sh_test(cdl ${F})
 ENDFOREACH()
 
-
 SET_TESTS_PROPERTIES(cdl_do_comps PROPERTIES DEPENDS C_tests_simple_xy_wr)
 SET_TESTS_PROPERTIES(cdl_do_comps PROPERTIES DEPENDS C_tests_sfc_pres_temp_wr)
 SET_TESTS_PROPERTIES(cdl_do_comps PROPERTIES DEPENDS C_test_pres_temp_4D_wr)
-
 
 SET(CLEANFILES simple_xy.nc sfc_pres_temp.nc pres_temp_4D.nc)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")

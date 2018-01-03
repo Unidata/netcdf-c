@@ -93,7 +93,6 @@ INCLUDE(${CMAKE_ROOT}/Modules/CheckTypeSize.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckCSourceCompiles.cmake)
-INCLUDE(${CMAKE_ROOT}/Modules/CheckCSourceRuns.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
@@ -1207,14 +1206,12 @@ MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
 SET(SIGNED_TEST_SOURCE "\n
   #include <stdlib.h>\n
   int main(void) {\n
-    char is_signed = (char) - 1;\n
-    if(is_signed < 0)\n
-      return 1;\n
-    else\n
-      return 0;\n
+    char error_if_char_is_signed[((char)-1) < 0 ? -1 : 1];\n
+    error_if_char_is_signed[0] = 0;
+    return -;\n
 }\n")
 
-CHECK_C_SOURCE_RUNS("${SIGNED_TEST_SOURCE}" __CHAR_UNSIGNED__)
+CHECK_C_SOURCE_COMPILES("${SIGNED_TEST_SOURCE}" __CHAR_UNSIGNED__)
 
 # Library include checks
 CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)
