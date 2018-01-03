@@ -112,11 +112,15 @@ done:
 }
 
 /**
- * @internal Get properties attribure.
+ * @internal Get and parse the special _NCProperties properties
+ * attribure.
  *
  * @param h5 Pointer to HDF5 file info struct.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EATTMETA Properties string improper class.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_HDF5ERR HDF5 error.
  * @author Dennis Heimbigner
  */
 static int
@@ -164,11 +168,12 @@ done:
 }
 
 /**
- * @internal Write the properties attribute to file.
+ * @internal Write the _NCProperties properties attribute to file.
  *
  * @param h5 Pointer to HDF5 file info struct.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 error.
  * @author Dennis Heimbigner
  */
 int
@@ -210,12 +215,16 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
 }
 
 /**
- * @internal
+ * @internal Get the HDF5 superblock and also read the special
+ * _NCProperties attribute.
  *
  * @param h5 Pointer to HDF5 file info struct.
  * @param init Initialization.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 returned error.
+ * @return ::NC_EATTMETA Properties string improper class.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Dennis Heimbigner
  */
 int

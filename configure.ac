@@ -83,6 +83,20 @@ AC_CONFIG_SRCDIR([include/netcdf.h])
 
 AC_MSG_NOTICE([checking user options])
 
+# If --enable-dll is specified the DLL will be built. This only works
+# on mingw.
+AC_MSG_CHECKING([whether a win32 DLL is desired])
+AC_ARG_ENABLE([dll],
+              [AS_HELP_STRING([--enable-dll],
+                              [build a win32 DLL (only works on mingw)])])
+test "x$enable_dll" = xyes || enable_dll=no
+AC_MSG_RESULT([$enable_dll])
+if test "x$enable_dll" = xyes; then
+   AC_DEFINE(DLL_NETCDF, 1, [set this only when building a DLL under MinGW])
+   AC_DEFINE(DLL_EXPORT, 1, [set this only when building a DLL under MinGW])
+fi
+AM_CONDITIONAL(BUILD_DLL, [test x$enable_dll = xyes])
+
 # Did the user specify a default minimum blocksize (NCIO_MINBLOCKSIZE) for posixio?
 AC_MSG_CHECKING([whether a NCIO_MINBLOCKSIZE was specified])
 AC_ARG_WITH([minblocksize],

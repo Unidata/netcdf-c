@@ -20,11 +20,9 @@
 
 #define FILE_NAME "tst_global_fillval.nc"
 
-
 int
 main(int argc, char **argv)
 {
-    printf("*** testing proper elatefill return...");
     {
 
 	int n = 0;

@@ -4,8 +4,8 @@
  *   "$Id: nciter.h 400 2010-08-27 21:02:52Z russ $"
  *********************************************************************/
 
-#ifndef _NCITER_
-#define _NCITER_
+#ifndef _NCITER_H
+#define _NCITER_H
 
 #include <netcdf.h>
 
@@ -57,4 +57,4 @@ nc_free_iter(nciter_t *iterp);
 }
 #endif
 
-#endif /* _NCITER_ */
+#endif /* _NCITER_H */

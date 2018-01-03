@@ -3,6 +3,8 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncdump/indent.h,v 1.1 2007/05/20 20:42:30 russ Exp $
  *********************************************************************/
+#ifndef _INDENT_H
+#define _INDENT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,3 +20,5 @@ extern int  indent_get();	/* return current indent */
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* _INDENT_H */

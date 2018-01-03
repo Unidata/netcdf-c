@@ -8,6 +8,11 @@ include $(top_srcdir)/lib_flags.am
 
 libnetcdf4_la_CPPFLAGS = ${AM_CPPFLAGS}
 
+# This turns on declspec magic in netcdf.h for windows DLLs.
+if BUILD_DLL
+libnetcdf4_la_CPPFLAGS += -DDLL_EXPORT
+endif
+
 # This is our output. The netCDF-4 convenience library.
 noinst_LTLIBRARIES = libnetcdf4.la
 libnetcdf4_la_SOURCES = nc4dispatch.c nc4attr.c nc4dim.c nc4file.c	\

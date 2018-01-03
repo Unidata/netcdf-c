@@ -1653,20 +1653,20 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
 }
 
 /**
-Check the create mode parameter for sanity.
-
-Some create flags cannot be used if corresponding library features are
-enabled during the build. This function does a pre-check of the mode
-flag before calling the dispatch layer nc_create functions.
-
-\param cmode The creation mode flag.
-
-\returns ::NC_NOERR No error.
-\returns ::NC_ENOTBUILT Requested feature not built into library
-\returns ::NC_NINVAL Invalid combination of modes.
-\internal
-\ingroup dispatch
-\author Ed Hartnett
+ * @internal Check the create mode parameter for sanity.
+ *
+ * Some create flags cannot be used if corresponding library features are
+ * enabled during the build. This function does a pre-check of the mode
+ * flag before calling the dispatch layer nc_create functions.
+ *
+ * @param mode The creation mode flag.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOTBUILT Requested feature not built into library
+ * @return ::NC_EINVAL Invalid combination of modes.
+ * 
+ * @ingroup dispatch
+ * @author Ed Hartnett
 */
 static int
 check_create_mode(int mode)
@@ -2175,7 +2175,6 @@ openmagic(struct MagicFile* file)
     }
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	MPI_Offset size;
 	MPI_Comm comm = MPI_COMM_WORLD;
@@ -2293,7 +2292,6 @@ closemagic(struct MagicFile* file)
     if(file->inmemory) goto done; /* noop*/
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
 		{status = NC_EPARINIT; goto done;}

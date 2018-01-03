@@ -24,6 +24,8 @@ extern "C" {
 /** Use with nc_var_par_access() to set parallel access to collective. */
 #define NC_COLLECTIVE 1
 
+#define EXTERNL MSC_EXTRA extern /**< Needed for DLL build. */
+
 /* Create a file and enable parallel I/O. */
 extern int
 nc_create_par(const char *path, int cmode, MPI_Comm comm, MPI_Info info,

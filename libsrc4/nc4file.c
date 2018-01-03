@@ -30,13 +30,13 @@ extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 #define CD_NELEMS_ZLIB 1 /**< Number of parameters needed for ZLIB filter. */
 
 /**
- * @internal Wrap HDF5 allocated memory free operations 
+ * @internal Wrap HDF5 allocated memory free operations
  *
  * @param memory Pointer to memory to be freed.
  *
  * @return ::NC_NOERR No error.
  * @author Dennis Heimbigner
-*/
+ */
 static void
 hdf5free(void* memory)
 {
@@ -61,7 +61,7 @@ typedef struct {
 
 
 /**
- * @internal Given an HDF5 type, set a pointer to netcdf type. 
+ * @internal Given an HDF5 type, set a pointer to netcdf type.
  *
  * @param h5 Pointer to HDF5 file info struct.
  * @param native_typeid HDF5 type ID.
@@ -72,7 +72,7 @@ typedef struct {
  * @return ::NC_EHDFERR HDF5 returned error.
  * @return ::NC_EBADTYPID Type not found.
  * @author Ed Hartnett
-*/
+ */
 static int
 get_netcdf_type(NC_HDF5_FILE_INFO_T *h5, hid_t native_typeid,
                 nc_type *xtype)
@@ -196,7 +196,7 @@ get_netcdf_type(NC_HDF5_FILE_INFO_T *h5, hid_t native_typeid,
  * @return ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 {
@@ -467,7 +467,7 @@ extern void reportopenobjects(int log, hid_t);
 /**
  * @internal Struct to track information about objects in a group, for
  * nc4_rec_read_metadata()
-*/
+ */
 typedef struct NC4_rec_read_metadata_obj_info
 {
    hid_t oid;                          /* HDF5 object ID */
@@ -480,7 +480,7 @@ typedef struct NC4_rec_read_metadata_obj_info
  * @internal User data struct for call to H5Literate() in
  * nc4_rec_read_metadata(). Tracks the groups, named datatypes and
  * datasets in the group, for later use.
-*/
+ */
 typedef struct NC4_rec_read_metadata_ud
 {
    NC4_rec_read_metadata_obj_info_t *grps_head, *grps_tail;      /* Pointers to head & tail of list of groups */
@@ -493,13 +493,15 @@ static int nc4_rec_read_metadata(NC_GRP_INFO_T *grp);
 
 /**
  * @internal This function will write all changed metadata, and
- * (someday) reread all metadata from the file. 
+ * (someday) reread all metadata from the file.
  *
  * @param h5 Pointer to HDF5 file info struct.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EINDEFINE In define mode (classic model only).
+ * @return ::NC_EHDFERR HDF5 error.
  * @author Ed Hartnett
-*/
+ */
 static int
 sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
 {
@@ -531,16 +533,25 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
    /* Write any metadata that has changed. */
    if (!(h5->cmode & NC_NOWRITE))
    {
-      nc_bool_t bad_coord_order = NC_FALSE;     /* if detected, propagate to all groups to consistently store dimids */
+      /* If detected, propagate to all groups to consistently store
+       * dimids. */
+      nc_bool_t bad_coord_order = NC_FALSE;     
 
+      /* Write groups and types. */
       if ((retval = nc4_rec_write_groups_types(h5->root_grp)))
          return retval;
-      if ((retval = nc4_rec_detect_need_to_preserve_dimids(h5->root_grp, &bad_coord_order)))
+
+      /* Check whether extra dimid attributes should be used. */
+      if ((retval = nc4_rec_detect_need_to_preserve_dimids(h5->root_grp,
+                                                           &bad_coord_order)))
          return retval;
+
+      /* Write the rest of the metadata changes. */
       if ((retval = nc4_rec_write_metadata(h5->root_grp, bad_coord_order)))
          return retval;
    }
 
+   /* Flush all HDF5 buffers to disk. */
    if (H5Fflush(h5->hdfid, H5F_SCOPE_GLOBAL) < 0)
       return NC_EHDFERR;
 
@@ -550,14 +561,14 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
 /**
  * @internal This function will free all allocated metadata memory,
  * and close the HDF5 file. The group that is passed in must be the
- * root group of the file. 
+ * root group of the file.
  *
  * @param h5 Pointer to HDF5 file info struct.
  * @param abort True if this is an abort.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int
 close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 {
@@ -592,12 +603,13 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 #endif /* USE_HDF4 */
    {
 #ifdef USE_PARALLEL4
-      /* Free the MPI Comm & Info objects, if we opened the file in parallel */
+      /* Free the MPI Comm & Info objects, if we opened the file in
+       * parallel */
       if(h5->parallel)
       {
-         if(MPI_COMM_NULL != h5->comm)
+         if (h5->comm != MPI_COMM_NULL)
             MPI_Comm_free(&h5->comm);
-         if(MPI_INFO_NULL != h5->info)
+         if (h5->info != MPI_INFO_NULL)
             MPI_Info_free(&h5->info);
       }
 #endif
@@ -669,10 +681,10 @@ const char* NC_RESERVED_ATT_LIST[] = {
    NULL
 };
 
-/** 
+/**
  * @internal Define the subset of the reserved list that is readable
- * by name only 
-*/
+ * by name only
+ */
 const char* NC_RESERVED_SPECIAL_LIST[] = {
    ISNETCDF4ATT,
    SUPERBLOCKATT,
@@ -711,8 +723,8 @@ static const int nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof
 
 /**
  * Set chunk cache size. Only affects files opened/created *after* it
- * is called.  
- * 
+ * is called.
+ *
  * @param size Size in bytes to set cache.
  * @param nelems Number of elements to hold in cache.
  * @param preemption Premption stragety (between 0 and 1).
@@ -734,7 +746,7 @@ nc_set_chunk_cache(size_t size, size_t nelems, float preemption)
 
 /**
  * Get chunk cache size. Only affects files opened/created *after* it
- * is called.  
+ * is called.
  *
  * @param sizep Pointer that gets size in bytes to set cache.
  * @param nelemsp Pointer that gets number of elements to hold in cache.
@@ -922,21 +934,18 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
             BAIL(NC_EPARINIT);
       }
 #else /* USE_PARALLEL_POSIX */
-      /* Should not happen! Code in NC4_create/NC4_open should alias the
-       *        NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
-       *        available in HDF5. -QAK
-       */
+      /* Should not happen! */
       else /* MPI/POSIX */
          BAIL(NC_EPARINIT);
 #endif /* USE_PARALLEL_POSIX */
 
       /* Keep copies of the MPI Comm & Info objects */
-      if (MPI_SUCCESS != MPI_Comm_dup(comm, &nc4_info->comm))
+      if (MPI_Comm_dup(comm, &nc4_info->comm) != MPI_SUCCESS)
          BAIL(NC_EMPI);
       comm_duped++;
-      if (MPI_INFO_NULL != info)
+      if (info != MPI_INFO_NULL)
       {
-         if (MPI_SUCCESS != MPI_Info_dup(info, &nc4_info->info))
+         if (MPI_Info_dup(info, &nc4_info->info) != MPI_SUCCESS)
             BAIL(NC_EMPI);
          info_duped++;
       }
@@ -947,10 +956,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       }
    }
 #else /* only set cache for non-parallel... */
-   if(cmode & NC_DISKLESS) {
+   if (cmode & NC_DISKLESS)
       if (H5Pset_fapl_core(fapl_id, 4096, persist))
          BAIL(NC_EDISKLESS);
-   }
+
    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
                     nc4_chunk_cache_preemption) < 0)
       BAIL(NC_EHDFERR);
@@ -967,7 +976,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0)
       BAIL(NC_EHDFERR);
 
-   /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
+   /* Turn off time tracking of HDF5 objects. */
    if (H5Pset_obj_track_times(fcpl_id,0)<0)
       BAIL(NC_EHDFERR);
 
@@ -981,15 +990,15 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
                                             H5P_CRT_ORDER_INDEXED)) < 0)
       BAIL(NC_EHDFERR);
 
-   /* Create the file. */
 #ifdef HDF5_HAS_COLL_METADATA_OPS
-   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
+   /* Turn on collective metadata reads and writes. */
+   H5Pset_all_coll_metadata_ops(fapl_id, 1);
    H5Pset_coll_metadata_write(fapl_id, 1);
 #endif
 
+   /* Create the file. The error code is system error EACCES instead
+    * of NC_EFILEMETADATA because that is the more likely problem. */
    if ((nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
-      /*Change the return error from NC_EFILEMETADATA to
-        System error EACCES because that is the more likely problem */
       BAIL(EACCES);
 
    /* Open the root group. */
@@ -1004,7 +1013,11 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* Define mode gets turned on automatically on create. */
    nc4_info->flags |= NC_INDEF;
 
-   NC4_get_fileinfo(nc4_info,&globalpropinfo);
+   /* Get the HDF5 superblock and read and parse the special
+    * _NCProperties attribute. */
+   NC4_get_fileinfo(nc4_info, &globalpropinfo);
+
+   /* Write the _NCProperties attribute. */
    NC4_put_propattr(nc4_info);
 
    return NC_NOERR;
@@ -1234,14 +1247,14 @@ exit:
 
 /**
  * @internal This function reads the hacked in coordinates attribute I
- * use for multi-dimensional coordinates. 
+ * use for multi-dimensional coordinates.
  *
  * @param grp Group info pointer.
  * @param var Var info pointer.
  *
  * @return NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
@@ -1291,7 +1304,7 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  *
  * @return 0 for success, -1 for error.
  * @author Ed Hartnett
-*/
+ */
 static herr_t
 dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
                  void *dimscale_hdf5_objids)
@@ -1313,7 +1326,7 @@ dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
 /**
  * @internal Given an HDF5 type, set a pointer to netcdf type_info struct,
  * either an existing one (for user-defined types) or a newly created
- * one. 
+ * one.
  *
  * @param h5 Pointer to HDF5 file info struct.
  * @param datasetid HDF5 dataset ID.
@@ -1324,7 +1337,7 @@ dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
  * @return ::NC_EHDFERR HDF5 returned error.
  * @return ::NC_EBADTYPID Type not found.
  * @author Ed Hartnett
-*/
+ */
 static int
 get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
                NC_TYPE_INFO_T **type_info)
@@ -1472,7 +1485,7 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
  * @return ::NC_EHDFERR HDF5 returned error.
  * @return ::NC_EBADTYPID Type not found.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 {
@@ -1757,19 +1770,19 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
  * @internal This function is called by read_dataset(), (which is called
  * by nc4_rec_read_metadata()) when a netCDF variable is found in the
  * file. This function reads in all the metadata about the var,
- * including the attributes. 
+ * including the attributes.
  *
  * @param grp Pointer to group info struct.
  * @param datasetid HDF5 dataset ID.
  * @param obj_name Name of the HDF5 object to read.
  * @param ndims Number of dimensions.
- * @param dim 
+ * @param dim
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          size_t ndims, NC_DIM_INFO_T *dim)
@@ -1797,6 +1810,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Add a variable to the end of the group's var list. */
    if ((retval = nc4_var_add(&var)))
       BAIL(retval);
+   assert(var);
 
    /* Fill in what we already know. */
    var->hdf_datasetid = datasetid;
@@ -2020,15 +2034,15 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
    /* Now read all the attributes of this variable, ignoring the
       ones that hold HDF5 dimension scale information. */
-
    att_info.var = var;
    att_info.grp = grp;
-
    if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
                     att_read_var_callbk, &att_info)) < 0)
       BAIL(NC_EATTMETA);
 
-   nc4_vararray_add(grp, var);
+   /* Grow the variable array. */
+   if ((retval = nc4_vararray_add(grp, var)))
+      BAIL(retval);
 
    /* Is this a deflated variable with a chunksize greater than the
     * current cache size? */
@@ -2053,14 +2067,14 @@ exit:
 /**
  * @internal This function is called by nc4_rec_read_metadata to read
  * all the group level attributes (the NC_GLOBAL atts for this
- * group). 
+ * group).
  *
  * @param grp Pointer to group info struct.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_grp_atts(NC_GRP_INFO_T *grp)
 {
@@ -2140,7 +2154,7 @@ exit:
 /**
  * @internal This function is called when nc4_rec_read_metadata
  * encounters an HDF5 dataset when reading a file.
- * 
+ *
  * @param grp Pointer to group info struct.
  * @param datasetid HDF5 dataset ID.
  * @param obj_name Object name.
@@ -2150,7 +2164,7 @@ exit:
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
              const H5G_stat_t *statbuf)
@@ -2188,7 +2202,7 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Add a var to the linked list, and get its metadata,
     * unless this is one of those funny dimscales that are a
     * dimension in netCDF but not a variable. (Spooky!) */
-   if (NULL == dim || (dim && !dim->hdf_dimscaleid))
+   if (!dim || (dim && !dim->hdf_dimscaleid))
       if ((retval = read_var(grp, datasetid, obj_name, ndims, dim)))
          BAIL(retval);
 
@@ -2240,22 +2254,29 @@ nc4_rec_read_metadata_cb_list_add(NC4_rec_read_metadata_obj_info_t **head,
 }
 
 /**
- * @internal Callback function called from nc4_rec_read_metadata().
+ * @internal Callback function called from
+ * nc4_rec_read_metadata(). This function is called for each HDF5
+ * object in a group.
+ *
+ * This function passes back HDF5 error codes, because it is a
+ * callback that is called from within HDF5.
  *
  * @param grpid HDF5 group ID.
  * @param name Name of object.
  * @param info Info struct for object.
  * @param _op_data Pointer to data.
  *
- * @return ::NC_NOERR No error.
- * @return H5_ITER_ERROR HDF5 error.
+ * @return H5_ITER_CONT Object was processed successfully, iteration
+ * should continue.
+ * @return H5_ITER_ERROR Error. Iteration will stop.
  * @author Ed Hartnett
  */
 static int
 nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
                          void *_op_data)
 {
-   NC4_rec_read_metadata_ud_t *udata = (NC4_rec_read_metadata_ud_t *)_op_data; /* Pointer to user data for callback */
+   /* Pointer to user data for callback */
+   NC4_rec_read_metadata_ud_t *udata = (NC4_rec_read_metadata_ud_t *)_op_data; 
    NC4_rec_read_metadata_obj_info_t oinfo;    /* Pointer to info for object */
    int retval = H5_ITER_CONT;
 
@@ -2270,6 +2291,7 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
    if (H5Gget_objinfo(oinfo.oid, ".", 1, &oinfo.statbuf) < 0)
       BAIL(H5_ITER_ERROR);
 
+   /* Save name of object. */
    strncpy(oinfo.oname, name, NC_MAX_NAME);
 
    /* Add object to list, for later */
@@ -2278,10 +2300,9 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
    case H5G_GROUP:
       LOG((3, "found group %s", oinfo.oname));
 
-      /* Defer descending into child group immediately, so that the types
-       *     in the current group can be processed and be ready for use by
-       *     vars in the child group(s).
-       */
+      /* Defer descending into child group immediately, so that the
+       * types in the current group can be processed and be ready for
+       * use by vars in the child group(s). */
       if (nc4_rec_read_metadata_cb_list_add(&udata->grps_head, &udata->grps_tail, &oinfo))
          BAIL(H5_ITER_ERROR);
       break;
@@ -2294,11 +2315,10 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
       if ((retval = read_dataset(udata->grp, oinfo.oid, oinfo.oname, &oinfo.statbuf)))
       {
          /* Allow NC_EBADTYPID to transparently skip over datasets
-          *  which have a datatype that netCDF-4 doesn't undertand
-          *  (currently), but break out of iteration for other
-          *  errors.
-          */
-         if(NC_EBADTYPID != retval)
+          * which have a datatype that netCDF-4 doesn't undertand
+          * (currently), but break out of iteration for other
+          * errors. */
+         if (retval != NC_EBADTYPID)
             BAIL(H5_ITER_ERROR);
          else
             retval = H5_ITER_CONT;
@@ -2355,7 +2375,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 {
    NC4_rec_read_metadata_ud_t udata;   /* User data for iteration */
    NC4_rec_read_metadata_obj_info_t *oinfo;    /* Pointer to info for object */
-   hsize_t idx=0;
+   hsize_t idx = 0;
    hid_t pid = 0;
    unsigned crt_order_flags = 0;
    H5_index_t iter_index;
@@ -2471,9 +2491,9 @@ exit:
 }
 
 /**
- * @internal Open a netcdf-4 file. Things have already been kicked off
- * in ncfunc.c in nc_open, but here the netCDF-4 part of opening a
- * file is handled. 
+ * @internal Open a netcdf-4 file. This is called by NC4_open(), which
+ * is called by nc_open() after it decides to use the netCDF-4
+ * dispatch table.
  *
  * @param path The file name of the new file.
  * @param mode The open mode flag.
@@ -2481,8 +2501,11 @@ exit:
  * @param nc Pointer to NC file info.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 returned error.
+ * @return ::NC_EPARINIT Parallel IO initialization error.
+ * @return ::NC_EMPI MPI function returned error.
  * @author Ed Hartnett, Dennis Heimbigner
-*/
+ */
 static int
 nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 {
@@ -2492,9 +2515,9 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    int retval;
    NC_HDF5_FILE_INFO_T* nc4_info = NULL;
    int inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
-   NC_MEM_INFO* meminfo = (NC_MEM_INFO*)parameters;
+   NC_MEM_INFO *meminfo = (NC_MEM_INFO *)parameters;
 #ifdef USE_PARALLEL4
-   NC_MPI_INFO* mpiinfo = (NC_MPI_INFO*)parameters;
+   NC_MPI_INFO *mpiinfo = (NC_MPI_INFO *)parameters;
    int comm_duped = 0;          /* Whether the MPI Communicator was duplicated */
    int info_duped = 0;          /* Whether the MPI Info object was duplicated */
 #endif /* !USE_PARALLEL4 */
@@ -2537,21 +2560,18 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
             BAIL(NC_EPARINIT);
       }
 #else /* USE_PARALLEL_POSIX */
-      /* Should not happen! Code in NC4_create/NC4_open should alias the
-       *        NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
-       *        available in HDF5. -QAK
-       */
+      /* Should not happen! */
       else /* MPI/POSIX */
          BAIL(NC_EPARINIT);
 #endif /* USE_PARALLEL_POSIX */
 
       /* Keep copies of the MPI Comm & Info objects */
-      if (MPI_SUCCESS != MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm))
+      if (MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm) != MPI_SUCCESS)
          BAIL(NC_EMPI);
       comm_duped++;
-      if (MPI_INFO_NULL != mpiinfo->info)
+      if (mpiinfo->info != MPI_INFO_NULL)
       {
-         if (MPI_SUCCESS != MPI_Info_dup(mpiinfo->info, &nc4_info->info))
+         if (MPI_Info_dup(mpiinfo->info, &nc4_info->info) != MPI_SUCCESS)
             BAIL(NC_EMPI);
          info_duped++;
       }
@@ -2569,23 +2589,23 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
         __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems, nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
 
-   /* The NetCDF-3.x prototype contains an mode option NC_SHARE for
-      multiple processes accessing the dataset concurrently.  As there
-      is no HDF5 equivalent, NC_SHARE is treated as NC_NOWRITE. */
 #ifdef HDF5_HAS_COLL_METADATA_OPS
-   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
+   /* Set metadata I/O mode for read operations to collective. */
+   H5Pset_all_coll_metadata_ops(fapl_id, 1);
 #endif
-   if(inmemory) {
-      if((nc4_info->hdfid = H5LTopen_file_image(meminfo->memory,meminfo->size,
-                                                H5LT_FILE_IMAGE_DONT_COPY|H5LT_FILE_IMAGE_DONT_RELEASE
-             )) < 0)
+
+   if (inmemory)
+   {
+      if ((nc4_info->hdfid = H5LTopen_file_image(meminfo->memory, meminfo->size,
+                                                 H5LT_FILE_IMAGE_DONT_COPY|H5LT_FILE_IMAGE_DONT_RELEASE
+              )) < 0)
          BAIL(NC_EHDFERR);
       nc4_info->no_write = NC_TRUE;
    } else if ((nc4_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
       BAIL(NC_EHDFERR);
 
    /* Does the mode specify that this file is read-only? */
-   if ((mode & NC_WRITE) == 0)
+   if (!(mode & NC_WRITE))
       nc4_info->no_write = NC_TRUE;
 
    /* Now read in all the metadata. Some types and dimscale
@@ -2610,7 +2630,9 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if (H5Pclose(fapl_id) < 0)
       BAIL(NC_EHDFERR);
 
-   NC4_get_fileinfo(nc4_info,NULL);
+   /* Get the HDF5 superblock and read and parse the special
+    * _NCProperties attribute. */
+   NC4_get_fileinfo(nc4_info, NULL);
 
    return NC_NOERR;
 
@@ -2762,7 +2784,7 @@ get_netcdf_type_from_hdf4(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid,
 /**
  * @internal Open a HDF4 file. Things have already been kicked off in
  * nc_open, but here the netCDF-4 part of opening a file is
- * handled. 
+ * handled.
  *
  * @param path The file name of the new file.
  * @param mode The open mode flag.
@@ -2770,7 +2792,7 @@ get_netcdf_type_from_hdf4(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid,
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int
 nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 {
@@ -2861,12 +2883,15 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       /* Add a variable. */
       if ((retval = nc4_var_add(&var)))
          return retval;
+      assert(var);
 
       var->varid = grp->nvars++;
       var->created = NC_TRUE;
       var->written_to = NC_TRUE;
 
-      nc4_vararray_add(grp, var);
+      /* Grow the variable array. */
+      if ((retval = nc4_vararray_add(grp, var)))
+         return retval;
 
       /* Open this dataset in HDF4 file. */
       if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL)
@@ -3078,17 +3103,18 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
  * @param basepe Ignored by this function.
  * @param chunksizehintp Ignored by this function.
  * @param use_parallel 0 for sequential, non-zero for parallel I/O.
- * @param parameters pointer to struct holding extra data (e.g. for parallel I/O)
- * layer. Ignored if NULL.
+ * @param parameters pointer to struct holding extra data (e.g. for
+ * parallel I/O) layer. Ignored if NULL.
  * @param dispatch Pointer to the dispatch table for this file.
  * @param nc_file Pointer to an instance of NC.
  *
  * @return ::NC_NOERR No error.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner, Quincey Koziol
  */
 int
 NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-         int use_parallel, void *parameters, NC_Dispatch *dispatch, NC *nc_file)
+         int use_parallel, void *parameters, NC_Dispatch *dispatch,
+         NC *nc_file)
 {
    int res;
    int is_hdf5_file = 0;
@@ -3104,8 +3130,8 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 
    assert(nc_file && path);
 
-   LOG((1, "%s: path %s mode %d params %x",
-        __func__, path, mode, parameters));
+   LOG((1, "%s: path %s mode %d params %x", __func__, path, mode,
+        parameters));
 
 #ifdef USE_PARALLEL4
    if (!inmemory && use_parallel && parameters == NULL)
@@ -3117,18 +3143,17 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
       nc4_hdf5_initialize();
 
    /* Check the mode for validity */
-   if((mode & ILLEGAL_OPEN_FLAGS) != 0)
-   {res = NC_EINVAL; goto done;}
+   if (mode & ILLEGAL_OPEN_FLAGS)
+      return  NC_EINVAL;
 
    /* Cannot have both */
-   if((mode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
-   {res = NC_EINVAL; goto done;}
+   if ((mode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
+      return NC_EINVAL;
 
 #ifndef USE_PARALLEL_POSIX
-/* If the HDF5 library has been compiled without the MPI-POSIX VFD, alias
- *      the NC_MPIPOSIX flag to NC_MPIIO. -QAK
- */
-   if(mode & NC_MPIPOSIX)
+   /* If the HDF5 library has been compiled without the MPI-POSIX VFD,
+    * alias the NC_MPIPOSIX flag to NC_MPIIO. */
+   if (mode & NC_MPIPOSIX)
    {
       mode &= ~NC_MPIPOSIX;
       mode |= NC_MPIIO;
@@ -3136,25 +3161,28 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* USE_PARALLEL_POSIX */
 
    /* Figure out if this is a hdf4 or hdf5 file. */
-   if(nc_file->model == NC_FORMATX_NC4)
+   if (nc_file->model == NC_FORMATX_NC4)
       is_hdf5_file = 1;
 #ifdef USE_HDF4
-   else if(nc_file->model == NC_FORMATX_NC_HDF4)
+   else if (nc_file->model == NC_FORMATX_NC_HDF4)
+   {
+      if (inmemory)
+         return NC_EDISKLESS;
       is_hdf4_file = 1;
+   }
 #endif /* USE_HDF4 */
+
    /* Depending on the type of file, open it. */
    nc_file->int_ncid = nc_file->ext_ncid;
    if (is_hdf5_file)
       res = nc4_open_file(path, mode, parameters, nc_file);
 #ifdef USE_HDF4
-   else if (is_hdf4_file && inmemory)
-   {res = NC_EDISKLESS; goto done;}
    else if (is_hdf4_file)
       res = nc4_open_hdf4_file(path, mode, nc_file);
 #endif /* USE_HDF4 */
    else
       res = NC_ENOTNC;
-done:
+
    return res;
 }
 
@@ -3163,7 +3191,7 @@ done:
  * only when a dataset is created. Whereas in netcdf, you first create
  * the variable and then (optionally) specify the fill value. To
  * accomplish this in HDF5 I have to delete the dataset, and recreate
- * it, with the fill value specified. 
+ * it, with the fill value specified.
  *
  * @param ncid File and group ID.
  * @param fillmode File mode.
@@ -3171,7 +3199,7 @@ done:
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_set_fill(int ncid, int fillmode, int *old_modep)
 {
@@ -3204,13 +3232,13 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 
 /**
  * @internal Put the file back in redef mode. This is done
- * automatically for netcdf-4 files, if the user forgets. 
+ * automatically for netcdf-4 files, if the user forgets.
  *
  * @param ncid File and group ID.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_redef(int ncid)
 {
@@ -3243,7 +3271,7 @@ NC4_redef(int ncid)
 
 /**
  * @internal For netcdf-4 files, this just calls nc_enddef, ignoring
- * the extra parameters. 
+ * the extra parameters.
  *
  * @param ncid File and group ID.
  * @param h_minfree Ignored for netCDF-4 files.
@@ -3253,7 +3281,7 @@ NC4_redef(int ncid)
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
             size_t v_minfree, size_t r_align)
@@ -3266,13 +3294,13 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
 
 /**
  * @internal Take the file out of define mode. This is called
- * automatically for netcdf-4 files, if the user forgets. 
+ * automatically for netcdf-4 files, if the user forgets.
  *
  * @param ncid File and group ID.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int NC4_enddef(int ncid)
 {
    NC *nc;
@@ -3280,7 +3308,7 @@ static int NC4_enddef(int ncid)
    NC_GRP_INFO_T *grp;
    int i;
 
-   LOG((1, "%s: ncid 0x%x", __func__, ncid));
+   LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
    if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
@@ -3305,7 +3333,7 @@ static int NC4_enddef(int ncid)
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_sync(int ncid)
 {
@@ -3337,7 +3365,7 @@ NC4_sync(int ncid)
  * created and is still in define mode, the dataset is deleted. If
  * define mode was entered by a call to nc_redef, the netCDF dataset
  * is restored to its state before definition mode was entered and the
- * dataset is closed. 
+ * dataset is closed.
  *
  * @param ncid File and group ID.
  *
@@ -3382,13 +3410,13 @@ NC4_abort(int ncid)
 }
 
 /**
- * @internal Close the netcdf file, writing any changes first. 
+ * @internal Close the netcdf file, writing any changes first.
  *
  * @param ncid File and group ID.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_close(int ncid)
 {
@@ -3432,7 +3460,7 @@ NC4_close(int ncid)
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 {
@@ -3496,13 +3524,14 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 }
 
 /**
- * @internal This function will do the enddef stuff for a netcdf-4 file. 
+ * @internal This function will do the enddef stuff for a netcdf-4 file.
  *
  * @param h5 Pointer to HDF5 file info struct.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_ENOTINDEFINE Not in define mode.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
 {
@@ -3521,4 +3550,3 @@ nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
 
    return sync_netcdf4_file(h5);
 }
-
