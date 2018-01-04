@@ -237,6 +237,14 @@ AC_ARG_ENABLE([extra-example-tests],
 test "x$enable_extra_example_tests" = xyes || enable_extra_example_tests=no
 AC_MSG_RESULT($enable_extra_example_tests)
 
+# Does the user want to run filter example
+AC_MSG_CHECKING([whether filter example should be run])
+AC_ARG_ENABLE([filter-example],
+              [AS_HELP_STRING([--enable-filter-example],
+                              [Run filter example; requires netCDF-4])])
+test "x$enable_filter_example" = xyes || enable_filter_example=no
+AC_MSG_RESULT($enable_filter_example)
+
 # Does the user want to run extra parallel tests when parallel netCDF-4 is built?
 AC_MSG_CHECKING([whether parallel IO tests should be run])
 AC_ARG_ENABLE([parallel-tests],
@@ -1232,6 +1240,7 @@ AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
 AM_CONDITIONAL(EXTRA_EXAMPLE_TESTS, [test "x$enable_extra_example_tests" = xyes])
+AM_CONDITIONAL(ENABLE_FILTER_EXAMPLE, [test "x$enable_filter_example" = xyes])
 AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
@@ -1467,6 +1476,7 @@ AC_CONFIG_FILES([Makefile
                  ncgen/Makefile
                  examples/Makefile
                  examples/C/Makefile
+                 examples/C/plugins/Makefile
                  examples/CDL/Makefile
                  oc2/Makefile
                  libdap2/Makefile

@@ -342,6 +342,7 @@ Note: `--disable` prefix indicates that the option is normally enabled.
 <tr><td>--enable-pnetcdf<td>build netcdf-4 with parallel I/O for classic and
                           64-bit offset files using parallel-netcdf
 <tr><td>--enable-extra-example-tests<td>Run extra example tests<td>--enable-netcdf-4,GNU sed
+<tr><td>--enable-filter_example<td>Run filter example<td>--enable-netcdf-4
 <tr><td>--enable-parallel-tests <td>run extra parallel IO tests<td>--enable-netcdf-4, parallel IO support
 <tr><td>--enable-logging<td>enable logging capability<td>--enable-netcdf-4
 <tr><td>--disable-dap<td>build without DAP client support.<td>libcurl

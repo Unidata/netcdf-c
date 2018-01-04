@@ -1659,11 +1659,11 @@ Some create flags cannot be used if corresponding library features are
 enabled during the build. This function does a pre-check of the mode
 flag before calling the dispatch layer nc_create functions.
 
-\param cmode The creation mode flag.
+\param mode The creation mode flag.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOTBUILT Requested feature not built into library
-\returns ::NC_NINVAL Invalid combination of modes.
+\returns ::NC_EINVAL Invalid combination of modes.
 \internal
 \ingroup dispatch
 \author Ed Hartnett
