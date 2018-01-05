@@ -16,12 +16,14 @@ echo "*** running simple_xy_nc4 examples..."
 ${execdir}/simple_xy_nc4_wr
 ${execdir}/simple_xy_nc4_rd
 
+if test -f ${execdir}/test_filter${ext} ; then
 echo "*** running test_filter example..."
 HDF5_PLUGIN_PATH=`pwd`
 export HDF5_PLUGIN_PATH="${HDF5_PLUGIN_PATH}/plugins"
 rm -f ./bzip2.nc
 ${execdir}/test_filter
 #rm -f ./bzip2.nc
+fi
 
 echo "*** Examples successful!"
 exit 0
