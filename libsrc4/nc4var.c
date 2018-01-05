@@ -597,7 +597,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          BAIL(NC_EBADTYPE);
    }
 
-   /* Add a new var. */
+   /* Create a new var and fill in some HDF5 cache setting values. */
    if ((retval = nc4_var_add(&var)))
       BAIL(retval);
 
@@ -653,19 +653,23 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       {
          var->dimscale = NC_TRUE;
          dim->coord_var = var;
-
-         /* Use variable's dataset ID for the dimscale ID */
+         
+         /* Use variable's dataset ID for the dimscale ID. So delete
+          * the HDF5 DIM_WITHOUT_VARIABLE dataset that was created for
+          * this dim. */
          if (dim->hdf_dimscaleid)
          {
             /* Detach dimscale from any variables using it */
             if ((retval = rec_detach_scales(grp, dimidsp[d], dim->hdf_dimscaleid)) < 0)
                BAIL(retval);
-
+            
+            /* Close the HDF5 DIM_WITHOUT_VARIABLE dataset. */
             if (H5Dclose(dim->hdf_dimscaleid) < 0)
                BAIL(NC_EHDFERR);
             dim->hdf_dimscaleid = 0;
-
-            /* Now delete the dataset (it will be recreated later, if necessary) */
+            
+            /* Now delete the DIM_WITHOUT_VARIABLE dataset (it will be
+             * recreated later, if necessary). */
             if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
                BAIL(NC_EDIMMETA);
          }
@@ -686,7 +690,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    }
 
    /* Determine default chunksizes for this variable. (Even for
-    * variables which may be contiguous. */
+    * variables which may be contiguous.) */
    LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
         var->ndims, var->name));
    if (var->ndims)
@@ -743,8 +747,12 @@ exit:
 }
 
 /**
- * @internal Get all the information about a variable. Pass NULL for whatever
- * you don't care about. 
+ * @internal Get all the information about a variable. Pass NULL for
+ * whatever you don't care about. This is the internal function called
+ * by nc_inq_var(), nc_inq_var_deflate(), nc_inq_var_fletcher32(),
+ * nc_inq_var_chunking(), nc_inq_var_chunking_ints(),
+ * nc_inq_var_fill(), nc_inq_var_endian(), nc_inq_var_filter(), and
+ * nc_inq_var_szip().
  *
  * @param ncid File ID.
  * @param varid Variable ID.
@@ -1567,14 +1575,16 @@ NC4_rename_var(int ncid, int varid, const char *name)
    int retval = NC_NOERR;
    int i;
 
-   LOG((2, "%s: ncid 0x%x varid %d name %s",
-        __func__, ncid, varid, name));
+   if (!name)
+      return NC_EINVAL;
+
+   LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid,
+        name));
 
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-
-   assert(h5);
+   assert(h5 && grp && h5);
 
    /* Is the new name too long? */
    if (strlen(name) > NC_MAX_NAME)
@@ -1612,9 +1622,19 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return NC_ENOTINDEFINE;
 
    /* Change the HDF5 file, if this var has already been created
-      there. */
+      there. Should we check here to ensure there is not already a
+      dimscale dataset of name name??? */
    if (var->created)
    {
+      /* Is there an existing dimscale-only dataset of this name? If
+       * so, it must be deleted. */
+      if (var->ndims && var->dim[0]->hdf_dimscaleid)
+      {
+         if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->dimid, var->dim[0])))
+            return retval;
+      }
+      
+      LOG((3, "Moving dataset %s to %s", var->name, name));
       if (H5Gmove(grp->hdf_grpid, var->name, name) < 0)
          BAIL(NC_EHDFERR);
    }
@@ -1625,6 +1645,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return NC_ENOMEM;
    strcpy(var->name, name);
    var->hash = nn_hash;
+   LOG((3, "var is now %s", var->name));
 
    /* Check if this was a coordinate variable previously, but names are different now */
    if (var->dimscale && strcmp(var->name, var->dim[0]->name))
