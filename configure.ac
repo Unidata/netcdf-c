@@ -237,14 +237,6 @@ AC_ARG_ENABLE([extra-example-tests],
 test "x$enable_extra_example_tests" = xyes || enable_extra_example_tests=no
 AC_MSG_RESULT($enable_extra_example_tests)
 
-# Does the user want to run filter example
-AC_MSG_CHECKING([whether filter example should be run])
-AC_ARG_ENABLE([filter-example],
-              [AS_HELP_STRING([--enable-filter-example],
-                              [Run filter example; requires netCDF-4])])
-test "x$enable_filter_example" = xyes || enable_filter_example=no
-AC_MSG_RESULT($enable_filter_example)
-
 # Does the user want to run extra parallel tests when parallel netCDF-4 is built?
 AC_MSG_CHECKING([whether parallel IO tests should be run])
 AC_ARG_ENABLE([parallel-tests],
@@ -1240,7 +1232,6 @@ AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
 AM_CONDITIONAL(EXTRA_EXAMPLE_TESTS, [test "x$enable_extra_example_tests" = xyes])
-AM_CONDITIONAL(ENABLE_FILTER_EXAMPLE, [test "x$enable_filter_example" = xyes])
 AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
@@ -1344,20 +1335,24 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
 
-# Control filter test(s)
-AC_MSG_CHECKING([If filter_test should be enabled (default is no)])
-AC_ARG_ENABLE([filter-test],
-              [AS_HELP_STRING([--enable-filter-test],
-                              [enable filter test])])
-test "x$enable_filter_test" = xyes || enable_filter_test=no
-AC_MSG_RESULT($enable_filter_test)
+# Control filter test/example
+AC_MSG_CHECKING([whether filter testing should be run])
+AC_ARG_ENABLE([filter-testing],
+              [AS_HELP_STRING([--enable-filter-testing],
+                              [Run filter tests and example; requires shared libraries and netCDF-4])])
+test "x$enable_filter_testing" = xyes || enable_filter_testing=no
+AC_MSG_RESULT($enable_filter_testing)
+
 if test "x$enable_netcdf_4" = xno ; then
-AC_MSG_WARN([disabling --enable-filter-test; it requires netcdf-4])
-enable_filter_test=no
+AC_MSG_WARNING([netCDF-4 disabled => --enable-filter-testing is disabled"])
+enable_filter_testing = no
 fi
-# Define a Generic AM_CONDITIONAL to allow disabling
-# of arbitrary parts of Makefile.am files
-AM_CONDITIONAL(ENABLE_FILTER_TEST, [test x$enable_filter_test = xyes])
+
+if test "x$enable_shared" = xno ; then
+AC_MSG_WARNING([Shared libraries are disabled => --enable-filter-testing will be disabled"])
+enable_filter_testing = no
+fi
+AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
 
 AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])

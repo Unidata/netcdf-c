@@ -18,8 +18,19 @@ ${execdir}/simple_xy_nc4_rd
 
 if test -f ${execdir}/test_filter${ext} ; then
 echo "*** running test_filter example..."
+echo "ISCYGWIN=${ISCYGWIN}"
+if test "x$ISCYGWIN" != x ; then
+PLUGIN=cygbzip2.dll
+else
+PLUGIN=libbzip2.so
+fi
+
 HDF5_PLUGIN_PATH=`pwd`
-export HDF5_PLUGIN_PATH="${HDF5_PLUGIN_PATH}/plugins"
+HDF5_PLUGIN_PATH="${HDF5_PLUGIN_PATH}/plugins"
+if test -f "${HDF5_PLUGIN_PATH}/.libs/${PLUGIN}" ; then
+HDF5_PLUGIN_PATH="${HDF5_PLUGIN_PATH}/.libs"
+fi
+export HDF5_PLUGIN_PATH
 rm -f ./bzip2.nc
 ${execdir}/test_filter
 #rm -f ./bzip2.nc
