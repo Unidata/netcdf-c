@@ -1,3 +1,6 @@
+/* Copyright 2003-2018, University Corporation for Atmospheric
+ * Research. See the COPYRIGHT file for copying and redistribution
+ * conditions. */
 /**
  * @file 
  * @internal This file is part of netcdf-4, a netCDF-like interface
@@ -6,9 +9,6 @@
  *
  * This file handles the nc4 dimension functions.
  *
- * Copyright 2003-5, University Corporation for Atmospheric Research. See
- * the COPYRIGHT file for copying and redistribution conditions.
- * 
  * @author Ed Hartnett
 */
 
@@ -103,8 +103,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    /* Find our global metadata structure. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-
-   assert(h5 && nc /*& grp*/);
+   assert(h5 && nc && grp);
 
    /* If the file is read-only, return an error. */
    if (h5->no_write)
@@ -327,9 +326,7 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))      
       return retval;
-
-   assert(nc);
-   assert(h5 && grp);
+   assert(nc && h5 && grp);
    
    /* Trying to write to a read-only file? No way, Jose! */
    if (h5->no_write)
@@ -352,33 +349,30 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
       return NC_EBADDIM;
    dim = tmp_dim;
 
-   /* Check for renaming dimension w/o variable */
+   /* Check for renaming dimension w/o variable. */
    if (dim->hdf_dimscaleid)
    {
       /* Sanity check */
       assert(!dim->coord_var);
+      LOG((3, "dim %s is a dim without variable", dim->name));
 
-      /* Close the HDF5 dataset */
-      if (H5Dclose(dim->hdf_dimscaleid) < 0) 
-         return NC_EHDFERR;
-      dim->hdf_dimscaleid = 0;
-            
-      /* Now delete the dataset (it will be recreated later, if necessary) */
-      if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
-         return NC_EDIMMETA;
+      /* Delete the dimscale-only dataset. */
+      if ((retval = delete_existing_dimscale_dataset(grp, dimid, dim)))
+         return retval;
    }
 
    /* Give the dimension its new name in metadata. UTF8 normalization
     * has been done. */
-   if(dim->name)
-      free(dim->name);
+   assert(dim->name);
+   free(dim->name);
    if (!(dim->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
       return NC_ENOMEM;
    strcpy(dim->name, norm_name);
-
    dim->hash = hash_fast(norm_name, strlen(norm_name));
+   LOG((3, "dim is now named %s", dim->name));
    
-   /* Check if dimension was a coordinate variable, but names are different now */
+   /* Check if dimension was a coordinate variable, but names are
+    * different now */
    if (dim->coord_var && strcmp(dim->name, dim->coord_var->name))
    {
       /* Break up the coordinate variable */
@@ -386,24 +380,24 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
          return retval;
    }
 
-   /* Check if dimension should become a coordinate variable */
+   /* Check if dimension should become a coordinate variable. */
    if (!dim->coord_var)
    {
       NC_VAR_INFO_T *var;
 
-      /* Attempt to find a variable with the same name as the dimension in
-       * the current group. */
+      /* Attempt to find a variable with the same name as the
+       * dimension in the current group. */
       if ((retval = nc4_find_var(grp, dim->name, &var)))
          return retval;
 
-      /* Check if we found a variable and the variable has the dimension in
-       * index 0. */
+      /* Check if we found a variable and the variable has the
+       * dimension in index 0. */
       if (var && var->dim[0] == dim)
       {
           /* Sanity check */
           assert(var->dimids[0] == dim->dimid);
 
-          /* Reform the coordinate variable */
+          /* Reform the coordinate variable. */
           if ((retval = nc4_reform_coord_var(grp, var, dim)))
              return retval;
       }

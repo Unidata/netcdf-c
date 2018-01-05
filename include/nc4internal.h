@@ -102,6 +102,12 @@ typedef enum {VAR, DIM, ATT} NC_OBJ_T;
  * as the netCDF dimid. */
 #define NC_DIMID_ATT_NAME "_Netcdf4Dimid"
 
+/** This is the name of the class HDF5 dimension scale attribute. */
+#define HDF5_DIMSCALE_CLASS_ATT_NAME "CLASS"
+
+/** This is the name of the name HDF5 dimension scale attribute. */
+#define HDF5_DIMSCALE_NAME_ATT_NAME "NAME"
+
 /* Boolean type, to make the code easier to read */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 
@@ -126,7 +132,7 @@ typedef struct NC_DIM_INFO
    nc_bool_t unlimited;         /* True if the dimension is unlimited */
    nc_bool_t extended;          /* True if the dimension needs to be extended */
    nc_bool_t too_long;          /* True if len is too big to fit in local size_t. */
-   hid_t hdf_dimscaleid;
+   hid_t hdf_dimscaleid;        /* Non-zero if a DIM_WITHOUT_VARIABLE dataset is in use (no coord var). */
    HDF5_OBJID_T hdf5_objid;
    struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */
 } NC_DIM_INFO_T;
@@ -344,6 +350,7 @@ int nc4_convert_type(const void *src, void *dest,
 /* These functions do HDF5 things. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
+int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
 int nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 		 const size_t *countp, nc_type xtype, int is_long, void *op);
