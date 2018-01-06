@@ -20,8 +20,9 @@ if USE_NETCDF4
 # These are the extra netCDF-4 examples. 
 check_PROGRAMS += simple_nc4_wr simple_nc4_rd simple_xy_nc4_wr	\
 simple_xy_nc4_rd 
-if ENABLE_FILTER_EXAMPLE
+if ENABLE_FILTER_TESTING
 check_PROGRAMS += test_filter
+TESTS += run_filter.sh
 endif
 endif #USE_NETCDF4
 
@@ -53,7 +54,7 @@ endif # USE_NETCDF4
 CLEANFILES = *.nc 
 
 EXTRA_DIST = run_valgrind_tests.sh run_nc4_valgrind_tests.sh	\
-CMakeLists.txt run_examples.sh run_examples4.sh
+CMakeLists.txt run_examples.sh run_examples4.sh run_filter.sh
 
 SUBDIRS = plugins
 

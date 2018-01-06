@@ -1338,18 +1338,18 @@ fi
 # Control filter test/example
 AC_MSG_CHECKING([whether filter testing should be run])
 AC_ARG_ENABLE([filter-testing],
-              [AS_HELP_STRING([--enable-filter-testing],
-                              [Run filter tests and example; requires shared libraries and netCDF-4])])
-test "x$enable_filter_testing" = xyes || enable_filter_testing=no
+              [AS_HELP_STRING([--disable-filter-testing],
+                              [Do not run filter test and example; requires shared libraries and netCDF-4])])
+test "x$enable_filter_testing" = xno || enable_filter_testing=yes
 AC_MSG_RESULT($enable_filter_testing)
 
 if test "x$enable_netcdf_4" = xno ; then
-AC_MSG_WARNING([netCDF-4 disabled => --enable-filter-testing is disabled"])
+AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing])
 enable_filter_testing = no
 fi
 
 if test "x$enable_shared" = xno ; then
-AC_MSG_WARNING([Shared libraries are disabled => --enable-filter-testing will be disabled"])
+AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
 enable_filter_testing = no
 fi
 AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
@@ -1484,7 +1484,7 @@ AC_CONFIG_FILES([Makefile
                  docs/images/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
-                 nc_test4/filter_test/Makefile
+                 nc_test4/plugins/Makefile
                  nc_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile
