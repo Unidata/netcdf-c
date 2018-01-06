@@ -117,6 +117,14 @@ TESTS += tst_szip.sh
 endif
 endif
 
+# Filter Tests (requires ncdump and ncgen)
+if ENABLE_FILTER_TESTING
+if BUILD_UTILITIES
+check_PROGRAMS += test_filter test_filter_misc
+TESTS += tst_filter.sh
+endif
+endif
+
 # This will run a bunch of the test programs with valgrind, the memory
 # checking tool. (Valgrind must be present for this to work.)
 if USE_VALGRIND_TESTS
@@ -148,8 +156,8 @@ tst_h4_lendian.c tst_atts_string_rewrite.c                              \
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c                     \
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc          \
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_hdf4_read_var.sh           \
-ref_contiguous.hdf4 ref_chunked.hdf4 tst_szip.sh ref_szip.h5            \
-ref_szip.cdl
+ref_contiguous.hdf4 ref_chunked.hdf4 tst_szip.sh ref_szip.h5 ref_szip.cdl \
+tst_filter.sh bzip2.cdl filtered.cdl unfiltered.cdl ref_bzip2.c
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc   \
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt                  \
@@ -174,4 +182,4 @@ MOD29.A2000055.0005.005.2006267200024.hdf
 
 endif # HDF4_FILE_TESTS
 
-SUBDIRS=filter_test
+SUBDIRS=plugins

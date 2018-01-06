@@ -1335,20 +1335,24 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
 
-# Control filter test(s)
-AC_MSG_CHECKING([If filter_test should be enabled (default is no)])
-AC_ARG_ENABLE([filter-test],
-              [AS_HELP_STRING([--enable-filter-test],
-                              [enable filter test])])
-test "x$enable_filter_test" = xyes || enable_filter_test=no
-AC_MSG_RESULT($enable_filter_test)
+# Control filter test/example
+AC_MSG_CHECKING([whether filter testing should be run])
+AC_ARG_ENABLE([filter-testing],
+              [AS_HELP_STRING([--disable-filter-testing],
+                              [Do not run filter test and example; requires shared libraries and netCDF-4])])
+test "x$enable_filter_testing" = xno || enable_filter_testing=yes
+AC_MSG_RESULT($enable_filter_testing)
+
 if test "x$enable_netcdf_4" = xno ; then
-AC_MSG_WARN([disabling --enable-filter-test; it requires netcdf-4])
-enable_filter_test=no
+AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing])
+enable_filter_testing = no
 fi
-# Define a Generic AM_CONDITIONAL to allow disabling
-# of arbitrary parts of Makefile.am files
-AM_CONDITIONAL(ENABLE_FILTER_TEST, [test x$enable_filter_test = xyes])
+
+if test "x$enable_shared" = xno ; then
+AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
+enable_filter_testing = no
+fi
+AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
 
 AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
@@ -1467,6 +1471,7 @@ AC_CONFIG_FILES([Makefile
                  ncgen/Makefile
                  examples/Makefile
                  examples/C/Makefile
+                 examples/C/plugins/Makefile
                  examples/CDL/Makefile
                  oc2/Makefile
                  libdap2/Makefile
@@ -1479,7 +1484,7 @@ AC_CONFIG_FILES([Makefile
                  docs/images/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
-                 nc_test4/filter_test/Makefile
+                 nc_test4/plugins/Makefile
                  nc_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile

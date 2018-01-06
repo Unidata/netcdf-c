@@ -5,19 +5,9 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../../test_common.sh
 
-echo "*** Running examples for netCDF-4."
 set -e
 
-echo "*** running simple_nc4 examples..."
-${execdir}/simple_nc4_wr
-${execdir}/simple_nc4_rd
-
-echo "*** running simple_xy_nc4 examples..."
-${execdir}/simple_xy_nc4_wr
-${execdir}/simple_xy_nc4_rd
-
-if test -f ${execdir}/test_filter${ext} ; then
-echo "*** running test_filter example..."
+echo "*** Running test_filter example..."
 echo "ISCYGWIN=${ISCYGWIN}"
 if test "x$ISCYGWIN" != x ; then
 PLUGIN=cygbzip2.dll
@@ -34,7 +24,6 @@ export HDF5_PLUGIN_PATH
 rm -f ./bzip2.nc
 ${execdir}/test_filter
 #rm -f ./bzip2.nc
-fi
 
-echo "*** Examples successful!"
+echo "*** Example successful!"
 exit 0

@@ -432,6 +432,11 @@ examples are included with the netCDF Fortran and C++ APIs.
 - \ref example_sfc_pres_temp
 - \ref example_pres_temp_4D
 
+Additionally, there is a example program demonstrating
+how to use the filter API. This is C only and only accessible
+when built with automake currently.
+- \ref filter_example
+
 Any existing netCDF applications can be converted to generate
 netCDF-4/HDF5 files. Simply change the file creation call to include
 the correct mode flag.
@@ -676,6 +681,11 @@ simple_xy_nc4.nc. The example program simple_xy_nc4_rd.c reads the
 data file.
 - simple_xy_nc4_wr.c
 - simple_xy_nc4_rd.c
+
+\section filter_example The filter example
+This example demonstrates how to write and read a variable that is
+compressed using, in this example, bzip2 compression.
+- test_filter.c
 
 \page interoperability_hdf5 Interoperability with HDF5
 

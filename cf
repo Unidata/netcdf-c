@@ -1,6 +1,6 @@
 #!/bin/bash
 #NB=1
-DB=1
+#DB=1
 #X=-x
 FAST=1
 
@@ -93,7 +93,7 @@ CXXFLAGS="$CPPFLAGS $CXXFLAGS"
 FLAGS="--prefix ${PREFIX}"
 #FLAGS="$FLAGS --disable-f77 --disable-f90"
 #FLAGS="$FLAGS --disable-cxx"
-FLAGS="$FLAGS --disable-examples"
+#FLAGS="$FLAGS --disable-examples"
 #FLAGS="$FLAGS --disable-utilities"
 #FLAGS="$FLAGS --enable-cxx-4"
 #FLAGS="$FLAGS --enable-dap-long-tests"
@@ -117,7 +117,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
-#FLAGS="$FLAGS --enable-filter-test"
+#FLAGS="$FLAGS --disable-filter-testing"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
