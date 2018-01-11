@@ -254,11 +254,14 @@ These maximums are not used for netCDF-4/HDF5 files unless they were
 created with the ::NC_CLASSIC_MODEL flag.
 
 As a rule, NC_MAX_VAR_DIMS <= NC_MAX_DIMS.
+
+NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits 
+      are *not* enforced after version 4.5.0
 */
 /**@{*/
-#define NC_MAX_DIMS     1024
-#define NC_MAX_ATTRS    8192
-#define NC_MAX_VARS     8192
+#define NC_MAX_DIMS     1024 /* not enforced after 4.5.0 */
+#define NC_MAX_ATTRS    8192 /* not enforced after 4.5.0 */
+#define NC_MAX_VARS     8192 /* not enforced after 4.5.0 */
 #define NC_MAX_NAME     256
 #define NC_MAX_VAR_DIMS 1024 /**< max per variable dimensions */
 /**@}*/
