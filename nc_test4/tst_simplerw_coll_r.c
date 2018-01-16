@@ -31,12 +31,6 @@
 #define DIM2_NAME "x"
 #define DIM3_NAME "y"
 #define VAR_NAME "Bond_James_Bond"
-#define ERR do {                                                        \
-      fflush(stdout); /* Make sure our stdout is synced with stderr. */ \
-      fprintf(stderr, "Sorry! Unexpected result, %s, line: %d\n",       \
-              __FILE__, __LINE__);                                      \
-      return 2;                                                         \
-   } while (0)
 
 int
 main(int argc, char **argv)
@@ -56,7 +50,6 @@ main(int argc, char **argv)
    int data[DIMSIZE * DIMSIZE], data_in[DIMSIZE * DIMSIZE];
    int j, i, ret;
 
-   char file_name[NC_MAX_NAME + 1];
    int ndims_in, nvars_in, natts_in, unlimdimid_in;
 
 #ifdef USE_MPE
@@ -99,12 +92,12 @@ main(int argc, char **argv)
    MPE_Log_event(s_init, 0, "start init");
 #endif /* USE_MPE */
 
-/*     if (!mpi_rank) */
-/*     { */
-/*        printf("\n*** Testing parallel I/O some more.\n"); */
-/*        printf("*** writing a %d x %d x %d file from %d processors...\n",  */
-/*               NUM_SLABS, DIMSIZE, DIMSIZE, mpi_size); */
-/*     } */
+   if (!mpi_rank)
+   {
+      printf("\n*** Testing parallel I/O some more.\n");
+      printf("*** writing a %d x %d x %d file from %d processors...\n",
+             NUM_SLABS, DIMSIZE, DIMSIZE, mpi_size);
+   }
 
    /* We will write the same slab over and over. */
    for (i = 0; i < DIMSIZE * DIMSIZE; i++)
@@ -238,10 +231,10 @@ main(int argc, char **argv)
    /* Shut down MPI. */
    MPI_Finalize();
 
-/*     if (!mpi_rank) */
-/*     { */
-/*        SUMMARIZE_ERR; */
-/*        FINAL_RESULTS; */
-/*     } */
+   if (!mpi_rank)
+   {
+      SUMMARIZE_ERR;
+      FINAL_RESULTS;
+   }
    return 0;
 }
