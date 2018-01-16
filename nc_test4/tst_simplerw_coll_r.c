@@ -9,21 +9,11 @@
  * Ward Fisher, Ed Hartnett
  */
 
-/* Defining USE_MPE causes the MPE trace library to be used (and you
- * must also relink with -llmpe -lmpe). This causes clog2 output to be
- * written, which can be converted to slog2 (by the program
- * clog2TOslog2) and then used in the analysis program jumpshot. */
-/*#define USE_MPE 1*/
-
 #include "config.h"
 #include "nc_tests.h"
 #include "err_macros.h"
 
-#ifdef USE_MPE
-#include <mpe.h>
-#endif /* USE_MPE */
-
-#define FILE_NAME "tst_parallel4_simplerw_coll.nc"
+#define TEST_NAME "tst_parallel4_simplerw_coll"
 #define NDIMS 3
 #define DIMSIZE 16
 #define NUM_SLABS 16
@@ -47,21 +37,23 @@ main(int argc, char **argv)
    int ncid, varid, dimids[NDIMS];
    size_t start[NDIMS] = {0, 0, 0};
    size_t count[NDIMS] = {1, DIMSIZE, DIMSIZE};
-   int data[DIMSIZE * DIMSIZE], data_in[DIMSIZE * DIMSIZE];
-   int j, i, ret;
-
+   int int_data[DIMSIZE * DIMSIZE], int_data_in[DIMSIZE * DIMSIZE];
+   void *data, *data_in;
    int ndims_in, nvars_in, natts_in, unlimdimid_in;
-
-#ifdef USE_MPE
-   int s_init, e_init, s_define, e_define, s_write, e_write, s_close, e_close;
-#endif /* USE_MPE */
+   int int_fill_value = TEST_VAL_42;
+   int int_fill_value_in;
+   int fill_mode_in;
+   int mpi_size_in;
+#define NUM_TEST_TYPES 1
+   nc_type test_type[1] = {NC_INT};
+   int tt;
+   int j, i, ret;
 
    /* Initialize MPI. */
    MPI_Init(&argc,&argv);
    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
    MPI_Get_processor_name(mpi_name, &mpi_namelen);
-   /*printf("mpi_name: %s size: %d rank: %d\n", mpi_name, mpi_size, mpi_rank);*/
 
    /* Must be able to evenly divide my slabs between processors. */
    if (NUM_SLABS % mpi_size != 0)
@@ -71,153 +63,125 @@ main(int argc, char **argv)
       ERR;
    }
 
-#ifdef USE_MPE
-   MPE_Init_log();
-   s_init = MPE_Log_get_event_number();
-   e_init = MPE_Log_get_event_number();
-   s_define = MPE_Log_get_event_number();
-   e_define = MPE_Log_get_event_number();
-   s_write = MPE_Log_get_event_number();
-   e_write = MPE_Log_get_event_number();
-   s_close = MPE_Log_get_event_number();
-   e_close = MPE_Log_get_event_number();
-   s_open = MPE_Log_get_event_number();
-   e_open = MPE_Log_get_event_number();
-   MPE_Describe_state(s_init, e_init, "Init", "red");
-   MPE_Describe_state(s_define, e_define, "Define", "yellow");
-   MPE_Describe_state(s_write, e_write, "Write", "green");
-   MPE_Describe_state(s_close, e_close, "Close", "purple");
-   MPE_Describe_state(s_open, e_open, "Open", "blue");
-   MPE_Start_log();
-   MPE_Log_event(s_init, 0, "start init");
-#endif /* USE_MPE */
-
    if (!mpi_rank)
    {
       printf("\n*** Testing parallel I/O some more.\n");
-      printf("*** writing a %d x %d x %d file from %d processors...\n",
-             NUM_SLABS, DIMSIZE, DIMSIZE, mpi_size);
+      printf("*** writing a %d x %d x %d file from %d processors...\n", NUM_SLABS,
+             DIMSIZE, DIMSIZE, mpi_size);
    }
 
-   /* We will write the same slab over and over. */
-   for (i = 0; i < DIMSIZE * DIMSIZE; i++)
-      data[i] = mpi_rank;
-
-#ifdef USE_MPE
-   MPE_Log_event(e_init, 0, "end init");
-   MPE_Log_event(s_define, 0, "start define file");
-#endif /* USE_MPE */
-
-   /* Create a parallel netcdf-4 file. */
-   if (nc_create_par(FILE_NAME, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
-
-   /* A global attribute holds the number of processors that created
-    * the file. */
-   if (nc_put_att_int(ncid, NC_GLOBAL, "num_processors", NC_INT, 1, &mpi_size)) ERR;
-
-   /* Create three dimensions. */
-   if (nc_def_dim(ncid, DIM1_NAME, NUM_SLABS, dimids)) ERR;
-   if (nc_def_dim(ncid, DIM2_NAME, DIMSIZE, &dimids[1])) ERR;
-   if (nc_def_dim(ncid, DIM3_NAME, DIMSIZE, &dimids[2])) ERR;
-
-   /* Create one var. */
-   if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIMS, dimids, &varid)) ERR;
-
-   /* Write metadata to file. */
-   if (nc_enddef(ncid)) ERR;
-
-#ifdef USE_MPE
-   MPE_Log_event(e_define, 0, "end define file");
-   if (mpi_rank)
-      sleep(mpi_rank);
-#endif /* USE_MPE */
-
-   /* Change access mode to collective, then back to independent. */
-   if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;
-   if (nc_var_par_access(ncid, varid, NC_INDEPENDENT)) ERR;
-
-   if (!mpi_rank)
-      start_time = MPI_Wtime();
-
-   /* Write all the slabs this process is responsible for. */
-   for (i = 0; i < NUM_SLABS / mpi_size; i++)
+   for (tt = 0; tt < NUM_TEST_TYPES; tt++)
    {
-      start[0] = NUM_SLABS / mpi_size * mpi_rank + i;
+      char file_name[NC_MAX_NAME + 1];
+      
+      /* Initialize test data. */
+      switch(test_type[tt])
+      {
+      case NC_INT:
+         for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+            int_data[i] = mpi_rank;
+         data = int_data;
+         data_in = int_data_in;
+         break;
+      }
+      
+      /* Create a file name. */
+      sprintf(file_name, "%s_type_%d.nc", TEST_NAME, test_type[tt]);
 
-#ifdef USE_MPE
-      MPE_Log_event(s_write, 0, "start write slab");
-#endif /* USE_MPE */
+      /* Create a parallel netcdf-4 file. */
+      if (nc_create_par(file_name, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
 
-       /* Write one slab of data. */
-      if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+      /* A global attribute holds the number of processors that created
+       * the file. */
+      if (nc_put_att_int(ncid, NC_GLOBAL, "num_processors", NC_INT, 1, &mpi_size)) ERR;
 
-#ifdef USE_MPE
-      MPE_Log_event(e_write, 0, "end write file");
-#endif /* USE_MPE */
-   }
+      /* Create three dimensions. */
+      if (nc_def_dim(ncid, DIM1_NAME, NUM_SLABS, dimids)) ERR;
+      if (nc_def_dim(ncid, DIM2_NAME, DIMSIZE, &dimids[1])) ERR;
+      if (nc_def_dim(ncid, DIM3_NAME, DIMSIZE, &dimids[2])) ERR;
 
-   if (!mpi_rank)
-   {
-      total_time = MPI_Wtime() - start_time;
-/*       printf("num_proc\ttime(s)\n");*/
-      printf("%d\t%g\t%g\n", mpi_size, total_time, DIMSIZE * DIMSIZE * NUM_SLABS * sizeof(int) / total_time);
-   }
+      /* Create one var. */
+      if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIMS, dimids, &varid)) ERR;
+      if (nc_put_att_int(ncid, varid, "var_num_processors", NC_INT, 1, &mpi_size)) ERR;
+      if (nc_def_var_fill(ncid, varid, NC_FILL, &int_fill_value)) ERR;
+      if (nc_inq_var_fill(ncid, varid, &fill_mode_in, &int_fill_value_in)) ERR;
+      if (fill_mode_in != NC_FILL || int_fill_value_in != TEST_VAL_42) ERR;
 
-#ifdef USE_MPE
-   MPE_Log_event(s_close, 0, "start close file");
-#endif /* USE_MPE */
+      /* Write metadata to file. */
+      if (nc_enddef(ncid)) ERR;
 
-   /* Close the netcdf file. */
-   if (nc_close(ncid))  ERR;
+      /* Change access mode to collective, then back to independent. */
+      if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;
+      if (nc_var_par_access(ncid, varid, NC_INDEPENDENT)) ERR;
 
-#ifdef USE_MPE
-   MPE_Log_event(e_close, 0, "end close file");
-#endif /* USE_MPE */
+      if (!mpi_rank)
+         start_time = MPI_Wtime();
 
-   /* Reopen the file and check it. */
-   if ((ret = nc_open_par(FILE_NAME, NC_NOWRITE|NC_MPIIO, comm, info, &ncid))) ERR;
-   if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
-   if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 ||
-       unlimdimid_in != -1) ERR;
+      /* Write all the slabs this process is responsible for. */
+      for (i = 0; i < NUM_SLABS / mpi_size; i++)
+      {
+         start[0] = NUM_SLABS / mpi_size * mpi_rank + i;
 
-   /* Read all the slabs this process is responsible for. */
-   for (i = 0; i < NUM_SLABS / mpi_size; i++)
-   {
-      start[0] = NUM_SLABS / mpi_size * mpi_rank + i;
+         /* Write one slab of data. */
+         if (nc_put_vara(ncid, varid, start, count, data)) ERR;
 
-#ifdef USE_MPE
-      MPE_Log_event(s_read, 0, "start read slab");
-#endif /* USE_MPE */
+      }
 
-      /* Don't read data on rank 0. */
-      if (!mpi_rank) 
-         for(j = 0; j < 3; j++)
-            count[j] = 0;
+      if (!mpi_rank)
+      {
+         total_time = MPI_Wtime() - start_time;
+         printf("%d\t%g\t%g\n", mpi_size, total_time, DIMSIZE * DIMSIZE * NUM_SLABS * sizeof(int) / total_time);
+      }
 
-      /* Read one slab of data. */
-      if (nc_get_vara_int(ncid, varid, start, count, data_in)) ERR;
+      /* Close the netcdf file. */
+      if (nc_close(ncid))  ERR;
 
-      /* Check data on all but rank 0. */
-      if (mpi_rank) 
-         for (j = 0; j < DIMSIZE * DIMSIZE; j++)
-            if (data_in[j] != mpi_rank) ERR;
+      /* Reopen the file and check it. */
+      if ((ret = nc_open_par(file_name, NC_NOWRITE|NC_MPIIO, comm, info, &ncid))) ERR;
+      if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
+      if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 ||
+          unlimdimid_in != -1) ERR;
 
-#ifdef USE_MPE
-      MPE_Log_event(e_read, 0, "end read file");
-#endif /* USE_MPE */
-   }
+      /* Check the attributes. */
+      if (nc_get_att_int(ncid, NC_GLOBAL, "num_processors", &mpi_size_in)) ERR;
+      if (mpi_size_in != mpi_size)
+         ERR;
+      if (nc_get_att_int(ncid, 0, "var_num_processors", &mpi_size_in)) ERR;
+      if (mpi_size_in != mpi_size)
+         ERR;
+      if (nc_inq_var_fill(ncid, varid, &fill_mode_in, &int_fill_value_in)) ERR;
+      if (fill_mode_in != NC_FILL || int_fill_value_in != TEST_VAL_42) ERR;
 
-#ifdef USE_MPE
-   MPE_Log_event(s_close, 0, "start close file");
-#endif /* USE_MPE */
+      /* Read all the slabs this process is responsible for. */
+      for (i = 0; i < NUM_SLABS / mpi_size; i++)
+      {
+         start[0] = NUM_SLABS / mpi_size * mpi_rank + i;
 
-   /* Close the netcdf file. */
-   if (nc_close(ncid))  ERR;
+         /* Don't read data on rank 0. */
+         if (!mpi_rank) 
+            for(j = 0; j < 3; j++)
+               count[j] = 0;
 
-#ifdef USE_MPE
-   MPE_Log_event(e_close, 0, "end close file");
-#endif /* USE_MPE */
+         /* Read one slab of data. */
+         if (nc_get_vara(ncid, varid, start, count, data_in)) ERR;
 
+         /* Check data on all but rank 0. */
+         if (mpi_rank)
+         {
+            switch (test_type[tt])
+            {
+            case NC_INT:
+               for (j = 0; j < DIMSIZE * DIMSIZE; j++)
+                  if (int_data_in[j] != mpi_rank) ERR;
+               break;
+            }
+         }
+      }
+
+      /* Close the netcdf file. */
+      if (nc_close(ncid))  ERR;
+   } /* next test type */
+   
    /* Shut down MPI. */
    MPI_Finalize();
 
