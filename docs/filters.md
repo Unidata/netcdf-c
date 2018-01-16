@@ -334,20 +334,44 @@ out the filter id and the parameters (the -s flag).
 
 Test Case {#TestCase}
 -------
-Within the netcdf-c source tree, the directory __netcdf-c/nc_test4/filter_test__ contains
-a test case for testing dynamic filter writing and reading
-using bzip2. The test case is fragile and is only known to work for Linux
-and Cygwin. To avoid spurious failures, it must be explicitly
-invoked by entering the directory and issuing the command
-````
-make clean all makebzip2 check
-````
-Note that the Make target 'makebzip2' creates the bzip2 shared object.
-It is the target most likely to fail when executed on an untested or
-non-standard platform.
+Within the netcdf-c source tree, the directory
+__netcdf-c/nc_test4__ contains a test case (__test_filter.c__) for
+testing dynamic filter writing and reading using
+bzip2. Another test (__test_filter_misc.c__) validates
+parameter passing.  These tests are disabled if __--enable-shared__
+is not set or if __--enable-netcdf-4__ is not set.
 
-Although it is fragile, this test can  serve as a complete example for building
-plugins for other filters.
+Example {#Example}
+-------
+A slightly simplified version of the filter test case is also
+available as an example within the netcdf-c source tree
+directory __netcdf-c/examples/C. The test is called __filter_example.c__
+and it is executed as part of the __run_examples4.sh__ shell script.
+The test case demonstrates dynamic filter writing and reading.
+
+The files __example/C/hdf5plugins/Makefile.am__
+and  __example/C/hdf5plugins/CMakeLists.txt__
+demonstrate how to build the hdf5 plugin for bzip2.
+
+Notes
+==========
+
+Supported Systems
+-----------------
+The current matrix of OS X build systems known to work is as follows.
+<table>
+<tr><th>Build System<th>Supported OS
+<tr><td>Automake<td>Linux, Cygwin
+<tr><td>Cmake<td>Linux, Cygwin, Visual Studio
+</table>
+
+Generic Plugin Build
+--------------------
+If you do not want to use Automake or Cmake, the following
+has been known to work.
+````
+gcc -g -O0 -shared -o libbzip2.so <plugin source files>  -L${HDF5LIBDIR} -lhdf5_hl -lhdf5 -L${ZLIBDIR} -lz
+````
 
 Appendix A. Byte Swap Code {#AppendixA}
 ==========

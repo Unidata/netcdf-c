@@ -11,7 +11,6 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_filterparser)
 
-
 # Note, renamegroup needs to be compiled before run_grp_rename
 
 IF(BUILD_UTILITIES)
@@ -19,6 +18,9 @@ IF(BUILD_UTILITIES)
   build_bin_test(renamegroup)
   add_sh_test(nc_test4 run_grp_rename)
   ADD_SH_TEST(nc_test4 tst_misc)
+  build_bin_test(test_filter)
+  build_bin_test(test_filter_misc)
+  ADD_SH_TEST(nc_test4 tst_filter)
 ENDIF(BUILD_UTILITIES)
 
 ##
@@ -102,4 +104,6 @@ IF(TEST_PARALLEL4)
   add_sh_test(nc_test4 run_par_test)
 ENDIF()
 
-ADD_SUBDIRECTORY(filter_test)
+ADD_EXTRA_DIST(findplugin.in)
+
+ADD_SUBDIRECTORY(hdf5plugins)
