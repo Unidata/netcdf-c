@@ -57,7 +57,7 @@ NCLIB=`pwd`
 if test "x$VS" != x ; then
 # Visual Studio
 CFG="Release"
-NCLIB="${NCLIB}/liblib/$CFG"
+NCLIB="${NCLIB}/liblib"
 export PATH="${NCLIB}:${PATH}"
 #G=
 cmake "$G" -DCMAKE_BUILD_TYPE=${CFG} $FLAGS ..
