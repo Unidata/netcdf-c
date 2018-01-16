@@ -1,6 +1,6 @@
 #!/bin/bash
 #NB=1
-DB=1
+#DB=1
 #X=-x
 FAST=1
 
@@ -21,7 +21,8 @@ fi
 
 CFLAGS=""
 #CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
-CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign -Wno-format ${CFLAGS}"
+#CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign -Wno-format ${CFLAGS}"
+CFLAGS="-Wall -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign ${CFLAGS}"
 #CFLAGS="-Wall ${CFLAGS}"
 #CFLAGS="-Wconversion"
 
@@ -93,14 +94,13 @@ CXXFLAGS="$CPPFLAGS $CXXFLAGS"
 FLAGS="--prefix ${PREFIX}"
 #FLAGS="$FLAGS --disable-f77 --disable-f90"
 #FLAGS="$FLAGS --disable-cxx"
-FLAGS="$FLAGS --disable-examples"
+#FLAGS="$FLAGS --disable-examples"
 #FLAGS="$FLAGS --disable-utilities"
 #FLAGS="$FLAGS --enable-cxx-4"
 #FLAGS="$FLAGS --enable-dap-long-tests"
 #FLAGS="$FLAGS --enable-ffio"
 #FLAGS="$FLAGS --enable-benchmarks"
 FLAGS="$FLAGS --enable-extreme-numbers"
-FLAGS="$FLAGS --enable-extra-tests"
 #FLAGS="$FLAGS --enable-large-file-tests"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
@@ -117,7 +117,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
-#FLAGS="$FLAGS --enable-filter-test"
+#FLAGS="$FLAGS --disable-filter-testing"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
@@ -192,6 +192,7 @@ fi
 if test -z "$FAST" ; then
   if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
 fi
+
 sh $X ./configure ${FLAGS}
 for c in $cmds; do
 printenv LD_LIBRARY_PATH

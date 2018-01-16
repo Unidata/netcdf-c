@@ -1,10 +1,12 @@
 # Test c output
-T=tst_filterparser
+T=test_filter_misc
 #CMD=valgrind --leak-check=full
 CMD=gdb --args
 
+FILTER=H5Zmisc
+
 #PAR=1
-SZIP=1
+#SZIP=1
 
 CFLAGS = -Wall -Wno-unused-variable -Wno-unused-function -g -O0 -I.. -I../include
 
@@ -29,7 +31,10 @@ all:: cmp
 
 cmp::
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
-	${CC} -o t ${CFLAGS} ${T}.c ${SRC} ${LDFLAGS}
+	${CC} -o t ${CFLAGS} ${T}.c ${SRC} hdf5plugins/${FILTER}.o ${LDFLAGS}
+
+filter::
+	${CC} ${CFLAGS} -c hdf5plugins/${FILTER}.c ${LDFLAGS}
 
 cpp::
 	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt

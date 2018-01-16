@@ -1,8 +1,12 @@
 # Visual Studio
 
+# Is netcdf-4 and/or DAP enabled?
+NC4=1
+#DAP=1
+
 case "$1" in
 vs|VS) VS=1 ;;
-linux|nix) unset VS ;;
+linux|nix|l|x) unset VS ;;
 *) echo "Must specify env: vs|linux"; exit 1; ;;
 esac
 
@@ -22,15 +26,10 @@ else
 CFG="Release"
 fi
 
-# Is netcdf-4 and/or DAP enabled?
-NC4=1
-DAP=1
-
-if test "x$VS" != x ; then
+if test "x$VS" != x -a "x$INSTALL" != x ; then
 FLAGS="-DCMAKE_PREFIX_PATH=c:/tools/nccmake"
-else
-FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=`pwd`/ignore"
 fi
+FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=/tmp/netcdf"
 
 if test "x$DAP" = x ; then
 FLAGS="$FLAGS -DENABLE_DAP=false"
@@ -57,19 +56,20 @@ NCLIB=`pwd`
 
 if test "x$VS" != x ; then
 # Visual Studio
-#CFG="RelWithDebInfo"
 CFG="Release"
-NCLIB="${NCLIB}/build/liblib/$CFG"
+NCLIB="${NCLIB}/liblib/$CFG"
 export PATH="${NCLIB}:${PATH}"
-cmake $FLAGS ..
+#G=
+cmake "$G" -DCMAKE_BUILD_TYPE=${CFG} $FLAGS ..
 cmake --build . --config ${CFG}
 cmake --build . --config ${CFG} --target RUN_TESTS
 else
 # GCC
 NCLIB="${NCLIB}/build/liblib"
-G="-GUnix Makefiles"
+#G="-GUnix Makefiles"
+#T="--trace-expand"
 cmake "${G}" $FLAGS ..
-#make all
-#make test
+make all
+make test
 fi
 exit

@@ -1160,7 +1160,6 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     int tf = 0;
     char* sdata = NULL;
     int idata =  -1;
-    unsigned int udata =  0;
 
     if((GLOBAL_SPECIAL & tag) != 0) {
         if(vsym != NULL) {
