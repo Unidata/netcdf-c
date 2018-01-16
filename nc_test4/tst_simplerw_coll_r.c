@@ -190,7 +190,7 @@ main(int argc, char **argv)
 #endif /* USE_MPE */
 
       /* Only read data on rank 0. */
-      if (mpi_rank == 0) 
+      if (!mpi_rank) 
          for(j = 0; j < 3; j++)
             count[j] = 0;
 
