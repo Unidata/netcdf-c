@@ -41,7 +41,7 @@
 #define ONE_TWENTY_EIGHT_MEG (SIXTEEN_MEG * 8)
 #define TEST_VAL_42 42
 #define BAD_NAME "dd//d/  "
-#define NUM_TYPES 12
+#define NUM_NETCDF_TYPES 12
 /** \} */
 
 #ifdef USE_PNETCDF
