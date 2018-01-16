@@ -33,8 +33,8 @@ main(int argc, char **argv)
    MPI_Info info = MPI_INFO_NULL;
    double start_time = 0, total_time;
    int mpi_size_in;
-#define NUM_TEST_TYPES 5
-   nc_type test_type[NUM_TEST_TYPES] = {NC_BYTE, NC_SHORT, NC_INT, NC_FLOAT, NC_DOUBLE};
+#define NUM_TEST_TYPES 6
+   nc_type test_type[NUM_TEST_TYPES] = {NC_BYTE, NC_CHAR, NC_SHORT, NC_INT, NC_FLOAT, NC_DOUBLE};
    int tt, fv;
    int j, i, k, ret;
 
@@ -83,6 +83,7 @@ main(int argc, char **argv)
 
          /* Fill values used when writing. */
          signed char byte_fill_value = -TEST_VAL_42;
+         unsigned char char_fill_value = 0;
          short short_fill_value = TEST_VAL_42 * 100;
          int int_fill_value = TEST_VAL_42 * 1000;
          float float_fill_value = TEST_VAL_42 * 1000;
@@ -90,6 +91,7 @@ main(int argc, char **argv)
 
          /* Fill values read in. */
          signed char byte_fill_value_in;
+         unsigned char char_fill_value_in;
          short short_fill_value_in;
          int int_fill_value_in;
          float float_fill_value_in;
@@ -97,6 +99,7 @@ main(int argc, char **argv)
 
          /* Data to write and read. */
          signed char byte_data[DIMSIZE * DIMSIZE], byte_data_in[DIMSIZE * DIMSIZE];
+         unsigned char char_data[DIMSIZE * DIMSIZE], char_data_in[DIMSIZE * DIMSIZE];
          short short_data[DIMSIZE * DIMSIZE], short_data_in[DIMSIZE * DIMSIZE];
          int int_data[DIMSIZE * DIMSIZE], int_data_in[DIMSIZE * DIMSIZE];
          float float_data[DIMSIZE * DIMSIZE], float_data_in[DIMSIZE * DIMSIZE];
@@ -117,6 +120,15 @@ main(int argc, char **argv)
             byte_expected_fill_value = fv ? byte_fill_value : NC_FILL_BYTE;
             fill_value = &byte_expected_fill_value;
             fill_value_in = &byte_fill_value_in;
+            break;
+         case NC_CHAR:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               char_data[i] = mpi_rank;
+            data = char_data;
+            data_in = char_data_in;
+            char_expected_fill_value = fv ? char_fill_value : NC_FILL_CHAR;
+            fill_value = &char_expected_fill_value;
+            fill_value_in = &char_fill_value_in;
             break;
          case NC_SHORT:
             for (i = 0; i < DIMSIZE * DIMSIZE; i++)
