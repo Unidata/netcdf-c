@@ -62,7 +62,7 @@ main(int argc, char **argv)
    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
    MPI_Get_processor_name(mpi_name, &mpi_namelen);
    /*printf("mpi_name: %s size: %d rank: %d\n", mpi_name, mpi_size, mpi_rank);*/
-//#if 0
+
    /* Must be able to evenly divide my slabs between processors. */
    if (NUM_SLABS % mpi_size != 0)
    {
@@ -132,8 +132,9 @@ main(int argc, char **argv)
       sleep(mpi_rank);
 #endif /* USE_MPE */
 
-/*    if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;*/
-/*    if (nc_var_par_access(ncid, varid, NC_INDEPENDENT)) ERR;*/
+   /* Change access mode to collective, then back to independent. */
+   if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;
+   if (nc_var_par_access(ncid, varid, NC_INDEPENDENT)) ERR;
 
    if (!mpi_rank)
       start_time = MPI_Wtime();
@@ -169,7 +170,6 @@ main(int argc, char **argv)
    /* Close the netcdf file. */
    if (nc_close(ncid))  ERR;
 
-//#endif
 #ifdef USE_MPE
    MPE_Log_event(e_close, 0, "end close file");
 #endif /* USE_MPE */
@@ -189,24 +189,18 @@ main(int argc, char **argv)
       MPE_Log_event(s_read, 0, "start read slab");
 #endif /* USE_MPE */
 
-      /* Only read data on rank 0. */
+      /* Don't read data on rank 0. */
       if (!mpi_rank) 
          for(j = 0; j < 3; j++)
             count[j] = 0;
 
-      if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;
       /* Read one slab of data. */
       if (nc_get_vara_int(ncid, varid, start, count, data_in)) ERR;
 
-      if(mpi_rank != 0) {
-         /* Check data. */
+      /* Check data on all but rank 0. */
+      if (mpi_rank) 
          for (j = 0; j < DIMSIZE * DIMSIZE; j++)
-            if (data_in[j] != mpi_rank)
-            {
-               ERR;
-               break;
-            }
-      }
+            if (data_in[j] != mpi_rank) ERR;
 
 #ifdef USE_MPE
       MPE_Log_event(e_read, 0, "end read file");
