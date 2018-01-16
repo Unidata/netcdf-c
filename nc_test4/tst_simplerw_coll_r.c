@@ -25,15 +25,12 @@
 int
 main(int argc, char **argv)
 {
-   /* MPI stuff. */
    int mpi_namelen;
    char mpi_name[MPI_MAX_PROCESSOR_NAME];
    int mpi_size, mpi_rank;
    MPI_Comm comm = MPI_COMM_WORLD;
    MPI_Info info = MPI_INFO_NULL;
    double start_time = 0, total_time;
-
-   /* Netcdf-4 stuff. */
    int ncid, varid, dimids[NDIMS];
    size_t start[NDIMS] = {0, 0, 0};
    size_t count[NDIMS] = {1, DIMSIZE, DIMSIZE};
@@ -56,10 +53,11 @@ main(int argc, char **argv)
    MPI_Get_processor_name(mpi_name, &mpi_namelen);
 
    /* Must be able to evenly divide my slabs between processors. */
-   if (NUM_SLABS % mpi_size != 0)
+   if (NUM_SLABS % mpi_size)
    {
-      if (!mpi_rank) printf("NUM_SLABS (%d) is not evenly divisible by mpi_size(%d)\n",
-                            NUM_SLABS, mpi_size);
+      if (!mpi_rank)
+         printf("NUM_SLABS (%d) is not evenly divisible by mpi_size(%d)\n",
+                NUM_SLABS, mpi_size);
       ERR;
    }
 
@@ -124,17 +122,18 @@ main(int argc, char **argv)
 
          /* Write one slab of data. */
          if (nc_put_vara(ncid, varid, start, count, data)) ERR;
-
       }
 
+      /* On rank 0, keep track of time. */
       if (!mpi_rank)
       {
          total_time = MPI_Wtime() - start_time;
-         printf("%d\t%g\t%g\n", mpi_size, total_time, DIMSIZE * DIMSIZE * NUM_SLABS * sizeof(int) / total_time);
+         printf("%d\t%g\t%g\n", mpi_size, total_time, DIMSIZE * DIMSIZE * NUM_SLABS *
+                sizeof(int) / total_time);
       }
 
       /* Close the netcdf file. */
-      if (nc_close(ncid))  ERR;
+      if (nc_close(ncid)) ERR;
 
       /* Reopen the file and check it. */
       if ((ret = nc_open_par(file_name, NC_NOWRITE|NC_MPIIO, comm, info, &ncid))) ERR;
@@ -144,11 +143,9 @@ main(int argc, char **argv)
 
       /* Check the attributes. */
       if (nc_get_att_int(ncid, NC_GLOBAL, "num_processors", &mpi_size_in)) ERR;
-      if (mpi_size_in != mpi_size)
-         ERR;
+      if (mpi_size_in != mpi_size) ERR;
       if (nc_get_att_int(ncid, 0, "var_num_processors", &mpi_size_in)) ERR;
-      if (mpi_size_in != mpi_size)
-         ERR;
+      if (mpi_size_in != mpi_size) ERR;
       if (nc_inq_var_fill(ncid, varid, &fill_mode_in, &int_fill_value_in)) ERR;
       if (fill_mode_in != NC_FILL || int_fill_value_in != TEST_VAL_42) ERR;
 
@@ -156,27 +153,20 @@ main(int argc, char **argv)
       for (i = 0; i < NUM_SLABS / mpi_size; i++)
       {
          start[0] = NUM_SLABS / mpi_size * mpi_rank + i;
-
-         /* Don't read data on rank 0. */
-         if (!mpi_rank) 
-            for(j = 0; j < 3; j++)
-               count[j] = 0;
+         printf("mpi_rank %d i %d start[0] %ld\n", mpi_rank, i, start[0]);
 
          /* Read one slab of data. */
          if (nc_get_vara(ncid, varid, start, count, data_in)) ERR;
 
-         /* Check data on all but rank 0. */
-         if (mpi_rank)
+         /* Check data. */
+         switch (test_type[tt])
          {
-            switch (test_type[tt])
-            {
-            case NC_INT:
-               for (j = 0; j < DIMSIZE * DIMSIZE; j++)
-                  if (int_data_in[j] != mpi_rank) ERR;
-               break;
-            }
+         case NC_INT:
+            for (j = 0; j < DIMSIZE * DIMSIZE; j++)
+               if (int_data_in[j] != mpi_rank) ERR;
+            break;
          }
-      }
+      } /* next slab */
 
       /* Close the netcdf file. */
       if (nc_close(ncid))  ERR;
