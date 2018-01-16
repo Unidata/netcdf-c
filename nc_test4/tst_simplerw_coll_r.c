@@ -15,11 +15,9 @@
  * clog2TOslog2) and then used in the analysis program jumpshot. */
 /*#define USE_MPE 1*/
 
-#include <mpi.h>
-#include <stdio.h>
-#include <string.h>
-#include <netcdf.h>
-#include <netcdf_par.h>
+#include "config.h"
+#include "nc_tests.h"
+#include "err_macros.h"
 
 #ifdef USE_MPE
 #include <mpe.h>
