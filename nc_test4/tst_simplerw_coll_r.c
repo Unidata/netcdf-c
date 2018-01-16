@@ -175,11 +175,7 @@ main(int argc, char **argv)
 #endif /* USE_MPE */
 
    /* Reopen the file and check it. */
-   if ((ret = nc_open_par(FILE_NAME, NC_NOWRITE|NC_MPIIO, comm, info, &ncid)))
-   {
-      printf("ret = %d\n", ret);
-      return -1;
-   }
+   if ((ret = nc_open_par(FILE_NAME, NC_NOWRITE|NC_MPIIO, comm, info, &ncid))) ERR;
    if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
    if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 ||
        unlimdimid_in != -1) ERR;
@@ -193,11 +189,11 @@ main(int argc, char **argv)
       MPE_Log_event(s_read, 0, "start read slab");
 #endif /* USE_MPE */
 
-      if(mpi_rank == 0) {
-         for(j=0; j<3;j++)
+      /* Only read data on rank 0. */
+      if (mpi_rank == 0) 
+         for(j = 0; j < 3; j++)
             count[j] = 0;
 
-      }
       if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;
       /* Read one slab of data. */
       if (nc_get_vara_int(ncid, varid, start, count, data_in)) ERR;
