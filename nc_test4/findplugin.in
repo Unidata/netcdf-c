@@ -15,6 +15,10 @@
 #   Variable HDF5_PLUGIN_PATH is setthe absolute path to the
 #                    directory containing the plugin library file
 # Local variables are prefixed with FP_
+#
+# Note: we assume that the use of the CMAKE_BUILD_TYPE
+# is obviated by setting the LIBRARY_OUTPUT_DIRECTORY
+# variables: see hdf5plugins/CMakeLists.txt
 
 findplugin() {
 
@@ -31,18 +35,6 @@ if test "x$FP_OS" = xDarwin ; then FP_ISOSX=1; fi
 # Are we operating under CYGWIN? (test using uname)
 FP_OS=`uname | cut -d '_'  -f 1`
 if test "x$FP_OS" = xCYGWIN ; then FP_ISCYGWIN=1; fi
-
-if test "x$FP_ISCMAKE" != x ; then
-  FP_BUILDTYPE="@CMAKE_BUILD_TYPE@"
-  if test "x$FP_BUILDTYPE" != x; then
-    # Camel-case the build type
-    FP_C1=${FP_BUILDTYPE:0:1}
-    FP_CN=${FP_BUILDTYPE:1}
-    FP_C1=`echo -n "$FP_C1" | tr '[:lower:]' '[:upper:]'`
-    FP_CN=`echo -n "$FP_CN" | tr '[:upper:]' '[:lower:]'`
-    FP_BUILDTYPE="${FP_C1}${FP_CN}"
-  fi
-fi
 
 FP_PLUGINS=`pwd`
 FP_PLUGINS="$FP_PLUGINS/hdf5plugins"
@@ -67,13 +59,9 @@ fi
 # Do not know where to look for a dylib
 # Case 1: Cmake with Visual Studio
 if test "x$FP_ISCMAKE" != x -a "x${FP_ISMSVC}" != x ; then
-  # Case 1a: try the build type directory
-  if test -f "${FP_PLUGINS}/${FP_BUILDTYPE}/${FP_PLUGIN_LIB}" ; then
-    FP_PLUGIN_PATH="${FP_PLUGINS}/${FP_BUILDTYPE}"
-  else # Case 1b Ignore the build type dir
-    if test -f "${FP_PLUGINS}/${FP_PLUGIN_LIB}" ; then
-      FP_PLUGIN_PATH="${FP_PLUGINS}"
-    fi
+  # Case 1a: ignore the build type directory
+  if test -f "${FP_PLUGINS}/${FP_PLUGIN_LIB}" ; then
+    FP_PLUGIN_PATH="${FP_PLUGINS}"
   fi
 else # Case 2: automake
   # Case 2a: look in .libs
