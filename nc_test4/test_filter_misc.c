@@ -180,7 +180,7 @@ openfile(void)
 	    }
 	}
     }
-    if(nerrs > 0) return NC_EFILTER; 
+    if(nerrs > 0) return NC_EFILTER;
 
     /* Verify chunking */
     if(!verifychunks())
@@ -292,21 +292,21 @@ buildbaseline(unsigned int testcasenumber)
     baseline[0] = testcasenumber;
     switch (testcasenumber) {
     case 1:
-	val4 = (unsigned int)-17; 
+	val4 = (unsigned int)-17;
         insert(1,&val4,sizeof(val4)); /* 1 signed int*/
-	val4 = (unsigned int)23; 
+	val4 = (unsigned int)23;
         insert(2,&val4,sizeof(val4)); /* 2 unsigned int*/
-	val4 = (unsigned int)-25; 
+	val4 = (unsigned int)-25;
         insert(3,&val4,sizeof(val4)); /* 3 signed int*/
-	val4 = (unsigned int)27; 
+	val4 = (unsigned int)27;
         insert(4,&val4,sizeof(val4)); /* 4 unsigned int*/
-	val4 = (unsigned int)77; 
+	val4 = (unsigned int)77;
         insert(5,&val4,sizeof(val4)); /* 5 signed int*/
 	val4 = (unsigned int)93;
         insert(6,&val4,sizeof(val4)); /* 6 unsigned int*/
 	float4 = 789.0f;
         insert(7,&float4,sizeof(float4)); /* 7 float */
-#ifdef _MSC_VER
+#if defined  _MSC_VER || defined __APPLE__
 #define DBLVAL 12345678.12345678
 #else
 #define DBLVAL 12345678.12345678d
@@ -397,7 +397,7 @@ odom_offset(void)
     for(i=0;i<actualdims;i++) {
         offset *= dims[i];
         offset += odom[i];
-    } 
+    }
     return offset;
 }
 
@@ -410,7 +410,7 @@ expectedvalue(void)
     for(i=0;i<actualdims;i++) {
         offset *= dims[i];
         offset += odom[i];
-    } 
+    }
     return offset;
 }
 
@@ -445,4 +445,3 @@ main(int argc, char **argv)
     if(!test_test1()) ERRR;
     exit(nerrs > 0?1:0);
 }
-
