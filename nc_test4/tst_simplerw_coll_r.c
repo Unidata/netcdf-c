@@ -33,8 +33,9 @@ main(int argc, char **argv)
    MPI_Info info = MPI_INFO_NULL;
    double start_time = 0, total_time;
    int mpi_size_in;
-#define NUM_TEST_TYPES 6
-   nc_type test_type[NUM_TEST_TYPES] = {NC_BYTE, NC_CHAR, NC_SHORT, NC_INT, NC_FLOAT, NC_DOUBLE};
+#define NUM_TEST_TYPES 11
+   nc_type test_type[NUM_TEST_TYPES] = {NC_BYTE, NC_CHAR, NC_SHORT, NC_INT, NC_FLOAT, NC_DOUBLE,
+                                        NC_UBYTE, NC_USHORT, NC_UINT, NC_INT64, NC_UINT64};
    int tt, fv;
    int j, i, k, ret;
 
@@ -76,18 +77,29 @@ main(int argc, char **argv)
 
          /* Fill values to be expected. */
          signed char byte_expected_fill_value;
+         unsigned char char_expected_fill_value;
          short short_expected_fill_value;
          int int_expected_fill_value;
          float float_expected_fill_value;
          double double_expected_fill_value;
+         unsigned char ubyte_expected_fill_value;
+         unsigned short ushort_expected_fill_value;
+         unsigned int uint_expected_fill_value;
+         long long int int64_expected_fill_value;
+         unsigned long long int uint64_expected_fill_value;
 
          /* Fill values used when writing. */
          signed char byte_fill_value = -TEST_VAL_42;
-         unsigned char char_fill_value = 0;
+         unsigned char char_fill_value = 'x';
          short short_fill_value = TEST_VAL_42 * 100;
          int int_fill_value = TEST_VAL_42 * 1000;
          float float_fill_value = TEST_VAL_42 * 1000;
          double double_fill_value = TEST_VAL_42 * 1000;
+         unsigned char ubyte_fill_value = TEST_VAL_42;
+         unsigned short ushort_fill_value = TEST_VAL_42 * 100;
+         unsigned int uint_fill_value = TEST_VAL_42 * 1000;
+         long long int int64_fill_value = TEST_VAL_42 * 1000;
+         unsigned long long int uint64_fill_value = TEST_VAL_42 * 1000;
 
          /* Fill values read in. */
          signed char byte_fill_value_in;
@@ -96,7 +108,12 @@ main(int argc, char **argv)
          int int_fill_value_in;
          float float_fill_value_in;
          double double_fill_value_in;
-
+         unsigned char ubyte_fill_value_in;
+         unsigned short ushort_fill_value_in;
+         unsigned int uint_fill_value_in;
+         long long int int64_fill_value_in;
+         unsigned long long int uint64_fill_value_in;
+         
          /* Data to write and read. */
          signed char byte_data[DIMSIZE * DIMSIZE], byte_data_in[DIMSIZE * DIMSIZE];
          unsigned char char_data[DIMSIZE * DIMSIZE], char_data_in[DIMSIZE * DIMSIZE];
@@ -104,6 +121,11 @@ main(int argc, char **argv)
          int int_data[DIMSIZE * DIMSIZE], int_data_in[DIMSIZE * DIMSIZE];
          float float_data[DIMSIZE * DIMSIZE], float_data_in[DIMSIZE * DIMSIZE];
          double double_data[DIMSIZE * DIMSIZE], double_data_in[DIMSIZE * DIMSIZE];
+         unsigned char ubyte_data[DIMSIZE * DIMSIZE], ubyte_data_in[DIMSIZE * DIMSIZE];
+         unsigned short ushort_data[DIMSIZE * DIMSIZE], ushort_data_in[DIMSIZE * DIMSIZE];
+         unsigned int uint_data[DIMSIZE * DIMSIZE], uint_data_in[DIMSIZE * DIMSIZE];
+         long long int int64_data[DIMSIZE * DIMSIZE], int64_data_in[DIMSIZE * DIMSIZE];
+         unsigned long long int uint64_data[DIMSIZE * DIMSIZE], uint64_data_in[DIMSIZE * DIMSIZE];
          
          if (!mpi_rank)
             printf("*** writing a %d x %d x %d file from %d processors for fill value test %d type %d...\n",
@@ -165,6 +187,51 @@ main(int argc, char **argv)
             double_expected_fill_value = fv ? double_fill_value : NC_FILL_DOUBLE;
             fill_value = &double_expected_fill_value;
             fill_value_in = &double_fill_value_in;
+            break;
+         case NC_UBYTE:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               ubyte_data[i] = mpi_rank;
+            data = ubyte_data;
+            data_in = ubyte_data_in;
+            ubyte_expected_fill_value = fv ? ubyte_fill_value : NC_FILL_UBYTE;
+            fill_value = &ubyte_expected_fill_value;
+            fill_value_in = &ubyte_fill_value_in;
+            break;
+         case NC_USHORT:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               ushort_data[i] = mpi_rank;
+            data = ushort_data;
+            data_in = ushort_data_in;
+            ushort_expected_fill_value = fv ? ushort_fill_value : NC_FILL_USHORT;
+            fill_value = &ushort_expected_fill_value;
+            fill_value_in = &ushort_fill_value_in;
+            break;
+         case NC_UINT:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               uint_data[i] = mpi_rank;
+            data = uint_data;
+            data_in = uint_data_in;
+            uint_expected_fill_value = fv ? uint_fill_value : NC_FILL_UINT;
+            fill_value = &uint_expected_fill_value;
+            fill_value_in = &uint_fill_value_in;
+            break;
+         case NC_INT64:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               int64_data[i] = mpi_rank;
+            data = int64_data;
+            data_in = int64_data_in;
+            int64_expected_fill_value = fv ? int64_fill_value : NC_FILL_INT64;
+            fill_value = &int64_expected_fill_value;
+            fill_value_in = &int64_fill_value_in;
+            break;
+         case NC_UINT64:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               uint64_data[i] = mpi_rank;
+            data = uint64_data;
+            data_in = uint64_data_in;
+            uint64_expected_fill_value = fv ? uint64_fill_value : NC_FILL_UINT64;
+            fill_value = &uint64_expected_fill_value;
+            fill_value_in = &uint64_fill_value_in;
             break;
          }
       
@@ -298,6 +365,36 @@ main(int argc, char **argv)
                   for (k = 0; k < DIMSIZE; k++)
                      if (fv < 2 || k)
                         if (double_data_in[j * DIMSIZE + k] != (double)(k ? mpi_rank : double_expected_fill_value)) ERR;
+               break;
+            case NC_UBYTE:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (ubyte_data_in[j * DIMSIZE + k] != (unsigned char)(k ? mpi_rank : ubyte_expected_fill_value)) ERR;
+               break;
+            case NC_USHORT:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (ushort_data_in[j * DIMSIZE + k] != (unsigned short)(k ? mpi_rank : ushort_expected_fill_value)) ERR;
+               break;
+            case NC_UINT:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (uint_data_in[j * DIMSIZE + k] != (unsigned int)(k ? mpi_rank : uint_expected_fill_value)) ERR;
+               break;
+            case NC_INT64:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (int64_data_in[j * DIMSIZE + k] != (long long int)(k ? mpi_rank : int64_expected_fill_value)) ERR;
+               break;
+            case NC_UINT64:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (uint64_data_in[j * DIMSIZE + k] != (unsigned long long int)(k ? mpi_rank : uint64_expected_fill_value)) ERR;
                break;
             }
          } /* next slab */
