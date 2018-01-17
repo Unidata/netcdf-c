@@ -49,7 +49,7 @@ if test "x$FP_ISMSVC" != x ; then
 elif test "x$FP_ISCYGWIN" != x ; then
   FP_PLUGIN_LIB="cyg${FP_NAME}.dll"
 elif test "x$FP_ISOSX" != x ; then
-  FP_PLUGIN_LIB="lib${FP_NAME}.dylib" # Should this include the version number in the name?
+  FP_PLUGIN_LIB="lib${FP_NAME}.so" # Should this include the version number in the name?
 else # Presumably some form on *nix"
   FP_PLUGIN_LIB="lib${FP_NAME}.so"
 fi
