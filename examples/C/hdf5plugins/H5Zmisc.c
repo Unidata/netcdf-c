@@ -13,7 +13,7 @@
 
 #include "h5misc.h"
 
-#undef DEBUG 
+#undef DEBUG
 
 static int paramcheck(size_t nparams, const unsigned int* params);
 static void byteswap8(unsigned char* mem);
@@ -109,7 +109,7 @@ paramcheck(size_t nparams, const unsigned int* params)
     if(nparams != 14) {
 	fprintf(stderr,"Too few parameters: need=16 sent=%ld\n",(unsigned long)nparams);
 	return 0;
-    }       
+    }
 
     for(i=0;i<nparams;i++) {
         switch (i) {
@@ -140,7 +140,7 @@ paramcheck(size_t nparams, const unsigned int* params)
             i++; /* takes two parameters */
             if(bigendian)
 		byteswap8((unsigned char*)&x);
-#ifdef _MSC_VER
+#if defined  _MSC_VER || defined __APPLE__
 #define DBLVAL 12345678.12345678
 #else
 #define DBLVAL 12345678.12345678d
