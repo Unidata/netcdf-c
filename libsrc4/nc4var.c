@@ -610,7 +610,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    var->ndims = ndims;
    var->is_new_var = NC_TRUE;
 
-   nc4_vararray_add(grp, var);
+   /* Add a var to the variable array, growing it as needed. */
+   if ((retval = nc4_vararray_add(grp, var)))
+      BAIL(retval);
 
    /* Point to the type, and increment its ref. count */
    var->type_info = type_info;
