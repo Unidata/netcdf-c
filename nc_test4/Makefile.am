@@ -14,7 +14,7 @@ include $(top_srcdir)/lib_flags.am
 
 # Note which tests depend on other tests. necessary for make -j check
 TEST_EXTENSIONS = .sh
-
+extradir=
 # Link to our assembled library.
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
@@ -124,7 +124,7 @@ endif
 # Filter Tests (requires ncdump and ncgen)
 if ENABLE_FILTER_TESTING
 if BUILD_UTILITIES
-check_PROGRAMS += test_filter test_filter_misc
+extra_PROGRAMS = test_filter test_filter_misc
 TESTS += tst_filter.sh
 endif
 endif
