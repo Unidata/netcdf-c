@@ -291,7 +291,7 @@ as determined by the platform on which the library is being executed.
 <table>
 <tr halign="center"><th>Platform<th>Basename<th>Extension
 <tr halign="left"><td>Linux<td>lib*<td>.so*
-<tr halign="left"><td>OSX<td>lib*<td>.dylib*
+<tr halign="left"><td>OSX<td>lib*<td>.so*
 <tr halign="left"><td>Cygwin<td>cyg*<td>.dll*
 <tr halign="left"><td>Windows<td>*<td>.dll
 </table>
