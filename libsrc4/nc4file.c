@@ -2028,7 +2028,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
                     att_read_var_callbk, &att_info)) < 0)
       BAIL(NC_EATTMETA);
 
-   nc4_vararray_add(grp, var);
+   /* Add a var to the variable array, growing it as needed. */
+   if ((retval = nc4_vararray_add(grp, var)))
+      BAIL(retval);
 
    /* Is this a deflated variable with a chunksize greater than the
     * current cache size? */
@@ -2866,7 +2868,9 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       var->created = NC_TRUE;
       var->written_to = NC_TRUE;
 
-      nc4_vararray_add(grp, var);
+      /* Add a var to the variable array, growing it as needed. */
+      if ((retval = nc4_vararray_add(grp, var)))
+         BAIL(retval);
 
       /* Open this dataset in HDF4 file. */
       if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL)
