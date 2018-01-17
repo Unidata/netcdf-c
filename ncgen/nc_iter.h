@@ -4,8 +4,8 @@
  *   "$Id $"
  *********************************************************************/
 
-#ifndef _NC_ITER_
-#define _NC_ITER_
+#ifndef _NC_ITER_H
+#define _NC_ITER_H
 
 #include <netcdf.h>
 
@@ -49,4 +49,4 @@ nc_next_iter(nciter_t *iterp, size_t *start, size_t *count);
 }
 #endif
 
-#endif /* _NC_ITER_ */
+#endif /* _NC_ITER_H */
