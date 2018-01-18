@@ -217,9 +217,10 @@ NC4_inq_typeids(int ncid, int *ntypes, int *typeids)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
+   assert(h5 && grp);
 
-   /* If this is a netCDF-4 file, count types. */
-   if (h5 && grp->type)
+   /* Count types. */
+   if (grp->type)
       for (type = grp->type; type; type = type->l.next)
       {
 	 if (typeids)
@@ -631,8 +632,9 @@ find_nc4_file(int ncid, NC **nc)
    NC_HDF5_FILE_INFO_T* h5;
    
    /* Find file metadata. */
-   if (!((*nc) = nc4_find_nc_file(ncid,&h5)))
+   if (!((*nc) = nc4_find_nc_file(ncid, &h5)))
       return NC_EBADID;
+   assert(h5);
       
    if (h5->cmode & NC_CLASSIC_MODEL)
       return NC_ESTRICTNC3;
