@@ -35,11 +35,11 @@ create_test_file(char *filename, int *varid, int *ncid)
    int dimid;
    int type;
    char varname[MAX_VARNAME];
-   
+
    /* Open a netcdf-4 file, and one dimension. */
    if (nc_create(filename, NC_NETCDF4, ncid)) ERR;
    if (nc_def_dim(*ncid, "dim1", SIZE, &dimid)) ERR;
-   
+
    /* Create vars of the new types. Take advantage of the fact that
     * new types are numbered from NC_UBYTE (7) through NC_STRING
     * (12). */
@@ -79,14 +79,15 @@ int main(int argc, char *argv[])
    int i;
    int type;
 
-   printf("\n*** Testing netCDF-4 new atomic types and equality...");
+   printf("\n*** Testing netCDF-4 types...\n");
+   printf("*** testing netCDF-4 new atomic types and equality...");
    {
+      int ncid1, ncid2;
       int equal;
-      int ncid2;
-      
+
       /* Open a netcdf-4 file, and one dimension. */
-      if (nc_create(FILENAME, NC_NETCDF4, &ncid)) ERR;
-      if (nc_def_dim(ncid, "dim1", SIZE, &dimid)) ERR;
+      if (nc_create(FILENAME, NC_NETCDF4, &ncid1)) ERR;
+      if (nc_def_dim(ncid1, "dim1", SIZE, &dimid)) ERR;
 
       /* Open another netcdf-4 file. */
       if (nc_create(FILENAME2, NC_NETCDF4, &ncid2)) ERR;
@@ -98,17 +99,71 @@ int main(int argc, char *argv[])
       {
          /* Create a var... */
          sprintf(varname, "var_%d", type);
-         if (nc_def_var(ncid, varname, type + NC_UBYTE, 1, &dimid, &varid[type])) ERR;
-         if (nc_inq_type_equal(ncid, type + NC_UBYTE, ncid2, type + NC_UBYTE, &equal));
+         if (nc_def_var(ncid1, varname, type + NC_UBYTE, 1, &dimid, &varid[type])) ERR;
+         if (nc_inq_type_equal(ncid1, type + NC_UBYTE, ncid2, type + NC_UBYTE, &equal));
          if (!equal) ERR;
       }
       nc_close(ncid2);
-      nc_close(ncid);
+      nc_close(ncid1);
+   }
+   SUMMARIZE_ERR;
+
+#define ENUM_TYPE_NAME "enum_type"
+#define ENUM_FIELD1_NAME "enum_field_1"
+#define ENUM_UNEQUAL_TYPE_NAME_3 "enum_type_3"
+#define ENUM_UNEQUAL_TYPE_NAME_4 "enum_type_4"
+
+   printf("*** testing user-defined netCDF-4 enum types and equality...");
+   {
+      int ncid1, ncid2;
+      int typeid1, typeid2, typeid3;
+      int enum_value = TEST_VAL_42;
+      int equal;
+
+      /* Create a netcdf-4 file. */
+      if (nc_create(FILENAME, NC_NETCDF4, &ncid1)) ERR;
+
+      /* Create an enum type. */
+      if (nc_def_enum(ncid1, NC_INT, ENUM_TYPE_NAME, &typeid1)) ERR;
+      if (nc_insert_enum(ncid1, typeid1, ENUM_FIELD1_NAME, &enum_value)) ERR;
+
+      /* Create another netcdf-4 file. */
+      if (nc_create(FILENAME2, NC_NETCDF4, &ncid2)) ERR;
+
+      /* Create an enum type that will be equal to typeid1. */
+      if (nc_def_enum(ncid2, NC_INT, ENUM_TYPE_NAME, &typeid2)) ERR;
+      if (nc_insert_enum(ncid2, typeid2, ENUM_FIELD1_NAME, &enum_value)) ERR;
+
+      /* These will fail. */
+      if (nc_def_enum(ncid2, NC_INT, ENUM_TYPE_NAME, &typeid3) != NC_ENAMEINUSE) ERR;
+
+      /* Create some enum types that will not be equal to typeid1. */
+      if (nc_def_enum(ncid2, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3)) ERR;
+      if (nc_insert_enum(ncid2, typeid3, ENUM_FIELD1_NAME, &enum_value)) ERR;
+
+      /* This will fail because types are not yet committed. */
+      if (nc_inq_type_equal(ncid1, typeid1, ncid2, typeid2, &equal) != NC_EHDFERR) ERR;
+
+      /* Commit the types to the file. */
+      if (nc_enddef(ncid1)) ERR;
+      if (nc_enddef(ncid2)) ERR;
+
+      /* Ensure the two types are equal. */
+      if (nc_inq_type_equal(ncid1, typeid1, ncid2, typeid2, &equal)) ERR;
+      if (!equal) ERR;
+
+      /* Ensure the two types are not equal. */
+      if (nc_inq_type_equal(ncid1, typeid1, ncid2, typeid3, &equal)) ERR;
+      if (equal) ERR;
+
+      /* Close the files. */
+      nc_close(ncid2);
+      nc_close(ncid1);
    }
    SUMMARIZE_ERR;
 
    /* Test the vara functions. */
-   printf("*** testing vara functions...");
+   printf("*** testing vara functions with new netCDF-4 atomic types...");
    {
       CLEAN_INPUT_BUFFERS;
       start[0] = 0;
@@ -148,7 +203,7 @@ int main(int argc, char *argv[])
    SUMMARIZE_ERR;
 
    /* Test the vars functions. */
-   printf("*** testing vars functions...");
+   printf("*** testing vars functions with new netCDF-4 atomic types...");
    {
       CLEAN_INPUT_BUFFERS;
       start[0] = 0;
@@ -199,7 +254,7 @@ int main(int argc, char *argv[])
    SUMMARIZE_ERR;
 
    /* Test the var1 functions. */
-   printf("*** testing var1 functions...");
+   printf("*** testing var1 functions with new netCDF-4 atomic types...");
    {
       CLEAN_INPUT_BUFFERS;
       index1[0] = 0;
@@ -233,7 +288,7 @@ int main(int argc, char *argv[])
    SUMMARIZE_ERR;
 
    /* Test the varm functions. */
-   printf("*** testing varm functions...");
+   printf("*** testing varm functions with new netCDF-4 atomic types...");
    {
       int ncid, varid[NUM_TYPES];
       CLEAN_INPUT_BUFFERS;
