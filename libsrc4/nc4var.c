@@ -534,7 +534,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          BAIL(retval);
 
    /* These degrubbing messages sure are handy! */
-   LOG((3, "%s: name %s type %d ndims %d", __func__, norm_name, xtype, ndims));
+   LOG((2, "%s: name %s type %d ndims %d", __func__, norm_name, xtype, ndims));
 #ifdef LOGGING
    {
       int dd;
@@ -610,7 +610,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    var->ndims = ndims;
    var->is_new_var = NC_TRUE;
 
-   nc4_vararray_add(grp, var);
+   /* Add a var to the variable array, growing it as needed. */
+   if ((retval = nc4_vararray_add(grp, var)))
+      BAIL(retval);
 
    /* Point to the type, and increment its ref. count */
    var->type_info = type_info;
@@ -675,14 +677,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          }
       }
 
-      /* Check for unlimited dimension and turn off contiguous storage */
-      /* (unless HDF4 file) */
-#ifdef USE_HDF4
-      if (dim->unlimited && !h5->hdf4)
-#else
-         if (dim->unlimited)
-#endif
-            var->contiguous = NC_FALSE;
+      /* Check for unlimited dimension and turn off contiguous storage. */
+      if (dim->unlimited)
+         var->contiguous = NC_FALSE;
 
       /* Track dimensions for variable */
       var->dimids[d] = dimidsp[d];
@@ -981,6 +978,10 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    int retval;
    nc_bool_t ishdf4 = NC_FALSE; /* Use this to avoid so many ifdefs */
 
+   /* All or none of these will be provided. */
+   assert((deflate && deflate_level && shuffle) ||
+          (!deflate && !deflate_level && !shuffle));
+
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find info for this file and group, and set pointer to each. */
@@ -988,21 +989,15 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       return retval;
    assert(nc && grp && h5);
 
-#ifdef USE_HDF4
-   ishdf4 = h5->hdf4;
-#endif
+   /* Trying to write to a read-only file? No way, Jose! */
+   if (h5->no_write)
+      return NC_EPERM;
 
    /* Find the var. */
    if (varid < 0 || varid >= grp->vars.nelems)
       return NC_ENOTVAR;
    var = grp->vars.value[varid];
    assert(var && var->varid == varid);
-
-   /* Can't turn on contiguous and deflate/fletcher32/szip. */
-   if (contiguous)
-      if ((*contiguous != NC_CHUNKED && deflate) ||
-          (*contiguous != NC_CHUNKED && fletcher32))
-         return NC_EINVAL;
 
    /* Can't turn on parallel and deflate/fletcher32/szip/shuffle. */
    if (nc->mode & (NC_MPIIO | NC_MPIPOSIX)) {
@@ -1062,19 +1057,14 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       if (var->deflate || var->fletcher32 || var->shuffle)
          return NC_EINVAL;
 
-      if (!ishdf4) {
-         for (d = 0; d < var->ndims; d++)
-         {
-            dim = var->dim[d];
-            if (dim->unlimited)
-               return NC_EINVAL;
-         }
-         var->contiguous = NC_TRUE;
-      }
+      for (d = 0; d < var->ndims; d++)
+         if (var->dim[d]->unlimited)
+            return NC_EINVAL;
+      var->contiguous = NC_TRUE;
    }
 
    /* Chunksizes anyone? */
-   if (!ishdf4 && contiguous && *contiguous == NC_CHUNKED)
+   if (contiguous && *contiguous == NC_CHUNKED)
    {
       var->contiguous = NC_FALSE;
 
@@ -1085,10 +1075,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 
          if ((retval = check_chunksizes(grp, var, chunksizes)))
             return retval;
-         for (d = 0; d < var->ndims; d++) {
-            if(var->dim[d]->len > 0 && chunksizes[d] > var->dim[d]->len)
+         for (d = 0; d < var->ndims; d++)
+            if (var->dim[d]->len > 0 && chunksizes[d] > var->dim[d]->len)
                return NC_EBADCHUNK;
-         }
 
          /* Set the chunksizes for this variable. */
          for (d = 0; d < var->ndims; d++)
@@ -1098,7 +1087,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 
    /* Is this a variable with a chunksize greater than the current
     * cache size? */
-   if (!var->contiguous && (chunksizes || deflate || contiguous))
+   if (!var->contiguous && (deflate || contiguous))
    {
       /* Determine default chunksizes for this variable (do nothing
        * for scalar vars). */
