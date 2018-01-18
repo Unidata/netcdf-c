@@ -3,6 +3,8 @@
    COPYRIGHT file for conditions of use.
 
    Test that NetCDF-4 can read HDF4 files.
+   
+   Dennis Heimbigner, Ward Fisher, Ed Hartnett
 */
 #include <config.h>
 #include <nc_tests.h>
@@ -32,9 +34,8 @@ main(int argc, char **argv)
    int d;
    int storage;
    size_t chunksizes[NC_MAX_VAR_DIMS];
-   const char* srcdir = ".";
 
-   printf("\n*** Testing HDF4/NetCDF-4 chunking API: chunked...\n");
+   printf("\n*** Testing HDF4/NetCDF-4 chunking API: chunked...");
    {
 
       /* Open with netCDF */
@@ -51,20 +52,21 @@ main(int argc, char **argv)
       if(nc_inq_var_chunking(ncid,varid,&storage,chunksizes)) ERR;
 
       if(storage == NC_CONTIGUOUS) {
-	fprintf(stderr,"nc_inq_var_chunking did not return CHUNKED\n");
-	ERR;
+         fprintf(stderr,"nc_inq_var_chunking did not return CHUNKED\n");
+         ERR;
       }
 
       for(d=0;d<rank;d++) {
-	if(EXPECTED_CHUNKSIZES[d] != chunksizes[d]) {
-	    fprintf(stderr,"chunk size mismatch: [%d] %ld :: %ld\n",d,chunksizes[d],EXPECTED_CHUNKSIZES[d]);
-	    ERR;
-	}
+         if(EXPECTED_CHUNKSIZES[d] != chunksizes[d]) {
+            fprintf(stderr,"chunk size mismatch: [%d] %ld :: %ld\n",d,chunksizes[d],EXPECTED_CHUNKSIZES[d]);
+            ERR;
+         }
       }
       if (nc_close(ncid)) ERR;
    }
+   SUMMARIZE_ERR;
 
-   printf("\n*** Testing HDF4/NetCDF-4 chunking API: contiguous...\n");
+   printf("*** Testing HDF4/NetCDF-4 chunking API: contiguous...");
    {
       /* Open with netCDF */
       if (nc_open(CONTIGFILE, NC_NOWRITE, &ncid)) ERR;
@@ -80,13 +82,23 @@ main(int argc, char **argv)
       if(nc_inq_var_chunking(ncid,varid,&storage,chunksizes)) ERR;
 
       if(storage != NC_CONTIGUOUS) {
-	fprintf(stderr,"nc_inq_var_chunking did not return CONTIGUOUS\n");
-	ERR;
+         fprintf(stderr,"nc_inq_var_chunking did not return CONTIGUOUS\n");
+         ERR;
       }
 
       if (nc_close(ncid)) ERR;
    }
+   SUMMARIZE_ERR;
+   printf("*** Testing HDF4/NetCDF-4 chunking API: contiguous...");
+   {
+      /* Open with netCDF */
+      if (nc_open(CONTIGFILE, 0, &ncid)) ERR;
 
+      if (nc_inq_varid(ncid, CONTIGVAR, &varid)) ERR;
+      if (nc_def_var_deflate(ncid, varid, 0, 1, 4) != NC_EPERM) ERR;
+
+      if (nc_close(ncid)) ERR;
+   }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
