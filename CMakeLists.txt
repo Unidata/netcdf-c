@@ -580,7 +580,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ELSE(MSVC)
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF(MSVC)
- 
+
     ##
     # Next, check the HDF5 version. This will inform which
     # HDF5 variables we need to munge.
@@ -895,7 +895,7 @@ IF(ENABLE_TESTS)
 
   # Options for CTest-based tests, dashboards.
   SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
-  SET(NC_CTEST_DROP_SITE "129.114.104.111" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+  SET(NC_CTEST_DROP_SITE "cdash.unidata.ucar.edu" CACHE STRING "Dashboard location for CTest-based testing purposes.")
   #SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
   SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
 
