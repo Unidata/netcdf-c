@@ -1985,6 +1985,20 @@ main(int argc, char**argv)
 	error("output would overwrite input");
     }
 
+    { int i,j;
+        for(i=0;i<nfilterspecs;i++) {
+	    struct FilterSpec *spec = &filterspecs[i];
+	    fprintf(stderr,"filterspecs[%d]={fqn=|%s| filterid=%u nparams=%ld params=",
+		i,spec->fqn,spec->filterid,(unsigned long)spec->nparams);
+	    for(j=0;j<spec->nparams;j++) {
+		if(j>0) fprintf(stderr,",");
+		fprintf(stderr,"%u",spec->params[j]);
+	    }
+	    fprintf(stderr,"}\n");
+	    fflush(stderr);
+	}
+    }
+
     if(copy(inputfile, outputfile) != NC_NOERR)
         exit(EXIT_FAILURE);
     exit(EXIT_SUCCESS);
