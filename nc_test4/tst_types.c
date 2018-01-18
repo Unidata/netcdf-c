@@ -18,6 +18,8 @@
 #define STRIDE_SIZE 2
 #define FILENAME "tst_types.nc"
 #define FILENAME2 "tst_types2.nc"
+#define FILENAME3 "tst_types3.nc"
+#define FILENAME4 "tst_types4.nc"
 
 #define CLEAN_INPUT_BUFFERS                     \
    for (i = 0; i < SIZE; i++) {                 \
@@ -112,13 +114,19 @@ int main(int argc, char *argv[])
 #define ENUM_FIELD1_NAME "enum_field_1"
 #define ENUM_UNEQUAL_TYPE_NAME_3 "enum_type_3"
 #define ENUM_UNEQUAL_TYPE_NAME_4 "enum_type_4"
+#define NUM_CLASSIC_TYPES 6
+#define NUM_ENHANCED_TYPES 12
 
    printf("*** testing user-defined netCDF-4 enum types and equality...");
    {
-      int ncid1, ncid2;
+      int ncid1, ncid2, ncid3, ncid4;
       int typeid1, typeid2, typeid3;
       int enum_value = TEST_VAL_42;
       int equal;
+      int classic_type[NUM_CLASSIC_TYPES] = {NC_BYTE, NC_CHAR, NC_SHORT, NC_INT, NC_FLOAT, NC_DOUBLE};
+      int enhanced_type[NUM_ENHANCED_TYPES] = {NC_BYTE, NC_CHAR, NC_SHORT, NC_INT, NC_FLOAT, NC_DOUBLE,
+                                               NC_UBYTE, NC_USHORT, NC_UINT, NC_INT64, NC_UINT64, NC_STRING};
+      int t;
 
       /* Create a netcdf-4 file. */
       if (nc_create(FILENAME, NC_NETCDF4, &ncid1)) ERR;
@@ -130,12 +138,22 @@ int main(int argc, char *argv[])
       /* Create another netcdf-4 file. */
       if (nc_create(FILENAME2, NC_NETCDF4, &ncid2)) ERR;
 
+      /* Create a netcdf-3 classic file. */
+      if (nc_create(FILENAME3, 0, &ncid3)) ERR;
+
+      /* Create a netcdf-4 classic model file. */
+      if (nc_create(FILENAME4, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid4)) ERR;
+
       /* Create an enum type that will be equal to typeid1. */
       if (nc_def_enum(ncid2, NC_INT, ENUM_TYPE_NAME, &typeid2)) ERR;
       if (nc_insert_enum(ncid2, typeid2, ENUM_FIELD1_NAME, &enum_value)) ERR;
 
       /* These will fail. */
       if (nc_def_enum(ncid2, NC_INT, ENUM_TYPE_NAME, &typeid3) != NC_ENAMEINUSE) ERR;
+      if (nc_def_enum(ncid2 + TEST_VAL_42, NC_INT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3) != NC_EBADID) ERR;
+      if (nc_def_enum(ncid2, NC_INT, NULL, &typeid3) != NC_EINVAL) ERR;
+      if (nc_def_enum(ncid3, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3) != NC_ENOTNC4) ERR;
+      /* if (nc_def_enum(ncid4, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3) != NC_ENOTNC4) ERR; */
 
       /* Create some enum types that will not be equal to typeid1. */
       if (nc_def_enum(ncid2, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3)) ERR;
@@ -148,17 +166,50 @@ int main(int argc, char *argv[])
       if (nc_enddef(ncid1)) ERR;
       if (nc_enddef(ncid2)) ERR;
 
-      /* Ensure the two types are equal. */
+      /* This succeeds but does nothing. */
+      if (nc_inq_type_equal(ncid1, typeid1, ncid2, typeid2, NULL)) ERR;
+
+      /* These will fail. */
+      if (nc_inq_type_equal(ncid1, 0, ncid2, typeid2, &equal) != NC_EINVAL) ERR;
+      if (nc_inq_type_equal(ncid1, typeid1, ncid2, 0, &equal) != NC_EINVAL) ERR;
+      if (nc_inq_type_equal(ncid1, -TEST_VAL_42, ncid2, typeid2, &equal) != NC_EINVAL) ERR;
+      if (nc_inq_type_equal(ncid1, typeid1, ncid2, -TEST_VAL_42, &equal) != NC_EINVAL) ERR;
+      if (nc_inq_type_equal(ncid1 + TEST_VAL_42, typeid1, ncid2, typeid2, &equal) != NC_EBADID) ERR;
+      if (nc_inq_type_equal(ncid1, typeid1 + TEST_VAL_42, ncid2, typeid2, &equal) != NC_EBADTYPE) ERR;
+      if (nc_inq_type_equal(ncid1, typeid1, ncid2 + TEST_VAL_42, typeid2, &equal) != NC_EBADID) ERR;
+      if (nc_inq_type_equal(ncid1, typeid1, ncid2, typeid2 + TEST_VAL_42, &equal) != NC_EBADTYPE) ERR;
+
+      /* Ensure the two equal types are equal. */
       if (nc_inq_type_equal(ncid1, typeid1, ncid2, typeid2, &equal)) ERR;
       if (!equal) ERR;
 
-      /* Ensure the two types are not equal. */
+      /* Ensure the two unequal types are not equal. */
       if (nc_inq_type_equal(ncid1, typeid1, ncid2, typeid3, &equal)) ERR;
       if (equal) ERR;
 
+      /* Atomic types are not equal to user-defined types, but are
+       * equal to themselves. */
+      for (t = 0; t < NUM_CLASSIC_TYPES; t++)
+      {
+         if (nc_inq_type_equal(ncid1, typeid1, ncid3, classic_type[t], &equal)) ERR;
+         if (equal) ERR;
+         if (nc_inq_type_equal(ncid1, classic_type[t], ncid3, classic_type[t], &equal)) ERR;
+         if (!equal) ERR;
+      }
+      
+      for (t = 0; t < NUM_ENHANCED_TYPES; t++)
+      {
+         if (nc_inq_type_equal(ncid1, typeid1, ncid2, enhanced_type[t], &equal)) ERR;
+         if (equal) ERR;
+         if (nc_inq_type_equal(ncid1, enhanced_type[t], ncid2, enhanced_type[t], &equal)) ERR;
+         if (!equal) ERR;
+      }
+
       /* Close the files. */
-      nc_close(ncid2);
       nc_close(ncid1);
+      nc_close(ncid2);
+      nc_close(ncid3);
+      nc_close(ncid4);
    }
    SUMMARIZE_ERR;
 
