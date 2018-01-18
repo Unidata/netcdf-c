@@ -137,6 +137,7 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
    char *norm_name;
    int i, retval;
 
+   /* Handle atomic types. */
    for (i = 0; i < NUM_ATOMIC_TYPES; i++)
       if (!strcmp(name, atomic_name[i]))
       {
@@ -148,10 +149,7 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-
-   /* Must be a netCDF-4 file. */
-   if (!h5)
-      return NC_ENOTNC4;
+   assert(h5 && grp);
 
    /* If the first char is a /, this is a fully-qualified
     * name. Otherwise, this had better be a local name (i.e. no / in
@@ -275,10 +273,7 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
    /* Find group metadata. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-
-   /* Only netcdf-4 files! */
-   if (!h5)
-      return NC_ENOTNC4;
+   assert(h5 && grp);
 
    /* Turn on define mode if it is not on. */
    if (!(h5->cmode & NC_INDEF))
