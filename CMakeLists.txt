@@ -580,7 +580,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ELSE(MSVC)
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF(MSVC)
-
+ 
     ##
     # Next, check the HDF5 version. This will inform which
     # HDF5 variables we need to munge.

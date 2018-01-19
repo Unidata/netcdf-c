@@ -5,6 +5,8 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../../test_common.sh
 
+set -x
+
 echo "*** Running examples for netCDF-4."
 set -e
 
