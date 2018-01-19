@@ -610,7 +610,7 @@ makepath(char* text0)
 	/* split the text into IDENT chunks, convert to symbols */
         Symbol* container = rootgroup;
 	char *ident, *p;
-        char* text = strdup(text0);
+        char* text = estrdup(text0);
 	int c,lastident;
 	ident=text+1; p=ident; /* skip leading '/' */
 	do {

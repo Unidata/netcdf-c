@@ -42,7 +42,6 @@ typedef enum NCD4mode NCD4mode;
 typedef enum NCD4translation NCD4translation;
 typedef struct NCD4curl NCD4curl;
 typedef struct NCD4meta NCD4meta;
-typedef struct NCD4globalstate NCD4globalstate;
 typedef struct NCD4node NCD4node;
 typedef struct NCD4params NCD4params;
 

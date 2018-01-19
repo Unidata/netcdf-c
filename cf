@@ -3,6 +3,7 @@
 DB=1
 #X=-x
 FAST=1
+#MEM=1
 
 HDF5=1
 DAP=1
@@ -22,8 +23,9 @@ fi
 CFLAGS=""
 #CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
 CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign -Wno-format ${CFLAGS}"
-#CFLAGS="-Wall ${CFLAGS}"
-#CFLAGS="-Wconversion"
+if test "x$MEM" = x1 ; then
+CFLAGS="-fsanitize=address -fno-omit-frame-pointer ${CFLAGS}"
+fi
 
 stddir="/usr/local"
 PREFIX=/usr/local
