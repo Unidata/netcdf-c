@@ -15,7 +15,7 @@
 #include "nc4dispatch.h"
 
 /**
- * @internal Create a group. It's ncid is returned in the new_ncid
+ * @internal Create a group. Its ncid is returned in the new_ncid
  * pointer. 
  *
  * @param parent_ncid Parent group.
