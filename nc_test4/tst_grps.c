@@ -3,7 +3,8 @@
    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 group code.
-   $Id: tst_grps.c,v 1.37 2010/04/07 15:21:28 ed Exp $
+
+   Ed Hartnett
 */
 
 #include <nc_tests.h>
