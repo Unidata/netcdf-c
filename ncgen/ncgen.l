@@ -88,6 +88,8 @@ static unsigned int MAX_UINT = NC_MAX_UINT;
    no tag was specified */
 #define NC_NOTAG (-1)
 
+extern int errno;
+
 char errstr[100];		/* for short error messages */
 
 int lineno;              /* line number for error messages */
@@ -385,7 +387,6 @@ NIL|nil|Nil {
 		    int slen = strlen(ncgtext);
 		    char* stag = NULL;
 		    int tag = NC_NAT;
-		    int signchar = 0;
 		    int isneg = 0;
 		    int c = ncgtext[0];
 		    int fail = 0;
@@ -610,7 +611,7 @@ makepath(char* text0)
 	/* split the text into IDENT chunks, convert to symbols */
         Symbol* container = rootgroup;
 	char *ident, *p;
-        char* text = strdup(text0);
+        char* text = estrdup(text0);
 	int c,lastident;
 	ident=text+1; p=ident; /* skip leading '/' */
 	do {
@@ -659,8 +660,6 @@ Return the value.
 static unsigned long long
 parseULL(char* text, int* failp)
 {
-    int result = 0;
-    extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;
 

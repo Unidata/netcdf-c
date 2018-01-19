@@ -12,6 +12,7 @@ reading and writing. See the file docs/filters.md.
 ## 4.5.1 - TBD
 
 * [Enhancement] Added an option to enable strict null-byte padding for headers; this padding was specified in the spec but was not enforced.  Enabling this option will allow you to check your files, as it will return an E_NULLPAD error.  It is possible for these files to have been written by older versions of libnetcdf.  There is no effective problem caused by this lack of null padding, so enabling these options is informational only.  The options for `configure` and `cmake` are `--enable-strict-null-byte-header-padding` and `-DENABLE_STRICT_NULL_BYTE_HEADER_PADDING`, respectively.  See [Github #657](https://github.com/Unidata/netcdf-c/issues/657) for more information.
+* Corrected a number of memory issues identified in `ncgen`.  See [GitHub #558 for more information](https://github.com/Unidata/netcdf-c/pull/558).
 * [Enhancement] Reverted behavior/handling of out-of-range attribute values to pre-4.5.0 default. See [Github #512](https://github.com/Unidata/netcdf-c/issues/512) for more information.
 * [Bug] Fixed error in tst_parallel2.c. See [Github #545](https://github.com/Unidata/netcdf-c/issues/545) for more information.
 * [Bug] Fixed handling of corrupt files + proper offset handling for hdf5 files. See [Github #552](https://github.com/Unidata/netcdf-c/issues/552) for more information.
