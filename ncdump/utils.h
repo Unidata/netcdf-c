@@ -5,6 +5,8 @@
  *   Stuff that's common to both ncdump and nccopy
  *
  *********************************************************************/
+#ifndef _UTILS_H
+#define _UTILS_H
 
 #include "config.h"
 
@@ -157,3 +159,6 @@ extern int getrootid(int grpid);
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* _UTILS_H */
+

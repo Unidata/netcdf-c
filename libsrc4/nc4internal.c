@@ -1857,14 +1857,15 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
    NC_DIM_INFO_T *dim;
    NC_TYPE_INFO_T *type;
    NC_FIELD_INFO_T *field;
-   char tabs[MAX_NESTS] = "";
+   char tabs[MAX_NESTS+1] = "";
    char *dims_string = NULL;
    char temp_string[10];
    int t, retval, d, i;
 
    /* Come up with a number of tabs relative to the group. */
    for (t = 0; t < tab_count && t < MAX_NESTS; t++)
-      strcat(tabs, "\t");
+      tabs[t] = '\t';
+   tabs[t] = '\0';
 
    LOG((2, "%s GROUP - %s nc_grpid: %d nvars: %d natts: %d",
         tabs, grp->name, grp->nc_grpid, grp->nvars, grp->natts));
