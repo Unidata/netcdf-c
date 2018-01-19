@@ -1,3 +1,6 @@
+/* Copyright 2005-2018, University Corporation for Atmospheric
+ * Research. See COPYRIGHT file for copying and redistribution
+ * conditions. */
 /**
  * @file 
  * @internal This file is part of netcdf-4, a netCDF-like interface
@@ -5,10 +8,6 @@
  * view.
  *
  * This file handles the nc4 groups.
- *
- * Copyright 2005, University Corporation for Atmospheric Research. See
- * netcdf-4/docs/COPYRIGHT file for copying and redistribution
- * conditions.
  * 
  * @author Ed Hartnett
 */
@@ -108,15 +107,16 @@ NC4_rename_grp(int grpid, const char *name)
       return NC_EPERM; /* attempt to write to a read-only file */
 
    /* Do not allow renaming the root group */
-   if(grp->parent == NULL)
+   if (grp->parent == NULL)
 	return NC_EBADGRPID;
 
    /* Check and normalize the name. */
    if ((retval = nc4_check_name(name, norm_name)))
       return retval;
 
-   /* Check that this name is not in use as a var, grp, or type. */
-   if ((retval = nc4_check_dup_name(grp, norm_name)))
+   /* Check that this name is not in use as a var, grp, or type in the
+    * parent group (i.e. the group that grp is in). */
+   if ((retval = nc4_check_dup_name(grp->parent, norm_name)))
       return retval;
 
    /* If it's not in define mode, switch to define mode. */

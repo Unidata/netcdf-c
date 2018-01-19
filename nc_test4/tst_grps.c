@@ -20,6 +20,7 @@
 #define DIM2_LEN 5
 #define VAR1_NAME "Number_of_Beheadings_in_Family"
 #define DYNASTY "Tudor"
+#define HENRY_IV "Henry_IV"
 #define HENRY_VII "Henry_VII"
 #define HENRY_VIII "Henry_VIII"
 #define MARGARET "Margaret"
@@ -90,6 +91,10 @@ main(int argc, char **argv)
       if (nvars_in != 0) ERR;
       if (nc_inq_varids(grpid_in[0], &ndims_in, dimids_in)) ERR;
       if (ndims_in != 0) ERR;
+      if (nc_inq_varids(grpid_in[0], NULL, dimids_in)) ERR;
+      if (nc_inq_varids(grpid_in[0], &ndims_in, NULL)) ERR;
+      if (nc_inq_varids(grpid_in[0], NULL, NULL)) ERR;
+      
       if (nc_inq_ncid(ncid, HENRY_VII, &ncid_in)) ERR;
       if (ncid_in != grpid_in[0]) ERR;
 
@@ -110,12 +115,15 @@ main(int argc, char **argv)
 
       /* Create a classic model file. No groups will be allowed. */
       if (nc_create(FILE_NAME_CLASSIC_MODEL, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid2)) ERR;
-      if (nc_def_grp(ncid2, HENRY_VII, &henry_vii_id) != NC_ESTRICTNC3) ERR;      
+      if (nc_def_grp(ncid2, HENRY_VII, &henry_vii_id) != NC_ESTRICTNC3) ERR;
+      if (nc_def_var(ncid2, HENRY_IV, NC_INT, 0, NULL, NULL));
       if (nc_close(ncid2)) ERR;
 
       /* Create a file with one group, a group to contain data about
        * Henry VII. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_var(ncid, HENRY_IV, NC_INT, 0, NULL, NULL));      
+
       /* Turn off define mode. It will automatically be turned back on
        * when nc_def_grp is called. */
       if (nc_enddef(ncid)) ERR; 
@@ -123,25 +131,35 @@ main(int argc, char **argv)
 
       /* Check it out. */
       if (nc_inq_grpname(henry_vii_id, name_in)) ERR;
-      if (strcmp(name_in, HENRY_VII)) ERR;      
+      if (strcmp(name_in, HENRY_VII)) ERR;
+
+      /* These will not work. */
+      if (nc_rename_grp(henry_vii_id, BAD_NAME) != NC_EBADNAME) ERR;
+      if (nc_rename_grp(henry_vii_id, HENRY_IV) != NC_ENAMEINUSE) ERR;
+      if (nc_rename_grp(ncid, HENRY_IV) != NC_EBADGRPID) ERR;
 
       /* Rename the group. */
       if (nc_rename_grp(henry_vii_id, HENRY_VIII)) ERR;
 
       /* Check it out. */
       if (nc_inq_grpname(henry_vii_id, name_in)) ERR;
-      if (strcmp(name_in, HENRY_VIII)) ERR;      
+      if (strcmp(name_in, HENRY_VIII)) ERR;
 
       /* Close the file. */
       if (nc_close(ncid)) ERR;
 
       /* Re-open the file. */
-      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       
       /* Check it out. */
       if (nc_inq_grps(ncid, NULL, &grpid_in)) ERR;
       if (nc_inq_grpname(grpid_in, name_in)) ERR;
       if (strcmp(name_in, HENRY_VIII)) ERR;
+
+      /* Rename it. */
+      if (nc_rename_grp(grpid_in, HENRY_VII)) ERR;
+      if (nc_inq_grpname(grpid_in, name_in)) ERR;
+      if (strcmp(name_in, HENRY_VII)) ERR;
 
       /* Close the file. */
       if (nc_close(ncid)) ERR;
@@ -191,6 +209,9 @@ main(int argc, char **argv)
       if (nc_def_var(henry_vii_id, VAR_NAME1, NC_INT64, NDIMS_IN_VAR, &dimid1, &varid1)) ERR;
       if (nc_def_var(henry_vii_id, VAR_NAME2, NC_INT64, NDIMS_IN_VAR, &dimid1, &varid2)) ERR;
       if (nc_def_var(henry_vii_id, VAR_NAME3, NC_INT64, NDIMS_IN_VAR, &dimid2, &varid3)) ERR;
+
+      /* These won't work. */
+      if (nc_inq_ncid(ncid + TEST_VAL_42, HENRY_VII, &grpid_in) != NC_EBADID) ERR;
 
       /* Check it out. Find the group by name. */
       if (nc_inq_ncid(ncid, HENRY_VII, &grpid_in)) ERR;
@@ -291,14 +312,26 @@ main(int argc, char **argv)
 
    printf("*** testing simple nested group creates...");
    {
+      char root_name[] = "/";
       int ncid, grp_ncid;
       int henry_vii_id, margaret_id, james_v_of_scotland_id, mary_i_of_scotland_id;
       char name_in[NC_MAX_NAME + 1];
       char full_name[NC_MAX_NAME * 10], full_name_in[NC_MAX_NAME * 10];
+      char full_name_in1[NC_MAX_NAME * 10];
+      char wrong_name[NC_MAX_NAME * 10];
       int grpid_in[MAX_SIBLING_GROUPS];
       int grp_in;
+      int grp_in2;
       int num_grps;
-      size_t len;
+      size_t len, len1;
+
+      /* This name is wrong. */
+      strcpy(wrong_name, "/");
+      strcat(wrong_name, HENRY_VII);
+      strcpy(wrong_name, "/");
+      strcat(wrong_name, MARGARET);
+      strcpy(wrong_name, "/");
+      strcat(wrong_name, MARGARET);
 
       /* Create a file with some nested groups in it, suitable
        * to storing information about the Tudor dynasty of England. */
@@ -316,8 +349,27 @@ main(int argc, char **argv)
       if (len != 1 || strcmp(full_name_in, full_name)) ERR;
       if (nc_inq_grpname_len(ncid, &len)) ERR;
       if (len != 1) ERR;
+
+      /* These won't work. */
+      if (nc_inq_grp_full_ncid(ncid + TEST_VAL_42, full_name, &grp_in) != NC_EBADID) ERR;
+      if (nc_inq_grp_full_ncid(ncid, NULL, &grp_in) != NC_EINVAL) ERR;
+      
+      /* Get the ncid from the full name. */
       if (nc_inq_grp_full_ncid(ncid, full_name, &grp_in)) ERR;
       if (grp_in != ncid) ERR;
+
+      /* Works (pretty pointlessly) with NULL for ID pointer. */
+      if (nc_inq_grp_full_ncid(ncid, full_name, NULL)) ERR;
+
+      /* Get the root group ID from '/'. */
+      if (nc_inq_grp_full_ncid(ncid, root_name, &grp_in2)) ERR;
+      if (grp_in2 != ncid) ERR;
+
+      /* But the root group does not exist within another group. */
+      if (nc_inq_grp_full_ncid(mary_i_of_scotland_id, root_name, &grp_in2) != NC_ENOGRP) ERR;
+
+      /* This name is wrong. */
+      if (nc_inq_grp_full_ncid(ncid, wrong_name, &grp_in2) != NC_ENOGRP) ERR;
 
       if (nc_inq_grp_ncid(ncid, HENRY_VII, NULL)) ERR;
       if (nc_inq_grp_ncid(ncid, HENRY_VII, &grp_ncid)) ERR;
@@ -326,12 +378,16 @@ main(int argc, char **argv)
       if (nc_inq_grps(ncid, NULL, grpid_in)) ERR;
       if (nc_inq_grpname(grpid_in[0], name_in)) ERR;
       if (strcmp(name_in, HENRY_VII)) ERR;
+      if (nc_inq_grpname(grpid_in[0], NULL)) ERR;      
       if (grpid_in[0] != grp_ncid) ERR;
       strcat(full_name, HENRY_VII);
       if (nc_inq_grpname_full(grpid_in[0], &len, full_name_in)) ERR;
       if (len != strlen(HENRY_VII) + 1 || strcmp(full_name_in, full_name)) ERR;
       if (nc_inq_grp_full_ncid(ncid, full_name, &grp_in)) ERR;
       if (grp_in != grpid_in[0]) ERR;
+
+      /* Also works with NULL last param. */
+      if (nc_inq_grp_full_ncid(ncid, full_name, NULL)) ERR;
 
       if (nc_inq_grp_ncid(grpid_in[0], MARGARET, &grp_ncid)) ERR;
       if (nc_inq_grps(grpid_in[0], &num_grps, grpid_in)) ERR;
@@ -384,6 +440,11 @@ main(int argc, char **argv)
       if (len != strlen(full_name) || strcmp(full_name_in, full_name)) ERR;
       if (nc_inq_grp_full_ncid(ncid, full_name, &grp_in)) ERR;
       if (grp_in != grpid_in[0]) ERR;
+      if (nc_inq_grpname_full(grpid_in[0], NULL, NULL)) ERR;
+      if (nc_inq_grpname_full(grpid_in[0], &len1, NULL)) ERR;
+      if (len1 != strlen(full_name)) ERR;
+      if (nc_inq_grpname_full(grpid_in[0], &len, full_name_in1)) ERR;
+      if (strcmp(full_name_in1, full_name)) ERR;      
 
       if (nc_close(ncid)) ERR;
 
