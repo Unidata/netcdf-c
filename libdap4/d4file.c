@@ -90,6 +90,9 @@ NCD4_open(const char * path, int mode,
     {
 	char tmpname[NC_MAX_NAME];
 
+	/* Guarantee tmpname is a legitimate string */
+	tmpname[0] = '\0';
+
         /* Create fake file name: exact name must be unique,
            but is otherwise irrelevant because we are using NC_DISKLESS
         */
@@ -122,7 +125,7 @@ NCD4_open(const char * path, int mode,
 	    nc_set_default_format(old,&new); /* restore */
 	    d4info->substrate.realfile = ((ncflags & NC_DISKLESS) == 0);
 	    d4info->substrate.filename = strdup(tmpname);
-	    if(tmpname == NULL) ret = NC_ENOMEM;
+	    if(d4info->substrate.filename == NULL) ret = NC_ENOMEM;
 	    d4info->substrate.nc4id = ncid;
 	}
         if(ret != NC_NOERR) goto done;

@@ -512,11 +512,11 @@ genc_definespecialattributes(Symbol* vsym)
     if(special->flags & _FILTER_FLAG) {
 	/* Special check for alternate way to specify _Deflate */
 	if(special->_FilterID == ZIP_ID) {
-	    unsigned int level;
+	    int level;
 	    if(special->nparams == 0 || special->_FilterParams == NULL)
 		level = 9; /* default */
 	    else
-		level = special->_FilterParams[0];
+		level = (int)special->_FilterParams[0];
 	    if(level < 0 || level > 9)
 		derror("Illegal deflate level");		
 	    else {
@@ -525,7 +525,7 @@ genc_definespecialattributes(Symbol* vsym)
 	                groupncid(vsym->container),
 	                varncid(vsym),
 	                (special->_Shuffle == 1?"NC_SHUFFLE":"NC_NOSHUFFLE"),
-	                (level >= 0?1:0),
+	                1,
 			level);
 	        codedump(stmt);
 	    }
