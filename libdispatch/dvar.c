@@ -8,7 +8,8 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include "ncdispatch.h"
 #include "netcdf_f.h"
 
-/** \defgroup variables Variables
+/**
+\defgroup variables Variables
 
 Variables hold multi-dimensional arrays of data.
 
@@ -121,14 +122,15 @@ classic or 64-bit offset format files, or in netCDF-4 files if they
 are created with the NC_CLASSIC_MODEL flags.
  */
 
-/** \name Defining Variables
+/**
+@name Defining Variables
 
 Use these functions to define variables.
  */
 /*! \{ */
 
 /**
-\ingroup variables
+@ingroup variables
 Define a new variable.
 
 This function adds a new variable to an open netCDF dataset or group.
@@ -136,45 +138,45 @@ It returns (as an argument) a variable ID, given the netCDF ID,
 the variable name, the variable type, the number of dimensions, and a
 list of the dimension IDs.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param name Variable \ref object_name.
+@param name Variable \ref object_name.
 
-\param xtype \ref data_type of the variable.
+@param xtype \ref data_type of the variable.
 
-\param ndims Number of dimensions for the variable. For example, 2
+@param ndims Number of dimensions for the variable. For example, 2
 specifies a matrix, 1 specifies a vector, and 0 means the variable is
 a scalar with no dimensions. Must not be negative or greater than the
 predefined constant ::NC_MAX_VAR_DIMS.
 
-\param dimidsp Vector of ndims dimension IDs corresponding to the
+@param dimidsp Vector of ndims dimension IDs corresponding to the
 variable dimensions. For classic model netCDF files, if the ID of the
 unlimited dimension is included, it must be first. This argument is
 ignored if ndims is 0. For expanded model netCDF4/HDF5 files, there
 may be any number of unlimited dimensions, and they may be used in any
 element of the dimids array.
 
-\param varidp Pointer to location for the returned variable ID.
+@param varidp Pointer to location for the returned variable ID.
 
-\returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTINDEFINE Not in define mode.
-\returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
-\returns ::NC_EMAXVARS NC_MAX_VARS exceeded [Not enforced after 4.5.0]
-\returns ::NC_EBADTYPE Bad type.
-\returns ::NC_EINVAL Invalid input.
-\returns ::NC_ENAMEINUSE Name already in use.
-\returns ::NC_EPERM Attempt to create object in read-only file.
+@returns ::NC_NOERR No error.
+@returns ::NC_EBADID Bad ncid.
+@returns ::NC_ENOTINDEFINE Not in define mode.
+@returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
+@returns ::NC_EMAXVARS NC_MAX_VARS exceeded [Not enforced after 4.5.0]
+@returns ::NC_EBADTYPE Bad type.
+@returns ::NC_EINVAL Invalid input.
+@returns ::NC_ENAMEINUSE Name already in use.
+@returns ::NC_EPERM Attempt to create object in read-only file.
 
-\section nc_def_var_example Example
+@section nc_def_var_example Example
 
 Here is an example using nc_def_var to create a variable named rh of
 type double with three dimensions, time, lat, and lon in a new netCDF
 dataset named foo.nc:
 
-\code
+@code
      #include <netcdf.h>
         ...
      int  status;
@@ -200,8 +202,8 @@ dataset named foo.nc:
      rh_dimids[2] = lon_dim;
      status = nc_def_var (ncid, "rh", NC_DOUBLE, 3, rh_dimids, &rh_id);
      if (status != NC_NOERR) handle_error(status);
-\endcode
-
+@endcode
+@author Glenn Davis, Ed Hartnett, Dennis Heimbigner
  */
 int
 nc_def_var(int ncid, const char *name, nc_type xtype,
@@ -218,14 +220,16 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
 }
 /*! \} */
 
-/** \name Rename a Variable
+/**
+@name Rename a Variable
 
 Rename a variable.
  */
 /*! \{ */
 
-/** Rename a variable.
-\ingroup variables
+/**
+Rename a variable.
+@ingroup variables
 
 This function changes the name of a netCDF variable in an open netCDF
 file or group. You cannot rename a variable to have the name of any existing
@@ -235,28 +239,28 @@ For classic format, 64-bit offset format, and netCDF-4/HDF5 with
 classic mode, if the new name is longer than the old name, the netCDF
 dataset must be in define mode.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param varid Variable ID
+@param varid Variable ID
 
-\param name New name of the variable.
+@param name New name of the variable.
 
-\returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTVAR Invalid variable ID.
-\returns ::NC_EBADNAME Bad name.
-\returns ::NC_EMAXNAME Name is too long.
-\returns ::NC_ENAMEINUSE Name in use.
-\returns ::NC_ENOMEM Out of memory.
+@returns ::NC_NOERR No error.
+@returns ::NC_EBADID Bad ncid.
+@returns ::NC_ENOTVAR Invalid variable ID.
+@returns ::NC_EBADNAME Bad name.
+@returns ::NC_EMAXNAME Name is too long.
+@returns ::NC_ENAMEINUSE Name in use.
+@returns ::NC_ENOMEM Out of memory.
 
-\section nc_rename_var_example Example
+@section nc_rename_var_example Example
 
 Here is an example using nc_rename_var to rename the variable rh to
 rel_hum in an existing netCDF dataset named foo.nc:
 
-\code
+@code
      #include <netcdf.h>
         ...
      int  status;
@@ -274,7 +278,7 @@ rel_hum in an existing netCDF dataset named foo.nc:
      if (status != NC_NOERR) handle_error(status);
      status = nc_enddef(ncid);
      if (status != NC_NOERR) handle_error(status);
-\endcode
+@endcode
 
 */
 int
@@ -288,8 +292,15 @@ nc_rename_var(int ncid, int varid, const char *name)
 }
 /*! \} */
 
-/** \internal
-\ingroup variables
+/**
+@ingroup variables
+@internal Does a variable have a record dimension?
+
+@param ncid File ID.
+@param varid Variable ID.
+@param nrecs Pointer that gets number of records.
+
+@returns 0 if not a record var, 1 if it is.
  */
 int
 NC_is_recvar(int ncid, int varid, size_t* nrecs)
@@ -311,21 +322,31 @@ NC_is_recvar(int ncid, int varid, size_t* nrecs)
    return (dimset[0] == unlimid ? 1: 0);
 }
 
-/** \internal
-\ingroup variables
-Get the number of record dimensions for a variable and an array that
-identifies which of a variable's dimensions are record dimensions.
-Intended to be used instead of NC_is_recvar, which doesn't work for
-netCDF-4 variables which have multiple unlimited dimensions or an
-unlimited dimension that is not the first of a variable's dimensions.
+/**
+@ingroup variables
+@internal Get the number of record dimensions for a variable and an
+array that identifies which of a variable's dimensions are record
+dimensions. Intended to be used instead of NC_is_recvar(), which
+doesn't work for netCDF-4 variables which have multiple unlimited
+dimensions or an unlimited dimension that is not the first of a
+variable's dimensions.
+
+@param ncid File ID.
+@param varid Variable ID.
+@param nrecdimsp Pointer that gets number of record dims.
+@param is_recdim Pointer that gets 1 if there is one or more record
+dimensions, 0 if not.
+
+@returns 0 if not a record var, 1 if it is.
+
 Example use:
-\code
+@code
 int nrecdims;
 int is_recdim[NC_MAX_VAR_DIMS];
   ...
 status = NC_inq_recvar(ncid,varid,&nrecdims,is_recdim);
 isrecvar = (nrecdims > 0);
-\endcode
+@endcode
  */
 int
 NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
@@ -651,43 +672,49 @@ nc_free_string(size_t len, char **data)
    return NC_NOERR;
 }
 
-/** \ingroup variables
+/**
+ * @ingroup variables
+ *
+ * Set the compression settings for a netCDF-4/HDF5 variable.
+ *
+ * This function must be called after nc_def_var and before nc_enddef
+ * or any functions which writes data to the file.
+ *
+ * @param ncid NetCDF or group ID, from a previous call to nc_open(),
+ * nc_create(), nc_def_grp(), or associated inquiry functions such as
+ * nc_inq_ncid().
+ * @param varid Variable ID
+ * @param shuffle True to turn on the shuffle filter.
+ * @param deflate True to turn on deflation for this variable.
+ * @param deflate_level A number between 0 (no compression) and 9
+ * (maximum compression).
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Invalid variable ID.
+ * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
+ * not netCDF-4/HDF5.
+ * @returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
+ * netcdf-4 file.
+ * @returns ::NC_ELATEDEF Too late to change settings for this variable.
+ * @returns ::NC_ENOTINDEFINE Not in define mode.
+ * @returns ::NC_EPERM File is read only.
+ * @returns ::NC_EMAXDIMS Classic model file exceeds ::NC_MAX_VAR_DIMS.
+ * @returns ::NC_ESTRICTNC3 Attempting to create netCDF-4 type var in
+classic model file
+ * @returns ::NC_EBADTYPE Bad type.
+ * @returns ::NC_ENOMEM Out of memory.
+ * @returns ::NC_EHDFERR Error returned by HDF5 layer.
+ * @returns ::NC_EINVAL Invalid input. Deflate can't be set unless
+variable storage is NC_CHUNK.
 
-Set the compression settings for a netCDF-4/HDF5 variable.
-
-This function must be called after nc_def_var and before nc_enddef or
-any functions which writes data to the file.
-
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
-nc_create(), nc_def_grp(), or associated inquiry functions such as
-nc_inq_ncid().
-
-\param varid Variable ID
-
-\param shuffle True to turn on the shuffle filter.
-
-\param deflate True to turn on deflation for this variable.
-
-\param deflate_level A number between 0 (no compression) and 9
-(maximum compression).
-
-\returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTVAR Invalid variable ID.
-\returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
-not netCDF-4/HDF5.
-\returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
-netcdf-4 file.
-\returns ::NC_ELATEDEF Too late to change settings for this variable.
-\returns ::NC_EINVAL Invalid input
-
-\section nc_def_var_deflate_example Example
+@section nc_def_var_deflate_example Example
 
 Here is an example from /examples/C/simple_xy_nc4_wr.c using
 nc_def_var_deflate to create a variable and then turn on the shuffle
 filter and compression.
 
-\code
+@code
 #include <netcdf.h>
 #define NDIMS 2
 #define NX 6
@@ -724,7 +751,7 @@ filter and compression.
                                     deflate_level)))
       ERR(retval);
         ...
-\endcode
+@endcode
 */
 int
 nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_level)
@@ -735,31 +762,30 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
     return ncp->dispatch->def_var_deflate(ncid,varid,shuffle,deflate,deflate_level);
 }
 
-/** \ingroup variables
-
-Set checksum for a var.
-
-This function must be called after nc_def_var and before nc_enddef or
-any functions which writes data to the file.
-
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
-nc_create(), nc_def_grp(), or associated inquiry functions such as
-nc_inq_ncid().
-
-\param varid Variable ID
-
-\param fletcher32 True to turn on Fletcher32 checksums for this
-variable.
-
-\returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTVAR Invalid variable ID.
-\returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
+/**
+ * @ingroup variables
+ *
+ * Set checksum for a var.
+ *
+ * This function must be called after nc_def_var and before nc_enddef
+ * or any functions which writes data to the file.
+ *
+ * @param ncid NetCDF or group ID, from a previous call to nc_open(),
+ * nc_create(), nc_def_grp(), or associated inquiry functions such as
+ * nc_inq_ncid().
+ * @param varid Variable ID
+ * @param fletcher32 True to turn on Fletcher32 checksums for this
+ * variable.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Invalid variable ID.
+ * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
 not netCDF-4/HDF5.
-\returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
+ * @returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
 netcdf-4 file.
-\returns ::NC_ELATEDEF Too late to change settings for this variable.
-\returns ::NC_EINVAL Invalid input
+ * @returns ::NC_ELATEDEF Too late to change settings for this variable.
+ * @returns ::NC_EINVAL Invalid input
 */
 int
 nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
@@ -807,19 +833,19 @@ array must have one chunksize for each dimension of the variable. If
 ::NC_CONTIGUOUS storage is set, then the chunksizes parameter is
 ignored.
 
-\returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad ID.
-\returns ::NC_ENOTNC4 Not a netCDF-4 file.
-\returns ::NC_ELATEDEF This variable has already been the subject of a
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ID.
+ * @returns ::NC_ENOTNC4 Not a netCDF-4 file.
+ * @returns ::NC_ELATEDEF This variable has already been the subject of a
 nc_enddef call.  In netCDF-4 files nc_enddef will be called
 automatically for any data read or write. Once nc_enddef has been
 called after the nc_def_var call for a variable, it is impossible to
 set the chunking for that variable.
-\returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for
+ * @returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for
 netCDF classic or 64-bit offset files, or for netCDF-4 files, when
 they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
-\returns ::NC_EPERM Attempt to create object in read-only file.
-\returns ::NC_EBADCHUNK Retunrs if the chunk size specified for a
+ * @returns ::NC_EPERM Attempt to create object in read-only file.
+ * @returns ::NC_EBADCHUNK Retunrs if the chunk size specified for a
 variable is larger than the length of the dimensions associated with
 variable.
 
@@ -892,13 +918,13 @@ to hold one element of the data type of the variable. (For example, an
 NC_INT will require 4 bytes for it's fill value, which is also an
 NC_INT.)
 
-\returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad ID.
-\returns ::NC_ENOTNC4 Not a netCDF-4 file.
-\returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ID.
+ * @returns ::NC_ENOTNC4 Not a netCDF-4 file.
+ * @returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for
 netCDF classic or 64-bit offset files, or for netCDF-4 files, when
 they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
-\returns ::NC_EPERM Attempt to create object in read-only file.
+ * @returns ::NC_EPERM Attempt to create object in read-only file.
 
 \section nc_def_var_fill_example Example
 
@@ -947,9 +973,10 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
     return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
 }
 
-/*! Define endianness of a variable.
+/**
+@ingroup variables
 
-\ingroup variables
+Define endianness of a variable.
 
 With this function the endianness (i.e. order of bits in integers) can
 be changed on a per-variable basis. By default, the endianness is the
@@ -960,34 +987,34 @@ variable.
 This function may only be called after the variable is defined, but
 before nc_enddef is called. 
 
-\param[in] ncid NetCDF ID, from a previous call to nc_open or
+@param[in] ncid NetCDF ID, from a previous call to nc_open or
 nc_create.
 
-\param[in] varid Variable ID.
+@param[in] varid Variable ID.
 
-\param[in] endian NC_ENDIAN_NATIVE to select the native endianness of
+@param[in] endian NC_ENDIAN_NATIVE to select the native endianness of
 the platform (the default), NC_ENDIAN_LITTLE to use little-endian,
 NC_ENDIAN_BIG to use big-endian.
 
-\returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad ID.
-\returns ::NC_ENOTNC4 Not a netCDF-4 file.
-\returns ::NC_ELATEDEF This variable has already been the subject of a
+@returns ::NC_NOERR No error.
+@returns ::NC_EBADID Bad ID.
+@returns ::NC_ENOTNC4 Not a netCDF-4 file.
+@returns ::NC_ELATEDEF This variable has already been the subject of a
 nc_enddef call. In netCDF-4 files nc_enddef will be called
 automatically for any data read or write. Once nc_enddef has been
 called after the nc_def_var call for a variable, it is impossible to
 set the chunking for that variable.
-\returns ::NC_ENOTINDEFINE Not in define mode. This is returned for
+@returns ::NC_ENOTINDEFINE Not in define mode. This is returned for
 netCDF classic or 64-bit offset files, or for netCDF-4 files, when
 they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
-\returns ::NC_EPERM Attempt to create object in read-only file.
+@returns ::NC_EPERM Attempt to create object in read-only file.
 
-\section nc_def_var_endian_example Example
+@section nc_def_var_endian_example Example
 
 In this example from libsrc4/tst_vars2.c, a variable is created, and
 the endianness set to NC_ENDIAN_BIG.
 
-\code
+@code
 #define NDIMS4 1
 #define DIM4_NAME "Joe"
 #define VAR_NAME4 "Ed"
@@ -1010,7 +1037,8 @@ the endianness set to NC_ENDIAN_BIG.
       if (dimids[0] != 0) ERR;
       if (nc_def_var(ncid, VAR_NAME4, NC_INT, NDIMS4, dimids, &varid)) ERR;
       if (nc_def_var_endian(ncid, varid, NC_ENDIAN_BIG)) ERR;
-\endcode
+@endcode
+@author Ed Hartnett
 */
 int
 nc_def_var_endian(int ncid, int varid, int endian)
@@ -1021,6 +1049,18 @@ nc_def_var_endian(int ncid, int varid, int endian)
     return ncp->dispatch->def_var_endian(ncid,varid,endian);
 }
 
+/**
+ * Define a new variable filter.
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param id
+ * @param nparams Number of filter parameters.
+ * @param parms Filter parameters.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
+ */
 int
 nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms)
 {

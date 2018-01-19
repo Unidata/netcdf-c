@@ -14,7 +14,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 #    and expected/Makefile.am 
 
 set -e
-RESULTSDIR="./results"
+RESULTSDIR="./results_$$"
 #SHOWXFAILS=1
 
 # Locate the cdl and expected directory
@@ -143,5 +143,4 @@ failcount=0
 passcount=0
 xfailcount=0
 
-rm -fr results
-mkdir results
+rm -fr $RESULTSDIR

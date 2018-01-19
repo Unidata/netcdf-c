@@ -93,7 +93,6 @@ INCLUDE(${CMAKE_ROOT}/Modules/CheckTypeSize.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckCSourceCompiles.cmake)
-INCLUDE(${CMAKE_ROOT}/Modules/CheckCSourceRuns.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
@@ -501,6 +500,14 @@ IF(ENABLE_NETCDF_4)
   SET(ENABLE_NETCDF4 ON CACHE BOOL "")
 ENDIF()
 
+# Option to allow for strict null file padding.
+# See https://github.com/Unidata/netcdf-c/issues/657 for more information
+OPTION(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
+
+IF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
+  SET(USE_STRICT_NULL_BYTE_HEADER_PADDING ON CACHE BOOL "")
+ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
+
 # Option for building RPC
 OPTION(ENABLE_RPC "Enable RPC Client and Server." OFF)
 IF(ENABLE_RPC)
@@ -826,7 +833,6 @@ ELSE()
   SET(ENABLE_DAP4 OFF)
 ENDIF()
 
-# Check to see if libtool supports
 
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
@@ -889,8 +895,7 @@ IF(ENABLE_TESTS)
 
   # Options for CTest-based tests, dashboards.
   SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
-  SET(NC_CTEST_DROP_SITE "129.114.104.111" CACHE STRING "Dashboard location for CTest-based testing purposes.")
-  #SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+  SET(NC_CTEST_DROP_SITE "cdash.unidata.ucar.edu" CACHE STRING "Dashboard location for CTest-based testing purposes.")
   SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
 
   FIND_PROGRAM(HOSTNAME_CMD NAMES hostname)
@@ -994,7 +999,6 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
     SET(STATUS_PARALLEL "ON")
   ENDIF()
 ENDIF()
-
 
 # Options to enable parallel IO, tests.
 SET(STATUS_PNETCDF "OFF")
@@ -1101,6 +1105,12 @@ IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
   ENDIF()
 ENDIF()
 
+# Enable special filter test; experimental when using cmake.
+OPTION(ENABLE_FILTER_TEST "Enable special filter test. Ignored if netCDF4 is not enabled" OFF)
+IF(USE_NETCDF4)
+  SET(ENABLE_FILTER_TEST OFF CACHE BOOL "")
+ENDIF()
+
 # Determine whether or not to generate documentation.
 OPTION(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
 IF(ENABLE_DOXYGEN)
@@ -1195,14 +1205,12 @@ MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
 SET(SIGNED_TEST_SOURCE "\n
   #include <stdlib.h>\n
   int main(void) {\n
-    char is_signed = (char) - 1;\n
-    if(is_signed < 0)\n
-      return 1;\n
-    else\n
-      return 0;\n
+    char error_if_char_is_signed[((char)-1) < 0 ? -1 : 1];\n
+    error_if_char_is_signed[0] = 0;
+    return -;\n
 }\n")
 
-CHECK_C_SOURCE_RUNS("${SIGNED_TEST_SOURCE}" __CHAR_UNSIGNED__)
+CHECK_C_SOURCE_COMPILES("${SIGNED_TEST_SOURCE}" __CHAR_UNSIGNED__)
 
 # Library include checks
 CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)
@@ -1241,6 +1249,7 @@ CHECK_INCLUDE_FILE("sys/types.h" HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE("sys/wait.h"  HAVE_SYS_WAIT_H)
 CHECK_INCLUDE_FILE("sys/mman.h"  HAVE_SYS_MMAN_H)
 CHECK_INCLUDE_FILE("sys/resource.h" HAVE_SYS_RESOURCE_H)
+CHECK_INCLUDE_FILE("sys/cdefs.h" HAVE_SYS_CDEFS_H)
 CHECK_INCLUDE_FILE("fcntl.h"  HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("inttypes.h"  HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE("pstdint.h"  HAVE_PSTDINT_H)
@@ -1511,7 +1520,7 @@ ENDMACRO()
 MACRO(build_bin_test_no_prefix F)
   build_bin_test(${F})
   IF(MSVC)
-    SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
+    #SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
     SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
       ${CMAKE_CURRENT_BINARY_DIR})
     SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
@@ -1784,10 +1793,6 @@ IF(MSVC)
   DESTINATION ${CMAKE_INSTALL_BINDIR}
   COMPONENT dependencies)
 
-  #INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
-  #  INSTALL(FILES ${ALL_TLL_LIBS}
-  #  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  #  COMPONENT dependencies)
 ENDIF()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -1829,6 +1834,12 @@ ENDFOREACH()
 SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
 
 STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
+STRING(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+STRING(REPLACE "-lhdf5::hdf5-static" "-lhdf5" NC_LIBS ${NC_LIBS})
+STRING(REPLACE "-lhdf5::hdf5_hl-static" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+
+
 STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 
 LIST(REMOVE_DUPLICATES NC_LIBS)

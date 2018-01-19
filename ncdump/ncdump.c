@@ -273,7 +273,7 @@ kind_string(int kind)
     case NC_FORMAT_NETCDF4_CLASSIC:
 	return "netCDF-4 classic model";
     default:
-	error("unrecognized file format: %d");
+       error("unrecognized file format: %d", kind);
 	return "unrecognized";
     }
 }
@@ -2357,6 +2357,3 @@ main(int argc, char *argv[])
     }
     exit(EXIT_SUCCESS);
 }
-
-
-END_OF_MAIN()

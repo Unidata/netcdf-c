@@ -1,12 +1,13 @@
-/** \file dfile.c
-
-File create and open functions
-
-These functions end up calling functions in one of the dispatch layers
-(netCDF-4, dap server, etc).
-
-Copyright 2010 University Corporation for Atmospheric
-Research/Unidata. See COPYRIGHT file for more info.
+/**
+ * @file
+ *
+ * File create and open functions
+ *
+ * These functions end up calling functions in one of the dispatch
+ * layers (netCDF-4, dap server, etc).
+ *
+ * Copyright 2010 University Corporation for Atmospheric
+ * Research/Unidata. See COPYRIGHT file for more info.
 */
 
 #include "config.h"
@@ -27,7 +28,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 /* If Defined, then use only stdio for all magic number io;
    otherwise use stdio or mpio as required.
  */
-#define USE_STDIO
+#undef DEBUG
 
 /**
 Sort info for open/read/close of
@@ -48,12 +49,14 @@ struct MagicFile {
 static int openmagic(struct MagicFile* file);
 static int readmagic(struct MagicFile* file, long pos, char* magic);
 static int closemagic(struct MagicFile* file);
+#ifdef DEBUG
 static void printmagic(const char* tag, char* magic,struct MagicFile*);
+#endif
 
-extern int NC_initialized;
-extern int NC_finalized;
+extern int NC_initialized; /**< True when dispatch table is initialized. */
 
-/* To be consistent with H5Fis_hdf5, use the complete HDF5 magic number */
+/** @internal Magic number for HDF5 files. To be consistent with
+ * H5Fis_hdf5, use the complete HDF5 magic number */
 static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
 
 /** \defgroup datasets NetCDF File and Data I/O
@@ -156,11 +159,20 @@ done:
      return status;
 }
 
-/*!
-Given an existing file, figure out its format
-and return that format value (NC_FORMATX_XXX)
-in model arg. Assume any path conversion was
-already performed at a higher level.
+/**
+ * @internal Given an existing file, figure out its format and return
+ * that format value (NC_FORMATX_XXX) in model arg. Assume any path
+ * conversion was already performed at a higher level.
+ *
+ * @param path File name.
+ * @param flags
+ * @param parameters
+ * @param model Pointer that gets the model to use for the dispatch
+ * table.
+ * @param version Pointer that gets version of the file.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
 */
 int
 NC_check_file_type(const char *path, int flags, void *parameters,
@@ -171,11 +183,7 @@ NC_check_file_type(const char *path, int flags, void *parameters,
 
     int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
 #ifdef USE_PARALLEL
-#ifdef USE_STDIO
-    int use_parallel = 0;
-#else
     int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
-#endif
 #endif /* USE_PARALLEL */
     int inmemory = (diskless && ((flags & NC_INMEMORY) == NC_INMEMORY));
     struct MagicFile file;
@@ -447,63 +455,57 @@ nc_create(const char *path, int cmode, int *ncidp)
    return nc__create(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp);
 }
 
-/*!
-Create a netCDF file with some extra parameters controlling classic
-file cacheing.
-
-Like nc_create(), this function creates a netCDF file.
-
-\param path The file name of the new netCDF dataset.
-
-\param cmode The creation mode flag, the same as in nc_create().
-
-\param initialsz On some systems, and with custom I/O layers, it may
-be advantageous to set the size of the output file at creation
-time. This parameter sets the initial size of the file at creation
-time. This only applies to classic and 64-bit offset files.
-The special value NC_SIZEHINT_DEFAULT (which is the value 0),
-lets the netcdf library choose a suitable initial size.
-
-\param chunksizehintp A pointer to the chunk size hint,
-which controls a space versus time tradeoff, memory
-allocated in the netcdf library versus number of system
-calls. Because of internal requirements, the value may not
-be set to exactly the value requested. The actual value
-chosen is returned by reference. Using a NULL pointer or
-having the pointer point to the value NC_SIZEHINT_DEFAULT
-causes the library to choose a default. How the system
-chooses the default depends on the system. On many systems,
-the "preferred I/O block size" is available from the stat()
-system call, struct stat member st_blksize. If this is
-available it is used. Lacking that, twice the system
-pagesize is used. Lacking a call to discover the system
-pagesize, we just set default bufrsize to 8192. The bufrsize
-is a property of a given open netcdf descriptor ncid, it is
-not a persistent property of the netcdf dataset. This only
-applies to classic and 64-bit offset files.
-
-\param ncidp Pointer to location where returned netCDF ID is to be
-stored.
-
-\note This function uses the same return codes as the nc_create()
-function.
-
-\returns ::NC_NOERR No error.
-\returns ::NC_ENOMEM System out of memory.
-\returns ::NC_EHDFERR HDF5 error (netCDF-4 files only).
-\returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
-HDF5 file. (netCDF-4 files only).
-\returns ::NC_EDISKLESS if there was an error in creating the
-in-memory file.
-
-<h1>Examples</h1>
-
-In this example we create a netCDF dataset named foo_large.nc; we want
-the dataset to be created in the current directory only if a dataset
-with that name does not already exist. We also specify that bufrsize
-and initial size for the file.
-
-\code
+/**
+ * Create a netCDF file with some extra parameters controlling classic
+ * file cacheing.
+ *
+ * Like nc_create(), this function creates a netCDF file.
+ *
+ * @param path The file name of the new netCDF dataset.
+ * @param cmode The creation mode flag, the same as in nc_create().
+ * @param initialsz On some systems, and with custom I/O layers, it
+ * may be advantageous to set the size of the output file at creation
+ * time. This parameter sets the initial size of the file at creation
+ * time. This only applies to classic and 64-bit offset files.  The
+ * special value NC_SIZEHINT_DEFAULT (which is the value 0), lets the
+ * netcdf library choose a suitable initial size.
+ * @param chunksizehintp A pointer to the chunk size hint, which
+ * controls a space versus time tradeoff, memory allocated in the
+ * netcdf library versus number of system calls. Because of internal
+ * requirements, the value may not be set to exactly the value
+ * requested. The actual value chosen is returned by reference. Using
+ * a NULL pointer or having the pointer point to the value
+ * NC_SIZEHINT_DEFAULT causes the library to choose a default. How the
+ * system chooses the default depends on the system. On many systems,
+ * the "preferred I/O block size" is available from the stat() system
+ * call, struct stat member st_blksize. If this is available it is
+ * used. Lacking that, twice the system pagesize is used. Lacking a
+ * call to discover the system pagesize, we just set default bufrsize
+ * to 8192. The bufrsize is a property of a given open netcdf
+ * descriptor ncid, it is not a persistent property of the netcdf
+ * dataset. This only applies to classic and 64-bit offset files.
+ * @param ncidp Pointer to location where returned netCDF ID is to be
+ * stored.
+ *
+ * @note This function uses the same return codes as the nc_create()
+ * function.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_ENOMEM System out of memory.
+ * @returns ::NC_EHDFERR HDF5 error (netCDF-4 files only).
+ * @returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
+ * HDF5 file. (netCDF-4 files only).
+ * @returns ::NC_EDISKLESS if there was an error in creating the
+ * in-memory file.
+ *
+ * <h1>Examples</h1>
+ *
+ * In this example we create a netCDF dataset named foo_large.nc; we
+ * want the dataset to be created in the current directory only if a
+ * dataset with that name does not already exist. We also specify that
+ * bufrsize and initial size for the file.
+ *
+ * @code
 #include <netcdf.h>
         ...
      int status = NC_NOERR;
@@ -514,10 +516,10 @@ and initial size for the file.
      *bufrsize = 1024;
      status = nc__create("foo.nc", NC_NOCLOBBER, initialsz, bufrsize, &ncid);
      if (status != NC_NOERR) handle_error(status);
-\endcode
-
-\ingroup datasets
-\author Glenn Davis, Russ Rew, Dennis Heimbigner
+@endcode
+ *
+ * @ingroup datasets
+ * @author Glenn Davis
 */
 int
 nc__create(const char *path, int cmode, size_t initialsz,
@@ -528,12 +530,23 @@ nc__create(const char *path, int cmode, size_t initialsz,
 
 }
 /**
-\internal
-
-\deprecated This function was used in the old days with the Cray at
-NCAR. The Cray is long gone, and this call is supported only for
-backward compatibility.
-
+ * @internal Create a file with special (deprecated) Cray settings.
+ * 
+ * @deprecated This function was used in the old days with the Cray at
+ * NCAR. The Cray is long gone, and this call is supported only for
+ * backward compatibility. Use nc_create() instead.
+ *
+ * @param path File name.
+ * @param cmode Create mode.
+ * @param initialsz Initial size of metadata region for classic files,
+ * ignored for other files.
+ * @param basepe Deprecated parameter from the Cray days.
+ * @param chunksizehintp A pointer to the chunk size hint. This only
+ * applies to classic and 64-bit offset files.
+ * @param ncidp Pointer that gets ncid.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Glenn Davis
  */
 int
 nc__create_mp(const char *path, int cmode, size_t initialsz,
@@ -543,119 +556,116 @@ nc__create_mp(const char *path, int cmode, size_t initialsz,
 		    chunksizehintp, 0, NULL, ncidp);
 }
 
-/** \ingroup datasets
-Open an existing netCDF file.
-
-This function opens an existing netCDF dataset for access. It
-determines the underlying file format automatically. Use the same call
-to open a netCDF classic, 64-bit offset, or netCDF-4 file.
-
-\param path File name for netCDF dataset to be opened. When DAP
-support is enabled, then the path may be an OPeNDAP URL rather than a
-file path.
-
-\param mode The mode flag may include NC_WRITE (for read/write
-access) and NC_SHARE (see below) and NC_DISKLESS (see below).
-
-\param ncidp Pointer to location where returned netCDF ID is to be
-stored.
-
-<h2>Open Mode</h2>
-
-A zero value (or ::NC_NOWRITE) specifies the default behavior: open the
-dataset with read-only access, buffering and caching accesses for
-efficiency.
-
-Otherwise, the open mode is ::NC_WRITE, ::NC_SHARE, or
-::NC_WRITE|::NC_SHARE. Setting the ::NC_WRITE flag opens the dataset with
-read-write access. ("Writing" means any kind of change to the dataset,
-including appending or changing data, adding or renaming dimensions,
-variables, and attributes, or deleting attributes.)
-
-The NC_SHARE flag is only used for netCDF classic and 64-bit offset
-files. It is appropriate when one process may be writing the dataset
-and one or more other processes reading the dataset concurrently; it
-means that dataset accesses are not buffered and caching is
-limited. Since the buffering scheme is optimized for sequential
-access, programs that do not access data sequentially may see some
-performance improvement by setting the NC_SHARE flag.
-
-This procedure may also be invoked with the NC_DISKLESS flag
-set in the mode argument if the file to be opened is a
-classic format file.  For nc_open(), this flag applies only
-to files in classic format.  If the file is of type
-NC_NETCDF4, then the NC_DISKLESS flag will be ignored.
-
-If NC_DISKLESS is specified, then the whole file is read completely into
-memory. In effect this creates an in-memory cache of the file.
-If the mode flag also specifies NC_WRITE, then the in-memory cache
-will be re-written to the disk file when nc_close() is called.
-For some kinds of manipulations, having the in-memory cache can
-speed up file processing. But in simple cases, non-cached
-processing may actually be faster than using cached processing.
-You will need to experiment to determine if the in-memory caching
-is worthwhile for your application.
-
-Normally, NC_DISKLESS allocates space in the heap for
-storing the in-memory file. If, however, the ./configure
-flags --enable-mmap is used, and the additional mode flag
-NC_MMAP is specified, then the file will be opened using
-the operating system MMAP facility.
-This flag only applies to files in classic format. Extended
-format (netcdf-4) files will ignore the NC_MMAP flag.
-
-In most cases, using MMAP provides no advantage
-for just NC_DISKLESS. The one case where using MMAP is an
-advantage is when a file is to be opened and only a small portion
-of its data is to be read and/or written.
-In this scenario, MMAP will cause only the accessed data to be
-retrieved from disk. Without MMAP, NC_DISKLESS will read the whole
-file into memory on nc_open. Thus, MMAP will provide some performance
-improvement in this case.
-
-It is not necessary to pass any information about the format of the
-file being opened. The file type will be detected automatically by the
-netCDF library.
-
-If a the path is a DAP URL, then the open mode is read-only.
-Setting NC_WRITE will be ignored.
-
-As of version 4.3.1.2, multiple calls to nc_open with the same
-path will return the same ncid value.
-
-\note When opening a netCDF-4 file HDF5 error reporting is turned off,
-if it is on. This doesn't stop the HDF5 error stack from recording the
-errors, it simply stops their display to the user through stderr.
-
-nc_open()returns the value NC_NOERR if no errors occurred. Otherwise,
-the returned status indicates an error. Possible causes of errors
-include:
-
-Note that nc_open(path,cmode,ncidp) is equivalent to the invocation of
-nc__open(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp).
-
-\returns ::NC_NOERR No error.
-
-\returns ::NC_ENOMEM Out of memory.
-
-\returns ::NC_EHDFERR HDF5 error. (NetCDF-4 files only.)
-
-\returns ::NC_EDIMMETA Error in netCDF-4 dimension metadata. (NetCDF-4 files only.)
-
-<h1>Examples</h1>
-
-Here is an example using nc_open()to open an existing netCDF dataset
-named foo.nc for read-only, non-shared access:
-
-@code
-#include <netcdf.h>
-   ...
-int status = NC_NOERR;
-int ncid;
-   ...
-status = nc_open("foo.nc", 0, &ncid);
-if (status != NC_NOERR) handle_error(status);
-@endcode
+/**
+ * Open an existing netCDF file.
+ *
+ * This function opens an existing netCDF dataset for access. It
+ * determines the underlying file format automatically. Use the same
+ * call to open a netCDF classic, 64-bit offset, or netCDF-4 file.
+ *
+ * @param path File name for netCDF dataset to be opened. When DAP
+ * support is enabled, then the path may be an OPeNDAP URL rather than
+ * a file path.
+ * @param mode The mode flag may include NC_WRITE (for read/write
+ * access) and NC_SHARE (see below) and NC_DISKLESS (see below).
+ * @param ncidp Pointer to location where returned netCDF ID is to be
+ * stored.
+ *
+ * <h2>Open Mode</h2>
+ *
+ * A zero value (or ::NC_NOWRITE) specifies the default behavior: open
+ * the dataset with read-only access, buffering and caching accesses
+ * for efficiency.
+ *
+ * Otherwise, the open mode is ::NC_WRITE, ::NC_SHARE, or
+ * ::NC_WRITE|::NC_SHARE. Setting the ::NC_WRITE flag opens the
+ * dataset with read-write access. ("Writing" means any kind of change
+ * to the dataset, including appending or changing data, adding or
+ * renaming dimensions, variables, and attributes, or deleting
+ * attributes.)
+ * 
+ * The NC_SHARE flag is only used for netCDF classic and 64-bit offset
+ * files. It is appropriate when one process may be writing the
+ * dataset and one or more other processes reading the dataset
+ * concurrently; it means that dataset accesses are not buffered and
+ * caching is limited. Since the buffering scheme is optimized for
+ * sequential access, programs that do not access data sequentially
+ * may see some performance improvement by setting the NC_SHARE flag.
+ *
+ * This procedure may also be invoked with the NC_DISKLESS flag set in
+ * the mode argument if the file to be opened is a classic format
+ * file.  For nc_open(), this flag applies only to files in classic
+ * format.  If the file is of type NC_NETCDF4, then the NC_DISKLESS
+ * flag will be ignored.
+ *
+ * If NC_DISKLESS is specified, then the whole file is read completely
+ * into memory. In effect this creates an in-memory cache of the file.
+ * If the mode flag also specifies NC_WRITE, then the in-memory cache
+ * will be re-written to the disk file when nc_close() is called.  For
+ * some kinds of manipulations, having the in-memory cache can speed
+ * up file processing. But in simple cases, non-cached processing may
+ * actually be faster than using cached processing.  You will need to
+ * experiment to determine if the in-memory caching is worthwhile for
+ * your application.
+ *
+ * Normally, NC_DISKLESS allocates space in the heap for storing the
+ * in-memory file. If, however, the ./configure flags --enable-mmap is
+ * used, and the additional mode flag NC_MMAP is specified, then the
+ * file will be opened using the operating system MMAP facility.  This
+ * flag only applies to files in classic format. Extended format
+ * (netcdf-4) files will ignore the NC_MMAP flag.
+ *
+ * In most cases, using MMAP provides no advantage for just
+ * NC_DISKLESS. The one case where using MMAP is an advantage is when
+ * a file is to be opened and only a small portion of its data is to
+ * be read and/or written.  In this scenario, MMAP will cause only the
+ * accessed data to be retrieved from disk. Without MMAP, NC_DISKLESS
+ * will read the whole file into memory on nc_open. Thus, MMAP will
+ * provide some performance improvement in this case.
+ * 
+ * It is not necessary to pass any information about the format of the
+ * file being opened. The file type will be detected automatically by
+ * the netCDF library.
+ *
+ * If a the path is a DAP URL, then the open mode is read-only.
+ * Setting NC_WRITE will be ignored.
+ * 
+ * As of version 4.3.1.2, multiple calls to nc_open with the same
+ * path will return the same ncid value.
+ *
+ * @note When opening a netCDF-4 file HDF5 error reporting is turned
+ * off, if it is on. This doesn't stop the HDF5 error stack from
+ * recording the errors, it simply stops their display to the user
+ * through stderr.
+ *
+ * nc_open()returns the value NC_NOERR if no errors
+ * occurred. Otherwise, the returned status indicates an
+ * error. Possible causes of errors include:
+ *
+ * Note that nc_open(path,cmode,ncidp) is equivalent to the invocation
+ * of nc__open(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp).
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_ENOMEM Out of memory.
+ * @returns ::NC_EHDFERR HDF5 error. (NetCDF-4 files only.)
+ * @returns ::NC_EDIMMETA Error in netCDF-4 dimension metadata. (NetCDF-4 files only.)
+ *
+ * <h1>Examples</h1>
+ * 
+ * Here is an example using nc_open()to open an existing netCDF dataset
+ * named foo.nc for read-only, non-shared access:
+ * 
+ * @code
+ * #include <netcdf.h>
+ *   ...
+ * int status = NC_NOERR;
+ * int ncid;
+ *   ...
+ * status = nc_open("foo.nc", 0, &ncid);
+ * if (status != NC_NOERR) handle_error(status);
+ * @endcode
+ * @ingroup datasets
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_open(const char *path, int mode, int *ncidp)
@@ -792,12 +802,22 @@ nc_open_mem(const char* path, int mode, size_t size, void* memory, int* ncidp)
 }
 
 /**
-\internal
-
-\deprecated This function was used in the old days with the Cray at
-NCAR. The Cray is long gone, and this call is supported only for
-backward compatibility.
-
+ * @internal Open a netCDF file with extra parameters for Cray.
+ *
+ * @deprecated This function was used in the old days with the Cray at
+ * NCAR. The Cray is long gone, and this call is supported only for
+ * backward compatibility. Use nc_open() instead.
+ *
+ * @param path The file name of the new netCDF dataset.
+ * @param mode Open mode.
+ * @param basepe Deprecated parameter from the Cray days.
+ * @param chunksizehintp A pointer to the chunk size hint. This only
+ * applies to classic and 64-bit offset files.
+ * @param ncidp Pointer to location where returned netCDF ID is to be
+ * stored.
+ *
+ * @return ::NC_NOERR
+ * @author Glenn Davis
  */
 int
 nc__open_mp(const char *path, int mode, int basepe,
@@ -1364,15 +1384,18 @@ nc_set_fill(int ncid, int fillmode, int *old_modep)
 }
 
 /**
-\internal
-
-\deprecated This function was used in the old days with the Cray at
-NCAR. The Cray is long gone, and this call is supported only for
-backward compatibility.
-
-\returns ::NC_NOERR No error.
-
-\returns ::NC_EBADID Invalid ncid passed.
+ * @internal Learn base PE.
+ *
+ * @deprecated This function was used in the old days with the Cray at
+ * NCAR. The Cray is long gone, and this call is supported only for
+ * backward compatibility.
+ *
+ * @param ncid File and group ID.
+ * @param pe Pointer for base PE.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Invalid ncid passed.
+ * @author Glenn Davis
  */
 int
 nc_inq_base_pe(int ncid, int *pe)
@@ -1384,15 +1407,18 @@ nc_inq_base_pe(int ncid, int *pe)
 }
 
 /**
-\internal
-
-\deprecated This function was used in the old days with the Cray at
-NCAR. The Cray is long gone, and this call is supported only for
-backward compatibility.
-
-\returns ::NC_NOERR No error.
-
-\returns ::NC_EBADID Invalid ncid passed.
+ * @internal Sets base processing element (ignored).
+ *
+ * @deprecated This function was used in the old days with the Cray at
+ * NCAR. The Cray is long gone, and this call is supported only for
+ * backward compatibility.
+ *
+ * @param ncid File ID.
+ * @param pe Base PE.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Invalid ncid passed.
+ * @author Glenn Davis
  */
 int
 nc_set_base_pe(int ncid, int pe)
@@ -1518,6 +1544,16 @@ nc_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    return ncp->dispatch->inq(ncid,ndimsp,nvarsp,nattsp,unlimdimidp);
 }
 
+/**
+ * Learn the number of variables in a file or group.
+ *
+ * @param ncid File and group ID.
+ * @param nvarsp Pointer that gets number of variables. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+ */
 int
 nc_inq_nvars(int ncid, int *nvarsp)
 {
@@ -1617,37 +1653,95 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
 }
 
 /**
-\internal
-\ingroup dispatch
+Check the create mode parameter for sanity.
 
-Create a file, calling the appropriate dispatch create call.
+Some create flags cannot be used if corresponding library features are
+enabled during the build. This function does a pre-check of the mode
+flag before calling the dispatch layer nc_create functions.
 
-For create, we have the following pieces of information to use to
-determine the dispatch table:
-- path
-- cmode
-
-\param path0 The file name of the new netCDF dataset.
-
-\param cmode The creation mode flag, the same as in nc_create().
-
-\param initialsz This parameter sets the initial size of the file at creation
-time. This only applies to classic and 64-bit offset files.
-
-\param basepe Deprecated parameter from the Cray days.
-
-\param chunksizehintp A pointer to the chunk size hint. This only
-applies to classic and 64-bit offset files.
-
-\param useparallel Non-zero if parallel I/O is to be used on this
-file.
-
-\param parameters Pointer to MPI comm and info.
-
-\param ncidp Pointer to location where returned netCDF ID is to be
-stored.
+\param cmode The creation mode flag.
 
 \returns ::NC_NOERR No error.
+\returns ::NC_ENOTBUILT Requested feature not built into library
+\returns ::NC_NINVAL Invalid combination of modes.
+\internal
+\ingroup dispatch
+\author Ed Hartnett
+*/
+static int
+check_create_mode(int mode)
+{
+    int mode_format;
+
+    /* This is a clever check to see if more than one format bit is
+     * set. */
+    mode_format = (mode & NC_NETCDF4) | (mode & NC_64BIT_OFFSET) |
+       (mode & NC_CDF5);
+    if (mode_format && (mode_format & (mode_format - 1)))
+       return NC_EINVAL;
+    
+    /* Can't use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
+     * mind! */
+    if (mode & NC_MPIIO && mode & NC_MPIPOSIX)
+       return NC_EINVAL;
+    
+    /* Can't use both parallel and diskless. */
+    if ((mode & NC_MPIIO && mode & NC_DISKLESS) ||
+	(mode & NC_MPIPOSIX && mode & NC_DISKLESS))
+	return NC_EINVAL;
+
+#ifndef USE_DISKLESS
+   /* If diskless is requested, but not built, return error. */
+   if (mode & NC_DISKLESS)
+       return NC_ENOTBUILT;       
+   if (mode & NC_INMEMORY)
+       return NC_ENOTBUILT;       
+#endif
+   
+#ifndef USE_NETCDF4
+   /* If the user asks for a netCDF-4 file, and the library was built
+    * without netCDF-4, then return an error.*/
+   if (mode & NC_NETCDF4)
+       return NC_ENOTBUILT;
+#endif /* USE_NETCDF4 undefined */
+
+#ifndef USE_PARALLEL
+   /* If parallel support is not included, these mode flags won't
+    * work. */
+   if (mode & NC_PNETCDF || mode & NC_MPIPOSIX)
+       return NC_ENOTBUILT;
+#endif /* USE_PARALLEL */
+
+   /* Well I guess there is some sanity in the world after all. */
+   return NC_NOERR;
+}
+
+/**
+ * @internal Create a file, calling the appropriate dispatch create
+ * call.
+ *
+ * For create, we have the following pieces of information to use to
+ * determine the dispatch table:
+ * - path
+ * - cmode
+ *
+ * @param path0 The file name of the new netCDF dataset.
+ * @param cmode The creation mode flag, the same as in nc_create().
+ * @param initialsz This parameter sets the initial size of the file
+ * at creation time. This only applies to classic and 64-bit offset
+ * files.
+ * @param basepe Deprecated parameter from the Cray days.
+ * @param chunksizehintp A pointer to the chunk size hint. This only
+ * applies to classic and 64-bit offset files.
+ * @param useparallel Non-zero if parallel I/O is to be used on this
+ * file.
+ * @param parameters Pointer to MPI comm and info.
+ * @param ncidp Pointer to location where returned netCDF ID is to be
+ * stored.
+ *
+ * @returns ::NC_NOERR No error.
+ * @ingroup dispatch
+ * @author Dennis Heimbigner, Ed Hartnett, Ward Fisher
 */
 int
 NC_create(const char *path0, int cmode, size_t initialsz,
@@ -1666,6 +1760,11 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    TRACE(nc_create);
    if(path0 == NULL)
 	return NC_EINVAL;
+
+   /* Check mode flag for sanity. */
+   if ((stat = check_create_mode(cmode)))
+      return stat;
+   
    /* Initialize the dispatch table. The function pointers in the
     * dispatch table will depend on how netCDF was built
     * (with/without netCDF-4, DAP, CDMREMOTE). */
@@ -1815,25 +1914,31 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 }
 
 /**
-\internal
-\ingroup dispatch
-
-Open a netCDF file (or remote dataset) calling the appropriate
-dispatch function.
-
-For open, we have the following pieces of information to use to determine the dispatch table.
-- table specified by override
-- path
-- cmode
-- the contents of the file (if it exists), basically checking its magic number.
-
-\returns ::NC_NOERR No error.
+ * @internal Open a netCDF file (or remote dataset) calling the
+ * appropriate dispatch function.
+ *
+ * For open, we have the following pieces of information to use to
+ * determine the dispatch table.
+ * - table specified by override
+ * - path
+ * - cmode
+ * - the contents of the file (if it exists), basically checking its magic number.
+ *
+ * @param path0 Path to the file to open.
+ * @param cmode Open mode.
+ * @param basepe Base processing element (ignored).
+ * @param chunksizehintp Size hint for classic files.
+ * @param useparallel If true use parallel I/O.
+ * @param parameters Extra parameters for the open.
+ * @param ncidp Pointer that gets ncid.
+ *
+ * @returns ::NC_NOERR No error.
+ * @ingroup dispatch
+ * @author Dennis Heimbigner
 */
 int
-NC_open(const char *path0, int cmode,
-	int basepe, size_t *chunksizehintp,
-        int useparallel, void* parameters,
-        int *ncidp)
+NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
+        int useparallel, void* parameters, int *ncidp)
 {
    int stat = NC_NOERR;
    NC* ncp = NULL;
@@ -2024,11 +2129,15 @@ havetable:
   for systems that are not file based (e.g. dap, memio).
 */
 
-/* Static counter for pseudo file descriptors (incremented) */
+/** @internal Static counter for pseudo file descriptors (incremented) */
 static int pseudofd = 0;
 
-/* Create a pseudo file descriptor that does not
-   overlap real file descriptors
+/**
+ * @internal Create a pseudo file descriptor that does not
+ * overlap real file descriptors
+ *
+ * @return pseudo file number
+ * @author Dennis Heimbigner
 */
 int
 nc__pseudofd(void)
@@ -2062,7 +2171,6 @@ openmagic(struct MagicFile* file)
 	/* Get its length */
 	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
 	file->filelen = (long long)meminfo->size;
-fprintf(stderr,"XXX: openmagic: memory=0x%llx size=%ld\n",(long long unsigned int)meminfo->memory,meminfo->size);
 	goto done;
     }
 #ifdef USE_PARALLEL
@@ -2128,13 +2236,13 @@ readmagic(struct MagicFile* file, long pos, char* magic)
     if(file->inmemory) {
 	char* mempos;
 	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
-fprintf(stderr,"XXX: readmagic: memory=0x%llx size=%ld\n",(long long unsigned int)meminfo->memory,meminfo->size);
-fprintf(stderr,"XXX: readmagic: pos=%ld filelen=%lld\n",pos,file->filelen);
 	if((pos + MAGIC_NUMBER_LEN) > meminfo->size)
 	    {status = NC_EDISKLESS; goto done;}
 	mempos = ((char*)meminfo->memory) + pos;
 	memcpy((void*)magic,mempos,MAGIC_NUMBER_LEN);
-printmagic("XXX: readmagic",magic,file);
+#ifdef DEBUG
+	printmagic("XXX: readmagic",magic,file);
+#endif
 	goto done;
     }
 #ifdef USE_PARALLEL
@@ -2169,6 +2277,15 @@ done:
     return status;
 }
 
+/** 
+ * Close the file opened to check for magic number. 
+ * 
+ * @param file pointer to the MagicFile struct for this open file.
+ * @returns NC_NOERR for success
+ * @returns NC_EPARINIT if there was a problem closing file with MPI
+ * (parallel builds only).
+ * @author Dennis Heimbigner
+ */
 static int
 closemagic(struct MagicFile* file)
 {
@@ -2191,6 +2308,7 @@ done:
     return status;
 }
 
+#ifdef DEBUG
 static void
 printmagic(const char* tag, char* magic, struct MagicFile* f)
 {
@@ -2211,3 +2329,4 @@ printmagic(const char* tag, char* magic, struct MagicFile* f)
     fprintf(stderr,"\n");
     fflush(stderr);
 }
+#endif

@@ -31,11 +31,6 @@ libdispatch_la_SOURCES += dgroup.c dvlen.c dcompound.c dtype.c denum.c	\
 dopaque.c dfilter.c ncaux.c
 endif # USE_NETCDF4
 
-# Turn on pre-processor flag when building a DLL for windows.
-if BUILD_DLL
-libdispatch_la_CPPFLAGS += -DDLL_EXPORT
-endif # BUILD_DLL
-
 # Add V2 API convenience library if needed.
 if BUILD_V2
 noinst_LTLIBRARIES += libnetcdf2.la

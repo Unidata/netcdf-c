@@ -10,19 +10,27 @@ set -e
 
 echo ""
 echo "*** Testing ncgen and ncdump test output for classic format."
-echo "*** creating ctest1.cdl from ctest0.nc..."
-${NCDUMP} -n c1 ${builddir}/ctest0.nc | sed 's/e+0/e+/g' > ctest1.cdl
-echo "*** creating c0.nc from c0.cdl..."
-${NCGEN} -b -o c0.nc ${ncgenc0}
-echo "*** creating c1.cdl from c0.nc..."
-${NCDUMP} -n c1 ${builddir}/c0.nc | sed 's/e+0/e+/g' > c1.cdl
+
+echo "*** Testing that ncgen produces correct C code from c0.cdl."
+${execdir}/ref_ctest
+${NCGEN} -lc -o ctest0.nc $srcdir/../ncgen/c0.cdl > tst_output_ctest.c
+diff -b tst_output_ctest.c $srcdir/ref_ctest.c
+
+echo "*** creating ctest1.cdl from tst_output_ctest0.nc..."
+${NCDUMP} -n c1 ${builddir}/ctest0.nc | sed 's/e+0/e+/g' > tst_output_ctest1.cdl
+echo "*** creating tst_output_c0.nc from c0.cdl..."
+${NCGEN} -b -o tst_output_c0.nc ${ncgenc0}
+echo "*** creating tst_output_c1.cdl from tst_output_c0.nc..."
+${NCDUMP} -n c1 ${builddir}/tst_output_c0.nc | sed 's/e+0/e+/g' > tst_output_c1.cdl
+echo "*** comparing tst_output_c1.cdl with ref_ctest1_nc4c.cdl..."
+diff -b tst_output_c1.cdl $srcdir/ref_ctest1_nc4c.cdl
 echo "*** comparing ncdump of C program output (ctest1.cdl) with c1.cdl..."
-diff -b c1.cdl ctest1.cdl
+diff -b tst_output_c1.cdl tst_output_ctest1.cdl
 echo "*** test output for ncdump -k"
-KIND=`${NCDUMP} -k c0.nc`
+KIND=`${NCDUMP} -k tst_output_c0.nc`
 test "$KIND" = "classic";
-${NCGEN} -k $KIND -b -o c0tmp.nc ${ncgenc0}
-cmp c0tmp.nc c0.nc
+${NCGEN} -k $KIND -b -o tst_output_c0tmp.nc ${ncgenc0}
+cmp tst_output_c0tmp.nc tst_output_c0.nc
 
 echo "*** test output for ncdump -x"
 echo "*** creating tst_ncml.nc from tst_ncml.cdl"
@@ -42,19 +50,24 @@ diff -b tst_format_att.cdl $srcdir/ref_tst_format_att.cdl
 
 echo "*** All ncgen and ncdump test output for classic format passed!"
 
+echo "*** Testing that ncgen with c0.cdl for 64-bit offset format."
+${execdir}/ref_ctest64
+${NCGEN}  -k2 -lc -o ctest0_64.nc $srcdir/../ncgen/c0.cdl > tst_output_ctest64.c
+diff -b tst_output_ctest64.c $srcdir/ref_ctest64.c
+
 echo "*** Testing ncgen and ncdump test output for 64-bit offset format."
 echo "*** creating ctest1_64.cdl from test0_64.nc..."
-${NCDUMP} -n c1 ctest0_64.nc | sed 's/e+0/e+/g' > ctest1_64.cdl
-echo "*** creating c0.nc from c0.cdl..."
-${NCGEN} -k nc6 -b -o c0.nc ${ncgenc0}
-echo "*** creating c1.cdl from c0.nc..."
-${NCDUMP} -n c1 c0.nc | sed 's/e+0/e+/g' > c1.cdl
-echo "*** comparing ncdump of C program output (ctest1_64.cdl) with c1.cdl..."
-diff -b c1.cdl ctest1_64.cdl
+${NCDUMP} -n c1 ctest0_64.nc | sed 's/e+0/e+/g' > tst_output_ctest1_64.cdl
+echo "*** creating tst_output_c0_64.nc from c0.cdl..."
+${NCGEN} -k nc6 -b -o tst_output_c0_64.nc ${ncgenc0}
+echo "*** creating tst_output_c1_64.cdl from tst_output_c0_64.nc..."
+${NCDUMP} -n c1 tst_output_c0_64.nc | sed 's/e+0/e+/g' > tst_output_c1_64.cdl
+echo "*** comparing ncdump of C program output (ctest1_64.cdl) with tst_output_c1_64.cdl..."
+diff -b tst_output_c1_64.cdl tst_output_ctest1_64.cdl
 echo "*** test output for ncdump -k"
-test "`${NCDUMP} -k c0.nc`" = "64-bit offset";
-${NCGEN} -k nc6 -b -o c0tmp.nc ${ncgenc0}
-cmp c0tmp.nc c0.nc
+test "`${NCDUMP} -k tst_output_c0_64.nc`" = "64-bit offset";
+${NCGEN} -k nc6 -b -o tst_output_c0_64_tmp.nc ${ncgenc0}
+cmp tst_output_c0_64_tmp.nc tst_output_c0_64.nc
 
 echo "*** test output for ncdump -s"
 echo "*** creating tst_mslp_64.nc from tst_mslp.cdl"

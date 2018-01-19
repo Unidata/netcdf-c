@@ -3,13 +3,14 @@
 
 # This file builds and runs DAP tests.
 
-# This will not work until we get a new remotetest server set up 
-
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+
+# Note which tests depend on other tests. Necessary for make -j check.
+TEST_EXTENSIONS = .sh
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/liblib
@@ -85,6 +86,8 @@ EXTRA_DIST = tst_ncdap3.sh  \
 	     t_ncf330.c tst_ber.sh
 
 CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a test_nstride_cached *.exe
+# This should only be left behind if using parallel io
+CLEANFILES += tmp_*
 
 # This rule are used if someone wants to rebuild t_dap3a.c
 # Otherwise never invoked, but records how to do it.

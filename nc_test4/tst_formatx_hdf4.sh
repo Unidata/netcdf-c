@@ -1,6 +1,6 @@
 #!/bin/sh
 # This shell script tests the output several previous tests.
-# $Id: tst_output.sh,v 1.17 2010/05/14 16:21:15 ed Exp $
+# Ed Hartnett
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
@@ -13,16 +13,19 @@ echo ""
 echo "*** Testing extended file format output."
 set -e
 
+echo "Creating HDF4 file"
+${execdir}/tst_interops2
+
 echo "Test extended format output for a HDF4 file"
-rm -f tmp
-${NCDUMP} -K $FILE >tmp
-if ! fgrep 'HDF4 mode=00001000' <tmp ; then
-TMP=`cat tmp`
+rm -f tmp_tst_formatx_hdf4
+${NCDUMP} -K $FILE >tmp_tst_formatx_hdf4
+if ! fgrep 'HDF4 mode=00001000' <tmp_tst_formatx_hdf4 ; then
+TMP=`cat tmp_tst_formatx_hdf4`
 echo "*** Fail: extended format for an HDF4 file: result=" $TMP
 ECODE=1
 fi
 
-rm -f tmp
+rm -f tmp_tst_formatx_hdf4
 
 exit $ECODE
 
