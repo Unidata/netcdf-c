@@ -178,11 +178,10 @@ ENDIF(MSVC)
 
     # Known failure on MSVC; the number of 0's padding
     # is different, but the result is actually correct.
-    add_sh_test(ncdump tst_netcdf4)
-    build_bin_test_no_prefix(tst_h_rdc0)
-    #IF(MSVC)
-    #  SET_TESTS_PROPERTIES(ncdump_tst_netcdf4 PROPERTIES WILL_FAIL TRUE)
-    #ENDIF(MSVC)
+    IF(HAVE_BASH)
+      add_sh_test(ncdump tst_netcdf4)
+      build_bin_test_no_prefix(tst_h_rdc0)
+    ENDIF()
 
     build_bin_test_no_prefix(tst_unicode)
 
