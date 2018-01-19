@@ -658,14 +658,16 @@ ncuriremoveparam(NCURI* uri, const char* key)
 #endif
 
 
-/* Internal version of lookup; returns the paired index of the key */
+/* Internal version of lookup; returns the paired index of the key;
+   case insensitive
+ */
 static int
 ncfind(char** params, const char* key)
 {
     int i;
     char** p;
     for(i=0,p=params;*p;p+=2,i++) {
-	if(strcmp(key,*p)==0) return i;
+	if(strcasecmp(key,*p)==0) return i;
     }
     return -1;
 }
