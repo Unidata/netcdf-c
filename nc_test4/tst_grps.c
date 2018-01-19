@@ -12,6 +12,8 @@
 #include "netcdf.h"
 
 #define FILE_NAME "tst_grps.nc"
+#define FILE_NAME_CLASSIC "tst_grps_classic.nc"
+#define FILE_NAME_CLASSIC_MODEL "tst_grps_classic_model.nc"
 #define DIM1_NAME "kingdom"
 #define DIM1_LEN 3
 #define DIM2_NAME "year"
@@ -19,6 +21,7 @@
 #define VAR1_NAME "Number_of_Beheadings_in_Family"
 #define DYNASTY "Tudor"
 #define HENRY_VII "Henry_VII"
+#define HENRY_VIII "Henry_VIII"
 #define MARGARET "Margaret"
 #define JAMES_V_OF_SCOTLAND "James_V_of_Scotland"
 #define MARY_I_OF_SCOTLAND "Mary_I_of_Scotland"
@@ -32,14 +35,20 @@ main(int argc, char **argv)
    printf("\n*** Testing netcdf-4 group functions.\n");
    printf("*** testing simple group create...");
    {
-      int ncid;
+      int ncid, ncid2;
       char name_in[NC_MAX_NAME + 1];
       int henry_vii_id;
+      int henry_viii_id;
       int grpid_in[MAX_SIBLING_GROUPS], varids_in[MAX_SIBLING_GROUPS];
       int dimids_in[MAX_SIBLING_GROUPS], nvars_in, ndims_in, ncid_in;
       int parent_ncid;
       char name_out[NC_MAX_NAME + 1];
       int num_grps;
+
+      /* Create a netCDF classic file. Groups will not be allowed. */
+      if (nc_create(FILE_NAME_CLASSIC, 0, &ncid2)) ERR;
+      if (nc_def_grp(ncid2, name_out, &henry_vii_id) != NC_ENOTNC4) ERR;
+      if (nc_close(ncid2)) ERR;
 
       /* Create a file with one group, a group to contain data about
        * Henry VII. */
@@ -48,7 +57,16 @@ main(int argc, char **argv)
       /* This should also work as simple "is this the root group" test */
       if (nc_inq_grp_parent(ncid, NULL) != NC_ENOGRP) ERR;
       strcpy(name_out, HENRY_VII);
+
+      /* These will not work. */
+      if (nc_def_grp(ncid + TEST_VAL_42, name_out, &henry_vii_id) != NC_EBADID) ERR;
+      if (nc_def_grp(ncid, NULL, &henry_vii_id) != NC_EINVAL) ERR;
+      if (nc_def_grp(ncid, BAD_NAME, &henry_vii_id) != NC_EBADNAME) ERR;
+
+      /* Define the group. */
       if (nc_def_grp(ncid, name_out, &henry_vii_id)) ERR;
+
+      /* Check it out. */
       if (nc_inq_grp_parent(henry_vii_id, &parent_ncid)) ERR;
       if (parent_ncid != ncid) ERR;
       if (nc_inq_ncid(ncid, HENRY_VII, &ncid_in)) ERR;
@@ -74,6 +92,58 @@ main(int argc, char **argv)
       if (ndims_in != 0) ERR;
       if (nc_inq_ncid(ncid, HENRY_VII, &ncid_in)) ERR;
       if (ncid_in != grpid_in[0]) ERR;
+
+      /* These should fail - file is read-only. */
+      if (nc_def_grp(ncid, HENRY_VIII, &henry_viii_id) != NC_EPERM) ERR;
+      if (nc_rename_grp(grpid_in[0], HENRY_VIII) != NC_EPERM) ERR;
+
+      /* Close the file. */
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing simple group rename...");
+   {
+      int ncid, ncid2;
+      int grpid_in;
+      char name_in[NC_MAX_NAME + 1];
+      int henry_vii_id;
+
+      /* Create a classic model file. No groups will be allowed. */
+      if (nc_create(FILE_NAME_CLASSIC_MODEL, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid2)) ERR;
+      if (nc_def_grp(ncid2, HENRY_VII, &henry_vii_id) != NC_ESTRICTNC3) ERR;      
+      if (nc_close(ncid2)) ERR;
+
+      /* Create a file with one group, a group to contain data about
+       * Henry VII. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      /* Turn off define mode. It will automatically be turned back on
+       * when nc_def_grp is called. */
+      if (nc_enddef(ncid)) ERR; 
+      if (nc_def_grp(ncid, HENRY_VII, &henry_vii_id)) ERR;
+
+      /* Check it out. */
+      if (nc_inq_grpname(henry_vii_id, name_in)) ERR;
+      if (strcmp(name_in, HENRY_VII)) ERR;      
+
+      /* Rename the group. */
+      if (nc_rename_grp(henry_vii_id, HENRY_VIII)) ERR;
+
+      /* Check it out. */
+      if (nc_inq_grpname(henry_vii_id, name_in)) ERR;
+      if (strcmp(name_in, HENRY_VIII)) ERR;      
+
+      /* Close the file. */
+      if (nc_close(ncid)) ERR;
+
+      /* Re-open the file. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      
+      /* Check it out. */
+      if (nc_inq_grps(ncid, NULL, &grpid_in)) ERR;
+      if (nc_inq_grpname(grpid_in, name_in)) ERR;
+      if (strcmp(name_in, HENRY_VIII)) ERR;
+
+      /* Close the file. */
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -223,7 +293,6 @@ main(int argc, char **argv)
    {
       int ncid, grp_ncid;
       int henry_vii_id, margaret_id, james_v_of_scotland_id, mary_i_of_scotland_id;
-      int james_i_of_england_id;
       char name_in[NC_MAX_NAME + 1];
       char full_name[NC_MAX_NAME * 10], full_name_in[NC_MAX_NAME * 10];
       int grpid_in[MAX_SIBLING_GROUPS];
@@ -238,7 +307,9 @@ main(int argc, char **argv)
       if (nc_def_grp(henry_vii_id, MARGARET, &margaret_id)) ERR;
       if (nc_def_grp(margaret_id, JAMES_V_OF_SCOTLAND, &james_v_of_scotland_id)) ERR;
       if (nc_def_grp(james_v_of_scotland_id, MARY_I_OF_SCOTLAND, &mary_i_of_scotland_id)) ERR;
-      if (nc_def_grp(mary_i_of_scotland_id, JAMES_VI_OF_SCOTLAND_AND_I_OF_ENGLAND, &james_i_of_england_id)) ERR;
+      /* nc_def_grp will accept NULL as ID pointer. Group will be
+       * created, but ID not returned. */
+      if (nc_def_grp(mary_i_of_scotland_id, JAMES_VI_OF_SCOTLAND_AND_I_OF_ENGLAND, NULL)) ERR;
 
       strcpy(full_name, "/");
       if (nc_inq_grpname_full(ncid, &len, full_name_in)) ERR;
