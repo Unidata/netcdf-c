@@ -56,6 +56,7 @@ fi
 
 # Figure out the path to where the lib is stored
 # This can probably be simplified
+# Case 1: Cmake with Visual Studio
 # Do not know where to look for a dylib
 # Case 1: Cmake with Visual Studio
 if test "x$FP_ISCMAKE" != x -a "x${FP_ISMSVC}" != x ; then

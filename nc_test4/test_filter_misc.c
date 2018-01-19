@@ -180,7 +180,7 @@ openfile(void)
 	    }
 	}
     }
-    if(nerrs > 0) return NC_EFILTER;
+    if(nerrs > 0) return NC_EFILTER; 
 
     /* Verify chunking */
     if(!verifychunks())
