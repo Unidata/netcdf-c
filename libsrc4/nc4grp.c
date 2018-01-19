@@ -7,7 +7,7 @@
  * for HDF5, or a HDF5 backend for netCDF, depending on your point of
  * view.
  *
- * This file handles the nc4 groups.
+ * This file handles groups.
  * 
  * @author Ed Hartnett
 */
