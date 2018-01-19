@@ -93,7 +93,11 @@ nc4_hdf5_initialize(void)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EMAXNAME Name too long.
+<<<<<<< HEAD
  * @return ::NC_EINVAL NULL given for name.
+=======
+ * @return ::NC_EINVAL Invalid parameter.
+>>>>>>> 986673ff49ddb82663b4ba470035e4079aa05b83
  * @author Dennis Heimbigner
  */
 int
@@ -101,6 +105,10 @@ nc4_check_name(const char *name, char *norm_name)
 {
    char *temp;
    int retval;
+   
+   /* Check for NULL. */
+   if (!name)
+      return NC_EINVAL;
 
    assert(norm_name);
    
