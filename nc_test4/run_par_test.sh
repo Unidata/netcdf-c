@@ -36,3 +36,4 @@ echo
 echo "Parallel I/O test for Collective I/O, contributed by HDF Group."
 mpiexec -n 1 ./tst_simplerw_coll_r
 mpiexec -n 2 ./tst_simplerw_coll_r
+mpiexec -n 4 ./tst_simplerw_coll_r
