@@ -89,10 +89,8 @@ main(int argc, char **argv)
       if (strcmp(name_in, HENRY_VII)) ERR;
       if (nc_inq_varids(grpid_in[0], &nvars_in, varids_in)) ERR;
       if (nvars_in != 0) ERR;
-      if (nc_inq_varids(grpid_in[0], &ndims_in, dimids_in)) ERR;
-      if (ndims_in != 0) ERR;
-      if (nc_inq_varids(grpid_in[0], NULL, dimids_in)) ERR;
-      if (nc_inq_varids(grpid_in[0], &ndims_in, NULL)) ERR;
+      if (nc_inq_varids(grpid_in[0], NULL, varids_in)) ERR;
+      if (nc_inq_varids(grpid_in[0], &nvars_in, NULL)) ERR;
       if (nc_inq_varids(grpid_in[0], NULL, NULL)) ERR;
       
       if (nc_inq_ncid(ncid, HENRY_VII, &ncid_in)) ERR;
