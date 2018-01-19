@@ -1997,6 +1997,7 @@ main(int argc, char**argv)
 	error("output would overwrite input");
     }
 
+#ifdef USE_NETCDF4
 #ifdef DEBUGFILTER
     { int i,j;
         for(i=0;i<nfilterspecs;i++) {
@@ -2011,7 +2012,9 @@ main(int argc, char**argv)
 	    fflush(stderr);
 	}
     }
-#endif
+#endif /*DEBUGFILTER*/
+#endif /*USE_NETCDF4*/
+
 
     if(copy(inputfile, outputfile) != NC_NOERR)
         exit(EXIT_FAILURE);
