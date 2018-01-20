@@ -24,7 +24,7 @@
 #include "nccomps.h"
 #include "ncfilter.h"
 
-#define DEBUGFILTER
+#undef DEBUGFILTER
 
 #ifdef _MSC_VER
 #include "XGetopt.h"
