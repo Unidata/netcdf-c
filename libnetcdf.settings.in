@@ -35,3 +35,4 @@ Diskless Support:	@HAS_DISKLESS@
 MMap Support:		@HAS_MMAP@
 JNA Support:		@HAS_JNA@
 CDF5 Support:		@HAS_CDF5@
+ERANGE fill Support:	@ENABLE_ERANGE_FILL@
