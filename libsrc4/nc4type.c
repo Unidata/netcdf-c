@@ -104,7 +104,11 @@ NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
 
    /* Are the two types equal? */
    if (equalp)
-      *equalp = (int)H5Tequal(type1->native_hdf_typeid, type2->native_hdf_typeid);
+   {
+      if ((retval = H5Tequal(type1->native_hdf_typeid, type2->native_hdf_typeid)) < 0)
+         return NC_EHDFERR;
+      *equalp = 1 ? retval : 0;
+   }
    
    return NC_NOERR;
 }
@@ -133,6 +137,7 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
    char *norm_name;
    int i, retval;
 
+   /* Handle atomic types. */
    for (i = 0; i < NUM_ATOMIC_TYPES; i++)
       if (!strcmp(name, atomic_name[i]))
       {
@@ -144,10 +149,7 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-
-   /* Must be a netCDF-4 file. */
-   if (!h5)
-      return NC_ENOTNC4;
+   assert(h5 && grp);
 
    /* If the first char is a /, this is a fully-qualified
     * name. Otherwise, this had better be a local name (i.e. no / in
@@ -215,9 +217,10 @@ NC4_inq_typeids(int ncid, int *ntypes, int *typeids)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
+   assert(h5 && grp);
 
-   /* If this is a netCDF-4 file, count types. */
-   if (h5 && grp->type)
+   /* Count types. */
+   if (grp->type)
       for (type = grp->type; type; type = type->l.next)
       {
 	 if (typeids)
@@ -271,10 +274,7 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
    /* Find group metadata. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-
-   /* Only netcdf-4 files! */
-   if (!h5)
-      return NC_ENOTNC4;
+   assert(h5 && grp);
 
    /* Turn on define mode if it is not on. */
    if (!(h5->cmode & NC_INDEF))
@@ -632,8 +632,9 @@ find_nc4_file(int ncid, NC **nc)
    NC_HDF5_FILE_INFO_T* h5;
    
    /* Find file metadata. */
-   if (!((*nc) = nc4_find_nc_file(ncid,&h5)))
+   if (!((*nc) = nc4_find_nc_file(ncid, &h5)))
       return NC_EBADID;
+   assert(h5);
       
    if (h5->cmode & NC_CLASSIC_MODEL)
       return NC_ESTRICTNC3;
