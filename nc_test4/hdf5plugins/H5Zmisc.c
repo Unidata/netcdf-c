@@ -25,8 +25,8 @@ const H5Z_class2_t H5Z_TEST[1] = {{
     1,                               /* encoder_present flag (set to true) */
     1,                               /* decoder_present flag (set to true) */
     "test",                          /* Filter name for debugging    */
-    NULL,                            /* The "can apply" callback     */
-    NULL,                            /* The "set local" callback     */
+    (H5Z_can_apply_func_t)H5Z_test_can_apply, /* The "can apply" callback  */
+    NULL,			     /* The "set local" callback  */
     (H5Z_func_t)H5Z_filter_test,     /* The actual filter function   */
 }};
 
@@ -41,6 +41,17 @@ const void*
 H5PLget_plugin_info(void)
 {
     return H5Z_TEST;
+}
+
+/* Make this explicit */
+/*
+ * The "can_apply" callback returns positive a valid combination, zero for an
+ * invalid combination and negative for an error.
+ */
+htri_t
+H5Z_test_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id)
+{
+    return 1; /* Assume it can always apply */
 }
 
 /*
