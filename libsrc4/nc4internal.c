@@ -101,6 +101,10 @@ nc4_check_name(const char *name, char *norm_name)
 {
    char *temp;
    int retval;
+   
+   /* Check for NULL. */
+   if (!name)
+      return NC_EINVAL;
 
    assert(norm_name);
    
