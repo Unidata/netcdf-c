@@ -973,10 +973,8 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
-   NC_DIM_INFO_T *dim;
    int d;
    int retval;
-   nc_bool_t ishdf4 = NC_FALSE; /* Use this to avoid so many ifdefs */
 
    /* All or none of these will be provided. */
    assert((deflate && deflate_level && shuffle) ||
@@ -1075,8 +1073,10 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 
          if ((retval = check_chunksizes(grp, var, chunksizes)))
             return retval;
+
+         /* Ensure chunksize is smaller than dimension size */
          for (d = 0; d < var->ndims; d++)
-            if (var->dim[d]->len > 0 && chunksizes[d] > var->dim[d]->len)
+            if(!var->dim[d]->unlimited && var->dim[d]->len > 0 && chunksizes[d] > var->dim[d]->len)
                return NC_EBADCHUNK;
 
          /* Set the chunksizes for this variable. */
