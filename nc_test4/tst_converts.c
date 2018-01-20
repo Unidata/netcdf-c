@@ -149,19 +149,35 @@ check_file(int format, unsigned char *uchar_out)
    else if (res) ERR;
 
    for (i=0; i<DIM1_LEN; i++)
+#ifdef ERANGE_FILL
+      if (uchar_in[i] != uchar_out[i] && uchar_in[i] != NC_FILL_UBYTE) ERR;
+#else
       if (uchar_in[i] != uchar_out[i]) ERR;
+#endif
 
    if (nc_get_var_schar(ncid, 0, char_in)) ERR;
    for (i=0; i<DIM1_LEN; i++)
+#ifdef ERANGE_FILL
+      if (char_in[i] != (signed char)uchar_out[i] && char_in[i] != NC_FILL_BYTE) ERR;
+#else
       if (char_in[i] != (signed char)uchar_out[i]) ERR;
+#endif
 
    if (nc_get_var_short(ncid, 0, short_in)) ERR;
    for (i=0; i<DIM1_LEN; i++)
+#ifdef ERANGE_FILL
+      if (short_in[i] != (signed char)uchar_out[i] && short_in[i] != NC_FILL_BYTE) ERR;
+#else
       if (short_in[i] != (signed char)uchar_out[i]) ERR;
+#endif
 
    if (nc_get_var_int(ncid, 0, int_in)) ERR;
    for (i=0; i<DIM1_LEN; i++)
+#ifdef ERANGE_FILL
+      if (int_in[i] != (signed char)uchar_out[i] && int_in[i] != NC_FILL_BYTE) ERR;
+#else
       if (int_in[i] != (signed char)uchar_out[i]) ERR;
+#endif
 
    if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_NETCDF4_CLASSIC)
    {
