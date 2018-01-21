@@ -113,6 +113,7 @@ main(int argc, char **argv)
       /* This will not work. */
       if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid2) != NC_ENAMEINUSE) ERR;
 
+      /* These also won't work. */
       if (nc_inq_dim(ncid + TEST_VAL_42, dimid, name_in, &len_in) != NC_EBADID) ERR;
       if (nc_inq_dim(ncid, -1, name_in, &len_in) != NC_EBADDIM) ERR;
 
