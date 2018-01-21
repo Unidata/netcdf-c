@@ -142,8 +142,16 @@ main(int argc, char **argv)
       if (strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
       if (len_in != LAT_LEN) ERR;
+
+      /* These won't work. */
+      if (nc_inq_unlimdims(ncid + TEST_VAL_42, &ndims_in, dimids_in) != NC_EBADID) ERR;
+
+      /* This will work. */
       if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
       if (ndims_in != 0) ERR;
+      if (nc_inq_unlimdims(ncid, &ndims_in, NULL)) ERR;
+      if (ndims_in != 0) ERR;
+      if (nc_inq_unlimdims(ncid, NULL, NULL)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Reopen and check it out again. */
@@ -450,8 +458,14 @@ main(int argc, char **argv)
       if (len_in != NC_UNLIMITED || strcmp(name_in, LEVEL_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1 || dimids_in[0] != 0) ERR;
+
+      /* Th1s won't work. */
+      if (nc_inq_unlimdim(ncid + TEST_VAL_42, &unlimdimid_in) != NC_EBADID) ERR;
+
+      /* This will work. */
       if (nc_inq_unlimdim(ncid, &unlimdimid_in)) ERR;
       if (unlimdimid_in != 0) ERR;
+      if (nc_inq_unlimdim(ncid, NULL)) ERR;
       if (nc_inq_unlimdims(ncid, &nunlimdims_in, &unlimdimid_in)) ERR;
       if (nunlimdims_in != 1 || unlimdimid_in != 0) ERR;
 

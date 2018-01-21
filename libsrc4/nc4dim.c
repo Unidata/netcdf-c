@@ -45,22 +45,25 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
       return retval;
    assert(h5 && nc && grp);
 
-   /* According to netcdf-3 manual, return -1 if there is no unlimited
-      dimension. */
-   *unlimdimidp = -1;
-   for (g = grp; g && !found; g = g->parent)
+   if (unlimdimidp)
    {
-      for (dim = g->dim; dim; dim = dim->l.next)
+      /* According to netcdf-3 manual, return -1 if there is no unlimited
+         dimension. */
+      *unlimdimidp = -1;
+      for (g = grp; g && !found; g = g->parent)
       {
-         if (dim->unlimited)
+         for (dim = g->dim; dim; dim = dim->l.next)
          {
-            *unlimdimidp = dim->dimid;
-            found++;
-            break;
+            if (dim->unlimited)
+            {
+               *unlimdimidp = dim->dimid;
+               found++;
+               break;
+            }
          }
       }
    }
-
+   
    return NC_NOERR;
 }
 
