@@ -4,14 +4,16 @@
 
    Test netcdf-4 dimensions.
 
-   Ed Hartnett
+   Ed Hartnett, Quincey Koziol, Russ Rew, Ward Fisher
 */
 #include <config.h>
 #include <nc_tests.h>
+#include <nc4internal.h>
 #include "err_macros.h"
 
 #define FILE_NAME "tst_dims.nc"
 #define LAT_NAME "lat"
+#define LAT_NAME_2 "lat_2"
 #define LON_NAME "lon"
 #define LEVEL_NAME "level"
 #define TIME_NAME "time"
@@ -34,7 +36,6 @@
 #define ELEV_NAME "Elevation"
 #define HP_NAME "Number_of_Harry_Potter_Books"
 #define BUBBA "Bubba"
-
 #define MAX_DIMS 5
 
 int
@@ -88,7 +89,7 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("*** Testing file with just one dimension...");
    {
-      int ncid, dimid;
+      int ncid, dimid, dimid2;
       int ndims_in, dimids_in[MAX_DIMS];
       size_t len_in;
       char name_in[NC_MAX_NAME + 1];
@@ -96,7 +97,21 @@ main(int argc, char **argv)
 
       /* Create a file with one dim and nothing else. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+
+      /* These will not work. */
+      if (nc_def_dim(ncid + TEST_VAL_42, LAT_NAME, LAT_LEN, &dimid) != NC_EBADID) ERR;
+      if (nc_def_dim(ncid, NULL, LAT_LEN, &dimid) != NC_EINVAL) ERR;
+      if (nc_def_dim(ncid, BAD_NAME, LAT_LEN, &dimid) != NC_EBADNAME) ERR;
+      
+      /* Turn off define mode. It will be turned back on
+       * automatically. */
+      if (nc_enddef(ncid)) ERR;
+
+      /* Create the dim. */
       if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid)) ERR;
+
+      /* This will not work. */
+      if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid2) != NC_ENAMEINUSE) ERR;
 
       /* Check out what we've got. */
       if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
@@ -115,6 +130,10 @@ main(int argc, char **argv)
 
       /* Reopen and check it out again. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+
+      /* This will not work. */
+      if (nc_def_dim(ncid, LAT_NAME_2, LAT_LEN, &dimid) != NC_EPERM) ERR;
+      
       if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
       if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
@@ -130,12 +149,59 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("*** Testing classic model file with just one unlimited dimension...");
+   {
+      int ncid, dimid;
+      int ndims_in, dimids_in[MAX_DIMS];
+      size_t len_in;
+      char name_in[NC_MAX_NAME + 1];
+
+      /* Create a file with one dim and nothing else. */
+      if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
+
+      /* Turn off define mode. */
+      if (nc_enddef(ncid)) ERR;
+
+      /* This will not work. */ 
+      if (nc_def_dim(ncid, LAT_NAME, NC_UNLIMITED, &dimid) != NC_ENOTINDEFINE) ERR;
+     
+      /* Turn on define mode. */
+      if (nc_redef(ncid)) ERR;
+
+      /* Create the dim. */
+      if (nc_def_dim(ncid, LAT_NAME, NC_UNLIMITED, &dimid)) ERR;
+
+      /* This will not work because of classic model. */
+      if (nc_def_dim(ncid, LAT_NAME_2, NC_UNLIMITED, &dimid) != NC_EUNLIMIT) ERR;
+      /* if (nc_def_dim(ncid, LAT_NAME_2, X_UINT_MAX + 10, &dimid) != NC_EDIMSIZE) ERR;*/
+
+      /* Check out what we've got. */
+      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      if (len_in != 0 || strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
+      if (ndims_in != 1) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Reopen and check it out again. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      if (len_in != 0 || strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
+      if (ndims_in != 1) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    printf("*** Testing renaming of one dimension...");
    {
       int ncid, dimid, dimid_in;
       char name_in[NC_MAX_NAME + 1];
       size_t len_in;
       int ndims_in, dimids_in[MAX_DIMS];
+
+      /* Create a file with one dim and nothing else. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid)) ERR;
+      if (nc_close(ncid)) ERR;
 
       /* Reopen the file with one dim, and change the name of the dim. */
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;

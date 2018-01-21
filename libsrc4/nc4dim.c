@@ -84,6 +84,7 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
  * @return ::NC_ENOTINDEFINE Not in define mode.
  * @return ::NC_EDIMSIZE Dim length too large.
  * @return ::NC_ENAMEINUSE Name already in use in group.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
  */
 int
@@ -94,8 +95,8 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    NC_HDF5_FILE_INFO_T *h5;
    NC_DIM_INFO_T *dim;
    char norm_name[NC_MAX_NAME + 1];
-   int retval = NC_NOERR;
    uint32_t nn_hash;
+   int retval = NC_NOERR;
 
    LOG((2, "%s: ncid 0x%x name %s len %d", __func__, ncid, name,
         (int)len));
@@ -147,7 +148,8 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
 
    /* Add a dimension to the list. The ID must come from the file
     * information, since dimids are visible in more than one group. */
-   nc4_dim_list_add(&grp->dim, &dim);
+   if ((retval = nc4_dim_list_add(&grp->dim, &dim)))
+      return retval;
    dim->dimid = grp->nc4_info->next_dimid++;
 
    /* Initialize the metadata for this dimension. */

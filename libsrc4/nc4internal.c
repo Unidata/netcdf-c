@@ -101,6 +101,9 @@ nc4_check_name(const char *name, char *norm_name)
    char *temp;
    int retval;
 
+   if (!name)
+      return NC_EINVAL;
+
    /* Check the length. */
    if (strlen(name) > NC_MAX_NAME)
       return NC_EMAXNAME;
@@ -901,6 +904,7 @@ nc4_var_add(NC_VAR_INFO_T **var)
  * @param list List of dimension info structs.
  * @param dim Pointer to pointer that gets the new dim info struct.
  *
+ * @return ::NC_ENOMEM Out of memory.
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
  */
@@ -908,6 +912,7 @@ int
 nc4_dim_list_add(NC_DIM_INFO_T **list, NC_DIM_INFO_T **dim)
 {
    NC_DIM_INFO_T *new_dim;
+   assert(list && dim);
 
    if (!(new_dim = calloc(1, sizeof(NC_DIM_INFO_T))))
       return NC_ENOMEM;
@@ -915,9 +920,8 @@ nc4_dim_list_add(NC_DIM_INFO_T **list, NC_DIM_INFO_T **dim)
    /* Add object to list */
    obj_list_add((NC_LIST_NODE_T **)list, (NC_LIST_NODE_T *)new_dim);
 
-   /* Set the dim pointer, if one was given */
-   if (dim)
-      *dim = new_dim;
+   /* Set the dim pointer. */
+   *dim = new_dim;
 
    return NC_NOERR;
 }
