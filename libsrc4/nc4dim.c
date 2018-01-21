@@ -1,3 +1,6 @@
+/* Copyright 2003-2018, University Corporation for Atmospheric
+ * Research. See the COPYRIGHT file for copying and redistribution
+ * conditions. */
 /**
  * @file 
  * @internal This file is part of netcdf-4, a netCDF-like interface
@@ -6,9 +9,6 @@
  *
  * This file handles the nc4 dimension functions.
  *
- * Copyright 2003-5, University Corporation for Atmospheric Research. See
- * the COPYRIGHT file for copying and redistribution conditions.
- * 
  * @author Ed Hartnett
 */
 
@@ -43,7 +43,7 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
 
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-   assert(h5);
+   assert(h5 && nc && grp);
 
    /* According to netcdf-3 manual, return -1 if there is no unlimited
       dimension. */
@@ -103,8 +103,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    /* Find our global metadata structure. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-
-   assert(h5 && nc /*& grp*/);
+   assert(h5 && nc && grp);
 
    /* If the file is read-only, return an error. */
    if (h5->no_write)
@@ -196,9 +195,7 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
    /* Find metadata for this file. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-
-   assert(h5);
-   assert(nc && grp);
+   assert(h5 && nc && grp);
 
    /* Normalize name. */
    if ((retval = nc4_normalize_name(name, norm_name)))
@@ -248,9 +245,7 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
    /* Find our global metadata structure. */
    if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return ret;
-   
-   assert(h5);
-   assert(nc && grp);
+   assert(h5 && nc && grp);
 
    /* Find the dimension and its home group. */
    if ((ret = nc4_find_dim(grp, dimid, &dim, &dim_grp)))
@@ -327,10 +322,8 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))      
       return retval;
+   assert(h5 && nc && grp);
 
-   assert(nc);
-   assert(h5 && grp);
-   
    /* Trying to write to a read-only file? No way, Jose! */
    if (h5->no_write)
       return NC_EPERM;
@@ -442,18 +435,16 @@ NC4_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
   /* Find info for this file and group, and set pointer to each. */
   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
     return retval;
+   assert(h5 && nc && grp);
   
    /* Get our dim info. */
-   assert(h5);
+   for (dim=grp->dim; dim; dim=dim->l.next)
    {
-      for (dim=grp->dim; dim; dim=dim->l.next)
+      if (dim->unlimited)
       {
-	 if (dim->unlimited)
-	 {
-	    if (unlimdimidsp)
-	       unlimdimidsp[num_unlim] = dim->dimid;
-	    num_unlim++;
-	 }
+         if (unlimdimidsp)
+            unlimdimidsp[num_unlim] = dim->dimid;
+         num_unlim++;
       }
    }
 
