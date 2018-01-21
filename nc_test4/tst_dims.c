@@ -113,11 +113,29 @@ main(int argc, char **argv)
       /* This will not work. */
       if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid2) != NC_ENAMEINUSE) ERR;
 
+      if (nc_inq_dim(ncid + TEST_VAL_42, dimid, name_in, &len_in) != NC_EBADID) ERR;
+      if (nc_inq_dim(ncid, -1, name_in, &len_in) != NC_EBADDIM) ERR;
+
       /* Check out what we've got. */
       if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
       if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1) ERR;
+
+      /* These will also work. */
+      if (nc_inq_dim(ncid, dimid, NULL, NULL)) ERR;
+      if (nc_inq_dim(ncid, dimid, NULL, &len_in)) ERR;
+      if (len_in != LAT_LEN) ERR;
+      if (nc_inq_dim(ncid, dimid, name_in, NULL)) ERR;
+      if (strcmp(name_in, LAT_NAME)) ERR;
+
+      /* These will not work. */
+      if (nc_inq_dimid(ncid + TEST_VAL_42, LAT_NAME, &dimid_in) != NC_EBADID) ERR;
+      if (nc_inq_dimid(ncid, NULL, &dimid_in) != NC_EINVAL) ERR;
+      if (nc_inq_dimid(ncid, LAT_NAME_2, &dimid_in) != NC_EBADDIM) ERR;
+
+      /* This will work. */
+      if (nc_inq_dimid(ncid, LAT_NAME, NULL)) ERR;
       if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR;
       if (dimid_in != 0) ERR;
       if (nc_inq_dimname(ncid, 0, name_in)) ERR;
@@ -146,6 +164,28 @@ main(int argc, char **argv)
       if (len_in != LAT_LEN) ERR;
       if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
       if (ndims_in != 0) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** Testing with NULL id pointer...");
+   {
+      int ncid;
+      int ndims_in, dimids_in[MAX_DIMS];
+      size_t len_in;
+      char name_in[NC_MAX_NAME + 1];
+      int dimid_in;
+
+      /* Create a file with one dim and nothing else. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, NULL)) ERR;
+
+      /* Check out what we've got. */
+      if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
+      if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
+      if (ndims_in != 1) ERR;
+      if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR;
+      if (dimid_in != 0) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -205,6 +245,13 @@ main(int argc, char **argv)
 
       /* Reopen the file with one dim, and change the name of the dim. */
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+
+      /* These will not work. */
+      if (nc_rename_dim(ncid + TEST_VAL_42, 0, BUBBA) != NC_EBADID) ERR;
+      if (nc_rename_dim(ncid, TEST_VAL_42, BUBBA) != NC_EBADDIM) ERR;
+      if (nc_rename_dim(ncid, 0, NULL) != NC_EINVAL) ERR;
+
+      /* Rename the dimension. */
       if (nc_rename_dim(ncid, 0, BUBBA)) ERR;
 
       /* Check out what we've got. */

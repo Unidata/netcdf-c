@@ -178,6 +178,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EBADDIM Dimension not found.
+ * @return ::NC_EINVAL Invalid input. Name must be provided.
  * @author Ed Hartnett
  */
 int
@@ -189,10 +190,14 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
    NC_DIM_INFO_T *dim;
    char norm_name[NC_MAX_NAME + 1];
    int finished = 0;
-   int retval;
    uint32_t shash;
+   int retval;
 
    LOG((2, "%s: ncid 0x%x name %s", __func__, ncid, name));
+
+   /* Check input. */
+   if (!name)
+      return NC_EINVAL;
 
    /* Find metadata for this file. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
@@ -231,6 +236,7 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EDIMSIZE Dimension length too large.
+ * @return ::NC_EBADDIM Dimension not found.
  * @author Ed Hartnett
  */
 int
