@@ -309,7 +309,6 @@ exit:
  * called from nc4_put_att_tc().
  *
  * @param ncid File and group ID.
- * @param nc Pointer to file's NC struct.
  * @param varid Variable ID.
  * @param name Name of attribute.
  * @param file_type Type of the attribute data in file.
@@ -323,10 +322,11 @@ exit:
  * @author Ed Hartnett
  */
 static int
-nc4_put_att(int ncid, NC *nc, int varid, const char *name,
+nc4_put_att(int ncid, int varid, const char *name,
             nc_type file_type, nc_type mem_type, size_t len, int is_long,
             const void *data)
 {
+   NC *nc;
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var = NULL;
@@ -336,9 +336,11 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    int retval = NC_NOERR, range_error = 0;
    size_t type_size;
    int i;
-   int res;
+   int ret;
 
-   assert(nc && NC4_DATA(nc));
+   if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+      return ret;
+   assert(nc && grp && h5);
 
    LOG((1, "nc4_put_att: ncid 0x%x varid %d name %s "
         "file_type %d mem_type %d len %d", ncid, varid,
@@ -436,8 +438,8 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    if (new_att)
    {
       LOG((3, "adding attribute %s to the list...", norm_name));
-      if ((res = nc4_att_list_add(attlist, &att)))
-         BAIL (res);
+      if ((ret = nc4_att_list_add(attlist, &att)))
+         BAIL (ret);
       if (!(att->name = strdup(norm_name)))
          return NC_ENOMEM;
    }
@@ -1020,7 +1022,7 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
    }
 
    /* Otherwise, handle things the netcdf-4 way. */
-   return nc4_put_att(ncid, nc, varid, name, file_type, mem_type, len,
+   return nc4_put_att(ncid, varid, name, file_type, mem_type, len,
                       mem_type_is_long, op);
 }
 
