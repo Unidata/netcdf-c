@@ -98,7 +98,6 @@ nc4_get_att_special(NC_HDF5_FILE_INFO_T* h5, const char* name,
  * The mem_type is ignored if data=NULL.
  *
  * @param ncid File and group ID.
- * @param nc Pointer to file's NC struct.
  * @param varid Variable ID.
  * @param name Name of attribute.
  * @param xtype Pointer that gets (file) type of attribute.
@@ -112,16 +111,16 @@ nc4_get_att_special(NC_HDF5_FILE_INFO_T* h5, const char* name,
  * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
  */
-int
-nc4_get_att(int ncid, NC *nc, int varid, const char *name, nc_type *xtype,
+static int
+nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
             nc_type mem_type, size_t *lenp, int *attnum, int is_long,
             void *data)
 {
+   NC *nc;
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_ATT_INFO_T *att = NULL;
    int my_attnum = -1;
-
    int need_to_convert = 0;
    int range_error = NC_NOERR;
    void *bufr = NULL;
@@ -130,17 +129,15 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name, nc_type *xtype,
    int i;
    int retval = NC_NOERR;
 
-   if (attnum) {
+   if (attnum) 
       my_attnum = *attnum;
-   }
 
    LOG((3, "%s: ncid 0x%x varid %d name %s attnum %d mem_type %d",
         __func__, ncid, varid, name, my_attnum, mem_type));
 
    /* Find info for this file and group, and set pointer to each. */
-   h5 = NC4_DATA(nc);
-   if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
-      BAIL(NC_EBADGRPID);
+   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+      return retval;
 
    /* Check varid */
    if (varid != NC_GLOBAL) {
@@ -679,23 +676,11 @@ exit:
  * @author Ed Hartnett
  */
 int
-NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp)
+NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
+            size_t *lenp)
 {
-   NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
-
-   LOG((2, "nc_inq_att: ncid 0x%x varid %d name %s", ncid, varid, name));
-
-   /* Find metadata. */
-   if (!(nc = nc4_find_nc_file(ncid,NULL)))
-      return NC_EBADID;
-
-   /* get netcdf-4 metadata */
-   h5 = NC4_DATA(nc);
-   assert(h5);
-
-   /* Handle netcdf-4 files. */
-   return nc4_get_att(ncid, nc, varid, name, xtypep, NC_NAT, lenp, NULL, 0, NULL);
+   LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
+   return nc4_get_att(ncid, varid, name, xtypep, NC_NAT, lenp, NULL, 0, NULL);
 }
 
 /**
@@ -712,24 +697,8 @@ NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp
 int
 NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 {
-   NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
-   int stat;
-
-   LOG((2, "nc_inq_attid: ncid 0x%x varid %d name %s", ncid, varid, name));
-
-   /* Find metadata. */
-   if (!(nc = nc4_find_nc_file(ncid,NULL)))
-      return NC_EBADID;
-
-   /* get netcdf-4 metadata */
-   h5 = NC4_DATA(nc);
-   assert(h5);
-
-   /* Handle netcdf-4 files. */
-   stat = nc4_get_att(ncid, nc, varid, name, NULL, NC_NAT,
-                      NULL, attnump, 0, NULL);
-   return stat;
+   LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
+   return nc4_get_att(ncid, varid, name, NULL, NC_NAT, NULL, attnump, 0, NULL);
 }
 
 
@@ -813,8 +782,7 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
    /* Find metadata for this file. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-
-   assert(h5 && grp);
+   assert(h5 && grp && h5);
 
    /* If the file is read-only, return an error. */
    if (h5->no_write)
@@ -1085,22 +1053,10 @@ int
 nc4_get_att_tc(int ncid, int varid, const char *name, nc_type mem_type,
                int mem_type_is_long, void *ip)
 {
-   NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
-
-   LOG((3, "nc4_get_att_tc: ncid 0x%x varid %d name %s mem_type %d",
-        ncid, varid, name, mem_type));
-
-   /* Find metadata. */
-   if (!(nc = nc4_find_nc_file(ncid,NULL)))
-      return NC_EBADID;
-
-   /* get netcdf-4 metadata */
-   h5 = NC4_DATA(nc);
-   assert(h5);
-
-   return nc4_get_att(ncid, nc, varid, name, NULL, mem_type,
-                      NULL, NULL, mem_type_is_long, ip);
+   LOG((3, "%s: ncid 0x%x varid %d name %s mem_type %d", __func__, ncid, varid,
+        name, mem_type));
+   return nc4_get_att(ncid, varid, name, NULL, mem_type, NULL, NULL,
+                      mem_type_is_long, ip);
 }
 
 /**

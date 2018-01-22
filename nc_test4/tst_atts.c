@@ -91,6 +91,10 @@ main(int argc, char **argv)
       /* Rename the att. */
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, NEW_NAME)) ERR;
 
+      /* These will not work. */
+      /* if (nc_inq_attid(ncid + TEST_VAL_42, NC_GLOBAL, NEW_NAME, &attid) != NC_EBADID) ERR; */
+
+
       /* Check the file. */
       if (nc_inq_attid(ncid, NC_GLOBAL, NEW_NAME, &attid)) ERR;
       if (attid != 0) ERR;
