@@ -155,10 +155,11 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    if ((retval = nc4_normalize_name(name, norm_name)))
       BAIL(retval);
 
-   if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {
+   /* If this is one of the reserved atts, use nc_get_att_special. */
+   if (nc->ext_ncid == ncid && varid == NC_GLOBAL) {
       const char** sp;
-      for(sp = NC_RESERVED_SPECIAL_LIST;*sp;sp++) {
-         if(strcmp(name,*sp)==0) {
+      for (sp = NC_RESERVED_SPECIAL_LIST; *sp; sp++) {
+         if (strcmp(name,*sp)==0) {
             return nc4_get_att_special(h5, norm_name, xtype, mem_type, lenp,
                                        attnum, is_long, data);
          }
@@ -178,10 +179,18 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
     * versa, that's a freakish attempt to convert text to
     * numbers. Some pervert out there is trying to pull a fast one!
     * Send him an NC_ECHAR error. */
-   if (data && att->len &&
-       ((att->nc_typeid == NC_CHAR && mem_type != NC_CHAR) ||
-        (att->nc_typeid != NC_CHAR && mem_type == NC_CHAR)))
-      BAIL(NC_ECHAR); /* take that, you freak! */
+   if (data)
+      if (att->len)
+      {
+         if (((att->nc_typeid == NC_CHAR && mem_type != NC_CHAR)))
+            BAIL(NC_ECHAR); /* take that, you freak! */
+         if (((att->nc_typeid != NC_CHAR && mem_type == NC_CHAR)))
+            BAIL(NC_ECHAR); /* take that, you freak! */
+      }
+   /* if (data && att->len && */
+   /*     ((att->nc_typeid == NC_CHAR && mem_type != NC_CHAR) || */
+   /*      (att->nc_typeid != NC_CHAR && mem_type == NC_CHAR))) */
+   /*    BAIL(NC_ECHAR); /\* take that, you freak! *\/ */
 
    /* Copy the info. */
    if (lenp)
