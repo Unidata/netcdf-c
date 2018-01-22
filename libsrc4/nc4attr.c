@@ -159,18 +159,15 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
       const char** sp;
       for(sp = NC_RESERVED_SPECIAL_LIST;*sp;sp++) {
          if(strcmp(name,*sp)==0) {
-            return nc4_get_att_special(h5, norm_name, xtype, mem_type, lenp, attnum, is_long, data);
+            return nc4_get_att_special(h5, norm_name, xtype, mem_type, lenp,
+                                       attnum, is_long, data);
          }
       }
    }
 
    /* Find the attribute, if it exists. */
-   if ((retval = nc4_find_grp_att(grp, varid, norm_name, my_attnum, &att))) {
-      if(retval == NC_ENOTATT)
-         return retval;
-      else
-         BAIL(retval);
-   }
+   if ((retval = nc4_find_grp_att(grp, varid, norm_name, my_attnum, &att))) 
+      return retval;
 
    /* If mem_type is NC_NAT, it means we want to use the attribute's
     * file type as the mem type as well. */
@@ -299,7 +296,8 @@ exit:
 }
 
 /**
- * @internal Put attribute metadata into our global metadata.
+ * @internal Put attribute metadata into our global metadata. This is
+ * called from nc4_put_att_tc().
  *
  * @param ncid File and group ID.
  * @param nc Pointer to file's NC struct.
@@ -365,22 +363,11 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       assert(var->varid == varid);
    }
 
-   if (!name)
-      return NC_EBADNAME;
-
    /* Check and normalize the name. */
    if ((retval = nc4_check_name(name, norm_name)))
       return retval;
 
-   if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {
-      const char** sp;
-      for(sp = NC_RESERVED_SPECIAL_LIST;*sp;sp++) {
-         if(strcmp(name,*sp)==0) {
-            return NC_ENOTATT; /* Not settable */
-         }
-      }
-   }
-
+   /* See if there is already an attribute with this name. */
    for (att = *attlist; att; att = att->l.next)
       if (!strcmp(att->name, norm_name))
          break;
@@ -389,9 +376,8 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    if (len && !data)
       return NC_EINVAL;
 
-   LOG((1, "nc4_put_att: ncid 0x%x varid %d name %s "
-        "file_type %d mem_type %d len %d", ncid, varid,
-        name, file_type, mem_type, len));
+   LOG((1, "%s: ncid 0x%x varid %d name %s file_type %d mem_type %d len %d",
+        __func__, ncid, varid, name, file_type, mem_type, len));
 
    if (!att)
    {

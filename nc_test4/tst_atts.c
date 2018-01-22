@@ -53,6 +53,8 @@ main(int argc, char **argv)
                           CONTENTS) != NC_EBADNAME) ERR;
       if (nc_put_att_text(ncid, NC_GLOBAL, too_long_name, strlen(CONTENTS),
                           CONTENTS) != NC_EBADNAME) ERR;
+      if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS),
+                          NULL) != NC_EINVAL) ERR;
       {
          /* Check that the NC_GLOBAL reserved words are rejected. */
          const char** reserved = NC_RESERVED_ATT_LIST;
@@ -68,6 +70,15 @@ main(int argc, char **argv)
          for ( ; *reserved; reserved++)
          {
             if (nc_put_att_text(ncid, 0, *reserved, strlen(CONTENTS),
+                                CONTENTS) != NC_ENAMEINUSE) ERR;
+         }
+      }
+      {
+         /* Check that the read-only reserved words are rejected. */
+         const char** reserved = NC_RESERVED_SPECIAL_LIST;
+         for ( ; *reserved; reserved++)
+         {
+            if (nc_put_att_text(ncid, NC_GLOBAL, *reserved, strlen(CONTENTS),
                                 CONTENTS) != NC_ENAMEINUSE) ERR;
          }
       }
