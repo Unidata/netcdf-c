@@ -127,7 +127,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    size_t type_size;
    char norm_name[NC_MAX_NAME + 1];
    int i;
-   int retval = NC_NOERR;
+   int retval;
 
    if (attnum) 
       my_attnum = *attnum;
@@ -164,9 +164,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
       }
    }
 
-   /* Find the attribute, if it exists.
-      <strike>If we don't find it, we are major failures.</strike>
-   */
+   /* Find the attribute, if it exists. */
    if ((retval = nc4_find_grp_att(grp, varid, norm_name, my_attnum, &att))) {
       if(retval == NC_ENOTATT)
          return retval;
@@ -182,7 +180,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    /* If the attribute is NC_CHAR, and the mem_type isn't, or vice
     * versa, that's a freakish attempt to convert text to
     * numbers. Some pervert out there is trying to pull a fast one!
-    * Send him an NC_ECHAR error...*/
+    * Send him an NC_ECHAR error. */
    if (data && att->len &&
        ((att->nc_typeid == NC_CHAR && mem_type != NC_CHAR) ||
         (att->nc_typeid != NC_CHAR && mem_type == NC_CHAR)))

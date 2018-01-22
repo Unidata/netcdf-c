@@ -92,12 +92,17 @@ main(int argc, char **argv)
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, NEW_NAME)) ERR;
 
       /* These will not work. */
-      /* if (nc_inq_attid(ncid + TEST_VAL_42, NC_GLOBAL, NEW_NAME, &attid) != NC_EBADID) ERR; */
-
+      if (nc_inq_attid(ncid + TEST_VAL_42, NC_GLOBAL, NEW_NAME, &attid) != NC_EBADID) ERR;
+      if (nc_inq_attid(ncid, TEST_VAL_42, NEW_NAME, &attid) != NC_ENOTVAR) ERR;
+      if (nc_inq_attid(ncid, NC_GLOBAL, NULL, &attid) != NC_EBADNAME) ERR;
 
       /* Check the file. */
       if (nc_inq_attid(ncid, NC_GLOBAL, NEW_NAME, &attid)) ERR;
       if (attid != 0) ERR;
+
+      /* This also works. */
+      if (nc_inq_attid(ncid, NC_GLOBAL, NEW_NAME, NULL)) ERR;
+      
       if (nc_get_att_text(ncid, NC_GLOBAL, NEW_NAME, data_in)) ERR;
       if (strncmp(CONTENTS, data_in, strlen(CONTENTS))) ERR;
       if (nc_close(ncid)) ERR;
