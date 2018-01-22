@@ -107,6 +107,7 @@ main(int argc, char **argv)
       if (nc_get_att_text(ncid + TEST_VAL_42, NC_GLOBAL, NEW_NAME, data_in) != NC_EBADID) ERR;
       if (nc_get_att_text(ncid, TEST_VAL_42, NEW_NAME, data_in) != NC_ENOTVAR) ERR;
       if (nc_get_att_text(ncid, NC_GLOBAL, NULL, data_in) != NC_EBADNAME) ERR;
+      if (nc_get_att_text(ncid, NC_GLOBAL, NEW_NAME, NULL) != NC_EINVAL) ERR;
 
       /* Get the attribute at last. */
       if (nc_get_att_text(ncid, NC_GLOBAL, NEW_NAME, data_in)) ERR;
