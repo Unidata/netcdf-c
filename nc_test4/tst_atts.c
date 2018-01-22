@@ -2,19 +2,14 @@
    Copyright 2006 University Corporation for Atmospheric Research/Unidata.
    See COPYRIGHT file for conditions of use.
 
-   This is a very simple example which writes a netCDF file with
-   Unicode names encoded with UTF-8. It is the NETCDF3 equivalent
-   of tst_unicode.c
+   Test the netCDF-4 attribute code.
 
-   $Id$
+   Ed Hartnett
 */
 
 #include <config.h>
-#include <stdlib.h>
 #include <nc_tests.h>
 #include "err_macros.h"
-#include <netcdf.h>
-#include <string.h>
 
 /* The data file we will create. */
 #define FILE_NAME "tst_atts.nc"
@@ -37,7 +32,7 @@ main(int argc, char **argv)
       /* Create a file with an att. */
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS),
-			  CONTENTS)) ERR;
+                          CONTENTS)) ERR;
 
       /* Rename the att. */
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, NEW_NAME)) ERR;
@@ -77,7 +72,7 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
       if (nc_def_var(ncid, VAR_NAME, NC_INT, 0, NULL, &varid)) ERR;
       if (nc_put_att_text(ncid, varid, OLD_NAME1, strlen(CONTENTS1),
-			  CONTENTS1)) ERR;
+                          CONTENTS1)) ERR;
 
       /* Rename the att. */
       if (nc_rename_att(ncid, varid, OLD_NAME1, NEW_NAME1)) ERR;

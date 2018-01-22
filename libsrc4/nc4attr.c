@@ -1,3 +1,6 @@
+/* Copyright 2003-2018, University Corporation for Atmospheric
+ * Research. See COPYRIGHT file for copying and redistribution
+ * conditions. */
 /**
  * @file
  *
@@ -9,10 +12,6 @@
  *
  * Remember that with atts, type conversion can take place when
  * writing them, and when reading them.
- *
- * Copyright 2003-2011, University Corporation for Atmospheric
- * Research. See COPYRIGHT file for copying and redistribution
- * conditions.
  *
  * @author Ed Hartnett
  */
@@ -38,6 +37,7 @@ int nc4typelen(nc_type type);
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ERANGE Data conversion out of range.
  * @author Dennis Heimbigner
  */
 static int
