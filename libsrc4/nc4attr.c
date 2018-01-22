@@ -322,9 +322,8 @@ exit:
  * @author Ed Hartnett
  */
 static int
-nc4_put_att(int ncid, int varid, const char *name,
-            nc_type file_type, nc_type mem_type, size_t len, int is_long,
-            const void *data)
+nc4_put_att(int ncid, int varid, const char *name, nc_type file_type,
+            nc_type mem_type, size_t len, int is_long, const void *data)
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
@@ -342,9 +341,30 @@ nc4_put_att(int ncid, int varid, const char *name,
       return ret;
    assert(nc && grp && h5);
 
-   LOG((1, "nc4_put_att: ncid 0x%x varid %d name %s "
-        "file_type %d mem_type %d len %d", ncid, varid,
-        name, file_type, mem_type, len));
+   /* Check name. */
+   if (!name || strlen(name) > NC_MAX_NAME)
+      return NC_EBADNAME;
+
+   LOG((1, "%s: ncid 0x%x varid %d name %s file_type %d mem_type %d len %d",
+        __func__, ncid, varid, name, file_type, mem_type, len));
+
+   /* Check that a reserved NC_GLOBAL att name is not being used. */
+   if (nc->ext_ncid == ncid && varid == NC_GLOBAL) {
+      const char** reserved = NC_RESERVED_ATT_LIST;
+      for ( ; *reserved; reserved++) {
+         if (strcmp(name, *reserved)==0)
+            return NC_ENAMEINUSE;
+      }
+   }
+
+   /* Check that a reserved variable att name is not being used. */
+   if (varid != NC_GLOBAL) {
+      const char** reserved = NC_RESERVED_VARATT_LIST;
+      for ( ; *reserved; reserved++) {
+         if (strcmp(name, *reserved) == 0)
+            return NC_ENAMEINUSE;
+      }
+   }
 
    /* If len is not zero, then there must be some data. */
    if (len && !data)
@@ -996,30 +1016,30 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
       assert(grp->vars.value[varid]->varid == varid);
    }
 
-   /* Check name. */
-   if (!name || strlen(name) > NC_MAX_NAME)
-      return NC_EBADNAME;
+   /* /\* Check name. *\/ */
+   /* if (!name || strlen(name) > NC_MAX_NAME) */
+   /*    return NC_EBADNAME; */
 
    LOG((3, "nc4_put_att_tc: ncid 0x%x varid %d name %s file_type %d "
         "mem_type %d len %d", ncid, varid, name, file_type, mem_type, len));
 
-   /* Check that a reserved NC_GLOBAL att name is not being used. */
-   if (nc->ext_ncid == ncid && varid == NC_GLOBAL) {
-      const char** reserved = NC_RESERVED_ATT_LIST;
-      for ( ; *reserved; reserved++) {
-         if (strcmp(name, *reserved)==0)
-            return NC_ENAMEINUSE;
-      }
-   }
+   /* /\* Check that a reserved NC_GLOBAL att name is not being used. *\/ */
+   /* if (nc->ext_ncid == ncid && varid == NC_GLOBAL) { */
+   /*    const char** reserved = NC_RESERVED_ATT_LIST; */
+   /*    for ( ; *reserved; reserved++) { */
+   /*       if (strcmp(name, *reserved)==0) */
+   /*          return NC_ENAMEINUSE; */
+   /*    } */
+   /* } */
 
-   /* Check that a reserved variable att name is not being used. */
-   if (varid != NC_GLOBAL) {
-      const char** reserved = NC_RESERVED_VARATT_LIST;
-      for ( ; *reserved; reserved++) {
-         if (strcmp(name, *reserved) == 0)
-            return NC_ENAMEINUSE;
-      }
-   }
+   /* /\* Check that a reserved variable att name is not being used. *\/ */
+   /* if (varid != NC_GLOBAL) { */
+   /*    const char** reserved = NC_RESERVED_VARATT_LIST; */
+   /*    for ( ; *reserved; reserved++) { */
+   /*       if (strcmp(name, *reserved) == 0) */
+   /*          return NC_ENAMEINUSE; */
+   /*    } */
+   /* } */
 
    /* Otherwise, handle things the netcdf-4 way. */
    return nc4_put_att(ncid, varid, name, file_type, mem_type, len,
