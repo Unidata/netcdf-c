@@ -337,9 +337,10 @@ nc4_put_att(int ncid, int varid, const char *name, nc_type file_type,
    int i;
    int ret;
 
-   if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return ret;
-   assert(nc && grp && h5);
+   /* The length needs to be positive (cast needed for braindead
+      systems with signed size_t). */
+   if((unsigned long) len > X_INT_MAX)
+      return NC_EINVAL;
 
    /* Check name. */
    if (!name || strlen(name) > NC_MAX_NAME)
@@ -347,6 +348,10 @@ nc4_put_att(int ncid, int varid, const char *name, nc_type file_type,
 
    LOG((1, "%s: ncid 0x%x varid %d name %s file_type %d mem_type %d len %d",
         __func__, ncid, varid, name, file_type, mem_type, len));
+
+   if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+      return ret;
+   assert(nc && grp && h5);
 
    /* Check that a reserved NC_GLOBAL att name is not being used. */
    if (nc->ext_ncid == ncid && varid == NC_GLOBAL) {
@@ -997,10 +1002,10 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
    NC_GRP_INFO_T *grp;
    int ret;
 
-   /* The length needs to be positive (cast needed for braindead
-      systems with signed size_t). */
-   if((unsigned long) len > X_INT_MAX)
-      return NC_EINVAL;
+   /* /\* The length needs to be positive (cast needed for braindead */
+   /*    systems with signed size_t). *\/ */
+   /* if((unsigned long) len > X_INT_MAX) */
+   /*    return NC_EINVAL; */
 
    /* Find our global metadata structure. */
    if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
