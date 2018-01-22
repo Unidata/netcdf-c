@@ -135,7 +135,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    LOG((3, "%s: ncid 0x%x varid %d name %s attnum %d mem_type %d",
         __func__, ncid, varid, name, my_attnum, mem_type));
 
-   /* Find info for this file and group, and set pointer to each. */
+   /* Find info for this file, group, and h5 info. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
 
@@ -314,7 +314,6 @@ exit:
  * @param file_type Type of the attribute data in file.
  * @param mem_type Type of attribute data in memory.
  * @param len Length of attribute array.
- * @param is_long True if attribute is of type NC_LONG.
  * @param data Attribute data.
  *
  * @return ::NC_NOERR No error.
@@ -323,7 +322,7 @@ exit:
  */
 static int
 nc4_put_att(int ncid, int varid, const char *name, nc_type file_type,
-            nc_type mem_type, size_t len, int is_long, const void *data)
+            nc_type mem_type, size_t len, const void *data)
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
@@ -337,6 +336,25 @@ nc4_put_att(int ncid, int varid, const char *name, nc_type file_type,
    int i;
    int ret;
 
+   /* Find info for this file, group, and h5 info. */
+   if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+      return ret;
+   assert(nc && grp && h5);
+
+   /* Find att, if it exists. (Must check varid first or nc_test will
+    * break.) */
+   if (varid == NC_GLOBAL)
+      attlist = &grp->att;
+   else
+   {
+      if (varid < 0 || varid >= grp->vars.nelems)
+         return NC_ENOTVAR;
+      var = grp->vars.value[varid];
+      if (!var) return NC_ENOTVAR;
+      attlist = &var->att;
+      assert(var->varid == varid);
+   }
+
    /* The length needs to be positive (cast needed for braindead
       systems with signed size_t). */
    if((unsigned long) len > X_INT_MAX)
@@ -348,10 +366,6 @@ nc4_put_att(int ncid, int varid, const char *name, nc_type file_type,
 
    LOG((1, "%s: ncid 0x%x varid %d name %s file_type %d mem_type %d len %d",
         __func__, ncid, varid, name, file_type, mem_type, len));
-
-   if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return ret;
-   assert(nc && grp && h5);
 
    /* Check that a reserved NC_GLOBAL att name is not being used. */
    if (nc->ext_ncid == ncid && varid == NC_GLOBAL) {
@@ -383,19 +397,6 @@ nc4_put_att(int ncid, int varid, const char *name, nc_type file_type,
    /* If the file is read-only, return an error. */
    if (h5->no_write)
       return NC_EPERM;
-
-   /* Find att, if it exists. */
-   if (varid == NC_GLOBAL)
-      attlist = &grp->att;
-   else
-   {
-      if (varid < 0 || varid >= grp->vars.nelems)
-         return NC_ENOTVAR;
-      var = grp->vars.value[varid];
-      if (!var) return NC_ENOTVAR;
-      attlist = &var->att;
-      assert(var->varid == varid);
-   }
 
    /* Check and normalize the name. */
    if ((retval = nc4_check_name(name, norm_name)))
@@ -444,7 +445,7 @@ nc4_put_att(int ncid, int varid, const char *name, nc_type file_type,
       return NC_EBADTYPE;
 
    /* Get information about this type. */
-   if ((retval = nc4_get_typelen_mem(h5, file_type, is_long, &type_size)))
+   if ((retval = nc4_get_typelen_mem(h5, file_type, 0, &type_size)))
       return retval;
 
    /* No character conversions are allowed. */
@@ -657,7 +658,7 @@ nc4_put_att(int ncid, int varid, const char *name, nc_type file_type,
             /* Data types are like religions, in that one can convert.  */
             if ((retval = nc4_convert_type(data, att->data, mem_type, file_type,
                                            len, &range_error, NULL,
-                                           (h5->cmode & NC_CLASSIC_MODEL), is_long, 0)))
+                                           (h5->cmode & NC_CLASSIC_MODEL), 0, 0)))
                BAIL(retval);
          }
       }
@@ -797,7 +798,7 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
    if (strlen(newname) > NC_MAX_NAME)
       return NC_EMAXNAME;
 
-   /* Find metadata for this file. */
+   /* Find info for this file, group, and h5 info. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
    assert(h5 && grp && h5);
@@ -906,7 +907,7 @@ NC4_del_att(int ncid, int varid, const char *name)
    LOG((2, "nc_del_att: ncid 0x%x varid %d name %s",
         ncid, varid, name));
 
-   /* Find metadata for this file. */
+   /* Find info for this file, group, and h5 info. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
 
@@ -994,61 +995,10 @@ exit:
  */
 static int
 nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
-               nc_type mem_type, int mem_type_is_long, size_t len,
-               const void *op)
+               nc_type mem_type, size_t len, const void *op)
 {
-   NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
-   NC_GRP_INFO_T *grp;
-   int ret;
-
-   /* /\* The length needs to be positive (cast needed for braindead */
-   /*    systems with signed size_t). *\/ */
-   /* if((unsigned long) len > X_INT_MAX) */
-   /*    return NC_EINVAL; */
-
-   /* Find our global metadata structure. */
-   if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return ret;
-   assert(nc && grp && h5);
-
-   /* Check varid */
-   if (varid != NC_GLOBAL) {
-      if (varid < 0 || varid >= grp->vars.nelems)
-         return NC_ENOTVAR;
-      if (grp->vars.value[varid] == NULL)
-         return NC_ENOTVAR;
-      assert(grp->vars.value[varid]->varid == varid);
-   }
-
-   /* /\* Check name. *\/ */
-   /* if (!name || strlen(name) > NC_MAX_NAME) */
-   /*    return NC_EBADNAME; */
-
-   LOG((3, "nc4_put_att_tc: ncid 0x%x varid %d name %s file_type %d "
-        "mem_type %d len %d", ncid, varid, name, file_type, mem_type, len));
-
-   /* /\* Check that a reserved NC_GLOBAL att name is not being used. *\/ */
-   /* if (nc->ext_ncid == ncid && varid == NC_GLOBAL) { */
-   /*    const char** reserved = NC_RESERVED_ATT_LIST; */
-   /*    for ( ; *reserved; reserved++) { */
-   /*       if (strcmp(name, *reserved)==0) */
-   /*          return NC_ENAMEINUSE; */
-   /*    } */
-   /* } */
-
-   /* /\* Check that a reserved variable att name is not being used. *\/ */
-   /* if (varid != NC_GLOBAL) { */
-   /*    const char** reserved = NC_RESERVED_VARATT_LIST; */
-   /*    for ( ; *reserved; reserved++) { */
-   /*       if (strcmp(name, *reserved) == 0) */
-   /*          return NC_ENAMEINUSE; */
-   /*    } */
-   /* } */
-
    /* Otherwise, handle things the netcdf-4 way. */
-   return nc4_put_att(ncid, varid, name, file_type, mem_type, len,
-                      mem_type_is_long, op);
+   return nc4_put_att(ncid, varid, name, file_type, mem_type, len, op);
 }
 
 /**
@@ -1096,7 +1046,7 @@ int
 NC4_put_att(int ncid, int varid, const char *name, nc_type xtype,
             size_t nelems, const void *value, nc_type memtype)
 {
-   return nc4_put_att_tc(ncid, varid, name, xtype, memtype, 0, nelems, value);
+   return nc4_put_att_tc(ncid, varid, name, xtype, memtype, nelems, value);
 }
 
 /**
