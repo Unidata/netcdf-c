@@ -102,7 +102,13 @@ main(int argc, char **argv)
 
       /* This also works. */
       if (nc_inq_attid(ncid, NC_GLOBAL, NEW_NAME, NULL)) ERR;
-      
+
+      /* These will not work. */
+      if (nc_get_att_text(ncid + TEST_VAL_42, NC_GLOBAL, NEW_NAME, data_in) != NC_EBADID) ERR;
+
+      /* Get the attribute at last. */
+      if (nc_get_att_text(ncid, NC_GLOBAL, NEW_NAME, data_in)) ERR;
+
       if (nc_get_att_text(ncid, NC_GLOBAL, NEW_NAME, data_in)) ERR;
       if (strncmp(CONTENTS, data_in, strlen(CONTENTS))) ERR;
       if (nc_close(ncid)) ERR;
