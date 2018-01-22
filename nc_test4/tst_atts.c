@@ -107,13 +107,13 @@ main(int argc, char **argv)
       if (nc_get_att_text(ncid + TEST_VAL_42, NC_GLOBAL, NEW_NAME, data_in) != NC_EBADID) ERR;
       if (nc_get_att_text(ncid, TEST_VAL_42, NEW_NAME, data_in) != NC_ENOTVAR) ERR;
       if (nc_get_att_text(ncid, NC_GLOBAL, NULL, data_in) != NC_EBADNAME) ERR;
-      if (nc_get_att_text(ncid, NC_GLOBAL, NEW_NAME, NULL) != NC_EINVAL) ERR;
 
       /* Get the attribute at last. */
       if (nc_get_att_text(ncid, NC_GLOBAL, NEW_NAME, data_in)) ERR;
-
-      if (nc_get_att_text(ncid, NC_GLOBAL, NEW_NAME, data_in)) ERR;
       if (strncmp(CONTENTS, data_in, strlen(CONTENTS))) ERR;
+
+      /* This also works. */
+      if (nc_get_att_text(ncid, NC_GLOBAL, NEW_NAME, NULL)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Reopen the file and check again. */
@@ -130,7 +130,6 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("*** testing attribute renaming for a variable attribute...");
    {
-#define VAR_NAME "var_name"
 #define OLD_NAME1 "Constantinople"
 #define NEW_NAME1 "Istanbul____________"
 #define CONTENTS1 "Lots of people!"
