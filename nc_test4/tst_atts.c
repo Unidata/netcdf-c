@@ -10,6 +10,7 @@
 #include <config.h>
 #include <nc_tests.h>
 #include "err_macros.h"
+#include "nc4internal.h"
 
 /* The data file we will create. */
 #define FILE_NAME "tst_atts.nc"
@@ -18,22 +19,75 @@ int
 main(int argc, char **argv)
 {
    printf("\n*** Testing netCDF-4 attributes.\n");
+   nc_set_log_level(3);
    printf("*** testing attribute renaming for a global attribute...");
    {
 #define OLD_NAME "Constantinople"
+#define OLD_NAME_2 "Constantinopolis"
 #define NEW_NAME "Istanbul"
 #define CONTENTS "Lots of people!"
+#define VAR_NAME "Earth"
 
       int ncid, attid;
       char *data_in;
+      char too_long_name[NC_MAX_NAME + 2];
+      
+      /* Set up a name that is too long for netCDF. */
+      memset(too_long_name, 'a', NC_MAX_NAME + 1);
+      too_long_name[NC_MAX_NAME + 1] = 0;
 
       if (!(data_in = malloc(strlen(CONTENTS) + 1))) ERR;
 
       /* Create a file with an att. */
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+      if (nc_def_var(ncid, VAR_NAME, NC_INT, 0, NULL, NULL)) ERR;
+
+      /* These will not work. */
+      if (nc_put_att_text(ncid + TEST_VAL_42, NC_GLOBAL, OLD_NAME, strlen(CONTENTS),
+                          CONTENTS) != NC_EBADID) ERR;
+      if (nc_put_att_text(ncid, TEST_VAL_42, OLD_NAME, strlen(CONTENTS),
+                          CONTENTS) != NC_ENOTVAR) ERR;
+      if (nc_put_att_text(ncid, NC_GLOBAL, NULL, strlen(CONTENTS),
+                          CONTENTS) != NC_EBADNAME) ERR;
+      if (nc_put_att_text(ncid, NC_GLOBAL, BAD_NAME, strlen(CONTENTS),
+                          CONTENTS) != NC_EBADNAME) ERR;
+      if (nc_put_att_text(ncid, NC_GLOBAL, too_long_name, strlen(CONTENTS),
+                          CONTENTS) != NC_EBADNAME) ERR;
+      {
+         /* Check that the NC_GLOBAL reserved words are rejected. */
+         const char** reserved = NC_RESERVED_ATT_LIST;
+         for ( ; *reserved; reserved++)
+         {
+            if (nc_put_att_text(ncid, NC_GLOBAL, *reserved, strlen(CONTENTS),
+                                CONTENTS) != NC_ENAMEINUSE) ERR;
+         }
+      }
+      {
+         /* Check that the variable reserved words are rejected. */
+         const char** reserved = NC_RESERVED_VARATT_LIST;
+         for ( ; *reserved; reserved++)
+         {
+            if (nc_put_att_text(ncid, 0, *reserved, strlen(CONTENTS),
+                                CONTENTS) != NC_ENAMEINUSE) ERR;
+         }
+      }
+      
+      /* Write the attribute at last. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS),
                           CONTENTS)) ERR;
+      
+      /* Write another with different name. */
+      if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME_2, strlen(CONTENTS),
+                          CONTENTS)) ERR;
 
+      /* These will not work. */
+      if (nc_rename_att(ncid + TEST_VAL_42, NC_GLOBAL, OLD_NAME, NEW_NAME) != NC_EBADID) ERR;
+      if (nc_rename_att(ncid, TEST_VAL_42, OLD_NAME, NEW_NAME) != NC_ENOTVAR) ERR;
+      if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, NULL) != NC_EINVAL) ERR;
+      if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, BAD_NAME) != NC_EBADNAME) ERR;
+      if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, too_long_name) != NC_EMAXNAME) ERR;
+      if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, OLD_NAME_2) != NC_ENAMEINUSE) ERR;
+      
       /* Rename the att. */
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, NEW_NAME)) ERR;
 

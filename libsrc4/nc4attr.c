@@ -1013,27 +1013,21 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
 {
    NC *nc;
    NC_HDF5_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
+   int ret;
 
    /* The length needs to be positive (cast needed for braindead
       systems with signed size_t). */
    if((unsigned long) len > X_INT_MAX)
       return NC_EINVAL;
 
-   /* Find metadata. */
-   if (!(nc = nc4_find_nc_file(ncid,NULL)))
-      return NC_EBADID;
-
-   /* get netcdf-4 metadata */
-   h5 = NC4_DATA(nc);
-   assert(h5);
+   /* Find our global metadata structure. */
+   if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+      return ret;
+   assert(nc && grp && h5);
 
    /* Check varid */
    if (varid != NC_GLOBAL) {
-      /* Find info for this file and group, and set pointer to each. */
-      NC_GRP_INFO_T *grp;
-      if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
-         return NC_EBADGRPID;
-
       if (varid < 0 || varid >= grp->vars.nelems)
          return NC_ENOTVAR;
       if (grp->vars.value[varid] == NULL)
@@ -1041,24 +1035,27 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
       assert(grp->vars.value[varid]->varid == varid);
    }
 
+   /* Check name. */
    if (!name || strlen(name) > NC_MAX_NAME)
       return NC_EBADNAME;
 
    LOG((3, "nc4_put_att_tc: ncid 0x%x varid %d name %s file_type %d "
         "mem_type %d len %d", ncid, varid, name, file_type, mem_type, len));
 
-   if(nc->ext_ncid == ncid && varid == NC_GLOBAL) {
+   /* Check that a reserved NC_GLOBAL att name is not being used. */
+   if (nc->ext_ncid == ncid && varid == NC_GLOBAL) {
       const char** reserved = NC_RESERVED_ATT_LIST;
-      for(;*reserved;reserved++) {
-         if(strcmp(name,*reserved)==0)
+      for ( ; *reserved; reserved++) {
+         if (strcmp(name, *reserved)==0)
             return NC_ENAMEINUSE;
       }
    }
 
-   if(varid != NC_GLOBAL) {
+   /* Check that a reserved variable att name is not being used. */
+   if (varid != NC_GLOBAL) {
       const char** reserved = NC_RESERVED_VARATT_LIST;
-      for(;*reserved;reserved++) {
-         if(strcmp(name,*reserved)==0)
+      for ( ; *reserved; reserved++) {
+         if (strcmp(name, *reserved) == 0)
             return NC_ENAMEINUSE;
       }
    }
