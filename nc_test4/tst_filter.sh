@@ -3,8 +3,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-set -e
-
 # Which test cases to exercise
 API=1
 NG=1
@@ -79,7 +77,7 @@ rm -f ./tmp
 trimleft ./tmp2 ./tmp
 rm -f ./tmp2
 cat >./tmp2 <<EOF
-var:_Filter = "32768,1,4294967279,23,4294967271,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
+var:_Filter = "32768,1,239,23,65511,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
 EOF
 diff -b -w ./tmp ./tmp2
 echo "*** Pass: parameter passing"

@@ -13,6 +13,12 @@
 
 #include "h5misc.h"
 
+#if defined  _MSC_VER || defined __APPLE__
+#define DBLVAL 12345678.12345678
+#else
+#define DBLVAL 12345678.12345678d
+#endif
+
 #undef DEBUG
 
 static int paramcheck(size_t nparams, const unsigned int* params);
@@ -119,72 +125,88 @@ paramcheck(size_t nparams, const unsigned int* params)
 
     if(nparams != 14) {
 	fprintf(stderr,"Too few parameters: need=16 sent=%ld\n",(unsigned long)nparams);
-	return 0;
+	goto fail;
     }
 
     for(i=0;i<nparams;i++) {
+	unsigned int ival;
+	unsigned long long lval;
+	float fval;
+	double dval;
         switch (i) {
         case 0: break; /* this is the testcase # */
-        case 1: if(((signed char)-17) != (signed int)(params[i]))
-	    {mismatch(i,"signed byte"); return 0; };
+        case 1:
+	    ival = (-17) & 0xff;
+	    if(ival != (signed int)(params[i]))
+	    {mismatch(i,"signed byte"); goto fail; };
 	    break;
-        case 2: if(((unsigned char)23) != (unsigned int)(params[i]))
-	    {mismatch(i,"unsigned byte"); return 0; };
+        case 2:
+	    ival = 23;
+	    if(ival != (unsigned int)(params[i]))
+	    {mismatch(i,"unsigned byte"); goto fail; };
 	    break;
-        case 3: if(((signed short)-25) != (signed int)(params[i]))
-	    {mismatch(i,"signed short"); return 0; };
+        case 3:
+	    ival = (-25) & 0xffff;
+	    if(ival != (signed int)(params[i]))
+	    {mismatch(i,"signed short"); goto fail; };
 	    break;
-        case 4: if(((unsigned short)27) != (unsigned int)(params[i]))
-	    {mismatch(i,"unsigned short"); return 0; };
+        case 4:
+	    ival = 27;
+	    if(ival != (unsigned int)(params[i]))
+	    {mismatch(i,"unsigned short"); goto fail; };
 	    break;
-        case 5: if(77 != (signed int)(params[i]))
-	    {mismatch(i,"signed int"); return 0; };
+        case 5:
+	    ival = 77;
+	    if(ival != (signed int)(params[i]))
+	    {mismatch(i,"signed int"); goto fail; };
 	    break;
-        case 6: if(93u != (unsigned int)(params[i]))
-	    {mismatch(i,"unsigned int"); return 0; };
+        case 6:
+	    ival = 93u;
+	    if(ival != (unsigned int)(params[i]))
+	    {mismatch(i,"unsigned int"); goto fail; };
 	    break;
-        case 7: if(789.0f != *(float*)(&params[i]))
-	    {mismatch(i,"float"); return 0; };
+        case 7:
+	    fval = 789.0f;
+	    if(fval != *(float*)(&params[i]))
+	    {mismatch(i,"float"); goto fail; };
 	    break;
         case 8: {/*double*/
             double x = *(double*)&params[i];
+	    dval = DBLVAL;
             i++; /* takes two parameters */
             if(bigendian)
 		byteswap8((unsigned char*)&x);
-#if defined  _MSC_VER || defined __APPLE__
-#define DBLVAL 12345678.12345678
-#else
-#define DBLVAL 12345678.12345678d
-#endif
-	    if(DBLVAL != x) {
+	    if(dval != x) {
                 mismatch(i,"double");
-                return 0;
+                goto fail;
             }
             }; break;
         case 10: {/*signed long long*/
             signed long long x = *(signed long long*)&params[i];
+	    lval = -9223372036854775807L;
             i++; /* takes two parameters */
             if(bigendian)
 		byteswap8((unsigned char*)&x);
-            if(-9223372036854775807L != x) {
+            if(lval != x) {
                 mismatch(i,"signed long long");
-                return 0;
+                goto fail;
             }
             }; break;
         case 12: {/*unsigned long long*/
             unsigned long long x = *(unsigned long long*)&params[i];
+	    lval = 18446744073709551615UL;
             i++; /* takes two parameters */
             if(bigendian)
 		byteswap8((unsigned char*)&x);
-            if(18446744073709551615UL != x) {
+            if(lval != x) {
                 mismatch(i,"unsigned long long");
-                return 0;
+                goto fail;
             }
             }; break;
 
         default:
             mismatch(i,"unexpected parameter");
-            return 0;
+            goto fail;
             break;
         }
     }
@@ -200,6 +222,8 @@ paramcheck(size_t nparams, const unsigned int* params)
     }
 #endif
     return 1;
+fail:
+    return 0;
 }
 
 static void

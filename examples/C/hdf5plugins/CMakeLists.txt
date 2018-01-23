@@ -1,8 +1,14 @@
 SET(CMAKE_BUILD_TYPE "")
 
-SET(libbzip2_SOURCES blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c H5Zbzip2.c)
+SET(libbzip2_SOURCES bzlib.h bzlib_private.h
+         blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c
+         H5Zbzip2.c h5bzip2.h
+)
 
-SET(libmisc_SOURCES H5Zmisc.c)
+# Get the compilable sources from nc_test4/hdf5plugins
+FOREACH(S ${libbzip2_SOURCES})
+  FILE(COPY ${CMAKE_SOURCE_DIR}/nc_test4/hdf5plugins/${S} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+ENDFOREACH(S)
 
 IF(ENABLE_FILTER_TESTING)
 IF(BUILD_UTILITIES)
