@@ -697,11 +697,6 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
    if (len && !data)
       return NC_EINVAL;
 
-   /* Find info for this file and group, and set pointer to each. */
-   h5 = NC4_DATA(nc);
-   if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
-      return NC_EBADGRPID;
-
    /* If the file is read-only, return an error. */
    if (h5->no_write)
       return NC_EPERM;
