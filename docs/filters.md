@@ -162,8 +162,8 @@ also can easily be represented as 32 bit unsigned integers by
 proper casting to an unsigned integer so that the bit pattern
 is preserved. Simple integer values of type short or char
 (or the unsigned versions) can also be mapped to an unsigned
-integer by either sign extension or just padding with zeros in some
-consistent way.
+integer by truncating to 16 or 8 bits respectively and then
+zero extending.
 
 Machine byte order (aka endian-ness) is an issue for passing
 some kinds of parameters. You might define the parameters when
@@ -238,10 +238,10 @@ the <a href="#ParamEncode">parameter encoding section</a>.
 The currently supported constants are as follows.
 <table>
 <tr halign="center"><th>Example<th>Type<th>Format Tag<th>Notes
-<tr><td>-17b<td>signed 8-bit byte<td>b|B<td>
-<tr><td>23ub<td>unsigned 8-bit byte<td>u|U b|B<td>
-<tr><td>-25S<td>signed 16-bit short<td>s|S<td>
-<tr><td>27US<td>unsigned 16-bit short<td>u|U s|S<td>
+<tr><td>-17b<td>signed 8-bit byte<td>b|B<td>Truncated to 8 bits and zero extended to 32 bits
+<tr><td>23ub<td>unsigned 8-bit byte<td>u|U b|B<td>Truncated to 8 bits and zero extended to 32 bits
+<tr><td>-25S<td>signed 16-bit short<td>s|S<td>Truncated to 16 bits and zero extended to 32 bits
+<tr><td>27US<td>unsigned 16-bit short<td>u|U s|S<td>Truncated to 16 bits and zero extended to 32 bits
 <tr><td>-77<td>implicit signed 32-bit integer<td>Leading minus sign and no tag<td>
 <tr><td>77<td>implicit unsigned 32-bit integer<td>No tag<td>
 <tr><td>93U<td>explicit unsigned 32-bit integer<td>u|U<td>

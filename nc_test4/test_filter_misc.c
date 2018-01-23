@@ -11,15 +11,21 @@
 #include <hdf5.h>
 #include "netcdf.h"
 
+#if defined  _MSC_VER || defined __APPLE__
+#define DBLVAL 12345678.12345678
+#else
+#define DBLVAL 12345678.12345678d
+#endif
+
 #define TEST_ID 32768
 
 #define MAXERRS 8
 
 #define MAXPARAMS 32
 
-#define NBASELINE 14
+#define NPARAMS 14
 
-static unsigned int baseline[NBASELINE];
+static unsigned int baseline[NPARAMS];
 
 #define MAXDIMS 8
 
@@ -28,6 +34,8 @@ static unsigned int baseline[NBASELINE];
 #define DEFAULTCHUNKSIZE 4
 
 #define TESTFILE "testmisc.nc"
+
+#define spec "32768, -17b, 23ub, -25S, 27US, 77, 93U, 789f, 12345678.12345678d, -9223372036854775807L, 18446744073709551615UL"
 
 static size_t dimsize = DEFAULTDIMSIZE;
 static size_t chunksize = DEFAULTCHUNKSIZE;
@@ -131,7 +139,7 @@ create(void)
 static void
 setvarfilter(void)
 {
-    CHECK(nc_def_var_filter(ncid,varid,TEST_ID,NBASELINE,baseline));
+    CHECK(nc_def_var_filter(ncid,varid,TEST_ID,NPARAMS,baseline));
     verifyparams();
 }
 
@@ -141,7 +149,7 @@ verifyparams(void)
     int i;
     CHECK(nc_inq_var_filter(ncid,varid,&filterid,&nparams,params));
     if(filterid != TEST_ID) REPORT("id mismatch");
-    if(nparams != NBASELINE) REPORT("nparams mismatch");
+    if(nparams != NPARAMS) REPORT("nparams mismatch");
     for(i=0;i<nparams;i++) {
         if(params[i] != baseline[i])
             REPORT("param mismatch");
@@ -166,16 +174,16 @@ openfile(void)
         CHECK(nc_inq_var_filter(ncid,varid,&filterid,&nparams,params));
     }
     if(filterid != TEST_ID) {
-        printf("open: test id mismatch: %d\n",filterid);
+        fprintf(stderr,"open: test id mismatch: %d\n",filterid);
         return NC_EFILTER;
     }
-    if(nparams != NBASELINE) {
+    if(nparams != NPARAMS) {
 	size_t i;
 	unsigned int inqparams[MAXPARAMS];
-        printf("nparams  mismatch\n");
+        fprintf(stderr,"nparams  mismatch\n");
         for(nerrs=0,i=0;i<nparams;i++) {
             if(inqparams[i] != baseline[i]) {
-                printf("open: testparam mismatch: %ld\n",(unsigned long)i);
+                fprintf(stderr,"open: testparam mismatch: %ld\n",(unsigned long)i);
 		nerrs++;
 	    }
 	}
@@ -231,7 +239,7 @@ compare(void)
         int i;
         for(i=0;i<actualproduct;i++) {
             if(expected[i] != array[i]) {
-                fprintf(stderr,"mismatch: array[%d]=%f expected[%d]=%f\n",
+                fprintf(stderr,"data mismatch: array[%d]=%f expected[%d]=%f\n",
                             i,array[i],i,expected[i]);
                 errs++;
                 if(errs >= MAXERRS)
@@ -245,7 +253,7 @@ compare(void)
             int offset = odom_offset();
             float expect = expectedvalue();
             if(array[offset] != expect) {
-                fprintf(stderr,"mismatch: array[%d]=%f expected=%f\n",
+                fprintf(stderr,"data mismatch: array[%d]=%f expected=%f\n",
                             offset,array[offset],expect);
                 errs++;
                 if(errs >= MAXERRS)
@@ -264,14 +272,15 @@ static void
 showparameters(void)
 {
     int i;
-    printf("test: nparams=%ld: params=",(unsigned long)nparams);
+    fprintf(stderr,"test: nparams=%ld: params=",(unsigned long)nparams);
     for(i=0;i<nparams;i++) {
-        printf(" %u",params[i]);
+        fprintf(stderr," %u",params[i]);
     }
-    printf("\n");
+    fprintf(stderr,"\n");
     for(i=0;i<actualdims;i++)
-        printf("%s%ld",(i==0?" chunks=":","),(unsigned long)chunks[i]);
-    printf("\n");
+        fprintf(stderr,"%s%ld",(i==0?" chunks=":","),(unsigned long)chunks[i]);
+    fprintf(stderr,"\n");
+    fflush(stderr);
 }
 
 static void
@@ -292,11 +301,11 @@ buildbaseline(unsigned int testcasenumber)
     baseline[0] = testcasenumber;
     switch (testcasenumber) {
     case 1:
-	val4 = (unsigned int)-17;
+        val4 = ((unsigned int)-17) & 0xff;
         insert(1,&val4,sizeof(val4)); /* 1 signed int*/
 	val4 = (unsigned int)23;
         insert(2,&val4,sizeof(val4)); /* 2 unsigned int*/
-	val4 = (unsigned int)-25;
+        val4 = ((unsigned int)-25) & 0xffff;
         insert(3,&val4,sizeof(val4)); /* 3 signed int*/
 	val4 = (unsigned int)27;
         insert(4,&val4,sizeof(val4)); /* 4 unsigned int*/
@@ -306,11 +315,6 @@ buildbaseline(unsigned int testcasenumber)
         insert(6,&val4,sizeof(val4)); /* 6 unsigned int*/
 	float4 = 789.0f;
         insert(7,&float4,sizeof(float4)); /* 7 float */
-#if defined  _MSC_VER || defined __APPLE__
-#define DBLVAL 12345678.12345678
-#else
-#define DBLVAL 12345678.12345678d
-#endif
 	float8 = DBLVAL;
         insert(8,&float8,sizeof(float8)); /* 8 double */
 	val8 = -9223372036854775807L;
@@ -333,7 +337,7 @@ test_test1(void)
 
     buildbaseline(1);
 
-    printf("test1: compression.\n");
+    fprintf(stderr,"test1: compression.\n");
     create();
     setchunking();
     setvarfilter();
@@ -346,7 +350,7 @@ test_test1(void)
     CHECK(nc_put_var(ncid,varid,expected));
     CHECK(nc_close(ncid));
 
-    printf("test1: decompression.\n");
+    fprintf(stderr,"test1: decompression.\n");
     reset();
     openfile();
     CHECK(nc_get_var_float(ncid, varid, array));
@@ -441,6 +445,7 @@ int
 main(int argc, char **argv)
 {
     H5Eprint(stderr);
+    nc_set_log_level(1);
     init(argc,argv);
     if(!test_test1()) ERRR;
     exit(nerrs > 0?1:0);

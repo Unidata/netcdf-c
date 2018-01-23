@@ -233,6 +233,7 @@ done:
 static int
 parsefilterspec(const char* optarg0, struct FilterSpec* spec)
 {
+    int stat = NC_NOERR;
     char* optarg = NULL;
     unsigned int* params = NULL;
     size_t nparams;
@@ -263,14 +264,14 @@ parsefilterspec(const char* optarg0, struct FilterSpec* spec)
     }
 
     /* Collect the id+parameters */
-    if(!NC_parsefilterspec(remainder,&id,&nparams,&params))
-	return 0;
-    if(spec != NULL) {
-        spec->filterid = id;
-        spec->nparams = nparams;
-        spec->params = params;
+    if((stat = NC_parsefilterspec(remainder,&id,&nparams,&params)) == NC_NOERR) {
+        if(spec != NULL) {
+            spec->filterid = id;
+            spec->nparams = nparams;
+            spec->params = params;
+	}
     }
-    return 1;
+    return stat;
 }
 
 
@@ -1969,7 +1970,8 @@ main(int argc, char**argv)
       break;
 	case 'F': /* optional filter spec for a specified variable */
 #ifdef USE_NETCDF4
-	    if(!parsefilterspec(optarg,&filterspec)) usage();
+	    if(parsefilterspec(optarg,&filterspec) != NC_NOERR)
+		usage();
 	    if(nfilterspecs >= (MAX_FILTER_SPECS-1))
 		error("too many -F filterspecs\n");
 	    filterspecs[nfilterspecs] = filterspec;
@@ -2014,7 +2016,6 @@ main(int argc, char**argv)
     }
 #endif /*DEBUGFILTER*/
 #endif /*USE_NETCDF4*/
-
 
     if(copy(inputfile, outputfile) != NC_NOERR)
         exit(EXIT_FAILURE);

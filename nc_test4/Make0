@@ -1,9 +1,12 @@
 # Test c output
 T=test_filter_misc
+#SRC=hdf5plugins/H5Zmisc.c
+
 #CMD=valgrind --leak-check=full
 CMD=gdb --args
 
-FILTER=H5Zmisc
+#FILTER=H5Zmisc
+#FILTEROBJ=hdf5plugins/${FILTER}.o
 
 #PAR=1
 #SZIP=1
@@ -31,7 +34,7 @@ all:: cmp
 
 cmp::
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
-	${CC} -o t ${CFLAGS} ${T}.c ${SRC} hdf5plugins/${FILTER}.o ${LDFLAGS}
+	${CC} -o t ${CFLAGS} ${T}.c ${SRC} ${FILTEROBJ} ${LDFLAGS}
 
 filter::
 	${CC} ${CFLAGS} -c hdf5plugins/${FILTER}.c ${LDFLAGS}
