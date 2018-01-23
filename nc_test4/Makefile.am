@@ -96,7 +96,7 @@ check_PROGRAMS += tst_interops2 tst_chunk_hdf4 tst_h4_lendian
 
 if BUILD_UTILITIES
 # This test script depends on ncdump.
-TESTS += tst_formatx_hdf4.sh
+TESTS += tst_interops2 tst_formatx_hdf4.sh
 endif # BUILD_UTILITIES
 
 TESTS += run_chunk_hdf4.sh tst_h4_lendian
