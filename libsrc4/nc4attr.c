@@ -305,8 +305,7 @@ exit:
 }
 
 /**
- * @internal Put attribute metadata into our global metadata. This is
- * called from nc4_put_att_tc().
+ * @internal Put attribute metadata into our global metadata.
  *
  * @param ncid File and group ID.
  * @param varid Variable ID.
@@ -977,31 +976,6 @@ exit:
 }
 
 /**
- * @internal Write an attribute with type conversion.
- *
- * @param ncid File and group ID.
- * @param varid Variable ID.
- * @param name Name of attribute.
- * @param file_type Type of the attribute data in file.
- * @param mem_type Type of attribute data in memory.
- * @param mem_type_is_long True if attribute data in memory is of type
- * NC_LONG.
- * @param len Length of attribute array.
- * @param op Attribute data.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @author Ed Hartnett
- */
-static int
-nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
-               nc_type mem_type, size_t len, const void *op)
-{
-   /* Otherwise, handle things the netcdf-4 way. */
-   return nc4_put_att(ncid, varid, name, file_type, mem_type, len, op);
-}
-
-/**
  * @internal Read an attribute of any type, with type conversion. This
  * may be called by any of the nc_get_att_* functions.
  *
@@ -1046,7 +1020,7 @@ int
 NC4_put_att(int ncid, int varid, const char *name, nc_type xtype,
             size_t nelems, const void *value, nc_type memtype)
 {
-   return nc4_put_att_tc(ncid, varid, name, xtype, memtype, nelems, value);
+   return nc4_put_att(ncid, varid, name, xtype, memtype, nelems, value);
 }
 
 /**
