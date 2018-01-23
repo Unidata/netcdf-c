@@ -104,7 +104,6 @@ nc4_get_att_special(NC_HDF5_FILE_INFO_T* h5, const char* name,
  * @param mem_type The type of attribute data in memory.
  * @param lenp Pointer that gets length of attribute array.
  * @param attnum Pointer that gets the index number of this attribute.
- * @param is_long True only if the type is NC_LONG.
  * @param data Pointer that gets attribute data.
  *
  * @return ::NC_NOERR No error.
@@ -113,8 +112,7 @@ nc4_get_att_special(NC_HDF5_FILE_INFO_T* h5, const char* name,
  */
 static int
 nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
-            nc_type mem_type, size_t *lenp, int *attnum, int is_long,
-            void *data)
+            nc_type mem_type, size_t *lenp, int *attnum, void *data)
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
@@ -161,7 +159,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
       for (sp = NC_RESERVED_SPECIAL_LIST; *sp; sp++) {
          if (strcmp(name,*sp)==0) {
             return nc4_get_att_special(h5, norm_name, xtype, mem_type, lenp,
-                                       attnum, is_long, data);
+                                       attnum, 0, data);
          }
       }
    }
@@ -179,18 +177,10 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
     * versa, that's a freakish attempt to convert text to
     * numbers. Some pervert out there is trying to pull a fast one!
     * Send him an NC_ECHAR error. */
-   if (data)
-      if (att->len)
-      {
-         if (((att->nc_typeid == NC_CHAR && mem_type != NC_CHAR)))
-            BAIL(NC_ECHAR); /* take that, you freak! */
-         if (((att->nc_typeid != NC_CHAR && mem_type == NC_CHAR)))
-            BAIL(NC_ECHAR); /* take that, you freak! */
-      }
-   /* if (data && att->len && */
-   /*     ((att->nc_typeid == NC_CHAR && mem_type != NC_CHAR) || */
-   /*      (att->nc_typeid != NC_CHAR && mem_type == NC_CHAR))) */
-   /*    BAIL(NC_ECHAR); /\* take that, you freak! *\/ */
+   if (data && att->len)
+      if ((att->nc_typeid == NC_CHAR && mem_type != NC_CHAR) ||
+           (att->nc_typeid != NC_CHAR && mem_type == NC_CHAR))
+         BAIL(NC_ECHAR); /* take that, you freak! */
 
    /* Copy the info. */
    if (lenp)
@@ -206,7 +196,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
       BAIL(NC_NOERR);
 
    /* Later on, we will need to know the size of this type. */
-   if ((retval = nc4_get_typelen_mem(h5, mem_type, is_long, &type_size)))
+   if ((retval = nc4_get_typelen_mem(h5, mem_type, 0, &type_size)))
       BAIL(retval);
 
    /* We may have to convert data. Treat NC_CHAR the same as
@@ -222,7 +212,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
       need_to_convert++;
       if ((retval = nc4_convert_type(att->data, bufr, att->nc_typeid,
                                      mem_type, (size_t)att->len, &range_error,
-                                     NULL, (h5->cmode & NC_CLASSIC_MODEL), 0, is_long)))
+                                     NULL, (h5->cmode & NC_CLASSIC_MODEL), 0, 0)))
          BAIL(retval);
 
       /* For strict netcdf-3 rules, ignore erange errors between UBYTE
@@ -282,17 +272,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
       }
       else
       {
-         /* For long types, we need to handle this special... */
-         if (is_long && att->nc_typeid == NC_INT)
-         {
-            long *lp = data;
-            int *ip = bufr;
-
-            for (i = 0; i < att->len; i++)
-               *lp++ = *ip++;
-         }
-         else
-            memcpy(data, bufr, (size_t)(att->len * type_size));
+         memcpy(data, bufr, (size_t)(att->len * type_size));
       }
    }
 
@@ -323,7 +303,7 @@ NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
             size_t *lenp)
 {
    LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
-   return nc4_get_att(ncid, varid, name, xtypep, NC_NAT, lenp, NULL, 0, NULL);
+   return nc4_get_att(ncid, varid, name, xtypep, NC_NAT, lenp, NULL, NULL);
 }
 
 /**
@@ -341,7 +321,7 @@ int
 NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 {
    LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
-   return nc4_get_att(ncid, varid, name, NULL, NC_NAT, NULL, attnump, 0, NULL);
+   return nc4_get_att(ncid, varid, name, NULL, NC_NAT, NULL, attnump, NULL);
 }
 
 
@@ -598,32 +578,6 @@ NC4_del_att(int ncid, int varid, const char *name)
 exit:
    if (datasetid > 0) H5Dclose(datasetid);
    return retval;
-}
-
-/**
- * @internal Read an attribute of any type, with type conversion. This
- * may be called by any of the nc_get_att_* functions.
- *
- * @param ncid File and group ID.
- * @param varid Variable ID.
- * @param name Name of attribute.
- * @param mem_type Type of attribute data in memory.
- * @param mem_type_is_long True if attribute data in memory is of type
- * NC_LONG.
- * @param ip Attribute data.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @author Ed Hartnett
- */
-int
-nc4_get_att_tc(int ncid, int varid, const char *name, nc_type mem_type,
-               int mem_type_is_long, void *ip)
-{
-   LOG((3, "%s: ncid 0x%x varid %d name %s mem_type %d", __func__, ncid, varid,
-        name, mem_type));
-   return nc4_get_att(ncid, varid, name, NULL, mem_type, NULL, NULL,
-                      mem_type_is_long, ip);
 }
 
 /**
@@ -1017,5 +971,5 @@ exit:
 int
 NC4_get_att(int ncid, int varid, const char *name, void *value, nc_type memtype)
 {
-   return nc4_get_att_tc(ncid, varid, name, memtype, 0, value);
+   return nc4_get_att(ncid, varid, name, NULL, memtype, NULL, NULL, value);
 }
