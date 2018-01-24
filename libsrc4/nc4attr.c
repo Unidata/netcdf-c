@@ -682,10 +682,6 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
       if (!strcmp(att->name, norm_name))
          break;
 
-   /* If len is not zero, then there must be some data. */
-   if (len && !data)
-      return NC_EINVAL;
-
    LOG((1, "%s: ncid 0x%x varid %d name %s file_type %d mem_type %d len %d",
         __func__, ncid, varid, name, file_type, mem_type, len));
 
