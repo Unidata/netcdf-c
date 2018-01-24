@@ -1,14 +1,13 @@
+/* Copyright 2005-2018, University Corporation for Atmospheric
+ * Research. See COPYRIGHT file for copying and redistribution
+ * conditions. */
 /**
  * @file 
  * @internal This file is part of netcdf-4, a netCDF-like interface
  * for HDF5, or a HDF5 backend for netCDF, depending on your point of
  * view.
  *
- * This file handles the nc4 groups.
- *
- * Copyright 2005, University Corporation for Atmospheric Research. See
- * netcdf-4/docs/COPYRIGHT file for copying and redistribution
- * conditions.
+ * This file handles groups.
  * 
  * @author Ed Hartnett
 */
@@ -16,7 +15,7 @@
 #include "nc4dispatch.h"
 
 /**
- * @internal Create a group. It's ncid is returned in the new_ncid
+ * @internal Create a group. Its ncid is returned in the new_ncid
  * pointer. 
  *
  * @param parent_ncid Parent group.
@@ -42,8 +41,7 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(parent_ncid, &grp, &h5)))
       return retval;
-   if (!h5)
-      return NC_ENOTNC4;
+   assert(h5);
 
    /* Check and normalize the name. */
    if ((retval = nc4_check_name(name, norm_name)))
@@ -103,22 +101,22 @@ NC4_rename_grp(int grpid, const char *name)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(grpid, &grp, &h5)))
       return retval;
-   if (!h5)
-      return NC_ENOTNC4;
+   assert(h5);
 
    if (h5->no_write)
       return NC_EPERM; /* attempt to write to a read-only file */
 
    /* Do not allow renaming the root group */
-   if(grp->parent == NULL)
+   if (grp->parent == NULL)
 	return NC_EBADGRPID;
 
    /* Check and normalize the name. */
    if ((retval = nc4_check_name(name, norm_name)))
       return retval;
 
-   /* Check that this name is not in use as a var, grp, or type. */
-   if ((retval = nc4_check_dup_name(grp, norm_name)))
+   /* Check that this name is not in use as a var, grp, or type in the
+    * parent group (i.e. the group that grp is in). */
+   if ((retval = nc4_check_dup_name(grp->parent, norm_name)))
       return retval;
 
    /* If it's not in define mode, switch to define mode. */
@@ -184,10 +182,7 @@ NC4_inq_ncid(int ncid, const char *name, int *grp_ncid)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-
-   /* Groups only work with netCDF-4/HDF5 files... */
-   if (!h5)
-      return NC_ENOTNC4;
+   assert(h5);
 
    /* Normalize name. */
    if ((retval = nc4_normalize_name(name, norm_name)))
@@ -231,14 +226,7 @@ NC4_inq_grps(int ncid, int *numgrps, int *ncids)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-
-   /* For netCDF-3 files, just report zero groups. */
-   if (!h5)
-   {
-      if (numgrps)
-	 *numgrps = 0;
-      return NC_NOERR;
-   }
+   assert(h5);
 
    /* Count the number of groups in this group. */
    for (g = grp->children; g; g = g->l.next)
@@ -283,13 +271,11 @@ NC4_inq_grpname(int ncid, char *name)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
+   assert(h5);
+
+   /* Copy the name. */
    if (name)
-   {
-      if (!h5)
-	 strcpy(name, "/");
-      else
-	 strcpy(name, grp->name);
-   }
+      strcpy(name, grp->name);
 
    return NC_NOERR;
 }
@@ -388,11 +374,8 @@ NC4_inq_grp_parent(int ncid, int *parent_ncid)
    /* Find info for this file and group. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-
-   /* Groups only work with netCDF-4/HDF5 files... */
-   if (!h5)
-      return NC_ENOGRP;
-
+   assert(h5);
+   
    /* Set the parent ncid, if there is one. */
    if (grp->parent)
    {
@@ -434,6 +417,7 @@ NC4_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
    /* Find info for this file and group, and set pointer to each. */
    if ((ret = nc4_find_grp_h5(ncid, &grp, &h5)))
       return ret;
+   assert(h5);
 
    /* Copy full_name because strtok messes with the value it works
     * with, and we don't want to mess up full_name. */
@@ -503,29 +487,17 @@ NC4_inq_varids(int ncid, int *nvars, int *varids)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
+   assert(h5);
 
-   if (!h5)
+   /* This is a netCDF-4 group. Round up them doggies and count
+    * 'em. The list is in correct (i.e. creation) order. */
+   for (i=0; i < grp->vars.nelems; i++)
    {
-      /* If this is a netcdf-3 file, there is only one group, the root
-       * group, and its vars have ids 0 thru nvars - 1. */
-      if ((retval = NC4_inq(ncid, NULL, &num_vars, NULL, NULL)))
-	 return retval;
+      var = grp->vars.value[i];
+      if (!var) continue;
       if (varids)
-	 for (v = 0; v < num_vars; v++)
-	    varids[v] = v;
-   }
-   else
-   {
-      /* This is a netCDF-4 group. Round up them doggies and count
-       * 'em. The list is in correct (i.e. creation) order. */
-      for (i=0; i < grp->vars.nelems; i++)
-      {
-	var = grp->vars.value[i];
-	if (!var) continue;
-	if (varids)
-	  varids[num_vars] = var->varid;
-	num_vars++;
-      }
+         varids[num_vars] = var->varid;
+      num_vars++;
    }
 
    /* If the user wants to know how many vars in the group, tell
@@ -584,44 +556,32 @@ NC4_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
+   assert(h5);
 
-   if (!h5)
+   /* First count them. */
+   for (dim = grp->dim; dim; dim = dim->l.next)
+      num++;
+   if (include_parents)
+      for (g = grp->parent; g; g = g->parent)
+         for (dim = g->dim; dim; dim = dim->l.next)
+            num++;
+   
+   /* If the user wants the dimension ids, get them. */
+   if (dimids)
    {
-      /* If this is a netcdf-3 file, then the dimids are going to be 0
-       * thru ndims-1, so just provide them. */
-      if ((retval = NC4_inq(ncid, &num, NULL, NULL, NULL)))
-	 return retval;
-      if (dimids)
-	 for (d = 0; d < num; d++)
-	    dimids[d] = d;
-   }
-   else
-   {
-      /* First count them. */
-      for (dim = grp->dim; dim; dim = dim->l.next)
-	 num++;
-      if (include_parents)
-	 for (g = grp->parent; g; g = g->parent)
-	    for (dim = g->dim; dim; dim = dim->l.next)
-	       num++;
+      int n = 0;
       
-      /* If the user wants the dimension ids, get them. */
-      if (dimids)
-      {
-	 int n = 0;
-
-	 /* Get dimension ids from this group. */
-	 for (dim = grp->dim; dim; dim = dim->l.next)
-	    dimids[n++] = dim->dimid;
-
-	 /* Get dimension ids from parent groups. */
-	 if (include_parents)
-	    for (g = grp->parent; g; g = g->parent)
-	       for (dim = g->dim; dim; dim = dim->l.next)
-		  dimids[n++] = dim->dimid;
-	 
-	 qsort(dimids, num, sizeof(int), int_cmp);
-      }
+      /* Get dimension ids from this group. */
+      for (dim = grp->dim; dim; dim = dim->l.next)
+         dimids[n++] = dim->dimid;
+      
+      /* Get dimension ids from parent groups. */
+      if (include_parents)
+         for (g = grp->parent; g; g = g->parent)
+            for (dim = g->dim; dim; dim = dim->l.next)
+               dimids[n++] = dim->dimid;
+      
+      qsort(dimids, num, sizeof(int), int_cmp);
    }
 
    /* If the user wants the number of dims, give it. */

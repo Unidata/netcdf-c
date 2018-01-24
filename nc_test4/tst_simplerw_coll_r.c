@@ -1,28 +1,19 @@
-/*   Copyright 2007-2011, UCAR/Unidata. See COPYRIGHT file for copying
-  and redistribution conditions.
+/* Copyright 2007-2011, UCAR/Unidata. See COPYRIGHT file for copying
+ * and redistribution conditions.
+ *
+ * This is part of the netCDF package.
+ *
+ * This test is for parallel IO and the collective access of metadata
+ * with HDF5.
+ *
+ * Ward Fisher, Ed Hartnett
+ */
 
-  This is part of the netCDF package.
+#include "config.h"
+#include "nc_tests.h"
+#include "err_macros.h"
 
-  This is a benchmarking program for netCDF-4 parallel I/O.
-*/
-
-/* Defining USE_MPE causes the MPE trace library to be used (and you
- * must also relink with -llmpe -lmpe). This causes clog2 output to be
- * written, which can be converted to slog2 (by the program
- * clog2TOslog2) and then used in the analysis program jumpshot. */
-/*#define USE_MPE 1*/
-
-#include <mpi.h>
-#include <stdio.h>
-#include <string.h>
-#include <netcdf.h>
-#include <netcdf_par.h>
-
-#ifdef USE_MPE
-#include <mpe.h>
-#endif /* USE_MPE */
-
-#define FILE_NAME "tst_parallel4_simplerw_coll.nc"
+#define TEST_NAME "tst_parallel4_simplerw_coll"
 #define NDIMS 3
 #define DIMSIZE 16
 #define NUM_SLABS 16
@@ -30,220 +21,396 @@
 #define DIM2_NAME "x"
 #define DIM3_NAME "y"
 #define VAR_NAME "Bond_James_Bond"
-#define ERR do { \
-fflush(stdout); /* Make sure our stdout is synced with stderr. */ \
-fprintf(stderr, "Sorry! Unexpected result, %s, line: %d\n", \
-        __FILE__, __LINE__);                                \
-return 2;                                                   \
-} while (0)
+#define NUM_FILL_TEST_RUNS 3
 
 int
 main(int argc, char **argv)
 {
-    /* MPI stuff. */
-    int mpi_namelen;
-    char mpi_name[MPI_MAX_PROCESSOR_NAME];
-    int mpi_size, mpi_rank;
-    MPI_Comm comm = MPI_COMM_WORLD;
-    MPI_Info info = MPI_INFO_NULL;
-    double start_time = 0, total_time;
+   int mpi_namelen;
+   char mpi_name[MPI_MAX_PROCESSOR_NAME];
+   int mpi_size, mpi_rank;
+   MPI_Comm comm = MPI_COMM_WORLD;
+   MPI_Info info = MPI_INFO_NULL;
+   double start_time = 0, total_time;
+   int mpi_size_in;
+#define NUM_TEST_TYPES 11
+   nc_type test_type[NUM_TEST_TYPES] = {NC_BYTE, NC_CHAR, NC_SHORT, NC_INT, NC_FLOAT, NC_DOUBLE,
+                                        NC_UBYTE, NC_USHORT, NC_UINT, NC_INT64, NC_UINT64};
+   int tt, fv;
+   int j, i, k, ret;
 
-    /* Netcdf-4 stuff. */
-    int ncid, varid, dimids[NDIMS];
-    size_t start[NDIMS] = {0, 0, 0};
-    size_t count[NDIMS] = {1, DIMSIZE, DIMSIZE};
-    int data[DIMSIZE * DIMSIZE], data_in[DIMSIZE * DIMSIZE];
-    int j, i, ret;
+   /* Initialize MPI. */
+   MPI_Init(&argc,&argv);
+   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+   MPI_Get_processor_name(mpi_name, &mpi_namelen);
 
-    char file_name[NC_MAX_NAME + 1];
-    int ndims_in, nvars_in, natts_in, unlimdimid_in;
+   /* Must be able to evenly divide my slabs between processors. */
+   if (NUM_SLABS % mpi_size)
+   {
+      if (!mpi_rank)
+         printf("NUM_SLABS (%d) is not evenly divisible by mpi_size(%d)\n",
+                NUM_SLABS, mpi_size);
+      ERR;
+   }
 
-#ifdef USE_MPE
-    int s_init, e_init, s_define, e_define, s_write, e_write, s_close, e_close;
-#endif /* USE_MPE */
+   if (!mpi_rank)
+      printf("\n*** Testing parallel I/O some more.\n");
 
-    /* Initialize MPI. */
-    MPI_Init(&argc,&argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-    MPI_Get_processor_name(mpi_name, &mpi_namelen);
-    /*printf("mpi_name: %s size: %d rank: %d\n", mpi_name, mpi_size, mpi_rank);*/
-//#if 0
-    /* Must be able to evenly divide my slabs between processors. */
-    if (NUM_SLABS % mpi_size != 0)
-    {
-       if (!mpi_rank) printf("NUM_SLABS (%d) is not evenly divisible by mpi_size(%d)\n",
-                             NUM_SLABS, mpi_size);
-       ERR;
-    }
+   /* Test for different fill value settings. */
+   for (fv = 0; fv < NUM_FILL_TEST_RUNS; fv++)
+   {
+      /* Test for different netCDF types. */
+      for (tt = 0; tt < NUM_TEST_TYPES; tt++)
+      {
+         char file_name[NC_MAX_NAME + 1];
+         int fill_mode_in;
+         void *data, *data_in;
+         void *fill_value, *fill_value_in;
+         size_t type_size;
+         size_t write_start[NDIMS] = {0, 0, 1};
+         size_t write_count[NDIMS] = {1, DIMSIZE, DIMSIZE - 1};
+         size_t read_start[NDIMS] = {0, 0, 0};
+         size_t read_count[NDIMS] = {1, DIMSIZE, DIMSIZE};
+         int ncid, varid, dimids[NDIMS];
+         int ndims_in, nvars_in, natts_in, unlimdimid_in;
 
-#ifdef USE_MPE
-    MPE_Init_log();
-    s_init = MPE_Log_get_event_number();
-    e_init = MPE_Log_get_event_number();
-    s_define = MPE_Log_get_event_number();
-    e_define = MPE_Log_get_event_number();
-    s_write = MPE_Log_get_event_number();
-    e_write = MPE_Log_get_event_number();
-    s_close = MPE_Log_get_event_number();
-    e_close = MPE_Log_get_event_number();
-    s_open = MPE_Log_get_event_number();
-    e_open = MPE_Log_get_event_number();
-    MPE_Describe_state(s_init, e_init, "Init", "red");
-    MPE_Describe_state(s_define, e_define, "Define", "yellow");
-    MPE_Describe_state(s_write, e_write, "Write", "green");
-    MPE_Describe_state(s_close, e_close, "Close", "purple");
-    MPE_Describe_state(s_open, e_open, "Open", "blue");
-    MPE_Start_log();
-    MPE_Log_event(s_init, 0, "start init");
-#endif /* USE_MPE */
+         /* Fill values to be expected. */
+         signed char byte_expected_fill_value;
+         unsigned char char_expected_fill_value;
+         short short_expected_fill_value;
+         int int_expected_fill_value;
+         float float_expected_fill_value;
+         double double_expected_fill_value;
+         unsigned char ubyte_expected_fill_value;
+         unsigned short ushort_expected_fill_value;
+         unsigned int uint_expected_fill_value;
+         long long int int64_expected_fill_value;
+         unsigned long long int uint64_expected_fill_value;
 
-/*     if (!mpi_rank) */
-/*     { */
-/*        printf("\n*** Testing parallel I/O some more.\n"); */
-/*        printf("*** writing a %d x %d x %d file from %d processors...\n",  */
-/*               NUM_SLABS, DIMSIZE, DIMSIZE, mpi_size); */
-/*     } */
+         /* Fill values used when writing. */
+         signed char byte_fill_value = -TEST_VAL_42;
+         unsigned char char_fill_value = 'x';
+         short short_fill_value = TEST_VAL_42 * 100;
+         int int_fill_value = TEST_VAL_42 * 1000;
+         float float_fill_value = TEST_VAL_42 * 1000;
+         double double_fill_value = TEST_VAL_42 * 1000;
+         unsigned char ubyte_fill_value = TEST_VAL_42;
+         unsigned short ushort_fill_value = TEST_VAL_42 * 100;
+         unsigned int uint_fill_value = TEST_VAL_42 * 1000;
+         long long int int64_fill_value = TEST_VAL_42 * 1000;
+         unsigned long long int uint64_fill_value = TEST_VAL_42 * 1000;
 
-    /* We will write the same slab over and over. */
-    for (i = 0; i < DIMSIZE * DIMSIZE; i++)
-       data[i] = mpi_rank;
+         /* Fill values read in. */
+         signed char byte_fill_value_in;
+         unsigned char char_fill_value_in;
+         short short_fill_value_in;
+         int int_fill_value_in;
+         float float_fill_value_in;
+         double double_fill_value_in;
+         unsigned char ubyte_fill_value_in;
+         unsigned short ushort_fill_value_in;
+         unsigned int uint_fill_value_in;
+         long long int int64_fill_value_in;
+         unsigned long long int uint64_fill_value_in;
+         
+         /* Data to write and read. */
+         signed char byte_data[DIMSIZE * DIMSIZE], byte_data_in[DIMSIZE * DIMSIZE];
+         unsigned char char_data[DIMSIZE * DIMSIZE], char_data_in[DIMSIZE * DIMSIZE];
+         short short_data[DIMSIZE * DIMSIZE], short_data_in[DIMSIZE * DIMSIZE];
+         int int_data[DIMSIZE * DIMSIZE], int_data_in[DIMSIZE * DIMSIZE];
+         float float_data[DIMSIZE * DIMSIZE], float_data_in[DIMSIZE * DIMSIZE];
+         double double_data[DIMSIZE * DIMSIZE], double_data_in[DIMSIZE * DIMSIZE];
+         unsigned char ubyte_data[DIMSIZE * DIMSIZE], ubyte_data_in[DIMSIZE * DIMSIZE];
+         unsigned short ushort_data[DIMSIZE * DIMSIZE], ushort_data_in[DIMSIZE * DIMSIZE];
+         unsigned int uint_data[DIMSIZE * DIMSIZE], uint_data_in[DIMSIZE * DIMSIZE];
+         long long int int64_data[DIMSIZE * DIMSIZE], int64_data_in[DIMSIZE * DIMSIZE];
+         unsigned long long int uint64_data[DIMSIZE * DIMSIZE], uint64_data_in[DIMSIZE * DIMSIZE];
+         
+         if (!mpi_rank)
+            printf("*** writing a %d x %d x %d file from %d processors for fill value test %d type %d...\n",
+                   NUM_SLABS, DIMSIZE, DIMSIZE, mpi_size, fv, test_type[tt]);
 
-#ifdef USE_MPE
-    MPE_Log_event(e_init, 0, "end init");
-    MPE_Log_event(s_define, 0, "start define file");
-#endif /* USE_MPE */
+         /* Initialize test data. */
+         switch(test_type[tt])
+         {
+         case NC_BYTE:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               byte_data[i] = mpi_rank;
+            data = byte_data;
+            data_in = byte_data_in;
+            byte_expected_fill_value = fv ? byte_fill_value : NC_FILL_BYTE;
+            fill_value = &byte_expected_fill_value;
+            fill_value_in = &byte_fill_value_in;
+            break;
+         case NC_CHAR:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               char_data[i] = mpi_rank;
+            data = char_data;
+            data_in = char_data_in;
+            char_expected_fill_value = fv ? char_fill_value : NC_FILL_CHAR;
+            fill_value = &char_expected_fill_value;
+            fill_value_in = &char_fill_value_in;
+            break;
+         case NC_SHORT:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               short_data[i] = mpi_rank;
+            data = short_data;
+            data_in = short_data_in;
+            short_expected_fill_value = fv ? short_fill_value : NC_FILL_SHORT;
+            fill_value = &short_expected_fill_value;
+            fill_value_in = &short_fill_value_in;
+            break;
+         case NC_INT:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               int_data[i] = mpi_rank;
+            data = int_data;
+            data_in = int_data_in;
+            int_expected_fill_value = fv ? int_fill_value : NC_FILL_INT;
+            fill_value = &int_expected_fill_value;
+            fill_value_in = &int_fill_value_in;
+            break;
+         case NC_FLOAT:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               float_data[i] = mpi_rank;
+            data = float_data;
+            data_in = float_data_in;
+            float_expected_fill_value = fv ? float_fill_value : NC_FILL_FLOAT;
+            fill_value = &float_expected_fill_value;
+            fill_value_in = &float_fill_value_in;
+            break;
+         case NC_DOUBLE:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               double_data[i] = mpi_rank;
+            data = double_data;
+            data_in = double_data_in;
+            double_expected_fill_value = fv ? double_fill_value : NC_FILL_DOUBLE;
+            fill_value = &double_expected_fill_value;
+            fill_value_in = &double_fill_value_in;
+            break;
+         case NC_UBYTE:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               ubyte_data[i] = mpi_rank;
+            data = ubyte_data;
+            data_in = ubyte_data_in;
+            ubyte_expected_fill_value = fv ? ubyte_fill_value : NC_FILL_UBYTE;
+            fill_value = &ubyte_expected_fill_value;
+            fill_value_in = &ubyte_fill_value_in;
+            break;
+         case NC_USHORT:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               ushort_data[i] = mpi_rank;
+            data = ushort_data;
+            data_in = ushort_data_in;
+            ushort_expected_fill_value = fv ? ushort_fill_value : NC_FILL_USHORT;
+            fill_value = &ushort_expected_fill_value;
+            fill_value_in = &ushort_fill_value_in;
+            break;
+         case NC_UINT:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               uint_data[i] = mpi_rank;
+            data = uint_data;
+            data_in = uint_data_in;
+            uint_expected_fill_value = fv ? uint_fill_value : NC_FILL_UINT;
+            fill_value = &uint_expected_fill_value;
+            fill_value_in = &uint_fill_value_in;
+            break;
+         case NC_INT64:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               int64_data[i] = mpi_rank;
+            data = int64_data;
+            data_in = int64_data_in;
+            int64_expected_fill_value = fv ? int64_fill_value : NC_FILL_INT64;
+            fill_value = &int64_expected_fill_value;
+            fill_value_in = &int64_fill_value_in;
+            break;
+         case NC_UINT64:
+            for (i = 0; i < DIMSIZE * DIMSIZE; i++)
+               uint64_data[i] = mpi_rank;
+            data = uint64_data;
+            data_in = uint64_data_in;
+            uint64_expected_fill_value = fv ? uint64_fill_value : NC_FILL_UINT64;
+            fill_value = &uint64_expected_fill_value;
+            fill_value_in = &uint64_fill_value_in;
+            break;
+         }
+      
+         /* Create a file name. */
+         sprintf(file_name, "%s_type_%d_fv_%d.nc", TEST_NAME, test_type[tt], fv);
 
-    /* Create a parallel netcdf-4 file. */
-    if (nc_create_par(FILE_NAME, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
+         /* Create a parallel netcdf-4 file. */
+         if (nc_create_par(file_name, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
 
-    /* A global attribute holds the number of processors that created
-     * the file. */
-    if (nc_put_att_int(ncid, NC_GLOBAL, "num_processors", NC_INT, 1, &mpi_size)) ERR;
+         /* Get the type len. */
+         if (nc_inq_type(ncid, test_type[tt], NULL, &type_size)) ERR;
 
-    /* Create three dimensions. */
-    if (nc_def_dim(ncid, DIM1_NAME, NUM_SLABS, dimids)) ERR;
-    if (nc_def_dim(ncid, DIM2_NAME, DIMSIZE, &dimids[1])) ERR;
-    if (nc_def_dim(ncid, DIM3_NAME, DIMSIZE, &dimids[2])) ERR;
+         /* A global attribute holds the number of processors that created
+          * the file. */
+         if (nc_put_att_int(ncid, NC_GLOBAL, "num_processors", NC_INT, 1, &mpi_size)) ERR;
 
-    /* Create one var. */
-    if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIMS, dimids, &varid)) ERR;
+         /* Create three dimensions. */
+         if (nc_def_dim(ncid, DIM1_NAME, NUM_SLABS, dimids)) ERR;
+         if (nc_def_dim(ncid, DIM2_NAME, DIMSIZE, &dimids[1])) ERR;
+         if (nc_def_dim(ncid, DIM3_NAME, DIMSIZE, &dimids[2])) ERR;
 
-    /* Write metadata to file. */
-    if (nc_enddef(ncid)) ERR;
+         /* Create one var. */
+         if (nc_def_var(ncid, VAR_NAME, test_type[tt], NDIMS, dimids, &varid)) ERR;
+         if (nc_put_att_int(ncid, varid, "var_num_processors", NC_INT, 1, &mpi_size)) ERR;
+         if (fv == 1)
+         {
+            if (nc_def_var_fill(ncid, varid, NC_FILL, fill_value)) ERR;
+            if (nc_inq_var_fill(ncid, varid, &fill_mode_in, fill_value_in)) ERR;
+            if (fill_mode_in != NC_FILL) ERR;
+            if (memcmp(fill_value_in, fill_value, type_size)) ERR;
+         }
+         else if (fv == 2)
+         {
+            if (nc_def_var_fill(ncid, varid, NC_NOFILL, NULL)) ERR;
+            if (nc_inq_var_fill(ncid, varid, &fill_mode_in, NULL)) ERR;
+            if (!fill_mode_in) ERR; /* nofill will be true */
+         }            
 
-#ifdef USE_MPE
-    MPE_Log_event(e_define, 0, "end define file");
-    if (mpi_rank)
-       sleep(mpi_rank);
-#endif /* USE_MPE */
+         /* Write metadata to file. */
+         if (nc_enddef(ncid)) ERR;
 
-/*    if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;*/
-/*    if (nc_var_par_access(ncid, varid, NC_INDEPENDENT)) ERR;*/
+         /* Change access mode to collective, then back to independent. */
+         if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;
+         if (nc_var_par_access(ncid, varid, NC_INDEPENDENT)) ERR;
 
-    if (!mpi_rank)
-       start_time = MPI_Wtime();
+         if (!mpi_rank)
+            start_time = MPI_Wtime();
 
-    /* Write all the slabs this process is responsible for. */
-    for (i = 0; i < NUM_SLABS / mpi_size; i++)
-    {
-       start[0] = NUM_SLABS / mpi_size * mpi_rank + i;
+         /* Write all the slabs this process is responsible for. */
+         for (i = 0; i < NUM_SLABS / mpi_size; i++)
+         {
+            write_start[0] = NUM_SLABS / mpi_size * mpi_rank + i;
 
-#ifdef USE_MPE
-       MPE_Log_event(s_write, 0, "start write slab");
-#endif /* USE_MPE */
+            /* Write one slab of data. Due to start/count settings,
+             * every 16th value will be a fill value. */
+            if (nc_put_vara(ncid, varid, write_start, write_count, data)) ERR;
+         }
 
-       /* Write one slab of data. */
-       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+         /* On rank 0, keep track of time. */
+         if (!mpi_rank)
+         {
+            total_time = MPI_Wtime() - start_time;
+            printf("%d\t%g\t%g\n", mpi_size, total_time, DIMSIZE * DIMSIZE * NUM_SLABS *
+                   sizeof(int) / total_time);
+         }
 
-#ifdef USE_MPE
-       MPE_Log_event(e_write, 0, "end write file");
-#endif /* USE_MPE */
-    }
+         /* Close the netcdf file. */
+         if (nc_close(ncid)) ERR;
 
-    if (!mpi_rank)
-    {
-       total_time = MPI_Wtime() - start_time;
-/*       printf("num_proc\ttime(s)\n");*/
-       printf("%d\t%g\t%g\n", mpi_size, total_time, DIMSIZE * DIMSIZE * NUM_SLABS * sizeof(int) / total_time);
-    }
+         /* Reopen the file and check it. */
+         if ((ret = nc_open_par(file_name, NC_NOWRITE|NC_MPIIO, comm, info, &ncid))) ERR;
+         if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
+         if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 ||
+             unlimdimid_in != -1) ERR;
 
-#ifdef USE_MPE
-    MPE_Log_event(s_close, 0, "start close file");
-#endif /* USE_MPE */
+         /* Check the attributes. */
+         if (nc_get_att_int(ncid, NC_GLOBAL, "num_processors", &mpi_size_in)) ERR;
+         if (mpi_size_in != mpi_size) ERR;
+         if (nc_get_att_int(ncid, 0, "var_num_processors", &mpi_size_in)) ERR;
+         if (mpi_size_in != mpi_size) ERR;
+         if (fv == 1)
+         {
+            if (nc_inq_var_fill(ncid, varid, &fill_mode_in, fill_value_in)) ERR;
+            if (fill_mode_in != NC_FILL) ERR;
+            if (memcmp(fill_value_in, fill_value, type_size)) ERR;
+         }
 
-    /* Close the netcdf file. */
-    if (nc_close(ncid))	ERR;
+         /* Read all the slabs this process is responsible for. */
+         for (i = 0; i < NUM_SLABS / mpi_size; i++)
+         {
+            read_start[0] = NUM_SLABS / mpi_size * mpi_rank + i;
+            /* printf("mpi_rank %d i %d read_start[0] %ld\n", mpi_rank, i, read_start[0]); */
 
-//#endif
-#ifdef USE_MPE
-    MPE_Log_event(e_close, 0, "end close file");
-#endif /* USE_MPE */
+            /* Read one slab of data. */
+            if (nc_get_vara(ncid, varid, read_start, read_count, data_in)) ERR;
 
-    /* Reopen the file and check it. */
-    if ((ret = nc_open_par(FILE_NAME, NC_NOWRITE|NC_MPIIO, comm, info, &ncid)))
-    {
-       printf("ret = %d\n", ret);
-       return -1;
-    }
-    if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
-    if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 ||
-        unlimdimid_in != -1) ERR;
+            /* Check data.  For the third fill value test, fill is
+             * turned off. So don't bother testing the values where k
+             * is zero. */
+            /* printf("mpi_rank %d fv %d i %d j %d k %d int_data_in[j * k] %d int_expected_fill_value %d " */
+            /*        "expected_value %d\n", mpi_rank, fv, i, j, k, int_data_in[j * k], */
+            /*        int_expected_fill_value, expected_value); */
+            switch (test_type[tt])
+            {
+            case NC_BYTE:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (byte_data_in[j * DIMSIZE + k] != (signed char)(k ? mpi_rank : byte_expected_fill_value)) ERR;
+               break;
+            case NC_SHORT:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (short_data_in[j * DIMSIZE + k] != (short)(k ? mpi_rank : short_expected_fill_value)) ERR;
+               break;
+            case NC_INT:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (int_data_in[j * DIMSIZE + k] != (int)(k ? mpi_rank : int_expected_fill_value)) ERR;
+               break;
+            case NC_FLOAT:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (float_data_in[j * DIMSIZE + k] != (float)(k ? mpi_rank : float_expected_fill_value)) ERR;
+               break;
+            case NC_DOUBLE:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (double_data_in[j * DIMSIZE + k] != (double)(k ? mpi_rank : double_expected_fill_value)) ERR;
+               break;
+            case NC_UBYTE:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (ubyte_data_in[j * DIMSIZE + k] != (unsigned char)(k ? mpi_rank : ubyte_expected_fill_value)) ERR;
+               break;
+            case NC_USHORT:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (ushort_data_in[j * DIMSIZE + k] != (unsigned short)(k ? mpi_rank : ushort_expected_fill_value)) ERR;
+               break;
+            case NC_UINT:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (uint_data_in[j * DIMSIZE + k] != (unsigned int)(k ? mpi_rank : uint_expected_fill_value)) ERR;
+               break;
+            case NC_INT64:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (int64_data_in[j * DIMSIZE + k] != (long long int)(k ? mpi_rank : int64_expected_fill_value)) ERR;
+               break;
+            case NC_UINT64:
+               for (j = 0; j < DIMSIZE; j++)
+                  for (k = 0; k < DIMSIZE; k++)
+                     if (fv < 2 || k)
+                        if (uint64_data_in[j * DIMSIZE + k] != (unsigned long long int)(k ? mpi_rank : uint64_expected_fill_value)) ERR;
+               break;
+            }
+         } /* next slab */
 
-    /* Read all the slabs this process is responsible for. */
-    for (i = 0; i < NUM_SLABS / mpi_size; i++)
-    {
-       start[0] = NUM_SLABS / mpi_size * mpi_rank + i;
+         /* Close the netcdf file. */
+         if (nc_close(ncid))  ERR;
 
-#ifdef USE_MPE
-       MPE_Log_event(s_read, 0, "start read slab");
-#endif /* USE_MPE */
+         if (!mpi_rank)
+            SUMMARIZE_ERR;
+      } /* next test type */
+   } /* next fill value test run */
+   
+   /* Shut down MPI. */
+   MPI_Finalize();
 
-      if(mpi_rank == 0) {
-for(j=0; j<3;j++)
-count[j] = 0;
-
-      }
-    if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;
-       /* Read one slab of data. */
-       if (nc_get_vara_int(ncid, varid, start, count, data_in)) ERR;
-
-if(mpi_rank != 0) {
-       /* Check data. */
-       for (j = 0; j < DIMSIZE * DIMSIZE; j++)
-	  if (data_in[j] != mpi_rank)
-	  {
-	     ERR;
-	     break;
-	  }
-}
-
-#ifdef USE_MPE
-       MPE_Log_event(e_read, 0, "end read file");
-#endif /* USE_MPE */
-    }
-
-#ifdef USE_MPE
-    MPE_Log_event(s_close, 0, "start close file");
-#endif /* USE_MPE */
-
-    /* Close the netcdf file. */
-    if (nc_close(ncid))	ERR;
-
-#ifdef USE_MPE
-    MPE_Log_event(e_close, 0, "end close file");
-#endif /* USE_MPE */
-
-    /* Delete this large file. */
-   // remove(file_name);
-
-    /* Shut down MPI. */
-    MPI_Finalize();
-
-/*     if (!mpi_rank) */
-/*     { */
-/*        SUMMARIZE_ERR; */
-/*        FINAL_RESULTS; */
-/*     } */
-    return 0;
+   if (!mpi_rank)
+      FINAL_RESULTS;
+   return 0;
 }

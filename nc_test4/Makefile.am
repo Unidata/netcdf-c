@@ -29,7 +29,7 @@ tst_fillbug tst_xplatform tst_xplatform2 tst_endian_fill tst_atts	\
 t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_scalar tst_rename	\
 tst_h5_endians tst_atts_string_rewrite tst_hdf5_file_compat		\
-tst_fill_attr_vanish tst_rehash tst_filterparser tst_bug324
+tst_fill_attr_vanish tst_rehash tst_filterparser tst_bug324 tst_types
 
 # Temporary I hope
 if !ISCYGWIN
@@ -101,6 +101,7 @@ check_PROGRAMS += tst_interops2 tst_chunk_hdf4 tst_h4_lendian
 if BUILD_UTILITIES
 # This test script depends on ncdump.
 TESTS += tst_interops2 tst_formatx_hdf4.sh
+tst_formatx_hdf4.log: tst_interops2.log
 endif # BUILD_UTILITIES
 
 TESTS += run_chunk_hdf4.sh tst_h4_lendian
