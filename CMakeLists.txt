@@ -580,7 +580,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ELSE(MSVC)
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF(MSVC)
- 
+
     ##
     # Next, check the HDF5 version. This will inform which
     # HDF5 variables we need to munge.
@@ -1106,7 +1106,7 @@ IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
 ENDIF()
 
 # Enable special filter test; experimental when using cmake.
-OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ON)
+OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" OFF)
 IF(NOT ENABLE_NETCDF4)
   MESSAGE(WARNING "ENABLE_FILTER_TESTING requires netCDF-4. Disabling.")
   SET(ENABLE_FILTER_TESTING OFF CACHE BOOL "")
