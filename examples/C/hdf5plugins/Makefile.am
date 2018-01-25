@@ -1,7 +1,6 @@
 #    Copyright 2018, UCAR/Unidata
 #    See netcdf/COPYRIGHT file for copying and redistribution conditions.
 
-if ENABLE_FILTER_TESTING
 BZIP2SRC = bzlib.h bzlib_private.h blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c
 
 PLUGINSRC = H5Zbzip2.c h5bzip2.h
