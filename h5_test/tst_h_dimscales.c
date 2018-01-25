@@ -85,7 +85,7 @@ rec_scan_group(hid_t grpid)
 	    }
 	    else
 	    {
-	       int visitor_data = 0;
+		hid_t visitor_data = 0;
 
 	       /* Here's how to get the number of scales attached
 		* to the dataset's dimension 0. */
@@ -362,7 +362,6 @@ main()
    }
 
    SUMMARIZE_ERR;
-#ifdef EXTRA_TESTS
    printf("*** Checking that unlimited dimscale file can be read...");
 
    {
@@ -379,7 +378,7 @@ main()
       if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
 
       /* Loop through datasets to find variables. */
-      if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
+      if (H5Gget_num_objs(grpid, (hsize_t *)&num_obj) < 0) ERR;
       for (i=0; i<num_obj; i++)
       {
 	 /* Get the type (i.e. group, dataset, etc.), and the name of
@@ -426,7 +425,7 @@ main()
 	       else
 	       {
 		  char label[STR_LEN+1];
-		  int visitor_data = 0;
+		  hid_t visitor_data = 0;
 
 		  /* Here's how to get the number of scales attached
 		   * to the dataset's dimension 0. */
@@ -617,7 +616,7 @@ main()
 	       else
 	       {
 		  char label[STR_LEN+1];
-		  int visitor_data = 0;
+		  hid_t visitor_data = 0;
 
 		  /* SHould have these dimensions... */
 		  if (dims[TIME_DIM] != 0 || dims[LAT_DIM] != LAT_LEN ||
@@ -780,6 +779,5 @@ main()
    }
 
    SUMMARIZE_ERR;
-#endif
    FINAL_RESULTS;
 }

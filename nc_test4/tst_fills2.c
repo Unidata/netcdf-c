@@ -283,7 +283,7 @@ main(int argc, char **argv)
       for (i = 0; i < DATA_START2; i++)
 	 if (strcmp(data_in[i], missing_val[0])) ERR;
       if (strcmp(data_in[DATA_START2], data_out[0])) ERR;
-      if (nc_free_string(DATA_START + 1, data_in)) ERR;
+      if (nc_free_string(DATA_START2 + 1, data_in)) ERR;
 
       /* Close everything up. */
       if (nc_close(ncid)) ERR;

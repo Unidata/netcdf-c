@@ -1,9 +1,13 @@
 #!/bin/sh
+# Tests for ncgen4 using list of test cdl files from the cdl4
+# directory, and comparing output to expected results in the expected4
+# directory. Note that these tests are run for classic files in
+# tst_ncgen4_classic.sh
+# Dennis Heimbigner
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-verbose=1
 set -e
 
 # To add a new test,
@@ -15,14 +19,9 @@ set -e
 # 4. Add the new files into cdl4/Makefile.am
 #    and expected4/Makefile.am 
 
-
+verbose=1
 export verbose
 
-KFLAG=1 ; export KFLAG
-echo "*** Performing diff tests: k=1"
-sh ${srcdir}/tst_ncgen4_diff.sh
-echo "*** Performing cycle tests: k=1"
-sh  ${srcdir}/tst_ncgen4_cycle.sh
 KFLAG=3 ; export KFLAG
 echo "*** Performing diff tests: k=3"
 sh  ${srcdir}/tst_ncgen4_diff.sh
@@ -33,5 +32,7 @@ echo "*** Performing diff tests: k=4"
 sh  ${srcdir}/tst_ncgen4_diff.sh
 echo "*** Performing cycle tests: k=4"
 sh  ${srcdir}/tst_ncgen4_cycle.sh
-exit
+rm -rf ${RESULTSDIR}
+echo "SUCCESS!!"
+exit 0
 

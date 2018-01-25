@@ -21,10 +21,6 @@ int
 inRange(const double value, const nc_type xtype)
 {
   switch (xtype) {
-    double min = 0.0;
-    double max = 0.0;
-
-
   case NC_CHAR:   return value >= X_CHAR_MIN   && value <= X_CHAR_MAX;
   case NC_BYTE:   return value >= X_BYTE_MIN   && value <= X_BYTE_MAX;
   case NC_SHORT:  return value >= X_SHORT_MIN  && value <= X_SHORT_MAX;
@@ -1252,14 +1248,14 @@ char* nc_err_code_name(int err)
         case (NC_ENOTINDEFINE):			return "NC_ENOTINDEFINE";
         case (NC_EINDEFINE):			return "NC_EINDEFINE";
         case (NC_EINVALCOORDS):			return "NC_EINVALCOORDS";
-        case (NC_EMAXDIMS):			return "NC_EMAXDIMS";
+        case (NC_EMAXDIMS):			return "NC_EMAXDIMS"; /* not enforced after 4.5.0 */
         case (NC_ENAMEINUSE):			return "NC_ENAMEINUSE";
         case (NC_ENOTATT):			return "NC_ENOTATT";
-        case (NC_EMAXATTS):			return "NC_EMAXATTS";
+        case (NC_EMAXATTS):			return "NC_EMAXATTS"; /* not enforced after 4.5.0 */
         case (NC_EBADTYPE):			return "NC_EBADTYPE";
         case (NC_EBADDIM):			return "NC_EBADDIM";
         case (NC_EUNLIMPOS):			return "NC_EUNLIMPOS";
-        case (NC_EMAXVARS):			return "NC_EMAXVARS";
+        case (NC_EMAXVARS):			return "NC_EMAXVARS"; /* not enforced after 4.5.0 */
         case (NC_ENOTVAR):			return "NC_ENOTVAR";
         case (NC_EGLOBAL):			return "NC_EGLOBAL";
         case (NC_ENOTNC):			return "NC_ENOTNC";
@@ -1323,7 +1319,8 @@ char* nc_err_code_name(int err)
         case (NC_EDISKLESS):			return "NC_EDISKLESS";
         case (NC_ECANTEXTEND):			return "NC_ECANTEXTEND";
         case (NC_EMPI):				return "NC_EMPI";
-        // case (NC_EURL):				return "NC_EURL";
+    case (NC_ENULLPAD):             return "NC_NULLPAD";
+          // case (NC_EURL):				return "NC_EURL";
         // case (NC_ECONSTRAINT):			return "NC_ECONSTRAINT";
 #ifdef USE_PNETCDF
         case (NC_ESMALL):			return "NC_ESMALL";

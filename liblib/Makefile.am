@@ -18,17 +18,11 @@ lib_LTLIBRARIES = libnetcdf.la
 # for information regarding incrementing `-version-info`.
 ##
 
-libnetcdf_la_LDFLAGS = -version-info 12:0:1
+libnetcdf_la_LDFLAGS = -version-info 14:0:1
 
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD =
 CLEANFILES =
-
-# Turn on some extra stuff when building a DLL for windows.
-if BUILD_DLL
-libnetcdf_la_LDFLAGS += -no-undefined -Wl,--output-def,netcdfdll.def
-libnetcdf_la_CPPFLAGS += -DDLL_EXPORT
-endif # BUILD_DLL
 
 # The v2 API...
 if BUILD_V2

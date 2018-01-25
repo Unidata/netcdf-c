@@ -3,15 +3,18 @@
    See COPYRIGHT file for conditions of use.
 
    Use HDF5 to read c0.nc, a file created by ncdump. This check was
-   added to detect a problem in the early HDF5 1.8.0 releases.
+   added to detect a problem in the early HDF5 1.8.0 releases. This
+   program is called from the test script tst_netcdf4.sh, which uses
+   ncgen to create the test file c0_tst_netcdf4.nc, which this program
+   reads with HDF5.
 
-   $Id: tst_h_rdc0.c,v 1.5 2010/06/01 15:34:53 ed Exp $
+   Ed Hartnett
 */
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <hdf5.h>
 
-#define FILE_NAME "c0.nc"
+#define FILE_NAME "tst_netcdf4_c0.nc"
 #define MAX_NAME 1024
 
 int
@@ -19,7 +22,6 @@ main()
 {
    printf("\n*** Checking HDF5 file c0.nc.\n");
    printf("*** Checking HDF5 objcts...");
-
    {
       hid_t fileid, grpid;
       hsize_t num_obj, i;
@@ -42,6 +44,5 @@ main()
 	  H5Fclose(fileid) < 0) ERR;
    }
    SUMMARIZE_ERR;
-
    FINAL_RESULTS;
 }

@@ -82,6 +82,7 @@ int main() {
 
     printf("\t* Puting data in secondary variable:\tnc_put_vara().\n");
     if (nc_put_vara(ncid,varid2,startp2,countp2,data2)) ERR;
+    free(data2);
 
     /***********/
     /* Actually unnecessary to recreate the issue. */
@@ -112,18 +113,17 @@ int main() {
     data[2].p = dat2;
     data[2].len = VLEN2;
 
-    //printf("\t* Puting data in VLEN variable:\tnc_put_vara().\n");
-    //stat = nc_put_vara(ncid,varid,&startp,&countp,data);
-    //stat = nc_put_var(ncid,varid,&data);
-    //if(stat) ERR;
-
-
+    printf("\t* Puting data in VLEN variable:\tnc_put_vara().\n");
+    stat = nc_put_vara(ncid,varid,startp,countp,data);
+    if(stat) ERR;
 
     /* Close File. */
     printf("\t* Closing file:\tnc_close().\n");
     if ((stat = nc_close(ncid))) ERR;
 
-
+    free(dat0);
+    free(dat1);
+    free(dat2);
   }
 
   printf("Testing access to unset entries in VLEN variable, unlimit dimension\n");
@@ -174,6 +174,7 @@ int main() {
 
     printf("\t* Puting data in secondary variable:\tnc_put_vara().\n");
     if (nc_put_vara(ncid,varid2,startp2,countp2,data2)) ERR;
+    free(data2);
 
     /***********/
     /* Actually unnecessary to recreate the issue. */
@@ -204,20 +205,17 @@ int main() {
     data[2].p = dat2;
     data[2].len = VLEN2;
 
-    //printf("\t* Puting data in VLEN variable:\tnc_put_vara().\n");
-    //stat = nc_put_vara(ncid,varid,&startp,&countp,data);
-    //stat = nc_put_var(ncid,varid,&data);
-    //if(stat) ERR;
-
-
+    printf("\t* Puting data in VLEN variable:\tnc_put_vara().\n");
+    stat = nc_put_vara(ncid,varid,startp,countp,data);
+    if(stat) ERR;
 
     /* Close File. */
     printf("\t* Closing file:\tnc_close().\n");
     if ((stat = nc_close(ncid))) ERR;
-
-
+    free(dat0);
+    free(dat1);
+    free(dat2);
   }
-
 
   SUMMARIZE_ERR;
   FINAL_RESULTS;

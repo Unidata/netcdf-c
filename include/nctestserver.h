@@ -9,6 +9,10 @@
 #define TIMEOUT 10 /*seconds*/
 #define BUFSIZE 8192 /*bytes*/
 
+#ifndef HAVE_CURLINFO_RESPONSE_CODE
+#define CURLINFO_RESPONSE_CODE CURLINFO_HTTP_CODE
+#endif
+
 static int ping(const char* url);
 
 static char**

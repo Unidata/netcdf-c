@@ -84,7 +84,7 @@ TESTSET="${TDSTESTS1}"
 # Temporarily suppress
 XFAILTESTS="tst-Surface-METAR.nc"
 
-RESULTSDIR="./results"
+RESULTSDIR="./results_tst_tds"
 expected3="${srcdir}/expecttds3"
 
 # Locate some tools
@@ -157,6 +157,7 @@ for t in ${TESTSET} ; do
 done
 cd ..
 
+rm -fr ${RESULTSDIR}
 totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
 

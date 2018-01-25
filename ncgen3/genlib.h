@@ -80,11 +80,6 @@ extern void nc_fill ( nc_type  type, size_t num, void* datp,
 /* reset symbol table to empty, defined in ncgen.y */
 extern void clearout(void);
 
-/* In case we are missing strlcat */
-#ifndef HAVE_STRLCAT
-extern size_t strlcat(char *dst, const char *src, size_t siz);
-#endif
-
 #ifdef __cplusplus
 }
 #endif

@@ -102,6 +102,7 @@ char*
 NCD4_makeFQN(NCD4node* node)
 {
     char* fqn = NULL;
+    char* escaped;
     int i;
     NCD4node* g = node;
     NClist* path = nclistnew();
@@ -112,19 +113,20 @@ NCD4_makeFQN(NCD4node* node)
 	nclistinsert(path,0,g);
     }
     estimate = (estimate*2) + 2*nclistlength(path);
-    /* start at 1 to avoid dataset */
+    estimate++; /*strlcat nul*/
     fqn = (char*)malloc(estimate+1);
     if(fqn == NULL) goto done;
     fqn[0] = '\0';
     /* Create the group-based fqn prefix */
+    /* start at 1 to avoid dataset */
     for(i=1;i<nclistlength(path);i++) {
 	NCD4node* elem = (NCD4node*)nclistget(path,i);
 	if(elem->sort != NCD4_GROUP) break;
 	/* Add in the group name */
-	char* escaped = backslashEscape(elem->name);
+	escaped = backslashEscape(elem->name);
 	if(escaped == NULL) {free(fqn); fqn = NULL; goto done;}
-	strcat(fqn,"/");
-	strcat(fqn,escaped);
+	strlcat(fqn,"/",estimate);
+	strlcat(fqn,escaped,estimate);
 	free(escaped);
     }
     /* Add in the final name part (if not group) */
@@ -132,8 +134,8 @@ NCD4_makeFQN(NCD4node* node)
 	int last = nclistlength(path)-1;
 	NCD4node* n = (NCD4node*)nclistget(path,last);
 	char* name = NCD4_makeName(n,".");
-	strcat(fqn,"/");
-	strcat(fqn,name);
+	strlcat(fqn,"/",estimate);
+	strlcat(fqn,name,estimate);
 	nullfree(name);
     }
 
@@ -160,7 +162,7 @@ NCD4_makeName(NCD4node* elem, const char* sep)
 	nclistinsert(path,0,n);
 	estimate += (1+(2*strlen(n->name)));
     }
-
+    estimate++; /*strlcat nul*/
     fqn = (char*)malloc(estimate+1);
     if(fqn == NULL) goto done;
     fqn[0] = '\0';
@@ -170,8 +172,8 @@ NCD4_makeName(NCD4node* elem, const char* sep)
 	char* escaped = backslashEscape(elem->name);
 	if(escaped == NULL) {free(fqn); fqn = NULL; goto done;}
 	if(i > 0)
-	    strcat(fqn,sep);
-	strcat(fqn,escaped);
+	    strlcat(fqn,sep,estimate);
+	strlcat(fqn,escaped,estimate);
 	free(escaped);
     }
 done:
@@ -326,101 +328,6 @@ NCD4_entityescape(const char* s)
     return escaped;
 }
 
-int
-NCD4_readfile(const char* filename, NCbytes* content)
-{
-    int ret = NC_NOERR;
-    FILE* stream = NULL;
-    char part[1024];
-
-    stream = fopen(filename,"r");
-    if(stream == NULL) {ret=errno; goto done;}
-    for(;;) {
-	size_t count = fread(part, 1, sizeof(part), stream);
-	if(count <= 0) break;
-	ncbytesappendn(content,part,count);
-	if(ferror(stream)) {ret = NC_EIO; goto done;}
-	if(feof(stream)) break;
-    }
-    ncbytesnull(content);
-done:
-    if(stream) fclose(stream);
-    return ret;
-}
-
-/**
-Wrap mktmp and return the generated name
-*/
-
-int
-NCD4_mktmp(const char* base, char** tmpnamep)
-{
-    int fd;
-    char tmp[NC_MAX_PATH];
-#ifdef HAVE_MKSTEMP
-    mode_t mask;
-#endif
-
-    strncpy(tmp,base,sizeof(tmp));
-#ifdef HAVE_MKSTEMP
-    strncat(tmp,"XXXXXX",sizeof(tmp)-strlen(tmp));
-    /* Note Potential problem: old versions of this function
-       leave the file in mode 0666 instead of 0600 */
-    mask=umask(0077);
-    fd = mkstemp(tmp);
-    (void)umask(mask);
-#else /* !HAVE_MKSTEMP */
-    /* Need to simulate by using some kind of pseudo-random number */
-    {
-	int rno = rand();
-	char spid[7];
-	if(rno < 0) rno = -rno;
-        snprintf(spid,sizeof(spid),"%06d",rno);
-        strncat(tmp,spid,sizeof(tmp));
-#if defined(_WIN32) || defined(_WIN64)
-        fd=open(tmp,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
-#  else
-        fd=open(tmp,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
-#  endif
-    }
-#endif /* !HAVE_MKSTEMP */
-    if(fd < 0) {
-       nclog(NCLOGERR, "Could not create temp file: %s",tmp);
-       return THROW(NC_EPERM);
-    } else
-	close(fd);
-    if(tmpnamep) *tmpnamep = strdup(tmp);
-    return THROW(NC_NOERR);
-}
-
-void
-NCD4_hostport(NCURI* uri, char* space, size_t len)
-{
-    if(space != NULL && len >  0) {
-	space[0] = '\0'; /* so we can use strncat */
-        if(uri->host != NULL) {
-	    strncat(space,uri->host,len);
-            if(uri->port != NULL) {
-	        strncat(space,":",len);
-	        strncat(space,uri->port,len);
-	    }
-	}
-    }
-}
-
-void
-NCD4_userpwd(NCURI* uri, char* space, size_t len)
-{
-    if(space != NULL && len > 0) {
-	space[0] = '\0'; /* so we can use strncat */
-        if(uri->user != NULL && uri->password != NULL) {
-            strncat(space,uri->user,len);
-            strncat(space,":",len);
-            strncat(space,uri->password,len);
-	}
-    }
-}
-
 #ifdef BLOB
 void
 NCD4_saveblob(NCD4meta* meta, void* mem)
@@ -437,8 +344,8 @@ NCD4_saveblob(NCD4meta* meta, void* mem)
 int
 NCD4_error(int code, const int line, const char* file, const char* fmt, ...)
 {
-    fprintf(stderr,"(%s:%d) ",file,line);
     va_list argv;
+    fprintf(stderr,"(%s:%d) ",file,line);
     va_start(argv,fmt);
     vfprintf(stderr,fmt,argv);
     fprintf(stderr,"\n");

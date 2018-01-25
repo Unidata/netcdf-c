@@ -509,9 +509,9 @@ case CASE(NC_OPAQUE,NC_CHAR):
     tmp.charv	= *(char*)bytes;
   break;
 case CASE(NC_OPAQUE,NC_BYTE):
-  if(bytes)
-    tmp.uint8v	= *(unsigned char*)bytes;
-    break;
+   if(bytes)
+      tmp.uint8v	= *(unsigned char*)bytes;
+   break;
 case CASE(NC_OPAQUE,NC_UBYTE):
   if(bytes)  
     tmp.uint8v	= *(unsigned char*)bytes;
@@ -642,3 +642,17 @@ convertstringtochars(NCConstant* str)
     }
     return dl;
 }
+
+unsigned int
+convertFilterID(const char* id)
+{
+    unsigned int nid = 0;
+    int ok = 0;
+
+    /* for now, must be an integer */
+    ok = sscanf(id,"%u",&nid);
+    if(ok == 1)
+	return nid;
+    return 0; /* Not a recognizable id */
+}
+

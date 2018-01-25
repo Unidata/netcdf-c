@@ -13,19 +13,19 @@ PASS=1
 CLASSIC="small ref_tst_nans ref_tst_utf8"
 EXTENDED="ref_nc_test_netcdf4 ref_tst_comp ref_tst_opaque_data"
 
-rm -fr ./results
-mkdir ./results
+rm -fr ./results_tst_inmemory_nc4
+mkdir ./results_tst_inmemory_nc4
 
 # Dump classic files two ways and compare
 dotest() {
 K=$1
 for f in $2 ; do
   echo "Testing ${f}"
-  ${NCGEN} -$K -o ./results/${f}.nc ${srcdir}/${f}.cdl
-  ${NCDUMP} ./results/${f}.nc > ./results/${f}.cdl
-  ${NCDUMP} -Xm ./results/${f}.nc > ./results/${f}.cdx
-  diff -w ./results/${f}.cdl ./results/${f}.cdx &> ./results/${f}.diff
-  if test -s ./results/${f}.diff ; then
+  ${NCGEN} -$K -o ./results_tst_inmemory_nc4/${f}.nc ${srcdir}/${f}.cdl
+  ${NCDUMP} ./results_tst_inmemory_nc4/${f}.nc > ./results_tst_inmemory_nc4/${f}.cdl
+  ${NCDUMP} -Xm ./results_tst_inmemory_nc4/${f}.nc > ./results_tst_inmemory_nc4/${f}.cdx
+  diff -w ./results_tst_inmemory_nc4/${f}.cdl ./results_tst_inmemory_nc4/${f}.cdx &> ./results_tst_inmemory_nc4/${f}.diff
+  if test -s ./results_tst_inmemory_nc4/${f}.diff ; then
     echo "***FAIL: $f"
     PASS=0
   fi
@@ -42,7 +42,7 @@ if test -f ${top_builddir}/config.h ; then
 fi
 
 # Cleanup
-rm -fr results
+rm -fr results_tst_inmemory_nc4
 
 if test "x$PASS" = x1 ; then
   echo "*** PASS all tests"

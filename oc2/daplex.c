@@ -11,6 +11,9 @@
 
 #undef URLCVT /* NEVER turn this on */
 
+/* Do we %xx decode all or part of a DAP Identifer: see dapdecode() */
+#define DECODE_PARTIAL
+
 #define DAP2ENCODE
 #ifdef DAP2ENCODE
 #define KEEPSLASH
@@ -37,16 +40,28 @@ static char* ddsworddelims =
   "{}[]:;=,";
 
 /* Define 1 and > 1st legal characters */
+/* Note: for some reason I added # and removed !~'"
+   what was I thinking?
+*/
 static char* ddswordchars1 =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\.*!~'\"";
 static char* ddswordcharsn =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*#";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\.*!~'\"";
+
+/* This includes sharp and colon for historical reasons */
 static char* daswordcharsn =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*#:";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\.*#:!~'\"";
+
+/* Need to remove '.' to allow for fqns */
 static char* cewordchars1 =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\*!~'\"";
 static char* cewordcharsn =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\*!~'\"";
 
 /* Current sets of legal characters */
 /*
@@ -355,8 +370,8 @@ daplexcleanup(DAPlexstate** lexstatep)
    1. if the encoded character is in fact a legal DAP2 character
       (alphanum+"_!~*'-\"") then it is decoded, otherwise not.
 */
-#ifndef DECODE_IDENTIFIERS
-static char* decodelist =
+#ifdef DECODE_PARTIAL
+static char* decodeset = /* Specify which characters are decoded */
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_!~*'-\"";
 #endif
 
@@ -364,10 +379,10 @@ char*
 dapdecode(DAPlexstate* lexstate, char* name)
 {
     char* decoded = NULL;
-#ifdef DECODE_IDENTIFIERS
-    decoded = ncuridecode(name);
+#ifdef DECODE_PARTIAL
+    decoded = ncuridecodepartial(name,decodeset); /* Decode selected */
 #else
-    decoded = ncuridecodeonly(name,decodelist);
+    decoded = ncuridecode(name); /* Decode everything */
 #endif
     nclistpush(lexstate->reclaim,(void*)decoded);
     return decoded;

@@ -90,8 +90,8 @@ main()
 	exit(1);
     }
     printf("Using test server: %s\n",svc);
-    strcpy(URL,svc);
-    strcat(URL,DTSTEST);
+    strncpy(URL,svc,sizeof(URL));
+    strlcat(URL,DTSTEST,sizeof(URL));
 
     memset((void*)target,0,sizeof(target));
 

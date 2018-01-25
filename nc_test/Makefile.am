@@ -9,22 +9,17 @@ include $(top_srcdir)/lib_flags.am
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc
 AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
 AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
+LDADD = ${top_builddir}/liblib/libnetcdf.la
+AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include -I$(top_srcdir)/libsrc
 
-# These files are created by the tests.
-CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
-tst_*.nc t_nc.nc large_files.nc quick_large_files.nc \
-tst_diskless.nc tst_diskless2.nc \
-tst_diskless3.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl \
-tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc nc_test_cdf5.nc \
-unlim.nc tst_inq_type.nc tst_elatefill.nc tst_global_fillval.nc
-
-check_PROGRAMS =
+# Note which tests depend on other tests. necessary for make -j check
+TEST_EXTENSIONS = .sh
 
 # These are the tests which are always run.
-TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm \
-	tst_names tst_nofill tst_nofill2 tst_nofill3 tst_atts3 \
-	tst_meta tst_inq_type tst_utf8_validate tst_utf8_phrases \
-	tst_global_fillval
+TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names       \
+tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type      \
+tst_utf8_validate tst_utf8_phrases tst_global_fillval                   \
+tst_max_var_dims tst_formats
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts tst_put_vars tst_elatefill
@@ -34,13 +29,18 @@ if USE_PNETCDF
 TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar tst_formatx_pnetcdf
 endif
 
+if TEST_PARALLEL4
+if USE_PNETCDF
+if USE_CDF5
+TESTPROGRAMS += tst_cdf5format
+endif
+endif
+endif
+
 # These are the source files for the main workhorse test program,
 # nc_test. If you pass nc_test, you are doing well.
-nc_test_SOURCES = nc_test.c error.c test_get.c test_put.c \
-test_read.c test_write.c util.c error.h tests.h
-
-LDADD = ${top_builddir}/liblib/libnetcdf.la
-AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include -I$(top_srcdir)/libsrc
+nc_test_SOURCES = nc_test.c error.c test_get.c test_put.c test_read.c	\
+test_write.c util.c error.h tests.h
 
 # If the user asked for large file tests, then add them.
 if LARGE_FILE_TESTS
@@ -51,11 +51,10 @@ endif # LARGE_FILE_TESTS
 if BUILD_BENCHMARKS
 TESTPROGRAMS += testnc3perf
 testnc3perf_SOURCES = testnc3perf.c
-CLEANFILES += benchmark.nc
 endif
 
 # Set up the tests.
-check_PROGRAMS += $(TESTPROGRAMS)
+check_PROGRAMS = $(TESTPROGRAMS)
 
 # Build Diskless test helpers
 if BUILD_DISKLESS
@@ -72,6 +71,7 @@ if BUILD_DISKLESS
 TESTS += run_diskless.sh run_diskless5.sh
 if BUILD_MMAP
 TESTS += run_mmap.sh
+run_mmap.log: run_diskless.log
 endif
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
@@ -96,13 +96,19 @@ endif # USE_VALGRIND_TESTS
 
 # Distribute the .c files so that m4 isn't required on the users
 # machine.
-EXTRA_DIST = test_get.m4 test_put.m4 run_valgrind_tests.sh \
-run_diskless.sh run_diskless2.sh run_diskless5.sh \
-run_mmap.sh run_pnetcdf_test.sh \
-test_read.m4 test_write.m4
+EXTRA_DIST = test_get.m4 test_put.m4 run_valgrind_tests.sh		\
+run_diskless.sh run_diskless2.sh run_diskless5.sh run_mmap.sh		\
+run_pnetcdf_test.sh test_read.m4 test_write.m4 ref_tst_diskless2.cdl	\
+tst_diskless5.cdl CMakeLists.txt
 
-# ref_tst_diskless2.cdl is for diff comparison and to produce tst_diskless2.c
-EXTRA_DIST += ref_tst_diskless2.cdl tst_diskless5.cdl CMakeLists.txt
+# These files are created by the tests.
+CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc     \
+tst_*.nc t_nc.nc large_files.nc quick_large_files.nc tst_diskless.nc    \
+tst_diskless2.nc tst_diskless3.nc tst_diskless3_file.cdl                \
+tst_diskless3_memory.cdl tst_diskless4.cdl tst_diskless4.nc             \
+tst_formatx.nc nc_test_cdf5.nc unlim.nc tst_inq_type.nc                 \
+tst_elatefill.nc tst_global_fillval.nc tst_large_cdf5.nc                \
+tst_max_var_dims.nc benchmark.nc
 
 EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
 if ENABLE_CDF5
@@ -120,11 +126,6 @@ endif
 # Only clean these on maintainer-clean, because they require m4 to
 # regenerate.
 #MAINTAINERCLEANFILES = test_get.c test_put.c
-
-all:
-	cp $(top_srcdir)/libsrc/ncx.c .
-
-CLEANFILES += ncx.c
 
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:

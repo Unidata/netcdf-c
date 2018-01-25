@@ -45,6 +45,17 @@
 #define CRAYFLOAT 1 /* CRAY Floating point */
 #endif
 
+#ifndef __cplusplus
+  #if __STDC_VERSION__ == 199901L /* C99 */
+  /* "inline" is a keyword */
+  #elif _MSC_VER >= 1500 /* MSVC 9 or newer */
+    #define inline __inline
+  #elif __GNUC__ >= 3 /* GCC 3 or newer */
+    #define inline __inline
+  #else /* Unknown or ancient */
+    #define inline
+  #endif
+#endif
 
 /*
  * External sizes of the primitive elements.
@@ -156,15 +167,9 @@
 
 /* End ncx_len */
 
-#ifdef __CHAR_UNSIGNED__
-	/* 'char' is unsigned, declare ncbyte as 'signed char' */
+#ifndef HAVE_SCHAR
 typedef signed char schar;
-
-#else
-	/* 'char' is signed */
-typedef char schar;
-
-#endif	/* __CHAR_UNSIGNED__ */
+#endif
 
 /*
  * Primitive numeric conversion functions.
