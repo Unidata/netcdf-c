@@ -255,7 +255,7 @@ created with the ::NC_CLASSIC_MODEL flag.
 
 As a rule, NC_MAX_VAR_DIMS <= NC_MAX_DIMS.
 
-NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits 
+NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits
       are *not* enforced after version 4.5.0
 */
 /**@{*/
@@ -1829,7 +1829,7 @@ EXTERNL int ncerr;
 #define NC_VERBOSE      2  /**< For V2 API, be verbose on error. */
 
 /** V2 API error handling. Default is (NC_FATAL | NC_VERBOSE). */
-EXTERNL int ncopts;     
+EXTERNL int ncopts;
 
 EXTERNL void
 nc_advise(const char *cdf_routine_name, int err, const char *fmt,...);
@@ -1976,5 +1976,7 @@ nc_finalize();
 #ifndef NC_HAVE_INQ_FORMAT_EXTENDED
 #define NC_HAVE_INQ_FORMAT_EXTENDED /*!< inq_format_extended() support. */
 #endif
+
+#define NC_HAVE_META_H
 
 #endif /* _NETCDF_ */
