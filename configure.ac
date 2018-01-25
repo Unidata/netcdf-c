@@ -1438,6 +1438,7 @@ AX_SET_META([NC_HAS_PNETCDF],[$enable_pnetcdf],[yes])
 AX_SET_META([NC_HAS_PARALLEL],[$enable_parallel],[yes])
 AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
+AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 
 # Automake says that this is always run in top_builddir
 # and that srcdir is defined (== top_srcdir)
