@@ -1,7 +1,19 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
+
+# get some config.h parameters
+if test -f ${top_builddir}/config.h ; then
+  if fgrep -e '#define USE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
+    HAVE_CDF5=1
+  else
+    HAVE_CDF5=0
+  fi
+else
+  echo "Cannot locate config.h"
+  exit 1
+fi
 
 # It is unreasonable to test actual lengths of files
 # (even netcdf-3 files).
@@ -10,7 +22,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 ${NCGEN} -b ${srcdir}/small.cdl
 ${NCGEN} -b ${srcdir}/small2.cdl
 
-# This shell script tests lengths of small netcdf files and tests 
+# This shell script tests lengths of small netcdf files and tests
 # that rewriting a numeric value doesn't change file length
 # $Id: tst_lengths.sh,v 1.10 2008/08/07 00:07:52 ed Exp $
 
@@ -93,38 +105,43 @@ ${NCGEN} -b -k64-bit-offset -x ${srcdir}/small.cdl && ${execdir}/rewrite-scalar 
 #    exit 1
 #fi
 
-echo "*** testing length of 64-bit data file"
-${NCGEN} -b -k64-bit-data ${srcdir}/small.cdl
-if test `wc -c < small.nc` != 104; then
-    exit 1
+# The following tests only occur if we have CDF5.
+if test "x$HAVE_CDF5" = x1 ; then
+
+    echo "*** testing length of 64-bit data file"
+    ${NCGEN} -b -k64-bit-data ${srcdir}/small.cdl
+    if test `wc -c < small.nc` != 104; then
+        exit 1
+    fi
+
+    echo "*** testing length of 64-bit data file"
+    ${NCGEN} -b -5 ${srcdir}/small.cdl
+    if test `wc -c < small.nc` != 104; then
+        exit 1
+    fi
+    echo "*** testing length of 64-bit data file written with NOFILL"
+    ${NCGEN} -b -5 -x ${srcdir}/small.cdl
+    #if test `wc -c < small.nc` != 104; then
+    #    exit 1
+    #fi
+
+    echo "*** testing length of rewritten 64-bit data file"
+    ${NCGEN} -b -5 ${srcdir}/small.cdl && ${execdir}/rewrite-scalar small.nc t
+    # Watch out, it appears that the CDF-5 files are being rounded up to next page size
+    # So, we need to truncate them wrt nul's in order to check size.
+    # Bad hack, but what else can I do?
+    if test `${execdir}/nctrunc <small.nc |wc -c` != 104; then
+        exit 1
+    fi
+
+    echo "*** testing length of rewritten 64-bit data file written with NOFILL"
+    ${NCGEN} -b -5 -x ${srcdir}/small.cdl && ${execdir}/rewrite-scalar small.nc t
+    #if test `wc -c < small.nc` != 104; then
+    #    exit 1
+    #fi
+
+   # End HAVE_CDF5 block.
 fi
-
-echo "*** testing length of 64-bit data file"
-${NCGEN} -b -5 ${srcdir}/small.cdl
-if test `wc -c < small.nc` != 104; then
-    exit 1
-fi
-echo "*** testing length of 64-bit data file written with NOFILL"
-${NCGEN} -b -5 -x ${srcdir}/small.cdl
-#if test `wc -c < small.nc` != 104; then
-#    exit 1
-#fi
-
-echo "*** testing length of rewritten 64-bit data file"
-${NCGEN} -b -5 ${srcdir}/small.cdl && ${execdir}/rewrite-scalar small.nc t
-# Watch out, it appears that the CDF-5 files are being rounded up to next page size
-# So, we need to truncate them wrt nul's in order to check size.
-# Bad hack, but what else can I do?
-if test `${execdir}/nctrunc <small.nc |wc -c` != 104; then
-    exit 1
-fi
-
-echo "*** testing length of rewritten 64-bit data file written with NOFILL"
-${NCGEN} -b -5 -x ${srcdir}/small.cdl && ${execdir}/rewrite-scalar small.nc t
-#if test `wc -c < small.nc` != 104; then
-#    exit 1
-#fi
-
 
 # test with only one record variable of type byte or short, which need
 # not be 4-byte aligned
@@ -134,22 +151,28 @@ ${NCGEN} -b ${srcdir}/small2.cdl
 #    exit 1
 #fi
 
-echo "*** testing length of one-record-variable 64-bit data file"
-${NCGEN} -b -5 ${srcdir}/small2.cdl
-if test `wc -c < small2.nc` != 161; then
-    exit 1
-fi
+# The following tests only occur if we have CDF5.
+if test "x$HAVE_CDF5" = x1 ; then
 
-echo "*** testing length of one-record-variable 64-bit data file"
-${NCGEN} -b -5 ${srcdir}/small2.cdl
-if test `wc -c < small2.nc` != 161; then
-    exit 1
-fi
+    echo "*** testing length of one-record-variable 64-bit data file"
+    ${NCGEN} -b -5 ${srcdir}/small2.cdl
+    if test `wc -c < small2.nc` != 161; then
+        exit 1
+    fi
 
-echo "*** testing length of one-record-variable 64-bit data file written with NOFILL"
-${NCGEN} -b -5 -x ${srcdir}/small2.cdl
-if test `wc -c < small2.nc` != 161; then
-    exit 1
+    echo "*** testing length of one-record-variable 64-bit data file"
+    ${NCGEN} -b -5 ${srcdir}/small2.cdl
+    if test `wc -c < small2.nc` != 161; then
+        exit 1
+    fi
+
+    echo "*** testing length of one-record-variable 64-bit data file written with NOFILL"
+    ${NCGEN} -b -5 -x ${srcdir}/small2.cdl
+    if test `wc -c < small2.nc` != 161; then
+        exit 1
+    fi
+
+    #end HAVE_CDF5 block
 fi
 
 echo "*** testing length of one-record-variable classic file written with NOFILL"

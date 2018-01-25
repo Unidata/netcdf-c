@@ -14,12 +14,12 @@
 
    */
 
-#cmakedefine HAVE_WINSOCK2_H
+/* #cmakedefine HAVE_WINSOCK2_H
 
 #ifdef HAVE_WINSOCK2_H
    #define _WINSOCKAPI_
 #endif
-
+*/
    #if _MSC_VER>=1900
      #define STDC99
    #endif
@@ -107,6 +107,13 @@ are set when opening a binary file on Windows. */
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF 1
 
+/* if true, enable CDF5 Support */
+#cmakedefine ENABLE_CDF5 1
+#cmakedefine USE_CDF5 1
+
+/* if true, enable strict null byte header padding. */
+#cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
+
 /* if true, build DAP2 and DAP4 Client */
 #cmakedefine ENABLE_DAP 1
 
@@ -146,6 +153,9 @@ are set when opening a binary file on Windows. */
 
 /* Is CURLINFO_RESPONSE_CODE defined */
 #cmakedefine HAVE_CURLINFO_RESPONSE_CODE 1
+
+/* Is CURLINFO_HTTP_CODE defined */
+#cmakedefine HAVE_CURLINFO_HTTP_CONNECTCODE 1
 
 /* Is CURLOPT_CHUNK_BGN_FUNCTION defined */
 #cmakedefine HAVE_CURLOPT_CHUNK_BGN_FUNCTION 1
@@ -288,6 +298,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `mkstemp' function. */
 #cmakedefine HAVE_MKSTEMP 1
 
+/* Define to 1 if you have the `mktemp' function. */
+#cmakedefine HAVE_MKTEMP 1
+
 /* Define to 1 if you have a working `mmap' system call. */
 #cmakedefine HAVE_MMAP 1
 
@@ -396,6 +409,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `sysconf' function. */
 #cmakedefine HAVE_SYSCONF 1
+
+/* Define to 1 if you have the <sys/cdefs.h> header file. */
+#cmakedefine HAVE_SYS_CDEFS_H 1
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */

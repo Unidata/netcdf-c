@@ -1,11 +1,12 @@
 #!/bin/bash
 #NB=1
-DB=1
+#DB=1
 #X=-x
 FAST=1
 
 HDF5=1
 DAP=1
+#SZIP=1
 #HDF4=1
 #PNETCDF=1
 #PAR4=1
@@ -18,14 +19,10 @@ if test "x$PNETCDF" = x1 -o "x$PAR4" = x1 ; then
 MPIO=1
 fi
 
-#RPC=1
-
-#M32=1
-#M64=1
-
 CFLAGS=""
 #CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
-CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign -Wno-format ${CFLAGS}"
+#CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign -Wno-format ${CFLAGS}"
+CFLAGS="-Wall -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign ${CFLAGS}"
 #CFLAGS="-Wall ${CFLAGS}"
 #CFLAGS="-Wconversion"
 
@@ -45,6 +42,11 @@ fi
 # HDF4=>HDF5
 if test "x$HDF4" = x1 ; then
 HDF5=1
+fi
+
+# !HDF5=>!SZIP
+if test "x$HDF5" != x1 ; then
+SZIP=0
 fi
 
 CC=gcc
@@ -69,6 +71,10 @@ if test "x$HDF4" = "x1" ; then
 LDFLAGS="$LDFLAGS -ljpeg"
 fi
 
+if test "x$SZIP" = "x1" ; then
+LDFLAGS="$LDFLAGS -lsz -laec"
+fi
+
 export PKG_CONFIG_PATH=/usr/lib/pkgconfig
 if test "x$DAP" = "x1" ; then
 if curl-config --version >/dev/null ; then
@@ -88,19 +94,18 @@ CXXFLAGS="$CPPFLAGS $CXXFLAGS"
 FLAGS="--prefix ${PREFIX}"
 #FLAGS="$FLAGS --disable-f77 --disable-f90"
 #FLAGS="$FLAGS --disable-cxx"
-FLAGS="$FLAGS --disable-examples"
+#FLAGS="$FLAGS --disable-examples"
 #FLAGS="$FLAGS --disable-utilities"
 #FLAGS="$FLAGS --enable-cxx-4"
 #FLAGS="$FLAGS --enable-dap-long-tests"
 #FLAGS="$FLAGS --enable-ffio"
 #FLAGS="$FLAGS --enable-benchmarks"
 FLAGS="$FLAGS --enable-extreme-numbers"
-FLAGS="$FLAGS --enable-extra-tests"
 #FLAGS="$FLAGS --enable-large-file-tests"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 #FLAGS="$FLAGS --enable-dap-auth-tests" -- requires a new remotetest server
-#FLAGS="$FLAGS --enable-doxygen"
+#FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-mmap"
@@ -112,6 +117,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
+#FLAGS="$FLAGS --disable-filter-testing"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
@@ -152,19 +158,11 @@ FLAGS="$FLAGS --disable-dap"
 fi
 
 if test "x$MPIO" = x1 ; then
-  if test -f /machine/local_mpich2 ; then
-    MPI1=/machine/local_mpich2
-    MPI2=/machine/local_par7
-    MPI3=/machine/local_par
-  else
-    MPI1=/usr/local
-    MPI2=${MPI1}
-    MPI3=${MPI1}
-  fi
-  PATH=${PATH}:${MPI1}/bin
-  CC="${MPI1}/bin/mpicc"
-  CPPFLAGS="-I${MPI2}/include -I${MPI1}/include -I${MPI3}/include"
-  LDFLAGS="-L${MPI2}/lib -L${MPI1}/lib -L${MPI3}/lib"
+  MPIDIR=/usr/lib64/mpich
+  PATH="${PATH}:${MPIDIR}/bin"
+  CC="${MPIDIR}/bin/mpicc"
+  CPPFLAGS="-I${MPIDIR}/include"
+  LDFLAGS="$LDFLAGS -L${MPIDIR}"
   LDLIBS="-lmpich"
   FLAGS="$FLAGS --enable-pnetcdf"
   FLAGS="$FLAGS --enable-parallel-tests"
@@ -194,6 +192,7 @@ fi
 if test -z "$FAST" ; then
   if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
 fi
+
 sh $X ./configure ${FLAGS}
 for c in $cmds; do
 printenv LD_LIBRARY_PATH

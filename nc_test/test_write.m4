@@ -33,6 +33,7 @@ dnl
 #endif
 
 #include "tests.h"
+#include "config.h"
 #include "math.h"
 
 define(`EXPECT_ERR',`error("expecting $1 but got %s",nc_err_code_name($2));')dnl
@@ -2405,8 +2406,11 @@ APIFunc(get_file_version)(char *path, int *version)
 
    if (strncmp(magic, "CDF", MAGIC_NUM_LEN-1)==0) {
       if (magic[MAGIC_NUM_LEN-1] == NC_FORMAT_CLASSIC ||
-          magic[MAGIC_NUM_LEN-1] == NC_FORMAT_64BIT_OFFSET ||
-          magic[MAGIC_NUM_LEN-1] == NC_FORMAT_CDF5)
+          magic[MAGIC_NUM_LEN-1] == NC_FORMAT_64BIT_OFFSET
+#ifdef USE_CDF5
+          || magic[MAGIC_NUM_LEN-1] == NC_FORMAT_CDF5
+#endif
+)
          *version = magic[MAGIC_NUM_LEN-1];
       else
         return NC_ENOTNC;
@@ -2449,8 +2453,8 @@ TestFunc(set_default_format)(void)
     ELSE_NOK
 
     /* Cycle through available formats. */
-    for(i=NC_FORMAT_CLASSIC; i<NC_FORMAT_64BIT_DATA; i++)
-    {
+
+    for(i=NC_FORMAT_CLASSIC; i<NC_FORMAT_64BIT_DATA; i++) {
        if (i == NC_FORMAT_NETCDF4 || i == NC_FORMAT_NETCDF4_CLASSIC)
            continue; /* test classic formats only */
        if ((err = APIFunc(set_default_format)(i, NULL)))
@@ -2500,7 +2504,7 @@ TestFunc(set_default_format)(void)
 int
 TestFunc(delete)(void)
 {
-    int err, nok=0;;
+    int err, nok=0;
     int ncid;
 
     err = FileCreate(scratch, NC_CLOBBER, &ncid);

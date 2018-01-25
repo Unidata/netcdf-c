@@ -525,7 +525,7 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
 	vlentype->basetype = var->basetype;
 	/* Use name <fqnname>_t */
 	strncpy(name,fqnname,sizeof(name));
-	strncat(name,"_t",sizeof(name)-strlen(name));
+	strlcat(name,"_t",sizeof(name));
         SETNAME(vlentype,name);
         /* Set the basetype */
         var->basetype = vlentype;
@@ -540,7 +540,7 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
         classify(group,structtype);
 	/* Use name <fqnname>_base */
 	strncpy(name,fqnname,sizeof(name));
-	strncat(name,"_base",sizeof(name)-strlen(name));
+	strlcat(name,"_base",sizeof(name));
         SETNAME(structtype,name);
         /* Parse Fields into type */
         if((ret = parseFields(parser,structtype,xml))) goto done;
@@ -549,7 +549,7 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
         classify(group,vlentype);
 	/* Use name <xname>_t */
 	strncpy(name,fqnname,sizeof(name));
-	strncat(name,"_t",sizeof(name)-strlen(name));
+	strlcat(name,"_t",sizeof(name));
         SETNAME(vlentype,name);
 	vlentype->basetype = structtype;
         /* Set the basetype */
@@ -1133,11 +1133,13 @@ keyword(const char* name)
     int n = sizeof(keywordmap)/sizeof(KEYWORDINFO);
     int L = 0;
     int R = (n - 1);
+    int m, cmp;
+    struct KEYWORDINFO* p;
     for(;;) {
 	if(L > R) break;
-        int m = (L + R) / 2;
-	struct KEYWORDINFO* p = &keywordmap[m];
-	int cmp = strcasecmp(p->tag,name);
+        m = (L + R) / 2;
+	p = &keywordmap[m];
+	cmp = strcasecmp(p->tag,name);
 	if(cmp == 0) return p;
 	if(cmp < 0)
 	    L = (m + 1);
@@ -1196,13 +1198,14 @@ lookupAtomictype(NCD4parser* parser, const char* name)
     int n = nclistlength(parser->atomictypes);
     int L = 0;
     int R = (n - 1);
+    int m, cmp;
     NCD4node* p;
 
     for(;;) {
 	if(L > R) break;
-        int m = (L + R) / 2;
+        m = (L + R) / 2;
 	p = (NCD4node*)nclistget(parser->atomictypes,m);
-	int cmp = strcasecmp(p->name,name);
+	cmp = strcasecmp(p->name,name);
 	if(cmp == 0) return p;
 	if(cmp < 0)
 	    L = (m + 1);

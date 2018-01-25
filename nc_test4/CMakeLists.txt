@@ -1,16 +1,16 @@
 # Some extra tests
-SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars
-  tst_varms tst_unlim_vars tst_converts tst_converts2 tst_grps tst_grps2
-  tst_compounds tst_compounds2 tst_compounds3 tst_opaques tst_strings
-  tst_strings2 tst_interops tst_interops4 tst_interops6
-  tst_enums tst_coords tst_coords2 tst_coords3 tst_vars3 tst_vars4
-  tst_chunks tst_chunks2 tst_utf8 tst_fills tst_fills2 tst_fillbug
-  tst_xplatform2 tst_h_atts2 tst_endian_fill tst_atts
-  t_type cdm_sea_soundings tst_vl tst_atts1 tst_atts2
-  tst_vars2 tst_files5 tst_files6 tst_sync tst_h_strbug tst_h_refs
-  tst_h_scalar tst_rename tst_h5_endians tst_atts_string_rewrite
-  tst_put_vars_two_unlim_dim tst_hdf5_file_compat tst_fill_attr_vanish
-  tst_rehash)
+SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
+  tst_vars tst_varms tst_unlim_vars tst_converts tst_converts2
+  tst_grps tst_grps2 tst_compounds tst_compounds2 tst_compounds3
+  tst_opaques tst_strings tst_strings2 tst_interops tst_interops4
+  tst_interops6 tst_enums tst_coords tst_coords2 tst_coords3 tst_vars3
+  tst_vars4 tst_chunks tst_chunks2 tst_utf8 tst_fills tst_fills2
+  tst_fillbug tst_xplatform2 tst_endian_fill tst_atts t_type
+  cdm_sea_soundings tst_vl tst_atts1 tst_atts2 tst_vars2 tst_files5
+  tst_files6 tst_sync tst_h_strbug tst_h_refs tst_h_scalar tst_rename
+  tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
+  tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types)
+
 
 # Note, renamegroup needs to be compiled before run_grp_rename
 
@@ -19,6 +19,13 @@ IF(BUILD_UTILITIES)
   build_bin_test(renamegroup)
   add_sh_test(nc_test4 run_grp_rename)
   ADD_SH_TEST(nc_test4 tst_misc)
+  build_bin_test(test_filter)
+  build_bin_test(test_filter_misc)
+IF(ENABLE_FILTER_TESTING)
+  ADD_SH_TEST(nc_test4 tst_filter)
+  SET(NC4_TESTS ${NC4_TESTS} tst_filterparser)
+ENDIF(ENABLE_FILTER_TESTING)
+
 ENDIF(BUILD_UTILITIES)
 
 ##
@@ -42,8 +49,12 @@ IF(LARGE_FILE_TESTS)
 ENDIF()
 
 
-IF(USE_HDF4)
-  SET(NC4_TESTS ${NC4_TESTS} tst_interops2)
+IF(USE_SZIP)
+  BUILD_BIN_TEST(test_szip)
+  BUILD_BIN_TEST(h5testszip)
+  IF(BUILD_UTILITIES)
+    add_sh_test(nc_test4 tst_szip)
+  ENDIF()
 ENDIF()
 
 IF(BUILD_BENCHMARKS)
@@ -61,7 +72,7 @@ IF(BUILD_BENCHMARKS)
 ENDIF()
 
 # Copy some test files from current source dir to out-of-tree build dir.
-FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.hdf4)
+FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/ref_bzip2.c ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.hdf4 ${CMAKE_CURRENT_SOURCE_DIR}/*.h5 ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 IF(MSVC)
   FILE(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
@@ -75,15 +86,17 @@ ENDFOREACH()
 # This must go after the 'foreach' stanza
 # immediately above this comment.
 IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
+    add_bin_test_no_prefix(tst_interops2)
+    build_bin_test_no_prefix(tst_interops3)
     add_sh_test(nc_test4 run_get_hdf4_files)
-    add_bin_test(nc_test4 tst_interops3)
+    add_bin_test(nc_test4 tst_bug324)
     add_sh_test(nc_test4 tst_formatx_hdf4)
     build_bin_test(tst_chunk_hdf4)
     add_sh_test(nc_test4 run_chunk_hdf4)
     add_bin_test(nc_test4 tst_h4_lendian)
     add_sh_test(nc_test4 tst_hdf4_read_var)
+    SET_TESTS_PROPERTIES(nc_test4_tst_hdf4_read_var PROPERTIES DEPENDS tst_interops2)
 ENDIF()
-
 
 IF(TEST_PARALLEL4)
   build_bin_test(tst_mpi_parallel)
@@ -95,3 +108,7 @@ IF(TEST_PARALLEL4)
   build_bin_test(tst_simplerw_coll_r)
   add_sh_test(nc_test4 run_par_test)
 ENDIF()
+
+ADD_EXTRA_DIST(findplugin.in)
+
+ADD_SUBDIRECTORY(hdf5plugins)

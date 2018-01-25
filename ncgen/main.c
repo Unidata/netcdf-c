@@ -57,7 +57,7 @@ size_t nciterbuffersize;
 struct Vlendata* vlendata;
 
 char *netcdf_name; /* command line -o file name */
-char *datasetname; /* name from the netcdf <name> {} */
+char *datasetname; /* name from the netcdf <name> {} || from -N */
 
 extern FILE *ncgin;
 
@@ -67,7 +67,7 @@ void usage( void );
 int main( int argc, char** argv );
 
 /* Define tables vs modes for legal -k values*/
-struct Kvalues legalkinds[NKVALUES] = {
+struct Kvalues legalkinds[] = {
     /* NetCDF-3 classic format (32-bit offsets) */
     {"classic", NC_FORMAT_CLASSIC}, /* canonical format name */
     {"nc3", NC_FORMAT_CLASSIC},	    /* short format name */
@@ -200,6 +200,8 @@ usage(void)
 " [-o outfile]"
 " [-P]"
 " [-x]"
+" [-N datasetname]"
+" [-L loglevel]"
 " [file ... ]",
 	   progname);
     derror("netcdf library version %s", nc_inq_libvers());
@@ -250,7 +252,7 @@ main(
     (void) par_io_init(32, 32);
 #endif
 
-    while ((c = getopt(argc, argv, "134567bB:cdD:fhHk:l:M:no:Pv:xL:")) != EOF)
+    while ((c = getopt(argc, argv, "134567bB:cdD:fhHk:l:M:no:Pv:xL:N:")) != EOF)
       switch(c) {
 	case 'd':
 	  debug = 1;
@@ -323,6 +325,9 @@ main(
 	  break;
 	case 'o':		/* to explicitly specify output name */
 	  netcdf_name = nulldup(optarg);
+	  break;
+	case 'N':		/* to explicitly specify dataset name */
+	  datasetname = nulldup(optarg);
 	  break;
 	case 'x': /* set nofill mode to speed up creation of large files */
 	  nofill_flag = 1;
@@ -498,6 +503,13 @@ main(
 
     /* Compute the k_flag (1st pass) using rules in the man page (ncgen.1).*/
 
+#ifndef USE_CDF5
+    if(k_flag == NC_FORMAT_CDF5) {
+      derror("Output format CDF5 requested, but netcdf was built without cdf5 support.");
+      return 0;
+    }
+#endif
+
 #ifndef USE_NETCDF4
     if(enhanced_flag) {
 	derror("CDL input is enhanced mode, but --disable-netcdf4 was specified during build");
@@ -506,7 +518,7 @@ main(
 #endif
 
     if(l_flag == L_JAVA || l_flag == L_F77) {
-        k_flag = 1;
+        k_flag = NC_FORMAT_CLASSIC;
 	if(enhanced_flag) {
 	    derror("Java or Fortran requires classic model CDL input");
 	    return 0;
@@ -517,12 +529,12 @@ main(
       k_flag = globalspecials._Format;
 
     if(cdf5_flag && !enhanced_flag && k_flag == 0)
-      k_flag = 5;
+      k_flag = NC_FORMAT_64BIT_DATA;
     if(enhanced_flag && k_flag == 0)
-      k_flag = 3;
+      k_flag = NC_FORMAT_NETCDF4;
 
-    if(enhanced_flag && k_flag != 3) {
-      if(enhanced_flag && k_flag != 3 && k_flag != 5) {
+    if(enhanced_flag && k_flag != NC_FORMAT_NETCDF4) {
+      if(enhanced_flag && k_flag != NC_FORMAT_NETCDF4 && k_flag != NC_FORMAT_64BIT_DATA) {
         derror("-k or _Format conflicts with enhanced CDL input");
         return 0;
       }
@@ -530,13 +542,13 @@ main(
 
     if(specials_flag > 0 && k_flag == 0)
 #ifdef USE_NETCDF4
-	k_flag = 3;
+	k_flag = NC_FORMAT_NETCDF4;
 #else
-	k_flag = 1;
+	k_flag = NC_FORMAT_CLASSIC;
 #endif
 
     if(k_flag == 0)
-	k_flag = 1;
+	k_flag = NC_FORMAT_CLASSIC;
 
     /* Figure out usingclassic */
     switch (k_flag) {
@@ -576,7 +588,6 @@ main(
 
     return 0;
 }
-END_OF_MAIN()
 
 void
 init_netcdf(void) /* initialize global counts, flags */

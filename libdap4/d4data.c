@@ -180,7 +180,6 @@ fillstruct(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, NClist* 
  
 #ifdef CLEARSTRUCT
     /* Avoid random data within aligned structs */
-    d4size_t prevoffset = 0;    
     memset(dst,0,type->meta.memsize);
 #endif
 

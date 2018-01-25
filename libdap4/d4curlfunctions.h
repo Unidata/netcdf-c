@@ -6,6 +6,14 @@
 #ifndef D4CURLFUNCTIONS_H
 #define D4CURLFUNCTIONS_H
 
+/* Aliases to older names */
+#ifndef HAVE_CURLOPT_KEYPASSWD
+#define CURLOPT_KEYPASSWD CURLOPT_SSLKEYPASSWD
+#endif
+#ifndef HAVE_CURLINFO_RESPONSE_CODE
+#define CURLINFO_RESPONSE_CODE CURLINFO_HTTP_CODE
+#endif
+
 enum CURLFLAGTYPE {CF_UNKNOWN=0,CF_OTHER=1,CF_STRING=2,CF_LONG=3};
 struct CURLFLAG {
     const char* name;
@@ -20,11 +28,10 @@ extern ncerror NCD4_set_flags_perfetch(NCD4INFO*);
 extern ncerror NCD4_set_flags_perlink(NCD4INFO*);
 
 extern ncerror NCD4_set_curlflag(NCD4INFO*,int);
-extern ncerror NCD4_set_curlstate(NCD4INFO* state, int flag, void* value);
 
 extern void NCD4_curl_debug(NCD4INFO* state);
 
 extern struct CURLFLAG* NCD4_curlflagbyname(const char* name);
-extern void NCD4_curl_protocols(NCD4globalstate* state);
+extern void NCD4_curl_protocols(NCD4INFO*);
 
 #endif /*D4CURLFUNCTIONS_H*/

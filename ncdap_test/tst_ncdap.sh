@@ -44,7 +44,7 @@ remote*)
     ;;
 esac
 
-RESULTSDIR="./results"
+RESULTSDIR="./results_tst_ncdap"
 #
 if test "x$leakcheck" = "x1" ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
@@ -109,7 +109,7 @@ echo "pwd=" `pwd`
 
 totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
-
+rm -fr ${RESULTSDIR}
 echo "*** PASSED: ${okcount}/${totalcount} ; ${xfailcount} expected failures ; ${failcount} unexpected failures"
 
 #failcount=0

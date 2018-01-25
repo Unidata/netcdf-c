@@ -95,9 +95,12 @@ err:
 int
 nc3_cktype(int mode, nc_type type)
 {
+#ifdef USE_CDF5
     if (mode & NC_CDF5) { /* CDF-5 format */
         if (type >= NC_BYTE && type < NC_STRING) return NC_NOERR;
-    } else if (mode & NC_64BIT_OFFSET) { /* CDF-2 format */
+    } else
+#endif
+      if (mode & NC_64BIT_OFFSET) { /* CDF-2 format */
         if (type >= NC_BYTE && type <= NC_DOUBLE) return NC_NOERR;
     } else if ((mode & NC_64BIT_OFFSET) == 0) { /* CDF-1 format */
         if (type >= NC_BYTE && type <= NC_DOUBLE) return NC_NOERR;
@@ -1145,8 +1148,11 @@ nc_set_default_format(int format, int *old_formatp)
 	format != NC_FORMAT_NETCDF4 && format != NC_FORMAT_NETCDF4_CLASSIC)
       return NC_EINVAL;
 #else
-    if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET &&
-        format != NC_FORMAT_CDF5)
+    if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET
+#ifdef USE_CDF5
+        && format != NC_FORMAT_CDF5
+#endif
+        )
       return NC_EINVAL;
 #endif
     default_create_format = format;
@@ -1623,90 +1629,114 @@ NC3_inq_base_pe(int ncid, int *pe)
 	/*
 	 * !_CRAYMPP, only pe 0 is valid
 	 */
-	*pe = 0;
+	if (pe) *pe = 0;
 #endif /* _CRAYMPP && LOCKNUMREC */
 	return NC_NOERR;
 }
 
+/**
+ * Return the file format.
+ *
+ * \param ncid the ID of the open file.
+
+ * \param formatp a pointer that gets the format. Ignored if NULL.
+ *
+ * \returns NC_NOERR No error.
+ * \returns NC_EBADID Bad ncid.
+ * \internal
+ * \author Ed Hartnett, Dennis Heimbigner
+ */
 int
 NC3_inq_format(int ncid, int *formatp)
 {
-	int status;
-	NC *nc;
-	NC3_INFO* nc3;
+   int status;
+   NC *nc;
+   NC3_INFO* nc3;
 
-	status = NC_check_id(ncid, &nc);
-	if(status != NC_NOERR)
-		return status;
-	nc3 = NC3_DATA(nc);
+   status = NC_check_id(ncid, &nc);
+   if(status != NC_NOERR)
+      return status;
+   nc3 = NC3_DATA(nc);
 
-	/* only need to check for netCDF-3 variants, since this is never called for netCDF-4 files */
-	if (fIsSet(nc3->flags, NC_64BIT_DATA))
-	    *formatp = NC_FORMAT_CDF5;
-	else if (fIsSet(nc3->flags, NC_64BIT_OFFSET))
-	    *formatp = NC_FORMAT_64BIT_OFFSET;
-	else
-	    *formatp = NC_FORMAT_CLASSIC;
-	return NC_NOERR;
+   /* Why even call this function with no format pointer? */
+   if (!formatp)
+      return NC_NOERR;
+
+   /* only need to check for netCDF-3 variants, since this is never called for netCDF-4 files */
+#ifdef USE_CDF5
+   if (fIsSet(nc3->flags, NC_64BIT_DATA))
+      *formatp = NC_FORMAT_CDF5;
+   else
+#endif
+      if (fIsSet(nc3->flags, NC_64BIT_OFFSET))
+         *formatp = NC_FORMAT_64BIT_OFFSET;
+      else
+         *formatp = NC_FORMAT_CLASSIC;
+   return NC_NOERR;
 }
 
+/**
+ * Return the extended format (i.e. the dispatch model), plus the mode
+ * associated with an open file.
+ *
+ * \param ncid the ID of the open file.
+ * \param formatp a pointer that gets the extended format. Note that
+ * this is not the same as the format provided by nc_inq_format(). The
+ * extended foramt indicates the dispatch layer model. Classic, 64-bit
+ * offset, and CDF5 files all have an extended format of
+ * ::NC_FORMATX_NC3. Ignored if NULL.
+ * \param modep a pointer that gets the open/create mode associated with
+ * this file. Ignored if NULL.
+ *
+ * \returns NC_NOERR No error.
+ * \returns NC_EBADID Bad ncid.
+ * \internal
+ * \author Dennis Heimbigner
+ */
 int
 NC3_inq_format_extended(int ncid, int *formatp, int *modep)
 {
-	int status;
-	NC *nc;
+   int status;
+   NC *nc;
 
-	status = NC_check_id(ncid, &nc);
-	if(status != NC_NOERR)
-		return status;
-        if(formatp) *formatp = NC_FORMATX_NC3;
-	if(modep) *modep = nc->mode;
-	return NC_NOERR;
+   status = NC_check_id(ncid, &nc);
+   if(status != NC_NOERR)
+      return status;
+   if(formatp) *formatp = NC_FORMATX_NC3;
+   if(modep) *modep = nc->mode;
+   return NC_NOERR;
 }
 
-/* The sizes of types may vary from platform to platform, but within
- * netCDF files, type sizes are fixed. */
-#define NC_BYTE_LEN 1
-#define NC_CHAR_LEN 1
-#define NC_SHORT_LEN 2
-#define NC_INT_LEN 4
-#define NC_FLOAT_LEN 4
-#define NC_DOUBLE_LEN 8
-#define NUM_ATOMIC_TYPES 6
-
-/* This netCDF-4 function proved so popular that a netCDF-classic
- * version is provided. You're welcome. */
+/**
+ * Determine name and size of netCDF type. This netCDF-4 function
+ * proved so popular that a netCDF-classic version is provided. You're
+ * welcome.
+ * 
+ * \param ncid The ID of an open file.
+ * \param typeid The ID of a netCDF type.
+ * \param name Pointer that will get the name of the type. Maximum
+ * size will be NC_MAX_NAME. Ignored if NULL.
+ * \param size Pointer that will get size of type in bytes. Ignored if
+ * null.
+ *
+ * \returns NC_NOERR No error.
+ * \returns NC_EBADID Bad ncid.
+ * \returns NC_EBADTYPE Bad typeid.
+ * \internal
+ * \author Ed Hartnett
+ */
 int
 NC3_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
 {
-#if 0
-   int atomic_size[NUM_ATOMIC_TYPES] = {NC_BYTE_LEN, NC_CHAR_LEN, NC_SHORT_LEN,
-					NC_INT_LEN, NC_FLOAT_LEN, NC_DOUBLE_LEN};
-   char atomic_name[NUM_ATOMIC_TYPES][NC_MAX_NAME + 1] = {"byte", "char", "short",
-							  "int", "float", "double"};
-#endif
-
    NC *ncp;
    int stat = NC_check_id(ncid, &ncp);
    if (stat != NC_NOERR)
-	return stat;
+      return stat;
 
-   /* Only netCDF classic model and CDF-5 need to be handled. */
-   /* After discussion, this seems like an artificial limitation.
-      See https://github.com/Unidata/netcdf-c/issues/240 for more
-      discussion. */
-   /*
-   if((ncp->mode & NC_CDF5) != 0) {
-	if (typeid < NC_BYTE || typeid > NC_STRING)
-            return NC_EBADTYPE;
-   } else if (typeid < NC_BYTE || typeid > NC_DOUBLE)
-      return NC_EBADTYPE;
-   */
    if(typeid < NC_BYTE || typeid > NC_STRING)
-     return NC_EBADTYPE;
+      return NC_EBADTYPE;
 
-   /* Give the user the values they want. Subtract one because types
-    * are numbered starting at 1, not 0. */
+   /* Give the user the values they want. */
    if (name)
       strcpy(name, NC_atomictypename(typeid));
    if (size)
@@ -1716,36 +1746,6 @@ NC3_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
 }
 
 /**************************************************/
-#if 0
-int
-NC3_set_content(int ncid, size_t size, void* memory)
-{
-    int status = NC_NOERR;
-    NC *nc;
-    NC3_INFO* nc3;
-
-    status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR)
-        return status;
-    nc3 = NC3_DATA(nc);
-
-#ifdef USE_DISKLESS
-    fClr(nc3->flags, NC_CREAT);
-    status = memio_set_content(nc3->nciop, size, memory);
-    if(status != NC_NOERR) goto done;
-    status = nc_get_NC(nc3);
-    if(status != NC_NOERR) goto done;
-#else
-    status = NC_EDISKLESS;
-#endif
-
-done:
-    return status;
-}
-#endif
-
-/**************************************************/
-
 int
 nc_delete_mp(const char * path, int basepe)
 {
@@ -1828,11 +1828,12 @@ NC3_inq_var_fill(const NC_var *varp, void *fill_value)
      */
     attrpp = NC_findattr(&varp->attrs, _FillValue);
     if ( attrpp != NULL ) {
+        const void *xp;
         /* User defined fill value */
         if ( (*attrpp)->type != varp->type || (*attrpp)->nelems != 1 )
             return NC_EBADTYPE;
 
-        const void *xp = (*attrpp)->xvalue;
+        xp = (*attrpp)->xvalue;
         /* value stored in xvalue is in external representation, may need byte-swap */
         switch(varp->type) {
             case NC_CHAR:   return ncx_getn_text               (&xp, 1,               (char*)fill_value);

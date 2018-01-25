@@ -595,15 +595,12 @@ NC3_def_var( int ncid, const char *name, nc_type type,
 	if(status != NC_NOERR)
 		return status;
 
+        if (ndims > NC_MAX_VAR_DIMS) return NC_EMAXDIMS;
+
 		/* cast needed for braindead systems with signed size_t */
 	if((unsigned long) ndims > X_INT_MAX) /* Backward compat */
 	{
 		return NC_EINVAL;
-	}
-
-	if(ncp->vars.nelems >= NC_MAX_VARS)
-	{
-		return NC_EMAXVARS;
 	}
 
 	varid = NC_findvar(&ncp->vars, name, &varp);

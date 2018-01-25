@@ -38,7 +38,7 @@ check(int status)
 int
 main(int argc, char **argv)
 {
-    int i,stat;
+    int stat;
     int ncid, grpid;
     char* filename;
     char* oldname;

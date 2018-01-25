@@ -18,10 +18,19 @@ struct PUTodometer {
     size_t         stop[NC_MAX_VAR_DIMS];
 };
 
+/**
+ * @internal Initialize odometer.
+ *
+ * @param odom Pointer to odometer.
+ * @param rank
+ * @param start Start indicies.
+ * @param edges Counts.
+ * @param stride Strides.
+ *
+ */
 static void
-odom_init(struct PUTodometer* odom,
-	    int rank,
-	    const size_t* start, const size_t* edges, const ptrdiff_t* stride)
+odom_init(struct PUTodometer* odom, int rank, const size_t* start,
+          const size_t* edges, const ptrdiff_t* stride)
 {
     int i;
     memset(odom,0,sizeof(struct PUTodometer));
@@ -36,12 +45,26 @@ odom_init(struct PUTodometer* odom,
     }
 }
 
+/**
+ * @internal Return true if there is more.
+ *
+ * @param odom Pointer to odometer.
+ *
+ * @return True if there is more, 0 otherwise.
+ */
 static int
 odom_more(struct PUTodometer* odom)
 {
     return (odom->index[0] < odom->stop[0]);
 }
 
+/**
+ * @internal Return true if there is more.
+ *
+ * @param odom Pointer to odometer.
+ *
+ * @return True if there is more, 0 otherwise.
+ */
 static int
 odom_next(struct PUTodometer* odom)
 {
@@ -241,12 +264,19 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
   	if(mystride[i] != 1) isstride1 = 0;
         nels *= myedges[i];
    }
-   if(nels == 0)
-      return NC_NOERR; /* cannot write anything */
+   
    if(isstride1) {
       return NC_put_vara(ncid, varid, mystart, myedges, value, memtype);
    }
 
+   if(nels == 0) {
+      /* This should be here instead of before NC_put_vara call to 
+       * avoid hang in parallel write for single stride.
+       * Still issue with parallel hang if stride > 1
+       */
+      return NC_NOERR; /* cannot write anything */
+   }
+	   
    /* Initial version uses and odometer to walk the variable
       and read each value one at a time. This can later be optimized
       to read larger chunks at a time.

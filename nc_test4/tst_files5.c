@@ -9,7 +9,7 @@
 #include "err_macros.h"
 #include "netcdf.h"
 
-#define FILE_NAME "tst_files.nc"
+#define FILE_NAME "tst_files5.nc"
 
 int
 main(int argc, char **argv)

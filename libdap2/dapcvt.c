@@ -217,7 +217,8 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 #ifdef _MSC_VER
 	    _ASSERTE(_CrtCheckMemory());
 #endif
-	    if(ival < 0 || ival > NC_MAX_UBYTE) ok = 0;
+	    /* For back compatibility, we allow any value, but force conversion */
+	    ival = (ival & 0xFF);
 	    *p = (char)ival;
 	    } break;
 	case NC_CHAR: {
@@ -235,10 +236,22 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	case NC_FLOAT: {
 	    float* p = (float*)dstmem;
 	    ok = sscanf(s,"%g%n",p,&nread);
+#if defined(_MSC_VER) && (_MSC_VER == 1500)
+	    if (!_strnicmp(s, "NaN", 3)) {
+	      ok = 1;
+	      nread = 3;
+	    }
+#endif
 	    } break;
 	case NC_DOUBLE: {
 	    double* p = (double*)dstmem;
 	    ok = sscanf(s,"%lg%n",p,&nread);
+#if defined(_MSC_VER) && (_MSC_VER == 1500)
+	    if (!_strnicmp(s, "NaN", 3)) {
+	      ok = 1;
+	      nread = 3;
+	    }
+#endif
 	    } break;
 	case NC_UBYTE: {
 	    unsigned char* p = (unsigned char*)dstmem;
@@ -246,7 +259,8 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	    unsigned int uval;
 	    ok = sscanf(s,"%u%n",&uval,&nread);
 	    _ASSERTE(_CrtCheckMemory());
-	    if(uval > NC_MAX_UBYTE) ok = 0;
+	    /* For back compatibility, we allow any value, but force conversion */
+	    uval = (uval & 0xFF);
 	    *p = (unsigned char)uval;
 #else
 	    ok = sscanf(s,"%hhu%n",p,&nread);

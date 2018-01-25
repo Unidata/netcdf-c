@@ -22,25 +22,59 @@
 #define VAR2_NAME "var2"
 
 /* This is handy for print statements. */
-static char *format_name[] = {"", "classic", "64-bit offset", "netCDF-4",
-			      "netCDF-4 classic model"};
+static char *format_name[MAX_NUM_FORMATS] = {"classic", "64-bit offset", "netCDF-4",
+                                             "netCDF-4 classic model", "CDF5"};
 
 int check_file(int format, unsigned char *uchar_out);
 int create_file(int format, unsigned char *uchar_out);
+
+/* Determine how many formats are available, and what they are. */
+void
+determine_test_formats(int *num_formats, int *format)
+{
+   int ind = 0;
+   int num;
+
+   /* Check inputs. */
+   assert(num_formats && format);
+
+   /* We always have classic and 64-bit offset */
+   num = 2;
+   format[ind++] = NC_FORMAT_CLASSIC;
+   format[ind++] = NC_FORMAT_64BIT_OFFSET;
+
+   /* Do we have netCDF-4 and netCDF-4 classic? */
+#ifdef USE_NETCDF4
+   num += 2;
+   format[ind++] = NC_FORMAT_NETCDF4_CLASSIC;
+   format[ind++] = NC_FORMAT_NETCDF4;
+#endif /* USE_NETCDF4 */
+
+   /* Do we have CDF5? */
+#ifdef ENABLE_CDF5
+   num++;
+   format[ind++] = NC_FORMAT_CDF5;
+#endif /* ENABLE_CDF5 */
+
+   *num_formats = num;
+}
 
 int
 main(int argc, char **argv)
 {
    unsigned char uchar_out[DIM1_LEN] = {0, 128, 255};
-   int format;
+   int format[MAX_NUM_FORMATS];
+   int num_formats;
+   int f = 0;
 
    printf("\n*** Testing netcdf data conversion.\n");
+   determine_test_formats(&num_formats, format);
 
-   for (format = 1; format < 5; format++)
+   for (f = 0; f < num_formats; f++)
    {
-      printf("*** Testing conversion in netCDF %s files... ", format_name[format]);
-      create_file(format, uchar_out);
-      check_file(format, uchar_out);
+      printf("*** Testing conversion in netCDF %s files... ", format_name[f]);
+      create_file(format[f], uchar_out);
+      check_file(format[f], uchar_out);
       SUMMARIZE_ERR;
    }
 
@@ -72,7 +106,7 @@ create_file(int format, unsigned char *uchar_out)
    retval = nc_put_var_uchar(ncid, varid, uchar_out);
    if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_64BIT_DATA)
    {
-     if (retval != NC_ERANGE) ERR;
+      if (retval != NC_ERANGE) ERR;
    }
    else if (retval != NC_NOERR) ERR;
 
@@ -83,7 +117,6 @@ create_file(int format, unsigned char *uchar_out)
 int
 check_file(int format, unsigned char *uchar_out)
 {
-
    int ncid;
    int ndims, natts;
    int dimids_var[1], var_type;
@@ -116,19 +149,35 @@ check_file(int format, unsigned char *uchar_out)
    else if (res) ERR;
 
    for (i=0; i<DIM1_LEN; i++)
+#ifdef ERANGE_FILL
+      if (uchar_in[i] != uchar_out[i] && uchar_in[i] != NC_FILL_UBYTE) ERR;
+#else
       if (uchar_in[i] != uchar_out[i]) ERR;
+#endif
 
    if (nc_get_var_schar(ncid, 0, char_in)) ERR;
    for (i=0; i<DIM1_LEN; i++)
+#ifdef ERANGE_FILL
+      if (char_in[i] != (signed char)uchar_out[i] && char_in[i] != NC_FILL_BYTE) ERR;
+#else
       if (char_in[i] != (signed char)uchar_out[i]) ERR;
+#endif
 
    if (nc_get_var_short(ncid, 0, short_in)) ERR;
    for (i=0; i<DIM1_LEN; i++)
+#ifdef ERANGE_FILL
+      if (short_in[i] != (signed char)uchar_out[i] && short_in[i] != NC_FILL_BYTE) ERR;
+#else
       if (short_in[i] != (signed char)uchar_out[i]) ERR;
+#endif
 
    if (nc_get_var_int(ncid, 0, int_in)) ERR;
    for (i=0; i<DIM1_LEN; i++)
+#ifdef ERANGE_FILL
+      if (int_in[i] != (signed char)uchar_out[i] && int_in[i] != NC_FILL_BYTE) ERR;
+#else
       if (int_in[i] != (signed char)uchar_out[i]) ERR;
+#endif
 
    if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_NETCDF4_CLASSIC)
    {

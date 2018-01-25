@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	 {"64-bit offset", "netCDF-4"};
       int i, j, f;
 
-      printf("sizes: int - %d, size_t - %d, and int * - %d\n",
+      printf("sizes: int - %ld, size_t - %ld, and int * - %ld\n",
 	     sizeof(int), sizeof(size_t), sizeof(int *));
 
       /* Allocate room for one slab of data. */
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	       {
 		  if (data[j + LON_LEN * i] != (start[0] + i + j) % 19)
 		  {
-		     printf("error on start[0]: %d i: %d j: %d expected %d got %g\n",
+		     printf("error on start[0]: %ld i: %ld j: %ld expected %d got %g\n",
 			    start[0], i, j, (start[0] + i + j), data[j + LON_LEN * i]);
 		     ERR_RET;
 		  }
@@ -95,8 +95,6 @@ int main(int argc, char **argv)
       free(data);
    }
    SUMMARIZE_ERR;
-
-   nc_finalize();
 
    FINAL_RESULTS;
 }

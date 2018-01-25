@@ -284,6 +284,7 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("*** testing enum interuptus...");
    {
+      unsigned char ubyte_value = 42;
 #define GEEKY_NAME "Galadriel"
 
       /* Create a file. */
@@ -304,8 +305,12 @@ main(int argc, char **argv)
       /* Close the file. */
       if (nc_close(ncid) != NC_EINVAL) ERR;
 
+      if (nc_redef(ncid)) ERR;
+      if (nc_insert_enum(ncid, typeid, "name", &ubyte_value)) ERR;
+      if (nc_close(ncid)) ERR;      
    }
 
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
+
