@@ -156,7 +156,7 @@ NC_parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsign
 	    /* convert to network byte order */
 	    memcpy(mem,&val64u,sizeof(mem));
 #ifdef WORDS_BIGENDIAN	    
-	    byteswap8(mem);  /* convert big endian to little endian */
+	    NC_byteswap8(mem);  /* convert big endian to little endian */
 #endif
 	    vector = (unsigned int*)mem;
 	    ulist[nparams++] = vector[0];
