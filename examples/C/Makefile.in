@@ -19,7 +19,7 @@
 
 # This file builds the C examples.
 
-# Ed Hartnett
+# Ed Hartnett, Ward Fisher, Dennis Heimbigner
 
 # Un comment to use a more verbose test driver
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
@@ -107,15 +107,15 @@ TESTS = run_examples.sh $(am__EXEEXT_3) $(am__append_5) \
 	$(am__append_6) $(am__append_7)
 
 # To build netcdf-4, or not to build netcdf-4, that is the question...
-# These are the extra netCDF-4 examples. 
+# These are the extra netCDF-4 examples.
 @USE_NETCDF4_TRUE@am__append_1 = simple_nc4_wr simple_nc4_rd simple_xy_nc4_wr	\
-@USE_NETCDF4_TRUE@simple_xy_nc4_rd 
+@USE_NETCDF4_TRUE@simple_xy_nc4_rd
 
 
 # filter_example.c should be same as nc_test4/test_filter.c
 @ENABLE_FILTER_TESTING_TRUE@@USE_NETCDF4_TRUE@am__append_2 = filter_example
 
-# These are the extra netCDF-4 examples. 
+# These are the extra netCDF-4 examples.
 @USE_PNETCDF_TRUE@am__append_3 = parallel_vara
 @USE_PNETCDF_TRUE@am__append_4 = parallel_vara
 @USE_NETCDF4_TRUE@am__append_5 = run_examples4.sh
@@ -480,7 +480,7 @@ TEST_LOGS = $(am__test_logs2:.test.log=.log)
 TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver
 TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
 	$(TEST_LOG_FLAGS)
-DIST_SUBDIRS = $(SUBDIRS)
+DIST_SUBDIRS = hdf5plugins
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp \
 	$(top_srcdir)/test-driver
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -693,14 +693,14 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 LDADD = -lm
 
+# This subdir should be same as nc_test4/hdf5plugins
+@USE_NETCDF4_TRUE@SUBDIRS = hdf5plugins
+
 # These files are created by the tests.
-CLEANFILES = *.nc 
+CLEANFILES = *.nc
 EXTRA_DIST = run_valgrind_tests.sh run_nc4_valgrind_tests.sh	\
 CMakeLists.txt run_examples.sh run_examples4.sh
 
-
-# This subdir should be same as nc_test4/hdf5plugins
-SUBDIRS = hdf5plugins
 @ENABLE_FILTER_TESTING_TRUE@BUILT_SOURCES = findplugin.sh
 DISTCLEANFILES = findplugin.sh
 all: $(BUILT_SOURCES)
