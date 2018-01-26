@@ -27,8 +27,8 @@ int main(int argc, char **argv) {
   */
 
 #ifndef NETCDF_META_H
-#ifndef NC_HAS_META_H
-  printf("Error! NC_HAS_META_H not defined. Check netcdf.h.\n");
+#ifndef NC_HAVE_META_H
+  printf("Error! NC_HAVE_META_H not defined. Check netcdf.h.\n");
 #else
   printf("Error! NETCDF_META_H not defined. Check netcdf_meta.h.\n");
 #endif
