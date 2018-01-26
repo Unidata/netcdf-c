@@ -13,13 +13,12 @@
 
 #include "h5misc.h"
 
-#if defined  _MSC_VER || defined __APPLE__
-#define DBLVAL 12345678.12345678
-#else
-#define DBLVAL 12345678.12345678d
-#endif
-
 #undef DEBUG
+
+/* The C standard apparently defines all floating point constants as double;
+   we rely on that in this code.
+*/
+#define DBLVAL 12345678.12345678
 
 static int paramcheck(size_t nparams, const unsigned int* params);
 static void byteswap8(unsigned char* mem);
