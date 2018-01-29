@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <netcdf.h>
 
-#if defined(NC_HAS_META_H)
+#if defined(NC_HAVE_META_H)
 #include <netcdf_meta.h>
 #endif
 
