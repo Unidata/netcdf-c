@@ -1186,20 +1186,6 @@ MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
 # Option checks
 ################################
 
-####
-# Check to see if char is signed or unsigned.
-####
-
-SET(SIGNED_TEST_SOURCE "\n
-  #include <stdlib.h>\n
-  int main(void) {\n
-    char error_if_char_is_signed[((char)-1) < 0 ? -1 : 1];\n
-    error_if_char_is_signed[0] = 0;
-    return -;\n
-}\n")
-
-CHECK_C_SOURCE_COMPILES("${SIGNED_TEST_SOURCE}" __CHAR_UNSIGNED__)
-
 # Library include checks
 CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)
 CHECK_INCLUDE_FILE("unistd.h"  HAVE_UNISTD_H)
