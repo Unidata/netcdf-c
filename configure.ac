@@ -882,8 +882,8 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(size_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
-$SLEEPCMD
-AC_CHECK_SIZEOF(unsigned long long)
+
+AM_CONDITIONAL(ENABLE_CDF5, [test "$ac_cv_sizeof_size_t" -ge "8"])
 
 $SLEEPCMD
 if test "$ac_cv_type_uchar" = yes ; then

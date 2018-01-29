@@ -186,6 +186,7 @@ typedef struct NC_var {
 	nc_type type;		/* the discriminant */
 	size_t len;		/* the total length originally allocated */
 	off_t begin;
+	int no_fill;		/* whether fill mode is ON or OFF */
 } NC_var;
 
 typedef struct NC_vararray {
@@ -426,6 +427,9 @@ nc_put_rec(int ncid, size_t recnum, void *const *datap);
 
 extern int
 NC_check_vlens(NC3_INFO *ncp);
+
+extern int
+NC_check_voffs(NC3_INFO *ncp);
 
 /* Define accessors for the dispatchdata */
 #define NC3_DATA(nc) ((NC3_INFO*)(nc)->dispatchdata)
