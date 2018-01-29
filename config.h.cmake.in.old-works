@@ -196,11 +196,6 @@ are set when opening a binary file on Windows. */
 #cmakedefine SIZEOF_ULONGLONG @SIZEOF_ULONGLONG@
 #cmakedefine SIZEOF_UNSIGNED_LONG_LONG @SIZEOF_UNSIGNED_LONG_LONG@
 
-/* Define whether char is signed by default. */
-#ifndef __CHAR_UNSIGNED__
-#cmakedefine __CHAR_UNSIGNED__
-#endif
-
 /* The size of `void*` as computed by sizeof. */
 #cmakedefine SIZEOF_VOIDSTAR @SIZEOF_VOIDSTAR@
 /* The size of `char` as computed by sizeof. */
