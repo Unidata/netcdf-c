@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.6.1 - TBD
 
+* [Bug Fix] Corrected an issue with CDF5; for the full detailed discussion, [see GitHub #463](https://github.com/Unidata/netcdf-c/issues/463).
+
 ## 4.6.0 - January 24, 2018
 * [Enhancement] Full support for using HDF5 dynamic filters, both for reading and writing. See the file docs/filters.md.
 * [Enhancement] Added an option to enable strict null-byte padding for headers; this padding was specified in the spec but was not enforced.  Enabling this option will allow you to check your files, as it will return an E_NULLPAD error.  It is possible for these files to have been written by older versions of libnetcdf.  There is no effective problem caused by this lack of null padding, so enabling these options is informational only.  The options for `configure` and `cmake` are `--enable-strict-null-byte-header-padding` and `-DENABLE_STRICT_NULL_BYTE_HEADER_PADDING`, respectively.  See [Github #657](https://github.com/Unidata/netcdf-c/issues/657) for more information.
