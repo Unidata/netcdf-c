@@ -484,29 +484,21 @@ NC_var_shape(NC_var *varp, const NC_dimarray *dims)
 
 
 out :
-    if( varp->xsz <= (X_UINT_MAX - 1) / product ) /* if integer multiply will not overflow */
-	{
-	        varp->len = product * varp->xsz;
-		switch(varp->type) {
-		case NC_BYTE :
-		case NC_CHAR :
-		case NC_UBYTE :
-		case NC_SHORT :
-		case NC_USHORT :
-		        if( varp->len%4 != 0 )
-			{
-			        varp->len += 4 - varp->len%4; /* round up */
-		/*		*dsp += 4 - *dsp%4; */
-		    }
-		    break;
-		default:
-			/* already aligned */
-			break;
-		}
-        } else
-	{	/* OK for last var to be "too big", indicated by this special len */
-	        varp->len = X_UINT_MAX;
-        }
+
+    /* No variable size can be > X_INT64_MAX - 3 */
+    if (0 == NC_check_vlen(varp, X_INT64_MAX-3)) return NC_EVARSIZE;
+
+    /*
+     * For CDF-1 and CDF-2 formats, the total number of array elements
+     * cannot exceed 2^32, unless this variable is the last fixed-size
+     * variable, there is no record variable, and the file starting
+     * offset of this variable is less than 2GiB.
+     * This will be checked in NC_check_vlens() during NC_endef()
+     */
+    varp->len = product * varp->xsz;
+    if (varp->len % 4 > 0)
+        varp->len += 4 - varp->len % 4; /* round up */
+ 
 #if 0
 	arrayp("\tshape", varp->ndims, varp->shape);
 	arrayp("\tdsizes", varp->ndims, varp->dsizes);

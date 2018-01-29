@@ -312,21 +312,23 @@ fprintf(stderr, "    REC %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 		    return NC_EVARSIZE;
 		}
 #endif
-		if((*vpp)->len != UINT32_MAX) /* flag for vars >= 2**32 bytes */
-		    ncp->recsize += (*vpp)->len;
+		ncp->recsize += (*vpp)->len;
 		last = (*vpp);
 	}
 
-	/*
-	 * for special case of
-	 */
-	if(last != NULL) {
-	    if(ncp->recsize == last->len) { /* exactly one record variable, pack value */
-		ncp->recsize = *last->dsizes * last->xsz;
-	    } else if(last->len == UINT32_MAX) { /* huge last record variable */
-		ncp->recsize += *last->dsizes * last->xsz;
-	    }
-	}
+    /*
+     * for special case (Check CDF-1 and CDF-2 file format specifications.)
+     * "A special case: Where there is exactly one record variable, we drop the
+     * requirement that each record be four-byte aligned, so in this case there
+     * is no record padding."
+     */
+    if (last != NULL) {
+        if (ncp->recsize == last->len) {
+            /* exactly one record variable, pack value */
+            ncp->recsize = *last->dsizes * last->xsz;
+        }
+    }
+
 	if(NC_IsNew(ncp))
 		NC_set_numrecs(ncp, 0);
 	return NC_NOERR;
@@ -702,17 +704,14 @@ NC_check_vlens(NC3_INFO *ncp)
     if(ncp->vars.nelems == 0)
 	return NC_NOERR;
 
-    if (fIsSet(ncp->flags,NC_64BIT_DATA)) {
-	/* CDF5 format allows many large vars */
-        return NC_NOERR;
-    }
-    if (fIsSet(ncp->flags,NC_64BIT_OFFSET) && sizeof(off_t) > 4) {
+    if (fIsSet(ncp->flags,NC_64BIT_DATA)) /* CDF-5 */
+	vlen_max = X_INT64_MAX - 3; /* "- 3" handles rounded-up size */
+    else if (fIsSet(ncp->flags,NC_64BIT_OFFSET) && sizeof(off_t) > 4)
 	/* CDF2 format and LFS */
 	vlen_max = X_UINT_MAX - 3; /* "- 3" handles rounded-up size */
-    } else {
-	/* CDF1 format */
+    else /* CDF1 format */
 	vlen_max = X_INT_MAX - 3;
-    }
+
     /* Loop through vars, first pass is for non-record variables.   */
     large_vars_count = 0;
     rec_vars_count = 0;
@@ -721,6 +720,8 @@ NC_check_vlens(NC3_INFO *ncp)
 	if( !IS_RECVAR(*vpp) ) {
 	    last = 0;
 	    if( NC_check_vlen(*vpp, vlen_max) == 0 ) {
+                if (fIsSet(ncp->flags,NC_64BIT_DATA)) /* too big for CDF-5 */
+                    return NC_EVARSIZE;
 		large_vars_count++;
 		last = 1;
 	    }
@@ -749,6 +750,8 @@ NC_check_vlens(NC3_INFO *ncp)
 	    if( IS_RECVAR(*vpp) ) {
 		last = 0;
 		if( NC_check_vlen(*vpp, vlen_max) == 0 ) {
+                    if (fIsSet(ncp->flags,NC_64BIT_DATA)) /* too big for CDF-5 */
+                        return NC_EVARSIZE;
 		    large_vars_count++;
 		    last = 1;
 		}
@@ -767,6 +770,59 @@ NC_check_vlens(NC3_INFO *ncp)
     return NC_NOERR;
 }
 
+/*----< NC_check_voffs() >---------------------------------------------------*/
+/*
+ * Given a valid ncp, check whether the file starting offsets (begin) of all
+ * variables follows the same increasing order as they were defined.
+ */
+int
+NC_check_voffs(NC3_INFO *ncp)
+{
+    size_t i;
+    off_t prev_off;
+    NC_var *varp;
+
+    if (ncp->vars.nelems == 0) return NC_NOERR;
+
+    /* Loop through vars, first pass is for non-record variables */
+    prev_off = ncp->begin_var;
+    for (i=0; i<ncp->vars.nelems; i++) {
+        varp = ncp->vars.value[i];
+        if (IS_RECVAR(varp)) continue;
+
+        if (varp->begin < prev_off) {
+#if 0
+            fprintf(stderr,"Variable \"%s\" begin offset (%lld) is less than previous variable end offset (%lld)\n", varp->name->cp, varp->begin, prev_off);
+#endif
+            return NC_ENOTNC;
+        }
+        prev_off = varp->begin + varp->len;
+    }
+
+    if (ncp->begin_rec < prev_off) {
+#if 0
+        fprintf(stderr,"Record variable section begin offset (%lld) is less than fix-sized variable section end offset (%lld)\n", varp->begin, prev_off);
+#endif
+        return NC_ENOTNC;
+    }
+
+    /* Loop through vars, second pass is for record variables */
+    prev_off = ncp->begin_rec;
+    for (i=0; i<ncp->vars.nelems; i++) {
+        varp = ncp->vars.value[i];
+        if (!IS_RECVAR(varp)) continue;
+
+        if (varp->begin < prev_off) {
+#if 0
+            fprintf(stderr,"Variable \"%s\" begin offset (%lld) is less than previous variable end offset (%lld)\n", varp->name->cp, varp->begin, prev_off);
+#endif
+            return NC_ENOTNC;
+        }
+        prev_off = varp->begin + varp->len;
+    }
+
+    return NC_NOERR;
+}
 
 /*
  *  End define mode.
@@ -787,6 +843,9 @@ NC_endef(NC3_INFO *ncp,
 	if(status != NC_NOERR)
 	    return status;
 	status = NC_begins(ncp, h_minfree, v_align, v_minfree, r_align);
+	if(status != NC_NOERR)
+	    return status;
+	status = NC_check_voffs(ncp);
 	if(status != NC_NOERR)
 	    return status;
 
