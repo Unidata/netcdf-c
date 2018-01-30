@@ -43,7 +43,7 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
 
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-   assert(h5);
+   assert(h5 && nc && grp);
 
    /* According to netcdf-3 manual, return -1 if there is no unlimited
       dimension. */
@@ -84,6 +84,7 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
  * @return ::NC_ENOTINDEFINE Not in define mode.
  * @return ::NC_EDIMSIZE Dim length too large.
  * @return ::NC_ENAMEINUSE Name already in use in group.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
  */
 int
@@ -147,7 +148,8 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
 
    /* Add a dimension to the list. The ID must come from the file
     * information, since dimids are visible in more than one group. */
-   nc4_dim_list_add(&grp->dim, &dim);
+   if ((retval = nc4_dim_list_add(&grp->dim, &dim)))
+      return retval;
    dim->dimid = grp->nc4_info->next_dimid++;
 
    /* Initialize the metadata for this dimension. */
@@ -176,6 +178,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EBADDIM Dimension not found.
+ * @return ::NC_EINVAL Invalid input. Name must be provided.
  * @author Ed Hartnett
  */
 int
@@ -195,9 +198,7 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
    /* Find metadata for this file. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-
-   assert(h5);
-   assert(nc && grp);
+   assert(h5 && nc && grp);
 
    /* Normalize name. */
    if ((retval = nc4_normalize_name(name, norm_name)))
@@ -231,6 +232,7 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EDIMSIZE Dimension length too large.
+ * @return ::NC_EBADDIM Dimension not found.
  * @author Ed Hartnett
  */
 int
@@ -247,9 +249,7 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
    /* Find our global metadata structure. */
    if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return ret;
-
-   assert(h5);
-   assert(nc && grp);
+   assert(h5 && nc && grp);
 
    /* Find the dimension and its home group. */
    if ((ret = nc4_find_dim(grp, dimid, &dim, &dim_grp)))
@@ -349,7 +349,7 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
       return NC_EBADDIM;
    dim = tmp_dim;
 
-   /* Check for renaming dimension w/o variable. */
+   /* Check for renaming dimension w/o variable */
    if (dim->hdf_dimscaleid)
    {
       /* Sanity check */
@@ -436,6 +436,7 @@ NC4_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
+   assert(h5 && nc && grp);
 
    /* Get our dim info. */
    assert(h5);
