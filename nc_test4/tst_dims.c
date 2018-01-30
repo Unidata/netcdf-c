@@ -177,70 +177,70 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-   /* printf("*** Testing with NULL id pointer..."); */
-   /* { */
-   /*    int ncid; */
-   /*    int ndims_in, dimids_in[MAX_DIMS]; */
-   /*    size_t len_in; */
-   /*    char name_in[NC_MAX_NAME + 1]; */
-   /*    int dimid_in; */
+   printf("*** Testing with NULL id pointer...");
+   {
+      int ncid;
+      int ndims_in, dimids_in[MAX_DIMS];
+      size_t len_in;
+      char name_in[NC_MAX_NAME + 1];
+      int dimid_in;
 
-   /*    /\* Create a file with one dim and nothing else. *\/ */
-   /*    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR; */
-   /*    if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, NULL)) ERR; */
+      /* Create a file with one dim and nothing else. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, NULL)) ERR;
 
-   /*    /\* Check out what we've got. *\/ */
-   /*    if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR; */
-   /*    if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR; */
-   /*    if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR; */
-   /*    if (ndims_in != 1) ERR; */
-   /*    if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR; */
-   /*    if (dimid_in != 0) ERR; */
-   /*    if (nc_close(ncid)) ERR; */
-   /* } */
-   /* SUMMARIZE_ERR; */
-   /* printf("*** Testing classic model file with just one unlimited dimension..."); */
-   /* { */
-   /*    int ncid, dimid; */
-   /*    int ndims_in, dimids_in[MAX_DIMS]; */
-   /*    size_t len_in; */
-   /*    char name_in[NC_MAX_NAME + 1]; */
+      /* Check out what we've got. */
+      if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
+      if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
+      if (ndims_in != 1) ERR;
+      if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR;
+      if (dimid_in != 0) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** Testing classic model file with just one unlimited dimension...");
+   {
+      int ncid, dimid;
+      int ndims_in, dimids_in[MAX_DIMS];
+      size_t len_in;
+      char name_in[NC_MAX_NAME + 1];
 
-   /*    /\* Create a file with one dim and nothing else. *\/ */
-   /*    if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR; */
+      /* Create a file with one dim and nothing else. */
+      if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
 
-   /*    /\* Turn off define mode. *\/ */
-   /*    if (nc_enddef(ncid)) ERR; */
+      /* Turn off define mode. */
+      if (nc_enddef(ncid)) ERR;
 
-   /*    /\* This will not work. *\/  */
-   /*    if (nc_def_dim(ncid, LAT_NAME, NC_UNLIMITED, &dimid) != NC_ENOTINDEFINE) ERR; */
+      /* This will not work. */
+      if (nc_def_dim(ncid, LAT_NAME, NC_UNLIMITED, &dimid) != NC_ENOTINDEFINE) ERR;
      
-   /*    /\* Turn on define mode. *\/ */
-   /*    if (nc_redef(ncid)) ERR; */
+      /* Turn on define mode. */
+      if (nc_redef(ncid)) ERR;
 
-   /*    /\* Create the dim. *\/ */
-   /*    if (nc_def_dim(ncid, LAT_NAME, NC_UNLIMITED, &dimid)) ERR; */
+      /* Create the dim. */
+      if (nc_def_dim(ncid, LAT_NAME, NC_UNLIMITED, &dimid)) ERR;
 
-   /*    /\* This will not work because of classic model. *\/ */
-   /*    if (nc_def_dim(ncid, LAT_NAME_2, NC_UNLIMITED, &dimid) != NC_EUNLIMIT) ERR; */
-   /*    /\* if (nc_def_dim(ncid, LAT_NAME_2, X_UINT_MAX + 10, &dimid) != NC_EDIMSIZE) ERR;*\/ */
+      /* This will not work because of classic model. */
+      if (nc_def_dim(ncid, LAT_NAME_2, NC_UNLIMITED, &dimid) != NC_EUNLIMIT) ERR;
+      /* if (nc_def_dim(ncid, LAT_NAME_2, X_UINT_MAX + 10, &dimid) != NC_EDIMSIZE) ERR;*/
 
-   /*    /\* Check out what we've got. *\/ */
-   /*    if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR; */
-   /*    if (len_in != 0 || strcmp(name_in, LAT_NAME)) ERR; */
-   /*    if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR; */
-   /*    if (ndims_in != 1) ERR; */
-   /*    if (nc_close(ncid)) ERR; */
+      /* Check out what we've got. */
+      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      if (len_in != 0 || strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
+      if (ndims_in != 1) ERR;
+      if (nc_close(ncid)) ERR;
 
-   /*    /\* Reopen and check it out again. *\/ */
-   /*    if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR; */
-   /*    if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR; */
-   /*    if (len_in != 0 || strcmp(name_in, LAT_NAME)) ERR; */
-   /*    if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR; */
-   /*    if (ndims_in != 1) ERR; */
-   /*    if (nc_close(ncid)) ERR; */
-   /* } */
-   /* SUMMARIZE_ERR; */
+      /* Reopen and check it out again. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      if (len_in != 0 || strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
+      if (ndims_in != 1) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    printf("*** Testing renaming of one dimension...");
    {
       int ncid, dimid, dimid_in;
@@ -442,53 +442,53 @@ main(int argc, char **argv)
    }
 
    SUMMARIZE_ERR;
-   /* printf("*** Testing file with just one unlimited dimension..."); */
-   /* { */
-   /*    int ncid, dimid; */
-   /*    int ndims_in, dimids_in[MAX_DIMS]; */
-   /*    size_t len_in; */
-   /*    char name_in[NC_MAX_NAME + 1]; */
-   /*    int unlimdimid_in; */
-   /*    int nunlimdims_in; */
+   printf("*** Testing file with just one unlimited dimension...");
+   {
+      int ncid, dimid;
+      int ndims_in, dimids_in[MAX_DIMS];
+      size_t len_in;
+      char name_in[NC_MAX_NAME + 1];
+      int unlimdimid_in;
+      int nunlimdims_in;
 
-   /*    /\* Create a file with one unlimied dim and nothing else. *\/ */
-   /*    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR; */
-   /*    if (nc_def_dim(ncid, LEVEL_NAME, NC_UNLIMITED, &dimid)) ERR; */
+      /* Create a file with one unlimied dim and nothing else. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, LEVEL_NAME, NC_UNLIMITED, &dimid)) ERR;
 
-   /*    /\* Check it out before the enddef. *\/ */
-   /*    if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR; */
-   /*    if (len_in != NC_UNLIMITED || strcmp(name_in, LEVEL_NAME)) ERR; */
-   /*    if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR; */
-   /*    if (ndims_in != 1 || dimids_in[0] != 0) ERR; */
+      /* Check it out before the enddef. */
+      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      if (len_in != NC_UNLIMITED || strcmp(name_in, LEVEL_NAME)) ERR;
+      if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
+      if (ndims_in != 1 || dimids_in[0] != 0) ERR;
 
-   /*    /\* Th1s won't work. *\/ */
-   /*    if (nc_inq_unlimdim(ncid + TEST_VAL_42, &unlimdimid_in) != NC_EBADID) ERR; */
+      /* Th1s won't work. */
+      if (nc_inq_unlimdim(ncid + TEST_VAL_42, &unlimdimid_in) != NC_EBADID) ERR;
 
-   /*    /\* This will work. *\/ */
-   /*    if (nc_inq_unlimdim(ncid, &unlimdimid_in)) ERR; */
-   /*    if (unlimdimid_in != 0) ERR; */
-   /*    if (nc_inq_unlimdim(ncid, NULL)) ERR; */
-   /*    if (nc_inq_unlimdims(ncid, &nunlimdims_in, &unlimdimid_in)) ERR; */
-   /*    if (nunlimdims_in != 1 || unlimdimid_in != 0) ERR; */
+      /* This will work. */
+      if (nc_inq_unlimdim(ncid, &unlimdimid_in)) ERR;
+      if (unlimdimid_in != 0) ERR;
+      if (nc_inq_unlimdim(ncid, NULL)) ERR;
+      if (nc_inq_unlimdims(ncid, &nunlimdims_in, &unlimdimid_in)) ERR;
+      if (nunlimdims_in != 1 || unlimdimid_in != 0) ERR;
 
-   /*    /\* Automatically enddef and close. *\/ */
-   /*    if (nc_close(ncid)) ERR; */
+      /* Automatically enddef and close. */
+      if (nc_close(ncid)) ERR;
 
-   /*    /\* Reopen and check it out. *\/ */
-   /*    if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR; */
-   /*    if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR; */
-   /*    if (len_in != NC_UNLIMITED || strcmp(name_in, LEVEL_NAME)) ERR; */
-   /*    if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR; */
-   /*    if (ndims_in != 1 || dimids_in[0] != 0) ERR; */
-   /*    if (nc_inq_unlimdim(ncid, &unlimdimid_in)) ERR; */
-   /*    if (unlimdimid_in != 0) ERR; */
-   /*    if (nc_inq_unlimdims(ncid, &nunlimdims_in, &unlimdimid_in)) ERR; */
-   /*    if (nunlimdims_in != 1 || unlimdimid_in != 0) ERR; */
-   /*    if (unlimdimid_in != 0) ERR; */
-   /*    if (nc_close(ncid)) ERR; */
-   /* } */
+      /* Reopen and check it out. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      if (len_in != NC_UNLIMITED || strcmp(name_in, LEVEL_NAME)) ERR;
+      if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
+      if (ndims_in != 1 || dimids_in[0] != 0) ERR;
+      if (nc_inq_unlimdim(ncid, &unlimdimid_in)) ERR;
+      if (unlimdimid_in != 0) ERR;
+      if (nc_inq_unlimdims(ncid, &nunlimdims_in, &unlimdimid_in)) ERR;
+      if (nunlimdims_in != 1 || unlimdimid_in != 0) ERR;
+      if (unlimdimid_in != 0) ERR;
+      if (nc_close(ncid)) ERR;
+   }
 
-   /* SUMMARIZE_ERR; */
+   SUMMARIZE_ERR;
 #define ROMULUS "Romulus"
 #define REMUS "Remus"
 #define DIMS2 2
