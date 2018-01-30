@@ -1,3 +1,7 @@
+/* Copyright 2003-2018, University Corporation for Atmospheric
+ * Research. See the COPYRIGHT file for copying and redistribution
+ * conditions.
+ */
 /**
  * @file
  * @internal
@@ -9,9 +13,6 @@
  * buffer of metadata information, i.e. the linked list of NC
  * structs.
  *
- * Copyright 2003-2011, University Corporation for Atmospheric
- * Research. See the COPYRIGHT file for copying and redistribution
- * conditions.
  * @author Ed Hartnett
  */
 #include "config.h"
