@@ -111,7 +111,7 @@ main(int argc, char **argv)
    int format;
 
    fprintf(stderr,"*** Testing netcdf rename bugs and fixes.\n");
-   nc_set_log_level(5);
+   /* nc_set_log_level(5); */
 
    for (format = 0; format < NUM_FORMATS; format++)
    /* for (format = 0; format < 1; format++) */
@@ -162,11 +162,11 @@ main(int argc, char **argv)
           * the dimscale-only dataset "longitude" and rename the
           * extisting dataset "lon" to "longitude". Variable
           * "longitude" will become a coordinate var. */
-         /* if (nc_open(CHARLIE_TEST_FILE, NC_WRITE, &ncid)) ERR; */
-         /* if (nc_redef(ncid)) ERR; */
-         /* if (nc_rename_var(ncid, 0, LONGITUDE)) ERR; */
-         /* if (nc_enddef(ncid)) ERR; */
-         /* if (nc_close(ncid)) ERR; */
+         if (nc_open(CHARLIE_TEST_FILE, NC_WRITE, &ncid)) ERR;
+         if (nc_redef(ncid)) ERR;
+         if (nc_rename_var(ncid, 0, LONGITUDE)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         if (nc_close(ncid)) ERR;
 
          /* Reopen the file to check. */
          /* if (check_charlies_file(CHARLIE_TEST_FILE, LONGITUDE, LONGITUDE)) ERR; */
@@ -298,8 +298,7 @@ main(int argc, char **argv)
 
          /* Reopen and check. */
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
-         /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
-         /* if (check_file(ncid, TAL, RH, TAL)) ERR; */
+         if (check_file(ncid, TAL, RH, TAL)) ERR;
          if (nc_close(ncid)) ERR;
       }
       SUMMARIZE_ERR;
@@ -327,10 +326,13 @@ main(int argc, char **argv)
           * TAL. LAT will become a dimscale. RH will point to LAT. */
          if (nc_rename_var(ncid, varid, TAL)) ERR;
          if (nc_enddef(ncid)) ERR;
+         /* This should work but does not. It is a known rename
+          * bug. Rename is coming! */
          /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
          if (nc_close(ncid)) ERR;
 
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         /* Should work but does not. Raname issues. */
          /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
          if (nc_close(ncid)) ERR;
       }
@@ -344,8 +346,7 @@ main(int argc, char **argv)
          if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
          if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
          if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
-         if (nc_redef(ncid)) ERR;  /* omitting this and nc_enddef call eliminates bug */
-         /* if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR; */
+         if (nc_redef(ncid)) ERR;
          if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR;
          if (nc_enddef(ncid)) ERR;
          if (nc_get_var_int(ncid, varid, lats_in)) ERR;
@@ -370,9 +371,8 @@ main(int argc, char **argv)
          if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
          if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
          if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
-         if (nc_redef(ncid)) ERR; /* omitting this and nc_enddef call eliminates bug */
+         if (nc_redef(ncid)) ERR; 
          if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
-         /* if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR; */
          if (nc_enddef(ncid)) ERR;
          if (nc_get_var_int(ncid, varid, lats_in)) ERR;
          for (ii = 0; ii < DIM_LEN; ii++) {
