@@ -88,95 +88,95 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-   /* printf("*** Testing file with just one dimension..."); */
-   /* { */
-   /*    int ncid, dimid, dimid2; */
-   /*    int ndims_in, dimids_in[MAX_DIMS]; */
-   /*    size_t len_in; */
-   /*    char name_in[NC_MAX_NAME + 1]; */
-   /*    int dimid_in; */
+   printf("*** Testing file with just one dimension...");
+   {
+      int ncid, dimid, dimid2;
+      int ndims_in, dimids_in[MAX_DIMS];
+      size_t len_in;
+      char name_in[NC_MAX_NAME + 1];
+      int dimid_in;
 
-   /*    /\* Create a file with one dim and nothing else. *\/ */
-   /*    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR; */
+      /* Create a file with one dim and nothing else. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
-   /*    /\* These will not work. *\/ */
-   /*    if (nc_def_dim(ncid + TEST_VAL_42, LAT_NAME, LAT_LEN, &dimid) != NC_EBADID) ERR; */
-   /*    if (nc_def_dim(ncid, NULL, LAT_LEN, &dimid) != NC_EINVAL) ERR; */
-   /*    if (nc_def_dim(ncid, BAD_NAME, LAT_LEN, &dimid) != NC_EBADNAME) ERR; */
+      /* These will not work. */
+      if (nc_def_dim(ncid + TEST_VAL_42, LAT_NAME, LAT_LEN, &dimid) != NC_EBADID) ERR;
+      if (nc_def_dim(ncid, NULL, LAT_LEN, &dimid) != NC_EINVAL) ERR;
+      if (nc_def_dim(ncid, BAD_NAME, LAT_LEN, &dimid) != NC_EBADNAME) ERR;
       
-   /*    /\* Turn off define mode. It will be turned back on */
-   /*     * automatically. *\/ */
-   /*    if (nc_enddef(ncid)) ERR; */
+      /* Turn off define mode. It will be turned back on
+       * automatically. */
+      if (nc_enddef(ncid)) ERR;
 
-   /*    /\* Create the dim. *\/ */
-   /*    if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid)) ERR; */
+      /* Create the dim. */
+      if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid)) ERR;
 
-   /*    /\* This will not work. *\/ */
-   /*    if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid2) != NC_ENAMEINUSE) ERR; */
+      /* This will not work. */
+      if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid2) != NC_ENAMEINUSE) ERR;
 
-   /*    /\* These also won't work. *\/ */
-   /*    if (nc_inq_dim(ncid + TEST_VAL_42, dimid, name_in, &len_in) != NC_EBADID) ERR; */
-   /*    if (nc_inq_dim(ncid, -1, name_in, &len_in) != NC_EBADDIM) ERR; */
+      /* These also won't work. */
+      if (nc_inq_dim(ncid + TEST_VAL_42, dimid, name_in, &len_in) != NC_EBADID) ERR;
+      if (nc_inq_dim(ncid, -1, name_in, &len_in) != NC_EBADDIM) ERR;
 
-   /*    /\* Check out what we've got. *\/ */
-   /*    if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR; */
-   /*    if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR; */
-   /*    if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR; */
-   /*    if (ndims_in != 1) ERR; */
+      /* Check out what we've got. */
+      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
+      if (ndims_in != 1) ERR;
 
-   /*    /\* These will also work. *\/ */
-   /*    if (nc_inq_dim(ncid, dimid, NULL, NULL)) ERR; */
-   /*    if (nc_inq_dim(ncid, dimid, NULL, &len_in)) ERR; */
-   /*    if (len_in != LAT_LEN) ERR; */
-   /*    if (nc_inq_dim(ncid, dimid, name_in, NULL)) ERR; */
-   /*    if (strcmp(name_in, LAT_NAME)) ERR; */
+      /* These will also work. */
+      if (nc_inq_dim(ncid, dimid, NULL, NULL)) ERR;
+      if (nc_inq_dim(ncid, dimid, NULL, &len_in)) ERR;
+      if (len_in != LAT_LEN) ERR;
+      if (nc_inq_dim(ncid, dimid, name_in, NULL)) ERR;
+      if (strcmp(name_in, LAT_NAME)) ERR;
 
-   /*    /\* These will not work. *\/ */
-   /*    if (nc_inq_dimid(ncid + TEST_VAL_42, LAT_NAME, &dimid_in) != NC_EBADID) ERR; */
-   /*    if (nc_inq_dimid(ncid, NULL, &dimid_in) != NC_EINVAL) ERR; */
-   /*    if (nc_inq_dimid(ncid, LAT_NAME_2, &dimid_in) != NC_EBADDIM) ERR; */
+      /* These will not work. */
+      if (nc_inq_dimid(ncid + TEST_VAL_42, LAT_NAME, &dimid_in) != NC_EBADID) ERR;
+      if (nc_inq_dimid(ncid, NULL, &dimid_in) != NC_EINVAL) ERR;
+      if (nc_inq_dimid(ncid, LAT_NAME_2, &dimid_in) != NC_EBADDIM) ERR;
 
-   /*    /\* This will work. *\/ */
-   /*    if (nc_inq_dimid(ncid, LAT_NAME, NULL)) ERR; */
-   /*    if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR; */
-   /*    if (dimid_in != 0) ERR; */
-   /*    if (nc_inq_dimname(ncid, 0, name_in)) ERR; */
-   /*    if (strcmp(name_in, LAT_NAME)) ERR; */
-   /*    if (nc_inq_dimlen(ncid, 0, &len_in)) ERR; */
-   /*    if (len_in != LAT_LEN) ERR; */
+      /* This will work. */
+      if (nc_inq_dimid(ncid, LAT_NAME, NULL)) ERR;
+      if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR;
+      if (dimid_in != 0) ERR;
+      if (nc_inq_dimname(ncid, 0, name_in)) ERR;
+      if (strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
+      if (len_in != LAT_LEN) ERR;
 
-   /*    /\* These won't work. *\/ */
-   /*    if (nc_inq_unlimdims(ncid + TEST_VAL_42, &ndims_in, dimids_in) != NC_EBADID) ERR; */
+      /* These won't work. */
+      if (nc_inq_unlimdims(ncid + TEST_VAL_42, &ndims_in, dimids_in) != NC_EBADID) ERR;
 
-   /*    /\* This will work. *\/ */
-   /*    if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR; */
-   /*    if (ndims_in != 0) ERR; */
-   /*    if (nc_inq_unlimdims(ncid, &ndims_in, NULL)) ERR; */
-   /*    if (ndims_in != 0) ERR; */
-   /*    if (nc_inq_unlimdims(ncid, NULL, NULL)) ERR; */
-   /*    if (nc_close(ncid)) ERR; */
+      /* This will work. */
+      if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
+      if (ndims_in != 0) ERR;
+      if (nc_inq_unlimdims(ncid, &ndims_in, NULL)) ERR;
+      if (ndims_in != 0) ERR;
+      if (nc_inq_unlimdims(ncid, NULL, NULL)) ERR;
+      if (nc_close(ncid)) ERR;
 
-   /*    /\* Reopen and check it out again. *\/ */
-   /*    if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR; */
+      /* Reopen and check it out again. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
 
-   /*    /\* This will not work. *\/ */
-   /*    if (nc_def_dim(ncid, LAT_NAME_2, LAT_LEN, &dimid) != NC_EPERM) ERR; */
+      /* This will not work. */
+      if (nc_def_dim(ncid, LAT_NAME_2, LAT_LEN, &dimid) != NC_EPERM) ERR;
       
-   /*    if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR; */
-   /*    if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR; */
-   /*    if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR; */
-   /*    if (ndims_in != 1) ERR; */
-   /*    if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR; */
-   /*    if (dimid_in != 0) ERR; */
-   /*    if (nc_inq_dimname(ncid, 0, name_in)) ERR; */
-   /*    if (strcmp(name_in, LAT_NAME)) ERR; */
-   /*    if (nc_inq_dimlen(ncid, 0, &len_in)) ERR; */
-   /*    if (len_in != LAT_LEN) ERR; */
-   /*    if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR; */
-   /*    if (ndims_in != 0) ERR; */
-   /*    if (nc_close(ncid)) ERR; */
-   /* } */
-   /* SUMMARIZE_ERR; */
+      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
+      if (ndims_in != 1) ERR;
+      if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR;
+      if (dimid_in != 0) ERR;
+      if (nc_inq_dimname(ncid, 0, name_in)) ERR;
+      if (strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
+      if (len_in != LAT_LEN) ERR;
+      if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
+      if (ndims_in != 0) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    /* printf("*** Testing with NULL id pointer..."); */
    /* { */
    /*    int ncid; */

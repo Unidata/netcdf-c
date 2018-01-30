@@ -201,6 +201,10 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
 
    LOG((2, "%s: ncid 0x%x name %s", __func__, ncid, name));
 
+   /* Check input. */
+   if (!name)
+      return NC_EINVAL;
+
    /* Find metadata for this file. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
