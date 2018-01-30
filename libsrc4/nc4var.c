@@ -1013,7 +1013,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       return NC_EINVAL;
 
    /* Valid deflate level? */
-   if (deflate && deflate_level)
+   if (deflate)
    {
       if (*deflate)
          if (*deflate_level < NC_MIN_DEFLATE_LEVEL ||
@@ -1104,7 +1104,16 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    if (no_fill)
    {
       if (*no_fill)
+      {
+         /* NC_STRING types may not turn off fill mode. It's disallowed
+          * by HDF5 and will cause a HDF5 error later. */
+         if (*no_fill)
+            if (var->type_info->nc_typeid == NC_STRING)
+               return NC_EINVAL;
+
+         /* Set the no-fill mode. */
          var->no_fill = NC_TRUE;
+      }
       else
          var->no_fill = NC_FALSE;
    }
