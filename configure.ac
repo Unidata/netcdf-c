@@ -16,7 +16,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.6.1-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.6.0.1], [support-netcdf@unidata.ucar.edu])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -27,8 +27,8 @@ AC_INIT([netCDF], [4.6.1-development], [support-netcdf@unidata.ucar.edu])
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=6
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
-AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=0
+AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE=".1"
 
 #####
 # Set some variables used to generate a libnetcdf.settings file,
@@ -882,8 +882,8 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(size_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
-$SLEEPCMD
-AC_CHECK_SIZEOF(unsigned long long)
+
+AM_CONDITIONAL(ENABLE_CDF5, [test "$ac_cv_sizeof_size_t" -ge "8"])
 
 $SLEEPCMD
 if test "$ac_cv_type_uchar" = yes ; then
