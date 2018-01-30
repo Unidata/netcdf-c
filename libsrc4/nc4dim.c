@@ -45,18 +45,21 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
       return retval;
    assert(h5 && nc && grp);
 
-   /* According to netcdf-3 manual, return -1 if there is no unlimited
-      dimension. */
-   *unlimdimidp = -1;
-   for (g = grp; g && !found; g = g->parent)
+   if (unlimdimidp)
    {
-      for (dim = g->dim; dim; dim = dim->l.next)
+      /* According to netcdf-3 manual, return -1 if there is no unlimited
+         dimension. */
+      *unlimdimidp = -1;
+      for (g = grp; g && !found; g = g->parent)
       {
-         if (dim->unlimited)
+         for (dim = g->dim; dim; dim = dim->l.next)
          {
-            *unlimdimidp = dim->dimid;
-            found++;
-            break;
+            if (dim->unlimited)
+            {
+               *unlimdimidp = dim->dimid;
+               found++;
+               break;
+            }
          }
       }
    }
@@ -124,11 +127,6 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
          return NC_ENOTINDEFINE;
    }
 
-   /* If it's not in define mode, enter define mode. */
-   if (!(h5->flags & NC_INDEF))
-      if ((retval = NC4_redef(ncid)))
-         return retval;
-
    /* Make sure this is a valid netcdf name. */
    if ((retval = nc4_check_name(name, norm_name)))
       return retval;
@@ -139,12 +137,20 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
       if(len > X_UINT_MAX) /* Backward compat */
          return NC_EDIMSIZE;
 
+   /* Create a hash of the name. */
    nn_hash = hash_fast(norm_name, strlen(norm_name));
 
    /* Make sure the name is not already in use. */
    for (dim = grp->dim; dim; dim = dim->l.next)
       if (nn_hash == dim->hash && !strncmp(dim->name, norm_name, NC_MAX_NAME))
          return NC_ENAMEINUSE;
+
+   /* If it's not in define mode, enter define mode. Do this only
+    * after checking all input data, so we only enter define mode if
+    * input is good. */
+   if (!(h5->flags & NC_INDEF))
+      if ((retval = NC4_redef(ncid)))
+         return retval;
 
    /* Add a dimension to the list. The ID must come from the file
     * information, since dimids are visible in more than one group. */
