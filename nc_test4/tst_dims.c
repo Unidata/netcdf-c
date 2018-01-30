@@ -4,14 +4,16 @@
 
    Test netcdf-4 dimensions.
 
-   $Id: tst_dims.c,v 1.30 2010/05/25 13:53:04 ed Exp $
+   Ed Hartnett, Quincey Koziol, Russ Rew, Ward Fisher
 */
 #include <config.h>
 #include <nc_tests.h>
+#include <nc4internal.h>
 #include "err_macros.h"
 
 #define FILE_NAME "tst_dims.nc"
 #define LAT_NAME "lat"
+#define LAT_NAME_2 "lat_2"
 #define LON_NAME "lon"
 #define LEVEL_NAME "level"
 #define TIME_NAME "time"
@@ -34,7 +36,6 @@
 #define ELEV_NAME "Elevation"
 #define HP_NAME "Number_of_Harry_Potter_Books"
 #define BUBBA "Bubba"
-
 #define MAX_DIMS 5
 
 int
@@ -81,7 +82,7 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 3 || dimids_in[0] != 0 || dimids_in[1] != 1 ||
-	 dimids_in[2] != 2) ERR;
+          dimids_in[2] != 2) ERR;
       if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
       if (ndims_in != 1 || dimids_in[0] != 0) ERR;
       if (nc_close(ncid)) ERR;
@@ -89,7 +90,7 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("*** Testing file with just one dimension...");
    {
-      int ncid, dimid;
+      int ncid, dimid, dimid2;
       int ndims_in, dimids_in[MAX_DIMS];
       size_t len_in;
       char name_in[NC_MAX_NAME + 1];
@@ -97,9 +98,70 @@ main(int argc, char **argv)
 
       /* Create a file with one dim and nothing else. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+
+      /* These will not work. */
+      if (nc_def_dim(ncid + TEST_VAL_42, LAT_NAME, LAT_LEN, &dimid) != NC_EBADID) ERR;
+      if (nc_def_dim(ncid, NULL, LAT_LEN, &dimid) != NC_EINVAL) ERR;
+      if (nc_def_dim(ncid, BAD_NAME, LAT_LEN, &dimid) != NC_EBADNAME) ERR;
+      
+      /* Turn off define mode. It will be turned back on
+       * automatically. */
+      if (nc_enddef(ncid)) ERR;
+
+      /* Create the dim. */
       if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid)) ERR;
 
+      /* This will not work. */
+      if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid2) != NC_ENAMEINUSE) ERR;
+
+      /* These also won't work. */
+      if (nc_inq_dim(ncid + TEST_VAL_42, dimid, name_in, &len_in) != NC_EBADID) ERR;
+      if (nc_inq_dim(ncid, -1, name_in, &len_in) != NC_EBADDIM) ERR;
+
       /* Check out what we've got. */
+      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
+      if (ndims_in != 1) ERR;
+
+      /* These will also work. */
+      if (nc_inq_dim(ncid, dimid, NULL, NULL)) ERR;
+      if (nc_inq_dim(ncid, dimid, NULL, &len_in)) ERR;
+      if (len_in != LAT_LEN) ERR;
+      if (nc_inq_dim(ncid, dimid, name_in, NULL)) ERR;
+      if (strcmp(name_in, LAT_NAME)) ERR;
+
+      /* These will not work. */
+      if (nc_inq_dimid(ncid + TEST_VAL_42, LAT_NAME, &dimid_in) != NC_EBADID) ERR;
+      if (nc_inq_dimid(ncid, NULL, &dimid_in) != NC_EINVAL) ERR;
+      if (nc_inq_dimid(ncid, LAT_NAME_2, &dimid_in) != NC_EBADDIM) ERR;
+
+      /* This will work. */
+      if (nc_inq_dimid(ncid, LAT_NAME, NULL)) ERR;
+      if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR;
+      if (dimid_in != 0) ERR;
+      if (nc_inq_dimname(ncid, 0, name_in)) ERR;
+      if (strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
+      if (len_in != LAT_LEN) ERR;
+
+      /* These won't work. */
+      if (nc_inq_unlimdims(ncid + TEST_VAL_42, &ndims_in, dimids_in) != NC_EBADID) ERR;
+
+      /* This will work. */
+      if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
+      if (ndims_in != 0) ERR;
+      if (nc_inq_unlimdims(ncid, &ndims_in, NULL)) ERR;
+      if (ndims_in != 0) ERR;
+      if (nc_inq_unlimdims(ncid, NULL, NULL)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Reopen and check it out again. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+
+      /* This will not work. */
+      if (nc_def_dim(ncid, LAT_NAME_2, LAT_LEN, &dimid) != NC_EPERM) ERR;
+      
       if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
       if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
@@ -113,21 +175,69 @@ main(int argc, char **argv)
       if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
       if (ndims_in != 0) ERR;
       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** Testing with NULL id pointer...");
+   {
+      int ncid;
+      int ndims_in, dimids_in[MAX_DIMS];
+      size_t len_in;
+      char name_in[NC_MAX_NAME + 1];
+      int dimid_in;
 
-      /* Reopen and check it out again. */
-      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
-      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      /* Create a file with one dim and nothing else. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, NULL)) ERR;
+
+      /* Check out what we've got. */
+      if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
       if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1) ERR;
       if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR;
       if (dimid_in != 0) ERR;
-      if (nc_inq_dimname(ncid, 0, name_in)) ERR;
-      if (strcmp(name_in, LAT_NAME)) ERR;
-      if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
-      if (len_in != LAT_LEN) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** Testing classic model file with just one unlimited dimension...");
+   {
+      int ncid, dimid;
+      int ndims_in, dimids_in[MAX_DIMS];
+      size_t len_in;
+      char name_in[NC_MAX_NAME + 1];
+
+      /* Create a file with one dim and nothing else. */
+      if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
+
+      /* Turn off define mode. */
+      if (nc_enddef(ncid)) ERR;
+
+      /* This will not work. */
+      if (nc_def_dim(ncid, LAT_NAME, NC_UNLIMITED, &dimid) != NC_ENOTINDEFINE) ERR;
+     
+      /* Turn on define mode. */
+      if (nc_redef(ncid)) ERR;
+
+      /* Create the dim. */
+      if (nc_def_dim(ncid, LAT_NAME, NC_UNLIMITED, &dimid)) ERR;
+
+      /* This will not work because of classic model. */
+      if (nc_def_dim(ncid, LAT_NAME_2, NC_UNLIMITED, &dimid) != NC_EUNLIMIT) ERR;
+      /* if (nc_def_dim(ncid, LAT_NAME_2, X_UINT_MAX + 10, &dimid) != NC_EDIMSIZE) ERR;*/
+
+      /* Check out what we've got. */
+      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      if (len_in != 0 || strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
-      if (ndims_in != 0) ERR;
+      if (ndims_in != 1) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Reopen and check it out again. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+      if (len_in != 0 || strcmp(name_in, LAT_NAME)) ERR;
+      if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
+      if (ndims_in != 1) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -138,8 +248,20 @@ main(int argc, char **argv)
       size_t len_in;
       int ndims_in, dimids_in[MAX_DIMS];
 
+      /* Create a file with one dim and nothing else. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid)) ERR;
+      if (nc_close(ncid)) ERR;
+
       /* Reopen the file with one dim, and change the name of the dim. */
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+
+      /* These will not work. */
+      if (nc_rename_dim(ncid + TEST_VAL_42, 0, BUBBA) != NC_EBADID) ERR;
+      if (nc_rename_dim(ncid, TEST_VAL_42, BUBBA) != NC_EBADDIM) ERR;
+      if (nc_rename_dim(ncid, 0, NULL) != NC_EINVAL) ERR;
+
+      /* Rename the dimension. */
       if (nc_rename_dim(ncid, 0, BUBBA)) ERR;
 
       /* Check out what we've got. */
@@ -191,9 +313,9 @@ main(int argc, char **argv)
       int lat_T42_dims[RANK_lat_T42];
       char name[NC_MAX_NAME + 1];
 
-    /* =========== */
-    /* Sub-test #1 */
-    /* =========== */
+      /* =========== */
+      /* Sub-test #1 */
+      /* =========== */
       /* create file with dimension and associated coordinate variable */
       if (nc_create(FILE_NAME1, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME, lat_T42_len, &lat_T42_dim)) ERR;
@@ -225,9 +347,9 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
 
-    /* =========== */
-    /* Sub-test #2 */
-    /* =========== */
+      /* =========== */
+      /* Sub-test #2 */
+      /* =========== */
       /* create file with dimension and associated coordinate variable */
       if (nc_create(FILE_NAME1, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME, lat_T42_len, &lat_T42_dim)) ERR;
@@ -255,9 +377,9 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
 
-    /* =========== */
-    /* Sub-test #3 */
-    /* =========== */
+      /* =========== */
+      /* Sub-test #3 */
+      /* =========== */
       /* create file with dimension and associated coordinate variable */
       if (nc_create(FILE_NAME1, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME, lat_T42_len, &lat_T42_dim)) ERR;
@@ -285,9 +407,9 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
 
-    /* =========== */
-    /* Sub-test #4 */
-    /* =========== */
+      /* =========== */
+      /* Sub-test #4 */
+      /* =========== */
       /* create file with dimension and associated coordinate variable */
       if (nc_create(FILE_NAME1, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME, lat_T42_len, &lat_T42_dim)) ERR;
@@ -338,8 +460,14 @@ main(int argc, char **argv)
       if (len_in != NC_UNLIMITED || strcmp(name_in, LEVEL_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1 || dimids_in[0] != 0) ERR;
+
+      /* Th1s won't work. */
+      if (nc_inq_unlimdim(ncid + TEST_VAL_42, &unlimdimid_in) != NC_EBADID) ERR;
+
+      /* This will work. */
       if (nc_inq_unlimdim(ncid, &unlimdimid_in)) ERR;
       if (unlimdimid_in != 0) ERR;
+      if (nc_inq_unlimdim(ncid, NULL)) ERR;
       if (nc_inq_unlimdims(ncid, &nunlimdims_in, &unlimdimid_in)) ERR;
       if (nunlimdims_in != 1 || unlimdimid_in != 0) ERR;
 
@@ -439,7 +567,7 @@ main(int argc, char **argv)
       if (len_in != A_LEN || strcmp(name_in, A_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 2 || dimids_in[0] != 0 ||
-	  dimids_in[1] != 1) ERR;
+          dimids_in[1] != 1) ERR;
       if (nc_close(ncid)) ERR;
    }
 
@@ -480,7 +608,7 @@ main(int argc, char **argv)
       if (varid_in != 0) ERR;
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, LEVEL_NAME) || xtype_in != NC_UINT64 || ndims_in != 1 ||
-	  dimids_in[0] != 0 || natts_in != 0) ERR;
+          dimids_in[0] != 0 || natts_in != 0) ERR;
       if (nc_inq_varname(ncid, 0, name_in)) ERR;
       if (strcmp(name_in, LEVEL_NAME)) ERR;
 
@@ -508,7 +636,7 @@ main(int argc, char **argv)
       if (varid_in != 0) ERR;
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, LEVEL_NAME) || xtype_in != NC_UINT64 || ndims_in != 1 ||
-	  dimids_in[0] != 0 || natts_in != 0) ERR;
+          dimids_in[0] != 0 || natts_in != 0) ERR;
       if (nc_inq_varname(ncid, 0, name_in)) ERR;
       if (strcmp(name_in, LEVEL_NAME)) ERR;
 
@@ -532,7 +660,7 @@ main(int argc, char **argv)
       if (varid_in != 0) ERR;
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, LEVEL_NAME) || xtype_in != NC_UINT64 || ndims_in != 1 ||
-	  dimids_in[0] != 0 || natts_in != 0) ERR;
+          dimids_in[0] != 0 || natts_in != 0) ERR;
       if (nc_inq_varname(ncid, 0, name_in)) ERR;
       if (strcmp(name_in, LEVEL_NAME)) ERR;
       if (nc_close(ncid)) ERR;
@@ -556,7 +684,7 @@ main(int argc, char **argv)
       /* Check out what we've got. */
       if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
       if (ndims_in != 1 || nvars_in != 0 || natts_in != 0 ||
-	 unlimdimid_in != -1) ERR;
+          unlimdimid_in != -1) ERR;
       if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
       if (len_in != DIM5_LEN || strcmp(name_in, DIM5_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
@@ -568,7 +696,7 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
       if (ndims_in != 1 || nvars_in != 0 || natts_in != 0 ||
-	 unlimdimid_in != -1) ERR;
+          unlimdimid_in != -1) ERR;
       if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
       if (len_in != DIM5_LEN || strcmp(name_in, DIM5_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
@@ -581,14 +709,14 @@ main(int argc, char **argv)
       /* Check it out. */
       if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
       if (ndims_in != 1 || nvars_in != 1 || natts_in != 0 ||
-	 unlimdimid_in != -1) ERR;
+          unlimdimid_in != -1) ERR;
       if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
       if (len_in != DIM5_LEN || strcmp(name_in, DIM5_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1 || dimids_in[0] != 0) ERR;
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, DIM5_NAME) || xtype_in != NC_FLOAT || ndims_in != 1 ||
-	  dimids_in[0] != 0 || natts_in != 0) ERR;
+          dimids_in[0] != 0 || natts_in != 0) ERR;
 
       if (nc_close(ncid)) ERR;
 
@@ -596,14 +724,14 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
       if (ndims_in != 1 || nvars_in != 1 || natts_in != 0 ||
-	 unlimdimid_in != -1) ERR;
+          unlimdimid_in != -1) ERR;
       if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
       if (len_in != DIM5_LEN || strcmp(name_in, DIM5_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1 || dimids_in[0] != 0) ERR;
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, DIM5_NAME) || xtype_in != NC_FLOAT || ndims_in != 1 ||
-	  dimids_in[0] != 0 || natts_in != 0) ERR;
+          dimids_in[0] != 0 || natts_in != 0) ERR;
 
       if (nc_close(ncid)) ERR;
    }
@@ -633,14 +761,14 @@ main(int argc, char **argv)
       /* Check out what we've got. */
       if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
       if (ndims_in != 1 || nvars_in != 1 || natts_in != 0 ||
-	 unlimdimid_in != 0) ERR;
+          unlimdimid_in != 0) ERR;
       if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
       if (len_in != 0 || strcmp(name_in, DIM5_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1 || dimids_in[0] != 0) ERR;
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, HP_NAME) || xtype_in != NC_USHORT || ndims_in != 1 ||
-	  dimids_in[0] != 0 || natts_in != 0) ERR;
+          dimids_in[0] != 0 || natts_in != 0) ERR;
 
       /* Add a record to the HP variable. */
       start[0] = 0;
@@ -662,7 +790,7 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
       if (ndims_in != 1 || nvars_in != 1 || natts_in != 0 ||
-	 unlimdimid_in != 0) ERR;
+          unlimdimid_in != 0) ERR;
       if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
       if (len_in != 1 || strcmp(name_in, DIM5_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
@@ -675,14 +803,14 @@ main(int argc, char **argv)
       /* Check it out. */
       if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
       if (ndims_in != 1 || nvars_in != 2 || natts_in != 0 ||
-	 unlimdimid_in != 0) ERR;
+          unlimdimid_in != 0) ERR;
       if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
       if (len_in != 1 || strcmp(name_in, DIM5_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1 || dimids_in[0] != 0) ERR;
       if (nc_inq_var(ncid, dim5_varid, name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, DIM5_NAME) || xtype_in != NC_FLOAT || ndims_in != 1 ||
-	  dimids_in[0] != 0 || natts_in != 0) ERR;
+          dimids_in[0] != 0 || natts_in != 0) ERR;
 
       if (nc_close(ncid)) ERR;
 
@@ -690,14 +818,14 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
       if (ndims_in != 1 || nvars_in != 2 || natts_in != 0 ||
-	 unlimdimid_in != 0) ERR;
+          unlimdimid_in != 0) ERR;
       if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
       if (len_in != 1 || strcmp(name_in, DIM5_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1 || dimids_in[0] != 0) ERR;
       if (nc_inq_var(ncid, dim5_varid, name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, DIM5_NAME) || xtype_in != NC_FLOAT || ndims_in != 1 ||
-	  dimids_in[0] != 0 || natts_in != 0) ERR;
+          dimids_in[0] != 0 || natts_in != 0) ERR;
 
       if (nc_close(ncid)) ERR;
    }
@@ -720,14 +848,14 @@ main(int argc, char **argv)
 
       /* Lats and lons suitable for some South American data. */
       for (lat[0] = 40.0, i = 1; i < LAT_LEN; i++)
-	 lat[i] = lat[i - 1] + .5;
+         lat[i] = lat[i - 1] + .5;
       for (lon[0] = 20.0, i = 1; i < LON_LEN; i++)
-	 lon[i] = lon[i - 1] + 1.5;
+         lon[i] = lon[i - 1] + 1.5;
 
       /* Some phoney 2D pressure data. */
       for (i = 0; i < LAT_LEN; i++)
-	 for (j = 0; j < LON_LEN; j++)
-	    pres[i][j] = 1013.1 + j;
+         for (j = 0; j < LON_LEN; j++)
+            pres[i][j] = 1013.1 + j;
 
       /* Create a file. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
@@ -752,19 +880,19 @@ main(int argc, char **argv)
       if (nc_inq_dim(ncid, lon_dimid, name_in, &len_in)) ERR;
       if (len_in != LON_LEN || strcmp(name_in, LON_NAME)) ERR;
       if (nc_inq_var(ncid, lat_varid, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, LAT_NAME) || xtype_in != NC_FLOAT || ndims_in != 1 ||
-	  dimids_in[0] != lat_dimid || natts_in != 0) ERR;
+          dimids_in[0] != lat_dimid || natts_in != 0) ERR;
       if (nc_inq_var(ncid, lon_varid, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, LON_NAME) || xtype_in != NC_FLOAT || ndims_in != 1 ||
-	  dimids_in[0] != lon_dimid || natts_in != 0) ERR;
+          dimids_in[0] != lon_dimid || natts_in != 0) ERR;
 
       /* Check our data variable. */
       if (nc_inq_var(ncid, pres_varid, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, PRES_NAME) || xtype_in != NC_DOUBLE || ndims_in != 2 ||
-	  dimids_in[0] != lat_dimid || dimids_in[1] != lon_dimid || natts_in != 0) ERR;
+          dimids_in[0] != lat_dimid || dimids_in[1] != lon_dimid || natts_in != 0) ERR;
 
       /* Write our latitude and longitude values. This writes all
        * metadata to disk too. */
@@ -777,16 +905,16 @@ main(int argc, char **argv)
       /* Check our latitude and longitude values. */
       if (nc_get_var(ncid, lat_varid, lat_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)
-	 if (lat[i] != lat_in[i]) ERR;
+         if (lat[i] != lat_in[i]) ERR;
       if (nc_get_var_float(ncid, lon_varid, lon_in)) ERR;
       for (i = 0; i < LON_LEN; i++)
-	 if (lon[i] != lon_in[i]) ERR;
+         if (lon[i] != lon_in[i]) ERR;
 
       /* Check our pressure values. */
       if (nc_get_var_double(ncid, pres_varid, (double *)pres_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)
-	 for (j = 0; j < LON_LEN; j++)
-	    if (pres[i][j] != pres_in[i][j]) ERR;
+         for (j = 0; j < LON_LEN; j++)
+            if (pres[i][j] != pres_in[i][j]) ERR;
 
       /* Close the file. */
       if (nc_close(ncid)) ERR;
@@ -800,33 +928,33 @@ main(int argc, char **argv)
       if (nc_inq_dim(ncid, lon_dimid, name_in, &len_in)) ERR;
       if (len_in != LON_LEN || strcmp(name_in, LON_NAME)) ERR;
       if (nc_inq_var(ncid, lat_varid, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, LAT_NAME) || xtype_in != NC_FLOAT || ndims_in != 1 ||
-	  dimids_in[0] != lat_dimid || natts_in != 0) ERR;
+          dimids_in[0] != lat_dimid || natts_in != 0) ERR;
       if (nc_inq_var(ncid, lon_varid, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, LON_NAME) || xtype_in != NC_FLOAT || ndims_in != 1 ||
-	  dimids_in[0] != lon_dimid || natts_in != 0) ERR;
+          dimids_in[0] != lon_dimid || natts_in != 0) ERR;
 
       /* Check our data variable. */
       if (nc_inq_var(ncid, pres_varid, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, PRES_NAME) || xtype_in != NC_DOUBLE || ndims_in != 2 ||
-	  dimids_in[0] != lat_dimid || dimids_in[1] != lon_dimid || natts_in != 0) ERR;
+          dimids_in[0] != lat_dimid || dimids_in[1] != lon_dimid || natts_in != 0) ERR;
 
       /* Check our latitude and longitude values. */
       if (nc_get_var(ncid, lat_varid, lat_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)
-	 if (lat[i] != lat_in[i]) ERR;
+         if (lat[i] != lat_in[i]) ERR;
       if (nc_get_var_float(ncid, lon_varid, lon_in)) ERR;
       for (i = 0; i < LON_LEN; i++)
-	 if (lon[i] != lon_in[i]) ERR;
+         if (lon[i] != lon_in[i]) ERR;
 
       /* Check our pressure values. */
       if (nc_get_var_double(ncid, pres_varid, (double *)pres_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)
-	 for (j = 0; j < LON_LEN; j++)
-	    if (pres[i][j] != pres_in[i][j]) ERR;
+         for (j = 0; j < LON_LEN; j++)
+            if (pres[i][j] != pres_in[i][j]) ERR;
 
       if (nc_close(ncid)) ERR;
    }
@@ -855,27 +983,27 @@ main(int argc, char **argv)
 
       /* Some phony 4D pressure data. */
       for (i = 0; i < LAT_LEN; i++)
-	 for (j = 0; j < LON_LEN; j++)
-	    for (k = 0; k < LEVEL_LEN; k++)
-	       for (l = 0; l <TIME_LEN; l++)
-		  pres[i][j][k][l] = 1013.1 + j;
+         for (j = 0; j < LON_LEN; j++)
+            for (k = 0; k < LEVEL_LEN; k++)
+               for (l = 0; l <TIME_LEN; l++)
+                  pres[i][j][k][l] = 1013.1 + j;
 
       /* Some phony 3D hp data. */
       for (i = 0; i < LAT_LEN; i++)
-	 for (j = 0; j < LON_LEN; j++)
-	    for (l = 0; l <TIME_LEN; l++)
-	       hp[i][j][l] = 100 + l;
+         for (j = 0; j < LON_LEN; j++)
+            for (l = 0; l <TIME_LEN; l++)
+               hp[i][j][l] = 100 + l;
 
       /* Some phony 2D elevaton data. */
       for (i = 0; i < LAT_LEN; i++)
-	 for (j = 0; j < LON_LEN; j++)
-	    elev[i][j] = 1010101022223333ULL  + i + j;
+         for (j = 0; j < LON_LEN; j++)
+            elev[i][j] = 1010101022223333ULL  + i + j;
 
       /* Some phony 1D lats and lons. */
       for (i = 0; i < LAT_LEN; i++)
-	 lat[i] = i * 5.;
+         lat[i] = i * 5.;
       for (i = 0; i < LON_LEN; i++)
-	 lon[i] = i * 5.;
+         lon[i] = i * 5.;
 
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
@@ -933,31 +1061,31 @@ main(int argc, char **argv)
 
       /* Check our coordinate variables. */
       if (nc_inq_var(ncid, LAT_VARID, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, LAT_NAME) || xtype_in != NC_FLOAT || ndims_in != 1 ||
-	  dimids_in[0] != LAT_DIMID || natts_in != 0) ERR;
+          dimids_in[0] != LAT_DIMID || natts_in != 0) ERR;
       if (nc_inq_var(ncid, LON_VARID, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, LON_NAME) || xtype_in != NC_FLOAT || ndims_in != 1 ||
-	  dimids_in[0] != LON_DIMID || natts_in != 0) ERR;
+          dimids_in[0] != LON_DIMID || natts_in != 0) ERR;
 
       /* Check our data variables. */
       if (nc_inq_var(ncid, PRES_VARID, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, PRES_NAME) || xtype_in != NC_DOUBLE || ndims_in != 4 ||
-	  dimids_in[0] != LAT_DIMID || dimids_in[1] != LON_DIMID ||
-	  dimids_in[2] != LEVEL_DIMID || dimids_in[3] != TIME_DIMID ||
-	  natts_in != 0) ERR;
+          dimids_in[0] != LAT_DIMID || dimids_in[1] != LON_DIMID ||
+          dimids_in[2] != LEVEL_DIMID || dimids_in[3] != TIME_DIMID ||
+          natts_in != 0) ERR;
       if (nc_inq_var(ncid, ELEV_VARID, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, ELEV_NAME) || xtype_in != NC_INT64 || ndims_in != 2 ||
-	  dimids_in[0] != LAT_DIMID || dimids_in[1] != LON_DIMID ||
-	  natts_in != 0) ERR;
+          dimids_in[0] != LAT_DIMID || dimids_in[1] != LON_DIMID ||
+          natts_in != 0) ERR;
       if (nc_inq_var(ncid, HP_VARID, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (strcmp(name_in, HP_NAME) || xtype_in != NC_USHORT || ndims_in != 3 ||
-	  dimids_in[0] != LAT_DIMID || dimids_in[1] != LON_DIMID ||
-	  dimids_in[2] != TIME_DIMID || natts_in != 0) ERR;
+          dimids_in[0] != LAT_DIMID || dimids_in[1] != LON_DIMID ||
+          dimids_in[2] != TIME_DIMID || natts_in != 0) ERR;
 
       /* Write our latitude and longitude values. This writes all
        * metadata to disk too. */
@@ -976,16 +1104,16 @@ main(int argc, char **argv)
       /* Check our latitude and longitude values. */
       if (nc_get_var(ncid, lat_varid, lat_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)
-	 if (lat[i] != lat_in[i]) ERR;
+         if (lat[i] != lat_in[i]) ERR;
       if (nc_get_var_float(ncid, lon_varid, lon_in)) ERR;
       for (i = 0; i < LON_LEN; i++)
-	 if (lon[i] != lon_in[i]) ERR;
+         if (lon[i] != lon_in[i]) ERR;
 
       /* Make sure our pressure and hp variables are still
        * empty. get_var calls will return no error, but fetch no
        * data. */
       if (nc_inq_var(ncid, pres_varid, name_in, &xtype_in, &ndims_in,
-		     dimids_in, &natts_in)) ERR;
+                     dimids_in, &natts_in)) ERR;
       if (nc_inq_dim(ncid, dimids_in[3], NULL, &len_in)) ERR;
       if (len_in != 0) ERR;
       memset(pres_in, 0, sizeof(pres_in));
@@ -993,13 +1121,13 @@ main(int argc, char **argv)
 
       /* Check our pressure values. */
       for (i = 0; i < LAT_LEN; i++)
-	 for (j = 0; j < LON_LEN; j++)
-	    for (k = 0; k < LEVEL_LEN; k++)
-	       for (l = 0; l <TIME_LEN; l++)
-		  if (0 != pres_in[i][j][k][l]) ERR;
+         for (j = 0; j < LON_LEN; j++)
+            for (k = 0; k < LEVEL_LEN; k++)
+               for (l = 0; l <TIME_LEN; l++)
+                  if (0 != pres_in[i][j][k][l]) ERR;
 
       if (nc_inq_var(ncid, hp_varid, NULL, NULL, &ndims_in,
-		     dimids_in, NULL)) ERR;
+                     dimids_in, NULL)) ERR;
       if (nc_inq_dim(ncid, dimids_in[2], NULL, &len_in)) ERR;
       if (len_in != 0) ERR;
       memset(hp_in, 0, sizeof(hp_in));
@@ -1007,9 +1135,9 @@ main(int argc, char **argv)
 
       /* Check our hp values. */
       for (i = 0; i < LAT_LEN; i++)
-	 for (j = 0; j < LON_LEN; j++)
-	    for (l = 0; l <TIME_LEN; l++)
-	       if (0 != hp_in[i][j][l]) ERR;
+         for (j = 0; j < LON_LEN; j++)
+            for (l = 0; l <TIME_LEN; l++)
+               if (0 != hp_in[i][j][l]) ERR;
 
       /* Now use nc_put_vara to really write pressure and hp
        * data. Write TIME_LEN (4) records of each. */
@@ -1019,31 +1147,31 @@ main(int argc, char **argv)
       count[2] = LEVEL_LEN;
       count[3] = TIME_LEN;
       if (nc_put_vara(ncid, pres_varid, start, count,
-		      (double *)pres)) ERR;
+                      (double *)pres)) ERR;
       count[2] = TIME_LEN;
       if (nc_put_vara(ncid, hp_varid, start, count,
-		      (double *)hp)) ERR;
+                      (double *)hp)) ERR;
 
       /* Check our pressure values. */
       if (nc_get_var_double(ncid, pres_varid, (double *)pres_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)
-	 for (j = 0; j < LON_LEN; j++)
-	    for (k = 0; k < LEVEL_LEN; k++)
-	       for (l = 0; l <TIME_LEN; l++)
-		  if (pres[i][j][k][l] != pres_in[i][j][k][l]) ERR;
+         for (j = 0; j < LON_LEN; j++)
+            for (k = 0; k < LEVEL_LEN; k++)
+               for (l = 0; l <TIME_LEN; l++)
+                  if (pres[i][j][k][l] != pres_in[i][j][k][l]) ERR;
 
       /* Check our elevation values. */
       if (nc_get_var_ulonglong(ncid, elev_varid, (unsigned long long *)elev_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)
-	 for (j = 0; j < LON_LEN; j++)
-	    if (elev[i][j] != elev_in[i][j]) ERR;
+         for (j = 0; j < LON_LEN; j++)
+            if (elev[i][j] != elev_in[i][j]) ERR;
 
       /* Check our hp values. */
       if (nc_get_var_ushort(ncid, hp_varid, (unsigned short *)hp_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)
-	 for (j = 0; j < LON_LEN; j++)
-	    for (l = 0; l <TIME_LEN; l++)
-	       if (hp[i][j][l] != hp_in[i][j][l]) ERR;
+         for (j = 0; j < LON_LEN; j++)
+            for (l = 0; l <TIME_LEN; l++)
+               if (hp[i][j][l] != hp_in[i][j][l]) ERR;
 
       /* Close the file. */
       if (nc_close(ncid)) ERR;
@@ -1109,7 +1237,7 @@ main(int argc, char **argv)
 
       /* Define a coordinate var. */
       if (nc_def_var(ncid, LON_NAME_EX, NC_FLOAT, 1, &lon_dimid,
-			       &lon_varid)) ERR;
+                     &lon_varid)) ERR;
 
       /* Close the file. */
       if (nc_close(ncid)) ERR;
@@ -1122,11 +1250,11 @@ main(int argc, char **argv)
       if (ndims_in != 2) ERR;
       for (i = 0; i < 2; i++)
       {
-	 if (dimid[i] != i) ERR;
-	 if (nc_inq_dimname(ncid, i, dim_name_in[i])) ERR;
+         if (dimid[i] != i) ERR;
+         if (nc_inq_dimname(ncid, i, dim_name_in[i])) ERR;
       }
       if (strcmp(dim_name_in[0], LAT_NAME_EX) ||
-	  strcmp(dim_name_in[1], LON_NAME_EX)) ERR;
+          strcmp(dim_name_in[1], LON_NAME_EX)) ERR;
 
       /* Close the file. */
       if (nc_close(ncid)) ERR;
@@ -1143,43 +1271,43 @@ main(int argc, char **argv)
 
       if (SIZEOF_SIZE_T == 8)
       {
-	 /* Create a file with one dim and nothing else. */
-	 if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-	 if (nc_def_dim(ncid, LAT_NAME, VERY_LONG_LEN, &dimid)) ERR;
+         /* Create a file with one dim and nothing else. */
+         if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+         if (nc_def_dim(ncid, LAT_NAME, VERY_LONG_LEN, &dimid)) ERR;
 
-	 /* Check it out. */
-	 if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
-	 if (len_in != ((SIZEOF_SIZE_T == 8) ? VERY_LONG_LEN : NC_MAX_UINT) ||
-	     strcmp(name_in, LAT_NAME)) ERR;
-	 if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
-	 if (ndims_in != 1) ERR;
-	 if (nc_inq_dimid(ncid, LAT_NAME, &varid_in)) ERR;
-	 if (varid_in != 0) ERR;
-	 if (nc_inq_dimname(ncid, 0, name_in)) ERR;
-	 if (strcmp(name_in, LAT_NAME)) ERR;
-	 if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
-	 if (len_in != ((SIZEOF_SIZE_T == 8) ? VERY_LONG_LEN : NC_MAX_UINT)) ERR;
-	 if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
-	 if (ndims_in != 0) ERR;
-	 if (nc_close(ncid)) ERR;
+         /* Check it out. */
+         if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+         if (len_in != ((SIZEOF_SIZE_T == 8) ? VERY_LONG_LEN : NC_MAX_UINT) ||
+             strcmp(name_in, LAT_NAME)) ERR;
+         if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
+         if (ndims_in != 1) ERR;
+         if (nc_inq_dimid(ncid, LAT_NAME, &varid_in)) ERR;
+         if (varid_in != 0) ERR;
+         if (nc_inq_dimname(ncid, 0, name_in)) ERR;
+         if (strcmp(name_in, LAT_NAME)) ERR;
+         if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
+         if (len_in != ((SIZEOF_SIZE_T == 8) ? VERY_LONG_LEN : NC_MAX_UINT)) ERR;
+         if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
+         if (ndims_in != 0) ERR;
+         if (nc_close(ncid)) ERR;
 
-	 /* Reopen and check it out again. */
-	 if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
-	 /* Check it out. */
-	 if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
-	 if (len_in != ((SIZEOF_SIZE_T == 8) ? VERY_LONG_LEN : NC_MAX_UINT) ||
-	     strcmp(name_in, LAT_NAME)) ERR;
-	 if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
-	 if (ndims_in != 1) ERR;
-	 if (nc_inq_dimid(ncid, LAT_NAME, &varid_in)) ERR;
-	 if (varid_in != 0) ERR;
-	 if (nc_inq_dimname(ncid, 0, name_in)) ERR;
-	 if (strcmp(name_in, LAT_NAME)) ERR;
-	 if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
-	 if (len_in != ((SIZEOF_SIZE_T == 8) ? VERY_LONG_LEN : NC_MAX_UINT)) ERR;
-	 if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
-	 if (ndims_in != 0) ERR;
-	 if (nc_close(ncid)) ERR;
+         /* Reopen and check it out again. */
+         if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+         /* Check it out. */
+         if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
+         if (len_in != ((SIZEOF_SIZE_T == 8) ? VERY_LONG_LEN : NC_MAX_UINT) ||
+             strcmp(name_in, LAT_NAME)) ERR;
+         if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
+         if (ndims_in != 1) ERR;
+         if (nc_inq_dimid(ncid, LAT_NAME, &varid_in)) ERR;
+         if (varid_in != 0) ERR;
+         if (nc_inq_dimname(ncid, 0, name_in)) ERR;
+         if (strcmp(name_in, LAT_NAME)) ERR;
+         if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
+         if (len_in != ((SIZEOF_SIZE_T == 8) ? VERY_LONG_LEN : NC_MAX_UINT)) ERR;
+         if (nc_inq_unlimdims(ncid, &ndims_in, dimids_in)) ERR;
+         if (ndims_in != 0) ERR;
+         if (nc_close(ncid)) ERR;
       }
    }
    SUMMARIZE_ERR;
@@ -1197,8 +1325,8 @@ main(int argc, char **argv)
       strcpy(file_in, "");
       if (getenv("srcdir"))
       {
-	 strcat(file_in, getenv("srcdir"));
-	 strcat(file_in, "/");
+         strcat(file_in, getenv("srcdir"));
+         strcat(file_in, "/");
       }
       strcat(file_in, REF_FILE_NAME);
 
@@ -1208,14 +1336,14 @@ main(int argc, char **argv)
       /* Check it out. */
       ret = nc_inq_dim(ncid, dimid, name_in, &len_in);
       if ((SIZEOF_SIZE_T >= 8 && ret) ||
-	  (SIZEOF_SIZE_T < 8 && ret != NC_EDIMSIZE)) ERR;
+          (SIZEOF_SIZE_T < 8 && ret != NC_EDIMSIZE)) ERR;
       if (SIZEOF_SIZE_T < 8)
       {
-	 if (len_in != NC_MAX_UINT) ERR;
+         if (len_in != NC_MAX_UINT) ERR;
       }
       else
       {
-	 if (len_in != VERY_LONG_LEN) ERR;
+         if (len_in != VERY_LONG_LEN) ERR;
       }
       if (strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
