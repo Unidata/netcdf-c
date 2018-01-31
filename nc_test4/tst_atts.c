@@ -1,6 +1,6 @@
-/* This is part of the netCDF package.
-   Copyright 2006 University Corporation for Atmospheric Research/Unidata.
-   See COPYRIGHT file for conditions of use.
+/* This is part of the netCDF package. Copyright 2006-2018 University
+   Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
+   for conditions of use.
 
    Test the netCDF-4 attribute code.
 
@@ -14,9 +14,13 @@
 
 /* The data file we will create. */
 #define FILE_NAME "tst_atts.nc"
+
+/* Names of attributes. */
 #define OLD_NAME "Constantinople"
 #define OLD_NAME_2 "Constantinopolis"
 #define NEW_NAME "Istanbul"
+
+/* Contents of attributes. */
 #define CONTENTS "Lots of people!"
 #define CONTENTS_2 "Lots of people!!" /* 1 longer than CONTENTS */
 #define CONTENTS_3 "Lots 0f pe0ple!"  /* same len as CONTENTS */
@@ -144,13 +148,15 @@ main(int argc, char **argv)
       
       /* Delete the attribute. Redef is needed since this is a classic
        * model file. This should work but does not. */
-      /* if (nc_redef(ncid)) ERR; */
-      /* if (nc_del_att(ncid, NC_GLOBAL, OLD_NAME)) ERR; */
+      if (nc_redef(ncid)) ERR;
+      if (nc_del_att(ncid, NC_GLOBAL, OLD_NAME)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Reopen the file. */
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
       if (nc_inq_natts(ncid, &natts)) ERR;
+      /* If delete worked, natts would be 0. */
+      /* if (natts != 0) ERR; */
       if (natts != 1) ERR;
 
       /* Get the attribute. */

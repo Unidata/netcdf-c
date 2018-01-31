@@ -23,7 +23,7 @@
 int nc4typelen(nc_type type);
 
 /**
- * @internal Get special informatation about the attrobute.
+ * @internal Get special informatation about the attribute.
  *
  * @param h5 Pointer to HDF5 file info struct.
  * @param name Name of attribute.
@@ -598,7 +598,7 @@ exit:
  * @return ::NC_ENOTVAR Variable not found.
  * @return ::NC_EBADNAME Name contains illegal characters.
  * @return ::NC_ENAMEINUSE Name already in use.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
@@ -786,8 +786,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
       if (var->written_to)
          return NC_ELATEFILL;
 
-      /* If fill value hasn't been set, allocate space. Of course,
-       * vlens have to be different... */
+      /* Get the length of the veriable data type. */
       if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->nc_typeid, 0,
                                         &type_size)))
          return retval;
@@ -809,7 +808,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
          free(var->fill_value);
       }
 
-      /* Allocate space for the fill value. */
+      /* Determine the size of the fill value in bytes. */
       if (var->type_info->nc_type_class == NC_VLEN)
          size = sizeof(hvl_t);
       else if (var->type_info->nc_type_class == NC_STRING)
@@ -817,6 +816,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
       else
          size = type_size;
 
+      /* Allocate space for the fill value. */
       if (!(var->fill_value = calloc(1, size)))
          return NC_ENOMEM;
 
@@ -833,7 +833,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
       }
       else if (var->type_info->nc_type_class == NC_STRING)
       {
-         if(NULL != (*(char **)data))
+         if (*(char **)data)
          {
             if (!(*(char **)(var->fill_value) = malloc(strlen(*(char **)data) + 1)))
                return NC_ENOMEM;
@@ -853,7 +853,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
 
    /* Copy the attribute data, if there is any. VLENs and string
     * arrays have to be handled specially. */
-   if(att->len)
+   if (att->len)
    {
       nc_type type_class;    /* Class of attribute's type */
 
