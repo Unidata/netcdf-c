@@ -478,6 +478,7 @@ NC4_inq_varids(int ncid, int *nvars, int *varids)
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
+
    int v, num_vars = 0;
    int retval;
    int i;
