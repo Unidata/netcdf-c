@@ -81,8 +81,9 @@ create_4D_example(char *file_name, int cmode)
       write our data. */
    size_t start[NDIMS_EX], count[NDIMS_EX];
 
-   /* Program variables to hold the data we will write out. We will only
-      need enough space to hold one timestep of data; one record. */
+   /* Program variables to hold the data we will write out. We will
+      only need enough space to hold one timestep of data; one
+      record. */
    float pres_out[NLVL][NLAT][NLON];
    float temp_out[NLVL][NLAT][NLON];
 
