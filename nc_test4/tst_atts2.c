@@ -1,10 +1,10 @@
-/* This is part of the netCDF package. Copyright 2005-2007 University
+/* This is part of the netCDF package. Copyright 2005-2018 University
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
    Test copy of attributes.
 
-   $Id: tst_atts2.c,v 1.7 2010/05/05 22:15:32 dmh Exp $
+   Ed Hartnett, Denis Heimbigner, Ward Fisher
 */
 
 #include <nc_tests.h>
@@ -96,6 +96,15 @@ main(int argc, char **argv)
 
       /* Create another file, and copy the att. */
       if (nc_create(FILE_NAME2, NC_NETCDF4, &ncid2)) ERR;
+
+      /* These will not work. */
+      if (nc_copy_att(ncid1 + TEST_VAL_42, NC_GLOBAL, ATT_NAME, ncid2, NC_GLOBAL) != NC_EBADID) ERR;
+      if (nc_copy_att(ncid1, TEST_VAL_42, ATT_NAME, ncid2, NC_GLOBAL) != NC_ENOTVAR) ERR;
+      if (nc_copy_att(ncid1, NC_GLOBAL, NULL, ncid2, NC_GLOBAL) != NC_EBADNAME) ERR;
+      if (nc_copy_att(ncid1, NC_GLOBAL, ATT_NAME, ncid2 + TEST_VAL_42, NC_GLOBAL) != NC_EBADID) ERR;
+      if (nc_copy_att(ncid1, NC_GLOBAL, ATT_NAME, ncid2, TEST_VAL_42) != NC_ENOTVAR) ERR;
+
+      /* Copy the attribute. */
       if (nc_copy_att(ncid1, NC_GLOBAL, ATT_NAME, ncid2, NC_GLOBAL)) ERR;
 
       /* Close up. */
