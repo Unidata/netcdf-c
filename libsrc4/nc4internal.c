@@ -1,3 +1,7 @@
+/* Copyright 2003-2018, University Corporation for Atmospheric
+ * Research. See the COPYRIGHT file for copying and redistribution
+ * conditions.
+ */
 /**
  * @file
  * @internal
@@ -9,9 +13,6 @@
  * buffer of metadata information, i.e. the linked list of NC
  * structs.
  *
- * Copyright 2003-2011, University Corporation for Atmospheric
- * Research. See the COPYRIGHT file for copying and redistribution
- * conditions.
  * @author Ed Hartnett
  */
 #include "config.h"
@@ -101,13 +102,13 @@ nc4_check_name(const char *name, char *norm_name)
 {
    char *temp;
    int retval;
-   
+
    /* Check for NULL. */
    if (!name)
       return NC_EINVAL;
 
    assert(norm_name);
-   
+
    /* Check for NULL. */
    if (!name)
       return NC_EINVAL;
@@ -574,7 +575,7 @@ nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name)
 }
 
 /**
- * @internal Recursively hunt for a netCDF type id. 
+ * @internal Recursively hunt for a netCDF type id.
  *
  * @param start_grp Pointer to starting group info.
  * @param target_nc_typeid NetCDF type ID to find.
@@ -689,9 +690,8 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
    return NC_NOERR;
 }
 
-/* Given a group, find an att. */
 /**
- * @internal
+ * @internal Given a group, find an att. 
  *
  * @param grp Pointer to group info struct.
  * @param varid Variable ID.
@@ -1633,7 +1633,7 @@ nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att)
 
 /**
  * @internal Break a coordinate variable to separate the dimension and
- * the variable. 
+ * the variable.
  *
  * This is called from nc_rename_dim() and nc_rename_var(). In some
  * renames, the coord variable must stay, but it is no longer a coord
@@ -1682,7 +1682,7 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
    /* Remove the atts that go with being a coordinate var. */
    /* if ((retval = remove_coord_atts(coord_var->hdf_datasetid))) */
    /*    return retval; */
-   
+
    /* Detach dimension from variable */
    coord_var->dimscale = NC_FALSE;
    dim->coord_var = NULL;
@@ -1722,20 +1722,20 @@ delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *d
    assert(grp && dim);
    LOG((2, "%s: deleting dimscale dataset %s dimid %d", __func__, dim->name,
         dimid));
-   
+
    /* Detach dimscale from any variables using it */
    if ((retval = rec_detach_scales(grp, dimid, dim->hdf_dimscaleid)) < 0)
       return retval;
-      
+
    /* Close the HDF5 dataset */
-   if (H5Dclose(dim->hdf_dimscaleid) < 0) 
+   if (H5Dclose(dim->hdf_dimscaleid) < 0)
       return NC_EHDFERR;
    dim->hdf_dimscaleid = 0;
-            
+
    /* Now delete the dataset. */
    if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
       return NC_EHDFERR;
-   
+
    return NC_NOERR;
 }
 
@@ -1758,7 +1758,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 
    assert(grp && var && dim);
    LOG((3, "%s: dim->name %s var->name %s", __func__, dim->name, var->name));
-   
+
    /* Detach dimscales from the [new] coordinate variable */
    if(var->dimscale_attached)
    {
