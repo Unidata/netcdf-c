@@ -1737,8 +1737,10 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
          if(H5Pset_szip(plistid, options_mask, bits_per_pixel) < 0)
             BAIL(NC_EFILTER);
       } else {
-         if(H5Pset_filter(plistid, var->filterid, H5Z_FLAG_MANDATORY, var->nparams, var->params) < 0)
+         herr_t code = H5Pset_filter(plistid, var->filterid, H5Z_FLAG_MANDATORY, var->nparams, var->params);
+         if(code < 0) {
             BAIL(NC_EFILTER);
+	 }
       }
    }
 
