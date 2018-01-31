@@ -21,6 +21,8 @@
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
+#include <unistd.h> /* lseek() */
+
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
 #include "ncwinpath.h"
@@ -2175,7 +2177,6 @@ openmagic(struct MagicFile* file)
     }
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	MPI_Offset size;
 	MPI_Comm comm = MPI_COMM_WORLD;
@@ -2206,17 +2207,17 @@ openmagic(struct MagicFile* file)
 	    {status = errno; goto done;}
 	/* Get its length */
 	{
-#ifdef _MSC_VER
 	int fd = fileno(file->fp);
+#ifdef _MSC_VER
 	__int64 len64 = _filelengthi64(fd);
 	if(len64 < 0)
             {status = errno; goto done;}
 	file->filelen = (long long)len64;
 #else
-	long size;
-	if((status = fseek(file->fp, 0L, SEEK_END)) < 0)
+	off_t size;
+	size = lseek(fd, 0, SEEK_END);
+	if(size == -1)
 	    {status = errno; goto done;}
-	size = ftell(file->fp);
 	file->filelen = (long long)size;
 #endif
 	rewind(file->fp);
@@ -2249,12 +2250,8 @@ readmagic(struct MagicFile* file, long pos, char* magic)
     if (file->use_parallel) {
 	MPI_Status mstatus;
 	int retval;
-	MPI_Offset offset;
-	offset = pos;
-	if((retval = MPI_File_seek(file->fh, offset, MPI_SEEK_SET)) != MPI_SUCCESS)
-	    {status = NC_EPARINIT; goto done;}	
-	if((retval = MPI_File_read(file->fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,
-				 &mstatus)) != MPI_SUCCESS)
+	if((retval = MPI_File_read_at_all(file->fh, pos, magic,
+                     MAGIC_NUMBER_LEN, MPI_CHAR, &mstatus)) != MPI_SUCCESS)
 	    {status = NC_EPARINIT; goto done;}
 	goto done;
     }
@@ -2293,7 +2290,6 @@ closemagic(struct MagicFile* file)
     if(file->inmemory) goto done; /* noop*/
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
 		{status = NC_EPARINIT; goto done;}
