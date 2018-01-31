@@ -41,7 +41,7 @@ main(int argc, char **argv)
       int henry_vii_id;
       int henry_viii_id;
       int grpid_in[MAX_SIBLING_GROUPS], varids_in[MAX_SIBLING_GROUPS];
-      int dimids_in[MAX_SIBLING_GROUPS], nvars_in, ndims_in, ncid_in;
+      int nvars_in, ncid_in;
       int parent_ncid;
       char name_out[NC_MAX_NAME + 1];
       int num_grps;
