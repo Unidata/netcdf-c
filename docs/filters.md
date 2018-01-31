@@ -162,8 +162,8 @@ also can easily be represented as 32 bit unsigned integers by
 proper casting to an unsigned integer so that the bit pattern
 is preserved. Simple integer values of type short or char
 (or the unsigned versions) can also be mapped to an unsigned
-integer by either sign extension or just padding with zeros in some
-consistent way.
+integer by truncating to 16 or 8 bits respectively and then
+zero extending.
 
 Machine byte order (aka endian-ness) is an issue for passing
 some kinds of parameters. You might define the parameters when
@@ -238,10 +238,10 @@ the <a href="#ParamEncode">parameter encoding section</a>.
 The currently supported constants are as follows.
 <table>
 <tr halign="center"><th>Example<th>Type<th>Format Tag<th>Notes
-<tr><td>-17b<td>signed 8-bit byte<td>b|B<td>
-<tr><td>23ub<td>unsigned 8-bit byte<td>u|U b|B<td>
-<tr><td>-25S<td>signed 16-bit short<td>s|S<td>
-<tr><td>27US<td>unsigned 16-bit short<td>u|U s|S<td>
+<tr><td>-17b<td>signed 8-bit byte<td>b|B<td>Truncated to 8 bits and zero extended to 32 bits
+<tr><td>23ub<td>unsigned 8-bit byte<td>u|U b|B<td>Truncated to 8 bits and zero extended to 32 bits
+<tr><td>-25S<td>signed 16-bit short<td>s|S<td>Truncated to 16 bits and zero extended to 32 bits
+<tr><td>27US<td>unsigned 16-bit short<td>u|U s|S<td>Truncated to 16 bits and zero extended to 32 bits
 <tr><td>-77<td>implicit signed 32-bit integer<td>Leading minus sign and no tag<td>
 <tr><td>77<td>implicit unsigned 32-bit integer<td>No tag<td>
 <tr><td>93U<td>explicit unsigned 32-bit integer<td>u|U<td>
@@ -291,7 +291,7 @@ as determined by the platform on which the library is being executed.
 <table>
 <tr halign="center"><th>Platform<th>Basename<th>Extension
 <tr halign="left"><td>Linux<td>lib*<td>.so*
-<tr halign="left"><td>OSX<td>lib*<td>.dylib*
+<tr halign="left"><td>OSX<td>lib*<td>.so*
 <tr halign="left"><td>Cygwin<td>cyg*<td>.dll*
 <tr halign="left"><td>Windows<td>*<td>.dll
 </table>
@@ -334,20 +334,44 @@ out the filter id and the parameters (the -s flag).
 
 Test Case {#TestCase}
 -------
-Within the netcdf-c source tree, the directory __netcdf-c/nc_test4/filter_test__ contains
-a test case for testing dynamic filter writing and reading
-using bzip2. The test case is fragile and is only known to work for Linux
-and Cygwin. To avoid spurious failures, it must be explicitly
-invoked by entering the directory and issuing the command
-````
-make clean all makebzip2 check
-````
-Note that the Make target 'makebzip2' creates the bzip2 shared object.
-It is the target most likely to fail when executed on an untested or
-non-standard platform.
+Within the netcdf-c source tree, the directory
+__netcdf-c/nc_test4__ contains a test case (__test_filter.c__) for
+testing dynamic filter writing and reading using
+bzip2. Another test (__test_filter_misc.c__) validates
+parameter passing.  These tests are disabled if __--enable-shared__
+is not set or if __--enable-netcdf-4__ is not set.
 
-Although it is fragile, this test can  serve as a complete example for building
-plugins for other filters.
+Example {#Example}
+-------
+A slightly simplified version of the filter test case is also
+available as an example within the netcdf-c source tree
+directory __netcdf-c/examples/C. The test is called __filter_example.c__
+and it is executed as part of the __run_examples4.sh__ shell script.
+The test case demonstrates dynamic filter writing and reading.
+
+The files __example/C/hdf5plugins/Makefile.am__
+and  __example/C/hdf5plugins/CMakeLists.txt__
+demonstrate how to build the hdf5 plugin for bzip2.
+
+Notes
+==========
+
+Supported Systems
+-----------------
+The current matrix of OS X build systems known to work is as follows.
+<table>
+<tr><th>Build System<th>Supported OS
+<tr><td>Automake<td>Linux, Cygwin
+<tr><td>Cmake<td>Linux, Cygwin, Visual Studio
+</table>
+
+Generic Plugin Build
+--------------------
+If you do not want to use Automake or Cmake, the following
+has been known to work.
+````
+gcc -g -O0 -shared -o libbzip2.so <plugin source files>  -L${HDF5LIBDIR} -lhdf5_hl -lhdf5 -L${ZLIBDIR} -lz
+````
 
 Appendix A. Byte Swap Code {#AppendixA}
 ==========

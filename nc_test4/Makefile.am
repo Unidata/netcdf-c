@@ -8,9 +8,13 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
+# Un comment to use a more verbose test driver
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+
 # Note which tests depend on other tests. necessary for make -j check
 TEST_EXTENSIONS = .sh
-
+extradir=
 # Link to our assembled library.
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
@@ -25,7 +29,7 @@ tst_fillbug tst_xplatform tst_xplatform2 tst_endian_fill tst_atts	\
 t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_scalar tst_rename	\
 tst_h5_endians tst_atts_string_rewrite tst_hdf5_file_compat		\
-tst_fill_attr_vanish tst_rehash tst_filterparser tst_bug324
+tst_fill_attr_vanish tst_rehash tst_filterparser tst_bug324 tst_types
 
 # Temporary I hope
 if !ISCYGWIN
@@ -97,6 +101,7 @@ check_PROGRAMS += tst_interops2 tst_chunk_hdf4 tst_h4_lendian
 if BUILD_UTILITIES
 # This test script depends on ncdump.
 TESTS += tst_interops2 tst_formatx_hdf4.sh
+tst_formatx_hdf4.log: tst_interops2.log
 endif # BUILD_UTILITIES
 
 TESTS += run_chunk_hdf4.sh tst_h4_lendian
@@ -114,6 +119,14 @@ if USE_SZIP
 if BUILD_UTILITIES
 check_PROGRAMS += test_szip h5testszip
 TESTS += tst_szip.sh
+endif
+endif
+
+# Filter Tests (requires ncdump and ncgen)
+if ENABLE_FILTER_TESTING
+if BUILD_UTILITIES
+extra_PROGRAMS = test_filter test_filter_misc
+TESTS += tst_filter.sh
 endif
 endif
 
@@ -148,8 +161,9 @@ tst_h4_lendian.c tst_atts_string_rewrite.c                              \
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c                     \
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc          \
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_hdf4_read_var.sh           \
-ref_contiguous.hdf4 ref_chunked.hdf4 tst_szip.sh ref_szip.h5            \
-ref_szip.cdl
+ref_contiguous.hdf4 ref_chunked.hdf4 tst_szip.sh ref_szip.h5 ref_szip.cdl \
+tst_filter.sh bzip2.cdl filtered.cdl unfiltered.cdl ref_bzip2.c         \
+findplugin.in
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc   \
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt                  \
@@ -165,13 +179,14 @@ tst_empty_vlen_lim.nc tst_parallel4_simplerw_coll.nc                    \
 tst_fill_attr_vanish.nc tst_rehash.nc testszip.nc test.h5               \
 szip_dump.cdl
 
+DISTCLEANFILES = findplugin.sh
+
 if USE_HDF4_FILE_TESTS
-DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
+DISTCLEANFILES += AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
 AMSR_E_L3_DailyLand_V06_20020619.hdf			\
 MYD29.A2009152.0000.005.2009153124331.hdf		\
 MYD29.A2002185.0000.005.2007160150627.hdf		\
 MOD29.A2000055.0005.005.2006267200024.hdf
-
 endif # HDF4_FILE_TESTS
 
-SUBDIRS=filter_test
+SUBDIRS=hdf5plugins

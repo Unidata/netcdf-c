@@ -1,7 +1,7 @@
-set -e
-
 TOPSRCDIR=@abs_top_srcdir@
 TOPBUILDDIR=@abs_top_builddir@
+
+set -e
 
 # Figure out various locations in the src/build tree.
 # This is relatively fragile code and is essentially
@@ -74,9 +74,8 @@ fi
 # We also assume we are executing in builddir
 builddir=`pwd`
 
-# execdir is an alias for builddir except
-# in the currently unsupported case of using Visual Studio
-execdir="${builddir}$VS"
+# execdir is an alias for builddir
+execdir="${builddir}"
 
 # pick off the last component as the relative name of this directory
 thisdir=`basename $srcdir`
@@ -91,19 +90,6 @@ cd $execdir; execdir=`pwd` ; cd $WD
 
 # If we have cygpath (which only exists under CYGWIN),
 # then try to normalize selected file paths.
-
-# So are we operating under CYGWIN? (test using uname)
-tcc=`uname | cut -d '_'  -f 1`
-if test "x$tcc_os" = xCYGWIN ; then ISCYGWIN=1; fi
-
-# Normalize selected paths
-#if test "x$ISCYGWIN" = x1; then
-#srcdir=`cygpath -mla $srcdir`
-#top_srcdir=`cygpath -mla $top_srcdir`
-#builddir=`cygpath -mla $builddir`
-#top_builddir=`cygpath -mla $top_builddir`
-#execdir=`cygpath -mla $execdir`
-#fi
 
 # For sun os
 export srcdir top_srcdir builddir top_builddir execdir

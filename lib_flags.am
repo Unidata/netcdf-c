@@ -13,7 +13,7 @@ if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/oc2
 endif
 
-AM_TESTS_ENVIRONMENT = export DTOPSRCDIR=${abs_top_srcdir}; export DTOPBUILDDIR=${abs_top_builddir}; 
+AM_TESTS_ENVIRONMENT = export TOPSRCDIR=${abs_top_srcdir}; export TOPBUILDDIR=${abs_top_builddir}; 
 
 
 
