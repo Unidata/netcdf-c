@@ -214,7 +214,7 @@ test_bzip2(void)
     /* Show chunking */ 
     printf("show chunks:");
     for(i=0;i<actualdims;i++)
-	printf("%s%d",(i==0?" chunks=":","),chunks[i]);
+	printf("%s%ld",(i==0?" chunks=":","),chunks[i]);
     printf("\n");
 
     /* prepare to write */

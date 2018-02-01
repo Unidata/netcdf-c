@@ -63,7 +63,7 @@ mismatch(size_t i, unsigned int *params, const char* tag)
 static void
 mismatch2(size_t i, unsigned int *params, const char* tag)
 {
-    fprintf(stderr,"mismatch2: %s [%d-%d] baseline=%ud,%ud params=%u,%u\n",
+    fprintf(stderr,"mismatch2: %s [%d-%ld] baseline=%ud,%ud params=%u,%u\n",
 	tag,(int)i,i+1,baseline[i],baseline[i+1],params[i],params[i+1]);
     fflush(stderr);
     nerrs++;
