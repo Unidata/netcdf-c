@@ -287,5 +287,46 @@ main(int argc, char **argv)
       if (nc_abort(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("**** testing different chunksizes on an unlimited dimension with existing data...");
+   {
+#define D_UNLIM "unlimited_dim"
+#define V_UNLIM_ONE "unlimited_var_one"
+#define V_UNLIM_TWO "unlimited_var_two"
+    int ncid;
+    int unlim_dimid;
+    int first_unlim_varid;
+    int second_unlim_varid;
+    size_t first_chunks[1];
+    size_t second_chunks[1];
+    size_t start[1], count[1];
+    unsigned short first_data[2] = {0, 1}, second_data[3] = {2, 3, 4};
+
+    /* Create a netcdf4 file with 1 dimension. */
+    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+    if (nc_def_dim(ncid, D_UNLIM, NC_UNLIMITED, &unlim_dimid)) ERR;
+
+    /* Add one var with one chunksize */
+    if (nc_def_var(ncid, V_UNLIM_ONE, NC_USHORT, NDIMS1, &unlim_dimid, &first_unlim_varid)) ERR;
+    first_chunks[0] = 2;
+    if (nc_def_var_chunking(ncid, first_unlim_varid, NC_CHUNKED, first_chunks)) ERR;
+
+    /* Add a record to the first variable. */
+    start[0] = 0;
+    count[0] = 1;
+    if (nc_put_vara(ncid, first_unlim_varid, start, count, first_data)) ERR;
+
+    /* Add second var with second chunksize */
+    if (nc_def_var(ncid, V_UNLIM_TWO, NC_USHORT, NDIMS1, &unlim_dimid, &second_unlim_varid)) ERR;
+    second_chunks[0] = 3;
+    if (nc_def_var_chunking(ncid, second_unlim_varid, NC_CHUNKED, second_chunks)) ERR;
+
+    /* Add a record to the second variable. */
+    start[0] = 0;
+    count[0] = 2;
+    if (nc_put_vara(ncid, second_unlim_varid, start, count, second_data)) ERR;
+
+    if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
