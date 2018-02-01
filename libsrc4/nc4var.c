@@ -265,7 +265,11 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
    else
       dprod = (double)type_len;
    for (d = 0; d < var->ndims; d++)
-      dprod *= (double)chunksizes[d];
+   {
+      if (chunksizes[d] < 1)
+         return NC_EINVAL;
+      dprod *= (double) chunksizes[d];
+   }
 
    if (dprod > (double) NC_MAX_UINT)
       return NC_EBADCHUNK;
@@ -406,8 +410,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @returns ::NC_ENOMEM Out of memory.
  * @author Dennis Heimbigner
  */
-int
-nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    NC_VAR_INFO_T **vp = NULL;
 
@@ -428,10 +431,11 @@ nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
       grp->vars.nalloc += NC_ARRAY_GROWBY;
    }
 
-   assert(var->varid == grp->vars.nelems);
-   grp->vars.value[grp->vars.nelems] = var;
-   grp->vars.nelems++;
-
+   if(var != NULL) {
+      assert(var->varid == grp->vars.nelems);
+      grp->vars.value[grp->vars.nelems] = var;
+      grp->vars.nelems++;
+   }
    return NC_NOERR;
 }
 
@@ -881,18 +885,19 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       {
          if (var->type_info->nc_type_class == NC_STRING)
          {
-            assert(*(char **)var->fill_value);
-            if (!(*(char **)fill_valuep = calloc(1, sizeof(char *))))
-               return NC_ENOMEM;
+            if (*(char **)var->fill_value) {
 
-            if (!(*(char **)fill_valuep = strdup(*(char **)var->fill_value)))
-            {
-               free(*(char **)fill_valuep);
-               return NC_ENOMEM;
+               if (!(fill_valuep = calloc(1, sizeof(char *))))
+                  return NC_ENOMEM;
+
+               if (!(*(char **)fill_valuep = strdup(*(char **)var->fill_value)))
+               {
+                  free(fill_valuep);
+                  return NC_ENOMEM;
+               }
             }
          }
-         else
-         {
+         else {
             assert(var->type_info->size);
             memcpy(fill_valuep, var->fill_value, var->type_info->size);
          }
@@ -901,13 +906,15 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       {
          if (var->type_info->nc_type_class == NC_STRING)
          {
-            if (!(*(char **)fill_valuep = calloc(1, sizeof(char *))))
+            if (!(fill_valuep = calloc(1, sizeof(char *))))
                return NC_ENOMEM;
 
             if ((retval = nc4_get_default_fill_value(var->type_info, (char **)fill_valuep)))
             {
-               free(*(char **)fill_valuep);
+               free(fill_valuep);
                return retval;
+            } else {
+               free(fill_valuep);
             }
          }
          else
@@ -1006,7 +1013,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       return NC_EINVAL;
 
    /* Valid deflate level? */
-   if (deflate)
+   if (deflate && deflate_level)
    {
       if (*deflate)
          if (*deflate_level < NC_MIN_DEFLATE_LEVEL ||
@@ -1097,16 +1104,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    if (no_fill)
    {
       if (*no_fill)
-      {
-         /* NC_STRING types may not turn off fill mode. It's disallowed
-          * by HDF5 and will cause a HDF5 error later. */
-         if (*no_fill)
-            if (var->type_info->nc_typeid == NC_STRING)
-               return NC_EINVAL;
-
-         /* Set the no-fill mode. */
          var->no_fill = NC_TRUE;
-      }
       else
          var->no_fill = NC_FALSE;
    }
