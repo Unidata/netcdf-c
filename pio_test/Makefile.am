@@ -12,17 +12,18 @@ include $(top_srcdir)/lib_flags.am
 # Link to our assembled library.
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
+#test_intercomm2			\
 # The tests that will be run.
-PIO_TESTS = test_async_mpi test_spmd test_intercomm2			\
-test_async_simple test_async_3proc test_async_4proc			\
-test_iosystem2_simple test_iosystem2_simple2 test_iosystem2		\
-test_iosystem3_simple test_iosystem3_simple2 test_iosystem3 test_pioc	\
-test_pioc_unlim test_pioc_putget test_pioc_fill test_darray		\
-test_darray_multi test_darray_multivar test_darray_multivar2		\
-test_darray_multivar3 test_darray_1d test_darray_3d			\
-test_decomp_uneven test_decomps test_rearr test_darray_async_simple	\
-test_darray_async test_darray_async_many test_darray_2sync		\
-test_async_multicomp test_async_multi2 test_async_manyproc
+PIO_TESTS = test_async_mpi test_spmd test_async_simple			\
+test_async_3proc test_async_4proc test_iosystem2_simple			\
+test_iosystem2_simple2 test_iosystem2 test_iosystem3_simple		\
+test_iosystem3_simple2 test_iosystem3 test_pioc test_pioc_unlim		\
+test_pioc_putget test_pioc_fill test_darray test_darray_multi		\
+test_darray_multivar test_darray_multivar2 test_darray_multivar3	\
+test_darray_1d test_darray_3d test_decomp_uneven test_decomps		\
+test_rearr test_darray_async_simple test_darray_async			\
+test_darray_async_many test_darray_2sync test_async_multicomp		\
+test_async_multi2 test_async_manyproc
 
 NC_PIO_TESTS = tst_darray_async tst_darray_1d
 
@@ -30,7 +31,7 @@ check_PROGRAMS = $(PIO_TESTS) $(NC_PIO_TESTS)
 
 # Source code for each test.
 test_async_mpi_SOURCES = test_async_mpi.c
-test_intercomm2_SOURCES = test_intercomm2.c test_common.c pio_tests.h
+#test_intercomm2_SOURCES = test_intercomm2.c test_common.c pio_tests.h
 test_async_simple_SOURCES = test_async_simple.c test_common.c pio_tests.h
 test_async_4proc_SOURCES = test_async_4proc.c test_common.c pio_tests.h
 test_iosystem2_simple_SOURCES = test_iosystem2_simple.c test_common.c pio_tests.h
