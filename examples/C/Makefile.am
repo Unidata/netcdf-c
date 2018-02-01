@@ -41,6 +41,11 @@ check_PROGRAMS += parallel_vara
 TESTS += parallel_vara
 endif #USE_PNETCDF
 
+if USE_PIO
+check_PROGRAMS += pio_simple_async
+TESTS += run_pio_examples.sh
+endif # USE_PIO
+
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
