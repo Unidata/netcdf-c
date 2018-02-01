@@ -19,6 +19,7 @@ has_nc2="@HAS_NC2@"
 has_nc4="@HAS_NC4@"
 has_hdf4="@HAS_HDF4@"
 has_pnetcdf="@HAS_PNETCDF@"
+has_pio="@HAS_PIO@"
 has_hdf5="@HAS_HDF5@"
 has_logging="@HAS_LOGGING@"
 has_cdf5="@HAS_CDF5@"
@@ -83,6 +84,7 @@ Available values for OPTION include:
   --has-hdf4    whether HDF4 was used in build
   --has-logging whether logging is enabled with --enable-logging.
   --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
+  --has-pio     whether PIO parallel IO library was used in build
   --has-szlib   whether szlib is included in build
   --has-parallel whether has parallel IO support via hdf5 and/or pnetcdf
   --has-cdf5    whether cdf5 support is included in build
@@ -160,6 +162,7 @@ fi
         echo "  --has-hdf4  -> $has_hdf4"
         echo "  --has-logging-> $has_logging"
         echo "  --has-pnetcdf-> $has_pnetcdf"
+        echo "  --has-pio   -> $has_pio"
         echo "  --has-szlib -> $has_szlib"
         echo "  --has-parallel -> $has_parallel"
         echo "  --has-cdf5 -> $has_cdf5"
@@ -232,6 +235,10 @@ while test $# -gt 0; do
 
     --has-pnetcdf)
        	echo $has_pnetcdf
+       	;;
+
+    --has-pio)
+       	echo $has_pio
        	;;
 
     --has-szlib)
