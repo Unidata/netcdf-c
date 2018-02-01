@@ -141,8 +141,8 @@ typedef struct Specialdata {
     int           _Endianness;   /* 1 =>little, 2 => big*/
     int           _Fill ;        /* 0 => false, 1 => true WATCHOUT: this is inverse of NOFILL*/
     unsigned int  _FilterID;
-    unsigned int* _FilterParams; /* NULL => defaults*/
-        size_t nparams;          /*  |_FilterParms| ; 0 => not specified*/
+    size_t nparams;          /*  |_FilterParms| ; 0 => not specified*/
+        unsigned int* _FilterParams; /* NULL => defaults*/
 } Specialdata;
 
 typedef struct GlobalSpecialdata {

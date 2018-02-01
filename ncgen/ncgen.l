@@ -385,7 +385,6 @@ NIL|nil|Nil {
 		    int slen = strlen(ncgtext);
 		    char* stag = NULL;
 		    int tag = NC_NAT;
-		    int signchar = 0;
 		    int isneg = 0;
 		    int c = ncgtext[0];
 		    int fail = 0;
@@ -659,7 +658,6 @@ Return the value.
 static unsigned long long
 parseULL(char* text, int* failp)
 {
-    int result = 0;
     extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;
