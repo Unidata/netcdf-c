@@ -16,6 +16,7 @@
 #include "ncx.h"
 #include "rnd.h"
 #include "ncutf8.h"
+#include "nc3dispatch.h"
 
 #ifndef OFF_T_MAX
 #if 0
@@ -629,6 +630,13 @@ NC3_def_var( int ncid, const char *name, nc_type type,
 
 	if(varidp != NULL)
 		*varidp = (int)ncp->vars.nelems -1; /* varid */
+
+	/* set the variable's fill mode */
+	if (NC_dofill(ncp))
+		varp->no_fill = 0;
+	else
+		varp->no_fill = 1;
+
 	return NC_NOERR;
 }
 
@@ -665,7 +673,9 @@ NC3_inq_var(int ncid,
 	nc_type *typep,
 	int *ndimsp,
 	int *dimids,
-	int *nattsp)
+	int *nattsp,
+	int *no_fillp,
+	void *fill_valuep)
 {
 	int status;
 	NC *nc;
@@ -704,6 +714,18 @@ NC3_inq_var(int ncid,
 	if(nattsp != 0)
 	{
 		*nattsp = (int) varp->attrs.nelems;
+	}
+
+	if (no_fillp != NULL) *no_fillp = varp->no_fill;
+
+	if (fill_valuep != NULL) {
+		status = nc_get_att(ncid, varid, _FillValue, fill_valuep);
+		if (status != NC_NOERR && status != NC_ENOTATT)
+			return status;
+		if (status == NC_ENOTATT) {
+			status = NC3_inq_default_fill_value(varp->type, fill_valuep);
+			if (status != NC_NOERR) return status;
+		}
 	}
 
 	return NC_NOERR;
@@ -791,3 +813,55 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 
 	return NC_NOERR;
 }
+
+int
+NC3_def_var_fill(int ncid,
+	int varid,
+	int no_fill,
+	const void *fill_value)
+{
+	int status;
+	NC *nc;
+	NC3_INFO* ncp;
+	NC_var *varp;
+
+	status = NC_check_id(ncid, &nc);
+	if(status != NC_NOERR)
+		return status;
+	ncp = NC3_DATA(nc);
+
+	if(NC_readonly(ncp))
+	{
+		return NC_EPERM;
+	}
+
+	if(!NC_indef(ncp))
+	{
+		return NC_ENOTINDEFINE;
+	}
+
+	varp = elem_NC_vararray(&ncp->vars, (size_t)varid);
+	if(varp == NULL)
+		return NC_ENOTVAR;
+
+	if (no_fill)
+		varp->no_fill = 1;
+	else
+		varp->no_fill = 0;
+
+	/* Are we setting a fill value? */
+	if (fill_value != NULL && !varp->no_fill) {
+
+		/* If there's a _FillValue attribute, delete it. */
+		status = NC3_del_att(ncid, varid, _FillValue);
+		if (status != NC_NOERR && status != NC_ENOTATT)
+			return status;
+
+		/* Create/overwrite attribute _FillValue */
+		status = NC3_put_att(ncid, varid, _FillValue, varp->type, 1, fill_value, varp->type);
+		if (status != NC_NOERR) return status;
+	}
+
+	return NC_NOERR;
+}
+

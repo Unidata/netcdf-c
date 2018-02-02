@@ -41,7 +41,7 @@ main(int argc, char **argv)
       int henry_vii_id;
       int henry_viii_id;
       int grpid_in[MAX_SIBLING_GROUPS], varids_in[MAX_SIBLING_GROUPS];
-      int dimids_in[MAX_SIBLING_GROUPS], nvars_in, ndims_in, ncid_in;
+      int nvars_in, ncid_in;
       int parent_ncid;
       char name_out[NC_MAX_NAME + 1];
       int num_grps;
@@ -114,13 +114,13 @@ main(int argc, char **argv)
       /* Create a classic model file. No groups will be allowed. */
       if (nc_create(FILE_NAME_CLASSIC_MODEL, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid2)) ERR;
       if (nc_def_grp(ncid2, HENRY_VII, &henry_vii_id) != NC_ESTRICTNC3) ERR;
-      if (nc_def_var(ncid2, HENRY_IV, NC_INT, 0, NULL, NULL));
+      if (nc_def_var(ncid2, HENRY_IV, NC_INT, 0, NULL, NULL)) ERR;
       if (nc_close(ncid2)) ERR;
 
       /* Create a file with one group, a group to contain data about
        * Henry VII. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-      if (nc_def_var(ncid, HENRY_IV, NC_INT, 0, NULL, NULL));      
+      if (nc_def_var(ncid, HENRY_IV, NC_INT, 0, NULL, NULL)) ERR;      
 
       /* Turn off define mode. It will automatically be turned back on
        * when nc_def_grp is called. */
