@@ -9,7 +9,9 @@
 #ifndef _DISPATCH_H
 #define _DISPATCH_H
 
+#if HAVE_CONFIG_H
 #include "config.h"
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -67,6 +69,7 @@
 #define NC_DISPATCH_NC4    2
 #define NC_DISPATCH_NCD    4
 #define NC_DISPATCH_NCP    8
+#define NC_DISPATCH_PIO    16
 #endif
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
@@ -88,7 +91,7 @@
 /* Define an alias for int to indicate an error return */
 typedef int NCerror;
 
-#if !defined HDF5_PARALLEL && !defined USE_PNETCDF
+#if !defined HDF5_PARALLEL && !defined USE_PNETCDF && !defined USE_PIO
 typedef int MPI_Comm;
 typedef int MPI_Info;
 #define MPI_COMM_WORLD 0
@@ -135,6 +138,12 @@ extern int NCD4_finalize(void);
 extern NC_Dispatch* NCP_dispatch_table;
 extern int NCP_initialize(void);
 extern int NCP_finalize(void);
+#endif
+
+#ifdef USE_PIO
+extern NC_Dispatch* PIO_dispatch_table;
+extern int PIO_initialize(void);
+extern int PIO_finalize(void);
 #endif
 
 #ifdef USE_NETCDF4
@@ -250,6 +259,7 @@ int (*inq_var_all)(int ncid, int varid, char *name, nc_type *xtypep,
               );
 
 int (*var_par_access)(int, int, int);
+int (*def_var_fill)(int, int, int, const void*);
 
 /* Note the following may still be invoked by netcdf client code
    even when the file is a classic file; they will just return an error or
@@ -289,7 +299,6 @@ int (*def_opaque)(int, size_t, const char*, nc_type*);
 int (*def_var_deflate)(int, int, int, int, int);
 int (*def_var_fletcher32)(int, int, int);
 int (*def_var_chunking)(int, int, int, const size_t*);
-int (*def_var_fill)(int, int, int, const void*);
 int (*def_var_endian)(int, int, int);
 int (*def_var_filter)(int, int, unsigned int, size_t, const unsigned int*);
 int (*set_var_chunk_cache)(int, int, size_t, size_t, float);

@@ -29,15 +29,6 @@
 #define NC_STRING (12)
 #endif
 
-
-static int NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
-               int *ndimsp, int *dimidsp, int *nattsp, 
-               int *shufflep, int *deflatep, int *deflate_levelp,
-               int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
-               int *no_fill, void *fill_valuep, int *endiannessp, 
-	       unsigned int* idp, size_t* nparamsp, unsigned int* params
-               );
-
 static int NC3_var_par_access(int,int,int);
 
 #ifdef USE_NETCDF4
@@ -73,7 +64,6 @@ static int NC3_def_opaque(int,size_t,const char*,nc_type*);
 static int NC3_def_var_deflate(int,int,int,int,int);
 static int NC3_def_var_fletcher32(int,int,int);
 static int NC3_def_var_chunking(int,int,int,const size_t*);
-static int NC3_def_var_fill(int,int,int,const void*);
 static int NC3_def_var_endian(int,int,int);
 static int NC3_def_var_filter(int, int, unsigned int, size_t, const unsigned int*);
 
@@ -129,6 +119,7 @@ NCDEFAULT_put_varm,
 NC3_inq_var_all,
 
 NC3_var_par_access,
+NC3_def_var_fill,
 
 #ifdef USE_NETCDF4
 NC3_show_metadata,
@@ -164,7 +155,6 @@ NC3_def_opaque,
 NC3_def_var_deflate,
 NC3_def_var_fletcher32,
 NC3_def_var_chunking,
-NC3_def_var_fill,
 NC3_def_var_endian,
 NC3_def_var_filter,
 NC3_set_var_chunk_cache,
@@ -189,7 +179,7 @@ NC3_finalize(void)
     return NC_NOERR;
 }
 
-static int
+int
 NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
                int *ndimsp, int *dimidsp, int *nattsp, 
                int *shufflep, int *deflatep, int *deflate_levelp,
@@ -198,13 +188,12 @@ NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	       unsigned int* idp, size_t* nparamsp, unsigned int* params
 	       )
 {
-    int stat = NC3_inq_var(ncid,varid,name,xtypep,ndimsp,dimidsp,nattsp);
+    int stat = NC3_inq_var(ncid,varid,name,xtypep,ndimsp,dimidsp,nattsp,no_fill,fill_valuep);
     if(stat) return stat;
     if(shufflep) *shufflep = 0;
     if(deflatep) *deflatep = 0;
     if(fletcher32p) *fletcher32p = 0;
     if(contiguousp) *contiguousp = NC_CONTIGUOUS;
-    if(no_fill) *no_fill = 1;
     if(endiannessp) return NC_ENOTNC4;
     if(idp) return NC_ENOTNC4;
     if(nparamsp) return NC_ENOTNC4;
@@ -502,12 +491,6 @@ NC3_def_var_fletcher32(int ncid, int varid, int fletcher32)
 
 static int
 NC3_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksizesp)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NC3_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
     return NC_ENOTNC4;
 }

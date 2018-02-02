@@ -1050,47 +1050,70 @@ main(int argc, char **argv)
 #define DIM7_LEN 2
 #define DIM7_NAME "dim_7_from_Indiana"
 #define VAR7_NAME "var_7_from_Idaho"
+#define VAR8_NAME "var_8_from_Outer_Space"
+#define VAR9_NAME "var_9_from_Inner_Space"
+#define VAR10_NAME "var_10_from_Im_Out_Of_Ideas"
 #define NDIMS 1
 
    printf("*** testing fill values...");
    {
       int dimids[NDIMS], dimids_in[NDIMS];
       size_t index[NDIMS];
-      int varid, ndims, natts;
+      int varid, varid2, varid3, varid4, ndims, natts;
       nc_type xtype_in;
       char name_in[NC_MAX_NAME + 1];
       int shuffle_in, deflate_in, deflate_level_in;
       int checksum_in, no_fill;
       unsigned short ushort_data = 42, ushort_data_in, fill_value_in;
+      unsigned short my_fill_value = 999;
+      unsigned short my_fill_value2 = 111;
 
-      /* Create a netcdf-4 file with one dim and 1 NC_USHORT var. */
+      /* Create a netcdf-4 file with one dim and some NC_USHORT vars. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM7_NAME, DIM7_LEN, &dimids[0])) ERR;
-      if (nc_def_var(ncid, VAR7_NAME, NC_USHORT, NDIMS, dimids,
-		     &varid)) ERR;
+      if (nc_def_var(ncid, VAR7_NAME, NC_USHORT, NDIMS, dimids, &varid)) ERR;
+      if (nc_def_var(ncid, VAR8_NAME, NC_USHORT, NDIMS, dimids, &varid2)) ERR;
+      if (nc_def_var(ncid, VAR9_NAME, NC_USHORT, NDIMS, dimids, &varid3)) ERR;
+      if (nc_put_att(ncid, varid3, _FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
+      if (nc_def_var(ncid, VAR10_NAME, NC_USHORT, NDIMS, dimids, &varid4)) ERR;
+      if (nc_put_att(ncid, varid4, _FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
 
       /* Check stuff. */
-      if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims,
-		     dimids_in, &natts)) ERR;
+      if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in,
+                     &natts)) ERR;
       if (strcmp(name_in, VAR7_NAME) || xtype_in != NC_USHORT ||
 	  ndims != 1 || natts != 0 || dimids_in[0] != 0) ERR;
       if (nc_inq_var_deflate(ncid, 0, &shuffle_in, &deflate_in,
-			     &deflate_level_in)) ERR;
+                             &deflate_level_in)) ERR;
       if (shuffle_in != NC_NOSHUFFLE || deflate_in) ERR;
       if (nc_inq_var_fletcher32(ncid, 0, &checksum_in)) ERR;
       if (checksum_in != NC_NOCHECKSUM) ERR;
       if (nc_inq_var_fill(ncid, 0, &no_fill, &fill_value_in)) ERR;
       if (no_fill || fill_value_in != NC_FILL_USHORT) ERR;
 
+      /* Set a fill value for the second and forth variable. This will
+       * overwrite the existing fill value attribute for varid4. */
+      if (nc_def_var_fill(ncid, varid2, 0, &my_fill_value)) ERR;
+      if (nc_def_var_fill(ncid, varid4, 0, &my_fill_value)) ERR;
+
       /* Write the second of two values. */
       index[0] = 1;
       if (nc_put_var1_ushort(ncid, 0, index, &ushort_data)) ERR;
+      if (nc_put_var1_ushort(ncid, varid2, index, &ushort_data)) ERR;
+      if (nc_put_var1_ushort(ncid, varid3, index, &ushort_data)) ERR;
+      if (nc_put_var1_ushort(ncid, varid4, index, &ushort_data)) ERR;
 
-      /* Get the first value, and make sure we get the default fill
-       * value for USHORT. */
+      /* Get the first value, and make sure we get the correct fill
+       * values. */
       index[0] = 0;
       if (nc_get_var1_ushort(ncid, 0, index, &ushort_data_in)) ERR;
       if (ushort_data_in != NC_FILL_USHORT) ERR;
+      if (nc_get_var1_ushort(ncid, varid2, index, &ushort_data_in)) ERR;
+      if (ushort_data_in != my_fill_value) ERR;
+      if (nc_get_var1_ushort(ncid, varid3, index, &ushort_data_in)) ERR;
+      if (ushort_data_in != my_fill_value2) ERR;
+      if (nc_get_var1_ushort(ncid, varid4, index, &ushort_data_in)) ERR;
+      if (ushort_data_in != my_fill_value) ERR;
 
       if (nc_close(ncid)) ERR;
 
@@ -1119,17 +1142,38 @@ main(int argc, char **argv)
       int varid;
       int no_fill;
       unsigned short ushort_data = 42, ushort_data_in, fill_value_in;
+      unsigned short my_fill_value = 999;
 
       /* Create a netcdf-4 file with one dim and 1 NC_USHORT var. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM7_NAME, DIM7_LEN, &dimids[0])) ERR;
       if (nc_def_var(ncid, VAR7_NAME, NC_USHORT, NDIMS, dimids,
 		     &varid)) ERR;
-      if (nc_def_var_fill(ncid, varid, 1, NULL)) ERR;
 
-      /* Check stuff. */
+      /* Turn off fill mode. */
+      if (nc_def_var_fill(ncid, varid, 1, NULL)) ERR;
       if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value_in)) ERR;
       if (!no_fill) ERR;
+
+      /* Turn on fill mode. */
+      if (nc_def_var_fill(ncid, varid, 0, NULL)) ERR;
+      if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value_in)) ERR;
+      if (no_fill) ERR;
+      
+      /* Turn off fill mode. */
+      if (nc_def_var_fill(ncid, varid, 1, NULL)) ERR;
+      if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value_in)) ERR;
+      if (!no_fill) ERR;
+
+      /* Try and set a fill value and fill mode off. It will be
+       * ignored because fill mode is off. */
+      if (nc_def_var_fill(ncid, varid, 1, &my_fill_value)) ERR;
+
+      /* Turn on fill mode. */
+      if (nc_def_var_fill(ncid, varid, 0, NULL)) ERR;
+      if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value_in)) ERR;
+      if (fill_value_in != NC_FILL_USHORT) ERR;
+      if (no_fill) ERR;
 
       /* Write the second of two values. */
       index[0] = 1;
@@ -1139,7 +1183,7 @@ main(int argc, char **argv)
        * value for USHORT. */
       index[0] = 0;
       if (nc_get_var1_ushort(ncid, varid, index, &ushort_data_in)) ERR;
-
+      if (ushort_data_in != NC_FILL_USHORT) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check the same stuff. */
@@ -1147,7 +1191,7 @@ main(int argc, char **argv)
 
       /* Check stuff. */
       if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value_in)) ERR;
-      if (!no_fill) ERR;
+      if (no_fill) ERR;
 
       if (nc_close(ncid)) ERR;
    }
