@@ -2303,6 +2303,10 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 #endif
 #if defined(USE_NETCDF4)
       case NC_FORMATX_NC4:
+         dispatcher = NC4_dispatch_table;
+         break;
+#endif
+#if defined(USE_HDF4)         
       case NC_FORMATX_NC_HDF4:
          dispatcher = NC4_dispatch_table;
          break;
