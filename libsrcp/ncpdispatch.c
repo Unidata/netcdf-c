@@ -1171,12 +1171,21 @@ NCP_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     if(deflatep) *deflatep = 0;
     if(fletcher32p) *fletcher32p = 0;
     if(contiguousp) *contiguousp = NC_CONTIGUOUS;
-    if(no_fill) *no_fill = 1;
+    if(no_fill) ncmpi_inq_var_fill(nc->int_ncid, varid, no_fill, fill_valuep);
     if(endiannessp) return NC_ENOTNC4;
     if(idp) return NC_ENOTNC4;
     if(nparamsp) return NC_ENOTNC4;
     if(params) return NC_ENOTNC4;
     return NC_NOERR;
+}
+
+static int
+NCP_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
+{
+    NC* nc;
+    int status = NC_check_id(ncid, &nc);
+    if(status != NC_NOERR) return status;
+    return ncmpi_def_var_fill(nc->int_ncid, varid, no_fill, fill_value);
 }
 
 static int
@@ -1493,12 +1502,6 @@ NCP_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksiz
 }
 
 static int
-NCP_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
-{
-    return NC_ENOTNC4;
-}
-
-static int
 NCP_def_var_endian(int ncid, int varid, int endianness)
 {
     return NC_ENOTNC4;
@@ -1563,6 +1566,7 @@ NCP_put_varm,
 NCP_inq_var_all,
 
 NCP_var_par_access,
+NCP_def_var_fill,
 
 #ifdef USE_NETCDF4
 NCP_show_metadata,
@@ -1599,7 +1603,6 @@ NCP_def_opaque,
 NCP_def_var_deflate,
 NCP_def_var_fletcher32,
 NCP_def_var_chunking,
-NCP_def_var_fill,
 NCP_def_var_endian,
 NCP_def_var_filter,
 NCP_set_var_chunk_cache,

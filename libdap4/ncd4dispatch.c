@@ -853,6 +853,7 @@ NCDEFAULT_put_varm,
 NCD4_inq_var_all,
 
 NCD4_var_par_access,
+NCD4_def_var_fill,
 
 #ifdef USE_NETCDF4
 NCD4_show_metadata,
@@ -888,7 +889,6 @@ NCD4_def_opaque,
 NCD4_def_var_deflate,
 NCD4_def_var_fletcher32,
 NCD4_def_var_chunking,
-NCD4_def_var_fill,
 NCD4_def_var_endian,
 NCD4_def_var_filter,
 NCD4_set_var_chunk_cache,
