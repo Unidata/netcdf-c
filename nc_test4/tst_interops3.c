@@ -67,6 +67,7 @@ int
 main(int argc, char **argv)
 {
    printf("\n*** Testing HDF4/NetCDF-4 interoperability...\n");
+   nc_set_log_level(3);
    printf("*** testing that all hdf4 files can be opened...");
    {
 #define NUM_SAMPLE_FILES 5
@@ -77,7 +78,6 @@ main(int argc, char **argv)
 							   "MOD29.A2000055.0005.005.2006267200024.hdf",
 							   "MYD29.A2002185.0000.005.2007160150627.hdf",
 							   "MYD29.A2009152.0000.005.2009153124331.hdf"};
-      size_t len_in;
       int expected_mode = NC_NETCDF4;
       int expected_extended_format = NC_FORMATX_NC_HDF4;
       int f;
