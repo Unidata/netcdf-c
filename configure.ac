@@ -438,22 +438,6 @@ fi
 
 AM_CONDITIONAL(USE_STRICT_NULL_BYTE_HEADER_PADDING, [test x$enable_strict_null_byte_header_padding = xyes ])
 
-# Check whether we want to enable CDF5 support.
-AC_MSG_CHECKING([whether CDF5 support should be enabled (default off)])
-AC_ARG_ENABLE([cdf5],
-              [AS_HELP_STRING([--enable-cdf5],
-                              [build with CDF5 support.])])
-test "x$enable_cdf5" = xyes || enable_cdf5=no
-AC_MSG_RESULT($enable_cdf5)
-
-if test "x$enable_cdf5" = xyes; then
-   AC_DEFINE([USE_CDF5], [1], [if true, enable CDF5 Support])
-   AC_DEFINE([ENABLE_CDF5], [1], [if true, enable CDF5 Support])
-fi
-
-AM_CONDITIONAL(USE_CDF5, [test x$enable_cdf5 = xyes ])
-AM_CONDITIONAL(ENABLE_CDF5, [test x$enable_cdf5 = xyes ])
-
 # Does the user want to use the ffio module?
 AC_MSG_CHECKING([whether FFIO will be used])
 AC_ARG_ENABLE([ffio],
@@ -883,7 +867,31 @@ AC_CHECK_SIZEOF(size_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
 
-AM_CONDITIONAL(ENABLE_CDF5, [test "$ac_cv_sizeof_size_t" -ge "8"])
+# Check whether we want to enable CDF5 support.
+AC_MSG_CHECKING([whether CDF5 support should be enabled])
+AC_ARG_ENABLE([cdf5],
+              [AS_HELP_STRING([--disable-cdf5],
+                              [build without CDF5 support.])],
+              [enable_cdf5=${enableval}], [enable_cdf5=auto]
+)
+if test "x${enable_cdf5}" = xyes && test "$ac_cv_sizeof_size_t" -lt "8" ; then
+   dnl unable to support CDF5, but --enable-cdf5 is explicitly set
+   AC_MSG_ERROR([Unable to support CDF5 feature because size_t is less than 4 bytes])
+fi
+if test "$ac_cv_sizeof_size_t" -lt "8" ; then
+   enable_cdf5=no
+else
+   enable_cdf5=yes
+fi
+AC_MSG_RESULT($enable_cdf5)
+
+if test "x${enable_cdf5}" = xyes; then
+   AC_DEFINE([USE_CDF5], [1], [if true, enable CDF5 Support])
+   AC_DEFINE([ENABLE_CDF5], [1], [if true, enable CDF5 Support])
+fi
+
+AM_CONDITIONAL(USE_CDF5, [test x$enable_cdf5 = xyes ])
+AM_CONDITIONAL(ENABLE_CDF5, [test x$enable_cdf5 = xyes ])
 
 $SLEEPCMD
 if test "$ac_cv_type_uchar" = yes ; then
@@ -1371,7 +1379,7 @@ AC_SUBST(HAS_DISKLESS,[$enable_diskless])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
 AC_SUBST(RELAX_COORD_BOUND,[$enable_relax_coord_bound])
-AC_SUBST(ENABLE_ERANGE_FILL,[$enable_erange_fill])
+AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
