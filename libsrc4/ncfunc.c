@@ -107,21 +107,17 @@ NC4_inq_format_extended(int ncid, int *formatp, int *modep)
    NC *nc;
    NC_HDF5_FILE_INFO_T* h5;
 
-   LOG((2, "nc_inq_format_extended: ncid 0x%x", ncid));
+   LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
    /* Find the file metadata. */
    if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;
 
-   if(modep) *modep = (nc->mode|NC_NETCDF4);
+   if (modep)
+      *modep = (nc->mode|NC_NETCDF4);
 
-   if(formatp) {
-#ifdef USE_HDF4
-      /* Distinguish HDF5 from HDF4 */
-      *formatp = (h5->hdf4 ? NC_FORMATX_NC_HDF4 : NC_FORMATX_NC_HDF5);
-#else /* USE_HDF4 */
+   if (formatp) 
       *formatp = NC_FORMATX_NC_HDF5;
-#endif /* USE_HDF4 */
-   }
+
    return NC_NOERR;
 }
