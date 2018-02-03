@@ -62,6 +62,11 @@ if USE_PNETCDF
 LIBSRCP = libsrcp
 endif
 
+# Build HDF4 if desired.
+if USE_HDF4
+LIBHDF4 = libhdf4
+endif
+
 # Is the user building PIO?
 if USE_PIO
 PIO_TEST_DIR = pio_test
@@ -78,8 +83,8 @@ endif
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
 SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc $(LIBSRC4_DIR)	\
-$(LIBSRCP) $(LIBPIO) $(OCLIB) $(DAP2) ${DAP4} liblib $(NCGEN3)		\
-$(NCGEN) $(NCDUMP) $(TESTDIRS) docs $(EXAMPLES)
+$(LIBSRCP) $(LIBHDF4) $(LIBPIO) $(OCLIB) $(DAP2) ${DAP4} liblib		\
+$(NCGEN3) $(NCGEN) $(NCDUMP) $(TESTDIRS) docs $(EXAMPLES)
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings	\

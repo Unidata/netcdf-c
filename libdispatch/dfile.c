@@ -1996,8 +1996,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	del_from_NCList(ncp); /* oh well */
 	free_NC(ncp);
      } else {
-       if(ncidp)
-	   *ncidp = ncp->ext_ncid;
+       if(ncidp)*ncidp = ncp->ext_ncid;
      }
 
 #ifdef USE_PIO
@@ -2154,7 +2153,7 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
    /* Attempt to do file path conversion: note that this will do
       nothing if path is a 'file:...' url, so it will need to be
       repeated in protocol code: libdap2 and libdap4
-   */
+    */
 
 #ifndef USE_DISKLESS
    /* Clean up cmode */
@@ -2203,10 +2202,10 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
    /* If this path is already open, then bump the refcount and return it */
    ncp = find_in_NCList_by_name(path);
    if(ncp != NULL) {
-      nullfree(path);
-      ncp->refcount++;
-      if(ncidp) *ncidp = ncp->ext_ncid;
-      return NC_NOERR;
+	nullfree(path);
+	ncp->refcount++;
+	if(ncidp) *ncidp = ncp->ext_ncid;
+	return NC_NOERR;
    }
 #endif
 
@@ -2271,12 +2270,12 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
        */
       if(version == 2) cmode |= NC_64BIT_OFFSET;
       else if(version == 5) {
-         cmode |= NC_64BIT_DATA;
-         cmode &= ~(NC_64BIT_OFFSET); /*NC_64BIT_DATA=>NC_64BIT_OFFSET*/
+        cmode |= NC_64BIT_DATA;
+        cmode &= ~(NC_64BIT_OFFSET); /*NC_64BIT_DATA=>NC_64BIT_OFFSET*/
       }
    } else if(model == NC_FORMATX_PNETCDF) {
-      cmode &= ~(NC_NETCDF4|NC_64BIT_OFFSET);
-      cmode |= NC_64BIT_DATA;
+     cmode &= ~(NC_NETCDF4|NC_64BIT_OFFSET);
+     cmode |= NC_64BIT_DATA;
    }
    
    /* override any other table choice */
@@ -2303,8 +2302,12 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 #endif
 #if defined(USE_NETCDF4)
       case NC_FORMATX_NC4:
-      case NC_FORMATX_NC_HDF4:
          dispatcher = NC4_dispatch_table;
+         break;
+#endif
+#if defined(USE_HDF4)
+      case NC_FORMATX_NC_HDF4:
+         dispatcher = HDF4_dispatch_table;
          break;
 #endif
       case NC_FORMATX_NC3:
@@ -2315,12 +2318,12 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
          return NC_ENOTNC;
       }
    }
-   
+
 havetable:
 
    if(dispatcher == NULL) {
-      nullfree(path);              
-      return NC_ENOTNC;
+       nullfree(path);              
+       return NC_ENOTNC;
    }
 
    /* Create the NC* instance and insert its dispatcher */

@@ -27,7 +27,7 @@
  * @author Ed Hartnett
  */
 int
-NC4_set_base_pe(int ncid, int pe)
+HDF4_set_base_pe(int ncid, int pe)
 {
    return NC_ENOTNC3;
 }
@@ -43,7 +43,7 @@ NC4_set_base_pe(int ncid, int pe)
  * @author Ed Hartnett
  */
 int
-NC4_inq_base_pe(int ncid, int *pe)
+HDF4_inq_base_pe(int ncid, int *pe)
 {
    return NC_ENOTNC3;
 }
@@ -60,7 +60,7 @@ NC4_inq_base_pe(int ncid, int *pe)
  * @author Ed Hartnett
  */
 int
-NC4_inq_format(int ncid, int *formatp)
+HDF4_inq_format(int ncid, int *formatp)
 {
    NC *nc;
    NC_HDF5_FILE_INFO_T* nc4_info;
@@ -71,15 +71,11 @@ NC4_inq_format(int ncid, int *formatp)
       return NC_NOERR;
 
    /* Find the file metadata. */
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
+   if (!(nc = nc4_find_nc_file(ncid, &nc4_info)))
       return NC_EBADID;
 
-   /* Otherwise, this is a netcdf-4 file. Check if classic NC3 rules
-    * are in effect for this file. */
-   if (nc4_info->cmode & NC_CLASSIC_MODEL)
-      *formatp = NC_FORMAT_NETCDF4_CLASSIC;
-   else
-      *formatp = NC_FORMAT_NETCDF4;
+   /* HDF4 is the format. */
+   *formatp = NC_FORMATX_NC_HDF4;
 
    return NC_NOERR;
 }
@@ -99,10 +95,10 @@ NC4_inq_format(int ncid, int *formatp)
 
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
- * @author Dennis Heimbigner
+ * @author Ed Hartnett
  */
 int
-NC4_inq_format_extended(int ncid, int *formatp, int *modep)
+HDF4_inq_format_extended(int ncid, int *formatp, int *modep)
 {
    NC *nc;
    NC_HDF5_FILE_INFO_T* h5;
@@ -117,7 +113,7 @@ NC4_inq_format_extended(int ncid, int *formatp, int *modep)
       *modep = (nc->mode|NC_NETCDF4);
 
    if (formatp) 
-      *formatp = NC_FORMATX_NC_HDF5;
-
+      *formatp = NC_FORMATX_NC_HDF4;
+   
    return NC_NOERR;
 }
