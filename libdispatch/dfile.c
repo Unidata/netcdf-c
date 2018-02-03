@@ -2082,8 +2082,13 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
    else
 #endif
 #if defined(USE_NETCDF4)
-   if(model == (NC_FORMATX_NC4) || model == (NC_FORMATX_NC_HDF4))
+   if(model == NC_FORMATX_NC4)
 	dispatcher = NC4_dispatch_table;
+   else
+#endif
+#if defined(USE_HDF4)
+   if(model == NC_FORMATX_NC_HDF4)
+	dispatcher = HDF4_dispatch_table;
    else
 #endif
    if(model == (NC_FORMATX_NC3))
