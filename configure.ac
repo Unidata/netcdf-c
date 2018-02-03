@@ -1372,7 +1372,7 @@ AC_SUBST(HAS_DISKLESS,[$enable_diskless])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
 AC_SUBST(RELAX_COORD_BOUND,[$enable_relax_coord_bound])
-AC_SUBST(ENABLE_ERANGE_FILL,[$enable_erange_fill])
+AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
