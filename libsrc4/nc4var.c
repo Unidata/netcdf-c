@@ -524,7 +524,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    if ((retval = nc4_check_dup_name(grp, norm_name)))
       BAIL(retval);
 
-   /* If there for non-scalar vars, dim IDs must be provided. */
+   /* For non-scalar vars, dim IDs must be provided. */
    if (ndims && !dimidsp)
       BAIL(NC_EINVAL);      
 
@@ -727,7 +727,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
     * remember whether dimension scales have been attached to each
     * dimension. */
    if (!var->dimscale && ndims)
-      if (ndims && !(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
+      if (!(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
          BAIL(NC_ENOMEM);
 
    /* Return the varid. */
@@ -1659,11 +1659,12 @@ NC4_rename_var(int ncid, int varid, const char *name)
           */
          if ((retval = nc4_find_dim(grp, var->dimids[0], &dim, &dim_grp)))
             return retval;
-         if (strcmp(dim->name, name) == 0 && dim_grp == grp)
+         if (!strcmp(dim->name, name) && dim_grp == grp)
          {
             /* Reform the coordinate variable */
             if ((retval = nc4_reform_coord_var(grp, var, dim)))
                return retval;
+            var->became_coord_var = NC_TRUE;
          }
       }
    }
