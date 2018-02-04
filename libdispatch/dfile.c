@@ -74,6 +74,38 @@ extern int current_iosysid;
 NC_Dispatch* UF0_dispatch_table = NULL;
 NC_Dispatch* UF1_dispatch_table = NULL;
 
+/**
+ * Add handling of user-defined format.
+ *
+ * @param mode_flag NC_UF0 or NC_UF1
+ * @param dispatch_table Pointer to dispatch table to use for this user format.
+ * @param magic_numer Magic number used to identify file. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+ */
+int
+nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number)
+{
+   if (mode_flag != NC_UF0 && mode_flag != NC_UF1)
+      return NC_EINVAL;
+   if (!dispatch_table)
+      return NC_EINVAL;
+
+   switch(mode_flag)
+   {
+   case NC_UF0:
+      UF0_dispatch_table = dispatch_table;
+      break;
+   case NC_UF1:
+      UF1_dispatch_table = dispatch_table;
+      break;
+   }
+   
+   return NC_NOERR;
+}
+
 /** \defgroup datasets NetCDF File and Data I/O
 
 NetCDF opens datasets as files or remote access URLs.

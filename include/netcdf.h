@@ -510,6 +510,11 @@ nc_inq_libvers(void);
 EXTERNL const char *
 nc_strerror(int ncerr);
 
+/* Set up user-defined format. */
+typedef struct NC_Dispatch NC_Dispatch;   
+EXTERNL int
+nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number);
+   
 EXTERNL int
 nc__create(const char *path, int cmode, size_t initialsz,
          size_t *chunksizehintp, int *ncidp);
