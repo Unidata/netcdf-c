@@ -70,6 +70,10 @@ static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
 extern int current_iosysid;
 #endif /* USE_PIO */
 
+/* User-defined formats. */
+NC_Dispatch* UF0_dispatch_table = NULL;
+NC_Dispatch* UF1_dispatch_table = NULL;
+
 /** \defgroup datasets NetCDF File and Data I/O
 
 NetCDF opens datasets as files or remote access URLs.
@@ -2209,7 +2213,25 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
    }
 #endif
 
-   if(!inmemory) {
+   /* Check for use of user-defined format 0. */
+   if (cmode & NC_UF0)
+   {
+      if (!UF0_dispatch_table)
+         return NC_EINVAL;
+      model = NC_FORMATX_UF0;
+      dispatcher = UF0_dispatch_table;
+   }
+
+   /* Check for use of user-defined format 1. */
+   if (cmode & NC_UF1)
+   {
+      if (!UF1_dispatch_table)
+         return NC_EINVAL;
+      model = NC_FORMATX_UF1;
+      dispatcher = UF1_dispatch_table;
+   }
+
+   if (!model && !inmemory) {
       char* newpath = NULL;
       model = NC_urlmodel(path,cmode,&newpath);
       isurl = (model != 0);
@@ -2278,9 +2300,6 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
      cmode |= NC_64BIT_DATA;
    }
    
-   /* override any other table choice */
-   if(dispatcher != NULL) goto havetable;
-
    /* Figure out what dispatcher to use, if needed. (PIO may already
     * have set it.) */
    if (!dispatcher) {
@@ -2319,9 +2338,8 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
       }
    }
 
-havetable:
-
-   if(dispatcher == NULL) {
+   /* If we can't figure out what dispatch table to use, give up. */
+   if (!dispatcher) {
        nullfree(path);              
        return NC_ENOTNC;
    }
@@ -2359,17 +2377,9 @@ havetable:
    }
 #endif /* USE_PIO */
 
-   if(stat == NC_NOERR) {
-
-#ifdef USE_PIO
-      /* PIO adds to the file list after the create to check for
-       * collisions in ncid. */
-      /* if (use_pio) { */
-      /*    add_to_NCList(ncp); */
-      /* } */
-#endif
-      if(ncidp) *ncidp = ncp->ext_ncid;
-     
+   if (stat == NC_NOERR) {
+      if (ncidp)
+         *ncidp = ncp->ext_ncid;
    } else {
       del_from_NCList(ncp);
       free_NC(ncp);
@@ -2377,6 +2387,7 @@ havetable:
       return pio_err(ios, NULL, stat, __FILE__, __LINE__);
 #endif /* USE_PIO */
    }
+   
    return stat;
 }
 
