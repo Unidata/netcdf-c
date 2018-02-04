@@ -1,9 +1,10 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005-2013, see the COPYRIGHT file for more information.
+# Copyright 2005-2018, see the COPYRIGHT file for more information.
 
 # This is the main automake file for netCDF. It builds the different
 # netcdf directories. Not all directories are built, depending on the
 # options selected during configure.
+
 # Ed Hartnett, Ward Fisher
 
 # This directory stores libtool macros, put there by aclocal.
@@ -17,13 +18,8 @@ RELEASE_NOTES.md CTestCustom.cmake CTestConfig.cmake.in			\
 libnetcdf.settings.in netCDFConfig.cmake.in CMakeInstallation.cmake	\
 test-driver-verbose test_common.in
 
-pkgconfigdir=$(libdir)/pkgconfig
+pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc
-
-# We need a way to automatically generate INSTALL from
-# docs/install.doc, now that we've switched from texinfo to doxygen.
-# INSTALL:
-#	non-existent-doxygen-to-text-utility <  docs/install.doc > INSTALL
 
 # Does the user want to build the V2 API?
 if BUILD_V2
@@ -66,17 +62,29 @@ if USE_PNETCDF
 LIBSRCP = libsrcp
 endif
 
+# Build HDF4 if desired.
+if USE_HDF4
+LIBHDF4 = libhdf4
+endif
+
+# Is the user building PIO?
+if USE_PIO
+PIO_TEST_DIR = pio_test
+LIBPIO = libpio
+endif
+
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
+TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAP2TESTDIR)  \
+$(NCDAP4TESTDIR) $(PIO_TEST_DIR)
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
 SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc $(LIBSRC4_DIR)	\
-$(LIBSRCP) $(OCLIB) $(DAP2) ${DAP4} liblib $(NCGEN3) $(NCGEN)		\
-$(NCDUMP) $(TESTDIRS) docs $(EXAMPLES)
+$(LIBSRCP) $(LIBHDF4) $(LIBPIO) $(OCLIB) $(DAP2) ${DAP4} liblib		\
+$(NCGEN3) $(NCGEN) $(NCDUMP) $(TESTDIRS) docs $(EXAMPLES)
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings	\
@@ -84,21 +92,6 @@ test_common.sh
 
 # The nc-config script helps the user build programs with netCDF.
 bin_SCRIPTS = nc-config
-
-# What needs to go in the binrary dist?
-BINFILES = README_BINARIES.txt
-BINFILES += include/netcdf.h share/man/man3/netcdf.3 lib/libnetcdf.a
-BINFILES += libnetcdf.settings
-ZIPBINFILES = ${prefix}/include/netcdf.h			\
-${prefix}/share/man/man3/netcdf.3 ${prefix}/lib/libnetcdf.a
-
-if BUILD_UTILITIES
-BINFILES += bin/ncgen3$(EXEEXT) bin/ncgen$(EXEEXT) bin/ncdump$(EXEEXT)	\
-share/man/man1/ncgen.1 share/man/man1/ncdump.1
-ZIPBINFILES += ${prefix}/bin/ncgen3$(EXEEXT)				\
-${prefix}/bin/ncgen$(EXEEXT) ${prefix}/bin/ncdump$(EXEEXT)		\
-${prefix}/share/man/man1/ncgen.1 ${prefix}/share/man/man1/ncdump.1
-endif
 
 # install libnetcdf.settings in lib directory.
 settingsdir = $(libdir)

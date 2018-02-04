@@ -265,11 +265,7 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
    else
       dprod = (double)type_len;
    for (d = 0; d < var->ndims; d++)
-   {
-      if (chunksizes[d] < 1)
-         return NC_EINVAL;
-      dprod *= (double) chunksizes[d];
-   }
+      dprod *= (double)chunksizes[d];
 
    if (dprod > (double) NC_MAX_UINT)
       return NC_EBADCHUNK;
@@ -410,7 +406,8 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @returns ::NC_ENOMEM Out of memory.
  * @author Dennis Heimbigner
  */
-int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+int
+nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    NC_VAR_INFO_T **vp = NULL;
 
@@ -431,11 +428,10 @@ int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
       grp->vars.nalloc += NC_ARRAY_GROWBY;
    }
 
-   if(var != NULL) {
-      assert(var->varid == grp->vars.nelems);
-      grp->vars.value[grp->vars.nelems] = var;
-      grp->vars.nelems++;
-   }
+   assert(var->varid == grp->vars.nelems);
+   grp->vars.value[grp->vars.nelems] = var;
+   grp->vars.nelems++;
+
    return NC_NOERR;
 }
 
@@ -524,7 +520,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    if ((retval = nc4_check_dup_name(grp, norm_name)))
       BAIL(retval);
 
-   /* If there for non-scalar vars, dim IDs must be provided. */
+   /* For non-scalar vars, dim IDs must be provided. */
    if (ndims && !dimidsp)
       BAIL(NC_EINVAL);      
 
@@ -727,7 +723,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
     * remember whether dimension scales have been attached to each
     * dimension. */
    if (!var->dimscale && ndims)
-      if (ndims && !(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
+      if (!(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
          BAIL(NC_ENOMEM);
 
    /* Return the varid. */
@@ -885,19 +881,18 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       {
          if (var->type_info->nc_type_class == NC_STRING)
          {
-            if (*(char **)var->fill_value) {
+            assert(*(char **)var->fill_value);
+            if (!(*(char **)fill_valuep = calloc(1, sizeof(char *))))
+               return NC_ENOMEM;
 
-               if (!(fill_valuep = calloc(1, sizeof(char *))))
-                  return NC_ENOMEM;
-
-               if (!(*(char **)fill_valuep = strdup(*(char **)var->fill_value)))
-               {
-                  free(fill_valuep);
-                  return NC_ENOMEM;
-               }
+            if (!(*(char **)fill_valuep = strdup(*(char **)var->fill_value)))
+            {
+               free(*(char **)fill_valuep);
+               return NC_ENOMEM;
             }
          }
-         else {
+         else
+         {
             assert(var->type_info->size);
             memcpy(fill_valuep, var->fill_value, var->type_info->size);
          }
@@ -906,15 +901,13 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       {
          if (var->type_info->nc_type_class == NC_STRING)
          {
-            if (!(fill_valuep = calloc(1, sizeof(char *))))
+            if (!(*(char **)fill_valuep = calloc(1, sizeof(char *))))
                return NC_ENOMEM;
 
             if ((retval = nc4_get_default_fill_value(var->type_info, (char **)fill_valuep)))
             {
-               free(fill_valuep);
+               free(*(char **)fill_valuep);
                return retval;
-            } else {
-               free(fill_valuep);
             }
          }
          else
@@ -1013,7 +1006,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       return NC_EINVAL;
 
    /* Valid deflate level? */
-   if (deflate && deflate_level)
+   if (deflate)
    {
       if (*deflate)
          if (*deflate_level < NC_MIN_DEFLATE_LEVEL ||
@@ -1104,7 +1097,16 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    if (no_fill)
    {
       if (*no_fill)
+      {
+         /* NC_STRING types may not turn off fill mode. It's disallowed
+          * by HDF5 and will cause a HDF5 error later. */
+         if (*no_fill)
+            if (var->type_info->nc_typeid == NC_STRING)
+               return NC_EINVAL;
+
+         /* Set the no-fill mode. */
          var->no_fill = NC_TRUE;
+      }
       else
          var->no_fill = NC_FALSE;
    }
@@ -1309,11 +1311,6 @@ nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
    assert(nc);
-
-#ifdef USE_HDF4
-   if(h5->hdf4)
-      return NC_NOERR;
-#endif
 
    /* Find var cause I need the number of dims. */
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
@@ -1659,11 +1656,12 @@ NC4_rename_var(int ncid, int varid, const char *name)
           */
          if ((retval = nc4_find_dim(grp, var->dimids[0], &dim, &dim_grp)))
             return retval;
-         if (strcmp(dim->name, name) == 0 && dim_grp == grp)
+         if (!strcmp(dim->name, name) && dim_grp == grp)
          {
             /* Reform the coordinate variable */
             if ((retval = nc4_reform_coord_var(grp, var, dim)))
                return retval;
+            var->became_coord_var = NC_TRUE;
          }
       }
    }
@@ -1731,50 +1729,6 @@ NC4_var_par_access(int ncid, int varid, int par_access)
 #endif /* USE_PARALLEL4 */
 }
 
-#ifdef USE_HDF4
-/**
- * @internal Get data from an HDF4 SD dataset.
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param startp Array of start indicies.
- * @param countp Array of counts.
- * @param mem_nc_type The type of these data after it is read into memory.
- * @param is_long Ignored for HDF4.
- * @param data pointer that gets the data.
- * @returns ::NC_NOERR for success
- * @author Ed Hartnett
- */
-static int
-nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp,
-                  const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
-{
-   NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
-   NC_VAR_INFO_T *var;
-   int32 start32[NC_MAX_VAR_DIMS], edge32[NC_MAX_VAR_DIMS];
-   int retval, d;
-
-   /* Find our metadata for this file, group, and var. */
-   assert(nc);
-   if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
-      return retval;
-   h5 = NC4_DATA(nc);
-   assert(grp && h5 && var && var->name);
-
-   for (d = 0; d < var->ndims; d++)
-   {
-      start32[d] = startp[d];
-      edge32[d] = countp[d];
-   }
-
-   if (SDreaddata(var->sdsid, start32, NULL, edge32, data))
-      return NC_EHDFERR;
-
-   return NC_NOERR;
-}
-#endif /* USE_HDF4 */
-
 /**
  * @internal Write an array of data to a variable. This is called by
  * nc_put_vara() and other nc_put_vara_* functions, for netCDF-4
@@ -1805,7 +1759,7 @@ NC4_put_vara(int ncid, int varid, const size_t *startp,
 /**
  * Read an array of values. This is called by nc_get_vara() for
  * netCDF-4 files, as well as all the other nc_get_vara_*
- * functions. HDF4 files are handled as a special case.
+ * functions.
  *
  * @param ncid File ID.
  * @param varid Variable ID.
@@ -1830,14 +1784,7 @@ NC4_get_vara(int ncid, int varid, const size_t *startp,
    if (!(nc = nc4_find_nc_file(ncid, &h5)))
       return NC_EBADID;
 
-#ifdef USE_HDF4
-   /* Handle HDF4 cases. */
-   if (h5->hdf4)
-      return nc4_get_hdf4_vara(nc, ncid, varid, startp, countp, memtype,
-                               0, (void *)ip);
-#endif /* USE_HDF4 */
-
-   /* Handle HDF5 cases. */
+   /* Get the data. */
    return nc4_get_vara(nc, ncid, varid, startp, countp, memtype,
                        0, (void *)ip);
 }

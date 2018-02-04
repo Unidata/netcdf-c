@@ -21,9 +21,15 @@
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
+#include <unistd.h> /* lseek() */
+
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
 #include "ncwinpath.h"
+#ifdef USE_PIO
+#include <pio.h>
+#include <pio_internal.h>
+#endif /* USE_PIO */
 
 /* If Defined, then use only stdio for all magic number io;
    otherwise use stdio or mpio as required.
@@ -58,6 +64,11 @@ extern int NC_initialized; /**< True when dispatch table is initialized. */
 /** @internal Magic number for HDF5 files. To be consistent with
  * H5Fis_hdf5, use the complete HDF5 magic number */
 static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
+
+#ifdef USE_PIO
+/* This is the current IO system ID for netCDF functions. */
+extern int current_iosysid;
+#endif /* USE_PIO */
 
 /** \defgroup datasets NetCDF File and Data I/O
 
@@ -1757,6 +1768,10 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    int xcmode = 0; /* for implied cmode flags */
    char* path = NULL;
 
+#ifdef USE_PIO
+   int use_pio = ((cmode & NC_PIO) == NC_PIO);
+#endif /* USE_PIO */
+
    TRACE(nc_create);
    if(path0 == NULL)
 	return NC_EINVAL;
@@ -1806,6 +1821,67 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
    /* Look to the incoming cmode for hints */
    if(model == NC_FORMATX_UNDEFINED) {
+#ifdef USE_PIO
+      /* PIO is used for parallel io. Must be checked first because
+       * mode flag can include both NC_PIO and NC_NETCDF4. */
+      if((cmode & NC_PIO) == NC_PIO) {
+         iosystem_desc_t *ios;         
+         int iotype = PIO_IOTYPE_NETCDF;
+
+         /* Set the dispatch model to PIO. */
+         model = NC_FORMATX_PIO;
+
+         /* Determine the PIO IO type from the cmode flag. */
+         if (cmode & NC_NETCDF4)
+         {
+            if (cmode & NC_SHARE)
+               iotype = PIO_IOTYPE_NETCDF4P;
+            else
+               iotype = PIO_IOTYPE_NETCDF4C;
+         }
+         else if (cmode & NC_PNETCDF)
+            iotype = PIO_IOTYPE_PNETCDF;
+
+         /* Get the IO system info from the iosysid. */
+         if (!(ios = pio_get_iosystem_from_id(current_iosysid)))
+            return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
+
+         /* For async mode, send message to IO root task to kick of file create. */
+         if (ios->async)
+         {
+            int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */
+            
+            if (!ios->ioproc)
+            {
+               int msg = PIO_MSG_NC_CREATE;
+               size_t len = strlen(path0);
+
+               /* Send the message to the message handler. */
+               if (ios->compmaster == MPI_ROOT)
+                  mpierr = MPI_Send(&msg, 1, MPI_INT, ios->ioroot, 1, ios->union_comm);
+
+               /* Send the parameters of the function call. */
+               if (!mpierr)
+                  mpierr = MPI_Bcast(&len, 1, MPI_INT, ios->compmaster, ios->intercomm);
+               if (!mpierr)
+                  mpierr = MPI_Bcast((void *)path0, len + 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+               if (!mpierr)
+                  mpierr = MPI_Bcast(&iotype, 1, MPI_INT, ios->compmaster, ios->intercomm);
+               if (!mpierr)
+                  mpierr = MPI_Bcast(&cmode, 1, MPI_INT, ios->compmaster, ios->intercomm);
+               if (!mpierr)
+                  mpierr = MPI_Bcast(&current_iosysid, 1, MPI_INT, ios->compmaster, ios->intercomm);
+            }
+
+            /* Handle MPI errors. */
+            if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
+               return check_mpi2(ios, NULL, mpierr2, __FILE__, __LINE__);
+            if (mpierr)
+               return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+         }
+      }
+      else
+#endif /* USE_PIO */
 #ifdef USE_NETCDF4
       if((cmode & NC_NETCDF4) == NC_NETCDF4)
 	model = NC_FORMATX_NC4;
@@ -1879,6 +1955,11 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	dispatcher = NCP_dispatch_table;
       else
 #endif
+#ifdef USE_PIO
+      if(model == (NC_FORMATX_PIO))
+	dispatcher = PIO_dispatch_table;
+      else
+#endif
       if(model == (NC_FORMATX_NC3))
  	dispatcher = NC3_dispatch_table;
       else
@@ -1895,7 +1976,14 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    if(stat) return stat;
 
    /* Add to list of known open files and define ext_ncid */
+#ifdef USE_PIO
+   /* PIO adds to the list after the create, because PIO needs to
+    * determine its own ext_ncid. */
+   if (!use_pio)
+      add_to_NCList(ncp);
+#else
    add_to_NCList(ncp);
+#endif /* USE_PIO */
 
 #ifdef USE_REFCOUNT
    /* bump the refcount */
@@ -1910,8 +1998,107 @@ NC_create(const char *path0, int cmode, size_t initialsz,
      } else {
        if(ncidp)*ncidp = ncp->ext_ncid;
      }
+
+#ifdef USE_PIO
+   /* PIO adds to the file list after the create to check for
+    * collisions in ncid. */
+   if (use_pio)
+   {
+      add_to_NCList(ncp);
+   }
+   
+#endif
+   
    return stat;
 }
+
+#ifdef USE_PIO
+/**
+ * @internal This handles special needs for PIO file opens. It
+ * determines the IO type, and, for async cases, sends message and
+ * paramters to IO master to start NC_open() call there.
+ *
+ * @param cmode The open mode flag.
+ * @param path0 The path of the file to be opened.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EIO Error in MPI calls.
+ * @author Ed Hartnett
+ */
+int
+handle_pio_open(iosystem_desc_t *ios, int cmode, const char *path0)
+{
+   int iotype = PIO_IOTYPE_NETCDF;
+
+   /* Determine the PIO IO type from the cmode flag. */
+   if (cmode & NC_NETCDF4)
+   {
+      if (cmode & NC_SHARE)
+         iotype = PIO_IOTYPE_NETCDF4P;
+      else
+         iotype = PIO_IOTYPE_NETCDF4C;
+   }
+   else if (cmode & NC_PNETCDF)
+      iotype = PIO_IOTYPE_PNETCDF;
+
+   /* If async is in use, and this is not an IO task, bcast the parameters. */
+   if (ios->async)
+   {
+      int msg = PIO_MSG_NC_OPEN;
+      size_t len = strlen(path0);
+      int mpierr = MPI_SUCCESS, mpierr2;  /* Return code from MPI function codes. */
+
+      if (!ios->ioproc)
+      {
+         /* Send the message to the message handler. */
+         if (ios->compmaster == MPI_ROOT)
+            mpierr = MPI_Send(&msg, 1, MPI_INT, ios->ioroot, 1, ios->union_comm);
+
+         /* Send the parameters of the function call. */
+         if (!mpierr)
+            mpierr = MPI_Bcast(&len, 1, MPI_INT, ios->compmaster, ios->intercomm);
+         if (!mpierr)
+            mpierr = MPI_Bcast((void *)path0, len + 1, MPI_CHAR, ios->compmaster, ios->intercomm);
+         if (!mpierr)
+            mpierr = MPI_Bcast(&iotype, 1, MPI_INT, ios->compmaster, ios->intercomm);
+         if (!mpierr)
+            mpierr = MPI_Bcast(&cmode, 1, MPI_INT, ios->compmaster, ios->intercomm);
+         if (!mpierr)
+            mpierr = MPI_Bcast(&current_iosysid, 1, MPI_INT, ios->compmaster, ios->intercomm);
+      }
+
+      /* Handle MPI errors. */
+      if ((mpierr2 = MPI_Bcast(&mpierr, 1, MPI_INT, ios->comproot, ios->my_comm)))
+         return check_mpi2(ios, NULL, mpierr2, __FILE__, __LINE__);
+      if (mpierr)
+         return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+   }
+   return NC_NOERR;
+}
+/**
+ * @internal Broadcast an integer to all tasks. When function is
+ * complete all tasks will have the integer value, the one that
+ * started on the IO root.
+ *
+ * @param ios Pointer to IO system info struct.
+ * @param model Pointer to the int value to be broadcast.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EIO MPI function error.
+ * @author Ed Hartnett
+ */
+static int
+broadcast_some_int(iosystem_desc_t *ios, int *some_int)
+{
+   int mpierr; /* Return code from MPI call. */
+
+   /* Broadcast the some_int. */
+   if ((mpierr = MPI_Bcast(some_int, 1, MPI_INT, ios->ioroot, ios->my_comm)))
+      return check_mpi2(ios, NULL, mpierr, __FILE__, __LINE__);
+   
+   return NC_NOERR;
+}
+#endif /* USE_PIO */
 
 /**
  * @internal Open a netCDF file (or remote dataset) calling the
@@ -1951,6 +2138,11 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
    int version = 0;
    int flags = 0;
    char* path = NULL;
+   int use_pio = 0;       /* Assume no PIO. */
+   int ioproc = 1;        /* Assume all tasks participate in IO. */
+#ifdef USE_PIO
+   iosystem_desc_t *ios;  /* For PIO, a pointer to IO system info. */
+#endif /* USE_PIO */
 
    TRACE(nc_open);
    if(!NC_initialized) {
@@ -1971,6 +2163,34 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
    inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
 
+   /* Invalid to use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
+    * mind! */
+   if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX))
+      return NC_EINVAL;
+
+#ifdef USE_PIO
+   use_pio = ((cmode & NC_PIO) == NC_PIO);
+
+   /* Handle special needs of PIO opens. */
+   if (use_pio) {
+      /* Set the dispatcher to PIO. */
+      dispatcher = PIO_dispatch_table;
+
+      /* Get the IO system info from the iosysid. */
+      if (!(ios = pio_get_iosystem_from_id(current_iosysid)))
+         return pio_err(NULL, NULL, PIO_EBADID, __FILE__, __LINE__);
+
+      /* Does this task participate in IO? */
+      ioproc = ios->ioproc;
+
+      /* Determine IO type and (for async) send message and params to
+       * IO master to call NC_open(). */
+      if ((stat = handle_pio_open(ios, cmode, path0))) {
+         nullfree(path);
+         return stat;
+      }
+   }
+#endif /* USE_PIO */
 
 #ifdef WINPATH
    path = NCpathcvt(path0);
@@ -1990,38 +2210,41 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 #endif
 
    if(!inmemory) {
-	char* newpath = NULL;
-        model = NC_urlmodel(path,cmode,&newpath);
-        isurl = (model != 0);
-	if(isurl) {
-	    nullfree(path);
-	    path = newpath;
-	} else
-	    nullfree(newpath);
-    }
-    if(model == 0) {
-	version = 0;
-	/* Try to find dataset type */
-	if(useparallel) flags |= NC_MPIIO;
-	if(inmemory) flags |= NC_INMEMORY;
-	if(diskless) flags |= NC_DISKLESS;
-	stat = NC_check_file_type(path,flags,parameters,&model,&version);
-        if(stat == NC_NOERR) {
-	    if(model == 0) {
-		nullfree(path);       		
-		return NC_ENOTNC;
-	    }
-	} else {
-	    /* presumably not a netcdf file */
-	    nullfree(path);       			    
-	    return stat;
-	}
-    }
+      char* newpath = NULL;
+      model = NC_urlmodel(path,cmode,&newpath);
+      isurl = (model != 0);
+      if(isurl) {
+         nullfree(path);
+         path = newpath;
+      } else
+         nullfree(newpath);
+   }
 
    if(model == 0) {
-	fprintf(stderr,"Model == 0\n");
-	return NC_ENOTNC;
+      version = 0;
+      /* Try to find dataset type */
+      if(useparallel) flags |= NC_MPIIO;
+      if(inmemory) flags |= NC_INMEMORY;
+      if(diskless) flags |= NC_DISKLESS;
+      if (ioproc) {
+         if ((stat = NC_check_file_type(path,flags,parameters,&model,&version))) {
+            /* presumably not a netcdf file */
+            nullfree(path);       			    
+            return stat;
+         }
+      }
    }
+
+#ifdef USE_PIO
+   /* If PIO is in use, send the model and version from the IO tasks
+    * to all tasks. */
+   if (use_pio) {
+      if ((stat = broadcast_some_int(ios, &model)))
+         return pio_err(ios, NULL, stat, __FILE__, __LINE__);         
+      if ((stat = broadcast_some_int(ios, &version)))
+         return pio_err(ios, NULL, stat, __FILE__, __LINE__);         
+   }
+#endif /* USE_PIO */
 
    /* Force flag consistentcy */
    if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4)
@@ -2054,43 +2277,46 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
      cmode &= ~(NC_NETCDF4|NC_64BIT_OFFSET);
      cmode |= NC_64BIT_DATA;
    }
-
-   /* Invalid to use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
-    * mind! */
-   if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX)) {
-       nullfree(path);       
-       return NC_EINVAL;
-   }
-
+   
    /* override any other table choice */
    if(dispatcher != NULL) goto havetable;
 
-   /* Figure out what dispatcher to use */
+   /* Figure out what dispatcher to use, if needed. (PIO may already
+    * have set it.) */
+   if (!dispatcher) {
+      switch (model) {
 #if defined(ENABLE_DAP)
-   if(model == (NC_FORMATX_DAP2))
-	dispatcher = NCD2_dispatch_table;
-   else
+      case NC_FORMATX_DAP2:
+         dispatcher = NCD2_dispatch_table;
+         break;
 #endif
 #if defined(ENABLE_DAP4)
-   if(model == (NC_FORMATX_DAP4))
-	dispatcher = NCD4_dispatch_table;
-   else
+      case NC_FORMATX_DAP4:
+         dispatcher = NCD4_dispatch_table;
+         break;
 #endif
 #if  defined(USE_PNETCDF)
-   if(model == (NC_FORMATX_PNETCDF))
-	dispatcher = NCP_dispatch_table;
-   else
+      case NC_FORMATX_PNETCDF:
+         dispatcher = NCP_dispatch_table;
+         break;
 #endif
 #if defined(USE_NETCDF4)
-   if(model == (NC_FORMATX_NC4) || model == (NC_FORMATX_NC_HDF4))
-	dispatcher = NC4_dispatch_table;
-   else
+      case NC_FORMATX_NC4:
+         dispatcher = NC4_dispatch_table;
+         break;
 #endif
-   if(model == (NC_FORMATX_NC3))
-	dispatcher = NC3_dispatch_table;
-   else {
-       nullfree(path);              
-       return  NC_ENOTNC;
+#if defined(USE_HDF4)
+      case NC_FORMATX_NC_HDF4:
+         dispatcher = HDF4_dispatch_table;
+         break;
+#endif
+      case NC_FORMATX_NC3:
+         dispatcher = NC3_dispatch_table;
+         break;
+      default:
+         nullfree(path);              
+         return NC_ENOTNC;
+      }
    }
 
 havetable:
@@ -2105,8 +2331,15 @@ havetable:
    nullfree(path); path = NULL; /* no longer need path */
    if(stat) return stat;
 
+#ifdef USE_PIO
+   /* PIO adds to the list in PIOc_openfile_retry3(), because PIO
+    * needs to determine its own ext_ncid. */
+   if (!use_pio)
+      add_to_NCList(ncp);
+#else
    /* Add to list of known open files */
    add_to_NCList(ncp);
+#endif /* USE_PIO */
 
 #ifdef USE_REFCOUNT
    /* bump the refcount */
@@ -2115,12 +2348,34 @@ havetable:
 
    /* Assume open will fill in remaining ncp fields */
    stat = dispatcher->open(ncp->path, cmode, basepe, chunksizehintp,
-			   useparallel, parameters, dispatcher, ncp);
+                           useparallel, parameters, dispatcher, ncp);
+
+#ifdef USE_PIO
+   /* If PIO is in use, send the return code from the IO master to all tasks. */
+   if (use_pio) {
+      int ret;
+      if ((ret = broadcast_some_int(ios, &stat)))
+         return pio_err(ios, NULL, ret, __FILE__, __LINE__);         
+   }
+#endif /* USE_PIO */
+
    if(stat == NC_NOERR) {
-     if(ncidp) *ncidp = ncp->ext_ncid;
+
+#ifdef USE_PIO
+      /* PIO adds to the file list after the create to check for
+       * collisions in ncid. */
+      /* if (use_pio) { */
+      /*    add_to_NCList(ncp); */
+      /* } */
+#endif
+      if(ncidp) *ncidp = ncp->ext_ncid;
+     
    } else {
-	del_from_NCList(ncp);
-	free_NC(ncp);
+      del_from_NCList(ncp);
+      free_NC(ncp);
+#ifdef USE_PIO
+      return pio_err(ios, NULL, stat, __FILE__, __LINE__);
+#endif /* USE_PIO */
    }
    return stat;
 }
@@ -2175,7 +2430,6 @@ openmagic(struct MagicFile* file)
     }
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	MPI_Offset size;
 	MPI_Comm comm = MPI_COMM_WORLD;
@@ -2206,17 +2460,17 @@ openmagic(struct MagicFile* file)
 	    {status = errno; goto done;}
 	/* Get its length */
 	{
-#ifdef _MSC_VER
 	int fd = fileno(file->fp);
+#ifdef _MSC_VER
 	__int64 len64 = _filelengthi64(fd);
 	if(len64 < 0)
             {status = errno; goto done;}
 	file->filelen = (long long)len64;
 #else
-	long size;
-	if((status = fseek(file->fp, 0L, SEEK_END)) < 0)
+	off_t size;
+	size = lseek(fd, 0, SEEK_END);
+	if(size == -1)
 	    {status = errno; goto done;}
-	size = ftell(file->fp);
 	file->filelen = (long long)size;
 #endif
 	rewind(file->fp);
@@ -2249,12 +2503,8 @@ readmagic(struct MagicFile* file, long pos, char* magic)
     if (file->use_parallel) {
 	MPI_Status mstatus;
 	int retval;
-	MPI_Offset offset;
-	offset = pos;
-	if((retval = MPI_File_seek(file->fh, offset, MPI_SEEK_SET)) != MPI_SUCCESS)
-	    {status = NC_EPARINIT; goto done;}	
-	if((retval = MPI_File_read(file->fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,
-				 &mstatus)) != MPI_SUCCESS)
+	if((retval = MPI_File_read_at_all(file->fh, pos, magic,
+                     MAGIC_NUMBER_LEN, MPI_CHAR, &mstatus)) != MPI_SUCCESS)
 	    {status = NC_EPARINIT; goto done;}
 	goto done;
     }
@@ -2293,7 +2543,6 @@ closemagic(struct MagicFile* file)
     if(file->inmemory) goto done; /* noop*/
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
 		{status = NC_EPARINIT; goto done;}

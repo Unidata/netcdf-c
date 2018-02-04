@@ -12,15 +12,14 @@ AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include -I$(top_srcdir)/libsrc
 
-
 # Note which tests depend on other tests. necessary for make -j check
 TEST_EXTENSIONS = .sh
 
 # These are the tests which are always run.
-TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names       \
-tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type      \
-tst_utf8_validate tst_utf8_phrases tst_global_fillval                   \
-tst_max_var_dims tst_formats tst_def_var_fill
+TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
+tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type	\
+tst_utf8_validate tst_utf8_phrases tst_global_fillval			\
+tst_max_var_dims tst_formats tst_err_enddef tst_def_var_fill
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts tst_put_vars tst_elatefill
@@ -46,7 +45,7 @@ test_write.c util.c error.h tests.h
 # If the user asked for large file tests, then add them.
 if LARGE_FILE_TESTS
 TESTPROGRAMS += quick_large_files tst_big_var6 tst_big_var2	\
-tst_big_rvar tst_big_var tst_large large_files tst_large_cdf5
+tst_big_rvar tst_big_var tst_large large_files
 endif # LARGE_FILE_TESTS
 
 if BUILD_BENCHMARKS
@@ -109,7 +108,20 @@ tst_diskless2.nc tst_diskless3.nc tst_diskless3_file.cdl                \
 tst_diskless3_memory.cdl tst_diskless4.cdl tst_diskless4.nc             \
 tst_formatx.nc nc_test_cdf5.nc unlim.nc tst_inq_type.nc                 \
 tst_elatefill.nc tst_global_fillval.nc tst_large_cdf5.nc                \
-tst_max_var_dims.nc benchmark.nc tst_def_var_fill.nc
+tst_max_var_dims.nc benchmark.nc 
+
+EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
+if ENABLE_CDF5
+   # bad_cdf5_begin.nc is a corrupted CDF-5 file with bad variable starting
+   # file offsets. It is to be used by tst_open_cdf5.c to check if it can
+   # detect and report error code NC_ENOTNC.
+   TESTS          += run_cdf5.sh
+   check_PROGRAMS += tst_open_cdf5
+if LARGE_FILE_TESTS
+   TESTPROGRAMS   += tst_large_cdf5 tst_cdf5_begin
+   CLEANFILES     += tst_large_cdf5.nc tst_cdf5_begin.nc
+endif
+endif
 
 # Only clean these on maintainer-clean, because they require m4 to
 # regenerate.
