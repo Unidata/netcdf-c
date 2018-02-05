@@ -660,17 +660,6 @@ if test $haveresponsecode = yes; then
   AC_DEFINE([HAVE_CURLINFO_RESPONSE_CODE],[1],[Is CURLINFO_RESPONSE_CODE defined])
 fi
 
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[#include "curl/curl.h"],
-[[int x = CURLOPT_CHUNK_BGN_FUNCTION;]])],
-                   [havebgnfunction=yes],
-                   [havebgnfunction=no])
-AC_MSG_CHECKING([whether CURLOPT_CHUNK_BGN_FUNCTION is defined])
-AC_MSG_RESULT([${havebgnfunction}])
-if test $havebgnfunction = yes; then
-  AC_DEFINE([HAVE_CURLOPT_CHUNK_BGN_FUNCTION],[1],[Is CURLOPT_CHUNK_BGN_FUNCTION defined])
-fi
-
 CFLAGS="$SAVECFLAGS"
 
 # Set up libtool.
@@ -741,18 +730,11 @@ echo "CPPFLAGS=$CPPFLAGS CC=$CC CFLAGS=$CFLAGS LDFLAGS=$LDFLAGS LIBS=$LIBS" >> c
 
 AC_MSG_NOTICE([checking types, headers, and functions])
 
-AC_CHECK_HEADER(stdlib.h, ,AC_DEFINE([NO_STDLIB_H], [], [no stdlib.h]))
-AC_CHECK_HEADER(sys/types.h, ,AC_DEFINE([NO_SYS_TYPES_H], [], [no sys_types.h]))
-AC_CHECK_HEADERS([sys/dir.h])
 AC_CHECK_HEADERS([sys/param.h])
 AC_CHECK_HEADERS([libgen.h])
 #AC_CHECK_HEADERS([locale.h])
-AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_HEADER_SYS_WAIT
-AC_HEADER_TIME
-AC_CHECK_HEADERS([locale.h stdio.h stdarg.h errno.h ctype.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h])
-AC_FUNC_VPRINTF
+AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h])
 
 # Do sys/resource.h separately
 #AC_CHECK_HEADERS([sys/resource.h],[havesysresource=1],[havesysresource=0])
@@ -760,18 +742,13 @@ AC_FUNC_VPRINTF
 AC_CHECK_HEADERS([sys/resource.h])
 #fi
 
-AC_CHECK_HEADERS([sys/cdefs.h])
-
-# Check for <stdbool.h> that conforms to C99 requirements
-AC_HEADER_STDBOOL
-
 # See if we have ftw.h to walk directory trees
 AC_CHECK_HEADERS([ftw.h])
 
 # Check for these functions...
-AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
-                strdup strcasecmp strtod strtoll strtoull strstr \
-		mkstemp mktemp rand random memcmp \
+AC_CHECK_FUNCS([strlcat snprintf \
+                strdup strtoll strtoull \
+		mkstemp mktemp random \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
 # Does the user want to use NC_DISKLESS?
@@ -810,7 +787,6 @@ test "x$enable_mmap" = xyes || enable_mmap=no
 AC_MSG_RESULT($enable_mmap)
 
 # check for mmap and mremap availability before committing to use mmap
-AC_FUNC_MMAP
 AC_CHECK_FUNCS([mremap])
 
 if test "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xyes ; then
@@ -827,11 +803,10 @@ if test "x$enable_diskless" = xyes ; then
 fi
 
 AC_FUNC_ALLOCA
-AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
+AC_CHECK_DECLS([isnan, isinf, isfinite],,,[#include <math.h>])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
-AC_CHECK_TYPES([size_t, ssize_t, ptrdiff_t, schar, uchar, longlong, ushort, uint, int64, uint64 off_t])
-AC_TYPE_SIZE_T
+AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64])
 AC_TYPE_OFF_T
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
@@ -927,8 +902,6 @@ else
    AC_CHECK_SIZEOF(unsigned int)
 fi
 $SLEEPCMD
-AC_CHECK_SIZEOF(ptrdiff_t)
-$SLEEPCDM
 AC_CHECK_SIZEOF(ssize_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF([void*])
@@ -948,16 +921,6 @@ if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
-   # The user may have built HDF5 with libdl (dynamic loading support).
-   if test "x$enable_dynamic_loading" = xyes; then
-      AC_CHECK_HEADERS([dlfcn.h], [], [nc_dlfcn_h_missing=yes])
-      if test "x$nc_dlfcn_h_missing" = xyes; then
-      	      AC_MSG_ERROR([Cannot find dlfcn.h, yet --enable-dynamic-loading was used.])
-      fi
-      AC_CHECK_LIB([dl],[dlopen], [], [AC_MSG_ERROR([Can't find or link against libdl. See config.log for errors.])])
-      AC_DEFINE([USE_LIBDL],[1], [if true, enable dynamic loading support])
-   fi
-
    # Check for the main hdf5 and hdf5_hl library.
 
    AC_SEARCH_LIBS([H5Fflush], [hdf5dll hdf5], [],
@@ -966,7 +929,7 @@ if test "x$enable_netcdf_4" = xyes; then
    [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
-   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
+   AC_CHECK_FUNCS([H5Z_SZIP])
 
    # The user may have parallel HDF5 based on MPI POSIX.
    if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
@@ -990,13 +953,6 @@ if test "x$enable_netcdf_4" = xyes; then
    fi
    AC_MSG_CHECKING([whether parallel io is enabled in hdf5])
    AC_MSG_RESULT([$hdf5_parallel])
-
-   # The user must have built HDF5 with the ZLIB library.
-   if test "x$ac_cv_func_H5Pset_deflate" = xyes; then
-      AC_DEFINE([USE_ZLIB], [1], [if true, compile in zlib compression in netCDF-4 variables])
-   else
-      AC_MSG_ERROR([HDF5 must be built with zlib for netCDF-4])
-   fi
 
    # The user may have built HDF5 with the SZLIB library.
    enable_szlib=no
