@@ -690,9 +690,8 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
    return NC_NOERR;
 }
 
-/* Given a group, find an att. */
 /**
- * @internal
+ * @internal Given a group, find an att. 
  *
  * @param grp Pointer to group info struct.
  * @param varid Variable ID.
