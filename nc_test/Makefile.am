@@ -123,6 +123,19 @@ if LARGE_FILE_TESTS
 endif
 endif
 
+EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
+if ENABLE_CDF5
+   # bad_cdf5_begin.nc is a corrupted CDF-5 file with bad variable starting
+   # file offsets. It is to be used by tst_open_cdf5.c to check if it can
+   # detect and report error code NC_ENOTNC.
+   TESTS          += run_cdf5.sh
+   check_PROGRAMS += tst_open_cdf5
+if LARGE_FILE_TESTS
+   TESTPROGRAMS   += tst_large_cdf5 tst_cdf5_begin
+   CLEANFILES     += tst_large_cdf5.nc tst_cdf5_begin.nc
+endif
+endif
+
 # Only clean these on maintainer-clean, because they require m4 to
 # regenerate.
 #MAINTAINERCLEANFILES = test_get.c test_put.c
