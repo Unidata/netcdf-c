@@ -3,7 +3,7 @@
    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 variables.
-   $Id: tst_chunks.c,v 1.3 2010/01/21 16:00:18 ed Exp $
+   Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -24,7 +24,6 @@
 int
 main(int argc, char **argv)
 {
-
    printf("\n*** Testing netcdf-4 variable chunking.\n");
    printf("**** testing that fixed vars with filter end up being chunked, with good sizes...");
    {
@@ -287,45 +286,86 @@ main(int argc, char **argv)
       if (nc_abort(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-   printf("**** testing different chunksizes on an unlimited dimension with existing data...");
+   printf("**** testing cache size smaller than chunk size...");
    {
-#define D_UNLIM "unlimited_dim"
-#define V_UNLIM_ONE "unlimited_var_one"
-#define V_UNLIM_TWO "unlimited_var_two"
-    int ncid;
-    int unlim_dimid;
-    int first_unlim_varid;
-    int second_unlim_varid;
-    size_t first_chunks[1];
-    size_t second_chunks[1];
-    size_t start[1], count[1];
-    unsigned short first_data[2] = {0, 1}, second_data[3] = {2, 3, 4};
+#define NDIM2 2
+#define DIM_X_LEN 10000
+#define DIM_Y_LEN 10000
+#define DIM_NAME_X_CACHE_CHUNK "Height"
+#define DIM_NAME_Y_CACHE_CHUNK "Width"
+#define VAR_NAME_CACHE_CHUNK "House_Size"
+#define VAR_NAME_CACHE_CHUNK_2 "Boat_Size"
+#define VAR_NAME_CACHE_CHUNK_3 "Deck_Size"
 
-    /* Create a netcdf4 file with 1 dimension. */
-    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-    if (nc_def_dim(ncid, D_UNLIM, NC_UNLIMITED, &unlim_dimid)) ERR;
+      int ncid;
+      int dimid[NDIM2];
+      int varid, varid2, varid3;
+      size_t chunks[NDIM2] = {100, 100};
+      size_t chunks_big[NDIM2] = {DIM_X_LEN, DIM_Y_LEN};
+      size_t chunks_in[NDIM2];
+      int contiguous;
+      size_t cache_size = 16;
+      size_t cache_nelems = 1;
+      float cache_preemption = 0.5;
+      size_t cache_size_in;
+      size_t cache_nelems_in;
+      float cache_preemption_in;
 
-    /* Add one var with one chunksize */
-    if (nc_def_var(ncid, V_UNLIM_ONE, NC_USHORT, NDIMS1, &unlim_dimid, &first_unlim_varid)) ERR;
-    first_chunks[0] = 2;
-    if (nc_def_var_chunking(ncid, first_unlim_varid, NC_CHUNKED, first_chunks)) ERR;
+      /* Create a netcdf-4 file with two dimensions. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM_NAME_X_CACHE_CHUNK, DIM_X_LEN, &dimid[0])) ERR;
+      if (nc_def_dim(ncid, DIM_NAME_Y_CACHE_CHUNK, DIM_Y_LEN, &dimid[1])) ERR;
 
-    /* Add a record to the first variable. */
-    start[0] = 0;
-    count[0] = 1;
-    if (nc_put_vara(ncid, first_unlim_varid, start, count, first_data)) ERR;
+      /* Add vars. */
+      if (nc_def_var(ncid, VAR_NAME_CACHE_CHUNK, NC_INT64, NDIM2, dimid, &varid)) ERR;
+      if (nc_def_var(ncid, VAR_NAME_CACHE_CHUNK_2, NC_INT64, NDIM2, dimid, &varid2)) ERR;
+      if (nc_def_var(ncid, VAR_NAME_CACHE_CHUNK_3, NC_INT64, NDIM2, dimid, &varid3)) ERR;
 
-    /* Add second var with second chunksize */
-    if (nc_def_var(ncid, V_UNLIM_TWO, NC_USHORT, NDIMS1, &unlim_dimid, &second_unlim_varid)) ERR;
-    second_chunks[0] = 3;
-    if (nc_def_var_chunking(ncid, second_unlim_varid, NC_CHUNKED, second_chunks)) ERR;
+      /* Set the var cache. */
+      if (nc_set_var_chunk_cache(ncid, varid, cache_size, cache_nelems,
+                                 cache_preemption)) ERR;
 
-    /* Add a record to the second variable. */
-    start[0] = 0;
-    count[0] = 2;
-    if (nc_put_vara(ncid, second_unlim_varid, start, count, second_data)) ERR;
+      /* Set the chunking. */
+      if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, chunks)) ERR;
+      if (nc_inq_var_chunking(ncid, varid, &contiguous, chunks_in)) ERR;
+      if (contiguous || chunks_in[0] != chunks[0] || chunks_in[1] != chunks[1]) ERR;
+      if (nc_def_var_chunking(ncid, varid2, NC_CHUNKED, chunks)) ERR;
+      if (nc_inq_var_chunking(ncid, varid2, &contiguous, chunks_in)) ERR;
+      if (contiguous || chunks_in[0] != chunks[0] || chunks_in[1] != chunks[1]) ERR;
+      if (nc_def_var_chunking(ncid, varid3, NC_CHUNKED, chunks_big)) ERR;
+      if (nc_inq_var_chunking(ncid, varid3, &contiguous, chunks_in)) ERR;
+      if (contiguous || chunks_in[0] != chunks_big[0] || chunks_in[1] != chunks_big[1]) ERR;
 
-    if (nc_close(ncid)) ERR;
+      /* Get the var cache values. */
+      if (nc_get_var_chunk_cache(ncid, varid, &cache_size_in, &cache_nelems_in,
+                                 &cache_preemption_in)) ERR;
+      if (cache_size_in != cache_size || cache_nelems_in != cache_nelems ||
+          cache_preemption_in != cache_preemption) ERR;
+      if (nc_get_var_chunk_cache(ncid, varid2, &cache_size_in, &cache_nelems_in,
+                                 &cache_preemption_in)) ERR;
+      if (cache_size_in != CHUNK_CACHE_SIZE || cache_nelems_in != CHUNK_CACHE_NELEMS ||
+          cache_preemption_in != CHUNK_CACHE_PREEMPTION) ERR;
+
+      /* The cache_size has been increased due to larger chunksizes
+       * for varid3. */
+      if (nc_get_var_chunk_cache(ncid, varid3, &cache_size_in, &cache_nelems_in,
+                                 &cache_preemption_in)) ERR;
+      if (cache_nelems_in != CHUNK_CACHE_NELEMS ||
+          cache_preemption_in != CHUNK_CACHE_PREEMPTION) ERR;
+      /* printf("cache_size_in %ld\n", cache_size_in); */
+#ifndef USE_PARALLEL
+      /* THe cache size does not change under parallel. Not sure why. */
+      if (cache_size_in <= CHUNK_CACHE_SIZE) ERR;
+#endif
+
+      /* Close the file. */
+      if (nc_close(ncid)) ERR;
+
+      /* Reopen the file. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      
+      /* Close the file. */
+      if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
