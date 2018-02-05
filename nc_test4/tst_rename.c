@@ -68,7 +68,7 @@ check_file(int ncid, char *var0_name, char *var1_name, char *dim_name)
 
    /* printf("checking for vars %s and %s, dim %s\n", var0_name, var1_name, */
    /*        dim_name); */
-   
+
    /* Check vars. Ids will change because of rename. */
    if (nc_inq_varid(ncid, var0_name, &varid)) ERR;
    if (nc_inq_varid(ncid, var1_name, &var2id)) ERR;
@@ -76,7 +76,7 @@ check_file(int ncid, char *var0_name, char *var1_name, char *dim_name)
    /* Check dim. */
    if (nc_inq_dimid(ncid, dim_name, &dimid)) ERR;
    if (dimid != 0) ERR;
-   
+
    /* Check the lats. */
    if (nc_get_var_int(ncid, varid, lats_in)) ERR;
    for (ii = 0; ii < DIM_LEN; ii++)
@@ -99,7 +99,7 @@ check_charlies_file(char *file, char *dim_name, char *var_name)
 {
    int ncid;
    int varid, dimid;
-   
+
    if (nc_open(file, 0, &ncid)) ERR;
    if (nc_inq_varid(ncid, var_name, &varid)) ERR;
    if (nc_inq_dimid(ncid, dim_name, &dimid)) ERR;
@@ -114,7 +114,7 @@ int
 check_charlies_no_enddef_file(int ncid, char *dim_name, char *var_name)
 {
    int varid, dimid;
-   
+
    if (nc_inq_varid(ncid, var_name, &varid)) ERR;
    if (nc_inq_dimid(ncid, dim_name, &dimid)) ERR;
    if (varid || dimid) ERR;
@@ -131,6 +131,7 @@ main(int argc, char **argv)
    int format;
 
    fprintf(stderr,"*** Testing netcdf rename bugs and fixes.\n");
+   /* nc_set_log_level(5); */
 
    for (format = 0; format < NUM_FORMATS; format++)
    {
@@ -170,7 +171,7 @@ main(int argc, char **argv)
          if (nc_close(ncid)) ERR;
 
          /* Reopen the file and check. */
-         if (check_charlies_file(CHARLIE_TEST_FILE, LONGITUDE, LONGITUDE)) ERR;         
+         if (check_charlies_file(CHARLIE_TEST_FILE, LONGITUDE, LONGITUDE)) ERR;
 
       }
       SUMMARIZE_ERR;
@@ -199,7 +200,7 @@ main(int argc, char **argv)
          if (nc_enddef(ncid)) ERR;
          if (nc_redef(ncid)) ERR;
          if (check_charlies_no_enddef_file(ncid, LONGITUDE, LON)) ERR;
-         
+
          /* Rename the variable. This will remove the (as yet
           * unwritten) dimscale-only dataset "longitude" and rename
           * the extisting dataset "lon" to "longitude". Variable
@@ -262,7 +263,7 @@ main(int argc, char **argv)
       {
          int ncid, varid, var2id;
          int dimid;
-         
+
          if (nc_set_default_format(formats[format], NULL)) ERR;
          if (nc_create(file_names[format], 0, &ncid)) ERR;
          if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR;
@@ -272,7 +273,7 @@ main(int argc, char **argv)
          /* Now rename the dim. */
          if (nc_rename_dim(ncid, dimid, TAL)) ERR;
          if (nc_rename_var(ncid, varid, TAL)) ERR;
-         
+
          if (nc_enddef(ncid)) ERR;    /* not necessary for netCDF-4 files */
          if (nc_put_var_int(ncid, varid, lats)) ERR;
          if (nc_put_var_float(ncid, var2id, rh)) ERR;
@@ -289,7 +290,7 @@ main(int argc, char **argv)
       {
          int ncid, varid, var2id;
          int dimid;
-         
+
          if (nc_set_default_format(formats[format], NULL)) ERR;
          if (nc_create(file_names[format], 0, &ncid)) ERR;
          if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR;
@@ -301,7 +302,7 @@ main(int argc, char **argv)
          if (nc_rename_var(ncid, varid, TAL2)) ERR;
          if (nc_rename_dim(ncid, dimid, TAL)) ERR;
          if (nc_enddef(ncid)) ERR;
-         
+
          if (nc_put_var_int(ncid, varid, lats)) ERR;
          if (nc_put_var_float(ncid, var2id, rh)) ERR;
          if (nc_close(ncid)) ERR;
@@ -316,7 +317,7 @@ main(int argc, char **argv)
       {
          int ncid, varid, var2id;
          int dimid;
-         
+
          /* This will create a HDF5 file with two datasets, RH, and
           * LAT. LAT is a dimscale. RH points to dimscale LAT. Life is
           * so simple. */
@@ -363,7 +364,7 @@ main(int argc, char **argv)
       {
          int ncid, varid, var2id;
          int dimid;
-         
+
          if (nc_set_default_format(formats[format], NULL)) ERR;
          if (nc_create(file_names[format], 0, &ncid)) ERR;
          if (nc_def_dim(ncid, LAT, DIM_LEN, &dimid)) ERR;
@@ -376,7 +377,7 @@ main(int argc, char **argv)
          if (nc_rename_dim(ncid, dimid, TAL)) ERR;
          if (nc_rename_var(ncid, varid, TAL)) ERR;
          if (nc_enddef(ncid)) ERR;    /* not necessary for netCDF-4 files */
-         
+
          if (nc_put_var_int(ncid, varid, lats)) ERR;
          if (nc_put_var_float(ncid, var2id, rh)) ERR;
          if (nc_close(ncid)) ERR;
@@ -387,7 +388,7 @@ main(int argc, char **argv)
          if (nc_close(ncid)) ERR;
       }
       SUMMARIZE_ERR;
-      
+
       printf("*** testing renaming after enddef for %s...", fmt_names[format]);
       {
          /* Create a file with datasets LAT, RH. LAT is a dimscale. RH
@@ -456,7 +457,7 @@ main(int argc, char **argv)
          if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
          if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
          if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
-         if (nc_redef(ncid)) ERR; 
+         if (nc_redef(ncid)) ERR;
          if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
          if (nc_enddef(ncid)) ERR;
          if (nc_get_var_int(ncid, varid, lats_in)) ERR;
