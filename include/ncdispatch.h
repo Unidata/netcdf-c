@@ -69,6 +69,7 @@
 #define NC_DISPATCH_NC4    2
 #define NC_DISPATCH_NCD    4
 #define NC_DISPATCH_NCP    8
+#define NC_DISPATCH_PIO    16
 #endif
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
@@ -90,7 +91,7 @@
 /* Define an alias for int to indicate an error return */
 typedef int NCerror;
 
-#if !defined HDF5_PARALLEL && !defined USE_PNETCDF
+#if !defined HDF5_PARALLEL && !defined USE_PNETCDF && !defined USE_PIO
 typedef int MPI_Comm;
 typedef int MPI_Info;
 #define MPI_COMM_WORLD 0
@@ -139,10 +140,22 @@ extern int NCP_initialize(void);
 extern int NCP_finalize(void);
 #endif
 
+#ifdef USE_PIO
+extern NC_Dispatch* PIO_dispatch_table;
+extern int PIO_initialize(void);
+extern int PIO_finalize(void);
+#endif
+
 #ifdef USE_NETCDF4
 extern NC_Dispatch* NC4_dispatch_table;
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
+#endif
+
+#ifdef USE_HDF4
+extern NC_Dispatch* HDF4_dispatch_table;
+extern int HDF4_initialize(void);
+extern int HDF4_finalize(void);
 #endif
 
 /* Vectors of ones and zeros */

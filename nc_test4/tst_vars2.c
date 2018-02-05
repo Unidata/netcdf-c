@@ -18,7 +18,7 @@
 #define DIM1_NAME "Hoplites_Engaged"
 #define VAR_NAME "Battle_of_Marathon"
 #define LOSSES_NAME "Miltiades_Losses"
-
+#define NDIMS1 1
 #define MAX_CNUM 4
 
 int
@@ -66,15 +66,22 @@ main(int argc, char **argv)
 	    return 1;
       }
 
+#define FILE_NAME2 "tst_vars2_latefill.nc"
       printf("**** testing simple fill value attribute creation...");
       {
          int status;
+         int schar_data = 0;
+         size_t index[1] = {0};
+         int dimid;
+         
          /* Create a netcdf-4 file with one scalar var. Add fill
           * value. */
-         if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
-         if (nc_def_var(ncid, VAR_NAME, NC_BYTE, 0, NULL, &varid)) ERR;
+         if (nc_create(FILE_NAME2, cmode, &ncid)) ERR;
+         if (nc_def_dim(ncid, VAR_NAME, TEST_VAL_42, &dimid)) ERR;
+         if (nc_def_var(ncid, VAR_NAME, NC_BYTE, 1, &dimid, &varid)) ERR;
          if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value)) ERR;
          if (nc_enddef(ncid)) ERR;
+         if (nc_put_var1(ncid, varid, index, &schar_data)) ERR;
          if (nc_redef(ncid)) ERR;
          status = nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value);
          if (status != NC_ELATEFILL)
@@ -82,7 +89,7 @@ main(int argc, char **argv)
          if (nc_close(ncid)) ERR;
 
          /* Open the file and check. */
-         if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+         if (nc_open(FILE_NAME2, NC_WRITE, &ncid)) ERR;
          if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
          if (nvars_in != 1 || varids_in[0] != 0) ERR;
          if (nc_inq_varname(ncid, 0, name_in)) ERR;
@@ -507,6 +514,7 @@ main(int argc, char **argv)
       /* THese won't work due to bad params. */
       if (nc_rename_dim(ncid + MILLION, lon_dim, "longitude") != NC_EBADID) ERR;
       if (nc_rename_dim(ncid + TEST_VAL_42, lon_dim, "longitude") != NC_EBADID) ERR;
+      if (nc_rename_dim(ncid, lon_dim, NULL) != NC_EINVAL) ERR;
 
       /* rename dimension */
       if (nc_rename_dim(ncid, lon_dim, "longitude")) ERR;
@@ -533,6 +541,7 @@ main(int argc, char **argv)
       if (nc_rename_var(ncid, wind_id, too_long_name) != NC_EMAXNAME) ERR;
       if (nc_rename_var(ncid, wind_id, "temp2") != NC_ENAMEINUSE) ERR;
       if (nc_rename_var(ncid, wind_id, "windy") != NC_ENOTINDEFINE) ERR;
+      if (nc_rename_var(ncid, wind_id, NULL) != NC_EINVAL) ERR;
 
       /* rename variable */
       if (nc_rename_var(ncid, wind_id, "wind")) ERR;
@@ -585,7 +594,7 @@ main(int argc, char **argv)
       ncclose(ncid);
    }
    SUMMARIZE_ERR;
-#endif
+#endif /* NO_NETCDF_2 */
 
 #define NDIMS 3
 #define NNAMES 4
@@ -755,6 +764,8 @@ main(int argc, char **argv)
 #define VAR_NAME5 "V5"
 #define VAR_NAME5_1 "V5_1"
 #define VAR_NAME5_2 "V5_2"
+#define VAR_NAME5_3 "V5_3"
+#define VAR_NAME5_4 "V5_4"
 #define DIM5_LEN 1000
 #define CACHE_SIZE 32000000
 #define CACHE_NELEMS 1009
@@ -762,15 +773,17 @@ main(int argc, char **argv)
 #define CACHE_SIZE2 64000000
 #define CACHE_NELEMS2 2000
 #define CACHE_PREEMPTION2 .50
+#define NVAR4 5
 
       int dimids[NDIMS5], dimids_in[NDIMS5];
-      int varid, varid1, varid2;
+      int varid, varid1, varid2, varid3, varid4;
       int ndims, nvars, natts, unlimdimid;
       nc_type xtype_in;
       char name_in[NC_MAX_NAME + 1];
       int data[DIM5_LEN], data_in[DIM5_LEN];
       size_t chunksize[NDIMS5] = {5};
-      size_t bad_chunksize[NDIMS5] = {-5};
+      size_t bad_chunksize[NDIMS5] = {-5}; /* Converted to large pos number since size_t is unsigned. */
+      size_t large_chunksize[NDIMS5] = {(size_t)NC_MAX_INT + (size_t)1}; /* Too big for inq_var_chunking_ints(). */
       size_t chunksize_in[NDIMS5];
       int chunksize_int[NDIMS5];
       int chunksize_int_in[NDIMS5];
@@ -865,10 +878,13 @@ main(int argc, char **argv)
       
       /* Now check with the fortran versions of the var_chunking. */
       if (nc_inq_var_chunking_ints(ncid, 0, &storage_in, chunksize_int_in)) ERR;
+      if (storage_in != NC_CHUNKED) ERR;
       for (d = 0; d < NDIMS5; d++)
 	 if (chunksize_int_in[d] != chunksize[d]) ERR;
       for (d = 0; d < NDIMS5; d++)
          chunksize_int[d] = chunksize[d] * 2;
+      if (nc_inq_var_chunking_ints(ncid, 0, &storage_in, NULL)) ERR;
+      if (storage_in != NC_CHUNKED) ERR;
 
       /* Check that some bad parameter values are rejected properly. */
       if (nc_def_var_chunking_ints(ncid + MILLION, varid, NC_CHUNKED,
@@ -886,14 +902,24 @@ main(int argc, char **argv)
       if (nc_redef(ncid)) ERR;
       if (nc_def_var(ncid, VAR_NAME5_1, NC_INT, NDIMS5, dimids, &varid1)) ERR;
       if (nc_def_var(ncid, VAR_NAME5_2, NC_INT, 0, NULL, &varid2)) ERR;
+      if (nc_def_var(ncid, VAR_NAME5_3, NC_INT, 0, NULL, &varid3)) ERR;
+      if (nc_def_var(ncid, VAR_NAME5_4, NC_INT, NDIMS5, dimids, &varid4)) ERR;
       if (nc_def_var_chunking(ncid, varid2, NC_CHUNKED, chunksize)) ERR;
+      if (nc_def_var_chunking(ncid, varid3, NC_CONTIGUOUS, NULL)) ERR;
+      if (nc_def_var_chunking(ncid, varid4, NC_CHUNKED, large_chunksize) != NC_EBADCHUNK) ERR;
       if (nc_def_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int)) ERR;
       if (nc_def_var_chunking_ints(ncid, varid1, NC_CHUNKED, chunksize_int)) ERR;
-      if (nc_inq_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int_in)) ERR;      
+      if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;      
       if (nc_inq_var_chunking_ints(ncid, varid1, NULL, chunksize_int_in)) ERR;
       for (d = 0; d < NDIMS5; d++)
 	 if (chunksize_int_in[d] != chunksize[d] * 2) ERR;
-      if (nc_inq_var_chunking_ints(ncid, varid1, NULL, NULL)) ERR;
+      if (nc_inq_var_chunking_ints(ncid, varid1, &storage_in, NULL)) ERR;
+      if (storage_in != NC_CHUNKED) ERR;
+      if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;      
+      if (nc_inq_var_chunking_ints(ncid, varid3, &storage_in, NULL)) ERR;
+      if (storage_in != NC_CONTIGUOUS) ERR;
+      if (nc_inq_var_chunking_ints(ncid, varid3, &storage_in, chunksize_int_in)) ERR;
+      if (storage_in != NC_CONTIGUOUS) ERR;
 
       /* Check that some bad parameter values are rejected properly. */
       if (nc_get_var_chunk_cache(ncid + MILLION, varid, &cache_size_in, &cache_nelems_in,
@@ -902,7 +928,7 @@ main(int argc, char **argv)
 				 &cache_preemption_in) != NC_EBADID) ERR;
       if (nc_get_var_chunk_cache(ncid, varid + TEST_VAL_42, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
-      if (nc_get_var_chunk_cache(ncid, varid2 + 1, &cache_size_in, &cache_nelems_in,
+      if (nc_get_var_chunk_cache(ncid, varid4 + 1, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
       if (nc_get_var_chunk_cache(ncid, -TEST_VAL_42, &cache_size_in, &cache_nelems_in,
 				 &cache_preemption_in) != NC_ENOTVAR) ERR;
@@ -931,10 +957,10 @@ main(int argc, char **argv)
 
       /* Check stuff. */
       if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
-      if (ndims != NDIMS5 || nvars != NUM_VARS || natts != 0 ||
+      if (ndims != NDIMS5 || nvars != NVAR4 || natts != 0 ||
           unlimdimid != -1) ERR;
       if (nc_inq_varids(ncid, &nvars, varids_in)) ERR;
-      if (nvars != NUM_VARS) ERR;
+      if (nvars != NVAR4) ERR;
       if (varids_in[0] != 0 || varids_in[1] != 1) ERR;
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in, &natts)) ERR;
       if (strcmp(name_in, VAR_NAME5) || xtype_in != NC_INT || ndims != 1 || natts != 0 ||
@@ -1086,18 +1112,17 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("**** testing contiguous storage...");
    {
-#define NDIMS6 1
 #define DIM6_NAME "D5"
 #define VAR_NAME6 "V5"
 #define DIM6_LEN 100
 
-      int dimids[NDIMS6], dimids_in[NDIMS6];
+      int dimids[NDIMS1], dimids_in[NDIMS1];
       int varid;
       int ndims, nvars, natts, unlimdimid;
       nc_type xtype_in;
       char name_in[NC_MAX_NAME + 1];
       int data[DIM6_LEN], data_in[DIM6_LEN];
-      size_t chunksize_in[NDIMS6];
+      size_t chunksize_in[NDIMS1];
       int storage_in;
       int i;
 
@@ -1108,13 +1133,13 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM6_NAME, DIM6_LEN, &dimids[0])) ERR;
       if (dimids[0] != 0) ERR;
-      if (nc_def_var(ncid, VAR_NAME6, NC_INT, NDIMS6, dimids, &varid)) ERR;
+      if (nc_def_var(ncid, VAR_NAME6, NC_INT, NDIMS1, dimids, &varid)) ERR;
       if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;
       if (nc_put_var_int(ncid, varid, data)) ERR;
 
       /* Check stuff. */
       if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
-      if (ndims != NDIMS6 || nvars != 1 || natts != 0 ||
+      if (ndims != NDIMS1 || nvars != 1 || natts != 0 ||
           unlimdimid != -1) ERR;
       if (nc_inq_varids(ncid, &nvars, varids_in)) ERR;
       if (nvars != 1) ERR;
@@ -1135,7 +1160,7 @@ main(int argc, char **argv)
 
       /* Check stuff. */
       if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
-      if (ndims != NDIMS6 || nvars != 1 || natts != 0 ||
+      if (ndims != NDIMS1 || nvars != 1 || natts != 0 ||
           unlimdimid != -1) ERR;
       if (nc_inq_varids(ncid, &nvars, varids_in)) ERR;
       if (nvars != 1) ERR;
@@ -1349,26 +1374,34 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-#define NDIMS6 1
 #define DIM8_NAME "num_monkeys"
 #define DIM9_NAME "num_coconuts"
 #define DIM9_LEN 10
 #define VAR_NAME8 "John_Clayton"
 #define VAR_NAME9 "Lord_Greystoke"
+#define VAR_NAME10 "Jane_Porter"
    printf("**** testing that contiguous storage can't be turned on for vars with unlimited dims or filters...");
    {
       int ncid;
-      int dimids[NDIMS6];
+      int dimids[NDIMS1];
       int varid, varid2;
-      size_t chunksize_in[NDIMS6];
+      size_t chunksize_in[NDIMS1];
       int storage_in;
 
       /* Create a netcdf-4 file with one dim and some vars. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM8_NAME, NC_UNLIMITED, &dimids[0])) ERR;
-      if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS6, dimids, &varid)) ERR;
+      if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, dimids, &varid)) ERR;
       if (nc_def_dim(ncid, DIM9_NAME, DIM9_LEN, &dimids[0])) ERR;
-      if (nc_def_var(ncid, VAR_NAME9, NC_INT, NDIMS6, dimids, &varid2)) ERR;
+      if (nc_def_var(ncid, VAR_NAME9, NC_INT, NDIMS1, dimids, &varid2)) ERR;
+
+      /* These will fail due to bad paramters. */
+      if (nc_def_var_deflate(ncid, varid2, 0, 1,
+                             NC_MIN_DEFLATE_LEVEL - 1) != NC_EINVAL) ERR;
+      if (nc_def_var_deflate(ncid, varid2, 0, 1,
+                             NC_MAX_DEFLATE_LEVEL + 1) != NC_EINVAL) ERR;
+
+      /* This will work. */
       if (nc_def_var_deflate(ncid, varid2, 0, 1, 4)) ERR;
 
       /* This won't work because of the umlimited dimension. */
@@ -1390,8 +1423,10 @@ main(int argc, char **argv)
    printf("**** testing error conditions on nc_def_var functions...");
    {
       int ncid;
-      int dimids[NDIMS6];
+      int dimids[NDIMS1];
+      int bad_dimids[NDIMS1] = {42};
       int varid;
+      int varid_scalar;
       int num_models = 2;
       int m;
       int mode = NC_NETCDF4;
@@ -1399,26 +1434,71 @@ main(int argc, char **argv)
       /* Test without and with classic model. */
       for (m = 0; m < num_models; m++)
       {
+         int contiguous_in;
+         size_t chunksizes_in[NDIMS1];
+         int shuffle_in, deflate_in, deflate_level_in;
+         
          if (m)
             mode |= NC_CLASSIC_MODEL;
 
          /* Create a netcdf-4 file. */
          if (nc_create(FILE_NAME, mode, &ncid)) ERR;
          if (nc_def_dim(ncid, DIM8_NAME, TEST_VAL_42, &dimids[0])) ERR;
-         if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS6, dimids, &varid)) ERR;
+
+         /* This won't work. */
+         if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, bad_dimids,
+                        &varid) != NC_EBADDIM) ERR;
+
+         /* This will work. */
+         if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, dimids, &varid)) ERR;
+         if (nc_def_var(ncid, VAR_NAME10, NC_INT, 0, NULL, &varid_scalar)) ERR;
 
          /* Set the var to contiguous. */
          if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;
 
-         /* Now defalte can't be set. */
+         /* Now defalte will change the var to chunked. */
          if (nc_def_var_deflate(ncid, varid, 0, 1, 4)) ERR;
+         if (nc_inq_var_chunking(ncid, varid, &contiguous_in, chunksizes_in)) ERR;
+         if (contiguous_in) ERR;
 
+         /* Now I can't turn contiguous on, because deflate is on. */
+         if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL) != NC_EINVAL) ERR;
+
+         /* Turn off deflation. */
+         if (nc_def_var_deflate(ncid, varid, 0, 0, 0)) ERR;
+         if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
+         if (shuffle_in || deflate_in) ERR;
+         if (nc_inq_var_deflate(ncid, varid, NULL, NULL, NULL)) ERR;
+
+         /* Deflate is ignored for scalar. */
+         if (nc_def_var_deflate(ncid, varid_scalar, 0, 1, 4)) ERR;         
+         if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
+         if (shuffle_in || deflate_in) ERR;
+
+         /* Turn on shuffle. */
+         if (nc_def_var_deflate(ncid, varid, 1, 0, 0)) ERR;
+         
+         /* Now I can't turn contiguous on, because shuffle is on. */
+         if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL) != NC_EINVAL) ERR;
+
+         /* Turn off shuffle. */
+         if (nc_def_var_deflate(ncid, varid, 0, 0, 0)) ERR;
+
+         /* Turn on fletcher32. */
+         if (nc_def_var_fletcher32(ncid, varid, 1)) ERR;
+
+         /* Now I can't turn contiguous on, because fletcher32 is on. */
+         if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL) != NC_EINVAL) ERR;
+
+         /* Turn off fletcher32. */
+         if (nc_def_var_fletcher32(ncid, varid, 0)) ERR;
+
+         /* Now I can make it contiguous again. */
+         if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;         
          if (nc_close(ncid)) ERR;
       }
-
    }
    SUMMARIZE_ERR;
-#define NDIMS6 1
 #define DIM8_NAME "num_monkeys"
 #define DIM9_NAME "num_coconuts"
 #define DIM9_LEN 10
@@ -1427,17 +1507,17 @@ main(int argc, char **argv)
    printf("**** testing that contiguous storage can't be turned on for vars with unlimited dims or filters...");
    {
       int ncid;
-      int dimids[NDIMS6];
+      int dimids[NDIMS1];
       int varid, varid2;
-      size_t chunksize_in[NDIMS6];
+      size_t chunksize_in[NDIMS1];
       int storage_in;
 
       /* Create a netcdf-4 file with one dim and some vars. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM8_NAME, NC_UNLIMITED, &dimids[0])) ERR;
-      if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS6, dimids, &varid)) ERR;
+      if (nc_def_var(ncid, VAR_NAME8, NC_INT, NDIMS1, dimids, &varid)) ERR;
       if (nc_def_dim(ncid, DIM9_NAME, DIM9_LEN, &dimids[0])) ERR;
-      if (nc_def_var(ncid, VAR_NAME9, NC_INT, NDIMS6, dimids, &varid2)) ERR;
+      if (nc_def_var(ncid, VAR_NAME9, NC_INT, NDIMS1, dimids, &varid2)) ERR;
       if (nc_def_var_deflate(ncid, varid2, 0, 1, 4)) ERR;
 
       /* This won't work because of the umlimited dimension. */
@@ -1452,6 +1532,40 @@ main(int argc, char **argv)
       if (storage_in != NC_CHUNKED) ERR;
       if (nc_inq_var_chunking(ncid, varid2, &storage_in, chunksize_in)) ERR;
       if (storage_in != NC_CHUNKED) ERR;
+      if (nc_close(ncid)) ERR;
+
+   }
+   SUMMARIZE_ERR;
+#define DIM10_NAME "num_monkeys"
+#define DIM11_NAME "num_hats"
+#define VAR_NAME11 "Silly_Sally"
+#define NDIM2 2
+   printf("**** testing very large chunksizes...");
+   {
+      int ncid;
+      int dimid[NDIM2];
+      int varid;
+      size_t chunksize[NDIM2] = {1, (size_t)NC_MAX_INT + (size_t)1};
+      size_t chunksize_in[NDIM2];
+      int chunksize_int_in[NDIM2];
+      int storage_in;
+
+      /* Create a netcdf-4 file. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM10_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+      if (nc_def_dim(ncid, DIM11_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+      if (nc_def_var(ncid, VAR_NAME11, NC_BYTE, NDIM2, dimid, &varid)) ERR;
+      if (nc_inq_var_chunking(ncid, varid, &storage_in, chunksize_in)) ERR;
+      if (storage_in != NC_CHUNKED) ERR;
+
+      /* Set a large chunksize. */
+      if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, chunksize)) ERR;
+      if (nc_inq_var_chunking(ncid, varid, &storage_in, chunksize_in)) ERR;
+      if (storage_in != NC_CHUNKED) ERR;
+      if (chunksize_in[0] != chunksize[0] || chunksize_in[1] != chunksize[1]) ERR;
+      if (nc_inq_var_chunking_ints(ncid, varid, &storage_in, chunksize_int_in) != NC_ERANGE) ERR;
+
+      /* Close the file. */
       if (nc_close(ncid)) ERR;
 
    }

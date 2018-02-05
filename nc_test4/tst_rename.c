@@ -22,6 +22,13 @@
 #define VAR_RANK 1              /* all vars in this test are of same rank */
 #define DIM_LEN 2               /* all dims in this test are of same len */
 
+/* For the tests based on Charlie Zender's rename bug test. */
+#define CHARLIE_TEST_FILE "tst_charlie_rename_coord_dim.nc"
+#define LON "lon"
+#define LONGITUDE "longitude"
+#define DIM1_LEN 4
+#define NDIM1 1
+
 /* Test data. */
 int lats[DIM_LEN] = {-90, 90};
 float rh[DIM_LEN] = {0.25, 0.75};
@@ -101,6 +108,19 @@ check_charlies_file(char *file, char *dim_name, char *var_name)
    return NC_NOERR;
 }
 
+/* Check a data-free version of the already-open file created in a
+ * test. */
+int
+check_charlies_no_enddef_file(int ncid, char *dim_name, char *var_name)
+{
+   int varid, dimid;
+   
+   if (nc_inq_varid(ncid, var_name, &varid)) ERR;
+   if (nc_inq_dimid(ncid, dim_name, &dimid)) ERR;
+   if (varid || dimid) ERR;
+   return NC_NOERR;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -111,10 +131,8 @@ main(int argc, char **argv)
    int format;
 
    fprintf(stderr,"*** Testing netcdf rename bugs and fixes.\n");
-   nc_set_log_level(5);
 
    for (format = 0; format < NUM_FORMATS; format++)
-   /* for (format = 0; format < 1; format++) */
    {
       int ncid, dimid, varid, var2id;
       int lats[DIM_LEN] = {-90, 90};
@@ -123,13 +141,80 @@ main(int argc, char **argv)
       float rh_in[DIM_LEN];
       int ii;
 
-      fprintf(stderr,"*** Test Charlie's test for renaming...");
+      fprintf(stderr,"*** Test Charlie's test for renaming without enddef...");
       {
-#define CHARLIE_TEST_FILE "tst_charlie_rename_coord_dim.nc"
-#define LON "lon"
-#define LONGITUDE "longitude"
-#define DIM1_LEN 4
-#define NDIM1 1
+         int ncid, dimid, varid;
+
+         /* Create a nice, simple file. This file will contain one
+          * dataset, "lon", which is a dimscale. */
+         if (nc_create(CHARLIE_TEST_FILE, NC_NETCDF4, &ncid)) ERR;
+         if (nc_def_dim(ncid, LON, DIM1_LEN, &dimid)) ERR;
+         if (nc_def_var(ncid, LON, NC_FLOAT, NDIM1, &dimid, &varid)) ERR;
+
+         /* Check the file. */
+         if (check_charlies_no_enddef_file(ncid, LON, LON)) ERR;
+
+         /* Rename the dimension. This will cause lon to stop being a
+          * coord var and dimscale, and prepare to create a new
+          * dimscale without var dataset "longitude". Dataset "lon"
+          * will point to "longitude" as its dimscale. */
+         if (nc_rename_dim(ncid, 0, LONGITUDE)) ERR;
+         if (check_charlies_no_enddef_file(ncid, LONGITUDE, LON)) ERR;
+
+         /* Rename the variable. This will remove the (as yet
+          * unwritten) dimscale-only dataset "longitude" and rename
+          * the extisting dataset "lon" to "longitude". Variable
+          * "longitude" will become a coordinate var. */
+         if (nc_rename_var(ncid, 0, LONGITUDE)) ERR;
+         if (check_charlies_no_enddef_file(ncid, LONGITUDE, LONGITUDE)) ERR;
+         if (nc_close(ncid)) ERR;
+
+         /* Reopen the file and check. */
+         if (check_charlies_file(CHARLIE_TEST_FILE, LONGITUDE, LONGITUDE)) ERR;         
+
+      }
+      SUMMARIZE_ERR;
+      fprintf(stderr,"*** Test Charlie's test for renaming with one enddef...");
+      {
+         int ncid, dimid, varid;
+         nc_set_log_level(5);
+
+         /* Create a nice, simple file. This file will contain one
+          * dataset, "lon", which is a dimscale. */
+         if (nc_create(CHARLIE_TEST_FILE, NC_NETCDF4, &ncid)) ERR;
+         if (nc_def_dim(ncid, LON, DIM1_LEN, &dimid)) ERR;
+         if (nc_def_var(ncid, LON, NC_FLOAT, NDIM1, &dimid, &varid)) ERR;
+
+         /* Check the file. */
+         if (check_charlies_no_enddef_file(ncid, LON, LON)) ERR;
+
+         /* Rename the dimension. This will cause lon to stop being a
+          * coord var and dimscale, and prepare to create a new
+          * dimscale without var dataset "longitude". Dataset "lon"
+          * will point to "longitude" as its dimscale. */
+         if (nc_rename_dim(ncid, 0, LONGITUDE)) ERR;
+         if (check_charlies_no_enddef_file(ncid, LONGITUDE, LON)) ERR;
+
+         /* Trigger write to disk. */
+         if (nc_enddef(ncid)) ERR;
+         if (nc_redef(ncid)) ERR;
+         if (check_charlies_no_enddef_file(ncid, LONGITUDE, LON)) ERR;
+         
+         /* Rename the variable. This will remove the (as yet
+          * unwritten) dimscale-only dataset "longitude" and rename
+          * the extisting dataset "lon" to "longitude". Variable
+          * "longitude" will become a coordinate var. */
+         if (nc_rename_var(ncid, 0, LONGITUDE)) ERR;
+         if (check_charlies_no_enddef_file(ncid, LONGITUDE, LONGITUDE)) ERR;
+         if (nc_close(ncid)) ERR;
+
+         /* Reopen the file and check. */
+         if (check_charlies_file(CHARLIE_TEST_FILE, LONGITUDE, LONGITUDE)) ERR;
+
+      }
+      SUMMARIZE_ERR;
+      fprintf(stderr,"*** Test Charlie's test for renaming with enddef...");
+      {
          int ncid, dimid, varid;
          float data[DIM1_LEN] = {0, 90.0, 180.0, 270.0};
 
@@ -162,14 +247,14 @@ main(int argc, char **argv)
           * the dimscale-only dataset "longitude" and rename the
           * extisting dataset "lon" to "longitude". Variable
           * "longitude" will become a coordinate var. */
-         /* if (nc_open(CHARLIE_TEST_FILE, NC_WRITE, &ncid)) ERR; */
-         /* if (nc_redef(ncid)) ERR; */
-         /* if (nc_rename_var(ncid, 0, LONGITUDE)) ERR; */
-         /* if (nc_enddef(ncid)) ERR; */
-         /* if (nc_close(ncid)) ERR; */
+         if (nc_open(CHARLIE_TEST_FILE, NC_WRITE, &ncid)) ERR;
+         if (nc_redef(ncid)) ERR;
+         if (nc_rename_var(ncid, 0, LONGITUDE)) ERR;
+         if (nc_enddef(ncid)) ERR;
+         if (nc_close(ncid)) ERR;
 
          /* Reopen the file to check. */
-         /* if (check_charlies_file(CHARLIE_TEST_FILE, LONGITUDE, LONGITUDE)) ERR; */
+         if (check_charlies_file(CHARLIE_TEST_FILE, LONGITUDE, LONGITUDE)) ERR;
       }
       SUMMARIZE_ERR;
 
@@ -298,8 +383,7 @@ main(int argc, char **argv)
 
          /* Reopen and check. */
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
-         /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
-         /* if (check_file(ncid, TAL, RH, TAL)) ERR; */
+         if (check_file(ncid, TAL, RH, TAL)) ERR;
          if (nc_close(ncid)) ERR;
       }
       SUMMARIZE_ERR;
@@ -327,10 +411,13 @@ main(int argc, char **argv)
           * TAL. LAT will become a dimscale. RH will point to LAT. */
          if (nc_rename_var(ncid, varid, TAL)) ERR;
          if (nc_enddef(ncid)) ERR;
+         /* This should work but does not. It is a known rename
+          * bug. Rename is coming! */
          /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
          if (nc_close(ncid)) ERR;
 
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+         /* Should work but does not. Raname issues. */
          /* if (check_file(ncid, LAT, RH, TAL)) ERR; */
          if (nc_close(ncid)) ERR;
       }
@@ -344,8 +431,7 @@ main(int argc, char **argv)
          if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
          if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
          if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
-         if (nc_redef(ncid)) ERR;  /* omitting this and nc_enddef call eliminates bug */
-         /* if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR; */
+         if (nc_redef(ncid)) ERR;
          if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR;
          if (nc_enddef(ncid)) ERR;
          if (nc_get_var_int(ncid, varid, lats_in)) ERR;
@@ -370,9 +456,8 @@ main(int argc, char **argv)
          if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
          if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
          if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
-         if (nc_redef(ncid)) ERR; /* omitting this and nc_enddef call eliminates bug */
+         if (nc_redef(ncid)) ERR; 
          if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
-         /* if (nc_rename_var(ncid, varid, NVAR_NAME)) ERR; */
          if (nc_enddef(ncid)) ERR;
          if (nc_get_var_int(ncid, varid, lats_in)) ERR;
          for (ii = 0; ii < DIM_LEN; ii++) {
