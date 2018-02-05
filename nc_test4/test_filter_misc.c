@@ -11,11 +11,10 @@
 #include <hdf5.h>
 #include "netcdf.h"
 
-#if defined  _MSC_VER || defined __APPLE__
+/* The C standard apparently defines all floating point constants as double;
+   we rely on that in this code.
+*/
 #define DBLVAL 12345678.12345678
-#else
-#define DBLVAL 12345678.12345678d
-#endif
 
 #define TEST_ID 32768
 

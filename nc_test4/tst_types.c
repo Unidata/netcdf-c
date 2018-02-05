@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
          /* Create a var... */
          sprintf(varname, "var_%d", type);
          if (nc_def_var(ncid1, varname, type + NC_UBYTE, 1, &dimid, &varid[type])) ERR;
-         if (nc_inq_type_equal(ncid1, type + NC_UBYTE, ncid2, type + NC_UBYTE, &equal));
+         if (nc_inq_type_equal(ncid1, type + NC_UBYTE, ncid2, type + NC_UBYTE, &equal)) ERR;
          if (!equal) ERR;
       }
       nc_close(ncid2);
