@@ -10,7 +10,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_LIBGEN_H
 #include <libgen.h> /* basename() */
+#else
+#define basename(X) X
+#endif
 #include <netcdf.h>
 
 #define CHECK_ERR { \
