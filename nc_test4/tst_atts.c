@@ -26,6 +26,47 @@
 #define CONTENTS_3 "Lots 0f pe0ple!"  /* same len as CONTENTS */
 #define VAR_NAME "Earth"
 
+/**
+ * @internal Define the names of attributes to ignore added by the
+ * HDF5 dimension scale; these attached to variables. They cannot be
+ * modified thru the netcdf-4 API.
+ */
+const char* NC_RESERVED_VARATT_LIST[] = {
+   NC_ATT_REFERENCE_LIST,
+   NC_ATT_CLASS,
+   NC_ATT_DIMENSION_LIST,
+   NC_ATT_NAME,
+   NC_ATT_COORDINATES,
+   NC_DIMID_ATT_NAME,
+   NULL
+};
+
+/**
+ * @internal Define the names of attributes to ignore because they are
+ * "hidden" global attributes. They can be read, but not modified thru
+ * the netcdf-4 API.
+ */
+const char* NC_RESERVED_ATT_LIST[] = {
+   NC_ATT_FORMAT,
+   NC3_STRICT_ATT_NAME,
+   NCPROPS,
+   ISNETCDF4ATT,
+   SUPERBLOCKATT,
+   NULL
+};
+
+/**
+ * @internal Define the subset of the reserved list that is readable
+ * by name only
+*/
+const char* NC_RESERVED_SPECIAL_LIST[] = {
+   ISNETCDF4ATT,
+   SUPERBLOCKATT,
+   NCPROPS,
+   NULL
+};
+
+
 int
 main(int argc, char **argv)
 {
@@ -53,7 +94,7 @@ main(int argc, char **argv)
 
       /* Try to delete the att. More failure ensues. */
       if (nc_del_att(ncid, NC_GLOBAL, OLD_NAME) != NC_EPERM) ERR;
-     
+
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -103,7 +144,7 @@ main(int argc, char **argv)
 
       /* This will not work. */
       if (nc_del_att(ncid, NC_GLOBAL, OLD_NAME) != NC_ENOTINDEFINE) ERR;
-      
+
       /* Delete the attribute. Redef is needed since this is a classic
        * model file. */
       if (nc_redef(ncid)) ERR;
@@ -124,7 +165,7 @@ main(int argc, char **argv)
       char *data_in;
 
       if (!(data_in = malloc(strlen(CONTENTS) + 1))) ERR;
-      
+
       /* Create a file with an att. */
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS),
@@ -145,7 +186,7 @@ main(int argc, char **argv)
       /* Now overwrite the att. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS_3),
                           CONTENTS_3)) ERR;
-      
+
       /* Delete the attribute. Redef is needed since this is a classic
        * model file. This should work but does not. */
       if (nc_redef(ncid)) ERR;
@@ -172,7 +213,7 @@ main(int argc, char **argv)
       char *data_in;
       char too_long_name[NC_MAX_NAME + 2];
       char name_in[NC_MAX_NAME + 1];
-      
+
       /* Set up a name that is too long for netCDF. */
       memset(too_long_name, 'a', NC_MAX_NAME + 1);
       too_long_name[NC_MAX_NAME + 1] = 0;
@@ -223,11 +264,11 @@ main(int argc, char **argv)
                                 CONTENTS) != NC_ENAMEINUSE) ERR;
          }
       }
-      
+
       /* Write the attribute at last. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS),
                           CONTENTS)) ERR;
-      
+
       /* Write another with different name. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME_2, strlen(CONTENTS),
                           CONTENTS)) ERR;
@@ -241,7 +282,7 @@ main(int argc, char **argv)
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, BAD_NAME) != NC_EBADNAME) ERR;
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, too_long_name) != NC_EMAXNAME) ERR;
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, OLD_NAME_2) != NC_ENAMEINUSE) ERR;
-      
+
       /* Rename the att. */
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, NEW_NAME)) ERR;
 
