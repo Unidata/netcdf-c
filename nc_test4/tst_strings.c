@@ -4,13 +4,14 @@
 
    Test netcdf-4 string types.
 
-   $Id: tst_strings.c,v 1.34 2010/05/25 13:53:04 ed Exp $
+   Ed Hartnett
 */
 
 #include <config.h>
 #include <nc_tests.h>
 #include "err_macros.h"
 
+#define TEST_NAME "tst_strings"
 #define FILE_NAME "tst_strings.nc"
 #define DIM_LEN 9
 #define ATT_NAME "measure_for_measure_att"
@@ -243,7 +244,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-   printf("*** testing long string variable...");
+   printf("*** testing string variables with fill values...");
    {
 #define VAR_NAME2 "empty"
 #define ATT_NAME2 "empty"
@@ -256,7 +257,6 @@ main(int argc, char **argv)
       char var_name[NC_MAX_NAME + 1];
       int var_natts, var_ndims;
       int ncid, varid, i, dimids[NDIMS], varid2;
-      char *data_in[DHR_LEN];
       char *data[DHR_LEN] = {
 	 "All human beings are born free and equal in dignity and rights. "
 	 "They are endowed with reason and "
@@ -426,56 +426,177 @@ main(int argc, char **argv)
 	 "any of the rights and freedoms set forth herein."
       };
       char *empty_string[] = {""};
+      char *my_string_fill[] = {"fill_string"};
 
-      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+#define NUM_DIM_COMBOS 4
+      int dim_combo;
 
-      /* Create an array of strings for the Universal Declaraion of Human Rights. */
-      if (nc_def_dim(ncid, DIM_NAME1, DHR_LEN, dimids)) ERR;
-      if (nc_def_var(ncid, VAR_NAME1, NC_STRING, NDIMS, dimids, &varid)) ERR;
+      for (dim_combo = 0; dim_combo < NUM_DIM_COMBOS; dim_combo++)
+      {
+         char filename[NC_MAX_NAME + 1];
+         int dim_len = dim_combo ? NC_UNLIMITED : DHR_LEN;
+         int expected_unlimdimid = dim_combo ? 0 : -1;
+         char *default_fill = ((char *)"");
+         char **string_fillp = dim_combo == 3 ? my_string_fill : &default_fill;
+         char *data_in;
 
-      /* Create a scalar variable for the empty string. */
-      if (nc_def_var(ncid, VAR_NAME2, NC_STRING, 0, NULL, &varid2)) ERR;
+         sprintf(filename, "%s_dim_combo_%d.nc", TEST_NAME, dim_combo);
+         if (nc_create(filename, NC_NETCDF4, &ncid)) ERR;
 
-      /* Check some stuff. */
-      if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
-      if (ndims != NDIMS || nvars != 2 || natts != 0 || unlimdimid != -1) ERR;
-      if (nc_inq_var(ncid, varid, var_name, &var_type, &var_ndims,
-      		     var_dimids, &var_natts)) ERR;
-      if (var_type != NC_STRING || strcmp(var_name, VAR_NAME1) || var_ndims != NDIMS ||
-      	  var_dimids[0] != dimids[0]) ERR;
+         /* Create an array of strings for the Universal Declaraion of Human Rights. */
+         if (nc_def_dim(ncid, DIM_NAME1, dim_len, dimids)) ERR;
+         if (nc_def_var(ncid, VAR_NAME1, NC_STRING, NDIMS, dimids, &varid)) ERR;
 
-      /* Write the universal declaraion of human rights. */
-      if (nc_put_var(ncid, varid, data)) ERR;
+         /* Create a scalar variable for the empty string. */
+         if (nc_def_var(ncid, VAR_NAME2, NC_STRING, 0, NULL, &varid2)) ERR;
+         if (dim_combo == 3)
+            if (nc_put_att(ncid, varid, _FillValue, NC_STRING, 1, my_string_fill)) ERR;
 
-      /* Write an empty string with an empty attribute. */
-      if (nc_put_var(ncid, varid2, empty_string)) ERR;
-      if (nc_put_att(ncid, varid2, ATT_NAME2, NC_STRING, 0, empty_string)) ERR;
+         /* Check some stuff. */
+         if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
+         if (ndims != NDIMS || nvars != 2 || natts != 0 || unlimdimid != expected_unlimdimid) ERR;
+         if (nc_inq_var(ncid, varid, var_name, &var_type, &var_ndims,
+                        var_dimids, &var_natts)) ERR;
+         if (var_type != NC_STRING || strcmp(var_name, VAR_NAME1) || var_ndims != NDIMS ||
+             var_dimids[0] != dimids[0]) ERR;
 
-      /* Close the file. */
-      if (nc_close(ncid)) ERR;
+         /* Write the universal declaraion of human rights. */
+         if (dim_combo)
+         {
+            size_t start[NDIMS], count[NDIMS] = {1};
+            int counter = 1;
+            
+            /* Write one record at a time. */
+            for (start[0] = 0; start[0] < DHR_LEN; start[0]++)
+            {
+               size_t new_start[NDIMS];
+               size_t *my_startp = start;
 
-      /* Check it out. */
-      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
-      if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
-      if (ndims != NDIMS || nvars != 2 || natts != 0 || unlimdimid != -1) ERR;
+               /* For dim_combo 2 or 3 skip every other record. */
+               new_start[0] = start[0] + counter++;
+               if (dim_combo >= 2)
+                  my_startp = new_start;
 
-      /* Check declaration. */
-      if (nc_inq_varid(ncid, VAR_NAME1, &varid)) ERR;
-      if (nc_inq_var(ncid, varid, var_name, &var_type, &var_ndims,
-		     var_dimids, &var_natts)) ERR;
-      if (var_type != NC_STRING || strcmp(var_name, VAR_NAME1) || var_ndims != NDIMS ||
-	  var_dimids[0] != dimids[0]) ERR;
-      if (nc_get_var(ncid, varid, data_in)) ERR;
-      for (i = 0; i < DHR_LEN; i++)
-	 if (strcmp(data_in[i], data[i])) ERR;
-      if (nc_free_string(DHR_LEN, data_in)) ERR;
+               /* Write a record. */
+               nc_put_vara_string(ncid, varid, my_startp, count, (const char **)&data[start[0]]);
+            }
+         }
+         else
+         {
+            /* Write all records at once. */
+            if (nc_put_var(ncid, varid, data)) ERR;
+         }
 
-      /* Check the empty var and att. */
-      if (nc_inq_varid(ncid, VAR_NAME2, &varid)) ERR;
-      if (nc_get_var(ncid, varid, data_in)) ERR;
-      if (strcmp(data_in[0], empty_string[0])) ERR;
-      if (nc_free_string(1, data_in)) ERR;
-      if (nc_get_att(ncid, varid, ATT_NAME2, NULL)) ERR;
+         /* Write an empty string with an empty attribute. */
+         if (nc_put_var(ncid, varid2, empty_string)) ERR;
+         if (nc_put_att(ncid, varid2, ATT_NAME2, NC_STRING, 0, empty_string)) ERR;
+
+         /* Close the file. */
+         if (nc_close(ncid)) ERR;
+
+         /* Check it out. */
+         if (nc_open(filename, NC_NOWRITE, &ncid)) ERR;
+         if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
+         if (ndims != NDIMS || nvars != 2 || natts != 0 || unlimdimid != expected_unlimdimid) ERR;
+
+         /* Check declaration. */
+         if (nc_inq_varid(ncid, VAR_NAME1, &varid)) ERR;
+         if (nc_inq_var(ncid, varid, var_name, &var_type, &var_ndims, var_dimids,
+                        &var_natts)) ERR;
+         if (var_type != NC_STRING || strcmp(var_name, VAR_NAME1) || var_ndims != NDIMS ||
+             var_dimids[0] != dimids[0]) ERR;
+
+         /* Check fill value stuff. */
+         {
+            int no_fill;
+            char *fill_value_in[1];
+            
+            if (nc_inq_var_fill(ncid, varid, &no_fill, (char **)fill_value_in)) ERR;
+            if (no_fill) ERR;
+            if (strcmp(fill_value_in[0], *string_fillp)) ERR;
+            if (nc_free_string(1, fill_value_in)) ERR;            
+         }
+
+         if (dim_combo < 2)
+         {
+            char *data_in[DHR_LEN];
+            
+            /* Get the data in one read of the entire var. */
+            if (nc_get_var(ncid, varid, data_in)) ERR;
+            for (i = 0; i < DHR_LEN; i++)
+               if (strcmp(data_in[i], data[i])) ERR;
+            if (nc_free_string(DHR_LEN, data_in)) ERR;
+         }
+         else
+         {
+            char *data_in;
+            size_t start[NDIMS], count[NDIMS] = {1};
+            int my_count = 0;
+            
+            /* Get the data one record at a time. Every other record,
+             * starting with the first, is a fill value. */
+            for (start[0] = 0; start[0] < DHR_LEN; start[0]++)
+            {
+               if (nc_get_vara(ncid, varid, start, count, &data_in)) ERR;
+               if (start[0] % 2)
+               {
+                  if (strcmp(data_in, data[my_count++])) ERR;
+               }
+               else
+               {
+                  if (strcmp(data_in, *string_fillp)) ERR;
+               }
+               if (nc_free_string(1, &data_in)) ERR;
+            }
+         }
+
+         /* Check the empty var and att. */
+         if (nc_inq_varid(ncid, VAR_NAME2, &varid)) ERR;
+         if (nc_get_var(ncid, varid, &data_in)) ERR;
+         if (strcmp(data_in, empty_string[0])) ERR;
+         if (nc_free_string(1, &data_in)) ERR;
+         if (nc_get_att(ncid, varid, ATT_NAME2, NULL)) ERR;
+         if (nc_close(ncid)) ERR;
+      } /* next dim_combo */
+   }
+   SUMMARIZE_ERR;
+
+   printf("*** Testing a file that causes ncdump problems...");
+   {
+#define NUM_DIMS 2
+#define DIM_0_NAME "dim_0"
+#define DIM_1_NAME "dim_1"
+#define DIM_1_LEN 2
+#define FILE_NAME_NCDUMP "tst_strings_ncdump_problem.nc"
+#define VAR_NAME_NCDUMP "var_string"
+      int ncid, varid, dimid[NUM_DIMS];
+      char *string_data[] = {"x"};
+      int t;
+
+      /* Create a file. */
+      if (nc_create(FILE_NAME_NCDUMP, NC_NETCDF4, &ncid)) ERR;
+
+      /* Create dims. */
+      if (nc_def_dim(ncid, DIM_0_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+      if (nc_def_dim(ncid, DIM_1_NAME, DIM_1_LEN, &dimid[1])) ERR;
+               
+      /* Create a var. */
+      if (nc_def_var(ncid, VAR_NAME_NCDUMP, NC_STRING, NUM_DIMS, dimid, &varid)) ERR;
+
+      /* Check that you can't turn off fill mode for NC_STRING variables. */
+      if (nc_def_var_fill(ncid, varid, NC_NOFILL, NULL) != NC_EINVAL) ERR;
+
+      /* End define mode. */
+      if (nc_enddef(ncid)) ERR;
+
+      /* Write to each var. */
+      for (t = 0; t < 1; t++)
+      {
+         size_t start[NUM_DIMS] = {1, 0};
+         size_t count[NUM_DIMS] = {1, 1};
+
+         if (nc_put_vara_string(ncid, varid, start, count, (const char **)string_data)) ERR;
+      }
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
