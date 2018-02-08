@@ -1,17 +1,11 @@
+/* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+ * and redistribution conditions.*/
 /**
- * @internal
+ * @file @internal This file handles the (useless) *_base_pe()
+ * functions, and the inq_format functions for the HDF4 dispatch
+ * layer.
  *
- * Copyright 2003, University Corporation for Atmospheric
- * Research. See netcdf-4/docs/COPYRIGHT file for copying and
- * redistribution conditions.
- *
- * This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
- * HDF5 backend for netCDF, depending on your point of view.
- *
- * This file handles the (useless) *_base_pe() functions, and the
- * inq_format functions.
- *
- * @author Ed Hartnett, Dennis Heimbigner
+ * @author Ed Hartnett
 */
 
 #include "nc4internal.h"
@@ -27,7 +21,7 @@
  * @author Ed Hartnett
  */
 int
-NC4_set_base_pe(int ncid, int pe)
+HDF4_set_base_pe(int ncid, int pe)
 {
    return NC_ENOTNC3;
 }
@@ -43,14 +37,14 @@ NC4_set_base_pe(int ncid, int pe)
  * @author Ed Hartnett
  */
 int
-NC4_inq_base_pe(int ncid, int *pe)
+HDF4_inq_base_pe(int ncid, int *pe)
 {
    return NC_ENOTNC3;
 }
 
 /**
- * @internal Get the format (i.e. NC_FORMAT_NETCDF4 pr
- * NC_FORMAT_NETCDF4_CLASSIC) of an open netCDF-4 file.
+ * @internal Get the format (i.e. NC_FORMAT_NC_HDF4) of an open HDF4
+ * file.
  *
  * @param ncid File ID (ignored).
  * @param formatp Pointer that gets the constant indicating format.
@@ -60,7 +54,7 @@ NC4_inq_base_pe(int ncid, int *pe)
  * @author Ed Hartnett
  */
 int
-NC4_inq_format(int ncid, int *formatp)
+HDF4_inq_format(int ncid, int *formatp)
 {
    NC *nc;
    NC_HDF5_FILE_INFO_T* nc4_info;
@@ -71,15 +65,11 @@ NC4_inq_format(int ncid, int *formatp)
       return NC_NOERR;
 
    /* Find the file metadata. */
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
+   if (!(nc = nc4_find_nc_file(ncid, &nc4_info)))
       return NC_EBADID;
 
-   /* Otherwise, this is a netcdf-4 file. Check if classic NC3 rules
-    * are in effect for this file. */
-   if (nc4_info->cmode & NC_CLASSIC_MODEL)
-      *formatp = NC_FORMAT_NETCDF4_CLASSIC;
-   else
-      *formatp = NC_FORMAT_NETCDF4;
+   /* HDF4 is the format. */
+   *formatp = NC_FORMATX_NC_HDF4;
 
    return NC_NOERR;
 }
@@ -91,17 +81,17 @@ NC4_inq_format(int ncid, int *formatp)
  * @param ncid File ID (ignored).
  * @param formatp a pointer that gets the extended format. Note that
  * this is not the same as the format provided by nc_inq_format(). The
- * extended foramt indicates the dispatch layer model. NetCDF-4 files
- * will always get NC_FORMATX_NC4.
+ * extended foramt indicates the dispatch layer model. HDF4 files
+ * will always get NC_FORMATX_NC_HDF4.
  * @param modep a pointer that gets the open/create mode associated with
  * this file. Ignored if NULL.
 
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
- * @author Dennis Heimbigner
+ * @author Ed Hartnett
  */
 int
-NC4_inq_format_extended(int ncid, int *formatp, int *modep)
+HDF4_inq_format_extended(int ncid, int *formatp, int *modep)
 {
    NC *nc;
    NC_HDF5_FILE_INFO_T* h5;
@@ -112,10 +102,11 @@ NC4_inq_format_extended(int ncid, int *formatp, int *modep)
    if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;
 
-   if(modep) *modep = (nc->mode|NC_NETCDF4);
+   if (modep)
+      *modep = (nc->mode|NC_NETCDF4);
 
    if (formatp) 
-      *formatp = NC_FORMATX_NC_HDF5;
-
+      *formatp = NC_FORMATX_NC_HDF4;
+   
    return NC_NOERR;
 }

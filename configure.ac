@@ -1492,6 +1492,7 @@ AC_CONFIG_FILES([Makefile
                  oc2/Makefile
                  libdap2/Makefile
                  libdap4/Makefile
+                 libhdf4/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl/Makefile

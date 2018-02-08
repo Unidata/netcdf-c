@@ -1727,6 +1727,10 @@ IF(USE_HDF5)
   add_subdirectory(libsrc4)
 ENDIF(USE_HDF5)
 
+IF(USE_HDF4)
+  add_subdirectory(libhdf4)
+ENDIF(USE_HDF4)
+
 IF(ENABLE_DAP2)
   ADD_SUBDIRECTORY(oc2)
   ADD_SUBDIRECTORY(libdap2)
