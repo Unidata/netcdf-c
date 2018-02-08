@@ -1,15 +1,8 @@
+/* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+ * and redistribution conditions.*/
 /**
- * @file
- *
- * @internal This file is part of netcdf-4, a netCDF-like interface
- * for HDF5, or a HDF5 backend for netCDF, depending on your point of
- * view.
- *
- * This file handles the nc4 user-defined type functions
- * (i.e. compound and opaque types).
- *
- * Copyright 2005, University Corporation for Atmospheric Research. See
- * the COPYRIGHT file for copying and redistribution conditions.
+ * @file @internal This file contains the type functions for the HDF4
+ * dispatch layer.
  *
  * @author Ed Hartnett
  */
