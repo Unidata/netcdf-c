@@ -178,7 +178,7 @@ dup_NC_var(const NC_var *rvarp)
 	(void) memcpy(varp->shape, rvarp->shape,
 			 rvarp->ndims * sizeof(size_t));
 	(void) memcpy(varp->dsizes, rvarp->dsizes,
-			 rvarp->ndims * sizeof(size_t));
+			 rvarp->ndims * sizeof(off_t));
 	varp->xsz = rvarp->xsz;
 	varp->len = rvarp->len;
 	varp->begin = rvarp->begin;
@@ -499,7 +499,7 @@ out :
     varp->len = product * varp->xsz;
     if (varp->len % 4 > 0)
         varp->len += 4 - varp->len % 4; /* round up */
- 
+
 #if 0
 	arrayp("\tshape", varp->ndims, varp->shape);
 	arrayp("\tdsizes", varp->ndims, varp->dsizes);
@@ -864,4 +864,3 @@ NC3_def_var_fill(int ncid,
 
 	return NC_NOERR;
 }
-
