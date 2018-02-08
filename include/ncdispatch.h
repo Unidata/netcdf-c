@@ -145,6 +145,12 @@ extern int NC4_initialize(void);
 extern int NC4_finalize(void);
 #endif
 
+#ifdef USE_HDF4
+extern NC_Dispatch* HDF4_dispatch_table;
+extern int HDF4_initialize(void);
+extern int HDF4_finalize(void);
+#endif
+
 /* Vectors of ones and zeros */
 extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
 extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];
