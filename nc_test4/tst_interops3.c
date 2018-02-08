@@ -67,17 +67,17 @@ int
 main(int argc, char **argv)
 {
    printf("\n*** Testing HDF4/NetCDF-4 interoperability...\n");
+   nc_set_log_level(3);
    printf("*** testing that all hdf4 files can be opened...");
    {
 #define NUM_SAMPLE_FILES 5
       int ncid;
       int nvars_in, ndims_in, natts_in, unlimdim_in;
-      char file_name[NUM_SAMPLE_FILES][NC_MAX_NAME + 1] = {"AMSR_E_L2_Rain_V10_200905312326_A.hdf",
+      char file_name[NUM_SAMPLE_FILES][NC_MAX_NAME + 1] = {"/home/ed/tmp/netcdf-c/nc_test4/AMSR_E_L2_Rain_V10_200905312326_A.hdf",
 							   "AMSR_E_L3_DailyLand_V06_20020619.hdf",
 							   "MOD29.A2000055.0005.005.2006267200024.hdf",
 							   "MYD29.A2002185.0000.005.2007160150627.hdf",
 							   "MYD29.A2009152.0000.005.2009153124331.hdf"};
-      size_t len_in;
       int expected_mode = NC_NETCDF4;
       int expected_extended_format = NC_FORMATX_NC_HDF4;
       int f;
