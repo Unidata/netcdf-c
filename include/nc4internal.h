@@ -399,6 +399,7 @@ int nc4_type_free(NC_TYPE_INFO_T *type);
 int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
 int nc4_var_add(NC_VAR_INFO_T **var);
 int nc4_var_del(NC_VAR_INFO_T *var);
+int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 int nc4_dim_list_add(NC_DIM_INFO_T **list, NC_DIM_INFO_T **dim);
 int nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim);
 int nc4_att_list_add(NC_ATT_INFO_T **list, NC_ATT_INFO_T **att);

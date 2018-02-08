@@ -2,9 +2,9 @@
  * and redistribution conditions.*/
 /**
  * @file
- * Dispatch code for HDF4. HDF4 access is read-only.
+ * @internal Dispatch code for HDF4. HDF4 access is read-only.
  *
- * Ed Hartnett
+ * @author Ed Hartnett
  */
 
 #include "config.h"
@@ -13,6 +13,8 @@
 #include "nc4dispatch.h"
 #include "nc.h"
 
+/* This is the dispatch object that holds pointers to all the
+ * functions that make up the HDF4 dispatch interface. */
 static NC_Dispatch HDF4_dispatcher = {
 
 NC_FORMATX_NC_HDF4,

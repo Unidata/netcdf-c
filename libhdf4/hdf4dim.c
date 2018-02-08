@@ -1,6 +1,5 @@
-/* Copyright 2003-2018, University Corporation for Atmospheric
- * Research. See the COPYRIGHT file for copying and redistribution
- * conditions. */
+/* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+ * and redistribution conditions.*/
 /**
  * @file
  * @internal This file handles the HDF4 dimension functions.

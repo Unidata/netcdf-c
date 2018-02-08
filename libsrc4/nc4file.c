@@ -1,3 +1,6 @@
+/* Copyright 2003-2018, University Corporation for Atmospheric
+ * Research. See COPYRIGHT file for copying and redistribution
+ * conditions. */
 /**
  * @file
  * @internal The netCDF-4 file functions.
@@ -5,10 +8,9 @@
  * This file is part of netcdf-4, a netCDF-like interface for HDF5, or
  * a HDF5 backend for netCDF, depending on your point of view.
  *
- * Copyright 2003, University Corporation for Atmospheric Research. See
- * COPYRIGHT file for copying and redistribution conditions.
  * @author Ed Hartnett
  */
+
 #include "config.h"
 #include <errno.h>  /* netcdf functions sometimes return system errors */
 #include "nc.h"
@@ -17,8 +19,6 @@
 #include <H5DSpublic.h> /* must be after nc4internal.h */
 #include <H5Fpublic.h>
 #include <hdf5_hl.h>
-
-extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /** @internal When we have open objects at file close, should
     we log them or print to stdout. Default is to log. */

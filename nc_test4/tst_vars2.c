@@ -73,7 +73,7 @@ main(int argc, char **argv)
          int schar_data = 0;
          size_t index[1] = {0};
          int dimid;
-         
+
          /* Create a netcdf-4 file with one scalar var. Add fill
           * value. */
          if (nc_create(FILE_NAME2, cmode, &ncid)) ERR;
@@ -548,7 +548,7 @@ main(int argc, char **argv)
 
       /* Enter define mode and rename it to something longer. */
       if (nc_redef(ncid)) ERR;
-      if (nc_rename_var(ncid, wind_id, "windy")) ERR;      
+      if (nc_rename_var(ncid, wind_id, "windy")) ERR;
       if (nc_inq_varid(ncid, "windy", &wind_id)) ERR;
       if (nc_close(ncid)) ERR;
 
@@ -562,9 +562,9 @@ main(int argc, char **argv)
       wind_dims[0] = lon_dim;
       if (nc_def_var(ncid, "temp", NC_FLOAT, RANK_wind, wind_dims, &wind_id)) ERR;
       if (nc_enddef(ncid)) ERR;
-      if (nc_rename_var(ncid, wind_id, "windy")) ERR;            
+      if (nc_rename_var(ncid, wind_id, "windy")) ERR;
       if (nc_close(ncid)) ERR;
-      
+
    }
    SUMMARIZE_ERR;
 
@@ -727,7 +727,7 @@ main(int argc, char **argv)
 
       /* This also works, uselessly. */
       if (nc_inq_var(ncid, 0, name_in, NULL, NULL, NULL, NULL)) ERR;
-      
+
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check the same stuff. */
@@ -875,7 +875,7 @@ main(int argc, char **argv)
                                    chunksize_int_in) != NC_ENOTVAR) ERR;
       if (nc_inq_var_chunking_ints(ncid, varid + TEST_VAL_42, &storage_in,
                                    chunksize_int_in) != NC_ENOTVAR) ERR;
-      
+
       /* Now check with the fortran versions of the var_chunking. */
       if (nc_inq_var_chunking_ints(ncid, 0, &storage_in, chunksize_int_in)) ERR;
       if (storage_in != NC_CHUNKED) ERR;
@@ -897,7 +897,7 @@ main(int argc, char **argv)
                                    chunksize_int) != NC_ENOTVAR) ERR;
       if (nc_def_var_chunking_ints(ncid, varid + TEST_VAL_42, NC_CHUNKED,
                                    chunksize_int) != NC_ENOTVAR) ERR;
-      
+
       if (nc_def_var_chunking_ints(ncid, varid, NC_CHUNKED, chunksize_int) != NC_ELATEDEF) ERR;
       if (nc_redef(ncid)) ERR;
       if (nc_def_var(ncid, VAR_NAME5_1, NC_INT, NDIMS5, dimids, &varid1)) ERR;
@@ -1019,7 +1019,7 @@ main(int argc, char **argv)
                                       &cache_preemption_int_in)) ERR;
       if (cache_size_int_in != cache_size_int_default || cache_nelems_int_in != cache_nelems_int_default ||
           cache_preemption_int_in != (int)(CACHE_PREEMPTION2 * 100)) ERR;
-      
+
       if (nc_close(ncid)) ERR;
    }
 
@@ -1101,7 +1101,7 @@ main(int argc, char **argv)
 
       /* This call passes but does nothing. */
       if (nc_inq_var_chunking(ncid, 0, &storage_in, chunksize_in)) ERR;
-      
+
       if (nc_get_var_int(ncid, varid, data_in)) ERR;
       for (i = 0; i < DIM5_LEN; i++)
          if (data[i] != data_in[i])
@@ -1437,7 +1437,7 @@ main(int argc, char **argv)
          int contiguous_in;
          size_t chunksizes_in[NDIMS1];
          int shuffle_in, deflate_in, deflate_level_in;
-         
+
          if (m)
             mode |= NC_CLASSIC_MODEL;
 

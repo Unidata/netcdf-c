@@ -1,10 +1,8 @@
-/* Copyright 2005-2018, University Corporation for Atmospheric
- * Research. See COPYRIGHT file for copying and redistribution
- * conditions. */
+/* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+ * and redistribution conditions.*/
 /**
- * @file 
- * @internal This file handles groups for the HDF4 dispatch layer. All
- * functions return ::NC_ENOTNC4.
+ * @file @internal This file handles groups for the HDF4 dispatch
+ * layer. All functions return ::NC_ENOTNC4.
  * 
  * @author Ed Hartnett
 */

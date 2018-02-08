@@ -111,7 +111,6 @@ mm4::
 	  b=`basename $$m` ; d=`dirname $$m`;\
 	  pushd $$d; m4 -s $${b}.m4 > $${b}.c ; popd; done
 
-
 #####
 # If ENABLE_FORTRAN was turned on,
 # we have new make targets, build-netcdf-fortran and

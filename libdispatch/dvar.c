@@ -1,8 +1,8 @@
-/*! \file
-Functions for defining and inquiring about variables.
-
-Copyright 2010 University Corporation for Atmospheric
-Research/Unidata. See COPYRIGHT file for more info.
+/* Copyright 2010-2018 University Corporation for Atmospheric
+   Research/Unidata. See COPYRIGHT file for more info. */
+/**
+ * @file
+ * Functions for defining and inquiring about variables.
 */
 
 #include "ncdispatch.h"
@@ -1093,7 +1093,7 @@ nc_def_var_endian(int ncid, int varid, int endian)
  * @param parms Filter parameters.
  *
  * @return ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ID.
+ * @return ::NC_EBADID Bad ID.
  * @author Dennis Heimbigner
  */
 int

@@ -1,20 +1,18 @@
-/* Copyright 2003-2018, University Corporation for Atmospheric
- * Research. See COPYRIGHT file for copying and redistribution
- * conditions. */
+/* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+ * and redistribution conditions.*/
 /**
  * @file
- *
  * @internal This file handles the HDF4 attribute functions.
  *
  * @author Ed Hartnett
  */
+
 #include "nc4internal.h"
 #include "nc.h"
 #include "hdf4dispatch.h"
 #include "ncdispatch.h"
 
 int nc4typelen(nc_type type);
-
 
 /**
  * @internal Not allowed for HDF4.
@@ -52,13 +50,13 @@ HDF4_del_att(int ncid, int varid, const char *name)
 /**
  * @internal Not allowed for HDF4.
  *
- * @param ncid File and group ID.
- * @param varid Variable ID.
- * @param name Name of attribute.
- * @param file_type Type of the attribute data in file.
- * @param len Number of elements in attribute array.
- * @param data Attribute data.
- * @param memtype Type of data in memory.
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param name Ignored.
+ * @param file_type Ignored.
+ * @param len Ignored.
+ * @param data Ignored.
+ * @param memtype Ignored.
  *
  * @return ::NC_EPERM Not allowed with HDF4.
  * @author Ed Hartnett

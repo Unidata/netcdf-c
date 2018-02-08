@@ -1,11 +1,10 @@
+/* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+ * and redistribution conditions.*/
 /**
- * @file
-
- * This file handles the NetCDF-4 variable functions.
-
- * Copyright 2003-2006, University Corporation for Atmospheric
- * Research. See COPYRIGHT file for copying and redistribution
- * conditions.
+ * @file @internal This file handles the variable functions for the
+ * HDF4 dispatch layer.
+ *
+ * @author Ed Hartnett
  */
 
 #include <nc4internal.h>

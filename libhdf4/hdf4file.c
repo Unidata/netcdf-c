@@ -1,9 +1,7 @@
-/* Copyright 2018, University Corporation for Atmospheric
- * Research. See COPYRIGHT file for copying and redistribution
- * conditions. */
+/* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+ * and redistribution conditions.*/
 /**
- * @file
- * @internal The HDF4 file functions.
+ * @file @internal The HDF4 file functions.
  *
  * @author Ed Hartnett
  */
