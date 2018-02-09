@@ -418,7 +418,7 @@ ENDIF()
 ###
 
 # Option to use HDF4
-OPTION(ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability(HDF4, HDF5 and Zlib required)." OFF)
+OPTION(ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib required)." OFF)
 IF(ENABLE_HDF4)
   SET(USE_HDF4 ON)
   # Check for include files, libraries.
@@ -498,6 +498,11 @@ IF(ENABLE_NETCDF_4)
   SET(USE_NETCDF4 ON CACHE BOOL "")
   SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
   SET(ENABLE_NETCDF4 ON CACHE BOOL "")
+ELSE()
+  SET(USE_HDF4_FILE_TESTS OFF)
+  SET(USE_HDF4 OFF)  
+  SET(ENABLE_HDF4_FILE_TESTS OFF)
+  SET(ENABLE_HDF4 OFF)  
 ENDIF()
 
 # Option to allow for strict null file padding.
@@ -1727,9 +1732,9 @@ IF(USE_HDF5)
   add_subdirectory(libsrc4)
 ENDIF(USE_HDF5)
 
-IF(ENABLE_HDF4)
+IF(USE_HDF4)
   add_subdirectory(libhdf4)
-ENDIF(ENABLE_HDF4)
+ENDIF(USE_HDF4)
 
 IF(ENABLE_DAP2)
   ADD_SUBDIRECTORY(oc2)
