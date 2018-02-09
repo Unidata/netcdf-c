@@ -431,7 +431,7 @@ IF(NC_EXTRA_DEPS)
     STRING(REGEX REPLACE "^-l" "" _LIB ${_DEP})
     FIND_LIBRARY("${_LIB}_DEP" NAMES "${_LIB}" "lib${_LIB}")
     MESSAGE(${${_LIB}_DEP})
-    IF(NOT "${_LIB}_DEP")
+    IF("${${_LIB}_DEP}" STREQUAL "${_LIB}_DEP-NOTFOUND")
       MESSAGE(FATAL_ERROR "Error finding ${_LIB}.")
     ELSE()
       MESSAGE(STATUS "Found ${_LIB}: ${${_LIB}_DEP}")
@@ -799,8 +799,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ELSE(NOT HAVE_HDF5_H)
     INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
   ENDIF(NOT HAVE_HDF5_H)
-  
-  #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install 
+
+  #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
 
 
