@@ -194,6 +194,8 @@ const char *nc_strerror(int ncerr1)
 	 return "NetCDF: file not found";
       case NC_ECANTREMOVE:
 	 return "NetCDF: cannot delete file";
+      case NC_EINTERNAL:
+	 return "NetCDF: internal library error; Please contact Unidata support";
       case NC_EHDFERR:
 	 return "NetCDF: HDF error";
       case NC_ECANTREAD:

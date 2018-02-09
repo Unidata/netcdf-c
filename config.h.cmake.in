@@ -712,6 +712,9 @@ are set when opening a binary file on Windows. */
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #cmakedefine size_t unsigned int
 
+/* Define to `unsigned long if <sys/types.h> does not define. */
+#cmakedefine uintptr_t unsigned long
+
 /* Define strcasecmp, snprintf on Win32 systems. */
 #ifdef _WIN32
     #ifndef HAVE_STRCASECMP

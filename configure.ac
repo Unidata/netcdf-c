@@ -833,6 +833,7 @@ UD_CHECK_IEEE
 AC_CHECK_TYPES([size_t, ssize_t, ptrdiff_t, schar, uchar, longlong, ushort, uint, int64, uint64 off_t])
 AC_TYPE_SIZE_T
 AC_TYPE_OFF_T
+AC_TYPE_UINTPTR_T
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 

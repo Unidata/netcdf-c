@@ -1553,7 +1553,7 @@ main(int argc, char **argv)
       /* Create a netcdf-4 file. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM10_NAME, NC_UNLIMITED, &dimid[0])) ERR;
-      if (nc_def_dim(ncid, DIM11_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+      if (nc_def_dim(ncid, DIM11_NAME, NC_UNLIMITED, &dimid[1])) ERR;
       if (nc_def_var(ncid, VAR_NAME11, NC_BYTE, NDIM2, dimid, &varid)) ERR;
       if (nc_inq_var_chunking(ncid, varid, &storage_in, chunksize_in)) ERR;
       if (storage_in != NC_CHUNKED) ERR;
