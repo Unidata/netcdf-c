@@ -778,6 +778,7 @@ main(int argc, char **argv)
       int dimids[NDIMS5], dimids_in[NDIMS5];
       int varid, varid1, varid2, varid3, varid4;
       int ndims, nvars, natts, unlimdimid;
+      int varids_in[NVAR4];      
       nc_type xtype_in;
       char name_in[NC_MAX_NAME + 1];
       int data[DIM5_LEN], data_in[DIM5_LEN];
