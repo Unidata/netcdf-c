@@ -514,7 +514,7 @@ main(int argc, char **argv)
             if (nc_inq_var_fill(ncid, varid, &no_fill, (char **)fill_value_in)) ERR;
             if (no_fill) ERR;
             if (strcmp(fill_value_in[0], *string_fillp)) ERR;
-            if (nc_free_string(1, fill_value_in)) ERR;            
+            if (nc_free_string(1, (char **)fill_value_in)) ERR;
          }
 
          if (dim_combo < 2)
