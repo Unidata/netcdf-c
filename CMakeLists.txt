@@ -325,6 +325,35 @@ IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
   SET(CMAKE_OSX_ARCHITECTURES i386;x86_64)
 ENDIF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 
+# Macro for replacing '/MD' with '/MT'.
+# Used only on Windows, /MD tells VS to use the shared
+# CRT libs, MT tells VS to use the static CRT libs.
+#
+# Taken From:
+#   http://www.cmake.org/Wiki/CMake_FAQ#How_can_I_build_my_MSVC_application_with_a_static_runtime.3F
+#
+MACRO(specify_static_crt_flag)
+  SET(vars
+    CMAKE_C_FLAGS
+    CMAKE_C_FLAGS_DEBUG
+    CMAKE_C_FLAGS_MINSIZEREL
+    CMAKE_C_FLAGS_RELWITHDEBINFO
+    CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG
+    CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL
+    CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+
+  FOREACH(flag_var ${vars})
+    IF(${flag_var} MATCHES "/MD")
+      STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+    ENDIF()
+  ENDFOREACH()
+
+  FOREACH(flag_var ${vars})
+    MESSAGE(STATUS " '${flag_var}': ${${flag_var}}")
+  ENDFOREACH()
+  MESSAGE(STATUS "")
+ENDMACRO()
+
 # Option to use Static Runtimes in MSVC
 IF(MSVC)
   OPTION(NC_USE_STATIC_CRT "Use static CRT Libraries ('\\MT')." OFF)
@@ -402,7 +431,7 @@ IF(NC_EXTRA_DEPS)
     STRING(REGEX REPLACE "^-l" "" _LIB ${_DEP})
     FIND_LIBRARY("${_LIB}_DEP" NAMES "${_LIB}" "lib${_LIB}")
     MESSAGE(${${_LIB}_DEP})
-    IF(NOT "${_LIB}_DEP")
+    IF("${${_LIB}_DEP}" STREQUAL "${_LIB}_DEP-NOTFOUND")
       MESSAGE(FATAL_ERROR "Error finding ${_LIB}.")
     ELSE()
       MESSAGE(STATUS "Found ${_LIB}: ${${_LIB}_DEP}")
@@ -697,8 +726,17 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
   ENDIF(NOT MSVC)
 
+  #//////////////////////////
+  #HDF5 can be optionally linked with the SZIP library (Science Data Lossless Compression Program) and ZLIB
+  #Symbol to detect in ZLIB can be only H5Z_DEFLATE, a structure only defined in H5Zdeflate.c if the filter is enabled
+  #For SZIP the structure can be only H5Z_SZIP, defined in H5Zszip.c if the filter is enabled
+  #check_library_exists() tries to link a temporary program with these symbols
+  #On MSVC for this detection to work, the HDF5 library MUST HAVE as additional dependencies the ZLIB and SZIP libraries,
+  #which is not a requirement for the library to build successfully
+  #//////////////////////////
+
   # Make sure the user has built the library with zlib support.
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_deflate "" HAVE_H5PSET_DEFLATE)
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Z_DEFLATE "" HAVE_H5PSET_DEFLATE)
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Z_SZIP "" USE_SZIP)
@@ -766,6 +804,9 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ELSE(NOT HAVE_HDF5_H)
     INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
   ENDIF(NOT HAVE_HDF5_H)
+
+  #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
+  INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
 
 
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
@@ -1640,34 +1681,7 @@ MACRO(add_sh_test prefix F)
   ENDIF()
 ENDMACRO()
 
-# Macro for replacing '/MD' with '/MT'.
-# Used only on Windows, /MD tells VS to use the shared
-# CRT libs, MT tells VS to use the static CRT libs.
-#
-# Taken From:
-#   http://www.cmake.org/Wiki/CMake_FAQ#How_can_I_build_my_MSVC_application_with_a_static_runtime.3F
-#
-MACRO(specify_static_crt_flag)
-  SET(vars
-    CMAKE_C_FLAGS
-    CMAKE_C_FLAGS_DEBUG
-    CMAKE_C_FLAGS_MINSIZEREL
-    CMAKE_C_FLAGS_RELWITHDEBINFO
-    CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG
-    CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL
-    CMAKE_CXX_FLAGS_RELWITHDEBINFO)
 
-  FOREACH(flag_var ${vars})
-    IF(${flag_var} MATCHES "/MD")
-      STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-    ENDIF()
-  ENDFOREACH()
-
-  FOREACH(flag_var ${vars})
-    MESSAGE(STATUS " '${flag_var}': ${${flag_var}}")
-  ENDFOREACH()
-  MESSAGE(STATUS "")
-ENDMACRO()
 
 # A function used to create autotools-style 'yes/no' definitions.
 # If a variable is set, it 'yes' is returned. Otherwise, 'no' is
