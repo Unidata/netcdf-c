@@ -342,11 +342,7 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
              * reporting it as a range error.
              */
             if ( r < X_CHAR_MIN || r > X_CHAR_MAX ) return 2;
-#if defined(__CHAR_UNSIGNED__) && __CHAR_UNSIGNED__ != 0
             *((signed char*) p) = (signed char)r;
-#else
-            *((char   *) p) = (char)r;
-#endif
             break;
         case NC_BYTE:
             r = floor(0.5+d);
