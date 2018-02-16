@@ -420,4 +420,17 @@ NCDISPATCH_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 extern int
 NCDISPATCH_get_att(int ncid, int varid, const char* name, void* value, nc_type t);
 
+/* Read-only dispatch layers can use these functions to return
+ * NC_EPERM to all attempts to modify a file. */
+
+int
+RO_rename_att(int ncid, int varid, const char *name, const char *newname);
+
+int
+RO_del_att(int ncid, int varid, const char*);
+
+int
+RO_put_att(int ncid, int varid, const char *name, nc_type datatype,
+	   size_t len, const void *value, nc_type);
+
 #endif /* _DISPATCH_H */

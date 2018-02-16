@@ -111,21 +111,11 @@ HDF4_inq_attid(int ncid, int varid, const char *name, int *idp);
 extern int
 HDF4_inq_attname(int ncid, int varid, int attnum, char *name);
 
-extern int
-HDF4_rename_att(int ncid, int varid, const char *name, const char *newname);
-
-extern int
-HDF4_del_att(int ncid, int varid, const char*);
-
 /* End _att */
 /* Begin {put,get}_att */
 
 extern int
 HDF4_get_att(int ncid, int varid, const char *name, void *value, nc_type);
-
-extern int
-HDF4_put_att(int ncid, int varid, const char *name, nc_type datatype,
-	   size_t len, const void *value, nc_type);
 
 /* End {put,get}_att */
 /* Begin _var */
