@@ -3,6 +3,7 @@
  * https://github.com/Unidata/netcdf-c/issues/160
  */
 
+#include <config.h>
 #include "netcdf.h"
 
 #include <stdio.h>
