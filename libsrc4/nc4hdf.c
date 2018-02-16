@@ -21,6 +21,11 @@
 #include <H5DSpublic.h>
 #include <math.h>
 
+#ifdef HAVE_INTTYPES_H
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+#endif
+
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
@@ -4218,10 +4223,10 @@ reportobject(int log, hid_t id, unsigned int type)
    }
    if(log) {
 #ifdef LOGGING
-      LOG((0,"Type = %s(%8u) name='%s'",typename,id,name));
+      LOG((0,"Type = %s(%8" PRId64 ") name='%s'",typename,id,name));
 #endif
    } else {
-      fprintf(stderr,"Type = %s(%8u) name='%s'",typename,(unsigned int)id,name);
+      fprintf(stderr,"Type = %s(%8" PRId64 ") name='%s'",typename,id,name);
    }
 }
 
@@ -4245,10 +4250,10 @@ reportopenobjectsT(int log, hid_t fid, int ntypes, unsigned int* otypes)
 
    if(log) {
 #ifdef LOGGING
-      LOG((0,"\nReport: open objects on %d\n",fid));
+      LOG((0,"\nReport: open objects on %" PRId64 "\n",fid));
 #endif
    } else {
-      fprintf(stdout,"\nReport: open objects on %d\n",(int)fid);
+      fprintf(stdout,"\nReport: open objects on %" PRId64 "\n",fid);
    }
    maxobjs = H5Fget_obj_count(fid,H5F_OBJ_ALL);
    if(idlist != NULL) free(idlist);
