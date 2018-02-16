@@ -14,6 +14,19 @@
 #include <stddef.h> /* size_t, ptrdiff_t */
 #include <errno.h>  /* netcdf functions sometimes return system errors */
 #include "ncdispatch.h"
+#include <mfhdf.h>  /* The HDF4 header file. */
+
+/* Stuff below is for hdf4 files. */
+typedef struct NC_VAR_HDF4_INFO
+{
+   int sdsid;
+   int hdf4_data_type;
+} NC_VAR_HDF4_INFO_T;
+
+typedef struct NC_HDF4_FILE_INFO
+{
+   int sdid;
+} NC_HDF4_FILE_INFO_T;
 
 #if defined(__cplusplus)
 extern "C" {

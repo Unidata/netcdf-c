@@ -8,6 +8,7 @@
  */
 
 #include <nc4internal.h>
+#include "hdf4dispatch.h"
 #include "nc4dispatch.h"
 
 /**
@@ -299,25 +300,31 @@ nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp,
                   const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
 {
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_VAR_HDF4_INFO_T *hdf4_var;   
    NC_VAR_INFO_T *var;
    int32 start32[NC_MAX_VAR_DIMS], edge32[NC_MAX_VAR_DIMS];
    int retval, d;
 
-   /* Find our metadata for this file, group, and var. */
+   /* Check inputs. */
    assert(nc);
+
+   /* Find our metadata for this file, group, and var. */
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
       return retval;
-   h5 = NC4_DATA(nc);
-   assert(grp && h5 && var && var->name);
+   assert(grp && var && var->name && var->format_var_info);
 
+   /* Get the HDF4 specific var metadata. */
+   hdf4_var = (NC_VAR_HDF4_INFO_T *)var->format_var_info;
+
+   /* Convert starts/edges to the int32 type HDF4 wants. */
    for (d = 0; d < var->ndims; d++)
    {
       start32[d] = startp[d];
       edge32[d] = countp[d];
    }
 
-   if (SDreaddata(var->sdsid, start32, NULL, edge32, data))
+   /* Read the data with HDF4. */
+   if (SDreaddata(hdf4_var->sdsid, start32, NULL, edge32, data))
       return NC_EHDFERR;
 
    return NC_NOERR;
