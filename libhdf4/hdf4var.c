@@ -60,26 +60,6 @@ HDF4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
 }
 
 /**
- * @internal Not allowed for HDF4.
- *
- * @param ncid File ID.
- * @param name Name.
- * @param xtype Type.
- * @param ndims Number of dims.
- * @param dimidsp Array of dim IDs.
- * @param varidp Gets the var ID.
- *
- * @returns ::NC_EPERM Not allowed for HDF4.
- * @author Ed Hartnett
- */
-int
-HDF4_def_var(int ncid, const char *name, nc_type xtype,
-             int ndims, const int *dimidsp, int *varidp)
-{
-   return NC_EPERM;
-}
-
-/**
  * @internal Set compression settings on a variable. This is called by
  * nc_def_var_deflate().
  *
@@ -159,34 +139,6 @@ HDF4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksi
    return NC_EPERM;
 }
 
-/**
- * @internal This functions sets fill value and no_fill mode for a
- * netCDF-4 variable. It is called by nc_def_var_fill().
- *
- * @note All pointer parameters may be NULL, in which case they are ignored.
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param no_fill No_fill setting.
- * @param fill_value Pointer to fill value.
- *
- * @returns ::NC_NOERR for success
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
- * netcdf-4 file.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_ENOTINDEFINE Not in define mode.
- * @returns ::NC_EPERM File is read only.
- * @returns ::NC_EINVAL Invalid input
- * @author Ed Hartnett
- */
-int
-HDF4_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
-{
-   return NC_ENOTNC4;
-}
 
 /**
  * @internal This functions sets endianness for a netCDF-4
@@ -214,48 +166,6 @@ int
 HDF4_def_var_endian(int ncid, int varid, int endianness)
 {
    return NC_ENOTNC4;
-}
-
-/**
- * @internal Define filter settings. Called by nc_def_var_filter().
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param id Filter ID
- * @param nparams Number of parameters for filter.
- * @param parms Filter parameters.
- *
- * @returns ::NC_NOERR for success
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_EFILTER Filter error.
- * @returns ::NC_EINVAL Invalid input
- * @author Dennis Heimbigner
- */
-int
-HDF4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
-                    const unsigned int* parms)
-{
-   return NC_ENOTNC4;
-}
-
-/**
- * @internal Not allowed for HDF4.
- *
- * @param ncid File ID.
- * @param varid Variable ID
- * @param name New name of the variable.
- *
- * @returns ::NC_EPERM Not allowed for HDF4.
- * @author Ed Hartnett
-*/
-int
-HDF4_rename_var(int ncid, int varid, const char *name)
-{
-   return NC_EPERM;
 }
 
 /**
@@ -328,28 +238,6 @@ nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp,
       return NC_EHDFERR;
 
    return NC_NOERR;
-}
-
-/**
- * @internal Write an array of data to a variable. This is called by
- * nc_put_vara() and other nc_put_vara_* functions, for netCDF-4
- * files.
- * 
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param startp Array of start indicies.
- * @param countp Array of counts.
- * @param op pointer that gets the data.
- * @param memtype The type of these data in memory.
- *
- * @returns ::NC_NOERR for success
- * @author Ed Hartnett, Dennis Heimbigner
- */
-int
-HDF4_put_vara(int ncid, int varid, const size_t *startp,
-             const size_t *countp, const void *op, int memtype)
-{
-   return NC_EPERM;
 }
 
 /**

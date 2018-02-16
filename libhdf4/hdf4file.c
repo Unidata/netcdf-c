@@ -81,31 +81,6 @@ static const int nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof
                                               sizeof(unsigned long long), sizeof(char *)};
 
 /**
- * @internal Create a HDF4 file. Since the HDF4 integration provides
- * read-only access to HDF4 files, this returns error NC_ENOTNC4.
- *
- * @param path Ignored.
- * @param cmode Ignored.
- * @param initialsz Ignored.
- * @param basepe Ignored.
- * @param chunksizehintp Ignored.
- * @param use_parallel Ignored.
- * @param parameters Ignored.
- * @param dispatch Ignored.
- * @param nc_file Ignored.
- *
- * @return ::NC_ENOTNC4 Cannot create HDF4 files.
- * @author Ed Hartnett
- */
-int
-HDF4_create(const char* path, int cmode, size_t initialsz, int basepe,
-           size_t *chunksizehintp, int use_parallel, void *parameters,
-           NC_Dispatch *dispatch, NC* nc_file)
-{
-   return NC_ENOTNC4;
-}
-
-/**
  * @internal Given an HDF4 type, set a pointer to netcdf type.
  *
  * See http://www.hdfgroup.org/training/HDFtraining/UsersGuide/Fundmtls.fm3.html
@@ -600,75 +575,6 @@ HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    /* Open the file. */
    nc_file->int_ncid = nc_file->ext_ncid;
    return nc4_open_hdf4_file(path, mode, nc_file);
-}
-
-/**
- * @internal Unfortunately HDF only allows specification of fill value
- * only when a dataset is created. Whereas in netcdf, you first create
- * the variable and then (optionally) specify the fill value. To
- * accomplish this in HDF5 I have to delete the dataset, and recreate
- * it, with the fill value specified. 
- *
- * @param ncid File and group ID.
- * @param fillmode File mode.
- * @param old_modep Pointer that gets old mode. Ignored if NULL.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
-*/
-int
-HDF4_set_fill(int ncid, int fillmode, int *old_modep)
-{
-   return NC_EPERM;
-}
-
-/**
- * @internal Not allowed for HDF4 files.
- *
- * @param ncid File and group ID.
- *
- * @return ::NC_ENOTNC4 No error.
- * @author Ed Hartnett
-*/
-int
-HDF4_redef(int ncid)
-{
-   return NC_EPERM;
-}
-
-/**
- * @internal This does nothing for HDF4 files. Since they are
- * read-only, then can never be put into define mode.
- *
- * @param ncid File and group ID.
- * @param h_minfree Ignored for netCDF-4 files.
- * @param v_align Ignored for netCDF-4 files.
- * @param v_minfree Ignored for netCDF-4 files.
- * @param r_align Ignored for netCDF-4 files.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
-*/
-int
-HDF4__enddef(int ncid, size_t h_minfree, size_t v_align,
-             size_t v_minfree, size_t r_align)
-{
-   return NC_NOERR;   
-}
-
-/**
- * @internal Does nothing, since HDF4 files are read only. There can
- * be no changes to sync to disk.
- *
- * @param ncid File and group ID.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
-*/
-int
-HDF4_sync(int ncid)
-{
-   return NC_NOERR;
 }
 
 /**
