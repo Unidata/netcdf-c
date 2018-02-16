@@ -158,6 +158,10 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 #define NC_PNETCDF       (NC_MPIIO) /**< Use parallel-netcdf library; alias for NC_MPIIO. */
 
+#define NC_PIO           0x0040  /**< Use PIO. Mode flag for nc_open() or nc_create(). */
+#define NC_UF0           0x0080  /**< User-defined format. */
+#define NC_UF1           0x0002  /**< User-defined format. */
+
 /** Format specifier for nc_set_default_format() and returned
  *  by nc_inq_format. This returns the format as provided by
  *  the API. See nc_inq_format_extended to see the true file format.
@@ -207,6 +211,9 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMATX_PNETCDF   (4)
 #define NC_FORMATX_DAP2      (5)
 #define NC_FORMATX_DAP4      (6)
+#define NC_FORMATX_PIO       (7)
+#define NC_FORMATX_UF0       (8)
+#define NC_FORMATX_UF1       (9)
 #define NC_FORMATX_UNDEFINED (0)
 
   /* To avoid breaking compatibility (such as in the python library),
@@ -219,6 +226,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMAT_NC4       NC_FORMATX_NC4 /**< \deprecated As of 4.4.0, use NC_FORMATX_NC4 */
 #define NC_FORMAT_NC_HDF4   NC_FORMATX_NC_HDF4 /**< \deprecated As of 4.4.0, use NC_FORMATX_HDF4 */
 #define NC_FORMAT_PNETCDF   NC_FORMATX_PNETCDF /**< \deprecated As of 4.4.0, use NC_FORMATX_PNETCDF */
+#define NC_FORMAT_PIO       NC_FORMATX_PIO /**< \deprecated As of 4.4.0, use NC_FORMATX_PIO */
 #define NC_FORMAT_DAP2      NC_FORMATX_DAP2 /**< \deprecated As of 4.4.0, use NC_FORMATX_DAP2 */
 #define NC_FORMAT_DAP4      NC_FORMATX_DAP4 /**< \deprecated As of 4.4.0, use NC_FORMATX_DAP4 */
 #define NC_FORMAT_UNDEFINED NC_FORMATX_UNDEFINED /**< \deprecated As of 4.4.0, use NC_FORMATX_UNDEFINED */
@@ -502,6 +510,11 @@ nc_inq_libvers(void);
 EXTERNL const char *
 nc_strerror(int ncerr);
 
+/* Set up user-defined format. */
+typedef struct NC_Dispatch NC_Dispatch;   
+EXTERNL int
+nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number);
+   
 EXTERNL int
 nc__create(const char *path, int cmode, size_t initialsz,
          size_t *chunksizehintp, int *ncidp);

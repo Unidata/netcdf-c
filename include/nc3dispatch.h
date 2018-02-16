@@ -180,6 +180,15 @@ NC3_get_vara(int ncid, int varid,
 	     const size_t *start, const size_t *count,
              void *value, nc_type);
 
+extern int
+NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
+                int *ndimsp, int *dimidsp, int *nattsp, 
+                int *shufflep, int *deflatep, int *deflate_levelp,
+                int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
+                int *no_fill, void *fill_valuep, int *endiannessp, 
+                unsigned int* idp, size_t* nparamsp, unsigned int* params);
+   
+
 /* End _var */
 
 extern int NC3_initialize();

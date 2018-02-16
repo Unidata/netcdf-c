@@ -40,6 +40,12 @@ AM_CPPFLAGS += -I${top_srcdir}/libsrcp
 libnetcdf_la_LIBADD += ${top_builddir}/libsrcp/libnetcdfp.la
 endif # USE_PNETCDF
 
+# + hdf4
+if USE_HDF4
+AM_CPPFLAGS += -I${top_srcdir}/libhdf4
+libnetcdf_la_LIBADD += ${top_builddir}/libhdf4/libnchdf4.la
+endif # USE_PNETCDF
+
 # + dap
 if ENABLE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/libdap2 -I${top_srcdir}/oc
@@ -63,6 +69,12 @@ libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 # libnetcdf_la_LIBADD += ${top_builddir}/libdiskless/libdiskless.la
 
 endif #USE_NETCDF4
+
+# + pio
+if USE_PIO
+AM_CPPFLAGS += -I${top_srcdir}/libpio
+libnetcdf_la_LIBADD += ${top_builddir}/libpio/libnetcdfpio.la
+endif # USE_PIO
 
 if ISCYGWIN
 # Force binary mode for file read/write
