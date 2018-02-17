@@ -11,8 +11,6 @@
 #define _HDF4DISPATCH_H
 
 #include "config.h"
-#include <stddef.h> /* size_t, ptrdiff_t */
-#include <errno.h>  /* netcdf functions sometimes return system errors */
 #include "ncdispatch.h"
 #include <mfhdf.h>  /* The HDF4 header file. */
 
@@ -33,10 +31,8 @@ extern "C" {
 #endif
 
    extern int
-   HDF4_open(const char *path, int mode,
-             int basepe, size_t *chunksizehintp, 
-             int use_parallel, void* parameters,
-             NC_Dispatch*, NC*);
+   HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp, 
+             int use_parallel, void* parameters, NC_Dispatch*, NC*);
 
    extern int
    HDF4_abort(int ncid);
@@ -95,16 +91,13 @@ extern "C" {
                     int *shufflep, int *deflatep, int *deflate_levelp,
                     int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
                     int *no_fill, void *fill_valuep, int *endiannessp, 
-                    unsigned int* idp, size_t* nparamsp, unsigned int* params
-      );
+                    unsigned int* idp, size_t* nparamsp, unsigned int* params);
 
    extern int
    HDF4_inq_varid(int ncid, const char *name, int *varidp);
 
-
    extern int
-   HDF4_get_vara(int ncid, int varid,
-                 const size_t *start, const size_t *count,
+   HDF4_get_vara(int ncid, int varid, const size_t *start, const size_t *count,
                  void *value, nc_type);
 
 /* End _var */
@@ -145,7 +138,6 @@ extern "C" {
    HDF4_inq_user_type(int, nc_type, char *, size_t *, nc_type *, 
                       size_t *, int *);
 
-
    extern int
    HDF4_inq_unlimdims(int, int *, int *);
 
@@ -164,14 +156,15 @@ extern "C" {
 
    int RO_redef(int ncid);
   
-   int RO__enddef(int ncid, size_t h_minfree, size_t v_align,
-                  size_t v_minfree, size_t r_align);
+   int RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
+                  size_t r_align);
    
    int RO_sync(int ncid);
 
    int RO_def_var_fill(int, int, int, const void *);
 
-   int RO_rename_att(int ncid, int varid, const char *name, const char *newname);
+   int RO_rename_att(int ncid, int varid, const char *name,
+                     const char *newname);
 
    int RO_del_att(int ncid, int varid, const char*);
 
@@ -191,7 +184,8 @@ extern "C" {
 
    int RO_set_fill(int ncid, int fillmode, int *old_modep);
 
-   int NOTNC4_def_var_filter(int, int, unsigned int, size_t, const unsigned int*);
+   int NOTNC4_def_var_filter(int, int, unsigned int, size_t,
+                             const unsigned int*);
 
    int NOTNC3_set_base_pe(int ncid, int pe);
 

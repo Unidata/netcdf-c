@@ -24,6 +24,7 @@
 #include <unistd.h> /* lseek() */
 
 #include "ncdispatch.h"
+#include "hdf4dispatch.h"
 #include "netcdf_mem.h"
 #include "ncwinpath.h"
 #ifdef USE_PIO
