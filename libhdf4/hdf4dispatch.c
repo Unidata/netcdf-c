@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include "hdf4dispatch.h"
 #include "nc4dispatch.h"
-#include "nc.h"
 
 /* This is the dispatch object that holds pointers to all the
  * functions that make up the HDF4 dispatch interface. */

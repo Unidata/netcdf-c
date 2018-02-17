@@ -34,17 +34,13 @@ NOTNC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
 
 
 /**
- * @internal Create a group. Its ncid is returned in the new_ncid
- * pointer. 
+ * @internal Not allowed for classic model.
  *
- * @param parent_ncid Parent group.
- * @param name Name of new group.
- * @param new_ncid Pointer that gets ncid for new group.
+ * @param parent_ncid Ignored.
+ * @param name Ignored.
+ * @param new_ncid Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_ESTRICTNC3 Classic model in use for this file.
- * @return ::NC_ENOTNC4 Not a netCDF-4 file.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -54,18 +50,12 @@ NOTNC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 }
 
 /**
- * @internal Rename a group. 
+ * @internal Not allowed for classic model.
  *
- * @param grpid Group ID.
- * @param name New name for group.
+ * @param grpid Ignored.
+ * @param name Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_ENOTNC4 Not a netCDF-4 file.
- * @return ::NC_EPERM File opened read-only.
- * @return ::NC_EBADGRPID Renaming root forbidden.
- * @return ::NC_EHDFERR HDF5 function returned error.
- * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -75,17 +65,14 @@ NOTNC4_rename_grp(int grpid, const char *name)
 }
 
 /**
- * @internal Create a compound type.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param size Gets size in bytes of one element of type.
- * @param name Name of the type.
- * @param typeidp Gets the type ID.
+ * @param ncid Ignored.
+ * @param size Ignored.
+ * @param name Ignored.
+ * @param typeidp Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EMAXNAME Name is too long.
- * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -95,18 +82,15 @@ NOTNC4_def_compound(int ncid, size_t size, const char *name, nc_type *typeidp)
 }
 
 /**
- * @internal Insert a named field into a compound type.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param typeid1 Type ID.
- * @param name Name of the type.
- * @param offset Offset of field.
- * @param field_typeid Field type ID.
+ * @param ncid Ignored.
+ * @param typeid1 Ignored.
+ * @param name Ignored.
+ * @param offset Ignored.
+ * @param field Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EMAXNAME Name is too long.
- * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -117,20 +101,17 @@ NOTNC4_insert_compound(int ncid, nc_type typeid1, const char *name, size_t offse
 }
 
 /**
- * @internal Insert a named array into a compound type.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param typeid1 Type ID.
- * @param name Name of the array field.
- * @param offset Offset in bytes.
- * @param field_typeid Type of field.
- * @param ndims Number of dims for field.
- * @param dim_sizesp Array of dim sizes.
+ * @param ncid Ignored.
+ * @param typeid1 Ignored.
+ * @param name Ignored.
+ * @param offset Ignored.
+ * @param field Ignored.
+ * @param ndims Ignored.
+ * @param dim Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EMAXNAME Name is too long.
- * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 extern int
@@ -142,20 +123,18 @@ NOTNC4_insert_array_compound(int ncid, int typeid1, const char *name,
 }
 
 /**
- * @internal Given the ncid, typeid and fieldid, get info about the
- * field.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param typeid1 Type ID.
- * @param fieldid Field ID.
- * @param name Gets name of field.
- * @param offsetp Gets offset of field.
- * @param field_typeidp Gets field type ID.
- * @param ndimsp Gets number of dims for this field.
- * @param dim_sizesp Gets the dim sizes for this field.
+ * @param ncid Ignored.
+ * @param typeid1 Ignored.
+ * @param fieldid Ignored.
+ * @param name Ignored.
+ * @param offsetp Ignored.
+ * @param field Ignored.
+ * @param ndimsp Ignored.
+ * @param dim Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -167,17 +146,14 @@ NOTNC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
 }
 
 /**
- * @internal Given the typeid and the name, get the fieldid.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param typeid1 Type ID.
- * @param name Name of field.
- * @param fieldidp Pointer that gets new field ID.
+ * @param ncid Ignored.
+ * @param typeid1 Ignored.
+ * @param name Ignored.
+ * @param fieldidp Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EBADTYPE Type not found.
- * @return ::NC_EBADFIELD Field not found.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -189,17 +165,14 @@ NOTNC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int 
 /* Opaque type. */
 
 /**
- * @internal Create an opaque type. Provide a size and a name.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param datum_size Size in bytes of a datum.
- * @param name Name of new vlen type.
- * @param typeidp Pointer that gets new type ID.
+ * @param ncid Ignored.
+ * @param datum Ignored.
+ * @param name Ignored.
+ * @param typeidp Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EMAXNAME Name is too long.
- * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -210,17 +183,14 @@ NOTNC4_def_opaque(int ncid, size_t datum_size, const char *name,
 }
 
 /**
- * @internal Define a variable length type.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param name Name of new vlen type.
- * @param base_typeid Base type of vlen.
- * @param typeidp Pointer that gets new type ID.
+ * @param ncid Ignored.
+ * @param name Ignored.
+ * @param base_typeid Ignored.
+ * @param typeidp Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EMAXNAME Name is too long.
- * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -231,17 +201,14 @@ NOTNC4_def_vlen(int ncid, const char *name, nc_type base_typeid,
 }
 
 /**
- * @internal Create an enum type. Provide a base type and a name. At
- * the moment only ints are accepted as base types.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param base_typeid Base type of vlen.
- * @param name Name of new vlen type.
- * @param typeidp Pointer that gets new type ID.
+ * @param ncid Ignored.
+ * @param base_typeid Ignored.
+ * @param name Ignored.
+ * @param typeidp Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EMAXNAME Name is too long.
- * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -253,18 +220,14 @@ NOTNC4_def_enum(int ncid, nc_type base_typeid, const char *name,
 
 
 /**
- * @internal Get enum name from enum value. Name size will be <=
- * NC_MAX_NAME.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param xtype Type ID.
- * @param value Value of enum.
- * @param identifier Gets the identifier for this enum value.
+ * @param ncid Ignored.
+ * @param xtype Ignored.
+ * @param value Ignored.
+ * @param identifier Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EBADTYPE Type not found.
- * @return ::NC_EINVAL Invalid type data.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -274,19 +237,15 @@ NOTNC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier
 }
 
 /**
- * @internal Get information about an enum member: an identifier and
- * value. Identifier size will be <= NC_MAX_NAME.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param typeid1 Type ID.
- * @param idx Enum member index.
- * @param identifier Gets the identifier.
- * @param value Gets the enum value.
+ * @param ncid Ignored.
+ * @param typeid1 Ignored.
+ * @param idx Ignored.
+ * @param identifier Ignored.
+ * @param value Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EBADTYPE Type not found.
- * @return ::NC_EINVAL Bad idx.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -297,19 +256,14 @@ NOTNC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
 }
 
 /**
- * @internal Insert a identifier value into an enum type. The value
- * must fit within the size of the enum type, the identifier size must
- * be <= NC_MAX_NAME.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param typeid1 Type ID.
- * @param identifier Name of this enum value.
- * @param value Value of enum.
+ * @param ncid Ignored.
+ * @param typeid1 Ignored.
+ * @param identifier Ignored.
+ * @param value Ignored.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EBADTYPE Type not found.
- * @return ::NC_ETYPDEFINED Type already defined.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -320,14 +274,13 @@ NOTNC4_insert_enum(int ncid, nc_type typeid1, const char *identifier,
 }
 
 /**
- * @internal Insert one element into an already allocated vlen array
- * element.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param typeid1 Type ID.
- * @param vlen_element The VLEN element to insert.
- * @param len Length of element in bytes.
- * @param data Element data.
+ * @param ncid Ignored.
+ * @param typeid1 Ignored.
+ * @param vlen_element Ignored.
+ * @param len Ignored.
+ * @param data Ignored.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
@@ -340,16 +293,15 @@ NOTNC4_put_vlen_element(int ncid, int typeid1, void *vlen_element,
 }
 
 /**
- * @internal Insert one element into an already allocated vlen array
- * element.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File and group ID.
- * @param typeid1 Type ID.
- * @param vlen_element The VLEN element to insert.
- * @param len Length of element in bytes.
- * @param data Element data.
+ * @param ncid Ignored.
+ * @param typeid1 Ignored.
+ * @param vlen_element Ignored.
+ * @param len Ignored.
+ * @param data Ignored.
  *
- * @return ::NC_NOERR No error.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
 */
 int
@@ -360,21 +312,15 @@ NOTNC4_get_vlen_element(int ncid, int typeid1, const void *vlen_element,
 }
 
 /**
- * @internal Set chunk cache size for a variable. This is the internal
- * function called by nc_set_var_chunk_cache().
+ * @internal Not allowed for classic model.
  *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param size Size in bytes to set cache.
- * @param nelems Number of elements in cache.
- * @param preemption Controls cache swapping.
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param size Ignored.
+ * @param nelems Ignored.
+ * @param preemption Ignored.
  *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
- * @returns ::NC_EINVAL Invalid input.
- * @returns ::NC_EHDFERR HDF5 error.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
  */
 int
@@ -385,19 +331,15 @@ NOTNC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
 }
 
 /**
- * @internal This is called by nc_get_var_chunk_cache(). Get chunk
- * cache size for a variable.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param sizep Gets size in bytes of cache.
- * @param nelemsp Gets number of element slots in cache.
- * @param preemptionp Gets cache swapping setting.
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param sizep Ignored.
+ * @param nelemsp Ignored.
+ * @param preemptionp Ignored.
  *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Not a netCDF-4 file.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
  */
 int
@@ -408,24 +350,15 @@ NOTNC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
 }
 
 /**
- * @internal Set compression settings on a variable. This is called by
- * nc_def_var_deflate().
+ * @internal Not allowed for classic model.
  *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param shuffle True to turn on the shuffle filter.
- * @param deflate True to turn on deflation.
- * @param deflate_level A number between 0 (no compression) and 9
- * (maximum compression).
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param shuffle Ignored.
+ * @param deflate Ignored.
+ * @param deflate_level Ignored.
  *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_ENOTINDEFINE Not in define mode.
- * @returns ::NC_EINVAL Invalid input
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
@@ -436,21 +369,13 @@ NOTNC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
 }
 
 /**
- * @internal Set checksum on a variable. This is called by
- * nc_def_var_fletcher32().
+ * @internal Not allowed for classic model.
  *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param fletcher32 Pointer to fletcher32 setting.
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param fletcher32 Ignored.
  *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_ENOTINDEFINE Not in define mode.
- * @returns ::NC_EINVAL Invalid input
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
@@ -460,25 +385,14 @@ NOTNC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
 }
 
 /**
- * @internal Define chunking stuff for a var. This is called by
- * nc_def_var_chunking(). Chunking is required in any dataset with one
- * or more unlimited dimensions in HDF5, or any dataset using a
- * filter.
+ * @internal Not allowed for classic model.
  *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param contiguous Pointer to contiguous setting.
- * @param chunksizesp Array of chunksizes.
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param contiguous Ignored.
+ * @param chunksizesp Ignored.
  *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_ENOTINDEFINE Not in define mode.
- * @returns ::NC_EINVAL Invalid input
- * @returns ::NC_EBADCHUNK Bad chunksize.
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
@@ -489,25 +403,13 @@ NOTNC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunk
 
 
 /**
- * @internal This functions sets endianness for a netCDF-4
- * variable. Called by nc_def_var_endian().
+ * @internal Not allowed for classic model.
  *
- * @note All pointer parameters may be NULL, in which case they are ignored.
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param endianness Endianness setting.
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param endianness Ignored.
  *
- * @returns ::NC_NOERR for success
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
- * netcdf-4 file.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_ENOTINDEFINE Not in define mode.
- * @returns ::NC_EPERM File is read only.
- * @returns ::NC_EINVAL Invalid input
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
  */
 int
@@ -517,21 +419,13 @@ NOTNC4_def_var_endian(int ncid, int varid, int endianness)
 }
 
 /**
- * @internal
+ * @internal Not allowed for classic model.
  *
- * This function will change the parallel access of a variable from
- * independent to collective.
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param par_access Ignored.
  *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param par_access NC_COLLECTIVE or NC_INDEPENDENT.
- *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Invalid ncid passed.
- * @returns ::NC_ENOTVAR Invalid varid passed.
- * @returns ::NC_ENOPAR LFile was not opened with nc_open_par/nc_create_var.
- * @returns ::NC_EINVAL Invalid par_access specified.
- * @returns ::NC_NOERR for success
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
