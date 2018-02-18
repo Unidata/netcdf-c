@@ -1,9 +1,8 @@
 /* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
  * and redistribution conditions.*/
 /**
- * @file @internal This file handles the (useless) *_base_pe()
- * functions, and the inq_format functions for the HDF4 dispatch
- * layer.
+ * @file @internal This file handles the  *_base_pe()
+ * functions for dispatch layers that need to return ::NC_ENOTNC3.
  *
  * @author Ed Hartnett
 */

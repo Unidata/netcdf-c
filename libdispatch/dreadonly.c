@@ -3,7 +3,7 @@
 /**
  * @file
  * @internal This file contains functions that return NC_EPERM, for
- * read-only dispatch layers like HDF4.
+ * read-only dispatch layers.
  *
  * @author Ed Hartnett
  */
@@ -278,7 +278,7 @@ RO_sync(int ncid)
  * @param dispatch Ignored.
  * @param nc_file Ignored.
  *
- * @return ::NC_ENOTNC4 Cannot create HDF4 files.
+ * @return ::NC_EPERM Cannot create files.
  * @author Ed Hartnett
  */
 int

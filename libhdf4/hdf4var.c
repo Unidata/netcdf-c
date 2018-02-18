@@ -10,6 +10,7 @@
 #include <nc4internal.h>
 #include "hdf4dispatch.h"
 #include "nc4dispatch.h"
+#include <mfhdf.h>
 
 /**
  * @internal Get data from an HDF4 SD dataset.

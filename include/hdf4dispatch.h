@@ -1,9 +1,10 @@
 /* Copyright 2018, UCAR/Unidata. See netcdf/COPYRIGHT file for copying
  * and redistribution conditions. */
 /**
- * @file
- * This header file contains the prototypes for the HDF4 versions
- * of the netCDF functions.
+ * @file This header file contains the prototypes for the HDF4
+ * versions of the netCDF functions. This is part of the HDF4 dispatch
+ * layer and this header should not be included by any file outside
+ * the libhdf4 directory.
  *
  * Ed Hartnett
  */
@@ -12,7 +13,9 @@
 
 #include "config.h"
 #include "ncdispatch.h"
-#include <mfhdf.h>  /* The HDF4 header file. */
+
+/** This is the max size of an SD dataset name in HDF4 (from HDF4 documentation).*/
+#define NC_MAX_HDF4_NAME 64
 
 /* Stuff below is for hdf4 files. */
 typedef struct NC_VAR_HDF4_INFO

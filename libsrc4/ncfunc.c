@@ -60,8 +60,7 @@ NC4_inq_format(int ncid, int *formatp)
  * @param formatp a pointer that gets the extended format. Note that
  * this is not the same as the format provided by nc_inq_format(). The
  * extended foramt indicates the dispatch layer model. NetCDF-4 files
- * will always get NC_FORMATX_NC4 for netCDF files, NC_FORMATX_HDF4
- * for HDF4 files.
+ * will always get NC_FORMATX_NC4 for netCDF files.
  * @param modep a pointer that gets the open/create mode associated with
  * this file. Ignored if NULL.
 
