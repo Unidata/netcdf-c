@@ -38,7 +38,9 @@ if USE_VALGRIND_TESTS
 TESTS += run_hdf4_valgrind_tests.sh
 endif # USE_VALGRIND_TESTS
 
-EXTRA_DIST = CMakeLists.txt ref_contiguous.hdf4 ref_chunked.hdf4
+EXTRA_DIST = CMakeLists.txt ref_contiguous.hdf4 ref_chunked.hdf4	\
+run_chunk_hdf4.sh run_get_hdf4_files.sh run_hdf4_valgrind_tests.sh	\
+tst_formatx_hdf4.sh tst_hdf4_read_var.sh
 
 CLEANFILES = 
 
