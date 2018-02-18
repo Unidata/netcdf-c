@@ -108,8 +108,9 @@ endif # BUILD_UTILITIES
 TESTS += run_chunk_hdf4.sh tst_h4_lendian
 if USE_HDF4_FILE_TESTS
 check_PROGRAMS += tst_interops3
+TESTS += run_get_hdf4_files.sh
 if BUILD_UTILITIES
-TESTS += run_get_hdf4_files.sh tst_hdf4_read_var.sh
+TESTS += tst_hdf4_read_var.sh
 tst_hdf4_read_var.log: tst_interops2.log
 endif # BUILD_UTILITIES
 endif # USE_HDF4_FILE_TESTS
