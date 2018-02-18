@@ -2,8 +2,8 @@
 # Copyright 2018 University Corporation for Atmospheric Research/Unidata
 # See COPYRIGHT file for conditions of use.
 #
-# This entire directory will be skipped if HDF4 is not enabled.
-# Ed Hartnett
+# This directory has tests for the HDF4 code. This entire directory
+# will be skipped if HDF4 is not enabled.  Ed Hartnett
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -15,11 +15,12 @@ TEST_EXTENSIONS = .sh
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
 # These are the tests for HDF4.
-check_PROGRAMS = tst_interops2 tst_chunk_hdf4 tst_h4_lendian
+check_PROGRAMS = tst_chunk_hdf4 tst_h4_lendian
 TESTS = run_chunk_hdf4.sh tst_h4_lendian
 
 if BUILD_UTILITIES
 # This test script depends on ncdump.
+check_PROGRAMS += tst_interops2 
 TESTS += tst_interops2 tst_formatx_hdf4.sh
 tst_formatx_hdf4.log: tst_interops2.log
 endif # BUILD_UTILITIES
@@ -37,10 +38,7 @@ if USE_VALGRIND_TESTS
 TESTS += run_hdf4_valgrind_tests.sh
 endif # USE_VALGRIND_TESTS
 
-EXTRA_DIST = run_get_hdf4_files.sh run_hdf4_valgrind_tests.sh	\
-CMakeLists.txt tst_formatx_hdf4.sh run_chunk_hdf4.sh		\
-tst_h4_lendian.ctst_hdf4_read_var.sh ref_contiguous.hdf4	\
-ref_chunked.hdf4
+EXTRA_DIST = CMakeLists.txt ref_contiguous.hdf4 ref_chunked.hdf4
 
 CLEANFILES = 
 
