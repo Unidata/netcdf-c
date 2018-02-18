@@ -26,6 +26,7 @@ To date, at least the following dispatch tables are supported.
 - DAP2 to netcdf-3
 - DAP4 to netcdf-4
 - pnetcdf (parallel cdf5)
+- HDF4 SD files
 
 Internal Dispatch Tables
 - \subpage adding_dispatch
@@ -159,8 +160,8 @@ the top-level Makefile.am.
 
 \code
      if ENABLE_NCM
-     NCM=libsrcm
-     NCMTESTDIR=ncm_test
+     NCM = libsrcm
+     NCMTESTDIR = ncm_test
      endif
      ...
      SUBDIRS = ... $(DISPATCHDIR)  $(NCM) ... $(NCMTESTDIR)
@@ -261,5 +262,92 @@ to encounter the ::NC_INT64 type.
 
 Again, the key difference is the memtype parameter. As with
 put/get_vara, it used ::NC_INT64 to encode the long case.
+
+\subsection Pre-defined Dispatch Functions
+
+It is usually not necessary to implement all the functions in the
+dispatch table. Some pre-defined functions are available which may be
+used in many cases.
+
+\subsubsection Inquiry Functions
+
+The netCDF inquiry functions operate from an in-memory model of
+metadata. Once a file has been opened, or as a file is created, this
+in-memory metadata model is kept up to date. Consequenty the inquiry
+functions do not depend on the dispatch layer code. These functions
+can be used by all dispatch layers which use the internal netCDF
+enhanced data model.
+
+- NC4_inq
+- NC4_inq_type
+- NC4_inq_dimid
+- NC4_inq_dim
+- NC4_inq_unlimdim
+- NC4_inq_att
+- NC4_inq_attid
+- NC4_inq_attname
+- NC4_get_att
+- NC4_inq_varid
+- NC4_inq_var_all
+- NC4_show_metadata
+- NC4_inq_unlimdims
+- NC4_inq_ncid
+- NC4_inq_grps
+- NC4_inq_grpname
+- NC4_inq_grpname_full
+- NC4_inq_grp_parent
+- NC4_inq_grp_full_ncid
+- NC4_inq_varids
+- NC4_inq_dimids
+- NC4_inq_typeids
+- NC4_inq_type_equal
+- NC4_inq_user_type
+- NC4_inq_typeid
+
+\subsubsection NCDEFAULT get/put Functions
+
+The strided (vars) and mapped (varm) get/put functions have been
+implemented in terms of the array (vara) functions. So dispatch layers
+need only implement the vara functions, and can use the following
+functions to get the vars and varm functions:
+
+- NCDEFAULT_get_vars
+- NCDEFAULT_put_vars
+- NCDEFAULT_get_varm
+- NCDEFAULT_put_varm
+
+\subsubsection Read-Only Functions
+
+Some dispatch layers are read-only (ex. HDF4). Any function which
+writes to a file, including nc_create(), needs to return error code
+::NC_EPERM. The following read-only functions are available so that
+these don't have to be re-implemented in each read-only dispatch
+layer:
+
+- RO_create
+- RO_redef
+- RO__enddef
+- RO_sync
+- RO_set_fill
+- RO_def_dim
+- RO_rename_dim
+- RO_rename_att
+- RO_del_att
+- RO_put_att
+- RO_def_var
+- RO_rename_var
+- RO_put_vara
+- RO_def_var_fill
+
+\subsubsection Classic NetCDF Only Functions
+
+There are two functions that are only used in the classic code. All
+other dispatch layers (except pnetcdf) return error ::NC_ENOTNC3 for
+these functions. The following functions are provided for this
+purpose:
+
+- NOTNC3_inq_base_pe
+- NOTNC3_set_base_pe
+
 
 */
