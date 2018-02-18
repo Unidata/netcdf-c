@@ -8,9 +8,6 @@
  * @author Ed Hartnett
  */
 
-#include "nc4internal.h"
-#include "nc.h"
-#include "hdf4dispatch.h"
 #include "ncdispatch.h"
 
 /**
