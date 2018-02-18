@@ -42,13 +42,5 @@ EXTRA_DIST = CMakeLists.txt ref_contiguous.hdf4 ref_chunked.hdf4	\
 run_chunk_hdf4.sh run_get_hdf4_files.sh run_hdf4_valgrind_tests.sh	\
 tst_formatx_hdf4.sh tst_hdf4_read_var.sh
 
-CLEANFILES = 
-
-if USE_HDF4_FILE_TESTS
-DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
-AMSR_E_L3_DailyLand_V06_20020619.hdf			\
-MYD29.A2009152.0000.005.2009153124331.hdf		\
-MYD29.A2002185.0000.005.2007160150627.hdf		\
-MOD29.A2000055.0005.005.2006267200024.hdf
-endif # HDF4_FILE_TESTS
+CLEANFILES = *.h4 *.hdf
 
