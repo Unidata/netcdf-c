@@ -1,0 +1,22 @@
+# Copy some test files from current source dir to out-of-tree build dir.
+FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.hdf4)
+FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
+IF(MSVC)
+  FILE(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
+ENDIF()
+
+IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
+    add_bin_test_no_prefix(tst_interops2)
+    build_bin_test_no_prefix(tst_interops3)
+    add_sh_test(nc_test4 run_get_hdf4_files)
+    add_bin_test(nc_test4 tst_bug324)
+    add_sh_test(nc_test4 tst_formatx_hdf4)
+    build_bin_test(tst_chunk_hdf4)
+    add_sh_test(nc_test4 run_chunk_hdf4)
+    add_bin_test(nc_test4 tst_h4_lendian)
+    IF(BUILD_UTILITIES)    
+      add_sh_test(nc_test4 tst_hdf4_read_var)
+      SET_TESTS_PROPERTIES(nc_test4_tst_hdf4_read_var PROPERTIES DEPENDS tst_interops2)
+    ENDIF()
+ENDIF()
+
