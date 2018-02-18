@@ -8,45 +8,13 @@
  * This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
  * HDF5 backend for netCDF, depending on your point of view.
  *
- * This file handles the (useless) *_base_pe() functions, and the
- * inq_format functions.
+ * This file handles the inq_format functions.
  *
  * @author Ed Hartnett, Dennis Heimbigner
 */
 
 #include "nc4internal.h"
 #include "nc4dispatch.h"
-
-/**
- * @internal This function only does anything for netcdf-3 files.
- *
- * @param ncid File ID (ignored).
- * @param pe Processor element (ignored).
- *
- * @return ::NC_ENOTNC3 Not a netCDF classic format file.
- * @author Ed Hartnett
- */
-int
-NC4_set_base_pe(int ncid, int pe)
-{
-   return NC_ENOTNC3;
-}
-
-/**
- * @internal This function only does anything for netcdf-3 files.
- *
- * @param ncid File ID (ignored).
- * @param pe Pointer to processor element. Ignored if NULL. Gets a 0
- * if present.
- *
- * @return ::NC_ENOTNC3 Not a netCDF classic format file.
- * @author Ed Hartnett
- */
-int
-NC4_inq_base_pe(int ncid, int *pe)
-{
-   return NC_ENOTNC3;
-}
 
 /**
  * @internal Get the format (i.e. NC_FORMAT_NETCDF4 pr
@@ -92,8 +60,7 @@ NC4_inq_format(int ncid, int *formatp)
  * @param formatp a pointer that gets the extended format. Note that
  * this is not the same as the format provided by nc_inq_format(). The
  * extended foramt indicates the dispatch layer model. NetCDF-4 files
- * will always get NC_FORMATX_NC4 for netCDF files, NC_FORMATX_HDF4
- * for HDF4 files.
+ * will always get NC_FORMATX_NC4 for netCDF files.
  * @param modep a pointer that gets the open/create mode associated with
  * this file. Ignored if NULL.
 

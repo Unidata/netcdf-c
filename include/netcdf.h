@@ -224,7 +224,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMAT_NC3       NC_FORMATX_NC3 /**< \deprecated As of 4.4.0, use NC_FORMATX_NC3 */
 #define NC_FORMAT_NC_HDF5   NC_FORMATX_NC_HDF5 /**< \deprecated As of 4.4.0, use NC_FORMATX_NC_HDF5 */
 #define NC_FORMAT_NC4       NC_FORMATX_NC4 /**< \deprecated As of 4.4.0, use NC_FORMATX_NC4 */
-#define NC_FORMAT_NC_HDF4   NC_FORMATX_NC_HDF4 /**< \deprecated As of 4.4.0, use NC_FORMATX_HDF4 */
+#define NC_FORMAT_NC_HDF4   NC_FORMATX_NC_HDF4 /**< \deprecated As of 4.4.0, use NC_FORMATX_NC_HDF4 */
 #define NC_FORMAT_PNETCDF   NC_FORMATX_PNETCDF /**< \deprecated As of 4.4.0, use NC_FORMATX_PNETCDF */
 #define NC_FORMAT_PIO       NC_FORMATX_PIO /**< \deprecated As of 4.4.0, use NC_FORMATX_PIO */
 #define NC_FORMAT_DAP2      NC_FORMATX_DAP2 /**< \deprecated As of 4.4.0, use NC_FORMATX_DAP2 */
@@ -273,9 +273,6 @@ NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits
 #define NC_MAX_NAME     256
 #define NC_MAX_VAR_DIMS 1024 /**< max per variable dimensions */
 /**@}*/
-
-/** This is the max size of an SD dataset name in HDF4 (from HDF4 documentation).*/
-#define NC_MAX_HDF4_NAME 64
 
 /** In HDF5 files you can set the endianness of variables with
     nc_def_var_endian(). This define is used there. */
