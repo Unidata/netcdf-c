@@ -1381,138 +1381,6 @@ NCP_inq_user_type(int ncid, nc_type typeid, char *name, size_t *size,
     return NC_ENOTNC4;
 }
 
-static int
-NCP_def_compound(int ncid, size_t size, const char *name, nc_type *typeidp)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_insert_compound(int ncid, nc_type typeid, const char *name, size_t offset,
-                    nc_type field_typeid)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_insert_array_compound(int ncid, nc_type typeid, const char *name,
-			 size_t offset, nc_type field_typeid,
-			 int ndims, const int *dim_sizes)
-{
-    return NC_ENOTNC4;
-}
-
-
-static int
-NCP_inq_compound_field(int ncid, nc_type typeid, int fieldid, char *name,
-		      size_t *offsetp, nc_type *field_typeidp, int *ndimsp,
-		      int *dim_sizesp)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_inq_compound_fieldindex(int ncid, nc_type typeid, const char *name, int *fieldidp)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_def_opaque(int ncid, size_t datum_size, const char *name, nc_type* xtypep)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_def_vlen(int ncid, const char *name, nc_type base_typeid, nc_type* xtypep)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_def_enum(int ncid, nc_type base_typeid, const char *name,
-	    nc_type *typeidp)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_inq_enum_member(int ncid, nc_type typeid, int idx, char *identifier,
-		   void *value)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_insert_enum(int ncid, nc_type typeid, const char *identifier,
-	       const void *value)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_put_vlen_element(int ncid, int typeid, void *vlen_element,
-		    size_t len, const void *data)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_get_vlen_element(int ncid, int typeid, const void *vlen_element,
-		    size_t *len, void *data)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems, float preemption)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp, float *preemptionp)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
-		   int deflate_level)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_def_var_fletcher32(int ncid, int varid, int fletcher32)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksizesp)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_def_var_endian(int ncid, int varid, int endianness)
-{
-    return NC_ENOTNC4;
-}
-
-static int
-NCP_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms)
-{
-    return NC_ENOTNC4;
-}
-
 #endif /*USE_NETCDF4*/
 
 /**************************************************/
@@ -1587,26 +1455,26 @@ NCP_rename_grp,
 NCP_inq_user_type,
 NCP_inq_typeid,
 
-NCP_def_compound,
-NCP_insert_compound,
-NCP_insert_array_compound,
-NCP_inq_compound_field,
-NCP_inq_compound_fieldindex,
-NCP_def_vlen,
-NCP_put_vlen_element,
-NCP_get_vlen_element,
-NCP_def_enum,
-NCP_insert_enum,
-NCP_inq_enum_member,
-NCP_inq_enum_ident,
-NCP_def_opaque,
-NCP_def_var_deflate,
-NCP_def_var_fletcher32,
-NCP_def_var_chunking,
-NCP_def_var_endian,
-NCP_def_var_filter,
-NCP_set_var_chunk_cache,
-NCP_get_var_chunk_cache,
+NOTNC4_def_compound,
+NOTNC4_insert_compound,
+NOTNC4_insert_array_compound,
+NOTNC4_inq_compound_field,
+NOTNC4_inq_compound_fieldindex,
+NOTNC4_def_vlen,
+NOTNC4_put_vlen_element,
+NOTNC4_get_vlen_element,
+NOTNC4_def_enum,
+NOTNC4_insert_enum,
+NOTNC4_inq_enum_member,
+NOTNC4_inq_enum_ident,
+NOTNC4_def_opaque,
+NOTNC4_def_var_deflate,
+NOTNC4_def_var_fletcher32,
+NOTNC4_def_var_chunking,
+NOTNC4_def_var_endian,
+NOTNC4_def_var_filter,
+NOTNC4_set_var_chunk_cache,
+NOTNC4_get_var_chunk_cache,
 #endif /*USE_NETCDF4*/
 
 };

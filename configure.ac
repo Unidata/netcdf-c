@@ -72,8 +72,8 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat1.nc:nc_test4/ref_hdf5_compat1.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 
-AC_CONFIG_LINKS([nc_test4/ref_chunked.hdf4:nc_test4/ref_chunked.hdf4])
-AC_CONFIG_LINKS([nc_test4/ref_contiguous.hdf4:nc_test4/ref_contiguous.hdf4])
+AC_CONFIG_LINKS([hdf4_test/ref_chunked.hdf4:hdf4_test/ref_chunked.hdf4])
+AC_CONFIG_LINKS([hdf4_test/ref_contiguous.hdf4:hdf4_test/ref_contiguous.hdf4])
 
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
@@ -1437,6 +1437,7 @@ AC_CONFIG_FILES([Makefile
 		         include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
+                 hdf4_test/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
                  libsrcp/Makefile
