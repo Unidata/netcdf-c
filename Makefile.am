@@ -64,13 +64,14 @@ endif
 
 # Build HDF4 if desired.
 if USE_HDF4
+HDF4_TEST_DIR = hdf4_test
 LIBHDF4 = libhdf4
 endif
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAP2TESTDIR)	\
-$(NCDAP4TESTDIR)
+TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(HDF4_TEST_DIR)	\
+$(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
