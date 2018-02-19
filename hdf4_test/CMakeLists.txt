@@ -11,6 +11,6 @@ IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
   add_bin_test(tst_chunk_hdf4)
   add_bin_test(hdf4_test tst_h4_lendian)
   add_sh_test(hdf4_test run_get_hdf4_files)
-  add_sh_test(hdf4_test tst_formatx_hdf4)
+  add_sh_test(hdf4_test run_formatx_hdf4)
 ENDIF()
 

@@ -1,5 +1,8 @@
 #!/bin/sh
-# This shell script tests the output several previous tests.
+
+# This shell script runs tst_interops2 to create a HDF4 file, and read
+# it with netCDF. Then the script runs ncdump on the HDF4 file.
+
 # Ed Hartnett
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
