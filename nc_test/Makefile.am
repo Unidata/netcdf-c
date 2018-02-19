@@ -93,7 +93,7 @@ test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl CMakeLists.txt
 
 # These files are created by the tests.
 CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
-tst_*.nc t_nc.nc large_files.nc quick_large_files.nc test_cdf5.nc	\
+tst_*.nc t_nc.nc large_files.nc quick_large_files.nc nc_test_cdf5.nc	\
 tst_diskless3_file.cdl tst_diskless3_memory.cdl tst_diskless4.cdl	\
 unlim.nc benchmark.nc
 
