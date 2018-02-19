@@ -882,9 +882,6 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
          if (var->type_info->nc_type_class == NC_STRING)
          {
             assert(*(char **)var->fill_value);
-            if (!(*(char **)fill_valuep = calloc(1, sizeof(char *))))
-               return NC_ENOMEM;
-
             if (!(*(char **)fill_valuep = strdup(*(char **)var->fill_value)))
             {
                free(*(char **)fill_valuep);
