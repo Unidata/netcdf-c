@@ -86,16 +86,16 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/"
   CACHE INTERNAL "Location of our custom CMake modules.")
 
 # auto-configure style checks, other CMake modules.
-INCLUDE(${CMAKE_ROOT}/Modules/CheckLibraryExists.cmake)
-INCLUDE(${CMAKE_ROOT}/Modules/CheckIncludeFile.cmake)
-INCLUDE(${CMAKE_ROOT}/Modules/CheckIncludeFiles.cmake)
-INCLUDE(${CMAKE_ROOT}/Modules/CheckTypeSize.cmake)
-INCLUDE(${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
-INCLUDE(${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
-INCLUDE(${CMAKE_ROOT}/Modules/CheckCSourceCompiles.cmake)
-INCLUDE(${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
-INCLUDE(${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
-INCLUDE(${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
+INCLUDE(CheckLibraryExists)
+INCLUDE(CheckIncludeFile)
+INCLUDE(CheckIncludeFiles)
+INCLUDE(CheckTypeSize)
+INCLUDE(CheckFunctionExists)
+INCLUDE(CheckCXXSourceCompiles)
+INCLUDE(CheckCSourceCompiles)
+INCLUDE(TestBigEndian)
+INCLUDE(CheckSymbolExists)
+INCLUDE(GetPrerequisites)
 
 INCLUDE(CheckCCompilerFlag)
 FIND_PACKAGE(PkgConfig QUIET)
@@ -447,7 +447,7 @@ ENDIF()
 ###
 
 # Option to use HDF4
-OPTION(ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability(HDF4, HDF5 and Zlib required)." OFF)
+OPTION(ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib required)." OFF)
 IF(ENABLE_HDF4)
   SET(USE_HDF4 ON)
   # Check for include files, libraries.
@@ -456,7 +456,6 @@ IF(ENABLE_HDF4)
   IF(NOT MFHDF_H_INCLUDE_DIR)
     MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
   ELSE()
-    SET(HAVE_MFHDF_H ON CACHE BOOL "")
     INCLUDE_DIRECTORIES(${MFHDF_H_INCLUDE_DIR})
   ENDIF()
 
@@ -527,6 +526,11 @@ IF(ENABLE_NETCDF_4)
   SET(USE_NETCDF4 ON CACHE BOOL "")
   SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
   SET(ENABLE_NETCDF4 ON CACHE BOOL "")
+ELSE()
+  SET(USE_HDF4_FILE_TESTS OFF)
+  SET(USE_HDF4 OFF)  
+  SET(ENABLE_HDF4_FILE_TESTS OFF)
+  SET(ENABLE_HDF4 OFF)  
 ENDIF()
 
 # Option to allow for strict null file padding.
@@ -704,7 +708,6 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
 
     IF(HDF5_IS_PARALLEL_MPIO)
-      SET(HAVE_H5PGET_FAPL_MPIO TRUE)
       SET(USE_PARALLEL_MPIO ON)
     ENDIF()
 
@@ -714,24 +717,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
     #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
     CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
-
-    OPTION(ENABLE_DYNAMIC_LOADING "Enable Dynamic Loading" ON)
-    IF(ENABLE_DYNAMIC_LOADING)
-      SET(USE_LIBDL ON CACHE BOOL "")
-    ENDIF()
   ENDIF(NOT MSVC)
-
-  #//////////////////////////
-  #HDF5 can be optionally linked with the SZIP library (Science Data Lossless Compression Program) and ZLIB
-  #Symbol to detect in ZLIB can be only H5Z_DEFLATE, a structure only defined in H5Zdeflate.c if the filter is enabled
-  #For SZIP the structure can be only H5Z_SZIP, defined in H5Zszip.c if the filter is enabled
-  #check_library_exists() tries to link a temporary program with these symbols
-  #On MSVC for this detection to work, the HDF5 library MUST HAVE as additional dependencies the ZLIB and SZIP libraries,
-  #which is not a requirement for the library to build successfully
-  #//////////////////////////
-
-  # Make sure the user has built the library with zlib support.
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Z_DEFLATE "" HAVE_H5PSET_DEFLATE)
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Z_SZIP "" USE_SZIP)
@@ -746,15 +732,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
   ENDIF()
 
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5free_memory "" HDF5_HAS_H5FREE)
-  IF(HDF5_HAS_H5FREE)
-    SET(HAVE_H5FREE_MEMORY TRUE)
-  ENDIF(HDF5_HAS_H5FREE)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_libver_bounds "" HDF5_HAS_LIBVER_BOUNDS)
-
-  IF(HDF5_HAS_LIBVER_BOUNDS)
-    SET(HAVE_H5PSET_LIBVER_BOUNDS TRUE)
-  ENDIF(HDF5_HAS_LIBVER_BOUNDS)
 
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
@@ -762,36 +740,11 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 	SET(HDF5_CC h5cc)
   ENDIF()
 
-  # Starting with hdf5 1.8.11, dynamic loading is an option.
-  # In case hdf5 has a dependency on libdl, the user must specify
-  # -DENABLE_DYNAMIC_LOADING=ON when configuring netcdf.
-  IF(USE_LIBDL)
-    FIND_LIBRARY(LIBDL NAMES dl dld)
-    FIND_PATH(LIBDL_INCLUDE_DIR dlfcn.h)
-    IF(NOT LIBDL)
-      MESSAGE(ERROR "Cannot find libdl, but dynamic loading was specified.")
-    ENDIF()
-    IF(NOT LIBDL_INCLUDE_DIR)
-      MESSAGE(ERROR "Cannot find dlfcn.h, but dynamic loading was specified.")
-    ENDIF()
-    MESSAGE(STATUS "Found libdl: ${LIBDL}")
-    SET(HAVE_LIBDL ON)
-    INCLUDE_DIRECTORIES(${LIBDL_INCLUDE_DIR})
-  ENDIF()
-
   SET(H5_USE_16_API 1)
   OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility(Required)" ON)
   IF(NOT NC_ENABLE_HDF_16_API)
     SET(H5_USE_16_API 0)
   ENDIF()
-
-  # Check for ZLib, but only if using HDF5.
-  FIND_PACKAGE(ZLIB)
-  IF(NOT ZLIB_LIBRARY)
-    MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find ZLib.")
-  ENDIF()
-  SET(USE_ZLIB ON)
-  INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 
   FIND_PATH(HAVE_HDF5_H hdf5.h)
   IF(NOT HAVE_HDF5_H)
@@ -856,12 +809,6 @@ IF(ENABLE_DAP)
   CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
-
-  # Check to see if CURLOPT_CHUNK_BGN_FUNCTION is defined.
-  # It showed up in curl 7.21.0.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_CHUNK_BGN_FUNCTION;}" HAVE_CURLOPT_CHUNK_BGN_FUNCTION)
 
   # Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
   # It showed up in curl 7.10.7.
@@ -1244,20 +1191,6 @@ MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
 # Option checks
 ################################
 
-####
-# Check to see if char is signed or unsigned.
-####
-
-SET(SIGNED_TEST_SOURCE "\n
-  #include <stdlib.h>\n
-  int main(void) {\n
-    char error_if_char_is_signed[((char)-1) < 0 ? -1 : 1];\n
-    error_if_char_is_signed[0] = 0;
-    return -;\n
-}\n")
-
-CHECK_C_SOURCE_COMPILES("${SIGNED_TEST_SOURCE}" __CHAR_UNSIGNED__)
-
 # Library include checks
 CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)
 CHECK_INCLUDE_FILE("unistd.h"  HAVE_UNISTD_H)
@@ -1269,13 +1202,8 @@ ENDIF()
 
 CHECK_INCLUDE_FILE("alloca.h"  HAVE_ALLOCA_H)
 CHECK_INCLUDE_FILE("malloc.h"    HAVE_MALLOC_H)
-CHECK_INCLUDE_FILE("ctype.h"   HAVE_CTYPE_H)
-CHECK_INCLUDE_FILE("dirent.h"  HAVE_DIRENT_H)
-CHECK_INCLUDE_FILE("dlfcn.h"   HAVE_DLFCN_H)
-CHECK_INCLUDE_FILE("errno.h"   HAVE_ERRNO_H)
 CHECK_INCLUDE_FILE("fcntl.h"   HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("getopt.h"  HAVE_GETOPT_H)
-CHECK_INCLUDE_FILE("stdbool.h"   HAVE_STDBOOL_H)
 CHECK_INCLUDE_FILE("locale.h"  HAVE_LOCALE_H)
 CHECK_INCLUDE_FILE("stdint.h"  HAVE_STDINT_H)
 CHECK_INCLUDE_FILE("stdio.h"   HAVE_STDIO_H)
@@ -1286,51 +1214,30 @@ CHECK_INCLUDE_FILE("stdlib.h"  HAVE_STDLIB_H)
 CHECK_INCLUDE_FILE("stdarg.h"    HAVE_STDARG_H)
 CHECK_INCLUDE_FILE("strings.h"   HAVE_STRINGS_H)
 CHECK_INCLUDE_FILE("signal.h"    HAVE_SIGNAL_H)
-CHECK_INCLUDE_FILE("sys/dir.h"   HAVE_SYS_DIR_H)
-CHECK_INCLUDE_FILE("sys/ndir.h"  HAVE_SYS_NDIR_H)
 CHECK_INCLUDE_FILE("sys/param.h" HAVE_SYS_PARAM_H)
 CHECK_INCLUDE_FILE("sys/stat.h"  HAVE_SYS_STAT_H)
 CHECK_INCLUDE_FILE("sys/time.h"  HAVE_SYS_TIME_H)
 CHECK_INCLUDE_FILE("sys/types.h" HAVE_SYS_TYPES_H)
-CHECK_INCLUDE_FILE("sys/wait.h"  HAVE_SYS_WAIT_H)
 CHECK_INCLUDE_FILE("sys/mman.h"  HAVE_SYS_MMAN_H)
 CHECK_INCLUDE_FILE("sys/resource.h" HAVE_SYS_RESOURCE_H)
-CHECK_INCLUDE_FILE("sys/cdefs.h" HAVE_SYS_CDEFS_H)
 CHECK_INCLUDE_FILE("fcntl.h"  HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("inttypes.h"  HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE("pstdint.h"  HAVE_PSTDINT_H)
 CHECK_INCLUDE_FILE("endian.h" HAVE_ENDIAN_H)
 CHECK_INCLUDE_FILE("BaseTsd.h"  HAVE_BASETSD_H)
 CHECK_INCLUDE_FILE("stddef.h"   HAVE_STDDEF_H)
-CHECK_INCLUDE_FILE("memory.h"  HAVE_MEMORY_H)
 CHECK_INCLUDE_FILE("string.h"  HAVE_STRING_H)
 CHECK_INCLUDE_FILE("winsock2.h" HAVE_WINSOCK2_H)
 CHECK_INCLUDE_FILE("ftw.h"  HAVE_FTW_H)
 CHECK_INCLUDE_FILE("libgen.h" HAVE_LIBGEN_H)
 
-CHECK_INCLUDE_FILES("time.h;sys/time.h" TIME_WITH_SYS_TIME)
-
-IF(NOT HAVE_STDLIB_H)
-  SET(NO_STDLIB_H TRUE)
-ENDIF(NOT HAVE_STDLIB_H)
-
-IF(NOT HAVE_SYS_TYPES_H)
-  SET(NO_SYS_TYPES_H TRUE)
-ENDIF(NOT HAVE_SYS_TYPES_H)
-
-
 # Symbol Exists
 CHECK_SYMBOL_EXISTS(isfinite "math.h" HAVE_DECL_ISFINITE)
 CHECK_SYMBOL_EXISTS(isnan "math.h" HAVE_DECL_ISNAN)
 CHECK_SYMBOL_EXISTS(isinf "math.h" HAVE_DECL_ISINF)
-CHECK_SYMBOL_EXISTS(signbit "math.h" HAVE_DECL_SIGNBIT)
 CHECK_SYMBOL_EXISTS(st_blksize "sys/stat.h" HAVE_STRUCT_STAT_ST_BLKSIZE)
 CHECK_SYMBOL_EXISTS(alloca "alloca.h" HAVE_ALLOCA)
 CHECK_SYMBOL_EXISTS(snprintf "stdio.h" HAVE_SNPRINTF)
-CHECK_SYMBOL_EXISTS(vprintf "stdio.h" HAVE_VPRINTF)
-
-# For historic purposes...
-SET(HAVE_ST_BLKSIZE ${HAVE_STRUCT_STAT_ST_BLKSIZE})
 
 # Type checks
 # Aliases for automake consistency
@@ -1357,9 +1264,6 @@ IF(SIZEOF_LONG_LONG)
 ENDIF(SIZEOF_LONG_LONG)
 
 CHECK_TYPE_SIZE("unsigned long long" SIZEOF_UNSIGNED_LONG_LONG)
-IF(SIZEOF_UNSIGNED_LONG_LONG)
-  SET(HAVE_UNSIGNED_LONG_LONG_INT TRUE)
-ENDIF(SIZEOF_UNSIGNED_LONG_LONG)
 
 CHECK_TYPE_SIZE("off_t"     SIZEOF_OFF_T)
 CHECK_TYPE_SIZE("off64_t"   SIZEOF_OFF64_T)
@@ -1370,20 +1274,10 @@ IF(SIZEOF_USHORT)
 ENDIF(SIZEOF_USHORT)
 
 CHECK_TYPE_SIZE("_Bool"     SIZEOF__BOOL)
-IF(SIZEOF__BOOL)
-  SET(HAVE__BOOL TRUE)
-ENDIF(SIZEOF__BOOL)
 
 CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
-IF(SIZEOF_SIZE_T)
-  SET(HAVE_SIZE_T TRUE)
-ENDIF(SIZEOF_SIZE_T)
 
-CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)
-CHECK_TYPE_SIZE("ptrdiff_t" SIZEOF_PTRDIFF_T)
-IF(SIZEOF_PTRDIFF_T)
-  SET(HAVE_PTRDIFF_T TRUE)
-ENDIF(SIZEOF_PTRDIFF_T)
+CHECK_TYPE_SIZE("ssize_t"   HAVE_SSIZE_T)
 
 # __int64 is used on Windows for large file support.
 CHECK_TYPE_SIZE("__int64"   SIZEOF___INT_64)
@@ -1402,44 +1296,24 @@ IF(MSVC AND SIZEOF___INT_64)
   SET(SIZEOF_OFF_T  ${SIZEOF___INT_64})
 ENDIF()
 
-IF(SIZEOF_SSIZE_T)
-  SET(HAVE_SSIZE_T 1)
-ELSE()
-  CHECK_TYPE_SIZE("SSIZE_T" SIZEOF_SSIZE_T)
-  IF(SIZEOF_SSIZE_T)
-    SET(HAVE_SSIZE_T 1)
-  ENDIF()
-ENDIF()
-
 # Check for various functions.
 CHECK_FUNCTION_EXISTS(fsync HAVE_FSYNC)
 CHECK_FUNCTION_EXISTS(strlcat   HAVE_STRLCAT)
-CHECK_FUNCTION_EXISTS(strerror  HAVE_STRERROR)
-CHECK_FUNCTION_EXISTS(strchr  HAVE_STRCHR)
-CHECK_FUNCTION_EXISTS(strrchr HAVE_STRRCHR)
-CHECK_FUNCTION_EXISTS(strcat  HAVE_STRCAT)
-CHECK_FUNCTION_EXISTS(strcpy  HAVE_STRCPY)
 CHECK_FUNCTION_EXISTS(strdup  HAVE_STRDUP)
 CHECK_FUNCTION_EXISTS(strndup HAVE_STRNDUP)
-CHECK_FUNCTION_EXISTS(strcasecmp  HAVE_STRCASECMP)
-CHECK_FUNCTION_EXISTS(strtod  HAVE_STRTOD)
 CHECK_FUNCTION_EXISTS(strtoll HAVE_STRTOLL)
 CHECK_FUNCTION_EXISTS(strtoull  HAVE_STRTOULL)
-CHECK_FUNCTION_EXISTS(strstr  HAVE_STRSTR)
 CHECK_FUNCTION_EXISTS(mkstemp HAVE_MKSTEMP)
 CHECK_FUNCTION_EXISTS(mktemp HAVE_MKTEMP)
-CHECK_FUNCTION_EXISTS(rand  HAVE_RAND)
 CHECK_FUNCTION_EXISTS(random HAVE_RANDOM)
 CHECK_FUNCTION_EXISTS(gettimeofday  HAVE_GETTIMEOFDAY)
 CHECK_FUNCTION_EXISTS(fsync HAVE_FSYNC)
 CHECK_FUNCTION_EXISTS(MPI_Comm_f2c  HAVE_MPI_COMM_F2C)
 CHECK_FUNCTION_EXISTS(memmove HAVE_MEMMOVE)
-CHECK_FUNCTION_EXISTS(memcmp HAVE_MEMCMP)
 CHECK_FUNCTION_EXISTS(getpagesize HAVE_GETPAGESIZE)
 CHECK_FUNCTION_EXISTS(sysconf HAVE_SYSCONF)
 CHECK_FUNCTION_EXISTS(getrlimit HAVE_GETRLIMIT)
 CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
-CHECK_FUNCTION_EXISTS(mmap HAVE_MMAP)
 CHECK_FUNCTION_EXISTS(mremap HAVE_MREMAP)
 
 IF(ENABLE_MMAP)
@@ -1447,7 +1321,6 @@ IF(ENABLE_MMAP)
     MESSAGE(WARNING "mremap not found: disabling MMAP support.")
     SET(ENABLE_MMAP OFF)
   ELSE(NOT HAVE_MREMAP)
-    SET(HAVE_MMAP ON)
     SET(BUILD_MMAP ON)
     SET(USE_MMAP ON)
   ENDIF(NOT HAVE_MREMAP)
@@ -1740,6 +1613,10 @@ ENDIF(USE_PNETCDF)
 IF(USE_HDF5)
   add_subdirectory(libsrc4)
 ENDIF(USE_HDF5)
+
+IF(USE_HDF4)
+  add_subdirectory(libhdf4)
+ENDIF(USE_HDF4)
 
 IF(ENABLE_DAP2)
   ADD_SUBDIRECTORY(oc2)
