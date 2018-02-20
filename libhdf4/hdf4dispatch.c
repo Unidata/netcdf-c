@@ -54,7 +54,6 @@ NC4_inq_varid,
 RO_rename_var,
 HDF4_get_vara,
 RO_put_vara,
-
 NCDEFAULT_get_vars,
 NCDEFAULT_put_vars,
 NCDEFAULT_get_varm,

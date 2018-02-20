@@ -302,7 +302,6 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       NC_VAR_INFO_T *var;
       int32 data_type, num_atts;
       NC_VAR_HDF4_INFO_T *hdf4_var;
-
       /* Problem: Number of dims is returned by the call that requires
          a pre-allocated array, 'dimsize'.
          From SDS_SD website:
