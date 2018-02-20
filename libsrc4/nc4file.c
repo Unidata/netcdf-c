@@ -2678,7 +2678,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    /* This is a hdf5 file. */
    assert(nc_file->model == NC_FORMATX_NC4);
 
-   /* Depending on the type of file, open it. */
+   /* Open the file. */
    nc_file->int_ncid = nc_file->ext_ncid;
    res = nc4_open_file(path, mode, parameters, nc_file);
 

@@ -28,10 +28,6 @@ endif # BUILD_UTILITIES
 if USE_HDF4_FILE_TESTS
 check_PROGRAMS += tst_interops3
 TESTS += run_get_hdf4_files.sh
-if BUILD_UTILITIES
-TESTS += tst_hdf4_read_var.sh
-tst_hdf4_read_var.log: tst_interops2.log
-endif # BUILD_UTILITIES
 endif # USE_HDF4_FILE_TESTS
 
 if USE_VALGRIND_TESTS
@@ -40,7 +36,7 @@ endif # USE_VALGRIND_TESTS
 
 EXTRA_DIST = CMakeLists.txt ref_contiguous.hdf4 ref_chunked.hdf4	\
 run_chunk_hdf4.sh run_get_hdf4_files.sh run_hdf4_valgrind_tests.sh	\
-tst_formatx_hdf4.sh tst_hdf4_read_var.sh
+tst_formatx_hdf4.sh
 
 CLEANFILES = *.h4 *.hdf
 

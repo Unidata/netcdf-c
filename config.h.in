@@ -57,14 +57,8 @@
    */
 #undef HAVE_ALLOCA_H
 
-/* Define to 1 if you have the <ctype.h> header file. */
-#undef HAVE_CTYPE_H
-
 /* Is CURLINFO_RESPONSE_CODE defined */
 #undef HAVE_CURLINFO_RESPONSE_CODE
-
-/* Is CURLOPT_CHUNK_BGN_FUNCTION defined */
-#undef HAVE_CURLOPT_CHUNK_BGN_FUNCTION
 
 /* Is CURLOPT_KEYPASSWD defined */
 #undef HAVE_CURLOPT_KEYPASSWD
@@ -87,22 +81,8 @@
    */
 #undef HAVE_DECL_ISNAN
 
-/* Define to 1 if you have the declaration of `signbit', and to 0 if you
-   don't. */
-#undef HAVE_DECL_SIGNBIT
-
-/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
-   */
-#undef HAVE_DIRENT_H
-
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
-
-/* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
-#undef HAVE_DOPRNT
-
-/* Define to 1 if you have the <errno.h> header file. */
-#undef HAVE_ERRNO_H
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
@@ -125,24 +105,6 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
-/* Define to 1 if you have the `H5free_memory' function. */
-#undef HAVE_H5FREE_MEMORY
-
-/* Define to 1 if you have the `H5Pget_fapl_mpio' function. */
-#undef HAVE_H5PGET_FAPL_MPIO
-
-/* Define to 1 if you have the `H5Pget_fapl_mpiposix' function. */
-#undef HAVE_H5PGET_FAPL_MPIPOSIX
-
-/* Define to 1 if you have the `H5Pset_all_coll_metadata_ops' function. */
-#undef HAVE_H5PSET_ALL_COLL_METADATA_OPS
-
-/* Define to 1 if you have the `H5Pset_deflate' function. */
-#undef HAVE_H5PSET_DEFLATE
-
-/* Define to 1 if you have the `H5Pset_libver_bounds' function. */
-#undef HAVE_H5PSET_LIBVER_BOUNDS
-
 /* Define to 1 if you have the `H5Z_SZIP' function. */
 #undef HAVE_H5Z_SZIP
 
@@ -157,9 +119,6 @@
 
 /* Define to 1 if you have the `df' library (-ldf). */
 #undef HAVE_LIBDF
-
-/* Define to 1 if you have the `dl' library (-ldl). */
-#undef HAVE_LIBDL
 
 /* Define to 1 if you have the <libgen.h> header file. */
 #undef HAVE_LIBGEN_H
@@ -188,9 +147,6 @@
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
-/* Define to 1 if you have the `memcmp' function. */
-#undef HAVE_MEMCMP
-
 /* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
 
@@ -206,23 +162,11 @@
 /* Define to 1 if you have the `mktemp' function. */
 #undef HAVE_MKTEMP
 
-/* Define to 1 if you have a working `mmap' system call. */
-#undef HAVE_MMAP
-
 /* Define to 1 if you have the `MPI_Comm_f2c' function. */
 #undef HAVE_MPI_COMM_F2C
 
 /* Define to 1 if you have the `mremap' function. */
 #undef HAVE_MREMAP
-
-/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
-#undef HAVE_NDIR_H
-
-/* Define to 1 if the system has the type `ptrdiff_t'. */
-#undef HAVE_PTRDIFF_T
-
-/* Define to 1 if you have the `rand' function. */
-#undef HAVE_RAND
 
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
@@ -242,9 +186,6 @@
 /* Define to 1 if you have the <stdarg.h> header file. */
 #undef HAVE_STDARG_H
 
-/* Define to 1 if stdbool.h conforms to C99. */
-#undef HAVE_STDBOOL_H
-
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -254,23 +195,8 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define to 1 if you have the `strcasecmp' function. */
-#undef HAVE_STRCASECMP
-
-/* Define to 1 if you have the `strcat' function. */
-#undef HAVE_STRCAT
-
-/* Define to 1 if you have the `strchr' function. */
-#undef HAVE_STRCHR
-
-/* Define to 1 if you have the `strcpy' function. */
-#undef HAVE_STRCPY
-
 /* Define to 1 if you have the `strdup' function. */
 #undef HAVE_STRDUP
-
-/* Define to 1 if you have the `strerror' function. */
-#undef HAVE_STRERROR
 
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
@@ -280,15 +206,6 @@
 
 /* Define to 1 if you have the `strlcat' function. */
 #undef HAVE_STRLCAT
-
-/* Define to 1 if you have the `strrchr' function. */
-#undef HAVE_STRRCHR
-
-/* Define to 1 if you have the `strstr' function. */
-#undef HAVE_STRSTR
-
-/* Define to 1 if you have the `strtod' function. */
-#undef HAVE_STRTOD
 
 /* Define to 1 if you have the `strtoll' function. */
 #undef HAVE_STRTOLL
@@ -306,17 +223,6 @@
 /* Define to 1 if you have the `sysconf' function. */
 #undef HAVE_SYSCONF
 
-/* Define to 1 if you have the <sys/cdefs.h> header file. */
-#undef HAVE_SYS_CDEFS_H
-
-/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
-   */
-#undef HAVE_SYS_DIR_H
-
-/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
-   */
-#undef HAVE_SYS_NDIR_H
-
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
 
@@ -332,17 +238,14 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
-/* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
-#undef HAVE_SYS_WAIT_H
-
 /* Define to 1 if the system has the type `uchar'. */
 #undef HAVE_UCHAR
 
 /* Define to 1 if the system has the type `uint'. */
 #undef HAVE_UINT
 
-/* Define to 1 if the system has the type `uint64 off_t'. */
-#undef HAVE_UINT64_OFF_T
+/* Define to 1 if the system has the type `uint64'. */
+#undef HAVE_UINT64
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
@@ -352,12 +255,6 @@
 
 /* Define to 1 if the system has the type `ushort'. */
 #undef HAVE_USHORT
-
-/* Define to 1 if you have the `vprintf' function. */
-#undef HAVE_VPRINTF
-
-/* Define to 1 if the system has the type `_Bool'. */
-#undef HAVE__BOOL
 
 /* if true, use collective metadata ops in parallel netCDF-4 */
 #undef HDF5_HAS_COLL_METADATA_OPS
@@ -395,12 +292,6 @@
 
 /* do not build the netCDF version 2 API */
 #undef NO_NETCDF_2
-
-/* no stdlib.h */
-#undef NO_STDLIB_H
-
-/* no sys_types.h */
-#undef NO_SYS_TYPES_H
 
 /* Name of package */
 #undef PACKAGE
@@ -468,9 +359,6 @@
 /* The size of `off_t', as computed by sizeof. */
 #undef SIZEOF_OFF_T
 
-/* The size of `ptrdiff_t', as computed by sizeof. */
-#undef SIZEOF_PTRDIFF_T
-
 /* The size of `short', as computed by sizeof. */
 #undef SIZEOF_SHORT
 
@@ -518,9 +406,6 @@
 /* Place to put very large netCDF test files. */
 #undef TEMP_LARGE
 
-/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
-#undef TIME_WITH_SYS_TIME
-
 /* if true, enable CDF5 Support */
 #undef USE_CDF5
 
@@ -545,9 +430,6 @@
 /* If true, use use wget to fetch some sample HDF4 data, and then test against
    it. */
 #undef USE_HDF4_FILE_TESTS
-
-/* if true, enable dynamic loading support */
-#undef USE_LIBDL
 
 /* if true, use mmap for in-memory files */
 #undef USE_MMAP
@@ -585,9 +467,6 @@
 /* if true, compile in szip compression in netCDF-4 variables */
 #undef USE_SZIP
 
-/* if true, compile in zlib compression in netCDF-4 variables */
-#undef USE_ZLIB
-
 /* Version number of package */
 #undef VERSION
 
@@ -622,11 +501,6 @@
 
 /* needed for PIO code */
 #undef _PNETCDF
-
-/* Define to 1 if type `char' is unsigned and you are not using gcc.  */
-#ifndef __CHAR_UNSIGNED__
-# undef __CHAR_UNSIGNED__
-#endif
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
