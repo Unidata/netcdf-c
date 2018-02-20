@@ -55,11 +55,11 @@ if ! test -f ${MISCPATH} ; then echo "Unable to locate ${MISCPATH}"; exit 1; fi
 
 if test "x$API" = x1 ; then
 echo "*** Testing dynamic filters using API"
-rm -f ./bzip2.nc ./bzip2.dump ./tmp
+rm -f ./bzip2.nc ./bzip2.dump ./tmp_tst_filter
 ${execdir}/test_filter
-${NCDUMP} -s bzip2.nc > ./tmp
+${NCDUMP} -s bzip2.nc > ./tmp_tst_filter
 # Remove irrelevant -s output
-sclean ./tmp ./bzip2.dump
+sclean ./tmp_tst_filter ./bzip2.dump
 diff -b -w ${srcdir}/bzip2.cdl ./bzip2.dump
 echo "*** Pass: API dynamic filter"
 fi
@@ -67,61 +67,61 @@ fi
 if test "x$MISC" = x1 ; then
 echo
 echo "*** Testing dynamic filters parameter passing"
-rm -f ./testmisc.nc tmp tmp2
+rm -f ./testmisc.nc tmp_tst_filter tmp_tst_filter2
 ${execdir}/test_filter_misc
 # Verify the parameters via ncdump
-${NCDUMP} -s testmisc.nc > ./tmp
+${NCDUMP} -s testmisc.nc > ./tmp_tst_filter
 # Extract the parameters
-getfilterattr ./tmp ./tmp2
-rm -f ./tmp
-trimleft ./tmp2 ./tmp
-rm -f ./tmp2
-cat >./tmp2 <<EOF
+getfilterattr ./tmp_tst_filter ./tmp_tst_filter2
+rm -f ./tmp_tst_filter
+trimleft ./tmp_tst_filter2 ./tmp_tst_filter
+rm -f ./tmp_tst_filter2
+cat >./tmp_tst_filter2 <<EOF
 var:_Filter = "32768,1,239,23,65511,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
 EOF
-diff -b -w ./tmp ./tmp2
+diff -b -w ./tmp_tst_filter ./tmp_tst_filter2
 echo "*** Pass: parameter passing"
 fi
 
 if test "x$NG" = x1 ; then
 echo "*** Testing dynamic filters using ncgen"
-rm -f ./bzip2.nc ./bzip2.dump ./tmp
+rm -f ./bzip2.nc ./bzip2.dump ./tmp_tst_filter
 ${NCGEN} -lb -4 -o bzip2.nc ${srcdir}/bzip2.cdl
-${NCDUMP} -s bzip2.nc > ./tmp
+${NCDUMP} -s bzip2.nc > ./tmp_tst_filter
 # Remove irrelevant -s output
-sclean ./tmp ./bzip2.dump
+sclean ./tmp_tst_filter ./bzip2.dump
 diff -b -w ${srcdir}/bzip2.cdl ./bzip2.dump
 echo "*** Pass: ncgen dynamic filter"
 fi
 
 if test "x$NCP" = x1 ; then
 echo "*** Testing dynamic filters using nccopy"
-rm -f ./unfiltered.nc ./filtered.nc ./filtered.dump ./tmp
+rm -f ./unfiltered.nc ./filtered.nc ./filtered.dump ./tmp_tst_filter
 ${NCGEN} -4 -lb -o unfiltered.nc ${srcdir}/unfiltered.cdl
 ${NCCOPY} -F "/g/var,307,9,4" unfiltered.nc filtered.nc
-${NCDUMP} -s filtered.nc > ./tmp
+${NCDUMP} -s filtered.nc > ./tmp_tst_filter
 # Remove irrelevant -s output
-sclean ./tmp ./filtered.dump
+sclean ./tmp_tst_filter ./filtered.dump
 diff -b -w ${srcdir}/filtered.cdl ./filtered.dump
 echo "*** Pass: nccopy dynamic filter"
 fi
 
 if test "x$UNK" = x1 ; then
 echo "*** Testing access to filter info when filter dll is not available"
-rm -f bzip2.nc ./tmp
+rm -f bzip2.nc ./tmp_tst_filter
 # build bzip2.nc
 ${NCGEN} -lb -4 -o bzip2.nc ${srcdir}/bzip2.cdl
 # dump and clean bzip2.nc header only when filter is avail
-${NCDUMP} -hs bzip2.nc > ./tmp
+${NCDUMP} -hs bzip2.nc > ./tmp_tst_filter
 # Remove irrelevant -s output
-sclean ./tmp bzip2.dump
+sclean ./tmp_tst_filter bzip2.dump
 # Now hide the filter code
 mv ${BZIP2PATH} ${BZIP2PATH}.save
 # dump and clean bzip2.nc header only when filter is not avail
-rm -f ./tmp
-${NCDUMP} -hs bzip2.nc > ./tmp
+rm -f ./tmp_tst_filter
+${NCDUMP} -hs bzip2.nc > ./tmp_tst_filter
 # Remove irrelevant -s output
-sclean ./tmp bzip2x.dump
+sclean ./tmp_tst_filter bzip2x.dump
 # Restore the filter code
 mv ${BZIP2PATH}.save ${BZIP2PATH}
 diff -b -w ./bzip2.dump ./bzip2x.dump
@@ -137,7 +137,7 @@ echo "*** Pass: ncgen dynamic filter"
 fi
 
 #cleanup
-rm -f ./bzip*.nc ./unfiltered.nc ./filtered.nc ./tmp ./tmp2 *.dump bzip*hdr.*
+rm -f ./bzip*.nc ./unfiltered.nc ./filtered.nc ./tmp_tst_filter ./tmp_tst_filter2 *.dump bzip*hdr.*
 rm -fr ./test_bzip2.c
 rm -fr ./testmisc.nc
 
