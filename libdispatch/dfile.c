@@ -2078,40 +2078,45 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
        return NC_EINVAL;
    }
 
-   /* override any other table choice */
-   if(dispatcher != NULL) goto havetable;
-
    /* Figure out what dispatcher to use */
+   if (!dispatcher) {
+      switch (model) {
 #if defined(ENABLE_DAP)
-   if(model == (NC_FORMATX_DAP2))
-	dispatcher = NCD2_dispatch_table;
-   else
+      case NC_FORMATX_DAP2:
+         dispatcher = NCD2_dispatch_table;
+         break;
 #endif
 #if defined(ENABLE_DAP4)
-   if(model == (NC_FORMATX_DAP4))
-	dispatcher = NCD4_dispatch_table;
-   else
+      case NC_FORMATX_DAP4:
+         dispatcher = NCD4_dispatch_table;
+         break;
 #endif
 #if  defined(USE_PNETCDF)
-   if(model == (NC_FORMATX_PNETCDF))
-	dispatcher = NCP_dispatch_table;
-   else
+      case NC_FORMATX_PNETCDF:
+         dispatcher = NCP_dispatch_table;
+         break;
 #endif
 #if defined(USE_NETCDF4)
-   if(model == (NC_FORMATX_NC4) || model == (NC_FORMATX_NC_HDF4))
-	dispatcher = NC4_dispatch_table;
-   else
+      case NC_FORMATX_NC4:
+         dispatcher = NC4_dispatch_table;
+         break;
 #endif
-   if(model == (NC_FORMATX_NC3))
-	dispatcher = NC3_dispatch_table;
-   else {
-       nullfree(path);              
-       return  NC_ENOTNC;
+#if defined(USE_HDF4)
+      case NC_FORMATX_NC_HDF4:
+         dispatcher = HDF4_dispatch_table;
+         break;
+#endif
+      case NC_FORMATX_NC3:
+         dispatcher = NC3_dispatch_table;
+         break;
+      default:
+         nullfree(path);              
+         return NC_ENOTNC;
+      }
    }
 
-havetable:
-
-   if(dispatcher == NULL) {
+   /* If we can't figure out what dispatch table to use, give up. */
+   if (!dispatcher) {
        nullfree(path);              
        return NC_ENOTNC;
    }
@@ -2191,7 +2196,6 @@ openmagic(struct MagicFile* file)
     }
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	MPI_Offset size;
 	MPI_Comm comm = MPI_COMM_WORLD;
@@ -2309,7 +2313,6 @@ closemagic(struct MagicFile* file)
     if(file->inmemory) goto done; /* noop*/
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
 		{status = NC_EPARINIT; goto done;}

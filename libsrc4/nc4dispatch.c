@@ -59,6 +59,7 @@ NC4_inq_var_all,
 NC4_var_par_access,
 NC4_def_var_fill,
 
+#ifdef USE_NETCDF4
 NC4_show_metadata,
 NC4_inq_unlimdims,
 
@@ -97,6 +98,7 @@ NC4_def_var_endian,
 NC4_def_var_filter,
 NC4_set_var_chunk_cache,
 NC4_get_var_chunk_cache,
+#endif
 
 };
 

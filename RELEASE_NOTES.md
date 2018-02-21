@@ -8,6 +8,7 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.6.1 - TBD
 
 * [Bug Fix] Improved support for CRT builds with Visual Studio, improves zlib detection in hdf5 library. See [Github #853](https://github.com/Unidata/netcdf-c/pull/853) for more information.
+* [Enhancement][Internal] Moved HDF4 into a distinct dispatch layer. See [Github #849](https://github.com/Unidata/netcdf-c/pull/849) for more information.
 
 ## 4.6.0 - January 24, 2018
 * [Enhancement] Full support for using HDF5 dynamic filters, both for reading and writing. See the file docs/filters.md.
