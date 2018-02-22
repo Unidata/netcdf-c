@@ -553,7 +553,15 @@ NC3_rename_att( int ncid, int varid, const char *name, const char *unewname)
 		free_NC_string(old);
 		return NC_NOERR;
 	}
-	/* else */
+	/* else not in define mode */
+
+	/* If new name is longer than old, then complain,
+           but otherwise, no change (test is same as set_NC_string)*/
+	if(old->nchars < strlen(newname)) {
+	    free(newname);
+	    return NC_ENOTINDEFINE;
+	}
+
 	status = set_NC_string(old, newname);
 	free(newname);
 	if( status != NC_NOERR)

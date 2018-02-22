@@ -1277,7 +1277,9 @@ CHECK_TYPE_SIZE("_Bool"     SIZEOF__BOOL)
 
 CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
 
+
 CHECK_TYPE_SIZE("ssize_t"   HAVE_SSIZE_T)
+
 
 # __int64 is used on Windows for large file support.
 CHECK_TYPE_SIZE("__int64"   SIZEOF___INT_64)
