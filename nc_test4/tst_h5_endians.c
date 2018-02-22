@@ -7,10 +7,8 @@
  * Test contributed by Jeff Whitaker
  */
 
-#include <string.h>
-#include <netcdf.h>
-#include <stdio.h>
 #include <nc_tests.h>
+#include <string.h>
 #include "nc_logging.h"
 
 #define FILE_NAME_NC "tst_h5_endians.nc"
