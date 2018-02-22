@@ -777,7 +777,7 @@ main(int argc, char **argv)
 
       int dimids[NDIMS5], dimids_in[NDIMS5];
       int varid, varid1, varid2, varid3, varid4;
-      int varids_in4[NVAR4] = {0};
+      int varids_in4[NVAR4];
       int ndims, nvars, natts, unlimdimid;
       nc_type xtype_in;
       char name_in[NC_MAX_NAME + 1];
@@ -850,9 +850,9 @@ main(int argc, char **argv)
       if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
       if (ndims != NDIMS5 || nvars != 1 || natts != 0 ||
           unlimdimid != -1) ERR;
-      if (nc_inq_varids(ncid, &nvars, varids_in)) ERR;
+      if (nc_inq_varids(ncid, &nvars, varids_in4)) ERR;
       if (nvars != 1) ERR;
-      if (varids_in[0] != 0) ERR;
+      if (varids_in4[0] != 0) ERR;
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in, &natts)) ERR;
       if (strcmp(name_in, VAR_NAME5) || xtype_in != NC_INT || ndims != 1 || natts != 0 ||
 	  dimids_in[0] != 0) ERR;
