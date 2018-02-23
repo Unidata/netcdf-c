@@ -9,7 +9,9 @@
 #ifndef _DISPATCH_H
 #define _DISPATCH_H
 
+#if HAVE_CONFIG_H
 #include "config.h"
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -143,6 +145,12 @@ extern int NC4_initialize(void);
 extern int NC4_finalize(void);
 #endif
 
+#ifdef USE_HDF4
+extern NC_Dispatch* HDF4_dispatch_table;
+extern int HDF4_initialize(void);
+extern int HDF4_finalize(void);
+#endif
+
 /* Vectors of ones and zeros */
 extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
 extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];
@@ -250,6 +258,7 @@ int (*inq_var_all)(int ncid, int varid, char *name, nc_type *xtypep,
               );
 
 int (*var_par_access)(int, int, int);
+int (*def_var_fill)(int, int, int, const void*);
 
 /* Note the following may still be invoked by netcdf client code
    even when the file is a classic file; they will just return an error or
@@ -289,7 +298,6 @@ int (*def_opaque)(int, size_t, const char*, nc_type*);
 int (*def_var_deflate)(int, int, int, int, int);
 int (*def_var_fletcher32)(int, int, int);
 int (*def_var_chunking)(int, int, int, const size_t*);
-int (*def_var_fill)(int, int, int, const void*);
 int (*def_var_endian)(int, int, int);
 int (*def_var_filter)(int, int, unsigned int, size_t, const unsigned int*);
 int (*set_var_chunk_cache)(int, int, size_t, size_t, float);

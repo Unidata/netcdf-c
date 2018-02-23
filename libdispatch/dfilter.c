@@ -19,9 +19,7 @@ Common utilities related to filters.
 
 
 /* Forward */
-#ifdef WORDS_BIGENDIAN
-static void byteswap8(unsigned char* mem);
-#endif
+static int gettype(const int q0, const int q1, int* unsignedp);
 
 /**************************************************/
 /*
@@ -39,13 +37,15 @@ of unsigned ints.
 EXTERNL int
 NC_parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsigned int** paramsp)
 {
+    int stat = NC_NOERR;
+    int sstat; /* for scanf */
     char* p;
     char* sdata = NULL;
-    int stat;
     unsigned int id;
     size_t count; /* no. of comma delimited params */
     size_t nparams; /* final no. of unsigned ints */
-    size_t i;
+    size_t len;
+    int i;
     unsigned int* ulist = NULL;
     unsigned char mem[8]; /* to convert to network byte order */
 
@@ -67,9 +67,10 @@ NC_parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsign
 
     /* Extract the filter id */
     p = sdata;
-    stat = sscanf(p,"%u",&id);
-    if(stat != 1) goto fail;
-    p = p + strlen(p) + 1; /* skip the filter id */
+    sstat = sscanf(p,"%u",&id);
+    if(sstat != 1) goto fail;
+    /* skip past the filter id */
+    p = p + strlen(p) + 1;
     count--;
 
     /* Allocate the max needed space; *2 in case the params are all doubles */
@@ -77,41 +78,38 @@ NC_parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsign
     if(ulist == NULL) goto fail;
 
     /* walk and convert */
-    nparams = 0;
-    for(i=0;i<count;i++) {
-	char* q;
+    nparams = 0; /* actual count */
+    for(i=0;i<count;i++) { /* step thru param strings */
 	unsigned long long val64u;
 	unsigned int val32u;
 	double vald;
 	float valf;
 	unsigned int *vector;
-	int isunsigned;
-	int isnegative;
-	int type;
+	int isunsigned = 0;
+	int isnegative = 0;
+	int type = 0;
+	char* q;
 
-	/* Get trailing discrimination characters */
-	isunsigned = 0;
-	isnegative = 0;
-        type = 0;
-	if(strchr(p,'-') != NULL) isnegative = 1;
-        q = p+strlen(p)-2;
-	if(*q == 'U' || *q == 'u') isunsigned = 1;
-	q++;
-	switch (*q) {
-	case 'f': case 'F': type = 'f'; break; /* short */
-	case 'd': case 'D': type = 'd'; break; /* double */
-	case 'b': case 'B': type = 'b'; break; /* byte */
-	case 's': case 'S': type = 's'; break; /* short */
-	case 'l': case 'L': type = 'l'; break; /* long long */
-	case 'u': case 'U': type = 'i'; isunsigned = 1; break; /* integer */
-	case '.':
-	case '0': case '1': case '2': case '3': case '4':
-	case '5': case '6': case '7': case '8': case '9': type = 'i'; break;
-	default:
-	    if(*q == '\0')
-		type = 'i';
-	    else goto fail;
+	len = strlen(p);
+	/* skip leading white space */
+	while(strchr(" 	",*p) != NULL) {p++; len--;}
+	/* Get leading sign character, if any */
+	if(*p == '-') isnegative = 1;
+        /* Get trailing type tag characters */
+	switch (len) {
+	case 0:
+	    goto fail; /* empty parameter */
+	case 1:
+	case 2:
+	    q = (p + len) - 1; /* point to last char */
+	    type = gettype(*q,'\0',&isunsigned);
+	    break;
+	default: /* > 2 => we might have a two letter tag */
+	    q = (p + len) - 2;
+	    type = gettype(*q,*(q+1),&isunsigned);
+	    break;
 	}
+
 	/* Now parse */
 	switch (type) {
 	case 'b':
@@ -119,25 +117,31 @@ NC_parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsign
 	case 'i':
  	    /* special case for a positive integer;for back compatibility.*/
 	    if(!isnegative)
-	        stat = sscanf(p,"%u",&val32u);
+	        sstat = sscanf(p,"%u",&val32u);
 	    else
-                stat = sscanf(p,"%d",(int*)&val32u);
-	    if(stat != 1) goto fail;
+                sstat = sscanf(p,"%d",(int*)&val32u);
+	    if(sstat != 1) goto fail;
+	    switch(type) {
+	    case 'b': val32u = (val32u & 0xFF); break;
+	    case 's': val32u = (val32u & 0xFFFF); break;
+	    }
 	    ulist[nparams++] = val32u;
 	    break;
+
 	case 'f':
-	    stat = sscanf(p,"%lf",&vald);
-	    if(stat != 1) goto fail;
+	    sstat = sscanf(p,"%lf",&vald);
+	    if(sstat != 1) goto fail;
 	    valf = (float)vald;
 	    ulist[nparams++] = *(unsigned int*)&valf;
 	    break;
+
 	case 'd':
-	    stat = sscanf(p,"%lf",&vald);
-	    if(stat != 1) goto fail;
+	    sstat = sscanf(p,"%lf",&vald);
+	    if(sstat != 1) goto fail;
 	    /* convert to network byte order */
 	    memcpy(mem,&vald,sizeof(mem));
 #ifdef WORDS_BIGENDIAN
-	    byteswap8(mem);  /* convert big endian to little endian */
+	    NC_byteswap8(mem);  /* convert big endian to little endian */
 #endif
 	    vector = (unsigned int*)mem;
 	    ulist[nparams++] = vector[0];
@@ -145,14 +149,14 @@ NC_parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsign
 	    break;
 	case 'l': /* long long */
 	    if(isunsigned)
-	        stat = sscanf(p,"%llu",&val64u);
+	        sstat = sscanf(p,"%llu",&val64u);
 	    else
-                stat = sscanf(p,"%lld",(long long*)&val64u);
-	    if(stat != 1) goto fail;
+                sstat = sscanf(p,"%lld",(long long*)&val64u);
+	    if(sstat != 1) goto fail;
 	    /* convert to network byte order */
 	    memcpy(mem,&val64u,sizeof(mem));
 #ifdef WORDS_BIGENDIAN	    
-	    byteswap8(mem);  /* convert big endian to little endian */
+	    NC_byteswap8(mem);  /* convert big endian to little endian */
 #endif
 	    vector = (unsigned int*)mem;
 	    ulist[nparams++] = vector[0];
@@ -170,19 +174,51 @@ NC_parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsign
        *paramsp = ulist;
        ulist = NULL; /* avoid duplicate free */
     }
+done:
     if(sdata) free(sdata);
     if(ulist) free(ulist);
-    return 1;
+    return stat;
 fail:
-    if(sdata) free(sdata);
-    if(ulist) free(ulist);
-    return 0;
+    stat = NC_EFILTER;
+    goto done;
+}
+
+/* Look at q0 and q1) to determine type */
+static int
+gettype(const int q0, const int q1, int* isunsignedp)
+{
+    int type = 0;
+    int isunsigned = 0;
+    char typechar;
+    
+    isunsigned = (q0 == 'u' || q0 == 'U');
+    if(q1 == '\0')
+	typechar = q0; /* we were given only a single char */
+    else if(isunsigned)
+	typechar = q1; /* we have something like Ux as the tag */
+    else
+	typechar = q1; /* look at last char for tag */
+    switch (typechar) {
+    case 'f': case 'F': case '.': type = 'f'; break; /* float */
+    case 'd': case 'D': type = 'd'; break; /* double */
+    case 'b': case 'B': type = 'b'; break; /* byte */
+    case 's': case 'S': type = 's'; break; /* short */
+    case 'l': case 'L': type = 'l'; break; /* long long */
+    case '0': case '1': case '2': case '3': case '4':
+    case '5': case '6': case '7': case '8': case '9': type = 'i'; break;
+    case 'u': case 'U': type = 'i'; isunsigned = 1; break; /* unsigned int */
+    case '\0': type = 'i'; break;
+    default: break;
+    }
+    if(isunsignedp) *isunsignedp = isunsigned;
+    return type;
 }
 
 #ifdef WORDS_BIGENDIAN
 /* Byte swap an 8-byte integer in place */
-static void
-byteswap8(unsigned char* mem)
+EXTERNL
+void
+NC_byteswap8(unsigned char* mem)
 {
     unsigned char c;
     c = mem[0];

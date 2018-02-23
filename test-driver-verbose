@@ -1,9 +1,11 @@
 #! /bin/sh
 # test-driver - basic testsuite driver script.
 
-scriptversion=2017-04-02.20; # UTC
+DEBUGTEST="run_examples4.sh"
 
-# Copyright (C) 2011-2014 Free Software Foundation, Inc.
+scriptversion=2018-01-15.21; # UTC
+
+# Copyright (C) 2011-2017 Free Software Foundation, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,19 +51,6 @@ Usage:
 The '--test-name', '--log-file' and '--trs-file' options are mandatory.
 END
 }
-
-isshellscript()
-{
-    iss_cmd="$1"
-    iss_base=`basename ${iss_cmd}`
-    iss_sh=`basename ${iss_cmd} .sh`
-    if test "x${iss_base}" = "x${iss_sh}" ; then
-      return 1
-    else
-      return 0
-    fi
-}
-
 
 test_name= # Used for reporting.
 log_file=  # Where to save the output of the test script.
@@ -116,20 +105,23 @@ trap "st=130; $do_exit" 2
 trap "st=141; $do_exit" 13
 trap "st=143; $do_exit" 15
 
+set -x
+
 # Test script is run here.
-#if isshellscript $1 ; then
-#bash -x "$@" >$log_file 2>&1
-#estatus=$?
-#else
+
 "$@" >$log_file 2>&1
 estatus=$?
-#fi
+if test "x$test_name" = "x$DEBUGTEST" ; then
+cat $log_file
+fi
 
 if test $enable_hard_errors = no && test $estatus -eq 99; then
   tweaked_estatus=1
 else
   tweaked_estatus=$estatus
 fi
+
+cat $log_file
 
 case $tweaked_estatus:$expect_failure in
   0:yes) col=$red res=XPASS recheck=yes gcopy=yes;;
@@ -148,7 +140,6 @@ echo "$res $test_name (exit status: $estatus)" >>$log_file
 
 # Report outcome to console.
 echo "${col}${res}${std}: $test_name"
-if test "x$res" != "x0" ; then cat $log_file ; fi
 
 # Register the test result, and other relevant metadata.
 echo ":test-result: $res" > $trs_file
@@ -162,6 +153,6 @@ echo ":copy-in-global-log: $gcopy" >> $trs_file
 # eval: (add-hook 'write-file-hooks 'time-stamp)
 # time-stamp-start: "scriptversion="
 # time-stamp-format: "%:y-%02m-%02d.%02H"
-# time-stamp-time-zone: "UTC"
+# time-stamp-time-zone: "UTC0"
 # time-stamp-end: "; # UTC"
 # End:

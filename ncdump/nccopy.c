@@ -24,6 +24,8 @@
 #include "nccomps.h"
 #include "ncfilter.h"
 
+#undef DEBUGFILTER
+
 #ifdef _MSC_VER
 #include "XGetopt.h"
 #define snprintf _snprintf
@@ -200,7 +202,7 @@ parseFQN(int ncid, const char* fqn0, VarID* idp)
     char* p;
     char* q;
     char* segment;
-    
+
     vid.grpid = ncid;
     if(fqn0 == NULL || fqn0[1] != '/')
 	{stat = NC_EBADNAME; goto done;}
@@ -225,12 +227,13 @@ done:
     if(fqn) free(fqn);
     if(stat == NC_NOERR && idp != NULL) *idp = vid;
     return stat;
-}    
+}
 #endif
 
 static int
 parsefilterspec(const char* optarg0, struct FilterSpec* spec)
 {
+    int stat = NC_NOERR;
     char* optarg = NULL;
     unsigned int* params = NULL;
     size_t nparams;
@@ -240,7 +243,7 @@ parsefilterspec(const char* optarg0, struct FilterSpec* spec)
 
     if(optarg0 == NULL || strlen(optarg0) == 0 || spec == NULL) return 0;
     optarg = strdup(optarg0);
-    
+
     /* Collect the fqn, taking escapes into account */
     p = optarg;
     remainder = NULL;
@@ -261,14 +264,14 @@ parsefilterspec(const char* optarg0, struct FilterSpec* spec)
     }
 
     /* Collect the id+parameters */
-    if(!NC_parsefilterspec(remainder,&id,&nparams,&params))
-	return 0;
-    if(spec != NULL) {
-        spec->filterid = id;
-        spec->nparams = nparams;
-        spec->params = params;
+    if((stat = NC_parsefilterspec(remainder,&id,&nparams,&params)) == NC_NOERR) {
+        if(spec != NULL) {
+            spec->filterid = id;
+            spec->nparams = nparams;
+            spec->params = params;
+	}
     }
-    return 1;
+    return stat;
 }
 
 
@@ -1767,6 +1770,7 @@ usage(void)
   [-e n]    set number of elements that chunk_cache can hold\n\
   [-r]      read whole input file into diskless file on open (classic or 64-bit offset or cdf5 formats only)\n\
   [-F filterspec] specify the compression algorithm to apply to an output variable.\n\
+  [-Ln]     set log level to n (>= 0); ignored if logging isn't enabled.\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
@@ -1840,7 +1844,7 @@ main(int argc, char**argv)
        usage();
     }
 
-    while ((c = getopt(argc, argv, "k:3467d:sum:c:h:e:rwxg:G:v:V:F:")) != -1) {
+    while ((c = getopt(argc, argv, "k:3467d:sum:c:h:e:rwxg:G:v:V:F:L:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated
                      Format names:
@@ -1955,20 +1959,30 @@ main(int argc, char**argv)
 	    make_lvars (optarg, &option_nlvars, &option_lvars);
 	    option_varstruct = false;
 	    break;
+    case 'L': /* Set logging, if logging support was compiled in. */
+#ifdef LOGGING
+      {
+        int level = atoi(optarg);
+        if(level >= 0)
+          nc_set_log_level(level);
+      }
+#endif
+      break;
 	case 'F': /* optional filter spec for a specified variable */
 #ifdef USE_NETCDF4
-	    if(!parsefilterspec(optarg,&filterspec)) usage();
+	    if(parsefilterspec(optarg,&filterspec) != NC_NOERR)
+		usage();
 	    if(nfilterspecs >= (MAX_FILTER_SPECS-1))
 		error("too many -F filterspecs\n");
 	    filterspecs[nfilterspecs] = filterspec;
-	    nfilterspecs++;		
+	    nfilterspecs++;
 	    // Force output to be netcdf-4
 	    option_kind = NC_FORMAT_NETCDF4;
 #else
 	    error("-F requires netcdf-4");
 #endif
 	    break;
-	default: 
+	default:
 	    usage();
         }
     }
@@ -1984,6 +1998,24 @@ main(int argc, char**argv)
     if(strcmp(inputfile, outputfile) == 0) {
 	error("output would overwrite input");
     }
+
+#ifdef USE_NETCDF4
+#ifdef DEBUGFILTER
+    { int i,j;
+        for(i=0;i<nfilterspecs;i++) {
+	    struct FilterSpec *spec = &filterspecs[i];
+	    fprintf(stderr,"filterspecs[%d]={fqn=|%s| filterid=%u nparams=%ld params=",
+		i,spec->fqn,spec->filterid,(unsigned long)spec->nparams);
+	    for(j=0;j<spec->nparams;j++) {
+		if(j>0) fprintf(stderr,",");
+		fprintf(stderr,"%u",spec->params[j]);
+	    }
+	    fprintf(stderr,"}\n");
+	    fflush(stderr);
+	}
+    }
+#endif /*DEBUGFILTER*/
+#endif /*USE_NETCDF4*/
 
     if(copy(inputfile, outputfile) != NC_NOERR)
         exit(EXIT_FAILURE);
