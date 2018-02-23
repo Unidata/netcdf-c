@@ -4,7 +4,6 @@
  * https://github.com/Unidata/netcdf-c/issues/113.
  */
 
-#include <stdio.h>
 #include <config.h>
 #include <unistd.h>
 #include <nc_tests.h>
