@@ -8,10 +8,11 @@
    Tests to see if the hashmap is being properly updated.
 
    */
+#include <config.h>
+#include <netcdf.h>
 
 #define FILENAME "tst_rehash.nc"
 
-#include <netcdf.h>
 int main()
 {
   int  status;

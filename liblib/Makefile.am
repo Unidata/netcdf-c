@@ -18,7 +18,7 @@ lib_LTLIBRARIES = libnetcdf.la
 # for information regarding incrementing `-version-info`.
 ##
 
-libnetcdf_la_LDFLAGS = -version-info 13:0:0
+libnetcdf_la_LDFLAGS = -version-info 14:0:1
 
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD =
@@ -38,6 +38,12 @@ libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libdispatch.la	\
 if USE_PNETCDF
 AM_CPPFLAGS += -I${top_srcdir}/libsrcp
 libnetcdf_la_LIBADD += ${top_builddir}/libsrcp/libnetcdfp.la
+endif # USE_PNETCDF
+
+# + hdf4
+if USE_HDF4
+AM_CPPFLAGS += -I${top_srcdir}/libhdf4
+libnetcdf_la_LIBADD += ${top_builddir}/libhdf4/libnchdf4.la
 endif # USE_PNETCDF
 
 # + dap

@@ -116,22 +116,18 @@ NC_interpret_magic_number(char* magic, int* model, int* version)
     /* Look at the magic number */
     *model = 0;
     *version = 0;
-#ifdef USE_NETCDF4
     /* Use the complete magic number string for HDF5 */
     if(memcmp(magic,HDF5_SIGNATURE,sizeof(HDF5_SIGNATURE))==0) {
 	*model = NC_FORMATX_NC4;
 	*version = 5; /* redundant */
 	goto done;
     }
-#endif
-#if defined(USE_NETCDF4) && defined(USE_HDF4)
     if(magic[0] == '\016' && magic[1] == '\003'
               && magic[2] == '\023' && magic[3] == '\001') {
 	*model = NC_FORMATX_NC_HDF4;
 	*version = 4; /* redundant */
 	goto done;
     }
-#endif
     if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') {
         if(magic[3] == '\001') {
             *version = 1; /* netcdf classic version 1 */
@@ -143,13 +139,11 @@ NC_interpret_magic_number(char* magic, int* model, int* version)
 	    *model = NC_FORMATX_NC3;
 	    goto done;
         }
-#ifdef USE_CDF5
         if(magic[3] == '\005') {
           *version = 5; /* cdf5 (including pnetcdf) file */
 	  *model = NC_FORMATX_NC3;
 	  goto done;
 	}
-#endif
      }
      /* No match  */
      status = NC_ENOTNC;
@@ -1659,11 +1653,11 @@ Some create flags cannot be used if corresponding library features are
 enabled during the build. This function does a pre-check of the mode
 flag before calling the dispatch layer nc_create functions.
 
-\param cmode The creation mode flag.
+\param mode The creation mode flag.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOTBUILT Requested feature not built into library
-\returns ::NC_NINVAL Invalid combination of modes.
+\returns ::NC_EINVAL Invalid combination of modes.
 \internal
 \ingroup dispatch
 \author Ed Hartnett
@@ -2023,6 +2017,28 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 	return NC_ENOTNC;
    }
 
+   /* Suppress unsupported formats */
+   {
+	int hdf5built = 0;
+	int hdf4built = 0;
+	int cdf5built = 0;
+#ifdef USE_NETCDF4
+	hdf5built = 1;
+  #ifdef USEHDF4
+        hdf4built = 1;
+  #endif
+#endif
+#ifdef USE_CDF5
+       cdf5built = 1;
+#endif
+	if(!hdf5built && model == NC_FORMATX_NC4)
+	    return NC_ENOTBUILT;
+	if(!hdf4built && model == NC_FORMATX_NC4 && version == 4)
+	    return NC_ENOTBUILT;
+	if(!cdf5built && model == NC_FORMATX_NC3 && version == 5)
+	    return NC_ENOTBUILT;
+    }
+
    /* Force flag consistentcy */
    if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4)
       cmode |= NC_NETCDF4;
@@ -2062,40 +2078,45 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
        return NC_EINVAL;
    }
 
-   /* override any other table choice */
-   if(dispatcher != NULL) goto havetable;
-
    /* Figure out what dispatcher to use */
+   if (!dispatcher) {
+      switch (model) {
 #if defined(ENABLE_DAP)
-   if(model == (NC_FORMATX_DAP2))
-	dispatcher = NCD2_dispatch_table;
-   else
+      case NC_FORMATX_DAP2:
+         dispatcher = NCD2_dispatch_table;
+         break;
 #endif
 #if defined(ENABLE_DAP4)
-   if(model == (NC_FORMATX_DAP4))
-	dispatcher = NCD4_dispatch_table;
-   else
+      case NC_FORMATX_DAP4:
+         dispatcher = NCD4_dispatch_table;
+         break;
 #endif
 #if  defined(USE_PNETCDF)
-   if(model == (NC_FORMATX_PNETCDF))
-	dispatcher = NCP_dispatch_table;
-   else
+      case NC_FORMATX_PNETCDF:
+         dispatcher = NCP_dispatch_table;
+         break;
 #endif
 #if defined(USE_NETCDF4)
-   if(model == (NC_FORMATX_NC4) || model == (NC_FORMATX_NC_HDF4))
-	dispatcher = NC4_dispatch_table;
-   else
+      case NC_FORMATX_NC4:
+         dispatcher = NC4_dispatch_table;
+         break;
 #endif
-   if(model == (NC_FORMATX_NC3))
-	dispatcher = NC3_dispatch_table;
-   else {
-       nullfree(path);              
-       return  NC_ENOTNC;
+#if defined(USE_HDF4)
+      case NC_FORMATX_NC_HDF4:
+         dispatcher = HDF4_dispatch_table;
+         break;
+#endif
+      case NC_FORMATX_NC3:
+         dispatcher = NC3_dispatch_table;
+         break;
+      default:
+         nullfree(path);              
+         return NC_ENOTNC;
+      }
    }
 
-havetable:
-
-   if(dispatcher == NULL) {
+   /* If we can't figure out what dispatch table to use, give up. */
+   if (!dispatcher) {
        nullfree(path);              
        return NC_ENOTNC;
    }
@@ -2175,7 +2196,6 @@ openmagic(struct MagicFile* file)
     }
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	MPI_Offset size;
 	MPI_Comm comm = MPI_COMM_WORLD;
@@ -2293,7 +2313,6 @@ closemagic(struct MagicFile* file)
     if(file->inmemory) goto done; /* noop*/
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
-	MPI_Status mstatus;
 	int retval;
 	if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
 		{status = NC_EPARINIT; goto done;}
