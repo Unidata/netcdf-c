@@ -72,8 +72,8 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat1.nc:nc_test4/ref_hdf5_compat1.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 
-AC_CONFIG_LINKS([nc_test4/ref_chunked.hdf4:nc_test4/ref_chunked.hdf4])
-AC_CONFIG_LINKS([nc_test4/ref_contiguous.hdf4:nc_test4/ref_contiguous.hdf4])
+AC_CONFIG_LINKS([hdf4_test/ref_chunked.hdf4:hdf4_test/ref_chunked.hdf4])
+AC_CONFIG_LINKS([hdf4_test/ref_contiguous.hdf4:hdf4_test/ref_contiguous.hdf4])
 
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
@@ -170,14 +170,6 @@ AC_MSG_RESULT($enable_jna)
 if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include jna bug workaround code])
 fi
-
-# Does the user want to run extra tests with valgrind?
-AC_MSG_CHECKING([whether extra valgrind tests should be run])
-AC_ARG_ENABLE([valgrind-tests],
-              [AS_HELP_STRING([--enable-valgrind-tests],
-                              [build with valgrind-tests (valgrind is required, static builds only)])])
-test "x$enable_valgrind_tests" = xyes || enable_valgrind_tests=no
-AC_MSG_RESULT($enable_valgrind_tests)
 
 # Does the user want to build netcdf-4?
 AC_MSG_CHECKING([whether we should build netCDF-4])
@@ -669,14 +661,6 @@ CFLAGS="$SAVECFLAGS"
 AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.2])
 LT_INIT()
-
-# Valgrind tests don't work with shared builds because of some libtool
-# weirdness.
-if test "x$enable_shared" = xyes; then
-   if test $enable_valgrind_tests = yes; then
-      AC_MSG_ERROR([No valgrind tests with shared libraries])
-   fi
-fi
 
 AC_MSG_NOTICE([finding other utilities])
 
@@ -1202,7 +1186,6 @@ AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])
-AM_CONDITIONAL(USE_VALGRIND_TESTS, [test "x$enable_valgrind_tests" = xyes])
 AM_CONDITIONAL(USE_NETCDF4, [test x$enable_netcdf_4 = xyes])
 AM_CONDITIONAL(USE_HDF4, [test x$enable_hdf4 = xyes])
 AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
@@ -1437,6 +1420,7 @@ AC_CONFIG_FILES([Makefile
 		         include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
+                 hdf4_test/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
                  libsrcp/Makefile
