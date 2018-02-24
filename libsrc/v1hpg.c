@@ -7,11 +7,11 @@
 #include <config.h>
 #endif
 
-#include "nc3internal.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include "nc3internal.h"
 #include "rnd.h"
 #include "ncx.h"
 

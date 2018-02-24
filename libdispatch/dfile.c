@@ -116,22 +116,18 @@ NC_interpret_magic_number(char* magic, int* model, int* version)
     /* Look at the magic number */
     *model = 0;
     *version = 0;
-#ifdef USE_NETCDF4
     /* Use the complete magic number string for HDF5 */
     if(memcmp(magic,HDF5_SIGNATURE,sizeof(HDF5_SIGNATURE))==0) {
 	*model = NC_FORMATX_NC4;
 	*version = 5; /* redundant */
 	goto done;
     }
-#endif
-#if defined(USE_NETCDF4) && defined(USE_HDF4)
     if(magic[0] == '\016' && magic[1] == '\003'
               && magic[2] == '\023' && magic[3] == '\001') {
 	*model = NC_FORMATX_NC_HDF4;
 	*version = 4; /* redundant */
 	goto done;
     }
-#endif
     if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') {
         if(magic[3] == '\001') {
             *version = 1; /* netcdf classic version 1 */
@@ -143,13 +139,11 @@ NC_interpret_magic_number(char* magic, int* model, int* version)
 	    *model = NC_FORMATX_NC3;
 	    goto done;
         }
-#ifdef USE_CDF5
         if(magic[3] == '\005') {
           *version = 5; /* cdf5 (including pnetcdf) file */
 	  *model = NC_FORMATX_NC3;
 	  goto done;
 	}
-#endif
      }
      /* No match  */
      status = NC_ENOTNC;
@@ -2022,6 +2016,28 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 	fprintf(stderr,"Model == 0\n");
 	return NC_ENOTNC;
    }
+
+   /* Suppress unsupported formats */
+   {
+	int hdf5built = 0;
+	int hdf4built = 0;
+	int cdf5built = 0;
+#ifdef USE_NETCDF4
+	hdf5built = 1;
+  #ifdef USEHDF4
+        hdf4built = 1;
+  #endif
+#endif
+#ifdef USE_CDF5
+       cdf5built = 1;
+#endif
+	if(!hdf5built && model == NC_FORMATX_NC4)
+	    return NC_ENOTBUILT;
+	if(!hdf4built && model == NC_FORMATX_NC4 && version == 4)
+	    return NC_ENOTBUILT;
+	if(!cdf5built && model == NC_FORMATX_NC3 && version == 5)
+	    return NC_ENOTBUILT;
+    }
 
    /* Force flag consistentcy */
    if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4)

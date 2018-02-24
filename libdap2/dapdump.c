@@ -440,7 +440,7 @@ dumpnode(CDFnode* node)
     ncbytescat(buf,tmp);
     snprintf(tmp,sizeof(tmp),"ncfullname=%s\n",node->ncfullname);
     ncbytescat(buf,tmp);
-    snprintf(tmp,sizeof(tmp),"|subnodes|=%ld\n",nclistlength(node->subnodes));
+    snprintf(tmp,sizeof(tmp),"|subnodes|=%u\n",(unsigned)nclistlength(node->subnodes));
     ncbytescat(buf,tmp);
     snprintf(tmp,sizeof(tmp),"externaltype=%d\n",node->externaltype);
     ncbytescat(buf,tmp);
@@ -459,7 +459,7 @@ dumpnode(CDFnode* node)
     snprintf(tmp,sizeof(tmp),"attachment=%s\n",
 		(node->attachment?node->attachment->ocname:"null"));
     ncbytescat(buf,tmp);
-    snprintf(tmp,sizeof(tmp),"rank=%lu\n",nclistlength(node->array.dimset0));
+    snprintf(tmp,sizeof(tmp),"rank=%u\n",(unsigned)nclistlength(node->array.dimset0));
     ncbytescat(buf,tmp);
     for(i=0;i<nclistlength(node->array.dimset0);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(node->array.dimset0,i);
