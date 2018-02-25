@@ -379,12 +379,9 @@ NC_findvar(const NC_vararray *ncap, const char *uname, NC_var **varpp)
 	    return -1;
 	hash_var_id = data;
 	free(name);
-	if (hash_var_id >= 0) {
-	  if (varpp != NULL)
-	    *varpp = ncap->value[hash_var_id];
-	  return(hash_var_id); /* Normal return */
-	}
-	return(-1); /* not found */
+        if (varpp != NULL)
+	  *varpp = ncap->value[hash_var_id];
+	return(hash_var_id); /* Normal return */
 }
 
 /*

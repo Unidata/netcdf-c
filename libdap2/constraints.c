@@ -177,7 +177,6 @@ completesegments(NClist* fullpath, NClist* segments)
     size_t i,delta;
     /* add path nodes to segments to create full path */
     delta = (nclistlength(fullpath) - nclistlength(segments));
-    ASSERT((delta >= 0));
     for(i=0;i<delta;i++) {
         DCEsegment* seg = (DCEsegment*)dcecreate(CES_SEGMENT);
         CDFnode* node = (CDFnode*)nclistget(fullpath,i);
