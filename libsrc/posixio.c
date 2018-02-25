@@ -41,10 +41,6 @@
 #define NC_NOERR 0
 #endif
 
-#ifndef HAVE_SSIZE_T
-typedef int ssize_t;
-#endif
-
 #ifndef SEEK_SET
 #define SEEK_SET 0
 #define SEEK_CUR 1

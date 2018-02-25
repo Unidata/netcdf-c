@@ -3,6 +3,7 @@
 #DB=1
 #X=-x
 FAST=1
+#PROF=1
 
 HDF5=1
 DAP=1
@@ -92,7 +93,6 @@ fi
 CXXFLAGS="$CPPFLAGS $CXXFLAGS"
 
 FLAGS="--prefix ${PREFIX}"
-#FLAGS="$FLAGS --disable-f77 --disable-f90"
 #FLAGS="$FLAGS --disable-cxx"
 #FLAGS="$FLAGS --disable-examples"
 #FLAGS="$FLAGS --disable-utilities"
@@ -117,7 +117,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
-FLAGS="$FLAGS --enable-filter-testing"
+#FLAGS="$FLAGS --enable-filter-testing"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
@@ -166,6 +166,11 @@ if test "x$MPIO" = x1 ; then
   LDLIBS="-lmpich"
   FLAGS="$FLAGS --enable-pnetcdf"
   FLAGS="$FLAGS --enable-parallel-tests"
+fi
+
+if test "x${PROF}" = x1 ; then
+CFLAGS="${CFLAGS} -pg"
+LDFLAGS="${LDFLAGS} -pg"
 fi
 
 #FLAGS="${FLAGS} --enable-stdio"

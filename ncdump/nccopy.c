@@ -83,9 +83,11 @@ static size_t option_chunk_cache_size = CHUNK_CACHE_SIZE; /* default from config
 static size_t option_chunk_cache_nelems = CHUNK_CACHE_NELEMS; /* default from config.h */
 static int option_read_diskless = 0; /* default, don't read input into memory on open */
 static int option_write_diskless = 0; /* default, don't write output to diskless file */
+#ifdef USE_NETCDF4
 static int option_min_chunk_bytes = CHUNK_THRESHOLD; /* default, don't chunk variable if prod of
 						      * chunksizes of its dimensions is smaller
 						      * than this */
+#endif
 static int option_nlgrps = 0;		    /* Number of groups specified with -g
 					     * option on command line */
 static char** option_lgrps = 0;		    /* list of group names specified with -g
@@ -1342,7 +1344,9 @@ copy_data(int igrp, int ogrp)
 /* Count total number of dimensions in ncid and all its descendant subgroups */
 int
 count_dims(int ncid) {
+#ifdef USE_NETCDF4
     int numgrps;
+#endif
     int ndims;
     NC_CHECK(nc_inq_ndims(ncid, &ndims));
 #ifdef USE_NETCDF4

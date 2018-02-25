@@ -1,8 +1,8 @@
 # Test c output
-T=t
+T=tst_special_atts
 #ARGS=./x.nc
 
-TF=test_atomic_array.cdl
+#TF=test_atomic_array.cdl
 
 #CMD=valgrind --leak-check=full
 CMD=gdb --args
@@ -33,7 +33,7 @@ endif
 
 LLP=/usr/local/lib:${LD_LIBRARY_PATH}
 
-all:: comp ./x.nc
+all:: comp
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
 	${CMD} ./t ${ARGS}
 

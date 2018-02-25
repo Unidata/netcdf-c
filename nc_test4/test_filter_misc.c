@@ -11,6 +11,8 @@
 #include <hdf5.h>
 #include "netcdf.h"
 
+#undef DEBUG
+
 /* The C standard apparently defines all floating point constants as double;
    we rely on that in this code.
 */
@@ -443,8 +445,10 @@ init(int argc, char** argv)
 int
 main(int argc, char **argv)
 {
+#ifdef DEBUG
     H5Eprint(stderr);
     nc_set_log_level(1);
+#endif
     init(argc,argv);
     if(!test_test1()) ERRR;
     exit(nerrs > 0?1:0);
