@@ -154,7 +154,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_MPIPOSIX      0x4000 /**< \deprecated As of libhdf5 1.8.13. */
 
-#define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create(). */
+#define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() => NC_DISKLESS */
 
 #define NC_PNETCDF       (NC_MPIIO) /**< Use parallel-netcdf library; alias for NC_MPIIO. */
 
@@ -459,7 +459,8 @@ by the desired type. */
 #define NC_EFILTER       (-132)    /**< Filter operation failed. */
 #define NC_ERCFILE       (-133)    /**< RC file failure */
 #define NC_ENULLPAD      (-134)    /**< Header Bytes not Null-Byte padded */
-#define NC4_LAST_ERROR   (-135)    /**< @internal All netCDF errors > this. */
+#define NC_EINMEMORY     (-135)    /**< In-memory file error */
+#define NC4_LAST_ERROR   (-136)    /**< @internal All netCDF errors > this. */
 
 /** @internal This is used in netCDF-4 files for dimensions without
  * coordinate vars. */

@@ -1707,6 +1707,7 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
  *
  * @param grp The grp of the dimscale-only dataset to be deleted, or a
  * higher group in the heirarchy (ex. root group).
+ * @param dimid dimension id
  * @param dim Pointer to the dim with the dimscale-only dataset to be
  * deleted.
  *

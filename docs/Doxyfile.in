@@ -750,23 +750,23 @@ INPUT = \
     @abs_top_srcdir@/docs/install-fortran.md \
     @abs_top_srcdir@/docs/types.dox \
     @abs_top_srcdir@/docs/internal.dox \
-    @abs_top_srcdir@/docs/indexing.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/guide.dox \
     @abs_top_srcdir@/docs/OPeNDAP.dox \
     @abs_top_srcdir@/docs/DAP4.dox \
     @abs_top_srcdir@/docs/attribute_conventions.md \
     @abs_top_srcdir@/docs/file_format_specifications.md \
-    @abs_top_srcdir@/docs/tutorial.dox \
-    @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/auth.md \
     @abs_top_srcdir@/docs/filters.md \
+    @abs_top_srcdir@/docs/inmemory.md \
+    @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
     @abs_top_srcdir@/docs/FAQ.md \
     @abs_top_srcdir@/docs/known_problems.md \
     @abs_top_srcdir@/docs/COPYRIGHT.dox \
     @abs_top_srcdir@/docs/credits.md \
     @abs_top_srcdir@/docs/bestpractices.md \
+    @abs_top_srcdir@/docs/tutorial.dox \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_mem.h \
     @abs_top_srcdir@/include/netcdf_par.h \

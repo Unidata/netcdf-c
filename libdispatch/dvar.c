@@ -426,7 +426,7 @@ NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
  * Find the length of a type. This is how much space is required by
  * the in memory to hold one element of this type.
  *
- * @parm type A netCDF atomic type.
+ * @param type A netCDF atomic type.
  *
  * @return Length of the type in bytes, or -1 if type not found.
  * @author Ed Hartnett

@@ -236,7 +236,7 @@ done:
 
 
 static int
-NCP_close(int ncid)
+NCP_close(int ncid, void* ignored)
 {
     NC* nc;
     NCP_INFO* nc5;
