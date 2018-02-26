@@ -3,6 +3,7 @@
 #DB=1
 #X=-x
 FAST=1
+LEAK=1
 #PROF=1
 
 HDF5=1
@@ -173,7 +174,10 @@ CFLAGS="${CFLAGS} -pg"
 LDFLAGS="${LDFLAGS} -pg"
 fi
 
-#FLAGS="${FLAGS} --enable-stdio"
+if test "x${LEAK}" = x1 ; then
+CFLAGS="${CFLAGS} -fsanitize=address -fno-omit-frame-pointer"
+export ASAN_OPTIONS="detect_leaks=1:verbosity=1"
+fi
 
 export PATH
 export CC

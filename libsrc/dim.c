@@ -119,7 +119,6 @@ find_NC_Udim(const NC_dimarray *ncap, NC_dim **dimpp)
 	}
 }
 
-
 /*
  * Step thru NC_DIMENSION array, seeking match on uname.
  * Return dimid or -1 on not found.
@@ -130,35 +129,24 @@ find_NC_Udim(const NC_dimarray *ncap, NC_dim **dimpp)
 static int
 NC_finddim(const NC_dimarray *ncap, const char *uname, NC_dim **dimpp)
 {
-
-   int dimid;
-   char *name;
+   int dimid = -1;
+   char *name = NULL;
    uintptr_t data;
 
    assert(ncap != NULL);
-
    if(ncap->nelems == 0)
-      return -1;
+	goto done;
+   /* normalized version of uname */
+  if(nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name))
+	goto done;	 
+  if(NC_hashmapget(ncap->hashmap, name, strlen(name), &data) == 0)
+	goto done;
+  dimid = (int)data;
+  if(dimpp) *dimpp = ncap->value[dimid];
 
-   {
-      int stat;
-      dimid = 0;
-
-      /* normalized version of uname */
-      stat = nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name);
-	if(stat != NC_NOERR)
-	 return stat;
-      if(NC_hashmapget(ncap->hashmap, name, strlen(name), &data) == 0)
-	return -1;
-      free(name);
-      dimid = (int)data;
-      if (dimid >= 0) {
-	if (dimpp != NULL)
-	  *dimpp = ncap->value[dimid];
-      }
-      return(dimid); /* Normal return */
-   }
-   return -1;
+done:
+   if(name) free(name);
+   return dimid;
 }
 
 
