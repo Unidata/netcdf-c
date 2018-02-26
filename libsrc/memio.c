@@ -138,11 +138,17 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
       GetSystemInfo (&info);
       pagesize = info.dwPageSize;
 #elif defined HAVE_SYSCONF
-        pagesize = (size_t)sysconf(_SC_PAGE_SIZE);
+      long pgval = -1;
+      pgval = sysconf(_SC_PAGE_SIZE);
+      if(pgval < 0) {
+          status = NC_EIO;
+          goto fail;
+      }
+      pagesize = (size_t)pgval;
 #elif defined HAVE_GETPAGESIZE
-        pagesize = getpagesize();
+      pagesize = (size_t)getpagesize();
 #else
-        pagesize = 4096; /* good guess */
+      pagesize = 4096; /* good guess */
 #endif
     }
 
