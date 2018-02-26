@@ -208,7 +208,7 @@ AC_ARG_ENABLE([hdf4], [AS_HELP_STRING([--enable-hdf4],
               [build netcdf-4 with HDF4 read capability (HDF4, HDF5 and zlib required)])])
 test "x$enable_hdf4" = xyes || enable_hdf4=no
 if test "x$enable_hdf4" = xyes -a "x$enable_netcdf_4" = xno; then
-      AC_MSG_ERROR([NetCDF-4 is required for HDF4 features])   
+      AC_MSG_ERROR([NetCDF-4 is required for HDF4 features])
 fi
 AC_MSG_RESULT($enable_hdf4)
 
@@ -932,7 +932,9 @@ if test "x$enable_netcdf_4" = xyes; then
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
    AC_CHECK_FUNCS([H5Z_SZIP])
+   hdf5_parallel=no
 
+   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
    # The user may have parallel HDF5 based on MPI POSIX.
    if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
       AC_DEFINE([USE_PARALLEL_POSIX], [1], [if true, compile in parallel netCDF-4 based on MPI/POSIX])
