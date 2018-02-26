@@ -225,7 +225,7 @@ NCD2_sync(int ncid)
 static int
 NCD2_abort(int ncid)
 {
-    return NCD2_close(ncid);
+    return NCD2_close(ncid,NULL);
 }
 
 static int
@@ -596,13 +596,13 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->query);
     return ncstat;
 
 done:
-    if(drno != NULL) NCD2_close(drno->ext_ncid);
+    if(drno != NULL) NCD2_close(drno->ext_ncid,NULL);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
 
 int
-NCD2_close(int ncid)
+NCD2_close(int ncid, void* ignore)
 {
     NC* drno;
     NCDAPCOMMON* dapcomm;

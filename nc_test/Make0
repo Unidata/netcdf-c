@@ -1,14 +1,14 @@
 # Test c output
-T=tst_addvar
+T=tst_inmemory
 
-ARGS=test_pnetcdf.nc
+#ARGS=t
 
 #CMD=valgrind --leak-check=full
 CMD=gdb --args
 
-PAR=1
+#PAR=1
 
-CFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -g -O -I.. -I../include
+CFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -g -O0 -I.. -I../include
 
 ifdef PAR
 CC=mpicc

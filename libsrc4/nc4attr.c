@@ -590,7 +590,7 @@ exit:
  * @param file_type Type of the attribute data in file.
  * @param len Number of elements in attribute array.
  * @param data Attribute data.
- * @param memtype Type of data in memory.
+ * @param mem_type Type of data in memory.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid parameters.

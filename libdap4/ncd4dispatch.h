@@ -21,7 +21,7 @@ NCD4_open(const char *path, int mode,
          struct NC_Dispatch* dispatch, NC* ncp);
 
 extern int
-NCD4_close(int ncid);
+NCD4_close(int ncid,void*);
 
 extern int
 NCD4_abort(int ncid);
