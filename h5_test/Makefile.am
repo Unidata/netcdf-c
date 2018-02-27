@@ -38,17 +38,10 @@ check_PROGRAMS += tst_h_par
 TESTS += run_par_tests.sh
 endif
 
-# This will run a bunch of the test programs with valgrind, the memory
-# checking tool. (Valgrind must be present for this to work.)
-if USE_VALGRIND_TESTS
-TESTS += run_valgrind_tests.sh
-endif # USE_VALGRIND_TESTS
-
 # We must include these files in the distribution.
-EXTRA_DIST = run_par_tests.sh run_valgrind_tests.sh		\
-ref_tst_h_compounds.h5 ref_tst_h_compounds2.h5 run_par_tests.sh	\
-run_valgrind_tests.sh ref_tst_compounds.nc h5_err_macros.h	\
-CMakeLists.txt
+EXTRA_DIST = run_par_tests.sh ref_tst_h_compounds.h5		\
+ref_tst_h_compounds2.h5 run_par_tests.sh ref_tst_compounds.nc	\
+h5_err_macros.h CMakeLists.txt
 
 # Clean up test results.
 CLEANFILES = tst_h_*.h5
