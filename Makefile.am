@@ -78,7 +78,7 @@ endif
 # depend on it.
 SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc $(LIBSRC4_DIR)	\
 $(LIBSRCP) $(LIBHDF4) $(OCLIB) $(DAP2) ${DAP4} liblib $(NCGEN3)		\
-$(NCGEN) $(NCDUMP) $(TESTDIRS) docs $(EXAMPLES)
+$(NCGEN) $(NCDUMP) $(TESTDIRS) docs $(EXAMPLES) m4
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings	\

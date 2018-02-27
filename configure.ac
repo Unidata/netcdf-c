@@ -1415,9 +1415,10 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
-	             libnetcdf.settings
-		         postinstall.sh
-		         include/netcdf_meta.h
+                 libnetcdf.settings
+                 postinstall.sh
+                 include/netcdf_meta.h
+                 m4/Makefile
                  include/Makefile
                  h5_test/Makefile
                  libsrc/Makefile
