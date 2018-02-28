@@ -528,9 +528,9 @@ IF(ENABLE_NETCDF_4)
   SET(ENABLE_NETCDF4 ON CACHE BOOL "")
 ELSE()
   SET(USE_HDF4_FILE_TESTS OFF)
-  SET(USE_HDF4 OFF)  
+  SET(USE_HDF4 OFF)
   SET(ENABLE_HDF4_FILE_TESTS OFF)
-  SET(ENABLE_HDF4 OFF)  
+  SET(ENABLE_HDF4 OFF)
 ENDIF()
 
 # Option to allow for strict null file padding.
@@ -1085,12 +1085,16 @@ IF(STATUS_RELAX_COORD_BOUND)
 ENDIF()
 
 # Enable Parallel Tests.
-OPTION(ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if netCDF4 is not enabled, or if there is no parallel I/O Support." ${USE_PARALLEL})
+OPTION(ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Requires HDF5/NetCDF4 with parallel I/O Support." ${USE_PARALLEL})
 IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
   SET(TEST_PARALLEL ON CACHE BOOL "")
   IF(USE_NETCDF4)
     SET(TEST_PARALLEL4 ON CACHE BOOL "")
   ENDIF()
+ENDIF()
+
+IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
+  MESSAGE(FATAL_ERROR "Parallel tests requested, but no parallel HDF5 installation detected.")
 ENDIF()
 
 # Enable special filter test; experimental when using cmake.
