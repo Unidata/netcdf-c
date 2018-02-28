@@ -10,7 +10,10 @@ TARGETS = ${PLUGINSRC} ${BZIP2SRC}
 BUILT_SOURCES = ${TARGETS}
 
 ${TARGETS}:
-	for x in ${TARGETS} ; do 'cp' -f ${top_srcdir}/nc_test4/hdf5plugins/$$x . ; done
+	for x in ${TARGETS} ; do \
+	    rm -f ./$$x ; \
+	    cp ${top_srcdir}/nc_test4/hdf5plugins/$$x . ; \
+	done
 
 CLEANFILES = ${TARGETS}
 

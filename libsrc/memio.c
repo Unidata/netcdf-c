@@ -152,14 +152,6 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
 #endif
     }
 
-    /* We need to catch errors.
-       sysconf, at least, can return a negative value
-       when there is an error. */
-    if(pagesize < 0) {
-      status = NC_EIO;
-      goto fail;
-    }
-
     errno = 0;
 
     /* Always force the allocated size to be a multiple of pagesize */
