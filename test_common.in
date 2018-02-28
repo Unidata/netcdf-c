@@ -1,4 +1,4 @@
-TOPSRCDIR=@abs_top_srcdir@
+TOPSRCDIR='@abs_top_srcdir@'
 TOPBUILDDIR='@abs_top_builddir@'
 
 set -e
