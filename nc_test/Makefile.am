@@ -117,3 +117,6 @@ endif
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
 	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
+
+# If valgrind is present, add valgrind targets.
+@VALGRIND_CHECK_RULES@

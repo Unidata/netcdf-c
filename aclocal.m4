@@ -520,6 +520,23 @@ AC_DEFUN([AM_OUTPUT_DEPENDENCY_COMMANDS],
      [AMDEP_TRUE="$AMDEP_TRUE" ac_aux_dir="$ac_aux_dir"])
 ])
 
+# AM_EXTRA_RECURSIVE_TARGETS                                -*- Autoconf -*-
+
+# Copyright (C) 2012-2014 Free Software Foundation, Inc.
+#
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# AM_EXTRA_RECURSIVE_TARGETS
+# --------------------------
+# Define the list of user recursive targets.  This macro exists only to
+# be traced by Automake, which will ensure that a proper definition of
+# user-defined recursive targets (and associated rules) is propagated
+# into all the generated Makefiles.
+# TODO: We should really reject non-literal arguments here...
+AC_DEFUN([AM_EXTRA_RECURSIVE_TARGETS], [])
+
 # Do all the work for Automake.                             -*- Autoconf -*-
 
 # Copyright (C) 1996-2014 Free Software Foundation, Inc.
@@ -1300,6 +1317,7 @@ AC_SUBST([am__tar])
 AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
+m4_include([m4/ax_valgrind_check.m4])
 m4_include([m4/libtool.m4])
 m4_include([m4/ltoptions.m4])
 m4_include([m4/ltsugar.m4])
