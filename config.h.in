@@ -105,6 +105,24 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
+/* Define to 1 if you have the `H5free_memory' function. */
+#undef HAVE_H5FREE_MEMORY
+
+/* Define to 1 if you have the `H5Pget_fapl_mpio' function. */
+#undef HAVE_H5PGET_FAPL_MPIO
+
+/* Define to 1 if you have the `H5Pget_fapl_mpiposix' function. */
+#undef HAVE_H5PGET_FAPL_MPIPOSIX
+
+/* Define to 1 if you have the `H5Pset_all_coll_metadata_ops' function. */
+#undef HAVE_H5PSET_ALL_COLL_METADATA_OPS
+
+/* Define to 1 if you have the `H5Pset_deflate' function. */
+#undef HAVE_H5PSET_DEFLATE
+
+/* Define to 1 if you have the `H5Pset_libver_bounds' function. */
+#undef HAVE_H5PSET_LIBVER_BOUNDS
+
 /* Define to 1 if you have the `H5Z_SZIP' function. */
 #undef HAVE_H5Z_SZIP
 

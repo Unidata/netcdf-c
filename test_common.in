@@ -1,5 +1,5 @@
-TOPSRCDIR=@abs_top_srcdir@
-TOPBUILDDIR=@abs_top_builddir@
+TOPSRCDIR='@abs_top_srcdir@'
+TOPBUILDDIR='@abs_top_builddir@'
 
 set -e
 
