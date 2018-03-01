@@ -2280,12 +2280,12 @@ readmagic(struct MagicFile* file, long pos, char* magic)
     }
 #endif /* USE_PARALLEL */
     {
-	size_t count;
+	int count;
 	int i = fseek(file->fp,pos,SEEK_SET);
 	if(i < 0)
 	    {status = errno; goto done;}
 	for(i=0;i<MAGIC_NUMBER_LEN;) {/* make sure to read proper # of bytes */
-	    count=fread(&magic[i],1,(MAGIC_NUMBER_LEN-i),file->fp);
+	    count=fread(&magic[i],1,(size_t)(MAGIC_NUMBER_LEN-i),file->fp);
 	    if(count == 0 || ferror(file->fp))
 		{status = errno; goto done;}
 	    i += count;

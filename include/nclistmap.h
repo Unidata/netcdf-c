@@ -7,6 +7,18 @@ See LICENSE.txt for license information.
 #define NCLISTMAP_H
 
 #include "nclist.h"
+<<<<<<< HEAD
+#include "nchashmap.h" /* Also includes name map and id map */
+
+/* Forward (see nc4internal.h)*/
+struct NC_OBJ;
+
+/*
+This listmap data structure is an ordered list of objects. It is
+used pervasively in libsrc to store metadata relationships.  The
+goal is to provide by-name (via NC_hashmap), and i'th
+indexed access (via NClist) to the objects in the listmap.  Using
+=======
 #include "nchashmap.h"
 
 /*
@@ -14,6 +26,7 @@ This listmap datastructure is an ordered list of objects. It is
 used pervasively in libsrc to store metadata relationships.  The
 goal is to provide both by-name (via nc_hashmap) and indexed
 access (via NClist) to the objects in the listmap.  Using
+>>>>>>> master
 hashmap might be overkill for some relationships, but we can
 sort that out later.
 As a rule, we use this to store definitional relationships
@@ -29,6 +42,27 @@ typedef struct NC_listmap {
 } NC_listmap;
 
 /* Locate object by name in an NC_listmap */
+<<<<<<< HEAD
+extern struct NC_OBJ* NC_listmap_get(NC_listmap* listmap, const char* name);
+
+/* Get ith object in the list map vector */
+extern void* NC_listmap_ith(NC_listmap* listmap, size_t index);
+
+/* Add object to the end of the vector, also insert into the hashmaps; */
+/* Return 1 if ok, 0 otherwise.*/
+extern int NC_listmap_add(NC_listmap* listmap, struct NC_OBJ* obj);
+
+/* Get a copy of the vector contents */
+extern struct NC_OBJ** NC_listmap_dup(NC_listmap* listmap);
+
+/* Rehash all objects in the vector */
+/* Return 1 if ok, 0 otherwise.*/
+extern int NC_listmap_rehash(NC_listmap* listmap);
+
+/* Remove ith object from the listmap; WARNING: may affect ids */
+/* Return 1 if ok, 0 otherwise.*/
+extern int NC_listmap_idel(NC_listmap* listmap,size_t index);
+=======
 extern void* NC_listmap_get(NC_listmap* listmap, const char* name);
 
 /* Locate object by index in an NC_listmap */
@@ -77,6 +111,7 @@ extern size_t NC_listmap_next(NC_listmap*, size_t iter, void** datap);
       for(iter=0;NC_listmap_prev(listmap,iter,&data);iter++) {f(data);}
 */
 extern size_t NC_listmap_prev(NC_listmap* listmap, size_t iter, void** datap);
+>>>>>>> master
 
 /* Reset a list map without free'ing the map itself */
 /* Return 1 if ok; 0 otherwise */
@@ -97,4 +132,12 @@ extern int NC_listmap_verify(NC_listmap* lm, int dump);
 /* size_t NC_listmap_size(NC_listmap* listmap) */
 #define NC_listmap_size(listmap) ((listmap)==NULL?0:(nclistlength((listmap)->list)))
 
+<<<<<<< HEAD
+/* Test if object is in list map */
+/* extern int NC_listmap_contains(NC_listmap* listmap, struct NC_OBJ* obj); */
+#define NC_listmap_contains(listmap,obj) ((listmap)==NULL:0:\
+					 (NC_listmap_iget((listmap),(struct NC_OBJ*)(obj))->id) != NULL)
+
+=======
+>>>>>>> master
 #endif /*NCLISTMAP_H*/
