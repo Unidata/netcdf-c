@@ -76,8 +76,8 @@ nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp,
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-HDF4_get_vara(int ncid, int varid, const size_t *startp,
-              const size_t *countp, void *ip, int memtype)
+NC_HDF4_get_vara(int ncid, int varid, const size_t *startp,
+                 const size_t *countp, void *ip, int memtype)
 {
    NC *nc;
    NC_HDF5_FILE_INFO_T* h5;

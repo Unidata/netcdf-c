@@ -556,9 +556,9 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
  * @author Ed Hartnett
  */
 int
-HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-          int use_parallel, void *parameters, NC_Dispatch *dispatch,
-          NC *nc_file)
+NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
+             int use_parallel, void *parameters, NC_Dispatch *dispatch,
+             NC *nc_file)
 {
    assert(nc_file && path);
 
@@ -587,7 +587,7 @@ HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
  * @author Ed Hartnett
  */
 int
-HDF4_abort(int ncid)
+NC_HDF4_abort(int ncid)
 {
    NC *nc;
    NC_HDF5_FILE_INFO_T* nc4_info;
@@ -618,7 +618,7 @@ HDF4_abort(int ncid)
  * @author Ed Hartnett
 */
 int
-HDF4_close(int ncid)
+NC_HDF4_close(int ncid)
 {
    NC_GRP_INFO_T *grp;
    NC *nc;

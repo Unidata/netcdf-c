@@ -19,18 +19,18 @@ static NC_Dispatch HDF4_dispatcher = {
 NC_FORMATX_NC_HDF4,
 
 NC_RO_create,
-HDF4_open,
+NC_HDF4_open,
 
 NC_RO_redef,
 NC_RO__enddef,
 NC_RO_sync,
-HDF4_abort,
-HDF4_close,
+NC_HDF4_abort,
+NC_HDF4_close,
 NC_RO_set_fill,
 NC_NOTNC3_inq_base_pe,
 NC_NOTNC3_set_base_pe,
-HDF4_inq_format,
-HDF4_inq_format_extended,
+NC_HDF4_inq_format,
+NC_HDF4_inq_format_extended,
 
 NC4_inq,
 NC4_inq_type,
@@ -52,7 +52,7 @@ NC_RO_put_att,
 NC_RO_def_var,
 NC4_inq_varid,
 NC_RO_rename_var,
-HDF4_get_vara,
+NC_HDF4_get_vara,
 NC_RO_put_vara,
 NCDEFAULT_get_vars,
 NCDEFAULT_put_vars,
@@ -113,7 +113,7 @@ NC_Dispatch* HDF4_dispatch_table = NULL;
  * @author Ed Hartnett
  */
 int
-HDF4_initialize(void)
+NC_HDF4_initialize(void)
 {
     HDF4_dispatch_table = &HDF4_dispatcher;
     return NC_NOERR;
@@ -126,7 +126,7 @@ HDF4_initialize(void)
  * @author Ed Hartnett
  */
 int
-HDF4_finalize(void)
+NC_HDF4_finalize(void)
 {
     return NC_NOERR;
 }
