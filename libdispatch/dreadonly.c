@@ -23,7 +23,7 @@
  * @author Ed Hartnett
  */
 int
-RO_rename_att(int ncid, int varid, const char *name, const char *newname)
+NC_RO_rename_att(int ncid, int varid, const char *name, const char *newname)
 {
    return NC_EPERM;
 }
@@ -39,7 +39,7 @@ RO_rename_att(int ncid, int varid, const char *name, const char *newname)
  * @author Ed Hartnett
  */
 int
-RO_del_att(int ncid, int varid, const char *name)
+NC_RO_del_att(int ncid, int varid, const char *name)
 {
    return NC_EPERM;
 }
@@ -59,8 +59,8 @@ RO_del_att(int ncid, int varid, const char *name)
  * @author Ed Hartnett
  */
 int
-RO_put_att(int ncid, int varid, const char *name, nc_type file_type,
-             size_t len, const void *data, nc_type mem_type)
+NC_RO_put_att(int ncid, int varid, const char *name, nc_type file_type,
+              size_t len, const void *data, nc_type mem_type)
 {
    return NC_EPERM;
 }
@@ -77,7 +77,7 @@ RO_put_att(int ncid, int varid, const char *name, nc_type file_type,
  * @author Ed Hartnett
  */
 int
-RO_def_dim(int ncid, const char *name, size_t len, int *idp)
+NC_RO_def_dim(int ncid, const char *name, size_t len, int *idp)
 {
    return NC_EPERM;
 }
@@ -93,7 +93,7 @@ RO_def_dim(int ncid, const char *name, size_t len, int *idp)
  * @author Ed Hartnett
  */
 int
-RO_rename_dim(int ncid, int dimid, const char *name)
+NC_RO_rename_dim(int ncid, int dimid, const char *name)
 {
    return NC_EPERM;
 }
@@ -106,9 +106,9 @@ RO_rename_dim(int ncid, int dimid, const char *name)
  *
  * @return ::NC_EPERM Not allowed.
  * @author Ed Hartnett
-*/
+ */
 int
-RO_def_grp(int parent_ncid, const char *name, int *new_ncid)
+NC_RO_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
    return NC_EPERM;
 }
@@ -121,9 +121,9 @@ RO_def_grp(int parent_ncid, const char *name, int *new_ncid)
  *
  * @return ::NC_EPERM Not allowed.
  * @author Ed Hartnett
-*/
+ */
 int
-RO_rename_grp(int grpid, const char *name)
+NC_RO_rename_grp(int grpid, const char *name)
 {
    return NC_EPERM;   
 }
@@ -142,8 +142,8 @@ RO_rename_grp(int grpid, const char *name)
  * @author Ed Hartnett
  */
 int
-RO_def_var(int ncid, const char *name, nc_type xtype,
-           int ndims, const int *dimidsp, int *varidp)
+NC_RO_def_var(int ncid, const char *name, nc_type xtype,
+              int ndims, const int *dimidsp, int *varidp)
 {
    return NC_EPERM;
 }
@@ -161,7 +161,7 @@ RO_def_var(int ncid, const char *name, nc_type xtype,
  * @author Ed Hartnett
  */
 int
-RO_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
+NC_RO_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
    return NC_ENOTNC4;
 }
@@ -175,9 +175,9 @@ RO_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
  *
  * @return ::NC_EPERM Not allowed.
  * @author Ed Hartnett
-*/
+ */
 int
-RO_rename_var(int ncid, int varid, const char *name)
+NC_RO_rename_var(int ncid, int varid, const char *name)
 {
    return NC_EPERM;
 }
@@ -196,8 +196,8 @@ RO_rename_var(int ncid, int varid, const char *name)
  * @author Ed Hartnett
  */
 int
-RO_put_vara(int ncid, int varid, const size_t *startp,
-            const size_t *countp, const void *op, int memtype)
+NC_RO_put_vara(int ncid, int varid, const size_t *startp,
+               const size_t *countp, const void *op, int memtype)
 {
    return NC_EPERM;
 }
@@ -211,9 +211,9 @@ RO_put_vara(int ncid, int varid, const size_t *startp,
  *
  * @return ::NC_EPERM Not allowed.
  * @author Ed Hartnett
-*/
+ */
 int
-RO_set_fill(int ncid, int fillmode, int *old_modep)
+NC_RO_set_fill(int ncid, int fillmode, int *old_modep)
 {
    return NC_EPERM;
 }
@@ -225,9 +225,9 @@ RO_set_fill(int ncid, int fillmode, int *old_modep)
  *
  * @return ::NC_EPERM Not allowed.
  * @author Ed Hartnett
-*/
+ */
 int
-RO_redef(int ncid)
+NC_RO_redef(int ncid)
 {
    return NC_EPERM;
 }
@@ -243,10 +243,10 @@ RO_redef(int ncid)
  *
  * @return ::NC_EPERM Not allowed.
  * @author Ed Hartnett
-*/
+ */
 int
-RO__enddef(int ncid, size_t h_minfree, size_t v_align,
-             size_t v_minfree, size_t r_align)
+NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align,
+              size_t v_minfree, size_t r_align)
 {
    return NC_NOERR;   
 }
@@ -258,9 +258,9 @@ RO__enddef(int ncid, size_t h_minfree, size_t v_align,
  *
  * @return ::NC_EPERM Not allowed.
  * @author Ed Hartnett
-*/
+ */
 int
-RO_sync(int ncid)
+NC_RO_sync(int ncid)
 {
    return NC_NOERR;
 }
@@ -282,9 +282,9 @@ RO_sync(int ncid)
  * @author Ed Hartnett
  */
 int
-RO_create(const char* path, int cmode, size_t initialsz, int basepe,
-           size_t *chunksizehintp, int use_parallel, void *parameters,
-           NC_Dispatch *dispatch, NC* nc_file)
+NC_RO_create(const char* path, int cmode, size_t initialsz, int basepe,
+             size_t *chunksizehintp, int use_parallel, void *parameters,
+             NC_Dispatch *dispatch, NC* nc_file)
 {
    return NC_EPERM;
 }
