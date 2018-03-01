@@ -131,15 +131,6 @@ TESTS += tst_filter.sh
 endif
 endif
 
-# This will run a bunch of the test programs with valgrind, the memory
-# checking tool. (Valgrind must be present for this to work.)
-if USE_VALGRIND_TESTS
-TESTS += run_valgrind_tests.sh run_valgrind_tests2.sh
-if USE_HDF4
-TESTS += run_hdf4_valgrind_tests.sh
-endif # USE_HDF4
-endif # USE_VALGRIND_TESTS
-
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.
 if TEST_PARALLEL4
@@ -148,23 +139,21 @@ tst_parallel4 tst_nc4perf tst_mode tst_simplerw_coll_r
 TESTS += run_par_test.sh
 endif
 
-EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh                  \
-run_bm_test2.sh run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh      \
-run_par_bm_test.sh run_bm_elena.sh run_par_bm_radar_2D.sh               \
-run_bm_radar_2D_endianness1.sh run_tst_chunks.sh ref_chunks1.cdl        \
-ref_chunks2.cdl run_get_hdf4_files.sh run_valgrind_tests.sh             \
-run_valgrind_tests2.sh run_bm_ar4.sh ref_tst_compounds.nc               \
-run_hdf4_valgrind_tests.sh ref_tst_xplatform2_1.nc                      \
-ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc            \
-run_get_knmi_files.sh CMakeLists.txt run_grp_rename.sh                  \
-tst_formatx_hdf4.sh run_chunk_hdf4.sh tst_h5_endians.c                  \
-tst_h4_lendian.c tst_atts_string_rewrite.c                              \
-tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c                     \
-run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc          \
-ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_hdf4_read_var.sh           \
-ref_contiguous.hdf4 ref_chunked.hdf4 tst_szip.sh ref_szip.h5 ref_szip.cdl \
-tst_filter.sh bzip2.cdl filtered.cdl unfiltered.cdl ref_bzip2.c         \
-findplugin.in
+EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh			\
+run_bm_test2.sh run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh	\
+run_par_bm_test.sh run_bm_elena.sh run_par_bm_radar_2D.sh		\
+run_bm_radar_2D_endianness1.sh run_tst_chunks.sh ref_chunks1.cdl	\
+ref_chunks2.cdl run_get_hdf4_files.sh run_bm_ar4.sh			\
+ref_tst_compounds.nc ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc	\
+ref_tst_dims.nc ref_tst_interops4.nc run_get_knmi_files.sh		\
+CMakeLists.txt run_grp_rename.sh tst_formatx_hdf4.sh			\
+run_chunk_hdf4.sh tst_h5_endians.c tst_h4_lendian.c			\
+tst_atts_string_rewrite.c tst_put_vars_two_unlim_dim.c			\
+tst_empty_vlen_unlim.c run_empty_vlen_test.sh ref_hdf5_compat1.nc	\
+ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh tdset.h5		\
+tst_hdf4_read_var.sh ref_contiguous.hdf4 ref_chunked.hdf4 tst_szip.sh	\
+ref_szip.h5 ref_szip.cdl tst_filter.sh bzip2.cdl filtered.cdl		\
+unfiltered.cdl ref_bzip2.c findplugin.in
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc   \
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt                  \
