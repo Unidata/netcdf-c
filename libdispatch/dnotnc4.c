@@ -23,8 +23,8 @@
  * @author Ed Hartnett
  */
 int
-NOTNC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
-                      const unsigned int* parms)
+NC_NOTNC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
+                         const unsigned int* parms)
 {
    return NC_ENOTNC4;
 }
@@ -39,9 +39,9 @@ NOTNC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
+NC_NOTNC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
    return NC_EPERM;
 }
@@ -54,11 +54,11 @@ NOTNC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_rename_grp(int grpid, const char *name)
+NC_NOTNC4_rename_grp(int grpid, const char *name)
 {
-   return NC_EPERM;   
+   return NC_EPERM;
 }
 
 /**
@@ -71,9 +71,9 @@ NOTNC4_rename_grp(int grpid, const char *name)
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_def_compound(int ncid, size_t size, const char *name, nc_type *typeidp)
+NC_NOTNC4_def_compound(int ncid, size_t size, const char *name, nc_type *typeidp)
 {
    return NC_ENOTNC4;
 }
@@ -89,10 +89,10 @@ NOTNC4_def_compound(int ncid, size_t size, const char *name, nc_type *typeidp)
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_insert_compound(int ncid, nc_type typeid1, const char *name, size_t offset, 
-		   nc_type field_typeid)
+NC_NOTNC4_insert_compound(int ncid, nc_type typeid1, const char *name, size_t offset,
+                          nc_type field_typeid)
 {
    return NC_ENOTNC4;
 }
@@ -110,11 +110,11 @@ NOTNC4_insert_compound(int ncid, nc_type typeid1, const char *name, size_t offse
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 extern int
-NOTNC4_insert_array_compound(int ncid, int typeid1, const char *name, 
-			 size_t offset, nc_type field_typeid,
-			 int ndims, const int *dim_sizesp)
+NC_NOTNC4_insert_array_compound(int ncid, int typeid1, const char *name,
+                                size_t offset, nc_type field_typeid,
+                                int ndims, const int *dim_sizesp)
 {
    return NC_ENOTNC4;
 }
@@ -133,11 +133,11 @@ NOTNC4_insert_array_compound(int ncid, int typeid1, const char *name,
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name, 
-		      size_t *offsetp, nc_type *field_typeidp, int *ndimsp, 
-		      int *dim_sizesp)
+NC_NOTNC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
+                             size_t *offsetp, nc_type *field_typeidp, int *ndimsp,
+                             int *dim_sizesp)
 {
    return NC_ENOTNC4;
 }
@@ -152,9 +152,9 @@ NOTNC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fieldidp)
+NC_NOTNC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fieldidp)
 {
    return NC_ENOTNC4;
 }
@@ -171,10 +171,10 @@ NOTNC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int 
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_def_opaque(int ncid, size_t datum_size, const char *name, 
-	      nc_type *typeidp)
+NC_NOTNC4_def_opaque(int ncid, size_t datum_size, const char *name,
+                     nc_type *typeidp)
 {
    return NC_ENOTNC4;
 }
@@ -189,10 +189,10 @@ NOTNC4_def_opaque(int ncid, size_t datum_size, const char *name,
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_def_vlen(int ncid, const char *name, nc_type base_typeid, 
-	    nc_type *typeidp)
+NC_NOTNC4_def_vlen(int ncid, const char *name, nc_type base_typeid,
+                   nc_type *typeidp)
 {
    return NC_ENOTNC4;
 }
@@ -207,10 +207,10 @@ NOTNC4_def_vlen(int ncid, const char *name, nc_type base_typeid,
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_def_enum(int ncid, nc_type base_typeid, const char *name, 
-	    nc_type *typeidp)
+NC_NOTNC4_def_enum(int ncid, nc_type base_typeid, const char *name,
+                   nc_type *typeidp)
 {
    return NC_ENOTNC4;
 }
@@ -226,9 +226,9 @@ NOTNC4_def_enum(int ncid, nc_type base_typeid, const char *name,
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
+NC_NOTNC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
 {
    return NC_ENOTNC4;
 }
@@ -244,10 +244,10 @@ NOTNC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier, 
-		   void *value)
+NC_NOTNC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
+                          void *value)
 {
    return NC_ENOTNC4;
 }
@@ -262,10 +262,10 @@ NOTNC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_insert_enum(int ncid, nc_type typeid1, const char *identifier, 
-	       const void *value)
+NC_NOTNC4_insert_enum(int ncid, nc_type typeid1, const char *identifier,
+                      const void *value)
 {
    return NC_ENOTNC4;
 }
@@ -281,10 +281,10 @@ NOTNC4_insert_enum(int ncid, nc_type typeid1, const char *identifier,
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_put_vlen_element(int ncid, int typeid1, void *vlen_element, 
-		    size_t len, const void *data)
+NC_NOTNC4_put_vlen_element(int ncid, int typeid1, void *vlen_element,
+                           size_t len, const void *data)
 {
    return NC_ENOTNC4;
 }
@@ -300,10 +300,10 @@ NOTNC4_put_vlen_element(int ncid, int typeid1, void *vlen_element,
  *
  * @return ::NC_ENOTNC4 Not allowed for classic model.
  * @author Ed Hartnett
-*/
+ */
 int
-NOTNC4_get_vlen_element(int ncid, int typeid1, const void *vlen_element, 
-		    size_t *len, void *data)
+NC_NOTNC4_get_vlen_element(int ncid, int typeid1, const void *vlen_element,
+                           size_t *len, void *data)
 {
    return NC_ENOTNC4;
 }
@@ -321,8 +321,8 @@ NOTNC4_get_vlen_element(int ncid, int typeid1, const void *vlen_element,
  * @author Ed Hartnett
  */
 int
-NOTNC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
-                         float preemption)
+NC_NOTNC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
+                              float preemption)
 {
    return NC_ENOTNC4;
 }
@@ -340,8 +340,8 @@ NOTNC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
  * @author Ed Hartnett
  */
 int
-NOTNC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
-                        size_t *nelemsp, float *preemptionp)
+NC_NOTNC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
+                              size_t *nelemsp, float *preemptionp)
 {
    return NC_ENOTNC4;
 }
@@ -359,8 +359,8 @@ NOTNC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-NOTNC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
-                     int deflate_level)
+NC_NOTNC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
+                          int deflate_level)
 {
    return NC_EPERM;
 }
@@ -376,7 +376,7 @@ NOTNC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-NOTNC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
+NC_NOTNC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
 {
    return NC_ENOTNC4;
 }
@@ -393,7 +393,7 @@ NOTNC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-NOTNC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksizesp)
+NC_NOTNC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksizesp)
 {
    return NC_EPERM;
 }
@@ -410,7 +410,7 @@ NOTNC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunk
  * @author Ed Hartnett
  */
 int
-NOTNC4_def_var_endian(int ncid, int varid, int endianness)
+NC_NOTNC4_def_var_endian(int ncid, int varid, int endianness)
 {
    return NC_ENOTNC4;
 }
@@ -426,8 +426,7 @@ NOTNC4_def_var_endian(int ncid, int varid, int endianness)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-NOTNC4_var_par_access(int ncid, int varid, int par_access)
+NC_NOTNC4_var_par_access(int ncid, int varid, int par_access)
 {
    return NC_ENOTNC4;
 }
-
