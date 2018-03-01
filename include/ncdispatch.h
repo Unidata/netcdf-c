@@ -460,9 +460,9 @@ NCDISPATCH_get_att(int ncid, int varid, const char* name, void* value, nc_type t
    int NOTNC4_def_var_filter(int, int, unsigned int, size_t,
                              const unsigned int*);
 
-   int NOTNC3_set_base_pe(int ncid, int pe);
+   int NC_NOTNC3_set_base_pe(int ncid, int pe);
 
-   int NOTNC3_inq_base_pe(int ncid, int *pe);
+   int NC_NOTNC3_inq_base_pe(int ncid, int *pe);
 
    int NOTNC4_def_grp(int, const char *, int *);
 

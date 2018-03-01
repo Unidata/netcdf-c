@@ -19,7 +19,7 @@
  * @author Ed Hartnett
  */
 int
-NOTNC3_set_base_pe(int ncid, int pe)
+NC_NOTNC3_set_base_pe(int ncid, int pe)
 {
    return NC_ENOTNC3;
 }
@@ -34,7 +34,7 @@ NOTNC3_set_base_pe(int ncid, int pe)
  * @author Ed Hartnett
  */
 int
-NOTNC3_inq_base_pe(int ncid, int *pe)
+NC_NOTNC3_inq_base_pe(int ncid, int *pe)
 {
    return NC_ENOTNC3;
 }
