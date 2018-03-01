@@ -1,46 +1,17 @@
 /* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
  * and redistribution conditions.*/
 /**
- * @file @internal This file handles the (useless) *_base_pe()
- * functions, and the inq_format functions for the HDF4 dispatch
- * layer.
+ * @file @internal HDF4 functions.
  *
  * @author Ed Hartnett
-*/
+ */
 
+#include "config.h"
+#include <errno.h>  /* netcdf functions sometimes return system errors */
+#include "nc.h"
 #include "nc4internal.h"
-#include "nc4dispatch.h"
-
-/**
- * @internal This function only does anything for netcdf-3 files.
- *
- * @param ncid File ID (ignored).
- * @param pe Processor element (ignored).
- *
- * @return ::NC_ENOTNC3 Not a netCDF classic format file.
- * @author Ed Hartnett
- */
-int
-HDF4_set_base_pe(int ncid, int pe)
-{
-   return NC_ENOTNC3;
-}
-
-/**
- * @internal This function only does anything for netcdf-3 files.
- *
- * @param ncid File ID (ignored).
- * @param pe Pointer to processor element. Ignored if NULL. Gets a 0
- * if present.
- *
- * @return ::NC_ENOTNC3 Not a netCDF classic format file.
- * @author Ed Hartnett
- */
-int
-HDF4_inq_base_pe(int ncid, int *pe)
-{
-   return NC_ENOTNC3;
-}
+#include "hdf4dispatch.h"
+#include <mfhdf.h>
 
 /**
  * @internal Get the format (i.e. NC_FORMAT_NC_HDF4) of an open HDF4
@@ -56,17 +27,10 @@ HDF4_inq_base_pe(int ncid, int *pe)
 int
 HDF4_inq_format(int ncid, int *formatp)
 {
-   NC *nc;
-   NC_HDF5_FILE_INFO_T* nc4_info;
-
    LOG((2, "nc_inq_format: ncid 0x%x", ncid));
 
    if (!formatp)
       return NC_NOERR;
-
-   /* Find the file metadata. */
-   if (!(nc = nc4_find_nc_file(ncid, &nc4_info)))
-      return NC_EBADID;
 
    /* HDF4 is the format. */
    *formatp = NC_FORMATX_NC_HDF4;
@@ -98,8 +62,7 @@ HDF4_inq_format_extended(int ncid, int *formatp, int *modep)
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
-   /* Find the file metadata. */
-   if (!(nc = nc4_find_nc_file(ncid,&h5)))
+   if (!(nc = nc4_find_nc_file(ncid, &h5)))
       return NC_EBADID;
 
    if (modep)

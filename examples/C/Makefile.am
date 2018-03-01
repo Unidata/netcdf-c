@@ -1,5 +1,5 @@
 # This is a automake file, part of Unidata's netCDF package.
-# Copyright 2006, see the COPYRIGHT file for more information.
+# Copyright 2006-2018, see the COPYRIGHT file for more information.
 
 # This file builds the C examples.
 
@@ -41,6 +41,11 @@ check_PROGRAMS += parallel_vara
 TESTS += parallel_vara
 endif #USE_PNETCDF
 
+if USE_PIO
+check_PROGRAMS += pio_simple_async
+TESTS += run_pio_examples.sh
+endif # USE_PIO
+
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
@@ -48,22 +53,10 @@ if USE_NETCDF4
 TESTS += run_examples4.sh
 endif #USE_NETCDF4
 
-# This will run a bunch of the test programs with valgrind, the memory
-# checking tool. (Valgrind must be present for this to work.)
-if USE_VALGRIND_TESTS
-TESTS += run_valgrind_tests.sh
-endif # USE_VALGRIND_TESTS
-if USE_NETCDF4
-if USE_VALGRIND_TESTS
-TESTS += run_nc4_valgrind_tests.sh
-endif # USE_VALGRIND_TESTS
-endif # USE_NETCDF4
-
 # These files are created by the tests.
 CLEANFILES = *.nc
 
-EXTRA_DIST = run_valgrind_tests.sh run_nc4_valgrind_tests.sh	\
-CMakeLists.txt run_examples.sh run_examples4.sh
+EXTRA_DIST = CMakeLists.txt run_examples.sh run_examples4.sh
 
 if ENABLE_FILTER_TESTING # => shared and netcdf-4
 BUILT_SOURCES = findplugin.sh
