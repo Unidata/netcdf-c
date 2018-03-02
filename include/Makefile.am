@@ -21,7 +21,8 @@ ncuri.h ncutf8.h ncdispatch.h ncdimscale.h netcdf_f.h err_macros.h	\
 ncbytes.h nchashmap.h ceconstraints.h rnd.h nclog.h ncconfigure.h	\
 nc4internal.h nctime.h nc3internal.h onstack.h nc_hashmap.h ncrc.h	\
 ncauth.h ncoffsets.h nctestserver.h nc4dispatch.h nc3dispatch.h		\
-ncexternl.h ncwinpath.h ncfilter.h hdf4dispatch.h nclistmap.h pio.h
+ncexternl.h ncwinpath.h ncfilter.h hdf4dispatch.h nclistmap.h pio.h	\
+pio_internal.h
 
 if USE_DAP
 noinst_HEADERS += ncdap.h
