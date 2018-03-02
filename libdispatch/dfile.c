@@ -2432,7 +2432,8 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
       del_from_NCList(ncp);
       free_NC(ncp);
 #ifdef USE_PIO
-      return pio_err(ios, NULL, stat, __FILE__, __LINE__);
+      if (use_pio)
+         return pio_err(ios, NULL, stat, __FILE__, __LINE__);
 #endif /* USE_PIO */
    }
    
