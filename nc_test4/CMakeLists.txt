@@ -9,7 +9,7 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   cdm_sea_soundings tst_vl tst_atts1 tst_atts2 tst_vars2 tst_files5
   tst_files6 tst_sync tst_h_strbug tst_h_refs tst_h_scalar tst_rename
   tst_rename2 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
-  tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types)
+  tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324)
 
 
 # Note, renamegroup needs to be compiled before run_grp_rename
@@ -89,7 +89,6 @@ IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
     add_bin_test_no_prefix(tst_interops2)
     build_bin_test_no_prefix(tst_interops3)
     add_sh_test(nc_test4 run_get_hdf4_files)
-    add_bin_test(nc_test4 tst_bug324)
     add_sh_test(nc_test4 tst_formatx_hdf4)
     build_bin_test(tst_chunk_hdf4)
     add_sh_test(nc_test4 run_chunk_hdf4)
