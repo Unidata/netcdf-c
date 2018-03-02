@@ -836,17 +836,24 @@ NC3_put_att(
     if(nelems != 0 && value == NULL)
 	return NC_EINVAL; /* Null arg */
 
-    if (varid != NC_GLOBAL && !strcmp(name, _FillValue)) {
-        /* Fill value must be of the same data type */
-        if (type != ncp->vars.value[varid]->type) return NC_EBADTYPE;
- 
-        /* Fill value must have exactly one value */
-        if (nelems != 1) return NC_EINVAL;
+    /* Temporarily removed to preserve extant
+       workflows (NCO based and others). See
 
-        /* Only allow for variables defined in initial define mode */
-        if (ncp->old != NULL && varid < ncp->old->vars.nelems)
-            return NC_ELATEFILL; /* try put attribute for an old variable */
-    }
+       https://github.com/Unidata/netcdf-c/issues/843
+
+       for more information. */
+
+//    if (varid != NC_GLOBAL && !strcmp(name, _FillValue)) {
+//        /* Fill value must be of the same data type */
+//        if (type != ncp->vars.value[varid]->type) return NC_EBADTYPE;
+//
+//        /* Fill value must have exactly one value */
+//        if (nelems != 1) return NC_EINVAL;
+//
+//        /* Only allow for variables defined in initial define mode */
+//        if (ncp->old != NULL && varid < ncp->old->vars.nelems)
+//            return NC_ELATEFILL; /* try put attribute for an old variable */
+//    }
 
     attrpp = NC_findattr(ncap, name);
 
@@ -999,4 +1006,3 @@ NC3_get_att(
     status =  NC_EBADTYPE;
     return status;
 }
-
