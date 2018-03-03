@@ -24,8 +24,8 @@
 #define NDIMS 1
 #define DIMLEN 1
 
-#define ERROR {printf("Error at line %d: %s\n",__LINE__,nc_strerror(res)); continue;}
-#define ERRORI {printf("Error at line %d (loop=%d): %s\n",__LINE__,i,nc_strerror(res)); continue;}
+#define ERROR {printf("Error at line %d: %s\n",__LINE__,nc_strerror(res)); nerrs++; continue;}
+#define ERRORI {printf("Error at line %d (loop=%d): %s\n",__LINE__,i,nc_strerror(res)); nerrs++; continue;}
 
 int
 main(int argc, char **argv)
@@ -197,10 +197,14 @@ main(int argc, char **argv)
        "x\xED\xAE\x80\xED\xB0\x80",
        "x\xED\xAE\x80\xED\xBF\xBF",
        "x\xED\xAF\xBF\xED\xB0\x80",
-       "x\xED\xAF\xBF\xED\xBF\xBF",
-       "x\xEF\xBF\xBE",		/* other illegal code positions */
+       "x\xED\xAF\xBF\xED\xBF\xBF"
+#if 0
+       /* The two below is legal since UTF8PROC_VERSION_MAJOR 2 */
+       "x\xEF\xBF\xBE",         /* other illegal code positions */
        "x\xEF\xBF\xBF"
+#endif
    };
+   int nerrs=0;
    int i, j;
 #define NUM_BAD (sizeof notvalid / sizeof notvalid[0])
 #define NUM_GOOD (sizeof valid / sizeof valid[0])
@@ -221,8 +225,10 @@ main(int argc, char **argv)
        NC_FORMAT_CLASSIC
        ,
        NC_FORMAT_64BIT_OFFSET
+#ifdef USE_CDF5
        ,
        NC_FORMAT_CDF5
+#endif
 #ifdef USE_NETCDF4
        ,
        NC_FORMAT_NETCDF4
@@ -327,6 +333,7 @@ main(int argc, char **argv)
 
        SUMMARIZE_ERR;
    }
+   total_err += nerrs;
    FINAL_RESULTS;
 
 #ifdef TEST_PNETCDF
