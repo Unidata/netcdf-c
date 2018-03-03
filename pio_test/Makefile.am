@@ -71,11 +71,11 @@ tst_darray_1d_SOURCES = tst_darray_1d.c test_common.c pio_tests.h
 TESTS = run_tests.sh
 
 # Bash script needs all tests built.
-#run_tests.sh : $(PIO_TESTS) $(NC_PIO_TESTS)
+run_tests.sh : $(PIO_TESTS) $(NC_PIO_TESTS)
 
 # Distribute the test script.
 EXTRA_DIST = run_tests.sh
 
 # Clean up files produced during testing.
-CLEANFILES = *.nc *.log
+CLEANFILES = *.nc *.log *.txt
 
