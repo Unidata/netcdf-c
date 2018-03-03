@@ -83,23 +83,11 @@ if USE_PNETCDF
 TESTS += run_pnetcdf_test.sh
 endif
 
-# This will run a bunch of the test programs with valgrind, the memory
-# checking tool. (Valgrind must be present for this to work.)
-if USE_VALGRIND_TESTS
-if USE_NETCDF4
-    TESTS_ENVIRONMENT = USE_NETCDF4=1
-else
-    TESTS_ENVIRONMENT = USE_NETCDF4=0
-endif
-TESTS += run_valgrind_tests.sh
-endif # USE_VALGRIND_TESTS
-
 # Distribute the .c files so that m4 isn't required on the users
 # machine.
-EXTRA_DIST = test_get.m4 test_put.m4 run_valgrind_tests.sh		\
-run_diskless.sh run_diskless2.sh run_diskless5.sh run_mmap.sh		\
-run_pnetcdf_test.sh test_read.m4 test_write.m4 ref_tst_diskless2.cdl	\
-tst_diskless5.cdl CMakeLists.txt
+EXTRA_DIST = test_get.m4 test_put.m4 run_diskless.sh run_diskless2.sh	\
+run_diskless5.sh run_mmap.sh run_pnetcdf_test.sh test_read.m4		\
+test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl CMakeLists.txt
 
 # These files are created by the tests.
 CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc     \
