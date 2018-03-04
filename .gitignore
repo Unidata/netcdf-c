@@ -42,3 +42,6 @@ aclocal.m4
 compile
 depcomp
 missing
+*.log
+stamp-h1
+*.trs

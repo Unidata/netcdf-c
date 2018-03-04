@@ -2168,9 +2168,9 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
    int version = 0;
    int flags = 0;
    char* path = NULL;
-   int use_pio = 0;       /* Assume no PIO. */
    int ioproc = 1;        /* Assume all tasks participate in IO. */
 #ifdef USE_PIO
+   int use_pio = 0;       /* Assume no PIO. */
    iosystem_desc_t *ios;  /* For PIO, a pointer to IO system info. */
 #endif /* USE_PIO */
 
@@ -2432,7 +2432,8 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
       del_from_NCList(ncp);
       free_NC(ncp);
 #ifdef USE_PIO
-      return pio_err(ios, NULL, stat, __FILE__, __LINE__);
+      if (use_pio)
+         return pio_err(ios, NULL, stat, __FILE__, __LINE__);
 #endif /* USE_PIO */
    }
    

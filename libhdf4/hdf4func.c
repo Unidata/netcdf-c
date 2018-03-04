@@ -25,7 +25,7 @@
  * @author Ed Hartnett
  */
 int
-HDF4_inq_format(int ncid, int *formatp)
+NC_HDF4_inq_format(int ncid, int *formatp)
 {
    LOG((2, "nc_inq_format: ncid 0x%x", ncid));
 
@@ -55,7 +55,7 @@ HDF4_inq_format(int ncid, int *formatp)
  * @author Ed Hartnett
  */
 int
-HDF4_inq_format_extended(int ncid, int *formatp, int *modep)
+NC_HDF4_inq_format_extended(int ncid, int *formatp, int *modep)
 {
    NC *nc;
    NC_HDF5_FILE_INFO_T* h5;

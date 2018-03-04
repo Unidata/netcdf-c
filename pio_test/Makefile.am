@@ -5,6 +5,7 @@
 # This file builds the tests for the PIO parallel I/O features. This
 # entire directory will be skipped if PIO is not enabled.
 #
+# Ed Hartnett
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -77,5 +78,5 @@ TESTS = run_tests.sh
 EXTRA_DIST = run_tests.sh
 
 # Clean up files produced during testing.
-CLEANFILES = *.nc *.log
+CLEANFILES = *.nc *.log decomp*.txt
 

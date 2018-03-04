@@ -423,93 +423,99 @@ NCDISPATCH_get_att(int ncid, int varid, const char* name, void* value, nc_type t
    /* Read-only dispatch layers can use these functions to return
     * NC_EPERM to all attempts to modify a file. */
 
-   int RO_create(const char *path, int cmode, size_t initialsz, int basepe,
+   int NC_RO_create(const char *path, int cmode, size_t initialsz, int basepe,
                  size_t *chunksizehintp, int useparallel, void* parameters,
                  NC_Dispatch*, NC*);
 
-   int RO_redef(int ncid);
+   int NC_RO_redef(int ncid);
   
-   int RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
+   int NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
                   size_t r_align);
    
-   int RO_sync(int ncid);
+   int NC_RO_sync(int ncid);
 
-   int RO_def_var_fill(int, int, int, const void *);
+   int NC_RO_def_var_fill(int, int, int, const void *);
 
-   int RO_rename_att(int ncid, int varid, const char *name,
+   int NC_RO_rename_att(int ncid, int varid, const char *name,
                      const char *newname);
 
-   int RO_del_att(int ncid, int varid, const char*);
+   int NC_RO_del_att(int ncid, int varid, const char*);
 
-   int RO_put_att(int ncid, int varid, const char *name, nc_type datatype,
+   int NC_RO_put_att(int ncid, int varid, const char *name, nc_type datatype,
                   size_t len, const void *value, nc_type);
 
-   int RO_def_var(int ncid, const char *name,
+   int NC_RO_def_var(int ncid, const char *name,
                   nc_type xtype, int ndims, const int *dimidsp, int *varidp);
-   int RO_rename_var(int ncid, int varid, const char *name);
+   int NC_RO_rename_var(int ncid, int varid, const char *name);
 
-   int RO_put_vara(int ncid, int varid,
+   int NC_RO_put_vara(int ncid, int varid,
                    const size_t *start, const size_t *count,
                    const void *value, nc_type);
-   int RO_def_dim(int ncid, const char *name, size_t len, int *idp);
+   int NC_RO_def_dim(int ncid, const char *name, size_t len, int *idp);
 
-   int RO_rename_dim(int ncid, int dimid, const char *name);
+   int NC_RO_rename_dim(int ncid, int dimid, const char *name);
 
-   int RO_set_fill(int ncid, int fillmode, int *old_modep);
+   int NC_RO_set_fill(int ncid, int fillmode, int *old_modep);
 
-   int NOTNC4_def_var_filter(int, int, unsigned int, size_t,
+   /* These functions are for dispatch layers that don't implement these
+    * legacy functions. They return NC_ENOTNC3. */
+
+   int NC_NOTNC3_set_base_pe(int ncid, int pe);
+
+   int NC_NOTNC3_inq_base_pe(int ncid, int *pe);
+
+   /* These functions are for dispatch layers that don't implement the
+    * enhanced model. They return NC_ENOTNC4. */
+
+   int NC_NOTNC4_def_var_filter(int, int, unsigned int, size_t,
                              const unsigned int*);
 
-   int NOTNC3_set_base_pe(int ncid, int pe);
+   int NC_NOTNC4_def_grp(int, const char *, int *);
 
-   int NOTNC3_inq_base_pe(int ncid, int *pe);
+   int NC_NOTNC4_rename_grp(int, const char *);
 
-   int NOTNC4_def_grp(int, const char *, int *);
+   int NC_NOTNC4_def_compound(int, size_t, const char *, nc_type *);
 
-   int NOTNC4_rename_grp(int, const char *);
+   int NC_NOTNC4_insert_compound(int, nc_type, const char *, size_t, nc_type);
 
-   int NOTNC4_def_compound(int, size_t, const char *, nc_type *);
-
-   int NOTNC4_insert_compound(int, nc_type, const char *, size_t, nc_type);
-
-   int NOTNC4_insert_array_compound(int, nc_type, const char *, size_t, 
+   int NC_NOTNC4_insert_array_compound(int, nc_type, const char *, size_t, 
                               nc_type, int, const int *);
 
-   int NOTNC4_inq_typeid(int, const char *, nc_type *);
+   int NC_NOTNC4_inq_typeid(int, const char *, nc_type *);
 
-   int NOTNC4_inq_compound_field(int, nc_type, int, char *, size_t *, 
+   int NC_NOTNC4_inq_compound_field(int, nc_type, int, char *, size_t *, 
                            nc_type *, int *, int *);
 
-   int NOTNC4_inq_compound_fieldindex(int, nc_type, const char *, int *);
+   int NC_NOTNC4_inq_compound_fieldindex(int, nc_type, const char *, int *);
 
-   int NOTNC4_def_vlen(int, const char *, nc_type base_typeid, nc_type *);
+   int NC_NOTNC4_def_vlen(int, const char *, nc_type base_typeid, nc_type *);
 
-   int NOTNC4_put_vlen_element(int, int, void *, size_t, const void *);
+   int NC_NOTNC4_put_vlen_element(int, int, void *, size_t, const void *);
 
-   int NOTNC4_get_vlen_element(int, int, const void *, size_t *, void *);
+   int NC_NOTNC4_get_vlen_element(int, int, const void *, size_t *, void *);
 
-   int NOTNC4_def_enum(int, nc_type, const char *, nc_type *);
+   int NC_NOTNC4_def_enum(int, nc_type, const char *, nc_type *);
 
-   int NOTNC4_insert_enum(int, nc_type, const char *, const void *);
+   int NC_NOTNC4_insert_enum(int, nc_type, const char *, const void *);
 
-   int NOTNC4_inq_enum_member(int, nc_type, int, char *, void *);
+   int NC_NOTNC4_inq_enum_member(int, nc_type, int, char *, void *);
 
-   int NOTNC4_inq_enum_ident(int, nc_type, long long, char *);
+   int NC_NOTNC4_inq_enum_ident(int, nc_type, long long, char *);
 
-   int NOTNC4_def_opaque(int, size_t, const char *, nc_type *);
+   int NC_NOTNC4_def_opaque(int, size_t, const char *, nc_type *);
 
-   int NOTNC4_def_var_deflate(int, int, int, int, int);
+   int NC_NOTNC4_def_var_deflate(int, int, int, int, int);
 
-   int NOTNC4_def_var_fletcher32(int, int, int);
+   int NC_NOTNC4_def_var_fletcher32(int, int, int);
 
-   int NOTNC4_def_var_chunking(int, int, int, const size_t *);
+   int NC_NOTNC4_def_var_chunking(int, int, int, const size_t *);
 
-   int NOTNC4_def_var_endian(int, int, int);
+   int NC_NOTNC4_def_var_endian(int, int, int);
 
-   int NOTNC4_set_var_chunk_cache(int, int, size_t, size_t, float);
+   int NC_NOTNC4_set_var_chunk_cache(int, int, size_t, size_t, float);
 
-   int NOTNC4_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
+   int NC_NOTNC4_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
 
-   int NOTNC4_var_par_access(int, int, int);
+   int NC_NOTNC4_var_par_access(int, int, int);
 
 #endif /* _DISPATCH_H */
