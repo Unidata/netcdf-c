@@ -5,6 +5,7 @@
 # This file builds the tests for the PIO parallel I/O features. This
 # entire directory will be skipped if PIO is not enabled.
 #
+# Ed Hartnett
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -71,11 +72,11 @@ tst_darray_1d_SOURCES = tst_darray_1d.c test_common.c pio_tests.h
 TESTS = run_tests.sh
 
 # Bash script needs all tests built.
-run_tests.sh : $(PIO_TESTS) $(NC_PIO_TESTS)
+#run_tests.sh : $(PIO_TESTS) $(NC_PIO_TESTS)
 
 # Distribute the test script.
 EXTRA_DIST = run_tests.sh
 
 # Clean up files produced during testing.
-CLEANFILES = *.nc *.log *.txt
+CLEANFILES = *.nc *.log decomp*.txt
 
