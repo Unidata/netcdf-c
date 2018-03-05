@@ -740,11 +740,7 @@ done:
 	pxp->bf_rflags |= rflags;
 	pxp->bf_refcount++;
 
-#ifndef __CHAR_UNSIGNED__
-    *vpp = (void *)((char *)pxp->bf_base + diff);
-#else
     *vpp = (void *)((signed char*)pxp->bf_base + diff);
-#endif
 	return NC_NOERR;
 }
 

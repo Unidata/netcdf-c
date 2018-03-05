@@ -94,10 +94,12 @@ Caller must free.
 void
 topfqn(Symbol* sym)
 {
+#ifdef USE_NETCDF4
     char* fqn;
     char* fqnname;
     char* parentfqn;
     Symbol* parent;
+#endif
     
     if(sym->fqn != NULL)
 	return; /* already defined */
