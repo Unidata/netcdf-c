@@ -56,8 +56,8 @@ if test "x$SETX" = x1 ; then set -x ; fi
 
 # We assume that TOPSRCDIR and TOPBUILDDIR are defined
 # At the top of this shell script
-top_srcdir="$TOPSRCDIR"
-top_builddir="$TOPBUILDDIR"
+top_srcdir="${TOPSRCDIR}"
+top_builddir="${TOPBUILDDIR}"
 
 # Currently not used, but left as a Visual Studio placeholder.
 # VS=Debug
@@ -66,26 +66,26 @@ top_builddir="$TOPBUILDDIR"
 if test "x$srcdir" = x ; then
   # we need to figure out our directory
   # pick off the last component as the relative name of this directory
-  srcdir=`pwd`
-  current=`basename $srcdir`
+  srcdir="$(pwd)"
+  current="$(basename $srcdir)"
   srcdir="${top_srcdir}/$current"
 fi
 
 # We also assume we are executing in builddir
-builddir=`pwd`
+builddir="$(pwd)"
 
 # execdir is an alias for builddir
 execdir="${builddir}"
 
 # pick off the last component as the relative name of this directory
-thisdir=`basename $srcdir`
+thisdir="$(basename $srcdir)"
 
 WD=`pwd`
 # Absolutize paths of interest
-cd $srcdir; srcdir=`pwd` ; cd $WD
-cd $top_srcdir; top_srcdir=`pwd` ; cd $WD
-cd $builddir; builddir=`pwd` ; cd $WD
-cd $top_builddir; top_builddir=`pwd` ; cd $WD
+cd $srcdir; srcdir="$(pwd)" ; cd $WD
+cd $top_srcdir; top_srcdir="$(pwd)" ; cd $WD
+cd $builddir; builddir="$(pwd)" ; cd $WD
+cd $top_builddir; top_builddir="$(pwd)" ; cd $WD
 cd $execdir; execdir=`pwd` ; cd $WD
 
 # If we have cygpath (which only exists under CYGWIN),
