@@ -1,5 +1,8 @@
 #!/bin/sh
-# This shell script tests the output several previous tests.
+
+# This shell script runs tst_interops2 to create a HDF4 file, and read
+# it with netCDF. Then the script runs ncdump on the HDF4 file.
+
 # Ed Hartnett
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
@@ -25,7 +28,6 @@ echo "*** Fail: extended format for an HDF4 file: result=" $TMP
 ECODE=1
 fi
 
-# Clean up.
 rm -f tmp_tst_formatx_hdf4
 
 # Exit if there was a failure.
