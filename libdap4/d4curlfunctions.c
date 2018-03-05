@@ -200,12 +200,14 @@ set_curl_options(NCD4INFO* state)
     for(i=0;i<nclistlength(store);i++) {
         struct CURLFLAG* flag;
 	NCTriple* triple = (NCTriple*)nclistget(store,i);
-        size_t hostlen = strlen(triple->host);
+        size_t hostlen = (triple->host ? strlen(triple->host) : 0);
         const char* flagname;
         if(strncmp("CURL.",triple->key,5) != 0) continue; /* not a curl flag */
         /* do hostport prefix comparison */
         if(hostport != NULL) {
-          int t = strncmp(hostport,triple->host,hostlen);
+	  int t = 0;
+	  if(triple->host != NULL)
+              t = strncmp(hostport,triple->host,hostlen);
           if(t !=  0) continue;
         }
         flagname = triple->key+5; /* 5 == strlen("CURL."); */
