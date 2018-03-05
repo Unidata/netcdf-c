@@ -25,8 +25,25 @@ echo "*** Fail: extended format for an HDF4 file: result=" $TMP
 ECODE=1
 fi
 
+# Clean up.
 rm -f tmp_tst_formatx_hdf4
 
-exit $ECODE
+# Exit if there was a failure.
+if test $ECODE = 1 ; then
+    exit $ECODE
+fi
 
+echo ""
+echo "*** Testing reading an individual variable from an HDF4 file."
+
+${NCDUMP} -v hdf4_dataset_type_0 $FILE
+${NCDUMP} -v hdf4_dataset_type_1 $FILE
+${NCDUMP} -v hdf4_dataset_type_2 $FILE
+${NCDUMP} -v hdf4_dataset_type_3 $FILE
+${NCDUMP} -v hdf4_dataset_type_4 $FILE
+${NCDUMP} -v hdf4_dataset_type_5 $FILE
+${NCDUMP} -v hdf4_dataset_type_6 $FILE
+${NCDUMP} -v hdf4_dataset_type_7 $FILE
+
+echo "*** Success."
 
