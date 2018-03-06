@@ -8,13 +8,11 @@ FOREACH(F ${exam_C_tests})
   add_bin_test(C_tests ${F})
 ENDFOREACH()
 
+SET_TESTS_PROPERTIES(C_tests_simple_xy_rd PROPERTIES DEPENDS C_tests_simple_xy_wr)
+SET_TESTS_PROPERTIES(C_tests_sfc_pres_temp_rd PROPERTIES DEPENDS C_tests_sfc_pres_temp_wr)
+SET_TESTS_PROPERTIES(C_tests_pres_temp_4D_rd PROPERTIES DEPENDS C_tests_pres_temp_4D_wr)
 
-## Specify files to be distributed by 'make dist'
-FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am run_examples.sh run_examples4.sh)
-ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
-
+ADD_SUBDIRECTORY(hdf5plugins)
 
 SET(CLEANFILES sfc_pres_temp.nc simple_xy.nc pres_temp_4D.nc simple_nc4.nc simple_xy_nc4.nc)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
-

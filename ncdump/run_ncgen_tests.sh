@@ -24,7 +24,8 @@ fi
 #VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
 
 validateNC() {
-    BASENAME=$1
+    ORIGNAME=$1
+    BASENAME=tst_$1_run_ncgen_tests
     INFILE=$top_srcdir/ncgen/$1.cdl
     TMPFILE=tst_$2.cdl
     shift
@@ -37,24 +38,24 @@ validateNC() {
     else
     ${VALGRIND} ${NCGEN} $ARGS -o $BASENAME.nc $INFILE
     fi
-    ${NCDUMP} $BASENAME.nc | sed 's/e+0/e+/g' > $TMPFILE
+    ${NCDUMP} -n $ORIGNAME $BASENAME.nc | sed 's/e+0/e+/g' > $TMPFILE
     echo "*** comparing $BASENAME.nc against $INFILE *** "
     diff -b -w $INFILE $TMPFILE
 }
 
-echo "*** creating classic file c0.nc from c0.cdl..."
+echo "*** creating classic file c0_run_ncgen_tests.nc from c0.cdl..."
 
 validateNC c0 c0 -b
 
-echo "*** creating 64-bit offset file c0_64.nc from c0.cdl..."
+echo "*** creating 64-bit offset file c0_64_run_ncgen_tests.nc from c0.cdl..."
 
 validateNC c0 "c0_64" -k 64-bit-offset -b
 
 if test "x$USE_CDF5" = x1 ; then
 
     echo "*** creating 64-bit data file c5.nc from c5.cdl..."
-    ${NCGEN} -k 64-bit-data -b -o c5.nc $top_srcdir/ncgen/c5.cdl
-    if [ ! -f c5.nc ]; then
+    ${NCGEN} -k 64-bit-data -b -o tst_c5_run_ncgen_tests.nc $top_srcdir/ncgen/c5.cdl
+    if [ ! -f tst_c5_run_ncgen_tests.nc ]; then
         echo "Failure."
         exit 1
     fi

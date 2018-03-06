@@ -209,7 +209,7 @@ NC_mktmp(const char* base)
     cvtpath = NCpathcvt(base);
     strncpy(tmp,cvtpath,sizeof(tmp));
     nullfree(cvtpath);
-	strlcat(tmp, "XXXXXX", sizeof(tmp));
+    strlcat(tmp, "XXXXXX", sizeof(tmp));
 
 #ifdef HAVE_MKSTEMP
     /* Note Potential problem: old versions of this function

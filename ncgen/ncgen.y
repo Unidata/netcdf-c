@@ -16,6 +16,9 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #include        "ncoffsets.h"
 #include        "ncgeny.h"
 #include        "ncgen.h"
+#ifdef USE_NETCDF4
+#include        "ncfilter.h"
+#endif
 
 /* Following are in ncdump (for now)*/
 /* Need some (unused) definitions to get it to compile */
@@ -122,7 +125,9 @@ static int containsfills(Datalist* list);
 static void datalistextend(Datalist* dl, NCConstant* con);
 static void vercheck(int ncid);
 static long long extractint(NCConstant con);
+#ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
+#endif
 
 int yylex(void);
 
@@ -1160,7 +1165,6 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     int tf = 0;
     char* sdata = NULL;
     int idata =  -1;
-    unsigned int udata =  0;
 
     if((GLOBAL_SPECIAL & tag) != 0) {
         if(vsym != NULL) {
@@ -1330,9 +1334,17 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 special->_Storage = NC_CHUNKED;
                 } break;
           case _FILTER_FLAG:
+#ifdef USE_NETCDF4
 		/* Parse the filter spec */
-		if(parsefilterflag(sdata,special))
+		if(parsefilterflag(sdata,special) == NC_NOERR)
                     special->flags |= _FILTER_FLAG;
+		else {
+		    efree(special->_FilterParams);
+		    derror("_Filter: unparseable filter spec: %s",sdata);
+		}
+#else
+        derror("%s: the filter attribute requires netcdf-4 to be enabled",specialname(tag));
+#endif
                 break;
             default: PANIC1("makespecial: illegal token: %d",tag);
          }
@@ -1443,62 +1455,23 @@ specialname(int tag)
     return "<unknown>";
 }
 
+#ifdef USE_NETCDF4
 /*
 Parse a filter spec string and store it in special
 */
 static int
-parsefilterflag(const char* sdata0, Specialdata* special)
+parsefilterflag(const char* sdata, Specialdata* special)
 {
-    char* p;
-    char* sdata = NULL;
-    int stat;
-    size_t count;
-    unsigned int* ulist = NULL;
+    int stat = NC_NOERR;
 
-    if(sdata0 == NULL || strlen(sdata0) == 0) goto fail;
-    sdata = strdup(sdata0);
+    if(sdata == NULL || strlen(sdata) == 0) return NC_EINVAL;
 
-    /* Count number of unsigned integers and delimit */
-    p=sdata;
-    for(count=0;;count++) {
-        char* q = strchr(p,',');
-	if(q == NULL) break;
-	*q++ = '\0'; /* delimit */
-	p = q;
-    }
-    count++; /* for final piece */
-
-    /* Start by collecting the filter id */
-    p = sdata;
-    stat = sscanf(p,"%u",&special->_FilterID);
-    if(stat != 1) goto fail;
-    count--;  /* actual param count minus the id */
-
-    ulist = (unsigned int*)malloc(sizeof(unsigned int)*(count));
-    if(ulist == NULL) goto fail;
-
-    special->nparams = count;
-    for(count=0;count < special->nparams ;) {
-        unsigned int uval;
-        p = p + strlen(p) + 1; /* move to next param */
-	stat = sscanf(p,"%u",&uval);
-	if(stat != 1) goto fail;
-	ulist[count++] = uval;
-    }
-    special->_FilterParams = ulist;
-    ulist = NULL; /* avoid duplicate free */
-
-    if(sdata) free(sdata);
-    if(ulist) free(ulist);
-    return 1;
-fail:
-    if(sdata) free(sdata);
-    if(ulist) free(ulist);
-    if(special) special->_FilterID = 0;
-    derror("Malformed filter spec: %s",sdata);
-
-    return 0;
+    stat = NC_parsefilterspec(sdata, &special->_FilterID, &special->nparams, &special->_FilterParams);
+    if(stat)
+        derror("Malformed filter spec: %s",sdata);
+    return stat;
 }
+#endif
 
 /*
 Since the arguments are all simple constants,

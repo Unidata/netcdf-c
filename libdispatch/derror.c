@@ -12,13 +12,14 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include <pnetcdf.h>  /* for ncmpi_strerror() */
 #endif
 
-/* Tell the user the version of netCDF. */
+/** @internal The version string for the library, used by
+ * nc_inq_libvers(). */
 static const char nc_libvers[] = PACKAGE_VERSION " of "__DATE__" "__TIME__" $";
 
 /**
-  Return the library version.
+Return the library version.
 
-  \returns short string that contains the version information for the
+\returns short string that contains the version information for the
 library.
  */
 const char *
@@ -193,6 +194,8 @@ const char *nc_strerror(int ncerr1)
 	 return "NetCDF: file not found";
       case NC_ECANTREMOVE:
 	 return "NetCDF: cannot delete file";
+      case NC_EINTERNAL:
+	 return "NetCDF: internal library error; Please contact Unidata support";
       case NC_EHDFERR:
 	 return "NetCDF: HDF error";
       case NC_ECANTREAD:

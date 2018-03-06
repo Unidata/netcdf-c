@@ -66,7 +66,7 @@ NC_combinehostport(NCURI* uri)
     size_t len;
     char* host = NULL;
     char* port = NULL;
-    char* hp;
+    char* hp = NULL;
     if(uri == NULL) return NULL;
     host = uri->host;
     port = uri->port;

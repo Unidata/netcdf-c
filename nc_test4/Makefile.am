@@ -3,15 +3,22 @@
 # See COPYRIGHT file for conditions of use.
 #
 # This entire directory will be skipped if netCDF-4 is not enabled.
-# Ed Hartnett
+# Ed Hartnett, Ward Fisher
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
+# Un comment to use a more verbose test driver
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+
+# Note which tests depend on other tests. necessary for make -j check
+TEST_EXTENSIONS = .sh
+extradir=
 # Link to our assembled library.
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
-# These are netCDF-4 test programs.
+# These are netCDF-4 C test programs which are built and run.
 NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4		\
 tst_vars tst_varms tst_unlim_vars tst_converts tst_converts2 tst_grps	\
 tst_grps2 tst_compounds tst_compounds2 tst_compounds3 tst_opaques	\
@@ -21,22 +28,24 @@ tst_vars4 tst_chunks tst_chunks2 tst_utf8 tst_fills tst_fills2		\
 tst_fillbug tst_xplatform tst_xplatform2 tst_endian_fill tst_atts	\
 t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_scalar tst_rename	\
-tst_h5_endians tst_atts_string_rewrite tst_hdf5_file_compat		\
-tst_fill_attr_vanish tst_rehash tst_filterparser tst_bug324
+tst_rename2 tst_h5_endians tst_atts_string_rewrite			\
+tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_filterparser	\
+tst_bug324 tst_types
 
 # Temporary I hope
 if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
 endif
 
+# Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) renamegroup tst_empty_vlen_unlim
+TESTS = $(NC4_TESTS)
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
 check_PROGRAMS += tst_large tst_large2
+TESTS += tst_large tst_large2
 endif
-
-TESTS = $(NC4_TESTS)
 
 if BUILD_UTILITIES
 TESTS += run_grp_rename.sh tst_misc.sh
@@ -50,17 +59,11 @@ check_PROGRAMS += tst_v2
 TESTS += tst_v2
 endif # BUILD_V2
 
-if LARGE_FILE_TESTS
-check_PROGRAMS += tst_large
-TESTS += tst_large
-endif # LARGE_FILE_TESTS
-
 # If benchmarks were turned on, build and run a bunch more tests.
 if BUILD_BENCHMARKS
 check_PROGRAMS += tst_create_files bm_file tst_chunks3 tst_ar4	\
 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts	\
-tst_files2 tst_files3 tst_ar5 tst_h_files3 tst_mem tst_knmi     \
-bm_netcdf4_recs
+tst_files2 tst_files3 tst_ar5 tst_mem tst_knmi bm_netcdf4_recs
 
 bm_netcdf4_recs_SOURCES = bm_netcdf4_recs.c tst_utils.c
 bm_many_atts_SOURCES = bm_many_atts.c tst_utils.c
@@ -77,7 +80,7 @@ tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 # so they must appear in the appropriate order.
 TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
 run_bm_test2.sh run_tst_chunks.sh tst_files2 tst_files3 tst_ar5		\
-tst_h_files3 tst_mem run_get_knmi_files.sh tst_knmi
+tst_mem run_get_knmi_files.sh tst_knmi
 
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL4
@@ -98,13 +101,17 @@ check_PROGRAMS += tst_interops2 tst_chunk_hdf4 tst_h4_lendian
 
 if BUILD_UTILITIES
 # This test script depends on ncdump.
-TESTS += tst_formatx_hdf4.sh 
+TESTS += tst_interops2 tst_formatx_hdf4.sh
+tst_formatx_hdf4.log: tst_interops2.log
 endif # BUILD_UTILITIES
 
 TESTS += run_chunk_hdf4.sh tst_h4_lendian
 if USE_HDF4_FILE_TESTS
 check_PROGRAMS += tst_interops3
-TESTS += run_get_hdf4_files.sh tst_interops3 tst_hdf4_read_var.sh
+TESTS += run_get_hdf4_files.sh tst_hdf4_read_var.sh
+
+tst_hdf4_read_var.log: tst_interops2.log
+
 endif # USE_HDF4_FILE_TESTS
 endif # USE_HDF4
 
@@ -116,15 +123,13 @@ TESTS += tst_szip.sh
 endif
 endif
 
-
-# This will run a bunch of the test programs with valgrind, the memory
-# checking tool. (Valgrind must be present for this to work.)
-if USE_VALGRIND_TESTS
-TESTS += run_valgrind_tests.sh run_valgrind_tests2.sh
-if USE_HDF4
-TESTS += run_hdf4_valgrind_tests.sh
-endif # USE_HDF4
-endif # USE_VALGRIND_TESTS
+# Filter Tests (requires ncdump and ncgen)
+if ENABLE_FILTER_TESTING
+if BUILD_UTILITIES
+extra_PROGRAMS = test_filter test_filter_misc
+TESTS += tst_filter.sh
+endif
+endif
 
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.
@@ -134,22 +139,21 @@ tst_parallel4 tst_nc4perf tst_mode tst_simplerw_coll_r
 TESTS += run_par_test.sh
 endif
 
-EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh                  \
-run_bm_test2.sh run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh      \
-run_par_bm_test.sh run_bm_elena.sh run_par_bm_radar_2D.sh               \
-run_bm_radar_2D_endianness1.sh run_tst_chunks.sh ref_chunks1.cdl        \
-ref_chunks2.cdl run_get_hdf4_files.sh run_valgrind_tests.sh             \
-run_valgrind_tests2.sh run_bm_ar4.sh ref_tst_compounds.nc               \
-run_hdf4_valgrind_tests.sh ref_tst_xplatform2_1.nc                      \
-ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc            \
-run_get_knmi_files.sh CMakeLists.txt run_grp_rename.sh                  \
-tst_formatx_hdf4.sh run_chunk_hdf4.sh tst_h5_endians.c                  \
-tst_h4_lendian.c tst_atts_string_rewrite.c                              \
-tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c                     \
-run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc          \
-ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_hdf4_read_var.sh           \
-ref_contiguous.hdf4 ref_chunked.hdf4 tst_szip.sh ref_szip.h5            \
-ref_szip.cdl
+EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh			\
+run_bm_test2.sh run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh	\
+run_par_bm_test.sh run_bm_elena.sh run_par_bm_radar_2D.sh		\
+run_bm_radar_2D_endianness1.sh run_tst_chunks.sh ref_chunks1.cdl	\
+ref_chunks2.cdl run_get_hdf4_files.sh run_bm_ar4.sh			\
+ref_tst_compounds.nc ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc	\
+ref_tst_dims.nc ref_tst_interops4.nc run_get_knmi_files.sh		\
+CMakeLists.txt run_grp_rename.sh tst_formatx_hdf4.sh			\
+run_chunk_hdf4.sh tst_h5_endians.c tst_h4_lendian.c			\
+tst_atts_string_rewrite.c tst_put_vars_two_unlim_dim.c			\
+tst_empty_vlen_unlim.c run_empty_vlen_test.sh ref_hdf5_compat1.nc	\
+ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh tdset.h5		\
+tst_hdf4_read_var.sh ref_contiguous.hdf4 ref_chunked.hdf4 tst_szip.sh	\
+ref_szip.h5 ref_szip.cdl tst_filter.sh bzip2.cdl filtered.cdl		\
+unfiltered.cdl ref_bzip2.c findplugin.in
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc   \
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt                  \
@@ -165,13 +169,14 @@ tst_empty_vlen_lim.nc tst_parallel4_simplerw_coll.nc                    \
 tst_fill_attr_vanish.nc tst_rehash.nc testszip.nc test.h5               \
 szip_dump.cdl
 
+DISTCLEANFILES = findplugin.sh
+
 if USE_HDF4_FILE_TESTS
-DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
+DISTCLEANFILES += AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
 AMSR_E_L3_DailyLand_V06_20020619.hdf			\
 MYD29.A2009152.0000.005.2009153124331.hdf		\
 MYD29.A2002185.0000.005.2007160150627.hdf		\
 MOD29.A2000055.0005.005.2006267200024.hdf
-
 endif # HDF4_FILE_TESTS
 
-SUBDIRS=filter_test
+SUBDIRS=hdf5plugins

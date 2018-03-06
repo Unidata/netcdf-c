@@ -33,7 +33,7 @@ See LICENSE.txt for license information.
 /* Forward */
 static char* rcreadline(char** nextlinep);
 static void rctrim(char* text);
-static NClist* rcorder(NClist* rc);
+static void rcorder(NClist* rc);
 static int rccompile(const char* path);
 static struct NCTriple* rclocate(const char* key, const char* hostport);
 static int rcsearch(const char* prefix, const char* rcname, char** pathp);
@@ -220,29 +220,36 @@ rctrim(char* text)
 /* Order the triples: those with urls must be first,
    but otherwise relative order does not matter.
 */
-static NClist*
+static void
 rcorder(NClist* rc)
 {
     int i;
     int len = nclistlength(rc);
-    NClist* newrc = nclistnew();
-    if(rc == NULL || len == 0) return newrc;
-    /* Two passes: 1) pull triples with host */
+    NClist* tmprc = nclistnew();
+    if(rc == NULL || len == 0) return;
+    /* Copy rc into tmprc and clear rc */
     for(i=0;i<len;i++) {
         NCTriple* ti = nclistget(rc,i);
+        nclistpush(tmprc,ti);
+    }
+    nclistclear(rc);
+    /* Two passes: 1) pull triples with host */
+    for(i=0;i<len;i++) {
+        NCTriple* ti = nclistget(tmprc,i);
 	if(ti->host == NULL) continue;
-	nclistpush(newrc,ti);
+	nclistpush(rc,ti);
     }
     /* pass 2 pull triples without host*/
     for(i=0;i<len;i++) {
-        NCTriple* ti = nclistget(rc,i);
+        NCTriple* ti = nclistget(tmprc,i);
 	if(ti->host != NULL) continue;
-	nclistpush(newrc,ti);
+	nclistpush(rc,ti);
     }
 #ifdef D4DEBUG
-    storedump("reorder:",newrc);
+    storedump("reorder:",rc);
 #endif
-    return newrc;
+    nclistfree(tmprc);
+
 }
 
 /* Create a triple store from a file */
@@ -250,7 +257,7 @@ static int
 rccompile(const char* path)
 {
     int ret = NC_NOERR;
-    NClist* rc = ncrc_globalstate.rcinfo.triples;
+    NClist* rc = NULL;
     char* contents = NULL;
     NCbytes* tmp = ncbytesnew();
     NCURI* uri = NULL;
@@ -262,8 +269,14 @@ rccompile(const char* path)
     }
     contents = ncbytesextract(tmp);
     if(contents == NULL) contents = strdup("");
-    rcfreetriples(rc); /* clear out any old data */
-    rc = nclistnew();
+    /* Either reuse or create new  */
+    rc = ncrc_globalstate.rcinfo.triples;
+    if(rc != NULL)
+        rcfreetriples(rc); /* clear out any old data */
+    else {
+        rc = nclistnew();
+        ncrc_globalstate.rcinfo.triples = rc;
+    }
     nextline = contents;
     for(;;) {
 	char* line;
@@ -326,6 +339,7 @@ rccompile(const char* path)
     rcorder(rc);
 
 done:
+    if(contents) free(contents);
     ncurifree(uri);
     ncbytesfree(tmp);
     return (ret);
@@ -350,7 +364,7 @@ rclocate(const char* key, const char* hostport)
 
     for(found=0,i=0;i<nclistlength(rc);i++) {
 	triple = (NCTriple*)nclistget(rc,i);
-        size_t hplen = strlen(triple->host);
+        size_t hplen = (triple->host == NULL ? 0 : strlen(triple->host));
         int t;
         if(strcmp(key,triple->key) != 0) continue; /* keys do not match */
         /* If the triple entry has no url, then use it

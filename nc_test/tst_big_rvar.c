@@ -41,9 +41,6 @@ static int
 test_big_var(const char *testfile)
 {
     int ncid, varid, dimids[NUMDIMS];
-    size_t index[NUMDIMS];
-    int nval = 99;
-    int nval_in;
     size_t start[NUMDIMS] = {0, 0, 0, 0};
     size_t count[NUMDIMS] = {1, 1, DIM2, DIM3};
     signed char data[DIM2][DIM3];
@@ -84,7 +81,7 @@ test_big_var(const char *testfile)
 	{
 	    if (data[i][j] != (signed char)((i + j) % 16))
 	    {
-		printf("error on start[0]: %d i: %d j: %d expected %d got %d\n",
+		printf("error on start[0]: %ld i: %d j: %d expected %d got %d\n",
 		       start[0], i, j, (i + j) % 16, data[i][j]);
 		ERR;
 		if(nerrs++ > 2)
@@ -98,7 +95,7 @@ test_big_var(const char *testfile)
 	{
 	    if (data[i][j] != (signed char)((i + j) % 16))
 	    {
-		printf("error on start[0]: %d i: %d j: %d expected %d got %d\n",
+		printf("error on start[0]: %ld i: %d j: %d expected %d got %d\n",
 		       start[0], i, j, (i + j) % 16, data[i][j]);
 		ERR;
 		if(nerrs++ > 2)

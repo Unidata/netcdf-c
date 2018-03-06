@@ -6,8 +6,6 @@
 #include "occompile.h"
 #include "ocdebug.h"
 
-static const unsigned int MAX_UINT = 0xffffffff;
-
 static OCerror mergedas1(OCnode* dds, OCnode* das);
 static OCerror mergedods1(OCnode* dds, OCnode* das);
 static OCerror mergeother1(OCnode* root, OCnode* das);
@@ -365,14 +363,15 @@ mergedas1(OCnode* dds, OCnode* das)
     for(i=0;i<nclistlength(das->subnodes);i++) {
 	OCnode* attnode = (OCnode*)nclistget(das->subnodes,i);
 	if(attnode->octype == OC_Attribute) {
+            OCattribute* att;
 	    if(dds->octype == OC_Atomic
 		|| dds->octype == OC_Sequence
 		|| dds->octype == OC_Structure
 		|| dds->octype == OC_Grid)
 	        attnode->att.var = dds;
-	    OCattribute* att = makeattribute(attnode->name,
-						attnode->etype,
-						attnode->att.values);
+            att = makeattribute(attnode->name,
+                                attnode->etype,
+                                attnode->att.values);
             nclistpush(dds->attributes,(void*)att);
 	}
     }
@@ -483,7 +482,7 @@ occorrelater(OCnode* dds, OCnode* dxd)
     if(dxd->name != NULL && dxd->name != NULL
        && strcmp(dxd->name,dds->name) != 0) {
 	OCTHROWCHK((ocstat = OC_EINVAL)); goto fail;
-    } else if(dxd->name != dxd->name) { /* test NULL==NULL */
+    } else if(dxd->name != dds->name) { /* test NULL==NULL */
 	OCTHROWCHK((ocstat = OC_EINVAL)); goto fail;
     }
 

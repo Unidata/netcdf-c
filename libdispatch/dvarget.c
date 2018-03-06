@@ -25,13 +25,19 @@ struct GETodometer {
 };
 
 
-/** \internal
-
+/**
+ * @internal Initialize odometer.
+ *
+ * @param odom Pointer to odometer.
+ * @param rank
+ * @param start Start indicies.
+ * @param edges Counts.
+ * @param stride Strides.
+ *
  */
 static void
-odom_init(struct GETodometer* odom,
-	    int rank,
-	    const size_t* start, const size_t* edges, const ptrdiff_t* stride)
+odom_init(struct GETodometer* odom, int rank, const size_t* start,
+          const size_t* edges, const ptrdiff_t* stride)
 {
     int i;
     memset(odom,0,sizeof(struct GETodometer));
@@ -46,8 +52,12 @@ odom_init(struct GETodometer* odom,
     }
 }
 
-/** \internal
-
+/**
+ * @internal Return true if there is more.
+ *
+ * @param odom Pointer to odometer.
+ *
+ * @return True if there is more, 0 otherwise.
  */
 static int
 odom_more(struct GETodometer* odom)
@@ -55,8 +65,12 @@ odom_more(struct GETodometer* odom)
     return (odom->index[0] < odom->stop[0]);
 }
 
-/** \internal
-
+/**
+ * @internal Move odometer.
+ *
+ * @param odom Pointer to odometer.
+ *
+ * @return 0 or 1
  */
 static int
 odom_next(struct GETodometer* odom)

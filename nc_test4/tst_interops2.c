@@ -3,6 +3,7 @@
    COPYRIGHT file for conditions of use.
 
    Test that NetCDF-4 can read HDF4 files.
+   Ed Hartnett
 */
 #include <config.h>
 #include <nc_tests.h>
@@ -10,6 +11,7 @@
 #include <hdf5.h>
 #include <H5DSpublic.h>
 #include <mfhdf.h>
+#include <netcdf_f.h>
 
 #define FILE_NAME "tst_interops2.h4"
 
@@ -56,6 +58,15 @@ main(int argc, char **argv)
       if (nc_inq_dim(ncid, 1, NULL, &len_in)) ERR;
       if (len_in != LON_LEN) ERR;
 
+      /* THese won't work. */
+      if (nc_redef(ncid) != NC_EPERM) ERR;
+      if (nc_def_var(ncid, "wow", NC_INT, 0, NULL, NULL) != NC_EPERM) ERR;
+      if (nc_def_var_chunking(ncid, 0, NC_CONTIGUOUS, NULL) != NC_EPERM) ERR;
+
+      /* Expected this to return NC_EPERM, but instead it returns
+       * success. See github issue #744. */
+      /* if (nc_def_var_chunking_ints(ncid, 0, NC_CONTIGUOUS, NULL) != NC_EPERM) ERR; */
+      
       /* Read the data through a vara function from the netCDF API. */
       if (nc_get_vara(ncid, 0, nstart, ncount, data_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)

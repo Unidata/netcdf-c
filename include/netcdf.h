@@ -45,7 +45,7 @@ extern "C" {
 #define NC_UINT64       11      /**< unsigned 8-byte int */
 #define NC_STRING       12      /**< string */
 
-#define NC_MAX_ATOMIC_TYPE NC_STRING
+#define NC_MAX_ATOMIC_TYPE NC_STRING /**< @internal Largest atomic type. */
 
 /* The following are use internally in support of user-defines
  * types. They are also the class returned by nc_inq_user_type. */
@@ -54,7 +54,8 @@ extern "C" {
 #define NC_ENUM         15      /**< enum types */
 #define NC_COMPOUND     16      /**< compound types */
 
-/* Define the first user defined type id (leave some room) */
+/** @internal Define the first user defined type id (leave some
+ * room) */
 #define NC_FIRSTUSERTYPEID 32
 
 /** Default fill value. This is used unless _FillValue attribute
@@ -253,11 +254,14 @@ These maximums are not used for netCDF-4/HDF5 files unless they were
 created with the ::NC_CLASSIC_MODEL flag.
 
 As a rule, NC_MAX_VAR_DIMS <= NC_MAX_DIMS.
+
+NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits
+      are *not* enforced after version 4.5.0
 */
 /**@{*/
-#define NC_MAX_DIMS     1024
-#define NC_MAX_ATTRS    8192
-#define NC_MAX_VARS     8192
+#define NC_MAX_DIMS     1024 /* not enforced after 4.5.0 */
+#define NC_MAX_ATTRS    8192 /* not enforced after 4.5.0 */
+#define NC_MAX_VARS     8192 /* not enforced after 4.5.0 */
 #define NC_MAX_NAME     256
 #define NC_MAX_VAR_DIMS 1024 /**< max per variable dimensions */
 /**@}*/
@@ -298,6 +302,9 @@ there. */
 #define NC_NOSHUFFLE 0
 #define NC_SHUFFLE   1
 /**@}*/
+
+#define NC_MIN_DEFLATE_LEVEL 0 /**< Minimum deflate level. */
+#define NC_MAX_DEFLATE_LEVEL 9 /**< Maximum deflate level. */
 
 /** The netcdf version 3 functions all return integer error status.
  * These are the possible values, in addition to certain values from
@@ -346,7 +353,7 @@ classic or 64-bit offset file, or an netCDF-4 file with
 
 #define	NC_ENAMEINUSE	(-42)	   /**< String match to name in use */
 #define NC_ENOTATT	(-43)	   /**< Attribute not found */
-#define	NC_EMAXATTS	(-44)	   /**< NC_MAX_ATTRS exceeded */ /* not enforced after 4.5.0 */
+#define	NC_EMAXATTS	(-44)	   /**< NC_MAX_ATTRS exceeded - not enforced after 4.5.0 */
 #define NC_EBADTYPE	(-45)	   /**< Not a netcdf data type */
 #define NC_EBADDIM	(-46)	   /**< Invalid dimension id or name */
 #define NC_EUNLIMPOS	(-47)	   /**< NC_UNLIMITED in the wrong index */
@@ -411,11 +418,12 @@ by the desired type. */
 /* Misc. additional errors */
 #define NC_ENOTFOUND     (-90)      /**< No such file */
 #define NC_ECANTREMOVE   (-91)      /**< Can't remove file */
+#define NC_EINTERNAL     (-92)      /**< NetCDF Library Internal Error */
 
 /* The following was added in support of netcdf-4. Make all netcdf-4
    error codes < -100 so that errors can be added to netcdf-3 if
    needed. */
-#define NC4_FIRST_ERROR  (-100)
+#define NC4_FIRST_ERROR  (-100)    /**< @internal All HDF5 errors < this. */
 #define NC_EHDFERR       (-101)    /**< Error at HDF5 layer. */
 #define NC_ECANTREAD     (-102)    /**< Can't read. */
 #define NC_ECANTWRITE    (-103)    /**< Can't write. */
@@ -451,20 +459,20 @@ by the desired type. */
 #define NC_EFILTER       (-132)    /**< Filter operation failed. */
 #define NC_ERCFILE       (-133)    /**< RC file failure */
 #define NC_ENULLPAD      (-134)    /**< Header Bytes not Null-Byte padded */
-#define NC4_LAST_ERROR   (-135)
+#define NC4_LAST_ERROR   (-135)    /**< @internal All netCDF errors > this. */
 
-/* This is used in netCDF-4 files for dimensions without coordinate
- * vars. */
+/** @internal This is used in netCDF-4 files for dimensions without
+ * coordinate vars. */
 #define DIM_WITHOUT_VARIABLE "This is a netCDF dimension but not a netCDF variable."
 
-/* This is here at the request of the NCO team to support our
- * mistake of having chunksizes be first ints, then size_t. Doh! */
+/** @internal This is here at the request of the NCO team to support
+ * our mistake of having chunksizes be first ints, then
+ * size_t. Doh! */
 #define NC_HAVE_NEW_CHUNKING_API 1
 
-/*Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
-#define NC_EURL         (NC_EDAPURL)   /* Malformed URL */
-#define NC_ECONSTRAINT  (NC_EDAPCONSTRAINT)   /* Malformed Constraint*/
-
+/* Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
+#define NC_EURL         (NC_EDAPURL)   /**< Malformed URL */
+#define NC_ECONSTRAINT  (NC_EDAPCONSTRAINT)   /**< Malformed Constraint*/
 
 /*
  * The Interface
@@ -479,10 +487,10 @@ by the desired type. */
 #  endif
 #  include <io.h>
 #else
-#  define MSC_EXTRA
+#define MSC_EXTRA  /**< Needed for DLL build. */
 #endif  /* defined(DLL_NETCDF) */
 
-# define EXTERNL MSC_EXTRA extern
+#define EXTERNL MSC_EXTRA extern /**< Needed for DLL build. */
 
 #if defined(DLL_NETCDF) /* define when library is a DLL */
 EXTERNL int ncerr;
@@ -1730,7 +1738,7 @@ nc_set_log_level(int new_level);
 
 #else /* not LOGGING */
 
-#define nc_set_log_level(e)
+#define nc_set_log_level(e) /**< Get rid of these calls. */
 
 #endif /* LOGGING */
 
@@ -1810,27 +1818,27 @@ nctypelen(nc_type datatype);
  */
 EXTERNL int ncerr;
 
-#define NC_ENTOOL       NC_EMAXNAME   /* Backward compatibility */
-#define NC_EXDR         (-32)   /* */
-#define NC_SYSERR       (-31)
+#define NC_ENTOOL       NC_EMAXNAME   /**< Backward compatibility */
+#define NC_EXDR         (-32)   /**< V2 API error. */
+#define NC_SYSERR       (-31)   /**< V2 API system error. */
 
 /*
  * Global options variable.
  * Used to determine behavior of error handler.
  */
-#define NC_FATAL        1
-#define NC_VERBOSE      2
+#define NC_FATAL        1  /**< For V2 API, exit on error. */
+#define NC_VERBOSE      2  /**< For V2 API, be verbose on error. */
 
-EXTERNL int ncopts;     /* default is (NC_FATAL | NC_VERBOSE) */
+/** V2 API error handling. Default is (NC_FATAL | NC_VERBOSE). */
+EXTERNL int ncopts;
 
 EXTERNL void
 nc_advise(const char *cdf_routine_name, int err, const char *fmt,...);
 
-/*
- * C data type corresponding to a netCDF NC_LONG argument,
- * a signed 32 bit object.
- *
- * This is the only thing in this file which architecture dependent.
+/**
+ * C data type corresponding to a netCDF NC_LONG argument, a signed 32
+ * bit object. This is the only thing in this file which architecture
+ * dependent.
  */
 typedef int nclong;
 
@@ -1949,18 +1957,14 @@ ncrecget(int ncid, long recnum, void **datap);
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
-EXTERNL int nc_finalize();
+EXTERNL int
+nc_finalize();
 
 /* End v2.4 backward compatibility */
 #endif /*!NO_NETCDF_2*/
 
 #if defined(__cplusplus)
 }
-#endif
-
-/* Temporary hack to shut up warnings */
-#ifndef __MINGW32_VERSION
-#define END_OF_MAIN()
 #endif
 
 /* Define two hard-coded functionality-related

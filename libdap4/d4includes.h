@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #include <assert.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

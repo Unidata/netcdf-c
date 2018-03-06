@@ -15,6 +15,54 @@
 
 #define FILE_NAME "tst_interops3.h4"
 
+/* Function to test nc_inq_format(). */
+int
+check_inq_format(int ncid, int expected_format, int expected_extended_format, int expected_mode)
+{
+   int format;
+   int extended_format;
+   int mode;
+   
+   if (nc_inq_format(ncid + 66000, NULL) != NC_EBADID) ERR;
+   if (nc_inq_format(ncid, NULL)) ERR;
+   if (nc_inq_format(ncid, &format)) ERR;
+   if (format != expected_format) {
+      printf("format %d expected_format %d\n", format, expected_format);      
+      ERR;
+   }
+   if (nc_inq_format_extended(ncid + 66000, &extended_format, &mode) != NC_EBADID) ERR;
+   {
+      int mode;
+      if (nc_inq_format_extended(ncid, NULL, &mode)) ERR;
+      if (mode != expected_mode) {
+         printf("expected_mode %x mode %x\n", expected_mode, mode);
+         //ERR;
+      }
+   }
+   {
+      int extended_format;
+      if (nc_inq_format_extended(ncid, &extended_format, NULL)) ERR;
+      if (extended_format != expected_extended_format) ERR;
+   }
+
+   if (nc_inq_format_extended(ncid, &extended_format, &mode)) ERR;
+   if (mode != expected_mode) ERR;
+   if (extended_format != expected_extended_format) ERR;
+
+   /* Nothing to do with inq_format, but let's check the base_pe
+    * functions. */
+   if (expected_format == NC_FORMAT_CLASSIC || expected_format == NC_FORMAT_64BIT_OFFSET ||
+       expected_format == NC_FORMAT_CDF5) {
+      if (nc_set_base_pe(ncid, 0)) ERR;
+      if (nc_inq_base_pe(ncid, NULL)) ERR;
+   } else {
+      if (nc_set_base_pe(ncid, 0) != NC_ENOTNC3) ERR;
+      if (nc_inq_base_pe(ncid, NULL) != NC_ENOTNC3) ERR;
+   }
+
+   return 0;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -30,12 +78,15 @@ main(int argc, char **argv)
 							   "MYD29.A2002185.0000.005.2007160150627.hdf",
 							   "MYD29.A2009152.0000.005.2009153124331.hdf"};
       size_t len_in;
+      int expected_mode = NC_NETCDF4;
+      int expected_extended_format = NC_FORMATX_NC_HDF4;
       int f;
 
       for (f = 0; f < NUM_SAMPLE_FILES; f++)
       {
 	 if (nc_open(file_name[f], NC_NOWRITE, &ncid)) ERR;
 	 if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdim_in)) ERR;
+         if (check_inq_format(ncid, NC_FORMAT_NETCDF4, expected_extended_format, expected_mode)) ERR;
 	 if (nc_close(ncid)) ERR;
       }
    }

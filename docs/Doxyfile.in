@@ -750,6 +750,7 @@ INPUT = \
     @abs_top_srcdir@/docs/install-fortran.md \
     @abs_top_srcdir@/docs/types.dox \
     @abs_top_srcdir@/docs/internal.dox \
+    @abs_top_srcdir@/docs/indexing.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/guide.dox \
     @abs_top_srcdir@/docs/OPeNDAP.dox \
@@ -788,7 +789,18 @@ INPUT = \
     @abs_top_srcdir@/libdispatch/dparallel.c \
     @abs_top_srcdir@/libdispatch/derror.c \
     @abs_top_srcdir@/libdispatch/dv2i.c \
+    @abs_top_srcdir@/libdispatch/dcopy.c \
     @abs_top_srcdir@/libsrc4/nc4file.c \
+    @abs_top_srcdir@/libsrc4/nc4var.c \
+    @abs_top_srcdir@/libsrc4/nc4hdf.c \
+    @abs_top_srcdir@/libsrc4/nc4internal.c \
+    @abs_top_srcdir@/libsrc4/nc4type.c \
+    @abs_top_srcdir@/libsrc4/nc4grp.c \
+    @abs_top_srcdir@/libsrc4/ncfunc.c \
+    @abs_top_srcdir@/libsrc4/nc4dim.c \
+    @abs_top_srcdir@/libsrc4/nc4attr.c \
+    @abs_top_srcdir@/libsrc4/nc4info.c \
+    @abs_top_srcdir@/libsrc4/nc4dispatch.c \
     @abs_top_srcdir@/examples/C/simple_xy_wr.c \
     @abs_top_srcdir@/examples/C/simple_xy_rd.c \
     @abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \
@@ -798,7 +810,8 @@ INPUT = \
     @abs_top_srcdir@/examples/C/simple_nc4_wr.c \
     @abs_top_srcdir@/examples/C/simple_nc4_rd.c \
     @abs_top_srcdir@/examples/C/simple_xy_nc4_wr.c \
-    @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c
+    @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c \
+    @abs_top_srcdir@/examples/C/filter_example.c
 
 
 # This tag can be used to specify the character encoding of the source files
@@ -874,7 +887,7 @@ EXAMPLE_PATH           = @abs_top_srcdir@/examples/C
 # *.h) to filter out the source-files in the directories. If left blank all
 # files are included.
 
-EXAMPLE_PATTERNS       =
+EXAMPLE_PATTERNS       = 
 
 # If the EXAMPLE_RECURSIVE tag is set to YES then subdirectories will be
 # searched for input files to be used with the \include or \dontinclude commands
