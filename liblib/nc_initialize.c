@@ -35,9 +35,14 @@ extern int NCP_initialize(void);
 extern int NCP_finalize(void);
 #endif
 
+#ifdef USE_PIO
+extern int PIO_initialize(void);
+extern int PIO_finalize(void);
+#endif
+
 #ifdef USE_HDF4
-extern int HDF4_initialize(void);
-extern int HDF4_finalize(void);
+extern int NC_HDF4_initialize(void);
+extern int NC_HDF4_finalize(void);
 #endif
 
 #ifdef _MSC_VER
@@ -88,8 +93,11 @@ nc_initialize()
 #ifdef USE_PNETCDF
     if((stat = NCP_initialize())) goto done;
 #endif
+#ifdef USE_PIO
+    if((stat = PIO_initialize())) goto done;
+#endif
 #ifdef USE_HDF4
-    if((stat = HDF4_initialize())) goto done;
+    if((stat = NC_HDF4_initialize())) goto done;
 #endif
 #ifdef USE_NETCDF4
     if((stat = NC4_initialize())) goto done;
@@ -130,6 +138,10 @@ nc_finalize(void)
 #ifdef USE_PNETCDF
     if((stat = NCP_finalize())) return stat;
 #endif
+
+#ifdef USE_HDF4
+    if((stat = NC_HDF4_finalize())) return stat;
+#endif /* USE_HDF4 */
 
 #ifdef USE_NETCDF4
     if((stat = NC4_finalize())) return stat;

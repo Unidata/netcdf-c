@@ -31,9 +31,12 @@ static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET|NC_MPIIO|NC_MPIPO
 static int
 close_hdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 {
+   NC_HDF4_FILE_INFO_T *hdf4_file;   
+   int varid;
    int retval;
 
-   assert(h5 && h5->controller->path && h5->root_grp && h5->no_write);
+   assert(h5 && h5->controller->path && h5->root_grp && h5->no_write &&
+          h5->format_file_info);
    LOG((3, "%s: h5->controller->path %s abort %d", __func__,
         h5->controller->path, abort));
 
@@ -41,14 +44,20 @@ close_hdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
    if (h5->flags & NC_INDEF)
       h5->flags ^= NC_INDEF;
 
+   /* Delete the HDF4-sepefic var info. */
+   for (varid = 0; varid < h5->root_grp->vars.nelems; varid++)
+      free(h5->root_grp->vars.value[varid]->format_var_info);
+
    /* Delete all the list contents for vars, dims, and atts, in each
     * group. */
    if ((retval = nc4_rec_grp_del(&h5->root_grp, h5->root_grp)))
       return retval;
 
-   /* Close hdf file. */
-   if (SDend(h5->sdid))
+   /* Close hdf4 file and free HDF4 file info. */
+   hdf4_file = (NC_HDF4_FILE_INFO_T *)h5->format_file_info;
+   if (SDend(hdf4_file->sdid))
       return NC_EHDFERR;
+   free(hdf4_file);
 
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
@@ -70,31 +79,6 @@ static const int nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof
                                               sizeof(int), sizeof(float), sizeof(double), sizeof(unsigned char),
                                               sizeof(unsigned short), sizeof(unsigned int), sizeof(long long),
                                               sizeof(unsigned long long), sizeof(char *)};
-
-/**
- * @internal Create a HDF4 file. Since the HDF4 integration provides
- * read-only access to HDF4 files, this returns error NC_ENOTNC4.
- *
- * @param path Ignored.
- * @param cmode Ignored.
- * @param initialsz Ignored.
- * @param basepe Ignored.
- * @param chunksizehintp Ignored.
- * @param use_parallel Ignored.
- * @param parameters Ignored.
- * @param dispatch Ignored.
- * @param nc_file Ignored.
- *
- * @return ::NC_ENOTNC4 Cannot create HDF4 files.
- * @author Ed Hartnett
- */
-int
-HDF4_create(const char* path, int cmode, size_t initialsz, int basepe,
-           size_t *chunksizehintp, int use_parallel, void *parameters,
-           NC_Dispatch *dispatch, NC* nc_file)
-{
-   return NC_ENOTNC4;
-}
 
 /**
  * @internal Given an HDF4 type, set a pointer to netcdf type.
@@ -245,11 +229,11 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    NC_HDF5_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_ATT_INFO_T *att;
+   NC_HDF4_FILE_INFO_T *hdf4_file;   
    int32 num_datasets, num_gatts;
    int32 rank;
    int v, d, a;
    int retval;
-   NC_HDF5_FILE_INFO_T* nc4_info = NULL;
 
    LOG((3, "%s: path %s mode %d", __func__, path, mode));
    assert(path && nc);
@@ -261,19 +245,22 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    /* Add necessary structs to hold netcdf-4 file data. */
    if ((retval = nc4_nc4f_list_add(nc, path, mode)))
       return retval;
-   nc4_info = NC4_DATA(nc);
-   assert(nc4_info && nc4_info->root_grp);
-   h5 = nc4_info;
-   h5->hdf4 = NC_TRUE;
+   h5 = NC4_DATA(nc);
+   assert(h5 && h5->root_grp);
+
+   /* Allocate data to hold HDF4 specific file data. */
+   if (!(hdf4_file = malloc(sizeof(NC_HDF4_FILE_INFO_T))))
+      return NC_ENOMEM;
+   h5->format_file_info = hdf4_file;
    grp = h5->root_grp;
    h5->no_write = NC_TRUE;
 
    /* Open the file and initialize SD interface. */
-   if ((h5->sdid = SDstart(path, DFACC_READ)) == FAIL)
+   if ((hdf4_file->sdid = SDstart(path, DFACC_READ)) == FAIL)
       return NC_EHDFERR;
 
    /* Learn how many datasets and global atts we have. */
-   if (SDfileinfo(h5->sdid, &num_datasets, &num_gatts))
+   if (SDfileinfo(hdf4_file->sdid, &num_datasets, &num_gatts))
       return NC_EHDFERR;
 
    /* Read the atts. */
@@ -291,7 +278,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       /* Learn about this attribute. */
       if (!(att->name = malloc(NC_MAX_HDF4_NAME * sizeof(char))))
          return NC_ENOMEM;
-      if (SDattrinfo(h5->sdid, a, att->name, &att_data_type, &att_count))
+      if (SDattrinfo(hdf4_file->sdid, a, att->name, &att_data_type, &att_count))
          return NC_EATTMETA;
       if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type,
                                               &att->nc_typeid, NULL)))
@@ -305,7 +292,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
          return NC_ENOMEM;
 
       /* Read the data. */
-      if (SDreadattr(h5->sdid, a, att->data))
+      if (SDreadattr(hdf4_file->sdid, a, att->data))
          return NC_EHDFERR;
    }
 
@@ -314,6 +301,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    {
       NC_VAR_INFO_T *var;
       int32 data_type, num_atts;
+      NC_VAR_HDF4_INFO_T *hdf4_var;
       /* Problem: Number of dims is returned by the call that requires
          a pre-allocated array, 'dimsize'.
          From SDS_SD website:
@@ -338,8 +326,16 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       if ((retval = nc4_vararray_add(grp, var)))
          return retval;
 
+      /* Malloc a struct to hold HDF4-specific variable
+       * information. */
+      if (!(hdf4_var = malloc(sizeof(NC_VAR_HDF4_INFO_T))))
+         return NC_ENOMEM;
+
+      /* Point the format_info pointer at the HDF4 var info. */
+      var->format_var_info = hdf4_var;      
+
       /* Open this dataset in HDF4 file. */
-      if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL)
+      if ((hdf4_var->sdsid = SDselect(hdf4_file->sdid, v)) == FAIL)
          return NC_EVARMETA;
 
       /* Get shape, name, type, and attribute info about this dataset. */
@@ -347,21 +343,23 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
          return NC_ENOMEM;
 
       /* Invoke SDgetInfo with null dimsize to get rank. */
-      if (SDgetinfo(var->sdsid, var->name, &rank, NULL, &data_type, &num_atts))
+      if (SDgetinfo(hdf4_var->sdsid, var->name, &rank, NULL, &data_type,
+                    &num_atts))
          return NC_EVARMETA;
 
       var->hash = hash_fast(var->name, strlen(var->name));
 
-      if(!(dimsize = (int32*)malloc(sizeof(int32)*rank)))
+      if (!(dimsize = (int32 *)malloc(sizeof(int32) * rank)))
          return NC_ENOMEM;
 
-      if (SDgetinfo(var->sdsid, var->name, &rank, dimsize, &data_type, &num_atts)) {
-         if(dimsize) free(dimsize);
+      if (SDgetinfo(hdf4_var->sdsid, var->name, &rank, dimsize,
+                    &data_type, &num_atts)) {
+         free(dimsize);
          return NC_EVARMETA;
       }
 
       var->ndims = rank;
-      var->hdf4_data_type = data_type;
+      hdf4_var->hdf4_data_type = data_type;
 
       /* Fill special type_info struct for variable type information. */
       if (!(var->type_info = calloc(1, sizeof(NC_TYPE_INFO_T)))) {
@@ -392,7 +390,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
          return NC_ENOMEM;
       }
 
-      if (SDgetfillvalue(var->sdsid, var->fill_value))
+      if (SDgetfillvalue(hdf4_var->sdsid, var->fill_value))
       {
          /* Whoops! No fill value! */
          free(var->fill_value);
@@ -421,7 +419,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
          char dim_name[NC_MAX_NAME + 1];
          NC_DIM_INFO_T *dim;
 
-         if ((dimid = SDgetdimid(var->sdsid, d)) == FAIL) {
+         if ((dimid = SDgetdimid(hdf4_var->sdsid, d)) == FAIL) {
             if(dimsize) free(dimsize);
             return NC_EDIMMETA;
          }
@@ -481,7 +479,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
             if(dimsize) free(dimsize);
             return NC_ENOMEM;
          }
-         if (SDattrinfo(var->sdsid, a, att->name, &att_data_type, &att_count)) {
+         if (SDattrinfo(hdf4_var->sdsid, a, att->name, &att_data_type, &att_count)) {
             if(dimsize) free(dimsize);
             return NC_EATTMETA;
          }
@@ -504,7 +502,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
          }
 
          /* Read the data. */
-         if (SDreadattr(var->sdsid, a, att->data)) {
+         if (SDreadattr(hdf4_var->sdsid, a, att->data)) {
             if(dimsize) free(dimsize);
             return NC_EHDFERR;
          }
@@ -515,7 +513,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
          /* HDF4 files can be chunked */
          HDF_CHUNK_DEF chunkdefs;
          int flag;
-         if(!SDgetchunkinfo(var->sdsid, &chunkdefs, &flag)) {
+         if(!SDgetchunkinfo(hdf4_var->sdsid, &chunkdefs, &flag)) {
             if(flag == HDF_NONE)
                var->contiguous = NC_TRUE;
             else if((flag & HDF_CHUNK) != 0) {
@@ -558,9 +556,9 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
  * @author Ed Hartnett
  */
 int
-HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-          int use_parallel, void *parameters, NC_Dispatch *dispatch,
-          NC *nc_file)
+NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
+             int use_parallel, void *parameters, NC_Dispatch *dispatch,
+             NC *nc_file)
 {
    assert(nc_file && path);
 
@@ -580,75 +578,6 @@ HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 }
 
 /**
- * @internal Unfortunately HDF only allows specification of fill value
- * only when a dataset is created. Whereas in netcdf, you first create
- * the variable and then (optionally) specify the fill value. To
- * accomplish this in HDF5 I have to delete the dataset, and recreate
- * it, with the fill value specified. 
- *
- * @param ncid File and group ID.
- * @param fillmode File mode.
- * @param old_modep Pointer that gets old mode. Ignored if NULL.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
-*/
-int
-HDF4_set_fill(int ncid, int fillmode, int *old_modep)
-{
-   return NC_EPERM;
-}
-
-/**
- * @internal Not allowed for HDF4 files.
- *
- * @param ncid File and group ID.
- *
- * @return ::NC_ENOTNC4 No error.
- * @author Ed Hartnett
-*/
-int
-HDF4_redef(int ncid)
-{
-   return NC_EPERM;
-}
-
-/**
- * @internal This does nothing for HDF4 files. Since they are
- * read-only, then can never be put into define mode.
- *
- * @param ncid File and group ID.
- * @param h_minfree Ignored for netCDF-4 files.
- * @param v_align Ignored for netCDF-4 files.
- * @param v_minfree Ignored for netCDF-4 files.
- * @param r_align Ignored for netCDF-4 files.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
-*/
-int
-HDF4__enddef(int ncid, size_t h_minfree, size_t v_align,
-             size_t v_minfree, size_t r_align)
-{
-   return NC_NOERR;   
-}
-
-/**
- * @internal Does nothing, since HDF4 files are read only. There can
- * be no changes to sync to disk.
- *
- * @param ncid File and group ID.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
-*/
-int
-HDF4_sync(int ncid)
-{
-   return NC_NOERR;
-}
-
-/**
  * @internal Closes the file. There can be no changes to abort since
  * HDF4 files are read only.
  *
@@ -658,7 +587,7 @@ HDF4_sync(int ncid)
  * @author Ed Hartnett
  */
 int
-HDF4_abort(int ncid)
+NC_HDF4_abort(int ncid)
 {
    NC *nc;
    NC_HDF5_FILE_INFO_T* nc4_info;
@@ -689,7 +618,7 @@ HDF4_abort(int ncid)
  * @author Ed Hartnett
 */
 int
-HDF4_close(int ncid)
+NC_HDF4_close(int ncid)
 {
    NC_GRP_INFO_T *grp;
    NC *nc;
@@ -709,5 +638,3 @@ HDF4_close(int ncid)
 
    return NC_NOERR;
 }
-
-

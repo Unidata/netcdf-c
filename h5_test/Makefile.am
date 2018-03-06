@@ -1,6 +1,6 @@
-# This is part of the netCDF package.
-# Copyright 2011 University Corporation for Atmospheric Research/Unidata
-# See COPYRIGHT file for conditions of use.
+# This is part of the netCDF package. Copyright 2011-2018 University
+# Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+# conditions of use.
 #
 # This entire directory will be skipped, unless the configure script
 # is run with --enable-netcdf-4. This directory contains tests that
