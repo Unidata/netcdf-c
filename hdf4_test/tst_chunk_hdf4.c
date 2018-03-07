@@ -35,6 +35,7 @@ main(int argc, char **argv)
    int storage;
    size_t chunksizes[NC_MAX_VAR_DIMS];
 
+   nc_set_log_level(4);
    printf("\n*** Testing HDF4/NetCDF-4 chunking API: chunked...");
    {
 
