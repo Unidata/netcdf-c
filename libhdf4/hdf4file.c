@@ -507,9 +507,6 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 
    /* Open the file. */
    nc->int_ncid = nc->ext_ncid;
-   /* Must be read-only access to hdf4 files. */
-   if (mode & NC_WRITE)
-      return NC_EINVAL;
 
    /* Add necessary structs to hold netcdf-4 file data. */
    if ((retval = nc4_nc4f_list_add(nc, path, mode)))
@@ -544,7 +541,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #ifdef LOGGING
    /* This will print out the names, types, lens, etc of the vars and
       atts in the file, if the logging level is 2 or greater. */
-   log_metadata_nc(h5->root_grp->nc4_info->controller);
+   log_metadata_nc(nc);
 #endif
    return NC_NOERR;
 }
@@ -554,14 +551,13 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
  * and close the HDF4 file.
  *
  * @param h5 Pointer to HDF5 file info struct.
- * @param abort True if this is an abort.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF4 error.
  * @author Ed Hartnett
 */
 static int
-close_hdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
+close_hdf4_file(NC_HDF5_FILE_INFO_T *h5)
 {
    NC_HDF4_FILE_INFO_T *hdf4_file;   
    int varid;
@@ -569,12 +565,7 @@ close_hdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 
    assert(h5 && h5->controller->path && h5->root_grp && h5->no_write &&
           h5->format_file_info);
-   LOG((3, "%s: h5->controller->path %s abort %d", __func__,
-        h5->controller->path, abort));
-
-   /* According to the docs, always end define mode on close. */
-   if (h5->flags & NC_INDEF)
-      h5->flags ^= NC_INDEF;
+   LOG((3, "%s: h5->controller->path %s", __func__, h5->controller->path));
 
    /* Delete the HDF4-specific var info. */
    for (varid = 0; varid < h5->root_grp->vars.nelems; varid++)
@@ -595,39 +586,6 @@ close_hdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
       everything else */
    free(h5);
    
-   return NC_NOERR;
-}
-
-/**
- * @internal Closes the file. There can be no changes to abort since
- * HDF4 files are read only.
- *
- * @param ncid File and group ID.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EHDFERR HDF4 error.
- * @author Ed Hartnett
- */
-int
-NC_HDF4_abort(int ncid)
-{
-   NC *nc;
-   NC_HDF5_FILE_INFO_T* h5;
-   int retval;
-
-   LOG((2, "%s: ncid 0x%x", __func__, ncid));
-
-   /* Find metadata for this file. */
-   if (!(nc = nc4_find_nc_file(ncid, &h5)))
-      return NC_EBADID;
-   assert(h5);
-
-   /* Free any resources the netcdf-4 library has for this file's
-    * metadata. */
-   if ((retval = close_hdf4_file(h5, 1)))
-      return retval;
-
    return NC_NOERR;
 }
 
@@ -657,7 +615,7 @@ NC_HDF4_close(int ncid)
    assert(nc && h5 && grp && !grp->parent);
 
    /* Call the nc4 close. */
-   if ((retval = close_hdf4_file(grp->nc4_info, 0)))
+   if ((retval = close_hdf4_file(h5)))
       return retval;
 
    return NC_NOERR;

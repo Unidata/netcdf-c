@@ -9,8 +9,6 @@
 #include <config.h>
 #include <nc_tests.h>
 #include "err_macros.h"
-#include <hdf5.h>
-#include <H5DSpublic.h>
 #include <mfhdf.h>
 
 #define CHUNKEDFILE "ref_chunked.hdf4"
@@ -35,7 +33,6 @@ main(int argc, char **argv)
    int storage;
    size_t chunksizes[NC_MAX_VAR_DIMS];
 
-   nc_set_log_level(4);
    printf("\n*** Testing HDF4/NetCDF-4 chunking API: chunked...");
    {
 
