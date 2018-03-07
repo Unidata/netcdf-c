@@ -13,6 +13,10 @@ IF(USE_PNETCDF)
   SET(liblib_LIBS ${liblib_LIBS} netcdfp)
 ENDIF()
 
+IF(USE_HDF4)
+  SET(liblib_LIBS ${liblib_LIBS} netcdfhdf4)
+ENDIF()
+
 IF(ENABLE_DAP2)
   SET(liblib_LIBS ${liblib_LIBS} oc2 dap2)
 ENDIF()
