@@ -65,7 +65,7 @@ main(int argc, char **argv)
 
       /* Expected this to return NC_EPERM, but instead it returns
        * success. See github issue #744. */
-      if (nc_def_var_chunking_ints(ncid, 0, NC_CONTIGUOUS, NULL)) ERR;
+      /* if (nc_def_var_chunking_ints(ncid, 0, NC_CONTIGUOUS, NULL) != NC_EPERM) ERR; */
       
       /* Read the data through a vara function from the netCDF API. */
       if (nc_get_vara(ncid, 0, nstart, ncount, data_in)) ERR;
