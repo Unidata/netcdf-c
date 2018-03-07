@@ -342,11 +342,7 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
              * reporting it as a range error.
              */
             if ( r < X_CHAR_MIN || r > X_CHAR_MAX ) return 2;
-#if defined(__CHAR_UNSIGNED__) && __CHAR_UNSIGNED__ != 0
             *((signed char*) p) = (signed char)r;
-#else
-            *((char   *) p) = (char)r;
-#endif
             break;
         case NC_BYTE:
             r = floor(0.5+d);
@@ -1319,7 +1315,8 @@ char* nc_err_code_name(int err)
         case (NC_EDISKLESS):			return "NC_EDISKLESS";
         case (NC_ECANTEXTEND):			return "NC_ECANTEXTEND";
         case (NC_EMPI):				return "NC_EMPI";
-        // case (NC_EURL):				return "NC_EURL";
+    case (NC_ENULLPAD):             return "NC_NULLPAD";
+          // case (NC_EURL):				return "NC_EURL";
         // case (NC_ECONSTRAINT):			return "NC_ECONSTRAINT";
 #ifdef USE_PNETCDF
         case (NC_ESMALL):			return "NC_ESMALL";

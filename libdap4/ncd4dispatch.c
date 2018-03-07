@@ -239,6 +239,12 @@ NCD4_def_var_endian(int ncid, int p2, int p3)
 }
 
 static int
+NCD4_def_var_filter(int ncid, int varid, unsigned int id, size_t n, const unsigned int* parms)
+{
+    return (NC_EPERM);
+}
+
+static int
 NCD4_set_var_chunk_cache(int ncid, int p2, size_t p3, size_t p4, float p5)
 {
     return (NC_EPERM);
@@ -413,7 +419,8 @@ NCD4_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                int* shufflep, int* deflatep, int* deflate_levelp,
                int* fletcher32p, int* contiguousp, size_t* chunksizesp,
                int* no_fill, void* fill_valuep, int* endiannessp,
-	       int* options_maskp, int* pixels_per_blockp)
+	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+               )
 {
     NC* ncp;
     int ret;
@@ -425,7 +432,7 @@ NCD4_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                shufflep, deflatep, deflate_levelp,
                fletcher32p, contiguousp, chunksizesp,
                no_fill, fill_valuep, endiannessp,
-	       options_maskp, pixels_per_blockp);
+               idp, nparamsp, params);
     return (ret);
 }
 
@@ -846,6 +853,7 @@ NCDEFAULT_put_varm,
 NCD4_inq_var_all,
 
 NCD4_var_par_access,
+NCD4_def_var_fill,
 
 #ifdef USE_NETCDF4
 NCD4_show_metadata,
@@ -881,8 +889,8 @@ NCD4_def_opaque,
 NCD4_def_var_deflate,
 NCD4_def_var_fletcher32,
 NCD4_def_var_chunking,
-NCD4_def_var_fill,
 NCD4_def_var_endian,
+NCD4_def_var_filter,
 NCD4_set_var_chunk_cache,
 NCD4_get_var_chunk_cache,
 

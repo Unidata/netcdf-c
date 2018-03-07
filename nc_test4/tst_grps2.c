@@ -4,14 +4,14 @@
 
    Test netcdf-4 group code some more.
 
-   $Id$
+   @author Ed Hartnett
 */
 
 #include <nc_tests.h>
 #include "err_macros.h"
 #include "netcdf.h"
 
-#define FILE_NAME "tst_grps.nc"
+#define FILE_NAME "tst_grps2.nc"
 #define DIM1_NAME "kingdom"
 #define DIM1_LEN 3
 #define DIM2_NAME "year"

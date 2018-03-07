@@ -19,33 +19,33 @@ define_netcdf(void)
     char filename[2048+1];
 
     /* Rule for specifying the dataset name:
-	1. use explicit datasetname
-	2. use the datasetname from the .cdl file (see ncgen.l)
-	3. use -o name ?implemented?
-	4. use input cdl file name (with .cdl removed) ?implemented?
-    */
-    /* Rule for specifying the output file name:
 	1. use -o name
-	2. use input cdl file name (with .cdl removed)
-	3. use the datasetname
+	2. use the datasetname from the .cdl file
+	3. use input cdl file name (with .cdl removed)
+	It would be better if there was some way
+	to specify the datasetname independently of the
+	file name, but oh well.
     */
     if(netcdf_name) { /* -o flag name */
       strncpy(filename,netcdf_name,2048);
     } else { /* construct a usable output file name */
 	if (cdlname != NULL && strcmp(cdlname,"-") != 0) {/* cmd line name */
 	    char* p;
+
 	    strncpy(filename,cdlname,2048);
-	    /* remove any suffix and prefix => create in cwd */
+	    /* remove any suffix and prefix*/
 	    p = strrchr(filename,'.');
 	    if(p != NULL) {*p= '\0';}
 	    p = strrchr(filename,'/');
 	    if(p != NULL) {memmove(filename,(p+1),2048);}
-        } else {/* construct name from dataset name */
+	    
+       } else {/* construct name from dataset name */
 	    strncpy(filename,datasetname,2048); /* Reserve space for extension, terminating '\0' */
         }
         /* Append the proper extension */
 	strncat(filename,binary_ext,2048-(strlen(filename) + strlen(binary_ext)));
     }
+
     /* Execute exactly one of these */
 #ifdef ENABLE_C
     if (l_flag == L_C) gen_ncc(filename); else /* create C code to create netcdf */
@@ -94,10 +94,12 @@ Caller must free.
 void
 topfqn(Symbol* sym)
 {
+#ifdef USE_NETCDF4
     char* fqn;
     char* fqnname;
     char* parentfqn;
     Symbol* parent;
+#endif
     
     if(sym->fqn != NULL)
 	return; /* already defined */

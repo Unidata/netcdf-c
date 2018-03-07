@@ -62,7 +62,7 @@ d055.nc;http://ilikai.soest.hawaii.edu/cgi-bin/nph-dods/fast/d055.nc \
 # Temporarily suppress
 XFAILTESTS="qscat_high_wind totalAagg  world-unfilter-monthly.nc duacs_global_nrt_msla_merged_h_lr 500m"
 
-RESULTSDIR="./results"
+RESULTSDIR="./results_tst_special"
 # Locate some tools
 if test "x$leakcheck" = x1 ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
@@ -134,6 +134,7 @@ done
 cd ..
 done
 
+rm -fr ${RESULTSDIR}
 totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
 

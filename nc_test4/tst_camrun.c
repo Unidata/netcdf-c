@@ -662,7 +662,6 @@
 #   define RANK_wat_a2 4
 #   define RANK_wat_a3 4
 
-#ifdef EXTRA_TESTS
 #define MEGABYTE 1048576
 void
 get_mem_used2(int *mem_used)
@@ -691,7 +690,6 @@ get_mem_used2(int *mem_used)
       *mem_used = -1;
   fclose(pf);
 }
-#endif
 
 int
 main()
@@ -2005,17 +2003,13 @@ main()
    int wat_a1_dims[RANK_wat_a1];
    int wat_a2_dims[RANK_wat_a2];
    int wat_a3_dims[RANK_wat_a3];
-#ifdef EXTRA_TESTS
    int memused;
-#endif /* EXTRA_TESTS */
 
    printf("\n*** Testing CAM output file in netCDF-4.\n");
    printf("*** creating file...");
 
-#ifdef EXTRA_TESTS
    get_mem_used2(&memused);
    printf("data memory %d MB\n", memused);
-#endif /* EXTRA_TESTS */
 
    if (nc_set_chunk_cache(0, 1009, .75)) ERR;
 
@@ -7389,26 +7383,20 @@ main()
    if (nc_put_att_text(ncid, wat_a3_id, "cell_methods", 10, "time: mean")) ERR;
 
 
-#ifdef EXTRA_TESTS
    get_mem_used2(&memused);
    printf("before enddef data memory %d MB\n", memused);
-#endif
 
    /* leave define mode */
    if (nc_enddef (ncid)) ERR;
 
-#ifdef EXTRA_TESTS
    get_mem_used2(&memused);
    printf("before close data memory %d MB\n", memused);
-#endif
 
    /* assign variable data */
    if (nc_close(ncid)) ERR;
 
-#ifdef EXTRA_TESTS
    get_mem_used2(&memused);
    printf("after close data memory %d MB\n", memused);
-#endif
 
    SUMMARIZE_ERR;
    FINAL_RESULTS;

@@ -234,7 +234,7 @@ another dimension.
 For netCDF classic and 64-bit offset files, if the new name is longer
 than the old name, the netCDF dataset must be in define mode.
 
-For netCDF-4 files the dataset is switched to define more for the
+For netCDF-4 files the dataset is switched to define mode for the
 rename, regardless of the name length.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
@@ -253,6 +253,7 @@ with length less than NC_MAX_NAME.
 \returns ::NC_ENAMEINUSE String match to name in use
 \returns ::NC_ENOMEM     Memory allocation (malloc) failure
 \returns ::NC_EPERM      Write to read only
+\returns ::NC_ENOTINDEFINE Not in define mode and new name is longer than old.
 \section nc_rename_dim_example Example
 
 Here is an example using nc_rename_dim to rename the dimension lat to

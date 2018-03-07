@@ -209,7 +209,7 @@ NC_mktmp(const char* base)
     cvtpath = NCpathcvt(base);
     strncpy(tmp,cvtpath,sizeof(tmp));
     nullfree(cvtpath);
-	strncat(tmp, "XXXXXX", sizeof(tmp));
+	strncat(tmp, "XXXXXX", sizeof(tmp) - strlen(tmp) - 1);
 
 #ifdef HAVE_MKSTEMP
     /* Note Potential problem: old versions of this function
@@ -246,7 +246,7 @@ NC_mktmp(const char* base)
 #endif /* !HAVE_MKSTEMP */
     if(fd < 0) {
        nclog(NCLOGERR, "Could not create temp file: %s",tmp);
-       return (NC_EPERM);
+       return NULL;
     } else
 	close(fd);
     return strdup(tmp);

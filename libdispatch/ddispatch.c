@@ -261,7 +261,6 @@ fail:
 int
 nc__testurl(const char* path, char** basenamep)
 {
-    int stat = NC_NOERR;
     NCURI* uri;
     int ok = 0;
     if(ncuriparse(path,&uri) == NCU_OK) {
