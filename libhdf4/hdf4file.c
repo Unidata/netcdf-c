@@ -533,7 +533,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
       if ((retval = hdf4_read_att(h5, NULL, a)))
          return retval;
 
-   /* Read each dataset. */
+   /* Read each dataset, including dimensions and attributes. */
    for (v = 0; v < num_datasets; v++)
       if ((retval = hdf4_read_var(h5, v)))
          return retval;
@@ -547,25 +547,30 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 }
 
 /**
- * @internal This function will free all allocated metadata memory,
- * and close the HDF4 file.
+ * @internal Close the HDF4 file. 
  *
- * @param h5 Pointer to HDF5 file info struct.
+ * @param ncid File ID.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EHDFERR HDF4 error.
  * @author Ed Hartnett
 */
-static int
-close_hdf4_file(NC_HDF5_FILE_INFO_T *h5)
+int
+NC_HDF4_close(int ncid)
 {
+   NC_HDF5_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
    NC_HDF4_FILE_INFO_T *hdf4_file;   
    int varid;
    int retval;
 
-   assert(h5 && h5->controller->path && h5->root_grp && h5->no_write &&
-          h5->format_file_info);
-   LOG((3, "%s: h5->controller->path %s", __func__, h5->controller->path));
+   LOG((1, "%s: ncid 0x%x", __func__, ncid));
+
+   /* Find our metadata for this file. */
+   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
+      return retval;
+   assert(h5 && grp && !grp->parent);
 
    /* Delete the HDF4-specific var info. */
    for (varid = 0; varid < h5->root_grp->vars.nelems; varid++)
@@ -585,38 +590,6 @@ close_hdf4_file(NC_HDF5_FILE_INFO_T *h5)
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
    free(h5);
-   
-   return NC_NOERR;
-}
-
-/**
- * @internal Close the HDF4 file. 
- *
- * @param ncid File ID.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EHDFERR HDF4 error.
- * @author Ed Hartnett
-*/
-int
-NC_HDF4_close(int ncid)
-{
-   NC_GRP_INFO_T *grp;
-   NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
-   int retval;
-
-   LOG((1, "%s: ncid 0x%x", __func__, ncid));
-
-   /* Find our metadata for this file. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return retval;
-   assert(nc && h5 && grp && !grp->parent);
-
-   /* Call the nc4 close. */
-   if ((retval = close_hdf4_file(h5)))
-      return retval;
 
    return NC_NOERR;
 }

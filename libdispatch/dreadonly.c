@@ -97,36 +97,6 @@ NC_RO_rename_dim(int ncid, int dimid, const char *name)
 {
    return NC_EPERM;
 }
-/**
- * @internal Not allowed for read-only access.
- *
- * @param parent_ncid Ignored.
- * @param name Ignored.
- * @param new_ncid Ignored.
- *
- * @return ::NC_EPERM Not allowed.
- * @author Ed Hartnett
- */
-int
-NC_RO_def_grp(int parent_ncid, const char *name, int *new_ncid)
-{
-   return NC_EPERM;
-}
-
-/**
- * @internal Not allowed for read-only access.
- *
- * @param grpid Ignored.
- * @param name Ignored.
- *
- * @return ::NC_EPERM Not allowed.
- * @author Ed Hartnett
- */
-int
-NC_RO_rename_grp(int grpid, const char *name)
-{
-   return NC_EPERM;   
-}
 
 /**
  * @internal Not allowed for read-only access.
@@ -163,7 +133,7 @@ NC_RO_def_var(int ncid, const char *name, nc_type xtype,
 int
 NC_RO_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
-   return NC_ENOTNC4;
+   return NC_EPERM;
 }
 
 /**

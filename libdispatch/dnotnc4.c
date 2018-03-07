@@ -43,7 +43,7 @@ NC_NOTNC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
 int
 NC_NOTNC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
-   return NC_EPERM;
+   return NC_ENOTNC4;
 }
 
 /**
@@ -58,7 +58,7 @@ NC_NOTNC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 int
 NC_NOTNC4_rename_grp(int grpid, const char *name)
 {
-   return NC_EPERM;
+   return NC_ENOTNC4;
 }
 
 /**
@@ -362,7 +362,7 @@ int
 NC_NOTNC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
                           int deflate_level)
 {
-   return NC_EPERM;
+   return NC_ENOTNC4;
 }
 
 /**
