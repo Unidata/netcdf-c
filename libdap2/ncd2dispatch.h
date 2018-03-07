@@ -135,7 +135,8 @@ NCD2_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *shufflep, int *deflatep, int *deflate_levelp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                int *no_fill, void *fill_valuep, int *endiannessp,
-	       int *options_maskp, int *pixels_per_blockp);
+	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+               );
 
 extern int
 NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
@@ -143,7 +144,8 @@ NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *shufflep, int *deflatep, int *deflate_levelp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                int *no_fill, void *fill_valuep, int *endiannessp,
-	       int *options_maskp, int *pixels_per_blockp);
+	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+               );
 
 extern int
 NCD2_inq_varid(int ncid, const char *name, int *varidp);
@@ -155,6 +157,9 @@ NCD2_rename_var(int ncid, int varid, const char *name);
 
 extern int
 NCD2_var_par_access(int, int, int);
+
+extern int
+NCD2_def_var_fill(int, int, int, const void *);
 
   /* netCDF4 API only */
 #ifdef USE_NETCDF4
@@ -240,10 +245,10 @@ NCD2_var_par_access(int, int, int);
   NCD2_def_var_chunking(int, int, int, const size_t *);
 
   extern int
-  NCD2_def_var_fill(int, int, int, const void *);
+  NCD2_def_var_endian(int, int, int);
 
   extern int
-  NCD2_def_var_endian(int, int, int);
+  NCD2_def_var_filter(int, int, unsigned int, size_t, const unsigned int*);
 
   extern int
   NCD2_inq_unlimdims(int, int *, int *);

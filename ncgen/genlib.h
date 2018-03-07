@@ -88,7 +88,7 @@ extern Symbol* makearraytype(Symbol*, Dimset*);
 extern void convert1(NCConstant*,NCConstant*); /* Convert an arbitrary value to another */
 extern void setprimlength(NCConstant* prim, unsigned long len);
 extern struct Datalist* convertstringtochars(NCConstant* str);
-
+extern unsigned int convertFilterID(const char* id);
 
 /* from: semantic.c */
 extern  void processsemantics(void);

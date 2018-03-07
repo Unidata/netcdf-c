@@ -91,7 +91,7 @@ NCD4_dechunk(NCD4meta* metadata)
     metadata->localchecksumming = metadata->serial.remotechecksumming;
 
     metadata->serial.remotelittleendian = ((hdr.flags & LITTLE_ENDIAN_CHUNK) ? 1 : 0);
-    metadata->serial.dmr = p;
+    metadata->serial.dmr = (char*)p;
     metadata->serial.dmr[hdr.count-1] = '\0';
     metadata->serial.dmr = strdup(metadata->serial.dmr);
     if(metadata->serial.dmr == NULL)

@@ -304,7 +304,6 @@ ncuriparse(const char* uri0, NCURI** durip)
 	/* Check for leading user:pwd@ */
         char* newhost = strchr(tmp.host,'@');
         if(newhost != NULL) {
-	    size_t rem;
 	    if(newhost == tmp.host)
 		{THROW(NCU_EUSRPWD);} /* we have proto://@ */
 	    terminate(newhost); /* overwrite '@' */
@@ -783,7 +782,6 @@ ncuriencodeonly(char* s, char* allowable)
 	    *outptr++ = '+';
         } else {
             /* search allowable */
-            int c2;
 	    char* p = strchr(allowable,c);
 	    if(p != NULL) {
                 *outptr++ = (char)c;
@@ -915,7 +913,8 @@ collectprefixparams(char* text, char** nextp)
     for(;;) {
 	char* p; char* q;
 	/* by construction, here we are at an LBRACKET: compress it out */
-	for(p=sp,q=sp+1;(*p++=*q++););	
+	for(p=sp,q=sp+1;(*p++=*q++);)
+	    ;	
         /* locate the next RRACKET */
         ep = nclocate(sp,RBRACKETSTR);
 	if(ep == NULL) break;/* we are done */

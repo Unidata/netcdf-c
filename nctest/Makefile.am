@@ -16,10 +16,9 @@ AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 # generated in a pressurized chamber that exactly simulated the
 # atmosphere on the surface of Mars.
 EXTRA_DIST = ref_nctest_classic.nc ref_nctest_64bit_offset.nc	\
-compare_test_files.sh run_valgrind_tests.sh CMakeLists.txt
+compare_test_files.sh CMakeLists.txt
 
-CLEANFILES = nctest_classic.nc nctest_64bit_offset.nc	\
-nctest_netcdf4.nc test2.nc temp.tmp tst_*.nc            \
+CLEANFILES = nctest_*.nc test2.nc temp.tmp tst_*.nc	\
 nctest_classic.cdl ref_nctest_classic.cdl
 
 # Run nctest and the script that compares the output with the
@@ -28,13 +27,11 @@ TESTPROGRAMS = nctest tst_rename
 check_PROGRAMS = $(TESTPROGRAMS)
 TESTS = $(TESTPROGRAMS) compare_test_files.sh
 
-# This will the test program with valgrind, the memory checking
-# tool. (Valgrind must be present for this to work.)
-if EXTRA_TESTS
-if USE_VALGRIND_TESTS
-TESTS += run_valgrind_tests.sh
-endif # USE_VALGRIND_TESTS
-endif # EXTRA_TESTS
+# Note which tests depend on other tests. Necessary for make -j check.
+TEST_EXTENSIONS = .sh
+
+# compare_test_files depends on nctest executing first.
+compare_test_files.log: nctest.log 
 
 # These are the source files for the nctest program.
 nctest_SOURCES = add.c add.h atttests.c cdftests.c dimtests.c driver.c	\

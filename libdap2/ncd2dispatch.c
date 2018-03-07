@@ -137,6 +137,7 @@ NCDEFAULT_put_varm,
 NCD2_inq_var_all,
 
 NCD2_var_par_access,
+NCD2_def_var_fill,
 
 #ifdef USE_NETCDF4
 NCD2_show_metadata,
@@ -172,8 +173,8 @@ NCD2_def_opaque,
 NCD2_def_var_deflate,
 NCD2_def_var_fletcher32,
 NCD2_def_var_chunking,
-NCD2_def_var_fill,
 NCD2_def_var_endian,
+NCD2_def_var_filter,
 NCD2_set_var_chunk_cache,
 NCD2_get_var_chunk_cache,
 
@@ -182,8 +183,6 @@ NCD2_get_var_chunk_cache,
 };
 
 NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */
-
-static NC_Dispatch NCD2_dispatcher;
 
 int
 NCD2_initialize(void)
@@ -315,10 +314,14 @@ NCD2_open(const char* path, int mode,
 #endif
 
 #ifdef OCCOMPILEBYDEFAULT
+    { int rullen = 0;
     /* set the compile flag by default */
-    dapcomm->oc.rawurltext = (char*)emalloc(strlen(path)+strlen("[compile]")+1);
-    strcpy(dapcomm->oc.rawurltext,"[compile]");
-    strcat(dapcomm->oc.rawurltext, path);
+    rullen = strlen(path)+strlen("[compile]");;
+    rullen++; /* strlcat nul */
+    dapcomm->oc.rawurltext = (char*)emalloc(rullen+1);
+    strncpy(dapcomm->oc.rawurltext,"[compile]",rullen);
+    strlcat(dapcomm->oc.rawurltext, path, rullen);
+    }
 #else
     dapcomm->oc.rawurltext = strdup(path);
 #endif
@@ -648,7 +651,6 @@ builddims(NCDAPCOMMON* dapcomm)
     NCerror ncstat = NC_NOERR;
     int dimid;
     NClist* dimset = NULL;
-    NC* drno = dapcomm->controller;
     NC* ncsub;
     char* definename;
 
@@ -733,7 +735,6 @@ buildvars(NCDAPCOMMON* dapcomm)
     NCerror ncstat = NC_NOERR;
     int varid;
     NClist* varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
-    NC* drno = dapcomm->controller;
     char* definename;
 
     ASSERT((varnodes != NULL));
@@ -811,7 +812,6 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
     char *nltxt, *p;
     NCbytes* buf = NULL;
     NClist* cdfnodes;
-    NC* drno = dapcomm->controller;
 
     if(root->attributes != NULL) {
         for(i=0;i<nclistlength(root->attributes);i++) {
@@ -890,7 +890,6 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
     int i;
     NCerror ncstat = NC_NOERR;
     unsigned int nvalues = nclistlength(att->values);
-    NC* drno = dapcomm->controller;
 
     /* If the type of the attribute is string, then we need*/
     /* to convert to a single character string by concatenation.
@@ -904,15 +903,14 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	    char* s = (char*)nclistget(att->values,i);
 	    newlen += (1+strlen(s));
 	}
-    if(newlen > 0)
-      newstring = (char*)malloc(newlen);
-
-    MEMCHECK(newstring,NC_ENOMEM);
+	newlen++; /* for strlcat nul */
+        newstring = (char*)malloc(newlen+1);
+        MEMCHECK(newstring,NC_ENOMEM);
 	newstring[0] = '\0';
 	for(i=0;i<nvalues;i++) {
 	    char* s = (char*)nclistget(att->values,i);
-	    if(i > 0) strcat(newstring,"\n");
-	    strcat(newstring,s);
+	    if(i > 0) strlcat(newstring,"\n",newlen);
+	    strlcat(newstring,s,newlen);
 	}
         dapexpandescapes(newstring);
 	if(newstring[0]=='\0')
@@ -1136,11 +1134,14 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 	    nullfree(dim->ncbasename);
 	    if(dim->dim.index1 > 0) {/* need to fix conflicting names (see above) */
 	        char sindex[64];
+		size_t baselen;
 		snprintf(sindex,sizeof(sindex),"_%d",dim->dim.index1);
-		dim->ncbasename = (char*)malloc(strlen(sindex)+strlen(legalname)+1);
+		baselen = strlen(sindex)+strlen(legalname);
+		baselen++; /* for strlcat nul */
+		dim->ncbasename = (char*)malloc(baselen+1);
 		if(dim->ncbasename == NULL) {nullfree(legalname); return NC_ENOMEM;}
-		strcpy(dim->ncbasename,legalname);
-		strcat(dim->ncbasename,sindex);
+		strncpy(dim->ncbasename,legalname,baselen);
+		strlcat(dim->ncbasename,sindex,baselen);
 		nullfree(legalname);
 	    } else {/* standard case */
 	        dim->ncbasename = legalname;
@@ -1275,8 +1276,10 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	/* create the variable path name */
 	pathstr = makeocpathstring(conn,var->ocnode,".");
 	var->maxstringlength = 0; /* => use global dfalt */
-	strcpy(tmpname,"stringlength_");
-	strncat(tmpname,pathstr,NC_MAX_NAME);
+	strncpy(tmpname,"stringlength_",sizeof(tmpname));
+	pathstr = makeocpathstring(conn,var->ocnode,".");
+	strlcat(tmpname,pathstr,sizeof(tmpname));
+	nullfree(pathstr);
 	value = paramlookup(nccomm,tmpname);
 	if(value == NULL) {
 	    strcpy(tmpname,"maxstrlen_");
@@ -1293,13 +1296,13 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->nodes,i);
 	if(var->nctype != NC_Sequence) continue;
 	var->sequencelimit = dfaltseqlim;
-	strcpy(tmpname,"nolimit_");
+	strncpy(tmpname,"nolimit_",sizeof(tmpname));
 	pathstr = makeocpathstring(conn,var->ocnode,".");
-	strncat(tmpname,pathstr,NC_MAX_NAME);
+	strlcat(tmpname,pathstr,sizeof(tmpname));
 	if(paramlookup(nccomm,tmpname) != NULL)
 	    var->sequencelimit = 0;
-	strcpy(tmpname,"limit_");
-	strncat(tmpname,pathstr,NC_MAX_NAME);
+	strncpy(tmpname,"limit_",sizeof(tmpname));
+	strlcat(tmpname,pathstr,sizeof(tmpname));
 	value = paramlookup(nccomm,tmpname);
         if(value != NULL && strlen(value) != 0) {
             if(sscanf(value,"%d",&len) && len > 0)
@@ -2400,7 +2403,8 @@ NCD2_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                int* shufflep, int* deflatep, int* deflate_levelp,
                int* fletcher32p, int* contiguousp, size_t* chunksizesp,
                int* no_fill, void* fill_valuep, int* endiannessp,
-	       int* options_maskp, int* pixels_per_blockp)
+	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+               )
 {
     NC* drno;
     int ret;
@@ -2410,7 +2414,8 @@ NCD2_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                shufflep, deflatep, deflate_levelp,
                fletcher32p, contiguousp, chunksizesp,
                no_fill, fill_valuep, endiannessp,
-	       options_maskp, pixels_per_blockp);
+	       idp,nparamsp,params
+	       );
     return THROW(ret);
 }
 
@@ -2440,6 +2445,15 @@ NCD2_var_par_access(int ncid, int p2, int p3)
     return THROW(NC_ENOPAR);
 }
 
+int
+NCD2_def_var_fill(int ncid, int p2, int p3, const void* p4)
+{
+    NC* drno;
+    int ret;
+    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
+    ret = nc_def_var_fill(getnc3id(drno), p2, p3, p4);
+    return THROW(ret);
+}
 
 #ifdef USE_NETCDF4
 
@@ -2770,22 +2784,22 @@ NCD2_def_var_chunking(int ncid, int p2, int p3, const size_t* p4)
 }
 
 int
-NCD2_def_var_fill(int ncid, int p2, int p3, const void* p4)
-{
-    NC* drno;
-    int ret;
-    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_def_var_fill(getnc3id(drno), p2, p3, p4);
-    return THROW(ret);
-}
-
-int
 NCD2_def_var_endian(int ncid, int p2, int p3)
 {
     NC* drno;
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
     ret = nc_def_var_endian(getnc3id(drno), p2, p3);
+    return THROW(ret);
+}
+
+int
+NCD2_def_var_filter(int ncid, int varid, unsigned int id, size_t n, const unsigned int* params)
+{
+    NC* drno;
+    int ret;
+    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
+    ret = nc_def_var_filter(getnc3id(drno), varid, id, n, params);
     return THROW(ret);
 }
 

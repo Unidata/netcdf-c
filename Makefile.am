@@ -1,33 +1,25 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005-2013, see the COPYRIGHT file for more information.
+# Copyright 2005-2018, see the COPYRIGHT file for more information.
 
 # This is the main automake file for netCDF. It builds the different
 # netcdf directories. Not all directories are built, depending on the
 # options selected during configure.
 
+# Ed Hartnett, Ward Fisher
+
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
 # These files get added to the distribution.
-EXTRA_DIST = README.md COPYRIGHT INSTALL.md test_prog.c \
-	lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt \
-	config.h.cmake.in cmake_uninstall.cmake.in \
-	FixBundle.cmake.in \
-	nc-config.cmake.in RELEASE_NOTES.md CTestCustom.cmake \
-	CTestConfig.cmake.in libnetcdf.settings.in netCDFConfig.cmake.in \
-	CMakeInstallation.cmake test-driver-verbose test_common.in
+EXTRA_DIST = README.md COPYRIGHT INSTALL.md test_prog.c lib_flags.am	\
+cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in		\
+cmake_uninstall.cmake.in FixBundle.cmake.in nc-config.cmake.in		\
+RELEASE_NOTES.md CTestCustom.cmake CTestConfig.cmake.in			\
+libnetcdf.settings.in netCDFConfig.cmake.in CMakeInstallation.cmake	\
+test-driver-verbose test_common.in
 
-# Doxygen doesn't build nicely in vpath builds.
-# Don't do this; it wipes out any exported values
-#DISTCHECK_CONFIGURE_FLAGS = --disable-doxygen
-
-pkgconfigdir=$(libdir)/pkgconfig
+pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc
-
-# We need a way to automatically generate INSTALL from
-# docs/install.doc, now that we've switched from texinfo to doxygen.
-# INSTALL:
-#	non-existent-doxygen-to-text-utility <  docs/install.doc > INSTALL
 
 # Does the user want to build the V2 API?
 if BUILD_V2
@@ -70,69 +62,42 @@ if USE_PNETCDF
 LIBSRCP = libsrcp
 endif
 
-# Build UDUNITS?
-#if BUILD_UDUNITS
-#UDUNITS = udunits
-#endif
-
-# Build libcf?
-#if BUILD_LIBCF
-#LIBCF = libcf
-#endif
+# Build HDF4 if desired.
+if USE_HDF4
+LIBHDF4 = libhdf4
+endif
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
+TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAP2TESTDIR)	\
+$(NCDAP4TESTDIR)
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
-SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc		\
-$(LIBSRC4_DIR) $(LIBSRCP) $(OCLIB) $(DAP2) ${DAP4} liblib  \
-$(NCGEN3) $(NCGEN) $(NCDUMP) \
-$(TESTDIRS) \
-docs $(EXAMPLES) \
-$(UDUNITS) $(LIBCF)
+SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc $(LIBSRC4_DIR)	\
+$(LIBSRCP) $(LIBHDF4) $(OCLIB) $(DAP2) ${DAP4} liblib $(NCGEN3)		\
+$(NCGEN) $(NCDUMP) $(TESTDIRS) docs $(EXAMPLES)
 
 # Remove these generated files, for a distclean.
-DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings test_common.sh
+DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings	\
+test_common.sh
 
 # The nc-config script helps the user build programs with netCDF.
 bin_SCRIPTS = nc-config
 
-# What needs to go in the binrary dist?
-BINFILES = README_BINARIES.txt
-BINFILES += include/netcdf.h share/man/man3/netcdf.3 lib/libnetcdf.a
-BINFILES += libnetcdf.settings
-ZIPBINFILES = ${prefix}/include/netcdf.h ${prefix}/share/man/man3/netcdf.3 ${prefix}/lib/libnetcdf.a
-
-if BUILD_UTILITIES
-BINFILES += bin/ncgen3$(EXEEXT) bin/ncgen$(EXEEXT) bin/ncdump$(EXEEXT)	\
-share/man/man1/ncgen.1 share/man/man1/ncdump.1
-ZIPBINFILES += ${prefix}/bin/ncgen3$(EXEEXT) ${prefix}/bin/ncgen$(EXEEXT) ${prefix}/bin/ncdump$(EXEEXT)	\
-${prefix}/share/man/man1/ncgen.1 ${prefix}/share/man/man1/ncdump.1
-endif
-
-if BUILD_DLL
-BINFILES += bin/libnetcdf-7.dll lib/libnetcdf.dll.a lib/libnetcdf.a	\
-lib/libnetcdf.la lib/netcdfdll.def
-ZIPBINFILES += ${prefix}/bin/libnetcdf-7.dll ${prefix}/lib/libnetcdf.dll.a ${prefix}/lib/libnetcdf.a	\
-${prefix}/lib/libnetcdf.la ${prefix}/lib/netcdfdll.def
-endif # BUILD_DLL
-
 # install libnetcdf.settings in lib directory.
-settingsdir=$(libdir)
-settings_DATA=libnetcdf.settings
+settingsdir = $(libdir)
+settings_DATA = libnetcdf.settings
 
 ####
 # Provide an entry to rebuild all the m4 generated files
 # List of files to create: WARNING leave off the extension
 ####
 
-MM4= ./nc_test/test_put ./nc_test/test_get \
-     ./nc_test/test_write ./nc_test/test_read \
-     ./libsrc/netcdf ./libsrc/putget ./libsrc/ncx \
+MM4= ./nc_test/test_put ./nc_test/test_get ./nc_test/test_write		\
+     ./nc_test/test_read ./libsrc/netcdf ./libsrc/putget ./libsrc/ncx	\
      ./libsrc/t_ncxx ./libsrc/attr
 
 mm4::
@@ -140,13 +105,11 @@ mm4::
 	  b=`basename $$m` ; d=`dirname $$m`;\
 	  pushd $$d; m4 -s $${b}.m4 > $${b}.c ; popd; done
 
-
 #####
 # If ENABLE_FORTRAN was turned on,
 # we have new make targets, build-netcdf-fortran and
 # install-netcdf-fortran.
 #####
-
 
 ###
 # build-netcdf-fortran
@@ -168,43 +131,12 @@ install-netcdf-fortran:
 
 endif
 
-# At Unidata, package up binaries.
-ftpbin: install
-	echo "Getting binaries from ${prefix}"
-	ls -l ${prefix}
-	echo "These are the binaries for netCDF @PACKAGE_VERSION@." > ${prefix}/README_BINARIES.txt
-	echo "For this build: CC=$(CC) CXX=$(CXX)" >> ${prefix}/README_BINARIES.txt
-	echo "CFLAGS=$(CFLAGS) CXXFLAGS=$(CXXFLAGS)" >> ${prefix}/README_BINARIES.txt
-	echo "FCFLAGS=$(FCFLAGS) F77FLAGS=$(F77FLAGS) $F90FLAGS=$(F90FLAGS)" >> ${prefix}/README_BINARIES.txt
-	which tar
-	echo "PATH: $(PATH)"
-	tar cf @BINFILE_NAME@ -C ${prefix} ${BINFILES}
-	gzip -f @BINFILE_NAME@
-	zip -j netcdf_${VERSION}.zip ${ZIPBINFILES}
-
 check_nc_config:
 	$(CC) `./nc-config --cflags` test_prog.c -o test_prog `./nc-config --libs`
 	./test_prog
 
-# Build nc_test/test_common.sh
-# Complicated by need to create during distcheck
-# which uses a read-only source tree
-#all-local:
-#	rm -f ${top_builddir}/nc_test/test_common.sh
-#	cat /dev/null > ${top_builddir}/nc_test/test_common.sh
-#	chmod a+x ${top_builddir}/nc_test/test_common.sh
-#	sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${top_srcdir}/test_common.in >>${top_builddir}/test_common.sh
-
 install-data-hook:
 
-# if BUILD_FORTRAN
-#	chmod u+x $(abs_top_builddir)/postinstall.sh
-#	sh -c "$(abs_top_builddir)/postinstall.sh -t autotools"
-#endif
-
-if BUILD_DLL
-	cp liblib/netcdfdll.def $(DESTDIR)${prefix}/bin
-endif # BUILD_DLL
 	@echo ''
 	@echo '+-------------------------------------------------------------+'
 	@echo '| Congratulations! You have successfully installed netCDF!    |'

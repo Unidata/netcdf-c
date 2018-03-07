@@ -117,4 +117,4 @@ diff tst_diskless3_file.cdl tst_diskless3_memory.cdl
 # cleanup
 rm -f $FILE3 tst_diskless3_file.cdl tst_diskless3_memory.cdl
 
-exit
+exit 0

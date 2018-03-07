@@ -461,10 +461,15 @@ swap8b(void *dst, const void *src)
     op = (uint32_t*)((char*)dst+4);
     *op = SWAP4(*op);
 #else
+    uint64_t tmp = *(uint64_t*)src;
+    tmp = SWAP8(tmp);
+    memcpy(dst, &tmp, 8);
+
+    /* Codes below will cause "break strict-aliasing rules" in gcc
     uint64_t *op = (uint64_t*)dst;
-    /* copy over, make the below swap in-place */
     *op = *(uint64_t*)src;
     *op = SWAP8(*op);
+    */
 #endif
 
 #if 0
@@ -2262,6 +2267,9 @@ APIPrefix`x_get_size_t'(const void **xpp,  size_t *ulp)
 int
 APIPrefix`x_put_off_t'(void **xpp, const off_t *lp, size_t sizeof_off_t)
 {
+	/* similar to put_ix_int() */
+	uchar *cp = (uchar *) *xpp;
+
 	/* No negative offsets stored in netcdf */
 	if (*lp < 0) {
 	  /* Assume this is an overflow of a 32-bit int... */
@@ -2269,9 +2277,6 @@ APIPrefix`x_put_off_t'(void **xpp, const off_t *lp, size_t sizeof_off_t)
 	}
 
 	assert(sizeof_off_t == 4 || sizeof_off_t == 8);
-
-	/* similar to put_ix_int() */
-	uchar *cp = (uchar *) *xpp;
 
 	if (sizeof_off_t == 4) {
 		*cp++ = (uchar) ((*lp)               >> 24);

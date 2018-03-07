@@ -1,0 +1,38 @@
+# Test c output
+T=test_misc
+#CMD=valgrind --leak-check=full
+CMD=gdb --args
+
+EXECDIR=../..
+SRCDIR=../..
+
+#PAR=1
+SZIP=1
+
+CFLAGS = -Wall -Wno-unused-variable -Wno-unused-function -g -O0 -I${SRCDIR} -I${SRCDIR}/include
+
+LDFLAGS = ${EXECDIR}/liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -ldl -lcurl -lm
+
+ifdef PAR
+CC=mpicc
+LDFLAGS += -lmpich
+else
+CC=gcc
+endif
+
+ifdef SZIP
+LDFLAGS += -lsz -laec
+endif
+
+LLP=/usr/local/lib:${LD_LIBRARY_PATH}
+
+all:: cmp
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${CMD} ./t
+
+cmp::
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${CC} -o t ${CFLAGS} ${T}.c ${SRC} ${LDFLAGS}
+
+cpp::
+	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt
