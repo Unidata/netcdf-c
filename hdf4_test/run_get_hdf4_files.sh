@@ -21,7 +21,7 @@ echo "Getting HDF4 test files $file_list"
 for f1 in $file_list
 do
     if ! test -f $f1; then
-	curl -O "ftp://ftp.unidata.ucar.edu/pub/netcdf/sample_data/hdf4/$f1.gz"
+	wget -O "ftp://ftp.unidata.ucar.edu/pub/netcdf/sample_data/hdf4/$f1.gz"
 	gunzip $f1.gz
     fi
 done
