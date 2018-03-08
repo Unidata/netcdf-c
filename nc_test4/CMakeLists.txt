@@ -72,7 +72,7 @@ IF(BUILD_BENCHMARKS)
 ENDIF()
 
 # Copy some test files from current source dir to out-of-tree build dir.
-FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/ref_bzip2.c ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.hdf4 ${CMAKE_CURRENT_SOURCE_DIR}/*.h5 ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
+FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/ref_bzip2.c ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.h5 ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 IF(MSVC)
   FILE(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
@@ -82,20 +82,6 @@ ENDIF()
 FOREACH(CTEST ${NC4_TESTS})
   add_bin_test(nc_test4 ${CTEST})
 ENDFOREACH()
-
-# This must go after the 'foreach' stanza
-# immediately above this comment.
-IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
-    add_bin_test_no_prefix(tst_interops2)
-    build_bin_test_no_prefix(tst_interops3)
-    add_sh_test(nc_test4 run_get_hdf4_files)
-    add_sh_test(nc_test4 tst_formatx_hdf4)
-    build_bin_test(tst_chunk_hdf4)
-    add_sh_test(nc_test4 run_chunk_hdf4)
-    add_bin_test(nc_test4 tst_h4_lendian)
-    add_sh_test(nc_test4 tst_hdf4_read_var)
-    SET_TESTS_PROPERTIES(nc_test4_tst_hdf4_read_var PROPERTIES DEPENDS tst_interops2)
-ENDIF()
 
 IF(TEST_PARALLEL4)
   build_bin_test(tst_mpi_parallel)
