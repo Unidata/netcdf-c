@@ -1623,6 +1623,7 @@ ENDIF(USE_HDF5)
 
 IF(USE_HDF4)
   add_subdirectory(libhdf4)
+  add_subdirectory(hdf4_test)
 ENDIF(USE_HDF4)
 
 IF(ENABLE_DAP2)
