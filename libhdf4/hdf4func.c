@@ -7,8 +7,6 @@
  */
 
 #include "config.h"
-#include <errno.h>  /* netcdf functions sometimes return system errors */
-#include "nc.h"
 #include "nc4internal.h"
 #include "hdf4dispatch.h"
 #include <mfhdf.h>
@@ -27,13 +25,9 @@
 int
 NC_HDF4_inq_format(int ncid, int *formatp)
 {
-   LOG((2, "nc_inq_format: ncid 0x%x", ncid));
-
-   if (!formatp)
-      return NC_NOERR;
-
    /* HDF4 is the format. */
-   *formatp = NC_FORMATX_NC_HDF4;
+   if (formatp)
+      *formatp = NC_FORMATX_NC_HDF4;
 
    return NC_NOERR;
 }
@@ -42,10 +36,8 @@ NC_HDF4_inq_format(int ncid, int *formatp)
  * @internal Return the extended format (i.e. the dispatch model),
  * plus the mode associated with an open file.
  *
- * @param ncid File ID (ignored).
- * @param formatp a pointer that gets the extended format. Note that
- * this is not the same as the format provided by nc_inq_format(). The
- * extended foramt indicates the dispatch layer model. HDF4 files
+ * @param ncid File ID.
+ * @param formatp a pointer that gets the extended format. HDF4 files
  * will always get NC_FORMATX_NC_HDF4.
  * @param modep a pointer that gets the open/create mode associated with
  * this file. Ignored if NULL.
