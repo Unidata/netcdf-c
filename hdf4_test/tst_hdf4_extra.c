@@ -78,6 +78,12 @@ main(int argc, char **argv)
       /* Check it out. */
       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
       if (ndims != 2 || nvars != 1 || ngatts != 1 || unlimdimid != -1) ERR;
+      if (nc_inq(ncid, NULL, NULL, NULL, NULL)) ERR;
+      if (nc_inq(ncid + TEST_VAL_42, NULL, NULL, NULL, NULL) != NC_EBADID) ERR;
+
+      /* These only work for netCDF-3 files. */
+      if (nc_set_base_pe(ncid, 0) != NC_ENOTNC3) ERR;
+      if (nc_inq_base_pe(ncid, NULL) != NC_ENOTNC3) ERR;
 
       /* Attempt to write. */
       if (nc_rename_att(ncid, NC_GLOBAL, ATT_NAME, NAME_DUMB) != NC_EPERM) ERR;
@@ -89,6 +95,7 @@ main(int argc, char **argv)
       if (nc_rename_var(ncid, 0, NAME_DUMB) != NC_EPERM) ERR;
       if (nc_put_vara_int(ncid, 0, start, count, &test_val) != NC_EPERM) ERR;
       if (nc_set_fill(ncid, 0, NULL) != NC_EPERM) ERR;
+      if (nc_rename_dim(ncid, 0, NULL) != NC_EPERM) ERR;
 
       /* These succeed but do nothing. */
       if (nc_enddef(ncid)) ERR;
@@ -96,6 +103,8 @@ main(int argc, char **argv)
 
       /* These netcdf-4 operations are not supported. */
       if (nc_def_var_filter(ncid, 0, 0, 0, NULL) != NC_ENOTNC4) ERR;
+      if (nc_def_var_fletcher32(ncid, 0, 0) != NC_ENOTNC4) ERR;
+      if (nc_def_var_endian(ncid, 0, 0) != NC_ENOTNC4) ERR;
       if (nc_def_grp(ncid, NAME_DUMB, NULL) != NC_ENOTNC4) ERR;
       if (nc_rename_grp(ncid, NAME_DUMB) != NC_ENOTNC4) ERR;
       if (nc_def_compound(ncid, 1, NAME_DUMB, NULL) != NC_ENOTNC4) ERR;
