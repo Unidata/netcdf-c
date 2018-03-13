@@ -160,8 +160,8 @@ the top-level Makefile.am.
 
 \code
      if ENABLE_NCM
-     NCM = libsrcm
-     NCMTESTDIR = ncm_test
+     NCM=libsrcm
+     NCMTESTDIR=ncm_test
      endif
      ...
      SUBDIRS = ... $(DISPATCHDIR)  $(NCM) ... $(NCMTESTDIR)
