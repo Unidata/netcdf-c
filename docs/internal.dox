@@ -26,6 +26,7 @@ To date, at least the following dispatch tables are supported.
 - DAP2 to netcdf-3
 - DAP4 to netcdf-4
 - pnetcdf (parallel cdf5)
+- HDF4 SD files
 
 Internal Dispatch Tables
 - \subpage adding_dispatch
@@ -261,5 +262,224 @@ to encounter the ::NC_INT64 type.
 
 Again, the key difference is the memtype parameter. As with
 put/get_vara, it used ::NC_INT64 to encode the long case.
+
+\subsection Pre-defined Dispatch Functions
+
+It is usually not necessary to implement all the functions in the
+dispatch table. Some pre-defined functions are available which may be
+used in many cases.
+
+\subsubsection Inquiry Functions
+
+The netCDF inquiry functions operate from an in-memory model of
+metadata. Once a file has been opened, or as a file is created, this
+in-memory metadata model is kept up to date. Consequenty the inquiry
+functions do not depend on the dispatch layer code. These functions
+can be used by all dispatch layers which use the internal netCDF
+enhanced data model.
+
+- NC4_inq
+- NC4_inq_type
+- NC4_inq_dimid
+- NC4_inq_dim
+- NC4_inq_unlimdim
+- NC4_inq_att
+- NC4_inq_attid
+- NC4_inq_attname
+- NC4_get_att
+- NC4_inq_varid
+- NC4_inq_var_all
+- NC4_show_metadata
+- NC4_inq_unlimdims
+- NC4_inq_ncid
+- NC4_inq_grps
+- NC4_inq_grpname
+- NC4_inq_grpname_full
+- NC4_inq_grp_parent
+- NC4_inq_grp_full_ncid
+- NC4_inq_varids
+- NC4_inq_dimids
+- NC4_inq_typeids
+- NC4_inq_type_equal
+- NC4_inq_user_type
+- NC4_inq_typeid
+
+\subsubsection NCDEFAULT get/put Functions
+
+The strided (vars) and mapped (varm) get/put functions have been
+implemented in terms of the array (vara) functions. So dispatch layers
+need only implement the vara functions, and can use the following
+functions to get the vars and varm functions:
+
+- NCDEFAULT_get_vars
+- NCDEFAULT_put_vars
+- NCDEFAULT_get_varm
+- NCDEFAULT_put_varm
+
+\subsubsection Read-Only Functions
+
+Some dispatch layers are read-only (ex. HDF4). Any function which
+writes to a file, including nc_create(), needs to return error code
+::NC_EPERM. The following read-only functions are available so that
+these don't have to be re-implemented in each read-only dispatch
+layer:
+
+- NC_RO_create
+- NC_RO_redef
+- NC_RO__enddef
+- NC_RO_sync
+- NC_RO_set_fill
+- NC_RO_def_dim
+- NC_RO_rename_dim
+- NC_RO_rename_att
+- NC_RO_del_att
+- NC_RO_put_att
+- NC_RO_def_var
+- NC_RO_rename_var
+- NC_RO_put_vara
+- NC_RO_def_var_fill
+
+\subsubsection Classic NetCDF Only Functions
+
+There are two functions that are only used in the classic code. All
+other dispatch layers (except pnetcdf) return error ::NC_ENOTNC3 for
+these functions. The following functions are provided for this
+purpose:
+
+- NC_NOTNC3_inq_base_pe
+- NC_NOTNC3_set_base_pe
+
+\section HDF4 Dispatch Layer as a Simple Example
+
+The HDF4 dispatch layer is about the simplest possible dispatch
+layer. It is read-only, classic model. It will serve as a nice, simple
+example of a dispatch layer.
+
+Note that the HDF4 layer is optional in the netCDF build. Not all
+users will have HDF4 installed, and those users will not build with
+the HDF4 dispatch layer enabled. For this reason HDF4 code is guarded
+with #ifdef(USE_HDF4). Code in libhdf4 is only compiled if HDF4 is
+turned on in the build.
+
+\subsection Header File Changes in include Directory
+
+\subsubsection The netcdf.h File
+
+In the main netcdf.h file, we have the following:
+
+\code
+#define NC_FORMATX_NC_HDF4   (3) /**< netCDF-4 subset of HDF4 */
+#define NC_FORMAT_NC_HDF4   NC_FORMATX_NC_HDF4 /**< \deprecated As of 4.4.0, use NC_FORMATX_NC_HDF4 */
+\endcode
+
+\subsubsection The ncdispatch.h File
+
+In ncdispatch.h we have the following:
+
+\code
+#ifdef USE_HDF4
+extern NC_Dispatch* HDF4_dispatch_table;
+extern int NC_HDF4_initialize(void);
+extern int NC_HDF4_finalize(void);
+#endif
+\endcode
+
+\subsubsection The netcdf_meta.h File
+
+The netcdf_meta.h file allows for easy determination of what features
+are in use. It contains the following, set by configure:
+
+\code
+#define NC_HAS_HDF4      1 /*!< hdf4 support. */
+\endcode
+
+\subsubsection The hdf4dispatch.h File
+
+We also have the file hdf4dispatch.h, which contains prototypes and
+macro definitions used within the HDF4 code in libhdf4. This include
+file should not be used anywhere except in libhdf4.
+
+\subsection Initialization Code Changes in liblib Directory
+
+In the file nc_initialize.c we have the following:
+
+\code
+#ifdef USE_HDF4
+extern int NC_HDF4_initialize(void);
+extern int NC_HDF4_finalize(void);
+#endif
+\endcode
+
+\subsection Dispatch Code Changes in libdispatch Directory
+
+\subsubsection Changes to dfile.c
+
+In order for a dispatch layer to be used, it must be correctly
+determined in functions NC_open() or NC_create() in dfile.c.
+
+HDF4 has a magic number that is detected in
+NC_interpret_magic_number(), which allows NC_open to automatically
+detect a HDF4 file. Other dispatch layers may need to set a mode flag.
+
+Once HDF4 is detected, model variable is set to NC_FORMATX_NC_HDF4,
+and later this is used in a case statement:
+
+\code
+      case NC_FORMATX_NC_HDF4:
+         dispatcher = HDF4_dispatch_table;
+         break;
+\endcode
+
+This sets the dispatcher to the HDF4 dispatcher, which is defined in
+the libhdf4 directory.
+
+\subsection Dispatch Code in libhdf4
+
+\subsubsection Dispatch Table in hdf4dispatch.c
+
+The file hdf4dispatch.c contains the definition of the HDF4 dispatch
+table. It looks like this:
+
+\code
+/* This is the dispatch object that holds pointers to all the
+ * functions that make up the HDF4 dispatch interface. */
+static NC_Dispatch HDF4_dispatcher = {
+NC_FORMATX_NC_HDF4,
+NC_RO_create,
+NC_HDF4_open,
+NC_RO_redef,
+NC_RO__enddef,
+NC_RO_sync,
+
+...
+
+NC_NOTNC4_set_var_chunk_cache,
+NC_NOTNC4_get_var_chunk_cache,
+};
+\endcode
+
+Note that most functions use some of the predefined dispatch
+functions. Functions that start with NC_RO_ are read-only, they return
+::NC_EPERM. Functions that start with NC_NOTNC4_ return ::NC_ENOTNC4.
+
+Only the functions that start with NC_HDF4_ need to be implemented for
+the HDF4 dispatch layer. There are 6 such functions:
+
+- NC_HDF4_open
+- NC_HDF4_abort
+- NC_HDF4_close
+- NC_HDF4_inq_format
+- NC_HDF4_inq_format_extended
+- NC_HDF4_get_vara
+
+\subsubsection HDF4 Reading Code
+
+The code in hdf4file.c opens the HDF4 SD dataset, and reads the
+metadata. This metadata is stored in the netCDF internal metadata
+model, allowing the inq functions to work.
+
+The code in hdf4var.c does an nc_get_vara() on the HDF4 SD
+dataset. This is all that is needed for all the nc_get_* functions to
+work.
 
 */

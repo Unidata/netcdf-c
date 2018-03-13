@@ -9,8 +9,6 @@
 #include <config.h>
 #include <nc_tests.h>
 #include "err_macros.h"
-#include <hdf5.h>
-#include <H5DSpublic.h>
 #include <mfhdf.h>
 
 #define CHUNKEDFILE "ref_chunked.hdf4"
@@ -95,7 +93,7 @@ main(int argc, char **argv)
       if (nc_open(CONTIGFILE, 0, &ncid)) ERR;
 
       if (nc_inq_varid(ncid, CONTIGVAR, &varid)) ERR;
-      if (nc_def_var_deflate(ncid, varid, 0, 1, 4) != NC_EPERM) ERR;
+      if (nc_def_var_deflate(ncid, varid, 0, 1, 4) != NC_ENOTNC4) ERR;
 
       if (nc_close(ncid)) ERR;
    }

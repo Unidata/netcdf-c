@@ -7,9 +7,6 @@
 #include <config.h>
 #include <unistd.h>
 #include <nc_tests.h>
-#include "err_macros.h"
-#include <hdf5.h>
-#include <H5DSpublic.h>
 #include "mfhdf.h"
 
 #define DIM1 5
@@ -57,7 +54,7 @@ int read_hdf_file(int dtype) {
 int create_hdf_file(int dtype) {
 
     int32 sd_id, sds_id, istat, sd_index;
-    int32 dims[2], start[2], edges[2], rank;
+    int32 start[2], edges[2];
     int16 array_data[DIM0][DIM1];
     intn i, j, count;
 
