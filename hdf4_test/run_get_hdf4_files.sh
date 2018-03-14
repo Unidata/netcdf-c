@@ -27,7 +27,7 @@ do
         delay=3
         while [ $failed -eq 1 -a $num_tries -lt 3 ]
         do
-	    if wget "ftp://ftp.unidata.ucar.edu/pub/netcdf/sample_data/hdf4/$f1.gz"; then
+	    if wget --passive-ftp "ftp://ftp.unidata.ucar.edu/pub/netcdf/sample_data/hdf4/$f1.gz"; then
                 failed=0
                 num_tries=0
                 delay=3
