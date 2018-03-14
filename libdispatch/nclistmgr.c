@@ -8,7 +8,6 @@
 #include <string.h>
 #include <assert.h>
 #include "nc.h"
-#include <ncdispatch.h>
 
 #define ID_SHIFT (16)
 #define NCFILELISTLENGTH 0x10000

@@ -21,7 +21,9 @@
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h> /* lseek() */
+#endif
 
 #include "ncdispatch.h"
 #include "netcdf_mem.h"

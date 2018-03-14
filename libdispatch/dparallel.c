@@ -93,9 +93,10 @@ int nc_create_par(const char *path, int cmode, MPI_Comm comm,
 #else
    NC_MPI_INFO data;
 
-   /* One of these parallel IO modes must be chosen by the user. */
-   if (!((cmode & NC_MPIIO || cmode & NC_MPIPOSIX) ||
-         cmode & NC_PNETCDF || cmode & NC_PIO))
+   /* One of these two parallel IO modes must be chosen by the user,
+    * or else pnetcdf must be in use. */
+   if (!(cmode & NC_MPIIO || cmode & NC_MPIPOSIX) &&
+       !(cmode & NC_PNETCDF))
       return NC_EINVAL;
 
    data.comm = comm;
