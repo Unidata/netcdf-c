@@ -750,7 +750,6 @@ INPUT = \
     @abs_top_srcdir@/docs/install-fortran.md \
     @abs_top_srcdir@/docs/types.dox \
     @abs_top_srcdir@/docs/internal.dox \
-    @abs_top_srcdir@/docs/indexing.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/guide.dox \
     @abs_top_srcdir@/docs/OPeNDAP.dox \
