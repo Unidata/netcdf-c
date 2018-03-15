@@ -32,14 +32,14 @@ The included dependencies and versions are as follows:
 * `libcurl`: 7.55.1
 * `zlib`:    1.2.8
 
-## Latest Release (netCDF-C major.minor.point) {#msvc-latest-release}
+## Latest Release (netCDF-C 4.6.1) {#msvc-latest-release}
 
 Configuration		| 32-bit 						| 64-bit |
 :-------------------|:--------							|:-------|
-netCDF 3		| [netCDFmajor.minor.point-NC3-32.exe][r1]		| [netCDFmajor.minor.point-NC3-64.exe][r5]
-netCDF3+DAP		| [netCDFmajor.minor.point-NC3-DAP-32.exe][r2]	| [netCDFmajor.minor.point-NC3-DAP-64.exe][r6]
-netCDF4			| [netCDFmajor.minor.point-NC4-32.exe][r3]		| [netCDFmajor.minor.point-NC4-64.exe][r7]
-netCDF4+DAP		| [netCDFmajor.minor.point-NC4-DAP-32.exe][r4]	| [netCDFmajor.minor.point-NC4-DAP-64.exe][r8]
+netCDF 3		| [netCDF4.6.1-NC3-32.exe][r1]		| [netCDF4.6.1-NC3-64.exe][r5]
+netCDF3+DAP		| [netCDF4.6.1-NC3-DAP-32.exe][r2]	| [netCDF4.6.1-NC3-DAP-64.exe][r6]
+netCDF4			| [netCDF4.6.1-NC4-32.exe][r3]		| [netCDF4.6.1-NC4-64.exe][r7]
+netCDF4+DAP		| [netCDF4.6.1-NC4-DAP-32.exe][r4]	| [netCDF4.6.1-NC4-DAP-64.exe][r8]
 
 # Using the netCDF-C Libraries with Visual Studio {#msvc-using}
 
@@ -60,11 +60,11 @@ When installed, the netCDF libraries are placed in the specified locations, alon
 1. When building the netCDF-C libraries with netCDF4 support, using the `Debug` libraries may cause extraneous warnings. These warnings are related to cross-dll memory management, and appear to be harmless. You can safely ignore them by using the `Release` libraries. [NCF-220]
 
 
-[r1]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-32.exe
-[r2]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-DAP-32.exe
-[r3]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-32.exe
-[r4]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-DAP-32.exe
-[r5]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-64.exe
-[r6]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-DAP-64.exe
-[r7]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-64.exe
-[r8]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-DAP-64.exe
+[r1]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDF4.6.1-NC3-32.exe
+[r2]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDF4.6.1-NC3-DAP-32.exe
+[r3]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDF4.6.1-NC4-32.exe
+[r4]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDF4.6.1-NC4-DAP-32.exe
+[r5]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDF4.6.1-NC3-64.exe
+[r6]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDF4.6.1-NC3-DAP-64.exe
+[r7]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDF4.6.1-NC4-64.exe
+[r8]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDF4.6.1-NC4-DAP-64.exe
