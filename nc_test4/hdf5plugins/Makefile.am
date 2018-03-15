@@ -18,9 +18,9 @@ DLLSRC=${PLUGINSRC} ${BZIP2SRC} ${PLUGINHDRS} ${BZIP2HDRS}
 lib_LTLIBRARIES = libbzip2.la libmisc.la
 
 libbzip2_la_SOURCES = ${DLLSRC}
-libbzip2_la_LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined
+libbzip2_la_LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined -rpath ${abs_builddir}
 
 libmisc_la_SOURCES = H5Zmisc.c h5misc.h
-libmisc_la_LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined
+libmisc_la_LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined -rpath ${abs_builddir}
 
 endif #ENABLE_FILTER_TESTING
