@@ -52,6 +52,6 @@ endif #USE_NETCDF4
 # These files are created by the tests.
 CLEANFILES = *.nc
 
-EXTRA_DIST = CMakeLists.txt run_examples.sh run_examples4.sh
+EXTRA_DIST = CMakeLists.txt run_examples.sh run_examples4.sh run_filter.sh
 
 DISTCLEANFILES = findplugin.sh
