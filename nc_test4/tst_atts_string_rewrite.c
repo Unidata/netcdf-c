@@ -31,7 +31,7 @@ int main() {
 
    printf("Creating global attribute with nc_put_att_text...");
    res = nc_put_att_text(dataset_id, NC_GLOBAL, "foo", 3, "bar");
-   printf("Succes\n");
+   printf("Success\n");
 
    printf("Overwriting global attribute with nc_put_att_string...");
    res = nc_put_att_string(dataset_id, NC_GLOBAL, "foo", 1, attstring);
