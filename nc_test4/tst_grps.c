@@ -215,6 +215,7 @@ main(int argc, char **argv)
       if (nc_inq_ncid(ncid, HENRY_VII, &grpid_in)) ERR;
 
       /* Ensure that dimensions in parent are visible and correct. */
+      memset(dimids_in,0,sizeof(dimids_in));
       if (nc_inq_dimids(grpid_in, &ndims_in, dimids_in, 1)) ERR;
       if (ndims_in != NDIMS_IN_FILE || dimids_in[0] != dimid1 || dimids_in[1] != dimid2) ERR;
       if (nc_inq_dim(grpid_in, dimids_in[0], name_in, &len_in)) ERR;

@@ -794,6 +794,8 @@ AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
 AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64])
 AC_TYPE_OFF_T
+AC_TYPE_UINTPTR_T
+AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
 ###
@@ -978,7 +980,6 @@ if test "x$enable_netcdf_4" = xyes; then
       AC_CHECK_LIB([mfhdf], [SDcreate], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
 
      AC_CHECK_LIB([jpeg], [jpeg_set_quality], [], [AC_MSG_ERROR([Can't find or link to the jpeg library (required by hdf4). See config.log for errors.])])
-
       AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
 fi
@@ -1304,12 +1305,12 @@ AC_MSG_RESULT($enable_filter_testing)
 
 if test "x$enable_netcdf_4" = xno ; then
 AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing])
-enable_filter_testing = no
+enable_filter_testing=no
 fi
 
 if test "x$enable_shared" = xno ; then
 AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
-enable_filter_testing = no
+enable_filter_testing=no
 fi
 AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
 
@@ -1416,6 +1417,28 @@ AC_CONFIG_FILES(test_common.sh:test_common.in)
 AC_SUBST([ISCMAKE], [])
 AC_SUBST([MSVC], [])
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
+
+if test "x$enable_filter_testing" = xyes ; then
+if test "x$nc_build_examples" = xyes ; then
+AC_MSG_NOTICE([copying filter plugin building files])
+# Must be a simpler way; all my attempts to use some kind of wildcard failed,
+# so falling back on enumeration
+# WARNING: This enumeration must be kept consistent with the
+# HDF5PLUGINSRC list in nc_test4/hdf5plugins/Makefile.am
+AC_CONFIG_LINKS([examples/C/hdf5plugins/bzlib.h:nc_test4/hdf5plugins/bzlib.h])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/bzlib_private.h:nc_test4/hdf5plugins/bzlib_private.h])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/blocksort.c:nc_test4/hdf5plugins/blocksort.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/huffman.c:nc_test4/hdf5plugins/huffman.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/crctable.c:nc_test4/hdf5plugins/crctable.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/randtable.c:nc_test4/hdf5plugins/randtable.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/compress.c:nc_test4/hdf5plugins/compress.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/decompress.c:nc_test4/hdf5plugins/decompress.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/bzlib.c:nc_test4/hdf5plugins/bzlib.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/H5Zbzip2.c:nc_test4/hdf5plugins/H5Zbzip2.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/h5bzip2.h:nc_test4/hdf5plugins/h5bzip2.h])
+fi
+fi
 
 #####
 # End netcdf_meta.h definitions.
@@ -1462,6 +1485,7 @@ AC_CONFIG_FILES([Makefile
                  dap4_test/Makefile
 		 ],
                  [test -f  nc-config && chmod 755 nc-config])
+
 AC_OUTPUT()
 
     #mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh

@@ -39,7 +39,7 @@
 #define ID_SHIFT (16)
 
 typedef enum {GET, PUT} NC_PG_T;
-typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
+typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCGRP} NC_SORT;
 
 #define NC_MAX_HDF5_NAME (NC_MAX_NAME + 10)
 #define NC_V2_ERR (-1)
@@ -121,10 +121,7 @@ Indexed Access to Meta-data objects:
 
 See the document docs/indexing.dox for detailed information.
 
-Basically provide a common header and use NCindex instances
-instead of linked lists.
-
-WARNING: ALL OBJECTS THAT CAN BE INSERTED INTO AN NCindex
+WARNING: ALL OBJECTS THAT CAN BE INSERTED INTO AN NC_LISTMAP
 MUST HAVE AN INSTANCE of NC_OBJ AS THE FIRST FIELD.
 */
 
@@ -132,14 +129,13 @@ typedef struct NC_OBJ {
     NC_SORT sort;
     char* name; /* assumed to be null terminated */
     size_t id;
-    unsigned int hashkey; /* crc32(name) */
+/* Consider adding |name| and the hashkey for the name */
 } NC_OBJ;
 
 /* This is a struct to handle the dim metadata. */
 typedef struct NC_DIM_INFO
 {
    NC_OBJ hdr;
-   struct NC_GRP_INFO* container;  /* containing group */
    size_t len;
    nc_bool_t unlimited;         /* True if the dimension is unlimited */
    nc_bool_t extended;          /* True if the dimension needs to be extended */
@@ -152,11 +148,10 @@ typedef struct NC_DIM_INFO
 typedef struct NC_ATT_INFO
 {
    NC_OBJ hdr;
-   struct NC_OBJ* container;    /* containing group|var */
    int len;
    nc_bool_t dirty;             /* True if attribute modified */
    nc_bool_t created;           /* True if attribute already created */
-   nc_type nc_typeid;           /* netCDF type of attribute's data */
+   struct NC_TYPE_INFO* type; /* netCDF type of attribute's data */
    hid_t native_hdf_typeid;     /* Native HDF5 datatype for attribute's data */
    void *data;
    nc_vlen_t *vldata; /* only used for vlen */
@@ -169,9 +164,11 @@ typedef struct NC_VAR_INFO
    NC_OBJ hdr;
    char *hdf5_name; /* used if different from name */
    struct NC_GRP_INFO* container; /* containing group */
-   size_t ndims;
-   int *dimids;
-   NC_DIM_INFO_T** dim;
+   struct {
+	size_t ndims;
+        NC_DIM_INFO_T** dims;
+        int *dimids;
+   } dim;
    nc_bool_t is_new_var;        /* True if variable is newly created */
    nc_bool_t was_coord_var;     /* True if variable was a coordinate var, but either the dim or var has been renamed */
    nc_bool_t became_coord_var;  /* True if variable _became_ a coordinate var, because either the dim or var has been renamed */
@@ -181,10 +178,12 @@ typedef struct NC_VAR_INFO
    nc_bool_t written_to;        /* True if variable has data written to it */
    struct NC_TYPE_INFO *type_info;
    hid_t hdf_datasetid;
-#if 0
-   int natts;			/* Use explicit index because there may be gaps in numbers */
-#endif
    NCindex* att; 		/* NCindex<NC_ATT_INFO_T*> */
+   int endianness;              /* What endianness for the base type of this variable? */
+                                /* (Set for integer types as well as "complex"
+                                 *  types, like compound/enum/vlen, used for the
+                                 *  endianness of the fields and/or base type)
+                                 */
    nc_bool_t no_fill;           /* True if no fill value is defined for var */
    void *fill_value;
    size_t *chunksizes;
@@ -213,12 +212,18 @@ typedef struct NC_VAR_INFO
 typedef struct NC_FIELD_INFO
 {
    NC_OBJ hdr;
+#if 0
    nc_type nc_typeid;
+#else
+   struct NC_TYPE_INFO* type;
+#endif
    hid_t hdf_typeid;
    hid_t native_hdf_typeid;
    size_t offset;
-   int ndims;
-   int *dim_size;
+   struct {
+       int ndims;
+       int *dim_size;
+   } dims;
 } NC_FIELD_INFO_T;
 
 typedef struct NC_ENUM_MEMBER_INFO
@@ -239,11 +244,6 @@ typedef struct NC_TYPE_INFO
    unsigned rc;                 /* Ref. count of objects using this type */
    hid_t hdf_typeid;            /* HDF5 type ID, in the file */
    hid_t native_hdf_typeid;     /* HDF5 type ID, in memory */
-   int endianness;              /* What endianness for the type? */
-                                /* (Set for integer types as well as "complex"
-                                 *  types, like compound/enum/vlen, used for the
-                                 *  endianness of the fields and/or base type)
-                                 */
    size_t size;                 /* Size of the type in memory, in bytes */
    nc_bool_t committed;         /* True when datatype is committed in the file */
    nc_type nc_type_class;       /* NC_VLEN, NC_COMPOUND, NC_OPAQUE, or NC_ENUM
@@ -262,15 +262,15 @@ typedef struct NC_TYPE_INFO
    /* Information for each type or class */
    union {
       struct {
-         NClist* enum_member; /* <! NClist<NC_ENUM_MEMBER_INFO_T*> */
-         nc_type base_nc_typeid;
+         NClist* members; /* <! NClist<NC_ENUM_MEMBER_INFO_T*> */
+	 struct NC_TYPE_INFO* base_type;
          hid_t base_hdf_typeid;
       } e;                      /* Enum */
       struct Fields {
-         NClist* field; /* <! NClist<NC_FIELD_INFO_T*> */
+         NClist* fields; /* <! NClist<NC_FIELD_INFO_T*> */
       } c;                      /* Compound */
       struct {
-         nc_type base_nc_typeid;
+	 struct NC_TYPE_INFO* base_type;
          hid_t base_hdf_typeid;
       } v;                      /* Variable-length */
    } u;                         /* Union of structs, for each type/class */
@@ -318,14 +318,7 @@ typedef struct  NC_HDF5_FILE_INFO
    int fill_mode;               /* Fill mode for vars - Unused internally currently */
    nc_bool_t no_write;          /* true if nc_open has mode NC_NOWRITE. */
    NC_GRP_INFO_T *root_grp;
-   /* Track indices to assign to grps, types, and dims */
-   short next_nc_grpid;
-   int next_typeid;
-   int next_dimid;
-   /* Provide convenience vectors indexed by the object id.
-      This allows for direct conversion of e.g. an nc_type to
-      the corresponding NC_TYPE_INFO_T object.
-   */
+   /* Dim,type, and group ids define position of the object in these vectors */
    NClist* alldims;
    NClist* alltypes;
    NClist* allgroups; /* including root group */
@@ -336,11 +329,9 @@ typedef struct  NC_HDF5_FILE_INFO
    struct NCFILEINFO* fileinfo;
 } NC_HDF5_FILE_INFO_T;
 
-
-extern char* nc4_atomic_name[NC_MAX_ATOMIC_TYPE+1];
-
 /* These functions convert between netcdf and HDF5 types. */
-int nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, size_t *len);
+int nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
+			int is_long, size_t *len);
 int nc4_convert_type(const void *src, void *dest,
 		     const nc_type src_type, const nc_type dest_type,
 		     const size_t len, int *range_error,
@@ -371,14 +362,15 @@ int nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp,
 int nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_HDF5_FILE_INFO_T **h5);
 int nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp);
 NC_GRP_INFO_T *nc4_find_nc_grp(int ncid);
-NC_GRP_INFO_T *nc4_rec_find_grp(NC_HDF5_FILE_INFO_T *h5, int target_nc_grpid);
+NC_GRP_INFO_T *nc4_rec_find_grp(NC_GRP_INFO_T *start_grp, int target_nc_grpid);
 NC *nc4_find_nc_file(int ncid, NC_HDF5_FILE_INFO_T**);
 int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim, NC_GRP_INFO_T **dim_grp);
 int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
 int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
 int nc4_find_type(const NC_HDF5_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
-NC_TYPE_INFO_T *nc4_rec_find_nc_type(NC_HDF5_FILE_INFO_T *h5, nc_type target_nc_typeid);
-NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_HDF5_FILE_INFO_T* h5, hid_t target_hdf_typeid);
+int nc4_find_any_type(const NC_HDF5_FILE_INFO_T *h5, int xtype, NC_TYPE_INFO_T **typep);
+NC_TYPE_INFO_T *nc4_rec_find_nc_type(NC_GRP_INFO_T *start_grp, nc_type target_nc_typeid);
+NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_GRP_INFO_T *start_grp, hid_t target_hdf_typeid);
 NC_TYPE_INFO_T *nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name);
 NC_TYPE_INFO_T *nc4_rec_find_equal_type(NC_GRP_INFO_T *start_grp, int ncid1, NC_TYPE_INFO_T *type);
 int nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
@@ -392,33 +384,40 @@ int nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
 int nc4_get_typeclass(const NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
                       int *type_class);
 
-/* Free various types */
-int nc4_type_free(NC_TYPE_INFO_T *type);
+/* These functions create various kinds of object */
+int nc4_grp_new(NC_GRP_INFO_T* parent, const char *name, NC_GRP_INFO_T **grpp);
+int nc4_dim_new(const char* name, NC_DIM_INFO_T **);
+int nc4_type_new(nc_type typeclass, size_t size, const char *name, NC_TYPE_INFO_T **);
+int nc4_var_new(const char* name, NC_TYPE_INFO_T*, int ndims, NC_VAR_INFO_T **var);
+int nc4_att_new(const char* name, NC_TYPE_INFO_T*, NC_ATT_INFO_T **attp); /* Does not set value */
+int nc4_enum_member_new(size_t size, const char *name, const void *value, NC_ENUM_MEMBER_INFO_T**);
+int nc4_field_new(NC_TYPE_INFO_T* parent, const char *name,
+		   size_t offset, hid_t field_hdf_typeid, hid_t native_typeid,
+		   nc_type xtype, int ndims, const int *dim_sizesp, NC_FIELD_INFO_T**);
+
+/* These functions reclaim various kinds of object */
+int nc4_grp_free(NC_GRP_INFO_T*);
+int nc4_grp_clear(NC_GRP_INFO_T*);
+int nc4_dim_free(NC_DIM_INFO_T*);
+int nc4_type_free(NC_TYPE_INFO_T*);
+int nc4_var_free(NC_VAR_INFO_T*);
+int nc4_att_free(NC_ATT_INFO_T*);
+int nc4_enum_member_free(NC_ENUM_MEMBER_INFO_T*);
+int nc4_field_free(NC_FIELD_INFO_T*);
 
 /* These list functions add and delete vars, atts. */
+/* Delete functions only exist when the deletion has complications */
+int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
-void nc4_file_list_del(NC *nc);
-int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims, NC_VAR_INFO_T **var);
-int nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var);
-int nc4_var_free(NC_VAR_INFO_T *var);
-int nc4_dim_list_add(NC_GRP_INFO_T* grp, const char* name, size_t len, int assignedid, NC_DIM_INFO_T **dim);
-int nc4_dim_list_del(NC_GRP_INFO_T* grp, NC_DIM_INFO_T *dim);
-int nc4_dim_free(NC_DIM_INFO_T *dim);
-int nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid, NC_TYPE_INFO_T **type);
-int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name, NC_TYPE_INFO_T **type);
-int nc4_type_list_del(NC_GRP_INFO_T* grp, NC_TYPE_INFO_T *type);
-int nc4_type_free(NC_TYPE_INFO_T *type);
-int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
-		       size_t offset, hid_t field_hdf_typeid, hid_t native_typeid,
-		       nc_type xtype, int ndims, const int *dim_sizesp);
-int nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att);
+int nc4_dim_list_add(NC_GRP_INFO_T*, NC_DIM_INFO_T *dim);
+int nc4_att_list_add(NCindex* list, NC_ATT_INFO_T *att);
 int nc4_att_list_del(NCindex* list, NC_ATT_INFO_T *att);
-int nc4_att_free(NC_ATT_INFO_T *att);
-int nc4_grp_list_add(NC_GRP_INFO_T *parent, char *name, NC_GRP_INFO_T **grp);
-int nc4_build_root_grp(NC_HDF5_FILE_INFO_T* h5);
-int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
-int nc4_enum_member_add(NC_TYPE_INFO_T *type, size_t size,
-			const char *name, const void *value);
+int nc4_type_list_add(NC_HDF5_FILE_INFO_T*, NC_GRP_INFO_T* grp, NC_TYPE_INFO_T *type);
+int nc4_field_list_add(NC_TYPE_INFO_T*, NC_FIELD_INFO_T*);
+int nc4_member_list_add(NC_TYPE_INFO_T*, NC_ENUM_MEMBER_INFO_T*);
+int nc4_grp_list_add(struct NC_HDF5_FILE_INFO*, NC_GRP_INFO_T *grp);
+int nc4_rec_grp_del(NC_GRP_INFO_T* list);
+void nc4_file_list_del(NC *nc);
 
 /* Break & reform coordinate variables */
 int nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim);
@@ -504,6 +503,8 @@ struct NCFILEINFO {
 
 extern struct NCPROPINFO globalpropinfo;
 
+hid_t nc4_h5_native_type_constant_g[NC_MAX_ATOMIC_TYPE];
+
 extern int NC4_fileinfo_init(void); /*libsrc4/ncinfo.c*/
 extern int NC4_get_fileinfo(struct NC_HDF5_FILE_INFO* info, struct NCPROPINFO*); /*libsrc4/ncinfo.c*/
 extern int NC4_put_propattr(struct NC_HDF5_FILE_INFO* info); /*libsrc4/ncinfo.c*/
@@ -512,5 +513,9 @@ extern int NC4_buildpropinfo(struct NCPROPINFO* info,char** propdatap);
 extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
 extern int NC4_hdf5get_superblock(struct NC_HDF5_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
 extern int NC4_isnetcdf4(struct NC_HDF5_FILE_INFO*); /*libsrc4/nc4hdf.c*/
+
+extern int nc4_init_type_vector(NC_HDF5_FILE_INFO_T* h5);
+extern void nc4_init_native_type_ids(void);
+extern int nc4_set_atomic_type_hdf5_info(NC_HDF5_FILE_INFO_T* h5, NC_TYPE_INFO_T* type_info);
 
 #endif /* _NETCDF4_ */

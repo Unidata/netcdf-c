@@ -19,23 +19,16 @@ This is included in bottom
 of config.h. It is where,
 typically, alternatives to
 missing functions should be
-defined.
+defined and missing types defined.
 */
 
 #ifndef HAVE_STRDUP
 extern char* strdup(const char*);
 #endif
 
-/* #if HAVE_BASETSD_H */
-/* #ifndef ssize_t */
-/* #ifndef SSIZE_T */
-/* #include <BaseTsd.h> */
-/* #endif */
-/* #define ssize_t SSIZE_T */
-/* #endif */
-/* #endif */
-
-
+#ifndef HAVE_SSIZE_T
+#define ssize_t long
+#endif
 
 /* handle null arguments */
 #ifndef nulldup
