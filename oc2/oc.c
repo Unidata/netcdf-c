@@ -1035,7 +1035,7 @@ oc_data_gridmap(OCobject link, OCobject grid, size_t index, OCobject* mapdatap)
 
 /*!
 Obtain the data instance corresponding to the container
-of a specied instance object.
+of a specified instance object.
 
 \param[in] link The link through which the server is accessed.
 \param[in] datanode The data instance of interest
