@@ -426,7 +426,7 @@ NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
  * Find the length of a type. This is how much space is required by
  * the in memory to hold one element of this type.
  *
- * @parm type A netCDF atomic type.
+ * @param type A netCDF atomic type.
  *
  * @return Length of the type in bytes, or -1 if type not found.
  * @author Ed Hartnett
@@ -1015,6 +1015,9 @@ be changed on a per-variable basis. By default, the endianness is the
 same as the default endianness of the platform. But with
 nc_def_var_endianness the endianness can be explicitly set for a
 variable.
+
+Warning: this function is only defined if the type of the variable
+is an atomic integer or float type.
 
 This function may only be called after the variable is defined, but
 before nc_enddef is called. 

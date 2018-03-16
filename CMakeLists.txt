@@ -1281,9 +1281,18 @@ CHECK_TYPE_SIZE("_Bool"     SIZEOF__BOOL)
 
 CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
 
-
-CHECK_TYPE_SIZE("ssize_t"   HAVE_SSIZE_T)
-
+CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)
+IF(SIZEOF_SSIZE_T)
+  SET(HAVE_SSIZE_T TRUE)
+ENDIF(SIZEOF_SSIZE_T)
+CHECK_TYPE_SIZE("ptrdiff_t" SIZEOF_PTRDIFF_T)
+IF(SIZEOF_PTRDIFF_T)
+  SET(HAVE_PTRDIFF_T TRUE)
+ENDIF(SIZEOF_PTRDIFF_T)
+CHECK_TYPE_SIZE("uintptr_t" SIZEOF_UINTPTR_T)
+IF(SIZEOF_UINTPTR_T)
+  SET(HAVE_UINTPTR_T TRUE)
+ENDIF(SIZEOF_UINTPTR_T)
 
 # __int64 is used on Windows for large file support.
 CHECK_TYPE_SIZE("__int64"   SIZEOF___INT_64)
@@ -1755,6 +1764,18 @@ STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 LIST(REMOVE_DUPLICATES NC_LIBS)
 LIST(REMOVE_DUPLICATES LINKFLAGS)
 
+IF(ENABLE_FILTER_TESTING)
+IF(ENABLE_EXAMPLES)
+MESSAGE(STATUS "copying filter plugin building files")
+FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/findplugin.in
+     DESTINATION ${netCDF_BINARY_DIR}/examples/C/)
+FILE(GLOB PLUGINFILES ${netCDF_SOURCE_DIR}/nc_test4/hdf5plugins/*.c
+		      ${netCDF_SOURCE_DIR}/nc_test4/hdf5plugins/*.h)
+FILE(COPY ${PLUGINFILES}
+     DESTINATION ${netCDF_BINARY_DIR}/examples/C/hdf5plugins/)
+ENDIF()
+ENDIF()
+
 configure_file(
   ${netCDF_SOURCE_DIR}/netcdf.pc.in
   ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
@@ -1879,6 +1900,11 @@ configure_file(${CMAKE_SOURCE_DIR}/test_common.in ${CMAKE_BINARY_DIR}/test_commo
 SET(ISCMAKE "1")
 configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
 
+IF(ENABLE_FILTER_TESTING)
+IF(ENABLE_EXAMPLES)
+configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
+ENDIF()
+ENDIF()
 
 ####
 # Export files
