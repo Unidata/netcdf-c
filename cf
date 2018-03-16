@@ -117,7 +117,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
-FLAGS="$FLAGS --enable-filter-testing"
+#FLAGS="$FLAGS --enable-filter-testing"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"

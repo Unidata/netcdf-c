@@ -229,7 +229,7 @@ extern int
 NC_findvar(const NC_vararray *ncap, const char *name, NC_var **varpp);
 
 extern int
-NC_check_vlen(NC_var *varp, size_t vlen_max);
+NC_check_vlen(NC_var *varp, unsigned long long vlen_max);
 
 extern int
 NC_lookupvar(NC3_INFO* ncp, int varid, NC_var **varp);
