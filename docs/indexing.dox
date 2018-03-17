@@ -347,6 +347,46 @@ for(i=0;i<ncindexsize(grp->children);i++) {
 \endcode
 In this case, the iteration is by index into the underlying vector.
 
+\section Sperf Performance
+
+The initial impetus for this change was to improve the performance
+of netcdf-4 metadata loading by replacing linear searches with O(1)
+searches.
+
+In fact, this goal has not been met. It appears to be the case
+that the metadata loading costs are entirely dominated by the
+performance of the HDF5 library. The reason for this is that
+the netcdf-c library loads all the metadata immediately
+when a file is opened. This in turn means that all of the metadata
+is immediately extracted from the underlying HDF5 file. So, there is
+no opportunity for lazy loading to be used.
+
+The remedys of which I can conceive are these.
+
+1. Modify the netcdf-c library to also do lazy loading
+2. Store a single metadata object into the file so it can
+   be read at one shot. This object would then be processed
+   in-memory to construct the internal metadata. The costs for
+   this approach are space in the file plus the need to keep it
+   consistent with the actual metadata stored by HDF5.
+
+It should be noted that there is an effect from this change.
+Using gprof, one can see that in the original code the obj_list_add
+function was the dominate function called by a large percentage (about 20%).
+Whereas with the new code, the function call distribute is more much more
+even with no function taking more than 4-5%.
+
+Some other observations:
+
+1. the utf8 code now shows up as taking about 4%. Given that most names
+   are straight ASCII, it might pay to try to optimize for this to avoid
+   invoking the utf8 processing code.
+2. In the new code, attribute processing appears to take up a lot of the
+   time. This, however might be an artifact of the test cases.
+3. There is a small performance improvement from avoiding walking the linked
+   list. It appears that creating a file is about 10% faster and opening a file
+   is also about 10% faster.
+
 \section Snotes_and_warnings Notes and Warning
 
 1. NCindex is currently not used for enum constants and compound fields.
