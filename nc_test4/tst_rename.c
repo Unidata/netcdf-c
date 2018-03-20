@@ -178,6 +178,7 @@ main(int argc, char **argv)
       fprintf(stderr,"*** Test Charlie's test for renaming with one enddef...");
       {
          int ncid, dimid, varid;
+
 #ifdef DEBUG
          nc_set_log_level(5);
 #endif

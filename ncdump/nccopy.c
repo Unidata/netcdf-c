@@ -61,6 +61,7 @@ typedef struct VarID {
 
 struct FilterSpec {
     char* fqn;
+    int nofilter; /* 1=> do not apply any filters to this variable */
     unsigned int filterid;
     size_t nparams;
     unsigned int* params;
@@ -68,6 +69,7 @@ struct FilterSpec {
 
 static int nfilterspecs = 0; /* Number of defined filter specs */
 static struct FilterSpec filterspecs[MAX_FILTER_SPECS];
+static int suppressfilters = 0; /* 1 => do not apply any output filters unless specified */
 
 #endif
 
@@ -244,6 +246,9 @@ parsefilterspec(const char* optarg0, struct FilterSpec* spec)
     char* remainder = NULL;
 
     if(optarg0 == NULL || strlen(optarg0) == 0 || spec == NULL) return 0;
+
+    memset(spec,0,sizeof(struct FilterSpec));
+
     optarg = strdup(optarg0);
 
     /* Collect the fqn, taking escapes into account */
@@ -255,7 +260,8 @@ parsefilterspec(const char* optarg0, struct FilterSpec* spec)
 	else if(*p == '\0') {remainder = p; break;}
 	/* else continue */
     }
-    if(strlen(optarg) == 0) return 0; /* fqn does not exist */
+    if(strlen(optarg) == 0) {stat = NC_EINVAL; goto done;} /* fqn does not exist */
+
     /* Make sure leading '/' is in place */
     if(optarg[0]=='/')
 	spec->fqn = strdup(optarg);
@@ -263,6 +269,12 @@ parsefilterspec(const char* optarg0, struct FilterSpec* spec)
         spec->fqn = (char*)malloc(1+strlen(optarg)+1);
 	strcpy(spec->fqn,"/");
         strcat(spec->fqn,optarg);
+    }
+
+    /* Check for special cases */
+    if(strcmp(remainder,"none") == 0) {
+	spec->nofilter = 1;
+	goto done;
     }
 
     /* Collect the id+parameters */
@@ -273,6 +285,9 @@ parsefilterspec(const char* optarg0, struct FilterSpec* spec)
             spec->params = params;
 	}
     }
+
+done:
+    if(optarg) free(optarg);
     return stat;
 }
 
@@ -723,57 +738,101 @@ static int
 copy_var_filter(int igrp, int varid, int ogrp, int o_varid)
 {
     int stat = NC_NOERR;
-#ifdef USE_NETCDF4
     VarID vid = {igrp,varid};
     VarID ovid = {ogrp,o_varid};
     /* handle filter parameters, copying from input, overriding with command-line options */
-    struct FilterSpec spec;
-    int i, found;
+    struct FilterSpec inspec, ospec, actualspec;
+    int i;
     char* ofqn = NULL;
     int format, oformat;
+    int inputdefined, outputdefined, unfiltered;
 
     /* Get file format of the input and output */
     if((stat=nc_inq_format(vid.grpid,&format))) goto done;
     if((stat=nc_inq_format(ovid.grpid,&oformat))) goto done;
 
     if(oformat != NC_FORMAT_NETCDF4 && oformat != NC_FORMAT_NETCDF4_CLASSIC)
-	goto done; /* Can only use filter when output is netcdf4 */
+	goto done; /* Can only use filter when output is some netcdf4 variant */
 
     /* Compute the output vid's FQN */
     if((stat = computeFQN(ovid,&ofqn))) goto done;
-    /* See if any filter spec is defined for this output variable */
-    for(found=0,i=0;i<nfilterspecs;i++) {
-	if(strcmp(filterspecs[i].fqn,ofqn)==0) {spec = filterspecs[i]; found = 1; break;}
-    }
-    if(!found) {
-	spec.filterid = 0; /* marker to indicate not filter to apply */
-	if((oformat == NC_FORMAT_NETCDF4
-            || oformat != NC_FORMAT_NETCDF4_CLASSIC)
-	   && (format == NC_FORMAT_NETCDF4
-               || format != NC_FORMAT_NETCDF4_CLASSIC)
-	) {
-	    /* Only bother to look if both input and  output are netcdf-4 */
-	    if((stat=nc_inq_var_filter(vid.grpid,vid.varid,&spec.filterid,&spec.nparams,NULL)))
-	        goto done;
-	    if(spec.filterid > 0) {/* input has a filter */
-  	        spec.params = (unsigned int*)malloc(sizeof(unsigned int)*spec.nparams);
-	        if((stat=nc_inq_var_filter(vid.grpid,vid.varid,&spec.filterid,&spec.nparams,spec.params)))
-		    goto done;
+
+    /* Clear the in and out specs */
+    memset(&inspec,0,sizeof(inspec));
+    memset(&ospec,0,sizeof(ospec));
+    memset(&actualspec,0,sizeof(actualspec));
+
+    /* Is there a filter on the output variable */
+    outputdefined = 0; /* default is no filter defined */
+    /* Only bother to look if output is netcdf-4 variant */
+    if(oformat == NC_FORMAT_NETCDF4 || oformat == NC_FORMAT_NETCDF4_CLASSIC) {
+        /* See if any output filter spec is defined for this output variable */
+        for(i=0;i<nfilterspecs;i++) {
+	    if(strcmp(filterspecs[i].fqn,ofqn)==0) {
+	        ospec = filterspecs[i];
+	        outputdefined = 1;
+	        break;
 	    }
+        }
+    }
+
+    /* Is there a filter on the input variable */
+    inputdefined = 0; /* default is no filter defined */
+    /* Only bother to look if input is netcdf-4 variant */
+    if(format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_NETCDF4_CLASSIC) {
+	stat=nc_inq_var_filter(vid.grpid,vid.varid,&inspec.filterid,&inspec.nparams,NULL);
+	if(stat && stat != NC_EFILTER)
+	    goto done; /* true error */
+	if(stat == NC_NOERR) {/* input has a filter */
+  	    inspec.params = (unsigned int*)malloc(sizeof(unsigned int)*inspec.nparams);
+	    if((stat=nc_inq_var_filter(vid.grpid,vid.varid,&inspec.filterid,&inspec.nparams,inspec.params)))
+	        goto done;
+	    inputdefined = 1;
 	}
     }
-    /* Apply filter spec if any */
-    if(spec.filterid > 0) {/* Apply filter */
-#ifdef USE_NETCDF4
-	if((stat=nc_def_var_filter(ovid.grpid,ovid.varid,spec.filterid,spec.nparams,spec.params)))
+
+    /* Rules for choosing output filter are as follows:
+
+	global		output		input	Actual Output
+	suppress	filter		filter	filter
+	-----------------------------------------------
+	true		undefined	NA	unfiltered
+	true		'none'		NA	unfiltered
+	true		defined		NA	use output filter
+	false		undefined	defined	use input filter
+	false		'none'		NA	unfiltered
+	false		defined		NA	use output filter
+    */
+
+    unfiltered = 0;
+
+    if(suppressfilters && !outputdefined) /* row 1 */
+	unfiltered = 1;
+    else if(suppressfilters && outputdefined && ospec.nofilter) /* row 2 */
+	unfiltered = 1;
+    else if(suppressfilters && outputdefined) /* row 3 */
+	actualspec = ospec;
+    else if(!suppressfilters && !outputdefined && inputdefined) /* row 4 */
+	actualspec = inspec;
+    else if(!suppressfilters && outputdefined && ospec.nofilter) /* row 5 */
+	unfiltered = 1;
+    else if(!suppressfilters && outputdefined) /* row 6 */
+	actualspec = ospec;
+
+    /* Apply actual filter spec if any */
+    if(!unfiltered) {
+	if((stat=nc_def_var_filter(ovid.grpid,ovid.varid,
+				   actualspec.filterid,
+				   actualspec.nparams,
+				   actualspec.params)))
 	        goto done;
-#endif
     }
 done:
     /* Cleanup */
-    if(spec.filterid > 0 && spec.nparams > 0 && spec.params != NULL)
-	free(spec.params);
-#endif /*USE_NETCDF4*/
+    if(ofqn != NULL) free(ofqn);
+    if(inspec.fqn) free(inspec.fqn);
+    if(inspec.params) free(inspec.params);
+    /* Note we do not clean actualspec because it is a copy of in|out spec */
     return stat;
 }
 
@@ -1344,10 +1403,15 @@ copy_data(int igrp, int ogrp)
 /* Count total number of dimensions in ncid and all its descendant subgroups */
 int
 count_dims(int ncid) {
+
 #ifdef USE_NETCDF4
     int numgrps;
 #endif
+
     int ndims;
+#ifdef USE_NETCDF4
+    int numgrps;
+#endif
     NC_CHECK(nc_inq_ndims(ncid, &ndims));
 #ifdef USE_NETCDF4
     NC_CHECK(nc_inq_grps(ncid, &numgrps, NULL));
@@ -1788,10 +1852,12 @@ usage(void)
 int
 main(int argc, char**argv)
 {
+    int exitcode = EXIT_SUCCESS;
     char* inputfile = NULL;
     char* outputfile = NULL;
     int c;
 #ifdef USE_NETCDF4
+    int i;
     struct FilterSpec filterspec;
 #endif
 
@@ -1974,14 +2040,20 @@ main(int argc, char**argv)
       break;
 	case 'F': /* optional filter spec for a specified variable */
 #ifdef USE_NETCDF4
-	    if(parsefilterspec(optarg,&filterspec) != NC_NOERR)
-		usage();
-	    if(nfilterspecs >= (MAX_FILTER_SPECS-1))
-		error("too many -F filterspecs\n");
-	    filterspecs[nfilterspecs] = filterspec;
-	    nfilterspecs++;
-	    // Force output to be netcdf-4
-	    option_kind = NC_FORMAT_NETCDF4;
+	    /* If the arg is "none" then suppress all filters
+               on output unless explicit */
+	    if(strcmp(optarg,"none")==0) {
+		suppressfilters = 1;
+	    } else {
+		if(parsefilterspec(optarg,&filterspec) != NC_NOERR)
+		    usage();
+		if(nfilterspecs >= (MAX_FILTER_SPECS-1))
+		    error("too many -F filterspecs\n");
+		filterspecs[nfilterspecs] = filterspec;
+		nfilterspecs++;
+		// Force output to be netcdf-4
+		option_kind = NC_FORMAT_NETCDF4;
+	    }
 #else
 	    error("-F requires netcdf-4");
 #endif
@@ -2005,7 +2077,7 @@ main(int argc, char**argv)
 
 #ifdef USE_NETCDF4
 #ifdef DEBUGFILTER
-    { int i,j;
+    { int j;
         for(i=0;i<nfilterspecs;i++) {
 	    struct FilterSpec *spec = &filterspecs[i];
 	    fprintf(stderr,"filterspecs[%d]={fqn=|%s| filterid=%u nparams=%ld params=",
@@ -2022,6 +2094,16 @@ main(int argc, char**argv)
 #endif /*USE_NETCDF4*/
 
     if(copy(inputfile, outputfile) != NC_NOERR)
-        exit(EXIT_FAILURE);
-    exit(EXIT_SUCCESS);
+        exitcode = EXIT_FAILURE;
+
+#ifdef USE_NETCDF4
+    /* Clean up */
+    for(i=0;i<nfilterspecs;i++) {
+	struct FilterSpec* spec = &filterspecs[i];
+	if(spec->fqn) free(spec->fqn);
+        if(spec->params) free(spec->params);
+    }
+#endif /*USE_NETCDF4*/
+
+    exit(exitcode);
 }

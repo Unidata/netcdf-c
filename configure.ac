@@ -16,7 +16,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.6.1-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.6.2-development], [support-netcdf@unidata.ucar.edu])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -27,7 +27,7 @@ AC_INIT([netCDF], [4.6.1-development], [support-netcdf@unidata.ucar.edu])
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=6
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=2
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 #####
@@ -72,8 +72,8 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat1.nc:nc_test4/ref_hdf5_compat1.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 
-AC_CONFIG_LINKS([nc_test4/ref_chunked.hdf4:nc_test4/ref_chunked.hdf4])
-AC_CONFIG_LINKS([nc_test4/ref_contiguous.hdf4:nc_test4/ref_contiguous.hdf4])
+AC_CONFIG_LINKS([hdf4_test/ref_chunked.hdf4:hdf4_test/ref_chunked.hdf4])
+AC_CONFIG_LINKS([hdf4_test/ref_contiguous.hdf4:hdf4_test/ref_contiguous.hdf4])
 
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
@@ -1432,6 +1432,7 @@ AC_CONFIG_FILES([Makefile
 		         include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
+                 hdf4_test/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
                  libsrcp/Makefile
