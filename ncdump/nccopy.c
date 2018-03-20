@@ -1409,10 +1409,8 @@ count_dims(int ncid) {
 #endif
 
     int ndims;
-#ifdef USE_NETCDF4
-    int numgrps;
-#endif
     NC_CHECK(nc_inq_ndims(ncid, &ndims));
+
 #ifdef USE_NETCDF4
     NC_CHECK(nc_inq_grps(ncid, &numgrps, NULL));
     if(numgrps > 0) {
