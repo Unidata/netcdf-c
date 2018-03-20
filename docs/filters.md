@@ -142,10 +142,34 @@ The "-F" option can be used repeatedly as long as the variable name
 part is different. A different filter id and parameters can be
 specified for each occurrence.
 
-Note that if the input file has compressed variables, that fact
-will be invisble to nccopy because it is handled within the
-netcdf-c/hdf5 library code. This is true for any program that calls
-the netcdf-c library.
+As a rule, any input filter on an input variable will be applied
+to the equivalent output variable -- assuming the output file type
+is netcdf-4. It is, however, sometimes convenient to suppress
+output compression either totally or on a per-variable basis.
+Total suppression of output filters can be accomplished by specifying
+a special case of "-F", namely this.
+````
+nccopy -F "none" input.nc output.nc
+````
+Suppression of output filtering for a specific variable can be accomplished
+using this format.
+````
+nccopy -F "var,none" input.nc output.nc
+````
+where "var" is the fully qualified name of the variable.
+
+The rules for all possible cases of the "-F" flag are defined
+by this table.
+
+<table>
+<tr><th>-F none<th>-Fvar,...<th>Input Filter<th>Applied Output Filter
+<tr><td>true<td>unspecified<td>NA<td>unfiltered
+<tr><td>true<td>-Fvar,none<td>NA<td>unfiltered
+<tr><td>true<td>-Fvar,...<td>NA<td>use output filter
+<tr><td>false<td>unspecified<td>defined<td>use input filter
+<tr><td>false<td>-Fvar,none<td>NA<td>unfiltered
+<tr><td>false<td>-Fvar,...<td>NA<td>use output filter
+</table> 
 
 Parameter Encoding {#ParamEncode}
 ==========
@@ -424,5 +448,5 @@ References {#References}
 
 1. https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf
 2. https://support.hdfgroup.org/HDF5/doc/TechNotes/TechNote-HDF5-CompressionTroubleshooting.pdf
-3. https://support.hdfgroup.org/services/filters.html
+3. https://portal.hdfgroup.org/display/support/Contributions#Contributions-filters
 4. https://support.hdfgroup.org/services/contributions.html#filters
