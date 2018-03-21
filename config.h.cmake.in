@@ -559,6 +559,9 @@ are set when opening a binary file on Windows. */
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #cmakedefine size_t unsigned int
 
+/* Define to `int' if <sys/types.h> does not define. */
+#cmakedefine ssize_t int
+
 /* Define to `unsigned long if <sys/types.h> does not define. */
 #cmakedefine uintptr_t unsigned long
 
