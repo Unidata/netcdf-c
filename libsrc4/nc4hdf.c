@@ -4226,7 +4226,7 @@ reportobject(int log, hid_t id, unsigned int type)
       LOG((0,"Type = %s(%8" PRId64 ") name='%s'",typename,id,name));
 #endif
    } else {
-      fprintf(stderr,"Type = %s(%8" PRId64 ") name='%s'",typename,id,name);
+      fprintf(stderr,"Type = %s(%lld) name='%s'",typename,(long long)id,name);
    }
 }
 
@@ -4250,10 +4250,10 @@ reportopenobjectsT(int log, hid_t fid, int ntypes, unsigned int* otypes)
 
    if(log) {
 #ifdef LOGGING
-      LOG((0,"\nReport: open objects on %" PRId64 "\n",fid));
+      LOG((0,"\nReport: open objects on %lld\n",(long long)fid));
 #endif
    } else {
-      fprintf(stdout,"\nReport: open objects on %" PRId64 "\n",fid);
+      fprintf(stdout,"\nReport: open objects on %lld\n",(long long)fid);
    }
    maxobjs = H5Fget_obj_count(fid,H5F_OBJ_ALL);
    if(idlist != NULL) free(idlist);
