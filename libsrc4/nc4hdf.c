@@ -4254,7 +4254,7 @@ reportobject(int uselog, hid_t id, unsigned int type)
    } else
 #endif
    {
-      fprintf(stderr,"Type = %s(%lld) name='%s'\n",typename,printid,name);
+      fprintf(stderr,"Type = %s(%lld) name='%s'",typename,(long long)id,name);
    }
    
 }
@@ -4279,13 +4279,11 @@ reportopenobjectsT(int uselog, hid_t fid, int ntypes, unsigned int* otypes)
 
    /* Always report somehow */
 #ifdef LOGGING
-   if(uselog) {
+   if(uselog)
       LOG((0,"\nReport: open objects on %lld",(long long)fid));
-   } else
+   else
 #endif
-   {
       fprintf(stdout,"\nReport: open objects on %lld\n",(long long)fid);
-   }
    maxobjs = H5Fget_obj_count(fid,H5F_OBJ_ALL);
    if(idlist != NULL) free(idlist);
    idlist = (hid_t*)malloc(sizeof(hid_t)*maxobjs);

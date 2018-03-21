@@ -2072,6 +2072,22 @@ next:	continue;
     fflush(stderr);
 }
 
+
+/* Handle the data key part */
+static const char*
+keystr(NC_hentry* e)
+{
+    static char s[sizeof(uintptr_t)+1];
+    size_t x = sizeof(uintptr_t);
+    if(e == NULL) return "<NULL>";
+    if(e->keysize <= x) {
+	memset(s,0,sizeof(s));
+	memcpy(s,(const char*)(&e->key),e->keysize);
+	return s;
+    } else 
+	return (e->key?(const char*)(e->key):"<NULL>");
+}
+
 void
 printhashmap(NC_hashmap* hm)
 {

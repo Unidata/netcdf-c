@@ -18,7 +18,7 @@ lib_LTLIBRARIES = libnetcdf.la
 # for information regarding incrementing `-version-info`.
 ##
 
-libnetcdf_la_LDFLAGS = -version-info 14:0:1
+libnetcdf_la_LDFLAGS = -version-info 14:1:1
 
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD =
