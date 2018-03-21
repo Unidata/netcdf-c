@@ -73,7 +73,6 @@ int
 main(int argc, char **argv)
 {
    printf("\n*** Testing netCDF-4 attributes.\n");
-   nc_set_log_level(3);
    printf("*** testing attribute renaming for read-only file...");
    {
       int ncid;

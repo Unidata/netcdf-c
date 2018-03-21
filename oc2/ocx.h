@@ -22,7 +22,7 @@ typedef unsigned int OCDT;
 #define OCDT_ATOMIC    ((OCDT)(32)) /* is atomic leaf */
 
 /* Return mode for this data */
-extern OCDT oc_data_mode(OClink, OCdatanode);
+extern OCerror oc_data_mode(OClink, OCdatanode, OCDT* modep);
 
 extern OCerror oc_dds_dd(OClink, OCddsnode, int);
 extern OCerror oc_dds_ddnode(OClink, OCddsnode);

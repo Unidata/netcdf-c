@@ -435,6 +435,14 @@ static const unsigned char b[4] = {0x0,0x0,0x0,0x1}; /* value 1 in big-endian*/
 int endianness = (1 == *(unsigned int*)b); /* 1=>big 0=>little endian
 ````
 
+Provenance
+================
+
+__Author__: Dennis Heimbigner<br>
+__Email__: dmh at ucar dot edu
+__Initial Version__: 1/10/2018<br>
+__Last Revised__: 2/5/2018
+
 References {#References}
 ==========
 
