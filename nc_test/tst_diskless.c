@@ -14,6 +14,16 @@ redistribution conditions.
 #include <stdlib.h>
 #include <netcdf.h>
 
+/*
+netcdf tst_diskless {
+variables:
+   int resistor_value;
+   float capacitor_value;
+   short number_of_555_timer_chips;
+}
+*/
+
+
 #define FLAGS4 (NC_DISKLESS|NC_NETCDF4|NC_CLASSIC_MODEL)
 #define FLAGS3 (NC_DISKLESS)
 
