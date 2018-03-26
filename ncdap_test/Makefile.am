@@ -81,11 +81,11 @@ SUBDIRS = testdata3 expected3 expectremote3
 EXTRA_DIST = tst_ncdap3.sh  \
              tst_remote3.sh \
              tst_longremote3.sh \
-             tst_ncdap.sh tst_ncdap_shared.sh tst_remote.sh \
+             tst_filelists.sh tst_urls.sh tst_utils.sh \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
 	     t_ncf330.c tst_ber.sh
 
-CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a test_nstride_cached *.exe
+CLEANFILES = test_varm3 test_cvt3 file_results/* remote_results/* datadds* t_dap3a test_nstride_cached *.exe
 # This should only be left behind if using parallel io
 CLEANFILES += tmp_*
 
