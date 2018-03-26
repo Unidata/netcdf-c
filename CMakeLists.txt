@@ -1,5 +1,5 @@
 ## This is a CMake file, part of Unidata's netCDF package.
-# Copyright 2012-2014, see the COPYRIGHT file for more information.
+# Copyright 2012-2018, see the COPYRIGHT file for more information.
 #
 
 ##################################
@@ -1284,7 +1284,7 @@ CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
 CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)
 IF(SIZEOF_SSIZE_T)
   SET(HAVE_SSIZE_T TRUE)
-ENDIF(SIZEOF_PTRDIFF_T)
+ENDIF(SIZEOF_SSIZE_T)
 CHECK_TYPE_SIZE("ptrdiff_t" SIZEOF_PTRDIFF_T)
 IF(SIZEOF_PTRDIFF_T)
   SET(HAVE_PTRDIFF_T TRUE)
