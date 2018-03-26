@@ -26,16 +26,25 @@ defined and missing types defined.
 extern char* strdup(const char*);
 #endif
 
+/*
 #ifndef HAVE_SSIZE_T
-#define ssize_t long
+typedef long ssize_t;
+#define HAVE_SSIZE_T
 #endif
-
+*/
 /* handle null arguments */
 #ifndef nulldup
 #ifdef HAVE_STRDUP
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
 #else
 char *nulldup(const char* s);
+#endif
+#endif
+
+#ifdef _MSC_VER
+#ifndef HAVE_SSIZE_T
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
 #endif
 #endif
 
