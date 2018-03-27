@@ -1929,14 +1929,15 @@ oc_data_ddtree(OCobject link, OCobject ddsroot)
     return OCTHROW(OC_NOERR);
 }
 
-OCDT
-oc_data_mode(OCobject link, OCobject datanode)
+OCerror
+oc_data_mode(OCobject link, OCobject datanode, OCDT* modep)
 {
     OCdata* data;
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
 
-    return data->datamode;
+    if(modep) *modep = data->datamode;
+    return OC_NOERR;
 }
 
 /* Free up a datanode that is no longer being used;

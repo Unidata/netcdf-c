@@ -4,10 +4,6 @@ netCDF Authorization Support
 
 # netCDF Authorization Support {#Header}
 
-__Author__: Dennis Heimbigner<br>
-__Initial Version__: 11/21/2014<br>
-__Last Revised__: 08/24/2017
-
 [TOC]
 
 ## Introduction {#Introduction}
@@ -515,3 +511,10 @@ what you changed to the author so this document can be updated.
         yes | keytool -trustcacerts -storepass "$PWD" -v -keystore ./$TRUSTSTORE -alias $alias -importcert -file "${c}"
     done
     exit
+
+## Provenance
+
+__Author__: Dennis Heimbigner<br>
+__Initial Version__: 11/21/2014<br>
+__Last Revised__: 08/24/2017
+
