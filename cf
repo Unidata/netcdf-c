@@ -10,7 +10,7 @@ DAP=1
 #SZIP=1
 #HDF4=1
 #PNETCDF=1
-#PAR4=1
+PAR4=1
 
 if test $# != 0 ; then
 cmds=$@
@@ -160,14 +160,18 @@ FLAGS="$FLAGS --disable-dap"
 fi
 
 if test "x$MPIO" = x1 ; then
-  MPIDIR=/usr/lib64/mpich
+#  MPIDIR=/usr/lib64/mpich
+  MPIDIR=/usr/lib64/openmpi
   PATH="${PATH}:${MPIDIR}/bin"
   CC="${MPIDIR}/bin/mpicc"
   CPPFLAGS="-I${MPIDIR}/include"
   LDFLAGS="$LDFLAGS -L${MPIDIR}"
   LDLIBS="-lmpich"
-  FLAGS="$FLAGS --enable-pnetcdf"
   FLAGS="$FLAGS --enable-parallel-tests"
+fi
+
+if test "x$PNETCDF" = x1 ; then
+  FLAGS="$FLAGS --enable-pnetcdf"
 fi
 
 if test "x${PROF}" = x1 ; then
