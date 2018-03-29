@@ -29,11 +29,12 @@ create_hdf4_file()
    int data_out[LAT_LEN][LON_LEN];
    int test_val = 42;
    int i, j;
+   int count = 0;
    
    /* Create some data. */
    for (i = 0; i < LAT_LEN; i++)
       for (j = 0; j < LON_LEN; j++)
-         data_out[i][j] = j;
+         data_out[i][j] = count++;
    
    /* Create a file with one SDS, containing our phony data. */
    sd_id = SDstart(FILE_NAME, DFACC_CREATE);
@@ -58,6 +59,53 @@ main(int argc, char **argv)
    /* Create our test file. */
    if (create_hdf4_file()) ERR;
    
+   printf("*** testing data conversion...");
+   {
+      int ncid;
+      size_t start[NDIMS2] = {0, 0}, count[NDIMS2] = {LAT_LEN, LON_LEN};
+      int data_int[LAT_LEN * LON_LEN];      
+      short data_short[LAT_LEN * LON_LEN];      
+      int data_int2[LAT_LEN * LON_LEN];      
+      float data_float[LAT_LEN * LON_LEN];      
+      double data_double[LAT_LEN * LON_LEN];      
+
+      /* Open HDF4 file with netCDF. */
+      if (nc_open(FILE_NAME, 0, &ncid)) ERR;
+
+      /* These won't work. */
+      if (nc_get_vara_int(ncid, 0, NULL, count, data_int) != NC_EINVAL) ERR;
+      if (nc_get_vara_int(ncid, 0, start, count, NULL) != NC_EINVAL) ERR;
+      if (nc_get_vara_int(ncid + TEST_VAL_42, 0, start, count, data_int) != NC_EBADID) ERR;
+
+      /* Read data as short. */
+      if (nc_get_vara_short(ncid, 0, start, count, data_short)) ERR;
+      for (int i = 0; i < LAT_LEN * LON_LEN; i++)
+         if (data_short[i] != (short)i) ERR;
+
+      /* Read data as int. */
+      if (nc_get_vara_int(ncid, 0, start, count, data_int)) ERR;
+      for (int i = 0; i < LAT_LEN * LON_LEN; i++)
+         if (data_int[i] != i) ERR;
+
+      /* NULL count is treated as meaing entire variable. */
+      if (nc_get_vara_int(ncid, 0, start, NULL, data_int2)) ERR;
+      for (int i = 0; i < LAT_LEN * LON_LEN; i++)
+         if (data_int2[i] != i) ERR;
+
+      /* Read data as float. */
+      if (nc_get_vara_float(ncid, 0, start, count, data_float)) ERR;
+      for (int i = 0; i < LAT_LEN * LON_LEN; i++)
+         if (data_float[i] != (float)i) ERR;
+
+      /* Read data as double. */
+      if (nc_get_vara_double(ncid, 0, start, count, data_double)) ERR;
+      for (int i = 0; i < LAT_LEN * LON_LEN; i++)
+         if (data_double[i] != (double)i) ERR;
+
+      /* Close the file. */
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    printf("*** testing bad parameters, read-only writes, and abort...");
    {
       int ncid;
