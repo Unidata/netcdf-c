@@ -738,8 +738,6 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
       LOG((3, "adding attribute %s to the list...", norm_name));
       if ((ret = nc4_att_list_add(attlist, norm_name, &att)))
          BAIL (ret);
-      if (!(att->hdr.name = strdup(norm_name)))
-         return NC_ENOMEM;
    }
 
    /* Now fill in the metadata. */

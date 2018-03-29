@@ -507,9 +507,11 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    {
       size_t len;
       char name[NC_MAX_NAME+1];
+      char* atomname = nc4_atomic_name[xtype];
+      size_t namelen = strlen(atomname);
+      memcpy(name,atomname,namelen);
+      name[namelen] = '\0';
       nc4_get_typelen_mem(h5,xtype,&len);
-      memcpy(name,nc4_atomic_name[xtype],NC_MAX_NAME);
-      name[NC_MAX_NAME] = '\0';
       if((retval = nc4_type_new(grp,len,name,xtype,&type_info)))
 	BAIL(retval);
       type_info->endianness = NC_ENDIAN_NATIVE;

@@ -195,6 +195,7 @@ ncindexrebuild(NCindex* index)
 	    return 0;
     }
 #endif
+    if(contents != NULL) free(contents);
     return 1;    
 }
 
