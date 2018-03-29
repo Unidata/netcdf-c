@@ -737,6 +737,19 @@ AC_CHECK_FUNCS([strlcat snprintf \
 		mkstemp mktemp random \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
+# Does the user want to enable atexit?
+AC_MSG_CHECKING([whether nc_finalize should be invoked at exit])
+AC_ARG_ENABLE([library-finalize],
+              [AS_HELP_STRING([--enable-library-finalize],
+                              [enable invoking nc_finalize at exit])])
+test "x$enable_library_finalize" = xyes || enable_library_finalize=no
+AC_MSG_RESULT($enable_library_finalize)
+
+if test "x$enable_library_finalize" = xyes ; then
+# Check for atexit
+AC_CHECK_FUNCS([atexit])
+fi
+
 # Does the user want to use NC_DISKLESS?
 AC_MSG_CHECKING([whether in-memory files are enabled])
 AC_ARG_ENABLE([diskless],
@@ -1334,6 +1347,7 @@ AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
 AC_SUBST(RELAX_COORD_BOUND,[$enable_relax_coord_bound])
 AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
+AC_SUBST(HAS_FINALIZE_SUPPORT,[$enable_library_finalize])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1401,6 +1415,7 @@ AX_SET_META([NC_HAS_PARALLEL],[$enable_parallel],[yes])
 AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
+
 
 # Automake says that this is always run in top_builddir
 # and that srcdir is defined (== top_srcdir)

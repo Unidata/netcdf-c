@@ -36,3 +36,5 @@ MMap Support:		@HAS_MMAP@
 JNA Support:		@HAS_JNA@
 CDF5 Support:		@HAS_CDF5@
 ERANGE fill Support:	@HAS_ERANGE_FILL@
+Finalize Support:	@HAS_FINALIZE_SUPPORT@
+

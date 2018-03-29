@@ -11,6 +11,8 @@
 
 #include "ncdispatch.h"
 
+extern void nc_finalize(void);
+
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 
@@ -96,6 +98,12 @@ nc_initialize()
     stat = NC4_fileinfo_init();
 #endif /* USE_NETCDF4 */
 
+#ifdef HAVE_ATEXIT
+    /* If we have atexit(), then use it to invoke nc_finalize */
+    if(atexit(nc_finalize))
+	fprintf(stderr,"atexit failed\n");
+#endif
+
 done:
     return stat;
 }
@@ -109,36 +117,38 @@ then you need to fix it everywhere.
 It also finalizes appropriate external libraries.
 */
 
-int
+void
 nc_finalize(void)
 {
     int stat = NC_NOERR;
 
-    if(NC_finalized) return NC_NOERR;
+    if(NC_finalized) goto done;
     NC_initialized = 0;
     NC_finalized = 1;
 
     /* Finalize each active protocol */
 
 #ifdef ENABLE_DAP2
-    if((stat = NCD2_finalize())) return stat;
+    if((stat = NCD2_finalize())) goto done;
 #endif
 #ifdef ENABLE_DAP4
-    if((stat = NCD4_finalize())) return stat;
+    if((stat = NCD4_finalize())) goto done;
 #endif
 
 #ifdef USE_PNETCDF
-    if((stat = NCP_finalize())) return stat;
+    if((stat = NCP_finalize())) goto done;
 #endif
 
 #ifdef USE_NETCDF4
-    if((stat = NC4_finalize())) return stat;
+    if((stat = NC4_finalize())) goto done;
 #endif /* USE_NETCDF4 */
 
-    if((stat = NC3_finalize())) return stat;
+    if((stat = NC3_finalize())) goto done;
 
     /* Do general finalization */
-    if((stat = NCDISPATCH_finalize())) return stat;
+    if((stat = NCDISPATCH_finalize())) goto done;
 
-    return NC_NOERR;
+done:
+    if(stat) fprintf(stderr,"nc_finalize failed\n");
+    return;
 }

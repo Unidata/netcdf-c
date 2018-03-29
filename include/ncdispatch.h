@@ -315,7 +315,7 @@ const char* (*nc_strerror)(int);
 int (*nc_delete)(const char*path);
 int (*nc_delete_mp)(const char*path,intbasepe);
 int (*nc_initialize)();
-int (*nc_finalize)();
+void (*nc_finalize)();
 #endif /*NONDISPATCH*/
 
 /* Define the common fields for NC and NC_FILE_INFO_T etc */
@@ -392,9 +392,7 @@ extern char* NC_argv[];
 extern int NC_initialized;
 
 extern int nc_initialize();
-extern int nc_finalize();
-
-
+extern void nc_finalize();
 
 /**
 Certain functions are in the dispatch table,

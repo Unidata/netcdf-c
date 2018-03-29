@@ -145,6 +145,9 @@ are set when opening a binary file on Windows. */
    */
 #cmakedefine HAVE_ALLOCA_H 1
 
+/* Define to 1 if you have the `atexit function. */
+#cmakedefine HAVE_ATEXIT 1
+
 /* Define to 1 if you have hdf5_coll_metadata_ops */
 #cmakedefine HDF5_HAS_COLL_METADATA_OPS 1
 

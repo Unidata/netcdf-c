@@ -3,7 +3,7 @@
 DB=1
 #X=-x
 FAST=1
-LEAK=1
+#LEAK=1
 #PROF=1
 
 HDF5=1
@@ -119,6 +119,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
 #FLAGS="$FLAGS --enable-filter-testing"
+FLAGS="$FLAGS --enable-library-finalize"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
