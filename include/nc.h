@@ -40,7 +40,6 @@ typedef struct {
 	/* all xdr'd */
 	size_t nchars;
 	char *cp;
-
 } NC_string;
 
 /* Define functions that are used across multiple dispatchers */

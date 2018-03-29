@@ -1,5 +1,5 @@
 ## This is a CMake file, part of Unidata's netCDF package.
-# Copyright 2012-2014, see the COPYRIGHT file for more information.
+# Copyright 2012-2018, see the COPYRIGHT file for more information.
 #
 
 ##################################
@@ -26,8 +26,8 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 6)
-SET(NC_VERSION_PATCH 0)
-SET(NC_VERSION_NOTE ".3")
+SET(NC_VERSION_PATCH 1)
+SET(NC_VERSION_NOTE ".1")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
@@ -1292,9 +1292,18 @@ CHECK_TYPE_SIZE("_Bool"     SIZEOF__BOOL)
 
 CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
 
-
-CHECK_TYPE_SIZE("ssize_t"   HAVE_SSIZE_T)
-
+CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)
+IF(SIZEOF_SSIZE_T)
+  SET(HAVE_SSIZE_T TRUE)
+ENDIF(SIZEOF_SSIZE_T)
+CHECK_TYPE_SIZE("ptrdiff_t" SIZEOF_PTRDIFF_T)
+IF(SIZEOF_PTRDIFF_T)
+  SET(HAVE_PTRDIFF_T TRUE)
+ENDIF(SIZEOF_PTRDIFF_T)
+CHECK_TYPE_SIZE("uintptr_t" SIZEOF_UINTPTR_T)
+IF(SIZEOF_UINTPTR_T)
+  SET(HAVE_UINTPTR_T TRUE)
+ENDIF(SIZEOF_UINTPTR_T)
 
 # __int64 is used on Windows for large file support.
 CHECK_TYPE_SIZE("__int64"   SIZEOF___INT_64)
@@ -1634,7 +1643,7 @@ ENDIF(USE_HDF5)
 
 IF(USE_HDF4)
   add_subdirectory(libhdf4)
-  INCLUDE_DIRECTORIES(hdf4_test)
+  add_subdirectory(hdf4_test)
 ENDIF(USE_HDF4)
 
 IF(ENABLE_DAP2)

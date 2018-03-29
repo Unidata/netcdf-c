@@ -177,7 +177,10 @@ main(int argc, char **argv)
       fprintf(stderr,"*** Test Charlie's test for renaming with one enddef...");
       {
          int ncid, dimid, varid;
+
+#ifdef DEBUG
          nc_set_log_level(5);
+#endif
 
          /* Create a nice, simple file. This file will contain one
           * dataset, "lon", which is a dimscale. */
