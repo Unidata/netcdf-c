@@ -265,6 +265,9 @@
 /* Define to 1 if the system has the type `uint64'. */
 #undef HAVE_UINT64
 
+/* Define to 1 if the system has the type `uintptr_t'. */
+#undef HAVE_UINTPTR_T
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
@@ -520,6 +523,11 @@
 /* needed for PIO code */
 #undef _PNETCDF
 
+/* Define to 1 if type `char' is unsigned and you are not using gcc.  */
+#ifndef __CHAR_UNSIGNED__
+# undef __CHAR_UNSIGNED__
+#endif
+
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
@@ -528,6 +536,10 @@
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
+
+/* Define to the type of an unsigned integer type wide enough to hold a
+   pointer, if such a type exists, and if the system does not define it. */
+#undef uintptr_t
 
 /* Define strcasecmp, snprintf on Win32 systems. */
 #ifdef _WIN32
