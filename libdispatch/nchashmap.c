@@ -2072,22 +2072,6 @@ next:	continue;
     fflush(stderr);
 }
 
-
-/* Handle the data key part */
-static const char*
-keystr(NC_hentry* e)
-{
-    static char s[sizeof(uintptr_t)+1];
-    size_t x = sizeof(uintptr_t);
-    if(e == NULL) return "<NULL>";
-    if(e->keysize <= x) {
-	memset(s,0,sizeof(s));
-	memcpy(s,(const char*)(&e->key),e->keysize);
-	return s;
-    } else 
-	return (e->key?(const char*)(e->key):"<NULL>");
-}
-
 void
 printhashmap(NC_hashmap* hm)
 {
@@ -2105,8 +2089,8 @@ printhashmap(NC_hashmap* hm)
     for(i=0;i<hm->alloc;i++) {
 	NC_hentry e = hm->table[i];
 	if(e.flags == ACTIVE) {
-	    fprintf(stderr,"[%ld] flags=ACTIVE hashkey=%lu data=%p keysize=%u key=|%s|\n",
-		(unsigned long)i,(unsigned long)e.hashkey,(void*)e.data,(unsigned)e.keysize,e.key);
+	    fprintf(stderr,"[%ld] flags=ACTIVE hashkey=%lu data=%p keysize=%u key=(%llu)|%s|\n",
+		(unsigned long)i,(unsigned long)e.hashkey,(void*)e.data,(unsigned)e.keysize,(unsigned long long)e.key,e.key);
 	    running = 0;
 	} else if(e.flags == DELETED) {
 	    fprintf(stderr,"[%ld] flags=DELETED hashkey=%lu\n",
