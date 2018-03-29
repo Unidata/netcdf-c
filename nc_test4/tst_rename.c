@@ -172,7 +172,6 @@ main(int argc, char **argv)
 
          /* Reopen the file and check. */
          if (check_charlies_file(CHARLIE_TEST_FILE, LONGITUDE, LONGITUDE)) ERR;
-
       }
       SUMMARIZE_ERR;
       fprintf(stderr,"*** Test Charlie's test for renaming with one enddef...");
@@ -460,7 +459,7 @@ main(int argc, char **argv)
          if (nc_inq_dimid(ncid, ODIM_NAME, &dimid)) ERR;
          if (nc_inq_varid(ncid, OVAR_NAME, &varid)) ERR;
          if (nc_inq_varid(ncid, OVAR2_NAME, &var2id)) ERR;
-         if (nc_redef(ncid)) ERR;
+         if (nc_redef(ncid)) ERR; 
          if (nc_rename_dim(ncid, dimid, NDIM_NAME)) ERR;
          if (nc_enddef(ncid)) ERR;
          if (nc_get_var_int(ncid, varid, lats_in)) ERR;

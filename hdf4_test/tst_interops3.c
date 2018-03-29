@@ -67,6 +67,7 @@ int
 main(int argc, char **argv)
 {
    printf("\n*** Testing HDF4/NetCDF-4 interoperability...\n");
+   nc_set_log_level(3);
    printf("*** testing that all hdf4 files can be opened...");
    {
 #define NUM_SAMPLE_FILES 5
