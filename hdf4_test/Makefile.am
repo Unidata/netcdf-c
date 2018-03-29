@@ -35,3 +35,5 @@ run_get_hdf4_files.sh run_formatx_hdf4.sh
 
 CLEANFILES = *.h4 *.hdf
 
+# If valgrind is present, add valgrind targets.
+@VALGRIND_CHECK_RULES@
