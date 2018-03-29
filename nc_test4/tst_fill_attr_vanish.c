@@ -33,104 +33,81 @@
  */
 int main()
 {
-  int ncid, dimids[RANK_P], time_id, p_id, test_id, status;
-  int test_data[1] = {1};
-  size_t test_start[1] = {0}, test_count[1] = {1};
-  int test_fill_val[] = {5};
-  double data[1] = {3.14159};
-  size_t start[1] = {0}, count[1] = {1};
+   int ncid, dimids[RANK_P], time_id, p_id, test_id;
+   int test_data[1] = {1};
+   size_t test_start[1] = {0}, test_count[1] = {1};
+   int test_fill_val[] = {5};
+   double data[1] = {3.14159};
+   size_t start[1] = {0}, count[1] = {1};
 
-  printf("\n*** Testing for a netCDF-4 fill-value bug.\n");
-  printf("*** Creating a file with no _FillValue defined. ***\n");
+   printf("\n*** Testing for a netCDF-4 fill-value bug.\n");
+   printf("*** creating a file with no _FillValue defined...");
 
-  /* Create a 3D test file. */
-  if (nc_create(FILENAME, NC_CLOBBER|NC_NETCDF4, &ncid)) ERR;
-  if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
+   /* Create a 3D test file. */
+   if (nc_create(FILENAME, NC_CLOBBER|NC_NETCDF4, &ncid)) ERR;
+   if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
 
-  /* define dimensions */
-  if (nc_def_dim(ncid, "Time", NC_UNLIMITED, &dimids[0])) ERR;
-  if (nc_def_dim(ncid, "X", 4, &dimids[2])) ERR;
-  if (nc_def_dim(ncid, "Y", 3, &dimids[1])) ERR;
+   /* define dimensions */
+   if (nc_def_dim(ncid, "Time", NC_UNLIMITED, &dimids[0])) ERR;
+   if (nc_def_dim(ncid, "X", 4, &dimids[2])) ERR;
+   if (nc_def_dim(ncid, "Y", 3, &dimids[1])) ERR;
 
-  /* define variables */
-  if (nc_def_var(ncid, "Time", NC_DOUBLE, 1, dimids, &time_id)) ERR;
-  if (nc_def_var(ncid, "P", NC_FLOAT, RANK_P, dimids, &p_id)) ERR;
-  if (nc_def_var(ncid, "Test", NC_INT, 1, &dimids[1], &test_id)) ERR;
+   /* define variables */
+   if (nc_def_var(ncid, "Time", NC_DOUBLE, 1, dimids, &time_id)) ERR;
+   if (nc_def_var(ncid, "P", NC_FLOAT, RANK_P, dimids, &p_id)) ERR;
+   if (nc_def_var(ncid, "Test", NC_INT, 1, &dimids[1], &test_id)) ERR;
 
-  /* Add a _FillValue attribute */
+   /* Add a _FillValue attribute */
 
-  if (nc_put_att_text(ncid, test_id, ATTNAME, strlen(ATTVAL), ATTVAL)) ERR;
-  /* Add a value to the test variable */
-  if (nc_put_vara(ncid, test_id, test_start, test_count, test_data)) ERR;
+   if (nc_put_att_text(ncid, test_id, ATTNAME, strlen(ATTVAL), ATTVAL)) ERR;
+   /* Add a value to the test variable */
+   if (nc_put_vara(ncid, test_id, test_start, test_count, test_data)) ERR;
 
-  /* Add one record in coordinate variable. */
-  if (nc_put_vara(ncid, time_id, start, count, data)) ERR;
+   /* Add one record in coordinate variable. */
+   if (nc_put_vara(ncid, time_id, start, count, data)) ERR;
 
-  /* That's it! */
-  if (nc_close(ncid)) ERR;
+   /* That's it! */
+   if (nc_close(ncid)) ERR;
 
-  /********************************************/
+   /* Reopen the file, add a fillvalue attribute. */
+   if (nc_open(FILENAME, NC_NOCLOBBER|NC_WRITE, &ncid)) ERR;
+   if (nc_redef(ncid)) ERR;
+   if (nc_inq_varid(ncid, "Test", &test_id)) ERR;
 
-  /* Reopen the file, add a fillvalue attribute. */
-  if (nc_open(FILENAME, NC_NOCLOBBER|NC_WRITE, &ncid)) ERR;
-  if (nc_redef(ncid)) ERR;
-  if (nc_inq_varid(ncid, "Test", &test_id)) ERR;
+   /* Query existing attribute. */
+   {
+      char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+      if (nc_get_att_text(ncid,test_id,ATTNAME,attval)) ERR;
+      free(attval);
+   }
 
-  /* Query existing attribute. */
-  {
-    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
-    printf("**** Checking that attribute still exists:\t");
-    if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
-    else {printf("%s\n",attval);}
-    free(attval);
+   if (nc_put_att_int(ncid, test_id, "_FillValue", NC_INT, 1,
+                      test_fill_val) != NC_ELATEFILL) ERR;
 
-  }
+   /* Query existing attribute. */
+   {
+      char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+      if (nc_get_att_text(ncid, test_id, ATTNAME, attval)) ERR;
+      free(attval);
+   }
 
-  printf("**** Expecting NC_ELATEFILL when adding _FillValue attribute if variable exists.\n");
-  status = nc_put_att_int(ncid, test_id, "_FillValue", NC_INT, 1, test_fill_val);
-  if (status != NC_ELATEFILL) {
-      fflush(stdout); /* Make sure our stdout is synced with stderr. */
-      err++;
-      fprintf(stderr, "Sorry! Expecting NC_ELATEFILL but got %s, at file %s line: %d\n",
-              nc_strerror(status), __FILE__, __LINE__);
-      return 2;
-  }
+   /* Close file again. */
+   if (nc_close(ncid)) ERR;
 
-  /* Query existing attribute. */
-  {
-    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
-    printf("**** Checking that attribute still exists, pre-write:\t");
-    if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
-    else {printf("%s\n",attval);}
-    free(attval);
+   /* Reopen the file, checking that all attributes are preserved. */
+   if (nc_open(FILENAME, NC_NOCLOBBER|NC_WRITE, &ncid)) ERR;
+   if (nc_redef(ncid)) ERR;
+   if (nc_inq_varid(ncid, "Test", &test_id)) ERR;
 
-  }
+   /* Query existing attribute. */
+   {
+      char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+      if (nc_get_att_text(ncid, test_id, ATTNAME, attval)) ERR;
+      free(attval);
+   }
 
-  /* Close file again. */
-  printf( "**** Saving, closing file.\n");
-  if (nc_close(ncid)) ERR;
-  /********************************************/
-  printf( "*** Reopening file.\n");
-  /* Reopen the file, checking that all attributes are preserved. */
-  if (nc_open(FILENAME, NC_NOCLOBBER|NC_WRITE, &ncid)) ERR;
-  if (nc_redef(ncid)) ERR;
-  if (nc_inq_varid(ncid, "Test", &test_id)) ERR;
+   if (nc_close(ncid)) ERR;
 
-  /* Query existing attribute. */
-  {
-    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
-    printf("**** Checking that attribute still exists:\t");
-    if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
-    else {printf("%s\n",attval);}
-    free(attval);
-
-  }
-
-  if (nc_close(ncid)) ERR;
-  /********************************************/
-
-  SUMMARIZE_ERR;
-
-  FINAL_RESULTS;
-  return 0;
+   SUMMARIZE_ERR;
+   FINAL_RESULTS;
 }
