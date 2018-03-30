@@ -633,6 +633,17 @@ scalar values are treated as single-element vectors.
 Conventional attribute names should be used where applicable. New
 names should be as meaningful as possible.
 
+Some attribute names are reserved by netCDF and cannot be created by the
+user. Attepts to create attributes with any of these names will return
+a ::NC_ENAMEINUSE error.
+
+The reserved names are:
+- _Format
+- _nc3_strict
+- _NCProperties
+- _IsNetcdf4
+- _SuperblockVersion
+
 The external type of an attribute is specified when it is created. The
 types permitted for attributes are the same as the netCDF external
 data types for variables. Attributes with the same name for different
