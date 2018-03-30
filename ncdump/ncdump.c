@@ -130,7 +130,7 @@ usage(void)
   file             Name of netCDF file (or URL if DAP access enabled)\n"
 
     (void) fprintf(stderr,
-		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] [-Ln] [-mn] file\n%s",
+		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] [-Ln] [-un] file\n%s",
 		   progname,
 		   USAGE);
 
