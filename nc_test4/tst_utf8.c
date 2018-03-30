@@ -300,7 +300,6 @@ main(int argc, char **argv)
       /* Reopen the file and check again. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_varname(ncid, 0, name_in));
-      printf("name_in %s\n", name_in);
       if (!strcmp(name_in, norm_utf8)) ERR;
       if (nc_close(ncid)) ERR;
    }
