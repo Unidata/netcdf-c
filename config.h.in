@@ -494,6 +494,9 @@
 /* if true, use user-defined format 0 in utilities */
 #undef USE_UF0
 
+/* if true, use user-defined format 1 in utilities */
+#undef USE_UF1
+
 /* Version number of package */
 #undef VERSION
 

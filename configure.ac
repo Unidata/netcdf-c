@@ -100,7 +100,12 @@ AC_ARG_WITH([uf0],
             [UF0_DISPATCH=$with_uf0])
 AC_MSG_RESULT([$UF0_DISPATCH])
 AC_DEFINE_UNQUOTED([UF0_DISPATCH], [$UF0_DISPATCH], [dispatch table for user-defined format 0.])
-AC_DEFINE([USE_UF0], [1], [if true, use user-defined format 0 in utilities])
+if test x"$UFO_DISPATCH" = x0; then
+   AC_DEFINE([USE_UF0], [1], [if true, use user-defined format 0 in utilities])
+fi
+if test x"$UFO_DISPATCH" = x1; then
+   AC_DEFINE([USE_UF1], [1], [if true, use user-defined format 1 in utilities])
+fi
 
 # Find valgrind, if available, and add targets for it.
 AX_VALGRIND_DFLT([sgcheck], [off])
