@@ -427,6 +427,9 @@
 /* Place to put very large netCDF test files. */
 #undef TEMP_LARGE
 
+/* dispatch table for user-defined format 0. */
+#undef UF0_DISPATCH
+
 /* if true, enable CDF5 Support */
 #undef USE_CDF5
 
@@ -487,6 +490,9 @@
 
 /* if true, compile in szip compression in netCDF-4 variables */
 #undef USE_SZIP
+
+/* if true, use user-defined format 0 in utilities */
+#undef USE_UF0
 
 /* Version number of package */
 #undef VERSION
