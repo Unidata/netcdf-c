@@ -100,6 +100,11 @@ fspec_t formatting_specs =	/* defaults, overridden by command-line options */
     0			/* kind of netCDF file */
 };
 
+
+#ifdef USE_UF0
+extern NC_Dispatch UF0_DISPATCH;
+#endif /* USE_UF0 */
+
 static void
 usage(void)
 {
@@ -121,10 +126,11 @@ usage(void)
   [-x]             Output XML (NcML) instead of CDL\n\
   [-Xp]            Unconditionally suppress output of the properties attribute\n\
   [-Ln]            Set log level to n (>= 0); ignore if logging not enabled.\n\
+  [-un]            Use user-defined format n (0 or 1). User defined format must be provided at build-time.\n\
   file             Name of netCDF file (or URL if DAP access enabled)\n"
 
     (void) fprintf(stderr,
-		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] [-Ln] file\n%s",
+		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] [-Ln] [-un] file\n%s",
 		   progname,
 		   USAGE);
 
@@ -2128,6 +2134,9 @@ main(int argc, char *argv[])
     bool_t kind_out = false;	/* if true, just output kind of netCDF file */
     bool_t kind_out_extended = false;	/* output inq_format vs inq_format_extended */
     int Xp_flag = 0;    /* indicate that -Xp flag was set */
+    int mode = 0;
+    int user_defined_format; /* 0 or 1 if a user-defined format is to be used. */
+    int ret;
 
 #if defined(WIN32) || defined(msdos) || defined(WIN64)
     putenv("PRINTF_EXPONENT_DIGITS=2"); /* Enforce unix/linux style exponent formatting. */
@@ -2148,7 +2157,7 @@ main(int argc, char *argv[])
        exit(EXIT_SUCCESS);
     }
 
-    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwKL:X:")) != EOF)
+    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwKL:X:u:")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
 	  formatting_specs.header_only = true;
@@ -2259,6 +2268,13 @@ main(int argc, char *argv[])
 #endif
 	  ncsetlogging(1);
 	  break;
+        case 'u':
+           user_defined_format = atoi(optarg);
+           if (user_defined_format == 0)
+              mode |= NC_UF0;
+           if (user_defined_format == 1)
+              mode |= NC_UF1;
+           break;
         case '?':
 	  usage();
 	  exit(EXIT_FAILURE);
@@ -2287,6 +2303,13 @@ main(int argc, char *argv[])
     }
 
     i = 0;
+
+    /* If user-defined formats are in used, register the dispatch
+     * table. */
+#ifdef USE_UF0
+   if ((ret = nc_def_user_format(NC_UF0, &UF0_DISPATCH, NULL)))
+      return ret;
+#endif /* USE_UF0 */
 
     init_epsilons();
 
@@ -2320,7 +2343,7 @@ main(int argc, char *argv[])
 	            nc_status = nc_open_mem(path,NC_DISKLESS|NC_INMEMORY,size,mem,&ncid);
 	    } else
 #endif
-	        nc_status = nc_open(path, NC_NOWRITE, &ncid);
+	        nc_status = nc_open(path, mode, &ncid);
 	    if (nc_status != NC_NOERR) {
 		error("%s: %s", path, nc_strerror(nc_status));
 	    }

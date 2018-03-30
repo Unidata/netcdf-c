@@ -92,6 +92,21 @@ AC_ARG_WITH([minblocksize],
 AC_MSG_RESULT([$NCIO_MINBLOCKSIZE])
 AC_DEFINE_UNQUOTED([NCIO_MINBLOCKSIZE], [$NCIO_MINBLOCKSIZE], [min blocksize for posixio.])
 
+# Did the user specify a user-defined format?
+AC_MSG_CHECKING([whether a user-defined format was specified])
+AC_ARG_WITH([uf0],
+              [AS_HELP_STRING([--with-uf0=<dispatch_name>],
+                              [Specify a dispatch table for a user-defined format.])],
+            [UF0_DISPATCH=$with_uf0])
+AC_MSG_RESULT([$UF0_DISPATCH])
+AC_DEFINE_UNQUOTED([UF0_DISPATCH], [$UF0_DISPATCH], [dispatch table for user-defined format 0.])
+if test x"$UFO_DISPATCH" = x0; then
+   AC_DEFINE([USE_UF0], [1], [if true, use user-defined format 0 in utilities])
+fi
+if test x"$UFO_DISPATCH" = x1; then
+   AC_DEFINE([USE_UF1], [1], [if true, use user-defined format 1 in utilities])
+fi
+
 # Find valgrind, if available, and add targets for it.
 AX_VALGRIND_DFLT([sgcheck], [off])
 AX_VALGRIND_CHECK
