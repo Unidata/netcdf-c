@@ -16,7 +16,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.6.1-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.6.2-development], [support-netcdf@unidata.ucar.edu])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -27,7 +27,7 @@ AC_INIT([netCDF], [4.6.1-development], [support-netcdf@unidata.ucar.edu])
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=6
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=2
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 #####
@@ -794,6 +794,8 @@ AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
 AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64])
 AC_TYPE_OFF_T
+AC_TYPE_UINTPTR_T
+AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
 ###
@@ -1304,12 +1306,12 @@ AC_MSG_RESULT($enable_filter_testing)
 
 if test "x$enable_netcdf_4" = xno ; then
 AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing])
-enable_filter_testing = no
+enable_filter_testing=no
 fi
 
 if test "x$enable_shared" = xno ; then
 AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
-enable_filter_testing = no
+enable_filter_testing=no
 fi
 AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
 

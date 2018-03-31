@@ -49,10 +49,6 @@
 # endif
 #endif /*HAVE_MREMAP*/
 
-#ifndef HAVE_SSIZE_T
-#define ssize_t int
-#endif
-
 #ifndef SEEK_SET
 #define SEEK_SET 0
 #define SEEK_CUR 1
