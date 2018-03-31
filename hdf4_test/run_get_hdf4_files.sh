@@ -1,5 +1,7 @@
 #!/bin/sh
 
+#Q=-q
+
 # This shell gets some sample HDF4 files from the netCDF ftp site for
 # testing. Then it runs program tst_interops3 on the test file to
 # check that HDF4 reading works.
@@ -8,6 +10,20 @@
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
+
+# Get a file from the ftp site; retry several times
+getfile() {
+   FTPFILE="ftp://ftp.unidata.ucar.edu/pub/netcdf/sample_data/hdf4/$1.gz"
+   for try in 1 2 3 4 ; do # try 4 times
+     # signal sucess/failure
+     if wget -c $Q --passive-ftp $FTPFILE ; then
+       return 0 # got it
+     fi
+     echo "wget failed: try $try"
+     sleep 5 # seconds
+   done
+   return 1 # did not get it
+}
 
 set -e
 echo ""
@@ -21,29 +37,15 @@ echo "Getting HDF4 test files $file_list"
 # Try to get files 3 times, with a random delay between attempts.
 for f1 in $file_list
 do
-    if ! test -f $f1; then
-        failed=1
-        num_tries=0
-        delay=3
-        while [ $failed -eq 1 -a $num_tries -lt 3 ]
-        do
-	    if wget --passive-ftp "ftp://ftp.unidata.ucar.edu/pub/netcdf/sample_data/hdf4/$f1.gz"; then
-                failed=0
-                num_tries=0
-                delay=3
-	        gunzip -f $f1.gz
-            else
-                sleep $delay
-                num_tries=`expr $num_tries + 1`
-                delay=$(( RANDOM % (10 - 3 + 1 ) + 5 ))
-            fi
-        done
-        # If we can't get a file, we can't proceed.
-        if test $failed -eq 1; then
-            echo "Could not get HDF4 files from Unidata FTP site!"
-            exit 1
-        fi
-    fi
+  if ! test -f $f1; then
+
+	if getfile $f1 ; then
+  	  gunzip $f1.gz
+	else
+      echo Could not ftp $f1.gz
+      return 1
+	fi
+  fi
 done
 
 

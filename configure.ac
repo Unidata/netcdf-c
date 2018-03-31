@@ -794,6 +794,8 @@ AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
 AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64])
 AC_TYPE_OFF_T
+AC_TYPE_UINTPTR_T
+AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
 ###
@@ -1304,12 +1306,12 @@ AC_MSG_RESULT($enable_filter_testing)
 
 if test "x$enable_netcdf_4" = xno ; then
 AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing])
-enable_filter_testing = no
+enable_filter_testing=no
 fi
 
 if test "x$enable_shared" = xno ; then
 AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
-enable_filter_testing = no
+enable_filter_testing=no
 fi
 AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
 

@@ -5,7 +5,7 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.6.1 - TBD
+## 4.6.1 - March 19, 2018
 
 * [Bug Fix] Corrected an issue which could result in a dap4 failure. See [Github #888](https://github.com/Unidata/netcdf-c/pull/888) for more information.
 * [Bug Fix][Enhancement] Allow `nccopy` to control output filter suppresion.  See [Github #894](https://github.com/Unidata/netcdf-c/pull/894) for more information.

@@ -1,12 +1,12 @@
 # Test c output
-T=tst_addvar
+T=tst_diskless2
 
-ARGS=test_pnetcdf.nc
+ARGS=netcdf4
 
 #CMD=valgrind --leak-check=full
-CMD=gdb --args
+CMD=export NETCDF_LOG_LEVEL=5 ;gdb --args
 
-PAR=1
+#PAR=1
 
 CFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -g -O -I.. -I../include
 
