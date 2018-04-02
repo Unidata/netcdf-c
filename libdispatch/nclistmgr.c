@@ -33,6 +33,16 @@ free_NCList(void)
     nc_filelist = NULL;
 }
 
+/** 
+ * Add a file to the array of open files. 
+ * 
+ * @param ncp pointer of the NC struct to add to the list iof files.
+ *
+ * @returns 0 for success
+ * @returns NC_ENOMEM out of memory or no more open file slots.
+ * @author Dennis Heimbigner.
+ * @internal
+ */
 int
 add_to_NCList(NC* ncp)
 {

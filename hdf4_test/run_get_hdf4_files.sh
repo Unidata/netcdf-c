@@ -34,16 +34,18 @@ file_list="AMSR_E_L2_Rain_V10_200905312326_A.hdf AMSR_E_L3_DailyLand_V06_2002061
     MOD29.A2000055.0005.005.2006267200024.hdf"
 echo "Getting HDF4 test files $file_list"
 
+# Try to get files 3 times, with a random delay between attempts.
 for f1 in $file_list
 do
-    if ! test -f $f1; then
+  if ! test -f $f1; then
+
 	if getfile $f1 ; then
   	  gunzip $f1.gz
 	else
-          echo Could not ftp $f1.gz
-          return 1
+      echo Could not ftp $f1.gz
+      return 1
 	fi
-    fi
+  fi
 done
 
 
