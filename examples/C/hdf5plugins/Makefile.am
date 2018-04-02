@@ -8,6 +8,16 @@ PLUGINSRC = H5Zbzip2.c h5bzip2.h
 TARGETS = ${PLUGINSRC} ${BZIP2SRC}
 
 HDF5PLUGINSRC=${PLUGINSRC} ${BZIP2SRC}
+BUILT_SOURCES = ${TARGETS}
+
+${TARGETS}:
+	for x in ${TARGETS} ; do \
+	rm -f ./$$x; \
+	'cp' -f ${top_srcdir}/nc_test4/hdf5plugins/$$x . ; \
+	done
+
+CLEANFILES = ${TARGETS}
+
 
 if ENABLE_FILTER_TESTING
 
