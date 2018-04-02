@@ -36,10 +36,6 @@
 #include <stdio.h>
 #endif
 
-#ifndef HAVE_SSIZE_T
-typedef int ssize_t;
-#endif
-
 #ifndef SEEK_SET
 #define SEEK_SET 0
 #define SEEK_CUR 1
@@ -180,7 +176,7 @@ static int memio_new(const char* path, int ioflags, off_t initialsize, void* mem
       memio->memory = memory;
     } else {
         /* malloc memory */
-        memio->memory = (char*)malloc(memio->alloc);
+        memio->memory = (char*)malloc((size_t)memio->alloc);
         if(memio->memory == NULL) {status = NC_ENOMEM; goto fail;}
     }
 
@@ -227,7 +223,7 @@ memio_create(const char* path, int ioflags,
     if(path == NULL ||* path == 0)
         return NC_EINVAL;
 
-    status = memio_new(path, ioflags, initialsz, NULL, &nciop, &memio);
+    status = memio_new(path, ioflags, (off_t)initialsz, NULL, &nciop, &memio);
     if(status != NC_NOERR)
         return status;
 
@@ -270,7 +266,7 @@ fprintf(stderr,"memio_create: initial memory: %lu/%lu\n",(unsigned long)memio->m
     }
 
     /* Pick a default sizehint */
-    if(sizehintp) *sizehintp = pagesize;
+    if(sizehintp) *sizehintp = (size_t)pagesize;
 
     *nciopp = nciop;
     return NC_NOERR;
@@ -322,7 +318,7 @@ memio_open(const char* path,
     sizehint = *sizehintp;
 
     if(inmemory) {
-	filesize = meminfo->size;
+	filesize = (off_t)meminfo->size;
     } else {
         /* Open the file,and make sure we can write it if needed */
         oflags = (persist ? O_RDWR : O_RDONLY);
@@ -373,7 +369,7 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
         red = memio->size;
         pos = memio->memory;
         while(red > 0) {
-            ssize_t count = read(fd, pos, red);
+            ssize_t count = (ssize_t)read(fd, pos, (size_t)red);
             if(count < 0) {status = errno; goto unwind_open;}
             if(count == 0) {status = NC_ENOTNC; goto unwind_open;}
             red -= count;
@@ -383,7 +379,7 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
     }
 
     /* Use half the filesize as the blocksize ; why? */
-    sizehint = filesize/2;
+    sizehint = (size_t)filesize/2;
 
     /* sizehint must be multiple of 8 */
     sizehint = (sizehint / 8) * 8;
@@ -454,11 +450,11 @@ memio_pad_length(ncio* nciop, off_t length)
 	if((newsize % pagesize) != 0)
 	    newsize += (pagesize - (newsize % pagesize));
 
-        newmem = (char*)realloc(memio->memory,newsize);
+        newmem = (char*)realloc(memio->memory,(size_t)newsize);
         if(newmem == NULL) return NC_ENOMEM;
 
 	/* zero out the extra memory */
-        memset((void*)((char*)newmem+memio->alloc),0,(newsize - memio->alloc));
+        memset((void*)((char*)newmem+memio->alloc),0,(size_t)(newsize - memio->alloc));
 
 #ifdef DEBUG
 fprintf(stderr,"realloc: %lu/%lu -> %lu/%lu\n",
@@ -509,7 +505,7 @@ memio_close(ncio* nciop, int doUnlink)
 	    off_t written = memio->size;
 	    char* pos = memio->memory;
 	    while(written > 0) {
-	        ssize_t count = write(fd, pos, written);
+	        ssize_t count = (ssize_t)write(fd, pos, (size_t)written);
 	        if(count < 0)
 	            {status = errno; goto done;}
 	        if(count == 0)
@@ -557,7 +553,7 @@ memio_get(ncio* const nciop, off_t offset, size_t extent, int rflags, void** con
     NCMEMIO* memio;
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
     memio = (NCMEMIO*)nciop->pvt;
-    status = guarantee(nciop, offset+extent);
+    status = guarantee(nciop, offset+(off_t)extent);
     memio->locked++;
     if(status != NC_NOERR) return status;
     if(vpp) *vpp = memio->memory+offset;
@@ -577,11 +573,11 @@ memio_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int ignored)
     memio = (NCMEMIO*)nciop->pvt;
     if(from < to) {
        /* extend if "to" is not currently allocated */
-       status = guarantee(nciop,to+nbytes);
+       status = guarantee(nciop,to+(off_t)nbytes);
        if(status != NC_NOERR) return status;
     }
     /* check for overlap */
-    if((to + nbytes) > from || (from + nbytes) > to) {
+    if((to + (off_t)nbytes) > from || (from + (off_t)nbytes) > to) {
 	/* Ranges overlap */
 #ifdef HAVE_MEMMOVE
         memmove((void*)(memio->memory+to),(void*)(memio->memory+from),nbytes);

@@ -55,7 +55,7 @@ NCerror
 dapmapconstraints(DCEconstraint* constraint,
 		CDFnode* root)
 {
-    int i;
+    size_t i;
     NCerror ncstat = NC_NOERR;
     NClist* nodes = root->tree->nodes;
     NClist* dceprojections = constraint->projections;
@@ -86,7 +86,7 @@ NCerror
 dapqualifyconstraints(DCEconstraint* constraint)
 {
     NCerror ncstat = NC_NOERR;
-    int i;
+    size_t i;
 #ifdef DEBUG
 fprintf(stderr,"ncqualifyconstraints.before: %s\n",
 		dumpconstraint(constraint));
@@ -137,7 +137,7 @@ fprintf(stderr,"%s\n",
 static NCerror
 qualifyprojectionsizes(DCEprojection* proj)
 {
-    int i,j;
+    size_t i,j;
     ASSERT(proj->discrim == CES_VAR);
 #ifdef DEBUG
 fprintf(stderr,"qualifyprojectionsizes.before: %s\n",
@@ -174,10 +174,9 @@ fprintf(stderr,"qualifyprojectionsizes.after: %s\n",
 static void
 completesegments(NClist* fullpath, NClist* segments)
 {
-    int i,delta;
+    size_t i,delta;
     /* add path nodes to segments to create full path */
     delta = (nclistlength(fullpath) - nclistlength(segments));
-    ASSERT((delta >= 0));
     for(i=0;i<delta;i++) {
         DCEsegment* seg = (DCEsegment*)dcecreate(CES_SEGMENT);
         CDFnode* node = (CDFnode*)nclistget(fullpath,i);
@@ -232,7 +231,7 @@ Additional constraints (4/12/2010):
 static NCerror
 matchpartialname(NClist* nodes, NClist* segments, CDFnode** nodep)
 {
-    int i,nsegs;
+    size_t i,nsegs;
     NCerror ncstat = NC_NOERR;
     DCEsegment* lastseg = NULL;
     NClist* namematches = nclistnew();
