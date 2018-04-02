@@ -25,6 +25,8 @@
 /* Always needed */
 #include "nc.h"
 
+#include "nchashmap.h"
+
 #ifndef NC_ARRAY_GROWBY
 #define NC_ARRAY_GROWBY 4
 #endif
@@ -54,25 +56,6 @@ typedef enum {
 	NC_VARIABLE =	11,
 	NC_ATTRIBUTE =	12
 } NCtype;
-
-#ifndef NEWHASHMAP /* temporary hack until new hash is complete */
-/*! Hashmap-related structs.
-  NOTE: 'data' is the dimid or varid which is non-negative.
-  we store the dimid+1 so a valid entry will have
-  data > 0
-*/
-typedef struct {
-  long data;
-  int flags;
-  unsigned long key;
-} hEntry;
-
-typedef struct s_hashmap {
-  hEntry* table;
-  unsigned long size;
-  unsigned long count;
-} NC_hashmap;
-#endif
 
 /*
  * NC dimension structure
@@ -229,42 +212,12 @@ extern int
 NC_findvar(const NC_vararray *ncap, const char *name, NC_var **varpp);
 
 extern int
-NC_check_vlen(NC_var *varp, size_t vlen_max);
+NC_check_vlen(NC_var *varp, unsigned long long vlen_max);
 
 extern int
 NC_lookupvar(NC3_INFO* ncp, int varid, NC_var **varp);
 
 /* End defined in var.c */
-
-/* defined in nc_hashmap.c */
-/** Creates a new hashmap near the given size. */
-extern NC_hashmap* NC_hashmapCreate(unsigned long startsize);
-
-/** Inserts a new element into the hashmap. */
-extern void NC_hashmapAddDim(const NC_dimarray*, long data, const char *name);
-
-/** Removes the storage for the element of the key and returns the element. */
-extern long NC_hashmapRemoveDim(const NC_dimarray*, const char *name);
-
-/** Returns the element for the key. */
-extern long NC_hashmapGetDim(const NC_dimarray*, const char *name);
-
-/** Inserts a new element into the hashmap. */
-extern void NC_hashmapAddVar(const NC_vararray*, long data, const char *name);
-
-/** Removes the storage for the element of the key and returns the element. */
-extern long NC_hashmapRemoveVar(const NC_vararray*, const char *name);
-
-/** Returns the element for the key. */
-extern long NC_hashmapGetVar(const NC_vararray*, const char *name);
-
-/** Returns the number of saved elements. */
-extern unsigned long NC_hashmapCount(NC_hashmap*);
-
-/** Removes the hashmap structure. */
-extern void NC_hashmapDelete(NC_hashmap*);
-
-/* end defined in nc_hashmap.c */
 
 #define IS_RECVAR(vp) \
 	((vp)->shape != NULL ? (*(vp)->shape == NC_UNLIMITED) : 0 )

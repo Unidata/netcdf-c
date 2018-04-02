@@ -25,6 +25,25 @@ Test _NCProperties and other special attributes
 #define GROUPNAME "subgroup"
 #define DIMNAME "time"
 
+/*
+Effective cdl:
+
+netcdf nc4_fileinfo {
+dimensions:
+	time = 4;
+variables:
+	int :int_attr;
+	int int_var;
+		int int_var:int_attr;
+		char int_var:_NCProperties;
+	int time(time);
+  group subgroup: {
+	int :int_attr;
+	char :_NCProperties;
+  }
+}
+*/
+
 int
 main(int argc, char **argv)
 {
