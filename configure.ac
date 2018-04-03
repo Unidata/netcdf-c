@@ -91,6 +91,10 @@ AC_ARG_WITH([minblocksize],
 AC_MSG_RESULT([$NCIO_MINBLOCKSIZE])
 AC_DEFINE_UNQUOTED([NCIO_MINBLOCKSIZE], [$NCIO_MINBLOCKSIZE], [min blocksize for posixio.])
 
+# Find valgrind, if available, and add targets for it.
+AX_VALGRIND_DFLT([sgcheck], [off])
+AX_VALGRIND_CHECK
+
 ###
 # Doxygen and doxygen-related options.
 ###
