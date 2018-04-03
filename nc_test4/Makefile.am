@@ -150,3 +150,6 @@ szip_dump.cdl
 DISTCLEANFILES = findplugin.sh
 
 SUBDIRS=hdf5plugins
+
+# If valgrind is present, add valgrind targets.
+@VALGRIND_CHECK_RULES@
