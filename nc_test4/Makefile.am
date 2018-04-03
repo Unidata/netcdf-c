@@ -155,3 +155,6 @@ szip_dump.cdl perftest.txt bigmeta.nc
 DISTCLEANFILES = findplugin.sh
 
 SUBDIRS=hdf5plugins
+
+# If valgrind is present, add valgrind targets.
+@VALGRIND_CHECK_RULES@
