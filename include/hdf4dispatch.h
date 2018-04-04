@@ -1,10 +1,10 @@
 /* Copyright 2018, UCAR/Unidata. See netcdf/COPYRIGHT file for copying
  * and redistribution conditions. */
 /**
- * @file This header file contains the prototypes for the HDF4
- * versions of the netCDF functions. This is part of the HDF4 dispatch
- * layer and this header should not be included by any file outside
- * the libhdf4 directory.
+ * @file @internal This header file contains the prototypes for the
+ * HDF4 versions of the netCDF functions. This is part of the HDF4
+ * dispatch layer and this header should not be included by any file
+ * outside the libhdf4 directory.
  *
  * Ed Hartnett
  */
@@ -14,8 +14,13 @@
 #include "config.h"
 #include "ncdispatch.h"
 
-/** This is the max size of an SD dataset name in HDF4 (from HDF4 documentation).*/
+/** This is the max size of an SD dataset name in HDF4 (from HDF4
+ * documentation).*/
 #define NC_MAX_HDF4_NAME 64
+
+/** This is the max number of dimensions for a HDF4 SD dataset (from
+ * HDF4 documentation). */
+#define NC_MAX_HDF4_DIMS 32
 
 /* Stuff below is for hdf4 files. */
 typedef struct NC_VAR_HDF4_INFO
@@ -36,9 +41,6 @@ extern "C" {
    extern int
    NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp, 
                 int use_parallel, void* parameters, NC_Dispatch*, NC*);
-
-   extern int
-   NC_HDF4_abort(int ncid);
 
    extern int
    NC_HDF4_close(int ncid);

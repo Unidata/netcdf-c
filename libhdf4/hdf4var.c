@@ -59,10 +59,14 @@ NC_HDF4_get_vara(int ncid, int varid, const size_t *startp,
    /* Find our metadata for this file, group, and var. */
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
       return retval;
-   assert(grp && var && var->name && var->format_var_info);
+
+   assert(grp && var && var->hdr.name && var->format_var_info);
 
    /* Get the HDF4 specific var metadata. */
    hdf4_var = (NC_VAR_HDF4_INFO_T *)var->format_var_info;
+
+   h5 = NC4_DATA(nc);
+   assert(h5);
 
    /* Convert starts/edges to the int32 type HDF4 wants. Also learn
     * how many elements of data are being read. */
@@ -75,10 +79,10 @@ NC_HDF4_get_vara(int ncid, int varid, const size_t *startp,
 
    /* If memtype was not give, use variable type. */
    if (memtype == NC_NAT)
-      memtype = var->type_info->nc_typeid;
+      memtype = var->type_info->hdr.id;
 
    /* If we need to convert data, allocate temp storage. */
-   if (var->type_info->nc_typeid == memtype)
+   if (var->type_info->hdr.id == memtype)
       data = ip;
    else
       if (!(data = malloc(var->type_info->size * nelem)))
@@ -89,9 +93,9 @@ NC_HDF4_get_vara(int ncid, int varid, const size_t *startp,
       return NC_EHDFERR;
 
    /* Do we need to convert data? */
-   if (var->type_info->nc_typeid != memtype)
+   if (var->type_info->hdr.id != memtype)
    {
-      if ((retval = nc4_convert_type(data, ip, var->type_info->nc_typeid, memtype, nelem,
+      if ((retval = nc4_convert_type(data, ip, var->type_info->hdr.id, memtype, nelem,
                                      &range_error, NULL, 0, 0, 0)))
          return retval;
       free(data);
