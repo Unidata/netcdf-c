@@ -12,7 +12,9 @@ SET_TESTS_PROPERTIES(C_tests_simple_xy_rd PROPERTIES DEPENDS C_tests_simple_xy_w
 SET_TESTS_PROPERTIES(C_tests_sfc_pres_temp_rd PROPERTIES DEPENDS C_tests_sfc_pres_temp_wr)
 SET_TESTS_PROPERTIES(C_tests_pres_temp_4D_rd PROPERTIES DEPENDS C_tests_pres_temp_4D_wr)
 
-ADD_SUBDIRECTORY(hdf5plugins)
+IF(ENABLE_FILTER_TESTING)
+  ADD_SUBDIRECTORY(hdf5plugins)
+ENDIF(ENABLE_FILTER_TESTING)
 
 SET(CLEANFILES sfc_pres_temp.nc simple_xy.nc pres_temp_4D.nc simple_nc4.nc simple_xy_nc4.nc)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")

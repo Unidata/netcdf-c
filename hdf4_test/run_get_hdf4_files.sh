@@ -14,7 +14,9 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 # Get a file from the ftp site; retry several times
 getfile() {
    FTPFILE="ftp://ftp.unidata.ucar.edu/pub/netcdf/sample_data/hdf4/$1.gz"
+
    for try in 1 2 3 4 ; do # try 4 times
+
      # signal sucess/failure
      if wget -c $Q --passive-ftp $FTPFILE ; then
        return 0 # got it

@@ -43,12 +43,17 @@ close_hdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 
    /* Delete all the list contents for vars, dims, and atts, in each
     * group. */
-   if ((retval = nc4_rec_grp_del(&h5->root_grp, h5->root_grp)))
+   if ((retval = nc4_rec_grp_del(h5->root_grp)))
       return retval;
 
    /* Close hdf file. */
    if (SDend(h5->sdid))
       return NC_EHDFERR;
+
+   /* Misc. Cleanup */
+   nclistfree(h5->alldims);
+   nclistfree(h5->allgroups);
+   nclistfree(h5->alltypes);
 
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
@@ -60,10 +65,10 @@ close_hdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 #define NUM_TYPES 12 /**< Number of netCDF atomic types. */
 
 /** @internal NetCDF atomic type names. */
-static const char nc_type_name_g[NUM_TYPES][NC_MAX_NAME + 1] = {"char", "byte", "short",
-                                                                "int", "float", "double", "ubyte",
-                                                                "ushort", "uint", "int64",
-                                                                "uint64", "string"};
+static const char* nc_type_name_g[NUM_TYPES] = {"char", "byte", "short",
+                                                "int", "float", "double", "ubyte",
+                                                "ushort", "uint", "int64",
+                                                "uint64", "string"};
 
 /** @internal NetCDF atomic type sizes. */
 static const int nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof(short),
@@ -112,9 +117,10 @@ HDF4_create(const char* path, int cmode, size_t initialsz, int basepe,
  */
 static int
 get_netcdf_type_from_hdf4(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid,
-                          nc_type *xtype, NC_TYPE_INFO_T *type_info)
+                          nc_type* xtypep, NC_TYPE_INFO_T **typep)
 {
    int t = 0;
+   nc_type xtype;
 
    /* Added this variable in the course of fixing NCF-332.
     * Prior to the fix, all data types were assigned
@@ -123,107 +129,116 @@ get_netcdf_type_from_hdf4(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid,
     * I can hazard a guess or two.
     */
    int endianness = NC_ENDIAN_BIG;
-   assert(h5 && xtype);
+   assert(h5);
 
    switch(hdf4_typeid)
    {
    case DFNT_CHAR:
-      *xtype = NC_CHAR;
+      xtype = NC_CHAR;
       t = 0;
       break;
    case DFNT_UCHAR:
    case DFNT_UINT8:
-      *xtype = NC_UBYTE;
+      xtype = NC_UBYTE;
       t = 6;
       break;
    case DFNT_LUINT8:
-      *xtype = NC_UBYTE;
+      xtype = NC_UBYTE;
       t = 6;
       endianness = NC_ENDIAN_LITTLE;
       break;
    case DFNT_INT8:
-      *xtype = NC_BYTE;
+      xtype = NC_BYTE;
       t = 1;
       break;
    case DFNT_LINT8:
-      *xtype = NC_BYTE;
+      xtype = NC_BYTE;
       t = 1;
       endianness = NC_ENDIAN_LITTLE;
       break;
    case DFNT_INT16:
-      *xtype = NC_SHORT;
+      xtype = NC_SHORT;
       t = 2;
       break;
    case DFNT_LINT16:
-      *xtype = NC_SHORT;
+      xtype = NC_SHORT;
       t = 2;
       endianness = NC_ENDIAN_LITTLE;
       break;
    case DFNT_UINT16:
-      *xtype = NC_USHORT;
+      xtype = NC_USHORT;
       t = 7;
       break;
    case DFNT_LUINT16:
-      *xtype = NC_USHORT;
+      xtype = NC_USHORT;
       t = 7;
       endianness = NC_ENDIAN_LITTLE;
       break;
    case DFNT_INT32:
-      *xtype = NC_INT;
+      xtype = NC_INT;
       t = 3;
       break;
    case DFNT_LINT32:
-      *xtype = NC_INT;
+      xtype = NC_INT;
       t = 3;
       endianness = NC_ENDIAN_LITTLE;
       break;
    case DFNT_UINT32:
-      *xtype = NC_UINT;
+      xtype = NC_UINT;
       t = 8;
       break;
    case DFNT_LUINT32:
-      *xtype = NC_UINT;
+      xtype = NC_UINT;
       t = 8;
       endianness = NC_ENDIAN_LITTLE;
       break;
    case DFNT_FLOAT32:
-      *xtype = NC_FLOAT;
+      xtype = NC_FLOAT;
       t = 4;
       break;
    case DFNT_LFLOAT32:
-      *xtype = NC_FLOAT;
+      xtype = NC_FLOAT;
       t = 4;
       endianness = NC_ENDIAN_LITTLE;
       break;
    case DFNT_FLOAT64:
-      *xtype = NC_DOUBLE;
+      xtype = NC_DOUBLE;
       t = 5;
       break;
    case DFNT_LFLOAT64:
-      *xtype = NC_DOUBLE;
+      xtype = NC_DOUBLE;
       t = 5;
       endianness = NC_ENDIAN_LITTLE;
       break;
    default:
-      *xtype = NC_NAT;
+      if(xtypep) *xtypep = NC_NAT;
       return NC_EBADTYPID;
    }
+   if(xtypep) *xtypep = xtype;
 
-   if (type_info)
+   if (typep)
    {
-      if (hdf4_typeid == DFNT_FLOAT32)
-         type_info->nc_type_class = NC_FLOAT;
-      else if (hdf4_typeid == DFNT_FLOAT64)
-         type_info->nc_type_class = NC_DOUBLE;
-      else if (hdf4_typeid == DFNT_CHAR)
-         type_info->nc_type_class = NC_STRING;
-      else
-         type_info->nc_type_class = NC_INT;
-      type_info->endianness = endianness;
-      type_info->nc_typeid = *xtype;
-      type_info->size = nc_type_size_g[t];
-      if (!(type_info->name = strdup(nc_type_name_g[t])))
+      NC_TYPE_INFO_T* type = NULL;
+
+      if (!(type = calloc(1, sizeof(NC_TYPE_INFO_T))))
          return NC_ENOMEM;
+      type->hdr.sort = NCTYP;
+      if (hdf4_typeid == DFNT_FLOAT32)
+         type->nc_type_class = NC_FLOAT;
+      else if (hdf4_typeid == DFNT_FLOAT64)
+         type->nc_type_class = NC_DOUBLE;
+      else if (hdf4_typeid == DFNT_CHAR)
+         type->nc_type_class = NC_STRING;
+      else
+         type->nc_type_class = NC_INT;
+      type->endianness = endianness;
+      type->size = nc_type_size_g[t];
+      type->hdr.id = xtype;
+      type->hdr.name = strdup(nc_type_name_g[t]);
+      if(type->hdr.name == NULL)
+	return NC_ENOMEM;
+      type->hdr.hashkey = NC_hashmapkey(type->hdr.name,strlen(type->hdr.name));
+      if(typep) *typep = type;
    }
 
    return NC_NOERR;
@@ -245,11 +260,13 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    NC_HDF5_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_ATT_INFO_T *att;
+   NC_VAR_INFO_T *var = NULL;
    int32 num_datasets, num_gatts;
    int32 rank;
    int v, d, a;
-   int retval;
+   int retval = NC_NOERR;
    NC_HDF5_FILE_INFO_T* nc4_info = NULL;
+   int32 *dimsize = NULL;
 
    LOG((3, "%s: path %s mode %d", __func__, path, mode));
    assert(path && nc);
@@ -281,25 +298,23 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    {
       int32 att_data_type, att_count;
       size_t att_type_size;
-
-      /* Add to the end of the list of atts for this var. */
-      if ((retval = nc4_att_list_add(&h5->root_grp->att, &att)))
-         return retval;
-      att->attnum = grp->natts++;
-      att->created = NC_TRUE;
+      char name[NC_MAX_HDF4_NAME+1];
 
       /* Learn about this attribute. */
-      if (!(att->name = malloc(NC_MAX_HDF4_NAME * sizeof(char))))
-         return NC_ENOMEM;
-      if (SDattrinfo(h5->sdid, a, att->name, &att_data_type, &att_count))
+      if (SDattrinfo(h5->sdid, a, name, &att_data_type, &att_count))
          return NC_EATTMETA;
-      if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type,
-                                              &att->nc_typeid, NULL)))
+
+      /* Add to the end of the list of atts for this var. */
+      if ((retval = nc4_att_list_add(h5->root_grp->att, name, &att)))
+         return retval;
+      att->created = NC_TRUE;
+
+      if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, &att->nc_typeid, NULL)))
          return retval;
       att->len = att_count;
 
       /* Allocate memory to hold the data. */
-      if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, 0, &att_type_size)))
+      if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, &att_type_size)))
          return retval;
       if (!(att->data = malloc(att_type_size * att->len)))
          return NC_ENOMEM;
@@ -312,8 +327,9 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    /* Read each dataset. */
    for (v = 0; v < num_datasets; v++)
    {
-      NC_VAR_INFO_T *var;
       int32 data_type, num_atts;
+      int sdsid;
+
       /* Problem: Number of dims is returned by the call that requires
          a pre-allocated array, 'dimsize'.
          From SDS_SD website:
@@ -322,75 +338,47 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 
          int32 dimsize[MAX_VAR_DIMS];
       */
-      int32 *dimsize = NULL;
       size_t var_type_size;
       int a;
-
-      /* Add a variable. */
-      if ((retval = nc4_var_add(&var)))
-         return retval;
-
-      var->varid = grp->nvars++;
-      var->created = NC_TRUE;
-      var->written_to = NC_TRUE;
-
-      /* Add a var to the variable array, growing it as needed. */
-      if ((retval = nc4_vararray_add(grp, var)))
-         return retval;
+      char name[NC_MAX_HDF4_NAME+1];
 
       /* Open this dataset in HDF4 file. */
-      if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL)
-         return NC_EVARMETA;
-
-      /* Get shape, name, type, and attribute info about this dataset. */
-      if (!(var->name = malloc(NC_MAX_HDF4_NAME + 1)))
-         return NC_ENOMEM;
+      if ((sdsid = SDselect(h5->sdid, v)) == FAIL)
+         {retval = NC_EVARMETA; goto fail;}
 
       /* Invoke SDgetInfo with null dimsize to get rank. */
-      if (SDgetinfo(var->sdsid, var->name, &rank, NULL, &data_type, &num_atts))
-         return NC_EVARMETA;
-
-      var->hash = hash_fast(var->name, strlen(var->name));
+      if (SDgetinfo(sdsid, name, &rank, NULL, &data_type, &num_atts))
+         {retval = NC_EVARMETA; goto fail;}
 
       if(!(dimsize = (int32*)malloc(sizeof(int32)*rank)))
-         return NC_ENOMEM;
+         {retval = NC_ENOMEM; goto fail;}
 
-      if (SDgetinfo(var->sdsid, var->name, &rank, dimsize, &data_type, &num_atts)) {
-         if(dimsize) free(dimsize);
-         return NC_EVARMETA;
-      }
+      if (SDgetinfo(sdsid, name, &rank, dimsize, &data_type, &num_atts))
+         {retval = NC_EVARMETA; goto fail;}
 
-      var->ndims = rank;
+      /* Add a variable. */
+      if ((retval = nc4_var_list_add(grp,name,rank,&var)))
+         return retval;
+      var->created = NC_TRUE;
+      var->written_to = NC_TRUE;
       var->hdf4_data_type = data_type;
+      var->sdsid = sdsid;
 
       /* Fill special type_info struct for variable type information. */
-      if (!(var->type_info = calloc(1, sizeof(NC_TYPE_INFO_T)))) {
-         if(dimsize) free(dimsize);
-         return NC_ENOMEM;
-      }
-
-      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->type_info->nc_typeid, var->type_info))) {
-         if(dimsize) free(dimsize);
-         return retval;
-      }
+      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, NULL, &var->type_info)))
+	 goto fail;
+      if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &var_type_size)))
+	goto fail;
 
       /* Indicate that the variable has a pointer to the type */
       var->type_info->rc++;
 
-      if ((retval = nc4_get_typelen_mem(h5, var->type_info->nc_typeid, 0, &var_type_size))) {
-         if(dimsize) free(dimsize);
-         return retval;
-      }
-
-      var->type_info->size = var_type_size;
-      LOG((3, "reading HDF4 dataset %s, rank %d netCDF type %d", var->name,
-           rank, var->type_info->nc_typeid));
+      LOG((3, "reading HDF4 dataset %s, rank %d netCDF type %d", var->hdr.name,
+           rank, var->type_info->hdr.id));
 
       /* Get the fill value. */
-      if (!(var->fill_value = malloc(var_type_size))) {
-         if(dimsize) free(dimsize);
-         return NC_ENOMEM;
-      }
+      if (!(var->fill_value = malloc(var_type_size)))
+	{retval = NC_ENOMEM; goto fail;}
 
       if (SDgetfillvalue(var->sdsid, var->fill_value))
       {
@@ -402,63 +390,47 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       /* Allocate storage for dimension info in this variable. */
       if (var->ndims)
       {
-         if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * var->ndims))) {
-            if(dimsize) free(dimsize);
-            return NC_ENOMEM;
-         }
-
-         if (!(var->dimids = malloc(sizeof(int) * var->ndims))) {
-            if(dimsize) free(dimsize);
-            return NC_ENOMEM;
-         }
+         if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * var->ndims)))
+	    {retval = NC_ENOMEM; goto fail;}
+         if (!(var->dimids = malloc(sizeof(int) * var->ndims)))
+	    {retval = NC_ENOMEM; goto fail;}
       }
-
 
       /* Find its dimensions. */
       for (d = 0; d < var->ndims; d++)
       {
+	 int i;
          int32 dimid, dim_len, dim_data_type, dim_num_attrs;
          char dim_name[NC_MAX_NAME + 1];
-         NC_DIM_INFO_T *dim;
+         NC_DIM_INFO_T *dim = NULL;
 
-         if ((dimid = SDgetdimid(var->sdsid, d)) == FAIL) {
-            if(dimsize) free(dimsize);
-            return NC_EDIMMETA;
-         }
-         if (SDdiminfo(dimid, dim_name, &dim_len, &dim_data_type,
-                       &dim_num_attrs))
-         {
-            if(dimsize) free(dimsize);
-            return NC_EDIMMETA;
-         }
+         if ((dimid = SDgetdimid(var->sdsid, d)) == FAIL)
+	    {retval = NC_EDIMMETA; goto fail;}
+         if (SDdiminfo(dimid, dim_name, &dim_len, &dim_data_type, &dim_num_attrs))
+	    {retval = NC_EDIMMETA; goto fail;}
+         if (strlen(dim_name) > NC_MAX_HDF4_NAME)
+            {retval = NC_EMAXNAME; goto fail;}
 
          /* Do we already have this dimension? HDF4 explicitly uses
           * the name to tell. */
-         for (dim = grp->dim; dim; dim = dim->l.next)
-            if (!strcmp(dim->name, dim_name))
+	 for(i=0;i<ncindexsize(grp->dim);i++) {
+            dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
+            if (!strcmp(dim->hdr.name, dim_name))
                break;
+	    dim = NULL;
+	 }
 
          /* If we didn't find this dimension, add one. */
          if (!dim)
          {
             LOG((4, "adding dimension %s for HDF4 dataset %s",
-                 dim_name, var->name));
-            if ((retval = nc4_dim_list_add(&grp->dim, &dim)))
+                 dim_name, var->hdr.name));
+            if ((retval = nc4_dim_list_add(grp, dim_name, (dim_len?dim_len:*dimsize), -1, &dim)))
                return retval;
-            dim->dimid = grp->nc4_info->next_dimid++;
-            if (strlen(dim_name) > NC_MAX_HDF4_NAME)
-               return NC_EMAXNAME;
-            if (!(dim->name = strdup(dim_name)))
-               return NC_ENOMEM;
-            if (dim_len)
-               dim->len = dim_len;
-            else
-               dim->len = *dimsize;
-            dim->hash = hash_fast(dim_name, strlen(dim_name));
          }
 
          /* Tell the variable the id of this dimension. */
-         var->dimids[d] = dim->dimid;
+         var->dimids[d] = dim->hdr.id;
          var->dim[d] = dim;
       }
 
@@ -467,49 +439,31 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       {
          int32 att_data_type, att_count;
          size_t att_type_size;
-
-         /* Add to the end of the list of atts for this var. */
-         if ((retval = nc4_att_list_add(&var->att, &att))) {
-            if(dimsize) free(dimsize);
-            return retval;
-         }
-         att->attnum = var->natts++;
-         att->created = NC_TRUE;
+	 char name[NC_MAX_HDF4_NAME+1];
 
          /* Learn about this attribute. */
-         if (!(att->name = malloc(NC_MAX_HDF4_NAME * sizeof(char)))) {
-            if(dimsize) free(dimsize);
-            return NC_ENOMEM;
-         }
-         if (SDattrinfo(var->sdsid, a, att->name, &att_data_type, &att_count)) {
-            if(dimsize) free(dimsize);
-            return NC_EATTMETA;
-         }
-         if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type,
-                                                 &att->nc_typeid, NULL))) {
-            if(dimsize) free(dimsize);
-            return retval;
-         }
-
+         if (SDattrinfo(var->sdsid, a, name, &att_data_type, &att_count))
+            {retval = NC_EATTMETA; goto fail;}
+         /* Add to the end of the list of atts for this var. */
+         if ((retval = nc4_att_list_add(var->att, name, &att)))
+	    goto fail;
+         att->created = NC_TRUE;
          att->len = att_count;
 
+         if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, &att->nc_typeid, NULL)))
+	    goto fail;
+
          /* Allocate memory to hold the data. */
-         if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, 0, &att_type_size))) {
-            if(dimsize) free(dimsize);
-            return retval;
-         }
-         if (!(att->data = malloc(att_type_size * att->len))) {
-            if(dimsize) free(dimsize);
-            return NC_ENOMEM;
-         }
+         if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, &att_type_size)))
+	    goto fail;
+         if (!(att->data = malloc(att_type_size * att->len)))
+            {retval = NC_ENOMEM; goto fail;}
 
          /* Read the data. */
-         if (SDreadattr(var->sdsid, a, att->data)) {
-            if(dimsize) free(dimsize);
-            return NC_EHDFERR;
-         }
+         if (SDreadattr(var->sdsid, a, att->data))
+            {retval = NC_EHDFERR; goto fail;}
       }
-      if(dimsize) free(dimsize);
+      if(dimsize) {free(dimsize); dimsize = NULL;}
 
       {
          /* HDF4 files can be chunked */
@@ -528,7 +482,6 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
             }
          }
       }
-
    } /* next var */
 
 #ifdef LOGGING
@@ -536,7 +489,12 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       atts in the file, if the logging level is 2 or greater. */
    log_metadata_nc(h5->root_grp->nc4_info->controller);
 #endif
-   return NC_NOERR;
+   return retval;
+
+fail:
+   if(dimsize) free(dimsize);
+   if(var) nc4_var_list_del(grp,var);
+   return retval;
 }
 
 /**
@@ -709,5 +667,6 @@ HDF4_close(int ncid)
 
    return NC_NOERR;
 }
+
 
 
