@@ -309,7 +309,7 @@ nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp,
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
       return retval;
    h5 = NC4_DATA(nc);
-   assert(grp && h5 && var && var->name);
+   assert(grp && h5 && var && var->hdr.name);
 
    for (d = 0; d < var->ndims; d++)
    {

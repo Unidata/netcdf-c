@@ -1,7 +1,7 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/nctest/atttests.c,v 1.18 2006/10/31 16:21:45 ed Exp $
+ *   $Header: /upc/share/CVS/netcdf-3/nctst/atttests.c,v 1.18 2006/10/31 16:21:45 ed Exp $
  *********************************************************************/
 
 #ifdef _MPW

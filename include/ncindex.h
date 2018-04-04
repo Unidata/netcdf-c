@@ -9,7 +9,9 @@ See LICENSE.txt for license information.
 /* If defined, then the hashmap is used.
    This for performance experimentation
 */
-#undef NCUSEHASH
+#undef NCNOHASH
+
+#undef NCINDEXDEBUG
 
 #include "nclist.h"
 #include "nchashmap.h" /* Also includes name map and id map */
@@ -36,7 +38,7 @@ See docs/indexind.dox for more detailed documentation
 /* Generic list + matching hashtable */
 typedef struct NCindex {
    NClist* list;
-#ifndef NCUSEHASH
+#ifndef NCNOHASH
    NC_hashmap* map;
 #endif
 } NCindex;
@@ -54,14 +56,23 @@ extern int ncindexfind(NCindex* index, struct NC_OBJ* o);
 /* Return 1 if ok, 0 otherwise.*/
 extern int ncindexadd(NCindex* index, struct NC_OBJ* obj);
 
+/* Insert object at ith position of the vector, also insert into the hashmaps; */
+/* Return 1 if ok, 0 otherwise.*/
+extern int ncindexset(NCindex* index, size_t i, struct NC_OBJ* obj);
+
 /* Get a copy of the vector contents */
 extern struct NC_OBJ** ncindexdup(NCindex* index);
 
-/* Rehash all objects in the vector */
-/* Return 1 if ok, 0 otherwise.*/
-extern int ncindexrehash(NCindex* index);
+/* Count the non-null entries in an NCindex */
+extern int ncindexcount(NCindex* index);
 
-/* Remove ith object from the index; WARNING: may affect ids */
+/* Rebuild index using all objects in the vector */
+/* Return 1 if ok, 0 otherwise.*/
+extern int ncindexrebuild(NCindex* index);
+
+/* "Remove" ith object from the index;
+    WARNING: Replaces it with NULL in the list.
+*/
 /* Return 1 if ok, 0 otherwise.*/
 extern int ncindexidel(NCindex* index,size_t i);
 
@@ -84,6 +95,16 @@ extern struct NC_OBJ* ncindexlookup(NCindex*, const char* name);
 #define ncindexinitialized(index) ((index) != NULL && (index)->list != NULL)
 
 /* Get number of entries in an index */
+#ifdef NCINDEXDEBUG
+static int ncindexsize(NCindex* index)
+{
+   int i;
+   if(index == NULL) return 0;
+   i = nclistlength(index->list);   
+   return i;
+}
+#else
 #define ncindexsize(index) ((index)==NULL?0:(nclistlength((index)->list)))
+#endif
 
 #endif /*ncindexH*/

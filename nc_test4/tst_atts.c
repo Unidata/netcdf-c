@@ -26,13 +26,16 @@
 #define CONTENTS_3 "Lots 0f pe0ple!"  /* same len as CONTENTS */
 #define VAR_NAME "Earth"
 
-#ifdef _MSC_VER /* otherwise defined in nc4internal/nc4file */
+/**
+WARNING: following should match lists in libsrc4/nc4file.c
+*/
+
 /**
  * @internal Define the names of attributes to ignore added by the
  * HDF5 dimension scale; these attached to variables. They cannot be
  * modified thru the netcdf-4 API.
  */
-const char* NC_RESERVED_VARATT_LIST[] = {
+static const char* NC_RESERVED_VARATT_LIST[] = {
    NC_ATT_REFERENCE_LIST,
    NC_ATT_CLASS,
    NC_ATT_DIMENSION_LIST,
@@ -47,7 +50,7 @@ const char* NC_RESERVED_VARATT_LIST[] = {
  * "hidden" global attributes. They can be read, but not modified thru
  * the netcdf-4 API.
  */
-const char* NC_RESERVED_ATT_LIST[] = {
+static const char* NC_RESERVED_ATT_LIST[] = {
    NC_ATT_FORMAT,
    NC3_STRICT_ATT_NAME,
    NCPROPS,
@@ -60,14 +63,12 @@ const char* NC_RESERVED_ATT_LIST[] = {
  * @internal Define the subset of the reserved list that is readable
  * by name only
 */
-const char* NC_RESERVED_SPECIAL_LIST[] = {
+static const char* NC_RESERVED_SPECIAL_LIST[] = {
    ISNETCDF4ATT,
    SUPERBLOCKATT,
    NCPROPS,
    NULL
 };
-
-#endif /*_MSC_VER*/
 
 int
 main(int argc, char **argv)
@@ -252,7 +253,7 @@ main(int argc, char **argv)
          const char** reserved = NC_RESERVED_VARATT_LIST;
          for ( ; *reserved; reserved++)
          {
-            if (nc_put_att_text(ncid, 0, *reserved, strlen(CONTENTS),
+           if (nc_put_att_text(ncid, 0, *reserved, strlen(CONTENTS),
                                 CONTENTS) != NC_ENAMEINUSE) ERR;
          }
       }
