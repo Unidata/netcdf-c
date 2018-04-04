@@ -86,7 +86,7 @@ parallel I/O.
 \ingroup datasets
 */
 int nc_create_par(const char *path, int cmode, MPI_Comm comm,
-	      MPI_Info info, int *ncidp)
+                  MPI_Info info, int *ncidp)
 {
 #ifndef USE_PARALLEL
    return NC_ENOPAR;
@@ -183,13 +183,9 @@ nc_open_par(const char *path, int mode, MPI_Comm comm,
 #else
    NC_MPI_INFO mpi_data;
 
-   /* One of these two parallel IO modes must be chosen by the user,
-    * or else pnetcdf must be in use. */
-   if ((mode & NC_MPIIO) || (mode & NC_MPIPOSIX)) {
-	/* ok */
-   } else if(mode & NC_PNETCDF) {
-	/* ok */
-   } else
+   /* One of these parallel IO modes must be chosen by the user. */
+   if (!((mode & NC_MPIIO || mode & NC_MPIPOSIX) ||
+         mode & NC_PNETCDF || mode & NC_PIO))
       return NC_EINVAL;
 
    mpi_data.comm = comm;

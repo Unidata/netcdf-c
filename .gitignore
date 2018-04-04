@@ -1,22 +1,3 @@
-#####
-# The following generated files are
-# ignored in development branch,
-# but should be included in releases.
-#####
-libsrc/attr.c
-libsrc/ncx.c
-libsrc/putget.c
-ctest.c
-ctest64.c
-nc_test/test_get.c
-nc_test/test_put.c
-nc_test/test_read.c
-nc_test/test_write.c
-
-#####
-# End ignored generated files.
-#####
-
 ### 'Normal' gitignore files.
 autom4te.cache
 debug.txt
@@ -37,9 +18,30 @@ scan-build
 .libs
 *.zip
 Makefile
+Makefile.in
 .DS_Store
 build-par
 build_llvm
 .vagrant
 Vagrantfile
 netcdf-fortran
+test-driver
+m4/libtool.m4
+m4/lt~obsolete.m4
+m4/ltoptions.m4
+m4/ltsugar.m4
+m4/ltversion.m4
+ltmain.sh
+netcdf.3
+install-sh
+configure
+config.sub
+config.h.in
+config.guess
+aclocal.m4
+compile
+depcomp
+missing
+*.log
+stamp-h1
+*.trs

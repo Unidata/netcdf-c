@@ -6,7 +6,7 @@
    Unicode names encoded with UTF-8. It is the NETCDF3 equivalent
    of tst_unicode.c
 
-   $Id: tst_utf8.c,v 1.14 2008/10/20 01:48:09 ed Exp $
+   Russ Rew, Ed Hartnett
 */
 
 #include <config.h>
@@ -21,6 +21,7 @@
 #define NDIMS 1
 #define NX 18
 #define ENUM_VALUE 2
+#define BORING_NAME "boring"
 
 /* (unnormalized) UTF-8 encoding for Unicode 8-character "Hello" in Greek */
 char name_utf8[] = "\xCE\x9A\xCE\xB1\xCE\xBB\xCE\xB7\xCE\xBC\xE1\xBD\xB3\xCF\x81\xCE\xB1";
@@ -283,7 +284,25 @@ main(int argc, char **argv)
       check_nc4_file(ncid);
       if (nc_close(ncid)) ERR;
    }
+   SUMMARIZE_ERR;
+   printf("*** ensuring UTF-8 normaization is applied in rename...");
+   {
+      int ncid, varid;
+      char name_in[NC_MAX_NAME + 1];
 
+      if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+      if (nc_def_var(ncid, BORING_NAME, NC_CHAR, 0, NULL, &varid)) ERR;
+      if (nc_rename_var(ncid, varid, name_utf8)) ERR;
+      if (nc_inq_varname(ncid, 0, name_in));
+      if (!strcmp(name_in, norm_utf8)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Reopen the file and check again. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_varname(ncid, 0, name_in));
+      if (!strcmp(name_in, norm_utf8)) ERR;
+      if (nc_close(ncid)) ERR;
+   }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

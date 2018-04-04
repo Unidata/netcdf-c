@@ -5,7 +5,7 @@
    The cdm_* tests confirm complience with the Common Data Model. This
    file creates some sample data structures to hold sea soundings.
 
-   $Id: cdm_sea_soundings.c,v 1.5 2010/05/25 13:53:04 ed Exp $
+   Ed Hartnett
 */
 #include <nc_tests.h>
 #include "err_macros.h"
@@ -71,13 +71,5 @@ main(int argc, char **argv)
     for (i = 0; i < DIM_LEN; i++)
        free(data[i].temp_vl.p);
 
-   /* Print out our number of errors, if any, and exit badly. */
-   if (total_err)
-   {
-      printf("%d errors detected! Sorry!\n", total_err);
-      return 2;
-   }
-
-   printf("*** Tests successful!\n");
-   return 0;
+   FINAL_RESULTS;    
 }

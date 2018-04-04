@@ -51,7 +51,6 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, 0, &ncid)) ERR;
       if (nc_def_dim(ncid, LAT_NAME, LAT_LEN, &dimid)) ERR;
       if (nc_def_dim(ncid + TEST_VAL_42, LAT_NAME, LAT_LEN, &dimid) != NC_EBADID) ERR;
-
       if (nc_close(ncid)) ERR;
 
       /* Open the file and make sure nc_inq_dimids yeilds correct

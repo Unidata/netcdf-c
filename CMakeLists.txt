@@ -26,8 +26,8 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 6)
-SET(NC_VERSION_PATCH 2)
-SET(NC_VERSION_NOTE "-development")
+SET(NC_VERSION_PATCH 1)
+SET(NC_VERSION_NOTE ".1")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
@@ -718,6 +718,15 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
     CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
   ENDIF(NOT MSVC)
+  
+#//////////////////////////
+#HDF5 can be optionally linked with the SZIP library (Science Data Lossless Compression Program) and ZLIB
+#Symbol to detect in ZLIB can be only H5Z_DEFLATE, a structure only defined in H5Zdeflate.c if the filter is enabled
+#For SZIP the structure can be only H5Z_SZIP, defined in H5Zszip.c if the filter is enabled
+#check_library_exists() tries to link a temporary program with these symbols
+#On MSVC for this detection to work, the HDF5 library MUST HAVE as additional dependencies the ZLIB and SZIP libraries,
+#which is not a requirement for the library to build successfully
+#//////////////////////////
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Z_SZIP "" USE_SZIP)
@@ -752,6 +761,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ELSE(NOT HAVE_HDF5_H)
     INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
   ENDIF(NOT HAVE_HDF5_H)
+  
+  INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
 
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
