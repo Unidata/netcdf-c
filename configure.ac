@@ -1532,6 +1532,7 @@ AC_CONFIG_FILES([Makefile
                  hdf4_test/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
+                 libhdf5/Makefile
                  libsrcp/Makefile
                  ncdump/Makefile
                  ncgen3/Makefile
