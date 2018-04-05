@@ -6,11 +6,14 @@ DAP=1
 CDF5=1
 #HDF4=1
 
-case "$1" in
+for arg in "$@" ; do
+case "$arg" in
 vs|VS) VS=1 ;;
 linux|nix|l|x) unset VS ;;
+nobuild|nb) NOBUILD=1 ;;
 *) echo "Must specify env: vs|linux"; exit 1; ;;
 esac
+done
 
 if test "x$VS" = x1 ; then
   if test "x$2" = xsetup ; then
@@ -60,15 +63,19 @@ NCLIB="${NCLIB}/liblib"
 export PATH="${NCLIB}:${PATH}"
 #G=
 cmake "$G" -DCMAKE_BUILD_TYPE=${CFG} $FLAGS ..
+if test "x$NOBUILD" = x ; then
 cmake --build . --config ${CFG}
 cmake --build . --config ${CFG} --target RUN_TESTS
+fi
 else
 # GCC
 NCLIB="${NCLIB}/build/liblib"
 #G="-GUnix Makefiles"
 #T="--trace-expand"
 cmake "${G}" $FLAGS ..
+if test "x$NOBUILD" == x ; then
 make all
 make test
+fi
 fi
 exit

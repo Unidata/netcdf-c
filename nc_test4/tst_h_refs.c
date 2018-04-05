@@ -32,7 +32,6 @@ main()
 	/* Create new file, using default properties. */
 	if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 	
-
         /* Create dataset with reference datatype */
         if ((dsetid = H5Dcreate2(fileid, REF_VAR_NAME, H5T_STD_REF_OBJ, scalar_spaceid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 

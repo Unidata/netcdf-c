@@ -151,8 +151,8 @@ dup_NC_attr(const NC_attr *rattrp)
 		 rattrp->type, rattrp->nelems);
 	if(attrp == NULL)
 		return NULL;
-    if(attrp->xvalue != NULL && rattrp->xvalue != NULL)
-    	(void) memcpy(attrp->xvalue, rattrp->xvalue, rattrp->xsz);
+        if(attrp->xvalue != NULL && rattrp->xvalue != NULL)
+       	    (void) memcpy(attrp->xvalue, rattrp->xvalue, rattrp->xsz);
 	return attrp;
 }
 

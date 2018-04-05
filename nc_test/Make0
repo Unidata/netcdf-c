@@ -1,14 +1,17 @@
 # Test c output
 T=tst_diskless2
 
-ARGS=netcdf4
+#SRC=error.c test_get.c test_put.c test_read.c test_write.c util.c
+
+#ARGS=netcdf4
 
 #CMD=valgrind --leak-check=full
-CMD=export NETCDF_LOG_LEVEL=5 ;gdb --args
+#CMD=export NETCDF_LOG_LEVEL=5 ;gdb --args
+CMD=gdb --args
 
 #PAR=1
 
-CFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -g -O -I.. -I../include
+CFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -g -O0 -I.. -I../include
 
 ifdef PAR
 CC=mpicc

@@ -70,7 +70,7 @@ LD_LIBRARY_PATH="${stddir}/lib:$LD_LIBRARY_PATH"
 fi
 
 if test "x$HDF4" = "x1" ; then
-LDFLAGS="$LDFLAGS -ljpeg"
+LDFLAGS="$LDFLAGS -lmfhdf -ldf -ljpeg"
 fi
 
 if test "x$SZIP" = "x1" ; then
@@ -106,7 +106,7 @@ FLAGS="$FLAGS --enable-extreme-numbers"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 #FLAGS="$FLAGS --enable-dap-auth-tests" -- requires a new remotetest server
-#FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
+FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-mmap"
@@ -118,8 +118,13 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
+<<<<<<< HEAD
 #FLAGS="$FLAGS --enable-filter-testing"
 FLAGS="$FLAGS --enable-library-finalize"
+=======
+FLAGS="$FLAGS --disable-filter-testing"
+#FLAGS="$FLAGS --enable-metadata-perf"
+>>>>>>> master
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
@@ -161,14 +166,18 @@ FLAGS="$FLAGS --disable-dap"
 fi
 
 if test "x$MPIO" = x1 ; then
-  MPIDIR=/usr/lib64/mpich
+#  MPIDIR=/usr/lib64/mpich
+  MPIDIR=/usr/lib64/openmpi
   PATH="${PATH}:${MPIDIR}/bin"
   CC="${MPIDIR}/bin/mpicc"
   CPPFLAGS="-I${MPIDIR}/include"
   LDFLAGS="$LDFLAGS -L${MPIDIR}"
   LDLIBS="-lmpich"
-  FLAGS="$FLAGS --enable-pnetcdf"
   FLAGS="$FLAGS --enable-parallel-tests"
+fi
+
+if test "x$PNETCDF" = x1 ; then
+  FLAGS="$FLAGS --enable-pnetcdf"
 fi
 
 if test "x${PROF}" = x1 ; then
@@ -176,10 +185,7 @@ CFLAGS="${CFLAGS} -pg"
 LDFLAGS="${LDFLAGS} -pg"
 fi
 
-if test "x${LEAK}" = x1 ; then
-CFLAGS="${CFLAGS} -fsanitize=address -fno-omit-frame-pointer"
-export ASAN_OPTIONS="detect_leaks=1:verbosity=1"
-fi
+#FLAGS="${FLAGS} --enable-stdio"
 
 export PATH
 export CC

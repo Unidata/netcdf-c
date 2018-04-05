@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+extern int current_format;
+
    extern int test_nccreate(const char*);
    extern int test_ncopen(const char*);
    extern int test_ncredef(const char*);

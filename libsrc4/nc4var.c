@@ -53,7 +53,7 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
          return NC_EHDFERR;
       if (H5Dclose(var->hdf_datasetid) < 0)
          return NC_EHDFERR;
-      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->name,
+      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdr.name,
                                          access_pid)) < 0)
          return NC_EHDFERR;
       if (H5Pclose(access_pid) < 0)
@@ -101,10 +101,10 @@ NC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   if (varid < 0 || varid >= grp->vars.nelems)
-      return NC_ENOTVAR;
-   var = grp->vars.value[varid];
-   assert(var && var->varid == varid);
+   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
+   if(!var)
+	return NC_ENOTVAR;
+   assert(var && var->hdr.id == varid);
 
    /* Set the values. */
    var->chunk_cache_size = size;
@@ -183,10 +183,10 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   if (varid < 0 || varid >= grp->vars.nelems)
-      return NC_ENOTVAR;
-   var = grp->vars.value[varid];
-   assert(var && var->varid == varid);
+   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
+   if(!var)
+	return NC_ENOTVAR;
+   assert(var && var->hdr.id == varid);
 
    /* Give the user what they want. */
    if (sizep)
@@ -258,7 +258,7 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
    int d;
    int retval;
 
-   if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->nc_typeid, 0, &type_len)))
+   if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->hdr.id, &type_len)))
       return retval;
    if (var->type_info->nc_type_class == NC_VLEN)
       dprod = (double)sizeof(hvl_t);
@@ -331,7 +331,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
          suggested_size = DEFAULT_CHUNK_SIZE / type_size;
       var->chunksizes[0] = suggested_size / type_size;
       LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-           "chunksize %ld", __func__, var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[0]));
+           "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[0]));
    }
    if (var->ndims > 1 && var->ndims == num_unlim) { /* all dims unlimited */
       suggested_size = pow((double)DEFAULT_CHUNK_SIZE/type_size, 1.0/(double)(var->ndims));
@@ -339,7 +339,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
       {
          var->chunksizes[d] = suggested_size ? suggested_size : 1;
          LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-              "chunksize %ld", __func__, var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
+              "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
       }
    }
 
@@ -354,7 +354,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
             suggested_size = var->dim[d]->len;
          var->chunksizes[d] = suggested_size ? suggested_size : 1;
          LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-              "chunksize %ld", __func__, var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
+              "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
       }
 
 #ifdef LOGGING
@@ -392,45 +392,6 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
          var->chunksizes[d] -= overhang / num_chunks;
       }
    }
-
-   return NC_NOERR;
-}
-
-/**
- * @internal Grow the variable array.
- *
- * @param grp Pointer to the group info.
- * @param var Pointer to the var info.
- *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_ENOMEM Out of memory.
- * @author Dennis Heimbigner
- */
-int
-nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
-{
-   NC_VAR_INFO_T **vp = NULL;
-
-   if (grp->vars.nalloc == 0) {
-      assert(grp->vars.nelems == 0);
-      vp = (NC_VAR_INFO_T **) malloc(NC_ARRAY_GROWBY * sizeof(NC_VAR_INFO_T *));
-      if(vp == NULL)
-         return NC_ENOMEM;
-      grp->vars.value = vp;
-      grp->vars.nalloc = NC_ARRAY_GROWBY;
-   }
-   else if(grp->vars.nelems +1 > grp->vars.nalloc) {
-      vp = (NC_VAR_INFO_T **) realloc(grp->vars.value,
-                                      (grp->vars.nalloc + NC_ARRAY_GROWBY) * sizeof(NC_VAR_INFO_T *));
-      if(vp == NULL)
-         return NC_ENOMEM;
-      grp->vars.value = vp;
-      grp->vars.nalloc += NC_ARRAY_GROWBY;
-   }
-
-   assert(var->varid == grp->vars.nelems);
-   grp->vars.value[grp->vars.nelems] = var;
-   grp->vars.nelems++;
 
    return NC_NOERR;
 }
@@ -544,9 +505,15 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
     * struct. */
    if (xtype <= NC_STRING)
    {
-      if (!(type_info = calloc(1, sizeof(NC_TYPE_INFO_T))))
-         BAIL(NC_ENOMEM);
-      type_info->nc_typeid = xtype;
+      size_t len;
+      char name[NC_MAX_NAME+1];
+      char* atomname = nc4_atomic_name[xtype];
+      size_t namelen = strlen(atomname);
+      memcpy(name,atomname,namelen);
+      name[namelen] = '\0';
+      nc4_get_typelen_mem(h5,xtype,&len);
+      if((retval = nc4_type_new(grp,len,name,xtype,&type_info)))
+	BAIL(retval);
       type_info->endianness = NC_ENDIAN_NATIVE;
       if ((retval = nc4_get_hdf_typeid(h5, xtype, &type_info->hdf_typeid,
                                        type_info->endianness)))
@@ -554,8 +521,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       if ((type_info->native_hdf_typeid = H5Tget_native_type(type_info->hdf_typeid,
                                                              H5T_DIR_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
-      if ((retval = nc4_get_typelen_mem(h5, type_info->nc_typeid, 0,
-                                        &type_info->size)))
+      if ((retval = nc4_get_typelen_mem(h5, type_info->hdr.id, &type_info->size)))
          BAIL(retval);
 
       /* Set the "class" of the type */
@@ -594,35 +560,14 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    }
 
    /* Create a new var and fill in some HDF5 cache setting values. */
-   if ((retval = nc4_var_add(&var)))
+   if ((retval = nc4_var_list_add(grp, norm_name, ndims, &var)))
       BAIL(retval);
-
-   /* Now fill in the values in the var info structure. */
-   if (!(var->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
-      BAIL(NC_ENOMEM);
-   strcpy(var->name, norm_name);
-   var->hash = hash_fast(norm_name, strlen(norm_name));
-   var->varid = grp->nvars++;
-   var->ndims = ndims;
    var->is_new_var = NC_TRUE;
-
-   /* Add a var to the variable array, growing it as needed. */
-   if ((retval = nc4_vararray_add(grp, var)))
-      BAIL(retval);
 
    /* Point to the type, and increment its ref. count */
    var->type_info = type_info;
    var->type_info->rc++;
    type_info = NULL;
-
-   /* Allocate space for dimension information. */
-   if (ndims)
-   {
-      if (!(var->dim = calloc(ndims, sizeof(NC_DIM_INFO_T *))))
-         BAIL(NC_ENOMEM);
-      if (!(var->dimids = calloc(ndims, sizeof(int))))
-         BAIL(NC_ENOMEM);
-   }
 
    /* Set variables no_fill to match the database default
     * unless the variable type is variable length (NC_STRING or NC_VLEN)
@@ -647,7 +592,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          BAIL(retval);
 
       /* Check for dim index 0 having the same name, in the same group */
-      if (d == 0 && dim_grp == grp && dim->hash == var->hash && strcmp(dim->name, norm_name) == 0)
+      if (d == 0 && dim_grp == grp && strcmp(dim->hdr.name, norm_name) == 0)
       {
          var->dimscale = NC_TRUE;
          dim->coord_var = var;
@@ -668,7 +613,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
             
             /* Now delete the DIM_WITHOUT_VARIABLE dataset (it will be
              * recreated later, if necessary). */
-            if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
+            if (H5Gunlink(grp->hdf_grpid, dim->hdr.name) < 0)
                BAIL(NC_EDIMMETA);
          }
       }
@@ -685,7 +630,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    /* Determine default chunksizes for this variable. (Even for
     * variables which may be contiguous.) */
    LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
-        var->ndims, var->name));
+        var->ndims, var->hdr.name));
    if (var->ndims)
       if (!(var->chunksizes = calloc(var->ndims, sizeof(size_t))))
          BAIL(NC_ENOMEM);
@@ -703,9 +648,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
     * is not a coordinate variable. I need to change its HDF5 name,
     * because the dimension will cause a HDF5 dataset to be created,
     * and this var has the same name. */
-   for (dim = grp->dim; dim; dim = dim->l.next)
-      if (dim->hash == var->hash && !strcmp(dim->name, norm_name) &&
-          (!var->ndims || dimidsp[0] != dim->dimid))
+   dim = (NC_DIM_INFO_T*)ncindexlookup(grp->dim,norm_name);
+   if (dim && (!var->ndims || dimidsp[0] != dim->hdr.id))
       {
          /* Set a different hdf5 name for this variable to avoid name
           * clash. */
@@ -728,8 +672,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
 
    /* Return the varid. */
    if (varidp)
-      *varidp = var->varid;
-   LOG((4, "new varid %d", var->varid));
+      *varidp = var->hdr.id;
+   LOG((4, "new varid %d", var->hdr.id));
 
 exit:
    if (type_info)
@@ -789,8 +733,6 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
-   NC_ATT_INFO_T *att;
-   int natts=0;
    int d;
    int retval;
 
@@ -810,24 +752,22 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    {
       if (nattsp)
       {
-         for (att = grp->att; att; att = att->l.next)
-            natts++;
-         *nattsp = natts;
+	 *nattsp = ncindexcount(grp->att);
       }
       return NC_NOERR;
    }
 
    /* Find the var. */
-   if (varid < 0 || varid >= grp->vars.nelems)
+   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
+   if(!var)
       return NC_ENOTVAR;
-   var = grp->vars.value[varid];
-   assert(var && var->varid == varid);
+   assert(var && var->hdr.id == varid);
 
    /* Copy the data to the user's data buffers. */
    if (name)
-      strcpy(name, var->name);
+      strcpy(name, var->hdr.name);
    if (xtypep)
-      *xtypep = var->type_info->nc_typeid;
+      *xtypep = var->type_info->hdr.id;
    if (ndimsp)
       *ndimsp = var->ndims;
    if (dimidsp)
@@ -835,9 +775,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
          dimidsp[d] = var->dimids[d];
    if (nattsp)
    {
-      for (att = var->att; att; att = att->l.next)
-         natts++;
-      *nattsp = natts;
+      *nattsp = ncindexcount(var->att);
    }
 
    /* Chunking stuff. */
@@ -983,10 +921,10 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       return NC_EPERM;
 
    /* Find the var. */
-   if (varid < 0 || varid >= grp->vars.nelems)
+   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
+   if(!var)
       return NC_ENOTVAR;
-   var = grp->vars.value[varid];
-   assert(var && var->varid == varid);
+   assert(var && var->hdr.id == varid);
 
    /* Can't turn on parallel and deflate/fletcher32/szip/shuffle. */
    if (nc->mode & (NC_MPIIO | NC_MPIPOSIX)) {
@@ -1099,7 +1037,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
          /* NC_STRING types may not turn off fill mode. It's disallowed
           * by HDF5 and will cause a HDF5 error later. */
          if (*no_fill)
-            if (var->type_info->nc_typeid == NC_STRING)
+            if (var->type_info->hdr.id == NC_STRING)
                return NC_EINVAL;
 
          /* Set the no-fill mode. */
@@ -1114,7 +1052,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    {
       /* Copy the fill_value. */
       LOG((4, "Copying fill value into metadata for variable %s",
-           var->name));
+           var->hdr.name));
 
       /* If there's a _FillValue attribute, delete it. */
       retval = NC4_del_att(ncid, varid, _FillValue);
@@ -1122,7 +1060,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
          return retval;
 
       /* Create a _FillValue attribute. */
-      if ((retval = nc_put_att(ncid, varid, _FillValue, var->type_info->nc_typeid, 1, fill_value)))
+      if ((retval = nc_put_att(ncid, varid, _FillValue, var->type_info->hdr.id, 1, fill_value)))
          return retval;
    }
 
@@ -1428,11 +1366,10 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   if (varid < 0 || varid >= grp->vars.nelems)
+   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
+   if(!var)
       return NC_ENOTVAR;
-   var = grp->vars.value[varid];
-   if (!var) return NC_ENOTVAR;
-   assert(var->varid == varid);
+   assert(var->hdr.id == varid);
 
    /* Can't turn on parallel and filters */
    if (nc->mode & (NC_MPIIO | NC_MPIPOSIX)) {
@@ -1497,8 +1434,6 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    NC_VAR_INFO_T *var;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
-   uint32_t nn_hash;
-   int i;
 
    if (!name)
       return NC_EINVAL;
@@ -1515,19 +1450,13 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    if ((retval = nc4_normalize_name(name, norm_name)))
       return retval;
 
-   nn_hash = hash_fast(norm_name, strlen(norm_name));
-
    /* Find var of this name. */
-   for (i=0; i < grp->vars.nelems; i++)
-   {
-      var = grp->vars.value[i];
-      if (!var) continue;
-      if (nn_hash == var->hash && !(strcmp(var->name, norm_name)))
+   var = (NC_VAR_INFO_T*)ncindexlookup(grp->vars,norm_name);
+   if(var)
       {
-         *varidp = var->varid;
+         *varidp = var->hdr.id;
          return NC_NOERR;
       }
-   }
    return NC_ENOTVAR;
 }
 
@@ -1554,10 +1483,8 @@ NC4_rename_var(int ncid, int varid, const char *name)
    NC *nc;
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
-   NC_VAR_INFO_T *var, *tmp_var;
-   uint32_t nn_hash;
+   NC_VAR_INFO_T *var, *tmpvar;
    int retval = NC_NOERR;
-   int i;
 
    if (!name)
       return NC_EINVAL;
@@ -1583,25 +1510,20 @@ NC4_rename_var(int ncid, int varid, const char *name)
    if ((retval = NC_check_name(name)))
       return retval;
 
-   /* Check if name is in use, and retain a pointer to the correct variable */
-   nn_hash = hash_fast(name, strlen(name));
-   tmp_var = NULL;
-   for (i=0; i < grp->vars.nelems; i++)
-   {
-      var = grp->vars.value[i];
-      if (!var) continue;
-      if (nn_hash == var->hash && !strncmp(var->name, name, NC_MAX_NAME))
-         return NC_ENAMEINUSE;
-      if (var->varid == varid)
-         tmp_var = var;
-   }
-   if (!tmp_var)
+   /* Get the variable wrt varid */
+   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);   
+   if (!var)
       return NC_ENOTVAR;
-   var = tmp_var;
+
+   /* Check if new name is in use; note that renaming to same name is still an error
+      according to the nc_test/test_write.c code. Why?*/
+   tmpvar = (NC_VAR_INFO_T*)ncindexlookup(grp->vars,name);
+   if(tmpvar != NULL)
+       return NC_ENAMEINUSE;
 
    /* If we're not in define mode, new name must be of equal or
       less size, if strict nc3 rules are in effect for this . */
-   if (!(h5->flags & NC_INDEF) && strlen(name) > strlen(var->name) &&
+   if (!(h5->flags & NC_INDEF) && strlen(name) > strlen(var->hdr.name) &&
        (h5->cmode & NC_CLASSIC_MODEL))
       return NC_ENOTINDEFINE;
 
@@ -1614,25 +1536,27 @@ NC4_rename_var(int ncid, int varid, const char *name)
        * so, it must be deleted. */
       if (var->ndims && var->dim[0]->hdf_dimscaleid)
       {
-         if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->dimid, var->dim[0])))
+         if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->hdr.id, var->dim[0])))
             return retval;
       }
       
-      LOG((3, "Moving dataset %s to %s", var->name, name));
-      if (H5Gmove(grp->hdf_grpid, var->name, name) < 0)
+      LOG((3, "Moving dataset %s to %s", var->hdr.name, name));
+      if (H5Gmove(grp->hdf_grpid, var->hdr.name, name) < 0)
          BAIL(NC_EHDFERR);
    }
 
    /* Now change the name in our metadata. */
-   free(var->name);
-   if (!(var->name = malloc((strlen(name) + 1) * sizeof(char))))
+   free(var->hdr.name);
+   if (!(var->hdr.name = strdup(name)))
       return NC_ENOMEM;
-   strcpy(var->name, name);
-   var->hash = nn_hash;
-   LOG((3, "var is now %s", var->name));
+   LOG((3, "var is now %s", var->hdr.name));
+   var->hdr.hashkey = NC_hashmapkey(var->hdr.name,strlen(var->hdr.name)); /* Fix hash key */
+
+   if(!ncindexrebuild(grp->vars))
+	return NC_EINTERNAL;
 
    /* Check if this was a coordinate variable previously, but names are different now */
-   if (var->dimscale && strcmp(var->name, var->dim[0]->name))
+   if (var->dimscale && strcmp(var->hdr.name, var->dim[0]->hdr.name))
    {
       /* Break up the coordinate variable */
       if ((retval = nc4_break_coord_var(grp, var, var->dim[0])))
@@ -1654,7 +1578,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
           */
          if ((retval = nc4_find_dim(grp, var->dimids[0], &dim, &dim_grp)))
             return retval;
-         if (!strcmp(dim->name, name) && dim_grp == grp)
+         if (!strcmp(dim->hdr.name, name) && dim_grp == grp)
          {
             /* Reform the coordinate variable */
             if ((retval = nc4_reform_coord_var(grp, var, dim)))
@@ -1713,11 +1637,9 @@ NC4_var_par_access(int ncid, int varid, int par_access)
       return NC_ENOPAR;
 
    /* Find the var, and set its preference. */
-   if (varid < 0 || varid >= grp->vars.nelems)
-      return NC_ENOTVAR;
-   var = grp->vars.value[varid];
+   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
    if (!var) return NC_ENOTVAR;
-   assert(var->varid == varid);
+   assert(var->hdr.id == varid);
 
    if (par_access)
       var->parallel_access = NC_COLLECTIVE;
