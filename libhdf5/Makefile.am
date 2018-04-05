@@ -15,7 +15,7 @@ noinst_LTLIBRARIES = libnchdf5.la
 # The source files.
 # libnchdf5_la_SOURCES = nc4hdf.c hdf5file.c hdf5dispatch.c hdf5var.c	\
 # hdf5internal.c hdf5type.c hdf5func.c hdf5attr.c
-libnchdf5_la_SOURCES = nc4hdf.c hdf5file.c
+libnchdf5_la_SOURCES = nc4hdf.c hdf5file.c hdf5attr.c
 
 # Package this for cmake build.
 EXTRA_DIST = CMakeLists.txt
