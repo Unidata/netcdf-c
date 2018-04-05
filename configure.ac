@@ -1225,7 +1225,6 @@ AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
-AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1320,6 +1319,7 @@ AC_ARG_ENABLE([metadata-perf],
                               [Test performance of nc_create and nc_open on large metadata])])
 test "x$enable_metadata_perf" = xyes || enable_metadata_perf=no
 AC_MSG_RESULT($enable_metadata_perf)
+AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
 
 # Control filter test/example
 AC_MSG_CHECKING([whether filter testing should be run])
