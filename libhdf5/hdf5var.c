@@ -1,3 +1,6 @@
+/* Copyright 2003-2006, University Corporation for Atmospheric
+ * Research. See COPYRIGHT file for copying and redistribution
+ * conditions. */
 /**
  * @file
  * This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
@@ -5,9 +8,6 @@
 
  * This file handles the NetCDF-4 variable functions.
 
- * Copyright 2003-2006, University Corporation for Atmospheric
- * Research. See COPYRIGHT file for copying and redistribution
- * conditions.
  */
 
 #include <nc4internal.h>
