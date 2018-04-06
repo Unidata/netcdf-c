@@ -196,9 +196,7 @@ typedef struct NC_VAR_INFO
    nc_bool_t fletcher32;        /* True if var has fletcher32 filter applied */
    size_t chunk_cache_size, chunk_cache_nelems;
    float chunk_cache_preemption;
-#ifdef USE_HDF4
    void *format_var_info;       /* Pointer to any binary format info. */
-#endif /* USE_HDF4 */
    /* Stuff for arbitrary filters */
    unsigned int filterid;
    size_t nparams;

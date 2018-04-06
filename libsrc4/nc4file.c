@@ -77,11 +77,6 @@ NC_findreserved(const char* name)
     return NULL;
 }
 
-/* Forward */
-static int NC4_enddef(int ncid);
-static int nc4_rec_read_metadata(NC_GRP_INFO_T *grp);
-static void dumpopenobjects(NC_HDF5_FILE_INFO_T* h5);
-
 #ifdef NC4NOTUSED
 /**
  * @internal Define the names of attributes to ignore added by the
@@ -134,24 +129,6 @@ float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk ca
  * fill this array only the first time, and keep it in global memory
  * for each further use. */
 static hid_t h5_native_type_constant_g[NUM_TYPES];
-
-/** @internal NetCDF atomic type names. */
-static const char nc_type_name_g[NUM_TYPES][NC_MAX_NAME + 1] = {"char", "byte", "short",
-                                                                "int", "float", "double", "ubyte",
-                                                                "ushort", "uint", "int64",
-                                                                "uint64", "string"};
-
-/** @internal NetCDF atomic types. */
-static const nc_type nc_type_constant_g[NUM_TYPES] = {NC_CHAR, NC_BYTE, NC_SHORT,
-                                                      NC_INT, NC_FLOAT, NC_DOUBLE, NC_UBYTE,
-                                                      NC_USHORT, NC_UINT, NC_INT64,
-                                                      NC_UINT64, NC_STRING};
-
-/** @internal NetCDF atomic type sizes. */
-static const int nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof(short),
-                                              sizeof(int), sizeof(float), sizeof(double), sizeof(unsigned char),
-                                              sizeof(unsigned short), sizeof(unsigned int), sizeof(long long),
-                                              sizeof(unsigned long long), sizeof(char *)};
 
 /**
  * Set chunk cache size. Only affects files opened/created *after* it

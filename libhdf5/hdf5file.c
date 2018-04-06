@@ -11,6 +11,7 @@
 #include "config.h"
 #include <errno.h>  /* netcdf functions sometimes return system errors */
 #include "nc.h"
+#include "hdf5internal.h"
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 #include <H5DSpublic.h> /* must be after nc4internal.h */
@@ -1644,6 +1645,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          size_t ndims, NC_DIM_INFO_T *dim)
 {
    NC_VAR_INFO_T *var = NULL;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t access_pid = 0;
    int incr_id_rc = 0;          /* Whether the dataset ID's ref count has been incremented */
    int d;
@@ -1681,6 +1683,11 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Add a variable to the end of the group's var list. */
    if ((retval = nc4_var_list_add(grp,finalname,ndims,&var)))
       BAIL(retval);
+
+   /* Allocate storage for HDF5-specific var info. */
+   if (!(hdf5_var = calloc(1, sizeof(NC_HDF5_VAR_INFO_T))))
+      BAIL(NC_ENOMEM);
+   var->format_var_info = hdf5_var;
 
    /* Fill in what we already know. */
    var->hdf_datasetid = datasetid;

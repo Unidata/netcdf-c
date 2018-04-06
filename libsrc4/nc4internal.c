@@ -1505,6 +1505,10 @@ nc4_var_free(NC_VAR_INFO_T *var)
    if (var->params)
       free(var->params);
 
+   /* Release format-specific var info. */
+   if (var->format_var_info)
+      free(var->format_var_info);
+
    /* Delete the var. */
    free(var);
 

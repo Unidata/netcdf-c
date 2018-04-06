@@ -10,6 +10,7 @@
 
  */
 
+#include <hdf5internal.h>
 #include <nc4internal.h>
 #include "nc4dispatch.h"
 #include <math.h>
@@ -259,6 +260,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
 {
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    NC_DIM_INFO_T *dim;
    NC_HDF5_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type_info = NULL;
@@ -389,6 +391,11 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    if ((retval = nc4_var_list_add(grp, norm_name, ndims, &var)))
       BAIL(retval);
    var->is_new_var = NC_TRUE;
+
+   /* Allocate storage for HDF5-specific var info. */
+   if (!(hdf5_var = calloc(1, sizeof(NC_HDF5_VAR_INFO_T))))
+      BAIL(NC_ENOMEM);
+   var->format_var_info = hdf5_var;
 
    /* Point to the type, and increment its ref. count */
    var->type_info = type_info;
