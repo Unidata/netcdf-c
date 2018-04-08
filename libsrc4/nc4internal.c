@@ -1537,10 +1537,10 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
       var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
       if(var == NULL) continue;
       LOG((4, "%s: deleting var %s", __func__, var->hdr.name));
-      /* Close HDF5 dataset associated with this var, unless it's a
-       * scale. */
-      if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
-         return NC_EHDFERR;
+      /* /\* Close HDF5 dataset associated with this var, unless it's a */
+      /*  * scale. *\/ */
+      /* if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0) */
+      /*    return NC_EHDFERR; */
       if ((retval = nc4_var_free(var)))  /* free but leave in parent list */
          return retval;
    }

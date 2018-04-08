@@ -561,6 +561,10 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
       if ((retval = sync_netcdf4_file(h5)))
          goto exit;
 
+   /* Close all open HDF5 objects. */
+   if ((retval = hdf5_rec_grp_del(h5->root_grp)))
+      goto exit;
+
    /* Delete all the list contents for vars, dims, and atts, in each
     * group. */
    if ((retval = nc4_rec_grp_del(h5->root_grp)))

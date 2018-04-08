@@ -232,10 +232,10 @@ nc4_rec_find_hdf_type(NC_HDF5_FILE_INFO_T* h5, hid_t target_hdf_typeid)
    assert(h5);
 
    for(i=0;i<nclistlength(h5->alltypes);i++) {
-	type = (NC_TYPE_INFO_T*)nclistget(h5->alltypes,i);	
-	if(type == NULL) continue;
-        /* Is this the type we are searching for? */
-        if ((equal = H5Tequal(type->native_hdf_typeid ? type->native_hdf_typeid : type->hdf_typeid, target_hdf_typeid)) < 0)
+      type = (NC_TYPE_INFO_T*)nclistget(h5->alltypes,i);	
+      if(type == NULL) continue;
+      /* Is this the type we are searching for? */
+      if ((equal = H5Tequal(type->native_hdf_typeid ? type->native_hdf_typeid : type->hdf_typeid, target_hdf_typeid)) < 0)
          return NULL;
       if (equal)
          return type;
@@ -378,8 +378,7 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 
 
 /**
- * @internal Recursively delete the data for a group (and everything
- * it contains) in our internal metadata store.
+ * @internal Recursively close any open HDF5 objects.
  *
  * @param grp Pointer to group info struct.
  *
@@ -389,97 +388,78 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 int
 hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
 {
-   NC_GRP_INFO_T *g;
-   NC_VAR_INFO_T *var;
-   NC_ATT_INFO_T *att;
-   NC_DIM_INFO_T *dim;
+   /* NC_ATT_INFO_T *att; */
+   /* NC_DIM_INFO_T *dim; */
    int retval;
    int i;
 
    assert(grp);
    LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
 
-   /* WARNING: for all these deletes, the nc4_xxx_del
-      functions will modify the index, so we need to
-      not assume any state about them.
-   */
-
    /* Recursively call this function for each child, if any, stopping
     * if there is an error. */
-   for(i=0;i<ncindexsize(grp->children);i++) {
-	g = (NC_GRP_INFO_T*)ncindexith(grp->children,i);
-	if(g == NULL) continue;
-        if ((retval = nc4_rec_grp_del(g)))
+   for (i = 0; i < ncindexsize(grp->children); i++)
+   {
+      NC_GRP_INFO_T *g;
+      
+      if (!(g = (NC_GRP_INFO_T*)ncindexith(grp->children, i)))
+         continue;
+      if ((retval = hdf5_rec_grp_del(g)))
          return retval;
    }
-   ncindexfree(grp->children);
-   grp->children = NULL;
 
-   /* Delete all the list contents for vars, dims, and atts, in this
-    * group. */
-   for(i=0;i<ncindexsize(grp->att);i++) {
-	att = (NC_ATT_INFO_T*)ncindexith(grp->att,i);
-	if(att == NULL) continue;
-        LOG((4, "%s: deleting att %s", __func__, att->hdr.name));
-        if ((retval = nc4_att_free(att)))  /* free but leave in parent list */
-         return retval;
-   }
-   ncindexfree(grp->att);
-   grp->att = NULL;
+   /* /\* Delete all the list contents for vars, dims, and atts, in this */
+   /*  * group. *\/ */
+   /* for(i=0;i<ncindexsize(grp->att);i++) { */
+   /*    att = (NC_ATT_INFO_T*)ncindexith(grp->att,i); */
+   /*    if(att == NULL) continue; */
+   /*    LOG((4, "%s: deleting att %s", __func__, att->hdr.name)); */
+   /*    if ((retval = nc4_att_free(att)))  /\* free but leave in parent list *\/ */
+   /*       return retval; */
+   /* } */
+   /* ncindexfree(grp->att); */
+   /* grp->att = NULL; */
 
-   /* Delete all vars. */
-   for(i=0;i<ncindexsize(grp->vars);i++) {
-      var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
-      if(var == NULL) continue;
-      LOG((4, "%s: deleting var %s", __func__, var->hdr.name));
-      /* Close HDF5 dataset associated with this var, unless it's a
-       * scale. */
+   /* Close open datasets. */
+   for (i = 0; i < ncindexsize(grp->vars); i++)
+   {
+      NC_VAR_INFO_T *var;
+      
+      if (!(var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i)))
+         continue;
       if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
          return NC_EHDFERR;
-      if ((retval = nc4_var_free(var)))  /* free but leave in parent list */
-         return retval;
    }
-   ncindexfree(grp->vars);
-   grp->vars = NULL;
 
-   /* Delete all dims. */
-   for(i=0;i<ncindexsize(grp->dim);i++) {
-      dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
-      if(dim == NULL) continue;
-      LOG((4, "%s: deleting dim %s", __func__, dim->hdr.name));
-      /* If this is a dim without a coordinate variable, then close
-       * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this
-       * dim. */
-      if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
-         return NC_EHDFERR;
-      if ((retval = nc4_dim_free(dim))) /* free but leave in parent list */
-         return retval;
-   }
-   ncindexfree(grp->dim);
-   grp->dim = NULL;
+   /* /\* Delete all dims. *\/ */
+   /* for(i=0;i<ncindexsize(grp->dim);i++) { */
+   /*    dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i); */
+   /*    if(dim == NULL) continue; */
+   /*    LOG((4, "%s: deleting dim %s", __func__, dim->hdr.name)); */
+   /*    /\* If this is a dim without a coordinate variable, then close */
+   /*     * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this */
+   /*     * dim. *\/ */
+   /*    if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0) */
+   /*       return NC_EHDFERR; */
+   /*    if ((retval = nc4_dim_free(dim))) /\* free but leave in parent list *\/ */
+   /*       return retval; */
+   /* } */
 
-   /* Delete all types. */
-   /* Is this code correct? I think it should do repeated passes
-      over h5->alltypes using the ref count to decide what to delete */
-   for(i=0;i<ncindexsize(grp->type);i++) {
-      NC_TYPE_INFO_T* type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i);
-      if(type == NULL) continue;
-      LOG((4, "%s: deleting type %s", __func__, type->hdr.name));
-      if ((retval = nc4_type_free(type))) /* free but leave in parent list */
-         return retval;
-   }
-   ncindexfree(grp->type);
-   grp->type = NULL;
+   /* /\* Delete all types. *\/ */
+   /* /\* Is this code correct? I think it should do repeated passes */
+   /*    over h5->alltypes using the ref count to decide what to delete *\/ */
+   /* for(i=0;i<ncindexsize(grp->type);i++) { */
+   /*    NC_TYPE_INFO_T* type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i); */
+   /*    if(type == NULL) continue; */
+   /*    LOG((4, "%s: deleting type %s", __func__, type->hdr.name)); */
+   /*    if ((retval = nc4_type_free(type))) /\* free but leave in parent list *\/ */
+   /*       return retval; */
+   /* } */
 
    /* Tell HDF5 we're closing this group. */
-   LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
-   if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0)
-      return NC_EHDFERR;
-
-   /* Free up this group */
-   /* Free the name. */
-   free(grp->hdr.name);
-   free(grp);
+   /* LOG((4, "%s: closing group %s", __func__, grp->hdr.name)); */
+   /* if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0) */
+   /*    return NC_EHDFERR; */
 
    return NC_NOERR;
 }
