@@ -388,7 +388,6 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 int
 hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
 {
-   /* NC_DIM_INFO_T *dim; */
    int retval;
    int i;
 
@@ -441,19 +440,15 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
       }
    }
 
-   /* Delete all dims. */
-   /* for(i=0;i<ncindexsize(grp->dim);i++) { */
-   /*    dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i); */
-   /*    if(dim == NULL) continue; */
-   /*    LOG((4, "%s: deleting dim %s", __func__, dim->hdr.name)); */
-   /*    /\* If this is a dim without a coordinate variable, then close */
-   /*     * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this */
-   /*     * dim. *\/ */
-   /*    if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0) */
-   /*       return NC_EHDFERR; */
-   /*    if ((retval = nc4_dim_free(dim))) /\* free but leave in parent list *\/ */
-   /*       return retval; */
-   /* } */
+   /* Close open dimscales. */
+   for (i = 0; i < ncindexsize(grp->dim); i++)
+   {
+      NC_DIM_INFO_T *dim;
+      if (!(dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i)))
+         continue;
+      if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
+         return NC_EHDFERR;
+   }
 
    /* /\* Delete all types. *\/ */
    /* /\* Is this code correct? I think it should do repeated passes */

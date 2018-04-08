@@ -1555,8 +1555,8 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
       /* If this is a dim without a coordinate variable, then close
        * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this
        * dim. */
-      if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
-         return NC_EHDFERR;
+      /* if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0) */
+      /*    return NC_EHDFERR; */
       if ((retval = nc4_dim_free(dim))) /* free but leave in parent list */
          return retval;
    }
