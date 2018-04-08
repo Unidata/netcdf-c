@@ -388,7 +388,6 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 int
 hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
 {
-   /* NC_ATT_INFO_T *att; */
    /* NC_DIM_INFO_T *dim; */
    int retval;
    int i;
@@ -408,27 +407,38 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
          return retval;
    }
 
-   /* /\* Delete all the list contents for vars, dims, and atts, in this */
-   /*  * group. *\/ */
-   /* for(i=0;i<ncindexsize(grp->att);i++) { */
-   /*    att = (NC_ATT_INFO_T*)ncindexith(grp->att,i); */
-   /*    if(att == NULL) continue; */
-   /*    LOG((4, "%s: deleting att %s", __func__, att->hdr.name)); */
-   /*    if ((retval = nc4_att_free(att)))  /\* free but leave in parent list *\/ */
-   /*       return retval; */
-   /* } */
-   /* ncindexfree(grp->att); */
-   /* grp->att = NULL; */
+   /* Close open HDF5 types for global atts. */
+   for (i = 0; i < ncindexsize(grp->att); i++)
+   {
+      NC_ATT_INFO_T *att;
+      
+      if (!(att = (NC_ATT_INFO_T*)ncindexith(grp->att, i)))
+         continue;
+      if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0)
+         return NC_EHDFERR;
+   }
 
    /* Close open datasets. */
    for (i = 0; i < ncindexsize(grp->vars); i++)
    {
       NC_VAR_INFO_T *var;
+      int a;
       
-      if (!(var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i)))
+      if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars,i)))
          continue;
       if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
          return NC_EHDFERR;
+
+      /* Close any open types associated with attributes. */
+      for (a = 0; a < ncindexsize(grp->att); a++)
+      {
+         NC_ATT_INFO_T *att;
+         
+         if (!(att = (NC_ATT_INFO_T *)ncindexith(var->att, a)))
+            continue;
+         if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0)
+            return NC_EHDFERR;
+      }
    }
 
    /* /\* Delete all dims. *\/ */
