@@ -444,22 +444,38 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
    for (i = 0; i < ncindexsize(grp->dim); i++)
    {
       NC_DIM_INFO_T *dim;
-      if (!(dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i)))
+      if (!(dim = (NC_DIM_INFO_T *)ncindexith(grp->dim,i)))
          continue;
       if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
          return NC_EHDFERR;
    }
 
-   /* /\* Delete all types. *\/ */
-   /* /\* Is this code correct? I think it should do repeated passes */
-   /*    over h5->alltypes using the ref count to decide what to delete *\/ */
-   /* for(i=0;i<ncindexsize(grp->type);i++) { */
-   /*    NC_TYPE_INFO_T* type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i); */
-   /*    if(type == NULL) continue; */
-   /*    LOG((4, "%s: deleting type %s", __func__, type->hdr.name)); */
-   /*    if ((retval = nc4_type_free(type))) /\* free but leave in parent list *\/ */
-   /*       return retval; */
-   /* } */
+   /* Close open types. */
+   for (i = 0; i < ncindexsize(grp->type); i++)
+   {
+      NC_TYPE_INFO_T* type;
+      if (!(type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i)))
+         continue;
+      if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0)
+         return NC_EHDFERR;
+      type->hdf_typeid = 0;
+      if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0)
+         return NC_EHDFERR;
+      type->native_hdf_typeid = 0;
+      switch (type->nc_type_class)
+      {
+      case NC_ENUM:
+         if (type->u.e.base_hdf_typeid && H5Tclose(type->u.e.base_hdf_typeid) < 0)
+            return NC_EHDFERR;
+         type->u.e.base_hdf_typeid = 0;
+         break;
+      case NC_VLEN:
+         if (type->u.v.base_hdf_typeid && H5Tclose(type->u.v.base_hdf_typeid) < 0)
+            return NC_EHDFERR;
+         type->u.v.base_hdf_typeid = 0;         
+         break;
+      }
+   }
 
    /* Tell HDF5 we're closing this group. */
    LOG((4, "%s: closing group %s", __func__, grp->hdr.name));

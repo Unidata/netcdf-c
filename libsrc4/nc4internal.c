@@ -1261,11 +1261,11 @@ nc4_type_free(NC_TYPE_INFO_T *type)
    /* Release the type, if the ref. count drops to zero */
    if (0 == type->rc)
    {
-      /* Close any open user-defined HDF5 typeids. */
-      if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0)
-         return NC_EHDFERR;
-      if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0)
-         return NC_EHDFERR;
+      /* /\* Close any open user-defined HDF5 typeids. *\/ */
+      /* if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0) */
+      /*    return NC_EHDFERR; */
+      /* if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0) */
+      /*    return NC_EHDFERR; */
 
       /* Free the name. */
       if (type->hdr.name)
@@ -1303,14 +1303,14 @@ nc4_type_free(NC_TYPE_INFO_T *type)
 	 nclistfree(type->u.e.enum_member);
  	 type->u.e.enum_member = NULL; /* belt and suspenders */
 
-         if (H5Tclose(type->u.e.base_hdf_typeid) < 0)
-            return NC_EHDFERR;
+         /* if (H5Tclose(type->u.e.base_hdf_typeid) < 0) */
+         /*    return NC_EHDFERR; */
       }
       break;
 
       case NC_VLEN:
-         if (H5Tclose(type->u.v.base_hdf_typeid) < 0)
-            return NC_EHDFERR;
+         /* if (H5Tclose(type->u.v.base_hdf_typeid) < 0) */
+         /*    return NC_EHDFERR; */
 
       default:
          break;
@@ -1537,10 +1537,6 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
       var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
       if(var == NULL) continue;
       LOG((4, "%s: deleting var %s", __func__, var->hdr.name));
-      /* /\* Close HDF5 dataset associated with this var, unless it's a */
-      /*  * scale. *\/ */
-      /* if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0) */
-      /*    return NC_EHDFERR; */
       if ((retval = nc4_var_free(var)))  /* free but leave in parent list */
          return retval;
    }
@@ -1552,11 +1548,6 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
       dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
       if(dim == NULL) continue;
       LOG((4, "%s: deleting dim %s", __func__, dim->hdr.name));
-      /* If this is a dim without a coordinate variable, then close
-       * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this
-       * dim. */
-      /* if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0) */
-      /*    return NC_EHDFERR; */
       if ((retval = nc4_dim_free(dim))) /* free but leave in parent list */
          return retval;
    }
