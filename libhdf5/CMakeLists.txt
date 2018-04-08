@@ -9,7 +9,7 @@
 # SET(libhdf5_SOURCES hdf5file.c hdf5dispatch.c hdf5var.c
 #   hdf5internal.c hdf5type.c hdf5func.c hdf5attr.c nc4hdf.c)
 SET(libnchdf5_SOURCES hdf5file.c nc4hdf.c hdf5attr.c hdf5dispatch.c
-  hdf5var.c hdf5type.c)
+  hdf5var.c hdf5type.c hdf5internal.c)
 
 # Build the HDF4 dispatch layer as a library that will be included in
 # the netCDF library.
