@@ -11,6 +11,7 @@
 ## This puts the cvs ID tag in the output configure script.
 AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 
+
 # Running autoconf on this file will trigger a warning if
 # autoconf is not at least the specified version.
 AC_PREREQ([2.59])
