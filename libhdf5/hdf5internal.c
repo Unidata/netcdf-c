@@ -457,9 +457,9 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
    /* } */
 
    /* Tell HDF5 we're closing this group. */
-   /* LOG((4, "%s: closing group %s", __func__, grp->hdr.name)); */
-   /* if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0) */
-   /*    return NC_EHDFERR; */
+   LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
+   if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0)
+      return NC_EHDFERR;
 
    return NC_NOERR;
 }
