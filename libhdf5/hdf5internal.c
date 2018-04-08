@@ -441,7 +441,7 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
       }
    }
 
-   /* /\* Delete all dims. *\/ */
+   /* Delete all dims. */
    /* for(i=0;i<ncindexsize(grp->dim);i++) { */
    /*    dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i); */
    /*    if(dim == NULL) continue; */
