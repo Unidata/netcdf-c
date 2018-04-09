@@ -77,6 +77,10 @@ typedef struct NC_HDF5_VAR_INFO
 extern "C" {
 #endif
    
+   /* Set the log level. 0 shows only errors, 1 only major messages,
+    * etc., to 5, which shows way too much information. */
+   int hdf5_set_log_level(int new_level);
+
    /* int hdf5_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp); */
    int hdf5_rec_grp_del(NC_GRP_INFO_T *grp);
 

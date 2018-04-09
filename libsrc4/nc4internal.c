@@ -21,7 +21,6 @@
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
-#include "H5DSpublic.h"
 
 /* These are the default chunk cache sizes for HDF5 files created or
  * opened with netCDF-4. */
@@ -36,38 +35,6 @@ extern float nc4_chunk_cache_preemption;
 int nc_log_level = NC_TURN_OFF_LOGGING;
 
 #endif /* LOGGING */
-
-/* int nc4_hdf5_initialized = 0; /\**< True if initialization has happened. *\/ */
-
-/* /\** */
-/*  * @internal Provide a wrapper for H5Eset_auto */
-/*  * @param func Pointer to func. */
-/*  * @param client_data Client data. */
-/*  * */
-/*  * @return 0 for success */
-/*  *\/ */
-/* static herr_t */
-/* set_auto(void* func, void *client_data) */
-/* { */
-/* #ifdef DEBUGH5 */
-/*    return H5Eset_auto2(H5E_DEFAULT,(H5E_auto2_t)h5catch,client_data); */
-/* #else */
-/*    return H5Eset_auto2(H5E_DEFAULT,(H5E_auto2_t)func,client_data); */
-/* #endif */
-/* } */
-
-/* /\** */
-/*  * @internal Provide a function to do any necessary initialization of */
-/*  * the HDF5 library. */
-/*  *\/ */
-/* void */
-/* nc4_hdf5_initialize(void) */
-/* { */
-/*    if (set_auto(NULL, NULL) < 0) */
-/*       LOG((0, "Couldn't turn off HDF5 error messages!")); */
-/*    LOG((1, "HDF5 error messages have been turned off.")); */
-/*    nc4_hdf5_initialized = 1; */
-/* } */
 
 /**
  * @internal Check and normalize and name.
@@ -121,85 +88,6 @@ nc4_check_name(const char *name, char *norm_name)
 
    return NC_NOERR;
 }
-
-/* /\** */
-/*  * @internal Given a varid, return the maximum length of a dimension */
-/*  * using dimid. */
-/*  * */
-/*  * @param grp Pointer to group info struct. */
-/*  * @param varid Variable ID. */
-/*  * @param dimid Dimension ID. */
-/*  * @param maxlen Pointer that gets the max length. */
-/*  * */
-/*  * @return ::NC_NOERR No error. */
-/*  * @author Ed Hartnett */
-/*  *\/ */
-/* static int */
-/* find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid, size_t *maxlen) */
-/* { */
-/*    hid_t datasetid = 0, spaceid = 0; */
-/*    NC_VAR_INFO_T *var; */
-/*    hsize_t *h5dimlen = NULL, *h5dimlenmax = NULL; */
-/*    int d, dataset_ndims = 0; */
-/*    int retval = NC_NOERR; */
-
-/*    *maxlen = 0; */
-
-/*    /\* Find this var. *\/ */
-/*    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid); */
-/*    if (!var) return NC_ENOTVAR; */
-/*    assert(var->hdr.id == varid); */
-
-/*    /\* If the var hasn't been created yet, its size is 0. *\/ */
-/*    if (!var->created) */
-/*    { */
-/*       *maxlen = 0; */
-/*    } */
-/*    else */
-/*    { */
-/*       /\* Get the number of records in the dataset. *\/ */
-/*       if ((retval = nc4_open_var_grp2(grp, var->hdr.id, &datasetid))) */
-/*          BAIL(retval); */
-/*       if ((spaceid = H5Dget_space(datasetid)) < 0) */
-/*          BAIL(NC_EHDFERR); */
-
-/*       /\* If it's a scalar dataset, it has length one. *\/ */
-/*       if (H5Sget_simple_extent_type(spaceid) == H5S_SCALAR) */
-/*       { */
-/*          *maxlen = (var->dimids && var->dimids[0] == dimid) ? 1 : 0; */
-/*       } */
-/*       else */
-/*       { */
-/*          /\* Check to make sure ndims is right, then get the len of each */
-/*             dim in the space. *\/ */
-/*          if ((dataset_ndims = H5Sget_simple_extent_ndims(spaceid)) < 0) */
-/*             BAIL(NC_EHDFERR); */
-/*          if (dataset_ndims != var->ndims) */
-/*             BAIL(NC_EHDFERR); */
-/*          if (!(h5dimlen = malloc(dataset_ndims * sizeof(hsize_t)))) */
-/*             BAIL(NC_ENOMEM); */
-/*          if (!(h5dimlenmax = malloc(dataset_ndims * sizeof(hsize_t)))) */
-/*             BAIL(NC_ENOMEM); */
-/*          if ((dataset_ndims = H5Sget_simple_extent_dims(spaceid, */
-/*                                                         h5dimlen, h5dimlenmax)) < 0) */
-/*             BAIL(NC_EHDFERR); */
-/*          LOG((5, "find_var_dim_max_length: varid %d len %d max: %d", */
-/*               varid, (int)h5dimlen[0], (int)h5dimlenmax[0])); */
-/*          for (d=0; d<dataset_ndims; d++) { */
-/*             if (var->dimids[d] == dimid) { */
-/*                *maxlen = *maxlen > h5dimlen[d] ? *maxlen : h5dimlen[d]; */
-/*             } */
-/*          } */
-/*       } */
-/*    } */
-
-/* exit: */
-/*    if (spaceid > 0 && H5Sclose(spaceid) < 0) */
-/*       BAIL2(NC_EHDFERR); */
-/*    if (h5dimlen) free(h5dimlen); */
-/*    if (h5dimlenmax) free(h5dimlenmax); */
-/*    return retval; */
-/* } */
 
 /**
  * @internal Given an NC pointer, add the necessary stuff for a
@@ -787,8 +675,6 @@ exit:
       nc4_var_list_del(grp,new_var);
    }
    return retval;
-
-
 }
 
 /**
@@ -1261,12 +1147,6 @@ nc4_type_free(NC_TYPE_INFO_T *type)
    /* Release the type, if the ref. count drops to zero */
    if (0 == type->rc)
    {
-      /* /\* Close any open user-defined HDF5 typeids. *\/ */
-      /* if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0) */
-      /*    return NC_EHDFERR; */
-      /* if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0) */
-      /*    return NC_EHDFERR; */
-
       /* Free the name. */
       if (type->hdr.name)
          free(type->hdr.name);
@@ -1302,15 +1182,10 @@ nc4_type_free(NC_TYPE_INFO_T *type)
          }
 	 nclistfree(type->u.e.enum_member);
  	 type->u.e.enum_member = NULL; /* belt and suspenders */
-
-         /* if (H5Tclose(type->u.e.base_hdf_typeid) < 0) */
-         /*    return NC_EHDFERR; */
       }
       break;
 
       case NC_VLEN:
-         /* if (H5Tclose(type->u.v.base_hdf_typeid) < 0) */
-         /*    return NC_EHDFERR; */
 
       default:
          break;
@@ -1371,15 +1246,12 @@ nc4_var_free(NC_VAR_INFO_T *var)
     * type_info is freed. */
    if (var->fill_value)
    {
-      if (var->hdf_datasetid)
+      if (var->type_info)
       {
-         if (var->type_info)
-         {
-            if (var->type_info->nc_type_class == NC_VLEN)
-               nc_free_vlen((nc_vlen_t *)var->fill_value);
-            else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value)
-               free(*(char **)var->fill_value);
-         }
+         if (var->type_info->nc_type_class == NC_VLEN)
+            nc_free_vlen((nc_vlen_t *)var->fill_value);
+         else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value)
+            free(*(char **)var->fill_value);
       }
       free(var->fill_value);
       var->fill_value = NULL;
@@ -1617,10 +1489,6 @@ nc4_att_free(NC_ATT_INFO_T *att)
       free(att->hdr.name);
       att->hdr.name = NULL;
    }
-
-   /* /\* Close the HDF5 typeid. *\/ */
-   /* if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0) */
-   /*    return NC_EHDFERR; */
 
    /* If this is a string array attribute, delete all members of the
     * string array, then delete the array of pointers to strings. (The

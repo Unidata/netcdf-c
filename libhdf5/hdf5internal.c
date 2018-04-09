@@ -41,13 +41,12 @@ extern size_t nc4_chunk_cache_size;
 extern size_t nc4_chunk_cache_nelems;
 extern float nc4_chunk_cache_preemption;
 
-/* #ifdef LOGGING */
-/* /\* This is the severity level of messages which will be logged. Use */
-/*    severity 0 for errors, 1 for important log messages, 2 for less */
-/*    important, etc. *\/ */
-/* int nc_log_level = NC_TURN_OFF_LOGGING; */
-
-/* #endif /\* LOGGING *\/ */
+#ifdef LOGGING
+/* This is the severity level of messages which will be logged. Use
+   severity 0 for errors, 1 for important log messages, 2 for less
+   important, etc. */
+extern int nc_log_level;
+#endif /* LOGGING */
 
 int nc4_hdf5_initialized = 0; /**< True if initialization has happened. */
 
@@ -80,59 +79,6 @@ nc4_hdf5_initialize(void)
    LOG((1, "HDF5 error messages have been turned off."));
    nc4_hdf5_initialized = 1;
 }
-
-/* /\** */
-/*  * @internal Check and normalize and name. */
-/*  * */
-/*  * @param name Name to normalize. */
-/*  * @param norm_name The normalized name. */
-/*  * */
-/*  * @return ::NC_NOERR No error. */
-/*  * @return ::NC_EMAXNAME Name too long. */
-/*  * @return ::NC_EINVAL NULL given for name. */
-/*  * @author Dennis Heimbigner */
-/*  *\/ */
-/* int */
-/* nc4_check_name(const char *name, char *norm_name) */
-/* { */
-/*    char *temp; */
-/*    int retval; */
-
-/*    /\* Check for NULL. *\/ */
-/*    if (!name) */
-/*       return NC_EINVAL; */
-
-/*    assert(norm_name); */
-
-/*    /\* Check for NULL. *\/ */
-/*    if (!name) */
-/*       return NC_EINVAL; */
-
-/*    /\* Check the length. *\/ */
-/*    if (strlen(name) > NC_MAX_NAME) */
-/*       return NC_EMAXNAME; */
-
-/*    /\* Make sure this is a valid netcdf name. This should be done */
-/*     * before the name is normalized, because it gives better error */
-/*     * codes for bad utf8 strings. *\/ */
-/*    if ((retval = NC_check_name(name))) */
-/*       return retval; */
-
-/*    /\* Normalize the name. *\/ */
-/*    retval = nc_utf8_normalize((const unsigned char *)name,(unsigned char**)&temp); */
-/*    if(retval != NC_NOERR) */
-/*       return retval; */
-
-/*    if(strlen(temp) > NC_MAX_NAME) { */
-/*       free(temp); */
-/*       return NC_EMAXNAME; */
-/*    } */
-
-/*    strcpy(norm_name, temp); */
-/*    free(temp); */
-
-/*    return NC_NOERR; */
-/* } */
 
 /**
  * @internal Given a varid, return the maximum length of a dimension
@@ -708,3 +654,44 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 exit:
    return retval;
 }
+
+#ifdef LOGGING
+/**
+ * This is the same as nc_set_log_level(), but will also turn on HDF5
+ * internal logging, in addition to netCDF logging.
+ *
+ * @param new_level The new logging level.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+hdf5_set_log_level(int new_level)
+{
+   if (!nc4_hdf5_initialized)
+      nc4_hdf5_initialize();
+
+   /* If the user wants to completely turn off logging, turn off HDF5
+      logging too. Now I truely can't think of what to do if this
+      fails, so just ignore the return code. */
+   if (new_level == NC_TURN_OFF_LOGGING)
+   {
+      set_auto(NULL, NULL);
+      LOG((1, "HDF5 error messages turned off!"));
+   }
+
+   /* Do we need to turn HDF5 logging back on? */
+   if (new_level > NC_TURN_OFF_LOGGING &&
+       nc_log_level <= NC_TURN_OFF_LOGGING)
+   {
+      if (set_auto((H5E_auto_t)&H5Eprint, stderr) < 0)
+         LOG((0, "H5Eset_auto failed!"));
+      LOG((1, "HDF5 error messages turned on."));
+   }
+
+   /* Now remember the new level. */
+   nc_set_log_level(new_level);
+
+   return NC_NOERR;
+}
+#endif /* LOGGING */
