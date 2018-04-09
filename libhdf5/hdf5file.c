@@ -588,11 +588,16 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 #endif
    
    if(h5->fileinfo) free(h5->fileinfo);
-   
+
    if (H5Fclose(h5->hdfid) < 0)
    {
       dumpopenobjects(h5);
    }
+
+   /* Free format specific info. */
+   if (h5->format_file_info)
+      free(h5->format_file_info);
+   
 exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
@@ -730,6 +735,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    FILE *fp;
    int retval = NC_NOERR;
    NC_HDF5_FILE_INFO_T* nc4_info = NULL;
+   NC_HDF5_FILE_INFO_2_T *hdf5_file;
 #ifdef USE_PARALLEL4
    int comm_duped = 0;          /* Whether the MPI Communicator was duplicated */
    int info_duped = 0;          /* Whether the MPI Info object was duplicated */
@@ -765,6 +771,11 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
 
+   /* Add struct for HDF5 specific file info. */
+   if (!(hdf5_file = calloc(1, sizeof(NC_HDF5_FILE_INFO_2_T))))
+      BAIL(NC_ENOMEM);
+   nc4_info->format_file_info = hdf5_file;
+   
    /* Need this access plist to control how HDF5 handles open objects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
     * fail if there are any open objects in the file. */
@@ -2318,7 +2329,8 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    unsigned flags = (mode & NC_WRITE) ?
       H5F_ACC_RDWR : H5F_ACC_RDONLY;
    int retval;
-   NC_HDF5_FILE_INFO_T* nc4_info = NULL;
+   NC_HDF5_FILE_INFO_T *nc4_info = NULL;
+   NC_HDF5_FILE_INFO_2_T *hdf5_file;
    int inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
    NC_MEM_INFO* meminfo = (NC_MEM_INFO*)parameters;
 #ifdef USE_PARALLEL4
@@ -2336,6 +2348,11 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
 
+   /* Add struct for HDF5 specific file info. */
+   if (!(hdf5_file = calloc(1, sizeof(NC_HDF5_FILE_INFO_2_T))))
+      BAIL(NC_ENOMEM);
+   nc4_info->format_file_info = hdf5_file;
+   
    /* Need this access plist to control how HDF5 handles open objects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
     * fail if there are any open objects in the file. */

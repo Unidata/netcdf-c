@@ -177,10 +177,6 @@ typedef struct NC_VAR_INFO
    nc_bool_t created;           /* Variable has already been created (_not_ that it was just created) */
    nc_bool_t written_to;        /* True if variable has data written to it */
    struct NC_TYPE_INFO *type_info;
-   /* hid_t hdf_datasetid; */
-#if 0
-   int natts;			/* Use explicit index because there may be gaps in numbers */
-#endif
    NCindex* att; 		/* NCindex<NC_ATT_INFO_T*> */
    nc_bool_t no_fill;           /* True if no fill value is defined for var */
    void *fill_value;
@@ -322,12 +318,9 @@ typedef struct  NC_HDF5_FILE_INFO
    NClist* alldims;
    NClist* alltypes;
    NClist* allgroups; /* including root group */
-#ifdef USE_HDF4
    void *format_file_info;
-#endif /* USE_HDF4 */
    struct NCFILEINFO* fileinfo;
 } NC_HDF5_FILE_INFO_T;
-
 
 extern char* nc4_atomic_name[NC_MAX_ATOMIC_TYPE+1];
 
