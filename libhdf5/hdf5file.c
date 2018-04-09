@@ -18,7 +18,6 @@
 #include <H5Fpublic.h>
 #include <hdf5_hl.h>
 
-
 /** @internal When we have open objects at file close, should
     we log them or print to stdout. Default is to log. */
 #define LOGOPEN 1
