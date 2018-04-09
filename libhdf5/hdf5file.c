@@ -1123,7 +1123,7 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    /* There is a hidden attribute telling us the ids of the
     * dimensions that apply to this multi-dimensional coordinate
     * variable. Read it. */
-   if ((coord_attid = H5Aopen_name(var->hdf_datasetid, COORDINATES)) < 0) ret++;
+   if ((coord_attid = H5Aopen_name(((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid, COORDINATES)) < 0) ret++;
    if (!ret && (coord_att_typeid = H5Aget_type(coord_attid)) < 0) ret++;
 
    /* How many dimensions are there? */
@@ -1694,8 +1694,8 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    var->format_var_info = hdf5_var;
 
    /* Fill in what we already know. */
-   var->hdf_datasetid = datasetid;
-   H5Iinc_ref(var->hdf_datasetid);      /* Increment number of objects using ID */
+   hdf5_var->hdf_datasetid = datasetid;
+   H5Iinc_ref(hdf5_var->hdf_datasetid);      /* Increment number of objects using ID */
    incr_id_rc++;                        /* Indicate that we've incremented the ref. count (for errors) */
    var->created = NC_TRUE;
 
@@ -1865,7 +1865,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
             BAIL(NC_ENOMEM);
          for (d = 0; d < var->ndims; d++)
          {
-            if (H5DSiterate_scales(var->hdf_datasetid, d, NULL, dimscale_visitor,
+            if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,
                                    &(var->dimscale_hdf5_objids[d])) < 0)
                BAIL(NC_EHDFERR);
             var->dimscale_attached[d] = NC_TRUE;
@@ -1879,7 +1879,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    att_info.var = var;
    att_info.grp = grp;
 
-   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
+   if ((H5Aiterate2(hdf5_var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
                     att_read_var_callbk, &att_info)) < 0)
       BAIL(NC_EATTMETA);
 

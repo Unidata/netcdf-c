@@ -11,7 +11,7 @@
  */
 
 #include "config.h"
-#include "nc4internal.h"
+#include "hdf5internal.h"
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
@@ -367,12 +367,22 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
    for (i = 0; i < ncindexsize(grp->vars); i++)
    {
       NC_VAR_INFO_T *var;
+      NC_HDF5_VAR_INFO_T *hdf5_var;      
       int a;
       
       if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars,i)))
          continue;
-      if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
-         return NC_EHDFERR;
+
+      /* Find HDF5 specific var metadata. */
+      hdf5_var = var->format_var_info;
+
+      /* Close HDF5 dataset. */
+      if (hdf5_var->hdf_datasetid)
+      {
+         if (H5Dclose(hdf5_var->hdf_datasetid) < 0)
+            return NC_EHDFERR;
+         hdf5_var->hdf_datasetid = 0;
+      }
 
       /* Close any open types associated with attributes. */
       for (a = 0; a < ncindexsize(grp->att); a++)
@@ -463,7 +473,7 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
    /* If we're replacing an existing dimscale dataset, go to
     * every var in the file and detach this dimension scale. */
    if ((retval = rec_detach_scales(grp->nc4_info->root_grp,
-                                   dim->hdr.id, coord_var->hdf_datasetid)))
+                                   dim->hdr.id, ((NC_HDF5_VAR_INFO_T *)(coord_var->format_var_info))->hdf_datasetid)))
       return retval;
 
    /* Allow attached dimscales to be tracked on the [former]
@@ -588,7 +598,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 
                      /* Find dataset ID for dimension */
                      if (dim1->coord_var)
-                        dim_datasetid = dim1->coord_var->hdf_datasetid;
+                        dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
                      else
                         dim_datasetid = dim1->hdf_dimscaleid;
 
@@ -599,7 +609,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
                      if (dim_datasetid > 0)
                      {
                         LOG((3, "detaching scale from %s", var->hdr.name));
-                        if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+                        if (H5DSdetach_scale(((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid, dim_datasetid, d) < 0)
                            BAIL(NC_EHDFERR);
                      }
                      var->dimscale_attached[d] = NC_FALSE;
@@ -641,7 +651,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
       /* Reattach the scale everywhere it is used. */
       /* (Recall that netCDF dimscales are always 1-D) */
       if ((retval = rec_reattach_scales(grp->nc4_info->root_grp,
-                                        var->dimids[0], var->hdf_datasetid)))
+                                        var->dimids[0], ((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid)))
          return retval;
 
       /* Set state transition indicator (cancels earlier transition) */

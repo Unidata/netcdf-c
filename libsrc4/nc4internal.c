@@ -1546,8 +1546,6 @@ nc4_normalize_name(const char *name, char *norm_name)
    return NC_NOERR;
 }
 
-/* Print out a bunch of info to stderr about the metadata for
-   debugging purposes. */
 #ifdef LOGGING
 /**
  * Use this to set the global log level. Set it to NC_TURN_OFF_LOGGING

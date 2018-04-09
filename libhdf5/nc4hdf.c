@@ -16,7 +16,7 @@
  */
 
 #include "config.h"
-#include "nc4internal.h"
+#include "hdf5internal.h"
 #include "nc4dispatch.h"
 #include <H5DSpublic.h>
 #include <math.h>
@@ -114,7 +114,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                  __func__, var->dimids[d], var->hdr.name));
             if (var->created)
             {
-               if (H5DSattach_scale(var->hdf_datasetid, dimscaleid, d) < 0)
+               if (H5DSattach_scale(((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid, dimscaleid, d) < 0)
                   return NC_EHDFERR;
                var->dimscale_attached[d] = NC_TRUE;
             }
@@ -170,7 +170,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
             if (var->created)
                if (var->dimscale_attached && var->dimscale_attached[d])
                {
-                  if (H5DSdetach_scale(var->hdf_datasetid, dimscaleid, d) < 0)
+                  if (H5DSdetach_scale(((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid, dimscaleid, d) < 0)
                      return NC_EHDFERR;
                   var->dimscale_attached[d] = NC_FALSE;
                }
@@ -194,19 +194,23 @@ int
 nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
 {
    NC_VAR_INFO_T *var;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
 
    /* Find the requested varid. */
    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
    if (!var) return NC_ENOTVAR;
-   assert(var->hdr.id == varid);
+   assert(var->hdr.id == varid && var->format_var_info);
+
+   /* Find HDF5 specific var metadata. */
+   hdf5_var = var->format_var_info;
 
    /* Open this dataset if necessary. */
-   if (!var->hdf_datasetid)
-      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdr.name,
-                                         H5P_DEFAULT)) < 0)
+   if (!hdf5_var->hdf_datasetid)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdr.name,
+                                              H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
 
-   *dataset = var->hdf_datasetid;
+   *dataset = hdf5_var->hdf_datasetid;
 
    return NC_NOERR;
 }
@@ -672,6 +676,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    NC_DIM_INFO_T *dim;
    hid_t file_spaceid = 0, mem_spaceid = 0, xfer_plistid = 0;
    long long unsigned xtend_size[NC_MAX_VAR_DIMS];
@@ -697,10 +702,13 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
       return retval;
    h5 = NC4_DATA(nc);
-   assert(grp && h5 && var && var->hdr.name);
+   assert(grp && h5 && var && var->hdr.name && var->format_var_info);
 
    LOG((3, "%s: var->hdr.name %s mem_nc_type %d is_long %d",
         __func__, var->hdr.name, mem_nc_type, is_long));
+
+   /* Find HDF5 specific var metadata. */
+   hdf5_var = var->format_var_info;
 
    /* Check some stuff about the type and the file. If the file must
     * be switched from define mode, it happens here. */
@@ -723,12 +731,12 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       name_to_use = var->hdf5_name;
    else
       name_to_use = var->hdr.name;
-   if (!var->hdf_datasetid)
-      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
+   if (!hdf5_var->hdf_datasetid)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
 
    /* Get file space of data. */
-   if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+   if ((file_spaceid = H5Dget_space(hdf5_var->hdf_datasetid)) < 0)
       BAIL(NC_EHDFERR);
 
    /* Check to ensure the user selection is
@@ -906,11 +914,11 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
          for (d2 = 0; d2 < var->ndims; d2++)
             fdims[d2] = (hsize_t)xtend_size[d2];
 
-         if (H5Dset_extent(var->hdf_datasetid, fdims) < 0)
+         if (H5Dset_extent(hdf5_var->hdf_datasetid, fdims) < 0)
             BAIL(NC_EHDFERR);
          if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
             BAIL2(NC_EHDFERR);
-         if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+         if ((file_spaceid = H5Dget_space(hdf5_var->hdf_datasetid)) < 0)
             BAIL(NC_EHDFERR);
          if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
                                  start, NULL, count, NULL) < 0)
@@ -931,8 +939,8 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
    /* Write the data. At last! */
    LOG((4, "about to H5Dwrite datasetid 0x%x mem_spaceid 0x%x "
-        "file_spaceid 0x%x", var->hdf_datasetid, mem_spaceid, file_spaceid));
-   if (H5Dwrite(var->hdf_datasetid, var->type_info->hdf_typeid,
+        "file_spaceid 0x%x", hdf5_var->hdf_datasetid, mem_spaceid, file_spaceid));
+   if (H5Dwrite(hdf5_var->hdf_datasetid, var->type_info->hdf_typeid,
                 mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
       BAIL(NC_EHDFERR);
 
@@ -1005,6 +1013,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    NC_DIM_INFO_T *dim;
    hid_t file_spaceid = 0, mem_spaceid = 0;
    hid_t xfer_plistid = 0;
@@ -1031,10 +1040,13 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
       return retval;
    h5 = NC4_DATA(nc);
-   assert(grp && h5 && var && var->hdr.name);
+   assert(grp && h5 && var && var->hdr.name && var->format_var_info);
 
    LOG((3, "%s: var->hdr.name %s mem_nc_type %d is_long %d",
         __func__, var->hdr.name, mem_nc_type, is_long));
+
+   /* Find HDF5 specific var metadata. */
+   hdf5_var = var->format_var_info;
 
    /* Check some stuff about the type and the file. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
@@ -1056,12 +1068,12 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
       name_to_use = var->hdf5_name;
    else
       name_to_use = var->hdr.name;
-   if (!var->hdf_datasetid)
-      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
+   if (!hdf5_var->hdf_datasetid)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
 
    /* Get file space of data. */
-   if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+   if ((file_spaceid = H5Dget_space(hdf5_var->hdf_datasetid)) < 0)
       BAIL(NC_EHDFERR);
 
    /* Check to ensure the user selection is
@@ -1237,7 +1249,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
       /* Read this hyperslab into memory. */
       LOG((5, "About to H5Dread some data..."));
-      if (H5Dread(var->hdf_datasetid, var->type_info->native_hdf_typeid,
+      if (H5Dread(hdf5_var->hdf_datasetid, var->type_info->native_hdf_typeid,
                   mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
          BAIL(NC_EHDFERR);
 
@@ -1293,14 +1305,14 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
          /* Since no element will be selected, we just get the memory space the same as the file space.
           */
-         if((mem_spaceid = H5Dget_space(var->hdf_datasetid))<0)
+         if((mem_spaceid = H5Dget_space(hdf5_var->hdf_datasetid))<0)
             BAIL(NC_EHDFERR);
          if (H5Sselect_none(mem_spaceid)<0)
             BAIL(NC_EHDFERR);
 
          /* Read this hyperslab into memory. */
          LOG((5, "About to H5Dread some data..."));
-         if (H5Dread(var->hdf_datasetid, var->type_info->native_hdf_typeid,
+         if (H5Dread(hdf5_var->hdf_datasetid, var->type_info->native_hdf_typeid,
                      mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
             BAIL(NC_EHDFERR);
       }
@@ -1590,7 +1602,7 @@ write_coord_dimids(NC_VAR_INFO_T *var)
    /* Write our attribute. */
    coords_len[0] = var->ndims;
    if ((c_spaceid = H5Screate_simple(1, coords_len, coords_len)) < 0) ret++;
-   if (!ret && (c_attid = H5Acreate(var->hdf_datasetid, COORDINATES, H5T_NATIVE_INT,
+   if (!ret && (c_attid = H5Acreate(((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid, COORDINATES, H5T_NATIVE_INT,
                                     c_spaceid, H5P_DEFAULT)) < 0) ret++;
    if (!ret && H5Awrite(c_attid, H5T_NATIVE_INT, var->dimids) < 0) ret++;
 
@@ -1661,6 +1673,7 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
 static int
 var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid)
 {
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t plistid = 0, access_plistid = 0, typeid = 0, spaceid = 0;
    hsize_t chunksize[H5S_MAX_RANK], dimsize[H5S_MAX_RANK], maxdimsize[H5S_MAX_RANK];
    int d;
@@ -1669,7 +1682,11 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    char *name_to_use;
    int retval = NC_NOERR;
 
+   assert(grp && var && var->format_var_info);
    LOG((3, "%s:: name %s", __func__, var->hdr.name));
+
+   /* Find HDF5 specific var metadata. */
+   hdf5_var = var->format_var_info;
 
    /* Scalar or not, we need a creation property list. */
    if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0)
@@ -1858,8 +1875,8 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    name_to_use = var->hdf5_name ? var->hdf5_name : var->hdr.name;
    LOG((4, "%s: about to H5Dcreate2 dataset %s of type 0x%x", __func__,
         name_to_use, typeid));
-   if ((var->hdf_datasetid = H5Dcreate2(grp->hdf_grpid, name_to_use, typeid,
-                                        spaceid, H5P_DEFAULT, plistid, access_plistid)) < 0)
+   if ((hdf5_var->hdf_datasetid = H5Dcreate2(grp->hdf_grpid, name_to_use, typeid,
+                                             spaceid, H5P_DEFAULT, plistid, access_plistid)) < 0)
       BAIL(NC_EHDFERR);
    var->created = NC_TRUE;
    var->is_new_var = NC_FALSE;
@@ -1869,7 +1886,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     * dataset. */
    if (var->dimscale)
    {
-      if (H5DSset_scale(var->hdf_datasetid, var->hdr.name) < 0)
+      if (H5DSset_scale(hdf5_var->hdf_datasetid, var->hdr.name) < 0)
          BAIL(NC_EHDFERR);
 
       /* If this is a multidimensional coordinate variable, write a
@@ -1880,7 +1897,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 
       /* If desired, write the netCDF dimid. */
       if (write_dimid)
-         if ((retval = write_netcdf4_dimid(var->hdf_datasetid, var->dimids[0])))
+         if ((retval = write_netcdf4_dimid(hdf5_var->hdf_datasetid, var->dimids[0])))
             BAIL(retval);
    }
 
@@ -2211,8 +2228,12 @@ attach_dimscales(NC_GRP_INFO_T *grp)
    /* Attach dimension scales. */
    for(i=0;i<ncindexsize(grp->vars);i++)
    {
-      var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
-      if (!var) continue;
+      NC_HDF5_VAR_INFO_T *hdf5_var;
+      
+      if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i)))
+         continue;
+      hdf5_var = var->format_var_info;
+      
       /* Scales themselves do not attach. But I really wish they
        * would. */
       if (var->dimscale)
@@ -2240,12 +2261,12 @@ attach_dimscales(NC_GRP_INFO_T *grp)
 
                   /* Find dataset ID for dimension */
                   if (dim1->coord_var)
-                     dim_datasetid = dim1->coord_var->hdf_datasetid;
+                     dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
                   else
                      dim_datasetid = dim1->hdf_dimscaleid;
 if(!(dim_datasetid > 0))
                   assert(dim_datasetid > 0);
-                  if (H5DSattach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+                  if (H5DSattach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
                      BAIL(NC_EHDFERR);
                   var->dimscale_attached[d] = NC_TRUE;
                }
@@ -2367,10 +2388,15 @@ remove_coord_atts(hid_t hdf_datasetid)
 static int
 write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    nc_bool_t replace_existing_var = NC_FALSE;
    int retval;
 
+   assert(var && grp && var->format_var_info);
    LOG((4, "%s: writing var %s", __func__, var->hdr.name));
+
+   /* Find HDF5 specific var metadata. */
+   hdf5_var = var->format_var_info;
 
    /* If the variable has already been created & the fill value changed,
     * indicate that the existing variable should be replaced. */
@@ -2443,7 +2469,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
                /* Find dataset ID for dimension */
                if (d1->coord_var)
-                  dim_datasetid = d1->coord_var->hdf_datasetid;
+                  dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(d1->coord_var->format_var_info))->hdf_datasetid;
                else
                   dim_datasetid = d1->hdf_dimscaleid;
                assert(dim_datasetid > 0);
@@ -2469,7 +2495,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
        * for making a dataset not a scale. -QAK) */
       if (var->created)
       {
-         if ((retval = remove_coord_atts(var->hdf_datasetid)))
+         if ((retval = remove_coord_atts(hdf5_var->hdf_datasetid)))
             BAIL(retval);
       }
 
@@ -2487,12 +2513,12 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
                /* Find dataset ID for dimension */
                if (dim1->coord_var)
-                  dim_datasetid = dim1->coord_var->hdf_datasetid;
+                  dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
                else
                   dim_datasetid = dim1->hdf_dimscaleid;
                assert(dim_datasetid > 0);
 
-               if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+               if (H5DSdetach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
                   BAIL(NC_EHDFERR);
                var->dimscale_attached[d] = NC_FALSE;
             }
@@ -2503,9 +2529,9 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    if (replace_existing_var)
    {
       /* Free the HDF5 dataset id. */
-      if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
+      if (hdf5_var->hdf_datasetid && H5Dclose(hdf5_var->hdf_datasetid) < 0)
          BAIL(NC_EHDFERR);
-      var->hdf_datasetid = 0;
+      hdf5_var->hdf_datasetid = 0;
 
       /* Now delete the variable. */
       if (H5Gunlink(grp->hdf_grpid, var->hdr.name) < 0)
@@ -2521,7 +2547,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    else
    {
       if (write_dimid && var->ndims)
-         if ((retval = write_netcdf4_dimid(var->hdf_datasetid, var->dimids[0])))
+         if ((retval = write_netcdf4_dimid(hdf5_var->hdf_datasetid, var->dimids[0])))
             BAIL(retval);
    }
 
@@ -2529,12 +2555,13 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    {
       /* If this is a dimension scale, reattach the scale everywhere it
        * is used. (Recall that netCDF dimscales are always 1-D). */
-      if(var->dimscale)
+      if (var->dimscale)
       {
          if ((retval = rec_reattach_scales(grp->nc4_info->root_grp,
-                                           var->dimids[0], var->hdf_datasetid)))
+                                           var->dimids[0], hdf5_var->hdf_datasetid)))
             return retval;
       }
+      
       /* If it's not a dimension scale, clear the dimscale attached flags,
        * so the dimensions are re-attached. */
       else
@@ -2665,7 +2692,8 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
             assert(v1->dim[d1] && v1->dim[d1]->hdr.id == v1->dimids[d1]);
             new_size[d1] = v1->dim[d1]->len;
          }
-         if (H5Dset_extent(v1->hdf_datasetid, new_size) < 0) {
+         if (H5Dset_extent(((NC_HDF5_VAR_INFO_T *)(v1->format_var_info))->hdf_datasetid,
+                           new_size) < 0) {
             free(new_size);
             BAIL(NC_EHDFERR);
          }
@@ -3914,13 +3942,19 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
       if ((retval = nc4_rec_match_dimscales(g)))
          return retval;
    }
+   
    /* Check all the vars in this group. If they have dimscale info,
     * try and find a dimension for them. */
    for(i=0;i<ncindexsize(grp->vars);i++)
    {
+      NC_HDF5_VAR_INFO_T *hdf5_var;
       int ndims;
       int d;
-      if((var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i)) == NULL) continue;
+      
+      if((var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i)) == NULL)
+         continue;
+      hdf5_var = var->format_var_info;
+      
       /* Check all vars and see if dim[i] != NULL if dimids[i] valid. */
       /* This loop is very odd. Under normal circumstances, var->dimid[d] is zero
          (from the initial calloc) which is a legitimate dimid. The code does not
@@ -3991,7 +4025,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
             int dataset_ndims;
 
             /* Find the space information for this dimension. */
-            if ((spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+            if ((spaceid = H5Dget_space(hdf5_var->hdf_datasetid)) < 0)
                return NC_EHDFERR;
 
             /* Get the len of each dim in the space. */

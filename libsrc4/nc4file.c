@@ -125,11 +125,6 @@ float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk ca
 
 #define NUM_TYPES 12 /**< Number of netCDF atomic types. */
 
-/** @internal Native HDF5 constants for atomic types. For performance,
- * fill this array only the first time, and keep it in global memory
- * for each further use. */
-static hid_t h5_native_type_constant_g[NUM_TYPES];
-
 /**
  * Set chunk cache size. Only affects files opened/created *after* it
  * is called.  

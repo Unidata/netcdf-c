@@ -42,9 +42,15 @@ extern int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info,
 int
 nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t access_pid;
 
-   if (var->hdf_datasetid)
+   assert(grp && var && var->format_var_info);
+
+   /* Find HDF5 specific var metadata. */
+   hdf5_var = var->format_var_info;
+
+   if (hdf5_var->hdf_datasetid)
    {
       if ((access_pid = H5Pcreate(H5P_DATASET_ACCESS)) < 0)
          return NC_EHDFERR;
@@ -52,10 +58,10 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
                              var->chunk_cache_size,
                              var->chunk_cache_preemption) < 0)
          return NC_EHDFERR;
-      if (H5Dclose(var->hdf_datasetid) < 0)
+      if (H5Dclose(hdf5_var->hdf_datasetid) < 0)
          return NC_EHDFERR;
-      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdr.name,
-                                         access_pid)) < 0)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdr.name,
+                                              access_pid)) < 0)
          return NC_EHDFERR;
       if (H5Pclose(access_pid) < 0)
          return NC_EHDFERR;
