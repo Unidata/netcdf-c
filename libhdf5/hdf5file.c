@@ -876,7 +876,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       /*Change the return error from NC_EFILEMETADATA to
         System error EACCES because that is the more likely problem */
       BAIL(EACCES);
-   nc4_info->hdfid = hdf5_file->hdfid;
+   /* nc4_info->hdfid = hdf5_file->hdfid; */
 
    /* Open the root group. */
    if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(hdf5_file->hdfid, "/",
@@ -2432,7 +2432,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       nc4_info->no_write = NC_TRUE;
    } else if ((hdf5_file->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
       BAIL(NC_EHDFERR);
-   nc4_info->hdfid = hdf5_file->hdfid;
+   /* nc4_info->hdfid = hdf5_file->hdfid; */
 
    /* Does the mode specify that this file is read-only? */
    if ((mode & NC_WRITE) == 0)
