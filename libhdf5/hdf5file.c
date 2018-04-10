@@ -31,7 +31,7 @@
  *
  * @return ::NC_NOERR No error.
  * @author Dennis Heimbigner
-*/
+ */
 static void
 hdf5free(void* memory)
 {
@@ -66,7 +66,7 @@ typedef struct {
  * @return ::NC_EHDFERR HDF5 returned error.
  * @return ::NC_EBADTYPID Type not found.
  * @author Ed Hartnett
-*/
+ */
 static int
 get_netcdf_type(NC_HDF5_FILE_INFO_T *h5, hid_t native_typeid,
                 nc_type *xtype)
@@ -190,7 +190,7 @@ get_netcdf_type(NC_HDF5_FILE_INFO_T *h5, hid_t native_typeid,
  * @return ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 {
@@ -403,39 +403,39 @@ att_read_var_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
    const NC_reservedatt* ra = NC_findreserved(att_name);
    if(ra != NULL) goto exit; /* ignore */
 
-      /* Add to the end of the list of atts for this var. */
-      if ((retval = nc4_att_list_add(att_info->var->att, att_name, &att)))
-         BAIL(retval);
+   /* Add to the end of the list of atts for this var. */
+   if ((retval = nc4_att_list_add(att_info->var->att, att_name, &att)))
+      BAIL(retval);
 
-      /* Open the att by name. */
-      if ((attid = H5Aopen(loc_id, att_name, H5P_DEFAULT)) < 0)
-         BAIL(NC_EATTMETA);
-      LOG((4, "%s::  att_name %s", __func__, att_name));
+   /* Open the att by name. */
+   if ((attid = H5Aopen(loc_id, att_name, H5P_DEFAULT)) < 0)
+      BAIL(NC_EATTMETA);
+   LOG((4, "%s::  att_name %s", __func__, att_name));
 
-      /* Read the rest of the info about the att,
-       * including its values. */
-      if ((retval = read_hdf5_att(att_info->grp, attid, att)))
-	BAIL(retval);
+   /* Read the rest of the info about the att,
+    * including its values. */
+   if ((retval = read_hdf5_att(att_info->grp, attid, att)))
+      BAIL(retval);
 
-      if (att)
-         att->created = NC_TRUE;
+   if (att)
+      att->created = NC_TRUE;
 
-      if (attid > 0 && H5Aclose(attid) < 0)
-         BAIL2(NC_EHDFERR);
+   if (attid > 0 && H5Aclose(attid) < 0)
+      BAIL2(NC_EHDFERR);
 
    return NC_NOERR;
 
 exit:
-     if(retval) {
-        if (retval == NC_EBADTYPID) {
-	    /* NC_EBADTYPID will be normally converted to NC_NOERR so that
-               the parent iterator does not fail. */
-	    retval = nc4_att_list_del(att_info->var->att,att);
-	    att = NULL;
-        }
+   if(retval) {
+      if (retval == NC_EBADTYPID) {
+         /* NC_EBADTYPID will be normally converted to NC_NOERR so that
+            the parent iterator does not fail. */
+         retval = nc4_att_list_del(att_info->var->att,att);
+         att = NULL;
       }
-      if (attid > 0 && H5Aclose(attid) < 0)
-	  retval = NC_EHDFERR;
+   }
+   if (attid > 0 && H5Aclose(attid) < 0)
+      retval = NC_EHDFERR;
    return retval;
 }
 
@@ -450,7 +450,7 @@ extern void reportopenobjects(int log, hid_t);
 /**
  * @internal Struct to track information about objects in a group, for
  * nc4_rec_read_metadata()
-*/
+ */
 typedef struct NC4_rec_read_metadata_obj_info
 {
    hid_t oid;                          /* HDF5 object ID */
@@ -463,7 +463,7 @@ typedef struct NC4_rec_read_metadata_obj_info
  * @internal User data struct for call to H5Literate() in
  * nc4_rec_read_metadata(). Tracks the groups, named datatypes and
  * datasets in the group, for later use.
-*/
+ */
 typedef struct NC4_rec_read_metadata_ud
 {
    NClist* grps; /* NClist<NC4_rec_read_metadata_obj_info_t*> */
@@ -483,7 +483,7 @@ static void dumpopenobjects(NC_HDF5_FILE_INFO_T* h5);
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int
 sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
 {
@@ -542,7 +542,7 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int
 close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 {
@@ -589,7 +589,7 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
    
    if(h5->fileinfo) free(h5->fileinfo);
 
-   if (H5Fclose(h5->hdfid) < 0)
+   if (H5Fclose(((NC_HDF5_FILE_INFO_2_T *)(h5->format_file_info))->hdfid) < 0)
    {
       dumpopenobjects(h5);
    }
@@ -609,34 +609,37 @@ exit:
 static void
 dumpopenobjects(NC_HDF5_FILE_INFO_T* h5)
 {
-      int nobjs;
-      
-      nobjs = H5Fget_obj_count(h5->hdfid, H5F_OBJ_ALL);
-      /* Apparently we can get an error even when nobjs == 0 */
-      if(nobjs < 0) {
-	 return;
-      } else if(nobjs > 0) {
-         char msg[1024];
-         int logit = 0;
-         /* If the close doesn't work, probably there are still some HDF5
-          * objects open, which means there's a bug in the library. So
-          * print out some info on to help the poor programmer figure it
-          * out. */
-         snprintf(msg,sizeof(msg),"There are %d HDF5 objects open!", nobjs);
+   NC_HDF5_FILE_INFO_2_T *hdf5_file;
+   int nobjs;
+
+   hdf5_file = h5->format_file_info;
+   
+   nobjs = H5Fget_obj_count(hdf5_file->hdfid, H5F_OBJ_ALL);
+   /* Apparently we can get an error even when nobjs == 0 */
+   if(nobjs < 0) {
+      return;
+   } else if(nobjs > 0) {
+      char msg[1024];
+      int logit = 0;
+      /* If the close doesn't work, probably there are still some HDF5
+       * objects open, which means there's a bug in the library. So
+       * print out some info on to help the poor programmer figure it
+       * out. */
+      snprintf(msg,sizeof(msg),"There are %d HDF5 objects open!", nobjs);
 #ifdef LOGGING
 #ifdef LOGOPEN
-         LOG((0, msg));
-	 logit = 1;
+      LOG((0, msg));
+      logit = 1;
 #endif
 #else
-         fprintf(stdout,"%s\n",msg);
-         logit = 0;
+      fprintf(stdout,"%s\n",msg);
+      logit = 0;
 #endif
-         reportopenobjects(logit,h5->hdfid);
-	 fflush(stderr);
-      }
+      reportopenobjects(logit,hdf5_file->hdfid);
+      fflush(stderr);
+   }
 
-    return;
+   return;
 }
 
 #ifdef NC4NOTUSED
@@ -672,7 +675,7 @@ static const char* NC_RESERVED_ATT_LIST[] = {
 /** 
  * @internal Define the subset of the reserved list that is readable
  * by name only 
-*/
+ */
 static const char* NC_RESERVED_SPECIAL_LIST[] = {
    ISNETCDF4ATT,
    SUPERBLOCKATT,
@@ -1123,7 +1126,7 @@ exit:
  *
  * @return NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
@@ -1173,7 +1176,7 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  *
  * @return 0 for success, -1 for error.
  * @author Ed Hartnett
-*/
+ */
 static herr_t
 dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
                  void *dimscale_hdf5_objids)
@@ -1206,7 +1209,7 @@ dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
  * @return ::NC_EHDFERR HDF5 returned error.
  * @return ::NC_EBADTYPID Type not found.
  * @author Ed Hartnett
-*/
+ */
 static int
 get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
                NC_TYPE_INFO_T **type_info)
@@ -1354,7 +1357,7 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
  * @return ::NC_EHDFERR HDF5 returned error.
  * @return ::NC_EBADTYPID Type not found.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 {
@@ -1655,7 +1658,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          size_t ndims, NC_DIM_INFO_T *dim)
@@ -1694,7 +1697,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          BAIL(NC_ENOMEM);
       strcpy(finalname, &obj_name[strlen(NON_COORD_PREPEND)]);
    } else
-	finalname = strdup(obj_name);
+      finalname = strdup(obj_name);
 
    /* Add a variable to the end of the group's var list. */
    if ((retval = nc4_var_list_add(grp,finalname,ndims,&var)))
@@ -1927,7 +1930,7 @@ exit:
  * @return ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_grp_atts(NC_GRP_INFO_T *grp)
 {
@@ -1953,7 +1956,7 @@ read_grp_atts(NC_GRP_INFO_T *grp)
       if(grp->nc4_info->root_grp == grp) {
  	 const NC_reservedatt* ra = NC_findreserved(obj_name);
          if(ra != NULL && (ra->flags & NAMEONLYFLAG))
-	     hidden = 1;
+            hidden = 1;
       }
 
       /* This may be an attribute telling us that strict netcdf-3
@@ -2004,7 +2007,7 @@ exit:
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
-*/
+ */
 static int
 read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
              const H5G_stat_t *statbuf)
@@ -2295,14 +2298,14 @@ exit:
    /* Clean up local information, if anything remains */
    for(i=0;i<nclistlength(udata.grps);i++)
    {
-     oinfo = (NC4_rec_read_metadata_obj_info_t*)nclistget(udata.grps,i);
-     if (retval)
-     {
+      oinfo = (NC4_rec_read_metadata_obj_info_t*)nclistget(udata.grps,i);
+      if (retval)
+      {
          /* Close the object */
          if (H5Oclose(oinfo->oid) < 0)
             BAIL2(NC_EHDFERR);
-     }
-     free(oinfo);
+      }
+      free(oinfo);
    }
    nclistfree(udata.grps);
    udata.grps = NULL;
@@ -2322,7 +2325,7 @@ exit:
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett, Dennis Heimbigner
-*/
+ */
 static int
 nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 {
@@ -2556,7 +2559,7 @@ done:
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
             size_t v_minfree, size_t r_align)
@@ -2575,7 +2578,7 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int NC4_enddef(int ncid)
 {
    NC *nc;
@@ -2611,7 +2614,7 @@ static int NC4_enddef(int ncid)
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_sync(int ncid)
 {
@@ -2694,7 +2697,7 @@ NC4_abort(int ncid)
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_close(int ncid)
 {
@@ -2729,7 +2732,7 @@ NC4_close(int ncid)
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
 {
