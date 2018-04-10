@@ -2193,7 +2193,8 @@ create_group(NC_GRP_INFO_T *grp)
    else
    {
       /* Since this is the root group, we have to open it. */
-      if ((grp->hdf_grpid = H5Gopen2(grp->nc4_info->hdfid, "/", H5P_DEFAULT)) < 0)
+      if ((grp->hdf_grpid = H5Gopen2(((NC_HDF5_FILE_INFO_2_T *)(grp->nc4_info->format_file_info))->hdfid,
+                                     "/", H5P_DEFAULT)) < 0)
          BAIL(NC_EFILEMETA);
    }
    return NC_NOERR;

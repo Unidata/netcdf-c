@@ -879,7 +879,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    hdf5_file->hdfid = nc4_info->hdfid;
 
    /* Open the root group. */
-   if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(nc4_info->hdfid, "/",
+   if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(hdf5_file->hdfid, "/",
                                                  H5P_DEFAULT)) < 0)
       BAIL(NC_EFILEMETA);
 
@@ -2223,7 +2223,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
       }
       else
       {
-         if ((grp->hdf_grpid = H5Gopen2(grp->nc4_info->hdfid,
+         if ((grp->hdf_grpid = H5Gopen2(((NC_HDF5_FILE_INFO_2_T *)(grp->nc4_info->format_file_info))->hdfid,
                                         "/", H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
       }

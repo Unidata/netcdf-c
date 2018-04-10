@@ -1730,10 +1730,10 @@ log_metadata_nc(NC *nc)
       LOG((2, "This is a netCDF-3 file."));
       return NC_NOERR;
    }
-   LOG((2, "FILE - hdfid: 0x%x path: %s cmode: 0x%x parallel: %d redef: %d "
-        "fill_mode: %d no_write: %d next_nc_grpid: %d", h5->hdfid, nc->path,
-        h5->cmode, (int)h5->parallel, (int)h5->redef, h5->fill_mode, (int)h5->no_write,
-        h5->next_nc_grpid));
+   LOG((2, "FILE - path: %s cmode: 0x%x parallel: %d redef: %d "
+        "fill_mode: %d no_write: %d next_nc_grpid: %d", nc->path,
+        h5->cmode, (int)h5->parallel, (int)h5->redef, h5->fill_mode,
+        (int)h5->no_write, h5->next_nc_grpid));
    if(nc_log_level >= 2)
       return rec_print_metadata(h5->root_grp, 0);
    return NC_NOERR;
