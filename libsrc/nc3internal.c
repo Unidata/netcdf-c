@@ -1784,9 +1784,9 @@ nc_delete_mp(const char * path, int basepe)
 
 	status = NC_check_id(ncid,&nc);
         if(status) return status;
-	nc3 = NC3_DATA(nc);
+	/* nc3 = NC3_DATA(nc); */
 
-	nc3->chunk = chunk;
+	/* nc3->chunk = chunk; */
 
 #if defined(LOCKNUMREC) /* && _CRAYMPP */
 	if (status = NC_init_pe(nc3, basepe)) {

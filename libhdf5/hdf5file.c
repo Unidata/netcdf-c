@@ -778,6 +778,9 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    if (!(hdf5_file = calloc(1, sizeof(NC_HDF5_FILE_INFO_2_T))))
       BAIL(NC_ENOMEM);
    nc4_info->format_file_info = hdf5_file;
+
+   /* Assume not parallel access. */
+   nc4_info->parallel = NC_FALSE;
    
    /* Need this access plist to control how HDF5 handles open objects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
@@ -830,6 +833,9 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
          /* No dup, just copy it. */
          nc4_info->info = info;
       }
+
+      /* Remember that we are using parallel. */
+      nc4_info->parallel = NC_TRUE;
    }
 #else /* only set cache for non-parallel... */
    if(cmode & NC_DISKLESS) {
