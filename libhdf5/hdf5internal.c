@@ -181,11 +181,13 @@ nc4_rec_find_hdf_type(NC_HDF5_FILE_INFO_T* h5, hid_t target_hdf_typeid)
       type = (NC_TYPE_INFO_T*)nclistget(h5->alltypes,i);	
       if(type == NULL) continue;
       /* Is this the type we are searching for? */
-      if ((equal = H5Tequal(type->native_hdf_typeid ? type->native_hdf_typeid : type->hdf_typeid, target_hdf_typeid)) < 0)
+      if ((equal = H5Tequal(type->native_hdf_typeid ? type->native_hdf_typeid : type->hdf_typeid,
+                            target_hdf_typeid)) < 0)
          return NULL;
       if (equal)
          return type;
    }
+
    /* Can't find it. Fate, why do you mock me? */
    return NULL;
 }

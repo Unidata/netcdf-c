@@ -525,7 +525,8 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
          return retval;
    }
 
-   if (H5Fflush(h5->hdfid, H5F_SCOPE_GLOBAL) < 0)
+   if (H5Fflush(((NC_HDF5_FILE_INFO_2_T *)(h5->format_file_info))->hdfid,
+                H5F_SCOPE_GLOBAL) < 0)
       return NC_EHDFERR;
 
    return retval;
@@ -872,6 +873,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       /*Change the return error from NC_EFILEMETADATA to
         System error EACCES because that is the more likely problem */
       BAIL(EACCES);
+   hdf5_file->hdfid = nc4_info->hdfid;
 
    /* Open the root group. */
    if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(nc4_info->hdfid, "/",
@@ -2427,6 +2429,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       nc4_info->no_write = NC_TRUE;
    } else if ((nc4_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
       BAIL(NC_EHDFERR);
+   hdf5_file->hdfid = nc4_info->hdfid;
 
    /* Does the mode specify that this file is read-only? */
    if ((mode & NC_WRITE) == 0)
