@@ -4347,40 +4347,40 @@ reportopenobjects(int uselog, hid_t fid)
    reportopenobjectsT(uselog, fid ,5, OTYPES);
 }
 
-/**
- * @internal Report open objects given a pointer to NC_HDF5_FILE_INFO_T object
- *
- * @param h5 file object
- *
- */
-void
-showopenobjects5(NC_HDF5_FILE_INFO_T* h5)
-{
-    fprintf(stderr,"===== begin showopenobjects =====\n");
-    reportopenobjects(0,h5->hdfid);
-    fprintf(stderr,"===== end showopenobjects =====\n");
-    fflush(stderr);
-}
+/* /\** */
+/*  * @internal Report open objects given a pointer to NC_HDF5_FILE_INFO_T object */
+/*  * */
+/*  * @param h5 file object */
+/*  * */
+/*  *\/ */
+/* void */
+/* showopenobjects5(NC_HDF5_FILE_INFO_T* h5) */
+/* { */
+/*     fprintf(stderr,"===== begin showopenobjects =====\n"); */
+/*     reportopenobjects(0,h5->hdfid); */
+/*     fprintf(stderr,"===== end showopenobjects =====\n"); */
+/*     fflush(stderr); */
+/* } */
 
-/**
- * @internal Report open objects given an ncid
- * Defined to support user or gdb level call.
- *
- * @param ncid file id
- *
- */
-void
-showopenobjects(int ncid)
-{
-   NC_HDF5_FILE_INFO_T* h5 = NULL;
+/* /\** */
+/*  * @internal Report open objects given an ncid */
+/*  * Defined to support user or gdb level call. */
+/*  * */
+/*  * @param ncid file id */
+/*  * */
+/*  *\/ */
+/* void */
+/* showopenobjects(int ncid) */
+/* { */
+/*    NC_HDF5_FILE_INFO_T* h5 = NULL; */
 
-   /* Find our metadata for this file. */
-   if (nc4_find_nc_grp_h5(ncid, NULL, NULL, &h5) != NC_NOERR)
-     fprintf(stderr,"failed\n");
-   else
-      showopenobjects5(h5);
-   fflush(stderr);
-}
+/*    /\* Find our metadata for this file. *\/ */
+/*    if (nc4_find_nc_grp_h5(ncid, NULL, NULL, &h5) != NC_NOERR) */
+/*      fprintf(stderr,"failed\n"); */
+/*    else */
+/*       showopenobjects5(h5); */
+/*    fflush(stderr); */
+/* } */
 
 /**
  * @internal Get HDF5 library version.
@@ -4417,7 +4417,7 @@ NC4_hdf5get_superblock(struct NC_HDF5_FILE_INFO* h5, int* idp)
    int stat = NC_NOERR;
    unsigned super;
    hid_t plist = -1;
-   if((plist = H5Fget_create_plist(h5->hdfid)) < 0)
+   if((plist = H5Fget_create_plist(((NC_HDF5_FILE_INFO_2_T *)(h5->format_file_info))->hdfid)) < 0)
    {stat = NC_EHDFERR; goto done;}
    if(H5Pget_version(plist, &super, NULL, NULL, NULL) < 0)
    {stat = NC_EHDFERR; goto done;}
