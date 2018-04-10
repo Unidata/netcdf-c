@@ -10,14 +10,13 @@ TARGETS = ${PLUGINSRC} ${BZIP2SRC}
 HDF5PLUGINSRC=${PLUGINSRC} ${BZIP2SRC}
 BUILT_SOURCES = ${TARGETS}
 
-${TARGETS}:
-	for x in ${TARGETS} ; do \
-	rm -f ./$$x; \
-	'cp' -f ${top_srcdir}/nc_test4/hdf5plugins/$$x . ; \
-	done
-
-CLEANFILES = ${TARGETS}
-
+# Replaced by CONFIG_LINKS in configure.ac
+#${TARGETS}:
+#	for x in ${TARGETS} ; do \
+#	rm -f ./$$x; \
+#	'cp' -f ${top_srcdir}/nc_test4/hdf5plugins/$$x . ; \
+#	done
+#CLEANFILES = ${TARGETS}
 
 if ENABLE_FILTER_TESTING
 

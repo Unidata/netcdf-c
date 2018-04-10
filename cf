@@ -118,7 +118,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
-#FLAGS="$FLAGS --enable-filter-testing"
+#FLAGS="$FLAGS --disable-filter-testing"
 FLAGS="$FLAGS --enable-library-finalize"
 #FLAGS="$FLAGS --enable-metadata-perf"
 
