@@ -402,8 +402,11 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
    for (i = 0; i < ncindexsize(grp->dim); i++)
    {
       NC_DIM_INFO_T *dim;
+      NC_HDF5_DIM_INFO_T *hdf5_dim;
+      
       if (!(dim = (NC_DIM_INFO_T *)ncindexith(grp->dim,i)))
          continue;
+      hdf5_dim = dim->format_dim_info;
       if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
          return NC_EHDFERR;
    }
@@ -468,7 +471,7 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
    /* Sanity checks */
    assert(grp && coord_var && dim && dim->coord_var == coord_var &&
           coord_var->dim[0] == dim && coord_var->dimids[0] == dim->hdr.id &&
-          !dim->hdf_dimscaleid);
+          !((NC_HDF5_DIM_INFO_T *)(dim->format_dim_info))->hdf_dimscaleid);
    LOG((3, "%s dim %s was associated with var %s, but now has different name",
         __func__, dim->hdr.name, coord_var->hdr.name));
 
@@ -530,11 +533,15 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
 int
 delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim)
 {
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
    int retval;
 
-   assert(grp && dim);
+   assert(grp && dim && dim->format_dim_info);
    LOG((2, "%s: deleting dimscale dataset %s dimid %d", __func__, dim->hdr.name,
         dimid));
+
+   /* Find HDF5 specific dim info. */
+   hdf5_dim = dim->format_dim_info;
 
    /* Detach dimscale from any variables using it */
    if ((retval = rec_detach_scales(grp, dimid, dim->hdf_dimscaleid)) < 0)
@@ -544,6 +551,7 @@ delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *d
    if (H5Dclose(dim->hdf_dimscaleid) < 0)
       return NC_EHDFERR;
    dim->hdf_dimscaleid = 0;
+   hdf5_dim->hdf_dimscaleid = 0;
 
    /* Now delete the dataset. */
    if (H5Gunlink(grp->hdf_grpid, dim->hdr.name) < 0)
