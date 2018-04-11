@@ -1105,7 +1105,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          /* Hold open the dataset, since the dimension doesn't have a coordinate variable */
          new_dim->hdf_dimscaleid = datasetid;
          hdf5_dim->hdf_dimscaleid = datasetid;
-         H5Iinc_ref(new_dim->hdf_dimscaleid);        /* Increment number of objects using ID */
+         H5Iinc_ref(datasetid);        /* Increment number of objects using ID */
       }
    }
 
@@ -2063,7 +2063,7 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Add a var to the linked list, and get its metadata,
     * unless this is one of those funny dimscales that are a
     * dimension in netCDF but not a variable. (Spooky!) */
-   if (NULL == dim || (dim && !dim->hdf_dimscaleid))
+   if (NULL == dim || (dim && !((NC_HDF5_DIM_INFO_T *)(dim->format_dim_info))->hdf_dimscaleid))
       if ((retval = read_var(grp, datasetid, obj_name, ndims, dim)))
          BAIL(retval);
 

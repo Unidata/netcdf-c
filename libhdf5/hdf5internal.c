@@ -574,11 +574,15 @@ delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *d
 int
 nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 {
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
    int need_to_reattach_scales = 0;
    int retval = NC_NOERR;
 
-   assert(grp && var && dim);
+   assert(grp && var && dim && dim->format_dim_info);
    LOG((3, "%s: dim->hdr.name %s var->hdr.name %s", __func__, dim->hdr.name, var->hdr.name));
+
+   /* Get HDF5 specific dim info. */
+   hdf5_dim = dim->format_dim_info;
 
    /* Detach dimscales from the [new] coordinate variable */
    if(var->dimscale_attached)
@@ -638,12 +642,13 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
    }
 
    /* Use variable's dataset ID for the dimscale ID. */
-   if (dim->hdf_dimscaleid && grp != NULL)
+   if (hdf5_dim->hdf_dimscaleid && grp != NULL)
    {
       LOG((3, "closing and unlinking dimscale dataset %s", dim->hdr.name));
       if (H5Dclose(dim->hdf_dimscaleid) < 0)
          BAIL(NC_EHDFERR);
       dim->hdf_dimscaleid = 0;
+      hdf5_dim->hdf_dimscaleid = 0;
 
       /* Now delete the dimscale's dataset
          (it will be recreated later, if necessary) */
