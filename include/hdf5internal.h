@@ -73,6 +73,12 @@ typedef struct NC_HDF5_VAR_INFO
    /* HDF5_OBJID_T *dimscale_hdf5_objids; */
 } NC_HDF5_VAR_INFO_T;
 
+/* This is a struct to handle the var metadata. */
+typedef struct NC_HDF5_ATT_INFO
+{
+   hid_t native_hdf_typeid;     /* Native HDF5 datatype for attribute's data */
+} NC_HDF5_ATT_INFO_T;
+
 #if defined(__cplusplus)
 extern "C" {
 #endif

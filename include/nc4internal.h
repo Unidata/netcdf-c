@@ -141,6 +141,7 @@ typedef struct NC_DIM_INFO
    nc_bool_t unlimited;         /* True if the dimension is unlimited */
    nc_bool_t extended;          /* True if the dimension needs to be extended */
    nc_bool_t too_long;          /* True if len is too big to fit in local size_t. */
+   void *format_dim_info;       /* Format-specific dim info. */
    hid_t hdf_dimscaleid;        /* Non-zero if a DIM_WITHOUT_VARIABLE dataset is in use (no coord var). */
    HDF5_OBJID_T hdf5_objid;
    struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */
@@ -154,6 +155,7 @@ typedef struct NC_ATT_INFO
    nc_bool_t dirty;             /* True if attribute modified */
    nc_bool_t created;           /* True if attribute already created */
    nc_type nc_typeid;           /* netCDF type of attribute's data */
+   void *format_att_info;       /* Hold format-specific att info. */
    hid_t native_hdf_typeid;     /* Native HDF5 datatype for attribute's data */
    void *data;
    nc_vlen_t *vldata; /* only used for vlen */

@@ -100,6 +100,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_DIM_INFO_T *dim;
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
    char norm_name[NC_MAX_NAME + 1];
    int retval = NC_NOERR;
    int i;
@@ -159,6 +160,9 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
     * information, since dimids are visible in more than one group. */
    if ((retval = nc4_dim_list_add(grp, norm_name, len, -1, &dim)))
       return retval;
+   if (!(hdf5_dim = calloc(1, sizeof(NC_HDF5_DIM_INFO_T))))
+      return NC_ENOMEM;
+   dim->format_dim_info = hdf5_dim;
 
    /* Pass back the dimid. */
    if (idp)

@@ -4084,6 +4084,8 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                /* Didn't find a phony dim? Then create one. */
                if (match < 0)
                {
+                  NC_HDF5_DIM_INFO_T *hdf5_dim;
+                  
                   char phony_dim_name[NC_MAX_NAME + 1];
                   sprintf(phony_dim_name, "phony_dim_%d", grp->nc4_info->next_dimid);
                   LOG((3, "%s: creating phony dim for var %s", __func__, var->hdr.name));
@@ -4092,6 +4094,10 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                      free(h5dimlen);
                      return retval;
                   }
+                  if (!(hdf5_dim = calloc(1, sizeof(NC_HDF5_DIM_INFO_T))))
+                     return NC_ENOMEM;
+                  dim->format_dim_info = hdf5_dim;
+                  
                   if (h5dimlenmax[d] == H5S_UNLIMITED)
                      dim->unlimited = NC_TRUE;
                }

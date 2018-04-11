@@ -393,7 +393,7 @@ exit:
 static herr_t
 att_read_var_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo, void *att_data)
 {
-
+   NC_HDF5_ATT_INFO_T *hdf5_att;
    hid_t attid = 0;
    int retval = NC_NOERR;
    NC_ATT_INFO_T *att;
@@ -406,6 +406,9 @@ att_read_var_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
    /* Add to the end of the list of atts for this var. */
    if ((retval = nc4_att_list_add(att_info->var->att, att_name, &att)))
       BAIL(retval);
+   if (!(hdf5_att = calloc(1, sizeof(NC_HDF5_ATT_INFO_T))))
+      BAIL(NC_ENOMEM);
+   att->format_att_info = hdf5_att;
 
    /* Open the att by name. */
    if ((attid = H5Aopen(loc_id, att_name, H5P_DEFAULT)) < 0)
@@ -1025,6 +1028,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
            NC_DIM_INFO_T **dim)
 {
    NC_DIM_INFO_T *new_dim;              /* Dimension added to group */
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
    char dimscale_name_att[NC_MAX_NAME + 1] = "";    /* Dimscale name, for checking if dim without var */
    htri_t attr_exists = -1;             /* Flag indicating hidden attribute exists */
    hid_t attid = -1;                    /* ID of hidden attribute (to store dim ID) */
@@ -1063,6 +1067,9 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Create the dimension for this scale. */
    if ((retval = nc4_dim_list_add(grp, obj_name, len, assigned_id, &new_dim)))
       BAIL(retval);
+   if (!(hdf5_dim = calloc(1, sizeof(NC_HDF5_DIM_INFO_T))))
+      return NC_ENOMEM;
+   new_dim->format_dim_info = hdf5_dim;
 
    new_dim->too_long = too_long;
 
@@ -1943,6 +1950,7 @@ read_grp_atts(NC_GRP_INFO_T *grp)
    hid_t attid = -1;
    hsize_t num_obj, i;
    NC_ATT_INFO_T *att;
+   NC_HDF5_ATT_INFO_T *hdf5_att;
    NC_TYPE_INFO_T *type;
    char obj_name[NC_MAX_HDF5_NAME + 1];
    int retval = NC_NOERR;
@@ -1975,6 +1983,9 @@ read_grp_atts(NC_GRP_INFO_T *grp)
          /* Add an att struct at the end of the list, and then go to it. */
          if ((retval = nc4_att_list_add(grp->att, obj_name, &att)))
             BAIL(retval);
+         if (!(hdf5_att = calloc(1, sizeof(NC_HDF5_ATT_INFO_T))))
+            BAIL(NC_ENOMEM);
+         att->format_att_info = hdf5_att;
          retval = read_hdf5_att(grp, attid, att);
          if(retval == NC_EBADTYPID) {
             if((retval = nc4_att_list_del(grp->att, att)))

@@ -1330,6 +1330,10 @@ nc4_dim_free(NC_DIM_INFO_T *dim)
    if (dim->hdr.name)
       free(dim->hdr.name);
 
+   /* Free memory for format-specific dim info. */
+   if (dim->format_dim_info)
+      free(dim->format_dim_info);
+
    free(dim);
    return NC_NOERR;
 }
@@ -1511,6 +1515,10 @@ nc4_att_free(NC_ATT_INFO_T *att)
          nc_free_vlen(&att->vldata[i]);
       free(att->vldata);
    }
+
+   /* Release any format-specific information. */
+   if (att->format_att_info)
+      free(att->format_att_info);
 
    free(att);
    return NC_NOERR;
