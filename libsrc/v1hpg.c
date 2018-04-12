@@ -7,11 +7,11 @@
 #include <config.h>
 #endif
 
-#include "nc3internal.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include "nc3internal.h"
 #include "rnd.h"
 #include "ncx.h"
 
@@ -536,12 +536,12 @@ v1h_get_NC_dimarray(v1hs *gsp, NC_dimarray *ncap)
 	if(type != NC_DIMENSION)
 		return EINVAL;
 
-	ncap->value = (NC_dim **) malloc(ncap->nelems * sizeof(NC_dim *));
+	ncap->value = (NC_dim **) calloc(1,ncap->nelems * sizeof(NC_dim *));
 	if(ncap->value == NULL)
 		return NC_ENOMEM;
 	ncap->nalloc = ncap->nelems;
 
-	ncap->hashmap = NC_hashmapCreate(ncap->nelems);
+	ncap->hashmap = NC_hashmapnew(ncap->nelems);
 
 	{
 		NC_dim **dpp = ncap->value;
@@ -557,7 +557,7 @@ v1h_get_NC_dimarray(v1hs *gsp, NC_dimarray *ncap)
 			}
 			{
 			  int dimid = (size_t)(dpp - ncap->value);
-			  NC_hashmapAddDim(ncap, dimid, (*dpp)->name->cp);
+			  NC_hashmapadd(ncap->hashmap, (uintptr_t)dimid, (*dpp)->name->cp,strlen((*dpp)->name->cp));
 			}
 		}
 	}
@@ -1176,12 +1176,12 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
 	if(type != NC_VARIABLE)
 		return EINVAL;
 
-	ncap->value = (NC_var **) malloc(ncap->nelems * sizeof(NC_var *));
+	ncap->value = (NC_var **) calloc(1,ncap->nelems * sizeof(NC_var *));
 	if(ncap->value == NULL)
 		return NC_ENOMEM;
 	ncap->nalloc = ncap->nelems;
 
-	ncap->hashmap = NC_hashmapCreate(ncap->nelems);
+	ncap->hashmap = NC_hashmapnew(ncap->nelems);
 	{
 		NC_var **vpp = ncap->value;
 		NC_var *const *const end = &vpp[ncap->nelems];
@@ -1196,7 +1196,7 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
 			}
 			{
 			  int varid = (size_t)(vpp - ncap->value);
-			  NC_hashmapAddVar(ncap, varid, (*vpp)->name->cp);
+			  NC_hashmapadd(ncap->hashmap, (uintptr_t)varid, (*vpp)->name->cp,strlen((*vpp)->name->cp));
 			}
 		}
 	}

@@ -21,6 +21,11 @@
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h> /* lseek() */
+#endif
+
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
 #include "ncwinpath.h"
@@ -116,40 +121,34 @@ NC_interpret_magic_number(char* magic, int* model, int* version)
     /* Look at the magic number */
     *model = 0;
     *version = 0;
-#ifdef USE_NETCDF4
     /* Use the complete magic number string for HDF5 */
     if(memcmp(magic,HDF5_SIGNATURE,sizeof(HDF5_SIGNATURE))==0) {
 	*model = NC_FORMATX_NC4;
 	*version = 5; /* redundant */
 	goto done;
     }
-#endif
-#if defined(USE_NETCDF4) && defined(USE_HDF4)
     if(magic[0] == '\016' && magic[1] == '\003'
               && magic[2] == '\023' && magic[3] == '\001') {
 	*model = NC_FORMATX_NC_HDF4;
 	*version = 4; /* redundant */
 	goto done;
     }
-#endif
     if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') {
         if(magic[3] == '\001') {
             *version = 1; /* netcdf classic version 1 */
 	    *model = NC_FORMATX_NC3;
-	    goto done;	    
+	    goto done;
 	}
         if(magic[3] == '\002') {
             *version = 2; /* netcdf classic version 2 */
 	    *model = NC_FORMATX_NC3;
 	    goto done;
         }
-#ifdef USE_CDF5
         if(magic[3] == '\005') {
           *version = 5; /* cdf5 (including pnetcdf) file */
 	  *model = NC_FORMATX_NC3;
 	  goto done;
 	}
-#endif
      }
      /* No match  */
      status = NC_ENOTNC;
@@ -191,7 +190,7 @@ NC_check_file_type(const char *path, int flags, void *parameters,
    *model = 0;
    *version = 0;
 
-    memset((void*)&file,0,sizeof(file));   
+    memset((void*)&file,0,sizeof(file));
     file.path = path; /* do not free */
     file.parameters = parameters;
     if(inmemory && parameters == NULL)
@@ -240,7 +239,7 @@ next:
 	    /* double and try again */
 	    pos = 2*pos;
         }
-    }    
+    }
 done:
     closemagic(&file);
     return status;
@@ -531,7 +530,7 @@ nc__create(const char *path, int cmode, size_t initialsz,
 }
 /**
  * @internal Create a file with special (deprecated) Cray settings.
- * 
+ *
  * @deprecated This function was used in the old days with the Cray at
  * NCAR. The Cray is long gone, and this call is supported only for
  * backward compatibility. Use nc_create() instead.
@@ -583,7 +582,7 @@ nc__create_mp(const char *path, int cmode, size_t initialsz,
  * to the dataset, including appending or changing data, adding or
  * renaming dimensions, variables, and attributes, or deleting
  * attributes.)
- * 
+ *
  * The NC_SHARE flag is only used for netCDF classic and 64-bit offset
  * files. It is appropriate when one process may be writing the
  * dataset and one or more other processes reading the dataset
@@ -622,14 +621,14 @@ nc__create_mp(const char *path, int cmode, size_t initialsz,
  * accessed data to be retrieved from disk. Without MMAP, NC_DISKLESS
  * will read the whole file into memory on nc_open. Thus, MMAP will
  * provide some performance improvement in this case.
- * 
+ *
  * It is not necessary to pass any information about the format of the
  * file being opened. The file type will be detected automatically by
  * the netCDF library.
  *
  * If a the path is a DAP URL, then the open mode is read-only.
  * Setting NC_WRITE will be ignored.
- * 
+ *
  * As of version 4.3.1.2, multiple calls to nc_open with the same
  * path will return the same ncid value.
  *
@@ -651,10 +650,10 @@ nc__create_mp(const char *path, int cmode, size_t initialsz,
  * @returns ::NC_EDIMMETA Error in netCDF-4 dimension metadata. (NetCDF-4 files only.)
  *
  * <h1>Examples</h1>
- * 
+ *
  * Here is an example using nc_open()to open an existing netCDF dataset
  * named foo.nc for read-only, non-shared access:
- * 
+ *
  * @code
  * #include <netcdf.h>
  *   ...
@@ -1679,12 +1678,12 @@ check_create_mode(int mode)
        (mode & NC_CDF5);
     if (mode_format && (mode_format & (mode_format - 1)))
        return NC_EINVAL;
-    
+
     /* Can't use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
      * mind! */
     if (mode & NC_MPIIO && mode & NC_MPIPOSIX)
        return NC_EINVAL;
-    
+
     /* Can't use both parallel and diskless. */
     if ((mode & NC_MPIIO && mode & NC_DISKLESS) ||
 	(mode & NC_MPIPOSIX && mode & NC_DISKLESS))
@@ -1693,11 +1692,11 @@ check_create_mode(int mode)
 #ifndef USE_DISKLESS
    /* If diskless is requested, but not built, return error. */
    if (mode & NC_DISKLESS)
-       return NC_ENOTBUILT;       
+       return NC_ENOTBUILT;
    if (mode & NC_INMEMORY)
-       return NC_ENOTBUILT;       
+       return NC_ENOTBUILT;
 #endif
-   
+
 #ifndef USE_NETCDF4
    /* If the user asks for a netCDF-4 file, and the library was built
     * without netCDF-4, then return an error.*/
@@ -1764,7 +1763,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    /* Check mode flag for sanity. */
    if ((stat = check_create_mode(cmode)))
       return stat;
-   
+
    /* Initialize the dispatch table. The function pointers in the
     * dispatch table will depend on how netCDF was built
     * (with/without netCDF-4, DAP, CDMREMOTE). */
@@ -1861,7 +1860,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
    if((cmode & NC_MPIIO) && (cmode & NC_MPIPOSIX))
    {
-       nullfree(path);       
+       nullfree(path);
        return  NC_EINVAL;
    }
 
@@ -2008,12 +2007,12 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 	stat = NC_check_file_type(path,flags,parameters,&model,&version);
         if(stat == NC_NOERR) {
 	    if(model == 0) {
-		nullfree(path);       		
+		nullfree(path);
 		return NC_ENOTNC;
 	    }
 	} else {
 	    /* presumably not a netcdf file */
-	    nullfree(path);       			    
+	    nullfree(path);
 	    return stat;
 	}
     }
@@ -2022,6 +2021,28 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 	fprintf(stderr,"Model == 0\n");
 	return NC_ENOTNC;
    }
+
+   /* Suppress unsupported formats */
+   {
+	int hdf5built = 0;
+	int hdf4built = 0;
+	int cdf5built = 0;
+#ifdef USE_NETCDF4
+	hdf5built = 1;
+  #ifdef USEHDF4
+        hdf4built = 1;
+  #endif
+#endif
+#ifdef USE_CDF5
+       cdf5built = 1;
+#endif
+	if(!hdf5built && model == NC_FORMATX_NC4)
+	    return NC_ENOTBUILT;
+	if(!hdf4built && model == NC_FORMATX_NC4 && version == 4)
+	    return NC_ENOTBUILT;
+	if(!cdf5built && model == NC_FORMATX_NC3 && version == 5)
+	    return NC_ENOTBUILT;
+    }
 
    /* Force flag consistentcy */
    if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4)
@@ -2058,7 +2079,7 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
    /* Invalid to use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
     * mind! */
    if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX)) {
-       nullfree(path);       
+       nullfree(path);
        return NC_EINVAL;
    }
 
@@ -2094,14 +2115,14 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
          dispatcher = NC3_dispatch_table;
          break;
       default:
-         nullfree(path);              
+         nullfree(path);
          return NC_ENOTNC;
       }
    }
 
    /* If we can't figure out what dispatch table to use, give up. */
    if (!dispatcher) {
-       nullfree(path);              
+       nullfree(path);
        return NC_ENOTNC;
    }
 
@@ -2210,17 +2231,17 @@ openmagic(struct MagicFile* file)
 	    {status = errno; goto done;}
 	/* Get its length */
 	{
-#ifdef _MSC_VER
 	int fd = fileno(file->fp);
+#ifdef _MSC_VER
 	__int64 len64 = _filelengthi64(fd);
 	if(len64 < 0)
             {status = errno; goto done;}
 	file->filelen = (long long)len64;
 #else
-	long size;
-	if((status = fseek(file->fp, 0L, SEEK_END)) < 0)
+	off_t size;
+	size = lseek(fd, 0, SEEK_END);
+	if(size == -1)
 	    {status = errno; goto done;}
-	size = ftell(file->fp);
 	file->filelen = (long long)size;
 #endif
 	rewind(file->fp);
@@ -2253,23 +2274,19 @@ readmagic(struct MagicFile* file, long pos, char* magic)
     if (file->use_parallel) {
 	MPI_Status mstatus;
 	int retval;
-	MPI_Offset offset;
-	offset = pos;
-	if((retval = MPI_File_seek(file->fh, offset, MPI_SEEK_SET)) != MPI_SUCCESS)
-	    {status = NC_EPARINIT; goto done;}	
-	if((retval = MPI_File_read(file->fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,
-				 &mstatus)) != MPI_SUCCESS)
+	if((retval = MPI_File_read_at_all(file->fh, pos, magic,
+                     MAGIC_NUMBER_LEN, MPI_CHAR, &mstatus)) != MPI_SUCCESS)
 	    {status = NC_EPARINIT; goto done;}
 	goto done;
     }
 #endif /* USE_PARALLEL */
     {
-	size_t count;
+	int count;
 	int i = fseek(file->fp,pos,SEEK_SET);
 	if(i < 0)
 	    {status = errno; goto done;}
 	for(i=0;i<MAGIC_NUMBER_LEN;) {/* make sure to read proper # of bytes */
-	    count=fread(&magic[i],1,(MAGIC_NUMBER_LEN-i),file->fp);
+	    count=fread(&magic[i],1,(size_t)(MAGIC_NUMBER_LEN-i),file->fp);
 	    if(count == 0 || ferror(file->fp))
 		{status = errno; goto done;}
 	    i += count;
@@ -2281,9 +2298,9 @@ done:
     return status;
 }
 
-/** 
- * Close the file opened to check for magic number. 
- * 
+/**
+ * Close the file opened to check for magic number.
+ *
  * @param file pointer to the MagicFile struct for this open file.
  * @returns NC_NOERR for success
  * @returns NC_EPARINIT if there was a problem closing file with MPI

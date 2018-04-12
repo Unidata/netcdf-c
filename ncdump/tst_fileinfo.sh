@@ -8,13 +8,13 @@ echo ""
 
 EXIT=0
 
-NCF=$srcdir/nc4_fileinfo.nc
-HDF=$srcdir/hdf5_fileinfo.hdf
-NF=ref_tst_compounds4.nc
+NCF=${srcdir}/ncdump/nc4_fileinfo.nc
+HDF=${srcdir}/ncdump/hdf5_fileinfo.hdf
+NF=${srcdir}/ncdump/ref_tst_compounds4.nc
 
 # Do a false negative test 
 rm -f ./tmp_tst_fileinfo
-if $NCDUMP -s $builddir/$NF | fgrep '_IsNetcdf4 = 0' > ./tmp_tst_fileinfo ; then
+if $NCDUMP -s $NF | fgrep '_IsNetcdf4 = 0' > ./tmp_tst_fileinfo ; then
    echo "Pass: False negative for file: $NF"
 else
    echo "FAIL: False negative for file: $NF"

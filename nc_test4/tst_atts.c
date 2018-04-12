@@ -27,11 +27,15 @@
 #define VAR_NAME "Earth"
 
 /**
+WARNING: following should match lists in libsrc4/nc4file.c
+*/
+
+/**
  * @internal Define the names of attributes to ignore added by the
  * HDF5 dimension scale; these attached to variables. They cannot be
  * modified thru the netcdf-4 API.
  */
-const char* NC_RESERVED_VARATT_LIST[] = {
+static const char* NC_RESERVED_VARATT_LIST[] = {
    NC_ATT_REFERENCE_LIST,
    NC_ATT_CLASS,
    NC_ATT_DIMENSION_LIST,
@@ -46,7 +50,7 @@ const char* NC_RESERVED_VARATT_LIST[] = {
  * "hidden" global attributes. They can be read, but not modified thru
  * the netcdf-4 API.
  */
-const char* NC_RESERVED_ATT_LIST[] = {
+static const char* NC_RESERVED_ATT_LIST[] = {
    NC_ATT_FORMAT,
    NC3_STRICT_ATT_NAME,
    NCPROPS,
@@ -59,19 +63,17 @@ const char* NC_RESERVED_ATT_LIST[] = {
  * @internal Define the subset of the reserved list that is readable
  * by name only
 */
-const char* NC_RESERVED_SPECIAL_LIST[] = {
+static const char* NC_RESERVED_SPECIAL_LIST[] = {
    ISNETCDF4ATT,
    SUPERBLOCKATT,
    NCPROPS,
    NULL
 };
 
-
 int
 main(int argc, char **argv)
 {
    printf("\n*** Testing netCDF-4 attributes.\n");
-   nc_set_log_level(3);
    printf("*** testing attribute renaming for read-only file...");
    {
       int ncid;
@@ -251,7 +253,7 @@ main(int argc, char **argv)
          const char** reserved = NC_RESERVED_VARATT_LIST;
          for ( ; *reserved; reserved++)
          {
-            if (nc_put_att_text(ncid, 0, *reserved, strlen(CONTENTS),
+           if (nc_put_att_text(ncid, 0, *reserved, strlen(CONTENTS),
                                 CONTENTS) != NC_ENAMEINUSE) ERR;
          }
       }
@@ -283,6 +285,54 @@ main(int argc, char **argv)
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, too_long_name) != NC_EMAXNAME) ERR;
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, OLD_NAME_2) != NC_ENAMEINUSE) ERR;
 
+      if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS),
+                          NULL) != NC_EINVAL) ERR;
+      {
+         /* Check that the NC_GLOBAL reserved words are rejected. */
+         const char** reserved = NC_RESERVED_ATT_LIST;
+         for ( ; *reserved; reserved++)
+         {
+            if (nc_put_att_text(ncid, NC_GLOBAL, *reserved, strlen(CONTENTS),
+                                CONTENTS) != NC_ENAMEINUSE) ERR;
+         }
+      }
+      {
+         /* Check that the variable reserved words are rejected. */
+         const char** reserved = NC_RESERVED_VARATT_LIST;
+         for ( ; *reserved; reserved++)
+         {
+            if (nc_put_att_text(ncid, 0, *reserved, strlen(CONTENTS),
+                                CONTENTS) != NC_ENAMEINUSE) ERR;
+         }
+      }
+      {
+         /* Check that the read-only reserved words are rejected. */
+         const char** reserved = NC_RESERVED_SPECIAL_LIST;
+         for ( ; *reserved; reserved++)
+         {
+            if (nc_put_att_text(ncid, NC_GLOBAL, *reserved, strlen(CONTENTS),
+                                CONTENTS) != NC_ENAMEINUSE) ERR;
+         }
+      }
+      
+      /* Write the attribute at last. */
+      if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS),
+                          CONTENTS)) ERR;
+      
+      /* Write another with different name. */
+      if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME_2, strlen(CONTENTS),
+                          CONTENTS)) ERR;
+
+      /* These will not work. */
+      if (nc_rename_att(ncid + TEST_VAL_42, NC_GLOBAL, OLD_NAME, NEW_NAME) != NC_EBADID) ERR;
+      if (nc_rename_att(ncid, TEST_VAL_42, OLD_NAME, NEW_NAME) != NC_ENOTVAR) ERR;
+      if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, NULL) != NC_EINVAL) ERR;
+      if (nc_rename_att(ncid, NC_GLOBAL, NULL, NEW_NAME) != NC_EINVAL) ERR;
+      if (nc_rename_att(ncid, NC_GLOBAL, NULL, NULL) != NC_EINVAL) ERR;
+      if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, BAD_NAME) != NC_EBADNAME) ERR;
+      if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, too_long_name) != NC_EMAXNAME) ERR;
+      if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, OLD_NAME_2) != NC_ENAMEINUSE) ERR;
+      
       /* Rename the att. */
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, NEW_NAME)) ERR;
 
