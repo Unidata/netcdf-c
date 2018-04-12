@@ -16,6 +16,9 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #include        "ncoffsets.h"
 #include        "ncgeny.h"
 #include        "ncgen.h"
+#ifdef USE_NETCDF4
+#include        "ncfilter.h"
+#endif
 
 /* Following are in ncdump (for now)*/
 /* Need some (unused) definitions to get it to compile */
@@ -122,7 +125,9 @@ static int containsfills(Datalist* list);
 static void datalistextend(Datalist* dl, NCConstant* con);
 static void vercheck(int ncid);
 static long long extractint(NCConstant con);
+#ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
+#endif
 
 int yylex(void);
 
@@ -1329,6 +1334,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 special->_Storage = NC_CHUNKED;
                 } break;
           case _FILTER_FLAG:
+#ifdef USE_NETCDF4
 		/* Parse the filter spec */
 		if(parsefilterflag(sdata,special) == NC_NOERR)
                     special->flags |= _FILTER_FLAG;
@@ -1336,6 +1342,9 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 		    efree(special->_FilterParams);
 		    derror("_Filter: unparseable filter spec: %s",sdata);
 		}
+#else
+        derror("%s: the filter attribute requires netcdf-4 to be enabled",specialname(tag));
+#endif
                 break;
             default: PANIC1("makespecial: illegal token: %d",tag);
          }
@@ -1446,22 +1455,23 @@ specialname(int tag)
     return "<unknown>";
 }
 
+#ifdef USE_NETCDF4
 /*
 Parse a filter spec string and store it in special
 */
 static int
-parsefilterflag(const char* sdata0, Specialdata* special)
+parsefilterflag(const char* sdata, Specialdata* special)
 {
     int stat = NC_NOERR;
 
-    if(sdata0 == NULL || strlen(sdata0) == 0) goto fail;
-    sdata = strdup(sdata0);
+    if(sdata == NULL || strlen(sdata) == 0) return NC_EINVAL;
 
-    stat = NC_parsefilterspec(sdata0, &special->_FilterID, &special->nparams, &special->_FilterParams);
+    stat = NC_parsefilterspec(sdata, &special->_FilterID, &special->nparams, &special->_FilterParams);
     if(stat)
         derror("Malformed filter spec: %s",sdata);
     return stat;
 }
+#endif
 
 /*
 Since the arguments are all simple constants,

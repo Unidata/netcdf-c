@@ -16,7 +16,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.6.1-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.6.2-development], [support-netcdf@unidata.ucar.edu])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -27,7 +27,7 @@ AC_INIT([netCDF], [4.6.1-development], [support-netcdf@unidata.ucar.edu])
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=6
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=2
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 #####
@@ -72,8 +72,8 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat1.nc:nc_test4/ref_hdf5_compat1.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 
-AC_CONFIG_LINKS([nc_test4/ref_chunked.hdf4:nc_test4/ref_chunked.hdf4])
-AC_CONFIG_LINKS([nc_test4/ref_contiguous.hdf4:nc_test4/ref_contiguous.hdf4])
+AC_CONFIG_LINKS([hdf4_test/ref_chunked.hdf4:hdf4_test/ref_chunked.hdf4])
+AC_CONFIG_LINKS([hdf4_test/ref_contiguous.hdf4:hdf4_test/ref_contiguous.hdf4])
 
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
@@ -90,6 +90,10 @@ AC_ARG_WITH([minblocksize],
             [NCIO_MINBLOCKSIZE=$with_minblocksize], [NCIO_MINBLOCKSIZE=256])
 AC_MSG_RESULT([$NCIO_MINBLOCKSIZE])
 AC_DEFINE_UNQUOTED([NCIO_MINBLOCKSIZE], [$NCIO_MINBLOCKSIZE], [min blocksize for posixio.])
+
+# Find valgrind, if available, and add targets for it.
+AX_VALGRIND_DFLT([sgcheck], [off])
+AX_VALGRIND_CHECK
 
 ###
 # Doxygen and doxygen-related options.
@@ -171,14 +175,6 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include jna bug workaround code])
 fi
 
-# Does the user want to run extra tests with valgrind?
-AC_MSG_CHECKING([whether extra valgrind tests should be run])
-AC_ARG_ENABLE([valgrind-tests],
-              [AS_HELP_STRING([--enable-valgrind-tests],
-                              [build with valgrind-tests (valgrind is required, static builds only)])])
-test "x$enable_valgrind_tests" = xyes || enable_valgrind_tests=no
-AC_MSG_RESULT($enable_valgrind_tests)
-
 # Does the user want to build netcdf-4?
 AC_MSG_CHECKING([whether we should build netCDF-4])
 AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
@@ -208,7 +204,7 @@ AC_ARG_ENABLE([hdf4], [AS_HELP_STRING([--enable-hdf4],
               [build netcdf-4 with HDF4 read capability (HDF4, HDF5 and zlib required)])])
 test "x$enable_hdf4" = xyes || enable_hdf4=no
 if test "x$enable_hdf4" = xyes -a "x$enable_netcdf_4" = xno; then
-      AC_MSG_ERROR([NetCDF-4 is required for HDF4 features])   
+      AC_MSG_ERROR([NetCDF-4 is required for HDF4 features])
 fi
 AC_MSG_RESULT($enable_hdf4)
 
@@ -243,9 +239,8 @@ AC_MSG_RESULT($enable_extra_example_tests)
 AC_MSG_CHECKING([whether parallel IO tests should be run])
 AC_ARG_ENABLE([parallel-tests],
               [AS_HELP_STRING([--enable-parallel-tests],
-                              [Run extra parallel IO tests. Ignored if \
-                               netCDF-4 is not enabled, or built on a system \
-                               without parallel I/O support.])])
+                              [Run extra parallel IO tests. Requires netCDF-4
+                              with parallel I/O support.])])
 test "x$enable_parallel_tests" = xyes || enable_parallel_tests=no
 AC_MSG_RESULT($enable_parallel_tests)
 
@@ -670,14 +665,6 @@ AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.2])
 LT_INIT()
 
-# Valgrind tests don't work with shared builds because of some libtool
-# weirdness.
-if test "x$enable_shared" = xyes; then
-   if test $enable_valgrind_tests = yes; then
-      AC_MSG_ERROR([No valgrind tests with shared libraries])
-   fi
-fi
-
 AC_MSG_NOTICE([finding other utilities])
 
 # Is m4 installed? If not, bail.
@@ -811,6 +798,8 @@ AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
 AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64])
 AC_TYPE_OFF_T
+AC_TYPE_UINTPTR_T
+AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
 ###
@@ -932,7 +921,9 @@ if test "x$enable_netcdf_4" = xyes; then
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
    AC_CHECK_FUNCS([H5Z_SZIP])
+   hdf5_parallel=no
 
+   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
    # The user may have parallel HDF5 based on MPI POSIX.
    if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
       AC_DEFINE([USE_PARALLEL_POSIX], [1], [if true, compile in parallel netCDF-4 based on MPI/POSIX])
@@ -953,8 +944,17 @@ if test "x$enable_netcdf_4" = xyes; then
    if test "x$ac_cv_func_H5Pget_fapl_mpio" = xyes -o "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
       hdf5_parallel=yes
    fi
+
    AC_MSG_CHECKING([whether parallel io is enabled in hdf5])
    AC_MSG_RESULT([$hdf5_parallel])
+
+   if test "x$hdf5_parallel" = "xno"; then
+      if test "x$enable_parallel_tests" = "xyes"; then
+         AC_MSG_ERROR([Parallel tests requested, but no parallel HDF5 installation detected.])
+      fi
+   fi
+
+
 
    # The user may have built HDF5 with the SZLIB library.
    enable_szlib=no
@@ -984,7 +984,6 @@ if test "x$enable_netcdf_4" = xyes; then
       AC_CHECK_LIB([mfhdf], [SDcreate], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
 
      AC_CHECK_LIB([jpeg], [jpeg_set_quality], [], [AC_MSG_ERROR([Can't find or link to the jpeg library (required by hdf4). See config.log for errors.])])
-
       AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
 fi
@@ -1202,7 +1201,6 @@ AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])
-AM_CONDITIONAL(USE_VALGRIND_TESTS, [test "x$enable_valgrind_tests" = xyes])
 AM_CONDITIONAL(USE_NETCDF4, [test x$enable_netcdf_4 = xyes])
 AM_CONDITIONAL(USE_HDF4, [test x$enable_hdf4 = xyes])
 AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
@@ -1214,6 +1212,7 @@ AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
+AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1301,6 +1300,14 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
 
+# Control large metadata performance test
+AC_MSG_CHECKING([whether large metadata performance testing should be run])
+AC_ARG_ENABLE([metadata-perf],
+              [AS_HELP_STRING([--enable-metadata-perf],
+                              [Test performance of nc_create and nc_open on large metadata])])
+test "x$enable_metadata_perf" = xyes || enable_metadata_perf=no
+AC_MSG_RESULT($enable_metadata_perf)
+
 # Control filter test/example
 AC_MSG_CHECKING([whether filter testing should be run])
 AC_ARG_ENABLE([filter-testing],
@@ -1311,12 +1318,12 @@ AC_MSG_RESULT($enable_filter_testing)
 
 if test "x$enable_netcdf_4" = xno ; then
 AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing])
-enable_filter_testing = no
+enable_filter_testing=no
 fi
 
 if test "x$enable_shared" = xno ; then
 AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
-enable_filter_testing = no
+enable_filter_testing=no
 fi
 AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
 
@@ -1423,6 +1430,28 @@ AC_CONFIG_FILES(test_common.sh:test_common.in)
 AC_SUBST([ISCMAKE], [])
 AC_SUBST([MSVC], [])
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
+
+if test "x$enable_filter_testing" = xyes ; then
+if test "x$nc_build_examples" = xyes ; then
+AC_MSG_NOTICE([copying filter plugin building files])
+# Must be a simpler way; all my attempts to use some kind of wildcard failed,
+# so falling back on enumeration
+# WARNING: This enumeration must be kept consistent with the
+# HDF5PLUGINSRC list in nc_test4/hdf5plugins/Makefile.am
+AC_CONFIG_LINKS([examples/C/hdf5plugins/bzlib.h:nc_test4/hdf5plugins/bzlib.h])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/bzlib_private.h:nc_test4/hdf5plugins/bzlib_private.h])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/blocksort.c:nc_test4/hdf5plugins/blocksort.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/huffman.c:nc_test4/hdf5plugins/huffman.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/crctable.c:nc_test4/hdf5plugins/crctable.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/randtable.c:nc_test4/hdf5plugins/randtable.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/compress.c:nc_test4/hdf5plugins/compress.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/decompress.c:nc_test4/hdf5plugins/decompress.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/bzlib.c:nc_test4/hdf5plugins/bzlib.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/H5Zbzip2.c:nc_test4/hdf5plugins/H5Zbzip2.c])
+AC_CONFIG_LINKS([examples/C/hdf5plugins/h5bzip2.h:nc_test4/hdf5plugins/h5bzip2.h])
+fi
+fi
 
 #####
 # End netcdf_meta.h definitions.
@@ -1437,6 +1466,7 @@ AC_CONFIG_FILES([Makefile
 		         include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
+                 hdf4_test/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
                  libsrcp/Makefile
@@ -1468,6 +1498,7 @@ AC_CONFIG_FILES([Makefile
                  dap4_test/Makefile
 		 ],
                  [test -f  nc-config && chmod 755 nc-config])
+
 AC_OUTPUT()
 
     #mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh

@@ -11,6 +11,9 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #ifdef _MSC_VER
 #include <io.h>
 #endif
@@ -30,10 +33,12 @@ Rules:
 2. a leading '/cygdrive/X' will be converted to
    a drive letter X if X is alpha-char.
 3. a leading D:/... is treated as a windows drive letter
-4. If #1, #2, or #3 is encounterd, then forward slashes
+4. a relative path will be converted to an absolute path.
+5. If any of the above is encountered, then forward slashes
    will be converted to backslashes.
-5. All other cases are passed thru unchanged
+All other cases are passed thru unchanged
 */
+
 
 /* Define legal windows drive letters */
 static char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -41,6 +46,8 @@ static char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 static size_t cdlen = 10; /* strlen("/cygdrive/") */
 
 static int pathdebug = -1;
+
+static char* makeabsolute(const char* relpath);
 
 EXTERNL
 char* /* caller frees */
@@ -105,7 +112,13 @@ NCpathcvt(const char* path)
 	goto slashtrans;
     }
 
-    /* 4. Other: just pass thru */
+    /* 4. Look for relative path */
+    if(pathlen > 1 && path[0] == '.') {
+	outpath = makeabsolute(path);
+	goto slashtrans;
+    }
+
+    /* Other: just pass thru */
     outpath = strdup(path);
     goto done;
 
@@ -136,6 +149,20 @@ done:
         fflush(stderr);
     }
     return outpath;
+}
+
+static char*
+makeabsolute(const char* relpath)
+{
+    char* path = NULL;
+#ifdef _MSC_VER
+    path = _fullpath(NULL,relpath,8192);
+#else
+    path = realpath(relpath, NULL);
+#endif
+    if(path == NULL)
+	path = strdup(relpath);
+    return path;    
 }
 
 #ifdef WINPATH

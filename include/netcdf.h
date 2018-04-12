@@ -418,6 +418,7 @@ by the desired type. */
 /* Misc. additional errors */
 #define NC_ENOTFOUND     (-90)      /**< No such file */
 #define NC_ECANTREMOVE   (-91)      /**< Can't remove file */
+#define NC_EINTERNAL     (-92)      /**< NetCDF Library Internal Error */
 
 /* The following was added in support of netcdf-4. Make all netcdf-4
    error codes < -100 so that errors can be added to netcdf-3 if
@@ -1956,8 +1957,7 @@ ncrecget(int ncid, long recnum, void **datap);
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
-EXTERNL int
-nc_finalize();
+EXTERNL int nc_finalize();
 
 /* End v2.4 backward compatibility */
 #endif /*!NO_NETCDF_2*/
