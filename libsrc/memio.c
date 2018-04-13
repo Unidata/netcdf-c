@@ -35,6 +35,10 @@
 typedef int ssize_t;
 #endif
 
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 #ifndef SEEK_SET
 #define SEEK_SET 0
 #define SEEK_CUR 1
@@ -186,7 +190,6 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
         if(nciop->path != NULL) free((char*)nciop->path);
         free(nciop);
     }
-
     memio->alloc = (size_t)initialsize;
     memio->pos = 0;
     memio->size = minsize;
@@ -460,7 +463,7 @@ memio_pad_length(ncio* nciop, off_t length)
 	    }
         }
 	/* zero out the extra memory */
-        memset((void*)((char*)newmem+memio->alloc),0,(newsize - memio->alloc));
+        memset((void*)((char*)newmem+memio->alloc),0,(size_t)(newsize - memio->alloc));
 
 #ifdef DEBUG
 fprintf(stderr,"realloc: %lu/%lu -> %lu/%lu\n",
@@ -540,7 +543,7 @@ memio_get(ncio* const nciop, off_t offset, size_t extent, int rflags, void** con
     NCMEMIO* memio;
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
     memio = (NCMEMIO*)nciop->pvt;
-    status = guarantee(nciop, offset+extent);
+    status = guarantee(nciop, offset+(off_t)extent);
     memio->locked++;
     if(status != NC_NOERR) return status;
     if(vpp) *vpp = memio->memory+offset;
@@ -560,11 +563,11 @@ memio_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int ignored)
     memio = (NCMEMIO*)nciop->pvt;
     if(from < to) {
        /* extend if "to" is not currently allocated */
-       status = guarantee(nciop,to+nbytes);
+       status = guarantee(nciop,to+(off_t)nbytes);
        if(status != NC_NOERR) return status;
     }
     /* check for overlap */
-    if((to + nbytes) > from || (from + nbytes) > to) {
+    if((to + (off_t)nbytes) > from || (from + (off_t)nbytes) > to) {
 	/* Ranges overlap */
 #ifdef HAVE_MEMMOVE
         memmove((void*)(memio->memory+to),(void*)(memio->memory+from),nbytes);

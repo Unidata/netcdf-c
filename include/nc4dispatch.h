@@ -18,6 +18,8 @@
 extern "C" {
 #endif
 
+#define NCLOGLEVELENV "NETCDF_LOG_LEVEL"
+
 extern int
 NC4_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,

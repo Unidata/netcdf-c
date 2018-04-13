@@ -1,5 +1,5 @@
 ## This is a CMake file, part of Unidata's netCDF package.
-# Copyright 2012-2014, see the COPYRIGHT file for more information.
+# Copyright 2012-2018, see the COPYRIGHT file for more information.
 #
 
 ##################################
@@ -26,7 +26,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 6)
-SET(NC_VERSION_PATCH 1)
+SET(NC_VERSION_PATCH 2)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -1281,9 +1281,18 @@ CHECK_TYPE_SIZE("_Bool"     SIZEOF__BOOL)
 
 CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
 
-
-CHECK_TYPE_SIZE("ssize_t"   HAVE_SSIZE_T)
-
+CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)
+IF(SIZEOF_SSIZE_T)
+  SET(HAVE_SSIZE_T TRUE)
+ENDIF(SIZEOF_SSIZE_T)
+CHECK_TYPE_SIZE("ptrdiff_t" SIZEOF_PTRDIFF_T)
+IF(SIZEOF_PTRDIFF_T)
+  SET(HAVE_PTRDIFF_T TRUE)
+ENDIF(SIZEOF_PTRDIFF_T)
+CHECK_TYPE_SIZE("uintptr_t" SIZEOF_UINTPTR_T)
+IF(SIZEOF_UINTPTR_T)
+  SET(HAVE_UINTPTR_T TRUE)
+ENDIF(SIZEOF_UINTPTR_T)
 
 # __int64 is used on Windows for large file support.
 CHECK_TYPE_SIZE("__int64"   SIZEOF___INT_64)
@@ -1359,7 +1368,8 @@ ENDIF()
 
 MACRO(GEN_m4 filename)
 
-IF(HAVE_M4)
+  IF(HAVE_M4)
+
   # If m4 is available, remove generated file if it exists.
   IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
     FILE(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
@@ -1622,6 +1632,7 @@ ENDIF(USE_HDF5)
 
 IF(USE_HDF4)
   add_subdirectory(libhdf4)
+  add_subdirectory(hdf4_test)
 ENDIF(USE_HDF4)
 
 IF(ENABLE_DAP2)
@@ -1753,6 +1764,18 @@ STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 LIST(REMOVE_DUPLICATES NC_LIBS)
 LIST(REMOVE_DUPLICATES LINKFLAGS)
 
+IF(ENABLE_FILTER_TESTING)
+IF(ENABLE_EXAMPLES)
+MESSAGE(STATUS "copying filter plugin building files")
+FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/findplugin.in
+     DESTINATION ${netCDF_BINARY_DIR}/examples/C/)
+FILE(GLOB PLUGINFILES ${netCDF_SOURCE_DIR}/nc_test4/hdf5plugins/*.c
+		      ${netCDF_SOURCE_DIR}/nc_test4/hdf5plugins/*.h)
+FILE(COPY ${PLUGINFILES}
+     DESTINATION ${netCDF_BINARY_DIR}/examples/C/hdf5plugins/)
+ENDIF()
+ENDIF()
+
 configure_file(
   ${netCDF_SOURCE_DIR}/netcdf.pc.in
   ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
@@ -1877,6 +1900,11 @@ configure_file(${CMAKE_SOURCE_DIR}/test_common.in ${CMAKE_BINARY_DIR}/test_commo
 SET(ISCMAKE "1")
 configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
 
+IF(ENABLE_FILTER_TESTING)
+IF(ENABLE_EXAMPLES)
+configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
+ENDIF()
+ENDIF()
 
 ####
 # Export files

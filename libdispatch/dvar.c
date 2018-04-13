@@ -1016,6 +1016,9 @@ same as the default endianness of the platform. But with
 nc_def_var_endianness the endianness can be explicitly set for a
 variable.
 
+Warning: this function is only defined if the type of the variable
+is an atomic integer or float type.
+
 This function may only be called after the variable is defined, but
 before nc_enddef is called. 
 
