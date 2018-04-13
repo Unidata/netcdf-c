@@ -10,7 +10,7 @@ foreach (f ${m4_SOURCES})
 endforeach(f)
 
 SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
-  nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c nc_hashmap.c)
+  nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c)
 
 SET(libsrc_SOURCES ${libsrc_SOURCES} pstdint.h ncio.h ncx.h)
 
@@ -57,7 +57,8 @@ IF(HAVE_M4)
   FILE(COPY ${libsrc_MANPAGE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
   ADD_CUSTOM_TARGET(manpage ALL
-    COMMAND ${NC_M4} ${ARGS_MANPAGE} ${CMAKE_CURRENT_BINARY_DIR}/netcdf.m4 > ${CMAKE_CURRENT_BINARY_DIR}/netcdf.3
+
+    COMMAND ${NC_M4} ${ARGS_MANPAGE} '${CMAKE_CURRENT_BINARY_DIR}/netcdf.m4' > '${CMAKE_CURRENT_BINARY_DIR}/netcdf.3'
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 

@@ -20,6 +20,8 @@
 
 #define MAX_NUM_FORMATS 5
 
+int current_format = 0;
+
 /* Determine how many formats are available, and what they are. */
 void
 determine_test_formats(int *num_formats, int *format)
@@ -68,6 +70,8 @@ main(int argc, char **argv)
 
    for (i = 0; i < num_formats; i++)
    {
+      current_format = format[i];
+
       /* Skip netCDF-4 - only netCDF-4 classic will work. */
       if (format[i] == NC_FORMAT_NETCDF4)
          continue;

@@ -4,6 +4,7 @@ T=tst_inmemory
 #ARGS=t
 
 #CMD=valgrind --leak-check=full
+#CMD=export NETCDF_LOG_LEVEL=5 ;gdb --args
 CMD=gdb --args
 
 #PAR=1
