@@ -111,14 +111,12 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --enable-mmap"
 #FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
-#valgrind => not shared
-#FLAGS="$FLAGS --enable-valgrind-tests"
 #FLAGS="$FLAGS --enable-jna"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
-FLAGS="$FLAGS --disable-filter-testing"
-#FLAGS="$FLAGS --enable-metadata-perf"
+#FLAGS="$FLAGS --disable-filter-testing"
+FLAGS="$FLAGS --enable-metadata-perf"
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
