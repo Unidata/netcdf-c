@@ -74,15 +74,16 @@ IF(ENABLE_DOXYGEN)
 
 ENDIF(ENABLE_DOXYGEN)
 
+# Should match list in Makefile.am
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST}
-netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html	
-mainpage.dox tutorial.dox guide.dox types.dox cdl.dox			
-architecture.dox internal.dox windows-binaries.md			
-building-with-cmake.md CMakeLists.txt groups.dox install.md notes.md	
-install-fortran.md all-error-codes.md credits.md auth.md		
-obsolete/fan_utils.html bestpractices.md filters.md inmemory.md         
-DAP4.dox OPeNDAP.dox attribute_conventions.md FAQ.md                    
-file_format_specifications.md known_problems.md        
+netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html
+mainpage.dox tutorial.dox guide.dox types.dox cdl.dox
+architecture.dox internal.dox windows-binaries.md
+building-with-cmake.md CMakeLists.txt groups.dox install.md notes.md
+install-fortran.md all-error-codes.md credits.md auth.md
+obsolete/fan_utils.html bestpractices.md filters.md indexing.md
+inmemory.md DAP4.dox OPeNDAP.dox attribute_conventions.md FAQ.md
+file_format_specifications.md known_problems.md
 COPYRIGHT.dox)
 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
