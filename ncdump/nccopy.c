@@ -807,13 +807,13 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid)
     unfiltered = 0;
 
     if(suppressfilters && !outputdefined) /* row 1 */
-	unfiltered = 1;		
+	unfiltered = 1;
     else if(suppressfilters && outputdefined && ospec.nofilter) /* row 2 */
-	unfiltered = 1;		
+	unfiltered = 1;
     else if(suppressfilters && outputdefined) /* row 3 */
 	actualspec = ospec;
     else if(!suppressfilters && !outputdefined && inputdefined) /* row 4 */
-	actualspec = inspec;	
+	actualspec = inspec;
     else if(!suppressfilters && outputdefined && ospec.nofilter) /* row 5 */
 	unfiltered = 1;
     else if(!suppressfilters && outputdefined) /* row 6 */
@@ -1403,11 +1403,14 @@ copy_data(int igrp, int ogrp)
 /* Count total number of dimensions in ncid and all its descendant subgroups */
 int
 count_dims(int ncid) {
-    int ndims;
+
 #ifdef USE_NETCDF4
     int numgrps;
 #endif
+
+    int ndims;
     NC_CHECK(nc_inq_ndims(ncid, &ndims));
+
 #ifdef USE_NETCDF4
     NC_CHECK(nc_inq_grps(ncid, &numgrps, NULL));
     if(numgrps > 0) {

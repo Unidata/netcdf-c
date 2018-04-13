@@ -26,6 +26,7 @@ To date, at least the following dispatch tables are supported.
 - DAP2 to netcdf-3
 - DAP4 to netcdf-4
 - pnetcdf (parallel cdf5)
+- HDF4
 
 Internal Dispatch Tables
 - \subpage adding_dispatch

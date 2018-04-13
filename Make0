@@ -1,4 +1,4 @@
-T=t_dap3a
+T=tst_fileinfo
 
 NCLIB=./liblib/.libs/libnetcdf.a
 D4LIB=./libdap4/.libs/libdap4.a
