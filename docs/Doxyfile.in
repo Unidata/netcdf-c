@@ -750,6 +750,7 @@ INPUT = \
     @abs_top_srcdir@/docs/install-fortran.md \
     @abs_top_srcdir@/docs/types.dox \
     @abs_top_srcdir@/docs/internal.dox \
+    @abs_top_srcdir@/docs/indexing.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/guide.dox \
     @abs_top_srcdir@/docs/OPeNDAP.dox \
@@ -760,6 +761,8 @@ INPUT = \
     @abs_top_srcdir@/docs/filters.md \
     @abs_top_srcdir@/docs/inmemory.md \
     @abs_top_srcdir@/docs/notes.md \
+    @abs_top_srcdir@/docs/auth.md \
+    @abs_top_srcdir@/docs/filters.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
     @abs_top_srcdir@/docs/FAQ.md \
     @abs_top_srcdir@/docs/known_problems.md \
