@@ -205,6 +205,7 @@ typedef struct NC_FIELD_INFO
 {
    NC_OBJ hdr;
    nc_type nc_typeid;
+   void *format_field_info;
    hid_t hdf_typeid;
    hid_t native_hdf_typeid;
    size_t offset;
@@ -228,6 +229,7 @@ typedef struct NC_TYPE_INFO
 
    struct NC_GRP_INFO* container; /* Containing group */
    unsigned rc;                 /* Ref. count of objects using this type */
+   void *format_type_info;
    hid_t hdf_typeid;            /* HDF5 type ID, in the file */
    hid_t native_hdf_typeid;     /* HDF5 type ID, in memory */
    int endianness;              /* What endianness for the type? */
@@ -255,6 +257,7 @@ typedef struct NC_TYPE_INFO
       struct {
          NClist* enum_member; /* <! NClist<NC_ENUM_MEMBER_INFO_T*> */
          nc_type base_nc_typeid;
+         void *format_enum_info;
          hid_t base_hdf_typeid;
       } e;                      /* Enum */
       struct Fields {
@@ -262,6 +265,7 @@ typedef struct NC_TYPE_INFO
       } c;                      /* Compound */
       struct {
          nc_type base_nc_typeid;
+         void *format_vlen_info;
          hid_t base_hdf_typeid;
       } v;                      /* Variable-length */
    } u;                         /* Union of structs, for each type/class */
@@ -272,6 +276,7 @@ typedef struct NC_TYPE_INFO
 typedef struct NC_GRP_INFO
 {
    NC_OBJ hdr;
+   void *format_grp_info;
    hid_t hdf_grpid;
    struct NC_HDF5_FILE_INFO *nc4_info;
    struct NC_GRP_INFO *parent;
