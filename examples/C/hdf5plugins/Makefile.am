@@ -7,6 +7,7 @@ PLUGINSRC = H5Zbzip2.c h5bzip2.h
 
 TARGETS = ${PLUGINSRC} ${BZIP2SRC}
 
+HDF5PLUGINSRC=${PLUGINSRC} ${BZIP2SRC}
 BUILT_SOURCES = ${TARGETS}
 
 ${TARGETS}:
@@ -17,15 +18,15 @@ ${TARGETS}:
 
 CLEANFILES = ${TARGETS}
 
-if ENABLE_FILTER_TESTING
 
-DLLSRC=${PLUGINSRC} ${BZIP2SRC}
+if ENABLE_FILTER_TESTING
 
 lib_LTLIBRARIES = libbzip2.la
 
-libbzip2_la_SOURCES = ${DLLSRC}
-libbzip2_la_LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined -rpath ${abs_builddir}
+libbzip2_la_SOURCES = ${HDF5PLUGINSRC}
+libbzip2_la_LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined
 
 endif #ENABLE_FILTER_TESTING
+
 EXTRA_DIST = CMakeLists.txt H5Zbzip2.c Makefile.am blocksort.c bzlib.c bzlib.h bzlib_private.h compress.c \
 crctable.c decompress.c h5bzip2.h huffman.c randtable.c bzip2.nc
