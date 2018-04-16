@@ -196,6 +196,8 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
    NC_VAR_INFO_T *var;
    NC_HDF5_VAR_INFO_T *hdf5_var;
 
+   assert(grp && grp->format_grp_info && dataset);
+
    /* Find the requested varid. */
    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
    if (!var) return NC_ENOTVAR;
@@ -206,7 +208,7 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
 
    /* Open this dataset if necessary. */
    if (!hdf5_var->hdf_datasetid)
-      if ((hdf5_var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdr.name,
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, var->hdr.name,
                                               H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
 
@@ -702,7 +704,8 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
       return retval;
    h5 = NC4_DATA(nc);
-   assert(grp && h5 && var && var->hdr.name && var->format_var_info);
+   assert(grp && grp->format_grp_info && h5 && var && var->hdr.name &&
+          var->format_var_info);
 
    LOG((3, "%s: var->hdr.name %s mem_nc_type %d is_long %d",
         __func__, var->hdr.name, mem_nc_type, is_long));
@@ -732,7 +735,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
    else
       name_to_use = var->hdr.name;
    if (!hdf5_var->hdf_datasetid)
-      if ((hdf5_var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
 
    /* Get file space of data. */
@@ -1069,7 +1072,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
    else
       name_to_use = var->hdr.name;
    if (!hdf5_var->hdf_datasetid)
-      if ((hdf5_var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
 
    /* Get file space of data. */
@@ -1448,7 +1451,7 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
 
    /* Get the hid to attach the attribute to, or read it from. */
    if (varid == NC_GLOBAL)
-      locid = grp->hdf_grpid;
+      locid = ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid;
    else
    {
       if ((retval = nc4_open_var_grp2(grp, varid, &datasetid)))
@@ -1875,7 +1878,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    name_to_use = var->hdf5_name ? var->hdf5_name : var->hdr.name;
    LOG((4, "%s: about to H5Dcreate2 dataset %s of type 0x%x", __func__,
         name_to_use, typeid));
-   if ((hdf5_var->hdf_datasetid = H5Dcreate2(grp->hdf_grpid, name_to_use, typeid,
+   if ((hdf5_var->hdf_datasetid = H5Dcreate2(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, name_to_use, typeid,
                                              spaceid, H5P_DEFAULT, plistid, access_plistid)) < 0)
       BAIL(NC_EHDFERR);
    var->created = NC_TRUE;
@@ -2093,7 +2096,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    }
 
    /* Commit the type. */
-   if (H5Tcommit(grp->hdf_grpid, type->hdr.name, type->hdf_typeid) < 0)
+   if (H5Tcommit(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, type->hdr.name, type->hdf_typeid) < 0)
       return NC_EHDFERR;
    type->committed = NC_TRUE;
    LOG((4, "just committed type %s, HDF typeid: 0x%x", type->hdr.name,
@@ -2204,7 +2207,7 @@ create_group(NC_GRP_INFO_T *grp)
 exit:
    if (gcpl_id > 0 && H5Pclose(gcpl_id) < 0)
       BAIL2(NC_EHDFERR);
-   if (grp->hdf_grpid > 0 && H5Gclose(grp->hdf_grpid) < 0)
+   if (((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid > 0 && H5Gclose(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid) < 0)
       BAIL2(NC_EHDFERR);
    return retval;
 }
@@ -2434,7 +2437,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
          {
             nc_bool_t exists;
 
-            if ((retval = var_exists(grp->hdf_grpid, var->hdr.name, &exists)))
+            if ((retval = var_exists(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, var->hdr.name, &exists)))
                return retval;
             if (exists)
             {
@@ -2465,7 +2468,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
          {
             nc_bool_t exists;
 
-            if ((retval = var_exists(grp->hdf_grpid, var->hdr.name, &exists)))
+            if ((retval = var_exists(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, var->hdr.name, &exists)))
                return retval;
             if (exists)
             {
@@ -2538,7 +2541,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       hdf5_var->hdf_datasetid = 0;
 
       /* Now delete the variable. */
-      if (H5Gunlink(grp->hdf_grpid, var->hdr.name) < 0)
+      if (H5Gunlink(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, var->hdr.name) < 0)
          return NC_EDIMMETA;
    }
 
@@ -2654,7 +2657,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
       /* Create the dataset that will be the dimension scale. */
       LOG((4, "%s: about to H5Dcreate1 a dimscale dataset %s", __func__, dim->hdr.name));
-      if ((dim->hdf_dimscaleid = H5Dcreate1(grp->hdf_grpid, dim->hdr.name, H5T_IEEE_F32BE,
+      if ((dim->hdf_dimscaleid = H5Dcreate1(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, dim->hdr.name, H5T_IEEE_F32BE,
                                             spaceid, create_propid)) < 0)
          BAIL(NC_EHDFERR);
 
@@ -2819,7 +2822,7 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
    int retval;
    int i;
 
-   assert(grp && grp->hdr.name && grp->hdf_grpid);
+   assert(grp && grp->hdr.name && ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid);
    LOG((3, "%s: grp->hdr.name %s, bad_coord_order %d", __func__, grp->hdr.name, bad_coord_order));
 
    /* Write global attributes for this group. */
@@ -2901,14 +2904,14 @@ nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
    LOG((3, "%s: grp->hdr.name %s", __func__, grp->hdr.name));
 
    /* Create the group in the HDF5 file if it doesn't exist. */
-   if (!grp->hdf_grpid)
+   if (!((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid)
       if ((retval = create_group(grp)))
          return retval;
 
    /* If this is the root group of a file with strict NC3 rules, write
     * an attribute. But don't leave the attribute open. */
    if (!grp->parent && (grp->nc4_info->cmode & NC_CLASSIC_MODEL))
-      if ((retval = write_nc3_strict_att(grp->hdf_grpid)))
+      if ((retval = write_nc3_strict_att(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid)))
          return retval;
 
    /* If there are any user-defined types, write them now. */
@@ -4477,7 +4480,8 @@ NC4_isnetcdf4(struct NC_HDF5_FILE_INFO* h5)
    /* attribute did not exist */
    /* => last resort: walk the HDF5 file looking for markers */
    count = 0;
-   stat = NC4_walk(h5->root_grp->hdf_grpid, &count);
+   stat = NC4_walk(((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid,
+                   &count);
    if(stat != NC_NOERR)
       isnc4 = 0;
    else /* Threshold is at least two matches */
@@ -4502,7 +4506,7 @@ NC4_get_strict_att(NC_HDF5_FILE_INFO_T* h5)
    hid_t attid = -1;
 
    /* Get root group */
-   grp = h5->root_grp->hdf_grpid; /* get root group */
+   grp = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid; /* get root group */
    /* Try to extract the NC3_STRICT_ATT_NAME attribute */
    attid = H5Aopen_name(grp, NC3_STRICT_ATT_NAME);
    H5Aclose(attid);
