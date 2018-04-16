@@ -60,7 +60,7 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
          return NC_EHDFERR;
       if (H5Dclose(hdf5_var->hdf_datasetid) < 0)
          return NC_EHDFERR;
-      if ((hdf5_var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdr.name,
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, var->hdr.name,
                                               access_pid)) < 0)
          return NC_EHDFERR;
       if (H5Pclose(access_pid) < 0)
@@ -452,7 +452,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
             
             /* Now delete the DIM_WITHOUT_VARIABLE dataset (it will be
              * recreated later, if necessary). */
-            if (H5Gunlink(grp->hdf_grpid, dim->hdr.name) < 0)
+            if (H5Gunlink(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, dim->hdr.name) < 0)
                BAIL(NC_EDIMMETA);
          }
       }
@@ -1073,8 +1073,9 @@ NC4_rename_var(int ncid, int varid, const char *name)
    if (!var)
       return NC_ENOTVAR;
 
-   /* Check if new name is in use; note that renaming to same name is still an error
-      according to the nc_test/test_write.c code. Why?*/
+   /* Check if new name is in use; note that renaming to same name is
+      still an error according to the nc_test/test_write.c
+      code. Why? */
    tmpvar = (NC_VAR_INFO_T*)ncindexlookup(grp->vars,name);
    if(tmpvar != NULL)
        return NC_ENAMEINUSE;
@@ -1094,12 +1095,14 @@ NC4_rename_var(int ncid, int varid, const char *name)
        * so, it must be deleted. */
       if (var->ndims && var->dim[0]->hdf_dimscaleid)
       {
-         if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->hdr.id, var->dim[0])))
+         if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->hdr.id,
+                                                        var->dim[0])))
             return retval;
       }
       
       LOG((3, "Moving dataset %s to %s", var->hdr.name, name));
-      if (H5Gmove(grp->hdf_grpid, var->hdr.name, name) < 0)
+      if (H5Gmove(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid,
+                  var->hdr.name, name) < 0)
          BAIL(NC_EHDFERR);
    }
 

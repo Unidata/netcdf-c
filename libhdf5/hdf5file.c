@@ -1953,6 +1953,7 @@ exit:
 static int
 read_grp_atts(NC_GRP_INFO_T *grp)
 {
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    hid_t attid = -1;
    hsize_t num_obj, i;
    NC_ATT_INFO_T *att;
@@ -1962,10 +1963,15 @@ read_grp_atts(NC_GRP_INFO_T *grp)
    int retval = NC_NOERR;
    int hidden = 0;
 
-   num_obj = H5Aget_num_attrs(grp->hdf_grpid);
+   assert(grp && grp->format_grp_info);
+
+   /* Get HDF5 specific group info. */
+   hdf5_grp = grp->format_grp_info;
+
+   num_obj = H5Aget_num_attrs(hdf5_grp->hdf_grpid);
    for (i = 0; i < num_obj; i++)
    {
-      if ((attid = H5Aopen_idx(grp->hdf_grpid, (unsigned int)i)) < 0)
+      if ((attid = H5Aopen_idx(hdf5_grp->hdf_grpid, (unsigned int)i)) < 0)
          BAIL(NC_EATTMETA);
       if (H5Aget_name(attid, NC_MAX_NAME + 1, obj_name) < 0)
          BAIL(NC_EATTMETA);
@@ -2215,11 +2221,14 @@ exit:
  * @param grp Pointer to a group.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR Error from HDF5 layer.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
  */
 static int
 nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 {
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    NC4_rec_read_metadata_ud_t udata;   /* User data for iteration */
    NC4_rec_read_metadata_obj_info_t *oinfo;    /* Pointer to info for object */
    hsize_t idx=0;
@@ -2228,8 +2237,11 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
    H5_index_t iter_index;
    int i, retval = NC_NOERR; /* everything worked! */
 
-   assert(grp && grp->hdr.name);
+   assert(grp && grp->hdr.name && grp->format_grp_info);
    LOG((3, "%s: grp->hdr.name %s", __func__, grp->hdr.name));
+
+   /* Get HDF5 specific group info. */
+   hdf5_grp = grp->format_grp_info;
 
    /* Portably initialize user data for later */
    memset(&udata, 0, sizeof(udata));
@@ -2253,10 +2265,10 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
          ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid = grp->hdf_grpid;
       }
    }
-   assert(grp->hdf_grpid > 0);
+   assert(hdf5_grp->hdf_grpid > 0);
 
    /* Get the group creation flags, to check for creation ordering */
-   pid = H5Gget_create_plist(grp->hdf_grpid);
+   pid = H5Gget_create_plist(hdf5_grp->hdf_grpid);
    H5Pget_link_creation_order(pid, &crt_order_flags);
    if (H5Pclose(pid) < 0)
       BAIL(NC_EHDFERR);
@@ -2282,7 +2294,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
    /* Iterate over links in this group, building lists for the types,
     *  datasets and groups encountered
     */
-   if (H5Literate(grp->hdf_grpid, iter_index, H5_ITER_INC, &idx,
+   if (H5Literate(hdf5_grp->hdf_grpid, iter_index, H5_ITER_INC, &idx,
                   nc4_rec_read_metadata_cb, (void *)&udata) < 0)
       BAIL(NC_EHDFERR);
 
