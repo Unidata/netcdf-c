@@ -133,6 +133,7 @@ NC4_rename_grp(int grpid, const char *name)
       if (H5Gclose(grp->hdf_grpid) < 0)
          return NC_EHDFERR;
       grp->hdf_grpid = 0;
+      ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid = 0;
 
       /* Attempt to rename & re-open the group, if the parent group is open */
       if (grp->parent->hdf_grpid)
@@ -144,6 +145,7 @@ NC4_rename_grp(int grpid, const char *name)
          /* Reopen the group, with the new name */
          if ((grp->hdf_grpid = H5Gopen2(parent->hdf_grpid, name, H5P_DEFAULT)) < 0)
             return NC_EHDFERR;
+         ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid = grp->hdf_grpid;
       }
    }
 

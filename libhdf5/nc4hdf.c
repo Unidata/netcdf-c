@@ -2187,6 +2187,7 @@ create_group(NC_GRP_INFO_T *grp)
       if ((grp->hdf_grpid = H5Gcreate2(grp->parent->hdf_grpid, grp->hdr.name,
                                        H5P_DEFAULT, gcpl_id, H5P_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
+      ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid = grp->hdf_grpid;
       if (H5Pclose(gcpl_id) < 0)
          BAIL(NC_EHDFERR);
    }
@@ -2196,6 +2197,7 @@ create_group(NC_GRP_INFO_T *grp)
       if ((grp->hdf_grpid = H5Gopen2(((NC_HDF5_FILE_INFO_2_T *)(grp->nc4_info->format_file_info))->hdfid,
                                      "/", H5P_DEFAULT)) < 0)
          BAIL(NC_EFILEMETA);
+      ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid = grp->hdf_grpid;
    }
    return NC_NOERR;
 

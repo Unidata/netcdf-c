@@ -782,6 +782,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       BAIL(NC_ENOMEM);
    nc4_info->format_file_info = hdf5_file;
 
+   /* Add memory for HDF5-specific group data for root group. */
+   if (!(nc4_info->root_grp->format_grp_info = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
+      BAIL(NC_ENOMEM);
+
    /* Assume not parallel access. */
    nc4_info->parallel = NC_FALSE;
    
@@ -891,6 +895,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(hdf5_file->hdfid, "/",
                                                  H5P_DEFAULT)) < 0)
       BAIL(NC_EFILEMETA);
+   ((NC_HDF5_GRP_INFO_T *)(nc4_info->root_grp->format_grp_info))->hdf_grpid = nc4_info->root_grp->hdf_grpid;
 
    /* Release the property lists. */
    if (H5Pclose(fapl_id) < 0 || H5Pclose(fcpl_id) < 0)
@@ -2238,12 +2243,14 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
          if ((grp->hdf_grpid = H5Gopen2(grp->parent->hdf_grpid,
                                         grp->hdr.name, H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
+         ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid = grp->hdf_grpid;
       }
       else
       {
          if ((grp->hdf_grpid = H5Gopen2(((NC_HDF5_FILE_INFO_2_T *)(grp->nc4_info->format_file_info))->hdfid,
                                         "/", H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
+         ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid = grp->hdf_grpid;
       }
    }
    assert(grp->hdf_grpid > 0);
@@ -2379,6 +2386,10 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       BAIL(NC_ENOMEM);
    nc4_info->format_file_info = hdf5_file;
    
+   /* Add memory for HDF5-specific group data for root group. */
+   if (!(nc4_info->root_grp->format_grp_info = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
+      BAIL(NC_ENOMEM);
+
    /* Need this access plist to control how HDF5 handles open objects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
     * fail if there are any open objects in the file. */
