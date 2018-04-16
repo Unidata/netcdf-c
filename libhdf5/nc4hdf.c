@@ -2166,10 +2166,14 @@ exit:
 static int
 create_group(NC_GRP_INFO_T *grp)
 {
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    hid_t gcpl_id = 0;
    int retval = NC_NOERR;;
 
-   assert(grp);
+   assert(grp && grp->format_grp_info);
+
+   /* Get HDF5 specific format info. */
+   hdf5_grp = grp->format_grp_info;
 
    /* If this is not the root group, create it in the HDF5 file. */
    if (grp->parent)
@@ -2187,27 +2191,25 @@ create_group(NC_GRP_INFO_T *grp)
          BAIL(NC_EHDFERR);
       if (H5Pset_attr_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0)
          BAIL(NC_EHDFERR);
-      if ((grp->hdf_grpid = H5Gcreate2(grp->parent->hdf_grpid, grp->hdr.name,
-                                       H5P_DEFAULT, gcpl_id, H5P_DEFAULT)) < 0)
+      if ((hdf5_grp->hdf_grpid = H5Gcreate2(((NC_HDF5_GRP_INFO_T *)(grp->parent->format_grp_info))->hdf_grpid,
+                                            grp->hdr.name, H5P_DEFAULT, gcpl_id, H5P_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
-      ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid = grp->hdf_grpid;
       if (H5Pclose(gcpl_id) < 0)
          BAIL(NC_EHDFERR);
    }
    else
    {
       /* Since this is the root group, we have to open it. */
-      if ((grp->hdf_grpid = H5Gopen2(((NC_HDF5_FILE_INFO_2_T *)(grp->nc4_info->format_file_info))->hdfid,
+      if ((hdf5_grp->hdf_grpid = H5Gopen2(((NC_HDF5_FILE_INFO_2_T *)(grp->nc4_info->format_file_info))->hdfid,
                                      "/", H5P_DEFAULT)) < 0)
          BAIL(NC_EFILEMETA);
-      ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid = grp->hdf_grpid;
    }
    return NC_NOERR;
 
 exit:
    if (gcpl_id > 0 && H5Pclose(gcpl_id) < 0)
       BAIL2(NC_EHDFERR);
-   if (((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid > 0 && H5Gclose(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid) < 0)
+   if (hdf5_grp->hdf_grpid > 0 && H5Gclose(hdf5_grp->hdf_grpid) < 0)
       BAIL2(NC_EHDFERR);
    return retval;
 }

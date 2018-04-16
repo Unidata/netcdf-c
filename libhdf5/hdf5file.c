@@ -892,10 +892,9 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* nc4_info->hdfid = hdf5_file->hdfid; */
 
    /* Open the root group. */
-   if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(hdf5_file->hdfid, "/",
-                                                 H5P_DEFAULT)) < 0)
+   if ((((NC_HDF5_GRP_INFO_T *)(nc4_info->root_grp->format_grp_info))->hdf_grpid = H5Gopen2(hdf5_file->hdfid,
+                                                                                            "/", H5P_DEFAULT)) < 0)
       BAIL(NC_EFILEMETA);
-   ((NC_HDF5_GRP_INFO_T *)(nc4_info->root_grp->format_grp_info))->hdf_grpid = nc4_info->root_grp->hdf_grpid;
 
    /* Release the property lists. */
    if (H5Pclose(fapl_id) < 0 || H5Pclose(fcpl_id) < 0)
@@ -2248,21 +2247,19 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 
    /* Open this HDF5 group and retain its grpid. It will remain open
     * with HDF5 until this file is nc_closed. */
-   if (!grp->hdf_grpid)
+   if (!hdf5_grp->hdf_grpid)
    {
       if (grp->parent)
       {
-         if ((grp->hdf_grpid = H5Gopen2(grp->parent->hdf_grpid,
-                                        grp->hdr.name, H5P_DEFAULT)) < 0)
+         if ((hdf5_grp->hdf_grpid = H5Gopen2(((NC_HDF5_GRP_INFO_T *)(grp->parent->format_grp_info))->hdf_grpid,
+                                             grp->hdr.name, H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
-         ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid = grp->hdf_grpid;
       }
       else
       {
-         if ((grp->hdf_grpid = H5Gopen2(((NC_HDF5_FILE_INFO_2_T *)(grp->nc4_info->format_file_info))->hdfid,
+         if ((hdf5_grp->hdf_grpid = H5Gopen2(((NC_HDF5_FILE_INFO_2_T *)(grp->nc4_info->format_file_info))->hdfid,
                                         "/", H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
-         ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid = grp->hdf_grpid;
       }
    }
    assert(hdf5_grp->hdf_grpid > 0);

@@ -336,11 +336,15 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 int
 hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
 {
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    int retval;
    int i;
 
-   assert(grp);
+   assert(grp && grp->format_grp_info);
    LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
+
+   /* Get HDF5-specific group info. */
+   hdf5_grp = grp->format_grp_info;
 
    /* Recursively call this function for each child, if any, stopping
     * if there is an error. */
@@ -402,11 +406,11 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
    for (i = 0; i < ncindexsize(grp->dim); i++)
    {
       NC_DIM_INFO_T *dim;
-      NC_HDF5_DIM_INFO_T *hdf5_dim;
+      /* NC_HDF5_DIM_INFO_T *hdf5_dim; */
       
       if (!(dim = (NC_DIM_INFO_T *)ncindexith(grp->dim,i)))
          continue;
-      hdf5_dim = dim->format_dim_info;
+      /* hdf5_dim = dim->format_dim_info; */
       if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
          return NC_EHDFERR;
    }
@@ -440,7 +444,7 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
 
    /* Tell HDF5 we're closing this group. */
    LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
-   if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0)
+   if (hdf5_grp->hdf_grpid && H5Gclose(hdf5_grp->hdf_grpid) < 0)
       return NC_EHDFERR;
 
    return NC_NOERR;
@@ -554,7 +558,7 @@ delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *d
    hdf5_dim->hdf_dimscaleid = 0;
 
    /* Now delete the dataset. */
-   if (H5Gunlink(grp->hdf_grpid, dim->hdr.name) < 0)
+   if (H5Gunlink(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, dim->hdr.name) < 0)
       return NC_EHDFERR;
 
    return NC_NOERR;
@@ -652,7 +656,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 
       /* Now delete the dimscale's dataset
          (it will be recreated later, if necessary) */
-      if (H5Gunlink(grp->hdf_grpid, dim->hdr.name) < 0)
+      if (H5Gunlink(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, dim->hdr.name) < 0)
          return NC_EDIMMETA;
    }
 

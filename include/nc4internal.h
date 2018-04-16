@@ -277,7 +277,7 @@ typedef struct NC_GRP_INFO
 {
    NC_OBJ hdr;
    void *format_grp_info;
-   hid_t hdf_grpid;
+   /* hid_t hdf_grpid; */
    struct NC_HDF5_FILE_INFO *nc4_info;
    struct NC_GRP_INFO *parent;
    NCindex* children;		/* NCindex<struct NC_GRP_INFO*> */
