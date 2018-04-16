@@ -6,7 +6,7 @@
  * groups in netcdf-4/HDF5 files.
  *
  * @author Ed Hartnett
-*/
+ */
 
 #include "nc4internal.h"
 #include "nc4dispatch.h"
@@ -24,7 +24,7 @@
  * @return ::NC_ESTRICTNC3 Classic model in use for this file.
  * @return ::NC_ENOTNC4 Not a netCDF-4 file.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
@@ -38,7 +38,7 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(parent_ncid, &grp, &h5)))
       return retval;
-   assert(h5);
+   assert(h5 && grp);
 
    /* Check and normalize the name. */
    if ((retval = nc4_check_name(name, norm_name)))
@@ -62,6 +62,8 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
     * sync. */
    if ((retval = nc4_grp_list_add(grp, norm_name, &g)))
       return retval;
+
+   /* If desired, return the ncid of the newly created group. */
    if (new_ncid)
       *new_ncid = grp->nc4_info->controller->ext_ncid | g->hdr.id;
    
@@ -82,7 +84,7 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
  * @return ::NC_EHDFERR HDF5 function returned error.
  * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_rename_grp(int grpid, const char *name)
 {
@@ -96,14 +98,14 @@ NC4_rename_grp(int grpid, const char *name)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(grpid, &grp, &h5)))
       return retval;
-   assert(h5);
+   assert(h5 && grp);
 
    if (h5->no_write)
       return NC_EPERM; /* attempt to write to a read-only file */
 
-   /* Do not allow renaming the root group */
+   /* Do not allow renaming the root group. */
    if (grp->parent == NULL)
-	return NC_EBADGRPID;
+      return NC_EBADGRPID;
    parent = grp->parent;
 
    /* Check and normalize the name. */
@@ -148,8 +150,8 @@ NC4_rename_grp(int grpid, const char *name)
       return NC_ENOMEM;
    grp->hdr.hashkey = NC_hashmapkey(grp->hdr.name,strlen(grp->hdr.name)); /* Fix hash key */
 
-   if(!ncindexrebuild(parent->children))
-	return NC_EINTERNAL;
+   if (!ncindexrebuild(parent->children))
+      return NC_EINTERNAL;
 
    return NC_NOERR;
 }
