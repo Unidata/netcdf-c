@@ -2285,12 +2285,16 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
     */
    for(i=0;i<nclistlength(udata.grps);i++)
    {
+      NC_HDF5_GRP_INFO_T *hdf5_grp;
       NC_GRP_INFO_T *child_grp;
       oinfo = (NC4_rec_read_metadata_obj_info_t*)nclistget(udata.grps,i);
 
       /* Add group to file's hierarchy */
       if ((retval = nc4_grp_list_add(grp, oinfo->oname, &child_grp)))
          BAIL(retval);
+      if (!(hdf5_grp = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
+         return NC_ENOMEM;
+      child_grp->format_grp_info = hdf5_grp;   
 
       /* Recursively read the child group's metadata */
       if ((retval = nc4_rec_read_metadata(child_grp)))

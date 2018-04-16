@@ -8,7 +8,7 @@
  * @author Ed Hartnett
  */
 
-#include "nc4internal.h"
+#include "hdf5internal.h"
 #include "nc4dispatch.h"
 
 /**
@@ -29,6 +29,7 @@ int
 NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
    NC_GRP_INFO_T *grp, *g;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    NC_HDF5_FILE_INFO_T *h5;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
@@ -62,6 +63,9 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
     * sync. */
    if ((retval = nc4_grp_list_add(grp, norm_name, &g)))
       return retval;
+   if (!(hdf5_grp = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
+      return NC_ENOMEM;
+   g->format_grp_info = hdf5_grp;   
 
    /* If desired, return the ncid of the newly created group. */
    if (new_ncid)

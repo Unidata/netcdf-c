@@ -1443,6 +1443,10 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
    ncindexfree(grp->type);
    grp->type = NULL;
 
+   /* Free format-specific info. */
+   if (grp->format_grp_info)
+      free(grp->format_grp_info);
+
    /* Free up memory. */
    free(grp->hdr.name);
    free(grp);

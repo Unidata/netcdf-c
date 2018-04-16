@@ -79,6 +79,12 @@ typedef struct NC_HDF5_ATT_INFO
    hid_t native_hdf_typeid;     /* Native HDF5 datatype for attribute's data */
 } NC_HDF5_ATT_INFO_T;
 
+/* This holds information for one group. */
+typedef struct NC_HDF5_GRP_INFO
+{
+   hid_t hdf_grpid;
+} NC_HDF5_GRP_INFO_T;
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
