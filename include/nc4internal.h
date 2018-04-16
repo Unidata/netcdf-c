@@ -1,9 +1,8 @@
-/** \file
-  This header file contains the definitions of structs used to hold
-  netCDF file metadata in memory.
-
-  Copyright 2005-2011 University Corporation for Atmospheric
-  Research/Unidata.
+/* Copyright 2005-2018 University Corporation for Atmospheric
+   Research/Unidata. */
+/**
+ * @file This header file contains the definitions of structs used to
+ * hold netCDF file metadata in memory.
 */
 
 #ifndef _NC4INTERNAL_
@@ -30,10 +29,6 @@
 
 /* Always needed */
 #include "nc.h"
-
-#ifdef USE_HDF4
-#include <mfhdf.h>
-#endif
 
 #define FILE_ID_MASK (0xffff0000)
 #define GRP_ID_MASK (0x0000ffff)
@@ -201,9 +196,7 @@ typedef struct NC_VAR_INFO
    size_t chunk_cache_size, chunk_cache_nelems;
    float chunk_cache_preemption;
 #ifdef USE_HDF4
-   /* Stuff below is for hdf4 files. */
-   int sdsid;
-   int hdf4_data_type;
+   void *format_var_info;       /* Pointer to any binary format info. */
 #endif /* USE_HDF4 */
    /* Stuff for arbitrary filters */
    unsigned int filterid;
@@ -331,8 +324,7 @@ typedef struct  NC_HDF5_FILE_INFO
    NClist* alltypes;
    NClist* allgroups; /* including root group */
 #ifdef USE_HDF4
-   nc_bool_t hdf4;              /* True for HDF4 file */
-   int sdid;
+   void *format_file_info;
 #endif /* USE_HDF4 */
    struct NCFILEINFO* fileinfo;
    struct NC4_Memio {
