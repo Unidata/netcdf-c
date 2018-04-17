@@ -184,8 +184,9 @@ nc4_rec_find_hdf_type(NC_HDF5_FILE_INFO_T* h5, hid_t target_hdf_typeid)
       
       if (!(type = nclistget(h5->alltypes,i)))
          continue;
-      my_hdf_typeid = type->native_hdf_typeid ? type->native_hdf_typeid : type->hdf_typeid;
       hdf5_type = type->format_type_info;
+      my_hdf_typeid = type->native_hdf_typeid ? type->native_hdf_typeid : type->hdf_typeid;
+      /* my_hdf_typeid = hdf5_type->native_hdf_typeid ? hdf5_type->native_hdf_typeid : hdf5_type->hdf_typeid; */
       
       /* Is this the type we are searching for? */
       if ((equal = H5Tequal(my_hdf_typeid, target_hdf_typeid)) < 0)
@@ -247,89 +248,6 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 
    return NC_NOERR;
 }
-
-/* /\** */
-/*  * @internal Free allocated space for type information. */
-/*  * */
-/*  * @param type Pointer to type info struct. */
-/*  * */
-/*  * @return ::NC_NOERR No error. */
-/*  * @author Ed Hartnett */
-/*  *\/ */
-/* int */
-/* nc4_type_free(NC_TYPE_INFO_T *type) */
-/* { */
-/*    int i; */
-
-/*    /\* Decrement the ref. count on the type *\/ */
-/*    assert(type->rc); */
-/*    type->rc--; */
-
-/*    /\* Release the type, if the ref. count drops to zero *\/ */
-/*    if (0 == type->rc) */
-/*    { */
-/*       /\* Close any open user-defined HDF5 typeids. *\/ */
-/*       if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0) */
-/*          return NC_EHDFERR; */
-/*       if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0) */
-/*          return NC_EHDFERR; */
-
-/*       /\* Free the name. *\/ */
-/*       if (type->hdr.name) */
-/*          free(type->hdr.name); */
-
-/*       /\* Class-specific cleanup *\/ */
-/*       switch (type->nc_type_class) */
-/*       { */
-/*       case NC_COMPOUND: */
-/*       { */
-/*          NC_FIELD_INFO_T *field; */
-
-/*          /\* Delete all the fields in this type (there will be some if its a */
-/*           * compound). *\/ */
-/*         for(i=0;i<nclistlength(type->u.c.field);i++) { */
-/*             field = nclistget(type->u.c.field,i); */
-/*             field_free(field); */
-/*          } */
-/* 	 nclistfree(type->u.c.field); */
-/*  	 type->u.c.field = NULL; /\* belt and suspenders *\/ */
-/*       } */
-/*       break; */
-
-/*       case NC_ENUM: */
-/*       { */
-/*          NC_ENUM_MEMBER_INFO_T *enum_member; */
-
-/*          /\* Delete all the enum_members, if any. *\/ */
-/* 	 for(i=0;i<nclistlength(type->u.e.enum_member);i++) { */
-/*             enum_member = nclistget(type->u.e.enum_member,i); */
-/*             free(enum_member->value); */
-/*             free(enum_member->name); */
-/*             free(enum_member); */
-/*          } */
-/* 	 nclistfree(type->u.e.enum_member); */
-/*  	 type->u.e.enum_member = NULL; /\* belt and suspenders *\/ */
-
-/*          if (H5Tclose(type->u.e.base_hdf_typeid) < 0) */
-/*             return NC_EHDFERR; */
-/*       } */
-/*       break; */
-
-/*       case NC_VLEN: */
-/*          if (H5Tclose(type->u.v.base_hdf_typeid) < 0) */
-/*             return NC_EHDFERR; */
-
-/*       default: */
-/*          break; */
-/*       } */
-
-/*       /\* Release the memory. *\/ */
-/*       free(type); */
-/*    } */
-
-/*    return NC_NOERR; */
-/* } */
-
 
 /**
  * @internal Recursively close any open HDF5 objects.
@@ -434,11 +352,15 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
       hdf5_type = type->format_type_info;
 
       /* Close open HDF5 types. */
-      if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0)
+      /* if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0) */
+      /*    return NC_EHDFERR; */
+      if (hdf5_type->hdf_typeid && H5Tclose(hdf5_type->hdf_typeid) < 0)
          return NC_EHDFERR;
       type->hdf_typeid = 0;
       hdf5_type->hdf_typeid = 0;
-      if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0)
+      /* if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0) */
+      /*    return NC_EHDFERR; */
+      if (hdf5_type->native_hdf_typeid && H5Tclose(hdf5_type->native_hdf_typeid) < 0)
          return NC_EHDFERR;
       type->native_hdf_typeid = 0;
       hdf5_type->native_hdf_typeid = 0;
@@ -447,13 +369,17 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
       switch (type->nc_type_class)
       {
       case NC_ENUM:
-         if (type->u.e.base_hdf_typeid && H5Tclose(type->u.e.base_hdf_typeid) < 0)
+         /* if (type->u.e.base_hdf_typeid && H5Tclose(type->u.e.base_hdf_typeid) < 0) */
+         /*    return NC_EHDFERR; */
+         if (hdf5_type->u.e.base_hdf_typeid && H5Tclose(hdf5_type->u.e.base_hdf_typeid) < 0)
             return NC_EHDFERR;
          type->u.e.base_hdf_typeid = 0;
          hdf5_type->u.e.base_hdf_typeid = 0;
          break;
       case NC_VLEN:
-         if (type->u.v.base_hdf_typeid && H5Tclose(type->u.v.base_hdf_typeid) < 0)
+         /* if (type->u.v.base_hdf_typeid && H5Tclose(type->u.v.base_hdf_typeid) < 0) */
+         /*    return NC_EHDFERR; */
+         if (hdf5_type->u.v.base_hdf_typeid && H5Tclose(hdf5_type->u.v.base_hdf_typeid) < 0)
             return NC_EHDFERR;
          type->u.v.base_hdf_typeid = 0;         
          hdf5_type->u.v.base_hdf_typeid = 0;         

@@ -1276,9 +1276,14 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
    /* Is this an atomic type? */
    if (class == H5T_STRING || class == H5T_INTEGER || class == H5T_FLOAT)
    {
+      NC_HDF5_TYPE_INFO_T *hdf5_type;
+      
       /* Allocate a phony NC_TYPE_INFO_T struct to hold type info. */
       if (!(*type_info = calloc(1, sizeof(NC_TYPE_INFO_T))))
          return NC_ENOMEM;
+      if (!(hdf5_type = calloc(1, sizeof(NC_HDF5_TYPE_INFO_T))))
+         return NC_ENOMEM;
+      (*type_info)->format_type_info = hdf5_type;
 
       /* H5Tequal doesn't work with H5T_C_S1 for some reason. But
        * H5Tget_class will return H5T_STRING if this is a string. */
@@ -1337,6 +1342,8 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
          return NC_ENOMEM;
       (*type_info)->hdf_typeid = hdf_typeid;
       (*type_info)->native_hdf_typeid = native_typeid;
+      hdf5_type->hdf_typeid = hdf_typeid;
+      hdf5_type->native_hdf_typeid = native_typeid;
       return NC_NOERR;
    }
    else
@@ -1412,8 +1419,10 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
    /* Remember common info about this type. */
    type->committed = NC_TRUE;
    type->hdf_typeid = hdf_typeid;
-   H5Iinc_ref(type->hdf_typeid);        /* Increment number of objects using ID */
+   hdf5_type->hdf_typeid = hdf_typeid;
+   H5Iinc_ref(hdf5_type->hdf_typeid);        /* Increment number of objects using ID */
    type->native_hdf_typeid = native_typeid;
+   hdf5_type->native_hdf_typeid = native_typeid;
 
    /* What is the class of this type, compound, vlen, etc. */
    if ((class = H5Tget_class(hdf_typeid)) < 0)
@@ -1451,14 +1460,14 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 
          /* Get the typeid and native typeid of this member of the
           * compound type. */
-         if ((member_hdf_typeid = H5Tget_member_type(type->native_hdf_typeid, m)) < 0)
+         if ((member_hdf_typeid = H5Tget_member_type(hdf5_type->native_hdf_typeid, m)) < 0)
             return NC_EHDFERR;
 
          if ((member_native_typeid = H5Tget_native_type(member_hdf_typeid, H5T_DIR_DEFAULT)) < 0)
             return NC_EHDFERR;
 
          /* Get the name of the member.*/
-         member_name = H5Tget_member_name(type->native_hdf_typeid, m);
+         member_name = H5Tget_member_name(hdf5_type->native_hdf_typeid, m);
          if (!member_name || strlen(member_name) > NC_MAX_NAME) {
             retval = NC_EBADNAME;
             break;
@@ -1471,7 +1480,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 #endif
 
          /* Offset in bytes on *this* platform. */
-         member_offset = H5Tget_member_offset(type->native_hdf_typeid, m);
+         member_offset = H5Tget_member_offset(hdf5_type->native_hdf_typeid, m);
 
          /* Get dimensional data if this member is an array of something. */
          if ((mem_class = H5Tget_class(member_hdf_typeid)) < 0)
@@ -1852,7 +1861,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       }
 
       /* Get the fill value from the HDF5 property lust. */
-      if (H5Pget_fill_value(propid, var->type_info->native_hdf_typeid,
+      if (H5Pget_fill_value(propid, ((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid,
                             var->fill_value) < 0)
          BAIL(NC_EHDFERR);
    }

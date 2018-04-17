@@ -87,19 +87,20 @@ NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
    /* Not atomic types - so find type1 and type2 information. */
    if ((retval = nc4_find_nc4_grp(ncid1, &grpone)))
       return retval;
-   if (!(type1 = nc4_rec_find_nc_type(grpone->nc4_info, 
-				      typeid1)))
+   if (!(type1 = nc4_rec_find_nc_type(grpone->nc4_info, typeid1)))
       return NC_EBADTYPE;
    if ((retval = nc4_find_nc4_grp(ncid2, &grptwo)))
       return retval;
-   if (!(type2 = nc4_rec_find_nc_type(grptwo->nc4_info, 
-				      typeid2)))
+   if (!(type2 = nc4_rec_find_nc_type(grptwo->nc4_info, typeid2)))
       return NC_EBADTYPE;
 
    /* Are the two types equal? */
    if (equalp)
    {
-      if ((retval = H5Tequal(type1->native_hdf_typeid, type2->native_hdf_typeid)) < 0)
+      /* if ((retval = H5Tequal(type1->native_hdf_typeid, type2->native_hdf_typeid)) < 0) */
+      /*    return NC_EHDFERR; */
+      if ((retval = H5Tequal(((NC_HDF5_TYPE_INFO_T *)(type1->format_type_info))->native_hdf_typeid,
+                             ((NC_HDF5_TYPE_INFO_T *)(type2->format_type_info))->native_hdf_typeid)) < 0)
          return NC_EHDFERR;
       *equalp = 1 ? retval : 0;
    }
