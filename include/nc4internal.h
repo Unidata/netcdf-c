@@ -258,7 +258,7 @@ typedef struct NC_TYPE_INFO
          NClist* enum_member; /* <! NClist<NC_ENUM_MEMBER_INFO_T*> */
          nc_type base_nc_typeid;
          void *format_enum_info;
-         hid_t base_hdf_typeid;
+         /* hid_t base_hdf_typeid; */
       } e;                      /* Enum */
       struct Fields {
          NClist* field; /* <! NClist<NC_FIELD_INFO_T*> */
@@ -266,7 +266,7 @@ typedef struct NC_TYPE_INFO
       struct {
          nc_type base_nc_typeid;
          void *format_vlen_info;
-         hid_t base_hdf_typeid;
+         /* hid_t base_hdf_typeid; */
       } v;                      /* Variable-length */
    } u;                         /* Union of structs, for each type/class */
 } NC_TYPE_INFO_T;

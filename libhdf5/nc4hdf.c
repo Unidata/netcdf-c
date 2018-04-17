@@ -2060,12 +2060,12 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    {
       /* Find the HDF typeid of the base type of this vlen. */
       if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->u.v.base_nc_typeid,
-                                       &type->u.v.base_hdf_typeid, type->endianness)))
+                                       &hdf5_type->u.v.base_hdf_typeid, type->endianness)))
          return retval;
-      hdf5_type->u.v.base_hdf_typeid = type->u.v.base_hdf_typeid;
+      /* hdf5_type->u.v.base_hdf_typeid = type->u.v.base_hdf_typeid; */
 
       /* Create a vlen type. */
-      if ((type->hdf_typeid = H5Tvlen_create(type->u.v.base_hdf_typeid)) < 0)
+      if ((type->hdf_typeid = H5Tvlen_create(hdf5_type->u.v.base_hdf_typeid)) < 0)
          return NC_EHDFERR;
       hdf5_type->hdf_typeid = type->hdf_typeid;
    }
@@ -2086,12 +2086,12 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
       /* Find the HDF typeid of the base type of this enum. */
       if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->u.e.base_nc_typeid,
-                                       &type->u.e.base_hdf_typeid, type->endianness)))
+                                       &hdf5_type->u.e.base_hdf_typeid, type->endianness)))
          return retval;
-      hdf5_type->u.e.base_hdf_typeid = type->u.e.base_hdf_typeid;
+      /* hdf5_type->u.e.base_hdf_typeid = type->u.e.base_hdf_typeid; */
 
       /* Create an enum type. */
-      if ((type->hdf_typeid =  H5Tenum_create(type->u.e.base_hdf_typeid)) < 0)
+      if ((type->hdf_typeid =  H5Tenum_create(hdf5_type->u.e.base_hdf_typeid)) < 0)
          return NC_EHDFERR;
       hdf5_type->hdf_typeid = type->hdf_typeid;
 
