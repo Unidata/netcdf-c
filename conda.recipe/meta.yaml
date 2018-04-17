@@ -1,0 +1,37 @@
+{% set version = "dev" %}
+
+package:
+  name: netcdf-c
+  version: {{ version }}
+
+source:
+  path: ../
+
+build:
+  features:
+    - vc9  # [win and py27]
+    - vc14  # [win and py>=35]
+
+requirements:
+  build:
+    - python  # Here only to activate the `vc`s.
+    - msinttypes
+    - curl
+    - zlib 1.2.*
+    - hdf4
+    - hdf5 1.8.18
+    - vc 9  # [win and py27]
+    - vc 14  # [win and py>=35]
+  run:
+    - curl
+    - zlib 1.2.*
+    - hdf4
+    - hdf5 1.8.18
+    - vc 9  # [win and py27]
+    - vc 14  # [win and py>=35]
+
+test:
+  commands:
+    - ncdump -h https://data.nodc.noaa.gov/thredds/dodsC/ioos/sccoos/scripps_pier/scripps_pier-2016.nc
+    - ncdump -h http://oos.soest.hawaii.edu/thredds/dodsC/hioos/model/atm/ncep_pac/NCEP_Pacific_Atmospheric_Model_best.ncd
+    - ncdump -h http://oos.soest.hawaii.edu/thredds/dodsC/usgs_dem_10m_tinian

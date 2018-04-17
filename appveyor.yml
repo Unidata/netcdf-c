@@ -1,0 +1,39 @@
+environment:
+  matrix:
+    - TARGET_ARCH: x64
+      CONDA_PY: 27
+      CONDA_INSTALL_LOCN: C:\\Miniconda-x64
+
+    - TARGET_ARCH: x64
+      CONDA_PY: 36
+      CONDA_INSTALL_LOCN: C:\\Miniconda35-x64
+
+platform:
+    - x64
+
+install:
+    # If there is a newer build queued for the same PR, cancel this one.
+    - ps: if ($env:APPVEYOR_PULL_REQUEST_NUMBER -and $env:APPVEYOR_BUILD_NUMBER -ne ((Invoke-RestMethod `
+         https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG/history?recordsNumber=50).builds | `
+         Where-Object pullRequestId -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber) { `
+           throw "There are newer queued builds for this pull request, failing early." }
+
+    # Add path, activate conda, update conda, and add conda-forge channel for the dependencies.
+    - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
+    - cmd: conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
+    - cmd: conda update conda
+    - cmd: conda config --add channels conda-forge --force
+    - cmd: set PYTHONUNBUFFERED=1
+
+    # Fix conda bug when building vc 9.
+    - cmd: conda install conda-build vs2008_express_vc_python_patch
+    - cmd: call setup_x64
+    # Debug info.
+    - cmd: conda info --all
+    - cmd: conda list
+
+# Skip .NET project specific build phase.
+build: off
+
+test_script:
+    - conda build conda.recipe
