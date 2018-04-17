@@ -418,26 +418,39 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
    /* Close open types. */
    for (i = 0; i < ncindexsize(grp->type); i++)
    {
-      NC_TYPE_INFO_T* type;
+      NC_TYPE_INFO_T *type;
+      NC_HDF5_TYPE_INFO_T *hdf5_type;
+
+      /* Get the type info. */
       if (!(type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i)))
          continue;
+      assert(type && type->format_type_info);
+      hdf5_type = type->format_type_info;
+
+      /* Close open HDF5 types. */
       if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0)
          return NC_EHDFERR;
       type->hdf_typeid = 0;
+      hdf5_type->hdf_typeid = 0;
       if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0)
          return NC_EHDFERR;
       type->native_hdf_typeid = 0;
+      hdf5_type->native_hdf_typeid = 0;
+
+      /* Close open HDF5 types related to ENUMs and VLENs. */
       switch (type->nc_type_class)
       {
       case NC_ENUM:
          if (type->u.e.base_hdf_typeid && H5Tclose(type->u.e.base_hdf_typeid) < 0)
             return NC_EHDFERR;
          type->u.e.base_hdf_typeid = 0;
+         hdf5_type->u.e.base_hdf_typeid = 0;
          break;
       case NC_VLEN:
          if (type->u.v.base_hdf_typeid && H5Tclose(type->u.v.base_hdf_typeid) < 0)
             return NC_EHDFERR;
          type->u.v.base_hdf_typeid = 0;         
+         hdf5_type->u.v.base_hdf_typeid = 0;         
          break;
       }
    }

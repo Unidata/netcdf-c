@@ -1567,6 +1567,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
          /* Remember the base types for this vlen */
          type->u.v.base_nc_typeid = base_nc_type;
          type->u.v.base_hdf_typeid = base_hdf_typeid;
+         hdf5_type->u.v.base_hdf_typeid = base_hdf_typeid;
       }
    }
    break;
@@ -1605,6 +1606,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
       /* Remember the base types for this enum */
       type->u.e.base_nc_typeid = base_nc_type;
       type->u.e.base_hdf_typeid = base_hdf_typeid;
+      hdf5_type->u.e.base_hdf_typeid = base_hdf_typeid;
 
       /* Find out how many member are in the enum. */
       if ((nmembers = H5Tget_nmembers(hdf_typeid)) < 0)
