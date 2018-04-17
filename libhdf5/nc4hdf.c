@@ -530,6 +530,7 @@ nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
          if (!type)
             return NC_EBADTYPE;
          typeid = type->hdf_typeid;
+         /* typeid = ((NC_HDF5_TYPE_INFO_T *)(type->format_type_info))->hdf_typeid; */
          break;
       }
       assert(typeid);
@@ -590,7 +591,7 @@ check_for_vara(nc_type *mem_nc_type, NC_VAR_INFO_T *var, NC_HDF5_FILE_INFO_T *h5
 
 #ifdef LOGGING
 /**
- * @intarnal Print some debug info about dimensions to the log. 
+ * @intarnal Print some debug info about dimensions to the log.
  */
 static void
 log_dim_info(NC_VAR_INFO_T *var, hsize_t *fdims, hsize_t *fmaxdims,
@@ -1416,7 +1417,7 @@ exit:
 }
 
 /**
- * @internal Write an attribute. 
+ * @internal Write an attribute.
  *
  * @param grp Pointer to group info struct.
  * @param varid Variable ID or NC_GLOBAL.
@@ -1543,7 +1544,7 @@ exit:
 }
 
 /**
- * @internal Write all the dirty atts in an attlist. 
+ * @internal Write all the dirty atts in an attlist.
  *
  * @param attlist Pointer to the list if attributes.
  * @param varid Variable ID.
@@ -1587,7 +1588,7 @@ write_attlist(NCindex* attlist, int varid, NC_GRP_INFO_T *grp)
  * next time. This function also contains a new way of dealing with
  * HDF5 error handling, abandoning the BAIL macros for a more organic
  * and natural approach, made with whole grains, and locally-grown
- * vegetables. 
+ * vegetables.
  *
  * @param var Pointer to var info struct.
  *
@@ -1616,7 +1617,7 @@ write_coord_dimids(NC_VAR_INFO_T *var)
 }
 
 /**
- * @internal Write a special attribute for the netCDF-4 dimension ID. 
+ * @internal Write a special attribute for the netCDF-4 dimension ID.
  *
  * @param datasetid HDF5 datasset ID.
  * @param dimid NetCDF dimension ID.
@@ -1664,7 +1665,7 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
 }
 
 /**
- * @internal This function creates the HDF5 dataset for a variable. 
+ * @internal This function creates the HDF5 dataset for a variable.
  *
  * @param grp Pointer to group info struct.
  * @param var Pointer to variable info struct.
@@ -1933,7 +1934,7 @@ exit:
 
 /**
  * @internal Adjust the chunk cache of a var for better
- * performance. 
+ * performance.
  *
  * @param grp Pointer to group info struct.
  * @param var Pointer to var info struct.
@@ -1981,7 +1982,7 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
 
 /**
  * @internal Create a HDF5 defined type from a NC_TYPE_INFO_T struct,
- * and commit it to the file. 
+ * and commit it to the file.
  *
  * @param grp Pointer to group info struct.
  * @param type Pointer to type info struct.
@@ -1992,9 +1993,13 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
 static int
 commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 {
+   NC_HDF5_TYPE_INFO_T *hdf5_type;
    int retval;
 
-   assert(grp && type);
+   assert(grp && type && type->format_type_info);
+
+   /* Get HDF5-specific type info. */
+   hdf5_type = type->format_type_info;
 
    /* Did we already record this type? */
    if (type->committed)
@@ -2009,12 +2014,15 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
       if ((type->hdf_typeid = H5Tcreate(H5T_COMPOUND, type->size)) < 0)
          return NC_EHDFERR;
+      hdf5_type->hdf_typeid = type->hdf_typeid;
       LOG((4, "creating compound type %s hdf_typeid 0x%x", type->hdr.name,
            type->hdf_typeid));
 
-      for(i=0;i<nclistlength(type->u.c.field);i++)
+      /* Process each field in the compound type. */
+      for (i = 0; i < nclistlength(type->u.c.field); i++)
       {
-         if((field = (NC_FIELD_INFO_T*)nclistget(type->u.c.field,i)) == NULL) continue;
+         if(!(field = (NC_FIELD_INFO_T *)nclistget(type->u.c.field, i)))
+            continue;
          if ((retval = nc4_get_hdf_typeid(grp->nc4_info, field->nc_typeid,
                                           &hdf_base_typeid, type->endianness)))
             return retval;
@@ -2054,16 +2062,19 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
       if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->u.v.base_nc_typeid,
                                        &type->u.v.base_hdf_typeid, type->endianness)))
          return retval;
+      hdf5_type->u.v.base_hdf_typeid = type->u.v.base_hdf_typeid;
 
       /* Create a vlen type. */
       if ((type->hdf_typeid = H5Tvlen_create(type->u.v.base_hdf_typeid)) < 0)
          return NC_EHDFERR;
+      hdf5_type->hdf_typeid = type->hdf_typeid;
    }
    else if (type->nc_type_class == NC_OPAQUE)
    {
       /* Create the opaque type. */
       if ((type->hdf_typeid = H5Tcreate(H5T_OPAQUE, type->size)) < 0)
          return NC_EHDFERR;
+      hdf5_type->hdf_typeid = type->hdf_typeid;
    }
    else if (type->nc_type_class == NC_ENUM)
    {
@@ -2077,13 +2088,16 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
       if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->u.e.base_nc_typeid,
                                        &type->u.e.base_hdf_typeid, type->endianness)))
          return retval;
+      hdf5_type->u.e.base_hdf_typeid = type->u.e.base_hdf_typeid;
 
       /* Create an enum type. */
       if ((type->hdf_typeid =  H5Tenum_create(type->u.e.base_hdf_typeid)) < 0)
          return NC_EHDFERR;
+      hdf5_type->hdf_typeid = type->hdf_typeid;
 
       /* Add all the members to the HDF5 type. */
-      for(i=0;i<nclistlength(type->u.e.enum_member);i++) {
+      for (i = 0; i < nclistlength(type->u.e.enum_member); i++)
+      {
 	 enum_m = (NC_ENUM_MEMBER_INFO_T*)nclistget(type->u.e.enum_member,i);
          if (H5Tenum_insert(type->hdf_typeid, enum_m->name, enum_m->value) < 0)
             return NC_EHDFERR;
@@ -2096,7 +2110,8 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    }
 
    /* Commit the type. */
-   if (H5Tcommit(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, type->hdr.name, type->hdf_typeid) < 0)
+   if (H5Tcommit(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid,
+                 type->hdr.name, type->hdf_typeid) < 0)
       return NC_EHDFERR;
    type->committed = NC_TRUE;
    LOG((4, "just committed type %s, HDF typeid: 0x%x", type->hdr.name,
@@ -2108,13 +2123,14 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    if ((type->native_hdf_typeid = H5Tget_native_type(type->hdf_typeid,
                                                      H5T_DIR_DEFAULT)) < 0)
       return NC_EHDFERR;
+   hdf5_type->native_hdf_typeid = type->native_hdf_typeid;
 
    return NC_NOERR;
 }
 
 /**
  * @internal Write an attribute, with value 1, to indicate that strict
- * NC3 rules apply to this file. 
+ * NC3 rules apply to this file.
  *
  * @param hdf_grpid HDF5 group ID.
  *
@@ -2218,9 +2234,9 @@ exit:
  * @internal After all the datasets of the file have been read, it's
  * time to sort the wheat from the chaff. Which of the datasets are
  * netCDF dimensions, and which are coordinate variables, and which
- * are non-coordinate variables. 
+ * are non-coordinate variables.
  *
- * @param grp Pointer to group info struct. 
+ * @param grp Pointer to group info struct.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
@@ -2237,11 +2253,11 @@ attach_dimscales(NC_GRP_INFO_T *grp)
    for(i=0;i<ncindexsize(grp->vars);i++)
    {
       NC_HDF5_VAR_INFO_T *hdf5_var;
-      
+
       if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i)))
          continue;
       hdf5_var = var->format_var_info;
-      
+
       /* Scales themselves do not attach. But I really wish they
        * would. */
       if (var->dimscale)
@@ -2384,7 +2400,7 @@ remove_coord_atts(hid_t hdf_datasetid)
  * @internal This function writes a variable. The principle difficulty
  * comes from the possibility that this is a coordinate variable, and
  * was already written to the file as a dimension-only dimscale. If
- * this occurs, then it must be deleted and recreated. 
+ * this occurs, then it must be deleted and recreated.
  *
  * @param var Pointer to variable info struct.
  * @param grp Pointer to group info struct.
@@ -2570,7 +2586,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
                                            var->dimids[0], hdf5_var->hdf_datasetid)))
             return retval;
       }
-      
+
       /* If it's not a dimension scale, clear the dimscale attached flags,
        * so the dimensions are re-attached. */
       else
@@ -2730,7 +2746,7 @@ exit:
  * group or any subgroups, to find out if we have to handle that
  * situation.  Also check if there are any multidimensional coordinate
  * variables defined, which require the same treatment to fix a
- * potential bug when such variables occur in subgroups. 
+ * potential bug when such variables occur in subgroups.
  *
  * @param grp Pointer to group info struct.
  * @param bad_coord_orderp Pointer that gets 1 if there is a bad
@@ -2886,7 +2902,7 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
 }
 
 /**
- * @internal Recursively write all groups and types. 
+ * @internal Recursively write all groups and types.
  *
  * @param grp Pointer to group info struct.
  *
@@ -3925,7 +3941,7 @@ nc4_convert_type(const void *src, void *dest,
  * @internal In our first pass through the data, we may have
  * encountered variables before encountering their dimscales, so go
  * through the vars in this file and make sure we've got a dimid for
- * each. 
+ * each.
  *
  * @param grp Pointer to group info struct.
  *
@@ -3951,7 +3967,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
       if ((retval = nc4_rec_match_dimscales(g)))
          return retval;
    }
-   
+
    /* Check all the vars in this group. If they have dimscale info,
     * try and find a dimension for them. */
    for(i=0;i<ncindexsize(grp->vars);i++)
@@ -3959,11 +3975,11 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
       NC_HDF5_VAR_INFO_T *hdf5_var;
       int ndims;
       int d;
-      
+
       if((var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i)) == NULL)
          continue;
       hdf5_var = var->format_var_info;
-      
+
       /* Check all vars and see if dim[i] != NULL if dimids[i] valid. */
       /* This loop is very odd. Under normal circumstances, var->dimid[d] is zero
          (from the initial calloc) which is a legitimate dimid. The code does not
@@ -4093,7 +4109,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                if (match < 0)
                {
                   NC_HDF5_DIM_INFO_T *hdf5_dim;
-                  
+
                   char phony_dim_name[NC_MAX_NAME + 1];
                   sprintf(phony_dim_name, "phony_dim_%d", grp->nc4_info->next_dimid);
                   LOG((3, "%s: creating phony dim for var %s", __func__, var->hdr.name));
@@ -4105,7 +4121,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                   if (!(hdf5_dim = calloc(1, sizeof(NC_HDF5_DIM_INFO_T))))
                      return NC_ENOMEM;
                   dim->format_dim_info = hdf5_dim;
-                  
+
                   if (h5dimlenmax[d] == H5S_UNLIMITED)
                      dim->unlimited = NC_TRUE;
                }
@@ -4127,7 +4143,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 
 /**
  * @internal Get the length, in bytes, of one element of a type in
- * memory. 
+ * memory.
  *
  * @param h5 Pointer to HDF5 file info struct.
  * @param xtype NetCDF type ID.
@@ -4192,7 +4208,7 @@ nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, size_t *len)
 }
 
 /**
- * @internal Get the class of a type 
+ * @internal Get the class of a type
  *
  * @param h5 Pointer to the HDF5 file info struct.
  * @param xtype NetCDF type ID.
@@ -4305,7 +4321,7 @@ reportobject(int uselog, hid_t id, unsigned int type)
    {
       fprintf(stderr,"Type = %s(%lld) name='%s'",typename,(long long)id,name);
    }
-   
+
 }
 
 /**
