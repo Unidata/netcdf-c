@@ -1191,6 +1191,10 @@ nc4_type_free(NC_TYPE_INFO_T *type)
          break;
       }
 
+      /* Release format-specific memory. */
+      if (type->format_type_info)
+         free(type->format_type_info);
+
       /* Release the memory. */
       free(type);
    }

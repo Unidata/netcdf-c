@@ -12,7 +12,9 @@
  *
  * @author Ed Hartnett
  */
-#include "nc4internal.h"
+
+#include "config.h"
+#include "hdf5internal.h"
 #include "nc4dispatch.h"
 
 #define NUM_ATOMIC_TYPES (NC_MAX_ATOMIC_TYPE+1) /**< Number of netCDF atomic types. */
@@ -209,6 +211,7 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
    NC_HDF5_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_TYPE_INFO_T *type;
+   NC_HDF5_TYPE_INFO_T *hdf5_type;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
 
@@ -245,6 +248,11 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
    /* Add to our list of types. */
    if ((retval = nc4_type_list_add(grp, size, norm_name, &type)))
       return retval;
+
+   /* Allocate storage for HDF5-specific type info. */
+   if (!(hdf5_type = calloc(1, sizeof(NC_HDF5_TYPE_INFO_T))))
+      return NC_ENOMEM;
+   type->format_type_info = hdf5_type;
 
    /* Remember info about this type. */
    type->nc_type_class = type_class;

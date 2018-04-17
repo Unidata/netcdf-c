@@ -1380,6 +1380,7 @@ static int
 read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 {
    NC_TYPE_INFO_T *type;
+   NC_HDF5_TYPE_INFO_T *hdf5_type;
    H5T_class_t class;
    hid_t native_typeid;
    size_t type_size;
@@ -1402,6 +1403,11 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
    /* Add to the list for this new type, and get a local pointer to it. */
    if ((retval = nc4_type_list_add(grp, type_size, type_name, &type)))
       return retval;
+
+   /* Allocate storage for HDF5-specific type info. */
+   if (!(hdf5_type = calloc(1, sizeof(NC_HDF5_TYPE_INFO_T))))
+      return NC_ENOMEM;
+   type->format_type_info = hdf5_type;
 
    /* Remember common info about this type. */
    type->committed = NC_TRUE;
@@ -1604,7 +1610,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
       if ((nmembers = H5Tget_nmembers(hdf_typeid)) < 0)
          return NC_EHDFERR;
       type->u.e.enum_member = nclistnew();
-      nclistsetalloc(type->u.e.enum_member,nmembers);
+      nclistsetalloc(type->u.e.enum_member, nmembers);
 
       /* Allocate space for one value. */
       if (!(value = calloc(1, type_size)))

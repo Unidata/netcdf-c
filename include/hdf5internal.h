@@ -85,6 +85,22 @@ typedef struct NC_HDF5_GRP_INFO
    hid_t hdf_grpid;
 } NC_HDF5_GRP_INFO_T;
 
+typedef struct NC_HDF5_TYPE_INFO
+{
+   hid_t hdf_typeid;            /* HDF5 type ID, in the file */
+   hid_t native_hdf_typeid;     /* HDF5 type ID, in memory */
+
+   /* Information for each type or class */
+   union {
+      struct {
+         hid_t base_hdf_typeid;
+      } e;                      /* Enum */
+      struct {
+         hid_t base_hdf_typeid;
+      } v;                      /* Variable-length */
+   } u;                         /* Union of structs, for each type/class */
+} NC_HDF5_TYPE_INFO_T;
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
