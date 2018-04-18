@@ -1189,8 +1189,8 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
       }
 
       /* Get the HDF typeid of the dataset in the file. */
-      var_hdf_typeid = var->type_info->hdf_typeid;
-      /* var_hdf_typeid = ((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->hdf_typeid; */
+      /* var_hdf_typeid = var->type_info->hdf_typeid; */
+      var_hdf_typeid = ((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->hdf_typeid;
 
       /* Fix bug when reading HDF5 files with variable of type
        * fixed-length string.  We need to make it look like a
@@ -1264,13 +1264,13 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
       /* Read this hyperslab into memory. */
       LOG((5, "About to H5Dread some data..."));
-      /* if (H5Dread(hdf5_var->hdf_datasetid, */
-      /*             ((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid, */
-      /*             mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0) */
-      /*    BAIL(NC_EHDFERR); */
-      if (H5Dread(hdf5_var->hdf_datasetid, var->type_info->native_hdf_typeid,
+      if (H5Dread(hdf5_var->hdf_datasetid,
+                  ((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid,
                   mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
          BAIL(NC_EHDFERR);
+      /* if (H5Dread(hdf5_var->hdf_datasetid, var->type_info->native_hdf_typeid, */
+      /*             mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0) */
+      /*    BAIL(NC_EHDFERR); */
 
 #ifndef HDF5_CONVERT
       /* Eventually the block below will go away. Right now it's
