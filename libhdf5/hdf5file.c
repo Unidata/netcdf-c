@@ -217,7 +217,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       return NC_EATTMETA;
    if ((hdf5_att->native_hdf_typeid = H5Tget_native_type(file_typeid, H5T_DIR_DEFAULT)) < 0)
       BAIL(NC_EHDFERR);
-   att->native_hdf_typeid = hdf5_att->native_hdf_typeid;
+   /* att->native_hdf_typeid = hdf5_att->native_hdf_typeid; */
    if ((att_class = H5Tget_class(hdf5_att->native_hdf_typeid)) < 0)
       BAIL(NC_EATTMETA);
    if (att_class == H5T_STRING && !H5Tis_variable_str(hdf5_att->native_hdf_typeid))

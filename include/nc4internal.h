@@ -156,7 +156,6 @@ typedef struct NC_ATT_INFO
    nc_bool_t created;           /* True if attribute already created */
    nc_type nc_typeid;           /* netCDF type of attribute's data */
    void *format_att_info;       /* Hold format-specific att info. */
-   hid_t native_hdf_typeid;     /* Native HDF5 datatype for attribute's data */
    void *data;
    nc_vlen_t *vldata; /* only used for vlen */
    char **stdata; /* only for string type. */

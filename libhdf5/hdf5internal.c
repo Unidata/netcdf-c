@@ -286,10 +286,12 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
    for (i = 0; i < ncindexsize(grp->att); i++)
    {
       NC_ATT_INFO_T *att;
+      NC_HDF5_ATT_INFO_T *hdf5_att;
       
       if (!(att = (NC_ATT_INFO_T*)ncindexith(grp->att, i)))
          continue;
-      if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0)
+      hdf5_att = att->format_att_info;
+      if (hdf5_att->native_hdf_typeid && H5Tclose(hdf5_att->native_hdf_typeid) < 0)
          return NC_EHDFERR;
    }
 
@@ -318,10 +320,12 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
       for (a = 0; a < ncindexsize(grp->att); a++)
       {
          NC_ATT_INFO_T *att;
+         NC_HDF5_ATT_INFO_T *hdf5_att;
          
          if (!(att = (NC_ATT_INFO_T *)ncindexith(var->att, a)))
             continue;
-         if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0)
+         hdf5_att = att->format_att_info;
+         if (hdf5_att->native_hdf_typeid && H5Tclose(hdf5_att->native_hdf_typeid) < 0)
             return NC_EHDFERR;
       }
    }
