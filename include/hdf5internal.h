@@ -109,7 +109,6 @@ extern "C" {
     * etc., to 5, which shows way too much information. */
    int hdf5_set_log_level(int new_level);
 
-   /* int hdf5_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp); */
    int hdf5_rec_grp_del(NC_GRP_INFO_T *grp);
 
    int hdf5_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att);
@@ -121,7 +120,26 @@ extern "C" {
    void hdf5_initialize(void);
 
    NC_TYPE_INFO_T *hdf5_rec_find_type(NC_GRP_INFO_T *start_grp, hid_t target_hdf_typeid);
-   
+
+   int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
+   int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
+   int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
+   int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
+   int nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
+                    const size_t *countp, nc_type xtype, int is_long, void *op);
+   int nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
+                    const size_t *countp, nc_type xtype, int is_long, void *op);
+   int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
+   int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
+   int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
+   int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
+   int nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5);
+   int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+   int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
+   NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_HDF5_FILE_INFO_T* h5, hid_t target_hdf_typeid);
+   int nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
+                          hid_t *hdf_typeid, int endianness);
+
 #if defined(__cplusplus)
 }
 #endif

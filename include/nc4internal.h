@@ -206,8 +206,6 @@ typedef struct NC_FIELD_INFO
    NC_OBJ hdr;
    nc_type nc_typeid;
    void *format_field_info;
-   /* hid_t hdf_typeid; */
-   /* hid_t native_hdf_typeid; */
    size_t offset;
    int ndims;
    int *dim_size;
@@ -256,7 +254,6 @@ typedef struct NC_TYPE_INFO
          NClist* enum_member; /* <! NClist<NC_ENUM_MEMBER_INFO_T*> */
          nc_type base_nc_typeid;
          void *format_enum_info;
-         /* hid_t base_hdf_typeid; */
       } e;                      /* Enum */
       struct Fields {
          NClist* field; /* <! NClist<NC_FIELD_INFO_T*> */
@@ -264,7 +261,6 @@ typedef struct NC_TYPE_INFO
       struct {
          nc_type base_nc_typeid;
          void *format_vlen_info;
-         /* hid_t base_hdf_typeid; */
       } v;                      /* Variable-length */
    } u;                         /* Union of structs, for each type/class */
 } NC_TYPE_INFO_T;
@@ -335,23 +331,6 @@ int nc4_convert_type(const void *src, void *dest,
 		     const void *fill_value, int strict_nc3, int src_long,
 		     int dest_long);
 
-/* These functions do HDF5 things. */
-int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
-int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
-int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
-int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
-int nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
-		 const size_t *countp, nc_type xtype, int is_long, void *op);
-int nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
-		 const size_t *countp, nc_type xtype, int is_long, void *op);
-int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
-int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
-int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
-int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
-int nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5);
-int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
-int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
-
 /* The following functions manipulate the in-memory linked list of
    metadata, without using HDF calls. */
 int nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp,
@@ -366,7 +345,6 @@ int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
 int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
 int nc4_find_type(const NC_HDF5_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
 NC_TYPE_INFO_T *nc4_rec_find_nc_type(NC_HDF5_FILE_INFO_T *h5, nc_type target_nc_typeid);
-NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_HDF5_FILE_INFO_T* h5, hid_t target_hdf_typeid);
 NC_TYPE_INFO_T *nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name);
 NC_TYPE_INFO_T *nc4_rec_find_equal_type(NC_GRP_INFO_T *start_grp, int ncid1, NC_TYPE_INFO_T *type);
 int nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
@@ -375,8 +353,6 @@ int nc4_find_g_var_nc(NC *nc, int ncid, int varid,
 		      NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
 int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 		     NC_ATT_INFO_T **att);
-int nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
-		       hid_t *hdf_typeid, int endianness);
 int nc4_get_typeclass(const NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
                       int *type_class);
 
