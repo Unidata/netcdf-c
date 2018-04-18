@@ -1084,10 +1084,14 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
    dimscale_created++;
 
-   new_dim->hdf5_objid.fileno[0] = statbuf->fileno[0];
-   new_dim->hdf5_objid.fileno[1] = statbuf->fileno[1];
-   new_dim->hdf5_objid.objno[0] = statbuf->objno[0];
-   new_dim->hdf5_objid.objno[1] = statbuf->objno[1];
+   /* new_dim->hdf5_objid.fileno[0] = statbuf->fileno[0]; */
+   /* new_dim->hdf5_objid.fileno[1] = statbuf->fileno[1]; */
+   /* new_dim->hdf5_objid.objno[0] = statbuf->objno[0]; */
+   /* new_dim->hdf5_objid.objno[1] = statbuf->objno[1]; */
+   hdf5_dim->hdf5_objid.fileno[0] = statbuf->fileno[0];
+   hdf5_dim->hdf5_objid.fileno[1] = statbuf->fileno[1];
+   hdf5_dim->hdf5_objid.objno[0] = statbuf->objno[0];
+   hdf5_dim->hdf5_objid.objno[1] = statbuf->objno[1];
 
    /* If the dimscale has an unlimited dimension, then this dimension
     * is unlimited. */
@@ -1912,7 +1916,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
          /* Store id information allowing us to match hdf5
           * dimscales to netcdf dimensions. */
-         if (NULL == (var->dimscale_hdf5_objids = malloc(ndims * sizeof(struct hdf5_objid))))
+         if (!(var->dimscale_hdf5_objids = malloc(ndims * sizeof(struct hdf5_objid))))
             BAIL(NC_ENOMEM);
          for (d = 0; d < var->ndims; d++)
          {
