@@ -316,6 +316,10 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
          hdf5_var->hdf_datasetid = 0;
       }
 
+      /* Free memory from dimscale visitor info. */
+      if (hdf5_var->dimscale_hdf5_objids)
+         free(hdf5_var->dimscale_hdf5_objids);
+      
       /* Close any open types associated with attributes. */
       for (a = 0; a < ncindexsize(grp->att); a++)
       {

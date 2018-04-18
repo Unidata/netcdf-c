@@ -210,8 +210,8 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
 
    /* Open this dataset if necessary. */
    if (!hdf5_var->hdf_datasetid)
-      if ((hdf5_var->hdf_datasetid = H5Dopen2(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, var->hdr.name,
-                                              H5P_DEFAULT)) < 0)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid,
+                                              var->hdr.name, H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
 
    *dataset = hdf5_var->hdf_datasetid;
@@ -738,7 +738,8 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
    else
       name_to_use = var->hdr.name;
    if (!hdf5_var->hdf_datasetid)
-      if ((hdf5_var->hdf_datasetid = H5Dopen2(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid,
+                                              name_to_use, H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
 
    /* Get file space of data. */
@@ -1574,7 +1575,7 @@ exit:
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 static int
 write_attlist(NCindex* attlist, int varid, NC_GRP_INFO_T *grp)
 {
@@ -1646,7 +1647,7 @@ write_coord_dimids(NC_VAR_INFO_T *var)
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 static int
 write_netcdf4_dimid(hid_t datasetid, int dimid)
 {
@@ -1694,7 +1695,7 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
  *
  * @return ::NC_NOERR
  * @author Ed Hartnett
-*/
+ */
 static int
 var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid)
 {
@@ -1962,7 +1963,7 @@ exit:
  *
  * @return NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
 {
@@ -2010,7 +2011,7 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
  *
  * @return NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int
 commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 {
@@ -2238,7 +2239,7 @@ create_group(NC_GRP_INFO_T *grp)
    {
       /* Since this is the root group, we have to open it. */
       if ((hdf5_grp->hdf_grpid = H5Gopen2(((NC_HDF5_FILE_INFO_2_T *)(grp->nc4_info->format_file_info))->hdfid,
-                                     "/", H5P_DEFAULT)) < 0)
+                                          "/", H5P_DEFAULT)) < 0)
          BAIL(NC_EFILEMETA);
    }
    return NC_NOERR;
@@ -2261,7 +2262,7 @@ exit:
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 static int
 attach_dimscales(NC_GRP_INFO_T *grp)
 {
@@ -2309,7 +2310,7 @@ attach_dimscales(NC_GRP_INFO_T *grp)
                      dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
                   else
                      dim_datasetid = ((NC_HDF5_DIM_INFO_T *)(dim1->format_dim_info))->hdf_dimscaleid;
-                     /* dim_datasetid = dim1->hdf_dimscaleid; */
+                  /* dim_datasetid = dim1->hdf_dimscaleid; */
 
                   assert(dim_datasetid > 0);
                   if (H5DSattach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
@@ -2430,7 +2431,7 @@ remove_coord_atts(hid_t hdf_datasetid)
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett, Quincey Koziol
-*/
+ */
 static int
 write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
@@ -2518,7 +2519,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
                   dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(d1->coord_var->format_var_info))->hdf_datasetid;
                else
                   dim_datasetid = ((NC_HDF5_DIM_INFO_T *)(d1->format_dim_info))->hdf_dimscaleid;
-                  /* dim_datasetid = d1->hdf_dimscaleid; */
+               /* dim_datasetid = d1->hdf_dimscaleid; */
                assert(dim_datasetid > 0);
 
                /* If we're replacing an existing dimscale dataset, go to
@@ -2563,7 +2564,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
                   dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
                else
                   dim_datasetid = ((NC_HDF5_DIM_INFO_T *)(dim1->format_dim_info))->hdf_dimscaleid;
-                  /* dim_datasetid = dim1->hdf_dimscaleid; */
+               /* dim_datasetid = dim1->hdf_dimscaleid; */
                assert(dim_datasetid > 0);
 
                if (H5DSdetach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
@@ -2792,7 +2793,7 @@ exit:
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp)
 {
@@ -2864,7 +2865,7 @@ nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
 {
@@ -2946,7 +2947,7 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
 {
@@ -3011,7 +3012,7 @@ nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
  * @returns NC_NOERR No error.
  * @returns NC_EBADTYPE Type not found.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_convert_type(const void *src, void *dest,
                  const nc_type src_type, const nc_type dest_type,
@@ -3985,7 +3986,7 @@ nc4_convert_type(const void *src, void *dest,
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 {
@@ -4031,7 +4032,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
          legitmate value.
          The solution I choose is to modify nc4_var_list_add to initialize dimids to
          illegal values (-1). This is another example of the problems with dimscales.
-       */
+      */
       ndims = var->ndims;
       for (d = 0; d < ndims; d++)
       {
@@ -4059,17 +4060,13 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                 * match. */
                for (g = grp; g && !finished; g = g->parent)
                {
-		   for (j = 0; j < ncindexsize(g->dim); j++)
-		   {
-                      NC_HDF5_DIM_INFO_T *hdf5_dim;
+                  for (j = 0; j < ncindexsize(g->dim); j++)
+                  {
+                     NC_HDF5_DIM_INFO_T *hdf5_dim;
                       
-                      if (!(dim = (NC_DIM_INFO_T *)ncindexith(g->dim,j)))
-                         continue;
-                      hdf5_dim = dim->format_dim_info;
-                     /* if (var->dimscale_hdf5_objids[d].fileno[0] == dim->hdf5_objid.fileno[0] && */
-                     /*     var->dimscale_hdf5_objids[d].objno[0] == dim->hdf5_objid.objno[0] && */
-                     /*     var->dimscale_hdf5_objids[d].fileno[1] == dim->hdf5_objid.fileno[1] && */
-                     /*     var->dimscale_hdf5_objids[d].objno[1] == dim->hdf5_objid.objno[1]) */
+                     if (!(dim = (NC_DIM_INFO_T *)ncindexith(g->dim,j)))
+                        continue;
+                     hdf5_dim = dim->format_dim_info;
                      if (var->dimscale_hdf5_objids[d].fileno[0] == hdf5_dim->hdf5_objid.fileno[0] &&
                          var->dimscale_hdf5_objids[d].objno[0] == hdf5_dim->hdf5_objid.objno[0] &&
                          var->dimscale_hdf5_objids[d].fileno[1] == hdf5_dim->hdf5_objid.fileno[1] &&
@@ -4147,7 +4144,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                   if ((dim->len == h5dimlen[d]) &&
                       ((h5dimlenmax[d] == H5S_UNLIMITED && dim->unlimited) ||
                        (h5dimlenmax[d] != H5S_UNLIMITED && !dim->unlimited)))
-                     {match = k; break;}
+                  {match = k; break;}
 	       }
 
                /* Didn't find a phony dim? Then create one. */
@@ -4197,7 +4194,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
  * @returns NC_NOERR No error.
  * @returns NC_EBADTYPE Type not found
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, size_t *len)
 {
@@ -4263,7 +4260,7 @@ nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, size_t *len)
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
-*/
+ */
 int
 nc4_get_typeclass(const NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int *type_class)
 {
@@ -4528,7 +4525,7 @@ static int NC4_walk(hid_t, int*);
  *
  * @returns NC_NOERR No error.
  * @author Dennis Heimbigner.
-*/
+ */
 int
 NC4_isnetcdf4(struct NC_HDF5_FILE_INFO* h5)
 {
@@ -4561,7 +4558,7 @@ done:
  *
  * @returns NC_NOERR No error.
  * @author Dennis Heimbigner.
-*/
+ */
 static int
 NC4_get_strict_att(NC_HDF5_FILE_INFO_T* h5)
 {
@@ -4629,7 +4626,7 @@ NC4_walk(hid_t gid, int* countp)
                /* Is this a netcdf-4 marker attribute */
 	       ra = NC_findreserved(name);
 	       if(ra != NULL)
-                     *countp = *countp + 1;
+                  *countp = *countp + 1;
             }
             H5Aclose(aid);
          }
