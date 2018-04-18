@@ -1026,6 +1026,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
    NC_DIM_INFO_T *dim;
    hid_t file_spaceid = 0, mem_spaceid = 0;
    hid_t xfer_plistid = 0;
+   hid_t var_hdf_typeid;
    size_t file_type_size;
    hsize_t *xtend_size = NULL, count[NC_MAX_VAR_DIMS];
    hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
@@ -1187,18 +1188,23 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
             BAIL(NC_EHDFERR);
       }
 
+      /* Get the HDF typeid of the dataset in the file. */
+      var_hdf_typeid = var->type_info->hdf_typeid;
+      /* var_hdf_typeid = ((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->hdf_typeid; */
+
       /* Fix bug when reading HDF5 files with variable of type
        * fixed-length string.  We need to make it look like a
        * variable-length string, because that's all netCDF-4 data
        * model supports, lacking anonymous dimensions.  So
        * variable-length strings are in allocated memory that user has
        * to free, which we allocate here. */
-      if(var->type_info->nc_type_class == NC_STRING &&
-         H5Tget_size(var->type_info->hdf_typeid) > 1 &&
-         !H5Tis_variable_str(var->type_info->hdf_typeid)) {
+      if (var->type_info->nc_type_class == NC_STRING &&
+          H5Tget_size(var_hdf_typeid) > 1 &&
+          !H5Tis_variable_str(var_hdf_typeid))
+      {
          hsize_t fstring_len;
 
-         if ((fstring_len = H5Tget_size(var->type_info->hdf_typeid)) == 0)
+         if ((fstring_len = H5Tget_size(var_hdf_typeid)) == 0)
             BAIL(NC_EHDFERR);
          if (!(*(char **)data = malloc(1 + fstring_len)))
             BAIL(NC_ENOMEM);
