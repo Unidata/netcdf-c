@@ -2655,11 +2655,14 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
    assert(dim && dim->format_dim_info);
 
+   /* Get HDF5-specific dim info. */
+   hdf5_dim = dim->format_dim_info;
+
    /* If there's no dimscale dataset for this dim, create one,
     * and mark that it should be hidden from netCDF as a
     * variable. (That is, it should appear as a dimension
     * without an associated variable.) */
-   if (0 == dim->hdf_dimscaleid)
+   if (!hdf5_dim->hdf_dimscaleid)
    {
       hid_t spaceid, create_propid;
       hsize_t dims[1], max_dims[1], chunk_dims[1] = {1};

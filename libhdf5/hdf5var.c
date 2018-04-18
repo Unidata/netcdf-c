@@ -268,6 +268,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    NC_VAR_INFO_T *var;
    NC_HDF5_VAR_INFO_T *hdf5_var;
    NC_DIM_INFO_T *dim;
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
    NC_HDF5_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type_info = NULL;
    NC_HDF5_TYPE_INFO_T *hdf5_type;
@@ -445,19 +446,21 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       {
          var->dimscale = NC_TRUE;
          dim->coord_var = var;
+         hdf5_dim = dim->format_dim_info;
          
          /* Use variable's dataset ID for the dimscale ID. So delete
           * the HDF5 DIM_WITHOUT_VARIABLE dataset that was created for
           * this dim. */
-         if (dim->hdf_dimscaleid)
+         if (hdf5_dim->hdf_dimscaleid)
          {
             /* Detach dimscale from any variables using it */
-            if ((retval = rec_detach_scales(grp, dimidsp[d], dim->hdf_dimscaleid)) < 0)
+            if ((retval = rec_detach_scales(grp, dimidsp[d], hdf5_dim->hdf_dimscaleid)) < 0)
                BAIL(retval);
             
             /* Close the HDF5 DIM_WITHOUT_VARIABLE dataset. */
-            if (H5Dclose(dim->hdf_dimscaleid) < 0)
+            if (H5Dclose(hdf5_dim->hdf_dimscaleid) < 0)
                BAIL(NC_EHDFERR);
+            hdf5_dim->hdf_dimscaleid = 0;
             dim->hdf_dimscaleid = 0;
             
             /* Now delete the DIM_WITHOUT_VARIABLE dataset (it will be
