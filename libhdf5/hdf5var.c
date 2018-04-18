@@ -270,6 +270,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    NC_DIM_INFO_T *dim;
    NC_HDF5_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type_info = NULL;
+   NC_HDF5_TYPE_INFO_T *hdf5_type;
    char norm_name[NC_MAX_NAME + 1];
    int d;
    int retval;
@@ -346,15 +347,24 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       memcpy(name,atomname,namelen);
       name[namelen] = '\0';
       nc4_get_typelen_mem(h5,xtype,&len);
-      if((retval = nc4_type_new(grp,len,name,xtype,&type_info)))
-	BAIL(retval);
+
+      /* Allocate storage for type info and HDF5-specific type info. */
+      if ((retval = nc4_type_new(grp,len,name,xtype,&type_info)))
+         BAIL(retval);
+      if (!(hdf5_type = calloc(1, sizeof(NC_HDF5_TYPE_INFO_T))))
+         BAIL(NC_ENOMEM);
+      type_info->format_type_info = hdf5_type;
+
+      /* Figure out all the type info we need. */
       type_info->endianness = NC_ENDIAN_NATIVE;
-      if ((retval = nc4_get_hdf_typeid(h5, xtype, &type_info->hdf_typeid,
+      if ((retval = nc4_get_hdf_typeid(h5, xtype, &hdf5_type->hdf_typeid,
                                        type_info->endianness)))
          BAIL(retval);
-      if ((type_info->native_hdf_typeid = H5Tget_native_type(type_info->hdf_typeid,
+      type_info->hdf_typeid = hdf5_type->hdf_typeid;      
+      if ((hdf5_type->native_hdf_typeid = H5Tget_native_type(hdf5_type->hdf_typeid,
                                                              H5T_DIR_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
+      type_info->native_hdf_typeid = hdf5_type->native_hdf_typeid;      
       if ((retval = nc4_get_typelen_mem(h5, type_info->hdr.id, &type_info->size)))
          BAIL(retval);
 
@@ -365,7 +375,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       {
          H5T_class_t class;
 
-         if ((class = H5Tget_class(type_info->hdf_typeid)) < 0)
+         if ((class = H5Tget_class(hdf5_type->hdf_typeid)) < 0)
             BAIL(NC_EHDFERR);
          switch(class)
          {

@@ -2118,7 +2118,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
       for (i = 0; i < nclistlength(type->u.e.enum_member); i++)
       {
 	 enum_m = (NC_ENUM_MEMBER_INFO_T*)nclistget(type->u.e.enum_member,i);
-         if (H5Tenum_insert(type->hdf_typeid, enum_m->name, enum_m->value) < 0)
+         if (H5Tenum_insert(hdf5_type->hdf_typeid, enum_m->name, enum_m->value) < 0)
             return NC_EHDFERR;
       }
    }
@@ -2130,7 +2130,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
    /* Commit the type. */
    if (H5Tcommit(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid,
-                 type->hdr.name, type->hdf_typeid) < 0)
+                 type->hdr.name, hdf5_type->hdf_typeid) < 0)
       return NC_EHDFERR;
    type->committed = NC_TRUE;
    LOG((4, "just committed type %s, HDF typeid: 0x%x", type->hdr.name,
@@ -2139,10 +2139,10 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    /* Later we will always use the native typeid. In this case, it is
     * a copy of the same type pointed to by hdf_typeid, but it's
     * easier to maintain a copy. */
-   if ((type->native_hdf_typeid = H5Tget_native_type(type->hdf_typeid,
-                                                     H5T_DIR_DEFAULT)) < 0)
+   if ((hdf5_type->native_hdf_typeid = H5Tget_native_type(hdf5_type->hdf_typeid,
+                                                          H5T_DIR_DEFAULT)) < 0)
       return NC_EHDFERR;
-   hdf5_type->native_hdf_typeid = type->native_hdf_typeid;
+   type->native_hdf_typeid = hdf5_type->native_hdf_typeid;
 
    return NC_NOERR;
 }

@@ -1861,7 +1861,8 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       }
 
       /* Get the fill value from the HDF5 property lust. */
-      if (H5Pget_fill_value(propid, ((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid,
+      if (H5Pget_fill_value(propid,
+                            ((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid,
                             var->fill_value) < 0)
          BAIL(NC_EHDFERR);
    }
