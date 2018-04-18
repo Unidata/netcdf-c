@@ -1264,6 +1264,10 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
       /* Read this hyperslab into memory. */
       LOG((5, "About to H5Dread some data..."));
+      /* if (H5Dread(hdf5_var->hdf_datasetid, */
+      /*             ((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid, */
+      /*             mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0) */
+      /*    BAIL(NC_EHDFERR); */
       if (H5Dread(hdf5_var->hdf_datasetid, var->type_info->native_hdf_typeid,
                   mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
          BAIL(NC_EHDFERR);
@@ -1327,9 +1331,13 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 
          /* Read this hyperslab into memory. */
          LOG((5, "About to H5Dread some data..."));
-         if (H5Dread(hdf5_var->hdf_datasetid, var->type_info->native_hdf_typeid,
+         if (H5Dread(hdf5_var->hdf_datasetid,
+                     ((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid,
                      mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
             BAIL(NC_EHDFERR);
+         /* if (H5Dread(hdf5_var->hdf_datasetid, var->type_info->native_hdf_typeid, */
+         /*             mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0) */
+         /*    BAIL(NC_EHDFERR); */
       }
 #endif /* End ifdef USE_PARALLEL4 */
    }
@@ -2023,11 +2031,11 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
       hid_t hdf_base_typeid, hdf_typeid;
       int i;
 
-      if ((type->hdf_typeid = H5Tcreate(H5T_COMPOUND, type->size)) < 0)
+      if ((hdf5_type->hdf_typeid = H5Tcreate(H5T_COMPOUND, type->size)) < 0)
          return NC_EHDFERR;
-      hdf5_type->hdf_typeid = type->hdf_typeid;
+      type->hdf_typeid = hdf5_type->hdf_typeid;
       LOG((4, "creating compound type %s hdf_typeid 0x%x", type->hdr.name,
-           type->hdf_typeid));
+           hdf5_type->hdf_typeid));
 
       /* Process each field in the compound type. */
       for (i = 0; i < nclistlength(type->u.c.field); i++)
@@ -2060,7 +2068,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
             hdf_typeid = hdf_base_typeid;
          LOG((4, "inserting field %s offset %d hdf_typeid 0x%x", field->hdr.name,
               field->offset, hdf_typeid));
-         if (H5Tinsert(type->hdf_typeid, field->hdr.name, field->offset,
+         if (H5Tinsert(hdf5_type->hdf_typeid, field->hdr.name, field->offset,
                        hdf_typeid) < 0)
             return NC_EHDFERR;
          if (H5Tclose(hdf_typeid) < 0)
