@@ -1275,8 +1275,8 @@ nc4_var_free(NC_VAR_INFO_T *var)
    }
 
    /* Delete any HDF5 dimscale objid information. */
-   if (var->dimscale_hdf5_objids)
-      free(var->dimscale_hdf5_objids);
+   /* if (var->dimscale_hdf5_objids) */
+   /*    free(var->dimscale_hdf5_objids); */
 
    /* Delete information about the attachment status of dimscales. */
    if (var->dimscale_attached)

@@ -1916,15 +1916,15 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
          /* Store id information allowing us to match hdf5
           * dimscales to netcdf dimensions. */
-         if (!(var->dimscale_hdf5_objids = malloc(ndims * sizeof(struct hdf5_objid))))
-            BAIL(NC_ENOMEM);
+         /* if (!(var->dimscale_hdf5_objids = malloc(ndims * sizeof(struct hdf5_objid)))) */
+         /*    BAIL(NC_ENOMEM); */
          if (!(hdf5_var->dimscale_hdf5_objids = malloc(ndims * sizeof(struct hdf5_objid))))
             BAIL(NC_ENOMEM);
          for (d = 0; d < var->ndims; d++)
          {
-            if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,
-                                   &(var->dimscale_hdf5_objids[d])) < 0)
-               BAIL(NC_EHDFERR);
+            /* if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor, */
+            /*                        &(var->dimscale_hdf5_objids[d])) < 0) */
+            /*    BAIL(NC_EHDFERR); */
             if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,
                                    &(hdf5_var->dimscale_hdf5_objids[d])) < 0)
                BAIL(NC_EHDFERR);
