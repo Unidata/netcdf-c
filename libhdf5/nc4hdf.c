@@ -2648,7 +2648,10 @@ exit:
 static int
 write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
    int retval;
+
+   assert(dim && dim->format_dim_info);
 
    /* If there's no dimscale dataset for this dim, create one,
     * and mark that it should be hidden from netCDF as a
@@ -2692,11 +2695,16 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
                                      H5P_CRT_ORDER_INDEXED) < 0)
          BAIL(NC_EHDFERR);
 
+      /* Get HDF5-specific dim info. */
+      hdf5_dim = dim->format_dim_info;
+
       /* Create the dataset that will be the dimension scale. */
       LOG((4, "%s: about to H5Dcreate1 a dimscale dataset %s", __func__, dim->hdr.name));
-      if ((dim->hdf_dimscaleid = H5Dcreate1(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid, dim->hdr.name, H5T_IEEE_F32BE,
-                                            spaceid, create_propid)) < 0)
+      if ((hdf5_dim->hdf_dimscaleid = H5Dcreate1(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid,
+                                                 dim->hdr.name, H5T_IEEE_F32BE,
+                                                 spaceid, create_propid)) < 0)
          BAIL(NC_EHDFERR);
+      dim->hdf_dimscaleid = hdf5_dim->hdf_dimscaleid;
 
       /* Close the spaceid and create_propid. */
       if (H5Sclose(spaceid) < 0)
