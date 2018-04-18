@@ -288,6 +288,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
    NC_VAR_INFO_T *var = NULL;
    NCindex* attlist = NULL;
    NC_ATT_INFO_T* att;
+   NC_HDF5_ATT_INFO_T *hdf5_att;
    char norm_name[NC_MAX_NAME + 1];
    nc_bool_t new_att = NC_FALSE;
    int retval = NC_NOERR, range_error = 0;
@@ -399,7 +400,10 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
    {
       LOG((3, "adding attribute %s to the list...", norm_name));
       if ((ret = nc4_att_list_add(attlist, norm_name, &att)))
-         BAIL (ret);
+         BAIL(ret);
+      if (!(hdf5_att = calloc(1, sizeof(NC_HDF5_ATT_INFO_T))))
+         BAIL(NC_ENOMEM);
+      att->format_att_info = hdf5_att;
    }
 
    /* Now fill in the metadata. */
