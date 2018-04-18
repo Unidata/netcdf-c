@@ -2716,7 +2716,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
        * be shown to the user as a variable. It is hidden. It is
        * a DIM WITHOUT A VARIABLE! */
       sprintf(dimscale_wo_var, "%s%10d", DIM_WITHOUT_VARIABLE, (int)dim->len);
-      if (H5DSset_scale(dim->hdf_dimscaleid, dimscale_wo_var) < 0)
+      if (H5DSset_scale(hdf5_dim->hdf_dimscaleid, dimscale_wo_var) < 0)
          BAIL(NC_EHDFERR);
    }
 
