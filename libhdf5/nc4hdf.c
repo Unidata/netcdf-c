@@ -2515,7 +2515,8 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
                if (d1->coord_var)
                   dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(d1->coord_var->format_var_info))->hdf_datasetid;
                else
-                  dim_datasetid = d1->hdf_dimscaleid;
+                  dim_datasetid = ((NC_HDF5_DIM_INFO_T *)(d1->format_dim_info))->hdf_dimscaleid;
+                  /* dim_datasetid = d1->hdf_dimscaleid; */
                assert(dim_datasetid > 0);
 
                /* If we're replacing an existing dimscale dataset, go to
@@ -2757,6 +2758,10 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
     * the dimid that the dimension would otherwise receive based on
     * creation order. This can be necessary when dims and their
     * coordinate variables were created in different order. */
+   /* if (write_dimid && hdf5_dim->hdf_dimscaleid) */
+   /*    if ((retval = write_netcdf4_dimid(hdf5_dim->hdf_dimscaleid, dim->hdr.id))) */
+   /*       BAIL(retval); */
+
    if (write_dimid && dim->hdf_dimscaleid)
       if ((retval = write_netcdf4_dimid(dim->hdf_dimscaleid, dim->hdr.id)))
          BAIL(retval);
