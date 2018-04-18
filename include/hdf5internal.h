@@ -70,7 +70,7 @@ typedef struct NC_HDF5_VAR_INFO
 {
    /* char *hdf5_name; /\* used if different from name *\/ */
    hid_t hdf_datasetid;
-   /* HDF5_OBJID_T *dimscale_hdf5_objids; */
+   HDF5_OBJID_T *dimscale_hdf5_objids;
 } NC_HDF5_VAR_INFO_T;
 
 /* This is a struct to handle the var metadata. */
