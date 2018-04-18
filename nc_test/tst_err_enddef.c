@@ -30,8 +30,8 @@ int main(int argc, char** argv)
     err = nc_set_fill(ncid, NC_NOFILL, NULL); CHECK_ERR
 
     err = nc_def_dim(ncid, "X", 5,      &dimid[0]); CHECK_ERR
-    err = nc_def_dim(ncid, "YY", 66661, &dimid[1]); CHECK_ERR
-    err = nc_def_dim(ncid, "XX", 66661, &dimid[2]); CHECK_ERR
+    err = nc_def_dim(ncid, "YY", 32000, &dimid[1]); CHECK_ERR
+    err = nc_def_dim(ncid, "XX", 32000, &dimid[2]); CHECK_ERR
 
     err = nc_def_var(ncid, "var", NC_INT, 1, dimid, &varid); CHECK_ERR
     err = nc_def_var(ncid, "var_big", NC_FLOAT, 2, dimid+1, &varid); CHECK_ERR
@@ -50,4 +50,3 @@ int main(int argc, char** argv)
 
     return (nerrs > 0);
 }
-
