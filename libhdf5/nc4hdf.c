@@ -2711,7 +2711,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
                                                  dim->hdr.name, H5T_IEEE_F32BE,
                                                  spaceid, create_propid)) < 0)
          BAIL(NC_EHDFERR);
-      dim->hdf_dimscaleid = hdf5_dim->hdf_dimscaleid;
+      /* dim->hdf_dimscaleid = hdf5_dim->hdf_dimscaleid; */
 
       /* Close the spaceid and create_propid. */
       if (H5Sclose(spaceid) < 0)

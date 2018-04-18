@@ -1112,7 +1112,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          }
 
          /* Hold open the dataset, since the dimension doesn't have a coordinate variable */
-         new_dim->hdf_dimscaleid = datasetid;
+         /* new_dim->hdf_dimscaleid = datasetid; */
          hdf5_dim->hdf_dimscaleid = datasetid;
          H5Iinc_ref(datasetid);        /* Increment number of objects using ID */
       }

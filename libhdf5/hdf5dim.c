@@ -242,7 +242,7 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
 	return NC_ENAMEINUSE;
 
    /* Check for renaming dimension w/o variable */
-   if (dim->hdf_dimscaleid)
+   if (((NC_HDF5_DIM_INFO_T *)(dim->format_dim_info))->hdf_dimscaleid)
    {
       /* Sanity check */
       assert(!dim->coord_var);
