@@ -360,11 +360,11 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       if ((retval = nc4_get_hdf_typeid(h5, xtype, &hdf5_type->hdf_typeid,
                                        type_info->endianness)))
          BAIL(retval);
-      type_info->hdf_typeid = hdf5_type->hdf_typeid;      
+      /* type_info->hdf_typeid = hdf5_type->hdf_typeid;       */
       if ((hdf5_type->native_hdf_typeid = H5Tget_native_type(hdf5_type->hdf_typeid,
                                                              H5T_DIR_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
-      type_info->native_hdf_typeid = hdf5_type->native_hdf_typeid;      
+      /* type_info->native_hdf_typeid = hdf5_type->native_hdf_typeid;       */
       if ((retval = nc4_get_typelen_mem(h5, type_info->hdr.id, &type_info->size)))
          BAIL(retval);
 

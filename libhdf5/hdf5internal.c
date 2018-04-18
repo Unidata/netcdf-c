@@ -356,13 +356,13 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
       /*    return NC_EHDFERR; */
       if (hdf5_type->hdf_typeid && H5Tclose(hdf5_type->hdf_typeid) < 0)
          return NC_EHDFERR;
-      type->hdf_typeid = 0;
+      /* type->hdf_typeid = 0; */
       hdf5_type->hdf_typeid = 0;
       /* if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0) */
       /*    return NC_EHDFERR; */
       if (hdf5_type->native_hdf_typeid && H5Tclose(hdf5_type->native_hdf_typeid) < 0)
          return NC_EHDFERR;
-      type->native_hdf_typeid = 0;
+      /* type->native_hdf_typeid = 0; */
       hdf5_type->native_hdf_typeid = 0;
 
       /* Close open HDF5 types related to ENUMs and VLENs. */

@@ -230,8 +230,8 @@ typedef struct NC_TYPE_INFO
    struct NC_GRP_INFO* container; /* Containing group */
    unsigned rc;                 /* Ref. count of objects using this type */
    void *format_type_info;
-   hid_t hdf_typeid;            /* HDF5 type ID, in the file */
-   hid_t native_hdf_typeid;     /* HDF5 type ID, in memory */
+   /* hid_t hdf_typeid;            /\* HDF5 type ID, in the file *\/ */
+   /* hid_t native_hdf_typeid;     /\* HDF5 type ID, in memory *\/ */
    int endianness;              /* What endianness for the type? */
                                 /* (Set for integer types as well as "complex"
                                  *  types, like compound/enum/vlen, used for the

@@ -1666,9 +1666,9 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
             strcat(dims_string, temp_string);
          }
       }
-      LOG((2, "%s VARIABLE - varid: %d name: %s type: %d ndims: %d dimscale: %d dimids:%s endianness: %d, hdf_typeid: %d",
+      LOG((2, "%s VARIABLE - varid: %d name: %s type: %d ndims: %d dimscale: %d dimids:%s endianness: %d",
            tabs, var->hdr.id, var->hdr.name, var->type_info->hdr.id, var->ndims, (int)var->dimscale,
-           (dims_string ? dims_string : " -"),var->type_info->endianness, var->type_info->native_hdf_typeid));
+           (dims_string ? dims_string : " -"),var->type_info->endianness));
       for(j=0;j<ncindexsize(var->att);j++) {
          att = (NC_ATT_INFO_T*)ncindexith(var->att,j);
 	 if(att == NULL) continue;
@@ -1685,9 +1685,9 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
    for(i=0;i<ncindexsize(grp->type);i++)
    {
       if((type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i)) == NULL) continue;
-      LOG((2, "%s TYPE - nc_typeid: %d hdf_typeid: 0x%x committed: %d "
+      LOG((2, "%s TYPE - nc_typeid: %d committed: %d "
            "name: %s num_fields: %d", tabs, type->hdr.id,
-           type->hdf_typeid, type->size, (int)type->committed, type->hdr.name));
+           type->size, (int)type->committed, type->hdr.name));
       /* Is this a compound type? */
       if (type->nc_type_class == NC_COMPOUND)
       {

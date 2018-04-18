@@ -2033,7 +2033,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
       if ((hdf5_type->hdf_typeid = H5Tcreate(H5T_COMPOUND, type->size)) < 0)
          return NC_EHDFERR;
-      type->hdf_typeid = hdf5_type->hdf_typeid;
+      /* type->hdf_typeid = hdf5_type->hdf_typeid; */
       LOG((4, "creating compound type %s hdf_typeid 0x%x", type->hdr.name,
            hdf5_type->hdf_typeid));
 
@@ -2086,14 +2086,14 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
       /* Create a vlen type. */
       if ((hdf5_type->hdf_typeid = H5Tvlen_create(hdf5_type->u.v.base_hdf_typeid)) < 0)
          return NC_EHDFERR;
-      type->hdf_typeid = hdf5_type->hdf_typeid;
+      /* type->hdf_typeid = hdf5_type->hdf_typeid; */
    }
    else if (type->nc_type_class == NC_OPAQUE)
    {
       /* Create the opaque type. */
       if ((hdf5_type->hdf_typeid = H5Tcreate(H5T_OPAQUE, type->size)) < 0)
          return NC_EHDFERR;
-      type->hdf_typeid = hdf5_type->hdf_typeid;
+      /* type->hdf_typeid = hdf5_type->hdf_typeid; */
    }
    else if (type->nc_type_class == NC_ENUM)
    {
@@ -2112,7 +2112,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
       /* Create an enum type. */
       if ((hdf5_type->hdf_typeid = H5Tenum_create(hdf5_type->u.e.base_hdf_typeid)) < 0)
          return NC_EHDFERR;
-      type->hdf_typeid = hdf5_type->hdf_typeid;
+      /* type->hdf_typeid = hdf5_type->hdf_typeid; */
 
       /* Add all the members to the HDF5 type. */
       for (i = 0; i < nclistlength(type->u.e.enum_member); i++)
@@ -2134,7 +2134,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
       return NC_EHDFERR;
    type->committed = NC_TRUE;
    LOG((4, "just committed type %s, HDF typeid: 0x%x", type->hdr.name,
-        type->hdf_typeid));
+        hdf5_type->hdf_typeid));
 
    /* Later we will always use the native typeid. In this case, it is
     * a copy of the same type pointed to by hdf_typeid, but it's
@@ -2142,7 +2142,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    if ((hdf5_type->native_hdf_typeid = H5Tget_native_type(hdf5_type->hdf_typeid,
                                                           H5T_DIR_DEFAULT)) < 0)
       return NC_EHDFERR;
-   type->native_hdf_typeid = hdf5_type->native_hdf_typeid;
+   /* type->native_hdf_typeid = hdf5_type->native_hdf_typeid; */
 
    return NC_NOERR;
 }
