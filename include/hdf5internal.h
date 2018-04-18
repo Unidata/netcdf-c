@@ -134,7 +134,6 @@ extern "C" {
    int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
    int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
    int nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5);
-   int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
    int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
    NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_HDF5_FILE_INFO_T* h5, hid_t target_hdf_typeid);
    int nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,

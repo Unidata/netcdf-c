@@ -381,6 +381,7 @@ int nc4_build_root_grp(NC_HDF5_FILE_INFO_T* h5);
 int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
 int nc4_enum_member_add(NC_TYPE_INFO_T *type, size_t size,
 			const char *name, const void *value);
+int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /* Break & reform coordinate variables */
 int nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim);

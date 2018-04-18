@@ -1106,7 +1106,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    {
       /* Is there an existing dimscale-only dataset of this name? If
        * so, it must be deleted. */
-      if (var->ndims && var->dim[0]->hdf_dimscaleid)
+      if (var->ndims && ((NC_HDF5_DIM_INFO_T *)(var->dim[0]->format_dim_info))->hdf_dimscaleid)
       {
          if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->hdr.id,
                                                         var->dim[0])))

@@ -334,12 +334,12 @@ hdf5_rec_grp_del(NC_GRP_INFO_T *grp)
    for (i = 0; i < ncindexsize(grp->dim); i++)
    {
       NC_DIM_INFO_T *dim;
-      /* NC_HDF5_DIM_INFO_T *hdf5_dim; */
+      NC_HDF5_DIM_INFO_T *hdf5_dim;
       
       if (!(dim = (NC_DIM_INFO_T *)ncindexith(grp->dim,i)))
          continue;
-      /* hdf5_dim = dim->format_dim_info; */
-      if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
+      hdf5_dim = dim->format_dim_info;
+      if (hdf5_dim->hdf_dimscaleid && H5Dclose(hdf5_dim->hdf_dimscaleid) < 0)
          return NC_EHDFERR;
    }
 

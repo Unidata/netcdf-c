@@ -114,7 +114,8 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                  __func__, var->dimids[d], var->hdr.name));
             if (var->created)
             {
-               if (H5DSattach_scale(((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid, dimscaleid, d) < 0)
+               if (H5DSattach_scale(((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid,
+                                    dimscaleid, d) < 0)
                   return NC_EHDFERR;
                var->dimscale_attached[d] = NC_TRUE;
             }
@@ -170,7 +171,8 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
             if (var->created)
                if (var->dimscale_attached && var->dimscale_attached[d])
                {
-                  if (H5DSdetach_scale(((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid, dimscaleid, d) < 0)
+                  if (H5DSdetach_scale(((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid,
+                                       dimscaleid, d) < 0)
                      return NC_EHDFERR;
                   var->dimscale_attached[d] = NC_FALSE;
                }
@@ -2762,13 +2764,12 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
     * the dimid that the dimension would otherwise receive based on
     * creation order. This can be necessary when dims and their
     * coordinate variables were created in different order. */
-   /* if (write_dimid && hdf5_dim->hdf_dimscaleid) */
-   /*    if ((retval = write_netcdf4_dimid(hdf5_dim->hdf_dimscaleid, dim->hdr.id))) */
-   /*       BAIL(retval); */
-
-   if (write_dimid && dim->hdf_dimscaleid)
-      if ((retval = write_netcdf4_dimid(dim->hdf_dimscaleid, dim->hdr.id)))
+   if (write_dimid && hdf5_dim->hdf_dimscaleid)
+      if ((retval = write_netcdf4_dimid(hdf5_dim->hdf_dimscaleid, dim->hdr.id)))
          BAIL(retval);
+   /* if (write_dimid && dim->hdf_dimscaleid) */
+   /*    if ((retval = write_netcdf4_dimid(dim->hdf_dimscaleid, dim->hdr.id))) */
+   /*       BAIL(retval); */
 
    return NC_NOERR;
 exit:
