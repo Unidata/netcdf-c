@@ -2306,8 +2306,8 @@ attach_dimscales(NC_GRP_INFO_T *grp)
                   if (dim1->coord_var)
                      dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
                   else
-                     dim_datasetid = dim1->hdf_dimscaleid;
-                  /* dim_datasetid = ((NC_HDF5_DIM_INFO_T *)(dim1->format_dim_info))->hdf_dimscaleid; */
+                     dim_datasetid = ((NC_HDF5_DIM_INFO_T *)(dim1->format_dim_info))->hdf_dimscaleid;
+                     /* dim_datasetid = dim1->hdf_dimscaleid; */
 
                   assert(dim_datasetid > 0);
                   if (H5DSattach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
@@ -2560,7 +2560,8 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
                if (dim1->coord_var)
                   dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
                else
-                  dim_datasetid = dim1->hdf_dimscaleid;
+                  dim_datasetid = ((NC_HDF5_DIM_INFO_T *)(dim1->format_dim_info))->hdf_dimscaleid;
+                  /* dim_datasetid = dim1->hdf_dimscaleid; */
                assert(dim_datasetid > 0);
 
                if (H5DSdetach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
