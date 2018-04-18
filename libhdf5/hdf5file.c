@@ -194,6 +194,7 @@ get_netcdf_type(NC_HDF5_FILE_INFO_T *h5, hid_t native_typeid,
 static int
 read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 {
+   NC_HDF5_ATT_INFO_T *hdf5_att;
    hid_t spaceid = 0, file_typeid = 0;
    hsize_t dims[1] = {0}; /* netcdf attributes always 1-D. */
    int retval = NC_NOERR;
@@ -204,24 +205,28 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
    int fixed_len_string = 0;
    size_t fixed_size = 0;
 
-   assert(att->hdr.name);
+   assert(grp && att && att->hdr.name && att->format_att_info);
    LOG((5, "%s: att->hdr.id %d att->hdr.name %s att->nc_typeid %d att->len %d",
         __func__, att->hdr.id, att->hdr.name, (int)att->nc_typeid, att->len));
 
+   /* Get HDF5-specific att info. */
+   hdf5_att = att->format_att_info;
+   
    /* Get type of attribute in file. */
    if ((file_typeid = H5Aget_type(attid)) < 0)
       return NC_EATTMETA;
-   if ((att->native_hdf_typeid = H5Tget_native_type(file_typeid, H5T_DIR_DEFAULT)) < 0)
+   if ((hdf5_att->native_hdf_typeid = H5Tget_native_type(file_typeid, H5T_DIR_DEFAULT)) < 0)
       BAIL(NC_EHDFERR);
-   if ((att_class = H5Tget_class(att->native_hdf_typeid)) < 0)
+   att->native_hdf_typeid = hdf5_att->native_hdf_typeid;
+   if ((att_class = H5Tget_class(hdf5_att->native_hdf_typeid)) < 0)
       BAIL(NC_EATTMETA);
-   if (att_class == H5T_STRING && !H5Tis_variable_str(att->native_hdf_typeid))
+   if (att_class == H5T_STRING && !H5Tis_variable_str(hdf5_att->native_hdf_typeid))
    {
       fixed_len_string++;
-      if (!(fixed_size = H5Tget_size(att->native_hdf_typeid)))
+      if (!(fixed_size = H5Tget_size(hdf5_att->native_hdf_typeid)))
          BAIL(NC_EATTMETA);
    }
-   if ((retval = get_netcdf_type(grp->nc4_info, att->native_hdf_typeid, &(att->nc_typeid))))
+   if ((retval = get_netcdf_type(grp->nc4_info, hdf5_att->native_hdf_typeid, &(att->nc_typeid))))
       BAIL(retval);
 
 
@@ -295,7 +300,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       {
          if (!(att->vldata = malloc((unsigned int)(att->len * sizeof(hvl_t)))))
             BAIL(NC_ENOMEM);
-         if (H5Aread(attid, att->native_hdf_typeid, att->vldata) < 0)
+         if (H5Aread(attid, hdf5_att->native_hdf_typeid, att->vldata) < 0)
             BAIL(NC_EATTMETA);
       }
       else if (att->nc_typeid == NC_STRING)
@@ -323,7 +328,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
                BAIL(NC_ENOMEM);
 
             /* Read the fixed-len strings as one big block. */
-            if (H5Aread(attid, att->native_hdf_typeid, contig_buf) < 0) {
+            if (H5Aread(attid, hdf5_att->native_hdf_typeid, contig_buf) < 0) {
                free(contig_buf);
                BAIL(NC_EATTMETA);
             }
@@ -348,7 +353,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
          else
          {
             /* Read variable-length string atts. */
-            if (H5Aread(attid, att->native_hdf_typeid, att->stdata) < 0)
+            if (H5Aread(attid, hdf5_att->native_hdf_typeid, att->stdata) < 0)
                BAIL(NC_EATTMETA);
          }
       }
@@ -356,7 +361,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       {
          if (!(att->data = malloc((unsigned int)(att->len * type_size))))
             BAIL(NC_ENOMEM);
-         if (H5Aread(attid, att->native_hdf_typeid, att->data) < 0)
+         if (H5Aread(attid, hdf5_att->native_hdf_typeid, att->data) < 0)
             BAIL(NC_EATTMETA);
       }
    }
@@ -1340,8 +1345,6 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
       (*type_info)->size = nc_type_size_g[t];
       if (!((*type_info)->hdr.name = strdup(nc_type_name_g[t])))
          return NC_ENOMEM;
-      /* (*type_info)->hdf_typeid = hdf_typeid; */
-      /* (*type_info)->native_hdf_typeid = native_typeid; */
       hdf5_type->hdf_typeid = hdf_typeid;
       hdf5_type->native_hdf_typeid = native_typeid;
       return NC_NOERR;
