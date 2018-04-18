@@ -374,7 +374,7 @@ NC4_insert_array_compound(int ncid, int typeid1, const char *name,
       return NC_ETYPDEFINED;
 
    /* Insert new field into this type's list of fields. */
-   if ((retval = nc4_field_list_add(type, norm_name, offset, 0, 0, field_typeid,
+   if ((retval = nc4_field_list_add(type, norm_name, offset, field_typeid,
 				    ndims, dim_sizesp)))
       return retval;
    

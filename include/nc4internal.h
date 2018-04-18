@@ -206,8 +206,8 @@ typedef struct NC_FIELD_INFO
    NC_OBJ hdr;
    nc_type nc_typeid;
    void *format_field_info;
-   hid_t hdf_typeid;
-   hid_t native_hdf_typeid;
+   /* hid_t hdf_typeid; */
+   /* hid_t native_hdf_typeid; */
    size_t offset;
    int ndims;
    int *dim_size;
@@ -230,8 +230,6 @@ typedef struct NC_TYPE_INFO
    struct NC_GRP_INFO* container; /* Containing group */
    unsigned rc;                 /* Ref. count of objects using this type */
    void *format_type_info;
-   /* hid_t hdf_typeid;            /\* HDF5 type ID, in the file *\/ */
-   /* hid_t native_hdf_typeid;     /\* HDF5 type ID, in memory *\/ */
    int endianness;              /* What endianness for the type? */
                                 /* (Set for integer types as well as "complex"
                                  *  types, like compound/enum/vlen, used for the
@@ -399,8 +397,7 @@ int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name, NC_TYPE
 int nc4_type_list_del(NC_GRP_INFO_T* grp, NC_TYPE_INFO_T *type);
 int nc4_type_free(NC_TYPE_INFO_T *type);
 int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
-		       size_t offset, hid_t field_hdf_typeid, hid_t native_typeid,
-		       nc_type xtype, int ndims, const int *dim_sizesp);
+		       size_t offset, nc_type xtype, int ndims, const int *dim_sizesp);
 int nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att);
 int nc4_att_list_del(NCindex* list, NC_ATT_INFO_T *att);
 int nc4_att_free(NC_ATT_INFO_T *att);
