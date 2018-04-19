@@ -9,9 +9,8 @@
 #include "config.h"
 #include <stdlib.h>
 #include <string.h>
-#include <hdf5.h>
 #include "netcdf.h"
-#include "nc4internal.h"
+#include "hdf5internal.h"
 
 #define HDF5_MAX_NAME 1024 /**< HDF5 max name. */
 
@@ -132,8 +131,8 @@ NC4_get_propattr(NC_HDF5_FILE_INFO_T* h5)
     hid_t ntype = -1;
     char* text = NULL;
 
-    /* Get root group */
-    grp = h5->root_grp->hdf_grpid; /* get root group */
+    /* Get root group HDF ID. */
+    grp = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
     /* Try to extract the NCPROPS attribute */
     if(H5Aexists(grp,NCPROPS) > 0) { /* Does exist */
         attid = H5Aopen_name(grp, NCPROPS);
@@ -181,8 +180,8 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
     hid_t atype = -1;
     char* text = NULL;
 
-    /* Get root group */
-    grp = h5->root_grp->hdf_grpid; /* get root group */
+    /* Get root group HDF ID. */ 
+    grp = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
     /* See if the NCPROPS attribute exists */
     if(H5Aexists(grp,NCPROPS) == 0) { /* Does not exist */
       ncstat = NC4_buildpropinfo(&h5->fileinfo->propattr,&text);
