@@ -1171,7 +1171,7 @@ long *npool, *npget, *nprel, *ndget, *ndrel;
     data pointer, and backs up to the buffer header.  It will
     dump either a free block or an allocated one.       */
 
-void bufdump(buf)
+static void bufdump(buf)
 void *buf;
 {
     struct bfhead *b;

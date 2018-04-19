@@ -7,6 +7,7 @@
 #include "config.h"
 #include <stdlib.h>
 #include "nc4dispatch.h"
+#include "hdf5dispatch.h"
 #include "nc.h"
 
 static NC_Dispatch NC4_dispatcher = {
@@ -112,14 +113,6 @@ int
 NC4_initialize(void)
 {
     NC4_dispatch_table = &NC4_dispatcher;
-#ifdef LOGGING
-    if(getenv(NCLOGLEVELENV) != NULL) {
-        char* slevel = getenv(NCLOGLEVELENV);
-	long level = atol(slevel);
-	if(level >= 0)
-	    nc_set_log_level((int)level);
-    }
-#endif
     return NC_NOERR;
 }
 

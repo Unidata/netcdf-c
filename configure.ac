@@ -8,9 +8,6 @@
 # Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
 # and to exp otherwise.
 
-## This puts the cvs ID tag in the output configure script.
-AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
-
 # Running autoconf on this file will trigger a warning if
 # autoconf is not at least the specified version.
 AC_PREREQ([2.59])
@@ -205,6 +202,17 @@ if test "x$enable_netcdf4" = xno ; then
 enable_netcdf_4=no
 fi
 AC_MSG_RESULT([$enable_netcdf_4])
+
+# Does the user want to turn on HDF5 read/write ability?
+AC_MSG_CHECKING([whether netcdf-4/HDF5 files should be enabled])
+AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
+              [build netcdf-4 with HDF5 read/write capability (netcdf-4 required)])])
+test "x$enable_hdf5" = xno || enable_hdf5=yes
+if test "x$enable_hdf5" = xyes -a "x$enable_netcdf_4" = xno; then
+      AC_MSG_WARN([Turning off HDF5 - NetCDF-4 is required for HDF5 features])
+      enable_hdf5=no
+fi
+AC_MSG_RESULT($enable_hdf5)
 
 # Does the user require dynamic loading?
 # This is only for those hdf5 installs that support it.
@@ -929,13 +937,30 @@ fi
 AC_CHECK_LIB([m], [floor], [],
 [AC_MSG_ERROR([Can't find or link to the math library.])])
 
+# Turn on netCDF-4.
 if test "x$enable_netcdf_4" = xyes; then
-
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
+fi
+
+# If the user wants hdf4 built in, check it out.
+if test "x$enable_hdf4" = xyes; then
+   AC_CHECK_HEADERS([mfhdf.h], [], [nc_mfhdf_h_missing=yes])
+   if test "x$nc_mfhdf_h_missing" = xyes; then
+      AC_MSG_ERROR([Cannot find mfhdf.h, yet --enable-hdf4 was used.])
+   fi
+   AC_CHECK_LIB([df], [Hclose], [], [AC_MSG_ERROR([Can't find or link to the hdf4 df library. See config.log for errors.])])
+   AC_CHECK_LIB([mfhdf], [SDcreate], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
+
+   AC_CHECK_LIB([jpeg], [jpeg_set_quality], [], [AC_MSG_ERROR([Can't find or link to the jpeg library (required by hdf4). See config.log for errors.])])
+   AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
+fi
+
+# Deal with HDF5 stuff.
+if test "x$enable_hdf5" = xyes; then
+   AC_DEFINE([USE_HDF5], [1], [if true, use HDF5])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
    # Check for the main hdf5 and hdf5_hl library.
-
    AC_SEARCH_LIBS([H5Fflush], [hdf5dll hdf5], [],
    [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use --disable-netcdf-4, or see config.log for errors.])])
    AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hldll hdf5_hl], [],
@@ -946,6 +971,7 @@ if test "x$enable_netcdf_4" = xyes; then
    hdf5_parallel=no
 
    AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
+
    # The user may have parallel HDF5 based on MPI POSIX.
    if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
       AC_DEFINE([USE_PARALLEL_POSIX], [1], [if true, compile in parallel netCDF-4 based on MPI/POSIX])
@@ -976,8 +1002,6 @@ if test "x$enable_netcdf_4" = xyes; then
       fi
    fi
 
-
-
    # The user may have built HDF5 with the SZLIB library.
    enable_szlib=no
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
@@ -986,27 +1010,12 @@ if test "x$enable_netcdf_4" = xyes; then
   	AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
 
-
-
    if test "x$ac_cv_func_H5free_memory" = xyes; then
       AC_DEFINE([HDF5_HAS_H5FREE], [1], [if true, H5free_memory() will be used to free hdf5-allocated memory in nc4file.])
    fi
 
    if test "x$ac_cv_func_H5Pset_libver_bounds" = xyes; then
       AC_DEFINE([HDF5_HAS_LIBVER_BOUNDS], [1], [if true, netcdf4 file properties will be set using H5Pset_libver_bounds])
-   fi
-
-   # If the user wants hdf4 built in, check it out.
-   if test "x$enable_hdf4" = xyes; then
-      AC_CHECK_HEADERS([mfhdf.h], [], [nc_mfhdf_h_missing=yes])
-      if test "x$nc_mfhdf_h_missing" = xyes; then
-         AC_MSG_ERROR([Cannot find mfhdf.h, yet --enable-hdf4 was used.])
-      fi
-      AC_CHECK_LIB([df], [Hclose], [], [AC_MSG_ERROR([Can't find or link to the hdf4 df library. See config.log for errors.])])
-      AC_CHECK_LIB([mfhdf], [SDcreate], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
-
-     AC_CHECK_LIB([jpeg], [jpeg_set_quality], [], [AC_MSG_ERROR([Can't find or link to the jpeg library (required by hdf4). See config.log for errors.])])
-      AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
 fi
 
@@ -1262,6 +1271,7 @@ AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])
 AM_CONDITIONAL(USE_NETCDF4, [test x$enable_netcdf_4 = xyes])
+AM_CONDITIONAL(USE_HDF5, [test x$enable_hdf5 = xyes])
 AM_CONDITIONAL(USE_HDF4, [test x$enable_hdf4 = xyes])
 AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
 AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
@@ -1396,6 +1406,7 @@ AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_CDF5,[$enable_cdf5])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
+AC_SUBST(HAS_HDF5,[$enable_hdf5])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_PIO,[$enable_pio])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
@@ -1524,14 +1535,15 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
-	             libnetcdf.settings
-		         postinstall.sh
-		         include/netcdf_meta.h
+                 libnetcdf.settings
+		 postinstall.sh
+		 include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
                  hdf4_test/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
+                 libhdf5/Makefile
                  libsrcp/Makefile
                  ncdump/Makefile
                  ncgen3/Makefile

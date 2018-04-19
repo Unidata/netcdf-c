@@ -32,7 +32,7 @@ void    bstats      _((bufsize *curalloc, bufsize *totfree, bufsize *maxfree,
                        long *nget, long *nrel));
 void    bstatse     _((bufsize *pool_incr, long *npool, long *npget,
                        long *nprel, long *ndget, long *ndrel));
-void    bufdump     _((void *buf));
+/* void    bufdump     _((void *buf)); */
 void    bpoold      _((void *pool, int dumpalloc, int dumpfree));
 int     bpoolv      _((void *pool));
 void bpoolrelease  _();
