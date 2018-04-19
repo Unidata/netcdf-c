@@ -7,9 +7,6 @@
 
 # Ed Hartnett, Ward Fisher
 
-
-
-
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
@@ -43,9 +40,14 @@ endif
 
 # Is the user building netCDF-4?
 if USE_NETCDF4
-H5_TEST_DIR = h5_test
 LIBSRC4_DIR = libsrc4
+endif
+
+# Is the user building with HDF5?
+if USE_HDF5
+H5_TEST_DIR = h5_test
 NC_TEST4 = nc_test4
+LIBHDF5 = libhdf5
 endif
 
 # Build the dap2 client
@@ -69,11 +71,6 @@ endif
 if USE_HDF4
 HDF4_TEST_DIR = hdf4_test
 LIBHDF4 = libhdf4
-endif
-
-# Build HDF5 if desired.
-if USE_NETCDF4
-LIBHDF5 = libhdf5
 endif
 
 # Is the user building PIO?
