@@ -760,7 +760,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 # Option to turn on CDF5 support.
-OPTION(ENABLE_CDF5 "Enable CDF5 Support." OFF)
+OPTION(ENABLE_CDF5 "Enable CDF5 Support." ON)
 IF(ENABLE_CDF5)
     SET(USE_CDF5 ON CACHE BOOL "")
 ENDIF(ENABLE_CDF5)
@@ -1764,6 +1764,18 @@ STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 LIST(REMOVE_DUPLICATES NC_LIBS)
 LIST(REMOVE_DUPLICATES LINKFLAGS)
 
+IF(ENABLE_FILTER_TESTING)
+IF(ENABLE_EXAMPLES)
+MESSAGE(STATUS "copying filter plugin building files")
+FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/findplugin.in
+     DESTINATION ${netCDF_BINARY_DIR}/examples/C/)
+FILE(GLOB PLUGINFILES ${netCDF_SOURCE_DIR}/nc_test4/hdf5plugins/*.c
+		      ${netCDF_SOURCE_DIR}/nc_test4/hdf5plugins/*.h)
+FILE(COPY ${PLUGINFILES}
+     DESTINATION ${netCDF_BINARY_DIR}/examples/C/hdf5plugins/)
+ENDIF()
+ENDIF()
+
 configure_file(
   ${netCDF_SOURCE_DIR}/netcdf.pc.in
   ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
@@ -1888,6 +1900,11 @@ configure_file(${CMAKE_SOURCE_DIR}/test_common.in ${CMAKE_BINARY_DIR}/test_commo
 SET(ISCMAKE "1")
 configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
 
+IF(ENABLE_FILTER_TESTING)
+IF(ENABLE_EXAMPLES)
+configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
+ENDIF()
+ENDIF()
 
 ####
 # Export files

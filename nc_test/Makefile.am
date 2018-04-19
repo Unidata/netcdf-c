@@ -19,7 +19,7 @@ TEST_EXTENSIONS = .sh
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names       \
 tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type      \
 tst_utf8_validate tst_utf8_phrases tst_global_fillval                   \
-tst_max_var_dims tst_formats tst_def_var_fill
+tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts tst_put_vars tst_elatefill
@@ -118,3 +118,6 @@ endif
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
 	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
+
+# If valgrind is present, add valgrind targets.
+@VALGRIND_CHECK_RULES@
