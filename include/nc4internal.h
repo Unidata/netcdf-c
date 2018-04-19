@@ -16,9 +16,9 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <string.h>
-#include <hdf5.h>
+#include <stdint.h>
+/* #include <hdf5.h> */
 
-#include "ncdimscale.h"
 #include "nc_logging.h"
 #include "ncindex.h"
 

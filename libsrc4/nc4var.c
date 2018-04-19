@@ -24,6 +24,11 @@
 
 #define NC_ARRAY_GROWBY 4 /**< @internal Amount to grow array. */
 
+/* Macros used to "unset" chunk cache configuration parameters */
+#define H5D_CHUNK_CACHE_NSLOTS_DEFAULT      ((size_t) -1)
+#define H5D_CHUNK_CACHE_NBYTES_DEFAULT      ((size_t) -1)
+#define H5D_CHUNK_CACHE_W0_DEFAULT          (-1.0f)
+
 extern int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info,
                                       void *fill_value);
 

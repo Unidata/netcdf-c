@@ -22,6 +22,13 @@
 
 int nc4typelen(nc_type type);
 
+/* Variable Length Datatype struct in memory */
+/* (This is only used for VL sequences, not VL strings, which are stored in char *'s) */
+typedef struct {
+    size_t len; /* Length of VL data (in base type units) */
+    void *p;    /* Pointer to VL data */
+} hvl_t;
+
 /**
  * @internal Get special informatation about the attribute.
  *

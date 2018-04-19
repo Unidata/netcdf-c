@@ -16,9 +16,9 @@
 #include "nc.h"
 #include "nc4internal.h"
 #include "nc4dispatch.h"
-#include <H5DSpublic.h> /* must be after nc4internal.h */
-#include <H5Fpublic.h>
-#include <hdf5_hl.h>
+/* #include <H5DSpublic.h> /\* must be after nc4internal.h *\/ */
+/* #include <H5Fpublic.h> */
+/* #include <hdf5_hl.h> */
 
 
 /** @internal When we have open objects at file close, should
