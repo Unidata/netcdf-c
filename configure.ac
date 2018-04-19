@@ -203,6 +203,16 @@ enable_netcdf_4=no
 fi
 AC_MSG_RESULT([$enable_netcdf_4])
 
+# Does the user want to turn on HDF5 read/write ability?
+AC_MSG_CHECKING([whether netcdf-4/HDF5 files should be enabled])
+AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
+              [build netcdf-4 with HDF5 read/write capability (netcdf-4 required)])])
+test "x$enable_hdf5" = xno || enable_hdf5=yes
+if test "x$enable_hdf5" = xyes -a "x$enable_netcdf_4" = xno; then
+      AC_MSG_ERROR([NetCDF-4 is required for HDF5 features])
+fi
+AC_MSG_RESULT($enable_hdf5)
+
 # Does the user require dynamic loading?
 # This is only for those hdf5 installs that support it.
 AC_MSG_CHECKING([do we require hdf5 dynamic-loading support])
