@@ -5,25 +5,27 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../../test_common.sh
 
+echo "*** Running filter example for netCDF-4."
 set -e
 
-echo "*** Running test_filter example..."
-echo "ISCYGWIN=${ISCYGWIN}"
-if test "x$ISCYGWIN" != x ; then
-PLUGIN=cygbzip2.dll
-else
-PLUGIN=libbzip2.so
-fi
+if test -f ${builddir}/findplugin.sh ; then
+echo "*** running test_filter example..."
+. ${builddir}/findplugin.sh
 
-HDF5_PLUGIN_PATH=`pwd`
-HDF5_PLUGIN_PATH="${HDF5_PLUGIN_PATH}/plugins"
-if test -f "${HDF5_PLUGIN_PATH}/.libs/${PLUGIN}" ; then
-HDF5_PLUGIN_PATH="${HDF5_PLUGIN_PATH}/.libs"
-fi
+# Locate the plugin path and the library names; argument order is critical
+# Find bzip2 and capture
+findplugin bzip2
+BZIP2PATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
+# Verify
+if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi
 export HDF5_PLUGIN_PATH
+
+echo "*** running filter_example..."
 rm -f ./bzip2.nc
-${execdir}/test_filter
+${execdir}/filter_example
 #rm -f ./bzip2.nc
 
-echo "*** Example successful!"
+fi # Filter enabled
+
+echo "*** Filter example successful!"
 exit 0

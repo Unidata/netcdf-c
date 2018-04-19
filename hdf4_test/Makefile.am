@@ -14,8 +14,8 @@ include $(top_srcdir)/lib_flags.am
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
 # These are the C tests for HDF4.
-check_PROGRAMS = tst_chunk_hdf4 tst_h4_lendian
-TESTS = tst_chunk_hdf4 tst_h4_lendian
+check_PROGRAMS = tst_chunk_hdf4 tst_h4_lendian tst_hdf4_extra
+TESTS = tst_chunk_hdf4 tst_h4_lendian tst_hdf4_extra
 
 # This test script depends on ncdump and tst_interops2.c.
 if BUILD_UTILITIES
@@ -35,3 +35,5 @@ run_get_hdf4_files.sh run_formatx_hdf4.sh
 
 CLEANFILES = *.h4 *.hdf
 
+# If valgrind is present, add valgrind targets.
+@VALGRIND_CHECK_RULES@
