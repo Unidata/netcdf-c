@@ -209,7 +209,8 @@ AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
               [build netcdf-4 with HDF5 read/write capability (netcdf-4 required)])])
 test "x$enable_hdf5" = xno || enable_hdf5=yes
 if test "x$enable_hdf5" = xyes -a "x$enable_netcdf_4" = xno; then
-      AC_MSG_ERROR([NetCDF-4 is required for HDF5 features])
+      AC_MSG_WARN([Turning off HDF5 - NetCDF-4 is required for HDF5 features])
+      enable_hdf5=no
 fi
 AC_MSG_RESULT($enable_hdf5)
 
