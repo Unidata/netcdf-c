@@ -8,7 +8,7 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.7.0 - TBD
 
 * [Enhancement] Made CDF5 support enabled by default.  See [Github #931](https://github.com/Unidata/netcdf-c/issues/931) for more information.
-
+* [Bug Fix] Corrected a number of memory issues identified in `ncgen`.  See [GitHub #558 for more information](https://github.com/Unidata/netcdf-c/pull/558).
 
 ## 4.6.1 - March 19, 2018
 
