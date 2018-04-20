@@ -60,6 +60,7 @@ extern FILE *ncgin;
 /* Forward */
 static char* ubasename(char*);
 void usage( void );
+
 int main( int argc, char** argv );
 
 /* Define tables vs modes for legal -k values*/
@@ -156,6 +157,19 @@ static char* LE16 = "\xFF\xFE";       /* UTF-16; little-endian */
 */
 #define DFALTBINNCITERBUFFERSIZE  0x40000 /* about 250k bytes */
 #define DFALTLANGNCITERBUFFERSIZE  0x4000 /* about 15k bytes */
+
+void *emalloc (size_t size) {                  /* check return from malloc */
+  void   *p;
+
+  if (size == 0)
+    return 0;
+  p = (void *) malloc (size);
+  if (p == 0) {
+    exit(NC_ENOMEM);
+  }
+  return p;
+}
+
 
 /* strip off leading path */
 /* result is malloc'd */
@@ -296,13 +310,16 @@ main(
               derror("%s: output language is null", progname);
               return(1);
             }
-            lang_name = estrdup(optarg);
-	    for(langs=legallanguages;langs->name != NULL;langs++) {
+            //lang_name = estrdup(optarg);
+            lang_name = (char*) emalloc(strlen(optarg)+1);
+            (void)strcpy(lang_name, optarg);
+
+            for(langs=legallanguages;langs->name != NULL;langs++) {
               if(strcmp(lang_name,langs->name)==0) {
-	  	l_flag = langs->flag;
+                l_flag = langs->flag;
                 break;
               }
-	    }
+            }
 	    if(langs->name == NULL) {
               derror("%s: output language %s not implemented",progname, lang_name);
               nullfree(lang_name);
