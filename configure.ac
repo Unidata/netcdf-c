@@ -1432,27 +1432,6 @@ AC_SUBST([MSVC], [])
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 
-if test "x$enable_filter_testing" = xyes ; then
-if test "x$nc_build_examples" = xyes ; then
-AC_MSG_NOTICE([copying filter plugin building files])
-# Must be a simpler way; all my attempts to use some kind of wildcard failed,
-# so falling back on enumeration
-# WARNING: This enumeration must be kept consistent with the
-# HDF5PLUGINSRC list in nc_test4/hdf5plugins/Makefile.am
-AC_CONFIG_LINKS([examples/C/hdf5plugins/bzlib.h:nc_test4/hdf5plugins/bzlib.h])
-AC_CONFIG_LINKS([examples/C/hdf5plugins/bzlib_private.h:nc_test4/hdf5plugins/bzlib_private.h])
-AC_CONFIG_LINKS([examples/C/hdf5plugins/blocksort.c:nc_test4/hdf5plugins/blocksort.c])
-AC_CONFIG_LINKS([examples/C/hdf5plugins/huffman.c:nc_test4/hdf5plugins/huffman.c])
-AC_CONFIG_LINKS([examples/C/hdf5plugins/crctable.c:nc_test4/hdf5plugins/crctable.c])
-AC_CONFIG_LINKS([examples/C/hdf5plugins/randtable.c:nc_test4/hdf5plugins/randtable.c])
-AC_CONFIG_LINKS([examples/C/hdf5plugins/compress.c:nc_test4/hdf5plugins/compress.c])
-AC_CONFIG_LINKS([examples/C/hdf5plugins/decompress.c:nc_test4/hdf5plugins/decompress.c])
-AC_CONFIG_LINKS([examples/C/hdf5plugins/bzlib.c:nc_test4/hdf5plugins/bzlib.c])
-AC_CONFIG_LINKS([examples/C/hdf5plugins/H5Zbzip2.c:nc_test4/hdf5plugins/H5Zbzip2.c])
-AC_CONFIG_LINKS([examples/C/hdf5plugins/h5bzip2.h:nc_test4/hdf5plugins/h5bzip2.h])
-fi
-fi
-
 #####
 # End netcdf_meta.h definitions.
 #####
@@ -1475,7 +1454,6 @@ AC_CONFIG_FILES([Makefile
                  ncgen/Makefile
                  examples/Makefile
                  examples/C/Makefile
-                 examples/C/hdf5plugins/Makefile
                  examples/CDL/Makefile
                  oc2/Makefile
                  libdap2/Makefile
@@ -1489,13 +1467,13 @@ AC_CONFIG_FILES([Makefile
                  docs/images/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
-                 nc_test4/hdf5plugins/Makefile
                  nc_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile
                  ncdap_test/expected3/Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
+                 plugins/Makefile
 		 ],
                  [test -f  nc-config && chmod 755 nc-config])
 
