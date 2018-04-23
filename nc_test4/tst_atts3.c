@@ -15,7 +15,7 @@
 #include <string.h>
 
 /* The data file we will create. */
-#define FILE_NAME "tst_atts.nc"
+#define FILE_NAME "tst_atts3.nc"
 
 void
 check_err(const int stat, const int line, const char *file) {
