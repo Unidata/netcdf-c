@@ -7,6 +7,9 @@
 
 # Ed Hartnett, Ward Fisher
 
+
+
+
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
@@ -64,13 +67,19 @@ endif
 
 # Build HDF4 if desired.
 if USE_HDF4
+HDF4_TEST_DIR = hdf4_test
 LIBHDF4 = libhdf4
+endif
+
+# Optionally build plugins
+if ENABLE_FILTER_TESTING
+PLUGIN_DIR = plugins
 endif
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAP2TESTDIR)	\
-$(NCDAP4TESTDIR)
+TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(HDF4_TEST_DIR)	\
+$(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
@@ -78,7 +87,7 @@ endif
 # depend on it.
 SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc $(LIBSRC4_DIR)	\
 $(LIBSRCP) $(LIBHDF4) $(OCLIB) $(DAP2) ${DAP4} liblib $(NCGEN3)		\
-$(NCGEN) $(NCDUMP) $(TESTDIRS) docs $(EXAMPLES)
+$(NCGEN) $(NCDUMP) ${PLUGIN_DIR} $(TESTDIRS) docs $(EXAMPLES)
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings	\
