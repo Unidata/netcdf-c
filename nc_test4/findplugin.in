@@ -3,7 +3,7 @@
 # Define a function that attempts to locate a
 # plugin with a given canonical name.
 # Assumptions:
-#   1. hdf5plugins is a directory in this current directory
+#   1. plugins is a top-level directory
 # Inputs:
 #   $1 is the canonical name
 #   $2 is 1 if we are running under cmake
@@ -28,6 +28,9 @@ FP_NAME="$1"
 FP_ISCMAKE=@ISCMAKE@
 FP_ISMSVC=@MSVC@
 
+# And topsrcdir
+topbuilddir='@abs_top_builddir@'
+
 # Are we operating under OS-X? (test using uname)
 FP_OS=`uname | cut -d '_'  -f 1`
 if test "x$FP_OS" = xDarwin ; then FP_ISOSX=1; fi
@@ -36,8 +39,7 @@ if test "x$FP_OS" = xDarwin ; then FP_ISOSX=1; fi
 FP_OS=`uname | cut -d '_'  -f 1`
 if test "x$FP_OS" = xCYGWIN ; then FP_ISCYGWIN=1; fi
 
-FP_PLUGINS=`pwd`
-FP_PLUGINS="$FP_PLUGINS/hdf5plugins"
+FP_PLUGINS="$topbuilddir/plugins"
 
 FP_PLUGIN_LIB=
 FP_PLUGIN_PATH=
