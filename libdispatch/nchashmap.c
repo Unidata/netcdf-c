@@ -33,7 +33,7 @@ we will only do string comparisons when they will match.
 */
 
 /* Prototype for the crc32 function */
-extern unsigned int NC_crc32(unsigned int crc, const char* buf, unsigned int len);
+extern unsigned int NC_crc32(unsigned int crc, const unsigned char* buf, unsigned int len);
 
 #undef SMALLTABLE
 
