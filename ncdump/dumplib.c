@@ -464,8 +464,10 @@ max_typeid(int ncid) {
 	/* fallthru */
 #endif
     default:
-	fprintf(stderr,"Unexpected file format: %d\n",format);
-	return 0;
+	maxatomictypes = (maxtypes = NC_UINT64);
+        break;
+	/* fprintf(stderr,"Unexpected file format: %d\n",format); */
+	/* return 0; */
     }
     max_type = maxtypes;
     max_atomic_type = maxatomictypes;

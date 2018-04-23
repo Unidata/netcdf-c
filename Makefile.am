@@ -7,9 +7,6 @@
 
 # Ed Hartnett, Ward Fisher
 
-
-
-
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
@@ -43,9 +40,14 @@ endif
 
 # Is the user building netCDF-4?
 if USE_NETCDF4
-H5_TEST_DIR = h5_test
 LIBSRC4_DIR = libsrc4
+endif
+
+# Is the user building with HDF5?
+if USE_HDF5
+H5_TEST_DIR = h5_test
 NC_TEST4 = nc_test4
+LIBHDF5 = libhdf5
 endif
 
 # Build the dap2 client
@@ -71,18 +73,24 @@ HDF4_TEST_DIR = hdf4_test
 LIBHDF4 = libhdf4
 endif
 
+# Is the user building PIO?
+if USE_PIO
+PIO_TEST_DIR = pio_test
+LIBPIO = libpio
+endif
+
 # Define Test directories
 if BUILD_TESTSETS
 TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(HDF4_TEST_DIR)	\
-$(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
+$(NCDAP2TESTDIR) $(NCDAP4TESTDIR) $(PIO_TEST_DIR)
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
 SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc $(LIBSRC4_DIR)	\
-$(LIBSRCP) $(LIBHDF4) $(OCLIB) $(DAP2) ${DAP4} liblib $(NCGEN3)		\
-$(NCGEN) $(NCDUMP) $(TESTDIRS) docs $(EXAMPLES)
+$(LIBSRCP) $(LIBHDF4) $(LIBHDF5) $(LIBPIO) $(OCLIB) $(DAP2) ${DAP4}	\
+liblib $(NCGEN3) $(NCGEN) $(NCDUMP) $(TESTDIRS) docs $(EXAMPLES)
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings	\
