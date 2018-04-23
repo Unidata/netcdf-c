@@ -328,6 +328,101 @@ NCD4_entityescape(const char* s)
     return escaped;
 }
 
+int
+NCD4_readfile(const char* filename, NCbytes* content)
+{
+    int ret = NC_NOERR;
+    FILE* stream = NULL;
+    char part[1024];
+
+    stream = fopen(filename,"r");
+    if(stream == NULL) {ret=errno; goto done;}
+    for(;;) {
+	size_t count = fread(part, 1, sizeof(part), stream);
+	if(count <= 0) break;
+	ncbytesappendn(content,part,count);
+	if(ferror(stream)) {ret = NC_EIO; goto done;}
+	if(feof(stream)) break;
+    }
+    ncbytesnull(content);
+done:
+    if(stream) fclose(stream);
+    return ret;
+}
+
+/**
+Wrap mktmp and return the generated name
+*/
+
+int
+NCD4_mktmp(const char* base, char** tmpnamep)
+{
+    int fd;
+    char tmp[NC_MAX_PATH];
+#ifdef HAVE_MKSTEMP
+    mode_t mask;
+#endif
+
+    strncpy(tmp,base,sizeof(tmp));
+#ifdef HAVE_MKSTEMP
+    strncat(tmp,"XXXXXX", sizeof(tmp) - strlen(tmp) - 1);
+    /* Note Potential problem: old versions of this function
+       leave the file in mode 0666 instead of 0600 */
+    mask=umask(0077);
+    fd = mkstemp(tmp);
+    (void)umask(mask);
+#else /* !HAVE_MKSTEMP */
+    /* Need to simulate by using some kind of pseudo-random number */
+    {
+	int rno = rand();
+	char spid[7];
+	if(rno < 0) rno = -rno;
+        snprintf(spid,sizeof(spid),"%06d",rno);
+        strncat(tmp,spid,sizeof(tmp));
+#if defined(_WIN32) || defined(_WIN64)
+        fd=open(tmp,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
+#  else
+        fd=open(tmp,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
+#  endif
+    }
+#endif /* !HAVE_MKSTEMP */
+    if(fd < 0) {
+       nclog(NCLOGERR, "Could not create temp file: %s",tmp);
+       return THROW(NC_EPERM);
+    } else
+	close(fd);
+    if(tmpnamep) *tmpnamep = strdup(tmp);
+    return THROW(NC_NOERR);
+}
+
+void
+NCD4_hostport(NCURI* uri, char* space, size_t len)
+{
+    if(space != NULL && len >  0) {
+	space[0] = '\0'; /* so we can use strncat */
+        if(uri->host != NULL) {
+	    strncat(space,uri->host,len);
+            if(uri->port != NULL) {
+	        strncat(space,":",len);
+	        strncat(space,uri->port,len);
+	    }
+	}
+    }
+}
+
+void
+NCD4_userpwd(NCURI* uri, char* space, size_t len)
+{
+    if(space != NULL && len > 0) {
+	space[0] = '\0'; /* so we can use strncat */
+        if(uri->user != NULL && uri->password != NULL) {
+            strncat(space,uri->user,len);
+            strncat(space,":",len);
+            strncat(space,uri->password,len);
+	}
+    }
+}
+
 #ifdef BLOB
 void
 NCD4_saveblob(NCD4meta* meta, void* mem)
