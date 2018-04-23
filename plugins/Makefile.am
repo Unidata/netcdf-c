@@ -1,7 +1,6 @@
 #    Copyright 2018, UCAR/Unidata
 #    See netcdf/COPYRIGHT file for copying and redistribution conditions.
 
-
 BZIP2HDRS=bzlib.h bzlib_private.h
 BZIP2SRC= blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c
 
