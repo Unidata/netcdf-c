@@ -25,9 +25,6 @@ if USE_NETCDF4
 check_PROGRAMS += simple_nc4_wr simple_nc4_rd simple_xy_nc4_wr	\
 simple_xy_nc4_rd
 
-# This subdir should be same as nc_test4/hdf5plugins
-SUBDIRS = hdf5plugins
-
 if ENABLE_FILTER_TESTING
 # filter_example.c should be same as nc_test4/test_filter.c
 check_PROGRAMS += filter_example
