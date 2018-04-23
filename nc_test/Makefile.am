@@ -86,13 +86,13 @@ run_diskless5.sh run_mmap.sh run_pnetcdf_test.sh test_read.m4		\
 test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl CMakeLists.txt
 
 # These files are created by the tests.
-CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc     \
-tst_*.nc t_nc.nc large_files.nc quick_large_files.nc tst_diskless.nc    \
-tst_diskless2.nc tst_diskless3.nc tst_diskless3_file.cdl                \
-tst_diskless3_memory.cdl tst_diskless4.cdl tst_diskless4.nc             \
-tst_formatx.nc nc_test_cdf5.nc unlim.nc tst_inq_type.nc                 \
-tst_elatefill.nc tst_global_fillval.nc tst_large_cdf5.nc                \
-tst_max_var_dims.nc benchmark.nc tst_def_var_fill.nc
+CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
+tst_*.nc t_nc.nc large_files.nc quick_large_files.nc tst_diskless.nc	\
+tst_diskless2.nc tst_diskless3.nc tst_diskless3_file.cdl		\
+tst_diskless3_memory.cdl tst_diskless4.cdl tst_diskless4.nc		\
+tst_formatx.nc nc_test_cdf5.nc tst_inq_type.nc tst_elatefill.nc		\
+tst_global_fillval.nc tst_large_cdf5.nc tst_max_var_dims.nc		\
+benchmark.nc tst_def_var_fill.nc
 
 EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
 if ENABLE_CDF5
