@@ -9,7 +9,7 @@
 #include <string.h>
 #include <netcdf.h>
 
-#define FILE_NAME "unlim.nc"
+#define FILE_NAME "tst_put_vars.nc"
 
 /* 3D matrix, 6 x 4 x 3 */
 
