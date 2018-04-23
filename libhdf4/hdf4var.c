@@ -20,7 +20,7 @@
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param startp Array of start indicies.
+ * @param startp Array of start indices.
  * @param countp Array of counts.
  * @param ip pointer that gets the data.
  * @param memtype The type of these data after it is read into memory.

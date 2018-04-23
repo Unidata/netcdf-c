@@ -341,7 +341,7 @@ makeocpathstring(OClink conn, OCddsnode node, const char* sep)
     NCbytes* pathname = NULL;
 
     /* If we are asking for the dataset path only,
-       then nclude it, otherwise elide it
+       then include it, otherwise elide it
     */
     oc_dds_type(conn,node,&octype);
     if(octype == OC_Dataset) {

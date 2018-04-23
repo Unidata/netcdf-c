@@ -134,7 +134,7 @@ Fortran APIs.
 \param ncid \ref ncid
 \param typeid1 Typeid of the VLEN.
 \param vlen_element Pointer to the element of the VLEN.
-\param len Lenth of the VLEN element.
+\param len Length of the VLEN element.
 \param data VLEN data.
 
 \returns ::NC_NOERR No error.
@@ -163,7 +163,7 @@ Fortran APIs.
 \param ncid \ref ncid
 \param typeid1 Typeid of the VLEN.
 \param vlen_element Pointer to the element of the VLEN.
-\param len Lenth of the VLEN element.
+\param len Length of the VLEN element.
 \param data VLEN data.
 
 \returns ::NC_NOERR No error.
