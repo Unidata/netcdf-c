@@ -114,7 +114,7 @@ main(int argc, char *argv[])
      * the netCDF-4 format last, however, because, as an additional
      * test, the ../nc_test4/tst_nc_test_file program looks at the
      * output of this program. */
-    for (i = 1; i <= NUM_FORMATS; i++)
+    for (i = 4; i <= NUM_FORMATS; i++)
     {
        numGatts = 6;
        numVars  = 136;

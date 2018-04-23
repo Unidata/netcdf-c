@@ -45,7 +45,6 @@ if test "$ac_cv_c_ieeefloat" = no; then
 fi
 ])
 
-
 dnl
 dnl Print which compilers are going to be used, the flags, and their
 dnl locations. This is all to assist in debugging, and help with

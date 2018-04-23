@@ -57,6 +57,13 @@ else
     has_hdf4="yes"
 fi
 
+has_hdf4="@USE_HDF5@"
+if [ -z "$has_hdf5" -o "$has_hdf5" = "OFF" ]; then
+    has_hdf5="no"
+else
+    has_hdf5="yes"
+fi
+
 has_pnetcdf="@USE_PNETCDF@"
 if [ -z "$has_pnetcdf" -o "$has_pnetcdf" = "OFF" ]; then
     has_pnetcdf="no"

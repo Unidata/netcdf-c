@@ -1,3 +1,14 @@
+/* This is part of the netCDF package. Copyright 2006-2018 University
+   Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
+   for conditions of use.
+
+   This test was added with this PR:
+   https://github.com/Unidata/netcdf-c/pull/479
+
+   wkliao 
+*/
+
+#include <config.h>
 #include <stdio.h>
 #include <netcdf.h>
 

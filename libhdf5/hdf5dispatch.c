@@ -7,6 +7,7 @@
 #include "config.h"
 #include <stdlib.h>
 #include "nc4dispatch.h"
+#include "hdf5dispatch.h"
 #include "nc.h"
 
 static NC_Dispatch NC4_dispatcher = {
@@ -22,8 +23,8 @@ NC4_sync,
 NC4_abort,
 NC4_close,
 NC4_set_fill,
-NC4_inq_base_pe,
-NC4_set_base_pe,
+NC_NOTNC3_inq_base_pe,
+NC_NOTNC3_set_base_pe,
 NC4_inq_format,
 NC4_inq_format_extended,
 
@@ -59,7 +60,6 @@ NC4_inq_var_all,
 NC4_var_par_access,
 NC4_def_var_fill,
 
-#ifdef USE_NETCDF4
 NC4_show_metadata,
 NC4_inq_unlimdims,
 
@@ -98,7 +98,6 @@ NC4_def_var_endian,
 NC4_def_var_filter,
 NC4_set_var_chunk_cache,
 NC4_get_var_chunk_cache,
-#endif
 
 };
 
@@ -114,14 +113,6 @@ int
 NC4_initialize(void)
 {
     NC4_dispatch_table = &NC4_dispatcher;
-#ifdef LOGGING
-    if(getenv(NCLOGLEVELENV) != NULL) {
-        char* slevel = getenv(NCLOGLEVELENV);
-	long level = atol(slevel);
-	if(level >= 0)
-	    nc_set_log_level((int)level);
-    }
-#endif
     return NC_NOERR;
 }
 

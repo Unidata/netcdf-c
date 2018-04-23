@@ -1,5 +1,5 @@
 # This is a automake file, part of Unidata's netCDF package.
-# Copyright 2006, see the COPYRIGHT file for more information.
+# Copyright 2006-2018, see the COPYRIGHT file for more information.
 
 # This file builds the C examples.
 
@@ -42,6 +42,11 @@ check_PROGRAMS += parallel_vara
 TESTS += parallel_vara
 endif #USE_PNETCDF
 
+if USE_PIO
+check_PROGRAMS += pio_simple_async
+TESTS += run_pio_examples.sh
+endif # USE_PIO
+
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
@@ -52,6 +57,7 @@ endif #USE_NETCDF4
 # These files are created by the tests.
 CLEANFILES = *.nc
 
-EXTRA_DIST = CMakeLists.txt run_examples.sh run_examples4.sh run_filter.sh
+EXTRA_DIST = CMakeLists.txt run_examples.sh run_examples4.sh	\
+run_filter.sh run_pio_examples.sh
 
 DISTCLEANFILES = findplugin.sh

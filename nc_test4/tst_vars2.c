@@ -910,13 +910,13 @@ main(int argc, char **argv)
       if (nc_def_var_chunking(ncid, varid4, NC_CHUNKED, large_chunksize) != NC_EBADCHUNK) ERR;
       if (nc_def_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int)) ERR;
       if (nc_def_var_chunking_ints(ncid, varid1, NC_CHUNKED, chunksize_int)) ERR;
-      if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;
+      if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;      
       if (nc_inq_var_chunking_ints(ncid, varid1, NULL, chunksize_int_in)) ERR;
       for (d = 0; d < NDIMS5; d++)
 	 if (chunksize_int_in[d] != chunksize[d] * 2) ERR;
       if (nc_inq_var_chunking_ints(ncid, varid1, &storage_in, NULL)) ERR;
       if (storage_in != NC_CHUNKED) ERR;
-      if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;
+      if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;      
       if (nc_inq_var_chunking_ints(ncid, varid3, &storage_in, NULL)) ERR;
       if (storage_in != NC_CONTIGUOUS) ERR;
       if (nc_inq_var_chunking_ints(ncid, varid3, &storage_in, chunksize_int_in)) ERR;
@@ -1472,13 +1472,13 @@ main(int argc, char **argv)
          if (nc_inq_var_deflate(ncid, varid, NULL, NULL, NULL)) ERR;
 
          /* Deflate is ignored for scalar. */
-         if (nc_def_var_deflate(ncid, varid_scalar, 0, 1, 4)) ERR;
+         if (nc_def_var_deflate(ncid, varid_scalar, 0, 1, 4)) ERR;         
          if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
          if (shuffle_in || deflate_in) ERR;
 
          /* Turn on shuffle. */
          if (nc_def_var_deflate(ncid, varid, 1, 0, 0)) ERR;
-
+         
          /* Now I can't turn contiguous on, because shuffle is on. */
          if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL) != NC_EINVAL) ERR;
 
@@ -1495,7 +1495,7 @@ main(int argc, char **argv)
          if (nc_def_var_fletcher32(ncid, varid, 0)) ERR;
 
          /* Now I can make it contiguous again. */
-         if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;
+         if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;         
          if (nc_close(ncid)) ERR;
       }
    }
