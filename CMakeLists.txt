@@ -760,7 +760,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 # Option to turn on CDF5 support.
-OPTION(ENABLE_CDF5 "Enable CDF5 Support." OFF)
+OPTION(ENABLE_CDF5 "Enable CDF5 Support." ON)
 IF(ENABLE_CDF5)
     SET(USE_CDF5 ON CACHE BOOL "")
 ENDIF(ENABLE_CDF5)
@@ -1622,6 +1622,10 @@ add_subdirectory("include")
 add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
 
+IF(ENABLE_FILTER_TESTING)
+add_subdirectory(plugins)
+ENDIF()
+
 IF(USE_PNETCDF)
   add_subdirectory(libsrcp)
 ENDIF(USE_PNETCDF)
@@ -1888,6 +1892,9 @@ configure_file(${CMAKE_SOURCE_DIR}/test_common.in ${CMAKE_BINARY_DIR}/test_commo
 SET(ISCMAKE "1")
 configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
 
+IF(ENABLE_EXAMPLES)
+configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
+ENDIF()
 
 ####
 # Export files
