@@ -23,10 +23,6 @@ tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type      \
 tst_utf8_validate tst_utf8_phrases tst_global_fillval                   \
 tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef
 
-if USE_NETCDF4
-TESTPROGRAMS += tst_atts tst_put_vars tst_elatefill
-endif
-
 if USE_PNETCDF
 TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar tst_formatx_pnetcdf
 endif
@@ -95,7 +91,7 @@ test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl CMakeLists.txt
 CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
 tst_*.nc t_nc.nc large_files.nc quick_large_files.nc nc_test_cdf5.nc	\
 tst_diskless3_file.cdl tst_diskless3_memory.cdl tst_diskless4.cdl	\
-unlim.nc benchmark.nc
+benchmark.nc
 
 EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
 if ENABLE_CDF5
