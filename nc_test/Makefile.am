@@ -21,10 +21,6 @@ tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type      \
 tst_utf8_validate tst_utf8_phrases tst_global_fillval                   \
 tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef
 
-if USE_NETCDF4
-TESTPROGRAMS += tst_atts tst_put_vars tst_elatefill
-endif
-
 if USE_PNETCDF
 TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar tst_formatx_pnetcdf
 endif
