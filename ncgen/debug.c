@@ -57,13 +57,15 @@ chkrealloc(void* ptr, size_t size)
 char*
 chkstrdup(const char* s)
 {
-    char* dup = strdup(s);
+    char* dup;
     if(s == NULL) {
 	panic("strdup: null argument");
     }
+    dup = strdup(s);
     if(dup == NULL) {
 	panic("strdup: out of memory");
     }
+    return dup;
 }
 
 int
