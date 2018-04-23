@@ -2,9 +2,10 @@
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
-   Create a test file with default fill values for variables of each type.
+   Create a test file with default fill values for variables of each
+   type.
 
-   $Id: tst_fills.c,v 1.12 2009/03/17 01:22:42 ed Exp $
+   Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -205,56 +206,56 @@ main(int argc, char **argv)
 	 if (nc_inq_varid(ncid, fnames[fixvar], &varid)) ERR;
 	 if (nc_inq_vartype(ncid, varid, &type)) ERR;
 	 switch(type) {
-	    case NC_CHAR:
-	    {
-	       char vals[NVALS];
-	       if (nc_get_var_text(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_CHAR) ERR;
-	    }
-	    break;
-	    case NC_BYTE:
-	    {
-	       signed char vals[NVALS];
-	       if (nc_get_var_schar(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_BYTE) ERR;
-	    }
-	    break;
-	    case NC_SHORT:
-	    {
-	       short vals[NVALS];
-	       if (nc_get_var_short(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_SHORT) ERR;
-	    }
-	    break;
-	    case NC_INT:
-	    {
-	       int vals[NVALS];
-	       if (nc_get_var_int(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_INT) ERR;
-	    }
-	    break;
-	    case NC_FLOAT:
-	    {
-	       float vals[NVALS];
-	       if (nc_get_var_float(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_FLOAT) ERR;
-	    }
-	    break;
-	    case NC_DOUBLE:
-	    {
-	       double vals[NVALS];
-	       if (nc_get_var_double(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if (vals[i] != NC_FILL_DOUBLE) ERR;
-	    }
-	    break;
-	    default:
-	       ERR;
+         case NC_CHAR:
+         {
+            char vals[NVALS];
+            if (nc_get_var_text(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_CHAR) ERR;
+         }
+         break;
+         case NC_BYTE:
+         {
+            signed char vals[NVALS];
+            if (nc_get_var_schar(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_BYTE) ERR;
+         }
+         break;
+         case NC_SHORT:
+         {
+            short vals[NVALS];
+            if (nc_get_var_short(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_SHORT) ERR;
+         }
+         break;
+         case NC_INT:
+         {
+            int vals[NVALS];
+            if (nc_get_var_int(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_INT) ERR;
+         }
+         break;
+         case NC_FLOAT:
+         {
+            float vals[NVALS];
+            if (nc_get_var_float(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_FLOAT) ERR;
+         }
+         break;
+         case NC_DOUBLE:
+         {
+            double vals[NVALS];
+            if (nc_get_var_double(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if (vals[i] != NC_FILL_DOUBLE) ERR;
+         }
+         break;
+         default:
+            ERR;
 	 }
       }
 
@@ -268,61 +269,94 @@ main(int argc, char **argv)
 	 if (nc_inq_varid(ncid, rnames[recvar], &varid)) ERR;
 	 if (nc_inq_vartype(ncid, varid, &type)) ERR;
 	 switch(type) {
-	    case NC_CHAR:
-	    {
-	       char vals[NVALS];
-	       if (nc_get_vara_text(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_CHAR) ERR;
-	    }
-	    break;
-	    case NC_BYTE:
-	    {
-	       signed char vals[NVALS];
-	       if (nc_get_vara_schar(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_BYTE) ERR;
-	    }
-	    break;
-	    case NC_SHORT:
-	    {
-	       short vals[NVALS];
-	       if (nc_get_vara_short(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_SHORT) ERR;
-	    }
-	    break;
-	    case NC_INT:
-	    {
-	       int vals[NVALS];
-	       if (nc_get_vara_int(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_INT) ERR;
-	    }
-	    break;
-	    case NC_FLOAT:
-	    {
-	       float vals[NVALS];
-	       if (nc_get_vara_float(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_FLOAT) ERR;
-	    }
-	    break;
-	    case NC_DOUBLE:
-	    {
-	       double vals[NVALS];
-	       if (nc_get_vara_double(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_DOUBLE) ERR;
-	    }
-	    break;
-	    default:
-	       ERR;
+         case NC_CHAR:
+         {
+            char vals[NVALS];
+            if (nc_get_vara_text(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_CHAR) ERR;
+         }
+         break;
+         case NC_BYTE:
+         {
+            signed char vals[NVALS];
+            if (nc_get_vara_schar(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_BYTE) ERR;
+         }
+         break;
+         case NC_SHORT:
+         {
+            short vals[NVALS];
+            if (nc_get_vara_short(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_SHORT) ERR;
+         }
+         break;
+         case NC_INT:
+         {
+            int vals[NVALS];
+            if (nc_get_vara_int(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_INT) ERR;
+         }
+         break;
+         case NC_FLOAT:
+         {
+            float vals[NVALS];
+            if (nc_get_vara_float(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_FLOAT) ERR;
+         }
+         break;
+         case NC_DOUBLE:
+         {
+            double vals[NVALS];
+            if (nc_get_vara_double(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_DOUBLE) ERR;
+         }
+         break;
+         default:
+            ERR;
 	 }
       }
 
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("*** testing fill mode...");
+#define NDIM1 1
+#define DIM_LEN 4
+#define DIM_NAME "my_dim"
+#define VAR_NAME "my_var"
+   {
+      int ncid;
+      int dimid;
+      int varid;
+      int cmode = 0;
+      char testfile[] = "test.nc";
+      size_t index = 2;
+      int test_val = 42;
+      int no_fill;
+      int ret;
+        
+      if ((ret = nc_create(testfile, cmode, &ncid)))
+         return ret;
+      if ((ret = nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)))
+         return ret;
+      if ((ret = nc_def_var(ncid, VAR_NAME, NC_INT, NDIM1, &dimid, &varid)))
+         return ret;
+      if ((ret = nc_enddef(ncid)))
+         return ret;
+      if ((ret = nc_put_var1_int(ncid, varid, &index, &test_val)))
+         return ret;
+      if ((ret = nc_inq_var_fill(ncid, varid, &no_fill, NULL)))
+         return ret;
+      if (no_fill) ERR;
+      if ((ret = nc_close(ncid)))
+         return ret;
+   }
+   SUMMARIZE_ERR;        
    FINAL_RESULTS;
 }
