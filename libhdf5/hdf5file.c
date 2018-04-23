@@ -862,8 +862,13 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 #endif /* USE_PARALLEL4 */
 
 #ifdef HDF5_HAS_LIBVER_BOUNDS
+#if H5_VERSION_GE(1,10,2)
+   if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_V18) < 0)
+      BAIL(NC_EHDFERR);
+#else
    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_LATEST) < 0)
       BAIL(NC_EHDFERR);
+#endif
 #endif
 
    /* Create the property list. */
