@@ -5,6 +5,11 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
+## 4.7.0 - TBD
+
+* [Enhancement] Made CDF5 support enabled by default.  See [Github #931](https://github.com/Unidata/netcdf-c/issues/931) for more information.
+
+
 ## 4.6.1 - March 19, 2018
 
 * [Bug Fix] Corrected an issue which could result in a dap4 failure. See [Github #888](https://github.com/Unidata/netcdf-c/pull/888) for more information.
