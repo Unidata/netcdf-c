@@ -206,95 +206,139 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	char* s = (char*)nclistget(src,i);
 	size_t slen = strlen(s);
         int nread = 0; /* # of chars read by sscanf */
+	double d;
+        long long ll;
+	unsigned long long ull;
+	int isdouble, isunsigned;
 
+	/* Take char of etype == NC_STRING */
+	if(etype == NC_STRING || etype == NC_URL) {
+	    char** p = (char**)dstmem;
+	    *p = nulldup(s);
+	    continue;
+	}
+
+	/* Take char of etype == NC_CHAR */
+	if(etype == NC_CHAR) {
+	    char* p = (char*)dstmem;
+	    switch (slen) {
+	    case 0:
+		*p = 0;
+		break;
+	    case 1:
+		*p = s[0];
+		break;		
+	    default:	    
+		ncstat = NC_EINVAL;
+		goto done;
+	    }
+	    continue;
+	}
+
+	/* Now the integer types */
+	isdouble = 0;
+	isunsigned = 0;
+
+#if defined(_MSC_VER) && (_MSC_VER == 1500)
+	/* Check for Nan */
+        if (!_strnicmp(s, "NaN", 3)) {
+	    d = NAN;
+	    isdouble = 1;
+	    ll = (long long)0xffffffffffffffff;
+	    ull = (unsigned long long)0xffffffffffffffff;
+	    goto next;
+	}
+#endif
+
+	/* Otherwise we need to try to convert the incoming string to
+           either a double or a (unsigned) long long and then
+           down convert to target etype
+        */
+	/* 1) try unsigned long long */
+        ok = sscanf(s,"%llu%n",&ull,&nread);
+	if(!ok || nread != slen) {
+	    /* 2) try signed long long */
+#ifdef _MSC_VER
+	    ok = sscanf(s, "%I64d%n",&ll,&nread);
+#else
+	    ok = sscanf(s,"%lld%n",&ll,&nread);
+#endif
+	    if(!ok || nread != slen) {
+	        /* 2) try double */
+		ok = sscanf(s,"%lg%n",&d,&nread);
+		if(!ok || nread != slen) {
+		    /* Not convertible */
+		    ncstat = NC_EINVAL;
+		    goto done;
+		}
+		isdouble = 1;
+	    }
+	} else {
+	    isunsigned = 1;
+	}
+	/* Provide values for d, ll , ull */
+        if(isdouble) {
+	    ll = (long long)(d); /* to avoid repeated conversions */
+	    ull = (unsigned long long)ll;
+	} else if(isunsigned) {
+	    ll = (long long)ull;
+	    d = (double) ll;
+	} else {
+	    ull = (unsigned long long)ll;
+	    d = (double) ll;	    
+	}
+#if defined(_MSC_VER) && (_MSC_VER == 1500)
+done:
+#endif
 	ok = 0;
 	switch (etype) {
 	case NC_BYTE: { /* Note that in DAP2, this is unsigned 8-bit integer */
-	    /*Needs special handling because Windows sscanf does not do %hhd*/
-	    char* p = (char*)dstmem;
-	    int ival;
-	    ok = sscanf(s,"%d%n",&ival,&nread);
-#ifdef _MSC_VER
-	    _ASSERTE(_CrtCheckMemory());
-#endif
-	    /* For back compatibility, we allow any value, but force conversion */
-	    ival = (ival & 0xFF);
-	    *p = (char)ival;
+	    signed char* p = (signed char*)dstmem;
+	    *p = (signed char) ll;
 	    } break;
 	case NC_CHAR: {
-	    signed char* p = (signed char*)dstmem;
-	    ok = sscanf(s,"%c%n",p,&nread);
+	    char* p = (char*)dstmem;
+	    *p = (char) (ll & 0xff);
 	    } break;
 	case NC_SHORT: {
 	    short* p = (short*)dstmem;
-	    ok = sscanf(s,"%hd%n",p,&nread);
+	    *p = (short) ll;
 	    } break;
 	case NC_INT: {
 	    int* p = (int*)dstmem;
-	    ok = sscanf(s,"%d%n",p,&nread);
+	    *p = (int) ll;
 	    } break;
 	case NC_FLOAT: {
 	    float* p = (float*)dstmem;
-	    ok = sscanf(s,"%g%n",p,&nread);
-#if defined(_MSC_VER) && (_MSC_VER == 1500)
-	    if (!_strnicmp(s, "NaN", 3)) {
-	      ok = 1;
-	      nread = 3;
-	    }
-#endif
+	    *p = (float)d;
 	    } break;
 	case NC_DOUBLE: {
 	    double* p = (double*)dstmem;
-	    ok = sscanf(s,"%lg%n",p,&nread);
-#if defined(_MSC_VER) && (_MSC_VER == 1500)
-	    if (!_strnicmp(s, "NaN", 3)) {
-	      ok = 1;
-	      nread = 3;
-	    }
-#endif
+	    *p = d;
 	    } break;
 	case NC_UBYTE: {
 	    unsigned char* p = (unsigned char*)dstmem;
-#ifdef _MSC_VER
-	    unsigned int uval;
-	    ok = sscanf(s,"%u%n",&uval,&nread);
-	    _ASSERTE(_CrtCheckMemory());
-	    /* For back compatibility, we allow any value, but force conversion */
-	    uval = (uval & 0xFF);
-	    *p = (unsigned char)uval;
-#else
-	    ok = sscanf(s,"%hhu%n",p,&nread);
-#endif
+	    *p = (unsigned char)ull;
 	    } break;
 	case NC_USHORT: {
 	    unsigned short* p = (unsigned short*)dstmem;
-	    ok = sscanf(s,"%hu%n",p,&nread);
+	    *p = (unsigned short)ull;
 	    } break;
 	case NC_UINT: {
 	    unsigned int* p = (unsigned int*)dstmem;
-	    ok = sscanf(s,"%u%n",p,&nread);
+	    *p = (unsigned int)ull;
 	    } break;
 	case NC_INT64: {
 	    long long* p = (long long*)dstmem;
-#ifdef _MSC_VER
-		ok = sscanf(s, "%I64d%n", p,&nread);
-#else
-		ok = sscanf(s,"%lld%n",p,&nread);
-#endif
+	    *p = ll;
 	} break;
 	case NC_UINT64: {
 	    unsigned long long* p = (unsigned long long*)dstmem;
-	    ok = sscanf(s,"%llu%n",p,&nread);
-	    } break;
-	case NC_STRING: case NC_URL: {
-	    char** p = (char**)dstmem;
-	    *p = nulldup(s);
-	    ok = 1;
+	    *p = ull;
 	    } break;
 	default:
-   	    PANIC1("unexpected nc_type: %d",(int)etype);
+	    {ncstat = NC_EINVAL; goto done;}
 	}
-	if(ok != 1 || nread != slen) {ncstat = NC_EINVAL; goto done;}
 	dstmem += memsize;
     }
 done:
