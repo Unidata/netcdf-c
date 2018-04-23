@@ -2,6 +2,7 @@
 #NB=1
 DB=1
 #X=-x
+
 #FAST=1
 #PROF=1
 
@@ -178,6 +179,7 @@ if test "x${PROF}" = x1 ; then
 CFLAGS="${CFLAGS} -pg"
 LDFLAGS="${LDFLAGS} -pg"
 fi
+
 
 #FLAGS="${FLAGS} --enable-stdio"
 
