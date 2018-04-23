@@ -58,7 +58,9 @@ if test "x$NOP" != x1 ; then
 echo "***Testing url prefix parameters"
 buildurl $PREFIX ""
 # Invoke ncdump to extract the URL
+
 echo "command: ${NCDUMP} -h $url"
+
 
 ${NCDUMP} -h "$url" >./tmp_testurl 2> ./errtmp_testurl
 if test "x${SHOW}" = x1 ; then cat ./tmp ; fi
@@ -83,7 +85,6 @@ if test "x$NOS" != x1 ; then
 echo "***Testing url suffix parameters"
 buildurl "" $SUFFIX
 # Invoke ncdump to extract the URL
-echo "command: ${NCDUMP} -h $url"
 ${NCDUMP} -h "$url" >./tmp_testurl  2> ./errtmp_testurl
 if test "x${SHOW}" = x1 ; then cat ./tmp_testurl ; fi
 fi
@@ -93,7 +94,6 @@ if test "x$NOB" != x1 ; then
 echo "***Testing url prefix+suffix parameters"
 buildurl $BOTHP $BOTHS
 # Invoke ncdump to extract the URL
-echo "command: ${NCDUMP} -h $url"
 ${NCDUMP} -h "$url" >./tmp_testurl 2> ./errtmp_testurl
 if test "x${SHOW}" = x1 ; then cat ./tmp_testurl ; fi
 fi
