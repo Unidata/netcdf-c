@@ -73,7 +73,6 @@ for x in ${TESTSET} ; do
     if test "x${t}" = "x${x}" ; then isxfail=1; fi
   done
   ok=1
-  echo command: ${VALGRIND} ${NCDUMP} ${FLAGS} "${url}"
   if ${VALGRIND} ${NCDUMP} ${FLAGS} "${url}" | sed 's/\\r//g' > ${x}.dmp ; then ok=$ok; else ok=0; fi
   # compare with expected
   if diff -w ${EXPECTED}/${x}.dmp ${x}.dmp  ; then ok=$ok; else ok=0; fi

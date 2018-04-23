@@ -315,6 +315,8 @@ rccompile(const char* path)
 	    }
 	    ncbytesnull(tmp);
 	    triple->host = ncbytesextract(tmp);
+	    if(strlen(triple->host)==0)
+		{free(triple->host); triple->host = NULL;}
         }
         /* split off key and value */
         key=line;
@@ -331,7 +333,8 @@ rccompile(const char* path)
         rctrim(triple->value);
 #ifdef D4DEBUG
 	fprintf(stderr,"rc: host=%s key=%s value=%s\n",
-		triple->host,triple->key,triple->valu);
+		(triple->host != NULL ? triple->host : "<null>"),
+		triple->key,triple->valu);
 #endif
 	nclistpush(rc,triple);
 	triple = NULL;
@@ -371,7 +374,9 @@ rclocate(const char* key, const char* hostport)
            (because we have checked all other cases)*/
         if(hplen == 0) {found=1;break;}
         /* do hostport match */
-        t = strcmp(hostport,triple->host);
+	t = 0;
+	if(triple->host != NULL)
+            t = strcmp(hostport,triple->host);
         if(t ==  0) {found=1; break;}
     }
     return (found?triple:NULL);

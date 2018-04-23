@@ -17,10 +17,10 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 # The source files.
 libdispatch_la_SOURCES = dparallel.c dcopy.c dfile.c ddim.c datt.c	\
 dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
-dvarinq.c dinternal.c ddispatch.c dutf8.c                               \
-nclog.c dstring.c                           \
-ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c                        \
-nc.c nclistmgr.c drc.c dauth.c doffsets.c dwinpath.c dutil.c
+dvarinq.c dinternal.c ddispatch.c dutf8.c nclog.c dstring.c ncuri.c	\
+nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c drc.c		\
+dauth.c doffsets.c dwinpath.c dutil.c dreadonly.c dnotnc4.c dnotnc3.c	\
+crc32.c crc32.h
 
 # Add the utf8 codebase
 libdispatch_la_SOURCES += utf8proc.c utf8proc.h

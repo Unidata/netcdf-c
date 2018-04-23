@@ -11,12 +11,12 @@
 The output file name is chosen by using the following in priority order:
 1. -o flag name
 2. command line input file with .cdl changed to .nc
-3. dataset name as specified in netcdf <name> {...} 
+3. dataset name as specified in netcdf <name> {...}
 */
 void
 define_netcdf(void)
 {
-    char filename[2048+1];
+    char filename[2049];
 
     /* Rule for specifying the dataset name:
 	1. use -o name
@@ -37,8 +37,8 @@ define_netcdf(void)
 	    p = strrchr(filename,'.');
 	    if(p != NULL) {*p= '\0';}
 	    p = strrchr(filename,'/');
-	    if(p != NULL) {memmove(filename,(p+1),2048);}
-	    
+	    if(p != NULL) {memmove(filename,(p+1),(2048-strlen(cdlname)));}
+
        } else {/* construct name from dataset name */
 	    strncpy(filename,datasetname,2048); /* Reserve space for extension, terminating '\0' */
         }
@@ -100,7 +100,7 @@ topfqn(Symbol* sym)
     char* parentfqn;
     Symbol* parent;
 #endif
-    
+
     if(sym->fqn != NULL)
 	return; /* already defined */
 
@@ -116,9 +116,9 @@ topfqn(Symbol* sym)
             topfqn(parent);
         }
         parentfqn = parent->fqn;
-    
+
         fqnname = fqnescape(sym->name);
-        fqn = (char*)malloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);    
+        fqn = (char*)malloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);
         strcpy(fqn,parentfqn);
         strcat(fqn,"/");
         strcat(fqn,fqnname);
@@ -142,7 +142,7 @@ nestedfqn(Symbol* sym)
     char* fqn;
     char* fqnname;
     Symbol* parent;
-    
+
     if(sym->fqn != NULL)
 	return; /* already defined */
 
@@ -153,7 +153,7 @@ nestedfqn(Symbol* sym)
     assert(parent->fqn != NULL);
 
     fqnname = fqnescape(sym->name);
-    fqn = (char*)malloc(strlen(fqnname) + strlen(parent->fqn) + 1 + 1);    
+    fqn = (char*)malloc(strlen(fqnname) + strlen(parent->fqn) + 1 + 1);
     strcpy(fqn,parent->fqn);
     strcat(fqn,".");
     strcat(fqn,fqnname);
@@ -172,7 +172,7 @@ attfqn(Symbol* sym)
     char* fqnname;
     char* parentfqn;
     Symbol* parent;
-    
+
     if(sym->fqn != NULL)
 	return; /* already defined */
 
@@ -185,7 +185,7 @@ attfqn(Symbol* sym)
 	parentfqn = parent->fqn;
 
     fqnname = fqnescape(sym->name);
-    fqn = (char*)malloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);    
+    fqn = (char*)malloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);
     strcpy(fqn,parentfqn);
     strcat(fqn,"_");
     strcat(fqn,fqnname);
@@ -221,7 +221,7 @@ cprefixed(List* prefix, char* suffix, char* separator)
 	Symbol* sym = (Symbol*)listget(prefix,i);
         strcat(result,sym->name); /* append "<prefix[i]/>"*/
 	strcat(result,separator);
-    }    
+    }
     strcat(result,suffix); /* append "<suffix>"*/
     return result;
 }
