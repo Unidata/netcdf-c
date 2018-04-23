@@ -10,7 +10,7 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include "netcdf.h"
-#include "math.h"
+#include <math.h>
 
 #define FILE_NAME "tst_converts2.nc"
 #define VAR_NAME "Monkey"

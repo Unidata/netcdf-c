@@ -1,11 +1,4 @@
-dnl $Id: acinclude.m4,v 1.34 2009/10/14 21:12:01 dmh Exp $
 dnl UD macros for netcdf configure
-
-
-dnl Convert a string to all uppercase.
-dnl
-define([uppercase],
-[translit($1, abcdefghijklmnopqrstuvwxyz, ABCDEFGHIJKLMNOPQRSTUVWXYZ)])
 
 dnl 
 dnl UD_CHECK_IEEE
