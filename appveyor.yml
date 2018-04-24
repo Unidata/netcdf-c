@@ -8,9 +8,25 @@ environment:
 platform:
     - x64
 
+# Do not build feature branch with open Pull Requests
+skip_branch_with_pr: true
+
 install:
   - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
   - cmd: conda update conda
-  - cmd: conda install hdf5 curl
+  - cmd: conda install hdf5 curl hdf4
   - cmd: dir
+
+configuration: Release
+
+build:
+  parallel: true
+
+
+# Run a custom script.
+build_script:
+  - cmd: mkdir build
+  - cmd: cd build
+  - cmd: cmake ..
+  - cmd: cmake --build . --config Release --target netcdf
