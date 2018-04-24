@@ -4,6 +4,8 @@ environment:
   matrix:
     - TARGET_ARCH: x64
       CONDA_INSTALL_LOCN: C:\\Miniconda-x64
+      CMAKE_GENERATOR: "Visual Studio 15 Win64"
+
 
 platform:
     - x64
@@ -26,6 +28,6 @@ build: off
 build_script:
   - cmd: mkdir %SRC_DIR%\build
   - cmd: cd %SRC_DIR%\build
-  - cmd: cmake .. -G "Visual Studio 15 Win64" -DCMAKE_BUILD_TYPE=Release %SRC_DIR%
+  - cmd: cmake %SRC_DIR% -G %CMAKE_GENERATOR% -DCMAKE_BUILD_TYPE=Release
   - cmd: if errorlevel 1 exit 1
   - cmd: cmake --build . --config Release --target netcdf
