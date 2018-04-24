@@ -22,10 +22,6 @@ configuration: Release
 
 build: off
 
-build:
-  parallel: true
-
-
 # Run a custom script.
 build_script:
   - cmd: mkdir %SRC_DIR%\build
