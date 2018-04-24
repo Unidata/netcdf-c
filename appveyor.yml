@@ -26,8 +26,8 @@ build: off
 
 # Run a custom script.
 build_script:
-  - cmd: mkdir %SRC_DIR%\build
-  - cmd: cd %SRC_DIR%\build
-  - cmd: cmake %SRC_DIR% -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release
+  - cmd: mkdir build
+  - cmd: cd build
+  - cmd: cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release
   - cmd: if errorlevel 1 exit 1
   - cmd: cmake --build . --config Release --target netcdf
