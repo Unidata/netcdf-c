@@ -28,5 +28,5 @@ build:
 build_script:
   - cmd: mkdir build
   - cmd: cd build
-  - cmd: cmake ..
+  - cmd: cmake .. -G "Visual Studio 15 Win64"
   - cmd: cmake --build . --config Release --target netcdf
