@@ -6,3 +6,8 @@ environment:
 
 platform:
     - x64
+
+install:
+  - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
+  - cmd: conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
+  - cmd: conda update conda
