@@ -3,7 +3,7 @@ image: Visual Studio 2017
 environment:
   matrix:
     - TARGET_ARCH: x64
-    - CONDA_INSTALL_LOCN: C:\\Miniconda-x64
+      CONDA_INSTALL_LOCN: C:\\Miniconda-x64
 
 platform:
     - x64
@@ -20,13 +20,16 @@ install:
 
 configuration: Release
 
+build: off
+
 build:
   parallel: true
 
 
 # Run a custom script.
 build_script:
-  - cmd: mkdir build
-  - cmd: cd build
-  - cmd: cmake .. -G "Visual Studio 15 Win64"
+  - cmd: mkdir %SRC_DIR%\build
+  - cmd: cd %SRC_DIR%\build
+  - cmd: cmake .. -G "Visual Studio 15 Win64" -DCMAKE_BUILD_TYPE=Release %SRC_DIR%
+  - cmd: if errorlevel 1 exit 1
   - cmd: cmake --build . --config Release --target netcdf
