@@ -1365,7 +1365,10 @@ ENDMACRO()
 # A basic script used to convert m4 files
 FIND_PROGRAM(NC_M4 NAMES m4)
 IF(NC_M4)
-    SET(HAVE_M4 TRUE)
+  MESSAGE(STATUS "Found m4: ${NC_M4}")
+  SET(HAVE_M4 TRUE)
+ELSE()
+  MESSAGE("m4 not found.");
 ENDIF()
 
 MACRO(GEN_m4 filename)
