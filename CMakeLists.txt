@@ -1368,7 +1368,7 @@ IF(NC_M4)
   MESSAGE(STATUS "Found m4: ${NC_M4}")
   SET(HAVE_M4 TRUE)
 ELSE()
-  MESSAGE("m4 not found.");
+  MESSAGE(STATUS "m4 not found.");
 ENDIF()
 
 MACRO(GEN_m4 filename)
