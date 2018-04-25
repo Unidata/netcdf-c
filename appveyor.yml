@@ -4,7 +4,7 @@ environment:
   matrix:
     - TARGET_ARCH: x64
       CONDA_INSTALL_LOCN: C:\\Miniconda-x64
-      MINGW_INSTALL_LOCN: C:\\mingw-w64\\x86_64-7.2.0-posix-seh-rt_v5-rev1
+      MINGW_INSTALL_LOCN: C:\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1
       CMAKE_GENERATOR: "Visual Studio 15 Win64"
 
 
@@ -19,7 +19,7 @@ install:
   - cmd: conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
   - cmd: conda update conda
   - cmd: conda install hdf5 curl hdf4
-  - cmd: dir C:\\
+  - cmd: dir C:\
   - cmd: dir %MINGW_INSTALL_LOCN%
 
 configuration: Release
