@@ -1363,7 +1363,7 @@ MACRO(ADD_EXTRA_DIST files)
 ENDMACRO()
 
 # A basic script used to convert m4 files
-FIND_PROGRAM(NC_M4 NAMES m4)
+FIND_PROGRAM(NC_M4 NAMES m4 m4.exe)
 IF(NC_M4)
   MESSAGE(STATUS "Found m4: ${NC_M4}")
   SET(HAVE_M4 TRUE)
