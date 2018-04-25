@@ -4,8 +4,8 @@ environment:
   matrix:
     - TARGET_ARCH: x64
       CONDA_INSTALL_LOCN: C:\\Miniconda-x64
-      MINGW_INSTALL_LOCN: C:\msys64
-      MINGW_BIN_LOCN: C:\msys64\usr\bin
+      MSYS2_INSTALL_LOCN: C:\msys64
+      MSYS2_BIN_LOCN: C:\msys64\usr\bin
       CMAKE_GENERATOR: "Visual Studio 15 Win64"
 
 
@@ -16,16 +16,11 @@ platform:
 skip_branch_with_pr: true
 
 install:
-  - cmd: set PATH=%PATH%:%MINGW_BIN_LOCN%
-  - cmd: dir %MINGW_INSTALL_LOCN%
-  - cmd: dir %MINGW_BIN_LOCN%
+  - cmd: set PATH=%PATH%:%MSYS2_BIN_LOCN%
   - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
   - cmd: conda update conda
   - cmd: conda install hdf5 curl hdf4
-  - cmd: pacman --help
-  - cmd: m4 --help
-
 
 configuration: Release
 
