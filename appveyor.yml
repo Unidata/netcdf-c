@@ -24,8 +24,9 @@ install:
   - cmd: conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
   - cmd: conda update conda
   - cmd: conda install hdf5 curl hdf4
-  - cmd: m4 --help
   - cmd: pacman --help
+  - cmd: m4 --help
+
 
 configuration: Release
 
