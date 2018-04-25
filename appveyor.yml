@@ -4,6 +4,7 @@ environment:
   matrix:
     - TARGET_ARCH: x64
       CONDA_INSTALL_LOCN: C:\\Miniconda-x64
+      MINGW_INSTALL_LOCN: C:\\mingw-w64\\x86_64-7.2.0-posix-seh-rt_v5-rev1
       CMAKE_GENERATOR: "Visual Studio 15 Win64"
 
 
@@ -18,8 +19,7 @@ install:
   - cmd: conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
   - cmd: conda update conda
   - cmd: conda install hdf5 curl hdf4
-  - cmd: dir
-  - cmd: '@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString(\'https://chocolatey.org/install.ps1\'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"'
+  - cmd: dir %MINGW_INSTALL_LOCN%
 
 configuration: Release
 
