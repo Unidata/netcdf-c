@@ -25,6 +25,7 @@ install:
   - cmd: conda update conda
   - cmd: conda install hdf5 curl hdf4
   - cmd: m4 --help
+  - cmd: pacman --help
 
 configuration: Release
 
