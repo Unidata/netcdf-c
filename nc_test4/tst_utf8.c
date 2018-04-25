@@ -293,13 +293,13 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
       if (nc_def_var(ncid, BORING_NAME, NC_CHAR, 0, NULL, &varid)) ERR;
       if (nc_rename_var(ncid, varid, name_utf8)) ERR;
-      if (nc_inq_varname(ncid, 0, name_in));
+      if (nc_inq_varname(ncid, 0, name_in)) ERR;
       if (!strcmp(name_in, norm_utf8)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Reopen the file and check again. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
-      if (nc_inq_varname(ncid, 0, name_in));
+      if (nc_inq_varname(ncid, 0, name_in)) ERR;
       if (!strcmp(name_in, norm_utf8)) ERR;
       if (nc_close(ncid)) ERR;
    }
