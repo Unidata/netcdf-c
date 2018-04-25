@@ -17,11 +17,12 @@ skip_branch_with_pr: true
 
 install:
   - cmd: set PATH=%PATH%:%MINGW_BIN_LOCN%
+  - cmd: dir %MINGW_INSTALL_LOCN%
+  - cmd: dir %MINGW_BIN_LOCN%
   - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
   - cmd: conda update conda
   - cmd: conda install hdf5 curl hdf4
-  - cmd: dir %MINGW_BIN_LOCN%
   - cmd: m4 --help
 
 configuration: Release
