@@ -18,7 +18,7 @@ skip_branch_with_pr: true
 install:
   - cmd: set SRC_DIR=%cd%
   - cmd: set INSTALL_LOC=%SRC_DIR%\install
-  - cmd: set PATH=%PATH%;%MSYS2_BIN_LOCN%;%INSTALL_LOC%
+  - cmd: set PATH=%PATH%;%MSYS2_BIN_LOCN%;%INSTALL_LOC%\bin;%INSTALL_LOC%\lib
   - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
   - cmd: conda update conda
@@ -35,6 +35,7 @@ build_script:
   - cmd: cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%INSTALL_LOC%
   - cmd: if errorlevel 1 exit 1
   - cmd: cmake --build . --config Release -- /maxcpucount:8
+  - cmd: cmake --build . --config Release --target install -- /maxcpucount:8
 
 
 test_script:
