@@ -1557,9 +1557,15 @@ ENDMACRO()
 # Determine if 'bash' is on the system.
 ##
 
-FIND_PROGRAM(HAVE_BASH NAMES bash)
+FIND_PROGRAM(HAVE_BASH bash)
 IF(HAVE_BASH)
-  MESSAGE(STATUS "Found bash: ${HAVE_BASH}")
+  STRING(COMPARE EQUAL "${HAVE_BASH}" "C:/Windows/System32/bash.exe" IS_BASH_EXE)
+  IF(NOT IS_BASH_EXE)
+    MESSAGE(STATUS "Found bash: ${HAVE_BASH}")
+  ELSE()
+    MESSAGE(STATUS "Ignoring ${HAVE_BASH}")
+    SET(HAVE_BASH "")
+  ENDIF()
 ELSE()
   MESSAGE(STATUS "Bash shell not found; disabling shell script tests.")
 ENDIF()
