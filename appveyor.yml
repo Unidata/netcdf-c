@@ -34,9 +34,9 @@ build_script:
   - cmd: cd build
   - cmd: cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%INSTALL_LOC% -DENABLE_BASH_SCRIPT_TESTING=OFF
   - cmd: if errorlevel 1 exit 1
-  - cmd: cmake --build . --config Release --target Experimental -- /maxcpucount:2
-#  - cmd: cmake --build . --config Release --target install -- /maxcpucount:2
-
+  - cmd: cmake --build . --config Release -- /maxcpucount:2
+  - cmd: cmake --build . --config Release --target install -- /maxcpucount:2
+  - cmd: ctest -j 2
 
 #test_script:
 #  - cmd: ctest . -j 2
