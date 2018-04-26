@@ -1454,7 +1454,6 @@ AC_CONFIG_FILES([Makefile
                  ncgen/Makefile
                  examples/Makefile
                  examples/C/Makefile
-                 examples/C/hdf5plugins/Makefile
                  examples/CDL/Makefile
                  oc2/Makefile
                  libdap2/Makefile
@@ -1468,13 +1467,13 @@ AC_CONFIG_FILES([Makefile
                  docs/images/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
-                 nc_test4/hdf5plugins/Makefile
                  nc_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile
                  ncdap_test/expected3/Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
+                 plugins/Makefile
 		 ],
                  [test -f  nc-config && chmod 755 nc-config])
 

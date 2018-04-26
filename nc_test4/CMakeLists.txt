@@ -93,5 +93,3 @@ IF(TEST_PARALLEL4)
 ENDIF()
 
 ADD_EXTRA_DIST(findplugin.in)
-
-ADD_SUBDIRECTORY(hdf5plugins)

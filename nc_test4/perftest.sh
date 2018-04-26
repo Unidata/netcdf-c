@@ -21,12 +21,6 @@ ARGS="--treedepth=6 \
 --varrank=2 \
 --nvarattrs=500"
 
-if test "x$MEM" = x1 ; then
-CMD="valgrind --leak-check=full"
-elif test "x$DEBUG" = x1 ; then
-CMD="gdb --args "
-fi
-
 echo "timing bigmeta:"
 ${execdir}/bigmeta $ARGS
 echo "timing openbigmeta:"
@@ -35,3 +29,4 @@ if test "x$PROF" = x1 ; then
 rm -f perftest.txt
 gprof openbigmeta gmon.out >perftest.txt
 fi
+
