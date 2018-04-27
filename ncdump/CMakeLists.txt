@@ -121,7 +121,9 @@ ENDIF(MSVC)
   ENDIF(USE_STRICT_NULL_BYTE_HEADER_PADDING)
 
   add_sh_test(ncdump tst_nccopy3)
-  SET_TESTS_PROPERTIES(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
+  IF(HAVE_BASH)
+    SET_TESTS_PROPERTIES(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
+  ENDIF(HAVE_BASH)
 
   add_sh_test(ncdump tst_nccopy3_subset)
   add_sh_test(ncdump tst_charfill)
@@ -189,9 +191,11 @@ ENDIF(MSVC)
     add_sh_test(ncdump_sh tst_fillbug)
 
     add_sh_test(ncdump tst_netcdf4_4)
-    IF(MSVC)
-      SET_TESTS_PROPERTIES(ncdump_tst_netcdf4_4 PROPERTIES WILL_FAIL TRUE)
-    ENDIF(MSVC)
+    IF(HAVE_BASH)
+      IF(MSVC)
+        SET_TESTS_PROPERTIES(ncdump_tst_netcdf4_4 PROPERTIES WILL_FAIL TRUE)
+      ENDIF(MSVC)
+    ENDIF(HAVE_BASH)
 
     ###
     # Some test reordering was required to ensure these tests
@@ -207,7 +211,9 @@ ENDIF(MSVC)
     add_sh_test(ncdump_shell tst_h_scalar)
 
     add_sh_test(ncdump tst_nccopy4)
-    SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
+    IF(HAVE_BASH)
+      SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
+    ENDIF(HAVE_BASH)
 
     IF(USE_NETCDF4)
       add_sh_test(ncdump tst_ncgen4)
