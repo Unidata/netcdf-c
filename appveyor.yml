@@ -36,8 +36,6 @@ build_script:
   - cmd: if errorlevel 1 exit 1
   - cmd: cmake --build . --config Release -- /maxcpucount:2
   - cmd: cmake --build . --config Release --target install -- /maxcpucount:2
-  - cmd: ctest -I 3,3
 
-#test_script:
-#  - cmd: ctest . -j 2
-#  - cmd: if errorlevel 1 exit 1
+test_script:
+  - cmd: ctest -I 3,3
