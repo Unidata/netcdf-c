@@ -157,7 +157,7 @@ NC_RO_rename_var(int ncid, int varid, const char *name)
  * 
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param startp Array of start indicies.
+ * @param startp Array of start indices.
  * @param countp Array of counts.
  * @param op pointer that gets the data.
  * @param memtype The type of these data in memory.

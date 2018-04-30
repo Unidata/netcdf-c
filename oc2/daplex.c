@@ -11,7 +11,7 @@
 
 #undef URLCVT /* NEVER turn this on */
 
-/* Do we %xx decode all or part of a DAP Identifer: see dapdecode() */
+/* Do we %xx decode all or part of a DAP Identifier: see dapdecode() */
 #define DECODE_PARTIAL
 
 #define DAP2ENCODE

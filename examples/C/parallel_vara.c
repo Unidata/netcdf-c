@@ -12,7 +12,7 @@
  *    global_ny == NY and
  *    global_nx == (NX * number of MPI processes).
  * The data partitioning pattern is a column-wise partitioning across all
- * proceses. Each process writes a subarray of size ny * nx.
+ * processes. Each process writes a subarray of size ny * nx.
  *
  *    To compile:
  *        mpicc -O2 parallel_vara.c -o parallel_vara -lnetcdf -lpnetcdf

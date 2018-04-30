@@ -2,7 +2,7 @@
  * It is used to test if netCDF can correctly calculate the file offsets
  * for the two new variables, in particular for files that align the
  * fix-size variables to a boundary larger than 4 bytes, for instance
- * a file created by PnetCDF with defaut alignment of 512 bytes.
+ * a file created by PnetCDF with default alignment of 512 bytes.
  *
  * This program should run after tst_pnetcdf.c and takes the output file
  * from tst_pnetcdf.c as input on the command-line.
