@@ -471,7 +471,7 @@ nctypelen(nc_type type)
 
 /** \internal
 \ingroup variables
-Find the length of a type. Redunant over nctypelen() above. */
+Find the length of a type. Redundant over nctypelen() above. */
 size_t
 NC_atomictypelen(nc_type xtype)
 {
@@ -769,7 +769,7 @@ nc_free_string(size_t len, char **data)
  * or any functions which writes data to the file.
  *
  * Deflation and shuffline require chunked data. If this function is
- * called on a variable with contigious data, then the data is changed
+ * called on a variable with contiguous data, then the data is changed
  * to chunked data, with default chunksizes. Use nc_def_var_chunking()
  * to tune performance with user-defined chunksizes.
  *
@@ -871,7 +871,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
  * or any functions which writes data to the file.
  *
  * Checksums require chunked data. If this function is called on a
- * variable with contigious data, then the data is changed to chunked
+ * variable with contiguous data, then the data is changed to chunked
  * data, with default chunksizes. Use nc_def_var_chunking() to tune
  * performance with user-defined chunksizes.
  *

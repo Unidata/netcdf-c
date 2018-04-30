@@ -102,7 +102,7 @@ main()
 		    H5T_NATIVE_DOUBLE) < 0) ERR;
       if (H5Tcommit(grpid, S1_TYPE_NAME, s1_typeid) < 0) ERR;
       
-      /* Create a vlen type. Its a vlen of stuct s1. */
+      /* Create a vlen type. Its a vlen of struct s1. */
       if ((vlen_typeid = H5Tvlen_create(s1_typeid)) < 0) ERR;
       if (H5Tcommit(grpid, VLEN_TYPE_NAME, vlen_typeid) < 0) ERR;
       

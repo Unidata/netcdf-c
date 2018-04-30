@@ -3034,7 +3034,7 @@ This example is from libsrc4/tst_vars.c.
 
       ...
 
-      /* Open the file and make sure nc_inq_varids yeilds correct
+      /* Open the file and make sure nc_inq_varids yields correct
        * result. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
@@ -3108,7 +3108,7 @@ This example is from libsrc4/tst_dims.c.
 
       ...
 
-      /* Open the file and make sure nc_inq_dimids yeilds correct
+      /* Open the file and make sure nc_inq_dimids yields correct
        * result. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
@@ -11764,7 +11764,7 @@ programmers.
 
 Fortran compilers do not always agree as to how data should be laid
 out in memory. This makes handling compound and variable length array
-types compiler and platform dependant.
+types compiler and platform dependent.
 
 (This is also true for C, but the clever HDF5 configuration has solved
 this problem for C. Alas, not for Fortran.) 

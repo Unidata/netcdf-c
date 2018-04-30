@@ -7,7 +7,7 @@
    for consistency.  Leaves the file around afterwards.
 
    Based on a program to test the nasa look-alike program, so not the
-   most appropropriate test. See ../nctest for a complete spec test.
+   most appropriate test. See ../nctest for a complete spec test.
 */
 
 #define REDEF
