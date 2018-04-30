@@ -9,7 +9,7 @@
 #include "ezxml.h"
 
 /*
-The primary purpose of this code is to recursivly traverse
+The primary purpose of this code is to recursively traverse
 the incoming data to get the endianness correct.
 */
 
