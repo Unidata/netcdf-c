@@ -274,7 +274,7 @@ function will write a 1 if the deflate filter is turned on for this
 variable, and a 0 otherwise. \ref ignored_if_null.
 
 \param deflate_levelp If the deflate filter is in use for this
-variable, the deflate_level will be writen here. \ref ignored_if_null.
+variable, the deflate_level will be written here. \ref ignored_if_null.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOTNC4 Not a netCDF-4 file.

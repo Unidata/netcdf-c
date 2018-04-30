@@ -510,7 +510,7 @@ ncio_px_rel(ncio *const nciop, off_t offset, int rflags)
    * The blkextent can't be more than twice the pxp->blksz. That's
    because the pxp->blksize is the sizehint, and in ncio_px_init2 the
    buffer (pointed to by pxp->bf-base) is allocated with 2 *
-   *sizehintp. This is checked (unneccesarily) more than once in
+   *sizehintp. This is checked (unnecessarily) more than once in
    asserts.
 
    * If this is called on a newly opened file, pxp->bf_offset will be
@@ -1722,7 +1722,7 @@ unwind_new:
    nciopp - pointer to pointer that will get address of newly created
    and inited ncio struct.
 
-   igetvpp - handle to pass back pointer to data from inital page
+   igetvpp - handle to pass back pointer to data from initial page
    read, if this were ever used, which it isn't.
 */
 int
