@@ -372,7 +372,7 @@ fi
 AC_MSG_RESULT($enable_dap_auth_tests)
 
 # Control if groups are supported in [netcdf4]dap2 code
-AC_MSG_CHECKING([whether [netcdf4] group names for DAP2 hould be enabled (default on)])
+AC_MSG_CHECKING([whether [netcdf4] group names for DAP2 should be enabled (default on)])
 AC_ARG_ENABLE([dap-groups],
               [AS_HELP_STRING([--disable-dap-groups],
                                  [disable [netcdf4] DAP2 group names])])

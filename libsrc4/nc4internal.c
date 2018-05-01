@@ -303,7 +303,7 @@ nc4_find_g_var_nc(NC *nc, int ncid, int varid,
  * @param grp Pointer to group info struct.
  * @param dimid Dimension ID to find.
  * @param dim Pointer that gets pointer to dim info if found.
- * @param dim_grp Pointer that gets pointer to group info of group that contians dimension.
+ * @param dim_grp Pointer that gets pointer to group info of group that contains dimension.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADDIM Dimension not found.
@@ -775,7 +775,7 @@ exit:
 
 /**
  * @internal Add to the end of a group list. Can't use 0 as a
- * new_nc_grpid - it's reserverd for the root group.
+ * new_nc_grpid - it's reserved for the root group.
  *
  * @param parent The parent group.
  * @param name Name of the group.
@@ -1583,7 +1583,7 @@ nc_set_log_level(int new_level)
       nc4_hdf5_initialize();
 
    /* If the user wants to completely turn off logging, turn off HDF5
-      logging too. Now I truely can't think of what to do if this
+      logging too. Now I truly can't think of what to do if this
       fails, so just ignore the return code. */
    /* if (new_level == NC_TURN_OFF_LOGGING) */
    /* { */

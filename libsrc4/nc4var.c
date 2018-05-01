@@ -545,4 +545,3 @@ NC4_var_par_access(int ncid, int varid, int par_access)
    return NC_NOERR;
 #endif /* USE_PARALLEL4 */
 }
-
