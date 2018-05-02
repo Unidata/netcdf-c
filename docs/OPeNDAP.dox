@@ -675,7 +675,7 @@ follows.
         Related CURL Flags: CURLOPT_KEYPASSWORD
     HTTP.SSL.CAPATH
         Type: String representing directory
-        Description: Path to a directory containing trusted certificates for validating server sertificates.
+        Description: Path to a directory containing trusted certificates for validating server certificates.
         Related CURL Flags: CURLOPT_CAPATH
     HTTP.SSL.VALIDATE
         Type: boolean ("1"/"0")

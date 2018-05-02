@@ -23,7 +23,7 @@ struct PUTodometer {
  *
  * @param odom Pointer to odometer.
  * @param rank
- * @param start Start indicies.
+ * @param start Start indices.
  * @param edges Counts.
  * @param stride Strides.
  *
