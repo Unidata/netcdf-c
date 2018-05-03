@@ -1,4 +1,4 @@
-/*! Testing for proper read of little-endian variables in an hdf4 file.
+/* Testing for proper read of little-endian variables in an hdf4 file.
  *
  * Added to debug issue NCF-332. Based on code submitted by
  * https://github.com/Unidata/netcdf-c/issues/113.
@@ -89,7 +89,6 @@ int create_hdf_file(int dtype)
 
    return 0;
 }
-
 
 /* Create and then read the HDF4 test file. */
 int test_read_write(int dtype)
