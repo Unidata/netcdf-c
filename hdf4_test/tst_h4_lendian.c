@@ -1,4 +1,4 @@
-/*! Testing for proper read of little-endian variables in an hdf4 file.
+/* Testing for proper read of little-endian variables in an hdf4 file.
  *
  * Added to debug issue NCF-332. Based on code submitted by
  * https://github.com/Unidata/netcdf-c/issues/113.
@@ -79,7 +79,7 @@ int create_hdf_file(int dtype)
       data = array_data_float64;
       break;
    default:
-      return -1;
+      ERR;
    }
 
    if ((sd_id = SDstart(FILENAME, DFACC_CREATE)) == -1) ERR;
@@ -93,8 +93,7 @@ int create_hdf_file(int dtype)
 /* Create and then read the HDF4 test file. */
 int test_read_write(int dtype)
 {
-   if (create_hdf_file(dtype))
-      return -1;
+   if (create_hdf_file(dtype)) ERR;
    return read_hdf_file(dtype);
 }
 
@@ -114,19 +113,19 @@ int main()
    }
    SUMMARIZE_ERR;
 
-   printf("*** testing for True Negatives. these will return error...");
-   {
-      /* True Negatives. */
-      if (test_read_write(DFNT_INT8) != -1) ERR;
-      if (test_read_write(DFNT_UINT8) != -1) ERR;
-      if (test_read_write(DFNT_INT16) != -1) ERR;
-      if (test_read_write(DFNT_UINT16) != -1) ERR;
-      if (test_read_write(DFNT_INT32) != -1) ERR;
-      if (test_read_write(DFNT_UINT32) != -1) ERR;
-      if (test_read_write(DFNT_FLOAT32) != -1) ERR;
-      if (test_read_write(DFNT_FLOAT64) != -1) ERR;
-   }
-   SUMMARIZE_ERR;
+   /* printf("*** testing for True Negatives. these will return error..."); */
+   /* { */
+   /*    /\* True Negatives. *\/ */
+   /*    if (test_read_write(DFNT_INT8) != -1) ERR; */
+   /*    if (test_read_write(DFNT_UINT8) != -1) ERR; */
+   /*    if (test_read_write(DFNT_INT16) != -1) ERR; */
+   /*    if (test_read_write(DFNT_UINT16) != -1) ERR; */
+   /*    if (test_read_write(DFNT_INT32) != -1) ERR; */
+   /*    if (test_read_write(DFNT_UINT32) != -1) ERR; */
+   /*    if (test_read_write(DFNT_FLOAT32) != -1) ERR; */
+   /*    if (test_read_write(DFNT_FLOAT64) != -1) ERR; */
+   /* } */
+   /* SUMMARIZE_ERR; */
 
    FINAL_RESULTS;
 }

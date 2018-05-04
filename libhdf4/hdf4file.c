@@ -64,10 +64,9 @@ hdf4_rec_grp_del(NC_GRP_INFO_T *grp)
       hdf4_var = (NC_VAR_HDF4_INFO_T *)var->format_var_info;
 
       /* Close HDF4 dataset associated with this var, unless it's a
-       * scale. */
+       * scale. The hdf4_var storage is freed by nc4_rec_grp_del(). */
       if (hdf4_var->sdsid && SDendaccess(hdf4_var->sdsid) < 0)
          return NC_EHDFERR;
-      free(hdf4_var);
    }
 
    return NC_NOERR;
