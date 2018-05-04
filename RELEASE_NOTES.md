@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.0 - TBD
 
+* [Enhancement] Expanded the capabilities of `NC_INMEMORY` to support writing and accessing the final modified memory.  See [GitHub #879](https://github.com/Unidata/netcdf-c/pull/879) for more information.
 * [Enhancement] Made CDF5 support enabled by default.  See [Github #931](https://github.com/Unidata/netcdf-c/issues/931) for more information.
 
 
