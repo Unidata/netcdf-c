@@ -1728,7 +1728,7 @@ after all.
 Why not take the easy way out if you can? 
 
 Many Linux systems contain package management programs which allow
-netCDF to be installed easily. This is the prefered installation
+netCDF to be installed easily. This is the preferred installation
 method for netCDF.
 
 Precompiled binaries for some platforms can be found at
