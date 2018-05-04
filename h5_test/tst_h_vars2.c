@@ -342,7 +342,7 @@ main()
 	 ERR;
    }
    SUMMARIZE_ERR;
-/* I cant get this to work, I don't think it's allowed in HDF5. - Ed 7/12/7 */
+/* I can't get this to work, I don't think it's allowed in HDF5. - Ed 7/12/7 */
 /*    printf("*** Checking HDF5 scalar variable compession..."); */
 
 /* #define MAX_NAME_LEN 50 */

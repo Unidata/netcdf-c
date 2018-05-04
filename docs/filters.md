@@ -84,7 +84,7 @@ obtain information about any associated filter using this signature.
 int nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparams, unsigned int* params);
 
 ````
-The filter id wil be returned in the __idp__ argument (if non-NULL),
+The filter id will be returned in the __idp__ argument (if non-NULL),
 the number of parameters in __nparamsp__ and the actual parameters in
 __params__.  As is usual with the netcdf API, one is expected to call
 this function twice. The first time to get __nparams__ and the

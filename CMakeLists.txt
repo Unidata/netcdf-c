@@ -199,7 +199,7 @@ OPTION(NC_FIND_SHARED_LIBS "Find dynamically-built versions of dependent librari
 
 ##
 # We've had a request to allow for non-versioned shared libraries.
-# This seems reasonable enough to accomodate.  See
+# This seems reasonable enough to accommodate.  See
 # https://github.com/Unidata/netcdf-c/issues/228 for more info.
 ##
 OPTION(ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file name of the generated library file." ON)
@@ -588,7 +588,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     # as a shared library, we will use hdf5 as a shared
     # library. If we are building netcdf statically,
     # we will use a static library.  This can be toggled
-    # by explicitely modifying NC_FIND_SHARED_LIBS.
+    # by explicitly modifying NC_FIND_SHARED_LIBS.
     ##
     IF(NC_FIND_SHARED_LIBS)
       SET(NC_HDF5_LINK_TYPE "shared")
@@ -1030,7 +1030,7 @@ IF(ENABLE_PNETCDF)
   ENDIF(NOT PNETCDF)
 ENDIF()
 
-# Options to enable use of fill values for elements casuing NC_ERANGE
+# Options to enable use of fill values for elements causing NC_ERANGE
 SET(STATUS_ERANGE_FILL "OFF")
 OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OF)
 IF(ENABLE_ERANGE_FILL)
@@ -1700,7 +1700,7 @@ ENDIF()
 ADD_SUBDIRECTORY(docs)
 
 ##
-# Brute force, grab all of the dlls from the depency directory,
+# Brute force, grab all of the dlls from the dependency directory,
 # install them in the binary dir. Grab all of the .libs, put them
 # in the libdir.
 ##
