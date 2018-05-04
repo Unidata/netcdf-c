@@ -335,6 +335,8 @@ typedef struct  NC_HDF5_FILE_INFO
 	int diskless;
 	unsigned int flags; /* for H5LTopen_file_image */
 	int fapl;
+	size_t initialsize;
+	int created; /* 1 => create, 0 => open */
    } mem;
 } NC_HDF5_FILE_INFO_T;
 

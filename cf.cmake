@@ -76,9 +76,7 @@ NCLIB="${NCLIB}/liblib"
 export PATH="${NCLIB}:${PATH}"
 #G=
 cmake "$G" -DCMAKE_BUILD_TYPE=${CFG} $FLAGS ..
-if test "x$NOBUILD" = x 
-fi
-
+if test "x$NOBUILD" = x ; then
 cmake --build . --config ${CFG}
 cmake --build . --config ${CFG} --target RUN_TESTS
 fi

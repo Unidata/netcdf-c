@@ -22,13 +22,11 @@
 #endif
 #include <hdf5_hl.h>
 
-#define DEFAULT_CREATE_MEMSIZE ((size_t)1<<16)
-
 extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /* From nc4mem.c */
 extern int NC4_open_image_file(NC_HDF5_FILE_INFO_T* h5);
-extern int NC4_create_image_file(NC_HDF5_FILE_INFO_T* h5);
+extern int NC4_create_image_file(NC_HDF5_FILE_INFO_T* h5, size_t);
 extern int NC4_extract_file_image(NC_HDF5_FILE_INFO_T* h5);
 
 /** @internal When we have open objects at file close, should
@@ -898,6 +896,7 @@ nc4typelen(nc_type type)
  *
  * @param path The file name of the new file.
  * @param cmode The creation mode flag.
+ * @param initialsz The proposed initial file size (advisory)
  * @param parameters extra parameter info (like  MPI communicator)
  * @param nc Pointer to an instance of NC.
  *
@@ -909,7 +908,7 @@ nc4typelen(nc_type type)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 static int
-nc4_create_file(const char *path, int cmode, void* parameters, NC *nc)
+nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters, NC *nc)
 {
    hid_t fcpl_id, fapl_id = -1;
    unsigned flags;
@@ -935,6 +934,8 @@ nc4_create_file(const char *path, int cmode, void* parameters, NC *nc)
 
    nc4_info->mem.inmemory = (cmode & NC_INMEMORY) == NC_INMEMORY;
    nc4_info->mem.diskless = (cmode & NC_DISKLESS) == NC_DISKLESS;
+   nc4_info->mem.created = 1;
+   nc4_info->mem.initialsize = initialsz;
 
    if(nc4_info->mem.inmemory && parameters)
 	nc4_info->mem.memio = *(NC_memio*)parameters;
@@ -965,7 +966,7 @@ nc4_create_file(const char *path, int cmode, void* parameters, NC *nc)
    }
 
    /* Need this access plist to control how HDF5 handles open objects
-    * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
+    * on file close. Setting H5F_CLOSE_SEMI will cause H5Fclose to
     * fail if there are any open objects in the file. */
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
@@ -1071,7 +1072,7 @@ nc4_create_file(const char *path, int cmode, void* parameters, NC *nc)
 	}    
 	assert(nc4_info->memio.size > 0 && nc4_info->memio.memory != NULL);
 #endif
-	retval = NC4_create_image_file(nc4_info);
+	retval = NC4_create_image_file(nc4_info,initialsz);
 	if(retval)
 	    BAIL(retval);
    } else if ((nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
@@ -1179,7 +1180,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
 
    nc_file->int_ncid = nc_file->ext_ncid;
 
-   res = nc4_create_file(path, cmode, parameters, nc_file);
+   res = nc4_create_file(path, cmode, initialsz, parameters, nc_file);
 
 done:
    return res;
