@@ -36,12 +36,6 @@ IF(NOT HAVE_BASH)
   SET(TESTS ${TESTS} tst_atts3)
 ENDIF()
 
-IF(USE_NETCDF4)
-  SET(TESTS ${TESTS} tst_atts)
-  SET(TESTS ${TESTS} tst_put_vars)
-  SET(TESTS ${TESTS} tst_elatefill)
-ENDIF()
-
 IF(USE_PNETCDF)
   build_bin_test_no_prefix(tst_pnetcdf)
   build_bin_test_no_prefix(tst_parallel2)
