@@ -57,7 +57,7 @@ main()
 	 temp_out[lat][lon] = 12.5;
       }
 
-   /* These are the latitudes and longitudes which corespond with
+   /* These are the latitudes and longitudes which correspond with
     * ticks on the dimension axes. */
    for (lat = 0; lat < LAT_LEN; lat++)
       latitude[lat] = 40. + lat * 2.5;

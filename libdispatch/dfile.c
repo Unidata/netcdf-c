@@ -459,7 +459,7 @@ nc_create(const char *path, int cmode, int *ncidp)
 
 /**
  * Create a netCDF file with some extra parameters controlling classic
- * file cacheing.
+ * file caching.
  *
  * Like nc_create(), this function creates a netCDF file.
  *
