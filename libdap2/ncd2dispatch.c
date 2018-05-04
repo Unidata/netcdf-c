@@ -691,7 +691,7 @@ builddims(NCDAPCOMMON* dapcomm)
 #if 0
 	nc3sub = (NC3_INFO*)&ncsub->dispatchdata;
         /* Set the effective size of UNLIMITED;
-           note that this cannot easily be done thru the normal API.*/
+           note that this cannot easily be done through the normal API.*/
         NC_set_numrecs(nc3sub,unlimited->dim.declsize);
 #endif
 
@@ -1449,7 +1449,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
 	if(dimsize == 0)
 	    sdim = dapcomm->cdf.globalstringdim; /* use default */
 	else {
-	    /* create a psuedo dimension for the charification of the string*/
+	    /* create a pseudo dimension for the charification of the string*/
 	    if(var->dodsspecial.dimname != NULL) {
 	        strncpy(dimname,var->dodsspecial.dimname,sizeof(dimname));
 	        dimname[sizeof(dimname)-1] = '\0';

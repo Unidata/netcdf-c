@@ -128,7 +128,7 @@ ocfetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
 	/* Null terminate the buffer*/
 	len = ncbyteslength(buf);
 	ncbytesappend(buf, '\0');
-	ncbytessetlength(buf, len); /* dont count null in buffer size*/
+	ncbytessetlength(buf, len); /* don't count null in buffer size*/
 #ifdef OCDEBUG
 	nclog(NCLOGNOTE,"buffersize: %lu bytes",(off_t)ncbyteslength(buf));
 #endif

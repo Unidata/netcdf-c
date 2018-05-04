@@ -538,7 +538,7 @@ fprintf(stderr,"fixprojection: list = %s\n",dumpprojections(list));
     for(i=0;i<nclistlength(list);i++) {
 	DCEprojection* p1 = (DCEprojection*)nclistget(list,i);
 	if(p1 == NULL) continue;
-        if(p1->discrim != CES_VAR) continue; /* dont try to unify functions */
+        if(p1->discrim != CES_VAR) continue; /* don't try to unify functions */
         for(j=i;j<nclistlength(list);j++) {
 	    DCEprojection* p2 = (DCEprojection*)nclistget(list,j);
 	    if(p2 == NULL) continue;
@@ -560,7 +560,7 @@ fprintf(stderr,"fixprojection: list = %s\n",dumpprojections(list));
     for(i=0;i<nclistlength(list);i++) {
 	DCEprojection* p1 = (DCEprojection*)nclistget(list,i);
 	if(p1 == NULL) continue;
-        if(p1->discrim != CES_VAR) continue; /* dont try to unify functions */
+        if(p1->discrim != CES_VAR) continue; /* don't try to unify functions */
 	if(!iscontainer((CDFnode*)p1->var->annotation))
 	    continue;
         for(j=i;j<nclistlength(list);j++) {
@@ -589,7 +589,7 @@ next:   continue;
             CDFnode* leaf;
             if(target == NULL) continue;
             if(target->discrim != CES_VAR)
-                continue; /* dont try to unify functions */
+                continue; /* don't try to unify functions */
             leaf = (CDFnode*)target->var->annotation;
             ASSERT(leaf != NULL);
             if(iscontainer(leaf)) {/* capture container */
