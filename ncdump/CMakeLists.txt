@@ -121,7 +121,9 @@ ENDIF(MSVC)
   ENDIF(USE_STRICT_NULL_BYTE_HEADER_PADDING)
 
   add_sh_test(ncdump tst_nccopy3)
-  SET_TESTS_PROPERTIES(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
+  IF(HAVE_BASH)
+    SET_TESTS_PROPERTIES(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
+  ENDIF(HAVE_BASH)
 
   add_sh_test(ncdump tst_nccopy3_subset)
   add_sh_test(ncdump tst_charfill)
@@ -189,9 +191,11 @@ ENDIF(MSVC)
     add_sh_test(ncdump_sh tst_fillbug)
 
     add_sh_test(ncdump tst_netcdf4_4)
-    IF(MSVC)
-      SET_TESTS_PROPERTIES(ncdump_tst_netcdf4_4 PROPERTIES WILL_FAIL TRUE)
-    ENDIF(MSVC)
+    IF(HAVE_BASH)
+      IF(MSVC)
+        SET_TESTS_PROPERTIES(ncdump_tst_netcdf4_4 PROPERTIES WILL_FAIL TRUE)
+      ENDIF(MSVC)
+    ENDIF(HAVE_BASH)
 
     ###
     # Some test reordering was required to ensure these tests
@@ -207,7 +211,9 @@ ENDIF(MSVC)
     add_sh_test(ncdump_shell tst_h_scalar)
 
     add_sh_test(ncdump tst_nccopy4)
-    SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
+    IF(HAVE_BASH)
+      SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
+    ENDIF(HAVE_BASH)
 
     IF(USE_NETCDF4)
       add_sh_test(ncdump tst_ncgen4)
@@ -237,7 +243,7 @@ INSTALL(TARGETS ncdump RUNTIME DESTINATION bin COMPONENT utilities)
 INSTALL(TARGETS nccopy RUNTIME DESTINATION bin COMPONENT utilities)
 SET(MAN_FILES nccopy.1 ncdump.1)
 
-# Note, te L512.bin file is file containing exactly 512 bytes each of value 0.
+# Note, the L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
 
 FILE(GLOB COPY_FILES ${CMAKE_BINARY_DIR}/ncgen/*.nc ${CMAKE_BINARY_DIR}/nc_test4/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.ncml ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.1 ${CMAKE_CURRENT_SOURCE_DIR}/L512.bin)

@@ -415,7 +415,7 @@ done:
 /**************************************************/
 /*
 Walk the (toplevel) var's data to get to the count'th instance.
-For effiency, it can be supplied with a previous case.
+For efficiency, it can be supplied with a previous case.
 Assumes it is called after byte swapping and offsetting.
 Assumes that var is not fixed size.
 */

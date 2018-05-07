@@ -330,7 +330,7 @@ main(int argc, char **argv)
       if (nc_def_var(ncid, VAR_CHAR_NAME, NC_CHAR, 3, dimids, &char_varid)) ERR;
       if (nc_close(ncid)) ERR;
 
-      /* Open the file and make sure nc_inq_varids yeilds correct
+      /* Open the file and make sure nc_inq_varids yields correct
        * result. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
@@ -350,7 +350,7 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimids[1])) ERR;
       if (nc_def_dim(ncid, DIM3_NAME, DIM3_LEN, &dimids[2])) ERR;
 
-      /* These attempts will fail due to bad paramters. */
+      /* These attempts will fail due to bad parameters. */
       if (nc_def_var(ncid + MILLION, VAR_BYTE_NAME, NC_BYTE, 2, dimids,
                      &byte_varid) != NC_EBADID) ERR;
       if (nc_def_var(ncid + TEST_VAL_42, VAR_BYTE_NAME, NC_BYTE, 2, dimids,
