@@ -50,7 +50,7 @@ NCD2_open(const char *path, int mode,
          struct NC_Dispatch* dispatch, NC* ncp);
 
 extern int
-NCD2_close(int ncid);
+NCD2_close(int ncid,void*);
 
 extern int
 NCD2_inq_format_extended(int ncid, int* formatp, int* modep);

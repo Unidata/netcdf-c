@@ -80,7 +80,7 @@ extern int
 NC3_abort(int ncid);
 
 extern int
-NC3_close(int ncid);
+NC3_close(int ncid,void*);
 
 extern int
 NC3_set_fill(int ncid, int fillmode, int *old_modep);
