@@ -525,7 +525,7 @@ genc_definespecialattributes(Symbol* vsym)
 	                groupncid(vsym->container),
 	                varncid(vsym),
 	                (special->_Shuffle == 1?"NC_SHUFFLE":"NC_NOSHUFFLE"),
-	                (level > 0?1:0),
+	                1,
 			level);
 	        codedump(stmt);
 	    }
