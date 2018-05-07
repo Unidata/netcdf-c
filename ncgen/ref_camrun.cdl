@@ -647,13 +647,13 @@ variables:
 		FLUTC:_ChunkSizes = 1, 96, 144 ;
 	double FREQSH(time, lat, lon) ;
 		FREQSH:units = "fraction" ;
-		FREQSH:long_name = "Fractional occurance of shallow convection" ;
+		FREQSH:long_name = "Fractional occurrence of shallow convection" ;
 		FREQSH:cell_methods = "time: mean" ;
 		FREQSH:_Storage = "chunked" ;
 		FREQSH:_ChunkSizes = 1, 96, 144 ;
 	double FREQZM(time, lat, lon) ;
 		FREQZM:units = "fraction" ;
-		FREQZM:long_name = "Fractional occurance of ZM convection" ;
+		FREQZM:long_name = "Fractional occurrence of ZM convection" ;
 		FREQZM:cell_methods = "time: mean" ;
 		FREQZM:_Storage = "chunked" ;
 		FREQZM:_ChunkSizes = 1, 96, 144 ;
@@ -1268,7 +1268,7 @@ variables:
 		SO2:_ChunkSizes = 1, 30, 96, 144 ;
 	double SO2_CLXF(time, lat, lon) ;
 		SO2_CLXF:units = "molec/cm2/s" ;
-		SO2_CLXF:long_name = "vertically intergrated external forcing for SO2" ;
+		SO2_CLXF:long_name = "vertically integrated external forcing for SO2" ;
 		SO2_CLXF:cell_methods = "time: mean" ;
 		SO2_CLXF:_Storage = "chunked" ;
 		SO2_CLXF:_ChunkSizes = 1, 96, 144 ;
@@ -1638,7 +1638,7 @@ variables:
 		bc_a1TBF:_ChunkSizes = 1, 96, 144 ;
 	double bc_a1_CLXF(time, lat, lon) ;
 		bc_a1_CLXF:units = "molec/cm2/s" ;
-		bc_a1_CLXF:long_name = "vertically intergrated external forcing for bc_a1" ;
+		bc_a1_CLXF:long_name = "vertically integrated external forcing for bc_a1" ;
 		bc_a1_CLXF:cell_methods = "time: mean" ;
 		bc_a1_CLXF:_Storage = "chunked" ;
 		bc_a1_CLXF:_ChunkSizes = 1, 96, 144 ;
@@ -2458,7 +2458,7 @@ variables:
 		num_a1TBF:_ChunkSizes = 1, 96, 144 ;
 	double num_a1_CLXF(time, lat, lon) ;
 		num_a1_CLXF:units = "molec/cm2/s" ;
-		num_a1_CLXF:long_name = "vertically intergrated external forcing for num_a1" ;
+		num_a1_CLXF:long_name = "vertically integrated external forcing for num_a1" ;
 		num_a1_CLXF:cell_methods = "time: mean" ;
 		num_a1_CLXF:_Storage = "chunked" ;
 		num_a1_CLXF:_ChunkSizes = 1, 96, 144 ;
@@ -2560,7 +2560,7 @@ variables:
 		num_a2TBF:_ChunkSizes = 1, 96, 144 ;
 	double num_a2_CLXF(time, lat, lon) ;
 		num_a2_CLXF:units = "molec/cm2/s" ;
-		num_a2_CLXF:long_name = "vertically intergrated external forcing for num_a2" ;
+		num_a2_CLXF:long_name = "vertically integrated external forcing for num_a2" ;
 		num_a2_CLXF:cell_methods = "time: mean" ;
 		num_a2_CLXF:_Storage = "chunked" ;
 		num_a2_CLXF:_ChunkSizes = 1, 96, 144 ;
@@ -2968,7 +2968,7 @@ variables:
 		pom_a1TBF:_ChunkSizes = 1, 96, 144 ;
 	double pom_a1_CLXF(time, lat, lon) ;
 		pom_a1_CLXF:units = "molec/cm2/s" ;
-		pom_a1_CLXF:long_name = "vertically intergrated external forcing for pom_a1" ;
+		pom_a1_CLXF:long_name = "vertically integrated external forcing for pom_a1" ;
 		pom_a1_CLXF:cell_methods = "time: mean" ;
 		pom_a1_CLXF:_Storage = "chunked" ;
 		pom_a1_CLXF:_ChunkSizes = 1, 96, 144 ;
@@ -3088,7 +3088,7 @@ variables:
 		so4_a1TBF:_ChunkSizes = 1, 96, 144 ;
 	double so4_a1_CLXF(time, lat, lon) ;
 		so4_a1_CLXF:units = "molec/cm2/s" ;
-		so4_a1_CLXF:long_name = "vertically intergrated external forcing for so4_a1" ;
+		so4_a1_CLXF:long_name = "vertically integrated external forcing for so4_a1" ;
 		so4_a1_CLXF:cell_methods = "time: mean" ;
 		so4_a1_CLXF:_Storage = "chunked" ;
 		so4_a1_CLXF:_ChunkSizes = 1, 96, 144 ;
@@ -3184,7 +3184,7 @@ variables:
 		so4_a2TBF:_ChunkSizes = 1, 96, 144 ;
 	double so4_a2_CLXF(time, lat, lon) ;
 		so4_a2_CLXF:units = "molec/cm2/s" ;
-		so4_a2_CLXF:long_name = "vertically intergrated external forcing for so4_a2" ;
+		so4_a2_CLXF:long_name = "vertically integrated external forcing for so4_a2" ;
 		so4_a2_CLXF:cell_methods = "time: mean" ;
 		so4_a2_CLXF:_Storage = "chunked" ;
 		so4_a2_CLXF:_ChunkSizes = 1, 96, 144 ;
