@@ -512,9 +512,10 @@ what you changed to the author so this document can be updated.
     done
     exit
 
-## Provenance
+## Point of Contact
 
 __Author__: Dennis Heimbigner<br>
+__Email__: dmh at ucar dot edu
 __Initial Version__: 11/21/2014<br>
 __Last Revised__: 08/24/2017
 

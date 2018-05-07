@@ -245,7 +245,7 @@ done:
 }
 
 int
-NCD4_close(int ncid)
+NCD4_close(int ncid, void* ignore)
 {
     int ret = NC_NOERR;
     NC* nc;
@@ -278,7 +278,7 @@ done:
 int
 NCD4_abort(int ncid)
 {
-    return NCD4_close(ncid);
+    return NCD4_close(ncid,NULL);
 }
 
 /**************************************************/
