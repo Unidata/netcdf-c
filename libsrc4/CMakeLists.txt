@@ -1,6 +1,6 @@
 # Process these files with m4.
 
-SET(libsrc4_SOURCES nc4dispatch.c nc4attr.c nc4dim.c nc4grp.c nc4type.c nc4var.c ncfunc.c nc4internal.c ncindex.c)
+SET(libsrc4_SOURCES nc4dispatch.c nc4attr.c nc4dim.c nc4grp.c nc4type.c nc4var.c ncfunc.c nc4internal.c ncindex.c nc4mem.c nc4memcb.c )
 
 IF(LOGGING)
   SET(libsrc4_SOURCES ${libsrc4_SOURCES} error4.c)
@@ -38,6 +38,3 @@ ENDIF(BUILD_DAP)
 IF (BUILD_PARALLEL)
   SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
 ENDIF(BUILD_PARALLEL)
-
-
-
