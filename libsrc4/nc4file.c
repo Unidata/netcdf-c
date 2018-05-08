@@ -943,7 +943,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
 	nc4_info->mem.memio = *(NC_memio*)parameters;
 #ifdef USE_PARALLEL4
    else if(parameters) {
-	mpinfo = (NC_MPI_INFO *)parameters;
+	mpiinfo = (NC_MPI_INFO *)parameters;
         comm = mpiinfo->comm;
 	info = mpiinfo->info;
    }
