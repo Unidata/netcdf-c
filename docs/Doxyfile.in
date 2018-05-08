@@ -757,7 +757,9 @@ INPUT = \
     @abs_top_srcdir@/docs/DAP4.dox \
     @abs_top_srcdir@/docs/attribute_conventions.md \
     @abs_top_srcdir@/docs/file_format_specifications.md \
-    @abs_top_srcdir@/docs/tutorial.dox \
+    @abs_top_srcdir@/docs/auth.md \
+    @abs_top_srcdir@/docs/filters.md \
+    @abs_top_srcdir@/docs/inmemory.md \
     @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/auth.md \
     @abs_top_srcdir@/docs/filters.md \
@@ -767,6 +769,7 @@ INPUT = \
     @abs_top_srcdir@/docs/COPYRIGHT.dox \
     @abs_top_srcdir@/docs/credits.md \
     @abs_top_srcdir@/docs/bestpractices.md \
+    @abs_top_srcdir@/docs/tutorial.dox \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_mem.h \
     @abs_top_srcdir@/include/netcdf_par.h \
