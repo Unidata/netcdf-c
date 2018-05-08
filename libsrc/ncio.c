@@ -46,9 +46,9 @@ ncio_create(const char *path, int ioflags, size_t initialsz,
                        ncio** iopp, void** const mempp)
 {
 #ifdef USE_DISKLESS
-    if(fIsSet(ioflags,NC_DISKLESS)) {
+    if(fIsSet(ioflags,NC_INMEMORY)) {
 #  ifdef USE_MMAP
-      if(fIsSet(ioflags,NC_MMAP))
+      if(fIsSet(ioflags,NC_MMAP) && fIsSet(ioflags, NC_DISKLESS))
         return mmapio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
       else
 #  endif /*USE_MMAP*/
@@ -72,12 +72,12 @@ ncio_open(const char *path, int ioflags,
                      ncio** iopp, void** const mempp)
 {
     /* Diskless open has the following constraints:
-       1. file must be classic version 1 or 2
+       1. file must be classic version 1 or 2 or 5
      */
 #ifdef USE_DISKLESS
-    if(fIsSet(ioflags,NC_DISKLESS)) {
+    if(fIsSet(ioflags,NC_INMEMORY)) {
 #  ifdef USE_MMAP
-      if(fIsSet(ioflags,NC_MMAP))
+      if(fIsSet(ioflags,NC_MMAP) && fIsSet(ioflags, NC_DISKLESS))
         return mmapio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
       else
 #  endif /*USE_MMAP*/
