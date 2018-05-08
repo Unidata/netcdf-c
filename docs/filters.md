@@ -1,8 +1,8 @@
-Filter Support in netCDF-4 (Enhanced)
+NetCDF-4 Filter Support
 ============================
 <!-- double header is needed to workaround doxygen bug -->
 
-Filter Support in netCDF-4 (Enhanced) {#compress}
+NetCDF-4 Filter Support {#compress}
 =================================
 
 [TOC]
@@ -434,8 +434,15 @@ Test for Machine Endianness
 static const unsigned char b[4] = {0x0,0x0,0x0,0x1}; /* value 1 in big-endian*/
 int endianness = (1 == *(unsigned int*)b); /* 1=>big 0=>little endian
 ````
+References {#References}
+========================
 
-Provenance
+1. https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf
+2. https://support.hdfgroup.org/HDF5/doc/TechNotes/TechNote-HDF5-CompressionTroubleshooting.pdf
+3. https://portal.hdfgroup.org/display/support/Contributions#Contributions-filters
+4. https://support.hdfgroup.org/services/contributions.html#filters
+
+Point of Contact
 ================
 
 __Author__: Dennis Heimbigner<br>
@@ -443,10 +450,3 @@ __Email__: dmh at ucar dot edu
 __Initial Version__: 1/10/2018<br>
 __Last Revised__: 2/5/2018
 
-References {#References}
-==========
-
-1. https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf
-2. https://support.hdfgroup.org/HDF5/doc/TechNotes/TechNote-HDF5-CompressionTroubleshooting.pdf
-3. https://portal.hdfgroup.org/display/support/Contributions#Contributions-filters
-4. https://support.hdfgroup.org/services/contributions.html#filters
