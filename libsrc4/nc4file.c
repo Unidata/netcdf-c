@@ -918,6 +918,8 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
 
 #ifdef USE_PARALLEL4
    NC_MPI_INFO* mpiinfo = NULL;
+   MPI_Comm comm;
+   MPI_Info info;
    int comm_duped = 0;          /* Whether the MPI Communicator was duplicated */
    int info_duped = 0;          /* Whether the MPI Info object was duplicated */
 #endif /* !USE_PARALLEL4 */
@@ -937,11 +939,12 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
    nc4_info->mem.created = 1;
    nc4_info->mem.initialsize = initialsz;
 
-   if(nc4_info->mem.inmemory && parameters)
+   if (nc4_info->mem.inmemory && parameters)
 	nc4_info->mem.memio = *(NC_memio*)parameters;
 #ifdef USE_PARALLEL4
-   else if(parameters) {
-	mpinfo = (NC_MPI_INFO *)parameters;
+   else if (parameters)
+   {
+	mpiinfo = (NC_MPI_INFO *)parameters;
         comm = mpiinfo->comm;
 	info = mpiinfo->info;
    }
