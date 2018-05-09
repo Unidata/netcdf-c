@@ -4254,7 +4254,7 @@ reportobject(int uselog, hid_t id, unsigned int type)
    } else
 #endif
    {
-      fprintf(stderr,"Type = %s(%lld) name='%s'",typename,(long long)id,name);
+      fprintf(stderr,"Type = %s(%lld) name='%s'",typename,printid,name);
    }
    
 }
