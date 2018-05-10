@@ -918,8 +918,10 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
 
 #ifdef USE_PARALLEL4
    NC_MPI_INFO* mpiinfo = NULL;
+
    MPI_Comm comm;
    MPI_Info info;
+
    int comm_duped = 0;          /* Whether the MPI Communicator was duplicated */
    int info_duped = 0;          /* Whether the MPI Info object was duplicated */
 #endif /* !USE_PARALLEL4 */
@@ -943,7 +945,9 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
 	nc4_info->mem.memio = *(NC_memio*)parameters;
 #ifdef USE_PARALLEL4
    else if(parameters) {
+
 	mpiinfo = (NC_MPI_INFO *)parameters;
+
         comm = mpiinfo->comm;
 	info = mpiinfo->info;
    }
@@ -1071,7 +1075,9 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
 	    nc4_info->memio.memory = malloc(nc4_info->memio.size);
 	    if(nc4_info->memio.memory == NULL)
 		BAIL(NC_ENOMEM);
-	}
+
+	}    
+
 	assert(nc4_info->memio.size > 0 && nc4_info->memio.memory != NULL);
 #endif
 	retval = NC4_create_image_file(nc4_info,initialsz);
@@ -2551,8 +2557,10 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
           then we must take control of the incoming memory */
        nc4_info->mem.locked = (nc4_info->mem.memio.flags & NC_MEMIO_LOCKED) == NC_MEMIO_LOCKED;
        if(!nc4_info->mem.locked && ((mode & NC_WRITE) == NC_WRITE)) {
-	    memparams->memory = NULL;
-       }
+
+	    memparams->memory = NULL;	    
+       }	
+
 #ifdef USE_PARALLEL4
    } else {
        mpiinfo = (NC_MPI_INFO*)parameters;
@@ -3019,7 +3027,9 @@ NC4_close(int ncid, void* params)
 }
 
 /**
- * @internal Close an in-memory netcdf file, writing any changes first.
+
+ * @internal Close an in-memory netcdf file, writing any changes first. 
+
  *
  * @param ncid File and group ID.
  * @param sizep ptr into which the final size is stored
@@ -3049,7 +3059,9 @@ NC4_close_mem(int ncid, size_t* sizep, void** memp)
       return NC_EBADGRPID;
 
    /* If the file is not an in-memory file, then treat like normal close */
-   if((h5->cmode & NC_INMEMORY) == 0)
+
+   if((h5->cmode & NC_INMEMORY) == 0) 
+
 	return NC4_close(ncid,NULL);
 
    /* Call the nc4 close and extract memory */
