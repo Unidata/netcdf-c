@@ -939,14 +939,13 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
    nc4_info->mem.created = 1;
    nc4_info->mem.initialsize = initialsz;
 
-   if (nc4_info->mem.inmemory && parameters)
-       nc4_info->mem.memio = *(NC_memio*)parameters;
+   if(nc4_info->mem.inmemory && parameters)
+	nc4_info->mem.memio = *(NC_memio*)parameters;
 #ifdef USE_PARALLEL4
-   else if (parameters)
-   {
-      	mpiinfo = (NC_MPI_INFO *)parameters;
+   else if(parameters) {
+	mpiinfo = (NC_MPI_INFO *)parameters;
         comm = mpiinfo->comm;
-	      info = mpiinfo->info;
+	info = mpiinfo->info;
    }
 #endif
    if(nc4_info->mem.diskless)
