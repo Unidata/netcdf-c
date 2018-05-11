@@ -14,13 +14,11 @@ SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
 
 SET(libsrc_SOURCES ${libsrc_SOURCES} pstdint.h ncio.h ncx.h)
 
-IF (BUILD_DISKLESS)
-  SET(libsrc_SOURCES ${libsrc_SOURCES} memio.c)
+SET(libsrc_SOURCES ${libsrc_SOURCES} memio.c)
 
-  IF (BUILD_MMAP)
-    SET(libsrc_SOURCES ${libsrc_SOURCES} mmapio.c)
-  ENDIF( BUILD_MMAP)
-ENDIF (BUILD_DISKLESS)
+IF (BUILD_MMAP)
+  SET(libsrc_SOURCES ${libsrc_SOURCES} mmapio.c)
+ENDIF( BUILD_MMAP)
 
 IF (USE_FFIO)
   SET(libsrc_SOURCES ${libsrc_SOURCES} ffio.c)
