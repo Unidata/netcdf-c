@@ -964,7 +964,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
 	/* ok */
    } else if ((cmode & NC_NOCLOBBER) && (fp = fopen(path, "r"))) {
       fclose(fp);
-      return NC_EEXIST;
+      BAIL(NC_EEXIST);
    }
 
    /* Need this access plist to control how HDF5 handles open objects

@@ -315,7 +315,6 @@ kind_string_extended(int kind, int mode)
     return text;
 }
 
-#ifdef USE_DISKLESS
 static int
 fileopen(const char* path, void** memp, size_t* sizep)
 {
@@ -388,7 +387,6 @@ done:
 
     return status;
 }
-#endif
 
 /*
  * Emit initial line of output for NcML
@@ -2311,7 +2309,6 @@ main(int argc, char *argv[])
 		/* else fall thru and treat like a file path */
 	    }
 #endif /*USE_DAP*/
-#ifdef USE_DISKLESS
 	    if(formatting_specs.xopt_inmemory) {
 		size_t size = 0;
 		void* mem = NULL;
@@ -2319,7 +2316,6 @@ main(int argc, char *argv[])
 		if(nc_status == NC_NOERR)
 	            nc_status = nc_open_mem(path,NC_DISKLESS|NC_INMEMORY,size,mem,&ncid);
 	    } else
-#endif
 	        nc_status = nc_open(path, NC_NOWRITE, &ncid);
 	    if (nc_status != NC_NOERR) {
 		error("%s: %s", path, nc_strerror(nc_status));
