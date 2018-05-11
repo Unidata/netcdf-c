@@ -38,6 +38,7 @@ int main(int argc, char** argv) {
     size_t start[2], count[2];
     int formats[5]={NC_FORMAT_CLASSIC, NC_FORMAT_64BIT_OFFSET, NC_FORMAT_CDF5,
                     NC_FORMAT_NETCDF4, NC_FORMAT_NETCDF4_CLASSIC};
+    char *cmd_str;
 
     if (argc > 2) {
         printf("Usage: %s [filename]\n",argv[0]);
@@ -46,7 +47,7 @@ int main(int argc, char** argv) {
     if (argc == 2) snprintf(filename, 256, "%s", argv[1]);
     else           strcpy(filename, "tst_def_var_fill.nc");
 
-    char *cmd_str = (char*)malloc(strlen(argv[0]) + 256);
+    cmd_str = (char*)malloc(strlen(argv[0]) + 256);
     sprintf(cmd_str, "*** TESTING C   %s for def_var_fill ", argv[0]);
     printf("%-66s ------ ", cmd_str); fflush(stdout);
     free(cmd_str);

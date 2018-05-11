@@ -20,6 +20,7 @@
 #include "nc4dispatch.h"
 #include <H5DSpublic.h>
 #include <math.h>
+#include <inttypes.h>
 
 #ifdef HAVE_INTTYPES_H
 #define __STDC_FORMAT_MACROS

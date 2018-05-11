@@ -393,6 +393,7 @@ mergedods1(OCnode* dds, OCnode* dods)
 	OCnode* attnode = (OCnode*)nclistget(dods->subnodes,i);
 	if(attnode->octype == OC_Attribute) {
 	    OCattribute* att;
+	    char* newname;
 	    /* prefix the attribute name with the name of the attribute
                set plus "."
             */
@@ -400,7 +401,7 @@ mergedods1(OCnode* dds, OCnode* dods)
                          + strlen(dods->name)
 			 + strlen(".");
 	    len++; /*strlcat nul*/
-	    char* newname = (char*)malloc(len+1);
+	    newname = (char*)malloc(len+1);
 	    if(newname == NULL) return OC_ENOMEM;
 	    strncpy(newname,dods->name,len);
 	    strlcat(newname,".",len);

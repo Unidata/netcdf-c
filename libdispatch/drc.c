@@ -19,6 +19,7 @@ See LICENSE.txt for license information.
 #include "ncrc.h"
 #include "nclog.h"
 #include "ncwinpath.h"
+#include <stdint.h>
 
 #define RCFILEENV "DAPRCFILE"
 
@@ -366,9 +367,10 @@ rclocate(const char* key, const char* hostport)
     if(hostport == NULL) hostport = "";
 
     for(found=0,i=0;i<nclistlength(rc);i++) {
-	triple = (NCTriple*)nclistget(rc,i);
-        size_t hplen = (triple->host == NULL ? 0 : strlen(triple->host));
         int t;
+        size_t hplen;
+	triple = (NCTriple*)nclistget(rc,i);
+        hplen = (triple->host == NULL ? 0 : strlen(triple->host));
         if(strcmp(key,triple->key) != 0) continue; /* keys do not match */
         /* If the triple entry has no url, then use it
            (because we have checked all other cases)*/

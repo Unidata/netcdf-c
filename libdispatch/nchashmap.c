@@ -199,11 +199,12 @@ NC_hashmapadd(NC_hashmap* hash, uintptr_t data, const char* key, size_t keysize)
 	rehash(hash);
     for(;;) {
 	size_t index;
+        NC_hentry* entry;
 	if(!locate(hash,hashkey,key,keysize,&index,1)) {
 	    rehash(hash);
 	    continue; /* try on larger table */
 	}
-        NC_hentry* entry = &hash->table[index];
+        entry = &hash->table[index];
 	if(entry->flags & ACTIVE) {
 	    /* key already exists in table => overwrite data */
 	    entry->data = data;
@@ -376,8 +377,9 @@ findPrimeGreaterThan(size_t val)
       v = (unsigned int)val;
 
       for(;;) {
+	int m;
 	if(L >= R) break;
-            int m = (L + R) / 2;
+            m = (L + R) / 2;
 	/* is this an acceptable prime? */
             if(NC_primes[m-1] < v && NC_primes[m] >= v)
 	    return NC_primes[m]; /* acceptable*/
