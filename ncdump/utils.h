@@ -10,8 +10,8 @@
 
 #include "config.h"
 
-#ifndef STREQ
-#define	STREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
+#ifndef NCSTREQ
+#define	NCSTREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
 #endif
 
 /* Delimiter for separating netCDF groups in absolute pathnames, same as for HDF5 */
