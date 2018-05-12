@@ -19,6 +19,7 @@ TESTFILES='tst_comp tst_comp2 tst_enum_data tst_fillbug
 # Run these programs to create some test files.
 ${execdir}/tst_comp2
 ${execdir}/tst_compress
+${execdir}/tst_chunking
 
 echo "*** Testing netCDF-4 features of nccopy on ncdump/*.nc files"
 for i in $TESTFILES ; do
@@ -31,7 +32,6 @@ ${NCDUMP} copy_of_$i.nc > copy_of_$i.cdl
     rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
 done
 # echo "*** Testing compression of deflatable files ..."
-./tst_compress
 echo "*** Test nccopy -d1 can compress a classic format file ..."
 $NCCOPY -d1 tst_inflated.nc tst_deflated.nc
 if test `wc -c < tst_deflated.nc` -ge  `wc -c < tst_inflated.nc`; then
@@ -73,7 +73,6 @@ ${NCDUMP} copy_of_$i.nc > copy_of_$i.cdl
     diff copy_of_$i.cdl tmp.cdl
     rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
 done
-./tst_chunking
 echo "*** Test that nccopy -c can chunk and unchunk files"
 $NCCOPY tst_chunking.nc tmp.nc
 ${NCDUMP} tmp.nc > tmp.cdl
