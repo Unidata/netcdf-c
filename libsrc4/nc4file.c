@@ -1094,7 +1094,10 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
    /* Define mode gets turned on automatically on create. */
    nc4_info->flags |= NC_INDEF;
 
-   NC4_get_fileinfo(nc4_info,&globalpropinfo);
+   /* Get the HDF5 superblock and read and parse the special
+    * _NCProperties attribute. */
+   if ((retval = NC4_get_fileinfo(nc4_info, &globalpropinfo)))
+      BAIL(retval);
    NC4_put_propattr(nc4_info);
 
    return NC_NOERR;
@@ -2662,7 +2665,10 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if (H5Pclose(fapl_id) < 0)
       BAIL(NC_EHDFERR);
 
-   NC4_get_fileinfo(nc4_info,NULL);
+   /* Get the HDF5 superblock and read and parse the special
+    * _NCProperties attribute. */
+   if ((retval = NC4_get_fileinfo(nc4_info, NULL)))
+      BAIL(retval);
 
    return NC_NOERR;
 
