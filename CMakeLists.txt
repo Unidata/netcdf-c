@@ -1887,6 +1887,13 @@ FILE(COPY ${netCDF_SOURCE_DIR}/include/netcdf_meta.h
 SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_SOURCE_DIR}/test_common.in)
 SET(TOPSRCDIR "${CMAKE_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_BINARY_DIR}")
+IF(MSVC)
+  # Seems this is always upper-case by this point :-(
+  SET(VS_CONFIGURATION "/${CMAKE_BUILD_TYPE}")
+ELSE()
+  SET(VS_CONFIGURATION "")
+ENDIF()
+
 configure_file(${CMAKE_SOURCE_DIR}/test_common.in ${CMAKE_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
 #####

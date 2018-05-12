@@ -2,6 +2,8 @@
 # This shell script runs the cmp test on the example programs.
 # $Id: do_comps.sh,v 1.1 2006/06/27 17:44:54 ed Exp $
 
+. ../../test_common.sh
+
 set -e
 
 ##
@@ -11,13 +13,13 @@ set -e
 echo ""
 echo "*** Creating example data files from CDL scripts."
 echo "*** creating simple_xy.nc..."
-../../ncgen/ncgen -b -o simple_xy.nc $srcdir/simple_xy.cdl
+../../ncgen${VS}/ncgen -b -o simple_xy.nc $srcdir/simple_xy.cdl
 
 echo "*** checking sfc_pres_temp.nc..."
-../../ncgen/ncgen -b -o sfc_pres_temp.nc $srcdir/sfc_pres_temp.cdl
+../../ncgen${VS}/ncgen -b -o sfc_pres_temp.nc $srcdir/sfc_pres_temp.cdl
 
 echo "*** checking pres_temp_4D.nc..."
-../../ncgen/ncgen -b -o pres_temp_4D.nc $srcdir/pres_temp_4D.cdl
+../../ncgen${VS}/ncgen -b -o pres_temp_4D.nc $srcdir/pres_temp_4D.cdl
 
 echo "*** All example creations worked!"
 

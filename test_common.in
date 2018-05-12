@@ -59,8 +59,8 @@ if test "x$SETX" = x1 ; then set -x ; fi
 top_srcdir="$TOPSRCDIR"
 top_builddir="$TOPBUILDDIR"
 
-# Currently not used, but left as a Visual Studio placeholder.
-# VS=Debug
+# Only set via CMake builds, where it must contain a leading '/'
+export VS=@VS_CONFIGURATION@
 
 # srcdir may or may not be defined, but if not, then create it
 if test "x$srcdir" = x ; then
@@ -76,6 +76,11 @@ builddir=`pwd`
 
 # execdir is an alias for builddir
 execdir="${builddir}"
+
+# VS build dir support
+if test -d "${execdir}${VS}"; then
+  execdir="${execdir}${VS}"
+fi
 
 # pick off the last component as the relative name of this directory
 thisdir=`basename $srcdir`

@@ -74,7 +74,7 @@ ${NCDUMP} tst_nans.nc | sed 's/e+0/e+/g' > tst_nans.cdl ; ERR
 diff -b tst_nans.cdl $srcdir/ref_tst_nans.cdl ; ERR
 
 # Do unicode test only if it exists => BUILD_UTF8 is true
-if test -f ./tst_unicode -o -f ./tst_unicode.exe ; then
+if test -f ./tst_unicode -o -f ./tst_unicode.exe -o -f ${execdir}/tst_unicode.exe; then
   echo "*** dumping tst_unicode.nc to tst_unicode.cdl..."
   ${execdir}/tst_unicode ; ERR
 ${NCDUMP} tst_unicode.nc | sed 's/e+0/e+/g' > tst_unicode.cdl ; ERR
