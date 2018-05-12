@@ -51,6 +51,10 @@ void nc_log_hdf5(void);
 
 #define BAIL_QUIET BAIL
 
+#ifndef USE_SET_LOG_LEVEL
+#define nc_set_log_level(e)
+#endif /* USE_SET_LOG_LEVEL */
+
 #endif /* LOGGING */
 
 /* To log an error message (if 'LOGGING' is defined), set retval, and jump to exit. */
