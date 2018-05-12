@@ -2011,13 +2011,14 @@ nc4_normalize_name(const char *name, char *norm_name)
    return NC_NOERR;
 }
 
-/* Print out a bunch of info to stderr about the metadata for
-   debugging purposes. */
-#ifdef LOGGING
+#ifdef USE_SET_LOG_LEVEL
+
 /**
- * Use this to set the global log level. Set it to NC_TURN_OFF_LOGGING
- * (-1) to turn off all logging. Set it to 0 to show only errors, and
- * to higher numbers to show more and more logging details.
+ * @internal Use this to set the global log level. Set it to
+ * NC_TURN_OFF_LOGGING (-1) to turn off all logging. Set it to 0 to
+ * show only errors, and to higher numbers to show more and more
+ * logging details. If logging is not enabled with --enable-logging at
+ * configure when building netCDF, this function will do nothing.
  *
  * @param new_level The new logging level.
  *
@@ -2027,6 +2028,7 @@ nc4_normalize_name(const char *name, char *norm_name)
 int
 nc_set_log_level(int new_level)
 {
+#ifdef LOGGING
    if(!nc4_hdf5_initialized)
       nc4_hdf5_initialize();
 
@@ -2051,9 +2053,12 @@ nc_set_log_level(int new_level)
    /* Now remember the new level. */
    nc_log_level = new_level;
    LOG((4, "log_level changed to %d", nc_log_level));
+#endif /*LOGGING */
    return 0;
 }
+#endif /* USE_SET_LOG_LEVEL */
 
+#ifdef LOGGING
 #define MAX_NESTS 10
 /**
  * @internal Recursively print the metadata of a group.
