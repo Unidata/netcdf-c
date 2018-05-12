@@ -7,6 +7,7 @@
  * Author: Wei-keng Liao.
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
