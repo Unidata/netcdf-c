@@ -2011,7 +2011,7 @@ nc4_normalize_name(const char *name, char *norm_name)
    return NC_NOERR;
 }
 
-#ifdef USE_SET_LOG_LEVEL
+#ifdef ENABLE_SET_LOG_LEVEL
 
 /**
  * @internal Use this to set the global log level. Set it to
@@ -2056,7 +2056,7 @@ nc_set_log_level(int new_level)
 #endif /*LOGGING */
    return 0;
 }
-#endif /* USE_SET_LOG_LEVEL */
+#endif /* ENABLE_SET_LOG_LEVEL */
 
 #ifdef LOGGING
 #define MAX_NESTS 10

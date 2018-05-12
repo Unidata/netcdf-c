@@ -315,7 +315,7 @@ AC_ARG_ENABLE([set_log_level_func], [AS_HELP_STRING([--disable-set-log-level-fun
               [disable the nc_set_log_level function])])
 test "x$enable_set_log_level_func" = xno -a "x$enable_logging" = xno || enable_set_log_level_func=yes
 if test "x$enable_set_log_level_func" = xyes; then
-   AC_DEFINE([USE_SET_LOG_LEVEL], 1, [If true, define nc_set_log_level.])
+   AC_DEFINE([ENABLE_SET_LOG_LEVEL], 1, [If true, define nc_set_log_level.])
 fi
 AC_MSG_RESULT($enable_set_log_level_func)
 

@@ -51,9 +51,9 @@ void nc_log_hdf5(void);
 
 #define BAIL_QUIET BAIL
 
-#ifndef USE_SET_LOG_LEVEL
+#ifndef ENABLE_SET_LOG_LEVEL
 #define nc_set_log_level(e)
-#endif /* USE_SET_LOG_LEVEL */
+#endif /* ENABLE_SET_LOG_LEVEL */
 
 #endif /* LOGGING */
 
