@@ -396,6 +396,8 @@ NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTNC4 User types in netCDF-4 files only.
+ * @return ::NC_EINVAL Bad size.
  * @return ::NC_EMAXNAME Name is too long.
  * @return ::NC_EBADNAME Name breaks netCDF name rules.
  * @return ::NC_ESTRICTNC3 Cannot define user types in classic model.
@@ -724,6 +726,8 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTNC4 User types in netCDF-4 files only.
+ * @return ::NC_EINVAL Bad size.
  * @return ::NC_EMAXNAME Name is too long.
  * @return ::NC_EBADNAME Name breaks netCDF name rules.
  * @return ::NC_ESTRICTNC3 Cannot define user types in classic model.
@@ -747,6 +751,8 @@ NC4_def_opaque(int ncid, size_t datum_size, const char *name,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTNC4 User types in netCDF-4 files only.
+ * @return ::NC_EINVAL Bad size.
  * @return ::NC_EMAXNAME Name is too long.
  * @return ::NC_EBADNAME Name breaks netCDF name rules.
  * @return ::NC_ESTRICTNC3 Cannot define user types in classic model.
@@ -769,6 +775,9 @@ NC4_def_vlen(int ncid, const char *name, nc_type base_typeid,
  * @param typeidp Pointer that gets new type ID.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTNC4 User types in netCDF-4 files only.
+ * @return ::NC_EINVAL Bad size.
  * @return ::NC_EMAXNAME Name is too long.
  * @return ::NC_EBADNAME Name breaks netCDF name rules.
  * @return ::NC_ESTRICTNC3 Cannot define user types in classic model.
