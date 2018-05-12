@@ -1098,7 +1098,10 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
     * _NCProperties attribute. */
    if ((retval = NC4_get_fileinfo(nc4_info, &globalpropinfo)))
       BAIL(retval);
-   NC4_put_propattr(nc4_info);
+
+   /* Write the _NCProperties attribute. */
+   if ((retval = NC4_put_propattr(nc4_info)))
+      BAIL(retval);
 
    return NC_NOERR;
 
