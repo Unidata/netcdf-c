@@ -314,7 +314,7 @@ AC_MSG_CHECKING([whether nc_set_log_level() function is included (will do nothin
 AC_ARG_ENABLE([set_log_level_func], [AS_HELP_STRING([--disable-set-log-level-func],
               [disable the nc_set_log_level function])])
 test "x$enable_set_log_level_func" = xno -a "x$enable_logging" = xno || enable_set_log_level_func=yes
-if test "x$enable_set_log_level_func" = xyes; then
+if test "x$enable_set_log_level_func" = xyes -a "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([ENABLE_SET_LOG_LEVEL], 1, [If true, define nc_set_log_level.])
 fi
 AC_MSG_RESULT($enable_set_log_level_func)
