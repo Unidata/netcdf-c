@@ -64,6 +64,7 @@ extern int NC_initialized; /**< True when dispatch table is initialized. */
  * H5Fis_hdf5, use the complete HDF5 magic number */
 static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
 
+#ifdef USE_NETCDF4
 /* User-defined formats. */
 NC_Dispatch* UF0_dispatch_table = NULL;
 NC_Dispatch* UF1_dispatch_table = NULL;
@@ -99,6 +100,7 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
    
    return NC_NOERR;
 }
+#endif /* USE_NETCDF4 */
 
 /** \defgroup datasets NetCDF File and Data I/O
 
@@ -2224,6 +2226,7 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 	    nullfree(newpath);
     }
 
+#ifdef USE_NETCDF4
    /* Check for use of user-defined format 0. */
    if (cmode & NC_UF0)
    {
@@ -2241,6 +2244,7 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
       model = NC_FORMATX_UF1;
       dispatcher = UF1_dispatch_table;
    }
+#endif /* USE_NETCDF4 */
    
     if(model == 0) {
 	version = 0;
