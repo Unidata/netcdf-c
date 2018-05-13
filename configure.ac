@@ -1451,9 +1451,9 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
-	             libnetcdf.settings
-		         postinstall.sh
-		         include/netcdf_meta.h
+                 libnetcdf.settings
+                 postinstall.sh
+                 include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
                  hdf4_test/Makefile
@@ -1485,7 +1485,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
                  plugins/Makefile
-		 ],
+                 ],
                  [test -f  nc-config && chmod 755 nc-config])
 
 AC_OUTPUT()
