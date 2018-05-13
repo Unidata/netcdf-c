@@ -18,7 +18,7 @@ getfile() {
    for try in 1 2 3 4 ; do # try 4 times
 
      # signal success/failure
-     if wget -c $Q --passive-ftp $FTPFILE ; then
+     if wget -c $Q --passive-ftp $FTPFILE || curl -O $FTPFILE; then
        return 0 # got it
      fi
      echo "wget failed: try $try"
