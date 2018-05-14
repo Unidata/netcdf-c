@@ -1637,6 +1637,7 @@ ENDIF(USE_PNETCDF)
 
 IF(USE_HDF5)
   add_subdirectory(libsrc4)
+  add_subdirectory(libhdf5)
 ENDIF(USE_HDF5)
 
 IF(USE_HDF4)
