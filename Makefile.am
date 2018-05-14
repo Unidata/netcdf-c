@@ -7,9 +7,6 @@
 
 # Ed Hartnett, Ward Fisher
 
-
-
-
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
@@ -45,6 +42,7 @@ endif
 if USE_NETCDF4
 H5_TEST_DIR = h5_test
 LIBSRC4_DIR = libsrc4
+LIBHDF5 = libhdf5
 NC_TEST4 = nc_test4
 endif
 
@@ -86,8 +84,9 @@ endif
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
 SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc $(LIBSRC4_DIR)	\
-$(LIBSRCP) $(LIBHDF4) $(OCLIB) $(DAP2) ${DAP4} liblib $(NCGEN3)		\
-$(NCGEN) $(NCDUMP) ${PLUGIN_DIR} $(TESTDIRS) docs $(EXAMPLES)
+$(LIBSRCP) $(LIBHDF4) $(LIBHDF5) $(OCLIB) $(DAP2) ${DAP4} liblib	\
+$(NCGEN3) $(NCGEN) $(NCDUMP) ${PLUGIN_DIR} $(TESTDIRS) docs		\
+$(EXAMPLES)
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings	\
