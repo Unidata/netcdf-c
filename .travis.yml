@@ -11,33 +11,30 @@ services:
 
 env:
     matrix:
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-fsigned-char --disable-netcdf-4 --disable-dap-remote-tests --enable-cdf5' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' CURHOST=docker-gcc-x64-signed
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang AC_COPTS='CFLAGS=-fsigned-char --disable-netcdf-4 --disable-dap-remote-tests --enable-cdf5' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' CURHOST=docker-clang-x64-signed
+# Ubuntu
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-fsigned-char --disable-netcdf-4 --disable-dap-remote-tests --enable-cdf5' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-signed
 
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-fsigned-char --disable-netcdf-4 --disable-dap-remote-tests' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' CURHOST=docker-gcc-x86-signed
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang AC_COPTS='CFLAGS=-fsigned-char --disable-netcdf-4 --disable-dap-remote-tests' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' CURHOST=docker-clang-x86-signed
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-fsigned-char --disable-netcdf-4 --disable-dap-remote-tests' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' USECP=FALSE CURHOST=docker-gcc-x86-signed
 
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-funsigned-char --disable-netcdf-4 --disable-dap-remote-tests --enable-cdf5' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' CURHOST=docker-gcc-x64-unsigned
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang AC_COPTS='CFLAGS=-funsigned-char --disable-netcdf-4 --disable-dap-remote-tests --enable-cdf5' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' CURHOST=docker-clang-x64-unsigned
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-funsigned-char --disable-netcdf-4 --disable-dap-remote-tests --enable-cdf5' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-unsigned
 
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-funsigned-char --disable-netcdf-4 --disable-dap-remote-tests' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' CURHOST=docker-gcc-x86-unsigned
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang AC_COPTS='CFLAGS=-funsigned-char --disable-netcdf-4 --disable-dap-remote-tests' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' CURHOST=docker-clang-x86-unsigned
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-funsigned-char --disable-netcdf-4 --disable-dap-remote-tests' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' USECP=FALSE CURHOST=docker-gcc-x86-unsigned
 
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-fsigned-char --disable-dap-remote-tests --enable-cdf5' COPTS='-DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' CURHOST=docker-gcc-x64-signed
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang AC_COPTS='CFLAGS=-fsigned-char --disable-dap-remote-tests --enable-cdf5' COPTS='-DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' CURHOST=docker-clang-x64-signed
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-fsigned-char --disable-dap-remote-tests --enable-cdf5' COPTS='-DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-signed
 
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-fsigned-char --disable-dap-remote-tests' COPTS='-DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' CURHOST=docker-gcc-x86-signed
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang AC_COPTS='CFLAGS=-fsigned-char --disable-dap-remote-tests' COPTS='-DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' CURHOST=docker-clang-x86-signed
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-fsigned-char --disable-dap-remote-tests' COPTS='-DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' USECP=FALSE CURHOST=docker-gcc-x86-signed
 
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-funsigned-char --disable-dap-remote-tests --enable-cdf5' COPTS='-DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' CURHOST=docker-gcc-x64-unsigned
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang AC_COPTS='CFLAGS=-funsigned-char --disable-dap-remote-tests --enable-cdf5' COPTS='-DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' CURHOST=docker-clang-x64-unsigned
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-funsigned-char --disable-dap-remote-tests --enable-cdf5' COPTS='-DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-unsigned
 
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-funsigned-char --disable-dap-remote-tests' COPTS='-DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' CURHOST=docker-gcc-x86-unsigned
-        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=clang AC_COPTS='CFLAGS=-funsigned-char --disable-dap-remote-tests' COPTS='-DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' CURHOST=docker-clang-x86-unsigned
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-funsigned-char --disable-dap-remote-tests' COPTS='-DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' USECP=FALSE CURHOST=docker-gcc-x86-unsigned
+
+# Centos, Fedora
+        - DOCKIMG=unidata/nctests:serial.centos USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc AC_COPTS='--disable-dap-remote-tests' COPTS='-DENABLE_DAP_REMOTE_TESTS=OFF' USECP=TRUE CURHOST=docker-gcc-x64-centos
+        - DOCKIMG=unidata/nctests:serial.fedora USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc AC_COPTS='--disable-dap-remote-tests' COPTS='-DENABLE_DAP_REMOTE_TESTS=OFF' USECP=TRUE CURHOST=docker-gcc-x64-fedora
 
 before_install:
     - docker pull $DOCKIMG > /dev/null
 
 script:
 
-    - docker run --rm -it -h "$CURHOST" -e USEDASH=FALSE -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USECMAKE=$USECMAKE -e USEAC=$USEAC -e DISTCHECK=$DISTCHECK -e COPTS="$COPTS" -e AC_OPTS="$AC_OPTS" -e CTEST_OUTPUT_ON_FAILURE=1 -v $(pwd):/netcdf-c -e TESTPROC=100 $DOCKIMG
+    - docker run --rm -it -h "$CURHOST" -e USEDASH=FALSE -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USECMAKE=$USECMAKE -e USEAC=$USEAC -e DISTCHECK=$DISTCHECK -e COPTS="$COPTS" -e AC_OPTS="$AC_OPTS" -e CTEST_OUTPUT_ON_FAILURE=1 -v $(pwd):/netcdf-c -e USE_LOCAL_CP=$USECP -e TESTPROC=100  $DOCKIMG

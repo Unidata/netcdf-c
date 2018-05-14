@@ -46,7 +46,7 @@ extern int
 NC4_abort(int ncid);
 
 extern int
-NC4_close(int ncid);
+NC4_close(int ncid,void*);
 
 extern int
 NC4_set_fill(int ncid, int fillmode, int *old_modep);
