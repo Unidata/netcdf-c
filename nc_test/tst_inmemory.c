@@ -97,13 +97,10 @@ fail(int line) {
 #define ERR fail(__LINE__)
 #endif
 
-/* Store any error message */
-static char errmsg[4096];
-
 static int
 check(int stat, const char* file, int line, int xfail)
 {
-    int pass = ((!xfail && stat == NC_NOERR) || (xfail && stat != NC_NOERR));
+/*    int pass = ((!xfail && stat == NC_NOERR) || (xfail && stat != NC_NOERR)); */
     fflush(stdout);
     if(!xfail) {
         if(stat != NC_NOERR) {
@@ -195,7 +192,6 @@ writefile(const char* path, NC_memio* memio)
     int status = NC_NOERR;
     FILE* f = NULL;
     size_t count = 0;
-    char* memory = NULL;
     char* p = NULL;
 
     /* Open the file for writing */
@@ -362,7 +358,6 @@ verify_file(int ncid, int modified)
     float float_data_in;
     int milesdata_in[MAXDIMLEN];
     int dimprod = UNLIM_LEN * DIM1_LEN;
-    int modcount = (modified?1:0);
     
     CHECK(nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in));
     if (ndims_in != 2 || nvars_in != NVARS+modified || natts_in != 1 || unlimdimid_in != 0)
@@ -607,8 +602,6 @@ int
 main(int argc, char **argv)
 {
     int stat = NC_NOERR;
-    int i;
-    void* filedata = NULL;
     NC_memio filedata3;
     NC_memio filedata4;
 
