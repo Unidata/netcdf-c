@@ -12,7 +12,9 @@
 #include <mpi.h>
 
 #define FILE "tst_parallel5.nc"
-#define NDIMS 3
+#define VAR_NAME "Odysseus"
+#define DIM_NAME "height"
+#define NDIMS1 1
 #define DIMSIZE 4
 #define NUM_PROC 4
 #define NUM_SLABS 10
@@ -23,12 +25,10 @@ main(int argc, char **argv)
    int mpi_size, mpi_rank;
    MPI_Comm comm = MPI_COMM_WORLD;
    MPI_Info info = MPI_INFO_NULL;
-   int ncid, v1id, dimids[NDIMS];
-   size_t start[NDIMS], count[NDIMS];
+   int ncid, v1id, dimid;
+   size_t start[NDIMS1] = {0}, count[NDIMS1] = {0};
    int data = TEST_VAL_42;
-   int i, res;
-   int slab_data[DIMSIZE * DIMSIZE / 4]; /* one slab */
-   char file_name[NC_MAX_NAME + 1];
+   int data_in = TEST_VAL_42 + 1;
 
    /* Initialize MPI. */
    MPI_Init(&argc,&argv);
@@ -46,35 +46,35 @@ main(int argc, char **argv)
 
    /* Create a parallel netcdf-4 file. */
    /*nc_set_log_level(3);*/
-   sprintf(file_name, "%s/%s", TEMP_LARGE, FILE);
-   if (nc_create_par(file_name, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
+   if (nc_create_par(FILE, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
 
    /* Create a dimension. */
-   if (nc_def_dim(ncid, "d1", DIMSIZE, dimids)) ERR;
-   if (nc_def_dim(ncid, "d2", DIMSIZE, &dimids[1])) ERR;
-   if (nc_def_dim(ncid, "d3", NUM_SLABS, &dimids[2])) ERR;
+   if (nc_def_dim(ncid, DIM_NAME, DIMSIZE, &dimid)) ERR;
 
    /* Create one var. */
-   if (nc_def_var(ncid, "v1", NC_INT, NDIMS, dimids, &v1id)) ERR;
+   if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIMS1, &dimid, &v1id)) ERR;
 
    /* Write metadata to file. */
    if (nc_enddef(ncid)) ERR;
 
-/*    /\* Set up slab for this process. *\/ */
-/*    start[0] = mpi_rank * DIMSIZE/mpi_size; */
-/*    start[1] = 0; */
-/*    count[0] = DIMSIZE/mpi_size; */
-/*    count[1] = DIMSIZE; */
-/*    count[2] = 1; */
-/*    /\*printf("mpi_rank=%d start[0]=%d start[1]=%d count[0]=%d count[1]=%d\n", */
-/*      mpi_rank, start[0], start[1], count[0], count[1]);*\/ */
+   /* Set up slab for this process. */
+   if (!mpi_rank)
+      count[0] = 1;
 
-/*    if (nc_var_par_access(ncid, v1id, NC_COLLECTIVE)) ERR; */
-/* /\*    if (nc_var_par_access(ncid, v1id, NC_INDEPENDENT)) ERR;*\/ */
+   if (nc_var_par_access(ncid, v1id, NC_COLLECTIVE)) ERR;
+/*    if (nc_var_par_access(ncid, v1id, NC_INDEPENDENT)) ERR;*/
 
-/*    /\* Write slabs of phoney data. *\/ */
-/*    for (start[2] = 0; start[2] < NUM_SLABS; start[2]++) */
-/*       if (nc_put_vara_int(ncid, v1id, start, count, slab_data)) ERR; */
+   /* Write phoney data. */
+   if (nc_put_vara_int(ncid, v1id, start, count, &data)) ERR;
+
+   if (nc_sync(ncid)) ERR;
+
+   /* Read phoney data. */
+   if (nc_get_vara_int(ncid, v1id, start, count, &data_in)) ERR;
+
+   /* Task 0 has TEST_VAL_42, the others have data_in remaining, as
+    * initialized, at TEST_VAL_42 + 1. */
+   if (data_in != (mpi_rank ? (TEST_VAL_42 + 1) : TEST_VAL_42)) ERR;
 
    /* Close the netcdf file. */
    if (nc_close(ncid)) ERR;
