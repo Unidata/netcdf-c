@@ -40,11 +40,17 @@ AM_CPPFLAGS += -I${top_srcdir}/libsrcp
 libnetcdf_la_LIBADD += ${top_builddir}/libsrcp/libnetcdfp.la
 endif # USE_PNETCDF
 
+# + hdf5
+if USE_NETCDF4
+AM_CPPFLAGS += -I${top_srcdir}/libhdf5
+libnetcdf_la_LIBADD += ${top_builddir}/libhdf5/libnchdf5.la
+endif # USE_NETCDF4
+
 # + hdf4
 if USE_HDF4
 AM_CPPFLAGS += -I${top_srcdir}/libhdf4
 libnetcdf_la_LIBADD += ${top_builddir}/libhdf4/libnchdf4.la
-endif # USE_PNETCDF
+endif # USE_HDF4
 
 # + dap
 if ENABLE_DAP
