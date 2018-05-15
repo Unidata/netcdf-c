@@ -24,8 +24,6 @@ echo "*** creating test2_ncdump.cdl from test1_ncdump.nc..."
 ${NCDUMP} test1_ncdump.nc > test2_ncdump.cdl
 echo "*** checking that test1_ncdump.cdl and test2_ncdump.cdl are the same..."
 diff -b -w test1_ncdump.cdl test2_ncdump.cdl
-echo "*** creating tst_output_irish_rover.cdl from ref_tst_irish_rover.nc..."
-#${NCDUMP} ref_tst_irish_rover.nc > tst_output_irish_rover.cdl
 
 echo "*** All tests of ncgen and ncdump using test0.cdl passed!"
 exit 0
