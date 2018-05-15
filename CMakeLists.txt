@@ -381,13 +381,6 @@ OPTION(ENABLE_MMAP "Use MMAP." ON)
 # Option to use examples.
 OPTION(ENABLE_EXAMPLES "Build Examples" ON)
 
-# Option to use Diskless
-OPTION(ENABLE_DISKLESS "Build Diskless." ON)
-IF(ENABLE_DISKLESS)
-  SET(BUILD_DISKLESS ON)
-  SET(USE_DISKLESS ON)
-ENDIF()
-
 # Option Logging, only valid for netcdf4.
 OPTION(ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
@@ -1172,6 +1165,10 @@ IF(ENABLE_DOXYGEN)
   ENDIF(NC_DOT)
 ENDIF()
 
+# Always enable DISKLESS
+OPTION(ENABLE_DISKLESS "Enable in-memory files" ON)
+
+
 # By default, MSVC has a stack size of 1000000.
 # Allow a user to override this.
 IF(MSVC)
@@ -1840,7 +1837,7 @@ is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
 is_enabled(ENABLE_DAP HAS_DAP)
 is_enabled(ENABLE_DAP HAS_DAP2)
 is_enabled(ENABLE_DAP4 HAS_DAP4)
-is_enabled(USE_DISKLESS HAS_DISKLESS)
+is_enabled(ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
 is_enabled(STATUS_RELAX_COORD_BOUND RELAX_COORD_BOUND)
