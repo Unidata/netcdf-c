@@ -20,9 +20,8 @@ redistribution conditions.
 #include "nc_tests.h"
 #include "err_macros.h"
 
-#include <hdf5.h>
-
 #ifdef USE_NETCDF4
+#include <hdf5.h>
 extern int H5Eprint1(FILE * stream);
 #endif
 
