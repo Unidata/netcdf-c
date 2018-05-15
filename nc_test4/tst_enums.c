@@ -328,7 +328,7 @@ main(int argc, char **argv)
                                                          5000000, 6000000, 7000000, 8000000};
       unsigned long long data = 1000000, data_in;
       
-      /* Create a parallel netcdf-4 file. */
+      /* Create a netcdf-4 file. */
       /*nc_set_log_level(3);*/
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       
