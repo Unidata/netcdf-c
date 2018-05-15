@@ -103,5 +103,8 @@ diff -b tst_special_atts.cdl $srcdir/ref_tst_special_atts.cdl ; ERR
 #fi
 #rm -fr ./ignore_tst_netcdf4
 
+echo "*** creating tst_output_irish_rover.cdl from ref_tst_irish_rover.nc..."
+#${NCDUMP} ref_tst_irish_rover.nc > tst_output_irish_rover.cdl
+
 echo "*** All ncgen and ncdump test output for netCDF-4 format passed!"
 exit 0
