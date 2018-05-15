@@ -7,6 +7,8 @@ SET(liblib_LIBS dispatch netcdf3)
 
 IF(USE_HDF5 OR USE_NETCDF4)
   SET(liblib_LIBS ${liblib_LIBS} netcdf4)
+  SET(liblib_LIBS ${liblib_LIBS} netcdfhdf5)
+  
 ENDIF()
 
 IF(USE_PNETCDF)
