@@ -103,7 +103,7 @@ main(int argc, char **argv)
                                                               "sides of old blind horses hides"};
          unsigned long long field_value[NUM_ENUM_FIELDS] = {1000000, 2000000, 3000000, 4000000,
                                                             5000000, 6000000, 7000000, 8000000};
-         unsigned long long data = 1000000;
+         unsigned long long data = 1000000, data_in = TEST_VAL_42;
          
          /* Create a parallel netcdf-4 file. */
          /*nc_set_log_level(3);*/
@@ -135,11 +135,85 @@ main(int argc, char **argv)
          if (nc_sync(ncid)) ERR;
 
          /* Read phoney data. */
-         /* if (nc_get_vara_int(ncid, v1id, start, count, &data_in)) ERR; */
+         if (nc_get_vara(ncid, v1id, start, count, &data_in)) ERR;
 
-         /* /\* Task 0 has MASTS, the others have data_in remaining, as */
-         /*  * initialized, at TEST_VAL_42. *\/ */
-         /* if (data_in != (mpi_rank ? TEST_VAL_42 : MASTS)) ERR; */
+         /* Task 0 has 1000000, the others have data_in remaining, as
+          * initialized, at TEST_VAL_42. */
+         if (data_in != (mpi_rank ? TEST_VAL_42 : 1000000)) ERR;
+
+         /* Close the netcdf file. */
+         if (nc_close(ncid)) ERR;
+      }
+   }
+   if (!mpi_rank)
+      SUMMARIZE_ERR;
+   if (!mpi_rank)
+      printf("*** testing compound type and parallel I/O...");
+   {
+      for (acc = 0; acc < NUM_ACCESS_TESTS; acc++)
+      {
+#define COMPOUND_NAME "crew_info"
+#define COMPOUND_VAR_NAME "whale_of_a_crew"
+#define NUM_CREW 5
+#define CREW_DIM_NAME "number_of_crew"
+         int typeid;
+         struct crew
+         {
+	    char name[NC_MAX_NAME + 1];
+	    char description[NC_MAX_NAME + 1];
+	    char origin[NC_MAX_NAME + 1];
+	    int age;
+         };
+         struct crew data = {"Mick McCann", "the skipper of the Irish Rover",
+                             "from the banks of the Bann", 42};
+         struct crew data_in = {"", "", "", -42};
+         int dim_size = NC_MAX_NAME + 1;
+         
+         /* Create a parallel netcdf-4 file. */
+         /*nc_set_log_level(3);*/
+         if (nc_create_par(FILE, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
+
+         /* Create a dimension. */
+         if (nc_def_dim(ncid, CREW_DIM_NAME, NUM_CREW, &dimid)) ERR;
+
+         /* Create an enum type. */
+         if (nc_def_compound(ncid, sizeof(struct crew), COMPOUND_NAME, &typeid)) ERR;
+         if (nc_insert_array_compound(ncid, typeid, "name", NC_COMPOUND_OFFSET(struct crew, name), NC_CHAR, 1, &dim_size));
+         if (nc_insert_array_compound(ncid, typeid, "description", NC_COMPOUND_OFFSET(struct crew, description), NC_CHAR, 1, &dim_size));
+         if (nc_insert_array_compound(ncid, typeid, "origin", NC_COMPOUND_OFFSET(struct crew, origin), NC_CHAR, 1, &dim_size));
+         if (nc_insert_compound(ncid, typeid, "age", NC_COMPOUND_OFFSET(struct crew, age), NC_INT));
+
+         /* Create one var. */
+         if (nc_def_var(ncid, COMPOUND_VAR_NAME, typeid, NDIMS1, &dimid, &v1id)) ERR;
+
+         /* Write metadata to file. */
+         if (nc_enddef(ncid)) ERR;
+
+         /* Set up slab for this process. */
+         if (!mpi_rank)
+            count[0] = 1;
+
+         if (nc_var_par_access(ncid, v1id, acc ? NC_COLLECTIVE : NC_INDEPENDENT)) ERR;
+
+         /* Write phoney data. */
+         if (nc_put_vara(ncid, v1id, start, count, &data)) ERR;
+
+         if (nc_sync(ncid)) ERR;
+
+         /* Read phoney data. */
+         if (nc_get_vara(ncid, v1id, start, count, &data_in)) ERR;
+
+         /* Task 0 has data, the others have nothing. */
+         if (!mpi_rank)
+         {
+            if (strcmp(data_in.name, data.name) || strcmp(data_in.description, data.description) ||
+                strcmp(data_in.origin, data.origin) || data_in.age != data.age) ERR;
+         }
+         else
+         {
+            if (strcmp(data_in.name, "") || strcmp(data_in.description, "") ||
+                strcmp(data_in.origin, "") || data_in.age != -42) ERR;
+         }
 
          /* Close the netcdf file. */
          if (nc_close(ncid)) ERR;
