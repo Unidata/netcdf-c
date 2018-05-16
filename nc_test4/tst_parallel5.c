@@ -176,7 +176,7 @@ main(int argc, char **argv)
          /* Create a dimension. */
          if (nc_def_dim(ncid, CREW_DIM_NAME, NUM_CREW, &dimid)) ERR;
 
-         /* Create an enum type. */
+         /* Create a compound type. */
          if (nc_def_compound(ncid, sizeof(struct crew), COMPOUND_NAME, &typeid)) ERR;
          if (nc_insert_array_compound(ncid, typeid, "name", NC_COMPOUND_OFFSET(struct crew, name), NC_CHAR, 1, &dim_size));
          if (nc_insert_array_compound(ncid, typeid, "description", NC_COMPOUND_OFFSET(struct crew, description), NC_CHAR, 1, &dim_size));
@@ -216,6 +216,68 @@ main(int argc, char **argv)
          }
 
          /* Close the netcdf file. */
+         if (nc_close(ncid)) ERR;
+      }
+   }
+   if (!mpi_rank)
+      SUMMARIZE_ERR;
+   if (!mpi_rank)
+      printf("*** testing string type and parallel I/O...");
+   {
+      for (acc = 0; acc < NUM_ACCESS_TESTS; acc++)
+      {
+#define STORY_VAR_NAME "fate_of_the_Irish_Rover"
+#define STORY_DIM_NAME "number_of_lines"
+#define STORY_LEN 8
+         char *story[STORY_LEN] = {"We had sailed seven years when the measles broke out",
+                                   "And the ship lost it's way in the fog",
+                                   "And that whale of the crew was reduced down to two",
+                                   "Just myself and the captain's old dog",
+                                   "Then the ship struck a rock, oh Lord what a shock",
+                                   "The bulkhead was turned right over",
+                                   "Turned nine times around, and the poor dog was drowned",
+                                   "I'm the last of the Irish Rover"};
+         char *story_in[STORY_LEN];
+         int s;
+
+         /* Create a netcdf-4 file. */
+         if (!mpi_rank)
+         {
+            if (nc_create(FILE, NC_NETCDF4, &ncid)) ERR;
+            
+            /* Create a dimension. */
+            if (nc_def_dim(ncid, STORY_DIM_NAME, STORY_LEN, &dimid)) ERR;
+            
+            /* Create one var. */
+            if (nc_def_var(ncid, STORY_VAR_NAME, NC_STRING, NDIMS1, &dimid, &v1id)) ERR;
+            
+            /* Write metadata to file. */
+            if (nc_enddef(ncid)) ERR;
+            
+            /* Set up slab for this process. */
+            count[0] = STORY_LEN;
+            
+            /* Write phoney data. */
+            if (nc_put_vara(ncid, v1id, start, count, story)) ERR;
+            
+            /* Close the netcdf file. */
+            if (nc_close(ncid)) ERR;
+         }
+
+         /* Now try parallel read. */
+         if (nc_open_par(FILE, NC_MPIIO, comm, info, &ncid)) ERR;
+
+         /* Task 0 reads all 8 lines, other tasks read 0. */
+         if (nc_get_vara(ncid, v1id, start, count, story_in)) ERR;
+
+         if (!mpi_rank)
+         {
+            for (s = 0; s < STORY_LEN; s++)
+               if (strcmp(story_in[s], story[s])) ERR;
+            if (nc_free_string(STORY_LEN, (char **)story_in)) ERR;
+         }
+
+         /* Close the netcdf file. */         
          if (nc_close(ncid)) ERR;
       }
    }
