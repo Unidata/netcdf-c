@@ -191,11 +191,9 @@ ENDIF(MSVC)
     add_sh_test(ncdump_sh tst_fillbug)
 
     add_sh_test(ncdump tst_netcdf4_4)
-    IF(HAVE_BASH)
-      IF(MSVC)
-        SET_TESTS_PROPERTIES(ncdump_tst_netcdf4_4 PROPERTIES WILL_FAIL TRUE)
-      ENDIF(MSVC)
-    ENDIF(HAVE_BASH)
+    IF(MSVC AND HAVE_BASH)
+      SET_TESTS_PROPERTIES(ncdump_tst_netcdf4_4 PROPERTIES WILL_FAIL TRUE)
+    ENDIF(MSVC AND HAVE_BASH)
 
     ###
     # Some test reordering was required to ensure these tests
