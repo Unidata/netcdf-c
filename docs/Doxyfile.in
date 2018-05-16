@@ -757,7 +757,9 @@ INPUT = \
     @abs_top_srcdir@/docs/DAP4.dox \
     @abs_top_srcdir@/docs/attribute_conventions.md \
     @abs_top_srcdir@/docs/file_format_specifications.md \
-    @abs_top_srcdir@/docs/tutorial.dox \
+    @abs_top_srcdir@/docs/auth.md \
+    @abs_top_srcdir@/docs/filters.md \
+    @abs_top_srcdir@/docs/inmemory.md \
     @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/auth.md \
     @abs_top_srcdir@/docs/filters.md \
@@ -767,6 +769,7 @@ INPUT = \
     @abs_top_srcdir@/docs/COPYRIGHT.dox \
     @abs_top_srcdir@/docs/credits.md \
     @abs_top_srcdir@/docs/bestpractices.md \
+    @abs_top_srcdir@/docs/tutorial.dox \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_mem.h \
     @abs_top_srcdir@/include/netcdf_par.h \
@@ -1049,7 +1052,7 @@ USE_HTAGS              = NO
 VERBATIM_HEADERS       = YES
 
 # If the CLANG_ASSISTED_PARSING tag is set to YES, then doxygen will use the
-# clang parser (see: http://clang.llvm.org/) for more acurate parsing at the
+# clang parser (see: http://clang.llvm.org/) for more accurate parsing at the
 # cost of reduced performance. This can be particularly helpful with template
 # rich C++ code for which doxygen's built-in parser lacks the necessary type
 # information.
@@ -1163,7 +1166,7 @@ HTML_STYLESHEET        =
 # defined cascading style sheet that is included after the standard style sheets
 # created by doxygen. Using this option one can overrule certain style aspects.
 # This is preferred over using HTML_STYLESHEET since it does not replace the
-# standard style sheet and is therefor more robust against future updates.
+# standard style sheet and is therefore more robust against future updates.
 # Doxygen will copy the style sheet file to the output directory. For an example
 # see the documentation.
 # This tag requires that the tag GENERATE_HTML is set to YES.

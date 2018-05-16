@@ -105,11 +105,6 @@ typedef struct NC_MPI_INFO {
     MPI_Info info;
 } NC_MPI_INFO;
 
-typedef struct NC_MEM_INFO {
-    size_t size;
-    void* memory;
-} NC_MEM_INFO;
-
 /* Define known dispatch tables and initializers */
 
 /*Forward*/
@@ -211,7 +206,7 @@ int (*redef)(int);
 int (*_enddef)(int,size_t,size_t,size_t,size_t);
 int (*sync)(int);
 int (*abort)(int);
-int (*close)(int);
+int (*close)(int,void*);
 int (*set_fill)(int,int,int*);
 int (*inq_base_pe)(int,int*);
 int (*set_base_pe)(int,int);

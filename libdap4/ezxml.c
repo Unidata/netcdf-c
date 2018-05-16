@@ -750,7 +750,7 @@ void ezxml_free(ezxml_t xml)
     ezxml_free(xml->ordered);
 
     if (! xml->parent) { /* free root tag allocations*/
-        for (i = 10; root->ent[i]; i += 2) /* 0 - 9 are default entites (<>&"')*/
+        for (i = 10; root->ent[i]; i += 2) /* 0 - 9 are default entities (<>&"')*/
             if ((s = root->ent[i + 1]) < root->s || s > root->e) free(s);
         free(root->ent); /* free list of general entities*/
 
