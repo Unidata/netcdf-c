@@ -169,9 +169,9 @@ NC_readfile(const char* filename, NCbytes* content)
     char part[1024];
 
 #ifdef _MSC_VER
-    stream = NCfopen(filename,"r");
-#else
     stream = NCfopen(filename,"rb");
+#else
+    stream = NCfopen(filename,"r");
 #endif
     if(stream == NULL) {ret=errno; goto done;}
     for(;;) {

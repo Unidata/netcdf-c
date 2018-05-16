@@ -17,7 +17,7 @@
 #include "netcdf_mem.h"
 
 #undef MEM
-#define DISKLESS
+#undef DISKLESS
 #define USEINT
 
 #undef DUMP
