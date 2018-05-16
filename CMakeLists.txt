@@ -679,6 +679,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
+  FIND_PACKAGE(Threads)
+
   # There is a missing case in the above code so default it
   IF(NOT HDF5_C_LIBRARY_HDF5 OR "${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
@@ -1358,9 +1360,12 @@ MACRO(ADD_EXTRA_DIST files)
 ENDMACRO()
 
 # A basic script used to convert m4 files
-FIND_PROGRAM(NC_M4 NAMES m4)
+FIND_PROGRAM(NC_M4 NAMES m4 m4.exe)
 IF(NC_M4)
-    SET(HAVE_M4 TRUE)
+  MESSAGE(STATUS "Found m4: ${NC_M4}")
+  SET(HAVE_M4 TRUE)
+ELSE()
+  MESSAGE(STATUS "m4 not found.")
 ENDIF()
 
 MACRO(GEN_m4 filename)
@@ -1549,12 +1554,24 @@ ENDMACRO()
 # Determine if 'bash' is on the system.
 ##
 
-FIND_PROGRAM(HAVE_BASH NAMES bash)
-IF(HAVE_BASH)
-  MESSAGE(STATUS "Found bash: ${HAVE_BASH}")
-ELSE()
-  MESSAGE(STATUS "Bash shell not found; disabling shell script tests.")
-ENDIF()
+OPTION(ENABLE_BASH_SCRIPT_TESTING "Detection is typically automatic, but this option can be used to force enable/disable bash-script based tests." ON)
+
+IF(ENABLE_BASH_SCRIPT_TESTING)
+  FIND_PROGRAM(HAVE_BASH bash)
+  IF(HAVE_BASH)
+    STRING(COMPARE EQUAL "${HAVE_BASH}" "C:/Windows/System32/bash.exe" IS_BASH_EXE)
+    IF(NOT IS_BASH_EXE)
+      MESSAGE(STATUS "Found bash: ${HAVE_BASH}")
+    ELSE()
+      MESSAGE(STATUS "Ignoring ${HAVE_BASH}")
+      SET(HAVE_BASH "")
+    ENDIF()
+  ELSE()
+    MESSAGE(STATUS "Bash shell not found; disabling shell script tests.")
+  ENDIF()
+ELSE(ENABLE_BASH_SCRIPT_TESTING)
+  SET(HAVE_BASH "")
+ENDIF(ENABLE_BASH_SCRIPT_TESTING)
 
 MACRO(add_sh_test prefix F)
   IF(HAVE_BASH)
@@ -1629,6 +1646,7 @@ ENDIF(USE_PNETCDF)
 
 IF(USE_HDF5)
   add_subdirectory(libsrc4)
+  add_subdirectory(libhdf5)
 ENDIF(USE_HDF5)
 
 IF(USE_HDF4)
