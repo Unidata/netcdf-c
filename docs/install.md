@@ -79,6 +79,8 @@ Requirements {#netcdf_requirements}
 * zlib 1.2.5 or later (for netCDF-4 compression)
 * curl 7.18.0 or later (for DAP remote access client support)
 
+> **Important Note**: When building netCDF-C library versions older than 4.4.1, use only HDF5 1.8.x versions.  Combining older netCDF-C versions with newer HDF5 1.10 versions will create superblock 3 files that are not readable by lots of older software.  See <a href="http://www.unidata.ucar.edu/blogs/news/entry/netcdf-4-4-1">this announcement</a> for more details.
+
 
 CMake and Windows support {#sub}
 --------------------------------
@@ -102,9 +104,9 @@ the HDF5 library is built with szip support. The netcdf build will then
 inherit szip support from the HDF5 library.
 If you intend to write files with szip compression, then we suggest that you
 use [libaec](https://gitlab.dkrz.de/k202009/libaec.git)
-to avoid patent problems. That library can be used as a 
+to avoid patent problems. That library can be used as a
 drop-in replacement for the standard szip library.
-If you plan to use the standard szip library, 
+If you plan to use the standard szip library,
 then determine whether license restrictions on the use of szip apply to your situation. See the <a href="http://www.hdfgroup.org/doc_resource/SZIP/">web page on szip compression in HDF products</a>.
 
 If `make check` fails for either `zlib` or `HDF5`, the problem must be resolved before the netCDF-4 installation can continue. For HDF5 problems, see the <a href="http://www.hdfgroup.org/services/support.html">HDF5 help services</a>.
@@ -475,4 +477,3 @@ or
 ## See Also {#cmake_see_also}
 
 For further information regarding netCDF and CMake, see \ref cmake_faq.
-
