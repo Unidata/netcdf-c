@@ -87,7 +87,7 @@ LDFLAGS="$TMP $LDFLAGS"
 TMP=`curl-config --prefix`
 LD_LIBRARY_PATH="$TMP/lib:$LD_LIBRARY_PATH"
 else
-  LDFLAGS="${LDFLAGS} -lcurl"  
+  LDFLAGS="${LDFLAGS} -lcurl"
 fi
 fi
 
