@@ -28,9 +28,6 @@ branches:
     - /.*[.]dmh/
 #    - /.*[.]wif/
 
-# Do not build feature branch with open Pull Requests
-skip_branch_with_pr: true
-
 install:
   - cmd: set SRC_DIR=%cd%
   - cmd: set INSTALL_LOC=%SRC_DIR%\install
