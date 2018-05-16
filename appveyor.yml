@@ -15,7 +15,6 @@ environment:
 
 platform:
     - x64
-    - x86
 
 branches:
   except:
