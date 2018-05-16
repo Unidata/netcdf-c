@@ -13,7 +13,7 @@ char*
 append(const char* s1, const char* s2)
 {
     int len = (s1?strlen(s1):0)+(s2?strlen(s2):0);
-    char* result = (char*)emalloc(len+1);
+    char* result = (char*)ecalloc(len+1);
     result[0] = '\0';
     if(s1) strcat(result,s1);
     if(s2) strcat(result,s2);
@@ -461,7 +461,7 @@ poolalloc(size_t length)
     if(poolindex == POOLMAX) poolindex=0;
     if(length == 0) length = POOL_DEFAULT;
     if(pool[poolindex] != NULL) efree(pool[poolindex]);
-    pool[poolindex] = (char*)emalloc(length);
+    pool[poolindex] = (char*)ecalloc(length);
     return pool[poolindex++];
 }
 
@@ -500,7 +500,7 @@ makebytestring(char* s, size_t* lenp)
 
     ASSERT((slen%2) == 0);
     ASSERT(blen > 0);
-    bytes = (unsigned char*)emalloc(blen);
+    bytes = (unsigned char*)ecalloc(blen);
     b = bytes;
     for(i=0;i<slen;i+=2) {
 	unsigned int digit1 = chartohex(*s++);
@@ -632,7 +632,7 @@ void check_err2(const int stat, const int cdlline, const int line, const char* f
 	H5Eprint1(stderr);
 #endif
 	fflush(stderr);
-	exit(1);
+        finalize_netcdf(1);
     }
 }
 
