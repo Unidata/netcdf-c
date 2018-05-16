@@ -734,6 +734,7 @@ int test_pio_extend(int flag){
     /* Set access mode */
     if (nc_var_par_access(ncFile, ncVarVrtx, flag)) ERR;
 
+    nc_set_log_level(4);
     /* Write vertices */
     start[0] = rank;
     start[1] = 0;
