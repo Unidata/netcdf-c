@@ -36,18 +36,31 @@ FLAGS="-DCMAKE_PREFIX_PATH=c:/tools/nccmake"
 fi
 FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=/tmp/netcdf"
 
-if test "x$DAP" = x ; then FLAGS="$FLAGS -DENABLE_DAP=false"; fi
-if test "x$NC4" = x ; then FLAGS="$FLAGS -DENABLE_NETCDF_4=false"; fi
-if test "x$CDF5" != x ; then FLAGS="$FLAGS -DENABLE_CDF5=true"; fi
-if test "x$HDF4" != x ; then FLAGS="$FLAGS -DENABLE_HDF4=true"; fi
-FLAGS="$FLAGS -DENABLE_CONVERSION_WARNINGS=false"
+if test "x$DAP" = x ; then
+FLAGS="$FLAGS -DENABLE_DAP=false"
+fi
+if test "x$NC4" = x ; then
+FLAGS="$FLAGS -DENABLE_NETCDF_4=false"
+fi
+if test "x$CDF5" != x ; then
+FLAGS="$FLAGS -DENABLE_CDF5=true"
+fi
+if test "x$HDF4" != x ; then
+FLAGS="$FLAGS -DENABLE_HDF4=true"
+fi
+
+# Enables
 FLAGS="$FLAGS -DENABLE_DAP_REMOTE_TESTS=true"
-FLAGS="$FLAGS -DENABLE_TESTS=true"
-FLAGS="$FLAGS -DENABLE_EXAMPLES=false"
-FLAGS="$FLAGS -DENABLE_DYNAMIC_LOADING=false"
-FLAGS="$FLAGS -DENABLE_WINSOCK2=false"
+FLAGS="$FLAGS -DENABLE_LOGGING=true"
+#FLAGS="$FLAGS -DENABLE_DOXYGEN=true -DENABLE_INTERNAL_DOCS=true"
 #FLAGS="$FLAGS -DENABLE_LARGE_FILE_TESTS=true"
 FLAGS="$FLAGS -DENABLE_FILTER_TESTING=true"
+
+# Disables
+FLAGS="$FLAGS -DENABLE_EXAMPLES=false"
+FLAGS="$FLAGS -DENABLE_CONVERSION_WARNINGS=false"
+#FLAGS="$FLAGS -DENABLE_TESTS=false"
+#FLAGS="$FLAGS -DENABLE_DISKLESS=false"
 
 rm -fr build
 mkdir build
@@ -56,6 +69,7 @@ cd build
 NCLIB=`pwd`
 
 if test "x$VS" != x ; then
+
 # Visual Studio
 CFG="Release"
 NCLIB="${NCLIB}/liblib"

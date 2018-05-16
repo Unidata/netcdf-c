@@ -226,7 +226,7 @@ typedef struct Symbol {  /* symbol table entry*/
         Attrinfo  att;
         Diminfo   dim;
         Groupinfo grp;
- 	Reference ref; /* symbol is really a referene to another symbol*/
+ 	Reference ref; /* symbol is really a reference to another symbol*/
 	/* Misc pieces of info*/
 	int             lineno;  /* at point of creation*/
 	int		touched; /* for sorting*/
