@@ -1541,7 +1541,7 @@ jname(Symbol* sym)
 	    /* Attribute name must be prefixed with the cname of the*/
 	    /* associated variable*/
 	    char* lname;
-	    lname = (char*)emalloc(strlen(sym->att.var->name)
+	    lname = (char*)ecalloc(strlen(sym->att.var->name)
 					+strlen(sym->name)
 					+1+1);
 	    lname[0] = '\0';
