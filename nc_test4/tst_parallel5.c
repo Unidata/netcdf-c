@@ -240,7 +240,10 @@ main(int argc, char **argv)
          char *story_in[STORY_LEN];
          int s;
 
-         /* Create a netcdf-4 file. */
+         /* Create a netcdf-4 file. Turns out that HDF5 does not
+          * support VLEN writes with parallel I/O. Strings are
+          * VLENS. So here I write a file with task 0 and then read it
+          * with all tasks. */
          if (!mpi_rank)
          {
             if (nc_create(FILE, NC_NETCDF4, &ncid)) ERR;
