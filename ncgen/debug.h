@@ -43,18 +43,22 @@ extern void fdebug(const char *fmt, ...);
 extern int panic(const char* fmt, ...);
 
 /*
-Provide wrapped versions of calloc and malloc.
-The wrapped version panics if memory is exhausted.
+Provide wrapped versions of XXXalloc for debugging/
+The wrapped version:
+1. fails if size is zero or memory is NULL
+2. fails if memory is exhausted.
+3. zeros all allocated memory.
 */
 
-#define ecalloc(x,y) chkcalloc(x,y)
-#define emalloc(x)   chkmalloc(x)
+#define ecalloc(x) chkcalloc(x) /*note only single arg */
 #define erealloc(p,x)   chkrealloc(p,x)
 #define efree(x) chkfree(x)
-extern void* chkcalloc(size_t, size_t);
-extern void* chkmalloc(size_t);
+#define estrdup(x) chkstrdup(x)
+extern void* chkcalloc(size_t);
 extern void* chkrealloc(void*,size_t);
 extern void  chkfree(void*);
+extern char* chkstrdup(const char* s);
+
 #define MEMCHECK(var,throw) {if((var)==NULL) return (throw);}
 
 #endif /*NCGEN_DEBUG_H*/

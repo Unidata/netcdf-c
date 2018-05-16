@@ -323,7 +323,7 @@ genbin_vlenconstants(List* vlenconstants)
     /* Prepare a place to store vlen constants */
     nvlen = listlength(vlenconstants);
     if(nvlen == 0) return;
-    vlendata = (struct Vlendata*)emalloc(sizeof(struct Vlendata)*nvlen+1);
+    vlendata = (struct Vlendata*)ecalloc(sizeof(struct Vlendata)*nvlen+1);
     memset((void*)vlendata,0,sizeof(struct Vlendata)*nvlen+1);
 
     for(i=0;i<nvlen;i++) {

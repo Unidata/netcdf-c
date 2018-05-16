@@ -86,7 +86,7 @@ bin_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf
 	    char* nil = NULL;
             bbAppendn(buf,(void*)&nil,sizeof(nil));
 	} else {
-	    ptr = (char*)malloc(len+1);
+	    ptr = (char*)ecalloc(len+1);
 	    memcpy(ptr,con->value.stringv.stringv,len);
 	    ptr[len] = '\0';
             bbAppendn(buf,(void*)&ptr,sizeof(ptr));

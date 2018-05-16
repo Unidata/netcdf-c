@@ -611,14 +611,10 @@ named foo.nc. The initial size is set to 4096.
 int
 nc_create_mem(const char* path, int mode, size_t initialsize, int* ncidp)
 {
-#ifdef USE_DISKLESS
    if(mode & (NC_MPIIO|NC_MPIPOSIX|NC_MMAP))
 	return NC_EINVAL;
     mode |= (NC_INMEMORY|NC_NOCLOBBER); /* Specifically, do not set NC_DISKLESS */
     return NC_create(path, mode, initialsize, 0, NULL, 0, NULL, ncidp);
-#else
-    return NC_EDISKLESS;
-#endif
 }
 
 /**
@@ -876,7 +872,6 @@ if (status != NC_NOERR) handle_error(status);
 int
 nc_open_mem(const char* path, int mode, size_t size, void* memory, int* ncidp)
 {
-#ifdef USE_DISKLESS
     NC_memio meminfo;
 
     /* Sanity checks */
@@ -889,9 +884,6 @@ nc_open_mem(const char* path, int mode, size_t size, void* memory, int* ncidp)
     meminfo.memory = memory;
     meminfo.flags = NC_MEMIO_LOCKED;
     return NC_open(path, mode, 0, NULL, 0, &meminfo, ncidp);
-#else
-    return NC_EDISKLESS;
-#endif
 }
 
 /** \ingroup datasets
@@ -945,7 +937,6 @@ if (status != NC_NOERR) handle_error(status);
 int
 nc_open_memio(const char* path, int mode, NC_memio* params, int* ncidp)
 {
-#ifdef USE_DISKLESS
     /* Sanity checks */
     if(path == NULL || params == NULL)
  	return NC_EINVAL;
@@ -955,9 +946,6 @@ nc_open_memio(const char* path, int mode, NC_memio* params, int* ncidp)
 	return NC_EINVAL;
     mode |= (NC_INMEMORY);
     return NC_open(path, mode, 0, NULL, 0, params, ncidp);
-#else
-    return NC_EINMEMORY;
-#endif
 }
 
 /**
@@ -1479,7 +1467,6 @@ and release its netCDF ID:
 int
 nc_close_memio(int ncid, NC_memio* memio)
 {
-#ifdef USE_DISKLESS
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
@@ -1498,9 +1485,6 @@ nc_close_memio(int ncid, NC_memio* memio)
        }
    }
    return stat;
-#else
-    return NC_EINMEMORY;
-#endif
 }
 
 /** \ingroup datasets
@@ -1917,14 +1901,6 @@ check_create_mode(int mode)
 	(mode & NC_MPIPOSIX && mode & NC_DISKLESS))
 	return NC_EINVAL;
 
-#ifndef USE_DISKLESS
-   /* If diskless is requested, but not built, return error. */
-   if (mode & NC_DISKLESS)
-       return NC_ENOTBUILT;
-   if (mode & NC_INMEMORY)
-       return NC_ENOTBUILT;
-#endif
-
 #ifndef USE_NETCDF4
    /* If the user asks for a netCDF-4 file, and the library was built
     * without netCDF-4, then return an error.*/
@@ -2000,10 +1976,6 @@ NC_create(const char *path0, int cmode, size_t initialsz,
       if ((stat = nc_initialize()))
 	 return stat;
    }
-
-#ifndef USE_DISKLESS
-   cmode &= (~ (NC_DISKLESS|NC_INMEMORY)); /* Force off */
-#endif
 
 #ifdef WINPATH
    /* Need to do path conversion */
@@ -2189,11 +2161,6 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
       nothing if path is a 'file:...' url, so it will need to be
       repeated in protocol code: libdap2 and libdap4
     */
-
-#ifndef USE_DISKLESS
-   /* Clean up cmode */
-   cmode &= (~ (NC_DISKLESS|NC_INMEMORY));
-#endif
 
    inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
