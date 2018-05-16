@@ -595,7 +595,7 @@ dataError(XXDR* xdrs, OCstate* state)
     off_t ckp=0,avail=0;
     int i=0;
     char* errmsg = NULL;
-    char errortext[16]; /* bigger thant |ERROR_TAG|*/
+    char errortext[16]; /* bigger than |ERROR_TAG|*/
     avail = xxdr_getavail(xdrs);
     if(avail < strlen(ERROR_TAG))
 	goto done; /* assume it is ok */

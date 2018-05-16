@@ -341,7 +341,7 @@ NCD4_abort(int ncid)
 }
 
 /**************************************************/
-/* Auxilliary routines                            */
+/* Auxiliary routines                            */
 /**************************************************/
 
 static void

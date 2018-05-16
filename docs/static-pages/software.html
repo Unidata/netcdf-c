@@ -96,6 +96,9 @@
         <a href="#Gfdnavi" >Gfdnavi (Geophysical fluid data navigator)</a>
       </li>
       <li>
+        <a href="#gliderscope" >Gliderscope</a>
+      </li>
+      <li>
         <a href="#GMT">GMT (Generic Mapping Tools)</a>
       </li>
       <li>
@@ -199,6 +202,9 @@
       </li>
       <li>
         <a href="#ncvtk" >ncvtk</a>
+      </li>
+      <li>
+        <a href="#netcdf_ninja" >NetCDF Ninja</a>
       </li>
       <li>
         <a href="#netcdf_tools" >netcdf tools</a>
@@ -575,7 +581,7 @@
         Mathematical functions (sqrt, exp, log, sin, cos, ...)
       </li>
       <li>
-        Comparision (eq, ne, le, lt, ge, gt, ...)
+        Comparison (eq, ne, le, lt, ge, gt, ...)
       </li>
       <li>
         Conditions (ifthen, ifnotthen, ifthenc, ifnotthenc)
@@ -925,6 +931,36 @@ or using ECMWF reanalysis on a reduced grid
       href="http://www.gsmap.aero.osakafu-u.ac.jp/gfdnavi/" >a Gfdnavi server</a> for the
       Global Satellite Mapping of Precipitation (<a href="http://www.radar.aero.osakafu-u.ac.jp/~gsmap/index_english.html" >GSMaP</a>) project.
     </p>
+    <p></p>
+
+    <h2><a id="gliderscope" name="gliderscope">Gliderccope</a></h2>
+    <p>
+    Dr L. Mun Woo <mun.woo@uwa.edu.au>
+    at ANFOG (Australian National Facility for Ocean Gliders)
+    has developed
+    <a href="http://imos.org.au/facilities/oceangliders/glider-data/gliderscope/">Gliderscope</a>.
+    Gliderscope is an IMOS (Integrated Marine Observing System)
+    oceanographic software package allow users quick easy visualisation
+    of ocean glider data, via a convenient graphical user interface.
+    Originally developed for use with ANFOG NetCDF data, it has now
+    been expanded to handle NetCDF data files from IOOS (U.S.
+    Integrated Ocean Observing System) and EGO (Everyone's Gliding
+    Observatories) also.
+    </p><p>
+    Being interactive, Gliderscope speaks to users via an onscreen dialogue
+    box, helping the user decide what to do. With a few simple clicks of
+    the mouse, users can choose and extract segments of data, filter out the
+    bad data, perform calculations (e.g. for water density, sound velocity
+    in water, light attenuation, 1% photic depth) and apply a variety of
+    high level graphical data visualisation techniques to produce elegant
+    three/four-dimensional plots of water properties, interpolated contour
+    charts, vertical profile plots, water properties comparison charts
+    etc. Additionally, users can also export their data to text or NetCDF
+    files for easy access in other applications. Gliderscope is available
+    on Windows and Macintosh platforms, as standalone executable software
+    as well as an App for use within Matlab.
+    </p>
+
     <p></p>
 
     <h2><a id="GMT" name="GMT">GMT</a></h2>
@@ -1730,7 +1766,7 @@ or using ECMWF reanalysis on a reduced grid
     <h2><a id="NCL" name="NCL">NCL</a></h2>
     <p>
       The <a href="http://www.ncl.ucar.edu/" >NCAR Command Language
-      (NCL)</a> is an intepreted programming
+      (NCL)</a> is an interpreted programming
       language for scientific data analysis and visualization developed and
       maintained in
       NCAR's <a href="http://www.cisl.ucar.edu/">Computational and Information Systems
@@ -1961,6 +1997,21 @@ or using ECMWF reanalysis on a reduced grid
       EMT64) platforms. More information about Ncvtk is available at <a
       href="http://ncvtk.sourceforge.net"
       >http://ncvtk.sourceforge.net</a>.
+    </p>
+
+    <p></p>
+
+    <h2><a id="netcdf_ninja" name="netcdf_ninja">netCDF Ninja</a></h2>
+    <p>
+    Dr L. Mun Woo of University of Western Australia <mun.woo@uwa.edu.au>
+    has developed
+    <a href="http://imos.org.au/facilities/oceangliders/glider-data/netcdfninja/">NetCDF Ninja</a>,
+    a graphical user interface that allows users to browse all
+    the metadata contained in NetCDF files, scrutinise the data using an
+    interactive graphical plot and even make small alterations or export
+    the data in text format without having any knowledge of coding. NetCDF
+    Ninja is available on Windows and Macintosh platforms, as standalone
+    executable software as well as an App for use within Matlab.
     </p>
 
     <p></p>
@@ -2276,7 +2327,7 @@ or using ECMWF reanalysis on a reduced grid
       </li>
       <li>
         Export animations as AVI or MOV video or as a collection of
-        invididual frame images.
+        individual frame images.
       </li>
       <li>
         Explore remote THREDDS and OpenDAP catalogs and open datasets served from them.
@@ -2728,7 +2779,7 @@ or using ECMWF reanalysis on a reduced grid
       Forecast (CF) conventions and ISO 19115 metadata.
     </p>
     <p>
-      SIS is under developement as an Apache project.  Release 0.3 is
+      SIS is under development as an Apache project.  Release 0.3 is
       currently available for download.
     </p>
     <p></p>
@@ -2998,10 +3049,23 @@ or using ECMWF reanalysis on a reduced grid
     <p></p>
 
     <h2><a id="Agrimetsoft" name="Agrimetsoft">AgriMetSoft Netcdf-Extractor</a></h2>
-      There are different software packages or various codes that may be used for manipulating or displaying NetCDF data. Some of them such as MATLAB programming language needs to enough information about provide codes in MATLAB as well as to know run codes and statements. Furthermore, user should have to pay for MATLAB programming and install it in her/his system. Also, another of them are related to other programming languages such as R, NCL (NCAR Command Language), and etc. It has been mentioned before that working by many of this methods to extract NetCDF files are so rough and complicated for users. Therefore, it is essential that users can extract their NC files in a user-friendly tool without any concerns. The NetCDF Extractor software is an easy tool for all users to extract their aim region from the main files. This tool is flexible to run for various datasets such as CMIP5 models, AgMERRA datasets, Aphrodite, CRU, CORDEX, and etc. Finally, this tool is NETCDF EXTRACTOR, NETCDF FILE VIEWER, and NETCDF CONVERTER. <a href="http://www.agrimetsoft.com/Netcdf-Extractor.aspx">NetCDF-Extractor website.</A>
-    <p>
 
-
+    NetCDF Extractor is a windows software for view, convert, merge, and
+    extract data from .nc and .nc4 files. It can extract several nc files,
+    simultaneously. When a user wants to extract several files of nc format
+    simultaneously, he/she requires to load them at a same time with together,
+    loading the files one by one will be a time consuming and tedious process
+    and prone to error. By this software the user can save his/her time, and
+    quickly do the extract process. Also, it has a calculator tool. In this
+    calculator by entering latitude and longitude of the desirable region, the
+    user can view of the grid number of that region. In the latest version of
+    NetCDF Extractor, Agrimetsoft has added two options: Sum” and “Average”.
+    So, the user can easily calculate the average and sum values of the
+    selected area (grids). Data is shown in an organized table, and you can
+    choose to export everything to Excel. This tool is flexible to run for
+    various datasets such as CMIP5 models, AgMERRA, Aphrodite, CRU, and etc.
+    Agrimetsoft support all the users until they can extract the data.
+    </p>
     <p></p>
 
     <h2><a id="ViewNcDap" name="ViewNcDap">ASA ViewNcDap</a></h2>
@@ -3522,7 +3586,7 @@ or using ECMWF reanalysis on a reduced grid
     which includes features such as Mercator projection, Polar Stereographic projection,
     color or gray scale area-fill contour plotting, and support for many devices:
     X-windows, PostScript, HP, Tektronix, and others. This powerful and flexible package
-    recognizes netCDF data format, and it can extract axis lables and graph titles
+    recognizes netCDF data format, and it can extract axis labels and graph titles
     from the data files. The user can customize a plots, or combine several plots
     into a composite. Plots are of publication quality. The PPLUS graphics package
     is used for all the TAO workstation displays, including the animations. The animations

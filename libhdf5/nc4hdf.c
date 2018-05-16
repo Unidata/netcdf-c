@@ -647,7 +647,7 @@ set_par_access(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
  * @param nc Pointer to the file NC struct.
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param startp Array of start indicies.
+ * @param startp Array of start indices.
  * @param countp Array of counts.
  * @param mem_nc_type The type of the data in memory.
  * @param is_long True only if NC_LONG is the memory type.
@@ -979,7 +979,7 @@ exit:
  * @param nc Pointer to the file NC struct.
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param startp Array of start indicies.
+ * @param startp Array of start indices.
  * @param countp Array of counts.
  * @param mem_nc_type The type of the data in memory. (Convert to this
  * type from file type.)
@@ -2965,7 +2965,7 @@ nc4_convert_type(const void *src, void *dest,
             *cp1++ = *cp++;
          break;
       default:
-         LOG((0, "%s: Uknown destination type.", __func__));
+         LOG((0, "%s: Unknown destination type.", __func__));
       }
       break;
 
@@ -3932,7 +3932,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
          However, here that is incorrect because it will find the dimid 0 always
          (if any dimensions were defined). Except that when dimscale dimids have
          been defined, one or more of the values in var->dimids will have a
-         legitmate value.
+         legitimate value.
          The solution I choose is to modify nc4_var_list_add to initialize dimids to
          illegal values (-1). This is another example of the problems with dimscales.
        */
@@ -4082,7 +4082,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
  *
  * @param h5 Pointer to HDF5 file info struct.
  * @param xtype NetCDF type ID.
- * @param len Pointer that gets lenght in bytes.
+ * @param len Pointer that gets length in bytes.
  *
  * @returns NC_NOERR No error.
  * @returns NC_EBADTYPE Type not found
@@ -4254,7 +4254,7 @@ reportobject(int uselog, hid_t id, unsigned int type)
    } else
 #endif
    {
-      fprintf(stderr,"Type = %s(%lld) name='%s'",typename,(long long)id,name);
+      fprintf(stderr,"Type = %s(%lld) name='%s'",typename,printid,name);
    }
    
 }

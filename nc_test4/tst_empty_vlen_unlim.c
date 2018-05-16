@@ -80,7 +80,7 @@ int main() {
       data2[i] = (float)i;
     }
 
-    printf("\t* Puting data in secondary variable:\tnc_put_vara().\n");
+    printf("\t* Putting data in secondary variable:\tnc_put_vara().\n");
     if (nc_put_vara(ncid,varid2,startp2,countp2,data2)) ERR;
     free(data2);
 
@@ -113,7 +113,7 @@ int main() {
     data[2].p = dat2;
     data[2].len = VLEN2;
 
-    printf("\t* Puting data in VLEN variable:\tnc_put_vara().\n");
+    printf("\t* Putting data in VLEN variable:\tnc_put_vara().\n");
     stat = nc_put_vara(ncid,varid,startp,countp,data);
     if(stat) ERR;
 
@@ -172,7 +172,7 @@ int main() {
       data2[i] = (float)i;
     }
 
-    printf("\t* Puting data in secondary variable:\tnc_put_vara().\n");
+    printf("\t* Putting data in secondary variable:\tnc_put_vara().\n");
     if (nc_put_vara(ncid,varid2,startp2,countp2,data2)) ERR;
     free(data2);
 
@@ -205,7 +205,7 @@ int main() {
     data[2].p = dat2;
     data[2].len = VLEN2;
 
-    printf("\t* Puting data in VLEN variable:\tnc_put_vara().\n");
+    printf("\t* Putting data in VLEN variable:\tnc_put_vara().\n");
     stat = nc_put_vara(ncid,varid,startp,countp,data);
     if(stat) ERR;
 

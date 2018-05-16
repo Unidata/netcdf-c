@@ -202,7 +202,7 @@
 #     fi
 # 
 #     dnl Find the lib directory (which is named according to machine type).
-#     dnl The test was using -z; I changed it to -n to fix a problem withthe 
+#     dnl The test was using -z; I changed it to -n to fix a problem with the 
 #     dnl matlab server build. The build did not find the libraries with the
 #     dnl env var MATLAB_LIB was not set. 04/12/04 jhrg
 #     AC_MSG_CHECKING(for matlab library dir)
@@ -301,7 +301,7 @@
 #     AC_MSG_CHECKING(for the IDL root directory)
 #     if test -z "$IDL_ROOT"
 #     then
-#         # Find IDL's root directory by looking at the exectuable and then 
+#         # Find IDL's root directory by looking at the executable and then 
 #         # finding where that symbolic link points.
 #         # !!! Doesn't work if idl isn't a symbolic link - erd !!!
 # 	# I think that the following 'if' fixes the symbolic link problem. 

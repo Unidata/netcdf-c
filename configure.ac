@@ -180,6 +180,7 @@ AC_MSG_CHECKING([whether we should build netCDF-4])
 AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
               [do not build with netcdf-4 (else HDF5 and zlib required)])])
 test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
+enable_hdf5=enable_netcdf_4
 
 # Synonym
 AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
@@ -371,7 +372,7 @@ fi
 AC_MSG_RESULT($enable_dap_auth_tests)
 
 # Control if groups are supported in [netcdf4]dap2 code
-AC_MSG_CHECKING([whether [netcdf4] group names for DAP2 hould be enabled (default on)])
+AC_MSG_CHECKING([whether [netcdf4] group names for DAP2 should be enabled (default on)])
 AC_ARG_ENABLE([dap-groups],
               [AS_HELP_STRING([--disable-dap-groups],
                                  [disable [netcdf4] DAP2 group names])])
@@ -786,7 +787,7 @@ fi
 
 # Setup the diskless and mmap conditionals
 if test "x$enable_diskless" = xyes ; then
-  AC_DEFINE([USE_DISKLESS], [1], [if true, include NC_DISKLESS code])
+  AC_DEFINE([USE_DISKLESS], [1], [if true, include NC_DISKLESS and NC_INMEMORY code])
   if test "x$enable_mmap" = xyes; then
     AC_DEFINE([USE_MMAP], [1], [if true, use mmap for in-memory files])
   fi
@@ -909,6 +910,7 @@ AC_CHECK_LIB([m], [floor], [],
 
 if test "x$enable_netcdf_4" = xyes; then
 
+   AC_DEFINE([USE_HDF5], [1], [if true, use HDF5])
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
@@ -1202,6 +1204,7 @@ AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])
 AM_CONDITIONAL(USE_NETCDF4, [test x$enable_netcdf_4 = xyes])
+AM_CONDITIONAL(USE_HDF5, [test x$enable_hdf5 = xyes])
 AM_CONDITIONAL(USE_HDF4, [test x$enable_hdf4 = xyes])
 AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
 AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
@@ -1335,6 +1338,7 @@ AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_CDF5,[$enable_cdf5])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
+AC_SUBST(HAS_HDF5,[$enable_hdf5])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_LOGGING, [$enable_logging])
@@ -1440,14 +1444,15 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
-	             libnetcdf.settings
-		         postinstall.sh
-		         include/netcdf_meta.h
+                 libnetcdf.settings
+		 postinstall.sh
+		 include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
                  hdf4_test/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
+                 libhdf5/Makefile
                  libsrcp/Makefile
                  ncdump/Makefile
                  ncgen3/Makefile
