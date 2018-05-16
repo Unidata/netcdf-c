@@ -640,16 +640,16 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort, int extractmem)
 
    if(h5->fileinfo) free(h5->fileinfo);
 
-      /* Check to see if this is an in-memory file and we want to get its
-	 final content
-      */
-      if(extractmem) {
-	/* File must be read/write */
-	if(!h5->no_write) {
-	    retval = NC4_extract_file_image(h5);
-        }
+   /* Check to see if this is an in-memory file and we want to get its
+      final content
+   */
+   if(extractmem) {
+      /* File must be read/write */
+      if(!h5->no_write) {
+         retval = NC4_extract_file_image(h5);
       }
-
+   }
+   
    if (H5Fclose(h5->hdfid) < 0)
    {
       dumpopenobjects(h5);
