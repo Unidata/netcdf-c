@@ -104,7 +104,7 @@ main(int argc, char **argv)
          unsigned long long field_value[NUM_ENUM_FIELDS] = {1000000, 2000000, 3000000, 4000000,
                                                             5000000, 6000000, 7000000, 8000000};
          unsigned long long data = 1000000, data_in = TEST_VAL_42;
-         
+
          /* Create a parallel netcdf-4 file. */
          /*nc_set_log_level(3);*/
          if (nc_create_par(FILE, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
@@ -159,16 +159,16 @@ main(int argc, char **argv)
          int typeid;
          struct crew
          {
-	    char name[NC_MAX_NAME + 1];
-	    char description[NC_MAX_NAME + 1];
-	    char origin[NC_MAX_NAME + 1];
-	    int age;
+            char name[NC_MAX_NAME + 1];
+            char description[NC_MAX_NAME + 1];
+            char origin[NC_MAX_NAME + 1];
+            int age;
          };
          struct crew data = {"Mick McCann", "the skipper of the Irish Rover",
                              "from the banks of the Bann", 42};
          struct crew data_in = {"", "", "", -42};
          int dim_size = NC_MAX_NAME + 1;
-         
+
          /* Create a parallel netcdf-4 file. */
          /*nc_set_log_level(3);*/
          if (nc_create_par(FILE, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
@@ -247,22 +247,22 @@ main(int argc, char **argv)
          if (!mpi_rank)
          {
             if (nc_create(FILE, NC_NETCDF4, &ncid)) ERR;
-            
+
             /* Create a dimension. */
             if (nc_def_dim(ncid, STORY_DIM_NAME, STORY_LEN, &dimid)) ERR;
-            
+
             /* Create one var. */
             if (nc_def_var(ncid, STORY_VAR_NAME, NC_STRING, NDIMS1, &dimid, &v1id)) ERR;
-            
+
             /* Write metadata to file. */
             if (nc_enddef(ncid)) ERR;
-            
+
             /* Set up slab for this process. */
             count[0] = STORY_LEN;
-            
+
             /* Write phoney data. */
             if (nc_put_vara(ncid, v1id, start, count, story)) ERR;
-            
+
             /* Close the netcdf file. */
             if (nc_close(ncid)) ERR;
          }
@@ -280,7 +280,7 @@ main(int argc, char **argv)
             if (nc_free_string(STORY_LEN, (char **)story_in)) ERR;
          }
 
-         /* Close the netcdf file. */         
+         /* Close the netcdf file. */
          if (nc_close(ncid)) ERR;
       }
    }
