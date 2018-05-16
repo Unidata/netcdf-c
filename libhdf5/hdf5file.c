@@ -3019,48 +3019,6 @@ NC4_close(int ncid, void* params)
 }
 
 /**
- * @internal Close an in-memory netcdf file, writing any changes first.
- *
- * @param ncid File and group ID.
- * @param sizep ptr into which the final size is stored
- * @param memp ptr into which the final memory is stored
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
-*/
-int
-NC4_close_mem(int ncid, size_t* sizep, void** memp)
-{
-   NC_GRP_INFO_T *grp;
-   NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
-   int retval;
-
-   LOG((1, "%s: ncid 0x%x", __func__, ncid));
-
-   /* Find our metadata for this file. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return retval;
-
-   assert(nc && h5 && grp);
-
-   /* This must be the root group. */
-   if (grp->parent)
-      return NC_EBADGRPID;
-
-   /* If the file is not an in-memory file, then treat like normal close */
-   if((h5->cmode & NC_INMEMORY) == 0)
-	return NC4_close(ncid,NULL);
-
-   /* Call the nc4 close and extract memory */
-   if ((retval = close_netcdf4_file(grp->nc4_info, 0, 1)))
-      return retval;
-
-
-   return NC_NOERR;
-}
-
-/**
  * @internal Learn number of dimensions, variables, global attributes,
  * and the ID of the first unlimited dimension (if any).
  *
