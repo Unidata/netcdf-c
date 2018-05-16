@@ -7,9 +7,15 @@ environment:
       MSYS2_INSTALL_LOCN: C:\msys64
       MSYS2_BIN_LOCN: C:\msys64\usr\bin
       CMAKE_GENERATOR: "Visual Studio 15 Win64"
+    - TARGET_ARCH: x86
+      CONDA_INSTALL_LOCN: C:\\Miniconda
+      MSYS2_INSTALL_LOCN: C:\MinGW\msys\1.0
+      MSYS2_BIN_LOCN: C:\MinGW\msys\1.0\usr\bin
+      CMAKE_GENERATOR: "Visual Studio 15"
 
 platform:
     - x64
+    - x86
 
 branches:
   except:
