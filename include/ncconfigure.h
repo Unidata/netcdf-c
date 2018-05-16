@@ -45,6 +45,7 @@ char *nulldup(const char* s);
 #ifndef HAVE_SSIZE_T
 #include <basetsd.h>
 typedef SSIZE_T ssize_t;
+#define HAVE_SSIZE_T 1
 #endif
 #endif
 
