@@ -253,7 +253,7 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
 	    }
 	}
 	if(cccount > 1) {
-	    char* accum = (char*)malloc(cccount+1);
+	    char* accum = (char*)ecalloc(cccount+1);
 	    int len = 0;
 	    Datalist* newlist = builddatalist(datalistlen(data));
 	    int lineno = 0;
@@ -338,13 +338,13 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
 static NCConstant*
 makeconst(int lineno, int len, char* str)
 {
-    NCConstant* con = (NCConstant*)malloc(sizeof(NCConstant));
+    NCConstant* con = (NCConstant*)ecalloc(sizeof(NCConstant));
     con->nctype = NC_STRING;
     con->lineno = lineno;
     con->filled = 0;
     con->value.stringv.len = len;
     /* We cannot use strdup because str might have embedded nuls */
-    con->value.stringv.stringv = (char*)malloc(len+1);
+    con->value.stringv.stringv = (char*)ecalloc(len+1);
     memcpy((void*)con->value.stringv.stringv,(void*)str,len);
     con->value.stringv.stringv[len] = '\0';
     return con;
