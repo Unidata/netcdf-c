@@ -1,0 +1,33 @@
+
+{% set version = "dev" %}
+
+package:
+  name: netcdf-c
+  version: {{ version }}
+
+source:
+  path: ../
+
+build:
+  features:
+    - vc9  # [win and py27]
+    - vc14  # [win and py>=35]
+
+requirements:
+  build:
+    - python  # Here only to activate the `vc`s.
+    - msinttypes
+    - curl
+    - zlib 1.2.*
+    - hdf4
+    - hdf5 1.8.20
+    - vc 15  # [win and py>=35]
+  run:
+    - curl
+    - zlib 1.2.*
+    - hdf4
+    - hdf5 1.8.20
+    - vc 15  # [win and py>=35]
+
+test:
+  commands:
