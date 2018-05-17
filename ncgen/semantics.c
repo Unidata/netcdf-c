@@ -387,7 +387,9 @@ static void
 processenums(void)
 {
     unsigned long i,j;
+#if 0 /* Unused? */
     List* enumids = listnew();
+#endif
     for(i=0;i<listlength(typdefs);i++) {
 	Symbol* sym = (Symbol*)listget(typdefs,i);
 	ASSERT(sym->objectclass == NC_TYPE);
@@ -395,7 +397,9 @@ processenums(void)
 	for(j=0;j<listlength(sym->subnodes);j++) {
 	    Symbol* esym = (Symbol*)listget(sym->subnodes,j);
 	    ASSERT(esym->subclass == NC_ECONST);
+#if 0 /* Unused? */
 	    listpush(enumids,(void*)esym);
+#endif
 	}
     }
     /* Convert enum values to match enum type*/
@@ -443,7 +447,7 @@ processeconstrefs(void)
 static void
 processeconstrefsR(Datalist* data)
 {
-    NCConstant* con;
+    NCConstant* con = NULL;
     int i;
     for(i=0,con=data->data;i<data->alloc;i++,con++) {
 	if(con->nctype == NC_COMPOUND) {

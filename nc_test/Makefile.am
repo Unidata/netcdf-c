@@ -53,17 +53,14 @@ endif
 check_PROGRAMS = $(TESTPROGRAMS)
 
 # Build Diskless test helpers
-if BUILD_DISKLESS
 check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4 tst_diskless5 tst_inmemory
 if USE_NETCDF4
 check_PROGRAMS += tst_diskless2
-endif
 endif
 
 TESTS = $(TESTPROGRAMS)
 
 if BUILD_UTILITIES
-if BUILD_DISKLESS
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
 if BUILD_MMAP
 TESTS += run_mmap.sh
@@ -71,7 +68,6 @@ run_mmap.log: run_diskless.log
 endif
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
-endif
 endif
 endif
 
