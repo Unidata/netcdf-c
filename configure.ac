@@ -753,20 +753,6 @@ AC_CHECK_FUNCS([strlcat snprintf \
 		mkstemp mktemp random \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
-# Does the user want to use NC_DISKLESS?
-AC_MSG_CHECKING([whether in-memory files are enabled])
-AC_ARG_ENABLE([diskless],
-              [AS_HELP_STRING([--disable-diskless],
-                              [disable support for in-memory (NC_DISKLESS) files])])
-test "x$enable_diskless" = xno || enable_diskless=yes
-AC_MSG_RESULT($enable_diskless)
-
-# If DAP enabled and diskless not enabled, then warn of consequences
-if test "x$enable_dap" = "xyes" -a "x$enable_diskless" = xno  ; then
-AC_MSG_NOTICE([Warning: DAP support is enabled but diskless support is disabled.])
-AC_MSG_NOTICE([=> temporary files will be created + reclaimed when using DAP.])
-fi
-
 # disable dap4 if netcdf-4 is disabled
 if test "x$enable_netcdf_4" = "xno" ; then
     AC_MSG_WARN([netcdf-4 not enabled; disabling DAP4])
@@ -796,12 +782,8 @@ if test "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xye
   enable_mmap=no
 fi
 
-# Setup the diskless and mmap conditionals
-if test "x$enable_diskless" = xyes ; then
-  AC_DEFINE([USE_DISKLESS], [1], [if true, include NC_DISKLESS and NC_INMEMORY code])
-  if test "x$enable_mmap" = xyes; then
+if test "x$enable_mmap" = xyes; then
     AC_DEFINE([USE_MMAP], [1], [if true, use mmap for in-memory files])
-  fi
 fi
 
 AC_FUNC_ALLOCA
@@ -1222,7 +1204,6 @@ AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xy
 AM_CONDITIONAL(BUILD_FORTRAN, [test x$enable_remote_fortran_bootstrap = xyes])
 AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
-AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
@@ -1356,7 +1337,7 @@ AC_SUBST(HAS_LOGGING, [$enable_logging])
 AC_SUBST(HAS_SZLIB,[$enable_szlib])
 AC_SUBST(HAS_PARALLEL,[$enable_parallel])
 AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
-AC_SUBST(HAS_DISKLESS,[$enable_diskless])
+AC_SUBST(HAS_DISKLESS,[yes])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
 AC_SUBST(RELAX_COORD_BOUND,[$enable_relax_coord_bound])
@@ -1420,7 +1401,7 @@ AX_SET_META([NC_HAS_HDF5],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_SZIP],[$ac_cv_func_H5Z_SZIP],[yes])
 AX_SET_META([NC_HAS_DAP2],[$enable_dap],[yes])
 AX_SET_META([NC_HAS_DAP4],[$enable_dap4],[yes])
-AX_SET_META([NC_HAS_DISKLESS],[$enable_diskless],[yes])
+AX_SET_META([NC_HAS_DISKLESS],[yes],[yes])
 AX_SET_META([NC_HAS_MMAP],[$enable_mmap],[yes])
 AX_SET_META([NC_HAS_JNA],[$enable_jna],[yes])
 AX_SET_META([NC_HAS_PNETCDF],[$enable_pnetcdf],[yes])
