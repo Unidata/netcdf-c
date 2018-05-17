@@ -42,11 +42,6 @@ defined here, including function-like #defines.
 #define CLEARSTRUCT
 
 /**************************************************/
-/* Global state */
-
-extern NCD4globalstate* NCD4_globalstate;
-
-/**************************************************/
 
 #undef nullfree
 #ifndef nullfree
