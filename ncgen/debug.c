@@ -1,9 +1,7 @@
-/*********************************************************************
- *   Copyright 2009, UCAR/Unidata
- *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *********************************************************************/
-/* $Id: debug.c,v 1.2 2010/05/24 19:59:57 dmh Exp $ */
-/* $Header: /upc/share/CVS/netcdf-3/ncgen/debug.c,v 1.2 2010/05/24 19:59:57 dmh Exp $ */
+/*
+Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
+See LICENSE.txt for license information.
+*/
 
 #include "includes.h"
 
@@ -26,21 +24,23 @@ void fdebug(const char *fmt, ...)
 /**************************************************/
 
 /* Support debugging of memory*/
-/* Also guarantee that calloc zeros memory*/
-void*
-chkcalloc(size_t size, size_t nelems)
+
+void
+chkfree(void* memory)
 {
-    return chkmalloc(size*nelems);
+    if(memory == NULL) {
+	panic("free: null memory");
+    }
+    free(memory);
 }
 
 void*
-chkmalloc(size_t size)
+chkcalloc(size_t size)
 {
     void* memory = calloc(size,1); /* use calloc to zero memory*/
     if(memory == NULL) {
 	panic("malloc:out of memory");
     }
-    memset(memory,0,size);
     return memory;
 }
 
@@ -54,10 +54,18 @@ chkrealloc(void* ptr, size_t size)
     return memory;
 }
 
-void
-chkfree(void* mem)
+char*
+chkstrdup(const char* s)
 {
-    if(mem != NULL) free(mem);
+    char* dup;
+    if(s == NULL) {
+	panic("strdup: null argument");
+    }
+    dup = strdup(s);
+    if(dup == NULL) {
+	panic("strdup: out of memory");
+    }
+    return dup;
 }
 
 int
