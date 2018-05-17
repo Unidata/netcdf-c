@@ -34,9 +34,6 @@ static NC_Dispatch NCD4_dispatch_base;
 
 NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
 
-/* Collect global state info in one place */
-NCD4globalstate* NCD4_globalstate = NULL;
-
 /* Forward */
 static int globalinit(void);
 
@@ -63,6 +60,7 @@ NCD4_initialize(void)
 int
 NCD4_finalize(void)
 {
+    curl_global_cleanup();
     return THROW(NC_NOERR);
 }
 
