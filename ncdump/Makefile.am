@@ -90,12 +90,9 @@ tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
 tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log
 endif #!USE_NETCDF4
 
-# Add diskless checks if needed.
-if BUILD_DISKLESS
 TESTS += tst_inmemory_nc3.sh
 if USE_NETCDF4
 TESTS += tst_inmemory_nc4.sh
-endif
 endif
 
 endif BUILD_TESTSETS
