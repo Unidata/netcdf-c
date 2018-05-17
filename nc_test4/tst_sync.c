@@ -86,7 +86,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-   printf("**** testing that sync without enddef...");
+   printf("**** testing sync without enddef...");
    {
       int ncid, var1_id, var2_id, var3_id, dimid;
       int ndims, nvars, natts, unlimdimid, dimid_in;
