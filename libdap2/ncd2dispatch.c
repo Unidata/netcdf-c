@@ -201,6 +201,7 @@ NCD2_initialize(void)
 int
 NCD2_finalize(void)
 {
+    curl_global_cleanup();
     return NC_NOERR;
 }
 
@@ -367,16 +368,13 @@ NCD2_open(const char* path, int mode,
         /* Now, use the file to create the hidden, in-memory netcdf file.
 	   We want this hidden file to always be NC_CLASSIC, so we need to
            force default format temporarily in case user changed it.
-	   If diskless is enabled, then create file in-memory, else
-           create an actual temporary file in the file system.
+	   Since diskless is enabled, create file in-memory.
 	*/
 	{
 	    int new = 0; /* format netcdf-3 */
 	    int old = 0;
 	    int ncflags = NC_CLOBBER|NC_CLASSIC_MODEL;
-#ifdef USE_DISKLESS
 	    ncflags |= NC_DISKLESS;
-#endif
 	    nc_set_default_format(new,&old); /* save and change */
             ncstat = nc_create(tmpname,ncflags,&nc3id);
 	    nc_set_default_format(old,&new); /* restore */
