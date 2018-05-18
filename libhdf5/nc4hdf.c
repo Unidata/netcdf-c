@@ -1,16 +1,14 @@
+/* Copyright 2003-2018, University Corporation for Atmospheric
+ * Research. See the COPYRIGHT file for copying and redistribution
+ * conditions. */
 /**
- *
- * @file
+ * @file @internal
  * This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
  * HDF5 backend for netCDF, depending on your point of view.
  *
  * This file contains functions internal to the netcdf4 library. None of
  * the functions in this file are exposed in the exetnal API. These
  * functions handle the HDF interface.
- *
- * Copyright 2003, University Corporation for Atmospheric
- * Research. See the COPYRIGHT file for copying and redistribution
- * conditions.
  *
  * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
