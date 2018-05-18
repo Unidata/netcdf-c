@@ -1,6 +1,6 @@
-/* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+/* This is part of the netCDF package. Copyright 2005-2018 University
+   Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+   conditions of use.
 
    Test netcdf-4 file code.
    Ed Hartnett
@@ -10,9 +10,6 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 
-#ifdef IGNORE
-extern NC_FILE_INFO_T *nc_file;
-#endif
 int test_redef(int format);
 
 #define FILE_NAME "tst_files.nc"
@@ -44,9 +41,6 @@ main(int argc, char **argv)
    printf("*** testing with bad inputs...");
    {
       int ncid;
-
-      /* Make sure bad create mode causes failure. */
-      /*if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;*/
 
       /* Create an empty file. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
@@ -266,14 +260,12 @@ main(int argc, char **argv)
    test_redef(NC_FORMAT_64BIT_OFFSET);
    SUMMARIZE_ERR;
 
-#ifdef USE_NETCDF4
    printf("*** testing redef for netCDF-4 ...");
    test_redef(NC_FORMAT_NETCDF4);
    SUMMARIZE_ERR;
    printf("*** testing redef for netCDF-4, with strict netCDF-3 rules...");
    test_redef(NC_FORMAT_NETCDF4_CLASSIC);
    SUMMARIZE_ERR;
-#endif /* USE_NETCDF4 */
 
 #ifdef ENABLE_CDF5
    printf("*** testing redef for CDF5...");
@@ -298,14 +290,11 @@ main(int argc, char **argv)
       if (format != NC_FORMAT_64BIT_OFFSET) ERR;
       if (nc_close(ncid)) ERR;
 
-      
-#ifdef USE_NETCDF4
       /* Create a netcdf-4 file. */
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
       if (nc_inq_format(ncid, &format)) ERR;
       if (format != NC_FORMAT_NETCDF4) ERR;
       if (nc_close(ncid)) ERR;
-#endif /* USE_NETCDF4 */
    }
    SUMMARIZE_ERR;
    printf("*** testing CLASSIC_MODEL flag with classic formats...");
@@ -326,7 +315,6 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-#ifdef USE_NETCDF4
    printf("*** testing multiple open files...");
    {
 #define VAR_NAME "Captain_Kirk"
@@ -370,7 +358,6 @@ main(int argc, char **argv)
          if (nc_close(ncid[f])) ERR;
    }
    SUMMARIZE_ERR;
-#endif /* USE_NETCDF4 */
    FINAL_RESULTS;
 }
 
@@ -395,6 +382,14 @@ main(int argc, char **argv)
 #define NEW_CACHE_SIZE 32000000
 #define NEW_CACHE_NELEMS 2000
 #define NEW_CACHE_PREEMPTION .75
+#define NEW_CACHE_SIZE_2 16000000
+#define NEW_CACHE_NELEMS_2 1000
+#define NEW_CACHE_PREEMPTION_2 .50
+
+/* These prototypes are needed because these functions, used by the
+ * Fortran API, are not prototyped in netcdf.h. */
+int nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp);
+int nc_set_chunk_cache_ints(int size, int nelems, int preemption);
 
 int
 test_redef(int format)
@@ -412,6 +407,8 @@ test_redef(int format)
    short short_out = -999;
    nc_type xtype_in;
    size_t cache_size_in, cache_nelems_in;
+   int cache_size_int_in, cache_nelems_int_in;
+   int cache_preemption_int_in;
    float cache_preemption_in;
    int ret;
 
@@ -436,6 +433,51 @@ test_redef(int format)
                           &cache_preemption_in)) ERR;
    if (cache_size_in != NEW_CACHE_SIZE || cache_nelems_in != NEW_CACHE_NELEMS ||
        cache_preemption_in != NEW_CACHE_PREEMPTION) ERR;
+   cache_size_in = 0;
+   if (nc_get_chunk_cache(&cache_size_in, NULL, NULL)) ERR;
+   if (cache_size_in != NEW_CACHE_SIZE) ERR;
+   cache_nelems_in = 0;   
+   if (nc_get_chunk_cache(NULL, &cache_nelems_in, NULL)) ERR;
+   if (cache_nelems_in != NEW_CACHE_NELEMS) ERR;
+   cache_preemption_in = 0;   
+   if (nc_get_chunk_cache(NULL, NULL, &cache_preemption_in)) ERR;
+   if (cache_preemption_in != NEW_CACHE_PREEMPTION) ERR;
+
+   /* Retrieve the chunk cache settings as integers, like the fortran API. */
+   if (nc_get_chunk_cache_ints(&cache_size_int_in, &cache_nelems_int_in,
+                               &cache_preemption_int_in)) ERR;
+   if (cache_size_int_in != NEW_CACHE_SIZE || cache_nelems_int_in != NEW_CACHE_NELEMS ||
+       cache_preemption_int_in != (int)(NEW_CACHE_PREEMPTION * 100)) ERR;
+   if (nc_get_chunk_cache_ints(NULL, NULL, NULL)) ERR;
+   cache_size_int_in = 0;
+   if (nc_get_chunk_cache_ints(&cache_size_int_in, NULL, NULL)) ERR;
+   if (cache_size_int_in != NEW_CACHE_SIZE) ERR;
+   cache_nelems_int_in = 0;
+   if (nc_get_chunk_cache_ints(NULL, &cache_nelems_int_in, NULL)) ERR;
+   if (cache_nelems_int_in != NEW_CACHE_NELEMS) ERR;
+   cache_preemption_int_in = 0;
+   if (nc_get_chunk_cache_ints(NULL, NULL, &cache_preemption_int_in)) ERR;
+   if (cache_preemption_int_in != (int)(NEW_CACHE_PREEMPTION * 100)) ERR;
+
+   /* These won't work. */
+   if (nc_set_chunk_cache_ints(-1, NEW_CACHE_NELEMS_2,
+                               (int)(NEW_CACHE_PREEMPTION_2 * 100)) != NC_EINVAL) ERR;
+   if (nc_set_chunk_cache_ints(NEW_CACHE_SIZE_2, 0,
+                               (int)(NEW_CACHE_PREEMPTION_2 * 100)) != NC_EINVAL) ERR;
+   if (nc_set_chunk_cache_ints(NEW_CACHE_SIZE_2, NEW_CACHE_NELEMS_2,
+                               -1) != NC_EINVAL) ERR;
+   if (nc_set_chunk_cache_ints(NEW_CACHE_SIZE_2, NEW_CACHE_NELEMS_2,
+                               101) != NC_EINVAL) ERR;
+   
+
+   /* Change chunk cache again. */
+   if (nc_set_chunk_cache_ints(NEW_CACHE_SIZE_2, NEW_CACHE_NELEMS_2,
+                               (int)(NEW_CACHE_PREEMPTION_2 * 100))) ERR;
+   if (nc_get_chunk_cache_ints(&cache_size_int_in, &cache_nelems_int_in,
+                               &cache_preemption_int_in)) ERR;
+   if (cache_size_int_in != NEW_CACHE_SIZE_2 || cache_nelems_int_in != NEW_CACHE_NELEMS_2 ||
+       cache_preemption_int_in != (int)(NEW_CACHE_PREEMPTION_2 * 100)) ERR;
+   
 
    /* This will fail, except for netcdf-4/hdf5, which permits any
     * name. */
