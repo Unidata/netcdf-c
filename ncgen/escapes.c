@@ -169,7 +169,7 @@ initcodify(void)
     idtlen = strlen("DIGIT_n_"); /* initial digit template */
     hexlen = strlen("_XHH"); /* template for hex of non-ASCII bytes */
     for(i = 0; i < 128; i++) {
-        rp = emalloc(2);
+        rp = ecalloc(2);
         rp[0] = i;
         rp[1] = '\0';
         repls[i] = rp;
@@ -180,7 +180,7 @@ initcodify(void)
         repls[j] = ctable[i].s;
     }
     for(i = 128; i < 256; i++) {
-        rp = emalloc(hexlen+1);
+        rp = ecalloc(hexlen+1);
         snprintf(rp, hexlen+1, "_X%2.2X", i); /* need to include null*/
         rp[hexlen] = '\0';
         repls[i] = rp;
@@ -460,7 +460,7 @@ f77quotestring(Bytebuffer* databuf)
 	return;
     }
 
-    s = (unsigned char*)emalloc(slen+1);
+    s = (unsigned char*)ecalloc(slen+1);
     memcpy((void*)s,bbContents(databuf),slen);
     s[slen] = '\0';
     bbClear(databuf);

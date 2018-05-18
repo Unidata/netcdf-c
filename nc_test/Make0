@@ -1,5 +1,5 @@
 # Test c output
-T=tst_inmemory
+T=tst_diskless
 
 #ARGS=t
 

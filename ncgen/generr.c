@@ -116,7 +116,7 @@ semerror(lno,fmt,va_alist) const int lno; const char* fmt; va_dcl
     vastart(argv,fmt);
     (void)fprintf(stderr,"%s: %s line %d: ", progname, cdlname, lno);
     vderror(fmt,argv);
-    exit(1); /* immediately fatal */
+    finalize_netcdf(1); /* immediately fatal */
 }
 
 /* Capture potential version errors */
