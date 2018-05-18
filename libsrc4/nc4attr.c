@@ -206,7 +206,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
       need_to_convert++;
       if ((retval = nc4_convert_type(att->data, bufr, att->nc_typeid,
                                      mem_type, (size_t)att->len, &range_error,
-                                     NULL, (h5->cmode & NC_CLASSIC_MODEL), 0, 0)))
+                                     NULL, (h5->cmode & NC_CLASSIC_MODEL))))
          BAIL(retval);
 
       /* For strict netcdf-3 rules, ignore erange errors between UBYTE
@@ -924,7 +924,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
             /* Data types are like religions, in that one can convert.  */
             if ((retval = nc4_convert_type(data, att->data, mem_type, file_type,
                                            len, &range_error, NULL,
-                                           (h5->cmode & NC_CLASSIC_MODEL), 0, 0)))
+                                           (h5->cmode & NC_CLASSIC_MODEL))))
                BAIL(retval);
          }
       }
