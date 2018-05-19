@@ -18,6 +18,7 @@
 
 #include "ncdimscale.h"
 #include "nc_logging.h"
+#include "netcdf_mem.h"
 #include "ncindex.h"
 
 #ifdef USE_PARALLEL
@@ -326,6 +327,17 @@ typedef struct  NC_HDF5_FILE_INFO
    void *format_file_info;
 #endif /* USE_HDF4 */
    struct NCFILEINFO* fileinfo;
+   struct NC4_Memio {
+	NC_memio memio;
+	int locked; /* do not copy and do not release */
+	int persist; /* Should file be persisted out on close? */
+	int inmemory;
+	int diskless;
+	unsigned int flags; /* for H5LTopen_file_image */
+	int fapl;
+	size_t initialsize;
+	int created; /* 1 => create, 0 => open */
+   } mem;
 } NC_HDF5_FILE_INFO_T;
 
 

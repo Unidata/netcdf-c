@@ -19,6 +19,7 @@
 #endif
 
 #include "nc3internal.h"
+#include "netcdf_mem.h"
 #include "rnd.h"
 #include "ncx.h"
 
@@ -34,6 +35,10 @@
 #define NC_NUMRECS_EXTENT3 4
 /* For cdf5 */
 #define NC_NUMRECS_EXTENT5 8
+
+/* Internal function; breaks ncio abstraction */
+extern int memio_extract(ncio* const nciop, size_t* sizep, void** memoryp);
+
 
 static void
 free_NC3INFO(NC3_INFO *nc3)
@@ -1317,7 +1322,7 @@ NC3_abort(int ncid)
 }
 
 int
-NC3_close(int ncid)
+NC3_close(int ncid, void* params)
 {
 	int status = NC_NOERR;
 	NC *nc;
@@ -1364,6 +1369,12 @@ NC3_close(int ncid)
 		    return status;
 	    }
 	}
+
+	if(params != NULL && (nc->mode & NC_INMEMORY) != 0) {
+	    NC_memio* memio = (NC_memio*)params;
+            /* Extract the final memory size &/or contents */
+            status = memio_extract(nc3->nciop,&memio->size,&memio->memory);
+        }
 
 	(void) ncio_close(nc3->nciop, 0);
 	nc3->nciop = NULL;
@@ -1771,19 +1782,14 @@ int
 nc_delete_mp(const char * path, int basepe)
 {
 	NC *nc;
-	NC3_INFO* nc3;
 	int status;
 	int ncid;
-	size_t chunk = 512;
 
 	status = nc_open(path,NC_NOWRITE,&ncid);
         if(status) return status;
 
 	status = NC_check_id(ncid,&nc);
         if(status) return status;
-	nc3 = NC3_DATA(nc);
-
-	nc3->chunk = chunk;
 
 #if defined(LOCKNUMREC) /* && _CRAYMPP */
 	if (status = NC_init_pe(nc3, basepe)) {

@@ -181,10 +181,10 @@ NC_check_file_type(const char *path, int flags, void *parameters,
     int status = NC_NOERR;
 
     int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
+    int inmemory = (!diskless && ((flags & NC_INMEMORY) == NC_INMEMORY));
 #ifdef USE_PARALLEL
     int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
 #endif /* USE_PARALLEL */
-    int inmemory = (diskless && ((flags & NC_INMEMORY) == NC_INMEMORY));
     struct MagicFile file;
 
    *model = 0;
@@ -194,7 +194,7 @@ NC_check_file_type(const char *path, int flags, void *parameters,
     file.path = path; /* do not free */
     file.parameters = parameters;
     if(inmemory && parameters == NULL)
-	{status = NC_EDISKLESS; goto done;}
+	{status = NC_EINMEMORY; goto done;}
     if(inmemory) {
         file.inmemory = inmemory;
 	goto next;
@@ -263,8 +263,8 @@ and attributes.
   NC_64BIT_DATA (Alias NC_CDF5) (create CDF-5 file),
   NC_NETCDF4 (create netCDF-4/HDF5 file),
   NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
-  NC_DISKLESS (store data only in memory),
-  NC_MMAP (use MMAP for NC_DISKLESS),
+  NC_DISKLESS (store data in memory),
+  NC_MMAP (use MMAP for NC_DISKLESS instead of NC_INMEMORY),
   and NC_WRITE.
   See discussion below.
 
@@ -278,7 +278,10 @@ aspects of how it may be used.
 
 Setting NC_NOCLOBBER means you do not want to clobber (overwrite) an
 existing dataset; an error (NC_EEXIST) is returned if the specified
-dataset already exists.
+dataset already exists. As a slight variation on this, if you
+specify NC_DISKLESS and NC_NOCLOBBER, the file will be created
+in-memory, but no attempt will be made to persiste the in-memory
+data to a disk file.
 
 The NC_SHARE flag is appropriate when one process may be writing the
 dataset and one or more other processes reading the dataset
@@ -456,7 +459,7 @@ nc_create(const char *path, int cmode, int *ncidp)
 
 /**
  * Create a netCDF file with some extra parameters controlling classic
- * file cacheing.
+ * file caching.
  *
  * Like nc_create(), this function creates a netCDF file.
  *
@@ -528,6 +531,54 @@ nc__create(const char *path, int cmode, size_t initialsz,
 		    chunksizehintp, 0, NULL, ncidp);
 
 }
+
+/** \ingroup datasets
+Create a netCDF file with the contents stored in memory.
+
+\param path Must be non-null, but otherwise only used to set the dataset name.
+
+\param mode the mode flags; Note that this procedure uses a limited set of flags because it forcibly sets NC_INMEMORY.
+
+\param initialsize (advisory) size to allocate for the created file
+
+\param ncidp Pointer to location where returned netCDF ID is to be
+stored.
+
+\returns ::NC_NOERR No error.
+
+\returns ::NC_ENOMEM Out of memory.
+
+\returns ::NC_EDISKLESS diskless io is not enabled for fails.
+
+\returns ::NC_EINVAL, etc. other errors also returned by nc_open.
+
+<h1>Examples</h1>
+
+In this example we use nc_create_mem() to create a classic netCDF dataset
+named foo.nc. The initial size is set to 4096.
+
+@code
+     #include <netcdf.h>
+        ...
+     int status = NC_NOERR;
+     int ncid;
+     int mode = 0;
+     size_t initialsize = 4096;
+        ...
+     status = nc_create_mem("foo.nc", mode, initialsize, &ncid);
+     if (status != NC_NOERR) handle_error(status);
+@endcode
+*/
+
+int
+nc_create_mem(const char* path, int mode, size_t initialsize, int* ncidp)
+{
+   if(mode & (NC_MPIIO|NC_MPIPOSIX|NC_MMAP))
+	return NC_EINVAL;
+    mode |= (NC_INMEMORY|NC_NOCLOBBER); /* Specifically, do not set NC_DISKLESS */
+    return NC_create(path, mode, initialsize, 0, NULL, 0, NULL, ncidp);
+}
+
 /**
  * @internal Create a file with special (deprecated) Cray settings.
  *
@@ -740,7 +791,7 @@ Open a netCDF file with the contents taken from a block of memory.
 
 \param path Must be non-null, but otherwise only used to set the dataset name.
 
-\param mode the mode flags; Note that this procedure uses a limited set of flags because it forcibly sets NC_NOWRITE|NC_DISKLESS|NC_INMEMORY.
+\param mode the mode flags; Note that this procedure uses a limited set of flags because it forcibly sets NC_INMEMORY.
 
 \param size The length of the block of memory being passed.
 
@@ -783,21 +834,80 @@ if (status != NC_NOERR) handle_error(status);
 int
 nc_open_mem(const char* path, int mode, size_t size, void* memory, int* ncidp)
 {
-#ifdef USE_DISKLESS
-    NC_MEM_INFO meminfo;
+    NC_memio meminfo;
 
     /* Sanity checks */
     if(memory == NULL || size < MAGIC_NUMBER_LEN || path == NULL)
  	return NC_EINVAL;
     if(mode & (NC_WRITE|NC_MPIIO|NC_MPIPOSIX|NC_MMAP))
 	return NC_EINVAL;
-    mode |= (NC_INMEMORY|NC_DISKLESS);
+    mode |= (NC_INMEMORY); /* DO not set NC_DISKLESS */
     meminfo.size = size;
     meminfo.memory = memory;
+    meminfo.flags = NC_MEMIO_LOCKED;
     return NC_open(path, mode, 0, NULL, 0, &meminfo, ncidp);
-#else
-    return NC_EDISKLESS;
-#endif
+}
+
+/** \ingroup datasets
+Open a netCDF file with the contents taken from a block of memory.
+Similar to nc_open_mem, but with parameters. Warning: if you do
+specify that the provided memory is locked, then <b>never</b>
+pass in non-heap allocated memory. Additionally, if not locked,
+then do not assume that the memory returned by nc_close_mem
+is the same as passed to nc_open_memio. You <b>must</b> check
+before attempting to free the original memory.
+
+\param path Must be non-null, but otherwise only used to set the dataset name.
+
+\param mode the mode flags; Note that this procedure uses a limited set of flags because it forcibly sets NC_INMEMORY.
+
+\param params controlling parameters
+
+\param ncidp Pointer to location where returned netCDF ID is to be
+stored.
+
+\returns ::NC_NOERR No error.
+
+\returns ::NC_ENOMEM Out of memory.
+
+\returns ::NC_EDISKLESS diskless io is not enabled for fails.
+
+\returns ::NC_EINVAL, etc. other errors also returned by nc_open.
+
+<h1>Examples</h1>
+
+Here is an example using nc_open_memio() to open an existing netCDF dataset
+named foo.nc for read-only, non-shared access. It differs from the nc_open_mem()
+example in that it uses a parameter block.
+
+@code
+#include <netcdf.h>
+#include <netcdf_mem.h>
+   ...
+int status = NC_NOERR;
+int ncid;
+NC_memio params;
+   ...
+params.size = <compute file size of foo.nc in bytes>;
+params.memory = malloc(size);
+params.flags = <see netcdf_mem.h>
+   ...
+status = nc_open_memio("foo.nc", 0, &params, &ncid);
+if (status != NC_NOERR) handle_error(status);
+@endcode
+*/
+int
+nc_open_memio(const char* path, int mode, NC_memio* params, int* ncidp)
+{
+    /* Sanity checks */
+    if(path == NULL || params == NULL)
+ 	return NC_EINVAL;
+    if(params->memory == NULL || params->size < MAGIC_NUMBER_LEN)
+ 	return NC_EINVAL;
+    if(mode & (NC_MPIIO|NC_MPIPOSIX|NC_MMAP))
+	return NC_EINVAL;
+    mode |= (NC_INMEMORY);
+    return NC_open(path, mode, 0, NULL, 0, params, ncidp);
 }
 
 /**
@@ -1263,8 +1373,72 @@ nc_close(int ncid)
    if(ncp->refcount <= 0)
 #endif
    {
+       stat = ncp->dispatch->close(ncid,NULL);
+       /* Remove from the nc list */
+       if (!stat)
+       {
+	   del_from_NCList(ncp);
+	   free_NC(ncp);
+       }
+   }
+   return stat;
+}
 
-       stat = ncp->dispatch->close(ncid);
+/** \ingroup datasets
+Do a normal close (see nc_close()) on an in-memory dataset,
+then return a copy of the final memory contents of the dataset.
+
+\param ncid NetCDF ID, from a previous call to nc_open() or nc_create().
+
+\param memio a pointer to an NC_memio object into which the final valid memory
+size and memory will be returned.
+
+\returns ::NC_NOERR No error.
+
+\returns ::NC_EBADID Invalid id passed.
+
+\returns ::NC_ENOMEM Out of memory.
+
+\returns ::NC_EDISKLESS if the file was not created as an inmemory file.
+
+\returns ::NC_EBADGRPID ncid did not contain the root group id of this
+file. (NetCDF-4 only).
+
+<h1>Example</h1>
+
+Here is an example using nc_close_mem to finish the definitions of a new
+netCDF dataset named foo.nc, return the final memory,
+and release its netCDF ID:
+
+\code
+     #include <netcdf.h>
+        ...
+     int status = NC_NOERR;
+     int ncid;
+     NC_memio finalmem;
+     size_t initialsize = 65000;
+        ...
+     status = nc_create_mem("foo.nc", NC_NOCLOBBER, initialsize, &ncid);
+     if (status != NC_NOERR) handle_error(status);
+        ...   create dimensions, variables, attributes
+     status = nc_close_memio(ncid,&finalmem);
+     if (status != NC_NOERR) handle_error(status);
+\endcode
+
+ */
+int
+nc_close_memio(int ncid, NC_memio* memio)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+
+#ifdef USE_REFCOUNT
+   ncp->refcount--;
+   if(ncp->refcount <= 0)
+#endif
+   {
+       stat = ncp->dispatch->close(ncid,memio);
        /* Remove from the nc list */
        if (!stat)
        {
@@ -1689,14 +1863,6 @@ check_create_mode(int mode)
 	(mode & NC_MPIPOSIX && mode & NC_DISKLESS))
 	return NC_EINVAL;
 
-#ifndef USE_DISKLESS
-   /* If diskless is requested, but not built, return error. */
-   if (mode & NC_DISKLESS)
-       return NC_ENOTBUILT;
-   if (mode & NC_INMEMORY)
-       return NC_ENOTBUILT;
-#endif
-
 #ifndef USE_NETCDF4
    /* If the user asks for a netCDF-4 file, and the library was built
     * without netCDF-4, then return an error.*/
@@ -1772,10 +1938,6 @@ NC_create(const char *path0, int cmode, size_t initialsz,
       if ((stat = nc_initialize()))
 	 return stat;
    }
-
-#ifndef USE_DISKLESS
-   cmode &= (~ NC_DISKLESS); /* Force off */
-#endif
 
 #ifdef WINPATH
    /* Need to do path conversion */
@@ -1962,14 +2124,8 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
       repeated in protocol code: libdap2 and libdap4
     */
 
-#ifndef USE_DISKLESS
-   /* Clean up cmode */
-   cmode &= (~ NC_DISKLESS);
-#endif
-
    inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
-
 
 #ifdef WINPATH
    path = NCpathcvt(path0);
@@ -2195,7 +2351,7 @@ openmagic(struct MagicFile* file)
     int status = NC_NOERR;
     if(file->inmemory) {
 	/* Get its length */
-	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
+	NC_memio* meminfo = (NC_memio*)file->parameters;
 	file->filelen = (long long)meminfo->size;
 	goto done;
     }
@@ -2260,7 +2416,7 @@ readmagic(struct MagicFile* file, long pos, char* magic)
     memset(magic,0,MAGIC_NUMBER_LEN);
     if(file->inmemory) {
 	char* mempos;
-	NC_MEM_INFO* meminfo = (NC_MEM_INFO*)file->parameters;
+	NC_memio* meminfo = (NC_memio*)file->parameters;
 	if((pos + MAGIC_NUMBER_LEN) > meminfo->size)
 	    {status = NC_EDISKLESS; goto done;}
 	mempos = ((char*)meminfo->memory) + pos;

@@ -188,7 +188,7 @@ specifies the password for accessing the HTTP.SSL.CERTIFICAT/HTTP.SSL.key file.
 
 HTTP.SSL.CAPATH
 specifies the path to a directory containing
-trusted certificates for validating server sertificates.
+trusted certificates for validating server certificates.
 See reference #2 for more info.
 
 HTTP.SSL.VALIDATE
@@ -512,9 +512,10 @@ what you changed to the author so this document can be updated.
     done
     exit
 
-## Provenance
+## Point of Contact
 
 __Author__: Dennis Heimbigner<br>
+__Email__: dmh at ucar dot edu
 __Initial Version__: 11/21/2014<br>
 __Last Revised__: 08/24/2017
 

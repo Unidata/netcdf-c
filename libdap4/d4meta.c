@@ -424,7 +424,7 @@ buildAttributes(NCD4meta* builder, NCD4node* varorgroup)
 	NCD4node* group;
         int varid;
 
-	/* Supress all UCARTAG attributes */
+	/* Suppress all UCARTAG attributes */
 	if(strncmp(attr->name,UCARTAG,strlen(UCARTAG)) == 0)
 	    continue;
 

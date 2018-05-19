@@ -262,9 +262,11 @@ const char *nc_strerror(int ncerr1)
       case NC_EMPI: return "NetCDF: MPI operation failed.";
       case NC_ERCFILE:
 	return "NetCDF: RC File Failure.";
-   case NC_ENULLPAD:
-     return "NetCDF: File fails strict Null-Byte Header check.";
-      default:
+     case NC_ENULLPAD:
+       return "NetCDF: File fails strict Null-Byte Header check.";
+     case NC_EINMEMORY:
+       return "NetCDF: In-memory File operation failed.";
+     default:
 #ifdef USE_PNETCDF
         /* The behavior of ncmpi_strerror here is to return
            NULL, not a string.  This causes problems in (at least)

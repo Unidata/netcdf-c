@@ -11,14 +11,11 @@ libnetcdf3_la_CPPFLAGS = ${AM_CPPFLAGS}
 # These files comprise the netCDF-3 classic library code.
 libnetcdf3_la_SOURCES = v1hpg.c \
 putget.c attr.c nc3dispatch.c nc3internal.c var.c dim.c ncx.c \
-ncx.h lookup3.c pstdint.h ncio.c ncio.h
+ncx.h lookup3.c pstdint.h ncio.c ncio.h memio.c
 
-if BUILD_DISKLESS
-  libnetcdf3_la_SOURCES += memio.c
 if BUILD_MMAP
   libnetcdf3_la_SOURCES += mmapio.c
 endif BUILD_MMAP
-endif BUILD_DISKLESS
 
 # Does the user want to use ffio, a replacement for posixio for Cray
 # computers?

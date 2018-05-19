@@ -440,7 +440,7 @@ case CASE(NC_STRING,NC_CHAR):
 case CASE(NC_STRING,NC_STRING):
     /* Need to watch out for embedded NULs */
     tmp.stringv.len = src->value.stringv.len;
-    tmp.stringv.stringv = (char*)malloc(src->value.stringv.len+1);
+    tmp.stringv.stringv = (char*)ecalloc(src->value.stringv.len+1);
     memcpy((void*)tmp.stringv.stringv,
            (void*)src->value.stringv.stringv,
            tmp.stringv.len);
@@ -549,7 +549,7 @@ case CASE(NC_OPAQUE,NC_DOUBLE):
     tmp.doublev = *(double*)bytes;
   break;
 case CASE(NC_OPAQUE,NC_OPAQUE):
-    tmp.opaquev.stringv = (char*)malloc(src->value.opaquev.len+1);
+    tmp.opaquev.stringv = (char*)ecalloc(src->value.opaquev.len+1);
     memcpy(tmp.opaquev.stringv,src->value.opaquev.stringv,src->value.opaquev.len);
     tmp.opaquev.len = src->value.opaquev.len;
     tmp.opaquev.stringv[tmp.opaquev.len] = '\0';
@@ -590,7 +590,7 @@ setprimlength(NCConstant* prim, unsigned long len)
 	    prim->value.stringv.len = len;
         } else {/* prim->value.stringv.len > srcov->len*/
 	    char* s;
-            s = (char*)emalloc(len+1);
+            s = (char*)ecalloc(len+1);
 	    memset(s,NC_FILL_CHAR,len);
 	    s[len] = '\0';
 	    memcpy(s,prim->value.stringv.stringv,prim->value.stringv.len);
@@ -609,7 +609,7 @@ setprimlength(NCConstant* prim, unsigned long len)
 	    prim->value.opaquev.len = len;
         } else {/* prim->value.opaquev.len < len => expand*/
 	    char* s;
-	    s = (char*)emalloc(len+1);
+	    s = (char*)ecalloc(len+1);
 	    memset(s,'0',len);
 	    memcpy(s,prim->value.opaquev.stringv,prim->value.opaquev.len);
 	    s[len] = '\0';

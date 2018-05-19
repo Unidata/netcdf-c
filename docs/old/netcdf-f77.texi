@@ -918,7 +918,7 @@ used with NF_NETCDF4, this flag ensures that the resulting
 netCDF-4/HDF5 file may never contain any new constructs from the
 enhanced data model. That is, it cannot contain groups, user defined
 types, multiple unlimited dimensions, or new atomic types. The
-advantage of this restriction is that such files are guarenteed to
+advantage of this restriction is that such files are guaranteed to
 work with existing netCDF software.
 
 A zero value (defined for convenience as NF_CLOBBER) specifies the
