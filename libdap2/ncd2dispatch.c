@@ -1216,7 +1216,7 @@ applyclientparams(NCDAPCOMMON* nccomm)
     int dfaltseqlim = DEFAULTSEQLIMIT;
     const char* value;
     char tmpname[NC_MAX_NAME+32];
-    char* pathstr;
+    char* pathstr = NULL;
     OClink conn = nccomm->oc.conn;
     unsigned long limit;
 
@@ -1274,12 +1274,10 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->varnodes,i);
 	/* Define the client param stringlength/maxstrlen for this variable*/
 	/* create the variable path name */
-	pathstr = makeocpathstring(conn,var->ocnode,".");
 	var->maxstringlength = 0; /* => use global dfalt */
 	strncpy(tmpname,"stringlength_",sizeof(tmpname));
 	pathstr = makeocpathstring(conn,var->ocnode,".");
 	strlcat(tmpname,pathstr,sizeof(tmpname));
-	nullfree(pathstr);
 	value = paramlookup(nccomm,tmpname);
 	if(value == NULL) {
 	    strcpy(tmpname,"maxstrlen_");
