@@ -533,7 +533,7 @@ main(int argc, char **argv)
       /* THis also works, pointlessly. */
       if (nc_inq_varid(ncid, "temp", NULL)) ERR;
 
-      /* These won't work due to bad paramters. */
+      /* These won't work due to bad parameters. */
       if (nc_rename_var(ncid + MILLION, wind_id, "wind") != NC_EBADID) ERR;
       if (nc_rename_var(ncid, wind_id + TEST_VAL_42, "wind") != NC_ENOTVAR) ERR;
       if (nc_rename_var(ncid, -TEST_VAL_42, "wind") != NC_ENOTVAR) ERR;
@@ -865,7 +865,7 @@ main(int argc, char **argv)
          if (data[i] != data_in[i])
 	    ERR_RET;
 
-      /* These will not work due to bad paramters. */
+      /* These will not work due to bad parameters. */
       if (nc_inq_var_chunking_ints(ncid + MILLION, 0, &storage_in,
                                    chunksize_int_in) != NC_EBADID) ERR;
       if (nc_inq_var_chunking_ints(ncid + TEST_VAL_42, 0, &storage_in,
@@ -1396,7 +1396,7 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, DIM9_NAME, DIM9_LEN, &dimids[0])) ERR;
       if (nc_def_var(ncid, VAR_NAME9, NC_INT, NDIMS1, dimids, &varid2)) ERR;
 
-      /* These will fail due to bad paramters. */
+      /* These will fail due to bad parameters. */
       if (nc_def_var_deflate(ncid, varid2, 0, 1,
                              NC_MIN_DEFLATE_LEVEL - 1) != NC_EINVAL) ERR;
       if (nc_def_var_deflate(ncid, varid2, 0, 1,

@@ -87,7 +87,7 @@ LDFLAGS="$TMP $LDFLAGS"
 TMP=`curl-config --prefix`
 LD_LIBRARY_PATH="$TMP/lib:$LD_LIBRARY_PATH"
 else
-  LDFLAGS="${LDFLAGS} -lcurl"  
+  LDFLAGS="${LDFLAGS} -lcurl"
 fi
 fi
 
@@ -106,19 +106,17 @@ FLAGS="$FLAGS --enable-extreme-numbers"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 #FLAGS="$FLAGS --enable-dap-auth-tests" -- requires a new remotetest server
-FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
+#FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
 FLAGS="$FLAGS --enable-logging"
-#FLAGS="$FLAGS --disable-diskless"
+FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-mmap"
 #FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
-#valgrind => not shared
-#FLAGS="$FLAGS --enable-valgrind-tests"
 #FLAGS="$FLAGS --enable-jna"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --with-testservers=remotestserver.localhost:8083"
-#FLAGS="$FLAGS --disable-filter-testing"
+FLAGS="$FLAGS --disable-filter-testing"
 #FLAGS="$FLAGS --enable-metadata-perf"
 
 if test "x$PAR4" != x1 ; then

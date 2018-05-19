@@ -30,14 +30,12 @@ extern int ffio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,
 extern int ffio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 #endif
 
-#ifdef USE_DISKLESS
 #  ifdef USE_MMAP
      extern int mmapio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,void** const);
      extern int mmapio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 #  endif
      extern int memio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,void** const);
      extern int memio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
-#endif
 
 int
 ncio_create(const char *path, int ioflags, size_t initialsz,
@@ -45,16 +43,14 @@ ncio_create(const char *path, int ioflags, size_t initialsz,
 		       void* parameters,
                        ncio** iopp, void** const mempp)
 {
-#ifdef USE_DISKLESS
-    if(fIsSet(ioflags,NC_DISKLESS)) {
+    if(fIsSet(ioflags,NC_INMEMORY)) {
 #  ifdef USE_MMAP
-      if(fIsSet(ioflags,NC_MMAP))
+      if(fIsSet(ioflags,NC_MMAP) && fIsSet(ioflags, NC_DISKLESS))
         return mmapio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
       else
 #  endif /*USE_MMAP*/
         return memio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
     }
-#endif
 
 #ifdef USE_STDIO
     return stdio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
@@ -72,18 +68,16 @@ ncio_open(const char *path, int ioflags,
                      ncio** iopp, void** const mempp)
 {
     /* Diskless open has the following constraints:
-       1. file must be classic version 1 or 2
+       1. file must be classic version 1 or 2 or 5
      */
-#ifdef USE_DISKLESS
-    if(fIsSet(ioflags,NC_DISKLESS)) {
+    if(fIsSet(ioflags,NC_INMEMORY)) {
 #  ifdef USE_MMAP
-      if(fIsSet(ioflags,NC_MMAP))
+      if(fIsSet(ioflags,NC_MMAP) && fIsSet(ioflags, NC_DISKLESS))
         return mmapio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
       else
 #  endif /*USE_MMAP*/
         return memio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
     }
-#endif
 #ifdef USE_STDIO
     return stdio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
 #elif defined(USE_FFIO)

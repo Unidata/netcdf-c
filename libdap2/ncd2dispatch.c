@@ -201,6 +201,7 @@ NCD2_initialize(void)
 int
 NCD2_finalize(void)
 {
+    curl_global_cleanup();
     return NC_NOERR;
 }
 
@@ -225,7 +226,7 @@ NCD2_sync(int ncid)
 static int
 NCD2_abort(int ncid)
 {
-    return NCD2_close(ncid);
+    return NCD2_close(ncid,NULL);
 }
 
 static int
@@ -367,16 +368,13 @@ NCD2_open(const char* path, int mode,
         /* Now, use the file to create the hidden, in-memory netcdf file.
 	   We want this hidden file to always be NC_CLASSIC, so we need to
            force default format temporarily in case user changed it.
-	   If diskless is enabled, then create file in-memory, else
-           create an actual temporary file in the file system.
+	   Since diskless is enabled, create file in-memory.
 	*/
 	{
 	    int new = 0; /* format netcdf-3 */
 	    int old = 0;
 	    int ncflags = NC_CLOBBER|NC_CLASSIC_MODEL;
-#ifdef USE_DISKLESS
 	    ncflags |= NC_DISKLESS;
-#endif
 	    nc_set_default_format(new,&old); /* save and change */
             ncstat = nc_create(tmpname,ncflags,&nc3id);
 	    nc_set_default_format(old,&new); /* restore */
@@ -596,13 +594,13 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->query);
     return ncstat;
 
 done:
-    if(drno != NULL) NCD2_close(drno->ext_ncid);
+    if(drno != NULL) NCD2_close(drno->ext_ncid,NULL);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
 
 int
-NCD2_close(int ncid)
+NCD2_close(int ncid, void* ignore)
 {
     NC* drno;
     NCDAPCOMMON* dapcomm;
@@ -691,7 +689,7 @@ builddims(NCDAPCOMMON* dapcomm)
 #if 0
 	nc3sub = (NC3_INFO*)&ncsub->dispatchdata;
         /* Set the effective size of UNLIMITED;
-           note that this cannot easily be done thru the normal API.*/
+           note that this cannot easily be done through the normal API.*/
         NC_set_numrecs(nc3sub,unlimited->dim.declsize);
 #endif
 
@@ -1458,7 +1456,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
 	if(dimsize == 0)
 	    sdim = dapcomm->cdf.globalstringdim; /* use default */
 	else {
-	    /* create a psuedo dimension for the charification of the string*/
+	    /* create a pseudo dimension for the charification of the string*/
 	    if(var->dodsspecial.dimname != NULL) {
 	        strncpy(dimname,var->dodsspecial.dimname,sizeof(dimname));
 	        dimname[sizeof(dimname)-1] = '\0';

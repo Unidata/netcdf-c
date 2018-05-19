@@ -35,7 +35,7 @@ typedef struct NCRCglobalstate {
     int initialized;
     char* tempdir; /* track a usable temp dir */
     char* home; /* track $HOME for use in creating $HOME/.oc dir */
-    NCRCinfo rcinfo; /* Currenly only one rc file per session */
+    NCRCinfo rcinfo; /* Currently only one rc file per session */
 } NCRCglobalstate;
 
 extern NCRCglobalstate ncrc_globalstate; /* singleton instance */
