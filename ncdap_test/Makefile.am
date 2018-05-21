@@ -109,4 +109,5 @@ clean-local-check:
 	-rm -rf results
 	-rm -f .dodsrc
 
-
+# If valgrind is present, add valgrind targets.
+@VALGRIND_CHECK_RULES@
