@@ -52,11 +52,9 @@ IF(LARGE_FILE_TESTS)
 
 ENDIF()
 
-IF(BUILD_DISKLESS)
-  SET(TESTFILES ${TESTFILES} tst_diskless tst_diskless3 tst_diskless4 tst_diskless5)
-  IF(USE_NETCDF4)
-    SET(TESTFILES ${TESTFILES} tst_diskless2)
-  ENDIF()
+SET(TESTFILES ${TESTFILES} tst_diskless tst_diskless3 tst_diskless4 tst_diskless5 tst_inmemory)
+IF(USE_NETCDF4)
+  SET(TESTFILES ${TESTFILES} tst_diskless2)
 ENDIF()
 
 # Build executables required for the shell scripts.
@@ -73,7 +71,6 @@ ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
 
 IF(BUILD_UTILITIES)
 
-  IF(BUILD_DISKLESS)
     add_sh_test(nc_test run_diskless)
     IF(BUILD_MMAP)
       add_sh_test(nc_test run_mmap)
@@ -83,8 +80,8 @@ IF(BUILD_UTILITIES)
       add_sh_test(nc_test run_diskless2)
     ENDIF(LARGE_FILE_TESTS)
     add_sh_test(nc_test run_diskless5)
+    add_sh_test(nc_test run_inmemory)
 
-  ENDIF(BUILD_DISKLESS)
 ENDIF(BUILD_UTILITIES)
 
 # Copy some test files from current source dir to out-of-tree build dir.

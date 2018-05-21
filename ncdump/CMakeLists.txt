@@ -140,12 +140,10 @@ ENDIF(MSVC)
     ENDIF(ENABLE_LARGE_FILE_TESTS)
   ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
-  IF(BUILD_DISKLESS)
-    add_sh_test(ncdump tst_inmemory_nc3)
-    IF(USE_NETCDF4)
+  add_sh_test(ncdump tst_inmemory_nc3)
+  IF(USE_NETCDF4)
       add_sh_test(ncdump tst_inmemory_nc4)
-    ENDIF(USE_NETCDF4)
-  ENDIF(BUILD_DISKLESS)
+  ENDIF(USE_NETCDF4)
 
   IF(USE_NETCDF4)
     build_bin_test_no_prefix(tst_create_files)
@@ -191,11 +189,9 @@ ENDIF(MSVC)
     add_sh_test(ncdump_sh tst_fillbug)
 
     add_sh_test(ncdump tst_netcdf4_4)
-    IF(HAVE_BASH)
-      IF(MSVC)
-        SET_TESTS_PROPERTIES(ncdump_tst_netcdf4_4 PROPERTIES WILL_FAIL TRUE)
-      ENDIF(MSVC)
-    ENDIF(HAVE_BASH)
+    IF(MSVC AND HAVE_BASH)
+      SET_TESTS_PROPERTIES(ncdump_tst_netcdf4_4 PROPERTIES WILL_FAIL TRUE)
+    ENDIF(MSVC AND HAVE_BASH)
 
     ###
     # Some test reordering was required to ensure these tests
