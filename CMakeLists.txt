@@ -381,13 +381,6 @@ OPTION(ENABLE_MMAP "Use MMAP." ON)
 # Option to use examples.
 OPTION(ENABLE_EXAMPLES "Build Examples" ON)
 
-# Option to use Diskless
-OPTION(ENABLE_DISKLESS "Build Diskless." ON)
-IF(ENABLE_DISKLESS)
-  SET(BUILD_DISKLESS ON)
-  SET(USE_DISKLESS ON)
-ENDIF()
-
 # Option Logging, only valid for netcdf4.
 OPTION(ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
@@ -685,6 +678,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       SET(HDF5_C_LIBRARY hdf5)
     ENDIF()
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
+
+  FIND_PACKAGE(Threads)
 
   # There is a missing case in the above code so default it
   IF(NOT HDF5_C_LIBRARY_HDF5 OR "${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
@@ -1172,6 +1167,10 @@ IF(ENABLE_DOXYGEN)
   ENDIF(NC_DOT)
 ENDIF()
 
+# Always enable DISKLESS
+OPTION(ENABLE_DISKLESS "Enable in-memory files" ON)
+
+
 # By default, MSVC has a stack size of 1000000.
 # Allow a user to override this.
 IF(MSVC)
@@ -1361,9 +1360,12 @@ MACRO(ADD_EXTRA_DIST files)
 ENDMACRO()
 
 # A basic script used to convert m4 files
-FIND_PROGRAM(NC_M4 NAMES m4)
+FIND_PROGRAM(NC_M4 NAMES m4 m4.exe)
 IF(NC_M4)
-    SET(HAVE_M4 TRUE)
+  MESSAGE(STATUS "Found m4: ${NC_M4}")
+  SET(HAVE_M4 TRUE)
+ELSE()
+  MESSAGE(STATUS "m4 not found.")
 ENDIF()
 
 MACRO(GEN_m4 filename)
@@ -1552,12 +1554,24 @@ ENDMACRO()
 # Determine if 'bash' is on the system.
 ##
 
-FIND_PROGRAM(HAVE_BASH NAMES bash)
-IF(HAVE_BASH)
-  MESSAGE(STATUS "Found bash: ${HAVE_BASH}")
-ELSE()
-  MESSAGE(STATUS "Bash shell not found; disabling shell script tests.")
-ENDIF()
+OPTION(ENABLE_BASH_SCRIPT_TESTING "Detection is typically automatic, but this option can be used to force enable/disable bash-script based tests." ON)
+
+IF(ENABLE_BASH_SCRIPT_TESTING)
+  FIND_PROGRAM(HAVE_BASH bash)
+  IF(HAVE_BASH)
+    STRING(COMPARE EQUAL "${HAVE_BASH}" "C:/Windows/System32/bash.exe" IS_BASH_EXE)
+    IF(NOT IS_BASH_EXE)
+      MESSAGE(STATUS "Found bash: ${HAVE_BASH}")
+    ELSE()
+      MESSAGE(STATUS "Ignoring ${HAVE_BASH}")
+      SET(HAVE_BASH "")
+    ENDIF()
+  ELSE()
+    MESSAGE(STATUS "Bash shell not found; disabling shell script tests.")
+  ENDIF()
+ELSE(ENABLE_BASH_SCRIPT_TESTING)
+  SET(HAVE_BASH "")
+ENDIF(ENABLE_BASH_SCRIPT_TESTING)
 
 MACRO(add_sh_test prefix F)
   IF(HAVE_BASH)
@@ -1632,6 +1646,7 @@ ENDIF(USE_PNETCDF)
 
 IF(USE_HDF5)
   add_subdirectory(libsrc4)
+  add_subdirectory(libhdf5)
 ENDIF(USE_HDF5)
 
 IF(USE_HDF4)
@@ -1839,7 +1854,7 @@ is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
 is_enabled(ENABLE_DAP HAS_DAP)
 is_enabled(ENABLE_DAP HAS_DAP2)
 is_enabled(ENABLE_DAP4 HAS_DAP4)
-is_enabled(USE_DISKLESS HAS_DISKLESS)
+is_enabled(ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
 is_enabled(STATUS_RELAX_COORD_BOUND RELAX_COORD_BOUND)
