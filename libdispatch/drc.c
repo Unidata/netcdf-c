@@ -226,8 +226,9 @@ rcorder(NClist* rc)
 {
     int i;
     int len = nclistlength(rc);
-    NClist* tmprc = nclistnew();
+    NClist* tmprc = NULL;
     if(rc == NULL || len == 0) return;
+    tmprc = nclistnew();
     /* Copy rc into tmprc and clear rc */
     for(i=0;i<len;i++) {
         NCTriple* ti = nclistget(rc,i);
@@ -250,7 +251,6 @@ rcorder(NClist* rc)
     storedump("reorder:",rc);
 #endif
     nclistfree(tmprc);
-
 }
 
 /* Create a triple store from a file */

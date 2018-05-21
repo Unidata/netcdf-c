@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 # For a netCDF-4 build, test nccopy on netCDF files in this directory
