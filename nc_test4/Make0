@@ -1,5 +1,5 @@
 # Test c output
-T=tst_dims
+T=t_dap3a
 
 #SRC=hdf5plugins/H5Zmisc.c
 
