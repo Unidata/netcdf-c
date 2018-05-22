@@ -810,13 +810,15 @@ fprintf(stderr,"dimsettrans3: node=%s/%d\n",node->ocname,nclistlength(node->arra
         dimsettrans = clonedimset(nccomm,node->container->array.dimsettrans,node);
     }
     /* concat parent dimset0 and dimset;*/
+    if(dimsettrans == NULL)
+	dimsettrans = nclistnew();
     for(i=0;i<nclistlength(node->array.dimset0);i++) {
-		CDFnode* clone = NULL;
-        if(dimsettrans == NULL) dimsettrans = nclistnew();
-	 clone = (CDFnode*)nclistget(node->array.dimset0,i);
+	CDFnode* clone = NULL;
+	clone = (CDFnode*)nclistget(node->array.dimset0,i);
 	nclistpush(dimsettrans,(void*)clone);
     }
     node->array.dimsettrans = dimsettrans;
+    dimsettrans = NULL;
 #ifdef DEBUG1
 fprintf(stderr,"dimsettrans: |%s|=%d\n",node->ocname,(int)nclistlength(dimsettrans));
 #endif
@@ -1105,6 +1107,7 @@ free1cdfnode(CDFnode* node)
     nclistfree(node->array.dimsetplus);
     nclistfree(node->array.dimsetall);
     nclistfree(node->array.dimset0);
+    nclistfree(node->array.dimsettrans);
 
     /* Clean up the ncdap4 fields also */
     nullfree(node->typename);
