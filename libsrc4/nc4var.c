@@ -1708,3 +1708,87 @@ NC4_get_vara(int ncid, int varid, const size_t *startp,
    return nc4_get_vara(nc, ncid, varid, startp, countp, memtype,
                        0, (void *)ip);
 }
+
+
+/* Provide a temporary hook
+to choose old NCDEFAULT methods vs new versions
+of get/put vars
+*/
+/* Temporary flag to choose default vs not put/get vars */
+static int defaultvars = 0;
+
+void
+nc4_set_default_vars(int tf)
+{
+    defaultvars = (tf ? 1 : 0);
+}
+
+/**
+ * @internal Write an array of data to a variable. This is called by
+ * nc_put_vars() and other nc_put_vars_* functions, for netCDF-4
+ * files.
+ * 
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param startp Array of start indices.
+ * @param countp Array of counts.
+ * @param stridep Array of strides.
+ * @param op pointer that gets the data.
+ * @param memtype The type of these data in memory.
+ *
+ * @returns ::NC_NOERR for success
+ * @author Dennis Heimbigner
+ */
+int
+NC4_put_vars(int ncid, int varid, const size_t *startp,
+             const size_t *countp, const ptrdiff_t* stridep,
+	     const void *op, int memtype)
+{
+   NC *nc;
+
+   if(defaultvars)
+	return NCDEFAULT_put_vars(ncid,varid,startp,countp,stridep,op,memtype);
+
+   if (!(nc = nc4_find_nc_file(ncid, NULL)))
+      return NC_EBADID;
+
+   return nc4_put_vars(nc, ncid, varid, startp, countp, stridep, memtype, 0, (void *)op);
+}
+
+/**
+ * Read an array of values. This is called by nc_get_vars() for
+ * netCDF-4 files, as well as all the other nc_get_vars_*
+ * functions.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param startp Array of start indices.
+ * @param countp Array of counts.
+ * @param stridep Array of strides.
+ * @param ip pointer that gets the data.
+ * @param memtype The type of these data after it is read into memory.
+
+ * @returns ::NC_NOERR for success
+ * @author Dennis Heimbigner
+ */
+int
+NC4_get_vars(int ncid, int varid, const size_t *startp,
+             const size_t *countp, const ptrdiff_t *stridep,
+	     void *ip, int memtype)
+{
+   NC *nc;
+   NC_HDF5_FILE_INFO_T* h5;
+
+   if(defaultvars)
+	return NCDEFAULT_get_vars(ncid,varid,startp,countp,stridep,ip,memtype);
+
+   LOG((2, "%s: ncid 0x%x varid %d memtype %d", __func__, ncid, varid,
+        memtype));
+
+   if (!(nc = nc4_find_nc_file(ncid, &h5)))
+      return NC_EBADID;
+
+   /* Get the data. */
+   return nc4_get_vars(nc, ncid, varid, startp, countp, stridep, memtype,
+                       0, (void *)ip);
+}

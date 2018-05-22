@@ -1,7 +1,9 @@
 # Test c output
-T=tst_diskless
+T=t
 
 #ARGS=t
+
+SRC=test_put.c test_get.c test_read.c test_write.c util.c error.c
 
 #CMD=valgrind --leak-check=full
 #CMD=export NETCDF_LOG_LEVEL=5 ;gdb --args

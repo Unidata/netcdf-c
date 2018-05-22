@@ -30,7 +30,7 @@ t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_scalar tst_rename	\
 tst_rename2 tst_h5_endians tst_atts_string_rewrite			\
 tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_filterparser	\
-tst_bug324 tst_types tst_atts3 tst_put_vars tst_elatefill
+tst_bug324 tst_types tst_atts3 tst_put_vars tst_elatefill tst_varsperf
 
 # Temporary I hope
 if !ISCYGWIN
@@ -150,7 +150,7 @@ tst_interops2.h4 tst_h5_endians.nc tst_h4_lendian.h4 test.nc            \
 tst_atts_string_rewrite.nc tst_empty_vlen_unlim.nc                      \
 tst_empty_vlen_lim.nc tst_parallel4_simplerw_coll.nc                    \
 tst_fill_attr_vanish.nc tst_rehash.nc testszip.nc test.h5               \
-szip_dump.cdl perftest.txt bigmeta.nc
+szip_dump.cdl perftest.txt bigmeta.nc bigvars.nc
 
 DISTCLEANFILES = findplugin.sh
 
