@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#NOP=1
+#NOP=1 
 #NOS=1
 #NOB=1
 
@@ -30,6 +30,7 @@ PREFIX="[log][show=fetch]"
 SUFFIX="log&show=fetch"
 BOTHP="[log][show=fetch]"
 BOTHS="noprefetch&fetch=disk"
+STRLEN="[maxstrlen=16]"
 
 locreset () {
     rm -f ./tmp_testurl ./errtmp_testurl
@@ -57,8 +58,25 @@ if test "x$NOP" != x1 ; then
 echo "***Testing url prefix parameters"
 buildurl $PREFIX ""
 # Invoke ncdump to extract the URL
+
+echo "command: ${NCDUMP} -h $url"
+
 ${NCDUMP} -h "$url" >./tmp_testurl 2> ./errtmp_testurl
+if test "x${SHOW}" = x1 ; then cat ./tmp ; fi
+
+# Test that maxstrlen works as alias for stringlength
+echo "***Testing maxstrlen=stringlength alias"
+buildurl $STRLEN ""
+# Invoke ncdump to extract the URL
+echo "command: ${NCDUMP} -h $url"
+${NCDUMP} "$url" >./tmp_testurl 2> ./errtmp_testurl
 if test "x${SHOW}" = x1 ; then cat ./tmp_testurl ; fi
+# Look for the value of maxStrlen in output cdl
+if ! fgrep -i "maxstrlen = 16" ./tmp_testurl ; then
+echo "***Fail: maxStrlen not recognized"
+fgrep -i "maxstrlen16 = 16" ./tmp_testurl > ./errtmp_testurl
+fi
+
 fi
 
 locreset
@@ -71,6 +89,7 @@ if test "x${SHOW}" = x1 ; then cat ./tmp_testurl ; fi
 fi
 
 locreset
+
 if test "x$NOB" != x1 ; then
 echo "***Testing url prefix+suffix parameters"
 buildurl $BOTHP $BOTHS
@@ -87,5 +106,3 @@ if test "x$pass" = x0 ; then
 fi
 echo "***PASS"
 exit 0
-
-
