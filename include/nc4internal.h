@@ -360,6 +360,12 @@ int nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 		 const size_t *countp, nc_type xtype, int is_long, void *op);
 int nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
 		 const size_t *countp, nc_type xtype, int is_long, void *op);
+int nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
+		 const size_t *countp, const ptrdiff_t* stridep,
+		 nc_type xtype, int is_long, void *op);
+int nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
+		 const size_t *countp, const ptrdiff_t* stridep,
+		 nc_type xtype, int is_long, void *op);
 int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
 int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
 int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
