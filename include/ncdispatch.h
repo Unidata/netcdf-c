@@ -174,14 +174,14 @@ int NC_open(const char *path, int cmode,
 	    int *ncidp);
 
 /* Expose the default vars and varm dispatch entries */
-extern int NCDEFAULT_get_vars(int, int, const size_t*,
+EXTERNL int NCDEFAULT_get_vars(int, int, const size_t*,
 	       const size_t*, const ptrdiff_t*, void*, nc_type);
-extern int NCDEFAULT_put_vars(int, int, const size_t*,
+EXTERNL int NCDEFAULT_put_vars(int, int, const size_t*,
 	       const size_t*, const ptrdiff_t*, const void*, nc_type);
-extern int NCDEFAULT_get_varm(int, int, const size_t*,
+EXTERNL int NCDEFAULT_get_varm(int, int, const size_t*,
                const size_t*, const ptrdiff_t*, const ptrdiff_t*,
                void*, nc_type);
-extern int NCDEFAULT_put_varm(int, int, const size_t*,
+EXTERNL int NCDEFAULT_put_varm(int, int, const size_t*,
                const size_t*, const ptrdiff_t*, const ptrdiff_t*,
                const void*, nc_type);
 
