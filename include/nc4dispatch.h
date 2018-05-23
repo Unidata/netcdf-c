@@ -63,10 +63,10 @@ NC4_inq_format(int ncid, int *formatp);
 extern int
 NC4_inq_format_extended(int ncid, int *formatp, int *modep);
 
-extern int
+EXTERNL int
 NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp);
 
-extern int
+EXTERNL int
 NC4_inq_type(int, nc_type, char *, size_t *);
 
 /* Begin _dim */
@@ -74,13 +74,13 @@ NC4_inq_type(int, nc_type, char *, size_t *);
 extern int
 NC4_def_dim(int ncid, const char *name, size_t len, int *idp);
 
-extern int
+EXTERNL int
 NC4_inq_dimid(int ncid, const char *name, int *idp);
 
-extern int
+EXTERNL int
 NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp);
 
-extern int
+EXTERNL int
 NC4_inq_unlimdim(int ncid, int *unlimdimidp);
 
 extern int
@@ -89,14 +89,14 @@ NC4_rename_dim(int ncid, int dimid, const char *name);
 /* End _dim */
 /* Begin _att */
 
-extern int
+EXTERNL int
 NC4_inq_att(int ncid, int varid, const char *name,
 	    nc_type *xtypep, size_t *lenp);
 
-extern int
+EXTERNL int
 NC4_inq_attid(int ncid, int varid, const char *name, int *idp);
 
-extern int
+EXTERNL int
 NC4_inq_attname(int ncid, int varid, int attnum, char *name);
 
 extern int
@@ -108,7 +108,7 @@ NC4_del_att(int ncid, int varid, const char*);
 /* End _att */
 /* Begin {put,get}_att */
 
-extern int
+EXTERNL int
 NC4_get_att(int ncid, int varid, const char *name, void *value, nc_type);
 
 extern int
@@ -122,7 +122,7 @@ extern int
 NC4_def_var(int ncid, const char *name,
 	 nc_type xtype, int ndims, const int *dimidsp, int *varidp);
 
-extern int
+EXTERNL int
 NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *ndimsp, int *dimidsp, int *nattsp,
                int *shufflep, int *deflatep, int *deflate_levelp,
@@ -131,7 +131,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	       unsigned int* idp, size_t* nparamsp, unsigned int* params
 	       );
 
-extern int
+EXTERNL int
 NC4_inq_varid(int ncid, const char *name, int *varidp);
 
 extern int
@@ -153,34 +153,34 @@ NC4_get_vara(int ncid, int varid,
 extern int
 NC4_var_par_access(int, int, int);
 
-extern int
+EXTERNL int
 NC4_inq_ncid(int, const char *, int *);
 
-extern int
+EXTERNL int
 NC4_inq_grps(int, int *, int *);
 
-extern int
+EXTERNL int
 NC4_inq_grpname(int, char *);
 
-extern int
+EXTERNL int
 NC4_inq_grpname_full(int, size_t *, char *);
 
-extern int
+EXTERNL int
 NC4_inq_grp_parent(int, int *);
 
-extern int
+EXTERNL int
 NC4_inq_grp_full_ncid(int, const char *, int *);
 
-extern int
+EXTERNL int
 NC4_inq_varids(int, int * nvars, int *);
 
-extern int
+EXTERNL int
 NC4_inq_dimids(int, int * ndims, int *, int);
 
-extern int
+EXTERNL int
 NC4_inq_typeids(int, int * ntypes, int *);
 
-extern int
+EXTERNL int
 NC4_inq_type_equal(int, nc_type, int, nc_type, int *);
 
 extern int
@@ -189,7 +189,7 @@ NC4_def_grp(int, const char *, int *);
 extern int
 NC4_rename_grp(int, const char *);
 
-extern int
+EXTERNL int
 NC4_inq_user_type(int, nc_type, char *, size_t *, nc_type *,
 		  size_t *, int *);
 
@@ -203,7 +203,7 @@ extern int
 NC4_insert_array_compound(int, nc_type, const char *, size_t,
 			  nc_type, int, const int *);
 
-extern int
+EXTERNL int
 NC4_inq_typeid(int, const char *, nc_type *);
 
 extern int

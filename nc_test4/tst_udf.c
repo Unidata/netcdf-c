@@ -13,7 +13,6 @@
 #include "netcdf.h"
 #include "nc4dispatch.h"
 
-
 #define FILE_NAME "tst_udf.nc"
 
 int
@@ -157,7 +156,7 @@ main(int argc, char **argv)
       /* Create an empty file to play with. */
       if (nc_create(FILE_NAME, 0, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Add our test user defined format. */
       if (nc_def_user_format(NC_UF0, &tst_dispatcher, NULL)) ERR;
 
