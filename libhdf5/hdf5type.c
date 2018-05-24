@@ -1,5 +1,6 @@
-/* Copyright 2005, University Corporation for Atmospheric Research. See
- * the COPYRIGHT file for copying and redistribution conditions. */
+/* Copyright 2005-2018, University Corporation for Atmospheric
+ * Research. See the COPYRIGHT file for copying and redistribution
+ * conditions. */
 /**
  * @file @internal This file is part of netcdf-4, a netCDF-like
  * interface for HDF5, or a HDF5 backend for netCDF, depending on your
