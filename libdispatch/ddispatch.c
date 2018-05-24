@@ -243,6 +243,7 @@ NC_urlmodel(const char* path, int mode, char** newurl)
     }
     if(newurl)
 	*newurl = ncuribuild(url,NULL,NULL,NCURIALL);
+    if(url) ncurifree(url);
     return model;
 fail:
     if(url) ncurifree(url);
