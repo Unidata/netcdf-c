@@ -3,9 +3,7 @@
  * conditions.
  */
 /**
- * @file
- * @internal
- * Internal netcdf-4 functions.
+ * @file @internal Internal netcdf-4 functions.
  *
  * This file contains functions internal to the netcdf4 library. None of
  * the functions in this file are exposed in the exetnal API. These
@@ -184,10 +182,10 @@ nc4_rec_find_hdf_type(NC_HDF5_FILE_INFO_T* h5, hid_t target_hdf_typeid)
    assert(h5);
 
    for(i=0;i<nclistlength(h5->alltypes);i++) {
-	type = (NC_TYPE_INFO_T*)nclistget(h5->alltypes,i);	
-	if(type == NULL) continue;
-        /* Is this the type we are searching for? */
-        if ((equal = H5Tequal(type->native_hdf_typeid ? type->native_hdf_typeid : type->hdf_typeid, target_hdf_typeid)) < 0)
+      type = (NC_TYPE_INFO_T*)nclistget(h5->alltypes,i);
+      if(type == NULL) continue;
+      /* Is this the type we are searching for? */
+      if ((equal = H5Tequal(type->native_hdf_typeid ? type->native_hdf_typeid : type->hdf_typeid, target_hdf_typeid)) < 0)
          return NULL;
       if (equal)
          return type;
@@ -389,14 +387,14 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
          if(var->dimscale_attached[d])
          {
             NC_GRP_INFO_T *g;
-	    int k;
+            int k;
 
             for (g = grp; g && !finished; g = g->parent)
             {
                NC_DIM_INFO_T *dim1;
-	       for(k=0;k<ncindexsize(g->dim);k++)
+               for(k=0;k<ncindexsize(g->dim);k++)
                {
-		  if((dim1 = (NC_DIM_INFO_T*)ncindexith(g->dim,k)) == NULL) continue;
+                  if((dim1 = (NC_DIM_INFO_T*)ncindexith(g->dim,k)) == NULL) continue;
                   if (var->dimids[d] == dim1->hdr.id)
                   {
                      hid_t dim_datasetid;  /* Dataset ID for dimension */
