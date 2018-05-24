@@ -1596,23 +1596,23 @@ nc_set_log_level(int new_level)
    if(!nc4_hdf5_initialized)
       nc4_hdf5_initialize();
 
-   /* If the user wants to completely turn off logging, turn off HDF5
-      logging too. Now I truly can't think of what to do if this
-      fails, so just ignore the return code. */
-   if (new_level == NC_TURN_OFF_LOGGING)
-   {
-      set_auto(NULL,NULL);
-      LOG((1, "HDF5 error messages turned off!"));
-   }
+   /* /\* If the user wants to completely turn off logging, turn off HDF5 */
+   /*    logging too. Now I truly can't think of what to do if this */
+   /*    fails, so just ignore the return code. *\/ */
+   /* if (new_level == NC_TURN_OFF_LOGGING) */
+   /* { */
+   /*    set_auto(NULL,NULL); */
+   /*    LOG((1, "HDF5 error messages turned off!")); */
+   /* } */
 
-   /* Do we need to turn HDF5 logging back on? */
-   if (new_level > NC_TURN_OFF_LOGGING &&
-       nc_log_level <= NC_TURN_OFF_LOGGING)
-   {
-      if (set_auto((H5E_auto_t)&H5Eprint, stderr) < 0)
-         LOG((0, "H5Eset_auto failed!"));
-      LOG((1, "HDF5 error messages turned on."));
-   }
+   /* /\* Do we need to turn HDF5 logging back on? *\/ */
+   /* if (new_level > NC_TURN_OFF_LOGGING && */
+   /*     nc_log_level <= NC_TURN_OFF_LOGGING) */
+   /* { */
+   /*    if (set_auto((H5E_auto_t)&H5Eprint, stderr) < 0) */
+   /*       LOG((0, "H5Eset_auto failed!")); */
+   /*    LOG((1, "HDF5 error messages turned on.")); */
+   /* } */
 
    /* Now remember the new level. */
    nc_log_level = new_level;
