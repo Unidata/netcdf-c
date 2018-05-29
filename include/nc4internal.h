@@ -104,6 +104,9 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 /** This is the name of the name HDF5 dimension scale attribute. */
 #define HDF5_DIMSCALE_NAME_ATT_NAME "NAME"
 
+/** This is the number of netCDF atomic types. */
+#define NUM_ATOMIC_TYPES (NC_MAX_ATOMIC_TYPE + 1) 
+
 /* Boolean type, to make the code easier to read */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 
