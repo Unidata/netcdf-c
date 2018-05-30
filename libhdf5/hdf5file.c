@@ -695,48 +695,6 @@ dumpopenobjects(NC_HDF5_FILE_INFO_T* h5)
     return;
 }
 
-#ifdef NC4NOTUSED
-/**
- * @internal Define the names of attributes to ignore added by the
- * HDF5 dimension scale; these attached to variables. They cannot be
- * modified thru the netcdf-4 API.
- */
-static const char* NC_RESERVED_VARATT_LIST[] = {
-   NC_ATT_REFERENCE_LIST,
-   NC_ATT_CLASS,
-   NC_ATT_DIMENSION_LIST,
-   NC_ATT_NAME,
-   NC_ATT_COORDINATES,
-   NC_DIMID_ATT_NAME,
-   NULL
-};
-
-/**
- * @internal Define the names of attributes to ignore because they are
- * "hidden" global attributes. They can be read, but not modified thru
- * the netcdf-4 API.
- */
-static const char* NC_RESERVED_ATT_LIST[] = {
-   NC_ATT_FORMAT,
-   NC3_STRICT_ATT_NAME,
-   NCPROPS,
-   ISNETCDF4ATT,
-   SUPERBLOCKATT,
-   NULL
-};
-
-/**
- * @internal Define the subset of the reserved list that is readable
- * by name only
-*/
-static const char* NC_RESERVED_SPECIAL_LIST[] = {
-   ISNETCDF4ATT,
-   SUPERBLOCKATT,
-   NCPROPS,
-   NULL
-};
-#endif
-
 size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
 size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
 float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
