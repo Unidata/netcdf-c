@@ -2418,14 +2418,11 @@ openmagic(struct MagicFile* file)
     if (file->use_parallel) {
 	int retval;
 	MPI_Offset size;
-	MPI_Comm comm = MPI_COMM_WORLD;
-	MPI_Info info = MPI_INFO_NULL;
-        if(file->parameters != NULL) {
-	    comm = ((NC_MPI_INFO*)file->parameters)->comm;
-	    info = ((NC_MPI_INFO*)file->parameters)->info;
-	}
-	if((retval = MPI_File_open(comm,(char*)file->path,MPI_MODE_RDONLY,info,
-				       &file->fh)) != MPI_SUCCESS)
+        assert(file->parameters);
+	if((retval = MPI_File_open(((NC_MPI_INFO*)file->parameters)->comm,
+                                   (char*)file->path,MPI_MODE_RDONLY,
+                                   ((NC_MPI_INFO*)file->parameters)->info,
+                                   &file->fh)) != MPI_SUCCESS)
 	    {status = NC_EPARINIT; goto done;}
 	/* Get its length */
 	if((retval=MPI_File_get_size(file->fh, &size)) != MPI_SUCCESS)

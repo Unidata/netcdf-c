@@ -2,9 +2,10 @@
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions. */
 /**
- * @file @internal This file is part of netcdf-4, a netCDF-like
- * interface for HDF5, or a HDF5 backend for netCDF, depending on your
- * point of view.
+ * @file @internal This file is part of netcdf-4, the extended netCDF
+ * data model/file format.  This uses libhdf5 for file I/O. The resulting
+ * file may or may not be readable by the hdf5 utilities and the data model
+ * may or may not be expressable by the hdf5 utilities.
  *
  * This file handles the nc4 attribute functions.
  *
@@ -123,7 +124,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    int i;
    int retval;
 
-   if (attnum) 
+   if (attnum)
       my_attnum = *attnum;
 
    LOG((3, "%s: ncid 0x%x varid %d name %s attnum %d mem_type %d",
@@ -156,7 +157,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    }
 
    /* Find the attribute, if it exists. */
-   if ((retval = nc4_find_grp_att(grp, varid, norm_name, my_attnum, &att))) 
+   if ((retval = nc4_find_grp_att(grp, varid, norm_name, my_attnum, &att)))
       return retval;
 
    /* If mem_type is NC_NAT, it means we want to use the attribute's
