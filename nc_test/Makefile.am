@@ -53,7 +53,7 @@ endif
 check_PROGRAMS = $(TESTPROGRAMS)
 
 # Build Diskless test helpers
-check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4 tst_diskless5 tst_inmemory
+check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4 tst_diskless5 tst_inmemory tst_open_mem
 if USE_NETCDF4
 check_PROGRAMS += tst_diskless2
 endif
@@ -83,6 +83,7 @@ endif
 EXTRA_DIST = test_get.m4 test_put.m4 run_diskless.sh run_diskless2.sh   \
 run_diskless5.sh run_mmap.sh run_pnetcdf_test.sh test_read.m4           \
 test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl run_inmemory.sh   \
+f03tst_open_mem.nc                                                      \
 CMakeLists.txt
 
 # These files are created by the tests.
