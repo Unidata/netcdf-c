@@ -267,9 +267,6 @@ NC4_inq_unlimdims(int, int *, int *);
 EXTERNL int
 NC4_show_metadata(int);
 
-EXTERNL int 
-NC4_initialize(void);
-
 #if defined(__cplusplus)
 }
 #endif
