@@ -1335,17 +1335,19 @@ nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
  * @param dim Pointer to dim info struct of type to delete.
  *
  * @return ::NC_NOERR No error.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Ward Fisher
  */
 int
 nc4_dim_free(NC_DIM_INFO_T *dim)
 {
    /* Free memory allocated for names. */
-   if (dim->hdr.name)
+  if(dim) {
+    if (dim->hdr.name)
       free(dim->hdr.name);
 
-   free(dim);
-   return NC_NOERR;
+    free(dim);
+  }
+  return NC_NOERR;
 }
 
 /**
