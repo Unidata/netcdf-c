@@ -13,7 +13,7 @@
  * buffer of metadata information, i.e. the linked list of NC
  * structs.
  *
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 #include "config.h"
 #include "nc4internal.h"
@@ -321,7 +321,7 @@ nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
 
    /* Find the dim info. */
    (*dim) = nclistget(h5->alldims,dimid);
-   if((*dim) == NULL) 
+   if((*dim) == NULL)
 	return NC_EBADDIM;
 
    /* Redundant: Verify that this dim is in fact in the group or its parent */
@@ -488,7 +488,7 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 	*att = a;
 	return NC_NOERR;
       }
-   }    
+   }
 
    /* If we get here, we couldn't find the attribute. */
    return NC_ENOTATT;
@@ -590,7 +590,7 @@ obj_track(NC_HDF5_FILE_INFO_T* file, NC_OBJ* obj)
     case NCGRP: list = file->allgroups; break;
     default:
 	assert(NC_FALSE);
-    }	
+    }
     /* Insert at the appropriate point in the list */
     nclistset(list,obj->id,obj);
 }
@@ -648,7 +648,7 @@ nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims, NC_VAR_INFO_T 
 
    new_var->hdr.hashkey = NC_hashmapkey(new_var->hdr.name,strlen(new_var->hdr.name));
    new_var->ndims = ndims;
-   
+
    /* Allocate space for dimension information. */
    if (ndims)
    {
@@ -935,31 +935,33 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM Out of memory.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Ward Fisher
  */
 int
 nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid, NC_TYPE_INFO_T **type)
 {
-   NC_TYPE_INFO_T *new_type;
+  NC_TYPE_INFO_T *new_type = NULL;
 
-   /* Allocate memory for the type */
-   if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
-      return NC_ENOMEM;
-   new_type->hdr.sort = NCTYP;
+  /* Allocate memory for the type */
+  if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
+    return NC_ENOMEM;
+  new_type->hdr.sort = NCTYP;
 
-   /* Remember info about this type. */
-   new_type->hdr.id = assignedid;
-   new_type->size = size;
-   if (!(new_type->hdr.name = strdup(name)))
-      return NC_ENOMEM;
+  /* Remember info about this type. */
+  new_type->hdr.id = assignedid;
+  new_type->size = size;
+  if (!(new_type->hdr.name = strdup(name))) {
+    free(new_type);
+    return NC_ENOMEM;
+  }
 
-   new_type->hdr.hashkey = NC_hashmapkey(name,strlen(name));
+  new_type->hdr.hashkey = NC_hashmapkey(name,strlen(name));
 
-   /* Return a pointer to the new type, if requested */
-   if (type)
-      *type = new_type;
+  /* Return a pointer to the new type, if requested */
+  if (type)
+    *type = new_type;
 
-   return NC_NOERR;
+  return NC_NOERR;
 }
 
 /**
@@ -1328,7 +1330,7 @@ nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
 }
 
 /**
- * @internal Free a dim 
+ * @internal Free a dim
  *
  * @param dim Pointer to dim info struct of type to delete.
  *
