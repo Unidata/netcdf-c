@@ -15,13 +15,13 @@
 
 #define FILE_NAME "tst_udf.nc"
 
-/* #ifndef LOGGING */
-/* int */
-/* NC4_show_metadata(int ncid) */
-/* { */
-/*    return 0; */
-/* } */
-/* #endif */
+#if defined(_WIN32) || defined(_WIN64)
+int
+NC4_show_metadata(int ncid)
+{
+   return 0;
+}
+#endif
 
 int
 tst_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
