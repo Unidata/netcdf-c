@@ -34,7 +34,7 @@
     #define HDrealloc(M,Z)    realloc(M,Z)
 #endif /* HDrealloc */
 
-extern int NC4_image_init(NC_HDF5_FILE_INFO_T* h5);
+extern hid_t NC4_image_init(NC_HDF5_FILE_INFO_T* h5);
 
 int
 NC4_open_image_file(NC_HDF5_FILE_INFO_T* h5)
