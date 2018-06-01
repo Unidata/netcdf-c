@@ -2626,6 +2626,11 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 #ifdef HDF5_HAS_COLL_METADATA_OPS
    H5Pset_all_coll_metadata_ops(fapl_id, 1 );
 #endif
+
+   /* Does the mode specify that this file is read-only? */
+   if ((mode & NC_WRITE) == 0)
+      nc4_info->no_write = NC_TRUE;
+
    if(nc4_info->mem.inmemory) {
 	/* validate */
 	if(nc4_info->mem.memio.size == 0 || nc4_info->mem.memio.memory == NULL)
@@ -2635,10 +2640,6 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
          BAIL(NC_EHDFERR);
    } else if ((nc4_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
       BAIL(NC_EHDFERR);
-
-   /* Does the mode specify that this file is read-only? */
-   if ((mode & NC_WRITE) == 0)
-      nc4_info->no_write = NC_TRUE;
 
    /* Now read in all the metadata. Some types and dimscale
     * information may be difficult to resolve here, if, for example, a
