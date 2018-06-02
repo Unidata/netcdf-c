@@ -66,10 +66,9 @@ static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
 
 #ifdef USE_NETCDF4
 /* User-defined formats. */
-NC_Dispatch* UF0_dispatch_table = NULL;
-NC_Dispatch* UF1_dispatch_table = NULL;
+NC_Dispatch *UDF0_dispatch_table = NULL;
+NC_Dispatch *UDF1_dispatch_table = NULL;
 #endif /* USE_NETCDF4 */
-
 
 /** \defgroup datasets NetCDF File and Data I/O
 
@@ -111,7 +110,7 @@ of the interfaces for these operations.
 /**
  * Add handling of user-defined format.
  *
- * @param mode_flag NC_UF0 or NC_UF1
+ * @param mode_flag NC_UDF0 or NC_UDF1
  * @param dispatch_table Pointer to dispatch table to use for this user format.
  * @param magic_number Magic number used to identify file. Ignored if
  * NULL.
@@ -125,7 +124,7 @@ int
 nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number)
 {
    /* Check inputs. */
-   if (mode_flag != NC_UF0 && mode_flag != NC_UF1)
+   if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
       return NC_EINVAL;
    if (!dispatch_table)
       return NC_EINVAL;
@@ -133,11 +132,11 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
    /* Retain a pointer to the dispatch_table. */
    switch(mode_flag)
    {
-   case NC_UF0:
-      UF0_dispatch_table = dispatch_table;
+   case NC_UDF0:
+      UDF0_dispatch_table = dispatch_table;
       break;
-   case NC_UF1:
-      UF1_dispatch_table = dispatch_table;
+   case NC_UDF1:
+      UDF1_dispatch_table = dispatch_table;
       break;
    }
    
@@ -2202,21 +2201,21 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 
 #ifdef USE_NETCDF4
    /* Check for use of user-defined format 0. */
-   if (cmode & NC_UF0)
+   if (cmode & NC_UDF0)
    {
-      if (!UF0_dispatch_table)
+      if (!UDF0_dispatch_table)
          return NC_EINVAL;
-      model = NC_FORMATX_UF0;
-      dispatcher = UF0_dispatch_table;
+      model = NC_FORMATX_UDF0;
+      dispatcher = UDF0_dispatch_table;
    }
 
    /* Check for use of user-defined format 1. */
-   if (cmode & NC_UF1)
+   if (cmode & NC_UDF1)
    {
-      if (!UF1_dispatch_table)
+      if (!UDF1_dispatch_table)
          return NC_EINVAL;
-      model = NC_FORMATX_UF1;
-      dispatcher = UF1_dispatch_table;
+      model = NC_FORMATX_UDF1;
+      dispatcher = UDF1_dispatch_table;
    }
 #endif /* USE_NETCDF4 */
    

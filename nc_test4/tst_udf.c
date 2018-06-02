@@ -66,7 +66,7 @@ tst_get_vara(int ncid, int varid, const size_t *start, const size_t *count,
  * functions that make up the HDF4 dispatch interface. */
 static NC_Dispatch tst_dispatcher = {
 
-NC_FORMATX_UF0,
+NC_FORMATX_UDF0,
 
 NC_RO_create,
 tst_open,
@@ -166,14 +166,14 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
       
       /* Add our test user defined format. */
-      if (nc_def_user_format(NC_UF0, &tst_dispatcher, NULL)) ERR;
+      if (nc_def_user_format(NC_UDF0, &tst_dispatcher, NULL)) ERR;
 
       /* Open file with our defined functions. */
-      if (nc_open(FILE_NAME, NC_UF0, &ncid)) ERR;
+      if (nc_open(FILE_NAME, NC_UDF0, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Open file again and abort, which is the same as closing it. */
-      if (nc_open(FILE_NAME, NC_UF0, &ncid)) ERR;
+      if (nc_open(FILE_NAME, NC_UDF0, &ncid)) ERR;
       if (nc_inq_format(ncid, NULL) != TEST_VAL_42) ERR;
       if (nc_inq_format_extended(ncid, NULL, NULL) != TEST_VAL_42) ERR;
       if (nc_abort(ncid) != TEST_VAL_42) ERR;
