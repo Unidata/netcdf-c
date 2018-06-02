@@ -158,8 +158,8 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 #define NC_PNETCDF       (NC_MPIIO) /**< Use parallel-netcdf library; alias for NC_MPIIO. */
 
-#define NC_UF0           0x0080  /**< User-defined format. */
-#define NC_UF1           0x0002  /**< User-defined format. */
+#define NC_UDF0          0x0080  /**< User-defined format. */
+#define NC_UDF1          0x0002  /**< User-defined format. */
 
 /** Format specifier for nc_set_default_format() and returned
  *  by nc_inq_format. This returns the format as provided by
@@ -210,8 +210,8 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMATX_PNETCDF   (4)
 #define NC_FORMATX_DAP2      (5)
 #define NC_FORMATX_DAP4      (6)
-#define NC_FORMATX_UF0       (8)
-#define NC_FORMATX_UF1       (9)
+#define NC_FORMATX_UDF0      (8)
+#define NC_FORMATX_UDF1      (9)
 #define NC_FORMATX_UNDEFINED (0)
 
   /* To avoid breaking compatibility (such as in the python library),
