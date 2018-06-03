@@ -580,7 +580,7 @@ AC_ARG_WITH([udf0],
 AC_MSG_RESULT([$UDF0_DISPATCH])
 if test -n "$UDF0_DISPATCH"; then
    AC_DEFINE_UNQUOTED([UDF0_DISPATCH], [$UDF0_DISPATCH], [dispatch table for user-defined format 0.])
-   AC_DEFINE_UNQUOTED([UDF0_DISPATCH_FUNC], [get_$UDF0_DISPATCH()], [dispatch table for user-defined format 0.])
+   AC_DEFINE_UNQUOTED([UDF0_DISPATCH_FUNC], [get_$UDF0_DISPATCH()], [function to get dispatch table for user-defined format 0.])
    AC_DEFINE([USE_UDF0], [1], [if true, use user-defined format 0 in utilities])
    AC_CHECK_LIB([$UDF0_DISPATCH], [get_$UDF0_DISPATCH], [],
                                  [AC_MSG_ERROR([Can't find or link to the user-defined format 0 library.])],
@@ -596,7 +596,11 @@ AC_ARG_WITH([udf1],
 AC_MSG_RESULT([$UDF1_DISPATCH])
 if test -n "$UDF1_DISPATCH"; then
    AC_DEFINE_UNQUOTED([UDF1_DISPATCH], [$UDF1_DISPATCH], [dispatch table for user-defined format 1.])
+   AC_DEFINE_UNQUOTED([UDF1_DISPATCH_FUNC], [get_$UDF1_DISPATCH()], [function to get dispatch table for user-defined format 1.])
    AC_DEFINE([USE_UDF1], [1], [if true, use user-defined format 1 in utilities])
+   AC_CHECK_LIB([$UDF1_DISPATCH], [get_$UDF1_DISPATCH], [],
+                                 [AC_MSG_ERROR([Can't find or link to the user-defined format 1 library.])],
+                                 [])
 fi
 
 # Did the user specify a default cache preemption?

@@ -143,7 +143,7 @@ NC4_initialize(void)
 #ifdef USE_UDF1
    /* If user-defined format 0 was specified during configure, set up
     * it's dispatch table. */
-   if ((ret = nc_def_user_format(NC_UDF1F, &UDF1_DISPATCH, NULL)))
+   if ((ret = nc_def_user_format(NC_UDF1F, &UDF1_DISPATCH_FUNC, NULL)))
       return ret;
 #endif /* USE_UDF0 */
     
