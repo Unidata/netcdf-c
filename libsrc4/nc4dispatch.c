@@ -9,8 +9,17 @@
 #include "nc4dispatch.h"
 #include "nc.h"
 
+/* If user-defined formats are in use, we need to declare their
+ * dispatch tables. */
+#ifdef USE_UDF0
+extern NC_Dispatch UDF0_DISPATCH;
+#endif /* USE_UDF0 */
+#ifdef USE_UDF1
+extern NC_Dispatch UDF1_DISPATCH;
+#endif /* USE_UDF1 */
+
 #ifdef USE_NETCDF4
-/* User-defined formats. */
+/* Pointers to dispatch tables for user-defined formats. */
 extern NC_Dispatch *UDF0_dispatch_table;
 extern NC_Dispatch *UDF1_dispatch_table;
 #endif /* USE_NETCDF4 */
@@ -127,7 +136,7 @@ NC4_initialize(void)
 #ifdef USE_UDF0
    /* If user-defined format 0 was specified during configure, set up
     * it's dispatch table. */
-   if ((ret = nc_def_user_format(NC_UDF0, &UDF0_DISPATCH, NULL)))
+   if ((ret = nc_def_user_format(NC_UDF0, UDF0_DISPATCH_FUNC, NULL)))
       return ret;
 #endif /* USE_UDF0 */
     
