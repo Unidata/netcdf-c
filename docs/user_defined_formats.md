@@ -12,9 +12,30 @@ User-defined formats allow users to write their own adaptors for the
 netCDF C library, so that it can read and (optionally) write a
 proprietary format through the netCDF API.
 
+User-defined format code is packaged into a separate library, the
+user-defined format dispatch library. This library, when linked with
+the netCDF library, will allow user programs to read their proprietary
+format through the netCDF API. The proprietary format is treated as if
+it were one of the netCDF C library native binary formats.
+
+Coding the user-defined format dispatch library requires knowledge of
+the netCDF library internals. User-defined format dispatch libraries
+must be written in C.
+
 ## Using User-Defined Formats from C Programms {#udf_With_C}
 
 A user-defined format can be added dynamically in the case of C programs.
+
+```
+      /* Add our test user defined format. */
+      if (nc_def_user_format(NC_UDF0, &tst_dispatcher, NULL)) ERR;
+```
+
+The file can now be opened by netCDF:
+
+```
+      if (nc_open(FILE_NAME, NC_UDF0, &ncid)) ERR;
+```
 
 ## Building NetCDF C Library with a User-Defined Format Library {#udf_Build_NetCDF_With_UDF}
 
