@@ -154,11 +154,41 @@ NC_NOTNC4_set_var_chunk_cache,
 NC_NOTNC4_get_var_chunk_cache
 };
 
+#define NUM_UDFS 2
+
 int
 main(int argc, char **argv)
 {
    printf("\n*** Testing user-defined formats.\n");
    printf("*** testing simple user-defined format...");
+   {
+      int ncid;
+      int mode[NUM_UDFS] = {NC_UDF0, NC_UDF1};
+      int i;
+      
+      /* Create an empty file to play with. */
+      if (nc_create(FILE_NAME, 0, &ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Test all available user-defined format slots. */
+      for (i = 0; i < NUM_UDFS; i++)
+      {
+         /* Add our user defined format. */
+         if (nc_def_user_format(mode[i], &tst_dispatcher, NULL)) ERR;
+         
+         /* Open file with our defined functions. */
+         if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
+         if (nc_close(ncid)) ERR;
+         
+         /* Open file again and abort, which is the same as closing it. */
+         if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
+         if (nc_inq_format(ncid, NULL) != TEST_VAL_42) ERR;
+         if (nc_inq_format_extended(ncid, NULL, NULL) != TEST_VAL_42) ERR;
+         if (nc_abort(ncid) != TEST_VAL_42) ERR;
+      }
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing user-defined format with magic number...");
    {
       int ncid;
       /* Create an empty file to play with. */
