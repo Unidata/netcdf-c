@@ -67,7 +67,9 @@ static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
 #ifdef USE_NETCDF4
 /* User-defined formats. */
 NC_Dispatch *UDF0_dispatch_table = NULL;
+char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
 NC_Dispatch *UDF1_dispatch_table = NULL;
+char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
 #endif /* USE_NETCDF4 */
 
 /** \defgroup datasets NetCDF File and Data I/O
@@ -128,15 +130,22 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
       return NC_EINVAL;
    if (!dispatch_table)
       return NC_EINVAL;
+   if (magic_number && strlen(magic_number) > NC_MAX_MAGIC_NUMBER_LEN)
+      return NC_EINVAL;      
 
-   /* Retain a pointer to the dispatch_table. */
+   /* Retain a pointer to the dispatch_table and a copy of the magic
+    * number, if one was provided. */
    switch(mode_flag)
    {
    case NC_UDF0:
       UDF0_dispatch_table = dispatch_table;
+      if (magic_number)
+         strncpy(UDF0_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
       break;
    case NC_UDF1:
       UDF1_dispatch_table = dispatch_table;
+      if (magic_number)
+         strncpy(UDF0_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
       break;
    }
    

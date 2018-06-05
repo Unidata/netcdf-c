@@ -191,12 +191,14 @@ main(int argc, char **argv)
    printf("*** testing user-defined format with magic number...");
    {
       int ncid;
+      char magic_number[5] = "1111";
+      
       /* Create an empty file to play with. */
       if (nc_create(FILE_NAME, 0, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
       
       /* Add our test user defined format. */
-      if (nc_def_user_format(NC_UDF0, &tst_dispatcher, NULL)) ERR;
+      if (nc_def_user_format(NC_UDF0, &tst_dispatcher, magic_number)) ERR;
 
       /* Open file with our defined functions. */
       if (nc_open(FILE_NAME, NC_UDF0, &ncid)) ERR;
