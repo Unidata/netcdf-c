@@ -2,10 +2,11 @@
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions. */
 /**
- * @file @internal This file is part of netcdf-4, the extended netCDF
- * data model/file format.  This uses libhdf5 for file I/O. The resulting
- * file may or may not be readable by the hdf5 utilities and the data model
- * may or may not be expressable by the hdf5 utilities.
+ * @file 
+ * @internal This file is part of netcdf-4, the extended netCDF data
+ * model/file format.  This uses libhdf5 for file I/O. The resulting
+ * file may or may not be readable by the hdf5 utilities and the data
+ * model may or may not be expressable by the hdf5 utilities.
  *
  * This file handles the nc4 attribute functions.
  *
