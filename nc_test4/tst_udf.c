@@ -179,6 +179,7 @@ main(int argc, char **argv)
 
          /* Check that our user-defined format has been added. */
          if (nc_inq_user_format(mode[i], &disp_in, NULL)) ERR;
+         if (disp_in != &tst_dispatcher) ERR;
          
          /* Open file with our defined functions. */
          if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
