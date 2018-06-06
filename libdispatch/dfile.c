@@ -151,6 +151,48 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
    
    return NC_NOERR;
 }
+
+/**
+ * Inquire about user-defined format.
+ *
+ * @param mode_flag NC_UDF0 or NC_UDF1
+ * @param dispatch_table Pointer that gets pointer to dispatch table
+ * to use for this user format, or NULL if this user-defined format is
+ * not defined. Ignored if NULL.
+ * @param magic_number Pointer that gets magic number used to identify
+ * file, if one has been set. Magic number will be of max size
+ * NC_MAX_MAGIC_NUMBER_LEN. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+ * @ingroup datasets
+ */
+int
+nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number)
+{
+   /* Check inputs. */
+   if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
+      return NC_EINVAL;
+
+   switch(mode_flag)
+   {
+   case NC_UDF0:
+      if (dispatch_table)
+         *dispatch_table = UDF0_dispatch_table;
+      if (magic_number)
+         strncpy(magic_number, UDF0_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+      break;
+   case NC_UDF1:
+      if (dispatch_table)
+         *dispatch_table = UDF1_dispatch_table;
+      if (magic_number)
+         strncpy(magic_number, UDF1_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+      break;
+   }
+
+   return NC_NOERR;
+}
 #endif /* USE_NETCDF4 */
 
 /*!
