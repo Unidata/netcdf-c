@@ -164,6 +164,7 @@ main(int argc, char **argv)
    {
       int ncid;
       int mode[NUM_UDFS] = {NC_UDF0, NC_UDF1};
+      NC_Dispatch *disp_in;
       int i;
       
       /* Create an empty file to play with. */
@@ -175,6 +176,9 @@ main(int argc, char **argv)
       {
          /* Add our user defined format. */
          if (nc_def_user_format(mode[i], &tst_dispatcher, NULL)) ERR;
+
+         /* Check that our user-defined format has been added. */
+         if (nc_inq_user_format(mode[i], &disp_in, NULL)) ERR;
          
          /* Open file with our defined functions. */
          if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
