@@ -96,23 +96,32 @@
 #endif
 
 #undef TRACE
+#define CATCH
+
+#ifdef TRACE
+#define CATCH
+#endif
 
 #ifdef TRACE
 #include <stdarg.h>
 static void trace(const char* fcn, void* _udata, ...);
 static void traceend(const char* fcn, void* _udata);
-static void tracefail(const char* fcn);
 /* In case we do not have variadic macros */
 #define TRACE1(fcn,udata,x1)  trace(fcn,udata,x1)
 #define TRACE2(fcn,udata,x1,x2)  trace(fcn,udata,x1,x2)
 #define TRACE3(fcn,udata,x1,x2,x3)  trace(fcn,udata,x1,x2,x3)
 #define TRACEEND(fcn,udata) traceend(fcn,udata);
-#define TRACEFAIL(fcn) tracefail(fcn)
 #else /*!TRACE*/
 #define TRACE1(fcn,udata,x1)
 #define TRACE2(fcn,udata,x1,x2)
 #define TRACE3(fcn,udata,x1,x2,x3)
 #define TRACEEND(fcn,udata)
+#endif
+
+#ifdef CATCH
+static void tracefail(const char* fcn);
+#define TRACEFAIL(fcn) tracefail(fcn)
+#else
 #define TRACEFAIL(fcn)
 #endif
 
@@ -667,7 +676,7 @@ out:
 *
 *-------------------------------------------------------------------------
 */
-int
+hid_t
 NC4_image_init(NC_HDF5_FILE_INFO_T* h5)
 {
     hid_t		fapl = -1, file_id = -1; /* HDF5 identifiers */
@@ -721,6 +730,7 @@ NC4_image_init(NC_HDF5_FILE_INFO_T* h5)
 
     /* Set callbacks for file image ops ONLY if the file image is NOT copied */
     if (flags & H5LT_FILE_IMAGE_DONT_COPY)
+ //   if (0)
     {
         H5LT_file_image_ud_t *udata;	/* Pointer to udata structure */
 
@@ -847,11 +857,13 @@ static void traceend(const char* fcn, void* _udata)
     fflush(stderr);
 }
 
+#endif /*TRACE*/
+
+#ifdef CATCH
 static void
 tracefail(const char* fcn)
 {
     fprintf(stderr,"fail: %s",fcn);
     fflush(stderr);
 }
-
-#endif /*TRACE*/
+#endif /*CATCH*/
