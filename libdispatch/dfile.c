@@ -67,9 +67,9 @@ static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
 #ifdef USE_NETCDF4
 /* User-defined formats. */
 NC_Dispatch *UDF0_dispatch_table = NULL;
-char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
+char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
 NC_Dispatch *UDF1_dispatch_table = NULL;
-char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
+char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
 #endif /* USE_NETCDF4 */
 
 /** \defgroup datasets NetCDF File and Data I/O
@@ -174,6 +174,23 @@ NC_interpret_magic_number(char* magic, int* model, int* version)
     /* Look at the magic number */
     *model = 0;
     *version = 0;
+#ifdef USE_NETCDF4
+    if (strlen(UDF0_magic_number) &&
+        !strncmp(magic, UDF0_magic_number, NC_MAX_MAGIC_NUMBER_LEN))
+    {
+	*model = NC_FORMATX_UDF0;
+	*version = 6; /* redundant */
+	goto done;
+    }
+    if (strlen(UDF1_magic_number) &&
+        !strncmp(magic, UDF1_magic_number, NC_MAX_MAGIC_NUMBER_LEN))
+    {
+	*model = NC_FORMATX_UDF1;
+	*version = 7; /* redundant */
+	goto done;
+    }
+#endif /* USE_NETCDF4 */
+
     /* Use the complete magic number string for HDF5 */
     if(memcmp(magic,HDF5_SIGNATURE,sizeof(HDF5_SIGNATURE))==0) {
 	*model = NC_FORMATX_NC4;
