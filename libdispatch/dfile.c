@@ -2292,7 +2292,8 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
     }
 
    /* Force flag consistentcy */
-   if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4)
+   if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4 ||
+      model == NC_FORMATX_UDF0 || model == NC_FORMATX_UDF1)
       cmode |= NC_NETCDF4;
    else if(model == NC_FORMATX_DAP2) {
       cmode &= ~NC_NETCDF4;
@@ -2358,6 +2359,14 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
          dispatcher = HDF4_dispatch_table;
          break;
 #endif
+#ifdef USE_NETCDF4
+      case NC_FORMATX_UDF0:
+         dispatcher = UDF0_dispatch_table;
+         break;
+      case NC_FORMATX_UDF1:
+         dispatcher = UDF1_dispatch_table;
+         break;
+#endif /* USE_NETCDF4 */         
       case NC_FORMATX_NC3:
          dispatcher = NC3_dispatch_table;
          break;

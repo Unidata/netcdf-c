@@ -587,6 +587,14 @@ if test -n "$UDF0_DISPATCH"; then
                                  [])
 fi
 
+# Did the user specify a magic number for user-defined format 0?
+AC_MSG_CHECKING([whether a magic number for user-defined format 0 was specified])
+AC_ARG_WITH([udf0-magic-number],
+              [AS_HELP_STRING([--with-udf0-magic-number=<magic_number>],
+                              [Specify a magic number for user-defined format 0 (ignored unless --with-udf0 is also used).])],
+            [UDF0_MAGIC_NUMBER=$with_udf0_magic_number])
+AC_MSG_RESULT([$UDF0_MAGIC_NUMBER])
+
 # Did the user specify a user-defined format 1?
 AC_MSG_CHECKING([whether user-defined format 1 was specified])
 AC_ARG_WITH([udf1],
@@ -602,6 +610,14 @@ if test -n "$UDF1_DISPATCH"; then
                                  [AC_MSG_ERROR([Can't find or link to the user-defined format 1 library.])],
                                  [])
 fi
+
+# Did the user specify a magic number for user-defined format 0?
+AC_MSG_CHECKING([whether a magic number for user-defined format 1 was specified])
+AC_ARG_WITH([udf1-magic-number],
+              [AS_HELP_STRING([--with-udf1-magic-number=<magic_number>],
+                              [Specify a magic number for user-defined format 1 (ignored unless --with-udf1 is also used).])],
+            [UDF1_MAGIC_NUMBER=$with_udf1_magic_number])
+AC_MSG_RESULT([$UDF1_MAGIC_NUMBER])
 
 # Did the user specify a default cache preemption?
 AC_MSG_CHECKING([whether a default cache preemption for HDF5 was specified])
