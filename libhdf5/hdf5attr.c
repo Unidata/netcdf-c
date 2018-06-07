@@ -581,7 +581,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
             /* Data types are like religions, in that one can convert.  */
             if ((retval = nc4_convert_type(data, att->data, mem_type, file_type,
                                            len, &range_error, NULL,
-                                           (h5->cmode & NC_CLASSIC_MODEL), 0, 0)))
+                                           (h5->cmode & NC_CLASSIC_MODEL))))
                BAIL(retval);
          }
       }
