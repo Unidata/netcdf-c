@@ -16,6 +16,9 @@ CREATE3=tst_inmemory3_create
 FILE4=tst_inmemory4
 CREATE4=tst_inmemory4_create
 
+# For tst_open_mem
+OMEMFILE=f03tst_open_mem.nc
+
 echo ""
 echo "*** Testing in-memory operations"
 
@@ -24,6 +27,9 @@ HASNC4=`${top_builddir}/nc-config --has-nc4`
 # Execute the core of the inmemory tests
 if ! ${execdir}/tst_inmemory; then
    echo "FAIL: tst.inmemory"
+fi
+if ! ${execdir}/tst_open_mem ${srcdir}/${OMEMFILE}; then
+   echo "FAIL: tst_open_mem"
 fi
 
 echo "**** Test ncdump of the resulting inmemory data"
