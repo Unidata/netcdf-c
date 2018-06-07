@@ -2,10 +2,11 @@
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions. */
 /**
- * @file @internal This file is part of netcdf-4, the extended netCDF
- * data model/file format.  This uses libhdf5 for file I/O. The resulting
- * file may or may not be readable by the hdf5 utilities and the data model
- * may or may not be expressable by the hdf5 utilities.
+ * @file
+ *
+ * @internal This file is part of netcdf-4, a netCDF-like interface
+ * for HDF5, or a HDF5 backend for netCDF, depending on your point of
+ * view.
  *
  * This file handles the nc4 attribute functions.
  *
@@ -204,7 +205,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
       need_to_convert++;
       if ((retval = nc4_convert_type(att->data, bufr, att->nc_typeid,
                                      mem_type, (size_t)att->len, &range_error,
-                                     NULL, (h5->cmode & NC_CLASSIC_MODEL), 0, 0)))
+                                     NULL, (h5->cmode & NC_CLASSIC_MODEL))))
          BAIL(retval);
 
       /* For strict netcdf-3 rules, ignore erange errors between UBYTE
