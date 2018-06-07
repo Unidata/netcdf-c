@@ -22,6 +22,19 @@ Coding the user-defined format dispatch library requires knowledge of
 the netCDF library internals. User-defined format dispatch libraries
 must be written in C.
 
+### Magic Numbers
+
+Some file formats use the first few bytes of the file as an identifier
+for format. For example, HDF5 files have "HDF5" as the fist 4 bytes,
+and netCDF classic files have "CDF1" as the first four bytes. This is
+called the "magic number" of the file.
+
+User-defined formats can optionally support magic numbers. If the
+user-defined format uses a magic number, and that magic number is
+associated with the user-defined format, then netCDF will be able to
+correctly identify those files from nc_open(). It will not be
+necessary for the user to know or specify the underlying format.
+
 ## Using User-Defined Formats from C Programms {#udf_With_C}
 
 A user-defined format can be added dynamically in the case of C programs.
@@ -37,12 +50,31 @@ The file can now be opened by netCDF:
       if (nc_open(FILE_NAME, NC_UDF0, &ncid)) ERR;
 ```
 
+If a magic number is used in the file, that may be passed to
+nc_def_user_format(). In that case, specifying the NC_UDF0 mode flag
+to nc_open() is optional. The nc_open() will check the file and find
+the magic number, and automatically associate the file with
+NC_UDF0. The user will not need to know the format in order to open
+the file with nc_open().
+
 ## Building NetCDF C Library with a User-Defined Format Library {#udf_Build_NetCDF_With_UDF}
 
 Once a user-defined format library is created, it may built into a
 netCDF install. This allows the netCDF Fortran APIs, and the netCDF
 utilities (ncdump, ncgen, nccopy) to natively use the user-defined
 format.
+
+First the user-defined dispatch library must be built and installed.
+
+Then the netcdf-c package must be (re-)built. When building netcdf-c,
+add the location of the user-defined format dispatch library include
+file to the CPPFLAGS, and the location of the user-defined format
+dispatch library in LDFLAGS.
+
+Configure netcdf-c with the option --with-udf0=<udf_lib_name>.
+
+If a magic number is associated with the user-defined format, it can
+be specified with the --with-udf0-magic-number= argument.
 
 ## Creating a User-Defined Format {#udf_Create_UDF}
 
