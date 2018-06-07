@@ -145,7 +145,7 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
    case NC_UDF1:
       UDF1_dispatch_table = dispatch_table;
       if (magic_number)
-         strncpy(UDF0_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+         strncpy(UDF1_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
       break;
    }
    
@@ -217,15 +217,15 @@ NC_interpret_magic_number(char* magic, int* model, int* version)
     *model = 0;
     *version = 0;
 #ifdef USE_NETCDF4
-    if (strlen(UDF0_magic_number) &&
-        !strncmp(magic, UDF0_magic_number, NC_MAX_MAGIC_NUMBER_LEN))
+    if (strlen(UDF0_magic_number) && !strncmp(UDF0_magic_number, magic,
+                                              strlen(UDF0_magic_number)))
     {
 	*model = NC_FORMATX_UDF0;
 	*version = 6; /* redundant */
 	goto done;
     }
-    if (strlen(UDF1_magic_number) &&
-        !strncmp(magic, UDF1_magic_number, NC_MAX_MAGIC_NUMBER_LEN))
+    if (strlen(UDF1_magic_number) && !strncmp(UDF1_magic_number, magic,
+                                              strlen(UDF1_magic_number)))
     {
 	*model = NC_FORMATX_UDF1;
 	*version = 7; /* redundant */
