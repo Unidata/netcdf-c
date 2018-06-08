@@ -102,7 +102,7 @@ autoconf/automake files to build a user-defined format library, can be
 found at the [sample user-defined format
 library](https://github.com/NOAA-GSD/sample-netcdf-dispatch). In this
 example, the HDF4 SD reader is re-implemented as an external
-user-defined format. (This is unnecessary if you jusr want to read
+user-defined format. (This is unnecessary if you just want to read
 HDF4 SD files, since the netCDF C library already includes an HDF4 SD
 file reader. This user-defined format library uses the same code. It
 is repackaged as a user-defined library to provide a working sample.)
