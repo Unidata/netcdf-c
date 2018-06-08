@@ -584,7 +584,7 @@ fill_added(NC3_INFO *gnu, NC3_INFO *old)
 	{
 		const NC_var *const gnu_varp = *(gnu_varpp + varid);
 
-		if (gnu_varp->no_fill) continue; 
+		if (gnu_varp->no_fill) continue;
 
 		if(IS_RECVAR(gnu_varp))
 		{
@@ -1203,9 +1203,12 @@ NC3_open(const char * path, int ioflags,
 	 * !_CRAYMPP, only pe 0 is valid
 	 */
 	if(basepe != 0) {
-        if(nc3) free(nc3);
-        status = NC_EINVAL;
-	goto unwind_alloc;
+      if(nc3) {
+        free(nc3);
+        nc3 = NULL;
+      }
+      status = NC_EINVAL;
+      goto unwind_alloc;
     }
 #endif
 
@@ -1743,7 +1746,7 @@ NC3_inq_format_extended(int ncid, int *formatp, int *modep)
  * Determine name and size of netCDF type. This netCDF-4 function
  * proved so popular that a netCDF-classic version is provided. You're
  * welcome.
- * 
+ *
  * \param ncid The ID of an open file.
  * \param typeid The ID of a netCDF type.
  * \param name Pointer that will get the name of the type. Maximum
