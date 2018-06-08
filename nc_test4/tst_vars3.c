@@ -403,6 +403,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+#ifdef USE_SZIP
    printf("**** testing simple szip filter setup...");
    {
 #define NDIMS1 1
@@ -540,5 +541,6 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+#endif /* USE_SZIP */
    FINAL_RESULTS;
 }
