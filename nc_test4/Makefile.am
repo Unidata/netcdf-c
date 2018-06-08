@@ -114,8 +114,8 @@ endif
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.
 if TEST_PARALLEL4
-check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3	\
-tst_parallel4 tst_nc4perf tst_mode tst_simplerw_coll_r
+check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3		\
+tst_parallel4 tst_parallel5 tst_nc4perf tst_mode tst_simplerw_coll_r
 TESTS += run_par_test.sh
 endif
 
@@ -137,6 +137,7 @@ run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
 ref_szip.cdl tst_filter.sh bzip2.cdl filtered.cdl unfiltered.cdl	\
 ref_bzip2.c findplugin.in perftest.sh
+
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc   \
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt                  \
