@@ -198,7 +198,7 @@ genbin_defineglobalspecials(void)
 static void
 genbin_definespecialattributes(Symbol* var)
 {
-    int stat;
+    int stat = NC_NOERR;
     Specialdata* special = &var->var.special;
     if(special->flags & _STORAGE_FLAG) {
         int storage = special->_Storage;
@@ -250,7 +250,7 @@ genbin_definespecialattributes(Symbol* var)
 	    else
 		level = special->_FilterParams[0];
 	    if(level > 9)
-		derror("Illegal deflate level");		
+		derror("Illegal deflate level");
 	    else {
 	        stat = nc_def_var_deflate(var->container->ncid,
 	                var->ncid,
