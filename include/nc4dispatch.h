@@ -147,6 +147,16 @@ NC4_get_vara(int ncid, int varid,
 	     const size_t *start, const size_t *count,
              void *value, nc_type);
 
+extern int
+NC4_put_vars(int ncid, int varid,
+   	     const size_t *start, const size_t *count, const ptrdiff_t* stride,
+             const void *value, nc_type);
+
+extern int
+NC4_get_vars(int ncid, int varid,
+	     const size_t *start, const size_t *count, const ptrdiff_t* stride,
+             void *value, nc_type);
+
 /* End _var */
 
 /* netCDF4 API only */

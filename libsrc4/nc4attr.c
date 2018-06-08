@@ -205,7 +205,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
       need_to_convert++;
       if ((retval = nc4_convert_type(att->data, bufr, att->nc_typeid,
                                      mem_type, (size_t)att->len, &range_error,
-                                     NULL, (h5->cmode & NC_CLASSIC_MODEL))))
+                                     NULL, (h5->cmode & NC_CLASSIC_MODEL), 0, 0)))
          BAIL(retval);
 
       /* For strict netcdf-3 rules, ignore erange errors between UBYTE
