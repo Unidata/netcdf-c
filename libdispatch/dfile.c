@@ -2192,13 +2192,19 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 #ifdef USE_CDF5
        cdf5built = 1;
 #endif
-	if(!hdf5built && model == NC_FORMATX_NC4)
-	    return NC_ENOTBUILT;
-	if(!hdf4built && model == NC_FORMATX_NC4 && version == 4)
-	    return NC_ENOTBUILT;
-	if(!cdf5built && model == NC_FORMATX_NC3 && version == 5)
-	    return NC_ENOTBUILT;
-    }
+       if(!hdf5built && model == NC_FORMATX_NC4) {
+         free(path);
+         return NC_ENOTBUILT;
+       }
+       if(!hdf4built && model == NC_FORMATX_NC4 && version == 4) {
+         free(path);
+         return NC_ENOTBUILT;
+       }
+       if(!cdf5built && model == NC_FORMATX_NC3 && version == 5) {
+         free(path);
+         return NC_ENOTBUILT;
+       }
+   }
 
    /* Force flag consistentcy */
    if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4)
