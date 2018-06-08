@@ -69,11 +69,19 @@ main(int argc, char **argv)
 #define FILE_NAME2 "tst_vars2_latefill.nc"
       printf("**** testing simple fill value attribute creation...");
       {
-         int status;
          int schar_data = 0;
          size_t index[1] = {0};
+         int expected_ret;
          int dimid;
 
+         /* Determined the expected result of setting fill value
+          * late. For historical reasons this is allowed for classic
+          * and 64-bit offset formats, but should never be done. */
+         if (cmode == 0 || cmode == NC_64BIT_OFFSET)
+            expected_ret = NC_NOERR;
+         else
+            expected_ret = NC_ELATEFILL;
+            
          /* Create a netcdf-4 file with one scalar var. Add fill
           * value. */
          if (nc_create(FILE_NAME2, cmode, &ncid)) ERR;
@@ -83,9 +91,8 @@ main(int argc, char **argv)
          if (nc_enddef(ncid)) ERR;
          if (nc_put_var1(ncid, varid, index, &schar_data)) ERR;
          if (nc_redef(ncid)) ERR;
-         status = nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value);
-         if (status != NC_ELATEFILL)
-             printf("Error at line %d: expecting NC_ELATEFILL but got %s\n",__LINE__,nc_strerror(status));
+         if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1,
+                              &fill_value) != expected_ret) ERR;
          if (nc_close(ncid)) ERR;
 
          /* Open the file and check. */
