@@ -81,6 +81,17 @@ be specified with the --with-udf0-magic-number= argument.
 Creators of user-defined format libraries will have to become familar
 with the internals of the netCDF-4 code.
 
+### Read-Only User-Defined Formats
+
+Many users will find that a read-only user-defined formats meets most
+of their needs. With a read-only user-defined format, netCDF will be
+able to read files of the user-defined format. Tools like ncdump and
+nccopy can work on the files.
+
+A read-only user-defined format can be implemented with only 6
+functions. The code in libhdf4 is an excellent example of a read-only
+dispatch layer.
+
 ## Examples {#udf_Examples}
 
 The most simple-case example of a user-defined format is provided in
