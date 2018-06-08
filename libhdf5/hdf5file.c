@@ -695,48 +695,6 @@ dumpopenobjects(NC_HDF5_FILE_INFO_T* h5)
     return;
 }
 
-#ifdef NC4NOTUSED
-/**
- * @internal Define the names of attributes to ignore added by the
- * HDF5 dimension scale; these attached to variables. They cannot be
- * modified thru the netcdf-4 API.
- */
-static const char* NC_RESERVED_VARATT_LIST[] = {
-   NC_ATT_REFERENCE_LIST,
-   NC_ATT_CLASS,
-   NC_ATT_DIMENSION_LIST,
-   NC_ATT_NAME,
-   NC_ATT_COORDINATES,
-   NC_DIMID_ATT_NAME,
-   NULL
-};
-
-/**
- * @internal Define the names of attributes to ignore because they are
- * "hidden" global attributes. They can be read, but not modified thru
- * the netcdf-4 API.
- */
-static const char* NC_RESERVED_ATT_LIST[] = {
-   NC_ATT_FORMAT,
-   NC3_STRICT_ATT_NAME,
-   NCPROPS,
-   ISNETCDF4ATT,
-   SUPERBLOCKATT,
-   NULL
-};
-
-/**
- * @internal Define the subset of the reserved list that is readable
- * by name only
-*/
-static const char* NC_RESERVED_SPECIAL_LIST[] = {
-   ISNETCDF4ATT,
-   SUPERBLOCKATT,
-   NCPROPS,
-   NULL
-};
-#endif
-
 size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
 size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
 float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
@@ -1094,8 +1052,14 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
    /* Define mode gets turned on automatically on create. */
    nc4_info->flags |= NC_INDEF;
 
-   NC4_get_fileinfo(nc4_info,&globalpropinfo);
-   NC4_put_propattr(nc4_info);
+   /* Get the HDF5 superblock and read and parse the special
+    * _NCProperties attribute. */
+   if ((retval = NC4_get_fileinfo(nc4_info, &globalpropinfo)))
+      BAIL(retval);
+
+   /* Write the _NCProperties attribute. */
+   if ((retval = NC4_put_propattr(nc4_info)))
+      BAIL(retval);
 
    return NC_NOERR;
 
@@ -2626,6 +2590,11 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 #ifdef HDF5_HAS_COLL_METADATA_OPS
    H5Pset_all_coll_metadata_ops(fapl_id, 1 );
 #endif
+
+   /* Does the mode specify that this file is read-only? */
+   if ((mode & NC_WRITE) == 0)
+      nc4_info->no_write = NC_TRUE;
+
    if(nc4_info->mem.inmemory) {
 	/* validate */
 	if(nc4_info->mem.memio.size == 0 || nc4_info->mem.memio.memory == NULL)
@@ -2635,10 +2604,6 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
          BAIL(NC_EHDFERR);
    } else if ((nc4_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
       BAIL(NC_EHDFERR);
-
-   /* Does the mode specify that this file is read-only? */
-   if ((mode & NC_WRITE) == 0)
-      nc4_info->no_write = NC_TRUE;
 
    /* Now read in all the metadata. Some types and dimscale
     * information may be difficult to resolve here, if, for example, a
@@ -2662,7 +2627,10 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if (H5Pclose(fapl_id) < 0)
       BAIL(NC_EHDFERR);
 
-   NC4_get_fileinfo(nc4_info,NULL);
+   /* Get the HDF5 superblock and read and parse the special
+    * _NCProperties attribute. */
+   if ((retval = NC4_get_fileinfo(nc4_info, NULL)))
+      BAIL(retval);
 
    return NC_NOERR;
 

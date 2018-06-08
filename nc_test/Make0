@@ -1,31 +1,42 @@
 # Test c output
-T=t
+T=tst_open_mem
 
-#ARGS=t
+#H58=8
+H510=10
+
+#ARGS=f03_1820.nc
 
 SRC=test_put.c test_get.c test_read.c test_write.c util.c error.c
 
 #CMD=valgrind --leak-check=full
 #CMD=export NETCDF_LOG_LEVEL=5 ;gdb --args
 CMD=gdb --args
+#CMD=env HDF5_DEBUG=trace
 
 #PAR=1
+
+ifdef H58
+H5L=/usr/local
+endif
+ifdef H510
+H5L=/opt
+endif
 
 CFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -g -O0 -I.. -I../include
 
 ifdef PAR
 CC=mpicc
 #CC=/usr/local/bin/mpicc
-LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  -ldl -lcurl -lpnetcdf -lmpich -lm
+LDFLAGS=../liblib/.libs/libnetcdf.a -L${H5L}/lib -lhdf5_hl -lhdf5 -lz  -ldl -lcurl -lpnetcdf -lmpich -lm
 else
 CC=gcc
-#LDFLAGS=../liblib/.libs/libnetcdf.a  -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
-LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  -ldl -lm -lcurl
+#LDFLAGS=../liblib/.libs/libnetcdf.a  -L${H5L}/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
+LDFLAGS=../liblib/.libs/libnetcdf.a -L${H5L}/lib -lhdf5_hl -lhdf5 -lz  -ldl -lm -lcurl
 endif
 
 #	cd .. ; ${MAKE} all
 
-LLP=/usr/local/lib:${LD_LIBRARY_PATH}
+LLP=${H5L}/lib:${LD_LIBRARY_PATH}
 
 all:: cmp
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
