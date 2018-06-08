@@ -650,6 +650,7 @@ set_par_access(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
  * @param startp Array of start indices.
  * @param countp Array of counts.
  * @param mem_nc_type The type of the data in memory.
+ * @param is_long True only if NC_LONG is the memory type.
  * @param data The data to be written.
  *
  * @returns ::NC_NOERR No error.
@@ -666,7 +667,7 @@ set_par_access(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
  */
 int
 nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
-             const size_t *countp, nc_type mem_nc_type, void *data)
+             const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
 {
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
@@ -683,8 +684,13 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 #endif
    int retval = NC_NOERR, range_error = 0, i, d2;
    void *bufr = NULL;
+#ifndef HDF5_CONVERT
    int need_to_convert = 0;
    size_t len = 1;
+#endif
+#ifdef HDF5_CONVERT
+   hid_t mem_typeid = 0;
+#endif
 
    /* Find our metadata for this file, group, and var. */
    assert(nc);
@@ -693,8 +699,8 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
    h5 = NC4_DATA(nc);
    assert(grp && h5 && var && var->hdr.name);
 
-   LOG((3, "%s: var->hdr.name %s mem_nc_type %d",
-        __func__, var->hdr.name, mem_nc_type));
+   LOG((3, "%s: var->hdr.name %s mem_nc_type %d is_long %d",
+        __func__, var->hdr.name, mem_nc_type, is_long));
 
    /* Check some stuff about the type and the file. If the file must
     * be switched from define mode, it happens here. */
@@ -776,9 +782,10 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
          BAIL(NC_EHDFERR);
    }
 
+#ifndef HDF5_CONVERT
    /* Are we going to convert any data? (No converting of compound or
     * opaque types.) */
-   if (mem_nc_type != var->type_info->hdr.id &&
+   if ((mem_nc_type != var->type_info->hdr.id || (var->type_info->hdr.id == NC_INT && is_long)) &&
        mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
    {
       size_t file_type_size;
@@ -804,11 +811,27 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
             BAIL(NC_ENOMEM);
    }
    else
+#endif /* ifndef HDF5_CONVERT */
       bufr = data;
+
+#ifdef HDF5_CONVERT
+   /* Get the HDF type of the data in memory. */
+   if ((retval = nc4_get_hdf_typeid(h5, mem_nc_type, &mem_typeid,
+                                    var->type_info->endianness)))
+      BAIL(retval);
+#endif
 
    /* Create the data transfer property list. */
    if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
       BAIL(NC_EHDFERR);
+
+   /* Apply the callback function which will detect range
+    * errors. Which one to call depends on the length of the
+    * destination buffer type. */
+#ifdef HDF5_CONVERT
+   if (H5Pset_type_conv_cb(xfer_plistid, except_func, &range_error) < 0)
+      BAIL(NC_EHDFERR);
+#endif
 
 #ifdef USE_PARALLEL4
    /* Set up parallel I/O, if needed. */
@@ -895,14 +918,16 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       }
    }
 
+#ifndef HDF5_CONVERT
    /* Do we need to convert the data? */
    if (need_to_convert)
    {
       if ((retval = nc4_convert_type(data, bufr, mem_nc_type, var->type_info->hdr.id,
                                      len, &range_error, var->fill_value,
-                                     (h5->cmode & NC_CLASSIC_MODEL))))
+                                     (h5->cmode & NC_CLASSIC_MODEL), is_long, 0)))
          BAIL(retval);
    }
+#endif
 
    /* Write the data. At last! */
    LOG((4, "about to H5Dwrite datasetid 0x%x mem_spaceid 0x%x "
@@ -925,13 +950,19 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       range_error = 0;
 
 exit:
+#ifdef HDF5_CONVERT
+   if (mem_typeid > 0 && H5Tclose(mem_typeid) < 0)
+      BAIL2(NC_EHDFERR);
+#endif
    if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
       BAIL2(NC_EHDFERR);
    if (mem_spaceid > 0 && H5Sclose(mem_spaceid) < 0)
       BAIL2(NC_EHDFERR);
    if (xfer_plistid && (H5Pclose(xfer_plistid) < 0))
       BAIL2(NC_EPARINIT);
+#ifndef HDF5_CONVERT
    if (need_to_convert && bufr) free(bufr);
+#endif
 
    /* If there was an error return it, otherwise return any potential
       range error value. If none, return NC_NOERR as usual.*/
@@ -952,6 +983,7 @@ exit:
  * @param countp Array of counts.
  * @param mem_nc_type The type of the data in memory. (Convert to this
  * type from file type.)
+ * @param is_long True only if NC_LONG is the memory type.
  * @param data The data to be written.
  *
  * @returns ::NC_NOERR No error.
@@ -968,7 +1000,7 @@ exit:
  */
 int
 nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
-             const size_t *countp, nc_type mem_nc_type, void *data)
+             const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
 {
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
@@ -986,8 +1018,13 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
    int fill_value_size[NC_MAX_VAR_DIMS];
    int scalar = 0, retval = NC_NOERR, range_error = 0, i, d2;
    void *bufr = NULL;
+#ifdef HDF5_CONVERT
+   hid_t mem_typeid = 0;
+#endif
+#ifndef HDF5_CONVERT
    int need_to_convert = 0;
    size_t len = 1;
+#endif
 
    /* Find our metadata for this file, group, and var. */
    assert(nc);
@@ -996,8 +1033,8 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
    h5 = NC4_DATA(nc);
    assert(grp && h5 && var && var->hdr.name);
 
-   LOG((3, "%s: var->hdr.name %s mem_nc_type %d",
-        __func__, var->hdr.name, mem_nc_type));
+   LOG((3, "%s: var->hdr.name %s mem_nc_type %d is_long %d",
+        __func__, var->hdr.name, mem_nc_type, is_long));
 
    /* Check some stuff about the type and the file. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
@@ -1146,7 +1183,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
             BAIL(NC_ENOMEM);
          bufr = *(char **)data;
       }
-
+#ifndef HDF5_CONVERT
       /* Are we going to convert any data? (No converting of compound or
        * opaque types.) */
       if (mem_nc_type != var->type_info->hdr.id &&
@@ -1168,12 +1205,28 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
                BAIL(NC_ENOMEM);
       }
       else
+#endif /* ifndef HDF5_CONVERT */
          if(!bufr)
             bufr = data;
+
+      /* Get the HDF type of the data in memory. */
+#ifdef HDF5_CONVERT
+      if ((retval = nc4_get_hdf_typeid(h5, mem_nc_type, &mem_typeid,
+                                       var->type_info->endianness)))
+         BAIL(retval);
+#endif
 
       /* Create the data transfer property list. */
       if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
          BAIL(NC_EHDFERR);
+
+#ifdef HDF5_CONVERT
+      /* Apply the callback function which will detect range
+       * errors. Which one to call depends on the length of the
+       * destination buffer type. */
+      if (H5Pset_type_conv_cb(xfer_plistid, except_func, &range_error) < 0)
+         BAIL(NC_EHDFERR);
+#endif
 
 #ifdef USE_PARALLEL4
       /* Set up parallel I/O, if needed. */
@@ -1187,12 +1240,17 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
                   mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
          BAIL(NC_EHDFERR);
 
-      /* Convert data if needed. */
+#ifndef HDF5_CONVERT
+      /* Eventually the block below will go away. Right now it's
+         needed to support conversions between int/float, and range
+         checking converted data in the netcdf way. These features are
+         being added to HDF5 at the HDF5 World Hall of Coding right
+         now, by a staff of thousands of programming gnomes. */
       if (need_to_convert)
       {
          if ((retval = nc4_convert_type(bufr, data, var->type_info->hdr.id, mem_nc_type,
                                         len, &range_error, var->fill_value,
-                                        (h5->cmode & NC_CLASSIC_MODEL))))
+                                        (h5->cmode & NC_CLASSIC_MODEL), 0, is_long)))
             BAIL(retval);
 
          /* For strict netcdf-3 rules, ignore erange errors between UBYTE
@@ -1203,6 +1261,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
              range_error)
             range_error = 0;
       }
+#endif
 
       /* For strict netcdf-3 rules, ignore erange errors between UBYTE
        * and BYTE types. */
@@ -1290,15 +1349,17 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
             } else {
                *(char **)filldata = NULL;
             }
-         } else {
-           if(fillvalue)
-             memcpy(filldata, fillvalue, file_type_size);
-         }
+         } else
+            memcpy(filldata, fillvalue, file_type_size);
          filldata = (char *)filldata + file_type_size;
       }
    }
 
 exit:
+#ifdef HDF5_CONVERT
+   if (mem_typeid > 0 && H5Tclose(mem_typeid) < 0)
+      BAIL2(NC_EHDFERR);
+#endif
    if (file_spaceid > 0)
    {
       if (H5Sclose(file_spaceid) < 0)
@@ -1314,8 +1375,10 @@ exit:
       if (H5Pclose(xfer_plistid) < 0)
          BAIL2(NC_EHDFERR);
    }
+#ifndef HDF5_CONVERT
    if (need_to_convert && bufr != NULL)
       free(bufr);
+#endif
    if (xtend_size)
       free(xtend_size);
    if (fillvalue)
@@ -2851,20 +2914,25 @@ nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
  * @param range_error Pointer that gets 1 if there was a range error.
  * @param fill_value The fill value.
  * @param strict_nc3 Non-zero if strict model in effect.
+ * @param src_long Is the source NC_LONG?
+ * @param dest_long Is the destination NC_LONG?
  *
  * @returns NC_NOERR No error.
  * @returns NC_EBADTYPE Type not found.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
 */
 int
-nc4_convert_type(const void *src, void *dest, const nc_type src_type,
-                 const nc_type dest_type, const size_t len, int *range_error,
-                 const void *fill_value, int strict_nc3)
+nc4_convert_type(const void *src, void *dest,
+                 const nc_type src_type, const nc_type dest_type,
+                 const size_t len, int *range_error,
+                 const void *fill_value, int strict_nc3, int src_long,
+                 int dest_long)
 {
    char *cp, *cp1;
    float *fp, *fp1;
    double *dp, *dp1;
    int *ip, *ip1;
+   signed long *lp, *lp1;
    short *sp, *sp1;
    signed char *bp, *bp1;
    unsigned char *ubp, *ubp1;
@@ -2875,8 +2943,8 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
    size_t count = 0;
 
    *range_error = 0;
-   LOG((3, "%s: len %d src_type %d dest_type %d",
-        __func__, len, src_type, dest_type));
+   LOG((3, "%s: len %d src_type %d dest_type %d src_long %d dest_long %d",
+        __func__, len, src_type, dest_type, src_long, dest_long));
 
    /* OK, this is ugly. If you can think of anything better, I'm open
       to suggestions!
@@ -2928,9 +2996,18 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
          }
          break;
       case NC_INT:
-         for (bp = (signed char *)src, ip = dest; count < len; count++)
-            *ip++ = *bp++;
-         break;
+         if (dest_long)
+         {
+            for (bp = (signed char *)src, lp = dest; count < len; count++)
+               *lp++ = *bp++;
+            break;
+         }
+         else
+         {
+            for (bp = (signed char *)src, ip = dest; count < len; count++)
+               *ip++ = *bp++;
+            break;
+         }
       case NC_UINT:
          for (bp = (signed char *)src, uip = dest; count < len; count++)
          {
@@ -2990,9 +3067,18 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             *usp++ = *ubp++;
          break;
       case NC_INT:
-         for (ubp = (unsigned char *)src, ip = dest; count < len; count++)
-            *ip++ = *ubp++;
-         break;
+         if (dest_long)
+         {
+            for (ubp = (unsigned char *)src, lp = dest; count < len; count++)
+               *lp++ = *ubp++;
+            break;
+         }
+         else
+         {
+            for (ubp = (unsigned char *)src, ip = dest; count < len; count++)
+               *ip++ = *ubp++;
+            break;
+         }
       case NC_UINT:
          for (ubp = (unsigned char *)src, uip = dest; count < len; count++)
             *uip++ = *ubp++;
@@ -3052,8 +3138,12 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
          }
          break;
       case NC_INT:
-         for (sp = (short *)src, ip = dest; count < len; count++)
-            *ip++ = *sp++;
+         if (dest_long)
+            for (sp = (short *)src, lp = dest; count < len; count++)
+               *lp++ = *sp++;
+         else
+            for (sp = (short *)src, ip = dest; count < len; count++)
+               *ip++ = *sp++;
          break;
       case NC_UINT:
          for (sp = (short *)src, uip = dest; count < len; count++)
@@ -3122,8 +3212,12 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             *usp1++ = *usp++;
          break;
       case NC_INT:
-         for (usp = (unsigned short *)src, ip = dest; count < len; count++)
-            *ip++ = *usp++;
+         if (dest_long)
+            for (usp = (unsigned short *)src, lp = dest; count < len; count++)
+               *lp++ = *usp++;
+         else
+            for (usp = (unsigned short *)src, ip = dest; count < len; count++)
+               *ip++ = *usp++;
          break;
       case NC_UINT:
          for (usp = (unsigned short *)src, uip = dest; count < len; count++)
@@ -3153,80 +3247,185 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
       break;
 
    case NC_INT:
-      switch (dest_type)
+      if (src_long)
       {
-      case NC_UBYTE:
-         for (ip = (int *)src, ubp = dest; count < len; count++)
+         switch (dest_type)
          {
-            if (*ip > X_UCHAR_MAX || *ip < 0)
-               (*range_error)++;
-            *ubp++ = *ip++;
+         case NC_UBYTE:
+            for (lp = (long *)src, ubp = dest; count < len; count++)
+            {
+               if (*lp > X_UCHAR_MAX || *lp < 0)
+                  (*range_error)++;
+               *ubp++ = *lp++;
+            }
+            break;
+         case NC_BYTE:
+            for (lp = (long *)src, bp = dest; count < len; count++)
+            {
+               if (*lp > X_SCHAR_MAX || *lp < X_SCHAR_MIN)
+                  (*range_error)++;
+               *bp++ = *lp++;
+            }
+            break;
+         case NC_SHORT:
+            for (lp = (long *)src, sp = dest; count < len; count++)
+            {
+               if (*lp > X_SHORT_MAX || *lp < X_SHORT_MIN)
+                  (*range_error)++;
+               *sp++ = *lp++;
+            }
+            break;
+         case NC_USHORT:
+            for (lp = (long *)src, usp = dest; count < len; count++)
+            {
+               if (*lp > X_USHORT_MAX || *lp < 0)
+                  (*range_error)++;
+               *usp++ = *lp++;
+            }
+            break;
+         case NC_INT: /* src is long */
+            if (dest_long)
+            {
+               for (lp = (long *)src, lp1 = dest; count < len; count++)
+               {
+                  if (*lp > X_LONG_MAX || *lp < X_LONG_MIN)
+                     (*range_error)++;
+                  *lp1++ = *lp++;
+               }
+            }
+            else /* dest is int */
+            {
+               for (lp = (long *)src, ip = dest; count < len; count++)
+               {
+                  if (*lp > X_INT_MAX || *lp < X_INT_MIN)
+                     (*range_error)++;
+                  *ip++ = *lp++;
+               }
+            }
+            break;
+         case NC_UINT:
+            for (lp = (long *)src, uip = dest; count < len; count++)
+            {
+               if (*lp > X_UINT_MAX || *lp < 0)
+                  (*range_error)++;
+               *uip++ = *lp++;
+            }
+            break;
+         case NC_INT64:
+            for (lp = (long *)src, lip = dest; count < len; count++)
+               *lip++ = *lp++;
+            break;
+         case NC_UINT64:
+            for (lp = (long *)src, ulip = dest; count < len; count++)
+            {
+               if (*lp < 0)
+                  (*range_error)++;
+               *ulip++ = *lp++;
+            }
+            break;
+         case NC_FLOAT:
+            for (lp = (long *)src, fp = dest; count < len; count++)
+               *fp++ = *lp++;
+            break;
+         case NC_DOUBLE:
+            for (lp = (long *)src, dp = dest; count < len; count++)
+               *dp++ = *lp++;
+            break;
+         default:
+            LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
+                 __func__, src_type, dest_type));
+            return NC_EBADTYPE;
          }
-         break;
-      case NC_BYTE:
-         for (ip = (int *)src, bp = dest; count < len; count++)
+      }
+      else
+      {
+         switch (dest_type)
          {
-            if (*ip > X_SCHAR_MAX || *ip < X_SCHAR_MIN)
-               (*range_error)++;
-            *bp++ = *ip++;
+         case NC_UBYTE:
+            for (ip = (int *)src, ubp = dest; count < len; count++)
+            {
+               if (*ip > X_UCHAR_MAX || *ip < 0)
+                  (*range_error)++;
+               *ubp++ = *ip++;
+            }
+            break;
+         case NC_BYTE:
+            for (ip = (int *)src, bp = dest; count < len; count++)
+            {
+               if (*ip > X_SCHAR_MAX || *ip < X_SCHAR_MIN)
+                  (*range_error)++;
+               *bp++ = *ip++;
+            }
+            break;
+         case NC_SHORT:
+            for (ip = (int *)src, sp = dest; count < len; count++)
+            {
+               if (*ip > X_SHORT_MAX || *ip < X_SHORT_MIN)
+                  (*range_error)++;
+               *sp++ = *ip++;
+            }
+            break;
+         case NC_USHORT:
+            for (ip = (int *)src, usp = dest; count < len; count++)
+            {
+               if (*ip > X_USHORT_MAX || *ip < 0)
+                  (*range_error)++;
+               *usp++ = *ip++;
+            }
+            break;
+         case NC_INT: /* src is int */
+            if (dest_long)
+            {
+               for (ip = (int *)src, lp1 = dest; count < len; count++)
+               {
+                  if (*ip > X_LONG_MAX || *ip < X_LONG_MIN)
+                     (*range_error)++;
+                  *lp1++ = *ip++;
+               }
+            }
+            else /* dest is int */
+            {
+               for (ip = (int *)src, ip1 = dest; count < len; count++)
+               {
+                  if (*ip > X_INT_MAX || *ip < X_INT_MIN)
+                     (*range_error)++;
+                  *ip1++ = *ip++;
+               }
+            }
+            break;
+         case NC_UINT:
+            for (ip = (int *)src, uip = dest; count < len; count++)
+            {
+               if (*ip > X_UINT_MAX || *ip < 0)
+                  (*range_error)++;
+               *uip++ = *ip++;
+            }
+            break;
+         case NC_INT64:
+            for (ip = (int *)src, lip = dest; count < len; count++)
+               *lip++ = *ip++;
+            break;
+         case NC_UINT64:
+            for (ip = (int *)src, ulip = dest; count < len; count++)
+            {
+               if (*ip < 0)
+                  (*range_error)++;
+               *ulip++ = *ip++;
+            }
+            break;
+         case NC_FLOAT:
+            for (ip = (int *)src, fp = dest; count < len; count++)
+               *fp++ = *ip++;
+            break;
+         case NC_DOUBLE:
+            for (ip = (int *)src, dp = dest; count < len; count++)
+               *dp++ = *ip++;
+            break;
+         default:
+            LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
+                 __func__, src_type, dest_type));
+            return NC_EBADTYPE;
          }
-         break;
-      case NC_SHORT:
-         for (ip = (int *)src, sp = dest; count < len; count++)
-         {
-            if (*ip > X_SHORT_MAX || *ip < X_SHORT_MIN)
-               (*range_error)++;
-            *sp++ = *ip++;
-         }
-         break;
-      case NC_USHORT:
-         for (ip = (int *)src, usp = dest; count < len; count++)
-         {
-            if (*ip > X_USHORT_MAX || *ip < 0)
-               (*range_error)++;
-            *usp++ = *ip++;
-         }
-         break;
-      case NC_INT: /* src is int */
-         for (ip = (int *)src, ip1 = dest; count < len; count++)
-         {
-            if (*ip > X_INT_MAX || *ip < X_INT_MIN)
-               (*range_error)++;
-            *ip1++ = *ip++;
-         }
-         break;
-      case NC_UINT:
-         for (ip = (int *)src, uip = dest; count < len; count++)
-         {
-            if (*ip > X_UINT_MAX || *ip < 0)
-               (*range_error)++;
-            *uip++ = *ip++;
-         }
-         break;
-      case NC_INT64:
-         for (ip = (int *)src, lip = dest; count < len; count++)
-            *lip++ = *ip++;
-         break;
-      case NC_UINT64:
-         for (ip = (int *)src, ulip = dest; count < len; count++)
-         {
-            if (*ip < 0)
-               (*range_error)++;
-            *ulip++ = *ip++;
-         }
-         break;
-      case NC_FLOAT:
-         for (ip = (int *)src, fp = dest; count < len; count++)
-            *fp++ = *ip++;
-         break;
-      case NC_DOUBLE:
-         for (ip = (int *)src, dp = dest; count < len; count++)
-            *dp++ = *ip++;
-         break;
-      default:
-         LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-              __func__, src_type, dest_type));
-         return NC_EBADTYPE;
       }
       break;
 
@@ -3266,12 +3465,20 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
          }
          break;
       case NC_INT:
-         for (uip = (unsigned int *)src, ip = dest; count < len; count++)
-         {
-            if (*uip > X_INT_MAX)
-               (*range_error)++;
-            *ip++ = *uip++;
-         }
+         if (dest_long)
+            for (uip = (unsigned int *)src, lp = dest; count < len; count++)
+            {
+               if (*uip > X_LONG_MAX)
+                  (*range_error)++;
+               *lp++ = *uip++;
+            }
+         else
+            for (uip = (unsigned int *)src, ip = dest; count < len; count++)
+            {
+               if (*uip > X_INT_MAX)
+                  (*range_error)++;
+               *ip++ = *uip++;
+            }
          break;
       case NC_UINT:
          for (uip = (unsigned int *)src, uip1 = dest; count < len; count++)
@@ -3348,12 +3555,20 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
          }
          break;
       case NC_INT:
-         for (lip = (long long *)src, ip = dest; count < len; count++)
-         {
-            if (*lip > X_INT_MAX || *lip < X_INT_MIN)
-               (*range_error)++;
-            *ip++ = *lip++;
-         }
+         if (dest_long)
+            for (lip = (long long *)src, lp = dest; count < len; count++)
+            {
+               if (*lip > X_LONG_MAX || *lip < X_LONG_MIN)
+                  (*range_error)++;
+               *lp++ = *lip++;
+            }
+         else
+            for (lip = (long long *)src, ip = dest; count < len; count++)
+            {
+               if (*lip > X_INT_MAX || *lip < X_INT_MIN)
+                  (*range_error)++;
+               *ip++ = *lip++;
+            }
          break;
       case NC_INT64:
          for (lip = (long long *)src, lip1 = dest; count < len; count++)
@@ -3426,12 +3641,20 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
          }
          break;
       case NC_INT:
-         for (ulip = (unsigned long long *)src, ip = dest; count < len; count++)
-         {
-            if (*ulip > X_INT_MAX)
-               (*range_error)++;
-            *ip++ = *ulip++;
-         }
+         if (dest_long)
+            for (ulip = (unsigned long long *)src, lp = dest; count < len; count++)
+            {
+               if (*ulip > X_LONG_MAX)
+                  (*range_error)++;
+               *lp++ = *ulip++;
+            }
+         else
+            for (ulip = (unsigned long long *)src, ip = dest; count < len; count++)
+            {
+               if (*ulip > X_INT_MAX)
+                  (*range_error)++;
+               *ip++ = *ulip++;
+            }
          break;
       case NC_INT64:
          for (ulip = (unsigned long long *)src, lip = dest; count < len; count++)
@@ -3504,12 +3727,20 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
          }
          break;
       case NC_INT:
-         for (fp = (float *)src, ip = dest; count < len; count++)
-         {
-            if (*fp > (double)X_INT_MAX || *fp < (double)X_INT_MIN)
-               (*range_error)++;
-            *ip++ = *fp++;
-         }
+         if (dest_long)
+            for (fp = (float *)src, lp = dest; count < len; count++)
+            {
+               if (*fp > (double)X_LONG_MAX || *fp < (double)X_LONG_MIN)
+                  (*range_error)++;
+               *lp++ = *fp++;
+            }
+         else
+            for (fp = (float *)src, ip = dest; count < len; count++)
+            {
+               if (*fp > (double)X_INT_MAX || *fp < (double)X_INT_MIN)
+                  (*range_error)++;
+               *ip++ = *fp++;
+            }
          break;
       case NC_INT64:
          for (fp = (float *)src, lip = dest; count < len; count++)
@@ -3590,12 +3821,20 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
          }
          break;
       case NC_INT:
-         for (dp = (double *)src, ip = dest; count < len; count++)
-         {
-            if (*dp > X_INT_MAX || *dp < X_INT_MIN)
-               (*range_error)++;
-            *ip++ = *dp++;
-         }
+         if (dest_long)
+            for (dp = (double *)src, lp = dest; count < len; count++)
+            {
+               if (*dp > X_LONG_MAX || *dp < X_LONG_MIN)
+                  (*range_error)++;
+               *lp++ = *dp++;
+            }
+         else
+            for (dp = (double *)src, ip = dest; count < len; count++)
+            {
+               if (*dp > X_INT_MAX || *dp < X_INT_MIN)
+                  (*range_error)++;
+               *ip++ = *dp++;
+            }
          break;
       case NC_INT64:
          for (dp = (double *)src, lip = dest; count < len; count++)
@@ -4289,4 +4528,785 @@ NC4_walk(hid_t gid, int* countp)
       }
    }
    return ncstat;
+}
+
+/**
+ * @internal Write a strided array of data to a variable.
+ *
+ * @param nc Pointer to the file NC struct.
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param startp Array of start indices.
+ * @param countp Array of counts.
+ * @param stridep Array of strides.
+ * @param mem_nc_type The type of the data in memory.
+ * @param is_long True only if NC_LONG is the memory type.
+ * @param data The data to be written.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Var not found.
+ * @returns ::NC_EHDFERR HDF5 function returned error.
+ * @returns ::NC_EINVALCOORDS Incorrect start.
+ * @returns ::NC_EEDGE Incorrect start/count.
+ * @returns ::NC_ENOMEM Out of memory.
+ * @returns ::NC_EMPI MPI library error (parallel only)
+ * @returns ::NC_ECANTEXTEND Can't extend dimension for write.
+ * @returns ::NC_ERANGE Data conversion error.
+ * @author Ed Hartnett
+ */
+int
+nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
+             const size_t *countp, const ptrdiff_t* stridep,
+	     nc_type mem_nc_type, int is_long, void *data)
+{
+   NC_GRP_INFO_T *grp;
+   NC_HDF5_FILE_INFO_T *h5;
+   NC_VAR_INFO_T *var;
+   NC_DIM_INFO_T *dim;
+   hid_t file_spaceid = 0, mem_spaceid = 0, xfer_plistid = 0;
+   long long unsigned xtend_size[NC_MAX_VAR_DIMS];
+   hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
+   hsize_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
+   hssize_t stride[NC_MAX_VAR_DIMS];
+   char *name_to_use;
+   int need_to_extend = 0;
+#ifdef USE_PARALLEL4
+   int extend_possible = 0;
+#endif
+   int retval = NC_NOERR, range_error = 0, i, d2;
+   void *bufr = NULL;
+#ifndef HDF5_CONVERT
+   int need_to_convert = 0;
+   size_t len = 1;
+#endif
+#ifdef HDF5_CONVERT
+   hid_t mem_typeid = 0;
+#endif
+
+   /* Find our metadata for this file, group, and var. */
+   assert(nc);
+   if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
+      return retval;
+   h5 = NC4_DATA(nc);
+   assert(grp && h5 && var && var->hdr.name);
+
+   LOG((3, "%s: var->hdr.name %s mem_nc_type %d is_long %d",
+        __func__, var->hdr.name, mem_nc_type, is_long));
+
+   /* Check some stuff about the type and the file. If the file must
+    * be switched from define mode, it happens here. */
+   if ((retval = check_for_vara(&mem_nc_type, var, h5)))
+      return retval;
+
+   /* Convert from size_t and ptrdiff_t to hssize_t, and hsize_t. */
+   /* Also do sanity checks */
+   for (i = 0; i < var->ndims; i++)
+   {
+      start[i] = (startp == NULL ? 0 : startp[i]);
+      count[i] = (countp == NULL ? 1 : countp[i]);
+      stride[i] = (stridep == NULL ? 1 : stridep[i]);
+      /* Check for non-positive stride */
+      if(stride[i] <= 0)
+	return NC_ESTRIDE;
+   }
+
+   /* Open this dataset if necessary, also checking for a weird case:
+    * a non-coordinate (and non-scalar) variable that has the same
+    * name as a dimension. */
+   if (var->hdf5_name && strlen(var->hdf5_name) >= strlen(NON_COORD_PREPEND) &&
+       strncmp(var->hdf5_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)) == 0 &&
+       var->ndims)
+      name_to_use = var->hdf5_name;
+   else
+      name_to_use = var->hdr.name;
+   if (!var->hdf_datasetid)
+      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
+         return NC_ENOTVAR;
+
+   /* Get file space of data. */
+   if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Check to ensure the user selection is
+    * valid. H5Sget_simple_extent_dims gets the sizes of all the dims
+    * and put them in fdims. */
+   if (H5Sget_simple_extent_dims(file_spaceid, fdims, fmaxdims) < 0)
+      BAIL(NC_EHDFERR);
+
+#ifdef LOGGING
+   log_dim_info(var, fdims, fmaxdims, start, count);
+#endif
+
+   /* Check dimension bounds. Remember that unlimited dimensions can
+    * put data beyond their current length. */
+   for (d2 = 0; d2 < var->ndims; d2++)
+   {
+      hsize_t endindex = start[d2] + (stride[d2]*(count[d2]-1)); /* last index written */
+      dim = var->dim[d2];
+      assert(dim && dim->hdr.id == var->dimids[d2]);
+      if(count[d2] == 0)
+	endindex = start[d2]; /* fixup for zero read count */
+      if (!dim->unlimited)
+      {
+#ifdef RELAX_COORD_BOUND
+         if (start[d2] > (hssize_t)fdims[d2] ||
+             (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
+#else
+            if (start[d2] >= (hssize_t)fdims[d2])
+#endif
+               BAIL_QUIET(NC_EINVALCOORDS);
+         if (endindex >= fdims[d2])
+            BAIL_QUIET(NC_EEDGE);
+      }
+   }
+
+   /* Now you would think that no one would be crazy enough to write
+      a scalar dataspace with one of the array function calls, but you
+      would be wrong. So let's check to see if the dataset is
+      scalar. If it is, we won't try to set up a hyperslab. */
+   if (H5Sget_simple_extent_type(file_spaceid) == H5S_SCALAR)
+   {
+      if ((mem_spaceid = H5Screate(H5S_SCALAR)) < 0)
+         BAIL(NC_EHDFERR);
+   }
+   else
+   {
+      if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, start, stride,
+                              count, NULL) < 0)
+         BAIL(NC_EHDFERR);
+
+      /* Create a space for the memory, just big enough to hold the slab
+         we want. */
+      if ((mem_spaceid = H5Screate_simple(var->ndims, count, NULL)) < 0)
+         BAIL(NC_EHDFERR);
+   }
+
+#ifndef HDF5_CONVERT
+   /* Are we going to convert any data? (No converting of compound or
+    * opaque types.) */
+   if ((mem_nc_type != var->type_info->hdr.id || (var->type_info->hdr.id == NC_INT && is_long)) &&
+       mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
+   {
+      size_t file_type_size;
+
+      /* We must convert - allocate a buffer. */
+      need_to_convert++;
+      if (var->ndims)
+         for (d2=0; d2<var->ndims; d2++)
+            len *= countp[d2];
+      LOG((4, "converting data for var %s type=%d len=%d", var->hdr.name,
+           var->type_info->hdr.id, len));
+
+      /* Later on, we will need to know the size of this type in the
+       * file. */
+      assert(var->type_info->size);
+      file_type_size = var->type_info->size;
+
+      /* If we're reading, we need bufr to have enough memory to store
+       * the data in the file. If we're writing, we need bufr to be
+       * big enough to hold all the data in the file's type. */
+      if(len > 0)
+         if (!(bufr = malloc(len * file_type_size)))
+            BAIL(NC_ENOMEM);
+   }
+   else
+#endif /* ifndef HDF5_CONVERT */
+      bufr = data;
+
+#ifdef HDF5_CONVERT
+   /* Get the HDF type of the data in memory. */
+   if ((retval = nc4_get_hdf_typeid(h5, mem_nc_type, &mem_typeid,
+                                    var->type_info->endianness)))
+      BAIL(retval);
+#endif
+
+   /* Create the data transfer property list. */
+   if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Apply the callback function which will detect range
+    * errors. Which one to call depends on the length of the
+    * destination buffer type. */
+#ifdef HDF5_CONVERT
+   if (H5Pset_type_conv_cb(xfer_plistid, except_func, &range_error) < 0)
+      BAIL(NC_EHDFERR);
+#endif
+
+#ifdef USE_PARALLEL4
+   /* Set up parallel I/O, if needed. */
+   if ((retval = set_par_access(h5, var, xfer_plistid)))
+      BAIL(retval);
+#endif
+
+   /* Read this hyperslab from  memory. */
+   /* Does the dataset have to be extended? If it's already
+      extended to the required size, it will do no harm to reextend
+      it to that size. */
+   if (var->ndims)
+   {
+      for (d2 = 0; d2 < var->ndims; d2++)
+      {
+         hsize_t endindex = start[d2] + (stride[d2]*(count[d2]-1)); /* last index written */
+	 if(count[d2] == 0)
+	     endindex = start[d2];
+         dim = var->dim[d2];
+         assert(dim && dim->hdr.id == var->dimids[d2]);
+         if (dim->unlimited)
+         {
+#ifdef USE_PARALLEL4
+            extend_possible = 1;
+#endif
+            if (endindex >= fdims[d2])
+            {
+               xtend_size[d2] = (long long unsigned)(endindex+1);
+               need_to_extend++;
+            }
+            else
+               xtend_size[d2] = (long long unsigned)fdims[d2];
+
+            if (endindex >= dim->len)
+            {
+               dim->len = endindex+1;
+               dim->extended = NC_TRUE;
+            }
+         }
+         else
+         {
+            xtend_size[d2] = (long long unsigned)dim->len;
+         }
+      }
+
+#ifdef USE_PARALLEL4
+      /* Check if anyone wants to extend */
+      if (extend_possible && h5->parallel && NC_COLLECTIVE == var->parallel_access)
+      {
+         /* Form consensus opinion among all processes about whether to perform
+          * collective I/O
+          */
+         if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &need_to_extend, 1, MPI_INT, MPI_BOR, h5->comm))
+            BAIL(NC_EMPI);
+      }
+#endif /* USE_PARALLEL4 */
+
+      /* If we need to extend it, we also need a new file_spaceid
+         to reflect the new size of the space. */
+      if (need_to_extend)
+      {
+         LOG((4, "extending dataset"));
+#ifdef USE_PARALLEL4
+         if (h5->parallel)
+         {
+            if(NC_COLLECTIVE != var->parallel_access)
+               BAIL(NC_ECANTEXTEND);
+
+            /* Reach consensus about dimension sizes to extend to */
+            if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, xtend_size, var->ndims, MPI_UNSIGNED_LONG_LONG, MPI_MAX, h5->comm))
+               BAIL(NC_EMPI);
+         }
+#endif /* USE_PARALLEL4 */
+         /* Convert xtend_size back to hsize_t for use with H5Dset_extent */
+         for (d2 = 0; d2 < var->ndims; d2++)
+            fdims[d2] = (hsize_t)xtend_size[d2];
+
+         if (H5Dset_extent(var->hdf_datasetid, fdims) < 0)
+            BAIL(NC_EHDFERR);
+         if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
+            BAIL2(NC_EHDFERR);
+         if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+            BAIL(NC_EHDFERR);
+         if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
+                                 start, stride, count, NULL) < 0)
+            BAIL(NC_EHDFERR);
+      }
+   }
+
+#ifndef HDF5_CONVERT
+   /* Do we need to convert the data? */
+   if (need_to_convert)
+   {
+      if ((retval = nc4_convert_type(data, bufr, mem_nc_type, var->type_info->hdr.id,
+                                     len, &range_error, var->fill_value,
+                                     (h5->cmode & NC_CLASSIC_MODEL), is_long, 0)))
+         BAIL(retval);
+   }
+#endif
+
+   /* Write the data. At last! */
+   LOG((4, "about to H5Dwrite datasetid 0x%x mem_spaceid 0x%x "
+        "file_spaceid 0x%x", var->hdf_datasetid, mem_spaceid, file_spaceid));
+   if (H5Dwrite(var->hdf_datasetid, var->type_info->hdf_typeid,
+                mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Remember that we have written to this var so that Fill Value
+    * can't be set for it. */
+   if (!var->written_to)
+      var->written_to = NC_TRUE;
+
+   /* For strict netcdf-3 rules, ignore erange errors between UBYTE
+    * and BYTE types. */
+   if ((h5->cmode & NC_CLASSIC_MODEL) &&
+       (var->type_info->hdr.id == NC_UBYTE || var->type_info->hdr.id == NC_BYTE) &&
+       (mem_nc_type == NC_UBYTE || mem_nc_type == NC_BYTE) &&
+       range_error)
+      range_error = 0;
+
+exit:
+#ifdef HDF5_CONVERT
+   if (mem_typeid > 0 && H5Tclose(mem_typeid) < 0)
+      BAIL2(NC_EHDFERR);
+#endif
+   if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (mem_spaceid > 0 && H5Sclose(mem_spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (xfer_plistid && (H5Pclose(xfer_plistid) < 0))
+      BAIL2(NC_EPARINIT);
+#ifndef HDF5_CONVERT
+   if (need_to_convert && bufr) free(bufr);
+#endif
+
+   /* If there was an error return it, otherwise return any potential
+      range error value. If none, return NC_NOERR as usual.*/
+   if (retval)
+      return retval;
+   if (range_error)
+      return NC_ERANGE;
+   return NC_NOERR;
+}
+
+/**
+ * @internal Read a strided array of data from a variable.
+ *
+ * @param nc Pointer to the file NC struct.
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param startp Array of start indices.
+ * @param countp Array of counts.
+ * @param stridep Array of strides.
+ * @param mem_nc_type The type of the data in memory. (Convert to this
+ * type from file type.)
+ * @param is_long True only if NC_LONG is the memory type.
+ * @param data The data to be written.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Var not found.
+ * @returns ::NC_EHDFERR HDF5 function returned error.
+ * @returns ::NC_EINVALCOORDS Incorrect start.
+ * @returns ::NC_EEDGE Incorrect start/count.
+ * @returns ::NC_ENOMEM Out of memory.
+ * @returns ::NC_EMPI MPI library error (parallel only)
+ * @returns ::NC_ECANTEXTEND Can't extend dimension for write.
+ * @returns ::NC_ERANGE Data conversion error.
+ * @author Ed Hartnett
+ */
+int
+nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
+	     const size_t *countp, const ptrdiff_t* stridep,
+	     nc_type mem_nc_type, int is_long, void *data)
+{
+   NC_GRP_INFO_T *grp;
+   NC_HDF5_FILE_INFO_T *h5;
+   NC_VAR_INFO_T *var;
+   NC_DIM_INFO_T *dim;
+   hid_t file_spaceid = 0, mem_spaceid = 0;
+   hid_t xfer_plistid = 0;
+   size_t file_type_size;
+   hsize_t *xtend_size = NULL, count[NC_MAX_VAR_DIMS];
+   hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
+   hsize_t start[NC_MAX_VAR_DIMS];
+   hsize_t stride[NC_MAX_VAR_DIMS];
+   char *name_to_use;
+   void *fillvalue = NULL;
+   int no_read = 0, provide_fill = 0;
+   int fill_value_size[NC_MAX_VAR_DIMS];
+   int scalar = 0, retval = NC_NOERR, range_error = 0, i, d2;
+   void *bufr = NULL;
+#ifdef HDF5_CONVERT
+   hid_t mem_typeid = 0;
+#endif
+#ifndef HDF5_CONVERT
+   int need_to_convert = 0;
+   size_t len = 1;
+#endif
+
+   /* Find our metadata for this file, group, and var. */
+   assert(nc);
+   if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
+      return retval;
+   h5 = NC4_DATA(nc);
+   assert(grp && h5 && var && var->hdr.name);
+
+   LOG((3, "%s: var->hdr.name %s mem_nc_type %d is_long %d",
+        __func__, var->hdr.name, mem_nc_type, is_long));
+
+   /* Check some stuff about the type and the file. */
+   if ((retval = check_for_vara(&mem_nc_type, var, h5)))
+      return retval;
+
+   /* Convert from size_t and ptrdiff_t to hssize_t, and hsize_t. */
+   /* Also do sanity checks */
+   for (i = 0; i < var->ndims; i++)
+   {
+      start[i] = (startp == NULL ? 0 : startp[i]);
+      count[i] = (countp == NULL ? 1 : countp[i]);
+      stride[i] = (stridep == NULL ? 1 : stridep[i]);
+      /* if any of the count values are zero don't actually read. */
+      if (count[i] == 0)
+         no_read++;
+      /* if any of the stride values are non-positive, fail. */
+      if (stride[i] <= 0)
+         return NC_ESTRIDE;
+   }
+
+   /* Open this dataset if necessary, also checking for a weird case:
+    * a non-coordinate (and non-scalar) variable that has the same
+    * name as a dimension. */
+   if (var->hdf5_name && strlen(var->hdf5_name) >= strlen(NON_COORD_PREPEND) &&
+       strncmp(var->hdf5_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)) == 0 &&
+       var->ndims)
+      name_to_use = var->hdf5_name;
+   else
+      name_to_use = var->hdr.name;
+   if (!var->hdf_datasetid)
+      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
+         return NC_ENOTVAR;
+
+   /* Get file space of data. */
+   if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Check to ensure the user selection is
+    * valid. H5Sget_simple_extent_dims gets the sizes of all the dims
+    * and put them in fdims. */
+   if (H5Sget_simple_extent_dims(file_spaceid, fdims, fmaxdims) < 0)
+      BAIL(NC_EHDFERR);
+
+#ifdef LOGGING
+   log_dim_info(var, fdims, fmaxdims, start, count);
+#endif
+
+   /* Check dimension bounds. Remember that unlimited dimensions can
+    * put data beyond their current length. */
+   for (d2 = 0; d2 < var->ndims; d2++) {
+      hsize_t endindex = start[d2] + (stride[d2]*(count[d2]-1)); /* last index read */
+      dim = var->dim[d2];
+      assert(dim && dim->hdr.id == var->dimids[d2]);
+      if(count[d2] == 0)
+	endindex = start[d2]; /* fixup for zero read count */
+      if (dim->unlimited)
+      {
+         size_t ulen;
+
+         /* We can't go beyond the largest current extent of
+            the unlimited dim. */
+         if ((retval = NC4_inq_dim(ncid, dim->hdr.id, NULL, &ulen)))
+            BAIL(retval);
+
+         /* Check for out of bound requests. */
+#ifdef RELAX_COORD_BOUND
+         if (start[d2] > (hssize_t)ulen ||
+             (start[d2] == (hssize_t)ulen && count[d2] > 0))
+#else
+            if (start[d2] >= (hssize_t)ulen && ulen > 0)
+#endif
+               BAIL_QUIET(NC_EINVALCOORDS);
+         if (endindex >= ulen)
+            BAIL_QUIET(NC_EEDGE);
+
+         /* Things get a little tricky here. If we're getting
+            a GET request beyond the end of this var's
+            current length in an unlimited dimension, we'll
+            later need to return the fill value for the
+            variable. */
+         if (start[d2] >= (hssize_t)fdims[d2])
+            fill_value_size[d2] = count[d2];
+         else if (endindex >= fdims[d2])
+            fill_value_size[d2] = count[d2] - ((fdims[d2] - start[d2])/stride[d2]);
+         else
+            fill_value_size[d2] = 0;
+         count[d2] -= fill_value_size[d2];
+         if (fill_value_size[d2])
+            provide_fill++;
+      }
+      else
+      {
+         /* Check for out of bound requests. */
+#ifdef RELAX_COORD_BOUND
+         if (start[d2] > (hssize_t)fdims[d2] ||
+             (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
+#else
+            if (start[d2] >= (hssize_t)fdims[d2])
+#endif
+               BAIL_QUIET(NC_EINVALCOORDS);
+         if (endindex >= fdims[d2])
+            BAIL_QUIET(NC_EEDGE);
+
+         /* Set the fill value boundary */
+         fill_value_size[d2] = count[d2];
+      }
+   }
+
+   /* Later on, we will need to know the size of this type in the
+    * file. */
+   assert(var->type_info->size);
+   file_type_size = var->type_info->size;
+
+   if (!no_read)
+   {
+      /* Now you would think that no one would be crazy enough to write
+         a scalar dataspace with one of the array function calls, but you
+         would be wrong. So let's check to see if the dataset is
+         scalar. If it is, we won't try to set up a hyperslab. */
+      if (H5Sget_simple_extent_type(file_spaceid) == H5S_SCALAR)
+      {
+         if ((mem_spaceid = H5Screate(H5S_SCALAR)) < 0)
+            BAIL(NC_EHDFERR);
+         scalar++;
+      }
+      else
+      {
+         if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
+                                 start, stride, count, NULL) < 0)
+            BAIL(NC_EHDFERR);
+         /* Create a space for the memory, just big enough to hold the slab
+            we want. */
+         if ((mem_spaceid = H5Screate_simple(var->ndims, count, NULL)) < 0)
+            BAIL(NC_EHDFERR);
+      }
+
+      /* Fix bug when reading HDF5 files with variable of type
+       * fixed-length string.  We need to make it look like a
+       * variable-length string, because that's all netCDF-4 data
+       * model supports, lacking anonymous dimensions.  So
+       * variable-length strings are in allocated memory that user has
+       * to free, which we allocate here. */
+      if(var->type_info->nc_type_class == NC_STRING &&
+         H5Tget_size(var->type_info->hdf_typeid) > 1 &&
+         !H5Tis_variable_str(var->type_info->hdf_typeid)) {
+         hsize_t fstring_len;
+
+         if ((fstring_len = H5Tget_size(var->type_info->hdf_typeid)) == 0)
+            BAIL(NC_EHDFERR);
+         if (!(*(char **)data = malloc(1 + fstring_len)))
+            BAIL(NC_ENOMEM);
+         bufr = *(char **)data;
+      }
+
+#ifndef HDF5_CONVERT
+      /* Are we going to convert any data? (No converting of compound or
+       * opaque types.) */
+      if ((mem_nc_type != var->type_info->hdr.id || (var->type_info->hdr.id == NC_INT && is_long)) &&
+          mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
+      {
+         /* We must convert - allocate a buffer. */
+         need_to_convert++;
+         if (var->ndims)
+            for (d2 = 0; d2 < var->ndims; d2++)
+               len *= countp[d2];
+         LOG((4, "converting data for var %s type=%d len=%d", var->hdr.name,
+              var->type_info->hdr.id, len));
+
+         /* If we're reading, we need bufr to have enough memory to store
+          * the data in the file. If we're writing, we need bufr to be
+          * big enough to hold all the data in the file's type. */
+         if(len > 0)
+            if (!(bufr = malloc(len * file_type_size)))
+               BAIL(NC_ENOMEM);
+      }
+      else
+#endif /* ifndef HDF5_CONVERT */
+         if(!bufr)
+            bufr = data;
+
+      /* Get the HDF type of the data in memory. */
+#ifdef HDF5_CONVERT
+      if ((retval = nc4_get_hdf_typeid(h5, mem_nc_type, &mem_typeid,
+                                       var->type_info->endianness)))
+         BAIL(retval);
+#endif
+
+      /* Create the data transfer property list. */
+      if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
+         BAIL(NC_EHDFERR);
+
+#ifdef HDF5_CONVERT
+      /* Apply the callback function which will detect range
+       * errors. Which one to call depends on the length of the
+       * destination buffer type. */
+      if (H5Pset_type_conv_cb(xfer_plistid, except_func, &range_error) < 0)
+         BAIL(NC_EHDFERR);
+#endif
+
+#ifdef USE_PARALLEL4
+      /* Set up parallel I/O, if needed. */
+      if ((retval = set_par_access(h5, var, xfer_plistid)))
+         BAIL(retval);
+#endif
+
+      /* Read this hyperslab into memory. */
+      LOG((5, "About to H5Dread some data..."));
+      if (H5Dread(var->hdf_datasetid, var->type_info->native_hdf_typeid,
+                  mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
+         BAIL(NC_EHDFERR);
+
+#ifndef HDF5_CONVERT
+      /* Eventually the block below will go away. Right now it's
+         needed to support conversions between int/float, and range
+         checking converted data in the netcdf way. These features are
+         being added to HDF5 at the HDF5 World Hall of Coding right
+         now, by a staff of thousands of programming gnomes. */
+      if (need_to_convert)
+      {
+         if ((retval = nc4_convert_type(bufr, data, var->type_info->hdr.id, mem_nc_type,
+                                        len, &range_error, var->fill_value,
+                                        (h5->cmode & NC_CLASSIC_MODEL), 0, is_long)))
+            BAIL(retval);
+
+         /* For strict netcdf-3 rules, ignore erange errors between UBYTE
+          * and BYTE types. */
+         if ((h5->cmode & NC_CLASSIC_MODEL) &&
+             (var->type_info->hdr.id == NC_UBYTE || var->type_info->hdr.id == NC_BYTE) &&
+             (mem_nc_type == NC_UBYTE || mem_nc_type == NC_BYTE) &&
+             range_error)
+            range_error = 0;
+      }
+#endif
+
+      /* For strict netcdf-3 rules, ignore erange errors between UBYTE
+       * and BYTE types. */
+      if ((h5->cmode & NC_CLASSIC_MODEL) &&
+          (var->type_info->hdr.id == NC_UBYTE || var->type_info->hdr.id == NC_BYTE) &&
+          (mem_nc_type == NC_UBYTE || mem_nc_type == NC_BYTE) &&
+          range_error)
+         range_error = 0;
+
+   } /* endif ! no_read */
+
+   else {
+#ifdef USE_PARALLEL4 /* Start block contributed by HDF group. */
+      /* For collective IO read, some processes may not have any element for reading.
+         Collective requires all processes to participate, so we use H5Sselect_none
+         for these processes. */
+      if(var->parallel_access == NC_COLLECTIVE) {
+
+         /* Create the data transfer property list. */
+         if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
+            BAIL(NC_EHDFERR);
+
+         if ((retval = set_par_access(h5, var, xfer_plistid)))
+            BAIL(retval);
+
+         if (H5Sselect_none(file_spaceid)<0)
+            BAIL(NC_EHDFERR);
+
+         /* Since no element will be selected, we just get the memory space the same as the file space.
+          */
+         if((mem_spaceid = H5Dget_space(var->hdf_datasetid))<0)
+            BAIL(NC_EHDFERR);
+         if (H5Sselect_none(mem_spaceid)<0)
+            BAIL(NC_EHDFERR);
+
+         /* Read this hyperslab into memory. */
+         LOG((5, "About to H5Dread some data..."));
+         if (H5Dread(var->hdf_datasetid, var->type_info->native_hdf_typeid,
+                     mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
+            BAIL(NC_EHDFERR);
+      }
+#endif /* End ifdef USE_PARALLEL4 */
+   }
+   /* Now we need to fake up any further data that was asked for,
+      using the fill values instead. First skip past the data we
+      just read, if any. */
+   if (!scalar && provide_fill)
+   {
+      void *filldata;
+      size_t real_data_size = 0;
+      size_t fill_len;
+
+      /* Skip past the real data we've already read. */
+      if (!no_read)
+         for (real_data_size = file_type_size, d2 = 0; d2 < var->ndims; d2++)
+            real_data_size *= (count[d2] - start[d2]);
+
+      /* Get the fill value from the HDF5 variable. Memory will be
+       * allocated. */
+      if (get_fill_value(h5, var, &fillvalue) < 0)
+         BAIL(NC_EHDFERR);
+
+      /* How many fill values do we need? */
+      for (fill_len = 1, d2 = 0; d2 < var->ndims; d2++)
+         fill_len *= (fill_value_size[d2] ? fill_value_size[d2] : 1);
+
+      /* Copy the fill value into the rest of the data buffer. */
+      filldata = (char *)data + real_data_size;
+      for (i = 0; i < fill_len; i++)
+      {
+
+         if (var->type_info->nc_type_class == NC_STRING)
+         {
+            if (*(char **)fillvalue)
+            {
+               if (!(*(char **)filldata = strdup(*(char **)fillvalue)))
+                  BAIL(NC_ENOMEM);
+            }
+            else
+               *(char **)filldata = NULL;
+         }
+         else if(var->type_info->nc_type_class == NC_VLEN) {
+            if(fillvalue) {
+               memcpy(filldata,fillvalue,file_type_size);
+            } else {
+               *(char **)filldata = NULL;
+            }
+         } else
+            memcpy(filldata, fillvalue, file_type_size);
+         filldata = (char *)filldata + file_type_size;
+      }
+   }
+
+exit:
+#ifdef HDF5_CONVERT
+   if (mem_typeid > 0 && H5Tclose(mem_typeid) < 0)
+      BAIL2(NC_EHDFERR);
+#endif
+   if (file_spaceid > 0)
+   {
+      if (H5Sclose(file_spaceid) < 0)
+         BAIL2(NC_EHDFERR);
+   }
+   if (mem_spaceid > 0)
+   {
+      if (H5Sclose(mem_spaceid) < 0)
+         BAIL2(NC_EHDFERR);
+   }
+   if (xfer_plistid > 0)
+   {
+      if (H5Pclose(xfer_plistid) < 0)
+         BAIL2(NC_EHDFERR);
+   }
+#ifndef HDF5_CONVERT
+   if (need_to_convert && bufr != NULL)
+      free(bufr);
+#endif
+   if (xtend_size)
+      free(xtend_size);
+   if (fillvalue)
+   {
+      if (var->type_info->nc_type_class == NC_VLEN)
+         nc_free_vlen((nc_vlen_t *)fillvalue);
+      else if (var->type_info->nc_type_class == NC_STRING && *(char **)fillvalue)
+         free(*(char **)fillvalue);
+      free(fillvalue);
+   }
+
+   /* If there was an error return it, otherwise return any potential
+      range error value. If none, return NC_NOERR as usual.*/
+   if (retval)
+      return retval;
+   if (range_error)
+      return NC_ERANGE;
+   return NC_NOERR;
 }

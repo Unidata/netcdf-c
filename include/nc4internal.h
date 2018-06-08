@@ -105,7 +105,7 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 #define HDF5_DIMSCALE_NAME_ATT_NAME "NAME"
 
 /** This is the number of netCDF atomic types. */
-#define NUM_ATOMIC_TYPES (NC_MAX_ATOMIC_TYPE + 1) 
+#define NUM_ATOMIC_TYPES (NC_MAX_ATOMIC_TYPE + 1)
 
 /* Boolean type, to make the code easier to read */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
@@ -351,7 +351,8 @@ int nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, size_t *len);
 int nc4_convert_type(const void *src, void *dest,
 		     const nc_type src_type, const nc_type dest_type,
 		     const size_t len, int *range_error,
-		     const void *fill_value, int strict_nc3);
+		     const void *fill_value, int strict_nc3, int src_long,
+		     int dest_long);
 
 /* These functions do HDF5 things. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
@@ -359,9 +360,15 @@ int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
 int nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
-		 const size_t *countp, nc_type xtype, void *op);
+		 const size_t *countp, nc_type xtype, int is_long, void *op);
 int nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
-		 const size_t *countp, nc_type xtype, void *op);
+		 const size_t *countp, nc_type xtype, int is_long, void *op);
+int nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
+		 const size_t *countp, const ptrdiff_t* stridep,
+		 nc_type xtype, int is_long, void *op);
+int nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
+		 const size_t *countp, const ptrdiff_t* stridep,
+		 nc_type xtype, int is_long, void *op);
 int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
 int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
 int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
