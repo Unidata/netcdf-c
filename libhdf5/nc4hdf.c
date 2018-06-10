@@ -1792,33 +1792,10 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
          assert(dim && dim->hdr.id == var->dimids[d]);
          dimsize[d] = dim->unlimited ? NC_HDF5_UNLIMITED_DIMSIZE : dim->len;
          maxdimsize[d] = dim->unlimited ? H5S_UNLIMITED : (hsize_t)dim->len;
-         if (!var->contiguous) {
-            if (var->chunksizes[d])
-               chunksize[d] = var->chunksizes[d];
-            else
-            {
-               size_t type_size;
-               if (var->type_info->nc_type_class == NC_STRING)
-                  type_size = sizeof(char *);
-               else
-                  type_size = var->type_info->size;
-
-               /* Unlimited dim always gets chunksize of 1. */
-               if (dim->unlimited)
-                  chunksize[d] = 1;
-               else
-                  chunksize[d] = pow((double)DEFAULT_CHUNK_SIZE/type_size,
-                                     1/(double)(var->ndims - unlimdim));
-
-               /* If the chunksize is greater than the dim
-                * length, make it the dim length. */
-               if (!dim->unlimited && chunksize[d] > dim->len)
-                  chunksize[d] = dim->len;
-
-               /* Remember the computed chunksize */
-               var->chunksizes[d] = chunksize[d];
-            }
-         }
+         /* Default chunksizes were determined when var was
+          * defined. */
+         if (!var->contiguous)
+            chunksize[d] = var->chunksizes[d];
       }
 
       if (var->contiguous)
