@@ -449,7 +449,7 @@ processeconstrefsR(Datalist* data)
 {
     NCConstant* con = NULL;
     int i;
-    for(i=0,con=data->data;i<data->alloc;i++,con++) {
+    for(i=0,con=data->data;i<data->length;i++,con++) {
 	if(con->nctype == NC_COMPOUND) {
 	    /* Iterate over the sublists */
 	    processeconstrefsR(con->value.compoundv);
@@ -467,6 +467,7 @@ fixeconstref(NCConstant* con)
     Symbol* refsym = con->value.enumv;
     List* grpmatches;
 
+    
     /* Locate all possible matching enum constant definitions */
     List* candidates = findecmatches(refsym->name);
     if(candidates == NULL) {

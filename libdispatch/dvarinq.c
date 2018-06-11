@@ -1,7 +1,7 @@
 /*! \file
 Functions for inquiring about variables.
 
-Copyright 2010 University Corporation for Atmospheric
+Copyright 2018 University Corporation for Atmospheric
 Research/Unidata. See COPYRIGHT file for more info.
 */
 
@@ -38,6 +38,7 @@ ignored_if_null.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
 
 \section nc_inq_varid_example4 Example
 
@@ -181,7 +182,7 @@ nc_inq_vartype(int ncid, int varid, nc_type *typep)
 		     NULL, NULL);
 }
 
-/** 
+/**
 Learn how many dimensions are associated with a variable.
 \ingroup variables
 
@@ -204,7 +205,7 @@ nc_inq_varndims(int ncid, int varid, int *ndimsp)
    return nc_inq_var(ncid, varid, NULL, NULL, ndimsp, NULL, NULL);
 }
 
-/** 
+/**
 Learn the dimension IDs associated with a variable.
 \ingroup variables
 
@@ -228,7 +229,7 @@ nc_inq_vardimid(int ncid, int varid, int *dimidsp)
 		     dimidsp, NULL);
 }
 
-/** 
+/**
 Learn how many attributes are associated with a variable.
 \ingroup variables
 
@@ -605,7 +606,7 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
 #endif
 }
 
-/** 
+/**
 Find the filter (if any) associated with a variable.
 
 This is a wrapper for nc_inq_var_all().
