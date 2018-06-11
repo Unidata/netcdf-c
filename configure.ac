@@ -571,6 +571,63 @@ AC_MSG_RESULT($TEMP_LARGE)
 #AC_SUBST(TEMP_LARGE)
 AC_DEFINE_UNQUOTED([TEMP_LARGE], ["$TEMP_LARGE"], [Place to put very large netCDF test files.])
 
+# Did the user specify a user-defined format 0?
+AC_MSG_CHECKING([whether user-defined format 0 was specified])
+AC_ARG_WITH([udf0],
+              [AS_HELP_STRING([--with-udf0=<dispatch_name>],
+                              [Specify a dispatch table for user-defined format 0.])],
+            [UDF0_DISPATCH=$with_udf0])
+AC_MSG_RESULT([$UDF0_DISPATCH])
+if test -n "$UDF0_DISPATCH"; then
+   AC_DEFINE_UNQUOTED([UDF0_DISPATCH], [$UDF0_DISPATCH], [dispatch table for user-defined format 0.])
+   AC_DEFINE_UNQUOTED([UDF0_DISPATCH_FUNC], [get_$UDF0_DISPATCH()], [function to get dispatch table for user-defined format 0.])
+   AC_DEFINE([USE_UDF0], [1], [if true, use user-defined format 0 in utilities])
+   AC_CHECK_LIB([$UDF0_DISPATCH], [get_$UDF0_DISPATCH], [],
+                                 [AC_MSG_ERROR([Can't find or link to the user-defined format 0 library.])],
+                                 [])
+fi
+
+# Did the user specify a magic number for user-defined format 0?
+AC_MSG_CHECKING([whether a magic number for user-defined format 0 was specified])
+AC_ARG_WITH([udf0-magic-number],
+              [AS_HELP_STRING([--with-udf0-magic-number=<magic_number>],
+                              [Specify a magic number for user-defined format 0 (ignored unless --with-udf0 is also used).])],
+            [UDF0_MAGIC_NUMBER=$with_udf0_magic_number])
+AC_MSG_RESULT([$UDF0_MAGIC_NUMBER])
+
+# Did the user specify a user-defined format 1?
+AC_MSG_CHECKING([whether user-defined format 1 was specified])
+AC_ARG_WITH([udf1],
+              [AS_HELP_STRING([--with-udf1=<dispatch_name>],
+                              [Specify a dispatch table for user-defined format 1.])],
+            [UDF1_DISPATCH=$with_udf1])
+AC_MSG_RESULT([$UDF1_DISPATCH])
+if test -n "$UDF1_DISPATCH"; then
+   AC_DEFINE_UNQUOTED([UDF1_DISPATCH], [$UDF1_DISPATCH], [dispatch table for user-defined format 1.])
+   AC_DEFINE_UNQUOTED([UDF1_DISPATCH_FUNC], [get_$UDF1_DISPATCH()], [function to get dispatch table for user-defined format 1.])
+   AC_DEFINE([USE_UDF1], [1], [if true, use user-defined format 1 in utilities])
+   AC_CHECK_LIB([$UDF1_DISPATCH], [get_$UDF1_DISPATCH], [],
+                                 [AC_MSG_ERROR([Can't find or link to the user-defined format 1 library.])],
+                                 [])
+fi
+
+# Did the user specify a magic number for user-defined format 0?
+AC_MSG_CHECKING([whether a magic number for user-defined format 1 was specified])
+AC_ARG_WITH([udf1-magic-number],
+              [AS_HELP_STRING([--with-udf1-magic-number=<magic_number>],
+                              [Specify a magic number for user-defined format 1 (ignored unless --with-udf1 is also used).])],
+            [UDF1_MAGIC_NUMBER=$with_udf1_magic_number])
+AC_MSG_RESULT([$UDF1_MAGIC_NUMBER])
+
+# Did the user specify a default cache preemption?
+AC_MSG_CHECKING([whether a default cache preemption for HDF5 was specified])
+AC_ARG_WITH([chunk-cache-preemption],
+              [AS_HELP_STRING([--with-chunk-cache-preemption=<float between 0 and 1 inclusive>],
+                              [Specify default file chunk cache preemption policy for HDF5 files (a number between 0 and 1, inclusive).])],
+            [CHUNK_CACHE_PREEMPTION=$with_chunk_cache_preemption], [CHUNK_CACHE_PREEMPTION=0.75])
+AC_MSG_RESULT([$CHUNK_CACHE_PREEMPTION])
+AC_DEFINE_UNQUOTED([CHUNK_CACHE_PREEMPTION], [$CHUNK_CACHE_PREEMPTION], [default file chunk cache preemption policy.])
+
 # According to the autoconf mailing list gurus, we must test for
 # compilers unconditionally. That is, we can't skip looking for the
 # fortran compilers, just because the user doesn't want fortran. This

@@ -158,6 +158,11 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 #define NC_PNETCDF       (NC_MPIIO) /**< Use parallel-netcdf library; alias for NC_MPIIO. */
 
+#define NC_UDF0          0x0080  /**< User-defined format 0. */
+#define NC_UDF1          0x0002  /**< User-defined format 1. */
+
+#define NC_MAX_MAGIC_NUMBER_LEN 8 /**< Max len of ser-defined format magic number. */
+
 /** Format specifier for nc_set_default_format() and returned
  *  by nc_inq_format. This returns the format as provided by
  *  the API. See nc_inq_format_extended to see the true file format.
@@ -207,6 +212,8 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMATX_PNETCDF   (4)
 #define NC_FORMATX_DAP2      (5)
 #define NC_FORMATX_DAP4      (6)
+#define NC_FORMATX_UDF0      (8)
+#define NC_FORMATX_UDF1      (9)
 #define NC_FORMATX_UNDEFINED (0)
 
   /* To avoid breaking compatibility (such as in the python library),
@@ -503,6 +510,14 @@ nc_inq_libvers(void);
 
 EXTERNL const char *
 nc_strerror(int ncerr);
+
+/* Set up user-defined format. */
+typedef struct NC_Dispatch NC_Dispatch;   
+EXTERNL int
+nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number);
+   
+EXTERNL int
+nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number);
 
 EXTERNL int
 nc__create(const char *path, int cmode, size_t initialsz,
