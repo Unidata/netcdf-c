@@ -2,9 +2,10 @@
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions. */
 /**
- * @file @internal This file is part of netcdf-4, a netCDF-like
- * interface for HDF5, or a HDF5 backend for netCDF, depending on your
- * point of view.
+ * @file 
+ * @internal This file is part of netcdf-4, a netCDF-like interface
+ * for HDF5, or a HDF5 backend for netCDF, depending on your point of
+ * view.
  *
  * This file handles groups.
  * 
