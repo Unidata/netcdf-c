@@ -272,9 +272,10 @@ parsefilterspec(const char* optarg0, struct FilterSpec* spec)
     }
 
     /* Check for special cases */
-    if(strcmp(remainder,"none") == 0) {
-	spec->nofilter = 1;
-	goto done;
+    if( (remainder == NULL) ||
+       (strncmp(remainder,"none",4) == 0)) {
+      spec->nofilter = 1;
+      goto done;
     }
 
     /* Collect the id+parameters */
@@ -741,7 +742,9 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid)
     VarID vid = {igrp,varid};
     VarID ovid = {ogrp,o_varid};
     /* handle filter parameters, copying from input, overriding with command-line options */
-    struct FilterSpec inspec, ospec, actualspec;
+    struct FilterSpec inspec = {NULL,0,0,0,NULL},
+      ospec = {NULL,0,0,0,NULL},
+      actualspec = {NULL,0,0,0,NULL};
     int i;
     char* ofqn = NULL;
     int format, oformat;
