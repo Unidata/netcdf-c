@@ -210,6 +210,10 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
       return retval;
    assert(h5 && grp);
 
+   /* User types cannot be defined with classic model flag. */
+   if (h5->cmode & NC_CLASSIC_MODEL)
+      return NC_ESTRICTNC3;
+
    /* Turn on define mode if it is not on. */
    if (!(h5->cmode & NC_INDEF))
       if ((retval = NC4_redef(ncid)))
