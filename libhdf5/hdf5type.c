@@ -186,6 +186,7 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
  * @return ::NC_EINVAL Bad size.
  * @return ::NC_EMAXNAME Name is too long.
  * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_ESTRICTNC3 Cannot define user types in classic model.
  * @author Ed Hartnett
  */
 static int
@@ -263,8 +264,11 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTNC4 User types in netCDF-4 files only.
+ * @return ::NC_EINVAL Bad size.
  * @return ::NC_EMAXNAME Name is too long.
  * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_ESTRICTNC3 Cannot define user types in classic model.
  * @author Ed Hartnett
  */
 int
@@ -368,8 +372,11 @@ NC4_insert_array_compound(int ncid, int typeid1, const char *name,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTNC4 User types in netCDF-4 files only.
+ * @return ::NC_EINVAL Bad size.
  * @return ::NC_EMAXNAME Name is too long.
  * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_ESTRICTNC3 Cannot define user types in classic model.
  * @author Ed Hartnett
  */
 int
@@ -390,8 +397,10 @@ NC4_def_opaque(int ncid, size_t datum_size, const char *name,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTNC4 User types in netCDF-4 files only.
  * @return ::NC_EMAXNAME Name is too long.
  * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_ESTRICTNC3 Cannot define user types in classic model.
  * @author Ed Hartnett
  */
 int
@@ -411,8 +420,11 @@ NC4_def_vlen(int ncid, const char *name, nc_type base_typeid,
  * @param typeidp Pointer that gets new type ID.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTNC4 User types in netCDF-4 files only.
  * @return ::NC_EMAXNAME Name is too long.
  * @return ::NC_EBADNAME Name breaks netCDF name rules.
+ * @return ::NC_ESTRICTNC3 Cannot define user types in classic model.
  * @author Ed Hartnett
  */
 int
