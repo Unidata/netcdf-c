@@ -20,6 +20,7 @@
 #define FILENAME2 "tst_types2.nc"
 #define FILENAME3 "tst_types3.nc"
 #define FILENAME4 "tst_types4.nc"
+#define A_NAME "some_name"
 
 #define CLEAN_INPUT_BUFFERS                     \
    for (i = 0; i < SIZE; i++) {                 \
@@ -153,7 +154,10 @@ int main(int argc, char *argv[])
       if (nc_def_enum(ncid2 + TEST_VAL_42, NC_INT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3) != NC_EBADID) ERR;
       if (nc_def_enum(ncid2, NC_INT, NULL, &typeid3) != NC_EINVAL) ERR;
       if (nc_def_enum(ncid3, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3) != NC_ENOTNC4) ERR;
-      /* if (nc_def_enum(ncid4, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3) != NC_ENOTNC4) ERR; */
+      if (nc_def_enum(ncid4, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3) != NC_ESTRICTNC3) ERR;
+      if (nc_def_opaque(ncid4, TEST_VAL_42, A_NAME, &typeid3) != NC_ESTRICTNC3) ERR;
+      if (nc_def_compound(ncid4, TEST_VAL_42, A_NAME, &typeid3) != NC_ESTRICTNC3) ERR;
+      if (nc_def_vlen(ncid4, A_NAME, NC_INT, &typeid3) != NC_ESTRICTNC3) ERR;
 
       /* Create some enum types that will not be equal to typeid1. */
       if (nc_def_enum(ncid2, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3)) ERR;
