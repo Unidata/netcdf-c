@@ -510,16 +510,15 @@ out :
  * systems with LFS it should be 2^32 - 4.
  */
 int
-NC_check_vlen(NC_var *varp, unsigned long long vlen_max) {
-    unsigned long long prod=varp->xsz;	/* product of xsz and dimensions so far */
-
+NC_check_vlen(NC_var *varp, long long vlen_max) {
     int ii;
+    long long prod=varp->xsz;	/* product of xsz and dimensions so far */
 
     assert(varp != NULL);
     for(ii = IS_RECVAR(varp) ? 1 : 0; ii < varp->ndims; ii++) {
       if(!varp->shape)
         return 0; /* Shape is undefined/NULL. */
-      if (varp->shape[ii] > (size_t)(vlen_max / prod)) {
+      if (varp->shape[ii] > vlen_max / prod) {
         return 0;		/* size in bytes won't fit in a 32-bit int */
       }
       prod *= varp->shape[ii];
