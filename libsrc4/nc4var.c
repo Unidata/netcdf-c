@@ -1673,7 +1673,8 @@ NC4_put_vara(int ncid, int varid, const size_t *startp,
    if (!(nc = nc4_find_nc_file(ncid, NULL)))
       return NC_EBADID;
 
-   return nc4_put_vara(nc, ncid, varid, startp, countp, memtype, 0, (void *)op);
+   return nc4_put_vars(nc, ncid, varid, startp, countp, NULL, memtype,
+                       0, (void *)op);
 }
 
 /**
@@ -1705,7 +1706,7 @@ NC4_get_vara(int ncid, int varid, const size_t *startp,
       return NC_EBADID;
 
    /* Get the data. */
-   return nc4_get_vara(nc, ncid, varid, startp, countp, memtype,
+   return nc4_get_vars(nc, ncid, varid, startp, countp, NULL, memtype,
                        0, (void *)ip);
 }
 
