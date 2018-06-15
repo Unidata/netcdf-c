@@ -348,11 +348,9 @@ extern char* nc4_atomic_name[NC_MAX_ATOMIC_TYPE+1];
 
 /* These functions convert between netcdf and HDF5 types. */
 int nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, size_t *len);
-int nc4_convert_type(const void *src, void *dest,
-		     const nc_type src_type, const nc_type dest_type,
-		     const size_t len, int *range_error,
-		     const void *fill_value, int strict_nc3, int src_long,
-		     int dest_long);
+int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
+                     const nc_type dest_type, const size_t len, int *range_error,
+		     const void *fill_value, int strict_nc3);
 
 /* These functions do HDF5 things. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
