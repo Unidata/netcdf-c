@@ -4369,7 +4369,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
    long long unsigned xtend_size[NC_MAX_VAR_DIMS];
    hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
    hsize_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
-   hssize_t stride[NC_MAX_VAR_DIMS];
+   hsize_t stride[NC_MAX_VAR_DIMS];
    char *name_to_use;
    int need_to_extend = 0;
 #ifdef USE_PARALLEL4
@@ -4379,6 +4379,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
    void *bufr = NULL;
 #ifndef HDF5_CONVERT
    int need_to_convert = 0;
+   int zero_count = 0; /* true if a count is zero */
    size_t len = 1;
 #endif
 #ifdef HDF5_CONVERT
@@ -4404,12 +4405,16 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
    /* Also do sanity checks */
    for (i = 0; i < var->ndims; i++)
    {
+      if (stridep && stridep[i] <= 0)
+         return NC_ESTRIDE;
+
       start[i] = (startp == NULL ? 0 : startp[i]);
       count[i] = (countp == NULL ? 1 : countp[i]);
       stride[i] = (stridep == NULL ? 1 : stridep[i]);
-      /* Check for non-positive stride */
-      if(stride[i] <= 0)
-	return NC_ESTRIDE;
+
+      /* Check to see if any counts are zero. */
+      if (!count[i])
+         zero_count++;
    }
 
    /* Open this dataset if necessary, also checking for a weird case:
@@ -4443,22 +4448,25 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
     * put data beyond their current length. */
    for (d2 = 0; d2 < var->ndims; d2++)
    {
-      hsize_t endindex = start[d2] + (stride[d2]*(count[d2]-1)); /* last index written */
+      hsize_t endindex = start[d2] + stride[d2] * (count[d2]-1); /* last index written */
       dim = var->dim[d2];
       assert(dim && dim->hdr.id == var->dimids[d2]);
       if(count[d2] == 0)
-	endindex = start[d2]; /* fixup for zero read count */
+         endindex = start[d2]; /* fixup for zero read count */
       if (!dim->unlimited)
       {
 #ifdef RELAX_COORD_BOUND
          if (start[d2] > (hssize_t)fdims[d2] ||
              (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
+            BAIL_QUIET(NC_EINVALCOORDS);
+         if (!zero_count && endindex >= fdims[d2])
+            BAIL_QUIET(NC_EEDGE);
 #else
-            if (start[d2] >= (hssize_t)fdims[d2])
-#endif
-               BAIL_QUIET(NC_EINVALCOORDS);
+         if (start[d2] >= (hssize_t)fdims[d2])
+            BAIL_QUIET(NC_EINVALCOORDS);
          if (endindex >= fdims[d2])
             BAIL_QUIET(NC_EEDGE);
+#endif
       }
    }
 
@@ -4486,7 +4494,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
 #ifndef HDF5_CONVERT
    /* Are we going to convert any data? (No converting of compound or
     * opaque types.) */
-   if ((mem_nc_type != var->type_info->hdr.id || (var->type_info->hdr.id == NC_INT && is_long)) &&
+   if (mem_nc_type != var->type_info->hdr.id &&
        mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
    {
       size_t file_type_size;
@@ -4814,7 +4822,7 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
             if (start[d2] >= (hssize_t)ulen && ulen > 0)
 #endif
                BAIL_QUIET(NC_EINVALCOORDS);
-         if (endindex >= ulen)
+         if (count[d2] && endindex >= ulen)
             BAIL_QUIET(NC_EEDGE);
 
          /* Things get a little tricky here. If we're getting
@@ -4824,7 +4832,7 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
             variable. */
          if (start[d2] >= (hssize_t)fdims[d2])
             fill_value_size[d2] = count[d2];
-         else if (endindex >= fdims[d2])
+         else if (count[d2] && endindex >= fdims[d2])
             fill_value_size[d2] = count[d2] - ((fdims[d2] - start[d2])/stride[d2]);
          else
             fill_value_size[d2] = 0;
