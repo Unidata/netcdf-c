@@ -4362,7 +4362,6 @@ NC4_walk(hid_t gid, int* countp)
  * @param countp Array of counts.
  * @param stridep Array of strides.
  * @param mem_nc_type The type of the data in memory.
- * @param is_long True only if NC_LONG is the memory type.
  * @param data The data to be written.
  *
  * @returns ::NC_NOERR No error.
@@ -4380,7 +4379,7 @@ NC4_walk(hid_t gid, int* countp)
 int
 nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
              const size_t *countp, const ptrdiff_t* stridep,
-             nc_type mem_nc_type, int is_long, void *data)
+             nc_type mem_nc_type, void *data)
 {
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
@@ -4408,8 +4407,8 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
    h5 = NC4_DATA(nc);
    assert(grp && h5 && var && var->hdr.name);
 
-   LOG((3, "%s: var->hdr.name %s mem_nc_type %d is_long %d",
-        __func__, var->hdr.name, mem_nc_type, is_long));
+   LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
+        var->hdr.name, mem_nc_type));
 
    /* Check some stuff about the type and the file. If the file must
     * be switched from define mode, it happens here. */
@@ -4502,7 +4501,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
 
    /* Are we going to convert any data? (No converting of compound or
     * opaque types.) */
-   if ((mem_nc_type != var->type_info->hdr.id || (var->type_info->hdr.id == NC_INT && is_long)) &&
+   if (mem_nc_type != var->type_info->hdr.id &&
        mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
    {
       size_t file_type_size;
@@ -4680,7 +4679,6 @@ exit:
  * @param stridep Array of strides.
  * @param mem_nc_type The type of the data in memory. (Convert to this
  * type from file type.)
- * @param is_long True only if NC_LONG is the memory type.
  * @param data The data to be written.
  *
  * @returns ::NC_NOERR No error.
@@ -4698,7 +4696,7 @@ exit:
 int
 nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
              const size_t *countp, const ptrdiff_t* stridep,
-             nc_type mem_nc_type, int is_long, void *data)
+             nc_type mem_nc_type, void *data)
 {
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
@@ -4727,8 +4725,8 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
    h5 = NC4_DATA(nc);
    assert(grp && h5 && var && var->hdr.name);
 
-   LOG((3, "%s: var->hdr.name %s mem_nc_type %d is_long %d",
-        __func__, var->hdr.name, mem_nc_type, is_long));
+   LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
+        var->hdr.name, mem_nc_type));
 
    /* Check some stuff about the type and the file. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
@@ -4888,7 +4886,7 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
 
       /* Are we going to convert any data? (No converting of compound or
        * opaque types.) */
-      if ((mem_nc_type != var->type_info->hdr.id || (var->type_info->hdr.id == NC_INT && is_long)) &&
+      if (mem_nc_type != var->type_info->hdr.id &&
           mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
       {
          /* We must convert - allocate a buffer. */
