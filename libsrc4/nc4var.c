@@ -1706,8 +1706,8 @@ NC4_get_vara(int ncid, int varid, const size_t *startp,
       return NC_EBADID;
 
    /* Get the data. */
-   return nc4_get_vara(nc, ncid, varid, startp, countp, memtype,
-                       0, (void *)ip);
+   return nc4_get_vars(nc, ncid, varid, startp, countp, NULL, memtype,
+                       (void *)ip);
 }
 
 /**
