@@ -4555,7 +4555,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
    {
       for (d2 = 0; d2 < var->ndims; d2++)
       {
-         hsize_t endindex = start[d2] + (stride[d2]*(count[d2]-1)); /* last index written */
+         hsize_t endindex = start[d2] + stride[d2] * (count[d2] - 1); /* last index written */
          if (count[d2] == 0)
             endindex = start[d2];
          dim = var->dim[d2];
@@ -4565,7 +4565,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
 #ifdef USE_PARALLEL4
             extend_possible = 1;
 #endif
-            if (endindex >= fdims[d2])
+            if (!zero_count && endindex >= fdims[d2])
             {
                xtend_size[d2] = (long long unsigned)(endindex+1);
                need_to_extend++;
@@ -4573,7 +4573,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
             else
                xtend_size[d2] = (long long unsigned)fdims[d2];
 
-            if (endindex >= dim->len)
+            if (!zero_count && endindex >= dim->len)
             {
                dim->len = endindex+1;
                dim->extended = NC_TRUE;
