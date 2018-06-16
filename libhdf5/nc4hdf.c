@@ -4400,13 +4400,8 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
 #endif
    int retval = NC_NOERR, range_error = 0, i, d2;
    void *bufr = NULL;
-#ifndef HDF5_CONVERT
    int need_to_convert = 0;
    size_t len = 1;
-#endif
-#ifdef HDF5_CONVERT
-   hid_t mem_typeid = 0;
-#endif
 
    /* Find our metadata for this file, group, and var. */
    assert(nc);
@@ -4506,7 +4501,6 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
          BAIL(NC_EHDFERR);
    }
 
-#ifndef HDF5_CONVERT
    /* Are we going to convert any data? (No converting of compound or
     * opaque types.) */
    if ((mem_nc_type != var->type_info->hdr.id || (var->type_info->hdr.id == NC_INT && is_long)) &&
@@ -4535,27 +4529,11 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
             BAIL(NC_ENOMEM);
    }
    else
-#endif /* ifndef HDF5_CONVERT */
       bufr = data;
-
-#ifdef HDF5_CONVERT
-   /* Get the HDF type of the data in memory. */
-   if ((retval = nc4_get_hdf_typeid(h5, mem_nc_type, &mem_typeid,
-                                    var->type_info->endianness)))
-      BAIL(retval);
-#endif
 
    /* Create the data transfer property list. */
    if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
       BAIL(NC_EHDFERR);
-
-   /* Apply the callback function which will detect range
-    * errors. Which one to call depends on the length of the
-    * destination buffer type. */
-#ifdef HDF5_CONVERT
-   if (H5Pset_type_conv_cb(xfer_plistid, except_func, &range_error) < 0)
-      BAIL(NC_EHDFERR);
-#endif
 
 #ifdef USE_PARALLEL4
    /* Set up parallel I/O, if needed. */
@@ -4645,7 +4623,6 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
       }
    }
 
-#ifndef HDF5_CONVERT
    /* Do we need to convert the data? */
    if (need_to_convert)
    {
@@ -4654,7 +4631,6 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
                                      (h5->cmode & NC_CLASSIC_MODEL))))
          BAIL(retval);
    }
-#endif
 
    /* Write the data. At last! */
    LOG((4, "about to H5Dwrite datasetid 0x%x mem_spaceid 0x%x "
@@ -4677,19 +4653,13 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
       range_error = 0;
 
 exit:
-#ifdef HDF5_CONVERT
-   if (mem_typeid > 0 && H5Tclose(mem_typeid) < 0)
-      BAIL2(NC_EHDFERR);
-#endif
    if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
       BAIL2(NC_EHDFERR);
    if (mem_spaceid > 0 && H5Sclose(mem_spaceid) < 0)
       BAIL2(NC_EHDFERR);
    if (xfer_plistid && (H5Pclose(xfer_plistid) < 0))
       BAIL2(NC_EPARINIT);
-#ifndef HDF5_CONVERT
    if (need_to_convert && bufr) free(bufr);
-#endif
 
    /* If there was an error return it, otherwise return any potential
       range error value. If none, return NC_NOERR as usual.*/
@@ -4748,13 +4718,8 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
    int fill_value_size[NC_MAX_VAR_DIMS];
    int scalar = 0, retval = NC_NOERR, range_error = 0, i, d2;
    void *bufr = NULL;
-#ifdef HDF5_CONVERT
-   hid_t mem_typeid = 0;
-#endif
-#ifndef HDF5_CONVERT
    int need_to_convert = 0;
    size_t len = 1;
-#endif
 
    /* Find our metadata for this file, group, and var. */
    assert(nc);
@@ -4919,7 +4884,6 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
          bufr = *(char **)data;
       }
 
-#ifndef HDF5_CONVERT
       /* Are we going to convert any data? (No converting of compound or
        * opaque types.) */
       if ((mem_nc_type != var->type_info->hdr.id || (var->type_info->hdr.id == NC_INT && is_long)) &&
@@ -4941,28 +4905,12 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
                BAIL(NC_ENOMEM);
       }
       else
-#endif /* ifndef HDF5_CONVERT */
-         if(!bufr)
+         if (!bufr)
             bufr = data;
-
-      /* Get the HDF type of the data in memory. */
-#ifdef HDF5_CONVERT
-      if ((retval = nc4_get_hdf_typeid(h5, mem_nc_type, &mem_typeid,
-                                       var->type_info->endianness)))
-         BAIL(retval);
-#endif
 
       /* Create the data transfer property list. */
       if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
          BAIL(NC_EHDFERR);
-
-#ifdef HDF5_CONVERT
-      /* Apply the callback function which will detect range
-       * errors. Which one to call depends on the length of the
-       * destination buffer type. */
-      if (H5Pset_type_conv_cb(xfer_plistid, except_func, &range_error) < 0)
-         BAIL(NC_EHDFERR);
-#endif
 
 #ifdef USE_PARALLEL4
       /* Set up parallel I/O, if needed. */
@@ -4976,12 +4924,7 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
                   mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
          BAIL(NC_EHDFERR);
 
-#ifndef HDF5_CONVERT
-      /* Eventually the block below will go away. Right now it's
-         needed to support conversions between int/float, and range
-         checking converted data in the netcdf way. These features are
-         being added to HDF5 at the HDF5 World Hall of Coding right
-         now, by a staff of thousands of programming gnomes. */
+      /* Convert data type if needed. */
       if (need_to_convert)
       {
          if ((retval = nc4_convert_type(bufr, data, var->type_info->hdr.id, mem_nc_type,
@@ -4997,7 +4940,6 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
              range_error)
             range_error = 0;
       }
-#endif
 
       /* For strict netcdf-3 rules, ignore erange errors between UBYTE
        * and BYTE types. */
@@ -5008,8 +4950,8 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
          range_error = 0;
 
    } /* endif ! no_read */
-
-   else {
+   else
+   {
 #ifdef USE_PARALLEL4 /* Start block contributed by HDF group. */
       /* For collective IO read, some processes may not have any element for reading.
          Collective requires all processes to participate, so we use H5Sselect_none
@@ -5092,10 +5034,6 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
    }
 
 exit:
-#ifdef HDF5_CONVERT
-   if (mem_typeid > 0 && H5Tclose(mem_typeid) < 0)
-      BAIL2(NC_EHDFERR);
-#endif
    if (file_spaceid > 0)
    {
       if (H5Sclose(file_spaceid) < 0)
@@ -5111,10 +5049,8 @@ exit:
       if (H5Pclose(xfer_plistid) < 0)
          BAIL2(NC_EHDFERR);
    }
-#ifndef HDF5_CONVERT
    if (need_to_convert && bufr != NULL)
       free(bufr);
-#endif
    if (xtend_size)
       free(xtend_size);
    if (fillvalue)
