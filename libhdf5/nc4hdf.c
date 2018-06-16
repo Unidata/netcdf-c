@@ -4398,6 +4398,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
    int retval = NC_NOERR, range_error = 0, i, d2;
    void *bufr = NULL;
    int need_to_convert = 0;
+   int zero_count = 0; /* true if a count is zero */
    size_t len = 1;
 
    /* Find our metadata for this file, group, and var. */
@@ -4426,6 +4427,10 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
       start[i] = (startp == NULL ? 0 : startp[i]);
       count[i] = (countp == NULL ? 1 : countp[i]);
       stride[i] = (stridep == NULL ? 1 : stridep[i]);
+
+      /* Check to see if any counts are zero. */
+      if (!count[i])
+         zero_count++;
    }
 
    /* Open this dataset if necessary, also checking for a weird case:
@@ -4470,12 +4475,14 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
          if (start[d2] > (hssize_t)fdims[d2] ||
              (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
             BAIL_QUIET(NC_EINVALCOORDS);
+         if (!zero_count && endindex >= fdims[d2])
+            BAIL_QUIET(NC_EEDGE);
 #else
          if (start[d2] >= (hssize_t)fdims[d2])
             BAIL_QUIET(NC_EINVALCOORDS);
-#endif
          if (endindex >= fdims[d2])
             BAIL_QUIET(NC_EEDGE);
+#endif
       }
    }
 
