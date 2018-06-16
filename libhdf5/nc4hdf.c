@@ -4374,7 +4374,7 @@ NC4_walk(hid_t gid, int* countp)
  * @returns ::NC_EMPI MPI library error (parallel only)
  * @returns ::NC_ECANTEXTEND Can't extend dimension for write.
  * @returns ::NC_ERANGE Data conversion error.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
@@ -4703,7 +4703,7 @@ exit:
  * @returns ::NC_EMPI MPI library error (parallel only)
  * @returns ::NC_ECANTEXTEND Can't extend dimension for write.
  * @returns ::NC_ERANGE Data conversion error.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
