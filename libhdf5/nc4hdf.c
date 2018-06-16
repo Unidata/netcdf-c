@@ -4748,7 +4748,6 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
       /* if any of the count values are zero don't actually read. */
       if (count[i] == 0)
          no_read++;
-
    }
 
    /* Open this dataset if necessary, also checking for a weird case:
@@ -4780,7 +4779,8 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
 
    /* Check dimension bounds. Remember that unlimited dimensions can
     * put data beyond their current length. */
-   for (d2 = 0; d2 < var->ndims; d2++) {
+   for (d2 = 0; d2 < var->ndims; d2++)
+   {
       hsize_t endindex = start[d2] + stride[d2] *(count[d2] - 1); /* last index read */
       dim = var->dim[d2];
       assert(dim && dim->hdr.id == var->dimids[d2]);
@@ -4804,7 +4804,7 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
          if (start[d2] >= (hssize_t)ulen && ulen > 0)
             BAIL_QUIET(NC_EINVALCOORDS);
 #endif
-         if (endindex >= ulen)
+         if (count[d2] && endindex >= ulen)
             BAIL_QUIET(NC_EEDGE);
 
          /* Things get a little tricky here. If we're getting
@@ -4822,17 +4822,18 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
          if (fill_value_size[d2])
             provide_fill++;
       }
-      else
+      else /* Dim is not unlimited. */
       {
          /* Check for out of bound requests. */
 #ifdef RELAX_COORD_BOUND
          if (start[d2] > (hssize_t)fdims[d2] ||
              (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
+            BAIL_QUIET(NC_EINVALCOORDS);
 #else
-            if (start[d2] >= (hssize_t)fdims[d2])
+         if (start[d2] >= (hssize_t)fdims[d2])
+            BAIL_QUIET(NC_EINVALCOORDS);
 #endif
-               BAIL_QUIET(NC_EINVALCOORDS);
-         if (endindex >= fdims[d2])
+         if (count[d2] && endindex >= fdims[d2])
             BAIL_QUIET(NC_EEDGE);
 
          /* Set the fill value boundary */
@@ -4876,7 +4877,8 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
        * to free, which we allocate here. */
       if(var->type_info->nc_type_class == NC_STRING &&
          H5Tget_size(var->type_info->hdf_typeid) > 1 &&
-         !H5Tis_variable_str(var->type_info->hdf_typeid)) {
+         !H5Tis_variable_str(var->type_info->hdf_typeid))
+      {
          hsize_t fstring_len;
 
          if ((fstring_len = H5Tget_size(var->type_info->hdf_typeid)) == 0)
@@ -4958,7 +4960,8 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
       /* For collective IO read, some processes may not have any element for reading.
          Collective requires all processes to participate, so we use H5Sselect_none
          for these processes. */
-      if(var->parallel_access == NC_COLLECTIVE) {
+      if (var->parallel_access == NC_COLLECTIVE)
+      {
 
          /* Create the data transfer property list. */
          if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
@@ -4967,14 +4970,14 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
          if ((retval = set_par_access(h5, var, xfer_plistid)))
             BAIL(retval);
 
-         if (H5Sselect_none(file_spaceid)<0)
+         if (H5Sselect_none(file_spaceid) < 0)
             BAIL(NC_EHDFERR);
 
          /* Since no element will be selected, we just get the memory space the same as the file space.
           */
-         if((mem_spaceid = H5Dget_space(var->hdf_datasetid))<0)
+         if ((mem_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
             BAIL(NC_EHDFERR);
-         if (H5Sselect_none(mem_spaceid)<0)
+         if (H5Sselect_none(mem_spaceid) < 0)
             BAIL(NC_EHDFERR);
 
          /* Read this hyperslab into memory. */
@@ -5023,13 +5026,16 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
             else
                *(char **)filldata = NULL;
          }
-         else if(var->type_info->nc_type_class == NC_VLEN) {
-            if(fillvalue) {
+         else if(var->type_info->nc_type_class == NC_VLEN)
+         {
+            if (fillvalue)
+            {
                memcpy(filldata,fillvalue,file_type_size);
             } else {
                *(char **)filldata = NULL;
             }
-         } else
+         }
+         else
             memcpy(filldata, fillvalue, file_type_size);
          filldata = (char *)filldata + file_type_size;
       }
