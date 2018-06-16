@@ -4530,7 +4530,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
       /* If we're reading, we need bufr to have enough memory to store
        * the data in the file. If we're writing, we need bufr to be
        * big enough to hold all the data in the file's type. */
-      if(len > 0)
+      if (len > 0)
          if (!(bufr = malloc(len * file_type_size)))
             BAIL(NC_ENOMEM);
    }
@@ -4556,7 +4556,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
       for (d2 = 0; d2 < var->ndims; d2++)
       {
          hsize_t endindex = start[d2] + (stride[d2]*(count[d2]-1)); /* last index written */
-         if(count[d2] == 0)
+         if (count[d2] == 0)
             endindex = start[d2];
          dim = var->dim[d2];
          assert(dim && dim->hdr.id == var->dimids[d2]);
@@ -4587,12 +4587,14 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
 
 #ifdef USE_PARALLEL4
       /* Check if anyone wants to extend */
-      if (extend_possible && h5->parallel && NC_COLLECTIVE == var->parallel_access)
+      if (extend_possible && h5->parallel &&
+          NC_COLLECTIVE == var->parallel_access)
       {
          /* Form consensus opinion among all processes about whether to perform
           * collective I/O
           */
-         if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &need_to_extend, 1, MPI_INT, MPI_BOR, h5->comm))
+         if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &need_to_extend, 1,
+                                          MPI_INT, MPI_BOR, h5->comm))
             BAIL(NC_EMPI);
       }
 #endif /* USE_PARALLEL4 */
@@ -4609,7 +4611,9 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
                BAIL(NC_ECANTEXTEND);
 
             /* Reach consensus about dimension sizes to extend to */
-            if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, xtend_size, var->ndims, MPI_UNSIGNED_LONG_LONG, MPI_MAX, h5->comm))
+            if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, xtend_size, var->ndims,
+                                            MPI_UNSIGNED_LONG_LONG, MPI_MAX,
+                                            h5->comm))
                BAIL(NC_EMPI);
          }
 #endif /* USE_PARALLEL4 */
@@ -4882,9 +4886,9 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
        * model supports, lacking anonymous dimensions.  So
        * variable-length strings are in allocated memory that user has
        * to free, which we allocate here. */
-      if(var->type_info->nc_type_class == NC_STRING &&
-         H5Tget_size(var->type_info->hdf_typeid) > 1 &&
-         !H5Tis_variable_str(var->type_info->hdf_typeid))
+      if (var->type_info->nc_type_class == NC_STRING &&
+          H5Tget_size(var->type_info->hdf_typeid) > 1 &&
+          !H5Tis_variable_str(var->type_info->hdf_typeid))
       {
          hsize_t fstring_len;
 
@@ -4911,7 +4915,7 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
          /* If we're reading, we need bufr to have enough memory to store
           * the data in the file. If we're writing, we need bufr to be
           * big enough to hold all the data in the file's type. */
-         if(len > 0)
+         if (len > 0)
             if (!(bufr = malloc(len * file_type_size)))
                BAIL(NC_ENOMEM);
       }
@@ -5033,7 +5037,7 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
             else
                *(char **)filldata = NULL;
          }
-         else if(var->type_info->nc_type_class == NC_VLEN)
+         else if (var->type_info->nc_type_class == NC_VLEN)
          {
             if (fillvalue)
             {
