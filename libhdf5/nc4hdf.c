@@ -4459,20 +4459,21 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
     * put data beyond their current length. */
    for (d2 = 0; d2 < var->ndims; d2++)
    {
-      hsize_t endindex = start[d2] + (stride[d2]*(count[d2]-1)); /* last index written */
+      hsize_t endindex = start[d2] + stride[d2] * (count[d2] - 1); /* last index written */
       dim = var->dim[d2];
       assert(dim && dim->hdr.id == var->dimids[d2]);
-      if(count[d2] == 0)
+      if (count[d2] == 0)
          endindex = start[d2]; /* fixup for zero read count */
       if (!dim->unlimited)
       {
 #ifdef RELAX_COORD_BOUND
          if (start[d2] > (hssize_t)fdims[d2] ||
              (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
+            BAIL_QUIET(NC_EINVALCOORDS);
 #else
-            if (start[d2] >= (hssize_t)fdims[d2])
+         if (start[d2] >= (hssize_t)fdims[d2])
+            BAIL_QUIET(NC_EINVALCOORDS);
 #endif
-               BAIL_QUIET(NC_EINVALCOORDS);
          if (endindex >= fdims[d2])
             BAIL_QUIET(NC_EEDGE);
       }
@@ -4780,10 +4781,10 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
    /* Check dimension bounds. Remember that unlimited dimensions can
     * put data beyond their current length. */
    for (d2 = 0; d2 < var->ndims; d2++) {
-      hsize_t endindex = start[d2] + (stride[d2]*(count[d2]-1)); /* last index read */
+      hsize_t endindex = start[d2] + stride[d2] *(count[d2] - 1); /* last index read */
       dim = var->dim[d2];
       assert(dim && dim->hdr.id == var->dimids[d2]);
-      if(count[d2] == 0)
+      if (count[d2] == 0)
          endindex = start[d2]; /* fixup for zero read count */
       if (dim->unlimited)
       {
@@ -4798,10 +4799,11 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
 #ifdef RELAX_COORD_BOUND
          if (start[d2] > (hssize_t)ulen ||
              (start[d2] == (hssize_t)ulen && count[d2] > 0))
+            BAIL_QUIET(NC_EINVALCOORDS);
 #else
-            if (start[d2] >= (hssize_t)ulen && ulen > 0)
+         if (start[d2] >= (hssize_t)ulen && ulen > 0)
+            BAIL_QUIET(NC_EINVALCOORDS);
 #endif
-               BAIL_QUIET(NC_EINVALCOORDS);
          if (endindex >= ulen)
             BAIL_QUIET(NC_EEDGE);
 
