@@ -3600,9 +3600,11 @@ NC4_walk(hid_t gid, int* countp)
  * @param nc Pointer to the file NC struct.
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param startp Array of start indices.
- * @param countp Array of counts.
- * @param stridep Array of strides.
+ * @param startp Array of start indices. Will default to starts of 0
+ * if NULL.
+ * @param countp Array of counts. Will default to counts of 1 if NULL.
+ * @param stridep Array of strides. Will default to strides of 1 if
+ * NULL.
  * @param mem_nc_type The type of the data in memory.
  * @param data The data to be written.
  *
@@ -3692,9 +3694,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
    if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
       BAIL(NC_EHDFERR);
 
-   /* Check to ensure the user selection is
-    * valid. H5Sget_simple_extent_dims gets the sizes of all the dims
-    * and put them in fdims. */
+   /* Get the sizes of all the dims and put them in fdims. */
    if (H5Sget_simple_extent_dims(file_spaceid, fdims, fmaxdims) < 0)
       BAIL(NC_EHDFERR);
 
@@ -3714,6 +3714,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
       if (!dim->unlimited)
       {
 #ifdef RELAX_COORD_BOUND
+         /* Allow start to equal dim size if count is zero. */
          if (start[d2] > (hssize_t)fdims[d2] ||
              (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
             BAIL_QUIET(NC_EINVALCOORDS);
@@ -3849,13 +3850,13 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
 #ifdef USE_PARALLEL4
          if (h5->parallel)
          {
-            if(NC_COLLECTIVE != var->parallel_access)
+            if (NC_COLLECTIVE != var->parallel_access)
                BAIL(NC_ECANTEXTEND);
 
             /* Reach consensus about dimension sizes to extend to */
             if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, xtend_size, var->ndims,
-                                            MPI_UNSIGNED_LONG_LONG, MPI_MAX,
-                                            h5->comm))
+                                             MPI_UNSIGNED_LONG_LONG, MPI_MAX,
+                                             h5->comm))
                BAIL(NC_EMPI);
          }
 #endif /* USE_PARALLEL4 */
@@ -3928,9 +3929,11 @@ exit:
  * @param nc Pointer to the file NC struct.
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param startp Array of start indices.
- * @param countp Array of counts.
- * @param stridep Array of strides.
+ * @param startp Array of start indices. Will default to starts of 0
+ * if NULL.
+ * @param countp Array of counts. Will default to counts of 1 if NULL.
+ * @param stridep Array of strides. Will default to strides of 1 if
+ * NULL.
  * @param mem_nc_type The type of the data in memory. (Convert to this
  * type from file type.)
  * @param data The data to be written.
@@ -4050,6 +4053,7 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
 
          /* Check for out of bound requests. */
 #ifdef RELAX_COORD_BOUND
+         /* Allow start to equal dim size if count is zero. */
          if (start[d2] > (hssize_t)ulen ||
              (start[d2] == (hssize_t)ulen && count[d2] > 0))
             BAIL_QUIET(NC_EINVALCOORDS);
@@ -4079,6 +4083,7 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
       {
          /* Check for out of bound requests. */
 #ifdef RELAX_COORD_BOUND
+         /* Allow start to equal dim size if count is zero. */
          if (start[d2] > (hssize_t)fdims[d2] ||
              (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
             BAIL_QUIET(NC_EINVALCOORDS);
@@ -4197,15 +4202,6 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
              range_error)
             range_error = 0;
       }
-
-      /* For strict netcdf-3 rules, ignore erange errors between UBYTE
-       * and BYTE types. */
-      if ((h5->cmode & NC_CLASSIC_MODEL) &&
-          (var->type_info->hdr.id == NC_UBYTE || var->type_info->hdr.id == NC_BYTE) &&
-          (mem_nc_type == NC_UBYTE || mem_nc_type == NC_BYTE) &&
-          range_error)
-         range_error = 0;
-
    } /* endif ! no_read */
    else
    {
@@ -4215,7 +4211,6 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
          for these processes. */
       if (var->parallel_access == NC_COLLECTIVE)
       {
-
          /* Create the data transfer property list. */
          if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
             BAIL(NC_EHDFERR);
@@ -4226,8 +4221,8 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
          if (H5Sselect_none(file_spaceid) < 0)
             BAIL(NC_EHDFERR);
 
-         /* Since no element will be selected, we just get the memory space the same as the file space.
-          */
+         /* Since no element will be selected, we just get the memory
+          * space the same as the file space. */
          if ((mem_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
             BAIL(NC_EHDFERR);
          if (H5Sselect_none(mem_spaceid) < 0)
@@ -4296,20 +4291,14 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
 
 exit:
    if (file_spaceid > 0)
-   {
       if (H5Sclose(file_spaceid) < 0)
          BAIL2(NC_EHDFERR);
-   }
    if (mem_spaceid > 0)
-   {
       if (H5Sclose(mem_spaceid) < 0)
          BAIL2(NC_EHDFERR);
-   }
    if (xfer_plistid > 0)
-   {
       if (H5Pclose(xfer_plistid) < 0)
          BAIL2(NC_EHDFERR);
-   }
    if (need_to_convert && bufr != NULL)
       free(bufr);
    if (xtend_size)
