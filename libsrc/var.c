@@ -518,7 +518,7 @@ NC_check_vlen(NC_var *varp, long long vlen_max) {
     for(ii = IS_RECVAR(varp) ? 1 : 0; ii < varp->ndims; ii++) {
       if(!varp->shape)
         return 0; /* Shape is undefined/NULL. */
-      if (varp->shape[ii] > vlen_max / prod) {
+      if ((long long)varp->shape[ii] > vlen_max / prod) {
         return 0;		/* size in bytes won't fit in a 32-bit int */
       }
       prod *= varp->shape[ii];
