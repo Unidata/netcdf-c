@@ -23,31 +23,6 @@ int nc4typelen(nc_type type);
  *
  * @param grp Group
  * @param varid Variable ID | NC_BLOGAL
- * @param varp Pointer into which to return created NC_VAR_INFO_T instance
- *
- * @return Attribute list | NULL
- * @author Dennis Heimbigner
- */
-static NCindex *
-getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp)
-{
-   if (varid == NC_GLOBAL) {
-      if(varp) *varp = NULL;
-      return grp->att;
-   } else {
-      NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
-      if (!var) return NULL;
-      assert(var->hdr.id == varid);
-      if(varp) *varp = var;
-      return var->att;
-   }
-}
-
-/**
- * @internal Get the attribute list for either a varid or NC_GLOBAL
- *
- * @param grp Group
- * @param varid Variable ID | NC_BLOGAL
  * @param varp Pointer that gets pointer to NC_VAR_INFO_T
  * instance. Ignored if NULL.
  * @param attlist Pointer that gets pointer to attribute list.
@@ -56,7 +31,7 @@ getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp)
  * @author Dennis Heimbigner, Ed Hartnett
  */
 static int
-getattlist2(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
+getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
             NCindex **attlist)
 {
    NC_VAR_INFO_T* var;
@@ -143,7 +118,7 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
    /* Get the list of attributes. */
    /* if (!(list = getattlist(grp,varid,&var))) */
    /*    return NC_ENOTVAR; */
-   if ((retval = getattlist2(grp, varid, &var, &list)))
+   if ((retval = getattlist(grp, varid, &var, &list)))
       return retval;
 
    /* Is new name in use? */
@@ -257,10 +232,8 @@ NC4_del_att(int ncid, int varid, const char *name)
    /* Get either the global or a variable attribute list. */
    /* if (!(attlist = getattlist(grp,varid,NULL))) */
    /*    return NC_ENOTVAR; */
-   if ((retval = getattlist2(grp, varid, &var, &attlist)))
+   if ((retval = getattlist(grp, varid, &var, &attlist)))
       return retval;
-   /* if (!(attlist = getattlist(grp,varid,NULL))) */
-   /*    return NC_ENOTVAR; */
 
    /* Determine the location id in the HDF5 file. */
    if (varid == NC_GLOBAL)
@@ -351,11 +324,8 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
 
    /* Find att, if it exists. (Must check varid first or nc_test will
     * break.) */
-   if ((ret = getattlist2(grp, varid, &var, &attlist)))
+   if ((ret = getattlist(grp, varid, &var, &attlist)))
       return ret;
-   /* attlist = getattlist(grp,varid,&var); */
-   /* if(attlist == NULL) */
-   /*    return NC_ENOTVAR; */
 
    /* The length needs to be positive (cast needed for braindead
       systems with signed size_t). */

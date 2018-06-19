@@ -1,8 +1,8 @@
 #!/bin/sh
 
-#PROF=1
-#DEBUG=1
-#MEM=1
+PROF=1
+DEBUG=1
+MEM=1
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
