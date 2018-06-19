@@ -150,6 +150,12 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    if ((retval = nc4_normalize_name(name, norm_name)))
       BAIL(retval);
 
+   /* Read the global atts for this group, if they have not been
+    * read. */
+   if (varid == NC_GLOBAL && !grp->atts_read)
+      if ((retval = nc4_read_grp_atts(grp)))
+         return retval;
+
    /* If this is one of the reserved atts, use nc_get_att_special. */
    if (nc->ext_ncid == ncid && varid == NC_GLOBAL) {
       const NC_reservedatt* ra = NC_findreserved(norm_name);

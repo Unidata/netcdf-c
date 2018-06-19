@@ -2138,6 +2138,9 @@ nc4_read_grp_atts(NC_GRP_INFO_T *grp)
       attid = -1;
    }
 
+   /* Remember that we have read the atts for this group. */
+   grp->atts_read = 1;
+
 exit:
    if (attid > 0) {
       if(H5Aclose(attid) < 0)
