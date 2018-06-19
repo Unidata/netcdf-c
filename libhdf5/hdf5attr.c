@@ -175,9 +175,9 @@ NC4_del_att(int ncid, int varid, const char *name)
    NC_ATT_INFO_T *att;
    NCindex* attlist = NULL;
    hid_t locid = 0, datasetid = 0;
-   int retval = NC_NOERR;
    int i;
    size_t deletedid;
+   int retval;
 
    if (!name)
       return NC_EINVAL;
@@ -203,6 +203,12 @@ NC4_del_att(int ncid, int varid, const char *name)
       if ((retval = NC4_redef(ncid)))
          BAIL(retval);
    }
+
+   /* Do we need to read the atts? */
+   if (varid == NC_GLOBAL)
+      if (grp->atts_not_read)
+         if ((retval = nc4_read_grp_atts(grp)))
+            return retval;
 
    /* Get either the global or a variable attribute list. Also figure
       out the HDF5 location it's attached to. */

@@ -2439,8 +2439,9 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
    }
 
    /* Scan the group for global (i.e. group-level) attributes. */
-   if ((retval = nc4_read_grp_atts(grp)))
-      BAIL(retval);
+   grp->atts_not_read = 1;
+   /* if ((retval = nc4_read_grp_atts(grp))) */
+   /*    BAIL(retval); */
 
    /* when exiting define mode, mark all variable written */
    for (i=0; i<ncindexsize(grp->vars); i++) {
