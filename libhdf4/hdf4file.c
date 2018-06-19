@@ -645,6 +645,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    for (a = 0; a < num_gatts; a++)
       if ((retval = hdf4_read_att(h5, NULL, a)))
          break;
+   h5->root_grp->atts_read = 1;
 
    /* Read each dataset. */
    if (!retval)
