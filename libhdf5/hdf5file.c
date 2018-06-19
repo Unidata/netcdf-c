@@ -1801,6 +1801,36 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 }
 
 /**
+ * @internal This function reads all the attributes of a variable.
+ *
+ * @param grp Pointer to the group info.
+ * @param var Pointer to the var info.
+ *
+ * @return NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+{
+   att_iter_info att_info;         /* Custom iteration information */
+
+   /* Check inputs. */
+   assert(grp && var);
+
+   /* Assign var and grp in struct. */
+   att_info.var = var;
+   att_info.grp = grp;
+
+   /* Now read all the attributes of this variable, ignoring the
+      ones that hold HDF5 dimension scale information. */
+   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
+                    att_read_var_callbk, &att_info)) < 0)
+      return NC_EATTMETA;
+
+   return NC_NOERR;
+}
+
+/**
  * @internal This function is called by read_dataset(), (which is called
  * by nc4_rec_read_metadata()) when a netCDF variable is found in the
  * file. This function reads in all the metadata about the var,
@@ -1825,7 +1855,6 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    hid_t access_pid = 0;
    int incr_id_rc = 0;          /* Whether the dataset ID's ref count has been incremented */
    int d;
-   att_iter_info att_info;         /* Custom iteration information */
    H5Z_filter_t filter;
    int num_filters;
    unsigned int cd_values_zip[CD_NELEMS_ZLIB];
@@ -2040,15 +2069,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       }
    }
 
-   /* Now read all the attributes of this variable, ignoring the
-      ones that hold HDF5 dimension scale information. */
-
-   att_info.var = var;
-   att_info.grp = grp;
-
-   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
-                    att_read_var_callbk, &att_info)) < 0)
-      BAIL(NC_EATTMETA);
+   /* Read variable attributes. */
+   if ((retval = nc4_read_var_atts(grp, var)))
+      BAIL(retval);
 
    /* Is this a deflated variable with a chunksize greater than the
     * current cache size? */
@@ -2438,10 +2461,8 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
          BAIL(NC_EHDFERR);
    }
 
-   /* Scan the group for global (i.e. group-level) attributes. */
+   /* Defer the reading of global atts until someone asks for one. */
    grp->atts_not_read = 1;
-   /* if ((retval = nc4_read_grp_atts(grp))) */
-   /*    BAIL(retval); */
 
    /* when exiting define mode, mark all variable written */
    for (i=0; i<ncindexsize(grp->vars); i++) {
