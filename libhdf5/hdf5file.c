@@ -2481,23 +2481,16 @@ exit:
 static int
 check_for_classic_model(NC_GRP_INFO_T *root_grp, int *is_classic)
 {
-   hid_t attid;
+   htri_t attr_exists = -1;
 
    /* Check inputs. */
    assert(!root_grp->parent && is_classic);
 
    /* If this attribute exists in the root group, then classic model
     * is in effect. */
-   if ((attid = H5Aopen_name(root_grp->hdf_grpid, NC3_STRICT_ATT_NAME)) < 0)
-   {
-      *is_classic = 0;
-   }
-   else
-   {
-      *is_classic = 1;
-      if (H5Aclose(attid) < 0)
-         return NC_EHDFERR;
-   }
+   if ((attr_exists = H5Aexists(root_grp->hdf_grpid, NC3_STRICT_ATT_NAME)) < 0)
+      return NC_EHDFERR;
+   *is_classic = attr_exists ? 1 : 0;
 
    return NC_NOERR;
 }
@@ -2643,18 +2636,18 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    } else if ((nc4_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
       BAIL(NC_EHDFERR);
 
-   /* Check for classic model attribute. */
-   if ((retval = check_for_classic_model(nc4_info->root_grp, &is_classic)))
-      BAIL(retval);
-   if (is_classic)
-      nc4_info->cmode |= NC_CLASSIC_MODEL;
-
    /* Now read in all the metadata. Some types and dimscale
     * information may be difficult to resolve here, if, for example, a
     * dataset of user-defined type is encountered before the
     * definition of that type. */
    if ((retval = nc4_rec_read_metadata(nc4_info->root_grp)))
       BAIL(retval);
+
+   /* Check for classic model attribute. */
+   if ((retval = check_for_classic_model(nc4_info->root_grp, &is_classic)))
+      BAIL(retval);
+   if (is_classic)
+      nc4_info->cmode |= NC_CLASSIC_MODEL;
 
    /* Now figure out which netCDF dims are indicated by the dimscale
     * information. */
