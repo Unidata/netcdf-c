@@ -82,6 +82,7 @@ main(int argc, char **argv)
       /* Check the contents. Then define a new variable. Since it's
        * netcdf-4, nc_enddef isn't required - it's called
        * automatically. */
+      hdf5_set_log_level(3);
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
       if (ndims != 2 || nvars != 2 || natts != 0 || unlimdimid != -1) ERR;
