@@ -2083,8 +2083,8 @@ exit:
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
 */
-static int
-read_grp_atts(NC_GRP_INFO_T *grp)
+int
+nc4_read_grp_atts(NC_GRP_INFO_T *grp)
 {
    hid_t attid = -1;
    hsize_t num_obj, i;
@@ -2436,7 +2436,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
    }
 
    /* Scan the group for global (i.e. group-level) attributes. */
-   if ((retval = read_grp_atts(grp)))
+   if ((retval = nc4_read_grp_atts(grp)))
       BAIL(retval);
 
    /* when exiting define mode, mark all variable written */
