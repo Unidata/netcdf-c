@@ -2139,7 +2139,7 @@ nc4_read_grp_atts(NC_GRP_INFO_T *grp)
    }
 
    /* Remember that we have read the atts for this group. */
-   grp->atts_read = 1;
+   grp->atts_not_read = 0;
 
 exit:
    if (attid > 0) {
@@ -3060,6 +3060,11 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    }
    if (nattsp)
    {
+      /* Do we need to read the atts? */
+      if (grp->atts_not_read)
+         if ((retval = nc4_read_grp_atts(grp)))
+            return retval;
+
       *nattsp = ncindexcount(grp->att);
    }
 

@@ -281,7 +281,7 @@ typedef struct NC_GRP_INFO
    hid_t hdf_grpid;
    struct NC_HDF5_FILE_INFO *nc4_info;
    struct NC_GRP_INFO *parent;
-   int atts_read;
+   int atts_not_read;
    NCindex* children;		/* NCindex<struct NC_GRP_INFO*> */
    NCindex* dim;		/* NCindex<NC_DIM_INFO_T> * */
    NCindex* att;		/* NCindex<NC_ATT_INFO_T> * */
