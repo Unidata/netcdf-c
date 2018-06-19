@@ -121,8 +121,8 @@ TESTS += run_par_test.sh
 endif
 
 if ENABLE_METADATA_PERF
-check_PROGRAMS += bigmeta openbigmeta
-TESTS += perftest.sh
+check_PROGRAMS += bigmeta openbigmeta tst_attsperf
+TESTS += tst_attsperf perftest.sh
 endif
 
 EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh			\

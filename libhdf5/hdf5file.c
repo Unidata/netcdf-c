@@ -2073,8 +2073,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    }
 
    /* Read variable attributes. */
-   if ((retval = nc4_read_var_atts(grp, var)))
-      BAIL(retval);
+   var->atts_not_read = 1;
+   /* if ((retval = nc4_read_var_atts(grp, var))) */
+   /*    BAIL(retval); */
 
    /* Is this a deflated variable with a chunksize greater than the
     * current cache size? */
@@ -2466,6 +2467,8 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 
    /* Defer the reading of global atts until someone asks for one. */
    grp->atts_not_read = 1;
+   /* if ((retval = nc4_read_grp_atts(grp))) */
+   /*    return retval; */
 
    /* when exiting define mode, mark all variable written */
    for (i=0; i<ncindexsize(grp->vars); i++) {
