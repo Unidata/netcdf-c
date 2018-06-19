@@ -1827,6 +1827,9 @@ nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
                     att_read_var_callbk, &att_info)) < 0)
       return NC_EATTMETA;
 
+   /* Remember that we have read the atts for this var. */
+   var->atts_not_read = 0;
+
    return NC_NOERR;
 }
 
