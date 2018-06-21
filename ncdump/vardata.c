@@ -473,7 +473,7 @@ print_rows(
 	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, (void *)valp));
 
 	/* Test if we should treat array of chars as strings along last dimension  */
-	if(vp->type == NC_CHAR && (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
+	if(vp->type == NC_CHAR && (vp->fmt == 0 || NCSTREQ(vp->fmt,"%s") || NCSTREQ(vp->fmt,""))) {
 	    pr_tvals(vp, ncols, vals, cor);
 	} else {			/* for non-text variables */
 	    for(i=0; i < d0 - 1; i++) {
@@ -766,7 +766,7 @@ vardatax(
 	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, vals) );
 	/* Test if we should treat array of chars as a string  */
 	if(vp->type == NC_CHAR &&
-	   (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
+	   (vp->fmt == 0 || NCSTREQ(vp->fmt,"%s") || NCSTREQ(vp->fmt,""))) {
 	    pr_tvalsx(vp, ncols, 0, lastrow, (char *) vals);
 	} else {
 	    pr_any_valsx(vp, ncols, 0, lastrow, vals);
