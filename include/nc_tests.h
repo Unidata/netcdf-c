@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "nc_logging.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
