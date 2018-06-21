@@ -381,6 +381,7 @@ OPTION(ENABLE_MMAP "Use MMAP." ON)
 # Option to use examples.
 OPTION(ENABLE_EXAMPLES "Build Examples" ON)
 
+
 # Option Logging, only valid for netcdf4.
 OPTION(ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
@@ -524,6 +525,18 @@ ELSE()
   SET(USE_HDF4 OFF)
   SET(ENABLE_HDF4_FILE_TESTS OFF)
   SET(ENABLE_HDF4 OFF)
+ENDIF()
+
+# Option Logging, only valid for netcdf4.
+OPTION(ENABLE_LOGGING "Enable Logging." OFF)
+IF(ENABLE_LOGGING)
+  ADD_DEFINITIONS(-DLOGGING)
+  ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
+  SET(LOGGING ON)
+ENDIF()
+OPTION(ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
+IF(ENABLE_NETCDF_$ AND (NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC) OR ENABLE_LOGGING)
+  ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
 ENDIF()
 
 # Option to allow for strict null file padding.
