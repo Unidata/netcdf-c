@@ -39,7 +39,7 @@
  * @author Dennis Heimbigner
  */
 static int
-nc4_get_att_special(NC_HDF5_FILE_INFO_T* h5, const char* name,
+nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
                     nc_type* filetypep, nc_type mem_type, size_t* lenp,
                     int* attnump, void* data)
 {
@@ -114,7 +114,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_ATT_INFO_T *att = NULL;
    NC_VAR_INFO_T *var;
    int my_attnum = -1;
@@ -350,7 +350,7 @@ NC4_inq_attname(int ncid, int varid, int attnum, char *name)
 {
    NC *nc;
    NC_ATT_INFO_T *att;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    int retval = NC_NOERR;
 
    LOG((2, "nc_inq_attname: ncid 0x%x varid %d attnum %d",

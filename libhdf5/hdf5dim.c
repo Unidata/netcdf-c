@@ -42,7 +42,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_DIM_INFO_T *dim;
    char norm_name[NC_MAX_NAME + 1];
    int retval = NC_NOERR;
@@ -131,7 +131,7 @@ int
 NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp, *dim_grp;
    NC_DIM_INFO_T *dim;
    int ret = NC_NOERR;
@@ -205,7 +205,7 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    NC *nc;
    NC_GRP_INFO_T *grp;
    NC_DIM_INFO_T *dim, *tmpdim;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
 
