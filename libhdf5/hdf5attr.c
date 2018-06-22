@@ -116,8 +116,6 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
       return retval;
 
    /* Get the list of attributes. */
-   /* if (!(list = getattlist(grp,varid,&var))) */
-   /*    return NC_ENOTVAR; */
    if ((retval = getattlist(grp, varid, &var, &list)))
       return retval;
 
@@ -230,8 +228,6 @@ NC4_del_att(int ncid, int varid, const char *name)
    }
 
    /* Get either the global or a variable attribute list. */
-   /* if (!(attlist = getattlist(grp,varid,NULL))) */
-   /*    return NC_ENOTVAR; */
    if ((retval = getattlist(grp, varid, &var, &attlist)))
       return retval;
 
