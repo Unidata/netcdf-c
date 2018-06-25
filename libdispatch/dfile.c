@@ -64,6 +64,14 @@ extern int NC_initialized; /**< True when dispatch table is initialized. */
  * H5Fis_hdf5, use the complete HDF5 magic number */
 static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
 
+#ifdef USE_NETCDF4
+/* User-defined formats. */
+NC_Dispatch *UDF0_dispatch_table = NULL;
+char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
+NC_Dispatch *UDF1_dispatch_table = NULL;
+char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
+#endif /* USE_NETCDF4 */
+
 /** \defgroup datasets NetCDF File and Data I/O
 
 NetCDF opens datasets as files or remote access URLs.
@@ -100,6 +108,93 @@ interfaces, the rest of this chapter presents a detailed description
 of the interfaces for these operations.
 */
 
+#ifdef USE_NETCDF4
+/**
+ * Add handling of user-defined format.
+ *
+ * @param mode_flag NC_UDF0 or NC_UDF1
+ * @param dispatch_table Pointer to dispatch table to use for this user format.
+ * @param magic_number Magic number used to identify file. Ignored if
+ * NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+ * @ingroup datasets
+ */
+int
+nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number)
+{
+   /* Check inputs. */
+   if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
+      return NC_EINVAL;
+   if (!dispatch_table)
+      return NC_EINVAL;
+   if (magic_number && strlen(magic_number) > NC_MAX_MAGIC_NUMBER_LEN)
+      return NC_EINVAL;      
+
+   /* Retain a pointer to the dispatch_table and a copy of the magic
+    * number, if one was provided. */
+   switch(mode_flag)
+   {
+   case NC_UDF0:
+      UDF0_dispatch_table = dispatch_table;
+      if (magic_number)
+         strncpy(UDF0_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+      break;
+   case NC_UDF1:
+      UDF1_dispatch_table = dispatch_table;
+      if (magic_number)
+         strncpy(UDF1_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+      break;
+   }
+   
+   return NC_NOERR;
+}
+
+/**
+ * Inquire about user-defined format.
+ *
+ * @param mode_flag NC_UDF0 or NC_UDF1
+ * @param dispatch_table Pointer that gets pointer to dispatch table
+ * to use for this user format, or NULL if this user-defined format is
+ * not defined. Ignored if NULL.
+ * @param magic_number Pointer that gets magic number used to identify
+ * file, if one has been set. Magic number will be of max size
+ * NC_MAX_MAGIC_NUMBER_LEN. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+ * @ingroup datasets
+ */
+int
+nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number)
+{
+   /* Check inputs. */
+   if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
+      return NC_EINVAL;
+
+   switch(mode_flag)
+   {
+   case NC_UDF0:
+      if (dispatch_table)
+         *dispatch_table = UDF0_dispatch_table;
+      if (magic_number)
+         strncpy(magic_number, UDF0_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+      break;
+   case NC_UDF1:
+      if (dispatch_table)
+         *dispatch_table = UDF1_dispatch_table;
+      if (magic_number)
+         strncpy(magic_number, UDF1_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+      break;
+   }
+
+   return NC_NOERR;
+}
+#endif /* USE_NETCDF4 */
+
 /*!
   Interpret the magic number found in the header of a netCDF file.
   This function interprets the magic number/string contained in the header of a netCDF file and sets the appropriate NC_FORMATX flags.
@@ -121,6 +216,23 @@ NC_interpret_magic_number(char* magic, int* model, int* version)
     /* Look at the magic number */
     *model = 0;
     *version = 0;
+#ifdef USE_NETCDF4
+    if (strlen(UDF0_magic_number) && !strncmp(UDF0_magic_number, magic,
+                                              strlen(UDF0_magic_number)))
+    {
+	*model = NC_FORMATX_UDF0;
+	*version = 6; /* redundant */
+	goto done;
+    }
+    if (strlen(UDF1_magic_number) && !strncmp(UDF1_magic_number, magic,
+                                              strlen(UDF1_magic_number)))
+    {
+	*model = NC_FORMATX_UDF1;
+	*version = 7; /* redundant */
+	goto done;
+    }
+#endif /* USE_NETCDF4 */
+
     /* Use the complete magic number string for HDF5 */
     if(memcmp(magic,HDF5_SIGNATURE,sizeof(HDF5_SIGNATURE))==0) {
 	*model = NC_FORMATX_NC4;
@@ -2154,6 +2266,27 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 	} else
 	    nullfree(newpath);
     }
+
+#ifdef USE_NETCDF4
+   /* Check for use of user-defined format 0. */
+   if (cmode & NC_UDF0)
+   {
+      if (!UDF0_dispatch_table)
+         return NC_EINVAL;
+      model = NC_FORMATX_UDF0;
+      dispatcher = UDF0_dispatch_table;
+   }
+
+   /* Check for use of user-defined format 1. */
+   if (cmode & NC_UDF1)
+   {
+      if (!UDF1_dispatch_table)
+         return NC_EINVAL;
+      model = NC_FORMATX_UDF1;
+      dispatcher = UDF1_dispatch_table;
+   }
+#endif /* USE_NETCDF4 */
+   
     if(model == 0) {
 	version = 0;
 	/* Try to find dataset type */
@@ -2207,7 +2340,8 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
    }
 
    /* Force flag consistentcy */
-   if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4)
+   if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4 ||
+      model == NC_FORMATX_UDF0 || model == NC_FORMATX_UDF1)
       cmode |= NC_NETCDF4;
    else if(model == NC_FORMATX_DAP2) {
       cmode &= ~NC_NETCDF4;
@@ -2273,6 +2407,14 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
          dispatcher = HDF4_dispatch_table;
          break;
 #endif
+#ifdef USE_NETCDF4
+      case NC_FORMATX_UDF0:
+         dispatcher = UDF0_dispatch_table;
+         break;
+      case NC_FORMATX_UDF1:
+         dispatcher = UDF1_dispatch_table;
+         break;
+#endif /* USE_NETCDF4 */         
       case NC_FORMATX_NC3:
          dispatcher = NC3_dispatch_table;
          break;

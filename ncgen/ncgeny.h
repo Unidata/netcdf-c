@@ -106,7 +106,7 @@ extern int ncgdebug;
 
 union YYSTYPE
 {
-#line 145 "ncgen.y" /* yacc.c:1909  */
+#line 147 "ncgen.y" /* yacc.c:1909  */
 
 Symbol* sym;
 unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
