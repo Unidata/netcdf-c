@@ -25,9 +25,9 @@
 extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /* From nc4mem.c */
-extern int NC4_open_image_file(NC_HDF5_FILE_INFO_T* h5);
-extern int NC4_create_image_file(NC_HDF5_FILE_INFO_T* h5, size_t);
-extern int NC4_extract_file_image(NC_HDF5_FILE_INFO_T* h5);
+extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
+extern int NC4_create_image_file(NC_FILE_INFO_T* h5, size_t);
+extern int NC4_extract_file_image(NC_FILE_INFO_T* h5);
 
 /** @internal When we have open objects at file close, should
     we log them or print to stdout. Default is to log. */
@@ -123,7 +123,7 @@ NC_findreserved(const char* name)
  * @author Ed Hartnett
 */
 static int
-get_netcdf_type(NC_HDF5_FILE_INFO_T *h5, hid_t native_typeid,
+get_netcdf_type(NC_FILE_INFO_T *h5, hid_t native_typeid,
                 nc_type *xtype)
 {
    NC_TYPE_INFO_T *type;
@@ -528,7 +528,7 @@ typedef struct NC4_rec_read_metadata_ud
 /* Forward */
 static int NC4_enddef(int ncid);
 static int nc4_rec_read_metadata(NC_GRP_INFO_T *grp);
-static void dumpopenobjects(NC_HDF5_FILE_INFO_T* h5);
+static void dumpopenobjects(NC_FILE_INFO_T* h5);
 
 /**
  * @internal This function will write all changed metadata, and
@@ -540,7 +540,7 @@ static void dumpopenobjects(NC_HDF5_FILE_INFO_T* h5);
  * @author Ed Hartnett
 */
 static int
-sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
+sync_netcdf4_file(NC_FILE_INFO_T *h5)
 {
    int retval;
 
@@ -599,7 +599,7 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
  * @author Ed Hartnett
 */
 static int
-close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort, int extractmem)
+close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
 {
    int retval = NC_NOERR;
 
@@ -663,7 +663,7 @@ exit:
 }
 
 static void
-dumpopenobjects(NC_HDF5_FILE_INFO_T* h5)
+dumpopenobjects(NC_FILE_INFO_T* h5)
 {
       int nobjs;
 
@@ -872,7 +872,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
    unsigned flags;
    FILE *fp;
    int retval = NC_NOERR;
-   NC_HDF5_FILE_INFO_T* nc4_info = NULL;
+   NC_FILE_INFO_T* nc4_info = NULL;
 
 #ifdef USE_PARALLEL4
    NC_MPI_INFO* mpiinfo = NULL;
@@ -1369,7 +1369,7 @@ dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
  * @author Ed Hartnett
 */
 static int
-get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
+get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
                NC_TYPE_INFO_T **type_info)
 {
    htri_t is_str, equal = 0;
@@ -1801,6 +1801,39 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 }
 
 /**
+ * @internal This function reads all the attributes of a variable.
+ *
+ * @param grp Pointer to the group info.
+ * @param var Pointer to the var info.
+ *
+ * @return NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+{
+   att_iter_info att_info;         /* Custom iteration information */
+
+   /* Check inputs. */
+   assert(grp && var);
+
+   /* Assign var and grp in struct. */
+   att_info.var = var;
+   att_info.grp = grp;
+
+   /* Now read all the attributes of this variable, ignoring the
+      ones that hold HDF5 dimension scale information. */
+   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
+                    att_read_var_callbk, &att_info)) < 0)
+      return NC_EATTMETA;
+
+   /* Remember that we have read the atts for this var. */
+   var->atts_not_read = 0;
+
+   return NC_NOERR;
+}
+
+/**
  * @internal This function is called by read_dataset(), (which is called
  * by nc4_rec_read_metadata()) when a netCDF variable is found in the
  * file. This function reads in all the metadata about the var,
@@ -1825,7 +1858,6 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    hid_t access_pid = 0;
    int incr_id_rc = 0;          /* Whether the dataset ID's ref count has been incremented */
    int d;
-   att_iter_info att_info;         /* Custom iteration information */
    H5Z_filter_t filter;
    int num_filters;
    unsigned int cd_values_zip[CD_NELEMS_ZLIB];
@@ -2040,15 +2072,10 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       }
    }
 
-   /* Now read all the attributes of this variable, ignoring the
-      ones that hold HDF5 dimension scale information. */
-
-   att_info.var = var;
-   att_info.grp = grp;
-
-   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
-                    att_read_var_callbk, &att_info)) < 0)
-      BAIL(NC_EATTMETA);
+   /* Read variable attributes. */
+   var->atts_not_read = 1;
+   /* if ((retval = nc4_read_var_atts(grp, var))) */
+   /*    BAIL(retval); */
 
    /* Is this a deflated variable with a chunksize greater than the
     * current cache size? */
@@ -2083,8 +2110,8 @@ exit:
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
 */
-static int
-read_grp_atts(NC_GRP_INFO_T *grp)
+int
+nc4_read_grp_atts(NC_GRP_INFO_T *grp)
 {
    hid_t attid = -1;
    hsize_t num_obj, i;
@@ -2137,6 +2164,9 @@ read_grp_atts(NC_GRP_INFO_T *grp)
       H5Aclose(attid);
       attid = -1;
    }
+
+   /* Remember that we have read the atts for this group. */
+   grp->atts_not_read = 0;
 
 exit:
    if (attid > 0) {
@@ -2393,7 +2423,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
       iter_index = H5_INDEX_CRT_ORDER;
    else
    {
-      NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
+      NC_FILE_INFO_T *h5 = grp->nc4_info;
 
       /* Without creation ordering, file must be read-only. */
       if (!h5->no_write)
@@ -2435,9 +2465,10 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
          BAIL(NC_EHDFERR);
    }
 
-   /* Scan the group for global (i.e. group-level) attributes. */
-   if ((retval = read_grp_atts(grp)))
-      BAIL(retval);
+   /* Defer the reading of global atts until someone asks for one. */
+   grp->atts_not_read = 1;
+   /* if ((retval = nc4_read_grp_atts(grp))) */
+   /*    return retval; */
 
    /* when exiting define mode, mark all variable written */
    for (i=0; i<ncindexsize(grp->vars); i++) {
@@ -2466,6 +2497,33 @@ exit:
 }
 
 /**
+ * @internal Check for the attribute that indicates that netcdf
+ * classic model is in use.
+ *
+ * @param root_grp pointer to the group info for the root group of the
+ * file.
+ *
+ * @return NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+static int
+check_for_classic_model(NC_GRP_INFO_T *root_grp, int *is_classic)
+{
+   htri_t attr_exists = -1;
+
+   /* Check inputs. */
+   assert(!root_grp->parent && is_classic);
+
+   /* If this attribute exists in the root group, then classic model
+    * is in effect. */
+   if ((attr_exists = H5Aexists(root_grp->hdf_grpid, NC3_STRICT_ATT_NAME)) < 0)
+      return NC_EHDFERR;
+   *is_classic = attr_exists ? 1 : 0;
+
+   return NC_NOERR;
+}
+
+/**
  * @internal Open a netcdf-4 file. Things have already been kicked off
  * in ncfunc.c in nc_open, but here the netCDF-4 part of opening a
  * file is handled.
@@ -2484,7 +2542,8 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    hid_t fapl_id = H5P_DEFAULT;
    int retval;
    unsigned flags;
-   NC_HDF5_FILE_INFO_T* nc4_info = NULL;
+   NC_FILE_INFO_T *nc4_info = NULL;
+   int is_classic;
 
 #ifdef USE_PARALLEL4
    NC_MPI_INFO* mpiinfo = NULL;
@@ -2612,6 +2671,12 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if ((retval = nc4_rec_read_metadata(nc4_info->root_grp)))
       BAIL(retval);
 
+   /* Check for classic model attribute. */
+   if ((retval = check_for_classic_model(nc4_info->root_grp, &is_classic)))
+      BAIL(retval);
+   if (is_classic)
+      nc4_info->cmode |= NC_CLASSIC_MODEL;
+
    /* Now figure out which netCDF dims are indicated by the dimscale
     * information. */
    if ((retval = nc4_rec_match_dimscales(nc4_info->root_grp)))
@@ -2720,7 +2785,7 @@ int
 NC4_set_fill(int ncid, int fillmode, int *old_modep)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T* nc4_info;
 
    LOG((2, "%s: ncid 0x%x fillmode %d", __func__, ncid, fillmode));
 
@@ -2758,7 +2823,7 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 int
 NC4_redef(int ncid)
 {
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T* nc4_info;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
@@ -2820,7 +2885,7 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
 static int NC4_enddef(int ncid)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T* nc4_info;
    NC_GRP_INFO_T *grp;
    int i;
 
@@ -2858,7 +2923,7 @@ NC4_sync(int ncid)
 {
    NC *nc;
    int retval;
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T* nc4_info;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
@@ -2898,7 +2963,7 @@ NC4_abort(int ncid)
    int delete_file = 0;
    char path[NC_MAX_NAME + 1];
    int retval = NC_NOERR;
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T* nc4_info;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
@@ -2942,7 +3007,7 @@ NC4_close(int ncid, void* params)
 {
    NC_GRP_INFO_T *grp;
    NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    int retval;
    int inmemory;
 
@@ -2992,7 +3057,7 @@ int
 NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    int retval;
    int i;
@@ -3016,6 +3081,11 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    }
    if (nattsp)
    {
+      /* Do we need to read the atts? */
+      if (grp->atts_not_read)
+         if ((retval = nc4_read_grp_atts(grp)))
+            return retval;
+
       *nattsp = ncindexcount(grp->att);
    }
 
@@ -3050,7 +3120,7 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
  * @author Ed Hartnett
 */
 int
-nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
+nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5)
 {
    assert(h5);
    LOG((3, "%s", __func__));
