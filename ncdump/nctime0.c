@@ -99,7 +99,7 @@ bool_t
 is_bounds_var(char *varname, int *pargrpidp, int *parvaridp) {
     bounds_node_t *bp = bounds_list.first;
     for(; bp; bp = bp->next) {
-	if(STREQ(bp->bounds_name, varname)) {
+	if(NCSTREQ(bp->bounds_name, varname)) {
 	    *pargrpidp = bp->ncid;
 	    *parvaridp = bp->varid;
 	    return true;
@@ -160,11 +160,11 @@ is_valid_time_unit(const char *units) {
 /* Return true only if this is a "bounds" attribute */
 bool_t
 is_bounds_att(ncatt_t *attp) {
-    if(attp->type == NC_CHAR && attp->valgp && STREQ((char *)attp->name, "bounds")) {
+    if(attp->type == NC_CHAR && attp->valgp && NCSTREQ((char *)attp->name, "bounds")) {
 	return true;
     }
 #ifdef USE_NETCDF4
-    if(attp->type == NC_STRING && attp->valgp && STREQ((char *)attp->name, "bounds")) {
+    if(attp->type == NC_STRING && attp->valgp && NCSTREQ((char *)attp->name, "bounds")) {
 	return true;
     }
 #endif /* USE_NETCDF4 */

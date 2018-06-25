@@ -105,5 +105,44 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+#define DIM_NAME "Distance_from_Mayo"
+#define VAR_NAME_2 "Rocky_Road_to_Dublin"
+#define NDIMS1 1
+#define NUM_RECORDS 3
+   printf("**** testing extending var along unlimited dim with no coord var...");
+   {
+      int varid, ncid, dimid;
+      int ndims, nvars, natts, unlimdimid;
+      size_t dim_len_in, index;
+      int data = TEST_VAL_42;
+
+      /* Create the test file with one var, one unlimited dim. */
+      if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM_NAME, NC_UNLIMITED, &dimid)) ERR;
+      if (nc_def_var(ncid, VAR_NAME_2, NC_INT, NDIMS1, &dimid, &varid)) ERR;
+
+      /* Write some records. */
+      for (index = 0; index < NUM_RECORDS; index++)
+         if (nc_put_var1_int(ncid, varid, &index, &data)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
+      if (ndims != 1 || nvars != 1 || natts != 0 || unlimdimid != 0) ERR;
+      if (nc_inq_dim(ncid, dimid, NULL, &dim_len_in)) ERR;
+      if (dim_len_in != NUM_RECORDS) ERR;
+
+      /* Now add more records. */
+      for (index = 3; index < NUM_RECORDS * 2; index++)
+         if (nc_put_var1_int(ncid, varid, &index, &data)) ERR;
+      if (nc_inq_dim(ncid, dimid, NULL, &dim_len_in)) ERR;
+
+      if (dim_len_in != NUM_RECORDS * 2) ERR;
+
+      /* Close the file. */
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
