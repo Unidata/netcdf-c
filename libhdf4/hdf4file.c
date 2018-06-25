@@ -90,7 +90,7 @@ hdf4_rec_grp_del(NC_GRP_INFO_T *grp)
  * @author Ed Hartnett
  */
 static int
-hdf4_type_info(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid, nc_type* xtypep,
+hdf4_type_info(NC_FILE_INFO_T *h5, int32 hdf4_typeid, nc_type* xtypep,
                int *endiannessp, size_t *type_sizep, char *type_name)
 {
    int t = 0;
@@ -263,7 +263,7 @@ nc4_set_var_type(nc_type xtype, int endianness, size_t type_size, char *type_nam
  * @author Ed Hartnett
  */
 static int
-hdf4_read_att(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int a)
+hdf4_read_att(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int a)
 {
    NC_HDF4_FILE_INFO_T *hdf4_file;
    NC_ATT_INFO_T *att;   
@@ -342,7 +342,7 @@ hdf4_read_att(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int a)
  * @author Ed Hartnett
  */
 static int
-hdf4_read_dim(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int rec_dim_len, int d)
+hdf4_read_dim(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int rec_dim_len, int d)
 {
    NC_VAR_HDF4_INFO_T *hdf4_var;
    NC_DIM_INFO_T *dim = NULL;
@@ -464,7 +464,7 @@ nc4_var_list_add_full(NC_GRP_INFO_T* grp, const char* name, int ndims, nc_type x
  * @author Ed Hartnett
  */
 static int
-hdf4_read_var(NC_HDF5_FILE_INFO_T *h5, int v)
+hdf4_read_var(NC_FILE_INFO_T *h5, int v)
 {
    NC_HDF4_FILE_INFO_T *hdf4_file;
    NC_VAR_INFO_T *var;
@@ -599,12 +599,12 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
              int use_parallel, void *parameters, NC_Dispatch *dispatch,
              NC *nc_file)
 {
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_HDF4_FILE_INFO_T *hdf4_file;
    int32 num_datasets, num_gatts;
    int32 sdid;
    int v, a;
-   NC_HDF5_FILE_INFO_T* nc4_info = NULL;
+   NC_FILE_INFO_T* nc4_info = NULL;
    int retval = NC_NOERR;
 
    /* Check inputs. */
@@ -679,7 +679,7 @@ NC_HDF4_close(int ncid)
 {
    NC_GRP_INFO_T *grp;
    NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_HDF4_FILE_INFO_T *hdf4_file;
    int retval;
 
