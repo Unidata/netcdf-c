@@ -752,6 +752,11 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    {
       if (nattsp)
       {
+         /* Do we need to read the atts? */
+         if (grp->atts_not_read)
+            if ((retval = nc4_read_grp_atts(grp)))
+               return retval;
+
 	 *nattsp = ncindexcount(grp->att);
       }
       return NC_NOERR;
@@ -775,6 +780,9 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
          dimidsp[d] = var->dimids[d];
    if (nattsp)
    {
+      if (var->atts_not_read)
+         if ((retval = nc4_read_var_atts(grp, var)))
+            return retval;
       *nattsp = ncindexcount(var->att);
    }
 
@@ -1673,7 +1681,8 @@ NC4_put_vara(int ncid, int varid, const size_t *startp,
    if (!(nc = nc4_find_nc_file(ncid, NULL)))
       return NC_EBADID;
 
-   return nc4_put_vara(nc, ncid, varid, startp, countp, memtype, 0, (void *)op);
+   return nc4_put_vars(nc, ncid, varid, startp, countp, NULL, memtype,
+                       (void *)op);
 }
 
 /**
@@ -1705,22 +1714,8 @@ NC4_get_vara(int ncid, int varid, const size_t *startp,
       return NC_EBADID;
 
    /* Get the data. */
-   return nc4_get_vara(nc, ncid, varid, startp, countp, memtype,
-                       0, (void *)ip);
-}
-
-
-/* Provide a temporary hook
-to choose old NCDEFAULT methods vs new versions
-of get/put vars
-*/
-/* Temporary flag to choose default vs not put/get vars */
-static int defaultvars = 0;
-
-void
-nc4_set_default_vars(int tf)
-{
-    defaultvars = (tf ? 1 : 0);
+   return nc4_get_vars(nc, ncid, varid, startp, countp, NULL, memtype,
+                       (void *)ip);
 }
 
 /**
@@ -1746,13 +1741,11 @@ NC4_put_vars(int ncid, int varid, const size_t *startp,
 {
    NC *nc;
 
-   if(defaultvars)
-	return NCDEFAULT_put_vars(ncid,varid,startp,countp,stridep,op,memtype);
-
    if (!(nc = nc4_find_nc_file(ncid, NULL)))
       return NC_EBADID;
 
-   return nc4_put_vars(nc, ncid, varid, startp, countp, stridep, memtype, 0, (void *)op);
+   return nc4_put_vars(nc, ncid, varid, startp, countp, stridep, memtype,
+                       (void *)op);
 }
 
 /**
@@ -1779,9 +1772,6 @@ NC4_get_vars(int ncid, int varid, const size_t *startp,
    NC *nc;
    NC_HDF5_FILE_INFO_T* h5;
 
-   if(defaultvars)
-	return NCDEFAULT_get_vars(ncid,varid,startp,countp,stridep,ip,memtype);
-
    LOG((2, "%s: ncid 0x%x varid %d memtype %d", __func__, ncid, varid,
         memtype));
 
@@ -1790,5 +1780,5 @@ NC4_get_vars(int ncid, int varid, const size_t *startp,
 
    /* Get the data. */
    return nc4_get_vars(nc, ncid, varid, startp, countp, stridep, memtype,
-                       0, (void *)ip);
+                       (void *)ip);
 }

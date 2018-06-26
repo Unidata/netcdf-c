@@ -1801,6 +1801,39 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 }
 
 /**
+ * @internal This function reads all the attributes of a variable.
+ *
+ * @param grp Pointer to the group info.
+ * @param var Pointer to the var info.
+ *
+ * @return NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+{
+   att_iter_info att_info;         /* Custom iteration information */
+
+   /* Check inputs. */
+   assert(grp && var);
+
+   /* Assign var and grp in struct. */
+   att_info.var = var;
+   att_info.grp = grp;
+
+   /* Now read all the attributes of this variable, ignoring the
+      ones that hold HDF5 dimension scale information. */
+   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
+                    att_read_var_callbk, &att_info)) < 0)
+      return NC_EATTMETA;
+
+   /* Remember that we have read the atts for this var. */
+   var->atts_not_read = 0;
+
+   return NC_NOERR;
+}
+
+/**
  * @internal This function is called by read_dataset(), (which is called
  * by nc4_rec_read_metadata()) when a netCDF variable is found in the
  * file. This function reads in all the metadata about the var,
@@ -1825,7 +1858,6 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    hid_t access_pid = 0;
    int incr_id_rc = 0;          /* Whether the dataset ID's ref count has been incremented */
    int d;
-   att_iter_info att_info;         /* Custom iteration information */
    H5Z_filter_t filter;
    int num_filters;
    unsigned int cd_values_zip[CD_NELEMS_ZLIB];
@@ -2040,15 +2072,10 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       }
    }
 
-   /* Now read all the attributes of this variable, ignoring the
-      ones that hold HDF5 dimension scale information. */
-
-   att_info.var = var;
-   att_info.grp = grp;
-
-   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
-                    att_read_var_callbk, &att_info)) < 0)
-      BAIL(NC_EATTMETA);
+   /* Read variable attributes. */
+   var->atts_not_read = 1;
+   /* if ((retval = nc4_read_var_atts(grp, var))) */
+   /*    BAIL(retval); */
 
    /* Is this a deflated variable with a chunksize greater than the
     * current cache size? */
@@ -2083,8 +2110,8 @@ exit:
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
 */
-static int
-read_grp_atts(NC_GRP_INFO_T *grp)
+int
+nc4_read_grp_atts(NC_GRP_INFO_T *grp)
 {
    hid_t attid = -1;
    hsize_t num_obj, i;
@@ -2137,6 +2164,9 @@ read_grp_atts(NC_GRP_INFO_T *grp)
       H5Aclose(attid);
       attid = -1;
    }
+
+   /* Remember that we have read the atts for this group. */
+   grp->atts_not_read = 0;
 
 exit:
    if (attid > 0) {
@@ -2435,9 +2465,10 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
          BAIL(NC_EHDFERR);
    }
 
-   /* Scan the group for global (i.e. group-level) attributes. */
-   if ((retval = read_grp_atts(grp)))
-      BAIL(retval);
+   /* Defer the reading of global atts until someone asks for one. */
+   grp->atts_not_read = 1;
+   /* if ((retval = nc4_read_grp_atts(grp))) */
+   /*    return retval; */
 
    /* when exiting define mode, mark all variable written */
    for (i=0; i<ncindexsize(grp->vars); i++) {
@@ -2466,6 +2497,33 @@ exit:
 }
 
 /**
+ * @internal Check for the attribute that indicates that netcdf
+ * classic model is in use.
+ *
+ * @param root_grp pointer to the group info for the root group of the
+ * file.
+ *
+ * @return NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+static int
+check_for_classic_model(NC_GRP_INFO_T *root_grp, int *is_classic)
+{
+   htri_t attr_exists = -1;
+
+   /* Check inputs. */
+   assert(!root_grp->parent && is_classic);
+
+   /* If this attribute exists in the root group, then classic model
+    * is in effect. */
+   if ((attr_exists = H5Aexists(root_grp->hdf_grpid, NC3_STRICT_ATT_NAME)) < 0)
+      return NC_EHDFERR;
+   *is_classic = attr_exists ? 1 : 0;
+
+   return NC_NOERR;
+}
+
+/**
  * @internal Open a netcdf-4 file. Things have already been kicked off
  * in ncfunc.c in nc_open, but here the netCDF-4 part of opening a
  * file is handled.
@@ -2484,7 +2542,8 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    hid_t fapl_id = H5P_DEFAULT;
    int retval;
    unsigned flags;
-   NC_HDF5_FILE_INFO_T* nc4_info = NULL;
+   NC_HDF5_FILE_INFO_T *nc4_info = NULL;
+   int is_classic;
 
 #ifdef USE_PARALLEL4
    NC_MPI_INFO* mpiinfo = NULL;
@@ -2611,6 +2670,12 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
     * definition of that type. */
    if ((retval = nc4_rec_read_metadata(nc4_info->root_grp)))
       BAIL(retval);
+
+   /* Check for classic model attribute. */
+   if ((retval = check_for_classic_model(nc4_info->root_grp, &is_classic)))
+      BAIL(retval);
+   if (is_classic)
+      nc4_info->cmode |= NC_CLASSIC_MODEL;
 
    /* Now figure out which netCDF dims are indicated by the dimscale
     * information. */
@@ -3016,6 +3081,11 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    }
    if (nattsp)
    {
+      /* Do we need to read the atts? */
+      if (grp->atts_not_read)
+         if ((retval = nc4_read_grp_atts(grp)))
+            return retval;
+
       *nattsp = ncindexcount(grp->att);
    }
 
