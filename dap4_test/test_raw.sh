@@ -3,6 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+set -e
 . ${srcdir}/d4test_common.sh
 
 echo "test_raw.sh:"
@@ -40,7 +41,7 @@ resultclean() {
   fi
 }
 
-mkdir ./results_test_raw
+setresultdir results_test_raw
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINERAW}/*.dmp ; fi
 for f in $F ; do
     echo "testing: $f"

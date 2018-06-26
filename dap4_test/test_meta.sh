@@ -23,7 +23,8 @@ done
 
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINE}/*.d4m ; fi
 
-mkdir ./results_test_meta
+setresultdir results_test_meta
+
 for f in ${F} ; do
     echo "checking: $f"
     if ! ${VG} ${execdir}/test_meta ${DMRTESTFILES}/${f}.dmr ./results_test_meta/${f} ; then
