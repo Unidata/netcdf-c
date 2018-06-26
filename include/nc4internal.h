@@ -180,9 +180,7 @@ typedef struct NC_VAR_INFO
    nc_bool_t written_to;        /* True if variable has data written to it */
    struct NC_TYPE_INFO *type_info;
    hid_t hdf_datasetid;
-#if 0
-   int natts;			/* Use explicit index because there may be gaps in numbers */
-#endif
+   int atts_not_read;           /* If true, the atts have not yet been read. */
    NCindex* att; 		/* NCindex<NC_ATT_INFO_T*> */
    nc_bool_t no_fill;           /* True if no fill value is defined for var */
    void *fill_value;
@@ -281,6 +279,7 @@ typedef struct NC_GRP_INFO
    hid_t hdf_grpid;
    struct NC_HDF5_FILE_INFO *nc4_info;
    struct NC_GRP_INFO *parent;
+   int atts_not_read;
    NCindex* children;		/* NCindex<struct NC_GRP_INFO*> */
    NCindex* dim;		/* NCindex<NC_DIM_INFO_T> * */
    NCindex* att;		/* NCindex<NC_ATT_INFO_T> * */
@@ -348,27 +347,21 @@ extern char* nc4_atomic_name[NC_MAX_ATOMIC_TYPE+1];
 
 /* These functions convert between netcdf and HDF5 types. */
 int nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, size_t *len);
-int nc4_convert_type(const void *src, void *dest,
-		     const nc_type src_type, const nc_type dest_type,
-		     const size_t len, int *range_error,
-		     const void *fill_value, int strict_nc3, int src_long,
-		     int dest_long);
+int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
+                     const nc_type dest_type, const size_t len, int *range_error,
+		     const void *fill_value, int strict_nc3);
 
 /* These functions do HDF5 things. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
-int nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
-		 const size_t *countp, nc_type xtype, int is_long, void *op);
-int nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
-		 const size_t *countp, nc_type xtype, int is_long, void *op);
 int nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
 		 const size_t *countp, const ptrdiff_t* stridep,
-		 nc_type xtype, int is_long, void *op);
+		 nc_type xtype, void *op);
 int nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
 		 const size_t *countp, const ptrdiff_t* stridep,
-		 nc_type xtype, int is_long, void *op);
+		 nc_type xtype, void *op);
 int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
 int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
 int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
@@ -376,6 +369,8 @@ int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
 int nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5);
 int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
+int nc4_read_grp_atts(NC_GRP_INFO_T *grp);
+int nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /* The following functions manipulate the in-memory linked list of
    metadata, without using HDF calls. */
