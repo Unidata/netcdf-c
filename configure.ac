@@ -400,15 +400,15 @@ fi
 # Did the user specify a list of test servers to try for remote tests?
 AC_MSG_CHECKING([which remote test server(s) to use])
 AC_ARG_WITH([testservers],
-              [AS_HELP_STRING([--with-testservers=<host+port>,<host+port>...],
+              [AS_HELP_STRING([--with-testservers=<host:port>,<host:port>...],
                               [Specify the testserver(s) to try for remote tests.])],
             [REMOTETESTSERVERS=$with_testservers], [REMOTETESTSERVERS=no])
 msg="$REMOTETESTSERVERS"
 if test "x$REMOTETESTSERVERS" = xno ; then
-  msg="remotetest.unidata.ucar.edu,jetstream.unidata.ucar.edu (defaults)"
-  REMOTETESTSERVERS=remotetest.unidata.ucar.edu,jetstream.unidata.ucar.edu
+  svclist="149.165.169.123:8080,remotetest.unidata.ucar.edu"
+  REMOTETESTSERVERS="$svclist"
 fi
-AC_MSG_RESULT([$msg])
+AC_MSG_RESULT([$svclist])
 AC_DEFINE_UNQUOTED([REMOTETESTSERVERS], ["$REMOTETESTSERVERS"], [the testservers for remote tests.])
 
 # Set the config.h flags
