@@ -116,6 +116,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_ATT_INFO_T *att = NULL;
+   NC_VAR_INFO_T *var;
    int my_attnum = -1;
    int need_to_convert = 0;
    int range_error = NC_NOERR;
@@ -136,9 +137,9 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
       return retval;
 
    /* Check varid */
-   if (varid != NC_GLOBAL) {
-      NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
-      if(var == NULL)
+   if (varid != NC_GLOBAL)
+   {
+      if (!(var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid)))
          return NC_ENOTVAR;
       assert(var->hdr.id == varid);
    }
@@ -149,6 +150,20 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    /* Normalize name. */
    if ((retval = nc4_normalize_name(name, norm_name)))
       BAIL(retval);
+
+   /* Read the atts for this group/var, if they have not been read. */
+   if (varid == NC_GLOBAL)
+   {
+      if (grp->atts_not_read)
+         if ((retval = nc4_read_grp_atts(grp)))
+            return retval;
+   }
+   else
+   {
+      if (var->atts_not_read)
+         if ((retval = nc4_read_var_atts(grp, var)))
+            return retval;
+   }
 
    /* If this is one of the reserved atts, use nc_get_att_special. */
    if (nc->ext_ncid == ncid && varid == NC_GLOBAL) {
