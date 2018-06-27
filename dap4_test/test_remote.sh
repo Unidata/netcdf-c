@@ -5,6 +5,8 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . ${srcdir}/d4test_common.sh
 
+set -e
+
 echo "test_remote.sh:"
 
 #BIG=1
@@ -54,10 +56,12 @@ test_sequence_2.syn
 test_struct_array.syn
 "
 
+setresultdir results_test_remote
+
 TESTSERVER=`${execdir}/findtestserver4 dap4 d4ts`
 if test "x$TESTSERVER" = x ; then
 echo "***XFAIL: Cannot find d4ts testserver"
-exit 0
+exit 1
 fi
 
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINER}/*.dmp ; fi
@@ -69,18 +73,20 @@ for f in $F ; do
     if test "x$NOCSUM" = x1; then
 	URL="[ucar.checksummode=none]${URL}"
     fi
-    if ! ${VG} ${NCDUMP} "${URL}" > ./results/${f}.dmp; then
+    if ! ${VG} ${NCDUMP} "${URL}" > ./results_test_remote/${f}.dmp; then
         failure "${URL}"
     fi
     if test "x${TEST}" = x1 ; then
-	if ! diff -wBb ${BASELINEREM}/${f}.dmp ./results/${f}.dmp ; then
+	if ! diff -wBb ${BASELINEREM}/${f}.dmp ./results_test_remote/${f}.dmp ; then
 	    failure "diff ${f}.dmp"
 	fi
     elif test "x${RESET}" = x1 ; then
 	echo "${f}:" 
-	cp ./results/${f}.dmp ${BASELINEREM}/${f}.dmp
+	cp ./results_test_remote/${f}.dmp ${BASELINEREM}/${f}.dmp
     fi
 done
+
+rm -fr ./results_test_remote
 
 finish
 

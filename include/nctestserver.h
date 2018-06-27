@@ -5,6 +5,8 @@
 #include <curl/curl.h>
 #include "netcdf.h"
 
+#undef FINDTESTSERVER_DEBUG
+
 #define MAXSERVERURL 4096
 #define TIMEOUT 10 /*seconds*/
 #define BUFSIZE 8192 /*bytes*/
@@ -102,6 +104,10 @@ done:
     return total; /* pretend we captured everything */
 }
 
+/*
+See if a server is responding.
+Return NC_ECURL if the ping fails, NC_NOERR otherwise
+*/
 static int
 ping(const char* url)
 {
@@ -149,7 +155,10 @@ ping(const char* url)
 
 done:
     if(cstat != CURLE_OK) {
-        fprintf(stderr, "curl error: %s", curl_easy_strerror(cstat));
+#ifdef FINDTESTSERVER_DEBUG
+        fprintf(stderr, "curl error: %s; url=%s\n",
+		curl_easy_strerror(cstat),url);
+#endif
 	stat = NC_ECURL;
     }
     if (curl != NULL)

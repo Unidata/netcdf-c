@@ -8,10 +8,10 @@ leakcheck=0
 timing=0
 
 # Figure our dst server; if none, then just stop
-DTS=`${execdir}/findtestserver dap2 dts`
-if test "x$DTS" = "x" ; then
-echo "WARNING: Cannot locate test server for dts"
-exit
+TESTSERVER=`${execdir}/findtestserver dap2 dts`
+if test "x$TESTSERVER" = "x" ; then
+echo "***XFAIL: Cannot locate test server for dts"
+exit 1
 fi
 
 PARAMS="[log]"
@@ -61,14 +61,14 @@ PARAMS="${PARAMS}${CACHE}"
 ##################################################
 
 # For special testing
-REMOTEURLX="$DTS"
+REMOTEURLX="$TESTSERVER"
 REMOTETESTSX="test.03"
 
-REMOTEURLXC="$DTS"
+REMOTEURLXC="$TESTSERVER"
 REMOTETESTSXC="test.03;1;s0,s1"
 
 # These shorter tests are always run
-REMOTEURLS1="$DTS"
+REMOTEURLS1="$TESTSERVER"
 REMOTETESTSS1="\
 test.01 test.02 test.04 test.05 test.07a test.07 \
 test.21 \
@@ -101,7 +101,7 @@ TOOBIGL1="parserBug0001 test.satimage Sat_Images test.32"
 ESCAPEDFAIL="test.dfr1 test.dfr2 test.dfr3 test.GridFile test.PointFile test.SwathFile test.sds6 test.sds7"
 
 # Following tests are to check constraint handling
-REMOTEURLC1="$DTS"
+REMOTEURLC1="$TESTSERVER"
 REMOTETESTSC1="\
 test.01;1;f64 \
 test.02;1;b[1:2:10] \
@@ -130,7 +130,7 @@ argo_all.cdp;1;&location.LATITUDE<1&location.LATITUDE>-1\
 "
 
 # Constrained long tests
-REMOTEURLLC1="$DTS"
+REMOTEURLLC1="$TESTSERVER"
 REMOTETESTSLC1="\
 test.03;2;s1"
 

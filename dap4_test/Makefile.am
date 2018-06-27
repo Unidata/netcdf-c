@@ -6,7 +6,9 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
-TEST_EXTENSIONS = .sh
+#TEST_EXTENSIONS = .sh
+
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/libdap4
@@ -44,8 +46,7 @@ check_PROGRAMS += findtestserver4
 findtestserver4_SOURCES = findtestserver4.c
 if BUILD_UTILITIES
   # relies on ncdump
-  # Disabled until the testserver is stable
-#TESTS += test_remote.sh
+  TESTS += test_remote.sh
 endif
 endif
 
