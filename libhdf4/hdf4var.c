@@ -34,7 +34,7 @@ NC_HDF4_get_vara(int ncid, int varid, const size_t *startp,
                  const size_t *countp, void *ip, int memtype)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T* h5;
+   NC_FILE_INFO_T* h5;
    NC_GRP_INFO_T *grp;
    NC_VAR_HDF4_INFO_T *hdf4_var;   
    NC_VAR_INFO_T *var;
