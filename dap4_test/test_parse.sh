@@ -11,7 +11,8 @@ cd ${DMRTESTFILES}
 F=`ls -1 *.dmr | sed -e 's/[.]dmr//' |tr '\r\n' '  '`
 cd $WD
 
-mkdir ./results_test_parse
+setresultdir results_test_parse
+
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINE}/*.d4p ; fi
 for f in $F ; do
     echo "testing: $f"
