@@ -84,7 +84,7 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var = NULL;
    NC_ATT_INFO_T *att;
    NCindex *list;
@@ -194,7 +194,7 @@ NC4_del_att(int ncid, int varid, const char *name)
    NC *nc;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_ATT_INFO_T *att;
    NCindex* attlist = NULL;
    hid_t locid = 0, datasetid = 0;
@@ -302,7 +302,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var = NULL;
    NCindex* attlist = NULL;
    NC_ATT_INFO_T* att;
