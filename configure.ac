@@ -886,7 +886,7 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
 
 # Check whether we want to enable CDF5 support.
-AC_MSG_CHECKING([whether CDF5 support should be enabled])
+AC_MSG_CHECKING([whether CDF5 support should be disabled])
 AC_ARG_ENABLE([cdf5],
               [AS_HELP_STRING([--disable-cdf5],
                               [build without CDF5 support.])],
