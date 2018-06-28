@@ -886,20 +886,22 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
 
 # Check whether we want to enable CDF5 support.
-AC_MSG_CHECKING([whether CDF5 support should be enabled])
+AC_MSG_CHECKING([whether CDF5 support should be disabled])
 AC_ARG_ENABLE([cdf5],
-              [AS_HELP_STRING([--enable-cdf5],
+              [AS_HELP_STRING([--disable-cdf5],
                               [build without CDF5 support.])],
               [enable_cdf5=${enableval}], [enable_cdf5=auto]
 )
-if test "x${enable_cdf5}" = xyes && test "$ac_cv_sizeof_size_t" -lt "8" ; then
-   dnl unable to support CDF5, but --enable-cdf5 is explicitly set
-   AC_MSG_ERROR([Unable to support CDF5 feature because size_t is less than 4 bytes])
-fi
 if test "$ac_cv_sizeof_size_t" -lt "8" ; then
+   if test "x${enable_cdf5}" = xyes ; then
+      dnl unable to support CDF5, but --enable-cdf5 is explicitly set
+      AC_MSG_ERROR([Unable to support CDF5 feature because size_t is less than 8 bytes])
+   fi
    enable_cdf5=no
 else
-   enable_cdf5=yes
+   if test "x${enable_cdf5}" != xno ; then
+      enable_cdf5=yes
+   fi
 fi
 AC_MSG_RESULT($enable_cdf5)
 
