@@ -306,12 +306,6 @@ ENDIF()
 # Option checks
 ################################
 
-set(ENABLE_CDF5 AUTO CACHE STRING "Enable CDF5 support")
-set_property(CACHE ENABLE_CDF5 PROPERTY STRINGS AUTO ON OFF)
-IF(NOT ENABLE_CDF5 STREQUAL "AUTO" AND NOT ENABLE_CDF5 STREQUAL "ON" AND NOT ENABLE_CDF5 STREQUAL "OFF")
-   MESSAGE(FATAL_ERROR "Invalid value (\"${ENABLE_CDF5}\") used in setting ENABLE_CDF5")
-ENDIF(NOT ENABLE_CDF5 STREQUAL "AUTO" AND NOT ENABLE_CDF5 STREQUAL "ON" AND NOT ENABLE_CDF5 STREQUAL "OFF")
-
 # HDF5 cache variables.
 SET(DEFAULT_CHUNK_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
 SET(DEFAULT_CHUNKS_IN_CACHE 10 CACHE STRING "Default number of chunks in cache.")
@@ -772,6 +766,12 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
+
+# Option to turn on CDF5 support.
+OPTION(ENABLE_CDF5 "Enable CDF5 Support." ON)
+IF(ENABLE_CDF5)
+    SET(USE_CDF5 ON CACHE BOOL "")
+ENDIF(ENABLE_CDF5)
 
 # Option to Build DAP2+DAP4 Clients
 OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
@@ -1292,20 +1292,6 @@ ENDIF(SIZEOF_USHORT)
 CHECK_TYPE_SIZE("_Bool"     SIZEOF__BOOL)
 
 CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
-
-# Check whether to turn on or off CDF5 support.
-IF(SIZEOF_SIZE_T EQUAL 4)
-   IF(ENABLE_CDF5 STREQUAL "ON") # error out if explicitly enabled by user
-      MESSAGE(FATAL_ERROR "Unable to support CDF5 feature because size_t is less than 8 bytes")
-   ENDIF(ENABLE_CDF5 STREQUAL "ON")
-   SET(USE_CDF5 OFF CACHE BOOL "") # cannot support CDF5
-ELSE(SIZEOF_SIZE_T EQUAL 4)
-   IF(ENABLE_CDF5 STREQUAL "OFF") # explicitly disabled by user
-      SET(USE_CDF5 OFF CACHE BOOL "")
-   ELSE(ENABLE_CDF5 STREQUAL "OFF") # explicitly set by user or not set
-      SET(USE_CDF5 ON CACHE BOOL "")
-   ENDIF(ENABLE_CDF5 STREQUAL "OFF")
-ENDIF(SIZEOF_SIZE_T EQUAL 4)
 
 CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)
 IF(SIZEOF_SSIZE_T)
