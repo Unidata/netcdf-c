@@ -71,7 +71,7 @@ add the location of the user-defined format dispatch library include
 file to the CPPFLAGS, and the location of the user-defined format
 dispatch library in LDFLAGS.
 
-Configure netcdf-c with the option --with-udf0=<udf_lib_name>.
+Configure netcdf-c with the option ````--with-udf0=<udf_lib_name>````.
 
 If a magic number is associated with the user-defined format, it can
 be specified with the --with-udf0-magic-number= argument.
