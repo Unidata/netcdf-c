@@ -906,11 +906,8 @@ fi
 AC_MSG_RESULT($enable_cdf5)
 
 if test "x${enable_cdf5}" = xyes; then
-   AC_DEFINE([USE_CDF5], [1], [if true, enable CDF5 Support])
    AC_DEFINE([ENABLE_CDF5], [1], [if true, enable CDF5 Support])
 fi
-
-AM_CONDITIONAL(USE_CDF5, [test x$enable_cdf5 = xyes ])
 AM_CONDITIONAL(ENABLE_CDF5, [test x$enable_cdf5 = xyes ])
 
 $SLEEPCMD

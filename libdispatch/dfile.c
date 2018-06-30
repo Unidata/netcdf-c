@@ -2106,7 +2106,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	    model = NC_FORMATX_NC4;
 	    break;
 #endif
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
 	 case NC_FORMAT_CDF5:
 	    xcmode |= NC_64BIT_DATA;
 	    model = NC_FORMATX_NC3;
@@ -2322,7 +2322,7 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
         hdf4built = 1;
   #endif
 #endif
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
        cdf5built = 1;
 #endif
        if(!hdf5built && model == NC_FORMATX_NC4) {
