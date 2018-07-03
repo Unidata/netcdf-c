@@ -1,23 +1,18 @@
 #!/bin/sh
 
-#NOP=1 
-#NOS=1
-#NOB=1
+NOP=1 
+NOS=1
+NOB=1
+MODE=1
 
 #SHOW=1
 #DBG=1
 #GDB=1
 
-# if this is part of a distcheck action, then this script
-# will be executed in a different directory
-# than the one containing it; so capture the path to this script
-# as the location of the source directory.
-
-# capture the build directory
-# Do a hack to remove e.g. c: for CYGWIN
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
+
+set -x
 
 OCLOGFILE=stderr
 if test "x$DBG" = x1 ; then
@@ -31,11 +26,14 @@ SUFFIX="log&show=fetch"
 BOTHP="[log][show=fetch]"
 BOTHS="noprefetch&fetch=disk"
 STRLEN="[maxstrlen=16]"
+M5="[mode=5]"
+M6="[mode=6]"
 
 locreset () {
     rm -f ./tmp_testurl ./errtmp_testurl
 }
 
+# buildurl pre-url post-url
 buildurl () {
   front="$1"
   back="$2"
@@ -54,7 +52,7 @@ fi
 # Initialize
 locreset
 
-if test "x$NOP" != x1 ; then
+if test "x$NOP" = x1 ; then
 echo "***Testing url prefix parameters"
 buildurl $PREFIX ""
 # Invoke ncdump to extract the URL
@@ -80,7 +78,8 @@ fi
 fi
 
 locreset
-if test "x$NOS" != x1 ; then
+
+if test "x$NOS" = x1 ; then
 echo "***Testing url suffix parameters"
 buildurl "" $SUFFIX
 # Invoke ncdump to extract the URL
@@ -90,7 +89,7 @@ fi
 
 locreset
 
-if test "x$NOB" != x1 ; then
+if test "x$NOB" = x1 ; then
 echo "***Testing url prefix+suffix parameters"
 buildurl $BOTHP $BOTHS
 # Invoke ncdump to extract the URL
@@ -99,6 +98,21 @@ if test "x${SHOW}" = x1 ; then cat ./tmp_testurl ; fi
 fi
 
 locreset
+
+if test "x$MODE" = x1 ; then
+echo "***Testing mode parameters"
+buildurl $M5
+# Invoke ncdump to extract the URL and test mode
+format=`${NCDUMP} -k "$url"`
+if test "x${SHOW}" = x1 ; then echo $format ; fi
+# If cdf5 is not enabled, then it will default to classic
+if test "x${format}" != xcdf5 && test "x${format}" != xclassic ; then pass=0 ; fi
+buildurl $M6
+# Invoke ncdump to extract the URL and test mode
+format=`${NCDUMP} -k "$url"`
+if test "x${SHOW}" = x1 ; then echo "format=$format" ; fi
+if test "x${format}" != 'x64-bit offset' ; then pass=0 ; fi
+fi
 
 if test "x$pass" = x0 ; then
   echo "***FAIL"

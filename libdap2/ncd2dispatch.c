@@ -357,6 +357,7 @@ NCD2_open(const char* path, int mode,
     }
 
     /* Use libsrc code (netcdf-3) for storing metadata */
+    /* Allow for the target format to be classic, 64-bit, or CDF5 */
     {
 	char tmpname[32];
 
@@ -366,15 +367,35 @@ NCD2_open(const char* path, int mode,
         snprintf(tmpname,sizeof(tmpname),"tmp_%d",drno->int_ncid);
 
         /* Now, use the file to create the hidden, in-memory netcdf file.
-	   We want this hidden file to always be NC_CLASSIC, so we need to
+	   We want this hidden file to always be NC_CLASSIC, NC_64BIT_OFFSET,
+           or NC_64BIT_DATA,  so we need to
            force default format temporarily in case user changed it.
-	   Since diskless is enabled, create file in-memory.
+	   Use NC_DISKLESS to create file in-memory.
 	*/
 	{
+	    const char* param = NULL;
 	    int new = 0; /* format netcdf-3 */
 	    int old = 0;
 	    int ncflags = NC_CLOBBER|NC_CLASSIC_MODEL;
 	    ncflags |= NC_DISKLESS;
+	    if((mode & NC_64BIT_DATA) != 0) {
+	        ncflags |= NC_64BIT_DATA;
+	    } else if((mode & NC_64BIT_OFFSET) != 0) {
+	        ncflags |= NC_64BIT_OFFSET;
+	    } else { /* look for mode parameters */
+                if((param = dapparamvalue(dapcomm,"mode")) != NULL) {
+		    switch (param[0]) {
+		    case '3': break; /* classic */
+		    case '5': ncflags |= NC_CDF5; break;
+		    case '6': ncflags |= NC_64BIT_OFFSET; break;
+		    default: ncstat = NC_EURL; goto done;
+		    }
+		}
+	    }	    
+	    /* sanity check */
+	    if((ncflags & NC_64BIT_DATA) != 0 && (ncflags & NC_64BIT_OFFSET) != 0)
+		{ncflags = NC_64BIT_OFFSET;}
+
 	    nc_set_default_format(new,&old); /* save and change */
             ncstat = nc_create(tmpname,ncflags,&nc3id);
 	    nc_set_default_format(old,&new); /* restore */

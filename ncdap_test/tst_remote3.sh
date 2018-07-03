@@ -18,7 +18,7 @@ PARAMS="${PARAMS}[netcdf3]"
 if test "x$longtests" != x; then
 WHICHTESTS="L1 LC1 LC2"
 else # Standard test set
-WHICHTESTS="S1 C1"
+WHICHTESTS="S1 C1 M5 M6"
 fi
 
 TITLE="DAP to netCDF-3 translation using remote server"

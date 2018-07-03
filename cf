@@ -8,6 +8,7 @@ DB=1
 
 HDF5=1
 DAP=1
+#CDF5=1
 #SZIP=1
 #HDF4=1
 #PNETCDF=1
@@ -108,7 +109,8 @@ FLAGS="$FLAGS --enable-extreme-numbers"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 #FLAGS="$FLAGS --enable-dap-auth-tests" -- requires a new remotetest server
-#FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
+FLAGS="$FLAGS --enable-doxygen"
+#FLAGS="$FLAGS --enable-internal-docs"
 FLAGS="$FLAGS --enable-logging"
 FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-mmap"
@@ -161,6 +163,9 @@ FLAGS="$FLAGS --enable-hdf4 --enable-hdf4-file-tests"
 fi
 if test "x$DAP" = "x" ; then
 FLAGS="$FLAGS --disable-dap"
+fi
+if test "x$CDF5" != "x" ; then
+FLAGS="$FLAGS --enable-cdf5"
 fi
 
 if test "x$MPIO" = x1 ; then

@@ -35,6 +35,23 @@
 /*!\file oc.c
 */
 
+/*!\defgroup Initialize Initialize/Finalize
+@{*/
+
+/*!
+Initialize the oc library.
+
+\retval OC_NOERR The link was successfully created.
+*/
+
+OCerror
+oc_initialize(void)
+{
+    return ocinternalinitialize();
+}
+
+/** @} */
+
 /*!\defgroup Link Link Management
 @{*/
 
@@ -54,7 +71,7 @@ object is to be returned.
 OCerror
 oc_open(const char* url, OCobject* linkp)
 {
-	OCerror ocerr = OC_NOERR;
+    OCerror ocerr = OC_NOERR;
     OCstate* state = NULL;
     ocerr = ocopen(&state,url);
     if(ocerr == OC_NOERR && linkp) {

@@ -894,7 +894,7 @@ AC_ARG_ENABLE([cdf5],
 )
 if test "x${enable_cdf5}" = xyes && test "$ac_cv_sizeof_size_t" -lt "8" ; then
    dnl unable to support CDF5, but --enable-cdf5 is explicitly set
-   AC_MSG_ERROR([Unable to support CDF5 feature because size_t is less than 4 bytes])
+   AC_MSG_ERROR([Unable to support CDF5 feature because size_t is less than 8 bytes])
 fi
 if test "$ac_cv_sizeof_size_t" -lt "8" ; then
    enable_cdf5=no

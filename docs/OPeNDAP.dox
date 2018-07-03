@@ -180,9 +180,12 @@ variables:
 
 \section dap_to_netcdf DAP to NetCDF Translation Rules
 
-Currently only one translation available: DAP 2 Protocol to netCDF-3.
+Currently only one translation is available: DAP 2 Protocol to
+some variant of netCDF-3 (classic). Note however that this
+translation also includes the 64-bit offset variant of netCDF-3
+and the CDF-5 (64-bit data) variant of netCDF-3.
 There used to be a DAP 2 Protocol to netCDF-4 translation
-but that has been removed until the DAP4 protocol is available.
+but that has been removed now that the DAP4 protocol is available.
 
 \subsection nc3_trans_rules netCDF-3 Translation Rules
 
@@ -580,6 +583,8 @@ Parameter Name Legal Values Semantics
 - "cachecount=NN" - Specify the maximum number of entries in the
   cache.
 - "noprefetch" - This disables prefetch of small variables.
+- "mode=3|5|6" - This specifies which variant of netCDF-3 to use:
+		 3 => classic, 5 => CDF5, 6 => 64-bit offset.
 
 \section dap_debug Notes on Debugging OPeNDAP Access
 

@@ -93,7 +93,16 @@ NOCACHETESTS="test.07"
 # Following tests must be run as not prefetch
 NOPREFETCHTESTS="test.07"
 
+# Following tests must run with [mode=5]
+M5="test.01 test.02"
+
+# Following tests must run with [mode=6]
+M6="test.01 test.02"
+
 computewhich() { # set REMOTETESTS and constrained
+  REMOTETESTS=
+  REMOTEPARAMS=
+  constrained=0
   case "$1" in
   S0) REMOTETESTS="$S0" ; constrained=0 ;;
   S1) REMOTETESTS="$S1" ; constrained=0 ;;
@@ -107,6 +116,8 @@ computewhich() { # set REMOTETESTS and constrained
   LC2) REMOTETESTS="$LC2" ; constrained=1 ;;
   X) REMOTETESTS="$X" ; constrained=0 ;;
   XC) REMOTETESTS="$XC" ; constrained=1 ;;
+  M5) REMOTETESTS="$M5" ; constrained=0 ; REMOTEPARAMS="[mode=5]";;
+  M6) REMOTETESTS="$M6" ; constrained=0 ; REMOTEPARAMS="[mode=6]";;
   *) echo "Unknown which test: $1" ; exit 1;;
   esac
 }
@@ -139,7 +150,7 @@ setprefetch() {
 # Use specialized test executor
 doremotetests() {
 for x in ${REMOTETESTS} ; do
-  PARAMS=
+  PARAMS=${REMOTEPARAMS}
   setcache $x
   setprefetch $x
   constrain $x

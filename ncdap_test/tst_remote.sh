@@ -36,7 +36,7 @@ if test "x$timing" = "x1" ; then leakcheck=0; fi
 # get the list of test files
 # Currently C2 fails because server is not responding
 #WHICHTESTS="S1 C1 C2 CB"
-WHICHTESTS="S1 C1 CB"
+WHICHTESTS="S1 C1 CB M5 M6"
 
 if test -n "$longtests"; then
 WHICHTESTS="${WHICHTESTS} L1 LC1 LC2"
@@ -180,6 +180,14 @@ saco1.nc \
 testfile.nc \
 text.nc \
 "
+
+REMOTEURLM5="$TESTSERVER"
+REMOTETESTSM5="test.01 test.02"
+REMOTEPARAMSM5="[mode=5]"
+
+REMOTEURLM6="$TESTSERVER"
+REMOTETESTSM6="test.01 test.02"
+REMOTEPARAMSM6="[mode=6]"
 
 TITLE="DAP to netCDF-3 translation"
 EXPECTED="$expected3"

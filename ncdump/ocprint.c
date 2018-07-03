@@ -25,6 +25,7 @@
 #include "ncuri.h"
 #include "ncbytes.h"
 #include "nclog.h"
+#include "ncdispatch.h"
 
 #ifdef WIN32
 /*#include <windows.h>*/
@@ -170,6 +171,7 @@ init()
     memset(&ocopt,0,sizeof(ocopt));
     ocopt.generate = 1;             /* -G|-g */
     ocopt.userparams = ncbytesnew(); /* -U */
+    nc_initialize();
 }
 
 int
