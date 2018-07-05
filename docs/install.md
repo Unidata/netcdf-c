@@ -280,7 +280,7 @@ formats, [PnetCDF library](https://parallel-netcdf.github.io) must also be
 installed.  First specify where you want to install PnetCDF in a shell
 variable, for example PNDIR, and build it from the PnetCDF top-level source
 directory. If you would like to build the shared library, include
-`--enable-shared` option at the configure command line.  By default, only
+`--enable-shared` option at the configure command line.  By default, only a
 static library is built.
 
 ~~~~{.py}
