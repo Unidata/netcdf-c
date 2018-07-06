@@ -292,7 +292,7 @@ nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value)
  * @author Ed Hartnett
  */
 static int
-get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
+get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
 {
    size_t size;
    int retval;
@@ -375,7 +375,7 @@ get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
  * @author Ed Hartnett
  */
 int
-nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
+nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
                    hid_t *hdf_typeid, int endianness)
 {
    NC_TYPE_INFO_T *type;
@@ -552,7 +552,7 @@ exit:
  * @author Ed Hartnett
  */
 static int
-check_for_vara(nc_type *mem_nc_type, NC_VAR_INFO_T *var, NC_HDF5_FILE_INFO_T *h5)
+check_for_vara(nc_type *mem_nc_type, NC_VAR_INFO_T *var, NC_FILE_INFO_T *h5)
 {
    int retval;
 
@@ -615,7 +615,7 @@ log_dim_info(NC_VAR_INFO_T *var, hsize_t *fdims, hsize_t *fmaxdims,
  * @author Ed Hartnett
  */
 static int
-set_par_access(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
+set_par_access(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
 {
    /* If netcdf is built with parallel I/O, then parallel access can
     * be used, and, if this file was opened or created for parallel
@@ -3152,7 +3152,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
  * @author Ed Hartnett
  */
 int
-nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, size_t *len)
+nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len)
 {
    NC_TYPE_INFO_T *type;
    int retval;
@@ -3218,7 +3218,7 @@ nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, size_t *len)
  * @author Ed Hartnett
  */
 int
-nc4_get_typeclass(const NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int *type_class)
+nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype, int *type_class)
 {
    int retval = NC_NOERR;
 
@@ -3376,13 +3376,13 @@ reportopenobjects(int uselog, hid_t fid)
 }
 
 /**
- * @internal Report open objects given a pointer to NC_HDF5_FILE_INFO_T object
+ * @internal Report open objects given a pointer to NC_FILE_INFO_T object
  *
  * @param h5 file object
  *
  */
 void
-showopenobjects5(NC_HDF5_FILE_INFO_T* h5)
+showopenobjects5(NC_FILE_INFO_T* h5)
 {
    fprintf(stderr,"===== begin showopenobjects =====\n");
    reportopenobjects(0,h5->hdfid);
@@ -3400,7 +3400,7 @@ showopenobjects5(NC_HDF5_FILE_INFO_T* h5)
 void
 showopenobjects(int ncid)
 {
-   NC_HDF5_FILE_INFO_T* h5 = NULL;
+   NC_FILE_INFO_T* h5 = NULL;
 
    /* Find our metadata for this file. */
    if (nc4_find_nc_grp_h5(ncid, NULL, NULL, &h5) != NC_NOERR)
@@ -3440,7 +3440,7 @@ NC4_hdf5get_libversion(unsigned* major,unsigned* minor,unsigned* release)
  * @author Dennis Heimbigner
  */
 int
-NC4_hdf5get_superblock(struct NC_HDF5_FILE_INFO* h5, int* idp)
+NC4_hdf5get_superblock(struct NC_FILE_INFO* h5, int* idp)
 {
    int stat = NC_NOERR;
    unsigned super;
@@ -3455,7 +3455,7 @@ done:
    return stat;
 }
 
-static int NC4_get_strict_att(NC_HDF5_FILE_INFO_T*);
+static int NC4_get_strict_att(NC_FILE_INFO_T*);
 static int NC4_walk(hid_t, int*);
 
 /**
@@ -3483,7 +3483,7 @@ static int NC4_walk(hid_t, int*);
  * @author Dennis Heimbigner.
  */
 int
-NC4_isnetcdf4(struct NC_HDF5_FILE_INFO* h5)
+NC4_isnetcdf4(struct NC_FILE_INFO* h5)
 {
    int stat;
    int isnc4 = 0;
@@ -3515,7 +3515,7 @@ done:
  * @author Dennis Heimbigner.
  */
 static int
-NC4_get_strict_att(NC_HDF5_FILE_INFO_T* h5)
+NC4_get_strict_att(NC_FILE_INFO_T* h5)
 {
    hid_t grp = -1;
    hid_t attid = -1;
@@ -3626,7 +3626,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
              nc_type mem_nc_type, void *data)
 {
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
    hid_t file_spaceid = 0, mem_spaceid = 0, xfer_plistid = 0;
@@ -3956,7 +3956,7 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
              nc_type mem_nc_type, void *data)
 {
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
    hid_t file_spaceid = 0, mem_spaceid = 0;

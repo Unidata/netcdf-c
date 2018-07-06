@@ -120,7 +120,7 @@ done:
  * @author Dennis Heimbigner
  */
 static int
-NC4_get_propattr(NC_HDF5_FILE_INFO_T* h5)
+NC4_get_propattr(NC_FILE_INFO_T* h5)
 {
     int ncstat = NC_NOERR;
     size_t size;
@@ -172,7 +172,7 @@ done:
  * @author Dennis Heimbigner
  */
 int
-NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
+NC4_put_propattr(NC_FILE_INFO_T* h5)
 {
     int ncstat = NC_NOERR;
     hid_t grp = -1;
@@ -219,7 +219,7 @@ NC4_put_propattr(NC_HDF5_FILE_INFO_T* h5)
  * @author Dennis Heimbigner
  */
 int
-NC4_get_fileinfo(NC_HDF5_FILE_INFO_T* h5, struct NCPROPINFO* init)
+NC4_get_fileinfo(NC_FILE_INFO_T* h5, struct NCPROPINFO* init)
 {
     int ncstat = NC_NOERR;
 

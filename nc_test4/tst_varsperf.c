@@ -8,6 +8,9 @@
   under windows because of the use
   of gettimeofday().
 
+  WARNING: This test can only be run manually
+  and should not be run as part of the testsuite.
+
 */
 
 #include "config.h"

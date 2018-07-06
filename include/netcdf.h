@@ -1798,11 +1798,6 @@ EXTERNL int
 nctypelen(nc_type datatype);
 
 /* Begin v2.4 backward compatibility */
-/*
- * defining NO_NETCDF_2 to the preprocessor
- * turns off backward compatibility declarations.
- */
-#ifndef NO_NETCDF_2
 
 /** Backward compatible alias. */
 /**@{*/
@@ -1967,22 +1962,8 @@ ncrecput(int ncid, long recnum, void *const *datap);
 
 EXTERNL int nc_finalize();
 
-/* End v2.4 backward compatibility */
-#endif /*!NO_NETCDF_2*/
-
 #if defined(__cplusplus)
 }
-#endif
-
-/* Define two hard-coded functionality-related
-   macros, but this is not going to be
-   standard practice. */
-#ifndef NC_HAVE_RENAME_GRP
-#define NC_HAVE_RENAME_GRP /*!< rename_grp() support. */
-#endif
-
-#ifndef NC_HAVE_INQ_FORMAT_EXTENDED
-#define NC_HAVE_INQ_FORMAT_EXTENDED /*!< inq_format_extended() support. */
 #endif
 
 #define NC_HAVE_META_H

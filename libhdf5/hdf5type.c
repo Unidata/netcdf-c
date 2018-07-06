@@ -110,7 +110,7 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 {
    NC_GRP_INFO_T *grp;
    NC_GRP_INFO_T *grptwo;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type = NULL;
    char *norm_name;
    int i, retval;
@@ -193,7 +193,7 @@ static int
 add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
               nc_type type_class, nc_type *typeidp)
 {
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_TYPE_INFO_T *type;
    char norm_name[NC_MAX_NAME + 1];

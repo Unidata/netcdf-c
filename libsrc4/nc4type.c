@@ -49,7 +49,7 @@ int
 NC4_inq_typeids(int ncid, int *ntypes, int *typeids)
 {
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type;
    int num = 0;
    int retval;
@@ -291,7 +291,7 @@ NC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
 static int
 find_nc4_file(int ncid, NC **nc)
 {
-   NC_HDF5_FILE_INFO_T* h5;
+   NC_FILE_INFO_T *h5;
    
    /* Find file metadata. */
    if (!((*nc) = nc4_find_nc_file(ncid, &h5)))
