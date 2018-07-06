@@ -25,9 +25,9 @@
 extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /* From nc4mem.c */
-extern int NC4_open_image_file(NC_HDF5_FILE_INFO_T* h5);
-extern int NC4_create_image_file(NC_HDF5_FILE_INFO_T* h5, size_t);
-extern int NC4_extract_file_image(NC_HDF5_FILE_INFO_T* h5);
+extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
+extern int NC4_create_image_file(NC_FILE_INFO_T* h5, size_t);
+extern int NC4_extract_file_image(NC_FILE_INFO_T* h5);
 
 /** @internal When we have open objects at file close, should
     we log them or print to stdout. Default is to log. */
@@ -123,7 +123,7 @@ NC_findreserved(const char* name)
  * @author Ed Hartnett
 */
 static int
-get_netcdf_type(NC_HDF5_FILE_INFO_T *h5, hid_t native_typeid,
+get_netcdf_type(NC_FILE_INFO_T *h5, hid_t native_typeid,
                 nc_type *xtype)
 {
    NC_TYPE_INFO_T *type;
@@ -528,7 +528,7 @@ typedef struct NC4_rec_read_metadata_ud
 /* Forward */
 static int NC4_enddef(int ncid);
 static int nc4_rec_read_metadata(NC_GRP_INFO_T *grp);
-static void dumpopenobjects(NC_HDF5_FILE_INFO_T* h5);
+static void dumpopenobjects(NC_FILE_INFO_T* h5);
 
 /**
  * @internal This function will write all changed metadata, and
@@ -540,7 +540,7 @@ static void dumpopenobjects(NC_HDF5_FILE_INFO_T* h5);
  * @author Ed Hartnett
 */
 static int
-sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
+sync_netcdf4_file(NC_FILE_INFO_T *h5)
 {
    int retval;
 
@@ -599,7 +599,7 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
  * @author Ed Hartnett
 */
 static int
-close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort, int extractmem)
+close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
 {
    int retval = NC_NOERR;
 
@@ -663,7 +663,7 @@ exit:
 }
 
 static void
-dumpopenobjects(NC_HDF5_FILE_INFO_T* h5)
+dumpopenobjects(NC_FILE_INFO_T* h5)
 {
       int nobjs;
 
@@ -872,7 +872,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
    unsigned flags;
    FILE *fp;
    int retval = NC_NOERR;
-   NC_HDF5_FILE_INFO_T* nc4_info = NULL;
+   NC_FILE_INFO_T* nc4_info = NULL;
 
 #ifdef USE_PARALLEL4
    NC_MPI_INFO* mpiinfo = NULL;
@@ -1369,7 +1369,7 @@ dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
  * @author Ed Hartnett
 */
 static int
-get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
+get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
                NC_TYPE_INFO_T **type_info)
 {
    htri_t is_str, equal = 0;
@@ -2423,7 +2423,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
       iter_index = H5_INDEX_CRT_ORDER;
    else
    {
-      NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
+      NC_FILE_INFO_T *h5 = grp->nc4_info;
 
       /* Without creation ordering, file must be read-only. */
       if (!h5->no_write)
@@ -2542,7 +2542,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    hid_t fapl_id = H5P_DEFAULT;
    int retval;
    unsigned flags;
-   NC_HDF5_FILE_INFO_T *nc4_info = NULL;
+   NC_FILE_INFO_T *nc4_info = NULL;
    int is_classic;
 
 #ifdef USE_PARALLEL4
@@ -2785,7 +2785,7 @@ int
 NC4_set_fill(int ncid, int fillmode, int *old_modep)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T* nc4_info;
 
    LOG((2, "%s: ncid 0x%x fillmode %d", __func__, ncid, fillmode));
 
@@ -2823,7 +2823,7 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 int
 NC4_redef(int ncid)
 {
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T* nc4_info;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
@@ -2885,7 +2885,7 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
 static int NC4_enddef(int ncid)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T* nc4_info;
    NC_GRP_INFO_T *grp;
    int i;
 
@@ -2923,7 +2923,7 @@ NC4_sync(int ncid)
 {
    NC *nc;
    int retval;
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T* nc4_info;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
@@ -2963,7 +2963,7 @@ NC4_abort(int ncid)
    int delete_file = 0;
    char path[NC_MAX_NAME + 1];
    int retval = NC_NOERR;
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T* nc4_info;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
@@ -3007,7 +3007,7 @@ NC4_close(int ncid, void* params)
 {
    NC_GRP_INFO_T *grp;
    NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    int retval;
    int inmemory;
 
@@ -3057,7 +3057,7 @@ int
 NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    int retval;
    int i;
@@ -3120,7 +3120,7 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
  * @author Ed Hartnett
 */
 int
-nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
+nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5)
 {
    assert(h5);
    LOG((3, "%s", __func__));

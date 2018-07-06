@@ -277,7 +277,7 @@ typedef struct NC_GRP_INFO
 {
    NC_OBJ hdr;
    hid_t hdf_grpid;
-   struct NC_HDF5_FILE_INFO *nc4_info;
+   struct NC_FILE_INFO *nc4_info;
    struct NC_GRP_INFO *parent;
    int atts_not_read;
    NCindex* children;		/* NCindex<struct NC_GRP_INFO*> */
@@ -299,7 +299,7 @@ typedef struct NC_GRP_INFO
 
 /* This is the metadata we need to keep track of for each
    netcdf-4/HDF5 file. */
-typedef struct  NC_HDF5_FILE_INFO
+typedef struct  NC_FILE_INFO
 {
    NC* controller;
    hid_t hdfid;
@@ -340,13 +340,13 @@ typedef struct  NC_HDF5_FILE_INFO
 	size_t initialsize;
 	int created; /* 1 => create, 0 => open */
    } mem;
-} NC_HDF5_FILE_INFO_T;
+} NC_FILE_INFO_T;
 
 
 extern char* nc4_atomic_name[NC_MAX_ATOMIC_TYPE+1];
 
 /* These functions convert between netcdf and HDF5 types. */
-int nc4_get_typelen_mem(NC_HDF5_FILE_INFO_T *h5, nc_type xtype, size_t *len);
+int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
 int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
                      const nc_type dest_type, const size_t len, int *range_error,
 		     const void *fill_value, int strict_nc3);
@@ -366,7 +366,7 @@ int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
 int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
 int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
 int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
-int nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5);
+int nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5);
 int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
 int nc4_read_grp_atts(NC_GRP_INFO_T *grp);
@@ -375,18 +375,18 @@ int nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 /* The following functions manipulate the in-memory linked list of
    metadata, without using HDF calls. */
 int nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp,
-		       NC_HDF5_FILE_INFO_T **h5);
-int nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_HDF5_FILE_INFO_T **h5);
+		       NC_FILE_INFO_T **h5);
+int nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5);
 int nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp);
 NC_GRP_INFO_T *nc4_find_nc_grp(int ncid);
-NC_GRP_INFO_T *nc4_rec_find_grp(NC_HDF5_FILE_INFO_T *h5, int target_nc_grpid);
-NC *nc4_find_nc_file(int ncid, NC_HDF5_FILE_INFO_T**);
+NC_GRP_INFO_T *nc4_rec_find_grp(NC_FILE_INFO_T *h5, int target_nc_grpid);
+NC *nc4_find_nc_file(int ncid, NC_FILE_INFO_T**);
 int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim, NC_GRP_INFO_T **dim_grp);
 int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
 int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
-int nc4_find_type(const NC_HDF5_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
-NC_TYPE_INFO_T *nc4_rec_find_nc_type(NC_HDF5_FILE_INFO_T *h5, nc_type target_nc_typeid);
-NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_HDF5_FILE_INFO_T* h5, hid_t target_hdf_typeid);
+int nc4_find_type(const NC_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
+NC_TYPE_INFO_T *nc4_rec_find_nc_type(NC_FILE_INFO_T *h5, nc_type target_nc_typeid);
+NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_FILE_INFO_T* h5, hid_t target_hdf_typeid);
 NC_TYPE_INFO_T *nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name);
 NC_TYPE_INFO_T *nc4_rec_find_equal_type(NC_GRP_INFO_T *start_grp, int ncid1, NC_TYPE_INFO_T *type);
 int nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
@@ -395,9 +395,9 @@ int nc4_find_g_var_nc(NC *nc, int ncid, int varid,
 		      NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
 int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 		     NC_ATT_INFO_T **att);
-int nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
+int nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
 		       hid_t *hdf_typeid, int endianness);
-int nc4_get_typeclass(const NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
+int nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype,
                       int *type_class);
 
 /* Free various types */
@@ -423,7 +423,7 @@ int nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att);
 int nc4_att_list_del(NCindex* list, NC_ATT_INFO_T *att);
 int nc4_att_free(NC_ATT_INFO_T *att);
 int nc4_grp_list_add(NC_GRP_INFO_T *parent, char *name, NC_GRP_INFO_T **grp);
-int nc4_build_root_grp(NC_HDF5_FILE_INFO_T* h5);
+int nc4_build_root_grp(NC_FILE_INFO_T* h5);
 int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
 int nc4_enum_member_add(NC_TYPE_INFO_T *type, size_t size,
 			const char *name, const void *value);
@@ -449,7 +449,7 @@ int log_metadata_nc(NC *nc);
 #endif
 
 /* Define accessors for the dispatchdata */
-#define NC4_DATA(nc) ((NC_HDF5_FILE_INFO_T*)(nc)->dispatchdata)
+#define NC4_DATA(nc) ((NC_FILE_INFO_T*)(nc)->dispatchdata)
 #define NC4_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
 
 /* Reserved Attributes Info */
@@ -513,12 +513,12 @@ struct NCFILEINFO {
 extern struct NCPROPINFO globalpropinfo;
 
 extern int NC4_fileinfo_init(void); /*libsrc4/ncinfo.c*/
-extern int NC4_get_fileinfo(struct NC_HDF5_FILE_INFO* info, struct NCPROPINFO*); /*libsrc4/ncinfo.c*/
-extern int NC4_put_propattr(struct NC_HDF5_FILE_INFO* info); /*libsrc4/ncinfo.c*/
+extern int NC4_get_fileinfo(struct NC_FILE_INFO* info, struct NCPROPINFO*); /*libsrc4/ncinfo.c*/
+extern int NC4_put_propattr(struct NC_FILE_INFO* info); /*libsrc4/ncinfo.c*/
 extern int NC4_buildpropinfo(struct NCPROPINFO* info,char** propdatap);
 
 extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
-extern int NC4_hdf5get_superblock(struct NC_HDF5_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
-extern int NC4_isnetcdf4(struct NC_HDF5_FILE_INFO*); /*libsrc4/nc4hdf.c*/
+extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
+extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
 
 #endif /* _NETCDF4_ */
