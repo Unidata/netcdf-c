@@ -385,8 +385,10 @@ OPTION(ENABLE_EXAMPLES "Build Examples" ON)
 # Option Logging, only valid for netcdf4.
 OPTION(ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
-  ADD_DEFINITIONS(-DLOGGING)
+  ADD_DEFINITIONS(-DLOGGING -DENABLE_SET_LOG_LEVEL)
   SET(LOGGING ON)
+ELSE()
+  ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
 ENDIF()
 
 # Option to automatically build netcdf-fortran.
