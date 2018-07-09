@@ -12,6 +12,7 @@
 - \subpage dap4
 - \subpage compress
 - \subpage BestPractices
+- \subpage user_defined_formats
 - \subpage users_guide_appendices
 
 <H2>The Purpose of NetCDF</H2>

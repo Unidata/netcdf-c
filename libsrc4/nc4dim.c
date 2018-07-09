@@ -34,7 +34,7 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
 {
    NC *nc;
    NC_GRP_INFO_T *grp, *g;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_DIM_INFO_T *dim;
    int found = 0;
    int retval;
@@ -88,7 +88,7 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
 {
    NC *nc;
    NC_GRP_INFO_T *grp, *g;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_DIM_INFO_T *dim;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
@@ -144,7 +144,7 @@ NC4_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
    NC_DIM_INFO_T *dim;
    NC_GRP_INFO_T *grp;
    NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    int num_unlim = 0;
    int retval;
    int i;

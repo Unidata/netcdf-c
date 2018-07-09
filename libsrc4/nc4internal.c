@@ -13,7 +13,7 @@
  * buffer of metadata information, i.e. the linked list of NC
  * structs.
  *
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 #include "config.h"
 #include "nc4internal.h"
@@ -103,13 +103,13 @@ nc4_check_name(const char *name, char *norm_name)
 int
 nc4_nc4f_list_add(NC *nc, const char *path, int mode)
 {
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
 
    assert(nc && !NC4_DATA(nc) && path);
 
    /* We need to malloc and
       initialize the substructure NC_HDF_FILE_INFO_T. */
-   if (!(h5 = calloc(1, sizeof(NC_HDF5_FILE_INFO_T))))
+   if (!(h5 = calloc(1, sizeof(NC_FILE_INFO_T))))
       return NC_ENOMEM;
    NC4_DATA_SET(nc,h5);
    h5->controller = nc;
@@ -147,7 +147,7 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
 int
 nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp)
 {
-   NC_HDF5_FILE_INFO_T* h5;
+   NC_FILE_INFO_T* h5;
    NC *f = nc4_find_nc_file(ncid,&h5);
    if(f == NULL) return NC_EBADID;
 
@@ -179,9 +179,9 @@ nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp)
  * @author Ed Hartnett
  */
 int
-nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grpp, NC_HDF5_FILE_INFO_T **h5p)
+nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grpp, NC_FILE_INFO_T **h5p)
 {
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC *f = nc4_find_nc_file(ncid,&h5);
    if(f == NULL) return NC_EBADID;
@@ -215,10 +215,10 @@ nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grpp, NC_HDF5_FILE_INFO_T **h5p)
  */
 int
 nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
-                   NC_HDF5_FILE_INFO_T **h5p)
+                   NC_FILE_INFO_T **h5p)
 {
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T* h5;
+   NC_FILE_INFO_T* h5;
    NC *f = nc4_find_nc_file(ncid,&h5);
 
    if(f == NULL) return NC_EBADID;
@@ -242,7 +242,7 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
 }
 
 /**
- * @internal Use NC_HDF5_FILE_INFO_T->allgroups to locate a group id.
+ * @internal Use NC_FILE_INFO_T->allgroups to locate a group id.
  *
  * @param h5 Pointer to file info
  * @param target_nc_grpid Group ID to be found.
@@ -251,7 +251,7 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
  * @author Ed Hartnett
  */
 NC_GRP_INFO_T *
-nc4_rec_find_grp(NC_HDF5_FILE_INFO_T *h5, int target_nc_grpid)
+nc4_rec_find_grp(NC_FILE_INFO_T *h5, int target_nc_grpid)
 {
    NC_GRP_INFO_T *g;
 
@@ -278,7 +278,7 @@ int
 nc4_find_g_var_nc(NC *nc, int ncid, int varid,
                   NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var)
 {
-   NC_HDF5_FILE_INFO_T* h5 = NC4_DATA(nc);
+   NC_FILE_INFO_T* h5 = NC4_DATA(nc);
 
    /* Find the group info. */
    assert(grp && var && h5 && h5->root_grp);
@@ -315,13 +315,13 @@ nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
 {
    NC_GRP_INFO_T *g;
    int found = 0;
-   NC_HDF5_FILE_INFO_T* h5 = grp->nc4_info;
+   NC_FILE_INFO_T* h5 = grp->nc4_info;
 
    assert(h5 && grp && dim);
 
    /* Find the dim info. */
    (*dim) = nclistget(h5->alldims,dimid);
-   if((*dim) == NULL) 
+   if((*dim) == NULL)
 	return NC_EBADDIM;
 
    /* Redundant: Verify that this dim is in fact in the group or its parent */
@@ -403,7 +403,7 @@ nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name)
  * @author Ed Hartnett
  */
 NC_TYPE_INFO_T *
-nc4_rec_find_nc_type(NC_HDF5_FILE_INFO_T *h5, nc_type target_nc_typeid)
+nc4_rec_find_nc_type(NC_FILE_INFO_T *h5, nc_type target_nc_typeid)
 {
    assert(h5);
    return nclistget(h5->alltypes, target_nc_typeid);
@@ -421,7 +421,7 @@ nc4_rec_find_nc_type(NC_HDF5_FILE_INFO_T *h5, nc_type target_nc_typeid)
  * @author Ed Hartnett
  */
 int
-nc4_find_type(const NC_HDF5_FILE_INFO_T *h5, nc_type typeid, NC_TYPE_INFO_T **type)
+nc4_find_type(const NC_FILE_INFO_T *h5, nc_type typeid, NC_TYPE_INFO_T **type)
 {
    if (typeid < 0 || !type)
       return NC_EINVAL;
@@ -460,6 +460,7 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 {
    NC_VAR_INFO_T *var;
    NCindex* attlist = NULL;
+   int retval;
 
    assert(grp && grp->hdr.name);
    LOG((4, "nc4_find_grp_att: grp->name %s varid %d name %s attnum %d",
@@ -467,11 +468,24 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 
    /* Get either the global or a variable attribute list. */
    if (varid == NC_GLOBAL)
+   {
       attlist = grp->att;
+
+      /* Do we need to read the atts? */
+      if (grp->atts_not_read)
+         if ((retval = nc4_read_grp_atts(grp)))
+            return retval;
+   }
    else
    {
       var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
       if (!var) return NC_ENOTVAR;
+
+      /* Do we need to read the var attributes? */
+      if (var->atts_not_read)
+         if ((retval = nc4_read_var_atts(grp, var)))
+            return retval;
+
       attlist = var->att;
       assert(var->hdr.id == varid);
    }
@@ -488,7 +502,7 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 	*att = a;
 	return NC_NOERR;
       }
-   }    
+   }
 
    /* If we get here, we couldn't find the attribute. */
    return NC_ENOTATT;
@@ -515,7 +529,7 @@ nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
                 NC_ATT_INFO_T **att)
 {
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    int retval;
 
    LOG((4, "nc4_find_nc_att: ncid 0x%x varid %d name %s attnum %d",
@@ -540,7 +554,7 @@ nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
  * @author Ed Hartnett, Dennis Heimbigner
  */
 NC*
-nc4_find_nc_file(int ext_ncid, NC_HDF5_FILE_INFO_T** h5p)
+nc4_find_nc_file(int ext_ncid, NC_FILE_INFO_T** h5p)
 {
    NC* nc;
    int stat;
@@ -550,7 +564,7 @@ nc4_find_nc_file(int ext_ncid, NC_HDF5_FILE_INFO_T** h5p)
       nc = NULL;
 
    if(nc)
-      if(h5p) *h5p = (NC_HDF5_FILE_INFO_T*)nc->dispatchdata;
+      if(h5p) *h5p = (NC_FILE_INFO_T*)nc->dispatchdata;
 
    return nc;
 }
@@ -580,7 +594,7 @@ obj_list_add(NCindex* index, NC_OBJ* obj)
  * @author Dennis Heimbigner
  */
 static void
-obj_track(NC_HDF5_FILE_INFO_T* file, NC_OBJ* obj)
+obj_track(NC_FILE_INFO_T* file, NC_OBJ* obj)
 {
     NClist* list = NULL;
     /* record the object in the file  */
@@ -590,7 +604,7 @@ obj_track(NC_HDF5_FILE_INFO_T* file, NC_OBJ* obj)
     case NCGRP: list = file->allgroups; break;
     default:
 	assert(NC_FALSE);
-    }	
+    }
     /* Insert at the appropriate point in the list */
     nclistset(list,obj->id,obj);
 }
@@ -648,7 +662,7 @@ nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims, NC_VAR_INFO_T 
 
    new_var->hdr.hashkey = NC_hashmapkey(new_var->hdr.name,strlen(new_var->hdr.name));
    new_var->ndims = ndims;
-   
+
    /* Allocate space for dimension information. */
    if (ndims)
    {
@@ -695,7 +709,7 @@ int
 nc4_dim_list_add(NC_GRP_INFO_T* grp, const char* name, size_t len, int assignedid, NC_DIM_INFO_T **dim)
 {
    NC_DIM_INFO_T *new_dim = NULL;
-   NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
+   NC_FILE_INFO_T *h5 = grp->nc4_info;
    int retval = NC_NOERR;
 
    if (!(new_dim = calloc(1, sizeof(NC_DIM_INFO_T))))
@@ -790,7 +804,7 @@ int
 nc4_grp_list_add(NC_GRP_INFO_T * parent, char *name, NC_GRP_INFO_T **grp)
 {
    NC_GRP_INFO_T *new_grp;
-   NC_HDF5_FILE_INFO_T* h5;
+   NC_FILE_INFO_T* h5;
    NC* nc;
 
    h5 = parent->nc4_info;
@@ -841,7 +855,7 @@ nc4_grp_list_add(NC_GRP_INFO_T * parent, char *name, NC_GRP_INFO_T **grp)
  * @author Ed Hartnett
  */
 int
-nc4_build_root_grp(NC_HDF5_FILE_INFO_T* h5)
+nc4_build_root_grp(NC_FILE_INFO_T* h5)
 {
    NC_GRP_INFO_T *new_grp;
    NC* nc;
@@ -935,31 +949,33 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM Out of memory.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Ward Fisher
  */
 int
 nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid, NC_TYPE_INFO_T **type)
 {
-   NC_TYPE_INFO_T *new_type;
+  NC_TYPE_INFO_T *new_type = NULL;
 
-   /* Allocate memory for the type */
-   if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
-      return NC_ENOMEM;
-   new_type->hdr.sort = NCTYP;
+  /* Allocate memory for the type */
+  if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
+    return NC_ENOMEM;
+  new_type->hdr.sort = NCTYP;
 
-   /* Remember info about this type. */
-   new_type->hdr.id = assignedid;
-   new_type->size = size;
-   if (!(new_type->hdr.name = strdup(name)))
-      return NC_ENOMEM;
+  /* Remember info about this type. */
+  new_type->hdr.id = assignedid;
+  new_type->size = size;
+  if (!(new_type->hdr.name = strdup(name))) {
+    free(new_type);
+    return NC_ENOMEM;
+  }
 
-   new_type->hdr.hashkey = NC_hashmapkey(name,strlen(name));
+  new_type->hdr.hashkey = NC_hashmapkey(name,strlen(name));
 
-   /* Return a pointer to the new type, if requested */
-   if (type)
-      *type = new_type;
+  /* Return a pointer to the new type, if requested */
+  if (type)
+    *type = new_type;
 
-   return NC_NOERR;
+  return NC_NOERR;
 }
 
 /**
@@ -1328,22 +1344,24 @@ nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
 }
 
 /**
- * @internal Free a dim 
+ * @internal Free a dim
  *
  * @param dim Pointer to dim info struct of type to delete.
  *
  * @return ::NC_NOERR No error.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Ward Fisher
  */
 int
 nc4_dim_free(NC_DIM_INFO_T *dim)
 {
    /* Free memory allocated for names. */
-   if (dim->hdr.name)
+  if(dim) {
+    if (dim->hdr.name)
       free(dim->hdr.name);
 
-   free(dim);
-   return NC_NOERR;
+    free(dim);
+  }
+  return NC_NOERR;
 }
 
 /**
@@ -1577,13 +1595,14 @@ nc4_normalize_name(const char *name, char *norm_name)
    return NC_NOERR;
 }
 
-/* Print out a bunch of info to stderr about the metadata for
-   debugging purposes. */
-#ifdef LOGGING
+#ifdef ENABLE_SET_LOG_LEVEL
+
 /**
- * Use this to set the global log level. Set it to NC_TURN_OFF_LOGGING
- * (-1) to turn off all logging. Set it to 0 to show only errors, and
- * to higher numbers to show more and more logging details.
+ * @internal Use this to set the global log level. Set it to
+ * NC_TURN_OFF_LOGGING (-1) to turn off all logging. Set it to 0 to
+ * show only errors, and to higher numbers to show more and more
+ * logging details. If logging is not enabled with --enable-logging at
+ * configure when building netCDF, this function will do nothing.
  *
  * @param new_level The new logging level.
  *
@@ -1593,6 +1612,7 @@ nc4_normalize_name(const char *name, char *norm_name)
 int
 nc_set_log_level(int new_level)
 {
+#ifdef LOGGING
    if(!nc4_hdf5_initialized)
       nc4_hdf5_initialize();
 
@@ -1617,9 +1637,12 @@ nc_set_log_level(int new_level)
    /* Now remember the new level. */
    nc_log_level = new_level;
    LOG((4, "log_level changed to %d", nc_log_level));
+#endif /*LOGGING */
    return 0;
 }
+#endif /* ENABLE_SET_LOG_LEVEL */
 
+#ifdef LOGGING
 #define MAX_NESTS 10
 /**
  * @internal Recursively print the metadata of a group.
@@ -1754,7 +1777,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
 int
 log_metadata_nc(NC *nc)
 {
-   NC_HDF5_FILE_INFO_T *h5 = NC4_DATA(nc);
+   NC_FILE_INFO_T *h5 = NC4_DATA(nc);
 
    LOG((2, "*** NetCDF-4 Internal Metadata: int_ncid 0x%x ext_ncid 0x%x",
         nc->int_ncid, nc->ext_ncid));
