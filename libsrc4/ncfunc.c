@@ -63,7 +63,7 @@ int
 NC4_inq_format(int ncid, int *formatp)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T *nc4_info;
 
    LOG((2, "nc_inq_format: ncid 0x%x", ncid));
 
@@ -104,7 +104,7 @@ int
 NC4_inq_format_extended(int ncid, int *formatp, int *modep)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T* h5;
+   NC_FILE_INFO_T *h5;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 

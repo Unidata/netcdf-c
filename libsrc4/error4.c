@@ -1,16 +1,15 @@
-/*
-
-This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
-HDF5 backend for netCDF, depending on your point of view.
-
-This file contains functions relating to logging errors. Also it
-contains the functions nc_malloc, nc_calloc, and nc_free.
-
-Copyright 2003, University Corporation for Atmospheric Research. See
-netcdf-4/docs/COPYRIGHT file for copying and redistribution
-conditions.
-
-$Id: error4.c,v 1.4 2010/06/01 17:48:55 ed Exp $
+/* Copyright 2003-2018, University Corporation for Atmospheric
+Research. See netcdf-4/docs/COPYRIGHT file for copying and
+redistribution conditions. */
+/**
+ * @file @internal This file is part of netcdf-4, a netCDF-like
+ * interface for HDF5, or a HDF5 backend for netCDF, depending on your
+ * point of view.
+ *
+ * This file contains functions relating to logging errors. Also it
+ * contains the functions nc_malloc, nc_calloc, and nc_free.
+ * 
+ * @author Ed Hartnett
 */
 
 #include "config.h"

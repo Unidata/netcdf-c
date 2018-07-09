@@ -381,6 +381,7 @@ OPTION(ENABLE_MMAP "Use MMAP." ON)
 # Option to use examples.
 OPTION(ENABLE_EXAMPLES "Build Examples" ON)
 
+
 # Option Logging, only valid for netcdf4.
 OPTION(ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
@@ -524,6 +525,18 @@ ELSE()
   SET(USE_HDF4 OFF)
   SET(ENABLE_HDF4_FILE_TESTS OFF)
   SET(ENABLE_HDF4 OFF)
+ENDIF()
+
+# Option Logging, only valid for netcdf4.
+OPTION(ENABLE_LOGGING "Enable Logging." OFF)
+IF(ENABLE_LOGGING)
+  ADD_DEFINITIONS(-DLOGGING)
+  ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
+  SET(LOGGING ON)
+ENDIF()
+OPTION(ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
+IF(ENABLE_NETCDF_$ AND (NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC) OR ENABLE_LOGGING)
+  ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
 ENDIF()
 
 # Option to allow for strict null file padding.
@@ -829,7 +842,7 @@ ENDIF()
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
-SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu,jetstream.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
+SET(REMOTETESTSERVERS "149.165.169.123:8080,remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # If netCDF4 and DAP, Option for DAP groups.
 IF(ENABLE_NETCDF_4 AND ENABLE_DAP2)

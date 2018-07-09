@@ -313,7 +313,7 @@ nc_inq_grpname_count(int ncid, int igrp, char **lgrps, idnode_t *grpids) {
     char *grpname = lgrps[igrp];
 
     /* permit empty string to also designate root group */
-    if(grpname[0] == '\0' || STREQ(grpname,"/")) { 
+    if(grpname[0] == '\0' || NCSTREQ(grpname,"/")) { 
 	count = 1;
 	idadd(grpids, ncid);
 	return count;

@@ -18,7 +18,7 @@
 
 /*
  * @internal Inmemory support
- * 
+ *
  * This code is derived from H5Lt.c#H5LTopen_file_image.
  * In order to make the netcdf inmemory code work, it is necessary
  * to modify some of the callback functions; specifically
@@ -38,7 +38,7 @@
  * The existing implementation of H5LTopen_file_image has two flaws
  * with respect to these properties.
  * <ol>
- * <li> The image_realloc callback fails if 
+ * <li> The image_realloc callback fails if
  * H5LT_FILE_IMAGE_DONT_COPY flag is set even if there is room
  * to allow the memory block to pretend to expand (because
  * of overallocation).
@@ -135,7 +135,7 @@ static void tracefail(const char* fcn);
 /* user supplied image buffer. The same image is open with the core driver.  */
 #define H5LT_FILE_IMAGE_DONT_RELEASE 0x0004 /* The HDF5 lib won't        */
 /* deallocate user supplied image buffer. The user application is reponsible */
-/* for doing so.                                                             */ 
+/* for doing so.                                                             */
 #define H5LT_FILE_IMAGE_ALL          0x0007
 
 #endif /*H5LT_FILE_IMAGE_DONT_COPY*/
@@ -153,19 +153,19 @@ char *myinput;
 size_t  indent = 0;
 #endif /*0*/
 
-/* File Image operations					
-	
-   A file image is a representation of an HDF5 file in a memory	 
-   buffer. In order to perform operations on an image in a similar way	
+/* File Image operations
+
+   A file image is a representation of an HDF5 file in a memory
+   buffer. In order to perform operations on an image in a similar way
    to a  file, the application buffer is copied to a FAPL buffer, which
-   in turn is copied to a VFD buffer. Buffer copying can decrease	
-   performance, especially when using large file images. A solution to	
-   this issue is to simulate the copying of the application buffer,	
-   when actually the same buffer is used for the FAPL and the VFD.	
-   This is implemented by using callbacks that simulate the standard	
-   functions for memory management (additional callbacks are used for	
-   the management of associated data structures). From the application	
-   standpoint, a file handle can be obtained from a file image by using	
+   in turn is copied to a VFD buffer. Buffer copying can decrease
+   performance, especially when using large file images. A solution to
+   this issue is to simulate the copying of the application buffer,
+   when actually the same buffer is used for the FAPL and the VFD.
+   This is implemented by using callbacks that simulate the standard
+   functions for memory management (additional callbacks are used for
+   the management of associated data structures). From the application
+   standpoint, a file handle can be obtained from a file image by using
    the API routine H5LTopen_file_image(). This function takes a flag
    argument that indicates the HDF5 library how to handle the given image;
    several flag values can be combined by using the bitwise OR operator.
@@ -185,10 +185,10 @@ size_t  indent = 0;
    well. The application is responsible to release the image buffer.
 */
 
-/* Data structure to pass application data to callbacks. */ 
+/* Data structure to pass application data to callbacks. */
 /* Modified to add NC_FILE_INFO_T ptr */
 typedef struct {
-    void *app_image_ptr;	/* Pointer to application buffer */ 
+    void *app_image_ptr;	/* Pointer to application buffer */
     size_t app_image_size;	/* Size of application buffer */
     void *fapl_image_ptr;	/* Pointer to FAPL buffer */
     size_t fapl_image_size;	/* Size of FAPL buffer */
@@ -199,7 +199,7 @@ typedef struct {
     unsigned flags;		/* Flags indicate how the file image will */
                                 /* be open */
     int ref_count;		/* Reference counter on udata struct */
-    NC_HDF5_FILE_INFO_T* h5;
+    NC_FILE_INFO_T* h5;
 } H5LT_file_image_ud_t;
 
 /* callbacks prototypes for file image ops */
@@ -213,17 +213,17 @@ static herr_t local_udata_free(void *udata);
 
 
 /*-------------------------------------------------------------------------
-* Function: image_malloc 
+* Function: image_malloc
 *
 * Purpose: Simulates malloc() function to avoid copying file images.
 *          The application buffer is set to the buffer on only one FAPL.
 *          Then the FAPL buffer can be copied to other FAPL buffers or
-*          to only one VFD buffer. 
+*          to only one VFD buffer.
 *
 * Return: Address of "allocated" buffer, if successful. Otherwise, it returns
 *         NULL.
 *
-* Programmer: Christian Chilan 
+* Programmer: Christian Chilan
 *
 * Date: October 3, 2011
 *
@@ -234,25 +234,25 @@ local_image_malloc(size_t size, H5FD_file_image_op_t file_image_op, void *_udata
 {
     H5LT_file_image_ud_t *udata = (H5LT_file_image_ud_t *)_udata;
     void * return_value = NULL;
-    
+
     TRACE1("malloc",_udata, size);
 
     /* callback is only used if the application buffer is not actually copied */
-    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
+    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY))
         goto out;
 
     switch ( file_image_op ) {
         /* the app buffer is "copied" to only one FAPL. Afterwards, FAPLs can be "copied" */
         case H5FD_FILE_IMAGE_OP_PROPERTY_LIST_SET:
-            if (udata->app_image_ptr == NULL) 
+            if (udata->app_image_ptr == NULL)
                 goto out;
-            if (udata->app_image_size != size) 
+            if (udata->app_image_size != size)
                 goto out;
-            if (udata->fapl_image_ptr != NULL) 
+            if (udata->fapl_image_ptr != NULL)
                 goto out;
-            if (udata->fapl_image_size != 0) 
+            if (udata->fapl_image_size != 0)
                 goto out;
-            if (udata->fapl_ref_count != 0) 
+            if (udata->fapl_ref_count != 0)
                 goto out;
 
             udata->fapl_image_ptr = udata->app_image_ptr;
@@ -262,11 +262,11 @@ local_image_malloc(size_t size, H5FD_file_image_op_t file_image_op, void *_udata
 	    break;
 
 	case H5FD_FILE_IMAGE_OP_PROPERTY_LIST_COPY:
-            if (udata->fapl_image_ptr == NULL) 
+            if (udata->fapl_image_ptr == NULL)
                 goto out;
-            if (udata->fapl_image_size != size) 
+            if (udata->fapl_image_size != size)
                 goto out;
-            if (udata->fapl_ref_count == 0) 
+            if (udata->fapl_ref_count == 0)
                 goto out;
 
             return_value = udata->fapl_image_ptr;
@@ -282,17 +282,17 @@ local_image_malloc(size_t size, H5FD_file_image_op_t file_image_op, void *_udata
 
         case H5FD_FILE_IMAGE_OP_FILE_OPEN:
             /* FAPL buffer is "copied" to only one VFD buffer */
-            if (udata->vfd_image_ptr != NULL) 
+            if (udata->vfd_image_ptr != NULL)
                 goto out;
-            if (udata->vfd_image_size != 0) 
+            if (udata->vfd_image_size != 0)
                 goto out;
-            if (udata->vfd_ref_count != 0) 
+            if (udata->vfd_ref_count != 0)
                 goto out;
-            if (udata->fapl_image_ptr == NULL) 
+            if (udata->fapl_image_ptr == NULL)
                 goto out;
-            if (udata->fapl_image_size != size) 
+            if (udata->fapl_image_size != size)
                 goto out;
-            if (udata->fapl_ref_count == 0) 
+            if (udata->fapl_ref_count == 0)
                 goto out;
 
             udata->vfd_image_ptr = udata->fapl_image_ptr;
@@ -323,15 +323,15 @@ out:
 /*-------------------------------------------------------------------------
 * Function: image_memcpy
 *
-* Purpose:  Simulates memcpy() function to avoid copying file images. 
+* Purpose:  Simulates memcpy() function to avoid copying file images.
 *           The image buffer can be set to only one FAPL buffer, and
 *           "copied" to only one VFD buffer. The FAPL buffer can be
-*           "copied" to other FAPLs buffers. 
+*           "copied" to other FAPLs buffers.
 *
 * Return: The address of the destination buffer, if successful. Otherwise, it
 *         returns NULL.
 *
-* Programmer: Christian Chilan 
+* Programmer: Christian Chilan
 *
 * Date: October 3, 2011
 *
@@ -346,36 +346,36 @@ local_image_memcpy(void *dest, const void *src, size_t size, H5FD_file_image_op_
     TRACE3("memcpy",_udata,dest,src,size);
 
     /* callback is only used if the application buffer is not actually copied */
-    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
+    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY))
         goto out;
 
     switch(file_image_op) {
         case H5FD_FILE_IMAGE_OP_PROPERTY_LIST_SET:
-            if (dest != udata->fapl_image_ptr) 
+            if (dest != udata->fapl_image_ptr)
                 goto out;
-            if (src != udata->app_image_ptr) 
+            if (src != udata->app_image_ptr)
                 goto out;
-            if (size != udata->fapl_image_size) 
+            if (size != udata->fapl_image_size)
                 goto out;
-            if (size != udata->app_image_size) 
+            if (size != udata->app_image_size)
                 goto out;
-            if (udata->fapl_ref_count == 0) 
+            if (udata->fapl_ref_count == 0)
                 goto out;
             break;
 
         case H5FD_FILE_IMAGE_OP_PROPERTY_LIST_COPY:
-            if (dest != udata->fapl_image_ptr) 
+            if (dest != udata->fapl_image_ptr)
                 goto out;
-            if (src != udata->fapl_image_ptr) 
+            if (src != udata->fapl_image_ptr)
                 goto out;
-            if (size != udata->fapl_image_size) 
+            if (size != udata->fapl_image_size)
                 goto out;
-            if (udata->fapl_ref_count < 2) 
+            if (udata->fapl_ref_count < 2)
                 goto out;
             break;
 
         case H5FD_FILE_IMAGE_OP_PROPERTY_LIST_GET:
-	    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
+	    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY))
                 goto out;
 	    /* test: src == dest == original */
 	    if(src != dest || src != udata->fapl_image_ptr)
@@ -383,17 +383,17 @@ local_image_memcpy(void *dest, const void *src, size_t size, H5FD_file_image_op_
 	    break;
 
         case H5FD_FILE_IMAGE_OP_FILE_OPEN:
-            if (dest != udata->vfd_image_ptr) 
+            if (dest != udata->vfd_image_ptr)
                 goto out;
-            if (src != udata->fapl_image_ptr) 
+            if (src != udata->fapl_image_ptr)
                 goto out;
-            if (size != udata->vfd_image_size) 
+            if (size != udata->vfd_image_size)
                 goto out;
-            if (size != udata->fapl_image_size) 
+            if (size != udata->fapl_image_size)
                 goto out;
-            if (udata->fapl_ref_count == 0) 
+            if (udata->fapl_ref_count == 0)
                 goto out;
-            if (udata->vfd_ref_count != 1) 
+            if (udata->vfd_ref_count != 1)
                 goto out;
             break;
 
@@ -419,15 +419,15 @@ out:
 
 
 /*-------------------------------------------------------------------------
-* Function: image_realloc 
+* Function: image_realloc
 *
 * Purpose: Reallocates the shared application image buffer and updates data
-*          structures that manage buffer "copying". 
-*           
-* Return: Address of reallocated buffer, if successful. Otherwise, it returns
-*         NULL.  
+*          structures that manage buffer "copying".
 *
-* Programmer: Christian Chilan 
+* Return: Address of reallocated buffer, if successful. Otherwise, it returns
+*         NULL.
+*
+* Programmer: Christian Chilan
 *
 * Date: October 3, 2011
 *
@@ -442,21 +442,21 @@ local_image_realloc(void *ptr, size_t size, H5FD_file_image_op_t file_image_op, 
     TRACE2("realloc",_udata, ptr, size);
 
     /* callback is only used if the application buffer is not actually copied */
-    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
+    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY))
         goto out;
 
     /* realloc() is not allowed if the image is open in read-only mode */
-    if (!(udata->flags & H5LT_FILE_IMAGE_OPEN_RW)) 
-        goto out; 
+    if (!(udata->flags & H5LT_FILE_IMAGE_OPEN_RW))
+        goto out;
 
     if (file_image_op == H5FD_FILE_IMAGE_OP_FILE_RESIZE) {
-        if (udata->vfd_image_ptr != ptr) 
-            goto out; 
-
-        if (udata->vfd_ref_count != 1) 
+        if (udata->vfd_image_ptr != ptr)
             goto out;
 
-	/* Modified: 
+        if (udata->vfd_ref_count != 1)
+            goto out;
+
+	/* Modified:
            1. If the realloc new size is <= existing size,
 	      then pretend we did a realloc and return success.
               This avoids unneccessary heap operations.
@@ -476,7 +476,7 @@ local_image_realloc(void *ptr, size_t size, H5FD_file_image_op_t file_image_op, 
                 goto out; /* realloc MAY violate these flags */
         } else {
 	    if (NULL == (udata->vfd_image_ptr = HDrealloc(ptr, size)))
-                goto out; 
+                goto out;
             udata->vfd_image_size = size;
         }
         return_value = udata->vfd_image_ptr;
@@ -502,9 +502,9 @@ out:
 *          reference counters. Shared application buffer is actually
 *          deallocated if there are no outstanding references.
 *
-* Return: SUCCEED or FAIL 
+* Return: SUCCEED or FAIL
 *
-* Programmer: Christian Chilan 
+* Programmer: Christian Chilan
 *
 * Date: October 3, 2011
 *
@@ -518,19 +518,19 @@ local_image_free(void *ptr, H5FD_file_image_op_t file_image_op, void *_udata)
     TRACE1("free",_udata,ptr);
 
     /* callback is only used if the application buffer is not actually copied */
-    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
+    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY))
         goto out;
 
     switch(file_image_op) {
         case H5FD_FILE_IMAGE_OP_PROPERTY_LIST_CLOSE:
-	    if (udata->fapl_image_ptr != ptr) 
+	    if (udata->fapl_image_ptr != ptr)
                 goto out;
-            if (udata->fapl_ref_count == 0) 
+            if (udata->fapl_ref_count == 0)
                 goto out;
 
             udata->fapl_ref_count--;
 
-            /* release the shared buffer only if indicated by the respective flag and there are no outstanding references */ 
+            /* release the shared buffer only if indicated by the respective flag and there are no outstanding references */
             if (udata->fapl_ref_count == 0 && udata->vfd_ref_count == 0 &&
                     !(udata->flags & H5LT_FILE_IMAGE_DONT_RELEASE)) {
                 free(udata->fapl_image_ptr);
@@ -541,14 +541,14 @@ local_image_free(void *ptr, H5FD_file_image_op_t file_image_op, void *_udata)
             break;
 
         case H5FD_FILE_IMAGE_OP_FILE_CLOSE:
-            if (udata->vfd_image_ptr != ptr) 
+            if (udata->vfd_image_ptr != ptr)
                 goto out;
-            if (udata->vfd_ref_count != 1) 
+            if (udata->vfd_ref_count != 1)
                 goto out;
 
             udata->vfd_ref_count--;
 
-            /* release the shared buffer only if indicated by the respective flag and there are no outstanding references */ 
+            /* release the shared buffer only if indicated by the respective flag and there are no outstanding references */
             if (udata->fapl_ref_count == 0 && udata->vfd_ref_count == 0 &&
                     !(udata->flags & H5LT_FILE_IMAGE_DONT_RELEASE)) {
                 free(udata->vfd_image_ptr);
@@ -579,7 +579,7 @@ out:
 
 
 /*-------------------------------------------------------------------------
-* Function: udata_copy 
+* Function: udata_copy
 *
 * Purpose: Simulates the copying of the user data structure utilized in the
 *          management of the "copying" of file images.
@@ -587,7 +587,7 @@ out:
 * Return: Address of "newly allocated" structure, if successful. Otherwise, it
 *         returns NULL.
 *
-* Programmer: Christian Chilan 
+* Programmer: Christian Chilan
 *
 * Date: October 3, 2011
 *
@@ -599,10 +599,10 @@ local_udata_copy(void *_udata)
     H5LT_file_image_ud_t *udata = (H5LT_file_image_ud_t *)_udata;
 
     /* callback is only used if the application buffer is not actually copied */
-    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
+    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY))
         goto out;
 
-    if (udata->ref_count == 0) 
+    if (udata->ref_count == 0)
         goto out;
 
     udata->ref_count++;
@@ -619,11 +619,11 @@ out:
 *
 * Purpose: Simulates deallocation of the user data structure utilized in the
 *          management of the "copying" of file images. The data structure is
-*          actually deallocated when there are no outstanding references. 
+*          actually deallocated when there are no outstanding references.
 *
-* Return: SUCCEED or FAIL 
+* Return: SUCCEED or FAIL
 *
-* Programmer: Christian Chilan 
+* Programmer: Christian Chilan
 *
 * Date: October 3, 2011
 *
@@ -635,10 +635,10 @@ local_udata_free(void *_udata)
     H5LT_file_image_ud_t *udata = (H5LT_file_image_ud_t *)_udata;
 
     /* callback is only used if the application buffer is not actually copied */
-    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY)) 
+    if (!(udata->flags & H5LT_FILE_IMAGE_DONT_COPY))
         goto out;
 
-    if (udata->ref_count == 0) 
+    if (udata->ref_count == 0)
         goto out;
 
     udata->ref_count--;
@@ -650,34 +650,14 @@ local_udata_free(void *_udata)
 
     return(SUCCEED);
 
-out:        
+out:
     return(FAIL);
 } /* end udata_free */
 
 /* End of callbacks definitions for file image operations */
 
-/*-------------------------------------------------------------------------
-*
-* Public functions
-*
-*-------------------------------------------------------------------------
-*/
-
-/*-------------------------------------------------------------------------
-* Function: H5LTopen_file_image
-*
-* Purpose: Open a user supplied file image using the core file driver. 
-*
-* Return: File identifier, Failure: -1
-*
-* Programmer: Christian Chilan 
-*
-* Date: October 3, 2011
-*
-*-------------------------------------------------------------------------
-*/
 hid_t
-NC4_image_init(NC_HDF5_FILE_INFO_T* h5)
+NC4_image_init(NC_FILE_INFO_T* h5)
 {
     hid_t		fapl = -1, file_id = -1; /* HDF5 identifiers */
     unsigned            file_open_flags;/* Flags for image open */
@@ -686,20 +666,20 @@ NC4_image_init(NC_HDF5_FILE_INFO_T* h5)
     size_t              min_incr = 65536; /* Minimum buffer increment */
     double              buf_prcnt = 0.1f;  /* Percentage of buffer size to set
                                              as increment */
-    size_t buf_size = h5->mem.memio.size;
+    size_t buf_size = 0;
     void* buf_ptr = h5->mem.memio.memory;
     unsigned flags = h5->mem.flags;
 
-    static long         file_name_counter; 
-    H5FD_file_image_callbacks_t callbacks = {&local_image_malloc, &local_image_memcpy, 
-                                           &local_image_realloc, &local_image_free, 
-                                           &local_udata_copy, &local_udata_free, 
+    static long         file_name_counter;
+    H5FD_file_image_callbacks_t callbacks = {&local_image_malloc, &local_image_memcpy,
+                                           &local_image_realloc, &local_image_free,
+                                           &local_udata_copy, &local_udata_free,
                                            (void *)NULL};
     /* check arguments */
     if (buf_ptr == NULL) {
 	if(h5->mem.created) {
 	    if(h5->mem.memio.size == 0) h5->mem.memio.size = DEFAULT_CREATE_MEMSIZE;
-	    h5->mem.memio.memory = malloc(h5->mem.memio.size);	    
+	    h5->mem.memio.memory = malloc(h5->mem.memio.size);
 	} else
 	    goto out; /* open requires an input buffer */
     }
@@ -707,13 +687,13 @@ NC4_image_init(NC_HDF5_FILE_INFO_T* h5)
     buf_size = h5->mem.memio.size;
     buf_ptr = h5->mem.memio.memory;
     /* validate */
-    if (buf_ptr == NULL || buf_size == 0) 
+    if (buf_ptr == NULL || buf_size == 0)
         goto out;
     if (flags & (unsigned)~(H5LT_FILE_IMAGE_ALL))
         goto out;
 
     /* Create FAPL to transmit file image */
-    if ((fapl = H5Pcreate(H5P_FILE_ACCESS)) < 0) 
+    if ((fapl = H5Pcreate(H5P_FILE_ACCESS)) < 0)
         goto out;
 
     /* set allocation increment to a percentage of the supplied buffer size, or
@@ -725,7 +705,7 @@ NC4_image_init(NC_HDF5_FILE_INFO_T* h5)
         alloc_incr = min_incr;
 
     /* Configure FAPL to use the core file driver */
-    if (H5Pset_fapl_core(fapl, alloc_incr, FALSE) < 0) 
+    if (H5Pset_fapl_core(fapl, alloc_incr, FALSE) < 0)
         goto out;
 
     /* Set callbacks for file image ops ONLY if the file image is NOT copied */
@@ -762,10 +742,10 @@ NC4_image_init(NC_HDF5_FILE_INFO_T* h5)
     }
 
     /* Assign file image in user buffer to FAPL */
-    if (H5Pset_file_image(fapl, buf_ptr, buf_size) < 0) 
+    if (H5Pset_file_image(fapl, buf_ptr, buf_size) < 0)
         goto out;
 
-    /* set file open flags */  
+    /* set file open flags */
     if (flags & H5LT_FILE_IMAGE_OPEN_RW)
         file_open_flags = H5F_ACC_RDWR;
     else
@@ -773,21 +753,21 @@ NC4_image_init(NC_HDF5_FILE_INFO_T* h5)
 
     /* define a unique file name */
     snprintf(file_name, (sizeof(file_name) - 1), "file_image_%ld", file_name_counter++);
-   
-    /* Assign file image in FAPL to the core file driver */ 
+
+    /* Assign file image in FAPL to the core file driver */
     if(h5->mem.created) {
 	file_open_flags |= H5F_ACC_TRUNC;
-        if ((file_id = H5Fcreate(file_name, file_open_flags, H5P_DEFAULT, fapl)) < 0) 
+        if ((file_id = H5Fcreate(file_name, file_open_flags, H5P_DEFAULT, fapl)) < 0)
             goto out;
     } else {
-        if ((file_id = H5Fopen(file_name, file_open_flags, fapl)) < 0) 
+        if ((file_id = H5Fopen(file_name, file_open_flags, fapl)) < 0)
             goto out;
     }
 
     h5->mem.fapl = fapl;
 
-    /* Return file identifier */ 
-    return file_id; 
+    /* Return file identifier */
+    return file_id;
 
 out:
     H5E_BEGIN_TRY {

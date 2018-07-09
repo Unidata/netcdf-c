@@ -2,9 +2,10 @@
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions. */
 /**
- * @file @internal This file is part of netcdf-4, a netCDF-like
- * interface for HDF5, or a HDF5 backend for netCDF, depending on your
- * point of view.
+ * @file 
+ * @internal This file is part of netcdf-4, a netCDF-like interface
+ * for HDF5, or a HDF5 backend for netCDF, depending on your point of
+ * view.
  *
  * This file handles groups.
  * 
@@ -31,7 +32,7 @@ int
 NC4_inq_ncid(int ncid, const char *name, int *grp_ncid)
 {
    NC_GRP_INFO_T *grp, *g;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
 
@@ -74,7 +75,7 @@ int
 NC4_inq_grps(int ncid, int *numgrps, int *ncids)
 {
    NC_GRP_INFO_T *grp, *g;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    int num = 0;
    int retval;
    int i;
@@ -123,7 +124,7 @@ int
 NC4_inq_grpname(int ncid, char *name)
 {
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    int retval;
 
    LOG((2, "nc_inq_grpname: ncid 0x%x", ncid));
@@ -226,7 +227,7 @@ int
 NC4_inq_grp_parent(int ncid, int *parent_ncid)
 {
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    int retval;
 
    LOG((2, "nc_inq_grp_parent: ncid 0x%x", ncid));
@@ -266,7 +267,7 @@ int
 NC4_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
 {
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    int id1 = ncid, id2;
    char *cp, *full_name_cpy;
    int ret;
@@ -335,7 +336,7 @@ int
 NC4_inq_varids(int ncid, int *nvars, int *varids)
 {
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    int num_vars = 0;
    int retval;
@@ -404,7 +405,7 @@ int
 NC4_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
 {
    NC_GRP_INFO_T *grp, *g;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_DIM_INFO_T *dim;
    int num = 0;
    int retval;

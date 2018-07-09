@@ -6,6 +6,8 @@ H510=10
 
 #ARGS=f03_1820.nc
 
+SRC=test_put.c test_get.c test_read.c test_write.c util.c error.c
+
 #CMD=valgrind --leak-check=full
 #CMD=export NETCDF_LOG_LEVEL=5 ;gdb --args
 CMD=gdb --args
