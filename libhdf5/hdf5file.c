@@ -1440,7 +1440,7 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
             (*type_info)->nc_type_class = NC_CHAR;
          }
       }
-      else if (class == H5T_INTEGER || class == H5T_FLOAT)
+      else
       {
          for (t = 1; t < NUM_TYPES - 1; t++)
          {
