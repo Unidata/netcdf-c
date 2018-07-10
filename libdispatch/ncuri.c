@@ -261,9 +261,9 @@ ncuriparse(const char* uri0, NCURI** durip)
 	int l = strlen(p); /* to test if we have enough characters */
 	hashost = 0; /* always */
 	if(l >= 2 && p[1] == ':' && strchr(DRIVELETTERS,p[0]) != NULL) { /* case 1 */
-	    p = p; /* p points to the start of the path */
+	    ; /* p points to the start of the path */
         } else if(l >= 2 && p[0] == '/' && p[1] != '/') { /* case 2 */
-	    p = p; /* p points to the start of the path */
+	    ; /* p points to the start of the path */
 	} else if(l >= 4 && p[0] == '/' && p[1] == '/'
 		&& p[3] == ':' && strchr(DRIVELETTERS,p[2]) != NULL) { /* case 3 */
 	    p = p+2; /* points to the start of the windows path */
