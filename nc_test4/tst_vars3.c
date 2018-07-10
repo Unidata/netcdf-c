@@ -440,7 +440,7 @@ main(int argc, char **argv)
       size_t nparams;
       unsigned int filterid;
       unsigned int params_in[4];
-      if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_in));
+      if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_in)) ERR;
       if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
       if (nc_close(ncid)) ERR;
    }
