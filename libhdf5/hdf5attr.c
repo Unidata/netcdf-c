@@ -23,24 +23,47 @@ int nc4typelen(nc_type type);
  *
  * @param grp Group
  * @param varid Variable ID | NC_BLOGAL
- * @param varp Pointer into which to return created NC_VAR_INFO_T instance
+ * @param varp Pointer that gets pointer to NC_VAR_INFO_T
+ * instance. Ignored if NULL.
+ * @param attlist Pointer that gets pointer to attribute list.
  *
- * @return Attribute list | NULL
- * @author Dennis Heimbigner
+ * @return NC_NOERR No error.
+ * @author Dennis Heimbigner, Ed Hartnett
  */
-static NCindex *
-getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp)
+static int
+getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
+            NCindex **attlist)
 {
-   if (varid == NC_GLOBAL) {
-      if(varp) *varp = NULL;
-      return grp->att;
-   } else {
-      NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
-      if (!var) return NULL;
-      assert(var->hdr.id == varid);
-      if(varp) *varp = var;
-      return var->att;
+   NC_VAR_INFO_T* var;
+   int retval;
+
+   if (varid == NC_GLOBAL)
+   {
+      /* Do we need to read the atts? */
+      if (grp->atts_not_read)
+         if ((retval = nc4_read_grp_atts(grp)))
+            return retval;
+
+      if (varp)
+         *varp = NULL;
+      *attlist = grp->att;
    }
+   else
+   {
+      if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+         return NC_ENOTVAR;
+      assert(var->hdr.id == varid);
+
+      /* Do we need to read the atts? */
+      if (var->atts_not_read)
+         if ((retval = nc4_read_var_atts(grp, var)))
+            return retval;
+
+      if (varp)
+         *varp = var;
+      *attlist = var->att;
+   }
+   return NC_NOERR;
 }
 
 /**
@@ -61,7 +84,7 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var = NULL;
    NC_ATT_INFO_T *att;
    NCindex *list;
@@ -92,11 +115,11 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
    if ((retval = nc4_check_name(newname, norm_newname)))
       return retval;
 
-   /* Is new name in use? */
-   list = getattlist(grp,varid,&var);
-   if(list == NULL)
-      return NC_ENOTVAR;
+   /* Get the list of attributes. */
+   if ((retval = getattlist(grp, varid, &var, &list)))
+      return retval;
 
+   /* Is new name in use? */
    att = (NC_ATT_INFO_T*)ncindexlookup(list,norm_newname);
    if(att != NULL)
       return NC_ENAMEINUSE;
@@ -171,13 +194,13 @@ NC4_del_att(int ncid, int varid, const char *name)
    NC *nc;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_ATT_INFO_T *att;
    NCindex* attlist = NULL;
    hid_t locid = 0, datasetid = 0;
-   int retval = NC_NOERR;
    int i;
    size_t deletedid;
+   int retval;
 
    if (!name)
       return NC_EINVAL;
@@ -204,11 +227,11 @@ NC4_del_att(int ncid, int varid, const char *name)
          BAIL(retval);
    }
 
-   /* Get either the global or a variable attribute list. Also figure
-      out the HDF5 location it's attached to. */
-   attlist = getattlist(grp,varid,&var);
-   if(attlist == NULL)
-      return NC_ENOTVAR;
+   /* Get either the global or a variable attribute list. */
+   if ((retval = getattlist(grp, varid, &var, &attlist)))
+      return retval;
+
+   /* Determine the location id in the HDF5 file. */
    if (varid == NC_GLOBAL)
       locid = grp->hdf_grpid;
    else if (var->created)
@@ -279,7 +302,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var = NULL;
    NCindex* attlist = NULL;
    NC_ATT_INFO_T* att;
@@ -297,9 +320,8 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
 
    /* Find att, if it exists. (Must check varid first or nc_test will
     * break.) */
-   attlist = getattlist(grp,varid,&var);
-   if(attlist == NULL)
-      return NC_ENOTVAR;
+   if ((ret = getattlist(grp, varid, &var, &attlist)))
+      return ret;
 
    /* The length needs to be positive (cast needed for braindead
       systems with signed size_t). */
@@ -581,7 +603,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
             /* Data types are like religions, in that one can convert.  */
             if ((retval = nc4_convert_type(data, att->data, mem_type, file_type,
                                            len, &range_error, NULL,
-                                           (h5->cmode & NC_CLASSIC_MODEL), 0, 0)))
+                                           (h5->cmode & NC_CLASSIC_MODEL))))
                BAIL(retval);
          }
       }

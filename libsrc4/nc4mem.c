@@ -34,10 +34,10 @@
     #define HDrealloc(M,Z)    realloc(M,Z)
 #endif /* HDrealloc */
 
-extern hid_t NC4_image_init(NC_HDF5_FILE_INFO_T* h5);
+extern hid_t NC4_image_init(NC_FILE_INFO_T* h5);
 
 int
-NC4_open_image_file(NC_HDF5_FILE_INFO_T* h5)
+NC4_open_image_file(NC_FILE_INFO_T* h5)
 {
     int stat = NC_NOERR;
     hid_t hdfid;
@@ -66,7 +66,7 @@ done:
 }
 
 int
-NC4_create_image_file(NC_HDF5_FILE_INFO_T* h5, size_t initialsz)
+NC4_create_image_file(NC_FILE_INFO_T* h5, size_t initialsz)
 {
     int stat = NC_NOERR;
     int hdfid;
@@ -84,7 +84,7 @@ done:
 }
 
 int
-NC4_extract_file_image(NC_HDF5_FILE_INFO_T* h5)
+NC4_extract_file_image(NC_FILE_INFO_T* h5)
 {
     int stat = NC_NOERR;
     hid_t fapl;
