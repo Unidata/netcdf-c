@@ -949,6 +949,11 @@ IF(ENABLE_LARGE_FILE_TESTS)
   SET(LARGE_FILE_TESTS ON)
 ENDIF()
 
+OPTION(ENABLE_METADATA_PERF_TESTS "Enable test of metadata performance." ON)
+IF(ENABLE_METADATA_PERF_TESTS)
+  SET(ENABLE_METADATA_PERF ON)
+ENDIF()
+
 # Location for large file tests.
 SET(TEMP_LARGE "." CACHE STRING "Location to store large file tests.")
 
