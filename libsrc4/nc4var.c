@@ -87,7 +87,7 @@ NC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    int retval;
 
@@ -173,7 +173,7 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    int retval;
 
@@ -434,7 +434,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type_info = NULL;
    char norm_name[NC_MAX_NAME + 1];
    int d;
@@ -731,7 +731,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    int d;
    int retval;
@@ -752,6 +752,11 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    {
       if (nattsp)
       {
+         /* Do we need to read the atts? */
+         if (grp->atts_not_read)
+            if ((retval = nc4_read_grp_atts(grp)))
+               return retval;
+
 	 *nattsp = ncindexcount(grp->att);
       }
       return NC_NOERR;
@@ -775,6 +780,9 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
          dimidsp[d] = var->dimids[d];
    if (nattsp)
    {
+      if (var->atts_not_read)
+         if ((retval = nc4_read_var_atts(grp, var)))
+            return retval;
       *nattsp = ncindexcount(var->att);
    }
 
@@ -900,7 +908,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    int d;
    int retval;
@@ -1176,7 +1184,7 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
    NC *nc;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
 
    size_t *cs = NULL;
    int i, retval;
@@ -1239,7 +1247,7 @@ nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
    NC *nc;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    size_t *cs = NULL;
    int i, retval;
 
@@ -1354,7 +1362,7 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
    int retval = NC_NOERR;
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
@@ -1482,7 +1490,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var, *tmpvar;
    int retval = NC_NOERR;
 
@@ -1618,7 +1626,7 @@ NC4_var_par_access(int ncid, int varid, int par_access)
 #else
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    int retval;
 
@@ -1673,7 +1681,8 @@ NC4_put_vara(int ncid, int varid, const size_t *startp,
    if (!(nc = nc4_find_nc_file(ncid, NULL)))
       return NC_EBADID;
 
-   return nc4_put_vara(nc, ncid, varid, startp, countp, memtype, 0, (void *)op);
+   return nc4_put_vars(nc, ncid, varid, startp, countp, NULL, memtype,
+                       (void *)op);
 }
 
 /**
@@ -1696,7 +1705,7 @@ NC4_get_vara(int ncid, int varid, const size_t *startp,
              const size_t *countp, void *ip, int memtype)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T* h5;
+   NC_FILE_INFO_T* h5;
 
    LOG((2, "%s: ncid 0x%x varid %d memtype %d", __func__, ncid, varid,
         memtype));
@@ -1705,22 +1714,8 @@ NC4_get_vara(int ncid, int varid, const size_t *startp,
       return NC_EBADID;
 
    /* Get the data. */
-   return nc4_get_vara(nc, ncid, varid, startp, countp, memtype,
-                       0, (void *)ip);
-}
-
-
-/* Provide a temporary hook
-to choose old NCDEFAULT methods vs new versions
-of get/put vars
-*/
-/* Temporary flag to choose default vs not put/get vars */
-static int defaultvars = 0;
-
-void
-nc4_set_default_vars(int tf)
-{
-    defaultvars = (tf ? 1 : 0);
+   return nc4_get_vars(nc, ncid, varid, startp, countp, NULL, memtype,
+                       (void *)ip);
 }
 
 /**
@@ -1746,13 +1741,11 @@ NC4_put_vars(int ncid, int varid, const size_t *startp,
 {
    NC *nc;
 
-   if(defaultvars)
-	return NCDEFAULT_put_vars(ncid,varid,startp,countp,stridep,op,memtype);
-
    if (!(nc = nc4_find_nc_file(ncid, NULL)))
       return NC_EBADID;
 
-   return nc4_put_vars(nc, ncid, varid, startp, countp, stridep, memtype, 0, (void *)op);
+   return nc4_put_vars(nc, ncid, varid, startp, countp, stridep, memtype,
+                       (void *)op);
 }
 
 /**
@@ -1777,10 +1770,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp,
 	     void *ip, int memtype)
 {
    NC *nc;
-   NC_HDF5_FILE_INFO_T* h5;
-
-   if(defaultvars)
-	return NCDEFAULT_get_vars(ncid,varid,startp,countp,stridep,ip,memtype);
+   NC_FILE_INFO_T *h5;
 
    LOG((2, "%s: ncid 0x%x varid %d memtype %d", __func__, ncid, varid,
         memtype));
@@ -1790,5 +1780,5 @@ NC4_get_vars(int ncid, int varid, const size_t *startp,
 
    /* Get the data. */
    return nc4_get_vars(nc, ncid, varid, startp, countp, stridep, memtype,
-                       0, (void *)ip);
+                       (void *)ip);
 }

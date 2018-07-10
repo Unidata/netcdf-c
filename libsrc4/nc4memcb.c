@@ -199,7 +199,7 @@ typedef struct {
     unsigned flags;		/* Flags indicate how the file image will */
                                 /* be open */
     int ref_count;		/* Reference counter on udata struct */
-    NC_HDF5_FILE_INFO_T* h5;
+    NC_FILE_INFO_T* h5;
 } H5LT_file_image_ud_t;
 
 /* callbacks prototypes for file image ops */
@@ -656,28 +656,8 @@ out:
 
 /* End of callbacks definitions for file image operations */
 
-/*-------------------------------------------------------------------------
-*
-* Public functions
-*
-*-------------------------------------------------------------------------
-*/
-
-/*-------------------------------------------------------------------------
-* Function: H5LTopen_file_image
-*
-* Purpose: Open a user supplied file image using the core file driver.
-*
-* Return: File identifier, Failure: -1
-*
-* Programmer: Christian Chilan
-*
-* Date: October 3, 2011
-*
-*-------------------------------------------------------------------------
-*/
 hid_t
-NC4_image_init(NC_HDF5_FILE_INFO_T* h5)
+NC4_image_init(NC_FILE_INFO_T* h5)
 {
     hid_t		fapl = -1, file_id = -1; /* HDF5 identifiers */
     unsigned            file_open_flags;/* Flags for image open */
