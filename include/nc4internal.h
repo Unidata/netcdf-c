@@ -38,7 +38,6 @@
 typedef enum {GET, PUT} NC_PG_T;
 typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 
-/* #define NC_MAX_HDF5_NAME (NC_MAX_NAME + 10) */
 #define NC_V2_ERR (-1)
 
 /* The name of the root group. */
