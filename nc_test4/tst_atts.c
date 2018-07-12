@@ -11,6 +11,7 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include "nc4internal.h"
+#include "hdf5internal.h"
 
 /* The data file we will create. */
 #define FILE_NAME "tst_atts.nc"

@@ -15,6 +15,7 @@
 #include <errno.h>  /* netcdf functions sometimes return system errors */
 #include "nc.h"
 #include "nc4internal.h"
+#include "hdf5internal.h"
 #include "nc4dispatch.h"
 #include "netcdf_mem.h"
 #ifdef USE_HDF4
