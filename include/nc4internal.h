@@ -322,8 +322,6 @@ int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		     const void *fill_value, int strict_nc3);
 
 /* These functions do HDF5 things. */
-/* int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid); */
-/* int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid); */
 int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
 int nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
