@@ -1,8 +1,10 @@
 /* Copyright 2005-2018 University Corporation for Atmospheric
    Research/Unidata. */
 /**
- * @file This header file contains the definitions of structs used to
- * hold netCDF file metadata in memory.
+ * @file This header file contains macros, types and prototypes used
+ * to build and manipulate the netCDF metadata model.
+ *
+ * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
 */
 
 #ifndef _NC4INTERNAL_
@@ -14,7 +16,6 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <string.h>
-#include <hdf5.h>
 
 #include "ncdimscale.h"
 #include "nc_logging.h"
@@ -37,7 +38,7 @@
 typedef enum {GET, PUT} NC_PG_T;
 typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 
-#define NC_MAX_HDF5_NAME (NC_MAX_NAME + 10)
+/* #define NC_MAX_HDF5_NAME (NC_MAX_NAME + 10) */
 #define NC_V2_ERR (-1)
 
 /* The name of the root group. */
@@ -73,36 +74,6 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 #define X_FLOAT_MIN	(-X_FLOAT_MAX)
 #define X_DOUBLE_MAX	1.7976931348623157e+308
 #define X_DOUBLE_MIN	(-X_DOUBLE_MAX)
-
-/* These have to do with creating chuncked datasets in HDF5. */
-#define NC_HDF5_UNLIMITED_DIMSIZE (0)
-#define NC_HDF5_CHUNKSIZE_FACTOR (10)
-#define NC_HDF5_MIN_CHUNK_SIZE (2)
-
-#define NC_EMPTY_SCALE "NC_EMPTY_SCALE"
-
-/* This is an attribute I had to add to handle multidimensional
- * coordinate variables. */
-#define COORDINATES "_Netcdf4Coordinates"
-#define COORDINATES_LEN (NC_MAX_NAME * 5)
-
-/* This is used when the user defines a non-coordinate variable with
- * same name as a dimension. */
-#define NON_COORD_PREPEND "_nc4_non_coord_"
-
-/* An attribute in the HDF5 root group of this name means that the
- * file must follow strict netCDF classic format rules. */
-#define NC3_STRICT_ATT_NAME "_nc3_strict"
-
-/* If this attribute is present on a dimscale variable, use the value
- * as the netCDF dimid. */
-#define NC_DIMID_ATT_NAME "_Netcdf4Dimid"
-
-/** This is the name of the class HDF5 dimension scale attribute. */
-#define HDF5_DIMSCALE_CLASS_ATT_NAME "CLASS"
-
-/** This is the name of the name HDF5 dimension scale attribute. */
-#define HDF5_DIMSCALE_NAME_ATT_NAME "NAME"
 
 /** This is the number of netCDF atomic types. */
 #define NUM_ATOMIC_TYPES (NC_MAX_ATOMIC_TYPE + 1)
@@ -352,8 +323,8 @@ int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		     const void *fill_value, int strict_nc3);
 
 /* These functions do HDF5 things. */
-int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
-int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
+/* int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid); */
+/* int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid); */
 int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
 int nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
@@ -521,4 +492,4 @@ extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hd
 extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
 extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
 
-#endif /* _NETCDF4_ */
+#endif /* _NC4INTERNAL_ */
