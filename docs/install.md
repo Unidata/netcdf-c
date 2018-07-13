@@ -78,7 +78,7 @@ Requirements {#netcdf_requirements}
   * HDF5 1.10.1 or later.
 * zlib 1.2.5 or later (for netCDF-4 compression)
 * curl 7.18.0 or later (for DAP remote access client support)
-* For paralle I/O support on classic netCDF files
+* For parallel I/O support on classic netCDF files
   * PnetCDF 1.6.0 or later
 
 > **Important Note**: When building netCDF-C library versions older than 4.4.1, use only HDF5 1.8.x versions.  Combining older netCDF-C versions with newer HDF5 1.10 versions will create superblock 3 files that are not readable by lots of older software.  See <a href="http://www.unidata.ucar.edu/blogs/news/entry/netcdf-4-4-1">this announcement</a> for more details.
