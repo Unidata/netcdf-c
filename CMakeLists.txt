@@ -1805,7 +1805,11 @@ configure_file(
   ${netCDF_SOURCE_DIR}/netcdf.pc.in
   ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
 
-FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+
+IF(NOT IS_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+  FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+ENDIF()
+
 configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
   "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY
   NEWLINE_STYLE LF)

@@ -8,11 +8,11 @@
 
 The original internal representations of metadata in memory
 relied on linear searching of lists to locate various objects
-by name or by numeric id: e.g. _varid_ or _grpid_.
+by name or by numeric id: by _varid_ or by _grpid_ for example.
 
 In recent years, the flaws in that approach have become obvious
 as users create files with extremely large numbers of objects:
-group, variables, attributes, and dimensions. One case
+groups, variables, attributes, and dimensions. One case
 has 14 megabytes of metadata. Creating and (especially) later
 opening such files was exceedingly slow.
 
@@ -171,6 +171,14 @@ Note that currently, NCindex is only used in libsrc4 and libhdf4.
 But if performance issues warrant, it will also be used in
 libsrc.
 
+Note also that alternative implementations are feasible that do not
+use a hash table for name indexing, but rather keep a list sorted by name
+and use binary search to do name-based lookup. If this alternative were
+implemented, then it is probable that we could get rid of using the NC_hashmap
+structure altogether for netcdf-4. There is a performance cost since binary
+search is O(log n). In practice, it is probable that this is of negligable
+effect. The advantage is that rename operations become considerably simpler.
+
 \section Sglobal_object_access Global Object Access
 
 As mentioned, dimension, group, and type external id's (dimid,
@@ -179,11 +187,11 @@ convenient to store in memory a per-file vector for each object
 type such that the external id of the object is the same as the
 position of that object in the corresponding per-file
 vector. This makes lookup by external id very efficient.
-Note that this is was already the case for netcdf-3 (libsrc) so
+Note that this was already the case for netcdf-3 (libsrc) so
 this is a change for libsrc4 only.
 
 The global set of dimensions, types, and groups is maintained by
-three instances of NClist in the NC_HDF5_FILE_INFO structure:
+three instances of NClist in the NC_FILE_INFO structure:
 namely _alldims_, _alltypes_, and _allgroups_.
 The position of the object within the corresponding list determines
 the object's external id. Thus, a position of a dimension object within the
@@ -194,7 +202,7 @@ for types and groups.
 
 Each group object (NC_GRP_INFO_T) contains five instances of
 NCindex. One is for dimensions, one is for types, one is for
-subgroups, one is for variables, and one is for attributes.  A
+subgroups, one is for variables, and one is for attributes.  An
 index is used for two reasons. First, it allows name-based lookup
 for these items. Second, the declaration order is maintained by
 the list within the index's vector. Note that the position of
@@ -265,7 +273,7 @@ if(g != NULL)
       ... code to process matching grp by name
 }
 \endcode
-In this case, the iteration uses a hashtable.
+In this case, the iteration is replaced by a hashtable lookup.
 
 \subsection Slookupid Lookup an Object by id
 
@@ -291,7 +299,7 @@ dimension.
 In the new code, this iteration cliche is replaced by something
 that will look like this.
 \code
-NC_HDF5_FILE_INFO_T* h5 = ...;
+NC_FILE_INFO_T* h5 = ...;
 NC_DIM_INFO_T* d;;
 ...
 d = nclistget(h5->alldims,id);
@@ -301,7 +309,7 @@ if(d != NULL)
 \endcode
 This shows how the alldims vector is used to map from a
 dimid directly to the matching dimension object.
-In this example, h5 is the NC_HDF5_FILE_INFO_T file object.
+In this example, h5 is the NC_FILE_INFO_T file object.
 This approach works for dimension ids, group ids, and type ids
 because they are globally unique.
 
@@ -364,6 +372,7 @@ no opportunity for lazy loading to be used.
 The remedys of which I can conceive are these.
 
 1. Modify the netcdf-c library to also do lazy loading
+   (work on this is under way).
 2. Store a single metadata object into the file so it can
    be read at one shot. This object would then be processed
    in-memory to construct the internal metadata. The costs for
@@ -373,7 +382,7 @@ The remedys of which I can conceive are these.
 It should be noted that there is an effect from this change.
 Using gprof, one can see that in the original code the obj_list_add
 function was the dominate function called by a large percentage (about 20%).
-Whereas with the new code, the function call distribute is more much more
+Whereas with the new code, the function call distribution is much more
 even with no function taking more than 4-5%.
 
 Some other observations:
@@ -400,7 +409,7 @@ Some other observations:
 4. Renaming is still a costly operation because it causes
    the whole containing index to be rebuilt.
 5. As in the original code, object ids (dimid, etc) are assigned
-   explicitly using counters within the NC_HDF5_FILE_INFO_T object.
+   explicitly using counters within the NC_FILE_INFO_T object.
    When stored into, for example, "alldims", the position of the
    object is forcibly made to match the value of the assigned id.
 6. The file nchashmap.c has a constant, SMALLTABLE, that controls
