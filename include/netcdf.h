@@ -1960,7 +1960,7 @@ ncrecget(int ncid, long recnum, void **datap);
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
-EXTERNL int nc_finalize();
+EXTERNL int nc_finalize(void);
 
 #if defined(__cplusplus)
 }

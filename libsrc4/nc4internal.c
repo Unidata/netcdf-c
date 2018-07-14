@@ -1603,6 +1603,8 @@ nc4_normalize_name(const char *name, char *norm_name)
  * show only errors, and to higher numbers to show more and more
  * logging details. If logging is not enabled with --enable-logging at
  * configure when building netCDF, this function will do nothing.
+ * Note that it is possible to set the log level using the environment
+ * variable named _NETCDF_LOG_LEVEL_ (e.g. _export NETCDF_LOG_LEVEL=4_).
  *
  * @param new_level The new logging level.
  *
