@@ -2502,6 +2502,7 @@ exit:
  * classic model is in use.
  *
  * @param root_grp pointer to the group info for the root group of the
+ * @param is_classic store 1 if this is a classic file.
  * file.
  *
  * @return NC_NOERR No error.
