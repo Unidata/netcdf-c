@@ -1,0 +1,189 @@
+/**
+@if INTERNAL
+
+@page remotesvc Remote Test Server Setup
+
+\tableofcontents
+
+<!-- Note that this file has the .dox extension, but is mostly markdown -->
+<!-- Begin MarkDown -->
+
+# Introduction {#remotesvc_intro}
+
+The test suite for the DAP2 and DAP4 (aka DAP) protocols optionally
+uses a continuously running test server to verify that the
+DAP protocols can successfully be used against a remote server such
+as a Unidata Thredds server or a OPeNDAP Hyrax server.
+
+The way that this is tests is to establish two servlets running
+under a Tomcat server on some machine with a known IP address
+or DNS name. For example, accessing this URL.
+````
+http://149.165.169.123:8080/dts/
+````
+will bring up a page with a variety of DAP2 accessible files.
+These files are accessed by the netcdf-c test case
+_netcdf-c/ncdap_test/tst_remote3.sh_
+to verify that the whole
+transmission and conversions process worked correctly.
+Similarly, the DAP4 test case is
+_netcdf-c/ncdap_test/test_remote.sh_
+and it accesses the test server web page with this URL.
+````
+http://149.165.169.123:8080/d4ts/
+````
+Setting up and Maintaining the test server involves a somewhat complex
+set of tasks. This document shows how to do those tasks.
+
+# Tomcat Setup {#remotesvc_tomcat}
+
+The initial task is to setup a Tomcat server on some machine.
+Currently the remote server is operating on Jetstream on an Ubuntu Linux
+environment.
+
+Assuming you do not already have Tomcat setup, the necessary steps are
+as follows.
+
+1. Login to your machine - let us call it "testserver.unidata.edu".
+2. Use the package manager to install two packages using commands like this.
+````
+sudo apt-get tomcat7
+sudo apt-get tomcat7-admin
+````
+Note that this installs Tomcat version 7. Later versions should also work.
+3. Goto the tomcat7 installation, probably ''/usr/share/tomcat7'',
+and modify the configuration as described in the next section.
+4. Startup tomcat using the following commands.
+````
+cd /usr/share/tomcat7/bin
+./startup.sh
+````
+It is possible that the startup command may need to be executed with ''sudo''.
+5. Verify that tomcat is running by trying this URL in your web browser.
+````
+http:testserver.unidata.edu:8080
+````
+The port -- 8080 -- is the default for an installed tomcat. It may be that
+you will need to change it as part of the configuration process.
+6. Try the administration web page
+````
+http:testserver.unidata.edu:8080/manager
+````
+This should pop-up a user+password dialog box. You should fill it in
+with the values you choose during configuration.
+The resulting final page will be the one you use to get the dts and d4ts
+servlets operating.
+7. Use the commands
+````
+cd /usr/share/tomcat7/bin
+./shutdown.sh
+````
+to stop the Tomcat server.
+
+# Configuring Tomcat {#remotesvc_cfg}
+
+In the primary Tomcat directory -- probably /usr/share/tomcat7 --
+there should be a ''conf'' directory, and in that directory,
+you will need to edit the file ''tomcat-users.xml''.
+
+## Configuring tomcat-users.xml {#remotesvc_tomcat_users}
+
+The goal here is primarily to setup a user that can login to the
+Tomcat admin page to upload the dts and d4ts servlets.
+Let us assume that the username we want to use is ''dapadmin''
+with password ''dap''.
+
+Edit the ''tomcat-users.xml'' file.
+You will probably have to use ''sudo'' to access the file.
+Insert the following near the end of the file.
+````
+  <role rolename="manager-gui"/>
+  <user username="dapadmin" password="dap" roles="admin,manager-gui"/>
+````
+
+## Configuring server.xml {#remotesvc_config_server_xml}
+
+As a rule, the default settings in ''server.xml'' will work
+and provide insecure access to the Tomcat server via port 8080.
+This is ok if the test server is running nothing but the d4ts and dts
+test servlets. Otherwise, you should investigate how to
+get the Tomcat server to use <em>https:</em> 
+
+# Loading dts.war and d4ts.war {#remotesvc_load_war}
+
+The next step is to actually upload the servlet files for the DAP
+test servlets. We assume that you have on your local disk two files:
+''dts.war'' and ''d4ts.war''. Building those servlet war files is
+described in a separate section.
+
+The specific tasks are as follows:
+1. Open the web page
+````
+http:testserver.unidata.edu:8080/manager
+````
+Scroll down to the block labelled ''WAR file to deploy'',
+which should have two buttons: ''Browse'' and ''Deploy''.
+2. Clicking on the browse button should bring up a file dialog box.
+Use the dialog box to choose ''dts.war''.
+3. After choosing that file, click the ''Deploy'' button.
+After some delay, this should add
+a new entry in the first column near the top of the page.
+That entry should be named ''/dts''.
+4. If you click the ''/dts'' in the first column, then it should take you
+to the DAP2 test server main page.
+5. Repeat to load ''d4ts.war'' as ''/d4ts''.
+
+# Testing the Test Server {#remotesvc_testing}
+
+You can now test the test server by configuring and building
+the netcdf-c library. In order to force the use
+of the newly started test server you can either:
+1. Add the option
+````
+--with-testservers=testserver.unidata.edu
+````
+This will override the defaults.
+
+2. Edit configure.ac and find the string "svclist".
+Replace the list with "testserver.unidata.edu".
+This will make the new test server be the default.
+
+After building the library, go into the directory ''ncdap_test''
+and do a ''make check'' command. This should succeed.
+Similarly enter the directory ''dap4_test'' and do a make check
+to verify that the d4ts test server is working.
+
+# Building d4ts.war and dts.war {#remotesvc_buildservlets}
+
+In order to build the servlet (.war) files, you will need to
+clone the Thredds directory on github: https://github.com/Unidata/thredds.
+
+Once you have a clone, you will need to enter the thredds directory
+and build by invoking gradle using this command.
+````
+./gradlew --info --no-daemon  clean assemble
+````
+If successful, the following two files should exist
+(the names may vary slightly).
+
+1. ./dap4/d4ts/build/libs/d4ts-5.0.0-SNAPSHOT.war
+2. ./opendap/dtswar/build/libs/dtswar-5.0.0-SNAPSHOT.war
+
+Copy the two files to some more accessible place and rename them
+to ''d4ts.war'' and ''dts.war'' respectively.
+
+Use those files to upload the servlets to your Tomcat server
+as described above.
+
+# Point of Contact {#remotesvc_poc}
+
+__Author__: Dennis Heimbigner<br>
+__Email__: dmh at ucar dot edu<br>
+__Initial Version__: 6/26/2018<br>
+__Last Revised__: 6/28/2018
+
+<!-- End MarkDown -->
+
+@endif
+
+*/
