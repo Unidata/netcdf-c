@@ -927,14 +927,8 @@ write_file(char *filename)
 	error("nc_enddef: %s", nc_strerror(err));
 
 #ifdef USE_PNETCDF
-    { int i,format;
-    nc_inq_format_extended(ncid, &format, NULL);
-    if (format == NC_FORMATX_PNETCDF) {
-        for (i = 0; i < numVars; i++) {
-            err = nc_var_par_access(ncid, i, NC_COLLECTIVE);
-	    IF (err) error("nc_var_par_access: %s", nc_strerror(err));
-        }
-    }}
+    err = nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE);
+    IF (err) error("nc_var_par_access: %s", nc_strerror(err));
 #endif
 
     put_vars(ncid);
