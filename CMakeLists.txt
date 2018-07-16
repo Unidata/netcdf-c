@@ -531,6 +531,8 @@ IF(ENABLE_NETCDF_$ AND (NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC) OR ENA
   ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
   SET(ENABLE_SET_LOG_LEVEL ON)
 ENDIF()
+ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
+SET(ENABLE_SET_LOG_LEVEL ON)
 
 # Option to allow for strict null file padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information
