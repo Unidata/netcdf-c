@@ -39,7 +39,8 @@ extern int NC4_create_image_file(NC_FILE_INFO_T* h5, size_t);
  * @author Ed Hartnett, Dennis Heimbigner
  */
 static int
-nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters, NC *nc)
+nc4_create_file(const char *path, int cmode, size_t initialsz,
+                void* parameters, NC *nc)
 {
    hid_t fcpl_id, fapl_id = -1;
    unsigned flags;
@@ -51,8 +52,8 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
    NC_MPI_INFO* mpiinfo = NULL;
    MPI_Comm comm;
    MPI_Info info;
-   int comm_duped = 0;          /* Whether the MPI Communicator was duplicated */
-   int info_duped = 0;          /* Whether the MPI Info object was duplicated */
+   int comm_duped = 0; /* Whether the MPI Communicator was duplicated */
+   int info_duped = 0; /* Whether the MPI Info object was duplicated */
 #endif /* !USE_PARALLEL4 */
 
    assert(nc && path);
@@ -165,7 +166,8 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
 #if H5_VERSION_GE(1,10,2)
    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_V18) < 0)
 #else
-      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_LATEST) < 0)
+      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST,
+                               H5F_LIBVER_LATEST) < 0)
 #endif
          BAIL(NC_EHDFERR);
 #endif
@@ -256,8 +258,8 @@ exit: /*failure exit*/
  * @param basepe Ignored by this function.
  * @param chunksizehintp Ignored by this function.
  * @param use_parallel 0 for sequential, non-zero for parallel I/O.
- * @param parameters pointer to struct holding extra data (e.g. for parallel I/O)
- * layer. Ignored if NULL.
+ * @param parameters pointer to struct holding extra data (e.g. for
+ * parallel I/O) layer. Ignored if NULL.
  * @param dispatch Pointer to the dispatch table for this file.
  * @param nc_file Pointer to an instance of NC.
  *
