@@ -12,6 +12,7 @@
  * @author Ed Hartnett
  */
 #include "nc4internal.h"
+#include "hdf5internal.h"
 #include "nc4dispatch.h"
 
 /**
