@@ -406,6 +406,9 @@ int nc4_check_name(const char *name, char *norm_name);
 int nc4_normalize_name(const char *name, char *norm_name);
 int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 
+/* Close the file. */
+int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem);
+
 /* HDF5 initialization */
 extern int nc4_hdf5_initialized;
 extern void nc4_hdf5_initialize(void);

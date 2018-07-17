@@ -595,8 +595,8 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
 */
-static int
-close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
+int
+nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
 {
    int retval = NC_NOERR;
 
@@ -2401,7 +2401,7 @@ exit:
 #endif
    if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if (!nc4_info) return retval;
-   close_netcdf4_file(nc4_info,1,0); /*  treat like abort*/
+   nc4_close_netcdf4_file(nc4_info,1,0); /*  treat like abort*/
    return retval;
 }
 
@@ -2677,7 +2677,7 @@ NC4_abort(int ncid)
 
    /* Free any resources the netcdf-4 library has for this file's
     * metadata. */
-   if ((retval = close_netcdf4_file(nc4_info, 1, 0)))
+   if ((retval = nc4_close_netcdf4_file(nc4_info, 1, 0)))
       return retval;
 
    /* Delete the file, if we should. */
@@ -2721,7 +2721,7 @@ NC4_close(int ncid, void* params)
    inmemory = ((h5->cmode & NC_INMEMORY) == NC_INMEMORY);
 
    /* Call the nc4 close. */
-   if ((retval = close_netcdf4_file(grp->nc4_info, 0, (inmemory?1:0))))
+   if ((retval = nc4_close_netcdf4_file(grp->nc4_info, 0, (inmemory?1:0))))
       return retval;
    if(inmemory && params != NULL) {
 	NC_memio* memio = (NC_memio*)params;
