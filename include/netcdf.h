@@ -512,10 +512,10 @@ EXTERNL const char *
 nc_strerror(int ncerr);
 
 /* Set up user-defined format. */
-typedef struct NC_Dispatch NC_Dispatch;   
+typedef struct NC_Dispatch NC_Dispatch;
 EXTERNL int
 nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number);
-   
+
 EXTERNL int
 nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number);
 
@@ -1960,10 +1960,24 @@ ncrecget(int ncid, long recnum, void **datap);
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
-EXTERNL int nc_finalize();
+EXTERNL int nc_finalize(void);
 
 #if defined(__cplusplus)
 }
+#endif
+
+/* Define two hard-coded functionality-related
+   (as requested by community developers) macros.
+   This is not going to be standard practice.
+   Don't remove without an in-place replacement of some sort,
+   the are now (for better or worse) used by downstream
+   software external to Unidata. */
+#ifndef NC_HAVE_RENAME_GRP
+#define NC_HAVE_RENAME_GRP /*!< rename_grp() support. */
+#endif
+
+#ifndef NC_HAVE_INQ_FORMAT_EXTENDED
+#define NC_HAVE_INQ_FORMAT_EXTENDED /*!< inq_format_extended() support. */
 #endif
 
 #define NC_HAVE_META_H
