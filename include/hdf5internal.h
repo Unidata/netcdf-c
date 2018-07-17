@@ -13,8 +13,9 @@
 
 #include "config.h"
 #include "nc4internal.h"
-#include <hdf5.h>
 #include "ncdimscale.h"
+#include <hdf5.h>
+#include <hdf5_hl.h>
 
 #define NC_MAX_HDF5_NAME (NC_MAX_NAME + 10)
 

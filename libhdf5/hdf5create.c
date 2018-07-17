@@ -7,6 +7,7 @@
  *
  * @author Ed Hartnett
  */
+
 #include "config.h"
 #include "hdf5internal.h"
 
@@ -70,12 +71,12 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
    nc4_info->mem.initialsize = initialsz;
 
    if(nc4_info->mem.inmemory && parameters)
-	nc4_info->mem.memio = *(NC_memio*)parameters;
+      nc4_info->mem.memio = *(NC_memio*)parameters;
 #ifdef USE_PARALLEL4
    else if(parameters) {
-	mpiinfo = (NC_MPI_INFO *)parameters;
-        comm = mpiinfo->comm;
-	info = mpiinfo->info;
+      mpiinfo = (NC_MPI_INFO *)parameters;
+      comm = mpiinfo->comm;
+      info = mpiinfo->info;
    }
 #endif
    if(nc4_info->mem.diskless)
@@ -91,7 +92,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
       if((cmode & NC_WRITE) && (cmode & NC_NOCLOBBER) == 0)
          nc4_info->mem.persist = 1;
    } else if (nc4_info->mem.inmemory) {
-	/* ok */
+      /* ok */
    } else if ((cmode & NC_NOCLOBBER) && (fp = fopen(path, "r"))) {
       fclose(fp);
       BAIL(NC_EEXIST);
@@ -124,10 +125,9 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
             BAIL(NC_EPARINIT);
       }
 #else /* USE_PARALLEL_POSIX */
-      /* Should not happen! Code in NC4_create/NC4_open should alias the
-       *        NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
-       *        available in HDF5. -QAK
-       */
+      /* Should not happen! Code in NC4_create/NC4_open should alias
+       * the NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
+       * available in HDF5. -QAK */
       else /* MPI/POSIX */
          BAIL(NC_EPARINIT);
 #endif /* USE_PARALLEL_POSIX */
@@ -157,16 +157,17 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
                     nc4_chunk_cache_preemption) < 0)
       BAIL(NC_EHDFERR);
    LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-        __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems, nc4_chunk_cache_preemption));
+        __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
+        nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
 
 #ifdef HDF5_HAS_LIBVER_BOUNDS
 #if H5_VERSION_GE(1,10,2)
    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_V18) < 0)
 #else
-   if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_LATEST) < 0)
+      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_LATEST) < 0)
 #endif
-      BAIL(NC_EHDFERR);
+         BAIL(NC_EHDFERR);
 #endif
 
    /* Create the property list. */
@@ -195,18 +196,18 @@ nc4_create_file(const char *path, int cmode, size_t initialsz, void* parameters,
 
    if(nc4_info->mem.inmemory) {
 #if 0
-	if(nc4_info->mem.memio.size == 0)
-	    nc4_info->memio.size = DEFAULT_CREATE_MEMSIZE; /* last ditch fix */
-	if(nc4_info->memio.memory == NULL) { /* last ditch fix */
-	    nc4_info->memio.memory = malloc(nc4_info->memio.size);
-	    if(nc4_info->memio.memory == NULL)
-		BAIL(NC_ENOMEM);
-	}
-	assert(nc4_info->memio.size > 0 && nc4_info->memio.memory != NULL);
+      if(nc4_info->mem.memio.size == 0)
+         nc4_info->memio.size = DEFAULT_CREATE_MEMSIZE; /* last ditch fix */
+      if(nc4_info->memio.memory == NULL) { /* last ditch fix */
+         nc4_info->memio.memory = malloc(nc4_info->memio.size);
+         if(nc4_info->memio.memory == NULL)
+            BAIL(NC_ENOMEM);
+      }
+      assert(nc4_info->memio.size > 0 && nc4_info->memio.memory != NULL);
 #endif
-	retval = NC4_create_image_file(nc4_info,initialsz);
-	if(retval)
-	    BAIL(retval);
+      retval = NC4_create_image_file(nc4_info,initialsz);
+      if(retval)
+         BAIL(retval);
    } else if ((nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
       /*Change the return error from NC_EFILEMETADATA to
         System error EACCES because that is the more likely problem */
