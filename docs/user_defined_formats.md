@@ -12,6 +12,11 @@ User-defined formats allow users to write their own adaptors for the
 netCDF C library, so that it can read and (optionally) write a
 proprietary format through the netCDF API.
 
+This capability is currently experimental. It involves the exposing of internal
+netcdf interfaces and data structures that were previously invisible to users.
+This means that it is unstable and the exposed interfaces are subject to change.
+Use with caution.
+
 User-defined format code is packaged into a separate library, the
 user-defined format dispatch library. This library, when linked with
 the netCDF library, will allow user programs to read their proprietary
@@ -71,7 +76,7 @@ add the location of the user-defined format dispatch library include
 file to the CPPFLAGS, and the location of the user-defined format
 dispatch library in LDFLAGS.
 
-Configure netcdf-c with the option --with-udf0=<udf_lib_name>.
+Configure netcdf-c with the option ````--with-udf0=<udf_lib_name>````.
 
 If a magic number is associated with the user-defined format, it can
 be specified with the --with-udf0-magic-number= argument.

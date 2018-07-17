@@ -149,6 +149,16 @@ AC_ARG_ENABLE([internal-docs],
 test "x$enable_internal_docs" = xyes || enable_internal_docs=no
 AC_SUBST([BUILD_INTERNAL_DOCS], [$enable_internal_docs])
 
+# Doxygen is apparently buggy when trying to combine a markdown
+# file with @internal. The equivalent can be faked using
+# the Doxygen ENABLED_SECTIONS mechanism. See docs/testserver.dox
+# to see how this is done.
+sections=
+if test "x$enable_internal_docs" = xyes ; then
+sections="$sections INTERNAL"
+fi
+AC_SUBST([ENABLED_DOC_SECTIONS], [$sections])
+
 AC_MSG_CHECKING([if fsync support is enabled])
 AC_ARG_ENABLE([fsync],
               [AS_HELP_STRING([--enable-fsync],
