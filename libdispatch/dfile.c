@@ -2038,8 +2038,8 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    if ((stat = check_create_mode(cmode)))
       return stat;
 
-   /* Initialize the dispatch table. The function pointers in the
-    * dispatch table will depend on how netCDF was built
+   /* Initialize the library. The available dispatch tables
+    * will depend on how netCDF was built
     * (with/without netCDF-4, DAP, CDMREMOTE). */
    if(!NC_initialized)
    {
