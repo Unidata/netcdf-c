@@ -713,7 +713,7 @@ NC_check_vlens(NC3_INFO *ncp)
     /* maximum permitted variable size (or size of one record's worth
        of a record variable) in bytes.  This is different for format 1
        and format 2. */
-    unsigned long long vlen_max;
+    long long vlen_max;
     size_t ii;
     size_t large_vars_count;
     size_t rec_vars_count;
@@ -723,7 +723,7 @@ NC_check_vlens(NC3_INFO *ncp)
 	return NC_NOERR;
 
     if (fIsSet(ncp->flags,NC_64BIT_DATA)) /* CDF-5 */
-	vlen_max = (size_t)X_INT64_MAX - 3; /* "- 3" handles rounded-up size */
+	vlen_max = X_INT64_MAX - 3; /* "- 3" handles rounded-up size */
     else if (fIsSet(ncp->flags,NC_64BIT_OFFSET) && sizeof(off_t) > 4)
 	/* CDF2 format and LFS */
 	vlen_max = X_UINT_MAX - 3; /* "- 3" handles rounded-up size */
