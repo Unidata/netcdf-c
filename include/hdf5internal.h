@@ -14,6 +14,7 @@
 #include "config.h"
 #include "nc4internal.h"
 #include "ncdimscale.h"
+#include "ncdispatch.h"
 #include <hdf5.h>
 #include <hdf5_hl.h>
 

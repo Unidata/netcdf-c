@@ -49,7 +49,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    NC_FILE_INFO_T* nc4_info = NULL;
 
 #ifdef USE_PARALLEL4
-   NC_MPI_INFO* mpiinfo = NULL;
+   NC_MPI_INFO *mpiinfo = NULL;
    MPI_Comm comm;
    MPI_Info info;
    int comm_duped = 0; /* Whether the MPI Communicator was duplicated */
