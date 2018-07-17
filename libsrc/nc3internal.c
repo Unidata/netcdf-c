@@ -100,7 +100,7 @@ err:
 int
 nc3_cktype(int mode, nc_type type)
 {
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
     if (mode & NC_CDF5) { /* CDF-5 format */
         if (type >= NC_BYTE && type < NC_STRING) return NC_NOERR;
     } else
@@ -1167,7 +1167,7 @@ nc_set_default_format(int format, int *old_formatp)
       return NC_EINVAL;
 #else
     if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
         && format != NC_FORMAT_CDF5
 #endif
         )
@@ -1698,7 +1698,7 @@ NC3_inq_format(int ncid, int *formatp)
       return NC_NOERR;
 
    /* only need to check for netCDF-3 variants, since this is never called for netCDF-4 files */
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
    if (fIsSet(nc3->flags, NC_64BIT_DATA))
       *formatp = NC_FORMAT_CDF5;
    else
