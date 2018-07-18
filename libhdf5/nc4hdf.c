@@ -14,9 +14,7 @@
  */
 
 #include "config.h"
-#include "nc4internal.h"
-#include "nc4dispatch.h"
-#include <H5DSpublic.h>
+#include "hdf5internal.h"
 #include <math.h>
 
 #ifdef HAVE_INTTYPES_H

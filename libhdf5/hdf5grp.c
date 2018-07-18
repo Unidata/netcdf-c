@@ -11,8 +11,8 @@
  * @author Ed Hartnett
  */
 
-#include "nc4internal.h"
-#include "nc4dispatch.h"
+#include "config.h"
+#include "hdf5internal.h"
 
 /**
  * @internal Create a group. Its ncid is returned in the new_ncid
