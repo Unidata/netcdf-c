@@ -173,28 +173,30 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
    if ((retval = nc4_rec_grp_del(h5->root_grp)))
       goto exit;
 
-   /* Misc. Cleanup */
+   /* Free lists of dims, groups, and types in the root group. */
    nclistfree(h5->alldims);
    nclistfree(h5->allgroups);
    nclistfree(h5->alltypes);
 
-   /* Close hdf file. */
 #ifdef USE_PARALLEL4
-   /* Free the MPI Comm & Info objects, if we opened the file in parallel */
-   if(h5->parallel)
+   /* Free the MPI Comm & Info objects, if we opened the file in
+    * parallel. */
+   if (h5->parallel)
    {
-      if(MPI_COMM_NULL != h5->comm)
+      if (h5->comm != MPI_COMM_NULL)
          MPI_Comm_free(&h5->comm);
-      if(MPI_INFO_NULL != h5->info)
+      if (h5->info != MPI_INFO_NULL)
          MPI_Info_free(&h5->info);
    }
 #endif
 
-   if(h5->fileinfo) free(h5->fileinfo);
+   /* Free the fileinfo struct, which holds info from the fileinfo
+    * hidden attribute. */
+   if (h5->fileinfo)
+      free(h5->fileinfo);
 
    /* Check to see if this is an in-memory file and we want to get its
-      final content
-   */
+      final content. */
    if(extractmem) {
       /* File must be read/write */
       if(!h5->no_write) {
@@ -202,10 +204,16 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
       }
    }
 
+   /* Close hdf file. */
    if (H5Fclose(h5->hdfid) < 0)
    {
       dumpopenobjects(h5);
    }
+
+   /* Free the HDF5-specific info. */
+   if (h5->format_file_info)
+      free(h5->format_file_info);
+
 exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
