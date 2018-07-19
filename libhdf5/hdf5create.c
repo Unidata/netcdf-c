@@ -62,9 +62,12 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    /* Add necessary structs to hold netcdf-4 file data. */
    if ((retval = nc4_nc4f_list_add(nc, path, (NC_WRITE | cmode))))
       BAIL(retval);
-
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
+
+   /* Add struct to hold HDF5-specific file metadata. */
+   if (!(nc4_info->format_file_info = calloc(1, sizeof(NC_HDF5_FILE_INFO_T))))
+      BAIL(NC_ENOMEM);
 
    nc4_info->mem.inmemory = (cmode & NC_INMEMORY) == NC_INMEMORY;
    nc4_info->mem.diskless = (cmode & NC_DISKLESS) == NC_DISKLESS;
