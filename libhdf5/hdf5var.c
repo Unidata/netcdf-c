@@ -5,7 +5,7 @@
  * @file
  * @internal This file handles the HDF5 variable functions.
  *
- * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
+ * @author Ed Hartnett
  */
 
 #include "config.h"
@@ -297,7 +297,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
 
    /* For non-scalar vars, dim IDs must be provided. */
    if (ndims && !dimidsp)
-      BAIL(NC_EINVAL);      
+      BAIL(NC_EINVAL);
 
    /* Check all the dimids to make sure they exist. */
    for (d = 0; d < ndims; d++)
@@ -327,7 +327,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       name[namelen] = '\0';
       nc4_get_typelen_mem(h5,xtype,&len);
       if((retval = nc4_type_new(grp,len,name,xtype,&type_info)))
-	BAIL(retval);
+         BAIL(retval);
       type_info->endianness = NC_ENDIAN_NATIVE;
       if ((retval = nc4_get_hdf_typeid(h5, xtype, &type_info->hdf_typeid,
                                        type_info->endianness)))
@@ -410,7 +410,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       {
          var->dimscale = NC_TRUE;
          dim->coord_var = var;
-         
+
          /* Use variable's dataset ID for the dimscale ID. So delete
           * the HDF5 DIM_WITHOUT_VARIABLE dataset that was created for
           * this dim. */
@@ -419,12 +419,12 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
             /* Detach dimscale from any variables using it */
             if ((retval = rec_detach_scales(grp, dimidsp[d], dim->hdf_dimscaleid)) < 0)
                BAIL(retval);
-            
+
             /* Close the HDF5 DIM_WITHOUT_VARIABLE dataset. */
             if (H5Dclose(dim->hdf_dimscaleid) < 0)
                BAIL(NC_EHDFERR);
             dim->hdf_dimscaleid = 0;
-            
+
             /* Now delete the DIM_WITHOUT_VARIABLE dataset (it will be
              * recreated later, if necessary). */
             if (H5Gunlink(grp->hdf_grpid, dim->hdr.name) < 0)
@@ -464,17 +464,17 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
     * and this var has the same name. */
    dim = (NC_DIM_INFO_T*)ncindexlookup(grp->dim,norm_name);
    if (dim && (!var->ndims || dimidsp[0] != dim->hdr.id))
-      {
-         /* Set a different hdf5 name for this variable to avoid name
-          * clash. */
-         if (strlen(norm_name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
-            BAIL(NC_EMAXNAME);
-         if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) +
-                                        strlen(norm_name) + 1) * sizeof(char))))
-            BAIL(NC_ENOMEM);
+   {
+      /* Set a different hdf5 name for this variable to avoid name
+       * clash. */
+      if (strlen(norm_name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
+         BAIL(NC_EMAXNAME);
+      if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) +
+                                     strlen(norm_name) + 1) * sizeof(char))))
+         BAIL(NC_ENOMEM);
 
-         sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, norm_name);
-      }
+      sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, norm_name);
+   }
 
    /* If this is a coordinate var, it is marked as a HDF5 dimension
     * scale. (We found dim above.) Otherwise, allocate space to
@@ -504,7 +504,7 @@ exit:
  * @note All pointer parameters may be NULL, in which case they are ignored.
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param shuffle Pointer to shuffle setting. 
+ * @param shuffle Pointer to shuffle setting.
  * @param deflate Pointer to deflate setting.
  * @param deflate_level Pointer to deflate level.
  * @param fletcher32 Pointer to fletcher32 setting.
@@ -1007,7 +1007,7 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
  * @returns ::NC_ENAMEINUSE Name in use.
  * @returns ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_rename_var(int ncid, int varid, const char *name)
 {
@@ -1042,7 +1042,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return retval;
 
    /* Get the variable wrt varid */
-   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);   
+   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
    if (!var)
       return NC_ENOTVAR;
 
@@ -1050,7 +1050,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
       according to the nc_test/test_write.c code. Why?*/
    tmpvar = (NC_VAR_INFO_T*)ncindexlookup(grp->vars,name);
    if(tmpvar != NULL)
-       return NC_ENAMEINUSE;
+      return NC_ENAMEINUSE;
 
    /* If we're not in define mode, new name must be of equal or
       less size, if strict nc3 rules are in effect for this . */
@@ -1070,7 +1070,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
          if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->hdr.id, var->dim[0])))
             return retval;
       }
-      
+
       LOG((3, "Moving dataset %s to %s", var->hdr.name, name));
       if (H5Gmove(grp->hdf_grpid, var->hdr.name, name) < 0)
          BAIL(NC_EHDFERR);
@@ -1084,7 +1084,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    var->hdr.hashkey = NC_hashmapkey(var->hdr.name,strlen(var->hdr.name)); /* Fix hash key */
 
    if(!ncindexrebuild(grp->vars))
-	return NC_EINTERNAL;
+      return NC_EINTERNAL;
 
    /* Check if this was a coordinate variable previously, but names are different now */
    if (var->dimscale && strcmp(var->hdr.name, var->dim[0]->hdr.name))
@@ -1127,7 +1127,7 @@ exit:
  * @internal Write an array of data to a variable. This is called by
  * nc_put_vara() and other nc_put_vara_* functions, for netCDF-4
  * files.
- * 
+ *
  * @param ncid File ID.
  * @param varid Variable ID.
  * @param startp Array of start indices.
@@ -1188,7 +1188,7 @@ NC4_get_vara(int ncid, int varid, const size_t *startp,
  * @internal Write an array of data to a variable. This is called by
  * nc_put_vars() and other nc_put_vars_* functions, for netCDF-4
  * files.
- * 
+ *
  * @param ncid File ID.
  * @param varid Variable ID.
  * @param startp Array of start indices.
@@ -1203,7 +1203,7 @@ NC4_get_vara(int ncid, int varid, const size_t *startp,
 int
 NC4_put_vars(int ncid, int varid, const size_t *startp,
              const size_t *countp, const ptrdiff_t* stridep,
-	     const void *op, int memtype)
+             const void *op, int memtype)
 {
    NC *nc;
 
@@ -1233,7 +1233,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp,
 int
 NC4_get_vars(int ncid, int varid, const size_t *startp,
              const size_t *countp, const ptrdiff_t *stridep,
-	     void *ip, int memtype)
+             void *ip, int memtype)
 {
    NC *nc;
    NC_FILE_INFO_T *h5;

@@ -56,7 +56,7 @@ NC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
    /* Find the var. */
    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
    if(!var)
-	return NC_ENOTVAR;
+      return NC_ENOTVAR;
    assert(var && var->hdr.id == varid);
 
    /* Set the values. */
@@ -138,7 +138,7 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
    /* Find the var. */
    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
    if(!var)
-	return NC_ENOTVAR;
+      return NC_ENOTVAR;
    assert(var && var->hdr.id == varid);
 
    /* Give the user what they want. */
@@ -264,7 +264,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
             if ((retval = nc4_read_grp_atts(grp)))
                return retval;
 
-	 *nattsp = ncindexcount(grp->att);
+         *nattsp = ncindexcount(grp->att);
       }
       return NC_NOERR;
    }
@@ -474,10 +474,10 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    /* Find var of this name. */
    var = (NC_VAR_INFO_T*)ncindexlookup(grp->vars,norm_name);
    if(var)
-      {
-         *varidp = var->hdr.id;
-         return NC_NOERR;
-      }
+   {
+      *varidp = var->hdr.id;
+      return NC_NOERR;
+   }
    return NC_ENOTVAR;
 }
 
@@ -537,4 +537,3 @@ NC4_var_par_access(int ncid, int varid, int par_access)
    return NC_NOERR;
 #endif /* USE_PARALLEL4 */
 }
-
