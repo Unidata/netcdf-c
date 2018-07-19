@@ -10,22 +10,11 @@
  * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 
+#include "config.h"
 #include <nc4internal.h>
 #include "nc4dispatch.h"
+#include "hdf5internal.h"
 #include <math.h>
-
-/* Szip options. */
-#define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
-#define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
-#define NC_SZIP_MAX_PIXELS_PER_BLOCK 32 /**< @internal SZIP max pixels per block. */
-
-/** @internal Default size for unlimited dim chunksize */
-#define DEFAULT_1D_UNLIM_SIZE (4096)
-
-#define NC_ARRAY_GROWBY 4 /**< @internal Amount to grow array. */
-
-extern int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info,
-                                      void *fill_value);
 
 /**
  * @internal Set chunk cache size for a variable. This is the internal
@@ -197,165 +186,6 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
       *nelemsp = (int)real_nelems;
    if(preemptionp)
       *preemptionp = (int)(real_preemption * 100);
-
-   return NC_NOERR;
-}
-
-/**
- * @internal Check a set of chunksizes to see if they specify a chunk
- * that is too big.
- *
- * @param grp Pointer to the group info.
- * @param var Pointer to the var info.
- * @param chunksizes Array of chunksizes to check.
- *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_EBADCHUNK Bad chunksize.
- */
-static int
-check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksizes)
-{
-   double dprod;
-   size_t type_len;
-   int d;
-   int retval;
-
-   if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->hdr.id, &type_len)))
-      return retval;
-   if (var->type_info->nc_type_class == NC_VLEN)
-      dprod = (double)sizeof(hvl_t);
-   else
-      dprod = (double)type_len;
-   for (d = 0; d < var->ndims; d++)
-      dprod *= (double)chunksizes[d];
-
-   if (dprod > (double) NC_MAX_UINT)
-      return NC_EBADCHUNK;
-
-   return NC_NOERR;
-}
-
-/**
- * @internal Determine some default chunksizes for a variable.
- *
- * @param grp Pointer to the group info.
- * @param var Pointer to the var info.
- *
- * @returns ::NC_NOERR for success
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @author Ed Hartnett
- */
-static int
-nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
-{
-   int d;
-   size_t type_size;
-   float num_values = 1, num_unlim = 0;
-   int retval;
-   size_t suggested_size;
-#ifdef LOGGING
-   double total_chunk_size;
-#endif
-
-   if (var->type_info->nc_type_class == NC_STRING)
-      type_size = sizeof(char *);
-   else
-      type_size = var->type_info->size;
-
-#ifdef LOGGING
-   /* Later this will become the total number of bytes in the default
-    * chunk. */
-   total_chunk_size = (double) type_size;
-#endif
-
-   /* How many values in the variable (or one record, if there are
-    * unlimited dimensions). */
-   for (d = 0; d < var->ndims; d++)
-   {
-      assert(var->dim[d]);
-      if (! var->dim[d]->unlimited)
-         num_values *= (float)var->dim[d]->len;
-      else {
-         num_unlim++;
-         var->chunksizes[d] = 1; /* overwritten below, if all dims are unlimited */
-      }
-   }
-   /* Special case to avoid 1D vars with unlim dim taking huge amount
-      of space (DEFAULT_CHUNK_SIZE bytes). Instead we limit to about
-      4KB */
-   if (var->ndims == 1 && num_unlim == 1) {
-      if (DEFAULT_CHUNK_SIZE / type_size <= 0)
-         suggested_size = 1;
-      else if (DEFAULT_CHUNK_SIZE / type_size > DEFAULT_1D_UNLIM_SIZE)
-         suggested_size = DEFAULT_1D_UNLIM_SIZE;
-      else
-         suggested_size = DEFAULT_CHUNK_SIZE / type_size;
-      var->chunksizes[0] = suggested_size / type_size;
-      LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-           "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[0]));
-   }
-   if (var->ndims > 1 && var->ndims == num_unlim) { /* all dims unlimited */
-      suggested_size = pow((double)DEFAULT_CHUNK_SIZE/type_size, 1.0/(double)(var->ndims));
-      for (d = 0; d < var->ndims; d++)
-      {
-         var->chunksizes[d] = suggested_size ? suggested_size : 1;
-         LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-              "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
-      }
-   }
-
-   /* Pick a chunk length for each dimension, if one has not already
-    * been picked above. */
-   for (d = 0; d < var->ndims; d++)
-      if (!var->chunksizes[d])
-      {
-         suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size),
-                               1.0/(double)(var->ndims - num_unlim)) * var->dim[d]->len - .5);
-         if (suggested_size > var->dim[d]->len)
-            suggested_size = var->dim[d]->len;
-         var->chunksizes[d] = suggested_size ? suggested_size : 1;
-         LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-              "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
-      }
-
-#ifdef LOGGING
-   /* Find total chunk size. */
-   for (d = 0; d < var->ndims; d++)
-      total_chunk_size *= (double) var->chunksizes[d];
-   LOG((4, "total_chunk_size %f", total_chunk_size));
-#endif
-
-   /* But did this result in a chunk that is too big? */
-   retval = check_chunksizes(grp, var, var->chunksizes);
-   if (retval)
-   {
-      /* Other error? */
-      if (retval != NC_EBADCHUNK)
-         return retval;
-
-      /* Chunk is too big! Reduce each dimension by half and try again. */
-      for ( ; retval == NC_EBADCHUNK; retval = check_chunksizes(grp, var, var->chunksizes))
-         for (d = 0; d < var->ndims; d++)
-            var->chunksizes[d] = var->chunksizes[d]/2 ? var->chunksizes[d]/2 : 1;
-   }
-
-   /* Do we have any big data overhangs? They can be dangerous to
-    * babies, the elderly, or confused campers who have had too much
-    * beer. */
-   for (d = 0; d < var->ndims; d++)
-   {
-      size_t num_chunks;
-      size_t overhang;
-      assert(var->chunksizes[d] > 0);
-      num_chunks = (var->dim[d]->len + var->chunksizes[d] - 1) / var->chunksizes[d];
-      if(num_chunks > 0) {
-         overhang = (num_chunks * var->chunksizes[d]) - var->dim[d]->len;
-         var->chunksizes[d] -= overhang / num_chunks;
-      }
-   }
 
    return NC_NOERR;
 }
@@ -599,62 +429,6 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
          if (cs[i] > NC_MAX_INT)
             retval = NC_ERANGE;
       }
-
-   if (var->ndims)
-      free(cs);
-   return retval;
-}
-
-/**
- * @internal Define chunking stuff for a var. This is called by
- * the fortran API.
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param contiguous Pointer to contiguous setting.
- * @param chunksizesp Array of chunksizes.
- *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_ENOTINDEFINE Not in define mode.
- * @returns ::NC_EINVAL Invalid input
- * @returns ::NC_EBADCHUNK Bad chunksize.
- * @author Ed Hartnett
- */
-int
-nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
-{
-   NC *nc;
-   NC_GRP_INFO_T *grp;
-   NC_VAR_INFO_T *var;
-   NC_FILE_INFO_T *h5;
-   size_t *cs = NULL;
-   int i, retval;
-
-   /* Find this ncid's file info. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return retval;
-   assert(nc);
-
-   /* Find var cause I need the number of dims. */
-   if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
-      return retval;
-
-   /* Allocate space for the size_t copy of the chunksizes array. */
-   if (var->ndims)
-      if (!(cs = malloc(var->ndims * sizeof(size_t))))
-         return NC_ENOMEM;
-
-   /* Copy to size_t array. */
-   for (i = 0; i < var->ndims; i++)
-      cs[i] = chunksizesp[i];
-
-   retval = nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-                             &contiguous, cs, NULL, NULL, NULL);
 
    if (var->ndims)
       free(cs);
