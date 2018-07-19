@@ -220,7 +220,6 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
       /* Create the HDF5 file. */
       if ((hdf5_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
          BAIL(EACCES);
-      nc4_info->hdfid = hdf5_info->hdfid;
    }
 
    /* Open the root group. */

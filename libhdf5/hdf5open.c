@@ -486,7 +486,6 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       /* Open the HDF5 file. */
       if ((hdf5_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
          BAIL(NC_EHDFERR);
-      nc4_info->hdfid = hdf5_info->hdfid;
    }
 
    /* Now read in all the metadata. Some types and dimscale
