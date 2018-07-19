@@ -295,9 +295,7 @@ typedef struct  NC_FILE_INFO
    NClist* alldims;
    NClist* alltypes;
    NClist* allgroups; /* including root group */
-#ifdef USE_HDF4
    void *format_file_info;
-#endif /* USE_HDF4 */
    struct NCFILEINFO* fileinfo;
    struct NC4_Memio {
 	NC_memio memio;
@@ -311,7 +309,6 @@ typedef struct  NC_FILE_INFO
 	int created; /* 1 => create, 0 => open */
    } mem;
 } NC_FILE_INFO_T;
-
 
 extern char* nc4_atomic_name[NC_MAX_ATOMIC_TYPE+1];
 
