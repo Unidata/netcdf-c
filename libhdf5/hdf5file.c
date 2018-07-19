@@ -230,9 +230,13 @@ exit:
 static void
 dumpopenobjects(NC_FILE_INFO_T* h5)
 {
+   NC_HDF5_FILE_INFO_T *hdf5_info;
    int nobjs;
 
-   nobjs = H5Fget_obj_count(h5->hdfid, H5F_OBJ_ALL);
+   assert(h5 && h5->format_file_info);
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+
+   nobjs = H5Fget_obj_count(hdf5_info->hdfid, H5F_OBJ_ALL);
    /* Apparently we can get an error even when nobjs == 0 */
    if(nobjs < 0) {
       return;
@@ -253,7 +257,7 @@ dumpopenobjects(NC_FILE_INFO_T* h5)
       fprintf(stdout,"%s\n",msg);
       logit = 0;
 #endif
-      reportopenobjects(logit,h5->hdfid);
+      reportopenobjects(logit,hdf5_info->hdfid);
       fflush(stderr);
    }
 
