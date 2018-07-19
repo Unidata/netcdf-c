@@ -153,10 +153,12 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
 int
 nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
 {
+   NC_HDF5_FILE_INFO_T *hdf5_info;
    int retval = NC_NOERR;
 
-   assert(h5 && h5->root_grp);
+   assert(h5 && h5->root_grp && h5->format_file_info);
    LOG((3, "%s: h5->path %s abort %d", __func__, h5->controller->path, abort));
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
 
    /* According to the docs, always end define mode on close. */
    if (h5->flags & NC_INDEF)
@@ -205,7 +207,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
    }
 
    /* Close hdf file. */
-   if (H5Fclose(h5->hdfid) < 0)
+   if (H5Fclose(hdf5_info->hdfid) < 0)
    {
       dumpopenobjects(h5);
    }
