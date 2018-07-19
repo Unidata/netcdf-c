@@ -34,7 +34,6 @@ main(int argc, char **argv)
     size_t dimsize;
     int dimid;
     int stat = NC_NOERR;
-    nc_set_log_level(5);
     printf("\n*** Testing Max Dimension Sizes\n");
 
     printf("\n|size_t|=%lu\n",(unsigned long)sizeof(size_t));

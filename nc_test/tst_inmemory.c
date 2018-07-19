@@ -605,9 +605,8 @@ main(int argc, char **argv)
     NC_memio filedata3;
     NC_memio filedata4;
 
-    nc_set_log_level(0);
-
 #ifdef USE_NETCDF4
+    nc_set_log_level(0);
     H5Eprint1(stderr);
 #endif
 
