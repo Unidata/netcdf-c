@@ -94,9 +94,10 @@ static void dumpopenobjects(NC_FILE_INFO_T* h5);
 static int
 sync_netcdf4_file(NC_FILE_INFO_T *h5)
 {
+   NC_HDF5_FILE_INFO_T *hdf5_info;
    int retval;
 
-   assert(h5);
+   assert(h5 && h5->format_file_info);
    LOG((3, "%s", __func__));
 
    /* If we're in define mode, that's an error, for strict nc3 rules,
@@ -132,7 +133,9 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
          return retval;
    }
 
-   if (H5Fflush(h5->hdfid, H5F_SCOPE_GLOBAL) < 0)
+   /* Flush the HDF5 buffers to disk. */
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+   if (H5Fflush(hdf5_info->hdfid, H5F_SCOPE_GLOBAL) < 0)
       return NC_EHDFERR;
 
    return retval;
