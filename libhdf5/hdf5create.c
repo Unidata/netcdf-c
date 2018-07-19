@@ -224,7 +224,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    }
 
    /* Open the root group. */
-   if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(nc4_info->hdfid, "/",
+   if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/",
                                                  H5P_DEFAULT)) < 0)
       BAIL(NC_EFILEMETA);
 

@@ -2040,8 +2040,11 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
       }
       else
       {
-         if ((grp->hdf_grpid = H5Gopen2(grp->nc4_info->hdfid,
-                                        "/", H5P_DEFAULT)) < 0)
+         NC_HDF5_FILE_INFO_T *hdf5_info;
+         hdf5_info = (NC_HDF5_FILE_INFO_T *)grp->nc4_info->format_file_info;
+
+         if ((grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/",
+                                        H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
       }
    }
