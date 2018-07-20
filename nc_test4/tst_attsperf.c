@@ -172,7 +172,7 @@ main(int argc, char **argv)
             /* Determine file name. */
             sprintf(file_name, "%s_%d_%d_%d.nc", TEST, num_vars, s, r);
 
-            if (buildfile(NUM_VARS, num_atts, ATT_LEN, file_name)) ERR;
+            if (buildfile(num_vars, num_atts, ATT_LEN, file_name)) ERR;
             if (readfile(file_name, &nc4_open_time)) ERR;
             if (readfile_hdf5(file_name, &hdf5_open_time)) ERR;
             tot_nc4 += nc4_open_time;
