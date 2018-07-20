@@ -15,6 +15,7 @@
 #include "err_macros.h"
 #include "nc4internal.h"
 #include <sys/time.h>
+#include <hdf5.h>
 
 #define TEST "tst_attsperf"
 #define VAR "bigvar"
@@ -25,114 +26,169 @@
 #define DIMSIZE1 512
 #define TOTALSIZE (DIMSIZE0 * DIMSIZE1)
 #define NUM_ATTS 100
-#define ATT_LEN 10
-#define NUM_VARS 100
+#define ATT_LEN 100
+#define NUM_VARS 1
 
 int
-add_attributes(int ncid, int varid)
+add_attributes(int ncid, int varid, size_t num_atts, size_t att_len)
 {
    char att_name[NC_MAX_NAME + 1];
-   double att_data[ATT_LEN];
+   double *att_data;
    int i, a;
+
+   /* Allocate space for attribute data. */
+   if (!(att_data = malloc(att_len * sizeof(double))))
+      return NC_ENOMEM;
 
    /* Fill up data. */
    for (i = 0; i < ATT_LEN; i++)
       att_data[i] = i;
 
    /* Write a bunch of attributes. */
-   for (a = 0; a < NUM_ATTS; a++)
+   for (a = 0; a < num_atts; a++)
    {
       sprintf(att_name, "%s_varid_%d_att_%d", TEST, varid, a);
       if (nc_put_att_double(ncid, varid, att_name, NC_DOUBLE,
-                            ATT_LEN, att_data)) ERR;
+                            att_len, att_data)) ERR;
    }
+
+   free(att_data);
 
    return 0;
 }
 
+/* Build the test file. */
 int
-buildfile(int file_no)
+buildfile(size_t num_vars, size_t num_atts, size_t att_len,
+          char *file_name)
 {
    int ncid, varid;
    int dimids[NDIMS];
-   char file_name[NC_MAX_NAME + 1];
    int v;
-
-   sprintf(file_name, "%s_%d.nc", TEST, file_no);
 
    if (nc_create(file_name, NC_NETCDF4, &ncid)) ERR;
 
    if (nc_def_dim(ncid, DIM0, DIMSIZE0, &dimids[0])) ERR;
    if (nc_def_dim(ncid, DIM1, DIMSIZE1, &dimids[1])) ERR;
-   for (v = 0; v < NUM_VARS; v++)
+   for (v = 0; v < num_vars; v++)
    {
       char var_name[NC_MAX_NAME + 1];
       sprintf(var_name, "%s_var_%d", TEST, v);
       if (nc_def_var(ncid, var_name, NC_INT, NDIMS, dimids, &varid)) ERR;
-      if (add_attributes(ncid, v)) ERR;
+      if (add_attributes(ncid, v, num_atts, att_len)) ERR;
    }
-   if (add_attributes(ncid, NC_GLOBAL)) ERR;
+   if (!num_vars)
+      if (add_attributes(ncid, NC_GLOBAL, num_atts, att_len)) ERR;
    if (nc_enddef(ncid)) ERR;
 
    if (nc_close(ncid)) ERR;
    return 0;
 }
 
-long long
-readfile(int inq_all)
+/* Open/close the file with netCDF. */
+int
+readfile(char *file_name, long long *delta)
 {
    int ncid;
    struct timeval starttime, endtime;
-   long long delta;
    long long startt, endt;
-   char file_name[NC_MAX_NAME + 1];
-
-   sprintf(file_name, "%s_%d.nc", TEST, inq_all);
 
    /* Start the clock. */
    gettimeofday(&starttime, NULL);
 
-   /* Open the file. */
+   /* Open and close the file. */
    if (nc_open(file_name, NC_NETCDF4, &ncid)) ERR;
-
-   /* Simulate old open by triggering attribute reads, if desired. */
-   if (inq_all)
-   {
-      int natts;
-      int v;
-
-      /* When checking the number of atts, we trigger the read. */
-      if (nc_inq(ncid, NULL, NULL, &natts, NULL)) ERR;
-      for (v = 0; v < NUM_VARS; v++)
-         if (nc_inq_varnatts(ncid, v, &natts)) ERR;
-   }
-   gettimeofday(&endtime, NULL);
-
-   /* Close the file. */
    if (nc_close(ncid)) ERR;
+
+   gettimeofday(&endtime, NULL);
 
    /* Compute the time delta */
    startt = (1000000 * starttime.tv_sec) + starttime.tv_usec;
    endt = (1000000 * endtime.tv_sec) + endtime.tv_usec;
-   delta = endt - startt;
-   return delta;
+   *delta = endt - startt;
+
+   return 0;
 }
 
+/* Open/close the file with HDF5. */
+int
+readfile_hdf5(char *file_name, long long *delta)
+{
+   hid_t hdfid, hdf_grpid;
+   hid_t fapl_id;
+   struct timeval starttime, endtime;
+   long long startt, endt;
+
+   /* Start the clock. */
+   gettimeofday(&starttime, NULL);
+
+   /* Open and close the root group. */
+   if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI)) ERR;
+   if ((hdfid = H5Fopen(file_name, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
+   if ((hdf_grpid = H5Gopen2(hdfid, "/", H5P_DEFAULT)) < 0) ERR;
+   if (H5Gclose(hdf_grpid) < 0) ERR;
+   if (H5Fclose(hdfid) < 0) ERR;
+
+   gettimeofday(&endtime, NULL);
+
+   /* Compute the time delta */
+   startt = (1000000 * starttime.tv_sec) + starttime.tv_usec;
+   endt = (1000000 * endtime.tv_sec) + endtime.tv_usec;
+   *delta = endt - startt;
+
+   return 0;
+}
+
+#define NUM_RUNS 5
+#define NUM_STEPS 20
+#define FACTOR 5
 int
 main(int argc, char **argv)
 {
-   long long zerodelta, onedelta, factor;
+   size_t num_atts = 1;
+   char file_name[NC_MAX_NAME + 1];
+   float tot_nc4, tot_hdf5;
+   int factor;
+   int r, s, num_vars;
 
-   printf("testing speed of open with files with lots of metadata...\n");
-   if (buildfile(0)) ERR;
-   if (buildfile(1)) ERR;
-   if ((zerodelta = readfile(0)) == -1) ERR;
-   if ((onedelta = readfile(1)) == -1) ERR;
+   for (num_vars = 0; num_vars <= NUM_VARS; num_vars++)
+   {
+      /* Reset. */
+      num_atts = 1;
 
-   /* Print results to the millisec */
-   factor = onedelta / zerodelta;
-   printf("Lazy Atts time=%lld Read Atts at Open time=%lld Speedup=%lld\n",
-          zerodelta, onedelta, factor);
+      /* Set higher factor for var atts, since they are much faster. */
+      factor = num_vars ? FACTOR * 10 : FACTOR;
+
+      printf("*** %s\n", num_vars ? "variable attributes" : "global attributes");
+      printf("Number of Attributes\tHDF5 Open Time (s)\tNetcdf4 Open Time (s)\n");
+      for (s = 0; s < NUM_STEPS; s++)
+      {
+         tot_nc4 = 0;
+         tot_hdf5 = 0;
+         num_atts += factor * s;
+
+         for (r = 0; r < NUM_RUNS; r++)
+         {
+            long long nc4_open_time;
+            long long hdf5_open_time;
+
+            /* Determine file name. */
+            sprintf(file_name, "%s_%d_%d_%d.nc", TEST, num_vars, s, r);
+
+            if (buildfile(num_vars, num_atts, ATT_LEN, file_name)) ERR;
+            if (readfile(file_name, &nc4_open_time)) ERR;
+            if (readfile_hdf5(file_name, &hdf5_open_time)) ERR;
+            tot_nc4 += nc4_open_time;
+            tot_hdf5 += hdf5_open_time;
+         }
+
+         /* Print average results to the millisec */
+         printf("%ld\t%g\t%g\n", num_atts, tot_hdf5/((float)NUM_RUNS * 1000000),
+                tot_nc4/((float)NUM_RUNS * 1000000));
+      }
+   }
+
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
