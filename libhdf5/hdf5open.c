@@ -1612,8 +1612,8 @@ att_read_var_callbk(hid_t loc_id, const char *att_name,
    att_iter_info *att_info = (att_iter_info *)att_data;
 
    /* Should we ignore this attribute? */
-   const NC_reservedatt* ra = NC_findreserved(att_name);
-   if(ra != NULL) goto exit; /* ignore */
+   if (NC_findreserved(att_name))
+      return NC_NOERR;
 
    /* Add to the end of the list of atts for this var. */
    if ((retval = nc4_att_list_add(att_info->var->att, att_name, &att)))
@@ -1632,19 +1632,13 @@ att_read_var_callbk(hid_t loc_id, const char *att_name,
    if (att)
       att->created = NC_TRUE;
 
-   if (attid > 0 && H5Aclose(attid) < 0)
-      BAIL2(NC_EHDFERR);
-
-   return NC_NOERR;
-
 exit:
-   if(retval) {
-      if (retval == NC_EBADTYPID) {
-         /* NC_EBADTYPID will be normally converted to NC_NOERR so that
-            the parent iterator does not fail. */
-         retval = nc4_att_list_del(att_info->var->att,att);
-         att = NULL;
-      }
+   if (retval == NC_EBADTYPID)
+   {
+      /* NC_EBADTYPID will be normally converted to NC_NOERR so that
+         the parent iterator does not fail. */
+      retval = nc4_att_list_del(att_info->var->att,att);
+      att = NULL;
    }
    if (attid > 0 && H5Aclose(attid) < 0)
       retval = NC_EHDFERR;
