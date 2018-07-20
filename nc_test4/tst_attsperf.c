@@ -141,14 +141,15 @@ readfile_hdf5(char *file_name, long long *delta)
 }
 
 #define NUM_RUNS 5
-#define NUM_STEPS 10
-#define FACTOR 500
+#define NUM_STEPS 20
+#define FACTOR 5
 int
 main(int argc, char **argv)
 {
    size_t num_atts = 1;
    char file_name[NC_MAX_NAME + 1];
    float tot_nc4, tot_hdf5;
+   int factor;
    int r, s, num_vars;
 
    for (num_vars = 0; num_vars <= NUM_VARS; num_vars++)
@@ -156,13 +157,16 @@ main(int argc, char **argv)
       /* Reset. */
       num_atts = 1;
 
+      /* Set higher factor for var atts, since they are much faster. */
+      factor = num_vars ? FACTOR * 10 : FACTOR;
+
       printf("*** %s\n", num_vars ? "variable attributes" : "global attributes");
       printf("Number of Attributes\tHDF5 Open Time (s)\tNetcdf4 Open Time (s)\n");
       for (s = 0; s < NUM_STEPS; s++)
       {
          tot_nc4 = 0;
          tot_hdf5 = 0;
-         num_atts += FACTOR * s;
+         num_atts += factor * s;
 
          for (r = 0; r < NUM_RUNS; r++)
          {
@@ -176,7 +180,7 @@ main(int argc, char **argv)
             if (readfile(file_name, &nc4_open_time)) ERR;
             if (readfile_hdf5(file_name, &hdf5_open_time)) ERR;
             tot_nc4 += nc4_open_time;
-            tot_hdf5 = hdf5_open_time;
+            tot_hdf5 += hdf5_open_time;
          }
 
          /* Print average results to the millisec */
