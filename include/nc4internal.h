@@ -334,7 +334,6 @@ int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
 int nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5);
 int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
-/* int nc4_read_grp_atts(NC_GRP_INFO_T *grp); */
 int nc4_read_grp_atts2(NC_GRP_INFO_T *grp);
 int nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
