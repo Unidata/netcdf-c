@@ -711,7 +711,7 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    {
       /* Do we need to read the atts? */
       if (grp->atts_not_read)
-         if ((retval = nc4_read_grp_atts(grp)))
+         if ((retval = nc4_read_grp_atts2(grp)))
             return retval;
 
       *nattsp = ncindexcount(grp->att);
