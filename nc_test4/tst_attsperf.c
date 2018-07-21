@@ -168,7 +168,7 @@ readfile_hdf5(char *file_name, long long *delta, int do_inq, int num_vars)
 
 #define NUM_RUNS 5
 #define NUM_STEPS 20
-#define FACTOR 5
+#define FACTOR 100
 #define NUM_INQ_TESTS 2
 int
 main(int argc, char **argv)
@@ -186,8 +186,7 @@ main(int argc, char **argv)
          /* Reset. */
          num_atts = 1;
 
-         /* Set higher factor for var atts, since they are much faster. */
-         factor = num_vars ? FACTOR * 10 : FACTOR;
+         factor = FACTOR;
 
          printf("*** %s %s\n", num_vars ? "variable attributes" : "global attributes",
                 do_inq ? "with inq" : "");

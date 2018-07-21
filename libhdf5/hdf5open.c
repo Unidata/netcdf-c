@@ -985,7 +985,8 @@ get_netcdf_type(NC_FILE_INFO_T *h5, hid_t native_typeid,
 }
 
 /**
- * @internal Read an attribute. This is called by att_read_var_callbk().
+ * @internal Read an attribute. This is called by
+ * att_read_grp_callbk().
  *
  * @param grp Pointer to group info struct.
  * @param attid Attribute ID.
@@ -1525,65 +1526,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
  * @return ::NC_EBADTYPID Can't read attribute type.
  */
 static herr_t
-att_read_var_callbk(hid_t loc_id, const char *att_name,
-                    const H5A_info_t *ainfo, void *att_data)
-{
-
-   hid_t attid = 0;
-   int retval = NC_NOERR;
-   NC_ATT_INFO_T *att;
-   att_iter_info *att_info = (att_iter_info *)att_data;
-
-   /* Should we ignore this attribute? */
-   if (NC_findreserved(att_name))
-      return NC_NOERR;
-
-   /* Add to the end of the list of atts for this var. */
-   if ((retval = nc4_att_list_add(att_info->var->att, att_name, &att)))
-      BAIL(retval);
-
-   /* Open the att by name. */
-   if ((attid = H5Aopen(loc_id, att_name, H5P_DEFAULT)) < 0)
-      BAIL(NC_EATTMETA);
-   LOG((4, "%s::  att_name %s", __func__, att_name));
-
-   /* Read the rest of the info about the att,
-    * including its values. */
-   if ((retval = read_hdf5_att(att_info->grp, attid, att)))
-      BAIL(retval);
-
-   if (att)
-      att->created = NC_TRUE;
-
-exit:
-   if (retval == NC_EBADTYPID)
-   {
-      /* NC_EBADTYPID will be normally converted to NC_NOERR so that
-         the parent iterator does not fail. */
-      retval = nc4_att_list_del(att_info->var->att,att);
-      att = NULL;
-   }
-   if (attid > 0 && H5Aclose(attid) < 0)
-      retval = NC_EHDFERR;
-   return retval;
-}
-
-/**
- * @internal Callback function for reading attributes. This is used by
- * read_var().
- *
- * @param loc_id HDF5 attribute ID.
- * @param att_name Name of the attrigute.
- * @param ainfo HDF5 info struct for attribute.
- * @param att_data The attribute data.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EHDFERR HDF5 returned error.
- * @return ::NC_ENOMEM Out of memory.
- * @return ::NC_EATTMETA HDF5 can't open attribute.
- * @return ::NC_EBADTYPID Can't read attribute type.
- */
-static herr_t
 att_read_grp_callbk(hid_t loc_id, const char *att_name,
                     const H5A_info_t *ainfo, void *att_data)
 {
@@ -1591,7 +1533,11 @@ att_read_grp_callbk(hid_t loc_id, const char *att_name,
    hid_t attid = 0;
    int retval = NC_NOERR;
    NC_ATT_INFO_T *att;
+   NCindex *list;
    att_iter_info *att_info = (att_iter_info *)att_data;
+
+   /* Determin what list is being added to. */
+   list = att_info->var ? att_info->var->att : att_info->grp->att;
 
    /* This may be an attribute telling us that strict netcdf-3 rules
     * are in effect. If so, we will make note of the fact, but not add
@@ -1599,7 +1545,9 @@ att_read_grp_callbk(hid_t loc_id, const char *att_name,
     * an internal netcdf-4 one. */
    if (!strcmp(att_name, NC3_STRICT_ATT_NAME))
    {
-      att_info->grp->nc4_info->cmode |= NC_CLASSIC_MODEL;
+      /* Only relevant for groups, not vars. */
+      if (!att_info->var)
+         att_info->grp->nc4_info->cmode |= NC_CLASSIC_MODEL;
       return NC_NOERR;
    }
 
@@ -1608,7 +1556,7 @@ att_read_grp_callbk(hid_t loc_id, const char *att_name,
       return NC_NOERR;
 
    /* Add to the end of the list of atts for this var. */
-   if ((retval = nc4_att_list_add(att_info->grp->att, att_name, &att)))
+   if ((retval = nc4_att_list_add(list, att_name, &att)))
       BAIL(retval);
 
    /* Open the att by name. */
@@ -1695,7 +1643,7 @@ nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    /* Now read all the attributes of this variable, ignoring the
       ones that hold HDF5 dimension scale information. */
    if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
-                    att_read_var_callbk, &att_info)) < 0)
+                    att_read_grp_callbk, &att_info)) < 0)
       return NC_EATTMETA;
 
    /* Remember that we have read the atts for this var. */
