@@ -228,6 +228,7 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
 
    return NC_EBADTYPID;
 }
+
 /**
  * @internal This function reads the hacked in coordinates attribute I
  * use for multi-dimensional coordinates.
