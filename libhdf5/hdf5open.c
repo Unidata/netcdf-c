@@ -4,7 +4,7 @@
 /**
  * @file
  * @internal This file contains functions that are used in file
- * opens, both fast and slow.
+ * opens.
  *
  * @author Ed Hartnett
  */
@@ -1610,15 +1610,15 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    /* Check inputs. */
    assert(grp);
 
-   /* Assign var and grp in struct. */
+   /* Assign var and grp in struct. (var may be NULL). */
    att_info.var = var;
    att_info.grp = grp;
 
-   /* Determine where to read from. */
+   /* Determine where to read from in the HDF5 file. */
    locid = var ? var->hdf_datasetid : grp->hdf_grpid;
 
-   /* Now read all the attributes of this variable, ignoring the
-      ones that hold HDF5 dimension scale information. */
+   /* Now read all the attributes at this location, ignoring special
+    * netCDF hidden attributes. */
    if ((H5Aiterate2(locid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
                     att_read_callbk, &att_info)) < 0)
       return NC_EATTMETA;
