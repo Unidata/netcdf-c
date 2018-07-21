@@ -156,7 +156,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    if (varid == NC_GLOBAL)
    {
       if (grp->atts_not_read)
-         if ((retval = nc4_read_grp_atts(grp)))
+         if ((retval = nc4_read_grp_atts2(grp)))
             return retval;
    }
    else
