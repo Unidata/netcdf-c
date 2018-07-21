@@ -1185,82 +1185,82 @@ exit:
    return retval;
 }
 
-/**
- * @internal This function is called by nc4_rec_read_metadata to read
- * all the group level attributes (the NC_GLOBAL atts for this
- * group).
- *
- * @param grp Pointer to group info struct.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EHDFERR HDF5 returned error.
- * @author Ed Hartnett
- */
-int
-nc4_read_grp_atts(NC_GRP_INFO_T *grp)
-{
-   hid_t attid = -1;
-   hsize_t num_obj, i;
-   NC_ATT_INFO_T *att;
-   NC_TYPE_INFO_T *type;
-   char obj_name[NC_MAX_HDF5_NAME + 1];
-   int retval = NC_NOERR;
-   int hidden = 0;
+/* /\** */
+/*  * @internal This function is called by nc4_rec_read_metadata to read */
+/*  * all the group level attributes (the NC_GLOBAL atts for this */
+/*  * group). */
+/*  * */
+/*  * @param grp Pointer to group info struct. */
+/*  * */
+/*  * @return ::NC_NOERR No error. */
+/*  * @return ::NC_EHDFERR HDF5 returned error. */
+/*  * @author Ed Hartnett */
+/*  *\/ */
+/* int */
+/* nc4_read_grp_atts(NC_GRP_INFO_T *grp) */
+/* { */
+/*    hid_t attid = -1; */
+/*    hsize_t num_obj, i; */
+/*    NC_ATT_INFO_T *att; */
+/*    NC_TYPE_INFO_T *type; */
+/*    char obj_name[NC_MAX_HDF5_NAME + 1]; */
+/*    int retval = NC_NOERR; */
+/*    int hidden = 0; */
 
-   num_obj = H5Aget_num_attrs(grp->hdf_grpid);
-   for (i = 0; i < num_obj; i++)
-   {
-      if ((attid = H5Aopen_idx(grp->hdf_grpid, (unsigned int)i)) < 0)
-         BAIL(NC_EATTMETA);
-      if (H5Aget_name(attid, NC_MAX_NAME + 1, obj_name) < 0)
-         BAIL(NC_EATTMETA);
-      LOG((3, "reading attribute of _netCDF group, named %s", obj_name));
+/*    num_obj = H5Aget_num_attrs(grp->hdf_grpid); */
+/*    for (i = 0; i < num_obj; i++) */
+/*    { */
+/*       if ((attid = H5Aopen_idx(grp->hdf_grpid, (unsigned int)i)) < 0) */
+/*          BAIL(NC_EATTMETA); */
+/*       if (H5Aget_name(attid, NC_MAX_NAME + 1, obj_name) < 0) */
+/*          BAIL(NC_EATTMETA); */
+/*       LOG((3, "reading attribute of _netCDF group, named %s", obj_name)); */
 
-      /* See if this a hidden, global attribute */
-      hidden = 0; /* default */
-      if(grp->nc4_info->root_grp == grp) {
-         const NC_reservedatt* ra = NC_findreserved(obj_name);
-         if(ra != NULL && (ra->flags & NAMEONLYFLAG))
-            hidden = 1;
-      }
+/*       /\* See if this a hidden, global attribute *\/ */
+/*       hidden = 0; /\* default *\/ */
+/*       if(grp->nc4_info->root_grp == grp) { */
+/*          const NC_reservedatt* ra = NC_findreserved(obj_name); */
+/*          if(ra != NULL && (ra->flags & NAMEONLYFLAG)) */
+/*             hidden = 1; */
+/*       } */
 
-      /* This may be an attribute telling us that strict netcdf-3
-       * rules are in effect. If so, we will make note of the fact,
-       * but not add this attribute to the metadata. It's not a user
-       * attribute, but an internal netcdf-4 one. */
-      if(strcmp(obj_name, NC3_STRICT_ATT_NAME)==0)
-         grp->nc4_info->cmode |= NC_CLASSIC_MODEL;
-      else if(!hidden) {
-         /* Add an att struct at the end of the list, and then go to it. */
-         if ((retval = nc4_att_list_add(grp->att, obj_name, &att)))
-            BAIL(retval);
-         retval = read_hdf5_att(grp, attid, att);
-         if(retval == NC_EBADTYPID) {
-            if((retval = nc4_att_list_del(grp->att, att)))
-               BAIL(retval);
-         } else if(retval) {
-            BAIL(retval);
-         } else {
-            att->created = NC_TRUE;
-            if ((retval = nc4_find_type(grp->nc4_info, att->nc_typeid, &type)))
-               BAIL(retval);
-         }
-      }
-      /* Unconditionally close the open attribute */
-      H5Aclose(attid);
-      attid = -1;
-   }
+/*       /\* This may be an attribute telling us that strict netcdf-3 */
+/*        * rules are in effect. If so, we will make note of the fact, */
+/*        * but not add this attribute to the metadata. It's not a user */
+/*        * attribute, but an internal netcdf-4 one. *\/ */
+/*       if(strcmp(obj_name, NC3_STRICT_ATT_NAME)==0) */
+/*          grp->nc4_info->cmode |= NC_CLASSIC_MODEL; */
+/*       else if(!hidden) { */
+/*          /\* Add an att struct at the end of the list, and then go to it. *\/ */
+/*          if ((retval = nc4_att_list_add(grp->att, obj_name, &att))) */
+/*             BAIL(retval); */
+/*          retval = read_hdf5_att(grp, attid, att); */
+/*          if(retval == NC_EBADTYPID) { */
+/*             if((retval = nc4_att_list_del(grp->att, att))) */
+/*                BAIL(retval); */
+/*          } else if(retval) { */
+/*             BAIL(retval); */
+/*          } else { */
+/*             att->created = NC_TRUE; */
+/*             if ((retval = nc4_find_type(grp->nc4_info, att->nc_typeid, &type))) */
+/*                BAIL(retval); */
+/*          } */
+/*       } */
+/*       /\* Unconditionally close the open attribute *\/ */
+/*       H5Aclose(attid); */
+/*       attid = -1; */
+/*    } */
 
-   /* Remember that we have read the atts for this group. */
-   grp->atts_not_read = 0;
+/*    /\* Remember that we have read the atts for this group. *\/ */
+/*    grp->atts_not_read = 0; */
 
-exit:
-   if (attid > 0) {
-      if(H5Aclose(attid) < 0)
-         BAIL2(NC_EHDFERR);
-   }
-   return retval;
-}
+/* exit: */
+/*    if (attid > 0) { */
+/*       if(H5Aclose(attid) < 0) */
+/*          BAIL2(NC_EHDFERR); */
+/*    } */
+/*    return retval; */
+/* } */
 
 /**
  * @internal Wrap HDF5 allocated memory free operations

@@ -473,7 +473,7 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 
       /* Do we need to read the atts? */
       if (grp->atts_not_read)
-         if ((retval = nc4_read_grp_atts(grp)))
+         if ((retval = nc4_read_grp_atts2(grp)))
             return retval;
    }
    else
