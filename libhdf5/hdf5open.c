@@ -1653,6 +1653,43 @@ nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 }
 
 /**
+ * @internal This function reads all the attributes of a variable or
+ * the global attributes of a group.
+ *
+ * @param grp Pointer to the group info.
+ * @param var Pointer to the var info. NULL for global att reads.
+ *
+ * @return NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+{
+   att_iter_info att_info;         /* Custom iteration information */
+
+   /* Check inputs. */
+   assert(grp);
+
+   /* Assign var and grp in struct. */
+   att_info.var = var;
+   att_info.grp = grp;
+
+   /* Now read all the attributes of this variable, ignoring the
+      ones that hold HDF5 dimension scale information. */
+   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
+                    att_read_callbk, &att_info)) < 0)
+      return NC_EATTMETA;
+
+   /* Remember that we have read the atts for this var. */
+   if (var)
+      var->atts_not_read = 0;
+   else
+      grp->atts_not_read = 0;
+
+   return NC_NOERR;
+}
+
+/**
  * @internal This function is called by read_dataset when a dimension
  * scale dataset is encountered. It reads in the dimension data
  * (creating a new NC_DIM_INFO_T object), and also checks to see if
