@@ -1567,7 +1567,7 @@ att_read_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
    /* Read the rest of the info about the att,
     * including its values. */
    if ((retval = read_hdf5_att(att_info->grp, attid, att)))
-      BAIL(-1);
+      BAIL(retval);
 
    if (att)
       att->created = NC_TRUE;
@@ -1577,79 +1577,17 @@ exit:
    {
       /* NC_EBADTYPID will be normally converted to NC_NOERR so that
          the parent iterator does not fail. */
-      retval = nc4_att_list_del(att_info->grp->att, att);
+      retval = nc4_att_list_del(list, att);
       att = NULL;
    }
    if (attid > 0 && H5Aclose(attid) < 0)
-      retval = NC_EHDFERR;
+      retval = -1;
+
+   /* Since this is a HDF5 iterator callback, return -1 for any error
+    * to stop iteration. */
+   if (retval)
+      retval = -1;
    return retval;
-}
-
-/**
- * @internal This function reads all the group level attributes (the
- * NC_GLOBAL atts for this group).
- *
- * @param grp Pointer to group info struct.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EHDFERR HDF5 returned error.
- * @author Ed Hartnett
- */
-int
-nc4_read_grp_atts2(NC_GRP_INFO_T *grp)
-{
-   att_iter_info att_info;         /* Custom iteration information */
-
-   /* Check inputs. */
-   assert(grp);
-
-   /* Assign var and grp in struct. */
-   att_info.var = NULL;
-   att_info.grp = grp;
-
-   /* Now read all the attributes of this variable, ignoring the
-      ones that hold HDF5 dimension scale information. */
-   if ((H5Aiterate2(grp->hdf_grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
-                    att_read_callbk, &att_info)) < 0)
-      return NC_EATTMETA;
-
-   /* Remember that we have read the atts for this var. */
-   grp->atts_not_read = 0;
-
-   return NC_NOERR;
-}
-
-/**
- * @internal This function reads all the attributes of a variable.
- *
- * @param grp Pointer to the group info.
- * @param var Pointer to the var info.
- *
- * @return NC_NOERR No error.
- * @author Ed Hartnett
- */
-int
-nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
-{
-   att_iter_info att_info;         /* Custom iteration information */
-
-   /* Check inputs. */
-   assert(grp && var);
-
-   /* Assign var and grp in struct. */
-   att_info.var = var;
-   att_info.grp = grp;
-
-   /* Now read all the attributes of this variable, ignoring the
-      ones that hold HDF5 dimension scale information. */
-   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
-                    att_read_callbk, &att_info)) < 0)
-      return NC_EATTMETA;
-
-   /* Remember that we have read the atts for this var. */
-   var->atts_not_read = 0;
-
-   return NC_NOERR;
 }
 
 /**
