@@ -336,6 +336,7 @@ int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
 int nc4_read_grp_atts2(NC_GRP_INFO_T *grp);
 int nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+int nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /* The following functions manipulate the in-memory linked list of
    metadata, without using HDF calls. */
