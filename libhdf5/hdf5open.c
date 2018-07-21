@@ -1659,13 +1659,15 @@ nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @param grp Pointer to the group info.
  * @param var Pointer to the var info. NULL for global att reads.
  *
- * @return NC_NOERR No error.
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EATTMETA Some error occured reading attributes.
  * @author Ed Hartnett
  */
 int
 nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    att_iter_info att_info;         /* Custom iteration information */
+   hid_t locid; /* HDF5 location to read atts from. */
 
    /* Check inputs. */
    assert(grp);
@@ -1674,13 +1676,16 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    att_info.var = var;
    att_info.grp = grp;
 
+   /* Determine where to read from. */
+   locid = var ? var->hdf_datasetid : grp->hdf_grpid;
+
    /* Now read all the attributes of this variable, ignoring the
       ones that hold HDF5 dimension scale information. */
-   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
+   if ((H5Aiterate2(locid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
                     att_read_callbk, &att_info)) < 0)
       return NC_EATTMETA;
 
-   /* Remember that we have read the atts for this var. */
+   /* Remember that we have read the atts for this var or group. */
    if (var)
       var->atts_not_read = 0;
    else
