@@ -13,13 +13,9 @@
  *
  * @author Ed Hartnett
  */
+
 #include "config.h"
-#include "nc4internal.h"
 #include "hdf5internal.h"
-#include "nc.h" /* from libsrc */
-#include "ncdispatch.h" /* from libdispatch */
-#include "ncutf8.h"
-#include "H5DSpublic.h"
 
 #undef DEBUGH5
 

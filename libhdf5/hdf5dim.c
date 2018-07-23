@@ -11,9 +11,8 @@
  * @author Ed Hartnett
  */
 
-#include "nc4internal.h"
+#include "config.h"
 #include "hdf5internal.h"
-#include "nc4dispatch.h"
 
 /**
  * @internal Dimensions are defined in attributes attached to the
