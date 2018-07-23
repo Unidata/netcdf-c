@@ -11,8 +11,9 @@
  *
  * @author Ed Hartnett
  */
-#include "nc4internal.h"
-#include "nc4dispatch.h"
+
+#include "config.h"
+#include "hdf5internal.h"
 
 /**
  * @internal Determine if two types are equal.

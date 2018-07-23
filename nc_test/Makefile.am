@@ -27,7 +27,7 @@ endif
 
 if TEST_PARALLEL4
 if USE_PNETCDF
-if USE_CDF5
+if ENABLE_CDF5
 TESTPROGRAMS += tst_cdf5format
 endif
 endif
