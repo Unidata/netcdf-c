@@ -30,8 +30,8 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #define YY_NO_INPUT 1
 
 /* True if string a equals string b*/
-#ifndef STREQ
-#define STREQ(a, b)     (*(a) == *(b) && strcmp((a), (b)) == 0)
+#ifndef NCSTREQ
+#define NCSTREQ(a, b)     (*(a) == *(b) && strcmp((a), (b)) == 0)
 #endif
 #define VLENSIZE  (sizeof(nc_vlen_t))
 #define MAXFLOATDIM 4294967295.0
@@ -962,8 +962,7 @@ Symbol*
 install(const char *sname)
 {
     Symbol* sp;
-    sp = (Symbol*) emalloc (sizeof (struct Symbol));
-    memset((void*)sp,0,sizeof(struct Symbol));
+    sp = (Symbol*) ecalloc (sizeof (struct Symbol));
     sp->name = nulldup(sname);
     sp->next = symlist;
     sp->lineno = lineno;
@@ -1051,7 +1050,7 @@ makeconstdata(nc_type nctype)
 	    char* s;
 	    int len;
 	    len = bbLength(lextext);
-	    s = (char*)emalloc(len+1);
+	    s = (char*)ecalloc(len+1);
 	    strncpy(s,bbContents(lextext),len);
 	    s[len] = '\0';
 	    con.value.opaquev.stringv = s;
@@ -1062,7 +1061,7 @@ makeconstdata(nc_type nctype)
 	    break; /* no associated value*/
 #endif
 
-	case NC_FILLVALUE:
+ 	case NC_FILLVALUE:
 	    break; /* no associated value*/
 
 	default:
@@ -1250,7 +1249,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	else if(tag == _SUPERBLOCK_FLAG)
 	    globalspecials._Superblock = idata;
 	else if(tag == _NCPROPS_FLAG)
-	    globalspecials._NCProperties = strdup(sdata);
+	    globalspecials._NCProperties = estrdup(sdata);
     } else {
         Specialdata* special;
         /* Set up special info */
@@ -1317,7 +1316,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
           case _CHUNKSIZES_FLAG: {
                 int i;
                 special->nchunks = list->length;
-                special->_ChunkSizes = (size_t*)emalloc(sizeof(size_t)*special->nchunks);
+                special->_ChunkSizes = (size_t*)ecalloc(sizeof(size_t)*special->nchunks);
                 for(i=0;i<special->nchunks;i++) {
                     iconst.nctype = NC_INT;
                     convert1(&list->data[i],&iconst);
@@ -1410,7 +1409,8 @@ containsfills(Datalist* list)
         for(i=0;i<list->length;i++,con++) {
 	    if(con->nctype == NC_COMPOUND) {
 	        if(containsfills(con->value.compoundv)) return 1;
-	    } else if(con->nctype == NC_FILLVALUE) return 1;
+	    } else if(con->nctype == NC_FILLVALUE)
+		return 1;
 	}
     }
     return 0;

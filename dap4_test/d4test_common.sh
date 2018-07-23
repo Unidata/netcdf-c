@@ -23,8 +23,10 @@ cd ${srcdir}/baselineraw; BASELINERAW=`pwd` ; cd ${WD}
 cd ${srcdir}/baselineremote; BASELINEREM=`pwd` ; cd ${WD}
 BASELINEH=${BASELINEREM}
 
-rm -fr ./results
-mkdir -p ./results
+setresultdir() {
+rm -fr ./$1
+mkdir -p ./$1
+}
 
 FAILURES=
 failure() {

@@ -149,6 +149,16 @@ AC_ARG_ENABLE([internal-docs],
 test "x$enable_internal_docs" = xyes || enable_internal_docs=no
 AC_SUBST([BUILD_INTERNAL_DOCS], [$enable_internal_docs])
 
+# Doxygen is apparently buggy when trying to combine a markdown
+# file with @internal. The equivalent can be faked using
+# the Doxygen ENABLED_SECTIONS mechanism. See docs/testserver.dox
+# to see how this is done.
+sections=
+if test "x$enable_internal_docs" = xyes ; then
+sections="$sections INTERNAL"
+fi
+AC_SUBST([ENABLED_DOC_SECTIONS], [$sections])
+
 AC_MSG_CHECKING([if fsync support is enabled])
 AC_ARG_ENABLE([fsync],
               [AS_HELP_STRING([--enable-fsync],
@@ -180,6 +190,7 @@ AC_MSG_CHECKING([whether we should build netCDF-4])
 AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
               [do not build with netcdf-4 (else HDF5 and zlib required)])])
 test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
+enable_hdf5=enable_netcdf_4
 
 # Synonym
 AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
@@ -308,6 +319,17 @@ AC_ARG_ENABLE([logging],
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
 
+# Does the user want to turn off nc_set_log_level() function? (It will
+# always be defined if --enable-logging is used.)
+AC_MSG_CHECKING([whether nc_set_log_level() function is included (will do nothing unless enable-logging is also used)])
+AC_ARG_ENABLE([set_log_level_func], [AS_HELP_STRING([--disable-set-log-level-func],
+              [disable the nc_set_log_level function])])
+test "x$enable_set_log_level_func" = xno -a "x$enable_logging" = xno || enable_set_log_level_func=yes
+if test "x$enable_set_log_level_func" = xyes -a "x$enable_netcdf_4" = xyes; then
+   AC_DEFINE([ENABLE_SET_LOG_LEVEL], 1, [If true, define nc_set_log_level.])
+fi
+AC_MSG_RESULT($enable_set_log_level_func)
+
 ## Capture the state of the --enable-dap flag => enable dap2+dap4
 AC_MSG_CHECKING([whether DAP client(s) are to be built])
 AC_ARG_ENABLE([dap],
@@ -388,15 +410,15 @@ fi
 # Did the user specify a list of test servers to try for remote tests?
 AC_MSG_CHECKING([which remote test server(s) to use])
 AC_ARG_WITH([testservers],
-              [AS_HELP_STRING([--with-testservers=<host+port>,<host+port>...],
+              [AS_HELP_STRING([--with-testservers=<host:port>,<host:port>...],
                               [Specify the testserver(s) to try for remote tests.])],
             [REMOTETESTSERVERS=$with_testservers], [REMOTETESTSERVERS=no])
 msg="$REMOTETESTSERVERS"
 if test "x$REMOTETESTSERVERS" = xno ; then
-  msg="remotetest.unidata.ucar.edu,jetstream.unidata.ucar.edu (defaults)"
-  REMOTETESTSERVERS=remotetest.unidata.ucar.edu,jetstream.unidata.ucar.edu
+  svclist="149.165.169.123:8080,remotetest.unidata.ucar.edu"
+  REMOTETESTSERVERS="$svclist"
 fi
-AC_MSG_RESULT([$msg])
+AC_MSG_RESULT([$svclist])
 AC_DEFINE_UNQUOTED([REMOTETESTSERVERS], ["$REMOTETESTSERVERS"], [the testservers for remote tests.])
 
 # Set the config.h flags
@@ -570,6 +592,63 @@ AC_MSG_RESULT($TEMP_LARGE)
 #AC_SUBST(TEMP_LARGE)
 AC_DEFINE_UNQUOTED([TEMP_LARGE], ["$TEMP_LARGE"], [Place to put very large netCDF test files.])
 
+# Did the user specify a user-defined format 0?
+AC_MSG_CHECKING([whether user-defined format 0 was specified])
+AC_ARG_WITH([udf0],
+              [AS_HELP_STRING([--with-udf0=<dispatch_name>],
+                              [Specify a dispatch table for user-defined format 0.])],
+            [UDF0_DISPATCH=$with_udf0])
+AC_MSG_RESULT([$UDF0_DISPATCH])
+if test -n "$UDF0_DISPATCH"; then
+   AC_DEFINE_UNQUOTED([UDF0_DISPATCH], [$UDF0_DISPATCH], [dispatch table for user-defined format 0.])
+   AC_DEFINE_UNQUOTED([UDF0_DISPATCH_FUNC], [get_$UDF0_DISPATCH()], [function to get dispatch table for user-defined format 0.])
+   AC_DEFINE([USE_UDF0], [1], [if true, use user-defined format 0 in utilities])
+   AC_CHECK_LIB([$UDF0_DISPATCH], [get_$UDF0_DISPATCH], [],
+                                 [AC_MSG_ERROR([Can't find or link to the user-defined format 0 library.])],
+                                 [])
+fi
+
+# Did the user specify a magic number for user-defined format 0?
+AC_MSG_CHECKING([whether a magic number for user-defined format 0 was specified])
+AC_ARG_WITH([udf0-magic-number],
+              [AS_HELP_STRING([--with-udf0-magic-number=<magic_number>],
+                              [Specify a magic number for user-defined format 0 (ignored unless --with-udf0 is also used).])],
+            [UDF0_MAGIC_NUMBER=$with_udf0_magic_number])
+AC_MSG_RESULT([$UDF0_MAGIC_NUMBER])
+
+# Did the user specify a user-defined format 1?
+AC_MSG_CHECKING([whether user-defined format 1 was specified])
+AC_ARG_WITH([udf1],
+              [AS_HELP_STRING([--with-udf1=<dispatch_name>],
+                              [Specify a dispatch table for user-defined format 1.])],
+            [UDF1_DISPATCH=$with_udf1])
+AC_MSG_RESULT([$UDF1_DISPATCH])
+if test -n "$UDF1_DISPATCH"; then
+   AC_DEFINE_UNQUOTED([UDF1_DISPATCH], [$UDF1_DISPATCH], [dispatch table for user-defined format 1.])
+   AC_DEFINE_UNQUOTED([UDF1_DISPATCH_FUNC], [get_$UDF1_DISPATCH()], [function to get dispatch table for user-defined format 1.])
+   AC_DEFINE([USE_UDF1], [1], [if true, use user-defined format 1 in utilities])
+   AC_CHECK_LIB([$UDF1_DISPATCH], [get_$UDF1_DISPATCH], [],
+                                 [AC_MSG_ERROR([Can't find or link to the user-defined format 1 library.])],
+                                 [])
+fi
+
+# Did the user specify a magic number for user-defined format 0?
+AC_MSG_CHECKING([whether a magic number for user-defined format 1 was specified])
+AC_ARG_WITH([udf1-magic-number],
+              [AS_HELP_STRING([--with-udf1-magic-number=<magic_number>],
+                              [Specify a magic number for user-defined format 1 (ignored unless --with-udf1 is also used).])],
+            [UDF1_MAGIC_NUMBER=$with_udf1_magic_number])
+AC_MSG_RESULT([$UDF1_MAGIC_NUMBER])
+
+# Did the user specify a default cache preemption?
+AC_MSG_CHECKING([whether a default cache preemption for HDF5 was specified])
+AC_ARG_WITH([chunk-cache-preemption],
+              [AS_HELP_STRING([--with-chunk-cache-preemption=<float between 0 and 1 inclusive>],
+                              [Specify default file chunk cache preemption policy for HDF5 files (a number between 0 and 1, inclusive).])],
+            [CHUNK_CACHE_PREEMPTION=$with_chunk_cache_preemption], [CHUNK_CACHE_PREEMPTION=0.75])
+AC_MSG_RESULT([$CHUNK_CACHE_PREEMPTION])
+AC_DEFINE_UNQUOTED([CHUNK_CACHE_PREEMPTION], [$CHUNK_CACHE_PREEMPTION], [default file chunk cache preemption policy.])
+
 # According to the autoconf mailing list gurus, we must test for
 # compilers unconditionally. That is, we can't skip looking for the
 # fortran compilers, just because the user doesn't want fortran. This
@@ -741,20 +820,6 @@ AC_CHECK_FUNCS([strlcat snprintf \
 		mkstemp mktemp random \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
-# Does the user want to use NC_DISKLESS?
-AC_MSG_CHECKING([whether in-memory files are enabled])
-AC_ARG_ENABLE([diskless],
-              [AS_HELP_STRING([--disable-diskless],
-                              [disable support for in-memory (NC_DISKLESS) files])])
-test "x$enable_diskless" = xno || enable_diskless=yes
-AC_MSG_RESULT($enable_diskless)
-
-# If DAP enabled and diskless not enabled, then warn of consequences
-if test "x$enable_dap" = "xyes" -a "x$enable_diskless" = xno  ; then
-AC_MSG_NOTICE([Warning: DAP support is enabled but diskless support is disabled.])
-AC_MSG_NOTICE([=> temporary files will be created + reclaimed when using DAP.])
-fi
-
 # disable dap4 if netcdf-4 is disabled
 if test "x$enable_netcdf_4" = "xno" ; then
     AC_MSG_WARN([netcdf-4 not enabled; disabling DAP4])
@@ -784,12 +849,8 @@ if test "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xye
   enable_mmap=no
 fi
 
-# Setup the diskless and mmap conditionals
-if test "x$enable_diskless" = xyes ; then
-  AC_DEFINE([USE_DISKLESS], [1], [if true, include NC_DISKLESS and NC_INMEMORY code])
-  if test "x$enable_mmap" = xyes; then
+if test "x$enable_mmap" = xyes; then
     AC_DEFINE([USE_MMAP], [1], [if true, use mmap for in-memory files])
-  fi
 fi
 
 AC_FUNC_ALLOCA
@@ -909,6 +970,7 @@ AC_CHECK_LIB([m], [floor], [],
 
 if test "x$enable_netcdf_4" = xyes; then
 
+   AC_DEFINE([USE_HDF5], [1], [if true, use HDF5])
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
@@ -1202,13 +1264,13 @@ AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])
 AM_CONDITIONAL(USE_NETCDF4, [test x$enable_netcdf_4 = xyes])
+AM_CONDITIONAL(USE_HDF5, [test x$enable_hdf5 = xyes])
 AM_CONDITIONAL(USE_HDF4, [test x$enable_hdf4 = xyes])
 AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
 AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
 AM_CONDITIONAL(BUILD_FORTRAN, [test x$enable_remote_fortran_bootstrap = xyes])
 AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
-AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
@@ -1335,13 +1397,14 @@ AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_CDF5,[$enable_cdf5])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
+AC_SUBST(HAS_HDF5,[$enable_hdf5])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_LOGGING, [$enable_logging])
 AC_SUBST(HAS_SZLIB,[$enable_szlib])
 AC_SUBST(HAS_PARALLEL,[$enable_parallel])
 AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
-AC_SUBST(HAS_DISKLESS,[$enable_diskless])
+AC_SUBST(HAS_DISKLESS,[yes])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
 AC_SUBST(RELAX_COORD_BOUND,[$enable_relax_coord_bound])
@@ -1405,7 +1468,7 @@ AX_SET_META([NC_HAS_HDF5],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_SZIP],[$ac_cv_func_H5Z_SZIP],[yes])
 AX_SET_META([NC_HAS_DAP2],[$enable_dap],[yes])
 AX_SET_META([NC_HAS_DAP4],[$enable_dap4],[yes])
-AX_SET_META([NC_HAS_DISKLESS],[$enable_diskless],[yes])
+AX_SET_META([NC_HAS_DISKLESS],[yes],[yes])
 AX_SET_META([NC_HAS_MMAP],[$enable_mmap],[yes])
 AX_SET_META([NC_HAS_JNA],[$enable_jna],[yes])
 AX_SET_META([NC_HAS_PNETCDF],[$enable_pnetcdf],[yes])
@@ -1440,14 +1503,15 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
-	             libnetcdf.settings
-		         postinstall.sh
-		         include/netcdf_meta.h
+                 libnetcdf.settings
+                 postinstall.sh
+                 include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
                  hdf4_test/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
+                 libhdf5/Makefile
                  libsrcp/Makefile
                  ncdump/Makefile
                  ncgen3/Makefile
@@ -1474,7 +1538,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
                  plugins/Makefile
-		 ],
+                 ],
                  [test -f  nc-config && chmod 755 nc-config])
 
 AC_OUTPUT()

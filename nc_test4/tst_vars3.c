@@ -403,81 +403,144 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-/* #ifdef USE_SZIP */
-/*    printf("**** testing that szip works..."); */
-/*    { */
-/* #define NDIMS1 1 */
-/* #define D_SMALL "small_dim" */
-/* #define D_SMALL_LEN1 100 */
-/* #define D_MEDIUM "medium_dim" */
-/* #define D_MEDIUM_LEN1 D_SMALL_LEN1 * 2 */
-/* #define D_LARGE "large_dim" */
-/* #define D_LARGE_LEN1 D_SMALL_LEN1 * 4 */
-/* #define V_SMALL "small_var" */
-/* #define V_MEDIUM "medium_var" */
-/* #define V_LARGE "large_var" */
+#ifdef USE_SZIP
+   printf("**** testing simple szip filter setup...");
+   {
+#define NDIMS1 1
+#define DIM_NAME_1 "one_dim"
+#define DIM_LEN_1 100
+#define VAR_NAME "var1"
+#define H5_FILTER_SZIP 4
+#define NUM_PARAMS 2
+#define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
+#define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
+      int ncid;
+      int dimid;
+      int varid;
+      /* int options_mask_in, bits_per_pixel_in; */
+      unsigned int params[NUM_PARAMS];
 
-/*       int ncid; */
-/*       int nvars, ndims, ngatts, unlimdimid; */
-/*       int ndims_in, natts_in, dimids_in; */
-/*       int small_dimid, medium_dimid, large_dimid; */
-/*       int small_varid, medium_varid, large_varid; */
-/*       char var_name_in[NC_MAX_NAME + 1]; */
-/*       nc_type xtype_in; */
-/*       int options_mask_in, bits_per_pixel_in; */
-/*       long long small_data[D_SMALL_LEN1], small_data_in[D_SMALL_LEN1]; */
-/*       long long medium_data[D_MEDIUM_LEN1], medium_data_in[D_MEDIUM_LEN1]; */
-/*       long long large_data[D_LARGE_LEN1], large_data_in[D_LARGE_LEN1]; */
-/*       int i; */
+      /* Create a netcdf-4 file with one dimensions. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
 
-/*       for (i = 0; i < D_SMALL_LEN1; i++) */
-/* 	 small_data[i] = i; */
-/*       for (i = 0; i < D_MEDIUM_LEN1; i++) */
-/* 	 medium_data[i] = i; */
-/*       for (i = 0; i < D_LARGE_LEN1; i++) */
-/* 	 large_data[i] = i; */
+      /* Add a var. Turn on szip filter. */
+      if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
+      params[0] = NC_SZIP_NN_OPTION_MASK;
+      params[1] = 32;
+      if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
+      if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS, params)) ERR;
+      if (nc_close(ncid)) ERR;
 
-/*       /\* Create a netcdf-4 file with three dimensions. *\/ */
-/*       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR; */
-/*       if (nc_def_dim(ncid, D_SMALL, D_SMALL_LEN1, &small_dimid)) ERR; */
-/*       if (nc_def_dim(ncid, D_MEDIUM, D_MEDIUM_LEN1, &medium_dimid)) ERR; */
-/*       if (nc_def_dim(ncid, D_LARGE, D_LARGE_LEN1, &large_dimid)) ERR; */
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      /* The following code should work, but doesn't. See issue 972 in github. */
+      /* if (nc_inq_var_szip(ncid, varid, &options_mask_in, &bits_per_pixel_in)) ERR; */
+      /* if (options_mask_in != NC_SZIP_NN_OPTION_MASK || bits_per_pixel_in != 32) ERR; */
+      size_t nparams;
+      unsigned int filterid;
+      unsigned int params_in[4];
+      if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_in)) ERR;
+      if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing more complex use of szip...");
+   {
+#define NDIMS1 1
+#define D_SMALL "small_dim"
+#define D_SMALL_LEN1 100
+#define D_MEDIUM "medium_dim"
+#define D_MEDIUM_LEN1 D_SMALL_LEN1 * 2
+#define D_LARGE "large_dim"
+#define D_LARGE_LEN1 D_SMALL_LEN1 * 4
+#define V_SMALL "small_var"
+#define V_MEDIUM "medium_var"
+#define V_LARGE "large_var"
+#define H5_FILTER_SZIP 4
+#define NUM_PARAMS 2
+#define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
+#define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
+      int ncid;
+      int nvars, ndims, ngatts, unlimdimid;
+      int ndims_in, natts_in, dimids_in;
+      int small_dimid, medium_dimid, large_dimid;
+      int small_varid, medium_varid, large_varid;
+      char var_name_in[NC_MAX_NAME + 1];
+      nc_type xtype_in;
+      /* int options_mask_in, bits_per_pixel_in; */
+      long long small_data[D_SMALL_LEN1], small_data_in[D_SMALL_LEN1];
+      long long medium_data[D_MEDIUM_LEN1], medium_data_in[D_MEDIUM_LEN1];
+      long long large_data[D_LARGE_LEN1], large_data_in[D_LARGE_LEN1];
+      unsigned int params[NUM_PARAMS];
+      int i;
 
-/*       /\* Add three vars. Turn on szip for two of them. *\/ */
-/*       if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &small_dimid, &small_varid)) ERR; */
+      for (i = 0; i < D_SMALL_LEN1; i++)
+	 small_data[i] = i;
+      for (i = 0; i < D_MEDIUM_LEN1; i++)
+	 medium_data[i] = i;
+      for (i = 0; i < D_LARGE_LEN1; i++)
+	 large_data[i] = i;
 
-/*       if (nc_def_var(ncid, V_MEDIUM, NC_INT64, NDIMS1, &medium_dimid, &medium_varid)) ERR; */
-/*       if (nc_def_var_szip(ncid, medium_varid, NC_SZIP_EC_OPTION_MASK, 32)) ERR; */
+      /* Create a netcdf-4 file with three dimensions. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, D_SMALL, D_SMALL_LEN1, &small_dimid)) ERR;
+      if (nc_def_dim(ncid, D_MEDIUM, D_MEDIUM_LEN1, &medium_dimid)) ERR;
+      if (nc_def_dim(ncid, D_LARGE, D_LARGE_LEN1, &large_dimid)) ERR;
 
-/*       if (nc_def_var(ncid, V_LARGE, NC_INT64, NDIMS1, &large_dimid, &large_varid)) ERR; */
-/*       if (nc_def_var_szip(ncid, large_varid, NC_SZIP_NN_OPTION_MASK, 16)) ERR; */
+      /* Add three vars. Turn on szip for two of them. */
+      if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &small_dimid, &small_varid)) ERR;
 
-/*       /\* Write data. *\/ */
-/*       if (nc_put_var_longlong(ncid, small_varid, small_data)) ERR; */
-/*       if (nc_put_var_longlong(ncid, medium_varid, medium_data)) ERR; */
-/*       if (nc_put_var_longlong(ncid, large_varid, large_data)) ERR; */
+      if (nc_def_var(ncid, V_MEDIUM, NC_INT64, NDIMS1, &medium_dimid, &medium_varid)) ERR;
+      params[0] = NC_SZIP_NN_OPTION_MASK;
+      params[1] = 32;
+      if (nc_def_var_chunking(ncid, medium_varid, NC_CHUNKED, NULL)) ERR;
+      if (nc_def_var_filter(ncid, medium_varid, H5_FILTER_SZIP, NUM_PARAMS, params)) ERR;
+      if (nc_def_var(ncid, V_LARGE, NC_INT64, NDIMS1, &large_dimid, &large_varid)) ERR;
+      params[1] = 32;
+      if (nc_def_var_chunking(ncid, large_varid, NC_CHUNKED, NULL)) ERR;
+      if (nc_def_var_filter(ncid, large_varid, H5_FILTER_SZIP, NUM_PARAMS, params)) ERR;
 
-/*       if (nc_close(ncid)) ERR; */
+      /* Write data. */
+      if (nc_put_var_longlong(ncid, small_varid, small_data)) ERR;
+      if (nc_put_var_longlong(ncid, medium_varid, medium_data)) ERR;
+      if (nc_put_var_longlong(ncid, large_varid, large_data)) ERR;
 
-/*       /\* Open the file and check. *\/ */
-/*       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR; */
-/*       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR; */
-/*       if (nvars != 3 || ndims != 3 || ngatts != 0 || unlimdimid != -1) ERR; */
-/*       if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, &dimids_in, &natts_in)) ERR; */
-/*       if (strcmp(var_name_in, V_SMALL) || xtype_in != NC_INT64 || ndims_in != 1 || */
-/* 	  natts_in != 0) ERR; */
+      if (nc_close(ncid)) ERR;
 
-/*       /\* Make sure we have the szip settings we expect. *\/ */
-/*       if (nc_inq_var_szip(ncid, small_varid, &options_mask_in, &bits_per_pixel_in)) ERR; */
-/*       if (options_mask_in != 0 || bits_per_pixel_in !=0) ERR; */
-/*       if (nc_inq_var_szip(ncid, medium_varid, &options_mask_in, &bits_per_pixel_in)) ERR; */
-/*       if (!(options_mask_in & NC_SZIP_EC_OPTION_MASK) || bits_per_pixel_in != 32) ERR; */
-/*       if (nc_inq_var_szip(ncid, large_varid, &options_mask_in, &bits_per_pixel_in)) ERR; */
-/*       if (!(options_mask_in & NC_SZIP_NN_OPTION_MASK) || bits_per_pixel_in != 16) ERR; */
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
+      if (nvars != 3 || ndims != 3 || ngatts != 0 || unlimdimid != -1) ERR;
+      if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, &dimids_in, &natts_in)) ERR;
+      if (strcmp(var_name_in, V_SMALL) || xtype_in != NC_INT64 || ndims_in != 1 ||
+          natts_in != 0) ERR;
 
-/*       if (nc_close(ncid)) ERR; */
-/*    } */
-/*    SUMMARIZE_ERR; */
-/* #endif */
+      /* The following code should work, but doesn't. See issue 972 in github. */
+      /* Make sure we have the szip settings we expect. */
+      /* if (nc_inq_var_szip(ncid, small_varid, &options_mask_in, &bits_per_pixel_in)) ERR; */
+      /* if (options_mask_in != 0 || bits_per_pixel_in !=0) ERR; */
+      /* if (nc_inq_var_szip(ncid, medium_varid, &options_mask_in, &bits_per_pixel_in)) ERR; */
+      /* if (!(options_mask_in & NC_SZIP_EC_OPTION_MASK) || bits_per_pixel_in != 32) ERR; */
+      /* if (nc_inq_var_szip(ncid, large_varid, &options_mask_in, &bits_per_pixel_in)) ERR; */
+      /* if (!(options_mask_in & NC_SZIP_NN_OPTION_MASK) || bits_per_pixel_in != 16) ERR; */
+
+      /* Read data. */
+      if (nc_get_var_longlong(ncid, small_varid, small_data_in)) ERR;
+      if (nc_get_var_longlong(ncid, medium_varid, medium_data_in)) ERR;
+      if (nc_get_var_longlong(ncid, large_varid, large_data_in)) ERR;
+
+      /* Check data. */
+      for (i = 0; i < D_SMALL_LEN1; i++)
+	 if (small_data[i] != small_data_in[i]) ERR;
+      for (i = 0; i < D_MEDIUM_LEN1; i++)
+         if (medium_data[i] != medium_data_in[i]) ERR;
+      for (i = 0; i < D_LARGE_LEN1; i++)
+         if (large_data[i] != large_data_in[i]) ERR;
+
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+#endif /* USE_SZIP */
    FINAL_RESULTS;
 }

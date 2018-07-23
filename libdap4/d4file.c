@@ -101,17 +101,14 @@ NCD4_open(const char * path, int mode,
         /* Now, use the file to create the hidden substrate netcdf file.
 	   We want this hidden file to always be NC_NETCDF4, so we need to
            force default format temporarily in case user changed it.
-	   If diskless is enabled, then create file in-memory, else
-           create an actual temporary file in the file system.
+	   Since diskless is enabled, create file in-memory.
 	*/
 	{
 	    int new = NC_NETCDF4;
 	    int old = 0;
 	    int ncid = 0;
 	    int ncflags = NC_NETCDF4|NC_CLOBBER;
-#ifdef USE_DISKLESS
 	    ncflags |= NC_DISKLESS;
-#endif
 	    if(FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY)) {
 		/* Cause data to be dumped to real file */
 		ncflags |= NC_WRITE;
@@ -122,7 +119,7 @@ NCD4_open(const char * path, int mode,
 	    nc_set_default_format(old,&new); /* restore */
 	    d4info->substrate.realfile = ((ncflags & NC_DISKLESS) == 0);
 	    d4info->substrate.filename = strdup(tmpname);
-	    if(tmpname == NULL) ret = NC_ENOMEM;
+	    if(d4info->substrate.filename == NULL) ret = NC_ENOMEM;
 	    d4info->substrate.nc4id = ncid;
 	}
         if(ret != NC_NOERR) goto done;

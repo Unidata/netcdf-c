@@ -10,7 +10,7 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_files6 tst_sync tst_h_strbug tst_h_refs tst_h_scalar tst_rename
   tst_rename2 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324
-  tst_filterparser tst_atts3 tst_put_vars tst_elatefill)
+  tst_filterparser tst_atts3 tst_put_vars tst_elatefill tst_udf)
 
 # Note, renamegroup needs to be compiled before run_grp_rename
 
@@ -87,10 +87,18 @@ IF(TEST_PARALLEL4)
   build_bin_test(tst_parallel)
   build_bin_test(tst_parallel3)
   build_bin_test(tst_parallel4)
+  build_bin_test(tst_parallel5)
   build_bin_test(tst_nc4perf)
   build_bin_test(tst_mode)
   build_bin_test(tst_simplerw_coll_r)
   add_sh_test(nc_test4 run_par_test)
+ENDIF()
+
+IF(ENABLE_METADATA_PERF)
+  build_bin_test(bigmeta)
+  build_bin_test(openbigmeta)
+  build_bin_test(tst_attsperf)
+  add_sh_test(nc_test4 perftest)
 ENDIF()
 
 ADD_EXTRA_DIST(findplugin.in)

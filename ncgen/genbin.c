@@ -198,7 +198,7 @@ genbin_defineglobalspecials(void)
 static void
 genbin_definespecialattributes(Symbol* var)
 {
-    int stat;
+    int stat = NC_NOERR;
     Specialdata* special = &var->var.special;
     if(special->flags & _STORAGE_FLAG) {
         int storage = special->_Storage;
@@ -250,7 +250,7 @@ genbin_definespecialattributes(Symbol* var)
 	    else
 		level = special->_FilterParams[0];
 	    if(level > 9)
-		derror("Illegal deflate level");		
+		derror("Illegal deflate level");
 	    else {
 	        stat = nc_def_var_deflate(var->container->ncid,
 	                var->ncid,
@@ -383,6 +383,7 @@ genbin_defineattr(Symbol* asym)
     Bytebuffer* databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_attrdata(asym,bin_generator,(Writer)genbin_write,databuf);
+    bbFree(databuf);
 }
 
 
@@ -395,6 +396,7 @@ genbin_definevardata(Symbol* vsym)
     databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_vardata(vsym,bin_generator,(Writer)genbin_write,databuf);
+    bbFree(databuf);
 }
 
 static int
@@ -457,7 +459,7 @@ static int
 genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
            int rank, size_t* start, size_t* count)
 {
-    int stat;
+    int stat = NC_NOERR;
     size_t len;
     Datalist* list;
     int varid, grpid, typid;

@@ -3,7 +3,7 @@
 # Is netcdf-4 and/or DAP enabled?
 NC4=1
 DAP=1
-CDF5=1
+#CDF5=1
 #HDF4=1
 
 for arg in "$@" ; do
@@ -22,6 +22,8 @@ if test "x$VS" = x1 ; then
     unset VSSETUP
   fi
 fi
+
+#TESTSERVERS="localhost:8080,149.165.169.123:8080"
 
 #export NCPATHDEBUG=1
 
@@ -49,12 +51,16 @@ if test "x$HDF4" != x ; then
 FLAGS="$FLAGS -DENABLE_HDF4=true"
 fi
 
+if test "x$TESTSERVERS" != x ; then
+FLAGS="$FLAGS -DREMOTETESTSERVERS=${TESTSERVERS}"
+fi
+
 # Enables
 FLAGS="$FLAGS -DENABLE_DAP_REMOTE_TESTS=true"
 FLAGS="$FLAGS -DENABLE_LOGGING=true"
 #FLAGS="$FLAGS -DENABLE_DOXYGEN=true -DENABLE_INTERNAL_DOCS=true"
 #FLAGS="$FLAGS -DENABLE_LARGE_FILE_TESTS=true"
-FLAGS="$FLAGS -DENABLE_FILTER_TESTING=true"
+#FLAGS="$FLAGS -DENABLE_FILTER_TESTING=true"
 
 # Disables
 FLAGS="$FLAGS -DENABLE_EXAMPLES=false"
