@@ -547,6 +547,7 @@ There are four netCDF format variants:
 
 -   the classic format
 -   the 64-bit offset format
+-   the 64-bit data format
 -   the netCDF-4 format
 -   the netCDF-4 classic model format
 
@@ -556,13 +557,13 @@ though these are not usually thought of as formats: CDL and NcML.)
 The **classic format** was the only format for netCDF data created
 between 1989 and 2004 by the reference software from Unidata. It is
 still the default format for new netCDF data files, and the form in
-which most netCDF data is stored.
+which most netCDF data is stored. This format is also referred as CDF-1 format.
 
 In 2004, the **64-bit offset format** variant was added. Nearly
 identical to netCDF classic format, it allows users to create and access
 far larger datasets than were possible with the original format. (A
 64-bit platform is not required to write or read 64-bit offset netCDF
-files.)
+files.) This format is also referred as CDF-2 format.
 
 In 2008, the **netCDF-4 format** was added to support per-variable
 compression, multiple unlimited dimensions, more complex data types, and
@@ -574,6 +575,14 @@ format**, was added for users who needed the performance benefits of the
 new format (such as compression) without the complexity of a new
 programming interface or enhanced data model.
 
+In 2016, the **64-bit data format** variant was added. To support large
+variables with more than 4-billion array elements, it replaces most of the
+32-bit integers used in the format specification with 64-bit integers. It also
+adds support for several new data types including unsigned byte, unsigned
+short, unsigned int, signed 64-bit int and unsigned 64-bit int. A 64-bit
+platform is required to write or read 64-bit data netCDF files. This format is
+also referred as CDF-5 format.
+
 With each additional format variant, the C-based reference software from
 Unidata has continued to support access to data stored in previous
 formats transparently, and to also support programs written using
@@ -581,15 +590,18 @@ previous programming interfaces.
 
 Although strictly speaking, there is no single "netCDF-3 format", that
 phrase is sometimes used instead of the more cumbersome but correct
-"netCDF classic or 64-bit offset format" to describe files created by
-the netCDF-3 (or netCDF-1 or netCDF-2) libraries. Similarly "netCDF-4
-format" is sometimes used informally to mean "either the general
-netCDF-4 format or the restricted netCDF-4 classic model format". We
-will use these shorter phrases in FAQs below when no confusion is
-likely.
+"netCDF classic CDF-1, 64-bit offset CDF-2, or 64-bit data CDF-5 format" to
+describe files created by the netCDF-3 (or netCDF-1 or netCDF-2) libraries.
+Similarly "netCDF-4 format" is sometimes used informally to mean "either the
+general netCDF-4 format or the restricted netCDF-4 classic model format". We
+will use these shorter phrases in FAQs below when no confusion is likely.
 
-A more extensive description of the netCDF formats and a formal
-specification of the classic and 64-bit formats is available as a [NASA ESDS community standard](https://earthdata.nasa.gov/sites/default/files/esdswg/spg/rfc/esds-rfc-011/ESDS-RFC-011v2.00.pdf).
+A more extensive description of the netCDF formats and a formal specification
+of the classic and 64-bit formats is available as a [NASA ESDS community
+standard](https://earthdata.nasa.gov/sites/default/files/esdswg/spg/rfc/esds-rfc-011/ESDS-RFC-011v2.00.pdf).
+
+The 64-bit data CDF-5 format specification is available in
+http://cucis.ece.northwestern.edu/projects/PnetCDF/CDF-5.html.
 
 How can I tell which format a netCDF file uses? {#How-can-I-tell-which-format-a-netCDF-file-uses}
 -----------------
@@ -598,8 +610,9 @@ How can I tell which format a netCDF file uses? {#How-can-I-tell-which-format-a-
 The short answer is that under most circumstances, you should not care,
 if you use version 4.0 or later of the netCDF library to access data in
 the file. But the difference is indicated in the first four bytes of the
-file, which are 'C', 'D', 'F', '\\001' for the classic netCDF format;
-'C', 'D', 'F', '\\002' for the 64-bit offset format; or '\\211', 'H',
+file, which are 'C', 'D', 'F', '\\001' for the classic netCDF CDF-1 format;
+'C', 'D', 'F', '\\002' for the 64-bit offset CDF-2 format;
+'C', 'D', 'F', '\\005' for the 64-bit data CDF-5 format; or '\\211', 'H',
 'D', 'F' for an HDF5 file, which could be either a netCDF-4 file or a
 netCDF-4 classic model file. (HDF5 files may also begin with a
 user-block of 512, 1024, 2048, ... bytes before what is actually an
@@ -636,21 +649,36 @@ which will output
 ~~~~
 
 ~~~~ {.boldcode}
+      C   D   F 005
+~~~~
+
+~~~~ {.boldcode}
     211   H   D   F
 ~~~~
 
-depending on whether foo.nc is a classic, 64-bit offset, or netCDF-4
-file, respectively. This method cannot be used to distinguish between
-netCDF-4 and netCDF-4 classic model variants, or between a netCDF-4 file
-and a different kind of HDF5 file.
+depending on whether foo.nc is a classic CDF-1, 64-bit offset CDF-2, 64-bit
+data CDF-5, or netCDF-4 file, respectively. This method cannot be used to
+distinguish between netCDF-4 and netCDF-4 classic model variants, or between a
+netCDF-4 file and a different kind of HDF5 file.
 
 ----------
 
 How many netCDF data models are there? {#How-many-netCDF-data-models-are-there}
 -----------------
 
-There are only two netCDF data models, the [classic model](/netcdf/workshops/2008/datamodel/NcClassicModel.html) and the [enhanced model](/netcdf/workshops/2008/netcdf4/Nc4DataModel.html) (also called the netCDF-4 data model). The classic model is the simpler of the two, and is used for all data stored in classic format, 64-bit offset format, or netCDF-4 classic model format. The enhanced model (sometimes also referred to as the netCDF-4 data model) is an extension of the classic model that adds more powerful forms of data representation and
-data types at the expense of some additional complexity. Although data represented with the classic model can also be represented using the enhanced model, datasets that use enhanced model features, such as user-defined data types, cannot be represented with the classic model. Use of the enhanced model requires storage in the netCDF-4 format.
+There are only two netCDF data models, the [classic
+model](/netcdf/workshops/2008/datamodel/NcClassicModel.html) and the [enhanced
+model](/netcdf/workshops/2008/netcdf4/Nc4DataModel.html) (also called the
+netCDF-4 data model). The classic model is the simpler of the two, and is used
+for all data stored in classic CDF-1 format, 64-bit offset CDF-2 format, 64-bit
+data CDF-5 format, or netCDF-4 classic model format. The enhanced model
+(sometimes also referred to as the netCDF-4 data model) is an extension of the
+classic model that adds more powerful forms of data representation and data
+types at the expense of some additional complexity. Although data represented
+with the classic model can also be represented using the enhanced model,
+datasets that use enhanced model features, such as user-defined data types,
+cannot be represented with the classic model. Use of the enhanced model
+requires storage in the netCDF-4 format.
 
 How many releases of the C-based netCDF software are supported? {#How-many-releases-of-the-C-based-netCDF-software-are-supported}
 -----------------
@@ -664,15 +692,17 @@ the netCDF-4 and netCDF-4 classic model formats, if built using a
 previously installed HDF5 library and using the "--enable-netcdf-4"
 configure option. Software built from the netCDF-4.0 release without
 specifying "--enable-netcdf-4" (the default) was identical to software
-built with netCDF-3.6.3.
+built with netCDF-3.6.3. Starting from version 4.4.0, netCDF added support
+for CDF-5 format.
 
 Both netCDF-3 and netCDF-4 C libraries are part of a single software
 release. The netCDF software may be built to support just the classic
-and 64-bit offset formats (the default) or to also support the netCDF-4
-and netCDF-4 classic model formats, if the HDF5-1.8.x library is
-installed. Unidata no longer supports a separate netCDF-3-only version
-of the software, but instead supports both the classic and enhanced data
-models and all four format variants in a single source distribution.
+CDF-1 and 64-bit offset CDF-2 formats (the default), 64-bit data CDF-5 format,
+or to also support the netCDF-4 and netCDF-4 classic model formats, if the
+HDF5-1.8.x library is installed. Unidata no longer supports a separate
+netCDF-3-only version of the software, but instead supports both the classic
+and enhanced data models and all four format variants in a single source
+distribution.
 
 This does not indicate any plan to drop support for netCDF-3 or the
 formats associated with netCDF-3. Support for earlier formats and APIs
@@ -681,14 +711,13 @@ will continue with all future versions of netCDF software from Unidata.
 Should I get netCDF-3 or netCDF-4? {#Should-I-get-netCDF-3-or-netCDF-4}
 -----------------
 
-
 By downloading a current version of netCDF-4, you have the choice to
 build either
 
--   the default netCDF-3 libraries, which support classic and 64-bit
-    offset formats, and the classic data model; or
+-   the default netCDF-3 libraries, which support classic CDF-1, 2, and 5
+    formats, and the classic data model; or
 -   the netCDF-4 libraries, which support netCDF-4 and netCDF-4 classic
-    model formats, as well as classic and 64-bit offset formats, and the
+    model formats, as well as classic formats, and the
     enhanced data model.
 
 Which version to build depends on how you will use the software.
@@ -696,8 +725,8 @@ Which version to build depends on how you will use the software.
 Installing the simpler netCDF-3 version of the software is recommended
 if the following situations apply:
 
--   all the data you need to access is available in netCDF classic or
-    64-bit offset formats
+-   all the data you need to access is available in netCDF classic
+    formats
 -   you are installing netCDF in order to support another software
     package that uses only netCDF-3 features
 -   you plan to only write data in a form that netCDF-3 software and
@@ -845,13 +874,12 @@ How can I convert netCDF-3 files into netCDF-4 files? {#How-can-I-convert-netCDF
 -----------------
 
 
-Every netCDF-3 file can be read or written by a netCDF version 4
-library, so in that respect netCDF-3 files are already netCDF-4 files
-and need no conversion. But if you want to convert a classic or 64-bit
-offset format file into a netCDF-4 format or netCDF-4 classic model
-format file, the easiest way is to use the **nccopy** utility. For example
-to convert a classic format file foo3.nc to a netCDF-4 format file
-foo4.nc, use:
+Every netCDF-3 file can be read or written by a netCDF version 4 library, so in
+that respect netCDF-3 files are already netCDF-4 files and need no conversion.
+But if you want to convert a classic format file (CDF-1, 2, or 5) into a
+netCDF-4 format or netCDF-4 classic model format file, the easiest way is to
+use the **nccopy** utility. For example to convert a classic format file
+foo3.nc to a netCDF-4 format file foo4.nc, use:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~ {.boldcode}
   nccopy -k netCDF-4 foo3.nc foo4.nc
@@ -872,10 +900,9 @@ utility "ncks" can be used to accomplish the same task, as follows:
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Another method is available for relatively small files, using the **ncdump**
-and **ncgen** utilities (built with a netCDF-4 library). Assuming
-"small3.nc" is a small classic format or 64-bit offset format netCDF
-file, you can create an equivalent netCDF-4 file named
-"small4.nc" as follows:
+and **ncgen** utilities (built with a netCDF-4 library). Assuming "small3.nc"
+is a small classic format netCDF file, you can create an equivalent netCDF-4
+file named "small4.nc" as follows:
 
 ~~~~ {.boldcode}
   ncdump small3.nc > small.cdl
@@ -1219,10 +1246,14 @@ reference to the format label at the start of a file.
 
 With netCDF version 3.6 and later, a second variant of netCDF format is
 supported in addition to the classic format. The new variant is referred
-to as the *64-bit offset* format, *version 2*, or *CDF2*. The primary
+to as the *64-bit offset* format, *version 2*, or *CDF-2*. The primary
 difference from the classic format is the use of 64-bit file offsets
 instead of 32-bit offsets, but it also supports larger variable and
 record sizes.
+
+Starting from version 4.4.0, netCDF added support for CDF-5 format, which
+allows multiple large variables with more than 4-billion array elements defined
+in the file. This format is only supported on 64-bit machine platforms.
 
 ----------
 
@@ -1235,10 +1266,10 @@ detect which variant of the format is used for each file when it is
 opened for reading or writing, so it is not necessary to know which
 variant of the format is used. The version of the format will be
 preserved by the library on writing. If you want to modify a classic
-format file to use the 64-bit offset format so you can make it much
+format file to use the CDF-2 or CDF-5 format so you can make it much
 larger, you will have to create a new file and copy the data to it. The
 **nccopy** utility available in version 4.1 can copy a classic file to a
-64-bit offset file.
+CDF-2 or CDF-5 file.
 
 ----------
 
@@ -1247,13 +1278,13 @@ Will future versions of the netCDF library continue to support accessing files i
 
 
 Yes, the 3.6 library and all planned future versions of the library will
-continue to support reading and writing files using the classic (32-bit
-offset) format as well as the 64-bit offset format. There is no need to
+continue to support reading and writing files using the classic CDF-1 (32-bit
+offset), 64-bit offset CDF-2, and 64-bit data CDF-5 format. There is no need to
 convert existing archives from the classic to the 64-bit offset format.
 Even netCDF-4, which introduces a third variant of the netCDF format
-based on HDF5, continues to support accessing classic format netCDF
-files as well as 64-bit offset netCDF files. NetCDF-4 HDF5 files have
-even fewer restrictions on size than 64-bit offset netCDF files.
+based on HDF5, continues to support accessing classic CDF-1, 2, and 5 format
+files. NetCDF-4 HDF5 files have even fewer restrictions on size than CDF-1 and
+CDF-2 files.
 
 ----------
 
@@ -1272,17 +1303,17 @@ the classic format.
 
 ----------
 
-How can I tell if a netCDF file uses the classic format or 64-bit offset format? {#How-can-I-tell-if-a-netCDF-file-uses-the-classic-format-or-64-bit-offset-format}
+How can I tell if a netCDF file uses the classic format (CDF-1), 64-bit offset format (CDF-2) or 64-bit data format (CDF-5)? {#How-can-I-tell-if-a-netCDF-file-uses-the-classic-format-or-64-bit-offset-format}
 -----------------
 
 
 The short answer is that under most circumstances, you should not care,
 if you use version 3.6.0 or later of the netCDF library. But the
 difference is indicated in the first four bytes of the file, which are
-'C', 'D', 'F', '\\001' for the classic netCDF format and 'C', 'D', 'F',
-'\\002' for the 64-bit offset format. On a Unix system, one way to
-display the first four bytes of a file, say foo.nc, is to run the
-following command:
+'C', 'D', 'F', '\\001' for the classic CDF-1 format, 'C', 'D', 'F',
+'\\002' for the 64-bit offset CDF-2 format, and 'C', 'D', 'F', '\\005' for the
+64-bit data CDF-5 format. On a Unix system, one way to display the first four
+bytes of a file, say foo.nc, is to run the following command:
 
 ~~~~ {.boldcode}
   od -An -c -N4 foo.nc
@@ -1300,7 +1331,13 @@ or
   C   D   F 002
 ~~~~
 
-depending on whether foo.nc is a classic or 64-bit offset netCDF file,
+or
+
+~~~~ {.boldcode}
+  C   D   F 005
+~~~~
+
+depending on whether foo.nc is a CDF-1, CDF-2, or CDF-5 netCDF file,
 respectively.
 
 With netCDF version 3.6.2 or later, there is an easier way, using the
