@@ -100,7 +100,7 @@ err:
 int
 nc3_cktype(int mode, nc_type type)
 {
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
     if (mode & NC_CDF5) { /* CDF-5 format */
         if (type >= NC_BYTE && type < NC_STRING) return NC_NOERR;
     } else
@@ -713,7 +713,7 @@ NC_check_vlens(NC3_INFO *ncp)
     /* maximum permitted variable size (or size of one record's worth
        of a record variable) in bytes.  This is different for format 1
        and format 2. */
-    unsigned long long vlen_max;
+    long long vlen_max;
     size_t ii;
     size_t large_vars_count;
     size_t rec_vars_count;
@@ -723,7 +723,7 @@ NC_check_vlens(NC3_INFO *ncp)
 	return NC_NOERR;
 
     if (fIsSet(ncp->flags,NC_64BIT_DATA)) /* CDF-5 */
-	vlen_max = (size_t)X_INT64_MAX - 3; /* "- 3" handles rounded-up size */
+	vlen_max = X_INT64_MAX - 3; /* "- 3" handles rounded-up size */
     else if (fIsSet(ncp->flags,NC_64BIT_OFFSET) && sizeof(off_t) > 4)
 	/* CDF2 format and LFS */
 	vlen_max = X_UINT_MAX - 3; /* "- 3" handles rounded-up size */
@@ -1167,7 +1167,7 @@ nc_set_default_format(int format, int *old_formatp)
       return NC_EINVAL;
 #else
     if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
         && format != NC_FORMAT_CDF5
 #endif
         )
@@ -1698,7 +1698,7 @@ NC3_inq_format(int ncid, int *formatp)
       return NC_NOERR;
 
    /* only need to check for netCDF-3 variants, since this is never called for netCDF-4 files */
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
    if (fIsSet(nc3->flags, NC_64BIT_DATA))
       *formatp = NC_FORMAT_CDF5;
    else
