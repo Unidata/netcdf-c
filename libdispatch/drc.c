@@ -142,7 +142,7 @@ NC_set_rcfile(const char* rcfile)
     nullfree(ncrc_globalstate.rcinfo.rcfile);
     ncrc_globalstate.rcinfo.rcfile = strdup(rcfile);
     /* Clear ncrc_globalstate.rcinfo */
-    NC_rcclear(&ncrc_globalstate.rcinfo);    
+    NC_rcclear(&ncrc_globalstate.rcinfo);
     /* (re) load the rcfile and esp the triplestore*/
     stat = NC_rcload();
 done:
@@ -196,10 +196,9 @@ static void
 rctrim(char* text)
 {
     char* p = text;
-    size_t len;
+    size_t len = 0;
     int i;
 
-    len = strlen(text);
     /* locate first non-trimchar */
     for(;*p;p++) {
        if(strchr(TRIMCHARS,*p) == NULL) break; /* hit non-trim char */
@@ -225,8 +224,9 @@ rcorder(NClist* rc)
 {
     int i;
     int len = nclistlength(rc);
-    NClist* tmprc = nclistnew();
+    NClist* tmprc = NULL;
     if(rc == NULL || len == 0) return;
+    tmprc = nclistnew();
     /* Copy rc into tmprc and clear rc */
     for(i=0;i<len;i++) {
         NCTriple* ti = nclistget(rc,i);
@@ -249,7 +249,6 @@ rcorder(NClist* rc)
     storedump("reorder:",rc);
 #endif
     nclistfree(tmprc);
-
 }
 
 /* Create a triple store from a file */
@@ -264,8 +263,8 @@ rccompile(const char* path)
     char* nextline = NULL;
 
     if((ret=NC_readfile(path,tmp))) {
-        nclog(NCLOGERR, "Could not open configuration file: %s",path);	
-	goto done;    
+        nclog(NCLOGERR, "Could not open configuration file: %s",path);
+	goto done;
     }
     contents = ncbytesextract(tmp);
     if(contents == NULL) contents = strdup("");
@@ -292,27 +291,29 @@ rccompile(const char* path)
 	if((llen=strlen(line)) == 0) continue; /* empty line */
 	triple = (NCTriple*)calloc(1,sizeof(NCTriple));
 	if(triple == NULL) {ret = NC_ENOMEM; goto done;}
-        if(line[0] == LTAG) {
-            char* url = ++line;
-            char* rtag = strchr(line,RTAG);
-            if(rtag == NULL) {
-                nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
-                continue;
-            }
-            line = rtag + 1;
-            *rtag = '\0';
-            /* compile the url and pull out the host */
-	    if(uri) ncurifree(uri);
-	    if(ncuriparse(url,&uri) != NCU_OK) {
-                nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
+    if(line[0] == LTAG) {
+      char* url = ++line;
+      char* rtag = strchr(line,RTAG);
+      if(rtag == NULL) {
+        nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
+        free(triple);
+        continue;
+      }
+      line = rtag + 1;
+      *rtag = '\0';
+      /* compile the url and pull out the host */
+      if(uri) ncurifree(uri);
+      if(ncuriparse(url,&uri) != NCU_OK) {
+        nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
+        free(triple);
 		continue;
-	    }
-	    ncbytesclear(tmp);
-	    ncbytescat(tmp,uri->host);
-	    if(uri->port != NULL) {
+      }
+      ncbytesclear(tmp);
+      ncbytescat(tmp,uri->host);
+      if(uri->port != NULL) {
 		ncbytesappend(tmp,':');
-	        ncbytescat(tmp,uri->port);	
-	    }
+        ncbytescat(tmp,uri->port);
+      }
 	    ncbytesnull(tmp);
 	    triple->host = ncbytesextract(tmp);
 	    if(strlen(triple->host)==0)
@@ -441,4 +442,3 @@ storedump(char* msg, NClist* triples)
     fflush(stderr);
 }
 #endif
-

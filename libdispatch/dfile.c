@@ -64,6 +64,14 @@ extern int NC_initialized; /**< True when dispatch table is initialized. */
  * H5Fis_hdf5, use the complete HDF5 magic number */
 static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
 
+#ifdef USE_NETCDF4
+/* User-defined formats. */
+NC_Dispatch *UDF0_dispatch_table = NULL;
+char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
+NC_Dispatch *UDF1_dispatch_table = NULL;
+char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
+#endif /* USE_NETCDF4 */
+
 /** \defgroup datasets NetCDF File and Data I/O
 
 NetCDF opens datasets as files or remote access URLs.
@@ -100,6 +108,93 @@ interfaces, the rest of this chapter presents a detailed description
 of the interfaces for these operations.
 */
 
+#ifdef USE_NETCDF4
+/**
+ * Add handling of user-defined format.
+ *
+ * @param mode_flag NC_UDF0 or NC_UDF1
+ * @param dispatch_table Pointer to dispatch table to use for this user format.
+ * @param magic_number Magic number used to identify file. Ignored if
+ * NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+ * @ingroup datasets
+ */
+int
+nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number)
+{
+   /* Check inputs. */
+   if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
+      return NC_EINVAL;
+   if (!dispatch_table)
+      return NC_EINVAL;
+   if (magic_number && strlen(magic_number) > NC_MAX_MAGIC_NUMBER_LEN)
+      return NC_EINVAL;      
+
+   /* Retain a pointer to the dispatch_table and a copy of the magic
+    * number, if one was provided. */
+   switch(mode_flag)
+   {
+   case NC_UDF0:
+      UDF0_dispatch_table = dispatch_table;
+      if (magic_number)
+         strncpy(UDF0_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+      break;
+   case NC_UDF1:
+      UDF1_dispatch_table = dispatch_table;
+      if (magic_number)
+         strncpy(UDF1_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+      break;
+   }
+   
+   return NC_NOERR;
+}
+
+/**
+ * Inquire about user-defined format.
+ *
+ * @param mode_flag NC_UDF0 or NC_UDF1
+ * @param dispatch_table Pointer that gets pointer to dispatch table
+ * to use for this user format, or NULL if this user-defined format is
+ * not defined. Ignored if NULL.
+ * @param magic_number Pointer that gets magic number used to identify
+ * file, if one has been set. Magic number will be of max size
+ * NC_MAX_MAGIC_NUMBER_LEN. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+ * @ingroup datasets
+ */
+int
+nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number)
+{
+   /* Check inputs. */
+   if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
+      return NC_EINVAL;
+
+   switch(mode_flag)
+   {
+   case NC_UDF0:
+      if (dispatch_table)
+         *dispatch_table = UDF0_dispatch_table;
+      if (magic_number)
+         strncpy(magic_number, UDF0_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+      break;
+   case NC_UDF1:
+      if (dispatch_table)
+         *dispatch_table = UDF1_dispatch_table;
+      if (magic_number)
+         strncpy(magic_number, UDF1_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+      break;
+   }
+
+   return NC_NOERR;
+}
+#endif /* USE_NETCDF4 */
+
 /*!
   Interpret the magic number found in the header of a netCDF file.
   This function interprets the magic number/string contained in the header of a netCDF file and sets the appropriate NC_FORMATX flags.
@@ -121,6 +216,23 @@ NC_interpret_magic_number(char* magic, int* model, int* version)
     /* Look at the magic number */
     *model = 0;
     *version = 0;
+#ifdef USE_NETCDF4
+    if (strlen(UDF0_magic_number) && !strncmp(UDF0_magic_number, magic,
+                                              strlen(UDF0_magic_number)))
+    {
+	*model = NC_FORMATX_UDF0;
+	*version = 6; /* redundant */
+	goto done;
+    }
+    if (strlen(UDF1_magic_number) && !strncmp(UDF1_magic_number, magic,
+                                              strlen(UDF1_magic_number)))
+    {
+	*model = NC_FORMATX_UDF1;
+	*version = 7; /* redundant */
+	goto done;
+    }
+#endif /* USE_NETCDF4 */
+
     /* Use the complete magic number string for HDF5 */
     if(memcmp(magic,HDF5_SIGNATURE,sizeof(HDF5_SIGNATURE))==0) {
 	*model = NC_FORMATX_NC4;
@@ -573,14 +685,10 @@ named foo.nc. The initial size is set to 4096.
 int
 nc_create_mem(const char* path, int mode, size_t initialsize, int* ncidp)
 {
-#ifdef USE_DISKLESS
    if(mode & (NC_MPIIO|NC_MPIPOSIX|NC_MMAP))
 	return NC_EINVAL;
     mode |= (NC_INMEMORY|NC_NOCLOBBER); /* Specifically, do not set NC_DISKLESS */
     return NC_create(path, mode, initialsize, 0, NULL, 0, NULL, ncidp);
-#else
-    return NC_EDISKLESS;
-#endif
 }
 
 /**
@@ -838,7 +946,6 @@ if (status != NC_NOERR) handle_error(status);
 int
 nc_open_mem(const char* path, int mode, size_t size, void* memory, int* ncidp)
 {
-#ifdef USE_DISKLESS
     NC_memio meminfo;
 
     /* Sanity checks */
@@ -851,9 +958,6 @@ nc_open_mem(const char* path, int mode, size_t size, void* memory, int* ncidp)
     meminfo.memory = memory;
     meminfo.flags = NC_MEMIO_LOCKED;
     return NC_open(path, mode, 0, NULL, 0, &meminfo, ncidp);
-#else
-    return NC_EDISKLESS;
-#endif
 }
 
 /** \ingroup datasets
@@ -907,7 +1011,6 @@ if (status != NC_NOERR) handle_error(status);
 int
 nc_open_memio(const char* path, int mode, NC_memio* params, int* ncidp)
 {
-#ifdef USE_DISKLESS
     /* Sanity checks */
     if(path == NULL || params == NULL)
  	return NC_EINVAL;
@@ -917,9 +1020,6 @@ nc_open_memio(const char* path, int mode, NC_memio* params, int* ncidp)
 	return NC_EINVAL;
     mode |= (NC_INMEMORY);
     return NC_open(path, mode, 0, NULL, 0, params, ncidp);
-#else
-    return NC_EINMEMORY;
-#endif
 }
 
 /**
@@ -1441,7 +1541,6 @@ and release its netCDF ID:
 int
 nc_close_memio(int ncid, NC_memio* memio)
 {
-#ifdef USE_DISKLESS
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
@@ -1460,9 +1559,6 @@ nc_close_memio(int ncid, NC_memio* memio)
        }
    }
    return stat;
-#else
-    return NC_EINMEMORY;
-#endif
 }
 
 /** \ingroup datasets
@@ -1879,14 +1975,6 @@ check_create_mode(int mode)
 	(mode & NC_MPIPOSIX && mode & NC_DISKLESS))
 	return NC_EINVAL;
 
-#ifndef USE_DISKLESS
-   /* If diskless is requested, but not built, return error. */
-   if (mode & NC_DISKLESS)
-       return NC_ENOTBUILT;
-   if (mode & NC_INMEMORY)
-       return NC_ENOTBUILT;
-#endif
-
 #ifndef USE_NETCDF4
    /* If the user asks for a netCDF-4 file, and the library was built
     * without netCDF-4, then return an error.*/
@@ -1954,18 +2042,14 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    if ((stat = check_create_mode(cmode)))
       return stat;
 
-   /* Initialize the dispatch table. The function pointers in the
-    * dispatch table will depend on how netCDF was built
+   /* Initialize the library. The available dispatch tables
+    * will depend on how netCDF was built
     * (with/without netCDF-4, DAP, CDMREMOTE). */
    if(!NC_initialized)
    {
       if ((stat = nc_initialize()))
 	 return stat;
    }
-
-#ifndef USE_DISKLESS
-   cmode &= (~ (NC_DISKLESS|NC_INMEMORY)); /* Force off */
-#endif
 
 #ifdef WINPATH
    /* Need to do path conversion */
@@ -2152,11 +2236,6 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
       repeated in protocol code: libdap2 and libdap4
     */
 
-#ifndef USE_DISKLESS
-   /* Clean up cmode */
-   cmode &= (~ (NC_DISKLESS|NC_INMEMORY));
-#endif
-
    inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
 
@@ -2187,6 +2266,27 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 	} else
 	    nullfree(newpath);
     }
+
+#ifdef USE_NETCDF4
+   /* Check for use of user-defined format 0. */
+   if (cmode & NC_UDF0)
+   {
+      if (!UDF0_dispatch_table)
+         return NC_EINVAL;
+      model = NC_FORMATX_UDF0;
+      dispatcher = UDF0_dispatch_table;
+   }
+
+   /* Check for use of user-defined format 1. */
+   if (cmode & NC_UDF1)
+   {
+      if (!UDF1_dispatch_table)
+         return NC_EINVAL;
+      model = NC_FORMATX_UDF1;
+      dispatcher = UDF1_dispatch_table;
+   }
+#endif /* USE_NETCDF4 */
+   
     if(model == 0) {
 	version = 0;
 	/* Try to find dataset type */
@@ -2225,16 +2325,23 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 #ifdef USE_CDF5
        cdf5built = 1;
 #endif
-	if(!hdf5built && model == NC_FORMATX_NC4)
-	    return NC_ENOTBUILT;
-	if(!hdf4built && model == NC_FORMATX_NC4 && version == 4)
-	    return NC_ENOTBUILT;
-	if(!cdf5built && model == NC_FORMATX_NC3 && version == 5)
-	    return NC_ENOTBUILT;
-    }
+       if(!hdf5built && model == NC_FORMATX_NC4) {
+         free(path);
+         return NC_ENOTBUILT;
+       }
+       if(!hdf4built && model == NC_FORMATX_NC4 && version == 4) {
+         free(path);
+         return NC_ENOTBUILT;
+       }
+       if(!cdf5built && model == NC_FORMATX_NC3 && version == 5) {
+         free(path);
+         return NC_ENOTBUILT;
+       }
+   }
 
    /* Force flag consistentcy */
-   if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4)
+   if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4 ||
+      model == NC_FORMATX_UDF0 || model == NC_FORMATX_UDF1)
       cmode |= NC_NETCDF4;
    else if(model == NC_FORMATX_DAP2) {
       cmode &= ~NC_NETCDF4;
@@ -2300,6 +2407,14 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
          dispatcher = HDF4_dispatch_table;
          break;
 #endif
+#ifdef USE_NETCDF4
+      case NC_FORMATX_UDF0:
+         dispatcher = UDF0_dispatch_table;
+         break;
+      case NC_FORMATX_UDF1:
+         dispatcher = UDF1_dispatch_table;
+         break;
+#endif /* USE_NETCDF4 */         
       case NC_FORMATX_NC3:
          dispatcher = NC3_dispatch_table;
          break;
@@ -2392,14 +2507,11 @@ openmagic(struct MagicFile* file)
     if (file->use_parallel) {
 	int retval;
 	MPI_Offset size;
-	MPI_Comm comm = MPI_COMM_WORLD;
-	MPI_Info info = MPI_INFO_NULL;
-        if(file->parameters != NULL) {
-	    comm = ((NC_MPI_INFO*)file->parameters)->comm;
-	    info = ((NC_MPI_INFO*)file->parameters)->info;
-	}
-	if((retval = MPI_File_open(comm,(char*)file->path,MPI_MODE_RDONLY,info,
-				       &file->fh)) != MPI_SUCCESS)
+        assert(file->parameters);
+	if((retval = MPI_File_open(((NC_MPI_INFO*)file->parameters)->comm,
+                                   (char*)file->path,MPI_MODE_RDONLY,
+                                   ((NC_MPI_INFO*)file->parameters)->info,
+                                   &file->fh)) != MPI_SUCCESS)
 	    {status = NC_EPARINIT; goto done;}
 	/* Get its length */
 	if((retval=MPI_File_get_size(file->fh, &size)) != MPI_SUCCESS)

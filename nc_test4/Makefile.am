@@ -30,7 +30,7 @@ t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_scalar tst_rename	\
 tst_rename2 tst_h5_endians tst_atts_string_rewrite			\
 tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_filterparser	\
-tst_bug324 tst_types tst_atts3 tst_put_vars tst_elatefill
+tst_bug324 tst_types tst_atts3 tst_put_vars tst_elatefill tst_udf
 
 # Temporary I hope
 if !ISCYGWIN
@@ -114,14 +114,14 @@ endif
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.
 if TEST_PARALLEL4
-check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3	\
-tst_parallel4 tst_nc4perf tst_mode tst_simplerw_coll_r
+check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3		\
+tst_parallel4 tst_parallel5 tst_nc4perf tst_mode tst_simplerw_coll_r
 TESTS += run_par_test.sh
 endif
 
 if ENABLE_METADATA_PERF
-check_PROGRAMS += bigmeta openbigmeta
-TESTS += perftest.sh
+check_PROGRAMS += bigmeta openbigmeta tst_attsperf
+TESTS += tst_attsperf perftest.sh
 endif
 
 EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh			\
@@ -138,6 +138,7 @@ ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
 ref_szip.cdl tst_filter.sh bzip2.cdl filtered.cdl unfiltered.cdl	\
 ref_bzip2.c findplugin.in perftest.sh
 
+
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc   \
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt                  \
 radar_3d_compression.txt radar_2d_compression.txt                       \
@@ -150,7 +151,7 @@ tst_interops2.h4 tst_h5_endians.nc tst_h4_lendian.h4 test.nc            \
 tst_atts_string_rewrite.nc tst_empty_vlen_unlim.nc                      \
 tst_empty_vlen_lim.nc tst_parallel4_simplerw_coll.nc                    \
 tst_fill_attr_vanish.nc tst_rehash.nc testszip.nc test.h5               \
-szip_dump.cdl perftest.txt bigmeta.nc
+szip_dump.cdl perftest.txt bigmeta.nc bigvars.nc
 
 DISTCLEANFILES = findplugin.sh
 

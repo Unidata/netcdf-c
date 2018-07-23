@@ -309,7 +309,55 @@ main(int argc, char **argv)
       if (nc_insert_enum(ncid, typeid, "name", &ubyte_value)) ERR;
       if (nc_close(ncid)) ERR;      
    }
+   SUMMARIZE_ERR;
+   printf("*** testing enum ncdump...");
+#define ENUM_NAME "cargo"
+#define ENUM_VAR_NAME "in_the_hold_of_the_Irish_Rover"
+#define NUM_ENUM_FIELDS 8
+#define DIMSIZE 4
+#define NDIMS1 1
+   {
+      int ncid, dimid, v1id, typeid;
+      int f;
+      size_t start[NDIMS1] = {0}, count[NDIMS1] = {1};
+      char field_name[NUM_ENUM_FIELDS][NC_MAX_NAME + 1] = {"bags of the best Sligo rags", "barrels of bones",
+                                                           "bails of old nanny goats' tails", "barrels of stones",
+                                                           "dogs", "hogs", "barrels of porter",
+                                                           "sides of old blind horses hides"};
+      unsigned long long field_value[NUM_ENUM_FIELDS] = {1000000, 2000000, 3000000, 4000000,
+                                                         5000000, 6000000, 7000000, 8000000};
+      unsigned long long data = 1000000, data_in;
+      
+      /* Create a netcdf-4 file. */
+      /*nc_set_log_level(3);*/
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      
+      /* Create a dimension. */
+      if (nc_def_dim(ncid, DIM_NAME, DIMSIZE, &dimid)) ERR;
+      
+      /* Create an enum type. */
+      if (nc_def_enum(ncid, NC_UINT64, ENUM_NAME, &typeid)) ERR;
+      for (f = 0; f < NUM_ENUM_FIELDS; f++)
+         if (nc_insert_enum(ncid, typeid, field_name[f], &field_value[f])) ERR;
+      
+      /* Create one var. */
+      if (nc_def_var(ncid, ENUM_VAR_NAME, typeid, NDIMS1, &dimid, &v1id)) ERR;
+      
+      /* Write metadata to file. */
+      if (nc_enddef(ncid)) ERR;
+      
+      /* Write phoney data. */
+      if (nc_put_vara(ncid, v1id, start, count, &data)) ERR;
+      
+      if (nc_sync(ncid)) ERR;
 
+      /* Read phoney data. */
+      if (nc_get_vara(ncid, v1id, start, count, &data_in)) ERR;
+      if (data_in != data) ERR;
+      
+      /* Close the netcdf file. */
+      if (nc_close(ncid)) ERR;
+   }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

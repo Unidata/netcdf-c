@@ -371,7 +371,7 @@ NIL|nil|Nil {
 		    id = bbContents(lextext);
 		    len = unescape(id,id,bbLength(lextext),ISIDENT);
 		    bbSetlength(lextext,len);
-		    if (STREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
+		    if (NCSTREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
 		    yylval.sym = install(id);
 		    return lexdebug(IDENT);
 		}
@@ -609,7 +609,7 @@ makepath(char* text0)
 	/* split the text into IDENT chunks, convert to symbols */
         Symbol* container = rootgroup;
 	char *ident, *p;
-        char* text = strdup(text0);
+        char* text = estrdup(text0);
 	int c,lastident;
 	ident=text+1; p=ident; /* skip leading '/' */
 	do {

@@ -606,7 +606,7 @@ GENERATE_DEPRECATEDLIST= YES
 # sections, marked by \if <section_label> ... \endif and \cond <section_label>
 # ... \endcond blocks.
 
-ENABLED_SECTIONS       =
+ENABLED_SECTIONS       = @ENABLED_DOC_SECTIONS@
 
 # The MAX_INITIALIZER_LINES tag determines the maximum number of lines that the
 # initial value of a variable or macro / define can have for it to appear in the
@@ -749,20 +749,17 @@ INPUT = \
     @abs_top_srcdir@/docs/install.md \
     @abs_top_srcdir@/docs/install-fortran.md \
     @abs_top_srcdir@/docs/types.dox \
-    @abs_top_srcdir@/docs/internal.dox \
-    @abs_top_srcdir@/docs/indexing.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/guide.dox \
-    @abs_top_srcdir@/docs/OPeNDAP.dox \
-    @abs_top_srcdir@/docs/DAP4.dox \
     @abs_top_srcdir@/docs/attribute_conventions.md \
     @abs_top_srcdir@/docs/file_format_specifications.md \
-    @abs_top_srcdir@/docs/auth.md \
+    @abs_top_srcdir@/docs/OPeNDAP.dox \
+    @abs_top_srcdir@/docs/DAP4.dox \
+    @abs_top_srcdir@/docs/user_defined_formats.md \
     @abs_top_srcdir@/docs/filters.md \
     @abs_top_srcdir@/docs/inmemory.md \
-    @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/auth.md \
-    @abs_top_srcdir@/docs/filters.md \
+    @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
     @abs_top_srcdir@/docs/FAQ.md \
     @abs_top_srcdir@/docs/known_problems.md \
@@ -770,6 +767,9 @@ INPUT = \
     @abs_top_srcdir@/docs/credits.md \
     @abs_top_srcdir@/docs/bestpractices.md \
     @abs_top_srcdir@/docs/tutorial.dox \
+    @abs_top_srcdir@/docs/internal.dox \
+    @abs_top_srcdir@/docs/indexing.dox \
+    @abs_top_srcdir@/docs/testserver.dox \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_mem.h \
     @abs_top_srcdir@/include/netcdf_par.h \
@@ -793,16 +793,16 @@ INPUT = \
     @abs_top_srcdir@/libdispatch/derror.c \
     @abs_top_srcdir@/libdispatch/dv2i.c \
     @abs_top_srcdir@/libdispatch/dcopy.c \
-    @abs_top_srcdir@/libsrc4/nc4file.c \
+    @abs_top_srcdir@/libhdf5/hdf5file.c \
     @abs_top_srcdir@/libsrc4/nc4var.c \
-    @abs_top_srcdir@/libsrc4/nc4hdf.c \
+    @abs_top_srcdir@/libhdf5/nc4hdf.c \
     @abs_top_srcdir@/libsrc4/nc4internal.c \
     @abs_top_srcdir@/libsrc4/nc4type.c \
     @abs_top_srcdir@/libsrc4/nc4grp.c \
     @abs_top_srcdir@/libsrc4/ncfunc.c \
     @abs_top_srcdir@/libsrc4/nc4dim.c \
     @abs_top_srcdir@/libsrc4/nc4attr.c \
-    @abs_top_srcdir@/libsrc4/nc4info.c \
+    @abs_top_srcdir@/libhdf5/nc4info.c \
     @abs_top_srcdir@/libsrc4/nc4dispatch.c \
     @abs_top_srcdir@/examples/C/simple_xy_wr.c \
     @abs_top_srcdir@/examples/C/simple_xy_rd.c \

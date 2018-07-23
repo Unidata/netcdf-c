@@ -1,22 +1,9 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
- *                                                                           *
- * This file is part of HDF5.  The full HDF5 copyright notice, including     *
- * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdf.ncsa.uiuc.edu/HDF5/doc/Copyright.html.  If you do not have     *
- * access to either file, you may request a copy from hdfhelp@ncsa.uiuc.edu. *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-
-/*
- * Main driver of the Parallel NetCDF4 tests
- *
- */
+/* This test of netCDF-4 parallel I/O was contributed by the HDF5
+ * team. */
 
 #include <nc_tests.h>
 #include "err_macros.h"
@@ -45,9 +32,9 @@
    dimension to be divided evenly, the best set of number of processor
    should be 2 power n. However, for NetCDF4 tests, the following numbers
    are generally treated as good numbers:
-   1,2,3,4,6,8,12,16,24,32,48,64,96,128,192,256
+   1,2,3,4,6,8,12,16
 
-   The maximum number of processor is 256.*/
+   The maximum number of processor is 16.*/
 
 int test_pio(int);
 int test_pio_attr(int);
@@ -64,7 +51,7 @@ int main(int argc, char **argv)
 {
    int mpi_size, mpi_rank;				/* mpi variables */
    int i;
-   int NUMP[16] ={1,2,3,4,6,8,12,16,24,32,48,64,96,128,192,256};
+   int NUMP[8] ={1,2,3,4,6,8,12,16};
    int size_flag = 0;
 
    /* Un-buffer the stdout and stderr */
@@ -78,7 +65,7 @@ int main(int argc, char **argv)
    if (mpi_rank == 0)
       printf("\n*** Testing more advanced parallel access.\n");
 
-   for (i = 0; i < 16; i++){
+   for (i = 0; i < 8; i++){
       if(mpi_size == NUMP[i])
       {
 	 size_flag = 1;
@@ -88,7 +75,7 @@ int main(int argc, char **argv)
    if(!size_flag){
       printf("mpi_size is wrong\n");
       printf(" The number of processor must be chosen from\n");
-      printf(" 1,2,3,4,6,8,12,16,24,32,48,64,96,128,192,256 \n");
+      printf(" 1,2,3,4,6,8,12,16 \n");
       return -1;
    }
 
@@ -711,7 +698,7 @@ int test_pio_extend(int flag){
     int dimsVrtx[2];
     size_t start[2];
     size_t count[2];
-    int vertices[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int vertices[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &procs);

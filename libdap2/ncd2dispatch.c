@@ -201,6 +201,7 @@ NCD2_initialize(void)
 int
 NCD2_finalize(void)
 {
+    curl_global_cleanup();
     return NC_NOERR;
 }
 
@@ -367,16 +368,13 @@ NCD2_open(const char* path, int mode,
         /* Now, use the file to create the hidden, in-memory netcdf file.
 	   We want this hidden file to always be NC_CLASSIC, so we need to
            force default format temporarily in case user changed it.
-	   If diskless is enabled, then create file in-memory, else
-           create an actual temporary file in the file system.
+	   Since diskless is enabled, create file in-memory.
 	*/
 	{
 	    int new = 0; /* format netcdf-3 */
 	    int old = 0;
 	    int ncflags = NC_CLOBBER|NC_CLASSIC_MODEL;
-#ifdef USE_DISKLESS
 	    ncflags |= NC_DISKLESS;
-#endif
 	    nc_set_default_format(new,&old); /* save and change */
             ncstat = nc_create(tmpname,ncflags,&nc3id);
 	    nc_set_default_format(old,&new); /* restore */
@@ -1193,6 +1191,7 @@ constrainable(NCURI* durl)
    return 0;
 }
 
+/* Lookup a parameter key; case insensitive */
 static const char*
 paramlookup(NCDAPCOMMON* state, const char* key)
 {
@@ -1215,7 +1214,7 @@ applyclientparams(NCDAPCOMMON* nccomm)
     int dfaltseqlim = DEFAULTSEQLIMIT;
     const char* value;
     char tmpname[NC_MAX_NAME+32];
-    char* pathstr;
+    char* pathstr = NULL;
     OClink conn = nccomm->oc.conn;
     unsigned long limit;
 
@@ -1261,21 +1260,29 @@ applyclientparams(NCDAPCOMMON* nccomm)
 
     /* allow embedded _ */
     value = paramlookup(nccomm,"stringlength");
+    if(value == NULL) 
+        value = paramlookup(nccomm,"maxstrlen");
     if(value != NULL && strlen(value) != 0) {
         if(sscanf(value,"%d",&len) && len > 0) dfaltstrlen = len;
-    }
+    } 
     nccomm->cdf.defaultstringlength = dfaltstrlen;
 
     /* String dimension limits apply to variables */
     for(i=0;i<nclistlength(nccomm->cdf.ddsroot->tree->varnodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->varnodes,i);
-	/* Define the client param stringlength for this variable*/
+	/* Define the client param stringlength/maxstrlen for this variable*/
+	/* create the variable path name */
 	var->maxstringlength = 0; /* => use global dfalt */
 	strncpy(tmpname,"stringlength_",sizeof(tmpname));
 	pathstr = makeocpathstring(conn,var->ocnode,".");
 	strlcat(tmpname,pathstr,sizeof(tmpname));
-	nullfree(pathstr);
 	value = paramlookup(nccomm,tmpname);
+	if(value == NULL) {
+	    strcpy(tmpname,"maxstrlen_");
+	    strncat(tmpname,pathstr,NC_MAX_NAME);
+	    value = paramlookup(nccomm,tmpname);
+        }
+	nullfree(pathstr);
         if(value != NULL && strlen(value) != 0) {
             if(sscanf(value,"%d",&len) && len > 0) var->maxstringlength = len;
 	}
