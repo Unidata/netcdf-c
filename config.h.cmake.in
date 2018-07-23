@@ -109,7 +109,6 @@ are set when opening a binary file on Windows. */
 
 /* if true, enable CDF5 Support */
 #cmakedefine ENABLE_CDF5 1
-#cmakedefine USE_CDF5 1
 
 /* if true, enable strict null byte header padding. */
 #cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1

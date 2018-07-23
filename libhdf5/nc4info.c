@@ -6,12 +6,8 @@
  * and redistribution conditions.
  * @author Dennis Heimbigner
  */
+
 #include "config.h"
-#include <stdlib.h>
-#include <string.h>
-#include <hdf5.h>
-#include "netcdf.h"
-#include "nc4internal.h"
 #include "hdf5internal.h"
 
 #define HDF5_MAX_NAME 1024 /**< HDF5 max name. */
