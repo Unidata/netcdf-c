@@ -11,10 +11,8 @@
  * @author Ed Hartnett
  */
 
-#include "nc.h"
-#include "nc4internal.h"
-#include "nc4dispatch.h"
-#include "ncdispatch.h"
+#include "config.h"
+#include "hdf5internal.h"
 
 int nc4typelen(nc_type type);
 
