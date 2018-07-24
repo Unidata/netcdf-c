@@ -355,38 +355,6 @@ nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
 }
 
 /**
- * @internal This will return the length of a netcdf data type in bytes.
- *
- * @param type A netcdf atomic type.
- *
- * @return Type size in bytes, or -1 if type not found.
- * @author Ed Hartnett
- */
-int
-nc4typelen(nc_type type)
-{
-   switch(type){
-   case NC_BYTE:
-   case NC_CHAR:
-   case NC_UBYTE:
-      return 1;
-   case NC_USHORT:
-   case NC_SHORT:
-      return 2;
-   case NC_FLOAT:
-   case NC_INT:
-   case NC_UINT:
-      return 4;
-   case NC_DOUBLE:
-   case NC_INT64:
-   case NC_UINT64:
-      return 8;
-   }
-   return -1;
-}
-
-
-/**
  * @internal Unfortunately HDF only allows specification of fill value
  * only when a dataset is created. Whereas in netcdf, you first create
  * the variable and then (optionally) specify the fill value. To

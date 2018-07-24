@@ -2,19 +2,14 @@
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions. */
 /**
- * @file @internal This file is part of netcdf-4, a netCDF-like
- * interface for HDF5, or a HDF5 backend for netCDF, depending on your
- * point of view.
- *
- * This file handles HDF5 attributes.
+ * @file
+ * @internal This file handles HDF5 attributes.
  *
  * @author Ed Hartnett
  */
 
 #include "config.h"
 #include "hdf5internal.h"
-
-int nc4typelen(nc_type type);
 
 /**
  * @internal Get the attribute list for either a varid or NC_GLOBAL
@@ -75,6 +70,13 @@ getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EMAXNAME New name too long.
+ * @return ::NC_EPERM File is read-only.
+ * @return ::NC_ENAMEINUSE New name already in use.
+ * @return ::NC_ENOTINDEFINE Classic model file not in define mode.
+ * @return ::NC_EHDFERR HDF error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EINTERNAL Could not rebuild list.
  * @author Ed Hartnett
  */
 int
@@ -272,6 +274,38 @@ NC4_del_att(int ncid, int varid, const char *name)
       return NC_EINTERNAL;
 
    return NC_NOERR;
+}
+
+/**
+ * @internal This will return the length of a netcdf atomic data type
+ * in bytes.
+ *
+ * @param type A netcdf atomic type.
+ *
+ * @return Type size in bytes, or -1 if type not found.
+ * @author Ed Hartnett
+ */
+static int
+nc4typelen(nc_type type)
+{
+   switch(type){
+   case NC_BYTE:
+   case NC_CHAR:
+   case NC_UBYTE:
+      return 1;
+   case NC_USHORT:
+   case NC_SHORT:
+      return 2;
+   case NC_FLOAT:
+   case NC_INT:
+   case NC_UINT:
+      return 4;
+   case NC_DOUBLE:
+   case NC_INT64:
+   case NC_UINT64:
+      return 8;
+   }
+   return -1;
 }
 
 /**
