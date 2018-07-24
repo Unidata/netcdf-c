@@ -798,18 +798,12 @@ write_attlist(NCindex* attlist, int varid, NC_GRP_INFO_T *grp)
    return NC_NOERR;
 }
 
-
 /**
- * @internal This function is a bit of a hack. Turns out that HDF5
- * dimension scales cannot themselves have scales attached. This
- * leaves multidimensional coordinate variables hosed. So this
- * function writes a special attribute for such a variable, which has
- * the ids of all the dimensions for that coordinate variable. This
- * sucks, really. But that's the way the cookie crumbles. Better luck
- * next time. This function also contains a new way of dealing with
- * HDF5 error handling, abandoning the BAIL macros for a more organic
- * and natural approach, made with whole grains, and locally-grown
- * vegetables.
+ * @internal HDF5 dimension scales cannot themselves have scales
+ * attached. This is a problem for multidimensional coordinate
+ * variables. So this function writes a special attribute for such a
+ * variable, which has the ids of all the dimensions for that
+ * coordinate variable.
  *
  * @param var Pointer to var info struct.
  *
@@ -817,24 +811,33 @@ write_attlist(NCindex* attlist, int varid, NC_GRP_INFO_T *grp)
  * @returns NC_EHDFERR HDF5 returned an error.
  * @author Ed Hartnett
  */
-static int
+int
 write_coord_dimids(NC_VAR_INFO_T *var)
 {
    hsize_t coords_len[1];
    hid_t c_spaceid = -1, c_attid = -1;
-   int ret = 0;
+   int retval = NC_NOERR;
+
+   /* Set up space for attribute. */
+   coords_len[0] = var->ndims;
+   if ((c_spaceid = H5Screate_simple(1, coords_len, coords_len)) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Create the attribute. */
+   if ((c_attid = H5Acreate(var->hdf_datasetid, COORDINATES, H5T_NATIVE_INT,
+                            c_spaceid, H5P_DEFAULT)) < 0)
+      BAIL(NC_EHDFERR);
 
    /* Write our attribute. */
-   coords_len[0] = var->ndims;
-   if ((c_spaceid = H5Screate_simple(1, coords_len, coords_len)) < 0) ret++;
-   if (!ret && (c_attid = H5Acreate(var->hdf_datasetid, COORDINATES, H5T_NATIVE_INT,
-                                    c_spaceid, H5P_DEFAULT)) < 0) ret++;
-   if (!ret && H5Awrite(c_attid, H5T_NATIVE_INT, var->dimids) < 0) ret++;
+   if (H5Awrite(c_attid, H5T_NATIVE_INT, var->dimids) < 0)
+      BAIL(NC_EHDFERR);
 
-   /* Close up shop. */
-   if (c_spaceid > 0 && H5Sclose(c_spaceid) < 0) ret++;
-   if (c_attid > 0 && H5Aclose(c_attid) < 0) ret++;
-   return ret ? NC_EHDFERR : 0;
+exit:
+   if (c_spaceid >= 0 && H5Sclose(c_spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (c_attid >= 0 && H5Aclose(c_attid) < 0)
+      BAIL2(NC_EHDFERR);
+   return retval;
 }
 
 /**
@@ -1373,59 +1376,53 @@ exit:
 }
 
 /**
- * @internal Create a HDF5 group.
+ * @internal Create a HDF5 group that is not the root group. HDF5
+ * properties are set in the group to ensure that objects and
+ * attributes are kept in creation order, instead of alphebetical
+ * order (the HDF5 default).
  *
  * @param grp Pointer to group info struct.
  *
  * @return NC_NOERR No error.
+ * @return NC_EHDFERR HDF5 error.
  * @author Ed Hartnett
  */
 static int
 create_group(NC_GRP_INFO_T *grp)
 {
-   hid_t gcpl_id = 0;
+   hid_t gcpl_id = -1;
    int retval = NC_NOERR;;
 
-   assert(grp);
+   assert(grp && grp->parent && grp->parent->hdf_grpid);
 
-   /* If this is not the root group, create it in the HDF5 file. */
-   if (grp->parent)
-   {
-      /* Create group, with link_creation_order set in the group
-       * creation property list. */
-      if ((gcpl_id = H5Pcreate(H5P_GROUP_CREATE)) < 0)
-         return NC_EHDFERR;
+   /* Create group, with link_creation_order set in the group
+    * creation property list. */
+   if ((gcpl_id = H5Pcreate(H5P_GROUP_CREATE)) < 0)
+      BAIL(NC_EHDFERR);
 
-      /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
-      if (H5Pset_obj_track_times(gcpl_id,0)<0)
-         BAIL(NC_EHDFERR);
+   /* Set track_times to be FALSE. */
+   if (H5Pset_obj_track_times(gcpl_id, 0) < 0)
+      BAIL(NC_EHDFERR);
 
-      if (H5Pset_link_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0)
-         BAIL(NC_EHDFERR);
-      if (H5Pset_attr_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0)
-         BAIL(NC_EHDFERR);
-      if ((grp->hdf_grpid = H5Gcreate2(grp->parent->hdf_grpid, grp->hdr.name,
-                                       H5P_DEFAULT, gcpl_id, H5P_DEFAULT)) < 0)
-         BAIL(NC_EHDFERR);
-      if (H5Pclose(gcpl_id) < 0)
-         BAIL(NC_EHDFERR);
-   }
-   else
-   {
-      NC_HDF5_FILE_INFO_T *hdf5_info;
+   /* Tell HDF5 to keep track of objects in creation order. */
+   if (H5Pset_link_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0)
+      BAIL(NC_EHDFERR);
 
-      /* Since this is the root group, we have to open it. */
-      hdf5_info = (NC_HDF5_FILE_INFO_T *)grp->nc4_info->format_file_info;
-      if ((grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/", H5P_DEFAULT)) < 0)
-         BAIL(NC_EFILEMETA);
-   }
-   return NC_NOERR;
+   /* Tell HDF5 to keep track of attributes in creation order. */
+   if (H5Pset_attr_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Create the group. */
+   if ((grp->hdf_grpid = H5Gcreate2(grp->parent->hdf_grpid, grp->hdr.name,
+                                    H5P_DEFAULT, gcpl_id, H5P_DEFAULT)) < 0)
+      BAIL(NC_EHDFERR);
 
 exit:
-   if (gcpl_id > 0 && H5Pclose(gcpl_id) < 0)
+   if (gcpl_id > -1 && H5Pclose(gcpl_id) < 0)
       BAIL2(NC_EHDFERR);
-   if (grp->hdf_grpid > 0 && H5Gclose(grp->hdf_grpid) < 0)
-      BAIL2(NC_EHDFERR);
+   if (retval)
+      if (grp->hdf_grpid > 0 && H5Gclose(grp->hdf_grpid) < 0)
+         BAIL2(NC_EHDFERR);
    return retval;
 }
 

@@ -184,45 +184,49 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
- * @author Ed Hartnett
+ * @return ::NC_ENOTATT Attribute not found.
+ * @return ::NC_EINVAL No name provided.
+ * @return ::NC_EPERM File is read only.
+ * @return ::NC_ENOTINDEFINE Classic model not in define mode.
+ * @return ::NC_EINTERNAL Could not rebuild list.
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 NC4_del_att(int ncid, int varid, const char *name)
 {
-   NC *nc;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
    NC_FILE_INFO_T *h5;
    NC_ATT_INFO_T *att;
    NCindex* attlist = NULL;
-   hid_t locid = 0, datasetid = 0;
+   hid_t locid = 0;
    int i;
    size_t deletedid;
    int retval;
 
+   /* Name must be provided. */
    if (!name)
       return NC_EINVAL;
 
-   LOG((2, "nc_del_att: ncid 0x%x varid %d name %s",
-        ncid, varid, name));
+   LOG((2, "nc_del_att: ncid 0x%x varid %d name %s", ncid, varid, name));
 
    /* Find info for this file, group, and h5 info. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-
    assert(h5 && grp);
 
    /* If the file is read-only, return an error. */
    if (h5->no_write)
       return NC_EPERM;
 
-   /* If it's not in define mode, forget it. */
+   /* If file is not in define mode, return error for classic model
+    * files, otherwise switch to define mode. */
    if (!(h5->flags & NC_INDEF))
    {
       if (h5->cmode & NC_CLASSIC_MODEL)
          return NC_ENOTINDEFINE;
       if ((retval = NC4_redef(ncid)))
-         BAIL(retval);
+         return retval;
    }
 
    /* Get either the global or a variable attribute list. */
@@ -235,43 +239,39 @@ NC4_del_att(int ncid, int varid, const char *name)
    else if (var->created)
       locid = var->hdf_datasetid;
 
-   /* Now find the attribute by name */
-   att = (NC_ATT_INFO_T*)ncindexlookup(attlist,name);
-
-   /* If att is NULL, we couldn't find the attribute. */
-   if (!att)
-      BAIL_QUIET(NC_ENOTATT);
+   /* Now find the attribute by name. */
+   if (!(att = (NC_ATT_INFO_T*)ncindexlookup(attlist, name)))
+      return NC_ENOTATT;
 
    /* Delete it from the HDF5 file, if it's been created. */
    if (att->created)
    {
       assert(locid);
-
-      if(H5Adelete(locid, att->hdr.name) < 0)
-         BAIL(NC_EATTMETA);
+      if (H5Adelete(locid, att->hdr.name) < 0)
+         return NC_EATTMETA;
    }
-
 
    deletedid = att->hdr.id;
 
    /* Remove this attribute in this list */
    if ((retval = nc4_att_list_del(attlist, att)))
-      BAIL(retval);
+      return retval;
 
    /* Renumber all attributes with higher indices. */
-   for(i=0;i<ncindexsize(attlist);i++) {
-      NC_ATT_INFO_T* a = (NC_ATT_INFO_T*)ncindexith(attlist,i);
-      if(a == NULL) continue;
-      if(a->hdr.id > deletedid) a->hdr.id--;
+   for (i = 0; i < ncindexsize(attlist); i++)
+   {
+      NC_ATT_INFO_T *a;
+      if (!(a = (NC_ATT_INFO_T *)ncindexith(attlist, i)))
+         continue;
+      if (a->hdr.id > deletedid)
+         a->hdr.id--;
    }
 
-   /* rebuild the index */
-   if(!ncindexrebuild(attlist))
-      BAIL(NC_EINTERNAL);
+   /* Rebuild the index. */
+   if (!ncindexrebuild(attlist))
+      return NC_EINTERNAL;
 
-exit:
-   if (datasetid > 0) H5Dclose(datasetid);
-   return retval;
+   return NC_NOERR;
 }
 
 /**
