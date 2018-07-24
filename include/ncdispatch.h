@@ -110,6 +110,7 @@ typedef struct NC_MPI_INFO {
 /*Forward*/
 // typedef struct NC_Dispatch NC_Dispatch;
 
+
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
