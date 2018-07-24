@@ -13,7 +13,7 @@ echo ""
 
 # get some config.h parameters
 if test -f ${top_builddir}/config.h ; then
-  if fgrep -e '#define USE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
+  if fgrep -e '#define ENABLE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
     HAVE_CDF5=1
   else
     HAVE_CDF5=0
