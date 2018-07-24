@@ -178,10 +178,10 @@ main(int argc, char **argv)
 
          /* Create a compound type. */
          if (nc_def_compound(ncid, sizeof(struct crew), COMPOUND_NAME, &typeid)) ERR;
-         if (nc_insert_array_compound(ncid, typeid, "name", NC_COMPOUND_OFFSET(struct crew, name), NC_CHAR, 1, &dim_size));
-         if (nc_insert_array_compound(ncid, typeid, "description", NC_COMPOUND_OFFSET(struct crew, description), NC_CHAR, 1, &dim_size));
-         if (nc_insert_array_compound(ncid, typeid, "origin", NC_COMPOUND_OFFSET(struct crew, origin), NC_CHAR, 1, &dim_size));
-         if (nc_insert_compound(ncid, typeid, "age", NC_COMPOUND_OFFSET(struct crew, age), NC_INT));
+         if (nc_insert_array_compound(ncid, typeid, "name", NC_COMPOUND_OFFSET(struct crew, name), NC_CHAR, 1, &dim_size)) ERR;
+         if (nc_insert_array_compound(ncid, typeid, "description", NC_COMPOUND_OFFSET(struct crew, description), NC_CHAR, 1, &dim_size)) ERR;
+         if (nc_insert_array_compound(ncid, typeid, "origin", NC_COMPOUND_OFFSET(struct crew, origin), NC_CHAR, 1, &dim_size)) ERR;
+         if (nc_insert_compound(ncid, typeid, "age", NC_COMPOUND_OFFSET(struct crew, age), NC_INT)) ERR;
 
          /* Create one var. */
          if (nc_def_var(ncid, COMPOUND_VAR_NAME, typeid, NDIMS1, &dimid, &v1id)) ERR;

@@ -12,12 +12,11 @@
 #define _HDF5INTERNAL_
 
 #include "config.h"
-#include "nc4internal.h"
-#include "ncdimscale.h"
-#include "ncdispatch.h"
-#include <nc4dispatch.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
+#include "nc4internal.h"
+#include "ncdimscale.h"
+#include "nc4dispatch.h"
 
 #define NC_MAX_HDF5_NAME (NC_MAX_NAME + 10)
 
