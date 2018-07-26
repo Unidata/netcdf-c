@@ -12,7 +12,7 @@
 #define DIMMAXCLASSIC (NC_MAX_INT - 3)
 #define DIMMAX64OFFSET (NC_MAX_UINT - 3)
 
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
 #define DIMMAX64DATA (NC_MAX_UINT64 - 3)
 #endif
 
@@ -34,7 +34,6 @@ main(int argc, char **argv)
     size_t dimsize;
     int dimid;
     int stat = NC_NOERR;
-    nc_set_log_level(5);
     printf("\n*** Testing Max Dimension Sizes\n");
 
     printf("\n|size_t|=%lu\n",(unsigned long)sizeof(size_t));
@@ -66,7 +65,7 @@ main(int argc, char **argv)
     if(dimsize != DIMMAX64OFFSET) ERR;
     if ((stat=nc_close(ncid))) ERRSTAT(stat);
 
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
     if(sizeof(size_t) == 8) {
       printf("\n*** Writing Max Dimension Size (%llu) For NC_64BIT_DATA\n",DIMMAX64DATA);
         if ((stat=nc_create(FILE64DATA, NC_CLOBBER | NC_64BIT_DATA, &ncid))) ERRSTAT(stat);
@@ -81,7 +80,7 @@ main(int argc, char **argv)
 	if(dimsize != DIMMAX64DATA) ERR;
 	if ((stat=nc_close(ncid))) ERRSTAT(stat);
     }
-#endif /* USE_CDF5 */
+#endif /* ENABLE_CDF5 */
 
     SUMMARIZE_ERR;
     FINAL_RESULTS;
