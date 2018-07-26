@@ -381,14 +381,6 @@ OPTION(ENABLE_MMAP "Use MMAP." ON)
 # Option to use examples.
 OPTION(ENABLE_EXAMPLES "Build Examples" ON)
 
-
-# Option Logging, only valid for netcdf4.
-OPTION(ENABLE_LOGGING "Enable Logging." OFF)
-IF(ENABLE_LOGGING)
-  ADD_DEFINITIONS(-DLOGGING)
-  SET(LOGGING ON)
-ENDIF()
-
 # Option to automatically build netcdf-fortran.
 IF(NOT MSVC)
   OPTION(ENABLE_REMOTE_FORTRAN_BOOTSTRAP "Download and build netcdf-fortran automatically (EXPERIMENTAL)." OFF)
@@ -533,10 +525,12 @@ IF(ENABLE_LOGGING)
   ADD_DEFINITIONS(-DLOGGING)
   ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
   SET(LOGGING ON)
+  SET(ENABLE_SET_LOG_LEVEL ON)
 ENDIF()
 OPTION(ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
-IF(ENABLE_NETCDF_$ AND (NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC) OR ENABLE_LOGGING)
+IF(ENABLE_NETCDF_4 AND NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC)
   ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
+  SET(ENABLE_SET_LOG_LEVEL ON)
 ENDIF()
 
 # Option to allow for strict null file padding.
@@ -767,12 +761,6 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
-# Option to turn on CDF5 support.
-OPTION(ENABLE_CDF5 "Enable CDF5 Support." ON)
-IF(ENABLE_CDF5)
-    SET(USE_CDF5 ON CACHE BOOL "")
-ENDIF(ENABLE_CDF5)
-
 # Option to Build DAP2+DAP4 Clients
 OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 IF(ENABLE_DAP)
@@ -947,6 +935,11 @@ ENDIF()
 # Enable Large file tests
 IF(ENABLE_LARGE_FILE_TESTS)
   SET(LARGE_FILE_TESTS ON)
+ENDIF()
+
+OPTION(ENABLE_METADATA_PERF_TESTS "Enable test of metadata performance." OFF)
+IF(ENABLE_METADATA_PERF_TESTS)
+  SET(ENABLE_METADATA_PERF ON)
 ENDIF()
 
 # Location for large file tests.
@@ -1292,6 +1285,26 @@ ENDIF(SIZEOF_USHORT)
 CHECK_TYPE_SIZE("_Bool"     SIZEOF__BOOL)
 
 CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
+
+# Check whether to turn on or off CDF5 support.
+SET(ENABLE_CDF5 AUTO CACHE STRING "AUTO")
+OPTION(ENABLE_CDF5 "Enable CDF5 support" ON)
+IF(SIZEOF_SIZE_T EQUAL 4)
+   IF(ENABLE_CDF5) # enable or auto
+      STRING(TOUPPER ${ENABLE_CDF5} ENABLE_CDF5)
+      IF(ENABLE_CDF5 AND NOT ENABLE_CDF5 STREQUAL "AUTO") # explicitly enabled
+         MESSAGE(FATAL_ERROR "Unable to support CDF5 feature because size_t is less than 8 bytes")
+      ENDIF(ENABLE_CDF5 AND NOT ENABLE_CDF5 STREQUAL "AUTO")
+      SET(ENABLE_CDF5 OFF) # cannot support CDF5
+      SET(USE_CDF5 OFF CACHE BOOL "") # cannot support CDF5
+   ENDIF(ENABLE_CDF5)
+ELSE(SIZEOF_SIZE_T EQUAL 4)
+   IF(ENABLE_CDF5) # explicitly set by user or not set
+      SET(USE_CDF5 ON CACHE BOOL "")
+   ELSE(ENABLE_CDF5) # explicitly disabled by user
+      SET(USE_CDF5 OFF CACHE BOOL "")
+   ENDIF(ENABLE_CDF5)
+ENDIF(SIZEOF_SIZE_T EQUAL 4)
 
 CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)
 IF(SIZEOF_SSIZE_T)
@@ -1800,7 +1813,11 @@ configure_file(
   ${netCDF_SOURCE_DIR}/netcdf.pc.in
   ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
 
-FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+
+IF(NOT IS_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+  FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+ENDIF()
+
 configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
   "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY
   NEWLINE_STYLE LF)

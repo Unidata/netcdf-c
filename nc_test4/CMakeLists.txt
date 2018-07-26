@@ -94,4 +94,11 @@ IF(TEST_PARALLEL4)
   add_sh_test(nc_test4 run_par_test)
 ENDIF()
 
+IF(ENABLE_METADATA_PERF)
+  build_bin_test(bigmeta)
+  build_bin_test(openbigmeta)
+  build_bin_test(tst_attsperf)
+  add_sh_test(nc_test4 perftest)
+ENDIF()
+
 ADD_EXTRA_DIST(findplugin.in)

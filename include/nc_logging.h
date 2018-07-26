@@ -42,7 +42,6 @@ void nc_log_hdf5(void);
 #else /* LOGGING */
 
 /* These definitions will be used unless LOGGING is defined. */
-
 #define LOG(e)
 
 #define BAIL2(e) \
@@ -52,9 +51,12 @@ void nc_log_hdf5(void);
 
 #define BAIL_QUIET BAIL
 
+#ifdef USE_NETCDF_4
 #ifndef ENABLE_SET_LOG_LEVEL
+/* Define away any calls to nc_set_log_level(), if its not enabled. */
 #define nc_set_log_level(e)
 #endif /* ENABLE_SET_LOG_LEVEL */
+#endif
 
 #endif /* LOGGING */
 
