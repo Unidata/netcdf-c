@@ -109,7 +109,6 @@ are set when opening a binary file on Windows. */
 
 /* if true, enable CDF5 Support */
 #cmakedefine ENABLE_CDF5 1
-#cmakedefine USE_CDF5 1
 
 /* if true, enable strict null byte header padding. */
 #cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
@@ -366,6 +365,9 @@ are set when opening a binary file on Windows. */
 
 /* If true, turn on logging. */
 #cmakedefine LOGGING 1
+
+/* If true, define nc_set_log_level. */
+#cmakedefine ENABLE_SET_LOG_LEVEL 1
 
 /* max size of the default per-var chunk cache. */
 #cmakedefine MAX_DEFAULT_CACHE_SIZE ${MAX_DEFAULT_CACHE_SIZE}
