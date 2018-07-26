@@ -12,15 +12,7 @@
  */
 
 #include "config.h"
-#include <errno.h>  /* netcdf functions sometimes return system errors */
-#include "nc.h"
-#include "nc4internal.h"
-#include "nc4dispatch.h"
-#include "netcdf_mem.h"
-#ifdef USE_HDF4
-#include <mfhdf.h>
-#endif
-#include <hdf5_hl.h>
+#include "hdf5internal.h"
 
 extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
@@ -2501,6 +2493,7 @@ exit:
  * classic model is in use.
  *
  * @param root_grp pointer to the group info for the root group of the
+ * @param is_classic store 1 if this is a classic file.
  * file.
  *
  * @return NC_NOERR No error.

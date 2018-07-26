@@ -372,7 +372,7 @@ and attributes.
   NC_NOCLOBBER (do not overwrite existing file),
   NC_SHARE (limit write caching - netcdf classic files only),
   NC_64BIT_OFFSET (create 64-bit offset file),
-  NC_64BIT_DATA (Alias NC_CDF5) (create CDF-5 file),
+  NC_64BIT_DATA (alias NC_CDF5) (create CDF-5 file),
   NC_NETCDF4 (create netCDF-4/HDF5 file),
   NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
   NC_DISKLESS (store data in memory),
@@ -408,13 +408,9 @@ file, instead of a netCDF classic format file. The 64-bit offset
 format imposes far fewer restrictions on very large (i.e. over 2 GB)
 data files. See Large File Support.
 
-Setting NC_64BIT_DATA (Alias NC_CDF5) causes netCDF to create a CDF-5
+Setting NC_64BIT_DATA (alias NC_CDF5) causes netCDF to create a CDF-5
 file format that supports large files (i.e. over 2GB) and large
 variables (over 2B array elements.). See Large File Support.
-
-Note that the flag NC_PNETCDF also exists as the combination of
-NC_CDF5 or'd with NC_MPIIO to indicate that the pnetcdf library
-should be used.
 
 A zero value (defined for convenience as NC_CLOBBER) specifies the
 default behavior: overwrite any existing dataset with the same file
@@ -425,7 +421,7 @@ Setting NC_NETCDF4 causes netCDF to create a HDF5/NetCDF-4 file.
 
 Setting NC_CLASSIC_MODEL causes netCDF to enforce the classic data
 model in this file. (This only has effect for netCDF-4/HDF5 files, as
-classic and 64-bit offset files always use the classic model.) When
+CDF-1, 2 and 5 files always use the classic model.) When
 used with NC_NETCDF4, this flag ensures that the resulting
 netCDF-4/HDF5 file may never contain any new constructs from the
 enhanced data model. That is, it cannot contain groups, user defined
@@ -580,7 +576,7 @@ nc_create(const char *path, int cmode, int *ncidp)
  * @param initialsz On some systems, and with custom I/O layers, it
  * may be advantageous to set the size of the output file at creation
  * time. This parameter sets the initial size of the file at creation
- * time. This only applies to classic and 64-bit offset files.  The
+ * time. This only applies to classic CDF-1, 2, and 5 files.  The
  * special value NC_SIZEHINT_DEFAULT (which is the value 0), lets the
  * netcdf library choose a suitable initial size.
  * @param chunksizehintp A pointer to the chunk size hint, which
@@ -597,7 +593,7 @@ nc_create(const char *path, int cmode, int *ncidp)
  * call to discover the system pagesize, we just set default bufrsize
  * to 8192. The bufrsize is a property of a given open netcdf
  * descriptor ncid, it is not a persistent property of the netcdf
- * dataset. This only applies to classic and 64-bit offset files.
+ * dataset. This only applies to classic files.
  * @param ncidp Pointer to location where returned netCDF ID is to be
  * stored.
  *
@@ -704,7 +700,7 @@ nc_create_mem(const char* path, int mode, size_t initialsize, int* ncidp)
  * ignored for other files.
  * @param basepe Deprecated parameter from the Cray days.
  * @param chunksizehintp A pointer to the chunk size hint. This only
- * applies to classic and 64-bit offset files.
+ * applies to classic files.
  * @param ncidp Pointer that gets ncid.
  *
  * @return ::NC_NOERR No error.
@@ -723,7 +719,7 @@ nc__create_mp(const char *path, int cmode, size_t initialsz,
  *
  * This function opens an existing netCDF dataset for access. It
  * determines the underlying file format automatically. Use the same
- * call to open a netCDF classic, 64-bit offset, or netCDF-4 file.
+ * call to open a netCDF classic or netCDF-4 file.
  *
  * @param path File name for netCDF dataset to be opened. When DAP
  * support is enabled, then the path may be an OPeNDAP URL rather than
@@ -746,7 +742,7 @@ nc__create_mp(const char *path, int cmode, size_t initialsz,
  * renaming dimensions, variables, and attributes, or deleting
  * attributes.)
  *
- * The NC_SHARE flag is only used for netCDF classic and 64-bit offset
+ * The NC_SHARE flag is only used for netCDF classic
  * files. It is appropriate when one process may be writing the
  * dataset and one or more other processes reading the dataset
  * concurrently; it means that dataset accesses are not buffered and
@@ -847,7 +843,7 @@ file path.
 access) and NC_SHARE as in nc_open().
 
 \param chunksizehintp A size hint for the classic library. Only
-applies to classic and 64-bit offset files. See below for more
+applies to classic files. See below for more
 information.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
@@ -1033,7 +1029,7 @@ nc_open_memio(const char* path, int mode, NC_memio* params, int* ncidp)
  * @param mode Open mode.
  * @param basepe Deprecated parameter from the Cray days.
  * @param chunksizehintp A pointer to the chunk size hint. This only
- * applies to classic and 64-bit offset files.
+ * applies to classic files.
  * @param ncidp Pointer to location where returned netCDF ID is to be
  * stored.
  *
@@ -2005,11 +2001,11 @@ check_create_mode(int mode)
  * @param path0 The file name of the new netCDF dataset.
  * @param cmode The creation mode flag, the same as in nc_create().
  * @param initialsz This parameter sets the initial size of the file
- * at creation time. This only applies to classic and 64-bit offset
+ * at creation time. This only applies to classic
  * files.
  * @param basepe Deprecated parameter from the Cray days.
  * @param chunksizehintp A pointer to the chunk size hint. This only
- * applies to classic and 64-bit offset files.
+ * applies to classic files.
  * @param useparallel Non-zero if parallel I/O is to be used on this
  * file.
  * @param parameters Pointer to MPI comm and info.
@@ -2042,8 +2038,8 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    if ((stat = check_create_mode(cmode)))
       return stat;
 
-   /* Initialize the dispatch table. The function pointers in the
-    * dispatch table will depend on how netCDF was built
+   /* Initialize the library. The available dispatch tables
+    * will depend on how netCDF was built
     * (with/without netCDF-4, DAP, CDMREMOTE). */
    if(!NC_initialized)
    {
@@ -2106,7 +2102,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	    model = NC_FORMATX_NC4;
 	    break;
 #endif
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
 	 case NC_FORMAT_CDF5:
 	    xcmode |= NC_64BIT_DATA;
 	    model = NC_FORMATX_NC3;
@@ -2322,7 +2318,7 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
         hdf4built = 1;
   #endif
 #endif
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
        cdf5built = 1;
 #endif
        if(!hdf5built && model == NC_FORMATX_NC4) {
