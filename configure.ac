@@ -1102,21 +1102,13 @@ if test "x$enable_pnetcdf" = xyes; then
 
   # Pnetcdf did not support utf-8 until 1.6.0
 
-  # Save/restore CFLAGS
-  SAVELIBS=$LIBS
-  LIBS="$LIBS -lpnetcdf"
-  AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <pnetcdf.h>],
-                 [[
-                   int major = PNETCDF_VERSION_MAJOR;
-                   int minor = PNETCDF_VERSION_MINOR;
-                   int version = major*1000 + minor;
-                   int ok = (version >= (1*1000 + 6));
-                   return (ok?0:1);]])],
-                 [pnetcdf16=yes],
-                 [pnetcdf16=no])
-  CFLAGS="$SAVECFLAGS"
-  LIBS="$SAVELIBS"
   AC_MSG_CHECKING([Is libpnetcdf version 1.6.0 or later?])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+#include <pnetcdf.h>
+#if (PNETCDF_VERSION_MAJOR*1000 + PNETCDF_VERSION_MINOR < 1006)
+      choke me
+#endif
+  ]])], [pnetcdf16=yes], [pnetcdf16=no])
   AC_MSG_RESULT([$pnetcdf16])
   if test x$pnetcdf16 = xno; then
     AC_MSG_ERROR([--enable-pnetcdf requires version 1.6.0 or later])
