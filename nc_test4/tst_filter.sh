@@ -110,7 +110,8 @@ echo "	*** Pass: nccopy simple filter"
 
 echo "	*** Testing pass-thru of filters"
 rm -f ./tst_filter.txt tst_filter2.txt ./tst_filter2.nc
-${NCCOPY} ./filtered.nc ./tst_filter2.nc
+# Prevent failure by allowing any chunk size
+${NCCOPY} -M0 ./filtered.nc ./tst_filter2.nc
 ${NCDUMP} -s tst_filter2.nc > ./tst_filter.txt
 sed -e '/_Filter/p' -e d < ./tst_filter.txt >tst_filter2.txt
 test -s tst_filter2.txt

@@ -4,7 +4,7 @@ IF(BUILD_SHARED_LIBS AND WIN32)
 ENDIF()
 
 SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.c)
-SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c)
+SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c list.c)
 
 IF(USE_X_GETOPT)
   SET(ncdump_FILES ${ncdump_FILES} XGetopt.c)
@@ -209,6 +209,11 @@ ENDIF(MSVC)
     add_sh_test(ncdump tst_nccopy4)
     IF(HAVE_BASH)
       SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
+    ENDIF(HAVE_BASH)
+
+    add_sh_test(ncdump tst_nccopy5)
+    IF(HAVE_BASH)
+      SET_TESTS_PROPERTIES(ncdump_tst_nccopy5 PROPERTIES RUN_SERIAL TRUE)
     ENDIF(HAVE_BASH)
 
     IF(USE_NETCDF4)
