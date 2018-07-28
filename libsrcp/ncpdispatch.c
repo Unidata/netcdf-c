@@ -53,25 +53,6 @@ NCP_create(const char *path, int cmode,
     if(cmode & ~LEGAL_CREATE_FLAGS)
 	{res = NC_EINVAL; goto done;}
 
-    /* Cannot have both MPIO flags */
-    if((cmode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
-	{res = NC_EINVAL; goto done;}
-
-    /* Cannot have both NC_64BIT_OFFSET & NC_64BIT_DATA */
-    if((cmode & (NC_64BIT_OFFSET|NC_64BIT_DATA)) == (NC_64BIT_OFFSET|NC_64BIT_DATA))
-	{res = NC_EINVAL; goto done;}
-
-    default_format = nc_get_default_format();
-    /* if (default_format == NC_FORMAT_CLASSIC) then we respect the format set in cmode */
-    if (default_format == NC_FORMAT_64BIT_OFFSET) {
-        if (! (cmode & NC_64BIT_OFFSET)) /* check if cmode has NC_64BIT_OFFSET already */
-            cmode |= NC_64BIT_OFFSET;
-    }
-    else if (default_format == NC_FORMAT_CDF5) {
-        if (! (cmode & NC_64BIT_DATA)) /* check if cmode has NC_64BIT_DATA already */
-            cmode |= NC_64BIT_DATA;
-    }
-
     /* No MPI environment initialized */
     if (mpidata == NULL)
 	{res = NC_ENOPAR; goto done;}
