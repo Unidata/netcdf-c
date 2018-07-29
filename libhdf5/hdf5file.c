@@ -205,7 +205,6 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
    {
       dumpopenobjects(h5);
    }
-#endif
 
    /* Free the HDF5-specific info. */
    if (h5->format_file_info)
