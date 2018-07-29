@@ -33,7 +33,6 @@ extern float nc4_chunk_cache_preemption;
    severity 0 for errors, 1 for important log messages, 2 for less
    important, etc. */
 int nc_log_level = NC_TURN_OFF_LOGGING;
-
 #endif /* LOGGING */
 
 /**
