@@ -12,6 +12,8 @@
 include $(top_srcdir)/lib_flags.am
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
+noinst_PROGRAMS =
+
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
 XFAIL_TESTS=""
@@ -30,13 +32,13 @@ utils.h utils.c dimmap.h dimmap.c list.c list.h
 
 # A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_NETCDF4
-noinst_PROGRAMS = nc4print
+noinst_PROGRAMS += nc4print
 nc4print_SOURCES = nc4print.c
 endif
 
 # Conditionally build the ocprint program, but do not install
 if ENABLE_DAP
-bin_PROGRAMS += ocprint
+noinst_PROGRAMS += ocprint
 ocprint_SOURCES = ocprint.c
 endif
 

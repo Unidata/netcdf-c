@@ -16,6 +16,10 @@ ncindex.c
 
 EXTRA_DIST = CMakeLists.txt
 
+# Include various name map implementations for ncindex
+EXTRA_DIST += ncindexnohash.hc ncindexhash.hc ncindexsorted.hc
+
+
 
 
 

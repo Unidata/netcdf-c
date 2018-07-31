@@ -660,7 +660,7 @@ nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims, NC_VAR_INFO_T 
    if (!(new_var->hdr.name = strdup(name)))
       BAIL(NC_ENOMEM);
 
-   new_var->hdr.hashkey = NC_hashmapkey(new_var->hdr.name,strlen(new_var->hdr.name));
+   ncindexsetdata((NC_OBJ*)new_var);
    new_var->ndims = ndims;
 
    /* Allocate space for dimension information. */
@@ -725,7 +725,7 @@ nc4_dim_list_add(NC_GRP_INFO_T* grp, const char* name, size_t len, int assignedi
    if (!(new_dim->hdr.name = strdup(name)))
       BAIL(NC_ENOMEM);
    /* Create a hash of the name. */
-   new_dim->hdr.hashkey = NC_hashmapkey(new_dim->hdr.name,strlen(new_dim->hdr.name));
+   ncindexsetdata((NC_OBJ*)new_dim);
    new_dim->len = len;
    if (len == NC_UNLIMITED)
       new_dim->unlimited = NC_TRUE;
@@ -773,7 +773,7 @@ nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att)
       BAIL(NC_ENOMEM);
 
    /* Create a hash of the name. */
-   new_att->hdr.hashkey = NC_hashmapkey(name, strlen(name));
+   ncindexsetdata((NC_OBJ*)new_att);
 
    /* Add object to list as specified by its number */
    obj_list_add(list,(NC_OBJ*)new_att);
@@ -825,7 +825,7 @@ nc4_grp_list_add(NC_GRP_INFO_T * parent, char *name, NC_GRP_INFO_T **grp)
       free(new_grp);
       return NC_ENOMEM;
    }
-   new_grp->hdr.hashkey = NC_hashmapkey(new_grp->hdr.name,strlen(new_grp->hdr.name));
+   ncindexsetdata((NC_OBJ*)new_grp);
 
    new_grp->nc4_info = NC4_DATA(nc);
 
@@ -880,7 +880,7 @@ nc4_build_root_grp(NC_FILE_INFO_T* h5)
       free(new_grp);
       return NC_ENOMEM;
    }
-   new_grp->hdr.hashkey = NC_hashmapkey(new_grp->hdr.name,strlen(new_grp->hdr.name));
+   ncindexsetdata((NC_OBJ*)new_grp);
 
    new_grp->nc4_info = NC4_DATA(nc);
 
@@ -969,7 +969,7 @@ nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid, 
     return NC_ENOMEM;
   }
 
-  new_type->hdr.hashkey = NC_hashmapkey(name,strlen(name));
+  ncindexsetdata((NC_OBJ*)new_type);
 
   /* Return a pointer to the new type, if requested */
   if (type)
@@ -1054,7 +1054,7 @@ nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
       free(field);
       return NC_ENOMEM;
    }
-   field->hdr.hashkey = NC_hashmapkey(field->hdr.name,strlen(field->hdr.name));
+   ncindexsetdata((NC_OBJ*)field);
    field->hdf_typeid = field_hdf_typeid;
    field->native_hdf_typeid = native_typeid;
    field->nc_typeid = xtype;

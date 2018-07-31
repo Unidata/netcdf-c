@@ -89,5 +89,7 @@ extern int NC_hashmapfree(NC_hashmap*);
 /* Return the hash key for specified key; takes key+size*/
 extern unsigned int NC_hashmapkey(const char* key, size_t size);
 
+extern void printhashmap(NC_hashmap* hm);
+
 #endif /*NCHASHMAP_H*/
 

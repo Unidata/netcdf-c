@@ -6,10 +6,10 @@ See LICENSE.txt for license information.
 #ifndef NCINDEX_H
 #define NCINDEX_H
 
-/* If defined, then the hashmap is used.
-   This for performance experimentation
-*/
-#undef NCNOHASH
+/* Pick ONE of these as implementation */
+#define NCHASHED /* Use hashmap to lookup by name */
+#undef NCSORTLIST /* Use binary search over list sorted by name */
+#undef NCNOHASH /* No hash in index: use linear search */
 
 #undef NCINDEXDEBUG
 
@@ -35,11 +35,17 @@ See docs/indexind.dox for more detailed documentation
 
 */
 
-/* Generic list + matching hashtable */
+/* Generic list + namemap */
 typedef struct NCindex {
    NClist* list;
-#ifndef NCNOHASH
-   NC_hashmap* map;
+#ifdef NCNOHASH
+   /* Unneeded */
+#endif
+#ifdef NCHASHED
+   NC_hashmap* namemap; /* map name -> NC_OBJ */
+#endif
+#ifdef NCSORTLIST
+   NClist* namemap; /* List<NC_OBJ> */
 #endif
 } NCindex;
 
@@ -52,11 +58,11 @@ extern struct NC_OBJ* ncindexith(NCindex* index, size_t i);
 /* See if x is contained in the index and return its vector permission*/
 extern int ncindexfind(NCindex* index, struct NC_OBJ* o);
 
-/* Add object to the end of the vector, also insert into the hashmaps; */
+/* Add object to the end of the vector, also insert into the name map; */
 /* Return 1 if ok, 0 otherwise.*/
 extern int ncindexadd(NCindex* index, struct NC_OBJ* obj);
 
-/* Insert object at ith position of the vector, also insert into the hashmaps; */
+/* Insert object at ith position of the vector, also insert into the name map; */
 /* Return 1 if ok, 0 otherwise.*/
 extern int ncindexset(NCindex* index, size_t i, struct NC_OBJ* obj);
 
@@ -66,12 +72,8 @@ extern struct NC_OBJ** ncindexdup(NCindex* index);
 /* Count the non-null entries in an NCindex */
 extern int ncindexcount(NCindex* index);
 
-/* Rebuild index using all objects in the vector */
-/* Return 1 if ok, 0 otherwise.*/
-extern int ncindexrebuild(NCindex* index);
-
-/* "Remove" ith object from the index;
-    WARNING: Replaces it with NULL in the list.
+/* "Remove" ith object from the index and from name map;
+    WARNING: Replaces it with NULL in the vector.
 */
 /* Return 1 if ok, 0 otherwise.*/
 extern int ncindexidel(NCindex* index,size_t i);
@@ -106,5 +108,17 @@ static int ncindexsize(NCindex* index)
 #else
 #define ncindexsize(index) ((index)==NULL?0:(nclistlength((index)->list)))
 #endif
+
+/* Hide value of NC_OBJ->data */
+extern void ncindexsetdata(struct NC_OBJ* hdr);
+
+/* Hide renaming fixups */
+extern int ncindexreinsert(NCindex* index, struct NC_OBJ* hdr);
+
+/* Wrap Attribute renumbering */
+extern int ncindexrenumberid(NCindex* index);
+
+/* Hide rename operation */
+extern int ncindexrename(NCindex* index, struct NC_OBJ* hdr, const char* newname);
 
 #endif /*ncindexH*/

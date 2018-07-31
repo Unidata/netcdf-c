@@ -101,7 +101,9 @@ typedef struct NC_OBJ {
     NC_SORT sort;
     char* name; /* assumed to be null terminated */
     size_t id;
-    unsigned int hashkey; /* crc32(name) */
+#if 0
+    unsigned int data; /* depends on implementation; e.g. for hash, this is hashkey */
+#endif
 } NC_OBJ;
 
 /* This is a struct to handle the dim metadata. */

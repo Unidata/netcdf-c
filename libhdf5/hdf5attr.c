@@ -154,17 +154,9 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
       att->created = NC_FALSE;
    }
 
-   /* Copy the new name into our metadata. */
-   if(att->hdr.name) free(att->hdr.name);
-   if (!(att->hdr.name = strdup(norm_newname)))
-      return NC_ENOMEM;
-   att->hdr.hashkey = NC_hashmapkey(att->hdr.name,strlen(att->hdr.name)); /* Fix hash key */
-
+   /* Rename attribute in our index */
+   {int ret; if((ret=ncindexrename(list,(NC_OBJ*)att,norm_newname))) return ret;}
    att->dirty = NC_TRUE;
-
-   /* Rehash the attribute list so that the new name is used */
-   if(!ncindexrebuild(list))
-      return NC_EINTERNAL;
 
    /* Mark attributes on variable dirty, so they get written */
    if(var)
@@ -196,8 +188,6 @@ NC4_del_att(int ncid, int varid, const char *name)
    NC_ATT_INFO_T *att;
    NCindex* attlist = NULL;
    hid_t locid = 0, datasetid = 0;
-   int i;
-   size_t deletedid;
    int retval;
 
    if (!name)
@@ -252,22 +242,28 @@ NC4_del_att(int ncid, int varid, const char *name)
    }
 
 
-   deletedid = att->hdr.id;
-
    /* Remove this attribute in this list */
    if ((retval = nc4_att_list_del(attlist, att)))
       BAIL(retval);
 
    /* Renumber all attributes with higher indices. */
+#if 0
+   {
+   int deletedid = att->hdr.id;
    for(i=0;i<ncindexsize(attlist);i++) {
       NC_ATT_INFO_T* a = (NC_ATT_INFO_T*)ncindexith(attlist,i);
       if(a == NULL) continue;
       if(a->hdr.id > deletedid) a->hdr.id--;
    }
-
    /* rebuild the index */
    if(!ncindexrebuild(attlist))
       BAIL(NC_EINTERNAL);
+   }
+#else
+   if(!ncindexrenumberid(attlist))
+      BAIL(NC_EINTERNAL);	   
+#endif
+
 
 exit:
    if (datasetid > 0) H5Dclose(datasetid);

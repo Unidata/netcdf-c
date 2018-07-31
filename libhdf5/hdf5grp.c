@@ -146,13 +146,6 @@ NC4_rename_grp(int grpid, const char *name)
 
    /* Give the group its new name in metadata. UTF8 normalization
     * has been done. */
-   free(grp->hdr.name);
-   if (!(grp->hdr.name = strdup(norm_name)))
-      return NC_ENOMEM;
-   grp->hdr.hashkey = NC_hashmapkey(grp->hdr.name,strlen(grp->hdr.name)); /* Fix hash key */
-
-   if(!ncindexrebuild(parent->children))
-      return NC_EINTERNAL;
-
+   {int ret; if((ret=ncindexrename(parent->children,(NC_OBJ*)grp,norm_name))) return ret;}
    return NC_NOERR;
 }
