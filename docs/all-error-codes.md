@@ -71,6 +71,7 @@ may occur.
 #define NC_ENOTFOUND     (-90)  // No such file
 #define NC_ECANTREMOVE   (-91)  // Cannot remove file
 #define NC_EINTERNAL     (-92)  // NetCDF Library Internal Error
+#define NC_EPNETCDF      (-93)  // Error at PnetCDF layer
 ~~~~
 
 # NetCDF-4 Error Codes {#nc4-error-codes}
