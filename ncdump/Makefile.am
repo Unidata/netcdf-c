@@ -26,7 +26,7 @@ utils.c nciter.h nciter.c nccomps.h
 # netCDF API
 bin_PROGRAMS += nccopy
 nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c     \
-utils.h utils.c dimmap.h dimmap.c
+utils.h utils.c dimmap.h dimmap.c list.c list.h
 
 # A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_NETCDF4
@@ -80,14 +80,14 @@ tst_unicode tst_fillbug tst_compress tst_chunking tst_h_scalar
 # Tests for netCDF-4 behavior.
 TESTS += tst_fileinfo.sh tst_hdf5_offset.sh tst_inttags4.sh		\
 tst_netcdf4.sh tst_fillbug.sh tst_netcdf4_4.sh tst_nccopy4.sh		\
-tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
+tst_nccopy5.sh tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
 run_utf8_nc4_tests.sh run_back_comp_tests.sh run_ncgen_nc4_tests.sh	\
 tst_ncgen4.sh
 
-# The tst_nccopy4.sh test script depends on the output of a bunch of
-# other tests. Record dependencies so parallel builds work.
+# Record interscript dependencies so parallel builds work.
 tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
 tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log
+tst_nccopy5.log: tst_nccopy4.log
 endif #!USE_NETCDF4
 
 TESTS += tst_inmemory_nc3.sh
@@ -111,7 +111,7 @@ ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl	\
 ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc	\
 ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl		\
 tst_bug321.cdl ref_tst_format_att.cdl ref_tst_format_att_64.cdl		\
-tst_nccopy3.sh tst_nccopy4.sh ref_nc_test_netcdf4_4_0.nc		\
+tst_nccopy3.sh tst_nccopy4.sh tst_nccopy5.sh ref_nc_test_netcdf4_4_0.nc		\
 run_back_comp_tests.sh ref_nc_test_netcdf4.cdl				\
 ref_tst_special_atts3.cdl tst_brecs.cdl ref_tst_grp_spec0.cdl		\
 ref_tst_grp_spec.cdl tst_grp_spec.sh ref_tst_charfill.cdl		\
