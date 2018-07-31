@@ -1278,6 +1278,8 @@ char* nc_err_code_name(int err)
         case (NC_EAUTH):			return "NC_EAUTH";
         case (NC_ENOTFOUND):			return "NC_ENOTFOUND";
         case (NC_ECANTREMOVE):			return "NC_ECANTREMOVE";
+        case (NC_EINTERNAL):			return "NC_EINTERNAL";
+        case (NC_EPNETCDF):			return "NC_EPNETCDF";
         case (NC_EHDFERR):			return "NC_EHDFERR";
         case (NC_ECANTREAD):			return "NC_ECANTREAD";
         case (NC_ECANTWRITE):			return "NC_ECANTWRITE";
@@ -1309,8 +1311,9 @@ char* nc_err_code_name(int err)
         case (NC_EDISKLESS):			return "NC_EDISKLESS";
         case (NC_ECANTEXTEND):			return "NC_ECANTEXTEND";
         case (NC_EMPI):				return "NC_EMPI";
-    case (NC_ENULLPAD):             return "NC_NULLPAD";
-          // case (NC_EURL):				return "NC_EURL";
+        case (NC_ENULLPAD):			return "NC_NULLPAD";
+        case (NC_EINMEMORY):			return "NC_EINMEMORY";
+        // case (NC_EURL):				return "NC_EURL";
         // case (NC_ECONSTRAINT):			return "NC_ECONSTRAINT";
 #ifdef USE_PNETCDF
         case (NC_ESMALL):			return "NC_ESMALL";
