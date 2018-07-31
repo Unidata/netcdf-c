@@ -68,10 +68,8 @@ int main(int argc, char* argv[])
     }
     if (nc_enddef(ncid)) ERR;
 
-    for (i=0; i<NVARS; i++) {
-        /* Note NC_INDEPENDENT is the default */
-        if (nc_var_par_access(ncid, varid[i], NC_INDEPENDENT)) ERR;
-    }
+    /* Note NC_INDEPENDENT is the default */
+    if (nc_var_par_access(ncid, NC_GLOBAL, NC_INDEPENDENT)) ERR;
 
     /* write all variables */
     buf = (int*) malloc(NX * sizeof(int));
