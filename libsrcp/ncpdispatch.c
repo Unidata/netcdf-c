@@ -9,9 +9,13 @@
 #include <mpi.h>
 #include "nc.h"
 #include "ncdispatch.h"
+#include "fbits.h"
 
 /* Must follow netcdf.h */
 #include <pnetcdf.h>
+
+#define NCP_MODE_DATA  0x0001
+#define NCP_MODE_INDEP 0x0002
 
 typedef struct NCP_INFO
 {
@@ -85,7 +89,12 @@ NCP_create(const char *path, int cmode,
 
     res = ncmpi_create(comm, path, cmode, info, &(nc->int_ncid));
 
-    if (res != NC_NOERR) free(nc5); /* reclaim allocated space */
+
+    /* Default to independent access, like netCDF-4/HDF5 files. */
+    fSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP);
+
+    if(res && nc5 != NULL) free(nc5); /* reclaim allocated space */
+
 done:
     return res;
 }
@@ -116,6 +125,9 @@ NCP_open(const char *path, int cmode,
     nc5 = (NCP_INFO*)calloc(1,sizeof(NCP_INFO));
     if(nc5 == NULL) {res = NC_ENOMEM; goto done;}
 
+    /* file open automatically enters data mode */
+    fSet(nc5->pnetcdf_access_mode, NCP_MODE_DATA);
+
     /* Link nc5 and nc */
     NCP_DATA_SET(nc,nc5);
 
@@ -124,7 +136,7 @@ NCP_open(const char *path, int cmode,
     /* Default to independent access, like netCDF-4/HDF5 files. */
     if (res == NC_NOERR) {
 	res = ncmpi_begin_indep_data(nc->int_ncid);
-	nc5->pnetcdf_access_mode = NC_INDEPENDENT;
+	fSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP);
     }
 done:
     return res;
@@ -134,8 +146,14 @@ static int
 NCP_redef(int ncid)
 {
     NC* nc;
+    NCP_INFO* nc5;
+
     int status = NC_check_id(ncid, &nc);
     if(status != NC_NOERR) return status;
+
+    nc5 = NCP_DATA(nc);
+    fClr(nc5->pnetcdf_access_mode, NCP_MODE_DATA);
+
     return ncmpi_redef(nc->int_ncid);
 }
 
@@ -166,7 +184,8 @@ NCP__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t
 #endif
 
     if(!status) {
-	if (nc5->pnetcdf_access_mode == NC_INDEPENDENT)
+        fSet(nc5->pnetcdf_access_mode, NCP_MODE_DATA);
+	if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP))
 	    status = ncmpi_begin_indep_data(nc->int_ncid);
     }
     return status;
@@ -578,7 +597,7 @@ NCP_get_vara(int ncid,
         if (status) return status;
     }
 
-    if(nc5->pnetcdf_access_mode == NC_INDEPENDENT) {
+    if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
 	switch(memtype) {
 	case NC_BYTE:
 	    status=ncmpi_get_vara_schar(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
@@ -672,7 +691,7 @@ NCP_put_vara(int ncid,
         if (status) return status;
     }
 
-    if(nc5->pnetcdf_access_mode == NC_INDEPENDENT) {
+    if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
 	switch(memtype) {
 	case NC_BYTE:
 	    status = ncmpi_put_vara_schar(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
@@ -768,7 +787,7 @@ NCP_get_vars(int ncid,
         if (status) return status;
     }
 
-    if(nc5->pnetcdf_access_mode == NC_INDEPENDENT) {
+    if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
 	switch(memtype) {
 	case NC_BYTE:
 	    status=ncmpi_get_vars_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
@@ -864,7 +883,7 @@ NCP_put_vars(int ncid,
         if (status) return status;
     }
 
-    if(nc5->pnetcdf_access_mode == NC_INDEPENDENT) {
+    if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
 	switch(memtype) {
 	case NC_BYTE:
 	    status = ncmpi_put_vars_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
@@ -962,7 +981,7 @@ NCP_get_varm(int ncid,
         if (status) return status;
     }
 
-    if(nc5->pnetcdf_access_mode == NC_INDEPENDENT) {
+    if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
 	switch(memtype) {
 	case NC_BYTE:
 	    status=ncmpi_get_varm_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
@@ -1060,7 +1079,7 @@ NCP_put_varm(int ncid,
         if (status) return status;
     }
 
-    if(nc5->pnetcdf_access_mode == NC_INDEPENDENT) {
+    if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
 	switch(memtype) {
 	case NC_BYTE:
 	    status = ncmpi_put_varm_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
@@ -1176,19 +1195,43 @@ NCP_var_par_access(int ncid, int varid, int par_access)
     if (par_access != NC_INDEPENDENT && par_access != NC_COLLECTIVE)
 	return NC_EINVAL;
 
+#ifdef _DO_NOT_IGNORE_VARID_
+    if (varid != NC_GLOBAL) /* PnetCDF cannot do per-veriable mode change */
+        return NC_EINVAL;
+#endif
+
     status = NC_check_id(ncid, &nc);
     if(status != NC_NOERR) return status;
 
     nc5 = NCP_DATA(nc);
     assert(nc5);
 
-    if(par_access == nc5->pnetcdf_access_mode)
-	return NC_NOERR;
-    nc5->pnetcdf_access_mode = par_access;
-    if (par_access == NC_INDEPENDENT)
-	return ncmpi_begin_indep_data(nc->int_ncid);
-    else
-	return ncmpi_end_indep_data(nc->int_ncid);
+    /* if currently in data mode */
+    if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_DATA)) {
+        if (par_access == NC_INDEPENDENT) {
+            if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP))
+                return NC_NOERR;
+            else { /* currently in collective data mode */
+                fSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP);
+                return ncmpi_begin_indep_data(nc->int_ncid);
+            }
+        }
+        else { /* want to enter collective data mode */
+            if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
+                fClr(nc5->pnetcdf_access_mode, NCP_MODE_INDEP);
+                return ncmpi_end_indep_data(nc->int_ncid);
+            }
+            else
+                return NC_NOERR;
+        }
+    }
+    else { /* currently in define mode */
+        if (par_access == NC_INDEPENDENT)
+            fSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP);
+        else
+            fClr(nc5->pnetcdf_access_mode, NCP_MODE_INDEP);
+    }
+    return NC_NOERR;
 }
 
 #ifdef USE_NETCDF4
