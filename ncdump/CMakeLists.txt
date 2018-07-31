@@ -5,17 +5,22 @@ ENDIF()
 
 SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.c)
 SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c list.c)
+SET(ocprint_FILES ocprint.c)
 
 IF(USE_X_GETOPT)
   SET(ncdump_FILES ${ncdump_FILES} XGetopt.c)
   SET(nccopy_FILES ${nccopy_FILES} XGetopt.c)
+  SET(ocprint_FILES ${ocprint_FILES} XGetopt.c)
+
 ENDIF()
 
 ADD_EXECUTABLE(ncdump ${ncdump_FILES})
 ADD_EXECUTABLE(nccopy ${nccopy_FILES})
+ADD_EXECUTABLE(ocprint ${ocprint_FILES})
 
 TARGET_LINK_LIBRARIES(ncdump netcdf ${ALL_TLL_LIBS})
 TARGET_LINK_LIBRARIES(nccopy netcdf ${ALL_TLL_LIBS})
+TARGET_LINK_LIBRARIES(ocprint netcdf ${ALL_TLL_LIBS})
 
 ####
 # We have to do a little tweaking
@@ -36,6 +41,13 @@ IF(MSVC)
   SET_TARGET_PROPERTIES(nccopy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
     ${CMAKE_CURRENT_BINARY_DIR})
   SET_TARGET_PROPERTIES(nccopy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+    ${CMAKE_CURRENT_BINARY_DIR})
+
+    SET_TARGET_PROPERTIES(ocprint PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR})
+  SET_TARGET_PROPERTIES(ocprint PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+    ${CMAKE_CURRENT_BINARY_DIR})
+  SET_TARGET_PROPERTIES(ocprint PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
     ${CMAKE_CURRENT_BINARY_DIR})
 ENDIF()
 
@@ -236,12 +248,16 @@ IF(MSVC)
   SET_TARGET_PROPERTIES(nccopy
     PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
     )
+  SET_TARGET_PROPERTIES(ocprint
+    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+    )
 
 ENDIF()
 
 
 INSTALL(TARGETS ncdump RUNTIME DESTINATION bin COMPONENT utilities)
 INSTALL(TARGETS nccopy RUNTIME DESTINATION bin COMPONENT utilities)
+INSTALL(TARGETS ocprint RUNTIME DESTINATION bin COMPONENT utilities)
 SET(MAN_FILES nccopy.1 ncdump.1)
 
 # Note, the L512.bin file is file containing exactly 512 bytes each of value 0.
