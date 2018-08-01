@@ -106,7 +106,6 @@ rehash(NC_hashmap* hm)
         NC_hentry* h = &oldtable[--alloc];
         if(h->flags == ACTIVE) {
             NC_hashmapadd(hm, h->data, h->key);
-	    if(h->key) free(h->key);
         }
     }
     free(oldtable);
@@ -253,7 +252,6 @@ NC_hashmapremove(NC_hashmap* hash, const char* key, uintptr_t* datap)
     h = &hash->table[index];
     if(h->flags & ACTIVE) { /* matching entry found */
 	h->flags = DELETED; /* also turn off ACTIVE */
-	if(h->key) free(h->key);
 	h->key = NULL;
 	--hash->active;
 	if(datap) *datap = h->data;
@@ -340,6 +338,7 @@ NC_hashmapfree(NC_hashmap* hash)
     return 1;
 }
 
+#if 0
 /**
 Friend: ncindex.c
 Only used by ncindex.c.
@@ -354,7 +353,6 @@ NC_hashmapdeactivate(NC_hashmap* map, uintptr_t data)
     for(h=map->table,i=0;i<map->alloc;i++,h++) {
 	if((h->flags & ACTIVE) && h->data == data) {
 	    h->flags = DELETED;
-	    if(h->key) free(h->key);
  	    h->key = NULL;
 	    --map->active;
 	    return 1;
@@ -362,6 +360,7 @@ NC_hashmapdeactivate(NC_hashmap* map, uintptr_t data)
     }
     return 0;
 }
+#endif
 
 /**************************************************/
 /* Prime table */

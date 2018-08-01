@@ -5,12 +5,6 @@ See LICENSE.txt for license information.
 
 #include "nchashmap.h"
 
-/* Hack to access internal state of a hashmap. Use with care */
-/* Convert an entry from ACTIVE to DELETED;
-   Return 0 if not found.
-*/
-extern int NC_hashmapdeactivate(NC_hashmap*, uintptr_t data);
-
 #define ACTIVE 1
 
 /* Locate object by name in an NCindex */
@@ -71,7 +65,7 @@ ncindexremove(NCindex* index, NC_OBJ* obj)
    if(o2 == NULL || o2 != obj) return 0;
 
    /* Remove from the hash map by deactivating its entry */
-   if(!NC_hashmapdeactivate(index->namemap,obj))
+   if(!NC_hashmapremove(index->namemap,obj->name,NULL))
 	return 0; /* not present */
    return 1;
 }
