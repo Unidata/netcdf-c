@@ -927,14 +927,8 @@ write_file(char *filename)
 	error("nc_enddef: %s", nc_strerror(err));
 
 #ifdef USE_PNETCDF
-    { int i,format;
-    nc_inq_format_extended(ncid, &format, NULL);
-    if (format == NC_FORMATX_PNETCDF) {
-        for (i = 0; i < numVars; i++) {
-            err = nc_var_par_access(ncid, i, NC_COLLECTIVE);
-	    IF (err) error("nc_var_par_access: %s", nc_strerror(err));
-        }
-    }}
+    err = nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE);
+    IF (err) error("nc_var_par_access: %s", nc_strerror(err));
 #endif
 
     put_vars(ncid);
@@ -1284,6 +1278,8 @@ char* nc_err_code_name(int err)
         case (NC_EAUTH):			return "NC_EAUTH";
         case (NC_ENOTFOUND):			return "NC_ENOTFOUND";
         case (NC_ECANTREMOVE):			return "NC_ECANTREMOVE";
+        case (NC_EINTERNAL):			return "NC_EINTERNAL";
+        case (NC_EPNETCDF):			return "NC_EPNETCDF";
         case (NC_EHDFERR):			return "NC_EHDFERR";
         case (NC_ECANTREAD):			return "NC_ECANTREAD";
         case (NC_ECANTWRITE):			return "NC_ECANTWRITE";
@@ -1315,8 +1311,9 @@ char* nc_err_code_name(int err)
         case (NC_EDISKLESS):			return "NC_EDISKLESS";
         case (NC_ECANTEXTEND):			return "NC_ECANTEXTEND";
         case (NC_EMPI):				return "NC_EMPI";
-    case (NC_ENULLPAD):             return "NC_NULLPAD";
-          // case (NC_EURL):				return "NC_EURL";
+        case (NC_ENULLPAD):			return "NC_NULLPAD";
+        case (NC_EINMEMORY):			return "NC_EINMEMORY";
+        // case (NC_EURL):				return "NC_EURL";
         // case (NC_ECONSTRAINT):			return "NC_ECONSTRAINT";
 #ifdef USE_PNETCDF
         case (NC_ESMALL):			return "NC_ESMALL";
