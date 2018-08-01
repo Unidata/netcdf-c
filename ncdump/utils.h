@@ -85,6 +85,12 @@ void print_name(const char *name);
  * names */
 extern int  nc_inq_dimid2(int ncid, const char *dimname, int *dimidp);
 
+/* Convert a full path name to a group to the specific groupid. */
+extern int  nc_inq_grpid2(int ncid, const char *grpname0, int *grpidp);
+
+/* Convert a full path name to a varid to the specific varid + grpid */
+extern int nc_inq_varid2(int ncid, const char *path0, int* varidp, int* grpidp);
+
 /* Test if variable is a record variable */
 extern int  isrecvar ( int ncid, int varid );
 

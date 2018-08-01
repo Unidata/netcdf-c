@@ -34,7 +34,7 @@
      int format; \
      nc_inq_format_extended(ncid,&format,NULL); \
      if (format == NC_FORMATX_PNETCDF) { \
-       if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;\
+       if (nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE)) ERR;\
      }\
    }
 #else
@@ -425,9 +425,7 @@ test_two_growing_with_att(const char *testfile)
       {int format;
       nc_inq_format_extended(ncid,&format,NULL);
       if (format == NC_FORMATX_PNETCDF) {
-          for (v = 0; v < NUM_VARS; v++) {
-              if (nc_var_par_access(ncid, varid[v], NC_COLLECTIVE)) ERR;
-          }
+          if (nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE)) ERR;
       }}
 #endif
       count[0] = 1;
