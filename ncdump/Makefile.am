@@ -36,7 +36,7 @@ endif
 
 # Conditionally build the ocprint program, but do not install
 if ENABLE_DAP
-bin_PROGRAMS += ocprint
+noinst_PROGRAMS += ocprint
 ocprint_SOURCES = ocprint.c
 endif
 
