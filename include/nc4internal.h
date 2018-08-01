@@ -322,6 +322,7 @@ int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		     const void *fill_value, int strict_nc3);
 
 /* These functions do HDF5 things. */
+int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
 int nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
@@ -405,6 +406,9 @@ int NC_check_name(const char *name);
 int nc4_check_name(const char *name, char *norm_name);
 int nc4_normalize_name(const char *name, char *norm_name);
 int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
+
+/* Find default fill value. */
+int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value);
 
 /* Close the file. */
 int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem);
