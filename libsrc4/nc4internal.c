@@ -33,7 +33,6 @@ extern float nc4_chunk_cache_preemption;
    severity 0 for errors, 1 for important log messages, 2 for less
    important, etc. */
 int nc_log_level = NC_TURN_OFF_LOGGING;
-
 #endif /* LOGGING */
 
 /**
@@ -473,7 +472,7 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 
       /* Do we need to read the atts? */
       if (grp->atts_not_read)
-         if ((retval = nc4_read_grp_atts(grp)))
+         if ((retval = nc4_read_atts(grp, NULL)))
             return retval;
    }
    else
@@ -483,7 +482,7 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 
       /* Do we need to read the var attributes? */
       if (var->atts_not_read)
-         if ((retval = nc4_read_var_atts(grp, var)))
+         if ((retval = nc4_read_atts(grp, var)))
             return retval;
 
       attlist = var->att;
@@ -625,7 +624,91 @@ obj_list_del(NCindex* index, NC_OBJ *obj)
 }
 
 /**
- * @internal Create a new variable and insert int relevant lists
+ * @internal Create a new variable and insert into relevant
+ * lists. Dimensionality info need not be known.
+ *
+ * @param grp the containing group
+ * @param name the name for the new variable
+ * @param var Pointer in which to return a pointer to the new var.
+ *
+ * @param var Pointer to pointer that gets variable info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+ */
+int
+nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
+{
+   NC_VAR_INFO_T *new_var;
+
+   /* Allocate storage for new variable. */
+   if (!(new_var = calloc(1, sizeof(NC_VAR_INFO_T))))
+      return NC_ENOMEM;
+   new_var->hdr.sort = NCVAR;
+
+   /* These are the HDF5-1.8.4 defaults. */
+   new_var->chunk_cache_size = nc4_chunk_cache_size;
+   new_var->chunk_cache_nelems = nc4_chunk_cache_nelems;
+   new_var->chunk_cache_preemption = nc4_chunk_cache_preemption;
+
+   /* Now fill in the values in the var info structure. */
+   new_var->hdr.id = ncindexsize(grp->vars);
+   if (!(new_var->hdr.name = strdup(name)))
+      return NC_ENOMEM;
+   new_var->hdr.hashkey = NC_hashmapkey(new_var->hdr.name,
+                                        strlen(new_var->hdr.name));
+
+   /* Create an indexed list for the attributes. */
+   new_var->att = ncindexnew(0);
+
+   /* Officially track it */
+   ncindexadd(grp->vars, (NC_OBJ *)new_var);
+
+   /* Set the var pointer, if one was given */
+   if (var)
+      *var = new_var;
+
+   return NC_NOERR;
+}
+
+/**
+ * @internal Set the number of dims in an NC_VAR_INFO_T struct.
+ *
+ * @param var Pointer to the var.
+ * @param ndims Number of dimensions for this var.
+ *
+ * @param var Pointer to pointer that gets variable info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+ */
+int
+nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
+{
+
+   /* Remember the number of dimensions. */
+   var->ndims = ndims;
+
+   /* Allocate space for dimension information. */
+   if (ndims)
+   {
+      if (!(var->dim = calloc(ndims, sizeof(NC_DIM_INFO_T *))))
+         return NC_ENOMEM;
+      if (!(var->dimids = calloc(ndims, sizeof(int))))
+         return NC_ENOMEM;
+
+      /* Initialize dimids to illegal values (-1). See the comment
+         in nc4hdf.c#nc4_rec_match_dimscales. */
+      memset(var->dimids, -1, ndims * sizeof(int));
+   }
+
+   return NC_NOERR;
+}
+
+/**
+ * @internal Create a new variable and insert int relevant list.
  *
  * @param grp the containing group
  * @param name the name for the new variable
@@ -639,62 +722,21 @@ obj_list_del(NCindex* index, NC_OBJ *obj)
  * @author Ed Hartnett
  */
 int
-nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims, NC_VAR_INFO_T **var)
+nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims,
+                 NC_VAR_INFO_T **var)
 {
-   NC_VAR_INFO_T *new_var = NULL;
-   int retval = NC_NOERR;
+   int retval;
 
-   /* Allocate storage for new variable. */
-   if (!(new_var = calloc(1, sizeof(NC_VAR_INFO_T))))
-      BAIL(NC_ENOMEM);
-   new_var->hdr.sort = NCVAR;
+   if ((retval = nc4_var_list_add2(grp, name, var)))
+      return retval;
+   if ((retval = nc4_var_set_ndims(*var, ndims)))
+      return retval;
 
-   /* These are the HDF5-1.8.4 defaults. */
-   new_var->chunk_cache_size = nc4_chunk_cache_size;
-   new_var->chunk_cache_nelems = nc4_chunk_cache_nelems;
-   new_var->chunk_cache_preemption = nc4_chunk_cache_preemption;
-
-   /* Now fill in the values in the var info structure. */
-   new_var->hdr.id = ncindexsize(grp->vars);
-
-   if (!(new_var->hdr.name = strdup(name)))
-      BAIL(NC_ENOMEM);
-
-   new_var->hdr.hashkey = NC_hashmapkey(new_var->hdr.name,strlen(new_var->hdr.name));
-   new_var->ndims = ndims;
-
-   /* Allocate space for dimension information. */
-   if (ndims)
-   {
-      if (!(new_var->dim = calloc(ndims, sizeof(NC_DIM_INFO_T *))))
-         BAIL(NC_ENOMEM);
-      if (!(new_var->dimids = calloc(ndims, sizeof(int))))
-         BAIL(NC_ENOMEM);
-      /* Initialize dimids to illegal values (-1). See the comment
-         in nc4hdf.c#nc4_rec_match_dimscales. */
-      memset(new_var->dimids, -1, ndims*sizeof(int));
-   }
-
-   new_var->att = ncindexnew(0);
-
-   /* Officially track it */
-   ncindexadd(grp->vars,(NC_OBJ*)new_var);
-
-   /* Set the var pointer, if one was given */
-   if (var)
-      *var = new_var;
-
-exit:
-   if(retval != NC_NOERR) {
-	nc4_var_list_del(grp,new_var);
-   }
-   return retval;
-
-
+   return NC_NOERR;
 }
 
 /**
- * @internal Add to the beginning of a dim list.
+ * @internal Add a dimension to the dimension list for a group.
  *
  * @param grp container for the dim
  * @param name for the dim
@@ -703,46 +745,52 @@ exit:
  * @param dim Pointer to pointer that gets the new dim info struct.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
  */
 int
-nc4_dim_list_add(NC_GRP_INFO_T* grp, const char* name, size_t len, int assignedid, NC_DIM_INFO_T **dim)
+nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
+                 int assignedid, NC_DIM_INFO_T **dim)
 {
-   NC_DIM_INFO_T *new_dim = NULL;
-   NC_FILE_INFO_T *h5 = grp->nc4_info;
-   int retval = NC_NOERR;
+   NC_DIM_INFO_T *new_dim;
 
+   assert(grp && name);
+
+   /* Allocate memory for dim metadata. */
    if (!(new_dim = calloc(1, sizeof(NC_DIM_INFO_T))))
-      BAIL(NC_ENOMEM);
+      return NC_ENOMEM;
+
    new_dim->hdr.sort = NCDIM;
 
-   if(assignedid >= 0)
+   /* Assign the dimension ID. */
+   if (assignedid >= 0)
        new_dim->hdr.id = assignedid;
    else
-       new_dim->hdr.id = h5->next_dimid++;
+       new_dim->hdr.id = grp->nc4_info->next_dimid++;
 
-   /* Initialize the metadata for this dimension. */
+   /* Remember the name and create a hash. */
    if (!(new_dim->hdr.name = strdup(name)))
-      BAIL(NC_ENOMEM);
-   /* Create a hash of the name. */
-   new_dim->hdr.hashkey = NC_hashmapkey(new_dim->hdr.name,strlen(new_dim->hdr.name));
+      return NC_ENOMEM;
+   new_dim->hdr.hashkey = NC_hashmapkey(new_dim->hdr.name,
+                                        strlen(new_dim->hdr.name));
+
+   /* Is dimension unlimited? */
    new_dim->len = len;
    if (len == NC_UNLIMITED)
       new_dim->unlimited = NC_TRUE;
+
+   /* Remember the containing group. */
    new_dim->container = grp;
 
-   /* Add object to lists */
-   obj_list_add(grp->dim, (NC_OBJ*)new_dim);
-   obj_track(h5,(NC_OBJ*)new_dim);
+   /* Add object to dimension list for this group. */
+   obj_list_add(grp->dim, (NC_OBJ *)new_dim);
+   obj_track(grp->nc4_info, (NC_OBJ *)new_dim);
 
    /* Set the dim pointer, if one was given */
    if (dim)
       *dim = new_dim;
 
-exit:
-   if(retval != NC_NOERR)
-	nc4_dim_free(new_dim); /* would not be in list yet*/
-   return retval;
+   return NC_NOERR;
 }
 
 /**
@@ -1247,9 +1295,9 @@ nc4_var_free(NC_VAR_INFO_T *var)
 
    /* First delete all the attributes attached to this var. */
    for(i=0;i<ncindexsize(var->att);i++) {
-	att = (NC_ATT_INFO_T*)ncindexith(var->att,i);
-	if(att == NULL) continue; /* might be a gap */
-        if ((ret = nc4_att_free(att)))
+      att = (NC_ATT_INFO_T*)ncindexith(var->att,i);
+      if(att == NULL) continue; /* might be a gap */
+      if ((ret = nc4_att_free(att)))
          return ret;
    }
    ncindexfree(var->att);
@@ -1788,8 +1836,8 @@ log_metadata_nc(NC *nc)
       LOG((2, "This is a netCDF-3 file."));
       return NC_NOERR;
    }
-   LOG((2, "FILE - hdfid: 0x%x path: %s cmode: 0x%x parallel: %d redef: %d "
-        "fill_mode: %d no_write: %d next_nc_grpid: %d", h5->hdfid, nc->path,
+   LOG((2, "FILE - path: %s cmode: 0x%x parallel: %d redef: %d "
+        "fill_mode: %d no_write: %d next_nc_grpid: %d", nc->path,
         h5->cmode, (int)h5->parallel, (int)h5->redef, h5->fill_mode, (int)h5->no_write,
         h5->next_nc_grpid));
    if(nc_log_level >= 2)

@@ -85,9 +85,10 @@ static void dumpopenobjects(NC_FILE_INFO_T* h5);
 static int
 sync_netcdf4_file(NC_FILE_INFO_T *h5)
 {
+   NC_HDF5_FILE_INFO_T *hdf5_info;
    int retval;
 
-   assert(h5);
+   assert(h5 && h5->format_file_info);
    LOG((3, "%s", __func__));
 
    /* If we're in define mode, that's an error, for strict nc3 rules,
@@ -123,7 +124,9 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
          return retval;
    }
 
-   if (H5Fflush(h5->hdfid, H5F_SCOPE_GLOBAL) < 0)
+   /* Flush the HDF5 buffers to disk. */
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+   if (H5Fflush(hdf5_info->hdfid, H5F_SCOPE_GLOBAL) < 0)
       return NC_EHDFERR;
 
    return retval;
@@ -144,10 +147,12 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
 int
 nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
 {
+   NC_HDF5_FILE_INFO_T *hdf5_info;
    int retval = NC_NOERR;
 
-   assert(h5 && h5->root_grp);
+   assert(h5 && h5->root_grp && h5->format_file_info);
    LOG((3, "%s: h5->path %s abort %d", __func__, h5->controller->path, abort));
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
 
    /* According to the docs, always end define mode on close. */
    if (h5->flags & NC_INDEF)
@@ -164,28 +169,30 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
    if ((retval = nc4_rec_grp_del(h5->root_grp)))
       goto exit;
 
-   /* Misc. Cleanup */
+   /* Free lists of dims, groups, and types in the root group. */
    nclistfree(h5->alldims);
    nclistfree(h5->allgroups);
    nclistfree(h5->alltypes);
 
-   /* Close hdf file. */
 #ifdef USE_PARALLEL4
-   /* Free the MPI Comm & Info objects, if we opened the file in parallel */
-   if(h5->parallel)
+   /* Free the MPI Comm & Info objects, if we opened the file in
+    * parallel. */
+   if (h5->parallel)
    {
-      if(MPI_COMM_NULL != h5->comm)
+      if (h5->comm != MPI_COMM_NULL)
          MPI_Comm_free(&h5->comm);
-      if(MPI_INFO_NULL != h5->info)
+      if (h5->info != MPI_INFO_NULL)
          MPI_Info_free(&h5->info);
    }
 #endif
 
-   if(h5->fileinfo) free(h5->fileinfo);
+   /* Free the fileinfo struct, which holds info from the fileinfo
+    * hidden attribute. */
+   if (h5->fileinfo)
+      free(h5->fileinfo);
 
    /* Check to see if this is an in-memory file and we want to get its
-      final content
-   */
+      final content. */
    if(extractmem) {
       /* File must be read/write */
       if(!h5->no_write) {
@@ -193,10 +200,16 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
       }
    }
 
-   if (H5Fclose(h5->hdfid) < 0)
+   /* Close hdf file. */
+   if (H5Fclose(hdf5_info->hdfid) < 0)
    {
       dumpopenobjects(h5);
    }
+
+   /* Free the HDF5-specific info. */
+   if (h5->format_file_info)
+      free(h5->format_file_info);
+
 exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
@@ -208,9 +221,13 @@ exit:
 static void
 dumpopenobjects(NC_FILE_INFO_T* h5)
 {
+   NC_HDF5_FILE_INFO_T *hdf5_info;
    int nobjs;
 
-   nobjs = H5Fget_obj_count(h5->hdfid, H5F_OBJ_ALL);
+   assert(h5 && h5->format_file_info);
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+
+   nobjs = H5Fget_obj_count(hdf5_info->hdfid, H5F_OBJ_ALL);
    /* Apparently we can get an error even when nobjs == 0 */
    if(nobjs < 0) {
       return;
@@ -231,7 +248,7 @@ dumpopenobjects(NC_FILE_INFO_T* h5)
       fprintf(stdout,"%s\n",msg);
       logit = 0;
 #endif
-      reportopenobjects(logit,h5->hdfid);
+      reportopenobjects(logit,hdf5_info->hdfid);
       fflush(stderr);
    }
 
@@ -685,7 +702,7 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    {
       /* Do we need to read the atts? */
       if (grp->atts_not_read)
-         if ((retval = nc4_read_grp_atts(grp)))
+         if ((retval = nc4_read_atts(grp, NULL)))
             return retval;
 
       *nattsp = ncindexcount(grp->att);
