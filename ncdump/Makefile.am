@@ -30,12 +30,14 @@ bin_PROGRAMS += nccopy
 nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c     \
 utils.h utils.c dimmap.h dimmap.c list.c list.h
 
+# For debugging only
 # A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_NETCDF4
 noinst_PROGRAMS += nc4print
 nc4print_SOURCES = nc4print.c
 endif
 
+# For debugging only
 # Conditionally build the ocprint program, but do not install
 if ENABLE_DAP
 noinst_PROGRAMS += ocprint

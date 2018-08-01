@@ -11,10 +11,20 @@ See LICENSE.txt for license information.
 #undef NCSORTLIST /* Use binary search over list sorted by name */
 #undef NCNOHASH /* No hash in index: use linear search */
 
+#define NCINDEXINVARIANT 1 /* check invariants */
+
 #undef NCINDEXDEBUG
 
 #include "nclist.h"
 #include "nchashmap.h" /* Also includes name map and id map */
+
+/* Provide invariant checking macros */
+#ifdef NCINDEXINVARIANTS
+/* Verify that object->reserved equals theposition of object in NC_OBJ.list.*/
+#define INVARIANTID(index,obj) assert((nclistget(index->list,obj->reserved) == obj))
+#else
+#define INVARIANTID(index,obj)
+#endif
 
 /* Forward (see nc4internal.h)*/
 struct NC_OBJ;
@@ -49,22 +59,24 @@ typedef struct NCindex {
 #endif
 } NCindex;
 
-/* Locate object by name in an NCindex */
+/* Lookup object by name in index; return NULL if not found */
 extern struct NC_OBJ* ncindexlookup(NCindex* index, const char* name);
 
 /* Get ith object in the index vector */
 extern struct NC_OBJ* ncindexith(NCindex* index, size_t i);
 
-/* See if x is contained in the index and return its vector permission*/
-extern int ncindexfind(NCindex* index, struct NC_OBJ* o);
+/* Return 1 if x is contained in the index, 0 otherwise */
+extern int ncindexcontains(NCindex* index, struct NC_OBJ* o);
 
 /* Add object to the end of the vector, also insert into the name map; */
 /* Return 1 if ok, 0 otherwise.*/
 extern int ncindexadd(NCindex* index, struct NC_OBJ* obj);
 
+#if 0
 /* Insert object at ith position of the vector, also insert into the name map; */
 /* Return 1 if ok, 0 otherwise.*/
 extern int ncindexset(NCindex* index, size_t i, struct NC_OBJ* obj);
+#endif
 
 /* Get a copy of the vector contents */
 extern struct NC_OBJ** ncindexdup(NCindex* index);
@@ -72,11 +84,11 @@ extern struct NC_OBJ** ncindexdup(NCindex* index);
 /* Count the non-null entries in an NCindex */
 extern int ncindexcount(NCindex* index);
 
-/* "Remove" ith object from the index and from name map;
-    WARNING: Replaces it with NULL in the vector.
+/* "Remove" object from the index and from name map;
+    WARNING: Can require rebuilding index.
 */
-/* Return 1 if ok, 0 otherwise.*/
-extern int ncindexidel(NCindex* index,size_t i);
+/* Return 1 if found, 0 otherwise.*/
+extern int ncindexremove(NCindex* index, struct NC_OBJ*);
 
 /* Free an index. */
 /* Return 1 if ok; 0 otherwise */
@@ -87,9 +99,6 @@ extern int ncindexfree(NCindex* index);
 extern NCindex* ncindexnew(size_t initsize);
 
 extern int ncindexverify(NCindex* lm, int dump);
-
-/* Lookup object in index; return NULL if not found */
-extern struct NC_OBJ* ncindexlookup(NCindex*, const char* name);
 
 /* Inline functions */
 
@@ -109,11 +118,11 @@ static int ncindexsize(NCindex* index)
 #define ncindexsize(index) ((index)==NULL?0:(nclistlength((index)->list)))
 #endif
 
-/* Hide value of NC_OBJ->data */
+/* Wrap setting of value of NC_OBJ->data */
 extern void ncindexsetdata(struct NC_OBJ* hdr);
 
-/* Hide renaming fixups */
-extern int ncindexreinsert(NCindex* index, struct NC_OBJ* hdr);
+/* Wrap renaming obj fixups */
+extern int ncindexrename(NCindex* index, struct NC_OBJ* hdr, const char* oldname);
 
 /* Wrap Attribute renumbering */
 extern int ncindexrenumberid(NCindex* index);

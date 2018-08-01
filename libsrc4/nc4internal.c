@@ -581,7 +581,6 @@ static void
 obj_list_add(NCindex* index, NC_OBJ* obj)
 {
     /* Insert object into the index */
-//    ncindexset(index,obj->id,obj);
     ncindexadd(index,obj);
 }
 
@@ -621,7 +620,7 @@ obj_track(NC_FILE_INFO_T* file, NC_OBJ* obj)
 static void
 obj_list_del(NCindex* index, NC_OBJ *obj)
 {
-   ncindexidel(index,obj->id);
+   ncindexremove(index,obj);
 }
 
 /**
@@ -1329,16 +1328,13 @@ nc4_var_free(NC_VAR_INFO_T *var)
 int
 nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
 {
-   int i;
-
    if(var == NULL)
       return NC_NOERR;
 
    /* Remove from lists */
    if(grp) {
-       i = ncindexfind(grp->vars,(NC_OBJ*)var);
-       if(i >= 0)
-           ncindexidel(grp->vars,i);
+       if(ncindexcontains(grp->vars,(NC_OBJ*)var))
+           ncindexremove(grp->vars,(NC_OBJ*)var);
    }
    return nc4_var_free(var);
 }
@@ -1377,9 +1373,8 @@ int
 nc4_dim_list_del(NC_GRP_INFO_T* grp, NC_DIM_INFO_T *dim)
 {
    if(grp && dim) {
-	int pos = ncindexfind(grp->dim,(NC_OBJ*)dim);
-	if(pos >= 0)
-            ncindexidel(grp->dim,pos);
+	if(ncindexcontains(grp->dim,(NC_OBJ*)dim))
+            ncindexremove(grp->dim,(NC_OBJ*)dim);
    }
    return nc4_dim_free(dim);
 }

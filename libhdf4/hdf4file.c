@@ -240,7 +240,6 @@ nc4_set_var_type(nc_type xtype, int endianness, size_t type_size, char *type_nam
    type->endianness = endianness;
    type->size = type_size;
    type->hdr.id = (size_t)xtype;
-   type->hdr.hashkey = NC_hashmapkey(type->hdr.name, strlen(type->hdr.name));
 
    /* Return to caller. */
    *typep = type;

@@ -20,13 +20,13 @@ be nice if we had a large enough hashkey that was known to have
 an extremely low probability of collisions so we could compare
 the hashkeys to determine exact match. A quick internet search
 indicates that this is rather more tricky than just using
-e.g. crc64 or such.  Needs some thought.
+e.g. crc64 or such. Might involve big performance hit.
 */
 
 /*! Hashmap-related structs.
   NOTES:
   1. 'data' is the an arbitrary uintptr_t integer or void* pointer.
-  2. hashkey is a crc32 hash of key
+  2. hashkey is a hash of the key string
     
   WARNINGS:
   1. It is critical that |uintptr_t| == |void*|
@@ -36,8 +36,7 @@ typedef struct NC_hentry {
     int flags;
     uintptr_t data;
     unsigned int hashkey; /* Hash id */
-    size_t keysize;
-    char* key; /* copy of the key string; kept as unsigned char */
+    char* key; /* nul terminated; WARNING: NOT A COPY */
 } NC_hentry;
 
 /*
@@ -50,35 +49,29 @@ typedef struct NC_hashmap {
   NC_hentry* table;
 } NC_hashmap;
 
-/* defined in nchashmap.c */
-
-/*
-There are two "kinds" of functions:
-1. those that take the key+size -- they compute the hashkey internally.
-2. those that take the hashkey directly
-*/
+/* Implemented in nchashmap.c */
 
 /** Creates a new hashmap near the given size. */
 extern NC_hashmap* NC_hashmapnew(size_t startsize);
 
 /** Inserts a new element into the hashmap; takes key+size */
 /* key points to size bytes to convert to hash key */
-extern int NC_hashmapadd(NC_hashmap*, uintptr_t data, const char* key, size_t keysize);
+extern int NC_hashmapadd(NC_hashmap*, uintptr_t data, char* key);
 
 /** Removes the storage for the element of the key; takes key+size.
     Return 1 if found, 0 otherwise; returns the data in datap if !null
 */
-extern int NC_hashmapremove(NC_hashmap*, const char* key, size_t keysize, uintptr_t* datap);
+extern int NC_hashmapremove(NC_hashmap*, const char* key, uintptr_t* datap);
 
 /** Returns the data for the key; takes key+size.
     Return 1 if found, 0 otherwise; returns the data in datap if !null
 */
-extern int NC_hashmapget(NC_hashmap*, const char* key, size_t keysize, uintptr_t* datap);
+extern int NC_hashmapget(NC_hashmap*, const char* key, uintptr_t* datap);
 
 /** Change the data for the specified key; takes hashkey.
     Return 1 if found, 0 otherwise
 */
-extern int NC_hashmapsetdata(NC_hashmap*, const char* key, size_t keylen, uintptr_t newdata);
+extern int NC_hashmapsetdata(NC_hashmap*, const char* key, uintptr_t newdata);
 
 /** Returns the number of saved elements. */
 extern size_t NC_hashmapcount(NC_hashmap*);
@@ -87,9 +80,9 @@ extern size_t NC_hashmapcount(NC_hashmap*);
 extern int NC_hashmapfree(NC_hashmap*);
 
 /* Return the hash key for specified key; takes key+size*/
-extern unsigned int NC_hashmapkey(const char* key, size_t size);
+extern unsigned int NC_hashmapkey(const char* key);
 
-extern void printhashmap(NC_hashmap* hm);
+extern void printhashmap(NC_hashmap*);
 
 #endif /*NCHASHMAP_H*/
 

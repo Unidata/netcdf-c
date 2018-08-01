@@ -324,7 +324,7 @@ incr_NC_vararray(NC_vararray *ncap, NC_var *newelemp)
 
 	if(newelemp != NULL)
 	{
-		NC_hashmapadd(ncap->hashmap, (uintptr_t)ncap->nelems, newelemp->name->cp, strlen(newelemp->name->cp));
+		NC_hashmapadd(ncap->hashmap, (uintptr_t)ncap->nelems, newelemp->name->cp);
 		ncap->value[ncap->nelems] = newelemp;
 		ncap->nelems++;
 	}
@@ -371,7 +371,7 @@ NC_findvar(const NC_vararray *ncap, const char *uname, NC_var **varpp)
         if(nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name))
 	    goto done;
 
-	if(NC_hashmapget(ncap->hashmap, name, strlen(name), &data) == 0)
+	if(NC_hashmapget(ncap->hashmap, name, &data) == 0)
 	    goto done;
 
 	hash_var_id = (int)data;
@@ -766,13 +766,13 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 	{
 		/* Remove old name from hashmap; add new... */
 	        /* WARNING: strlen(NC_string.cp) may be less than NC_string.nchars */
-		NC_hashmapremove(ncp->vars.hashmap,old->cp,strlen(old->cp),NULL);
+		NC_hashmapremove(ncp->vars.hashmap,old->cp,NULL);
 		newStr = new_NC_string(strlen(newname),newname);
 		if(newStr == NULL)
 		    {status = NC_ENOMEM; goto done;}
 		varp->name = newStr;
 		intdata = (uintptr_t)varid;
-		NC_hashmapadd(ncp->vars.hashmap, intdata, varp->name->cp, strlen(varp->name->cp));
+		NC_hashmapadd(ncp->vars.hashmap, intdata, varp->name->cp);
 		free_NC_string(old);
 		goto done;
 	}
@@ -785,7 +785,7 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 
 	/* WARNING: strlen(NC_string.cp) may be less than NC_string.nchars */
 	/* Remove old name from hashmap; add new... */
-        NC_hashmapremove(ncp->vars.hashmap,old->cp,strlen(old->cp),NULL);
+        NC_hashmapremove(ncp->vars.hashmap,old->cp,NULL);
 
 	/* WARNING: strlen(NC_string.cp) may be less than NC_string.nchars */
 	status = set_NC_string(varp->name, newname);
@@ -793,7 +793,7 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 		goto done;
 
 	intdata = (uintptr_t)varid;
-	NC_hashmapadd(ncp->vars.hashmap, intdata, varp->name->cp, strlen(varp->name->cp));
+	NC_hashmapadd(ncp->vars.hashmap, intdata, varp->name->cp);
 
 	set_NC_hdirty(ncp);
 

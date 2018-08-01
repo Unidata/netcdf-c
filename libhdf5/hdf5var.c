@@ -1077,14 +1077,9 @@ NC4_rename_var(int ncid, int varid, const char *name)
    }
 
    /* Now change the name in our metadata. */
-   free(var->hdr.name);
-   if (!(var->hdr.name = strdup(name)))
-      return NC_ENOMEM;
+   if(!ncindexrename(grp->vars,(NC_OBJ*)var,name))
+	return NC_EINTERNAL;
    LOG((3, "var is now %s", var->hdr.name));
-   var->hdr.hashkey = NC_hashmapkey(var->hdr.name,strlen(var->hdr.name)); /* Fix hash key */
-
-   if(!ncindexrebuild(grp->vars))
-      return NC_EINTERNAL;
 
    /* Check if this was a coordinate variable previously, but names are different now */
    if (var->dimscale && strcmp(var->hdr.name, var->dim[0]->hdr.name))

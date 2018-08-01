@@ -15,7 +15,9 @@
 #endif
 #include <assert.h>
 #include <string.h>
+#ifdef HAVE_STRINGS_H
 #include <strings.h>
+#endif
 
 #include "oc.h"
 #include "ocx.h"

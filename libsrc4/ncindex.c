@@ -38,6 +38,7 @@ Warning: This code depends critically on the assumption that
 /* Common forwards */
 static const char* sortname(NC_SORT sort);
 static int ncindexrebuild(NCindex* index);
+static int ncindexreinsert(NCindex* index, NC_OBJ* obj, const char* oldname);
 void printindexmap(NCindex* lm);
 
 /* Functions independent of the name map implementation */
@@ -52,9 +53,9 @@ ncindexith(NCindex* index, size_t i)
 }
 
 /* See if x is contained in the index */
-/* Return vector position if in index, otherwise return -1. */
+/* Return 1 if found, 0 otherwise */
 int
-ncindexfind(NCindex* index, NC_OBJ* nco)
+ncindexcontains(NCindex* index, NC_OBJ* nco)
 {
     int i;
     NClist* list;
@@ -62,9 +63,9 @@ ncindexfind(NCindex* index, NC_OBJ* nco)
     list = index->list;
     for(i=0;i<nclistlength(list);i++) {
 	NC_OBJ* o = (NC_OBJ*)list->content[i];
-	if(nco == o) return i;
+	if(nco == o) return 1;
     }
-    return -1;
+    return 0;
 }
 
 /*Return a duplicate of the index's vector */
@@ -158,16 +159,23 @@ ncindexsetdata(NC_OBJ* hdr)
 int
 ncindexrename(NCindex* index, NC_OBJ* hdr, const char* newname)
 {
+   char* oldname = NULL;
    if(!hdr) return NC_EINTERNAL;
-   if(hdr->name) free(hdr->name);
+   oldname = hdr->name;
+   if(oldname == NULL) return NC_EINTERNAL;
    if (!(hdr->name = strdup(newname)))
       return NC_ENOMEM;
-   if(!ncindexreinsert(index,hdr)) /* implementation dependent */
+   if(!ncindexreinsert(index,hdr,oldname)) /* implementation dependent */
       return NC_EINTERNAL;
+   free(oldname);
    return NC_NOERR;
 }
 
-/* Wrap Attribute renumbering */
+/*
+Wrap Attribute renumbering
+Assume that set of attributes is ok, but
+that the id may not match its location in index->list
+*/
 int
 ncindexrenumberid(NCindex* index)
 {
@@ -176,10 +184,16 @@ ncindexrenumberid(NCindex* index)
       NC_OBJ* obj = ncindexith(index,i);
       if(obj == NULL) continue;
       if(obj->id > i) {
+	NC_OBJ* o2;
 	obj->id--;
-	/* verify */
+	/* verify that now the id and the position in obj->list match*/
 	if(obj->id != i)
 	    return NC_EINTERNAL;
+	/* Lookup the object name in the namemap and change its data */
+	o2 = ncindexlookup(index,obj->name);	
+	if(o2 != obj)
+	    return NC_EINTERNAL;
+	
       }
    }
    /* rebuild the index */

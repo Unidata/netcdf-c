@@ -101,9 +101,10 @@ typedef struct NC_OBJ {
     NC_SORT sort;
     char* name; /* assumed to be null terminated */
     size_t id;
-#if 0
-    unsigned int data; /* depends on implementation; e.g. for hash, this is hashkey */
-#endif
+    uintptr_t reserved; /* Arbitrary value; assumes |void*| == |uintptr_t| 
+                           so can hold an integer or a pointer.
+			   Reserved for use by ncindex only.
+                        */
 } NC_OBJ;
 
 /* This is a struct to handle the dim metadata. */

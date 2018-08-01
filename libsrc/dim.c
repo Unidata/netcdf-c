@@ -140,7 +140,7 @@ NC_finddim(const NC_dimarray *ncap, const char *uname, NC_dim **dimpp)
    /* normalized version of uname */
   if(nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name))
 	goto done;	 
-  if(NC_hashmapget(ncap->hashmap, name, strlen(name), &data) == 0)
+  if(NC_hashmapget(ncap->hashmap, name, &data) == 0)
 	goto done;
   dimid = (int)data;
   if(dimpp) *dimpp = ncap->value[dimid];
@@ -288,7 +288,7 @@ incr_NC_dimarray(NC_dimarray *ncap, NC_dim *newelemp)
 	if(newelemp != NULL)
 	{
            uintptr_t intdata = ncap->nelems;
-	   NC_hashmapadd(ncap->hashmap, intdata, newelemp->name->cp, strlen(newelemp->name->cp));
+	   NC_hashmapadd(ncap->hashmap, intdata, newelemp->name->cp);
 	   ncap->value[ncap->nelems] = newelemp;
 	   ncap->nelems++;
 	}
@@ -474,11 +474,11 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 			{status = NC_ENOMEM; goto done;}
 
 		/* Remove old name from hashmap; add new... */
-	        NC_hashmapremove(ncp->dims.hashmap, old->cp, strlen(old->cp), NULL);
+	        NC_hashmapremove(ncp->dims.hashmap, old->cp, NULL);
 		dimp->name = newStr;
 
 		intdata = dimid;
-		NC_hashmapadd(ncp->dims.hashmap, intdata, newStr->cp, strlen(newStr->cp));
+		NC_hashmapadd(ncp->dims.hashmap, intdata, newStr->cp);
 		free_NC_string(old);
 		goto done;
 	}
@@ -493,7 +493,7 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 
 	/* Remove old name from hashmap; add new... */
 	/* WARNING: strlen(NC_string.cp) may be less than NC_string.nchars */
-	NC_hashmapremove(ncp->dims.hashmap, old->cp, strlen(old->cp), NULL);
+	NC_hashmapremove(ncp->dims.hashmap, old->cp, NULL);
 
 	/* WARNING: strlen(NC_string.cp) may be less than NC_string.nchars */
 	status = set_NC_string(dimp->name, newname);
@@ -501,7 +501,7 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 		goto done;
 
         intdata = (uintptr_t)dimid;
-	NC_hashmapadd(ncp->dims.hashmap, intdata, dimp->name->cp, strlen(dimp->name->cp));
+	NC_hashmapadd(ncp->dims.hashmap, intdata, dimp->name->cp);
 
 	set_NC_hdirty(ncp);
 
