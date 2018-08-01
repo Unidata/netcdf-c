@@ -135,8 +135,13 @@ main(int argc, char **argv)
        sleep(mpi_rank);
 #endif /* USE_MPE */
 
+#ifdef USE_PNETCDF
+/*    if (nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE)) ERR;*/
+    if (nc_var_par_access(ncid, NC_GLOBAL, NC_INDEPENDENT)) ERR;
+#else
 /*    if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;*/
     if (nc_var_par_access(ncid, varid, NC_INDEPENDENT)) ERR;
+#endif
 
     if (!mpi_rank)
        start_time = MPI_Wtime();

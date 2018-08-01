@@ -352,6 +352,41 @@ memory before writing it to disk on close:
 .HP
 nccopy \-w \-c time/1000,lat/40,lon/40 slow.nc fast.nc
 .RE
+
+.SH "Chunking Rules"
+.LP
+The complete set of chunking rules is captured here.  As a rough
+summary, these rules preserve all chunking properties from the
+input file. These rules apply only when the selected output
+format supports chunking, i.e. for the netcdf-4 variants.
+.LP
+The following rules are applied in the given order independently
+for each variable to be copied from input to output. The rules are
+written assuming we are trying to determine the chunking for a given
+output variable Vout that comes from an input variable Vin.
+.NP
+For each dimension of Vout explicitly specified on the command line
+using the '-c' option, apply the chunking value for that
+dimension.  regardless of input format or input properties.
+
+.NP
+For dimensions of V not named on the command line, preserve chunk
+sizes from the corresponding input variable.
+.NP
+If V is netcdf-4 and contiguous, and none of its dimensions are
+named on the command line, and chunking is not mandated by other
+options, then make V be contiguous.
+.NP
+If the input variable is contiguous (or is some netcdf-3
+variant) and there are no options requiring chunking, or the '/'
+special case for the '-c' option is specified, then the output
+variable V is marked as contiguous.
+.NP
+Handle all remaining cases when some or all chunk sizes are not determined by the command line or the input variable. This includes the non-chunked input cases such as netcdf-3, cdf5, and DAP. In these cases:
+        Retain all chunk sizes determined by (1) and (2); and
+        Compute the remaining chunk sizes automatically, with some reasonable 
+
+
 .SH "SEE ALSO"
 .LP
 .BR ncdump(1), ncgen(1), netcdf(3)
