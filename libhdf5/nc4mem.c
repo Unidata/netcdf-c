@@ -75,9 +75,9 @@ NC4_create_image_file(NC_FILE_INFO_T* h5, size_t initialsz)
     hdfid = NC4_image_init(h5);
     if(hdfid < 0)
 	{stat = NC_EHDFERR; goto done;}
-
     /* Remember HDF5 file identifier. */
     ((NC_HDF5_FILE_INFO_T *)h5->format_file_info)->hdfid = hdfid;
+
 done:
     return stat;
 }
@@ -90,7 +90,7 @@ NC4_extract_file_image(NC_FILE_INFO_T* h5)
     herr_t herr;
     NC_memio mem;
 
-    assert(h5 && h5->format_file_info && !h5->no_write);
+   assert(h5 && h5->format_file_info && !h5->no_write);
 
     /* Get the file access property list */
     fapl = h5->mem.fapl;
