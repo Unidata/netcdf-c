@@ -34,6 +34,12 @@
 #define strcasecmp stricmp
 #endif
 
+#ifdef _MSC_VER
+#include "XGetopt.h"
+int opterr;
+int optind;
+#endif
+
 #ifndef nulldup
 #define nulldup(s) (s==NULL?NULL:strdup(s))
 #endif
