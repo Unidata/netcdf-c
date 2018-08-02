@@ -60,7 +60,7 @@ int optind;
 /*Mnemonic*/
 #define TOPLEVEL 1
 
-extern int ocdebug;
+int ocdebug;
 
 static OCerror ocstat;
 static OClink glink;
