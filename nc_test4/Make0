@@ -1,5 +1,5 @@
 # Test c output
-T=tst_varsperf
+T=bigmeta
 
 #SRC=hdf5plugins/H5Zmisc.c
 
@@ -12,7 +12,8 @@ T=tst_varsperf
 #PAR=1
 #SZIP=1
 
-CFLAGS = -Wall -Wno-unused-variable -Wno-unused-function -g -O0 -I.. -I../include
+#CFLAGS = -Wall -Wno-unused-variable -Wno-unused-function -g -O0 -I.. -I../include
+CFLAGS = -Wall -g -O0 -I.. -I../include
 
 LDFLAGS = ../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -ldl -lcurl -lm -lmfhdf -ldf
 
@@ -31,7 +32,8 @@ LLP=/usr/local/lib:${LD_LIBRARY_PATH}
 
 all:: cmp
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
-	${CMD} ./t ${ARGS}
+
+#	${CMD} ./t ${ARGS}
 
 cmp::
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
