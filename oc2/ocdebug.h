@@ -58,8 +58,8 @@ about how IO is getting along.
 */
 #undef OCPROGRESS
 
-extern int ocdebug;
-extern int cedebug;
+EXTERNL int ocdebug;
+EXTERNL int cedebug;
 
 /*extern char* dent2(int n);*/
 /*/extern char* dent(int n);*/
@@ -103,4 +103,3 @@ extern CURLcode ocreportcurlerror(struct OCstate* state, CURLcode cstat);
 #define OCTHROWCHK(e) OCCATCHCHK(e)
 
 #endif /*OCOCDBG_H*/
-
