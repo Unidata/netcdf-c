@@ -53,16 +53,19 @@ ncindexset(NCindex* ncindex, size_t i, NC_OBJ* obj)
 #endif
 
 /**
- * Remove object from the index
+ * Remove object from the index.
+ * In order to keep reserved values correct,
+ * it is necessary to replace the list entry with NULL,
+ * So iteration code needs to be aware of this.
  * Return 1 if found, 0 otherwise.*/
 int
 ncindexremove(NCindex* index, NC_OBJ* obj)
 {
-   NC_OBJ* o2;
    if(index == NULL) return 0;
    INVARIANTID(index,obj);
-   o2 = nclistremove(index->list,obj->reserved);
-   if(o2 == NULL || o2 != obj) return 0;
+   /* Overwrite entry in list with NULL */
+   if(!nclistset(index->list,obj->reserved,NULL))
+	return NC_EINTERNAL;
 
    /* Remove from the hash map by deactivating its entry */
    if(!NC_hashmapremove(index->namemap,obj->name,NULL))
@@ -70,6 +73,7 @@ ncindexremove(NCindex* index, NC_OBJ* obj)
    return 1;
 }
 
+#if 0
 /*
 Rebuild the list map by rehashing all entries
 using their current, possibly changed id and name;
@@ -79,7 +83,6 @@ also recompute their hashkey.
 static int
 ncindexrebuild(NCindex* index)
 { 
-#if 0
     size_t i;
     size_t size = nclistlength(index->list);
     NC_OBJ** contents = (NC_OBJ**)nclistextract(index->list);
@@ -97,9 +100,9 @@ ncindexrebuild(NCindex* index)
 	    return 0;
     }
     if(contents != NULL) free(contents);
-#endif
     return 0;
 }
+#endif
 
 /*
 Remove and re-insert a renamed object.

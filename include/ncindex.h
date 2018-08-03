@@ -125,7 +125,7 @@ extern void ncindexsetdata(struct NC_OBJ* hdr);
 extern int ncindexrename(NCindex* index, struct NC_OBJ* hdr, const char* oldname);
 
 /* Wrap Attribute renumbering */
-extern int ncindexrenumberid(NCindex* index);
+extern int ncindexrenumberid(NCindex* index, size_t from);
 
 /* Hide rename operation */
 extern int ncindexrename(NCindex* index, struct NC_OBJ* hdr, const char* newname);

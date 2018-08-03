@@ -155,7 +155,8 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
    }
 
    /* Rename attribute in our index */
-   {int ret; if((ret=ncindexrename(list,(NC_OBJ*)att,norm_newname))) return ret;}
+   if(!ncindexrename(list,(NC_OBJ*)att,norm_newname))
+	return NC_EINTERNAL;
    att->dirty = NC_TRUE;
 
    /* Mark attributes on variable dirty, so they get written */
@@ -260,7 +261,7 @@ NC4_del_att(int ncid, int varid, const char *name)
       BAIL(NC_EINTERNAL);
    }
 #else
-   if(!ncindexrenumberid(attlist))
+   if(!ncindexrenumberid(attlist,att->hdr.id+1))
       BAIL(NC_EINTERNAL);	   
 #endif
 

@@ -255,7 +255,8 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    /* Give the dimension its new name in metadata. UTF8 normalization
     * has been done. */
    assert(dim->hdr.name);
-   {int ret; if((ret=ncindexrename(grp->dim,(NC_OBJ*)dim,norm_name))) return ret;}
+   if(!ncindexrename(grp->dim,(NC_OBJ*)dim,norm_name))
+	return NC_EINTERNAL;
 
    /* Check if dimension was a coordinate variable, but names are
     * different now */

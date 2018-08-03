@@ -114,7 +114,11 @@ main(int argc, char *argv[])
      * the netCDF-4 format last, however, because, as an additional
      * test, the ../nc_test4/tst_nc_test_file program looks at the
      * output of this program. */
+#if 0
     for (i = 1; i <= NUM_FORMATS; i++)
+#else
+    for (i = NC_FORMAT_NETCDF4_CLASSIC;i == NC_FORMAT_NETCDF4_CLASSIC;i++)
+#endif
     {
        numGatts = 6;
        numVars  = 136;
@@ -176,6 +180,7 @@ main(int argc, char *argv[])
        (void) remove(scratch);
 
 	/* Test read-only functions, using pre-generated test-file */
+#if 0
  	NC_TEST(nc_strerror);
 	NC_TEST(nc_open);
 	NC_TEST(nc_close);
@@ -367,10 +372,13 @@ main(int argc, char *argv[])
 	NC_TEST(nc_put_att);
 	NC_TEST(nc_copy_att);
 	NC_TEST(nc_rename_att);
+#endif
 	NC_TEST(nc_del_att);
+#if 0
 	NC_TEST(nc_against_pnetcdf);
         /* keep below the last test, as it changes the default file format */
 	NC_TEST(nc_set_default_format);
+#endif
     }
 
     fprintf(stderr, "\n*** Total number of failures: %d\n", nfailsTotal);

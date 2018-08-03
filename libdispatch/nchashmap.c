@@ -245,8 +245,6 @@ NC_hashmapremove(NC_hashmap* hash, const char* key, uintptr_t* datap)
     if(keysize == 0) return 0;
 
     hashkey = computehash(key,keysize);
-
-    hashkey = computehash(key,keysize);
     if(!locate(hash,hashkey,key,&index,0))
 	return 0; /* not present */
     h = &hash->table[index];

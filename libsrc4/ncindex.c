@@ -37,7 +37,6 @@ Warning: This code depends critically on the assumption that
 
 /* Common forwards */
 static const char* sortname(NC_SORT sort);
-static int ncindexrebuild(NCindex* index);
 static int ncindexreinsert(NCindex* index, NC_OBJ* obj, const char* oldname);
 void printindexmap(NCindex* lm);
 
@@ -160,44 +159,29 @@ int
 ncindexrename(NCindex* index, NC_OBJ* hdr, const char* newname)
 {
    char* oldname = NULL;
-   if(!hdr) return NC_EINTERNAL;
+   if(!hdr) return 0;
    oldname = hdr->name;
-   if(oldname == NULL) return NC_EINTERNAL;
+   if(oldname == NULL) return 0;
    if (!(hdr->name = strdup(newname)))
-      return NC_ENOMEM;
+      return 0;
    if(!ncindexreinsert(index,hdr,oldname)) /* implementation dependent */
-      return NC_EINTERNAL;
+      return 0;
    free(oldname);
-   return NC_NOERR;
+   return 1;
 }
 
 /*
 Wrap Attribute renumbering
-Assume that set of attributes is ok, but
-that the id may not match its location in index->list
+Start renumbering with index->list[from].
 */
 int
-ncindexrenumberid(NCindex* index)
+ncindexrenumberid(NCindex* index, size_t from)
 {
    int i;
-   for(i=0;i<ncindexsize(index);i++) {
+   for(i=from;i<ncindexsize(index);i++) {
       NC_OBJ* obj = ncindexith(index,i);
       if(obj == NULL) continue;
-      if(obj->id > i) {
-	NC_OBJ* o2;
-	obj->id--;
-	/* verify that now the id and the position in obj->list match*/
-	if(obj->id != i)
-	    return NC_EINTERNAL;
-	/* Lookup the object name in the namemap and change its data */
-	o2 = ncindexlookup(index,obj->name);	
-	if(o2 != obj)
-	    return NC_EINTERNAL;
-	
-      }
+      obj->id--;
    }
-   /* rebuild the index */
-   if(!ncindexrebuild(index))
-      return NC_EINTERNAL;
-   return NC_NOERR;
+   return 1;
 }

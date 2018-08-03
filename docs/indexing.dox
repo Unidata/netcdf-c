@@ -349,7 +349,7 @@ that will look like this.
 NC_GRP_INFO_T* grp;
 ...
 for(i=0;i<ncindexsize(grp->children);i++) {
-  NC_GRP_INFO_T* g = nclistith(grp->children,i);
+  NC_GRP_INFO_T* g = ncindexith(grp->children,i);
 ...
 }
 \endcode

@@ -146,6 +146,7 @@ NC4_rename_grp(int grpid, const char *name)
 
    /* Give the group its new name in metadata. UTF8 normalization
     * has been done. */
-   {int ret; if((ret=ncindexrename(parent->children,(NC_OBJ*)grp,norm_name))) return ret;}
+   if(!ncindexrename(parent->children,(NC_OBJ*)grp,norm_name))
+	return NC_EINTERNAL;
    return NC_NOERR;
 }
