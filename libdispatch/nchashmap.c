@@ -2090,7 +2090,7 @@ printhashmap(NC_hashmap* hm)
 	NC_hentry e = hm->table[i];
 	if(e.flags == ACTIVE) {
 	    fprintf(stderr,"[%ld] flags=ACTIVE hashkey=%lu data=%p keysize=%u key=(%llu)|%s|\n",
-		(unsigned long)i,(unsigned long)e.hashkey,(void*)e.data,(unsigned)e.keysize,(unsigned long long)e.key,e.key);
+		(unsigned long)i,(unsigned long)e.hashkey,(void*)e.data,(unsigned)e.keysize,(unsigned long long)(uintptr_t)e.key,e.key);
 	    running = 0;
 	} else if(e.flags == DELETED) {
 	    fprintf(stderr,"[%ld] flags=DELETED hashkey=%lu\n",
