@@ -200,7 +200,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
 exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
-   if(!retval && h5 != NULL)
+   if(!retval)
       free(h5);
    return retval;
 }
