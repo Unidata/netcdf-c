@@ -7,8 +7,8 @@ See LICENSE.txt for license information.
 #define NCINDEX_H
 
 /* Pick ONE of these as implementation */
-#define NCHASHED /* Use hashmap to lookup by name */
-#undef NCSORTLIST /* Use binary search over list sorted by name */
+#undef NCHASHED /* Use hashmap to lookup by name */
+#define NCSORTLIST /* Use binary search over list sorted by name */
 #undef NCNOHASH /* No hash in index: use linear search */
 
 #define NCINDEXINVARIANT 1 /* check invariants */
@@ -71,12 +71,6 @@ extern int ncindexcontains(NCindex* index, struct NC_OBJ* o);
 /* Add object to the end of the vector, also insert into the name map; */
 /* Return 1 if ok, 0 otherwise.*/
 extern int ncindexadd(NCindex* index, struct NC_OBJ* obj);
-
-#if 0
-/* Insert object at ith position of the vector, also insert into the name map; */
-/* Return 1 if ok, 0 otherwise.*/
-extern int ncindexset(NCindex* index, size_t i, struct NC_OBJ* obj);
-#endif
 
 /* Get a copy of the vector contents */
 extern struct NC_OBJ** ncindexdup(NCindex* index);

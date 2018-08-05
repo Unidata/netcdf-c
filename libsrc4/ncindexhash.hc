@@ -65,7 +65,7 @@ ncindexremove(NCindex* index, NC_OBJ* obj)
    INVARIANTID(index,obj);
    /* Overwrite entry in list with NULL */
    if(!nclistset(index->list,obj->reserved,NULL))
-	return NC_EINTERNAL;
+	return 0;
 
    /* Remove from the hash map by deactivating its entry */
    if(!NC_hashmapremove(index->namemap,obj->name,NULL))

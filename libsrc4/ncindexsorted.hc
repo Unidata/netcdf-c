@@ -72,6 +72,7 @@ ncindexidel(NCindex* index, size_t i)
    return 1;
 }
 
+#if 0 /* unused */
 /*
 Rebuild the index by using the list to rebuild the namemap
 using the current, possibly changed id and name;
@@ -81,7 +82,6 @@ Return 1 if ok, 0 otherwise.
 static int
 ncindexrebuild(NCindex* index)
 { 
-#if 0 /* unused */
     size_t i;
     size_t size = nclistlength(index->list);
 
@@ -97,34 +97,33 @@ ncindexrebuild(NCindex* index)
 	if(!ncindexadd(index,tmp))
 	    return 0;
     }
-#endif
     return 1;    
 }
+#endif
 
-/*
-Do the necessary fixups to rename an object.
-Assume that the NC_OBJ->name is the new name
-and old_name is the previous name.
-Assume that NC_OBJ->id is the proper new id
-Fixup NC_OBJ.reserved.
-*/
-/* Return 1 if ok, 0 otherwise */
+/**
+ * Remove object from the index.
+ * In order to keep reserved values correct,
+ * it is necessary to replace the list entry with NULL,
+ * So iteration code needs to be aware of this.
+ * Also force reserved field to have the right value.
+ * Return 1 if found, 0 otherwise.*/
 int
-ncindexrename(NCindex* index, NC_OBJ* obj, const char* oldname)
+ncindexremove(NCindex* index, NC_OBJ* obj)
 {
     size_t i;
-    size_t lpos = 0; /* actual pos in list */
     size_t mpos = 0; /* actual pos in namemap */
-    int lfound = 0;
     int mfound = 0;
+    size_t lpos = 0; /* actual pos in list vector */
+    int lfound = 0;
+
     /* In case the obj->reserved is incorrect, do a linear search of list*/
     for(i=0;i<nclistlength(index->list);i++) {
 	NC_OBJ* o2 = nclistget(index->list,i);
 	if(obj == o2) {
 	    lpos = i;
 	    lfound = 1;
-            /* Fixup reserved field */
-            obj->reserved = lpos;
+            obj->reserved = lpos; /* gaurantee reserved field has right value*/
 	    break;
 	}
     }
@@ -137,10 +136,39 @@ ncindexrename(NCindex* index, NC_OBJ* obj, const char* oldname)
 	    break;
 	}
     }
+    /* Remove from list by overwriting with NULL */
+    if(lfound)
+	if(!nclistinsert(index->list,lpos,NULL))
+	    return 0;
     /* Remove from name map*/
     if(mfound)
-	nclistremove(index->namemap,mpos);
-    /* Reinsert */
+	if(!nclistremove(index->namemap,mpos))
+	    return 0;
+    return 1;
+}
+
+/*
+Remove and re-insert a renamed object.
+Assume obj->name is new name, oldname is the previous name.
+*/
+/* Return 1 if ok, 0 otherwise */
+static int
+ncindexreinsert(NCindex* index, NC_OBJ* obj, const char* oldname)
+{
+    NC_OBJ* o2 = NULL;
+    size_t pos;
+
+    if(index == NULL || obj == NULL || oldname == NULL)
+	return 0;
+    INVARIANTID(index,obj);
+
+    /* Locate the position in namemap based on oldname */
+    o2 = locate(index->namemap,oldname,&pos);
+    if(o2 == NULL || o2 != obj)
+	return 0;
+    /* Remove from namemap */    
+    nclistremove(index->namemap,pos);
+    /* Reinsert into namemap based on new name*/
     if(!insert(index->namemap,obj,NULL)) return 0;
     return 1;
 }

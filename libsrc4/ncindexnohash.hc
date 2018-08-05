@@ -12,6 +12,7 @@ ncindexlookup(NCindex* ncindex, const char* name)
 	return NULL;
    for(i=0;i<nclistlength(ncindex->list);i++) {
       NC_OBJ* o = nclistget(ncindex->list,i);
+      if(o == NULL) continue;
       if(strcmp(name,o->name)==0)
 	return o;
     }
@@ -24,11 +25,13 @@ int
 ncindexadd(NCindex* ncindex, NC_OBJ* obj)
 {
    if(ncindex == NULL) return 0;
+   obj->reserved = nclistlength(ncindex->list); /* maintain invariant */
    if(!nclistpush(ncindex->list,obj))
 	return 0;
    return 1;
 }
 
+#if 0
 /* Insert object at ith position of the vector, also insert into the name map; */
 /* Return 1 if ok, 0 otherwise.*/
 int
@@ -38,18 +41,22 @@ ncindexset(NCindex* ncindex, size_t i, NC_OBJ* obj)
    if(!nclistset(ncindex->list,i,obj)) return 0;
    return 1;
 }
+#endif
 
 /**
  * Remove ith object from the index;
  * Return 1 if ok, 0 otherwise.*/
 int
-ncindexidel(NCindex* index, size_t i)
+ncindexremove(NCindex* index, NC_OBJ* obj)
 {
    if(index == NULL) return 0;
-   nclistremove(index->list,i);
+   /* Overwrite entry in list with NULL */
+   if(!nclistset(index->list,obj->reserved,NULL))
+	return 0;
    return 1;
 }
 
+#if 0
 /*
 Rebuild the list map by rehashing all entries
 using their current, possibly changed id and name;
@@ -62,12 +69,13 @@ ncindexrebuild(NCindex* index)
     /* Nothing to do */
     return 1;    
 }
+#endif
 
 /* If no hash, then reinsert does nothing */
 int
-ncindexreinsert(NCindex* index, NC_OBJ* obj, int pos)
+ncindexreinsert(NCindex* index, NC_OBJ* obj, const char* oldname)
 {
-    return NC_NOERR;
+    return 1;
 }
 	
 /* Free a list map */
