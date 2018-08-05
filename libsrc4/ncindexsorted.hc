@@ -315,22 +315,24 @@ locate(NClist* list, const char* key, size_t* posp)
     int L = 0;
     int R = n;
     int m, cmp;
-    NC_OBJ* p;
+    int matched = 0;
 
     if(n == 0) {if(posp) *posp = -1; return NULL;} /* empty list */
     objlist = (NC_OBJ**)nclistcontents(list);
     /* find position of leftmost element less or equal to key */
     while(L < R) {
+        NC_OBJ* p;
         m = (L + R) / 2;
 	p = objlist[m];
 	cmp = strcmp(p->name,key);
+	if(cmp == 0) matched = 1;
 	if(cmp < 0)
 	    L = (m + 1);
         else
             R = m;
     }
     if(posp) *posp = (size_t)L; /* where the key is or would go */
-    return (cmp == 0 ? p : NULL);
+    return (matched ? objlist[L] : NULL);
 }
 
 /* 
@@ -353,7 +355,7 @@ insert(NClist* list, NC_OBJ* obj, size_t* posp)
 	    return NC_ENAMEINUSE; /* already there */
 	/* at this point, pos should be insertion point */
     }
-    if(!nclistinsert(list,pos,p))
+    if(!nclistinsert(list,pos,obj))
 	return NC_ENOMEM;
     if(posp) *posp = pos;
     return NC_NOERR;
