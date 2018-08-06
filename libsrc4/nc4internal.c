@@ -20,7 +20,6 @@
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
-#include "H5DSpublic.h"
 
 /* These are the default chunk cache sizes for HDF5 files created or
  * opened with netCDF-4. */
@@ -44,6 +43,7 @@ int nc_log_level = NC_TURN_OFF_LOGGING;
  * @return ::NC_NOERR No error.
  * @return ::NC_EMAXNAME Name too long.
  * @return ::NC_EINVAL NULL given for name.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Dennis Heimbigner
  */
 int
@@ -52,19 +52,11 @@ nc4_check_name(const char *name, char *norm_name)
    char *temp;
    int retval;
 
-   /* Check for NULL. */
-   if (!name)
-      return NC_EINVAL;
-
    assert(norm_name);
 
    /* Check for NULL. */
    if (!name)
       return NC_EINVAL;
-
-   /* Check the length. */
-   if (strlen(name) > NC_MAX_NAME)
-      return NC_EMAXNAME;
 
    /* Make sure this is a valid netcdf name. This should be done
     * before the name is normalized, because it gives better error
@@ -73,15 +65,18 @@ nc4_check_name(const char *name, char *norm_name)
       return retval;
 
    /* Normalize the name. */
-   retval = nc_utf8_normalize((const unsigned char *)name,(unsigned char**)&temp);
-   if(retval != NC_NOERR)
+   if ((retval = nc_utf8_normalize((const unsigned char *)name,
+                                   (unsigned char **)&temp)))
       return retval;
 
-   if(strlen(temp) > NC_MAX_NAME) {
+   /* Check length of normalized name. */
+   if (strlen(temp) > NC_MAX_NAME)
+   {
       free(temp);
       return NC_EMAXNAME;
    }
 
+   /* Copy the normalized name. */
    strcpy(norm_name, temp);
    free(temp);
 
@@ -110,7 +105,7 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
       initialize the substructure NC_HDF_FILE_INFO_T. */
    if (!(h5 = calloc(1, sizeof(NC_FILE_INFO_T))))
       return NC_ENOMEM;
-   NC4_DATA_SET(nc,h5);
+   nc->dispatchdata = h5;
    h5->controller = nc;
 
    /* Hang on to cmode, and note that we're in define mode. */
@@ -127,7 +122,7 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
    /* There's always at least one open group - the root
     * group. Allocate space for one group's worth of information. Set
     * its hdf id, name, and a pointer to it's file structure. */
-   return nc4_build_root_grp(h5);
+   return nc4_grp_list_add(h5, NULL, NC_GROUP_NAME, &h5->root_grp);
 }
 
 /**
@@ -569,22 +564,6 @@ nc4_find_nc_file(int ext_ncid, NC_FILE_INFO_T** h5p)
 }
 
 /**
- * @internal Add NC_OBJ to appropriate indices.
- *
- * @param index NCindex into which to insert obj
- * @param obj Pointer to object to add.
- *
- * @author Ed Hartnett, Dennis Heimbigner
- */
-static void
-obj_list_add(NCindex* index, NC_OBJ* obj)
-{
-    /* Insert object into the index */
-//    ncindexset(index,obj->id,obj);
-    ncindexadd(index,obj);
-}
-
-/**
  * @internal Add NC_OBJ to allXXX lists in a file
  *
  * @param file Pointer to the containing file
@@ -606,21 +585,6 @@ obj_track(NC_FILE_INFO_T* file, NC_OBJ* obj)
     }
     /* Insert at the appropriate point in the list */
     nclistset(list,obj->id,obj);
-}
-
-/**
- * @internal Remove object from a list
- *
- * @param index NCindex from which to delete
- * @param obj Pointer to object to delete.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
- */
-static void
-obj_list_del(NCindex* index, NC_OBJ *obj)
-{
-   ncindexidel(index,obj->id);
 }
 
 /**
@@ -783,7 +747,7 @@ nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
    new_dim->container = grp;
 
    /* Add object to dimension list for this group. */
-   obj_list_add(grp->dim, (NC_OBJ *)new_dim);
+   ncindexadd(grp->dim, (NC_OBJ *)new_dim);
    obj_track(grp->nc4_info, (NC_OBJ *)new_dim);
 
    /* Set the dim pointer, if one was given */
@@ -801,13 +765,13 @@ nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
  * @param att Pointer to pointer that gets the new att info struct.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
  */
 int
-nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att)
+nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att)
 {
-   int retval = NC_NOERR;
-   NC_ATT_INFO_T *new_att = NULL;
+   NC_ATT_INFO_T *new_att;
 
    LOG((3, "%s: name %s ", __func__, name));
 
@@ -818,65 +782,67 @@ nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att)
    /* Fill in the information we know. */
    new_att->hdr.id = ncindexsize(list);
    if (!(new_att->hdr.name = strdup(name)))
-      BAIL(NC_ENOMEM);
+      return NC_ENOMEM;
 
    /* Create a hash of the name. */
    new_att->hdr.hashkey = NC_hashmapkey(name, strlen(name));
 
    /* Add object to list as specified by its number */
-   obj_list_add(list,(NC_OBJ*)new_att);
+    ncindexadd(list, (NC_OBJ *)new_att);
 
    /* Set the attribute pointer, if one was given */
    if (att)
       *att = new_att;
 
-exit:
-   if(retval) {
-	nc4_att_list_del(list,new_att);
-   }
-   return retval;
+   return NC_NOERR;
 }
 
 /**
- * @internal Add to the end of a group list. Can't use 0 as a
- * new_nc_grpid - it's reserved for the root group.
+ * @internal Add a group to a group list.
  *
- * @param parent The parent group.
+ * @param h5 Pointer to the file info.
+ * @param parent Pointer to the parent group. Will be NULL when adding
+ * the root group.
  * @param name Name of the group.
  * @param grp Pointer to pointer that gets new group info struct.
  *
  * @return ::NC_NOERR No error.
- * @author Ed Hartnett
+ * @return ::NC_ENOMEM Out of memory.
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_grp_list_add(NC_GRP_INFO_T * parent, char *name, NC_GRP_INFO_T **grp)
+nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name,
+                 NC_GRP_INFO_T **grp)
 {
    NC_GRP_INFO_T *new_grp;
-   NC_FILE_INFO_T* h5;
-   NC* nc;
 
-   h5 = parent->nc4_info;
-   nc = h5->controller;
-
+   /* Check inputs. */
+   assert(h5 && name);
    LOG((3, "%s: name %s ", __func__, name));
 
    /* Get the memory to store this groups info. */
    if (!(new_grp = calloc(1, sizeof(NC_GRP_INFO_T))))
       return NC_ENOMEM;
-   new_grp->hdr.sort = NCGRP;
 
    /* Fill in this group's information. */
-   new_grp->hdr.id = h5->next_nc_grpid++;
+   new_grp->hdr.sort = NCGRP;
+   new_grp->nc4_info = h5;
    new_grp->parent = parent;
+
+   /* Assign the group ID. The root group will get id 0. */
+   new_grp->hdr.id = h5->next_nc_grpid++;
+   assert(parent || !new_grp->hdr.id);
+
+   /* Handle the group name. */
    if (!(new_grp->hdr.name = strdup(name)))
    {
       free(new_grp);
       return NC_ENOMEM;
    }
-   new_grp->hdr.hashkey = NC_hashmapkey(new_grp->hdr.name,strlen(new_grp->hdr.name));
+   new_grp->hdr.hashkey = NC_hashmapkey(new_grp->hdr.name,
+                                        strlen(new_grp->hdr.name));
 
-   new_grp->nc4_info = NC4_DATA(nc);
-
+   /* Set up new indexed lists for stuff this group can contain. */
    new_grp->children = ncindexnew(0);
    new_grp->dim = ncindexnew(0);
    new_grp->att = ncindexnew(0);
@@ -884,65 +850,13 @@ nc4_grp_list_add(NC_GRP_INFO_T * parent, char *name, NC_GRP_INFO_T **grp)
    new_grp->vars = ncindexnew(0);
 
    /* Add object to lists */
-   obj_list_add(parent->children, (NC_OBJ*)new_grp);
-   obj_track(h5,(NC_OBJ*)new_grp);
+   if (parent)
+      ncindexadd(parent->children, (NC_OBJ *)new_grp);
+   obj_track(h5, (NC_OBJ *)new_grp);
 
    /* Set the group pointer, if one was given */
    if (grp)
       *grp = new_grp;
-
-   return NC_NOERR;
-}
-
-/**
- * @internal Build the root group with id 0.
- *
- * @param h5 root file
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
- */
-int
-nc4_build_root_grp(NC_FILE_INFO_T* h5)
-{
-   NC_GRP_INFO_T *new_grp;
-   NC* nc;
-
-   assert(h5);
-
-   nc = h5->controller;
-
-   LOG((3, "%s: name %s ", __func__, NC_GROUP_NAME));
-
-   /* Get the memory to store this groups info. */
-   if (!(new_grp = calloc(1, sizeof(NC_GRP_INFO_T))))
-      return NC_ENOMEM;
-   new_grp->hdr.sort = NCGRP;
-
-   /* Fill in this group's information. */
-   new_grp->hdr.id = h5->next_nc_grpid++; /* should be 0 */
-   assert(new_grp->hdr.id == 0);
-   new_grp->parent = NULL;
-   if (!(new_grp->hdr.name = strdup(NC_GROUP_NAME)))
-   {
-      free(new_grp);
-      return NC_ENOMEM;
-   }
-   new_grp->hdr.hashkey = NC_hashmapkey(new_grp->hdr.name,strlen(new_grp->hdr.name));
-
-   new_grp->nc4_info = NC4_DATA(nc);
-
-   new_grp->children = ncindexnew(0);
-   new_grp->dim = ncindexnew(0);
-   new_grp->att = ncindexnew(0);
-   new_grp->type = ncindexnew(0);
-   new_grp->vars = ncindexnew(0);
-
-   /* Add object to lists */
-   obj_track(h5,(NC_OBJ*)new_grp);
-
-   /* Set the group pointer, if one was given */
-   h5->root_grp = new_grp;
 
    return NC_NOERR;
 }
@@ -986,23 +900,27 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
 }
 
 /**
- * @internal Create a type, but do not add to various lists nor increment its ref count
+ * @internal Create a type, but do not add to various lists nor
+ * increment its ref count
  *
  * @param grp Pointer to group info struct.
  * @param size Size of type in bytes.
  * @param name Name of type.
- * @param assignedid if >= 0 then override the default type id
- * @param type Pointer that gets pointer to new type info
- *             struct. Ignored if NULL.
+ * @param assignedid if >= 0 then override the default type id.
+ * @param type Pointer that gets pointer to new type info struct.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett, Ward Fisher
  */
 int
-nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid, NC_TYPE_INFO_T **type)
+nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid,
+             NC_TYPE_INFO_T **type)
 {
-  NC_TYPE_INFO_T *new_type = NULL;
+  NC_TYPE_INFO_T *new_type;
+
+  /* Check inputs. */
+  assert(type);
 
   /* Allocate memory for the type */
   if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
@@ -1017,11 +935,10 @@ nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid, 
     return NC_ENOMEM;
   }
 
-  new_type->hdr.hashkey = NC_hashmapkey(name,strlen(name));
+  new_type->hdr.hashkey = NC_hashmapkey(name, strlen(name));
 
-  /* Return a pointer to the new type, if requested */
-  if (type)
-    *type = new_type;
+  /* Return a pointer to the new type. */
+  *type = new_type;
 
   return NC_NOERR;
 }
@@ -1033,7 +950,7 @@ nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid, 
  * @param size Size of type in bytes.
  * @param name Name of type.
  * @param type Pointer that gets pointer to new type info
- * struct. Ignored if NULL.
+ * struct.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM Out of memory.
@@ -1043,24 +960,27 @@ int
 nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
                   NC_TYPE_INFO_T **type)
 {
-   int retval = NC_NOERR;
-   NC_TYPE_INFO_T *new_type = NULL;
+   NC_TYPE_INFO_T *new_type;
+   int retval;
 
-   retval = nc4_type_new(grp,size,name, grp->nc4_info->next_typeid,&new_type);
-   if(retval)
-	return retval;
+   /* Check inputs. */
+   assert(type);
+
+   /* Create the new TYPE_INFO struct. */
+   if ((retval = nc4_type_new(grp, size, name, grp->nc4_info->next_typeid,
+                              &new_type)))
+      return retval;
    grp->nc4_info->next_typeid++;
 
    /* Increment the ref. count on the type */
    new_type->rc++;
 
    /* Add object to lists */
-   obj_list_add(grp->type, (NC_OBJ*)new_type);
+   ncindexadd(grp->type, (NC_OBJ *)new_type);
    obj_track(grp->nc4_info,(NC_OBJ*)new_type);
 
-   /* Return a pointer to the new type, if requested */
-   if (type)
-      *type = new_type;
+   /* Return a pointer to the new type. */
+   *type = new_type;
 
    return NC_NOERR;
 }
@@ -1386,7 +1306,7 @@ nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
    if(grp) {
        i = ncindexfind(grp->vars,(NC_OBJ*)var);
        if(i >= 0)
-           ncindexidel(grp->vars,i);
+           ncindexidel(grp->vars, i);
    }
    return nc4_var_free(var);
 }
@@ -1489,8 +1409,12 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
       LOG((4, "%s: deleting var %s", __func__, var->hdr.name));
       /* Close HDF5 dataset associated with this var, unless it's a
        * scale. */
-      if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
-         return NC_EHDFERR;
+      if (var->hdf_datasetid)
+      {
+         LOG((3, "closing dataset %lld", var->hdf_datasetid));
+         if (H5Dclose(var->hdf_datasetid) < 0)
+            return NC_EHDFERR;
+      }
       if ((retval = nc4_var_free(var)))  /* free but leave in parent list */
          return retval;
    }
@@ -1550,10 +1474,10 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
  * @author Dennis Heimbigner
  */
 int
-nc4_att_list_del(NCindex* list, NC_ATT_INFO_T *att)
+nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att)
 {
-    assert(att != NULL);
-    if(list != NULL) obj_list_del(list, (NC_OBJ *)att);
+    assert(att && list);
+    ncindexidel(list, ((NC_OBJ *)att)->id);
     return nc4_att_free(att);
 }
 
@@ -1666,24 +1590,6 @@ nc_set_log_level(int new_level)
    if(!nc4_hdf5_initialized)
       nc4_hdf5_initialize();
 
-   /* /\* If the user wants to completely turn off logging, turn off HDF5 */
-   /*    logging too. Now I truly can't think of what to do if this */
-   /*    fails, so just ignore the return code. *\/ */
-   /* if (new_level == NC_TURN_OFF_LOGGING) */
-   /* { */
-   /*    set_auto(NULL,NULL); */
-   /*    LOG((1, "HDF5 error messages turned off!")); */
-   /* } */
-
-   /* /\* Do we need to turn HDF5 logging back on? *\/ */
-   /* if (new_level > NC_TURN_OFF_LOGGING && */
-   /*     nc_log_level <= NC_TURN_OFF_LOGGING) */
-   /* { */
-   /*    if (set_auto((H5E_auto_t)&H5Eprint, stderr) < 0) */
-   /*       LOG((0, "H5Eset_auto failed!")); */
-   /*    LOG((1, "HDF5 error messages turned on.")); */
-   /* } */
-
    /* Now remember the new level. */
    nc_log_level = new_level;
    LOG((4, "log_level changed to %d", nc_log_level));
@@ -1754,9 +1660,9 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
             strcat(dims_string, temp_string);
          }
       }
-      LOG((2, "%s VARIABLE - varid: %d name: %s type: %d ndims: %d dimscale: %d dimids:%s endianness: %d, hdf_typeid: %d",
-           tabs, var->hdr.id, var->hdr.name, var->type_info->hdr.id, var->ndims, (int)var->dimscale,
-           (dims_string ? dims_string : " -"),var->type_info->endianness, var->type_info->native_hdf_typeid));
+      LOG((2, "%s VARIABLE - varid: %d name: %s ndims: %d dimscale: %d dimids:%s",
+           tabs, var->hdr.id, var->hdr.name, var->ndims, (int)var->dimscale,
+           (dims_string ? dims_string : " -")));
       for(j=0;j<ncindexsize(var->att);j++) {
          att = (NC_ATT_INFO_T*)ncindexith(var->att,j);
 	 if(att == NULL) continue;

@@ -2037,7 +2037,8 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
       oinfo = (NC4_rec_read_metadata_obj_info_t*)nclistget(udata.grps,i);
 
       /* Add group to file's hierarchy */
-      if ((retval = nc4_grp_list_add(grp, oinfo->oname, &child_grp)))
+      if ((retval = nc4_grp_list_add(grp->nc4_info, grp, oinfo->oname,
+                                     &child_grp)))
          BAIL(retval);
 
       /* Recursively read the child group's metadata */
