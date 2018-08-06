@@ -128,14 +128,17 @@ range(DCEparsestate* state, Object sfirst, Object sstride, Object slast)
 
     /* Note: that incoming arguments are strings; we must convert to size_t;
        but we do know they are legal integers or NULL */
-    sscanf((char*)sfirst,"%lu",&first); /* always defined */
-    if(slast != NULL)
-        sscanf((char*)slast,"%lu",&last);
-    else
+    if(sscanf((char*)sfirst,"%lu",&first) != 1) /* always defined */
+	return NULL;
+    if(slast != NULL) {
+        if(sscanf((char*)slast,"%lu",&last) != 1)
+	    return NULL;
+    } else
 	last = first;
-    if(sstride != NULL)
-        sscanf((char*)sstride,"%lu",&stride);
-    else
+    if(sstride != NULL) {
+        if(sscanf((char*)sstride,"%lu",&stride) != 1)
+	    return NULL;
+    } else
 	stride = 1; /* default */
 
     if(stride == 0)
@@ -158,7 +161,8 @@ Object
 range1(DCEparsestate* state, Object rangenumber)
 {
     int range = -1;
-    sscanf((char*)rangenumber,"%u",&range);
+    if(sscanf((char*)rangenumber,"%u",&range) != 1)
+	range = -1;
     if(range < 0) {
     	dceerror(state,"Illegal range index");
     }
@@ -199,7 +203,8 @@ array_indices(DCEparsestate* state, Object list0, Object indexno)
     long long start = -1;
     NClist* list = (NClist*)list0;
     if(list == NULL) list = nclistnew();
-    sscanf((char*)indexno,"%lld",&start);
+    if(sscanf((char*)indexno,"%lld",&start) != 1)
+	start = -1;
     if(start < 0) {
     	dceerror(state,"Illegal array index");
 	start = 1;

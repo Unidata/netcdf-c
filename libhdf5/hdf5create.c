@@ -48,6 +48,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    int retval = NC_NOERR;
    NC_FILE_INFO_T* nc4_info = NULL;
    NC_HDF5_FILE_INFO_T *hdf5_info;
+
 #ifdef USE_PARALLEL4
    NC_MPI_INFO *mpiinfo = NULL;
    MPI_Comm comm;

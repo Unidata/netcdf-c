@@ -213,7 +213,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
 exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
-   if(!retval && h5 != NULL)
+   if(!retval)
       free(h5);
    return retval;
 }
@@ -228,6 +228,7 @@ dumpopenobjects(NC_FILE_INFO_T* h5)
    hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
 
    nobjs = H5Fget_obj_count(hdf5_info->hdfid, H5F_OBJ_ALL);
+
    /* Apparently we can get an error even when nobjs == 0 */
    if(nobjs < 0) {
       return;
