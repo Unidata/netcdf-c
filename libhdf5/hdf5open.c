@@ -1235,7 +1235,7 @@ nc4_read_grp_atts(NC_GRP_INFO_T *grp)
          }
       }
       /* Unconditionally close the open attribute */
-      H5Aclose(attid);
+      (void)H5Aclose(attid);
       attid = -1;
    }
 
