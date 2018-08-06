@@ -128,6 +128,25 @@ ncindexreinsert(NCindex* index, NC_OBJ* obj, const char* oldname)
     return 1;
 }
 
+/*
+Rename an object and ensure that the
+list and namemap are properly updated
+*/
+int
+ncindexrename(NCindex* index, NC_OBJ* hdr, const char* newname)
+{
+   char* oldname = NULL;
+   if(!hdr) return 0;
+   oldname = hdr->name;
+   if(oldname == NULL) return 0;
+   if (!(hdr->name = strdup(newname)))
+      return 0;
+   if(!ncindexreinsert(index,hdr,oldname)) /* implementation dependent */
+      return 0;
+   free(oldname);
+   return 1;
+}
+
 /* Free a list map */
 int
 ncindexfree(NCindex* index)

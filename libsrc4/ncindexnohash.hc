@@ -71,13 +71,23 @@ ncindexrebuild(NCindex* index)
 }
 #endif
 
-/* If no hash, then reinsert does nothing */
+/*
+Rename an object and ensure that the
+list and namemap are properly updated
+*/
 int
-ncindexreinsert(NCindex* index, NC_OBJ* obj, const char* oldname)
+ncindexrename(NCindex* index, NC_OBJ* hdr, const char* newname)
 {
-    return 1;
+   char* oldname = NULL;
+   if(!hdr) return 0;
+   oldname = hdr->name;
+   if(oldname == NULL) return 0;
+   if (!(hdr->name = strdup(newname)))
+      return 0;
+   free(oldname);
+   return 1;
 }
-	
+
 /* Free a list map */
 int
 ncindexfree(NCindex* index)

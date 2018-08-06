@@ -7,11 +7,11 @@ See LICENSE.txt for license information.
 #define NCINDEX_H
 
 /* Pick ONE of these as implementation */
-#undef NCHASHED /* Use hashmap to lookup by name */
-#define NCSORTLIST /* Use binary search over list sorted by name */
+#define NCHASHED /* Use hashmap to lookup by name */
+#undef NCSORTLIST /* Use binary search over list sorted by name */
 #undef NCNOHASH /* No hash in index: use linear search */
 
-#define NCINDEXINVARIANT 1 /* check invariants */
+#undef NCINDEXINVARIANT 1 /* check invariants */
 
 #undef NCINDEXDEBUG
 
@@ -21,7 +21,7 @@ See LICENSE.txt for license information.
 /* Provide invariant checking macros */
 #ifdef NCINDEXINVARIANTS
 /* Verify that object->reserved equals theposition of object in NC_OBJ.list.*/
-#define INVARIANTID(index,obj) assert((nclistget(index->list,obj->reserved) == obj))
+#define INVARIANTID(index,obj) assert((obj == NULL || nclistget(index->list,obj->reserved) == obj))
 #else
 #define INVARIANTID(index,obj)
 #endif
@@ -115,13 +115,14 @@ static int ncindexsize(NCindex* index)
 /* Wrap setting of value of NC_OBJ->data */
 extern void ncindexsetdata(struct NC_OBJ* hdr);
 
-/* Wrap renaming obj fixups */
-extern int ncindexrename(NCindex* index, struct NC_OBJ* hdr, const char* oldname);
-
-/* Wrap Attribute renumbering */
-extern int ncindexrenumberid(NCindex* index, size_t from);
-
-/* Hide rename operation */
+/* Wrap renaming of an object
+Assume obj->name is old name, newname is the new one.
+*/
 extern int ncindexrename(NCindex* index, struct NC_OBJ* hdr, const char* newname);
+
+/* Wrap Attribute renumbering
+   Start renumbering with index->list[from].
+*/
+extern int ncindexrenumberid(NCindex* index, size_t from);
 
 #endif /*ncindexH*/

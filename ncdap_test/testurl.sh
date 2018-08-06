@@ -66,7 +66,7 @@ if test "x${SHOW}" = x1 ; then cat ./tmp ; fi
 
 # Test that maxstrlen works as alias for stringlength
 echo "***Testing maxstrlen=stringlength alias"
-buildurl $STRLEN ""
+buildurl "$STRLEN" ""
 # Invoke ncdump to extract the URL
 echo "command: ${NCDUMP} -h $url"
 ${NCDUMP} "$url" >./tmp_testurl 2> ./errtmp_testurl

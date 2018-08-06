@@ -6,7 +6,7 @@ See LICENSE.txt for license information.
 
 /* Forward */
 static NC_OBJ* locate(NClist* list, const char* key, size_t* posp);
-static int insert(NClist* list, NC_OBJ* obj, size_t* posp);
+static int insert(NClist* list, NC_OBJ* obj);
 
 /* Locate object by name in an NCindex */
 NC_OBJ*
@@ -15,7 +15,7 @@ ncindexlookup(NCindex* ncindex, const char* name)
     NC_OBJ* obj = NULL;
     if(ncindex == NULL || name == NULL)
 	return NULL;
-    obj = locate(ncindex->namemap,name, NULL);
+    obj = locate(ncindex->namemap,name,NULL);
     INVARIANTID(ncindex,obj);
     return obj;
 }
@@ -29,7 +29,7 @@ ncindexadd(NCindex* ncindex, NC_OBJ* obj)
    obj->reserved = nclistlength(ncindex->list); /*maintain invariant*/
    if(!nclistpush(ncindex->list,obj))
 	return 0;
-   if(!insert(ncindex->namemap,obj,NULL))
+   if(!insert(ncindex->namemap,obj))
 	return 0;
    INVARIANTID(ncindex,obj);
    return 1;
@@ -44,7 +44,7 @@ ncindexset(NCindex* ncindex, size_t i, NC_OBJ* obj)
    if(ncindex == NULL) return 0;
    if(!nclistset(ncindex->list,i,obj)) return 0;
    obj->reserved = i; /* maintain invariant */
-   if(!insert(ncindex->namemap,obj,NULL)) return 0;
+   if(!insert(ncindex->namemap,obj)) return 0;
    INVARIANTID(ncindex,obj);
    return 1;
 }
@@ -67,7 +67,8 @@ ncindexidel(NCindex* index, size_t i)
    if(obj == NULL) return 0;
 
    /* Locate by name */
-   if(!locate((NClist*)index->namemap,obj->name, &i)) return 0;
+   if(locate((NClist*)index->namemap,obj->name, &i) == NULL)
+	return 0; /* not found */
    if(!nclistremove((NClist*)index->namemap,i)) return 0;
    return 1;
 }
@@ -138,7 +139,7 @@ ncindexremove(NCindex* index, NC_OBJ* obj)
     }
     /* Remove from list by overwriting with NULL */
     if(lfound)
-	if(!nclistinsert(index->list,lpos,NULL))
+	if(!nclistset(index->list,lpos,NULL))
 	    return 0;
     /* Remove from name map*/
     if(mfound)
@@ -148,28 +149,36 @@ ncindexremove(NCindex* index, NC_OBJ* obj)
 }
 
 /*
-Remove and re-insert a renamed object.
-Assume obj->name is new name, oldname is the previous name.
+Rename an object and ensure that the
+list and namemap are properly updated
 */
-/* Return 1 if ok, 0 otherwise */
-static int
-ncindexreinsert(NCindex* index, NC_OBJ* obj, const char* oldname)
+int
+ncindexrename(NCindex* index, NC_OBJ* obj, const char* newname)
 {
     NC_OBJ* o2 = NULL;
-    size_t pos;
+    char* tmpname;
+    size_t pos = 0;
 
-    if(index == NULL || obj == NULL || oldname == NULL)
+    if(index == NULL || obj == NULL || newname == NULL || strlen(newname) == 0)
 	return 0;
-    INVARIANTID(index,obj);
 
-    /* Locate the position in namemap based on oldname */
-    o2 = locate(index->namemap,oldname,&pos);
+    /* We need to locate the position in the namemap of the object
+      using the current name.
+    */  
+    o2 = locate(index->namemap,obj->name,&pos);
     if(o2 == NULL || o2 != obj)
 	return 0;
     /* Remove from namemap */    
     nclistremove(index->namemap,pos);
+
+    /* Now, change its name */
+    if((tmpname = strdup(newname)) == NULL)
+	return 0;
+    if(obj->name) free(obj->name);
+    obj->name = tmpname;
+
     /* Reinsert into namemap based on new name*/
-    if(!insert(index->namemap,obj,NULL)) return 0;
+    if(!insert(index->namemap,obj)) return 0;
     return 1;
 }
 
@@ -303,21 +312,21 @@ printindexmap(NCindex* lm)
 }
 
 /* Binary search a set of NC_OBJECT's against a given key;
-   return matching object and (optionally) the index of the
-   matching object or largest position below it.
-   Return NULL if not found.
+   return the index after which object with key should be inserted.
 */
-static NC_OBJ*
-locate(NClist* list, const char* key, size_t* posp)
+static size_t
+findinsertpoint(NClist* list, const char* key)
 {
     NC_OBJ** objlist;
-    int n = nclistlength(list);
-    int L = 0;
-    int R = n;
+    int n;
+    int L;
+    int R;
     int m, cmp;
-    int matched = 0;
 
-    if(n == 0) {if(posp) *posp = -1; return NULL;} /* empty list */
+    n = nclistlength(list);
+    if(n == 0) return -1; /* insert at position 0 */
+    L = 0;
+    R = n;
     objlist = (NC_OBJ**)nclistcontents(list);
     /* find position of leftmost element less or equal to key */
     while(L < R) {
@@ -325,14 +334,50 @@ locate(NClist* list, const char* key, size_t* posp)
         m = (L + R) / 2;
 	p = objlist[m];
 	cmp = strcmp(p->name,key);
-	if(cmp == 0) matched = 1;
 	if(cmp < 0)
 	    L = (m + 1);
         else
             R = m;
     }
-    if(posp) *posp = (size_t)L; /* where the key is or would go */
-    return (matched ? objlist[L] : NULL);
+    return L;
+}
+
+/* Binary search a set of NC_OBJECT's against a given key;
+   return matching object if found and (optionally)
+   the location in the list of the matching entry.
+   Return NULL if not found.
+*/
+static NC_OBJ*
+locate(NClist* list, const char* key, size_t* posp)
+{
+    NC_OBJ** objlist;
+    int n;
+    int L;
+    int R;
+    int m, cmp;
+
+    n = nclistlength(list);
+    if(n == 0)
+	return NULL; /* empty list */
+    L = 0;
+    R = n - 1;
+    objlist = (NC_OBJ**)nclistcontents(list);
+    /* binary search */
+    while(L <= R) {
+        NC_OBJ* p;
+        m = (L + R) / 2;
+	p = objlist[m];
+	cmp = strcmp(p->name,key);
+	if(cmp < 0)
+	    L = (m + 1);
+	else if(cmp > 0)
+	    R = (m - 1);
+        else {
+	    if(posp) *posp = m;
+	    return p;
+	}
+    }
+    return NULL;
 }
 
 /* 
@@ -343,20 +388,17 @@ Return NC_ENAMEINUSE if name matched object already in list
 Optionally return insertion position in posp.
 */
 static int
-insert(NClist* list, NC_OBJ* obj, size_t* posp)
+insert(NClist* list, NC_OBJ* obj)
 {
     size_t pos;
-    NC_OBJ* p;
     if(nclistlength(list) == 0)
-	pos = 0; /* insert here */
+	nclistpush(list,obj); /* empty list */
     else {    
-        p = locate(list,obj->name, &pos);
-        if(p != NULL)
-	    return NC_ENAMEINUSE; /* already there */
-	/* at this point, pos should be insertion point */
+	/* locate position of where to insert obj */
+        pos = findinsertpoint(list,obj->name);
+        /* at this point, insert after position pos */
+        if(!nclistinsert(list,pos,obj))
+	    return 0;
     }
-    if(!nclistinsert(list,pos,obj))
-	return NC_ENOMEM;
-    if(posp) *posp = pos;
-    return NC_NOERR;
+    return 1;
 }

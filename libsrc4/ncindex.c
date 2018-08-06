@@ -37,7 +37,6 @@ Warning: This code depends critically on the assumption that
 
 /* Common forwards */
 static const char* sortname(NC_SORT sort);
-static int ncindexreinsert(NCindex* index, NC_OBJ* obj, const char* oldname);
 void printindexmap(NCindex* lm);
 
 /* Functions independent of the name map implementation */
@@ -128,9 +127,9 @@ printindexlist(NClist* lm)
 	if(o == NULL)
             fprintf(stderr,"[%ld] <null>\n",(unsigned long)i);
 	else
-            fprintf(stderr,"[%ld] sort=%s name=|%s| id=%lu reserved=%p\n",
+            fprintf(stderr,"[%ld] sort=%s name=|%s| id=%lu reserved=%lu\n",
 		(unsigned long)i,sortname(o->sort),o->name,
-		(unsigned long)o->id, (void*)o->reserved);
+		(unsigned long)o->id, (unsigned long)o->reserved);
     }
 }
 
@@ -153,22 +152,6 @@ ncindexsetdata(NC_OBJ* hdr)
 #if 0
    hdr->tag = NC_hashmapkey(hdr->name,strlen(hdr->name));    
 #endif
-}
-
-/* Hide rename operation */
-int
-ncindexrename(NCindex* index, NC_OBJ* hdr, const char* newname)
-{
-   char* oldname = NULL;
-   if(!hdr) return 0;
-   oldname = hdr->name;
-   if(oldname == NULL) return 0;
-   if (!(hdr->name = strdup(newname)))
-      return 0;
-   if(!ncindexreinsert(index,hdr,oldname)) /* implementation dependent */
-      return 0;
-   free(oldname);
-   return 1;
 }
 
 /*
