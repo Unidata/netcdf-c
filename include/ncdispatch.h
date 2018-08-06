@@ -21,6 +21,8 @@
 #endif
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
+#else
+#include "netcdf_f.h"
 #endif
 #include "netcdf.h"
 #include "nc.h"
@@ -448,10 +450,10 @@ EXTERNL int NC_NOTNC4_def_grp(int, const char *, int *);
 EXTERNL int NC_NOTNC4_rename_grp(int, const char *);
 EXTERNL int NC_NOTNC4_def_compound(int, size_t, const char *, nc_type *);
 EXTERNL int NC_NOTNC4_insert_compound(int, nc_type, const char *, size_t, nc_type);
-EXTERNL int NC_NOTNC4_insert_array_compound(int, nc_type, const char *, size_t, 
+EXTERNL int NC_NOTNC4_insert_array_compound(int, nc_type, const char *, size_t,
                                     nc_type, int, const int *);
 EXTERNL int NC_NOTNC4_inq_typeid(int, const char *, nc_type *);
-EXTERNL int NC_NOTNC4_inq_compound_field(int, nc_type, int, char *, size_t *, 
+EXTERNL int NC_NOTNC4_inq_compound_field(int, nc_type, int, char *, size_t *,
                                  nc_type *, int *, int *);
 EXTERNL int NC_NOTNC4_inq_compound_fieldindex(int, nc_type, const char *, int *);
 EXTERNL int NC_NOTNC4_def_vlen(int, const char *, nc_type base_typeid, nc_type *);
