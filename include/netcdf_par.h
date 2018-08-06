@@ -7,13 +7,27 @@
  *
  * This header file is for the parallel I/O functions of netCDF.
  *
- * \author Ed Hartnett
+ * \author Ed Hartnett, Ward Fisher
  */
 
 #ifndef NETCDF_PAR_H
 #define NETCDF_PAR_H 1
 
 #include <mpi.h>
+
+/* Declaration modifiers for DLL support (MSC et al) */
+#if defined(DLL_NETCDF) /* define when library is a DLL */
+#  if defined(DLL_EXPORT) /* define when building the library */
+#   define MSC_EXTRA __declspec(dllexport)
+#  else
+#   define MSC_EXTRA __declspec(dllimport)
+#  endif
+#  include <io.h>
+#else
+#define MSC_EXTRA  /**< Needed for DLL build. */
+#endif  /* defined(DLL_NETCDF) */
+
+#define EXTERNL MSC_EXTRA extern /**< Needed for DLL build. */
 
 #if defined(__cplusplus)
 extern "C" {
@@ -25,24 +39,24 @@ extern "C" {
 #define NC_COLLECTIVE 1
 
 /* Create a file and enable parallel I/O. */
-extern int
+EXTERNL int
 nc_create_par(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 	      int *ncidp);
 
 /* Open a file and enable parallel I/O. */
-extern int
+EXTERNL int
 nc_open_par(const char *path, int mode, MPI_Comm comm, MPI_Info info,
 	    int *ncidp);
 
 /* Change a variable from independent (the default) to collective
  * access. */
-extern int
+EXTERNL int
 nc_var_par_access(int ncid, int varid, int par_access);
 
-extern int
+EXTERNL int
 nc_create_par_fortran(const char *path, int cmode, int comm,
 		      int info, int *ncidp);
-extern int
+EXTERNL int
 nc_open_par_fortran(const char *path, int mode, int comm,
 		    int info, int *ncidp);
 
