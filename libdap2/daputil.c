@@ -567,7 +567,8 @@ getlimitnumber(const char* limit)
     case 'K': case 'k': multiplier = KILOBYTE; break;
     default: break;
     }
-    sscanf(limit,"%lu",&lu);
+    if(sscanf(limit,"%lu",&lu) != 1)
+	return 0;
     return (lu*multiplier);
 }
 
