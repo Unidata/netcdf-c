@@ -217,7 +217,7 @@ main(int argc, char **argv)
 	    break;
         case 'D': {
 	    int c0;
-	    if(strlen(optarg) == 0) usage("missing -D argument");
+	    if(optarg == NULL || strlen(optarg) == 0) usage("missing -D argument");
 	    c0 = optarg[0];
 	    if(c0 >= '0' && c0 <= '9') {/* debug level */
 		ocopt.debug.debuglevel = atoi(optarg); break;
@@ -245,6 +245,8 @@ main(int argc, char **argv)
 
 	case 'o':
             if(ocopt.output != NULL) fclose(ocopt.output);
+	    if(optarg == NULL)
+		usage("-o does not specify a file name");
 	    ocopt.output = fopen(optarg,"w");
             if(ocopt.output == NULL)
 		usage("-o file not writeable");
@@ -255,6 +257,8 @@ main(int argc, char **argv)
 	    break;
 
 	case 'p':
+	    if(optarg == NULL)
+		usage("-p does not specify an argument");
 	    if(strcasecmp(optarg,"das")==0) ocopt.optdas=1;
 	    else if(strcasecmp(optarg,"dds")==0) ocopt.optdds=1;
 	    else if(strcasecmp(optarg,"data")==0) ocopt.optdatadds=1;
@@ -280,7 +284,8 @@ main(int argc, char **argv)
     if(ocopt.logging) {
 	ncloginit();
 	ncsetlogging(1);
-	nclogopen(NULL);
+	if(!nclogopen(NULL))
+	    fprintf(stderr,"Failed to open logging output\n");
     }
 
     argc -= optind;
@@ -479,10 +484,7 @@ processdata(OCflags flags)
     if(ocopt.optdatadds) {
         ocstat = oc_fetch(link,ocopt.url->query,OCDATADDS,flags,&dataddsroot);
         if(ocstat) {
-            if(ocopt.url->query)
-                fprintf(stderr,"Cannot read DATADDS: %s\n",ocopt.surl);
-            else
-                fprintf(stderr,"Cannot read DATADDS: %s\n",ocopt.surl);
+            fprintf(stderr,"Cannot read DATADDS: %s\n",ocopt.surl);
             exit(1);
         }
         if(ocopt.debug.dumpdds)
@@ -556,8 +558,8 @@ printdata_container(OClink link, OCdatanode datanode, NCbytes* buffer, int istop
 	pushstack(field);
         FAIL(printdata_indices(link,field,buffer,istoplevel));
 	popstack();
-	oc_data_free(link,field);
-	if(stat != OC_NOERR) break;
+	if(oc_data_free(link,field) != OC_NOERR)
+	    break;
     }
     return stat;
 }
@@ -997,7 +999,7 @@ dumpdatanode(OClink link, OCdatanode datanode, size_t count, void* memory, NCbyt
     OCtype atomtype;
     OCtype octype;
     NCbytes* path = NULL;
-    char* name;
+    char* name = NULL;
     char id[1024];
     char tmp[1024];
     struct DUMPPATH* entry = NULL;
