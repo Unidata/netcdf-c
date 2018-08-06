@@ -586,6 +586,12 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    if (!nc4_hdf5_initialized)
       nc4_hdf5_initialize();
 
+#ifdef LOGGING
+   /* If nc logging level has changed, see if we need to turn on
+    * HDF5's error messages. */
+   hdf5_set_log_level();
+#endif /* LOGGING */
+
    nc_file->int_ncid = nc_file->ext_ncid;
 
    /* Open the file. */

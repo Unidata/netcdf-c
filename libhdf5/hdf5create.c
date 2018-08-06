@@ -292,6 +292,12 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    if (!nc4_hdf5_initialized)
       nc4_hdf5_initialize();
 
+#ifdef LOGGING
+   /* If nc logging level has changed, see if we need to turn on
+    * HDF5's error messages. */
+   hdf5_set_log_level();
+#endif /* LOGGING */
+
    /* Check the cmode for validity. */
    if((cmode & ILLEGAL_CREATE_FLAGS) != 0)
    {res = NC_EINVAL; goto done;}
