@@ -373,6 +373,10 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
 
+   /* Add struct to hold HDF5-specific file metadata. */
+   if (!(nc4_info->format_file_info = calloc(1, sizeof(NC_HDF5_FILE_INFO_T))))
+      BAIL(NC_ENOMEM);
+
    nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
    nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
    if(nc4_info->mem.inmemory) {
@@ -473,8 +477,16 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       retval = NC4_open_image_file(nc4_info);
       if(retval)
          BAIL(NC_EHDFERR);
-   } else if ((nc4_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
-      BAIL(NC_EHDFERR);
+   }
+   else
+   {
+      NC_HDF5_FILE_INFO_T *hdf5_info;
+      hdf5_info = (NC_HDF5_FILE_INFO_T *)nc4_info->format_file_info;
+
+      /* Open the HDF5 file. */
+      if ((hdf5_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+         BAIL(NC_EHDFERR);
+   }
 
    /* Now read in all the metadata. Some types and dimscale
     * information may be difficult to resolve here, if, for example, a
@@ -2027,8 +2039,11 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
       }
       else
       {
-         if ((grp->hdf_grpid = H5Gopen2(grp->nc4_info->hdfid,
-                                        "/", H5P_DEFAULT)) < 0)
+         NC_HDF5_FILE_INFO_T *hdf5_info;
+         hdf5_info = (NC_HDF5_FILE_INFO_T *)grp->nc4_info->format_file_info;
+
+         if ((grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/",
+                                        H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
       }
    }

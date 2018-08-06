@@ -47,6 +47,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    FILE *fp;
    int retval = NC_NOERR;
    NC_FILE_INFO_T* nc4_info = NULL;
+   NC_HDF5_FILE_INFO_T *hdf5_info;
 
 #ifdef USE_PARALLEL4
    NC_MPI_INFO *mpiinfo = NULL;
@@ -62,9 +63,13 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    /* Add necessary structs to hold netcdf-4 file data. */
    if ((retval = nc4_nc4f_list_add(nc, path, (NC_WRITE | cmode))))
       BAIL(retval);
-
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
+
+   /* Add struct to hold HDF5-specific file metadata. */
+   if (!(nc4_info->format_file_info = calloc(1, sizeof(NC_HDF5_FILE_INFO_T))))
+      BAIL(NC_ENOMEM);
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)nc4_info->format_file_info;
 
    nc4_info->mem.inmemory = (cmode & NC_INMEMORY) == NC_INMEMORY;
    nc4_info->mem.diskless = (cmode & NC_DISKLESS) == NC_DISKLESS;
@@ -210,13 +215,16 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
       retval = NC4_create_image_file(nc4_info,initialsz);
       if(retval)
          BAIL(retval);
-   } else if ((nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
-      /*Change the return error from NC_EFILEMETADATA to
-        System error EACCES because that is the more likely problem */
-      BAIL(EACCES);
+   }
+   else
+   {
+      /* Create the HDF5 file. */
+      if ((hdf5_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
+         BAIL(EACCES);
+   }
 
    /* Open the root group. */
-   if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(nc4_info->hdfid, "/",
+   if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/",
                                                  H5P_DEFAULT)) < 0)
       BAIL(NC_EFILEMETA);
 

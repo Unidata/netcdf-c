@@ -1412,8 +1412,11 @@ create_group(NC_GRP_INFO_T *grp)
    }
    else
    {
+      NC_HDF5_FILE_INFO_T *hdf5_info;
+
       /* Since this is the root group, we have to open it. */
-      if ((grp->hdf_grpid = H5Gopen2(grp->nc4_info->hdfid, "/", H5P_DEFAULT)) < 0)
+      hdf5_info = (NC_HDF5_FILE_INFO_T *)grp->nc4_info->format_file_info;
+      if ((grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/", H5P_DEFAULT)) < 0)
          BAIL(NC_EFILEMETA);
    }
    return NC_NOERR;
@@ -3382,8 +3385,13 @@ reportopenobjects(int uselog, hid_t fid)
 void
 showopenobjects5(NC_FILE_INFO_T* h5)
 {
+   NC_HDF5_FILE_INFO_T *hdf5_info;
+
+   assert(h5 && h5->format_file_info);
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+
    fprintf(stderr,"===== begin showopenobjects =====\n");
-   reportopenobjects(0,h5->hdfid);
+   reportopenobjects(0,hdf5_info->hdfid);
    fprintf(stderr,"===== end showopenobjects =====\n");
    fflush(stderr);
 }
@@ -3440,10 +3448,15 @@ NC4_hdf5get_libversion(unsigned* major,unsigned* minor,unsigned* release)
 int
 NC4_hdf5get_superblock(struct NC_FILE_INFO* h5, int* idp)
 {
+   NC_HDF5_FILE_INFO_T *hdf5_info;
    int stat = NC_NOERR;
    unsigned super;
    hid_t plist = -1;
-   if((plist = H5Fget_create_plist(h5->hdfid)) < 0)
+
+   assert(h5 && h5->format_file_info);
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+
+   if((plist = H5Fget_create_plist(hdf5_info->hdfid)) < 0)
    {stat = NC_EHDFERR; goto done;}
    if(H5Pget_version(plist, &super, NULL, NULL, NULL) < 0)
    {stat = NC_EHDFERR; goto done;}
