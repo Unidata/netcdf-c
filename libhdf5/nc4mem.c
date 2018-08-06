@@ -90,7 +90,7 @@ NC4_extract_file_image(NC_FILE_INFO_T* h5)
     herr_t herr;
     NC_memio mem;
 
-   assert(h5 && h5->format_file_info && !h5->no_write);
+    assert(h5 && h5->format_file_info && !h5->no_write);
 
     /* Get the file access property list */
     fapl = h5->mem.fapl;
