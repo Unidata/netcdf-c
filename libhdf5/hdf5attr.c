@@ -39,7 +39,7 @@ getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
    {
       /* Do we need to read the atts? */
       if (grp->atts_not_read)
-         if ((retval = nc4_read_grp_atts(grp)))
+         if ((retval = nc4_read_atts(grp, NULL)))
             return retval;
 
       if (varp)
@@ -54,7 +54,7 @@ getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
 
       /* Do we need to read the atts? */
       if (var->atts_not_read)
-         if ((retval = nc4_read_var_atts(grp, var)))
+         if ((retval = nc4_read_atts(grp, var)))
             return retval;
 
       if (varp)
