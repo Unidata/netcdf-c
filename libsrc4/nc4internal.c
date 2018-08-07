@@ -291,7 +291,7 @@ nc4_find_g_var_nc(NC *nc, int ncid, int varid,
    /* Find the var info. */
    (*var) = (NC_VAR_INFO_T*)ncindexith((*grp)->vars,varid);
    if((*var) == NULL)
-	return NC_ENOTVAR;
+      return NC_ENOTVAR;
 
    return NC_NOERR;
 }
@@ -321,11 +321,11 @@ nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
    /* Find the dim info. */
    (*dim) = nclistget(h5->alldims,dimid);
    if((*dim) == NULL)
-	return NC_EBADDIM;
+      return NC_EBADDIM;
 
    /* Redundant: Verify that this dim is in fact in the group or its parent */
    for (found=0, g = grp; g ; g = g->parent) {
-	if(g == (*dim)->container) {found = 1; break;}
+      if(g == (*dim)->container) {found = 1; break;}
    }
    /* If we didn't find it, return an error. */
    assert(found);
@@ -378,14 +378,14 @@ nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name)
    /* Does this group have the type we are searching for? */
    type  = (NC_TYPE_INFO_T*)ncindexlookup(start_grp->type,name);
    if(type != NULL)
-	return type;
+      return type;
 
    /* Search subgroups. */
    for(i=0;i<ncindexsize(start_grp->children);i++) {
       g = (NC_GRP_INFO_T*)ncindexith(start_grp->children,i);
       if(g == NULL) continue;
       if ((res = nc4_rec_find_named_type(g, name)))
-          return res;
+         return res;
    }
    /* Can't find it. Oh, woe is me! */
    return NULL;
@@ -494,12 +494,12 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
    if(attlist) {
       NC_ATT_INFO_T* a;
       if(name != NULL)
-          a = (NC_ATT_INFO_T*)ncindexlookup(attlist,name);
+         a = (NC_ATT_INFO_T*)ncindexlookup(attlist,name);
       else
-          a = (NC_ATT_INFO_T*)ncindexith(attlist,attnum);
+         a = (NC_ATT_INFO_T*)ncindexith(attlist,attnum);
       if(a != NULL) {
-	*att = a;
-	return NC_NOERR;
+         *att = a;
+         return NC_NOERR;
       }
    }
 
@@ -579,9 +579,9 @@ nc4_find_nc_file(int ext_ncid, NC_FILE_INFO_T** h5p)
 static void
 obj_list_add(NCindex* index, NC_OBJ* obj)
 {
-    /* Insert object into the index */
+   /* Insert object into the index */
 //    ncindexset(index,obj->id,obj);
-    ncindexadd(index,obj);
+   ncindexadd(index,obj);
 }
 
 /**
@@ -595,17 +595,17 @@ obj_list_add(NCindex* index, NC_OBJ* obj)
 static void
 obj_track(NC_FILE_INFO_T* file, NC_OBJ* obj)
 {
-    NClist* list = NULL;
-    /* record the object in the file  */
-    switch (obj->sort) {
-    case NCDIM: list = file->alldims; break;
-    case NCTYP: list = file->alltypes; break;
-    case NCGRP: list = file->allgroups; break;
-    default:
-	assert(NC_FALSE);
-    }
-    /* Insert at the appropriate point in the list */
-    nclistset(list,obj->id,obj);
+   NClist* list = NULL;
+   /* record the object in the file  */
+   switch (obj->sort) {
+   case NCDIM: list = file->alldims; break;
+   case NCTYP: list = file->alltypes; break;
+   case NCGRP: list = file->allgroups; break;
+   default:
+      assert(NC_FALSE);
+   }
+   /* Insert at the appropriate point in the list */
+   nclistset(list,obj->id,obj);
 }
 
 /**
@@ -764,9 +764,9 @@ nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
 
    /* Assign the dimension ID. */
    if (assignedid >= 0)
-       new_dim->hdr.id = assignedid;
+      new_dim->hdr.id = assignedid;
    else
-       new_dim->hdr.id = grp->nc4_info->next_dimid++;
+      new_dim->hdr.id = grp->nc4_info->next_dimid++;
 
    /* Remember the name and create a hash. */
    if (!(new_dim->hdr.name = strdup(name)))
@@ -832,7 +832,7 @@ nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att)
 
 exit:
    if(retval) {
-	nc4_att_list_del(list,new_att);
+      nc4_att_list_del(list,new_att);
    }
    return retval;
 }
@@ -970,17 +970,17 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
    /* Any types of this name? */
    type = (NC_TYPE_INFO_T*)ncindexlookup(grp->type,name);
    if(type != NULL)
-         return NC_ENAMEINUSE;
+      return NC_ENAMEINUSE;
 
    /* Any child groups of this name? */
    g = (NC_GRP_INFO_T*)ncindexlookup(grp->children,name);
    if(g != NULL)
-         return NC_ENAMEINUSE;
+      return NC_ENAMEINUSE;
 
    /* Any variables of this name? */
    var = (NC_VAR_INFO_T*)ncindexlookup(grp->vars,name);
    if(var != NULL)
-         return NC_ENAMEINUSE;
+      return NC_ENAMEINUSE;
 
    return NC_NOERR;
 }
@@ -1002,28 +1002,28 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
 int
 nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid, NC_TYPE_INFO_T **type)
 {
-  NC_TYPE_INFO_T *new_type = NULL;
+   NC_TYPE_INFO_T *new_type = NULL;
 
-  /* Allocate memory for the type */
-  if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
-    return NC_ENOMEM;
-  new_type->hdr.sort = NCTYP;
+   /* Allocate memory for the type */
+   if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
+      return NC_ENOMEM;
+   new_type->hdr.sort = NCTYP;
 
-  /* Remember info about this type. */
-  new_type->hdr.id = assignedid;
-  new_type->size = size;
-  if (!(new_type->hdr.name = strdup(name))) {
-    free(new_type);
-    return NC_ENOMEM;
-  }
+   /* Remember info about this type. */
+   new_type->hdr.id = assignedid;
+   new_type->size = size;
+   if (!(new_type->hdr.name = strdup(name))) {
+      free(new_type);
+      return NC_ENOMEM;
+   }
 
-  new_type->hdr.hashkey = NC_hashmapkey(name,strlen(name));
+   new_type->hdr.hashkey = NC_hashmapkey(name,strlen(name));
 
-  /* Return a pointer to the new type, if requested */
-  if (type)
-    *type = new_type;
+   /* Return a pointer to the new type, if requested */
+   if (type)
+      *type = new_type;
 
-  return NC_NOERR;
+   return NC_NOERR;
 }
 
 /**
@@ -1048,7 +1048,7 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
 
    retval = nc4_type_new(grp,size,name, grp->nc4_info->next_typeid,&new_type);
    if(retval)
-	return retval;
+      return retval;
    grp->nc4_info->next_typeid++;
 
    /* Increment the ref. count on the type */
@@ -1232,12 +1232,12 @@ nc4_type_free(NC_TYPE_INFO_T *type)
 
          /* Delete all the fields in this type (there will be some if its a
           * compound). */
-        for(i=0;i<nclistlength(type->u.c.field);i++) {
+         for(i=0;i<nclistlength(type->u.c.field);i++) {
             field = nclistget(type->u.c.field,i);
             field_free(field);
          }
-	 nclistfree(type->u.c.field);
- 	 type->u.c.field = NULL; /* belt and suspenders */
+         nclistfree(type->u.c.field);
+         type->u.c.field = NULL; /* belt and suspenders */
       }
       break;
 
@@ -1246,14 +1246,14 @@ nc4_type_free(NC_TYPE_INFO_T *type)
          NC_ENUM_MEMBER_INFO_T *enum_member;
 
          /* Delete all the enum_members, if any. */
-	 for(i=0;i<nclistlength(type->u.e.enum_member);i++) {
+         for(i=0;i<nclistlength(type->u.e.enum_member);i++) {
             enum_member = nclistget(type->u.e.enum_member,i);
             free(enum_member->value);
             free(enum_member->name);
             free(enum_member);
          }
-	 nclistfree(type->u.e.enum_member);
- 	 type->u.e.enum_member = NULL; /* belt and suspenders */
+         nclistfree(type->u.e.enum_member);
+         type->u.e.enum_member = NULL; /* belt and suspenders */
 
          if (H5Tclose(type->u.e.base_hdf_typeid) < 0)
             return NC_EHDFERR;
@@ -1384,9 +1384,9 @@ nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
 
    /* Remove from lists */
    if(grp) {
-       i = ncindexfind(grp->vars,(NC_OBJ*)var);
-       if(i >= 0)
-           ncindexidel(grp->vars,i);
+      i = ncindexfind(grp->vars,(NC_OBJ*)var);
+      if(i >= 0)
+         ncindexidel(grp->vars,i);
    }
    return nc4_var_free(var);
 }
@@ -1403,13 +1403,13 @@ int
 nc4_dim_free(NC_DIM_INFO_T *dim)
 {
    /* Free memory allocated for names. */
-  if(dim) {
-    if (dim->hdr.name)
-      free(dim->hdr.name);
+   if(dim) {
+      if (dim->hdr.name)
+         free(dim->hdr.name);
 
-    free(dim);
-  }
-  return NC_NOERR;
+      free(dim);
+   }
+   return NC_NOERR;
 }
 
 /**
@@ -1425,9 +1425,9 @@ int
 nc4_dim_list_del(NC_GRP_INFO_T* grp, NC_DIM_INFO_T *dim)
 {
    if(grp && dim) {
-	int pos = ncindexfind(grp->dim,(NC_OBJ*)dim);
-	if(pos >= 0)
-            ncindexidel(grp->dim,pos);
+      int pos = ncindexfind(grp->dim,(NC_OBJ*)dim);
+      if(pos >= 0)
+         ncindexidel(grp->dim,pos);
    }
    return nc4_dim_free(dim);
 }
@@ -1462,9 +1462,9 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
    /* Recursively call this function for each child, if any, stopping
     * if there is an error. */
    for(i=0;i<ncindexsize(grp->children);i++) {
-	g = (NC_GRP_INFO_T*)ncindexith(grp->children,i);
-	if(g == NULL) continue;
-        if ((retval = nc4_rec_grp_del(g)))
+      g = (NC_GRP_INFO_T*)ncindexith(grp->children,i);
+      if(g == NULL) continue;
+      if ((retval = nc4_rec_grp_del(g)))
          return retval;
    }
    ncindexfree(grp->children);
@@ -1473,10 +1473,10 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
    /* Delete all the list contents for vars, dims, and atts, in this
     * group. */
    for(i=0;i<ncindexsize(grp->att);i++) {
-	att = (NC_ATT_INFO_T*)ncindexith(grp->att,i);
-	if(att == NULL) continue;
-        LOG((4, "%s: deleting att %s", __func__, att->hdr.name));
-        if ((retval = nc4_att_free(att)))  /* free but leave in parent list */
+      att = (NC_ATT_INFO_T*)ncindexith(grp->att,i);
+      if(att == NULL) continue;
+      LOG((4, "%s: deleting att %s", __func__, att->hdr.name));
+      if ((retval = nc4_att_free(att)))  /* free but leave in parent list */
          return retval;
    }
    ncindexfree(grp->att);
@@ -1552,9 +1552,9 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
 int
 nc4_att_list_del(NCindex* list, NC_ATT_INFO_T *att)
 {
-    assert(att != NULL);
-    if(list != NULL) obj_list_del(list, (NC_OBJ *)att);
-    return nc4_att_free(att);
+   assert(att != NULL);
+   if(list != NULL) obj_list_del(list, (NC_OBJ *)att);
+   return nc4_att_free(att);
 }
 
 /**
@@ -1759,7 +1759,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
            (dims_string ? dims_string : " -"),var->type_info->endianness, var->type_info->native_hdf_typeid));
       for(j=0;j<ncindexsize(var->att);j++) {
          att = (NC_ATT_INFO_T*)ncindexith(var->att,j);
-	 if(att == NULL) continue;
+         if(att == NULL) continue;
          LOG((2, "%s VAR ATTRIBUTE - attnum: %d name: %s type: %d len: %d",
               tabs, att->hdr.id, att->hdr.name, att->nc_typeid, att->len));
       }
@@ -1779,13 +1779,13 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
       /* Is this a compound type? */
       if (type->nc_type_class == NC_COMPOUND)
       {
-	 int j;
+         int j;
          LOG((3, "compound type"));
-	 for(j=0;j<nclistlength(type->u.c.field);j++) {
-	    field = (NC_FIELD_INFO_T*)nclistget(type->u.c.field,j);
+         for(j=0;j<nclistlength(type->u.c.field);j++) {
+            field = (NC_FIELD_INFO_T*)nclistget(type->u.c.field,j);
             LOG((4, "field %s offset %d nctype %d ndims %d", field->hdr.name,
                  field->offset, field->nc_typeid, field->ndims));
-	 }
+         }
       }
       else if (type->nc_type_class == NC_VLEN)
       {
@@ -1811,7 +1811,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
    {
       if((g = (NC_GRP_INFO_T*)ncindexith(grp->children,i)) == NULL) continue;
       if ((retval = rec_print_metadata(g, tab_count + 1)))
-            return retval;
+         return retval;
    }
    return NC_NOERR;
 }
@@ -1841,7 +1841,7 @@ log_metadata_nc(NC *nc)
         h5->cmode, (int)h5->parallel, (int)h5->redef, h5->fill_mode, (int)h5->no_write,
         h5->next_nc_grpid));
    if(nc_log_level >= 2)
-       return rec_print_metadata(h5->root_grp, 0);
+      return rec_print_metadata(h5->root_grp, 0);
    return NC_NOERR;
 }
 
