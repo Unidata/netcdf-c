@@ -292,6 +292,58 @@ nc4_find_g_var_nc(NC *nc, int ncid, int varid,
 }
 
 /**
+ * @internal Given an ncid and varid, get pointers to the group and var
+ * metadata.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param h5 Pointer that gets pointer to the NC_FILE_INFO_T struct
+ * for this file. Ignored if NULL.
+ * @param grp Pointer that gets pointer to group info. Ignored if
+ * NULL.
+ * @param var Pointer that gets pointer to var info. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **grp,
+                    NC_VAR_INFO_T **var)
+{
+   NC *nc;
+   NC_FILE_INFO_T *my_h5;
+   NC_GRP_INFO_T *my_grp;
+   NC_VAR_INFO_T *my_var;
+   int retval;
+
+   /* Find the NC from the ncid, and the h5 from that. */
+   if ((retval = NC_check_id(ncid, &nc)))
+      return retval;
+   my_h5 = nc->dispatchdata;
+   assert(nc && my_h5);
+
+   /* If we can't find it, the grp id part of ncid is bad. */
+   if (!(my_grp = nc4_rec_find_grp(my_h5, (ncid & GRP_ID_MASK))))
+      return NC_EBADID;
+   assert(my_grp);
+
+   /* Find the var. */
+   if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, varid)))
+      return NC_ENOTVAR;
+   assert(my_var && my_var->hdr.id == varid);
+
+   /* Return pointers that caller wants. */
+   if (h5)
+      *h5 = my_h5;
+   if (grp)
+      *grp = my_grp;
+   if (var)
+      *var = my_var;
+
+   return NC_NOERR;
+}
+
+/**
  * @internal Find a dim in a grp (or its parents).
  *
  * @param grp Pointer to group info struct.
@@ -1754,11 +1806,14 @@ log_metadata_nc(NC *nc)
 #endif /*LOGGING */
 
 /**
- * @internal Show the in-memory metadata for a netcdf file.
+ * @internal Show the in-memory metadata for a netcdf file. This
+ * function does nothing unless netCDF was built with
+ * the configure option --enable-logging.
  *
  * @param ncid File and group ID.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
  */
 int
