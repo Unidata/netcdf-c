@@ -1142,18 +1142,12 @@ int
 NC4_put_vara(int ncid, int varid, const size_t *startp,
              const size_t *countp, const void *op, int memtype)
 {
-   NC *nc;
-
-   if (!(nc = nc4_find_nc_file(ncid, NULL)))
-      return NC_EBADID;
-
-   return nc4_put_vars(nc, ncid, varid, startp, countp, NULL, memtype,
-                       (void *)op);
+   return NC4_put_vars(ncid, varid, startp, countp, NULL, op, memtype);
 }
 
 /**
- * Read an array of values. This is called by nc_get_vara() for
- * netCDF-4 files, as well as all the other nc_get_vara_*
+ * @internal Read an array of values. This is called by nc_get_vara()
+ * for netCDF-4 files, as well as all the other nc_get_vara_*
  * functions.
  *
  * @param ncid File ID.
@@ -1170,88 +1164,12 @@ int
 NC4_get_vara(int ncid, int varid, const size_t *startp,
              const size_t *countp, void *ip, int memtype)
 {
-   NC *nc;
-   NC_FILE_INFO_T* h5;
-
-   LOG((2, "%s: ncid 0x%x varid %d memtype %d", __func__, ncid, varid,
-        memtype));
-
-   if (!(nc = nc4_find_nc_file(ncid, &h5)))
-      return NC_EBADID;
-
-   /* Get the data. */
-   return nc4_get_vars(nc, ncid, varid, startp, countp, NULL, memtype,
-                       (void *)ip);
+   return NC4_get_vars(ncid, varid, startp, countp, NULL, ip, memtype);
 }
 
 /**
- * @internal Write an array of data to a variable. This is called by
- * nc_put_vars() and other nc_put_vars_* functions, for netCDF-4
- * files.
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param startp Array of start indices.
- * @param countp Array of counts.
- * @param stridep Array of strides.
- * @param op pointer that gets the data.
- * @param memtype The type of these data in memory.
- *
- * @returns ::NC_NOERR for success
- * @author Dennis Heimbigner
- */
-int
-NC4_put_vars(int ncid, int varid, const size_t *startp,
-             const size_t *countp, const ptrdiff_t* stridep,
-             const void *op, int memtype)
-{
-   NC *nc;
-
-   if (!(nc = nc4_find_nc_file(ncid, NULL)))
-      return NC_EBADID;
-
-   return nc4_put_vars(nc, ncid, varid, startp, countp, stridep, memtype,
-                       (void *)op);
-}
-
-/**
- * Read an array of values. This is called by nc_get_vars() for
- * netCDF-4 files, as well as all the other nc_get_vars_*
- * functions.
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param startp Array of start indices.
- * @param countp Array of counts.
- * @param stridep Array of strides.
- * @param ip pointer that gets the data.
- * @param memtype The type of these data after it is read into memory.
-
- * @returns ::NC_NOERR for success
- * @author Dennis Heimbigner
- */
-int
-NC4_get_vars(int ncid, int varid, const size_t *startp,
-             const size_t *countp, const ptrdiff_t *stridep,
-             void *ip, int memtype)
-{
-   NC *nc;
-   NC_FILE_INFO_T *h5;
-
-   LOG((2, "%s: ncid 0x%x varid %d memtype %d", __func__, ncid, varid,
-        memtype));
-
-   if (!(nc = nc4_find_nc_file(ncid, &h5)))
-      return NC_EBADID;
-
-   /* Get the data. */
-   return nc4_get_vars(nc, ncid, varid, startp, countp, stridep, memtype,
-                       (void *)ip);
-}
-
-/**
- * @internal Do some common check for nc4_put_vara and
- * nc4_get_vara. These checks have to be done when both reading and
+ * @internal Do some common check for NC4_put_vars and
+ * NC4_get_vars. These checks have to be done when both reading and
  * writing data.
  *
  * @param mem_nc_type Pointer to type of data in memory.
@@ -1350,18 +1268,21 @@ set_par_access(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
 #endif
 
 /**
- * @internal Write a strided array of data to a variable.
+ * @internal Write a strided array of data to a variable. This is
+ * called by nc_put_vars() and other nc_put_vars_* functions, for
+ * netCDF-4 files. Also the nc_put_vara() calls end up calling this
+ * with a NULL stride parameter.
  *
- * @param nc Pointer to the file NC struct.
  * @param ncid File ID.
  * @param varid Variable ID.
  * @param startp Array of start indices. Will default to starts of 0
  * if NULL.
- * @param countp Array of counts. Will default to counts of 1 if NULL.
+ * @param countp Array of counts. Will default to counts of full
+ * dimension size if NULL.
  * @param stridep Array of strides. Will default to strides of 1 if
  * NULL.
- * @param mem_nc_type The type of the data in memory.
  * @param data The data to be written.
+ * @param mem_nc_type The type of the data in memory.
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ncid.
@@ -1376,9 +1297,8 @@ set_par_access(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
-             const size_t *countp, const ptrdiff_t* stridep,
-             nc_type mem_nc_type, void *data)
+NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
+             const ptrdiff_t* stridep, const void *data, nc_type mem_nc_type)
 {
    NC_GRP_INFO_T *grp;
    NC_FILE_INFO_T *h5;
@@ -1389,7 +1309,6 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
    hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
    hsize_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
    hsize_t stride[NC_MAX_VAR_DIMS];
-   char *name_to_use;
    int need_to_extend = 0;
 #ifdef USE_PARALLEL4
    int extend_possible = 0;
@@ -1400,12 +1319,10 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
    int zero_count = 0; /* true if a count is zero */
    size_t len = 1;
 
-   /* Find our metadata for this file, group, and var. */
-   assert(nc);
-   if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
+   /* Find info for this file, group, and var. */
+   if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
       return retval;
-   h5 = NC4_DATA(nc);
-   assert(grp && h5 && var && var->hdr.name);
+   assert(h5 && grp && var && var->hdr.id == varid);
 
    LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
         var->hdr.name, mem_nc_type));
@@ -1414,6 +1331,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
     * be switched from define mode, it happens here. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
       return retval;
+   assert(var->hdf_datasetid);
 
    /* Convert from size_t and ptrdiff_t to hssize_t, and hsize_t. */
    /* Also do sanity checks */
@@ -1423,27 +1341,14 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
       if (stridep && stridep[i] <= 0)
          return NC_ESTRIDE;
 
-      start[i] = (startp == NULL ? 0 : startp[i]);
-      count[i] = (countp == NULL ? 1 : countp[i]);
-      stride[i] = (stridep == NULL ? 1 : stridep[i]);
+      start[i] = startp ? startp[i] : 0;
+      count[i] = countp ? countp[i] : var->dim[i]->len;
+      stride[i] = stridep ? stridep[i] : 1;
 
       /* Check to see if any counts are zero. */
       if (!count[i])
          zero_count++;
    }
-
-   /* Open this dataset if necessary, also checking for a weird case:
-    * a non-coordinate (and non-scalar) variable that has the same
-    * name as a dimension. */
-   if (var->hdf5_name && strlen(var->hdf5_name) >= strlen(NON_COORD_PREPEND) &&
-       strncmp(var->hdf5_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)) == 0 &&
-       var->ndims)
-      name_to_use = var->hdf5_name;
-   else
-      name_to_use = var->hdr.name;
-   if (!var->hdf_datasetid)
-      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
-         return NC_ENOTVAR;
 
    /* Get file space of data. */
    if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
@@ -1533,7 +1438,7 @@ nc4_put_vars(NC *nc, int ncid, int varid, const size_t *startp,
             BAIL(NC_ENOMEM);
    }
    else
-      bufr = data;
+      bufr = (void *)data;
 
    /* Create the data transfer property list. */
    if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
@@ -1679,19 +1584,21 @@ exit:
 }
 
 /**
- * @internal Read a strided array of data from a variable.
+ * @internal Read a strided array of data from a variable. This is
+ * called by nc_get_vars() for netCDF-4 files, as well as all the
+ * other nc_get_vars_* functions.
  *
- * @param nc Pointer to the file NC struct.
  * @param ncid File ID.
  * @param varid Variable ID.
  * @param startp Array of start indices. Will default to starts of 0
  * if NULL.
- * @param countp Array of counts. Will default to counts of 1 if NULL.
+ * @param countp Array of counts. Will default to counts of extent of
+ * dimension if NULL.
  * @param stridep Array of strides. Will default to strides of 1 if
  * NULL.
+ * @param data The data to be written.
  * @param mem_nc_type The type of the data in memory. (Convert to this
  * type from file type.)
- * @param data The data to be written.
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ncid.
@@ -1706,9 +1613,8 @@ exit:
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
-             const size_t *countp, const ptrdiff_t* stridep,
-             nc_type mem_nc_type, void *data)
+NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
+             const ptrdiff_t* stridep, void *data, nc_type mem_nc_type)
 {
    NC_GRP_INFO_T *grp;
    NC_FILE_INFO_T *h5;
@@ -1721,7 +1627,6 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
    hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
    hsize_t start[NC_MAX_VAR_DIMS];
    hsize_t stride[NC_MAX_VAR_DIMS];
-   char *name_to_use;
    void *fillvalue = NULL;
    int no_read = 0, provide_fill = 0;
    int fill_value_size[NC_MAX_VAR_DIMS];
@@ -1730,19 +1635,19 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
    int need_to_convert = 0;
    size_t len = 1;
 
-   /* Find our metadata for this file, group, and var. */
-   assert(nc);
-   if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
+   /* Find info for this file, group, and var. */
+   if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
       return retval;
-   h5 = NC4_DATA(nc);
-   assert(grp && h5 && var && var->hdr.name);
+   assert(h5 && grp && var && var->hdr.id == varid);
 
    LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
         var->hdr.name, mem_nc_type));
 
-   /* Check some stuff about the type and the file. */
+   /* Check some stuff about the type and the file. Also end define
+    * mode, if needed. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
       return retval;
+   assert(var->hdf_datasetid);
 
    /* Convert from size_t and ptrdiff_t to hsize_t. Also do sanity
     * checks. */
@@ -1752,27 +1657,14 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
       if (stridep && stridep[i] <= 0)
          return NC_ESTRIDE;
 
-      start[i] = (startp == NULL ? 0 : startp[i]);
-      count[i] = (countp == NULL ? 1 : countp[i]);
-      stride[i] = (stridep == NULL ? 1 : stridep[i]);
+      start[i] = startp ? startp[i] : 0;
+      count[i] = countp ? countp[i] : var->dim[i]->len;
+      stride[i] = stridep ? stridep[i] : 1;
 
       /* if any of the count values are zero don't actually read. */
       if (count[i] == 0)
          no_read++;
    }
-
-   /* Open this dataset if necessary, also checking for a weird case:
-    * a non-coordinate (and non-scalar) variable that has the same
-    * name as a dimension. */
-   if (var->hdf5_name && strlen(var->hdf5_name) >= strlen(NON_COORD_PREPEND) &&
-       strncmp(var->hdf5_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)) == 0 &&
-       var->ndims)
-      name_to_use = var->hdf5_name;
-   else
-      name_to_use = var->hdr.name;
-   if (!var->hdf_datasetid)
-      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, name_to_use, H5P_DEFAULT)) < 0)
-         return NC_ENOTVAR;
 
    /* Get file space of data. */
    if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
@@ -1792,7 +1684,7 @@ nc4_get_vars(NC *nc, int ncid, int varid, const size_t *startp,
     * put data beyond their current length. */
    for (d2 = 0; d2 < var->ndims; d2++)
    {
-      hsize_t endindex = start[d2] + stride[d2] *(count[d2] - 1); /* last index read */
+      hsize_t endindex = start[d2] + stride[d2] * (count[d2] - 1); /* last index read */
       dim = var->dim[d2];
       assert(dim && dim->hdr.id == var->dimids[d2]);
       if (count[d2] == 0)
