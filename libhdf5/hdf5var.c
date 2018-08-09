@@ -1324,6 +1324,10 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
       return retval;
    assert(h5 && grp && var && var->hdr.id == varid);
 
+   /* Cannot convert to user-defined types. */
+   if (mem_nc_type >= NC_FIRSTUSERTYPEID)
+      mem_nc_type = NC_NAT;
+
    LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
         var->hdr.name, mem_nc_type));
 
