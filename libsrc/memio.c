@@ -137,7 +137,7 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
     assert(path != NULL);
 
     if(pagesize == 0) {
-#if defined (_WIN32) || defined(_WIN64)
+#if defined (_WIN32) && !defined(__MINGW32__)
       SYSTEM_INFO info;
       GetSystemInfo (&info);
       pagesize = info.dwPageSize;

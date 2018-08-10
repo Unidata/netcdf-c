@@ -77,7 +77,7 @@ NCDISPATCH_initialize(void)
 	char* p;
 	char* q;
 	char cwd[4096];
-#ifdef _MSC_VER
+#ifdef _WIN32
         tempdir = getenv("TEMP");
 #else
 	tempdir = "/tmp";

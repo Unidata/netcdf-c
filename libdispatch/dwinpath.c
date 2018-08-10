@@ -155,7 +155,7 @@ static char*
 makeabsolute(const char* relpath)
 {
     char* path = NULL;
-#ifdef _MSC_VER
+#ifdef _WIN32
     path = _fullpath(NULL,relpath,8192);
 #else
     path = realpath(relpath, NULL);

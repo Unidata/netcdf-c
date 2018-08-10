@@ -168,7 +168,7 @@ NC_readfile(const char* filename, NCbytes* content)
     FILE* stream = NULL;
     char part[1024];
 
-#ifdef _MSC_VER
+#ifdef _WIN32
     stream = NCfopen(filename,"rb");
 #else
     stream = NCfopen(filename,"r");
@@ -237,7 +237,7 @@ NC_mktmp(const char* base)
             strncat(tmp,spid,sizeof(tmp));
 	}
 #endif /* HAVE_MKTEMP */
-#ifdef _MSC_VER
+#ifdef _WIN32
         fd=NCopen3(tmp,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
 #else
         fd=NCopen3(tmp,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);

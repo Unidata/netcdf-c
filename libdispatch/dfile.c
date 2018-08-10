@@ -2519,7 +2519,7 @@ openmagic(struct MagicFile* file)
     {
         if(file->path == NULL || strlen(file->path)==0)
 	    {status = NC_EINVAL; goto done;}
-#ifdef _MSC_VER
+#ifdef _WIN32
         file->fp = fopen(file->path, "rb");
 #else
         file->fp = fopen(file->path, "r");
