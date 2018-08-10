@@ -19,7 +19,7 @@ dnl (MPI_Offset vs. size_t), and function name substrings for external data
 dnl types.
 dnl
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 #include <io.h>
 #endif
 

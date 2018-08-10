@@ -379,7 +379,7 @@ NCD4_mktmp(const char* base, char** tmpnamep)
 	if(rno < 0) rno = -rno;
         snprintf(spid,sizeof(spid),"%06d",rno);
         strncat(tmp,spid,sizeof(tmp));
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
         fd=open(tmp,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
 #  else
         fd=open(tmp,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);

@@ -16,7 +16,7 @@ See \ref copyright file for more info.
 #include <errno.h>  /* netcdf functions sometimes return system errors */
 
 /* Required for alloca on Windows */
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
 #include <malloc.h>
 #endif
 

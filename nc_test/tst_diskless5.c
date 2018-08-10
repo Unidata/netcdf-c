@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <sys/types.h>
-#if defined (_WIN32) || defined (_WIN64) || defined _MSC_VER
+#ifdef _WIN32
 #include <io.h>
 #else
 #include <unistd.h>

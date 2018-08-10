@@ -15,7 +15,7 @@
 
 #define FILE_NAME "tst_udf.nc"
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
 int
 NC4_show_metadata(int ncid)
 {
