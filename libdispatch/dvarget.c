@@ -99,9 +99,6 @@ NC_get_vara(int ncid, int varid,
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-#ifdef USE_NETCDF4
-   if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
-#endif
 
    if(edges == NULL) {
       size_t shape[NC_MAX_VAR_DIMS];
@@ -607,9 +604,6 @@ NC_get_vars(int ncid, int varid, const size_t *start,
    int stat = NC_check_id(ncid, &ncp);
 
    if(stat != NC_NOERR) return stat;
-#ifdef USE_NETCDF4
-   if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
-#endif
    return ncp->dispatch->get_vars(ncid,varid,start,edges,stride,value,memtype);
 }
 
@@ -658,9 +652,6 @@ NC_get_varm(int ncid, int varid, const size_t *start,
    int stat = NC_check_id(ncid, &ncp);
 
    if(stat != NC_NOERR) return stat;
-#ifdef USE_NETCDF4
-   if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
-#endif
    return ncp->dispatch->get_varm(ncid,varid,start,edges,stride,map,value,memtype);
 }
 
