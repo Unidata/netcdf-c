@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 	flex -Pncg -8 ncgen.l
 	rm -f ncgenl.c
 	sed -e s/lex.ncg.c/ncgenl.c/g <lex.ncg.c >ncgenl.c
