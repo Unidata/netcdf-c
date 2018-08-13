@@ -95,7 +95,7 @@ NC_put_vara(int ncid, int varid, const size_t *start,
       stat = nc_inq_varndims(ncid, varid, &ndims);
       if(stat != NC_NOERR) return stat;
    }
-   if(ndims > 0 && start == NULL) return NC_EINVALCOORDS;
+   if(start == NULL && ndims > 0) return NC_EINVALCOORDS;
    if(edges == NULL) {
       size_t shape[NC_MAX_VAR_DIMS];
       stat = NC_getshape(ncid, varid, ndims, shape);

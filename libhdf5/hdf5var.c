@@ -1335,15 +1335,12 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     * be switched from define mode, it happens here. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
       return retval;
-   assert(var->hdf_datasetid);
+   assert(var->hdf_datasetid && (!var->ndims || startp));
 
    /* Convert from size_t and ptrdiff_t to hssize_t, and hsize_t. */
    /* Also do sanity checks */
    for (i = 0; i < var->ndims; i++)
    {
-      /* Start is always provided. */
-      assert(startp);
-
       /* Check for non-positive stride. */
       if (stridep && stridep[i] <= 0)
          return NC_ESTRIDE;
@@ -1597,8 +1594,8 @@ exit:
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param startp Array of start indices. Will default to starts of 0
- * if NULL.
+ * @param startp Array of start indices. Must be provided for
+ * non-scalar vars.
  * @param countp Array of counts. Will default to counts of extent of
  * dimension if NULL.
  * @param stridep Array of strides. Will default to strides of 1 if
@@ -1654,7 +1651,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     * mode, if needed. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
       return retval;
-   assert(var->hdf_datasetid);
+   assert(var->hdf_datasetid && (!var->ndims || startp));
 
    /* Convert from size_t and ptrdiff_t to hsize_t. Also do sanity
     * checks. */
@@ -1664,7 +1661,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
       if (stridep && stridep[i] <= 0)
          return NC_ESTRIDE;
 
-      start[i] = startp ? startp[i] : 0;
+      start[i] = startp[i];
       count[i] = countp ? countp[i] : var->dim[i]->len;
       stride[i] = stridep ? stridep[i] : 1;
 
