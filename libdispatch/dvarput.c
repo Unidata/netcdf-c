@@ -135,6 +135,10 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 	    const size_t * edges, const ptrdiff_t * stride,
 	    const void *value0, nc_type memtype)
 {
+   /* Start array is always required. */
+   if (!start)
+      return NC_EINVALCOORDS;
+
 #ifdef VARS_USES_VARM
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
@@ -550,9 +554,6 @@ NC_put_vars(int ncid, int varid, const size_t *start,
    int stat = NC_check_id(ncid, &ncp);
 
    if(stat != NC_NOERR) return stat;
-#ifdef USE_NETCDF4
-   if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
-#endif
    return ncp->dispatch->put_vars(ncid,varid,start,edges,stride,value,memtype);
 }
 
@@ -568,9 +569,6 @@ NC_put_varm(int ncid, int varid, const size_t *start,
    int stat = NC_check_id(ncid, &ncp);
 
    if(stat != NC_NOERR) return stat;
-#ifdef USE_NETCDF4
-   if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
-#endif
    return ncp->dispatch->put_varm(ncid,varid,start,edges,stride,map,value,memtype);
 }
 
