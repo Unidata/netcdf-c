@@ -97,14 +97,16 @@ NC_get_vara(int ncid, int varid,
             void *value, nc_type memtype)
 {
    NC* ncp;
+   int ndims;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-
-   if(edges == NULL) {
-      size_t shape[NC_MAX_VAR_DIMS];
-      int ndims;
+   if(edges == NULL || start == NULL) {
       stat = nc_inq_varndims(ncid, varid, &ndims);
       if(stat != NC_NOERR) return stat;
+   }
+   if(start == NULL && ndims > 0) return NC_EINVALCOORDS;
+   if(edges == NULL) {
+      size_t shape[NC_MAX_VAR_DIMS];
       stat = NC_getshape(ncid,varid,ndims,shape);
       if(stat != NC_NOERR) return stat;
       stat = ncp->dispatch->get_vara(ncid,varid,start,shape,value,memtype);
@@ -217,6 +219,10 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
    /* Get the variable rank */
    status = nc_inq_varndims(ncid, varid, &rank);
    if(status != NC_NOERR) return status;
+
+   /* Start array is always required for non-scalar vars. */
+   if(rank > 0 && start == NULL)
+      return NC_EINVALCOORDS;
 
    /* Get variable dimension sizes */
    isrecvar = NC_is_recvar(ncid,varid,&numrecs);

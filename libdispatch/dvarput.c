@@ -198,7 +198,7 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    if(status != NC_NOERR) return status;
 
    /* Start array is always required for non-scalar vars. */
-   if (rank > 0 && !start)
+   if(rank > 0 && start == NULL)
       return NC_EINVALCOORDS;
 
    /* Get variable dimension sizes */

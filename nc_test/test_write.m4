@@ -1160,7 +1160,7 @@ TestFunc(put_vars)(VarArgs)
     ELSE_NOK
 
     /* check if can detect a bad variable ID */
-    err = PutVars(ncid, BAD_VARID, start, NULL, NULL, NULL, 1, MPI_DATATYPE_NULL);
+    err = PutVars(ncid, BAD_VARID, NULL, NULL, NULL, NULL, 1, MPI_DATATYPE_NULL);
     IF (err != NC_ENOTVAR)
         EXPECT_ERR(NC_ENOTVAR, err)
     ELSE_NOK
