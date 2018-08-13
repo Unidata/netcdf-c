@@ -135,10 +135,6 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 	    const size_t * edges, const ptrdiff_t * stride,
 	    const void *value0, nc_type memtype)
 {
-   /* Start array is always required. */
-   if (!start)
-      return NC_EINVALCOORDS;
-
 #ifdef VARS_USES_VARM
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
@@ -197,6 +193,10 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    /* Get the variable rank */
    status = nc_inq_varndims(ncid, varid, &rank);
    if(status != NC_NOERR) return status;
+
+   /* Start array is always required for non-scalar vars. */
+   if (rank > 0 && !start)
+      return NC_EINVALCOORDS;
 
    /* Get variable dimension sizes */
    status = NC_inq_recvar(ncid,varid,&nrecdims,is_recdim);
