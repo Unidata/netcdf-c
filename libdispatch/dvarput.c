@@ -88,13 +88,16 @@ NC_put_vara(int ncid, int varid, const size_t *start,
 	    const size_t *edges, const void *value, nc_type memtype)
 {
    NC* ncp;
+   int ndims;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   if(edges == NULL) {
-      size_t shape[NC_MAX_VAR_DIMS];
-      int ndims;
+   if(edges == NULL || start == NULL) {
       stat = nc_inq_varndims(ncid, varid, &ndims);
       if(stat != NC_NOERR) return stat;
+   }
+   if(ndims > 0 && start == NULL) return NC_EINVALCOORDS;
+   if(edges == NULL) {
+      size_t shape[NC_MAX_VAR_DIMS];
       stat = NC_getshape(ncid, varid, ndims, shape);
       if(stat != NC_NOERR) return stat;
       return ncp->dispatch->put_vara(ncid, varid, start, shape, value, memtype);
