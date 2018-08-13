@@ -7,7 +7,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
-ERR {
+ERR() {
     RES=$?
     if [ $RES -ne 0 ]; then
         echo "Error found: $RES"
