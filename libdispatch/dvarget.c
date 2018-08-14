@@ -646,19 +646,24 @@ NC_get_varm(int ncid, int varid, const size_t *start,
 	    void *value, nc_type memtype)
 {
    NC* ncp;
-   int rank;
-   int stat = NC_check_id(ncid, &ncp);
+   size_t *my_count = (size_t *)edges;
+   ptrdiff_t *my_stride = (ptrdiff_t *)stride;
+   int stat;
 
+   stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
 
-   /* Non-scalar vars require start array. */
-   if(start == NULL) {
-      stat = nc_inq_varndims(ncid, varid, &rank);
+   /* Handle any NULL parameters. */
+   if(start == NULL || edges == NULL || stride == NULL) {
+      stat = NC_check_nulls(ncid, varid, start, &my_count, &my_stride);
       if(stat != NC_NOERR) return stat;
-      if(rank > 0) return NC_EINVALCOORDS;
    }
 
-   return ncp->dispatch->get_varm(ncid,varid,start,edges,stride,map,value,memtype);
+   stat = ncp->dispatch->get_varm(ncid, varid, start, my_count, my_stride,
+                                  map, value, memtype);
+   if(edges == NULL) free(my_count);
+   if(stride == NULL) free(my_stride);
+   return stat;
 }
 
 /** \name Reading Data from Variables
