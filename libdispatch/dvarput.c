@@ -560,13 +560,19 @@ NC_put_vars(int ncid, int varid, const size_t *start,
 
    if(stat != NC_NOERR) return stat;
    /* Only scalar vars may have null starts. */
-   if(start == NULL) {
+   if(start == NULL || edges == NULL) {
       status = nc_inq_varndims(ncid, varid, &varndims);
       if(status != NC_NOERR) return status;
-      if(varndims > 0) return NC_EINVALCOORDS;
+      if(start == NULL && varndims > 0) return NC_EINVALCOORDS;
    }
-
-   return ncp->dispatch->put_vars(ncid,varid,start,edges,stride,value,memtype);
+   if(edges == NULL) {
+      size_t shape[NC_MAX_VAR_DIMS];
+      stat = NC_getshape(ncid, varid, varndims, shape);
+      if(stat != NC_NOERR) return stat;
+      return ncp->dispatch->put_vars(ncid, varid, start, shape, stride,
+                                     value, memtype);
+   } else
+      return ncp->dispatch->put_vars(ncid,varid,start,edges,stride,value,memtype);
 }
 
 /** \internal

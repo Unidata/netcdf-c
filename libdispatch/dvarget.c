@@ -569,6 +569,43 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
    return status;
 }
 
+int
+NC_check_nulls(int ncid, int varid, size_t **start, size_t **count,
+               ptrdiff_t **stride)
+{
+   int varndims;
+   int stat;
+
+   if ((stat = nc_inq_varndims(ncid, varid, &varndims)))
+      return stat;
+
+   /* For non-scalar vars, start is required. */
+   if (!*start && varndims)
+      return NC_EINVALCOORDS;
+
+   /* If count is NULL, assume full extent of var. */
+   if (!*count)
+   {
+      if (!(*count = malloc(varndims * sizeof(size_t))))
+         return NC_ENOMEM;
+      if ((stat = NC_getshape(ncid, varid, varndims, *count)))
+         return stat;
+   }
+
+   /* If stride is NULL, use all 1s. */
+   if (!*stride)
+   {
+      int i;
+
+      if (!(*stride = malloc(varndims * sizeof(size_t))))
+         return NC_ENOMEM;
+      for (i = 0; i < varndims; i++)
+         *stride[i] = 1;
+   }
+
+   return NC_NOERR;
+}
+
 /** 
 Called by externally visible nc_get_vars_xxx routines.
 
@@ -607,19 +644,37 @@ NC_get_vars(int ncid, int varid, const size_t *start,
 	    nc_type memtype)
 {
    NC* ncp;
-   int rank;
-   int stat = NC_check_id(ncid, &ncp);
+   size_t *my_start = (size_t *)start, *my_count = (size_t *)edges;
+   ptrdiff_t *my_stride = (ptrdiff_t *)stride;
+   int stat;
 
+   stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
 
-   /* Non-scalar vars require start array. */
-   if(start == NULL) {
-      stat = nc_inq_varndims(ncid, varid, &rank);
+   if(start == NULL || edges == NULL || stride == NULL) {
+      stat = NC_check_nulls(ncid, varid, &my_start, &my_count, &my_stride);
       if(stat != NC_NOERR) return stat;
-      if(rank > 0) return NC_EINVALCOORDS;
    }
 
-   return ncp->dispatch->get_vars(ncid,varid,start,edges,stride,value,memtype);
+   stat = ncp->dispatch->get_vars(ncid,varid,my_start,my_count,my_stride,
+                                  value,memtype);
+   if(edges == NULL) free(my_count);
+   if(stride == NULL) free(my_stride);
+   return stat;
+   /* if(start == NULL || edges == NULL) { */
+   /*    stat = nc_inq_varndims(ncid, varid, &varndims); */
+   /*    if(stat != NC_NOERR) return stat; */
+   /*    if(start == NULL && varndims > 0) return NC_EINVALCOORDS; */
+   /* } */
+
+   /* if(edges == NULL) { */
+   /*    size_t shape[NC_MAX_VAR_DIMS]; */
+   /*    stat = NC_getshape(ncid, varid, varndims, shape); */
+   /*    if(stat != NC_NOERR) return stat; */
+   /*    return ncp->dispatch->get_vars(ncid, varid, start, shape, stride, */
+   /*                                   value, memtype); */
+   /* } else */
+   /* return ncp->dispatch->get_vars(ncid,varid,start,edges,stride,value,memtype); */
 }
 
 /** 
