@@ -1320,16 +1320,16 @@ allocated by the user before this function is called.
 */
 /** \{ */
 int
-nc_get_vars (int ncid, int varid, const size_t * startp,
-	     const size_t * countp, const ptrdiff_t * stridep,
-	     void *ip)
+nc_get_vars(int ncid, int varid, const size_t * startp,
+            const size_t * countp, const ptrdiff_t * stridep,
+            void *ip)
 {
    NC* ncp;
    int stat = NC_NOERR;
 
    if ((stat = NC_check_id(ncid, &ncp)))
        return stat;
-   return ncp->dispatch->get_vars(ncid, varid, startp, countp, stridep,
+   return NC_get_vars(ncid, varid, startp, countp, stridep,
 		      ip, NC_NAT);
 }
 
@@ -1571,8 +1571,7 @@ nc_get_varm(int ncid, int varid, const size_t * startp,
 
    if ((stat = NC_check_id(ncid, &ncp)))
        return stat;
-   return ncp->dispatch->get_varm(ncid, varid, startp, countp,
-				  stridep, imapp, ip, NC_NAT);
+   return NC_get_varm(ncid, varid, startp, countp, stridep, imapp, ip, NC_NAT);
 }
 
 int

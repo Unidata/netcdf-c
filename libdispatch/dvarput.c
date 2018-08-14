@@ -1187,8 +1187,7 @@ nc_put_vars (int ncid, int varid, const size_t *startp,
 
    if ((stat = NC_check_id(ncid, &ncp)))
        return stat;
-   return ncp->dispatch->put_vars(ncid, varid, startp, countp,
-				  stridep, op, NC_NAT);
+   return NC_put_vars(ncid, varid, startp, countp, stridep, op, NC_NAT);
 }
 
 int
@@ -1428,8 +1427,7 @@ nc_put_varm (int ncid, int varid, const size_t *startp,
 
    if ((stat = NC_check_id(ncid, &ncp)))
        return stat;
-   return ncp->dispatch->put_varm(ncid, varid, startp, countp,
-				  stridep, imapp, op, NC_NAT);
+   return NC_put_varm(ncid, varid, startp, countp, stridep, imapp, op, NC_NAT);
 }
 
 int

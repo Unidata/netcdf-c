@@ -239,22 +239,29 @@ int main(int argc, char *argv[])
           NC_EINVALCOORDS) ERR;
 
       /* This will work. */
+      if (nc_get_vara_uchar(ncid, varid[0], start, NULL, ubyte_data_in)) ERR;
+      for (i = 0; i < SIZE; i++)
+         if (ubyte_data_in[i] != ubyte_data_out[i]) ERR;
+
+      CLEAN_INPUT_BUFFERS;
       if (nc_get_vara_uchar(ncid, varid[0], start, count, ubyte_data_in)) ERR;
       for (i = 0; i < SIZE; i++)
          if (ubyte_data_in[i] != ubyte_data_out[i]) ERR;
 
-      if (nc_put_vara_ushort(ncid, varid[1], start, count, ushort_data_out)) ERR;
+      /* NULL count will be interpreted as count of full extent. */
+      if (nc_put_vara_ushort(ncid, varid[1], start, NULL, ushort_data_out)) ERR;
       if (nc_get_vara_ushort(ncid, varid[1], start, count, ushort_data_in)) ERR;
       for (i = 0; i < SIZE; i++)
          if (ubyte_data_in[i] != ubyte_data_out[i]) ERR;
 
-      if (nc_put_vara_uint(ncid, varid[2], start, count, uint_data_out)) ERR;
+      /* vars with NULL stride is the same as vara. */
+      if (nc_put_vars_uint(ncid, varid[2], start, NULL, NULL, uint_data_out)) ERR;
       if (nc_get_vara_uint(ncid, varid[2], start, count, uint_data_in)) ERR;
       for (i = 0; i < SIZE; i++)
          if (ubyte_data_in[i] != ubyte_data_out[i]) ERR;
 
       if (nc_put_vara_longlong(ncid, varid[3], start, count, int64_data_out)) ERR;
-      if (nc_get_vara_longlong(ncid, varid[3], start, count, int64_data_in)) ERR;
+      if (nc_get_vars_longlong(ncid, varid[3], start, NULL, NULL, int64_data_in)) ERR;
       for (i = 0; i < SIZE; i++)
          if (ubyte_data_in[i] != ubyte_data_out[i]) ERR;
 
