@@ -563,7 +563,7 @@ NC_put_vars(int ncid, int varid, const size_t *start,
    if(start == NULL) {
       status = nc_inq_varndims(ncid, varid, &varndims);
       if(status != NC_NOERR) return status;
-      if (varndims > 0) return NC_EINVALCOORDS;
+      if(varndims > 0) return NC_EINVALCOORDS;
    }
 
    return ncp->dispatch->put_vars(ncid,varid,start,edges,stride,value,memtype);
@@ -578,9 +578,17 @@ NC_put_varm(int ncid, int varid, const size_t *start,
 	    const void *value, nc_type memtype)
 {
    NC* ncp;
+   int varndims;
+   int status;
    int stat = NC_check_id(ncid, &ncp);
 
    if(stat != NC_NOERR) return stat;
+   /* Only scalar vars may have null starts. */
+   if(start == NULL) {
+      status = nc_inq_varndims(ncid, varid, &varndims);
+      if(status != NC_NOERR) return status;
+      if(varndims > 0) return NC_EINVALCOORDS;
+   }
    return ncp->dispatch->put_varm(ncid,varid,start,edges,stride,map,value,memtype);
 }
 
