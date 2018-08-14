@@ -805,7 +805,7 @@ int
 nc_get_vara(int ncid, int varid, const size_t *startp,
 	    const size_t *countp, void *ip)
 {
-   NC* ncp = NULL;
+   NC* ncp;
    nc_type xtype = NC_NAT;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
@@ -818,32 +818,28 @@ int
 nc_get_vara_text(int ncid, int varid, const size_t *startp,
 		 const size_t *countp, char *ip)
 {
-   return NC_get_vara(ncid, varid, startp, countp,
-		      (void *)ip, NC_CHAR);
+   return NC_get_vara(ncid, varid, startp, countp, (void *)ip, NC_CHAR);
 }
 
 int
 nc_get_vara_schar(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, signed char *ip)
 {
-   return NC_get_vara(ncid, varid, startp, countp,
-		      (void *)ip, NC_BYTE);
+   return NC_get_vara(ncid, varid, startp, countp, (void *)ip, NC_BYTE);
 }
 
 int
 nc_get_vara_uchar(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, unsigned char *ip)
 {
-   return NC_get_vara(ncid, varid, startp, countp,
-		      (void *)ip, T_uchar);
+   return NC_get_vara(ncid, varid, startp, countp, (void *)ip, T_uchar);
 }
 
 int
 nc_get_vara_short(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, short *ip)
 {
-   return NC_get_vara(ncid, varid, startp, countp,
-		      (void *)ip, NC_SHORT);
+   return NC_get_vara(ncid, varid, startp, countp, (void *)ip, NC_SHORT);
 }
 
 int
@@ -866,7 +862,6 @@ nc_get_vara_float(int ncid, int varid,
 {
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,T_float);
 }
-
 
 int
 nc_get_vara_double(int ncid, int varid, const size_t *startp,
@@ -904,16 +899,16 @@ nc_get_vara_longlong(int ncid, int varid,
 }
 
 int
-nc_get_vara_ulonglong(int ncid, int varid,
-		      const size_t *startp, const size_t *countp, unsigned long long *ip)
+nc_get_vara_ulonglong(int ncid, int varid, const size_t *startp,
+                      const size_t *countp, unsigned long long *ip)
 {
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,NC_UINT64);
 }
 
 #ifdef USE_NETCDF4
 int
-nc_get_vara_string(int ncid, int varid,
-		   const size_t *startp, const size_t *countp, char* *ip)
+nc_get_vara_string(int ncid, int varid, const size_t *startp,
+                   const size_t *countp, char* *ip)
 {
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,NC_STRING);
 }
