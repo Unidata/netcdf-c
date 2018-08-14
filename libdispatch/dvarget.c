@@ -89,8 +89,8 @@ odom_next(struct GETodometer* odom)
  *
  * @param ncid The file ID.
  * @param varid The variable ID.
- * @param start Pointer to pointer to start array. If *start is NULL
- * NC_EINVALCOORDS will be returned for non-scalar variable.
+ * @param start Pointer to start array. If NULL NC_EINVALCOORDS will
+ * be returned for non-scalar variable.
  * @param count Pointer to pointer to count array. If *count is NULL,
  * an array of the correct size will be allocated, and filled with
  * counts that represent the full extent of the variable. In this
@@ -108,7 +108,7 @@ odom_next(struct GETodometer* odom)
  * @author Ed Hartnett
  */
 int
-NC_check_nulls(int ncid, int varid, size_t **start, size_t **count,
+NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
                ptrdiff_t **stride)
 {
    int varndims;
@@ -118,7 +118,7 @@ NC_check_nulls(int ncid, int varid, size_t **start, size_t **count,
       return stat;
 
    /* For non-scalar vars, start is required. */
-   if (!*start && varndims)
+   if (!start && varndims)
       return NC_EINVALCOORDS;
 
    /* If count is NULL, assume full extent of var. */
@@ -154,15 +154,15 @@ NC_get_vara(int ncid, int varid,
             void *value, nc_type memtype)
 {
    NC* ncp;
-   size_t *my_start = (size_t *)start, *my_count = (size_t *)edges;
+   size_t *my_count = (size_t *)edges;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
 
    if(start == NULL || edges == NULL) {
-      stat = NC_check_nulls(ncid, varid, &my_start, &my_count, NULL);
+      stat = NC_check_nulls(ncid, varid, start, &my_count, NULL);
       if(stat != NC_NOERR) return stat;
    }
-   stat =  ncp->dispatch->get_vara(ncid,varid,my_start,my_count,value,memtype);
+   stat =  ncp->dispatch->get_vara(ncid,varid,start,my_count,value,memtype);
    if(edges == NULL) free(my_count);
    return stat;
 }
@@ -651,7 +651,7 @@ NC_get_vars(int ncid, int varid, const size_t *start,
 	    nc_type memtype)
 {
    NC* ncp;
-   size_t *my_start = (size_t *)start, *my_count = (size_t *)edges;
+   size_t *my_count = (size_t *)edges;
    ptrdiff_t *my_stride = (ptrdiff_t *)stride;
    int stat;
 
@@ -659,11 +659,11 @@ NC_get_vars(int ncid, int varid, const size_t *start,
    if(stat != NC_NOERR) return stat;
 
    if(start == NULL || edges == NULL || stride == NULL) {
-      stat = NC_check_nulls(ncid, varid, &my_start, &my_count, &my_stride);
+      stat = NC_check_nulls(ncid, varid, start, &my_count, &my_stride);
       if(stat != NC_NOERR) return stat;
    }
 
-   stat = ncp->dispatch->get_vars(ncid,varid,my_start,my_count,my_stride,
+   stat = ncp->dispatch->get_vars(ncid,varid,start,my_count,my_stride,
                                   value,memtype);
    if(edges == NULL) free(my_count);
    if(stride == NULL) free(my_stride);
