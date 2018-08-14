@@ -668,20 +668,6 @@ NC_get_vars(int ncid, int varid, const size_t *start,
    if(edges == NULL) free(my_count);
    if(stride == NULL) free(my_stride);
    return stat;
-   /* if(start == NULL || edges == NULL) { */
-   /*    stat = nc_inq_varndims(ncid, varid, &varndims); */
-   /*    if(stat != NC_NOERR) return stat; */
-   /*    if(start == NULL && varndims > 0) return NC_EINVALCOORDS; */
-   /* } */
-
-   /* if(edges == NULL) { */
-   /*    size_t shape[NC_MAX_VAR_DIMS]; */
-   /*    stat = NC_getshape(ncid, varid, varndims, shape); */
-   /*    if(stat != NC_NOERR) return stat; */
-   /*    return ncp->dispatch->get_vars(ncid, varid, start, shape, stride, */
-   /*                                   value, memtype); */
-   /* } else */
-   /* return ncp->dispatch->get_vars(ncid,varid,start,edges,stride,value,memtype); */
 }
 
 /** 
@@ -838,9 +824,6 @@ int
 nc_get_vara_text(int ncid, int varid, const size_t *startp,
 		 const size_t *countp, char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid, varid, startp, countp,
 		      (void *)ip, NC_CHAR);
 }
@@ -860,9 +843,6 @@ int
 nc_get_vara_uchar(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, unsigned char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid, varid, startp, countp,
 		      (void *)ip, T_uchar);
 }
@@ -871,9 +851,6 @@ int
 nc_get_vara_short(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, short *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid, varid, startp, countp,
 		      (void *)ip, NC_SHORT);
 }
@@ -882,9 +859,6 @@ int
 nc_get_vara_int(int ncid, int varid,
 		const size_t *startp, const size_t *countp, int *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,NC_INT);
 }
 
