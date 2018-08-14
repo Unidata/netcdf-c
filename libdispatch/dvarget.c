@@ -569,6 +569,29 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
    return status;
 }
 
+/**
+ * @internal Check the start, count, and stride parameters for gets
+ * and puts, and handle NULLs.
+ *
+ * @param ncid The file ID.
+ * @param varid The variable ID.
+ * @param start Pointer to pointer to start array. If NULL
+ * NC_EINVALCOORDS will be returned for non-scalar variable.
+ * @param count Pointer to pointer to count array. If NULL, an array
+ * of the correct size will be allocated, and filled with counts that
+ * represent the full extent of the variable. In this case, the memory
+ * must be freed by the caller.
+ * @param stride Pointer to pointer to stride array. If NULL, an array
+ * of the correct size will be allocated, and filled with ones. In
+ * this case, the memory must be freed by the caller.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Variable not found.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EINVALCOORS Missing start array.
+ * @author Ed Hartnett
+ */
 int
 NC_check_nulls(int ncid, int varid, size_t **start, size_t **count,
                ptrdiff_t **stride)
