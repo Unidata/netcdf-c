@@ -670,7 +670,11 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
       if (!(*count = malloc(varndims * sizeof(size_t))))
          return NC_ENOMEM;
       if ((stat = NC_getshape(ncid, varid, varndims, *count)))
+      {
+         free(*count);
+         *count = NULL;
          return stat;
+      }
    }
 
    /* If stride is NULL, do nothing, if *stride is NULL use all 1s. */
