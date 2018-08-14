@@ -832,9 +832,6 @@ int
 nc_get_vara_schar(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, signed char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid, varid, startp, countp,
 		      (void *)ip, NC_BYTE);
 }
@@ -866,9 +863,6 @@ int
 nc_get_vara_long(int ncid, int varid,
 		 const size_t *startp, const size_t *countp, long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,T_long);
 }
 
@@ -876,9 +870,6 @@ int
 nc_get_vara_float(int ncid, int varid,
 		  const size_t *startp, const size_t *countp, float *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,T_float);
 }
 
@@ -887,9 +878,6 @@ int
 nc_get_vara_double(int ncid, int varid, const size_t *startp,
 		   const size_t *countp, double *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,T_double);
 }
 
@@ -897,9 +885,6 @@ int
 nc_get_vara_ubyte(int ncid, int varid,
 		  const size_t *startp, const size_t *countp, unsigned char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,T_ubyte);
 }
 
@@ -907,9 +892,6 @@ int
 nc_get_vara_ushort(int ncid, int varid,
 		   const size_t *startp, const size_t *countp, unsigned short *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,T_ushort);
 }
 
@@ -917,9 +899,6 @@ int
 nc_get_vara_uint(int ncid, int varid,
 		 const size_t *startp, const size_t *countp, unsigned int *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,T_uint);
 }
 
@@ -927,9 +906,6 @@ int
 nc_get_vara_longlong(int ncid, int varid,
 		     const size_t *startp, const size_t *countp, long long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,T_longlong);
 }
 
@@ -937,9 +913,6 @@ int
 nc_get_vara_ulonglong(int ncid, int varid,
 		      const size_t *startp, const size_t *countp, unsigned long long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,NC_UINT64);
 }
 
@@ -948,9 +921,6 @@ int
 nc_get_vara_string(int ncid, int varid,
 		   const size_t *startp, const size_t *countp, char* *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vara(ncid,varid,startp,countp, (void *)ip,NC_STRING);
 }
 
@@ -1001,45 +971,30 @@ nc_get_var1(int ncid, int varid, const size_t *indexp, void *ip)
 int
 nc_get_var1_text(int ncid, int varid, const size_t *indexp, char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_CHAR);
 }
 
 int
 nc_get_var1_schar(int ncid, int varid, const size_t *indexp, signed char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_BYTE);
 }
 
 int
 nc_get_var1_uchar(int ncid, int varid, const size_t *indexp, unsigned char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_UBYTE);
 }
 
 int
 nc_get_var1_short(int ncid, int varid, const size_t *indexp, short *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_SHORT);
 }
 
 int
 nc_get_var1_int(int ncid, int varid, const size_t *indexp, int *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_INT);
 }
 
@@ -1047,9 +1002,6 @@ int
 nc_get_var1_long(int ncid, int varid, const size_t *indexp,
 		 long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, longtype);
 }
 
@@ -1057,9 +1009,6 @@ int
 nc_get_var1_float(int ncid, int varid, const size_t *indexp,
 		  float *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_FLOAT);
 }
 
@@ -1067,9 +1016,6 @@ int
 nc_get_var1_double(int ncid, int varid, const size_t *indexp,
 		   double *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_DOUBLE);
 }
 
@@ -1077,9 +1023,6 @@ int
 nc_get_var1_ubyte(int ncid, int varid, const size_t *indexp,
 		  unsigned char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_UBYTE);
 }
 
@@ -1087,9 +1030,6 @@ int
 nc_get_var1_ushort(int ncid, int varid, const size_t *indexp,
 		   unsigned short *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_USHORT);
 }
 
@@ -1097,9 +1037,6 @@ int
 nc_get_var1_uint(int ncid, int varid, const size_t *indexp,
 		 unsigned int *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_UINT);
 }
 
@@ -1107,9 +1044,6 @@ int
 nc_get_var1_longlong(int ncid, int varid, const size_t *indexp,
 		     long long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_INT64);
 }
 
@@ -1117,9 +1051,6 @@ int
 nc_get_var1_ulonglong(int ncid, int varid, const size_t *indexp,
 		      unsigned long long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_UINT64);
 }
 
@@ -1127,9 +1058,6 @@ nc_get_var1_ulonglong(int ncid, int varid, const size_t *indexp,
 int
 nc_get_var1_string(int ncid, int varid, const size_t *indexp, char* *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_STRING);
 }
 #endif /*USE_NETCDF4*/
@@ -1188,117 +1116,78 @@ nc_get_var(int ncid, int varid, void *ip)
 int
 nc_get_var_text(int ncid, int varid, char *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid, varid, (void *)ip, NC_CHAR);
 }
 
 int
 nc_get_var_schar(int ncid, int varid, signed char *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid, varid, (void *)ip, NC_BYTE);
 }
 
 int
 nc_get_var_uchar(int ncid, int varid, unsigned char *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid,varid, (void *)ip, NC_UBYTE);
 }
 
 int
 nc_get_var_short(int ncid, int varid, short *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid, varid, (void *)ip, NC_SHORT);
 }
 
 int
 nc_get_var_int(int ncid, int varid, int *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid,varid, (void *)ip, NC_INT);
 }
 
 int
 nc_get_var_long(int ncid, int varid, long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid,varid, (void *)ip, longtype);
 }
 
 int
 nc_get_var_float(int ncid, int varid, float *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid,varid, (void *)ip, NC_FLOAT);
 }
 
 int
 nc_get_var_double(int ncid, int varid, double *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid,varid, (void *)ip, NC_DOUBLE);
 }
 
 int
 nc_get_var_ubyte(int ncid, int varid, unsigned char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid,varid, (void *)ip, NC_UBYTE);
 }
 
 int
 nc_get_var_ushort(int ncid, int varid, unsigned short *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid,varid, (void *)ip, NC_USHORT);
 }
 
 int
 nc_get_var_uint(int ncid, int varid, unsigned int *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid,varid, (void *)ip, NC_UINT);
 }
 
 int
 nc_get_var_longlong(int ncid, int varid, long long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid,varid, (void *)ip, NC_INT64);
 }
 
 int
 nc_get_var_ulonglong(int ncid, int varid, unsigned long long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid,varid, (void *)ip,NC_UINT64);
 }
 
@@ -1306,9 +1195,6 @@ nc_get_var_ulonglong(int ncid, int varid, unsigned long long *ip)
 int
 nc_get_var_string(int ncid, int varid, char* *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_var(ncid,varid, (void *)ip,NC_STRING);
 }
 #endif /*USE_NETCDF4*/
@@ -1360,11 +1246,6 @@ nc_get_vars(int ncid, int varid, const size_t * startp,
             const size_t * countp, const ptrdiff_t * stridep,
             void *ip)
 {
-   NC* ncp;
-   int stat = NC_NOERR;
-
-   if ((stat = NC_check_id(ncid, &ncp)))
-       return stat;
    return NC_get_vars(ncid, varid, startp, countp, stridep,
 		      ip, NC_NAT);
 }
@@ -1374,9 +1255,6 @@ nc_get_vars_text(int ncid, int varid, const size_t *startp,
 		 const size_t *countp, const ptrdiff_t * stridep,
 		 char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid,varid,startp, countp, stridep,
 		      (void *)ip, NC_CHAR);
 }
@@ -1386,9 +1264,6 @@ nc_get_vars_schar(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const ptrdiff_t * stridep,
 		  signed char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid,varid,startp, countp, stridep,
 		      (void *)ip, NC_BYTE);
 }
@@ -1398,9 +1273,6 @@ nc_get_vars_uchar(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const ptrdiff_t * stridep,
 		  unsigned char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid,varid,startp, countp, stridep,
 		      (void *)ip, T_uchar);
 }
@@ -1410,9 +1282,6 @@ nc_get_vars_short(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const ptrdiff_t *stridep,
 		  short *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid,varid,startp, countp, stridep,
 		      (void *)ip, NC_SHORT);
 }
@@ -1422,9 +1291,6 @@ nc_get_vars_int(int ncid, int varid, const size_t *startp,
 		const size_t *countp, const ptrdiff_t * stridep,
 		int *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid,varid,startp, countp, stridep,
 		      (void *)ip, NC_INT);
 }
@@ -1434,9 +1300,6 @@ nc_get_vars_long(int ncid, int varid, const size_t *startp,
 		 const size_t *countp, const ptrdiff_t * stridep,
 		 long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid,varid,startp, countp, stridep,
 		      (void *)ip, T_long);
 }
@@ -1446,9 +1309,6 @@ nc_get_vars_float(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const ptrdiff_t * stridep,
 		  float *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid,varid,startp, countp, stridep,
 		      (void *)ip, T_float);
 }
@@ -1458,9 +1318,6 @@ nc_get_vars_double(int ncid, int varid, const size_t *startp,
 		   const size_t *countp, const ptrdiff_t * stridep,
 		   double *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid,varid,startp, countp, stridep,
 		      (void *)ip, T_double);
 }
@@ -1470,9 +1327,6 @@ nc_get_vars_ubyte(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const ptrdiff_t * stridep,
 		  unsigned char *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid,varid, startp, countp, stridep,
 		      (void *)ip, T_ubyte);
 }
@@ -1482,9 +1336,6 @@ nc_get_vars_ushort(int ncid, int varid, const size_t *startp,
 		   const size_t *countp, const ptrdiff_t * stridep,
 		   unsigned short *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid,varid,startp,countp, stridep,
 		      (void *)ip, T_ushort);
 }
@@ -1494,9 +1345,6 @@ nc_get_vars_uint(int ncid, int varid, const size_t *startp,
 		 const size_t *countp, const ptrdiff_t * stridep,
 		 unsigned int *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid,varid,startp, countp, stridep,
 		      (void *)ip, T_uint);
 }
@@ -1506,9 +1354,6 @@ nc_get_vars_longlong(int ncid, int varid, const size_t *startp,
 		     const size_t *countp, const ptrdiff_t * stridep,
 		     long long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid, varid, startp, countp, stridep,
 		      (void *)ip, T_longlong);
 }
@@ -1518,9 +1363,6 @@ nc_get_vars_ulonglong(int ncid, int varid, const size_t *startp,
 		      const size_t *countp, const ptrdiff_t * stridep,
 		      unsigned long long *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid, varid, startp, countp, stridep,
 		      (void *)ip, NC_UINT64);
 }
@@ -1532,9 +1374,6 @@ nc_get_vars_string(int ncid, int varid,
 		   const ptrdiff_t * stridep,
 		   char* *ip)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_vars(ncid, varid, startp, countp, stridep,
 		      (void *)ip, NC_STRING);
 }
@@ -1602,11 +1441,6 @@ nc_get_varm(int ncid, int varid, const size_t * startp,
 	    const size_t * countp, const ptrdiff_t * stridep,
 	    const ptrdiff_t * imapp, void *ip)
 {
-   NC* ncp;
-   int stat = NC_NOERR;
-
-   if ((stat = NC_check_id(ncid, &ncp)))
-       return stat;
    return NC_get_varm(ncid, varid, startp, countp, stridep, imapp, ip, NC_NAT);
 }
 
@@ -1616,9 +1450,6 @@ nc_get_varm_schar(int ncid, int varid,
 		  const ptrdiff_t *stridep,
 		  const ptrdiff_t *imapp, signed char *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid, varid, startp, countp,
 		      stridep, imapp, (void *)ip, NC_BYTE);
 }
@@ -1629,9 +1460,6 @@ nc_get_varm_uchar(int ncid, int varid,
 		  const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		  unsigned char *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid,varid,startp,countp,stridep,imapp, (void *)ip,T_uchar);
 }
 
@@ -1640,9 +1468,6 @@ nc_get_varm_short(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const ptrdiff_t *stridep,
 		  const ptrdiff_t *imapp, short *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid,varid,startp,countp,stridep,imapp, (void *)ip,NC_SHORT);
 }
 
@@ -1652,9 +1477,6 @@ nc_get_varm_int(int ncid, int varid,
 		const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		int *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid,varid,startp,countp,stridep,imapp, (void *)ip,NC_INT);
 }
 
@@ -1664,9 +1486,6 @@ nc_get_varm_long(int ncid, int varid,
 		 const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		 long *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid,varid,startp,countp,stridep,imapp, (void *)ip,T_long);
 }
 
@@ -1676,9 +1495,6 @@ nc_get_varm_float(int ncid, int varid,
 		  const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		  float *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid,varid,startp,countp,stridep,imapp, (void *)ip,T_float);
 }
 
@@ -1688,9 +1504,6 @@ nc_get_varm_double(int ncid, int varid,
 		   const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		   double *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid,varid,startp,countp,stridep,imapp, (void *)ip,T_double);
 }
 
@@ -1700,9 +1513,6 @@ nc_get_varm_ubyte(int ncid, int varid,
 		  const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		  unsigned char *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid,varid,startp,countp,stridep,
 		      imapp, (void *)ip, T_ubyte);
 }
@@ -1713,9 +1523,6 @@ nc_get_varm_ushort(int ncid, int varid,
 		   const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		   unsigned short *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid, varid, startp, countp, stridep,
 		      imapp, (void *)ip, T_ushort);
 }
@@ -1726,9 +1533,6 @@ nc_get_varm_uint(int ncid, int varid,
 		 const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		 unsigned int *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid, varid, startp, countp,
 		      stridep, imapp, (void *)ip, T_uint);
 }
@@ -1738,9 +1542,6 @@ nc_get_varm_longlong(int ncid, int varid, const size_t *startp,
 		     const size_t *countp, const ptrdiff_t *stridep,
 		     const ptrdiff_t *imapp, long long *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)ip, T_longlong);
 }
@@ -1751,9 +1552,6 @@ nc_get_varm_ulonglong(int ncid, int varid,
 		      const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		      unsigned long long *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)ip, NC_UINT64);
 }
@@ -1763,9 +1561,6 @@ nc_get_varm_text(int ncid, int varid, const size_t *startp,
 		 const size_t *countp, const ptrdiff_t *stridep,
 		 const ptrdiff_t *imapp, char *ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)ip, NC_CHAR);
 }
@@ -1776,9 +1571,6 @@ nc_get_varm_string(int ncid, int varid, const size_t *startp,
 		   const size_t *countp, const ptrdiff_t *stridep,
 		   const ptrdiff_t *imapp, char **ip)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_get_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)ip, NC_STRING);
 }
