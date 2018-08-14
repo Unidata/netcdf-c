@@ -1298,7 +1298,7 @@ set_par_access(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
  */
 int
 NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
-             const ptrdiff_t* stridep, const void *data, nc_type mem_nc_type)
+             const ptrdiff_t *stridep, const void *data, nc_type mem_nc_type)
 {
    NC_GRP_INFO_T *grp;
    NC_FILE_INFO_T *h5;
@@ -1313,7 +1313,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 #ifdef USE_PARALLEL4
    int extend_possible = 0;
 #endif
-   int retval = NC_NOERR, range_error = 0, i, d2;
+   int retval, range_error = 0, i, d2;
    void *bufr = NULL;
    int need_to_convert = 0;
    int zero_count = 0; /* true if a count is zero */
