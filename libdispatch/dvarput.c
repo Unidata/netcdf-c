@@ -553,8 +553,8 @@ NC_put_vars(int ncid, int varid, const size_t *start,
       if(stat != NC_NOERR) return stat;
    }
 
-   stat = ncp->dispatch->put_vars(ncid,varid,start,my_count,my_stride,
-                                  value,memtype);
+   stat = ncp->dispatch->put_vars(ncid, varid, start, my_count, my_stride,
+                                  value, memtype);
    if(edges == NULL) free(my_count);
    if(stride == NULL) free(my_stride);
    return stat;
@@ -569,18 +569,24 @@ NC_put_varm(int ncid, int varid, const size_t *start,
 	    const void *value, nc_type memtype)
 {
    NC* ncp;
-   int varndims;
-   int status;
-   int stat = NC_check_id(ncid, &ncp);
+   size_t *my_count = (size_t *)edges;
+   ptrdiff_t *my_stride = (ptrdiff_t *)stride;
+   int stat;
 
+   stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   /* Only scalar vars may have null starts. */
-   if(start == NULL) {
-      status = nc_inq_varndims(ncid, varid, &varndims);
-      if(status != NC_NOERR) return status;
-      if(varndims > 0) return NC_EINVALCOORDS;
+
+   /* Handle any NULL parameters. */
+   if(start == NULL || edges == NULL || stride == NULL) {
+      stat = NC_check_nulls(ncid, varid, start, &my_count, &my_stride);
+      if(stat != NC_NOERR) return stat;
    }
-   return ncp->dispatch->put_varm(ncid,varid,start,edges,stride,map,value,memtype);
+
+   stat = ncp->dispatch->put_varm(ncid, varid, start, my_count, my_stride,
+                                  map, value, memtype);
+   if(edges == NULL) free(my_count);
+   if(stride == NULL) free(my_stride);
+   return stat;
 }
 
 /** \name Writing Data to Variables
