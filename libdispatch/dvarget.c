@@ -591,6 +591,7 @@ NC_get_vars(int ncid, int varid, const size_t *start,
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
 
+   /* Handle any NULL parameters. */
    if(start == NULL || edges == NULL || stride == NULL) {
       stat = NC_check_nulls(ncid, varid, start, &my_count, &my_stride);
       if(stat != NC_NOERR) return stat;
