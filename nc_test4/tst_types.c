@@ -270,6 +270,12 @@ int main(int argc, char *argv[])
 
       if (nc_put_vars_uchar(ncid, varid[0], start, count, stride,
                             ubyte_data_out)) ERR;
+
+      /* This will not work. */
+      if (nc_get_vars_uchar(ncid, varid[0], NULL, count, stride,
+                            ubyte_data_in) != NC_EINVALCOORDS) ERR;
+
+      /* This will work. */
       if (nc_get_vars_uchar(ncid, varid[0], start, count, stride,
                             ubyte_data_in)) ERR;
       if (ubyte_data_in[0] != ubyte_data_out[0]) ERR;
