@@ -1335,7 +1335,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     * be switched from define mode, it happens here. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
       return retval;
-   assert(var->hdf_datasetid && (!var->ndims || startp));
+   assert(var->hdf_datasetid && (!var->ndims || (startp && countp)));
 
    /* Convert from size_t and ptrdiff_t to hssize_t, and hsize_t. */
    /* Also do sanity checks */
@@ -1618,7 +1618,7 @@ exit:
  */
 int
 NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
-             const ptrdiff_t* stridep, void *data, nc_type mem_nc_type)
+             const ptrdiff_t *stridep, void *data, nc_type mem_nc_type)
 {
    NC_GRP_INFO_T *grp;
    NC_FILE_INFO_T *h5;
@@ -1627,14 +1627,14 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    hid_t file_spaceid = 0, mem_spaceid = 0;
    hid_t xfer_plistid = 0;
    size_t file_type_size;
-   hsize_t *xtend_size = NULL, count[NC_MAX_VAR_DIMS];
+   hsize_t count[NC_MAX_VAR_DIMS];
    hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
    hsize_t start[NC_MAX_VAR_DIMS];
    hsize_t stride[NC_MAX_VAR_DIMS];
    void *fillvalue = NULL;
    int no_read = 0, provide_fill = 0;
    int fill_value_size[NC_MAX_VAR_DIMS];
-   int scalar = 0, retval = NC_NOERR, range_error = 0, i, d2;
+   int scalar = 0, retval, range_error = 0, i, d2;
    void *bufr = NULL;
    int need_to_convert = 0;
    size_t len = 1;
@@ -1651,7 +1651,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     * mode, if needed. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
       return retval;
-   assert(var->hdf_datasetid && (!var->ndims || startp));
+   assert(var->hdf_datasetid && (!var->ndims || (startp && countp)));
 
    /* Convert from size_t and ptrdiff_t to hsize_t. Also do sanity
     * checks. */
@@ -1662,7 +1662,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
          return NC_ESTRIDE;
 
       start[i] = startp[i];
-      count[i] = countp ? countp[i] : var->dim[i]->len;
+      count[i] = countp[i];
       stride[i] = stridep ? stridep[i] : 1;
 
       /* if any of the count values are zero don't actually read. */
@@ -1950,10 +1950,8 @@ exit:
    if (xfer_plistid > 0)
       if (H5Pclose(xfer_plistid) < 0)
          BAIL2(NC_EHDFERR);
-   if (need_to_convert && bufr != NULL)
+   if (need_to_convert && bufr)
       free(bufr);
-   if (xtend_size)
-      free(xtend_size);
    if (fillvalue)
    {
       if (var->type_info->nc_type_class == NC_VLEN)
