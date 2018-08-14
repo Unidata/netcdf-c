@@ -599,7 +599,7 @@ they are read.
 
 \ingroup variables
 \internal
-\author Dennis Heimbigner
+\author Dennis Heimbigner, Ed Hartnett
 */
 static int
 NC_get_vars(int ncid, int varid, const size_t *start,
@@ -656,7 +656,7 @@ they are read.
 
 \ingroup variables
 \internal
-\author Dennis Heimbigner
+\author Dennis Heimbigner, Ed Hartnett
  */
 static int
 NC_get_varm(int ncid, int varid, const size_t *start,
@@ -756,6 +756,7 @@ values, five lat values, and ten lon values.
      status = nc_get_vara_double(ncid, rh_id, start, count, rh_vals);
      if (status != NC_NOERR) handle_error(status);
 \endcode
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 /**@{*/
 int
@@ -952,6 +953,7 @@ allocated by the user before this function is called.
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
 */
 /** \{ */
 int
@@ -1138,6 +1140,7 @@ allocated by the user before this function is called.
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
 */
 /** \{ */
 int
@@ -1313,6 +1316,7 @@ allocated by the user before this function is called.
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
 */
 /** \{ */
 int
@@ -1554,6 +1558,7 @@ allocated by the user before this function is called.
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
 */
 /** \{ */
 int

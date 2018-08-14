@@ -635,6 +635,7 @@ allocated by the user before this function is called.
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 /**@{*/
 int
@@ -825,6 +826,7 @@ nc_inq_ncid().
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 /**@{*/
 int
@@ -1006,6 +1008,7 @@ nc_inq_ncid().
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 /**@{*/
 int
@@ -1171,6 +1174,7 @@ allocated by the user before this function is called.
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 /**@{*/
 int
@@ -1411,6 +1415,7 @@ allocated by the user before this function is called.
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 /**@{*/
 int
