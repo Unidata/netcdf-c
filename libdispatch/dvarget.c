@@ -8,9 +8,6 @@ Research/Unidata. See \ref copyright file for more info.
 
 #include "ncdispatch.h"
 
-#undef VARS_USES_VARM
-#ifndef VARS_USES_VARM
-
 /*!
   \internal
 
@@ -85,7 +82,67 @@ odom_next(struct GETodometer* odom)
     }
     return 1;
 }
-#endif
+
+/**
+ * @internal Check the start, count, and stride parameters for gets
+ * and puts, and handle NULLs.
+ *
+ * @param ncid The file ID.
+ * @param varid The variable ID.
+ * @param start Pointer to pointer to start array. If *start is NULL
+ * NC_EINVALCOORDS will be returned for non-scalar variable.
+ * @param count Pointer to pointer to count array. If *count is NULL,
+ * an array of the correct size will be allocated, and filled with
+ * counts that represent the full extent of the variable. In this
+ * case, the memory must be freed by the caller.
+ * @param stride Pointer to pointer to stride array. If NULL, stide is
+ * ignored. If *stride is NULL an array of the correct size will be
+ * allocated, and filled with ones. In this case, the memory must be
+ * freed by the caller.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Variable not found.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EINVALCOORS Missing start array.
+ * @author Ed Hartnett
+ */
+int
+NC_check_nulls(int ncid, int varid, size_t **start, size_t **count,
+               ptrdiff_t **stride)
+{
+   int varndims;
+   int stat;
+
+   if ((stat = nc_inq_varndims(ncid, varid, &varndims)))
+      return stat;
+
+   /* For non-scalar vars, start is required. */
+   if (!*start && varndims)
+      return NC_EINVALCOORDS;
+
+   /* If count is NULL, assume full extent of var. */
+   if (!*count)
+   {
+      if (!(*count = malloc(varndims * sizeof(size_t))))
+         return NC_ENOMEM;
+      if ((stat = NC_getshape(ncid, varid, varndims, *count)))
+         return stat;
+   }
+
+   /* If stride is NULL, do nothing, if *stride is NULL use all 1s. */
+   if (stride && !*stride)
+   {
+      int i;
+
+      if (!(*stride = malloc(varndims * sizeof(size_t))))
+         return NC_ENOMEM;
+      for (i = 0; i < varndims; i++)
+         *stride[i] = 1;
+   }
+
+   return NC_NOERR;
+}
 
 /** \internal
 \ingroup variables
@@ -97,21 +154,16 @@ NC_get_vara(int ncid, int varid,
             void *value, nc_type memtype)
 {
    NC* ncp;
-   int ndims;
+   size_t *my_start = (size_t *)start, *my_count = (size_t *)edges;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   if(edges == NULL || start == NULL) {
-      stat = nc_inq_varndims(ncid, varid, &ndims);
+
+   if(start == NULL || edges == NULL) {
+      stat = NC_check_nulls(ncid, varid, &my_start, &my_count, NULL);
       if(stat != NC_NOERR) return stat;
    }
-   if(start == NULL && ndims > 0) return NC_EINVALCOORDS;
-   if(edges == NULL) {
-      size_t shape[NC_MAX_VAR_DIMS];
-      stat = NC_getshape(ncid,varid,ndims,shape);
-      if(stat != NC_NOERR) return stat;
-      stat = ncp->dispatch->get_vara(ncid,varid,start,shape,value,memtype);
-   } else
-      stat =  ncp->dispatch->get_vara(ncid,varid,start,edges,value,memtype);
+   stat =  ncp->dispatch->get_vara(ncid,varid,my_start,my_count,value,memtype);
+   if(edges == NULL) free(my_count);
    return stat;
 }
 
@@ -162,13 +214,6 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
 	    const size_t * edges, const ptrdiff_t * stride,
 	    void *value0, nc_type memtype)
 {
-#ifdef VARS_USES_VARM
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->get_varm(ncid,varid,start,edges,stride,NULL,value0,memtype);
-#else
   /* Rebuilt get_vars code to simplify and avoid use of get_varm */
 
    int status = NC_NOERR;
@@ -302,7 +347,6 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
       odom_next(&odom);
    }
    return status;
-#endif
 }
 
 /** \internal
@@ -570,66 +614,6 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 }
 
 /**
- * @internal Check the start, count, and stride parameters for gets
- * and puts, and handle NULLs.
- *
- * @param ncid The file ID.
- * @param varid The variable ID.
- * @param start Pointer to pointer to start array. If NULL
- * NC_EINVALCOORDS will be returned for non-scalar variable.
- * @param count Pointer to pointer to count array. If NULL, an array
- * of the correct size will be allocated, and filled with counts that
- * represent the full extent of the variable. In this case, the memory
- * must be freed by the caller.
- * @param stride Pointer to pointer to stride array. If NULL, an array
- * of the correct size will be allocated, and filled with ones. In
- * this case, the memory must be freed by the caller.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_ENOTVAR Variable not found.
- * @return ::NC_ENOMEM Out of memory.
- * @return ::NC_EINVALCOORS Missing start array.
- * @author Ed Hartnett
- */
-int
-NC_check_nulls(int ncid, int varid, size_t **start, size_t **count,
-               ptrdiff_t **stride)
-{
-   int varndims;
-   int stat;
-
-   if ((stat = nc_inq_varndims(ncid, varid, &varndims)))
-      return stat;
-
-   /* For non-scalar vars, start is required. */
-   if (!*start && varndims)
-      return NC_EINVALCOORDS;
-
-   /* If count is NULL, assume full extent of var. */
-   if (!*count)
-   {
-      if (!(*count = malloc(varndims * sizeof(size_t))))
-         return NC_ENOMEM;
-      if ((stat = NC_getshape(ncid, varid, varndims, *count)))
-         return stat;
-   }
-
-   /* If stride is NULL, use all 1s. */
-   if (!*stride)
-   {
-      int i;
-
-      if (!(*stride = malloc(varndims * sizeof(size_t))))
-         return NC_ENOMEM;
-      for (i = 0; i < varndims; i++)
-         *stride[i] = 1;
-   }
-
-   return NC_NOERR;
-}
-
-/** 
 Called by externally visible nc_get_vars_xxx routines.
 
 \param ncid NetCDF or group ID.
