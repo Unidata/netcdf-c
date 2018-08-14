@@ -664,9 +664,18 @@ NC_get_varm(int ncid, int varid, const size_t *start,
 	    void *value, nc_type memtype)
 {
    NC* ncp;
+   int rank;
    int stat = NC_check_id(ncid, &ncp);
 
    if(stat != NC_NOERR) return stat;
+
+   /* Non-scalar vars require start array. */
+   if(start == NULL) {
+      stat = nc_inq_varndims(ncid, varid, &rank);
+      if(stat != NC_NOERR) return stat;
+      if(rank > 0) return NC_EINVALCOORDS;
+   }
+
    return ncp->dispatch->get_varm(ncid,varid,start,edges,stride,map,value,memtype);
 }
 
