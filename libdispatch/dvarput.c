@@ -85,21 +85,18 @@ NC_put_vara(int ncid, int varid, const size_t *start,
 	    const size_t *edges, const void *value, nc_type memtype)
 {
    NC* ncp;
-   int ndims;
+   size_t *my_count = (size_t *)edges;
+
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   if(edges == NULL || start == NULL) {
-      stat = nc_inq_varndims(ncid, varid, &ndims);
+
+   if(start == NULL || edges == NULL) {
+      stat = NC_check_nulls(ncid, varid, start, &my_count, NULL);
       if(stat != NC_NOERR) return stat;
    }
-   if(start == NULL && ndims > 0) return NC_EINVALCOORDS;
-   if(edges == NULL) {
-      size_t shape[NC_MAX_VAR_DIMS];
-      stat = NC_getshape(ncid, varid, ndims, shape);
-      if(stat != NC_NOERR) return stat;
-      return ncp->dispatch->put_vara(ncid, varid, start, shape, value, memtype);
-   } else
-      return ncp->dispatch->put_vara(ncid, varid, start, edges, value, memtype);
+   stat = ncp->dispatch->put_vara(ncid, varid, start, my_count, value, memtype);
+   if(edges == NULL) free(my_count);
+   return stat;
 }
 
 /** \internal
