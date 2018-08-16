@@ -1,15 +1,12 @@
 #                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
-# This is part of Unidata's netCDF package. Copyright 2005-2012, see
+# This is part of Unidata's netCDF package. Copyright 2005-2018, see
 # the COPYRIGHT file for more information.
 # Ed Hartnett, Ward Fisher, Dennis Heimbigner
 
 # Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
 # and to exp otherwise.
-
-## This puts the cvs ID tag in the output configure script.
-AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 
 # Running autoconf on this file will trigger a warning if
 # autoconf is not at least the specified version.
@@ -1510,8 +1507,9 @@ AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 #####
 
 AC_MSG_NOTICE([generating header files and makefiles])
+AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
+AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
 AC_CONFIG_FILES([Makefile
-                 nc-config
                  netcdf.pc
                  libnetcdf.settings
                  postinstall.sh
@@ -1541,7 +1539,6 @@ AC_CONFIG_FILES([Makefile
                  docs/images/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
-                 nc_test4/run_par_test.sh
                  nc_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile
@@ -1549,10 +1546,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
                  plugins/Makefile
-                 ],
-                 [test -f  nc_test4/run_par_test.sh && chmod ugo+x nc_test4/run_par_test.sh && test -f  nc-config && chmod 755 nc-config])
+                 ])
 AC_OUTPUT()
-
-    #mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh
 
 cat libnetcdf.settings
