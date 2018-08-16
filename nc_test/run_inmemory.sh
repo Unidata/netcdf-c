@@ -44,14 +44,19 @@ if ! ${execdir}/tst_open_mem ${srcdir}/${OMEMFILE}; then
 fi
 
 echo "**** Test ncdump of the resulting inmemory data"
+echo "    Creating ${FILE3}.cdl"
 ${NCDUMP} -n "${FILE3}" ${FILE3}.nc > ${FILE3}.cdl ; CHECKERR
+
+echo "    Creating ${CREATE3}.cdl"
 ${NCDUMP} -n "${FILE3}" ${CREATE3}.nc > ${CREATE3}.cdl ; CHECKERR
 if ! diff -wb ${FILE3}.cdl ${CREATE3}.cdl ; then
     echo "FAIL: ${FILE3}.cdl vs ${CREATE3}.cdl"
 fi
 
 if test "x$HASNC4" = "xyes" ; then
+    echo "    Creating ${FILE4}.cdl"
     ${NCDUMP} ${FILE4}.nc > ${FILE4}.cdl ; CHECKERR
+    echo "    Creating ${CREATE4}.cdl"
     ${NCDUMP} ${CREATE4}.nc > ${CREATE4}.cdl ; CHECKERR
     if diff -wb ${FILE4}.cdl ${CREATE4}.cdl ; then
         echo "FAIL: ${FILE4}.cdl vs ${CREATE4}.cdl"
