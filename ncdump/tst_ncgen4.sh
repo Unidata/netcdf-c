@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Tests for ncgen4 using list of test cdl files from the cdl4
 # directory, and comparing output to expected results in the expected4
 # directory. Note that these tests are run for classic files in
