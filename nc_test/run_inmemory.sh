@@ -19,6 +19,17 @@ CREATE4=tst_inmemory4_create
 # For tst_open_mem
 OMEMFILE=f03tst_open_mem.nc
 
+CHECKERR() {
+
+    RES=$?
+
+        if [[ $RES -ne 0 ]]; then
+        echo "Error Caught: $RES"
+        exit $RES
+    fi
+
+}
+
 echo ""
 echo "*** Testing in-memory operations"
 
@@ -33,17 +44,17 @@ if ! ${execdir}/tst_open_mem ${srcdir}/${OMEMFILE}; then
 fi
 
 echo "**** Test ncdump of the resulting inmemory data"
-${NCDUMP} -n "${FILE3}" ${FILE3}.nc > ${FILE3}.cdl
-${NCDUMP} -n "${FILE3}" ${CREATE3}.nc > ${CREATE3}.cdl
+${NCDUMP} -n "${FILE3}" ${FILE3}.nc > ${FILE3}.cdl ; CHECKERR
+${NCDUMP} -n "${FILE3}" ${CREATE3}.nc > ${CREATE3}.cdl ; CHECKERR
 if ! diff -wb ${FILE3}.cdl ${CREATE3}.cdl ; then
-   echo "FAIL: ${FILE3}.cdl vs ${CREATE3}.cdl
+   echo "FAIL: ${FILE3}.cdl vs ${CREATE3}.cdl"
 fi
 
 if test "x$HASNC4" = "xyes" ; then
-${NCDUMP} ${FILE4}.nc > ${FILE4}.cdl
-${NCDUMP} ${CREATE4}.nc > ${CREATE4}.cdl
+${NCDUMP} ${FILE4}.nc > ${FILE4}.cdl ; CHECKERR
+${NCDUMP} ${CREATE4}.nc > ${CREATE4}.cdl ; CHECKERR
 if diff -wb ${FILE4}.cdl ${CREATE4}.cdl ; then
-   echo "FAIL: ${FILE4}.cdl vs ${CREATE4}.cdl
+   echo "FAIL: ${FILE4}.cdl vs ${CREATE4}.cdl"
 fi
 
 # cleanup
