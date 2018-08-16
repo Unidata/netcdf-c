@@ -1550,8 +1550,7 @@ AC_CONFIG_FILES([Makefile
                  dap4_test/Makefile
                  plugins/Makefile
                  ],
-                 [test -f  nc-config && chmod 755 nc-config])
-
+                 [test -f  nc_test4/run_par_test.sh && chmod ugo+x nc_test4/run_par_test.sh && test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()
 
     #mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh

@@ -1,9 +1,9 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi
-. ../test_common.sh
+# This .in file is processed at build time into a shell that runs some
+# parallel I/O tests for HDF5 parallel I/O.
 
-# This shell runs some parallel I/O tests.
+# Ed Hartnett, Dennis Heimbigner, Ward Fisher
 
 set -e
 echo
