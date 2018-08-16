@@ -256,6 +256,15 @@ test "x$enable_parallel_tests" = xyes || enable_parallel_tests=no
 AC_MSG_RESULT($enable_parallel_tests)
 
 # Did the user specify a default chunk size?
+AC_MSG_CHECKING([whether a user specified program to run mpi programs])
+AC_ARG_WITH([mpiexec],
+              [AS_HELP_STRING([--with-mpiexec=<command>],
+                              [Specify command to launch MPI parallel tests.])],
+            [MPIEXEC=$with_mpiexec], [MPIEXEC=mpiexec])
+AC_MSG_RESULT([$MPIEXEC])
+AC_SUBST([MPIEXEC], [$MPIEXEC])
+
+# Did the user specify a default chunk size?
 AC_MSG_CHECKING([whether a default chunk size in bytes was specified])
 AC_ARG_WITH([default-chunk-size],
               [AS_HELP_STRING([--with-default-chunk-size=<integer>],
@@ -1532,6 +1541,7 @@ AC_CONFIG_FILES([Makefile
                  docs/images/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
+                 nc_test4/run_par_test.sh
                  nc_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile
