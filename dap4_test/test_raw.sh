@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
@@ -9,9 +9,9 @@ set -e
 echo "test_raw.sh:"
 
 # Compute the set of testfiles
-PUSHD ${srcdir}/daptestfiles
+cd ${srcdir}/daptestfiles
 F=`ls -1d *.dap`
-POPD
+cd -
 F=`echo $F | tr '\r\n' '  '`
 F=`echo $F | sed -e s/.dap//g`
 
@@ -54,12 +54,12 @@ for f in $F ; do
 	    failure "diff ${f}.dmp"
 	fi
     elif test "x${RESET}" = x1 ; then
-	echo "${f}:" 
+	echo "${f}:"
 	cp ./results_test_raw/${f}.dmp ${BASELINERAW}/${f}.dmp
     elif test "x${DIFF}" = x1 ; then
 	echo "hdrtest: ${f}"
 	rm -f ./tr1 ./tr2 ./tb1 ./tb2
-	baseclean 
+	baseclean
         if ! diff -wBb ./${BASELINERAW}/${f}.dmp ./${BASELINE}/${f}.ncdump ; then
           failure diff -wBb ./${BASELINERAW}/${f}.dmp ./${BASELINE}/${f}.ncdump
 	fi
@@ -68,4 +68,3 @@ done
 rm -rf ./results_test_raw
 
 finish
-
