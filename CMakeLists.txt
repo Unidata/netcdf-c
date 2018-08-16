@@ -315,6 +315,7 @@ SET(CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemptio
 SET(MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
 SET(NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 SET(TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
+SET(MPIEXEC "mpiexec" CACHE STRING "Command to run MPI programs if parallel tests are run.")
 
 IF(NOT NETCDF_LIB_NAME STREQUAL "")
   SET(MOD_NETCDF_NAME ON)
@@ -974,7 +975,7 @@ IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
   SET(ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
 
-# Enable Parallel (different than pnetcdf).
+# Enable Parallel IO with netCDF-4/HDF5 files using HDF5 parallel I/O.
 SET(STATUS_PARALLEL "OFF")
 OPTION(ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
 IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
@@ -986,10 +987,12 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
     SET(USE_PARALLEL ON CACHE BOOL "")
     SET(USE_PARALLEL4 ON CACHE BOOL "")
     SET(STATUS_PARALLEL "ON")
+    configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test.sh.in"
+      "${netCDF_BINARY_DIR}/nc_test4/run_par_test.sh")
   ENDIF()
 ENDIF()
 
-# Options to enable parallel IO, tests.
+# Options to enable parallel IO for classic formats with parallel-netcdf library.
 SET(STATUS_PNETCDF "OFF")
 OPTION(ENABLE_PNETCDF "Build with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
 
