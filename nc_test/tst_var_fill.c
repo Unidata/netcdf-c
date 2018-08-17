@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     if (argc == 2) snprintf(filename, 256, "%s", argv[1]);
-    else           strcpy(filename, "tst_def_var_fill.nc");
+    else           strcpy(filename, "tst_var_fill.nc");
 
     char *cmd_str = (char*)malloc(strlen(argv[0]) + 256);
     sprintf(cmd_str, "*** TESTING C   %s for variable fill mode ", argv[0]);
