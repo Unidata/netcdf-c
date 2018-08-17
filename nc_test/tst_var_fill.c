@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
- * Copyright 2005 University Corporation for Atmospheric Research/Unidata
+ * Copyright 2018 University Corporation for Atmospheric Research/Unidata
  * See COPYRIGHT file for conditions of use.
  *
  * Test whether nc_inq_var_fill() reports fill mode correctly after calling
@@ -8,20 +8,8 @@
  * Author: Wei-keng Liao.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <netcdf.h>
-
 #include "tests.h"
-
-#define CHECK_ERR { \
-    if (err != NC_NOERR) { \
-        nerrs++; \
-        printf("Error at line %d in %s: (%s)\n", \
-        __LINE__,__FILE__,nc_strerror(err)); \
-    } \
-}
+#include "err_macros.h"
 
 int main(int argc, char** argv) {
     char filename[256];
@@ -63,18 +51,18 @@ int main(int argc, char** argv) {
 
         for (j=0; j<2; j++) {
             /* create a new file for writing --------------------------------*/
-            err = nc_create(filename, NC_CLOBBER, &ncid); CHECK_ERR
-            err = nc_def_var(ncid, "var0", NC_INT, 0, NULL, &varid0); CHECK_ERR
+            err = nc_create(filename, NC_CLOBBER, &ncid); CHECK_ERR(err)
+            err = nc_def_var(ncid, "var0", NC_INT, 0, NULL, &varid0); CHECK_ERR(err)
 
             /* set fill mode for the entire file */
-            err = nc_set_fill(ncid, fill_mode[j], NULL); CHECK_ERR
+            err = nc_set_fill(ncid, fill_mode[j], NULL); CHECK_ERR(err)
 
             /* all variables defined after nc_set_fill() should inherit the
              * fill mode */
-            err = nc_def_var(ncid, "var1", NC_INT, 0, NULL, &varid1); CHECK_ERR
-            err = nc_enddef(ncid); CHECK_ERR
+            err = nc_def_var(ncid, "var1", NC_INT, 0, NULL, &varid1); CHECK_ERR(err)
+            err = nc_enddef(ncid); CHECK_ERR(err)
 
-            err = nc_inq_var_fill(ncid, varid0, &no_fill, NULL); CHECK_ERR
+            err = nc_inq_var_fill(ncid, varid0, &no_fill, NULL); CHECK_ERR(err)
             if (no_fill && fill_mode[j] == NC_FILL) {
                 printf("\nFAIL: %s var0 expect NOFILL but got FILL\n",fmats[k]);
                 nerrs++;
@@ -83,7 +71,7 @@ int main(int argc, char** argv) {
                 printf("\nFAIL: %s var0 expect FILL but got NOFILL\n",fmats[k]);
                 nerrs++;
             }
-            err = nc_inq_var_fill(ncid, varid1, &no_fill, NULL); CHECK_ERR
+            err = nc_inq_var_fill(ncid, varid1, &no_fill, NULL); CHECK_ERR(err)
             if (no_fill && fill_mode[j] == NC_FILL) {
                 printf("\nFAIL: %s var1 expect NOFILL but got FILL\n",fmats[k]);
                 nerrs++;
@@ -92,7 +80,7 @@ int main(int argc, char** argv) {
                 printf("\nFAIL: %s var1 expect FILL but got NOFILL\n",fmats[k]);
                 nerrs++;
             }
-            err = nc_close(ncid); CHECK_ERR
+            err = nc_close(ncid); CHECK_ERR(err)
         }
     }
 

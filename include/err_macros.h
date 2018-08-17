@@ -80,4 +80,20 @@ int ERR_report(int stat, const char* file, int line)
    return 0; \
 } while (0)
 
+#define CHECK_ERR(err) { \
+    if (err != NC_NOERR) { \
+        nerrs++; \
+        printf("Error at line %d in %s: (%s)\n", \
+        __LINE__,__FILE__,nc_strerror(err)); \
+    } \
+}
+
+#define EXP_ERR(exp, err) { \
+    if (err != exp) { \
+        nerrs++; \
+        printf("Error at line %d in %s: expecting %s but got %s\n", \
+        __LINE__,__FILE__,#exp, nc_strerror(err)); \
+    } \
+}
+
 #endif /* _ERR_MACROS_H */

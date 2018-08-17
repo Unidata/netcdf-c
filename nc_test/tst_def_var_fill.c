@@ -7,27 +7,8 @@
  * Author: Wei-keng Liao.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <netcdf.h>
-
-
-#define CHECK_ERR { \
-    if (err != NC_NOERR) { \
-        nerrs++; \
-        printf("Error at line %d in %s: (%s)\n", \
-        __LINE__,__FILE__,nc_strerror(err)); \
-    } \
-}
-
-#define EXP_ERR(exp) { \
-    if (err != exp) { \
-        nerrs++; \
-        printf("Error at line %d in %s: expecting %s but got %s\n", \
-        __LINE__,__FILE__,#exp, nc_strerror(err)); \
-    } \
-}
+#include "tests.h"
+#include "err_macros.h"
 
 #define NY 8
 #define NX 5
@@ -65,22 +46,22 @@ int main(int argc, char** argv) {
         nc_set_default_format(formats[k], NULL);
 
         /* create a new file for writing ------------------------------------*/
-        err = nc_create(filename, NC_CLOBBER, &ncid); CHECK_ERR
+        err = nc_create(filename, NC_CLOBBER, &ncid); CHECK_ERR(err)
 
         /* define dimension */
-        err = nc_def_dim(ncid, "Y", NY, &dimid[0]); CHECK_ERR
-        err = nc_def_dim(ncid, "X", NX, &dimid[1]); CHECK_ERR
+        err = nc_def_dim(ncid, "Y", NY, &dimid[0]); CHECK_ERR(err)
+        err = nc_def_dim(ncid, "X", NX, &dimid[1]); CHECK_ERR(err)
 
         /* define variables */
-        err = nc_def_var(ncid, "var_nofill", NC_INT, 2, dimid, &varid[0]); CHECK_ERR
-        err = nc_def_var(ncid, "var_fill",   NC_INT, 2, dimid, &varid[1]); CHECK_ERR
+        err = nc_def_var(ncid, "var_nofill", NC_INT, 2, dimid, &varid[0]); CHECK_ERR(err)
+        err = nc_def_var(ncid, "var_fill",   NC_INT, 2, dimid, &varid[1]); CHECK_ERR(err)
 
         /* set fill mode for variables */
-        err = nc_def_var_fill(ncid, NC_GLOBAL, 0, NULL); EXP_ERR(NC_EGLOBAL)
-        err = nc_def_var_fill(ncid, varid[0], 1, NULL); CHECK_ERR
-        err = nc_def_var_fill(ncid, varid[1], 0, NULL); CHECK_ERR
+        err = nc_def_var_fill(ncid, NC_GLOBAL, 0, NULL); EXP_ERR(NC_EGLOBAL, err)
+        err = nc_def_var_fill(ncid, varid[0], 1, NULL); CHECK_ERR(err)
+        err = nc_def_var_fill(ncid, varid[1], 0, NULL); CHECK_ERR(err)
 
-        err = nc_enddef(ncid); CHECK_ERR
+        err = nc_enddef(ncid); CHECK_ERR(err)
 
         /* write a subarray to both variables */
         for (i=0; i<NY*NX; i++) buf[i] = 5;
@@ -88,20 +69,20 @@ int main(int argc, char** argv) {
         start[1] = 2;
         count[0] = NY;
         count[1] = 2;
-        err = nc_put_vara_int(ncid, varid[0], start, count, buf); CHECK_ERR
-        err = nc_put_vara_int(ncid, varid[1], start, count, buf); CHECK_ERR
-        err = nc_close(ncid); CHECK_ERR
+        err = nc_put_vara_int(ncid, varid[0], start, count, buf); CHECK_ERR(err)
+        err = nc_put_vara_int(ncid, varid[1], start, count, buf); CHECK_ERR(err)
+        err = nc_close(ncid); CHECK_ERR(err)
 
         /* Now, reopen the file and read variables back */
-        err = nc_open(filename, NC_WRITE, &ncid); CHECK_ERR
+        err = nc_open(filename, NC_WRITE, &ncid); CHECK_ERR(err)
 
         /* get variable IDs */
-        err = nc_inq_varid(ncid, "var_nofill", &varid[0]); CHECK_ERR
-        err = nc_inq_varid(ncid, "var_fill",   &varid[1]); CHECK_ERR
+        err = nc_inq_varid(ncid, "var_nofill", &varid[0]); CHECK_ERR(err)
+        err = nc_inq_varid(ncid, "var_fill",   &varid[1]); CHECK_ERR(err)
 
         /* read variable "var_nofill" and check contents */
         for (i=0; i<NY*NX; i++) buf[i] = -1;
-        err = nc_get_var_int(ncid, varid[0], buf); CHECK_ERR
+        err = nc_get_var_int(ncid, varid[0], buf); CHECK_ERR(err)
         for (i=0; i<NY; i++) {
             for (j=0; j<NX; j++) {
                 if (2 <= j && j < 4) {
@@ -120,7 +101,7 @@ int main(int argc, char** argv) {
 
         /* read variable "var_fill" and check contents */
         for (i=0; i<NY*NX; i++) buf[i] = -1;
-        err = nc_get_var_int(ncid, varid[1], buf); CHECK_ERR
+        err = nc_get_var_int(ncid, varid[1], buf); CHECK_ERR(err)
         for (i=0; i<NY; i++) {
             for (j=0; j<NX; j++) {
                 int expect = NC_FILL_INT;
@@ -134,7 +115,7 @@ int main(int argc, char** argv) {
             }
         }
 
-        err = nc_close(ncid); CHECK_ERR
+        err = nc_close(ncid); CHECK_ERR(err)
     }
     free(buf);
 
