@@ -570,8 +570,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 
    /* If the HDF5 dataset has already been created, then it is too
     * late to set all the extra stuff. */
-   if (var->created)
-      return NC_ELATEDEF;
+   if (var->created) {
+      if (no_fill != NULL || fill_value != NULL)
+         return NC_ELATEFILL;
+      else
+         return NC_ELATEDEF;
+   }
 
    /* Check compression options. */
    if (deflate && !deflate_level)
