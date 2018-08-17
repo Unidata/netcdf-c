@@ -514,8 +514,16 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
          else
             *(char **)var->fill_value = NULL;
       }
-      else
-         memcpy(var->fill_value, data, type_size);
+      else {
+         if (var->type_info->nc_type_class == NC_OPAQUE ||
+             var->type_info->nc_type_class == NC_COMPOUND ||
+             var->type_info->nc_type_class == NC_ENUM)
+             memcpy(var->fill_value, data, type_size);
+         else if ((retval = nc4_convert_type(data, var->fill_value, mem_type,
+                                        file_type, len, &range_error, NULL,
+                                        (h5->cmode & NC_CLASSIC_MODEL))))
+             BAIL(retval);
+      }
 
       /* Indicate that the fill value was changed, if the variable has already
        * been created in the file, so the dataset gets deleted and re-created. */
