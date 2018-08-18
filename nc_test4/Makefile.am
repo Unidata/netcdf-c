@@ -116,7 +116,8 @@ endif
 # with --enable-parallel-tests.
 if TEST_PARALLEL4
 check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3		\
-tst_parallel4 tst_parallel5 tst_nc4perf tst_mode tst_simplerw_coll_r
+tst_parallel4 tst_parallel5 tst_nc4perf tst_mode tst_simplerw_coll_r	\
+tst_mode
 TESTS += run_par_test.sh
 endif
 
