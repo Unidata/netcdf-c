@@ -230,8 +230,8 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
 }
 
 /**
- * @internal This function reads the hacked in coordinates attribute I
- * use for multi-dimensional coordinates.
+ * @internal This function reads the coordinates attribute used for
+ * multi-dimensional coordinates.
  *
  * @param grp Group info pointer.
  * @param var Var info pointer.
@@ -244,37 +244,46 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    hid_t coord_att_typeid = -1, coord_attid = -1, spaceid = -1;
    hssize_t npoints;
-   int ret = 0;
+   int retval = NC_NOERR;
    int d;
 
    /* There is a hidden attribute telling us the ids of the
     * dimensions that apply to this multi-dimensional coordinate
     * variable. Read it. */
-   if ((coord_attid = H5Aopen_name(var->hdf_datasetid, COORDINATES)) < 0) ret++;
-   if (!ret && (coord_att_typeid = H5Aget_type(coord_attid)) < 0) ret++;
+   if ((coord_attid = H5Aopen_name(var->hdf_datasetid, COORDINATES)) < 0)
+      BAIL(NC_EATTMETA);
+
+   if ((coord_att_typeid = H5Aget_type(coord_attid)) < 0)
+      BAIL(NC_EATTMETA);
 
    /* How many dimensions are there? */
-   if (!ret && (spaceid = H5Aget_space(coord_attid)) < 0) ret++;
-   if (!ret && (npoints = H5Sget_simple_extent_npoints(spaceid)) < 0) ret++;
+   if ((spaceid = H5Aget_space(coord_attid)) < 0)
+      BAIL(NC_EATTMETA);
+   if ((npoints = H5Sget_simple_extent_npoints(spaceid)) < 0)
+      BAIL(NC_EATTMETA);
 
-   /* Check that the number of points is the same as the number of dimensions
-    *   for the variable */
-   if (!ret && npoints != var->ndims) ret++;
+   /* Check that the number of points is the same as the number of
+    * dimensions for the variable. */
+   if (npoints != var->ndims)
+      BAIL(NC_EATTMETA);
 
-   if (!ret && H5Aread(coord_attid, coord_att_typeid, var->dimids) < 0) ret++;
+   if (H5Aread(coord_attid, coord_att_typeid, var->dimids) < 0)
+      BAIL(NC_EATTMETA);
    LOG((4, "dimscale %s is multidimensional and has coords", var->hdr.name));
 
-   /* Update var->dim field based on the var->dimids */
-   for (d = 0; d < var->ndims; d++) {
-      /* Ok if does not find a dim at this time, but if found set it */
+   /* Update var->dim field based on the var->dimids. Ok if does not
+    * find a dim at this time, but if found set it. */
+   for (d = 0; d < var->ndims; d++)
       nc4_find_dim(grp, var->dimids[d], &var->dim[d], NULL);
-   }
 
-   /* Set my HDF5 IDs free! */
-   if (spaceid >= 0 && H5Sclose(spaceid) < 0) ret++;
-   if (coord_att_typeid >= 0 && H5Tclose(coord_att_typeid) < 0) ret++;
-   if (coord_attid >= 0 && H5Aclose(coord_attid) < 0) ret++;
-   return ret ? NC_EATTMETA : NC_NOERR;
+exit:
+   if (spaceid >= 0 && H5Sclose(spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (coord_att_typeid >= 0 && H5Tclose(coord_att_typeid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (coord_attid >= 0 && H5Aclose(coord_attid) < 0)
+      BAIL2(NC_EHDFERR);
+   return retval;
 }
 
 /**

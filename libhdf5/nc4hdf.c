@@ -380,7 +380,6 @@ nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
 
    /* Determine an appropriate HDF5 datatype */
    if (xtype == NC_NAT)
-      /* NAT = 'Not A Type' (c.f. NaN) */
       return NC_EBADTYPE;
    else if (xtype == NC_CHAR || xtype == NC_STRING)
    {
@@ -575,15 +574,6 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
       locid = datasetid;
    }
 
-   /* Delete the att if it exists already. */
-   if ((attr_exists = H5Aexists(locid, att->hdr.name)) < 0)
-      BAIL(NC_EHDFERR);
-   if (attr_exists)
-   {
-      if (H5Adelete(locid, att->hdr.name) < 0)
-         BAIL(NC_EHDFERR);
-   }
-
    /* Get the length ready, and find the HDF type we'll be
     * writing. */
    dims[0] = att->len;
@@ -640,6 +630,20 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
             BAIL(NC_EATTMETA);
       }
    }
+
+   /* Does the att exists already? */
+   if ((attr_exists = H5Aexists(locid, att->hdr.name)) < 0)
+      BAIL(NC_EHDFERR);
+   if (attr_exists)
+   {
+      /* Find the type and size of the existing attribute. */
+
+      /* Delete the attribute. */
+      if (H5Adelete(locid, att->hdr.name) < 0)
+         BAIL(NC_EHDFERR);
+   }
+
+   /* Create the attribute. */
    if ((attid = H5Acreate(locid, att->hdr.name, file_typeid, spaceid,
                           H5P_DEFAULT)) < 0)
       BAIL(NC_EATTMETA);
@@ -670,16 +674,16 @@ exit:
  * @author Ed Hartnett
  */
 static int
-write_attlist(NCindex* attlist, int varid, NC_GRP_INFO_T *grp)
+write_attlist(NCindex *attlist, int varid, NC_GRP_INFO_T *grp)
 {
    NC_ATT_INFO_T *att;
    int retval;
    int i;
 
-   for(i=0;i<ncindexsize(attlist);i++)
+   for(i = 0; i < ncindexsize(attlist); i++)
    {
-      att = (NC_ATT_INFO_T*)ncindexith(attlist,i);
-      if(att == NULL) continue;
+      att = (NC_ATT_INFO_T *)ncindexith(attlist, i);
+      assert(att);
       if (att->dirty)
       {
          LOG((4, "%s: writing att %s to varid %d", __func__, att->hdr.name, varid));
@@ -1921,11 +1925,13 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
    int i;
 
    assert(grp && grp->hdr.name && grp->hdf_grpid);
-   LOG((3, "%s: grp->hdr.name %s, bad_coord_order %d", __func__, grp->hdr.name, bad_coord_order));
+   LOG((3, "%s: grp->hdr.name %s, bad_coord_order %d", __func__, grp->hdr.name,
+        bad_coord_order));
 
    /* Write global attributes for this group. */
    if ((retval = write_attlist(grp->att, NC_GLOBAL, grp)))
       return retval;
+
    /* Set the pointers to the beginning of the list of dims & vars in this
     * group. */
    dim_index = 0;
