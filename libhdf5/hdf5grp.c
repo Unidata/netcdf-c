@@ -63,7 +63,7 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
    /* Update internal lists to reflect new group. The actual HDF5
     * group creation will be done when metadata is written by a
     * sync. */
-   if ((retval = nc4_grp_list_add(grp, norm_name, &g)))
+   if ((retval = nc4_grp_list_add(h5, grp, norm_name, &g)))
       return retval;
    if (new_ncid)
       *new_ncid = grp->nc4_info->controller->ext_ncid | g->hdr.id;
