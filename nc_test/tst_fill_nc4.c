@@ -35,10 +35,10 @@ int main(int argc, char** argv) {
 
     for (i=0; i<5; i++) {
 #ifndef ENABLE_CDF5
-        if (formats[i] | NC_CDF5) continue;
+        if (formats[i] & NC_CDF5) continue;
 #endif
 #ifndef USE_NETCDF4
-        if (formats[i] | NC_NETCDF4) continue;
+        if (formats[i] & NC_NETCDF4) continue;
 #endif
         cmode = NC_CLOBBER | formats[i];
         err = nc_create(filename, cmode, &ncid); CHECK_ERR(err)
