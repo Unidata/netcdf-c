@@ -252,7 +252,7 @@ AC_ARG_ENABLE([parallel-tests],
 test "x$enable_parallel_tests" = xyes || enable_parallel_tests=no
 AC_MSG_RESULT($enable_parallel_tests)
 
-# Did the user specify a default chunk size?
+# Did the user specify an MPI launcher other than mpiexec?
 AC_MSG_CHECKING([whether a user specified program to run mpi programs])
 AC_ARG_WITH([mpiexec],
               [AS_HELP_STRING([--with-mpiexec=<command>],
