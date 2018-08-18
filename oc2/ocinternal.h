@@ -79,10 +79,10 @@ struct OCTriplestore;
 #define OCMAGIC ((unsigned int)0x0c0c0c0c) /*clever, huh*/
 
 /* Max rc file line size */
-#define MAXRCLINESIZE 4096
+#define MAXRCLINESIZE 512
 
 /* Max number of triples from an rc file */
-#define MAXRCLINES 4096
+#define MAXRCLINES 256
 
 /* Define a struct that all oc objects must start with */
 /* OCheader must be defined here to make it available in other headers */

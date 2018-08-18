@@ -17,6 +17,7 @@ TEST_EXTENSIONS = .sh
 extradir=
 # Link to our assembled library.
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
+LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 # These are netCDF-4 C test programs which are built and run.
 NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4		\
@@ -115,7 +116,8 @@ endif
 # with --enable-parallel-tests.
 if TEST_PARALLEL4
 check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3		\
-tst_parallel4 tst_parallel5 tst_nc4perf tst_mode tst_simplerw_coll_r
+tst_parallel4 tst_parallel5 tst_nc4perf tst_mode tst_simplerw_coll_r	\
+tst_mode
 TESTS += run_par_test.sh
 endif
 
@@ -124,7 +126,7 @@ check_PROGRAMS += bigmeta openbigmeta tst_attsperf
 TESTS += tst_attsperf perftest.sh
 endif
 
-EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh			\
+EXTRA_DIST = run_par_test.sh.in run_bm.sh run_bm_test1.sh		\
 run_bm_test2.sh run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh	\
 run_par_bm_test.sh run_bm_elena.sh run_par_bm_radar_2D.sh		\
 run_bm_radar_2D_endianness1.sh run_tst_chunks.sh ref_chunks1.cdl	\
@@ -138,20 +140,14 @@ ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
 ref_szip.cdl tst_filter.sh bzip2.cdl filtered.cdl unfiltered.cdl	\
 ref_bzip2.c findplugin.in perftest.sh
 
-
-CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc   \
-bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt                  \
-radar_3d_compression.txt radar_2d_compression.txt                       \
-radar_3d_chunking.txt tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl    \
-tst_*.nc tst_floats2_*.cdl tst_ints2_*.cdl tst_shorts2_*.cdl            \
-tst_elena_*.cdl tst_simple*.cdl tst_chunks.cdl pr_A1.* tauu_A1.*        \
-usi_01.* thetau_01.* tst_*.nc tst_*.h5 tst_grp_rename.cdl               \
-tst_grp_rename.nc tst_grp_rename.dmp ref_grp_rename.cdl foo1.nc         \
-tst_interops2.h4 tst_h5_endians.nc tst_h4_lendian.h4 test.nc            \
-tst_atts_string_rewrite.nc tst_empty_vlen_unlim.nc                      \
-tst_empty_vlen_lim.nc tst_parallel4_simplerw_coll.nc                    \
-tst_fill_attr_vanish.nc tst_rehash.nc testszip.nc test.h5               \
-szip_dump.cdl perftest.txt bigmeta.nc bigvars.nc
+CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
+bm_radar.nc bm_radar1.nc radar_*.txt tst_floats_1D.cdl floats_1D_3.nc	\
+floats_1D.cdl tst_*.nc tst_floats2_*.cdl tst_ints2_*.cdl		\
+tst_shorts2_*.cdl tst_elena_*.cdl tst_simple*.cdl tst_chunks.cdl	\
+pr_A1.* tauu_A1.* usi_01.* thetau_01.* tst_*.h5 tst_grp_rename.cdl	\
+tst_grp_rename.dmp ref_grp_rename.cdl foo1.nc tst_*.h4 test.nc		\
+testszip.nc test.h5 szip_dump.cdl perftest.txt bigmeta.nc bigvars.nc	\
+run_par_test.sh
 
 DISTCLEANFILES = findplugin.sh
 
