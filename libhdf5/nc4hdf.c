@@ -3,8 +3,9 @@
  * conditions. */
 /**
  * @file
- * This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
- * HDF5 backend for netCDF, depending on your point of view.
+ * @internal This file is part of netcdf-4, a netCDF-like interface
+ * for HDF5, or a HDF5 backend for netCDF, depending on your point of
+ * view.
  *
  * This file contains functions internal to the netcdf4 library. None of
  * the functions in this file are exposed in the exetnal API. These
@@ -549,15 +550,17 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
 {
    hid_t datasetid = 0, locid;
    hid_t attid = 0, spaceid = 0, file_typeid = 0;
+   hid_t existing_att_typeid = 0, existing_attid = 0, existing_spaceid = 0;
    hsize_t dims[1]; /* netcdf attributes always 1-D. */
    htri_t attr_exists;
-   int retval = NC_NOERR;
+   int reuse_att = 0; /* Will be true if we can re-use an existing att. */
    void *data;
    int phoney_data = 99;
+   int retval = NC_NOERR;
 
    assert(att->hdr.name);
-   LOG((3, "%s: varid %d att->hdr.id %d att->hdr.name %s att->nc_typeid %d att->len %d",
-        __func__, varid, att->hdr.id, att->hdr.name,
+   LOG((3, "%s: varid %d att->hdr.id %d att->hdr.name %s att->nc_typeid %d "
+        "att->len %d", __func__, varid, att->hdr.id, att->hdr.name,
         att->nc_typeid, att->len));
 
    /* If the file is read-only, return an error. */
@@ -636,11 +639,32 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
       BAIL(NC_EHDFERR);
    if (attr_exists)
    {
-      /* Find the type and size of the existing attribute. */
+      hssize_t npoints;
+
+      /* Open the attribute. */
+      if ((existing_attid = H5Aopen(locid, att->hdr.name, H5P_DEFAULT)) < 0)
+         BAIL(NC_EATTMETA);
+
+      /* Find the type of the existing attribute. */
+      if ((existing_att_typeid = H5Aget_type(existing_attid)) < 0)
+         BAIL(NC_EATTMETA);
+
+      /* How big is the attribute? */
+      if ((existing_spaceid = H5Aget_space(existing_attid)) < 0)
+         BAIL(NC_EATTMETA);
+      if ((npoints = H5Sget_simple_extent_npoints(existing_spaceid)) < 0)
+         BAIL(NC_EATTMETA);
 
       /* Delete the attribute. */
-      if (H5Adelete(locid, att->hdr.name) < 0)
-         BAIL(NC_EHDFERR);
+      /* if (file_typeid != existing_att_typeid && npoints != att->len) */
+      {
+         if (H5Adelete(locid, att->hdr.name) < 0)
+            BAIL(NC_EHDFERR);
+      }
+      /* else */
+      /* { */
+      /*    reuse_att++; */
+      /* } */
    }
 
    /* Create the attribute. */
@@ -657,7 +681,13 @@ exit:
       BAIL2(NC_EHDFERR);
    if (attid > 0 && H5Aclose(attid) < 0)
       BAIL2(NC_EHDFERR);
+   if (existing_att_typeid && H5Tclose(existing_att_typeid))
+      BAIL2(NC_EHDFERR);
+   if (existing_attid > 0 && H5Aclose(existing_attid) < 0)
+      BAIL2(NC_EHDFERR);
    if (spaceid > 0 && H5Sclose(spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (existing_spaceid > 0 && H5Sclose(existing_spaceid) < 0)
       BAIL2(NC_EHDFERR);
    return retval;
 }
