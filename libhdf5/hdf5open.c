@@ -1878,12 +1878,10 @@ static int
 nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
                          void *_op_data)
 {
-   NC4_rec_read_metadata_ud_t *udata = (NC4_rec_read_metadata_ud_t *)_op_data; /* Pointer to user data for callback */
+   /* Pointer to user data for callback */
+   NC4_rec_read_metadata_ud_t *udata = (NC4_rec_read_metadata_ud_t *)_op_data;
    NC4_rec_read_metadata_obj_info_t oinfo;    /* Pointer to info for object */
    int retval = H5_ITER_CONT;
-
-   /* Reset the memory for the object's info */
-   memset(&oinfo, 0, sizeof(oinfo));
 
    /* Open this critter. */
    if ((oinfo.oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0)
@@ -1901,10 +1899,9 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
    case H5G_GROUP:
       LOG((3, "found group %s", oinfo.oname));
 
-      /* Defer descending into child group immediately, so that the types
-       *     in the current group can be processed and be ready for use by
-       *     vars in the child group(s).
-       */
+      /* Defer descending into child group immediately, so that the
+       * types in the current group can be processed and be ready for
+       * use by vars in the child group(s). */
       if (nc4_rec_read_metadata_cb_list_add(udata, &oinfo))
          BAIL(H5_ITER_ERROR);
       break;
@@ -1918,11 +1915,10 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
                                  &oinfo.statbuf)))
       {
          /* Allow NC_EBADTYPID to transparently skip over datasets
-          *  which have a datatype that netCDF-4 doesn't undertand
-          *  (currently), but break out of iteration for other
-          *  errors.
-          */
-         if(NC_EBADTYPID != retval)
+          * which have a datatype that netCDF-4 doesn't undertand
+          * (currently), but break out of iteration for other
+          * errors. */
+         if (retval != NC_EBADTYPID)
             BAIL(H5_ITER_ERROR);
          else
             retval = H5_ITER_CONT;

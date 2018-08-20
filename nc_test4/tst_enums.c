@@ -4,7 +4,7 @@
 
    Test netcdf-4 enum types.
 
-   $Id: tst_enums.c,v 1.17 2009/02/14 14:09:45 ed Exp $
+   Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -37,7 +37,7 @@ main(int argc, char **argv)
       int value_in;
       /* Can't use the same name twice! */
       char member_name[NUM_MEMBERS][NC_MAX_NAME + 1] = {"Mene1", "Mene2",
-							"Tekel", "Upharsin"};
+                                                        "Tekel", "Upharsin"};
       int member_value[NUM_MEMBERS] = {0, 99, 81232, 12};
 
       /* Create a file. */
@@ -46,23 +46,23 @@ main(int argc, char **argv)
       /* Create an enum type. */
       if (nc_def_enum(ncid, NC_INT, TYPE_NAME, &typeid)) ERR;
       for (i = 0; i < NUM_MEMBERS; i++)
-	 if (nc_insert_enum(ncid, typeid, member_name[i],
-			    &member_value[i])) ERR;
+         if (nc_insert_enum(ncid, typeid, member_name[i],
+                            &member_value[i])) ERR;
 
       /* Check it out. */
       if (nc_inq_user_type(ncid, typeid, name_in, &base_size_in, &base_nc_type_in,
-			   &nfields_in, &class_in)) ERR;
+                           &nfields_in, &class_in)) ERR;
       if (strcmp(name_in, TYPE_NAME) || base_size_in != sizeof(int) ||
-	  base_nc_type_in != NC_INT || nfields_in != NUM_MEMBERS || class_in != NC_ENUM) ERR;
+          base_nc_type_in != NC_INT || nfields_in != NUM_MEMBERS || class_in != NC_ENUM) ERR;
       if (nc_inq_enum(ncid, typeid, name_in, &base_nc_type, &base_size_in, &num_members)) ERR;
       if (strcmp(name_in, TYPE_NAME) || base_nc_type != NC_INT ||
-	  num_members != NUM_MEMBERS) ERR;
+          num_members != NUM_MEMBERS) ERR;
       for (i = 0; i < NUM_MEMBERS; i++)
       {
-	 if (nc_inq_enum_member(ncid, typeid, i, name_in, &value_in)) ERR;
-	 if (strcmp(name_in, member_name[i]) || value_in != member_value[i]) ERR;
-	 if (nc_inq_enum_ident(ncid, typeid, member_value[i], name_in)) ERR;
-	 if (strcmp(name_in, member_name[i])) ERR;
+         if (nc_inq_enum_member(ncid, typeid, i, name_in, &value_in)) ERR;
+         if (strcmp(name_in, member_name[i]) || value_in != member_value[i]) ERR;
+         if (nc_inq_enum_ident(ncid, typeid, member_value[i], name_in)) ERR;
+         if (strcmp(name_in, member_name[i])) ERR;
       }
 
       /* Write the file. */
@@ -77,19 +77,19 @@ main(int argc, char **argv)
 
       /* Check it out. */
       if (nc_inq_user_type(ncid, typeids[0], name_in, &base_size_in, &base_nc_type_in,
-			   &nfields_in, &class_in)) ERR;
+                           &nfields_in, &class_in)) ERR;
       if (strcmp(name_in, TYPE_NAME) || base_size_in != sizeof(int) ||
-	  base_nc_type_in != NC_INT || nfields_in != NUM_MEMBERS || class_in != NC_ENUM) ERR;
+          base_nc_type_in != NC_INT || nfields_in != NUM_MEMBERS || class_in != NC_ENUM) ERR;
       if (nc_inq_type(ncid, typeids[0], name_in, &base_size_in)) ERR;
       if (strcmp(name_in, TYPE_NAME) || base_size_in != sizeof(int)) ERR;
       if (nc_inq_enum(ncid, typeids[0], name_in, &base_nc_type, &base_size_in, &num_members)) ERR;
       if (strcmp(name_in, TYPE_NAME) || base_nc_type != NC_INT || num_members != NUM_MEMBERS) ERR;
       for (i = 0; i < NUM_MEMBERS; i++)
       {
-	 if (nc_inq_enum_member(ncid, typeid, i, name_in, &value_in)) ERR;
-	 if (strcmp(name_in, member_name[i]) || value_in != member_value[i]) ERR;
-	 if (nc_inq_enum_ident(ncid, typeid, member_value[i], name_in)) ERR;
-	 if (strcmp(name_in, member_name[i])) ERR;
+         if (nc_inq_enum_member(ncid, typeid, i, name_in, &value_in)) ERR;
+         if (strcmp(name_in, member_name[i]) || value_in != member_value[i]) ERR;
+         if (nc_inq_enum_ident(ncid, typeid, member_value[i], name_in)) ERR;
+         if (strcmp(name_in, member_name[i])) ERR;
       }
 
       if (nc_close(ncid)) ERR;
@@ -105,8 +105,8 @@ main(int argc, char **argv)
    printf("*** testing enum attribute...");
    {
       char brady_name[NUM_BRADYS][NC_MAX_NAME + 1] = {"Mike", "Carol", "Greg", "Marsha",
-						       "Peter", "Jan", "Bobby", "Whats-her-face",
-						       "Alice"};
+                                                      "Peter", "Jan", "Bobby", "Whats-her-face",
+                                                      "Alice"};
       unsigned char brady_value[NUM_BRADYS] = {8, 7, 6 , 5, 4, 3, 2, 1, 0};
       unsigned char data[BRADY_DIM_LEN] = {0, 4, 8};
       unsigned char value_in;
@@ -117,23 +117,23 @@ main(int argc, char **argv)
       /* Create an enum type based on unsigned bytes. */
       if (nc_def_enum(ncid, NC_UBYTE, BRADYS, &typeid)) ERR;
       for (i = 0; i < NUM_BRADYS; i++)
-	 if (nc_insert_enum(ncid, typeid, brady_name[i],
-			    &brady_value[i])) ERR;
+         if (nc_insert_enum(ncid, typeid, brady_name[i],
+                            &brady_value[i])) ERR;
 
       /* Check it out. */
       if (nc_inq_user_type(ncid, typeid, name_in, &base_size_in, &base_nc_type_in,
-			   &nfields_in, &class_in)) ERR;
+                           &nfields_in, &class_in)) ERR;
       if (strcmp(name_in, BRADYS) || base_size_in != 1 ||
-	  base_nc_type_in != NC_UBYTE || nfields_in != NUM_BRADYS || class_in != NC_ENUM) ERR;
+          base_nc_type_in != NC_UBYTE || nfields_in != NUM_BRADYS || class_in != NC_ENUM) ERR;
       if (nc_inq_enum(ncid, typeid, name_in, &base_nc_type, &base_size_in, &num_members)) ERR;
       if (strcmp(name_in, BRADYS) || base_nc_type != NC_UBYTE || base_size_in != 1 ||
-	  num_members != NUM_BRADYS) ERR;
+          num_members != NUM_BRADYS) ERR;
       for (i = 0; i < NUM_BRADYS; i++)
       {
-	 if (nc_inq_enum_member(ncid, typeid, i, name_in, &value_in)) ERR;
-	 if (strcmp(name_in, brady_name[i]) || value_in != brady_value[i]) ERR;
-	 if (nc_inq_enum_ident(ncid, typeid, brady_value[i], name_in)) ERR;
-	 if (strcmp(name_in, brady_name[i])) ERR;
+         if (nc_inq_enum_member(ncid, typeid, i, name_in, &value_in)) ERR;
+         if (strcmp(name_in, brady_name[i]) || value_in != brady_value[i]) ERR;
+         if (nc_inq_enum_ident(ncid, typeid, brady_value[i], name_in)) ERR;
+         if (strcmp(name_in, brady_name[i])) ERR;
       }
 
       /* Write an att of this enum type. */
@@ -147,18 +147,18 @@ main(int argc, char **argv)
 
       /* Check it out. */
       if (nc_inq_user_type(ncid, typeid, name_in, &base_size_in, &base_nc_type_in,
-			   &nfields_in, &class_in)) ERR;
+                           &nfields_in, &class_in)) ERR;
       if (strcmp(name_in, BRADYS) || base_size_in != 1 ||
-	  base_nc_type_in != NC_UBYTE || nfields_in != NUM_BRADYS || class_in != NC_ENUM) ERR;
+          base_nc_type_in != NC_UBYTE || nfields_in != NUM_BRADYS || class_in != NC_ENUM) ERR;
       if (nc_inq_enum(ncid, typeid, name_in, &base_nc_type, &base_size_in, &num_members)) ERR;
       if (strcmp(name_in, BRADYS) || base_nc_type != NC_UBYTE || base_size_in != 1 ||
-	  num_members != NUM_BRADYS) ERR;
+          num_members != NUM_BRADYS) ERR;
       for (i = 0; i < NUM_BRADYS; i++)
       {
-	 if (nc_inq_enum_member(ncid, typeid, i, name_in, &value_in)) ERR;
-	 if (strcmp(name_in, brady_name[i]) || value_in != brady_value[i]) ERR;
-	 if (nc_inq_enum_ident(ncid, typeid, brady_value[i], name_in)) ERR;
-	 if (strcmp(name_in, brady_name[i])) ERR;
+         if (nc_inq_enum_member(ncid, typeid, i, name_in, &value_in)) ERR;
+         if (strcmp(name_in, brady_name[i]) || value_in != brady_value[i]) ERR;
+         if (nc_inq_enum_ident(ncid, typeid, brady_value[i], name_in)) ERR;
+         if (strcmp(name_in, brady_name[i])) ERR;
       }
 
       if (nc_close(ncid)) ERR;
@@ -176,109 +176,109 @@ main(int argc, char **argv)
 
    printf("*** testing enum fill value ...");
    {
-       int dimid, varid;
-       size_t num_members_in;
-       int class_in;
-       unsigned char value_in;
-       unsigned char att_value_in;
+      int dimid, varid;
+      size_t num_members_in;
+      int class_in;
+      unsigned char value_in;
+      unsigned char att_value_in;
 
-       enum clouds {		/* a C enumeration */
-	   CLEAR=0,
-	   CUMULONIMBUS=1,
-	   STRATUS=2,
-	   STRATOCUMULUS=3,
-	   CUMULUS=4,
-	   ALTOSTRATUS=5,
-	   NIMBOSTRATUS=6,
-	   ALTOCUMULUS=7,
-	   CIRROSTRATUS=8,
-	   CIRROCUMULUS=9,
-	   CIRRUS=10,
-	   MISSING=255};
+      enum clouds {             /* a C enumeration */
+         CLEAR=0,
+         CUMULONIMBUS=1,
+         STRATUS=2,
+         STRATOCUMULUS=3,
+         CUMULUS=4,
+         ALTOSTRATUS=5,
+         NIMBOSTRATUS=6,
+         ALTOCUMULUS=7,
+         CIRROSTRATUS=8,
+         CIRROCUMULUS=9,
+         CIRRUS=10,
+         MISSING=255};
 
-       struct {
-	   char *name;
-	   unsigned char value;
-       } cloud_types[] = {
-	   {"Clear", CLEAR},
-	   {"Cumulonimbus", CUMULONIMBUS},
-	   {"Stratus", STRATUS},
-	   {"Stratocumulus", STRATOCUMULUS},
-	   {"Cumulus", CUMULUS},
-	   {"Altostratus", ALTOSTRATUS},
-	   {"Nimbostratus", NIMBOSTRATUS},
-	   {"Altocumulus", ALTOCUMULUS},
-	   {"Cirrostratus", CIRROSTRATUS},
-	   {"Cirrocumulus", CIRROCUMULUS},
-	   {"Cirrus", CIRRUS},
-	   {"Missing", MISSING}
-       };
-       int var_dims[VAR2_RANK];
-       unsigned char att_val;
-       unsigned char cloud_data[DIM2_LEN] = {
-	   CLEAR, STRATUS, CLEAR, CUMULONIMBUS, MISSING};
-       unsigned char cloud_data_in[DIM2_LEN];
+      struct {
+         char *name;
+         unsigned char value;
+      } cloud_types[] = {
+         {"Clear", CLEAR},
+         {"Cumulonimbus", CUMULONIMBUS},
+         {"Stratus", STRATUS},
+         {"Stratocumulus", STRATOCUMULUS},
+         {"Cumulus", CUMULUS},
+         {"Altostratus", ALTOSTRATUS},
+         {"Nimbostratus", NIMBOSTRATUS},
+         {"Altocumulus", ALTOCUMULUS},
+         {"Cirrostratus", CIRROSTRATUS},
+         {"Cirrocumulus", CIRROCUMULUS},
+         {"Cirrus", CIRRUS},
+         {"Missing", MISSING}
+      };
+      int var_dims[VAR2_RANK];
+      unsigned char att_val;
+      unsigned char cloud_data[DIM2_LEN] = {
+         CLEAR, STRATUS, CLEAR, CUMULONIMBUS, MISSING};
+      unsigned char cloud_data_in[DIM2_LEN];
 
-       if (nc_create(FILE_NAME, NC_CLOBBER | NC_NETCDF4, &ncid)) ERR;
+      if (nc_create(FILE_NAME, NC_CLOBBER | NC_NETCDF4, &ncid)) ERR;
 
-       /* Create an enum type. */
-       if (nc_def_enum(ncid, NC_UBYTE, TYPE2_NAME, &typeid)) ERR;
-       num_members = (sizeof cloud_types) / (sizeof cloud_types[0]);
-       for (i = 0; i < num_members; i++)
-	   if (nc_insert_enum(ncid, typeid, cloud_types[i].name,
-			      &cloud_types[i].value)) ERR;
+      /* Create an enum type. */
+      if (nc_def_enum(ncid, NC_UBYTE, TYPE2_NAME, &typeid)) ERR;
+      num_members = (sizeof cloud_types) / (sizeof cloud_types[0]);
+      for (i = 0; i < num_members; i++)
+         if (nc_insert_enum(ncid, typeid, cloud_types[i].name,
+                            &cloud_types[i].value)) ERR;
 
-       /* Declare a station dimension */
-       if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimid)) ERR;
-       /* Declare a variable of the enum type */
-       var_dims[0] = dimid;
-       if (nc_def_var(ncid, VAR2_NAME, typeid, VAR2_RANK, var_dims, &varid)) ERR;
-       /* Create and write a variable attribute of the enum type */
-       att_val = MISSING;
-       if (nc_put_att(ncid, varid, ATT2_NAME, typeid, ATT2_LEN, &att_val)) ERR;
-       if (nc_enddef(ncid)) ERR;
-       /* Store some data of the enum type */
-       if(nc_put_var(ncid, varid, cloud_data)) ERR;
-       /* Write the file. */
-       if (nc_close(ncid)) ERR;
+      /* Declare a station dimension */
+      if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimid)) ERR;
+      /* Declare a variable of the enum type */
+      var_dims[0] = dimid;
+      if (nc_def_var(ncid, VAR2_NAME, typeid, VAR2_RANK, var_dims, &varid)) ERR;
+      /* Create and write a variable attribute of the enum type */
+      att_val = MISSING;
+      if (nc_put_att(ncid, varid, ATT2_NAME, typeid, ATT2_LEN, &att_val)) ERR;
+      if (nc_enddef(ncid)) ERR;
+      /* Store some data of the enum type */
+      if(nc_put_var(ncid, varid, cloud_data)) ERR;
+      /* Write the file. */
+      if (nc_close(ncid)) ERR;
 
-       /* Check it out. */
+      /* Check it out. */
 
-       /* Reopen the file. */
-       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      /* Reopen the file. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
 
-       if (nc_inq_user_type(ncid, typeid, name_in, &base_size_in, &base_nc_type_in,
-			    &nfields_in, &class_in)) ERR;
-       if (strcmp(name_in, TYPE2_NAME) ||
-	   base_size_in != sizeof(unsigned char) ||
-	   base_nc_type_in != NC_UBYTE ||
-	   nfields_in != num_members ||
-	   class_in != NC_ENUM) ERR;
-       if (nc_inq_enum(ncid, typeid, name_in,
-		       &base_nc_type_in, &base_size_in, &num_members_in)) ERR;
-       if (strcmp(name_in, TYPE2_NAME) ||
-	   base_nc_type_in !=  NC_UBYTE ||
-	   num_members_in != num_members) ERR;
-       for (i = 0; i < num_members; i++)
-       {
-	   if (nc_inq_enum_member(ncid, typeid, i, name_in, &value_in)) ERR;
-	   if (strcmp(name_in, cloud_types[i].name) ||
-	       value_in != cloud_types[i].value) ERR;
-	   if (nc_inq_enum_ident(ncid, typeid, cloud_types[i].value,
-				 name_in)) ERR;
-	   if (strcmp(name_in, cloud_types[i].name)) ERR;
-       }
-       if (nc_inq_varid(ncid, VAR2_NAME, &varid)) ERR;
+      if (nc_inq_user_type(ncid, typeid, name_in, &base_size_in, &base_nc_type_in,
+                           &nfields_in, &class_in)) ERR;
+      if (strcmp(name_in, TYPE2_NAME) ||
+          base_size_in != sizeof(unsigned char) ||
+          base_nc_type_in != NC_UBYTE ||
+          nfields_in != num_members ||
+          class_in != NC_ENUM) ERR;
+      if (nc_inq_enum(ncid, typeid, name_in,
+                      &base_nc_type_in, &base_size_in, &num_members_in)) ERR;
+      if (strcmp(name_in, TYPE2_NAME) ||
+          base_nc_type_in !=  NC_UBYTE ||
+          num_members_in != num_members) ERR;
+      for (i = 0; i < num_members; i++)
+      {
+         if (nc_inq_enum_member(ncid, typeid, i, name_in, &value_in)) ERR;
+         if (strcmp(name_in, cloud_types[i].name) ||
+             value_in != cloud_types[i].value) ERR;
+         if (nc_inq_enum_ident(ncid, typeid, cloud_types[i].value,
+                               name_in)) ERR;
+         if (strcmp(name_in, cloud_types[i].name)) ERR;
+      }
+      if (nc_inq_varid(ncid, VAR2_NAME, &varid)) ERR;
 
-       if (nc_get_att(ncid, varid, ATT2_NAME, &att_value_in)) ERR;
-       if (att_value_in != MISSING) ERR;
+      if (nc_get_att(ncid, varid, ATT2_NAME, &att_value_in)) ERR;
+      if (att_value_in != MISSING) ERR;
 
-       if(nc_get_var(ncid, varid, cloud_data_in)) ERR;
-       for (i = 0; i < DIM2_LEN; i++) {
-	   if (cloud_data_in[i] != cloud_data[i]) ERR;
-       }
+      if(nc_get_var(ncid, varid, cloud_data_in)) ERR;
+      for (i = 0; i < DIM2_LEN; i++) {
+         if (cloud_data_in[i] != cloud_data[i]) ERR;
+      }
 
-       if (nc_close(ncid)) ERR;
+      if (nc_close(ncid)) ERR;
    }
 
    SUMMARIZE_ERR;
@@ -295,19 +295,19 @@ main(int argc, char **argv)
 
       /* Check it out. */
       if (nc_inq_user_type(ncid, typeid, name_in, &base_size_in, &base_nc_type_in,
-			   &nfields_in, &class_in)) ERR;
+                           &nfields_in, &class_in)) ERR;
       if (strcmp(name_in, GEEKY_NAME) || base_size_in != 1 ||
-	  base_nc_type_in != NC_UBYTE || nfields_in != 0 || class_in != NC_ENUM) ERR;
+          base_nc_type_in != NC_UBYTE || nfields_in != 0 || class_in != NC_ENUM) ERR;
       if (nc_inq_enum(ncid, typeid, name_in, &base_nc_type, &base_size_in, &num_members)) ERR;
       if (strcmp(name_in, GEEKY_NAME) || base_nc_type != NC_UBYTE || base_size_in != 1 ||
-	  num_members != 0) ERR;
+          num_members != 0) ERR;
 
       /* Close the file. */
       if (nc_close(ncid) != NC_EINVAL) ERR;
 
       if (nc_redef(ncid)) ERR;
       if (nc_insert_enum(ncid, typeid, "name", &ubyte_value)) ERR;
-      if (nc_close(ncid)) ERR;      
+      if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
    printf("*** testing enum ncdump...");
@@ -327,38 +327,50 @@ main(int argc, char **argv)
       unsigned long long field_value[NUM_ENUM_FIELDS] = {1000000, 2000000, 3000000, 4000000,
                                                          5000000, 6000000, 7000000, 8000000};
       unsigned long long data = 1000000, data_in;
-      
+
       /* Create a netcdf-4 file. */
       /*nc_set_log_level(3);*/
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-      
+
       /* Create a dimension. */
       if (nc_def_dim(ncid, DIM_NAME, DIMSIZE, &dimid)) ERR;
-      
+
       /* Create an enum type. */
       if (nc_def_enum(ncid, NC_UINT64, ENUM_NAME, &typeid)) ERR;
       for (f = 0; f < NUM_ENUM_FIELDS; f++)
          if (nc_insert_enum(ncid, typeid, field_name[f], &field_value[f])) ERR;
-      
+
       /* Create one var. */
       if (nc_def_var(ncid, ENUM_VAR_NAME, typeid, NDIMS1, &dimid, &v1id)) ERR;
-      
+
       /* Write metadata to file. */
       if (nc_enddef(ncid)) ERR;
-      
+
       /* Write phoney data. */
       if (nc_put_vara(ncid, v1id, start, count, &data)) ERR;
-      
+
       if (nc_sync(ncid)) ERR;
 
       /* Read phoney data. */
       if (nc_get_vara(ncid, v1id, start, count, &data_in)) ERR;
       if (data_in != data) ERR;
-      
+
+      /* Close the netcdf file. */
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+#define ENUM_REF_FILE "ref_hdf5_enum.nc"
+   printf("*** testing opening reference HDF5 file with strange enum...");
+   {
+      int ncid;
+
+      /* Open reference file. */
+      nc_set_log_level(3);
+      if (nc_open(ENUM_REF_FILE, NC_NETCDF4, &ncid)) ERR;
+
       /* Close the netcdf file. */
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
-
