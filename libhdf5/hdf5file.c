@@ -213,7 +213,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
 
    /* Close hdf file. It may not be open, since this function is also
     * called by NC_create() when a file opening is aborted. */
-   if (hdf5_info->hdfid && H5Fclose(hdf5_info->hdfid) < 0)
+   if (hdf5_info->hdfid > 0 && H5Fclose(hdf5_info->hdfid) < 0)
    {
       dumpopenobjects(h5);
       BAIL(NC_EHDFERR);
@@ -274,7 +274,6 @@ dumpopenobjects(NC_FILE_INFO_T* h5)
 size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
 size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
 float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
-
 
 /**
  * Set chunk cache size. Only affects files opened/created *after* it

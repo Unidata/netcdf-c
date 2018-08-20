@@ -413,7 +413,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
 
-   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI))
+   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI) < 0)
       BAIL(NC_EHDFERR);
 
 #ifdef USE_PARALLEL4
@@ -436,10 +436,9 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
             BAIL(NC_EPARINIT);
       }
 #else /* USE_PARALLEL_POSIX */
-      /* Should not happen! Code in NC4_create/NC4_open should alias the
-       *        NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
-       *        available in HDF5. -QAK
-       */
+      /* Should not happen! Code in NC4_create/NC4_open should alias
+       * the NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
+       * available in HDF5. */
       else /* MPI/POSIX */
          BAIL(NC_EPARINIT);
 #endif /* USE_PARALLEL_POSIX */
@@ -460,6 +459,12 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
          nc4_info->info = mpiinfo->info;
       }
    }
+
+#ifdef HDF5_HAS_COLL_METADATA_OPS
+   if (H5Pset_all_coll_metadata_ops(fapl_id, 1) < 0)
+      BAIL(NC_EPARINIT);
+#endif
+
 #else /* only set cache for non-parallel. */
    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
                     nc4_chunk_cache_preemption) < 0)
@@ -468,13 +473,6 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
         __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
         nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
-
-   /* The NetCDF-3.x prototype contains an mode option NC_SHARE for
-      multiple processes accessing the dataset concurrently.  As there
-      is no HDF5 equivalent, NC_SHARE is treated as NC_NOWRITE. */
-#ifdef HDF5_HAS_COLL_METADATA_OPS
-   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
-#endif
 
    /* Does the mode specify that this file is read-only? */
    if ((mode & NC_WRITE) == 0)
@@ -538,9 +536,10 @@ exit:
    if (comm_duped) MPI_Comm_free(&nc4_info->comm);
    if (info_duped) MPI_Info_free(&nc4_info->info);
 #endif
-   if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
-   if (!nc4_info) return retval;
-   nc4_close_netcdf4_file(nc4_info,1,0); /*  treat like abort*/
+   if (fapl_id > 0 && fapl_id != H5P_DEFAULT)
+      H5Pclose(fapl_id);
+   if (nc4_info)
+      nc4_close_netcdf4_file(nc4_info, 1, 0); /*  treat like abort*/
    return retval;
 }
 
