@@ -2133,6 +2133,8 @@ main(int argc, char**argv)
             if(level >= 0)
               nc_set_log_level(level);
             }
+#else
+	    error("-L specified, but logging support not enabled");
 #endif
             break;
 	case 'F': /* optional filter spec for a specified variable */
@@ -2154,9 +2156,13 @@ main(int argc, char**argv)
 #else
 	    error("-F requires netcdf-4");
 #endif
+	    break;
 	case 'M': /* set min chunk size */
 #ifdef USE_NETCDF4
-	    option_min_chunk_bytes = atol(optarg);
+	    if(optarg == NULL)
+		option_min_chunk_bytes = -1;
+	    else
+	        option_min_chunk_bytes = atol(optarg);
 	    if(option_min_chunk_bytes < 0)
 		error("-M value must be non-negative integer");
 	    break;

@@ -47,6 +47,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    FILE *fp;
    int retval = NC_NOERR;
    NC_FILE_INFO_T* nc4_info = NULL;
+   NC_HDF5_FILE_INFO_T *hdf5_info;
 
 #ifdef USE_PARALLEL4
    NC_MPI_INFO *mpiinfo = NULL;
@@ -62,9 +63,13 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    /* Add necessary structs to hold netcdf-4 file data. */
    if ((retval = nc4_nc4f_list_add(nc, path, (NC_WRITE | cmode))))
       BAIL(retval);
-
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
+
+   /* Add struct to hold HDF5-specific file metadata. */
+   if (!(nc4_info->format_file_info = calloc(1, sizeof(NC_HDF5_FILE_INFO_T))))
+      BAIL(NC_ENOMEM);
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)nc4_info->format_file_info;
 
    nc4_info->mem.inmemory = (cmode & NC_INMEMORY) == NC_INMEMORY;
    nc4_info->mem.diskless = (cmode & NC_DISKLESS) == NC_DISKLESS;
@@ -190,33 +195,29 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
                                             H5P_CRT_ORDER_INDEXED)) < 0)
       BAIL(NC_EHDFERR);
 
-   /* Create the file. */
 #ifdef HDF5_HAS_COLL_METADATA_OPS
-   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
-   H5Pset_coll_metadata_write(fapl_id, 1);
+   /* If HDF5 supports collective metadata operations, turn them
+    * on. This is only relevant for parallel I/O builds of HDF5. */
+   if (H5Pset_all_coll_metadata_ops(fapl_id, 1) < 0)
+      BAIL(NC_EHDFERR);
+   if (H5Pset_coll_metadata_write(fapl_id, 1) < 0)
+      BAIL(NC_EHDFERR);
 #endif
 
    if(nc4_info->mem.inmemory) {
-#if 0
-      if(nc4_info->mem.memio.size == 0)
-         nc4_info->memio.size = DEFAULT_CREATE_MEMSIZE; /* last ditch fix */
-      if(nc4_info->memio.memory == NULL) { /* last ditch fix */
-         nc4_info->memio.memory = malloc(nc4_info->memio.size);
-         if(nc4_info->memio.memory == NULL)
-            BAIL(NC_ENOMEM);
-      }
-      assert(nc4_info->memio.size > 0 && nc4_info->memio.memory != NULL);
-#endif
       retval = NC4_create_image_file(nc4_info,initialsz);
       if(retval)
          BAIL(retval);
-   } else if ((nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
-      /*Change the return error from NC_EFILEMETADATA to
-        System error EACCES because that is the more likely problem */
-      BAIL(EACCES);
+   }
+   else
+   {
+      /* Create the HDF5 file. */
+      if ((hdf5_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
+         BAIL(EACCES);
+   }
 
    /* Open the root group. */
-   if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(nc4_info->hdfid, "/",
+   if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/",
                                                  H5P_DEFAULT)) < 0)
       BAIL(NC_EFILEMETA);
 
@@ -243,9 +244,11 @@ exit: /*failure exit*/
    if (comm_duped) MPI_Comm_free(&nc4_info->comm);
    if (info_duped) MPI_Info_free(&nc4_info->info);
 #endif
-   if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
-   if(!nc4_info) return retval;
-   nc4_close_netcdf4_file(nc4_info,1,0); /* treat like abort */
+   if (fapl_id != H5P_DEFAULT)
+      H5Pclose(fapl_id);
+   if (!nc4_info)
+      return retval;
+   nc4_close_netcdf4_file(nc4_info, 1, 0); /* treat like abort */
    return retval;
 }
 
@@ -283,6 +286,12 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    /* If this is our first file, turn off HDF5 error messages. */
    if (!nc4_hdf5_initialized)
       nc4_hdf5_initialize();
+
+#ifdef LOGGING
+   /* If nc logging level has changed, see if we need to turn on
+    * HDF5's error messages. */
+   hdf5_set_log_level();
+#endif /* LOGGING */
 
    /* Check the cmode for validity. */
    if((cmode & ILLEGAL_CREATE_FLAGS) != 0)
