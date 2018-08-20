@@ -656,15 +656,15 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
          BAIL(NC_EATTMETA);
 
       /* Delete the attribute. */
-      /* if (file_typeid != existing_att_typeid && npoints != att->len) */
+      if (file_typeid != existing_att_typeid || npoints != att->len)
       {
          if (H5Adelete(locid, att->hdr.name) < 0)
             BAIL(NC_EHDFERR);
       }
-      /* else */
-      /* { */
-      /*    reuse_att++; */
-      /* } */
+      else
+      {
+         reuse_att++;
+      }
    }
 
    /* Create the attribute. */
