@@ -845,8 +845,8 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    if ((access_plistid = H5Pcreate(H5P_DATASET_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
 
-   /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
-   if (H5Pset_obj_track_times(plistid,0)<0)
+   /* Turn off object tracking times in HDF5. */
+   if (H5Pset_obj_track_times(plistid, 0) < 0)
       BAIL(NC_EHDFERR);
 
    /* Find the HDF5 type of the dataset. */
