@@ -261,7 +261,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
 
    /* HDF5 allows maximum of 32 dimensions. */
    if (ndims > H5S_MAX_RANK)
-      BAIL(NC_EINVAL);
+      BAIL(NC_EMAXDIMS);
 
    /* If it's not in define mode, strict nc3 files error out,
     * otherwise switch to define mode. This will also check that the

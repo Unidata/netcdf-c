@@ -438,7 +438,7 @@ main(int argc, char **argv)
 
       /* This will fail because HDF5 only allows 32 dimensions. */
       if (nc_def_var(ncid, MANY_DIM_VAR, NC_INT, NDIMS50, dimids,
-                     &varid) != NC_EINVAL) ERR;
+                     &varid) != NC_EMAXDIMS) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;

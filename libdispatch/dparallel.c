@@ -1,10 +1,9 @@
-/** \file
-
-This file has the parallel I/O functions which correspond to the
-serial I/O functions.
-
-Copyright 2010 University Corporation for Atmospheric
-Research/Unidata. See COPYRIGHT file for more info.
+/* Copyright 2010 University Corporation for Atmospheric
+   Research/Unidata. See COPYRIGHT file for more info. */
+/**
+ * @file
+ * @internal This file has the parallel I/O functions which correspond
+ * to the serial I/O functions.
 */
 #include "config.h"
 #include "ncdispatch.h"
