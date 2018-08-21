@@ -360,11 +360,11 @@ nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
  * @param hdf_typeid Pointer that gets the HDF5 type ID.
  * @param endianness Desired endianness in HDF5 type.
  *
- * @returns NC_NOERR No error.
- * @returns NC_ECHAR Conversions of NC_CHAR forbidden.
- * @returns NC_EVARMETA HDF5 returning error creating datatype.
- * @returns NC_EHDFERR HDF5 returning error.
- * @returns NC_EBADTYE Type not found.
+ * @return NC_NOERR No error.
+ * @return NC_ECHAR Conversions of NC_CHAR forbidden.
+ * @return NC_EVARMETA HDF5 returning error creating datatype.
+ * @return NC_EHDFERR HDF5 returning error.
+ * @return NC_EBADTYE Type not found.
  * @author Ed Hartnett
  */
 int
@@ -824,6 +824,10 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
  * @param write_dimid True to write dimid.
  *
  * @return ::NC_NOERR
+ * @returns NC_ECHAR Conversions of NC_CHAR forbidden.
+ * @returns NC_EVARMETA HDF5 returning error creating datatype.
+ * @returns NC_EHDFERR HDF5 returning error.
+ * @returns NC_EBADTYE Type not found.
  * @author Ed Hartnett
  */
 static int
@@ -835,7 +839,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    void *fillp = NULL;
    NC_DIM_INFO_T *dim = NULL;
    char *name_to_use;
-   int retval = NC_NOERR;
+   int retval;
 
    LOG((3, "%s:: name %s", __func__, var->hdr.name));
 
@@ -1052,7 +1056,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
             BAIL(retval);
    }
 
-
    /* Write attributes for this var. */
    if ((retval = write_attlist(var->att, var->hdr.id, grp)))
       BAIL(retval);
@@ -1090,7 +1093,7 @@ exit:
  * @author Ed Hartnett
  */
 int
-nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
+nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    size_t chunk_size_bytes = 1;
    int d;
@@ -1135,6 +1138,11 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
  * @param type Pointer to type info struct.
  *
  * @return NC_NOERR No error.
+ * @return NC_EHDFERR HDF5 error.
+ * @return NC_ECHAR Conversions of NC_CHAR forbidden.
+ * @return NC_EVARMETA HDF5 returning error creating datatype.
+ * @return NC_EHDFERR HDF5 returning error.
+ * @return NC_EBADTYE Type not found.
  * @author Ed Hartnett
  */
 static int
@@ -1162,7 +1170,8 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
       for(i=0;i<nclistlength(type->u.c.field);i++)
       {
-         if((field = (NC_FIELD_INFO_T*)nclistget(type->u.c.field,i)) == NULL) continue;
+         field = (NC_FIELD_INFO_T *)nclistget(type->u.c.field, i);
+         assert(field);
          if ((retval = nc4_get_hdf_typeid(grp->nc4_info, field->nc_typeid,
                                           &hdf_base_typeid, type->endianness)))
             return retval;
@@ -2050,7 +2059,8 @@ nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
 
    /* If there are any user-defined types, write them now. */
    for(i=0;i<ncindexsize(grp->type);i++) {
-      if((type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i)) == NULL) continue;
+      type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i);
+      assert(type);
       if ((retval = commit_type(grp, type)))
          return retval;
    }
