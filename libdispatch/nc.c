@@ -92,11 +92,11 @@ nc_set_default_format(int format, int *old_formatp)
         format != NC_FORMAT_NETCDF4 && format != NC_FORMAT_NETCDF4_CLASSIC &&
 	format != NC_FORMAT_CDF5)
       return NC_EINVAL;
- #else
+#else
     if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET &&
         format != NC_FORMAT_CDF5)
        return NC_EINVAL;
- #endif
+#endif
     default_create_format = format;
     return NC_NOERR;
 }
