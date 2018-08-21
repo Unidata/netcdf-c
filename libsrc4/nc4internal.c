@@ -154,8 +154,10 @@ nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp)
    if (h5->cmode & NC_CLASSIC_MODEL) return NC_ESTRICTNC3;
 
    /* If we can't find it, the grp id part of ncid is bad. */
-   if (!(*grp = nc4_rec_find_grp(h5, (ncid & GRP_ID_MASK))))
+   if (!(*grp = nclistget(h5->allgroups, (ncid & GRP_ID_MASK))))
       return NC_EBADID;
+   /* if (!(*grp = nc4_rec_find_grp(h5, (ncid & GRP_ID_MASK)))) */
+   /*    return NC_EBADID; */
    return NC_NOERR;
 }
 
@@ -182,8 +184,10 @@ nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grpp, NC_FILE_INFO_T **h5p)
    if (h5) {
       assert(h5->root_grp);
       /* If we can't find it, the grp id part of ncid is bad. */
-      if (!(grp = nc4_rec_find_grp(h5, (ncid & GRP_ID_MASK))))
+      if (!(grp = nclistget(h5->allgroups, (ncid & GRP_ID_MASK))))
          return NC_EBADID;
+      /* if (!(grp = nc4_rec_find_grp(h5, (ncid & GRP_ID_MASK)))) */
+      /*    return NC_EBADID; */
       h5 = (grp)->nc4_info;
       assert(h5);
    } else {
