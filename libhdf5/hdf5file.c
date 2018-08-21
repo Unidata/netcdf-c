@@ -389,8 +389,17 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 {
    NC *nc;
    NC_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
+   int i, retval;
 
    LOG((2, "%s: ncid 0x%x fillmode %d", __func__, ncid, fillmode));
+
+   /* Find file metadata. */
+   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+      return retval;
+
+   assert(h5 && grp && nc);
 
    if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
@@ -410,6 +419,11 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 
    nc4_info->fill_mode = fillmode;
 
+   /* set/change fill mode for all variables */
+   for (i=0; i<ncindexcount(grp->vars); i++) {
+       NC_VAR_INFO_T *var = (NC_VAR_INFO_T*) ncindexith(grp->vars, i);
+       var->no_fill = (fillmode == NC_NOFILL);
+   }
 
    return NC_NOERR;
 }
