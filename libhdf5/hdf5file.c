@@ -44,8 +44,6 @@ static const NC_reservedatt NC_reserved[NRESERVED] = {
    {NC3_STRICT_ATT_NAME, READONLYFLAG},  /*_nc3_strict*/
 };
 
-extern void reportopenobjects(int log, hid_t);
-
 /* Forward */
 static int NC4_enddef(int ncid);
 static void dumpopenobjects(NC_FILE_INFO_T* h5);
@@ -54,6 +52,8 @@ static void dumpopenobjects(NC_FILE_INFO_T* h5);
  * @internal Define a binary searcher for reserved attributes
  * @param name for which to search
  * @return pointer to the matchig NC_reservedatt structure.
+ * @return NULL if not found.
+ * @author Dennis Heimbigner
  */
 const NC_reservedatt*
 NC_findreserved(const char* name)
@@ -153,16 +153,19 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
  * @param extractmem True if we need to extract and save final inmemory
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 could not close the file.
  * @author Ed Hartnett
  */
 int
 nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
 {
    NC_HDF5_FILE_INFO_T *hdf5_info;
-   int retval = NC_NOERR;
+   int retval;
 
    assert(h5 && h5->root_grp && h5->format_file_info);
    LOG((3, "%s: h5->path %s abort %d", __func__, h5->controller->path, abort));
+
+   /* Get HDF5 specific info. */
    hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
 
    /* According to the docs, always end define mode on close. */
@@ -173,12 +176,12 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
     * file. */
    if (!h5->no_write && !abort)
       if ((retval = sync_netcdf4_file(h5)))
-         goto exit;
+         return retval;
 
    /* Delete all the list contents for vars, dims, and atts, in each
     * group. */
    if ((retval = nc4_rec_grp_del(h5->root_grp)))
-      goto exit;
+      return retval;
 
    /* Free lists of dims, groups, and types in the root group. */
    nclistfree(h5->alldims);
@@ -216,21 +219,18 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
    if (hdf5_info->hdfid > 0 && H5Fclose(hdf5_info->hdfid) < 0)
    {
       dumpopenobjects(h5);
-      BAIL(NC_EHDFERR);
+      return NC_EHDFERR;
    }
 
    /* Free the HDF5-specific info. */
    if (h5->format_file_info)
       free(h5->format_file_info);
 
-exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
+   free(h5);
 
-   if (!retval)
-
-      free(h5);
-   return retval;
+   return NC_NOERR;
 }
 
 static void
@@ -491,6 +491,7 @@ static int NC4_enddef(int ncid)
    NC *nc;
    NC_FILE_INFO_T *nc4_info;
    NC_GRP_INFO_T *grp;
+   NC_VAR_INFO_T *var;
    int i;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
@@ -506,9 +507,8 @@ static int NC4_enddef(int ncid)
    /* When exiting define mode, mark all variable written. */
    for (i = 0; i < ncindexsize(grp->vars); i++)
    {
-      NC_VAR_INFO_T *var;
-      if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i)))
-         continue;
+      var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
+      assert(var);
       var->written_to = NC_TRUE;
    }
 

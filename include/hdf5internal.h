@@ -59,6 +59,7 @@ typedef struct  NC_HDF5_FILE_INFO
 /* These functions do HDF5 things. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
+void reportopenobjects(int log, hid_t);
 
 /* These functions are internal to the libhdf5 directory. */
 int nc4_detect_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
