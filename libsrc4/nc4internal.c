@@ -131,7 +131,8 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
  * if strict nc3 is turned on for this file.)
  *
  * @param ncid File and group ID.
- * @param grp Pointer that gets pointer to group info struct.
+ * @param grp Pointer that gets pointer to group info struct. Ignored
+ * if NULL.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOTNC4 Not a netCDF-4 file.
@@ -141,98 +142,67 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
 int
 nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp)
 {
-   NC_FILE_INFO_T* h5;
-   NC *f = nc4_find_nc_file(ncid,&h5);
-   if(f == NULL) return NC_EBADID;
-
-   /* No netcdf-3 files allowed! */
-   if (!h5) return NC_ENOTNC4;
-   assert(h5->root_grp);
-
-   /* This function demands netcdf-4 files without strict nc3
-    * rules.*/
-   if (h5->cmode & NC_CLASSIC_MODEL) return NC_ESTRICTNC3;
-
-   /* If we can't find it, the grp id part of ncid is bad. */
-   if (!(*grp = nclistget(h5->allgroups, (ncid & GRP_ID_MASK))))
-      return NC_EBADID;
-
-   return NC_NOERR;
+   return nc4_find_nc_grp_h5(ncid, NULL, grp, NULL);
 }
 
 /**
  * @internal Given an ncid, find the relevant group and return a
  * pointer to it, also set a pointer to the nc4_info struct of the
- * related file. For netcdf-3 files, *h5 will be set to NULL.
+ * related file.
  *
  * @param ncid File and group ID.
- * @param grpp Pointer that gets pointer to group info struct.
- * @param h5p Pointer to HDF5 file struct.
+ * @param grp Pointer that gets pointer to group info struct. Ignored
+ * if NULL.
+ * @param h5 Pointer that gets pointer to file info struct. Ignored if
+ * NULL.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
  */
 int
-nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grpp, NC_FILE_INFO_T **h5p)
+nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5)
 {
-   NC_FILE_INFO_T *h5;
-   NC_GRP_INFO_T *grp;
-   NC *f = nc4_find_nc_file(ncid,&h5);
-   if(f == NULL) return NC_EBADID;
-   if (h5) {
-      assert(h5->root_grp);
-      /* If we can't find it, the grp id part of ncid is bad. */
-      if (!(grp = nclistget(h5->allgroups, (ncid & GRP_ID_MASK))))
-         return NC_EBADID;
-      h5 = (grp)->nc4_info;
-      assert(h5);
-   } else {
-      h5 = NULL;
-      grp = NULL;
-   }
-   if(h5p) *h5p = h5;
-   if(grpp) *grpp = grp;
-   return NC_NOERR;
+   return nc4_find_nc_grp_h5(ncid, NULL, grp, h5);
 }
 
 /**
- * @internal Find info for this file and group, and set pointer to each.
+ * @internal Find info for this file and group, and set pointers.
  *
  * @param ncid File and group ID.
- * @param nc Pointer that gets a pointer to the file's NC struct.
- * @param grpp Pointer that gets a pointer to the group struct.
- * @param h5p Pointer that gets HDF5 file struct.
+ * @param nc Pointer that gets a pointer to the file's NC
+ * struct. Ignored if NULL.
+ * @param grp Pointer that gets a pointer to the group
+ * struct. Ignored if NULL.
+ * @param h5 Pointer that gets HDF5 file struct. Ignored if NULL.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
-                   NC_FILE_INFO_T **h5p)
+nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5)
 {
-   NC_GRP_INFO_T *grp;
-   NC_FILE_INFO_T* h5;
-   NC *f = nc4_find_nc_file(ncid,&h5);
+   NC_GRP_INFO_T *my_grp = NULL;
+   NC_FILE_INFO_T *my_h5 = NULL;
+   NC *my_nc;
 
-   if(f == NULL) return NC_EBADID;
-   if(nc) *nc = f;
+   if (!(my_nc = nc4_find_nc_file(ncid, &my_h5)))
+      return NC_EBADID;
+   assert(my_h5 && my_h5->root_grp);
 
-   if (h5) {
-      assert(h5->root_grp);
-      /* If we can't find it, the grp id part of ncid is bad. */
-      if (!(grp = nclistget(h5->allgroups, (ncid & GRP_ID_MASK))))
-         return NC_EBADID;
+   /* If we can't find it, the grp id part of ncid is bad. */
+   if (!(my_grp = nclistget(my_h5->allgroups, (ncid & GRP_ID_MASK))))
+      return NC_EBADID;
 
-      h5 = (grp)->nc4_info;
-      assert(h5);
-   } else {
-      h5 = NULL;
-      grp = NULL;
-   }
-   if(h5p) *h5p = h5;
-   if(grpp) *grpp = grp;
+   /* Return pointers to caller, if desired. */
+   if (nc)
+      *nc = my_nc;
+   if (h5)
+      *h5 = my_h5;
+   if (grp)
+      *grp = my_grp;
+
    return NC_NOERR;
 }
 
