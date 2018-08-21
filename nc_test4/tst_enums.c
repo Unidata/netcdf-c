@@ -359,18 +359,5 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-#define ENUM_REF_FILE "ref_hdf5_enum.nc"
-   printf("*** testing opening reference HDF5 file with strange enum...");
-   {
-      int ncid;
-
-      /* Open reference file. */
-      nc_set_log_level(3);
-      if (nc_open(ENUM_REF_FILE, NC_NETCDF4, &ncid)) ERR;
-
-      /* Close the netcdf file. */
-      if (nc_close(ncid)) ERR;
-   }
-   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

@@ -138,7 +138,7 @@ tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c			\
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
 ref_szip.cdl tst_filter.sh bzip2.cdl filtered.cdl unfiltered.cdl	\
-ref_bzip2.c findplugin.in perftest.sh ref_hdf5_enum.nc
+ref_bzip2.c findplugin.in perftest.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 bm_radar.nc bm_radar1.nc radar_*.txt tst_floats_1D.cdl floats_1D_3.nc	\
