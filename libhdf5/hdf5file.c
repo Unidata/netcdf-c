@@ -564,24 +564,23 @@ int
 NC4_abort(int ncid)
 {
    NC *nc;
+   NC_FILE_INFO_T *nc4_info;
    int delete_file = 0;
    char path[NC_MAX_NAME + 1];
-   int retval = NC_NOERR;
-   NC_FILE_INFO_T* nc4_info;
+   int retval;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
    /* Find metadata for this file. */
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
-      return NC_EBADID;
-
+   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* If we're in define mode, but not redefing the file, delete it. */
    if (nc4_info->flags & NC_INDEF && !nc4_info->redef)
    {
       delete_file++;
-      strncpy(path, nc->path,NC_MAX_NAME);
+      strncpy(path, nc->path, NC_MAX_NAME);
    }
 
    /* Free any resources the netcdf-4 library has for this file's
@@ -594,7 +593,7 @@ NC4_abort(int ncid)
       if (remove(path) < 0)
          return NC_ECANTREMOVE;
 
-   return retval;
+   return NC_NOERR;
 }
 
 /**
