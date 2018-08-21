@@ -509,9 +509,6 @@ int
 NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
             size_t v_minfree, size_t r_align)
 {
-   if (nc4_find_nc_file(ncid,NULL) == NULL)
-      return NC_EBADID;
-
    return NC4_enddef(ncid);
 }
 
@@ -529,18 +526,17 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
 int
 NC4_sync(int ncid)
 {
-   NC *nc;
+   NC_FILE_INFO_T *nc4_info;
    int retval;
-   NC_FILE_INFO_T* nc4_info;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
-      return NC_EBADID;
+   if ((retval = nc4_find_grp_h5(ncid, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* If we're in define mode, we can't sync. */
-   if (nc4_info && nc4_info->flags & NC_INDEF)
+   if (nc4_info->flags & NC_INDEF)
    {
       if (nc4_info->cmode & NC_CLASSIC_MODEL)
          return NC_EINDEFINE;
