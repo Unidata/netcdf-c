@@ -14,8 +14,6 @@
 #include "config.h"
 #include "hdf5internal.h"
 
-extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
-
 /* From nc4mem.c */
 extern int NC4_extract_file_image(NC_FILE_INFO_T* h5);
 
@@ -44,9 +42,10 @@ static const NC_reservedatt NC_reserved[NRESERVED] = {
    {NC3_STRICT_ATT_NAME, READONLYFLAG},  /*_nc3_strict*/
 };
 
-/* Forward */
-static int NC4_enddef(int ncid);
-static void dumpopenobjects(NC_FILE_INFO_T* h5);
+/* These hold the file caching settings for the library. */
+size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
+size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
+float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
 
 /**
  * @internal Define a binary searcher for reserved attributes
@@ -144,6 +143,52 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
 }
 
 /**
+ * @internal Output a list of still-open objects in the HDF5
+ * file. This is only called if the file fails to close cleanly.
+ *
+ * @param h5 Pointer to file info.
+ *
+ * @author Dennis Heimbigner
+ */
+static void
+dumpopenobjects(NC_FILE_INFO_T* h5)
+{
+   NC_HDF5_FILE_INFO_T *hdf5_info;
+   int nobjs;
+
+   assert(h5 && h5->format_file_info);
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+
+   nobjs = H5Fget_obj_count(hdf5_info->hdfid, H5F_OBJ_ALL);
+
+   /* Apparently we can get an error even when nobjs == 0 */
+   if(nobjs < 0) {
+      return;
+   } else if(nobjs > 0) {
+      char msg[1024];
+      int logit = 0;
+      /* If the close doesn't work, probably there are still some HDF5
+       * objects open, which means there's a bug in the library. So
+       * print out some info on to help the poor programmer figure it
+       * out. */
+      snprintf(msg,sizeof(msg),"There are %d HDF5 objects open!", nobjs);
+#ifdef LOGGING
+#ifdef LOGOPEN
+      LOG((0, msg));
+      logit = 1;
+#endif
+#else
+      fprintf(stdout,"%s\n",msg);
+      logit = 0;
+#endif
+      reportopenobjects(logit,hdf5_info->hdfid);
+      fflush(stderr);
+   }
+
+   return;
+}
+
+/**
  * @internal This function will free all allocated metadata memory,
  * and close the HDF5 file. The group that is passed in must be the
  * root group of the file.
@@ -232,48 +277,6 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
 
    return NC_NOERR;
 }
-
-static void
-dumpopenobjects(NC_FILE_INFO_T* h5)
-{
-   NC_HDF5_FILE_INFO_T *hdf5_info;
-   int nobjs;
-
-   assert(h5 && h5->format_file_info);
-   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
-
-   nobjs = H5Fget_obj_count(hdf5_info->hdfid, H5F_OBJ_ALL);
-
-   /* Apparently we can get an error even when nobjs == 0 */
-   if(nobjs < 0) {
-      return;
-   } else if(nobjs > 0) {
-      char msg[1024];
-      int logit = 0;
-      /* If the close doesn't work, probably there are still some HDF5
-       * objects open, which means there's a bug in the library. So
-       * print out some info on to help the poor programmer figure it
-       * out. */
-      snprintf(msg,sizeof(msg),"There are %d HDF5 objects open!", nobjs);
-#ifdef LOGGING
-#ifdef LOGOPEN
-      LOG((0, msg));
-      logit = 1;
-#endif
-#else
-      fprintf(stdout,"%s\n",msg);
-      logit = 0;
-#endif
-      reportopenobjects(logit,hdf5_info->hdfid);
-      fflush(stderr);
-   }
-
-   return;
-}
-
-size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
-size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
-float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
 
 /**
  * Set chunk cache size. Only affects files opened/created *after* it
@@ -409,7 +412,6 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 
    nc4_info->fill_mode = fillmode;
 
-
    return NC_NOERR;
 }
 
@@ -453,29 +455,6 @@ NC4_redef(int ncid)
 }
 
 /**
- * @internal For netcdf-4 files, this just calls nc_enddef, ignoring
- * the extra parameters.
- *
- * @param ncid File and group ID.
- * @param h_minfree Ignored for netCDF-4 files.
- * @param v_align Ignored for netCDF-4 files.
- * @param v_minfree Ignored for netCDF-4 files.
- * @param r_align Ignored for netCDF-4 files.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
- */
-int
-NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
-            size_t v_minfree, size_t r_align)
-{
-   if (nc4_find_nc_file(ncid,NULL) == NULL)
-      return NC_EBADID;
-
-   return NC4_enddef(ncid);
-}
-
-/**
  * @internal Take the file out of define mode. This is called
  * automatically for netcdf-4 files, if the user forgets.
  *
@@ -486,7 +465,8 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
  * @return ::NC_EBADGRPID Bad group ID.
  * @author Ed Hartnett
  */
-static int NC4_enddef(int ncid)
+static int
+NC4_enddef(int ncid)
 {
    NC *nc;
    NC_FILE_INFO_T *nc4_info;
@@ -513,6 +493,29 @@ static int NC4_enddef(int ncid)
    }
 
    return nc4_enddef_netcdf4_file(nc4_info);
+}
+
+/**
+ * @internal For netcdf-4 files, this just calls nc_enddef, ignoring
+ * the extra parameters.
+ *
+ * @param ncid File and group ID.
+ * @param h_minfree Ignored for netCDF-4 files.
+ * @param v_align Ignored for netCDF-4 files.
+ * @param v_minfree Ignored for netCDF-4 files.
+ * @param r_align Ignored for netCDF-4 files.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
+            size_t v_minfree, size_t r_align)
+{
+   if (nc4_find_nc_file(ncid,NULL) == NULL)
+      return NC_EBADID;
+
+   return NC4_enddef(ncid);
 }
 
 /**
