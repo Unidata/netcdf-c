@@ -127,8 +127,7 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
 
 /**
  * @internal Given an ncid, find the relevant group and return a
- * pointer to it, return an error of this is not a netcdf-4 file (or
- * if strict nc3 is turned on for this file.)
+ * pointer to it.
  *
  * @param ncid File and group ID.
  * @param grp Pointer that gets pointer to group info struct. Ignored
@@ -136,7 +135,6 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOTNC4 Not a netCDF-4 file.
- * @return ::NC_ESTRICTNC3 Not allowed for classic model.
  * @author Ed Hartnett
  */
 int
@@ -202,43 +200,6 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5)
       *h5 = my_h5;
    if (grp)
       *grp = my_grp;
-
-   return NC_NOERR;
-}
-
-/**
- * @internal Given an ncid and varid, get pointers to the group and var
- * metadata.
- *
- * @param nc Pointer to file's NC struct.
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param grp Pointer that gets pointer to group info.
- * @param var Pointer that gets pointer to var info.
- *
- * @return ::NC_NOERR No error.
- */
-int
-nc4_find_g_var_nc(NC *nc, int ncid, int varid,
-                  NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var)
-{
-   NC_FILE_INFO_T* h5 = NC4_DATA(nc);
-
-   /* Find the group info. */
-   assert(grp && var && h5 && h5->root_grp);
-
-   if (!(*grp = nclistget(h5->allgroups, (ncid & GRP_ID_MASK))))
-      return NC_EBADID;
-
-   /* It is possible for *grp to be NULL. If it is,
-      return an error. */
-   if(*grp == NULL)
-      return NC_EBADID;
-
-   /* Find the var info. */
-   (*var) = (NC_VAR_INFO_T*)ncindexith((*grp)->vars,varid);
-   if((*var) == NULL)
-      return NC_ENOTVAR;
 
    return NC_NOERR;
 }
