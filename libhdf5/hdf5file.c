@@ -391,11 +391,13 @@ int
 NC4_set_fill(int ncid, int fillmode, int *old_modep)
 {
    NC_FILE_INFO_T *nc4_info;
+   int retval;
 
    LOG((2, "%s: ncid 0x%x fillmode %d", __func__, ncid, fillmode));
 
-   if (!(nc = nc4_find_grp_h5(ncid, NULL, &nc4_info)))
-      return NC_EBADID;
+   /* Get pointer to file info. */
+   if ((retval = nc4_find_grp_h5(ncid, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* Trying to set fill on a read-only file? You sicken me! */
@@ -427,13 +429,14 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 int
 NC4_redef(int ncid)
 {
-   NC_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T *nc4_info;
+   int retval;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
    /* Find this file's metadata. */
-   if (!(nc4_find_nc_file(ncid,&nc4_info)))
-      return NC_EBADID;
+   if ((retval = nc4_find_grp_h5(ncid, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* If we're already in define mode, return an error. */
