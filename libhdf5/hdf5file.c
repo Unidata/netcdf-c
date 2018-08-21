@@ -469,7 +469,6 @@ NC4_redef(int ncid)
 static int
 NC4_enddef(int ncid)
 {
-   NC *nc;
    NC_FILE_INFO_T *nc4_info;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
@@ -481,13 +480,6 @@ NC4_enddef(int ncid)
    /* Find pointer to group and nc4_info. */
    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &nc4_info)))
       return retval;
-   /* if (!(nc = nc4_find_nc_file(ncid, &nc4_info))) */
-   /*    return NC_EBADID; */
-   /* assert(nc4_info); */
-
-   /* /\* Find info for this file and group *\/ */
-   /* if (!(grp = nc4_rec_find_grp(nc4_info, (ncid & GRP_ID_MASK)))) */
-   /*    return NC_EBADGRPID; */
 
    /* When exiting define mode, mark all variable written. */
    for (i = 0; i < ncindexsize(grp->vars); i++)
