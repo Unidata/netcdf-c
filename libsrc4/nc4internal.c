@@ -156,8 +156,7 @@ nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp)
    /* If we can't find it, the grp id part of ncid is bad. */
    if (!(*grp = nclistget(h5->allgroups, (ncid & GRP_ID_MASK))))
       return NC_EBADID;
-   /* if (!(*grp = nc4_rec_find_grp(h5, (ncid & GRP_ID_MASK)))) */
-   /*    return NC_EBADID; */
+
    return NC_NOERR;
 }
 
@@ -186,8 +185,6 @@ nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grpp, NC_FILE_INFO_T **h5p)
       /* If we can't find it, the grp id part of ncid is bad. */
       if (!(grp = nclistget(h5->allgroups, (ncid & GRP_ID_MASK))))
          return NC_EBADID;
-      /* if (!(grp = nc4_rec_find_grp(h5, (ncid & GRP_ID_MASK)))) */
-      /*    return NC_EBADID; */
       h5 = (grp)->nc4_info;
       assert(h5);
    } else {
@@ -225,7 +222,7 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
    if (h5) {
       assert(h5->root_grp);
       /* If we can't find it, the grp id part of ncid is bad. */
-      if (!(grp = nc4_rec_find_grp(h5, (ncid & GRP_ID_MASK))))
+      if (!(grp = nclistget(h5->allgroups, (ncid & GRP_ID_MASK))))
          return NC_EBADID;
 
       h5 = (grp)->nc4_info;
@@ -237,27 +234,6 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
    if(h5p) *h5p = h5;
    if(grpp) *grpp = grp;
    return NC_NOERR;
-}
-
-/**
- * @internal Use NC_FILE_INFO_T->allgroups to locate a group id.
- *
- * @param h5 Pointer to file info
- * @param target_nc_grpid Group ID to be found.
- *
- * @return Pointer to group info struct, or NULL if not found.
- * @author Ed Hartnett
- */
-NC_GRP_INFO_T *
-nc4_rec_find_grp(NC_FILE_INFO_T *h5, int target_nc_grpid)
-{
-   NC_GRP_INFO_T *g;
-
-   assert(h5);
-
-   /* Is this the group we are searching for? */
-   g = nclistget(h5->allgroups,target_nc_grpid);
-   return g;
 }
 
 /**
@@ -280,7 +256,9 @@ nc4_find_g_var_nc(NC *nc, int ncid, int varid,
 
    /* Find the group info. */
    assert(grp && var && h5 && h5->root_grp);
-   *grp = nc4_rec_find_grp(h5, (ncid & GRP_ID_MASK));
+
+   if (!(*grp = nclistget(h5->allgroups, (ncid & GRP_ID_MASK))))
+      return NC_EBADID;
 
    /* It is possible for *grp to be NULL. If it is,
       return an error. */
@@ -327,7 +305,7 @@ nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **gr
    assert(nc && my_h5);
 
    /* If we can't find it, the grp id part of ncid is bad. */
-   if (!(my_grp = nc4_rec_find_grp(my_h5, (ncid & GRP_ID_MASK))))
+   if (!(my_grp = nclistget(my_h5->allgroups, (ncid & GRP_ID_MASK))))
       return NC_EBADID;
    assert(my_grp);
 
