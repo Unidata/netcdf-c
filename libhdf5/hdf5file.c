@@ -190,16 +190,17 @@ dumpopenobjects(NC_FILE_INFO_T* h5)
 
 /**
  * @internal This function will free all allocated metadata memory,
- * and close the HDF5 file. The group that is passed in must be the
- * root group of the file.
+ * and close the HDF5 file.
  *
  * @param h5 Pointer to HDF5 file info struct.
  * @param abort True if this is an abort.
- * @param extractmem True if we need to extract and save final inmemory
+ * @param extractmem True if we need to extract and save final
+ * inmemory.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 could not close the file.
- * @author Ed Hartnett
+ * @return ::NC_EINDEFINE Classic model file is in define mode.
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
@@ -473,16 +474,20 @@ NC4_enddef(int ncid)
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
    int i;
+   int retval;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
-   if (!(nc = nc4_find_nc_file(ncid, &nc4_info)))
-      return NC_EBADID;
-   assert(nc4_info);
+   /* Find pointer to group and nc4_info. */
+   if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &nc4_info)))
+      return retval;
+   /* if (!(nc = nc4_find_nc_file(ncid, &nc4_info))) */
+   /*    return NC_EBADID; */
+   /* assert(nc4_info); */
 
-   /* Find info for this file and group */
-   if (!(grp = nc4_rec_find_grp(nc4_info, (ncid & GRP_ID_MASK))))
-      return NC_EBADGRPID;
+   /* /\* Find info for this file and group *\/ */
+   /* if (!(grp = nc4_rec_find_grp(nc4_info, (ncid & GRP_ID_MASK)))) */
+   /*    return NC_EBADGRPID; */
 
    /* When exiting define mode, mark all variable written. */
    for (i = 0; i < ncindexsize(grp->vars); i++)
@@ -525,6 +530,8 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
  * @param ncid File and group ID.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EINDEFINE Classic model file is in define mode.
  * @author Ed Hartnett
  */
 int
