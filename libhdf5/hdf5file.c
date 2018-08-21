@@ -390,12 +390,11 @@ nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
 int
 NC4_set_fill(int ncid, int fillmode, int *old_modep)
 {
-   NC *nc;
-   NC_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T *nc4_info;
 
    LOG((2, "%s: ncid 0x%x fillmode %d", __func__, ncid, fillmode));
 
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
+   if (!(nc = nc4_find_grp_h5(ncid, NULL, &nc4_info)))
       return NC_EBADID;
    assert(nc4_info);
 
