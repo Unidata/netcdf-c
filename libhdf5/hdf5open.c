@@ -517,7 +517,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 #ifdef LOGGING
    /* This will print out the names, types, lens, etc of the vars and
       atts in the file, if the logging level is 2 or greater. */
-   log_metadata_nc(nc);
+   log_metadata_nc(nc4_info);
 #endif
 
    /* Close the property list. */

@@ -184,9 +184,14 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5)
    NC_GRP_INFO_T *my_grp = NULL;
    NC_FILE_INFO_T *my_h5 = NULL;
    NC *my_nc;
+   int retval;
 
-   if (!(my_nc = nc4_find_nc_file(ncid, &my_h5)))
-      return NC_EBADID;
+   if ((retval = NC_check_id(ncid, &my_nc)))
+      return retval;
+   my_h5 = my_nc->dispatchdata;
+
+   /* if (!(my_nc = nc4_find_nc_file(ncid, &my_h5))) */
+   /*    return NC_EBADID; */
    assert(my_h5 && my_h5->root_grp);
 
    /* If we can't find it, the grp id part of ncid is bad. */
@@ -500,32 +505,6 @@ nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
    assert(grp && h5);
 
    return nc4_find_grp_att(grp,varid,name,attnum,att);
-}
-
-
-/**
- * @internal Given an id, walk the list and find the appropriate NC.
- *
- * @param ext_ncid File/group ID to find.
- * @param h5p Pointer to pointer that gets the HDF5 file info struct.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett, Dennis Heimbigner
- */
-NC*
-nc4_find_nc_file(int ext_ncid, NC_FILE_INFO_T** h5p)
-{
-   NC* nc;
-   int stat;
-
-   stat = NC_check_id(ext_ncid,&nc);
-   if(stat != NC_NOERR)
-      nc = NULL;
-
-   if(nc)
-      if(h5p) *h5p = (NC_FILE_INFO_T*)nc->dispatchdata;
-
-   return nc;
 }
 
 /**
@@ -1692,23 +1671,24 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
  * useful to check that netCDF is working! Nonetheless, this function
  * will print nothing if logging is not set to at least two.
  *
+ * @param Pointer to the file info struct.
+ *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
  */
 int
-log_metadata_nc(NC *nc)
+log_metadata_nc(NC_FILE_INFO_T *h5)
 {
-   NC_FILE_INFO_T *h5 = NC4_DATA(nc);
-
    LOG((2, "*** NetCDF-4 Internal Metadata: int_ncid 0x%x ext_ncid 0x%x",
-        nc->int_ncid, nc->ext_ncid));
+        h5->root_grp->nc4_info->controller->int_ncid,
+        h5->root_grp->nc4_info->controller->ext_ncid));
    if (!h5)
    {
       LOG((2, "This is a netCDF-3 file."));
       return NC_NOERR;
    }
    LOG((2, "FILE - path: %s cmode: 0x%x parallel: %d redef: %d "
-        "fill_mode: %d no_write: %d next_nc_grpid: %d", nc->path,
+        "fill_mode: %d no_write: %d next_nc_grpid: %d", h5->root_grp->nc4_info->controller->path,
         h5->cmode, (int)h5->parallel, (int)h5->redef, h5->fill_mode, (int)h5->no_write,
         h5->next_nc_grpid));
    if(nc_log_level >= 2)
@@ -1734,16 +1714,16 @@ NC4_show_metadata(int ncid)
 {
    int retval = NC_NOERR;
 #ifdef LOGGING
-   NC *nc;
+   NC_FILE_INFO_T *h5;
    int old_log_level = nc_log_level;
 
    /* Find file metadata. */
-   if (!(nc = nc4_find_nc_file(ncid,NULL)))
-      return NC_EBADID;
+   if ((retval = nc4_find_grp_h5(ncid, NULL, &h5)))
+      return retval;
 
    /* Log level must be 2 to see metadata. */
    nc_log_level = 2;
-   retval = log_metadata_nc(nc);
+   retval = log_metadata_nc(h5);
    nc_log_level = old_log_level;
 #endif /*LOGGING*/
    return retval;
