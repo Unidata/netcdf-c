@@ -267,7 +267,8 @@ nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **gr
  * @param grp Pointer to group info struct.
  * @param dimid Dimension ID to find.
  * @param dim Pointer that gets pointer to dim info if found.
- * @param dim_grp Pointer that gets pointer to group info of group that contains dimension.
+ * @param dim_grp Pointer that gets pointer to group info of group
+ * that contains dimension. Ignored if NULL.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADDIM Dimension not found.
@@ -277,23 +278,11 @@ int
 nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
              NC_GRP_INFO_T **dim_grp)
 {
-   NC_GRP_INFO_T *g;
-   int found = 0;
-   NC_FILE_INFO_T* h5 = grp->nc4_info;
-
-   assert(h5 && grp && dim);
+   assert(grp && grp->nc4_info && dim);
 
    /* Find the dim info. */
-   (*dim) = nclistget(h5->alldims,dimid);
-   if((*dim) == NULL)
+   if (!((*dim) = nclistget(grp->nc4_info->alldims, dimid)))
       return NC_EBADDIM;
-
-   /* Redundant: Verify that this dim is in fact in the group or its parent */
-   for (found=0, g = grp; g ; g = g->parent) {
-      if(g == (*dim)->container) {found = 1; break;}
-   }
-   /* If we didn't find it, return an error. */
-   assert(found);
 
    /* Give the caller the group the dimension is in. */
    if (dim_grp)
