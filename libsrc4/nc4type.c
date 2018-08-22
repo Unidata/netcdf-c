@@ -123,7 +123,7 @@ NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
       return retval;
    
    /* Find this type. */
-   if (!(type = nc4_rec_find_nc_type(grp->nc4_info, typeid1)))
+   if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
       return NC_EBADTYPE;
 
    if (name)
@@ -173,7 +173,7 @@ NC4_inq_user_type(int ncid, nc_type typeid1, char *name, size_t *size,
       return retval;
    
    /* Find this type. */
-   if (!(type = nc4_rec_find_nc_type(grp->nc4_info, typeid1)))
+   if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
       return NC_EBADTYPE;
 
    /* Count the number of fields. */
@@ -252,7 +252,7 @@ NC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
       return retval;
    
    /* Find this type. */
-   if (!(type = nc4_rec_find_nc_type(grp->nc4_info, typeid1)))
+   if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
       return NC_EBADTYPE;
 
    /* Find the field. */
@@ -368,7 +368,7 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
       return retval;
    
    /* Find this type. */
-   if (!(type = nc4_rec_find_nc_type(grp->nc4_info, xtype)))
+   if (!(type = nclistget(grp->nc4_info->alltypes, xtype)))
       return NC_EBADTYPE;
    
    /* Complain if they are confused about the type. */
@@ -456,7 +456,7 @@ NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
       return retval;
    
    /* Find this type. */
-   if (!(type = nc4_rec_find_nc_type(grp->nc4_info, typeid1)))
+   if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
       return NC_EBADTYPE;
    
    /* Complain if they are confused about the type. */
