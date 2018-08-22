@@ -92,7 +92,7 @@ nc4_check_name(const char *name, char *norm_name)
  * @param mode The mode flag.
  *
  * @return ::NC_NOERR No error.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc4_nc4f_list_add(NC *nc, const char *path, int mode)
@@ -101,8 +101,8 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
 
    assert(nc && !NC4_DATA(nc) && path);
 
-   /* We need to malloc and
-      initialize the substructure NC_HDF_FILE_INFO_T. */
+   /* We need to malloc and initialize the substructure
+      NC_HDF_FILE_INFO_T. */
    if (!(h5 = calloc(1, sizeof(NC_FILE_INFO_T))))
       return NC_ENOMEM;
    nc->dispatchdata = h5;
@@ -115,6 +115,7 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
     * types. */
    h5->next_typeid = NC_FIRSTUSERTYPEID;
 
+   /* Initialize lists for dimensions, types, and groups. */
    h5->alldims = nclistnew();
    h5->alltypes = nclistnew();
    h5->allgroups = nclistnew();
@@ -186,12 +187,10 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5)
    NC *my_nc;
    int retval;
 
+   /* Look up file metadata. */
    if ((retval = NC_check_id(ncid, &my_nc)))
       return retval;
    my_h5 = my_nc->dispatchdata;
-
-   /* if (!(my_nc = nc4_find_nc_file(ncid, &my_h5))) */
-   /*    return NC_EBADID; */
    assert(my_h5 && my_h5->root_grp);
 
    /* If we can't find it, the grp id part of ncid is bad. */
@@ -228,22 +227,15 @@ int
 nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **grp,
                     NC_VAR_INFO_T **var)
 {
-   NC *nc;
    NC_FILE_INFO_T *my_h5;
    NC_GRP_INFO_T *my_grp;
    NC_VAR_INFO_T *my_var;
    int retval;
 
-   /* Find the NC from the ncid, and the h5 from that. */
-   if ((retval = NC_check_id(ncid, &nc)))
+   /* Look up file and group metadata. */
+   if ((retval = nc4_find_grp_h5(ncid, &my_grp, &my_h5)))
       return retval;
-   my_h5 = nc->dispatchdata;
-   assert(nc && my_h5);
-
-   /* If we can't find it, the grp id part of ncid is bad. */
-   if (!(my_grp = nclistget(my_h5->allgroups, (ncid & GRP_ID_MASK))))
-      return NC_EBADID;
-   assert(my_grp);
+   assert(my_grp && my_h5);
 
    /* Find the var. */
    if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, varid)))
@@ -318,7 +310,7 @@ nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
  * @param name Name of type to find.
  *
  * @return Pointer to type info, or NULL if not found.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 NC_TYPE_INFO_T *
 nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name)
