@@ -346,7 +346,6 @@ int nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp,
 		       NC_FILE_INFO_T **h5);
 int nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5);
 int nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp);
-NC *nc4_find_nc_file(int ncid, NC_FILE_INFO_T**);
 int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim, NC_GRP_INFO_T **dim_grp);
 int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
 int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
@@ -419,7 +418,7 @@ extern void nc4_hdf5_initialize(void);
 /* This is only included if --enable-logging is used for configure; it
    prints info about the metadata to stderr. */
 #ifdef LOGGING
-int log_metadata_nc(NC *nc);
+int log_metadata_nc(NC_FILE_INFO_T *h5);
 #endif
 
 /* Define accessors for the dispatchdata */

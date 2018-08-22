@@ -111,7 +111,7 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
 #ifdef LOGGING
    /* This will print out the names, types, lens, etc of the vars and
       atts in the file, if the logging level is 2 or greater. */
-   log_metadata_nc(h5->root_grp->nc4_info->controller);
+   log_metadata_nc(h5);
 #endif
 
    /* Write any metadata that has changed. */

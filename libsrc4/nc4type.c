@@ -256,50 +256,20 @@ NC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
       return NC_EBADTYPE;
 
    /* Find the field. */
-   field = (NC_FIELD_INFO_T*)nclistget(type->u.c.field,fieldid);
-   if(field)
-      {
-	 if (name)
-	    strcpy(name, field->hdr.name);
-	 if (offsetp)
-	    *offsetp = field->offset;
-	 if (field_typeidp)
-	    *field_typeidp = field->nc_typeid;
-	 if (ndimsp)
-	    *ndimsp = field->ndims;
-	 if (dim_sizesp)
-	    for (d = 0; d < field->ndims; d++)
-	       dim_sizesp[d] = field->dim_size[d];
-	 return NC_NOERR;
-      }
+   if (!(field = nclistget(type->u.c.field,fieldid)))
+      return NC_EBADFIELD;
 
-   return NC_EBADFIELD;
-}
-
-/**
- * @internal Find a netcdf-4 file. THis will return an error if it
- * finds a netcdf-3 file, or a netcdf-4 file with strict nc3 rules.
- *
- * @param ncid File and group ID.
- * @param nc Pointer to pointer that gets NC struct for file.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_ESTRICTNC3 File uses classic model.
- * @author Ed Hartnett
-*/
-static int
-find_nc4_file(int ncid, NC **nc)
-{
-   NC_FILE_INFO_T *h5;
-   
-   /* Find file metadata. */
-   if (!((*nc) = nc4_find_nc_file(ncid, &h5)))
-      return NC_EBADID;
-   assert(h5);
-      
-   if (h5->cmode & NC_CLASSIC_MODEL)
-      return NC_ESTRICTNC3;
+   if (name)
+      strcpy(name, field->hdr.name);
+   if (offsetp)
+      *offsetp = field->offset;
+   if (field_typeidp)
+      *field_typeidp = field->nc_typeid;
+   if (ndimsp)
+      *ndimsp = field->ndims;
+   if (dim_sizesp)
+      for (d = 0; d < field->ndims; d++)
+         dim_sizesp[d] = field->dim_size[d];
 
    return NC_NOERR;
 }
@@ -321,7 +291,7 @@ find_nc4_file(int ncid, NC **nc)
 int
 NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fieldidp)
 {
-   NC *nc;
+   NC_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type;
    NC_FIELD_INFO_T *field;
    char norm_name[NC_MAX_NAME + 1];
@@ -332,11 +302,11 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
 	ncid, typeid1, name));
 
    /* Find file metadata. */
-   if ((retval = find_nc4_file(ncid, &nc)))
+   if ((retval = nc4_find_grp_h5(ncid, NULL, &h5)))
       return retval;
 
    /* Find the type. */
-   if ((retval = nc4_find_type(NC4_DATA(nc), typeid1, &type)))
+   if ((retval = nc4_find_type(h5, typeid1, &type)))
       return retval;
 
    /* Did the user give us a good compound type typeid? */
@@ -348,8 +318,10 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
       return retval;
 
    /* Find the field with this name. */
-   for(i=0;i<nclistlength(type->u.c.field);i++) {
-      if((field = (NC_FIELD_INFO_T*)nclistget(type->u.c.field,i)) == NULL) continue;
+   for (i = 0; i < nclistlength(type->u.c.field); i++)
+   {
+      field = nclistget(type->u.c.field, i);
+      assert(field);
       if (!strcmp(field->hdr.name, norm_name))
 	 break;
       field = NULL; /* because this is the indicator of not found */
@@ -406,7 +378,8 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
    /* Move to the desired enum member in the list. */
    for (found = 0, i = 0; i < nclistlength(type->u.e.enum_member); i++)
    {
-      if((enum_member = (NC_ENUM_MEMBER_INFO_T*)nclistget(type->u.e.enum_member,i)) == NULL) continue;
+      enum_member = nclistget(type->u.e.enum_member, i);
+      assert(enum_member);
       switch (type->u.e.base_nc_typeid)
       {
 	 case NC_BYTE:
@@ -491,9 +464,7 @@ NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
       return NC_EBADTYPE;
    
    /* Move to the desired enum member in the list. */
-   /* Check index. */
-   enum_member = (NC_ENUM_MEMBER_INFO_T*)nclistget(type->u.e.enum_member,idx);
-   if(enum_member == NULL)
+   if (!(enum_member = nclistget(type->u.e.enum_member, idx)))
       return NC_EINVAL;
 
    /* Give the people what they want. */
