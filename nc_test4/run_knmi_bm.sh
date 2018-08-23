@@ -4,7 +4,7 @@
 # then runs the tst_knmi benchmarking program.
 # Ed Hartnett
 
-# Load common stuff.
+# Load common values for netCDF shell script tests.
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 

@@ -1,21 +1,19 @@
-/* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+/* This is part of the netCDF package. Copyright 2005-2018 University
+   Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+   conditions of use.
 
-   Test internal netcdf-4 file code.
-   $Id: tst_files3.c,v 1.5 2010/02/02 17:19:28 ed Exp $
+   This is a benchmark program which tests file writes with compressed
+   data.
+
+   Ed Hartnett
 */
 
-#include <config.h>
-#include <stdio.h>
 #include <nc_tests.h>
 #include "err_macros.h"
-#include "netcdf.h"
 #include <hdf5.h>
 #include <unistd.h>
 #include <time.h>
 #include <sys/time.h> /* Extra high precision time info. */
-#include <string.h>
 
 #define NDIMS1 1
 #define NDIMS 3
@@ -25,14 +23,15 @@
 #define Z_LEN 128
 #define NUM_TRIES 200
 
+/* Prototype from tst_utils.c. */
+int nc4_timeval_subtract(struct timeval *result, struct timeval *x,
+                         struct timeval *y);
+
 int dump_file2(const float *data, int docompression, int usedefdim)
 {
-   int ncmode, ncid, dimids[NDIMS], var;
+   int ncid, dimids[NDIMS], var;
    size_t start[NDIMS] = {0, 0, 0};
    size_t count[NDIMS] = {1, 1, Z_LEN};
-/*   size_t count[NDIMS] = {X_LEN, Y_LEN, Z_LEN};*/
-
-   ncmode = NC_CLOBBER|NC_NETCDF4;
 
    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR_RET;
    if (nc_def_dim(ncid, "time", X_LEN, &dimids[0])) ERR_RET;
@@ -96,9 +95,8 @@ int dump_file3(const float *data, int docompression, int usedefdim)
 
 int dump_hdf_file(const float *data, int docompression)
 {
-   hid_t file_id, dataset_id, dataspace_id, propid;
+   hid_t file_id, dataset_id, propid;
    hid_t file_spaceid, mem_spaceid, access_plistid, xfer_plistid;
-   herr_t status;
    hsize_t dims[NDIMS] = {X_LEN, Y_LEN, Z_LEN};
    hsize_t start[NDIMS] = {0, 0, 0};
    hsize_t count[NDIMS] = {1, 1, Z_LEN};
