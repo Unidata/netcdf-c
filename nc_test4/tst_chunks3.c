@@ -1,3 +1,11 @@
+/* This is part of the netCDF package. Copyright 2005-2018 University
+   Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+   conditions of use.
+
+   Runs benchmarks on different chunking sizes.
+   Russ Rew, Ed Hartnett, Dennis Heimbigner
+*/
+
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,14 +17,14 @@
 #include <sys/types.h>
 #endif
 #ifdef HAVE_SYS_TIMES_H
-#  include <sys/times.h>
+#include <sys/times.h>
 #endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 #include <assert.h>
 #ifdef HAVE_SYS_RESOURCE_H
-#  include <sys/resource.h>
+#include <sys/resource.h>
 #endif
 #include "nc_tests.h"		/* The ERR macro is here... */
 #include "netcdf.h"
