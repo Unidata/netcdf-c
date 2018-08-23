@@ -10,17 +10,11 @@
   handled by this program. (Input files may be in netCDF-4 format, but
   they must conform to the classic model for this program to work.)
 
-  For the 3.7 and 4.0 netCDF releases, this program is not expected
-  for general use. It may be made safer and more general in future
-  releases, but for now, users should use this code with caution.
-
-  $Id: bm_file.c,v 1.64 2010/01/11 19:27:11 ed Exp $
+  Ed Hartnett
 */
+
 #include <nc_tests.h> /* The ERR macro is here... */
 #include <err_macros.h>
-
-#include <stdio.h>
-#include <string.h>
 #include <time.h>
 #include <sys/time.h> /* Extra high precision time info. */
 #include <math.h>
@@ -30,7 +24,6 @@
 #ifdef USE_PARALLEL
 #include <mpi.h>
 #endif
-#include <netcdf.h>
 
 #define MILLION 1000000
 #define BAD -99
@@ -68,6 +61,10 @@ MPI_Finalize(); \
 return 2; \
 } while (0)
 #endif
+
+/* Prototype from tst_utils.c. */
+int nc4_timeval_subtract(struct timeval *result, struct timeval *x,
+                         struct timeval *y);
 
 /* This function will fill the start and count arrays for the reads
  * and writes. */
@@ -1151,5 +1148,5 @@ main(int argc, char **argv)
    MPI_Finalize();
 #endif
 
-   return 0;
+   FINAL_RESULTS;
 }

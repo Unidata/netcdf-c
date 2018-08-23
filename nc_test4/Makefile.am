@@ -65,7 +65,7 @@ endif # BUILD_V2
 if BUILD_BENCHMARKS
 check_PROGRAMS += tst_create_files bm_file tst_chunks3 tst_ar4	\
 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts	\
-tst_files2 tst_files3 tst_ar5 tst_mem tst_knmi bm_netcdf4_recs
+tst_files2 tst_files3 tst_mem tst_knmi bm_netcdf4_recs
 
 bm_netcdf4_recs_SOURCES = bm_netcdf4_recs.c tst_utils.c
 bm_many_atts_SOURCES = bm_many_atts.c tst_utils.c
@@ -78,9 +78,14 @@ tst_h_many_atts_SOURCES = tst_h_many_atts.c tst_utils.c
 bm_file_SOURCES = bm_file.c tst_utils.c
 tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 
-TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
-run_bm_test2.sh run_tst_chunks.sh tst_files2 tst_files3 tst_ar5		\
+TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh    \
+run_bm_test2.sh run_tst_chunks.sh tst_files2 tst_files3 tst_ar5         \
 tst_mem run_knmi_bm.sh
+
+# tst_create_files creates files for other tests.
+run_bm_test1.log: tst_create_files.log
+run_bm_test2.log: tst_create_files.log
+run_bm_elena.log: tst_create_files.log
 
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL4
@@ -131,14 +136,15 @@ ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh tdset.h5		\
 tst_szip.sh ref_szip.h5 ref_szip.cdl tst_filter.sh bzip2.cdl		\
 filtered.cdl unfiltered.cdl ref_bzip2.c findplugin.in perftest.sh
 
-CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc   \
-bm_radar.nc bm_radar1.nc radar_*.txt tst_floats_1D.cdl floats_1D_3.nc   \
-floats_1D.cdl tst_*.nc tst_floats2_*.cdl tst_ints2_*.cdl                \
-tst_shorts2_*.cdl tst_elena_*.cdl tst_simple*.cdl tst_chunks.cdl        \
-pr_A1.* tauu_A1.* usi_01.* thetau_01.* tst_*.h5 tst_grp_rename.cdl      \
-tst_grp_rename.dmp ref_grp_rename.cdl foo1.nc tst_*.h4 test.nc          \
-testszip.nc test.h5 szip_dump.cdl perftest.txt bigmeta.nc bigvars.nc    \
-run_par_test.sh *.gz MSGCPP_*.nc
+CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
+bm_radar.nc bm_radar1.nc radar_*.txt tst_floats_1D.cdl floats_1D_3.nc	\
+floats_1D.cdl tst_*.nc tst_floats2_*.cdl tst_ints2_*.cdl		\
+tst_shorts2_*.cdl tst_elena_*.cdl tst_simple*.cdl tst_chunks.cdl	\
+pr_A1.* tauu_A1.* usi_01.* thetau_01.* tst_*.h5 tst_grp_rename.cdl	\
+tst_grp_rename.dmp ref_grp_rename.cdl foo1.nc tst_*.h4 test.nc		\
+testszip.nc test.h5 szip_dump.cdl perftest.txt bigmeta.nc bigvars.nc	\
+run_par_test.sh *.gz MSGCPP_*.nc floats*.nc floats*.cdl shorts*.nc	\
+shorts*.cdl ints*.nc ints*.cdl
 
 DISTCLEANFILES = findplugin.sh
 

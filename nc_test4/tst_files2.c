@@ -1,6 +1,6 @@
-/* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+/* This is part of the netCDF package. Copyright 2005-2018 University
+   Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+   conditions of use.
 
    This is a benchmark test which times how long it takes to create
    some files.
@@ -299,40 +299,40 @@ main(int argc, char **argv)
       }
    }
    SUMMARIZE_ERR;
-/*    printf("Test for memory consumption...\n"); */
-/*    { */
-/* #define NUM_TRIES_100 100 */
-/*       int ncid, i; */
-/*       int mem_used, mem_used1, mem_used2; */
+   printf("Test for memory consumption...\n");
+   {
+#define NUM_TRIES_100 100
+      int ncid, i;
+      int mem_used, mem_used1, mem_used2;
 
-/*       get_mem_used2(&mem_used); */
-/*       mem_used1 = mem_used; */
-/*       mem_used2 = mem_used; */
-/*       printf("start: memuse= %d\t%d\t%d \n",mem_used, mem_used1, */
-/* 	     mem_used2); */
+      get_mem_used2(&mem_used);
+      mem_used1 = mem_used;
+      mem_used2 = mem_used;
+      printf("start: memuse= %d\t%d\t%d \n",mem_used, mem_used1,
+	     mem_used2);
 
-/*       printf("bef_open\taft_open\taft_close\tused_open\tused_closed\n"); */
-/*       for (i=0; i < NUM_TRIES_100; i++) */
-/*       { */
-/* 	 /\* Open the file. NC_NOWRITE tells netCDF we want read-only access */
-/* 	  * to the file.*\/ */
+      printf("bef_open\taft_open\taft_close\tused_open\tused_closed\n");
+      for (i=0; i < NUM_TRIES_100; i++)
+      {
+	 /* Open the file. NC_NOWRITE tells netCDF we want read-only access
+	  * to the file.*/
 
-/* 	 get_mem_used2(&mem_used); */
-/* 	 nc_set_chunk_cache(10,10,.5); */
-/* 	 if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR; */
-/* 	 get_mem_used2(&mem_used1); */
+	 get_mem_used2(&mem_used);
+	 nc_set_chunk_cache(10,10,.5);
+	 if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+	 get_mem_used2(&mem_used1);
 
-/* 	 /\* Close the file, freeing all resources.   ????  *\/ */
-/* 	 if (nc_close(ncid)) ERR; */
+	 /* Close the file, freeing all resources.   ????  */
+	 if (nc_close(ncid)) ERR;
 
-/* 	 get_mem_used2(&mem_used2); */
+	 get_mem_used2(&mem_used2);
 
-/* 	 if (mem_used2 - mem_used) */
-/* 	    printf("try %d - %d\t\t%d\t\t%d\t\t%d\t\t%d \n", i, */
-/* 		   mem_used, mem_used1, mem_used2, mem_used1 - mem_used, */
-/* 		   mem_used2 - mem_used); */
-/*       } */
-/*    } */
-/*    SUMMARIZE_ERR; */
+	 if (mem_used2 - mem_used)
+	    printf("try %d - %d\t\t%d\t\t%d\t\t%d\t\t%d \n", i,
+		   mem_used, mem_used1, mem_used2, mem_used1 - mem_used,
+		   mem_used2 - mem_used);
+      }
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
