@@ -15,6 +15,7 @@ include $(top_srcdir)/lib_flags.am
 # Note which tests depend on other tests. necessary for make -j check
 TEST_EXTENSIONS = .sh
 extradir=
+
 # Link to our assembled library.
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 LDADD = ${top_builddir}/liblib/libnetcdf.la
@@ -77,11 +78,9 @@ tst_h_many_atts_SOURCES = tst_h_many_atts.c tst_utils.c
 bm_file_SOURCES = bm_file.c tst_utils.c
 tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 
-#WARNING: test_knmi depends on run_get_knmi_files.sh,
-# so they must appear in the appropriate order.
 TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
 run_bm_test2.sh run_tst_chunks.sh tst_files2 tst_files3 tst_ar5		\
-tst_mem run_get_knmi_files.sh tst_knmi
+tst_mem run_knmi_bm.sh
 
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL4
@@ -126,28 +125,28 @@ check_PROGRAMS += bigmeta openbigmeta tst_attsperf
 TESTS += tst_attsperf perftest.sh
 endif
 
-EXTRA_DIST = run_par_test.sh.in run_bm.sh run_bm_test1.sh		\
-run_bm_test2.sh run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh	\
-run_par_bm_test.sh run_bm_elena.sh run_par_bm_radar_2D.sh		\
-run_bm_radar_2D_endianness1.sh run_tst_chunks.sh ref_chunks1.cdl	\
-ref_chunks2.cdl run_bm_ar4.sh ref_tst_compounds.nc			\
-ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
-ref_tst_interops4.nc run_get_knmi_files.sh CMakeLists.txt		\
-run_grp_rename.sh tst_h5_endians.c tst_atts_string_rewrite.c		\
-tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c			\
-run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
-ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
-ref_szip.cdl tst_filter.sh bzip2.cdl filtered.cdl unfiltered.cdl	\
+EXTRA_DIST = run_par_test.sh.in run_bm.sh run_bm_test1.sh               \
+run_bm_test2.sh run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh      \
+run_par_bm_test.sh run_bm_elena.sh run_par_bm_radar_2D.sh               \
+run_bm_radar_2D_endianness1.sh run_tst_chunks.sh ref_chunks1.cdl        \
+ref_chunks2.cdl run_bm_ar4.sh ref_tst_compounds.nc                      \
+ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc         \
+ref_tst_interops4.nc run_knmi_bm.sh CMakeLists.txt run_grp_rename.sh    \
+tst_h5_endians.c tst_atts_string_rewrite.c                              \
+tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c                     \
+run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc          \
+ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5        \
+ref_szip.cdl tst_filter.sh bzip2.cdl filtered.cdl unfiltered.cdl        \
 ref_bzip2.c findplugin.in perftest.sh
 
-CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
-bm_radar.nc bm_radar1.nc radar_*.txt tst_floats_1D.cdl floats_1D_3.nc	\
-floats_1D.cdl tst_*.nc tst_floats2_*.cdl tst_ints2_*.cdl		\
-tst_shorts2_*.cdl tst_elena_*.cdl tst_simple*.cdl tst_chunks.cdl	\
-pr_A1.* tauu_A1.* usi_01.* thetau_01.* tst_*.h5 tst_grp_rename.cdl	\
-tst_grp_rename.dmp ref_grp_rename.cdl foo1.nc tst_*.h4 test.nc		\
-testszip.nc test.h5 szip_dump.cdl perftest.txt bigmeta.nc bigvars.nc	\
-run_par_test.sh
+CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc   \
+bm_radar.nc bm_radar1.nc radar_*.txt tst_floats_1D.cdl floats_1D_3.nc   \
+floats_1D.cdl tst_*.nc tst_floats2_*.cdl tst_ints2_*.cdl                \
+tst_shorts2_*.cdl tst_elena_*.cdl tst_simple*.cdl tst_chunks.cdl        \
+pr_A1.* tauu_A1.* usi_01.* thetau_01.* tst_*.h5 tst_grp_rename.cdl      \
+tst_grp_rename.dmp ref_grp_rename.cdl foo1.nc tst_*.h4 test.nc          \
+testszip.nc test.h5 szip_dump.cdl perftest.txt bigmeta.nc bigvars.nc    \
+run_par_test.sh *.gz MSGCPP_*.nc
 
 DISTCLEANFILES = findplugin.sh
 
