@@ -4,7 +4,7 @@
 /**
  * @file
  * @internal This file contains functions that are used in file
- * opens, both fast and slow.
+ * opens.
  *
  * @author Ed Hartnett
  */
@@ -228,6 +228,7 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
 
    return NC_EBADTYPID;
 }
+
 /**
  * @internal This function reads the hacked in coordinates attribute I
  * use for multi-dimensional coordinates.
@@ -373,6 +374,10 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
 
+   /* Add struct to hold HDF5-specific file metadata. */
+   if (!(nc4_info->format_file_info = calloc(1, sizeof(NC_HDF5_FILE_INFO_T))))
+      BAIL(NC_ENOMEM);
+
    nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
    nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
    if(nc4_info->mem.inmemory) {
@@ -473,8 +478,16 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       retval = NC4_open_image_file(nc4_info);
       if(retval)
          BAIL(NC_EHDFERR);
-   } else if ((nc4_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
-      BAIL(NC_EHDFERR);
+   }
+   else
+   {
+      NC_HDF5_FILE_INFO_T *hdf5_info;
+      hdf5_info = (NC_HDF5_FILE_INFO_T *)nc4_info->format_file_info;
+
+      /* Open the HDF5 file. */
+      if ((hdf5_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+         BAIL(NC_EHDFERR);
+   }
 
    /* Now read in all the metadata. Some types and dimscale
     * information may be difficult to resolve here, if, for example, a
@@ -572,6 +585,12 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    /* If this is our first file, initialize HDF5. */
    if (!nc4_hdf5_initialized)
       nc4_hdf5_initialize();
+
+#ifdef LOGGING
+   /* If nc logging level has changed, see if we need to turn on
+    * HDF5's error messages. */
+   hdf5_set_log_level();
+#endif /* LOGGING */
 
    nc_file->int_ncid = nc_file->ext_ncid;
 
@@ -973,7 +992,8 @@ get_netcdf_type(NC_FILE_INFO_T *h5, hid_t native_typeid,
 }
 
 /**
- * @internal Read an attribute. This is called by att_read_var_callbk().
+ * @internal Read an attribute. This is called by
+ * att_read_callbk().
  *
  * @param grp Pointer to group info struct.
  * @param attid Attribute ID.
@@ -1170,83 +1190,6 @@ exit:
       BAIL2(NC_EHDFERR);
    if (spaceid > 0 && H5Sclose(spaceid) < 0)
       BAIL2(NC_EHDFERR);
-   return retval;
-}
-
-/**
- * @internal This function is called by nc4_rec_read_metadata to read
- * all the group level attributes (the NC_GLOBAL atts for this
- * group).
- *
- * @param grp Pointer to group info struct.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EHDFERR HDF5 returned error.
- * @author Ed Hartnett
- */
-int
-nc4_read_grp_atts(NC_GRP_INFO_T *grp)
-{
-   hid_t attid = -1;
-   hsize_t num_obj, i;
-   NC_ATT_INFO_T *att;
-   NC_TYPE_INFO_T *type;
-   char obj_name[NC_MAX_HDF5_NAME + 1];
-   int retval = NC_NOERR;
-   int hidden = 0;
-
-   num_obj = H5Aget_num_attrs(grp->hdf_grpid);
-   for (i = 0; i < num_obj; i++)
-   {
-      if ((attid = H5Aopen_idx(grp->hdf_grpid, (unsigned int)i)) < 0)
-         BAIL(NC_EATTMETA);
-      if (H5Aget_name(attid, NC_MAX_NAME + 1, obj_name) < 0)
-         BAIL(NC_EATTMETA);
-      LOG((3, "reading attribute of _netCDF group, named %s", obj_name));
-
-      /* See if this a hidden, global attribute */
-      hidden = 0; /* default */
-      if(grp->nc4_info->root_grp == grp) {
-         const NC_reservedatt* ra = NC_findreserved(obj_name);
-         if(ra != NULL && (ra->flags & NAMEONLYFLAG))
-            hidden = 1;
-      }
-
-      /* This may be an attribute telling us that strict netcdf-3
-       * rules are in effect. If so, we will make note of the fact,
-       * but not add this attribute to the metadata. It's not a user
-       * attribute, but an internal netcdf-4 one. */
-      if(strcmp(obj_name, NC3_STRICT_ATT_NAME)==0)
-         grp->nc4_info->cmode |= NC_CLASSIC_MODEL;
-      else if(!hidden) {
-         /* Add an att struct at the end of the list, and then go to it. */
-         if ((retval = nc4_att_list_add(grp->att, obj_name, &att)))
-            BAIL(retval);
-         retval = read_hdf5_att(grp, attid, att);
-         if(retval == NC_EBADTYPID) {
-            if((retval = nc4_att_list_del(grp->att, att)))
-               BAIL(retval);
-         } else if(retval) {
-            BAIL(retval);
-         } else {
-            att->created = NC_TRUE;
-            if ((retval = nc4_find_type(grp->nc4_info, att->nc_typeid, &type)))
-               BAIL(retval);
-         }
-      }
-      /* Unconditionally close the open attribute */
-      H5Aclose(attid);
-      attid = -1;
-   }
-
-   /* Remember that we have read the atts for this group. */
-   grp->atts_not_read = 0;
-
-exit:
-   if (attid > 0) {
-      if(H5Aclose(attid) < 0)
-         BAIL2(NC_EHDFERR);
-   }
    return retval;
 }
 
@@ -1575,41 +1518,57 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 }
 
 /**
- * @internal Callback function for reading attributes. This is used by
- * read_var().
+ * @internal Callback function for reading attributes. This is used
+ * for both global and variable attributes.
  *
  * @param loc_id HDF5 attribute ID.
  * @param att_name Name of the attrigute.
  * @param ainfo HDF5 info struct for attribute.
- * @param att_data The attribute data.
+ * @param att_data Pointer to an att_iter_info struct, which contains
+ * pointers to the NC_GRP_INFO_T and (for variable attributes) the
+ * NC_VAR_INFO_T. For global atts the var pointer is NULL.
  *
- * @return ::NC_NOERR No error.
- * @return ::NC_EHDFERR HDF5 returned error.
- * @return ::NC_ENOMEM Out of memory.
- * @return ::NC_EATTMETA HDF5 can't open attribute.
- * @return ::NC_EBADTYPID Can't read attribute type.
+ * @return ::NC_NOERR No error. Iteration continues.
+ * @return ::-1 Error. Stop iteration.
+ * @author Ed Hartnett
  */
 static herr_t
-att_read_var_callbk(hid_t loc_id, const char *att_name,
-                    const H5A_info_t *ainfo, void *att_data)
+att_read_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
+                void *att_data)
 {
 
    hid_t attid = 0;
-   int retval = NC_NOERR;
    NC_ATT_INFO_T *att;
+   NCindex *list;
    att_iter_info *att_info = (att_iter_info *)att_data;
+   int retval = NC_NOERR;
+
+   /* Determin what list is being added to. */
+   list = att_info->var ? att_info->var->att : att_info->grp->att;
+
+   /* This may be an attribute telling us that strict netcdf-3 rules
+    * are in effect. If so, we will make note of the fact, but not add
+    * this attribute to the metadata. It's not a user attribute, but
+    * an internal netcdf-4 one. */
+   if (!strcmp(att_name, NC3_STRICT_ATT_NAME))
+   {
+      /* Only relevant for groups, not vars. */
+      if (!att_info->var)
+         att_info->grp->nc4_info->cmode |= NC_CLASSIC_MODEL;
+      return NC_NOERR;
+   }
 
    /* Should we ignore this attribute? */
-   const NC_reservedatt* ra = NC_findreserved(att_name);
-   if(ra != NULL) goto exit; /* ignore */
+   if (NC_findreserved(att_name))
+      return NC_NOERR;
 
    /* Add to the end of the list of atts for this var. */
-   if ((retval = nc4_att_list_add(att_info->var->att, att_name, &att)))
-      BAIL(retval);
+   if ((retval = nc4_att_list_add(list, att_name, &att)))
+      BAIL(-1);
 
    /* Open the att by name. */
    if ((attid = H5Aopen(loc_id, att_name, H5P_DEFAULT)) < 0)
-      BAIL(NC_EATTMETA);
+      BAIL(-1);
    LOG((4, "%s::  att_name %s", __func__, att_name));
 
    /* Read the rest of the info about the att,
@@ -1620,54 +1579,62 @@ att_read_var_callbk(hid_t loc_id, const char *att_name,
    if (att)
       att->created = NC_TRUE;
 
-   if (attid > 0 && H5Aclose(attid) < 0)
-      BAIL2(NC_EHDFERR);
-
-   return NC_NOERR;
-
 exit:
-   if(retval) {
-      if (retval == NC_EBADTYPID) {
-         /* NC_EBADTYPID will be normally converted to NC_NOERR so that
-            the parent iterator does not fail. */
-         retval = nc4_att_list_del(att_info->var->att,att);
-         att = NULL;
-      }
+   if (retval == NC_EBADTYPID)
+   {
+      /* NC_EBADTYPID will be normally converted to NC_NOERR so that
+         the parent iterator does not fail. */
+      retval = nc4_att_list_del(list, att);
+      att = NULL;
    }
    if (attid > 0 && H5Aclose(attid) < 0)
-      retval = NC_EHDFERR;
+      retval = -1;
+
+   /* Since this is a HDF5 iterator callback, return -1 for any error
+    * to stop iteration. */
+   if (retval)
+      retval = -1;
    return retval;
 }
 
 /**
- * @internal This function reads all the attributes of a variable.
+ * @internal This function reads all the attributes of a variable or
+ * the global attributes of a group.
  *
  * @param grp Pointer to the group info.
- * @param var Pointer to the var info.
+ * @param var Pointer to the var info. NULL for global att reads.
  *
- * @return NC_NOERR No error.
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EATTMETA Some error occured reading attributes.
  * @author Ed Hartnett
  */
 int
-nc4_read_var_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    att_iter_info att_info;         /* Custom iteration information */
+   hid_t locid; /* HDF5 location to read atts from. */
 
    /* Check inputs. */
-   assert(grp && var);
+   assert(grp);
 
-   /* Assign var and grp in struct. */
+   /* Assign var and grp in struct. (var may be NULL). */
    att_info.var = var;
    att_info.grp = grp;
 
-   /* Now read all the attributes of this variable, ignoring the
-      ones that hold HDF5 dimension scale information. */
-   if ((H5Aiterate2(var->hdf_datasetid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
-                    att_read_var_callbk, &att_info)) < 0)
+   /* Determine where to read from in the HDF5 file. */
+   locid = var ? var->hdf_datasetid : grp->hdf_grpid;
+
+   /* Now read all the attributes at this location, ignoring special
+    * netCDF hidden attributes. */
+   if ((H5Aiterate2(locid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL,
+                    att_read_callbk, &att_info)) < 0)
       return NC_EATTMETA;
 
-   /* Remember that we have read the atts for this var. */
-   var->atts_not_read = 0;
+   /* Remember that we have read the atts for this var or group. */
+   if (var)
+      var->atts_not_read = 0;
+   else
+      grp->atts_not_read = 0;
 
    return NC_NOERR;
 }
@@ -2027,8 +1994,11 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
       }
       else
       {
-         if ((grp->hdf_grpid = H5Gopen2(grp->nc4_info->hdfid,
-                                        "/", H5P_DEFAULT)) < 0)
+         NC_HDF5_FILE_INFO_T *hdf5_info;
+         hdf5_info = (NC_HDF5_FILE_INFO_T *)grp->nc4_info->format_file_info;
+
+         if ((grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/",
+                                        H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
       }
    }
@@ -2073,7 +2043,8 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
       oinfo = (NC4_rec_read_metadata_obj_info_t*)nclistget(udata.grps,i);
 
       /* Add group to file's hierarchy */
-      if ((retval = nc4_grp_list_add(grp, oinfo->oname, &child_grp)))
+      if ((retval = nc4_grp_list_add(grp->nc4_info, grp, oinfo->oname,
+                                     &child_grp)))
          BAIL(retval);
 
       /* Recursively read the child group's metadata */
