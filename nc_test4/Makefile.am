@@ -1,8 +1,10 @@
-# This is part of the netCDF package.
-# Copyright 2005 University Corporation for Atmospheric Research/Unidata
-# See COPYRIGHT file for conditions of use.
+# This is part of the netCDF package. Copyright 2005-2018 University
+# Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+# conditions of use.
 #
-# This entire directory will be skipped if netCDF-4 is not enabled.
+# This directory holds tests for netCDF-4. It is skipped if netCDF-4
+# is not enabled.
+#
 # Ed Hartnett, Ward Fisher
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
@@ -14,7 +16,7 @@ include $(top_srcdir)/lib_flags.am
 
 # Note which tests depend on other tests. necessary for make -j check
 TEST_EXTENSIONS = .sh
-extradir=
+extradir =
 
 # Link to our assembled library.
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
@@ -125,16 +127,16 @@ check_PROGRAMS += bigmeta openbigmeta tst_attsperf
 TESTS += tst_attsperf perftest.sh
 endif
 
-EXTRA_DIST = run_par_test.sh.in run_bm_test1.sh run_bm_test2.sh		\
-run_par_bm_test.sh run_bm_elena.sh run_tst_chunks.sh ref_chunks1.cdl	\
-run_bm_ar4.sh ref_tst_compounds.nc ref_tst_xplatform2_1.nc		\
-ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc		\
-run_knmi_bm.sh CMakeLists.txt run_grp_rename.sh tst_h5_endians.c	\
-tst_atts_string_rewrite.c tst_put_vars_two_unlim_dim.c			\
-tst_empty_vlen_unlim.c run_empty_vlen_test.sh ref_hdf5_compat1.nc	\
-ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh tdset.h5		\
-tst_szip.sh ref_szip.h5 ref_szip.cdl tst_filter.sh bzip2.cdl		\
-filtered.cdl unfiltered.cdl ref_bzip2.c findplugin.in perftest.sh
+EXTRA_DIST = run_par_test.sh.in run_par_bm_test.sh.in run_bm_test1.sh	\
+run_bm_test2.sh run_bm_elena.sh run_tst_chunks.sh			\
+ref_tst_compounds.nc ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc	\
+ref_tst_dims.nc ref_tst_interops4.nc run_knmi_bm.sh CMakeLists.txt	\
+run_grp_rename.sh tst_h5_endians.c tst_atts_string_rewrite.c		\
+tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c			\
+run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
+ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
+ref_szip.cdl tst_filter.sh bzip2.cdl filtered.cdl unfiltered.cdl	\
+ref_bzip2.c findplugin.in perftest.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc			\

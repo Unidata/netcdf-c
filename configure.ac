@@ -1508,6 +1508,7 @@ AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 
 AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
+AC_CONFIG_FILES([nc_test4/run_par_bm_test.sh], [chmod ugo+x nc_test4/run_par_bm_test.sh])
 AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
 AC_CONFIG_FILES([Makefile
                  netcdf.pc

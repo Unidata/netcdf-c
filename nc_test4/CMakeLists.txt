@@ -61,7 +61,6 @@ IF(BUILD_BENCHMARKS)
   add_sh_test(nc_test4 run_bm_elena)
   add_sh_test(nc_test4 run_bm_test2)
   add_sh_test(nc_test4 run_tst_chunks)
-  add_sh_test(nc_test4 run_bm_ar4)
   add_sh_test(nc_test4 run_knmi_bm)
 
   SET(NC4_TESTS ${NC4_TESTS} tst_create_files bm_file tst_chunks3 tst_ar4 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts tst_files2 tst_files3 tst_h_files3 tst_mem tst_knmi bm_netcdf4_recs)
