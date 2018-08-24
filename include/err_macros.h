@@ -80,4 +80,15 @@ int ERR_report(int stat, const char* file, int line)
    return 0; \
 } while (0)
 
+/* This macro does the same as FINAL_RESULTS, but without the success
+ * message. */
+#define FINAL_RESULTS_QUIET do { \
+   if (total_err) \
+   { \
+      printf("%d errors detected! Sorry!\n", total_err); \
+      return 2; \
+   } \
+   return 0; \
+} while (0)
+
 #endif /* _ERR_MACROS_H */

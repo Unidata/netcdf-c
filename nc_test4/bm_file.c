@@ -277,11 +277,11 @@ cmp_file(char *file1, char *file2, int *meta_read_us, int *data_read_us,
    if (use_par)
    {
 #ifdef USE_PARALLEL
-      if ((ret = nc_open_par(file1, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid1)))
+      if ((ret = nc_open_par(file1, NC_MPIIO, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid1)))
 	 ERR1(ret);
       MPI_Barrier(MPI_COMM_WORLD);
       ftime = MPI_Wtime();
-      if ((ret = nc_open_par(file2, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid2)))
+      if ((ret = nc_open_par(file2, NC_MPIIO, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid2)))
 	 ERR1(ret);
       *meta_read_us += (MPI_Wtime() - ftime) * MILLION;
 #else
@@ -479,7 +479,7 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
    {
 #ifdef USE_PARALLEL
       ftime = MPI_Wtime();
-      if ((ret = nc_open_par(file_name_in, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid_in)))
+      if ((ret = nc_open_par(file_name_in, NC_MPIIO, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid_in)))
 	 ERR1(ret);
       *meta_read_us += (MPI_Wtime() - ftime) * MILLION;
 #else
@@ -509,7 +509,7 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
       if (use_par)
       {
 #ifdef USE_PARALLEL
-	 if ((ret = nc_create_par(file_name_out, cmode_out, MPI_COMM_WORLD,
+	 if ((ret = nc_create_par(file_name_out, cmode_out|NC_MPIIO, MPI_COMM_WORLD,
 				  MPI_INFO_NULL, &ncid_out)))
 	    ERR1(ret);
 #else
@@ -1148,5 +1148,5 @@ main(int argc, char **argv)
    MPI_Finalize();
 #endif
 
-   FINAL_RESULTS;
+   FINAL_RESULTS_QUIET;
 }

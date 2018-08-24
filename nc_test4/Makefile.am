@@ -90,6 +90,8 @@ run_bm_elena.log: tst_create_files.log
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL4
 TESTS += run_par_bm_test.sh
+# This benchmark depends on tst_create_files being run.
+run_par_bm_test.log: tst_create_files.log
 endif # TEST_PARALLEL4
 endif # BUILD_BENCHMARKS
 
@@ -124,27 +126,25 @@ TESTS += tst_attsperf perftest.sh
 endif
 
 EXTRA_DIST = run_par_test.sh.in run_bm.sh run_bm_test1.sh		\
-run_bm_test2.sh run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh	\
-run_par_bm_test.sh run_bm_elena.sh run_par_bm_radar_2D.sh		\
-run_bm_radar_2D_endianness1.sh run_tst_chunks.sh ref_chunks1.cdl	\
-run_bm_ar4.sh ref_tst_compounds.nc ref_tst_xplatform2_1.nc		\
-ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc		\
-run_knmi_bm.sh CMakeLists.txt run_grp_rename.sh tst_h5_endians.c	\
-tst_atts_string_rewrite.c tst_put_vars_two_unlim_dim.c			\
-tst_empty_vlen_unlim.c run_empty_vlen_test.sh ref_hdf5_compat1.nc	\
-ref_hdf5_compat2.nc ref_hdf5_compat3.nc tst_misc.sh tdset.h5		\
-tst_szip.sh ref_szip.h5 ref_szip.cdl tst_filter.sh bzip2.cdl		\
-filtered.cdl unfiltered.cdl ref_bzip2.c findplugin.in perftest.sh
+run_bm_test2.sh run_par_bm_test.sh run_bm_elena.sh run_tst_chunks.sh	\
+ref_chunks1.cdl run_bm_ar4.sh ref_tst_compounds.nc			\
+ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
+ref_tst_interops4.nc run_knmi_bm.sh CMakeLists.txt run_grp_rename.sh	\
+tst_h5_endians.c tst_atts_string_rewrite.c				\
+tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c			\
+run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
+ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
+ref_szip.cdl tst_filter.sh bzip2.cdl filtered.cdl unfiltered.cdl	\
+ref_bzip2.c findplugin.in perftest.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
-bm_radar.nc bm_radar1.nc radar_*.txt tst_floats_1D.cdl floats_1D_3.nc	\
-floats_1D.cdl tst_*.nc tst_floats2_*.cdl tst_ints2_*.cdl		\
-tst_shorts2_*.cdl tst_elena_*.cdl tst_simple*.cdl tst_chunks.cdl	\
-pr_A1.* tauu_A1.* usi_01.* thetau_01.* tst_*.h5 tst_grp_rename.cdl	\
-tst_grp_rename.dmp ref_grp_rename.cdl foo1.nc tst_*.h4 test.nc		\
-testszip.nc test.h5 szip_dump.cdl perftest.txt bigmeta.nc bigvars.nc	\
-run_par_test.sh *.gz MSGCPP_*.nc floats*.nc floats*.cdl shorts*.nc	\
-shorts*.cdl ints*.nc ints*.cdl
+tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc			\
+tst_floats2_*.cdl tst_ints2_*.cdl tst_shorts2_*.cdl tst_elena_*.cdl	\
+tst_simple*.cdl tst_chunks.cdl pr_A1.* tauu_A1.* usi_01.* thetau_01.*	\
+tst_*.h5 tst_grp_rename.cdl tst_grp_rename.dmp ref_grp_rename.cdl	\
+foo1.nc tst_*.h4 test.nc testszip.nc test.h5 szip_dump.cdl		\
+perftest.txt bigmeta.nc bigvars.nc run_par_test.sh *.gz MSGCPP_*.nc	\
+floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl
 
 DISTCLEANFILES = findplugin.sh
 

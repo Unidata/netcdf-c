@@ -1,19 +1,17 @@
 #!/bin/sh
 
+# This shell file tests the bm_ile program for parallel I/O.
+# Ed Hartnett
+
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-# This shell file tests the bm_ile program for parallel I/O.
-
-# $Id: run_par_bm_test.sh,v 1.5 2007/12/12 18:00:39 ed Exp $
-
-set -e
 echo ""
 for type_name in floats ints shorts
 do
     echo "*** Running bm_file for parallel access on simple ${type_name} test files, 1D to 6D..."
     header="-h"
-    for ((i=1; i <= 3; i++))
+    for i in 1 2 3
     do
 	test $i = 1 && chunksizes="100000"
 	test $i = 2 && chunksizes="316:316"
