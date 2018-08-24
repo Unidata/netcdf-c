@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 export SETX=1
 
@@ -101,7 +101,7 @@ echo "*** Testing dynamic filters using nccopy"
 rm -f ./unfiltered.nc ./filtered.nc ./tmp.nc ./filtered.dump ./tst_filter.txt
 ${NCGEN} -4 -lb -o unfiltered.nc ${srcdir}/unfiltered.cdl
 echo "	*** Testing simple filter application"
-${NCCOPY} -F "/g/var,307,9,4" unfiltered.nc filtered.nc
+${NCCOPY} -M0 -F "/g/var,307,9,4" unfiltered.nc filtered.nc
 ${NCDUMP} -s filtered.nc > ./tst_filter.txt
 # Remove irrelevant -s output
 sclean ./tst_filter.txt ./filtered.dump
@@ -119,7 +119,7 @@ echo "	*** Pass: pass-thru of filters"
 
 echo "	*** Testing -F none"
 rm -f ./tst_filter.txt ./tst_filter2.txt ./tst_filter.nc
-${NCCOPY} -F none ./filtered.nc ./tst_filter.nc
+${NCCOPY} -M0 -F none ./filtered.nc ./tst_filter.nc
 ${NCDUMP} -s tst_filter.nc > ./tst_filter.txt
 sed -e '/_Filter/p' -e d < ./tst_filter.txt >./tst_filter2.txt
 test ! -s tst_filter2.txt
@@ -127,7 +127,7 @@ echo "	*** Pass: -F none"
 
 echo "	*** Testing -F var,none "
 rm -f ./tst_filter.txt ./tst_filter.nc
-${NCCOPY} -F "/g/var,none" ./filtered.nc ./tst_filter.nc
+${NCCOPY} -M0 -F "/g/var,none" ./filtered.nc ./tst_filter.nc
 ${NCDUMP} -s tst_filter.nc > ./tst_filter.txt
 sed -e '/_Filter/p' -e d < ./tst_filter.txt >tst_filter2.txt
 test ! -s tst_filter2.txt

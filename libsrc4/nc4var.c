@@ -261,7 +261,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       {
          /* Do we need to read the atts? */
          if (grp->atts_not_read)
-            if ((retval = nc4_read_grp_atts(grp)))
+            if ((retval = nc4_read_atts(grp, NULL)))
                return retval;
 
          *nattsp = ncindexcount(grp->att);
@@ -288,7 +288,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    if (nattsp)
    {
       if (var->atts_not_read)
-         if ((retval = nc4_read_var_atts(grp, var)))
+         if ((retval = nc4_read_atts(grp, var)))
             return retval;
       *nattsp = ncindexcount(var->att);
    }
