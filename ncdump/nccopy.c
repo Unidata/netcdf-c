@@ -1978,13 +1978,14 @@ usage(void)
   [-r]      read whole input file into diskless file on open (classic or 64-bit offset or cdf5 formats only)\n\
   [-F filterspec] specify the compression algorithm to apply to an output variable.\n\
   [-Ln]     set log level to n (>= 0); ignored if logging isn't enabled.\n\
+  [-Mn]     set minimum chunk size to n bytes (n >= 0)\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
     /* Don't document this flaky option until it works better */
     /* [-x]      use experimental computed estimates for variable-specific chunk caches\n\ */
 
-    error("%s [-k kind] [-[3|4|6|7]] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] varlist] [-[g|G] grplist] [-m n] [-h n] [-e n] [-r] infile outfile\n%s\nnetCDF library version %s",
+    error("%s [-k kind] [-[3|4|6|7]] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] varlist] [-[g|G] grplist] [-m n] [-h n] [-e n] [-r] [-F filterspec] [-Ln] [-Mn] infile outfile\n%s\nnetCDF library version %s",
 	  progname, USAGE, nc_inq_libvers());
 }
 
@@ -2160,7 +2161,7 @@ main(int argc, char**argv)
 	case 'M': /* set min chunk size */
 #ifdef USE_NETCDF4
 	    if(optarg == NULL)
-		option_min_chunk_bytes = -1;
+		option_min_chunk_bytes = 0;
 	    else
 	        option_min_chunk_bytes = atol(optarg);
 	    if(option_min_chunk_bytes < 0)

@@ -7,6 +7,18 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+# Remove the version information from _NCProperties
+cleanncprops() {
+  src="$1"
+  dst="$2"
+  rm -f $dst
+  cat $src \
+  | sed -e 's/_SuperblockVersion = 1/_SuperblockVersion = 0/' \
+  | sed -e 's/\(netcdflibversion\|netcdf\)=.*|/\1=NNNN|/' \
+  | sed -e 's/\(hdf5libversion\|hdf5\)=.*"/\1=HHHH"/' \
+  | cat >$dst
+}
+
 echo ""
 echo "*** Running extra netcdf-4 tests."
 
@@ -30,8 +42,10 @@ ${execdir}/tst_string_data
 
 echo "*** dumping tst_string_data.nc to tst_string_data.cdl..."
 ${NCDUMP} tst_string_data.nc > tst_string_data.cdl
+cleanncprops tst_string_data.cdl tst_string_data.tmp
+cleanncprops ${srcdir}/ref_tst_string_data.cdl ref_tst_string_data.tmp
 echo "*** comparing tst_string_data.cdl with ref_tst_string_data.cdl..."
-diff -b tst_string_data.cdl ${top_srcdir}/ncdump/ref_tst_string_data.cdl
+diff -b tst_string_data.tmp ref_tst_string_data.tmp
 
 #echo '*** testing non-coordinate variable of same name as dimension...'
 #${NCGEN} -v4 -b -o tst_noncoord.nc ${top_srcdir}/ncdump/ref_tst_noncoord.cdl
@@ -50,17 +64,19 @@ diff -b tst_compounds4.cdl ${top_srcdir}/ncdump/ref_tst_compounds4.cdl
 
 # Exercise Jira NCF-213 bug fix
 #    rm -f tst_ncf213.cdl tst_ncf213.nc
-${NCGEN} -b -o tst_ncf213.nc ${top_srcdir}/ncdump/ref_tst_ncf213.cdl
-${NCDUMP} -s -h tst_ncf213.nc \
-	| sed -e 's/netcdflibversion=.*[|]/netcdflibversion=0.0.0|/' \
-	| sed -e 's/hdf5libversion=.*"/hdf5libversion=0.0.0"/' \
-	| sed -e 's|_SuperblockVersion = [0-9]|_SuperblockVersion = 0|' \
-	| cat  >tst_ncf213.cdl
+# Remove specific _NCProperties values
+${NCGEN} -b -o tst_ncf213.nc $srcdir/ref_tst_ncf213.cdl
+${NCDUMP} -s -h tst_ncf213.nc > tst_ncf213.cdl
+cleanncprops tst_ncf213.cdl tst_ncf213.tmp
+cleanncprops ${srcdir}/ref_tst_ncf213.cdl ref_tst_ncf213.tmp
 # Now compare
 ok=1;
-if diff -b ${top_srcdir}/ncdump/ref_tst_ncf213.cdl tst_ncf213.cdl ; then ok=1; else ok=0; fi
+if diff -b tst_ncf213.tmp ref_tst_ncf213.tmp ; then ok=1; else ok=0; fi
+
 # cleanup
-#    rm -f tst_ncf213.cdl tst_ncf213.nc
+#rm -f tst_ncf213.cdl tst_ncf213.nc
+rm -f *.tmp
+
 if test $ok = 0 ; then
   echo "*** FAIL: NCF-213 Bug Fix test"
   exit 1

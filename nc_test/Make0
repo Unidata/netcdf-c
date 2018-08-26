@@ -1,5 +1,5 @@
 # Test c output
-T=tst_open_mem
+T=nc_test
 
 #H58=8
 H510=10
