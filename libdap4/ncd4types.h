@@ -273,6 +273,12 @@ struct NCD4curl {
 	long  httpcode;
 	char  errorbuf[CURL_ERROR_SIZE]; /* CURLOPT_ERRORBUFFER*/
     } errdata;
+    struct {
+	int active; /* Activate keepalive? */
+	long idle; /* KEEPIDLE value */
+	long interval; /* KEEPINTVL value */
+    } keepalive; /* keepalive info */
+    long buffersize; /* read buffer size */    
 };
 
 /**************************************************/
