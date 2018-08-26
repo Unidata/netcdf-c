@@ -212,6 +212,7 @@ usage(void)
 " [-x]"
 " [-N datasetname]"
 " [-L loglevel]"
+" [-H]"
 " [file ... ]",
 	   progname);
     derror("netcdf library version %s", nc_inq_libvers());
@@ -293,10 +294,10 @@ main(
 	  }
 	  l_flag = L_BINARY;
 	  break;
-	case 'h':
+	case 'H':
 	  header_only = 1;
 	  break;
-	case 'H':
+	case 'h':
 	  usage();
 	  goto done;
         case 'l': /* specify language, instead of using -c or -f or -b */

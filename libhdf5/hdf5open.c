@@ -400,7 +400,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 
    /* Need this access plist to control how HDF5 handles open objects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
-    * fail if there are any open objects in the file. */
+    * fail if there are any open objects in the file). */
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
 
@@ -502,6 +502,22 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if (is_classic)
       nc4_info->cmode |= NC_CLASSIC_MODEL;
 
+   /* See if this file contained _NCPROPERTIES,
+    * and if yes, process it, if no, then fake it.
+   */
+   if(nc4_info->root_grp != NULL) {
+      /* Since _NCProperties does not exist as an NC_ATT_INFO object,
+       * we need to check using the HDF5 API
+       */
+	if((retval = NC4_read_ncproperties(nc4_info)))
+	    BAIL(retval);
+    }
+
+   if ((retval = check_for_classic_model(nc4_info->root_grp, &is_classic)))
+      BAIL(retval);
+   if (is_classic)
+      nc4_info->cmode |= NC_CLASSIC_MODEL;
+
    /* Now figure out which netCDF dims are indicated by the dimscale
     * information. */
    if ((retval = nc4_rec_match_dimscales(nc4_info->root_grp)))
@@ -516,11 +532,6 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    /* Close the property list. */
    if (H5Pclose(fapl_id) < 0)
       BAIL(NC_EHDFERR);
-
-   /* Get the HDF5 superblock and read and parse the special
-    * _NCProperties attribute. */
-   if ((retval = NC4_get_fileinfo(nc4_info, NULL)))
-      BAIL(retval);
 
    return NC_NOERR;
 

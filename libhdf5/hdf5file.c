@@ -35,13 +35,13 @@ static const NC_reservedatt NC_reserved[NRESERVED] = {
    {NC_ATT_DIMENSION_LIST, READONLYFLAG|DIMSCALEFLAG},   /*DIMENSION_LIST*/
    {NC_ATT_NAME, READONLYFLAG|DIMSCALEFLAG},             /*NAME*/
    {NC_ATT_REFERENCE_LIST, READONLYFLAG|DIMSCALEFLAG},   /*REFERENCE_LIST*/
-   {NC_ATT_FORMAT, READONLYFLAG},                /*_Format*/
-   {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG}, /*_IsNetcdf4*/
-   {NCPROPS, READONLYFLAG|NAMEONLYFLAG},         /*_NCProperties*/
-   {NC_ATT_COORDINATES, READONLYFLAG|DIMSCALEFLAG},      /*_Netcdf4Coordinates*/
-   {NC_DIMID_ATT_NAME, READONLYFLAG|DIMSCALEFLAG},       /*_Netcdf4Dimid*/
+   {NC_ATT_FORMAT, READONLYFLAG},               	 /*_Format*/
+   {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG}, 		 /*_IsNetcdf4*/
+   {NCPROPS, READONLYFLAG|NAMEONLYFLAG|MATERIALIZEDFLAG},/*_NCProperties*/
+   {NC_ATT_COORDINATES, READONLYFLAG|DIMSCALEFLAG|MATERIALIZEDFLAG},/*_Netcdf4Coordinates*/
+   {NC_DIMID_ATT_NAME, READONLYFLAG|DIMSCALEFLAG|MATERIALIZEDFLAG},/*_Netcdf4Dimid*/
    {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG},/*_SuperblockVersion*/
-   {NC3_STRICT_ATT_NAME, READONLYFLAG},  /*_nc3_strict*/
+   {NC3_STRICT_ATT_NAME, READONLYFLAG|MATERIALIZEDFLAG},  /*_nc3_strict*/
 };
 
 extern void reportopenobjects(int log, hid_t);
@@ -116,7 +116,7 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
 #endif
 
    /* Write any metadata that has changed. */
-   if (!(h5->cmode & NC_NOWRITE))
+   if (!h5->no_write)
    {
       nc_bool_t bad_coord_order = NC_FALSE;
 
@@ -133,6 +133,10 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
       /* Write all the metadata. */
       if ((retval = nc4_rec_write_metadata(h5->root_grp, bad_coord_order)))
          return retval;
+
+      /* Write out _NCProperties */
+      if((retval = NC4_write_ncproperties(h5)))
+	return retval;
    }
 
    /* Tell HDF5 to flush all changes to the file. */
@@ -199,8 +203,8 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
 
    /* Free the fileinfo struct, which holds info from the fileinfo
     * hidden attribute. */
-   if (h5->fileinfo)
-      free(h5->fileinfo);
+   if (h5->provenance)
+      free(h5->provenance);
 
    /* Check to see if this is an in-memory file and we want to get its
       final content. */

@@ -228,13 +228,8 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    /* Define mode gets turned on automatically on create. */
    nc4_info->flags |= NC_INDEF;
 
-   /* Get the HDF5 superblock and read and parse the special
-    * _NCProperties attribute. */
-   if ((retval = NC4_get_fileinfo(nc4_info, &globalpropinfo)))
-      BAIL(retval);
-
-   /* Write the _NCProperties attribute. */
-   if ((retval = NC4_put_propattr(nc4_info)))
+   /* Save the HDF5 superblock number and set the _NCProperties attribute. */
+   if ((retval = NC4_set_provenance(nc4_info, &globalpropinfo)))
       BAIL(retval);
 
    return NC_NOERR;

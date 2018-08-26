@@ -7,6 +7,18 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+# Remove the version information from _NCProperties
+cleanncprops() {
+  src="$1"
+  dst="$2"
+  rm -f $dst
+  cat $src \
+  | sed -e 's/_SuperblockVersion = 1/_SuperblockVersion = 0/' \
+  | sed -e 's/\(netcdflibversion\|netcdf\)=.*|/\1=NNNN|/' \
+  | sed -e 's/\(hdf5libversion\|hdf5\)=.*"/\1=HHHH"/' \
+  | cat >$dst
+}
+
 ERR() {
     RES=$?
     if [ $RES -ne 0 ]; then
@@ -84,14 +96,11 @@ fi
 
 echo "*** Running tst_special_atts.c to create test files."
 ${execdir}/tst_special_atts ; ERR
-${NCDUMP} -c -s tst_special_atts.nc \
-    | sed 's/e+0/e+/g' \
-    | sed -e 's/netcdflibversion=.*[|]/netcdflibversion=0.0.0|/' \
-    | sed -e 's/hdf5libversion=.*"/hdf5libversion=0.0.0"/' \
-    | sed -e 's|_SuperblockVersion = [0-9]|_SuperblockVersion = 0|' \
-    | cat > tst_special_atts.cdl ; ERR
+${NCDUMP} -c -s tst_special_atts.nc  > tst_special_atts.cdl ; ERR
+cleanncprops tst_special_atts.cdl tst_special_atts.tmp
+cleanncprops $srcdir/ref_tst_special_atts.cdl ref_tst_special_atts.tmp
 echo "*** comparing tst_special_atts.cdl with ref_tst_special_atts.cdl..."
-diff -b tst_special_atts.cdl $srcdir/ref_tst_special_atts.cdl ; ERR
+diff -b tst_special_atts.tmp ref_tst_special_atts.tmp ; ERR
 
 #echo ""
 #echo "*** Testing ncdump on file with corrupted header "
@@ -107,5 +116,6 @@ diff -b tst_special_atts.cdl $srcdir/ref_tst_special_atts.cdl ; ERR
 #echo "*** creating tst_output_irish_rover.cdl from ref_tst_irish_rover.nc..."
 #${NCDUMP} ref_tst_irish_rover.nc > tst_output_irish_rover.cdl
 
+rm -f *.tmp
 echo "*** All ncgen and ncdump test output for netCDF-4 format passed!"
 exit 0
