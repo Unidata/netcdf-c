@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
 
     default_format = NC_FORMAT_CLASSIC;
 
+#ifdef ENABLE_CDF5
     /* check illegal cmode */
     cmode = NC_64BIT_OFFSET | NC_64BIT_DATA;
     err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
@@ -96,7 +97,8 @@ int main(int argc, char *argv[])
                __FILE__, __LINE__, err);
         nerrs++;
     }
-
+#endif
+#ifdef USE_NETCDF4
     /* check illegal cmode */
     cmode = NC_NETCDF4 | NC_64BIT_OFFSET;
     err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
@@ -105,7 +107,7 @@ int main(int argc, char *argv[])
                __FILE__, __LINE__, err);
         nerrs++;
     }
-
+#endif
     /* check illegal cmode */
     cmode = NC_MPIIO | NC_MPIPOSIX;
     err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
@@ -141,9 +143,11 @@ int main(int argc, char *argv[])
     cmode = NC_64BIT_OFFSET;
     nerrs += create_check_pnetcdf(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 
+#ifdef ENABLE_CDF5
     /* create a file in CDF5 format */
     cmode = NC_64BIT_DATA;
     nerrs += create_check_pnetcdf(fname, cmode, NC_FORMAT_64BIT_DATA);
+#endif
 
     /* set default file format to NC_FORMAT_64BIT_OFFSET ------------------*/
     default_format = NC_FORMAT_64BIT_OFFSET;
@@ -153,6 +157,7 @@ int main(int argc, char *argv[])
     cmode = 0;
     nerrs += create_check_pnetcdf(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 
+#ifdef ENABLE_CDF5
     /* create a file in CDF5 format (this should ignore default) */
     cmode = NC_64BIT_DATA;
     nerrs += create_check_pnetcdf(fname, cmode, NC_FORMAT_64BIT_DATA);
@@ -164,6 +169,7 @@ int main(int argc, char *argv[])
     /* create a file in default format */
     cmode = 0;
     nerrs += create_check_pnetcdf(fname, cmode, NC_FORMAT_64BIT_DATA);
+#endif
 
     /* create a file in CDF2 format (this should ignore default) */
     cmode = NC_64BIT_OFFSET;
