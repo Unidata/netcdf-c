@@ -426,6 +426,7 @@ by the desired type. */
 #define NC_ENOTFOUND     (-90)      /**< No such file */
 #define NC_ECANTREMOVE   (-91)      /**< Can't remove file */
 #define NC_EINTERNAL     (-92)      /**< NetCDF Library Internal Error */
+#define NC_EPNETCDF      (-93)      /**< Error at PnetCDF layer */
 
 /* The following was added in support of netcdf-4. Make all netcdf-4
    error codes < -100 so that errors can be added to netcdf-3 if
