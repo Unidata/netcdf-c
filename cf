@@ -118,7 +118,7 @@ FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-jna"
 #FLAGS="$FLAGS --disable-properties-attribute"
 #FLAGS="$FLAGS --disable-silent-rules"
-FLAGS="$FLAGS --disable-filter-testing"
+#FLAGS="$FLAGS --disable-filter-testing"
 #FLAGS="$FLAGS --enable-metadata-perf"
 
 if test "x$TESTSERVERS" != x ; then

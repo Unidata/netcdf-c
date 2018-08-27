@@ -50,8 +50,18 @@
 /** This is the name of the name HDF5 dimension scale attribute. */
 #define HDF5_DIMSCALE_NAME_ATT_NAME "NAME"
 
+/** Strut to hold HDF5-specific info for the file. */
+typedef struct  NC_HDF5_FILE_INFO
+{
+   hid_t hdfid;
+} NC_HDF5_FILE_INFO_T;
+
 /* These functions do HDF5 things. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
+
+/* These functions are internal to the libhdf5 directory. */
+int nc4_detect_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
+int hdf5_set_log_level();
 
 #endif /* _HDF5INTERNAL_ */

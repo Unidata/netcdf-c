@@ -15,7 +15,9 @@
 #endif
 #include <assert.h>
 #include <string.h>
+#ifdef HAVE_STRINGS_H
 #include <strings.h>
+#endif
 
 #include "oc.h"
 #include "ocx.h"
@@ -30,6 +32,12 @@
 /*#include <windows.h>*/
 #define snprintf _snprintf
 #define strcasecmp stricmp
+#endif
+
+#ifdef _MSC_VER
+#include "XGetopt.h"
+int opterr;
+int optind;
 #endif
 
 #ifndef nulldup
@@ -52,7 +60,7 @@
 /*Mnemonic*/
 #define TOPLEVEL 1
 
-extern int ocdebug;
+int ocdebug;
 
 static OCerror ocstat;
 static OClink glink;
@@ -181,7 +189,7 @@ main(int argc, char **argv)
 #ifdef OCDEBUG
     { int i;
 	fprintf(stderr,"argv =");
-	for(i=0;i<argc;i++) 
+	for(i=0;i<argc;i++)
 	    fprintf(stderr," %s",argv[i]);
 	fprintf(stderr,"\n");
     }
@@ -209,7 +217,7 @@ main(int argc, char **argv)
 	    break;
         case 'D': {
 	    int c0;
-	    if(strlen(optarg) == 0) usage("missing -D argument");
+	    if(optarg == NULL || strlen(optarg) == 0) usage("missing -D argument");
 	    c0 = optarg[0];
 	    if(c0 >= '0' && c0 <= '9') {/* debug level */
 		ocopt.debug.debuglevel = atoi(optarg); break;
@@ -237,16 +245,20 @@ main(int argc, char **argv)
 
 	case 'o':
             if(ocopt.output != NULL) fclose(ocopt.output);
+	    if(optarg == NULL)
+		usage("-o does not specify a file name");
 	    ocopt.output = fopen(optarg,"w");
             if(ocopt.output == NULL)
 		usage("-o file not writeable");
-	    break;	    
+	    break;
 
 	case 'u': case 'f':
 	    ocopt.surl = optarg;
-	    break;	    
+	    break;
 
 	case 'p':
+	    if(optarg == NULL)
+		usage("-p does not specify an argument");
 	    if(strcasecmp(optarg,"das")==0) ocopt.optdas=1;
 	    else if(strcasecmp(optarg,"dds")==0) ocopt.optdds=1;
 	    else if(strcasecmp(optarg,"data")==0) ocopt.optdatadds=1;
@@ -272,7 +284,8 @@ main(int argc, char **argv)
     if(ocopt.logging) {
 	ncloginit();
 	ncsetlogging(1);
-	nclogopen(NULL);
+	if(!nclogopen(NULL))
+	    fprintf(stderr,"Failed to open logging output\n");
     }
 
     argc -= optind;
@@ -328,7 +341,7 @@ main(int argc, char **argv)
 	ncurisetquery(ocopt.url,ocopt.constraint);
 	nullfree(ocopt.constraint);
 	ocopt.constraint = NULL;
-    }        
+    }
     /* Rebuild the url string */
     if(ocopt.surl != NULL) free(ocopt.surl);
     ocopt.surl = ncuribuild(ocopt.url,NULL,NULL,NCURIALL);
@@ -471,10 +484,7 @@ processdata(OCflags flags)
     if(ocopt.optdatadds) {
         ocstat = oc_fetch(link,ocopt.url->query,OCDATADDS,flags,&dataddsroot);
         if(ocstat) {
-            if(ocopt.url->query)
-                fprintf(stderr,"Cannot read DATADDS: %s\n",ocopt.surl);
-            else
-                fprintf(stderr,"Cannot read DATADDS: %s\n",ocopt.surl);
+            fprintf(stderr,"Cannot read DATADDS: %s\n",ocopt.surl);
             exit(1);
         }
         if(ocopt.debug.dumpdds)
@@ -529,7 +539,7 @@ printdata_container(OClink link, OCdatanode datanode, NCbytes* buffer, int istop
     OCtype octype;
     size_t nsubnodes;
 
-    /* Obtain some information about the node */     
+    /* Obtain some information about the node */
     FAIL(oc_data_ddsnode(link,datanode,&node));
     FAIL(oc_dds_nsubnodes(link,node,&nsubnodes));
     FAIL(oc_data_octype(link,datanode,&octype));
@@ -548,8 +558,8 @@ printdata_container(OClink link, OCdatanode datanode, NCbytes* buffer, int istop
 	pushstack(field);
         FAIL(printdata_indices(link,field,buffer,istoplevel));
 	popstack();
-	oc_data_free(link,field);
-	if(stat != OC_NOERR) break;
+	if(oc_data_free(link,field) != OC_NOERR)
+	    break;
     }
     return stat;
 }
@@ -565,7 +575,7 @@ printdata_indices(OClink link, OCdatanode datanode, NCbytes* buffer, int istople
     size_t dimsizes[OC_MAX_DIMENSIONS];
     size_t indices[OC_MAX_DIMENSIONS];
 
-    /* Obtain some information about the node */     
+    /* Obtain some information about the node */
     FAIL(oc_data_ddsnode(link,datanode,&node));
     FAIL(oc_dds_octype(link,node,&octype));
     FAIL(oc_dds_rank(link,node,&rank));
@@ -581,14 +591,14 @@ printdata_indices(OClink link, OCdatanode datanode, NCbytes* buffer, int istople
     if(octype == OC_Structure) {
 	/* Get dimension sizes */
         FAIL(oc_dds_dimensionsizes(link,node,dimsizes));
-        
+
 	/* init odometer and get cross-product */
 	odom_init(rank,indices,dimsizes);
         while(odom_more(rank,indices,dimsizes)) {
 	    OCdatanode element;
 	    FAIL(oc_data_ithelement(link,datanode,indices,&element));
             pushstack(element);
-	    /* walk the container */	
+	    /* walk the container */
             printdata_container(link,element,buffer,!TOPLEVEL);
             popstack();
 	    oc_data_free(link,element);
@@ -631,7 +641,7 @@ printdata_leaf(OClink link, OCdatanode datanode, NCbytes* buffer, int istoplevel
     char* memory;
     size_t count,rank;
 
-    /* Obtain some information about the node */     
+    /* Obtain some information about the node */
     FAIL(oc_data_ddsnode(link,datanode,&node));
     FAIL(oc_dds_octype(link,node,&octype));
     FAIL(oc_dds_atomictype(link,node,&atomtype));
@@ -645,7 +655,7 @@ printdata_leaf(OClink link, OCdatanode datanode, NCbytes* buffer, int istoplevel
     */
 
     elemsize = oc_typesize(atomtype);
-    
+
     if(rank == 0) {/* Scalar case */
 	memory = calloc(elemsize,1); /* reading only one value */
         /* read the scalar */
@@ -655,7 +665,7 @@ printdata_leaf(OClink link, OCdatanode datanode, NCbytes* buffer, int istoplevel
 	    FAIL(oc_data_read(link,datanode,NULL,NULL,elemsize,memory));
 	}
         count = 1;
-    } else { 
+    } else {
 	size_t dimsizes[OC_MAX_DIMENSIONS];
 	size_t indices[OC_MAX_DIMENSIONS];
         FAIL(oc_dds_dimensionsizes(link,node,dimsizes));
@@ -663,7 +673,7 @@ printdata_leaf(OClink link, OCdatanode datanode, NCbytes* buffer, int istoplevel
 	count = odom_init(rank,indices,dimsizes);
         memsize = elemsize*count;
         memory = calloc(memsize,1);
-    
+
 #ifdef ALLATONCE /* read all at once */
         /* indices should be all zeros at this point */
 	if(istoplevel) {
@@ -674,10 +684,10 @@ printdata_leaf(OClink link, OCdatanode datanode, NCbytes* buffer, int istoplevel
 #else /* BYITEM */
         {
   	    size_t offset;
-	    size_t one[OC_MAX_DIMENSIONS]; 
-            /* Initialize the read-by-one counts */ 
-	    for(i=0;i<rank;i++) one[i]=0; 
-	    one[rank-1] = 1; 
+	    size_t one[OC_MAX_DIMENSIONS];
+            /* Initialize the read-by-one counts */
+	    for(i=0;i<rank;i++) one[i]=0;
+	    one[rank-1] = 1;
             /* Read whole atomic array item by item using an odometer */
 	    for(offset=0,i=0;i<count;i++,offset+=elemsize) {
 		if(!odom_more(rank,indices,dimsizes))
@@ -976,7 +986,7 @@ needsescapes(const char* s)
 	if(strchr(valuechars,c) != NULL)
 	    return 1; /* needs to be escaped */
     }
-    return 0;    
+    return 0;
 }
 
 
@@ -989,7 +999,7 @@ dumpdatanode(OClink link, OCdatanode datanode, size_t count, void* memory, NCbyt
     OCtype atomtype;
     OCtype octype;
     NCbytes* path = NULL;
-    char* name;
+    char* name = NULL;
     char id[1024];
     char tmp[1024];
     struct DUMPPATH* entry = NULL;
@@ -1085,35 +1095,35 @@ dumpdatanode(OClink link, OCdatanode datanode, size_t count, void* memory, NCbyt
 }
 
 static off_t
-odom_init(size_t rank, size_t* indices, size_t* dimsizes) 
-{ 
-    int i; 
+odom_init(size_t rank, size_t* indices, size_t* dimsizes)
+{
+    int i;
     off_t count;
     for(count=1,i=0;i<rank;i++) {
         indices[i] = 0;
 	count *= dimsizes[i];
     }
     return count;
-} 
+}
 
 static void
-odom_next(size_t rank, size_t* indices, size_t* dimsizes) 
-{ 
-    int i; 
-    for(i=rank-1;i>=0;i--) { 
-	indices[i]++; 
-	if(indices[i] < dimsizes[i]) break; 
-	if(i > 0) indices[i] = 0; 
-    } 
+odom_next(size_t rank, size_t* indices, size_t* dimsizes)
+{
+    int i;
+    for(i=rank-1;i>=0;i--) {
+	indices[i]++;
+	if(indices[i] < dimsizes[i]) break;
+	if(i > 0) indices[i] = 0;
+    }
 }
 
 /* Return 0 if we have exhausted the indices, 1 otherwise */
 static int
-odom_more(size_t rank, size_t* indices, size_t* dimsizes) 
+odom_more(size_t rank, size_t* indices, size_t* dimsizes)
 {
     if(indices[0] >= dimsizes[0]) return 0;
     return 1;
-} 
+}
 
 /* Compute total # of elements if dimensioned */
 static size_t
@@ -1172,7 +1182,7 @@ static void printstack(char* msg)
             FAIL(oc_dds_dimensionsizes(glink,entry->node,edges));
         FAIL(oc_dds_name(glink,node,&name));
         fprintf(stderr,"    [%d] (%s)",(int)i,name)
-	for(j=0;j<rank;j++) 
+	for(j=0;j<rank;j++)
             fprintf(stderr,"[%u]",(unsigned int)edges[j]);
         fprintf(stderr,"\n");
     }

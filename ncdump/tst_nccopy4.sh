@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
@@ -83,7 +83,7 @@ diff tmp.cdl tmp-chunked.cdl
 $NCCOPY -c dim0/,dim1/,dim2/,dim3/,dim4/,dim5/,dim6/ tmp-chunked.nc tmp-unchunked.nc
 ${NCDUMP} -n tmp tmp-unchunked.nc > tmp-unchunked.cdl
 diff tmp.cdl tmp-unchunked.cdl
-$NCCOPY -c / tmp-chunked.nc tmp-unchunked.nc
+$NCCOPY -c // tmp-chunked.nc tmp-unchunked.nc
 ${NCDUMP} -n tmp tmp-unchunked.nc > tmp-unchunked.cdl
 diff tmp.cdl tmp-unchunked.cdl
 echo "*** Test that nccopy -c works as intended for record dimension default (1)"
