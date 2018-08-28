@@ -56,6 +56,11 @@ main()
     if ((retval = nc_enddef(ncid)))
         ERR(retval);
 
+    /* This will fail. */
+    if ((retval = nc_put_vars_float(ncid, varid, NULL, count, stride,
+                                    mydata)) != NC_EINVALCOORDS)
+        ERR(99);
+
     /* write data */
     if ((retval = nc_put_vars_float(ncid, varid, start, count, stride, mydata)))
         ERR(retval);
