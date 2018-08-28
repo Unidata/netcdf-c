@@ -55,7 +55,8 @@ endif
 check_PROGRAMS = $(TESTPROGRAMS)
 
 # Build Diskless test helpers
-check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4 tst_diskless5 tst_inmemory tst_open_mem
+check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4	\
+tst_diskless5 tst_inmemory tst_open_mem
 if USE_NETCDF4
 check_PROGRAMS += tst_diskless2
 endif
