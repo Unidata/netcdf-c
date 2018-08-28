@@ -361,6 +361,8 @@ int nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
 		    NC_ATT_INFO_T **att);
 int nc4_find_g_var_nc(NC *nc, int ncid, int varid,
 		      NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
+int nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **grp,
+                        NC_VAR_INFO_T **var);
 int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 		     NC_ATT_INFO_T **att);
 int nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
