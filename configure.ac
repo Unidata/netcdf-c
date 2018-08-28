@@ -1,15 +1,12 @@
 #                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
-# This is part of Unidata's netCDF package. Copyright 2005-2012, see
+# This is part of Unidata's netCDF package. Copyright 2005-2018, see
 # the COPYRIGHT file for more information.
 # Ed Hartnett, Ward Fisher, Dennis Heimbigner
 
 # Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
 # and to exp otherwise.
-
-## This puts the cvs ID tag in the output configure script.
-AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 
 # Running autoconf on this file will trigger a warning if
 # autoconf is not at least the specified version.
@@ -254,6 +251,15 @@ AC_ARG_ENABLE([parallel-tests],
                               with parallel I/O support.])])
 test "x$enable_parallel_tests" = xyes || enable_parallel_tests=no
 AC_MSG_RESULT($enable_parallel_tests)
+
+# Did the user specify an MPI launcher other than mpiexec?
+AC_MSG_CHECKING([whether a user specified program to run mpi programs])
+AC_ARG_WITH([mpiexec],
+              [AS_HELP_STRING([--with-mpiexec=<command>],
+                              [Specify command to launch MPI parallel tests.])],
+            [MPIEXEC=$with_mpiexec], [MPIEXEC=mpiexec])
+AC_MSG_RESULT([$MPIEXEC])
+AC_SUBST([MPIEXEC], [$MPIEXEC])
 
 # Did the user specify a default chunk size?
 AC_MSG_CHECKING([whether a default chunk size in bytes was specified])
@@ -1487,8 +1493,9 @@ AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 #####
 
 AC_MSG_NOTICE([generating header files and makefiles])
+AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
+AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
 AC_CONFIG_FILES([Makefile
-                 nc-config
                  netcdf.pc
                  libnetcdf.settings
                  postinstall.sh
@@ -1525,11 +1532,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
                  plugins/Makefile
-                 ],
-                 [test -f  nc-config && chmod 755 nc-config])
-
+                 ])
 AC_OUTPUT()
-
-    #mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh
 
 cat libnetcdf.settings

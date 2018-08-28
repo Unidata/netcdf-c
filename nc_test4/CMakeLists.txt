@@ -101,4 +101,4 @@ IF(ENABLE_METADATA_PERF)
   add_sh_test(nc_test4 perftest)
 ENDIF()
 
-ADD_EXTRA_DIST(findplugin.in)
+ADD_EXTRA_DIST(findplugin.in run_par_test.sh.in)
