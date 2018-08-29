@@ -1401,6 +1401,13 @@ char* nc_err_code_name(int err)
 int
 test_nc_against_pnetcdf(void)
 {
+    int format;
+
+    nc_set_default_format(NC_FORMAT_CLASSIC, &format);
+    nc_set_default_format(format, NULL); /* restore default */
+    if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_NETCDF4_CLASSIC)
+        return 1; /* skip test for netcdf4 formats */
+
 #ifdef USE_PNETCDF
     int  ncid; /* netCDF id */
     int  err;  /* status */

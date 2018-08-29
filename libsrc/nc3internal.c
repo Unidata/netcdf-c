@@ -1072,12 +1072,6 @@ NC3_create(const char *path, int ioflags,
 
 	assert(nc3->flags == 0);
 
-	/* Apply default create format. */
-	if (nc_get_default_format() == NC_FORMAT_64BIT_OFFSET)
-	  ioflags |= NC_64BIT_OFFSET;
-	else if (nc_get_default_format() == NC_FORMAT_CDF5)
-	  ioflags |= NC_64BIT_DATA;
-
 	/* Now we can set min size */
 	if (fIsSet(ioflags, NC_64BIT_DATA))
 	    nc3->xsz = MIN_NC5_XSZ; /* CDF-5 has minimum 16 extra bytes */
