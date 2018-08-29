@@ -29,6 +29,7 @@
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
 #include "ncwinpath.h"
+#include "fbits.h"
 
 /* If Defined, then use only stdio for all magic number io;
    otherwise use stdio or mpio as required.
@@ -2027,7 +2028,6 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    /* Need three pieces of information for now */
    int model = NC_FORMATX_UNDEFINED; /* one of the NC_FORMATX values */
    int isurl = 0;   /* dap or cdmremote or neither */
-   int xcmode = 0; /* for implied cmode flags */
    char* path = NULL;
 
    TRACE(nc_create);
@@ -2073,66 +2073,49 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	}
     }
 
-   /* Look to the incoming cmode for hints */
-   if(model == NC_FORMATX_UNDEFINED) {
+    /* determine the model */
 #ifdef USE_NETCDF4
-      if((cmode & NC_NETCDF4) == NC_NETCDF4)
-	model = NC_FORMATX_NC4;
-      else
+    if (model == NC_FORMATX_UNDEFINED && ((cmode & NC_NETCDF4) == NC_NETCDF4))
+        model = NC_FORMATX_NC4;
 #endif
 #ifdef USE_PNETCDF
-      /* pnetcdf is used for parallel io on CDF-1, CDF-2, and CDF-5 */
-      if((cmode & NC_MPIIO) == NC_MPIIO)
-	model = NC_FORMATX_PNETCDF;
-      else
+    if (model == NC_FORMATX_UNDEFINED && ((cmode & NC_MPIIO) == NC_MPIIO))
+        /* pnetcdf is used for parallel io on CDF-1, CDF-2, and CDF-5 */
+        model = NC_FORMATX_PNETCDF;
 #endif
-	{}
-    }
-    if(model == NC_FORMATX_UNDEFINED) {
-      /* Check default format (not formatx) */
-      int format = nc_get_default_format();
-      switch (format) {
+
+    /* Check default format (not formatx) */
+    if (!fIsSet(cmode, NC_64BIT_OFFSET)  && !fIsSet(cmode, NC_64BIT_DATA) &&
+        !fIsSet(cmode, NC_CLASSIC_MODEL) && !fIsSet(cmode, NC_NETCDF4)) {
+        /* if no file format flag is set in cmode, use default */
+        int format = nc_get_default_format();
+        switch (format) {
 #ifdef USE_NETCDF4
-	 case NC_FORMAT_NETCDF4:
-	    xcmode |= NC_NETCDF4;
-	    model = NC_FORMATX_NC4;
-	    break;
-	 case NC_FORMAT_NETCDF4_CLASSIC:
-	    xcmode |= NC_CLASSIC_MODEL;
-	    model = NC_FORMATX_NC4;
-	    break;
+            case NC_FORMAT_NETCDF4:
+                 cmode |= NC_NETCDF4;
+                 if (model == NC_FORMATX_UNDEFINED) model = NC_FORMATX_NC4;
+                 break;
+            case NC_FORMAT_NETCDF4_CLASSIC:
+                 cmode |= NC_NETCDF4 | NC_CLASSIC_MODEL;
+                 if (model == NC_FORMATX_UNDEFINED) model = NC_FORMATX_NC4;
+                 break;
 #endif
 #ifdef ENABLE_CDF5
-	 case NC_FORMAT_CDF5:
-	    xcmode |= NC_64BIT_DATA;
-	    model = NC_FORMATX_NC3;
-	    break;
+            case NC_FORMAT_CDF5:
+                 cmode |= NC_64BIT_DATA;
+                 break;
 #endif
-      case NC_FORMAT_64BIT_OFFSET:
-	    xcmode |= NC_64BIT_OFFSET;
-	    model = NC_FORMATX_NC3;
-	    break;
-	 case NC_FORMAT_CLASSIC:
-	    model = NC_FORMATX_NC3;
-	    break;
-	 default:
-	    model = NC_FORMATX_NC3;
-	    break;
-      }
-   }
+            case NC_FORMAT_64BIT_OFFSET:
+                 cmode |= NC_64BIT_OFFSET;
+                 break;
+            case NC_FORMAT_CLASSIC: break;
+            default: break;
+        }
+    }
 
-   /* Add inferred flags */
-   cmode |= xcmode;
-
-   /* Clean up illegal combinations */
-   if((cmode & (NC_64BIT_OFFSET|NC_64BIT_DATA)) == (NC_64BIT_OFFSET|NC_64BIT_DATA))
-	cmode &= ~(NC_64BIT_OFFSET); /*NC_64BIT_DATA=>NC_64BIT_OFFSET*/
-
-   if((cmode & NC_MPIIO) && (cmode & NC_MPIPOSIX))
-   {
-       nullfree(path);
-       return  NC_EINVAL;
-   }
+    /* default model */
+    if (model == NC_FORMATX_UNDEFINED)
+        model = NC_FORMATX_NC3;
 
    if (dispatcher == NULL)
    {
