@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # This shell script tests ncdump for netcdf-4
 # Ed Hartnett, Dennis Heimbigner, Ward Fisher
 
@@ -7,7 +7,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
-function ERR {
+ERR() {
     RES=$?
     if [ $RES -ne 0 ]; then
         echo "Error found: $RES"

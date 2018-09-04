@@ -108,7 +108,8 @@ typedef struct NC_MPI_INFO {
 /* Define known dispatch tables and initializers */
 
 /*Forward*/
-typedef struct NC_Dispatch NC_Dispatch;
+// typedef struct NC_Dispatch NC_Dispatch;
+
 
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
@@ -150,6 +151,10 @@ extern int HDF4_finalize(void);
 extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
 extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];
 extern ptrdiff_t nc_ptrdiffvector1[NC_MAX_VAR_DIMS];
+
+/* Prototypes. */
+int NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
+                   ptrdiff_t **stride);
 
 /**************************************************/
 /* Forward */

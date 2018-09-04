@@ -1,12 +1,12 @@
 # Test c output
-T=tst_unicode
+T=tst_chunking
 
 #ARGS=./x.nc
 
 #TF=test_atomic_array.cdl
 
 #CMD=valgrind --leak-check=full
-CMD=gdb --args
+#CMD=gdb --args
 
 #HDF4=1
 #PAR=1
@@ -36,11 +36,11 @@ LLP=/usr/local/lib:${LD_LIBRARY_PATH}
 
 all:: comp
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
-	${CMD} ./t ${ARGS}
+	${CMD} ./$T ${ARGS}
 
 comp::
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
-	${CC} -o t ${CFLAGS} ${T}.c ${SRC} ${LDFLAGS}; \
+	${CC} -o $T ${CFLAGS} ${T}.c ${SRC} ${LDFLAGS}; \
 
 x.nc: x.cdl
 	ncgen -4 x.cdl
