@@ -74,8 +74,7 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 
       /* These won't work. */
-      if (nc_get_vara_int(ncid, 0, NULL, count, data_int) != NC_EINVAL) ERR;
-      if (nc_get_vara_int(ncid, 0, start, count, NULL) != NC_EINVAL) ERR;
+      if (nc_get_vara_int(ncid, 0, NULL, count, data_int) != NC_EINVALCOORDS) ERR;
       if (nc_get_vara_int(ncid + TEST_VAL_42, 0, start, count, data_int) != NC_EBADID) ERR;
 
       /* Read data as short. */

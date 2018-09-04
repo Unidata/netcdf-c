@@ -1985,8 +1985,10 @@ usage(void)
     /* Don't document this flaky option until it works better */
     /* [-x]      use experimental computed estimates for variable-specific chunk caches\n\ */
 
+
     error("%s [-k kind] [-[3|4|6|7]] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] varlist] [-[g|G] grplist] [-m n] [-h n] [-e n] [-r] [-F filterspec] [-Ln] [-Mn] infile outfile\n%s\nnetCDF library version %s",
 	  progname, USAGE, nc_inq_libvers());
+
 }
 
 int

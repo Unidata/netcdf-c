@@ -311,18 +311,6 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    }
 #endif /* USE_PARALLEL_POSIX */
 
-   cmode |= NC_NETCDF4;
-
-   /* Apply default create format. */
-   if (nc_get_default_format() == NC_FORMAT_CDF5)
-      cmode |= NC_CDF5;
-   else if (nc_get_default_format() == NC_FORMAT_64BIT_OFFSET)
-      cmode |= NC_64BIT_OFFSET;
-   else if (nc_get_default_format() == NC_FORMAT_NETCDF4_CLASSIC)
-      cmode |= NC_CLASSIC_MODEL;
-
-   LOG((2, "cmode after applying default format: 0x%x", cmode));
-
    nc_file->int_ncid = nc_file->ext_ncid;
 
    res = nc4_create_file(path, cmode, initialsz, parameters, nc_file);
