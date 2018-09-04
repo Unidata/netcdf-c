@@ -768,6 +768,7 @@ INPUT = \
     @abs_top_srcdir@/docs/bestpractices.md \
     @abs_top_srcdir@/docs/tutorial.dox \
     @abs_top_srcdir@/docs/internal.dox \
+    @abs_top_srcdir@/docs/inmeminternal.dox \
     @abs_top_srcdir@/docs/indexing.dox \
     @abs_top_srcdir@/docs/testserver.dox \
     @abs_top_srcdir@/include/netcdf.h \

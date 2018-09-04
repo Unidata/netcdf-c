@@ -1984,6 +1984,12 @@ IF(ENABLE_EXAMPLES)
 configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
 ENDIF()
 
+#####
+# Build ncdap_test|dap4_test/findtestserver[4].c
+#####
+configure_file(${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_BINARY_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
+configure_file(${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_BINARY_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
+
 ####
 # Export files
 ####
