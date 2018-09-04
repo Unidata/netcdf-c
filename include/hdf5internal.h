@@ -66,5 +66,6 @@ int nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_ty
 /* These functions are internal to the libhdf5 directory. */
 int nc4_detect_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
 int hdf5_set_log_level();
+int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
 
 #endif /* _HDF5INTERNAL_ */
