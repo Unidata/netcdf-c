@@ -19,10 +19,12 @@ TEST_EXTENSIONS = .sh
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names       \
 tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type      \
 tst_utf8_validate tst_utf8_phrases tst_global_fillval                   \
-tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef
+tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef            \
+tst_default_format
 
 if USE_PNETCDF
-TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar tst_formatx_pnetcdf
+TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar tst_formatx_pnetcdf \
+tst_default_format_pnetcdf
 endif
 
 if TEST_PARALLEL4
@@ -53,7 +55,8 @@ endif
 check_PROGRAMS = $(TESTPROGRAMS)
 
 # Build Diskless test helpers
-check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4 tst_diskless5 tst_inmemory tst_open_mem
+check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4	\
+tst_diskless5 tst_inmemory tst_open_mem
 if USE_NETCDF4
 check_PROGRAMS += tst_diskless2
 endif
