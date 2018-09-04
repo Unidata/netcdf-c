@@ -23,6 +23,7 @@
 #include "dimmap.h"
 #include "nccomps.h"
 #include "ncfilter.h"
+#include "list.h"
 
 #undef DEBUGFILTER
 
@@ -47,6 +48,8 @@ int optind;
 /* Ascii characters requiring escaping as lead*/
 #define ESCAPESD "0123456789"
 #define ESCAPES " !\"#$%&'()*,:;<=>?[]\\^`{|}~"
+
+#define DFALTUNLIMSIZE (4* 1<<20) /*4 megabytes */
 
 #ifdef USE_NETCDF4
 
@@ -73,20 +76,65 @@ static int suppressfilters = 0; /* 1 => do not apply any output filters unless s
 
 #endif
 
+/* table of formats for legal -k values */
+static struct Kvalues {
+	char* name;
+	int kind;
+} legalkinds[] = {
+	/* NetCDF-3 classic format (32-bit offsets) */
+	{"classic", NC_FORMAT_CLASSIC}, /* canonical format name */
+	{"nc3", NC_FORMAT_CLASSIC},	/* short format name */
+	{"1", NC_FORMAT_CLASSIC}, /* deprecated, use "-3" or "-k nc3" instead */
+
+	/* NetCDF-3 64-bit offset format */
+	{"64-bit offset", NC_FORMAT_64BIT_OFFSET}, /* canonical format name */
+	{"nc6", NC_FORMAT_64BIT_OFFSET},	    /* short format name */
+	{"2", NC_FORMAT_64BIT_OFFSET},	/* deprecated, use "-6" or "-k nc6" instead */
+	{"64-bit-offset", NC_FORMAT_64BIT_OFFSET}, /* deprecated alias */
+
+	/* NetCDF-4 HDF5-based format */
+	{"netCDF-4", NC_FORMAT_NETCDF4}, /* canonical format name */
+	{"nc4", NC_FORMAT_NETCDF4},	 /* short format name */
+	{"3", NC_FORMAT_NETCDF4}, /* deprecated, use "-4" or "-k nc4" instead */
+	{"netCDF4", NC_FORMAT_NETCDF4}, /* deprecated aliases */
+	{"hdf5", NC_FORMAT_NETCDF4},
+	{"enhanced", NC_FORMAT_NETCDF4},
+
+	/* NetCDF-4 HDF5-based format, restricted to classic data model */
+	{"netCDF-4 classic model", NC_FORMAT_NETCDF4_CLASSIC}, /* canonical format name */
+	{"nc7", NC_FORMAT_NETCDF4_CLASSIC}, /* short format name */
+	{"4", NC_FORMAT_NETCDF4_CLASSIC}, /* deprecated, use "-7" or -k nc7" */
+	{"netCDF-4-classic", NC_FORMAT_NETCDF4_CLASSIC}, /* deprecated aliases */
+	{"netCDF-4_classic", NC_FORMAT_NETCDF4_CLASSIC},
+	{"netCDF4_classic", NC_FORMAT_NETCDF4_CLASSIC},
+	{"hdf5-nc3", NC_FORMAT_NETCDF4_CLASSIC},
+	{"enhanced-nc3", NC_FORMAT_NETCDF4_CLASSIC},
+
+	/* The 64-bit data (CDF5) kind (5) */
+	{"5", NC_FORMAT_CDF5},
+	{"64-bit-data", NC_FORMAT_CDF5},
+	{"64-bit data", NC_FORMAT_CDF5},
+	{"nc5", NC_FORMAT_CDF5},
+	{"cdf5", NC_FORMAT_CDF5},
+
+	/* null terminate*/
+	{NULL,0}
+};
+
 /* Global variables for command-line requests */
 char *progname;	       /* for error messages */
 static int option_kind = SAME_AS_INPUT;
 static int option_deflate_level = -1;	/* default, compress output only if input compressed */
 static int option_shuffle_vars = NC_NOSHUFFLE; /* default, no shuffling on compression */
 static int option_fix_unlimdims = 0; /* default, preserve unlimited dimensions */
-static char* option_chunkspec = 0;   /* default, no chunk specification */
+static List* option_chunkspecs = NULL;   /* default, no chunk specification */
 static size_t option_copy_buffer_size = COPY_BUFFER_SIZE;
 static size_t option_chunk_cache_size = CHUNK_CACHE_SIZE; /* default from config.h */
 static size_t option_chunk_cache_nelems = CHUNK_CACHE_NELEMS; /* default from config.h */
 static int option_read_diskless = 0; /* default, don't read input into memory on open */
 static int option_write_diskless = 0; /* default, don't write output to diskless file */
 #ifdef USE_NETCDF4
-static int option_min_chunk_bytes = CHUNK_THRESHOLD; /* default, don't chunk variable if prod of
+static size_t option_min_chunk_bytes = CHUNK_THRESHOLD; /* default, don't chunk variable if prod of
 						      * chunksizes of its dimensions is smaller
 						      * than this */
 #endif
@@ -97,9 +145,9 @@ static char** option_lgrps = 0;		    /* list of group names specified with -g
 static idnode_t* option_grpids = 0; /* list of grpids matching list specified with -g option */
 static bool_t option_grpstruct = false; /* if -g set, copy structure for non-selected groups */
 static int option_nlvars = 0; /* Number of variables specified with -v * option on command line */
-static char** option_lvars = 0;         /* list of variable names specified with -v
-                                         * option on command line */
-static bool_t option_varstruct = false;   /* if -v set, copy structure for non-selected vars */
+static char** option_lvars = 0;		/* list of variable names specified with -v
+					 * option on command line */
+static bool_t option_varstruct = false;	  /* if -v set, copy structure for non-selected vars */
 static int option_compute_chunkcaches = 0; /* default, don't try still flaky estimate of
 					    * chunk cache for each variable */
 
@@ -186,7 +234,7 @@ computeFQN(VarID vid, char** fqnp)
     q = escname;
     for(first=1;*p;first=0) {
 	if((first && strchr(ESCAPESD,*p) != NULL)
-           || strchr(ESCAPES,*p) != NULL) *q++ = '\\';
+	   || strchr(ESCAPES,*p) != NULL) *q++ = '\\';
 	*q++ = *p++;
     }
     *q++ = '\0'; /* guarantee */
@@ -195,44 +243,6 @@ done:
     if(stat == NC_NOERR && fqnp != NULL) *fqnp = fqn;
     return stat;
 }
-
-#if 0
-static int
-parseFQN(int ncid, const char* fqn0, VarID* idp)
-{
-    int stat = NC_NOERR;
-    char* fqn;
-    VarID vid;
-    char* p;
-    char* q;
-    char* segment;
-
-    vid.grpid = ncid;
-    if(fqn0 == NULL || fqn0[1] != '/')
-	{stat = NC_EBADNAME; goto done;}
-    fqn = strdup(fqn0+1); /* skip leading '/'*/
-    p = fqn;
-    for(;;) {
-	int newgrp;
-	segment = p;
-	q = p;
-        while(*p != '\0' && *p != '/') {
-	    if(*p == '\\') p++;
-	    *q++ = *p++;
-	}
-        if(*p == '\0') break;
-	*p++ = '\0';
-	if((stat=nc_inq_grp_ncid(vid.grpid,segment,&newgrp))) goto done;
-	vid.grpid = newgrp;
-    }
-    /* Segment should point to the varname */
-    if((stat=nc_inq_varid(vid.grpid,segment,&vid.varid))) goto done;
-done:
-    if(fqn) free(fqn);
-    if(stat == NC_NOERR && idp != NULL) *idp = vid;
-    return stat;
-}
-#endif
 
 static int
 parsefilterspec(const char* optarg0, struct FilterSpec* spec)
@@ -266,9 +276,9 @@ parsefilterspec(const char* optarg0, struct FilterSpec* spec)
     if(optarg[0]=='/')
 	spec->fqn = strdup(optarg);
     else {
-        spec->fqn = (char*)malloc(1+strlen(optarg)+1);
+	spec->fqn = (char*)malloc(1+strlen(optarg)+1);
 	strcpy(spec->fqn,"/");
-        strcat(spec->fqn,optarg);
+	strcat(spec->fqn,optarg);
     }
 
     /* Check for special cases */
@@ -280,10 +290,10 @@ parsefilterspec(const char* optarg0, struct FilterSpec* spec)
 
     /* Collect the id+parameters */
     if((stat = NC_parsefilterspec(remainder,&id,&nparams,&params)) == NC_NOERR) {
-        if(spec != NULL) {
-            spec->filterid = id;
-            spec->nparams = nparams;
-            spec->params = params;
+	if(spec != NULL) {
+	    spec->filterid = id;
+	    spec->nparams = nparams;
+	    spec->params = params;
 	}
     }
 
@@ -336,7 +346,7 @@ static int
 inq_var_chunking_params(int igrp, int ivarid, int ogrp, int ovarid,
 			size_t* chunkcache_sizep,
 			size_t *chunkcache_nelemsp,
-                        float * chunkcache_preemptionp)
+			float * chunkcache_preemptionp)
 {
     int stat = NC_NOERR;
     int ndims;
@@ -583,7 +593,7 @@ copy_groups(int iroot, int oroot)
 	    /* get full group name of input group */
 	    NC_CHECK(nc_inq_grpname(grpids[i], grpname));
 	    if (option_grpstruct || group_wanted(grpids[i], option_nlgrps, option_grpids)) {
-	        NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, NULL));
+		NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, NULL));
 		grpname_full = emalloc(len_name + 1);
 		NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, grpname_full));
 		/* Make sure, the parent group is also wanted (root group is always wanted) */
@@ -653,90 +663,10 @@ copy_types(int igrp, int ogrp)
     return stat;
 }
 
-/* Copy all netCDF-4 specific variable properties such as chunking,
- * endianness, deflation, checksumming, fill, etc. */
-static int
-copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
-{
-    int stat = NC_NOERR;
-    {				/* handle chunking parameters */
-	int ndims;
-	NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
-	if (ndims > 0) {		/* no chunking for scalar variables */
-	    int contig = 0;
-	    size_t *chunkp = (size_t *) emalloc(ndims * sizeof(size_t));
-	    int *dimids = (int *) emalloc(ndims * sizeof(int));
-	    int idim;
-	     /* size of a chunk: product of dimension chunksizes and size of value */
-	    size_t csprod = val_size(ogrp, o_varid);
-	    int is_unlimited = 0;
-	    NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, chunkp));
-	    NC_CHECK(nc_inq_vardimid(igrp, varid, dimids));
-
-	    for(idim = 0; idim < ndims; idim++) {
-		int idimid = dimids[idim];
-		int odimid = dimmap_odimid(idimid);
-		size_t chunksize = chunkspec_size(idimid);
-		if(chunksize > 0) { /* found in chunkspec */
-		    chunkp[idim] = chunksize;
-		}
-		csprod *= chunkp[idim];
-		if(dimmap_ounlim(odimid))
-		    is_unlimited = 1;
-	    }
-	    /* Explicitly set chunking, even if default */
-	    /* If product of chunksizes is too small and no unlimited
-	     * dimensions used, don't chunk.  Also if chunking
-	     * explicitly turned off with chunk spec, don't chunk. */
-	    if ((csprod < option_min_chunk_bytes && !is_unlimited) || contig == 1
-		|| chunkspec_omit() == true) {
-		NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CONTIGUOUS, NULL));
-	    } else {
-		NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, chunkp));
-	    }
-	    free(dimids);
-	    free(chunkp);
-	}
-    }
-    { /* handle compression parameters, copying from input, overriding
-       * with command-line options */
-	int shuffle_in=0, deflate_in=0, deflate_level_in=0;
-	int shuffle_out=0, deflate_out=0, deflate_level_out=0;
-	if(option_deflate_level != 0) {
-	    NC_CHECK(nc_inq_var_deflate(igrp, varid, &shuffle_in, &deflate_in, &deflate_level_in));
-	    if(option_deflate_level == -1) { /* not specified, copy input compression and shuffling */
-		shuffle_out = shuffle_in;
-		deflate_out = deflate_in;
-		deflate_level_out = deflate_level_in;
-	    } else if(option_deflate_level > 0) { /* change to specified compression, shuffling */
-		shuffle_out = option_shuffle_vars;
-		deflate_out=1;
-		deflate_level_out = option_deflate_level;
-	    }
-	    NC_CHECK(nc_def_var_deflate(ogrp, o_varid, shuffle_out, deflate_out, deflate_level_out));
-	}
-    }
-    {				/* handle checksum parameters */
-	int fletcher32 = 0;
-	NC_CHECK(nc_inq_var_fletcher32(igrp, varid, &fletcher32));
-	if(fletcher32 != 0) {
-	    NC_CHECK(nc_def_var_fletcher32(ogrp, o_varid, fletcher32));
-	}
-    }
-    {				/* handle endianness */
-	int endianness = 0;
-	NC_CHECK(nc_inq_var_endian(igrp, varid, &endianness));
-	if(endianness != NC_ENDIAN_NATIVE) { /* native is the default */
-	    NC_CHECK(nc_def_var_endian(ogrp, o_varid, endianness));
-	}
-    }
-    return stat;
-}
-
 /* Copy netCDF-4 specific variable filter properties */
 /* Watch out if input is netcdf-3 */
 static int
-copy_var_filter(int igrp, int varid, int ogrp, int o_varid)
+copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outkind)
 {
     int stat = NC_NOERR;
     VarID vid = {igrp,varid};
@@ -747,14 +677,11 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid)
       actualspec = {NULL,0,0,0,NULL};
     int i;
     char* ofqn = NULL;
-    int format, oformat;
     int inputdefined, outputdefined, unfiltered;
+    int innc4 = (inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC);
+    int outnc4 = (outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC);
 
-    /* Get file format of the input and output */
-    if((stat=nc_inq_format(vid.grpid,&format))) goto done;
-    if((stat=nc_inq_format(ovid.grpid,&oformat))) goto done;
-
-    if(oformat != NC_FORMAT_NETCDF4 && oformat != NC_FORMAT_NETCDF4_CLASSIC)
+    if(!outnc4)
 	goto done; /* Can only use filter when output is some netcdf4 variant */
 
     /* Compute the output vid's FQN */
@@ -768,7 +695,7 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid)
     /* Is there a filter on the output variable */
     outputdefined = 0; /* default is no filter defined */
     /* Only bother to look if output is netcdf-4 variant */
-    if(oformat == NC_FORMAT_NETCDF4 || oformat == NC_FORMAT_NETCDF4_CLASSIC) {
+    if(outnc4) {
         /* See if any output filter spec is defined for this output variable */
         for(i=0;i<nfilterspecs;i++) {
 	    if(strcmp(filterspecs[i].fqn,ofqn)==0) {
@@ -782,7 +709,7 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid)
     /* Is there a filter on the input variable */
     inputdefined = 0; /* default is no filter defined */
     /* Only bother to look if input is netcdf-4 variant */
-    if(format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_NETCDF4_CLASSIC) {
+    if(innc4) {
 	stat=nc_inq_var_filter(vid.grpid,vid.varid,&inspec.filterid,&inspec.nparams,NULL);
 	if(stat && stat != NC_EFILTER)
 	    goto done; /* true error */
@@ -839,6 +766,218 @@ done:
     return stat;
 }
 
+/* Propagate chunking from input to output taking -c flags into account. */
+/* Subsumes old set_var_chunked */
+static int
+copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkind, int outkind)
+{
+    int stat = NC_NOERR;
+    int innc4 = (inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC);
+    int outnc4 = (outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC);
+
+    /* First, check the file kinds */
+    if(!outnc4)
+	return stat; /* no chunking */
+
+    /* See if a scalar */
+    if(ndims == 0)
+	return stat; /* scalars cannot be chunked */
+
+    /* If var specific chunking was specified for this output variable
+       then it overrides all else.
+    */
+    /* Note, using goto done instead of nested if-then-else */
+
+    if(varchunkspec_exists(igrp,i_varid)) {
+	if(varchunkspec_omit(igrp,i_varid)) {
+	   NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CONTIGUOUS, NULL));
+	} else {
+	    size_t* ochunkp = varchunkspec_chunksizes(igrp,i_varid);
+	    NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, ochunkp));
+	}
+	goto done;
+    }
+
+    { /* Try dim-specific chunking */
+	int idim;
+	/* size of a chunk: product of dimension chunksizes and size of value */
+	size_t csprod;
+	int is_unlimited = 0;
+	size_t typesize;
+	size_t ichunkp[NC_MAX_VAR_DIMS];
+	size_t ochunkp[NC_MAX_VAR_DIMS];
+	int dimids[NC_MAX_VAR_DIMS];
+	int icontig = 1;
+	int ocontig = 1; /* until proven otherwise */
+
+	/* See if chunking was suppressed */
+	if(dimchunkspec_omit())
+	    goto done; /* do nothing */
+
+	/* Setup for chunking */
+	typesize = val_size(ogrp, o_varid);
+	csprod = typesize;
+	memset(&dimids,0,sizeof(dimids));
+	memset(&ichunkp,0,sizeof(ichunkp));
+	memset(&ochunkp,0,sizeof(ochunkp));
+
+	/* Get the chunking, if any, on the current input variable */
+	NC_CHECK(nc_inq_var_chunking(igrp, i_varid, &icontig, ichunkp));
+	if(!icontig)
+	    ocontig = 0; /* If input is chunked, then so is output */
+
+	/* Prepare to iterate over the dimids of this input variable */
+	NC_CHECK(nc_inq_vardimid(igrp, i_varid, dimids));
+
+        /* Assign chunk sizes for all dimensions of variable;
+	   even if we decide to not chunk */
+        for(idim = 0; idim < ndims; idim++) {
+            int idimid = dimids[idim];
+            int odimid = dimmap_odimid(idimid);
+            size_t chunksize;
+            size_t dimlen;
+    
+            /* Get input dimension length */
+            NC_CHECK(nc_inq_dimlen(igrp, idimid, &dimlen));
+
+            /* Check for unlimited */
+            if(dimmap_ounlim(odimid)) {
+                is_unlimited = 1;
+                ocontig = 0; /* force chunking */
+            }
+
+            /* If the -c set a chunk size for this dimension, use it */
+            chunksize = dimchunkspec_size(idimid);
+            if(chunksize > 0) { /* found in chunkspec */
+                ochunkp[idim] = chunksize;
+                ocontig = 0; /* cannot use contiguous */
+                goto next;
+            }
+    
+            /* Not specified in -c; Apply defaulting rules as defined in nccopy.1 */
+
+	    /* If input is chunked, then use that chunk size */
+	    if(!icontig) {
+		ochunkp[idim] = ichunkp[idim];
+		ocontig = 0;
+		goto next;
+	    }
+
+            /* If input is netcdf-4 then use the input size as the chunk size;
+		but do not force chunking.
+             */
+            if(!innc4) {
+                ochunkp[idim] = dimlen;
+                goto next;
+            }
+
+            /* Default for unlimited is max(4 megabytes, current dim size) */
+            if(is_unlimited) {
+                size_t mb4dimsize = DFALTUNLIMSIZE / typesize;
+                ochunkp[idim] = (dimlen > mb4dimsize ? mb4dimsize : dimlen);
+            } else {
+                /* final default is the current dimension size */
+                ochunkp[idim] = dimlen;
+            }
+
+next:
+            /* compute on-going dimension product */
+            csprod *= ochunkp[idim];
+	}
+
+        /* Finally, if total chunksize is too small (and dim is not unlimited) => do not chunk */
+        if(csprod < option_min_chunk_bytes && !is_unlimited) {
+	    ocontig = 1; /* Force contiguous */
+        }
+
+	/* Apply the chunking, if any */
+
+	if(ocontig) { /* We can use contiguous output */
+	    NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CONTIGUOUS, NULL));
+	} else {
+	    NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, ochunkp));
+	}
+    }
+done:
+    return stat;
+}
+
+/* Copy all netCDF-4 specific variable properties such as chunking,
+ * endianness, deflation, checksumming, fill, etc. */
+static int
+copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int outkind)
+{
+    int stat = NC_NOERR;
+    int innc4 = (inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC);
+    int outnc4 = (outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC);
+
+    if(!outnc4)
+	return stat; /* Ignore non-netcdf4 files */
+
+    {				/* handle chunking parameters */
+	int ndims;
+	NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
+	if (ndims > 0) {		/* no chunking for scalar variables */
+	    NC_CHECK(copy_chunking(igrp, varid, ogrp, o_varid, ndims, inkind, outkind));
+	}
+    }
+
+    { /* handle compression parameters, copying from input, overriding
+       * with command-line options */
+	int shuffle_in=0, deflate_in=0, deflate_level_in=0;
+	int shuffle_out=0, deflate_out=0, deflate_level_out=0;
+        if(innc4) { /* See if the input variable has deflation applied */
+	    NC_CHECK(nc_inq_var_deflate(igrp, varid, &shuffle_in, &deflate_in, &deflate_level_in));
+	}
+	if(option_deflate_level == -1) {
+	    /* not specified by -d flag, copy input compression and shuffling */
+  	    shuffle_out = shuffle_in;
+	    deflate_out = deflate_in;
+	    deflate_level_out = deflate_level_in;
+	} else if(option_deflate_level > 0) { /* change to specified compression, shuffling */
+	    shuffle_out = option_shuffle_vars;
+	    deflate_out=1;
+	    deflate_level_out = option_deflate_level;
+	} else if(option_deflate_level == 0) { /* special case; force off */
+	    shuffle_out = 0;
+	    deflate_out = 0;
+	    deflate_level_out = 0;
+	}
+	/* Apply output deflation */
+	if(outnc4) {
+	    /* Note that if we invoke this function and even if shuffle and deflate flags are 0,
+               then default chunking will be turned on; so do a special check for that. */
+	    if(shuffle_out != 0 || deflate_out != 0)
+	        NC_CHECK(nc_def_var_deflate(ogrp, o_varid, shuffle_out, deflate_out, deflate_level_out));
+	}
+    }
+
+    if(innc4 && outnc4)
+    {				/* handle checksum parameters */
+	int fletcher32 = 0;
+	NC_CHECK(nc_inq_var_fletcher32(igrp, varid, &fletcher32));
+	if(fletcher32 != 0) {
+	    NC_CHECK(nc_def_var_fletcher32(ogrp, o_varid, fletcher32));
+	}
+    }
+
+    if(innc4 && outnc4)
+    {				/* handle endianness */
+	int endianness = 0;
+	NC_CHECK(nc_inq_var_endian(igrp, varid, &endianness));
+	if(endianness != NC_ENDIAN_NATIVE) { /* native is the default */
+	    NC_CHECK(nc_def_var_endian(ogrp, o_varid, endianness));
+	}
+    }
+
+    /* handle other general filters */
+    NC_CHECK(copy_var_filter(igrp, varid, ogrp, o_varid, inkind, outkind));
+
+    return stat;
+}
+
+#if 0
+Subsumed into copy_chunking.
 /* Set output variable o_varid (in group ogrp) to use chunking
  * specified on command line, only called for classic format input and
  * netCDF-4 format output, so no existing chunk lengths to override. */
@@ -850,7 +989,7 @@ set_var_chunked(int ogrp, int o_varid)
     int odim;
     size_t chunk_threshold = CHUNK_THRESHOLD;
 
-    if(chunkspec_ndims() == 0) 	/* no chunking specified on command line */
+    if(dimchunkspec_ndims() == 0) 	/* no chunking specified on command line */
 	return stat;
     NC_CHECK(nc_inq_varndims(ogrp, o_varid, &ndims));
 
@@ -878,7 +1017,7 @@ set_var_chunked(int ogrp, int o_varid)
 	    if(dimmap_ounlim(odimid))
 		is_unlimited = 1; /* whether vriable is unlimited */
 	    if(idimid != -1) {
-		size_t chunksize = chunkspec_size(idimid); /* from chunkspec */
+		size_t chunksize = dimchunkspec_size(idimid); /* from chunkspec */
 		size_t dimlen;
 		NC_CHECK(nc_inq_dimlen(ogrp, odimid, &dimlen));
 		if( (chunksize > 0) || dimmap_ounlim(odimid)) {
@@ -901,7 +1040,7 @@ set_var_chunked(int ogrp, int o_varid)
 	    for(odim = 0; odim < ndims; odim++) {
 		int odimid = dimids[odim];
 		int idimid = dimmap_idimid(odimid);
-		size_t chunksize = chunkspec_size(idimid);
+		size_t chunksize = dimchunkspec_size(idimid);
 		if(chunksize > 0) {
 		    chunkp[odim] = chunksize;
 		} else {
@@ -919,7 +1058,9 @@ set_var_chunked(int ogrp, int o_varid)
     }
     return stat;
 }
+#endif
 
+#if 0
 /* Set variable to compression specified on command line */
 static int
 set_var_compressed(int ogrp, int o_varid)
@@ -931,6 +1072,7 @@ set_var_compressed(int ogrp, int o_varid)
     }
     return stat;
 }
+#endif
 
 /* Release the variable chunk cache allocated for variable varid in
  * group grp.  This is not necessary, but will save some memory when
@@ -1110,19 +1252,11 @@ copy_var(int igrp, int varid, int ogrp)
 	int outkind;
 	NC_CHECK(nc_inq_format(igrp, &inkind));
 	NC_CHECK(nc_inq_format(ogrp, &outkind));
-	if(outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC) {
-	    if((inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC)) {
-		/* Copy all netCDF-4 specific variable properties such as
-		 * chunking, endianness, deflation, checksumming, fill, etc. */
-		NC_CHECK(copy_var_specials(igrp, varid, ogrp, o_varid));
-	    } else {
-		/* Set chunking if specified in command line option */
-		NC_CHECK(set_var_chunked(ogrp, o_varid));
-		/* Set compression if specified in command line option */
-		NC_CHECK(set_var_compressed(ogrp, o_varid));
-	    }
-	    NC_CHECK(copy_var_filter(igrp, varid, ogrp, o_varid));
-	}
+        /* Copy all variable properties such as
+	 * chunking, endianness, deflation, checksumming, fill, etc.
+	 * Ok to call if outkind is netcdf-3
+         */
+	NC_CHECK(copy_var_specials(igrp, varid, ogrp, o_varid, inkind, outkind));
     }
 #endif	/* USE_NETCDF4 */
     free(idimids);
@@ -1667,7 +1801,7 @@ copy(char* infile, char* outfile)
 	    || inkind == NC_FORMAT_CDF5) {
 	    if (option_deflate_level > 0 ||
 		option_shuffle_vars == NC_SHUFFLE ||
-		option_chunkspec)
+		listlength(option_chunkspecs) > 0)
 	    {
 		outkind = NC_FORMAT_NETCDF4_CLASSIC;
 	    }
@@ -1675,10 +1809,14 @@ copy(char* infile, char* outfile)
     }
 
 #ifdef USE_NETCDF4
-    if(option_chunkspec) {
-	/* Now that input is open, can parse option_chunkspec into binary
+    if(listlength(option_chunkspecs) > 0) {
+	int i;
+	/* Now that input is open, can parse option_chunkspecs into binary
 	 * structure. */
-	NC_CHECK(chunkspec_parse(igrp, option_chunkspec));
+	for(i=0;i<listlength(option_chunkspecs);i++) {
+	    char* spec = (char*)listget(option_chunkspecs,i);
+	    NC_CHECK(chunkspec_parse(igrp, spec));
+	}
     }
 #endif	/* USE_NETCDF4 */
 
@@ -1706,7 +1844,7 @@ copy(char* infile, char* outfile)
 	create_mode |= NC_64BIT_OFFSET;
 	break;
     case NC_FORMAT_CDF5:
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
       create_mode |= NC_64BIT_DATA;
       break;
 #else
@@ -1846,8 +1984,8 @@ usage(void)
     /* Don't document this flaky option until it works better */
     /* [-x]      use experimental computed estimates for variable-specific chunk caches\n\ */
 
-    error("%s [-k kind] [-[3|4|6|7]] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] varlist] [-[g|G] grplist] [-m n] [-h n] [-e n] [-r] infile outfile\n%s\nnetCDF library version %s",
-	  progname, USAGE, nc_inq_libvers());
+    error("[-k kind] [-[3|4|6|7]] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] varlist] [-[g|G] grplist] [-m n] [-h n] [-e n] [-r] infile outfile\n%s\nnetCDF library version %s",
+	  USAGE, nc_inq_libvers());
 }
 
 int
@@ -1862,50 +2000,8 @@ main(int argc, char**argv)
     struct FilterSpec filterspec;
 #endif
 
-/* table of formats for legal -k values */
-    struct Kvalues {
-	char* name;
-	int kind;
-    } legalkinds[] = {
-	/* NetCDF-3 classic format (32-bit offsets) */
-	{"classic", NC_FORMAT_CLASSIC}, /* canonical format name */
-	{"nc3", NC_FORMAT_CLASSIC},	/* short format name */
-	{"1", NC_FORMAT_CLASSIC}, /* deprecated, use "-3" or "-k nc3" instead */
-
-	/* NetCDF-3 64-bit offset format */
-	{"64-bit offset", NC_FORMAT_64BIT_OFFSET}, /* canonical format name */
-	{"nc6", NC_FORMAT_64BIT_OFFSET},	    /* short format name */
-	{"2", NC_FORMAT_64BIT_OFFSET},	/* deprecated, use "-6" or "-k nc6" instead */
-	{"64-bit-offset", NC_FORMAT_64BIT_OFFSET}, /* deprecated alias */
-
-	/* NetCDF-4 HDF5-based format */
-	{"netCDF-4", NC_FORMAT_NETCDF4}, /* canonical format name */
-	{"nc4", NC_FORMAT_NETCDF4},	 /* short format name */
-	{"3", NC_FORMAT_NETCDF4}, /* deprecated, use "-4" or "-k nc4" instead */
-	{"netCDF4", NC_FORMAT_NETCDF4}, /* deprecated aliases */
-	{"hdf5", NC_FORMAT_NETCDF4},
-	{"enhanced", NC_FORMAT_NETCDF4},
-
-	/* NetCDF-4 HDF5-based format, restricted to classic data model */
-	{"netCDF-4 classic model", NC_FORMAT_NETCDF4_CLASSIC}, /* canonical format name */
-	{"nc7", NC_FORMAT_NETCDF4_CLASSIC}, /* short format name */
-	{"4", NC_FORMAT_NETCDF4_CLASSIC}, /* deprecated, use "-7" or -k nc7" */
-	{"netCDF-4-classic", NC_FORMAT_NETCDF4_CLASSIC}, /* deprecated aliases */
-	{"netCDF-4_classic", NC_FORMAT_NETCDF4_CLASSIC},
-	{"netCDF4_classic", NC_FORMAT_NETCDF4_CLASSIC},
-	{"hdf5-nc3", NC_FORMAT_NETCDF4_CLASSIC},
-	{"enhanced-nc3", NC_FORMAT_NETCDF4_CLASSIC},
-
-	/* The 64-bit data (CDF5) kind (5) */
-	{"5", NC_FORMAT_CDF5},
-	{"64-bit-data", NC_FORMAT_CDF5},
-	{"64-bit data", NC_FORMAT_CDF5},
-	{"nc5", NC_FORMAT_CDF5},
-	{"cdf5", NC_FORMAT_CDF5},
-
-	/* null terminate*/
-	{NULL,0}
-    };
+    chunkspecinit();
+    option_chunkspecs = listnew();
 
     opterr = 1;
     progname = argv[0];
@@ -1915,7 +2011,7 @@ main(int argc, char**argv)
        usage();
     }
 
-    while ((c = getopt(argc, argv, "k:3467d:sum:c:h:e:rwxg:G:v:V:F:L:")) != -1) {
+    while ((c = getopt(argc, argv, "k:3467d:sum:c:h:e:rwxg:G:v:V:F:L:M:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated
                      Format names:
@@ -2008,7 +2104,7 @@ main(int argc, char**argv)
 	    break;
 	case 'c':               /* optional chunking spec for each dimension in list */
 	    /* save chunkspec string for parsing later, once we know input ncid */
-	    option_chunkspec = strdup(optarg);
+	    listpush(option_chunkspecs,strdup(optarg));
 	    break;
 	case 'g':		/* group names */
 	    /* make list of names of groups specified */
@@ -2030,15 +2126,17 @@ main(int argc, char**argv)
 	    make_lvars (optarg, &option_nlvars, &option_lvars);
 	    option_varstruct = false;
 	    break;
-    case 'L': /* Set logging, if logging support was compiled in. */
+        case 'L': /* Set logging, if logging support was compiled in. */
 #ifdef LOGGING
-      {
-        int level = atoi(optarg);
-        if(level >= 0)
-          nc_set_log_level(level);
-      }
+            {
+            int level = atoi(optarg);
+            if(level >= 0)
+              nc_set_log_level(level);
+            }
+#else
+	    error("-L specified, but logging support not enabled");
 #endif
-      break;
+            break;
 	case 'F': /* optional filter spec for a specified variable */
 #ifdef USE_NETCDF4
 	    /* If the arg is "none" then suppress all filters
@@ -2059,6 +2157,19 @@ main(int argc, char**argv)
 	    error("-F requires netcdf-4");
 #endif
 	    break;
+	case 'M': /* set min chunk size */
+#ifdef USE_NETCDF4
+	    if(optarg == NULL)
+		option_min_chunk_bytes = -1;
+	    else
+	        option_min_chunk_bytes = atol(optarg);
+	    if(option_min_chunk_bytes < 0)
+		error("-M value must be non-negative integer");
+	    break;
+#else
+	    error("-M requires netcdf-4");
+#endif
+
 	default:
 	    usage();
         }

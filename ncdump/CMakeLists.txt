@@ -4,18 +4,29 @@ IF(BUILD_SHARED_LIBS AND WIN32)
 ENDIF()
 
 SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.c)
-SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c)
+SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c list.c)
+SET(ocprint_FILES ocprint.c)
 
 IF(USE_X_GETOPT)
   SET(ncdump_FILES ${ncdump_FILES} XGetopt.c)
   SET(nccopy_FILES ${nccopy_FILES} XGetopt.c)
+  SET(ocprint_FILES ${ocprint_FILES} XGetopt.c)
+
 ENDIF()
 
 ADD_EXECUTABLE(ncdump ${ncdump_FILES})
 ADD_EXECUTABLE(nccopy ${nccopy_FILES})
 
+IF(ENABLE_DAP)
+  ADD_EXECUTABLE(ocprint ${ocprint_FILES})
+ENDIF(ENABLE_DAP)
+
 TARGET_LINK_LIBRARIES(ncdump netcdf ${ALL_TLL_LIBS})
 TARGET_LINK_LIBRARIES(nccopy netcdf ${ALL_TLL_LIBS})
+
+IF(ENABLE_DAP)
+  TARGET_LINK_LIBRARIES(ocprint netcdf ${ALL_TLL_LIBS})
+ENDIF(ENABLE_DAP)
 
 ####
 # We have to do a little tweaking
@@ -37,6 +48,16 @@ IF(MSVC)
     ${CMAKE_CURRENT_BINARY_DIR})
   SET_TARGET_PROPERTIES(nccopy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
     ${CMAKE_CURRENT_BINARY_DIR})
+
+  IF(ENABLE_DAP)
+    SET_TARGET_PROPERTIES(ocprint PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(ocprint PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(ocprint PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+      ${CMAKE_CURRENT_BINARY_DIR})
+  ENDIF(ENABLE_DAP)
+
 ENDIF()
 
 
@@ -211,6 +232,11 @@ ENDIF(MSVC)
       SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
     ENDIF(HAVE_BASH)
 
+    add_sh_test(ncdump tst_nccopy5)
+    IF(HAVE_BASH)
+      SET_TESTS_PROPERTIES(ncdump_tst_nccopy5 PROPERTIES RUN_SERIAL TRUE)
+    ENDIF(HAVE_BASH)
+
     IF(USE_NETCDF4)
       add_sh_test(ncdump tst_ncgen4)
     ENDIF(USE_NETCDF4)
@@ -232,11 +258,18 @@ IF(MSVC)
     PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
     )
 
+  IF(ENABLE_DAP)
+    SET_TARGET_PROPERTIES(ocprint
+      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+      )
+  ENDIF(ENABLE_DAP)
+
 ENDIF()
 
 
 INSTALL(TARGETS ncdump RUNTIME DESTINATION bin COMPONENT utilities)
 INSTALL(TARGETS nccopy RUNTIME DESTINATION bin COMPONENT utilities)
+
 SET(MAN_FILES nccopy.1 ncdump.1)
 
 # Note, the L512.bin file is file containing exactly 512 bytes each of value 0.

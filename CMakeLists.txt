@@ -381,14 +381,6 @@ OPTION(ENABLE_MMAP "Use MMAP." ON)
 # Option to use examples.
 OPTION(ENABLE_EXAMPLES "Build Examples" ON)
 
-
-# Option Logging, only valid for netcdf4.
-OPTION(ENABLE_LOGGING "Enable Logging." OFF)
-IF(ENABLE_LOGGING)
-  ADD_DEFINITIONS(-DLOGGING)
-  SET(LOGGING ON)
-ENDIF()
-
 # Option to automatically build netcdf-fortran.
 IF(NOT MSVC)
   OPTION(ENABLE_REMOTE_FORTRAN_BOOTSTRAP "Download and build netcdf-fortran automatically (EXPERIMENTAL)." OFF)
@@ -533,10 +525,12 @@ IF(ENABLE_LOGGING)
   ADD_DEFINITIONS(-DLOGGING)
   ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
   SET(LOGGING ON)
+  SET(ENABLE_SET_LOG_LEVEL ON)
 ENDIF()
 OPTION(ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
-IF(ENABLE_NETCDF_$ AND (NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC) OR ENABLE_LOGGING)
+IF(ENABLE_NETCDF_4 AND NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC)
   ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
+  SET(ENABLE_SET_LOG_LEVEL ON)
 ENDIF()
 
 # Option to allow for strict null file padding.
@@ -767,12 +761,6 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
-# Option to turn on CDF5 support.
-OPTION(ENABLE_CDF5 "Enable CDF5 Support." ON)
-IF(ENABLE_CDF5)
-    SET(USE_CDF5 ON CACHE BOOL "")
-ENDIF(ENABLE_CDF5)
-
 # Option to Build DAP2+DAP4 Clients
 OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 IF(ENABLE_DAP)
@@ -949,6 +937,11 @@ IF(ENABLE_LARGE_FILE_TESTS)
   SET(LARGE_FILE_TESTS ON)
 ENDIF()
 
+OPTION(ENABLE_METADATA_PERF_TESTS "Enable test of metadata performance." OFF)
+IF(ENABLE_METADATA_PERF_TESTS)
+  SET(ENABLE_METADATA_PERF ON)
+ENDIF()
+
 # Location for large file tests.
 SET(TEMP_LARGE "." CACHE STRING "Location to store large file tests.")
 
@@ -1039,56 +1032,87 @@ IF(ENABLE_PNETCDF)
 ENDIF()
 
 # Options to enable use of fill values for elements causing NC_ERANGE
-SET(STATUS_ERANGE_FILL "OFF")
-OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OF)
-IF(ENABLE_ERANGE_FILL)
-  SET(STATUS_ERANGE_FILL "ON")
-  ADD_DEFINITIONS(-DERANGE_FILL)
-ENDIF()
+SET(ENABLE_ERANGE_FILL AUTO CACHE STRING "AUTO")
+OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OFF)
+IF(ENABLE_ERANGE_FILL) # enable or auto
+   STRING(TOUPPER ${ENABLE_ERANGE_FILL} ENABLE_ERANGE_FILL)
+   IF(ENABLE_ERANGE_FILL AND NOT ENABLE_ERANGE_FILL STREQUAL "AUTO")
+      # explicitly enabled
+      SET(ENABLE_ERANGE_FILL ON)
+   ELSE()
+      IF(NOT ENABLE_ERANGE_FILL STREQUAL "AUTO")
+         SET(ENABLE_ERANGE_FILL OFF)
+      ENDIF()
+   ENDIF()
+ENDIF(ENABLE_ERANGE_FILL)
+# Now ENABLE_ERANGE_FILL is either AUTO, ON, or OFF
 
 # Options to use a more relaxed coordinate argument boundary check
-SET(STATUS_RELAX_COORD_BOUND "OFF")
+SET(ENABLE_ZERO_LENGTH_COORD_BOUND AUTO CACHE STRING "AUTO")
 OPTION(ENABLE_ZERO_LENGTH_COORD_BOUND "Enable a more relaxed boundary error check NC_EINVALCOORDS to allow coordinate start argument equal to dimension size when argument count is zero." OFF)
-IF(ENABLE_ZERO_LENGTH_COORD_BOUND)
-  SET(STATUS_RELAX_COORD_BOUND "ON")
-ENDIF()
+IF(ENABLE_ZERO_LENGTH_COORD_BOUND) # enable or auto
+   STRING(TOUPPER ${ENABLE_ZERO_LENGTH_COORD_BOUND} ENABLE_ZERO_LENGTH_COORD_BOUND)
+   IF(ENABLE_ZERO_LENGTH_COORD_BOUND AND NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "AUTO")
+      # explicitly enabled
+      SET(ENABLE_ZERO_LENGTH_COORD_BOUND ON)
+   ELSE()
+      IF(NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "AUTO")
+         SET(ENABLE_ZERO_LENGTH_COORD_BOUND OFF)
+      ENDIF()
+   ENDIF()
+ENDIF(ENABLE_ZERO_LENGTH_COORD_BOUND)
+# Now ENABLE_ZERO_LENGTH_COORD_BOUND is either AUTO, ON, or OFF
 
 # check and conform with PnetCDF settings on ERANGE_FILL and RELAX_COORD_BOUND
 IF(STATUS_PNETCDF)
   file(STRINGS "${pnetcdf_h}" enable_erange_fill_pnetcdf REGEX "^#define PNETCDF_ERANGE_FILL")
   string(REGEX REPLACE "[^0-9]" "" erange_fill_pnetcdf "${enable_erange_fill_pnetcdf}")
   IF("x${erange_fill_pnetcdf}" STREQUAL "x1")
-     IF(NOT STATUS_ERANGE_FILL)
-       MESSAGE(WARNING "Enable erange-fill to conform with PnetCDF setting")
-       SET(STATUS_ERANGE_FILL "ON")
-     ENDIF()
+     SET(erange_fill_pnetcdf "ON")
   ELSE()
-     IF(STATUS_ERANGE_FILL)
-       MESSAGE(WARNING "Disable erange-fill to conform with PnetCDF setting")
-       SET(STATUS_ERANGE_FILL "OFF")
+     SET(erange_fill_pnetcdf "OFF")
+  ENDIF()
+  IF(ENABLE_ERANGE_FILL STREQUAL "AUTO") # not set on command line
+     SET(ENABLE_ERANGE_FILL "${erange_fill_pnetcdf}")
+  ELSE()
+     # user explicitly set this option on command line
+     IF(NOT ENABLE_ERANGE_FILL STREQUAL "${erange_fill_pnetcdf}")
+        IF(ENABLE_ERANGE_FILL)
+           MESSAGE(FATAL_ERROR "Enabling erange-fill conflicts with PnetCDF setting")
+        ELSE()
+           MESSAGE(FATAL_ERROR "Disabling erange-fill conflicts with PnetCDF setting")
+        ENDIF()
      ENDIF()
   ENDIF()
+
   file(STRINGS "${pnetcdf_h}" relax_coord_bound_pnetcdf REGEX "^#define PNETCDF_RELAX_COORD_BOUND")
   string(REGEX REPLACE "[^0-9]" "" relax_coord_bound "${relax_coord_bound_pnetcdf}")
   IF("x${relax_coord_bound}" STREQUAL "x1")
-     IF(NOT STATUS_RELAX_COORD_BOUND)
-       MESSAGE(WARNING "Enable relax-coord-bound to conform with PnetCDF setting")
-       SET(STATUS_RELAX_COORD_BOUND "ON")
-     ENDIF()
+     SET(relax_coord_bound_pnetcdf "ON")
   ELSE()
-     IF(STATUS_RELAX_COORD_BOUND)
-       MESSAGE(WARNING "Disable relax-coord-bound to conform with PnetCDF setting")
-       SET(STATUS_RELAX_COORD_BOUND "OFF")
+     SET(relax_coord_bound_pnetcdf "OFF")
+  ENDIF()
+  IF(ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "AUTO") # not set on command line
+     SET(ENABLE_ZERO_LENGTH_COORD_BOUND "${relax_coord_bound_pnetcdf}")
+  ELSE()
+     # user explicitly set this option on command line
+     IF(NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "${relax_coord_bound_pnetcdf}")
+        IF(ENABLE_ZERO_LENGTH_COORD_BOUND)
+           MESSAGE(FATAL_ERROR "Enabling relax-coord-bound conflicts with PnetCDF setting")
+        ELSE()
+           MESSAGE(FATAL_ERROR "Disabling relax-coord-bound conflicts with PnetCDF setting")
+        ENDIF()
      ENDIF()
   ENDIF()
 ENDIF()
 
-IF(STATUS_ERANGE_FILL)
+IF(ENABLE_ERANGE_FILL)
+  MESSAGE(STATUS "Enabling use of fill value when NC_ERANGE")
   SET(M4FLAGS "-DERANGE_FILL" CACHE STRING "")
 ENDIF()
 
-IF(STATUS_RELAX_COORD_BOUND)
-  MESSAGE(STATUS "Enabling a more relatexed check for NC_EINVALCOORDS")
+IF(ENABLE_ZERO_LENGTH_COORD_BOUND)
+  MESSAGE(STATUS "Enabling a more relaxed check for NC_EINVALCOORDS")
   ADD_DEFINITIONS(-DRELAX_COORD_BOUND)
 ENDIF()
 
@@ -1292,6 +1316,26 @@ ENDIF(SIZEOF_USHORT)
 CHECK_TYPE_SIZE("_Bool"     SIZEOF__BOOL)
 
 CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
+
+# Check whether to turn on or off CDF5 support.
+SET(ENABLE_CDF5 AUTO CACHE STRING "AUTO")
+OPTION(ENABLE_CDF5 "Enable CDF5 support" ON)
+IF(SIZEOF_SIZE_T EQUAL 4)
+   IF(ENABLE_CDF5) # enable or auto
+      STRING(TOUPPER ${ENABLE_CDF5} ENABLE_CDF5)
+      IF(ENABLE_CDF5 AND NOT ENABLE_CDF5 STREQUAL "AUTO") # explicitly enabled
+         MESSAGE(FATAL_ERROR "Unable to support CDF5 feature because size_t is less than 8 bytes")
+      ENDIF(ENABLE_CDF5 AND NOT ENABLE_CDF5 STREQUAL "AUTO")
+      SET(ENABLE_CDF5 OFF) # cannot support CDF5
+      SET(USE_CDF5 OFF CACHE BOOL "") # cannot support CDF5
+   ENDIF(ENABLE_CDF5)
+ELSE(SIZEOF_SIZE_T EQUAL 4)
+   IF(ENABLE_CDF5) # explicitly set by user or not set
+      SET(USE_CDF5 ON CACHE BOOL "")
+   ELSE(ENABLE_CDF5) # explicitly disabled by user
+      SET(USE_CDF5 OFF CACHE BOOL "")
+   ENDIF(ENABLE_CDF5)
+ENDIF(SIZEOF_SIZE_T EQUAL 4)
 
 CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)
 IF(SIZEOF_SSIZE_T)
@@ -1800,7 +1844,11 @@ configure_file(
   ${netCDF_SOURCE_DIR}/netcdf.pc.in
   ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
 
-FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+
+IF(NOT IS_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+  FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+ENDIF()
+
 configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
   "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY
   NEWLINE_STYLE LF)
@@ -1870,7 +1918,7 @@ is_enabled(ENABLE_DAP4 HAS_DAP4)
 is_enabled(ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
-is_enabled(STATUS_RELAX_COORD_BOUND RELAX_COORD_BOUND)
+is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 

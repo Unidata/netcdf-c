@@ -144,9 +144,9 @@ must add support for netCDF-4 advanced features.
 
 In addition to the main netCDF-3 C API, there is an additional (older)
 C API, the netCDF-2 API. This API produces exactly the same files as
-the netCDF-3 API - only the API is different. (That is, users can
-create either classic format files, the default, or 64-bit offset
-files, or netCDF-4/HDF5 files.)
+the netCDF-3 API - only the API is different. That is, users can
+create either classic CDF-1 format files, the default, 64-bit offset
+files (CDF-2), 64-bit data files (CDF-5), or netCDF-4/HDF5 files.
 
 The version 2 API was the API before netCDF-3.0 came out. It is still
 fully supported, however. Programs written to the version 2 API will
@@ -262,7 +262,7 @@ opaque types.
 </ul>
 
 These features may only be used when working with a netCDF-4/HDF5
-file. Files created in classic or 64-bit offset format cannot support
+file. Files created in classic formats cannot support
 groups or user-defined types (see \ref netcdf_format).
 
 <p>\image html nc4-model.png
@@ -797,8 +797,11 @@ with nc_get_vara()/nc_put_vara().
 
 \page parallel_io Parallel I/O with NetCDF-4
 
-NetCDF-4 provides access to HDF5 parallel I/O features for netCDF-4/HDF5 files. NetCDF classic and 64-bit offset format may not be opened or created for use with HDF5-based parallel I/O. (They may be opened and created, but parallel I/O is not available.)  They may be opened or created for use with parallel-netcdf-based parallel I/O. A few functions have been added to the netCDF C API to handle parallel I/O. You must build netCDF-4 properly to take advantage of parallel
-features (see \ref build_parallel).
+NetCDF-4 provides parallel file access to both classic and netCDF-4/HDF5 files.
+The parallel I/O to netCDF-4 files is achieved through the HDF5 library while
+the parallel I/O to classic files is through PnetCDF. A few functions have been
+added to the netCDF C API to handle parallel I/O. You must build netCDF-4
+properly to take advantage of parallel features (see \ref build_parallel).
 
 The nc_open_par() and nc_create_par() functions are used to
 create/open a netCDF file with parallel access.
@@ -807,9 +810,16 @@ create/open a netCDF file with parallel access.
 
 \section collective_independent Collective/Independent Access
 
-Parallel file access is either collective (all processors must
-participate) or independent (any processor may access the data without
-waiting for others). All netCDF metadata writing operations are collective. That is, all creation of groups, types, variables, dimensions, or attributes. Data reads and writes (ex. calls to nc_put_vara_int() and nc_get_vara_int()) may be independent (the default) or collective. To make writes to a variable collective, call nc_var_par_access().
+Parallel file access is either collective (all processors must participate) or
+independent (any processor may access the data without waiting for others). All
+netCDF metadata writing operations are collective. That is, all creation of
+groups, types, variables, dimensions, or attributes. Data reads and writes
+(e.g. calls to nc_put_vara_int() and nc_get_vara_int()) may be independent, the
+default) or collective. To change from collective to independent mode or vis
+versa, call nc_var_par_access() with argument 'access' set to either
+NC_INDEPENDENT or NC_COLLECTIVE. Note when using PnetCDF, the argument 'varid'
+is ignored, as PnetCDF does not support per-variable collective/independent
+mode change.
 
 \page tutorial_ncids Numbering of NetCDF IDs
 
@@ -846,7 +856,7 @@ may change the next time the file is opened.
 
 To construct a netCDF file you need to:
 - create the file - Specify the name, optionally the format: classic
-(the default) or 64bit-offset.
+(the default), 64bit-offset, or 64-bit data.
 - define metadata - Specify the names and types of dimensions, data
 variables, and attributes.
 - write data - Write arrays of data from program variables to the
@@ -914,7 +924,7 @@ attributes, and the unlimited dimid.
 num attributes.
 - nc_inq_dimid() Find dimension ID from its name.
 - nc_inq_varid() Find variable ID from its name.
-- nc_inq_format() Find file format: classic or 64-bit offset
+- nc_inq_format() Find file format: classic CDF-1, 64-bit offset CDF-2, or 64-bit data CDF-5
 - nc_inq_libvers() Find the netCDF library version.
 
 \page accessing_subsets Reading and Writing Subsets of Data

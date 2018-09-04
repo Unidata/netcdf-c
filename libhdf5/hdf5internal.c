@@ -13,12 +13,9 @@
  *
  * @author Ed Hartnett
  */
+
 #include "config.h"
-#include "nc4internal.h"
-#include "nc.h" /* from libsrc */
-#include "ncdispatch.h" /* from libdispatch */
-#include "ncutf8.h"
-#include "H5DSpublic.h"
+#include "hdf5internal.h"
 
 #undef DEBUGH5
 
@@ -470,41 +467,35 @@ exit:
 }
 
 #ifdef LOGGING
+/* We will need to check against nc log level from nc4internal.c. */
+extern int nc_log_level;
+
 /**
- * This is the same as nc_set_log_level(), but will also turn on HDF5
- * internal logging, in addition to netCDF logging.
- *
- * @param new_level The new logging level.
+ * @internal This is like nc_set_log_level(), but will also turn on
+ * HDF5 internal logging, in addition to netCDF logging. This should
+ * never be called by the user. It is called in open/create when the
+ * nc logging level has changed.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
  */
 int
-hdf5_set_log_level(int new_level)
+hdf5_set_log_level()
 {
-   if (!nc4_hdf5_initialized)
-      nc4_hdf5_initialize();
-
    /* If the user wants to completely turn off logging, turn off HDF5
       logging too. Now I truely can't think of what to do if this
       fails, so just ignore the return code. */
-   if (new_level == NC_TURN_OFF_LOGGING)
+   if (nc_log_level == NC_TURN_OFF_LOGGING)
    {
       set_auto(NULL, NULL);
       LOG((1, "HDF5 error messages turned off!"));
    }
-
-   /* Do we need to turn HDF5 logging back on? */
-   if (new_level > NC_TURN_OFF_LOGGING &&
-       nc_log_level <= NC_TURN_OFF_LOGGING)
+   else
    {
       if (set_auto((H5E_auto_t)&H5Eprint, stderr) < 0)
          LOG((0, "H5Eset_auto failed!"));
       LOG((1, "HDF5 error messages turned on."));
    }
-
-   /* Now remember the new level. */
-   nc_set_log_level(new_level);
 
    return NC_NOERR;
 }

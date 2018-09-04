@@ -17,10 +17,7 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "config.h"
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <hdf5.h>
+#include "hdf5internal.h"
 #include <H5DSpublic.h> /* must be after nc4internal.h */
 #include <H5Fpublic.h>
 #include <H5LTpublic.h>
@@ -58,8 +55,9 @@ NC4_open_image_file(NC_FILE_INFO_T* h5)
     hdfid = NC4_image_init(h5);
     if(hdfid < 0)
 	{stat = NC_EHDFERR; goto done;}
-    /* Return file identifier */ 
-    h5->hdfid = hdfid;
+
+    /* Remember HDF5 file identifier. */
+    ((NC_HDF5_FILE_INFO_T *)h5->format_file_info)->hdfid = hdfid;
 
 done:
     return stat;
@@ -77,8 +75,9 @@ NC4_create_image_file(NC_FILE_INFO_T* h5, size_t initialsz)
     hdfid = NC4_image_init(h5);
     if(hdfid < 0)
 	{stat = NC_EHDFERR; goto done;}
-    /* Return file identifier */ 
-    h5->hdfid = hdfid;
+
+    /* Remember HDF5 file identifier. */
+    ((NC_HDF5_FILE_INFO_T *)h5->format_file_info)->hdfid = hdfid;
 done:
     return stat;
 }
@@ -91,7 +90,7 @@ NC4_extract_file_image(NC_FILE_INFO_T* h5)
     herr_t herr;
     NC_memio mem;
 
-    assert(h5 && h5->hdfid && !h5->no_write);
+    assert(h5 && h5->format_file_info && !h5->no_write);
 
     /* Get the file access property list */
     fapl = h5->mem.fapl;

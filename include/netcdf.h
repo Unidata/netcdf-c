@@ -426,6 +426,7 @@ by the desired type. */
 #define NC_ENOTFOUND     (-90)      /**< No such file */
 #define NC_ECANTREMOVE   (-91)      /**< Can't remove file */
 #define NC_EINTERNAL     (-92)      /**< NetCDF Library Internal Error */
+#define NC_EPNETCDF      (-93)      /**< Error at PnetCDF layer */
 
 /* The following was added in support of netcdf-4. Make all netcdf-4
    error codes < -100 so that errors can be added to netcdf-3 if
@@ -896,8 +897,8 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparams, unsig
 EXTERNL int
 nc_set_fill(int ncid, int fillmode, int *old_modep);
 
-/* Set the default nc_create format to NC_FORMAT_CLASSIC,
- * NC_FORMAT_64BIT, NC_FORMAT_NETCDF4, etc */
+/* Set the default nc_create format to NC_FORMAT_CLASSIC, NC_FORMAT_64BIT,
+ * NC_FORMAT_CDF5, NC_FORMAT_NETCDF4, or NC_FORMAT_NETCDF4_CLASSIC */
 EXTERNL int
 nc_set_default_format(int format, int *old_formatp);
 
@@ -1960,7 +1961,7 @@ ncrecget(int ncid, long recnum, void **datap);
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
-EXTERNL int nc_finalize();
+EXTERNL int nc_finalize(void);
 
 #if defined(__cplusplus)
 }

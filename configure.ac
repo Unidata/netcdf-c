@@ -149,6 +149,16 @@ AC_ARG_ENABLE([internal-docs],
 test "x$enable_internal_docs" = xyes || enable_internal_docs=no
 AC_SUBST([BUILD_INTERNAL_DOCS], [$enable_internal_docs])
 
+# Doxygen is apparently buggy when trying to combine a markdown
+# file with @internal. The equivalent can be faked using
+# the Doxygen ENABLED_SECTIONS mechanism. See docs/testserver.dox
+# to see how this is done.
+sections=
+if test "x$enable_internal_docs" = xyes ; then
+sections="$sections INTERNAL"
+fi
+AC_SUBST([ENABLED_DOC_SECTIONS], [$sections])
+
 AC_MSG_CHECKING([if fsync support is enabled])
 AC_ARG_ENABLE([fsync],
               [AS_HELP_STRING([--enable-fsync],
@@ -886,29 +896,28 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
 
 # Check whether we want to enable CDF5 support.
-AC_MSG_CHECKING([whether CDF5 support should be enabled])
+AC_MSG_CHECKING([whether CDF5 support should be disabled])
 AC_ARG_ENABLE([cdf5],
-              [AS_HELP_STRING([--enable-cdf5],
+              [AS_HELP_STRING([--disable-cdf5],
                               [build without CDF5 support.])],
               [enable_cdf5=${enableval}], [enable_cdf5=auto]
 )
-if test "x${enable_cdf5}" = xyes && test "$ac_cv_sizeof_size_t" -lt "8" ; then
-   dnl unable to support CDF5, but --enable-cdf5 is explicitly set
-   AC_MSG_ERROR([Unable to support CDF5 feature because size_t is less than 4 bytes])
-fi
 if test "$ac_cv_sizeof_size_t" -lt "8" ; then
+   if test "x${enable_cdf5}" = xyes ; then
+      dnl unable to support CDF5, but --enable-cdf5 is explicitly set
+      AC_MSG_ERROR([Unable to support CDF5 feature because size_t is less than 8 bytes])
+   fi
    enable_cdf5=no
 else
-   enable_cdf5=yes
+   if test "x${enable_cdf5}" != xno ; then
+      enable_cdf5=yes
+   fi
 fi
 AC_MSG_RESULT($enable_cdf5)
 
 if test "x${enable_cdf5}" = xyes; then
-   AC_DEFINE([USE_CDF5], [1], [if true, enable CDF5 Support])
    AC_DEFINE([ENABLE_CDF5], [1], [if true, enable CDF5 Support])
 fi
-
-AM_CONDITIONAL(USE_CDF5, [test x$enable_cdf5 = xyes ])
 AM_CONDITIONAL(ENABLE_CDF5, [test x$enable_cdf5 = xyes ])
 
 $SLEEPCMD
@@ -1093,21 +1102,13 @@ if test "x$enable_pnetcdf" = xyes; then
 
   # Pnetcdf did not support utf-8 until 1.6.0
 
-  # Save/restore CFLAGS
-  SAVELIBS=$LIBS
-  LIBS="$LIBS -lpnetcdf"
-  AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <pnetcdf.h>],
-                 [[
-                   int major = PNETCDF_VERSION_MAJOR;
-                   int minor = PNETCDF_VERSION_MINOR;
-                   int version = major*1000 + minor;
-                   int ok = (version >= (1*1000 + 6));
-                   return (ok?0:1);]])],
-                 [pnetcdf16=yes],
-                 [pnetcdf16=no])
-  CFLAGS="$SAVECFLAGS"
-  LIBS="$SAVELIBS"
   AC_MSG_CHECKING([Is libpnetcdf version 1.6.0 or later?])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+#include <pnetcdf.h>
+#if (PNETCDF_VERSION_MAJOR*1000 + PNETCDF_VERSION_MINOR < 1006)
+      choke me
+#endif
+  ]])], [pnetcdf16=yes], [pnetcdf16=no])
   AC_MSG_RESULT([$pnetcdf16])
   if test x$pnetcdf16 = xno; then
     AC_MSG_ERROR([--enable-pnetcdf requires version 1.6.0 or later])
@@ -1147,15 +1148,15 @@ AC_ARG_ENABLE([erange_fill],
    [AS_HELP_STRING([--enable-erange-fill],
                    [Enable use of fill value when out-of-range type
                     conversion causes NC_ERANGE error. @<:@default: disabled@:>@])],
-   [enable_erange_fill=${enableval}], [enable_erange_fill=no]
+   [enable_erange_fill=${enableval}], [enable_erange_fill=auto]
 )
 
 AC_ARG_ENABLE([zero-length-coord-bound],
-   [AS_HELP_STRING([--enable-zero-length-coord-bound],
-                   [Enable a more relaxed boundary error check NC_EINVALCOORDS
+   [AS_HELP_STRING([--disable-zero-length-coord-bound],
+                   [Disable a more relaxed boundary error check NC_EINVALCOORDS
                     to allow coordinate start argument equal to dimension size
-                    when argument count is zero. @<:@default: disabled@:>@])],
-   [enable_zero_length_coord_bound=${enableval}], [enable_zero_length_coord_bound=no]
+                    when argument count is zero. @<:@default: enabled@:>@])],
+   [enable_zero_length_coord_bound=${enableval}], [enable_zero_length_coord_bound=auto]
 )
 
 # check PnetCDF's settings on enable_erange_fill and relax_coord_bound
@@ -1163,48 +1164,46 @@ if test "x$enable_pnetcdf" = xyes; then
    UD_CHECK_HEADER_PATH([pnetcdf.h])
 
    AC_MSG_CHECKING([if erange-fill is enabled in PnetCDF])
-   erange_fill_pnetcdf=`grep PNETCDF_ERANGE_FILL ${ac_cv_header_path_pnetcdf_h}`
-   if test "x$erange_fill_pnetcdf" = x; then
-      erange_fill_pnetcdf=no
-   else
-      erange_fill_pnetcdf=`echo ${erange_fill_pnetcdf} | cut -d' ' -f3`
-      if test "x$erange_fill_pnetcdf" = x0; then
-          enable_erange_fill_pnetcdf=no
-      else
-          enable_erange_fill_pnetcdf=yes
-      fi
-   fi
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+#include <pnetcdf.h>
+#if !defined(PNETCDF_ERANGE_FILL) || PNETCDF_ERANGE_FILL == 0
+      choke me
+#endif]])], [enable_erange_fill_pnetcdf=yes], [enable_erange_fill_pnetcdf=no])
    AC_MSG_RESULT([$enable_erange_fill_pnetcdf])
-   if test "$enable_erange_fill" != "$enable_erange_fill_pnetcdf"; then
-      if test "$enable_erange_fill_pnetcdf" = yes; then
-         AC_MSG_WARN([Enable erange-fill to conform with PnetCDF setting])
-      else
-         AC_MSG_WARN([Disable erange-fill to conform with PnetCDF setting])
-      fi
+   if test "x$enable_erange_fill" = xauto ; then
       enable_erange_fill=$enable_erange_fill_pnetcdf
+   elif test "$enable_erange_fill" != "$enable_erange_fill_pnetcdf"; then
+      if test "$enable_erange_fill" = yes; then
+         AC_MSG_ERROR([Enabling erange-fill conflicts with PnetCDF setting])
+      else
+         AC_MSG_ERROR([Disabling erange-fill conflicts with PnetCDF setting])
+      fi
    fi
 
    AC_MSG_CHECKING([if relax-coord-bound is enabled in PnetCDF])
-   relax_coord_bound_pnetcdf=`grep PNETCDF_RELAX_COORD_BOUND ${ac_cv_header_path_pnetcdf_h}`
-   if test "x$relax_coord_bound_pnetcdf" = x; then
-      elax_coord_bound_pnetcdf=no
-   else
-      coord_bound_pnetcdf=`echo ${relax_coord_bound_pnetcdf} | cut -d' ' -f3`
-      if test "x$coord_bound_pnetcdf" = x0; then
-          relax_coord_bound_pnetcdf=no
-      else
-          relax_coord_bound_pnetcdf=yes
-      fi
-   fi
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+#include <pnetcdf.h>
+#if !defined(PNETCDF_RELAX_COORD_BOUND) || PNETCDF_RELAX_COORD_BOUND == 0
+      choke me
+#endif]])], [relax_coord_bound_pnetcdf=yes], [relax_coord_bound_pnetcdf=no])
    AC_MSG_RESULT([$relax_coord_bound_pnetcdf])
-   if test "$enable_zero_length_coord_bound" != "$relax_coord_bound_pnetcdf"; then
-      if test "$relax_coord_bound_pnetcdf" = yes; then
-         AC_MSG_WARN([Enable relax-coord-bound to conform with PnetCDF setting])
-      else
-         AC_MSG_WARN([Disable relax-coord-bound to conform with PnetCDF setting])
-      fi
+   if test "x$enable_zero_length_coord_bound" = xauto ; then
       enable_zero_length_coord_bound=$relax_coord_bound_pnetcdf
+   elif test "$enable_zero_length_coord_bound" != "$relax_coord_bound_pnetcdf"; then
+      if test "$enable_zero_length_coord_bound" = yes; then
+         AC_MSG_ERROR([Enabling relax-coord-bound conflicts with PnetCDF setting])
+      else
+         AC_MSG_ERROR([Disabling relax-coord-bound conflicts with PnetCDF setting])
+      fi
    fi
+else
+   # default setting
+   enable_erange_fill=no
+   enable_zero_length_coord_bound=yes
+fi
+
+if test "x$enable_zero_length_coord_bound" = xyes; then
+   AC_DEFINE([RELAX_COORD_BOUND], [1], [if true, NC_EINVALCOORDS check is more relaxed])
 fi
 
 if test "x$enable_erange_fill" = xyes ; then
@@ -1216,10 +1215,6 @@ if test "x$enable_erange_fill" = xyes ; then
    AC_DEFINE([ERANGE_FILL], [1], [if true, use _FillValue for NC_ERANGE data elements])
 fi
 AC_SUBST(M4FLAGS)
-
-if test "x$enable_zero_length_coord_bound" = xyes; then
-   AC_DEFINE([RELAX_COORD_BOUND], [1], [if true, NC_EINVALCOORDS check is more relaxed])
-fi
 
 # Check for downloading/building fortran via postinstall script.
 if test "x$enable_remote_fortran_bootstrap" = xyes; then
@@ -1397,8 +1392,9 @@ AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
 AC_SUBST(HAS_DISKLESS,[yes])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
-AC_SUBST(RELAX_COORD_BOUND,[$enable_relax_coord_bound])
+AC_SUBST(RELAX_COORD_BOUND,[$enable_zero_length_coord_bound])
 AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
+
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1466,6 +1462,7 @@ AX_SET_META([NC_HAS_PARALLEL],[$enable_parallel],[yes])
 AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
+AX_SET_META([NC_RELAX_COORD_BOUND], [$enable_zero_length_coord_bound],[yes])
 
 # Automake says that this is always run in top_builddir
 # and that srcdir is defined (== top_srcdir)

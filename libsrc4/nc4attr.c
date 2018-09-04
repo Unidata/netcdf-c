@@ -18,6 +18,7 @@
 
 #include "nc.h"
 #include "nc4internal.h"
+#include "hdf5internal.h"
 #include "nc4dispatch.h"
 #include "ncdispatch.h"
 
@@ -155,13 +156,13 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    if (varid == NC_GLOBAL)
    {
       if (grp->atts_not_read)
-         if ((retval = nc4_read_grp_atts(grp)))
+         if ((retval = nc4_read_atts(grp, NULL)))
             return retval;
    }
    else
    {
       if (var->atts_not_read)
-         if ((retval = nc4_read_var_atts(grp, var)))
+         if ((retval = nc4_read_atts(grp, var)))
             return retval;
    }
 
