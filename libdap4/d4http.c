@@ -24,7 +24,7 @@ NCD4_fetchhttpcode(CURL* curl)
 #ifdef HAVE_CURLINFO_RESPONSE_CODE
     cstat = curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE,&httpcode);
 #else
-    cstat = curl_easy_getinfo(curl,CURLINFO_HTTP_CODE,&httpcode);
+    cstat = curl_easy_getinfo(curl,CURLINFO_HTTP_CONNECTCODE,&httpcode);
 #endif
     if(cstat != CURLE_OK) {
 	httpcode = 0;
@@ -87,8 +87,7 @@ fail:
 }
 
 int
-NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime,
-           struct credentials* creds)
+NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
 {
     int ret = NC_NOERR;
     CURLcode cstat = CURLE_OK;
@@ -134,7 +133,7 @@ NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime,
     /* Null terminate the buffer*/
     len = ncbyteslength(buf);
     ncbytesappend(buf, '\0');
-    ncbytessetlength(buf, len); /* dont count null in buffer size*/
+    ncbytessetlength(buf, len); /* don't count null in buffer size*/
 #ifdef D4DEBUG
     nclog(NCLOGNOTE,"buffersize: %lu bytes",(d4size_t)ncbyteslength(buf));
 #endif
@@ -291,7 +290,7 @@ NCD4_ping(const char* url)
 
     /* Try to get the file */
     buf = ncbytesnew();
-    ret = NCD4_fetchurl(curl,url,buf,NULL,NULL);
+    ret = NCD4_fetchurl(curl,url,buf,NULL);
     if(ret == NC_NOERR) {
         /* Don't trust curl to return an error when request gets 404 */
         long http_code = 0;
@@ -321,7 +320,7 @@ curlerrtoncerr(CURLcode cstat)
     switch (cstat) {
     case CURLE_OK: return THROW(NC_NOERR);
     case CURLE_URL_MALFORMAT:
-	return THROW(NC_EURL);   
+	return THROW(NC_EURL);
     case CURLE_COULDNT_RESOLVE_HOST:
     case CURLE_COULDNT_CONNECT:
     case CURLE_REMOTE_ACCESS_DENIED:
@@ -338,5 +337,5 @@ curlerrtoncerr(CURLcode cstat)
     case CURLE_SSL_CACERT_BADFILE:
     default: break;
     }
-    return THROW(NC_ECURL);	
+    return THROW(NC_ECURL);
 }

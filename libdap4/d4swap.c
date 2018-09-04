@@ -9,7 +9,7 @@
 #include "ezxml.h"
 
 /*
-The primary purpose of this code is to recursivly traverse
+The primary purpose of this code is to recursively traverse
 the incoming data to get the endianness correct.
 */
 
@@ -235,7 +235,7 @@ walkSeq(NCD4meta* compiler, NCD4node* topvar, NCD4node* vlentype, void** offsetp
         swapinline64(&recordcount);
 
     basetype = vlentype->basetype; /* This may be of any type potentially */
-    assert(basetype->sort = NCD4_TYPE);
+    assert(basetype->sort == NCD4_TYPE);
 
     for(i=0;i<recordcount;i++) {
         switch(basetype->subsort) {

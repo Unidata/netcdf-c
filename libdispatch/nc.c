@@ -54,13 +54,14 @@ free_NC(NC *ncp)
 }
 
 int
-new_NC(NC_Dispatch* dispatcher, const char* path, int mode, NC** ncpp)
+new_NC(NC_Dispatch* dispatcher, const char* path, int mode, int model, NC** ncpp)
 {
     NC *ncp = (NC*)calloc(1,sizeof(NC));
     if(ncp == NULL) return NC_ENOMEM;
     ncp->dispatch = dispatcher;
     ncp->path = nulldup(path);
     ncp->mode = mode;
+    ncp->model = model;
     if(ncp->path == NULL) { /* fail */
         free_NC(ncp);
 	return NC_ENOMEM;
@@ -91,11 +92,11 @@ nc_set_default_format(int format, int *old_formatp)
         format != NC_FORMAT_NETCDF4 && format != NC_FORMAT_NETCDF4_CLASSIC &&
 	format != NC_FORMAT_CDF5)
       return NC_EINVAL;
- #else
+#else
     if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET &&
         format != NC_FORMAT_CDF5)
        return NC_EINVAL;
- #endif
+#endif
     default_create_format = format;
     return NC_NOERR;
 }

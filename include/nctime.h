@@ -4,6 +4,12 @@
  *   $Id: nctime.h,v 1.6 2010/03/18 19:24:26 russ Exp $
  *********************************************************************/
 
+#ifndef _NCTIME_H
+#define _NCTIME_H
+
+#define CU_FATAL 1   /* Exit immediately on fatal error */
+#define CU_VERBOSE 2 /* Report errors */
+
 struct bounds_node{
     int ncid;	  /* group (or file) in which variable with associated
 		   * bounds variable resides */
@@ -14,7 +20,7 @@ struct bounds_node{
 
 typedef struct bounds_node bounds_node_t;
 
-/* 
+/*
  * This code was extracted with permission from the CDMS time
  * conversion and arithmetic routines developed by Bob Drach, Lawrence
  * Livermore National Laboratory as part of the cdtime library.
@@ -149,13 +155,15 @@ MSC_NCTIME_EXTRA extern void cdChar2Comp(cdCalenType timetype, char* chartime, c
 MSC_NCTIME_EXTRA extern void Cdh2e(CdTime *htime, double *etime);
 MSC_NCTIME_EXTRA extern void Cde2h(double etime, CdTimeType timeType, long baseYear, CdTime *htime);
 MSC_NCTIME_EXTRA extern int cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTime* base_comptime);
+MSC_NCTIME_EXTRA extern int cdSetErrOpts(int opts);
 #else
 extern void cdRel2Iso(cdCalenType timetype, char* relunits, int separator, double reltime, char* chartime);
 extern void cdChar2Comp(cdCalenType timetype, char* chartime, cdCompTime* comptime);
 extern void Cdh2e(CdTime *htime, double *etime);
 extern void Cde2h(double etime, CdTimeType timeType, long baseYear, CdTime *htime);
 extern int cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTime* base_comptime);
+extern int cdSetErrOpts(int opts);
 #endif /* DLL Considerations. */
 
 
-
+#endif /* ifdef */

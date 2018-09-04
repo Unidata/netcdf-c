@@ -4,7 +4,7 @@
 
    Test attributes.
 
-   $Id$
+   @author Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -12,7 +12,7 @@
 #include "netcdf.h"
 #include <signal.h>
 
-#define FILE_NAME "tst_atts.nc"
+#define FILE_NAME "tst_atts1.nc"
 #define FILE_NAME2 "tst_atts_2.nc"
 #define VAR1_NAME "Horace_Rumpole"
 #define VAR2_NAME "Claude_Erskine-Brown"
@@ -183,7 +183,7 @@ main(int argc, char **argv)
       if (nc_put_att_ulonglong(ncid, NC_GLOBAL, ATT_UINT64_NAME, NC_UINT64, ATT_LEN,
 			       ulonglong_out) != NC_ESTRICTNC3) ERR;
       /* But it's OK to put classic types like NC_INT converted from
-       * supported C types, though there may be out-of-range errrors
+       * supported C types, though there may be out-of-range errors
        * for some values */
       if (nc_put_att_uint(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN,
 			  uint_out) != NC_ERANGE) ERR;

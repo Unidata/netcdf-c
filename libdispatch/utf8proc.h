@@ -77,32 +77,33 @@
 /** @} */
 
 #include <stdlib.h>
+#include "ncexternl.h"
 
 #if defined(_MSC_VER) && _MSC_VER < 1800
 // MSVC prior to 2013 lacked stdbool.h and inttypes.h
-typedef signed char utf8proc_int8_t;
-typedef unsigned char utf8proc_uint8_t;
-typedef short utf8proc_int16_t;
-typedef unsigned short utf8proc_uint16_t;
-typedef int utf8proc_int32_t;
-typedef unsigned int utf8proc_uint32_t;
+typedef signed char nc_utf8proc_int8_t;
+typedef unsigned char nc_utf8proc_uint8_t;
+typedef short nc_utf8proc_int16_t;
+typedef unsigned short nc_utf8proc_uint16_t;
+typedef int nc_utf8proc_int32_t;
+typedef unsigned int nc_utf8proc_uint32_t;
 #  ifdef _WIN64
-typedef __int64 utf8proc_ssize_t;
-typedef unsigned __int64 utf8proc_size_t;
+typedef __int64 nc_utf8proc_ssize_t;
+typedef unsigned __int64 nc_utf8proc_size_t;
 #  else
-typedef int utf8proc_ssize_t;
-typedef unsigned int utf8proc_size_t;
+typedef int nc_utf8proc_ssize_t;
+typedef unsigned int nc_utf8proc_size_t;
 #  endif
 #  ifndef __cplusplus
 // emulate C99 bool
-typedef unsigned char utf8proc_bool;
+typedef unsigned char nc_utf8proc_bool;
 #    ifndef __bool_true_false_are_defined
 #      define false 0
 #      define true 1
 #      define __bool_true_false_are_defined 1
 #    endif
 #  else
-typedef bool utf8proc_bool;
+typedef bool nc_utf8proc_bool;
 #  endif
 #else
 #  include <stddef.h>
@@ -119,20 +120,6 @@ typedef ptrdiff_t nc_utf8proc_ssize_t;
 typedef bool nc_utf8proc_bool;
 #endif
 #include <limits.h>
-
-#ifndef UTF8PROC_EXPORTS
-#ifdef _WIN32
-#  ifdef UTF8PROC_EXPORTS
-#    define UTF8PROC_DLLEXPORT __declspec(dllexport)
-#  else
-#    define UTF8PROC_DLLEXPORT __declspec(dllimport)
-#  endif
-#elif __GNUC__ >= 4
-#  define UTF8PROC_DLLEXPORT __attribute__ ((visibility("default")))
-#else
-#  define UTF8PROC_DLLEXPORT
-#endif
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -418,7 +405,7 @@ const char *nc_utf8proc_errmsg(nc_utf8proc_ssize_t errcode);
  * In case of success, the number of bytes read is returned; otherwise, a
  * negative error code is returned.
  */
-UTF8PROC_DLLEXPORT nc_utf8proc_ssize_t nc_utf8proc_iterate(const nc_utf8proc_uint8_t *str, nc_utf8proc_ssize_t strlen, nc_utf8proc_int32_t *codepoint_ref);
+EXTERNL nc_utf8proc_ssize_t nc_utf8proc_iterate(const nc_utf8proc_uint8_t *str, nc_utf8proc_ssize_t strlen, nc_utf8proc_int32_t *codepoint_ref);
 
 /**
  * Check if a codepoint is valid (regardless of whether it has been
@@ -685,13 +672,13 @@ nc_utf8proc_ssize_t nc_utf8proc_map_custom(
  */
 /** @{ */
 /** NFD normalization (@ref UTF8PROC_DECOMPOSE). */
-UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFD(const nc_utf8proc_uint8_t *str);
+EXTERNL nc_utf8proc_uint8_t *nc_utf8proc_NFD(const nc_utf8proc_uint8_t *str);
 /** NFC normalization (@ref UTF8PROC_COMPOSE). */
-UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFC(const nc_utf8proc_uint8_t *str);
+EXTERNL nc_utf8proc_uint8_t *nc_utf8proc_NFC(const nc_utf8proc_uint8_t *str);
 /** NFKD normalization (@ref UTF8PROC_DECOMPOSE and @ref UTF8PROC_COMPAT). */
-UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFKD(const nc_utf8proc_uint8_t *str);
+EXTERNL nc_utf8proc_uint8_t *nc_utf8proc_NFKD(const nc_utf8proc_uint8_t *str);
 /** NFKC normalization (@ref UTF8PROC_COMPOSE and @ref UTF8PROC_COMPAT). */
-UTF8PROC_DLLEXPORT nc_utf8proc_uint8_t *nc_utf8proc_NFKC(const nc_utf8proc_uint8_t *str);
+EXTERNL nc_utf8proc_uint8_t *nc_utf8proc_NFKC(const nc_utf8proc_uint8_t *str);
 /** @} */
 
 #ifdef __cplusplus

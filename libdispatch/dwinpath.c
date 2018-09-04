@@ -11,12 +11,17 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #ifdef _MSC_VER
 #include <io.h>
 #endif
 
 #include "ncexternl.h"
 #include "ncwinpath.h"
+
+#undef PATHFORMAT
 
 /*
 Code to provide some path conversion code so that
@@ -28,15 +33,21 @@ Rules:
 2. a leading '/cygdrive/X' will be converted to
    a drive letter X if X is alpha-char.
 3. a leading D:/... is treated as a windows drive letter
-4. If #1, #2, or #3 is encounterd, then forward slashes
+4. a relative path will be converted to an absolute path.
+5. If any of the above is encountered, then forward slashes
    will be converted to backslashes.
-5. All other cases are passed thru unchanged
+All other cases are passed thru unchanged
 */
+
 
 /* Define legal windows drive letters */
 static char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 static size_t cdlen = 10; /* strlen("/cygdrive/") */
+
+static int pathdebug = -1;
+
+static char* makeabsolute(const char* relpath);
 
 EXTERNL
 char* /* caller frees */
@@ -47,7 +58,14 @@ NCpathcvt(const char* path)
     char* q;
     size_t pathlen;
 
-    if(path == NULL) return NULL; /* defensive driving */
+    if(path == NULL) goto done; /* defensive driving */
+
+    /* Check for path debug env vars */
+    if(pathdebug < 0) {
+	const char* s = getenv("NCPATHDEBUG");
+        pathdebug = (s == NULL ? 0 : 1);
+    }
+
     pathlen = strlen(path);
 
     /* 1. look for MSYS path /D/... */
@@ -57,7 +75,7 @@ NCpathcvt(const char* path)
 	&& (path[2] == '/' || path[2] == '\\' || path[2] == '\0')) {
 	/* Assume this is a mingw path */
 	outpath = (char*)malloc(pathlen+3); /* conservative */
-	if(outpath == NULL) return NULL;
+	if(outpath == NULL) goto done;
 	q = outpath;
 	*q++ = path[1];
 	*q++ = ':';
@@ -76,8 +94,8 @@ NCpathcvt(const char* path)
 	    || path[cdlen+1] == '\0')) {
 	/* Assume this is a cygwin path */
 	outpath = (char*)malloc(pathlen+1); /* conservative */
-	if(outpath == NULL) return NULL;
-	outpath[0] = path[cdlen];
+	if(outpath == NULL) goto done;
+	outpath[0] = path[cdlen]; /* drive letter */
 	outpath[1] = ':';
 	strcpy(&outpath[2],&path[cdlen+1]);
 	if(strlen(outpath) == 2)
@@ -94,18 +112,57 @@ NCpathcvt(const char* path)
 	goto slashtrans;
     }
 
-    /* 4. Other: just pass thru */
+    /* 4. Look for relative path */
+    if(pathlen > 1 && path[0] == '.') {
+	outpath = makeabsolute(path);
+	goto slashtrans;
+    }
+
+    /* Other: just pass thru */
     outpath = strdup(path);
     goto done;
 
 slashtrans:
-    /* In all #1 or #2 cases, translate '/' -> '\\' */
+      /* In order to help debugging, and if not using MSC_VER or MINGW,
+	 convert back slashes to forward, else convert forward to back
+      */
     p = outpath;
+    /* In all #1 or #2 cases, translate '/' -> '\\' */
     for(;*p;p++) {
 	if(*p == '/') {*p = '\\';}
     }
+#ifdef PATHFORMAT
+#ifndef _MSC_VER
+	p = outpath;
+        /* Convert '\' back to '/' */
+        for(;*p;p++) {
+            if(*p == '\\') {*p = '/';}
+	}
+    }
+#endif /*!_MSC_VER*/
+#endif /*PATHFORMAT*/
+
 done:
+    if(pathdebug) {
+        fprintf(stderr,"XXXX: inpath=|%s| outpath=|%s|\n",
+            path?path:"NULL",outpath?outpath:"NULL");
+        fflush(stderr);
+    }
     return outpath;
+}
+
+static char*
+makeabsolute(const char* relpath)
+{
+    char* path = NULL;
+#ifdef _MSC_VER
+    path = _fullpath(NULL,relpath,8192);
+#else
+    path = realpath(relpath, NULL);
+#endif
+    if(path == NULL)
+	path = strdup(relpath);
+    return path;    
 }
 
 #ifdef WINPATH
@@ -120,8 +177,6 @@ NCfopen(const char* path, const char* flags)
 {
     FILE* f = NULL;
     char* cvtname = NCpathcvt(path);
-fprintf(stderr,"XXXX: path=|%s| cvtpath=|%s|\n",path,cvtname?cvtname:"null");
-fflush(stderr);
     if(cvtname == NULL) return NULL;
     f = fopen(cvtname,flags);
     free(cvtname);    
@@ -133,11 +188,7 @@ int
 NCopen3(const char* path, int flags, int mode)
 {
     int fd = -1;
-    fprintf(stderr,"XXXX: path=|%s|\n",path);
-    fflush(stderr);
     char* cvtname = NCpathcvt(path);
-    fprintf(stderr,"XXXX: path=|%s| cvtpath=|%s|\n",path,cvtname?cvtname:"null");
-    fflush(stderr);
     if(cvtname == NULL) return -1;
     fd = open(cvtname,flags,mode);
     free(cvtname);    

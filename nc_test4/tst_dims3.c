@@ -14,7 +14,6 @@
 int
 main(int argc, char **argv)
 {
-nc_set_log_level(0);
    printf("\n*** Testing netcdf-4 dimensions even more.\n");
    printf("*** testing netcdf-4 dimension inheritance...");
    {
@@ -109,8 +108,8 @@ nc_set_log_level(0);
    printf("*** testing defining dimensions and coord variables in different orders in root group...");
    {
        int ncid, grpid, grp2id;
-       int time_dimid, lev_dimid, vrt_dimid, g2lev_dimid, g2vrt_dimid;
-       int time_dimid_in, lev_dimid_in, vrt_dimid_in, g2lev_dimid_in, g2vrt_dimid_in;
+       int time_dimid, lev_dimid, g2lev_dimid, g2vrt_dimid;
+       int time_dimid_in, lev_dimid_in, g2lev_dimid_in, g2vrt_dimid_in;
        int time_varid, lev_varid, gvar2_varid, g2lev_varid, g2vrt_varid;
        int var2_dims[VAR2_RANK];
       /* Create test for fix of bug that resulted in two dimensions
@@ -156,8 +155,8 @@ nc_set_log_level(0);
    printf("*** testing defining dimensions and coord variables in different orders in subgroup...");
    {
        int ncid, grpid, grp2id;
-       int time_dimid, lev_dimid, vrt_dimid, g2lev_dimid, g2vrt_dimid;
-       int time_dimid_in, lev_dimid_in, vrt_dimid_in, g2lev_dimid_in, g2vrt_dimid_in;
+       int time_dimid, lev_dimid, g2lev_dimid, g2vrt_dimid;
+       int time_dimid_in, lev_dimid_in, g2lev_dimid_in, g2vrt_dimid_in;
        int time_varid, lev_varid, gvar2_varid, g2lev_varid, g2vrt_varid;
        int var2_dims[VAR2_RANK];
       /* Create test for fix of bug inside a subgroup that results in two dimensions

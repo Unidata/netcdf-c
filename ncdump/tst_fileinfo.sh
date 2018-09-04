@@ -1,25 +1,26 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 set -e
+set -x
 echo ""
 
 EXIT=0
 
-NCF=$srcdir/nc4_fileinfo.nc
-HDF=$srcdir/hdf5_fileinfo.hdf
-NF=ref_tst_compounds4.nc
+NCF=${top_srcdir}/ncdump/nc4_fileinfo.nc
+HDF=${top_srcdir}/ncdump/hdf5_fileinfo.hdf
+NF=${top_srcdir}/ncdump/ref_tst_compounds4.nc
 
-# Do a false negative test 
-rm -f ./tmp
-if $NCDUMP -s $builddir/$NF | fgrep '_IsNetcdf4 = 0' > ./tmp ; then
+# Do a false negative test
+rm -f ./tmp_tst_fileinfo
+if $NCDUMP -s $NF | fgrep '_IsNetcdf4 = 0' > ./tmp_tst_fileinfo ; then
    echo "Pass: False negative for file: $NF"
 else
    echo "FAIL: False negative for file: $NF"
 fi
-rm -f ./tmp
+rm -f ./tmp_tst_fileinfo
 
 if ${execdir}/tst_fileinfo > /dev/null ; then
    # look at the _IsNetcdf4 flag
@@ -42,4 +43,3 @@ rm -f $NCF
 rm -f $HDF
 
 exit $EXIT
-

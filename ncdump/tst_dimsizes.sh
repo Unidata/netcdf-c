@@ -1,6 +1,8 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+#set -e
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 echo "*** Test Maximum dimension sizes X mode"
@@ -18,16 +20,16 @@ ${execdir}/tst_dimsizes
 
 echo "*** Verify that ncdump can read dimsizes"
 
-rm -fr ./tmp
-if ${NCDUMP} -h tst_dimsize_classic.nc > ./tmp ; then
+rm -fr ./tmp_tst_dimsizes
+if ${NCDUMP} -h tst_dimsize_classic.nc > ./tmp_tst_dimsizes ; then
 echo "*** PASS: ncdump tst_dimsize_classic.nc"
 else
 echo "*** FAIL: ncdump tst_dimsize_classic.nc"
 RETURN=1
 fi
 
-rm -fr ./tmp
-if ${NCDUMP} -h tst_dimsize_64offset.nc > ./tmp ; then
+rm -fr ./tmp_tst_dimsizes
+if ${NCDUMP} -h tst_dimsize_64offset.nc > ./tmp_tst_dimsizes ; then
 echo "*** PASS: ncdump tst_dimsize_64offset.nc"
 else
 echo "*** FAIL: ncdump tst_dimsize_64offset.nc"
@@ -35,8 +37,8 @@ RETURN=1
 fi
 
 if test -f tst_dimsize_64data.nc ; then
-  rm -fr ./tmp
-  if ${NCDUMP} -h tst_dimsize_64data.nc > ./tmp ; then
+  rm -fr ./tmp_tst_dimsizes
+  if ${NCDUMP} -h tst_dimsize_64data.nc > ./tmp_tst_dimsizes ; then
     echo "*** PASS: ncdump tst_dimsize_64data.nc"
   else
     echo "*** FAIL: ncdump tst_dimsize_64data.nc"
@@ -45,7 +47,6 @@ if test -f tst_dimsize_64data.nc ; then
 fi
 
 # Cleanup
-rm -f tmp tst_dimsize_classic.nc tst_dimsize_64offset.nc tst_dimsize_64data.nc
+rm -f tmp_tst_dimsizes tst_dimsize_classic.nc tst_dimsize_64offset.nc tst_dimsize_64data.nc
 
 exit $RETURN
-

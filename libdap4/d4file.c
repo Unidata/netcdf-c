@@ -9,7 +9,7 @@
 #include "d4read.h"
 #include "d4curlfunctions.h"
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER
 #include <process.h>
 #include <direct.h>
 #endif
@@ -65,6 +65,11 @@ NCD4_open(const char * path, int mode,
     if(ncuriparse(nc->path,&d4info->uri) != NCU_OK)
 	{ret = NC_EDAPURL; goto done;}
 
+    /* Load auth info from rc file */
+    if((ret = NC_authsetup(&d4info->auth, d4info->uri)))
+	goto done;
+    NCD4_curl_protocols(d4info);
+
     if(!constrainable(d4info->uri))
 	SETFLAG(d4info->controls.flags,NCF_UNCONSTRAINABLE);
 
@@ -93,21 +98,29 @@ NCD4_open(const char * path, int mode,
 	else
             snprintf(tmpname,sizeof(tmpname),"tmp_%d",nc->int_ncid);
 
-        /* Now, use the file to create the hidden, in-memory netcdf file.
+        /* Now, use the file to create the hidden substrate netcdf file.
 	   We want this hidden file to always be NC_NETCDF4, so we need to
            force default format temporarily in case user changed it.
+	   Since diskless is enabled, create file in-memory.
 	*/
 	{
 	    int new = NC_NETCDF4;
 	    int old = 0;
-	    int ncflags = NC_DISKLESS|NC_NETCDF4|NC_CLOBBER;
-
-	    if(FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY))
+	    int ncid = 0;
+	    int ncflags = NC_NETCDF4|NC_CLOBBER;
+	    ncflags |= NC_DISKLESS;
+	    if(FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY)) {
+		/* Cause data to be dumped to real file */
 		ncflags |= NC_WRITE;
-	    
+		ncflags &= ~(NC_DISKLESS); /* use real file */
+	    }
 	    nc_set_default_format(new,&old); /* save and change */
-            ret = nc_create(tmpname,ncflags,&d4info->substrate.nc4id);
+            ret = nc_create(tmpname,ncflags,&ncid);
 	    nc_set_default_format(old,&new); /* restore */
+	    d4info->substrate.realfile = ((ncflags & NC_DISKLESS) == 0);
+	    d4info->substrate.filename = strdup(tmpname);
+	    if(d4info->substrate.filename == NULL) ret = NC_ENOMEM;
+	    d4info->substrate.nc4id = ncid;
 	}
         if(ret != NC_NOERR) goto done;
 	/* Avoid fill */
@@ -229,7 +242,7 @@ done:
 }
 
 int
-NCD4_close(int ncid)
+NCD4_close(int ncid, void* ignore)
 {
     int ret = NC_NOERR;
     NC* nc;
@@ -262,7 +275,7 @@ done:
 int
 NCD4_abort(int ncid)
 {
-    return NCD4_close(ncid);
+    return NCD4_close(ncid,NULL);
 }
 
 /**************************************************/
@@ -280,8 +293,23 @@ freeInfo(NCD4INFO* d4info)
     nullfree(d4info->data.ondiskfilename);
     if(d4info->data.ondiskfile != NULL)
 	fclose(d4info->data.ondiskfile);
-    nullfree(d4info->substrate.filename);
+    if(d4info->substrate.realfile
+	&& !FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY)) {
+	/* We used real file, so we need to delete the temp file
+           unless we are debugging.
+	   Assume caller has done nc_close|nc_abort on the ncid.
+           Note that in theory, this should not be necessary since
+           AFAIK the substrate file is still in def mode, and
+           when aborted, it should be deleted. But that is not working
+           for some reason, so we delete it ourselves.
+	*/
+	if(d4info->substrate.filename != NULL) {
+	    unlink(d4info->substrate.filename);
+	}
+    }
+    nullfree(d4info->substrate.filename); /* always reclaim */
     NCD4_reclaimMeta(d4info->substrate.metadata);
+    NC_authclear(&d4info->auth);
     free(d4info);    
 }
 
@@ -293,17 +321,6 @@ freeCurl(NCD4curl* curl)
     ncbytesfree(curl->packet);
     nullfree(curl->errdata.code);
     nullfree(curl->errdata.message);
-    nullfree(curl->curlflags.useragent);
-    nullfree(curl->curlflags.cookiejar);
-    nullfree(curl->curlflags.netrc);
-    nullfree(curl->ssl.certificate);
-    nullfree(curl->ssl.key);
-    nullfree(curl->ssl.keypasswd);
-    nullfree(curl->ssl.cainfo);
-    nullfree(curl->ssl.capath);
-    nullfree(curl->proxy.host);
-    nullfree(curl->proxy.userpwd);
-    nullfree(curl->creds.userpwd);
 }
 
 /* Define the set of protocols known to be constrainable */
@@ -328,65 +345,56 @@ set_curl_properties(NCD4INFO* d4info)
 {
     int ret = NC_NOERR;
 
-    /* defaults first */
-    NCD4_rcdefault(d4info);
-
-    /* extract the relevant triples into d4info */
-    NCD4_rcprocess(d4info);
-
-    if(d4info->curl->curlflags.useragent == NULL) {
-        size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
-	char* agent = (char*)malloc(len+1);
+    if(d4info->auth.curlflags.useragent == NULL) {
+	char* agent;
+        size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION);
+	len++; /*strlcat nul*/
+	agent = (char*)malloc(len+1);
 	strncpy(agent,DFALTUSERAGENT,len);
-	strncat(agent,VERSION,len);
-        d4info->curl->curlflags.useragent = agent;
+	strlcat(agent,VERSION,len);
+        d4info->auth.curlflags.useragent = agent;
     }
 
     /* Some servers (e.g. thredds and columbia) appear to require a place
        to put cookies in order for some security functions to work
     */
-    if(d4info->curl->curlflags.cookiejar != NULL
-       && strlen(d4info->curl->curlflags.cookiejar) == 0) {
-	free(d4info->curl->curlflags.cookiejar);
-	d4info->curl->curlflags.cookiejar = NULL;
+    if(d4info->auth.curlflags.cookiejar != NULL
+       && strlen(d4info->auth.curlflags.cookiejar) == 0) {
+	free(d4info->auth.curlflags.cookiejar);
+	d4info->auth.curlflags.cookiejar = NULL;
     }
 
-    if(d4info->curl->curlflags.cookiejar == NULL) {
+    if(d4info->auth.curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
-	char tmp[4096+1];
-        int ok;
-#if defined(_WIN32) || defined(_WIN64)
-	int pid = _getpid();
-#else
-	pid_t pid = getpid();
-#endif
-	snprintf(tmp,sizeof(tmp)-1,"%s/%s.%ld/",NCD4_globalstate->tempdir,"netcdf",(long)pid);
-
-#if defined(_WIN32) || defined(_WIN64)
-	ok = _mkdir(tmp);
-#else
-	ok = mkdir(tmp,S_IRUSR | S_IWUSR | S_IXUSR);
-#endif
-	if(ok != 0 && errno != EEXIST) {
-	    fprintf(stderr,"Cannot create cookie directory\n");
-	    goto fail;
-	}
+        char* path = NULL;
+        char* newpath = NULL;
+        int len;
 	errno = 0;
 	/* Create the unique cookie file name */
-	ok = NCD4_mktmp(tmp,&d4info->curl->curlflags.cookiejar);
-	d4info->curl->curlflags.createdflags |= COOKIECREATED;
-	if(ok != NC_NOERR && errno != EEXIST) {
+        len =
+	  strlen(ncrc_globalstate.tempdir)
+	  + 1 /* '/' */
+	  + strlen("ncd4cookies");
+        path = (char*)malloc(len+1);
+        if(path == NULL) return NC_ENOMEM;
+	snprintf(path,len,"%s/nc4cookies",ncrc_globalstate.tempdir);
+	/* Create the unique cookie file name */
+        newpath = NC_mktmp(path);
+        free(path);
+	if(newpath == NULL) {
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    goto fail;
 	}
+	d4info->auth.curlflags.cookiejar = newpath;
+	d4info->auth.curlflags.cookiejarcreated = 1;
 	errno = 0;
     }
-    assert(d4info->curl->curlflags.cookiejar != NULL);
+    assert(d4info->auth.curlflags.cookiejar != NULL);
 
     /* Make sure the cookie jar exists and can be read and written */
     {
 	FILE* f = NULL;
-	char* fname = d4info->curl->curlflags.cookiejar;
+	char* fname = d4info->auth.curlflags.cookiejar;
 	/* See if the file exists already */
         f = fopen(fname,"r");
 	if(f == NULL) {
@@ -416,7 +424,6 @@ fail:
 static void
 applyclientparamcontrols(NCD4INFO* info)
 {
-    NCD4meta* meta = info->substrate.metadata;
     const char* value;
 
     /* clear the flags */
@@ -489,3 +496,4 @@ getparam(NCD4INFO* info, const char* key)
 	return NULL;
     return value;
 }
+

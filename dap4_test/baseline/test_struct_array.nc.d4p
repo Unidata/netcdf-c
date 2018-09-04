@@ -18,8 +18,6 @@
     <Struct name="s" type="/s">
       <Dim name="/dx"/>
       <Dim name="/dy"/>
-      <Map name="/s.x"/>
-      <Map name="/s.y"/>
     </Struct>
   </Variables>
   <Attribute name="_DAP4_Little_Endian" type="UInt8">

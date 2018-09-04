@@ -88,7 +88,7 @@ extern Symbol* makearraytype(Symbol*, Dimset*);
 extern void convert1(NCConstant*,NCConstant*); /* Convert an arbitrary value to another */
 extern void setprimlength(NCConstant* prim, unsigned long len);
 extern struct Datalist* convertstringtochars(NCConstant* str);
-
+extern unsigned int convertFilterID(const char* id);
 
 /* from: semantic.c */
 extern  void processsemantics(void);
@@ -194,11 +194,11 @@ extern char *netcdf_name; /* command line -o file name */
 extern char *datasetname; /* name from the netcdf <name> {} */
 extern char *cdlname; /* name from the command line */
 
-/* from: util.c */
-extern void* emalloc (size_t);
-extern void* ecalloc (size_t);
-extern void* erealloc(void*,size_t);
-
 extern const char* specialname(int tag);
+
+extern void init_netcdf(void);
+extern void finalize_netcdf(int);
+extern void parse_init(void);
+extern int ncgparse(void);
 
 #endif /*!NC_GENLIB_H*/

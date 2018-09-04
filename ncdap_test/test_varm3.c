@@ -99,8 +99,8 @@ main()
         fprintf(stderr,"Cannot locate test server\n");
 	exit(0);
     }
-    strcpy(url,svc);
-    strcat(url,TESTPATH);
+    strncpy(url,svc,sizeof(url));
+    strlcat(url,TESTPATH,sizeof(url));
 
     printf("*** Test: varm on URL: %s\n",url);
 
@@ -251,6 +251,7 @@ main()
     }
     printf("*** %s: stride case 3\n",(fail?"Fail":"Pass"));
 
+    nc_close(ncid);
     return fail;
 
 }

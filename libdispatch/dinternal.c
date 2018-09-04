@@ -138,41 +138,25 @@ ncvarget(cdfid, varid, cor, edg, vals);
 \endcode
  */
 int
-nctypelen(nc_type type)
+NCDISPATCH_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
+               int *ndimsp, int *dimidsp, int *nattsp,
+               int *shufflep, int *deflatep, int *deflate_levelp,
+               int *fletcher32p, int *contiguousp, size_t *chunksizesp,
+               int *no_fill, void *fill_valuep, int *endiannessp,
+	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+               )
 {
-   switch(type){
-      case NC_CHAR :
-	 return ((int)sizeof(char));
-      case NC_BYTE :
-	 return ((int)sizeof(signed char));
-      case NC_SHORT :
-	 return ((int)sizeof(short));
-      case NC_INT :
-	 return ((int)sizeof(int));
-      case NC_FLOAT :
-	 return ((int)sizeof(float));
-      case NC_DOUBLE :
-	 return ((int)sizeof(double));
-
-	 /* These can occur in netcdf-3 code */
-      case NC_UBYTE :
-	 return ((int)sizeof(unsigned char));
-      case NC_USHORT :
-	 return ((int)(sizeof(unsigned short)));
-      case NC_UINT :
-	 return ((int)sizeof(unsigned int));
-      case NC_INT64 :
-	 return ((int)sizeof(signed long long));
-      case NC_UINT64 :
-	 return ((int)sizeof(unsigned long long));
-#ifdef USE_NETCDF4
-      case NC_STRING :
-	 return ((int)sizeof(char*));
-#endif /*USE_NETCDF4*/
-
-      default:
-	 return -1;
-   }
+   NC* ncp;
+   int stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->inq_var_all(
+      ncid, varid, name, xtypep,
+      ndimsp, dimidsp, nattsp,
+      shufflep, deflatep, deflate_levelp, fletcher32p,
+      contiguousp, chunksizesp,
+      no_fill, fill_valuep,
+      endiannessp,
+      idp, nparamsp, params);
 }
 
 /** \internal

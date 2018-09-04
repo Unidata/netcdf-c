@@ -42,7 +42,7 @@ static int decodeEconst(NCD4meta* builder, NCD4node* enumtype, const char* nameo
 static int downConvert(union ATOMICS* converter, NCD4node* type);
 static void freeStringMemory(char** mem, int count);
 static size_t getDimrefs(NCD4node* var, int* dimids);
-static size_t getDimsizes(NCD4node* var, size_t* dimsizes);
+static size_t getDimsizes(NCD4node* var, int* dimsizes);
 static void reclaimNode(NCD4node* node);
 static d4size_t getpadding(d4size_t offset, size_t alignment);
 static int markdapsize(NCD4meta* meta);
@@ -424,7 +424,7 @@ buildAttributes(NCD4meta* builder, NCD4node* varorgroup)
 	NCD4node* group;
         int varid;
 
-	/* Supress all UCARTAG attributes */
+	/* Suppress all UCARTAG attributes */
 	if(strncmp(attr->name,UCARTAG,strlen(UCARTAG)) == 0)
 	    continue;
 
@@ -523,7 +523,7 @@ buildCompound(NCD4meta* builder, NCD4node* cmpdtype, NCD4node* group, char* name
     /* Step 3: add the fields to type */
     for(i=0;i<nclistlength(cmpdtype->vars);i++) {  
 	int rank;
-	size_t dimsizes[NC_MAX_VAR_DIMS];
+	int dimsizes[NC_MAX_VAR_DIMS];
         NCD4node* field = (NCD4node*)nclistget(cmpdtype->vars,i);
 	rank = nclistlength(field->dims);
         if(rank == 0) { /* scalar */
@@ -531,11 +531,15 @@ buildCompound(NCD4meta* builder, NCD4node* cmpdtype, NCD4node* group, char* name
 					field->name, field->meta.offset,
 					field->basetype->meta.id)));
         } else if(rank > 0) { /* array  */
+  	    int idimsizes[NC_MAX_VAR_DIMS];
+	    int j;
 	    getDimsizes(field,dimsizes);
+	    /* nc_insert_array_compound: dimsizes arg is not size_t */
+	    for(j=0;j<rank;j++) idimsizes[j] = (int)dimsizes[j];
             NCCHECK((nc_insert_array_compound(group->meta.id, cmpdtype->meta.id,
 					      field->name, field->meta.offset,
 					      field->basetype->meta.id,
-					      rank, dimsizes)));
+					      rank, idimsizes)));
 	}
     }
 
@@ -681,13 +685,13 @@ getDimrefs(NCD4node* var, int* dimids)
 }
 
 static size_t
-getDimsizes(NCD4node* var, size_t* dimsizes)
+getDimsizes(NCD4node* var, int* dimsizes)
 {
     int i;
     int rank = nclistlength(var->dims);
     for(i=0;i<rank;i++) {
 	NCD4node* dim = (NCD4node*)nclistget(var->dims,i);
-	dimsizes[i] = dim->dim.size;
+	dimsizes[i] = (int)dim->dim.size;
     }
     return rank;
 }
@@ -729,7 +733,7 @@ compileAttrValues(NCD4meta* builder, NCD4node* basetype, NClist* values, void** 
     if(!ISTYPE(truebase->sort) || (truebase->meta.id > NC_MAX_ATOMIC_TYPE))
         FAIL(NC_EBADTYPE,"Illegal attribute type: %s",basetype->name);
     size = NCD4_typesize(truebase->meta.id);
-    if((memory = (char*)d4alloc(count*size))==NULL)
+    if((memory = (unsigned char*)d4alloc(count*size))==NULL)
         return THROW(NC_ENOMEM);
     p = memory;
     for(i=0;i<count;i++) {
@@ -780,17 +784,17 @@ convertString(union ATOMICS* converter, NCD4node* type, const char* s)
     case NC_SHORT:
     case NC_INT:
     case NC_INT64:
-	if(sscanf(s,"%lld",&converter->i64) != 1) return THROW(NC_ERANGE);
+	if(sscanf(s,"%lld",&converter->i64[0]) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_UBYTE:
     case NC_USHORT:
     case NC_UINT:
     case NC_UINT64:
-	if(sscanf(s,"%llu",&converter->u64) != 1) return THROW(NC_ERANGE);
+	if(sscanf(s,"%llu",&converter->u64[0]) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_FLOAT:
     case NC_DOUBLE:
-	if(sscanf(s,"%lf",&converter->f64) != 1) return THROW(NC_ERANGE);
+	if(sscanf(s,"%lf",&converter->f64[0]) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_CHAR:
 	converter->i8[0] = s[0];

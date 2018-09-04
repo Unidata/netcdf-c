@@ -15,23 +15,25 @@ noinst_LTLIBRARIES = libdispatch.la
 libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 # The source files.
-libdispatch_la_SOURCES = \
-daux.c dapi.c dinternal.c \
-dcopy.c derror.c ddispatch.c dutf8.c dstring.c \
-nclog.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c                        \
-nc.c nclistmgr.c drc.c doffsets.c dwinpath.c
+libdispatch_la_SOURCES = dparallel.c dcopy.c dfile.c ddim.c datt.c	\
+dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
+dvarinq.c dinternal.c ddispatch.c dutf8.c nclog.c dstring.c ncuri.c	\
+nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c drc.c		\
+dauth.c doffsets.c dwinpath.c dutil.c dreadonly.c dnotnc4.c dnotnc3.c	\
+crc32.c crc32.h
 
 # Add the utf8 codebase
 libdispatch_la_SOURCES += utf8proc.c utf8proc.h
 
-# Turn on pre-processor flag when building a DLL for windows.
-if BUILD_DLL
-libdispatch_la_CPPFLAGS += -DDLL_EXPORT
-endif # BUILD_DLL
+# Add functions only found in netCDF-4.
+if USE_NETCDF4
+libdispatch_la_SOURCES += dgroup.c dvlen.c dcompound.c dtype.c denum.c	\
+dopaque.c dfilter.c ncaux.c
+endif # USE_NETCDF4
 
 # Add V2 API convenience library if needed.
 if BUILD_V2
-noinst_LTLIBRARIES += libnetcdf2.la 
+noinst_LTLIBRARIES += libnetcdf2.la
 libnetcdf2_la_SOURCES = dv2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
@@ -69,4 +71,3 @@ test_ncuri_SOURCES = test_ncuri.c ncuri.c ncbytes.c nclist.c
 test_pathcvt_SOURCES = test_pathcvt.c dwinpath.c
 check_PROGRAMS = test_ncuri test_pathcvt
 TESTS = test_ncuri test_pathcvt
-

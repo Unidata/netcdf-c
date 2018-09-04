@@ -9,7 +9,9 @@
 #ifndef _DISPATCH_H
 #define _DISPATCH_H
 
+#if HAVE_CONFIG_H
 #include "config.h"
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -29,7 +31,8 @@
 #define X_INT_MAX	2147483647
 
 /* Given a filename, check its magic number */
-#define MAGIC_NUMBER_LEN 4
+/* Change magic number size from 4 to 8 to be more precise for HDF5 */
+#define MAGIC_NUMBER_LEN ((size_t)8)
 #define MAGIC_HDF5_FILE 1
 #define MAGIC_HDF4_FILE 2
 #define MAGIC_CDF1_FILE 1 /* std classic format */
@@ -102,15 +105,11 @@ typedef struct NC_MPI_INFO {
     MPI_Info info;
 } NC_MPI_INFO;
 
-typedef struct NC_MEM_INFO {
-    size_t size;
-    void* memory;
-} NC_MEM_INFO;
-
 /* Define known dispatch tables and initializers */
 
 /*Forward*/
-typedef struct NC_Dispatch NC_Dispatch;
+// typedef struct NC_Dispatch NC_Dispatch;
+
 
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
@@ -142,10 +141,20 @@ extern int NC4_initialize(void);
 extern int NC4_finalize(void);
 #endif
 
+#ifdef USE_HDF4
+extern NC_Dispatch* HDF4_dispatch_table;
+extern int HDF4_initialize(void);
+extern int HDF4_finalize(void);
+#endif
+
 /* Vectors of ones and zeros */
 extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
 extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];
 extern ptrdiff_t nc_ptrdiffvector1[NC_MAX_VAR_DIMS];
+
+/* Prototypes. */
+int NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
+                   ptrdiff_t **stride);
 
 /**************************************************/
 /* Forward */
@@ -170,14 +179,14 @@ int NC_open(const char *path, int cmode,
 	    int *ncidp);
 
 /* Expose the default vars and varm dispatch entries */
-extern int NCDEFAULT_get_vars(int, int, const size_t*,
+EXTERNL int NCDEFAULT_get_vars(int, int, const size_t*,
 	       const size_t*, const ptrdiff_t*, void*, nc_type);
-extern int NCDEFAULT_put_vars(int, int, const size_t*,
+EXTERNL int NCDEFAULT_put_vars(int, int, const size_t*,
 	       const size_t*, const ptrdiff_t*, const void*, nc_type);
-extern int NCDEFAULT_get_varm(int, int, const size_t*,
+EXTERNL int NCDEFAULT_get_varm(int, int, const size_t*,
                const size_t*, const ptrdiff_t*, const ptrdiff_t*,
                void*, nc_type);
-extern int NCDEFAULT_put_varm(int, int, const size_t*,
+EXTERNL int NCDEFAULT_put_varm(int, int, const size_t*,
                const size_t*, const ptrdiff_t*, const ptrdiff_t*,
                const void*, nc_type);
 
@@ -202,7 +211,7 @@ int (*redef)(int);
 int (*_enddef)(int,size_t,size_t,size_t,size_t);
 int (*sync)(int);
 int (*abort)(int);
-int (*close)(int);
+int (*close)(int,void*);
 int (*set_fill)(int,int,int*);
 int (*inq_base_pe)(int,int*);
 int (*set_base_pe)(int,int);
@@ -245,9 +254,11 @@ int (*inq_var_all)(int ncid, int varid, char *name, nc_type *xtypep,
                int *shufflep, int *deflatep, int *deflate_levelp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                int *no_fill, void *fill_valuep, int *endiannessp,
-	       int *options_maskp, int *pixels_per_blockp);
+	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+              );
 
 int (*var_par_access)(int, int, int);
+int (*def_var_fill)(int, int, int, const void*);
 
 /* Note the following may still be invoked by netcdf client code
    even when the file is a classic file; they will just return an error or
@@ -287,8 +298,8 @@ int (*def_opaque)(int, size_t, const char*, nc_type*);
 int (*def_var_deflate)(int, int, int, int, int);
 int (*def_var_fletcher32)(int, int, int);
 int (*def_var_chunking)(int, int, int, const size_t*);
-int (*def_var_fill)(int, int, int, const void*);
 int (*def_var_endian)(int, int, int);
+int (*def_var_filter)(int, int, unsigned int, size_t, const unsigned int*);
 int (*set_var_chunk_cache)(int, int, size_t, size_t, float);
 int (*get_var_chunk_cache)(int ncid, int varid, size_t *sizep, size_t *nelemsp, float *preemptionp);
 #endif /*USE_NETCDF4*/
@@ -316,8 +327,8 @@ typedef struct NCcommon {
 	char* path; /* as specified at open or create */
 } NCcommon;
 
-extern size_t NC_atomictypelen(nc_type xtype);
-extern char* NC_atomictypename(nc_type xtype);
+EXTERNL size_t NC_atomictypelen(nc_type xtype);
+EXTERNL char* NC_atomictypename(nc_type xtype);
 
 #ifdef OBSOLETE
 /* Provide a dispatch table overlay facility */
@@ -391,15 +402,76 @@ but not in the netcdf.h API. These need to
 be exposed for use in delegation such as
 in libdap2.
 */
-extern int
+EXTERNL int
 NCDISPATCH_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *ndimsp, int *dimidsp, int *nattsp,
                int *shufflep, int *deflatep, int *deflate_levelp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                int *no_fill, void *fill_valuep, int *endiannessp,
-	       int *options_maskp, int *pixels_per_blockp);
-
-extern int
+	       unsigned int* idp, size_t* nparamsp, unsigned int* paramsp
+               );
+EXTERNL int
 NCDISPATCH_get_att(int ncid, int varid, const char* name, void* value, nc_type t);
+
+/* Read-only dispatch layers can use these functions to return
+ * NC_EPERM to all attempts to modify a file. */
+
+EXTERNL int NC_RO_create(const char *path, int cmode, size_t initialsz, int basepe,
+                 size_t *chunksizehintp, int useparallel, void* parameters,
+                 NC_Dispatch*, NC*);
+EXTERNL int NC_RO_redef(int ncid);
+EXTERNL int NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
+                  size_t r_align);
+EXTERNL int NC_RO_sync(int ncid);
+EXTERNL int NC_RO_def_var_fill(int, int, int, const void *);
+EXTERNL int NC_RO_rename_att(int ncid, int varid, const char *name,
+                     const char *newname);
+EXTERNL int NC_RO_del_att(int ncid, int varid, const char*);
+EXTERNL int NC_RO_put_att(int ncid, int varid, const char *name, nc_type datatype,
+                  size_t len, const void *value, nc_type);
+EXTERNL int NC_RO_def_var(int ncid, const char *name,
+                  nc_type xtype, int ndims, const int *dimidsp, int *varidp);
+EXTERNL int NC_RO_rename_var(int ncid, int varid, const char *name);
+EXTERNL int NC_RO_put_vara(int ncid, int varid,
+                   const size_t *start, const size_t *count,
+                   const void *value, nc_type);
+EXTERNL int NC_RO_def_dim(int ncid, const char *name, size_t len, int *idp);
+EXTERNL int NC_RO_rename_dim(int ncid, int dimid, const char *name);
+EXTERNL int NC_RO_set_fill(int ncid, int fillmode, int *old_modep);
+
+/* These functions are for dispatch layers that don't implement these
+ * legacy functions. They return NC_ENOTNC3. */
+EXTERNL int NC_NOTNC3_set_base_pe(int ncid, int pe);
+EXTERNL int NC_NOTNC3_inq_base_pe(int ncid, int *pe);
+
+/* These functions are for dispatch layers that don't implement the
+ * enhanced model. They return NC_ENOTNC4. */
+EXTERNL int NC_NOTNC4_def_var_filter(int, int, unsigned int, size_t,
+                             const unsigned int*);
+EXTERNL int NC_NOTNC4_def_grp(int, const char *, int *);
+EXTERNL int NC_NOTNC4_rename_grp(int, const char *);
+EXTERNL int NC_NOTNC4_def_compound(int, size_t, const char *, nc_type *);
+EXTERNL int NC_NOTNC4_insert_compound(int, nc_type, const char *, size_t, nc_type);
+EXTERNL int NC_NOTNC4_insert_array_compound(int, nc_type, const char *, size_t, 
+                                    nc_type, int, const int *);
+EXTERNL int NC_NOTNC4_inq_typeid(int, const char *, nc_type *);
+EXTERNL int NC_NOTNC4_inq_compound_field(int, nc_type, int, char *, size_t *, 
+                                 nc_type *, int *, int *);
+EXTERNL int NC_NOTNC4_inq_compound_fieldindex(int, nc_type, const char *, int *);
+EXTERNL int NC_NOTNC4_def_vlen(int, const char *, nc_type base_typeid, nc_type *);
+EXTERNL int NC_NOTNC4_put_vlen_element(int, int, void *, size_t, const void *);
+EXTERNL int NC_NOTNC4_get_vlen_element(int, int, const void *, size_t *, void *);
+EXTERNL int NC_NOTNC4_def_enum(int, nc_type, const char *, nc_type *);
+EXTERNL int NC_NOTNC4_insert_enum(int, nc_type, const char *, const void *);
+EXTERNL int NC_NOTNC4_inq_enum_member(int, nc_type, int, char *, void *);
+EXTERNL int NC_NOTNC4_inq_enum_ident(int, nc_type, long long, char *);
+EXTERNL int NC_NOTNC4_def_opaque(int, size_t, const char *, nc_type *);
+EXTERNL int NC_NOTNC4_def_var_deflate(int, int, int, int, int);
+EXTERNL int NC_NOTNC4_def_var_fletcher32(int, int, int);
+EXTERNL int NC_NOTNC4_def_var_chunking(int, int, int, const size_t *);
+EXTERNL int NC_NOTNC4_def_var_endian(int, int, int);
+EXTERNL int NC_NOTNC4_set_var_chunk_cache(int, int, size_t, size_t, float);
+EXTERNL int NC_NOTNC4_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
+EXTERNL int NC_NOTNC4_var_par_access(int, int, int);
 
 #endif /* _DISPATCH_H */

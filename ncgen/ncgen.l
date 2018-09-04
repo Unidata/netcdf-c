@@ -132,6 +132,7 @@ struct Specialtoken specials[] = {
 {"_NCProperties",_NCPROPS,_NCPROPS_FLAG},
 {"_IsNetcdf4",_ISNETCDF4,_ISNETCDF4_FLAG},
 {"_SuperblockVersion",_SUPERBLOCK,_SUPERBLOCK_FLAG},
+{"_Filter",_FILTER,_FILTER_FLAG},
 {NULL,0} /* null terminate */
 };
 
@@ -210,7 +211,7 @@ NUMBER       [+-]?[0-9][0-9]*[Uu]?([BbSs]|[Ll]|[Ll][Ll])?
 DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
-SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"
+SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"|"_Filter"
 
 USASCII   [\x01-\x7F]
 
@@ -274,6 +275,8 @@ ulong|uint|uinteger	{return lexdebug(UINT_K);}
 int64			{return lexdebug(INT64_K);}
 uint64			{return lexdebug(UINT64_K);}
 double			{return lexdebug(DOUBLE_K);}
+string                  {return lexdebug(STRING_K);}
+
 unlimited|UNLIMITED	{int32_val = -1;
 			 return lexdebug(NC_UNLIMITED_K);}
 
@@ -355,7 +358,8 @@ NIL|nil|Nil {
 		    q = p;
 		    while((c=*p++)) {if(c > ' ') *q++ = c;}
 		    *q = '\0';
-		    datasetname = bbDup(lextext);
+		    if(datasetname == NULL)
+		        datasetname = bbDup(lextext);
 		    BEGIN(INITIAL);
 		    return lexdebug(DATASETID);
 		}
@@ -367,7 +371,7 @@ NIL|nil|Nil {
 		    id = bbContents(lextext);
 		    len = unescape(id,id,bbLength(lextext),ISIDENT);
 		    bbSetlength(lextext,len);
-		    if (STREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
+		    if (NCSTREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
 		    yylval.sym = install(id);
 		    return lexdebug(IDENT);
 		}
@@ -381,7 +385,6 @@ NIL|nil|Nil {
 		    int slen = strlen(ncgtext);
 		    char* stag = NULL;
 		    int tag = NC_NAT;
-		    int signchar = 0;
 		    int isneg = 0;
 		    int c = ncgtext[0];
 		    int fail = 0;
@@ -606,7 +609,7 @@ makepath(char* text0)
 	/* split the text into IDENT chunks, convert to symbols */
         Symbol* container = rootgroup;
 	char *ident, *p;
-        char* text = strdup(text0);
+        char* text = estrdup(text0);
 	int c,lastident;
 	ident=text+1; p=ident; /* skip leading '/' */
 	do {
@@ -655,7 +658,6 @@ Return the value.
 static unsigned long long
 parseULL(char* text, int* failp)
 {
-    int result = 0;
     extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;

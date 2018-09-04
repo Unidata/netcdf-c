@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 # For a netCDF-4 build, test nccopy on netCDF files in this directory
@@ -15,6 +15,10 @@ TESTFILES='tst_comp tst_comp2 tst_enum_data tst_fillbug
  tst_group_data tst_nans tst_opaque_data tst_solar_1 tst_solar_2
  tst_solar_cmp tst_special_atts tst_string_data tst_unicode
  tst_vlen_data'
+
+# Run these programs to create some test files.
+${execdir}/tst_comp2
+${execdir}/tst_compress
 
 echo "*** Testing netCDF-4 features of nccopy on ncdump/*.nc files"
 for i in $TESTFILES ; do
@@ -79,14 +83,14 @@ diff tmp.cdl tmp-chunked.cdl
 $NCCOPY -c dim0/,dim1/,dim2/,dim3/,dim4/,dim5/,dim6/ tmp-chunked.nc tmp-unchunked.nc
 ${NCDUMP} -n tmp tmp-unchunked.nc > tmp-unchunked.cdl
 diff tmp.cdl tmp-unchunked.cdl
-$NCCOPY -c / tmp-chunked.nc tmp-unchunked.nc
+$NCCOPY -c // tmp-chunked.nc tmp-unchunked.nc
 ${NCDUMP} -n tmp tmp-unchunked.nc > tmp-unchunked.cdl
 diff tmp.cdl tmp-unchunked.cdl
 echo "*** Test that nccopy -c works as intended for record dimension default (1)"
 ${NCGEN} -b -o tst_bug321.nc $srcdir/tst_bug321.cdl
 $NCCOPY -k nc7 -c"lat/2,lon/2" tst_bug321.nc tmp.nc
 ${NCDUMP} -n tst_bug321 tmp.nc > tmp.cdl
-diff $srcdir/tst_bug321.cdl tmp.cdl
+diff -b $srcdir/tst_bug321.cdl tmp.cdl
 # echo "*** Test that nccopy compression with chunking can improve compression"
 rm tst_chunking.nc tmp.nc tmp.cdl tmp-chunked.nc tmp-chunked.cdl tmp-unchunked.nc tmp-unchunked.cdl
 

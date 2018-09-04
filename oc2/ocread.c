@@ -11,14 +11,19 @@
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
-#ifdef _WIN32
+#ifdef _MSC_VER
 #include <io.h>
+#ifndef O_BINARY
+#define O_BINARY _O_BINARY
 #endif
+#endif
+#include "ncrc.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "ochttp.h"
 #include "ocread.h"
 #include "occurlfunctions.h"
+#include "ncwinpath.h"
 
 /*Forward*/
 static int readpacket(OCstate* state, NCURI*, NCbytes*, OCdxd, long*);
@@ -88,9 +93,8 @@ readpacket(OCstate* state, NCURI* url,NCbytes* packet,OCdxd dxd,long* lastmodifi
 
    fileprotocol = (strcmp(url->protocol,"file")==0);
 
-   if(fileprotocol && !state->curlflags.proto_file) {
-        /* Short circuit file://... urls*/
-	/* We do this because the test code always needs to read files*/
+   if(fileprotocol) {
+        /* Short circuit file://... urls and read directly */
 	fetchurl = ncuribuild(url,NULL,NULL,NCURIBASE);
 	stat = readfile(fetchurl,suffix,packet);
     } else {
@@ -101,7 +105,7 @@ readpacket(OCstate* state, NCURI* url,NCbytes* packet,OCdxd dxd,long* lastmodifi
 	MEMCHECK(fetchurl,OC_ENOMEM);
 	if(ocdebug > 0)
             {fprintf(stderr,"fetch url=%s\n",fetchurl); fflush(stderr);}
-        stat = ocfetchurl(curl,fetchurl,packet,lastmodified,&state->creds);
+        stat = ocfetchurl(curl,fetchurl,packet,lastmodified);
 	if(stat)
 	    oc_curl_printerror(state);
 	if(ocdebug > 0)
@@ -139,7 +143,7 @@ fprintf(stderr,"readDATADDS:\n");
 
         fileprotocol = (strcmp(url->protocol,"file")==0);
 
-        if(fileprotocol && !state->curlflags.proto_file) {
+        if(fileprotocol) {
             readurl = ncuribuild(url,NULL,NULL,NCURIBASE);
             stat = readfiletofile(readurl, ".dods", tree->data.file, &tree->data.datasize);
         } else {
@@ -200,60 +204,12 @@ static int
 readfile(const char* path, const char* suffix, NCbytes* packet)
 {
     int stat = OC_NOERR;
-    char buf[1024];
     char filename[1024];
-    int fd = -1;
-    int flags = 0;
-    off_t filesize = 0;
-    off_t totalread = 0;
     /* check for leading file:/// */
     if(ocstrncmp(path,"file://",7)==0) path += 7; /* assume absolute path*/
     if(!occopycat(filename,sizeof(filename),2,path,(suffix != NULL ? suffix : "")))
 	return OCTHROW(OC_EOVERRUN);
-    flags = O_RDONLY;
-#ifdef O_BINARY
-    flags |= O_BINARY;
-#endif
-    fd = open(filename,flags);
-    if(fd < 0) {
-	nclog(NCLOGERR,"open failed:%s",filename);
-	return OCTHROW(OC_EOPEN);
-    }
-    /* Get the file size */
-    filesize = lseek(fd,(off_t)0,SEEK_END);
-    if(filesize < 0) {
-	stat = OC_EIO;
-	nclog(NCLOGERR,"lseek failed: %s",filename);
-	goto done;
-    }
-    /* Move file pointer back to the beginning of the file */
-    (void)lseek(fd,(off_t)0,SEEK_SET);
-    stat = OC_NOERR;
-    for(totalread=0;;) {
-	off_t count = (off_t)read(fd,buf,sizeof(buf));
-	if(count == 0)
-	    break; /*eof*/
-	else if(count <  0) {
-	    stat = OC_EIO;
-	    nclog(NCLOGERR,"read failed: %s",filename);
-	    goto done;
-	}
-	ncbytesappendn(packet,buf,(unsigned long)count);
-	totalread += count;
-    }
-    if(totalread < filesize) {
-	stat = OC_EIO;
-	nclog(NCLOGERR,"short read: |%s|=%lu read=%lu\n",
-		filename,(unsigned long)filesize,(unsigned long)totalread);
-        goto done;
-    }
-
-done:
-#ifdef OCDEBUG
-fprintf(stderr,"readfile: filesize=%lu totalread=%lu\n",
-		(unsigned long)filesize,(unsigned long)totalread);
-#endif
-    if(fd >= 0) close(fd);
+    stat = NC_readfile(filename,packet);
     return OCTHROW(stat);
 }
 

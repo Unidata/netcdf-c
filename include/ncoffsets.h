@@ -7,7 +7,7 @@
 #define NCOFFSETS_H 1
 
 typedef struct Alignment {
-    char* typename;
+    char* type_name;
     unsigned int alignment;
 } Alignment;
 

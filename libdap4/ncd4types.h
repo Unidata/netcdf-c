@@ -13,6 +13,15 @@ are defined here.
 
 #undef COMPILEBYDEFAULT
 
+#include "ncrc.h"
+#include "ncauth.h"
+
+/*
+Control if struct fields can be map targets.
+Currently turned off because semantics are unclear.
+*/
+#undef ALLOWFIELDMAPS
+
 #define long64 long long
 #define ncerror int
 
@@ -33,7 +42,6 @@ typedef enum NCD4mode NCD4mode;
 typedef enum NCD4translation NCD4translation;
 typedef struct NCD4curl NCD4curl;
 typedef struct NCD4meta NCD4meta;
-typedef struct NCD4globalstate NCD4globalstate;
 typedef struct NCD4node NCD4node;
 typedef struct NCD4params NCD4params;
 
@@ -217,7 +225,8 @@ typedef struct NCD4serial {
 /* This will be passed out of the parse */
 struct NCD4meta {
     NCD4INFO* controller;
-    int ncid; /* root ncid of the substrate netcdf-4 file; copy of NCD4parse argument*/
+    int ncid; /* root ncid of the substrate netcdf-4 file;
+		 warning: copy of NCD4Info.substrate.nc4id */
     NCD4node* root;
     NCD4mode  mode; /* Are we reading DMR (only) or DAP (includes DMR) */
     NClist* allnodes; /*list<NCD4node>*/
@@ -254,31 +263,6 @@ typedef struct NCD4parser {
 
 /**************************************************/
 
-typedef struct NCD4triple {
-        char* host; /* includes port if specified */
-        char* key;
-        char* value;
-} NCD4triple;
-
-
-/**************************************************/
-
-/* Collect global state info in one place */
-struct NCD4globalstate {
-    struct {
-        int proto_file;
-        int proto_https;
-    } curl;
-    char* tempdir; /* track a usable temp dir */
-    char* home; /* track $HOME for use in creating $HOME/.oc dir */
-    struct {
-	int ignore; /* if 1, then do not use any rc file */
-	int loaded;
-        NClist* rc; /*NClist<NCD4triple>; the rc file triple store fields*/
-        char* rcfile; /* specified rcfile; overrides anything else */
-    } rc;
-};
-
 /* Curl info */
 struct NCD4curl {
     CURL* curl; /* curl handle*/
@@ -289,40 +273,6 @@ struct NCD4curl {
 	long  httpcode;
 	char  errorbuf[CURL_ERROR_SIZE]; /* CURLOPT_ERRORBUFFER*/
     } errdata;
-    struct curlflags {
-        int proto_file; /* Is file: supported? */
-        int proto_https; /* is https: supported? */
-	int compress; /*CURLOPT_ENCODING*/
-	int verbose; /*CURLOPT_ENCODING*/
-	int timeout; /*CURLOPT_TIMEOUT*/
-	int maxredirs; /*CURLOPT_MAXREDIRS*/
-	char* useragent; /*CURLOPT_USERAGENT*/
-	/* track which of these are created by oc */
-#define COOKIECREATED 1
-#define NETRCCREATED 2
-	int createdflags;
-	char* cookiejar; /*CURLOPT_COOKIEJAR,CURLOPT_COOKIEFILE*/
-	char* netrc; /*CURLOPT_NETRC,CURLOPT_NETRC_FILE*/
-    } curlflags;
-    struct ssl {
-	int   verifypeer; /* CURLOPT_SSL_VERIFYPEER;
-                             do not do this when cert might be self-signed
-                             or temporarily incorrect */
-	int   verifyhost; /* CURLOPT_SSL_VERIFYHOST; for client-side verification */
-        char* certificate; /*CURLOPT_SSLCERT*/
-	char* key; /*CURLOPT_SSLKEY*/
-	char* keypasswd; /*CURLOPT_SSLKEYPASSWD*/
-        char* cainfo; /* CURLOPT_CAINFO; certificate authority */
-	char* capath;  /*CURLOPT_CAPATH*/
-    } ssl;
-    struct proxy {
-	char *host; /*CURLOPT_PROXY*/
-	int port; /*CURLOPT_PROXYPORT*/
-	char* userpwd; /*CURLOPT_PROXYUSERPWD*/
-    } proxy;
-    struct credentials {
-	char *userpwd; /*CURLOPT_USERPWD*/
-    } creds;
 };
 
 /**************************************************/
@@ -345,6 +295,7 @@ struct NCD4INFO {
         long daplastmodified;
     } data;
     struct {
+	int realfile; /* 1 => we created actual temp file */
 	char* filename; /* of the substrate file */
         int nc4id; /* substrate nc4 file ncid used to hold metadata; not same as external id  */
 	NCD4meta* metadata;
@@ -355,6 +306,7 @@ struct NCD4INFO {
 	NCD4translation translation;
 	char substratename[NC_MAX_NAME];
     } controls;
+    NCauth auth;
 };
 
 #endif /*D4TYPES_H*/

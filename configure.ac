@@ -3,6 +3,7 @@
 
 # This is part of Unidata's netCDF package. Copyright 2005-2012, see
 # the COPYRIGHT file for more information.
+# Ed Hartnett, Ward Fisher, Dennis Heimbigner
 
 # Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
 # and to exp otherwise.
@@ -15,7 +16,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.4.2-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.6.2-development], [support-netcdf@unidata.ucar.edu])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -25,7 +26,7 @@ AC_INIT([netCDF], [4.4.2-development], [support-netcdf@unidata.ucar.edu])
 : ${CFLAGS=""}
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
-AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=4
+AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=6
 AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=2
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
@@ -71,27 +72,15 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat1.nc:nc_test4/ref_hdf5_compat1.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat2.nc:nc_test4/ref_hdf5_compat2.nc])
 AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 
-# This call is required by automake.
+AC_CONFIG_LINKS([hdf4_test/ref_chunked.hdf4:hdf4_test/ref_chunked.hdf4])
+AC_CONFIG_LINKS([hdf4_test/ref_contiguous.hdf4:hdf4_test/ref_contiguous.hdf4])
+
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
 # Check for the existence of this file before proceeding.
 AC_CONFIG_SRCDIR([include/netcdf.h])
 
 AC_MSG_NOTICE([checking user options])
-
-# If --enable-dll is specified the DLL will be built. This only works
-# on mingw.
-AC_MSG_CHECKING([whether a win32 DLL is desired])
-AC_ARG_ENABLE([dll],
-              [AS_HELP_STRING([--enable-dll],
-                              [build a win32 DLL (only works on mingw)])])
-test "x$enable_dll" = xyes || enable_dll=no
-AC_MSG_RESULT([$enable_dll])
-if test "x$enable_dll" = xyes; then
-   AC_DEFINE(DLL_NETCDF, 1, [set this only when building a DLL under MinGW])
-   AC_DEFINE(DLL_EXPORT, 1, [set this only when building a DLL under MinGW])
-fi
-AM_CONDITIONAL(BUILD_DLL, [test x$enable_dll = xyes])
 
 # Did the user specify a default minimum blocksize (NCIO_MINBLOCKSIZE) for posixio?
 AC_MSG_CHECKING([whether a NCIO_MINBLOCKSIZE was specified])
@@ -101,6 +90,10 @@ AC_ARG_WITH([minblocksize],
             [NCIO_MINBLOCKSIZE=$with_minblocksize], [NCIO_MINBLOCKSIZE=256])
 AC_MSG_RESULT([$NCIO_MINBLOCKSIZE])
 AC_DEFINE_UNQUOTED([NCIO_MINBLOCKSIZE], [$NCIO_MINBLOCKSIZE], [min blocksize for posixio.])
+
+# Find valgrind, if available, and add targets for it.
+AX_VALGRIND_DFLT([sgcheck], [off])
+AX_VALGRIND_CHECK
 
 ###
 # Doxygen and doxygen-related options.
@@ -137,6 +130,7 @@ else
    AC_SUBST([DOXYGEN_HEADER_FILE], [])
    AC_SUBST([DOXYGEN_SEARCHENGINE], ["YES"])
 fi
+AC_SUBST([DOXYGEN_SERVER_BASED_SEARCH], ["NO"])
 
 AC_ARG_ENABLE([doxygen-pdf-output],
     [AS_HELP_STRING([--enable-doxygen-pdf-output],
@@ -154,6 +148,16 @@ AC_ARG_ENABLE([internal-docs],
     [Include documentation of library internals. This is of interest only to those developing the netCDF library.])])
 test "x$enable_internal_docs" = xyes || enable_internal_docs=no
 AC_SUBST([BUILD_INTERNAL_DOCS], [$enable_internal_docs])
+
+# Doxygen is apparently buggy when trying to combine a markdown
+# file with @internal. The equivalent can be faked using
+# the Doxygen ENABLED_SECTIONS mechanism. See docs/testserver.dox
+# to see how this is done.
+sections=
+if test "x$enable_internal_docs" = xyes ; then
+sections="$sections INTERNAL"
+fi
+AC_SUBST([ENABLED_DOC_SECTIONS], [$sections])
 
 AC_MSG_CHECKING([if fsync support is enabled])
 AC_ARG_ENABLE([fsync],
@@ -181,19 +185,12 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include jna bug workaround code])
 fi
 
-# Does the user want to run extra tests with valgrind?
-AC_MSG_CHECKING([whether extra valgrind tests should be run])
-AC_ARG_ENABLE([valgrind-tests],
-              [AS_HELP_STRING([--enable-valgrind-tests],
-                              [build with valgrind-tests (valgrind is required, static builds only)])])
-test "x$enable_valgrind_tests" = xyes || enable_valgrind_tests=no
-AC_MSG_RESULT($enable_valgrind_tests)
-
 # Does the user want to build netcdf-4?
 AC_MSG_CHECKING([whether we should build netCDF-4])
 AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
               [do not build with netcdf-4 (else HDF5 and zlib required)])])
 test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
+enable_hdf5=enable_netcdf_4
 
 # Synonym
 AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
@@ -217,6 +214,9 @@ AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
 AC_ARG_ENABLE([hdf4], [AS_HELP_STRING([--enable-hdf4],
               [build netcdf-4 with HDF4 read capability (HDF4, HDF5 and zlib required)])])
 test "x$enable_hdf4" = xyes || enable_hdf4=no
+if test "x$enable_hdf4" = xyes -a "x$enable_netcdf_4" = xno; then
+      AC_MSG_ERROR([NetCDF-4 is required for HDF4 features])
+fi
 AC_MSG_RESULT($enable_hdf4)
 
 # Does the user want to turn on extra HDF4 file tests?
@@ -250,9 +250,8 @@ AC_MSG_RESULT($enable_extra_example_tests)
 AC_MSG_CHECKING([whether parallel IO tests should be run])
 AC_ARG_ENABLE([parallel-tests],
               [AS_HELP_STRING([--enable-parallel-tests],
-                              [Run extra parallel IO tests. Ignored if \
-                               netCDF-4 is not enabled, or built on a system \
-                               without parallel I/O support.])])
+                              [Run extra parallel IO tests. Requires netCDF-4
+                              with parallel I/O support.])])
 test "x$enable_parallel_tests" = xyes || enable_parallel_tests=no
 AC_MSG_RESULT($enable_parallel_tests)
 
@@ -320,6 +319,17 @@ AC_ARG_ENABLE([logging],
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
 
+# Does the user want to turn off nc_set_log_level() function? (It will
+# always be defined if --enable-logging is used.)
+AC_MSG_CHECKING([whether nc_set_log_level() function is included (will do nothing unless enable-logging is also used)])
+AC_ARG_ENABLE([set_log_level_func], [AS_HELP_STRING([--disable-set-log-level-func],
+              [disable the nc_set_log_level function])])
+test "x$enable_set_log_level_func" = xno -a "x$enable_logging" = xno || enable_set_log_level_func=yes
+if test "x$enable_set_log_level_func" = xyes -a "x$enable_netcdf_4" = xyes; then
+   AC_DEFINE([ENABLE_SET_LOG_LEVEL], 1, [If true, define nc_set_log_level.])
+fi
+AC_MSG_RESULT($enable_set_log_level_func)
+
 ## Capture the state of the --enable-dap flag => enable dap2+dap4
 AC_MSG_CHECKING([whether DAP client(s) are to be built])
 AC_ARG_ENABLE([dap],
@@ -343,13 +353,8 @@ fi
 # See if the user provided us with a curl library
 # Do an initial lib test for curl, but suppress the default action
 AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
-#AC_CHECK_LIB([curl.dll],[curl_easy_setopt])
 # If curl is required but there is no curl, then complain
 if test $require_curl = yes ; then
-  # Removed. Why assume no curl if we are building DLL?
-  #if test $enable_dll = yes ; then
-  #  AC_MSG_NOTICE([libcurl not found; continuing])
-  #elif test $found_curl = no ; then
   if test $found_curl = no ; then
     AC_MSG_NOTICE([libcurl not found; disabling remote protocol(s) support])
     enable_dap=no
@@ -388,7 +393,7 @@ fi
 AC_MSG_RESULT($enable_dap_auth_tests)
 
 # Control if groups are supported in [netcdf4]dap2 code
-AC_MSG_CHECKING([whether [netcdf4] group names for DAP2 hould be enabled (default on)])
+AC_MSG_CHECKING([whether [netcdf4] group names for DAP2 should be enabled (default on)])
 AC_ARG_ENABLE([dap-groups],
               [AS_HELP_STRING([--disable-dap-groups],
                                  [disable [netcdf4] DAP2 group names])])
@@ -405,15 +410,15 @@ fi
 # Did the user specify a list of test servers to try for remote tests?
 AC_MSG_CHECKING([which remote test server(s) to use])
 AC_ARG_WITH([testservers],
-              [AS_HELP_STRING([--with-testservers=<host+port>,<host+port>...],
+              [AS_HELP_STRING([--with-testservers=<host:port>,<host:port>...],
                               [Specify the testserver(s) to try for remote tests.])],
             [REMOTETESTSERVERS=$with_testservers], [REMOTETESTSERVERS=no])
 msg="$REMOTETESTSERVERS"
 if test "x$REMOTETESTSERVERS" = xno ; then
-  msg="remotetest.unidata.ucar.edu,jetstream.unidata.ucar.edu (defaults)"
-  REMOTETESTSERVERS=remotetest.unidata.ucar.edu,jetstream.unidata.ucar.edu
+  svclist="149.165.169.123:8080,remotetest.unidata.ucar.edu"
+  REMOTETESTSERVERS="$svclist"
 fi
-AC_MSG_RESULT([$msg])
+AC_MSG_RESULT([$svclist])
 AC_DEFINE_UNQUOTED([REMOTETESTSERVERS], ["$REMOTETESTSERVERS"], [the testservers for remote tests.])
 
 # Set the config.h flags
@@ -438,17 +443,20 @@ AC_MSG_RESULT([$enable_dap_long_tests])
 
 AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
 
-# Does the user want to do some extra tests?
-AC_MSG_CHECKING([whether netCDF extra tests should be run (developers only)])
-AC_ARG_ENABLE([extra-tests],
-              [AS_HELP_STRING([--enable-extra-tests],
-                              [enable some extra tests that may not pass because of known issues])])
-test "x$enable_extra_tests" = xno || enable_extra_tests=yes
-AC_MSG_RESULT($enable_extra_tests)
-if test "x$enable_extra_tests" = xyes; then
-   AC_DEFINE([EXTRA_TESTS], [1], [if true, run extra tests which may not work yet])
+# Check whether we want to enable strict null byte header padding.
+# See https://github.com/Unidata/netcdf-c/issues/657 for more information.
+AC_MSG_CHECKING([whether to enable strict null-byte header padding when reading (default off)])
+AC_ARG_ENABLE([strict-null-byte-header-padding],
+    [AS_HELP_STRING([--enable-strict-null-byte-header-padding],
+                    [enable strict null-byte header padding when reading netCDF3 files.])])
+test "x$enable_strict_null_byte_header_padding" = xyes || enable_strict_null_byte_header_padding=no
+AC_MSG_RESULT($enable_strict_null_byte_header_padding)
+
+if test "x$enable_strict_null_byte_header_padding" = xyes; then
+   AC_DEFINE([USE_STRICT_NULL_BYTE_HEADER_PADDING], [1], [if true, enable strict null byte header padding])
 fi
-AM_CONDITIONAL(EXTRA_TESTS, [test x$enable_extra_tests = xyes])
+
+AM_CONDITIONAL(USE_STRICT_NULL_BYTE_HEADER_PADDING, [test x$enable_strict_null_byte_header_padding = xyes ])
 
 # Does the user want to use the ffio module?
 AC_MSG_CHECKING([whether FFIO will be used])
@@ -473,19 +481,6 @@ if test "x$enable_stdio" = xyes; then
    AC_DEFINE([USE_STDIO], [1], [if true, use stdio instead of posixio])
 fi
 AM_CONDITIONAL(USE_STDIO, [test x$enable_stdio = xyes])
-
-# Does the user want to enable the user-provided NEC-SX vectorization
-# patch.
-dnl AC_MSG_CHECKING([whether netCDF NEC-SX vectorization patch is enabled])
-dnl AC_ARG_ENABLE([sx-vectorization],
-dnl               [AS_HELP_STRING([--enable-sx-vectorization],
-dnl                               [enable a user-provided performance patch to allow \
-dnl 			      vectorization of type conversions on NEC SX machines.])])
-dnl test "x$enable_sx_vectorization" = xyes || enable_sx_vectorization=no
-dnl AC_MSG_RESULT([$enable_sx_vectorization])
-dnl if test "x$enable_sx_vectorization" = xyes; then
-dnl    AC_DEFINE([SX_VECTORIZATION], 1, [if true, turn on vectorization patch for NEC SX])
-dnl fi
 
 nc_build_c=yes
 nc_build_v2=yes
@@ -597,6 +592,63 @@ AC_MSG_RESULT($TEMP_LARGE)
 #AC_SUBST(TEMP_LARGE)
 AC_DEFINE_UNQUOTED([TEMP_LARGE], ["$TEMP_LARGE"], [Place to put very large netCDF test files.])
 
+# Did the user specify a user-defined format 0?
+AC_MSG_CHECKING([whether user-defined format 0 was specified])
+AC_ARG_WITH([udf0],
+              [AS_HELP_STRING([--with-udf0=<dispatch_name>],
+                              [Specify a dispatch table for user-defined format 0.])],
+            [UDF0_DISPATCH=$with_udf0])
+AC_MSG_RESULT([$UDF0_DISPATCH])
+if test -n "$UDF0_DISPATCH"; then
+   AC_DEFINE_UNQUOTED([UDF0_DISPATCH], [$UDF0_DISPATCH], [dispatch table for user-defined format 0.])
+   AC_DEFINE_UNQUOTED([UDF0_DISPATCH_FUNC], [get_$UDF0_DISPATCH()], [function to get dispatch table for user-defined format 0.])
+   AC_DEFINE([USE_UDF0], [1], [if true, use user-defined format 0 in utilities])
+   AC_CHECK_LIB([$UDF0_DISPATCH], [get_$UDF0_DISPATCH], [],
+                                 [AC_MSG_ERROR([Can't find or link to the user-defined format 0 library.])],
+                                 [])
+fi
+
+# Did the user specify a magic number for user-defined format 0?
+AC_MSG_CHECKING([whether a magic number for user-defined format 0 was specified])
+AC_ARG_WITH([udf0-magic-number],
+              [AS_HELP_STRING([--with-udf0-magic-number=<magic_number>],
+                              [Specify a magic number for user-defined format 0 (ignored unless --with-udf0 is also used).])],
+            [UDF0_MAGIC_NUMBER=$with_udf0_magic_number])
+AC_MSG_RESULT([$UDF0_MAGIC_NUMBER])
+
+# Did the user specify a user-defined format 1?
+AC_MSG_CHECKING([whether user-defined format 1 was specified])
+AC_ARG_WITH([udf1],
+              [AS_HELP_STRING([--with-udf1=<dispatch_name>],
+                              [Specify a dispatch table for user-defined format 1.])],
+            [UDF1_DISPATCH=$with_udf1])
+AC_MSG_RESULT([$UDF1_DISPATCH])
+if test -n "$UDF1_DISPATCH"; then
+   AC_DEFINE_UNQUOTED([UDF1_DISPATCH], [$UDF1_DISPATCH], [dispatch table for user-defined format 1.])
+   AC_DEFINE_UNQUOTED([UDF1_DISPATCH_FUNC], [get_$UDF1_DISPATCH()], [function to get dispatch table for user-defined format 1.])
+   AC_DEFINE([USE_UDF1], [1], [if true, use user-defined format 1 in utilities])
+   AC_CHECK_LIB([$UDF1_DISPATCH], [get_$UDF1_DISPATCH], [],
+                                 [AC_MSG_ERROR([Can't find or link to the user-defined format 1 library.])],
+                                 [])
+fi
+
+# Did the user specify a magic number for user-defined format 0?
+AC_MSG_CHECKING([whether a magic number for user-defined format 1 was specified])
+AC_ARG_WITH([udf1-magic-number],
+              [AS_HELP_STRING([--with-udf1-magic-number=<magic_number>],
+                              [Specify a magic number for user-defined format 1 (ignored unless --with-udf1 is also used).])],
+            [UDF1_MAGIC_NUMBER=$with_udf1_magic_number])
+AC_MSG_RESULT([$UDF1_MAGIC_NUMBER])
+
+# Did the user specify a default cache preemption?
+AC_MSG_CHECKING([whether a default cache preemption for HDF5 was specified])
+AC_ARG_WITH([chunk-cache-preemption],
+              [AS_HELP_STRING([--with-chunk-cache-preemption=<float between 0 and 1 inclusive>],
+                              [Specify default file chunk cache preemption policy for HDF5 files (a number between 0 and 1, inclusive).])],
+            [CHUNK_CACHE_PREEMPTION=$with_chunk_cache_preemption], [CHUNK_CACHE_PREEMPTION=0.75])
+AC_MSG_RESULT([$CHUNK_CACHE_PREEMPTION])
+AC_DEFINE_UNQUOTED([CHUNK_CACHE_PREEMPTION], [$CHUNK_CACHE_PREEMPTION], [default file chunk cache preemption policy.])
+
 # According to the autoconf mailing list gurus, we must test for
 # compilers unconditionally. That is, we can't skip looking for the
 # fortran compilers, just because the user doesn't want fortran. This
@@ -685,31 +737,12 @@ if test $haveresponsecode = yes; then
   AC_DEFINE([HAVE_CURLINFO_RESPONSE_CODE],[1],[Is CURLINFO_RESPONSE_CODE defined])
 fi
 
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[#include "curl/curl.h"],
-[[int x = CURLOPT_CHUNK_BGN_FUNCTION;]])],
-                   [havebgnfunction=yes],
-                   [havebgnfunction=no])
-AC_MSG_CHECKING([whether CURLOPT_CHUNK_BGN_FUNCTION is defined])
-AC_MSG_RESULT([${havebgnfunction}])
-if test $havebgnfunction = yes; then
-  AC_DEFINE([HAVE_CURLOPT_CHUNK_BGN_FUNCTION],[1],[Is CURLOPT_CHUNK_BGN_FUNCTION defined])
-fi
-
 CFLAGS="$SAVECFLAGS"
 
 # Set up libtool.
 AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.2])
-LT_INIT(win32-dll)
-
-# Valgrind tests don't work with shared builds because of some libtool
-# weirdness.
-if test "x$enable_shared" = xyes; then
-   if test $enable_valgrind_tests = yes; then
-      AC_MSG_ERROR([No valgrind tests with shared libraries])
-   fi
-fi
+LT_INIT()
 
 AC_MSG_NOTICE([finding other utilities])
 
@@ -766,17 +799,11 @@ echo "CPPFLAGS=$CPPFLAGS CC=$CC CFLAGS=$CFLAGS LDFLAGS=$LDFLAGS LIBS=$LIBS" >> c
 
 AC_MSG_NOTICE([checking types, headers, and functions])
 
-AC_CHECK_HEADER(stdlib.h, ,AC_DEFINE([NO_STDLIB_H], [], [no stdlib.h]))
-AC_CHECK_HEADER(sys/types.h, ,AC_DEFINE([NO_SYS_TYPES_H], [], [no sys_types.h]))
-AC_CHECK_HEADERS([sys/dir.h])
 AC_CHECK_HEADERS([sys/param.h])
+AC_CHECK_HEADERS([libgen.h])
 #AC_CHECK_HEADERS([locale.h])
-AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_HEADER_SYS_WAIT
-AC_HEADER_TIME
-AC_CHECK_HEADERS([locale.h stdio.h stdarg.h errno.h ctype.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h])
-AC_FUNC_VPRINTF
+AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h])
 
 # Do sys/resource.h separately
 #AC_CHECK_HEADERS([sys/resource.h],[havesysresource=1],[havesysresource=0])
@@ -784,29 +811,14 @@ AC_FUNC_VPRINTF
 AC_CHECK_HEADERS([sys/resource.h])
 #fi
 
-# Check for <stdbool.h> that conforms to C99 requirements
-AC_HEADER_STDBOOL
+# See if we have ftw.h to walk directory trees
+AC_CHECK_HEADERS([ftw.h])
 
 # Check for these functions...
-AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
-                strdup strcasecmp strtod strtoll strtoull strstr \
-		mkstemp rand random memcmp \
+AC_CHECK_FUNCS([strlcat snprintf \
+                strdup strtoll strtoull \
+		mkstemp mktemp random \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
-
-# Does the user want to use NC_DISKLESS?
-AC_MSG_CHECKING([whether in-memory files are enabled])
-AC_ARG_ENABLE([diskless],
-              [AS_HELP_STRING([--disable-diskless],
-                              [disable support for in-memory (NC_DISKLESS) files])])
-test "x$enable_diskless" = xno || enable_diskless=yes
-AC_MSG_RESULT($enable_diskless)
-
-# Check for enable DAP
-if test "x$enable_dap" = "xyes" -a "xenable_diskless" = xno  ; then
-AC_MSG_NOTICE([--enable-dap requires --enable-diskless])
-AC_MSG_NOTICE([dap support disabled])
-enable_dap=no
-fi
 
 # disable dap4 if netcdf-4 is disabled
 if test "x$enable_netcdf_4" = "xno" ; then
@@ -830,7 +842,6 @@ test "x$enable_mmap" = xyes || enable_mmap=no
 AC_MSG_RESULT($enable_mmap)
 
 # check for mmap and mremap availability before committing to use mmap
-AC_FUNC_MMAP
 AC_CHECK_FUNCS([mremap])
 
 if test "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xyes ; then
@@ -838,21 +849,17 @@ if test "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xye
   enable_mmap=no
 fi
 
-# Setup the diskless and mmap conditionals
-if test "x$enable_diskless" = xyes ; then
-  AC_DEFINE([USE_DISKLESS], [1], [if true, include NC_DISKLESS code])
-  if test "x$enable_mmap" = xyes; then
+if test "x$enable_mmap" = xyes; then
     AC_DEFINE([USE_MMAP], [1], [if true, use mmap for in-memory files])
-  fi
 fi
 
 AC_FUNC_ALLOCA
-AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
+AC_CHECK_DECLS([isnan, isinf, isfinite],,,[#include <math.h>])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
-AC_CHECK_TYPES([size_t, ssize_t, ptrdiff_t, uchar, longlong, ushort, uint, int64, uint64 off_t])
-AC_TYPE_SIZE_T
+AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64])
 AC_TYPE_OFF_T
+AC_TYPE_UINTPTR_T
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
@@ -887,8 +894,38 @@ $SLEEPCMD
 AC_CHECK_SIZEOF(size_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
+
+# Check whether we want to enable CDF5 support.
+AC_MSG_CHECKING([whether CDF5 support should be disabled])
+AC_ARG_ENABLE([cdf5],
+              [AS_HELP_STRING([--disable-cdf5],
+                              [build without CDF5 support.])],
+              [enable_cdf5=${enableval}], [enable_cdf5=auto]
+)
+if test "$ac_cv_sizeof_size_t" -lt "8" ; then
+   if test "x${enable_cdf5}" = xyes ; then
+      dnl unable to support CDF5, but --enable-cdf5 is explicitly set
+      AC_MSG_ERROR([Unable to support CDF5 feature because size_t is less than 8 bytes])
+   fi
+   enable_cdf5=no
+else
+   if test "x${enable_cdf5}" != xno ; then
+      enable_cdf5=yes
+   fi
+fi
+AC_MSG_RESULT($enable_cdf5)
+
+if test "x${enable_cdf5}" = xyes; then
+   AC_DEFINE([ENABLE_CDF5], [1], [if true, enable CDF5 Support])
+fi
+AM_CONDITIONAL(ENABLE_CDF5, [test x$enable_cdf5 = xyes ])
+
 $SLEEPCMD
-AC_CHECK_SIZEOF(unsigned long long)
+if test "$ac_cv_type_uchar" = yes ; then
+   AC_CHECK_SIZEOF(uchar)
+else
+   AC_CHECK_SIZEOF(unsigned char)
+fi
 
 $SLEEPCMD
 if test "$ac_cv_type_ushort" = yes ; then
@@ -916,8 +953,6 @@ else
    AC_CHECK_SIZEOF(unsigned int)
 fi
 $SLEEPCMD
-AC_CHECK_SIZEOF(ptrdiff_t)
-$SLEEPCDM
 AC_CHECK_SIZEOF(ssize_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF([void*])
@@ -934,18 +969,9 @@ AC_CHECK_LIB([m], [floor], [],
 
 if test "x$enable_netcdf_4" = xyes; then
 
+   AC_DEFINE([USE_HDF5], [1], [if true, use HDF5])
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
-
-   # The user may have built HDF5 with libdl (dynamic loading support).
-   if test "x$enable_dynamic_loading" = xyes; then
-      AC_CHECK_HEADERS([dlfcn.h], [], [nc_dlfcn_h_missing=yes])
-      if test "x$nc_dlfcn_h_missing" = xyes; then
-      	      AC_MSG_ERROR([Cannot find dlfcn.h, yet --enable-dynamic-loading was used.])
-      fi
-      AC_CHECK_LIB([dl],[dlopen], [], [AC_MSG_ERROR([Can't find or link against libdl. See config.log for errors.])])
-      AC_DEFINE([USE_LIBDL],[1], [if true, enable dynamic loading support])
-   fi
 
    # Check for the main hdf5 and hdf5_hl library.
 
@@ -955,8 +981,10 @@ if test "x$enable_netcdf_4" = xyes; then
    [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
-   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
+   AC_CHECK_FUNCS([H5Z_SZIP])
+   hdf5_parallel=no
 
+   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
    # The user may have parallel HDF5 based on MPI POSIX.
    if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
       AC_DEFINE([USE_PARALLEL_POSIX], [1], [if true, compile in parallel netCDF-4 based on MPI/POSIX])
@@ -977,21 +1005,27 @@ if test "x$enable_netcdf_4" = xyes; then
    if test "x$ac_cv_func_H5Pget_fapl_mpio" = xyes -o "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
       hdf5_parallel=yes
    fi
+
    AC_MSG_CHECKING([whether parallel io is enabled in hdf5])
    AC_MSG_RESULT([$hdf5_parallel])
 
-   # The user must have built HDF5 with the ZLIB library.
-   if test "x$ac_cv_func_H5Pset_deflate" = xyes; then
-      AC_DEFINE([USE_ZLIB], [1], [if true, compile in zlib compression in netCDF-4 variables])
-   else
-      AC_MSG_ERROR([HDF5 must be built with zlib for netCDF-4])
+   if test "x$hdf5_parallel" = "xno"; then
+      if test "x$enable_parallel_tests" = "xyes"; then
+         AC_MSG_ERROR([Parallel tests requested, but no parallel HDF5 installation detected.])
+      fi
    fi
 
+
+
    # The user may have built HDF5 with the SZLIB library.
+   enable_szlib=no
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
-    AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
+    enable_szlib=yes
+    AC_SEARCH_LIBS([ SZ_Compress], [szip sz], [], [])
   	AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
+
+
 
    if test "x$ac_cv_func_H5free_memory" = xyes; then
       AC_DEFINE([HDF5_HAS_H5FREE], [1], [if true, H5free_memory() will be used to free hdf5-allocated memory in nc4file.])
@@ -1011,7 +1045,6 @@ if test "x$enable_netcdf_4" = xyes; then
       AC_CHECK_LIB([mfhdf], [SDcreate], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
 
      AC_CHECK_LIB([jpeg], [jpeg_set_quality], [], [AC_MSG_ERROR([Can't find or link to the jpeg library (required by hdf4). See config.log for errors.])])
-
       AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
 fi
@@ -1022,20 +1055,30 @@ fi
 #    a. do not want to use it for netcdf4
 #    b. do want to use it for netcdf4
 
-# Should we suppress parallel io for netcdf-4?
+# Should we provide parallel io for netcdf-4?
 if test "x$enable_netcdf_4" = xyes ; then
-     AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
-     AC_ARG_ENABLE([parallel4], [AS_HELP_STRING([--disable-parallel4],
-                                          [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5]  )])
-  test "x$enable_parallel4" = xno || enable_parallel4=yes
-  AC_MSG_RESULT($enable_parallel4)
+   AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
+   AC_ARG_ENABLE([parallel4],
+	[AS_HELP_STRING([--disable-parallel4],
+                        [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5])],
+			[user_set_parallel4=${enableval}])
+   test "x$enable_parallel4" = xno || enable_parallel4=yes
+   AC_MSG_RESULT($enable_parallel4)
+
+   # If user wants parallel IO for netCDF-4, make sure HDF5 can provide it.
+   if test "x$enable_parallel4" = xyes; then
+      if test "x$hdf5_parallel" = xno; then
+      	 # If user specifically asked for parallel4, then error out.
+	 if test "x$user_set_parallel4" = xyes; then
+	    AC_MSG_ERROR([Paralllel IO in netCDF-4 requested, but HDF5 does not provide parallel IO.])
+	 fi
+         # User didn't specify, so disable parallel4
+	 enable_parallel4=no
+	 AC_MSG_WARN([Parallel io disabled for netcdf-4 because hdf5 does not support])
+      fi
+   fi
 else
-  enable_parallel4=no
-fi
-if test "x$hdf5_parallel" = xno; then
-  # hdf5 does not support parallel io, so disable parallel4
-  enable_parallel4=no
-  AC_MSG_WARN([Parallel io disabled for netcdf-4 because hdf5 does not support])
+   enable_parallel4=no
 fi
 
 # We have already tested for parallel io in netcdf4
@@ -1049,38 +1092,27 @@ AC_MSG_RESULT($enable_pnetcdf)
 
 # See if the pnetcdf lib is available and of the
 # right version (1.6.0 or later)
-
 if test "x$enable_pnetcdf" = xyes; then
   pnetcdf_conflict=no
   AC_CHECK_LIB([pnetcdf], [ncmpi_create], [],[pnetcdf_conflict=yes])
 
+  if test "x$pnetcdf_conflict" = xyes ; then
+     AC_MSG_ERROR([Cannot link to pnetcdf library.])
+  fi
+
   # Pnetcdf did not support utf-8 until 1.6.0
 
-  # Save/restore CFLAGS
-  SAVELIBS=$LIBS
-  LIBS="$LIBS -lpnetcdf"
-  AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <pnetcdf.h>],
-                 [[
-                   int major = PNETCDF_VERSION_MAJOR;
-                   int minor = PNETCDF_VERSION_MINOR;
-                   int version = major*1000 + minor;
-                   int ok = (version >= (1*1000 + 6));
-                   return (ok?0:1);]])],
-                 [pnetcdf16=yes],
-                 [pnetcdf16=no])
-  CFLAGS="$SAVECFLAGS"
-  LIBS="$SAVELIBS"
   AC_MSG_CHECKING([Is libpnetcdf version 1.6.0 or later?])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+#include <pnetcdf.h>
+#if (PNETCDF_VERSION_MAJOR*1000 + PNETCDF_VERSION_MINOR < 1006)
+      choke me
+#endif
+  ]])], [pnetcdf16=yes], [pnetcdf16=no])
   AC_MSG_RESULT([$pnetcdf16])
   if test x$pnetcdf16 = xno; then
-    AC_MSG_WARN([--enable-pnetcdf requires version 1.6.0 or later; disabling])
-    pnetcdf_conflict=yes
+    AC_MSG_ERROR([--enable-pnetcdf requires version 1.6.0 or later])
   fi
-fi
-
-if test "x$pnetcdf_conflict" = xyes ; then
-  AC_MSG_WARN([Cannot link to pnetcdf library, --enable-pnetcdf disabled.])
-  enable_pnetcdf=no
 fi
 
 # Now, set enable_parallel if either pnetcdf or parallel4 is set
@@ -1089,6 +1121,8 @@ enable_parallel=yes
 else
 enable_parallel=no
 fi
+
+AM_CONDITIONAL(ENABLE_PARALLEL, [test x$enable_parallel = xyes ])
 
 if test "x$hdf5_parallel" = xyes; then
   # Provide more precise parallel control
@@ -1110,6 +1144,78 @@ if test "x$enable_parallel" = xyes; then
   AC_DEFINE([USE_PARALLEL], [1], [if true, pnetcdf or parallel netcdf-4 is in use])
 fi
 
+AC_ARG_ENABLE([erange_fill],
+   [AS_HELP_STRING([--enable-erange-fill],
+                   [Enable use of fill value when out-of-range type
+                    conversion causes NC_ERANGE error. @<:@default: disabled@:>@])],
+   [enable_erange_fill=${enableval}], [enable_erange_fill=auto]
+)
+
+AC_ARG_ENABLE([zero-length-coord-bound],
+   [AS_HELP_STRING([--disable-zero-length-coord-bound],
+                   [Disable a more relaxed boundary error check NC_EINVALCOORDS
+                    to allow coordinate start argument equal to dimension size
+                    when argument count is zero. @<:@default: enabled@:>@])],
+   [enable_zero_length_coord_bound=${enableval}], [enable_zero_length_coord_bound=auto]
+)
+
+# check PnetCDF's settings on enable_erange_fill and relax_coord_bound
+if test "x$enable_pnetcdf" = xyes; then
+   UD_CHECK_HEADER_PATH([pnetcdf.h])
+
+   AC_MSG_CHECKING([if erange-fill is enabled in PnetCDF])
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+#include <pnetcdf.h>
+#if !defined(PNETCDF_ERANGE_FILL) || PNETCDF_ERANGE_FILL == 0
+      choke me
+#endif]])], [enable_erange_fill_pnetcdf=yes], [enable_erange_fill_pnetcdf=no])
+   AC_MSG_RESULT([$enable_erange_fill_pnetcdf])
+   if test "x$enable_erange_fill" = xauto ; then
+      enable_erange_fill=$enable_erange_fill_pnetcdf
+   elif test "$enable_erange_fill" != "$enable_erange_fill_pnetcdf"; then
+      if test "$enable_erange_fill" = yes; then
+         AC_MSG_ERROR([Enabling erange-fill conflicts with PnetCDF setting])
+      else
+         AC_MSG_ERROR([Disabling erange-fill conflicts with PnetCDF setting])
+      fi
+   fi
+
+   AC_MSG_CHECKING([if relax-coord-bound is enabled in PnetCDF])
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+#include <pnetcdf.h>
+#if !defined(PNETCDF_RELAX_COORD_BOUND) || PNETCDF_RELAX_COORD_BOUND == 0
+      choke me
+#endif]])], [relax_coord_bound_pnetcdf=yes], [relax_coord_bound_pnetcdf=no])
+   AC_MSG_RESULT([$relax_coord_bound_pnetcdf])
+   if test "x$enable_zero_length_coord_bound" = xauto ; then
+      enable_zero_length_coord_bound=$relax_coord_bound_pnetcdf
+   elif test "$enable_zero_length_coord_bound" != "$relax_coord_bound_pnetcdf"; then
+      if test "$enable_zero_length_coord_bound" = yes; then
+         AC_MSG_ERROR([Enabling relax-coord-bound conflicts with PnetCDF setting])
+      else
+         AC_MSG_ERROR([Disabling relax-coord-bound conflicts with PnetCDF setting])
+      fi
+   fi
+else
+   # default setting
+   enable_erange_fill=no
+   enable_zero_length_coord_bound=yes
+fi
+
+if test "x$enable_zero_length_coord_bound" = xyes; then
+   AC_DEFINE([RELAX_COORD_BOUND], [1], [if true, NC_EINVALCOORDS check is more relaxed])
+fi
+
+if test "x$enable_erange_fill" = xyes ; then
+   if test "x$M4FLAGS" = x ; then
+      M4FLAGS="-DERANGE_FILL"
+   else
+      M4FLAGS="$M4FLAGS -DERANGE_FILL"
+   fi
+   AC_DEFINE([ERANGE_FILL], [1], [if true, use _FillValue for NC_ERANGE data elements])
+fi
+AC_SUBST(M4FLAGS)
+
 # Check for downloading/building fortran via postinstall script.
 if test "x$enable_remote_fortran_bootstrap" = xyes; then
    AC_DEFINE([BUILD_FORTRAN], 1, [If true, will attempt to download and build netcdf-fortran.])
@@ -1123,33 +1229,6 @@ if test "x$enable_logging" = xyes; then
    AC_DEFINE([LOGGING], 1, [If true, turn on logging.])
 fi
 
-
-# Like other libraries, udunits and libcf
-# are no long part of the netcdf distribution.
-
-#AC_MSG_CHECKING([whether udunits is to be built])
-#AC_ARG_WITH([udunits],
-#              [AS_HELP_STRING([--with-udunits],
-#                              [Build udunits2 package.])])
-#test "x$with_udunits" = xyes || with_udunits=no
-#AC_MSG_RESULT($with_udunits)
-#AM_CONDITIONAL(BUILD_UDUNITS, [test "x$with_udunits" = xyes])
-
-
-# Does the user want to also build the libcf library?
-#AC_MSG_CHECKING([whether libcf is to be built])
-#AC_ARG_WITH([libcf],
-#              [AS_HELP_STRING([--with-libcf],
-#                              [build and install libcf library, a library for \
-#	      handling data in conformance with the Climate and \
-#	      Forecast conventions. (Requires netCDF-4 and HDF5)])])
-#test "x$with_libcf" = xyes || with_libcf=no
-#AC_MSG_RESULT($with_libcf)
-#AM_CONDITIONAL(BUILD_LIBCF, [test "x$with_libcf" = xyes])
-
-#AC_CONFIG_SUBDIRS([udunits libcf])
-
-
 # Automake conditionals need to be called, whether the answer is yes
 # or no.
 AM_CONDITIONAL(BUILD_PARALLEL, [test x$enable_parallel = xyes])
@@ -1159,7 +1238,8 @@ AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
 # Provide protocol specific flags
 AM_CONDITIONAL(ENABLE_DAP, [test "x$enable_dap" = xyes])
 AM_CONDITIONAL(ENABLE_DAP4, [test "x$enable_dap4" = xyes])
-
+AM_CONDITIONAL(USE_STRICT_NULL_BYTE_HEADER_PADDING, [test x$enable_strict_null_byte_header_padding = xyes])
+AM_CONDITIONAL(ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
@@ -1168,18 +1248,18 @@ AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])
-AM_CONDITIONAL(USE_VALGRIND_TESTS, [test "x$enable_valgrind_tests" = xyes])
 AM_CONDITIONAL(USE_NETCDF4, [test x$enable_netcdf_4 = xyes])
+AM_CONDITIONAL(USE_HDF5, [test x$enable_hdf5 = xyes])
 AM_CONDITIONAL(USE_HDF4, [test x$enable_hdf4 = xyes])
 AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
 AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
 AM_CONDITIONAL(BUILD_FORTRAN, [test x$enable_remote_fortran_bootstrap = xyes])
 AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
-AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
+AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1267,21 +1347,54 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
 
+# Control large metadata performance test
+AC_MSG_CHECKING([whether large metadata performance testing should be run])
+AC_ARG_ENABLE([metadata-perf],
+              [AS_HELP_STRING([--enable-metadata-perf],
+                              [Test performance of nc_create and nc_open on large metadata])])
+test "x$enable_metadata_perf" = xyes || enable_metadata_perf=no
+AC_MSG_RESULT($enable_metadata_perf)
+
+# Control filter test/example
+AC_MSG_CHECKING([whether filter testing should be run])
+AC_ARG_ENABLE([filter-testing],
+              [AS_HELP_STRING([--disable-filter-testing],
+                              [Do not run filter test and example; requires shared libraries and netCDF-4])])
+test "x$enable_filter_testing" = xno || enable_filter_testing=yes
+AC_MSG_RESULT($enable_filter_testing)
+
+if test "x$enable_netcdf_4" = xno ; then
+AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing])
+enable_filter_testing=no
+fi
+
+if test "x$enable_shared" = xno ; then
+AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
+enable_filter_testing=no
+fi
+AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
+
 AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
+AC_SUBST(HAS_DAP2,[$enable_dap])
 AC_SUBST(HAS_DAP4,[$enable_dap4])
 AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
+AC_SUBST(HAS_CDF5,[$enable_cdf5])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
+AC_SUBST(HAS_HDF5,[$enable_hdf5])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_LOGGING, [$enable_logging])
-AC_SUBST(HAS_SZLIB,[$ac_cv_func_H4Z_SZIP])
+AC_SUBST(HAS_SZLIB,[$enable_szlib])
 AC_SUBST(HAS_PARALLEL,[$enable_parallel])
 AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
-AC_SUBST(HAS_DISKLESS,[$enable_diskless])
+AC_SUBST(HAS_DISKLESS,[yes])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
+AC_SUBST(RELAX_COORD_BOUND,[$enable_zero_length_coord_bound])
+AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
+
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1339,14 +1452,17 @@ AX_SET_META([NC_HAS_NC4],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
 AX_SET_META([NC_HAS_HDF5],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_SZIP],[$ac_cv_func_H5Z_SZIP],[yes])
-AX_SET_META([NC_HAS_DAP],[$enable_dap],[yes])
+AX_SET_META([NC_HAS_DAP2],[$enable_dap],[yes])
 AX_SET_META([NC_HAS_DAP4],[$enable_dap4],[yes])
-AX_SET_META([NC_HAS_DISKLESS],[$enable_diskless],[yes])
+AX_SET_META([NC_HAS_DISKLESS],[yes],[yes])
 AX_SET_META([NC_HAS_MMAP],[$enable_mmap],[yes])
 AX_SET_META([NC_HAS_JNA],[$enable_jna],[yes])
 AX_SET_META([NC_HAS_PNETCDF],[$enable_pnetcdf],[yes])
 AX_SET_META([NC_HAS_PARALLEL],[$enable_parallel],[yes])
 AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
+AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
+AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
+AX_SET_META([NC_RELAX_COORD_BOUND], [$enable_zero_length_coord_bound],[yes])
 
 # Automake says that this is always run in top_builddir
 # and that srcdir is defined (== top_srcdir)
@@ -1354,8 +1470,17 @@ abs_top_builddir=`pwd`
 cd $srcdir
 abs_top_srcdir=`pwd`
 cd $abs_top_builddir
-rm -f ${abs_top_builddir}/test_common.sh
-sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
+
+# test_common.sh setup
+AC_CONFIG_FILES(test_common.sh:test_common.in)
+#rm -f ${abs_top_builddir}/test_common.sh
+#sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
+
+# nc_test4/findplugin.sh setup
+AC_SUBST([ISCMAKE], [])
+AC_SUBST([MSVC], [])
+AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 
 #####
 # End netcdf_meta.h definitions.
@@ -1365,13 +1490,15 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
-	             libnetcdf.settings
-		         postinstall.sh
-		         include/netcdf_meta.h
+                 libnetcdf.settings
+                 postinstall.sh
+                 include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
+                 hdf4_test/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
+                 libhdf5/Makefile
                  libsrcp/Makefile
                  ncdump/Makefile
                  ncgen3/Makefile
@@ -1382,6 +1509,7 @@ AC_CONFIG_FILES([Makefile
                  oc2/Makefile
                  libdap2/Makefile
                  libdap4/Makefile
+                 libhdf4/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl/Makefile
@@ -1396,8 +1524,12 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expected3/Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
-		 ],
+                 plugins/Makefile
+                 ],
                  [test -f  nc-config && chmod 755 nc-config])
+
 AC_OUTPUT()
+
+    #mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh
 
 cat libnetcdf.settings

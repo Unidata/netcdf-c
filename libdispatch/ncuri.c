@@ -19,6 +19,9 @@
 
 #define NCURIDEBUG
 
+/* Extra debug info */
+#undef NCXDEBUG
+
 #ifdef NCURIDEBUG
 #define THROW(n) {ret=(n); goto done;}
 #else
@@ -59,6 +62,10 @@ static char* pathallow =
 
 static char* queryallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
+
+/* user+pwd allow = path allow - "@:" */
+static char* userpwdallow =
+"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!$&'()*+,-.;=_~?#/";
 
 #ifndef HAVE_STRNCMP
 #define strndup ncstrndup
@@ -184,7 +191,7 @@ ncuriparse(const char* uri0, NCURI** durip)
 	    }
 	} else { /*c == '#'*/
 	    tmp.fragment = next;
-	}	    
+	}
     }
 
     /* Parse the prefix parameters */
@@ -210,7 +217,7 @@ ncuriparse(const char* uri0, NCURI** durip)
 	    nclistpush(querylist,NULL);
             tmp.querylist = nclistextract(querylist);
 	}
-    }    
+    }
 
     /* Now parse the core of the url */
     p = tmp.uri;
@@ -238,7 +245,7 @@ ncuriparse(const char* uri0, NCURI** durip)
        Note in all cases, the leading '/' is considered part of the path,
        which is then assumed to be an absolute path. But also note that
        the windows drive letter has to be taken into account. Our rule is that
-       if the path looks like D:..., 
+       if the path looks like D:...,
        where D is a single alphabetic letter (a-z or A-Z),
        then it is a windows path and can be use in place of a /path.
        The rules implemented here (for file:) are then as follows
@@ -254,9 +261,9 @@ ncuriparse(const char* uri0, NCURI** durip)
 	int l = strlen(p); /* to test if we have enough characters */
 	hashost = 0; /* always */
 	if(l >= 2 && p[1] == ':' && strchr(DRIVELETTERS,p[0]) != NULL) { /* case 1 */
-	    p = p; /* p points to the start of the path */
+	    ; /* p points to the start of the path */
         } else if(l >= 2 && p[0] == '/' && p[1] != '/') { /* case 2 */
-	    p = p; /* p points to the start of the path */
+	    ; /* p points to the start of the path */
 	} else if(l >= 4 && p[0] == '/' && p[1] == '/'
 		&& p[3] == ':' && strchr(DRIVELETTERS,p[2]) != NULL) { /* case 3 */
 	    p = p+2; /* points to the start of the windows path */
@@ -297,7 +304,6 @@ ncuriparse(const char* uri0, NCURI** durip)
 	/* Check for leading user:pwd@ */
         char* newhost = strchr(tmp.host,'@');
         if(newhost != NULL) {
-	    size_t rem;
 	    if(newhost == tmp.host)
 		{THROW(NCU_EUSRPWD);} /* we have proto://@ */
 	    terminate(newhost); /* overwrite '@' */
@@ -313,11 +319,8 @@ ncuriparse(const char* uri0, NCURI** durip)
 		{THROW(NCU_EUSRPWD);} /* we have empty user */
 	    if(strlen(pp)==0)
 		{THROW(NCU_EUSRPWD);} /* we have empty password */
-	    tmp.password = pp;	    
-	    /* compress usr+pwd out of tmp.host */
-	    rem = strlen(newhost);
-	    memmove(tmp.host,newhost,rem);
-	    tmp.host[rem] = EOFCHAR;
+	    tmp.password = pp;
+	    tmp.host = newhost;
 	}
 	/* Breakup host into host + port */
 	pp = tmp.host;
@@ -345,8 +348,13 @@ ncuriparse(const char* uri0, NCURI** durip)
     /* save original uri */
     duri->uri = strdup(uri0);
     duri->protocol = nulldup(tmp.protocol);
-    duri->user = nulldup(tmp.user);
-    duri->password = nulldup(tmp.password);
+    /* before saving, we need to decode the user+pwd */
+    duri->user = NULL;
+    duri->password = NULL;
+    if(tmp.user != NULL)
+        duri->user = ncuridecode(tmp.user);
+    if(tmp.password != NULL)
+        duri->password = ncuridecode(tmp.password);
     duri->host = nulldup(tmp.host);
     duri->port = nulldup(tmp.port);
     if(tmp.path != NULL) {
@@ -360,7 +368,10 @@ ncuriparse(const char* uri0, NCURI** durip)
     duri->fragment = nulldup(tmp.fragment);
     duri->fraglist = tmp.fraglist; tmp.fraglist = NULL;
     duri->querylist = tmp.querylist; tmp.querylist = NULL;
-    if(durip) *durip = duri;
+    if(durip)
+      *durip = duri;
+    else
+      free(duri);
 
 #ifdef NCXDEBUG
 	{
@@ -379,7 +390,8 @@ ncuriparse(const char* uri0, NCURI** durip)
 
 done:
     if(uri != NULL)
-	free(uri);
+      free(uri);
+
     freestringlist(params);
     freestringlist(querylist);
     freestringvec(tmp.fraglist);
@@ -404,10 +416,10 @@ static void
 freestringvec(char** list)
 {
     if(list != NULL) {
-	char** p;	
+	char** p;
         for(p=list;*p;p++) {nullfree(*p);}
 	nullfree(list);
-    }    
+    }
 }
 
 void
@@ -442,7 +454,7 @@ int
 ncurisetquery(NCURI* duri,const char* query)
 {
     int ret = NCU_OK;
-    freestringvec(duri->querylist);    
+    freestringvec(duri->querylist);
     nullfree(duri->query);
     duri->query = NULL;
     duri->querylist = NULL;
@@ -530,9 +542,14 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
     ncbytescat(buf,"://"); /* this will produce file:///... */
 
     if((flags & NCURIPWD) && duri->user != NULL && duri->password != NULL) {
-	ncbytescat(buf,duri->user);
+	/* The user and password must be encoded */
+        char* encoded = ncuriencodeonly(duri->user,userpwdallow);
+	ncbytescat(buf,encoded);
+	nullfree(encoded);
 	ncbytescat(buf,":");
-	ncbytescat(buf,duri->password);
+	encoded = ncuriencodeonly(duri->password,userpwdallow);
+	ncbytescat(buf,encoded);
+	nullfree(encoded);
 	ncbytescat(buf,"@");
     }
     if(duri->host != NULL) ncbytescat(buf,duri->host);
@@ -544,10 +561,10 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
 	if(duri->path == NULL)
 	    ncbytescat(buf,"/");
 	else if(encode) {
-	    char* encoded = ncuriencode(duri->path,pathallow);
+	    char* encoded = ncuriencodeonly(duri->path,pathallow);
 	    ncbytescat(buf,encoded);
 	    nullfree(encoded);
-	} else 	
+	} else
 	    ncbytescat(buf,duri->path);
     }
 
@@ -566,13 +583,13 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
 	    if(p[1] != NULL && strlen(p[1]) > 0) {
 		ncbytescat(buf,"=");
 		if(encode) {
-		    char* encoded = ncuriencode(p[1],queryallow);
+		    char* encoded = ncuriencodeonly(p[1],queryallow);
 		    ncbytescat(buf,encoded);
 	            nullfree(encoded);
-		} else 	
+		} else
 		    ncbytescat(buf,p[1]);
 	    }
-	}	
+	}
     }
     if((flags & NCURIFRAG) && duri->fraglist != NULL) {
 	char** p;
@@ -583,13 +600,13 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
 	    if(p[1] != NULL && strlen(p[1]) > 0) {
 		ncbytescat(buf,"=");
 		if(encode) {
-		    char* encoded = ncuriencode(p[1],queryallow);
+		    char* encoded = ncuriencodeonly(p[1],queryallow);
 		    ncbytescat(buf,encoded);
 	            nullfree(encoded);
-		} else 	
+		} else
 		    ncbytescat(buf,p[1]);
 	    }
-	}	
+	}
     }
     ncbytesnull(buf);
     newuri = ncbytesextract(buf);
@@ -634,7 +651,7 @@ ncuriremoveparam(NCURI* uri, const char* key)
     if(uri->fraglist == NULL) return NCU_OK;
     for(q=uri->fraglist,p=uri->fraglist;*p;) {
         if(strcmp(key,*p)==0) {
-	    p += 2; /* skip this entry */	
+	    p += 2; /* skip this entry */
 	} else {
 	    *q++ = *p++; /* move key */
 	    *q++ = *p++; /* move value */
@@ -645,14 +662,16 @@ ncuriremoveparam(NCURI* uri, const char* key)
 #endif
 
 
-/* Internal version of lookup; returns the paired index of the key */
+/* Internal version of lookup; returns the paired index of the key;
+   case insensitive
+ */
 static int
 ncfind(char** params, const char* key)
 {
     int i;
     char** p;
     for(i=0,p=params;*p;p+=2,i++) {
-	if(strcmp(key,*p)==0) return i;
+	if(strcasecmp(key,*p)==0) return i;
     }
     return -1;
 }
@@ -720,8 +739,8 @@ static char* hexchars = "0123456789abcdefABCDEF";
 static void
 toHex(unsigned int b, char hex[2])
 {
-    hex[0] = hexchars[(b >> 4) & 0xff];
-    hex[1] = hexchars[(b) & 0xff];
+    hex[0] = hexchars[(b >> 4) & 0xf];
+    hex[1] = hexchars[(b) & 0xf];
 }
 
 
@@ -734,6 +753,14 @@ fromHex(int c)
     return 0;
 }
 
+/*
+Support encode of user and password fields
+*/
+char*
+ncuriencodeuserpwd(char* s)
+{
+    return ncuriencodeonly(s,userpwdallow);
+}
 
 /* Return a string representing encoding of input; caller must free;
    watch out: will encode whole string, so watch what you give it.
@@ -741,7 +768,7 @@ fromHex(int c)
  */
 
 char*
-ncuriencode(char* s, char* allowable)
+ncuriencodeonly(char* s, char* allowable)
 {
     size_t slen;
     char* encoded;
@@ -759,13 +786,10 @@ ncuriencode(char* s, char* allowable)
 	    *outptr++ = '+';
         } else {
             /* search allowable */
-            int c2;
-	    char* a = allowable;
-	    while((c2=*a++)) {
-		if(c == c2) break;
-	    }
-            if(c2) {*outptr++ = (char)c;}
-            else {
+	    char* p = strchr(allowable,c);
+	    if(p != NULL) {
+                *outptr++ = (char)c;
+            } else {
 		char hex[2];
 		toHex(c,hex);
 		*outptr++ = '%';
@@ -782,15 +806,6 @@ ncuriencode(char* s, char* allowable)
 char*
 ncuridecode(char* s)
 {
-    return ncuridecodeonly(s,NULL);
-}
-
-/* Return a string representing decoding of input only for specified
-   characters;  caller must free
-*/
-char*
-ncuridecodeonly(char* s, char* only)
-{
     size_t slen;
     char* decoded;
     char* outptr;
@@ -805,7 +820,45 @@ ncuridecodeonly(char* s, char* only)
     outptr = decoded;
     inptr = s;
     while((c = (unsigned int)*inptr++)) {
-	if(c == '+' && only != NULL && strchr(only,'+') != NULL)
+	if(c == '%') {
+            /* try to pull two hex more characters */
+	    if(inptr[0] != EOFCHAR && inptr[1] != EOFCHAR
+		&& strchr(hexchars,inptr[0]) != NULL
+		&& strchr(hexchars,inptr[1]) != NULL) {
+		/* test conversion */
+		int xc = (fromHex(inptr[0]) << 4) | (fromHex(inptr[1]));
+		inptr += 2; /* decode it */
+		c = (unsigned int)xc;
+            }
+        }
+        *outptr++ = (char)c;
+    }
+    *outptr = EOFCHAR;
+    return decoded;
+}
+
+/*
+Partially decode a string. Only characters in 'decodeset'
+are decoded. Return decoded string; caller must free.
+*/
+char*
+ncuridecodepartial(char* s, const char* decodeset)
+{
+    size_t slen;
+    char* decoded;
+    char* outptr;
+    char* inptr;
+    unsigned int c;
+
+    if (s == NULL || decodeset == NULL) return NULL;
+
+    slen = strlen(s);
+    decoded = (char*)malloc(slen+1); /* Should be max we need */
+
+    outptr = decoded;
+    inptr = s;
+    while((c = (unsigned int)*inptr++)) {
+	if(c == '+' && strchr(decodeset,'+') != NULL)
 	    *outptr++ = ' ';
 	else if(c == '%') {
             /* try to pull two hex more characters */
@@ -814,13 +867,14 @@ ncuridecodeonly(char* s, char* only)
 		&& strchr(hexchars,inptr[1]) != NULL) {
 		/* test conversion */
 		int xc = (fromHex(inptr[0]) << 4) | (fromHex(inptr[1]));
-		if(only == NULL || strchr(only,xc) != NULL) {
+		if(strchr(decodeset,xc) != NULL) {
 		    inptr += 2; /* decode it */
 		    c = (unsigned int)xc;
-                }
+		}
             }
-        }
-        *outptr++ = (char)c;
+            *outptr++ = (char)c; /* pass either the % or decoded char */
+        } else /* Not a % char */
+            *outptr++ = (char)c;
     }
     *outptr = EOFCHAR;
     return decoded;
@@ -853,7 +907,7 @@ collectprefixparams(char* text, char** nextp)
 	last = ep; /* save this position  */
 	ep++; /* move past rbracket */
 	sp = ep;
-    }	
+    }
     /* nul terminate */
     if(last != NULL)
 	terminate(last);
@@ -863,7 +917,8 @@ collectprefixparams(char* text, char** nextp)
     for(;;) {
 	char* p; char* q;
 	/* by construction, here we are at an LBRACKET: compress it out */
-	for(p=sp,q=sp+1;(*p++=*q++););	
+	for(p=sp,q=sp+1;(*p++=*q++);)
+	    ;
         /* locate the next RRACKET */
         ep = nclocate(sp,RBRACKETSTR);
 	if(ep == NULL) break;/* we are done */
@@ -871,9 +926,9 @@ collectprefixparams(char* text, char** nextp)
 	*ep = '&';
 	ep++; /* move past rbracket */
 	sp = ep;
-    }	
+    }
 done:
-    return ret;    
+    return ret;
 }
 
 static int
@@ -894,10 +949,10 @@ parselist(char* ptext, NClist* list)
 	if(ep != NULL) {
 	    terminate(ep); /* overwrite the trailing ampersand */
 	    p = ep+1; /* next param */
-	}	
+	}
 	/* split into key + value */
         eq = strchr(sp,'=');
-        if(eq != NULL) { /* value is present */	    
+        if(eq != NULL) { /* value is present */
 	    terminate(eq); eq++;
 	    key = strdup(sp);
 	    value = strdup(eq);

@@ -1,0 +1,44 @@
+image: Visual Studio 2017
+
+environment:
+  matrix:
+    - TARGET_ARCH: x64
+      CONDA_INSTALL_LOCN: C:\\Miniconda-x64
+      MSYS2_INSTALL_LOCN: C:\msys64
+      MSYS2_BIN_LOCN: C:\msys64\usr\bin
+      CMAKE_GENERATOR: "Visual Studio 15 Win64"
+
+platform:
+    - x64
+
+branches:
+  except:
+    - /.*[.]dmh/
+    - /.*[.]wif/
+
+# Do not build feature branch with open Pull Requests
+skip_branch_with_pr: true
+
+install:
+  - cmd: set SRC_DIR=%cd%
+  - cmd: set INSTALL_LOC=%SRC_DIR%\install
+  - cmd: set PATH=%PATH%;%MSYS2_BIN_LOCN%;%INSTALL_LOC%\bin;%INSTALL_LOC%\lib
+  - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
+  - cmd: conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
+  - cmd: conda update conda
+  - cmd: conda install hdf5=1.8.18 curl hdf4
+
+configuration: Release
+
+build: off
+
+# Run a custom script.
+build_script:
+  - cmd: mkdir build
+  - cmd: cd build
+  - cmd: cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%INSTALL_LOC% -DENABLE_BASH_SCRIPT_TESTING=OFF
+  - cmd: if errorlevel 1 exit 1
+  - cmd: cmake --build . --config Release -- /maxcpucount:4
+
+test_script:
+  - cmd: cmake --build . --config Release --target install -- /maxcpucount:4

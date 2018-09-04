@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER
 #include <io.h>
 #define mode_t int
 #endif
@@ -683,56 +683,6 @@ occoncat(char* dst, size_t size, size_t n, ...)
 done:
     va_end(args);
     return status;    
-}
-
-
-/**
-Wrap mktmp and return the generated name
-*/
-
-int
-ocmktmp(const char* base, char** tmpnamep)
-{
-    int fd;
-    char tmpname[OCPATHMAX+1];
-
-    if(!occopycat(tmpname,sizeof(tmpname)-1,1,base)) {
-	return OC_EOVERRUN;
-    }
-#ifdef HAVE_MKSTEMP
-    if(!occoncat(tmpname,sizeof(tmpname)-1,1,"XXXXXX")) {
-	return OC_EOVERRUN;
-    }
-    /* Note Potential problem: old versions of this function
-       leave the file in mode 0666 instead of 0600 */
-    {
-	mode_t mask=umask(0077);
-	fd = mkstemp(tmpname);
-	(void)umask(mask);
-    }
-#else /* !HAVE_MKSTEMP */
-    /* Need to simulate by using some kind of pseudo-random number */
-    {
-	int rno = rand();
-	char spid[7];
-	if(rno < 0) rno = -rno;
-        snprintf(spid,sizeof(spid),"%06d",rno);
-	if(!occoncat(tmpname,sizeof(tmpname)-1,1,spid)) {
-	    return OC_EOVERRUN;
-        }
-#if defined(_WIN32) || defined(_WIN64)
-        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
-#  else
-        fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
-#  endif
-    }
-#endif /* !HAVE_MKSTEMP */
-    if(fd < 0) {
-       return OC_EOPEN;
-    } else
-	close(fd);
-    if(tmpnamep) *tmpnamep = strdup(tmpname);
-    return OC_NOERR;
 }
 
 /* merge two envv style lists */

@@ -6,7 +6,7 @@
  features. It turns off fill mode to quickly create an 8 gb file, and
  write one value is written, nothing is read.
 
- $Id$
+ @author Ed Hartnett
 */
 #include <config.h>
 #include <nc_tests.h>
@@ -32,7 +32,7 @@
 #define QTR_CLASSIC_MAX (MAX_CLASSIC_BYTES/4)
 
 /* We will create this file. */
-#define FILE_NAME "tst_large.nc"
+#define FILE_NAME "tst_large3.nc"
 
 int
 main(int argc, char **argv)
@@ -95,8 +95,6 @@ main(int argc, char **argv)
     }
 
     SUMMARIZE_ERR;
-
-    nc_finalize();
 
     FINAL_RESULTS;
 }

@@ -9,6 +9,20 @@ Internal library debugging interface
 #ifndef OCX_H
 #define OCX_H
 
+/* Declaration modifiers for DLL support (MSC et al) */
+#if defined(DLL_NETCDF) /* define when library is a DLL */
+#  if defined(DLL_EXPORT) /* define when building the library */
+#   define MSC_EXTRA __declspec(dllexport)
+#  else
+#   define MSC_EXTRA __declspec(dllimport)
+#  endif
+#  include <io.h>
+#else
+#define MSC_EXTRA  /**< Needed for DLL build. */
+#endif  /* defined(DLL_NETCDF) */
+
+#define EXTERNL MSC_EXTRA extern /**< Needed for DLL build. */
+
 /**************************************************/
 /* Flags defining the structure of an OCdata object */
 
@@ -22,12 +36,11 @@ typedef unsigned int OCDT;
 #define OCDT_ATOMIC    ((OCDT)(32)) /* is atomic leaf */
 
 /* Return mode for this data */
-extern OCDT oc_data_mode(OClink, OCdatanode);
+extern OCerror oc_data_mode(OClink, OCdatanode, OCDT* modep);
 
-extern OCerror oc_dds_dd(OClink, OCddsnode, int);
-extern OCerror oc_dds_ddnode(OClink, OCddsnode);
-extern OCerror oc_data_ddpath(OClink, OCdatanode, char**);
-extern OCerror oc_data_ddtree(OClink, OCdatanode root);
+EXTERNL OCerror oc_dds_dd(OClink, OCddsnode, int);
+EXTERNL OCerror oc_dds_ddnode(OClink, OCddsnode);
+EXTERNL OCerror oc_data_ddpath(OClink, OCdatanode, char**);
+EXTERNL OCerror oc_data_ddtree(OClink, OCdatanode root);
 
 #endif /*OCX_H*/
-

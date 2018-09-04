@@ -45,7 +45,6 @@ emalloc (			/* check return from malloc */
     return p;
 }
 
-
 void
 check(int err, const char* file, const int line)
 {
@@ -142,6 +141,99 @@ print_name(const char* name) {
     free(ename);
 }
 
+/* Convert a full path name to a group to the specific groupid. */
+int 
+nc_inq_grpid2(int ncid, const char *grpname0, int *grpidp)
+{
+    int ret = NC_NOERR;
+    char* grpname = NULL;
+#ifdef USE_NETCDF4
+    char *sp = NULL;
+#endif
+
+    grpname = strdup(grpname0);
+    if(grpname == NULL) {ret = NC_ENOMEM; goto done;}
+
+#ifdef USE_NETCDF4
+    /* If '/' doesn't occur in name, just return id found by nc_inq_grpid() */
+    sp = strrchr(grpname, '/');
+    if(!sp) { /* No '/' in grpname, so return nc_inq_grpid() result */
+	ret = nc_inq_grp_ncid(ncid, grpname, grpidp);
+	goto done;
+    } 
+    {  /* Parse group name out and get grpid using that */
+	char* p, *q;
+        int next;
+
+        p = grpname;
+        if(grpname[0] == '/') {
+	    /* get ncid of the root group */
+	    ncid = getrootid(ncid);
+	    p++; /* skip leading '/' */
+        }
+	/* Walk down looking for each group in path in turn */
+	while(*p) {
+	    q = strchr(p,'/');
+	    if(q == NULL) q = p+strlen(p); /* point to trailing nul */    
+	    else *q++ = '\0';
+	    /* Lookup this path segment wrt to current group */
+	    if((ret=nc_inq_ncid(ncid,p,&next))) goto done;
+	    /* move to next segment */
+	    p = q;
+	    ncid = next;
+	}
+	if(grpidp) *grpidp = ncid;
+    }	
+
+#else	/* !USE_NETCDF4 */
+    /* Just return root */
+    if(grpidp) *grpidp = ncid;
+#endif	/* USE_NETCDF4 */
+done:
+    if(grpname) free(grpname);
+    return ret;
+}
+
+/* Convert a full path name to a varid to the specific varid + grpid */
+int 
+nc_inq_varid2(int ncid, const char *path0, int* varidp, int* grpidp)
+{
+    int ret = NC_NOERR;
+    int grpid, varid;
+    char *v, *g, *prefix;
+    /* If '/' doesn't occur in name, just return id found by
+     * nc_inq_grpid()
+     */
+    char* path = NULL;
+
+    path = strdup(path0);
+    if(path == NULL) {ret = NC_ENOMEM; goto done;}
+
+    /* Find the rightmost '/' and tag the start of the path */
+    g = strrchr(path,'/');
+    if(g == NULL) {
+	v = path;
+	prefix = "/"; /* make sure not free'd */
+    } else {
+	*g++ = '\0'; /* separate out the prefix */
+	prefix = path;
+	v = g;
+    }
+    /* convert the group prefix to a group id */
+    if((ret=nc_inq_grpid2(ncid,prefix,&grpid)))
+	goto done;
+    /* Lookup the var in the terminal group */
+    if((ret=nc_inq_varid(grpid,v,&varid)))
+	goto done;
+    if(grpidp)
+	*grpidp = grpid;
+    if(varidp)
+	*varidp = varid;
+done:
+    if(path) free(path);
+    return ret;
+}
+
 /* Missing functionality that should be in nc_inq_dimid(), to get
  * dimid from a full dimension path name that may include group
  * names */
@@ -171,7 +263,6 @@ nc_inq_dimid2(int ncid, const char *dimname, int *dimidp) {
 #endif	/* USE_NETCDF4 */
     return ret;
 }
-
 
 /*
  * return 1 if varid identifies a record variable
@@ -313,7 +404,7 @@ nc_inq_grpname_count(int ncid, int igrp, char **lgrps, idnode_t *grpids) {
     char *grpname = lgrps[igrp];
 
     /* permit empty string to also designate root group */
-    if(grpname[0] == '\0' || STREQ(grpname,"/")) { 
+    if(grpname[0] == '\0' || NCSTREQ(grpname,"/")) { 
 	count = 1;
 	idadd(grpids, ncid);
 	return count;
@@ -762,3 +853,40 @@ getrootid(int grpid)
     return current;
 }
 
+#if 0
+static int
+parseFQN(int ncid, const char* fqn0, VarID* idp)
+{
+    int stat = NC_NOERR;
+    char* fqn;
+    VarID vid;
+    char* p;
+    char* q;
+    char* segment;
+
+    vid.grpid = ncid;
+    if(fqn0 == NULL || fqn0[1] != '/')
+	{stat = NC_EBADNAME; goto done;}
+    fqn = strdup(fqn0+1); /* skip leading '/'*/
+    p = fqn;
+    for(;;) {
+	int newgrp;
+	segment = p;
+	q = p;
+        while(*p != '\0' && *p != '/') {
+	    if(*p == '\\') p++;
+	    *q++ = *p++;
+	}
+        if(*p == '\0') break;
+	*p++ = '\0';
+	if((stat=nc_inq_grp_ncid(vid.grpid,segment,&newgrp))) goto done;
+	vid.grpid = newgrp;
+    }
+    /* Segment should point to the varname */
+    if((stat=nc_inq_varid(vid.grpid,segment,&vid.varid))) goto done;
+done:
+    if(fqn) free(fqn);
+    if(stat == NC_NOERR && idp != NULL) *idp = vid;
+    return stat;
+}
+#endif

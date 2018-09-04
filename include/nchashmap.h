@@ -4,58 +4,90 @@
  *   $Header$
  *********************************************************************/
 #ifndef NCHASHMAP_H
-#define NCHASHMAP_H 1
+#define NCHASHMAP_H
 
-#if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
-extern "C" {
-#endif
+/*
+This hashmap is optimized to assume null-terminated strings as the
+key.
 
-#include "nclist.h"
+Data is presumed to be an index into some other table Assume it
+can be compared using simple == The key is some hash of some
+null terminated string.
 
-/* Define the type of the elements in the hashmap*/
-typedef unsigned long nchashid;
+One problem here is that we need to do a final equality check on
+the name string to avoid an accidental hash collision. It would
+be nice if we had a large enough hashkey that was known to have
+an extremely low probability of collisions so we could compare
+the hashkeys to determine exact match. A quick internet search
+indicates that this is rather more tricky than just using
+e.g. crc64 or such.  Needs some thought.
+*/
 
-typedef struct NChashmap {
-  size_t alloc;
-  size_t size; /* # of pairs still in table*/
-  NClist** table;
-} NChashmap;
+/*! Hashmap-related structs.
+  NOTES:
+  1. 'data' is the an arbitrary uintptr_t integer or void* pointer.
+  2. hashkey is a crc32 hash of key
+    
+  WARNINGS:
+  1. It is critical that |uintptr_t| == |void*|
+*/
 
-extern int nchashnull(void*);
+typedef struct NC_hentry {
+    int flags;
+    uintptr_t data;
+    unsigned int hashkey; /* Hash id */
+    size_t keysize;
+    char* key; /* copy of the key string; kept as unsigned char */
+} NC_hentry;
 
-extern NChashmap* nchashnew(void);
-extern NChashmap* nchashnew0(size_t);
-extern int nchashfree(NChashmap*);
+/*
+The hashmap object must give us the hash table (table),
+the |table| size, and the # of defined entries in the table
+*/
+typedef struct NC_hashmap {
+  size_t alloc; /* allocated # of entries */
+  size_t active; /* # of active entries */
+  NC_hentry* table;
+} NC_hashmap;
 
-/* Insert a (ncnchashid,void*) pair into the table*/
-/* Fail if already there*/
-extern int nchashinsert(NChashmap*, nchashid nchash, void* value);
+/* defined in nchashmap.c */
 
-/* Insert a (nchashid,void*) pair into the table*/
-/* Overwrite if already there*/
-extern int nchashreplace(NChashmap*, nchashid nchash, void* value);
+/*
+There are two "kinds" of functions:
+1. those that take the key+size -- they compute the hashkey internally.
+2. those that take the hashkey directly
+*/
 
-/* lookup a nchashid and return found/notfound*/
-extern int nchashlookup(NChashmap*, nchashid nchash, void** valuep);
+/** Creates a new hashmap near the given size. */
+extern NC_hashmap* NC_hashmapnew(size_t startsize);
 
-/* lookup a nchashid and return 0 or the value*/
-extern void* nchashget(NChashmap*, nchashid nchash);
+/** Inserts a new element into the hashmap; takes key+size */
+/* key points to size bytes to convert to hash key */
+extern int NC_hashmapadd(NC_hashmap*, uintptr_t data, const char* key, size_t keysize);
 
-/* remove a nchashid*/
-extern int nchashremove(NChashmap*, nchashid nchash);
+/** Removes the storage for the element of the key; takes key+size.
+    Return 1 if found, 0 otherwise; returns the data in datap if !null
+*/
+extern int NC_hashmapremove(NC_hashmap*, const char* key, size_t keysize, uintptr_t* datap);
 
-/* Return the ith pair; order is completely arbitrary*/
-/* Can be expensive*/
-extern int nchashith(NChashmap*, int i, nchashid*, void**);
+/** Returns the data for the key; takes key+size.
+    Return 1 if found, 0 otherwise; returns the data in datap if !null
+*/
+extern int NC_hashmapget(NC_hashmap*, const char* key, size_t keysize, uintptr_t* datap);
 
-extern int nchashkeys(NChashmap* hm, nchashid** keylist);
+/** Change the data for the specified key; takes hashkey.
+    Return 1 if found, 0 otherwise
+*/
+extern int NC_hashmapsetdata(NC_hashmap*, const char* key, size_t keylen, uintptr_t newdata);
 
-/* return the # of pairs in table*/
-#define nchashsize(hm) ((hm)?(hm)->size:0)
+/** Returns the number of saved elements. */
+extern size_t NC_hashmapcount(NC_hashmap*);
 
-#if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
-}
-#endif
+/** Reclaims the hashmap structure. */
+extern int NC_hashmapfree(NC_hashmap*);
+
+/* Return the hash key for specified key; takes key+size*/
+extern unsigned int NC_hashmapkey(const char* key, size_t size);
 
 #endif /*NCHASHMAP_H*/
 

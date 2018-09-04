@@ -8,7 +8,6 @@ dimensions:
 	_Anonymous2 = 2 ;
 variables:
 	s_t s(_Anonymous2, _Anonymous2) ;
-		string s:_edu.ucar.maps = "/s.x", "/s.y" ;
 
 // global attributes:
 		string :_dap4.ce = "/s[0:2:3][0:1]" ;

@@ -3,7 +3,10 @@
  *	See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -45,10 +48,6 @@
 #   define MREMAP_MAYMOVE 1
 # endif
 #endif /*HAVE_MREMAP*/
-
-#ifndef HAVE_SSIZE_T
-#define ssize_t int
-#endif
 
 #ifndef SEEK_SET
 #define SEEK_SET 0
@@ -369,6 +368,10 @@ fprintf(stderr,"mmapio_open: initial memory: %lu/%lu\n",(unsigned long)mmapio->m
 
     /* Use half the filesize as the blocksize */
     sizehint = filesize/2;
+
+    /* sizehint must be multiple of 8 */
+    sizehint = (sizehint / 8) * 8;
+    if(sizehint < 8) sizehint = 8;
 
     fd = nc__pseudofd();
     *((int* )&nciop->fd) = fd; 

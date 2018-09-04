@@ -1,5 +1,8 @@
-SET(libdispatch_SOURCES 
-daux.c dapi.c dinternal.c dcopy.c derror.c ddispatch.c dutf8.c dstring.c nclog.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c drc.c doffsets.c dwinpath.c utf8proc.c)
+SET(libdispatch_SOURCES dparallel.c dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8.c dinternal.c doffsets.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c utf8proc.h utf8proc.c dwinpath.c dutil.c drc.c dauth.c dreadonly.c dnotnc4.c dnotnc3.c crc32.c)
+
+IF(USE_NETCDF4)
+  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c ncaux.c dfilter.c)
+ENDIF(USE_NETCDF4)
 
 IF(BUILD_V2)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dv2i.c)

@@ -28,8 +28,14 @@ IF(ENABLE_TESTS)
     BUILD_BIN_TEST(findtestserver)
 
     IF(BUILD_UTILITIES)
+      add_sh_test(ncdap tst_ber)
       add_sh_test(ncdap tst_remote3)
 # not yet      add_sh_test(ncdap tst_hyrax)
+
+      IF(ENABLE_DAP_LONG_TESTS)
+        add_sh_test(ncdap tst_longremote3)
+      ENDIF(ENABLE_DAP_LONG_TESTS)
+      
     ENDIF(BUILD_UTILITIES)
 
     IF(ENABLE_DAP_AUTH_TESTS)

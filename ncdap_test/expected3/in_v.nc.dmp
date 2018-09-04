@@ -8,8 +8,7 @@ variables:
 
 // global attributes:
 		:Conventions = "NCAR-CSM" ;
-		:history = "History global attribute.\n",
-			"" ;
+		:history = "History global attribute.\\012" ;
 		:julian_day = 200000.04 ;
 		:DODS_EXTRA.Unlimited_Dimension = "time" ;
 data:

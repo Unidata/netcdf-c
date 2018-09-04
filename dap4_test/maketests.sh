@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # The purpose of this program is to fill in the
 # testdata files: dmrtestfiles, daptestfiles, and

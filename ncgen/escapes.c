@@ -5,7 +5,7 @@
  *********************************************************************/
 
 #include "includes.h"
-#include "ConvertUTF.h"
+#include "ncutf8.h"
 
 #define HEXCHARS "0123456789abcdefABCDEF"
 #define OCTCHARS "01234567"
@@ -15,48 +15,6 @@ static void initcodify(void);
 static char* ccodify(const char*);
 static char* f77codify(const char*);
 static char* jcodify(const char*);
-
-#if 0
-/*
- * Replace escaped chars in CDL representation of name such as
- * 'abc\:def\ gh\\i' with unescaped version, such as 'abc:def gh\i'.
- */
-/* ?? This seems redundant over expand_escapes*/
-void
-deescapify(char* name)
-{
-    const char *cp = name;
-    char *sp;
-    size_t len = strlen(name);
-    char *newname;
-
-    if(strchr(name, '\\') == NULL)
-	return;
-
-    newname = (char *) emalloc(len + 1);
-    cp = name;
-    sp = newname;
-    while(*cp != '\0') { /* delete '\' chars, except change '\\' to '\' */
-	switch (*cp) {
-	case '\\':
-	    if(*(cp+1) == '\\') {
-		*sp++ = '\\';
-		cp++;
-	    }
-	    break;
-	default:
-	    *sp++ = *cp;
-	    break;
-	}
-	cp++;
-    }
-    *sp = '\0';
-    /* ASSERT(strlen(newname) <= strlen(name)); */
-    strncpy(name, newname, len+1); /* watch out for trailing null*/
-    efree(newname);
-    return;
-}
-#endif /*0*/
 
 /*
 Given a character c, fill s with the character suitably escaped.
@@ -211,7 +169,7 @@ initcodify(void)
     idtlen = strlen("DIGIT_n_"); /* initial digit template */
     hexlen = strlen("_XHH"); /* template for hex of non-ASCII bytes */
     for(i = 0; i < 128; i++) {
-        rp = emalloc(2);
+        rp = ecalloc(2);
         rp[0] = i;
         rp[1] = '\0';
         repls[i] = rp;
@@ -222,7 +180,7 @@ initcodify(void)
         repls[j] = ctable[i].s;
     }
     for(i = 128; i < 256; i++) {
-        rp = emalloc(hexlen+1);
+        rp = ecalloc(hexlen+1);
         snprintf(rp, hexlen+1, "_X%2.2X", i); /* need to include null*/
         rp[hexlen] = '\0';
         repls[i] = rp;
@@ -368,7 +326,7 @@ to suitably escape c for use with Java.
 */
 
 static void
-jescapifychar(UTF16 c, int quote, Bytebuffer* s)
+jescapifychar(unsigned short c, int quote, Bytebuffer* s)
 {
     /* Separate out ascii from UTF16 */
     if(c <= '\177') {
@@ -422,25 +380,21 @@ jescapifychar(UTF16 c, int quote, Bytebuffer* s)
 char*
 jescapify(char* s0, int quote, size_t len)
 {
+    int stat = NC_NOERR;
     int i;
-    char* result;
-    UTF8* s8;
-    UTF16* s16; /* for storing the utf16 string */
-    UTF16* tmp16; /* for storing the utf16 string */
-    ConversionResult status;
+    char* result = NULL;
+    unsigned char* s8 = NULL;
+    unsigned short* s16 = NULL; /* for storing the utf16 string */
     Bytebuffer* escaped = bbNew();
     size_t len16;
 
-    s16 = emalloc((1+len)*sizeof(UTF16));
-    s8 = (UTF8*)s0;
-    tmp16 = s16;
-    status = ConvertUTF8toUTF16((const UTF8**)&s8,s8+len,&tmp16,tmp16+len,lenientConversion);
-    if(status != conversionOK) {
+    s8 = (unsigned char*)s0;
+    stat = nc_utf8_to_utf16(s8, &s16, &len16);
+    if(stat != NC_NOERR) {
 	derror("Cannot convert UTF8 string to UTF16: %s",s0);
-	return NULL;	
+	if(s16) efree(s16);
+	return NULL;
     }
-    /* Get the length of the utf16 string */
-    len16 = (tmp16 - s16);
     for(i=0;i<len16;i++) {
 	jescapifychar(s16[i],quote,escaped);
     }
@@ -506,7 +460,7 @@ f77quotestring(Bytebuffer* databuf)
 	return;
     }
 
-    s = (unsigned char*)emalloc(slen+1);
+    s = (unsigned char*)ecalloc(slen+1);
     memcpy((void*)s,bbContents(databuf),slen);
     s[slen] = '\0';
     bbClear(databuf);

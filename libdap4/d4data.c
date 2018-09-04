@@ -99,8 +99,7 @@ NCD4_processdata(NCD4meta* meta)
         for(i=0;i<nclistlength(toplevel);i++) {
 	    NCD4node* var = (NCD4node*)nclistget(toplevel,i);
 	    if(var->data.localchecksum != var->data.remotechecksum) {
-		fprintf(stderr,"Checksum mismatch: %s\n",var->name);
-		fflush(stderr);
+		nclog(NCLOGERR,"Checksum mismatch: %s\n",var->name);
 		ret = NC_EDAP;
 		goto done;
 	    }
@@ -180,7 +179,6 @@ fillstruct(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, NClist* 
  
 #ifdef CLEARSTRUCT
     /* Avoid random data within aligned structs */
-    d4size_t prevoffset = 0;    
     memset(dst,0,type->meta.memsize);
 #endif
 

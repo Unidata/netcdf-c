@@ -10,17 +10,15 @@ foreach (f ${m4_SOURCES})
 endforeach(f)
 
 SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
-  nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c nc_hashmap.c)
+  nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c)
 
 SET(libsrc_SOURCES ${libsrc_SOURCES} pstdint.h ncio.h ncx.h)
 
-IF (BUILD_DISKLESS)
-  SET(libsrc_SOURCES ${libsrc_SOURCES} memio.c)
+SET(libsrc_SOURCES ${libsrc_SOURCES} memio.c)
 
-  IF (BUILD_MMAP)
-    SET(libsrc_SOURCES ${libsrc_SOURCES} mmapio.c)
-  ENDIF( BUILD_MMAP)
-ENDIF (BUILD_DISKLESS)
+IF (BUILD_MMAP)
+  SET(libsrc_SOURCES ${libsrc_SOURCES} mmapio.c)
+ENDIF( BUILD_MMAP)
 
 IF (USE_FFIO)
   SET(libsrc_SOURCES ${libsrc_SOURCES} ffio.c)
@@ -56,10 +54,14 @@ IF(HAVE_M4)
   FILE(GLOB libsrc_MANPAGE ${CMAKE_SOURCE_DIR}/docs/netcdf.m4)
   FILE(COPY ${libsrc_MANPAGE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
+IF(NOT MSVC)
   ADD_CUSTOM_TARGET(manpage ALL
-    COMMAND ${NC_M4} ${ARGS_MANPAGE} ${CMAKE_CURRENT_BINARY_DIR}/netcdf.m4 > ${CMAKE_CURRENT_BINARY_DIR}/netcdf.3
+
+    COMMAND ${NC_M4} ${ARGS_MANPAGE} '${CMAKE_CURRENT_BINARY_DIR}/netcdf.m4' > '${CMAKE_CURRENT_BINARY_DIR}/netcdf.3'
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 
   INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/netcdf.3 DESTINATION "share/man/man3" COMPONENT documentation)
+ENDIF(NOT MSVC)
+
 ENDIF()

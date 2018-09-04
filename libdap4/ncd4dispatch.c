@@ -34,9 +34,6 @@ static NC_Dispatch NCD4_dispatch_base;
 
 NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
 
-/* Collect global state info in one place */
-NCD4globalstate* NCD4_globalstate = NULL;
-
 /* Forward */
 static int globalinit(void);
 
@@ -56,21 +53,14 @@ NCD4_initialize(void)
     /* Init global state */
     globalinit();
     /* Load rc file */
-    NCD4_rcload();    
+    NC_rcload();    
     return THROW(NC_NOERR);
 }
 
 int
 NCD4_finalize(void)
 {
-    if(NCD4_globalstate != NULL) {
-        nullfree(NCD4_globalstate->tempdir);
-        nullfree(NCD4_globalstate->home);
-	nclistfree(NCD4_globalstate->rc.rc);
-	nullfree(NCD4_globalstate->rc.rcfile);
-	free(NCD4_globalstate);
-	NCD4_globalstate = NULL;
-    }
+    curl_global_cleanup();
     return THROW(NC_NOERR);
 }
 
@@ -242,6 +232,12 @@ NCD4_def_var_fill(int ncid, int p2, int p3, const void* p4)
 
 static int
 NCD4_def_var_endian(int ncid, int p2, int p3)
+{
+    return (NC_EPERM);
+}
+
+static int
+NCD4_def_var_filter(int ncid, int varid, unsigned int id, size_t n, const unsigned int* parms)
 {
     return (NC_EPERM);
 }
@@ -421,7 +417,8 @@ NCD4_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                int* shufflep, int* deflatep, int* deflate_levelp,
                int* fletcher32p, int* contiguousp, size_t* chunksizesp,
                int* no_fill, void* fill_valuep, int* endiannessp,
-	       int* options_maskp, int* pixels_per_blockp)
+	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+               )
 {
     NC* ncp;
     int ret;
@@ -433,7 +430,7 @@ NCD4_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                shufflep, deflatep, deflate_levelp,
                fletcher32p, contiguousp, chunksizesp,
                no_fill, fill_valuep, endiannessp,
-	       options_maskp, pixels_per_blockp);
+               idp, nparamsp, params);
     return (ret);
 }
 
@@ -796,82 +793,11 @@ static int
 globalinit(void)
 {
     int stat = NC_NOERR;
-    if(NCD4_globalstate != NULL) return stat;
-    NCD4_globalstate = (NCD4globalstate*)calloc(1,sizeof(NCD4globalstate));
-    if(NCD4_globalstate == NULL) {
-	nclog(NCLOGERR, "Out of memory");
-	return stat;
-    }
-
-    /* Capture temp dir*/
-    {
-	char* tempdir;
-	char* p;
-	char* q;
-	char cwd[NC_MAX_PATH];
-#if defined(_WIN32) || defined(_WIN64)
-        tempdir = getenv("TEMP");
-#else
-	tempdir = "/tmp";
-#endif
-        if(tempdir == NULL) {
-	    fprintf(stderr,"Cannot find a temp dir; using ./\n");
-#if defined(_WIN32) || defined(_WIN64)
-	    tempdir = getcwd(cwd,sizeof(cwd));
-#else
-	    tempdir = getcwd(cwd,sizeof(cwd));
-#endif
-	    if(tempdir == NULL || *tempdir == '\0') tempdir = ".";
-	}
-        NCD4_globalstate->tempdir= (char*)malloc(strlen(tempdir) + 1);
-	for(p=tempdir,q=NCD4_globalstate->tempdir;*p;p++,q++) {
-	    if((*p == '/' && *(p+1) == '/')
-	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
-	    *q = *p;
-	}
-	*q = '\0';
-#if defined(_WIN32) || defined(_WIN64)
-#else
-        /* Canonicalize */
-	for(p=NCD4_globalstate->tempdir;*p;p++) {
-	    if(*p == '\\') {*p = '/'; };
-	}
-	*q = '\0';
-#endif
-    }
-
-    /* Capture $HOME */
-    {
-	char* p;
-	char* q;
-        char* home = getenv("HOME");
-
-        if(home == NULL) {
-	    /* use tempdir */
-	    home = NCD4_globalstate->tempdir;
-	}
-        NCD4_globalstate->home = (char*)malloc(strlen(home) + 1);
-	for(p=home,q=NCD4_globalstate->home;*p;p++,q++) {
-	    if((*p == '/' && *(p+1) == '/')
-	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
-	    *q = *p;
-	}
-	*q = '\0';
-#if defined(_WIN32) || defined(_WIN64)
-#else
-        /* Canonicalize */
-	for(p=home;*p;p++) {
-	    if(*p == '\\') {*p = '/'; };
-	}
-#endif
-    }
-
     {
 	CURLcode cstat = curl_global_init(CURL_GLOBAL_DEFAULT);
 	if(cstat != CURLE_OK)
 	    fprintf(stderr,"curl_global_init failed!\n");
     }
-    NCD4_curl_protocols(NCD4_globalstate); /* see what protocols are supported */
     return stat;
 }
 
@@ -925,6 +851,7 @@ NCDEFAULT_put_varm,
 NCD4_inq_var_all,
 
 NCD4_var_par_access,
+NCD4_def_var_fill,
 
 #ifdef USE_NETCDF4
 NCD4_show_metadata,
@@ -960,8 +887,8 @@ NCD4_def_opaque,
 NCD4_def_var_deflate,
 NCD4_def_var_fletcher32,
 NCD4_def_var_chunking,
-NCD4_def_var_fill,
 NCD4_def_var_endian,
+NCD4_def_var_filter,
 NCD4_set_var_chunk_cache,
 NCD4_get_var_chunk_cache,
 

@@ -1,8 +1,6 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi
-. ../test_common.sh
-
+if test "x$SETX" != x ; then set -x ; fi
 set -e
 
 quiet=0
@@ -10,10 +8,10 @@ leakcheck=0
 timing=0
 
 # Figure our dst server; if none, then just stop
-DTS=`${execdir}/findtestserver dap2 dts`
-if test "x$DTS" = "x" ; then
-echo "WARNING: Cannot locate test server for dts"
-exit
+TESTSERVER=`${execdir}/findtestserver dap2 dts`
+if test "x$TESTSERVER" = "x" ; then
+echo "***XFAIL: Cannot locate test server for dts"
+exit 1
 fi
 
 PARAMS="[log]"
@@ -29,7 +27,7 @@ OCLOGFILE="" ; export OCLOGFILE
 # Capture arguments
 srcdir="$1"
 builddir="$2"
-mode="$3"
+#ignored mode="$3"
 if test "x$4" = "x" ; then cache=1 ; else cache=0; fi
 longtests="$5"
 
@@ -63,14 +61,14 @@ PARAMS="${PARAMS}${CACHE}"
 ##################################################
 
 # For special testing
-REMOTEURLX="$DTS"
+REMOTEURLX="$TESTSERVER"
 REMOTETESTSX="test.03"
 
-REMOTEURLXC="$DTS"
+REMOTEURLXC="$TESTSERVER"
 REMOTETESTSXC="test.03;1;s0,s1"
 
 # These shorter tests are always run
-REMOTEURLS1="$DTS"
+REMOTEURLS1="$TESTSERVER"
 REMOTETESTSS1="\
 test.01 test.02 test.04 test.05 test.07a test.07 \
 test.21 \
@@ -103,7 +101,7 @@ TOOBIGL1="parserBug0001 test.satimage Sat_Images test.32"
 ESCAPEDFAIL="test.dfr1 test.dfr2 test.dfr3 test.GridFile test.PointFile test.SwathFile test.sds6 test.sds7"
 
 # Following tests are to check constraint handling
-REMOTEURLC1="$DTS"
+REMOTEURLC1="$TESTSERVER"
 REMOTETESTSC1="\
 test.01;1;f64 \
 test.02;1;b[1:2:10] \
@@ -132,7 +130,7 @@ argo_all.cdp;1;&location.LATITUDE<1&location.LATITUDE>-1\
 "
 
 # Constrained long tests
-REMOTEURLLC1="$DTS"
+REMOTEURLLC1="$TESTSERVER"
 REMOTETESTSLC1="\
 test.03;2;s1"
 
@@ -183,24 +181,13 @@ testfile.nc \
 text.nc \
 "
 
-case "$mode" in
-3)
-    EXPECTED="$expected3"
-    TITLE="DAP to netCDF-3 translation"
-    PARAMS="${PARAMS}[netcdf3]"
-    XFAILTESTS="$XFAILTESTS3"
-    SVCFAILTESTS="$SVCFAILTESTS3"
-    ;;
-4)
-    EXPECTED="$expected4"
-    TITLE="DAP to netCDF-4 translation"
-    PARAMS="${PARAMS}[netcdf4]"
-    XFAILTESTS="$XFAILTESTS4"
-    SVCFAILTESTS="$SVCFAILTESTS4"
-    ;;
-esac
+TITLE="DAP to netCDF-3 translation"
+EXPECTED="$expected3"
+PARAMS="${PARAMS}[netcdf3]"
+XFAILTESTS="$XFAILTESTS3"
+SVCFAILTESTS="$SVCFAILTESTS3"
 
-RESULTSDIR="./results"
+RESULTSDIR="./results_tst_remote"
 # Locate some tools
 if test "x$leakcheck" = x1 ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
@@ -338,6 +325,7 @@ cd ..
 
 done
 
+rm -fr ${RESULTSDIR}
 totalcount=`expr $passcount + $failcount + $xfailcount + $svcfailcount`
 okcount=`expr $passcount + $xfailcount + $svcfailcount`
 

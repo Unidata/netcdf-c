@@ -3034,7 +3034,7 @@ This example is from libsrc4/tst_vars.c.
 
       ...
 
-      /* Open the file and make sure nc_inq_varids yeilds correct
+      /* Open the file and make sure nc_inq_varids yields correct
        * result. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
@@ -3108,7 +3108,7 @@ This example is from libsrc4/tst_dims.c.
 
       ...
 
-      /* Open the file and make sure nc_inq_dimids yeilds correct
+      /* Open the file and make sure nc_inq_dimids yields correct
        * result. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
@@ -11764,7 +11764,7 @@ programmers.
 
 Fortran compilers do not always agree as to how data should be laid
 out in memory. This makes handling compound and variable length array
-types compiler and platform dependant.
+types compiler and platform dependent.
 
 (This is also true for C, but the clever HDF5 configuration has solved
 this problem for C. Alas, not for Fortran.) 
@@ -12249,14 +12249,14 @@ nc_strerror
 #define NC_ENOTINDEFINE (-38)   /* Operation not allowed in data mode */
 #define NC_EINDEFINE    (-39)   /* Operation not allowed in define mode */
 #define NC_EINVALCOORDS (-40)   /* Index exceeds dimension bound */
-#define NC_EMAXDIMS     (-41)   /* NC_MAX_DIMS exceeded */
+#define NC_EMAXDIMS     (-41)   /* NC_MAX_DIMS exceeded */ /* not enforced after 4.5.0 */
 #define NC_ENAMEINUSE   (-42)   /* String match to name in use */
 #define NC_ENOTATT      (-43)   /* Attribute not found */
-#define NC_EMAXATTS     (-44)   /* NC_MAX_ATTRS exceeded */
+#define NC_EMAXATTS     (-44)   /* NC_MAX_ATTRS exceeded */ /* not enforced after 4.5.0 */
 #define NC_EBADTYPE     (-45)   /* Not a netcdf data type */
 #define NC_EBADDIM      (-46)   /* Invalid dimension id or name */
 #define NC_EUNLIMPOS    (-47)   /* NC_UNLIMITED in the wrong index */
-#define NC_EMAXVARS     (-48)   /* NC_MAX_VARS exceeded */
+#define NC_EMAXVARS     (-48)   /* NC_MAX_VARS exceeded */ /* not enforced after 4.5.0 */
 #define NC_ENOTVAR      (-49)   /* Variable not found */
 #define NC_EGLOBAL      (-50)   /* Action prohibited on NC_GLOBAL varid */
 #define NC_ENOTNC       (-51)   /* Not a netcdf file */

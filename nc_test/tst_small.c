@@ -34,7 +34,7 @@
      int format; \
      nc_inq_format_extended(ncid,&format,NULL); \
      if (format == NC_FORMATX_PNETCDF) { \
-       if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;\
+       if (nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE)) ERR;\
      }\
    }
 #else
@@ -54,8 +54,11 @@ static int file_create(const char *filename, int cmode, int *ncid)
 
 #ifdef USE_PNETCDF
     if (default_format == NC_FORMAT_CLASSIC ||
-        default_format == NC_FORMAT_64BIT_OFFSET ||
-        default_format == NC_FORMAT_64BIT_DATA)
+        default_format == NC_FORMAT_64BIT_OFFSET
+#ifdef ENABLE_CDF5
+        || default_format == NC_FORMAT_64BIT_DATA
+#endif
+        )
         err = nc_create_par(filename, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
@@ -104,6 +107,7 @@ test_small_atts(const char *testfile)
       {
 	 /* Create null-terminated text string of correct length. */
 	 strncpy(att, source, t);
+         att[t] = '\0';
 
 	 /* Create a file with one attribute. */
 	 if (file_create(testfile, NC_CLOBBER, &ncid)) ERR;
@@ -421,9 +425,7 @@ test_two_growing_with_att(const char *testfile)
       {int format;
       nc_inq_format_extended(ncid,&format,NULL);
       if (format == NC_FORMATX_PNETCDF) {
-          for (v = 0; v < NUM_VARS; v++) {
-              if (nc_var_par_access(ncid, varid[v], NC_COLLECTIVE)) ERR;
-          }
+          if (nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE)) ERR;
       }}
 #endif
       count[0] = 1;
@@ -521,11 +523,16 @@ main(int argc, char **argv)
 	    printf("Switching to 64-bit offset format.\n");
 	    strcpy(testfile, "tst_small_64bit.nc");
 	    break;
+#ifdef ENABLE_CDF5
 	 case NC_FORMAT_CDF5:
 	    nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	    printf("Switching to 64-bit data format.\n");
 	    strcpy(testfile, "tst_small_cdf5.nc");
 	    break;
+#else
+      case NC_FORMAT_CDF5:
+        continue;
+#endif
 #ifdef USE_NETCDF4
 	 case NC_FORMAT_NETCDF4_CLASSIC:
 	    nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL);

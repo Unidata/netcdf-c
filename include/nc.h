@@ -27,6 +27,7 @@ typedef struct NC {
 	void* dispatchdata; /*per-'file' data; points to e.g. NC3_INFO data*/
 	char* path;
 	int   mode; /* as provided to nc_open/nc_create */
+        int   model; /* as determined by libdispatch/dfile.c */
 #ifdef USE_REFCOUNT
 	int   refcount; /* To enable multiple name-based opens */
 #endif
@@ -38,12 +39,7 @@ typedef struct NC {
 typedef struct {
 	/* all xdr'd */
 	size_t nchars;
-#ifdef __arm__
-  signed char *cp;
-#else
-  char *cp;
-#endif
-
+	char *cp;
 } NC_string;
 
 /* Define functions that are used across multiple dispatchers */
@@ -55,18 +51,10 @@ free_NC_string(NC_string *ncstrp);
 extern int
 NC_check_name(const char *name);
 
-#ifdef __arm__
-extern NC_string *
-new_NC_string(size_t slen, const signed char *str);
-extern int
-set_NC_string(NC_string *ncstrp, const signed char *str);
-#else
 extern NC_string *
 new_NC_string(size_t slen, const char *str);
 extern int
 set_NC_string(NC_string *ncstrp, const char *str);
-#endif
-
 
 /* End defined in string.c */
 
@@ -75,6 +63,8 @@ NC_check_id(int ncid, NC **ncpp);
 
 /* This function gets a current default create flag */
 extern int nc_get_default_format(void);
+
+extern int NC_check_file_type(const char *path, int flags, void *parameters, int* model, int* version);
 
 extern int add_to_NCList(NC*);
 extern void del_from_NCList(NC*);/* does not free object */
@@ -86,7 +76,7 @@ extern int iterate_NCList(int i,NC**); /* Walk from 0 ...; ERANGE return => stop
 
 /* Defined in nc.c */
 extern void free_NC(NC*);
-extern int new_NC(struct NC_Dispatch*, const char*, int, NC**);
+extern int new_NC(struct NC_Dispatch*, const char*, int, int, NC**);
 
 /* Defined in nc.c */
 extern int ncdebug;

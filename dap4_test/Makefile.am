@@ -6,8 +6,9 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
+#TEST_EXTENSIONS = .sh
+
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/libdap4
@@ -25,13 +26,18 @@ test_parse_SOURCES = test_parse.c test_common.h
 test_meta_SOURCES = test_meta.c test_common.h
 test_data_SOURCES = test_data.c test_common.h
 TESTS += test_parse.sh
-TESTS += test_meta.sh
-TESTS += test_data.sh
 
 if BUILD_UTILITIES
 # These rely on ncdump
 TESTS += test_raw.sh
+TESTS += test_meta.sh
+TESTS += test_data.sh
 endif
+
+# Note which tests depend on other tests. Necessary for make -j check.
+test_raw.log: test_parse.log
+test_meta.log: test_raw.log
+test_data.log: test_meta.log
 
 if ENABLE_DAP_REMOTE_TESTS
 # Note: This program name was changed to findtestserver4
@@ -40,8 +46,7 @@ check_PROGRAMS += findtestserver4
 findtestserver4_SOURCES = findtestserver4.c
 if BUILD_UTILITIES
   # relies on ncdump
-  # Disabled until the testserver is stable
-#TESTS += test_remote.sh
+  TESTS += test_remote.sh
 endif
 endif
 
@@ -51,9 +56,11 @@ EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
              test_raw.sh test_remote.sh test_hyrax.sh \
              d4test_common.sh \
 	     daptestfiles dmrtestfiles cdltestfiles nctestfiles \
-	     baseline baselineraw baselineremote
+	     baseline baselineraw baselineremote CMakeLists.txt
 
 CLEANFILES = *.exe
+# This should only be left behind if using parallel io
+CLEANFILES += tmp_*
 
 # One last thing
 BUILT_SOURCES = .daprc

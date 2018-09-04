@@ -11,9 +11,10 @@
 #include "ocdebug.h"
 #include "ocdump.h"
 #include "nclog.h"
-#include "occlientparams.h"
+#include "ncrc.h"
 #include "occurlfunctions.h"
 #include "ochttp.h"
+#include "ncwinpath.h"
 
 #undef TRACK
 
@@ -53,9 +54,8 @@ object is to be returned.
 OCerror
 oc_open(const char* url, OCobject* linkp)
 {
-    OCerror ocerr;
+	OCerror ocerr = OC_NOERR;
     OCstate* state = NULL;
-    if(!ocglobalstate.initialized) oc_initialize();
     ocerr = ocopen(&state,url);
     if(ocerr == OC_NOERR && linkp) {
       *linkp = (OCobject)(state);
@@ -1035,7 +1035,7 @@ oc_data_gridmap(OCobject link, OCobject grid, size_t index, OCobject* mapdatap)
 
 /*!
 Obtain the data instance corresponding to the container
-of a specied instance object.
+of a specified instance object.
 
 \param[in] link The link through which the server is accessed.
 \param[in] datanode The data instance of interest
@@ -1712,76 +1712,6 @@ oc_errstring(OCerror err)
     return ocerrstring(err);
 }
 
-/*!
-Each OClink object maintains a table of
-(name,value) pairs, called client parameters.
-It is initialized from any such parameters
-specified in the URL given as argument to
-oc_open().
-
-\param[in] link The link through which the server is accessed.
-\param[in] param The name of the parameter whose value is desired.
-
-\return The corresponding value, or NULL if parameter name is not in the table.
-*/
-
-const char*
-oc_clientparam_get(OCobject link, const char* param)
-{
-    OCstate* state;
-    OCVERIFYX(OC_State,link,NULL);
-    OCDEREF(OCstate*,state,link);
-
-    return ocparamlookup(state,param);
-}
-
-#ifdef OCIGNORE
-/* Delete client parameter
-   return value:
-	OC_NOERR => defined; deletion performed
-	OC_EINVAL => not already defined
-*/
-OCerror
-oc_clientparam_delete(OCobject link, const char* param)
-{
-    OCstate* state;
-    OCVERIFY(OC_State,link);
-    OCDEREF(OCstate*,state,link);
-
-    return OCTHROW(ocparamdelete(state->clientparams,param));
-}
-
-/* Insert client parameter
-   return value:
-	OC_NOERR => not already define; insertion performed
-	OC_EINVAL => already defined
-*/
-OCerror
-oc_clientparam_insert(OCobject link, const char* param, const char* value)
-{
-    OCstate* state;
-    OCVERIFY(OC_State,link);
-    OCDEREF(OCstate*,state,link);
-
-    state->clientparams = dapparaminsert(state->clientparams,param,value);
-    return OCTHROW(OC_NOERR);
-}
-
-/* Replace client parameter
-   return value:
-	OC_NOERR => already define; replacement performed
-	OC_EINVAL => not already defined
-*/
-OCerror
-oc_clientparam_replace(OCobject link, const char* param, const char* value)
-{
-    OCstate* state;
-    OCVERIFY(OC_State,link);
-    OCDEREF(OCstate*,state,link);
-
-    return dapparamreplace(state->clientparams,param,value);
-}
-#endif
 
 /**************************************************/
 
@@ -1999,14 +1929,15 @@ oc_data_ddtree(OCobject link, OCobject ddsroot)
     return OCTHROW(OC_NOERR);
 }
 
-OCDT
-oc_data_mode(OCobject link, OCobject datanode)
+OCerror
+oc_data_mode(OCobject link, OCobject datanode, OCDT* modep)
 {
     OCdata* data;
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
 
-    return data->datamode;
+    if(modep) *modep = data->datamode;
+    return OC_NOERR;
 }
 
 /* Free up a datanode that is no longer being used;
@@ -2085,11 +2016,10 @@ oc_set_netrc(OClink* link, const char* file)
     if(file == NULL || strlen(file) == 0)
 	return OC_EINVAL;
     nclog(OCLOGDBG,"OC: using netrc file: %s",file);
-    /* See if it exists and is readable; complain if not */
-    f = fopen(file,"r");
-    if(f == NULL)
-	nclog(NCLOGWARN,"OC: netrc file is not readable; continuing");
-    else {
+    /* See if it exists and is readable; ignore if not */
+    f = NCfopen(file,"r");
+    if(f != NULL) { /* Log what rc file is being used */
+	nclog(NCLOGNOTE,"OC: netrc file found: %s",file);
 	fclose(f);
     }
     return OCTHROW(ocset_netrc(state,file));
@@ -2119,44 +2049,6 @@ oc_set_useragent(OCobject link, const char* agent)
 }
 
 /*!
-Set the absolute path to use for the rc file.
-WARNING: this MUST be called before any other
-call in order for this to take effect.
-
-\param[in] rcfile The path to use. If NULL, or "",
-                  then do not use any rcfile.
-
-\retval OC_NOERR if the request succeeded.
-\retval OC_ERCFILE if the file failed to load
-*/
-
-OCerror
-oc_set_rcfile(const char* rcfile)
-{
-    OCerror stat = OC_NOERR;
-    if(rcfile != NULL && strlen(rcfile) == 0)
-	rcfile = NULL;
-
-    if(!ocglobalstate.initialized)
-	ocinternalinitialize(); /* so ocglobalstate is defined, but not triplestore */
-    if(rcfile == NULL) {
-	ocglobalstate.rc.ignore = 1;
-    } else {
-        FILE* f = fopen(rcfile,"r");
-        if(f == NULL) {
-	    stat = (OC_ERCFILE);
-	    goto done;
-        }
-        fclose(f);
-        ocglobalstate.rc.rcfile = strdup(rcfile);
-        /* (re) load the rcfile and esp the triplestore*/
-        stat = ocrc_load();
-    }
-done:
-    return OCTHROW(stat);
-}
-
-/*!
 Force the curl library to trace its actions.
 
 \param[in] link The link through which the server is accessed.
@@ -2172,23 +2064,6 @@ oc_trace_curl(OCobject link)
     OCDEREF(OCstate*,state,link);
     oc_curl_debug(state);
     return OCTHROW(OC_NOERR);
-}
-
-OCerror
-oc_initialize(void)
-{
-    OCerror status = OC_NOERR;
-    if(!ocglobalstate.initialized) {
-        /* Clean up before re-initializing */
-	if(ocglobalstate.tempdir != NULL) free(ocglobalstate.tempdir);
-	if(ocglobalstate.home != NULL) free(ocglobalstate.home);
-	if(ocglobalstate.rc.rcfile != NULL) free(ocglobalstate.rc.rcfile);
-    }
-    ocglobalstate.initialized = 0;
-    status = ocinternalinitialize();
-    /* (re) load the rcfile */
-    status =  ocrc_load();
-    return OCTHROW(status);
 }
 
 /**@}*/

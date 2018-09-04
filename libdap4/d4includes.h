@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #include <assert.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -32,6 +33,7 @@
 
 #include "netcdf.h"
 #include "nc.h"
+#include "ncrc.h"
 #include "ncbytes.h"
 #include "nclist.h"
 #include "ncuri.h"

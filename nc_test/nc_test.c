@@ -9,6 +9,8 @@ int numVars;   /* number of variables */
 int numTypes;  /* number of netCDF data types to test */
 
 #include "tests.h"
+#include "config.h"
+
 
 /*
  * Test driver for netCDF-3 interface.  This program performs tests against
@@ -35,11 +37,11 @@ char dim_name[NDIMS][3];
 size_t dim_len[NDIMS];
 char var_name[NVARS][2+MAX_RANK];
 nc_type var_type[NVARS];
-size_t var_rank[NVARS];
+int var_rank[NVARS];
 int var_dimid[NVARS][MAX_RANK];
 size_t var_shape[NVARS][MAX_RANK];
 size_t var_nels[NVARS];
-size_t var_natts[NVARS];
+int var_natts[NVARS];
 char att_name[NVARS][MAX_NATTS][2];
 char gatt_name[NGATTS][3];
 nc_type att_type[NVARS][NGATTS];
@@ -130,16 +132,27 @@ main(int argc, char *argv[])
 	     fprintf(stderr, "\n\nSwitching to 64-bit offset format.\n");
 	     strcpy(testfile, "nc_test_64bit.nc");
 	     break;
+
 	  case NC_FORMAT_CDF5:
-	     nc_set_default_format(NC_FORMAT_CDF5, NULL);
+#ifdef ENABLE_CDF5
+        nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	     fprintf(stderr, "\n\nSwitching to 64-bit data format.\n");
 	     strcpy(testfile, "nc_test_cdf5.nc");
              numGatts = NGATTS;
              numVars  = NVARS;
              numTypes = NTYPES;
 	     break;
-	  case NC_FORMAT_NETCDF4_CLASSIC:
-	  case NC_FORMAT_NETCDF4: /* actually it's _CLASSIC. */
+#else
+         continue;
+#endif
+
+         /* Repeated test. See https://github.com/Unidata/netcdf-c/issues/556 for more
+            information re: the immediate 'continue' */
+       case NC_FORMAT_NETCDF4: /* actually it's _CLASSIC. */
+         continue; /* loop i */
+
+
+       case NC_FORMAT_NETCDF4_CLASSIC:
 #ifdef USE_NETCDF4
 	     nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL);
 	     strcpy(testfile, "nc_test_netcdf4.nc");
@@ -156,7 +169,7 @@ main(int argc, char *argv[])
        /* Initialize global variables defining test file */
        init_gvars();
 
-	/* Write the test file, needed for the read-only tests below. */
+       /* Write the test file, needed for the read-only tests below. */
        write_file(testfile);
 
 	/* delete any existing scratch netCDF file */
@@ -355,6 +368,8 @@ main(int argc, char *argv[])
 	NC_TEST(nc_copy_att);
 	NC_TEST(nc_rename_att);
 	NC_TEST(nc_del_att);
+	NC_TEST(nc_against_pnetcdf);
+        /* keep below the last test, as it changes the default file format */
 	NC_TEST(nc_set_default_format);
     }
 

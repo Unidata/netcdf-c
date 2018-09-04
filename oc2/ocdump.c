@@ -232,14 +232,14 @@ ocdumpclause(OCprojectionclause* ref)
 
 
 static void
-addfield(char* field, char* line, int align)
+addfield(char* field, size_t llen, char* line, int align)
 {
     int len,rem;
-    strcat(line,"|");
-    strcat(line,field);
+    strlcat(line,"|",llen);
+    strlcat(line,field,llen);
     len = strlen(field);
     rem = (align - len);
-    while(rem-- > 0) strcat(line," ");
+    while(rem-- > 0) strlcat(line," ",llen);
 }
 
 static void
@@ -264,27 +264,27 @@ dumpfield(size_t index, char* n8, int isxdr)
 
     /* offset */
     sprintf(tmp,"%6zd",index);
-    addfield(tmp,line,5);
+    addfield(tmp,sizeof(line),line,5);
 
     memcpy(form.cv,n8,4);
 
     /* straight hex*/
     sprintf(tmp,"%08x",form.uv);
-    addfield(tmp,line,8);
+    addfield(tmp,sizeof(line),line,8);
 
     if(isxdr) {swapinline32(&form.uv);}
 
     /* unsigned integer */
     sprintf(tmp,"%12u",form.uv);
-    addfield(tmp,line,12);
+    addfield(tmp,sizeof(line),line,12);
 
     /* signed integer */
     sprintf(tmp,"%12d",form.sv);
-    addfield(tmp,line,12);
+    addfield(tmp,sizeof(line),line,12);
 
     /* float */
     sprintf(tmp,"%#g",form.fv);
-    addfield(tmp,line,12);
+    addfield(tmp,sizeof(line),line,12);
 
     /* char[4] */
     {
@@ -303,13 +303,13 @@ dumpfield(size_t index, char* n8, int isxdr)
         }
     }
 
-    addfield(tmp,line,16);
+    addfield(tmp,sizeof(line),line,16);
 
     /* double */
     memcpy(dform.cv,n8,(size_t)(2*XDRUNIT));
     if(isxdr) xxdrntohdouble(dform.cv,&dform.d);
     sprintf(tmp,"%#g",dform.d);
-    addfield(tmp,line,12);
+    addfield(tmp,sizeof(line),line,12);
 
     fprintf(stdout,"%s\n",line);
 }
@@ -326,14 +326,14 @@ typedmemorydump(char* memory, size_t len, int fromxdr)
 
     /* build the header*/
     line[0] = '\0';
-    addfield("offset",line,6);
-    addfield("hex",line,8);
-    addfield("uint",line,12);
-    addfield("int",line,12);
-    addfield("float",line,12);
-    addfield("char[4]",line,16);
-    addfield("double",line,12);
-    strcat(line,"\n");
+    addfield("offset",sizeof(line),line,6);
+    addfield("hex",sizeof(line),line,8);
+    addfield("uint",sizeof(line),line,12);
+    addfield("int",sizeof(line),line,12);
+    addfield("float",sizeof(line),line,12);
+    addfield("char[4]",sizeof(line),line,16);
+    addfield("double",sizeof(line),line,12);
+    strlcat(line,"\n",sizeof(line));
     fprintf(stdout,"%s",line);
 
     count = (len / sizeof(int));
@@ -367,9 +367,9 @@ simplememorydump(char* memory, size_t len, int fromxdr)
 
     /* build the header*/
     line[0] = '\0';
-    addfield("offset",line,6);
-    addfield("XDR (hex)",line,9);
-    addfield("!XDR (hex)",line,10);
+    addfield("offset",sizeof(line),line,6);
+    addfield("XDR (hex)",sizeof(line),line,9);
+    addfield("!XDR (hex)",sizeof(line),line,10);
     fprintf(stdout,"%s\n",line);
 
     count = (len / sizeof(int));
@@ -384,11 +384,11 @@ simplememorydump(char* memory, size_t len, int fromxdr)
 	if(!xxdr_network_order) swapinline32(&v);
         line[0] = '\0';
         sprintf(tmp,"%6d",i);
-        addfield(tmp,line,6);
+        addfield(tmp,sizeof(line),line,6);
         sprintf(tmp,"%08x",vx);
-        addfield(tmp,line,9);
+        addfield(tmp,sizeof(line),line,9);
         sprintf(tmp,"%08x",v);
-        addfield(tmp,line,10);
+        addfield(tmp,sizeof(line),line,10);
         fprintf(stdout,"%s\n",line);
     }
     fflush(stdout);

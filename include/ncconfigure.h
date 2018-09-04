@@ -10,29 +10,28 @@
 #ifndef NCCONFIGURE_H
 #define NCCONFIGURE_H 1
 
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
 /*
 This is included in bottom
 of config.h. It is where,
 typically, alternatives to
 missing functions should be
-defined.
+defined and missing types defined.
 */
 
 #ifndef HAVE_STRDUP
 extern char* strdup(const char*);
 #endif
 
-/* #if HAVE_BASETSD_H */
-/* #ifndef ssize_t */
-/* #ifndef SSIZE_T */
-/* #include <BaseTsd.h> */
-/* #endif */
-/* #define ssize_t SSIZE_T */
-/* #endif */
-/* #endif */
-
-
-
+/*
+#ifndef HAVE_SSIZE_T
+typedef long ssize_t;
+#define HAVE_SSIZE_T
+#endif
+*/
 /* handle null arguments */
 #ifndef nulldup
 #ifdef HAVE_STRDUP
@@ -42,6 +41,22 @@ char *nulldup(const char* s);
 #endif
 #endif
 
+#ifdef _MSC_VER
+#ifndef HAVE_SSIZE_T
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
+#define HAVE_SSIZE_T 1
+#endif
+#endif
+
+#ifndef HAVE_STRLCAT
+#ifdef _MSC_VER
+/* Windows strlcat_s is equivalent to strlcat, but different arg order */
+#define strlcat(d,s,n) strcat_s((d),(n),(s))
+#else
+extern size_t strlcat(char* dst, const char* src, size_t dsize);
+#endif
+#endif
 
 #ifndef nulldup
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))

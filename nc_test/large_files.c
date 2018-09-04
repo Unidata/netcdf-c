@@ -3,7 +3,7 @@
   See COPYRIGHT file for copying and redistribution conditions.
 
   This is part of netCDF.
-   
+
   This program also takes a long time to run - it writes some data in
   a very large file, and then reads it all back to be sure it's
   correct.
@@ -11,7 +11,7 @@
   This program is an add-on test to check very large 64-bit offset
   files (8 GB, so make sure you have the disk space!).
 
-  $Id: large_files.c,v 1.4 2008/03/10 17:02:41 ed Exp $
+  Ed Hartnett, Ward Fisher
 */
 
 #include <config.h>
@@ -21,6 +21,11 @@
 #include <netcdf.h>
 
 #define FILE_NAME "large_files.nc"
+#define NUMRECS 2
+#define I_LEN 4106
+#define J_LEN 1023
+#define K_LEN 1023
+#define N_LEN 2
 
 static void
 check_err(const int stat, const int line, const char *file) {
@@ -36,7 +41,7 @@ main(int argc, char **argv) {
    int  stat;			/* return status */
    char file_name[NC_MAX_NAME + 1];
    int  ncid;			/* netCDF id */
-   int rec, i, j, k;
+   int rec, i, j;
    int x[] = {42, 21};
 
    /* dimension ids */
@@ -45,15 +50,6 @@ main(int argc, char **argv) {
    int j_dim;
    int k_dim;
    int n_dim;
-
-#define NUMRECS 2
-#define I_LEN 5
-#if 0
-#define J_LEN 214700000
-#endif
-#define J_LEN   500000000
-#define K_LEN 1023
-#define N_LEN 2
 
    /* dimension lengths */
    size_t rec_len = NC_UNLIMITED;
@@ -157,7 +153,7 @@ main(int argc, char **argv) {
    check_err(stat,__LINE__,__FILE__);
 
    {			/* read var1 */
-     
+
      /*static float avar1[J_LEN];*/
      static float *avar1 = NULL;
      avar1 = (float*)malloc(sizeof(float)*J_LEN);
@@ -172,11 +168,11 @@ main(int argc, char **argv) {
          avar1_start[1] = i;
          stat = nc_get_vara_float(ncid, var1_id, avar1_start, avar1_count, avar1);
          check_err(stat,__LINE__,__FILE__);
-         for(j=0; j<J_LEN; j++) 
+         for(j=0; j<J_LEN; j++)
          {
            if (avar1[j] != (float)(j + (rec + 1) * i)) {
              printf("Error on read, var1[%d, %d, %d] = %g wrong, "
-                    "should be %g !\n", rec, i, j, avar1[j], (float) (j + (rec + 1)* i)); 
+                    "should be %g !\n", rec, i, j, avar1[j], (float) (j + (rec + 1)* i));
              return 1;
            }
          }
