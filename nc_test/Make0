@@ -1,17 +1,17 @@
 # Test c output
-T=tst_open_mem
+T=tst_diskless
 
 #H58=8
 H510=10
 
-#ARGS=f03_1820.nc
+ARGS=persist
 
-SRC=test_put.c test_get.c test_read.c test_write.c util.c error.c
+#SRC=test_put.c test_get.c test_read.c test_write.c util.c error.c
 
-#CMD=valgrind --leak-check=full
-#CMD=export NETCDF_LOG_LEVEL=5 ;gdb --args
-CMD=gdb --args
 #CMD=env HDF5_DEBUG=trace
+#CMD=export NETCDF_LOG_LEVEL=5 ;gdb --args
+CMD=valgrind --leak-check=full
+CMD=gdb --args
 
 #PAR=1
 

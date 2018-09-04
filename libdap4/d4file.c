@@ -304,7 +304,7 @@ freeInfo(NCD4INFO* d4info)
            for some reason, so we delete it ourselves.
 	*/
 	if(d4info->substrate.filename != NULL) {
-	    unlink(d4info->substrate.filename);
+//	    unlink(d4info->substrate.filename);
 	}
     }
     nullfree(d4info->substrate.filename); /* always reclaim */
