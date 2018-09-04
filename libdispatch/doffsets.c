@@ -87,7 +87,7 @@ all compilers seem to mimic the gcc rules.
 
 #define COMP_ALIGNMENT(DST,TYPE)  {\
     struct {char f1; TYPE x;} tmp; \
-    DST.typename = #TYPE ;        \
+    DST.type_name = #TYPE ;        \
     DST.alignment = (size_t)((char*)(&(tmp.x)) - (char*)(&tmp));}
 
 #if 0
@@ -186,7 +186,7 @@ compute_alignments(void)
 */
 #define COMP_ALIGNMENT1(DST,TYPE1,TYPE)  {\
     struct {TYPE1 f1; TYPE x;} tmp; \
-    DST.typename = #TYPE ;        \
+    DST.type_name = #TYPE ;        \
     DST.alignment = (size_t)((char*)(&(tmp.x)) - (char*)(&tmp));}
 
 /* Compute the alignment of TYPE when it is preceded
@@ -194,7 +194,7 @@ compute_alignments(void)
 */
 #define COMP_ALIGNMENT2(DST,TYPE1,TYPE2,TYPE)  {\
     struct {TYPE1 f1, TYPE2 f2; TYPE x;} tmp;   \
-    DST.typename = #TYPE ;                      \
+    DST.type_name = #TYPE ;                      \
     DST.alignment = (size_t)((char*)(&(tmp.x)) - (char*)(&tmp));}
 
 /* Compute the alignment of TYPE when it is preceded
@@ -301,15 +301,15 @@ verify(Typealignvec* vec)
 
     for(i=0;i<NCTYPES;i++) {
 	printf("%s: size=%2d  alignment=%2d\n",
-		padname(vec[i].typename),sizes8[i],vec[i].alignment);
+		padname(vec[i].type_name),sizes8[i],vec[i].alignment);
     }
     for(i=0;i<NCTYPES;i++) {
 	printf("short vs %s: size=%2d  alignment=%2d\n",
-		padname(vec[i].typename),sizes16[i],vec16[i].alignment);
+		padname(vec[i].type_name),sizes16[i],vec16[i].alignment);
     }
     for(i=0;i<NCTYPES;i++) {
 	printf("int vs %s: size=%2d  alignment=%2d\n",
-		padname(vec[i].typename),sizes32[i],vec32[i].alignment);
+		padname(vec[i].type_name),sizes32[i],vec32[i].alignment);
     }
 
 }
@@ -336,7 +336,7 @@ main(int argc, char** argv)
 
 /*
     for(i=0;i<NCTYPES;i++) {
-	printf("%s:\talignment=%d\n",vec[i].typename,vec[i].alignment);
+	printf("%s:\talignment=%d\n",vec[i].type_name,vec[i].alignment);
     }
 */
     exit(0);
