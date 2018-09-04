@@ -54,7 +54,7 @@ endif #ENABLE_DAP4
 
 EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
              test_raw.sh test_remote.sh test_hyrax.sh \
-             d4test_common.sh \
+             tst_curlopt.sh d4test_common.sh \
 	     daptestfiles dmrtestfiles cdltestfiles nctestfiles \
 	     baseline baselineraw baselineremote CMakeLists.txt
 

@@ -200,7 +200,7 @@ DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
 export DISTCHECK_CONFIGURE_FLAGS
 
 if test "x$NB" != x -o "x$FAST" = x ; then
-${MAKE} maintainer-clean >/dev/null 2>&1
+${MAKE} distclean >/dev/null 2>&1
 fi
 if test -z "$NB" ; then
   if autoreconf -i --force ; then ok=1; else exit ; fi
