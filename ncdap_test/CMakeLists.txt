@@ -60,5 +60,5 @@ ADD_SUBDIRECTORY(expectremote3)
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} findtestserver.c.in CMakeLists.txt Makefile.am)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
