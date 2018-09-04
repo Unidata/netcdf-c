@@ -45,7 +45,8 @@ struct MagicFile {
     long long filelen;
     int use_parallel;
     int inmemory;
-    void* parameters;
+    int diskless;
+    void* parameters; /* !NULL if inmemory && !diskless */
     FILE* fp;
 #ifdef USE_PARALLEL
     MPI_File fh;
@@ -292,9 +293,10 @@ NC_check_file_type(const char *path, int flags, void *parameters,
 {
     char magic[MAGIC_NUMBER_LEN];
     int status = NC_NOERR;
-
     int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
-    int inmemory = (!diskless && ((flags & NC_INMEMORY) == NC_INMEMORY));
+    int inmemory = ((flags & NC_INMEMORY) == NC_INMEMORY);
+    int mmap = ((flags & NC_MMAP) == NC_MMAP);
+
 #ifdef USE_PARALLEL
     int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
 #endif /* USE_PARALLEL */
@@ -303,25 +305,20 @@ NC_check_file_type(const char *path, int flags, void *parameters,
    *model = 0;
    *version = 0;
 
+    assert(inmemory ? !mmap : 1); /* inmemory => !mmap */
+    assert((diskless && inmemory) ? !mmap : 1);/*diskless & inmemory => !mmap*/
+
     memset((void*)&file,0,sizeof(file));
     file.path = path; /* do not free */
     file.parameters = parameters;
-    if(inmemory && parameters == NULL)
-	{status = NC_EINMEMORY; goto done;}
-    if(inmemory) {
-        file.inmemory = inmemory;
-	goto next;
-    }
-    /* presumably a real file */
+    file.inmemory = inmemory;
+    file.diskless = diskless;
 #ifdef USE_PARALLEL
+    /* presumably a real file */
     /* for parallel, use the MPI functions instead (why?) */
-    if (use_parallel) {
-	file.use_parallel = use_parallel;
-	goto next;
-    }
+    file.use_parallel = use_parallel;
 #endif /* USE_PARALLEL */
 
-next:
     status = openmagic(&file);
     if(status != NC_NOERR) {goto done;}
     /* Verify we have a large enough file */
@@ -1954,6 +1951,8 @@ static int
 check_create_mode(int mode)
 {
     int mode_format;
+    int mmap = 0;
+    int inmemory = 0;
 
     /* This is a clever check to see if more than one format bit is
      * set. */
@@ -1967,9 +1966,14 @@ check_create_mode(int mode)
     if (mode & NC_MPIIO && mode & NC_MPIPOSIX)
        return NC_EINVAL;
 
-    /* Can't use both parallel and diskless. */
-    if ((mode & NC_MPIIO && mode & NC_DISKLESS) ||
-	(mode & NC_MPIPOSIX && mode & NC_DISKLESS))
+    mmap = ((mode & NC_MMAP) == NC_MMAP);
+    inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
+    if(mmap && inmemory) /* cannot have both */
+	return NC_EINMEMORY;
+
+    /* Can't use both parallel and diskless|inmemory. */
+    if ((mode & NC_MPIIO && mode & (NC_DISKLESS|NC_INMEMORY))
+	|| (mode & NC_MPIPOSIX && mode & (NC_DISKLESS|NC_INMEMORY)))
 	return NC_EINVAL;
 
 #ifndef USE_NETCDF4
@@ -2029,10 +2033,18 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    int model = NC_FORMATX_UNDEFINED; /* one of the NC_FORMATX values */
    int isurl = 0;   /* dap or cdmremote or neither */
    char* path = NULL;
+   int mmap = 0;
+   int diskless = 0;
 
    TRACE(nc_create);
    if(path0 == NULL)
 	return NC_EINVAL;
+
+   /* Fix the inmemory related flags */
+   mmap = ((cmode & NC_MMAP) == NC_MMAP);  
+   diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
+   /* diskless && !mmap => inmemory */
+   if(diskless && !mmap) cmode |= NC_INMEMORY;
 
    /* Check mode flag for sanity. */
    if ((stat = check_create_mode(cmode)))
@@ -2197,6 +2209,7 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
    NC_Dispatch* dispatcher = NULL;
    int inmemory = 0;
    int diskless = 0;
+   int mmap = 0;
    /* Need pieces of information for now to decide model*/
    int model = 0;
    int isurl = 0;
@@ -2210,13 +2223,22 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
       if(stat) return stat;
    }
 
+   /* Fix the inmemory related flags */
+   mmap = ((cmode & NC_MMAP) == NC_MMAP);
+   diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
+
+   /* diskless && !mmap => inmemory */
+   if(diskless && !mmap) cmode |= NC_INMEMORY;
+
+   inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
+
+   if(mmap && inmemory) /* cannot have both */
+	return NC_EINMEMORY;
+
    /* Attempt to do file path conversion: note that this will do
       nothing if path is a 'file:...' url, so it will need to be
       repeated in protocol code: libdap2 and libdap4
     */
-
-   inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
-   diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
 
 #ifdef WINPATH
    path = NCpathcvt(path0);
@@ -2272,6 +2294,7 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
 	if(useparallel) flags |= NC_MPIIO;
 	if(inmemory) flags |= NC_INMEMORY;
 	if(diskless) flags |= NC_DISKLESS;
+	if(mmap) flags |= NC_MMAP;
 	stat = NC_check_file_type(path,flags,parameters,&model,&version);
         if(stat == NC_NOERR) {
 	    if(model == 0) {
@@ -2476,7 +2499,8 @@ static int
 openmagic(struct MagicFile* file)
 {
     int status = NC_NOERR;
-    if(file->inmemory) {
+    assert((!file->diskless && file->inmemory) ? file->parameters != NULL : 1);
+    if(file->inmemory && !file->diskless) {
 	/* Get its length */
 	NC_memio* meminfo = (NC_memio*)file->parameters;
 	file->filelen = (long long)meminfo->size;
@@ -2538,7 +2562,7 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 {
     int status = NC_NOERR;
     memset(magic,0,MAGIC_NUMBER_LEN);
-    if(file->inmemory) {
+    if(file->inmemory && !file->diskless) {
 	char* mempos;
 	NC_memio* meminfo = (NC_memio*)file->parameters;
 	if((pos + MAGIC_NUMBER_LEN) > meminfo->size)

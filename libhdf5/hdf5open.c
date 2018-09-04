@@ -380,23 +380,10 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 
    nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
    nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
-   if(nc4_info->mem.inmemory) {
-      NC_memio* memparams = NULL;
-      if(parameters == NULL)
-         BAIL(NC_EINMEMORY);
-      memparams = (NC_memio*)parameters;
-      nc4_info->mem.memio = *memparams; /* keep local copy */
-      /* As a safeguard, if !locked and NC_WRITE is set,
-         then we must take control of the incoming memory */
-      nc4_info->mem.locked = (nc4_info->mem.memio.flags & NC_MEMIO_LOCKED) == NC_MEMIO_LOCKED;
-      if(!nc4_info->mem.locked && ((mode & NC_WRITE) == NC_WRITE)) {
-         memparams->memory = NULL;
-      }
+
 #ifdef USE_PARALLEL4
-   } else {
-      mpiinfo = (NC_MPI_INFO*)parameters;
+   mpiinfo = (NC_MPI_INFO*)parameters; /* assume, may be changed if inmemory is true */
 #endif /* !USE_PARALLEL4 */
-   }
 
    /* Need this access plist to control how HDF5 handles open objects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
@@ -471,10 +458,29 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if ((mode & NC_WRITE) == 0)
       nc4_info->no_write = NC_TRUE;
 
+   /* Now process if NC_INMEMORY is set (recall NC_DISKLESS => NC_INMEMORY) */
    if(nc4_info->mem.inmemory) {
+      NC_memio* memio;
+
       /* validate */
-      if(nc4_info->mem.memio.size == 0 || nc4_info->mem.memio.memory == NULL)
-         BAIL(NC_INMEMORY);
+      if(parameters == NULL)
+         BAIL(NC_EINMEMORY);
+      memio = (NC_memio*)parameters;
+      if(memio->memory == NULL || memio->size == 0)
+         BAIL(NC_EINMEMORY);
+
+      /* initialize h5->mem */
+      nc4_info->mem.memio = *memio;
+
+      /* Is the incoming memory locked? */
+      nc4_info->mem.locked = (nc4_info->mem.memio.flags & NC_MEMIO_LOCKED) == NC_MEMIO_LOCKED;
+
+      /* As a safeguard, if !locked and not read-only,
+         then we must take control of the incoming memory */
+      if(!nc4_info->mem.locked && !nc4_info->no_write) {
+        memio->memory = NULL; /* take control */
+        memio->size = 0;
+      }
       retval = NC4_open_image_file(nc4_info);
       if(retval)
          BAIL(NC_EHDFERR);
@@ -531,7 +537,7 @@ exit:
 #endif
    if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if (!nc4_info) return retval;
-   nc4_close_netcdf4_file(nc4_info,1,0); /*  treat like abort*/
+   nc4_close_netcdf4_file(nc4_info,1,NULL); /*  treat like abort*/
    return retval;
 }
 
