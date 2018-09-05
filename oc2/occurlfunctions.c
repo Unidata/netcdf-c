@@ -12,27 +12,16 @@
 /* Mnemonic */
 #define OPTARG void*
 
+/* Define some .rc file entries of interest*/
 #define NETRCFILETAG "HTTP.NETRC"
 
+/* Check return value */
 #define CHECK(state,flag,value) {if(check(state,flag,(void*)value) != OC_NOERR) {goto done;}}
 
 static OCerror
 check(OCstate* state, int flag, void* value)
 {
     OCerror stat = ocset_curlopt(state,flag,value);
-#ifdef OCDEBUG
-    long l = (long)value;
-    const char* name = occurlflagbyflag(flag)->name;
-    if(l <= 1000) {
-	OCDBG2("%s=%ld",name,l);
-    } else {
-	char show[65];
-	char* s = (char*)value;
-	strncpy(show,s,sizeof(show)-1);
-	show[sizeof(show)-1] = '\0';
-	OCDBG2("%s=%s",name,show);
-    }
-#endif
     return stat;
 }
 
@@ -153,12 +142,26 @@ ocset_curlflag(OCstate* state, int flag)
     }
     break;
 
-    default: {
-	struct OCCURLFLAG* f = occurlflagbyflag(flag);
-	if(f != NULL)
-	    nclog(NCLOGWARN,"Attempt to update unexpected curl flag: %s",
-				f->name);
-	} break;
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+    case CURLOPT_BUFFERSIZE:
+	CHECK(state, CURLOPT_BUFFERSIZE, (OPTARG)state->curlbuffersize);
+	break;
+#endif
+
+#ifdef HAVE_CURLOPT_KEEPALIVE
+    case CURLOPT_TCP_KEEPALIVE:
+	if(state->curlkeepalive.active != 0)
+	    CHECK(state, CURLOPT_TCP_KEEPALIVE, (OPTARG)1L);
+	if(state->curlkeepalive.idle > 0)
+	    CHECK(state, CURLOPT_TCP_KEEPIDLE, (OPTARG)state->curlkeepalive.idle);
+	if(state->curlkeepalive.interval > 0)
+	    CHECK(state, CURLOPT_TCP_KEEPINTVL, (OPTARG)state->curlkeepalive.interval);
+	break;
+#endif
+
+    default:
+        nclog(NCLOGWARN,"Attempt to update unexpected curl flag: %d",flag);
+	break;
     }
 done:
     return stat;
@@ -194,6 +197,16 @@ ocset_flags_perlink(OCstate* state)
     if(stat == OC_NOERR) stat = ocset_curlflag(state, CURLOPT_FOLLOWLOCATION);
     if(stat == OC_NOERR) stat = ocset_curlflag(state, CURLOPT_MAXREDIRS);
     if(stat == OC_NOERR) stat = ocset_curlflag(state, CURLOPT_ERRORBUFFER);
+
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+    /* Optional */
+    if(stat == OC_NOERR && state->curlbuffersize > 0)
+	stat = ocset_curlflag(state, CURLOPT_BUFFERSIZE);
+#endif
+#ifdef HAVE_CURLOPT_KEEPALIVE
+    if(stat == NC_NOERR && state->curlkeepalive.active != 0)
+        stat = ocset_curlflag(state, CURLOPT_TCP_KEEPALIVE);
+#endif
     return stat;
 }
 
@@ -232,5 +245,3 @@ oc_curl_protocols(OCstate* state)
 	    state->auth.curlflags.proto_https=1;
     }
 }
-
-

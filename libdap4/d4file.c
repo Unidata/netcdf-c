@@ -146,6 +146,8 @@ NCD4_open(const char * path, int mode,
 	/* create the connection */
         if((ret=NCD4_curlopen(&curl))!= NC_NOERR) goto done;
 	d4info->curl->curl = curl;
+        /* Load misc rc properties */
+        NCD4_get_rcproperties(d4info);
         if((ret=set_curl_properties(d4info))!= NC_NOERR) goto done;	
         /* Set the one-time curl flags */
         if((ret=NCD4_set_flags_perlink(d4info))!= NC_NOERR) goto done;
@@ -304,7 +306,7 @@ freeInfo(NCD4INFO* d4info)
            for some reason, so we delete it ourselves.
 	*/
 	if(d4info->substrate.filename != NULL) {
-	    unlink(d4info->substrate.filename);
+//	    unlink(d4info->substrate.filename);
 	}
     }
     nullfree(d4info->substrate.filename); /* always reclaim */

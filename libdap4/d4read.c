@@ -9,8 +9,24 @@
 
 /*Forward*/
 static int readpacket(NCD4INFO* state, NCURI*, NCbytes*, NCD4mode, long*);
-static int readfile(const NCURI*, const char* suffix, NCbytes* packet);
-static int readfiletofile(const NCURI*, const char* suffix, FILE* stream, d4size_t*);
+static int readfile(NCD4INFO* state, const NCURI*, const char* suffix, NCbytes* packet);
+static int readfiletofile(NCD4INFO* state, const NCURI*, const char* suffix, FILE* stream, d4size_t*);
+
+#ifdef HAVE_GETTIMEOFDAY
+static struct timeval time0;
+static struct timeval time1;
+
+static double
+deltatime()
+{
+    double t0, t1;
+    t0 = ((double)time0.tv_sec);
+    t0 += ((double)time0.tv_usec) / 1000000.0;
+    t1 = ((double)time1.tv_sec);
+    t1 += ((double)time1.tv_usec) / 1000000.0;
+    return (t1 - t0);
+}
+#endif
 
 int
 NCD4_readDMR(NCD4INFO* state)
@@ -38,7 +54,7 @@ NCD4_readDAP(NCD4INFO* state, int flags)
         NCURI* url = state->uri;
         int fileprotocol = (strcmp(url->protocol,"file")==0);
         if(fileprotocol) {
-            stat = readfiletofile(url, ".dap", state->data.ondiskfile, &state->data.datasize);
+            stat = readfiletofile(state, url, ".dap", state->data.ondiskfile, &state->data.datasize);
         } else {
 	    char* readurl = NULL;
             int flags = 0;
@@ -51,15 +67,11 @@ NCD4_readDAP(NCD4INFO* state, int flags)
 	    readurl = ncuribuild(url,NULL,".dods",NCURISVC);
 	    if(readurl == NULL)
 		return THROW(NC_ENOMEM);
-            if (state->debug > 0)
-                {fprintf(stderr, "fetch url=%s\n", readurl);fflush(stderr);}
             stat = NCD4_fetchurl_file(state->curl, readurl, state->data.ondiskfile,
                                    &state->data.datasize, &lastmod);
             nullfree(readurl);
             if(stat == NC_NOERR)
                 state->data.daplastmodified = lastmod;
-            if (state->debug > 0)
-                {fprintf(stderr,"fetch complete\n"); fflush(stderr);}
         }
     }
     return THROW(stat);
@@ -89,7 +101,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, long* las
     if(fileprotocol) {
 	/* Short circuit file://... urls*/
 	/* We do this because the test code always needs to read files*/
-	stat = readfile(url,suffix,packet);
+	stat = readfile(state, url,suffix,packet);
     } else {
         char* fetchurl = NULL;
 	int flags = NCURIBASE;
@@ -97,13 +109,23 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, long* las
 	flags |= NCURIENCODE;
         fetchurl = ncuribuild(url,NULL,suffix,flags);
 	MEMCHECK(fetchurl);
-	if(state->debug > 0)
-            {fprintf(stderr,"fetch url=%s\n",fetchurl); fflush(stderr);}
+	if(FLAGSET(state->controls.flags,NCF_SHOWFETCH)) {
+	    nclog(NCLOGDBG,"fetch url=%s",fetchurl);
+#ifdef HAVE_GETTIMEOFDAY
+   	    gettimeofday(&time0,NULL);
+#endif
+	}
         stat = NCD4_fetchurl(curl,fetchurl,packet,lastmodified);
         nullfree(fetchurl);
 	if(stat) goto fail;
-	if(state->debug > 0)
-            {fprintf(stderr,"fetch complete\n"); fflush(stderr);}
+	if(FLAGSET(state->controls.flags,NCF_SHOWFETCH)) {
+            double secs = 0;
+#ifdef HAVE_GETTIMEOFDAY
+   	    gettimeofday(&time1,NULL);
+	    secs = deltatime();
+#endif
+            nclog(NCLOGDBG,"fetch complete: %0.3f",secs);
+	}
     }
 #ifdef D4DEBUG
   {
@@ -116,12 +138,12 @@ fail:
 }
 
 static int
-readfiletofile(const NCURI* uri, const char* suffix, FILE* stream, d4size_t* sizep)
+readfiletofile(NCD4INFO* state, const NCURI* uri, const char* suffix, FILE* stream, d4size_t* sizep)
 {
     int stat = NC_NOERR;
     NCbytes* packet = ncbytesnew();
     size_t len;
-    stat = readfile(uri,suffix,packet);
+    stat = readfile(state, uri,suffix,packet);
 #ifdef D4DEBUG
 fprintf(stderr,"readfiletofile: packet.size=%lu\n",
 		(unsigned long)ncbyteslength(packet));
@@ -147,7 +169,7 @@ unwind:
 }
 
 static int
-readfile(const NCURI* uri, const char* suffix, NCbytes* packet)
+readfile(NCD4INFO* state, const NCURI* uri, const char* suffix, NCbytes* packet)
 {
     int stat = NC_NOERR;
     NCbytes* tmp = ncbytesnew();
@@ -159,6 +181,24 @@ readfile(const NCURI* uri, const char* suffix, NCbytes* packet)
     filename = ncbytesextract(tmp);
     ncbytesfree(tmp);
 
+    state->fileproto.filename = strdup(filename);
+
+    if(FLAGSET(state->controls.flags,NCF_SHOWFETCH)) {
+	char* surl = NULL;
+#ifdef HAVE_GETTIMEOFDAY
+	gettimeofday(&time0,NULL);
+#endif
+        surl = ncuribuild((NCURI*)uri,NULL,NULL,NCURIALL);
+	nclog(NCLOGDBG,"fetch uri=%s file=%s",surl,filename);
+    }
     stat = NC_readfile(filename,packet);
+    if(FLAGSET(state->controls.flags,NCF_SHOWFETCH)) {
+	double secs;
+#ifdef HAVE_GETTIMEOFDAY
+   	gettimeofday(&time1,NULL);
+	secs = deltatime();
+#endif
+        nclog(NCLOGDBG,"fetch complete: %0.3f",secs);
+    }
     return THROW(stat);
 }

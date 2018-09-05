@@ -648,7 +648,7 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_ENOTVAR Variable not found.
  * @return ::NC_ENOMEM Out of memory.
- * @return ::NC_EINVALCOORS Missing start array.
+ * @return ::NC_EINVALCOORDS Missing start array.
  * @author Ed Hartnett
  */
 int
