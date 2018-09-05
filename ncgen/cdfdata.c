@@ -6,7 +6,7 @@
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/cdfdata.c,v 1.4 2010/05/24 19:59:56 dmh Exp $ */
 
 #include "includes.h"
-#include "offsets.h"
+#include "ncoffsets.h"
 
 #ifdef ENABLE_BINARY
 
@@ -323,7 +323,7 @@ genbin_vlenconstants(List* vlenconstants)
     /* Prepare a place to store vlen constants */
     nvlen = listlength(vlenconstants);
     if(nvlen == 0) return;
-    vlendata = (struct Vlendata*)emalloc(sizeof(struct Vlendata)*nvlen+1);
+    vlendata = (struct Vlendata*)ecalloc(sizeof(struct Vlendata)*nvlen+1);
     memset((void*)vlendata,0,sizeof(struct Vlendata)*nvlen+1);
 
     for(i=0;i<nvlen;i++) {

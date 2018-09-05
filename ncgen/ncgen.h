@@ -57,6 +57,7 @@
 #define NEGNC_INFINITEF (-NC_INFINITEF)
 #define NEGNC_INFINITE (-NC_INFINITEF)
 #endif
+
 /* nc_class is one of:
         NC_GRP NC_DIM NC_VAR NC_ATT NC_TYPE
 */
@@ -92,7 +93,7 @@ various C global variables
 #define _ISNETCDF4_FLAG     0x200
 #define _SUPERBLOCK_FLAG    0x400
 #define _FORMAT_FLAG        0x800
-
+#define _FILTER_FLAG        0x1000
 
 extern struct Specialtoken {
     char* name;
@@ -114,8 +115,18 @@ char* name;
 int k_flag;
 };
 
-#define NKVALUES 100
-extern struct Kvalues legalkinds[NKVALUES];
+extern struct Kvalues legalkinds[];
+
+struct FilterID {
+char* name;
+unsigned int id;
+};
+
+#define ZIP_ID  0xFFFFFFFF
+#define SZIP_ID  0xFFFFFFFE
+#define BZIP2_ID 307U
+#define ZFP_ID 32013U
+#define FPZIP_ID 32014U
 
 /* Note: some non-var specials (i.e. _Format) are not included in this struct*/
 typedef struct Specialdata {
@@ -129,6 +140,9 @@ typedef struct Specialdata {
     int           _Shuffle;      /* 0 => false, 1 => true*/
     int           _Endianness;   /* 1 =>little, 2 => big*/
     int           _Fill ;        /* 0 => false, 1 => true WATCHOUT: this is inverse of NOFILL*/
+    unsigned int  _FilterID;
+    size_t nparams;          /*  |_FilterParms| ; 0 => not specified*/
+        unsigned int* _FilterParams; /* NULL => defaults*/
 } Specialdata;
 
 typedef struct GlobalSpecialdata {
@@ -212,7 +226,7 @@ typedef struct Symbol {  /* symbol table entry*/
         Attrinfo  att;
         Diminfo   dim;
         Groupinfo grp;
- 	Reference ref; /* symbol is really a referene to another symbol*/
+ 	Reference ref; /* symbol is really a reference to another symbol*/
 	/* Misc pieces of info*/
 	int             lineno;  /* at point of creation*/
 	int		touched; /* for sorting*/

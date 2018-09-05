@@ -1,10 +1,12 @@
 /*********************************************************************
  *   Copyright 2008, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
- *   $Id: isnan.h,v 1.3 2008/04/23 22:05:00 russ Exp $
+ *   Russ Rew
  *********************************************************************/
+#ifndef _ISNAN_H
+#define _ISNAN_H
 
-#include <config.h>
+#include "config.h"
 
 #ifndef NO_FLOAT_H
 #include <float.h>		/* for DBL_MAX */
@@ -20,3 +22,5 @@
 #if ! (defined(isfinite) || HAVE_DECL_ISFINITE)
 #define isfinite(x) (!(isinf(x)||isnan(x)))
 #endif /* !HAVE_DECL_ISFINITE */
+
+#endif /* _ISNAN_H */

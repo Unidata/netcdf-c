@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT filey for copying and redistribution conditions.
  *********************************************************************/
 
-#include "ncdap.h"
+#include "dapincludes.h"
 #include "dceparselex.h"
 #include "dceconstraints.h"
 #include "dapdump.h"
@@ -55,7 +55,7 @@ NCerror
 dapmapconstraints(DCEconstraint* constraint,
 		CDFnode* root)
 {
-    int i;
+    size_t i;
     NCerror ncstat = NC_NOERR;
     NClist* nodes = root->tree->nodes;
     NClist* dceprojections = constraint->projections;
@@ -86,7 +86,7 @@ NCerror
 dapqualifyconstraints(DCEconstraint* constraint)
 {
     NCerror ncstat = NC_NOERR;
-    int i;
+    size_t i;
 #ifdef DEBUG
 fprintf(stderr,"ncqualifyconstraints.before: %s\n",
 		dumpconstraint(constraint));
@@ -137,7 +137,7 @@ fprintf(stderr,"%s\n",
 static NCerror
 qualifyprojectionsizes(DCEprojection* proj)
 {
-    int i,j;
+    size_t i,j;
     ASSERT(proj->discrim == CES_VAR);
 #ifdef DEBUG
 fprintf(stderr,"qualifyprojectionsizes.before: %s\n",
@@ -174,10 +174,9 @@ fprintf(stderr,"qualifyprojectionsizes.after: %s\n",
 static void
 completesegments(NClist* fullpath, NClist* segments)
 {
-    int i,delta;
+    size_t i,delta;
     /* add path nodes to segments to create full path */
     delta = (nclistlength(fullpath) - nclistlength(segments));
-    ASSERT((delta >= 0));
     for(i=0;i<delta;i++) {
         DCEsegment* seg = (DCEsegment*)dcecreate(CES_SEGMENT);
         CDFnode* node = (CDFnode*)nclistget(fullpath,i);
@@ -232,7 +231,7 @@ Additional constraints (4/12/2010):
 static NCerror
 matchpartialname(NClist* nodes, NClist* segments, CDFnode** nodep)
 {
-    int i,nsegs;
+    size_t i,nsegs;
     NCerror ncstat = NC_NOERR;
     DCEsegment* lastseg = NULL;
     NClist* namematches = nclistnew();
@@ -539,7 +538,7 @@ fprintf(stderr,"fixprojection: list = %s\n",dumpprojections(list));
     for(i=0;i<nclistlength(list);i++) {
 	DCEprojection* p1 = (DCEprojection*)nclistget(list,i);
 	if(p1 == NULL) continue;
-        if(p1->discrim != CES_VAR) continue; /* dont try to unify functions */
+        if(p1->discrim != CES_VAR) continue; /* don't try to unify functions */
         for(j=i;j<nclistlength(list);j++) {
 	    DCEprojection* p2 = (DCEprojection*)nclistget(list,j);
 	    if(p2 == NULL) continue;
@@ -561,7 +560,7 @@ fprintf(stderr,"fixprojection: list = %s\n",dumpprojections(list));
     for(i=0;i<nclistlength(list);i++) {
 	DCEprojection* p1 = (DCEprojection*)nclistget(list,i);
 	if(p1 == NULL) continue;
-        if(p1->discrim != CES_VAR) continue; /* dont try to unify functions */
+        if(p1->discrim != CES_VAR) continue; /* don't try to unify functions */
 	if(!iscontainer((CDFnode*)p1->var->annotation))
 	    continue;
         for(j=i;j<nclistlength(list);j++) {
@@ -590,7 +589,7 @@ next:   continue;
             CDFnode* leaf;
             if(target == NULL) continue;
             if(target->discrim != CES_VAR)
-                continue; /* dont try to unify functions */
+                continue; /* don't try to unify functions */
             leaf = (CDFnode*)target->var->annotation;
             ASSERT(leaf != NULL);
             if(iscontainer(leaf)) {/* capture container */

@@ -13,64 +13,84 @@ cc="@CMAKE_C_COMPILER@"
 cflags="-I@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
 libs="-L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@ @NC_LIBS@"
 
-has_dap="@USE_DAP@"
-if [ -z $has_dap ]; then
-    has_dap="no"
+has_dap2="@ENABLE_DAP2@"
+if [ -z $has_dap2 -o "$has_dap2" = "OFF" ]; then
+    has_dap2="no"
 else
-    has_dap="yes"
+    has_dap2="yes"
+fi
+
+has_dap4="@ENABLE_DAP4@"
+if [ -z $has_dap4 -o "$has_dap4" = "OFF" ]; then
+    has_dap4="no"
+else
+    has_dap4="yes"
 fi
 
 has_nc2="@BUILD_V2@"
 
 
-if [ -z $has_nc2 -o "$has_nc2" = "OFF" ]; then
+if [ -z "$has_nc2" -o "$has_nc2" = "OFF" ]; then
     has_nc2="no"
 else
     has_nc2="yes"
 fi
 
 has_nc4="@USE_NETCDF4@"
-if [ -z $has_nc4 ]; then
+if [ -z "$has_nc4" -o "$has_nc4" = "OFF" ]; then
     has_nc4="no"
 else
     has_nc4="yes"
 fi
 
 has_logging="@ENABLE_LOGGING@"
-if [ -z $has_logging ]; then
+if [ -z "$has_logging" -o "$has_logging" = "OFF" ]; then
     has_logging="no"
 else
     has_logging="yes"
 fi
 
 has_hdf4="@USE_HDF4@"
-if [ -z $has_hdf4 ]; then
+if [ -z "$has_hdf4" -o "$has_hdf4" = "OFF" ]; then
     has_hdf4="no"
 else
     has_hdf4="yes"
 fi
 
 has_pnetcdf="@USE_PNETCDF@"
-if [ -z $has_pnetcdf ]; then
+if [ -z "$has_pnetcdf" -o "$has_pnetcdf" = "OFF" ]; then
     has_pnetcdf="no"
 else
     has_pnetcdf="yes"
 fi
 
 has_hdf5="@USE_HDF5@"
-if [ -z $has_hdf5 -o "$has_hdf5" = "OFF" ]; then
+if [ -z "$has_hdf5" -o "$has_hdf5" = "OFF" ]; then
     has_hdf5="no"
 else
     has_hdf5="yes"
 fi
 
 has_szlib="@USE_SZLIB@"
-if [ -z $has_szlib ]; then
+if [ -z "$has_szlib" -o "$has_szlib" = "OFF" ]; then
     has_szlib="no"
 else
     has_szlib="yes"
 fi
 
+has_cdf5="@ENABLE_CDF5@"
+if [ -z "$has_cdf5" -o "$has_cdf5" = "OFF" -o "$has_cdf5" = "FALSE" ]; then
+    has_cdf5="no"
+else
+    has_cdf5="yes"
+fi
+
+has_parallel="@USE_PARALLEL@"
+if [ -z $has_parallel ]; then
+    has_parallel="no"
+else
+    has_parallel="yes"
+fi
 
 version="@PACKAGE@ @VERSION@"
 
@@ -92,12 +112,16 @@ fi
 
 has_cxx="no"
 has_cxx4="no"
-if type -p ncxx4-config > /dev/null 2>&1; then
+
+ncxxconf=$(which ncxx-config 2>/dev/null)
+ncxx4conf=$(which ncxx4-config 2>/dev/null)
+
+if [ -f "$ncxx4conf" ]; then
   cxx4=`ncxx4-config --cxx`
   cxx4flags=`ncxx4-config --cflags`
   cxx4libs=`ncxx4-config --libs`
   has_cxx4="yes"
-elif type -p ncxx-config > /dev/null 2>&1; then
+elif [ -f "$ncxxconf" ]; then
   cxx=`ncxx-config --cxx`
   cxxflags=`ncxx-config --cflags`
   cxxlibs=`ncxx-config --libs`
@@ -111,35 +135,39 @@ Usage: nc-config [OPTION]
 
 Available values for OPTION include:
 
-  --help        display this help message and exit
-  --all         display all options
-  --cc          C compiler
-  --cflags      pre-processor and compiler flags
-  --has-c++     whether C++ API is installed
-  --has-c++4    whether netCDF-4 C++ API is installed
-  --has-fortran whether Fortran API is installed
-  --has-dap     whether OPeNDAP is enabled in this build
-  --has-nc2     whether NetCDF-2 API is enabled
-  --has-nc4     whether NetCDF-4/HDF-5 is enabled in this build
-  --has-hdf5    whether HDF5 is used in build (always the same as --has-nc4)
-  --has-hdf4    whether HDF4 was used in build
-  --has-logging whether logging is enabled with --enable-logging.
-  --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
-  --has-szlib   whether szlib is included in build
-  --libs        library linking information for netcdf
-  --prefix      Install prefix
-  --includedir  Include directory
-  --libdir      Library directory
-  --version     Library version
+  --help         display this help message and exit
+  --all          display all options
+  --cc           C compiler
+  --cflags       pre-processor and compiler flags
+  --has-c++      whether C++ API is installed
+  --has-c++4     whether netCDF-4 C++ API is installed
+  --has-fortran  whether Fortran API is installed
+  --has-dap2     whether OPeNDAP (DAP2) is enabled in this build
+  --has-dap4     whether DAP4 is enabled in this build
+  --has-dap      same as --has-dap2 (Deprecated)
+  --has-nc2      whether NetCDF-2 API is enabled
+  --has-nc4      whether NetCDF-4/HDF-5 is enabled in this build
+  --has-hdf5     whether HDF5 is used in build (always the same as --has-nc4)
+  --has-hdf4     whether HDF4 was used in build
+  --has-logging  whether logging is enabled with --enable-logging.
+  --has-pnetcdf  whether parallel-netcdf (a.k.a. pnetcdf) was used in build
+  --has-szlib    whether szlib is included in build
+  --has-parallel whether has parallel IO support via hdf5 and/or pnetcdf
+  --libs         library linking information for netcdf
+  --prefix       Install prefix
+  --includedir   Include directory
+  --libdir       Library directory
+  --version      Library version
+
 
 EOF
-if type -p ncxx4-config > /dev/null 2>&1; then
+if [ -f "$ncxx4conf" ]; then
     cat <<EOF
   --cxx4        C++ compiler for netCDF-4 C++ library
   --cxx4flags   flags needed to compile a C++ program
   --cxx4libs    libraries needed to link a C++ program
 EOF
-elif type -p ncxx-config > /dev/null 2>&1; then
+elif [ -f "$ncxxconf" ]; then
     cat <<EOF
   --cxx         C++ compiler
   --cxxflags    flags needed to compile a C++ program
@@ -170,14 +198,14 @@ all()
         echo "  --has-c++   -> $has_cxx"
         echo "  --cxx       -> $cxx"
 
-if type -p ncxx-config > /dev/null 2>&1; then
+if [ -f "$ncxxconf" ]; then
         echo "  --cxxflags  -> $cxxflags"
         echo "  --cxxlibs   -> $cxxlibs"
 fi
         echo
         echo "  --has-c++4  -> $has_cxx4"
         echo "  --cxx4      -> $cxx4"
-if type -p ncxx4-config > /dev/null 2>&1; then
+if [ -f "$ncxx4conf" ]; then
         echo "  --cxx4flags -> $cxx4flags"
         echo "  --cxx4libs  -> $cxx4libs"
 fi
@@ -192,7 +220,9 @@ if [ -f "$nfconf" ]; then
         echo "  --has-f03   -> $has_f03"
         echo
 fi
-        echo "  --has-dap   -> $has_dap"
+        echo "  --has-dap   -> $has_dap2"
+        echo "  --has-dap2  -> $has_dap2"
+        echo "  --has-dap4  -> $has_dap4"
         echo "  --has-nc2   -> $has_nc2"
         echo "  --has-nc4   -> $has_nc4"
         echo "  --has-hdf5  -> $has_hdf5"
@@ -200,7 +230,9 @@ fi
         echo "  --has-logging-> $has_logging"
         echo "  --has-pnetcdf-> $has_pnetcdf"
         echo "  --has-szlib -> $has_szlib"
-	echo
+        echo "  --has-cdf5 -> $has_cdf5"
+	    echo "  --has-parallel-> $has_parallel"
+	    echo
         echo "  --prefix    -> $prefix"
         echo "  --includedir-> $includedir"
         echo "  --libdir    -> $libdir"
@@ -240,7 +272,15 @@ while test $# -gt 0; do
 	;;
 
     --has-dap)
-       	echo $has_dap
+       	echo $has_dap2
+       	;;
+
+    --has-dap2)
+       	echo $has_dap2
+       	;;
+
+    --has-dap4)
+       	echo $has_dap4
        	;;
 
     --has-nc2)
@@ -271,7 +311,15 @@ while test $# -gt 0; do
        	echo $has_szlib
        	;;
 
-     --libs)
+    --has-cdf5)
+        echo $has_cdf5
+        ;;
+
+    --has-parallel)
+	    echo $has_parallel
+	    ;;
+
+    --libs)
        	echo $libs
        	;;
 

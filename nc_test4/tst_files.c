@@ -1,19 +1,15 @@
-/* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+/* This is part of the netCDF package. Copyright 2005-2018 University
+   Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+   conditions of use.
 
-   Test internal netcdf-4 file code.
-   $Id: tst_files.c,v 1.42 2010/05/18 12:30:05 ed Exp $
+   Test netcdf-4 file code.
+   Ed Hartnett
 */
 
 #include <config.h>
-#include "netcdf.h"
 #include <nc_tests.h>
 #include "err_macros.h"
 
-#ifdef IGNORE
-extern NC_FILE_INFO_T *nc_file;
-#endif
 int test_redef(int format);
 
 #define FILE_NAME "tst_files.nc"
@@ -46,17 +42,18 @@ main(int argc, char **argv)
    {
       int ncid;
 
-      /* Make sure bad create mode causes failure. */
-      /*if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;*/
-
       /* Create an empty file. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
+      /* This will fail. */
       if (nc_open(FILE_NAME, NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
 
+      /* These will all fail due to incorrect mode flag combinations. */
       if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_NETCDF4, &ncid) != NC_EINVAL) ERR;
       if (nc_create(FILE_NAME, NC_CLASSIC_MODEL|NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
+      if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_CDF5, &ncid) != NC_EINVAL) ERR;
+      if (nc_create(FILE_NAME, NC_NETCDF4|NC_CDF5, &ncid) != NC_EINVAL) ERR;
       if (nc_create(FILE_NAME, NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
    }
    SUMMARIZE_ERR;
@@ -147,7 +144,7 @@ main(int argc, char **argv)
       if (dim_len != DIM1_LEN || strcmp(dim_name, DIM1_NAME)) ERR;
       if (nc_inq_var(ncid, 0, var_name, &var_type, &ndims, dimids_var, &natts)) ERR;
       if (ndims != 1 || strcmp(var_name, VAR1_NAME) || var_type != NC_BYTE ||
-	  dimids_var[0] != dimids[0] || natts != 0) ERR;
+          dimids_var[0] != dimids[0] || natts != 0) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Recreate the file. */
@@ -206,7 +203,7 @@ main(int argc, char **argv)
       if (dim_len != DIM1_LEN || strcmp(dim_name, DIM1_NAME)) ERR;
       if (nc_inq_var(ncid, 0, var_name, &var_type, &ndims, dimids_var, &natts)) ERR;
       if (ndims != 1 || strcmp(var_name, VAR1_NAME) || var_type != NC_INT ||
-	  dimids_var[0] != dimids[0] || natts != 0) ERR;
+          dimids_var[0] != dimids[0] || natts != 0) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -244,10 +241,10 @@ main(int argc, char **argv)
       if (dim_len != DIM2_LEN || strcmp(dim_name, DIM2_NAME)) ERR;
       if (nc_inq_var(ncid, 0, var_name, &var_type, &ndims, dimids_var, &natts)) ERR;
       if (ndims != 2 || strcmp(var_name, VAR1_NAME) || var_type != NC_INT ||
-	  dimids_var[0] != dimids[0] || natts != 0) ERR;
+          dimids_var[0] != dimids[0] || natts != 0) ERR;
       if (nc_inq_var(ncid, 1, var_name, &var_type, &ndims, dimids_var, &natts)) ERR;
       if (ndims != 2 || strcmp(var_name, VAR2_NAME) || var_type != NC_UINT ||
-	  dimids_var[1] != dimids[1] || natts != 0) ERR;
+          dimids_var[1] != dimids[1] || natts != 0) ERR;
       if (nc_get_att_float(ncid, NC_GLOBAL, ATT1_NAME, &float_in)) ERR;
       if (float_in != float_out) ERR;
       if (nc_get_att_int(ncid, NC_GLOBAL, ATT2_NAME, &int_in)) ERR;
@@ -262,12 +259,20 @@ main(int argc, char **argv)
    printf("*** testing redef for netCDF 64-bit offset...");
    test_redef(NC_FORMAT_64BIT_OFFSET);
    SUMMARIZE_ERR;
+
    printf("*** testing redef for netCDF-4 ...");
    test_redef(NC_FORMAT_NETCDF4);
    SUMMARIZE_ERR;
    printf("*** testing redef for netCDF-4, with strict netCDF-3 rules...");
    test_redef(NC_FORMAT_NETCDF4_CLASSIC);
    SUMMARIZE_ERR;
+
+#ifdef ENABLE_CDF5
+   printf("*** testing redef for CDF5...");
+   test_redef(NC_FORMAT_CDF5);
+   SUMMARIZE_ERR;
+#endif /* ENABLE_CDF5 */
+
    printf("*** testing different formats...");
    {
       int ncid;
@@ -329,32 +334,33 @@ main(int argc, char **argv)
       /* Create a bunch of files. */
       for (f = 0; f < NUM_FILES; f++)
       {
-	 sprintf(file_name, "tst_files2_%d.nc", f);
-	 if (nc_create(file_name, NC_NETCDF4, &ncid[f])) ERR;
-	 if (nc_def_dim(ncid[f], D1_NAME, TEXT_LEN + 1, &dimid)) ERR;
-	 if (nc_def_var(ncid[f], VAR_NAME, NC_CHAR, NDIMS, &dimid, &varid)) ERR;
-	 if (f % 2 == 0)
-	    if (nc_def_var_chunking(ncid[f], varid, 0, chunks)) ERR;
+         sprintf(file_name, "tst_files2_%d.nc", f);
+         if (nc_create(file_name, NC_NETCDF4, &ncid[f])) ERR;
+         if (nc_def_dim(ncid[f], D1_NAME, TEXT_LEN + 1, &dimid)) ERR;
+         if (nc_def_var(ncid[f], VAR_NAME, NC_CHAR, NDIMS, &dimid, &varid)) ERR;
+         if (f % 2 == 0)
+            if (nc_def_var_chunking(ncid[f], varid, 0, chunks)) ERR;
 
-	 /* Write one time to the coordinate variable. */
-	 count[0] = TEXT_LEN + 1;
-	 if (nc_put_vara_text(ncid[f], varid, index, count, ttext)) ERR;
+         /* Write one time to the coordinate variable. */
+         count[0] = TEXT_LEN + 1;
+         if (nc_put_vara_text(ncid[f], varid, index, count, ttext)) ERR;
       }
 
       /* Read something from each file. */
       for (f = 0; f < NUM_FILES; f++)
       {
-	 if (nc_get_vara_text(ncid[f], varid, index, count, (char *)ttext_in)) ERR;
-	 if (strcmp(ttext_in, ttext)) ERR;
+         if (nc_get_vara_text(ncid[f], varid, index, count, (char *)ttext_in)) ERR;
+         if (strcmp(ttext_in, ttext)) ERR;
       }
 
       /* Close all open files. */
       for (f = 0; f < NUM_FILES; f++)
-	 if (nc_close(ncid[f])) ERR;
+         if (nc_close(ncid[f])) ERR;
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
+
 #define REDEF_ATT1_NAME "CANTERBURY"
 #define REDEF_ATT2_NAME "ELY"
 #define REDEF_ATT3_NAME "KING_HENRY_V"
@@ -376,6 +382,14 @@ main(int argc, char **argv)
 #define NEW_CACHE_SIZE 32000000
 #define NEW_CACHE_NELEMS 2000
 #define NEW_CACHE_PREEMPTION .75
+#define NEW_CACHE_SIZE_2 16000000
+#define NEW_CACHE_NELEMS_2 1000
+#define NEW_CACHE_PREEMPTION_2 .50
+
+/* These prototypes are needed because these functions, used by the
+ * Fortran API, are not prototyped in netcdf.h. */
+int nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp);
+int nc_set_chunk_cache_ints(int size, int nelems, int preemption);
 
 int
 test_redef(int format)
@@ -393,6 +407,8 @@ test_redef(int format)
    short short_out = -999;
    nc_type xtype_in;
    size_t cache_size_in, cache_nelems_in;
+   int cache_size_int_in, cache_nelems_int_in;
+   int cache_preemption_int_in;
    float cache_preemption_in;
    int ret;
 
@@ -407,22 +423,67 @@ test_redef(int format)
 
    /* Change chunk cache. */
    if (nc_set_chunk_cache(NEW_CACHE_SIZE, NEW_CACHE_NELEMS,
-			  NEW_CACHE_PREEMPTION)) ERR;
+                          NEW_CACHE_PREEMPTION)) ERR;
 
    /* Create a file with two dims, two vars, and two atts. */
    if (nc_create(FILE_NAME, cflags|NC_CLOBBER, &ncid)) ERR;
 
    /* Retrieve the chunk cache settings, just for fun. */
    if (nc_get_chunk_cache(&cache_size_in, &cache_nelems_in,
-			  &cache_preemption_in)) ERR;
+                          &cache_preemption_in)) ERR;
    if (cache_size_in != NEW_CACHE_SIZE || cache_nelems_in != NEW_CACHE_NELEMS ||
        cache_preemption_in != NEW_CACHE_PREEMPTION) ERR;
+   cache_size_in = 0;
+   if (nc_get_chunk_cache(&cache_size_in, NULL, NULL)) ERR;
+   if (cache_size_in != NEW_CACHE_SIZE) ERR;
+   cache_nelems_in = 0;   
+   if (nc_get_chunk_cache(NULL, &cache_nelems_in, NULL)) ERR;
+   if (cache_nelems_in != NEW_CACHE_NELEMS) ERR;
+   cache_preemption_in = 0;   
+   if (nc_get_chunk_cache(NULL, NULL, &cache_preemption_in)) ERR;
+   if (cache_preemption_in != NEW_CACHE_PREEMPTION) ERR;
+
+   /* Retrieve the chunk cache settings as integers, like the fortran API. */
+   if (nc_get_chunk_cache_ints(&cache_size_int_in, &cache_nelems_int_in,
+                               &cache_preemption_int_in)) ERR;
+   if (cache_size_int_in != NEW_CACHE_SIZE || cache_nelems_int_in != NEW_CACHE_NELEMS ||
+       cache_preemption_int_in != (int)(NEW_CACHE_PREEMPTION * 100)) ERR;
+   if (nc_get_chunk_cache_ints(NULL, NULL, NULL)) ERR;
+   cache_size_int_in = 0;
+   if (nc_get_chunk_cache_ints(&cache_size_int_in, NULL, NULL)) ERR;
+   if (cache_size_int_in != NEW_CACHE_SIZE) ERR;
+   cache_nelems_int_in = 0;
+   if (nc_get_chunk_cache_ints(NULL, &cache_nelems_int_in, NULL)) ERR;
+   if (cache_nelems_int_in != NEW_CACHE_NELEMS) ERR;
+   cache_preemption_int_in = 0;
+   if (nc_get_chunk_cache_ints(NULL, NULL, &cache_preemption_int_in)) ERR;
+   if (cache_preemption_int_in != (int)(NEW_CACHE_PREEMPTION * 100)) ERR;
+
+   /* These won't work. */
+   if (nc_set_chunk_cache_ints(-1, NEW_CACHE_NELEMS_2,
+                               (int)(NEW_CACHE_PREEMPTION_2 * 100)) != NC_EINVAL) ERR;
+   if (nc_set_chunk_cache_ints(NEW_CACHE_SIZE_2, 0,
+                               (int)(NEW_CACHE_PREEMPTION_2 * 100)) != NC_EINVAL) ERR;
+   if (nc_set_chunk_cache_ints(NEW_CACHE_SIZE_2, NEW_CACHE_NELEMS_2,
+                               -1) != NC_EINVAL) ERR;
+   if (nc_set_chunk_cache_ints(NEW_CACHE_SIZE_2, NEW_CACHE_NELEMS_2,
+                               101) != NC_EINVAL) ERR;
+   
+
+   /* Change chunk cache again. */
+   if (nc_set_chunk_cache_ints(NEW_CACHE_SIZE_2, NEW_CACHE_NELEMS_2,
+                               (int)(NEW_CACHE_PREEMPTION_2 * 100))) ERR;
+   if (nc_get_chunk_cache_ints(&cache_size_int_in, &cache_nelems_int_in,
+                               &cache_preemption_int_in)) ERR;
+   if (cache_size_int_in != NEW_CACHE_SIZE_2 || cache_nelems_int_in != NEW_CACHE_NELEMS_2 ||
+       cache_preemption_int_in != (int)(NEW_CACHE_PREEMPTION_2 * 100)) ERR;
+   
 
    /* This will fail, except for netcdf-4/hdf5, which permits any
     * name. */
    if (format != NC_FORMAT_NETCDF4)
       if (nc_def_dim(ncid, REDEF_NAME_ILLEGAL, REDEF_DIM2_LEN,
-			    &dimids[1]) != NC_EBADNAME) ERR;
+                     &dimids[1]) != NC_EBADNAME) ERR;
 
    if (nc_def_dim(ncid, REDEF_DIM1_NAME, REDEF_DIM1_LEN, &dimids[0])) ERR;
    if (nc_def_dim(ncid, REDEF_DIM2_NAME, REDEF_DIM2_LEN, &dimids[1])) ERR;
@@ -459,15 +520,15 @@ test_redef(int format)
 
    /* This will fail. */
    ret = nc_def_var(ncid, REDEF_VAR3_NAME, NC_UBYTE, REDEF_NDIMS,
-			  dimids, &varid);
+                    dimids, &varid);
    if(format == NC_FORMAT_NETCDF4) {
-	if(ret != NC_EPERM) {
-	    ERR;
-	}
+      if(ret != NC_EPERM) {
+         ERR;
+      }
    } else {
-	if(ret != NC_ENOTINDEFINE) {
-	    ERR;
-	}
+      if(ret != NC_ENOTINDEFINE) {
+         ERR;
+      }
    }
    /* This will fail. */
    if (!nc_put_att_uchar(ncid, NC_GLOBAL, REDEF_ATT3_NAME, NC_CHAR, 1, &uchar_out)) ERR;
@@ -502,8 +563,11 @@ test_redef(int format)
 
    /* Add att. */
    ret = nc_put_att_uchar(ncid, NC_GLOBAL, REDEF_ATT3_NAME, NC_BYTE, 1, &uchar_out);
-   if (format != NC_FORMAT_NETCDF4 && ret) ERR;
-   else if (format == NC_FORMAT_NETCDF4 && ret != NC_ERANGE) ERR;
+   if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_64BIT_DATA)
+   {
+      if (ret != NC_ERANGE) ERR;
+   }
+   else if (ret) ERR;
 
    /* Check it out. */
    if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -539,7 +603,7 @@ test_redef(int format)
    if (nc_get_att_int(ncid, NC_GLOBAL, REDEF_ATT2_NAME, &int_in)) ERR;
    if (int_in != short_out) ERR;
    ret = nc_get_att_uchar(ncid, NC_GLOBAL, REDEF_ATT3_NAME, &uchar_in);
-   if (format == NC_FORMAT_NETCDF4)
+   if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_64BIT_DATA)
    {
       if (ret != NC_ERANGE) ERR;
    }

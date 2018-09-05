@@ -6,7 +6,8 @@
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/main.c,v 1.33 2010/05/26 21:43:36 dmh Exp $ */
 
 #include "includes.h"
-#include "offsets.h"
+#include "ncoffsets.h"
+#include "ncwinpath.h"
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -21,13 +22,9 @@ int optind;
 /* Default is netcdf-3 mode 1 */
 #define DFALTCMODE 0
 
-extern void init_netcdf(void);
-extern void parse_init(void);
-extern int ncgparse(void);
-
 /* For error messages */
-char* progname;
-char* cdlname;
+char* progname; /* Global: not reclaimed */
+char* cdlname; /* Global: not reclaimed */
 
 /* option flags */
 int nofill_flag;
@@ -56,17 +53,18 @@ size_t nciterbuffersize;
 struct Vlendata* vlendata;
 
 char *netcdf_name; /* command line -o file name */
-char *datasetname; /* name from the netcdf <name> {} */
+char *datasetname; /* name from the netcdf <name> {} || from -N */
 
 extern FILE *ncgin;
 
 /* Forward */
 static char* ubasename(char*);
 void usage( void );
+
 int main( int argc, char** argv );
 
 /* Define tables vs modes for legal -k values*/
-struct Kvalues legalkinds[NKVALUES] = {
+struct Kvalues legalkinds[] = {
     /* NetCDF-3 classic format (32-bit offsets) */
     {"classic", NC_FORMAT_CLASSIC}, /* canonical format name */
     {"nc3", NC_FORMAT_CLASSIC},	    /* short format name */
@@ -160,6 +158,19 @@ static char* LE16 = "\xFF\xFE";       /* UTF-16; little-endian */
 #define DFALTBINNCITERBUFFERSIZE  0x40000 /* about 250k bytes */
 #define DFALTLANGNCITERBUFFERSIZE  0x4000 /* about 15k bytes */
 
+void *emalloc (size_t size) {                  /* check return from malloc */
+  void   *p;
+
+  if (size == 0)
+    return 0;
+  p = (void *) malloc (size);
+  if (p == 0) {
+    exit(NC_ENOMEM);
+  }
+  return p;
+}
+
+
 /* strip off leading path */
 /* result is malloc'd */
 
@@ -199,6 +210,8 @@ usage(void)
 " [-o outfile]"
 " [-P]"
 " [-x]"
+" [-N datasetname]"
+" [-L loglevel]"
 " [file ... ]",
 	   progname);
     derror("netcdf library version %s", nc_inq_libvers());
@@ -209,10 +222,10 @@ main(
 	int argc,
 	char *argv[])
 {
+    int code = 0;
     int c;
     FILE *fp;
 	struct Languages* langs;
-    char* lang_name;
 #ifdef __hpux
     setlocale(LC_CTYPE,"");
 #endif
@@ -220,8 +233,8 @@ main(
     init_netcdf();
 
     opterr = 1;			/* print error message if bad option */
-    progname = ubasename(argv[0]);
-    cdlname = "-";
+    progname = nulldup(ubasename(argv[0]));
+    cdlname = NULL;
     netcdf_name = NULL;
     datasetname = NULL;
     l_flag = 0;
@@ -249,7 +262,7 @@ main(
     (void) par_io_init(32, 32);
 #endif
 
-    while ((c = getopt(argc, argv, "134567bB:cdD:fhHk:l:M:no:Pv:xL:")) != EOF)
+    while ((c = getopt(argc, argv, "134567bB:cdD:fhHk:l:M:no:Pv:xL:N:")) != EOF)
       switch(c) {
 	case 'd':
 	  debug = 1;
@@ -285,9 +298,10 @@ main(
 	  break;
 	case 'H':
 	  usage();
-	  exit(0);
+	  goto done;
         case 'l': /* specify language, instead of using -c or -f or -b */
 	{
+            char* lang_name = NULL;
 	    if(l_flag != 0) {
               fprintf(stderr,"Please specify only one language\n");
               return 1;
@@ -296,18 +310,22 @@ main(
               derror("%s: output language is null", progname);
               return(1);
             }
+            //lang_name = estrdup(optarg);
             lang_name = (char*) emalloc(strlen(optarg)+1);
-	    (void)strcpy(lang_name, optarg);
-	    for(langs=legallanguages;langs->name != NULL;langs++) {
+            (void)strcpy(lang_name, optarg);
+
+            for(langs=legallanguages;langs->name != NULL;langs++) {
               if(strcmp(lang_name,langs->name)==0) {
-	  	l_flag = langs->flag;
+                l_flag = langs->flag;
                 break;
               }
-	    }
+            }
 	    if(langs->name == NULL) {
               derror("%s: output language %s not implemented",progname, lang_name);
+              nullfree(lang_name);
               return(1);
 	    }
+            nullfree(lang_name);
 	}; break;
 	case 'L':
 	    ncloglevel = atoi(optarg);
@@ -322,6 +340,9 @@ main(
 	  break;
 	case 'o':		/* to explicitly specify output name */
 	  netcdf_name = nulldup(optarg);
+	  break;
+	case 'N':		/* to explicitly specify dataset name */
+	  datasetname = nulldup(optarg);
 	  break;
 	case 'x': /* set nofill mode to speed up creation of large files */
 	  nofill_flag = 1;
@@ -345,23 +366,18 @@ main(
                        5 (=> classic 64 bit data aka CDF-5)
 		   */
 	    struct Kvalues* kvalue;
-	    char *kind_name = (optarg != NULL
-				? (char *) emalloc(strlen(optarg)+1)
-				: emalloc(1));
-	    if (! kind_name) {
-		derror ("%s: out of memory", progname);
-		return(1);
-	    }
-            if(optarg != NULL)
-              (void)strcpy(kind_name, optarg);
+            if(optarg == NULL) {
+                derror("-k flag has no value");
+		return 2;
+            }
             for(kvalue=legalkinds;kvalue->name;kvalue++) {
-              if(strcmp(kind_name,kvalue->name) == 0) {
-                k_flag = kvalue->k_flag;
-                break;
-              }
+                if(strcmp(optarg,kvalue->name) == 0) {
+                  k_flag = kvalue->k_flag;
+                  break;
+                }
             }
             if(kvalue->name == NULL) {
-                derror("Invalid format: %s",kind_name);
+                derror("Invalid format: %s",optarg);
                 return 2;
             }
 	} break;
@@ -413,19 +429,19 @@ main(
 #ifndef ENABLE_C
     if(c_flag) {
 	  fprintf(stderr,"C not currently supported\n");
-	  exit(1);
+	  code=1; goto done;
     }
 #endif
 #ifndef ENABLE_BINARY
     if(l_flag == L_BINARY) {
 	  fprintf(stderr,"Binary netcdf not currently supported\n");
-	  exit(1);
+	  code=1; goto done;
     }
 #endif
 #ifndef ENABLE_JAVA
     if(l_flag == L_JAVA) {
 	  fprintf(stderr,"Java not currently supported\n");
-	  exit(1);
+	  code=1; goto done;
     }
 #else
     if(l_flag == L_JAVA && mainname != NULL && strcmp(mainname,"main")==0)
@@ -434,7 +450,7 @@ main(
 #ifndef ENABLE_F77
     if(l_flag == L_F77) {
 	  fprintf(stderr,"F77 not currently supported\n");
-	  exit(1);
+	  code=1; goto done;
     }
 #endif
 
@@ -453,7 +469,7 @@ main(
     if (argc > 0 && strcmp(argv[0], "-") != 0) {
 	char bom[4];
 	size_t count;
-	if ((fp = fopen(argv[0], "r")) == NULL) {
+	if ((fp = NCfopen(argv[0], "r")) == NULL) {
 	    derror ("can't open file %s for reading: ", argv[0]);
 	    perror("");
 	    return(7);
@@ -480,13 +496,12 @@ main(
 		break;
 	    }
 	}
+    }
 
-	cdlname = (char*)emalloc(NC_MAX_NAME);
-	cdlname = nulldup(argv[0]);
-	if(cdlname != NULL) {
-	  if(strlen(cdlname) > NC_MAX_NAME)
-	    cdlname[NC_MAX_NAME] = '\0';
-	}
+    cdlname = nulldup(argv[0]);
+    if(cdlname != NULL) {
+	if(strlen(cdlname) > NC_MAX_NAME)
+	  cdlname[NC_MAX_NAME] = '\0';
     }
 
     parse_init();
@@ -497,6 +512,13 @@ main(
 
     /* Compute the k_flag (1st pass) using rules in the man page (ncgen.1).*/
 
+#ifndef ENABLE_CDF5
+    if(k_flag == NC_FORMAT_CDF5) {
+      derror("Output format CDF5 requested, but netcdf was built without cdf5 support.");
+      return 0;
+    }
+#endif
+
 #ifndef USE_NETCDF4
     if(enhanced_flag) {
 	derror("CDL input is enhanced mode, but --disable-netcdf4 was specified during build");
@@ -505,7 +527,7 @@ main(
 #endif
 
     if(l_flag == L_JAVA || l_flag == L_F77) {
-        k_flag = 1;
+        k_flag = NC_FORMAT_CLASSIC;
 	if(enhanced_flag) {
 	    derror("Java or Fortran requires classic model CDL input");
 	    return 0;
@@ -516,12 +538,12 @@ main(
       k_flag = globalspecials._Format;
 
     if(cdf5_flag && !enhanced_flag && k_flag == 0)
-      k_flag = 5;
+      k_flag = NC_FORMAT_64BIT_DATA;
     if(enhanced_flag && k_flag == 0)
-      k_flag = 3;
+      k_flag = NC_FORMAT_NETCDF4;
 
-    if(enhanced_flag && k_flag != 3) {
-      if(enhanced_flag && k_flag != 3 && k_flag != 5) {
+    if(enhanced_flag && k_flag != NC_FORMAT_NETCDF4) {
+      if(enhanced_flag && k_flag != NC_FORMAT_NETCDF4 && k_flag != NC_FORMAT_64BIT_DATA) {
         derror("-k or _Format conflicts with enhanced CDL input");
         return 0;
       }
@@ -529,13 +551,13 @@ main(
 
     if(specials_flag > 0 && k_flag == 0)
 #ifdef USE_NETCDF4
-	k_flag = 3;
+	k_flag = NC_FORMAT_NETCDF4;
 #else
-	k_flag = 1;
+	k_flag = NC_FORMAT_CLASSIC;
 #endif
 
     if(k_flag == 0)
-	k_flag = 1;
+	k_flag = NC_FORMAT_CLASSIC;
 
     /* Figure out usingclassic */
     switch (k_flag) {
@@ -573,14 +595,14 @@ main(
     if(!syntax_only && error_count == 0)
         define_netcdf();
 
-    return 0;
+done:
+    finalize_netcdf(code);
+    return code;
 }
-END_OF_MAIN()
 
 void
 init_netcdf(void) /* initialize global counts, flags */
 {
-    compute_alignments();
     memset((void*)&nullconstant,0,sizeof(NCConstant));
     fillconstant = nullconstant;
     fillconstant.nctype = NC_FILLVALUE;
@@ -588,4 +610,11 @@ init_netcdf(void) /* initialize global counts, flags */
     codebuffer = bbNew();
     stmt = bbNew();
     error_count = 0; /* Track # of errors */
+}
+
+void
+finalize_netcdf(int retcode)
+{
+    nc_finalize();
+    exit(retcode);
 }

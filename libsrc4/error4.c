@@ -1,19 +1,18 @@
-/*
-
-This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
-HDF5 backend for netCDF, depending on your point of view.
-
-This file contains functions relating to logging errors. Also it
-contains the functions nc_malloc, nc_calloc, and nc_free.
-
-Copyright 2003, University Corporation for Atmospheric Research. See
-netcdf-4/docs/COPYRIGHT file for copying and redistribution
-conditions.
-
-$Id: error4.c,v 1.4 2010/06/01 17:48:55 ed Exp $
+/* Copyright 2003-2018, University Corporation for Atmospheric
+Research. See netcdf-4/docs/COPYRIGHT file for copying and
+redistribution conditions. */
+/**
+ * @file @internal This file is part of netcdf-4, a netCDF-like
+ * interface for HDF5, or a HDF5 backend for netCDF, depending on your
+ * point of view.
+ *
+ * This file contains functions relating to logging errors. Also it
+ * contains the functions nc_malloc, nc_calloc, and nc_free.
+ * 
+ * @author Ed Hartnett
 */
 
-#include <config.h>
+#include "config.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,7 +32,7 @@ extern int nc_log_level;
    nc_log(0, "this computer will explode in %d seconds", i);
 
    After the first arg (the severity), use the rest like a normal
-   printf statement. Output will appear on stdout.
+   printf statement. Output will appear on stderr.
 
    This function is heavily based on the function in section 15.5 of
    the C FAQ. */
@@ -51,18 +50,18 @@ nc_log(int severity, const char *fmt, ...)
    /* If the severity is zero, this is an error. Otherwise insert that
       many tabs before the message. */
    if (!severity)
-      fprintf(stdout, "ERROR: ");
+      fprintf(stderr, "ERROR: ");
    for (t=0; t<severity; t++)
-      fprintf(stdout, "\t");
+      fprintf(stderr, "\t");
 
    /* Print out the variable list of args with vprintf. */
    va_start(argp, fmt);
-   vfprintf(stdout, fmt, argp);
+   vfprintf(stderr, fmt, argp);
    va_end(argp);
    
    /* Put on a final linefeed. */
-   fprintf(stdout, "\n");
-   fflush(stdout);
+   fprintf(stderr, "\n");
+   fflush(stderr);
 }
 
 void 

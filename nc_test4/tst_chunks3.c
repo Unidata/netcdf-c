@@ -1,19 +1,25 @@
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>		/* for sysconf */
+#endif
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #ifdef HAVE_SYS_TIMES_H
 #  include <sys/times.h>
 #endif
-#include <sys/stat.h>
-#include <assert.h>
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
-#include <unistd.h>		/* for sysconf */
+#endif
+#include <assert.h>
 #ifdef HAVE_SYS_RESOURCE_H
 #  include <sys/resource.h>
 #endif
-#include <nc_tests.h>		/* The ERR macro is here... */
-#include <netcdf.h>
+#include "nc_tests.h"		/* The ERR macro is here... */
+#include "netcdf.h"
 
 #define FILENAME "tst_chunks3.nc"
 

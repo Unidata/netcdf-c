@@ -6,35 +6,34 @@
 #include "occompile.h"
 #include "ocdebug.h"
 
-static const unsigned int MAX_UINT = 0xffffffff;
-
 static OCerror mergedas1(OCnode* dds, OCnode* das);
 static OCerror mergedods1(OCnode* dds, OCnode* das);
-static char* pathtostring(OClist* path, char* separator);
+static OCerror mergeother1(OCnode* root, OCnode* das);
+static char* pathtostring(NClist* path, char* separator);
 static void computefullname(OCnode* node);
 static OCerror mergeother1(OCnode* root, OCnode* das);
-static OCerror mergeother(OCnode* ddsroot, OClist* dasnodes);
+static OCerror mergeother(OCnode* ddsroot, NClist* dasnodes);
 
 /* Process ocnodes to fix various semantic issues*/
 void
-occomputesemantics(OClist* ocnodes)
+occomputesemantics(NClist* ocnodes)
 {
     unsigned int i,j;
     OCASSERT((ocnodes != NULL));
-    for(i=0;i<oclistlength(ocnodes);i++) {
-	OCnode* node = (OCnode*)oclistget(ocnodes,i);
+    for(i=0;i<nclistlength(ocnodes);i++) {
+	OCnode* node = (OCnode*)nclistget(ocnodes,i);
 	/* set the container for dims*/
 	if(node->octype == OC_Dimension && node->dim.array != NULL) {
 	    node->container = node->dim.array->container;
 	}
     }
     /* Fill in array.sizes */
-    for(i=0;i<oclistlength(ocnodes);i++) {
-	OCnode* node = (OCnode*)oclistget(ocnodes,i);
+    for(i=0;i<nclistlength(ocnodes);i++) {
+	OCnode* node = (OCnode*)nclistget(ocnodes,i);
 	if(node->array.rank > 0) {
 	    node->array.sizes = (size_t*)malloc(node->array.rank*sizeof(size_t));
 	    for(j=0;j<node->array.rank;j++) {
-		OCnode* dim = (OCnode*)oclistget(node->array.dimensions,j);
+		OCnode* dim = (OCnode*)nclistget(node->array.dimensions,j);
 		node->array.sizes[j] = dim->dim.declsize;		
 	    }
 	}
@@ -47,8 +46,8 @@ occomputefullnames(OCnode* root)
     unsigned int i;
     if(root->name != NULL) computefullname(root);
     if(root->subnodes != NULL) { /* recurse*/
-        for(i=0;i<oclistlength(root->subnodes);i++) {
-	    OCnode* node = (OCnode*)oclistget(root->subnodes,i);
+        for(i=0;i<nclistlength(root->subnodes);i++) {
+	    OCnode* node = (OCnode*)nclistget(root->subnodes,i);
 	    occomputefullnames(node);
 	}
     }
@@ -59,12 +58,12 @@ computefullname(OCnode* node)
 {
     char* tmp;
     char* fullname;
-    OClist* path;
+    NClist* path;
 
     OCASSERT((node->name != NULL));
     if(node->fullname != NULL)
 	return;
-    path = oclistnew();
+    path = nclistnew();
     occollectpathtonode(node,path);
     tmp = pathtostring(path,PATHSEPARATOR);
     if(tmp == NULL) {
@@ -73,20 +72,20 @@ computefullname(OCnode* node)
         fullname = tmp;
     }
     node->fullname = fullname;
-    oclistfree(path);
+    nclistfree(path);
 }
 
 /* Convert path to a string */
 static char*
-pathtostring(OClist* path, char* separator)
+pathtostring(NClist* path, char* separator)
 {
     int slen,i,len;
     char* pathname;
     if(path == NULL) return NULL;
-    len = oclistlength(path);
+    len = nclistlength(path);
     if(len == 0) return NULL;
     for(i=0,slen=0;i<len;i++) {
-	OCnode* node = (OCnode*)oclistget(path,(size_t)i);
+	OCnode* node = (OCnode*)nclistget(path,(size_t)i);
 	if(node->container == NULL || node->name == NULL) continue;
 	slen += strlen(node->name);
     }
@@ -96,7 +95,7 @@ pathtostring(OClist* path, char* separator)
     MEMCHECK(pathname,NULL);
     pathname[0] = '\0';
     for(i=0;i<len;i++) {
-	OCnode* node = (OCnode*)oclistget(path,(size_t)i);
+	OCnode* node = (OCnode*)nclistget(path,(size_t)i);
 	if(node->container == NULL || node->name == NULL) continue;
 	if(strlen(pathname) > 0) strcat(pathname,separator);
         strcat(pathname,node->name);
@@ -106,11 +105,11 @@ pathtostring(OClist* path, char* separator)
 
 /* Collect the set of nodes ending in "node"*/
 void
-occollectpathtonode(OCnode* node, OClist* path)
+occollectpathtonode(OCnode* node, NClist* path)
 {
     if(node == NULL) return;
     occollectpathtonode(node->container,path);
-    oclistpush(path,(void*)node);
+    nclistpush(path,(void*)node);
 }
 
 OCnode*
@@ -129,19 +128,19 @@ ocnode_new(char* name, OCtype ptype, OCnode* root)
 }
 
 static OCattribute*
-makeattribute(char* name, OCtype ptype, OClist* values)
+makeattribute(char* name, OCtype ptype, NClist* values)
 {
     OCattribute* att = (OCattribute*)ocmalloc(sizeof(OCattribute)); /* ocmalloc zeros*/
     MEMCHECK(att,(OCattribute*)NULL);
     att->name = nulldup(name);
     att->etype = ptype;
-    att->nvalues = oclistlength(values);
+    att->nvalues = nclistlength(values);
     att->values = NULL;
     if(att->nvalues > 0) {
 	int i;
         att->values = (char**)ocmalloc(sizeof(char*)*att->nvalues);
         for(i=0;i<att->nvalues;i++)
-	    att->values[i] = nulldup((char*)oclistget(values,(size_t)i));
+	    att->values[i] = nulldup((char*)nclistget(values,(size_t)i));
     }
     return att;
 }
@@ -162,10 +161,10 @@ ocroot_free(OCnode* root)
     if(tree->data.data != NULL)
 	ocdata_free(state,tree->data.data);
 
-    for(i=0;i<oclistlength(state->trees);i++) {
-	OCnode* node = (OCnode*)oclistget(state->trees,(size_t)i);
+    for(i=0;i<nclistlength(state->trees);i++) {
+	OCnode* node = (OCnode*)nclistget(state->trees,(size_t)i);
 	if(root == node)
-	    oclistremove(state->trees,(size_t)i);
+	    nclistremove(state->trees,(size_t)i);
     }
     /* Note: it is ok if state->trees does not contain this root */    
     octree_free(tree);
@@ -188,19 +187,19 @@ octree_free(OCtree* tree)
 }
 
 void
-ocnodes_free(OClist* nodes)
+ocnodes_free(NClist* nodes)
 {
     unsigned int i,j;
-    for(i=0;i<oclistlength(nodes);i++) {
-	OCnode* node = (OCnode*)oclistget(nodes,i);
+    for(i=0;i<nclistlength(nodes);i++) {
+	OCnode* node = (OCnode*)nclistget(nodes,i);
         ocfree(node->name);
         ocfree(node->fullname);
-        while(oclistlength(node->att.values) > 0) {
-	    char* value = (char*)oclistpop(node->att.values);
+        while(nclistlength(node->att.values) > 0) {
+	    char* value = (char*)nclistpop(node->att.values);
 	    ocfree(value);
         }
-        while(oclistlength(node->attributes) > 0) {
-            OCattribute* attr = (OCattribute*)oclistpop(node->attributes);
+        while(nclistlength(node->attributes) > 0) {
+            OCattribute* attr = (OCattribute*)nclistpop(node->attributes);
 	    ocfree(attr->name);
 #if 0
 	    /* If the attribute type is string, then we need to free them*/
@@ -214,14 +213,14 @@ all values are strings now
 	    ocfree(attr->values);
 	    ocfree(attr);
         }
-        if(node->array.dimensions != NULL) oclistfree(node->array.dimensions);
-        if(node->subnodes != NULL) oclistfree(node->subnodes);
-        if(node->att.values != NULL) oclistfree(node->att.values);
-        if(node->attributes != NULL) oclistfree(node->attributes);
+        if(node->array.dimensions != NULL) nclistfree(node->array.dimensions);
+        if(node->subnodes != NULL) nclistfree(node->subnodes);
+        if(node->att.values != NULL) nclistfree(node->att.values);
+        if(node->attributes != NULL) nclistfree(node->attributes);
 	if(node->array.sizes != NULL) free(node->array.sizes);
         ocfree(node);
     }
-    oclistfree(nodes);
+    nclistfree(nodes);
 }
 
 /*
@@ -246,11 +245,11 @@ OCerror
 ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 {
     OCerror stat = OC_NOERR;
-    OClist* dasglobals = oclistnew();
-    OClist* dodsglobals = oclistnew(); /* top-level DODS_XXX {...} */
-    OClist* dasnodes = oclistnew();
-    OClist* varnodes = oclistnew();
-    OClist* ddsnodes;
+    NClist* dasglobals = nclistnew();
+    NClist* dodsglobals = nclistnew(); /* top-level DODS_XXX {...} */
+    NClist* dasnodes = nclistnew();
+    NClist* varnodes = nclistnew();
+    NClist* ddsnodes;
     unsigned int i,j;
 
     if(dasroot->tree == NULL || dasroot->tree->dxdclass != OCDAS)
@@ -267,39 +266,39 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
           Simultaneously look for potential ambiguities
           if found; complain but continue: result are indeterminate.
           also collect globals separately*/
-    for(i=0;i<oclistlength(dasroot->tree->nodes);i++) {
-	OCnode* das = (OCnode*)oclistget(dasroot->tree->nodes,i);
+    for(i=0;i<nclistlength(dasroot->tree->nodes);i++) {
+	OCnode* das = (OCnode*)nclistget(dasroot->tree->nodes,i);
 	int hasattributes = 0;
 	if(das->octype == OC_Attribute) continue; /* ignore these for now*/
 	if(das->name == NULL || das->att.isglobal) {
-	    oclistpush(dasglobals,(void*)das);
+	    nclistpush(dasglobals,(void*)das);
 	    continue;
 	}
 	if(das->att.isdods) {
-	    oclistpush(dodsglobals,(void*)das);
+	    nclistpush(dodsglobals,(void*)das);
 	    continue;
 	}
-	for(j=0;j<oclistlength(das->subnodes);j++) {
-	    OCnode* subnode = (OCnode*)oclistget(das->subnodes,j);
+	for(j=0;j<nclistlength(das->subnodes);j++) {
+	    OCnode* subnode = (OCnode*)nclistget(das->subnodes,j);
 	    if(subnode->octype == OC_Attribute) {hasattributes = 1; break;}
 	}
 	if(hasattributes) {
 	    /* Look for previously collected nodes with same name*/
-            for(j=0;j<oclistlength(dasnodes);j++) {
-	        OCnode* das2 = (OCnode*)oclistget(dasnodes,j);
+            for(j=0;j<nclistlength(dasnodes);j++) {
+	        OCnode* das2 = (OCnode*)nclistget(dasnodes,j);
 		if(das->name == NULL || das2->name == NULL) continue;
 		if(strcmp(das->name,das2->name)==0) {
-		    oclog(OCLOGWARN,"oc_mergedas: potentially ambiguous DAS name: %s",das->name);
+		    nclog(NCLOGWARN,"oc_mergedas: potentially ambiguous DAS name: %s",das->name);
 		}
 	    }
-	    oclistpush(dasnodes,(void*)das);
+	    nclistpush(dasnodes,(void*)das);
 	}
     }
 
     /* 2. collect all the leaf DDS nodes (of type OC_Atomic)*/
-    for(i=0;i<oclistlength(ddsnodes);i++) {
-	OCnode* dds = (OCnode*)oclistget(ddsnodes,i);
-	if(dds->octype == OC_Atomic) oclistpush(varnodes,(void*)dds);
+    for(i=0;i<nclistlength(ddsnodes);i++) {
+	OCnode* dds = (OCnode*)nclistget(ddsnodes,i);
+	if(dds->octype == OC_Atomic) nclistpush(varnodes,(void*)dds);
     }
 
     /* 3. For each das node, locate matching DDS node(s) and attach
@@ -309,29 +308,29 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
           2. DAS->name :: DDS->fullname (support DAS names with embedded '.')
           3. DAS->name :: DDS->name
     */
-    for(i=0;i<oclistlength(dasnodes);i++) {
-	OCnode* das = (OCnode*)oclistget(dasnodes,i);
-        for(j=0;j<oclistlength(varnodes);j++) {
-	    OCnode* dds = (OCnode*)oclistget(varnodes,j);
+    for(i=0;i<nclistlength(dasnodes);i++) {
+	OCnode* das = (OCnode*)nclistget(dasnodes,i);
+        for(j=0;j<nclistlength(varnodes);j++) {
+	    OCnode* dds = (OCnode*)nclistget(varnodes,j);
 	    if(strcmp(das->fullname,dds->fullname)==0
 	       || strcmp(das->name,dds->fullname)==0
 	       || strcmp(das->name,dds->name)==0) {
 		mergedas1(dds,das);
 		/* remove from dasnodes list*/
-		oclistset(dasnodes,i,(void*)NULL);
+		nclistset(dasnodes,i,(void*)NULL);
 	    }
 	}
     }
 
     /* 4. Assign globals*/
-    for(i=0;i<oclistlength(dasglobals);i++) {
-	OCnode* das = (OCnode*)oclistget(dasglobals,i);
+    for(i=0;i<nclistlength(dasglobals);i++) {
+	OCnode* das = (OCnode*)nclistget(dasglobals,i);
 	if(das == NULL) continue;
 	mergedas1(ddsroot,das);
     }
     /* 5. Assign DODS_*/
-    for(i=0;i<oclistlength(dodsglobals);i++) {
-	OCnode* das = (OCnode*)oclistget(dodsglobals,i);
+    for(i=0;i<nclistlength(dodsglobals);i++) {
+	OCnode* das = (OCnode*)nclistget(dodsglobals,i);
 	if(das == NULL) continue;
 	mergedods1(ddsroot,das);
     }
@@ -346,10 +345,10 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 
 done:
     /* cleanup*/
-    oclistfree(dasglobals);
-    oclistfree(dodsglobals);
-    oclistfree(dasnodes);
-    oclistfree(varnodes);
+    nclistfree(dasglobals);
+    nclistfree(dodsglobals);
+    nclistfree(dasnodes);
+    nclistfree(varnodes);
     return OCTHROW(stat);
 }
 
@@ -359,20 +358,21 @@ mergedas1(OCnode* dds, OCnode* das)
     unsigned int i;
     OCerror stat = OC_NOERR;
     if(das == NULL) return OC_NOERR; /* nothing to do */
-    if(dds->attributes == NULL) dds->attributes = oclistnew();
+    if(dds->attributes == NULL) dds->attributes = nclistnew();
     /* assign the simple attributes in the das set to this dds node*/
-    for(i=0;i<oclistlength(das->subnodes);i++) {
-	OCnode* attnode = (OCnode*)oclistget(das->subnodes,i);
+    for(i=0;i<nclistlength(das->subnodes);i++) {
+	OCnode* attnode = (OCnode*)nclistget(das->subnodes,i);
 	if(attnode->octype == OC_Attribute) {
+            OCattribute* att;
 	    if(dds->octype == OC_Atomic
 		|| dds->octype == OC_Sequence
 		|| dds->octype == OC_Structure
 		|| dds->octype == OC_Grid)
 	        attnode->att.var = dds;
-	    OCattribute* att = makeattribute(attnode->name,
-						attnode->etype,
-						attnode->att.values);
-            oclistpush(dds->attributes,(void*)att);
+            att = makeattribute(attnode->name,
+                                attnode->etype,
+                                attnode->att.values);
+            nclistpush(dds->attributes,(void*)att);
 	}
     }
     return OCTHROW(stat);
@@ -385,12 +385,12 @@ mergedods1(OCnode* dds, OCnode* dods)
     OCerror stat = OC_NOERR;
     if(dods == NULL) return OC_NOERR; /* nothing to do */
     OCASSERT(dods->octype == OC_Attributeset);
-    if(dds->attributes == NULL) dds->attributes = oclistnew();
+    if(dds->attributes == NULL) dds->attributes = nclistnew();
     /* assign the simple attributes in the das set to this dds node
        with renaming to tag as DODS_
     */
-    for(i=0;i<oclistlength(dods->subnodes);i++) {
-	OCnode* attnode = (OCnode*)oclistget(dods->subnodes,i);
+    for(i=0;i<nclistlength(dods->subnodes);i++) {
+	OCnode* attnode = (OCnode*)nclistget(dods->subnodes,i);
 	if(attnode->octype == OC_Attribute) {
 	    OCattribute* att;
 	    /* prefix the attribute name with the name of the attribute
@@ -398,28 +398,28 @@ mergedods1(OCnode* dds, OCnode* dods)
             */
 	    size_t len =   strlen(attnode->name)
                          + strlen(dods->name)
-			 + strlen(".")
-			 + 1; /*null*/
-	    char* newname = (char*)malloc(len);
+			 + strlen(".");
+	    len++; /*strlcat nul*/
+	    char* newname = (char*)malloc(len+1);
 	    if(newname == NULL) return OC_ENOMEM;
-	    strcpy(newname,dods->name);
-	    strcat(newname,".");
-	    strcat(newname,attnode->name);
+	    strncpy(newname,dods->name,len);
+	    strlcat(newname,".",len);
+	    strlcat(newname,attnode->name,len);
 	    att = makeattribute(newname,attnode->etype,attnode->att.values);
 	    free(newname);
-            oclistpush(dds->attributes,(void*)att);
+            nclistpush(dds->attributes,(void*)att);
 	}
     }
     return OCTHROW(stat);
 }
 
 static OCerror
-mergeother(OCnode* ddsroot, OClist* dasnodes)
+mergeother(OCnode* ddsroot, NClist* dasnodes)
 {
     OCerror stat = OC_NOERR;
     int i;
-    for(i=0;i<oclistlength(dasnodes);i++) {
-	OCnode* das = (OCnode*)oclistget(dasnodes,i);
+    for(i=0;i<nclistlength(dasnodes);i++) {
+	OCnode* das = (OCnode*)nclistget(dasnodes,i);
 	if(das == NULL) continue;
 	if((stat = mergeother1(ddsroot, das))) break;
     }
@@ -433,7 +433,7 @@ mergeother1(OCnode* root, OCnode* das)
     OCattribute* att = NULL;
 
     OCASSERT(root != NULL);
-    if(root->attributes == NULL) root->attributes = oclistnew();
+    if(root->attributes == NULL) root->attributes = nclistnew();
 
     /* Only include if this is not connected to a variable */
     if(das->att.var != NULL) goto done;
@@ -443,12 +443,12 @@ mergeother1(OCnode* root, OCnode* das)
         computefullname(das);
         /* create attribute */
         att = makeattribute(das->fullname,das->etype,das->att.values);	
-        oclistpush(root->attributes,(void*)att);
+        nclistpush(root->attributes,(void*)att);
     } else if(das->octype == OC_Attributeset) {
 	int i;
 	/* Recurse */
-        for(i=0;i<oclistlength(das->subnodes);i++) {
-	    OCnode* sub = (OCnode*)oclistget(das->subnodes,i);
+        for(i=0;i<nclistlength(das->subnodes);i++) {
+	    OCnode* sub = (OCnode*)nclistget(das->subnodes,i);
 	    if(sub == NULL) continue;
 	    mergeother1(root,sub);
 	}	
@@ -464,8 +464,8 @@ ocuncorrelate(OCnode* root)
     OCtree* tree = root->tree;
     unsigned int i;
     if(tree == NULL) return;
-    for(i=0;i<oclistlength(tree->nodes);i++) {
-	OCnode* node = (OCnode*)oclistget(tree->nodes,i);
+    for(i=0;i<nclistlength(tree->nodes);i++) {
+	OCnode* node = (OCnode*)nclistget(tree->nodes,i);
 	node->datadds = NULL;
     }        
 }
@@ -482,7 +482,7 @@ occorrelater(OCnode* dds, OCnode* dxd)
     if(dxd->name != NULL && dxd->name != NULL
        && strcmp(dxd->name,dds->name) != 0) {
 	OCTHROWCHK((ocstat = OC_EINVAL)); goto fail;
-    } else if(dxd->name != dxd->name) { /* test NULL==NULL */
+    } else if(dxd->name != dds->name) { /* test NULL==NULL */
 	OCTHROWCHK((ocstat = OC_EINVAL)); goto fail;
     }
 
@@ -498,10 +498,10 @@ occorrelater(OCnode* dds, OCnode* dxd)
     case OC_Grid:
     case OC_Sequence:
 	/* Remember: there may be fewer datadds fields than dds fields */
-	for(i=0;i<oclistlength(dxd->subnodes);i++) {
-	    OCnode* dxd1 = (OCnode*)oclistget(dxd->subnodes,(size_t)i);
-	    for(j=0;j<oclistlength(dds->subnodes);j++) {
-		OCnode* dds1 = (OCnode*)oclistget(dds->subnodes,(size_t)j);
+	for(i=0;i<nclistlength(dxd->subnodes);i++) {
+	    OCnode* dxd1 = (OCnode*)nclistget(dxd->subnodes,(size_t)i);
+	    for(j=0;j<nclistlength(dds->subnodes);j++) {
+		OCnode* dds1 = (OCnode*)nclistget(dds->subnodes,(size_t)j);
 		if(strcmp(dxd1->name,dds1->name) == 0) {
 		    ocstat = occorrelater(dds1,dxd1);
 		    if(ocstat != OC_NOERR) {OCTHROWCHK(ocstat); goto fail;}
@@ -517,9 +517,9 @@ occorrelater(OCnode* dds, OCnode* dxd)
     }
     /* Correlate the dimensions */
     if(dds->array.rank > 0) {
-	for(i=0;i<oclistlength(dxd->subnodes);i++) {
-	    OCnode* ddsdim = (OCnode*)oclistget(dds->array.dimensions,(size_t)i);
-	    OCnode* dxddim = (OCnode*)oclistget(dxd->array.dimensions,(size_t)i);
+	for(i=0;i<nclistlength(dxd->subnodes);i++) {
+	    OCnode* ddsdim = (OCnode*)nclistget(dds->array.dimensions,(size_t)i);
+	    OCnode* dxddim = (OCnode*)nclistget(dxd->array.dimensions,(size_t)i);
 	    ocstat = occorrelater(ddsdim,dxddim);
 	    if(!ocstat) goto fail;	    
 	}	
@@ -549,20 +549,20 @@ ocmarkcacheable(OCstate* state, OCnode* ddsroot)
 #if 0
     int ok;
 #endif
-    OClist* treenodes = ddsroot->tree->nodes;
-    OClist* path = oclistnew();
-    for(i=0;i<oclistlength(treenodes);i++) {
-        OCnode* node = (OCnode*)oclistget(treenodes,(size_t)i);
+    NClist* treenodes = ddsroot->tree->nodes;
+    NClist* path = nclistnew();
+    for(i=0;i<nclistlength(treenodes);i++) {
+        OCnode* node = (OCnode*)nclistget(treenodes,(size_t)i);
 	if(node->octype != OC_Atomic) continue;
 	if(node->etype != OC_String && node->etype != OC_URL) continue;
 	/* collect node path */
-        oclistclear(path);
+        nclistclear(path);
         occollectpathtonode(node,path);	
 #if 0
         ok = 1;
 #endif
-	for(j=1;j<oclistlength(path)-1;j++) {/* skip top level dataset and node itself*/
-            OCnode* pathnode = (OCnode*)oclistget(path,(size_t)j);
+	for(j=1;j<nclistlength(path)-1;j++) {/* skip top level dataset and node itself*/
+            OCnode* pathnode = (OCnode*)nclistget(path,(size_t)j);
 	    if(pathnode->octype != OC_Structure
 		|| pathnode->array.rank > 0) {
 #if 0
@@ -578,7 +578,7 @@ ocmarkcacheable(OCstate* state, OCnode* ddsroot)
 	}
 #endif
     }
-    oclistfree(path);
+    nclistfree(path);
 }
 
 #if 0
@@ -588,30 +588,30 @@ ocddsdasmerge(OCstate* state, OCnode* ddsroot, OCnode* dasroot)
 {
     int i,j;
     OCerror stat = OC_NOERR;
-    OClist* globals = oclistnew();
+    NClist* globals = nclistnew();
     if(dasroot == NULL) return OCTHROW(stat);
     /* Start by looking for global attributes*/
-    for(i=0;i<oclistlength(dasroot->subnodes);i++) {
-	OCnode* node = (OCnode*)oclistget(dasroot->subnodes,i);
+    for(i=0;i<nclistlength(dasroot->subnodes);i++) {
+	OCnode* node = (OCnode*)nclistget(dasroot->subnodes,i);
 	if(node->att.isglobal) {
-	    for(j=0;j<oclistlength(node->subnodes);j++) {
-		OCnode* attnode = (OCnode*)oclistget(node->subnodes,j);
+	    for(j=0;j<nclistlength(node->subnodes);j++) {
+		OCnode* attnode = (OCnode*)nclistget(node->subnodes,j);
 		Attribute* att = makeattribute(attnode->name,
 						attnode->etype,
 						attnode->att.values);
-		oclistpush(globals,(void*)att);
+		nclistpush(globals,(void*)att);
 	    }
 	}
     }
     ddsroot->attributes = globals;
     /* Now try to match subnode names with attribute set names*/
-    for(i=0;i<oclistlength(dasroot->subnodes);i++) {
-	OCnode* das = (OCnode*)oclistget(dasroot->subnodes,i);
+    for(i=0;i<nclistlength(dasroot->subnodes);i++) {
+	OCnode* das = (OCnode*)nclistget(dasroot->subnodes,i);
 	int match = 0;
         if(das->att.isglobal) continue;
         if(das->octype == OC_Attributeset) {
-            for(j=0;j<oclistlength(ddsroot->subnodes) && !match;j++) {
-	        OCnode* dds = (OCnode*)oclistget(ddsroot->subnodes,j);
+            for(j=0;j<nclistlength(ddsroot->subnodes) && !match;j++) {
+	        OCnode* dds = (OCnode*)nclistget(ddsroot->subnodes,j);
 	        if(strcmp(das->name,dds->name) == 0) {
 		    match = 1;
 	            stat = mergedas1(dds,das);
@@ -632,24 +632,24 @@ mergedas1(OCnode* dds, OCnode* das)
 {
     int i,j;
     int stat = OC_NOERR;
-    if(dds->attributes == NULL) dds->attributes = oclistnew();
+    if(dds->attributes == NULL) dds->attributes = nclistnew();
     /* assign the simple attributes in the das set to this dds node*/
-    for(i=0;i<oclistlength(das->subnodes);i++) {
-	OCnode* attnode = (OCnode*)oclistget(das->subnodes,i);
+    for(i=0;i<nclistlength(das->subnodes);i++) {
+	OCnode* attnode = (OCnode*)nclistget(das->subnodes,i);
 	if(attnode->octype == OC_Attribute) {
 	    Attribute* att = makeattribute(attnode->name,
 						attnode->etype,
 						attnode->att.values);
-            oclistpush(dds->attributes,(void*)att);
+            nclistpush(dds->attributes,(void*)att);
 	}
     }
     /* Try to merge any enclosed sets with subnodes of dds*/
-    for(i=0;i<oclistlength(das->subnodes);i++) {
-	OCnode* dasnode = (OCnode*)oclistget(das->subnodes,i);
+    for(i=0;i<nclistlength(das->subnodes);i++) {
+	OCnode* dasnode = (OCnode*)nclistget(das->subnodes,i);
 	int match = 0;
         if(dasnode->octype == OC_Attribute) continue; /* already dealt with above*/
-        for(j=0;j<oclistlength(dds->subnodes) && !match;j++) {
-	    OCnode* ddsnode = (OCnode*)oclistget(dds->subnodes,j);
+        for(j=0;j<nclistlength(dds->subnodes) && !match;j++) {
+	    OCnode* ddsnode = (OCnode*)nclistget(dds->subnodes,j);
 	    if(strcmp(dasnode->name,ddsnode->name) == 0) {
 	        match = 1;
 	        stat = mergedas1(ddsnode,dasnode);

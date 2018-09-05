@@ -1,6 +1,12 @@
 #!/bin/sh
 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 set -e
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
 
 # Get the target OS and CPU
 CPU=`uname -p`
@@ -33,13 +39,13 @@ echo ""
 rm -f $FILE4
 time ./tst_diskless4 $SIZE create
 # Validate it
-../ncdump/ncdump -h $FILE4 |diff -w - tst_diskless4.cdl
+${NCDUMP} -h $FILE4 |diff -w - tst_diskless4.cdl
 
 echo ""
 rm -f $FILE4
 time ./tst_diskless4 $SIZE creatediskless
 # Validate it
-../ncdump/ncdump -h $FILE4 |diff -w - tst_diskless4.cdl
+${NCDUMP} -h $FILE4 |diff -w - tst_diskless4.cdl
 
 echo ""
 time ./tst_diskless4 $SIZE open

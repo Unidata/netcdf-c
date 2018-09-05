@@ -27,9 +27,9 @@ main()
 
     topsrcdir = gettopsrcdir();
 
-    strcpy(url,"file://");
-    strcat(url,topsrcdir);
-    strcat(url,"/ncdap_test/testdata3/test.02");
+    strncpy(url,"file://",sizeof(url));
+    strlcat(url,topsrcdir,sizeof(url));
+    strlcat(url,"/ncdap_test/testdata3/test.02",sizeof(url));
 
     if ((retval = nc_open(url, 0, &ncid)))
        ERR(retval);

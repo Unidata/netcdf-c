@@ -13,9 +13,8 @@ if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/oc2
 endif
 
-# This turns on declspec magic in netcdf.h for windows DLLs.
-if BUILD_DLL
-AM_CPPFLAGS += -DDLL_NETCDF
-endif
+AM_TESTS_ENVIRONMENT = export TOPSRCDIR=${abs_top_srcdir}; export TOPBUILDDIR=${abs_top_builddir}; 
+
+
 
 

@@ -13,31 +13,26 @@ AM_CPPFLAGS =  -I.. -I$(top_srcdir) -I$(top_srcdir)/include
 # OC Sources; include the dapy.[ch] to avoid the need for bison by user
 SRC=oc.c \
 daplex.c dapparse.c dapy.c \
-occlientparams.c occompile.c occurlfunctions.c \
+occompile.c occurlfunctions.c \
 ocdata.c ocdebug.c ocdump.c  \
 ocinternal.c ocnode.c \
 ochttp.c \
-ocrc.c ocread.c ocutil.c \
-ocbytes.c oclist.c ocuri.c oclog.c \
-occurlflags.c \
+ocread.c ocutil.c \
 xxdr.c
 
 HDRS=oc.h ocx.h \
 dapparselex.h dapy.h \
-occlientparams.h occompile.h occonstraints.h occurlfunctions.h \
+occompile.h occonstraints.h occurlfunctions.h \
 ocdata.h ocdatatypes.h ocdebug.h ocdump.h \
 ocinternal.h ocnode.h \
 ochttp.h ocread.h ocutil.h \
-ocbytes.h oclist.h ocuri.h oclog.h \
 xxdr.h
 
 EXTRA_DIST = dap.y CMakeLists.txt auth.html.in oc.css
 
-if BUILD_DAP
 noinst_LTLIBRARIES = liboc.la
 liboc_la_SOURCES = $(SRC) $(HDRS) 
 liboc_la_CPPFLAGS = $(AM_CPPFLAGS)
-endif
 
 # These rule are used if someone wants to rebuild the grammar files.
 # Otherwise never invoked, but records how to do it.
@@ -50,5 +45,3 @@ bison:: dap.y
 	rm -f dap.tab.c dap.tab.h
 	bison --debug -d -p dap dap.y
 	mv dap.tab.c dapy.c; mv dap.tab.h dapy.h
-
-

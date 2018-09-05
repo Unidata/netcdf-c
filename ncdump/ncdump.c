@@ -3,7 +3,7 @@
 Copyright 2011 University Corporation for Atmospheric
 Research/Unidata. See \ref copyright file for more info.  */
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -33,6 +33,7 @@ int optind;
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif	/* HAVE_LOCALE_H */
+
 #include "netcdf.h"
 #include "netcdf_mem.h"
 #include "utils.h"
@@ -44,13 +45,11 @@ int optind;
 #include "indent.h"
 #include "isnan.h"
 #include "cdl.h"
+#include "nclog.h"
+#include "ncwinpath.h"
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h" /* to get name of the special properties file */
-#endif
-
-#if !defined(HAVE_SSIZE_T) && !defined(H5_SIZEOF_SSIZE_T)
-typedef int ssize_t;
 #endif
 
 #define XML_VERSION "1.0"
@@ -162,10 +161,7 @@ name_path(const char *path)
     /* See if this is a url */
     {
 	char* base;
-
         extern int nc__testurl(const char*,char**);
-
-
  	if(nc__testurl(path,&base)) {
  	    return base; /* Looks like a url */
 	}
@@ -273,7 +269,7 @@ kind_string(int kind)
     case NC_FORMAT_NETCDF4_CLASSIC:
 	return "netCDF-4 classic model";
     default:
-	error("unrecognized file format: %d");
+       error("unrecognized file format: %d", kind);
 	return "unrecognized";
     }
 }
@@ -319,7 +315,6 @@ kind_string_extended(int kind, int mode)
     return text;
 }
 
-#ifdef USE_DISKLESS
 static int
 fileopen(const char* path, void** memp, size_t* sizep)
 {
@@ -340,7 +335,7 @@ fileopen(const char* path, void** memp, size_t* sizep)
 #ifdef vms
     fd = open(path, oflags, 0, "ctx=stm");
 #else
-    fd  = open(path, oflags);
+    fd  = NCopen2(path, oflags);
 #endif
     if(fd < 0) {
 	status = errno;
@@ -392,7 +387,6 @@ done:
 
     return status;
 }
-#endif
 
 /*
  * Emit initial line of output for NcML
@@ -1052,6 +1046,27 @@ pr_att_specials(
 	    printf(" ;\n");
 	}
     }
+    /* _Filter */
+    {
+	unsigned int id;
+	size_t nparams;
+	unsigned int* params = NULL;
+	if(nc_inq_var_filter(ncid, varid, &id, &nparams, NULL) == NC_NOERR
+	   && id > 0) {
+	    if(nparams > 0) {
+	        params = (unsigned int*)calloc(1,sizeof(unsigned int)*nparams);
+	        NC_CHECK(nc_inq_var_filter(ncid, varid, &id, &nparams, params));
+	    }
+	    pr_att_name(ncid,varp->name,NC_ATT_FILTER);
+	    printf(" = \"%u",id);
+	    if(nparams > 0) {
+	        int i;
+		for(i=0;i<nparams;i++)	
+		    printf(",%u",params[i]);
+	    }
+	    printf("\" ;\n");
+	}
+    }
     {
 	int no_fill = 0;
 	/* Don't get the fill_value, it's set explicitly with
@@ -1702,17 +1717,27 @@ do_ncdump_rec(int ncid, const char *path)
 	  * ambiguous. */
 	 {
 	     int dimid_test;	/* to see if dimname is ambiguous */
+	     int target_dimid;  /* from variable dim list */
 	     int locid;		/* group id where dimension is defined */
+	     /*Locate the innermost definition of a dimension with given name*/
 	     NC_CHECK( nc_inq_dimid(ncid, dim_name, &dimid_test) );
+
+	     /* Now, starting with current group, walk the parent chain
+                upward looking for the target dim_id */
+	     target_dimid = var.dims[id];
 	     locid = ncid;
-	     while(var.dims[id] != dimid_test) { /* not in locid, try ancestors */
+	     while(target_dimid != dimid_test) {/*not in locid, try ancestors*/
 		 int parent_id;
 		 NC_CHECK( nc_inq_grp_parent(locid, &parent_id) );
 		 locid = parent_id;
+		 /* Is dim of this name defined in this group or higher? */
 		 NC_CHECK( nc_inq_dimid(locid, dim_name, &dimid_test) );
 	     }
-	     /* dimid is in group locid, prefix dimname with group name if needed */
-	     if(locid != ncid) {
+	     /* innermost dimid with given name is in group locid.
+                If this is not current group, then use fully qualified
+                name (fqn) for the dimension name by prefixing dimname
+                with group name */
+	     if(locid != ncid) { /* We need to use fqn */
 		 size_t len;
 		 char *locname;	/* the group name */
 		 NC_CHECK( nc_inq_grpname_full(locid, &len, NULL) );
@@ -2230,6 +2255,7 @@ main(int argc, char *argv[])
 	    nc_set_log_level(level);
 	  }
 #endif
+	  ncsetlogging(1);
 	  break;
         case '?':
 	  usage();
@@ -2283,7 +2309,6 @@ main(int argc, char *argv[])
 		/* else fall thru and treat like a file path */
 	    }
 #endif /*USE_DAP*/
-#ifdef USE_DISKLESS
 	    if(formatting_specs.xopt_inmemory) {
 		size_t size = 0;
 		void* mem = NULL;
@@ -2291,7 +2316,6 @@ main(int argc, char *argv[])
 		if(nc_status == NC_NOERR)
 	            nc_status = nc_open_mem(path,NC_DISKLESS|NC_INMEMORY,size,mem,&ncid);
 	    } else
-#endif
 	        nc_status = nc_open(path, NC_NOWRITE, &ncid);
 	    if (nc_status != NC_NOERR) {
 		error("%s: %s", path, nc_strerror(nc_status));
@@ -2301,9 +2325,9 @@ main(int argc, char *argv[])
                                              &formatting_specs.nc_extended,
                                              &formatting_specs.nc_mode) );
 	    if (kind_out) {
-		printf ("%s\n", kind_string(formatting_specs.nc_kind));
+		printf ("%s", kind_string(formatting_specs.nc_kind));
 	    } else if (kind_out_extended) {
-		printf ("%s\n", kind_string_extended(formatting_specs.nc_extended,formatting_specs.nc_mode));
+		printf ("%s", kind_string_extended(formatting_specs.nc_extended,formatting_specs.nc_mode));
 	    } else {
 		/* Initialize list of types. */
 		init_types(ncid);
@@ -2335,6 +2359,3 @@ main(int argc, char *argv[])
     }
     exit(EXIT_SUCCESS);
 }
-
-
-END_OF_MAIN()

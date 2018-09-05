@@ -35,7 +35,6 @@ int
 main()
 {
    printf("\n*** Checking HDF5 attribute functions some more.\n");
-#ifdef EXTRA_TESTS
    printf("*** Creating tst_xplatform2_3.nc with HDF only...");
    {
       hid_t fapl_id, fcpl_id;
@@ -105,7 +104,7 @@ main()
 		    H5T_NATIVE_DOUBLE) < 0) ERR;
       if (H5Tcommit(grpid, S1_TYPE_NAME, s1_typeid) < 0) ERR;
 
-      /* Create a vlen type. Its a vlen of stuct s1. */
+      /* Create a vlen type. Its a vlen of struct s1. */
       if ((vlen_typeid = H5Tvlen_create(s1_typeid)) < 0) ERR;
       if (H5Tcommit(grpid, VLEN_TYPE_NAME, vlen_typeid) < 0) ERR;
 
@@ -308,6 +307,5 @@ main()
 	 free(vc_out[i].p);
    }
    SUMMARIZE_ERR;
-#endif /* EXTRA_TESTS */
    FINAL_RESULTS;
 }

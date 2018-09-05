@@ -1,0 +1,105 @@
+/*! \page dap4 DAP4 Support
+
+\section dap4_accessing The DAP4 Prototocol
+
+\tableofcontents
+
+\subsection dap4_introduction DAP4 Introduction
+
+Beginning with netCDF version 4.2.2, optional support is provided for
+accessing data through DAP4 servers using the DAP4 protocol.
+
+DAP4 support is automatically enabled if a usable curl library can be
+set using the LDFLAGS environment variable (similar to the way
+that the HDF5 libraries are referenced).
+DAP2 plus DAP4 support can forcibly be enabled or disabled using the --enable-dap
+flag or the --disable-dap flag, respectively.  If enabled,
+then DAP4 support requires access to the curl library.
+Refer to the installation manual for details
+
+DAP4 uses a data model that is similar to, but not identical with,
+the netCDF-Enhanced (aka netcdf-4) model.
+Generically, the DAP4 data model is encoded in XML document
+called a DMR.
+For detailed information about the DAP4 DMR, refer to
+the DAP4 specification Volume 1:
+http://docs.opendap.org/index.php/DAP4:_Specification_Volume_1
+
+\subsection dap4_access Accessing Data Using the DAP4 Prototocol
+
+In order to access a DAP4 data source through the netCDF API, the
+file name normally used is replaced with a URL with a specific
+format. The URL is composed of three parts.
+ -  URL - this is a standard form URL with specific markers to indicate that
+    it refers to a DAP4 encoded dataset. The markers can be one of the following
+    examples.
+    +  [dap4]http://remotetest.unidata.ucar.edu/d4ts/test.01
+    +  [protocol=dap4]http://remotetest.unidata.ucar.edu/d4ts/test.01
+    +  http://remotetest.unidata.ucar.edu/d4ts/test.01#dap4
+    +  http://remotetest.unidata.ucar.edu/d4ts/test.01#protocol=dap4
+    +  dap4://remotetest.unidata.ucar.edu/d4ts/test.01
+
+    Note that the last case is converted internally to one of the other forms.
+
+ -  Constraints - these are suffixed to the URL and take the form
+    “?dap4.ce=\<expression\>”. The form of the constraint expression
+    is somewhat complicated, and the specification should be consulted.
+
+
+ - Client parameters - these may be specified in either of
+   two ways.  The older, deprecated form prefixes text to the
+   front of the url and is of the the general form [\<name>]
+   or [\<name>=value].  Examples include [show=fetch].
+   The newer, preferred form prefixes the
+   parameters to the end of the url using the semi-standard '#'
+   format: e.g. http://....#show=fetch&noprefetch.
+
+It is possible to see what the translation does to a particular DAP4
+data source in two steps. First, one can examine the DMR
+source through a web browser and then second, one can examine
+the translation using the "ncdump -h" command to see the
+corresponding netCDF-4 representation.
+
+For example, if a web browser is given the following (fictional) URL,
+it will return the DMR for the specified dataset
+\code
+     http://remotetest.unidata.ucar.edu/d4ts/test.01.dmr#dap4
+\endcode
+
+By using the following ncdump command, it is possible to see the
+equivalent netCDF-4 translation.
+
+\code
+     ncdump -h http://remotetest.unidata.ucar.edu/d4ts/test.01#dap4
+\endcode
+
+\subsection dap4_defined_params Defined Client Parameters
+
+Currently, a limited set of client parameters is
+recognized. Parameters not listed here are
+ignored, but no error is signalled.
+
+Parameter Name Legal Values Semantics
+- "log" | "log=<file>" - Turn on logging and send the log output to
+  the specified file. If no file is specified, then output is sent to standard
+  error.
+- "show=fetch" - This parameter causes the netCDF code to log a copy
+  of the complete url for every HTTP get request. If logging is
+  enabled, then this can be helpful in checking to see the access
+  behavior of the netCDF code.
+
+\subsection dap4_debug Notes on Debugging DAP4 Access
+
+The DAP4 support has a logging facility.
+Note that this is currently separate from the
+existing netCDF logging facility. Turning on this logging can
+sometimes give important information. Logging can be enabled by
+using the client parameter "log" or "log=filename",
+where the first case will send log output to standard error and the
+second will send log output to the specified file.
+
+Users should also be aware that if one is
+accessing data over an NFS mount, one may see some .nfsxxxxx files;
+those can be ignored.
+
+*/

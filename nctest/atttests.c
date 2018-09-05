@@ -1,7 +1,7 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/nctest/atttests.c,v 1.18 2006/10/31 16:21:45 ed Exp $
+ *   $Header: /upc/share/CVS/netcdf-3/nctst/atttests.c,v 1.18 2006/10/31 16:21:45 ed Exp $
  *********************************************************************/
 
 #ifdef _MPW
@@ -698,9 +698,6 @@ test_ncattcopy(path1, path2)
 	error("%s: ncendef failed", pname);
 	ncclose(cdfid); return ++nerrs;
     }
-if(strcmp(path1, "nctest_netcdf4.nc")==0) {
-int x=0;
-}  
     /* first (source) netcdf is in data mode */
     /* create second netCDF to copy attributes to */
     if ((cdfid2 = nccreate(path2, NC_CLOBBER)) == -1) {

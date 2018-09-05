@@ -14,6 +14,6 @@
 #define _H5_ERR_MACROS_H
 
 #define NONETCDF
-#include <err_macros.h>
+#include "err_macros.h"
 
 #endif /*_H5_ERR_MACROS_H*/

@@ -1,5 +1,4 @@
 #!/bin/sh
-set -x
 
 # This shell gets files from the netCDF ftp site for testing.
 

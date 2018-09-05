@@ -10,6 +10,7 @@
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
+#include "ncexternl.h"
 
 #define NCENVFLAG "NCLOGFILE"
 
@@ -19,27 +20,25 @@
 #define NCLOGERR 2
 #define NCLOGDBG 3
 
-typedef struct NC_LOGSTATE {
-    int logging;
-    int systemfile; /* 1 => we are logging to file we did not open */
-    char* logfile;
-    FILE* logstream;
-    int tagsize;
-    char** tagset;
-    char* tagdfalt;
-} NC_LOGSTATE;
+#if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
+extern "C" {
+#endif
 
-extern void ncloginit(void);
-extern int ncsetlogging(int tf);
-extern int nclogopen(const char* file);
-extern void nclogclose(void);
+EXTERNL void ncloginit(void);
+EXTERNL int ncsetlogging(int tf);
+EXTERNL int nclogopen(const char* file);
+EXTERNL void nclogclose(void);
 
 /* The tag value is an arbitrary integer */
-extern void nclog(int tag, const char* fmt, ...);
-extern void nclogtext(int tag, const char* text);
-extern void nclogtextn(int tag, const char* text, size_t count);
+EXTERNL void nclog(int tag, const char* fmt, ...);
+EXTERNL void nclogtext(int tag, const char* text);
+EXTERNL void nclogtextn(int tag, const char* text, size_t count);
 
 /* Provide printable names for tags */
-extern void nclogsettags(char** tagset, char* dfalt);
+EXTERNL void nclogsettags(char** tagset, char* dfalt);
+
+#if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
+}
+#endif
 
 #endif /*NCLOG_H*/

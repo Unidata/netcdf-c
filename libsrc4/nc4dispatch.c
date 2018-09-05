@@ -6,9 +6,23 @@
 
 #include "config.h"
 #include <stdlib.h>
-#include "nc.h"
-#include "ncdispatch.h"
 #include "nc4dispatch.h"
+#include "nc.h"
+
+/* If user-defined formats are in use, we need to declare their
+ * dispatch tables. */
+#ifdef USE_UDF0
+extern NC_Dispatch UDF0_DISPATCH;
+#endif /* USE_UDF0 */
+#ifdef USE_UDF1
+extern NC_Dispatch UDF1_DISPATCH;
+#endif /* USE_UDF1 */
+
+#ifdef USE_NETCDF4
+/* Pointers to dispatch tables for user-defined formats. */
+extern NC_Dispatch *UDF0_dispatch_table;
+extern NC_Dispatch *UDF1_dispatch_table;
+#endif /* USE_NETCDF4 */
 
 static NC_Dispatch NC4_dispatcher = {
 
@@ -50,15 +64,17 @@ NC4_inq_varid,
 NC4_rename_var,
 NC4_get_vara,
 NC4_put_vara,
-NCDEFAULT_get_vars,
-NCDEFAULT_put_vars,
+NC4_get_vars,
+NC4_put_vars,
 NCDEFAULT_get_varm,
 NCDEFAULT_put_varm,
 
 NC4_inq_var_all,
 
 NC4_var_par_access,
+NC4_def_var_fill,
 
+#ifdef USE_NETCDF4
 NC4_show_metadata,
 NC4_inq_unlimdims,
 
@@ -93,22 +109,61 @@ NC4_def_opaque,
 NC4_def_var_deflate,
 NC4_def_var_fletcher32,
 NC4_def_var_chunking,
-NC4_def_var_fill,
 NC4_def_var_endian,
+NC4_def_var_filter,
 NC4_set_var_chunk_cache,
 NC4_get_var_chunk_cache,
+#endif
 
 };
 
 NC_Dispatch* NC4_dispatch_table = NULL; /* moved here from ddispatch.c */
 
+/**
+ * @internal Initialize netCDF-4. If user-defined format(s) have been
+ * specified in configure, load their dispatch table(s).
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
+ */
 int
 NC4_initialize(void)
 {
-    NC4_dispatch_table = &NC4_dispatcher;
-    return NC_NOERR;
+   int ret = NC_NOERR;
+   
+   NC4_dispatch_table = &NC4_dispatcher;
+
+#ifdef USE_UDF0
+   /* If user-defined format 0 was specified during configure, set up
+    * it's dispatch table. */
+   if ((ret = nc_def_user_format(NC_UDF0, UDF0_DISPATCH_FUNC, NULL)))
+      return ret;
+#endif /* USE_UDF0 */
+    
+#ifdef USE_UDF1
+   /* If user-defined format 0 was specified during configure, set up
+    * it's dispatch table. */
+   if ((ret = nc_def_user_format(NC_UDF1F, &UDF1_DISPATCH_FUNC, NULL)))
+      return ret;
+#endif /* USE_UDF0 */
+    
+#ifdef LOGGING
+   if(getenv(NCLOGLEVELENV) != NULL) {
+   char* slevel = getenv(NCLOGLEVELENV);
+   long level = atol(slevel);
+   if(level >= 0)
+      nc_set_log_level((int)level);
+}
+#endif
+   return ret;
 }
 
+/**
+ * @internal Finalize netCDF-4.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
+ */
 int
 NC4_finalize(void)
 {

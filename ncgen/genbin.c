@@ -198,7 +198,7 @@ genbin_defineglobalspecials(void)
 static void
 genbin_definespecialattributes(Symbol* var)
 {
-    int stat;
+    int stat = NC_NOERR;
     Specialdata* special = &var->var.special;
     if(special->flags & _STORAGE_FLAG) {
         int storage = special->_Storage;
@@ -239,6 +239,33 @@ genbin_definespecialattributes(Symbol* var)
                                  var->ncid,
 		                 (special->_Fill?NC_FILL:NC_NOFILL),
                                  NULL);
+        check_err(stat,__LINE__,__FILE__);
+    }
+    if(special->flags & _FILTER_FLAG) {
+	/* Special check for alternate way to specify _Deflate */
+	if(special->_FilterID == ZIP_ID) {
+	    unsigned int level;
+	    if(special->nparams == 0 || special->_FilterParams == NULL)
+		level = 9; /* default */
+	    else
+		level = special->_FilterParams[0];
+	    if(level > 9)
+		derror("Illegal deflate level");
+	    else {
+	        stat = nc_def_var_deflate(var->container->ncid,
+	                var->ncid,
+	                (special->_Shuffle == 1?1:0),
+	                (level > 0?1:0),
+			level);
+	    }
+	} else {
+	    stat = nc_def_var_filter(var->container->ncid,
+			var->ncid,
+			special->_FilterID,
+			special->nparams,
+			special->_FilterParams
+			);
+	}
         check_err(stat,__LINE__,__FILE__);
     }
 }
@@ -356,6 +383,7 @@ genbin_defineattr(Symbol* asym)
     Bytebuffer* databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_attrdata(asym,bin_generator,(Writer)genbin_write,databuf);
+    bbFree(databuf);
 }
 
 
@@ -368,6 +396,7 @@ genbin_definevardata(Symbol* vsym)
     databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_vardata(vsym,bin_generator,(Writer)genbin_write,databuf);
+    bbFree(databuf);
 }
 
 static int
@@ -430,7 +459,7 @@ static int
 genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
            int rank, size_t* start, size_t* count)
 {
-    int stat;
+    int stat = NC_NOERR;
     size_t len;
     Datalist* list;
     int varid, grpid, typid;

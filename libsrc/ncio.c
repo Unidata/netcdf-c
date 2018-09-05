@@ -3,7 +3,10 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include <stdlib.h>
 
 #include "netcdf.h"
@@ -27,14 +30,12 @@ extern int ffio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,
 extern int ffio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 #endif
 
-#ifdef USE_DISKLESS
 #  ifdef USE_MMAP
      extern int mmapio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,void** const);
      extern int mmapio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 #  endif
      extern int memio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,void** const);
      extern int memio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
-#endif
 
 int
 ncio_create(const char *path, int ioflags, size_t initialsz,
@@ -42,16 +43,14 @@ ncio_create(const char *path, int ioflags, size_t initialsz,
 		       void* parameters,
                        ncio** iopp, void** const mempp)
 {
-#ifdef USE_DISKLESS
-    if(fIsSet(ioflags,NC_DISKLESS)) {
+    if(fIsSet(ioflags,NC_INMEMORY)) {
 #  ifdef USE_MMAP
-      if(fIsSet(ioflags,NC_MMAP))
+      if(fIsSet(ioflags,NC_MMAP) && fIsSet(ioflags, NC_DISKLESS))
         return mmapio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
       else
 #  endif /*USE_MMAP*/
         return memio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
     }
-#endif
 
 #ifdef USE_STDIO
     return stdio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
@@ -69,18 +68,16 @@ ncio_open(const char *path, int ioflags,
                      ncio** iopp, void** const mempp)
 {
     /* Diskless open has the following constraints:
-       1. file must be classic version 1 or 2
+       1. file must be classic version 1 or 2 or 5
      */
-#ifdef USE_DISKLESS
-    if(fIsSet(ioflags,NC_DISKLESS)) {
+    if(fIsSet(ioflags,NC_INMEMORY)) {
 #  ifdef USE_MMAP
-      if(fIsSet(ioflags,NC_MMAP))
+      if(fIsSet(ioflags,NC_MMAP) && fIsSet(ioflags, NC_DISKLESS))
         return mmapio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
       else
 #  endif /*USE_MMAP*/
         return memio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
     }
-#endif
 #ifdef USE_STDIO
     return stdio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
 #elif defined(USE_FFIO)
@@ -94,44 +91,44 @@ ncio_open(const char *path, int ioflags,
 /* wrapper functions for the ncio dispatch table */
 
 int
-ncio_rel(ncio *const nciop, off_t offset, int rflags)
+ncio_rel(ncio* const nciop, off_t offset, int rflags)
 {
     return nciop->rel(nciop,offset,rflags);
 }
 
 int
-ncio_get(ncio *const nciop, off_t offset, size_t extent,
+ncio_get(ncio* const nciop, off_t offset, size_t extent,
 			int rflags, void **const vpp)
 {
     return nciop->get(nciop,offset,extent,rflags,vpp);
 }
 
 int
-ncio_move(ncio *const nciop, off_t to, off_t from, size_t nbytes, int rflags)
+ncio_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int rflags)
 {
     return nciop->move(nciop,to,from,nbytes,rflags);
 }
 
 int
-ncio_sync(ncio *const nciop)
+ncio_sync(ncio* const nciop)
 {
     return nciop->sync(nciop);
 }
 
 int
-ncio_filesize(ncio *nciop, off_t *filesizep)
+ncio_filesize(ncio* const nciop, off_t *filesizep)
 {
     return nciop->filesize(nciop,filesizep);
 }
 
 int
-ncio_pad_length(ncio* nciop, off_t length)
+ncio_pad_length(ncio* const nciop, off_t length)
 {
     return nciop->pad_length(nciop,length);
 }
 
 int
-ncio_close(ncio *nciop, int doUnlink)
+ncio_close(ncio* const nciop, int doUnlink)
 {
     /* close and release all resources associated
        with nciop, including nciop

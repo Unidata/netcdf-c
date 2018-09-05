@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "ncdap.h"
+#include "dapincludes.h"
 #include "dapdump.h"
 
 /*
@@ -381,7 +381,7 @@ iscacheableconstraint(DCEconstraint* con)
     int i;
     if(con == NULL) return 1;
     if(con->selections != NULL && nclistlength(con->selections) > 0)
-	return 0; /* cant deal with selections */
+	return 0; /* can't deal with selections */
     for(i=0;i<nclistlength(con->projections);i++) {
         if(!iscacheableprojection((DCEprojection*)nclistget(con->projections,i)))
 	    return 0;

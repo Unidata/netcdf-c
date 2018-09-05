@@ -8,8 +8,6 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include "ncglobal.h"
 #include "ncdispatch.h"
 
-#undef VARS_USES_VARM
-#ifndef VARS_USES_VARM
 struct PUTodometer {
     int            rank;
     size_t         index[NC_MAX_VAR_DIMS];
@@ -19,10 +17,19 @@ struct PUTodometer {
     size_t         stop[NC_MAX_VAR_DIMS];
 };
 
+/**
+ * @internal Initialize odometer.
+ *
+ * @param odom Pointer to odometer.
+ * @param rank
+ * @param start Start indices.
+ * @param edges Counts.
+ * @param stride Strides.
+ *
+ */
 static void
-odom_init(struct PUTodometer* odom,
-	    int rank,
-	    const size_t* start, const size_t* edges, const ptrdiff_t* stride)
+odom_init(struct PUTodometer* odom, int rank, const size_t* start,
+          const size_t* edges, const ptrdiff_t* stride)
 {
     int i;
     memset(odom,0,sizeof(struct PUTodometer));
@@ -37,12 +44,26 @@ odom_init(struct PUTodometer* odom,
     }
 }
 
+/**
+ * @internal Return true if there is more.
+ *
+ * @param odom Pointer to odometer.
+ *
+ * @return True if there is more, 0 otherwise.
+ */
 static int
 odom_more(struct PUTodometer* odom)
 {
     return (odom->index[0] < odom->stop[0]);
 }
 
+/**
+ * @internal Return true if there is more.
+ *
+ * @param odom Pointer to odometer.
+ *
+ * @return True if there is more, 0 otherwise.
+ */
 static int
 odom_next(struct PUTodometer* odom)
 {
@@ -56,7 +77,6 @@ odom_next(struct PUTodometer* odom)
     }
     return 1;
 }
-#endif
 
 /** \internal
 \ingroup variables
@@ -66,18 +86,18 @@ NC_put_vara(int ncid, int varid, const size_t *start,
 	    const size_t *edges, const void *value, nc_type memtype)
 {
    NC* ncp;
+   size_t *my_count = (size_t *)edges;
+
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   if(edges == NULL) {
-      size_t shape[NC_MAX_VAR_DIMS];
-      int ndims;
-      stat = nc_inq_varndims(ncid, varid, &ndims);
+
+   if(start == NULL || edges == NULL) {
+      stat = NC_check_nulls(ncid, varid, start, &my_count, NULL);
       if(stat != NC_NOERR) return stat;
-      stat = NC_getshape(ncid, varid, ndims, shape);
-      if(stat != NC_NOERR) return stat;
-      return ncp->dispatch->put_vara(ncid, varid, start, shape, value, memtype);
-   } else
-      return ncp->dispatch->put_vara(ncid, varid, start, edges, value, memtype);
+   }
+   stat = ncp->dispatch->put_vara(ncid, varid, start, my_count, value, memtype);
+   if(edges == NULL) free(my_count);
+   return stat;
 }
 
 /** \internal
@@ -113,13 +133,6 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 	    const size_t * edges, const ptrdiff_t * stride,
 	    const void *value0, nc_type memtype)
 {
-#ifdef VARS_USES_VARM
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->put_varm(ncid,varid,start,edges,stride,NULL,value0,memtype);
-#else
   /* Rebuilt put_vars code to simplify and avoid use of put_varm */
 
    int status = NC_NOERR;
@@ -129,9 +142,9 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    nc_type vartype = NC_NAT;
    NC* ncp;
    size_t vartypelen;
+   size_t nels;
    int memtypelen;
    const char* value = (const char*)value0;
-   size_t numrecs;
    int nrecdims;                /* number of record dims for a variable */
    int is_recdim[NC_MAX_VAR_DIMS]; /* for variable's dimensions */
    size_t varshape[NC_MAX_VAR_DIMS];
@@ -172,10 +185,11 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    status = nc_inq_varndims(ncid, varid, &rank);
    if(status != NC_NOERR) return status;
 
+   /* Start array is always required for non-scalar vars. */
+   if(rank > 0 && start == NULL)
+      return NC_EINVALCOORDS;
+
    /* Get variable dimension sizes */
-#if 0
-   isrecvar = NC_is_recvar(ncid,varid,&numrecs);
-#endif
    status = NC_inq_recvar(ncid,varid,&nrecdims,is_recdim);
    if(status != NC_NOERR) return status;
    isrecvar = (nrecdims > 0);
@@ -194,9 +208,26 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 
    /* Do various checks and fixups on start/edges/stride */
    isstride1 = 1; /* assume so */
+   nels = 1;
    for(i=0;i<rank;i++) {
 	size_t dimlen;
 	mystart[i] = (start == NULL ? 0 : start[i]);
+#if 0
+	dimlen = (i == 0 && isrecvar ? numrecs : varshape[i]);
+	if(i == 0 && isrecvar) {/*do nothing*/}
+#else
+        /* illegal value checks */
+	dimlen = varshape[i];
+	if(is_recdim[i]) {/*do nothing*/}
+#endif
+        else {
+	  /* mystart is unsigned, will never be < 0 */
+#ifdef RELAX_COORD_BOUND
+	  if (mystart[i] > dimlen) return NC_EINVALCOORDS;
+#else
+          if (mystart[i] >= dimlen) return NC_EINVALCOORDS;
+#endif
+       }
 	if(edges == NULL) {
 #if 0
 	   if(i == 0 && isrecvar)
@@ -209,35 +240,38 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 	      myedges[i] = varshape[i] - mystart[i];
 	} else
 	    myedges[i] = edges[i];
-	if(myedges[i] == 0)
-	    return NC_NOERR; /* cannot write anything */
+#ifdef RELAX_COORD_BOUND
+	if(!is_recdim[i]) {
+	  if (mystart[i] == dimlen && myedges[i] > 0)
+              return NC_EINVALCOORDS;
+        }
+#endif
+	if(!is_recdim[i]) {
+          /* myediges is unsigned, will never be < 0 */
+	  if(mystart[i] + myedges[i] > dimlen)
+	    return NC_EEDGE;
+        }
 	mystride[i] = (stride == NULL ? 1 : stride[i]);
 	if(mystride[i] <= 0
 	   /* cast needed for braindead systems with signed size_t */
            || ((unsigned long) mystride[i] >= X_INT_MAX))
            return NC_ESTRIDE;
   	if(mystride[i] != 1) isstride1 = 0;
-        /* illegal value checks */
-#if 0
-	dimlen = (i == 0 && isrecvar ? numrecs : varshape[i]);
-	if(i == 0 && isrecvar) {/*do nothing*/}
-#else
-	dimlen = varshape[i];
-	if(is_recdim[i]) {/*do nothing*/}
-#endif
-        else {
-	  /* mystart is unsigned, will never be < 0 */
-	  if(mystart[i] > dimlen)
-	    return NC_EINVALCOORDS;
-          /* myediges is unsigned, will never be < 0 */
-	  if(mystart[i] + myedges[i] > dimlen)
-	    return NC_EEDGE;
-       }
+        nels *= myedges[i];
    }
+   
    if(isstride1) {
       return NC_put_vara(ncid, varid, mystart, myedges, value, memtype);
    }
 
+   if(nels == 0) {
+      /* This should be here instead of before NC_put_vara call to 
+       * avoid hang in parallel write for single stride.
+       * Still issue with parallel hang if stride > 1
+       */
+      return NC_NOERR; /* cannot write anything */
+   }
+	   
    /* Initial version uses and odometer to walk the variable
       and read each value one at a time. This can later be optimized
       to read larger chunks at a time.
@@ -262,7 +296,6 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
       odom_next(&odom);
    }
    return status;
-#endif
 }
 
 /** \internal
@@ -385,7 +418,7 @@ NCDEFAULT_put_varm(
       mymap = mystride + varndims;
 
       /*
-       * Initialize I/O parameters.
+       * Check start, edges
        */
       for (idim = maxidim; idim >= 0; --idim)
       {
@@ -393,17 +426,44 @@ NCDEFAULT_put_varm(
 	    ? start[idim]
 	    : 0;
 
+	 myedges[idim] = edges != NULL
+	    ? edges[idim]
+	    : idim == 0 && isrecvar
+    	        ? numrecs - mystart[idim]
+	        : varshape[idim] - mystart[idim];
+      }
+
+      for (idim = isrecvar; idim <= maxidim; ++idim)
+      {
+#ifdef RELAX_COORD_BOUND
+	 if (mystart[idim] > varshape[idim] ||
+	    (mystart[idim] == varshape[idim] && myedges[idim] > 0))
+#else
+         if (mystart[idim] >= varshape[idim])
+#endif
+	 {
+	    status = NC_EINVALCOORDS;
+	    goto done;
+	 }
+
+	 if (mystart[idim] + myedges[idim] > varshape[idim])
+	 {
+	    status = NC_EEDGE;
+	    goto done;
+	 }
+      }
+
+      /*
+       * Initialize I/O parameters.
+       */
+      for (idim = maxidim; idim >= 0; --idim)
+      {
 	 if (edges != NULL && edges[idim] == 0)
 	 {
 	    status = NC_NOERR;    /* read/write no data */
 	    goto done;
 	 }
 
-	 myedges[idim] = edges != NULL
-	    ? edges[idim]
-	    : idim == 0 && isrecvar
-    	        ? numrecs - mystart[idim]
-	        : varshape[idim] - mystart[idim];
 	 mystride[idim] = stride != NULL
 	    ? stride[idim]
 	    : 1;
@@ -416,23 +476,6 @@ NCDEFAULT_put_varm(
 	 iocount[idim] = 1;
 	 length[idim] = ((size_t)mymap[idim]) * myedges[idim];
 	 stop[idim] = mystart[idim] + myedges[idim] * (size_t)mystride[idim];
-      }
-
-      /*
-       * Check start, edges
-       */
-      for (idim = isrecvar; idim < maxidim; ++idim)
-      {
-	 if (mystart[idim] > varshape[idim])
-	 {
-	    status = NC_EINVALCOORDS;
-	    goto done;
-	 }
-	 if (mystart[idim] + myedges[idim] > varshape[idim])
-	 {
-	    status = NC_EEDGE;
-	    goto done;
-	 }
       }
 
       /* Lower body */
@@ -498,13 +541,24 @@ NC_put_vars(int ncid, int varid, const size_t *start,
 	    const void *value, nc_type memtype)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
+   size_t *my_count = (size_t *)edges;
+   ptrdiff_t *my_stride = (ptrdiff_t *)stride;
+   int stat;
 
+   stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-#ifdef USE_NETCDF4
-   if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
-#endif
-   return ncp->dispatch->put_vars(ncid,varid,start,edges,stride,value,memtype);
+
+   /* Handle any NULL parameters. */
+   if(start == NULL || edges == NULL || stride == NULL) {
+      stat = NC_check_nulls(ncid, varid, start, &my_count, &my_stride);
+      if(stat != NC_NOERR) return stat;
+   }
+
+   stat = ncp->dispatch->put_vars(ncid, varid, start, my_count, my_stride,
+                                  value, memtype);
+   if(edges == NULL) free(my_count);
+   if(stride == NULL) free(my_stride);
+   return stat;
 }
 
 /** \internal
@@ -516,13 +570,24 @@ NC_put_varm(int ncid, int varid, const size_t *start,
 	    const void *value, nc_type memtype)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
+   size_t *my_count = (size_t *)edges;
+   ptrdiff_t *my_stride = (ptrdiff_t *)stride;
+   int stat;
 
+   stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-#ifdef USE_NETCDF4
-   if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
-#endif
-   return ncp->dispatch->put_varm(ncid,varid,start,edges,stride,map,value,memtype);
+
+   /* Handle any NULL parameters. */
+   if(start == NULL || edges == NULL || stride == NULL) {
+      stat = NC_check_nulls(ncid, varid, start, &my_count, &my_stride);
+      if(stat != NC_NOERR) return stat;
+   }
+
+   stat = ncp->dispatch->put_varm(ncid, varid, start, my_count, my_stride,
+                                  map, value, memtype);
+   if(edges == NULL) free(my_count);
+   if(stride == NULL) free(my_stride);
+   return stat;
 }
 
 /** \name Writing Data to Variables
@@ -568,6 +633,7 @@ allocated by the user before this function is called.
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 /**@{*/
 int
@@ -595,9 +661,6 @@ int
 nc_put_vara_schar(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const signed char *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      NC_BYTE);
 }
@@ -606,9 +669,6 @@ int
 nc_put_vara_uchar(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const unsigned char *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      T_uchar);
 }
@@ -617,9 +677,6 @@ int
 nc_put_vara_short(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const short *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      NC_SHORT);
 }
@@ -628,9 +685,6 @@ int
 nc_put_vara_int(int ncid, int varid, const size_t *startp,
 		const size_t *countp, const int *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      NC_INT);
 }
@@ -639,9 +693,6 @@ int
 nc_put_vara_long(int ncid, int varid, const size_t *startp,
 		 const size_t *countp, const long *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      T_long);
 }
@@ -650,9 +701,6 @@ int
 nc_put_vara_float(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const float *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      T_float);
 }
@@ -661,9 +709,6 @@ int
 nc_put_vara_double(int ncid, int varid, const size_t *startp,
 		   const size_t *countp, const double *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      T_double);
 }
@@ -672,9 +717,6 @@ int
 nc_put_vara_ubyte(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const unsigned char *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      T_ubyte);
 }
@@ -683,9 +725,6 @@ int
 nc_put_vara_ushort(int ncid, int varid, const size_t *startp,
 		   const size_t *countp, const unsigned short *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      T_ushort);
 }
@@ -694,9 +733,6 @@ int
 nc_put_vara_uint(int ncid, int varid, const size_t *startp,
 		 const size_t *countp, const unsigned int *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      T_uint);
 }
@@ -705,9 +741,6 @@ int
 nc_put_vara_longlong(int ncid, int varid, const size_t *startp,
 		     const size_t *countp, const long long *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      T_longlong);
 }
@@ -716,9 +749,6 @@ int
 nc_put_vara_ulonglong(int ncid, int varid, const size_t *startp,
 		      const size_t *countp, const unsigned long long *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      NC_UINT64);
 }
@@ -728,9 +758,6 @@ int
 nc_put_vara_string(int ncid, int varid, const size_t *startp,
 		   const size_t *countp, const char* *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vara(ncid, varid, startp, countp, (void *)op,
 		      NC_STRING);
 }
@@ -758,6 +785,7 @@ nc_inq_ncid().
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 /**@{*/
 int
@@ -769,117 +797,78 @@ nc_put_var1(int ncid, int varid, const size_t *indexp, const void *op)
 int
 nc_put_var1_text(int ncid, int varid, const size_t *indexp, const char *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void *)op, NC_CHAR);
 }
 
 int
 nc_put_var1_schar(int ncid, int varid, const size_t *indexp, const signed char *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void *)op, NC_BYTE);
 }
 
 int
 nc_put_var1_uchar(int ncid, int varid, const size_t *indexp, const unsigned char *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void *)op, NC_UBYTE);
 }
 
 int
 nc_put_var1_short(int ncid, int varid, const size_t *indexp, const short *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void *)op, NC_SHORT);
 }
 
 int
 nc_put_var1_int(int ncid, int varid, const size_t *indexp, const int *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void *)op, NC_INT);
 }
 
 int
 nc_put_var1_long(int ncid, int varid, const size_t *indexp, const long *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void*)op, longtype);
 }
 
 int
 nc_put_var1_float(int ncid, int varid, const size_t *indexp, const float *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void*)op, NC_FLOAT);
 }
 
 int
 nc_put_var1_double(int ncid, int varid, const size_t *indexp, const double *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void *)op, NC_DOUBLE);
 }
 
 int
 nc_put_var1_ubyte(int ncid, int varid, const size_t *indexp, const unsigned char *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void *)op, NC_UBYTE);
 }
 
 int
 nc_put_var1_ushort(int ncid, int varid, const size_t *indexp, const unsigned short *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void *)op, NC_USHORT);
 }
 
 int
 nc_put_var1_uint(int ncid, int varid, const size_t *indexp, const unsigned int *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void *)op, NC_UINT);
 }
 
 int
 nc_put_var1_longlong(int ncid, int varid, const size_t *indexp, const long long *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void *)op, NC_INT64);
 }
 
 int
 nc_put_var1_ulonglong(int ncid, int varid, const size_t *indexp, const unsigned long long *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void *)op, NC_UINT64);
 }
 
@@ -887,9 +876,6 @@ nc_put_var1_ulonglong(int ncid, int varid, const size_t *indexp, const unsigned 
 int
 nc_put_var1_string(int ncid, int varid, const size_t *indexp, const char* *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var1(ncid, varid, indexp, (void*)op, NC_STRING);
 }
 #endif /*USE_NETCDF4*/
@@ -939,6 +925,7 @@ nc_inq_ncid().
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 /**@{*/
 int
@@ -950,117 +937,78 @@ nc_put_var(int ncid, int varid, const void *op)
 int
 nc_put_var_text(int ncid, int varid, const char *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,NC_CHAR);
 }
 
 int
 nc_put_var_schar(int ncid, int varid, const signed char *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,NC_BYTE);
 }
 
 int
 nc_put_var_uchar(int ncid, int varid, const unsigned char *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,T_uchar);
 }
 
 int
 nc_put_var_short(int ncid, int varid, const short *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,NC_SHORT);
 }
 
 int
 nc_put_var_int(int ncid, int varid, const int *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,NC_INT);
 }
 
 int
 nc_put_var_long(int ncid, int varid, const long *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,T_long);
 }
 
 int
 nc_put_var_float(int ncid, int varid, const float *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,T_float);
 }
 
 int
 nc_put_var_double(int ncid, int varid, const double *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,T_double);
 }
 
 int
 nc_put_var_ubyte(int ncid, int varid, const unsigned char *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,T_ubyte);
 }
 
 int
 nc_put_var_ushort(int ncid, int varid, const unsigned short *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,T_ushort);
 }
 
 int
 nc_put_var_uint(int ncid, int varid, const unsigned int *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,T_uint);
 }
 
 int
 nc_put_var_longlong(int ncid, int varid, const long long *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,T_longlong);
 }
 
 int
 nc_put_var_ulonglong(int ncid, int varid, const unsigned long long *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,NC_UINT64);
 }
 
@@ -1068,9 +1016,6 @@ nc_put_var_ulonglong(int ncid, int varid, const unsigned long long *op)
 int
 nc_put_var_string(int ncid, int varid, const char* *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_var(ncid,varid,(void*)op,NC_STRING);
 }
 #endif /*USE_NETCDF4*/
@@ -1104,20 +1049,15 @@ allocated by the user before this function is called.
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 /**@{*/
 int
-nc_put_vars (int ncid, int varid, const size_t *startp,
+nc_put_vars(int ncid, int varid, const size_t *startp,
 	     const size_t *countp, const ptrdiff_t *stridep,
 	     const void *op)
 {
-   NC *ncp;
-   int stat = NC_NOERR;
-
-   if ((stat = NC_check_id(ncid, &ncp)))
-       return stat;
-   return ncp->dispatch->put_vars(ncid, varid, startp, countp,
-				  stridep, op, NC_NAT);
+   return NC_put_vars(ncid, varid, startp, countp, stridep, op, NC_NAT);
 }
 
 int
@@ -1125,9 +1065,6 @@ nc_put_vars_text(int ncid, int varid, const size_t *startp,
 		 const size_t *countp, const ptrdiff_t *stridep,
 		 const char *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep,(void*)op,NC_CHAR);
 }
@@ -1137,9 +1074,6 @@ nc_put_vars_schar(int ncid, int varid, const size_t *startp,
 		  const size_t *countp, const ptrdiff_t *stridep,
 		  const signed char *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep,(void*)op,NC_BYTE);
 }
@@ -1150,9 +1084,6 @@ nc_put_vars_uchar(int ncid, int varid,
 		  const ptrdiff_t *stridep,
 		  const unsigned char *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep, (void *)op, T_uchar);
 }
@@ -1163,9 +1094,6 @@ nc_put_vars_short(int ncid, int varid,
 		  const ptrdiff_t *stridep,
 		  const short *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep, (void *)op, NC_SHORT);
 }
@@ -1176,9 +1104,6 @@ nc_put_vars_int(int ncid, int varid,
 		const ptrdiff_t *stridep,
 		const int *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep, (void *)op, NC_INT);
 }
@@ -1189,9 +1114,6 @@ nc_put_vars_long(int ncid, int varid,
 		 const ptrdiff_t *stridep,
 		 const long *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep, (void *)op, T_long);
 }
@@ -1202,9 +1124,6 @@ nc_put_vars_float(int ncid, int varid,
 		  const ptrdiff_t *stridep,
 		  const float *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep, (void *)op, T_float);
 }
@@ -1215,9 +1134,6 @@ nc_put_vars_double(int ncid, int varid,
 		   const ptrdiff_t *stridep,
 		   const double *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep, (void *)op, T_double);
 }
@@ -1228,9 +1144,6 @@ nc_put_vars_ubyte(int ncid, int varid,
 		  const ptrdiff_t *stridep,
 		  const unsigned char *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep, (void *)op, T_ubyte);
 }
@@ -1241,9 +1154,6 @@ nc_put_vars_ushort(int ncid, int varid,
 		   const ptrdiff_t *stridep,
 		   const unsigned short *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep, (void *)op, T_ushort);
 }
@@ -1254,9 +1164,6 @@ nc_put_vars_uint(int ncid, int varid,
 		 const ptrdiff_t *stridep,
 		 const unsigned int *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep, (void *)op, T_uint);
 }
@@ -1267,9 +1174,6 @@ nc_put_vars_longlong(int ncid, int varid,
 		     const ptrdiff_t *stridep,
 		     const long long *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep, (void *)op, T_longlong);
 }
@@ -1280,9 +1184,6 @@ nc_put_vars_ulonglong(int ncid, int varid,
 		      const ptrdiff_t *stridep,
 		      const unsigned long long *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp,
 		      stridep, (void *)op, NC_UINT64);
 }
@@ -1294,9 +1195,6 @@ nc_put_vars_string(int ncid, int varid,
 		   const ptrdiff_t *stridep,
 		   const char**op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_vars(ncid, varid, startp, countp, stridep,
 		      (void *)op, NC_STRING);
 }
@@ -1344,20 +1242,15 @@ allocated by the user before this function is called.
 \returns ::NC_ERANGE One or more of the values are out of range.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
+\author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 /**@{*/
 int
-nc_put_varm (int ncid, int varid, const size_t *startp,
+nc_put_varm(int ncid, int varid, const size_t *startp,
 	     const size_t *countp, const ptrdiff_t *stridep,
 	     const ptrdiff_t *imapp, const void *op)
 {
-   NC *ncp;
-   int stat = NC_NOERR;
-
-   if ((stat = NC_check_id(ncid, &ncp)))
-       return stat;
-   return ncp->dispatch->put_varm(ncid, varid, startp, countp,
-				  stridep, imapp, op, NC_NAT);
+   return NC_put_varm(ncid, varid, startp, countp, stridep, imapp, op, NC_NAT);
 }
 
 int
@@ -1365,9 +1258,6 @@ nc_put_varm_text(int ncid, int varid, const size_t *startp,
 		 const size_t *countp, const ptrdiff_t *stridep,
 		 const ptrdiff_t *imapp, const char *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, NC_CHAR);
 }
@@ -1378,9 +1268,6 @@ nc_put_varm_schar(int ncid, int varid,
 		  const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		  const signed char *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, NC_BYTE);
 }
@@ -1391,9 +1278,6 @@ nc_put_varm_uchar(int ncid, int varid,
 		  const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		  const unsigned char *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, T_uchar);
 }
@@ -1404,9 +1288,6 @@ nc_put_varm_short(int ncid, int varid,
 		  const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		  const short *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, NC_SHORT);
 }
@@ -1417,9 +1298,6 @@ nc_put_varm_int(int ncid, int varid,
 		const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		const int *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, NC_INT);
 }
@@ -1430,9 +1308,6 @@ nc_put_varm_long(int ncid, int varid,
 		 const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		 const long *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, T_long);
 }
@@ -1443,9 +1318,6 @@ nc_put_varm_float(int ncid, int varid,
 		  const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		  const float *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, T_float);
 }
@@ -1456,9 +1328,6 @@ nc_put_varm_double(int ncid, int varid,
 		   const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		   const double *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, T_double);
 }
@@ -1469,9 +1338,6 @@ nc_put_varm_ubyte(int ncid, int varid,
 		  const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		  const unsigned char *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, T_ubyte);
 }
@@ -1482,9 +1348,6 @@ nc_put_varm_ushort(int ncid, int varid,
 		   const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		   const unsigned short *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, T_ushort);
 }
@@ -1495,9 +1358,6 @@ nc_put_varm_uint(int ncid, int varid,
 		 const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		 const unsigned int *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, T_uint);
 }
@@ -1508,9 +1368,6 @@ nc_put_varm_longlong(int ncid, int varid,
 		     const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		     const long long *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, T_longlong);
 }
@@ -1521,9 +1378,6 @@ nc_put_varm_ulonglong(int ncid, int varid,
 		      const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		      const unsigned long long *op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, NC_UINT64);
 }
@@ -1535,14 +1389,10 @@ nc_put_varm_string(int ncid, int varid,
 		   const ptrdiff_t *stridep, const ptrdiff_t *imapp,
 		   const char**op)
 {
-   NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
    return NC_put_varm(ncid, varid, startp, countp, stridep, imapp,
 		      (void *)op, NC_STRING);
 }
 #endif /*USE_NETCDF4*/
 /**\} */
-
 
 /*! \} */ /*End of named group... */

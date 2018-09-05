@@ -3,7 +3,7 @@
    copying and redistribution conditions.
  *********************************************************************/
 
-#include <config.h>
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -72,9 +72,13 @@ find_in_NCList(int ext_ncid)
    NC* f = NULL;
    unsigned int ncid = ((unsigned int)ext_ncid) >> ID_SHIFT;
    NCLOCK();
-   if(nc_global->files.boundary > 1 && ncid < NCFILELISTLENGTH)
-	f = nc_global->files.filelist[ncid];
+   if(numfiles > 0 && nc_filelist != NULL && ncid < NCFILELISTLENGTH)
+	f = nc_filelist[ncid];
    NCUNLOCK();
+
+   /* for classic files, ext_ncid must be a multiple of (1<<ID_SHIFT) */
+   if (f != NULL && f->model == NC_FORMATX_NC3 && (ext_ncid % (1<<ID_SHIFT)))
+       return NULL;
    return f;
 }
 

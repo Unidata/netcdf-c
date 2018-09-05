@@ -1,44 +1,48 @@
 #!/bin/sh
 
+if test "x$SETX" = x1 ; then set -x ; fi
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
 set -e
 
-#X="-x"
-#grind="checkleaks"
+. ${srcdir}/tst_utils.sh
 
-# if this is part of a distcheck action, then this script
-# will be executed in a different directory
-# than the one containing it; so capture the path to this script
-# as the location of the source directory.
+# get the list of test files
+. ${srcdir}/tst_filelists.sh
 
+# Test executor
+dotests() {
+for x in ${FILETESTS} ; do
+  url="${PARAMS}${FILEURL}/$x"
+  if test "x$quiet" = "x0" ; then echo "*** Testing: ${x} ; url=$url" ; fi
+  # determine if this is an xfailtest
+  isxfail=0
+  if test "x${XFAILTESTS}" != x ; then
+    if IGNORE=`echo -n " ${XFAILTESTS} " | fgrep " ${x} "`; then isxfail=1; fi
+  fi
+  ok=1
+  if ${NCDUMP} ${FLAGS} "${url}" | sed 's/\\r//g' > ${x}.dmp ; then ok=$ok; else ok=0; fi
+  # compare with expected
+  if diff -w ${EXPECTED}/${x}.dmp ${x}.dmp  ; then ok=$ok; else ok=0; fi
+   processstatus
+done
+}
 
-if test "x$topsrcdir" != x ; then
-  srcdir="$topsrcdir/ncdap_test"
-else
-  srcdir=`dirname $0`
-fi
+TITLE="DAP to netCDF-3 translation using files"
+EXPECTED="$expected3"
+RESULTSDIR="file_results"
 
-#set -x
-# compute the build directory
-# Do a hack to remove e.g. c: for MSYS
-cd `pwd`
-builddir=`pwd`/..
+rm -fr ${RESULTSDIR}
+mkdir "${RESULTSDIR}"
 
-# Hack for MSYS
-cd $srcdir
-srcdir=`pwd`
-if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
-    srcdir=`pwd | sed 's/\/c\//c:\//g'`
-    builddir=`echo $builddir | sed 's/\/c\//c:\//g'`
+echo "*** Testing $TITLE "
+echo "        Base URL: ${TESTURL}"
+echo "        Client Parameters: ${PARAMS}"
 
-    srcdir=`pwd | sed 's/\/g\//g:\//g'`
-    builddir=`echo $builddir | sed 's/\/g\//g:\//g'`
-fi
-
-
-
-cd ${builddir}/ncdap_test
-
-
-#exec sh $X ${srcdir}/tst_ncdap.sh "$srcdir" "$builddir" "file3" $grind
-exec sh $X ${srcdir}/tst_ncdap.sh "$srcdir" "$builddir" "dds3" $grind
-
+cd ${RESULTSDIR}
+dotests file
+cd ..
+summarize
+cleanup
+doexit

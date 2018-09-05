@@ -4,10 +4,10 @@
 
    Create a compressible test file for nccopy to compress.
 
-   $Id$
+   Russ Rew, Ward Fisher, Dennis Heimbigner
 */
 
-#include <config.h>
+#include "config.h"
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <stdlib.h>

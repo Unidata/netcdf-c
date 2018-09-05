@@ -5,10 +5,14 @@
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
+
 #include "dapparselex.h"
 #include "dapy.h"
 
 #undef URLCVT /* NEVER turn this on */
+
+/* Do we %xx decode all or part of a DAP Identifier: see dapdecode() */
+#define DECODE_PARTIAL
 
 #define DAP2ENCODE
 #ifdef DAP2ENCODE
@@ -36,16 +40,28 @@ static char* ddsworddelims =
   "{}[]:;=,";
 
 /* Define 1 and > 1st legal characters */
+/* Note: for some reason I added # and removed !~'"
+   what was I thinking?
+*/
 static char* ddswordchars1 =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\.*!~'\"";
 static char* ddswordcharsn =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*#";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\.*!~'\"";
+
+/* This includes sharp and colon for historical reasons */
 static char* daswordcharsn =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*#:";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\.*#:!~'\"";
+
+/* Need to remove '.' to allow for fqns */
 static char* cewordchars1 =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\*!~'\"";
 static char* cewordcharsn =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  "-+_/%\\*!~'\"";
 
 /* Current sets of legal characters */
 /*
@@ -119,7 +135,7 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
     YYSTYPE lval = NULL;
 
     token = 0;
-    ocbytesclear(lexstate->yytext);
+    ncbytesclear(lexstate->yytext);
     /* invariant: p always points to current char */
     for(p=lexstate->next;token==0&&(c=*p);p++) {
 	if(c == '\n') {
@@ -218,7 +234,7 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 #endif
 	    }
 	    /* Special check for Data: */
-	    tmp = ocbytescontents(lexstate->yytext);
+	    tmp = ncbytescontents(lexstate->yytext);
 	    if(strcmp(tmp,"Data")==0 && *p == ':') {
 		dapaddyytext(lexstate,*p); p++;
 		if(p[0] == '\n') {
@@ -246,18 +262,18 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 	}
     }
     lexstate->next = p;
-    strncpy(lexstate->lasttokentext,ocbytescontents(lexstate->yytext),MAX_TOKEN_LENGTH);
+    strncpy(lexstate->lasttokentext,ncbytescontents(lexstate->yytext),MAX_TOKEN_LENGTH);
     lexstate->lasttoken = token;
     if(ocdebug >= 2)
 	dumptoken(lexstate);
 
     /*Put return value onto Bison stack*/
 
-    if(ocbyteslength(lexstate->yytext) == 0)
+    if(ncbyteslength(lexstate->yytext) == 0)
         lval = NULL;
     else {
-        lval = ocbytesdup(lexstate->yytext);
-	oclistpush(lexstate->reclaim,(void*)lval);
+        lval = ncbytesdup(lexstate->yytext);
+	nclistpush(lexstate->reclaim,(void*)lval);
     }
     if(lvalp) *lvalp = lval;
     return token;      /* Return the type of the token.  */
@@ -266,7 +282,7 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 static void
 dapaddyytext(DAPlexstate* lex, int c)
 {
-    ocbytesappend(lex->yytext,c);
+    ncbytesappend(lex->yytext,c);
 }
 
 #ifndef DAP2ENCODE
@@ -283,7 +299,7 @@ tohex(int c)
 static void
 dumptoken(DAPlexstate* lexstate)
 {
-    fprintf(stderr,"TOKEN = |%s|\n",ocbytescontents(lexstate->yytext));
+    fprintf(stderr,"TOKEN = |%s|\n",ncbytescontents(lexstate->yytext));
 }
 
 /*
@@ -324,8 +340,8 @@ daplexinit(char* input, DAPlexstate** lexstatep)
     memset((void*)lexstate,0,sizeof(DAPlexstate));
     lexstate->input = strdup(input);
     lexstate->next = lexstate->input;
-    lexstate->yytext = ocbytesnew();
-    lexstate->reclaim = oclistnew();
+    lexstate->yytext = ncbytesnew();
+    lexstate->reclaim = nclistnew();
     dapsetwordchars(lexstate,0); /* Assume DDS */
 }
 
@@ -336,13 +352,13 @@ daplexcleanup(DAPlexstate** lexstatep)
     if(lexstate == NULL) return;
     if(lexstate->input != NULL) ocfree(lexstate->input);
     if(lexstate->reclaim != NULL) {
-	while(oclistlength(lexstate->reclaim) > 0) {
-	    char* word = (char*)oclistpop(lexstate->reclaim);
+	while(nclistlength(lexstate->reclaim) > 0) {
+	    char* word = (char*)nclistpop(lexstate->reclaim);
 	    if(word) free(word);
 	}
-	oclistfree(lexstate->reclaim);
+	nclistfree(lexstate->reclaim);
     }
-    ocbytesfree(lexstate->yytext);
+    ncbytesfree(lexstate->yytext);
     free(lexstate);
     *lexstatep = NULL;
 }
@@ -354,8 +370,8 @@ daplexcleanup(DAPlexstate** lexstatep)
    1. if the encoded character is in fact a legal DAP2 character
       (alphanum+"_!~*'-\"") then it is decoded, otherwise not.
 */
-#ifndef DECODE_IDENTIFIERS
-static char* decodelist =
+#ifdef DECODE_PARTIAL
+static char* decodeset = /* Specify which characters are decoded */
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_!~*'-\"";
 #endif
 
@@ -363,11 +379,11 @@ char*
 dapdecode(DAPlexstate* lexstate, char* name)
 {
     char* decoded = NULL;
-#ifdef DECODE_IDENTIFIERS
-    decoded = ocuridecode(name);
+#ifdef DECODE_PARTIAL
+    decoded = ncuridecodepartial(name,decodeset); /* Decode selected */
 #else
-    decoded = ocuridecodeonly(name,decodelist);
+    decoded = ncuridecode(name); /* Decode everything */
 #endif
-    oclistpush(lexstate->reclaim,(void*)decoded);
+    nclistpush(lexstate->reclaim,(void*)decoded);
     return decoded;
 }

@@ -2,11 +2,9 @@
  See the COPYRIGHT file for more information. */
 
 #include "config.h"
-#include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include <fcntl.h>
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "ochttp.h"
@@ -25,11 +23,7 @@ ocfetchhttpcode(CURL* curl)
     long httpcode = 200;
     CURLcode cstat = CURLE_OK;
     /* Extract the http code */
-#ifdef HAVE_CURLINFO_RESPONSE_CODE
     cstat = CURLERR(curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE,&httpcode));
-#else
-    cstat = curl_easy_getinfo(curl,CURLINFO_HTTP_CODE,&httpcode);
-#endif
     if(cstat != CURLE_OK) httpcode = 0;
     return httpcode;
 }
@@ -84,13 +78,12 @@ ocfetchurl_file(CURL* curl, const char* url, FILE* stream,
 	return OCTHROW(stat);
 
 fail:
-	oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
+	nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
 	return OCTHROW(OC_ECURL);
 }
 
 OCerror
-ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
-           struct OCcredentials* creds)
+ocfetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
 {
 	OCerror stat = OC_NOERR;
 	CURLcode cstat = CURLE_OK;
@@ -101,25 +94,6 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
 	cstat = CURLERR(CURLERR(curl_easy_setopt(curl, CURLOPT_URL, (void*)url)));
 	if (cstat != CURLE_OK)
 		goto fail;
-	
-#if 0
-	if(creds != NULL && creds->password != NULL  && creds->username != NULL) {
-	    /* Set user and password */
-#if defined (HAVE_CURLOPT_USERNAME) && defined (HAVE_CURLOPT_PASSWORD)
-	    cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_USERNAME, creds->username));
-	    if (cstat != CURLE_OK)
-		goto fail;
-	    cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_PASSWORD, creds->password));
-	    if (cstat != CURLE_OK)
-		goto fail;
-#else		
-		snprintf(tbuf,1023,"%s:%s",creds->username,creds->password);	
-		cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_USERPWD, tbuf));
-		if (cstat != CURLE_OK)
-			goto fail;
-#endif
-	}
-#endif
 
 	/* send all data to this function  */
 	cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback));
@@ -138,7 +112,7 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
 
 	if(cstat == CURLE_PARTIAL_FILE) {
 	    /* Log it but otherwise ignore */
-	    oclog(OCLOGWARN, "curl error: %s; ignored",
+	    nclog(NCLOGWARN, "curl error: %s; ignored",
 		   curl_easy_strerror(cstat));
 	    cstat = CURLE_OK;
 	}
@@ -152,17 +126,17 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
         if(cstat != CURLE_OK) goto fail;
 
 	/* Null terminate the buffer*/
-	len = ocbyteslength(buf);
-	ocbytesappend(buf, '\0');
-	ocbytessetlength(buf, len); /* dont count null in buffer size*/
+	len = ncbyteslength(buf);
+	ncbytesappend(buf, '\0');
+	ncbytessetlength(buf, len); /* don't count null in buffer size*/
 #ifdef OCDEBUG
-	oclog(OCLOGNOTE,"buffersize: %lu bytes",(off_t)ocbyteslength(buf));
+	nclog(NCLOGNOTE,"buffersize: %lu bytes",(off_t)ncbyteslength(buf));
 #endif
 
 	return OCTHROW(stat);
 
 fail:
-	oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
+	nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
 	switch (httpcode) {
 	case 401: stat = OC_EAUTH; break;
 	case 404: stat = OC_ENOFILE; break;
@@ -181,15 +155,15 @@ WriteFileCallback(void* ptr, size_t size, size_t nmemb,	void* data)
 	struct Fetchdata* fetchdata;
 	fetchdata = (struct Fetchdata*) data;
         if(realsize == 0)
-	    oclog(OCLOGWARN,"WriteFileCallback: zero sized chunk");
+	    nclog(NCLOGWARN,"WriteFileCallback: zero sized chunk");
 	count = fwrite(ptr, size, nmemb, fetchdata->stream);
 	if (count > 0) {
 		fetchdata->size += (count * size);
 	} else {
-	    oclog(OCLOGWARN,"WriteFileCallback: zero sized write");
+	    nclog(NCLOGWARN,"WriteFileCallback: zero sized write");
 	}
 #ifdef OCPROGRESS
-        oclog(OCLOGNOTE,"callback: %lu bytes",(off_t)realsize);
+        nclog(NCLOGNOTE,"callback: %lu bytes",(off_t)realsize);
 #endif
 	return count;
 }
@@ -198,28 +172,28 @@ static size_t
 WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {
 	size_t realsize = size * nmemb;
-	OCbytes* buf = (OCbytes*) data;
+	NCbytes* buf = (NCbytes*) data;
         if(realsize == 0)
-	    oclog(OCLOGWARN,"WriteMemoryCallback: zero sized chunk");
+	    nclog(NCLOGWARN,"WriteMemoryCallback: zero sized chunk");
 	/* Optimize for reading potentially large dods datasets */
-	if(!ocbytesavail(buf,realsize)) {
+	if(!ncbytesavail(buf,realsize)) {
 	    /* double the size of the packet */
-	    ocbytessetalloc(buf,2*ocbytesalloc(buf));
+	    ncbytessetalloc(buf,2*ncbytesalloc(buf));
 	}
-	ocbytesappendn(buf, ptr, realsize);
+	ncbytesappendn(buf, ptr, realsize);
 #ifdef OCPROGRESS
-        oclog(OCLOGNOTE,"callback: %lu bytes",(off_t)realsize);
+        nclog(NCLOGNOTE,"callback: %lu bytes",(off_t)realsize);
 #endif
 	return realsize;
 }
 
 #if 0
 static void
-assembleurl(DAPURL* durl, OCbytes* buf, int what)
+assembleurl(DAPURL* durl, NCbytes* buf, int what)
 {
 	encodeurltext(durl->url,buf);
 	if(what & WITHPROJ) {
-		ocbytescat(buf,"?");
+		ncbytescat(buf,"?");
 		encodeurltext(durl->projection,buf);
 	}
 	if(what & WITHSEL) encodeurltext(durl->selection,buf);
@@ -235,7 +209,7 @@ static char hexchars[16] = {
 };
 
 static void
-encodeurltext(char* text, OCbytes* buf)
+encodeurltext(char* text, NCbytes* buf)
 {
 	/* Encode the URL to handle illegal characters */
 	len = strlen(url);
@@ -251,7 +225,7 @@ encodeurltext(char* text, OCbytes* buf)
 			tmp[0] = '0'; tmp[1] = 'x';
 			tmp[2] = hexchars[hex2]; tmp[3] = hexchars[hex1];
 			tmp[4] = '\0';
-			ocbytescat(buf,tmp);
+			ncbytescat(buf,tmp);
 		} else *q++ = (char)c;
 	}
 
@@ -314,7 +288,7 @@ ocfetchlastmodified(CURL* curl, char* url, long* filetime)
     return OCTHROW(stat);
 
 fail:
-    oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
+    nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
     return OCTHROW(OC_ECURL);
 }
 
@@ -324,7 +298,7 @@ ocping(const char* url)
     int stat = OC_NOERR;
     CURLcode cstat = CURLE_OK;
     CURL* curl = NULL;
-    OCbytes* buf = NULL;
+    NCbytes* buf = NULL;
 
     /* Create a CURL instance */
     stat = occurlopen(&curl);
@@ -338,8 +312,8 @@ ocping(const char* url)
     if (cstat != CURLE_OK)
         goto done;
 
-    /* use a very short timeout: 10 seconds */
-    cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)10));
+    /* use a very short timeout: 5 seconds */
+    cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)5));
     if (cstat != CURLE_OK)
         goto done;
 
@@ -349,8 +323,8 @@ ocping(const char* url)
         goto done;
 
     /* Try to get the file */
-    buf = ocbytesnew();
-    stat = ocfetchurl(curl,url,buf,NULL,NULL);
+    buf = ncbytesnew();
+    stat = ocfetchurl(curl,url,buf,NULL);
     if(stat == OC_NOERR) {
 	/* Don't trust curl to return an error when request gets 404 */
 	long http_code = 0;
@@ -365,10 +339,10 @@ ocping(const char* url)
         goto done;
 
 done:
-    ocbytesfree(buf);
+    ncbytesfree(buf);
     occurlclose(curl);
     if(cstat != CURLE_OK) {
-        oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
+        nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
         stat = OC_EDAPSVC;
     }
     return OCTHROW(stat);

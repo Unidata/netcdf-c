@@ -1,10 +1,17 @@
 # Test c output
-T=t
-#CMD=valgrind --leak-check=full
-CMD=gdb --args
+T=tst_chunking
 
-HDF4=1
+#ARGS=./x.nc
+
+#TF=test_atomic_array.cdl
+
+#CMD=valgrind --leak-check=full
+#CMD=gdb --args
+
+#HDF4=1
 #PAR=1
+
+TD=/cygdrive/d/git/thredds/dap4/d4tests/src/test/data/resources/testfiles
 
 CFLAGS=-Wall -g -O0 -I.. -I../include
 
@@ -15,7 +22,7 @@ LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  -ldl 
 else
 ifdef HDF4
 CC=gcc
-LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lmfhdf -ldf -lz  -ldl -lm -lcurl -ljpeg
+LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  -ldl -lm -lcurl
 else
 CC=gcc
 #LDFLAGS=../liblib/.libs/libnetcdf.a  -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
@@ -27,13 +34,21 @@ endif
 
 LLP=/usr/local/lib:${LD_LIBRARY_PATH}
 
-all:: cmp
+all:: comp
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
-	${CMD} ./t
+	${CMD} ./$T ${ARGS}
 
-cmp::
+comp::
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
-	${CC} -o t ${CFLAGS} ${T}.c ${SRC} ${LDFLAGS}; \
+	${CC} -o $T ${CFLAGS} ${T}.c ${SRC} ${LDFLAGS}; \
+
+x.nc: x.cdl
+	ncgen -4 x.cdl
+
+x.cdl: ${TD}/${TF}
+	rm -f ./x.cdl
+	cat ${TD}/${TF} > ./x.cdl
+
 
 cpp::
 	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt

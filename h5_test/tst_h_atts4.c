@@ -36,7 +36,6 @@ int
 main()
 {
    printf("\n*** Checking HDF5 attribute functions for memory leaks.\n");
-#ifdef EXTRA_TESTS
    printf("*** Checking vlen of compound file...");
    {
 #define NUM_OBJ_2 2
@@ -103,7 +102,7 @@ main()
 		    H5T_NATIVE_DOUBLE) < 0) ERR;
       if (H5Tcommit(grpid, S1_TYPE_NAME, s1_typeid) < 0) ERR;
       
-      /* Create a vlen type. Its a vlen of stuct s1. */
+      /* Create a vlen type. Its a vlen of struct s1. */
       if ((vlen_typeid = H5Tvlen_create(s1_typeid)) < 0) ERR;
       if (H5Tcommit(grpid, VLEN_TYPE_NAME, vlen_typeid) < 0) ERR;
       
@@ -181,6 +180,5 @@ main()
       free(vc_out);
    }
    SUMMARIZE_ERR;
-#endif /* EXTRA_TESTS */
    FINAL_RESULTS;
 }

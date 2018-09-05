@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netcdf.h>
+#include "netcdf.h"
+#include "nctestserver.h"
 
 #define DTSTEST "/dts/test.06"
 
@@ -82,14 +83,14 @@ main()
     const char* svc = NULL;
     
     /* Find Test Server */
-    svc = NC_findtestserver("dts");
+    svc = nc_findtestserver("dts",0);
     if(svc == NULL) {
 	fprintf(stderr,"Cannot locate test server\n");
 	exit(1);
     }
     printf("Using test server: %s\n",svc);
-    strcpy(URL,svc);
-    strcat(URL,DTSTEST);
+    strncpy(URL,svc,sizeof(URL));
+    strlcat(URL,DTSTEST,sizeof(URL));
 
     memset((void*)target,0,sizeof(target));
 

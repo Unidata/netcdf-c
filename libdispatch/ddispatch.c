@@ -1,7 +1,26 @@
+/*
+Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
+See LICENSE.txt for license information.
+*/
+
+#include "config.h"
 #include "ncdispatch.h"
 #include "ncuri.h"
+#include "nclog.h"
+#include "ncbytes.h"
+#include "ncrc.h"
 
-#define MAXSERVERURL 4096
+/* Required for getcwd, other functions. */
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+/* Required for getcwd, other functions. */
+#ifdef _MSC_VER
+#include <direct.h>
+#define getcwd _getcwd
+#endif
+
 
 /* Define the known protocols and their manipulations */
 static struct NCPROTOCOLLIST {
@@ -11,20 +30,15 @@ static struct NCPROTOCOLLIST {
 } ncprotolist[] = {
     {"http",NULL,0},
     {"https",NULL,0},
-    {"file",NULL,NC_FORMATX_DAP2},
+    {"file",NULL,0},
     {"dods","http",NC_FORMATX_DAP2},
     {"dodss","https",NC_FORMATX_DAP2},
+    {"dap4","http",NC_FORMATX_DAP4},
+    {"dap4s","https",NC_FORMATX_DAP4},
     {NULL,NULL,0} /* Terminate search */
 };
 
-/* Define the default servers to ping in order;
-   make the order attempt to optimize
-   against future changes.
-*/
-static const char* default_servers[] = {
-"http://remotetest.unidata.ucar.edu",
-NULL
-};
+NCRCglobalstate ncrc_globalstate;
 
 /*
 static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);
@@ -36,6 +50,83 @@ int
 NCDISPATCH_initialize(void)
 {
     int status = NC_NOERR;
+    int i;
+
+    memset(&ncrc_globalstate,0,sizeof(NCRCglobalstate));
+
+    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
+	nc_sizevector0[i] = 0;
+        nc_sizevector1[i] = 1;
+        nc_ptrdiffvector1[i] = 1;
+    }
+    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
+	NC_coord_one[i] = 1;
+	NC_coord_zero[i] = 0;
+    }
+
+    /* Capture temp dir*/
+    {
+	char* tempdir;
+	char* p;
+	char* q;
+	char cwd[4096];
+#ifdef _MSC_VER
+        tempdir = getenv("TEMP");
+#else
+	tempdir = "/tmp";
+#endif
+        if(tempdir == NULL) {
+	    fprintf(stderr,"Cannot find a temp dir; using ./\n");
+	    tempdir = getcwd(cwd,sizeof(cwd));
+	    if(tempdir == NULL || *tempdir == '\0') tempdir = ".";
+	}
+        ncrc_globalstate.tempdir= (char*)malloc(strlen(tempdir) + 1);
+	for(p=tempdir,q=ncrc_globalstate.tempdir;*p;p++,q++) {
+	    if((*p == '/' && *(p+1) == '/')
+	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
+	    *q = *p;
+	}
+	*q = '\0';
+#ifdef _MSC_VER
+#else
+        /* Canonicalize */
+	for(p=ncrc_globalstate.tempdir;*p;p++) {
+	    if(*p == '\\') {*p = '/'; };
+	}
+	*q = '\0';
+#endif
+    }
+
+    /* Capture $HOME */
+    {
+	char* p;
+	char* q;
+        char* home = getenv("HOME");
+
+        if(home == NULL) {
+	    /* use tempdir */
+	    home = ncrc_globalstate.tempdir;
+	}
+        ncrc_globalstate.home = (char*)malloc(strlen(home) + 1);
+	for(p=home,q=ncrc_globalstate.home;*p;p++,q++) {
+	    if((*p == '/' && *(p+1) == '/')
+	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
+	    *q = *p;
+	}
+	*q = '\0';
+#ifdef _MSC_VER
+#else
+        /* Canonicalize */
+	for(p=home;*p;p++) {
+	    if(*p == '\\') {*p = '/'; };
+	}
+#endif
+    }
+
+    /* Now load RC File */
+    status = NC_rcload();
+    ncloginit();
+
     return status;
 }
 
@@ -43,49 +134,12 @@ int
 NCDISPATCH_finalize(void)
 {
     int status = NC_NOERR;
-    int i;
+    nullfree(ncrc_globalstate.tempdir);
+    nullfree(ncrc_globalstate.home);
+    NC_rcclear(&ncrc_globalstate.rcinfo);
+    memset(&ncrc_globalstate,0,sizeof(NCRCglobalstate));
     return status;
 }
-
-/* search list of servers and return first that succeeds when
-   concatenated with the specified path part.
-   Search list can be prefixed by the second argument.
-*/
-char*
-NC_findtestserver(const char* path, const char** servers)
-{
-#ifdef USE_DAP
-#ifdef ENABLE_DAP_REMOTE_TESTS
-    /* NCDAP_ping is defined in libdap2/ncdap.c */
-    const char** svc;
-    int stat;
-    char* url = (char*)malloc(MAXSERVERURL);
-
-    if(path == NULL) path = "";
-    if(strlen(path) > 0 && path[0] == '/')
-	path++;
-
-    if(servers != NULL) {
-        for(svc=servers;*svc != NULL;svc++) {
-            snprintf(url,MAXSERVERURL,"%s/%s",*svc,path);
-            stat = NCDAP_ping(url);
-            if(stat == NC_NOERR)
-                return url;
-        }
-    }
-    /* not found in user supplied list; try defaults */
-    for(svc=default_servers;*svc != NULL;svc++) {
-        snprintf(url,MAXSERVERURL,"%s/%s",*svc,path);
-        stat = NCDAP_ping(url);
-        if(stat == NC_NOERR)
-            return url;
-    }
-    if(url) free(url);
-#endif
-#endif
-    return NULL;
-}
-
 
 /* return 1 if path looks like a url; 0 otherwise */
 int
@@ -104,9 +158,9 @@ NC_testurl(const char* path)
     if(*p == '/') return 0; /* probably an absolute file path */
 
     /* Ok, try to parse as a url */
-    if(ncuriparse(path,&tmpurl)) {
+    if(ncuriparse(path,&tmpurl)==NCU_OK) {
 	/* Do some extra testing to make sure this really is a url */
-        /* Look for a knownprotocol */
+        /* Look for a known/accepted protocol */
         struct NCPROTOCOLLIST* protolist;
         for(protolist=ncprotolist;protolist->protocol;protolist++) {
 	    if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
@@ -126,15 +180,103 @@ Assumes that the path is known to be a url
 */
 
 int
-NC_urlmodel(const char* path)
+NC_urlmodel(const char* path, int mode, char** newurl)
 {
-    int model = 0;
-    NCURI* tmpurl = NULL;
+    int found, model = 0;
     struct NCPROTOCOLLIST* protolist;
+    NCURI* url = NULL;
+    char* p;
 
-    model = NC_FORMATX_DAP2;
+    if(path == NULL) return 0;
+
+    /* find leading non-blank */
+    for(p=(char*)path;*p;p++) {if(*p != ' ') break;}
+
+    /* Do some initial checking to see if this looks like a file path */
+    if(*p == '/') return 0; /* probably an absolute file path */
+
+    /* Parse the url */
+    if(ncuriparse(path,&url) != NCU_OK)
+	goto fail; /* Not parseable as url */
+
+    /* Look up the protocol */
+    for(found=0,protolist=ncprotolist;protolist->protocol;protolist++) {
+        if(strcmp(url->protocol,protolist->protocol) == 0) {
+	    found = 1;
+	    break;
+	}
+    }    
+    if(found) {
+	model = protolist->model;
+	/* Substitute the protocol in any case */
+	if(protolist->substitute) ncurisetprotocol(url,protolist->substitute);
+    } else
+	goto fail; /* Again, does not look like a url */
+
+    if(model != NC_FORMATX_DAP2 && model != NC_FORMATX_DAP4) {
+        /* Look for and of the following params:
+  	   "dap2", "protocol=dap2", "dap4", "protocol=dap4" */
+	const char* proto = NULL;
+	const char* match = NULL;
+	if((proto=ncurilookup(url,"protocol")) == NULL) proto = NULL;
+	if(proto == NULL) proto = "";
+	if((match=ncurilookup(url,"dap2")) != NULL || strcmp(proto,"dap2") == 0)
+            model = NC_FORMATX_DAP2;
+	else if((match=ncurilookup(url,"dap4")) != NULL || strcmp(proto,"dap4") == 0)
+            model = NC_FORMATX_DAP4;
+	else 
+	model = 0; /* Still don't know */
+    }
+    if(model == 0) {/* Last resort: use the mode */
+        /* If mode specifies netcdf-4, then this is assumed to be dap4 */
+        if(mode & NC_NETCDF4)
+	    model = NC_FORMATX_DAP4;
+        else
+            model = NC_FORMATX_DAP2; /* Default */
+    }
+    if(newurl)
+	*newurl = ncuribuild(url,NULL,NULL,NCURIALL);
+    if(url) ncurifree(url);
     return model;
+fail:
+    if(url) ncurifree(url);
+    return 0;
 }
+
+/**************************************************/
+/**
+ * Provide a hidden interface to allow utilities
+ * to check if a given path name is really an ncdap3 url.
+ * If no, put null in basenamep, else put basename of the url
+ * minus any extension into basenamep; caller frees.
+ * Return 1 if it looks like a url, 0 otherwise.
+ */
+
+int
+nc__testurl(const char* path, char** basenamep)
+{
+    NCURI* uri;
+    int ok = 0;
+    if(ncuriparse(path,&uri) == NCU_OK) {
+	char* slash = (uri->path == NULL ? NULL : strrchr(uri->path, '/'));
+	char* dot;
+	if(slash == NULL) slash = (char*)path; else slash++;
+        slash = nulldup(slash);
+        if(slash == NULL)
+            dot = NULL;
+        else
+            dot = strrchr(slash, '.');
+        if(dot != NULL &&  dot != slash) *dot = '\0';
+	if(basenamep)
+            *basenamep=slash;
+        else if(slash)
+            free(slash);
+        ncurifree(uri);
+	ok = 1;
+    }
+    return ok;
+}
+/**************************************************/
 
 #ifdef OBSOLETE
 /* Override dispatch table management */

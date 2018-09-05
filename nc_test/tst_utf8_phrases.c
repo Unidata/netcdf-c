@@ -7,7 +7,6 @@
 #include <config.h>
 #include <stdlib.h>
 #include <nc_tests.h>
-#include "err_macros.h"
 #include <netcdf.h>
 #include <string.h>
 
@@ -269,7 +268,7 @@ trim(const char* s)
     int i;
     size_t l = strlen(s);
     char* t = strdup(s);
-    for(i=l-1;l >= 0; i--) {
+    for(i=l-1;i >= 0; i--) {
         if(t[i] != ' ') break;
     }
     t[i+1] = '\0';
@@ -280,7 +279,7 @@ static int
 test(const struct Test* tests, const char* title)
 {
     int status = NC_NOERR;
-    int i,failures = 0;
+    int failures = 0;
     const struct Test* p;
 
     fprintf(stderr,"Testing %s...\n",title);
@@ -318,9 +317,12 @@ test(const struct Test* tests, const char* title)
 	    }
 	}
 	pf = "Pass";
+	free(normal);
 fail:
         fprintf(stderr,"%s: %s %s\n",pf,id,description);
         fflush(stderr);
+	free(id);
+	free(description);
     }
     return failures;
 }
@@ -328,9 +330,7 @@ fail:
 int
 main(int argc, char** argv)
 {
-    int i, status;
     int failures = 0;
-    int tstcnt = 0;
 
     printf("\n Testing UTF-8 sequences.\n");
     failures += test(utf8currency,"Currencies");

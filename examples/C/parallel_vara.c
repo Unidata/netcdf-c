@@ -12,7 +12,7 @@
  *    global_ny == NY and
  *    global_nx == (NX * number of MPI processes).
  * The data partitioning pattern is a column-wise partitioning across all
- * proceses. Each process writes a subarray of size ny * nx.
+ * processes. Each process writes a subarray of size ny * nx.
  *
  *    To compile:
  *        mpicc -O2 parallel_vara.c -o parallel_vara -lnetcdf -lpnetcdf
@@ -150,7 +150,7 @@ int main(int argc, char** argv)
     err = nc_enddef(ncid); ERR
 
     /* set to use MPI/PnetCDF collective I/O */
-    err = nc_var_par_access(ncid, varid, NC_COLLECTIVE); ERR
+    err = nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE); ERR
 
     /* now we are in data mode */
     start[0] = 0;
@@ -176,7 +176,7 @@ int main(int argc, char** argv)
     err = nc_inq_varid(ncid, "var", &varid); ERR
 
     /* set to use MPI/PnetCDF collective I/O */
-    err = nc_var_par_access(ncid, varid, NC_COLLECTIVE); ERR
+    err = nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE); ERR
 
     /* each process reads its subarray from the file */
     err = nc_get_vara_int(ncid, varid, start, count, &buf[0][0]); ERR

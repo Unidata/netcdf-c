@@ -2,6 +2,7 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
+#include "ncrc.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "occurlfunctions.h"
@@ -11,64 +12,18 @@
 /* Mnemonic */
 #define OPTARG void*
 
-/* Condition on libcurl version */
-/* Set up an alias as needed */
-#ifndef HAVE_CURLOPT_KEYPASSWD
-#define CURLOPT_KEYPASSWD CURLOPT_SSLKEYPASSWD
-#endif
-
+/* Define some .rc file entries of interest*/
 #define NETRCFILETAG "HTTP.NETRC"
 
+/* Check return value */
 #define CHECK(state,flag,value) {if(check(state,flag,(void*)value) != OC_NOERR) {goto done;}}
-
-/* forward */
-static OCerror oc_set_curl_options(OCstate* state);
-static void* cvt(char* value, enum OCCURLFLAGTYPE type);
 
 static OCerror
 check(OCstate* state, int flag, void* value)
 {
     OCerror stat = ocset_curlopt(state,flag,value);
-#ifdef OCDEBUG
-    long l = (long)value;
-    const char* name = occurlflagbyflag(flag)->name;
-    if(l <= 1000) {
-	OCDBG2("%s=%ld",name,l);
-    } else {
-	char show[65];
-	char* s = (char*)value;
-	strncpy(show,s,64);
-	show[64] = '\0';
-	OCDBG2("%s=%s",name,show);
-    }
-#endif
     return stat;
 }
-
-#if 0
-static void
-showopt(int flag, void* value)
-{
-    struct OCCURLFLAG* f = occurlflagbyflag(flag);
-    if(f == NULL)  {
-	OCDBG1("Unsupported flag: %d",flag);
-    } else switch (f->type) {
-	case CF_LONG:
-	    OCDBG2("%s=%ld",f->name,(long)value);
-	    break;
-	case CF_STRING: {
-   	    char show[65];
-	    char* s = (char*)value;
-	    strncpy(show,s,64);
-	    show[64] = '\0';
-	    OCDBG2("%s=%s",f->name,show);
-            } break;
-	case CF_UNKNOWN: case CF_OTHER:
-	    OCDBG1("%s=<something>",f->name);
-	    break;
-    }
-}
-#endif
 
 /*
 Set a specific curl flag; primary wrapper for curl_easy_setopt
@@ -94,41 +49,42 @@ ocset_curlflag(OCstate* state, int flag)
 
     switch (flag) {
 
-    case CURLOPT_USERPWD:
-        if(state->creds.userpwd != NULL) {
-	    CHECK(state, CURLOPT_USERPWD, state->creds.userpwd);
+    case CURLOPT_USERPWD: /* Does both user and pwd */
+        if(state->auth.creds.user != NULL && state->auth.creds.pwd != NULL) {
+	    CHECK(state, CURLOPT_USERNAME, state->auth.creds.user);
+	    CHECK(state, CURLOPT_PASSWORD, state->auth.creds.pwd);
             CHECK(state, CURLOPT_HTTPAUTH, (OPTARG)CURLAUTH_ANY);
 	}
 	break;
 
     case CURLOPT_COOKIEJAR: case CURLOPT_COOKIEFILE:
-        if(state->curlflags.cookiejar) {
+        if(state->auth.curlflags.cookiejar) {
 	    /* Assume we will read and write cookies to same place */
-	    CHECK(state, CURLOPT_COOKIEJAR, state->curlflags.cookiejar);
-	    CHECK(state, CURLOPT_COOKIEFILE, state->curlflags.cookiejar);
+	    CHECK(state, CURLOPT_COOKIEJAR, state->auth.curlflags.cookiejar);
+	    CHECK(state, CURLOPT_COOKIEFILE, state->auth.curlflags.cookiejar);
         }
 	break;
 
     case CURLOPT_NETRC: case CURLOPT_NETRC_FILE:
-	if(state->curlflags.netrc) {
+	if(state->auth.curlflags.netrc) {
 	    CHECK(state, CURLOPT_NETRC, (OPTARG)CURL_NETRC_REQUIRED);
-	    CHECK(state, CURLOPT_NETRC_FILE, state->curlflags.netrc);
+	    CHECK(state, CURLOPT_NETRC_FILE, state->auth.curlflags.netrc);
         }
 	break;
 
     case CURLOPT_VERBOSE:
-	if(state->curlflags.verbose)
+	if(state->auth.curlflags.verbose)
 	    CHECK(state, CURLOPT_VERBOSE, (OPTARG)1L);
 	break;
 
     case CURLOPT_TIMEOUT:
-	if(state->curlflags.timeout)
-	    CHECK(state, CURLOPT_TIMEOUT, (OPTARG)((long)state->curlflags.timeout));
+	if(state->auth.curlflags.timeout)
+	    CHECK(state, CURLOPT_TIMEOUT, (OPTARG)((long)state->auth.curlflags.timeout));
 	break;
 
     case CURLOPT_USERAGENT:
-        if(state->curlflags.useragent)
-	    CHECK(state, CURLOPT_USERAGENT, state->curlflags.useragent);
+        if(state->auth.curlflags.useragent)
+	    CHECK(state, CURLOPT_USERAGENT, state->auth.curlflags.useragent);
 	break;
 
     case CURLOPT_FOLLOWLOCATION:
@@ -145,18 +101,19 @@ ocset_curlflag(OCstate* state, int flag)
 
     case CURLOPT_ENCODING:
 #ifdef CURLOPT_ENCODING
-	if(state->curlflags.compress) {
+	if(state->auth.curlflags.compress) {
 	    CHECK(state, CURLOPT_ENCODING,"deflate, gzip");
         }
 #endif
 	break;
 
     case CURLOPT_PROXY:
-	if(state->proxy.host != NULL) {
-	    CHECK(state, CURLOPT_PROXY, state->proxy.host);
-	    CHECK(state, CURLOPT_PROXYPORT, (OPTARG)(long)state->proxy.port);
-	    if(state->proxy.userpwd) {
-                CHECK(state, CURLOPT_PROXYUSERPWD, state->proxy.userpwd);
+	if(state->auth.proxy.host != NULL) {
+	    CHECK(state, CURLOPT_PROXY, state->auth.proxy.host);
+	    CHECK(state, CURLOPT_PROXYPORT, (OPTARG)(long)state->auth.proxy.port);
+	    if(state->auth.proxy.user != NULL && state->auth.proxy.pwd != NULL) {
+                CHECK(state, CURLOPT_PROXYUSERNAME, state->auth.proxy.user);
+                CHECK(state, CURLOPT_PROXYPASSWORD, state->auth.proxy.pwd);
 #ifdef CURLOPT_PROXYAUTH
 	        CHECK(state, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
 #endif
@@ -168,7 +125,7 @@ ocset_curlflag(OCstate* state, int flag)
     case CURLOPT_SSLCERT: case CURLOPT_SSLKEY:
     case CURLOPT_SSL_VERIFYPEER: case CURLOPT_SSL_VERIFYHOST:
     {
-        struct OCSSL* ssl = &state->ssl;
+        struct ssl* ssl = &state->auth.ssl;
         CHECK(state, CURLOPT_SSL_VERIFYPEER, (OPTARG)(ssl->verifypeer?1L:0L));
         CHECK(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(ssl->verifyhost?1L:0L));
         if(ssl->certificate)
@@ -185,12 +142,26 @@ ocset_curlflag(OCstate* state, int flag)
     }
     break;
 
-    default: {
-	struct OCCURLFLAG* f = occurlflagbyflag(flag);
-	if(f != NULL)
-	    oclog(OCLOGWARN,"Attempt to update unexpected curl flag: %s",
-				f->name);
-	} break;
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+    case CURLOPT_BUFFERSIZE:
+	CHECK(state, CURLOPT_BUFFERSIZE, (OPTARG)state->curlbuffersize);
+	break;
+#endif
+
+#ifdef HAVE_CURLOPT_KEEPALIVE
+    case CURLOPT_TCP_KEEPALIVE:
+	if(state->curlkeepalive.active != 0)
+	    CHECK(state, CURLOPT_TCP_KEEPALIVE, (OPTARG)1L);
+	if(state->curlkeepalive.idle > 0)
+	    CHECK(state, CURLOPT_TCP_KEEPIDLE, (OPTARG)state->curlkeepalive.idle);
+	if(state->curlkeepalive.interval > 0)
+	    CHECK(state, CURLOPT_TCP_KEEPINTVL, (OPTARG)state->curlkeepalive.interval);
+	break;
+#endif
+
+    default:
+        nclog(NCLOGWARN,"Attempt to update unexpected curl flag: %d",flag);
+	break;
     }
 done:
     return stat;
@@ -227,80 +198,22 @@ ocset_flags_perlink(OCstate* state)
     if(stat == OC_NOERR) stat = ocset_curlflag(state, CURLOPT_MAXREDIRS);
     if(stat == OC_NOERR) stat = ocset_curlflag(state, CURLOPT_ERRORBUFFER);
 
-    /* Set the CURL. options */
-    if(stat == OC_NOERR) stat = oc_set_curl_options(state);
-
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+    /* Optional */
+    if(stat == OC_NOERR && state->curlbuffersize > 0)
+	stat = ocset_curlflag(state, CURLOPT_BUFFERSIZE);
+#endif
+#ifdef HAVE_CURLOPT_KEEPALIVE
+    if(stat == NC_NOERR && state->curlkeepalive.active != 0)
+        stat = ocset_curlflag(state, CURLOPT_TCP_KEEPALIVE);
+#endif
     return stat;
-}
-
-/**
-Directly set any options starting with 'CURL.'
-*/
-static OCerror
-oc_set_curl_options(OCstate* state)
-{
-    OCerror stat = OC_NOERR;
-    struct OCTriplestore* store = NULL;
-    struct OCTriple* triple = NULL;
-    int i;
-    char* hostport = NULL;
-    struct OCCURLFLAG* ocflag = NULL;
-
-    hostport = occombinehostport(state->uri);
-    if(hostport == NULL) {
-      hostport = (char*)malloc(sizeof(char)*1);
-      *hostport = '\0';
-    }
-
-    store = &ocglobalstate.rc.daprc;
-    triple = store->triples;
-
-    /* Assume that the triple store has been properly sorted */
-    for(i=0;i<store->ntriples;i++,triple++) {
-        size_t hostlen = strlen(triple->host);
-        const char* flagname;
-
-        if(ocstrncmp("CURL.",triple->key,5) != 0) continue; /* not a curl flag */
-        /* do hostport prefix comparison */
-        if(hostlen > 0) {
-          int t = ocstrncmp(hostport,triple->host,hostlen);
-          if(t !=  0) continue;
-        }
-        flagname = triple->key+5; /* 5 == strlen("CURL."); */
-        ocflag = occurlflagbyname(flagname);
-        if(ocflag == NULL) {stat = OC_ECURL; goto done;}
-        stat = ocset_curlopt(state,ocflag->flag,cvt(triple->value,ocflag->type));
-    }
- done:
-    if(hostport && strlen(hostport) > 0) free(hostport);
-    return stat;
-}
-
-static void*
-cvt(char* value, enum OCCURLFLAGTYPE type)
-{
-    switch (type) {
-    case CF_LONG: {
-	/* Try to convert to long value */
-	const char* p = value;
-	char* q = NULL;
-	long longvalue = strtol(p,&q,10);
-	if(*q != '\0')
-	    return NULL;
-	return (void*)longvalue;
-	}
-    case CF_STRING:
-	return (void*)value;
-    case CF_UNKNOWN: case CF_OTHER:
-	return (void*)value;
-    }
-    return NULL;
 }
 
 void
 oc_curl_debug(OCstate* state)
 {
-    state->curlflags.verbose = 1;
+    state->auth.curlflags.verbose = 1;
     ocset_curlflag(state,CURLOPT_VERBOSE);
     ocset_curlflag(state,CURLOPT_ERRORBUFFER);
 }
@@ -310,8 +223,8 @@ oc_curl_debug(OCstate* state)
 int
 ocrc_netrc_required(OCstate* state)
 {
-    char* netrcfile = ocrc_lookup(NETRCFILETAG,state->uri->uri);
-    return (netrcfile != NULL || state->curlflags.netrc != NULL ? 0 : 1);
+    char* netrcfile = NC_rclookup(NETRCFILETAG,state->uri->uri);
+    return (netrcfile != NULL || state->auth.curlflags.netrc != NULL ? 0 : 1);
 }
 
 void
@@ -320,126 +233,15 @@ oc_curl_printerror(OCstate* state)
     fprintf(stderr,"curl error details: %s\n",state->curlerror);
 }
 
-/* Determine if this version of curl supports
-       "file://..." &/or "https://..." urls.
-*/
+/* See if http: protocol is supported */
 void
-oc_curl_protocols(struct OCGLOBALSTATE* state)
+oc_curl_protocols(OCstate* state)
 {
     const char* const* proto; /*weird*/
     curl_version_info_data* curldata;
     curldata = curl_version_info(CURLVERSION_NOW);
     for(proto=curldata->protocols;*proto;proto++) {
-        if(strcmp("file",*proto)==0) {state->curl.proto_file=1;}
-        if(strcmp("http",*proto)==0) {state->curl.proto_https=1;}
+        if(strcmp("http",*proto)==0)
+	    state->auth.curlflags.proto_https=1;
     }
-    if(ocdebug > 0) {
-        oclog(OCLOGNOTE,"Curl file:// support = %d",state->curl.proto_file);
-        oclog(OCLOGNOTE,"Curl https:// support = %d",state->curl.proto_https);
-    }
-}
-
-
-/*
-"Inverse" of ocset_curlflag;
-Given a flag and value, it updates state.
-Update a specific flag from state->curlflags.
-*/
-OCerror
-ocset_curlstate(OCstate* state, int flag, void* value)
-{
-    OCerror stat = OC_NOERR;
-
-    switch (flag) {
-
-    case CURLOPT_USERPWD:
-        if(state->creds.userpwd != NULL) free(state->creds.userpwd);
-	state->creds.userpwd = strdup((char*)value);
-	break;
-
-    case CURLOPT_COOKIEJAR: case CURLOPT_COOKIEFILE:
-        if(state->curlflags.cookiejar != NULL) free(state->curlflags.cookiejar);
-	state->curlflags.cookiejar = strdup((char*)value);
-	break;
-
-    case CURLOPT_NETRC: case CURLOPT_NETRC_FILE:
-        if(state->curlflags.netrc != NULL) free(state->curlflags.netrc);
-	state->curlflags.netrc = strdup((char*)value);
-	break;
-
-    case CURLOPT_VERBOSE:
-	state->curlflags.verbose = (long)value;
-	break;
-
-    case CURLOPT_TIMEOUT:
-	state->curlflags.timeout = (long)value;
-	break;
-
-    case CURLOPT_USERAGENT:
-        if(state->curlflags.useragent != NULL) free(state->curlflags.useragent);
-        state->curlflags.useragent = strdup((char*)value);
-	break;
-
-    case CURLOPT_FOLLOWLOCATION:
-	/* no need to store; will always be set */
-	break;
-
-    case CURLOPT_MAXREDIRS:
-	/* no need to store; will always be set */
-	break;
-
-    case CURLOPT_ERRORBUFFER:
-	/* no need to store; will always be set */
-	break;
-
-    case CURLOPT_ENCODING:
-	/* no need to store; will always be set to fixed value */
-	break;
-
-    case CURLOPT_PROXY:
-	/* We assume that the value is the proxy url */
-	if(state->proxy.host != NULL) free(state->proxy.host);
-	if(state->proxy.userpwd != NULL) free(state->proxy.userpwd);
-	state->proxy.host = NULL;
-	state->proxy.userpwd = NULL;
-	if(!ocparseproxy(state,(char*)value))
-		{stat = OC_EINVAL; goto done;}
-	break;
-
-    case CURLOPT_SSLCERT:
-	if(state->ssl.certificate != NULL) free(state->ssl.certificate);
-	state->ssl.certificate = strdup((char*)value);
-	break;
-    case CURLOPT_SSLKEY:
-	if(state->ssl.key != NULL) free(state->ssl.key);
-	state->ssl.key = strdup((char*)value);
-	break;
-    case CURLOPT_KEYPASSWD:
-	if(state->ssl.keypasswd!= NULL) free(state->ssl.keypasswd);
-	state->ssl.keypasswd = strdup((char*)value);
-	break;
-    case CURLOPT_SSL_VERIFYPEER:
-      state->ssl.verifypeer = (long)value;
-      break;
-    case CURLOPT_SSL_VERIFYHOST:
-      state->ssl.verifyhost = (long)value;
-      break;
-    case CURLOPT_CAINFO:
-      if(state->ssl.cainfo != NULL) free(state->ssl.cainfo);
-      state->ssl.cainfo = strdup((char*)value);
-      break;
-    case CURLOPT_CAPATH:
-	if(state->ssl.capath != NULL) free(state->ssl.capath);
-	state->ssl.capath = strdup((char*)value);
-	break;
-
-    default: {
-	struct OCCURLFLAG* f = occurlflagbyflag(flag);
-	if(f != NULL)
-	    oclog(OCLOGWARN,"Attempt to add unexpected curl flag to state: %s",
-				f->name);
-	} break;
-    }
-done:
-    return stat;
 }

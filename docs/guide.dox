@@ -8,8 +8,11 @@
 - \subpage netcdf_data_set_components
 - \subpage netcdf_perf_chunking
 - \subpage netcdf_utilities_guide
-- \subpage dap_support
+- \subpage dap2
+- \subpage dap4
+- \subpage compress
 - \subpage BestPractices
+- \subpage user_defined_formats
 - \subpage users_guide_appendices
 
 <H2>The Purpose of NetCDF</H2>
@@ -83,7 +86,15 @@ affecting existing programs. The physical representation of netCDF
 data is designed to be independent of the computer on which the data
 were written.
 
-Unidata supports the netCDF interfaces for C (see <a href="http://www.unidata.ucar.edu/netcdf/docs/" >NetCDF-C User's Guide</a>), FORTRAN 77 (see <a href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f77/index.html#Top" >NetCDF Fortran 77 Interface Guide</a>), FORTRAN 90 (see <a href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f90/index.html" >NetCDF Fortran 90 Interface Guide</a>), and C++ (see <a href="http://www.unidata.ucar.edu/netcdf/documentation/historic/cxx4/index.html" >NetCDF C++ Interface Guide</a>).
+Unidata supports the netCDF interfaces for C (see <a
+href="http://www.unidata.ucar.edu/netcdf/docs/" >NetCDF-C User's
+Guide</a>), FORTRAN 77 (see <a
+href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f77/index.html#Top"
+>NetCDF Fortran 77 Interface Guide</a>), FORTRAN 90 (see <a
+href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f90/index.html"
+>NetCDF Fortran 90 Interface Guide</a>), and C++ (see <a
+href="http://www.unidata.ucar.edu/netcdf/documentation/historic/cxx4/index.html"
+>NetCDF C++ Interface Guide</a>).
 
 The netCDF library is supported for various UNIX operating systems. A
 MS Windows port is also available. The software is also ported and
@@ -104,19 +115,30 @@ is the default format for all versions of netCDF.
 In version 3.6.0 a new binary format was introduced, 64-bit offset
 format. Nearly identical to netCDF classic format, it uses 64-bit
 offsets (hence the name), and allows users to create far larger
-datasets.
+datasets. This format is also referred as CDF-2, because it bears the signature
+string "CDF2" in the file header. After this extension, the classic file
+format (i.e. not supporting 64-bit offsets) is now referred as CDF-1.
 
 In version 4.0.0 a third binary format was introduced: the HDF5
 format. Starting with this version, the netCDF library can use HDF5
 files as its base format. (Only HDF5 files created with netCDF-4 can
 be understood by netCDF-4).
 
-By default, netCDF uses the classic format. To use the 64-bit offset
-or netCDF-4/HDF5 format, set the appropriate constant when creating
-the file.
+Starting from version 4.4.0, netCDF included the support of CDF-5 format. In
+order to allows defining large array variables with more than 4-billion
+elements, CDF-5 replaces most of the 32-bit integers used to describe metadata
+in file header with 64-bit integers. In addition, it supports the following new
+external data types: NC_UBYTE, NC_USHORT, NC_UINT, NC_INT64, and NC_UINT64. The
+CDF-5 format specifications can be found in
+(http://cucis.ece.northwestern.edu/projects/PnetCDF/CDF-5.html).
+
+The classic file formats are now referring to the collection of CDF-1, 2 and 5
+formats. By default, netCDF uses the classic format (CDF-1). To use the CDF-2,
+CDF-5, or netCDF-4/HDF5 format, set the appropriate constant in the file mode
+argument when creating the file.
 
 To achieve network-transparency (machine-independence), netCDF classic
-and 64-bit offset formats are implemented in terms of an external
+formats are implemented in terms of an external
 representation much like XDR (eXternal Data Representation, see
 http://www.ietf.org/rfc/rfc1832.txt), a standard for describing and
 encoding data. This representation provides encoding of data into
@@ -126,68 +148,81 @@ be encoded and decoded in a consistent way. The IEEE 754
 floating-point standard is used for floating-point data
 representation.
 
-Descriptions of the overall structure of netCDF classic and 64-bit
-offset files are provided later in this manual. See Structure.
+Descriptions of the overall structure of netCDF classic files are provided
+later in this manual. See \ref file_structure_and_performance.
 
-The details of the classic and 64-bit offset formats are described in
-an appendix. See File Format. However, users are discouraged from
+The details of the CDF-1 and CDF-2 formats are described in
+an appendix. See \ref netcdf_format. However, users are discouraged from
 using the format specification to develop independent low-level
 software for reading and writing netCDF files, because this could lead
 to compatibility problems if the format is ever modified.
 
 \subsection select_format How to Select the Format
 
-With three different base formats, care must be taken in creating data
+With four different base formats, care must be taken in creating data
 files to choose the correct base format.
 
 The format of a netCDF file is determined at create time.
 
 When opening an existing netCDF file the netCDF library will
 transparently detect its format and adjust accordingly. However,
-netCDF library versions earlier than 3.6.0 cannot read 64-bit offset
-format files, and library versions before 4.0 can't read netCDF-4/HDF5
-files. NetCDF classic format files (even if created by version 3.6.0
+netCDF library versions earlier than 3.6.0 cannot read CDF-2
+format files, library versions before 4.0 can't read netCDF-4/HDF5
+files, and versions before 4.4.0 cannot read CDF-5 files.
+NetCDF classic format files (even if created by version 3.6.0
 or later) remain compatible with older versions of the netCDF library.
 
-Users are encouraged to use netCDF classic format to distribute data,
+Users are encouraged to use netCDF classic CDF-1 format to distribute data,
 for maximum portability.
 
-To select 64-bit offset or netCDF-4 format files, C programmers should
-use flag NC_64BIT_OFFSET or NC_NETCDF4 in function nc_create. See
-nc_create.
+To select CDF-2, CDF-5 or netCDF-4 format files, C programmers should use flag
+NC_64BIT_OFFSET, NC_64BIT_DATA, or NC_NETCDF4 respectively in function
+nc_create().
 
-In Fortran, use flag nf_64bit_offset or nf_format_netcdf4 in function
-NF_CREATE. See NF_CREATE.
+In Fortran, use flag nf_64bit_offset, nf_64bit_data, or nf_format_netcdf4 in
+function NF_CREATE. See NF_CREATE.
 
 It is also possible to change the default creation format, to convert
 a large body of code without changing every create call. C programmers
-see nc_set_default_format. Fortran programs see NF_SET_DEFAULT_FORMAT.
+see nc_set_default_format(). Fortran programs see NF_SET_DEFAULT_FORMAT.
 
-\subsection classic_format NetCDF Classic Format
+\subsection classic_format NetCDF Classic Format (CDF-1)
 
 The original netCDF format is identified using four bytes in the file
-header. All files in this format have “CDF\001” at the beginning of
-the file. In this documentation this format is referred to as “netCDF
-classic format.”
+header. All files in this format have "CDF\001" at the beginning of
+the file. In this documentation this format is referred to as CDF-1
+format.
 
-NetCDF classic format is identical to the format used by every
+NetCDF CDF-1 format is identical to the format used by every
 previous version of netCDF. It has maximum portability, and is still
 the default netCDF format.
 
+\subsection netcdf_64bit_offset_format NetCDF 64-bit Offset Format (CDF-2)
+
 For some users, the various 2 GiB format limitations of the classic
-format become a problem. (see Classic Limitations).  1.4.2 NetCDF
-64-bit Offset Format
-
+format become a problem. (see \ref limitations).
 For these users, 64-bit offset format is a natural choice. It greatly
-eases the size restrictions of netCDF classic files (see 64 bit Offset
-Limitations).
+eases the size restrictions of netCDF classic files (see \ref
+limitations).
 
-Files with the 64-bit offsets are identified with a “CDF\002” at the
+Files with the 64-bit offsets are identified with a "CDF\002" at the
 beginning of the file. In this documentation this format is called
-“64-bit offset format.”
+CDF-2 format.
 
-Since 64-bit offset format was introduced in version 3.6.0, earlier
-versions of the netCDF library can't read 64-bit offset files.
+Since CDF-2 format was introduced in version 3.6.0, earlier
+versions of the netCDF library can't read CDF-2 files.
+
+\subsection netcdf_64bit_data_format NetCDF 64-bit Data Format (CDF-5)
+
+To allow large variables with more than 4-billion array elements,
+64-bit data format is develop to support such I/O requests.
+
+Files with the 64-bit data are identified with a "CDF\005" at the
+beginning of the file. In this documentation this format is called
+CDF-5 format.
+
+Since CDF-5 format was introduced in version 4.4.0, earlier
+versions of the netCDF library can't read CDF-5 files.
 
 \subsection netcdf_4_format NetCDF-4 Format
 
@@ -210,7 +245,9 @@ NetCDF-4 files can't be read by any version of the netCDF library
 previous to 4.0. (But they can be read by HDF5, version 1.8.0 or
 better).
 
-For more discussion of format issues see The NetCDF Tutorial.
+For more discussion of format issues see <a
+href="http://www.unidata.ucar.edu/software/netcdf/docs/tutorial_8dox.html">The
+NetCDF Tutorial</a>.
 
 \section architecture NetCDF Library Architecture
 
@@ -249,7 +286,7 @@ designing and implementing netCDF, it is still possible to use the
 netCDF interface to access data in inefficient ways: for example, by
 requesting a slice of data that requires a single value from each
 record. Advice on how to use the interface efficiently is provided in
-Structure.
+\ref file_structure_and_performance.
 
 The use of HDF5 as a data format adds significant overhead in metadata
 operations, less so in data access operations. We continue to study
@@ -268,7 +305,7 @@ Attributes play a vital role in providing ancillary information. It is
 important to use all the relevant standard attributes using the
 relevant conventions. For a description of reserved attributes (used
 by the netCDF library) and attribute conventions for generic
-application software, see Attribute Conventions.
+application software, see \ref attribute_conventions.
 
 A number of groups have defined their own additional conventions and
 styles for netCDF data. Descriptions of these conventions, as well as
@@ -289,32 +326,32 @@ its implementation in software. Some of these limitations have been
 removed or relaxed in netCDF-4 files, but still apply to netCDF
 classic and netCDF 64-bit offset files.
 
-Currently, netCDF classic and 64-bit offset formats offer a limited
+NetCDF classic CDF-1 and CDF-2 formats offer a limited
 number of external numeric data types: 8-, 16-, 32-bit integers, or
-32- or 64-bit floating-point numbers. (The netCDF-4 format adds 64-bit
-integer types and unsigned integer types.)
+32- or 64-bit floating-point numbers. The CDF-5 and netCDF-4 formats add 64-bit
+integer types and unsigned integer types.
 
 With the netCDF-4/HDF5 format, new unsigned integers (of various
 sizes), 64-bit integers, and the string type allow improved expression
 of meaning in scientific data. The new VLEN (variable length) and
 COMPOUND types allow users to organize data in new ways.
 
-With the classic netCDF file format, there are constraints that limit
+With the classic CDF-1 file format, there are constraints that limit
 how a dataset is structured to store more than 2 GiBytes (a GiByte is
 2^30 or 1,073,741,824 bytes, as compared to a Gbyte, which is
-1,000,000,000 bytes.) of data in a single netCDF dataset. (see Classic
-Limitations). This limitation is a result of 32-bit offsets used for
+1,000,000,000 bytes.) of data in a single netCDF dataset. (see \ref
+limitations). This limitation is a result of 32-bit offsets used for
 storing relative offsets within a classic netCDF format file. Since
 one of the goals of netCDF is portable data, and some file systems
 still can't deal with files larger than 2 GiB, it is best to keep
 files that must be portable below this limit. Nevertheless, it is
 possible to create and access netCDF files larger than 2 GiB on
-platforms that provide support for such files (see Large File
-Support).
+platforms that provide support for such files (see
+\ref large_file_support).
 
-The new 64-bit offset format allows large files, and makes it easy to
+The CDF-2 format allows large files, and makes it easy to
 create to create fixed variables of about 4 GiB, and record variables
-of about 4 GiB per record. (see 64 bit Offset Limitations). However,
+of about 4 GiB per record. (see \ref netcdf_64bit_offset_format). However,
 old netCDF applications will not be able to read the 64-bit offset
 files until they are upgraded to at least version 3.6.0 of netCDF
 (i.e. the version in which 64-bit offset format was introduced).
@@ -324,7 +361,11 @@ and files can be as large as the underlying file system
 supports. NetCDF-4/HDF5 files are unreadable to the netCDF library
 before version 4.0.
 
-Another limitation of the classic (and 64-bit offset) model is that
+Similarly, CDF-5 format uses 64-bit integers to allow users to define
+large variables. CDF-5 files are not unreadable to the netCDF library
+before version 4.4.0.
+
+Another limitation of the classic formats (CDF-1, 2 and 5) is that
 only one unlimited (changeable) dimension is permitted for each netCDF
 data set. Multiple variables can share an unlimited dimension, but
 then they must all grow together. Hence the classic netCDF model does
@@ -359,8 +400,8 @@ kinds of data). A data model tailored to capture the shared context
 among researchers within one discipline may not be appropriate for
 sharing or combining data from multiple disciplines.
 
-The classic netCDF data model (which is used for classic-format and
-64-bit offset format data) does not support nested data structures
+The classic netCDF data model (which is used for classic CDF-1, 2 and 5 format
+data) does not support nested data structures
 such as trees, nested arrays, or other recursive structures. Through
 use of indirection and conventions it is possible to represent some
 kinds of nested structures, but the result may fall short of the
@@ -372,20 +413,15 @@ of types. The VLEN type allows efficient storage of ragged arrays, and
 the introduction of hierarchical groups allows users new ways to
 organize data.
 
-Finally, using the netCDF-3 programming interfaces, concurrent access
-to a netCDF dataset is limited. One writer and multiple readers may
-access data in a single dataset simultaneously, but there is no
-support for multiple concurrent writers.
-
 NetCDF-4 supports parallel read/write access to netCDF-4/HDF5 files,
 using the underlying HDF5 library and parallel read/write access to
-classic and 64-bit offset files using the parallel-netcdf library.
+classic files using the PnetCDf library.
 
 For more information about HDF5, see the HDF5 web site:
 http://hdfgroup.org/HDF5/.
 
-For more information about parallel-netcdf, see their web site:
-http://www.mcs.anl.gov/parallel-netcdf.
+For more information about PnetCDF, see their web site:
+https://parallel-netcdf.github.io/.
 
 \page netcdf_data_set_components The Components of a NetCDF Data Set
 
@@ -434,8 +470,7 @@ and variable may not have the same name within the same group, and
 similarly for sub-groups of that group.)
 
 Groups and user-defined types are only available in files created in
-the netCDF-4/HDF5 format. They are not available for classic or 64-bit
-offset format files.
+the netCDF-4/HDF5 format. They are not available for classic format files.
 
 \section dimensions Dimensions
 
@@ -446,8 +481,8 @@ model-run-number.
 
 A netCDF dimension has both a name and a length.
 
-A dimension length is an arbitrary positive integer, except that one
-dimension in a classic or 64-bit offset netCDF dataset can have the
+A dimension length is an arbitrary positive integer, except that only one
+dimension in a classic netCDF dataset can have the
 length UNLIMITED. In a netCDF-4 dataset, any number of unlimited
 dimensions can be used.
 
@@ -456,7 +491,7 @@ dimension. A variable with an unlimited dimension can grow to any
 length along that dimension. The unlimited dimension index is like a
 record number in conventional record-oriented files.
 
-A netCDF classic or 64-bit offset dataset can have at most one
+A netCDF classic dataset can have at most one
 unlimited dimension, but need not have any. If a variable has an
 unlimited dimension, that dimension must be the most significant
 (slowest changing) one. Thus any unlimited dimension must be the first
@@ -510,15 +545,16 @@ associated attributes, which may be added, deleted or changed after
 the variable is created.
 
 A variable external data type is one of a small set of netCDF
-types. In classic and 64-bit offset files, only the original six types
+types. In classic CDF-1 and 2 files, only the original six types
 are available (byte, character, short, int, float, and
-double). Variables in netCDF-4 files may also use unsigned short,
-unsigned int, 64-bit int, unsigned 64-bit int, or string. Or the user
+double). CDF-5 adds unsigned byte, unsigned short, unsigned int, 64-bit int,
+and unsigned 64-bit int.  In netCDF-4, variables may also use these additional
+data types, plus the string data type. Or the user
 may define a type, as an opaque blob of bytes, as an array of variable
 length arrays, or as a compound type, which acts like a C struct. (See
 \ref data_type).
 
-In the CDL notation, classic and 64-bit offset type can be used. They
+In the CDL notation, classic data type can be used. They
 are given the simpler names byte, char, short, int, float, and
 double. The name real may be used as a synonym for float in the CDL
 notation. The name long is a deprecated synonym for int. For the exact
@@ -542,17 +578,17 @@ for variables with dimensions, or
 for scalar variables.
 
 In the above CDL example there are six variables. As discussed below,
-four of these are coordinate variables (See coordinate_variables). The
-remaining variables (sometimes called primary variables), temp and rh,
-contain what is usually thought of as the data. Each of these
-variables has the unlimited dimension time as its first dimension, so
-they are called record variables. A variable that is not a record
-variable has a fixed length (number of data values) given by the
-product of its dimension lengths. The length of a record variable is
-also the product of its dimension lengths, but in this case the
-product is variable because it involves the length of the unlimited
-dimension, which can vary. The length of the unlimited dimension is
-the number of records.
+four of these are coordinate variables (See \ref
+coordinate_variables). The remaining variables (sometimes called
+primary variables), temp and rh, contain what is usually thought of as
+the data. Each of these variables has the unlimited dimension time as
+its first dimension, so they are called record variables. A variable
+that is not a record variable has a fixed length (number of data
+values) given by the product of its dimension lengths. The length of a
+record variable is also the product of its dimension lengths, but in
+this case the product is variable because it involves the length of
+the unlimited dimension, which can vary. The length of the unlimited
+dimension is the number of records.
 
 \section coordinate_variables Coordinate Variables
 
@@ -652,13 +688,13 @@ For the netCDF classic model, the type and length of each attribute
 are not explicitly declared in CDL; they are derived from the values
 assigned to the attribute. All values of an attribute must be of the
 same type. The notation used for constant values of the various netCDF
-types is discussed later (see CDL Constants).
+types is discussed later (see \ref cdl_syntax).
 
 The extended CDL syntax for the enhanced data model supported by
 netCDF-4 allows optional type specifications, including user-defined
 types, for attributes of user-defined types. See ncdump output or the
 reference documentation for ncgen for details of the extended CDL
-systax.
+syntax.
 
 In the netCDF example (see \ref data_model), units is an attribute for
 the variable lat that has a 13-character array value
@@ -676,13 +712,13 @@ attribute conventions and it is strongly recommended that these be
 followed unless there are good reasons for not doing so. For
 information about units, long_name, valid_min, valid_max, valid_range,
 scale_factor, add_offset, _FillValue, and other conventional
-attributes, see Attribute Conventions.
+attributes, see \ref attribute_conventions.
 
 Attributes may be added to a netCDF dataset long after it is first
 defined, so you don't have to anticipate all potentially useful
-attributes. However adding new attributes to an existing classic or
-64-bit offset format dataset can incur the same expense as copying the
-dataset. For a more extensive discussion see Structure.
+attributes. However adding new attributes to an existing classic
+format dataset can incur the same expense as copying the
+dataset. For a more extensive discussion see \ref file_structure_and_performance.
 
 \section differences_atts_vars Differences between Attributes and Variables
 
@@ -750,11 +786,14 @@ characters.
 Some widely used conventions restrict names to only alphanumeric
 characters or underscores.
 
-\note Note that, when using the DAP2 protocol to access netCDF data, there are \em reserved keywords, the use of which may result in undefined behavior.  See \ref dap2_reserved_keywords for more information.
+\note Note that, when using the DAP2 protocol to access netCDF data,
+there are \em reserved keywords, the use of which may result in
+undefined behavior.  See \ref dap2_reserved_keywords for more
+information.
 
 \section archival Is NetCDF a Good Archive Format?
 
-NetCDF classic or 64-bit offset formats can be used as a
+NetCDF classic formats can be used as a
 general-purpose archive format for storing arrays. Compression of data
 is possible with netCDF (e.g., using arrays of eight-bit or 16-bit
 integers to encode low-resolution floating-point numbers instead of
@@ -977,17 +1016,17 @@ servers, full support for the enhanced netCDF-4 data model in the
 ncgen utility, a new nccopy utility for copying and conversion among
 netCDF format variants, ability to read some HDF4/HDF5 data archives
 through the netCDF C or Fortran interfaces, support for parallel I/O
-on netCDF classic and 64-bit offset files using the parallel-netcdf
-(formerly pnetcdf) library from Argonne/Northwestern, a new nc-config
+on netCDF classic files (CDF-1, 2, and 5) using the PnetCDF
+library from Argonne/Northwestern, a new nc-config
 utility to help compile and link programs that use netCDF, inclusion
-of the UDUNITS library for hadling “units” attributes, and inclusion
+of the UDUNITS library for handling “units” attributes, and inclusion
 of libcf to assist in creating data compliant with the Climate and
 Forecast (CF) metadata conventions.
 
 In September, 2010, the Netcdf-Java/CDM (Common Data Model) version
 4.2 library was declared stable and made available to users. This
 100%-Java implementation provided a read-write interface to netCDF-3
-classic and 64-bit offset data, as well as a read-only interface to
+classic format files, as well as a read-only interface to
 netCDF-4 enhanced model data and many other formats of scientific data
 through a common (CDM) interface. More recent releases support
 writing netCDF-4 data. The NetCDF-Java library also
@@ -1013,7 +1052,7 @@ a different representation from the external type of the variable, a
 conversion between the internal type and external type will take place
 when the data is read or written.
 
-Access to data in classic and 64-bit offset format is direct. Access
+Access to data in classic formats is direct. Access
 to netCDF-4 data is buffered by the HDF5 layer. In either case you can
 access a small subset of data from a large dataset efficiently,
 without first accessing all the data that precedes it.
@@ -1081,11 +1120,11 @@ access.
 
 \section c_array_section_access A C Example of Array-Section Access
 
-Assume that in our earlier example of a netCDF dataset (see Network
-Common Data Form Language (CDL)), we wish to read a cross-section of
-all the data for the temp variable at one level (say, the second), and
-assume that there are currently three records (time values) in the
-netCDF dataset. Recall that the dimensions are defined as
+Assume that in our earlier example of a netCDF dataset, we wish to
+read a cross-section of all the data for the temp variable at one
+level (say, the second), and assume that there are currently three
+records (time values) in the netCDF dataset. Recall that the
+dimensions are defined as
 
 \code
        lat = 5, lon = 10, level = 4, time = unlimited;
@@ -1217,8 +1256,8 @@ array section access instead.
 
 \section  classic_file_parts Parts of a NetCDF Classic File
 
-A netCDF classic or 64-bit offset dataset is stored as a single file
-comprising two parts:
+A netCDF classic dataset (including CDF-1, 2, and 5 formats) is stored as a
+single file comprising two parts:
 - a header, containing all the information about dimensions, attributes,
 and variables except for the variable data;
 - a data part, comprising fixed-size data, containing the data for
@@ -1250,24 +1289,22 @@ datasets self-describing. A disadvantage of this organization is that
 any operation on a netCDF dataset that requires the header to grow
 (or, less likely, to shrink), for example adding new dimensions or new
 variables, requires moving the data by copying it. This expense is
-incurred when the enddef function is called: nc_enddef in C (see
-nc_enddef), NF_ENDDEF in Fortran (see NF_ENDDEF), after a previous
-call to the redef function: nc_redef in C (see nc_redef) or NF_REDEF
-in Fortran (see NF_REDEF). If you create all necessary dimensions,
-variables, and attributes before writing data, and avoid later
-additions and renamings of netCDF components that require more space
-in the header part of the file, you avoid the cost associated with
-later changing the header.
+incurred when the enddef function is called: nc_enddef() in C,
+NF_ENDDEF() in Fortran, after a previous call to the redef function:
+nc_redef() in C or NF_REDEF() in Fortran. If you create all necessary
+dimensions, variables, and attributes before writing data, and avoid
+later additions and renamings of netCDF components that require more
+space in the header part of the file, you avoid the cost associated
+with later changing the header.
 
 Alternatively, you can use an alternative version of the enddef
 function with two underbar characters instead of one to explicitly
 reserve extra space in the file header when the file is created: in C
-nc__enddef (see nc__enddef), in Fortran NF__ENDDEF (see NF__ENDDEF),
-after a previous call to the redef function. This avoids the expense
-of moving all the data later by reserving enough extra space in the
-header to accommodate anticipated changes, such as the addition of new
-attributes or the extension of existing string attributes to hold
-longer strings.
+nc__enddef(), in Fortran NF__ENDDEF(), after a previous call to the
+redef function. This avoids the expense of moving all the data later
+by reserving enough extra space in the header to accommodate
+anticipated changes, such as the addition of new attributes or the
+extension of existing string attributes to hold longer strings.
 
 When the size of the header is changed, data in the file is moved, and
 the location of data values in the file changes. If another program is
@@ -1323,8 +1360,8 @@ dimension ids.
 
 XDR is a standard for describing and encoding data and a library of
 functions for external data representation, allowing programmers to
-encode data structures in a machine-independent way. Classic or 64-bit
-offset netCDF employs an extended form of XDR for representing
+encode data structures in a machine-independent way. Classic
+netCDF employs an extended form of XDR for representing
 information in the header part and the data parts. This extended XDR
 is used to write portable data that can be read on any other machine
 for which the library has been implemented.
@@ -1351,13 +1388,23 @@ this section applies only to systems with LFS.
 The original binary format of netCDF (classic format) limits the size
 of data files by using a signed 32-bit offset within its internal
 structure. Files larger than 2 GiB can be created, with certain
-limitations. See Classic Limitations.
+limitations. See \ref limitations.
 
 In version 3.6.0, netCDF included its first-ever variant of the
 underlying data format. The new format introduced in 3.6.0 uses 64-bit
-file offsets in place of the 32-bit offsets. There are still some
+file offsets in place of the 32-bit offsets. The new format is also referred as
+CDF-2 format as it bears a signature string of "CDF2" in the file header.
+There are still some
 limits on the sizes of variables, but the new format can create very
-large datasets. See 64 bit Offset Limitations.
+large datasets. See \ref netcdf_64bit_offset_format.
+
+Starting from version 4.4.0, netCDF included the support of CDF-5 format.  In
+order to allows defining large array variables with more than 4-billion
+elements, CDF-5 replaces most of the 32-bit integers used to describe metadata
+with 64-bit integers. In addition, it supports the following new external data
+types: NC_UBYTE, NC_USHORT, NC_UINT, NC_INT64, and NC_UINT64. The CDF-5 format
+specifications can be found in
+(http://cucis.ece.northwestern.edu/projects/PnetCDF/CDF-5.html).
 
 NetCDF-4 variables and files can be any size supported by the
 underlying file system.
@@ -1372,31 +1419,27 @@ about 1.15e+18 bytes. Note also that all sizes are really 4 bytes less
 than the ones given below. For example the maximum size of a fixed
 variable in netCDF 3.6 classic format is really 2 GiB - 4 bytes.
 
-Limit 	No LFS 	v3.5 	v3.6/classic 	v3.6/64-bit offset 	v4.0/netCDF-4
+Limits                                     | No LFS     |  v3.5   |  v3.6/classic |  v3.6/64-bit offset |    v4.0/netCDF-4 and CDF-5
+-------------------------------------------|------------|---------|---------------|---------------------|-----------------
+Max File Size                              | 2 GiB      | 8 EiB   |  8 EiB        |  8 EiB              | unlimited
+Max Number of Fixed Vars > 2 GiB           |     0      | 1 (last)|  1 (last)     |  2^32               | unlimited
+Max Record Vars w/ Rec Size > 2 GiB        |     0      | 1 (last)|  1 (last)     |  2^32               | unlimited
+Max Size of Fixed/Record Size of Record Var| 2 GiB      | 2 GiB   |  2 GiB        |  4 GiB              | unlimited
+Max Record Size                            | 2 GiB/nrecs| 4 GiB   |  8 EiB/nrecs  |  8 EiB/nrecs        | unlimited
 
-Max File Size 	2 GiB 	8 EiB 	8 EiB 	8 EiB 	??
-
-Max Number of Fixed Vars > 2 GiB 	0 	1 (last) 	1 (last) 	2^32 	??
-
-Max Record Vars w/ Rec Size > 2 GiB 	0 	1 (last) 	1 (last) 	2^32 	??
-
-Max Size of Fixed/Record Size of Record Var 	2 GiB 	2 GiB 	2 GiB 	4 GiB 	??
-
-Max Record Size 	2 GiB/nrecs 	4 GiB 	8 EiB/nrecs 	8 EiB/nrecs 	??
-
-For more information about the different file formats of netCDF See
-Which Format.
+For more information about the different file formats of netCDF see
+\ref select_format "How to Select the Format".
 
 \section offset_format_limitations NetCDF 64-bit Offset Format Limitations
 
-Although the 64-bit offset format allows the creation of much larger
+Although the 64-bit offset format (CDF-2) allows the creation of much larger
 netCDF files than was possible with the classic format, there are
 still some restrictions on the size of variables.
 
 It's important to note that without Large File Support (LFS) in the
 operating system, it's impossible to create any file larger than 2
 GiBytes. Assuming an operating system with LFS, the following
-restrictions apply to the netCDF 64-bit offset format.
+restrictions apply to the CDF-2 format.
 
 No fixed-size variable can require more than 2^32 - 4 bytes (i.e. 4GiB
 - 4 bytes, or 4,294,967,292 bytes) of storage for its data, unless it
@@ -1404,13 +1447,13 @@ is the last fixed-size variable and there are no record
 variables. When there are no record variables, the last fixed-size
 variable can be any size supported by the file system, e.g. terabytes.
 
-A 64-bit offset format netCDF file can have up to 2^32 - 1 fixed sized
+A CDF-2 file can have up to 2^32 - 1 fixed sized
 variables, each under 4GiB in size. If there are no record variables
 in the file the last fixed variable can be any size.
 
 No record variable can require more than 2^32 - 4 bytes of storage for
 each record's worth of data, unless it is the last record variable. A
-64-bit offset format netCDF file can have up to 2^32 - 1 records, of
+CDF-2 file can have up to 2^32 - 1 records, of
 up to 2^32 - 1 variables, as long as the size of one record's data for
 each record variable except the last is less than 4 GiB - 4.
 
@@ -1421,12 +1464,12 @@ boundaries.
 
 There are important constraints on the structure of large netCDF
 classic files that result from the 32-bit relative offsets that are
-part of the netCDF classic file format:
+part of the netCDF classic file format (CDF-1):
 
 The maximum size of a record in the classic format in versions 3.5.1
 and earlier is 2^32 - 4 bytes, or about 4 GiB. In versions 3.6.0 and
 later, there is no such restriction on total record size for the
-classic format or 64-bit offset format.
+classic formats.
 
 If you don't use the unlimited dimension, only one variable can exceed
 2 GiB in size, but it can be as large as the underlying file system
@@ -1480,10 +1523,10 @@ the data in a 2.4 Tbyte file might be something like:
 
 \section netcdf_3_io The NetCDF-3 I/O Layer
 
-The following discussion applies only to netCDF classic and 64-bit
-offset files. For netCDF-4 files, the I/O layer is the HDF5 library.
+The following discussion applies only to netCDF classic files (i.e. CDF-1, 2,
+and 5 formats). For netCDF-4 files, the I/O layer is the HDF5 library.
 
-For netCDF classic and 64-bit offset files, an I/O layer implemented
+For netCDF classic offset files, an I/O layer implemented
 much like the C standard I/O (stdio) library is used by netCDF to read
 and write portable data to netCDF datasets. Hence an understanding of
 the standard I/O library provides answers to many questions about
@@ -1495,8 +1538,8 @@ dataset while other processes read it.
 Data reads and writes are no more atomic than calls to stdio fread()
 and fwrite(). An nc_sync/NF_SYNC call is analogous to the fflush call
 in the C standard I/O library, writing unwritten buffered data so
-other processes can read it; The C function nc_sync (see nc_sync), or
-the Fortran function NF_SYNC (see NF_SYNC), also brings header changes
+other processes can read it; The C function nc_sync(), or
+the Fortran function NF_SYNC(), also brings header changes
 up-to-date (for example, changes to attribute values). Opening the
 file with the NC_SHARE (in C) or the NF_SHARE (in Fortran) is
 analogous to setting a stdio stream to be unbuffered with the _IONBF
@@ -1508,7 +1551,7 @@ operations can influence I/O performance significantly. Reading data
 in the same order in which it was written within each record will
 minimize buffer flushes.
 
-You should not expect netCDF classic or 64-bit offset format data
+You should not expect netCDF classic format data
 access to work with multiple writers having the same file open for
 writing simultaneously.
 
@@ -1536,12 +1579,12 @@ NetCDF uses the HDF5 parallel programming model for parallel I/O with
 netCDF-4/HDF5 files. The HDF5 tutorial
 (http://hdfgroup.org/HDF5//HDF5/Tutor) is a good reference.
 
-For classic and 64-bit offset files, netCDF uses the parallel-netcdf
-(formerly pnetcdf) library from Argonne National Labs/Nortwestern
-University. For parallel access of classic and 64-bit offset files,
-netCDF must be configured with the –with-pnetcdf option at build
-time. See the parallel-netcdf site for more information
-(http://www.mcs.anl.gov/parallel-netcdf).
+For classic files, netCDF uses the PnetCDF library from Argonne National
+Labs/Northwestern University. For parallel access of files in classic formats,
+netCDF must be configured with the --with-pnetcdf option at build time. See the
+PnetCDF site for more information (https://parallel-netcdf.github.io).
+Addition information and example programs can be found in
+(http://cucis.ece.northwestern.edu/projects/PnetCDF/#InteroperabilityWithNetCDF4)
 
 \section interoperability_with_hdf5 Interoperability with HDF5
 
@@ -1610,7 +1653,7 @@ script. Currently they are set to 10 and 64 MB.)
 
 To change the default chunk cache size, use the set_chunk_cache
 function before opening the file with nc_set_chunk_cache(). Fortran 77
-programmers see NF_SET_CHUNK_CACHE). Fortran 90 programmers use the
+programmers see NF_SET_CHUNK_CACHE()). Fortran 90 programmers use the
 optional cache_size, cache_nelems, and cache_preemption parameters to
 nf90_open/nf90_create to change the chunk size before opening the
 file.
@@ -1618,11 +1661,17 @@ file.
 To change the per-variable cache size, use the set_var_chunk_cache
 function at any time on an open file. C programmers see
 nc_set_var_chunk_cache(), Fortran 77 programmers see
-NF_SET_VAR_CHUNK_CACHE, ).
+NF_SET_VAR_CHUNK_CACHE().
 
 \section default_chunking_4_1 The Default Chunking Scheme
 
-Unfortunately, there are no general-purpose chunking defaults that are optimal for all uses. Different patterns of access lead to different chunk shapes and sizes for optimum access. Optimizing for a single specific pattern of access can degrade performance for other access patterns.  By creating or rewriting datasets using appropriate chunking, it is sometimes possible to support efficient access for multiple patterns of access.
+Unfortunately, there are no general-purpose chunking defaults that are
+optimal for all uses. Different patterns of access lead to different
+chunk shapes and sizes for optimum access. Optimizing for a single
+specific pattern of access can degrade performance for other access
+patterns.  By creating or rewriting datasets using appropriate
+chunking, it is sometimes possible to support efficient access for
+multiple patterns of access.
 
 If you don't know or can't anticipate what access patterns will be most common, or you want to store a variable in a way that will support reasonable access along any of its dimensions, you can use the library's default chunking strategy.
 
@@ -1780,7 +1829,7 @@ double slash characters '//' on any line.
 A CDL description for a classic model file consists of three optional
 parts: dimensions, variables, and data. The variable part may contain
 variable declarations and attribute assignments. For the enhanced
-model supported by netCDF-4, a CDL decription may also includes
+model supported by netCDF-4, a CDL description may also include
 groups, subgroups, and user-defined types.
 
 A dimension is used to define the shape of one or more of the
@@ -1896,8 +1945,8 @@ NetCDF-4 supports the additional primitive types:
 - ubyte - Unsigned eight-bit integers.
 - ushort - Unsigned 16-bit integers.
 - uint - Unsigned 32-bit integers.
-- int64 - 64-bit singed integers.
-- uint64 - Unsigned 64-bit singed integers.
+- int64 - 64-bit signed integers.
+- uint64 - Unsigned 64-bit signed integers.
 - string - Variable-length string of characters
 
 Except for the added numeric data-types byte and ubyte, CDL supports
@@ -1933,6 +1982,9 @@ netCDF file or other external representation, the characters are UTF-8
 encoded <http://en.wikipedia.org/wiki/UTF-8> (note that ASCII is a
 subset of UTF-8). Libraries may use different internal
 representations, for example the Java library uses UTF-16 encoding.
+Note especially that Microsoft Windows does not support UTF-8
+encoding, only ASCII and UTF-16. So using netcdf on Windows may
+cause some problems with respect to objects like file paths.
 
 The netCDF char type contains uninterpreted characters, one character
 per byte.  Typically these contain 7-bit ASCII characters, but the
@@ -2224,7 +2276,7 @@ possible floating-point values would requires '-p 9,17'.)
 @par -k
 Show \e kind of netCDF file, that is which format variant the file uses.
 Other options are ignored if this option is specified.  Output will be
-one of 'classic'. '64-bit offset', 'netCDF-4', or 'netCDF-4 classic
+one of 'classic'. '64-bit offset', '64-bit data', 'netCDF-4', or 'netCDF-4 classic
 model'.
 
 @par -s
@@ -2333,7 +2385,7 @@ ncgen(1), netcdf(3)
 
 \subsection ncdump_string_note NOTE ON STRING OUTPUT
 
-For classic, 64-bit offset or netCDF-4 classic model data, \b ncdump
+For classic, 64-bit offset, 64-bit data, or netCDF-4 classic model data, \b ncdump
 generates line breaks after embedded newlines in displaying character
 data.  This is not done for netCDF-4 files, because netCDF-4 supports
 arrays of real strings of varying length.
@@ -2357,7 +2409,7 @@ The \b nccopy utility copies an input netCDF file in any supported
 format variant to an output netCDF file, optionally converting the
 output to any compatible netCDF format variant, compressing the data,
 or rechunking the data.  For example, if built with the netCDF-3
-library, a netCDF classic file may be copied to a netCDF 64-bit offset
+library, a classic CDF-1 file may be copied to a CDF-2 or CDF-5
 file, permitting larger variables.  If built with the netCDF-4
 library, a netCDF classic file may be copied to a netCDF-4 file or to
 a netCDF-4 classic model file as well, permitting data compression,
@@ -2366,7 +2418,7 @@ netCDF-4 features.
 
 If no output format is specified, with either \b -k  \e kind_name
 or \e -kind_code, then the output will use the same
-format as the input, unless the input is classic or 64-bit offset
+format as the input, unless the input is classic format
 and either chunking or compression is specified, in which case the
 output will be netCDF-4 classic model format.  Attempting
 some kinds of format conversion will result in an error, if the
@@ -2392,7 +2444,8 @@ Use format name to specify the kind of file to be created
 and, by inference, the data model (i.e. netcdf-3 (classic) or
 netcdf-4 (enhanced)).  The possible arguments are: \n
     'nc3' or 'classic' => netCDF classic format \n
-    'nc6' or '64-bit offset' => netCDF 64-bit format \n
+    'nc6' or '64-bit offset' => netCDF 64-bit offset format \n
+    'cdf5' => netCDF 64-bit data format \n
     'nc4' or 'netCDF-4' => netCDF-4 format (enhanced data model) \n
     'nc7' or 'netCDF-4 classic model' => netCDF-4 classic model format \n
 
@@ -2407,7 +2460,8 @@ Use format numeric code (instead of format name) to specify the kind of file to 
 and, by inference, the data model (i.e. netcdf-3 (classic) versus
 netcdf-4 (enhanced)).  The numeric codes are: \n
     3 => netcdf classic format \n
-    6 => netCDF 64-bit format \n
+    6 => netCDF 64-bit offset format (CDF_2) \n
+    5 => netCDF 64-bit data format (CDF-5) \n
     4 => netCDF-4 format (enhanced data model) \n
     7 => netCDF-4 classic model format \n
 
@@ -2423,7 +2477,7 @@ corresponds to no compression and 9 to maximum compression, with
 higher levels of compression requiring marginally more time to
 compress or uncompress than lower levels.  Compression achieved may
 also depend on output chunking parameters.  If this option is
-specified for a classic format or 64-bit offset format input file, it
+specified for a classic format input file, it
 is not necessary to also specify that the output should be netCDF-4
 classic model, as that will be the default.  If this option is not
 specified and the input file has compressed variables, the compression
@@ -2601,7 +2655,7 @@ but no general algorithm for computing the optimum number of chunk
 cache elements has been implemented yet.
 
 \par -r
-Read netCDF classic or 64-bit offset input file into a diskless netCDF
+Read netCDF classic input file into a diskless netCDF
 file in memory before copying.  Requires that input file be small
 enough to fit into memory.  For \b nccopy, this doesn't seem to provide
 any significant speedup, so may not be a useful option.
@@ -2648,9 +2702,9 @@ type, to the output file bar.nc:
 \code
 nccopy -d1 foo.nc bar.nc
 \endcode
-If foo.nc was a classic or 64-bit offset netCDF file, bar.nc will be a
-netCDF-4 classic model netCDF file, because the classic and 64-bit
-offset format variants don't support compression.  If foo.nc was a
+If foo.nc was a classic netCDF file, bar.nc will be a
+netCDF-4 classic model netCDF file, because the classic
+formats don't support compression.  If foo.nc was a
 netCDF-4 file with some variables compressed using various deflation
 levels, the output will also be a netCDF-4 file of the same type, but
 all the variables, including any uncompressed variables in the input,

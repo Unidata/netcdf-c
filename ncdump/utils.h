@@ -5,10 +5,14 @@
  *   Stuff that's common to both ncdump and nccopy
  *
  *********************************************************************/
+#ifndef _UTILS_H
+#define _UTILS_H
 
 #include "config.h"
 
-#define	STREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
+#ifndef NCSTREQ
+#define	NCSTREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
+#endif
 
 /* Delimiter for separating netCDF groups in absolute pathnames, same as for HDF5 */
 #define NC_GRP_DELIM '/'
@@ -80,6 +84,12 @@ void print_name(const char *name);
 /* Get dimid from a full dimension path name that may include group
  * names */
 extern int  nc_inq_dimid2(int ncid, const char *dimname, int *dimidp);
+
+/* Convert a full path name to a group to the specific groupid. */
+extern int  nc_inq_grpid2(int ncid, const char *grpname0, int *grpidp);
+
+/* Convert a full path name to a varid to the specific varid + grpid */
+extern int nc_inq_varid2(int ncid, const char *path0, int* varidp, int* grpidp);
 
 /* Test if variable is a record variable */
 extern int  isrecvar ( int ncid, int varid );
@@ -155,3 +165,6 @@ extern int getrootid(int grpid);
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* _UTILS_H */
+

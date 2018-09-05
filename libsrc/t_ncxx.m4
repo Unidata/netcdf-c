@@ -24,6 +24,10 @@ dnl
  * Otherwise, the program is silent and has exit code 0.
  */ 
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #undef NDEBUG   /* always active assert() in this file */
 
 #include <stdio.h>

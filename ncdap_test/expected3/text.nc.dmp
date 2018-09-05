@@ -19,7 +19,7 @@ variables:
 		i:d = -1.79769313486232e+308, 1.79769313486232e+308, -1., 1., 660. ;
 	float f ;
 	double d ;
-		d:c = "€\177AZ$&" ;
+		d:c = "\\200\\177AZ$&" ;
 	char cr(Dr, maxStrlen64) ;
 	byte br(Dr) ;
 	short sr(Dr) ;
@@ -152,7 +152,7 @@ variables:
 	int i444(D4, D4, D4) ;
 
 // global attributes:
-		:Gc = "€" ;
+		:Gc = "\\200" ;
 		:Gb = -128b, 127b ;
 		:Gs = -32768s, 32767s, 32767s ;
 		:Gi = -2147483648, 2147483647, -2147483648, 2147483647 ;

@@ -1,5 +1,5 @@
 #include "includes.h"
-#include "offsets.h"
+#include "ncoffsets.h"
 
 #ifdef ENABLE_JAVA
 
@@ -446,7 +446,7 @@ jopaquestring(Symbol* tsym, Constant* prim, Constant* target)
 
     ASSERT((oplen%2) == 0);
 
-    opstring = (char*)emalloc(oplen*(2+4));
+    opstring = (char*)ecalloc(oplen*(2+4));
     opstring[0]='\0';    
 
     p=(unsigned char*)op;

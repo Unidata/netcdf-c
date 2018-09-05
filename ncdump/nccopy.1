@@ -20,6 +20,7 @@ nccopy
 \%[\-h \fI chunk_cache \fP]
 \%[\-e \fI cache_elems \fP]
 \%[\-r]
+\%[\-F \fI filterspec \fP]
 \%\fI infile \fP
 \%\fI outfile \fP
 .hy
@@ -251,6 +252,30 @@ Read netCDF classic or 64-bit offset input file into a diskless netCDF
 file in memory before copying.  Requires that input file be small
 enough to fit into memory.  For \fBnccopy\fP, this doesn't seem to provide
 any significant speedup, so may not be a useful option.
+.IP "\fB \-F \fP \fIfilterspec\fP"
+For netCDF-4 output, including netCDF-4 classic model, specify a filter
+to apply to an specified variable in the output. As a rule, the filter
+is a compression/decompression algorithm with a unique numeric identifier
+assigned by the HDF Group (see https://support.hdfgroup.org/services/filters.html).
+.IP
+The \fIfilterspec\fP argument has this general form.
+.RS
+fqn,filterid,param1,param2...paramn
+.RE
+The fqn (fully qualified name) is the name
+of a variable prefixed by its containing
+groups with the group names separated by forward slash ('/').
+An example might be \FI/g1/g2/var\fP. Alternatively,
+just the variable name can be given if it is in the root group:
+e.g. \FIvar\fP. Backslash escapes may be used as needed.
+The filterid is an unsigned positive integer representing the id
+assigned by the HDFgroup to the filter. Following the id is a sequence of
+parameters defining the operation of the filter. Each parameter
+is a 32-bit unsigned integer.
+.IP
+This parameter may be repeated multiple times with different
+variable names.
+
 .SH EXAMPLES
 .LP
 Make a copy of foo1.nc, a netCDF file of any type, to foo2.nc, a
@@ -327,6 +352,41 @@ memory before writing it to disk on close:
 .HP
 nccopy \-w \-c time/1000,lat/40,lon/40 slow.nc fast.nc
 .RE
+
+.SH "Chunking Rules"
+.LP
+The complete set of chunking rules is captured here.  As a rough
+summary, these rules preserve all chunking properties from the
+input file. These rules apply only when the selected output
+format supports chunking, i.e. for the netcdf-4 variants.
+.LP
+The following rules are applied in the given order independently
+for each variable to be copied from input to output. The rules are
+written assuming we are trying to determine the chunking for a given
+output variable Vout that comes from an input variable Vin.
+.NP
+For each dimension of Vout explicitly specified on the command line
+using the '-c' option, apply the chunking value for that
+dimension.  regardless of input format or input properties.
+
+.NP
+For dimensions of V not named on the command line, preserve chunk
+sizes from the corresponding input variable.
+.NP
+If V is netcdf-4 and contiguous, and none of its dimensions are
+named on the command line, and chunking is not mandated by other
+options, then make V be contiguous.
+.NP
+If the input variable is contiguous (or is some netcdf-3
+variant) and there are no options requiring chunking, or the '/'
+special case for the '-c' option is specified, then the output
+variable V is marked as contiguous.
+.NP
+Handle all remaining cases when some or all chunk sizes are not determined by the command line or the input variable. This includes the non-chunked input cases such as netcdf-3, cdf5, and DAP. In these cases:
+        Retain all chunk sizes determined by (1) and (2); and
+        Compute the remaining chunk sizes automatically, with some reasonable 
+
+
 .SH "SEE ALSO"
 .LP
 .BR ncdump(1), ncgen(1), netcdf(3)

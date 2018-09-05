@@ -606,7 +606,7 @@ GENERATE_DEPRECATEDLIST= YES
 # sections, marked by \if <section_label> ... \endif and \cond <section_label>
 # ... \endcond blocks.
 
-ENABLED_SECTIONS       =
+ENABLED_SECTIONS       = @ENABLED_DOC_SECTIONS@
 
 # The MAX_INITIALIZER_LINES tag determines the maximum number of lines that the
 # initial value of a variable or macro / define can have for it to appear in the
@@ -748,23 +748,29 @@ INPUT = \
     @abs_top_srcdir@/RELEASE_NOTES.md \
     @abs_top_srcdir@/docs/install.md \
     @abs_top_srcdir@/docs/install-fortran.md \
-    @abs_top_srcdir@/docs/dispatch.dox \
     @abs_top_srcdir@/docs/types.dox \
-    @abs_top_srcdir@/docs/internal.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/guide.dox \
-    @abs_top_srcdir@/docs/OPeNDAP.dox \
     @abs_top_srcdir@/docs/attribute_conventions.md \
     @abs_top_srcdir@/docs/file_format_specifications.md \
-    @abs_top_srcdir@/docs/tutorial.dox \
+    @abs_top_srcdir@/docs/OPeNDAP.dox \
+    @abs_top_srcdir@/docs/DAP4.dox \
+    @abs_top_srcdir@/docs/user_defined_formats.md \
+    @abs_top_srcdir@/docs/filters.md \
+    @abs_top_srcdir@/docs/inmemory.md \
+    @abs_top_srcdir@/docs/auth.md \
     @abs_top_srcdir@/docs/notes.md \
-    @abs_top_srcdir@/docs/esg.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
     @abs_top_srcdir@/docs/FAQ.md \
     @abs_top_srcdir@/docs/known_problems.md \
     @abs_top_srcdir@/docs/COPYRIGHT.dox \
     @abs_top_srcdir@/docs/credits.md \
     @abs_top_srcdir@/docs/bestpractices.md \
+    @abs_top_srcdir@/docs/tutorial.dox \
+    @abs_top_srcdir@/docs/internal.dox \
+    @abs_top_srcdir@/docs/inmeminternal.dox \
+    @abs_top_srcdir@/docs/indexing.dox \
+    @abs_top_srcdir@/docs/testserver.dox \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_mem.h \
     @abs_top_srcdir@/include/netcdf_par.h \
@@ -787,7 +793,18 @@ INPUT = \
     @abs_top_srcdir@/libdispatch/dparallel.c \
     @abs_top_srcdir@/libdispatch/derror.c \
     @abs_top_srcdir@/libdispatch/dv2i.c \
-    @abs_top_srcdir@/libsrc4/nc4file.c \
+    @abs_top_srcdir@/libdispatch/dcopy.c \
+    @abs_top_srcdir@/libhdf5/hdf5file.c \
+    @abs_top_srcdir@/libsrc4/nc4var.c \
+    @abs_top_srcdir@/libhdf5/nc4hdf.c \
+    @abs_top_srcdir@/libsrc4/nc4internal.c \
+    @abs_top_srcdir@/libsrc4/nc4type.c \
+    @abs_top_srcdir@/libsrc4/nc4grp.c \
+    @abs_top_srcdir@/libsrc4/ncfunc.c \
+    @abs_top_srcdir@/libsrc4/nc4dim.c \
+    @abs_top_srcdir@/libsrc4/nc4attr.c \
+    @abs_top_srcdir@/libhdf5/nc4info.c \
+    @abs_top_srcdir@/libsrc4/nc4dispatch.c \
     @abs_top_srcdir@/examples/C/simple_xy_wr.c \
     @abs_top_srcdir@/examples/C/simple_xy_rd.c \
     @abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \
@@ -797,7 +814,8 @@ INPUT = \
     @abs_top_srcdir@/examples/C/simple_nc4_wr.c \
     @abs_top_srcdir@/examples/C/simple_nc4_rd.c \
     @abs_top_srcdir@/examples/C/simple_xy_nc4_wr.c \
-    @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c
+    @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c \
+    @abs_top_srcdir@/examples/C/filter_example.c
 
 
 # This tag can be used to specify the character encoding of the source files
@@ -873,7 +891,7 @@ EXAMPLE_PATH           = @abs_top_srcdir@/examples/C
 # *.h) to filter out the source-files in the directories. If left blank all
 # files are included.
 
-EXAMPLE_PATTERNS       =
+EXAMPLE_PATTERNS       = 
 
 # If the EXAMPLE_RECURSIVE tag is set to YES then subdirectories will be
 # searched for input files to be used with the \include or \dontinclude commands
@@ -1035,7 +1053,7 @@ USE_HTAGS              = NO
 VERBATIM_HEADERS       = YES
 
 # If the CLANG_ASSISTED_PARSING tag is set to YES, then doxygen will use the
-# clang parser (see: http://clang.llvm.org/) for more acurate parsing at the
+# clang parser (see: http://clang.llvm.org/) for more accurate parsing at the
 # cost of reduced performance. This can be particularly helpful with template
 # rich C++ code for which doxygen's built-in parser lacks the necessary type
 # information.
@@ -1149,7 +1167,7 @@ HTML_STYLESHEET        =
 # defined cascading style sheet that is included after the standard style sheets
 # created by doxygen. Using this option one can overrule certain style aspects.
 # This is preferred over using HTML_STYLESHEET since it does not replace the
-# standard style sheet and is therefor more robust against future updates.
+# standard style sheet and is therefore more robust against future updates.
 # Doxygen will copy the style sheet file to the output directory. For an example
 # see the documentation.
 # This tag requires that the tag GENERATE_HTML is set to YES.

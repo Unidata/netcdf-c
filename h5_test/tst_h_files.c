@@ -32,7 +32,6 @@ main()
       int obj_class;
       char obj_name[STR_LEN + 1];
       H5T_class_t class;
-      size_t type_size;
       int j, k;
       hid_t tmp1;
 
@@ -237,7 +236,7 @@ main()
    printf("*** large file test for HDF5...");
    {
       hid_t fapl_id, fcpl_id, fileid, grpid, spaceid, datasetid;
-      hid_t dim1_dimscaleid, dim2_dimscaleid, plistid, datasetid2, file_spaceid;
+      hid_t dim1_dimscaleid, dim2_dimscaleid, plistid, file_spaceid;
       hid_t mem_spaceid, xfer_plistid, native_typeid;
       hsize_t *chunksize, dims[1], maxdims[1], *dimsize, *maxdimsize;
       hsize_t fdims[MAX_DIMS], fmaxdims[MAX_DIMS];

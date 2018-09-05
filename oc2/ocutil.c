@@ -2,18 +2,19 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
+#include <errno.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
 #endif
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
-#include <errno.h>
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER
+#include <io.h>
 #define mode_t int
 #endif
 
@@ -57,15 +58,15 @@ ocstrncmp(const char* s1, const char* s2, size_t len)
 
 #if 0
 void
-makedimlist(OClist* path, OClist* dims)
+makedimlist(Nclist* path, Nclist* dims)
 {
     unsigned int i,j;
-    for(i=0;i<oclistlength(path);i++) {
-	OCnode* node = (OCnode*)oclistget(path,i);
+    for(i=0;i<nclistlength(path);i++) {
+	OCnode* node = (OCnode*)nclistget(path,i);
         unsigned int rank = node->array.rank;
 	for(j=0;j<rank;j++) {
-	    OCnode* dim = (OCnode*)oclistget(node->array.dimensions,j);
-	    oclistpush(dims,(void*)dim);
+	    OCnode* dim = (OCnode*)nclistget(node->array.dimensions,j);
+	    nclistpush(dims,(void*)dim);
         }
     }
 }
@@ -75,25 +76,25 @@ void
 ocfreeprojectionclause(OCprojectionclause* clause)
 {
     if(clause->target != NULL) free(clause->target);
-    while(oclistlength(clause->indexsets) > 0) {
-	OClist* slices = (OClist*)oclistpop(clause->indexsets);
-        while(oclistlength(slices) > 0) {
-	    OCslice* slice = (OCslice*)oclistpop(slices);
+    while(nclistlength(clause->indexsets) > 0) {
+	NClist* slices = (NClist*)nclistpop(clause->indexsets);
+        while(nclistlength(slices) > 0) {
+	    OCslice* slice = (OCslice*)nclistpop(slices);
 	    if(slice != NULL) free(slice);
 	}
-        oclistfree(slices);
+        nclistfree(slices);
     }
-    oclistfree(clause->indexsets);
+    nclistfree(clause->indexsets);
     free(clause);
 }
 
 #if 0
 void
-freeAttributes(OClist* attset)
+freeAttributes(NClist* attset)
 {
     unsigned int i,j;
-    for(i=0;i<oclistlength(attset);i++) {
-	OCattribute* att = (OCattribute*)oclistget(attset,i);
+    for(i=0;i<nclistlength(attset);i++) {
+	OCattribute* att = (OCattribute*)nclistget(attset,i);
 	if(att->name != NULL) free(att->name);
 	if(att->etype == OC_String || att->etype == OC_URL) {
 	    for(j=0;j<att->nvalues;j++) {
@@ -118,26 +119,26 @@ freeOCnode(OCnode* cdf, int deep)
     if(cdf->attributes != NULL) freeAttributes(cdf->attributes);
     if(cdf->subnodes != NULL) {
 	if(deep) {
-            for(i=0;i<oclistlength(cdf->subnodes);i++) {
-	        OCnode* node = (OCnode*)oclistget(cdf->subnodes,i);
+            for(i=0;i<nclistlength(cdf->subnodes);i++) {
+	        OCnode* node = (OCnode*)nclistget(cdf->subnodes,i);
 		freeOCnode(node,deep);
 	    }
 	}
-        oclistfree(cdf->subnodes);
+        nclistfree(cdf->subnodes);
     }
     free(cdf);
 }
 #endif
 
 int
-ocfindbod(OCbytes* buffer, size_t* bodp, size_t* ddslenp)
+ocfindbod(NCbytes* buffer, size_t* bodp, size_t* ddslenp)
 {
     unsigned int i;
     char* content;
-    size_t len = ocbyteslength(buffer);
+    size_t len = ncbyteslength(buffer);
     char** marks;
     
-    content = ocbytescontents(buffer);
+    content = ncbytescontents(buffer);
 
     for(marks = DDSdatamarks;*marks;marks++) {
 	char* mark = *marks;
@@ -455,7 +456,7 @@ ocdataddsmsg(OCstate* state, OCtree* tree)
 		if(c > 0 && (c < ' ' || c >= '\177'))
 		    contents[i+j] = ERRFILL;
 	    }
-	    oclog(OCLOGERR,"DATADDS failure, possible message: '%s'\n",
+	    nclog(NCLOGERR,"DATADDS failure, possible message: '%s'\n",
 			contents+i);
 	    goto done;
 	}
@@ -682,55 +683,6 @@ occoncat(char* dst, size_t size, size_t n, ...)
 done:
     va_end(args);
     return status;    
-}
-
-
-/**
-Wrap mktmp and return the generated name
-*/
-
-int
-ocmktmp(const char* base, char** tmpnamep)
-{
-    int fd;
-    char tmpname[OCPATHMAX+1];
-    mode_t mask;
-    if(!occopycat(tmpname,sizeof(tmpname)-1,1,base)) {
-	return OC_EOVERRUN;
-    }
-#ifdef HAVE_MKSTEMP
-    if(!occoncat(tmpname,sizeof(tmpname)-1,1,"XXXXXX")) {
-	return OC_EOVERRUN;
-    }
-    /* Note Potential problem: old versions of this function
-       leave the file in mode 0666 instead of 0600 */
-
-    mask=umask(0077);
-    fd = mkstemp(tmpname);
-    (void)umask(mask);
-#else /* !HAVE_MKSTEMP */
-    /* Need to simulate by using some kind of pseudo-random number */
-    {
-	int rno = rand();
-	char spid[7];
-	if(rno < 0) rno = -rno;
-        snprintf(spid,sizeof(spid),"%06d",rno);
-	if(!occoncat(tmpname,sizeof(tmpname)-1,1,spid)) {
-	    return OC_EOVERRUN;
-        }
-#if defined(_WIN32) || defined(_WIN64)
-        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
-#  else
-        fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
-#  endif
-    }
-#endif /* !HAVE_MKSTEMP */
-    if(fd < 0) {
-       return OC_EOPEN;
-    } else
-	close(fd);
-    if(tmpnamep) *tmpnamep = strdup(tmpname);
-    return OC_NOERR;
 }
 
 /* merge two envv style lists */

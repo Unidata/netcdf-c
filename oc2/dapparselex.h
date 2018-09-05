@@ -20,7 +20,7 @@ typedef void* Object;
 typedef struct DAPlexstate {
     char* input;
     char* next; /* next char in uri.query*/
-    OCbytes* yytext;
+    NCbytes* yytext;
     int lineno;
     /*! Specifies the Lasttoken. */
     int lasttoken;
@@ -28,14 +28,14 @@ typedef struct DAPlexstate {
     char* wordchars1;
     char* wordcharsn;
     char* worddelims;
-    OClist* reclaim; /* reclaim WORD_WORD instances */
+    NClist* reclaim; /* reclaim WORD_WORD instances */
 } DAPlexstate;
 
 /*! Specifies the DAPparsestate. */
 typedef struct DAPparsestate {
     struct OCnode* root;
     DAPlexstate* lexstate;
-    OClist* ocnodes;
+    NClist* ocnodes;
     struct OCstate* conn;
     /* Provide a flag for semantic failures during parse */
     OCerror error; /* OC_EDAPSVC=> we had a server failure; else we had a semantic error */

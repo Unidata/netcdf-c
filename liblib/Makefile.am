@@ -18,17 +18,11 @@ lib_LTLIBRARIES = libnetcdf.la
 # for information regarding incrementing `-version-info`.
 ##
 
-libnetcdf_la_LDFLAGS = -version-info 11:4:0 ${NOUNDEFINED}
+libnetcdf_la_LDFLAGS = -version-info 14:1:1
 
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD =
 CLEANFILES =
-
-# Turn on some extra stuff when building a DLL for windows.
-if BUILD_DLL
-libnetcdf_la_LDFLAGS += -no-undefined -Wl,--output-def,netcdfdll.def
-libnetcdf_la_CPPFLAGS += -DDLL_EXPORT
-endif # BUILD_DLL
 
 # The v2 API...
 if BUILD_V2
@@ -46,24 +40,42 @@ AM_CPPFLAGS += -I${top_srcdir}/libsrcp
 libnetcdf_la_LIBADD += ${top_builddir}/libsrcp/libnetcdfp.la
 endif # USE_PNETCDF
 
+# + hdf5
+if USE_NETCDF4
+AM_CPPFLAGS += -I${top_srcdir}/libhdf5
+libnetcdf_la_LIBADD += ${top_builddir}/libhdf5/libnchdf5.la
+endif # USE_NETCDF4
+
+# + hdf4
+if USE_HDF4
+AM_CPPFLAGS += -I${top_srcdir}/libhdf4
+libnetcdf_la_LIBADD += ${top_builddir}/libhdf4/libnchdf4.la
+endif # USE_HDF4
+
 # + dap
-if USE_DAP
+if ENABLE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/libdap2 -I${top_srcdir}/oc
 libnetcdf_la_LIBADD += ${top_builddir}/libdap2/libdap2.la
 libnetcdf_la_LIBADD += ${top_builddir}/oc2/liboc.la
-endif # USE_DAP
+endif # ENABLE_DAP
+
+if ENABLE_DAP4
+AM_CPPFLAGS += -I${top_srcdir}/libdap4
+libnetcdf_la_LIBADD += ${top_builddir}/libdap4/libdap4.la
+endif # ENABLE_DAP4
 
 # NetCDF-4 ...
 if USE_NETCDF4
 
 AM_CPPFLAGS += -I${top_srcdir}/libsrc4
-
 libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 
-# Not ready for prime time yet
-# libnetcdf_la_LIBADD += ${top_builddir}/libdiskless/libdiskless.la
-
 endif #USE_NETCDF4
+
+if ISCYGWIN
+# Force binary mode for file read/write
+AM_LDFLAGS += -lbinmode
+endif
 
 # We need at least one source file
 libnetcdf_la_SOURCES = nc_initialize.c

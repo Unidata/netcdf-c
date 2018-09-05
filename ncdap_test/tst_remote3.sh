@@ -1,28 +1,46 @@
-#!/bin/sh
+#!/bin/bash
+
+if test "x$SETX" = x1 ; then set -x ; fi
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
 
 set -e
 
-# if this is part of a distcheck action, then this script
-# will be executed in a different directory
-# than the one containing it; so capture the path to this script
-# as the location of the source directory.
+. ${srcdir}/tst_utils.sh
 
-if test "x$topsrcdir" != x ; then
-  srcdir="$topsrcdir/ncdap_test"
-else
-  srcdir=`dirname $0`
+# get the list of test url targets
+. ${srcdir}/tst_urls.sh
+
+PARAMS="${PARAMS}[netcdf3]"
+
+# Choose tests to run
+if test "x$longtests" != x; then
+WHICHTESTS="L1 LC1 LC2"
+else # Standard test set
+WHICHTESTS="S1 C1"
 fi
 
-# compute the build directory
-builddir=`pwd`/..
-# Hack for CYGWIN
-cd $srcdir
-srcdir=`pwd`
-if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
-    srcdir=`pwd | sed 's/\/c\//c:\//g'`
-    builddir="$srcdir"/..
-fi
-cd ${builddir}/ncdap_test
+TITLE="DAP to netCDF-3 translation using remote server"
+EXPECTED="$expected3"
+RESULTSDIR="remote_results"
 
-sh  ${srcdir}/tst_remote.sh "$srcdir" "$builddir" "3" "" ""
-exit
+rm -fr ${RESULTSDIR}
+mkdir "${RESULTSDIR}"
+
+echo "*** Testing $TITLE "
+echo "        Base URL: ${DTS}"
+echo "        Client Parameters: ${PARAMS}"
+if test "$cache" = 0; then echo "        Caching: off"; else echo "        Caching: on"; fi
+echo "    Note: The remote tests may be slow or even fail if the server is overloaded"
+
+cd ${RESULTSDIR}
+for i in $WHICHTESTS ; do
+  computewhich $i
+  doremotetests remote
+done
+cd ..
+summarize
+cleanup
+doexit
+

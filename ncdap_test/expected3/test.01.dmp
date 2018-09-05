@@ -15,6 +15,12 @@ variables:
 	double f64 ;
 	char s(maxStrlen64) ;
 	char u(maxStrlen64) ;
+
+// global attributes:
+		:Facility.PrincipleInvestigator = "Mark Abbott\n",
+			"Ph.D" ;
+		:Facility.DataCenter = "COAS Environmental Computer Facility" ;
+		:Facility.DrifterType = "MetOcean WOCE/OCM" ;
 data:
 
  b = 0 ;

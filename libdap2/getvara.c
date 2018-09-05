@@ -4,8 +4,7 @@
  *********************************************************************/
 
 
-#include "ncdap.h"
-#include "ncglobal.h"
+#include "dapincludes.h"
 #include "dapodom.h"
 #include "dapdump.h"
 #include "ncd2dispatch.h"
@@ -503,7 +502,8 @@ movetor(NCDAPCOMMON* nccomm,
     if(xnode->etype == NC_STRING || xnode->etype == NC_URL) hasstringdim = 1;
 
     /* Get the mode */
-    mode = oc_data_mode(conn,currentcontent);
+    ocstat = oc_data_mode(conn,currentcontent,&mode);
+    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
 #ifdef DEBUG2
 fprintf(stderr,"moveto: nctype=%d depth=%d dimindex=%d mode=%s",
@@ -819,7 +819,7 @@ fprintf(stderr,"\n");
 	    count = dcesegmentsize(segment,0,rank0); /* how many to read */
 	    internlen = interntypesize*count;
             /* Read the whole variable directly into memory.*/
-            ocstat = oc_data_readn(conn,currentcontent,nc_constants->coord_zero,count,internlen,memory->next);
+            ocstat = oc_data_readn(conn,currentcontent,NC_coord_zero,count,internlen,memory->next);
 	    /* bump memory pointer */
 	    memory->next += internlen;
             if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
@@ -876,7 +876,7 @@ fprintf(stderr,"\n");
             size_t internlen;
 	    count = dcesegmentsize(segment,0,rank0); /* how many to read */
 	    internlen = interntypesize*count;
-            ocstat = oc_data_readn(conn,currentcontent,nc_constants->coord_zero,count,internlen,memory->next);
+            ocstat = oc_data_readn(conn,currentcontent,NC_coord_zero,count,internlen,memory->next);
             if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 	}
     }

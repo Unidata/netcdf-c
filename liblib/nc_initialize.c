@@ -12,6 +12,7 @@
 #include "ncdispatch.h"
 #include "ncglobal.h"
 
+
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 
@@ -21,15 +22,36 @@ extern int NC4_initialize(void);
 extern int NC4_finalize(void);
 #endif
 
-#ifdef USE_DAP
+#ifdef ENABLE_DAP2
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
+#endif
+
+#ifdef ENABLE_DAP4
+extern int NCD4_initialize(void);
+extern int NCD4_finalize(void);
 #endif
 
 #ifdef USE_PNETCDF
 extern int NCP_initialize(void);
 extern int NCP_finalize(void);
 #endif
+
+#ifdef USE_HDF4
+extern int NC_HDF4_initialize(void);
+extern int NC_HDF4_finalize(void);
+#endif
+
+#ifdef _MSC_VER
+#include <io.h>
+#include <fcntl.h>
+#endif
+
+int NC_argc = 1;
+char* NC_argv[] = {"nc_initialize",NULL};
+
+int NC_initialized = 0;
+int NC_finalized = 1;
 
 /**
 This procedure invokes all defined
@@ -47,16 +69,27 @@ nc_initialize()
 
     nc_global_init();
 
+#ifdef _MSC_VER
+    /* Force binary mode */
+    _set_fmode(_O_BINARY);
+#endif
+
     /* Do general initialization */
     if((stat = NCDISPATCH_initialize())) goto done;
 
     /* Initialize each active protocol */
     if((stat = NC3_initialize())) goto done;
-#ifdef USE_DAP
+#ifdef ENABLE_DAP
     if((stat = NCD2_initialize())) goto done;
+#endif
+#ifdef ENABLE_DAP4
+    if((stat = NCD4_initialize())) goto done;
 #endif
 #ifdef USE_PNETCDF
     if((stat = NCP_initialize())) goto done;
+#endif
+#ifdef USE_HDF4
+    if((stat = NC_HDF4_initialize())) goto done;
 #endif
 #ifdef USE_NETCDF4
     if((stat = NC4_initialize())) goto done;
@@ -83,13 +116,20 @@ nc_finalize(void)
 
     /* Finalize each active protocol */
 
-#ifdef USE_DAP
+#ifdef ENABLE_DAP2
     if((stat = NCD2_finalize())) return stat;
+#endif
+#ifdef ENABLE_DAP4
+    if((stat = NCD4_finalize())) return stat;
 #endif
 
 #ifdef USE_PNETCDF
     if((stat = NCP_finalize())) return stat;
 #endif
+
+#ifdef USE_HDF4
+    if((stat = NC_HDF4_finalize())) return stat;
+#endif /* USE_HDF4 */
 
 #ifdef USE_NETCDF4
     if((stat = NC4_finalize())) return stat;

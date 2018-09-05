@@ -29,8 +29,12 @@ HDF4 Support:		@HAS_HDF4@
 NetCDF-4 API:		@HAS_NC4@
 NC-4 Parallel Support:	@HAS_PARALLEL4@
 PNetCDF Support:	@HAS_PNETCDF@
-Thread Safety:          @HAS_THREADSAFE@
-DAP Support:		@HAS_DAP@
+DAP2 Support:		@HAS_DAP@
+DAP4 Support:		@HAS_DAP4@
 Diskless Support:	@HAS_DISKLESS@
 MMap Support:		@HAS_MMAP@
 JNA Support:		@HAS_JNA@
+CDF5 Support:		@HAS_CDF5@
+ERANGE Fill Support:	@HAS_ERANGE_FILL@
+Relaxed Boundary Check:	@RELAX_COORD_BOUND@
+Thread Safety:          @HAS_THREADSAFE@

@@ -1,8 +1,8 @@
-# $Id: tst_ncdap_shared.sh,v 1.9 2009/12/03 03:42:39 dmh Exp $
-
 ##################################################
 # Local test info
 ##################################################
+
+if test "x$SETX" != x ; then set -x ; fi
 
 # Define the complete URLS
 
@@ -34,11 +34,13 @@ test.vs2 test.vs3 test.vs4 test.vs5 whoi"
 
 ACTUALDATA2=\
 "123bears.nc 123.nc bears.nc \
-ber-2002-10-01.nc ceopL2AIRS2-2.nc \
+ceopL2AIRS2-2.nc \
 data.nc fnoc1.nc \
 in1.nc in_2.nc in.nc \
 in_no_three_double_dmn.nc in_v.nc saco1.nc \
-test.nc text.nc"
+test.nc text.nc \
+ber-2002-10-01.nc \
+kwcase.nc"
 
 # XFAIL tests should be a subset of the other tests; this is used
 # only to detect which are considered XFAIL tests.
@@ -46,7 +48,7 @@ XFAILTESTS=""
 
 # For now, remove some tests from windows platform.
 if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
-    XFAILTESTS="$XFAILTESTS EOSDB OverideExample SimpleDrdsExample test.67 test.gr5 123bears.nc 123.nc bears.nc ber-2002-10-01 data.nc in1.nc in_2.nc in_no_three_double_dmn.nc test.nc text.nc test.22 test.23 test.gr1 in.nc ber-2002-10-01.nc"
+    XFAILTESTS="$XFAILTESTS EOSDB OverideExample SimpleDrdsExample test.67 test.gr5 123bears.nc 123.nc bears.nc ber-2002-10-01 data.nc in1.nc in_2.nc in_no_three_double_dmn.nc test.nc text.nc test.22 test.23 test.gr1 in.nc ber-2002-10-01.nc kwcase.nc"
 fi
 
 FILETESTS="${SYNTHETICDATA} ${ACTUALDATA1} ${ACTUALDATA2}"

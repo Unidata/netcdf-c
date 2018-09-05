@@ -7,7 +7,7 @@
 
 #include        "includes.h"
 #include        "dump.h"
-#include        "offsets.h"
+#include        "ncoffsets.h"
 
 /* Forward*/
 static void computefqns(void);
@@ -387,7 +387,9 @@ static void
 processenums(void)
 {
     unsigned long i,j;
+#if 0 /* Unused? */
     List* enumids = listnew();
+#endif
     for(i=0;i<listlength(typdefs);i++) {
 	Symbol* sym = (Symbol*)listget(typdefs,i);
 	ASSERT(sym->objectclass == NC_TYPE);
@@ -395,7 +397,9 @@ processenums(void)
 	for(j=0;j<listlength(sym->subnodes);j++) {
 	    Symbol* esym = (Symbol*)listget(sym->subnodes,j);
 	    ASSERT(esym->subclass == NC_ECONST);
+#if 0 /* Unused? */
 	    listpush(enumids,(void*)esym);
+#endif
 	}
     }
     /* Convert enum values to match enum type*/
@@ -422,6 +426,11 @@ processeconstrefs(void)
 {
     unsigned long i;
     /* locate all the datalist and walk them recursively */
+    for(i=0;i<listlength(gattdefs);i++) {
+	Symbol* att = (Symbol*)listget(gattdefs,i);
+	if(att->data != NULL && listlength(att->data) > 0)
+	    processeconstrefsR(att->data);
+    }
     for(i=0;i<listlength(attdefs);i++) {
 	Symbol* att = (Symbol*)listget(attdefs,i);
 	if(att->data != NULL && listlength(att->data) > 0)
@@ -438,9 +447,9 @@ processeconstrefs(void)
 static void
 processeconstrefsR(Datalist* data)
 {
-    NCConstant* con;
+    NCConstant* con = NULL;
     int i;
-    for(i=0,con=data->data;i<data->alloc;i++,con++) {
+    for(i=0,con=data->data;i<data->length;i++,con++) {
 	if(con->nctype == NC_COMPOUND) {
 	    /* Iterate over the sublists */
 	    processeconstrefsR(con->value.compoundv);
@@ -458,6 +467,7 @@ fixeconstref(NCConstant* con)
     Symbol* refsym = con->value.enumv;
     List* grpmatches;
 
+    
     /* Locate all possible matching enum constant definitions */
     List* candidates = findecmatches(refsym->name);
     if(candidates == NULL) {
@@ -628,29 +638,27 @@ computesize(Symbol* tsym)
 	    break;
 	case NC_COMPOUND: /* keep if all fields are primitive*/
 	    /* First, compute recursively, the size and alignment of fields*/
-      for(i=0;i<listlength(tsym->subnodes);i++) {
+            for(i=0;i<listlength(tsym->subnodes);i++) {
 		Symbol* field = (Symbol*)listget(tsym->subnodes,i);
-        ASSERT(field->subclass == NC_FIELD);
+                ASSERT(field->subclass == NC_FIELD);
 		computesize(field);
-		/* alignment of struct is same as alignment of first field*/
 		if(i==0) tsym->typ.alignment = field->typ.alignment;
-      }
-      /* now compute the size of the compound based on*/
-      /* what user specified*/
-      offset = 0;
-      largealign = 1;
-      for(i=0;i<listlength(tsym->subnodes);i++) {
-        Symbol* field = (Symbol*)listget(tsym->subnodes,i);
-        /* only support 'c' alignment for now*/
-        int alignment = field->typ.alignment;
-        int padding = getpadding(offset,alignment);
-        offset += padding;
-        field->typ.offset = offset;
-        offset += field->typ.size;
-        if (alignment > largealign) {
-          largealign = alignment;
-        }
-      }
+            }
+            /* now compute the size of the compound based on what user specified*/
+            offset = 0;
+            largealign = 1;
+            for(i=0;i<listlength(tsym->subnodes);i++) {
+                Symbol* field = (Symbol*)listget(tsym->subnodes,i);
+                /* only support 'c' alignment for now*/
+                int alignment = field->typ.alignment;
+                int padding = getpadding(offset,alignment);
+                offset += padding;
+                field->typ.offset = offset;
+                offset += field->typ.size;
+                if (alignment > largealign) {
+                    largealign = alignment;
+                }
+            }
 	    tsym->typ.cmpdalign = largealign; /* total structure size alignment */
             offset += (offset % largealign);
 	    tsym->typ.size = offset;

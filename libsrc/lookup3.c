@@ -46,7 +46,10 @@ on 1 byte), but shoehorning those bytes into integers efficiently is messy.
 */
 /* #define SELF_TEST 1 */
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>      /* defines printf for tests */
 #include <time.h>       /* defines time_t for timings in the test */
 #ifndef HAVE_STDINT_H
@@ -831,7 +834,7 @@ void driver2()
     {
       for (j=0; j<8; ++j)   /*------------------------ for each input bit, */
       {
-	for (m=1; m<8; ++m) /*------------ for serveral possible initvals, */
+	for (m=1; m<8; ++m) /*------------ for several possible initvals, */
 	{
 	  for (l=0; l<HASHSTATE; ++l)
 	    e[l]=f[l]=g[l]=h[l]=x[l]=y[l]=~((uint32_t)0);

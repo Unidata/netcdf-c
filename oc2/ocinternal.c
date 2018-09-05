@@ -7,53 +7,58 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
 #endif
+#if _MSC_VER
+#include <io.h>
+#include <direct.h>
+#include <process.h>
+#endif
+
+#ifdef HAVE_FTW_H
+#include <ftw.h>
+#endif
+
 #include <errno.h>
 
-#ifdef _MSC_VER
-typedef int pid_t;
-#endif
-
+#include "ncrc.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
-#include "occlientparams.h"
 #include "occurlfunctions.h"
 #include "ochttp.h"
 #include "ocread.h"
 #include "dapparselex.h"
+#include "ncwinpath.h"
 
 #define DATADDSFILE "datadds"
-
-#if 0
-/* Note: TMPPATH must end in '/' */
-#ifdef __CYGWIN__
-#define TMPPATH1 "/cygdrive/c/temp/datadds"
-#define TMPPATH2 "./datadds"
-#elif defined(_WIN32) || defined(_WIN64)
-#define TMPPATH1 "c:\\temp\\datadds"
-#define TMPPATH2 ".\\datadds"
-#else
-#define TMPPATH1 "/tmp/datadds"
-#define TMPPATH2 "./datadds"
-#endif
-#endif
 
 #define CLBRACE '{'
 #define CRBRACE '}'
 
+#define OCBUFFERSIZE "HTTP.READ.BUFFERSIZE"
+#define OCKEEPALIVE "HTTP.KEEPALIVE"
+
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+#ifndef CURL_MAX_READ_SIZE
+#define CURL_MAX_READ_SIZE  (512*1024)
+#endif
+#endif
+
+/*Forward*/
 static OCerror ocextractddsinmemory(OCstate*,OCtree*,int);
 static OCerror ocextractddsinfile(OCstate*,OCtree*,int);
 static char* constraintescape(const char* url);
 static OCerror createtempfile(OCstate*,OCtree*);
 static int dataError(XXDR* xdrs, OCstate*);
+static void ocremovefile(const char* path);
 
 static OCerror ocset_curlproperties(OCstate*);
+static OCerror ocget_rcproperties(OCstate*);
 
 extern OCnode* makeunlimiteddimension(void);
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -65,10 +70,16 @@ extern OCnode* makeunlimiteddimension(void);
 #endif
 #endif
 
+int ocinitialized = 0;
+
 OCerror
 ocinternalinitialize(void)
 {
     int stat = OC_NOERR;
+    CURLcode cstat = CURLE_OK;
+
+    if(ocinitialized) return OC_NOERR;
+    ocinitialized = 1;
 
 #if 0
     if(sizeof(off_t) != sizeof(void*)) {
@@ -80,76 +91,15 @@ ocinternalinitialize(void)
     }
 #endif
 
-    if(!ocglobalstate.initialized) {
-      memset((void*)&ocglobalstate,0,sizeof(ocglobalstate));
-      ocglobalstate.initialized = 1;
-    }
-
-    /* Capture temp dir*/
-    {
-	char* tempdir;
-	char* p;
-	char* q;
-	char cwd[4096];
-#if defined(_WIN32) || defined(_WIN64)
-        tempdir = getenv("TEMP");
-#else
-	tempdir = "/tmp";
-#endif
-        if(tempdir == NULL) {
-	    fprintf(stderr,"Cannot find a temp dir; using ./\n");
-	    tempdir = getcwd(cwd,sizeof(cwd));
-	    if(tempdir == NULL || *tempdir == '\0') tempdir = ".";
-	}
-        ocglobalstate.tempdir= (char*)malloc(strlen(tempdir) + 1);
-	for(p=tempdir,q=ocglobalstate.tempdir;*p;p++,q++) {
-	    if((*p == '/' && *(p+1) == '/')
-	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
-	    *q = *p;
-	}
-	*q = '\0';
-#if defined(_WIN32) || defined(_WIN64)
-#else
-        /* Canonicalize */
-	for(p=ocglobalstate.tempdir;*p;p++) {
-	    if(*p == '\\') {*p = '/'; };
-	}
-	*q = '\0';
-#endif
-    }
-
-    /* Capture $HOME */
-    {
-	char* p;
-	char* q;
-        char* home = getenv("HOME");
-
-        if(home == NULL) {
-	    /* use tempdir */
-	    home = ocglobalstate.tempdir;
-	}
-        ocglobalstate.home = (char*)malloc(strlen(home) + 1);
-	for(p=home,q=ocglobalstate.home;*p;p++,q++) {
-	    if((*p == '/' && *(p+1) == '/')
-	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
-	    *q = *p;
-	}
-	*q = '\0';
-#if defined(_WIN32) || defined(_WIN64)
-#else
-        /* Canonicalize */
-	for(p=home;*p;p++) {
-	    if(*p == '\\') {*p = '/'; };
-	}
-#endif
-    }
+     cstat = curl_global_init(CURL_GLOBAL_ALL);
+     if(cstat != CURLE_OK)
+	fprintf(stderr,"curl_global_init failed!\n");
 
     /* Compute some xdr related flags */
     xxdr_init();
 
-    ocloginit();
-
-    oc_curl_protocols(&ocglobalstate); /* see what protocols are supported */
+    /* Make sure that the rc file has been loaded */
+    (void)NC_rcload();
 
     return OCTHROW(stat);
 }
@@ -161,10 +111,13 @@ ocopen(OCstate** statep, const char* url)
 {
     int stat = OC_NOERR;
     OCstate * state = NULL;
-    OCURI* tmpurl = NULL;
+    NCURI* tmpurl = NULL;
     CURL* curl = NULL; /* curl handle*/
 
-    if(!ocuriparse(url,&tmpurl)) {OCTHROWCHK(stat=OC_EBADURL); goto fail;}
+    if(ncuriparse(url,&tmpurl) != NCU_OK) {
+	OCTHROWCHK(stat=OC_EBADURL);
+	goto fail;
+    }
 
     stat = occurlopen(&curl);
     if(stat != OC_NOERR) {OCTHROWCHK(stat); goto fail;}
@@ -176,15 +129,20 @@ ocopen(OCstate** statep, const char* url)
     state->header.magic = OCMAGIC;
     state->header.occlass = OC_State;
     state->curl = curl;
-    state->trees = oclistnew();
+    state->trees = nclistnew();
     state->uri = tmpurl;
-    if(!ocuridecodeparams(state->uri)) {
-	oclog(OCLOGWARN,"Could not parse client parameters");
-    }
-    state->packet = ocbytesnew();
-    ocbytessetalloc(state->packet,DFALTPACKETSIZE); /*initial reasonable size*/
 
-    /* capture curl properties for this link from rc file1*/
+    state->packet = ncbytesnew();
+    ncbytessetalloc(state->packet,DFALTPACKETSIZE); /*initial reasonable size*/
+
+    /* Initialize auth info from rc file */
+    stat = NC_authsetup(&state->auth, state->uri);
+
+    /* Initialize misc info from rc file */
+    stat = ocget_rcproperties(state);
+
+    /* Apply curl properties for this link;
+       assumes state has been initialized */
     stat = ocset_curlproperties(state);
     if(stat != OC_NOERR) goto fail;
 
@@ -194,6 +152,7 @@ ocopen(OCstate** statep, const char* url)
     if((stat=ocset_flags_perfetch(state))!= OC_NOERR) goto fail;
 #endif
 
+    oc_curl_protocols(state);
     if(statep) *statep = state;
     else {
       if(state != NULL) ocfree(state);
@@ -201,7 +160,7 @@ ocopen(OCstate** statep, const char* url)
     return OCTHROW(stat);
 
 fail:
-    ocurifree(tmpurl);
+    ncurifree(tmpurl);
     if(state != NULL) ocfree(state);
     if(curl != NULL) occurlclose(curl);
     return OCTHROW(stat);
@@ -229,20 +188,20 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     if((stat=ocset_flags_perfetch(state))!= OC_NOERR) goto fail;
 #endif
 
-    ocbytesclear(state->packet);
+    ncbytesclear(state->packet);
 
     switch (kind) {
     case OCDAS:
         stat = readDAS(state,tree);
 	if(stat == OC_NOERR) {
-            tree->text = ocbytesdup(state->packet);
+            tree->text = ncbytesdup(state->packet);
 	    if(tree->text == NULL) stat = OC_EDAS;
 	}
 	break;
     case OCDDS:
         stat = readDDS(state,tree);
 	if(stat == OC_NOERR) {
-            tree->text = ocbytesdup(state->packet);
+            tree->text = ncbytesdup(state->packet);
 	    if(tree->text == NULL) stat = OC_EDDS;
 	}
 	break;
@@ -275,9 +234,10 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     state->error.httpcode = ocfetchhttpcode(state->curl);
     if(stat != OC_NOERR) {
 	if(state->error.httpcode >= 400) {
-	    oclog(OCLOGWARN,"oc_open: Could not read url; http error = %l",state->error.httpcode);
+	    nclog(NCLOGWARN,"oc_open: Could not read url (%s); http error = %l",
+		  state->uri,state->error.httpcode);
 	} else {
-	    oclog(OCLOGWARN,"oc_open: Could not read url");
+	    nclog(NCLOGWARN,"oc_open: Could not read url");
 	}
 	goto fail;
     }
@@ -286,7 +246,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     stat = DAPparse(state,tree,tree->text);
     /* Check and report on an error return from the server */
     if(stat == OC_EDAPSVC  && state->error.code != NULL) {
-	oclog(OCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
+	nclog(NCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
 		  state->error.code,
 		  (state->error.message?state->error.message:""));
     }
@@ -343,7 +303,7 @@ fprintf(stderr,"ocfetch.datadds.memory: datasize=%lu bod=%lu\n",
          */
 	if(dataError(tree->data.xdrs,state)) {
 	    stat = OC_EDATADDS;
-	    oclog(OCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
+	    nclog(NCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
 		  state->error.code,
 		  (state->error.message?state->error.message:""));
 	    goto fail;
@@ -356,7 +316,7 @@ fprintf(stderr,"ocfetch.datadds.memory: datasize=%lu bod=%lu\n",
     }
 
     /* Put root into the state->trees list */
-    oclistpush(state->trees,(void*)root);
+    nclistpush(state->trees,(void*)root);
 
     if(rootp) *rootp = root;
     return stat;
@@ -374,36 +334,37 @@ createtempfile(OCstate* state, OCtree* tree)
 {
     int stat = OC_NOERR;
     char* path = NULL;
-    char* name = NULL;
+    char* tmppath = NULL;
     int len;
 
     len =
-	  strlen(ocglobalstate.tempdir)
+	  strlen(ncrc_globalstate.tempdir)
 	  + 1 /* '/' */
 	  + strlen(DATADDSFILE);
     path = (char*)malloc(len+1);
     if(path == NULL) return OC_ENOMEM;
-    occopycat(path,len,3,ocglobalstate.tempdir,"/",DATADDSFILE);
-    stat = ocmktmp(path,&name);
+    occopycat(path,len,3,ncrc_globalstate.tempdir,"/",DATADDSFILE);
+    tmppath = NC_mktmp(path);
     free(path);
     if(stat != OC_NOERR) goto fail;
 #ifdef OCDEBUG
-    oclog(OCLOGNOTE,"oc_open: creating tmp file: %s",name);
+    nclog(NCLOGNOTE,"oc_open: creating tmp file: %s",tmppath);
 #endif
-    tree->data.filename = name; /* remember our tmp file name */
-    name = NULL;
-    tree->data.file = fopen(tree->data.filename,"w+");
+    tree->data.filename = tmppath; /* remember our tmp file name */
+    tmppath = NULL;
+    tree->data.file = NCfopen(tree->data.filename,"w+");
     if(tree->data.file == NULL) return OC_EOPEN;
-    /* unlink the temp file so it will automatically be reclaimed */
-    if(ocdebug == 0) unlink(tree->data.filename);
+    /* make the temp file so it will automatically be reclaimed on close */
+    if(ocdebug == 0)
+	ocremovefile(tree->data.filename);
     return stat;
 
 fail:
-    if(name != NULL) {
-        oclog(OCLOGERR,"oc_open: attempt to create tmp file failed: %s",name);
-	free(name);
+    if(tmppath != NULL) {
+        nclog(NCLOGERR,"oc_open: attempt to create tmp file failed: %s",tmppath);
+	free(tmppath);
     } else {
-        oclog(OCLOGERR,"oc_open: attempt to create tmp file failed: NULL");
+        nclog(NCLOGERR,"oc_open: attempt to create tmp file failed: NULL");
     }
     return OCTHROW(stat);
 }
@@ -416,39 +377,17 @@ occlose(OCstate* state)
 
     /* Warning: ocfreeroot will attempt to remove the root from state->trees */
     /* Ok in this case because we are popping the root out of state->trees */
-    for(i=0;i<oclistlength(state->trees);i++) {
-	OCnode* root = (OCnode*)oclistpop(state->trees);
+    for(i=0;i<nclistlength(state->trees);i++) {
+	OCnode* root = (OCnode*)nclistpop(state->trees);
 	ocroot_free(root);
     }
-    oclistfree(state->trees);
-    ocurifree(state->uri);
-    ocbytesfree(state->packet);
+    nclistfree(state->trees);
+    ncurifree(state->uri);
+    ncbytesfree(state->packet);
     ocfree(state->error.code);
     ocfree(state->error.message);
-    ocfree(state->curlflags.useragent);
-    if(state->curlflags.cookiejar) {
-#if 0
-        if(state->curlflags.createdflags & COOKIECREATED)
-	    unlink(state->curlflags.cookiejar);
-#endif
-	ocfree(state->curlflags.cookiejar);
-    }
-    if(state->curlflags.netrc != NULL) {
-#if 0
-        if(state->curlflags.createdflags & NETRCCREATED)
-	    unlink(state->curlflags.netrc);
-#endif
-	ocfree(state->curlflags.netrc);
-    }
-    ocfree(state->ssl.certificate);
-    ocfree(state->ssl.key);
-    ocfree(state->ssl.keypasswd);
-    ocfree(state->ssl.cainfo);
-    ocfree(state->ssl.capath);
-    ocfree(state->proxy.host);
-    ocfree(state->proxy.userpwd);
-    ocfree(state->creds.userpwd);
     if(state->curl != NULL) occurlclose(state->curl);
+    NC_authclear(&state->auth);
     ocfree(state);
 }
 
@@ -468,12 +407,12 @@ ocextractddsinmemory(OCstate* state, OCtree* tree, OCflags flags)
     /* copy out the dds */
     if(ddslen > 0) {
         tree->text = (char*)ocmalloc(ddslen+1);
-        memcpy((void*)tree->text,(void*)ocbytescontents(state->packet),ddslen);
+        memcpy((void*)tree->text,(void*)ncbytescontents(state->packet),ddslen);
         tree->text[ddslen] = '\0';
     } else
 	tree->text = NULL;
     /* Extract the inmemory contents */
-    tree->data.memory = ocbytesextract(state->packet);
+    tree->data.memory = ncbytesextract(state->packet);
 #ifdef OCIGNORE
     /* guarantee the data part is on an 8 byte boundary */
     if(tree->data.bod % 8 != 0) {
@@ -495,7 +434,7 @@ ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
     size_t ddslen, bod, bodfound;
 
     /* Read until we find the separator (or EOF)*/
-    ocbytesclear(state->packet);
+    ncbytesclear(state->packet);
     rewind(tree->data.file);
     bodfound = 0;
     do {
@@ -504,7 +443,7 @@ ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
 	/* read chunks of the file until we find the separator*/
         count = fread(chunk,1,sizeof(chunk),tree->data.file);
 	if(count <= 0) break; /* EOF;*/
-        ocbytesappendn(state->packet,chunk,count);
+        ncbytesappendn(state->packet,chunk,count);
 	bodfound = ocfindbod(state->packet,&bod,&ddslen);
     } while(!bodfound);
     if(!bodfound) {/* No BOD; pretend */
@@ -520,7 +459,7 @@ fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
     /* copy out the dds */
     if(ddslen > 0) {
         tree->text = (char*)ocmalloc(ddslen+1);
-        memcpy((void*)tree->text,(void*)ocbytescontents(state->packet),ddslen);
+        memcpy((void*)tree->text,(void*)ncbytescontents(state->packet),ddslen);
         tree->text[ddslen] = '\0';
     } else
 	tree->text = NULL;
@@ -571,7 +510,7 @@ ocupdatelastmodifieddata(OCstate* state)
     OCerror status = OC_NOERR;
     long lastmodified;
     char* base = NULL;
-    base = ocuribuild(state->uri,NULL,NULL,OCURIENCODE);
+    base = ncuribuild(state->uri,NULL,NULL,NCURIENCODE);
     status = ocfetchlastmodified(state->curl, base, &lastmodified);
     free(base);
     if(status == OC_NOERR) {
@@ -581,21 +520,59 @@ ocupdatelastmodifieddata(OCstate* state)
 }
 
 /*
-    Set curl properties for link based on rc files etc.
+    Extract state values from .rc file
+*/
+static OCerror
+ocget_rcproperties(OCstate* state)
+{
+    OCerror ocerr = OC_NOERR;
+    char* option = NULL;
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+    option = NC_rclookup(OCBUFFERSIZE,state->uri->uri);
+    if(option != NULL && strlen(option) != 0) {
+	long bufsize;
+	if(strcasecmp(option,"max")==0) 
+	    bufsize = CURL_MAX_READ_SIZE;
+	else if(sscanf(option,"%ld",&bufsize) != 1 || bufsize <= 0)
+            fprintf(stderr,"Illegal %s size\n",OCBUFFERSIZE);
+	state->curlbuffersize = bufsize;
+    }
+#endif
+#ifdef HAVE_CURLOPT_KEEPALIVE
+    option = NC_rclookup(OCKEEPALIVE,state->uri->uri);
+    if(option != NULL && strlen(option) != 0) {
+	/* The keepalive value is of the form 0 or n/m,
+           where n is the idle time and m is the interval time;
+           setting either to zero will prevent that field being set. */
+	if(strcasecmp(option,"on")==0) {
+	    state->curlkeepalive.active = 1;
+	} else {
+	    unsigned long idle=0;
+	    unsigned long interval=0;
+	    if(sscanf(option,"%lu/%lu",&idle,&interval) != 2)
+	        fprintf(stderr,"Illegal KEEPALIVE VALUE: %s\n",option);
+	    state->curlkeepalive.idle = idle;
+	    state->curlkeepalive.interval = interval;
+	    state->curlkeepalive.active = 1;
+	}
+    }
+#endif
+    return ocerr;
+}
+
+
+/*
+    Set curl properties for link based on fields in the state.
 */
 static OCerror
 ocset_curlproperties(OCstate* state)
 {
     OCerror stat = OC_NOERR;
-
-    /* extract the relevant triples int state */
-    ocrc_process(state);
-
-    if(state->curlflags.useragent == NULL) {
+    if(state->auth.curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len+1);
 	if(occopycat(agent,len,2,DFALTUSERAGENT,VERSION))
-	    state->curlflags.useragent = agent;
+	    state->auth.curlflags.useragent = agent;
 	else
 	    free(agent);
     }
@@ -603,55 +580,55 @@ ocset_curlproperties(OCstate* state)
     /* Some servers (e.g. thredds and columbia) appear to require a place
        to put cookies in order for some security functions to work
     */
-    if(state->curlflags.cookiejar != NULL
-       && strlen(state->curlflags.cookiejar) == 0) {
-	free(state->curlflags.cookiejar);
-	state->curlflags.cookiejar = NULL;
+    if(state->auth.curlflags.cookiejar != NULL
+       && strlen(state->auth.curlflags.cookiejar) == 0) {
+	free(state->auth.curlflags.cookiejar);
+	state->auth.curlflags.cookiejar = NULL;
     }
 
-    if(state->curlflags.cookiejar == NULL) {
+    if(state->auth.curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
-	char tmp[OCPATHMAX+1];
-        int stat;
-	pid_t pid = getpid();
-	snprintf(tmp,sizeof(tmp)-1,"%s/%s.%ld/",ocglobalstate.tempdir,OCDIR,(long)pid);
-#ifdef _WIN32
-	stat = mkdir(tmp);
-#else
-	stat = mkdir(tmp,S_IRUSR | S_IWUSR | S_IXUSR);
-#endif
-	if(stat != 0 && errno != EEXIST) {
-	    fprintf(stderr,"Cannot create cookie directory\n");
-	    goto fail;
-	}
+		int stat = NC_NOERR;
+        char* path = NULL;
+        char* tmppath = NULL;
+        int len;
 	errno = 0;
 	/* Create the unique cookie file name */
-	stat = ocmktmp(tmp,&state->curlflags.cookiejar);
-	state->curlflags.createdflags |= COOKIECREATED;
+        len =
+	  strlen(ncrc_globalstate.tempdir)
+	  + 1 /* '/' */
+	  + strlen("occookies");
+        path = (char*)calloc(1,len+1);
+        if(path == NULL) return OC_ENOMEM;
+        occopycat(path,len,3,ncrc_globalstate.tempdir,"/","occookies");
+        tmppath = NC_mktmp(path);
+        free(path);
+	state->auth.curlflags.cookiejar = tmppath;
+	state->auth.curlflags.cookiejarcreated = 1;
 	if(stat != OC_NOERR && errno != EEXIST) {
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    goto fail;
 	}
 	errno = 0;
     }
-    OCASSERT(state->curlflags.cookiejar != NULL);
+    OCASSERT(state->auth.curlflags.cookiejar != NULL);
 
     /* Make sure the cookie jar exists and can be read and written */
     {
 	FILE* f = NULL;
-	char* fname = state->curlflags.cookiejar;
+	char* fname = state->auth.curlflags.cookiejar;
 	/* See if the file exists already */
-        f = fopen(fname,"r");
+        f = NCfopen(fname,"r");
 	if(f == NULL) {
 	    /* Ok, create it */
-	    f = fopen(fname,"w+");
+	    f = NCfopen(fname,"w+");
 	    if(f == NULL) {
 	        fprintf(stderr,"Cookie file cannot be read and written: %s\n",fname);
 	        {stat = OC_EPERM; goto fail;}
 	    }
 	} else { /* test if file can be written */
 	    fclose(f);
-	    f = fopen(fname,"r+");
+	    f = NCfopen(fname,"r+");
 	    if(f == NULL) {
 	        fprintf(stderr,"Cookie file is cannot be written: %s\n",fname);
 	        {stat = OC_EPERM; goto fail;}
@@ -666,8 +643,8 @@ ocset_curlproperties(OCstate* state)
     if(ocrc_netrc_required(state)) {
 	/* WARNING: it appears that a user+pwd was specified specifically, then
            the netrc file will be completely disabled. */
-	if(state->creds.userpwd != NULL) {
-  	    oclog(OCLOGWARN,"The rc file specifies both netrc and user+pwd; this will cause curl to ignore the netrc file");
+	if(state->auth.creds.userpwd != NULL) {
+  	    nclog(NCLOGWARN,"The rc file specifies both netrc and user+pwd; this will cause curl to ignore the netrc file");
 	}
 	stat = oc_build_netrc(state);
     }
@@ -689,7 +666,7 @@ dataError(XXDR* xdrs, OCstate* state)
     off_t ckp=0,avail=0;
     int i=0;
     char* errmsg = NULL;
-    char errortext[16]; /* bigger thant |ERROR_TAG|*/
+    char errortext[16]; /* bigger than |ERROR_TAG|*/
     avail = xxdr_getavail(xdrs);
     if(avail < strlen(ERROR_TAG))
 	goto done; /* assume it is ok */
@@ -736,10 +713,10 @@ OCerror
 ocset_useragent(OCstate* state, const char* agent)
 {
     OCerror stat = OC_NOERR;
-    if(state->curlflags.useragent != NULL)
-	free(state->curlflags.useragent);
-    state->curlflags.useragent = strdup(agent);
-    if(state->curlflags.useragent == NULL)
+    if(state->auth.curlflags.useragent != NULL)
+	free(state->auth.curlflags.useragent);
+    state->auth.curlflags.useragent = strdup(agent);
+    if(state->auth.curlflags.useragent == NULL)
 	return OCTHROW(OC_ENOMEM);
     stat = ocset_curlflag(state,CURLOPT_USERAGENT);
     return stat;
@@ -749,11 +726,22 @@ OCerror
 ocset_netrc(OCstate* state, const char* path)
 {
     OCerror stat = OC_NOERR;
-    if(state->curlflags.netrc != NULL)
-	free(state->curlflags.netrc);
-    state->curlflags.netrc = strdup(path);
-    if(state->curlflags.netrc == NULL)
+    if(state->auth.curlflags.netrc != NULL)
+	free(state->auth.curlflags.netrc);
+    state->auth.curlflags.netrc = strdup(path);
+    if(state->auth.curlflags.netrc == NULL)
 	return OCTHROW(OC_ENOMEM);
     stat = ocset_curlflag(state,CURLOPT_NETRC);
     return stat;
 }
+
+static void
+ocremovefile(const char* path)
+{
+#ifdef _MSC_VER
+    DeleteFile(path);
+#else
+    remove(path);
+#endif
+}
+

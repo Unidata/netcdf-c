@@ -15,6 +15,8 @@
 #include <mpe.h>
 #endif /* USE_MPE */
 
+#undef DEBUG
+
 #define FILE_NAME "tst_parallel2.nc"
 #define NDIMS 3
 #define DIMSIZE 8
@@ -54,7 +56,9 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     MPI_Get_processor_name(mpi_name, &mpi_namelen);
-    /*printf("mpi_name: %s size: %d rank: %d\n", mpi_name, mpi_size, mpi_rank);*/
+#ifdef DEBUG
+    printf("mpi_name: %s size: %d rank: %d\n", mpi_name, mpi_size, mpi_rank);
+#endif
 
     /* Must be able to evenly divide my slabs between processors. */
     if (NUM_SLABS % mpi_size != 0)
@@ -85,12 +89,14 @@ main(int argc, char **argv)
     MPE_Log_event(s_init, 0, "start init");
 #endif /* USE_MPE */
 
-/*     if (!mpi_rank) */
-/*     { */
-/*        printf("\n*** Testing parallel I/O some more.\n"); */
-/*        printf("*** writing a %d x %d x %d file from %d processors...\n",  */
-/*               NUM_SLABS, DIMSIZE, DIMSIZE, mpi_size); */
-/*     } */
+#ifdef DEBUG
+    if (!mpi_rank)
+    {
+       printf("\n*** Testing parallel I/O some more.\n");
+       printf("*** writing a %d x %d x %d file from %d processors...\n",
+              NUM_SLABS, DIMSIZE, DIMSIZE, mpi_size);
+    }
+#endif
 
     /* We will write the same slab over and over. */
     for (i = 0; i < DIMSIZE * DIMSIZE; i++)
@@ -103,6 +109,9 @@ main(int argc, char **argv)
 
     /* Create a parallel netcdf-4 file. */
     sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
+#ifdef DEBUG
+    fprintf(stderr,"create: file_name=%s\n",file_name);
+#endif
     if (nc_create_par(file_name, NC_PNETCDF, comm, info, &ncid)) ERR;
 
     /* A global attribute holds the number of processors that created
@@ -126,8 +135,13 @@ main(int argc, char **argv)
        sleep(mpi_rank);
 #endif /* USE_MPE */
 
+#ifdef USE_PNETCDF
+/*    if (nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE)) ERR;*/
+    if (nc_var_par_access(ncid, NC_GLOBAL, NC_INDEPENDENT)) ERR;
+#else
 /*    if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;*/
     if (nc_var_par_access(ncid, varid, NC_INDEPENDENT)) ERR;
+#endif
 
     if (!mpi_rank)
        start_time = MPI_Wtime();
@@ -168,6 +182,9 @@ main(int argc, char **argv)
 #endif /* USE_MPE */
 
     /* Reopen the file and check it. */
+#ifdef DEBUG
+    fprintf(stderr,"open: file_name=%s\n",file_name);
+#endif
     if (nc_open_par(file_name, NC_NOWRITE|NC_PNETCDF, comm, info, &ncid)) ERR;
     if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
     if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 || 
@@ -209,16 +226,20 @@ main(int argc, char **argv)
     MPE_Log_event(e_close, 0, "end close file");
 #endif /* USE_MPE */
 
-    /* Delete this large file. */
-    remove(file_name); 
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (mpi_rank == 0)
+	remove(file_name);
 
     /* Shut down MPI. */
     MPI_Finalize();
 
-/*     if (!mpi_rank) */
-/*     { */
-/*        SUMMARIZE_ERR; */
-/*        FINAL_RESULTS; */
-/*     } */
+#ifdef DEBUG
+    if (!mpi_rank)
+    {
+       SUMMARIZE_ERR;
+       FINAL_RESULTS;
+    }
+#endif
+
     return total_err;
 }

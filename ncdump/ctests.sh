@@ -1,44 +1,25 @@
 #!/bin/sh
-if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+. ../test_common.sh
+
 #set -e
 echo "*** ctests.sh: testing ncgen4 -c"
 
 KFLAG=3
 
-thisdir=`pwd`
-
-if test "x$builddir" = "x"; then builddir=`pwd`/..; fi
-if test "x$srcdir" = "x"; then srcdir=`dirname $0`; fi
-# Make srcdir point to the netcdf-3 level */
-srcdir="${srcdir}/.."
-
-# Make buildir absolute
-cd $builddir
-builddir=`pwd`
-# Return to home
-cd $thisdir
-
-# Make srcdir be absolute
-cd $srcdir
-srcdir=`pwd`
-cd $builddir
-# Return to home
-cd $thisdir
-
-
 # get some config.h parameters
-if test -f ${builddir}/config.h ; then
-  if fgrep -e '#define USE_NETCDF4 1' ${builddir}/config.h >/dev/null ; then
+if test -f ${top_builddir}/config.h ; then
+  if fgrep -e '#define USE_NETCDF4 1' ${top_builddir}/config.h >/dev/null ; then
     NETCDF4=1
   else
     NETCDF4=0
   fi    
-  if fgrep -e '#define USE_DAP 1' ${builddir}/config.h >/dev/null ; then
+  if fgrep -e '#define ENABLE_DAP 1' ${top_builddir}/config.h >/dev/null ; then
     DAP=1
   else
     DAP=0
   fi    
-
 
 else
   echo "Cannot locate config.h"
@@ -46,15 +27,14 @@ else
 fi
 
 # Locate the cdl and expected directories
-cdl="${srcdir}/ncdump/cdl4"
-expected="${srcdir}/ncdump/expected4"
+cdl="${srcdir}/cdl4"
+expected="${srcdir}/expected4"
 
 # Locate various libraries, programs, etc
 # The hard part is locating the HDF5 and Z libraries
 
-NCGEN4=${builddir}/ncgen4/ncgen4
-#NCGEN4=${builddir}/ncgen4/.libs/ncgen4
-NCDUMP=${builddir}/ncdump/ncdump
+NCGEN4=${NCGEN}
+NCDUMP=${NCDUMP}
 
 HDFPATH=""
 ZPATH=""
@@ -192,8 +172,8 @@ fi
 
 set -e
 
-rm -fr results
-mkdir results
+rm -fr results_ctests
+mkdir results_ctests
 
 failcount=0
 passcount=0
@@ -210,7 +190,7 @@ for x in ${TESTSET} ; do
     if test "$x" = "$s" ; then isxfail=1; fi
   done
   ok=0;
-  cd results
+  cd results_ctests
   if ${NCGEN4} -lc -k${KFLAG} ${cdl}/${x}.cdl >${x}.c
     then ok=1; else ok=0; fi
   if $CC ${INCL} -c ${x}.c
@@ -224,7 +204,7 @@ for x in ${TESTSET} ; do
   cd ..
 if test 1 = 1; then
   # compare with expected
-  if diff -b -w ${expected}/${x}.dmp results/${x}.dmp
+  if diff -b -w ${expected}/${x}.dmp results_ctests/${x}.dmp
     then ok=1; else ok=0; fi
   if test "$ok" = "1" ; then
     echo "*** PASS: ${x}"
@@ -241,6 +221,7 @@ done
 
 totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
+rm -fr results_ctests
 
 echo "PASSED: ${okcount}/${totalcount} ; ${xfailcount} expected failures ; ${failcount} unexpected failures"
 

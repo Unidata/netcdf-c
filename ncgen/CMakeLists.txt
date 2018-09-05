@@ -1,4 +1,14 @@
-SET(ncgen_FILES generate.c main.c cdata.c bindata.c genchar.c cvt.c data.c debug.c escapes.c genc.c genbin.c generr.c genlib.c getfill.c odom.c offsets.c semantics.c ncgeny.c dump.c util.c bytebuffer.c list.c genf77.c f77data.c genj.c jdata.c nc_iter.c ConvertUTF.c ncgen.h )
+IF(BUILD_SHARED_LIBS AND WIN32)
+  remove_definitions(-DDLL_EXPORT)
+  remove_definitions(-DDLL_NETCDF)
+ENDIF()
+
+SET(ncgen_FILES generate.c main.c cdata.c bindata.c genchar.c cvt.c data.c debug.c escapes.c genc.c genbin.c generr.c genlib.c getfill.c odom.c semantics.c ncgeny.c dump.c util.c bytebuffer.c list.c genf77.c f77data.c genj.c jdata.c nc_iter.c ncgen.h)
+
+# don't add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+
 
 IF(USE_X_GETOPT)
   SET(ncgen_FILES ${ncgen_FILES} XGetopt.c)
@@ -32,10 +42,15 @@ FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 IF(ENABLE_TESTS)
   FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
   FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
-  add_sh_test(ncgen run_tests)
-  IF(USE_NETCDF4)
-    add_sh_test(ncgen run_nc4_tests)
-  ENDIF()
+
+  ##
+  # The following tests were moved to ncdump/, to ensure
+  # that they are run in the proper order.
+  ##
+  #add_sh_test(ncgen run_tests)
+  #IF(USE_NETCDF4)
+  #  add_sh_test(ncgen run_nc4_tests)
+  #ENDIF()
 ENDIF()
 
 SET(MAN_FILES ncgen.1)
@@ -70,5 +85,5 @@ ADD_CUSTOM_TARGET(makeparser DEPENDS ncgentab.h)
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ncgen.y ncgenl.c ncgen.l internals.html c0.cdl c0_4.cdl ref_camrun.cdl ncf199.cdl CMakeLists.txt Makefile.am ncgen.1)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ncgen.y ncgenl.c ncgen.l internals.html c0.cdl c0_4.cdl ref_camrun.cdl ncf199.cdl tst_gattenum.cdl CMakeLists.txt Makefile.am ncgen.1)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

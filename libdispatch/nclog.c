@@ -12,9 +12,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <fcntl.h>
 #include <stdarg.h>
 #include <string.h>
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 
 #include "nclog.h"
 #include "ncglobal.h"

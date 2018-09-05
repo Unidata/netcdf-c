@@ -33,6 +33,7 @@
 
 #include "list.h"
 #include "bytebuffer.h"
+#include "nctime.h"
 
 /* Local Configuration flags*/
 #define ENABLE_BINARY
@@ -47,7 +48,6 @@
 #include "util.h"
 #include "debug.h"
 #include "nc.h"
-
 #ifdef USE_NETCDF4
 #include "nc4internal.h"
 #endif
