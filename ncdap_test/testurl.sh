@@ -56,7 +56,7 @@ locreset
 
 if test "x$NOP" != x1 ; then
 echo "***Testing url prefix parameters"
-buildurl $PREFIX ""
+buildurl "$PREFIX" ""
 # Invoke ncdump to extract the URL
 
 echo "command: ${NCDUMP} -h $url"
@@ -66,7 +66,7 @@ if test "x${SHOW}" = x1 ; then cat ./tmp ; fi
 
 # Test that maxstrlen works as alias for stringlength
 echo "***Testing maxstrlen=stringlength alias"
-buildurl $STRLEN ""
+buildurl "$STRLEN" ""
 # Invoke ncdump to extract the URL
 echo "command: ${NCDUMP} -h $url"
 ${NCDUMP} "$url" >./tmp_testurl 2> ./errtmp_testurl
@@ -82,7 +82,7 @@ fi
 locreset
 if test "x$NOS" != x1 ; then
 echo "***Testing url suffix parameters"
-buildurl "" $SUFFIX
+buildurl "" "$SUFFIX"
 # Invoke ncdump to extract the URL
 ${NCDUMP} -h "$url" >./tmp_testurl  2> ./errtmp_testurl
 if test "x${SHOW}" = x1 ; then cat ./tmp_testurl ; fi
@@ -92,7 +92,7 @@ locreset
 
 if test "x$NOB" != x1 ; then
 echo "***Testing url prefix+suffix parameters"
-buildurl $BOTHP $BOTHS
+buildurl "$BOTHP" "$BOTHS"
 # Invoke ncdump to extract the URL
 ${NCDUMP} -h "$url" >./tmp_testurl 2> ./errtmp_testurl
 if test "x${SHOW}" = x1 ; then cat ./tmp_testurl ; fi

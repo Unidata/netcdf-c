@@ -2,9 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netcdf.h>
-
-extern char* nc_findtestserver(const char* path, int isdap4);
+#include "netcdf.h"
+#include "nctestserver.h"
 
 #define DTSTEST "/dts/test.06"
 
