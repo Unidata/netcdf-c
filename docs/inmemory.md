@@ -129,16 +129,19 @@ Note that it is still possible to modify the in-memory file if the NC_WRITE
 mode flag was set. However, failures can occur if an operation
 cannot complete because the memory needs to be expanded.
 2. If the *NC_MEMIO_LOCKED* flag is <b>not</b> set, then
-the netcdf library will take control of the incoming memory
-and will feel free to reallocate the provided
+the netcdf library will take control of the incoming memory.
+This means that the user should not make any attempt to free
+or even read the incoming memory block in this case.
+The newcdf library is free to reallocate the incomming
 memory block to obtain a larger block when an attempt to modify
 the in-memory file requires more space. Note that implicit in this
 is that the old block -- the one originally provided -- may be
 free'd as a side effect of re-allocating the memory using the
 *realloc()* function.
-If the caller invokes the *nc_close_memio()* function to retrieve the
-final memory block, the returned block must always be freed
-by the caller and that the original block should not be freed.
+The caller may invoke the *nc_close_memio()* function to retrieve the
+final memory block, which may not be the same as the originally block
+provided by the caller. In any case, the returned block must always be freed
+by the caller and the original block should not be freed.
 
 ### The **nc_create_mem** Function
 
