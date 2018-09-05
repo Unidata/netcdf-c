@@ -172,8 +172,12 @@ AC_DEFINE([USE_FSYNC], [1], [if true, include experimental fsync code])
 fi
 
 # Temporary until JNA bug is fixed (which is probably never).
-# See Jira NCF-298
-AC_MSG_CHECKING([if jna bug workaround is enabledd])
+# The problem being solved is this:
+# > On Windows using the microsoft runtime, it is an error
+# > for one library to free memory allocated by a different library.
+# This is probably only an issue when using the netcdf-c library
+# via JNA under Java.
+AC_MSG_CHECKING([if jna bug workaround is enabled])
 AC_ARG_ENABLE([jna],
               [AS_HELP_STRING([--enable-jna],
                               [enable jna bug workaround])],
@@ -688,6 +692,7 @@ AC_C_CONST
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
 # CURLINFO_RESPONSE_CODE is not defined until curl version 7.10.7
 # CURLOPT_CHUNK_BGN_FUNCTION is not defined until curl version 7.21.0
+# CURL_MAX_READ_SIZE is not defined until 7.59
 
 # Save/restore CFLAGS
 SAVECFLAGS="$CFLAGS"
@@ -735,6 +740,28 @@ AC_MSG_CHECKING([whether CURLINFO_RESPONSE_CODE is defined])
 AC_MSG_RESULT([${haveresponsecode}])
 if test $haveresponsecode = yes; then
   AC_DEFINE([HAVE_CURLINFO_RESPONSE_CODE],[1],[Is CURLINFO_RESPONSE_CODE defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_BUFFERSIZE;]])],
+                   [havecurloption=yes],
+                   [havecurloption=no])
+AC_MSG_CHECKING([whether CURLOPT_BUFFERSIZE is defined])
+AC_MSG_RESULT([${havecurloption}])
+if test $havecurloption = yes; then
+  AC_DEFINE([HAVE_CURLOPT_BUFFERSIZE],[1],[Is CURLOPT_BUFFERSIZE defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_TCP_KEEPALIVE;]])],
+                   [havecurloption=yes],
+                   [havecurloption=no])
+AC_MSG_CHECKING([whether CURLOPT_TCP_KEEPALIVE is defined])
+AC_MSG_RESULT([${havecurloption}])
+if test $havecurloption = yes; then
+  AC_DEFINE([HAVE_CURLOPT_KEEPALIVE],[1],[Is CURLOPT_TCP_KEEPALIVE defined])
 fi
 
 CFLAGS="$SAVECFLAGS"
@@ -1481,6 +1508,10 @@ AC_SUBST([ISCMAKE], [])
 AC_SUBST([MSVC], [])
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
+
+# DAP 2/4 findtestserver[4].c setup
+AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
+AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
 
 #####
 # End netcdf_meta.h definitions.

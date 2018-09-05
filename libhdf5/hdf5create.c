@@ -155,10 +155,6 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
       }
    }
 #else /* only set cache for non-parallel... */
-   if(cmode & NC_DISKLESS) {
-      if (H5Pset_fapl_core(fapl_id, 4096, nc4_info->mem.persist))
-         BAIL(NC_EDISKLESS);
-   }
    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
                     nc4_chunk_cache_preemption) < 0)
       BAIL(NC_EHDFERR);
@@ -244,11 +240,9 @@ exit: /*failure exit*/
    if (comm_duped) MPI_Comm_free(&nc4_info->comm);
    if (info_duped) MPI_Info_free(&nc4_info->info);
 #endif
-   if (fapl_id != H5P_DEFAULT)
-      H5Pclose(fapl_id);
-   if (!nc4_info)
-      return retval;
-   nc4_close_netcdf4_file(nc4_info, 1, 0); /* treat like abort */
+   if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
+   if(!nc4_info) return retval;
+   nc4_close_netcdf4_file(nc4_info,1,NULL); /* treat like abort */
    return retval;
 }
 

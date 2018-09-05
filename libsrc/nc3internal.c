@@ -1044,7 +1044,7 @@ NC3_create(const char *path, int ioflags,
 		int use_parallel, void* parameters,
                 NC_Dispatch* dispatch, NC* nc)
 {
-	int status;
+	int status = NC_NOERR;
 	void *xp = NULL;
 	int sizeof_off_t = 0;
 	NC3_INFO* nc3 = NULL;
