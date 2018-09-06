@@ -2,7 +2,7 @@
 # This shell script runs extra tests ncdump for netcdf-4
 # Dennis Heimbigner, Ward Fisher
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 set -e
@@ -16,6 +16,7 @@ cleanncprops() {
   | sed -e 's/_SuperblockVersion = 1/_SuperblockVersion = 0/' \
   | sed -e 's/\(netcdflibversion\|netcdf\)=.*|/\1=NNNN|/' \
   | sed -e 's/\(hdf5libversion\|hdf5\)=.*"/\1=HHHH"/' \
+  | grep -v '_NCProperties' \
   | cat >$dst
 }
 
@@ -29,7 +30,7 @@ echo "*** Running extra netcdf-4 tests."
 #        'ncdump ./ref_tst_compounds2'. This causes the test to fail.
 # But, 'srcdir' is necessary for make distcheck.
 #
-# Short term solution, use sed when on windows/MSYS to 
+# Short term solution, use sed when on windows/MSYS to
 # remove the './','../../ncdump'.
 #
 # I am undoing this because libdispatch/dwinpath.c
@@ -84,4 +85,3 @@ fi
 
 echo "*** All ncgen and ncdump extra test output for netCDF-4 format passed!"
 exit 0
-
