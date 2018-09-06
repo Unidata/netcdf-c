@@ -17,8 +17,8 @@ affect the operation of the system.
 */
 
 typedef unsigned int NCFLAGS;
-#  define SETFLAG(controls,flag) ((controls.flags) |= (flag))
-#  define CLRFLAG(controls,flag) ((controls.flags) &= ~(flag))
+#  define SETFLAG(controls,flag) (((controls).flags) |= (flag))
+#  define CLRFLAG(controls,flag) (((controls).flags) &= ~(flag))
 #  define FLAGSET(controls,flag) (((controls.flags) & (flag)) != 0)
 
 /* Defined flags */

@@ -55,7 +55,7 @@ This indicates that the server is up and running.
 Return the complete url for the server plus the path.
 */
 
-char*
+static char*
 nc_findtestserver(const char* path, int isdap4, const char* serverlist)
 {
     char** svc;

@@ -8,8 +8,11 @@ include $(top_srcdir)/lib_flags.am
 
 #TEST_EXTENSIONS = .sh
 
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-
+#TESTS_ENVIRONMENT = export SETX=1;
+	
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/libdap4
 
@@ -54,13 +57,15 @@ endif #ENABLE_DAP4
 
 EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
              test_raw.sh test_remote.sh test_hyrax.sh \
-             d4test_common.sh \
+             tst_curlopt.sh d4test_common.sh \
 	     daptestfiles dmrtestfiles cdltestfiles nctestfiles \
 	     baseline baselineraw baselineremote CMakeLists.txt
 
 CLEANFILES = *.exe
 # This should only be left behind if using parallel io
 CLEANFILES += tmp_*
+
+DISTCLEANFILES = findtestserver4.c
 
 # One last thing
 BUILT_SOURCES = .daprc

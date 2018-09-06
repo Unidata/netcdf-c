@@ -301,15 +301,15 @@ typedef struct  NC_FILE_INFO
    void *format_file_info;
    struct NCFILEINFO* fileinfo;
    struct NC4_Memio {
-	NC_memio memio;
-	int locked; /* do not copy and do not release */
+	NC_memio memio; /* What we sent to image_init and what comes back*/
+	int locked; /* do not copy and do not free  */
 	int persist; /* Should file be persisted out on close? */
-	int inmemory;
-	int diskless;
-	unsigned int flags; /* for H5LTopen_file_image */
-	int fapl;
-	size_t initialsize;
+	int inmemory; /* NC_INMEMORY flag was set */
+	int diskless; /* NC_DISKLESS flag was set => inmemory */
 	int created; /* 1 => create, 0 => open */
+	unsigned int imageflags; /* for H5LTopen_file_image */
+	size_t initialsize;
+	void* udata; /* extra memory allocated in NC4_image_init */
    } mem;
 } NC_FILE_INFO_T;
 
@@ -410,7 +410,7 @@ int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value);
 
 /* Close the file. */
-int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem);
+int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio*);
 
 /* HDF5 initialization */
 extern int nc4_hdf5_initialized;

@@ -14,8 +14,7 @@
 #include "config.h"
 #include "hdf5internal.h"
 
-/* From nc4mem.c */
-extern int NC4_extract_file_image(NC_FILE_INFO_T* h5);
+extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /** @internal When we have open objects at file close, should
     we log them or print to stdout. Default is to log. */
@@ -144,12 +143,13 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
 
 /**
  * @internal This function will free all allocated metadata memory,
- * and close the HDF5 file.
+ * and close the HDF5 file. The group that is passed in must be the
+ * root group of the file. If inmemory is used, then save
+ * the final memory in mem.memio.
  *
  * @param h5 Pointer to HDF5 file info struct.
  * @param abort True if this is an abort.
- * @param extractmem True if we need to extract and save final
- * inmemory.
+ * @param memio the place to return a core image if not NULL
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 could not close the file.
@@ -157,7 +157,7 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
+nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
 {
    NC_HDF5_FILE_INFO_T *hdf5_info;
    int retval;
@@ -205,21 +205,31 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
    if (h5->fileinfo)
       free(h5->fileinfo);
 
-   /* Check to see if this is an in-memory file and we want to get its
-      final content. */
-   if(extractmem) {
-      /* File must be read/write */
-      if(!h5->no_write) {
-         retval = NC4_extract_file_image(h5);
-      }
-   }
-
    /* Close hdf file. It may not be open, since this function is also
     * called by NC_create() when a file opening is aborted. */
    if (hdf5_info->hdfid > 0 && H5Fclose(hdf5_info->hdfid) < 0)
    {
       dumpopenobjects(h5);
       return NC_EHDFERR;
+   }
+
+   /* If inmemory is used and user wants the final memory block,
+      then capture and return the final memory block else free it */
+   if(h5->mem.inmemory) {
+       if(!abort && memio != NULL) {
+	    *memio = h5->mem.memio; /* capture it */
+	    h5->mem.memio.memory = NULL; /* avoid duplicate free */
+       }
+       /* If needed, reclaim extraneous memory */
+       if(h5->mem.memio.memory != NULL) {
+	/* If the original block of memory is not resizeable, then
+           it belongs to the caller and we should not free it. */
+	if(!h5->mem.locked)
+	    free(h5->mem.memio.memory);	
+       }
+       h5->mem.memio.memory = NULL;
+       h5->mem.memio.size = 0;
+       NC4_image_finalize(h5->mem.udata);
    }
 
    /* Free the HDF5-specific info. */
@@ -241,7 +251,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
  *
  * @author Dennis Heimbigner
  */
-static void
+void
 dumpopenobjects(NC_FILE_INFO_T* h5)
 {
    NC_HDF5_FILE_INFO_T *hdf5_info;
@@ -249,6 +259,9 @@ dumpopenobjects(NC_FILE_INFO_T* h5)
 
    assert(h5 && h5->format_file_info);
    hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+
+   if(hdf5_info->hdfid <= 0)
+	return; /* File was never opened */
 
    nobjs = H5Fget_obj_count(hdf5_info->hdfid, H5F_OBJ_ALL);
 
@@ -587,7 +600,7 @@ NC4_abort(int ncid)
 
    /* Free any resources the netcdf-4 library has for this file's
     * metadata. */
-   if ((retval = nc4_close_netcdf4_file(nc4_info, 1, 0)))
+   if ((retval = nc4_close_netcdf4_file(nc4_info, 1, NULL)))
       return retval;
 
    /* Delete the file, if we should. */
@@ -615,6 +628,7 @@ NC4_close(int ncid, void* params)
    NC_FILE_INFO_T *h5;
    int retval;
    int inmemory;
+   NC_memio* memio = NULL;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
@@ -630,13 +644,13 @@ NC4_close(int ncid, void* params)
 
    inmemory = ((h5->cmode & NC_INMEMORY) == NC_INMEMORY);
 
-   /* Call the nc4 close. */
-   if ((retval = nc4_close_netcdf4_file(grp->nc4_info, 0, (inmemory?1:0))))
-      return retval;
    if(inmemory && params != NULL) {
-      NC_memio* memio = (NC_memio*)params;
-      *memio = h5->mem.memio;
+      memio = (NC_memio*)params;
    }
+
+   /* Call the nc4 close. */
+   if ((retval = nc4_close_netcdf4_file(grp->nc4_info, 0, memio)))
+      return retval;
 
    return NC_NOERR;
 }
