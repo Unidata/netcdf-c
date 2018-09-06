@@ -4,7 +4,7 @@
 
    Test netcdf-4 dimensions some more.
 
-   $Id: tst_dims2.c,v 1.17 2010/05/25 13:53:04 ed Exp $
+   Ed Hartnett
 */
 
 #include <config.h>
@@ -121,7 +121,7 @@ main(int argc, char **argv)
       if (strcmp(name_in, "time") || xtype_in != NC_CHAR || ndims_in != NDIMS2 ||
           natts_in != 0) ERR;
       for (i = 0; i < NDIMS2; i++)
-	 if (time_dimids[i] != dimids_in[i]) ERR;
+         if (time_dimids[i] != dimids_in[i]) ERR;
       if (nc_get_vara_text(ncid, time_id, time_index, time_count, ttext_in)) ERR;
       ttext_in[TL] = 0; /* Add a NULL so strcmp will work. */
       if (strcmp(ttext, ttext_in)) ERR;
@@ -175,7 +175,7 @@ main(int argc, char **argv)
       time_count[0] = 1;
       time_count[1] = TL;
       for (time_index[0] = 0; time_index[0] < NUM_TIMES; time_index[0]++)
-	 if(nc_put_vara_text(ncid, time_id, time_index, time_count, ttext)) ERR;
+         if(nc_put_vara_text(ncid, time_id, time_index, time_count, ttext)) ERR;
 
       /*close dataset*/
       if (nc_close(ncid)) ERR;
@@ -188,7 +188,7 @@ main(int argc, char **argv)
       if (strcmp(name_in, "time") || xtype_in != NC_CHAR || ndims_in != NDIMS2 ||
           natts_in != 0) ERR;
       for (i = 0; i < NDIMS2; i++)
-	 if (time_dimids[i] != dimids_in[i]) ERR;
+         if (time_dimids[i] != dimids_in[i]) ERR;
       time_index[0] = 0;
       if (nc_get_vara_text(ncid, time_id, time_index, time_count, ttext_in)) ERR;
       ttext_in[TL] = 0; /* Add a NULL so strcmp will work. */
@@ -225,7 +225,7 @@ main(int argc, char **argv)
       if (strcmp(name_in, TIME) || xtype_in != xtype || ndims_in != NDIMS ||
           natts_in != 0) ERR;
       for (i = 0; i < NDIMS; i++)
-	 if (dimids[i] != dimids_in[i]) ERR;
+         if (dimids[i] != dimids_in[i]) ERR;
 
       if (nc_close(ncid)) ERR;
 
@@ -236,7 +236,7 @@ main(int argc, char **argv)
       if (strcmp(name_in, TIME) || xtype_in != xtype || ndims_in != NDIMS ||
           natts_in != 0) ERR;
       for (i = 0; i < NDIMS; i++)
-	 if (dimids[i] != dimids_in[i]) ERR;
+         if (dimids[i] != dimids_in[i]) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -252,7 +252,7 @@ main(int argc, char **argv)
 
       /* Initialize some phony data. */
       for (i = 0; i < MAX_VALUES; i++)
-	 value[i] = MAX_VALUES - i;
+         value[i] = MAX_VALUES - i;
 
       /* Create a file with 2 unlimited dims, and one var that uses
        * both of them. */
@@ -292,13 +292,13 @@ main(int argc, char **argv)
       int varid, ncid, timeDimID, beamDimID;
       int i, j;
       int value[2000];
-      size_t time_recs, beam_recs;	/* count of records in each dimension */
-      size_t time_len, beam_len;	/* actual dimension lengths in each dimension */
+      size_t time_recs, beam_recs;      /* count of records in each dimension */
+      size_t time_len, beam_len;        /* actual dimension lengths in each dimension */
       size_t start[] = {0, 0};
       size_t count[] = {1, 1};
 
       for (i = 0; i < 2000; i++)
-	 value[i] = 2000 - i;
+         value[i] = 2000 - i;
 
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
@@ -317,19 +317,19 @@ main(int argc, char **argv)
       beam_recs = 0;
       for (j = 0; j < 100; j++)
       {
-	 if (j > 500)
-	    count[1] = j;
-	 else
-	    count[1] = 1000-j;
+         if (j > 500)
+            count[1] = j;
+         else
+            count[1] = 1000-j;
 
-	 if (nc_put_vara_int(ncid, varid, start, count, value)) ERR;
-	 time_recs = MAX(time_recs, start[0] + count[0]);
-	 beam_recs = MAX(beam_recs, start[1] + count[1]);
-	 if (nc_inq_dimlen(ncid, timeDimID, &time_len)) ERR;
-	 if (time_len != time_recs) ERR;
-	 if (nc_inq_dimlen(ncid, beamDimID, &beam_len)) ERR;
-	 if (beam_len != beam_recs) ERR;
-	 start[0]++;
+         if (nc_put_vara_int(ncid, varid, start, count, value)) ERR;
+         time_recs = MAX(time_recs, start[0] + count[0]);
+         beam_recs = MAX(beam_recs, start[1] + count[1]);
+         if (nc_inq_dimlen(ncid, timeDimID, &time_len)) ERR;
+         if (time_len != time_recs) ERR;
+         if (nc_inq_dimlen(ncid, beamDimID, &beam_len)) ERR;
+         if (beam_len != beam_recs) ERR;
+         start[0]++;
       }
 
       if (nc_close(ncid)) ERR;
@@ -370,7 +370,7 @@ main(int argc, char **argv)
       if (strcmp(name_in, TIME) || xtype_in != xtype || ndims_in != NDIMS ||
           natts_in != 0) ERR;
       for (i = 0; i < NDIMS; i++)
-	 if (dimids[i] != dimids_in[i]) ERR;
+         if (dimids[i] != dimids_in[i]) ERR;
 
       /* Write some time values. */
       index[0] = 0;
@@ -389,7 +389,7 @@ main(int argc, char **argv)
       if (strcmp(name_in, TIME) || xtype_in != xtype || ndims_in != NDIMS ||
           natts_in != 0) ERR;
       for (i = 0; i < NDIMS; i++)
-	 if (dimids[i] != dimids_in[i]) ERR;
+         if (dimids[i] != dimids_in[i]) ERR;
       if (nc_inq_dim(ncid, dimids[0], name_in, &len_in)) ERR;
       if (strcmp(name_in, TIME) || len_in != 1) ERR;
       if (nc_close(ncid)) ERR;
@@ -402,7 +402,7 @@ main(int argc, char **argv)
       count[0] = 1;
       count[1] = TL; /* Note we are not writing NULL char. */
       for (index[0] = 1; index[0] < NUM_RECS; index[0]++)
-	 if (nc_put_vara_text(ncid, varid, index, count, ttext)) ERR;
+         if (nc_put_vara_text(ncid, varid, index, count, ttext)) ERR;
 
       /* Check things again. */
       if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
@@ -411,11 +411,35 @@ main(int argc, char **argv)
       if (strcmp(name_in, TIME) || xtype_in != xtype || ndims_in != NDIMS ||
           natts_in != 0) ERR;
       for (i = 0; i < NDIMS; i++)
-	 if (dimids[i] != dimids_in[i]) ERR;
+         if (dimids[i] != dimids_in[i]) ERR;
       if (nc_inq_dim(ncid, dimids[0], name_in, &len_in)) ERR;
       if (strcmp(name_in, TIME) || len_in != NUM_RECS) ERR;
       if (nc_close(ncid)) ERR;
 
+   }
+   SUMMARIZE_ERR;
+   printf("*** Checking many dimensions...");
+   {
+#define NDIMS50 50
+#define MANY_DIM_VAR "brain"
+      int dimids[NDIMS50];
+      int varid, ncid;
+      int i;
+
+      /* Create a file with many dimensions. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      for (i = 0; i < NDIMS50; i++)
+      {
+         char dim_name[NC_MAX_NAME + 1];
+
+         sprintf(dim_name, "dim_%d", i);
+         if (nc_def_dim(ncid, dim_name, 1, &dimids[i])) ERR;
+      }
+
+      /* This will fail because HDF5 only allows 32 dimensions. */
+      if (nc_def_var(ncid, MANY_DIM_VAR, NC_INT, NDIMS50, dimids,
+                     &varid) != NC_EMAXDIMS) ERR;
+      if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;

@@ -1,15 +1,12 @@
 #                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
-# This is part of Unidata's netCDF package. Copyright 2005-2012, see
+# This is part of Unidata's netCDF package. Copyright 2005-2018, see
 # the COPYRIGHT file for more information.
 # Ed Hartnett, Ward Fisher, Dennis Heimbigner
 
 # Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
 # and to exp otherwise.
-
-## This puts the cvs ID tag in the output configure script.
-AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 
 # Running autoconf on this file will trigger a warning if
 # autoconf is not at least the specified version.
@@ -172,8 +169,12 @@ AC_DEFINE([USE_FSYNC], [1], [if true, include experimental fsync code])
 fi
 
 # Temporary until JNA bug is fixed (which is probably never).
-# See Jira NCF-298
-AC_MSG_CHECKING([if jna bug workaround is enabledd])
+# The problem being solved is this:
+# > On Windows using the microsoft runtime, it is an error
+# > for one library to free memory allocated by a different library.
+# This is probably only an issue when using the netcdf-c library
+# via JNA under Java.
+AC_MSG_CHECKING([if jna bug workaround is enabled])
 AC_ARG_ENABLE([jna],
               [AS_HELP_STRING([--enable-jna],
                               [enable jna bug workaround])],
@@ -254,6 +255,15 @@ AC_ARG_ENABLE([parallel-tests],
                               with parallel I/O support.])])
 test "x$enable_parallel_tests" = xyes || enable_parallel_tests=no
 AC_MSG_RESULT($enable_parallel_tests)
+
+# Did the user specify an MPI launcher other than mpiexec?
+AC_MSG_CHECKING([whether a user specified program to run mpi programs])
+AC_ARG_WITH([mpiexec],
+              [AS_HELP_STRING([--with-mpiexec=<command>],
+                              [Specify command to launch MPI parallel tests.])],
+            [MPIEXEC=$with_mpiexec], [MPIEXEC=mpiexec])
+AC_MSG_RESULT([$MPIEXEC])
+AC_SUBST([MPIEXEC], [$MPIEXEC])
 
 # Did the user specify a default chunk size?
 AC_MSG_CHECKING([whether a default chunk size in bytes was specified])
@@ -700,6 +710,7 @@ AC_C_CONST
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
 # CURLINFO_RESPONSE_CODE is not defined until curl version 7.10.7
 # CURLOPT_CHUNK_BGN_FUNCTION is not defined until curl version 7.21.0
+# CURL_MAX_READ_SIZE is not defined until 7.59
 
 # Save/restore CFLAGS
 SAVECFLAGS="$CFLAGS"
@@ -747,6 +758,28 @@ AC_MSG_CHECKING([whether CURLINFO_RESPONSE_CODE is defined])
 AC_MSG_RESULT([${haveresponsecode}])
 if test $haveresponsecode = yes; then
   AC_DEFINE([HAVE_CURLINFO_RESPONSE_CODE],[1],[Is CURLINFO_RESPONSE_CODE defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_BUFFERSIZE;]])],
+                   [havecurloption=yes],
+                   [havecurloption=no])
+AC_MSG_CHECKING([whether CURLOPT_BUFFERSIZE is defined])
+AC_MSG_RESULT([${havecurloption}])
+if test $havecurloption = yes; then
+  AC_DEFINE([HAVE_CURLOPT_BUFFERSIZE],[1],[Is CURLOPT_BUFFERSIZE defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_TCP_KEEPALIVE;]])],
+                   [havecurloption=yes],
+                   [havecurloption=no])
+AC_MSG_CHECKING([whether CURLOPT_TCP_KEEPALIVE is defined])
+AC_MSG_RESULT([${havecurloption}])
+if test $havecurloption = yes; then
+  AC_DEFINE([HAVE_CURLOPT_KEEPALIVE],[1],[Is CURLOPT_TCP_KEEPALIVE defined])
 fi
 
 CFLAGS="$SAVECFLAGS"
@@ -1494,13 +1527,18 @@ AC_SUBST([MSVC], [])
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 
+# DAP 2/4 findtestserver[4].c setup
+AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
+AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
+
 #####
 # End netcdf_meta.h definitions.
 #####
 
 AC_MSG_NOTICE([generating header files and makefiles])
+AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
+AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
 AC_CONFIG_FILES([Makefile
-                 nc-config
                  netcdf.pc
                  libnetcdf.settings
                  postinstall.sh
@@ -1537,11 +1575,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
                  plugins/Makefile
-                 ],
-                 [test -f  nc-config && chmod 755 nc-config])
-
+                 ])
 AC_OUTPUT()
-
-    #mv -f ${abs_top_srcdir}/test_common.sh ${abs_top_builddir}/test_common.sh
 
 cat libnetcdf.settings

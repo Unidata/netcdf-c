@@ -406,7 +406,7 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
       if (!(h5->flags & NC_INDEF))
       {
          if (h5->cmode & NC_CLASSIC_MODEL)
-            return NC_EINDEFINE;
+            return NC_ENOTINDEFINE;
          if ((retval = NC4_redef(ncid)))
             BAIL(retval);
       }
@@ -420,7 +420,7 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
           len * nc4typelen(file_type) > (size_t)att->len * nc4typelen(att->nc_typeid))
       {
          if (h5->cmode & NC_CLASSIC_MODEL)
-            return NC_EINDEFINE;
+            return NC_ENOTINDEFINE;
          if ((retval = NC4_redef(ncid)))
             BAIL(retval);
       }

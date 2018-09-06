@@ -11,7 +11,7 @@ install-fortran.md all-error-codes.md credits.md auth.md		\
 obsolete/fan_utils.html bestpractices.md filters.md indexing.dox	\
 inmemory.md DAP4.dox OPeNDAP.dox attribute_conventions.md FAQ.md	\
 file_format_specifications.md known_problems.md COPYRIGHT.dox		\
-user_defined_formats.md
+user_defined_formats.md inmeminternal.dox
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:
