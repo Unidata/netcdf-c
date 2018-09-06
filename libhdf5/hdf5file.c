@@ -143,52 +143,6 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
 }
 
 /**
- * @internal Output a list of still-open objects in the HDF5
- * file. This is only called if the file fails to close cleanly.
- *
- * @param h5 Pointer to file info.
- *
- * @author Dennis Heimbigner
- */
-static void
-dumpopenobjects(NC_FILE_INFO_T* h5)
-{
-   NC_HDF5_FILE_INFO_T *hdf5_info;
-   int nobjs;
-
-   assert(h5 && h5->format_file_info);
-   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
-
-   nobjs = H5Fget_obj_count(hdf5_info->hdfid, H5F_OBJ_ALL);
-
-   /* Apparently we can get an error even when nobjs == 0 */
-   if(nobjs < 0) {
-      return;
-   } else if(nobjs > 0) {
-      char msg[1024];
-      int logit = 0;
-      /* If the close doesn't work, probably there are still some HDF5
-       * objects open, which means there's a bug in the library. So
-       * print out some info on to help the poor programmer figure it
-       * out. */
-      snprintf(msg,sizeof(msg),"There are %d HDF5 objects open!", nobjs);
-#ifdef LOGGING
-#ifdef LOGOPEN
-      LOG((0, msg));
-      logit = 1;
-#endif
-#else
-      fprintf(stdout,"%s\n",msg);
-      logit = 0;
-#endif
-      reportopenobjects(logit,hdf5_info->hdfid);
-      fflush(stderr);
-   }
-
-   return;
-}
-
-/**
  * @internal This function will free all allocated metadata memory,
  * and close the HDF5 file.
  *
@@ -277,6 +231,52 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem)
    free(h5);
 
    return NC_NOERR;
+}
+
+/**
+ * @internal Output a list of still-open objects in the HDF5
+ * file. This is only called if the file fails to close cleanly.
+ *
+ * @param h5 Pointer to file info.
+ *
+ * @author Dennis Heimbigner
+ */
+static void
+dumpopenobjects(NC_FILE_INFO_T* h5)
+{
+   NC_HDF5_FILE_INFO_T *hdf5_info;
+   int nobjs;
+
+   assert(h5 && h5->format_file_info);
+   hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+
+   nobjs = H5Fget_obj_count(hdf5_info->hdfid, H5F_OBJ_ALL);
+
+   /* Apparently we can get an error even when nobjs == 0 */
+   if(nobjs < 0) {
+      return;
+   } else if(nobjs > 0) {
+      char msg[1024];
+      int logit = 0;
+      /* If the close doesn't work, probably there are still some HDF5
+       * objects open, which means there's a bug in the library. So
+       * print out some info on to help the poor programmer figure it
+       * out. */
+      snprintf(msg,sizeof(msg),"There are %d HDF5 objects open!", nobjs);
+#ifdef LOGGING
+#ifdef LOGOPEN
+      LOG((0, msg));
+      logit = 1;
+#endif
+#else
+      fprintf(stdout,"%s\n",msg);
+      logit = 0;
+#endif
+      reportopenobjects(logit,hdf5_info->hdfid);
+      fflush(stderr);
+   }
+
+   return;
 }
 
 /**
