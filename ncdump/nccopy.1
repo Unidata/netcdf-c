@@ -21,6 +21,8 @@ nccopy
 \%[\-e \fI cache_elems \fP]
 \%[\-r]
 \%[\-F \fI filterspec \fP]
+\%[\-L \fI n \fP]
+\%[\-M \fI n \fP]
 \%\fI infile \fP
 \%\fI outfile \fP
 .hy
@@ -252,6 +254,10 @@ Read netCDF classic or 64-bit offset input file into a diskless netCDF
 file in memory before copying.  Requires that input file be small
 enough to fit into memory.  For \fBnccopy\fP, this doesn't seem to provide
 any significant speedup, so may not be a useful option.
+.IP "\fB \-L \fP \fIn\fP"
+Set the log level; only usable if nccopy supports netCDF-4 (enhanced).
+.IP "\fB \-M \fP \fIn\fP"
+Set the minimum chunk size; only usable if nccopy supports netCDF-4 (enhanced).
 .IP "\fB \-F \fP \fIfilterspec\fP"
 For netCDF-4 output, including netCDF-4 classic model, specify a filter
 to apply to an specified variable in the output. As a rule, the filter
