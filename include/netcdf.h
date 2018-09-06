@@ -66,7 +66,7 @@ extern "C" {
 #define NC_FILL_BYTE    ((signed char)-127)
 #define NC_FILL_CHAR    ((char)0)
 #define NC_FILL_SHORT   ((short)-32767)
-#define NC_FILL_INT     (-2147483647L)
+#define NC_FILL_INT     (-2147483647)
 #define NC_FILL_FLOAT   (9.9692099683868690e+36f) /* near 15 * 2^119 */
 #define NC_FILL_DOUBLE  (9.9692099683868690e+36)
 #define NC_FILL_UBYTE   (255)
@@ -1961,6 +1961,10 @@ ncrecget(int ncid, long recnum, void **datap);
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
+/* This function may be called to force the library to
+   cleanup global memory so that memory checkers will not
+   report errors. It is not required, however.
+*/
 EXTERNL int nc_finalize(void);
 
 #if defined(__cplusplus)

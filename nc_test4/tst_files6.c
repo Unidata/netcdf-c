@@ -3,13 +3,19 @@
    See COPYRIGHT file for conditions of use.
 
    Test netcdf files a bit.
+
+   Ed Hartnett
 */
 
 #include <nc_tests.h>
 #include "err_macros.h"
-#include "netcdf.h"
+#include "hdf5internal.h"
 
 #define FILE_NAME "tst_files6.nc"
+#define HDF5_FILE_NAME "tst_files6.h5"
+#define GROUP_NAME "Britany_Fans"
+#define GROUP_NAME_2 "Toxic_Fans"
+#define TRUE_FANS "True_Toxic_Fans"
 
 int
 main(int argc, char **argv)
@@ -52,6 +58,29 @@ main(int argc, char **argv)
       if (strcmp(name_in, DIM_NAME) || xtype_in != NC_FLOAT ||
 	  ndims_in != 1 || dimid_in != 0 || natts_in != 0) ERR;
       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing HDF5 file with circular group structure...");
+   {
+      hid_t hdfid, grpid, grpid2, fapl_id;
+      int ncid;
+
+      /* First use HDF5 to create a file with circular group
+       * struct. */
+      if ((hdfid = H5Fcreate(HDF5_FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
+                             H5P_DEFAULT)) < 0) ERR;
+      if ((grpid = H5Gcreate2(hdfid, GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT,
+                              H5P_DEFAULT)) < 0) ERR;
+      if ((grpid2 = H5Gcreate2(grpid, GROUP_NAME_2, H5P_DEFAULT, H5P_DEFAULT,
+                              H5P_DEFAULT)) < 0) ERR;
+      if (H5Lcreate_soft(GROUP_NAME, grpid2, TRUE_FANS, H5P_DEFAULT,
+                         H5P_DEFAULT) < 0) ERR;
+      if (H5Fclose(hdfid) < 0) ERR;
+
+      H5close(); /* Force HDF5 to forget about this file. */
+
+      /* Now try and open it with netCDF. It will not work. */
+      if (nc_open(HDF5_FILE_NAME, NC_NOWRITE, &ncid) != NC_EHDFERR) ERR;
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;

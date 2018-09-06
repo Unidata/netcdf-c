@@ -3,8 +3,9 @@
  * conditions. */
 /**
  * @file
- * This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
- * HDF5 backend for netCDF, depending on your point of view.
+ * @internal This file is part of netcdf-4, a netCDF-like interface
+ * for HDF5, or a HDF5 backend for netCDF, depending on your point of
+ * view.
  *
  * This file contains functions internal to the netcdf4 library. None of
  * the functions in this file are exposed in the exetnal API. These
@@ -380,7 +381,6 @@ nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
 
    /* Determine an appropriate HDF5 datatype */
    if (xtype == NC_NAT)
-      /* NAT = 'Not A Type' (c.f. NaN) */
       return NC_EBADTYPE;
    else if (xtype == NC_CHAR || xtype == NC_STRING)
    {
@@ -550,15 +550,17 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
 {
    hid_t datasetid = 0, locid;
    hid_t attid = 0, spaceid = 0, file_typeid = 0;
+   hid_t existing_att_typeid = 0, existing_attid = 0, existing_spaceid = 0;
    hsize_t dims[1]; /* netcdf attributes always 1-D. */
    htri_t attr_exists;
-   int retval = NC_NOERR;
+   int reuse_att = 0; /* Will be true if we can re-use an existing att. */
    void *data;
    int phoney_data = 99;
+   int retval = NC_NOERR;
 
    assert(att->hdr.name);
-   LOG((3, "%s: varid %d att->hdr.id %d att->hdr.name %s att->nc_typeid %d att->len %d",
-        __func__, varid, att->hdr.id, att->hdr.name,
+   LOG((3, "%s: varid %d att->hdr.id %d att->hdr.name %s att->nc_typeid %d "
+        "att->len %d", __func__, varid, att->hdr.id, att->hdr.name,
         att->nc_typeid, att->len));
 
    /* If the file is read-only, return an error. */
@@ -573,15 +575,6 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
       if ((retval = nc4_open_var_grp2(grp, varid, &datasetid)))
          BAIL(retval);
       locid = datasetid;
-   }
-
-   /* Delete the att if it exists already. */
-   if ((attr_exists = H5Aexists(locid, att->hdr.name)) < 0)
-      BAIL(NC_EHDFERR);
-   if (attr_exists)
-   {
-      if (H5Adelete(locid, att->hdr.name) < 0)
-         BAIL(NC_EHDFERR);
    }
 
    /* Get the length ready, and find the HDF type we'll be
@@ -640,6 +633,41 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
             BAIL(NC_EATTMETA);
       }
    }
+
+   /* Does the att exists already? */
+   if ((attr_exists = H5Aexists(locid, att->hdr.name)) < 0)
+      BAIL(NC_EHDFERR);
+   if (attr_exists)
+   {
+      hssize_t npoints;
+
+      /* Open the attribute. */
+      if ((existing_attid = H5Aopen(locid, att->hdr.name, H5P_DEFAULT)) < 0)
+         BAIL(NC_EATTMETA);
+
+      /* Find the type of the existing attribute. */
+      if ((existing_att_typeid = H5Aget_type(existing_attid)) < 0)
+         BAIL(NC_EATTMETA);
+
+      /* How big is the attribute? */
+      if ((existing_spaceid = H5Aget_space(existing_attid)) < 0)
+         BAIL(NC_EATTMETA);
+      if ((npoints = H5Sget_simple_extent_npoints(existing_spaceid)) < 0)
+         BAIL(NC_EATTMETA);
+
+      /* Delete the attribute. */
+      if (file_typeid != existing_att_typeid || npoints != att->len)
+      {
+         if (H5Adelete(locid, att->hdr.name) < 0)
+            BAIL(NC_EHDFERR);
+      }
+      else
+      {
+         reuse_att++;
+      }
+   }
+
+   /* Create the attribute. */
    if ((attid = H5Acreate(locid, att->hdr.name, file_typeid, spaceid,
                           H5P_DEFAULT)) < 0)
       BAIL(NC_EATTMETA);
@@ -653,7 +681,13 @@ exit:
       BAIL2(NC_EHDFERR);
    if (attid > 0 && H5Aclose(attid) < 0)
       BAIL2(NC_EHDFERR);
+   if (existing_att_typeid && H5Tclose(existing_att_typeid))
+      BAIL2(NC_EHDFERR);
+   if (existing_attid > 0 && H5Aclose(existing_attid) < 0)
+      BAIL2(NC_EHDFERR);
    if (spaceid > 0 && H5Sclose(spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (existing_spaceid > 0 && H5Sclose(existing_spaceid) < 0)
       BAIL2(NC_EHDFERR);
    return retval;
 }
@@ -670,16 +704,16 @@ exit:
  * @author Ed Hartnett
  */
 static int
-write_attlist(NCindex* attlist, int varid, NC_GRP_INFO_T *grp)
+write_attlist(NCindex *attlist, int varid, NC_GRP_INFO_T *grp)
 {
    NC_ATT_INFO_T *att;
    int retval;
    int i;
 
-   for(i=0;i<ncindexsize(attlist);i++)
+   for(i = 0; i < ncindexsize(attlist); i++)
    {
-      att = (NC_ATT_INFO_T*)ncindexith(attlist,i);
-      if(att == NULL) continue;
+      att = (NC_ATT_INFO_T *)ncindexith(attlist, i);
+      assert(att);
       if (att->dirty)
       {
          LOG((4, "%s: writing att %s to varid %d", __func__, att->hdr.name, varid));
@@ -811,8 +845,8 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    if ((access_plistid = H5Pcreate(H5P_DATASET_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
 
-   /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
-   if (H5Pset_obj_track_times(plistid,0)<0)
+   /* Turn off object tracking times in HDF5. */
+   if (H5Pset_obj_track_times(plistid, 0) < 0)
       BAIL(NC_EHDFERR);
 
    /* Find the HDF5 type of the dataset. */
@@ -1921,11 +1955,13 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
    int i;
 
    assert(grp && grp->hdr.name && grp->hdf_grpid);
-   LOG((3, "%s: grp->hdr.name %s, bad_coord_order %d", __func__, grp->hdr.name, bad_coord_order));
+   LOG((3, "%s: grp->hdr.name %s, bad_coord_order %d", __func__, grp->hdr.name,
+        bad_coord_order));
 
    /* Write global attributes for this group. */
    if ((retval = write_attlist(grp->att, NC_GLOBAL, grp)))
       return retval;
+
    /* Set the pointers to the beginning of the list of dims & vars in this
     * group. */
    dim_index = 0;

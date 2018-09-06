@@ -423,6 +423,35 @@ done:
     return (ret);
 }
 
+int
+NC_rcfile_insert(const char* key, const char* value, const char* hostport)
+{
+    int ret = NC_NOERR;
+    /* See if this key already defined */
+    struct NCTriple* triple = NULL;
+    NClist* rc = ncrc_globalstate.rcinfo.triples;
+
+    if(rc == NULL) {
+	rc = nclistnew();
+	if(rc == NULL) {ret = NC_ENOMEM; goto done;}
+    }
+    triple = rclocate(key,hostport);
+    if(triple == NULL) {
+	triple = (NCTriple*)calloc(1,sizeof(NCTriple));
+	if(triple == NULL) {ret = NC_ENOMEM; goto done;}
+	triple->key = strdup(key);
+	triple->value = NULL;
+        rctrim(triple->key);
+        triple->host = (hostport == NULL ? NULL : strdup(hostport));
+	nclistpush(rc,triple);
+    }
+    if(triple->value != NULL) free(triple->value);
+    triple->value = strdup(value);
+    rctrim(triple->value);
+done:
+    return ret;
+}
+
 #ifdef D4DEBUG
 static void
 storedump(char* msg, NClist* triples)

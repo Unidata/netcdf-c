@@ -7,12 +7,12 @@ redistribution conditions.
 
 #undef DDBG
 
-#include <config.h>
-#include <nc_tests.h>
-#include "err_macros.h"
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <netcdf.h>
+#include "netcdf.h"
+#include "nc_tests.h"
+#include "err_macros.h"
 
 /*
 netcdf tst_diskless {
@@ -47,17 +47,12 @@ void fail(int line) {
 /* Control flags  */
 static int flags, persist, usenetcdf4, mmap;
 
+/* Remove a file; do not care if it does not exist */
 static void
 removefile(int persist,  char* filename)
 {
     if(persist) {
-	if(remove(filename) != 0) {
-	    if(errno != ENOENT) {
-		fprintf(stderr,"Could not remove file: %s: %d\n",filename,errno);
-		perror("");
-		exit(1);
-	    }
-	}
+	remove(filename);
     }
 }
 
