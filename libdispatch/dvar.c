@@ -149,7 +149,8 @@ nc_inq_ncid().
 @param ndims Number of dimensions for the variable. For example, 2
 specifies a matrix, 1 specifies a vector, and 0 means the variable is
 a scalar with no dimensions. Must not be negative or greater than the
-predefined constant ::NC_MAX_VAR_DIMS.
+predefined constant ::NC_MAX_VAR_DIMS. In netCDF-4/HDF5 files, may not
+exceed the HDF5 maximum number of dimensions (32).
 
 @param dimidsp Vector of ndims dimension IDs corresponding to the
 variable dimensions. For classic model netCDF files, if the ID of the
