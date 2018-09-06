@@ -517,7 +517,7 @@ genc_definespecialattributes(Symbol* vsym)
 		level = 9; /* default */
 	    else
 		level = special->_FilterParams[0];
-	    if(level < 0 || level > 9)
+	    if(level > 9)
 		derror("Illegal deflate level");		
 	    else {
 	        bbprintf0(stmt,
@@ -525,7 +525,7 @@ genc_definespecialattributes(Symbol* vsym)
 	                groupncid(vsym->container),
 	                varncid(vsym),
 	                (special->_Shuffle == 1?"NC_SHUFFLE":"NC_NOSHUFFLE"),
-	                (level >= 0?1:0),
+	                1,
 			level);
 	        codedump(stmt);
 	    }

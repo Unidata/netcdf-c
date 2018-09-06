@@ -24,8 +24,8 @@ cd ${srcdir}/baselineremote; BASELINEREM=`pwd` ; cd ${WD}
 BASELINEH=${BASELINEREM}
 
 setresultdir() {
-rm -fr ./$1
-mkdir -p ./$1
+rm -fr ${builddir}/$1
+mkdir -p ${builddir}/$1
 }
 
 FAILURES=

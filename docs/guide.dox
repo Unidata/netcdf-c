@@ -1982,6 +1982,9 @@ netCDF file or other external representation, the characters are UTF-8
 encoded <http://en.wikipedia.org/wiki/UTF-8> (note that ASCII is a
 subset of UTF-8). Libraries may use different internal
 representations, for example the Java library uses UTF-16 encoding.
+Note especially that Microsoft Windows does not support UTF-8
+encoding, only ASCII and UTF-16. So using netcdf on Windows may
+cause some problems with respect to objects like file paths.
 
 The netCDF char type contains uninterpreted characters, one character
 per byte.  Typically these contain 7-bit ASCII characters, but the

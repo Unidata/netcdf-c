@@ -432,8 +432,10 @@ processdata(OCflags flags)
     if(ocopt.netrc)
 	oc_set_netrc(link,ocopt.netrc);
 
+#if 0
     if(ocopt.selfsigned)
 	oc_set_curlopt(link,"CURLOPT_VERIFYPEER", (void*)0L);
+#endif
 
     if(ocopt.optdas) {
         ocstat = oc_fetch(link,ocopt.url->query,OCDAS,0,&dasroot);
