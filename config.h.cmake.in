@@ -381,6 +381,9 @@ are set when opening a binary file on Windows. */
 /* min blocksize for posixio. */
 #cmakedefine NCIO_MINBLOCKSIZE ${NCIO_MINBLOCKSIZE}
 
+/* Add extra properties to _NCProperties attribute */
+#cmakedefine NCPROPERTIES_EXTRA ${NCPROPERTIES_EXTRA}
+
 /* no IEEE float on this platform */
 #cmakedefine NO_IEEE_FLOAT 1
 

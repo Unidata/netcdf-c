@@ -94,7 +94,7 @@ nc_initialize()
 #endif
 #ifdef USE_NETCDF4
     if((stat = NC4_initialize())) goto done;
-    stat = NC4_fileinfo_init();
+    stat = NC4_provenance_init();
 #endif /* USE_NETCDF4 */
 
 done:
