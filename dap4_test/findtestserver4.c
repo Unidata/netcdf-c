@@ -21,6 +21,8 @@ url for the server plus the path.
 If serverlist is present, then is should be a comma
 separated list of servers (host+port) to try.
 It defaults to REMOTETESTSERVERS.
+Note that if accessing the standard Unidata test servers,
+then the suffix argument will be either "dts" or "d4ts".
 */
 
 static void
