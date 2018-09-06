@@ -602,6 +602,18 @@ AC_MSG_RESULT($TEMP_LARGE)
 #AC_SUBST(TEMP_LARGE)
 AC_DEFINE_UNQUOTED([TEMP_LARGE], ["$TEMP_LARGE"], [Place to put very large netCDF test files.])
 
+# Specify extra values to add to _NCProperties attribute
+# --with-ncproperties-extra="<name>=<value>|...".
+# Note: need to figure out a way to do this programmatically also
+AC_MSG_CHECKING([Extra values for _NCProperties])
+AC_ARG_WITH([ncproperties-extra],
+            [AS_HELP_STRING([--with-ncproperties-extra="<name>=<value>,...],
+                            [specify extra pairs for _NCProperties])],
+            [NCPROPERTIES_EXTRA=$with_ncproperties_extra],
+            [NCPROPERTIES_EXTRA=""])
+AC_MSG_RESULT([$NCPROPERTIES_EXTRA])
+AC_DEFINE_UNQUOTED([NCPROPERTIES_EXTRA], ["$NCPROPERTIES_EXTRA"], [Extra pairs for _NCProperties])
+
 # Did the user specify a user-defined format 0?
 AC_MSG_CHECKING([whether user-defined format 0 was specified])
 AC_ARG_WITH([udf0],

@@ -3,7 +3,7 @@
 DB=1
 #X=-x
 
-#FAST=1
+FAST=1
 #PROF=1
 
 HDF5=1
@@ -120,6 +120,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --disable-filter-testing"
 #FLAGS="$FLAGS --enable-metadata-perf"
+#FLAGS="$FLAGS --with-ncproperties-extra=key1=value1,key2=value2"
 
 if test "x$TESTSERVERS" != x ; then
 FLAGS="$FLAGS --with-testservers=$TESTSERVERS"
@@ -184,9 +185,6 @@ CFLAGS="${CFLAGS} -pg"
 LDFLAGS="${LDFLAGS} -pg"
 fi
 
-
-#FLAGS="${FLAGS} --enable-stdio"
-
 export PATH
 export CC
 export CPPFLAGS
@@ -199,15 +197,11 @@ export CXXFLAGS
 DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
 export DISTCHECK_CONFIGURE_FLAGS
 
-if test "x$NB" != x -o "x$FAST" = x ; then
+if test "x$NB" != x1 && test "x$FAST" != x1 ; then
 ${MAKE} distclean >/dev/null 2>&1
 fi
-if test -z "$NB" ; then
+if test "x$NB" != x1 ; then
   if autoreconf -i --force ; then ok=1; else exit ; fi
-fi
-
-if test -z "$FAST" ; then
-  if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
 fi
 
 sh $X ./configure ${FLAGS}

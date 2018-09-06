@@ -85,7 +85,7 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 
 /*Forward*/
-struct NCFILEINFO;
+struct NCPROVENANCE;
 struct NC_GRP_INFO;
 struct NC_TYPE_INFO;
 
@@ -299,7 +299,7 @@ typedef struct  NC_FILE_INFO
    NClist* alltypes;
    NClist* allgroups; /* including root group */
    void *format_file_info;
-   struct NCFILEINFO* fileinfo;
+   struct NCPROVENANCE* provenance;
    struct NC4_Memio {
 	NC_memio memio; /* What we sent to image_init and what comes back*/
 	int locked; /* do not copy and do not free  */
@@ -441,8 +441,10 @@ typedef struct NC_reservedatt {
 #define DIMSCALEFLAG 1
 /* Readonly global attributes; readable, but immutable thru the API */
 #define READONLYFLAG 2
-/* Subset of readonly flags; readable by name only thru the API*/
+/* Subset of readonly flags; readable by name only thru the API */
 #define NAMEONLYFLAG 4
+/* Subset of readonly flags; Value is actually in file */
+#define MATERIALIZEDFLAG 8
 
 /* Binary searcher for reserved attributes */
 extern const NC_reservedatt* NC_findreserved(const char* name);
@@ -465,38 +467,73 @@ For netcdf4 files, capture state information about the following:
 5. Per file: _NCProperties attribute
 */
 
-#define NCPROPS "_NCProperties"
-#define NCPROPS_VERSION (1)
-#define NCPROPSSEP  '|'
+/* Most of this needs to be moved to hdf5internal.h */
 
-/* Currently used properties */
+#define NCPROPS "_NCProperties"
 #define NCPVERSION "version" /* Of the properties format */
-#define NCPHDF5LIBVERSION "hdf5libversion"
-#define NCPNCLIBVERSION "netcdflibversion"
+#define NCPHDF5LIB1 "hdf5libversion"
+#define NCPNCLIB1 "netcdflibversion"
+#define NCPHDF5LIB2 "hdf5"
+#define NCPNCLIB2 "netcdf"
+#define NCPROPS_VERSION (2)
+/* Version 2 changes this because '|' was causing bash problems */
+#define NCPROPSSEP1  '|'
+#define NCPROPSSEP2  ','
+
 
 /* Other hidden attributes */
 #define ISNETCDF4ATT "_IsNetcdf4"
 #define SUPERBLOCKATT "_SuperblockVersion"
 
-struct NCFILEINFO {
+struct NCPROVENANCE {
     int superblockversion;
-    /* Following is filled from NCPROPS attribute or from global version */
-    struct NCPROPINFO {
-        int version; /* 0 => not defined */
-        char hdf5ver[NC_MAX_NAME+1];
-        char netcdfver[NC_MAX_NAME+1];
-    } propattr;
+     struct NCPROPINFO {
+         int version; /* 0 => not defined */
+        /* Following is filled from NCPROPS attribute or from global version */
+	/* Version 1 format is:
+	   "netcdflibversion=<version|hdf5libversion=<version>"
+	   Version 2 format is:
+	   "<mainbuildlib>=<version|<supportlib1>=<version>...|<other>=..."
+	*/	
+	/* The _NCProperties values are stored as an arbitrary
+           set of (key,value) pairs */
+	/* It is assumed that the first entry is the primary library
+           used to build the file, and it is followed by other libraries
+           used in the build, and finally an arbitrary list of other
+           (key,value) pairs. */
+        NClist* properties;
+     } propattr;
 };
 
+/* Provenance Initialization */
 extern struct NCPROPINFO globalpropinfo;
 
-extern int NC4_fileinfo_init(void); /*libsrc4/ncinfo.c*/
-extern int NC4_get_fileinfo(struct NC_FILE_INFO* info, struct NCPROPINFO*); /*libsrc4/ncinfo.c*/
-extern int NC4_put_propattr(struct NC_FILE_INFO* info); /*libsrc4/ncinfo.c*/
-extern int NC4_buildpropinfo(struct NCPROPINFO* info,char** propdatap);
+/* Initialize the fileinfo global state */
+extern int NC4_provenance_init();
+
+/* Write the properties attribute to file. */
+extern int NC4_put_ncproperties(NC_FILE_INFO_T* file);
+
+/* Extract the provenance from a file, using dfalt as default */
+extern int NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NCPROPINFO* dfalt);
+
+/* Set the provenance for a created file using dfalt as default */
+extern int NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt);
+
+/* Recover memory of an NCPROVENANCE object */
+extern int NC4_free_provenance(struct NCPROVENANCE* prov);
 
 extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
 extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
 extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
+
+/* Convert a NCPROPINFO instance to a single string. */
+extern int NC4_buildpropinfo(struct NCPROPINFO* info, char** propdatap);
+
+/* Use HDF5 API to read the _NCProperties attribute */
+extern int NC4_read_ncproperties(NC_FILE_INFO_T*);
+
+/* Use HDF5 API to write the _NCProperties attribute */
+extern int NC4_write_ncproperties(NC_FILE_INFO_T*);
 
 #endif /* _NC4INTERNAL_ */
