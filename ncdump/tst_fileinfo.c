@@ -113,9 +113,6 @@ main(int argc, char **argv)
 	if(nc_def_grp(root,GROUPNAME,&grpid)!=0) ERR;
 	/* Create global attribute in the group */
 	if(nc_put_att_int(grpid,NC_GLOBAL,INT_ATT_NAME,NC_INT,1,&data)!=0) ERR;
-	/* Create _NCProperties as var attr and as subgroup attribute */
-	if(nc_put_att_text(grpid,NC_GLOBAL,NCPROPS,strlen(sdata),sdata)!=0) ERR;
-	if(nc_put_att_text(root,varid,NCPROPS,strlen(sdata),sdata)!=0) ERR;
 	/* Create var + dimension to cause e.g. dimscales to appear */
 	if(nc_def_dim(root,DIMNAME,(size_t)4,&dimid)!=0) ERR;
 	if(nc_def_var(root,DIMNAME,NC_INT,1,&dimid,&varid)!=0) ERR; /* same name */

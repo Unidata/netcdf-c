@@ -1,12 +1,12 @@
 # Test c output
-T=tst_chunking
+T=tst_fileinfo
 
 #ARGS=./x.nc
 
 #TF=test_atomic_array.cdl
 
 #CMD=valgrind --leak-check=full
-#CMD=gdb --args
+CMD=gdb --args
 
 #HDF4=1
 #PAR=1
