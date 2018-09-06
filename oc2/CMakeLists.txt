@@ -1,4 +1,4 @@
-SET(oc_SOURCES oc.c daplex.c dapparse.c dapy.c occompile.c occurlfunctions.c ocdata.c ocdebug.c ocdump.c ocinternal.c ocnode.c ochttp.c ocread.c ocutil.c occurlflags.c xxdr.c)
+SET(oc_SOURCES oc.c daplex.c dapparse.c dapy.c occompile.c occurlfunctions.c ocdata.c ocdebug.c ocdump.c ocinternal.c ocnode.c ochttp.c ocread.c ocutil.c xxdr.c)
 
 
 add_library(oc2 OBJECT ${oc_SOURCES})

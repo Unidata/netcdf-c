@@ -17,15 +17,20 @@
 #define CURLOPT_KEYPASSWD CURLOPT_SSLKEYPASSWD
 #endif
 
-#define NETRCFILETAG "HTTP.NETRC"
+#define D4BUFFERSIZE "HTTP.READ.BUFFERSIZE"
+#define D4KEEPALIVE "HTTP.KEEPALIVE"
+
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+#ifndef CURL_MAX_READ_SIZE
+#define CURL_MAX_READ_SIZE  (512*1024)
+#endif
+#endif
 
 #define CHECK(state,flag,value) {if(check(state,flag,(void*)value) != NC_NOERR) {goto done;}}
 
 /* forward */
 static int set_curlflag(NCD4INFO*, int flag);
 static int set_curlopt(NCD4INFO*, int flag, void* value);
-static int set_curl_options(NCD4INFO*);
-static void* cvt(char* value, enum CURLFLAGTYPE type);
 
 static int
 check(NCD4INFO* info, int flag, void* value)
@@ -140,6 +145,23 @@ set_curlflag(NCD4INFO* state, int flag)
     }
     break;
 
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+    case CURLOPT_BUFFERSIZE:
+	CHECK(state, CURLOPT_BUFFERSIZE, (OPTARG)state->curl->buffersize);
+	break;
+#endif
+
+#ifdef HAVE_CURLOPT_KEEPALIVE
+    case CURLOPT_TCP_KEEPALIVE:
+	if(state->curl->keepalive.active != 0)
+	    CHECK(state, CURLOPT_TCP_KEEPALIVE, (OPTARG)1L);
+	if(state->curl->keepalive.idle > 0)
+	    CHECK(state, CURLOPT_TCP_KEEPIDLE, (OPTARG)state->curl->keepalive.idle);
+	if(state->curl->keepalive.interval > 0)
+	    CHECK(state, CURLOPT_TCP_KEEPINTVL, (OPTARG)state->curl->keepalive.interval);
+	break;
+#endif
+
     default:
         nclog(NCLOGWARN,"Attempt to update unexpected curl flag: %d",flag);
 	break;
@@ -177,11 +199,24 @@ NCD4_set_flags_perlink(NCD4INFO* state)
     if(ret == NC_NOERR) ret = set_curlflag(state, CURLOPT_MAXREDIRS);
     if(ret == NC_NOERR) ret = set_curlflag(state, CURLOPT_ERRORBUFFER);
 
+    /* Optional */
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+    if(ret == NC_NOERR && state->curl->buffersize > 0)
+        ret = set_curlflag(state, CURLOPT_BUFFERSIZE);
+#endif
+#ifdef HAVE_CURLOPT_KEEPALIVE
+    if(ret == NC_NOERR && state->curl->keepalive.active != 0)
+        ret = set_curlflag(state, CURLOPT_TCP_KEEPALIVE);
+#endif
+	
+#if 0
     /* Set the CURL. options */
     if(ret == NC_NOERR) ret = set_curl_options(state);
+#endif
     return THROW(ret);
 }
 
+#if 0
 /**
 Directly set any options starting with 'CURL.'
 */
@@ -240,6 +275,7 @@ cvt(char* value, enum CURLFLAGTYPE type)
     }
     return NULL;
 }
+#endif
 
 void
 NCD4_curl_debug(NCD4INFO* state)
@@ -268,6 +304,46 @@ NCD4_curl_protocols(NCD4INFO* state)
 #endif
 }
 
+/*
+    Extract state values from .rc file
+*/
+ncerror
+NCD4_get_rcproperties(NCD4INFO* state)
+{
+    ncerror err = NC_NOERR;
+    char* option = NULL;
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+    option = NC_rclookup(D4BUFFERSIZE,state->uri->uri);
+    if(option != NULL && strlen(option) != 0) {
+	long bufsize;
+	if(strcasecmp(option,"max")==0) 
+	    bufsize = CURL_MAX_READ_SIZE;
+	else if(sscanf(option,"%ld",&bufsize) != 1 || bufsize <= 0)
+	    fprintf(stderr,"Illegal %s size\n",D4BUFFERSIZE);
+        state->curl->buffersize = bufsize;
+    }
+#endif
+#ifdef HAVE_CURLOPT_KEEPALIVE
+    option = NC_rclookup(D4KEEPALIVE,state->uri->uri);
+    if(option != NULL && strlen(option) != 0) {
+	/* The keepalive value is of the form 0 or n/m,
+           where n is the idle time and m is the interval time;
+           setting either to zero will prevent that field being set.*/
+	if(strcasecmp(option,"on")==0) {
+	    state->curl->keepalive.active = 1;
+	} else {
+	    unsigned long idle=0;
+	    unsigned long interval=0;
+	    if(sscanf(option,"%lu/%lu",&idle,&interval) != 2)
+	        fprintf(stderr,"Illegal KEEPALIVE VALUE: %s\n",option);
+	    state->curl->keepalive.idle = idle;
+	    state->curl->keepalive.interval = interval;
+	    state->curl->keepalive.active = 1;
+	}
+    }
+#endif
+    return err;
+}
 
 #if 0
 /*
