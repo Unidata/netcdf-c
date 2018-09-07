@@ -32,7 +32,7 @@ extern int nc_log_level;
    nc_log(0, "this computer will explode in %d seconds", i);
 
    After the first arg (the severity), use the rest like a normal
-   printf statement. Output will appear on stdout.
+   printf statement. Output will appear on stderr.
 
    This function is heavily based on the function in section 15.5 of
    the C FAQ. */
@@ -50,18 +50,18 @@ nc_log(int severity, const char *fmt, ...)
    /* If the severity is zero, this is an error. Otherwise insert that
       many tabs before the message. */
    if (!severity)
-      fprintf(stdout, "ERROR: ");
+      fprintf(stderr, "ERROR: ");
    for (t=0; t<severity; t++)
-      fprintf(stdout, "\t");
+      fprintf(stderr, "\t");
 
    /* Print out the variable list of args with vprintf. */
    va_start(argp, fmt);
-   vfprintf(stdout, fmt, argp);
+   vfprintf(stderr, fmt, argp);
    va_end(argp);
    
    /* Put on a final linefeed. */
-   fprintf(stdout, "\n");
-   fflush(stdout);
+   fprintf(stderr, "\n");
+   fflush(stderr);
 }
 
 void 

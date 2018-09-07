@@ -230,8 +230,8 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
 }
 
 /**
- * @internal This function reads the hacked in coordinates attribute I
- * use for multi-dimensional coordinates.
+ * @internal This function reads the coordinates attribute used for
+ * multi-dimensional coordinates.
  *
  * @param grp Group info pointer.
  * @param var Var info pointer.
@@ -244,37 +244,46 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    hid_t coord_att_typeid = -1, coord_attid = -1, spaceid = -1;
    hssize_t npoints;
-   int ret = 0;
+   int retval = NC_NOERR;
    int d;
 
    /* There is a hidden attribute telling us the ids of the
     * dimensions that apply to this multi-dimensional coordinate
     * variable. Read it. */
-   if ((coord_attid = H5Aopen_name(var->hdf_datasetid, COORDINATES)) < 0) ret++;
-   if (!ret && (coord_att_typeid = H5Aget_type(coord_attid)) < 0) ret++;
+   if ((coord_attid = H5Aopen_name(var->hdf_datasetid, COORDINATES)) < 0)
+      BAIL(NC_EATTMETA);
+
+   if ((coord_att_typeid = H5Aget_type(coord_attid)) < 0)
+      BAIL(NC_EATTMETA);
 
    /* How many dimensions are there? */
-   if (!ret && (spaceid = H5Aget_space(coord_attid)) < 0) ret++;
-   if (!ret && (npoints = H5Sget_simple_extent_npoints(spaceid)) < 0) ret++;
+   if ((spaceid = H5Aget_space(coord_attid)) < 0)
+      BAIL(NC_EATTMETA);
+   if ((npoints = H5Sget_simple_extent_npoints(spaceid)) < 0)
+      BAIL(NC_EATTMETA);
 
-   /* Check that the number of points is the same as the number of dimensions
-    *   for the variable */
-   if (!ret && npoints != var->ndims) ret++;
+   /* Check that the number of points is the same as the number of
+    * dimensions for the variable. */
+   if (npoints != var->ndims)
+      BAIL(NC_EATTMETA);
 
-   if (!ret && H5Aread(coord_attid, coord_att_typeid, var->dimids) < 0) ret++;
+   if (H5Aread(coord_attid, coord_att_typeid, var->dimids) < 0)
+      BAIL(NC_EATTMETA);
    LOG((4, "dimscale %s is multidimensional and has coords", var->hdr.name));
 
-   /* Update var->dim field based on the var->dimids */
-   for (d = 0; d < var->ndims; d++) {
-      /* Ok if does not find a dim at this time, but if found set it */
+   /* Update var->dim field based on the var->dimids. Ok if does not
+    * find a dim at this time, but if found set it. */
+   for (d = 0; d < var->ndims; d++)
       nc4_find_dim(grp, var->dimids[d], &var->dim[d], NULL);
-   }
 
-   /* Set my HDF5 IDs free! */
-   if (spaceid >= 0 && H5Sclose(spaceid) < 0) ret++;
-   if (coord_att_typeid >= 0 && H5Tclose(coord_att_typeid) < 0) ret++;
-   if (coord_attid >= 0 && H5Aclose(coord_attid) < 0) ret++;
-   return ret ? NC_EATTMETA : NC_NOERR;
+exit:
+   if (spaceid >= 0 && H5Sclose(spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (coord_att_typeid >= 0 && H5Tclose(coord_att_typeid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (coord_attid >= 0 && H5Aclose(coord_attid) < 0)
+      BAIL2(NC_EHDFERR);
+   return retval;
 }
 
 /**
@@ -380,31 +389,18 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 
    nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
    nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
-   if(nc4_info->mem.inmemory) {
-      NC_memio* memparams = NULL;
-      if(parameters == NULL)
-         BAIL(NC_EINMEMORY);
-      memparams = (NC_memio*)parameters;
-      nc4_info->mem.memio = *memparams; /* keep local copy */
-      /* As a safeguard, if !locked and NC_WRITE is set,
-         then we must take control of the incoming memory */
-      nc4_info->mem.locked = (nc4_info->mem.memio.flags & NC_MEMIO_LOCKED) == NC_MEMIO_LOCKED;
-      if(!nc4_info->mem.locked && ((mode & NC_WRITE) == NC_WRITE)) {
-         memparams->memory = NULL;
-      }
+
 #ifdef USE_PARALLEL4
-   } else {
-      mpiinfo = (NC_MPI_INFO*)parameters;
+   mpiinfo = (NC_MPI_INFO*)parameters; /* assume, may be changed if inmemory is true */
 #endif /* !USE_PARALLEL4 */
-   }
 
    /* Need this access plist to control how HDF5 handles open objects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
-    * fail if there are any open objects in the file. */
+    * fail if there are any open objects in the file). */
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
       BAIL(NC_EHDFERR);
 
-   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI))
+   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI) < 0)
       BAIL(NC_EHDFERR);
 
 #ifdef USE_PARALLEL4
@@ -427,10 +423,9 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
             BAIL(NC_EPARINIT);
       }
 #else /* USE_PARALLEL_POSIX */
-      /* Should not happen! Code in NC4_create/NC4_open should alias the
-       *        NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
-       *        available in HDF5. -QAK
-       */
+      /* Should not happen! Code in NC4_create/NC4_open should alias
+       * the NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
+       * available in HDF5. */
       else /* MPI/POSIX */
          BAIL(NC_EPARINIT);
 #endif /* USE_PARALLEL_POSIX */
@@ -451,6 +446,12 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
          nc4_info->info = mpiinfo->info;
       }
    }
+
+#ifdef HDF5_HAS_COLL_METADATA_OPS
+   if (H5Pset_all_coll_metadata_ops(fapl_id, 1) < 0)
+      BAIL(NC_EPARINIT);
+#endif
+
 #else /* only set cache for non-parallel. */
    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
                     nc4_chunk_cache_preemption) < 0)
@@ -460,21 +461,33 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
         nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
 
-   /* The NetCDF-3.x prototype contains an mode option NC_SHARE for
-      multiple processes accessing the dataset concurrently.  As there
-      is no HDF5 equivalent, NC_SHARE is treated as NC_NOWRITE. */
-#ifdef HDF5_HAS_COLL_METADATA_OPS
-   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
-#endif
-
    /* Does the mode specify that this file is read-only? */
    if ((mode & NC_WRITE) == 0)
       nc4_info->no_write = NC_TRUE;
 
+   /* Now process if NC_INMEMORY is set (recall NC_DISKLESS => NC_INMEMORY) */
    if(nc4_info->mem.inmemory) {
+      NC_memio* memio;
+
       /* validate */
-      if(nc4_info->mem.memio.size == 0 || nc4_info->mem.memio.memory == NULL)
-         BAIL(NC_INMEMORY);
+      if(parameters == NULL)
+         BAIL(NC_EINMEMORY);
+      memio = (NC_memio*)parameters;
+      if(memio->memory == NULL || memio->size == 0)
+         BAIL(NC_EINMEMORY);
+
+      /* initialize h5->mem */
+      nc4_info->mem.memio = *memio;
+
+      /* Is the incoming memory locked? */
+      nc4_info->mem.locked = (nc4_info->mem.memio.flags & NC_MEMIO_LOCKED) == NC_MEMIO_LOCKED;
+
+      /* As a safeguard, if !locked and not read-only,
+         then we must take control of the incoming memory */
+      if(!nc4_info->mem.locked && !nc4_info->no_write) {
+        memio->memory = NULL; /* take control */
+        memio->size = 0;
+      }
       retval = NC4_open_image_file(nc4_info);
       if(retval)
          BAIL(NC_EHDFERR);
@@ -502,6 +515,22 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if (is_classic)
       nc4_info->cmode |= NC_CLASSIC_MODEL;
 
+   /* See if this file contained _NCPROPERTIES,
+    * and if yes, process it, if no, then fake it.
+   */
+   if(nc4_info->root_grp != NULL) {
+      /* Since _NCProperties does not exist as an NC_ATT_INFO object,
+       * we need to check using the HDF5 API
+       */
+	if((retval = NC4_read_ncproperties(nc4_info)))
+	    BAIL(retval);
+    }
+
+   if ((retval = check_for_classic_model(nc4_info->root_grp, &is_classic)))
+      BAIL(retval);
+   if (is_classic)
+      nc4_info->cmode |= NC_CLASSIC_MODEL;
+
    /* Now figure out which netCDF dims are indicated by the dimscale
     * information. */
    if ((retval = nc4_rec_match_dimscales(nc4_info->root_grp)))
@@ -517,11 +546,6 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if (H5Pclose(fapl_id) < 0)
       BAIL(NC_EHDFERR);
 
-   /* Get the HDF5 superblock and read and parse the special
-    * _NCProperties attribute. */
-   if ((retval = NC4_get_fileinfo(nc4_info, NULL)))
-      BAIL(retval);
-
    return NC_NOERR;
 
 exit:
@@ -529,9 +553,11 @@ exit:
    if (comm_duped) MPI_Comm_free(&nc4_info->comm);
    if (info_duped) MPI_Info_free(&nc4_info->info);
 #endif
-   if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
-   if (!nc4_info) return retval;
-   nc4_close_netcdf4_file(nc4_info,1,0); /*  treat like abort*/
+
+   if (fapl_id > 0 && fapl_id != H5P_DEFAULT)
+      H5Pclose(fapl_id);
+   if (nc4_info)
+      nc4_close_netcdf4_file(nc4_info, 1, 0); /*  treat like abort*/
    return retval;
 }
 
@@ -1869,12 +1895,10 @@ static int
 nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
                          void *_op_data)
 {
-   NC4_rec_read_metadata_ud_t *udata = (NC4_rec_read_metadata_ud_t *)_op_data; /* Pointer to user data for callback */
+   /* Pointer to user data for callback */
+   NC4_rec_read_metadata_ud_t *udata = (NC4_rec_read_metadata_ud_t *)_op_data;
    NC4_rec_read_metadata_obj_info_t oinfo;    /* Pointer to info for object */
    int retval = H5_ITER_CONT;
-
-   /* Reset the memory for the object's info */
-   memset(&oinfo, 0, sizeof(oinfo));
 
    /* Open this critter. */
    if ((oinfo.oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0)
@@ -1892,10 +1916,9 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
    case H5G_GROUP:
       LOG((3, "found group %s", oinfo.oname));
 
-      /* Defer descending into child group immediately, so that the types
-       *     in the current group can be processed and be ready for use by
-       *     vars in the child group(s).
-       */
+      /* Defer descending into child group immediately, so that the
+       * types in the current group can be processed and be ready for
+       * use by vars in the child group(s). */
       if (nc4_rec_read_metadata_cb_list_add(udata, &oinfo))
          BAIL(H5_ITER_ERROR);
       break;
@@ -1909,11 +1932,10 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
                                  &oinfo.statbuf)))
       {
          /* Allow NC_EBADTYPID to transparently skip over datasets
-          *  which have a datatype that netCDF-4 doesn't undertand
-          *  (currently), but break out of iteration for other
-          *  errors.
-          */
-         if(NC_EBADTYPID != retval)
+          * which have a datatype that netCDF-4 doesn't undertand
+          * (currently), but break out of iteration for other
+          * errors. */
+         if (retval != NC_EBADTYPID)
             BAIL(H5_ITER_ERROR);
          else
             retval = H5_ITER_CONT;

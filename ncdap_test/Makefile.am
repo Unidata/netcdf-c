@@ -83,11 +83,13 @@ EXTRA_DIST = tst_ncdap3.sh  \
              tst_longremote3.sh \
              tst_filelists.sh tst_urls.sh tst_utils.sh \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
-	     t_ncf330.c tst_ber.sh tst_curlopt.sh
+	     t_ncf330.c tst_ber.sh findtestserver.c.in
 
 CLEANFILES = test_varm3 test_cvt3 file_results/* remote_results/* datadds* t_dap3a test_nstride_cached *.exe
 # This should only be left behind if using parallel io
 CLEANFILES += tmp_*
+
+DISTCLEANFILES = findtestserver4.c
 
 # This rule are used if someone wants to rebuild t_dap3a.c
 # Otherwise never invoked, but records how to do it.

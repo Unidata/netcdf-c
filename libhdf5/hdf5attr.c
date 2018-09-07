@@ -309,7 +309,8 @@ nc4typelen(nc_type type)
 }
 
 /**
- * @internal Write an attribute to a netCDF-4/HDF5 file, converting
+ * @internal
+ * Write an attribute to a netCDF-4/HDF5 file, converting
  * data type if necessary.
  *
  * @param ncid File and group ID.
@@ -319,6 +320,7 @@ nc4typelen(nc_type type)
  * @param len Number of elements in attribute array.
  * @param data Attribute data.
  * @param mem_type Type of data in memory.
+ * @param force write even if the attribute is special
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid parameters.
@@ -329,11 +331,10 @@ nc4typelen(nc_type type)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
-            size_t len, const void *data, nc_type mem_type)
+nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
+            size_t len, const void *data, nc_type mem_type, int force)
 {
-   NC *nc;
-   NC_GRP_INFO_T *grp;
+   NC* nc;
    NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var = NULL;
    NCindex* attlist = NULL;
@@ -344,11 +345,13 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
    size_t type_size;
    int i;
    int ret;
+   int ncid;
 
-   /* Find info for this file, group, and h5 info. */
-   if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return ret;
+   h5 = grp->nc4_info;
+   nc = h5->controller;
    assert(nc && grp && h5);
+
+   ncid = nc->ext_ncid | grp->hdr.id;
 
    /* Find att, if it exists. (Must check varid first or nc_test will
     * break.) */
@@ -365,7 +368,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
       return NC_EBADNAME;
 
    LOG((1, "%s: ncid 0x%x varid %d name %s file_type %d mem_type %d len %d",
-        __func__, ncid, varid, name, file_type, mem_type, len));
+        __func__,ncid, varid, name, file_type, mem_type, len));
 
    /* If len is not zero, then there must be some data. */
    if (len && !data)
@@ -381,7 +384,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
 
    /* Check that a reserved att name is not being used improperly */
    const NC_reservedatt* ra = NC_findreserved(name);
-   if(ra != NULL) {
+   if(ra != NULL && !force) {
       /* case 1: grp=root, varid==NC_GLOBAL, flags & READONLYFLAG */
       if (nc->ext_ncid == ncid && varid == NC_GLOBAL && grp->parent == NULL
           && (ra->flags & READONLYFLAG))
@@ -403,7 +406,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
       if (!(h5->flags & NC_INDEF))
       {
          if (h5->cmode & NC_CLASSIC_MODEL)
-            return NC_EINDEFINE;
+            return NC_ENOTINDEFINE;
          if ((retval = NC4_redef(ncid)))
             BAIL(retval);
       }
@@ -417,7 +420,7 @@ NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
           len * nc4typelen(file_type) > (size_t)att->len * nc4typelen(att->nc_typeid))
       {
          if (h5->cmode & NC_CLASSIC_MODEL)
-            return NC_EINDEFINE;
+            return NC_ENOTINDEFINE;
          if ((retval = NC4_redef(ncid)))
             BAIL(retval);
       }
@@ -655,4 +658,43 @@ exit:
    if (range_error)
       return NC_ERANGE;
    return NC_NOERR;
+}
+
+/**
+ * @internal
+ * Write an attribute to a netCDF-4/HDF5 file, converting
+ * data type if necessary.
+ * Wrapper around nc4_put_att
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param name Name of attribute.
+ * @param file_type Type of the attribute data in file.
+ * @param len Number of elements in attribute array.
+ * @param data Attribute data.
+ * @param mem_type Type of data in memory.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid parameters.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Variable not found.
+ * @return ::NC_EBADNAME Name contains illegal characters.
+ * @return ::NC_ENAMEINUSE Name already in use.
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
+int
+NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
+            size_t len, const void *data, nc_type mem_type)
+{
+   int ret = NC_NOERR;
+   NC *nc;
+   NC_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
+    
+   /* Find info for this file, group, and h5 info. */
+   if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+      return ret;
+   assert(nc && grp && h5);
+
+   return nc4_put_att(grp,varid,name,file_type,len,data,mem_type,0);
 }
