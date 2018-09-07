@@ -780,9 +780,9 @@ nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
 
    /* Assign the dimension ID. */
    if (assignedid >= 0)
-       new_dim->hdr.id = assignedid;
+      new_dim->hdr.id = assignedid;
    else
-       new_dim->hdr.id = grp->nc4_info->next_dimid++;
+      new_dim->hdr.id = grp->nc4_info->next_dimid++;
 
    /* Remember the name and create a hash. */
    if (!(new_dim->hdr.name = strdup(name)))

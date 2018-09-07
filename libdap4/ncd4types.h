@@ -286,7 +286,6 @@ struct NCD4curl {
 
 struct NCD4INFO {
     NC*   controller; /* Parent instance of NCD4INFO */
-    int debug;
     char* rawurltext; /* as given to ncd4_open */
     char* urltext;    /* as modified by ncd4_open */
     NCURI* uri;      /* parse of rawuritext */
@@ -313,6 +312,9 @@ struct NCD4INFO {
 	char substratename[NC_MAX_NAME];
     } controls;
     NCauth auth;
+    struct {
+	char* filename;
+    } fileproto;
 };
 
 #endif /*D4TYPES_H*/

@@ -217,7 +217,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @param ncid File ID.
  * @param name Name.
  * @param xtype Type.
- * @param ndims Number of dims.
+ * @param ndims Number of dims. HDF5 has maximim of 32.
  * @param dimidsp Array of dim IDs.
  * @param varidp Gets the var ID.
  *
@@ -258,6 +258,10 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       BAIL(retval);
    assert(grp && h5);
+
+   /* HDF5 allows maximum of 32 dimensions. */
+   if (ndims > H5S_MAX_RANK)
+      BAIL(NC_EMAXDIMS);
 
    /* If it's not in define mode, strict nc3 files error out,
     * otherwise switch to define mode. This will also check that the
