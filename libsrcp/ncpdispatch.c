@@ -19,8 +19,8 @@
 
 typedef struct NCP_INFO
 {
-   /* pnetcdf_access_mode keeps track of whether independpent or collective
-    * mode is set currently.
+   /* pnetcdf_access_mode keeps track of whether independent or collective
+    * mode is set currently and whether the file is in define or data mode.
     */
    int pnetcdf_access_mode;
 } NCP_INFO;
@@ -38,73 +38,66 @@ static const int LEGAL_OPEN_FLAGS = (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_LOC
 /**************************************************/
 
 static int
-NCP_create(const char *path, int cmode,
-	  size_t initialsz, int basepe, size_t *chunksizehintp,
-	  int use_parallel, void* mpidata,
-	  struct NC_Dispatch* table, NC* nc)
+NCP_create(const char *path,
+           int cmode,
+           size_t initialsz,
+           int basepe,
+           size_t *chunksizehintp,
+           int use_parallel,
+           void *mpidata,
+           struct NC_Dispatch *table,
+           NC *nc)
 {
-    int res, default_format;
-    NCP_INFO* nc5;
-    MPI_Comm comm;
-    MPI_Info info;
+    int status;
+    NCP_INFO *nc5;
 
-    /* Check the cmode for only valid flags*/
-    if(cmode & ~LEGAL_CREATE_FLAGS)
-	{res = NC_EINVAL; goto done;}
+    /* Check the cmode for only valid flags */
+    if (cmode & ~LEGAL_CREATE_FLAGS) return NC_EINVAL;
 
     /* No MPI environment initialized */
-    if (mpidata == NULL)
-	{res = NC_ENOPAR; goto done;}
+    if (mpidata == NULL) return NC_ENOPAR;
 
-    comm = ((NC_MPI_INFO *)mpidata)->comm;
-    info = ((NC_MPI_INFO *)mpidata)->info;
-
-    /* Create our specific NCP_INFO instance */
-
+    /* Create NCP_INFO instance */
     nc5 = (NCP_INFO*)calloc(1,sizeof(NCP_INFO));
-    if(nc5 == NULL)
-	{res = NC_ENOMEM; goto done;}
+    if (nc5 == NULL) return NC_ENOMEM;
 
     /* Link nc5 and nc */
     NCP_DATA_SET(nc,nc5);
 
-    res = ncmpi_create(comm, path, cmode, info, &(nc->int_ncid));
+    status = ncmpi_create(((NC_MPI_INFO *)mpidata)->comm, path, cmode,
+                          ((NC_MPI_INFO *)mpidata)->info, &nc->int_ncid);
 
+    if (status == NC_NOERR)
+        /* Default to independent access, like netCDF-4/HDF5 files. */
+        fSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP);
+    else
+        free(nc5); /* reclaim allocated space */
 
-    /* Default to independent access, like netCDF-4/HDF5 files. */
-    fSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP);
-
-    if(res && nc5 != NULL) free(nc5); /* reclaim allocated space */
-
-done:
-    return res;
+    return status;
 }
 
 static int
-NCP_open(const char *path, int cmode,
-	    int basepe, size_t *chunksizehintp,
-	    int use_parallel, void* mpidata,
-	    struct NC_Dispatch* table, NC* nc)
+NCP_open(const char *path,
+         int omode,
+         int basepe,
+         size_t *chunksizehintp,
+         int use_parallel,
+         void *mpidata,
+         struct NC_Dispatch *table,
+         NC *nc)
 {
-    int res;
-    NCP_INFO* nc5;
-    MPI_Comm comm;
-    MPI_Info info;
+    int status;
+    NCP_INFO *nc5;
 
-    /* Check the cmode for only valid flags*/
-    if(cmode & ~LEGAL_OPEN_FLAGS)
-	{res = NC_EINVAL; goto done;}
+    /* Check the omode for only valid flags */
+    if (omode & ~LEGAL_OPEN_FLAGS) return NC_EINVAL;
 
     /* No MPI environment initialized */
-    if (mpidata == NULL)
-	{res = NC_ENOPAR; goto done;}
+    if (mpidata == NULL) return NC_ENOPAR;
 
-    comm = ((NC_MPI_INFO *)mpidata)->comm;
-    info = ((NC_MPI_INFO *)mpidata)->info;
-
-    /* Create our specific NCP_INFO instance */
+    /* Create NCP_INFO instance */
     nc5 = (NCP_INFO*)calloc(1,sizeof(NCP_INFO));
-    if(nc5 == NULL) {res = NC_ENOMEM; goto done;}
+    if (nc5 == NULL) return NC_ENOMEM;
 
     /* file open automatically enters data mode */
     fSet(nc5->pnetcdf_access_mode, NCP_MODE_DATA);
@@ -112,62 +105,71 @@ NCP_open(const char *path, int cmode,
     /* Link nc5 and nc */
     NCP_DATA_SET(nc,nc5);
 
-    res = ncmpi_open(comm, path, cmode, info, &(nc->int_ncid));
+    status = ncmpi_open(((NC_MPI_INFO *)mpidata)->comm, path, omode,
+                        ((NC_MPI_INFO *)mpidata)->info, &(nc->int_ncid));
 
-    /* Default to independent access, like netCDF-4/HDF5 files. */
-    if (res == NC_NOERR) {
-	res = ncmpi_begin_indep_data(nc->int_ncid);
-	fSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP);
+    if (status == NC_NOERR) {
+        /* Default to independent access, like netCDF-4/HDF5 files. */
+        status = ncmpi_begin_indep_data(nc->int_ncid);
+        fSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP);
     }
-done:
-    return res;
+    else
+        free(nc5); /* reclaim allocated space */
+
+    return status;
 }
 
 static int
 NCP_redef(int ncid)
 {
-    NC* nc;
-    NCP_INFO* nc5;
+    NC *nc;
+    NCP_INFO *nc5;
 
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 
     nc5 = NCP_DATA(nc);
+
+    /* the file now enters define mode */
     fClr(nc5->pnetcdf_access_mode, NCP_MODE_DATA);
 
     return ncmpi_redef(nc->int_ncid);
 }
 
 static int
-NCP__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align)
+NCP__enddef(int ncid,
+            size_t h_minfree,
+            size_t v_align,
+            size_t v_minfree,
+            size_t r_align)
 {
     int status;
-    NC* nc;
-    NCP_INFO* nc5;
-    MPI_Offset mpi_h_minfree = h_minfree;
-    MPI_Offset mpi_v_align   = v_align;
-    MPI_Offset mpi_v_minfree = v_minfree;
-    MPI_Offset mpi_r_align   = r_align;
+    NC *nc;
+    NCP_INFO *nc5;
 
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR)
-	return status;
+    if (status != NC_NOERR) return status;
 
     nc5 = NCP_DATA(nc);
     assert(nc5);
 
 #if (PNETCDF_VERSION_MAJOR*10000 + PNETCDF_VERSION_MINOR*100 + PNETCDF_VERSION_SUB >= 10500)
     /* ncmpi__enddef() was first implemented in PnetCDF v1.5.0 */
-    status = ncmpi__enddef(nc->int_ncid, mpi_h_minfree, mpi_v_align,
-                           mpi_v_minfree, mpi_r_align);
+    status = ncmpi__enddef(nc->int_ncid,
+                           (MPI_Offset)h_minfree,
+                           (MPI_Offset)v_align,
+                           (MPI_Offset)v_minfree,
+                           (MPI_Offset)r_align);
 #else
     status = ncmpi_enddef(nc->int_ncid);
 #endif
 
-    if(!status) {
+    if (!status) {
+        /* the file now enters data mode */
         fSet(nc5->pnetcdf_access_mode, NCP_MODE_DATA);
-	if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP))
-	    status = ncmpi_begin_indep_data(nc->int_ncid);
+        /* default is independent data mode */
+        if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP))
+            status = ncmpi_begin_indep_data(nc->int_ncid);
     }
     return status;
 }
@@ -175,63 +177,63 @@ NCP__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t
 static int
 NCP_sync(int ncid)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
     return ncmpi_sync(nc->int_ncid);
 }
 
 static int
 NCP_abort(int ncid)
 {
-    NC* nc;
-    NCP_INFO* nc5;
+    NC *nc;
+    NCP_INFO *nc5;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) goto done;
+    if (status != NC_NOERR) return status;
 
     status = ncmpi_abort(nc->int_ncid);
 
-done:
     nc5 = NCP_DATA(nc);
-    if(nc5 != NULL) free(nc5); /* reclaim allocated space */
+    if (nc5 != NULL) free(nc5); /* reclaim allocated space */
+
     return status;
 }
 
 
 static int
-NCP_close(int ncid, void* ignored)
+NCP_close(int ncid, void *ignored)
 {
-    NC* nc;
-    NCP_INFO* nc5;
+    NC *nc;
+    NCP_INFO *nc5;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) goto done;
+    if (status != NC_NOERR) return status;
 
     status = ncmpi_close(nc->int_ncid);
 
-done:
     nc5 = NCP_DATA(nc);
-    if(nc5 != NULL) free(nc5); /* reclaim allocated space */
+    if (nc5 != NULL) free(nc5); /* reclaim allocated space */
+
     return status;
 }
 
 static int
 NCP_set_fill(int ncid, int fillmode, int *old_mode_ptr)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 #if (PNETCDF_VERSION_MAJOR*10000 + PNETCDF_VERSION_MINOR*100 + PNETCDF_VERSION_SUB >= 10601)
     /* ncmpi_set_fill was first implemented in PnetCDF 1.6.1 */
-    return ncmpi_set_fill(nc->int_ncid,fillmode,old_mode_ptr);
+    return ncmpi_set_fill(nc->int_ncid, fillmode, old_mode_ptr);
 #else
     return NC_EPNETCDF;
 #endif
 }
 
 static int
-NCP_inq_base_pe(int ncid, int* pep)
+NCP_inq_base_pe(int ncid, int *pep)
 {
-    if(pep) *pep = 0;
+    if (pep) *pep = 0;
     return NC_NOERR;
 }
 
@@ -242,922 +244,908 @@ NCP_set_base_pe(int ncid, int pe)
 }
 
 static int
-NCP_inq_format(int ncid, int* formatp)
+NCP_inq_format(int ncid, int *formatp)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    status = ncmpi_inq_format(nc->int_ncid,formatp);
-    return status;
+    if (status != NC_NOERR) return status;
+    return ncmpi_inq_format(nc->int_ncid, formatp);
 }
 
 static int
-NCP_inq_format_extended(int ncid, int* formatp, int *modep)
+NCP_inq_format_extended(int ncid, int *formatp, int *modep)
 {
-    NC* nc;
+    /* Note PnetCDF understands classic, 64bit-offset, and CDF-5 formats */
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    if(modep) *modep = nc->mode;
-    /* Note that we do not use NC_FORMAT_CDF5 because PNETCDF has a dispatch table */
-    if(formatp) *formatp = NC_FORMATX_PNETCDF;
+    if (status != NC_NOERR) return status;
+    if (modep) *modep = nc->mode;
+    if (formatp) *formatp = NC_FORMATX_PNETCDF;
     return NC_NOERR;
 }
 
 static int
 NCP_inq(int ncid,
-	int *ndimsp,
-	int *nvarsp,
-	int *nattsp,
-	int *unlimp)
+        int *ndimsp,
+        int *nvarsp,
+        int *nattsp,
+        int *unlimp)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    return ncmpi_inq(nc->int_ncid,ndimsp,nvarsp,nattsp,unlimp);
+    if (status != NC_NOERR) return status;
+    return ncmpi_inq(nc->int_ncid, ndimsp, nvarsp, nattsp, unlimp);
 }
 
-
 static int
-NCP_inq_type(int ncid, nc_type typeid, char* name, size_t* size)
+NCP_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
 {
-    /* Assert mode & NC_FORMAT_CDF5 */
+    /* for non-netcdf4 files, no user defined type is allowed */
     if (typeid < NC_BYTE || typeid >= NC_STRING)
         return NC_EBADTYPE;
-    if(name)
-	strcpy(name, NC_atomictypename(typeid));
-    if(size)
+    if (name)
+        strcpy(name, NC_atomictypename(typeid));
+    if (size)
         *size = NC_atomictypelen(typeid);
-   return NC_NOERR;
+    return NC_NOERR;
 }
 
 static int
-NCP_def_dim(int ncid, const char* name, size_t len, int* idp)
+NCP_def_dim(int ncid, const char *name, size_t len, int *idp)
 {
-    int status;
-    NCP_INFO* nc5;
-    NC* nc;
-
-    status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR)
-	return status;
-
-    nc5 = NCP_DATA(nc);
-    assert(nc5);
-
+    NC *nc;
+    int status = NC_check_id(ncid, &nc);
+    if (status != NC_NOERR) return status;
     return ncmpi_def_dim(nc->int_ncid, name, len, idp);
 }
 
 static int
 NCP_inq_dimid(int ncid, const char *name, int *idp)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    return ncmpi_inq_dimid(nc->int_ncid,name,idp);
+    if (status != NC_NOERR) return status;
+    return ncmpi_inq_dimid(nc->int_ncid, name, idp);
 }
 
 static int
-NCP_inq_dim(int ncid, int dimid, char *name, size_t* lenp)
+NCP_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 {
     int status;
-    NC* nc;
+    NC *nc;
     MPI_Offset mpilen;
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    status = ncmpi_inq_dim(nc->int_ncid,dimid,name,&mpilen);
-    if(lenp) *lenp = mpilen;
+    if (status != NC_NOERR) return status;
+    status = ncmpi_inq_dim(nc->int_ncid, dimid, name, &mpilen);
+    if (status == NC_NOERR && lenp) *lenp = mpilen;
     return status;
 }
 
 static int
 NCP_inq_unlimdim(int ncid,  int *unlimdimidp)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    return ncmpi_inq_unlimdim(nc->int_ncid,unlimdimidp);
+    if (status != NC_NOERR) return status;
+    return ncmpi_inq_unlimdim(nc->int_ncid, unlimdimidp);
 }
 
 static int
-NCP_rename_dim(int ncid, int dimid, const char* newname)
+NCP_rename_dim(int ncid, int dimid, const char *newname)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    return ncmpi_rename_dim(nc->int_ncid,dimid,newname);
+    if (status != NC_NOERR) return status;
+    return ncmpi_rename_dim(nc->int_ncid, dimid, newname);
 }
 
 static int
-NCP_inq_att(int ncid, int varid, const char* name, nc_type* xtypep, size_t* lenp)
+NCP_inq_att(int ncid,
+            int varid,
+            const char *name,
+            nc_type *xtypep,
+            size_t *lenp)
 {
-    NC* nc;
+    NC *nc;
     MPI_Offset mpilen;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    status = ncmpi_inq_att(nc->int_ncid,varid,name,xtypep,&mpilen);
-    if(status != NC_NOERR) return status;
-    if(lenp) *lenp = mpilen;
+    if (status != NC_NOERR) return status;
+    status = ncmpi_inq_att(nc->int_ncid, varid, name, xtypep, &mpilen);
+    if (status == NC_NOERR && lenp) *lenp = mpilen;
     return status;
 }
 
 static int
 NCP_inq_attid(int ncid, int varid, const char *name, int *idp)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    return ncmpi_inq_attid(nc->int_ncid,varid,name,idp);
+    if (status != NC_NOERR) return status;
+    return ncmpi_inq_attid(nc->int_ncid,varid, name, idp);
 }
 
 static int
 NCP_inq_attname(int ncid, int varid, int attnum, char *name)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    return ncmpi_inq_attname(nc->int_ncid,varid,attnum,name);
-
+    if (status != NC_NOERR) return status;
+    return ncmpi_inq_attname(nc->int_ncid, varid, attnum, name);
 }
 
 static int
 NCP_rename_att(int ncid, int varid, const char *name,
-		const char *newname)
+               const char *newname)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    return ncmpi_rename_att(nc->int_ncid,varid,name,newname);
+    if (status != NC_NOERR) return status;
+    return ncmpi_rename_att(nc->int_ncid, varid, name, newname);
 }
 
 static int
 NCP_del_att(int ncid, int varid, const char *name)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    return ncmpi_del_att(nc->int_ncid,varid,name);
+    if (status != NC_NOERR) return status;
+    return ncmpi_del_att(nc->int_ncid, varid, name);
 }
 
-int
-NCP_get_att(
-	int ncid,
-	int varid,
-	const char *name,
-	void *ip,
-	nc_type memtype)
+static int
+NCP_get_att(int ncid,
+            int varid,
+            const char *name,
+            void *op,
+            nc_type memtype)
 {
-    NC* nc;
+    NC *nc;
     int status;
 
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 
     if (memtype == NC_NAT) {
-        status = NCP_inq_att(ncid,varid,name,&memtype,NULL);
+        status = ncmpi_inq_att(nc->int_ncid, varid, name, &memtype, NULL);
         if (status != NC_NOERR) return status;
     }
 
     switch (memtype) {
-    case NC_CHAR:
-        return ncmpi_get_att_text(nc->int_ncid, varid, name, (char*)ip);
-    case NC_BYTE:
-        return ncmpi_get_att_schar(nc->int_ncid, varid, name, (signed char*)ip);
-    case NC_SHORT:
-        return ncmpi_get_att_short(nc->int_ncid, varid, name, (short*)ip);
-    case NC_INT:
-        return ncmpi_get_att_int(nc->int_ncid, varid, name, (int*)ip);
-    case NC_FLOAT:
-        return ncmpi_get_att_float(nc->int_ncid, varid, name, (float*)ip);
-    case NC_DOUBLE:
-        return ncmpi_get_att_double(nc->int_ncid, varid, name, (double*)ip);
-    case NC_UBYTE:
-         return ncmpi_get_att_uchar(nc->int_ncid, varid, name, (unsigned char*)ip);
-    case NC_USHORT:
-        return ncmpi_get_att_ushort(nc->int_ncid, varid, name, (unsigned short*)ip);
-    case NC_UINT:
-        return ncmpi_get_att_uint(nc->int_ncid, varid, name, (unsigned int*)ip);
-    case NC_INT64:
-        return ncmpi_get_att_longlong(nc->int_ncid, varid, name, (long long*)ip);
-    case NC_UINT64:
-        return ncmpi_get_att_ulonglong(nc->int_ncid, varid, name, (unsigned long long*)ip);
-    default:
-	break;
+        case NC_CHAR:
+            return ncmpi_get_att_text(nc->int_ncid, varid, name, (char*)op);
+        case NC_BYTE:
+            return ncmpi_get_att_schar(nc->int_ncid, varid, name, (signed char*)op);
+        case NC_SHORT:
+            return ncmpi_get_att_short(nc->int_ncid, varid, name, (short*)op);
+        case NC_INT:
+            return ncmpi_get_att_int(nc->int_ncid, varid, name, (int*)op);
+        case NC_FLOAT:
+            return ncmpi_get_att_float(nc->int_ncid, varid, name, (float*)op);
+        case NC_DOUBLE:
+            return ncmpi_get_att_double(nc->int_ncid, varid, name, (double*)op);
+        case NC_UBYTE:
+            return ncmpi_get_att_uchar(nc->int_ncid, varid, name, (unsigned char*)op);
+        case NC_USHORT:
+            return ncmpi_get_att_ushort(nc->int_ncid, varid, name, (unsigned short*)op);
+        case NC_UINT:
+            return ncmpi_get_att_uint(nc->int_ncid, varid, name, (unsigned int*)op);
+        case NC_INT64:
+            return ncmpi_get_att_longlong(nc->int_ncid, varid, name, (long long*)op);
+        case NC_UINT64:
+            return ncmpi_get_att_ulonglong(nc->int_ncid, varid, name, (unsigned long long*)op);
+        default:
+            return NC_EBADTYPE;
     }
-    return NC_EBADTYPE;
 }
 
-int
-NCP_put_att(
-	int ncid,
-	int varid,
-	const char *name,
-	nc_type xtype,
-	size_t len,
-	const void *ip,
-	nc_type memtype)
+static int
+NCP_put_att(int ncid,
+            int varid,
+            const char *name,
+            nc_type xtype,
+            size_t len,
+            const void *ip,
+            nc_type memtype)
 {
-    NC* nc;
+    NC *nc;
     int status;
     MPI_Offset mpilen;
 
     /* check if ncid is valid */
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 
     /* check if varid is valid */
     status = ncmpi_inq_varnatts(nc->int_ncid, varid, NULL);
     if (status != NC_NOERR) return status;
 
     if (!name || (strlen(name) > NC_MAX_NAME))
-	return NC_EBADNAME;
+        return NC_EBADNAME;
 
     /* The length needs to be positive (cast needed for braindead
        systems with signed size_t). */
-    if(((unsigned long) len) > X_INT_MAX)
-	return NC_EINVAL;
+    if (((unsigned long) len) > X_INT_MAX)
+        return NC_EINVAL;
 
     mpilen = len;
 
     switch (memtype) {
-    case NC_CHAR:
-        return ncmpi_put_att_text(nc->int_ncid, varid, name, mpilen, (char*)ip);
-    case NC_BYTE:
-        return ncmpi_put_att_schar(nc->int_ncid, varid, name, xtype, mpilen, (signed char*)ip);
-    case NC_SHORT:
-        return ncmpi_put_att_short(nc->int_ncid, varid, name, xtype, mpilen, (short*)ip);
-    case NC_INT:
-        return ncmpi_put_att_int(nc->int_ncid, varid, name, xtype, mpilen, (int*)ip);
-    case NC_FLOAT:
-        return ncmpi_put_att_float(nc->int_ncid, varid, name, xtype, mpilen, (float*)ip);
-    case NC_DOUBLE:
-        return ncmpi_put_att_double(nc->int_ncid, varid, name, xtype, mpilen, (double*)ip);
-    case NC_UBYTE:
-         return ncmpi_put_att_uchar(nc->int_ncid, varid, name, xtype, mpilen, (unsigned char*)ip);
-    case NC_USHORT:
-        return ncmpi_put_att_ushort(nc->int_ncid, varid, name, xtype, mpilen, (unsigned short*)ip);
-    case NC_UINT:
-        return ncmpi_put_att_uint(nc->int_ncid, varid, name, xtype, mpilen, (unsigned int*)ip);
-    case NC_INT64:
-        return ncmpi_put_att_longlong(nc->int_ncid, varid, name, xtype, mpilen, (long long*)ip);
-    case NC_UINT64:
-        return ncmpi_put_att_ulonglong(nc->int_ncid, varid, name, xtype, mpilen, (unsigned long long*)ip);
-    default:
-	break;
+        case NC_CHAR:
+            return ncmpi_put_att_text(nc->int_ncid, varid, name, mpilen, (char*)ip);
+        case NC_BYTE:
+            return ncmpi_put_att_schar(nc->int_ncid, varid, name, xtype, mpilen, (signed char*)ip);
+        case NC_SHORT:
+            return ncmpi_put_att_short(nc->int_ncid, varid, name, xtype, mpilen, (short*)ip);
+        case NC_INT:
+            return ncmpi_put_att_int(nc->int_ncid, varid, name, xtype, mpilen, (int*)ip);
+        case NC_FLOAT:
+            return ncmpi_put_att_float(nc->int_ncid, varid, name, xtype, mpilen, (float*)ip);
+        case NC_DOUBLE:
+            return ncmpi_put_att_double(nc->int_ncid, varid, name, xtype, mpilen, (double*)ip);
+        case NC_UBYTE:
+            return ncmpi_put_att_uchar(nc->int_ncid, varid, name, xtype, mpilen, (unsigned char*)ip);
+        case NC_USHORT:
+            return ncmpi_put_att_ushort(nc->int_ncid, varid, name, xtype, mpilen, (unsigned short*)ip);
+        case NC_UINT:
+            return ncmpi_put_att_uint(nc->int_ncid, varid, name, xtype, mpilen, (unsigned int*)ip);
+        case NC_INT64:
+            return ncmpi_put_att_longlong(nc->int_ncid, varid, name, xtype, mpilen, (long long*)ip);
+        case NC_UINT64:
+            return ncmpi_put_att_ulonglong(nc->int_ncid, varid, name, xtype, mpilen, (unsigned long long*)ip);
+        default:
+            return NC_EBADTYPE;
     }
-    return NC_EBADTYPE;
 }
 
 static int
 NCP_def_var(int ncid, const char *name, nc_type xtype,
-	    int ndims, const int *dimidsp, int *varidp)
+            int ndims, const int *dimidsp, int *varidp)
 {
-    NC* nc;
-    NCP_INFO* nc5;
-    int status;
-
-    status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    nc5 = NCP_DATA(nc);
-    assert(nc5);
-
-    status = ncmpi_def_var(nc->int_ncid,name,xtype,ndims,dimidsp,varidp);
-    return status;
+    NC *nc;
+    int status = NC_check_id(ncid, &nc);
+    if (status != NC_NOERR) return status;
+    return ncmpi_def_var(nc->int_ncid,name,xtype,ndims,dimidsp,varidp);
 }
 
 static int
 NCP_inq_varid(int ncid, const char *name, int *varidp)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
     return ncmpi_inq_varid(nc->int_ncid,name,varidp);
 }
 
 static int
 NCP_rename_var(int ncid, int varid, const char *name)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
     return ncmpi_rename_var(nc->int_ncid,varid,name);
 }
 
 static int
 NCP_get_vara(int ncid,
-		int varid,
-		const size_t* startp,
-		const size_t* countp,
-		void* ip,
-		nc_type memtype)
+             int varid,
+             const size_t *startp,
+             const size_t *countp,
+             void *op,
+             nc_type memtype)
 {
-    NC* nc;
-    NCP_INFO* nc5;
-    int status;
+    NC *nc;
+    NCP_INFO *nc5;
+    int d, ndims, status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS];
-    int d;
-    int rank = 0;
 
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 
     nc5 = NCP_DATA(nc);
     assert(nc5);
 
-    /* get variable's rank */
-    status= ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
-    if(status) return status;
+    /* get variable's ndims */
+    status = ncmpi_inq_varndims(nc->int_ncid, varid, &ndims);
+    if (status != NC_NOERR) return status;
 
     /* We must convert the start and count arrays to MPI_Offset type. */
-    for (d = 0; d < rank; d++) {
-	 mpi_start[d] = startp[d];
-	 mpi_count[d] = countp[d];
+    for (d=0; d<ndims; d++) {
+        mpi_start[d] = startp[d];
+        mpi_count[d] = countp[d];
     }
 
     if (memtype == NC_NAT) {
         status = ncmpi_inq_vartype(nc->int_ncid, varid, &memtype);
-        if (status) return status;
+        if (status != NC_NOERR) return status;
     }
 
     if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
-	switch(memtype) {
-	case NC_BYTE:
-	    status=ncmpi_get_vara_schar(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_CHAR:
-	    status=ncmpi_get_vara_text(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_SHORT:
-	    status=ncmpi_get_vara_short(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_INT:
-	    status=ncmpi_get_vara_int(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_FLOAT:
-	    status=ncmpi_get_vara_float(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_DOUBLE:
-	    status=ncmpi_get_vara_double(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UBYTE:
- 	    status=ncmpi_get_vara_uchar(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_USHORT:
-	    status=ncmpi_get_vara_ushort(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UINT:
-	    status=ncmpi_get_vara_uint(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_INT64:
-	    status=ncmpi_get_vara_longlong(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UINT64:
-	    status=ncmpi_get_vara_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
-      } else {
-	switch(memtype) {
-	case NC_BYTE:
-	    status=ncmpi_get_vara_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_CHAR:
-	    status=ncmpi_get_vara_text_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_SHORT:
-	    status=ncmpi_get_vara_short_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_INT:
-	    status=ncmpi_get_vara_int_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_FLOAT:
-	    status=ncmpi_get_vara_float_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_DOUBLE:
-	    status=ncmpi_get_vara_double_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UBYTE:
-	    status=ncmpi_get_vara_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_USHORT:
-	    status=ncmpi_get_vara_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UINT:
-	    status=ncmpi_get_vara_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
- 	case NC_INT64:
-	    status=ncmpi_get_vara_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UINT64:
-	    status=ncmpi_get_vara_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_get_vara_schar(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_CHAR:
+                return ncmpi_get_vara_text(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_SHORT:
+                return ncmpi_get_vara_short(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_INT:
+                return ncmpi_get_vara_int(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_FLOAT:
+                return ncmpi_get_vara_float(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_DOUBLE:
+                return ncmpi_get_vara_double(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_UBYTE:
+                return ncmpi_get_vara_uchar(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_USHORT:
+                return ncmpi_get_vara_ushort(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_UINT:
+                return ncmpi_get_vara_uint(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_INT64:
+                return ncmpi_get_vara_longlong(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_UINT64:
+                return ncmpi_get_vara_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            default:
+                return NC_EBADTYPE;
+        }
+    } else {
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_get_vara_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_CHAR:
+                return ncmpi_get_vara_text_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_SHORT:
+                return ncmpi_get_vara_short_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_INT:
+                return ncmpi_get_vara_int_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_FLOAT:
+                return ncmpi_get_vara_float_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_DOUBLE:
+                return ncmpi_get_vara_double_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_UBYTE:
+                return ncmpi_get_vara_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_USHORT:
+                return ncmpi_get_vara_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_UINT:
+                return ncmpi_get_vara_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_INT64:
+                return ncmpi_get_vara_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            case NC_UINT64:
+                return ncmpi_get_vara_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+            default:
+                return NC_EBADTYPE;
+        }
     }
-    return status;
 }
 
 static int
 NCP_put_vara(int ncid,
-	int varid,
-	const size_t* startp,
-	const size_t* countp,
-	const void*ip,
-	nc_type memtype)
+             int varid,
+             const size_t *startp,
+             const size_t *countp,
+             const void *ip,
+             nc_type memtype)
 {
-    NC* nc;
-    NCP_INFO* nc5;
-    int status;
+    NC *nc;
+    NCP_INFO *nc5;
+    int d, ndims, status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS];
-    int d;
-    int rank;
 
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 
     nc5 = NCP_DATA(nc);
     assert(nc5);
 
-    /* get variable's rank */
-    status = ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
-    if(status) return status;
+    /* get variable's ndims */
+    status = ncmpi_inq_varndims(nc->int_ncid, varid, &ndims);
+    if (status != NC_NOERR) return status;
 
     /* We must convert the start and count arrays to MPI_Offset type. */
-    for (d = 0; d < rank; d++) {
-	 mpi_start[d] = startp[d];
-	 mpi_count[d] = countp[d];
+    for (d=0; d<ndims; d++) {
+        mpi_start[d] = startp[d];
+        mpi_count[d] = countp[d];
     }
 
     if (memtype == NC_NAT) {
         status = ncmpi_inq_vartype(nc->int_ncid, varid, &memtype);
-        if (status) return status;
+        if (status != NC_NOERR) return status;
     }
 
     if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
-	switch(memtype) {
-	case NC_BYTE:
-	    status = ncmpi_put_vara_schar(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_CHAR:
-	    status = ncmpi_put_vara_text(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_SHORT:
-	    status = ncmpi_put_vara_short(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_INT:
-	    status = ncmpi_put_vara_int(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_FLOAT:
-	    status = ncmpi_put_vara_float(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_DOUBLE:
-	    status = ncmpi_put_vara_double(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UBYTE:
-	    status = ncmpi_put_vara_uchar(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_USHORT:
-	    status = ncmpi_put_vara_ushort(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UINT:
-	    status = ncmpi_put_vara_uint(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_INT64:
-      status = ncmpi_put_vara_longlong(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UINT64:
-	    status = ncmpi_put_vara_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
-      } else {
-	switch(memtype) {
-	case NC_BYTE:
-	    status = ncmpi_put_vara_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_CHAR:
-	    status = ncmpi_put_vara_text_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_SHORT:
-	    status = ncmpi_put_vara_short_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_INT:
-	    status = ncmpi_put_vara_int_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_FLOAT:
-	    status = ncmpi_put_vara_float_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_DOUBLE:
-	    status = ncmpi_put_vara_double_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UBYTE:
-	    status = ncmpi_put_vara_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_USHORT:
-	    status = ncmpi_put_vara_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UINT:
-	    status = ncmpi_put_vara_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
- 	case NC_INT64:
-	    status = ncmpi_put_vara_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	case NC_UINT64:
-	    status = ncmpi_put_vara_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_put_vara_schar(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_CHAR:
+                return ncmpi_put_vara_text(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_SHORT:
+                return ncmpi_put_vara_short(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_INT:
+                return ncmpi_put_vara_int(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_FLOAT:
+                return ncmpi_put_vara_float(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_DOUBLE:
+                return ncmpi_put_vara_double(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_UBYTE:
+                return ncmpi_put_vara_uchar(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_USHORT:
+                return ncmpi_put_vara_ushort(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_UINT:
+                return ncmpi_put_vara_uint(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_INT64:
+                return ncmpi_put_vara_longlong(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_UINT64:
+                return ncmpi_put_vara_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            default:
+                return NC_EBADTYPE;
+        }
+    } else {
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_put_vara_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_CHAR:
+                return ncmpi_put_vara_text_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_SHORT:
+                return ncmpi_put_vara_short_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_INT:
+                return ncmpi_put_vara_int_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_FLOAT:
+                return ncmpi_put_vara_float_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_DOUBLE:
+                return ncmpi_put_vara_double_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_UBYTE:
+                return ncmpi_put_vara_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_USHORT:
+                return ncmpi_put_vara_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_UINT:
+                return ncmpi_put_vara_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_INT64:
+                return ncmpi_put_vara_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            case NC_UINT64:
+                return ncmpi_put_vara_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, ip);
+            default:
+                return NC_EBADTYPE;
+        }
     }
-    return status;
 }
 
 static int
 NCP_get_vars(int ncid,
-		int varid,
-		const size_t* startp,
-		const size_t* countp,
-		const ptrdiff_t* stridep,
-		void* ip,
-		nc_type memtype)
+             int varid,
+             const size_t *startp,
+             const size_t *countp,
+             const ptrdiff_t *stridep,
+             void *op,
+             nc_type memtype)
 {
-    NC* nc;
-    NCP_INFO* nc5;
-    int status;
+    NC *nc;
+    NCP_INFO *nc5;
+    int d, ndims, status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS], mpi_stride[NC_MAX_VAR_DIMS];
-    int d;
-    int rank = 0;
+
+    if (stridep == NULL)
+        return NCP_get_vara(ncid, varid, startp, countp, op, memtype);
 
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 
     nc5 = NCP_DATA(nc);
     assert(nc5);
 
-    /* get variable's rank */
-    status= ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
-    if(status) return status;
+    /* get variable's ndims */
+    status = ncmpi_inq_varndims(nc->int_ncid, varid, &ndims);
+    if (status != NC_NOERR) return status;
 
     /* We must convert the start, count, and stride arrays to MPI_Offset type. */
-    for (d = 0; d < rank; d++) {
-	 mpi_start[d] = startp[d];
-	 mpi_count[d] = countp[d];
-	 mpi_stride[d] = stridep[d];
+    for (d=0; d<ndims; d++) {
+        mpi_start[d] = startp[d];
+        mpi_count[d] = countp[d];
+        mpi_stride[d] = stridep[d];
     }
 
     if (memtype == NC_NAT) {
         status = ncmpi_inq_vartype(nc->int_ncid, varid, &memtype);
-        if (status) return status;
+        if (status != NC_NOERR) return status;
     }
 
     if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
-	switch(memtype) {
-	case NC_BYTE:
-	    status=ncmpi_get_vars_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_CHAR:
-	    status=ncmpi_get_vars_text(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_SHORT:
-	    status=ncmpi_get_vars_short(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_INT:
-	    status=ncmpi_get_vars_int(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_FLOAT:
-	    status=ncmpi_get_vars_float(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_DOUBLE:
-	    status=ncmpi_get_vars_double(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UBYTE:
-	    status=ncmpi_get_vars_uchar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_USHORT:
-	    status=ncmpi_get_vars_ushort(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UINT:
-	    status=ncmpi_get_vars_uint(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_INT64:
-	    status=ncmpi_get_vars_longlong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UINT64:
-	    status=ncmpi_get_vars_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
-      } else {
-	switch(memtype) {
-	case NC_BYTE:
-	    status=ncmpi_get_vars_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_CHAR:
-	    status=ncmpi_get_vars_text_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_SHORT:
-	    status=ncmpi_get_vars_short_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_INT:
-	    status=ncmpi_get_vars_int_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_FLOAT:
-	    status=ncmpi_get_vars_float_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_DOUBLE:
-	    status=ncmpi_get_vars_double_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UBYTE:
-	    status=ncmpi_get_vars_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_USHORT:
-	    status=ncmpi_get_vars_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UINT:
-	    status=ncmpi_get_vars_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_INT64:
-	    status=ncmpi_get_vars_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UINT64:
-	    status=ncmpi_get_vars_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_get_vars_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_CHAR:
+                return ncmpi_get_vars_text(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_SHORT:
+                return ncmpi_get_vars_short(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_INT:
+                return ncmpi_get_vars_int(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_FLOAT:
+                return ncmpi_get_vars_float(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_DOUBLE:
+                return ncmpi_get_vars_double(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UBYTE:
+                return ncmpi_get_vars_uchar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_USHORT:
+                return ncmpi_get_vars_ushort(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UINT:
+                return ncmpi_get_vars_uint(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_INT64:
+                return ncmpi_get_vars_longlong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UINT64:
+                return ncmpi_get_vars_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            default:
+                return NC_EBADTYPE;
+        }
+    } else {
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_get_vars_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_CHAR:
+                return ncmpi_get_vars_text_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_SHORT:
+                return ncmpi_get_vars_short_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_INT:
+                return ncmpi_get_vars_int_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_FLOAT:
+                return ncmpi_get_vars_float_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_DOUBLE:
+                return ncmpi_get_vars_double_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UBYTE:
+                return ncmpi_get_vars_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_USHORT:
+                return ncmpi_get_vars_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UINT:
+                return ncmpi_get_vars_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_INT64:
+                return ncmpi_get_vars_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UINT64:
+                return ncmpi_get_vars_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            default:
+                return NC_EBADTYPE;
+        }
     }
-    return status;
 }
 
 static int
 NCP_put_vars(int ncid,
-	int varid,
-	const size_t* startp,
-	const size_t* countp,
-	const ptrdiff_t* stridep,
-	const void*ip,
-	nc_type memtype)
+             int varid,
+             const size_t *startp,
+             const size_t *countp,
+             const ptrdiff_t *stridep,
+             const void *op,
+             nc_type memtype)
 {
-    NC* nc;
-    NCP_INFO* nc5;
-    int status;
+    NC *nc;
+    NCP_INFO *nc5;
+    int d, ndims, status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS], mpi_stride[NC_MAX_VAR_DIMS];
-    int d;
-    int rank;
+
+    if (stridep == NULL)
+        return NCP_put_vara(ncid, varid, startp, countp, op, memtype);
 
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 
     nc5 = NCP_DATA(nc);
     assert(nc5);
 
-    /* get variable's rank */
-    status = ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
-    if(status) return status;
+    /* get variable's ndims */
+    status = ncmpi_inq_varndims(nc->int_ncid, varid, &ndims);
+    if (status != NC_NOERR) return status;
 
     /* We must convert the start, count, and stride arrays to MPI_Offset type. */
-    for (d = 0; d < rank; d++) {
-	 mpi_start[d] = startp[d];
-	 mpi_count[d] = countp[d];
-	 mpi_stride[d] = stridep[d];
+    for (d=0; d<ndims; d++) {
+        mpi_start[d] = startp[d];
+        mpi_count[d] = countp[d];
+        mpi_stride[d] = stridep[d];
     }
 
     if (memtype == NC_NAT) {
         status = ncmpi_inq_vartype(nc->int_ncid, varid, &memtype);
-        if (status) return status;
+        if (status != NC_NOERR) return status;
     }
 
     if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
-	switch(memtype) {
-	case NC_BYTE:
-	    status = ncmpi_put_vars_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_CHAR:
-	    status = ncmpi_put_vars_text(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_SHORT:
-	    status = ncmpi_put_vars_short(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_INT:
-	    status = ncmpi_put_vars_int(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_FLOAT:
-	    status = ncmpi_put_vars_float(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_DOUBLE:
-	    status = ncmpi_put_vars_double(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UBYTE:
-	    status = ncmpi_put_vars_uchar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_USHORT:
-	    status = ncmpi_put_vars_ushort(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UINT:
-	    status = ncmpi_put_vars_uint(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_INT64:
-	    status = ncmpi_put_vars_longlong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UINT64:
-	    status = ncmpi_put_vars_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
-      } else {
-	switch(memtype) {
-	case NC_BYTE:
-	    status = ncmpi_put_vars_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_CHAR:
-	    status = ncmpi_put_vars_text_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_SHORT:
-	    status = ncmpi_put_vars_short_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_INT:
-	    status = ncmpi_put_vars_int_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_FLOAT:
-	    status = ncmpi_put_vars_float_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_DOUBLE:
-	    status = ncmpi_put_vars_double_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UBYTE:
-	    status = ncmpi_put_vars_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_USHORT:
-	    status = ncmpi_put_vars_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UINT:
-	    status = ncmpi_put_vars_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_INT64:
-	    status = ncmpi_put_vars_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	case NC_UINT64:
-	    status = ncmpi_put_vars_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_put_vars_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_CHAR:
+                return ncmpi_put_vars_text(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_SHORT:
+                return ncmpi_put_vars_short(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_INT:
+                return ncmpi_put_vars_int(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_FLOAT:
+                return ncmpi_put_vars_float(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_DOUBLE:
+                return ncmpi_put_vars_double(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UBYTE:
+                return ncmpi_put_vars_uchar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_USHORT:
+                return ncmpi_put_vars_ushort(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UINT:
+                return ncmpi_put_vars_uint(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_INT64:
+                return ncmpi_put_vars_longlong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UINT64:
+                return ncmpi_put_vars_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            default:
+                return NC_EBADTYPE;
+        }
+    } else {
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_put_vars_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_CHAR:
+                return ncmpi_put_vars_text_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_SHORT:
+                return ncmpi_put_vars_short_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_INT:
+                return ncmpi_put_vars_int_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_FLOAT:
+                return ncmpi_put_vars_float_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_DOUBLE:
+                return ncmpi_put_vars_double_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UBYTE:
+                return ncmpi_put_vars_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_USHORT:
+                return ncmpi_put_vars_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UINT:
+                return ncmpi_put_vars_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_INT64:
+                return ncmpi_put_vars_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            case NC_UINT64:
+                return ncmpi_put_vars_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, op);
+            default:
+                return NC_EBADTYPE;
+        }
     }
-    return status;
 }
 
 static int
 NCP_get_varm(int ncid,
-		int varid,
-		const size_t* startp,
-		const size_t* countp,
-		const ptrdiff_t* stridep,
-		const ptrdiff_t* imapp,
-		void* ip,
-		nc_type memtype)
+             int varid,
+             const size_t *startp,
+             const size_t *countp,
+             const ptrdiff_t *stridep,
+             const ptrdiff_t *imapp,
+             void *ip,
+             nc_type memtype)
 {
-    NC* nc;
-    NCP_INFO* nc5;
-    int status;
+    NC *nc;
+    NCP_INFO *nc5;
+    int d, ndims, status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS], mpi_stride[NC_MAX_VAR_DIMS], mpi_imap[NC_MAX_VAR_DIMS];
-    int d;
-    int rank = 0;
+
+    if (imapp == NULL) {
+        if (stridep == NULL)
+            return NCP_get_vara(ncid, varid, startp, countp, ip, memtype);
+        else
+            return NCP_get_vars(ncid, varid, startp, countp, stridep, ip, memtype);
+    }
 
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 
     nc5 = NCP_DATA(nc);
     assert(nc5);
 
-    /* get variable's rank */
-    status= ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
-    if(status) return status;
+    /* get variable's ndims */
+    status = ncmpi_inq_varndims(nc->int_ncid, varid, &ndims);
+    if (status != NC_NOERR) return status;
 
     /* We must convert the start, count, stride, and imap arrays to MPI_Offset type. */
-    for (d = 0; d < rank; d++) {
-	 mpi_start[d] = startp[d];
-	 mpi_count[d] = countp[d];
-	 mpi_stride[d] = stridep[d];
-	 mpi_imap[d] = imapp[d];
+    for (d=0; d<ndims; d++) {
+        mpi_start[d]  = startp[d];
+        mpi_count[d]  = countp[d];
+        mpi_stride[d] = (stridep == NULL) ? 1 : stridep[d];
+        mpi_imap[d]   = imapp[d];
     }
 
     if (memtype == NC_NAT) {
         status = ncmpi_inq_vartype(nc->int_ncid, varid, &memtype);
-        if (status) return status;
+        if (status != NC_NOERR) return status;
     }
 
     if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
-	switch(memtype) {
-	case NC_BYTE:
-	    status=ncmpi_get_varm_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_CHAR:
-	    status=ncmpi_get_varm_text(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_SHORT:
-	    status=ncmpi_get_varm_short(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_INT:
-	    status=ncmpi_get_varm_int(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_FLOAT:
-	    status=ncmpi_get_varm_float(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_DOUBLE:
-	    status=ncmpi_get_varm_double(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UBYTE:
-	    status=ncmpi_get_varm_uchar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_USHORT:
-	    status=ncmpi_get_varm_ushort(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UINT:
-	    status=ncmpi_get_varm_uint(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_INT64:
-	    status=ncmpi_get_varm_longlong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UINT64:
-	    status=ncmpi_get_varm_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_get_varm_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_CHAR:
+                return ncmpi_get_varm_text(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_SHORT:
+                return ncmpi_get_varm_short(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_INT:
+                return ncmpi_get_varm_int(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_FLOAT:
+                return ncmpi_get_varm_float(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_DOUBLE:
+                return ncmpi_get_varm_double(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_UBYTE:
+                return ncmpi_get_varm_uchar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_USHORT:
+                return ncmpi_get_varm_ushort(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_UINT:
+                return ncmpi_get_varm_uint(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_INT64:
+                return ncmpi_get_varm_longlong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_UINT64:
+                return ncmpi_get_varm_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            default:
+                return NC_EBADTYPE;
+        }
       } else {
-	switch(memtype) {
-	case NC_BYTE:
-	    status=ncmpi_get_varm_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_CHAR:
-	    status=ncmpi_get_varm_text_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_SHORT:
-	    status=ncmpi_get_varm_short_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_INT:
-	    status=ncmpi_get_varm_int_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_FLOAT:
-	    status=ncmpi_get_varm_float_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_DOUBLE:
-	    status=ncmpi_get_varm_double_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UBYTE:
-	    status=ncmpi_get_varm_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_USHORT:
-	    status=ncmpi_get_varm_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UINT:
-	    status=ncmpi_get_varm_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_INT64:
-	    status=ncmpi_get_varm_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UINT64:
-	    status=ncmpi_get_varm_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_get_varm_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_CHAR:
+                return ncmpi_get_varm_text_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_SHORT:
+                return ncmpi_get_varm_short_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_INT:
+                return ncmpi_get_varm_int_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_FLOAT:
+                return ncmpi_get_varm_float_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_DOUBLE:
+                return ncmpi_get_varm_double_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_UBYTE:
+                return ncmpi_get_varm_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_USHORT:
+                return ncmpi_get_varm_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_UINT:
+                return ncmpi_get_varm_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_INT64:
+                return ncmpi_get_varm_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            case NC_UINT64:
+                return ncmpi_get_varm_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip);
+            default:
+                return NC_EBADTYPE;
+        }
     }
-    return status;
 }
 
 static int
 NCP_put_varm(int ncid,
-	int varid,
-	const size_t* startp,
-	const size_t* countp,
-	const ptrdiff_t* stridep,
-	const ptrdiff_t* imapp,
-	const void*ip,
-	nc_type memtype)
+             int varid,
+             const size_t *startp,
+             const size_t *countp,
+             const ptrdiff_t *stridep,
+             const ptrdiff_t *imapp,
+             const void *op,
+             nc_type memtype)
 {
-    NC* nc;
-    NCP_INFO* nc5;
-    int status;
+    NC *nc;
+    NCP_INFO *nc5;
+    int d, ndims, status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS], mpi_stride[NC_MAX_VAR_DIMS], mpi_imap[NC_MAX_VAR_DIMS];
-    int d;
-    int rank;
+
+    if (imapp == NULL) {
+        if (stridep == NULL)
+            return NCP_put_vara(ncid, varid, startp, countp, op, memtype);
+        else
+            return NCP_put_vars(ncid, varid, startp, countp, stridep, op, memtype);
+    }
 
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 
     nc5 = NCP_DATA(nc);
     assert(nc5);
 
-    /* get variable's rank */
-    status = ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
-    if(status) return status;
+    /* get variable's ndims */
+    status = ncmpi_inq_varndims(nc->int_ncid, varid, &ndims);
+    if (status != NC_NOERR) return status;
 
     /* We must convert the start, count, stride, and imap arrays to MPI_Offset type. */
-    for (d = 0; d < rank; d++) {
-	 mpi_start[d] = startp[d];
-	 mpi_count[d] = countp[d];
-	 mpi_stride[d] = stridep[d];
-	 mpi_imap[d] = imapp[d];
+    for (d=0; d<ndims; d++) {
+        mpi_start[d]  = startp[d];
+        mpi_count[d]  = countp[d];
+        mpi_stride[d] = (stridep == NULL) ? 1 : stridep[d];
+        mpi_imap[d]   = imapp[d];
     }
 
     if (memtype == NC_NAT) {
         status = ncmpi_inq_vartype(nc->int_ncid, varid, &memtype);
-        if (status) return status;
+        if (status != NC_NOERR) return status;
     }
 
     if (fIsSet(nc5->pnetcdf_access_mode, NCP_MODE_INDEP)) {
-	switch(memtype) {
-	case NC_BYTE:
-	    status = ncmpi_put_varm_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_CHAR:
-	    status = ncmpi_put_varm_text(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_SHORT:
-	    status = ncmpi_put_varm_short(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_INT:
-	    status = ncmpi_put_varm_int(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_FLOAT:
-	    status = ncmpi_put_varm_float(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_DOUBLE:
-	    status = ncmpi_put_varm_double(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UBYTE:
-	    status = ncmpi_put_varm_uchar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_USHORT:
-	    status = ncmpi_put_varm_ushort(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UINT:
-	    status = ncmpi_put_varm_uint(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_INT64:
-	    status = ncmpi_put_varm_longlong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UINT64:
-	    status = ncmpi_put_varm_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
-      } else {
-	switch(memtype) {
-	case NC_BYTE:
-	    status = ncmpi_put_varm_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_CHAR:
-	    status = ncmpi_put_varm_text_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_SHORT:
-	    status = ncmpi_put_varm_short_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_INT:
-	    status = ncmpi_put_varm_int_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_FLOAT:
-	    status = ncmpi_put_varm_float_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_DOUBLE:
-	    status = ncmpi_put_varm_double_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UBYTE:
-	    status = ncmpi_put_varm_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_USHORT:
-	    status = ncmpi_put_varm_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UINT:
-	    status = ncmpi_put_varm_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_INT64:
-	    status = ncmpi_put_varm_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	case NC_UINT64:
-	    status = ncmpi_put_varm_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, ip); break;
-	default:
-	    status = NC_EBADTYPE;
-	}
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_put_varm_schar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_CHAR:
+                return ncmpi_put_varm_text(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_SHORT:
+                return ncmpi_put_varm_short(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_INT:
+                return ncmpi_put_varm_int(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_FLOAT:
+                return ncmpi_put_varm_float(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_DOUBLE:
+                return ncmpi_put_varm_double(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_UBYTE:
+                return ncmpi_put_varm_uchar(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_USHORT:
+                return ncmpi_put_varm_ushort(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_UINT:
+                return ncmpi_put_varm_uint(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_INT64:
+                return ncmpi_put_varm_longlong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_UINT64:
+                return ncmpi_put_varm_ulonglong(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            default:
+                return NC_EBADTYPE;
+        }
+    } else {
+        switch(memtype) {
+            case NC_BYTE:
+                return ncmpi_put_varm_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_CHAR:
+                return ncmpi_put_varm_text_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_SHORT:
+                return ncmpi_put_varm_short_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_INT:
+                return ncmpi_put_varm_int_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_FLOAT:
+                return ncmpi_put_varm_float_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_DOUBLE:
+                return ncmpi_put_varm_double_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_UBYTE:
+                return ncmpi_put_varm_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_USHORT:
+                return ncmpi_put_varm_ushort_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_UINT:
+                return ncmpi_put_varm_uint_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_INT64:
+                return ncmpi_put_varm_longlong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            case NC_UINT64:
+                return ncmpi_put_varm_ulonglong_all(nc->int_ncid, varid, mpi_start, mpi_count, mpi_stride, mpi_imap, op);
+            default:
+                return NC_EBADTYPE;
+        }
     }
-    return status;
 }
 
 static int
 NCP_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
-               int *ndimsp, int *dimidsp, int *nattsp,
-               int *shufflep, int *deflatep, int *deflate_levelp,
-               int *fletcher32p, int *contiguousp, size_t *chunksizesp,
-               int *no_fill, void *fill_valuep, int *endiannessp,
-	       unsigned int* idp, size_t* nparamsp, unsigned int* params)
+                int *ndimsp, int *dimidsp, int *nattsp,
+                int *shufflep, int *deflatep, int *deflate_levelp,
+                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
+                int *no_fill, void *fill_valuep, int *endiannessp,
+                unsigned int *idp, size_t *nparamsp, unsigned int *params)
 {
     int status;
-    NC* nc;
+    NC *nc;
 
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 
     status = ncmpi_inq_var(nc->int_ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp);
-    if(status) return status;
-    if(shufflep) *shufflep = 0;
-    if(deflatep) *deflatep = 0;
-    if(fletcher32p) *fletcher32p = 0;
-    if(contiguousp) *contiguousp = NC_CONTIGUOUS;
+    if (status != NC_NOERR) return status;
+    if (shufflep) *shufflep = 0;
+    if (deflatep) *deflatep = 0;
+    if (fletcher32p) *fletcher32p = 0;
+    if (contiguousp) *contiguousp = NC_CONTIGUOUS;
 #if (PNETCDF_VERSION_MAJOR*10000 + PNETCDF_VERSION_MINOR*100 + PNETCDF_VERSION_SUB >= 10601)
     /* ncmpi_inq_var_fill was first implemented in PnetCDF 1.6.1 */
-    if(no_fill) ncmpi_inq_var_fill(nc->int_ncid, varid, no_fill, fill_valuep);
+    if (no_fill) {
+        status = ncmpi_inq_var_fill(nc->int_ncid, varid, no_fill, fill_valuep);
+        if (status != NC_NOERR) return status;
+    }
 #else
     /* PnetCDF 1.6.0 and priors support NC_NOFILL only */
-    if(no_fill) *no_fill = 1;
+    if (no_fill) *no_fill = 1;
 #endif
-    if(endiannessp) return NC_ENOTNC4;
-    if(idp) return NC_ENOTNC4;
-    if(nparamsp) return NC_ENOTNC4;
-    if(params) return NC_ENOTNC4;
+    if (endiannessp) return NC_ENOTNC4;
+    if (idp) return NC_ENOTNC4;
+    if (nparamsp) return NC_ENOTNC4;
+    if (params) return NC_ENOTNC4;
     return NC_NOERR;
 }
 
 static int
 NCP_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
-    NC* nc;
+    NC *nc;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 #if (PNETCDF_VERSION_MAJOR*10000 + PNETCDF_VERSION_MINOR*100 + PNETCDF_VERSION_SUB >= 10601)
     /* ncmpi_def_var_fill was first implemented in PnetCDF 1.6.1 */
     return ncmpi_def_var_fill(nc->int_ncid, varid, no_fill, fill_value);
@@ -1170,19 +1158,19 @@ static int
 NCP_var_par_access(int ncid, int varid, int par_access)
 {
     NC *nc;
-    NCP_INFO* nc5;
+    NCP_INFO *nc5;
     int status;
 
     if (par_access != NC_INDEPENDENT && par_access != NC_COLLECTIVE)
-	return NC_EINVAL;
+        return NC_EINVAL;
 
 #ifdef _DO_NOT_IGNORE_VARID_
-    if (varid != NC_GLOBAL) /* PnetCDF cannot do per-veriable mode change */
+    if (varid != NC_GLOBAL) /* PnetCDF cannot do per-variable mode change */
         return NC_EINVAL;
 #endif
 
     status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
+    if (status != NC_NOERR) return status;
 
     nc5 = NCP_DATA(nc);
     assert(nc5);
@@ -1229,22 +1217,26 @@ NCP_inq_unlimdims(int ncid, int *ndimsp, int *unlimdimidsp)
     int retval;
     int unlimid;
 
-    if((retval = NCP_inq_unlimdim(ncid, &unlimid)))
+    if ((retval = NCP_inq_unlimdim(ncid, &unlimid)))
         return retval;
-    if(unlimid != -1) {
-        if(ndimsp) *ndimsp = 1;
-        if(unlimdimidsp)
+    if (unlimid != -1) {
+        if (ndimsp) *ndimsp = 1;
+        if (unlimdimidsp)
             unlimdimidsp[0] = unlimid;
     } else
-        if(ndimsp) *ndimsp = 0;
+        if (ndimsp) *ndimsp = 0;
     return NC_NOERR;
 }
 
 static int
-NCP_inq_type_equal(int ncid1, nc_type typeid1, int ncid2, nc_type typeid2, int* equalp)
+NCP_inq_type_equal(int ncid1,
+                   nc_type typeid1,
+                   int ncid2,
+                   nc_type typeid2,
+                   int *equalp)
 {
     /* Check input. */
-    if(equalp == NULL) return NC_NOERR;
+    if (equalp == NULL) return NC_NOERR;
 
     if (typeid1 <= NC_NAT || typeid2 <= NC_NAT)
        return NC_EINVAL;
@@ -1286,14 +1278,14 @@ NCP_rename_grp(int ncid, const char *name)
 static int
 NCP_inq_ncid(int ncid, const char *name, int *grp_ncid)
 {
-    if(grp_ncid) *grp_ncid = ncid;
+    if (grp_ncid) *grp_ncid = ncid;
     return NC_NOERR;
 }
 
 static int
 NCP_inq_grps(int ncid, int *numgrps, int *ncids)
 {
-    if(numgrps)
+    if (numgrps)
        *numgrps = 0;
     return NC_NOERR;
 }
@@ -1301,7 +1293,7 @@ NCP_inq_grps(int ncid, int *numgrps, int *ncids)
 static int
 NCP_inq_grpname(int ncid, char *name)
 {
-    if(name)
+    if (name)
         strcpy(name, "/");
     return NC_NOERR;
 }
@@ -1309,9 +1301,9 @@ NCP_inq_grpname(int ncid, char *name)
 static int
 NCP_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
 {
-    if(full_name)
+    if (full_name)
         strcpy(full_name, "/");
-    if(lenp) *lenp = 1;
+    if (lenp) *lenp = 1;
     return NC_NOERR;
 }
 
@@ -1333,12 +1325,13 @@ NCP_inq_varids(int ncid, int *nvarsp, int *varids)
     int retval,v,nvars;
     /* This is, effectively, a netcdf-3 file, there is only one group, the root
         group, and its vars have ids 0 thru nvars - 1. */
-    if((retval = NCP_inq(ncid, NULL, &nvars, NULL, NULL)))
+    if ((retval = NCP_inq(ncid, NULL, &nvars, NULL, NULL)))
         return retval;
-    if(nvarsp) *nvarsp = nvars;
-    if(varids)
-        for (v = 0; v < nvars; v++)
+    if (nvarsp) *nvarsp = nvars;
+    if (varids) {
+        for (v=0; v<nvars; v++)
             varids[v] = v;
+    }
     return NC_NOERR;
 }
 
@@ -1348,12 +1341,13 @@ NCP_inq_dimids(int ncid, int *ndimsp, int *dimids, int include_parents)
     int retval,d,ndims;
     /* If this is like a netcdf-3 file, then the dimids are going to be 0
        thru ndims-1, so just provide them. */
-    if((retval = NCP_inq(ncid, &ndims,  NULL, NULL, NULL)))
+    if ((retval = NCP_inq(ncid, &ndims,  NULL, NULL, NULL)))
         return retval;
-    if(ndimsp) *ndimsp = ndims;
-    if(dimids)
-        for (d = 0; d < ndims; d++)
+    if (ndimsp) *ndimsp = ndims;
+    if (dimids) {
+        for (d=0; d<ndims; d++)
             dimids[d] = d;
+    }
     return NC_NOERR;
 }
 
@@ -1361,9 +1355,9 @@ static int
 NCP_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 {
     int i;
-    for (i = 0; i <= ATOMICTYPEMAX5; i++)
-        if(!strcmp(name, NC_atomictypename(i))) {
-            if(typeidp) *typeidp = i;
+    for (i=0; i<=ATOMICTYPEMAX5; i++)
+        if (!strcmp(name, NC_atomictypename(i))) {
+            if (typeidp) *typeidp = i;
                 return NC_NOERR;
         }
     return NC_ENOTNC4;
@@ -1372,13 +1366,13 @@ NCP_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 static int
 NCP_inq_typeids(int ncid, int *ntypes, int *typeids)
 {
-    if(ntypes) *ntypes = 0;
+    if (ntypes) *ntypes = 0;
     return NC_NOERR;
 }
 
 static int
 NCP_inq_user_type(int ncid, nc_type typeid, char *name, size_t *size,
-		 nc_type *base_nc_typep, size_t *nfieldsp, int *classp)
+                  nc_type *base_nc_typep, size_t *nfieldsp, int *classp)
 {
     return NC_ENOTNC4;
 }
@@ -1481,7 +1475,7 @@ NC_NOTNC4_get_var_chunk_cache,
 
 };
 
-NC_Dispatch* NCP_dispatch_table = NULL; /* moved here from ddispatch.c */
+NC_Dispatch *NCP_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 int
 NCP_initialize(void)
