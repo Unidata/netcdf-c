@@ -70,11 +70,6 @@ nc_initialize()
     NC_initialized = 1;
     NC_finalized = 0;
 
-#ifdef _MSC_VER
-    /* Force binary mode */
-    _set_fmode(_O_BINARY);
-#endif
-
     /* Do general initialization */
     if((stat = NCDISPATCH_initialize())) goto done;
 
