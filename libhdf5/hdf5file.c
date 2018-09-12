@@ -255,7 +255,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
  *
  * @author Dennis Heimbigner
  */
-void
+static void
 dumpopenobjects(NC_FILE_INFO_T* h5)
 {
    NC_HDF5_FILE_INFO_T *hdf5_info;
