@@ -1044,7 +1044,7 @@ NC3_create(const char *path, int ioflags,
 		int use_parallel, void* parameters,
                 NC_Dispatch* dispatch, NC* nc)
 {
-	int status;
+	int status = NC_NOERR;
 	void *xp = NULL;
 	int sizeof_off_t = 0;
 	NC3_INFO* nc3 = NULL;
@@ -1071,12 +1071,6 @@ NC3_create(const char *path, int ioflags,
 #endif
 
 	assert(nc3->flags == 0);
-
-	/* Apply default create format. */
-	if (nc_get_default_format() == NC_FORMAT_64BIT_OFFSET)
-	  ioflags |= NC_64BIT_OFFSET;
-	else if (nc_get_default_format() == NC_FORMAT_CDF5)
-	  ioflags |= NC_64BIT_DATA;
 
 	/* Now we can set min size */
 	if (fIsSet(ioflags, NC_64BIT_DATA))

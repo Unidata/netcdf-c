@@ -149,7 +149,8 @@ nc_inq_ncid().
 @param ndims Number of dimensions for the variable. For example, 2
 specifies a matrix, 1 specifies a vector, and 0 means the variable is
 a scalar with no dimensions. Must not be negative or greater than the
-predefined constant ::NC_MAX_VAR_DIMS.
+predefined constant ::NC_MAX_VAR_DIMS. In netCDF-4/HDF5 files, may not
+exceed the HDF5 maximum number of dimensions (32).
 
 @param dimidsp Vector of ndims dimension IDs corresponding to the
 variable dimensions. For classic model netCDF files, if the ID of the
@@ -624,6 +625,71 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
     if (varid == NC_GLOBAL) return NC_EGLOBAL;
 
     return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
+}
+
+/**
+ * @internal Check the start, count, and stride parameters for gets
+ * and puts, and handle NULLs.
+ *
+ * @param ncid The file ID.
+ * @param varid The variable ID.
+ * @param start Pointer to start array. If NULL NC_EINVALCOORDS will
+ * be returned for non-scalar variable.
+ * @param count Pointer to pointer to count array. If *count is NULL,
+ * an array of the correct size will be allocated, and filled with
+ * counts that represent the full extent of the variable. In this
+ * case, the memory must be freed by the caller.
+ * @param stride Pointer to pointer to stride array. If NULL, stide is
+ * ignored. If *stride is NULL an array of the correct size will be
+ * allocated, and filled with ones. In this case, the memory must be
+ * freed by the caller.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Variable not found.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EINVALCOORDS Missing start array.
+ * @author Ed Hartnett
+ */
+int
+NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
+               ptrdiff_t **stride)
+{
+   int varndims;
+   int stat;
+
+   if ((stat = nc_inq_varndims(ncid, varid, &varndims)))
+      return stat;
+
+   /* For non-scalar vars, start is required. */
+   if (!start && varndims)
+      return NC_EINVALCOORDS;
+
+   /* If count is NULL, assume full extent of var. */
+   if (!*count)
+   {
+      if (!(*count = malloc(varndims * sizeof(size_t))))
+         return NC_ENOMEM;
+      if ((stat = NC_getshape(ncid, varid, varndims, *count)))
+      {
+         free(*count);
+         *count = NULL;
+         return stat;
+      }
+   }
+
+   /* If stride is NULL, do nothing, if *stride is NULL use all 1s. */
+   if (stride && !*stride)
+   {
+      int i;
+
+      if (!(*stride = malloc(varndims * sizeof(size_t))))
+         return NC_ENOMEM;
+      for (i = 0; i < varndims; i++)
+         *stride[i] = 1;
+   }
+
+   return NC_NOERR;
 }
 
 #ifdef USE_NETCDF4

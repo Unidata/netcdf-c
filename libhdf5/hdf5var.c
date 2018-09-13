@@ -217,7 +217,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @param ncid File ID.
  * @param name Name.
  * @param xtype Type.
- * @param ndims Number of dims.
+ * @param ndims Number of dims. HDF5 has maximim of 32.
  * @param dimidsp Array of dim IDs.
  * @param varidp Gets the var ID.
  *
@@ -258,6 +258,10 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       BAIL(retval);
    assert(grp && h5);
+
+   /* HDF5 allows maximum of 32 dimensions. */
+   if (ndims > H5S_MAX_RANK)
+      BAIL(NC_EMAXDIMS);
 
    /* If it's not in define mode, strict nc3 files error out,
     * otherwise switch to define mode. This will also check that the
@@ -1142,18 +1146,12 @@ int
 NC4_put_vara(int ncid, int varid, const size_t *startp,
              const size_t *countp, const void *op, int memtype)
 {
-   NC *nc;
-
-   if (!(nc = nc4_find_nc_file(ncid, NULL)))
-      return NC_EBADID;
-
-   return nc4_put_vars(nc, ncid, varid, startp, countp, NULL, memtype,
-                       (void *)op);
+   return NC4_put_vars(ncid, varid, startp, countp, NULL, op, memtype);
 }
 
 /**
- * Read an array of values. This is called by nc_get_vara() for
- * netCDF-4 files, as well as all the other nc_get_vara_*
+ * @internal Read an array of values. This is called by nc_get_vara()
+ * for netCDF-4 files, as well as all the other nc_get_vara_*
  * functions.
  *
  * @param ncid File ID.
@@ -1170,81 +1168,808 @@ int
 NC4_get_vara(int ncid, int varid, const size_t *startp,
              const size_t *countp, void *ip, int memtype)
 {
-   NC *nc;
-   NC_FILE_INFO_T* h5;
-
-   LOG((2, "%s: ncid 0x%x varid %d memtype %d", __func__, ncid, varid,
-        memtype));
-
-   if (!(nc = nc4_find_nc_file(ncid, &h5)))
-      return NC_EBADID;
-
-   /* Get the data. */
-   return nc4_get_vars(nc, ncid, varid, startp, countp, NULL, memtype,
-                       (void *)ip);
+   return NC4_get_vars(ncid, varid, startp, countp, NULL, ip, memtype);
 }
 
 /**
- * @internal Write an array of data to a variable. This is called by
- * nc_put_vars() and other nc_put_vars_* functions, for netCDF-4
- * files.
+ * @internal Do some common check for NC4_put_vars and
+ * NC4_get_vars. These checks have to be done when both reading and
+ * writing data.
  *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param startp Array of start indices.
- * @param countp Array of counts.
- * @param stridep Array of strides.
- * @param op pointer that gets the data.
- * @param memtype The type of these data in memory.
+ * @param mem_nc_type Pointer to type of data in memory.
+ * @param var Pointer to var info struct.
+ * @param h5 Pointer to HDF5 file info struct.
  *
- * @returns ::NC_NOERR for success
- * @author Dennis Heimbigner
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
  */
-int
-NC4_put_vars(int ncid, int varid, const size_t *startp,
-             const size_t *countp, const ptrdiff_t* stridep,
-             const void *op, int memtype)
+static int
+check_for_vara(nc_type *mem_nc_type, NC_VAR_INFO_T *var, NC_FILE_INFO_T *h5)
 {
-   NC *nc;
+   int retval;
 
-   if (!(nc = nc4_find_nc_file(ncid, NULL)))
-      return NC_EBADID;
+   /* If mem_nc_type is NC_NAT, it means we want to use the file type
+    * as the mem type as well. */
+   assert(mem_nc_type);
+   if (*mem_nc_type == NC_NAT)
+      *mem_nc_type = var->type_info->hdr.id;
+   assert(*mem_nc_type);
 
-   return nc4_put_vars(nc, ncid, varid, startp, countp, stridep, memtype,
-                       (void *)op);
+   /* No NC_CHAR conversions, you pervert! */
+   if (var->type_info->hdr.id != *mem_nc_type &&
+       (var->type_info->hdr.id == NC_CHAR || *mem_nc_type == NC_CHAR))
+      return NC_ECHAR;
+
+   /* If we're in define mode, we can't read or write data. */
+   if (h5->flags & NC_INDEF)
+   {
+      if (h5->cmode & NC_CLASSIC_MODEL)
+         return NC_EINDEFINE;
+      if ((retval = nc4_enddef_netcdf4_file(h5)))
+         return retval;
+   }
+
+   return NC_NOERR;
 }
 
+#ifdef LOGGING
 /**
- * Read an array of values. This is called by nc_get_vars() for
- * netCDF-4 files, as well as all the other nc_get_vars_*
- * functions.
+ * @intarnal Print some debug info about dimensions to the log.
+ */
+static void
+log_dim_info(NC_VAR_INFO_T *var, hsize_t *fdims, hsize_t *fmaxdims,
+             hsize_t *start, hsize_t *count)
+{
+   int d2;
+
+   /* Print some debugging info... */
+   LOG((4, "%s: var name %s ndims %d", __func__, var->hdr.name, var->ndims));
+   LOG((4, "File space, and requested:"));
+   for (d2 = 0; d2 < var->ndims; d2++)
+   {
+      LOG((4, "fdims[%d]=%Ld fmaxdims[%d]=%Ld", d2, fdims[d2], d2,
+           fmaxdims[d2]));
+      LOG((4, "start[%d]=%Ld  count[%d]=%Ld", d2, start[d2], d2, count[d2]));
+   }
+}
+#endif /* LOGGING */
+
+#ifdef USE_PARALLEL4
+/**
+ * @internal Set the parallel access for a var (collective
+ * vs. independent).
+ *
+ * @param h5 Pointer to HDF5 file info struct.
+ * @param var Pointer to var info struct.
+ * @param xfer_plistid H5FD_MPIO_COLLECTIVE or H5FD_MPIO_INDEPENDENT.
+ *
+ * @returns NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+static int
+set_par_access(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
+{
+   /* If netcdf is built with parallel I/O, then parallel access can
+    * be used, and, if this file was opened or created for parallel
+    * access, we need to set the transfer mode. */
+   if (h5->parallel)
+   {
+      H5FD_mpio_xfer_t hdf5_xfer_mode;
+
+      /* Decide on collective or independent. */
+      hdf5_xfer_mode = (var->parallel_access != NC_INDEPENDENT) ?
+         H5FD_MPIO_COLLECTIVE : H5FD_MPIO_INDEPENDENT;
+
+      /* Set the mode in the transfer property list. */
+      if (H5Pset_dxpl_mpio(xfer_plistid, hdf5_xfer_mode) < 0)
+         return NC_EPARINIT;
+
+      LOG((4, "%s: %d H5FD_MPIO_COLLECTIVE: %d H5FD_MPIO_INDEPENDENT: %d",
+           __func__, (int)hdf5_xfer_mode, H5FD_MPIO_COLLECTIVE, H5FD_MPIO_INDEPENDENT));
+   }
+   return NC_NOERR;
+}
+#endif
+
+/**
+ * @internal Write a strided array of data to a variable. This is
+ * called by nc_put_vars() and other nc_put_vars_* functions, for
+ * netCDF-4 files. Also the nc_put_vara() calls end up calling this
+ * with a NULL stride parameter.
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param startp Array of start indices.
- * @param countp Array of counts.
- * @param stridep Array of strides.
- * @param ip pointer that gets the data.
- * @param memtype The type of these data after it is read into memory.
-
- * @returns ::NC_NOERR for success
- * @author Dennis Heimbigner
+ * @param startp Array of start indices. Must always be provided by
+ * caller for non-scalar vars.
+ * @param countp Array of counts. Will default to counts of full
+ * dimension size if NULL.
+ * @param stridep Array of strides. Will default to strides of 1 if
+ * NULL.
+ * @param data The data to be written.
+ * @param mem_nc_type The type of the data in memory.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Var not found.
+ * @returns ::NC_EHDFERR HDF5 function returned error.
+ * @returns ::NC_EINVALCOORDS Incorrect start.
+ * @returns ::NC_EEDGE Incorrect start/count.
+ * @returns ::NC_ENOMEM Out of memory.
+ * @returns ::NC_EMPI MPI library error (parallel only)
+ * @returns ::NC_ECANTEXTEND Can't extend dimension for write.
+ * @returns ::NC_ERANGE Data conversion error.
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-NC4_get_vars(int ncid, int varid, const size_t *startp,
-             const size_t *countp, const ptrdiff_t *stridep,
-             void *ip, int memtype)
+NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
+             const ptrdiff_t *stridep, const void *data, nc_type mem_nc_type)
 {
-   NC *nc;
+   NC_GRP_INFO_T *grp;
    NC_FILE_INFO_T *h5;
+   NC_VAR_INFO_T *var;
+   NC_DIM_INFO_T *dim;
+   hid_t file_spaceid = 0, mem_spaceid = 0, xfer_plistid = 0;
+   long long unsigned xtend_size[NC_MAX_VAR_DIMS];
+   hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
+   hsize_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
+   hsize_t stride[NC_MAX_VAR_DIMS];
+   int need_to_extend = 0;
+#ifdef USE_PARALLEL4
+   int extend_possible = 0;
+#endif
+   int retval, range_error = 0, i, d2;
+   void *bufr = NULL;
+   int need_to_convert = 0;
+   int zero_count = 0; /* true if a count is zero */
+   size_t len = 1;
 
-   LOG((2, "%s: ncid 0x%x varid %d memtype %d", __func__, ncid, varid,
-        memtype));
+   /* Find info for this file, group, and var. */
+   if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
+      return retval;
+   assert(h5 && grp && var && var->hdr.id == varid);
 
-   if (!(nc = nc4_find_nc_file(ncid, &h5)))
-      return NC_EBADID;
+   /* Cannot convert to user-defined types. */
+   if (mem_nc_type >= NC_FIRSTUSERTYPEID)
+      mem_nc_type = NC_NAT;
 
-   /* Get the data. */
-   return nc4_get_vars(nc, ncid, varid, startp, countp, stridep, memtype,
-                       (void *)ip);
+   LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
+        var->hdr.name, mem_nc_type));
+
+   /* Check some stuff about the type and the file. If the file must
+    * be switched from define mode, it happens here. */
+   if ((retval = check_for_vara(&mem_nc_type, var, h5)))
+      return retval;
+   assert(var->hdf_datasetid && (!var->ndims || (startp && countp)));
+
+   /* Convert from size_t and ptrdiff_t to hssize_t, and hsize_t. */
+   /* Also do sanity checks */
+   for (i = 0; i < var->ndims; i++)
+   {
+      /* Check for non-positive stride. */
+      if (stridep && stridep[i] <= 0)
+         return NC_ESTRIDE;
+
+      start[i] = startp[i];
+      count[i] = countp ? countp[i] : var->dim[i]->len;
+      stride[i] = stridep ? stridep[i] : 1;
+
+      /* Check to see if any counts are zero. */
+      if (!count[i])
+         zero_count++;
+   }
+
+   /* Get file space of data. */
+   if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Get the sizes of all the dims and put them in fdims. */
+   if (H5Sget_simple_extent_dims(file_spaceid, fdims, fmaxdims) < 0)
+      BAIL(NC_EHDFERR);
+
+#ifdef LOGGING
+   log_dim_info(var, fdims, fmaxdims, start, count);
+#endif
+
+   /* Check dimension bounds. Remember that unlimited dimensions can
+    * put data beyond their current length. */
+   for (d2 = 0; d2 < var->ndims; d2++)
+   {
+      hsize_t endindex = start[d2] + stride[d2] * (count[d2] - 1); /* last index written */
+      dim = var->dim[d2];
+      assert(dim && dim->hdr.id == var->dimids[d2]);
+      if (count[d2] == 0)
+         endindex = start[d2]; /* fixup for zero read count */
+      if (!dim->unlimited)
+      {
+#ifdef RELAX_COORD_BOUND
+         /* Allow start to equal dim size if count is zero. */
+         if (start[d2] > (hssize_t)fdims[d2] ||
+             (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
+            BAIL_QUIET(NC_EINVALCOORDS);
+         if (!zero_count && endindex >= fdims[d2])
+            BAIL_QUIET(NC_EEDGE);
+#else
+         if (start[d2] >= (hssize_t)fdims[d2])
+            BAIL_QUIET(NC_EINVALCOORDS);
+         if (endindex >= fdims[d2])
+            BAIL_QUIET(NC_EEDGE);
+#endif
+      }
+   }
+
+   /* Now you would think that no one would be crazy enough to write
+      a scalar dataspace with one of the array function calls, but you
+      would be wrong. So let's check to see if the dataset is
+      scalar. If it is, we won't try to set up a hyperslab. */
+   if (H5Sget_simple_extent_type(file_spaceid) == H5S_SCALAR)
+   {
+      if ((mem_spaceid = H5Screate(H5S_SCALAR)) < 0)
+         BAIL(NC_EHDFERR);
+   }
+   else
+   {
+      if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, start, stride,
+                              count, NULL) < 0)
+         BAIL(NC_EHDFERR);
+
+      /* Create a space for the memory, just big enough to hold the slab
+         we want. */
+      if ((mem_spaceid = H5Screate_simple(var->ndims, count, NULL)) < 0)
+         BAIL(NC_EHDFERR);
+   }
+
+   /* Are we going to convert any data? (No converting of compound or
+    * opaque types.) */
+   if (mem_nc_type != var->type_info->hdr.id &&
+       mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
+   {
+      size_t file_type_size;
+
+      /* We must convert - allocate a buffer. */
+      need_to_convert++;
+      if (var->ndims)
+         for (d2=0; d2<var->ndims; d2++)
+            len *= countp[d2];
+      LOG((4, "converting data for var %s type=%d len=%d", var->hdr.name,
+           var->type_info->hdr.id, len));
+
+      /* Later on, we will need to know the size of this type in the
+       * file. */
+      assert(var->type_info->size);
+      file_type_size = var->type_info->size;
+
+      /* If we're reading, we need bufr to have enough memory to store
+       * the data in the file. If we're writing, we need bufr to be
+       * big enough to hold all the data in the file's type. */
+      if (len > 0)
+         if (!(bufr = malloc(len * file_type_size)))
+            BAIL(NC_ENOMEM);
+   }
+   else
+      bufr = (void *)data;
+
+   /* Create the data transfer property list. */
+   if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
+      BAIL(NC_EHDFERR);
+
+#ifdef USE_PARALLEL4
+   /* Set up parallel I/O, if needed. */
+   if ((retval = set_par_access(h5, var, xfer_plistid)))
+      BAIL(retval);
+#endif
+
+   /* Read this hyperslab from  memory. */
+   /* Does the dataset have to be extended? If it's already
+      extended to the required size, it will do no harm to reextend
+      it to that size. */
+   if (var->ndims)
+   {
+      for (d2 = 0; d2 < var->ndims; d2++)
+      {
+         hsize_t endindex = start[d2] + stride[d2] * (count[d2] - 1); /* last index written */
+         if (count[d2] == 0)
+            endindex = start[d2];
+         dim = var->dim[d2];
+         assert(dim && dim->hdr.id == var->dimids[d2]);
+         if (dim->unlimited)
+         {
+#ifdef USE_PARALLEL4
+            extend_possible = 1;
+#endif
+            if (!zero_count && endindex >= fdims[d2])
+            {
+               xtend_size[d2] = (long long unsigned)(endindex+1);
+               need_to_extend++;
+            }
+            else
+               xtend_size[d2] = (long long unsigned)fdims[d2];
+
+            if (!zero_count && endindex >= dim->len)
+            {
+               dim->len = endindex+1;
+               dim->extended = NC_TRUE;
+            }
+         }
+         else
+         {
+            xtend_size[d2] = (long long unsigned)dim->len;
+         }
+      }
+
+#ifdef USE_PARALLEL4
+      /* Check if anyone wants to extend */
+      if (extend_possible && h5->parallel &&
+          NC_COLLECTIVE == var->parallel_access)
+      {
+         /* Form consensus opinion among all processes about whether to perform
+          * collective I/O
+          */
+         if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &need_to_extend, 1,
+                                          MPI_INT, MPI_BOR, h5->comm))
+            BAIL(NC_EMPI);
+      }
+#endif /* USE_PARALLEL4 */
+
+      /* If we need to extend it, we also need a new file_spaceid
+         to reflect the new size of the space. */
+      if (need_to_extend)
+      {
+         LOG((4, "extending dataset"));
+#ifdef USE_PARALLEL4
+         if (h5->parallel)
+         {
+            if (NC_COLLECTIVE != var->parallel_access)
+               BAIL(NC_ECANTEXTEND);
+
+            /* Reach consensus about dimension sizes to extend to */
+            if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, xtend_size, var->ndims,
+                                             MPI_UNSIGNED_LONG_LONG, MPI_MAX,
+                                             h5->comm))
+               BAIL(NC_EMPI);
+         }
+#endif /* USE_PARALLEL4 */
+         /* Convert xtend_size back to hsize_t for use with H5Dset_extent */
+         for (d2 = 0; d2 < var->ndims; d2++)
+            fdims[d2] = (hsize_t)xtend_size[d2];
+
+         if (H5Dset_extent(var->hdf_datasetid, fdims) < 0)
+            BAIL(NC_EHDFERR);
+         if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
+            BAIL2(NC_EHDFERR);
+         if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+            BAIL(NC_EHDFERR);
+         if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
+                                 start, stride, count, NULL) < 0)
+            BAIL(NC_EHDFERR);
+      }
+   }
+
+   /* Do we need to convert the data? */
+   if (need_to_convert)
+   {
+      if ((retval = nc4_convert_type(data, bufr, mem_nc_type, var->type_info->hdr.id,
+                                     len, &range_error, var->fill_value,
+                                     (h5->cmode & NC_CLASSIC_MODEL))))
+         BAIL(retval);
+   }
+
+   /* Write the data. At last! */
+   LOG((4, "about to H5Dwrite datasetid 0x%x mem_spaceid 0x%x "
+        "file_spaceid 0x%x", var->hdf_datasetid, mem_spaceid, file_spaceid));
+   if (H5Dwrite(var->hdf_datasetid, var->type_info->hdf_typeid,
+                mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Remember that we have written to this var so that Fill Value
+    * can't be set for it. */
+   if (!var->written_to)
+      var->written_to = NC_TRUE;
+
+   /* For strict netcdf-3 rules, ignore erange errors between UBYTE
+    * and BYTE types. */
+   if ((h5->cmode & NC_CLASSIC_MODEL) &&
+       (var->type_info->hdr.id == NC_UBYTE || var->type_info->hdr.id == NC_BYTE) &&
+       (mem_nc_type == NC_UBYTE || mem_nc_type == NC_BYTE) &&
+       range_error)
+      range_error = 0;
+
+exit:
+   if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (mem_spaceid > 0 && H5Sclose(mem_spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (xfer_plistid && (H5Pclose(xfer_plistid) < 0))
+      BAIL2(NC_EPARINIT);
+   if (need_to_convert && bufr) free(bufr);
+
+   /* If there was an error return it, otherwise return any potential
+      range error value. If none, return NC_NOERR as usual.*/
+   if (retval)
+      return retval;
+   if (range_error)
+      return NC_ERANGE;
+   return NC_NOERR;
+}
+
+/**
+ * @internal Read a strided array of data from a variable. This is
+ * called by nc_get_vars() for netCDF-4 files, as well as all the
+ * other nc_get_vars_* functions.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param startp Array of start indices. Must be provided for
+ * non-scalar vars.
+ * @param countp Array of counts. Will default to counts of extent of
+ * dimension if NULL.
+ * @param stridep Array of strides. Will default to strides of 1 if
+ * NULL.
+ * @param data The data to be written.
+ * @param mem_nc_type The type of the data in memory. (Convert to this
+ * type from file type.)
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Var not found.
+ * @returns ::NC_EHDFERR HDF5 function returned error.
+ * @returns ::NC_EINVALCOORDS Incorrect start.
+ * @returns ::NC_EEDGE Incorrect start/count.
+ * @returns ::NC_ENOMEM Out of memory.
+ * @returns ::NC_EMPI MPI library error (parallel only)
+ * @returns ::NC_ECANTEXTEND Can't extend dimension for write.
+ * @returns ::NC_ERANGE Data conversion error.
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
+int
+NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
+             const ptrdiff_t *stridep, void *data, nc_type mem_nc_type)
+{
+   NC_GRP_INFO_T *grp;
+   NC_FILE_INFO_T *h5;
+   NC_VAR_INFO_T *var;
+   NC_DIM_INFO_T *dim;
+   hid_t file_spaceid = 0, mem_spaceid = 0;
+   hid_t xfer_plistid = 0;
+   size_t file_type_size;
+   hsize_t count[NC_MAX_VAR_DIMS];
+   hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
+   hsize_t start[NC_MAX_VAR_DIMS];
+   hsize_t stride[NC_MAX_VAR_DIMS];
+   void *fillvalue = NULL;
+   int no_read = 0, provide_fill = 0;
+   int fill_value_size[NC_MAX_VAR_DIMS];
+   int scalar = 0, retval, range_error = 0, i, d2;
+   void *bufr = NULL;
+   int need_to_convert = 0;
+   size_t len = 1;
+
+   /* Find info for this file, group, and var. */
+   if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
+      return retval;
+   assert(h5 && grp && var && var->hdr.id == varid);
+
+   LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
+        var->hdr.name, mem_nc_type));
+
+   /* Check some stuff about the type and the file. Also end define
+    * mode, if needed. */
+   if ((retval = check_for_vara(&mem_nc_type, var, h5)))
+      return retval;
+   assert(var->hdf_datasetid && (!var->ndims || (startp && countp)));
+
+   /* Convert from size_t and ptrdiff_t to hsize_t. Also do sanity
+    * checks. */
+   for (i = 0; i < var->ndims; i++)
+   {
+      /* If any of the stride values are non-positive, fail. */
+      if (stridep && stridep[i] <= 0)
+         return NC_ESTRIDE;
+
+      start[i] = startp[i];
+      count[i] = countp[i];
+      stride[i] = stridep ? stridep[i] : 1;
+
+      /* if any of the count values are zero don't actually read. */
+      if (count[i] == 0)
+         no_read++;
+   }
+
+   /* Get file space of data. */
+   if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Check to ensure the user selection is
+    * valid. H5Sget_simple_extent_dims gets the sizes of all the dims
+    * and put them in fdims. */
+   if (H5Sget_simple_extent_dims(file_spaceid, fdims, fmaxdims) < 0)
+      BAIL(NC_EHDFERR);
+
+#ifdef LOGGING
+   log_dim_info(var, fdims, fmaxdims, start, count);
+#endif
+
+   /* Check dimension bounds. Remember that unlimited dimensions can
+    * put data beyond their current length. */
+   for (d2 = 0; d2 < var->ndims; d2++)
+   {
+      hsize_t endindex = start[d2] + stride[d2] * (count[d2] - 1); /* last index read */
+      dim = var->dim[d2];
+      assert(dim && dim->hdr.id == var->dimids[d2]);
+      if (count[d2] == 0)
+         endindex = start[d2]; /* fixup for zero read count */
+      if (dim->unlimited)
+      {
+         size_t ulen;
+
+         /* We can't go beyond the largest current extent of
+            the unlimited dim. */
+         if ((retval = NC4_inq_dim(ncid, dim->hdr.id, NULL, &ulen)))
+            BAIL(retval);
+
+         /* Check for out of bound requests. */
+#ifdef RELAX_COORD_BOUND
+         /* Allow start to equal dim size if count is zero. */
+         if (start[d2] > (hssize_t)ulen ||
+             (start[d2] == (hssize_t)ulen && count[d2] > 0))
+            BAIL_QUIET(NC_EINVALCOORDS);
+#else
+         if (start[d2] >= (hssize_t)ulen && ulen > 0)
+            BAIL_QUIET(NC_EINVALCOORDS);
+#endif
+         if (count[d2] && endindex >= ulen)
+            BAIL_QUIET(NC_EEDGE);
+
+         /* Things get a little tricky here. If we're getting
+            a GET request beyond the end of this var's
+            current length in an unlimited dimension, we'll
+            later need to return the fill value for the
+            variable. */
+         if (start[d2] >= (hssize_t)fdims[d2])
+            fill_value_size[d2] = count[d2];
+         else if (endindex >= fdims[d2])
+            fill_value_size[d2] = count[d2] - ((fdims[d2] - start[d2])/stride[d2]);
+         else
+            fill_value_size[d2] = 0;
+         count[d2] -= fill_value_size[d2];
+         if (fill_value_size[d2])
+            provide_fill++;
+      }
+      else /* Dim is not unlimited. */
+      {
+         /* Check for out of bound requests. */
+#ifdef RELAX_COORD_BOUND
+         /* Allow start to equal dim size if count is zero. */
+         if (start[d2] > (hssize_t)fdims[d2] ||
+             (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
+            BAIL_QUIET(NC_EINVALCOORDS);
+#else
+         if (start[d2] >= (hssize_t)fdims[d2])
+            BAIL_QUIET(NC_EINVALCOORDS);
+#endif
+         if (count[d2] && endindex >= fdims[d2])
+            BAIL_QUIET(NC_EEDGE);
+
+         /* Set the fill value boundary */
+         fill_value_size[d2] = count[d2];
+      }
+   }
+
+   /* Later on, we will need to know the size of this type in the
+    * file. */
+   assert(var->type_info->size);
+   file_type_size = var->type_info->size;
+
+   if (!no_read)
+   {
+      /* Now you would think that no one would be crazy enough to write
+         a scalar dataspace with one of the array function calls, but you
+         would be wrong. So let's check to see if the dataset is
+         scalar. If it is, we won't try to set up a hyperslab. */
+      if (H5Sget_simple_extent_type(file_spaceid) == H5S_SCALAR)
+      {
+         if ((mem_spaceid = H5Screate(H5S_SCALAR)) < 0)
+            BAIL(NC_EHDFERR);
+         scalar++;
+      }
+      else
+      {
+         if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
+                                 start, stride, count, NULL) < 0)
+            BAIL(NC_EHDFERR);
+         /* Create a space for the memory, just big enough to hold the slab
+            we want. */
+         if ((mem_spaceid = H5Screate_simple(var->ndims, count, NULL)) < 0)
+            BAIL(NC_EHDFERR);
+      }
+
+      /* Fix bug when reading HDF5 files with variable of type
+       * fixed-length string.  We need to make it look like a
+       * variable-length string, because that's all netCDF-4 data
+       * model supports, lacking anonymous dimensions.  So
+       * variable-length strings are in allocated memory that user has
+       * to free, which we allocate here. */
+      if (var->type_info->nc_type_class == NC_STRING &&
+          H5Tget_size(var->type_info->hdf_typeid) > 1 &&
+          !H5Tis_variable_str(var->type_info->hdf_typeid))
+      {
+         hsize_t fstring_len;
+
+         if ((fstring_len = H5Tget_size(var->type_info->hdf_typeid)) == 0)
+            BAIL(NC_EHDFERR);
+         if (!(*(char **)data = malloc(1 + fstring_len)))
+            BAIL(NC_ENOMEM);
+         bufr = *(char **)data;
+      }
+
+      /* Are we going to convert any data? (No converting of compound or
+       * opaque types.) */
+      if (mem_nc_type != var->type_info->hdr.id &&
+          mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
+      {
+         /* We must convert - allocate a buffer. */
+         need_to_convert++;
+         if (var->ndims)
+            for (d2 = 0; d2 < var->ndims; d2++)
+               len *= countp[d2];
+         LOG((4, "converting data for var %s type=%d len=%d", var->hdr.name,
+              var->type_info->hdr.id, len));
+
+         /* If we're reading, we need bufr to have enough memory to store
+          * the data in the file. If we're writing, we need bufr to be
+          * big enough to hold all the data in the file's type. */
+         if (len > 0)
+            if (!(bufr = malloc(len * file_type_size)))
+               BAIL(NC_ENOMEM);
+      }
+      else
+         if (!bufr)
+            bufr = data;
+
+      /* Create the data transfer property list. */
+      if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
+         BAIL(NC_EHDFERR);
+
+#ifdef USE_PARALLEL4
+      /* Set up parallel I/O, if needed. */
+      if ((retval = set_par_access(h5, var, xfer_plistid)))
+         BAIL(retval);
+#endif
+
+      /* Read this hyperslab into memory. */
+      LOG((5, "About to H5Dread some data..."));
+      if (H5Dread(var->hdf_datasetid, var->type_info->native_hdf_typeid,
+                  mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
+         BAIL(NC_EHDFERR);
+
+      /* Convert data type if needed. */
+      if (need_to_convert)
+      {
+         if ((retval = nc4_convert_type(bufr, data, var->type_info->hdr.id, mem_nc_type,
+                                        len, &range_error, var->fill_value,
+                                        (h5->cmode & NC_CLASSIC_MODEL))))
+            BAIL(retval);
+
+         /* For strict netcdf-3 rules, ignore erange errors between UBYTE
+          * and BYTE types. */
+         if ((h5->cmode & NC_CLASSIC_MODEL) &&
+             (var->type_info->hdr.id == NC_UBYTE || var->type_info->hdr.id == NC_BYTE) &&
+             (mem_nc_type == NC_UBYTE || mem_nc_type == NC_BYTE) &&
+             range_error)
+            range_error = 0;
+      }
+   } /* endif ! no_read */
+   else
+   {
+#ifdef USE_PARALLEL4 /* Start block contributed by HDF group. */
+      /* For collective IO read, some processes may not have any element for reading.
+         Collective requires all processes to participate, so we use H5Sselect_none
+         for these processes. */
+      if (var->parallel_access == NC_COLLECTIVE)
+      {
+         /* Create the data transfer property list. */
+         if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
+            BAIL(NC_EHDFERR);
+
+         if ((retval = set_par_access(h5, var, xfer_plistid)))
+            BAIL(retval);
+
+         if (H5Sselect_none(file_spaceid) < 0)
+            BAIL(NC_EHDFERR);
+
+         /* Since no element will be selected, we just get the memory
+          * space the same as the file space. */
+         if ((mem_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+            BAIL(NC_EHDFERR);
+         if (H5Sselect_none(mem_spaceid) < 0)
+            BAIL(NC_EHDFERR);
+
+         /* Read this hyperslab into memory. */
+         LOG((5, "About to H5Dread some data..."));
+         if (H5Dread(var->hdf_datasetid, var->type_info->native_hdf_typeid,
+                     mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
+            BAIL(NC_EHDFERR);
+      }
+#endif /* End ifdef USE_PARALLEL4 */
+   }
+   /* Now we need to fake up any further data that was asked for,
+      using the fill values instead. First skip past the data we
+      just read, if any. */
+   if (!scalar && provide_fill)
+   {
+      void *filldata;
+      size_t real_data_size = 0;
+      size_t fill_len;
+
+      /* Skip past the real data we've already read. */
+      if (!no_read)
+         for (real_data_size = file_type_size, d2 = 0; d2 < var->ndims; d2++)
+            real_data_size *= (count[d2] - start[d2]);
+
+      /* Get the fill value from the HDF5 variable. Memory will be
+       * allocated. */
+      if (nc4_get_fill_value(h5, var, &fillvalue) < 0)
+         BAIL(NC_EHDFERR);
+
+      /* How many fill values do we need? */
+      for (fill_len = 1, d2 = 0; d2 < var->ndims; d2++)
+         fill_len *= (fill_value_size[d2] ? fill_value_size[d2] : 1);
+
+      /* Copy the fill value into the rest of the data buffer. */
+      filldata = (char *)data + real_data_size;
+      for (i = 0; i < fill_len; i++)
+      {
+
+         if (var->type_info->nc_type_class == NC_STRING)
+         {
+            if (*(char **)fillvalue)
+            {
+               if (!(*(char **)filldata = strdup(*(char **)fillvalue)))
+                  BAIL(NC_ENOMEM);
+            }
+            else
+               *(char **)filldata = NULL;
+         }
+         else if (var->type_info->nc_type_class == NC_VLEN)
+         {
+            if (fillvalue)
+            {
+               memcpy(filldata,fillvalue,file_type_size);
+            } else {
+               *(char **)filldata = NULL;
+            }
+         }
+         else
+            memcpy(filldata, fillvalue, file_type_size);
+         filldata = (char *)filldata + file_type_size;
+      }
+   }
+
+exit:
+   if (file_spaceid > 0)
+      if (H5Sclose(file_spaceid) < 0)
+         BAIL2(NC_EHDFERR);
+   if (mem_spaceid > 0)
+      if (H5Sclose(mem_spaceid) < 0)
+         BAIL2(NC_EHDFERR);
+   if (xfer_plistid > 0)
+      if (H5Pclose(xfer_plistid) < 0)
+         BAIL2(NC_EHDFERR);
+   if (need_to_convert && bufr)
+      free(bufr);
+   if (fillvalue)
+   {
+      if (var->type_info->nc_type_class == NC_VLEN)
+         nc_free_vlen((nc_vlen_t *)fillvalue);
+      else if (var->type_info->nc_type_class == NC_STRING && *(char **)fillvalue)
+         free(*(char **)fillvalue);
+      free(fillvalue);
+   }
+
+   /* If there was an error return it, otherwise return any potential
+      range error value. If none, return NC_NOERR as usual.*/
+   if (retval)
+      return retval;
+   if (range_error)
+      return NC_ERANGE;
+   return NC_NOERR;
 }

@@ -54,6 +54,7 @@ NCD4_initialize(void)
     globalinit();
     /* Load rc file */
     NC_rcload();    
+
     return THROW(NC_NOERR);
 }
 
@@ -798,6 +799,8 @@ globalinit(void)
 	if(cstat != CURLE_OK)
 	    fprintf(stderr,"curl_global_init failed!\n");
     }
+
+
     return stat;
 }
 

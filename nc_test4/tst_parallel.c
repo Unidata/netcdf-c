@@ -40,7 +40,7 @@ main(int argc, char **argv)
     int ncid, v1id, dimids[NDIMS];
     size_t start[NDIMS], count[NDIMS];
 
-    int data[DIMSIZE * DIMSIZE], i, res;
+    int i, res;
     int slab_data[DIMSIZE * DIMSIZE / 4]; /* one slab */
     char file_name[NC_MAX_NAME + 1];
 
@@ -82,10 +82,6 @@ main(int argc, char **argv)
 
     /* Create phony data. We're going to write a 24x24 array of ints,
        in 4 sets of 144. */
-    /*printf("mpi_rank*QTR_DATA=%d (mpi_rank+1)*QTR_DATA-1=%d\n",
-      mpi_rank*QTR_DATA, (mpi_rank+1)*QTR_DATA);*/
-    for (i = mpi_rank * QTR_DATA; i < (mpi_rank + 1) * QTR_DATA; i++)
-       data[i] = mpi_rank;
     for (i = 0; i < DIMSIZE * DIMSIZE / 4; i++)
        slab_data[i] = mpi_rank;
 

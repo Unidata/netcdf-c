@@ -155,10 +155,6 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
       }
    }
 #else /* only set cache for non-parallel... */
-   if(cmode & NC_DISKLESS) {
-      if (H5Pset_fapl_core(fapl_id, 4096, nc4_info->mem.persist))
-         BAIL(NC_EDISKLESS);
-   }
    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
                     nc4_chunk_cache_preemption) < 0)
       BAIL(NC_EHDFERR);
@@ -195,23 +191,16 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
                                             H5P_CRT_ORDER_INDEXED)) < 0)
       BAIL(NC_EHDFERR);
 
-   /* Create the file. */
 #ifdef HDF5_HAS_COLL_METADATA_OPS
-   H5Pset_all_coll_metadata_ops(fapl_id, 1 );
-   H5Pset_coll_metadata_write(fapl_id, 1);
+   /* If HDF5 supports collective metadata operations, turn them
+    * on. This is only relevant for parallel I/O builds of HDF5. */
+   if (H5Pset_all_coll_metadata_ops(fapl_id, 1) < 0)
+      BAIL(NC_EHDFERR);
+   if (H5Pset_coll_metadata_write(fapl_id, 1) < 0)
+      BAIL(NC_EHDFERR);
 #endif
 
    if(nc4_info->mem.inmemory) {
-#if 0
-      if(nc4_info->mem.memio.size == 0)
-         nc4_info->memio.size = DEFAULT_CREATE_MEMSIZE; /* last ditch fix */
-      if(nc4_info->memio.memory == NULL) { /* last ditch fix */
-         nc4_info->memio.memory = malloc(nc4_info->memio.size);
-         if(nc4_info->memio.memory == NULL)
-            BAIL(NC_ENOMEM);
-      }
-      assert(nc4_info->memio.size > 0 && nc4_info->memio.memory != NULL);
-#endif
       retval = NC4_create_image_file(nc4_info,initialsz);
       if(retval)
          BAIL(retval);
@@ -235,13 +224,8 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    /* Define mode gets turned on automatically on create. */
    nc4_info->flags |= NC_INDEF;
 
-   /* Get the HDF5 superblock and read and parse the special
-    * _NCProperties attribute. */
-   if ((retval = NC4_get_fileinfo(nc4_info, &globalpropinfo)))
-      BAIL(retval);
-
-   /* Write the _NCProperties attribute. */
-   if ((retval = NC4_put_propattr(nc4_info)))
+   /* Save the HDF5 superblock number and set the _NCProperties attribute. */
+   if ((retval = NC4_set_provenance(nc4_info, &globalpropinfo)))
       BAIL(retval);
 
    return NC_NOERR;
@@ -253,7 +237,7 @@ exit: /*failure exit*/
 #endif
    if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if(!nc4_info) return retval;
-   nc4_close_netcdf4_file(nc4_info,1,0); /* treat like abort */
+   nc4_close_netcdf4_file(nc4_info,1,NULL); /* treat like abort */
    return retval;
 }
 
@@ -292,6 +276,12 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    if (!nc4_hdf5_initialized)
       nc4_hdf5_initialize();
 
+#ifdef LOGGING
+   /* If nc logging level has changed, see if we need to turn on
+    * HDF5's error messages. */
+   hdf5_set_log_level();
+#endif /* LOGGING */
+
    /* Check the cmode for validity. */
    if((cmode & ILLEGAL_CREATE_FLAGS) != 0)
    {res = NC_EINVAL; goto done;}
@@ -314,18 +304,6 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
       cmode |= NC_MPIIO;
    }
 #endif /* USE_PARALLEL_POSIX */
-
-   cmode |= NC_NETCDF4;
-
-   /* Apply default create format. */
-   if (nc_get_default_format() == NC_FORMAT_CDF5)
-      cmode |= NC_CDF5;
-   else if (nc_get_default_format() == NC_FORMAT_64BIT_OFFSET)
-      cmode |= NC_64BIT_OFFSET;
-   else if (nc_get_default_format() == NC_FORMAT_NETCDF4_CLASSIC)
-      cmode |= NC_CLASSIC_MODEL;
-
-   LOG((2, "cmode after applying default format: 0x%x", cmode));
 
    nc_file->int_ncid = nc_file->ext_ncid;
 

@@ -153,6 +153,12 @@ are set when opening a binary file on Windows. */
 /* Is CURLINFO_HTTP_CODE defined */
 #cmakedefine HAVE_CURLINFO_HTTP_CONNECTCODE 1
 
+/* Is CURLOPT_BUFFERSIZE defined */
+#cmakedefine HAVE_CURLOPT_BUFFERSIZE 1
+
+/* Is CURLOPT_TCP_KEEPALIVE defined */
+#cmakedefine HAVE_CURLOPT_KEEPALIVE 1
+
 /* Is CURLOPT_KEYPASSWD defined */
 #cmakedefine HAVE_CURLOPT_KEYPASSWD 1
 
@@ -374,6 +380,9 @@ are set when opening a binary file on Windows. */
 
 /* min blocksize for posixio. */
 #cmakedefine NCIO_MINBLOCKSIZE ${NCIO_MINBLOCKSIZE}
+
+/* Add extra properties to _NCProperties attribute */
+#cmakedefine NCPROPERTIES_EXTRA ${NCPROPERTIES_EXTRA}
 
 /* no IEEE float on this platform */
 #cmakedefine NO_IEEE_FLOAT 1

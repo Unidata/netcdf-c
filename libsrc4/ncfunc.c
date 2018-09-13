@@ -18,37 +18,6 @@
 #include "nc4dispatch.h"
 
 /**
- * @internal This function only does anything for netcdf-3 files.
- *
- * @param ncid File ID (ignored).
- * @param pe Processor element (ignored).
- *
- * @return ::NC_ENOTNC3 Not a netCDF classic format file.
- * @author Ed Hartnett
- */
-int
-NC4_set_base_pe(int ncid, int pe)
-{
-   return NC_ENOTNC3;
-}
-
-/**
- * @internal This function only does anything for netcdf-3 files.
- *
- * @param ncid File ID (ignored).
- * @param pe Pointer to processor element. Ignored if NULL. Gets a 0
- * if present.
- *
- * @return ::NC_ENOTNC3 Not a netCDF classic format file.
- * @author Ed Hartnett
- */
-int
-NC4_inq_base_pe(int ncid, int *pe)
-{
-   return NC_ENOTNC3;
-}
-
-/**
  * @internal Get the format (i.e. NC_FORMAT_NETCDF4 pr
  * NC_FORMAT_NETCDF4_CLASSIC) of an open netCDF-4 file.
  *

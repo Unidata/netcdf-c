@@ -66,7 +66,7 @@ extern "C" {
 #define NC_FILL_BYTE    ((signed char)-127)
 #define NC_FILL_CHAR    ((char)0)
 #define NC_FILL_SHORT   ((short)-32767)
-#define NC_FILL_INT     (-2147483647L)
+#define NC_FILL_INT     (-2147483647)
 #define NC_FILL_FLOAT   (9.9692099683868690e+36f) /* near 15 * 2^119 */
 #define NC_FILL_DOUBLE  (9.9692099683868690e+36)
 #define NC_FILL_UBYTE   (255)
@@ -897,8 +897,8 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparams, unsig
 EXTERNL int
 nc_set_fill(int ncid, int fillmode, int *old_modep);
 
-/* Set the default nc_create format to NC_FORMAT_CLASSIC,
- * NC_FORMAT_64BIT, NC_FORMAT_NETCDF4, etc */
+/* Set the default nc_create format to NC_FORMAT_CLASSIC, NC_FORMAT_64BIT,
+ * NC_FORMAT_CDF5, NC_FORMAT_NETCDF4, or NC_FORMAT_NETCDF4_CLASSIC */
 EXTERNL int
 nc_set_default_format(int format, int *old_formatp);
 
@@ -1961,6 +1961,10 @@ ncrecget(int ncid, long recnum, void **datap);
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
+/* This function may be called to force the library to
+   cleanup global memory so that memory checkers will not
+   report errors. It is not required, however.
+*/
 EXTERNL int nc_finalize(void);
 
 #if defined(__cplusplus)

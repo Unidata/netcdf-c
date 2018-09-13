@@ -1,28 +1,34 @@
 #!/bin/sh
+# Author: Dennis Heimbigner
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 set -e
-set -x
 echo ""
 
 EXIT=0
 
-NCF=${top_srcdir}/ncdump/nc4_fileinfo.nc
-HDF=${top_srcdir}/ncdump/hdf5_fileinfo.hdf
-NF=${top_srcdir}/ncdump/ref_tst_compounds4.nc
+NCF="./nc4_fileinfo.nc"
+HDF="./hdf5_fileinfo.hdf"
+
+NF="${top_srcdir}/ncdump/ref_tst_compounds4.nc"
+NPV1="${top_srcdir}/ncdump/ref_provenance_v1.nc"
+
+# Create various files
+${execdir}/tst_fileinfo
 
 # Do a false negative test
-rm -f ./tmp_tst_fileinfo
-if $NCDUMP -s $NF | fgrep '_IsNetcdf4 = 0' > ./tmp_tst_fileinfo ; then
+rm -f ./tst_fileinfo.tmp
+if $NCDUMP -s $NF | fgrep '_IsNetcdf4 = 0' > ./tst_fileinfo.tmp ; then
    echo "Pass: False negative for file: $NF"
 else
    echo "FAIL: False negative for file: $NF"
+   EXIT=1
 fi
-rm -f ./tmp_tst_fileinfo
 
-if ${execdir}/tst_fileinfo > /dev/null ; then
+rm -f ./tst_fileinfo.tmp
+if test -e $NCF ; then
    # look at the _IsNetcdf4 flag
    N_IS=`${NCDUMP} -s $NCF | fgrep '_IsNetcdf4' | tr -d ' ;'`
    N_IS=`echo $N_IS | cut -d= -f2`
@@ -30,16 +36,31 @@ if ${execdir}/tst_fileinfo > /dev/null ; then
    H_IS=`echo $H_IS | cut -d= -f2`
    if test "x$N_IS" = 'x0' ;then
      echo "FAIL: $NCF is marked as not netcdf-4"
+     EXIT=1
    fi
    if test "x$H_IS" = 'x1' ;then
      echo "FAIL: $HDF is marked as netcdf-4"
+     EXIT=1
    fi
 else
-echo "FAIL: tst_fileinfo"
-EXIT=1
+  echo "FAIL: tst_fileinfo: $NCF does not exist"
+  EXIT=1
+fi
+
+# Test what happens when we read a file that used provenance version 1
+rm -f ./tst_fileinfo.tmp ./tst_fileinfo2.tmp
+$NCDUMP -hs $NPV1 >tst_fileinfo2.tmp
+fgrep '_NCProperties' <tst_fileinfo2.tmp > ./tst_fileinfo.tmp
+if ! fgrep 'version=1' tst_fileinfo.tmp ; then
+  echo "FAIL: $NPV1 is not marked as version=1"
+  EXIT=1
 fi
 
 rm -f $NCF
 rm -f $HDF
+rm -f *.tmp
 
+if test "x$EXIT" = x0 ; then
+echo "*** Pass all tests"
+fi
 exit $EXIT

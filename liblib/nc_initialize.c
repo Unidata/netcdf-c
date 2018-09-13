@@ -70,11 +70,6 @@ nc_initialize()
     NC_initialized = 1;
     NC_finalized = 0;
 
-#ifdef _MSC_VER
-    /* Force binary mode */
-    _set_fmode(_O_BINARY);
-#endif
-
     /* Do general initialization */
     if((stat = NCDISPATCH_initialize())) goto done;
 
@@ -94,7 +89,7 @@ nc_initialize()
 #endif
 #ifdef USE_NETCDF4
     if((stat = NC4_initialize())) goto done;
-    stat = NC4_fileinfo_init();
+    stat = NC4_provenance_init();
 #endif /* USE_NETCDF4 */
 
 done:

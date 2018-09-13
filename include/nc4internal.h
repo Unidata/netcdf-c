@@ -1,8 +1,9 @@
 /* Copyright 2005-2018 University Corporation for Atmospheric
    Research/Unidata. */
 /**
- * @file This header file contains macros, types and prototypes used
- * to build and manipulate the netCDF metadata model.
+ * @file
+ * @internal This header file contains macros, types and prototypes
+ * used to build and manipulate the netCDF metadata model.
  *
  * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
 */
@@ -77,11 +78,14 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 /** This is the number of netCDF atomic types. */
 #define NUM_ATOMIC_TYPES (NC_MAX_ATOMIC_TYPE + 1)
 
+/** Number of parameters needed for ZLIB filter. */
+#define CD_NELEMS_ZLIB 1
+
 /* Boolean type, to make the code easier to read */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 
 /*Forward*/
-struct NCFILEINFO;
+struct NCPROVENANCE;
 struct NC_GRP_INFO;
 struct NC_TYPE_INFO;
 
@@ -295,17 +299,17 @@ typedef struct  NC_FILE_INFO
    NClist* alltypes;
    NClist* allgroups; /* including root group */
    void *format_file_info;
-   struct NCFILEINFO* fileinfo;
+   struct NCPROVENANCE* provenance;
    struct NC4_Memio {
-	NC_memio memio;
-	int locked; /* do not copy and do not release */
+	NC_memio memio; /* What we sent to image_init and what comes back*/
+	int locked; /* do not copy and do not free  */
 	int persist; /* Should file be persisted out on close? */
-	int inmemory;
-	int diskless;
-	unsigned int flags; /* for H5LTopen_file_image */
-	int fapl;
-	size_t initialsize;
+	int inmemory; /* NC_INMEMORY flag was set */
+	int diskless; /* NC_DISKLESS flag was set => inmemory */
 	int created; /* 1 => create, 0 => open */
+	unsigned int imageflags; /* for H5LTopen_file_image */
+	size_t initialsize;
+	void* udata; /* extra memory allocated in NC4_image_init */
    } mem;
 } NC_FILE_INFO_T;
 
@@ -357,6 +361,8 @@ int nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
 		    NC_ATT_INFO_T **att);
 int nc4_find_g_var_nc(NC *nc, int ncid, int varid,
 		      NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
+int nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **grp,
+                        NC_VAR_INFO_T **var);
 int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 		     NC_ATT_INFO_T **att);
 int nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
@@ -371,6 +377,8 @@ int nc4_type_free(NC_TYPE_INFO_T *type);
 int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
 void nc4_file_list_del(NC *nc);
 int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims, NC_VAR_INFO_T **var);
+int nc4_var_list_add2(NC_GRP_INFO_T* grp, const char* name, NC_VAR_INFO_T **var);
+int nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims);
 int nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var);
 int nc4_var_free(NC_VAR_INFO_T *var);
 int nc4_dim_list_add(NC_GRP_INFO_T* grp, const char* name, size_t len, int assignedid, NC_DIM_INFO_T **dim);
@@ -386,7 +394,7 @@ int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
 int nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att);
 int nc4_att_list_del(NCindex* list, NC_ATT_INFO_T *att);
 int nc4_att_free(NC_ATT_INFO_T *att);
-int nc4_grp_list_add(NC_GRP_INFO_T *parent, char *name, NC_GRP_INFO_T **grp);
+int nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name, NC_GRP_INFO_T **grp);
 int nc4_build_root_grp(NC_FILE_INFO_T* h5);
 int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
 int nc4_enum_member_add(NC_TYPE_INFO_T *type, size_t size,
@@ -406,7 +414,7 @@ int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value);
 
 /* Close the file. */
-int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, int extractmem);
+int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio*);
 
 /* HDF5 initialization */
 extern int nc4_hdf5_initialized;
@@ -433,8 +441,10 @@ typedef struct NC_reservedatt {
 #define DIMSCALEFLAG 1
 /* Readonly global attributes; readable, but immutable thru the API */
 #define READONLYFLAG 2
-/* Subset of readonly flags; readable by name only thru the API*/
+/* Subset of readonly flags; readable by name only thru the API */
 #define NAMEONLYFLAG 4
+/* Subset of readonly flags; Value is actually in file */
+#define MATERIALIZEDFLAG 8
 
 /* Binary searcher for reserved attributes */
 extern const NC_reservedatt* NC_findreserved(const char* name);
@@ -457,38 +467,73 @@ For netcdf4 files, capture state information about the following:
 5. Per file: _NCProperties attribute
 */
 
-#define NCPROPS "_NCProperties"
-#define NCPROPS_VERSION (1)
-#define NCPROPSSEP  '|'
+/* Most of this needs to be moved to hdf5internal.h */
 
-/* Currently used properties */
+#define NCPROPS "_NCProperties"
 #define NCPVERSION "version" /* Of the properties format */
-#define NCPHDF5LIBVERSION "hdf5libversion"
-#define NCPNCLIBVERSION "netcdflibversion"
+#define NCPHDF5LIB1 "hdf5libversion"
+#define NCPNCLIB1 "netcdflibversion"
+#define NCPHDF5LIB2 "hdf5"
+#define NCPNCLIB2 "netcdf"
+#define NCPROPS_VERSION (2)
+/* Version 2 changes this because '|' was causing bash problems */
+#define NCPROPSSEP1  '|'
+#define NCPROPSSEP2  ','
+
 
 /* Other hidden attributes */
 #define ISNETCDF4ATT "_IsNetcdf4"
 #define SUPERBLOCKATT "_SuperblockVersion"
 
-struct NCFILEINFO {
+struct NCPROVENANCE {
     int superblockversion;
-    /* Following is filled from NCPROPS attribute or from global version */
-    struct NCPROPINFO {
-        int version; /* 0 => not defined */
-        char hdf5ver[NC_MAX_NAME+1];
-        char netcdfver[NC_MAX_NAME+1];
-    } propattr;
+     struct NCPROPINFO {
+         int version; /* 0 => not defined */
+        /* Following is filled from NCPROPS attribute or from global version */
+	/* Version 1 format is:
+	   "netcdflibversion=<version|hdf5libversion=<version>"
+	   Version 2 format is:
+	   "<mainbuildlib>=<version|<supportlib1>=<version>...|<other>=..."
+	*/	
+	/* The _NCProperties values are stored as an arbitrary
+           set of (key,value) pairs */
+	/* It is assumed that the first entry is the primary library
+           used to build the file, and it is followed by other libraries
+           used in the build, and finally an arbitrary list of other
+           (key,value) pairs. */
+        NClist* properties;
+     } propattr;
 };
 
+/* Provenance Initialization */
 extern struct NCPROPINFO globalpropinfo;
 
-extern int NC4_fileinfo_init(void); /*libsrc4/ncinfo.c*/
-extern int NC4_get_fileinfo(struct NC_FILE_INFO* info, struct NCPROPINFO*); /*libsrc4/ncinfo.c*/
-extern int NC4_put_propattr(struct NC_FILE_INFO* info); /*libsrc4/ncinfo.c*/
-extern int NC4_buildpropinfo(struct NCPROPINFO* info,char** propdatap);
+/* Initialize the fileinfo global state */
+extern int NC4_provenance_init();
+
+/* Write the properties attribute to file. */
+extern int NC4_put_ncproperties(NC_FILE_INFO_T* file);
+
+/* Extract the provenance from a file, using dfalt as default */
+extern int NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NCPROPINFO* dfalt);
+
+/* Set the provenance for a created file using dfalt as default */
+extern int NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt);
+
+/* Recover memory of an NCPROVENANCE object */
+extern int NC4_free_provenance(struct NCPROVENANCE* prov);
 
 extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
 extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
 extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
+
+/* Convert a NCPROPINFO instance to a single string. */
+extern int NC4_buildpropinfo(struct NCPROPINFO* info, char** propdatap);
+
+/* Use HDF5 API to read the _NCProperties attribute */
+extern int NC4_read_ncproperties(NC_FILE_INFO_T*);
+
+/* Use HDF5 API to write the _NCProperties attribute */
+extern int NC4_write_ncproperties(NC_FILE_INFO_T*);
 
 #endif /* _NC4INTERNAL_ */

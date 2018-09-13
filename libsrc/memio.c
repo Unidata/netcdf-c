@@ -21,7 +21,6 @@
 #include <windows.h>
 #include <winbase.h>
 #include <io.h>
-#define access(path,mode) _access(path,mode)
 #endif
 
 #include "ncdispatch.h"
@@ -116,6 +115,8 @@ static int memio_close(ncio* nciop, int);
 static int readfile(const char* path, NC_memio*);
 static int writefile(const char* path, NCMEMIO*);
 static int fileiswriteable(const char* path);
+static int fileisreadable(const char* path);
+static int fileexists(const char* path);
 
 /* Mnemonic */
 #define DOOPEN 1
@@ -197,7 +198,7 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
 
     if(fIsSet(ioflags,NC_DISKLESS))
 	memio->diskless = 1;
-    if(fIsSet(ioflags,NC_INMEMORY) && !memio->diskless)
+    if(fIsSet(ioflags,NC_INMEMORY))
 	memio->inmemory = 1;
     if(fIsSet(ioflags,NC_WRITE) && !fIsSet(ioflags,NC_NOCLOBBER) && memio->diskless)
 	memio->persist = 1;
@@ -248,8 +249,8 @@ memio_create(const char* path, int ioflags,
         return status;
 
     if(memio->persist) {
-	/* Verify the file is writeable */
-	if(!fileiswriteable(path))
+	/* Verify the file is writeable or does not exist*/
+	if(fileexists(path) && !fileiswriteable(path))
 	    {status = EPERM; goto unwind_open;}	
     }
 
@@ -374,9 +375,11 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
 #endif
 
     if(memio->persist) {
-	/* Verify the file is writeable */
+	/* Verify the file is writeable and exists */
+	if(!fileexists(path))
+	    {status = ENOENT; goto unwind_open;}	
 	if(!fileiswriteable(path))
-	    {status = EPERM; goto unwind_open;}	
+	    {status = EACCES; goto unwind_open;}	
     }
 
     /* Use half the filesize as the blocksize ; why? */
@@ -645,11 +648,39 @@ memio_extract(ncio* const nciop, size_t* sizep, void** memoryp)
     return status;
 }
 
+/* Return 1 if file exists, 0 otherwise */
+static int
+fileexists(const char* path)
+{
+    int ok;
+    /* See if the file exists at all */
+    ok = NCaccess(path,ACCESS_MODE_EXISTS);
+    if(ok < 0) /* file does not exist */
+      return 0;
+    return 1;
+}
+
+/* Return 1 if file is writeable, return 0 otherwise;
+   assumes fileexists has been checked already */
 static int
 fileiswriteable(const char* path)
 {
     int ok;
-    ok = access(path,O_RDWR);
+    /* if W is ok */
+    ok = NCaccess(path,ACCESS_MODE_W);
+    if(ok < 0)
+	return 0;
+    return 1;
+}
+
+/* Return 1 if file is READABLE, return 0 otherwise;
+   assumes fileexists has been checked already */
+static int
+fileisreadable(const char* path)
+{
+    int ok;
+    /* if RW is ok */
+    ok = NCaccess(path,ACCESS_MODE_R);
     if(ok < 0)
 	return 0;
     return 1;
@@ -714,14 +745,14 @@ writefile(const char* path, NCMEMIO* memio)
     size_t count = 0;
     char* p = NULL;
 
-    /* Open the file for writing*/
+    /* Open/create the file for writing*/
 #ifdef _MSC_VER
-    f = NCfopen(path,"rwb");
+    f = NCfopen(path,"wb");
 #else
-    f = NCfopen(path,"rw");
+    f = NCfopen(path,"w");
 #endif
     if(f == NULL)
-	{status = errno; goto done;}
+        {status = errno; goto done;}
     rewind(f);
     count = memio->size;
     p = memio->memory;

@@ -202,4 +202,37 @@ NCopen2(const char *path, int flags)
     return NCopen3(path,flags,0);
 }
 
+/*
+Provide wrappers for other file system functions
+*/
+
+/* Return access applied to path+mode */
+EXTERNL
+int
+NCaccess(const char* path, int mode)
+{
+    int status = 0;
+    char* cvtname = NCpathcvt(path);
+    if(cvtname == NULL) return -1;
+#ifdef _MSC_VER
+    status = _access(cvtname,mode);
+#else
+    status = access(cvtname,mode);
+#endif
+    free(cvtname);    
+    return status;
+}
+
+EXTERNL
+int
+NCremove(const char* path)
+{
+    int status = 0;
+    char* cvtname = NCpathcvt(path);
+    if(cvtname == NULL) return ENOENT;
+    status = remove(cvtname);
+    free(cvtname);    
+    return status;
+}
+
 #endif /*WINPATH*/
