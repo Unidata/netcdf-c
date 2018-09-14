@@ -41,11 +41,6 @@ static const NC_reservedatt NC_reserved[NRESERVED] = {
    {NC3_STRICT_ATT_NAME, READONLYFLAG|MATERIALIZEDFLAG},  /*_nc3_strict*/
 };
 
-/* These hold the file caching settings for the library. */
-size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
-size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
-float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
-
 /* Forward */
 static int NC4_enddef(int ncid);
 static void dumpopenobjects(NC_FILE_INFO_T* h5);
