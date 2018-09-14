@@ -484,6 +484,26 @@ NC4_redef(int ncid)
 }
 
 /**
+ * @internal For netcdf-4 files, this just calls nc_enddef, ignoring
+ * the extra parameters.
+ *
+ * @param ncid File and group ID.
+ * @param h_minfree Ignored for netCDF-4 files.
+ * @param v_align Ignored for netCDF-4 files.
+ * @param v_minfree Ignored for netCDF-4 files.
+ * @param r_align Ignored for netCDF-4 files.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
+            size_t v_minfree, size_t r_align)
+{
+   return NC4_enddef(ncid);
+}
+
+/**
  * @internal Take the file out of define mode. This is called
  * automatically for netcdf-4 files, if the user forgets.
  *
@@ -518,26 +538,6 @@ NC4_enddef(int ncid)
    }
 
    return nc4_enddef_netcdf4_file(nc4_info);
-}
-
-/**
- * @internal For netcdf-4 files, this just calls nc_enddef, ignoring
- * the extra parameters.
- *
- * @param ncid File and group ID.
- * @param h_minfree Ignored for netCDF-4 files.
- * @param v_align Ignored for netCDF-4 files.
- * @param v_minfree Ignored for netCDF-4 files.
- * @param r_align Ignored for netCDF-4 files.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
- */
-int
-NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
-            size_t v_minfree, size_t r_align)
-{
-   return NC4_enddef(ncid);
 }
 
 /**
