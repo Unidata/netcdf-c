@@ -349,23 +349,13 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 int
 NC4_inq_attname(int ncid, int varid, int attnum, char *name)
 {
-   NC *nc;
    NC_ATT_INFO_T *att;
-   NC_FILE_INFO_T *h5;
-   int retval = NC_NOERR;
+   int retval;
 
-   LOG((2, "nc_inq_attname: ncid 0x%x varid %d attnum %d",
-        ncid, varid, attnum));
+   LOG((2, "nc_inq_attname: ncid 0x%x varid %d attnum %d", ncid, varid,
+        attnum));
 
-   /* Find metadata. */
-   if (!(nc = nc4_find_nc_file(ncid,NULL)))
-      return NC_EBADID;
-
-   /* get netcdf-4 metadata */
-   h5 = NC4_DATA(nc);
-   assert(h5);
-
-   /* Handle netcdf-4 files. */
+   /* Find the attribute metadata. */
    if ((retval = nc4_find_nc_att(ncid, varid, NULL, attnum, &att)))
       return retval;
 
