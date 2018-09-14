@@ -817,21 +817,14 @@ NC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksiz
 int
 nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
 {
-   NC *nc;
-   NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
-   NC_FILE_INFO_T *h5;
    size_t *cs = NULL;
    int i, retval;
 
-   /* Find this ncid's file info. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   /* Get pointer to the var. */
+   if ((retval = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
       return retval;
-   assert(nc);
-
-   /* Find var cause I need the number of dims. */
-   if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
-      return retval;
+   assert(var);
 
    /* Allocate space for the size_t copy of the chunksizes array. */
    if (var->ndims)

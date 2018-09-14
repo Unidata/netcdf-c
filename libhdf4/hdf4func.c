@@ -50,15 +50,15 @@ int
 NC_HDF4_inq_format_extended(int ncid, int *formatp, int *modep)
 {
    NC *nc;
-   NC_FILE_INFO_T* h5;
+   int retval;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
-   if (!(nc = nc4_find_nc_file(ncid, &h5)))
+   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, NULL, NULL)))
       return NC_EBADID;
 
    if (modep)
-      *modep = (nc->mode|NC_NETCDF4);
+      *modep = nc->mode|NC_NETCDF4;
 
    if (formatp) 
       *formatp = NC_FORMATX_NC_HDF4;

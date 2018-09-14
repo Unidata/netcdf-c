@@ -62,7 +62,7 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("*** testing HDF5 file with circular group structure...");
    {
-      hid_t hdfid, grpid, grpid2, fapl_id;
+      hid_t hdfid, grpid, grpid2;
       int ncid;
 
       /* First use HDF5 to create a file with circular group

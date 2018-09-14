@@ -41,16 +41,21 @@ static const NC_reservedatt NC_reserved[NRESERVED] = {
    {NC3_STRICT_ATT_NAME, READONLYFLAG|MATERIALIZEDFLAG},  /*_nc3_strict*/
 };
 
-extern void reportopenobjects(int log, hid_t);
-
 /* Forward */
 static int NC4_enddef(int ncid);
 static void dumpopenobjects(NC_FILE_INFO_T* h5);
+
+/* These hold the file caching settings for the library. */
+size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
+size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
+float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
 
 /**
  * @internal Define a binary searcher for reserved attributes
  * @param name for which to search
  * @return pointer to the matchig NC_reservedatt structure.
+ * @return NULL if not found.
+ * @author Dennis Heimbigner
  */
 const NC_reservedatt*
 NC_findreserved(const char* name)
@@ -109,7 +114,7 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
 #ifdef LOGGING
    /* This will print out the names, types, lens, etc of the vars and
       atts in the file, if the logging level is 2 or greater. */
-   log_metadata_nc(h5->root_grp->nc4_info->controller);
+   log_metadata_nc(h5);
 #endif
 
    /* Write any metadata that has changed. */
@@ -155,16 +160,20 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
  * @param memio the place to return a core image if not NULL
  *
  * @return ::NC_NOERR No error.
- * @author Ed Hartnett
+ * @return ::NC_EHDFERR HDF5 could not close the file.
+ * @return ::NC_EINDEFINE Classic model file is in define mode.
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
 {
    NC_HDF5_FILE_INFO_T *hdf5_info;
-   int retval = NC_NOERR;
+   int retval;
 
    assert(h5 && h5->root_grp && h5->format_file_info);
    LOG((3, "%s: h5->path %s abort %d", __func__, h5->controller->path, abort));
+
+   /* Get HDF5 specific info. */
    hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
 
    /* According to the docs, always end define mode on close. */
@@ -175,12 +184,12 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
     * file. */
    if (!h5->no_write && !abort)
       if ((retval = sync_netcdf4_file(h5)))
-         goto exit;
+         return retval;
 
    /* Delete all the list contents for vars, dims, and atts, in each
     * group. */
    if ((retval = nc4_rec_grp_del(h5->root_grp)))
-      goto exit;
+      return retval;
 
    /* Free lists of dims, groups, and types in the root group. */
    nclistfree(h5->alldims);
@@ -209,7 +218,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
    if (hdf5_info->hdfid > 0 && H5Fclose(hdf5_info->hdfid) < 0)
    {
       dumpopenobjects(h5);
-      BAIL(NC_EHDFERR);
+      return NC_EHDFERR;
    }
 
    /* If inmemory is used and user wants the final memory block,
@@ -235,16 +244,21 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
    if (h5->format_file_info)
       free(h5->format_file_info);
 
-exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
+   free(h5);
 
-   if (!retval)
-
-      free(h5);
-   return retval;
+   return NC_NOERR;
 }
 
+/**
+ * @internal Output a list of still-open objects in the HDF5
+ * file. This is only called if the file fails to close cleanly.
+ *
+ * @param h5 Pointer to file info.
+ *
+ * @author Dennis Heimbigner
+ */
 static void
 dumpopenobjects(NC_FILE_INFO_T* h5)
 {
@@ -285,10 +299,6 @@ dumpopenobjects(NC_FILE_INFO_T* h5)
 
    return;
 }
-
-size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
-size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
-float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
 
 /**
  * Set chunk cache size. Only affects files opened/created *after* it
@@ -401,13 +411,14 @@ nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
 int
 NC4_set_fill(int ncid, int fillmode, int *old_modep)
 {
-   NC *nc;
-   NC_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T *nc4_info;
+   int retval;
 
    LOG((2, "%s: ncid 0x%x fillmode %d", __func__, ncid, fillmode));
 
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
-      return NC_EBADID;
+   /* Get pointer to file info. */
+   if ((retval = nc4_find_grp_h5(ncid, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* Trying to set fill on a read-only file? You sicken me! */
@@ -424,7 +435,6 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 
    nc4_info->fill_mode = fillmode;
 
-
    return NC_NOERR;
 }
 
@@ -440,13 +450,14 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 int
 NC4_redef(int ncid)
 {
-   NC_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T *nc4_info;
+   int retval;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
    /* Find this file's metadata. */
-   if (!(nc4_find_nc_file(ncid,&nc4_info)))
-      return NC_EBADID;
+   if ((retval = nc4_find_grp_h5(ncid, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* If we're already in define mode, return an error. */
@@ -484,9 +495,6 @@ int
 NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
             size_t v_minfree, size_t r_align)
 {
-   if (nc4_find_nc_file(ncid,NULL) == NULL)
-      return NC_EBADID;
-
    return NC4_enddef(ncid);
 }
 
@@ -501,29 +509,26 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
  * @return ::NC_EBADGRPID Bad group ID.
  * @author Ed Hartnett
  */
-static int NC4_enddef(int ncid)
+static int
+NC4_enddef(int ncid)
 {
-   NC *nc;
    NC_FILE_INFO_T *nc4_info;
    NC_GRP_INFO_T *grp;
+   NC_VAR_INFO_T *var;
    int i;
+   int retval;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
-   if (!(nc = nc4_find_nc_file(ncid, &nc4_info)))
-      return NC_EBADID;
-   assert(nc4_info);
-
-   /* Find info for this file and group */
-   if (!(grp = nc4_rec_find_grp(nc4_info, (ncid & GRP_ID_MASK))))
-      return NC_EBADGRPID;
+   /* Find pointer to group and nc4_info. */
+   if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &nc4_info)))
+      return retval;
 
    /* When exiting define mode, mark all variable written. */
    for (i = 0; i < ncindexsize(grp->vars); i++)
    {
-      NC_VAR_INFO_T *var;
-      if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i)))
-         continue;
+      var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
+      assert(var);
       var->written_to = NC_TRUE;
    }
 
@@ -537,23 +542,24 @@ static int NC4_enddef(int ncid)
  * @param ncid File and group ID.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EINDEFINE Classic model file is in define mode.
  * @author Ed Hartnett
  */
 int
 NC4_sync(int ncid)
 {
-   NC *nc;
+   NC_FILE_INFO_T *nc4_info;
    int retval;
-   NC_FILE_INFO_T* nc4_info;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
-      return NC_EBADID;
+   if ((retval = nc4_find_grp_h5(ncid, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* If we're in define mode, we can't sync. */
-   if (nc4_info && nc4_info->flags & NC_INDEF)
+   if (nc4_info->flags & NC_INDEF)
    {
       if (nc4_info->cmode & NC_CLASSIC_MODEL)
          return NC_EINDEFINE;
@@ -581,24 +587,23 @@ int
 NC4_abort(int ncid)
 {
    NC *nc;
+   NC_FILE_INFO_T *nc4_info;
    int delete_file = 0;
    char path[NC_MAX_NAME + 1];
-   int retval = NC_NOERR;
-   NC_FILE_INFO_T* nc4_info;
+   int retval;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
    /* Find metadata for this file. */
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
-      return NC_EBADID;
-
+   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* If we're in define mode, but not redefing the file, delete it. */
    if (nc4_info->flags & NC_INDEF && !nc4_info->redef)
    {
       delete_file++;
-      strncpy(path, nc->path,NC_MAX_NAME);
+      strncpy(path, nc->path, NC_MAX_NAME);
    }
 
    /* Free any resources the netcdf-4 library has for this file's
@@ -611,7 +616,7 @@ NC4_abort(int ncid)
       if (remove(path) < 0)
          return NC_ECANTREMOVE;
 
-   return retval;
+   return NC_NOERR;
 }
 
 /**
