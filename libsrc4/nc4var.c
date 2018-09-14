@@ -395,40 +395,35 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 int
 nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp)
 {
-   NC *nc;
-   NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
-   NC_FILE_INFO_T *h5;
-
    size_t *cs = NULL;
    int i, retval;
 
-   /* Find this ncid's file info. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   /* Get pointer to the var. */
+   if ((retval = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
       return retval;
-   assert(nc);
-
-   /* Find var cause I need the number of dims. */
-   if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
-      return retval;
+   assert(var);
 
    /* Allocate space for the size_t copy of the chunksizes array. */
    if (var->ndims)
       if (!(cs = malloc(var->ndims * sizeof(size_t))))
          return NC_ENOMEM;
 
+   /* Call the netcdf-4 version directly. */
    retval = NC4_inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, NULL,
                             NULL, NULL, NULL, NULL, contiguousp, cs, NULL,
                             NULL, NULL, NULL, NULL, NULL);
 
    /* Copy from size_t array. */
-   if (chunksizesp && var->contiguous == NC_CHUNKED)
+   if (!retval && chunksizesp && var->contiguous == NC_CHUNKED)
+   {
       for (i = 0; i < var->ndims; i++)
       {
          chunksizesp[i] = (int)cs[i];
          if (cs[i] > NC_MAX_INT)
             retval = NC_ERANGE;
       }
+   }
 
    if (var->ndims)
       free(cs);

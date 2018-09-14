@@ -33,10 +33,7 @@ int
 NC_HDF4_get_vara(int ncid, int varid, const size_t *startp,
                  const size_t *countp, void *ip, int memtype)
 {
-   NC *nc;
-   NC_FILE_INFO_T* h5;
-   NC_GRP_INFO_T *grp;
-   NC_VAR_HDF4_INFO_T *hdf4_var;   
+   NC_VAR_HDF4_INFO_T *hdf4_var;
    NC_VAR_INFO_T *var;
    int32 start32[NC_MAX_VAR_DIMS], edge32[NC_MAX_VAR_DIMS];
    size_t nelem = 1;
@@ -52,21 +49,13 @@ NC_HDF4_get_vara(int ncid, int varid, const size_t *startp,
    if (!startp || !countp || !ip)
       return NC_EINVAL;
 
-   /* Find file info. */
-   if (!(nc = nc4_find_nc_file(ncid, &h5)))
-      return NC_EBADID;
-   
    /* Find our metadata for this file, group, and var. */
-   if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
+   if ((retval = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
       return retval;
-
-   assert(grp && var && var->hdr.name && var->format_var_info);
+   assert(var && var->hdr.name && var->format_var_info);
 
    /* Get the HDF4 specific var metadata. */
    hdf4_var = (NC_VAR_HDF4_INFO_T *)var->format_var_info;
-
-   h5 = NC4_DATA(nc);
-   assert(h5);
 
    /* Convert starts/edges to the int32 type HDF4 wants. Also learn
     * how many elements of data are being read. */

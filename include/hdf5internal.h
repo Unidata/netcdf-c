@@ -59,6 +59,7 @@ typedef struct  NC_HDF5_FILE_INFO
 /* These functions do HDF5 things. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
+void reportopenobjects(int log, hid_t);
 
 
 /* Used by NC4_set_provenance */

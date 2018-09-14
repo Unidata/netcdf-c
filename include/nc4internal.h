@@ -340,31 +340,27 @@ int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
 int nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
-/* The following functions manipulate the in-memory linked list of
-   metadata, without using HDF calls. */
+/* Find items in the in-memory lists of metadata. */
 int nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp,
-		       NC_FILE_INFO_T **h5);
+                       NC_FILE_INFO_T **h5);
 int nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5);
 int nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp);
-NC_GRP_INFO_T *nc4_find_nc_grp(int ncid);
-NC_GRP_INFO_T *nc4_rec_find_grp(NC_FILE_INFO_T *h5, int target_nc_grpid);
-NC *nc4_find_nc_file(int ncid, NC_FILE_INFO_T**);
-int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim, NC_GRP_INFO_T **dim_grp);
+int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
+                 NC_GRP_INFO_T **dim_grp);
 int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
 int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
 int nc4_find_type(const NC_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
-NC_TYPE_INFO_T *nc4_rec_find_nc_type(NC_FILE_INFO_T *h5, nc_type target_nc_typeid);
-NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_FILE_INFO_T* h5, hid_t target_hdf_typeid);
+NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_FILE_INFO_T* h5,
+                                      hid_t target_hdf_typeid);
 NC_TYPE_INFO_T *nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name);
-NC_TYPE_INFO_T *nc4_rec_find_equal_type(NC_GRP_INFO_T *start_grp, int ncid1, NC_TYPE_INFO_T *type);
+NC_TYPE_INFO_T *nc4_rec_find_equal_type(NC_GRP_INFO_T *start_grp, int ncid1,
+                                        NC_TYPE_INFO_T *type);
 int nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
 		    NC_ATT_INFO_T **att);
-int nc4_find_g_var_nc(NC *nc, int ncid, int varid,
-		      NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
-int nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **grp,
-                        NC_VAR_INFO_T **var);
-int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
-		     NC_ATT_INFO_T **att);
+int nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
+                        NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
+int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name,
+                     int attnum, NC_ATT_INFO_T **att);
 int nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
 		       hid_t *hdf_typeid, int endianness);
 int nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype,
@@ -423,7 +419,7 @@ extern void nc4_hdf5_initialize(void);
 /* This is only included if --enable-logging is used for configure; it
    prints info about the metadata to stderr. */
 #ifdef LOGGING
-int log_metadata_nc(NC *nc);
+int log_metadata_nc(NC_FILE_INFO_T *h5);
 #endif
 
 /* Define accessors for the dispatchdata */
