@@ -1,10 +1,10 @@
 # Test c output
-T=bigmeta
+T=tst_vars3
 
 #SRC=hdf5plugins/H5Zmisc.c
 
 #CMD=valgrind --leak-check=full
-#CMD=gdb --args
+CMD=gdb --args
 
 #FILTER=H5Zmisc
 #FILTEROBJ=hdf5plugins/${FILTER}.o
@@ -32,8 +32,7 @@ LLP=/usr/local/lib:${LD_LIBRARY_PATH}
 
 all:: cmp
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
-
-#	${CMD} ./t ${ARGS}
+	${CMD} ./t ${ARGS}
 
 cmp::
 	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
