@@ -31,7 +31,7 @@ errors, it simply stops their display to the user through stderr.
   NC_NOCLOBBER (do not overwrite existing file),
   NC_NETCDF4 (create netCDF-4/HDF5 file),
   NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
-  NC_PNETCDF.
+  NC_PNETCDF (alias of NC_MPIIO, to create CDF-1, 2, or 5 file).
 
 \param comm the MPI communicator to be used.
 
@@ -42,6 +42,7 @@ stored.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOPAR Library was not built with parallel I/O features.
+\returns ::NC_ENOTBUILT Library was not built with NETCDF4 or PnetCDF.
 \returns ::NC_EINVAL Invalid input parameters.
 \returns ::NC_ENOMEM System out of memory.
 \returns ::NC_ENOTNC Binary format could not be determined.
@@ -66,8 +67,7 @@ parallel I/O.
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
     sprintf(file_name, "%s/%s", TEMP_LARGE, FILE);
-    if ((res = nc_create_par(file_name, NC_NETCDF4|NC_MPIIO, comm,
-			     info, &ncid))) ERR;
+    if ((res = nc_create_par(file_name, NC_NETCDF4, comm, info, &ncid))) ERR;
 
     if (nc_def_dim(ncid, "d1", DIMSIZE, dimids)) ERR;
     if (nc_def_dim(ncid, "d2", DIMSIZE, &dimids[1])) ERR;
@@ -87,21 +87,26 @@ parallel I/O.
 int nc_create_par(const char *path, int cmode, MPI_Comm comm,
 	      MPI_Info info, int *ncidp)
 {
+   NC_MPI_INFO data;
 #ifndef USE_PARALLEL
    return NC_ENOPAR;
-#else
-   NC_MPI_INFO data;
+#endif
 
-   /* One of these two parallel IO modes must be chosen by the user,
-    * or else pnetcdf must be in use. */
-   if (!(cmode & NC_MPIIO || cmode & NC_MPIPOSIX) &&
-       !(cmode & NC_PNETCDF))
-      return NC_EINVAL;
+#ifndef USE_PNETCDF
+   /* PnetCDF is disabled but user wants to create classic file in parallel */
+   if ((cmode & NC_PNETCDF) && !(cmode & NC_NETCDF4))
+       return NC_ENOTBUILT;
+#endif
+
+#ifndef USE_NETCDF4
+   /* NETCDF4 is disabled but user wants to create NETCDF4 file in parallel */
+   if (cmode & NC_NETCDF4)
+       return NC_ENOTBUILT;
+#endif
 
    data.comm = comm;
    data.info = info;
    return NC_create(path, cmode, 0, 0, NULL, 1, &data, ncidp);
-#endif /* USE_PARALLEL */
 }
 
 /**
@@ -148,6 +153,8 @@ occurred. Otherwise, the returned status indicates an error. Possible
 causes of errors include:
 
 \returns ::NC_NOERR No error.
+\returns ::NC_ENOPAR Library was not built with parallel I/O features.
+\returns ::NC_ENOTBUILT Library was not built with NETCDF4 or PnetCDF.
 \returns ::NC_EINVAL Invalid parameters.
 \returns ::NC_ENOTNC Not a netCDF file.
 \returns ::NC_ENOMEM Out of memory.
@@ -167,35 +174,25 @@ Here is an example using nc_open_par() from examples/C/parallel_vara.c.
     int ncid, omode;
     char filename[128];
    ...
-    omode = NC_PNETCDF | NC_NOWRITE;
+    omode = NC_NOWRITE;
     err = nc_open_par(filename, omode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); FATAL_ERR
 \endcode
 \author Ed Hartnett, Dennis Heimbigner
 \ingroup datasets
 */
 int
-nc_open_par(const char *path, int mode, MPI_Comm comm,
+nc_open_par(const char *path, int omode, MPI_Comm comm,
 	    MPI_Info info, int *ncidp)
 {
 #ifndef USE_PARALLEL
    return NC_ENOPAR;
-#else
+#endif
    NC_MPI_INFO mpi_data;
-
-   /* One of these two parallel IO modes must be chosen by the user,
-    * or else pnetcdf must be in use. */
-   if ((mode & NC_MPIIO) || (mode & NC_MPIPOSIX)) {
-	/* ok */
-   } else if(mode & NC_PNETCDF) {
-	/* ok */
-   } else
-      return NC_EINVAL;
 
    mpi_data.comm = comm;
    mpi_data.info = info;
 
-   return NC_open(path, mode, 0, NULL, 1, &mpi_data, ncidp);
-#endif /* USE_PARALLEL */
+   return NC_open(path, omode, 0, NULL, 1, &mpi_data, ncidp);
 }
 
 /**
