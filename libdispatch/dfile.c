@@ -259,7 +259,7 @@ NC_interpret_magic_number(char* magic, int* model, int* version)
 	    goto done;
         }
         if(magic[3] == '\005') {
-          *version = 5; /* cdf5 (including pnetcdf) file */
+          *version = 5; /* cdf5 file */
 	  *model = NC_FORMATX_NC3;
 	  goto done;
 	}
@@ -287,9 +287,9 @@ done:
  * @return ::NC_NOERR No error.
  * @author Dennis Heimbigner
 */
-int
-NC_check_file_type(const char *path, int flags, void *parameters,
-		   int* model, int* version)
+static int
+NC_check_file_type(const char *path, int flags, int use_parallel,
+		   void *parameters, int* model, int* version)
 {
     char magic[MAGIC_NUMBER_LEN];
     int status = NC_NOERR;
@@ -297,9 +297,6 @@ NC_check_file_type(const char *path, int flags, void *parameters,
     int inmemory = ((flags & NC_INMEMORY) == NC_INMEMORY);
     int mmap = ((flags & NC_MMAP) == NC_MMAP);
 
-#ifdef USE_PARALLEL
-    int use_parallel = ((flags & NC_MPIIO) == NC_MPIIO);
-#endif /* USE_PARALLEL */
     struct MagicFile file;
 
    *model = 0;
@@ -313,11 +310,7 @@ NC_check_file_type(const char *path, int flags, void *parameters,
     file.parameters = parameters;
     file.inmemory = inmemory;
     file.diskless = diskless;
-#ifdef USE_PARALLEL
-    /* presumably a real file */
-    /* for parallel, use the MPI functions instead (why?) */
     file.use_parallel = use_parallel;
-#endif /* USE_PARALLEL */
 
     status = openmagic(&file);
     if(status != NC_NOERR) {goto done;}
@@ -332,8 +325,12 @@ NC_check_file_type(const char *path, int flags, void *parameters,
     }
     /* Look at the magic number */
     if(NC_interpret_magic_number(magic,model,version) == NC_NOERR
-       && *model != 0)
+       && *model != 0) {
+        if (*model == NC_FORMATX_NC3 && use_parallel)
+            /* this is called from nc_open_par() and file is classic */
+            *model = NC_FORMATX_PNETCDF;
         goto done; /* found something */
+    }
 
     /* Remaining case is to search forward at starting at 512
        and doubling to see if we have HDF5 magic number */
@@ -888,8 +885,7 @@ nc__open(const char *path, int mode,
     * flags, such as NC_PNETCDF, NC_MPIIO, or NC_MPIPOSIX, before entering
     * NC_open()? Note nc_open_par() also calls NC_open().
     */
-   return NC_open(path, mode, 0, chunksizehintp, 0,
-		  NULL, ncidp);
+   return NC_open(path, mode, 0, chunksizehintp, 0, NULL, ncidp);
 }
 
 /** \ingroup datasets
@@ -1038,8 +1034,7 @@ int
 nc__open_mp(const char *path, int mode, int basepe,
 	    size_t *chunksizehintp, int *ncidp)
 {
-   return NC_open(path, mode, basepe, chunksizehintp,
-		  0, NULL, ncidp);
+   return NC_open(path, mode, basepe, chunksizehintp, 0, NULL, ncidp);
 }
 
 /** \ingroup datasets
@@ -2040,6 +2035,10 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    if(path0 == NULL)
 	return NC_EINVAL;
 
+   if (!useparallel && ((cmode & NC_MPIIO) || (cmode & NC_MPIPOSIX)))
+       /* this is called from nc_create(), not nc_create_par() */
+       return NC_EINVAL;
+
    /* Fix the inmemory related flags */
    mmap = ((cmode & NC_MMAP) == NC_MMAP);  
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
@@ -2087,13 +2086,19 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
     /* determine the model */
 #ifdef USE_NETCDF4
-    if (model == NC_FORMATX_UNDEFINED && ((cmode & NC_NETCDF4) == NC_NETCDF4))
+    if (model == NC_FORMATX_UNDEFINED && (cmode & NC_NETCDF4))
         model = NC_FORMATX_NC4;
+#else
+    if (model == NC_FORMATX_UNDEFINED && (cmode & NC_NETCDF4))
+        return NC_ENOTBUILT;
 #endif
 #ifdef USE_PNETCDF
-    if (model == NC_FORMATX_UNDEFINED && ((cmode & NC_MPIIO) == NC_MPIIO))
+    if (model == NC_FORMATX_UNDEFINED && (cmode & NC_MPIIO))
         /* pnetcdf is used for parallel io on CDF-1, CDF-2, and CDF-5 */
         model = NC_FORMATX_PNETCDF;
+#else
+    if (model == NC_FORMATX_UNDEFINED && (cmode & NC_MPIIO))
+        return NC_ENOTBUILT;
 #endif
 
     /* Check default format (not formatx) */
@@ -2126,31 +2131,31 @@ NC_create(const char *path0, int cmode, size_t initialsz,
     }
 
     /* default model */
-    if (model == NC_FORMATX_UNDEFINED)
-        model = NC_FORMATX_NC3;
+    if (model == NC_FORMATX_UNDEFINED) {
+        if (useparallel)
+            model = NC_FORMATX_PNETCDF;
+        else
+            model = NC_FORMATX_NC3;
+    }
 
-   if (dispatcher == NULL)
-   {
-
-      /* Figure out what dispatcher to use */
+    /* Figure out what dispatcher to use */
 #ifdef USE_NETCDF4
-      if(model == (NC_FORMATX_NC4))
+    if(model == (NC_FORMATX_NC4))
  	dispatcher = NC4_dispatch_table;
-      else
+    else
 #endif /*USE_NETCDF4*/
 #ifdef USE_PNETCDF
-      if(model == (NC_FORMATX_PNETCDF))
+    if(model == (NC_FORMATX_PNETCDF))
 	dispatcher = NCP_dispatch_table;
-      else
+    else
 #endif
-      if(model == (NC_FORMATX_NC3))
+    if(model == (NC_FORMATX_NC3))
  	dispatcher = NC3_dispatch_table;
-      else
+    else
       {
 	  nullfree(path);
 	  return NC_ENOTNC;
       }
-   }
 
    /* Create the NC* instance and insert its dispatcher */
    stat = new_NC(dispatcher,path,cmode,model,&ncp);
@@ -2223,6 +2228,10 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
       if(stat) return stat;
    }
 
+   if (!useparallel && ((cmode & NC_MPIIO) || (cmode & NC_MPIPOSIX)))
+       /* this is called from nc_open(), not nc_open_par() */
+       return NC_EINVAL;
+
    /* Fix the inmemory related flags */
    mmap = ((cmode & NC_MMAP) == NC_MMAP);
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
@@ -2291,11 +2300,10 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
     if(model == 0) {
 	version = 0;
 	/* Try to find dataset type */
-	if(useparallel) flags |= NC_MPIIO;
 	if(inmemory) flags |= NC_INMEMORY;
 	if(diskless) flags |= NC_DISKLESS;
 	if(mmap) flags |= NC_MMAP;
-	stat = NC_check_file_type(path,flags,parameters,&model,&version);
+	stat = NC_check_file_type(path,flags,useparallel,parameters,&model,&version);
         if(stat == NC_NOERR) {
 	    if(model == 0) {
 		nullfree(path);
@@ -2341,7 +2349,7 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
        }
    }
 
-   /* Force flag consistentcy */
+   /* Force flag consistency */
    if(model == NC_FORMATX_NC4 || model == NC_FORMATX_NC_HDF4 || model == NC_FORMATX_DAP4 ||
       model == NC_FORMATX_UDF0 || model == NC_FORMATX_UDF1)
       cmode |= NC_NETCDF4;
@@ -2351,34 +2359,12 @@ NC_open(const char *path0, int cmode, int basepe, size_t *chunksizehintp,
       cmode &= ~NC_64BIT_OFFSET;
    } else if(model == NC_FORMATX_NC3) {
       cmode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
-      /* User may want to open file using the pnetcdf library */
-      if(cmode & NC_PNETCDF) {
-         /* dispatch is determined by cmode, rather than file format */
-         model = NC_FORMATX_PNETCDF;
-      }
-      /* For opening an existing file, flags NC_64BIT_OFFSET and NC_64BIT_DATA
-       * will be ignored, as the file is already in either CDF-1, 2, or 5
-       * format. However, below we add the file format info to cmode so the
-       * internal netcdf file open subroutine knows what file format to open.
-       * The mode will be saved in ncp->mode, to be used by
-       * nc_inq_format_extended() to report the file format.
-       * See NC3_inq_format_extended() in libsrc/nc3internal.c for example.
-       */
       if(version == 2) cmode |= NC_64BIT_OFFSET;
-      else if(version == 5) {
-        cmode |= NC_64BIT_DATA;
-        cmode &= ~(NC_64BIT_OFFSET); /*NC_64BIT_DATA=>NC_64BIT_OFFSET*/
-      }
+      else if(version == 5) cmode |= NC_64BIT_DATA;
    } else if(model == NC_FORMATX_PNETCDF) {
-     cmode &= ~(NC_NETCDF4|NC_64BIT_OFFSET);
-     cmode |= NC_64BIT_DATA;
-   }
-
-   /* Invalid to use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
-    * mind! */
-   if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX)) {
-       nullfree(path);
-       return NC_EINVAL;
+      cmode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
+      if(version == 2) cmode |= NC_64BIT_OFFSET;
+      else if(version == 5) cmode |= NC_64BIT_DATA;
    }
 
    /* Figure out what dispatcher to use */
@@ -2514,8 +2500,22 @@ openmagic(struct MagicFile* file)
 	if((retval = MPI_File_open(((NC_MPI_INFO*)file->parameters)->comm,
                                    (char*)file->path,MPI_MODE_RDONLY,
                                    ((NC_MPI_INFO*)file->parameters)->info,
-                                   &file->fh)) != MPI_SUCCESS)
-	    {status = NC_EPARINIT; goto done;}
+                                   &file->fh)) != MPI_SUCCESS) {
+            int errorclass, errorStringLen;
+            char errorString[MPI_MAX_ERROR_STRING];
+            MPI_Error_class(retval, &errorclass);
+#ifdef MPI_ERR_NO_SUCH_FILE
+            if (errorclass == MPI_ERR_NO_SUCH_FILE)
+#ifdef NC_ENOENT
+                status = NC_ENOENT;
+#else
+                status = errno;
+#endif
+            else
+#endif
+            status = NC_EPARINIT;
+            goto done;
+        }
 	/* Get its length */
 	if((retval=MPI_File_get_size(file->fh, &size)) != MPI_SUCCESS)
 	    {status = NC_EPARINIT; goto done;}
