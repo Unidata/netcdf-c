@@ -693,13 +693,13 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
    NC* ncp;
    unsigned int id;
    size_t nparams;
-   unsigned int params[2];
+   unsigned int params[4];
 
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
    TRACE(nc_inq_var_szip);
 
-   /* Verify id and nparams */
+   /* Verify id and  nparams */
    stat = ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
@@ -721,7 +721,8 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
       NULL
       );
    if(stat != NC_NOERR) return stat;
-   if(id != H5Z_FILTER_SZIP || nparams != 2)
+   /* Warning: the szip filter internally expands the set of parameters */
+   if(id != H5Z_FILTER_SZIP || nparams != 4)
 	return NC_EFILTER; /* not szip or bad # params */
    /* Get params */
    stat = ncp->dispatch->inq_var_all(
@@ -745,7 +746,8 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
       params
       );
    if(stat != NC_NOERR) return stat;
-   /* Param[0] should be options_mask, Param[1] should be pixels_per_block */
+   /* Param[0] should be options_mask with possibly some other flags set,
+      Param[1] should be pixels_per_block */
    if(options_maskp) *options_maskp = (int)params[0];
    if(pixels_per_blockp) *pixels_per_blockp = (int)params[1];
    return NC_NOERR;

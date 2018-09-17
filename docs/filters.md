@@ -380,6 +380,32 @@ demonstrate how to build the hdf5 plugin for bzip2.
 Notes
 ==========
 
+SZIP Issues
+-----------
+The current szip plugin code in the HDF5 library
+has some behaviors that can catch the unwary.
+Specifically, this filter may do two things.
+
+1. Add extra parameters to the filter parameters: going from
+   the two parameters provided by the user to four parameters
+   for internal use. It turns out that the two parameters provided
+   when calling nc_def_var_filter correspond to the first two
+   parameters of the four parameters returned by nc_inq_var_filter.
+2. Change the values of some parameters: the value of the
+   __options_mask__ argument is known to add additional flag bits,
+   and the __pixels_per_block__ parameter may be modified.
+
+The reason for these changes is has to do with the fact that
+the szip API provided by the underlying H5Pset_szip function
+is actually a subset of the capabilities of the real szip implementation.
+Presumably this is for historical reasons.
+
+In any case, if the caller uses the __nc_inq_var_szip__, then
+the values returned may differ from those originally specified.
+If one used the __nc_inq_var_filter__ API calls, it may be the case that
+both the number of parameters and the values will differ from the original
+call to __nc_def_var_filter__.
+
 Supported Systems
 -----------------
 The current matrix of OS X build systems known to work is as follows.

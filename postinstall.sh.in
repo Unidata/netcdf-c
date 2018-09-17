@@ -5,7 +5,7 @@
 DOCMAKE=""
 DOAUTOTOOL=""
 DOACTION=""
-TARGVERSION="v4.4.2"
+TARGVERSION="v4.4.4"
 
 MARG=""
 if [ $# -lt 1 ]; then
@@ -20,7 +20,7 @@ fi
 ##
 # Check for 'git', exit if it's not found.
 ##
-hash git 2>/dev/null
+hash git 2>/dev/null1
 if [ $? -eq 1 ]; then
     echo "ERROR: 'git' is required to install netcdf-fortran automatically"
     echo "through this method. Please reinstall git and try again."

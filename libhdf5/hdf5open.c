@@ -748,6 +748,26 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          var->deflate_level = cd_values_zip[0];
          break;
 
+      case H5Z_FILTER_SZIP:
+	/* Szip is tricky because the filter code expands the set of parameters from 2 to 4
+           and changes some of the parameter values */
+         var->filterid = filter;
+         if(cd_nelems == 0)
+            var->params = NULL;
+         else {
+            /* We have to re-read the parameters based on actual nparams,
+               which in the case of szip, differs from users original nparams */
+            var->params = (unsigned int*)calloc(1,sizeof(unsigned int)*cd_nelems);
+            if(var->params == NULL)
+               BAIL(NC_ENOMEM);
+            if((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
+                                        var->params, 0, NULL, NULL)) < 0)
+               BAIL(NC_EHDFERR);
+	    /* fix up the parameters and the #params */
+            var->nparams = cd_nelems;
+         }
+         break;
+
       default:
          var->filterid = filter;
          var->nparams = cd_nelems;
