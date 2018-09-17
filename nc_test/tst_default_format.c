@@ -40,15 +40,10 @@ create_check(char *fname, int cmode, int exp_format)
 #ifndef USE_NETCDF4
     if (cmode & NC_NETCDF4)
         exp_err = NC_ENOTBUILT;
-    else if (cmode == 0 && (exp_format == NC_FORMAT_NETCDF4 ||
-                            exp_format == NC_FORMAT_NETCDF4_CLASSIC))
-        exp_err = NC_ENOTBUILT;
 #endif
 #ifndef ENABLE_CDF5
     if (cmode & NC_64BIT_DATA)
         exp_err = NC_ENOTBUILT;
-    else if (cmode == 0 && exp_format == NC_FORMAT_64BIT_DATA)
-        exp_format = NC_FORMAT_CLASSIC;
 #endif
 
     /* create a file */
@@ -195,6 +190,8 @@ int main(int argc, char *argv[])
 #ifndef USE_NETCDF4
     err = nc_set_default_format(NC_FORMAT_NETCDF4, NULL); EXP_ERR(NC_ENOTBUILT)
     err = nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL); EXP_ERR(NC_ENOTBUILT)
+    nerrs += create_check(fname, NC_NETCDF4, NC_FORMAT_NETCDF4);
+    nerrs += create_check(fname, NC_NETCDF4|NC_CLASSIC_MODEL, NC_FORMAT_NETCDF4_CLASSIC);
 #else
     /* set default file format to NC_FORMAT_NETCDF4 -----------------------*/
     default_format = NC_FORMAT_NETCDF4;
