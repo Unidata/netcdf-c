@@ -2141,23 +2141,24 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 #endif
 
     /* Figure out what dispatcher to use */
+    if (model == NC_FORMATX_NC4)
 #ifdef USE_NETCDF4
-    if(model == (NC_FORMATX_NC4))
- 	dispatcher = NC4_dispatch_table;
-    else
-#endif /*USE_NETCDF4*/
-#ifdef USE_PNETCDF
-    if(model == (NC_FORMATX_PNETCDF))
-	dispatcher = NCP_dispatch_table;
-    else
+        dispatcher = NC4_dispatch_table;
+#else
+        return NC_ENOTBUILT;
 #endif
-    if(model == (NC_FORMATX_NC3))
- 	dispatcher = NC3_dispatch_table;
-    else
-      {
-	  nullfree(path);
-	  return NC_ENOTNC;
-      }
+    else if (model == NC_FORMATX_PNETCDF)
+#ifdef USE_PNETCDF
+        dispatcher = NCP_dispatch_table;
+#else
+        return NC_ENOTBUILT;
+#endif
+    else if (model == NC_FORMATX_NC3)
+        dispatcher = NC3_dispatch_table;
+    else {
+        nullfree(path);
+        return NC_ENOTNC;
+    }
 
    /* Create the NC* instance and insert its dispatcher */
    stat = new_NC(dispatcher,path,cmode,model,&ncp);
