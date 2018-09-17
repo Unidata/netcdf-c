@@ -20,7 +20,8 @@
 
 /* Szip Constants. */
 #define HDF5_FILTER_SZIP 4
-#define H5_SZIP_MAX_PIXELS_PER_BLOCK 32
+#define H5_SZIP_MAX_PIXELS_PER_BLOCK_IN 32
+#define H5_SZIP_MAX_PIXELS_PER_BLOCK_OUT 64
 
 /* Option Mask Flags (Refere to HDF5 szip documentation)  */
 #define H5_SZIP_ALLOW_K13_OPTION_MASK 1 /*Allows k split = 13 compression mode. (Default)*/
@@ -77,7 +78,7 @@ main(void)
      * information.
      */
     szip_params[0] = H5_SZIP_NN_OPTION_MASK;
-    szip_params[1] = H5_SZIP_MAX_PIXELS_PER_BLOCK;
+    szip_params[1] = H5_SZIP_MAX_PIXELS_PER_BLOCK_IN;
     { int stat = nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, szip_params);
        if(stat) {
          fprintf(stderr,"XXX: %d %s\b",stat,nc_strerror(stat));
