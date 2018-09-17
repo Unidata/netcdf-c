@@ -39,17 +39,17 @@
 
 #define NC_HAS_NC2       @NC_HAS_NC2@ /*!< API version 2 support. */
 #define NC_HAS_NC4       @NC_HAS_NC4@ /*!< API version 4 support. */
-#define NC_HAS_HDF4      @NC_HAS_HDF4@ /*!< hdf4 support. */
-#define NC_HAS_HDF5      @NC_HAS_HDF5@ /*!< hdf5 support. */
-#define NC_HAS_SZIP      @NC_HAS_SZIP@ /*!< szip support (hdf5 only) */
+#define NC_HAS_HDF4      @NC_HAS_HDF4@ /*!< HDF4 support. */
+#define NC_HAS_HDF5      @NC_HAS_HDF5@ /*!< HDF5 support. */
+#define NC_HAS_SZIP      @NC_HAS_SZIP@ /*!< szip support (HDF5 only) */
 #define NC_HAS_DAP2      @NC_HAS_DAP2@ /*!< DAP2 support. */
 #define NC_HAS_DAP4      @NC_HAS_DAP4@ /*!< DAP4 support. */
 #define NC_HAS_DISKLESS  @NC_HAS_DISKLESS@ /*!< diskless support. */
 #define NC_HAS_MMAP      @NC_HAS_MMAP@ /*!< mmap support. */
 #define NC_HAS_JNA       @NC_HAS_JNA@ /*!< jna support. */
-#define NC_HAS_PNETCDF   @NC_HAS_PNETCDF@ /*!< pnetcdf support. */
-#define NC_HAS_PARALLEL4 @NC_HAS_PARALLEL4@ /*!< parallel IO support via hdf5 */
-#define NC_HAS_PARALLEL  @NC_HAS_PARALLEL@ /*!< parallel IO support via hdf5 and/or pnetcdf. */
+#define NC_HAS_PNETCDF   @NC_HAS_PNETCDF@ /*!< PnetCDF support. */
+#define NC_HAS_PARALLEL4 @NC_HAS_PARALLEL4@ /*!< parallel IO support via HDF5 */
+#define NC_HAS_PARALLEL  @NC_HAS_PARALLEL@ /*!< parallel IO support via HDF5 and/or PnetCDF. */
 
 #define NC_HAS_CDF5      @NC_HAS_CDF5@  /*!< CDF5 support. */
 #define NC_HAS_ERANGE_FILL @NC_HAS_ERANGE_FILL@ /*!< ERANGE_FILL Support */

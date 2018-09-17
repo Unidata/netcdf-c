@@ -149,7 +149,7 @@ int main(int argc, char** argv)
     /* do not forget to exit define mode */
     err = nc_enddef(ncid); ERR
 
-    /* set to use MPI/PnetCDF collective I/O */
+    /* set to use MPI collective I/O */
     err = nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE); ERR
 
     /* now we are in data mode */
@@ -175,7 +175,7 @@ int main(int argc, char** argv)
     /* obtain variable ID */
     err = nc_inq_varid(ncid, "var", &varid); ERR
 
-    /* set to use MPI/PnetCDF collective I/O */
+    /* set to use MPI collective I/O */
     err = nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE); ERR
 
     /* each process reads its subarray from the file */

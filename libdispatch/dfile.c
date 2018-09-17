@@ -2093,7 +2093,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 #endif
 #ifdef USE_PNETCDF
     if (model == NC_FORMATX_UNDEFINED && (cmode & NC_MPIIO))
-        /* pnetcdf is used for parallel io on CDF-1, CDF-2, and CDF-5 */
+        /* PnetCDF is used for parallel io on CDF-1, CDF-2, and CDF-5 */
         model = NC_FORMATX_PNETCDF;
 #else
     if (model == NC_FORMATX_UNDEFINED && (cmode & NC_MPIIO))

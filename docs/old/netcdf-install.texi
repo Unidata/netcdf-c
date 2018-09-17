@@ -665,7 +665,7 @@ users.
 
 @item --enable-pnetcdf
 Allows parallel I/O with classic and 64-bit offset format files, using
-the parallel-netcdf (formerly pnetcdf) library from
+the PnetCDF (Parallel-netCDF) library from
 Argonne/Northwestern. The parallel-netcdf library must be installed,
 and a specially modified pnetcdf.h must be used. (Get it at
 ftp://ftp.unidata.ucar.edu/pub/netcdf/user/contrib/pnetcdf.h)
