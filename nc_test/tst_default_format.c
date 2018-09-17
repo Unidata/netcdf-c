@@ -11,12 +11,20 @@
     } \
 }
 
+#define EXP_ERR(exp) { \
+    if (err != exp) { \
+        printf("Error at %s:%d: expect %d but got %d\n", \
+               __FILE__, __LINE__, exp,err); \
+        nerrs++; \
+    } \
+}
+
 static int default_format;
 
 static int
 create_check(char *fname, int cmode, int exp_format)
 {
-    int nerrs=0, err, ncid, format;
+    int nerrs=0, err, exp_err=NC_NOERR, ncid, format;
     char *exp_str;
 
     switch (exp_format) {
@@ -29,9 +37,25 @@ create_check(char *fname, int cmode, int exp_format)
         default: break;
     }
 
+#ifndef USE_NETCDF4
+    if (cmode & NC_NETCDF4)
+        exp_err = NC_ENOTBUILT;
+    else if (cmode == 0 && (exp_format == NC_FORMAT_NETCDF4 ||
+                            exp_format == NC_FORMAT_NETCDF4_CLASSIC))
+        exp_err = NC_ENOTBUILT;
+#endif
+#ifndef ENABLE_CDF5
+    if (cmode & NC_64BIT_DATA)
+        exp_err = NC_ENOTBUILT;
+    else if (cmode == 0 && exp_format == NC_FORMAT_64BIT_DATA)
+        exp_format = NC_FORMAT_CLASSIC;
+#endif
+
     /* create a file */
     cmode |= NC_CLOBBER;
-    err = nc_create(fname, cmode, &ncid); ERR
+    err = nc_create(fname, cmode, &ncid); EXP_ERR(exp_err)
+    if (err == NC_ENOTBUILT) return nerrs;
+
     err = nc_close(ncid); ERR
 
     /* open the file and check its format */
@@ -136,11 +160,9 @@ int main(int argc, char *argv[])
     cmode = NC_64BIT_OFFSET;
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 
-#ifdef ENABLE_CDF5
     /* create a file in CDF5 format */
     cmode = NC_64BIT_DATA;
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_DATA);
-#endif
 
     /* set default file format to NC_FORMAT_64BIT_OFFSET ------------------*/
     default_format = NC_FORMAT_64BIT_OFFSET;
@@ -150,13 +172,13 @@ int main(int argc, char *argv[])
     cmode = 0;
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 
-#ifdef ENABLE_CDF5
     /* create a file in CDF5 format (this should ignore default) */
     cmode = NC_64BIT_DATA;
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_DATA);
-#endif
 
-#ifdef ENABLE_CDF5
+#ifndef ENABLE_CDF5
+    err = nc_set_default_format(NC_FORMAT_64BIT_DATA, NULL); EXP_ERR(NC_ENOTBUILT)
+#else
     /* set default file format to NC_FORMAT_64BIT_DATA --------------------*/
     default_format = NC_FORMAT_64BIT_DATA;
     err = nc_set_default_format(default_format, NULL); ERR
@@ -170,7 +192,10 @@ int main(int argc, char *argv[])
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 #endif
 
-#ifdef USE_NETCDF4
+#ifndef USE_NETCDF4
+    err = nc_set_default_format(NC_FORMAT_NETCDF4, NULL); EXP_ERR(NC_ENOTBUILT)
+    err = nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL); EXP_ERR(NC_ENOTBUILT)
+#else
     /* set default file format to NC_FORMAT_NETCDF4 -----------------------*/
     default_format = NC_FORMAT_NETCDF4;
     err = nc_set_default_format(default_format, NULL); ERR
