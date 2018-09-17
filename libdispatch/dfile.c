@@ -2116,11 +2116,9 @@ NC_create(const char *path0, int cmode, size_t initialsz,
                  if (model == NC_FORMATX_UNDEFINED) model = NC_FORMATX_NC4;
                  break;
 #endif
-#ifdef ENABLE_CDF5
             case NC_FORMAT_CDF5:
                  cmode |= NC_64BIT_DATA;
                  break;
-#endif
             case NC_FORMAT_64BIT_OFFSET:
                  cmode |= NC_64BIT_OFFSET;
                  break;
@@ -2136,6 +2134,11 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         else
             model = NC_FORMATX_NC3;
     }
+
+#ifndef ENABLE_CDF5
+    if (model == NC_FORMATX_NC3 && (cmode & NC_64BIT_DATA))
+        return NC_ENOTBUILT;
+#endif
 
     /* Figure out what dispatcher to use */
 #ifdef USE_NETCDF4
