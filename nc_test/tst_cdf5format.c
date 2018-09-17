@@ -2,7 +2,7 @@
    Copyright 2005 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test fix of bug involving creation of a file with pnetcdf APIs,
+   Test fix of bug involving creation of a file with PnetCDF APIs,
    then opening and modifying the file with netcdf.
 
    Author: Wei-keng Liao, Ed Hartnett
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 
    printf("\nWrite using PNETCDF; Read using classic netCDF...");
    {
-      /* Create a netCDF classic file with pnetcdf. */
+      /* Create a netCDF classic file with PnetCDF. */
       cmode = NC_PNETCDF | NC_CLOBBER;
       if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR;
       if (write2(ncid, 1)) ERR;
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
       if (extend(ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
-      /* Re-open with pnetcdf and check. */
+      /* Re-open with PnetCDF and check. */
       cmode = NC_PNETCDF | NC_NOCLOBBER;
       if (nc_open_par(FILENAME, cmode, comm, info, &ncid)) ERR;
       if (read2(ncid)) ERR;

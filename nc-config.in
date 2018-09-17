@@ -82,9 +82,9 @@ Available values for OPTION include:
   --has-hdf5    whether HDF5 is used in build (always the same as --has-nc4)
   --has-hdf4    whether HDF4 was used in build
   --has-logging whether logging is enabled with --enable-logging.
-  --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
+  --has-pnetcdf whether PnetCDF was used in build
   --has-szlib   whether szlib is included in build
-  --has-parallel whether has parallel IO support via hdf5 and/or pnetcdf
+  --has-parallel whether has parallel IO support via HDF5 and/or PnetCDF
   --has-cdf5    whether cdf5 support is included in build
   --libs        library linking information for netcdf
   --prefix      Install prefixx

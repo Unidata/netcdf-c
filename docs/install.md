@@ -296,7 +296,7 @@ directory, configure netCDF with the "--enable-pnetcdf" option. If PnetCDF
 is built with static library only, add "--disable-shared" option.
 
 ~~~~{.py}
-    $ # Build, test, and install netCDF-4 with pnetcdf support
+    $ # Build, test, and install netCDF-4 with PnetCDF support
     $ CC=mpicc CPPFLAGS="-I${H5DIR}/include -I${PNDIR}/include" \
       LDFLAGS="-L${H5DIR}/lib -L${PNDIR}/lib" ./configure \
 	  --enable-pnetcdf  --enable-parallel-tests \
@@ -309,7 +309,7 @@ Linking to netCDF-C {#linking}
 -------------------
 
 For static builds of applications that use netCDF-4 you must link to all the
-libraries, netCDF, HDF5, zlib, szip (if used with HDF5 build), pnetcdf (if used
+libraries, netCDF, HDF5, zlib, szip (if used with HDF5 build), PnetCDF (if used
 with PnetCDF build), and curl (if the remote access client has not been
 disabled). This will require -L options to your build for the locations of the
 libraries, and -l (lower-case L) for the names of the libraries.

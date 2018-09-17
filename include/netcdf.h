@@ -156,7 +156,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 #define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() => NC_DISKLESS */
 
-#define NC_PNETCDF       (NC_MPIIO) /**< Use parallel-netcdf library; alias for NC_MPIIO. */
+#define NC_PNETCDF       (NC_MPIIO) /**< Use PnetCDF library; alias for NC_MPIIO. */
 
 #define NC_UDF0          0x0080  /**< User-defined format 0. */
 #define NC_UDF1          0x0002  /**< User-defined format 1. */

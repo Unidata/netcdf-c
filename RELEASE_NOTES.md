@@ -163,7 +163,7 @@ disbled until the testserver situation is resolved.
 
     This cascaded into a number of other changes.
 
-    1. Renamed libsrcp5 -> libsrcp because pnetcdf can do parallel io for CDF-1, CDF-2 and CDF-5, not just CDF-5.
+    1. Renamed libsrcp5 -> libsrcp because PnetCDF can do parallel io for CDF-1, CDF-2 and CDF-5, not just CDF-5.
     2. Given #1, then the NC_PNETCDF mode flag becomes a subset of NC_MPIIO, so made NC_PNETCDF an alias for NC_MPII.
     3. NC_FORMAT_64BIT is now deprecated.  Use NC_FORMAT_64BIT_OFFSET.
 
@@ -279,7 +279,7 @@ Example Work Flow from netcdf-c source directory:
 
 * Added an explicit check in the build systems (autotools, cmake) for the CURL-related option `CURLOPT_CHUNK_BGN_FUNCTION`.  This option was introduced in libcurl version `7.21.0`.  On installations which require libcurl and have this version, `CURLOPT_CHUNK_BGN_FUNCTION` will be available. Otherwise, it will not.
 
-* The pnetcdf support was not properly being used to provide mpi parallel io for netcdf-3 classic files. The wrong dispatch table was being used. [NCF-319](https://bugtracking.unidata.ucar.edu/browse/NCF-319)
+* The PnetCDF support was not properly being used to provide mpi parallel io for netcdf-3 classic files. The wrong dispatch table was being used. [NCF-319](https://bugtracking.unidata.ucar.edu/browse/NCF-319)
 
 * In nccopy utility, provided proper default for unlimited dimension in chunk-size specification instead of requiring explicit chunk size. Added associated test. [NCF-321](https://bugtracking.unidata.ucar.edu/browse/NCF-321)
 
@@ -1188,7 +1188,7 @@ definitions in the DAS, but they will be ignored.
 
 * Many documentation fixes.
 
-* Added capability to use the parallel-netcdf (a.k.a. pnetcdf) library to
+* Added capability to use the PnetCDF library to
 perform parallel I/O on classic and 32-bit offset files. Use the
 NC\_PNETCDF mode flag to get parallel I/O for non-netcdf-4 files.
 

@@ -2,7 +2,7 @@
    Copyright 2005 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test fix of bug involving creation of a file with pnetcdf APIs,
+   Test fix of bug involving creation of a file with PnetCDF APIs,
    then opening and modifying the file with netcdf.
 
    Author: Wei-keng Liao.
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     MPI_Comm comm=MPI_COMM_SELF;
     MPI_Info info=MPI_INFO_NULL;
 
-    printf("\n*** Testing bug fix with changing pnetcdf variable offsets...");
+    printf("\n*** Testing bug fix with changing PnetCDF variable offsets...");
 
     MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);

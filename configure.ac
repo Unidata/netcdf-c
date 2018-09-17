@@ -1095,7 +1095,7 @@ if test "x$enable_netcdf_4" = xyes; then
 fi
 
 # There are several cases for parallelism:
-# 1. pnetcdf enabled => we want to parallelism for CDF-1,CDF-2,and CDF-5
+# 1. PnetCDF enabled => we want to parallelism for CDF-1,CDF-2,and CDF-5
 # 2. hdf5 has mpio enabled
 #    a. do not want to use it for netcdf4
 #    b. do want to use it for netcdf4
@@ -1127,22 +1127,21 @@ else
 fi
 
 # We have already tested for parallel io in netcdf4
-# Now do it for netcdf-3
-# Does the user want parallel I/O for classic and 64-bit offset files using parallel-netcdf (pnetcdf)?
+# parallel I/O for CDF-1, 2, and 5 files can also be done through PnetCDF
 AC_MSG_CHECKING([whether parallel I/O for classic files is to be enabled])
 AC_ARG_ENABLE([pnetcdf], [AS_HELP_STRING([--enable-pnetcdf],
               [build with parallel I/O for classic files])])
 test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
 AC_MSG_RESULT($enable_pnetcdf)
 
-# See if the pnetcdf lib is available and of the
+# See if the PnetCDF lib is available and of the
 # right version (1.6.0 or later)
 if test "x$enable_pnetcdf" = xyes; then
   pnetcdf_conflict=no
   AC_CHECK_LIB([pnetcdf], [ncmpi_create], [],[pnetcdf_conflict=yes])
 
   if test "x$pnetcdf_conflict" = xyes ; then
-     AC_MSG_ERROR([Cannot link to pnetcdf library.])
+     AC_MSG_ERROR([Cannot link to PnetCDF library.])
   fi
 
   # Pnetcdf did not support utf-8 until 1.6.0
@@ -1160,13 +1159,12 @@ if test "x$enable_pnetcdf" = xyes; then
   fi
 fi
 
-# Now, set enable_parallel if either pnetcdf or parallel4 is set
+# Now, set enable_parallel if either enable_pnetcdf or enable_parallel4 is set
 if test "x$enable_pnetcdf" = xyes -o "x$enable_parallel4" = xyes; then
-enable_parallel=yes
+  enable_parallel=yes
 else
-enable_parallel=no
+  enable_parallel=no
 fi
-
 AM_CONDITIONAL(ENABLE_PARALLEL, [test x$enable_parallel = xyes ])
 
 if test "x$hdf5_parallel" = xyes; then
@@ -1181,12 +1179,12 @@ if test "x$enable_parallel4" = xyes; then
 fi
 
 if test "x$enable_pnetcdf" = xyes; then
-  AC_DEFINE([USE_PNETCDF], [1], [if true, parallel netCDF is used])
+  AC_DEFINE([USE_PNETCDF], [1], [if true, PnetCDF is used])
 fi
 
 # If enable_parallel is in use, enable it in the C code. Also add some stuff to netcdf.h.
 if test "x$enable_parallel" = xyes; then
-  AC_DEFINE([USE_PARALLEL], [1], [if true, pnetcdf or parallel netcdf-4 is in use])
+  AC_DEFINE([USE_PARALLEL], [1], [if true, PnetCDF or parallel netcdf-4 is in use])
 fi
 
 AC_ARG_ENABLE([erange_fill],
