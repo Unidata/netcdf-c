@@ -25,18 +25,13 @@
 
 #define NC_HDF5_MAX_NAME 1024 /**< @internal Max size of HDF5 name. */
 
-#define MAXNAME 1024 /**< Max HDF5 name. */
-
-/** @internal HDF5 object types. */
-static unsigned int OTYPES[5] = {H5F_OBJ_FILE, H5F_OBJ_DATASET, H5F_OBJ_GROUP,
-                                 H5F_OBJ_DATATYPE, H5F_OBJ_ATTR};
-
 /**
  * @internal Flag attributes in a linked list as dirty.
  *
  * @param attlist List of attributes, may be NULL.
  *
  * @return NC_NOERR No error.
+ * @author Dennis Heimbigner
  */
 static int
 flag_atts_dirty(NCindex *attlist) {
@@ -55,7 +50,6 @@ flag_atts_dirty(NCindex *attlist) {
    }
 
    return NC_NOERR;
-
 }
 
 /**
@@ -3218,23 +3212,25 @@ exit:
 }
 
 /**
- * @internal
+ * @internal Report information about an open HDF5 object. This is
+ * called on any still-open objects when a HDF5 file close is
+ * attempted.
  *
- * @param uselog
- * @param id HDF5 ID.
- * @param type
+ * @param uselog If true, send output to LOG not stderr.
+ * @param id HDF5 ID of open object.
+ * @param type Type of HDF5 object, file, dataset, etc.
  *
- * @return NC_NOERR No error.
+ * @author Dennis Heimbigner
  */
 void
 reportobject(int uselog, hid_t id, unsigned int type)
 {
-   char name[MAXNAME];
+   char name[NC_HDF5_MAX_NAME];
    ssize_t len;
    const char* typename = NULL;
    long long printid = (long long)id;
 
-   len = H5Iget_name(id, name, MAXNAME);
+   len = H5Iget_name(id, name, NC_HDF5_MAX_NAME);
    if(len < 0) return;
    name[len] = '\0';
 
@@ -3245,7 +3241,7 @@ reportobject(int uselog, hid_t id, unsigned int type)
    case H5F_OBJ_DATATYPE: typename = "Datatype"; break;
    case H5F_OBJ_ATTR:
       typename = "Attribute";
-      len = H5Aget_name(id, MAXNAME, name);
+      len = H5Aget_name(id, NC_HDF5_MAX_NAME, name);
       if(len < 0) len = 0;
       name[len] = '\0';
       break;
@@ -3270,7 +3266,7 @@ reportobject(int uselog, hid_t id, unsigned int type)
  * @param ntypes Number of types.
  * @param otypes Pointer that gets number of open types.
  *
- * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
  */
 static void
 reportopenobjectsT(int uselog, hid_t fid, int ntypes, unsigned int* otypes)
@@ -3307,11 +3303,14 @@ reportopenobjectsT(int uselog, hid_t fid, int ntypes, unsigned int* otypes)
  * @param uselog
  * @param fid HDF5 file ID.
  *
- * @return NC_NOERR No error.
+ * @author Dennit Heimbigner
  */
 void
 reportopenobjects(int uselog, hid_t fid)
 {
+   unsigned int OTYPES[5] = {H5F_OBJ_FILE, H5F_OBJ_DATASET, H5F_OBJ_GROUP,
+                             H5F_OBJ_DATATYPE, H5F_OBJ_ATTR};
+
    reportopenobjectsT(uselog, fid ,5, OTYPES);
 }
 
@@ -3320,6 +3319,7 @@ reportopenobjects(int uselog, hid_t fid)
  *
  * @param h5 file object
  *
+ * @author Dennis Heimbigner
  */
 void
 showopenobjects5(NC_FILE_INFO_T* h5)
@@ -3341,6 +3341,7 @@ showopenobjects5(NC_FILE_INFO_T* h5)
  *
  * @param ncid file id
  *
+ * @author Dennis Heimbigner
  */
 void
 showopenobjects(int ncid)

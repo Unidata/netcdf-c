@@ -1,10 +1,9 @@
-/*
-Copyright 2009, UCAR/Unidata
-See COPYRIGHT file for copying and redistribution conditions.
+/* Copyright 2009-2018, UCAR/Unidata
+   See COPYRIGHT file for copying and redistribution conditions.
 
-This program tests netcdf-4 performance with some AR-4 3D data.
+   This program tests netcdf-4 performance with some AR-4 4D data.
 
-$Id: tst_ar4_4d.c,v 1.2 2010/01/14 20:25:55 ed Exp $
+   Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -22,7 +21,11 @@ $Id: tst_ar4_4d.c,v 1.2 2010/01/14 20:25:55 ed Exp $
 #define SIXTY_FOUR_MEG (SIXTEEN_MEG * 4)
 #define ONE_TWENTY_EIGHT_MEG (SIXTEEN_MEG * 8)
 
-	 /* From the data file we are using:
+/* Prototype from tst_utils.c. */
+int nc4_timeval_subtract(struct timeval *result, struct timeval *x,
+                         struct timeval *y);
+
+/* From the data file we are using:
 
 ../ncdump/ncdump -h -s thetao_O1.SRESA1B_2.CCSM.ocnm.2000-01_cat_2099-12.nc
 netcdf thetao_O1.SRESA1B_2.CCSM.ocnm.2000-01_cat_2099-12 {
@@ -409,5 +412,5 @@ main(int argc, char **argv)
    else
       printf("%d\t\t%d\n", (int)read_1_us, (int)avg_read_us);
 
-   return 0;
+   FINAL_RESULTS;
 }
