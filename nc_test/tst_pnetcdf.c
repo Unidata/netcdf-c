@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
     CHK_ERR(st)
 #else
     EXP_ERR(st, NC_ENOTBUILT)
-    goto next_test;
+    goto fn_exit;
 #endif
 
     /* define dimension */
@@ -109,14 +109,7 @@ int main(int argc, char* argv[])
     if (info != MPI_INFO_NULL) MPI_Info_free(&info);
 
     /* re-open the file with netCDF (parallel) and enter define mode */
-next_test:
-    st = nc_open_par(FILENAME, NC_WRITE|NC_PNETCDF, comm, info, &ncid);
-#ifdef USE_PNETCDF
-    CHK_ERR(st)
-#else
-    EXP_ERR(st, ENOENT) /* file not exist */
-    goto fn_exit;
-#endif
+    st = nc_open_par(FILENAME, NC_WRITE|NC_PNETCDF, comm, info, &ncid); CHK_ERR(st)
 
     st = nc_redef(ncid); CHK_ERR(st)
 

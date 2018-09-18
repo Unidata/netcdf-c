@@ -101,9 +101,6 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
    float zonal_wnd[LON_LEN*LAT_LEN*TIME_LEN];
    int ii;
 
-   int old_fill_mode;
-   size_t default_initialsize = 0;
-
    /* To test bug on filesystem without large block size, we can get
     * the same effect by providing the desired value as sizehint to
     * nc__create() instead of calling nc_create() and getting the
@@ -112,6 +109,9 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
    stat = nc_create_par(file_name, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
    /* PnetCDF does not support fill mode */
 #else
+   int old_fill_mode;
+   size_t default_initialsize = 0;
+
    stat = nc__create(file_name, NC_CLOBBER, default_initialsize, sizehintp, &ncid);
    check_err(stat,__LINE__,__FILE__);
    stat = nc_set_fill(ncid, fill_mode, &old_fill_mode);
