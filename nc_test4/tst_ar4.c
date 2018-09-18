@@ -4,7 +4,7 @@ See COPYRIGHT file for copying and redistribution conditions.
 
 This program tests netcdf-4 performance with some AR-4 3D data.
 
-$Id: tst_ar4.c,v 1.4 2010/01/11 19:27:11 ed Exp $
+Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -13,7 +13,11 @@ $Id: tst_ar4.c,v 1.4 2010/01/11 19:27:11 ed Exp $
 #include <sys/time.h>
 #include <unistd.h>
 
-	 /* From the data file we are using:
+/* Prototype from tst_utils.c. */
+int nc4_timeval_subtract(struct timeval *result, struct timeval *x,
+                         struct timeval *y);
+
+/* From the data file we are using:
 
 netcdf pr_A1.20C3M_8.CCSM.atmm.1870-01_cat_1999-12 {
 dimensions:
@@ -239,5 +243,5 @@ main(int argc, char **argv)
    else
       printf("%d\t\t%d\n", (int)read_1_us, (int)avg_read_us);
 
-   return 0;
+   FINAL_RESULTS;
 }
