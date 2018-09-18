@@ -233,7 +233,7 @@ AC_MSG_RESULT($enable_hdf4_file_tests)
 # Does the user want to try to install netcdf-fortran
 # automatically?
 AC_MSG_CHECKING([whether we should attempt to install netcdf-fortran (EXPERIMENTAL)])
-AC_ARG_ENABLE([fortran], [AS_HELP_STRING([--enable-remote-fortran-bootstrap],
+AC_ARG_ENABLE([remote-fortran-bootstrap], [AS_HELP_STRING([--enable-remote-fortran-bootstrap],
 			 [Download and install netcdf-fortran (EXPERIMENTAL)])])
 test "x$enable_remote_fortran_bootstrap" = xyes || enable_remote_fortran_bootstrap=no
 AC_MSG_RESULT([$enable_remote_fortran_bootstrap])
