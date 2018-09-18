@@ -2504,10 +2504,9 @@ openmagic(struct MagicFile* file)
                                    (char*)file->path,MPI_MODE_RDONLY,
                                    ((NC_MPI_INFO*)file->parameters)->info,
                                    &file->fh)) != MPI_SUCCESS) {
-            int errorclass, errorStringLen;
-            char errorString[MPI_MAX_ERROR_STRING];
-            MPI_Error_class(retval, &errorclass);
 #ifdef MPI_ERR_NO_SUCH_FILE
+            int errorclass;
+            MPI_Error_class(retval, &errorclass);
             if (errorclass == MPI_ERR_NO_SUCH_FILE)
 #ifdef NC_ENOENT
                 status = NC_ENOENT;

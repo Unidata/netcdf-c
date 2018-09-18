@@ -57,7 +57,7 @@ create_check(char *fname, int cmode, int exp_format)
     err = nc_open(fname, NC_NOWRITE, &ncid); ERR
     err = nc_inq_format(ncid, &format); ERR
     if (format != exp_format) {
-        char *f_str, *d_str;
+        char *f_str="", *d_str="";
         switch (format) {
             case NC_FORMAT_CLASSIC:      f_str = "NC_FORMAT_CLASSIC";
                                          break;
@@ -96,7 +96,7 @@ create_check(char *fname, int cmode, int exp_format)
 int main(int argc, char *argv[])
 {
     char *fname="tst_default_format.nc";
-    int err, nerrs=0, ncid, cmode, format;
+    int err, nerrs=0, ncid, cmode;
 
     if (argc == 2) fname = argv[1];
 

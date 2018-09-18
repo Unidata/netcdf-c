@@ -353,19 +353,20 @@ main(int argc, char *argv[])
 	size_t ui;
 	const struct tcdfvar *tvp = testvars;
 	union getret got;
-	const size_t initialsz = 8192;
-	size_t chunksz = 8192;
 	size_t align = 8192/32;
 
 #ifdef USE_PNETCDF
 	MPI_Init(&argc, &argv);
 
-    cmode |= (NC_PNETCDF);
+        cmode |= (NC_PNETCDF);
 #ifdef ENABLE_CDF5
 	cmode |= (NC_64BIT_DATA);
 #endif
 	ret = nc_create_par(fname,cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &id);
 #else
+	const size_t initialsz = 8192;
+	size_t chunksz = 8192;
+
 	ret = nc__create(fname,cmode, initialsz, &chunksz, &id);
 	if(ret != NC_NOERR) {
  		/* (void) fprintf(stderr, "trying again\n"); */

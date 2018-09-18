@@ -87,10 +87,10 @@ parallel I/O.
 int nc_create_par(const char *path, int cmode, MPI_Comm comm,
 	      MPI_Info info, int *ncidp)
 {
-   NC_MPI_INFO data;
 #ifndef USE_PARALLEL
    return NC_ENOPAR;
-#endif
+#else
+   NC_MPI_INFO data;
 
 #ifndef USE_PNETCDF
    /* PnetCDF is disabled but user wants to create classic file in parallel */
@@ -107,6 +107,7 @@ int nc_create_par(const char *path, int cmode, MPI_Comm comm,
    data.comm = comm;
    data.info = info;
    return NC_create(path, cmode, 0, 0, NULL, 1, &data, ncidp);
+#endif /* USE_PARALLEL */
 }
 
 /**
@@ -186,13 +187,14 @@ nc_open_par(const char *path, int omode, MPI_Comm comm,
 {
 #ifndef USE_PARALLEL
    return NC_ENOPAR;
-#endif
+#else
    NC_MPI_INFO mpi_data;
 
    mpi_data.comm = comm;
    mpi_data.info = info;
 
    return NC_open(path, omode, 0, NULL, 1, &mpi_data, ncidp);
+#endif /* USE_PARALLEL */
 }
 
 /**
