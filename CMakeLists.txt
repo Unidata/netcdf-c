@@ -1010,7 +1010,7 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
   ENDIF()
 ENDIF()
 
-# Options to enable parallel IO for classic formats with parallel-netcdf library.
+# Options to enable parallel IO for classic formats with PnetCDF library.
 SET(STATUS_PNETCDF "OFF")
 OPTION(ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
 
