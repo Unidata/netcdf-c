@@ -16,8 +16,7 @@ This function creates a new netCDF file for parallel I/O access.
 Parallel I/O access is only available in library build which support
 parallel I/O. To support parallel I/O, netCDF must be built with
 netCDF-4 enabled, and with a HDF5 library that supports parallel I/O,
-or with support for the parallel-netcdf library via the
-enable-pnetcdf option.
+or with support for the PnetCDF library via the enable-pnetcdf option.
 
 See nc_create() for a fuller discussion of file creation.
 
@@ -121,8 +120,7 @@ file.
 Parallel I/O access is only available in library build which support
 parallel I/O. To support parallel I/O, netCDF must be built with
 netCDF-4 enabled, and with a HDF5 library that supports parallel I/O,
-or with support for the parallel-netcdf library via the
-enable-pnetcdf option.
+or with support for the PnetCDF library via the enable-pnetcdf option.
 
 It is not necessary to pass any information about the format of the
 file being opened. The file type will be detected automatically by the
@@ -139,7 +137,7 @@ errors, it simply stops their display to the user through stderr.
 
 \param mode The mode flag may include NC_WRITE (for read/write
 access), NC_MPIIO or NC_MPIPOSIX (not both) for parallel netCDF-4 I/O,
-or NC_PNETCDF for parallel-netcdf parallel I/O access for a netCDF
+or NC_PNETCDF for PnetCDF parallel I/O access for a netCDF
 classic or CDF5 file.
 
 \param comm the MPI communicator to be used.
@@ -205,7 +203,7 @@ integers.
 
 \param mode The mode flag may include NC_WRITE (for read/write
 access), NC_MPIIO or NC_MPIPOSIX (not both) for parallel netCDF-4 I/O,
-or NC_PNETCDF for parallel-netcdf parallel I/O access for a netCDF
+or NC_PNETCDF for PnetCDF parallel I/O access for a netCDF
 classic or CDF5 file.
 
 \param comm the MPI communicator to be used.

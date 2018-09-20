@@ -607,7 +607,7 @@ subgroup getting the wrong dimension IDs for its dimensions. [NCF-247]
 [NCF-247]: https://bugtracking.unidata.ucar.edu/browse/NCF-247
 
 * Fixed bug with incorrect fixed-size variable offsets in header getting
-written when schema changed for files created by parallel-netcdf. Thanks
+written when schema changed for files created by PnetCDF Thanks
 to Wei-keng Liao for developing and contributing the fix. [NCF-234]
 
 [NCF-234]: https://bugtracking.unidata.ucar.edu/browse/NCF-234
@@ -645,7 +645,7 @@ options for specifying which groups or variables are to be copied.
 
 [NCF-216]: https://bugtracking.unidata.ucar.edu/browse/NCF-216
 
-* Merged in parallel-netcdf bugs fixes from Greg Sjaardema. [NCF-214]
+* Merged in PnetCDF bugs fixes from Greg Sjaardema. [NCF-214]
 
 [NCF-214]: https://bugtracking.unidata.ucar.edu/browse/NCF-214
 
