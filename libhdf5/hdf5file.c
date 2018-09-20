@@ -14,7 +14,7 @@
 #include "config.h"
 #include "hdf5internal.h"
 
-extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+static void dumpopenobjects(NC_FILE_INFO_T* h5);
 
 /** @internal When we have open objects at file close, should
     we log them or print to stdout. Default is to log. */
