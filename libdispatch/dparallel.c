@@ -27,20 +27,23 @@ errors, it simply stops their display to the user through stderr.
 \param path The file name of the new netCDF dataset.
 
 \param cmode The creation mode flag. The following flags are available:
+  NC_CLOBBER (overwrite existing file),
   NC_NOCLOBBER (do not overwrite existing file),
   NC_NETCDF4 (create netCDF-4/HDF5 file),
   NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
   NC_PNETCDF (alias of NC_MPIIO, to create CDF-1, 2, or 5 file).
 
-\param comm the MPI communicator to be used.
+\param comm the MPI communicator specifying the processes participating the
+parallel I/O to this file.
 
-\param info MPI info or MPI_INFO_NULL.
+\param info MPI info object containing I/O hints or MPI_INFO_NULL.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOPAR Library was not built with parallel I/O features.
+\returns ::NC_EPERM: Attempting to create a netCDF file in a directory where you do not have permission to create files.
 \returns ::NC_ENOTBUILT Library was not built with NETCDF4 or PnetCDF.
 \returns ::NC_EINVAL Invalid input parameters.
 \returns ::NC_ENOMEM System out of memory.
@@ -114,7 +117,7 @@ Open an existing netCDF file for parallel I/O.
 
 This function opens an existing netCDF dataset for parallel I/O
 access. It determines the underlying file format automatically. Use
-the same call to open a netCDF classic, 64-bit offset, or netCDF-4
+the same call to open a netCDF classic, 64-bit offset, CDF-5, or netCDF-4
 file.
 
 Parallel I/O access is only available in library build which support
@@ -136,13 +139,12 @@ errors, it simply stops their display to the user through stderr.
 \param path File name for netCDF dataset to be opened.
 
 \param mode The mode flag may include NC_WRITE (for read/write
-access), NC_MPIIO or NC_MPIPOSIX (not both) for parallel netCDF-4 I/O,
-or NC_PNETCDF for PnetCDF parallel I/O access for a netCDF
-classic or CDF5 file.
+access), NC_NOWRITE (for read-only access).
 
-\param comm the MPI communicator to be used.
+\param comm the MPI communicator specifying the processes participating the
+parallel I/O to this file.
 
-\param info MPI info or MPI_INFO_NULL.
+\param info MPI info object containing I/O hints or MPI_INFO_NULL.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
@@ -153,6 +155,7 @@ causes of errors include:
 
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOPAR Library was not built with parallel I/O features.
+\returns ::NC_EPERM: Attempting to open a netCDF file where you do not have permission to write the file.
 \returns ::NC_ENOTBUILT Library was not built with NETCDF4 or PnetCDF.
 \returns ::NC_EINVAL Invalid parameters.
 \returns ::NC_ENOTNC Not a netCDF file.
@@ -202,13 +205,12 @@ integers.
 \param path File name for netCDF dataset to be opened.
 
 \param mode The mode flag may include NC_WRITE (for read/write
-access), NC_MPIIO or NC_MPIPOSIX (not both) for parallel netCDF-4 I/O,
-or NC_PNETCDF for PnetCDF parallel I/O access for a netCDF
-classic or CDF5 file.
+access), NC_NOWRITE (for read-only access).
 
-\param comm the MPI communicator to be used.
+\param comm the MPI communicator specifying the processes participating the
+parallel I/O to this file.
 
-\param info MPI info or MPI_INFO_NULL.
+\param info MPI info object containing I/O hints or MPI_INFO_NULL.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
@@ -255,8 +257,13 @@ nc_open_par_fortran(const char *path, int mode, int comm,
 
 /**\ingroup datasets
 
-This function will change the parallel access of a variable from
-independent to collective.
+This function will change the parallel access of a variable from independent to
+collective. Note when file is opened/created to use PnetCDF library to perform
+parallel I/O underneath, argument varid is ignored and the mode changed by this
+function applies to all variables. This is because PnetCDF does not support
+access mode change for individual variables. In this case, users may use
+NC_GLOBAL in varid argument for better program readability. To obtain a good
+I/O performance, users are recommended to use collective mode.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
@@ -269,7 +276,7 @@ nc_inq_ncid().
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Invalid ncid passed.
 \returns ::NC_ENOTVAR Invalid varid passed.
-\returns ::NC_ENOPAR LFile was not opened with nc_open_par/nc_create_var.
+\returns ::NC_ENOPAR File was not opened with nc_open_par/nc_create_var.
 \returns ::NC_EINVAL Invalid par_access specified.
 
 <h1>Example</h1>
@@ -317,16 +324,15 @@ parallel access of a variable and then writes to it.
 int
 nc_var_par_access(int ncid, int varid, int par_access)
 {
-    NC* ncp;
-
+#ifndef USE_PARALLEL
+    return NC_ENOPAR;
+#else
     int stat = NC_NOERR;
+    NC* ncp;
 
     if ((stat = NC_check_id(ncid, &ncp)))
        return stat;
 
-#ifndef USE_PARALLEL
-    return NC_ENOPAR;
-#else
     return ncp->dispatch->var_par_access(ncid,varid,par_access);
 #endif
 }
@@ -340,20 +346,23 @@ info from Fortran to C, if necessary.
 \param path The file name of the new netCDF dataset.
 
 \param cmode The creation mode flag. The following flags are available:
+  NC_CLOBBER (overwrite existing file),
   NC_NOCLOBBER (do not overwrite existing file),
   NC_NETCDF4 (create netCDF-4/HDF5 file),
   NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
-  NC_PNETCDF.
+  NC_PNETCDF (alias of NC_MPIIO, to create CDF-1, 2, or 5 file).
 
-\param comm the MPI communicator to be used.
+\param comm the MPI communicator specifying the processes participating the
+parallel I/O to this file.
 
-\param info MPI info or MPI_INFO_NULL.
+\param info MPI info object containing I/O hints or MPI_INFO_NULL.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOPAR Library was not built with parallel I/O features.
+\returns ::NC_EPERM: Attempting to create a netCDF file in a directory where you do not have permission to create files.
 \returns ::NC_EINVAL Invalid input parameters.
 \returns ::NC_ENOMEM System out of memory.
 \returns ::NC_ENOTNC Binary format could not be determined.
