@@ -370,24 +370,24 @@ The following rules are applied in the given order independently
 for each variable to be copied from input to output. The rules are
 written assuming we are trying to determine the chunking for a given
 output variable Vout that comes from an input variable Vin.
-.NP
+.LP
 For each dimension of Vout explicitly specified on the command line
 using the '-c' option, apply the chunking value for that
 dimension.  regardless of input format or input properties.
 
-.NP
+.LP
 For dimensions of V not named on the command line, preserve chunk
 sizes from the corresponding input variable.
-.NP
+.LP
 If V is netcdf-4 and contiguous, and none of its dimensions are
 named on the command line, and chunking is not mandated by other
 options, then make V be contiguous.
-.NP
+.LP
 If the input variable is contiguous (or is some netcdf-3
 variant) and there are no options requiring chunking, or the '/'
 special case for the '-c' option is specified, then the output
 variable V is marked as contiguous.
-.NP
+.LP
 Handle all remaining cases when some or all chunk sizes are not determined by the command line or the input variable. This includes the non-chunked input cases such as netcdf-3, cdf5, and DAP. In these cases:
         Retain all chunk sizes determined by (1) and (2); and
         Compute the remaining chunk sizes automatically, with some reasonable 
