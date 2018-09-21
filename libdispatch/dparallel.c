@@ -15,8 +15,9 @@ This function creates a new netCDF file for parallel I/O access.
 
 Parallel I/O access is only available in library build which support
 parallel I/O. To support parallel I/O, netCDF must be built with
-netCDF-4 enabled, and with a HDF5 library that supports parallel I/O,
-or with support for the PnetCDF library via the enable-pnetcdf option.
+netCDF-4 enabled (configure options --enable-netcdf-4 and --enable-parallel4)
+and with a HDF5 library that supports parallel I/O, or with support for the
+PnetCDF library via the --enable-pnetcdf option.
 
 See nc_create() for a fuller discussion of file creation.
 
@@ -31,7 +32,8 @@ errors, it simply stops their display to the user through stderr.
   NC_NOCLOBBER (do not overwrite existing file),
   NC_NETCDF4 (create netCDF-4/HDF5 file),
   NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
-  NC_PNETCDF (alias of NC_MPIIO, to create CDF-1, 2, or 5 file).
+  NC_64BIT_OFFSET (create CDF-2 file)
+  NC_64BIT_DATA (create CDF-5 file)
 
 \param comm the MPI communicator specifying the processes participating the
 parallel I/O to this file.
@@ -122,8 +124,9 @@ file.
 
 Parallel I/O access is only available in library build which support
 parallel I/O. To support parallel I/O, netCDF must be built with
-netCDF-4 enabled, and with a HDF5 library that supports parallel I/O,
-or with support for the PnetCDF library via the enable-pnetcdf option.
+netCDF-4 enabled (configure options --enable-netcdf-4 and --enable-parallel4)
+and with a HDF5 library that supports parallel I/O, or with support for the
+PnetCDF library via the --enable-pnetcdf option.
 
 It is not necessary to pass any information about the format of the
 file being opened. The file type will be detected automatically by the
@@ -138,8 +141,8 @@ errors, it simply stops their display to the user through stderr.
 
 \param path File name for netCDF dataset to be opened.
 
-\param mode The mode flag may include NC_WRITE (for read/write
-access), NC_NOWRITE (for read-only access).
+\param omode The open mode flag may be NC_WRITE (for read/write
+access) or NC_NOWRITE (for read-only access).
 
 \param comm the MPI communicator specifying the processes participating the
 parallel I/O to this file.
@@ -204,8 +207,8 @@ integers.
 
 \param path File name for netCDF dataset to be opened.
 
-\param mode The mode flag may include NC_WRITE (for read/write
-access), NC_NOWRITE (for read-only access).
+\param omode The open mode flag may be NC_WRITE (for read/write
+access) or NC_NOWRITE (for read-only access).
 
 \param comm the MPI communicator specifying the processes participating the
 parallel I/O to this file.
@@ -232,7 +235,7 @@ files only.)
 \internal
 */
 int
-nc_open_par_fortran(const char *path, int mode, int comm,
+nc_open_par_fortran(const char *path, int omode, int comm,
 		    int info, int *ncidp)
 {
 #ifndef USE_PARALLEL
@@ -245,28 +248,31 @@ nc_open_par_fortran(const char *path, int mode, int comm,
     * function to do so. Otherwise just pass them. */
 #ifdef HAVE_MPI_COMM_F2C
    comm_c = MPI_Comm_f2c(comm);
-   info_c = MPI_Info_f2c(info);
 #else
    comm_c = (MPI_Comm)comm;
+#endif
+#ifdef HAVE_MPI_INFO_F2C
+   info_c = MPI_Info_f2c(info);
+#else
    info_c = (MPI_Info)info;
 #endif
 
-   return nc_open_par(path, mode, comm_c, info_c, ncidp);
+   return nc_open_par(path, omode, comm_c, info_c, ncidp);
 #endif
 }
 
 /**\ingroup datasets
 
 This function will change the parallel access of a variable from independent to
-collective. Note when file is opened/created to use PnetCDF library to perform
-parallel I/O underneath, argument varid is ignored and the mode changed by this
-function applies to all variables. This is because PnetCDF does not support
-access mode change for individual variables. In this case, users may use
-NC_GLOBAL in varid argument for better program readability. To obtain a good
-I/O performance, users are recommended to use collective mode.
+collective and vice versa. Note when file is opened/created to use PnetCDF
+library to perform parallel I/O underneath, argument varid is ignored and the
+mode changed by this function applies to all variables. This is because PnetCDF
+does not support access mode change for individual variables. In this case,
+users may use NC_GLOBAL in varid argument for better program readability. To
+obtain a good I/O performance, users are recommended to use collective mode.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
-nc_create(), nc_def_grp(), or associated inquiry functions such as
+\param ncid NetCDF or group ID, from a previous call to nc_open_par(),
+nc_create_par(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
 \param varid Variable ID
@@ -388,9 +394,12 @@ nc_create_par_fortran(const char *path, int cmode, int comm,
     * function to do so. Otherwise just pass them. */
 #ifdef HAVE_MPI_COMM_F2C
    comm_c = MPI_Comm_f2c(comm);
-   info_c = MPI_Info_f2c(info);
 #else
    comm_c = (MPI_Comm)comm;
+#endif
+#ifdef HAVE_MPI_INFO_F2C
+   info_c = MPI_Info_f2c(info);
+#else
    info_c = (MPI_Info)info;
 #endif
 
