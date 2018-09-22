@@ -98,7 +98,7 @@ int nc_create_par(const char *path, int cmode, MPI_Comm comm,
 
 #ifndef USE_PNETCDF
    /* PnetCDF is disabled but user wants to create classic file in parallel */
-   if ((cmode & NC_PNETCDF) && !(cmode & NC_NETCDF4))
+   if (!(cmode & NC_NETCDF4))
        return NC_ENOTBUILT;
 #endif
 
