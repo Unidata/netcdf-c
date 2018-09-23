@@ -106,7 +106,7 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
     * nc__create() instead of calling nc_create() and getting the
     * block size reported by fstat */
 #ifdef USE_PNETCDF
-   stat = nc_create_par(file_name, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+   stat = nc_create_par(file_name, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
    /* PnetCDF does not support fill mode */
 #else
    int old_fill_mode;
@@ -403,8 +403,8 @@ main(int argc, char **argv)
        /* compare data in two files created with nofill mode and fill
 	* mode, which should be identical if all the data were written */
 #ifdef USE_PNETCDF
-       if (nc_open_par(FILE_NAME1, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid1)) ERR;
-       if (nc_open_par(FILE_NAME2, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid2)) ERR;
+       if (nc_open_par(FILE_NAME1, NC_NOWRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid1)) ERR;
+       if (nc_open_par(FILE_NAME2, NC_NOWRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid2)) ERR;
 #else
        if (nc_open(FILE_NAME1, NC_NOWRITE, &ncid1)) ERR;
        if (nc_open(FILE_NAME2, NC_NOWRITE, &ncid2)) ERR;

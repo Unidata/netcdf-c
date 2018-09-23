@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
     MPI_Info_set(info, "nc_var_align_size",    "1");
 #endif
 
-    cmode = NC_PNETCDF | NC_CLOBBER;
+    cmode = NC_CLOBBER;
     st = nc_create_par(FILENAME, cmode, comm, info, &ncid);
 #ifdef USE_PNETCDF
     CHK_ERR(st)
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
     if (info != MPI_INFO_NULL) MPI_Info_free(&info);
 
     /* re-open the file with netCDF (parallel) and enter define mode */
-    st = nc_open_par(FILENAME, NC_WRITE|NC_PNETCDF, comm, info, &ncid); CHK_ERR(st)
+    st = nc_open_par(FILENAME, NC_WRITE, comm, info, &ncid); CHK_ERR(st)
 
     st = nc_redef(ncid); CHK_ERR(st)
 

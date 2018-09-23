@@ -39,7 +39,7 @@ static const int nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof
                                               sizeof(unsigned long long), sizeof(char *)};
 
 /** @internal These flags may not be set for open mode. */
-static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET);
+static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP);
 
 /* From hdf5file.c. */
 extern size_t nc4_chunk_cache_size;
@@ -404,31 +404,14 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       BAIL(NC_EHDFERR);
 
 #ifdef USE_PARALLEL4
-   /* If this is a parallel file create, set up the file creation
-      property list. */
-   if (mode & NC_MPIIO || mode & NC_MPIPOSIX)
-   {
+   if (!(mode & (NC_INMEMORY | NC_DISKLESS)) && mpiinfo != NULL) {
+       /* If this is a parallel file create, set up the file creation
+        * property list.
+        */
       nc4_info->parallel = NC_TRUE;
-      if (mode & NC_MPIIO)  /* MPI/IO */
-      {
-         LOG((4, "opening parallel file with MPI/IO"));
-         if (H5Pset_fapl_mpio(fapl_id, mpiinfo->comm, mpiinfo->info) < 0)
-            BAIL(NC_EPARINIT);
-      }
-#ifdef USE_PARALLEL_POSIX
-      else /* MPI/POSIX */
-      {
-         LOG((4, "opening parallel file with MPI/posix"));
-         if (H5Pset_fapl_mpiposix(fapl_id, mpiinfo->comm, 0) < 0)
-            BAIL(NC_EPARINIT);
-      }
-#else /* USE_PARALLEL_POSIX */
-      /* Should not happen! Code in NC4_create/NC4_open should alias
-       * the NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
-       * available in HDF5. */
-      else /* MPI/POSIX */
-         BAIL(NC_EPARINIT);
-#endif /* USE_PARALLEL_POSIX */
+      LOG((4, "opening parallel file with MPI/IO"));
+      if (H5Pset_fapl_mpio(fapl_id, mpiinfo->comm, mpiinfo->info) < 0)
+          BAIL(NC_EPARINIT);
 
       /* Keep copies of the MPI Comm & Info objects */
       if (MPI_SUCCESS != MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm))
@@ -568,7 +551,6 @@ exit:
  * @param mode The open mode flag.
  * @param basepe Ignored by this function.
  * @param chunksizehintp Ignored by this function.
- * @param use_parallel 0 for sequential, non-zero for parallel I/O.
  * @param parameters pointer to struct holding extra data (e.g. for parallel I/O)
  * layer. Ignored if NULL.
  * @param dispatch Pointer to the dispatch table for this file.
@@ -580,29 +562,13 @@ exit:
  */
 int
 NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-         int use_parallel, void *parameters, NC_Dispatch *dispatch, NC *nc_file)
+         void *parameters, NC_Dispatch *dispatch, NC *nc_file)
 {
    assert(nc_file && path && dispatch && nc_file &&
           nc_file->model == NC_FORMATX_NC4);
 
    LOG((1, "%s: path %s mode %d params %x",
         __func__, path, mode, parameters));
-
-#ifdef USE_PARALLEL4
-   /* User must provide MPI communicator for parallel I/O. */
-   if (use_parallel && !parameters)
-      return NC_EINVAL;
-
-#ifndef USE_PARALLEL_POSIX
-   /* If the HDF5 library has been compiled without the MPI-POSIX VFD,
-    * alias the NC_MPIPOSIX flag to NC_MPIIO. -QAK */
-   if (mode & NC_MPIPOSIX)
-   {
-      mode &= ~NC_MPIPOSIX;
-      mode |= NC_MPIIO;
-   }
-#endif /* USE_PARALLEL_POSIX */
-#endif /* USE_PARALLEL4 */
 
    /* Check the mode for validity */
    if (mode & ILLEGAL_OPEN_FLAGS)

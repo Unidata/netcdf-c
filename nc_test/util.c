@@ -1154,7 +1154,7 @@ int file_create(const char *filename, int cmode, int *ncid)
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET ||
         default_format == NC_FORMAT_64BIT_DATA)
-        err = nc_create_par(filename, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
         err = nc_create(filename, cmode, ncid);
@@ -1180,7 +1180,7 @@ int file__create(const char *filename,
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET ||
         default_format == NC_FORMAT_64BIT_DATA)
-        err = nc_create_par(filename, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
         err = nc__create(filename, cmode, initialsz, bufrsizehintp, ncid);
@@ -1202,7 +1202,7 @@ int file_open(const char *filename, int omode, int *ncid)
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET ||
         default_format == NC_FORMAT_64BIT_DATA)
-        err = nc_open_par(filename, omode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        err = nc_open_par(filename, omode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
         err = nc_open(filename, omode, ncid);
@@ -1425,7 +1425,7 @@ test_nc_against_pnetcdf(void)
     IF (err != NC_NOERR) error("nc_close: %s", nc_strerror(err));
 
     /* Using PnetCDF library to check file */
-    err = nc_open_par(scratch, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+    err = nc_open_par(scratch, NC_NOWRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
     IF (err != NC_NOERR) error("nc_open_par: %s", nc_strerror(err));
     check_dims(ncid);
     check_vars(ncid);
@@ -1434,7 +1434,7 @@ test_nc_against_pnetcdf(void)
     IF (err != NC_NOERR) error("nc_close: %s", nc_strerror(err));
 
     /* Using PnetCDF library to create file */
-    err = nc_create_par(scratch, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+    err = nc_create_par(scratch, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
     IF (err != NC_NOERR) error("nc_create_par: %s", nc_strerror(err));
     def_dims(ncid);
     def_vars(ncid);

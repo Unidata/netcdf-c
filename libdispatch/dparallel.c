@@ -18,6 +18,9 @@ parallel I/O. To support parallel I/O, netCDF must be built with
 netCDF-4 enabled (configure options --enable-netcdf-4 and --enable-parallel4)
 and with a HDF5 library that supports parallel I/O, or with support for the
 PnetCDF library via the --enable-pnetcdf option.
+This function is collective, i.e. must be called by all MPI processes defined
+in the MPI communicator, argument comm. In addition,
+values of arguments of this function must be the same among all MPI processes.
 
 See nc_create() for a fuller discussion of file creation.
 
@@ -32,8 +35,8 @@ errors, it simply stops their display to the user through stderr.
   NC_NOCLOBBER (do not overwrite existing file),
   NC_NETCDF4 (create netCDF-4/HDF5 file),
   NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
-  NC_64BIT_OFFSET (create CDF-2 file)
-  NC_64BIT_DATA (create CDF-5 file)
+  NC_64BIT_OFFSET (create CDF-2 file),
+  NC_64BIT_DATA (create CDF-5 file).
 
 \param comm the MPI communicator specifying the processes participating the
 parallel I/O to this file.
@@ -47,16 +50,16 @@ stored.
 \returns ::NC_ENOPAR Library was not built with parallel I/O features.
 \returns ::NC_EPERM: Attempting to create a netCDF file in a directory where you do not have permission to create files.
 \returns ::NC_ENOTBUILT Library was not built with NETCDF4 or PnetCDF.
+\returns ::NC_EEXIST Specifying a file name of a file that exists and also specifying NC_NOCLOBBER.
 \returns ::NC_EINVAL Invalid input parameters.
 \returns ::NC_ENOMEM System out of memory.
-\returns ::NC_ENOTNC Binary format could not be determined.
 \returns ::NC_EHDFERR HDF5 error (netCDF-4 files only).
 \returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
 HDF5 file. (netCDF-4 files only).
 
 <h1>Example</h1>
 
-In this example from nc_test4/tst_parallel.c, a file is create for
+In this example from nc_test4/tst_parallel.c, a file is created for
 parallel I/O.
 
 \code
@@ -83,50 +86,52 @@ parallel I/O.
 
     ...
 
-    if ((res = nc_close(ncid)))	ERR;
+    if ((res = nc_close(ncid))) ERR;
 \endcode
 \author Ed Hartnett, Dennis Heimbigner
 \ingroup datasets
 */
 int nc_create_par(const char *path, int cmode, MPI_Comm comm,
-	      MPI_Info info, int *ncidp)
+                  MPI_Info info, int *ncidp)
 {
 #ifndef USE_PARALLEL
-   return NC_ENOPAR;
+    return NC_ENOPAR;
 #else
-   NC_MPI_INFO data;
+    NC_MPI_INFO data;
 
 #ifndef USE_PNETCDF
-   /* PnetCDF is disabled but user wants to create classic file in parallel */
-   if (!(cmode & NC_NETCDF4))
-       return NC_ENOTBUILT;
+    /* PnetCDF is disabled but user wants to create classic file in parallel */
+    if (!(cmode & NC_NETCDF4))
+        return NC_ENOTBUILT;
 #endif
 
 #ifndef USE_NETCDF4
    /* NETCDF4 is disabled but user wants to create NETCDF4 file in parallel */
-   if (cmode & NC_NETCDF4)
-       return NC_ENOTBUILT;
+    if (cmode & NC_NETCDF4)
+        return NC_ENOTBUILT;
 #endif
 
-   data.comm = comm;
-   data.info = info;
-   return NC_create(path, cmode, 0, 0, NULL, 1, &data, ncidp);
+    data.comm = comm;
+    data.info = info;
+    return NC_create(path, cmode, 0, 0, NULL, 1, &data, ncidp);
 #endif /* USE_PARALLEL */
 }
 
 /**
 Open an existing netCDF file for parallel I/O.
 
-This function opens an existing netCDF dataset for parallel I/O
-access. It determines the underlying file format automatically. Use
-the same call to open a netCDF classic, 64-bit offset, CDF-5, or netCDF-4
-file.
+This function opens an existing netCDF dataset for parallel I/O access. It
+determines the underlying file format automatically. Use the same call to open
+a netCDF classic, 64-bit offset, CDF-5, or netCDF-4 file.
 
 Parallel I/O access is only available in library build which support
 parallel I/O. To support parallel I/O, netCDF must be built with
 netCDF-4 enabled (configure options --enable-netcdf-4 and --enable-parallel4)
 and with a HDF5 library that supports parallel I/O, or with support for the
 PnetCDF library via the --enable-pnetcdf option.
+This function is collective, i.e. must be called by all MPI processes defined
+in the MPI communicator, argument comm. In addition,
+values of arguments of this function must be the same among all MPI processes.
 
 It is not necessary to pass any information about the format of the
 file being opened. The file type will be detected automatically by the
@@ -164,8 +169,7 @@ causes of errors include:
 \returns ::NC_ENOTNC Not a netCDF file.
 \returns ::NC_ENOMEM Out of memory.
 \returns ::NC_EHDFERR HDF5 error. (NetCDF-4 files only.)
-\returns ::NC_EDIMMETA Error in netCDF-4 dimension metadata. (NetCDF-4
-files only.)
+\returns ::NC_EDIMMETA Error in netCDF-4 dimension metadata (NetCDF-4 files only.)
 
 <h1>Examples</h1>
 
@@ -187,17 +191,17 @@ Here is an example using nc_open_par() from examples/C/parallel_vara.c.
 */
 int
 nc_open_par(const char *path, int omode, MPI_Comm comm,
-	    MPI_Info info, int *ncidp)
+            MPI_Info info, int *ncidp)
 {
 #ifndef USE_PARALLEL
-   return NC_ENOPAR;
+    return NC_ENOPAR;
 #else
-   NC_MPI_INFO mpi_data;
+    NC_MPI_INFO mpi_data;
 
-   mpi_data.comm = comm;
-   mpi_data.info = info;
+    mpi_data.comm = comm;
+    mpi_data.info = info;
 
-   return NC_open(path, omode, 0, NULL, 1, &mpi_data, ncidp);
+    return NC_open(path, omode, 0, NULL, 1, &mpi_data, ncidp);
 #endif /* USE_PARALLEL */
 }
 
@@ -218,9 +222,8 @@ parallel I/O to this file.
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
 
-nc_open_par() returns the value NC_NOERR if no errors
-occurred. Otherwise, the returned status indicates an error. Possible
-causes of errors include:
+nc_open_par() returns the value NC_NOERR if no errors occurred. Otherwise, the
+returned status indicates an error. Possible causes of errors include:
 
 \returns ::NC_NOERR No error.
 \returns ::NC_EINVAL Invalid parameters.
@@ -236,28 +239,28 @@ files only.)
 */
 int
 nc_open_par_fortran(const char *path, int omode, int comm,
-		    int info, int *ncidp)
+                    int info, int *ncidp)
 {
 #ifndef USE_PARALLEL
-   return NC_ENOPAR;
+    return NC_ENOPAR;
 #else
-   MPI_Comm comm_c;
-   MPI_Info info_c;
+    MPI_Comm comm_c;
+    MPI_Info info_c;
 
-   /* Convert fortran comm and info to C comm and info, if there is a
-    * function to do so. Otherwise just pass them. */
+    /* Convert fortran comm and info to C comm and info, if there is a
+     * function to do so. Otherwise just pass them. */
 #ifdef HAVE_MPI_COMM_F2C
-   comm_c = MPI_Comm_f2c(comm);
+    comm_c = MPI_Comm_f2c(comm);
 #else
-   comm_c = (MPI_Comm)comm;
+    comm_c = (MPI_Comm)comm;
 #endif
 #ifdef HAVE_MPI_INFO_F2C
-   info_c = MPI_Info_f2c(info);
+    info_c = MPI_Info_f2c(info);
 #else
-   info_c = (MPI_Info)info;
+    info_c = (MPI_Info)info;
 #endif
 
-   return nc_open_par(path, omode, comm_c, info_c, ncidp);
+    return nc_open_par(path, omode, comm_c, info_c, ncidp);
 #endif
 }
 
@@ -270,6 +273,9 @@ mode changed by this function applies to all variables. This is because PnetCDF
 does not support access mode change for individual variables. In this case,
 users may use NC_GLOBAL in varid argument for better program readability. To
 obtain a good I/O performance, users are recommended to use collective mode.
+This function is collective, i.e. must be called by all MPI processes defined
+in the MPI communicator used in nc_create_par() or nc_open_par(). In addition,
+values of arguments of this function must be the same among all MPI processes.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open_par(),
 nc_create_par(), nc_def_grp(), or associated inquiry functions such as
@@ -305,7 +311,7 @@ parallel access of a variable and then writes to it.
     global_ny = NY;
     global_nx = NX * nprocs;
         ...
-    cmode = NC_CLOBBER | NC_PNETCDF;
+    cmode = NC_CLOBBER;
     err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); FATAL_ERR
         ...
     err = nc_def_dim(ncid, "Y", global_ny, &dimid[0]); ERR
@@ -356,7 +362,8 @@ info from Fortran to C, if necessary.
   NC_NOCLOBBER (do not overwrite existing file),
   NC_NETCDF4 (create netCDF-4/HDF5 file),
   NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
-  NC_PNETCDF (alias of NC_MPIIO, to create CDF-1, 2, or 5 file).
+  NC_64BIT_OFFSET (create CDF-2 file)
+  NC_64BIT_DATA (create CDF-5 file)
 
 \param comm the MPI communicator specifying the processes participating the
 parallel I/O to this file.
@@ -382,27 +389,27 @@ HDF5 file. (netCDF-4 files only).
 */
 int
 nc_create_par_fortran(const char *path, int cmode, int comm,
-		      int info, int *ncidp)
+                      int info, int *ncidp)
 {
 #ifndef USE_PARALLEL
-   return NC_ENOPAR;
+    return NC_ENOPAR;
 #else
-   MPI_Comm comm_c;
-   MPI_Info info_c;
+    MPI_Comm comm_c;
+    MPI_Info info_c;
 
-   /* Convert fortran comm and info to C comm and info, if there is a
-    * function to do so. Otherwise just pass them. */
+    /* Convert fortran comm and info to C comm and info, if there is a
+     * function to do so. Otherwise just pass them. */
 #ifdef HAVE_MPI_COMM_F2C
-   comm_c = MPI_Comm_f2c(comm);
+    comm_c = MPI_Comm_f2c(comm);
 #else
-   comm_c = (MPI_Comm)comm;
+    comm_c = (MPI_Comm)comm;
 #endif
 #ifdef HAVE_MPI_INFO_F2C
-   info_c = MPI_Info_f2c(info);
+    info_c = MPI_Info_f2c(info);
 #else
-   info_c = (MPI_Info)info;
+    info_c = (MPI_Info)info;
 #endif
 
-   return nc_create_par(path, cmode, comm_c, info_c, ncidp);
+    return nc_create_par(path, cmode, comm_c, info_c, ncidp);
 #endif
 }

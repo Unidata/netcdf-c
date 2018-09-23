@@ -703,20 +703,15 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     # Do that by checking for the targets H5Pget_fapl_mpiposx and
     # H5Pget_fapl_mpio in ${HDF5_LIB}.
 
-    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
+    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
+    # CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+
     CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
-    IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
+    IF(HDF5_IS_PARALLEL_MPIO)
       SET(HDF5_PARALLEL ON)
     ELSE()
       SET(HDF5_PARALLEL OFF)
-    ENDIF()
-
-    IF(HDF5_IS_PARALLEL_MPIO)
-      SET(USE_PARALLEL_MPIO ON)
-    ENDIF()
-
-    IF(HDF5_IS_PARALLEL_MPIPOSIX)
-      SET(USE_PARALLEL_POSIX ON)
     ENDIF()
 
     #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
