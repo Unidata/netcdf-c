@@ -1029,16 +1029,18 @@ if test "x$enable_netcdf_4" = xyes; then
    AC_CHECK_FUNCS([H5Z_SZIP])
    hdf5_parallel=no
 
-   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
+   # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
+   # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
    # The user may have parallel HDF5 based on MPI POSIX.
-   if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
-      AC_DEFINE([USE_PARALLEL_POSIX], [1], [if true, compile in parallel netCDF-4 based on MPI/POSIX])
-   fi
+   # if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
+   #    AC_DEFINE([USE_PARALLEL_POSIX], [1], [if true, compile in parallel netCDF-4 based on MPI/POSIX])
+   # fi
 
    # The user may have parallel HDF5 based on MPI mumble mumble.
-   if test "x$ac_cv_func_H5Pget_fapl_mpio" = xyes; then
-      AC_DEFINE([USE_PARALLEL_MPIO], [1], [if true, compile in parallel netCDF-4 based on MPI/IO])
-   fi
+   # if test "x$ac_cv_func_H5Pget_fapl_mpio" = xyes; then
+   #    AC_DEFINE([USE_PARALLEL_MPIO], [1], [if true, compile in parallel netCDF-4 based on MPI/IO])
+   # fi
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then

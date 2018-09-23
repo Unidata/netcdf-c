@@ -358,7 +358,6 @@ main(int argc, char *argv[])
 #ifdef USE_PNETCDF
 	MPI_Init(&argc, &argv);
 
-        cmode |= (NC_PNETCDF);
 #ifdef ENABLE_CDF5
 	cmode |= (NC_64BIT_DATA);
 #endif
@@ -476,7 +475,6 @@ main(int argc, char *argv[])
  */
         omode = NC_NOWRITE;
 #ifdef USE_PNETCDF
-        omode |= NC_PNETCDF;
 	ret = nc_open_par(fname,omode, MPI_COMM_WORLD, MPI_INFO_NULL, &id);
 #else
 	ret = nc__open(fname,omode, &chunksz, &id);

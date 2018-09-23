@@ -239,7 +239,7 @@ main(int argc, char **argv)
          sprintf(file_name, "%s_type_%d_fv_%d.nc", TEST_NAME, test_type[tt], fv);
 
          /* Create a parallel netcdf-4 file. */
-         if (nc_create_par(file_name, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
+         if (nc_create_par(file_name, NC_NETCDF4, comm, info, &ncid)) ERR;
 
          /* Get the type len. */
          if (nc_inq_type(ncid, test_type[tt], NULL, &type_size)) ERR;
@@ -302,7 +302,7 @@ main(int argc, char **argv)
          if (nc_close(ncid)) ERR;
 
          /* Reopen the file and check it. */
-         if ((ret = nc_open_par(file_name, NC_NOWRITE|NC_MPIIO, comm, info, &ncid))) ERR;
+         if ((ret = nc_open_par(file_name, NC_NOWRITE, comm, info, &ncid))) ERR;
          if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
          if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 ||
              unlimdimid_in != -1) ERR;

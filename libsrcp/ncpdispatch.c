@@ -29,10 +29,10 @@ typedef struct NCP_INFO
 #define NCP_DATA(nc) ((NCP_INFO*)(nc)->dispatchdata)
 #define NCP_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
 
-/* Cannot have NC_MPIPOSIX flag, ignore NC_MPIIO as PnetCDF use MPIIO */
-static const int LEGAL_CREATE_FLAGS = (NC_NOCLOBBER | NC_64BIT_OFFSET | NC_CLASSIC_MODEL | NC_SHARE | NC_LOCK | NC_64BIT_DATA | NC_MPIIO);
+/* NC_MPIIO and NC_MPIPOSIX are deprecated and hence ignored */
+static const int LEGAL_CREATE_FLAGS = (NC_NOCLOBBER | NC_64BIT_OFFSET | NC_CLASSIC_MODEL | NC_SHARE | NC_LOCK | NC_64BIT_DATA | NC_MPIIO | NC_MPIPOSIX);
 
-static const int LEGAL_OPEN_FLAGS = (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_LOCK | NC_CLASSIC_MODEL | NC_64BIT_OFFSET | NC_64BIT_DATA | NC_MPIIO);
+static const int LEGAL_OPEN_FLAGS = (NC_WRITE | NC_NOCLOBBER | NC_SHARE | NC_LOCK | NC_CLASSIC_MODEL | NC_64BIT_OFFSET | NC_64BIT_DATA | NC_MPIIO | NC_MPIPOSIX);
 
 
 /**************************************************/
@@ -43,7 +43,6 @@ NCP_create(const char *path,
            size_t initialsz,
            int basepe,
            size_t *chunksizehintp,
-           int use_parallel,
            void *mpidata,
            struct NC_Dispatch *table,
            NC *nc)
@@ -81,7 +80,6 @@ NCP_open(const char *path,
          int omode,
          int basepe,
          size_t *chunksizehintp,
-         int use_parallel,
          void *mpidata,
          struct NC_Dispatch *table,
          NC *nc)

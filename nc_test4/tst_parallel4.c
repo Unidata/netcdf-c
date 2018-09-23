@@ -107,7 +107,7 @@ main(int argc, char **argv)
 
     /* Create a parallel netcdf-4 file. */
     sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
-    if (nc_create_par(file_name, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
+    if (nc_create_par(file_name, NC_NETCDF4, comm, info, &ncid)) ERR;
 
     /* A global attribute holds the number of processors that created
      * the file. */
@@ -172,7 +172,7 @@ main(int argc, char **argv)
 #endif /* USE_MPE */
 
     /* Reopen the file and check it. */
-    if ((ret = nc_open_par(file_name, NC_NOWRITE|NC_MPIIO, comm, info, &ncid)))
+    if ((ret = nc_open_par(file_name, NC_NOWRITE, comm, info, &ncid)))
     {
        printf("ret = %d\n", ret);
        ERR_RET;

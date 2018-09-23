@@ -364,15 +364,15 @@ and attributes.
 \param path The file name of the new netCDF dataset.
 
 \param cmode The creation mode flag. The following flags are available:
+  NC_CLOBBER (overwrite existing file),
   NC_NOCLOBBER (do not overwrite existing file),
   NC_SHARE (limit write caching - netcdf classic files only),
   NC_64BIT_OFFSET (create 64-bit offset file),
   NC_64BIT_DATA (alias NC_CDF5) (create CDF-5 file),
   NC_NETCDF4 (create netCDF-4/HDF5 file),
   NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
-  NC_DISKLESS (store data in memory),
-  NC_MMAP (use MMAP for NC_DISKLESS instead of NC_INMEMORY),
-  and NC_WRITE.
+  NC_DISKLESS (store data in memory), and
+  NC_MMAP (use MMAP for NC_DISKLESS instead of NC_INMEMORY).
   See discussion below.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
@@ -455,7 +455,10 @@ Note that nc_create(path,cmode,ncidp) is equivalent to the invocation of
 nc__create(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp).
 
 \returns ::NC_NOERR No error.
+\returns ::NC_EEXIST Specifying a file name of a file that exists and also specifying NC_NOCLOBBER.
+\returns ::NC_EPERM Attempting to create a netCDF file in a directory where you do not have permission to create files.
 \returns ::NC_ENOMEM System out of memory.
+\returns ::NC_ENFILE Too many files open.
 \returns ::NC_EHDFERR HDF5 error (netCDF-4 files only).
 \returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
 HDF5 file. (netCDF-4 files only).
@@ -675,8 +678,7 @@ named foo.nc. The initial size is set to 4096.
 int
 nc_create_mem(const char* path, int mode, size_t initialsize, int* ncidp)
 {
-   if(mode & (NC_MPIIO|NC_MPIPOSIX|NC_MMAP))
-	return NC_EINVAL;
+    if(mode & NC_MMAP) return NC_EINVAL;
     mode |= (NC_INMEMORY|NC_NOCLOBBER); /* Specifically, do not set NC_DISKLESS */
     return NC_create(path, mode, initialsize, 0, NULL, 0, NULL, ncidp);
 }
@@ -798,6 +800,8 @@ nc__create_mp(const char *path, int cmode, size_t initialsz,
  * of nc__open(path,omode,NC_SIZEHINT_DEFAULT,NULL,ncidp).
  *
  * @returns ::NC_NOERR No error.
+ * @returns ::NC_EPERM Attempting to create a netCDF file in a directory where you do not have permission to open files.
+ * @returns ::NC_ENFILE Too many files open
  * @returns ::NC_ENOMEM Out of memory.
  * @returns ::NC_EHDFERR HDF5 error. (NetCDF-4 files only.)
  * @returns ::NC_EDIMMETA Error in netCDF-4 dimension metadata. (NetCDF-4 files only.)
@@ -880,9 +884,8 @@ int
 nc__open(const char *path, int omode,
 	 size_t *chunksizehintp, int *ncidp)
 {
-   /* this API is for non-parallel access: TODO check for illegal omode
-    * flags, such as NC_PNETCDF, NC_MPIIO, or NC_MPIPOSIX, before entering
-    * NC_open()? Note nc_open_par() also calls NC_open().
+   /* this API is for non-parallel access.
+    * Note nc_open_par() also calls NC_open().
     */
    return NC_open(path, omode, 0, chunksizehintp, 0, NULL, ncidp);
 }
@@ -940,7 +943,7 @@ nc_open_mem(const char* path, int omode, size_t size, void* memory, int* ncidp)
     /* Sanity checks */
     if(memory == NULL || size < MAGIC_NUMBER_LEN || path == NULL)
  	return NC_EINVAL;
-    if(omode & (NC_WRITE|NC_MPIIO|NC_MPIPOSIX|NC_MMAP))
+    if(omode & (NC_WRITE|NC_MMAP))
 	return NC_EINVAL;
     omode |= (NC_INMEMORY); /* DO not set NC_DISKLESS */
     meminfo.size = size;
@@ -1005,7 +1008,8 @@ nc_open_memio(const char* path, int omode, NC_memio* params, int* ncidp)
  	return NC_EINVAL;
     if(params->memory == NULL || params->size < MAGIC_NUMBER_LEN)
  	return NC_EINVAL;
-    if(omode & (NC_MPIIO|NC_MPIPOSIX|NC_MMAP))
+
+    if(omode & NC_MMAP)
 	return NC_EINVAL;
     omode |= (NC_INMEMORY);
     return NC_open(path, omode, 0, NULL, 0, params, ncidp);
@@ -1955,20 +1959,10 @@ check_create_mode(int mode)
     if (mode_format && (mode_format & (mode_format - 1)))
        return NC_EINVAL;
 
-    /* Can't use both NC_MPIIO and NC_MPIPOSIX. Make up your damn
-     * mind! */
-    if (mode & NC_MPIIO && mode & NC_MPIPOSIX)
-       return NC_EINVAL;
-
     mmap = ((mode & NC_MMAP) == NC_MMAP);
     inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
     if(mmap && inmemory) /* cannot have both */
 	return NC_EINMEMORY;
-
-    /* Can't use both parallel and diskless|inmemory. */
-    if ((mode & NC_MPIIO && mode & (NC_DISKLESS|NC_INMEMORY))
-	|| (mode & NC_MPIPOSIX && mode & (NC_DISKLESS|NC_INMEMORY)))
-	return NC_EINVAL;
 
 #ifndef USE_NETCDF4
    /* If the user asks for a netCDF-4 file, and the library was built
@@ -1976,13 +1970,6 @@ check_create_mode(int mode)
    if (mode & NC_NETCDF4)
        return NC_ENOTBUILT;
 #endif /* USE_NETCDF4 undefined */
-
-#ifndef USE_PARALLEL
-   /* If parallel support is not included, these mode flags won't
-    * work. */
-   if (mode & NC_PNETCDF || mode & NC_MPIPOSIX)
-       return NC_ENOTBUILT;
-#endif /* USE_PARALLEL */
 
    /* Well I guess there is some sanity in the world after all. */
    return NC_NOERR;
@@ -2034,15 +2021,15 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    if(path0 == NULL)
 	return NC_EINVAL;
 
-   if (!useparallel && ((cmode & NC_MPIIO) || (cmode & NC_MPIPOSIX)))
-       /* this is called from nc_create(), not nc_create_par() */
-       return NC_EINVAL;
-
    /* Fix the inmemory related flags */
    mmap = ((cmode & NC_MMAP) == NC_MMAP);  
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
    /* diskless && !mmap => inmemory */
    if(diskless && !mmap) cmode |= NC_INMEMORY;
+
+    /* Can't use both parallel and diskless|inmemory. */
+    if (useparallel && (cmode & (NC_DISKLESS|NC_INMEMORY)))
+	return NC_EINVAL;
 
    /* Check mode flag for sanity. */
    if ((stat = check_create_mode(cmode)))
@@ -2092,11 +2079,11 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         return NC_ENOTBUILT;
 #endif
 #ifdef USE_PNETCDF
-    if (model == NC_FORMATX_UNDEFINED && (cmode & NC_MPIIO))
+    if (model == NC_FORMATX_UNDEFINED && useparallel)
         /* PnetCDF is used for parallel io on CDF-1, CDF-2, and CDF-5 */
         model = NC_FORMATX_PNETCDF;
 #else
-    if (model == NC_FORMATX_UNDEFINED && (cmode & NC_MPIIO))
+    if (model == NC_FORMATX_UNDEFINED && useparallel)
         return NC_ENOTBUILT;
 #endif
 
@@ -2176,7 +2163,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
    /* Assume create will fill in remaining ncp fields */
    if ((stat = dispatcher->create(ncp->path, cmode, initialsz, basepe, chunksizehintp,
-				   useparallel, parameters, dispatcher, ncp))) {
+				  parameters, dispatcher, ncp))) {
 	del_from_NCList(ncp); /* oh well */
 	free_NC(ncp);
      } else {
@@ -2230,10 +2217,6 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
       stat = nc_initialize();
       if(stat) return stat;
    }
-
-   if (!useparallel && ((omode & NC_MPIIO) || (omode & NC_MPIPOSIX)))
-       /* this is called from nc_open(), not nc_open_par() */
-       return NC_EINVAL;
 
    /* Fix the inmemory related flags */
    mmap = ((omode & NC_MMAP) == NC_MMAP);
@@ -2358,7 +2341,6 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
       omode |= NC_NETCDF4;
    else if(model == NC_FORMATX_DAP2) {
       omode &= ~NC_NETCDF4;
-      omode &= ~NC_PNETCDF;
       omode &= ~NC_64BIT_OFFSET;
    } else if(model == NC_FORMATX_NC3) {
       omode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
@@ -2436,7 +2418,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 
    /* Assume open will fill in remaining ncp fields */
    stat = dispatcher->open(ncp->path, omode, basepe, chunksizehintp,
-			   useparallel, parameters, dispatcher, ncp);
+			   parameters, dispatcher, ncp);
    if(stat == NC_NOERR) {
      if(ncidp) *ncidp = ncp->ext_ncid;
    } else {

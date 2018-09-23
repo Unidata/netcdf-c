@@ -138,13 +138,13 @@ int main(int argc, char* argv[])
    printf("\nWrite using PNETCDF; Read using classic netCDF...");
    {
       /* Create a netCDF classic file with PnetCDF. */
-      cmode = NC_PNETCDF | NC_CLOBBER;
+      cmode = NC_CLOBBER;
       if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR;
       if (write2(ncid, 1)) ERR;
       if (nc_close(ncid)) ERR;
       
       /* Re-open the file with pnetCDF (parallel) and add var attributes. */
-      if (nc_open_par(FILENAME, NC_WRITE|NC_PNETCDF, comm, info, &ncid)) ERR;
+      if (nc_open_par(FILENAME, NC_WRITE, comm, info, &ncid)) ERR;
       if (extend(ncid)) ERR;
       if (nc_close(ncid)) ERR;
       
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
       if (nc_close(ncid)) ERR;
 
       /* Re-open with PnetCDF and check. */
-      cmode = NC_PNETCDF | NC_NOCLOBBER;
+      cmode = NC_NOCLOBBER;
       if (nc_open_par(FILENAME, cmode, comm, info, &ncid)) ERR;
       if (read2(ncid)) ERR;
       if (nc_close(ncid)) ERR;

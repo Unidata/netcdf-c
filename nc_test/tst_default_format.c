@@ -120,33 +120,6 @@ int main(int argc, char *argv[])
         nerrs++;
     }
 
-    /* check illegal cmode */
-    cmode = NC_MPIIO | NC_MPIPOSIX;
-    err = nc_create(fname, cmode, &ncid);
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-
-    /* check illegal cmode */
-    cmode = NC_MPIIO | NC_DISKLESS;
-    err = nc_create(fname, cmode, &ncid);
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-
-    /* check illegal cmode */
-    cmode = NC_MPIPOSIX | NC_DISKLESS;
-    err = nc_create(fname, cmode, &ncid);
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-
     /* create a file in CDF1 format */
     cmode = 0;
     nerrs += create_check(fname, cmode, NC_FORMAT_CLASSIC);

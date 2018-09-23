@@ -109,7 +109,7 @@ int main(int argc, char** argv)
     MPI_Bcast(filename, 128, MPI_CHAR, 0, MPI_COMM_WORLD);
 
     /* create a new file for writing ----------------------------------------*/
-    cmode = NC_CLOBBER | NC_PNETCDF;
+    cmode = NC_CLOBBER;
     err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); FATAL_ERR
 
     /* the global array is NY * (NX * nprocs) */
@@ -162,7 +162,7 @@ int main(int argc, char** argv)
 
     err = nc_close(ncid); ERR
 
-    omode = NC_PNETCDF | NC_NOWRITE;
+    omode = NC_NOWRITE;
     err = nc_open_par(filename, omode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); FATAL_ERR
 
     /* inquire dimension IDs and lengths */

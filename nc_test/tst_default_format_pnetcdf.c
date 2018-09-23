@@ -20,7 +20,6 @@ create_check_pnetcdf(char *fname, int cmode, int exp_format)
     int nerrs=0, err, exp_err=NC_NOERR, ncid, format;
     char *exp_str;
 
-    cmode |= NC_MPIIO;
 #ifndef USE_PNETCDF
     exp_err = NC_ENOTBUILT;
 #endif
@@ -115,48 +114,6 @@ int main(int argc, char *argv[])
         nerrs++;
     }
 #endif
-    /* check illegal cmode */
-    cmode = NC_MPIIO | NC_MPIPOSIX;
-    err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
-#ifdef USE_PNETCDF
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-#else
-    if (err != NC_ENOTBUILT) {
-        printf("Error at %s line %d: expect NC_ENOTBUILT but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-#endif
-
-    /* check illegal cmode */
-    cmode = NC_MPIIO | NC_DISKLESS;
-    err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
-#ifdef USE_PNETCDF
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-#else
-    if (err != NC_ENOTBUILT) {
-        printf("Error at %s line %d: expect NC_ENOTBUILT but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-#endif
-
-    /* check illegal cmode */
-    cmode = NC_MPIPOSIX | NC_DISKLESS;
-    err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
 
     /* create a file in CDF1 format */
     cmode = 0;
