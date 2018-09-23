@@ -40,7 +40,7 @@ extern "C" {
 
    extern int
    NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp, 
-                int use_parallel, void* parameters, NC_Dispatch*, NC*);
+                void* parameters, NC_Dispatch*, NC*);
 
    extern int
    NC_HDF4_close(int ncid);
