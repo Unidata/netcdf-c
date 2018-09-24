@@ -757,9 +757,6 @@ fprintf(stderr,"buildvars.candidate=|%s|\n",var->ncfullname);
                 dimids[j] = dim->ncid;
  	    }
         }
-
-
-
 	definename = getdefinename(var);
 
 #ifdef DEBUG1
@@ -921,14 +918,15 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	nc_type atype;
 	unsigned int typesize;
 	void* mem = NULL;
-	/* It turns out that some servers upgrade the type
+	/* It turns out that some servers change the type
            of _FillValue in order to correctly preserve the
            original value. However, since the type of the
-           underlying variable is not changes, we get a type
+           underlying variable is not changed, we get a type
            mismatch. So, make sure the type of the fillvalue
            is the same as that of the controlling variable.
 	*/
         if(varid != NC_GLOBAL && strcmp(att->name,"_FillValue")==0)
+	    /* Make the conversion target type be same as variable type */
 	    atype = nctypeconvert(dapcomm,vartype);
 	else
 	    atype = nctypeconvert(dapcomm,att->etype);
@@ -2819,4 +2817,4 @@ NCD2_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return THROW(ret);
 }
 
-#endif // USE_NETCDF4
+#endif /* USE_NETCDF4 */

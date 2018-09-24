@@ -9,6 +9,19 @@
 #include <crtdbg.h>
 #endif
 
+struct Value {
+    long long llval;
+    double dval;
+};
+
+/*Forward*/
+static int cvtnumconst(const char* s, struct Value* val);
+
+static const double IMAXDOUBLE = (double)NC_MAX_INT;
+static const double IMINDOUBLE = (double)NC_MIN_INT;
+static const long long IMAXINT = (long long)NC_MAX_INT;
+static const long long IMININT = (long long)NC_MIN_INT;
+
 NCerror
 dapconvert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count)
 {
@@ -193,111 +206,127 @@ fail:
     return THROW(ncstat);
 }
 
+/**
+@param etype the target type
+@param dst the memory into which to put the converted constants
+@param src list of constants as strings
+*/
 NCerror
 dapcvtattrval(nc_type etype, void* dst, NClist* src)
 {
-    int i,ok;
+    int i;
     NCerror  ncstat = NC_NOERR;
     unsigned int memsize = nctypesizeof(etype);
     unsigned int nvalues = nclistlength(src);
     char* dstmem = (char*)dst;
 
     for(i=0;i<nvalues;i++) {
-	char* s = (char*)nclistget(src,i);
-	size_t slen = strlen(s);
-        int nread = 0; /* # of chars read by sscanf */
+	/* Convert numeric looking constants to either double
+           or signed long long */
+	char* s;
+	size_t slen;
 
-	ok = 0;
-	switch (etype) {
-	case NC_BYTE: { /* Note that in DAP2, this is unsigned 8-bit integer */
-	    /*Needs special handling because Windows sscanf does not do %hhd*/
+	s = (char*)nclistget(src,i);
+        slen = strlen(s);
+	if(etype <= NC_DOUBLE && etype != NC_CHAR) {
+	    struct Value val;
+	    int stype;
+	    /* Target types */
+	    unsigned char* u8p;
+	    short* i16p;
+	    unsigned short* u16p;
+	    int* i32p;
+	    unsigned int* u32p;
+	    float* fp;
+	    double* dp;
+
+	    stype = cvtnumconst(s,&val);
+	    /* Make sure both values are available */
+   	    if(stype == NC_INT) {
+		if(val.llval > 0 && val.llval > IMAXINT)
+		    val.dval = IMAXDOUBLE;
+		else if(val.llval < 0 && val.llval < IMININT)
+		    val.dval = IMINDOUBLE;
+		else
+		    val.dval = (double)val.llval;	
+	    } else {
+		if(val.dval > 0 && val.dval > IMAXDOUBLE)
+		    val.llval = IMAXINT;
+		else if(val.dval < 0 && val.dval < IMINDOUBLE)
+		    val.llval = IMININT;
+		else
+		    val.llval = (long long)(val.dval);
+	    }
+	    if(stype == NC_NAT) {ncstat = NC_ETRANSLATION; goto done;}
+	    switch (etype) {
+	    case NC_BYTE:
+		/* Note that in DAP2, this is unsigned 8-bit integer */
+		u8p = (unsigned char*)dstmem;
+	        *u8p = (unsigned char)(val.llval & 0xFF);
+		break;	
+	    case NC_SHORT:
+		i16p = (short*)dstmem;
+		*i16p = (short)(val.llval);
+		break;	
+	    case NC_USHORT:
+		u16p = (unsigned short*)dstmem;
+		*u16p = (unsigned short)(val.llval & 0xFFFF);
+		break;	
+	    case NC_INT:
+		i32p = (int*)dstmem;
+		*i32p = (int)(val.llval);
+		break;	
+	    case NC_UINT:
+		u32p = (unsigned int*)dstmem;
+		*u32p = (unsigned int)(val.llval & 0xFFFFFFFF);
+		break;	
+	    case NC_FLOAT:
+		fp = (float*)dstmem;
+		*fp = (float)(val.dval);
+		break;	
+	    case NC_DOUBLE:
+		dp = (double*)dstmem;
+		*dp = (double)(val.dval);
+		break;	
+	    }
+	} else if(etype == NC_CHAR) {
 	    char* p = (char*)dstmem;
-	    int ival;
-	    ok = sscanf(s,"%d%n",&ival,&nread);
-#ifdef _MSC_VER
-	    _ASSERTE(_CrtCheckMemory());
-#endif
-	    /* For back compatibility, we allow any value, but force conversion */
-	    ival = (ival & 0xFF);
-	    *p = (char)ival;
-	    } break;
-	case NC_CHAR: {
-	    signed char* p = (signed char*)dstmem;
-	    ok = sscanf(s,"%c%n",p,&nread);
-	    } break;
-	case NC_SHORT: {
-	    short* p = (short*)dstmem;
-	    ok = sscanf(s,"%hd%n",p,&nread);
-	    } break;
-	case NC_INT: {
-	    int* p = (int*)dstmem;
-	    ok = sscanf(s,"%d%n",p,&nread);
-	    } break;
-	case NC_FLOAT: {
-	    float* p = (float*)dstmem;
-	    ok = sscanf(s,"%g%n",p,&nread);
-#if defined(_MSC_VER) && (_MSC_VER == 1500)
-	    if (!_strnicmp(s, "NaN", 3)) {
-	      ok = 1;
-	      nread = 3;
-	    }
-#endif
-	    } break;
-	case NC_DOUBLE: {
-	    double* p = (double*)dstmem;
-	    ok = sscanf(s,"%lg%n",p,&nread);
-#if defined(_MSC_VER) && (_MSC_VER == 1500)
-	    if (!_strnicmp(s, "NaN", 3)) {
-	      ok = 1;
-	      nread = 3;
-	    }
-#endif
-	    } break;
-	case NC_UBYTE: {
-	    unsigned char* p = (unsigned char*)dstmem;
-#ifdef _MSC_VER
-	    unsigned int uval;
-	    ok = sscanf(s,"%u%n",&uval,&nread);
-	    _ASSERTE(_CrtCheckMemory());
-	    /* For back compatibility, we allow any value, but force conversion */
-	    uval = (uval & 0xFF);
-	    *p = (unsigned char)uval;
-#else
-	    ok = sscanf(s,"%hhu%n",p,&nread);
-#endif
-	    } break;
-	case NC_USHORT: {
-	    unsigned short* p = (unsigned short*)dstmem;
-	    ok = sscanf(s,"%hu%n",p,&nread);
-	    } break;
-	case NC_UINT: {
-	    unsigned int* p = (unsigned int*)dstmem;
-	    ok = sscanf(s,"%u%n",p,&nread);
-	    } break;
-	case NC_INT64: {
-	    long long* p = (long long*)dstmem;
-#ifdef _MSC_VER
-		ok = sscanf(s, "%I64d%n", p,&nread);
-#else
-		ok = sscanf(s,"%lld%n",p,&nread);
-#endif
-	} break;
-	case NC_UINT64: {
-	    unsigned long long* p = (unsigned long long*)dstmem;
-	    ok = sscanf(s,"%llu%n",p,&nread);
-	    } break;
-	case NC_STRING: case NC_URL: {
+	    size_t count, nread;
+	    count = sscanf(s,"%c%n",p,&nread);
+	    if(count != 1 || nread != slen)
+	        {ncstat = NC_ETRANSLATION; goto done;}
+	} else if(etype == NC_STRING || etype == NC_URL) {
 	    char** p = (char**)dstmem;
 	    *p = nulldup(s);
-	    ok = 1;
-	    } break;
-	default:
+	} else {
    	    PANIC1("unexpected nc_type: %d",(int)etype);
 	}
-	if(ok != 1 || nread != slen) {ncstat = NC_EINVAL; goto done;}
 	dstmem += memsize;
     }
 done:
     return THROW(ncstat);
 }
 
+/**
+@param val resulting converted numeric value
+@return NC_INT || NC_DOUBLE || NC_NAT (failure)
+*/
+static int
+cvtnumconst(const char* s, struct Value* val)
+{
+    size_t slen = strlen(s);
+    size_t nread; /* # of chars read */
+    size_t count; /* # of conversions */
+    /* Try to convert to integer first */
+    count = sscanf(s,"%lld%n",&val->llval,&nread);
+    if(count == 1 && nread == slen)
+	return NC_INT;
+    /* Try to convert to float second */
+#if defined(_WIN32)
+    if (!_strnicmp(s, "NaN", 3)) {count = 1; nread = 3; val->llval = NAN;} else
+#endif
+	count = sscanf(s,"%lg%n",&val->dval,&nread);
+    if(count == 1 && nread == slen)
+	    return NC_DOUBLE;
+    return NC_INT;
+}

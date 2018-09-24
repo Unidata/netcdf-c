@@ -326,12 +326,12 @@ freeCurl(NCD4curl* curl)
 }
 
 /* Define the set of protocols known to be constrainable */
-static char* constrainableprotocols[] = {"http", "https",NULL};
+static const char* constrainableprotocols[] = {"http", "https",NULL};
 
 static int
 constrainable(NCURI* durl)
 {
-   char** protocol = constrainableprotocols;
+   const char** protocol = constrainableprotocols;
    for(;*protocol;protocol++) {
 	if(strcmp(durl->protocol,*protocol)==0)
 	    return 1;
