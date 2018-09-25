@@ -742,12 +742,7 @@ parseAttributes(NCD4parser* parser, NCD4node* container, ezxml_t xml)
 	}
 
 	if((ret=makeNode(parser,container,x,NCD4_ATTR,NC_NULL,&attr))) goto done;
-	/* HACK: If the attribute is _FillValue, then force the use of the
-           container's type as the attribute type */
-	if(strcmp(attr->name,"_FillValue") == 0)
-	    basetype = container->basetype;
-	else
-	    basetype = lookupFQN(parser,type,NCD4_TYPE);
+	basetype = lookupFQN(parser,type,NCD4_TYPE);
 	if(basetype == NULL)
 	    FAIL(NC_EBADTYPE,"Unknown <Attribute> type: ",type);
 	if(basetype->subsort == NC_NAT && basetype->subsort != NC_ENUM)

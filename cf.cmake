@@ -36,7 +36,7 @@ CFG="Release"
 fi
 
 if test "x$VS" != x -a "x$INSTALL" != x ; then
-FLAGS="-DCMAKE_PREFIX_PATH=c:/tools/nccmake:c:/tools/libaec"
+FLAGS="-DCMAKE_PREFIX_PATH=c:/tools/nccmake"
 fi
 FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=/tmp/netcdf"
 

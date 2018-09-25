@@ -16,11 +16,7 @@ struct Value {
 
 /*Forward*/
 static int cvtnumconst(const char* s, struct Value* val);
-
-static const double IMAXDOUBLE = (double)NC_MAX_INT;
-static const double IMINDOUBLE = (double)NC_MIN_INT;
-static const long long IMAXINT = (long long)NC_MAX_INT;
-static const long long IMININT = (long long)NC_MIN_INT;
+static int rangecheck(nc_type srctype, nc_type dsttype, struct Value* val);
 
 NCerror
 dapconvert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count)
@@ -207,12 +203,15 @@ fail:
 }
 
 /**
+Convert an attribute value string to a specific type.
+If the conversion fails, then return NC_EBADTYPE.
+If we need an int and the string value is out of range, return NC_ERANGE.
 @param etype the target type
 @param dst the memory into which to put the converted constants
 @param src list of constants as strings
 */
 NCerror
-dapcvtattrval(nc_type etype, void* dst, NClist* src)
+dapcvtattrval(nc_type etype, void* dst, NClist* src, NCattribute* att)
 {
     int i;
     NCerror  ncstat = NC_NOERR;
@@ -240,24 +239,18 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	    float* fp;
 	    double* dp;
 
+	    /* Convert string to a number */
 	    stype = cvtnumconst(s,&val);
-	    /* Make sure both values are available */
-   	    if(stype == NC_INT) {
-		if(val.llval > 0 && val.llval > IMAXINT)
-		    val.dval = IMAXDOUBLE;
-		else if(val.llval < 0 && val.llval < IMININT)
-		    val.dval = IMINDOUBLE;
-		else
-		    val.dval = (double)val.llval;	
-	    } else {
-		if(val.dval > 0 && val.dval > IMAXDOUBLE)
-		    val.llval = IMAXINT;
-		else if(val.dval < 0 && val.dval < IMINDOUBLE)
-		    val.llval = IMININT;
-		else
-		    val.llval = (long long)(val.dval);
+	    if(stype == NC_NAT) {
+	        nclog(NCLOGERR,"Unexpected attribute value: %s = %s",att->name,s);
+	        ncstat = NC_EBADTYPE;
+                goto done;
+            }
+	    if((ncstat = rangecheck(stype,etype,&val))) goto done;
+	    if(ncstat == NC_ERANGE) {
+		nclog(NCLOGERR,"Attribute value out of range: %s = %s",att->name,s);
+		goto done;
 	    }
-	    if(stype == NC_NAT) {ncstat = NC_ETRANSLATION; goto done;}
 	    switch (etype) {
 	    case NC_BYTE:
 		/* Note that in DAP2, this is unsigned 8-bit integer */
@@ -288,6 +281,7 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 		dp = (double*)dstmem;
 		*dp = (double)(val.dval);
 		break;	
+	    default: return NC_EINTERNAL;
 	    }
 	} else if(etype == NC_CHAR) {
 	    char* p = (char*)dstmem;
@@ -304,6 +298,8 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src)
 	dstmem += memsize;
     }
 done:
+    if(ncstat == NC_EBADTYPE)
+	nclog(NCLOGERR,"Unexpected attribute type: %s",att->name);
     return THROW(ncstat);
 }
 
@@ -329,4 +325,53 @@ cvtnumconst(const char* s, struct Value* val)
     if(count == 1 && nread == slen)
 	    return NC_DOUBLE;
     return NC_INT;
+}
+
+/**
+@param srcttype
+@param dsttype convert srcval to this integer type
+@param srcval value to range check and convert
+@param val store converted value
+@return NC_NOERR | NC_ERANGE | NC_EBADTYPE
+*/
+static int
+rangecheck(nc_type srctype, nc_type dsttype, struct Value* val)
+{
+    /* assert srctype == NC_INT || srctype == NC_DOUBLE */
+    /* assert dsttype <= NC_DOUBLE && dsttype != NC_CHAR */
+
+    /* Inter-convert */
+    if(srctype == NC_DOUBLE) {
+	/* Convert to the long long */
+	val->llval = (long long)val->dval;
+    } else { // (srctype == NC_INT)
+	val->dval = (double)val->llval;
+    }
+    /* Do range checks depending on dsttype */
+    switch (dsttype) {
+    case NC_BYTE:
+        if(val->llval < (long long)NC_MIN_BYTE || val->llval > (long long)NC_MAX_BYTE) return NC_ERANGE;
+        break;
+    case NC_UBYTE:
+        if(val->llval < (long long)0 || val->llval > (long long)NC_MAX_UBYTE) return NC_ERANGE;
+        break;
+    case NC_SHORT:
+        if(val->llval < (long long)NC_MIN_SHORT || val->llval > (long long)NC_MAX_SHORT) return NC_ERANGE;
+        break;
+    case NC_USHORT:
+        if(val->llval < (long long)0 || val->llval > (long long)NC_MAX_USHORT) return NC_ERANGE;
+        break;
+    case NC_INT:
+        if(val->llval < (long long)NC_MIN_INT || val->llval > (long long)NC_MAX_INT) return NC_ERANGE;
+        break;
+    case NC_UINT:
+        if(val->llval < (long long)0 || val->llval > (long long)NC_MAX_UINT) return NC_ERANGE;
+        break;
+    case NC_FLOAT:
+    case NC_DOUBLE:
+	/* do nothing */
+        break;
+    default: return NC_EBADTYPE;
+    }
+    return NC_NOERR;
 }
