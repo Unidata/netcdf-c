@@ -600,7 +600,6 @@ follows.
         Related CURL Flags:  
 1. HTTP.CREDENTIALS.PASSWORD  
         Type: String representing password  
-        Type: boolean ("1"/"0")  
         Description: Specify the password for Digest and Basic authentication.  
         Related CURL Flags:  
 1. HTTP.SSL.CERTIFICATE  
@@ -624,7 +623,7 @@ follows.
         Description: Cause the client to verify the server's presented certificate.  
         Related CURL Flags: CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST  
 1. HTTP.TIMEOUT  
-        Type: String ("dddddd")  
+        Type: Integer ("dddddd")  
         Description: Specify the maximum time in seconds that you allow the http transfer operation to take.  
         Related CURL Flags: CURLOPT_TIMEOUT, CURLOPT_NOSIGNAL  
 1. HTTP.PROXY_SERVER  
@@ -632,11 +631,10 @@ follows.
         Description: Specify the needed information for accessing a proxy.  
         Related CURL Flags: CURLOPT_PROXY, CURLOPT_PROXYHOST, CURLOPT_PROXYUSERPWD  
 1. HTTP.READ.BUFFERSIZE  
-        Type: String ("dddddd")  
+        Type: Integer ("dddddd")  
         Description: Specify the the internal buffer size for curl reads.  
         Related CURL Flags: CURLOPT_BUFFERSIZE, CURL_MAX_WRITE_SIZE (16kB),  
                             CURL_MAX_READ_SIZE (512kB).  
-  
 1. HTTP.KEEPALIVE  
         Type: String ("on|n/m")  
         Description: Specify that TCP KEEPALIVE should be enabled and that the associated idle wait time is n and that the associated repeat interval is m. If the value is of the form is the string "on", then turn on keepalive, but do not set idle or interval.  

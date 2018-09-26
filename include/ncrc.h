@@ -47,6 +47,7 @@ extern char* NC_rclookup(const char* key, const char* hostport);
 extern void NC_rcclear(NCRCinfo* info);
 extern int NC_set_rcfile(const char* rcfile);
 extern int NC_rcfile_insert(const char* key, const char* value, const char* hostport);
+extern int NC_rcloadfields(NCRCFIELDS* fields, const char* hostport);
 
 /* From dutil.c (Might later move to e.g. nc.h */
 extern int NC__testurl(const char* path, char** basenamep);

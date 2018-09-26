@@ -20,8 +20,10 @@
 
 extern OCerror ocset_curlopt(OCstate* state, int flag, void* value);
 
+#if 0
 struct OCCURLFLAG* occurlflagbyflag(int flag);
 struct OCCURLFLAG* occurlflagbyname(const char* name);
+#endif
 
 extern OCerror ocset_flags_perfetch(OCstate*);
 extern OCerror ocset_flags_perlink(OCstate*);
@@ -35,9 +37,12 @@ extern int ocrc_netrc_required(OCstate* state);
 extern void oc_curl_protocols(OCstate* state);
 
 /* From occurlflags.c */
+#if 0
 extern struct OCCURLFLAG* occurlflags(void);
 extern struct OCCURLFLAG* occurlflagbyname(const char*);
 extern struct OCCURLFLAG* occurlflagbyflag(int);
+#endif
+
 extern char*  occombinehostport(const NCURI* uri);
 
 #endif /*_CURLFUNCTION_H_*/

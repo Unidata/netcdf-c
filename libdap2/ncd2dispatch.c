@@ -889,6 +889,8 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 	}
     }
 
+
+
 done:
     ncbytesfree(buf);
     return THROW(ncstat);
@@ -1293,6 +1295,7 @@ applyclientparams(NCDAPCOMMON* nccomm)
             if(sscanf(value,"%d",&len) && len > 0) var->maxstringlength = len;
 	}
     }
+
     /* Sequence limits apply to sequences */
     for(i=0;i<nclistlength(nccomm->cdf.ddsroot->tree->nodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->nodes,i);
@@ -1326,6 +1329,9 @@ applyclientparams(NCDAPCOMMON* nccomm)
     if(value != NULL) {
         SETFLAG(nccomm->controls,NCF_WHOLEVAR);
     }
+
+    /* Now, look for .daprc parameters */
+
 
     return NC_NOERR;
 }
