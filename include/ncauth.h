@@ -35,7 +35,6 @@ typedef struct NCauth {
         char* certificate; /*CURLOPT_SSLCERT*/
 	char* key; /*CURLOPT_SSLKEY*/
 	char* keypasswd; /*CURLOPT_SSLKEYPASSWD*/
-        char* cainfo; /* CURLOPT_CAINFO; certificate authority */
 	char* capath;  /*CURLOPT_CAPATH*/
     } ssl;
     struct proxy {
@@ -50,9 +49,7 @@ typedef struct NCauth {
     } creds;
 } NCauth;
 
-extern int NC_authsetup(NCauth*, NCURI*);
+extern int NC_authsetup(NCauth*, NCRCFIELDS*);
 extern void NC_authclear(NCauth*);
-extern char* NC_combinehostport(NCURI*);
-extern int NC_parsecredentials(const char* userpwd, char** userp, char** pwdp);
 
 #endif /*NCAUTH_H*/

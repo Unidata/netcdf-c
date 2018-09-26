@@ -138,8 +138,6 @@ set_curlflag(NCD4INFO* state, int flag)
         if(ssl->keypasswd)
             /* libcurl prior to 7.16.4 used 'CURLOPT_SSLKEYPASSWD' */
             CHECK(state, CURLOPT_KEYPASSWD, ssl->keypasswd);
-        if(ssl->cainfo)
-            CHECK(state, CURLOPT_CAINFO, ssl->cainfo);
         if(ssl->capath)
             CHECK(state, CURLOPT_CAPATH, ssl->capath);
     }
@@ -311,35 +309,17 @@ ncerror
 NCD4_get_rcproperties(NCD4INFO* state)
 {
     ncerror err = NC_NOERR;
-    char* option = NULL;
+    NCRCFIELDS* rcfields = &state->controls.rcfields;
 #ifdef HAVE_CURLOPT_BUFFERSIZE
-    option = NC_rclookup(D4BUFFERSIZE,state->uri->uri);
-    if(option != NULL && strlen(option) != 0) {
-	long bufsize;
-	if(strcasecmp(option,"max")==0) 
-	    bufsize = CURL_MAX_READ_SIZE;
-	else if(sscanf(option,"%ld",&bufsize) != 1 || bufsize <= 0)
-	    fprintf(stderr,"Illegal %s size\n",D4BUFFERSIZE);
-        state->curl->buffersize = bufsize;
+    if(rcfields->HTTP_READ_BUFFERSIZE > 0) {
+	state->curl->buffersize = rcfields->HTTP_READ_BUFFERSIZE;
     }
 #endif
 #ifdef HAVE_CURLOPT_KEEPALIVE
-    option = NC_rclookup(D4KEEPALIVE,state->uri->uri);
-    if(option != NULL && strlen(option) != 0) {
-	/* The keepalive value is of the form 0 or n/m,
-           where n is the idle time and m is the interval time;
-           setting either to zero will prevent that field being set.*/
-	if(strcasecmp(option,"on")==0) {
-	    state->curl->keepalive.active = 1;
-	} else {
-	    unsigned long idle=0;
-	    unsigned long interval=0;
-	    if(sscanf(option,"%lu/%lu",&idle,&interval) != 2)
-	        fprintf(stderr,"Illegal KEEPALIVE VALUE: %s\n",option);
-	    state->curl->keepalive.idle = idle;
-	    state->curl->keepalive.interval = interval;
-	    state->curl->keepalive.active = 1;
-	}
+    if(rcfields->HTTP_KEEPALIVE.defined) {
+	state->curl->keepalive.active = rcfields->HTTP_KEEPALIVE.active;
+        state->curl->keepalive.idle = rcfields->HTTP_KEEPALIVE.wait;
+        state->curl->keepalive.interval = rcfields->HTTP_KEEPALIVE.repeat;
     }
 #endif
     return err;

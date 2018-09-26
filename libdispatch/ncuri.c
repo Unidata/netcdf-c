@@ -967,3 +967,58 @@ parselist(char* ptext, NClist* list)
     }
     return ret;
 }
+
+/* Caller frees */
+char*
+ncuricombinehostport(NCURI* uri)
+{
+    size_t len;
+    char* host = NULL;
+    char* port = NULL;
+    char* hp = NULL;
+    if(uri == NULL) return NULL;
+    host = uri->host;
+    port = uri->port;
+    if(uri == NULL || host == NULL) return NULL;
+    if(port != NULL && strlen(port) == 0) port = NULL;
+    len = strlen(host);
+    if(port != NULL) len += (1+strlen(port));
+    hp = (char*)malloc(len+1);
+    if(hp == NULL) return NULL;
+    strncpy(hp,host,len);
+    if(port != NULL) {
+	strncat(hp,":",len);
+	strncat(hp,port,len);
+    }
+    return hp;
+}
+
+/*
+Given form user:pwd, parse into user and pwd
+and do %xx unescaping
+*/
+int
+ncuriparsecredentials(const char* userpwd, char** userp, char** pwdp)
+{
+  char* user = NULL;
+  char* pwd = NULL;
+
+  if(userpwd == NULL)
+	return NC_EINVAL;
+  user = strdup(userpwd);
+  if(user == NULL)
+	return NC_ENOMEM;
+  pwd = strchr(user,':');
+  if(pwd == NULL) {
+    free(user);
+	return NC_EINVAL;
+  }
+  *pwd = '\0';
+  pwd++;
+  if(userp)
+	*userp = ncuridecode(user);
+  if(pwdp)
+	*pwdp = ncuridecode(pwd);
+  free(user);
+  return NC_NOERR;
+}

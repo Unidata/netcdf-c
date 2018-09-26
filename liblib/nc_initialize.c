@@ -10,7 +10,7 @@
 #endif
 
 #include "ncdispatch.h"
-
+#include "ncrc.h"
 
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
@@ -69,6 +69,9 @@ nc_initialize()
     if(NC_initialized) return NC_NOERR;
     NC_initialized = 1;
     NC_finalized = 0;
+
+    /* Load rc file */
+    NC_rcload();    
 
     /* Do general initialization */
     if((stat = NCDISPATCH_initialize())) goto done;

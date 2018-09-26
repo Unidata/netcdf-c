@@ -602,10 +602,10 @@ follows.
         Type: String representing password  
         Description: Specify the password for Digest and Basic authentication.  
         Related CURL Flags:  
-1. HTTP.SSL.CERTIFICATE  
-        Type: String representing file path  
-        Description: Path to a file containing a PEM cerficate.  
-        Related CURL Flags: CURLOPT_CERT  
+1. HTTP.CREDENTIALS.USERPASSWORD
+        Type: String representing user:pwd
+        Description: user:pwd
+        Related CURL Flags: 
 1. HTTP.SSL.KEY  
         Type: String representing file path  
         Description: Same as HTTP.SSL.CERTIFICATE, and should usually have the same value.  
@@ -626,7 +626,7 @@ follows.
         Type: Integer ("dddddd")  
         Description: Specify the maximum time in seconds that you allow the http transfer operation to take.  
         Related CURL Flags: CURLOPT_TIMEOUT, CURLOPT_NOSIGNAL  
-1. HTTP.PROXY_SERVER  
+1. HTTP.PROXY.SERVER  
         Type: String representing url to access the proxy: (e.g.http://[username:password@]host[:port])  
         Description: Specify the needed information for accessing a proxy.  
         Related CURL Flags: CURLOPT_PROXY, CURLOPT_PROXYHOST, CURLOPT_PROXYUSERPWD  
@@ -640,6 +640,14 @@ follows.
         Description: Specify that TCP KEEPALIVE should be enabled and that the associated idle wait time is n and that the associated repeat interval is m. If the value is of the form is the string "on", then turn on keepalive, but do not set idle or interval.  
         Related CURL Flags: CURLOPT_TCP_KEEPALIVE, CURLOPT_TCP_KEEPIDLE,  
                             CURLOPT_TCP_KEEPINTVL.  
+1. HTTP.USERAGENT
+        Type: String
+        Description: Specify the http user agent
+        Related CURL Flags: CURLOPT_USERAGENT.
+1. HTTP.NETRC
+        Type: String (path to .netrc file)
+        Description: Specify the path to the .netrc file
+        Related CURL Flags: CURLOPT_NETRC.
 
 The related curl flags line indicates the curl flags modified by this
 key. See the libcurl documentation of the _curl_easy_setopt()_ function

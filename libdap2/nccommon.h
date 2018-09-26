@@ -125,6 +125,7 @@ typedef struct NCDAPCOMMON {
     NC*   controller; /* Parent instance of NCDAPCOMMON */
     NCCDF cdf;
     NCOC oc;
+    NCRCFIELDS rcfields;
     NCCONTROLS controls; /* Control flags and parameters */
     struct {
 	int realfile; /* 1 => we created actual temp file */

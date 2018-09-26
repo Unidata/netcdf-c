@@ -103,6 +103,10 @@ extern char* ncuriencodeonly(char* s, char* allowable);
 /* Encode user or pwd */
 extern char* ncuriencodeuserpwd(char* s);
 
+/* Misc. */
+extern char* ncuricombinehostport(NCURI*);
+extern int ncuriparsecredentials(const char* userpwd, char** userp, char** pwdp);
+
 #if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__) || defined(__CPLUSPLUS)
 }
 #endif

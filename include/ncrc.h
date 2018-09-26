@@ -38,7 +38,33 @@ typedef struct NCRCglobalstate {
     NCRCinfo rcinfo; /* Currently only one rc file per session */
 } NCRCglobalstate;
 
+/* Define a structure to hold all legal .daprc fields */
+/* For char*, NULL means it was not defined, for int and long,
+   -1 means it was not defined. KeepAlive.on == -1 indicates not defined.
+*/
+typedef struct NCRCFIELDS {
+    int   HTTP_VERBOSE;
+    int   HTTP_DEFLATE;
+    char* HTTP_COOKIEJAR;
+    char* HTTP_CREDENTIALS_USERNAME;
+    char* HTTP_CREDENTIALS_PASSWORD;
+    char* HTTP_SSL_CERTIFICATE;
+    char* HTTP_SSL_KEY;
+    char* HTTP_SSL_KEYPASSWORD;
+    char* HTTP_SSL_CAPATH;
+    int   HTTP_SSL_VALIDATE;
+    long  HTTP_TIMEOUT;
+    char* HTTP_PROXY_SERVER;
+    long  HTTP_READ_BUFFERSIZE;
+    char* HTTP_NETRC;
+    char* HTTP_USERAGENT;
+    struct KeepAlive {int defined; int active; int wait; int repeat;}
+           HTTP_KEEPALIVE;
+} NCRCFIELDS;
+
 extern NCRCglobalstate ncrc_globalstate; /* singleton instance */
+
+extern const NCRCFIELDS NC_dfaltfields;
 
 /* From drc.c */
 /* read and compile the rc file, if any */
@@ -48,6 +74,7 @@ extern void NC_rcclear(NCRCinfo* info);
 extern int NC_set_rcfile(const char* rcfile);
 extern int NC_rcfile_insert(const char* key, const char* value, const char* hostport);
 extern int NC_rcloadfields(NCRCFIELDS* fields, const char* hostport);
+extern int NC_rcloadfield(NCRCFIELDS* fields, const char* key, const char* value, const char* hostport);
 
 /* From dutil.c (Might later move to e.g. nc.h */
 extern int NC__testurl(const char* path, char** basenamep);

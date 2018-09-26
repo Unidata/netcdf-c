@@ -42,31 +42,8 @@ typedef unsigned int NCFLAGS;
 /* Define all the default on flags */
 #define DFALT_ON_FLAGS (NCF_CACHE|NCF_PREFETCH)
 
-/* Define a structure to hold all legal .daprc fields */
-/* For char*, NULL means it was not defined, for int and long,
-   -1 means it was not defined. KeepAlive.on == -1 indicates not defined.
-*/
-typedef struct NCRCFIELDS {
-    int   HTTP_VERBOSE;
-    int   HTTP_DEFLATE;
-    char* HTTP_COOKIEJAR;
-    char* HTTP_CREDENTIALS_USER;
-    char* HTTP_CREDENTIALS_PASSWORD;
-    char* HTTP_SSL_CERTIFICATE;
-    char* HTTP_SSL_KEY;
-    char* HTTP_SSL_KEYPASSWORD;
-    char* HTTP_SSL_CAPATH;
-    int   HTTP_SSL_VALIDATE;
-    long  HTTP_TIMEOUT;
-    char* HTTP_PROXY_SERVER;
-    long  HTTP_READ_BUFFERSIZE;
-    struct KeepAlive {int active; int wait; int repeat;}
-           HTTP_KEEPALIVE;
-} NCRCFIELDS;
-
 typedef struct NCCONTROLS {
     NCFLAGS  flags;
-    NCRCFIELDS rcfields;
 } NCCONTROLS;
 
 /* Misc. Constants */

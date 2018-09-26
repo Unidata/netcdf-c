@@ -306,6 +306,7 @@ struct NCD4INFO {
 	NCD4meta* metadata;
     } substrate;
     struct {
+	NCRCFIELDS rcfields;
         NCCONTROLS  flags;
         NCCONTROLS  debugflags;
 	NCD4translation translation;

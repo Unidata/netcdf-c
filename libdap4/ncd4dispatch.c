@@ -52,8 +52,6 @@ NCD4_initialize(void)
 #endif
     /* Init global state */
     globalinit();
-    /* Load rc file */
-    NC_rcload();    
 
     return THROW(NC_NOERR);
 }

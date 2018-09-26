@@ -135,8 +135,6 @@ ocset_curlflag(OCstate* state, int flag)
         if(ssl->keypasswd)
             /* libcurl prior to 7.16.4 used 'CURLOPT_SSLKEYPASSWD' */
             CHECK(state, CURLOPT_KEYPASSWD, ssl->keypasswd);
-        if(ssl->cainfo)
-            CHECK(state, CURLOPT_CAINFO, ssl->cainfo);
         if(ssl->capath)
             CHECK(state, CURLOPT_CAPATH, ssl->capath);
     }
@@ -219,13 +217,6 @@ oc_curl_debug(OCstate* state)
 }
 
 /* Misc. */
-
-int
-ocrc_netrc_required(OCstate* state)
-{
-    char* netrcfile = NC_rclookup(NETRCFILETAG,state->uri->uri);
-    return (netrcfile != NULL || state->auth.curlflags.netrc != NULL ? 0 : 1);
-}
 
 void
 oc_curl_printerror(OCstate* state)

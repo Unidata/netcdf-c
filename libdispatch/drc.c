@@ -19,6 +19,11 @@ See LICENSE.txt for license information.
 #include "ncrc.h"
 #include "nclog.h"
 #include "ncwinpath.h"
+#ifdef HAVE_CURL_H
+#include <curl/curl.h>
+#else
+#define CURL_MAX_READ_SIZE (512*1024)
+#endif
 
 #define RCFILEENV "DAPRCFILE"
 
@@ -512,6 +517,113 @@ getstring(char** field, const char* value)
     return NC_NOERR;
 }
 
+/* Set a single NCRCFIELD field */
+int
+NC_rcloadfield(NCRCFIELDS* fields, const char* key, const char* value, const char* host)
+{
+    int useit;
+    int stat = NC_NOERR;
+    if(strcmp("HTTP.VERBOSE",key)==0) {
+        useit = (host == NULL && fields->HTTP_VERBOSE < 0);
+        if(useit) {if((stat=getbool(&fields->HTTP_VERBOSE,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.DEFLATE",key)==0) {
+        useit = (host == NULL && fields->HTTP_DEFLATE < 0);
+        if(useit) {if((stat=getbool(&fields->HTTP_DEFLATE,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.COOKIEJAR",key)==0) {
+        useit = (host == NULL && fields->HTTP_COOKIEJAR == NULL);
+        if(useit) {if((stat=getstring(&fields->HTTP_COOKIEJAR,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.NETRC",key)==0) {
+        useit = (host == NULL && fields->HTTP_NETRC == NULL);
+        if(useit) {if((stat=getstring(&fields->HTTP_NETRC,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.USERAGENT",key)==0) {
+        useit = (host == NULL && fields->HTTP_USERAGENT == NULL);
+        if(useit) {if((stat=getstring(&fields->HTTP_USERAGENT,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.CREDENTIALS.USERNAME",key)==0) {
+        useit = (host == NULL && fields->HTTP_CREDENTIALS_USERNAME == NULL);
+        if(useit) {if((stat=getstring(&fields->HTTP_CREDENTIALS_USERNAME,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.CREDENTIALS.PASSWORD",key)==0) {
+        useit = (host == NULL && fields->HTTP_CREDENTIALS_PASSWORD == NULL);
+        if(useit) {if((stat=getstring(&fields->HTTP_CREDENTIALS_PASSWORD,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.CREDENTIALS.USERPASSWORD",key)==0) {
+        useit = (host == NULL
+                                && fields->HTTP_CREDENTIALS_USERNAME == NULL
+                                && fields->HTTP_CREDENTIALS_PASSWORD == NULL);
+        if(useit) {
+            char* p;
+            char* s;
+            char* usrpwd = NULL;
+            if((stat=getstring(&usrpwd,value))!=NC_NOERR)
+                goto done;
+            s = strdup(usrpwd);
+            if(s == NULL) {stat = NC_ENOMEM; goto done;}
+            /* Split */
+            p = strchr(s,':');
+            if(p == NULL) {stat = NC_EINVAL; goto done;}
+            *p++ = '\0';            
+            if(strlen(s) == 0 || strlen(p) == 0) {stat = NC_EINVAL; goto done;}
+            fields->HTTP_CREDENTIALS_USERNAME = s;
+            s = strdup(p);
+            if(s == NULL) {stat = NC_ENOMEM; goto done;}
+            fields->HTTP_CREDENTIALS_PASSWORD = s;
+        }
+    } else if(strcmp("HTTP.SSL.CERTIFICATE",key)==0) {
+        useit = (host == NULL && fields->HTTP_SSL_CERTIFICATE == NULL);
+        if(useit) {if((stat=getstring(&fields->HTTP_SSL_CERTIFICATE,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.SSL.KEY",key)==0) {
+        useit = (host == NULL && fields->HTTP_SSL_KEY == NULL);
+        if(useit) {if((stat=getstring(&fields->HTTP_SSL_KEY,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.SSL.KEYPASSWORD",key)==0) {
+        useit = (host == NULL && fields->HTTP_SSL_KEYPASSWORD == NULL);
+        if(useit) {if((stat=getstring(&fields->HTTP_SSL_KEYPASSWORD,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.SSL.CAPATH",key)==0) {
+        useit = (host == NULL && fields->HTTP_SSL_CAPATH == NULL);
+        if(useit) {if((stat=getstring(&fields->HTTP_SSL_CAPATH,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.SSL.VALIDATE",key)==0) {
+        useit = (host == NULL && fields->HTTP_SSL_VALIDATE < 0);
+        if(useit) {if((stat=getbool(&fields->HTTP_SSL_VALIDATE,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.TIMEOUT",key)==0) {
+        useit = (host == NULL && fields->HTTP_TIMEOUT < 0);
+        if(useit) {if((stat=getlong(&fields->HTTP_TIMEOUT,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.PROXY.SERVER",key)==0) {
+        useit = (host == NULL && fields->HTTP_PROXY_SERVER == NULL);
+        if(useit) {if((stat=getstring(&fields->HTTP_PROXY_SERVER,value))!=NC_NOERR) goto done;}
+    } else if(strcmp("HTTP.READ.BUFFERSIZE",key)==0) {
+        useit = (host == NULL && fields->HTTP_READ_BUFFERSIZE < 0);
+        if(useit) {
+            if(strcasecmp(value,"max")==0)
+                fields->HTTP_READ_BUFFERSIZE = CURL_MAX_READ_SIZE;
+            if((stat=getlong(&fields->HTTP_READ_BUFFERSIZE,value))!=NC_NOERR) goto done;
+        }
+    } else if(strcmp("HTTP.KEEPALIVE",key)==0) {
+        useit = (host == NULL && !fields->HTTP_KEEPALIVE.defined);
+        if(useit) {
+            char* v;
+            if((stat=getstring(&v,value))!=NC_NOERR) goto done;    
+            /* Parse the KEEPALIVE value */
+            /* The keepalive value is of the form 0 or n/m,
+               where n is the idle time and m is the interval time;
+               setting either to zero will prevent that field being set. */
+            if(strcasecmp(v,"on")==0) {
+                fields->HTTP_KEEPALIVE.active = 1;                  
+            } else {
+                unsigned long idle=0;
+                unsigned long interval=0;
+                if(sscanf(v,"%lu/%lu",&idle,&interval) != 2)
+                    {stat = NC_EINVAL; goto done;}
+                fields->HTTP_KEEPALIVE.wait = idle;
+                fields->HTTP_KEEPALIVE.repeat = interval;
+                fields->HTTP_KEEPALIVE.active = 1;                  
+            }
+            fields->HTTP_KEEPALIVE.defined = 1;
+        }
+    } // else ignore
+done:
+    /* log error */
+    nclog(NCLOGERR,"Illegal value for %s=%s",key,value);
+    stat = NC_NOERR;
+    return stat;
+}
+
 /**
 With respect to a host+port, extract all the values for legal .daprc fields.
 */
@@ -519,88 +631,15 @@ int
 NC_rcloadfields(NCRCFIELDS* fields, const char* hostport)
 {
     int stat = NC_NOERR;
-    const char* fieldname = NULL;
+    int i;
+    NClist* triples = ncrc_globalstate.rcinfo.triples;
     /* Iterate over all defined triples */
     for(i=0;i<nclistlength(triples);i++) {
-	int useit;
 	NCTriple* t = (NCTriple*)nclistget(triples,i);
-	fieldname = t->key;
-	if(strcmp("HTTP.VERBOSE",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0 || (t->hostport == NULL && fields->HTTP_VERBOSE < 0);
-	    if(useit) {if((stat=getbool(&fields->HTTP_VERBOSE,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.DEFLATE",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0 || (t->hostport == NULL && fields->HTTP_DEFLATE < 0);
-	    if(useit) {if((stat=getbool(&fields->HTTP_DEFLATE,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.COOKIEJAR",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0 || (t->hostport == NULL && fields->HTTP_COOKIEJAR == NULL);
-	    if(useit) {if((stat=getstring(&fields->HTTP_COOKIEJAR,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.CREDENTIALS.USER",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0
-			|| (t->hostport == NULL && fields->HTTP_CREDENTIALS_USER == NULL);
-	    if(useit) {if((stat=getstring(&fields->HTTP_CREDENTIALS_USER,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.CREDENTIALS.PASSWORD",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0
-				|| (t->hostport == NULL && fields->HTTP_CREDENTIALS_PASSWORD == NULL);
-	    if(useit) {if((stat=getstring(&fields->HTTP_CREDENTIALS_PASSWORD,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.SSL.CERTIFICATE",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0
-			|| (t->hostport == NULL && fields->HTTP_SSL_CERTIFICATE == NULL);
-	    if(useit) {if((stat=getstring(&fields->HTTP_SSL_CERTIFICATE,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.SSL.KEY",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0
-			|| (t->hostport == NULL && fields->HTTP_SSL_KEY == NULL);
-	    if(useit) {if((stat=getstring(&fields->HTTP_SSL_KEY,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.SSL.KEYPASSWORD",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0
-			|| (t->hostport == NULL && fields->HTTP_SSL_KEYPASSWORD == NULL);
-	    if(useit) {if((stat=getstring(&fields->HTTP_SSL_KEYPASSWORD,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.SSL.CAPATH",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0
-			|| (t->hostport == NULL && fields->HTTP_SSL_CAPATH == NULL);
-	    if(useit) {if((stat=getstring(&fields->HTTP_SSL_CAPATH,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.SSL.VALIDATE",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0
-			|| (t->hostport == NULL && fields->HTTP_SSL_VALIDATE == NULL);
-	    if(useit) {if((stat=getbool(&fields->HTTP_SSL_VALIDATE,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.TIMEOUT",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0
-			|| (t->hostport == NULL && fields->HTTP_TIMEOUT == NULL);
-	    if(useit) {if((stat=getlong(&fields->HTTP_TIMEOUT,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.PROXY.SERVER",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0
-			|| (t->hostport == NULL && fields->HTTP_PROXY_SERVER == NULL);
-	    if(useit) {if((stat=getstring(&fields->HTTP_PROXY_SERVER,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.READ.BUFFERSIZE",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0
-			|| (t->hostport == NULL && fields->HTTP_READ_BUFFERSIZE == NULL);
-	    if(useit) {if((stat=getlong(&fields->HTTP_READ_BUFFERSIZE,t->value))!=NC_NOERR) goto done;}
-	} else if(strcmp("HTTP.KEEPALIVE",t->key)==0) {
-	    useit = strcmp(t->hostport,hostport)==0
-			|| (t->hostport == NULL && !fields->HTTP_KEEPALIVE.defined);
-	    if(useit) {
-		char* value;
-	        if((stat=getstring(&value,t->value))!=NC_NOERR) goto done;}	    
-		/* Parse the KEEPALIVE value */
-		/* The keepalive value is of the form 0 or n/m,
-	           where n is the idle time and m is the interval time;
-	           setting either to zero will prevent that field being set. */
-		if(strcasecmp(value,"on")==0) {
-		    field->HTTP_KEEPALIVE.active = 1;			
-		} else {
-		    unsigned long idle=0;
-		    unsigned long interval=0;
-		    if(sscanf(option,"%lu/%lu",&idle,&interval) != 2)
-			{stat = NC_EINVAL; goto done;}
-		    field->HTTP_KEEALIVE.wait = idle;
-		    field->HTTP_KEEALIVE.repeat = interval;
-		    field->HTTP_KEEPALIVE.active = 1;			
-		}
-		field->HTTP_KEEPALIVE.defined = 1;
-	    }
-	} // else ignore
+	if(memcmp("HTTP.",t->key,5)!=0) continue; /* short circuit */
+        if(strcmp(t->host,hostport)==0 || t->host == NULL)
+	    (void)NC_rcloadfield(fields,t->key,t->value,t->host);
+	stat = NC_NOERR;
     }
-done:
-    /* log error */
-    nclog(NCLOGERR,"Illegal value for %s",fieldname);
-    return NC_NOERR; /* never fail for now */
+    return stat; /* never fail for now */
 }

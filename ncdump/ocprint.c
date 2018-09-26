@@ -425,7 +425,7 @@ processdata(OCflags flags)
     OCdatanode rootdatanode;
 
     totalurl = ncuribuild(ocopt.url,NULL,NULL,NCURIALL);
-    FAIL(oc_open(totalurl,&link));
+    FAIL(oc_open(totalurl,NULL,&link));
     free(totalurl);
     glink = link;
 

@@ -330,6 +330,14 @@ NCD2_open(const char* path, int mode,
     if(ncuriparse(dapcomm->oc.rawurltext,&dapcomm->oc.url) != NCU_OK)
 	{ncstat = NC_EURL; goto done;}
 
+    /* Collect url specific .daprc fields */
+    {
+	char* hostport = ncuricombinehostport(dapcomm->oc.url);
+	if((ncstat = NC_rcloadfields(&dapcomm->rcfields,hostport)))
+	    goto done;
+	nullfree(hostport);
+    }
+
     if(!constrainable(dapcomm->oc.url))
 	SETFLAG(dapcomm->controls,NCF_UNCONSTRAINABLE);
 
@@ -400,7 +408,7 @@ NCD2_open(const char* path, int mode,
     dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURIBASE);
 
     /* Pass to OC */
-    ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
+    ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->rcfields,&dapcomm->oc.conn);
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
 #ifdef DEBUG1

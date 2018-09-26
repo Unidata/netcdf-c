@@ -52,11 +52,11 @@ object is to be returned.
 */
 
 OCerror
-oc_open(const char* url, OCobject* linkp)
+oc_open(const char* url, NCRCFIELDS* rcfields, OCobject* linkp)
 {
-	OCerror ocerr = OC_NOERR;
+    OCerror ocerr = OC_NOERR;
     OCstate* state = NULL;
-    ocerr = ocopen(&state,url);
+    ocerr = ocopen(&state,url,rcfields);
     if(ocerr == OC_NOERR && linkp) {
       *linkp = (OCobject)(state);
     } else {

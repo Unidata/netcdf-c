@@ -31,6 +31,7 @@
 
 #include "oc.h"
 
+#include "ncrc.h"
 #include "ncdap.h"
 #include "dapdebug.h"
 #include "daputil.h"

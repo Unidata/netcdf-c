@@ -65,8 +65,16 @@ NCD4_open(const char * path, int mode,
     if(ncuriparse(nc->path,&d4info->uri) != NCU_OK)
 	{ret = NC_EDAPURL; goto done;}
 
+    /* Collect our .daprc fields */
+    {
+	char* hostport = ncuricombinehostport(d4info->uri);
+	if((ret = NC_rcloadfields(&d4info->controls.rcfields,hostport)))
+	    goto done;
+	nullfree(hostport);
+    }
+
     /* Load auth info from rc file */
-    if((ret = NC_authsetup(&d4info->auth, d4info->uri)))
+    if((ret = NC_authsetup(&d4info->auth, &d4info->controls.rcfields)))
 	goto done;
     NCD4_curl_protocols(d4info);
 

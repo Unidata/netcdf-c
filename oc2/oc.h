@@ -218,7 +218,9 @@ external "C" {
 /**************************************************/
 /* Link management */
 
-EXTERNL OCerror oc_open(const char* url, OClink*);
+struct NCRCFIELDS; /* forward */
+
+EXTERNL OCerror oc_open(const char* url, struct NCRCFIELDS*, OClink*);
 EXTERNL OCerror oc_close(OClink);
 
 /**************************************************/

@@ -54,7 +54,7 @@ static int dataError(XXDR* xdrs, OCstate*);
 static void ocremovefile(const char* path);
 
 static OCerror ocset_curlproperties(OCstate*);
-static OCerror ocget_rcproperties(OCstate*);
+static OCerror ocget_rcproperties(OCstate*,NCRCFIELDS*);
 
 extern OCnode* makeunlimiteddimension(void);
 
@@ -86,16 +86,13 @@ ocinternalinitialize(void)
     /* Compute some xdr related flags */
     xxdr_init();
 
-    /* Make sure that the rc file has been loaded */
-    (void)NC_rcload();
-
     return OCTHROW(stat);
 }
 
 
 /**************************************************/
 OCerror
-ocopen(OCstate** statep, const char* url)
+ocopen(OCstate** statep, const char* url, NCRCFIELDS* rcfields)
 {
     int stat = OC_NOERR;
     OCstate * state = NULL;
@@ -124,10 +121,10 @@ ocopen(OCstate** statep, const char* url)
     ncbytessetalloc(state->packet,DFALTPACKETSIZE); /*initial reasonable size*/
 
     /* Initialize auth info from rc file */
-    stat = NC_authsetup(&state->auth, state->uri);
+    stat = NC_authsetup(&state->auth, rcfields);
 
     /* Initialize misc info from rc file */
-    stat = ocget_rcproperties(state);
+    stat = ocget_rcproperties(state,rcfields);
 
     /* Apply curl properties for this link;
        assumes state has been initialized */
@@ -511,39 +508,15 @@ ocupdatelastmodifieddata(OCstate* state)
     Extract state values from .rc file
 */
 static OCerror
-ocget_rcproperties(OCstate* state)
+ocget_rcproperties(OCstate* state, NCRCFIELDS* rcfields)
 {
     OCerror ocerr = OC_NOERR;
-    char* option = NULL;
 #ifdef HAVE_CURLOPT_BUFFERSIZE
-    option = NC_rclookup(OCBUFFERSIZE,state->uri->uri);
-    if(option != NULL && strlen(option) != 0) {
-	long bufsize;
-	if(strcasecmp(option,"max")==0) 
-	    bufsize = CURL_MAX_READ_SIZE;
-	else if(sscanf(option,"%ld",&bufsize) != 1 || bufsize <= 0)
-            fprintf(stderr,"Illegal %s size\n",OCBUFFERSIZE);
-	state->curlbuffersize = bufsize;
+    if(rcfields->HTTP_READ_BUFFERSIZE > 0) {
+	state->curlbuffersize = rcfields->HTTP_READ_BUFFERSIZE;
     }
 #endif
 #ifdef HAVE_CURLOPT_KEEPALIVE
-    option = NC_rclookup(OCKEEPALIVE,state->uri->uri);
-    if(option != NULL && strlen(option) != 0) {
-	/* The keepalive value is of the form 0 or n/m,
-           where n is the idle time and m is the interval time;
-           setting either to zero will prevent that field being set. */
-	if(strcasecmp(option,"on")==0) {
-	    state->curlkeepalive.active = 1;
-	} else {
-	    unsigned long idle=0;
-	    unsigned long interval=0;
-	    if(sscanf(option,"%lu/%lu",&idle,&interval) != 2)
-	        fprintf(stderr,"Illegal KEEPALIVE VALUE: %s\n",option);
-	    state->curlkeepalive.idle = idle;
-	    state->curlkeepalive.interval = interval;
-	    state->curlkeepalive.active = 1;
-	}
-    }
 #endif
     return ocerr;
 }
@@ -624,19 +597,6 @@ ocset_curlproperties(OCstate* state)
 	}
 	if(f != NULL) fclose(f);
     }
-
-#if 0
-    /* Create a netrc file if specified  and required,
-       where required => >1 NETRC triples exist */
-    if(ocrc_netrc_required(state)) {
-	/* WARNING: it appears that a user+pwd was specified specifically, then
-           the netrc file will be completely disabled. */
-	if(state->auth.creds.userpwd != NULL) {
-  	    nclog(NCLOGWARN,"The rc file specifies both netrc and user+pwd; this will cause curl to ignore the netrc file");
-	}
-	stat = oc_build_netrc(state);
-    }
-#endif
 
     return stat;
 
