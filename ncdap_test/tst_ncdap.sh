@@ -27,6 +27,7 @@ PARAMS="${PARAMS}[cache]"
 # get the list of test files
 . ${srcdir}/tst_ncdap_shared.sh
 
+FLAGS="$FLAGS -p2,2"
 case "$mode" in
 file*)
     TESTURL="$FILEURL"
@@ -35,7 +36,7 @@ file*)
 dds*)
     TESTURL="[noprefetch]$FILEURL"
     TESTSET="$DDSTESTS"
-    FLAGS="-h"
+    FLAGS="$FLAGS -h"
     ;;
 remote*)
     TESTURL="$REMOTEURL"

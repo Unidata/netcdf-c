@@ -347,25 +347,27 @@ rangecheck(nc_type srctype, nc_type dsttype, struct Value* val)
     } else { // (srctype == NC_INT)
 	val->dval = (double)val->llval;
     }
-    /* Do range checks depending on dsttype */
+    /* We do not actually do much in the way of range checking,
+       we just truncate the bit pattern to the proper size, taking
+       signedness into account */
     switch (dsttype) {
     case NC_BYTE:
-        if(val->llval < (long long)NC_MIN_BYTE || val->llval > (long long)NC_MAX_BYTE) return NC_ERANGE;
+	val->llval = (long long)((signed char)(val->llval));
         break;
     case NC_UBYTE:
-        if(val->llval < (long long)0 || val->llval > (long long)NC_MAX_UBYTE) return NC_ERANGE;
+	val->llval = (long long)(val->llval & 0xFF);
         break;
     case NC_SHORT:
-        if(val->llval < (long long)NC_MIN_SHORT || val->llval > (long long)NC_MAX_SHORT) return NC_ERANGE;
+	val->llval = (long long)((short)(val->llval));
         break;
     case NC_USHORT:
-        if(val->llval < (long long)0 || val->llval > (long long)NC_MAX_USHORT) return NC_ERANGE;
+	val->llval = (long long)(val->llval & 0xFFFF);
         break;
     case NC_INT:
-        if(val->llval < (long long)NC_MIN_INT || val->llval > (long long)NC_MAX_INT) return NC_ERANGE;
+	val->llval = (long long)((int)(val->llval));
         break;
     case NC_UINT:
-        if(val->llval < (long long)0 || val->llval > (long long)NC_MAX_UINT) return NC_ERANGE;
+	val->llval = (long long)(val->llval & 0xFFFFFFFF);
         break;
     case NC_FLOAT:
     case NC_DOUBLE:
