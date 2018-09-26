@@ -11,6 +11,8 @@ PARAMS="[log]"
 
 OCLOGFILE=/dev/null
 
+DUMPFLAGS="-p2,2"
+
 # Locate directories
 testdata3="${srcdir}/testdata3"
 expected3="${srcdir}/expected3"
