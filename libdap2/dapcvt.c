@@ -7,6 +7,7 @@
 
 #ifdef _MSC_VER
 #include <crtdbg.h>
+#include <math.h>
 #endif
 
 struct Value {
@@ -318,8 +319,8 @@ cvtnumconst(const char* s, struct Value* val)
     if(count == 1 && nread == slen)
 	return NC_INT;
     /* Try to convert to float second */
-#if defined(_WIN32)
-    if (!_strnicmp(s, "NaN", 3)) {count = 1; nread = 3; val->llval = NAN;} else
+#ifdef _WIN32
+    if (!_strnicmp(s, "NaN", 3)) {count = 1; nread = 3; val->dval = NAN;} else
 #endif
 	count = sscanf(s,"%lg%n",&val->dval,&nread);
     if(count == 1 && nread == slen)
@@ -341,6 +342,9 @@ rangecheck(nc_type srctype, nc_type dsttype, struct Value* val)
     /* assert dsttype <= NC_DOUBLE && dsttype != NC_CHAR */
 
     /* Inter-convert */
+#ifdef _WIN32
+    if(isnan(val->dval)) return NC_ERANGE;
+#endif
     if(srctype == NC_DOUBLE) {
 	/* Convert to the long long */
 	val->llval = (long long)val->dval;
