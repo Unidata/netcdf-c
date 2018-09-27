@@ -85,4 +85,4 @@ suppress() {
 VG="valgrind --leak-check=full --error-exitcode=1 --num-callers=100"
 if test "x$USEVG" = x ; then VG=; fi
 
-DUMPFLAGS="-p2,2"
+DUMPFLAGS=

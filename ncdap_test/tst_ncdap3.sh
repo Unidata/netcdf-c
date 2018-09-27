@@ -46,5 +46,5 @@ cd ${RESULTSDIR}
 dotests file
 cd ..
 summarize
-cleanup
+#cleanup
 doexit

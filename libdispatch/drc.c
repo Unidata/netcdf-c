@@ -637,7 +637,7 @@ NC_rcloadfields(NCRCFIELDS* fields, const char* hostport)
     for(i=0;i<nclistlength(triples);i++) {
 	NCTriple* t = (NCTriple*)nclistget(triples,i);
 	if(memcmp("HTTP.",t->key,5)!=0) continue; /* short circuit */
-        if(strcmp(t->host,hostport)==0 || t->host == NULL)
+        if(t->host == NULL || strcmp(t->host,hostport)==0)
 	    (void)NC_rcloadfield(fields,t->key,t->value,t->host);
 	stat = NC_NOERR;
     }

@@ -70,11 +70,11 @@ nc_initialize()
     NC_initialized = 1;
     NC_finalized = 0;
 
-    /* Load rc file */
-    NC_rcload();    
-
     /* Do general initialization */
     if((stat = NCDISPATCH_initialize())) goto done;
+
+    /* Load rc file (after NCDISPATCH_initialize) */
+    NC_rcload();    
 
     /* Initialize each active protocol */
     if((stat = NC3_initialize())) goto done;
