@@ -882,7 +882,7 @@ AC_CHECK_FUNCS([memmove getpagesize sysconf])
 AC_MSG_CHECKING([whether mmap is enabled for in-memory files])
 AC_ARG_ENABLE([mmap],
               [AS_HELP_STRING([--enable-mmap],
-                              [allow mmap for in-memory files])])
+                              [allow mmap for in-memory files (deprecated)])])
 test "x$enable_mmap" = xyes || enable_mmap=no
 AC_MSG_RESULT($enable_mmap)
 
