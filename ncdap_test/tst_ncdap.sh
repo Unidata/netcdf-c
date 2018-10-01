@@ -35,7 +35,7 @@ file*)
 dds*)
     TESTURL="[noprefetch]$FILEURL"
     TESTSET="$DDSTESTS"
-    FLAGS="-h"
+    FLAGS="$FLAGS -h"
     ;;
 remote*)
     TESTURL="$REMOTEURL"

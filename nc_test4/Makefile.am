@@ -13,9 +13,9 @@ include $(top_srcdir)/lib_flags.am
 # Un comment to use a more verbose test driver
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+TEST_EXTENSIONS = .sh
 
 # Note which tests depend on other tests. necessary for make -j check
-TEST_EXTENSIONS = .sh
 extradir =
 
 # Link to our assembled library.

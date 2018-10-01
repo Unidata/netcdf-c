@@ -7,7 +7,19 @@
 
 #ifdef _MSC_VER
 #include <crtdbg.h>
+#include <math.h>
 #endif
+
+struct Value {
+    long long llval;
+    double dval;
+};
+
+/*Forward*/
+static int cvtnumconst(const char* s, struct Value* val);
+static int cvtdbl2int(struct Value* val);
+static int cvtint2dbl(struct Value* val);
+static int cvtint2int(nc_type dsttype, struct Value*);
 
 NCerror
 dapconvert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count)
@@ -193,111 +205,209 @@ fail:
     return THROW(ncstat);
 }
 
+/**
+Convert an attribute value string to a specific type.
+If the conversion fails, then return NC_EBADTYPE.
+If we need an int and the string value is out of range, return NC_ERANGE.
+@param etype the target type
+@param dst the memory into which to put the converted constants
+@param src list of constants as strings
+*/
 NCerror
-dapcvtattrval(nc_type etype, void* dst, NClist* src)
+dapcvtattrval(nc_type etype, void* dst, NClist* src, NCattribute* att)
 {
-    int i,ok;
+    int i;
     NCerror  ncstat = NC_NOERR;
     unsigned int memsize = nctypesizeof(etype);
     unsigned int nvalues = nclistlength(src);
     char* dstmem = (char*)dst;
 
     for(i=0;i<nvalues;i++) {
-	char* s = (char*)nclistget(src,i);
-	size_t slen = strlen(s);
-        int nread = 0; /* # of chars read by sscanf */
+	/* Convert numeric looking constants to either double
+           or signed long long and conforming to etype*/
+	char* s;
+	size_t slen;
 
-	ok = 0;
-	switch (etype) {
-	case NC_BYTE: { /* Note that in DAP2, this is unsigned 8-bit integer */
-	    /*Needs special handling because Windows sscanf does not do %hhd*/
+	s = (char*)nclistget(src,i);
+        slen = strlen(s);
+	if(etype <= NC_DOUBLE && etype != NC_CHAR) {
+	    struct Value val;
+	    int stype;
+	    /* Target types */
+	    unsigned char* u8p;
+	    short* i16p;
+	    unsigned short* u16p;
+	    int* i32p;
+	    unsigned int* u32p;
+	    float* fp;
+	    double* dp;
+
+	    /* Convert string to a number */
+	    stype = cvtnumconst(s,&val);
+	    if(stype == NC_NAT) {
+	        nclog(NCLOGERR,"Unexpected attribute value: %s = %s",att->name,s);
+	        ncstat = NC_EBADTYPE;
+                goto next;
+            }
+	    /* Force conformance with etype */
+	    /* Do Specific conversions */
+	    if(stype == NC_DOUBLE && etype < NC_FLOAT) {/* double->integer-type */
+		if((ncstat = cvtdbl2int(&val))) goto next;
+		stype = NC_INT; /* pretend */
+	    }else if(stype == NC_INT && etype >= NC_FLOAT) {/*integer-type -> float type*/
+		if((ncstat = cvtint2dbl(&val))) goto next;
+		stype = NC_DOUBLE; /* pretend */
+	    }
+	    if(stype == NC_INT && etype < NC_FLOAT) {/* integer-type -> integer-type */
+	        if((ncstat = cvtint2int(etype,&val))) goto next;
+	    }
+	    switch (etype) {
+	    case NC_BYTE:
+		/* Note that in DAP2, this is unsigned 8-bit integer */
+		u8p = (unsigned char*)dstmem;
+		*u8p = (unsigned char)(val.llval);
+		break;	
+	    case NC_SHORT:
+		i16p = (short*)dstmem;
+		*i16p = (short)(val.llval);
+		break;	
+	    case NC_USHORT:
+		u16p = (unsigned short*)dstmem;
+		*u16p = (unsigned short)(val.llval);
+		break;	
+	    case NC_INT:
+		i32p = (int*)dstmem;
+		*i32p = (int)(val.llval);
+		break;	
+	    case NC_UINT:
+		u32p = (unsigned int*)dstmem;
+		*u32p = (unsigned int)(val.llval);
+		break;	
+	    case NC_FLOAT:
+		fp = (float*)dstmem;
+		*fp = (float)(val.dval);
+		break;	
+	    case NC_DOUBLE:
+		dp = (double*)dstmem;
+		*dp = (double)(val.dval);
+		break;	
+	    default: return NC_EINTERNAL;
+	    }
+	} else if(etype == NC_CHAR) {
 	    char* p = (char*)dstmem;
-	    int ival;
-	    ok = sscanf(s,"%d%n",&ival,&nread);
-#ifdef _MSC_VER
-	    _ASSERTE(_CrtCheckMemory());
-#endif
-	    /* For back compatibility, we allow any value, but force conversion */
-	    ival = (ival & 0xFF);
-	    *p = (char)ival;
-	    } break;
-	case NC_CHAR: {
-	    signed char* p = (signed char*)dstmem;
-	    ok = sscanf(s,"%c%n",p,&nread);
-	    } break;
-	case NC_SHORT: {
-	    short* p = (short*)dstmem;
-	    ok = sscanf(s,"%hd%n",p,&nread);
-	    } break;
-	case NC_INT: {
-	    int* p = (int*)dstmem;
-	    ok = sscanf(s,"%d%n",p,&nread);
-	    } break;
-	case NC_FLOAT: {
-	    float* p = (float*)dstmem;
-	    ok = sscanf(s,"%g%n",p,&nread);
-#if defined(_MSC_VER) && (_MSC_VER == 1500)
-	    if (!_strnicmp(s, "NaN", 3)) {
-	      ok = 1;
-	      nread = 3;
-	    }
-#endif
-	    } break;
-	case NC_DOUBLE: {
-	    double* p = (double*)dstmem;
-	    ok = sscanf(s,"%lg%n",p,&nread);
-#if defined(_MSC_VER) && (_MSC_VER == 1500)
-	    if (!_strnicmp(s, "NaN", 3)) {
-	      ok = 1;
-	      nread = 3;
-	    }
-#endif
-	    } break;
-	case NC_UBYTE: {
-	    unsigned char* p = (unsigned char*)dstmem;
-#ifdef _MSC_VER
-	    unsigned int uval;
-	    ok = sscanf(s,"%u%n",&uval,&nread);
-	    _ASSERTE(_CrtCheckMemory());
-	    /* For back compatibility, we allow any value, but force conversion */
-	    uval = (uval & 0xFF);
-	    *p = (unsigned char)uval;
-#else
-	    ok = sscanf(s,"%hhu%n",p,&nread);
-#endif
-	    } break;
-	case NC_USHORT: {
-	    unsigned short* p = (unsigned short*)dstmem;
-	    ok = sscanf(s,"%hu%n",p,&nread);
-	    } break;
-	case NC_UINT: {
-	    unsigned int* p = (unsigned int*)dstmem;
-	    ok = sscanf(s,"%u%n",p,&nread);
-	    } break;
-	case NC_INT64: {
-	    long long* p = (long long*)dstmem;
-#ifdef _MSC_VER
-		ok = sscanf(s, "%I64d%n", p,&nread);
-#else
-		ok = sscanf(s,"%lld%n",p,&nread);
-#endif
-	} break;
-	case NC_UINT64: {
-	    unsigned long long* p = (unsigned long long*)dstmem;
-	    ok = sscanf(s,"%llu%n",p,&nread);
-	    } break;
-	case NC_STRING: case NC_URL: {
+	    size_t count;
+	    int nread;
+	    count = sscanf(s,"%c%n",p,&nread);
+	    if(count != 1 || nread != slen)
+	        {ncstat = NC_EBADTYPE; goto next;}
+	} else if(etype == NC_STRING || etype == NC_URL) {
 	    char** p = (char**)dstmem;
 	    *p = nulldup(s);
-	    ok = 1;
-	    } break;
-	default:
+	} else {
    	    PANIC1("unexpected nc_type: %d",(int)etype);
 	}
-	if(ok != 1 || nread != slen) {ncstat = NC_EINVAL; goto done;}
+next: /* inside loop */
+        if(ncstat == NC_ERANGE)
+	    nclog(NCLOGERR,"Attribute value out of range: %s = %s",att->name,s);
+        else if(ncstat == NC_EBADTYPE)
+	    nclog(NCLOGERR,"Unexpected attribute type or untranslatable value: %s",att->name);
+	ncstat = NC_NOERR;
 	dstmem += memsize;
     }
-done:
     return THROW(ncstat);
 }
 
+/**
+@param val resulting converted numeric value
+@return NC_INT || NC_DOUBLE || NC_NAT (failure)
+*/
+static int
+cvtnumconst(const char* s, struct Value* val)
+{
+    size_t slen = strlen(s);
+    int nread; /* # of chars read */
+    size_t count; /* # of conversions */
+    /* Try to convert to integer first */
+    count = sscanf(s,"%lld%n",&val->llval,&nread);
+    if(count == 1 && nread == slen)
+	return NC_INT;
+    /* Try to convert to float second */
+#ifdef _WIN32
+    if (!_strnicmp(s, "NaN", 3)) {count = 1; nread = 3; val->dval = NAN;} else
+#endif
+	count = sscanf(s,"%lg%n",&val->dval,&nread);
+    if(count == 1 && nread == slen)
+	    return NC_DOUBLE;
+    return NC_INT;
+}
+
+/**
+Convert a struct Value.dval field to a long in struct Value.llval field.
+Report if the result is out of range wrt NC_MAX/MIN_INT.
+ @param val store original and converted value
+@return NC_NOERR | NC_ERANGE
+*/
+static int
+cvtdbl2int(struct Value* val)
+{
+    /* Inter-convert */
+#ifdef _WIN32
+    if(isnan(val->dval)) return NC_ERANGE;
+#endif
+    val->llval = (long long)val->dval;
+    if(val->llval < NC_MIN_INT || val->llval > NC_MAX_INT)
+	return NC_ERANGE;
+    return NC_NOERR;
+}
+
+/**
+Convert a struct Value.llval field to double in struct Value.dval field.
+@return NC_NOERR
+*/
+static int
+cvtint2dbl(struct Value* val)
+{
+    /* Inter-convert */
+    val->dval = (double)val->llval;
+    return NC_NOERR;
+}
+
+/**
+Convert long long bit pattern to conform to a given
+integer type.
+@param dsttype target integer type
+@param valp pointer to long long value to convert
+@return NC_NOERR | NC_EBADTYPE
+*/
+static int
+cvtint2int(nc_type dsttype, struct Value* val)
+{
+    /* assert dsttype < NC_FLOAT && dsttype != NC_CHAR */
+
+    /* We do not actually do much in the way of range checking,
+       we just truncate the bit pattern to the proper size, taking
+       signedness into account */
+
+    switch (dsttype) {
+    case NC_BYTE:
+	val->llval = (long long)((signed char)(val->llval));
+        break;
+    case NC_UBYTE:
+	val->llval = (long long)(val->llval & 0xFF);
+        break;
+    case NC_SHORT:
+	val->llval = (long long)((short)(val->llval));
+        break;
+    case NC_USHORT:
+	val->llval = (long long)(val->llval & 0xFFFF);
+        break;
+    case NC_INT:
+	val->llval = (long long)((int)(val->llval));
+        break;
+    case NC_UINT:
+	val->llval = (long long)(val->llval & 0xFFFFFFFF);
+        break;
+    default: return NC_EBADTYPE;
+    }
+    return NC_NOERR;
+}
