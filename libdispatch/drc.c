@@ -291,34 +291,34 @@ rccompile(const char* path)
 	if((llen=strlen(line)) == 0) continue; /* empty line */
 	triple = (NCTriple*)calloc(1,sizeof(NCTriple));
 	if(triple == NULL) {ret = NC_ENOMEM; goto done;}
-    if(line[0] == LTAG) {
-      char* url = ++line;
-      char* rtag = strchr(line,RTAG);
-      if(rtag == NULL) {
-        nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
-        free(triple);
-        continue;
-      }
-      line = rtag + 1;
-      *rtag = '\0';
-      /* compile the url and pull out the host */
-      if(uri) ncurifree(uri);
-      if(ncuriparse(url,&uri) != NCU_OK) {
-        nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
-        free(triple);
+	if(line[0] == LTAG) {
+	    char* url = ++line;
+            char* rtag = strchr(line,RTAG);
+            if(rtag == NULL) {
+                nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
+                free(triple);
 		continue;
-      }
-      ncbytesclear(tmp);
-      ncbytescat(tmp,uri->host);
-      if(uri->port != NULL) {
+            }
+            line = rtag + 1;
+            *rtag = '\0';
+            /* compile the url and pull out the host */
+            if(uri) ncurifree(uri);
+            if(ncuriparse(url,&uri) != NCU_OK) {
+                nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
+                free(triple);
+		continue;
+            }
+            ncbytesclear(tmp);
+            ncbytescat(tmp,uri->host);
+            if(uri->port != NULL) {
 		ncbytesappend(tmp,':');
-        ncbytescat(tmp,uri->port);
-      }
-	    ncbytesnull(tmp);
-	    triple->host = ncbytesextract(tmp);
+                ncbytescat(tmp,uri->port);
+            }
+            ncbytesnull(tmp);
+            triple->host = ncbytesextract(tmp);
 	    if(strlen(triple->host)==0)
 		{free(triple->host); triple->host = NULL;}
-        }
+	}
         /* split off key and value */
         key=line;
         value = strchr(line, '=');
