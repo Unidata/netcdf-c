@@ -2043,8 +2043,6 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    /* Fix the inmemory related flags */
    mmap = ((cmode & NC_MMAP) == NC_MMAP);  
    diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
-   /* diskless && !mmap => inmemory */
-   if(diskless && !mmap) cmode |= NC_INMEMORY;
 
    /* Check mode flag for sanity. */
    if ((stat = check_create_mode(cmode)))

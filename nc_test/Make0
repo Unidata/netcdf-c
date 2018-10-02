@@ -1,5 +1,5 @@
 # Test c output
-T=nc_test
+T=t
 
 #H58=8
 H510=10
