@@ -944,7 +944,7 @@ AC_CHECK_SIZEOF(unsigned long long)
 AC_MSG_CHECKING([whether CDF5 support should be disabled])
 AC_ARG_ENABLE([cdf5],
               [AS_HELP_STRING([--disable-cdf5],
-                              [build without CDF5 support.])],
+                              [build without CDF5 support. @<:@default: auto@:>@])],
               [enable_cdf5=${enableval}], [enable_cdf5=auto]
 )
 if test "$ac_cv_sizeof_size_t" -lt "8" ; then
@@ -1132,7 +1132,7 @@ fi
 # parallel I/O for CDF-1, 2, and 5 files can also be done through PnetCDF
 AC_MSG_CHECKING([whether parallel I/O for classic files is to be enabled])
 AC_ARG_ENABLE([pnetcdf], [AS_HELP_STRING([--enable-pnetcdf],
-              [build with parallel I/O for classic files])])
+              [build with parallel I/O for classic files. @<:@default: disabled@:>@])])
 test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
 AC_MSG_RESULT($enable_pnetcdf)
 
