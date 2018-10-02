@@ -94,6 +94,10 @@ extern const char* ncurilookup(NCURI*, const char* param);
 */
 extern const char* ncuriquerylookup(NCURI*, const char* param);
 
+/*! Get the fragment list as an envv style list.
+*/
+extern const char** ncurifraglist(NCURI*);
+
 /* URL Encode/Decode */
 extern char* ncuridecode(char* s);
 /* Partial decode */

@@ -62,24 +62,13 @@ exit 0
 fi
 }
 
+# Return the complete set of arguments minus any found in $SUPPRESS
 suppress() {
-  F0="$1"
-  if test "x${SUPPRESS}" = x; then
-    RESULT="$F0"
-  else
-    RESULT=""
-    for f in ${F0} ; do
-      ignore=0
-      for s in ${SUPPRESS} ; do
-        if test "x$s" = "x$f" ; then
-  	  ignore=1;
-	  echo "Suppressing: $f"
-	  break;
-        fi       
-      done
-      if test "x$ignore" = x0 ; then RESULT="$f ${RESULT}" ; fi
-    done
-  fi
+  local args="$@"
+  suppress=
+  for a in $args; do
+  for s in $SUPPRESS; do if test "x$a" != "x$s" ; then suppress="$suppress $a"; fi;  done
+  done        
 }
 
 VG="valgrind --leak-check=full --error-exitcode=1 --num-callers=100"

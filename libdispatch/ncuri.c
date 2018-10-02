@@ -614,7 +614,6 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
     return newuri;
 }
 
-
 const char*
 ncurilookup(NCURI* uri, const char* key)
 {
@@ -1021,4 +1020,15 @@ ncuriparsecredentials(const char* userpwd, char** userp, char** pwdp)
 	*pwdp = ncuridecode(pwd);
   free(user);
   return NC_NOERR;
+}
+
+/**
+/*! Get the fragment list as an envv style list.
+*/
+const char**
+ncurifraglist(NCURI* uri)
+{
+  int i;
+  if(uri == NULL) return NULL;
+  return uri->fraglist;
 }

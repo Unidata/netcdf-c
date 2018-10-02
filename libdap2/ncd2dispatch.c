@@ -333,6 +333,7 @@ NCD2_open(const char* path, int mode,
     /* Collect url specific .daprc fields */
     {
 	char* hostport = ncuricombinehostport(dapcomm->oc.url);
+	dapcomm->rcfields NC_dfaltfields;
 	if((ncstat = NC_rcloadfields(&dapcomm->rcfields,hostport)))
 	    goto done;
 	nullfree(hostport);
@@ -1339,7 +1340,20 @@ applyclientparams(NCDAPCOMMON* nccomm)
     }
 
     /* Now, look for .daprc parameters */
-
+    {
+	char** fraglist = NULL;
+	fraglist = ncurifraglist(nccomm->oc.url);
+	if(fraglist != NULL) {
+	    char* hostport = NULL;
+            hostport = ncuricombinehostport(nccomm->oc.url);
+	    for(;*fraglist;fraglist+=2) {
+		/* Override existing .daprc fields */
+		int ret = NC_rcloadfield(&nccomm->rcfields, fraglist[0], fraglist[1], hostport);
+		if(ret) {nullfree(hostport); return ret;}
+	    }
+	    nullfree(hostport);
+	}
+    }
 
     return NC_NOERR;
 }

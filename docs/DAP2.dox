@@ -606,6 +606,10 @@ follows.
         Type: String representing user:pwd
         Description: user:pwd
         Related CURL Flags: 
+1. HTTP.SSL.CERTIFICATE  
+        Type: String representing file path  
+        Description: Path to a file containing a PEM cerficate.  
+        Related CURL Flags: CURLOPT_CERT  
 1. HTTP.SSL.KEY  
         Type: String representing file path  
         Description: Same as HTTP.SSL.CERTIFICATE, and should usually have the same value.  

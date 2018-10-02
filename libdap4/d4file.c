@@ -463,7 +463,7 @@ applyclientparamcontrols(NCD4INFO* info)
 
     value = getparam(info,"fillmismatch");
     if(value != NULL)
-	SETFLAG(info->controls.debugflags,NCF_FILLMISMATCH);
+	SETFLAG(info->controls.flags,NCF_FILLMISMATCH);
 
     value = getparam(info,"nofillmismatch");
     if(value != NULL)

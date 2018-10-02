@@ -618,8 +618,10 @@ NC_rcloadfield(NCRCFIELDS* fields, const char* key, const char* value, const cha
         }
     } // else ignore
 done:
-    /* log error */
-    nclog(NCLOGERR,"Illegal value for %s=%s",key,value);
+    if(stat != NC_NOERR) {
+        /* log error */
+        nclog(NCLOGERR,"Illegal .daprc param  %s=%s error=%d",key,value,stat);
+    }
     stat = NC_NOERR;
     return stat;
 }

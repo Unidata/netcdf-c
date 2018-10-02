@@ -78,7 +78,7 @@ NCD4_metabuild(NCD4meta* metadata, int ncid)
     markfixedsize(metadata);
     markdapsize(metadata);
     /* Process the metadata state */
-    ret = build(metadata,metadata->root);
+    if((ret = build(metadata,metadata->root))) goto done;
     /* Done with the metadata*/
     if((ret=nc_enddef(metadata->ncid)))
 	goto done;
@@ -258,7 +258,9 @@ build(NCD4meta* builder, NCD4node* root)
     /* Finally, define the top-level variables */
     for(i=0;i<len;i++) {
 	NCD4node* x = (NCD4node*)nclistget(builder->allnodes,i);
-	if(ISVAR(x->sort) && ISTOPLEVEL(x)) buildVariable(builder,x);
+	if(ISVAR(x->sort) && ISTOPLEVEL(x)) {
+	    if((ret=buildVariable(builder,x))) goto done;
+	}
     }
 
 done:
@@ -434,7 +436,7 @@ buildAttributes(NCD4meta* builder, NCD4node* varorgroup)
 	    varid = varorgroup->meta.id;
         if((ret=compileAttrValues(builder,attr,&memory))) {
 	    nullfree(memory);
-            FAIL(NC_ERANGE,"Malformed attribute value(s) for: %s",attr->name);
+            FAIL(ret,"Malformed attribute value(s) for: %s",attr->name);
         }
 	group = NCD4_groupFor(varorgroup);
         NCCHECK((nc_put_att(group->meta.id,varid,attr->name,attr->basetype->meta.id,count,memory)));
