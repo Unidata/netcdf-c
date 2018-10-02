@@ -82,6 +82,9 @@ parallel I/O.
 
     if ((res = nc_def_var(ncid, "v1", NC_INT, NDIMS, dimids, &v1id))) ERR;
 
+        ... use collective I/O
+    err = nc_var_par_access(ncid, v1id, NC_COLLECTIVE); ERR
+
     if ((res = nc_enddef(ncid))) ERR;
 
     ...
@@ -271,11 +274,14 @@ collective and vice versa. Note when file is opened/created to use PnetCDF
 library to perform parallel I/O underneath, argument varid is ignored and the
 mode changed by this function applies to all variables. This is because PnetCDF
 does not support access mode change for individual variables. In this case,
-users may use NC_GLOBAL in varid argument for better program readability. To
-obtain a good I/O performance, users are recommended to use collective mode.
-This function is collective, i.e. must be called by all MPI processes defined
-in the MPI communicator used in nc_create_par() or nc_open_par(). In addition,
-values of arguments of this function must be the same among all MPI processes.
+users may use NC_GLOBAL in varid argument for better program readability. This
+function is collective, i.e. must be called by all MPI processes defined in the
+MPI communicator used in nc_create_par() or nc_open_par(). In addition, values
+of arguments of this function must be the same among all MPI processes.
+
+To obtain a good I/O performance, users are recommended to use collective mode.
+In addition, switching between collective and independent I/O mode can be
+expensive.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open_par(),
 nc_create_par(), nc_def_grp(), or associated inquiry functions such as
@@ -318,9 +324,10 @@ parallel access of a variable and then writes to it.
     err = nc_def_dim(ncid, "X", global_nx, &dimid[1]); ERR
     err = nc_def_var(ncid, "var", NC_INT, 2, dimid, &varid); ERR
         ...
+        ... set collective I/O globally (for all variables)
+    err = nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE); ERR
+
     err = nc_enddef(ncid); ERR
-        ...
-    err = nc_var_par_access(ncid, varid, NC_COLLECTIVE); ERR
         ...
     start[0] = 0;
     start[1] = NX * rank;
