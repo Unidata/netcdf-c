@@ -40,7 +40,7 @@ if test "x$DEBUG" = x1 ; then
   F=`ls -1 *.dap | sed -e 's/[.]dap//' |tr '\r\n' '  '`
   popd
   for f in ${F} ; do
-    if ! diff -wBb ${SRC}/dmrtestfiles/${f}.dmr ./dmrtestfiles/${f}.dmr >& /dev/null ; then
+    if ! diff -wBb ${SRC}/dmrtestfiles/${f}.dmr ./dmrtestfiles/${f}.dmr > /dev/null 2>&1 ; then
       echo diff -wBb ${SRC}/dmrtestfiles/${f}.dmr ./dmrtestfiles/${f}.dmr
       diff -wBb ${SRC}/dmrtestfiles/${f}.dmr ./dmrtestfiles/${f}.dmr
     fi
