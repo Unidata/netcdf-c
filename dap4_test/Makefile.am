@@ -35,6 +35,7 @@ if BUILD_UTILITIES
 TESTS += test_raw.sh
 TESTS += test_meta.sh
 TESTS += test_data.sh
+TESTS += test_fillmismatch.sh
 endif
 
 # Note which tests depend on other tests. Necessary for make -j check.
@@ -56,9 +57,9 @@ endif
 endif #ENABLE_DAP4
 
 EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
-             test_raw.sh test_remote.sh test_hyrax.sh \
+             test_raw.sh test_remote.sh test_hyrax.sh test_fillmismatch.sh \
              tst_curlopt.sh d4test_common.sh \
-	     daptestfiles dmrtestfiles cdltestfiles nctestfiles \
+	     daptestfiles dmrtestfiles cdltestfiles nctestfiles misctestfiles \
 	     baseline baselineraw baselineremote CMakeLists.txt
 
 CLEANFILES = *.exe
