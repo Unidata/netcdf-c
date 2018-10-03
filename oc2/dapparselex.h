@@ -25,9 +25,9 @@ typedef struct DAPlexstate {
     /*! Specifies the Lasttoken. */
     int lasttoken;
     char lasttokentext[MAX_TOKEN_LENGTH+1];
-    char* wordchars1;
-    char* wordcharsn;
-    char* worddelims;
+    const char* wordchars1;
+    const char* wordcharsn;
+    const char* worddelims;
     NClist* reclaim; /* reclaim WORD_WORD instances */
 } DAPlexstate;
 
