@@ -25,18 +25,13 @@
 
 #define NC_HDF5_MAX_NAME 1024 /**< @internal Max size of HDF5 name. */
 
-#define MAXNAME 1024 /**< Max HDF5 name. */
-
-/** @internal HDF5 object types. */
-static unsigned int OTYPES[5] = {H5F_OBJ_FILE, H5F_OBJ_DATASET, H5F_OBJ_GROUP,
-                                 H5F_OBJ_DATATYPE, H5F_OBJ_ATTR};
-
 /**
  * @internal Flag attributes in a linked list as dirty.
  *
  * @param attlist List of attributes, may be NULL.
  *
  * @return NC_NOERR No error.
+ * @author Dennis Heimbigner
  */
 static int
 flag_atts_dirty(NCindex *attlist) {
@@ -55,7 +50,6 @@ flag_atts_dirty(NCindex *attlist) {
    }
 
    return NC_NOERR;
-
 }
 
 /**
@@ -360,11 +354,11 @@ nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
  * @param hdf_typeid Pointer that gets the HDF5 type ID.
  * @param endianness Desired endianness in HDF5 type.
  *
- * @returns NC_NOERR No error.
- * @returns NC_ECHAR Conversions of NC_CHAR forbidden.
- * @returns NC_EVARMETA HDF5 returning error creating datatype.
- * @returns NC_EHDFERR HDF5 returning error.
- * @returns NC_EBADTYE Type not found.
+ * @return NC_NOERR No error.
+ * @return NC_ECHAR Conversions of NC_CHAR forbidden.
+ * @return NC_EVARMETA HDF5 returning error creating datatype.
+ * @return NC_EHDFERR HDF5 returning error.
+ * @return NC_EBADTYE Type not found.
  * @author Ed Hartnett
  */
 int
@@ -824,6 +818,10 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
  * @param write_dimid True to write dimid.
  *
  * @return ::NC_NOERR
+ * @returns NC_ECHAR Conversions of NC_CHAR forbidden.
+ * @returns NC_EVARMETA HDF5 returning error creating datatype.
+ * @returns NC_EHDFERR HDF5 returning error.
+ * @returns NC_EBADTYE Type not found.
  * @author Ed Hartnett
  */
 static int
@@ -835,7 +833,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    void *fillp = NULL;
    NC_DIM_INFO_T *dim = NULL;
    char *name_to_use;
-   int retval = NC_NOERR;
+   int retval;
 
    LOG((3, "%s:: name %s", __func__, var->hdr.name));
 
@@ -1052,7 +1050,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
             BAIL(retval);
    }
 
-
    /* Write attributes for this var. */
    if ((retval = write_attlist(var->att, var->hdr.id, grp)))
       BAIL(retval);
@@ -1090,7 +1087,7 @@ exit:
  * @author Ed Hartnett
  */
 int
-nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
+nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    size_t chunk_size_bytes = 1;
    int d;
@@ -1135,6 +1132,11 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
  * @param type Pointer to type info struct.
  *
  * @return NC_NOERR No error.
+ * @return NC_EHDFERR HDF5 error.
+ * @return NC_ECHAR Conversions of NC_CHAR forbidden.
+ * @return NC_EVARMETA HDF5 returning error creating datatype.
+ * @return NC_EHDFERR HDF5 returning error.
+ * @return NC_EBADTYE Type not found.
  * @author Ed Hartnett
  */
 static int
@@ -1162,7 +1164,8 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
       for(i=0;i<nclistlength(type->u.c.field);i++)
       {
-         if((field = (NC_FIELD_INFO_T*)nclistget(type->u.c.field,i)) == NULL) continue;
+         field = (NC_FIELD_INFO_T *)nclistget(type->u.c.field, i);
+         assert(field);
          if ((retval = nc4_get_hdf_typeid(grp->nc4_info, field->nc_typeid,
                                           &hdf_base_typeid, type->endianness)))
             return retval;
@@ -2050,7 +2053,8 @@ nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
 
    /* If there are any user-defined types, write them now. */
    for(i=0;i<ncindexsize(grp->type);i++) {
-      if((type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i)) == NULL) continue;
+      type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i);
+      assert(type);
       if ((retval = commit_type(grp, type)))
          return retval;
    }
@@ -3208,23 +3212,25 @@ exit:
 }
 
 /**
- * @internal
+ * @internal Report information about an open HDF5 object. This is
+ * called on any still-open objects when a HDF5 file close is
+ * attempted.
  *
- * @param uselog
- * @param id HDF5 ID.
- * @param type
+ * @param uselog If true, send output to LOG not stderr.
+ * @param id HDF5 ID of open object.
+ * @param type Type of HDF5 object, file, dataset, etc.
  *
- * @return NC_NOERR No error.
+ * @author Dennis Heimbigner
  */
 void
 reportobject(int uselog, hid_t id, unsigned int type)
 {
-   char name[MAXNAME];
+   char name[NC_HDF5_MAX_NAME];
    ssize_t len;
    const char* typename = NULL;
    long long printid = (long long)id;
 
-   len = H5Iget_name(id, name, MAXNAME);
+   len = H5Iget_name(id, name, NC_HDF5_MAX_NAME);
    if(len < 0) return;
    name[len] = '\0';
 
@@ -3235,7 +3241,7 @@ reportobject(int uselog, hid_t id, unsigned int type)
    case H5F_OBJ_DATATYPE: typename = "Datatype"; break;
    case H5F_OBJ_ATTR:
       typename = "Attribute";
-      len = H5Aget_name(id, MAXNAME, name);
+      len = H5Aget_name(id, NC_HDF5_MAX_NAME, name);
       if(len < 0) len = 0;
       name[len] = '\0';
       break;
@@ -3260,7 +3266,7 @@ reportobject(int uselog, hid_t id, unsigned int type)
  * @param ntypes Number of types.
  * @param otypes Pointer that gets number of open types.
  *
- * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
  */
 static void
 reportopenobjectsT(int uselog, hid_t fid, int ntypes, unsigned int* otypes)
@@ -3297,11 +3303,14 @@ reportopenobjectsT(int uselog, hid_t fid, int ntypes, unsigned int* otypes)
  * @param uselog
  * @param fid HDF5 file ID.
  *
- * @return NC_NOERR No error.
+ * @author Dennit Heimbigner
  */
 void
 reportopenobjects(int uselog, hid_t fid)
 {
+   unsigned int OTYPES[5] = {H5F_OBJ_FILE, H5F_OBJ_DATASET, H5F_OBJ_GROUP,
+                             H5F_OBJ_DATATYPE, H5F_OBJ_ATTR};
+
    reportopenobjectsT(uselog, fid ,5, OTYPES);
 }
 
@@ -3310,6 +3319,7 @@ reportopenobjects(int uselog, hid_t fid)
  *
  * @param h5 file object
  *
+ * @author Dennis Heimbigner
  */
 void
 showopenobjects5(NC_FILE_INFO_T* h5)
@@ -3331,6 +3341,7 @@ showopenobjects5(NC_FILE_INFO_T* h5)
  *
  * @param ncid file id
  *
+ * @author Dennis Heimbigner
  */
 void
 showopenobjects(int ncid)

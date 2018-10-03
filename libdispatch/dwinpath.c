@@ -41,9 +41,9 @@ All other cases are passed thru unchanged
 
 
 /* Define legal windows drive letters */
-static char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static const char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-static size_t cdlen = 10; /* strlen("/cygdrive/") */
+static const size_t cdlen = 10; /* strlen("/cygdrive/") */
 
 static int pathdebug = -1;
 

@@ -442,9 +442,7 @@ NCD4_error(int code, const int line, const char* file, const char* fmt, ...)
     va_list argv;
     fprintf(stderr,"(%s:%d) ",file,line);
     va_start(argv,fmt);
-    vfprintf(stderr,fmt,argv);
-    fprintf(stderr,"\n");
-    fflush(stderr);
+    ncvlog(NCLOGERR,fmt,argv);
     return code;
 }
 

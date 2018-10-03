@@ -1,8 +1,10 @@
-/** \file
-This program benchmarks creating a netCDF file with many objects.
+/* This is part of the netCDF package. Copyright 2018 University
+   Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+   conditions of use. See www.unidata.ucar.edu for more info.
 
-Copyright 2010, UCAR/Unidata See COPYRIGHT file for copying and
-redistribution conditions.
+   This program benchmarks creating a netCDF file with many objects.
+
+   Ed Hartnett
 */
 
 #include <config.h>
@@ -16,6 +18,10 @@ redistribution conditions.
 
 /* We will create this file. */
 #define FILE_NAME "bm_many_objs.nc"
+
+/* Prototype from tst_utils.c. */
+int nc4_timeval_subtract(struct timeval *result, struct timeval *x,
+                         struct timeval *y);
 
 int main(int argc, char **argv)
 {
@@ -93,5 +99,5 @@ int main(int argc, char **argv)
 	}
     }
     nc_close(ncid);
-    return(0);
+    FINAL_RESULTS;
 }

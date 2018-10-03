@@ -575,11 +575,15 @@ Parameter Name Legal Values Semantics
   for a string dimension for the specified variable. The default is
   64. The name "maxstrlen_<var>" is an alias for "stringlength_<var>".
 - "cache" - This enables caching.
+- "nocache" - This disbles caching.
 - "cachelimit=NN" - Specify the maximum amount of space allowed for
   the cache.
 - "cachecount=NN" - Specify the maximum number of entries in the
   cache.
+- "prefetch" - This enables prefetch of small variables (default).
 - "noprefetch" - This disables prefetch of small variables.
+- "fillmismatch" - This enables _FillValue/Variable type mismatch.
+- "nofillmismatch" - This disables _FillValue/Variable type mismatch (default).
 
 \section dap_debug Notes on Debugging OPeNDAP Access
 
