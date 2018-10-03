@@ -43,10 +43,10 @@ static char* ddsworddelims =
 /* Note: for some reason I added # and removed !~'"
    what was I thinking?
 */
-static char* ddswordchars1 =
+static const char* ddswordchars1 =
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   "-+_/%\\.*!~'\"";
-static char* ddswordcharsn =
+static const char* ddswordcharsn =
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   "-+_/%\\.*!~'\"";
 
@@ -56,10 +56,10 @@ static char* daswordcharsn =
   "-+_/%\\.*#:!~'\"";
 
 /* Need to remove '.' to allow for fqns */
-static char* cewordchars1 =
+static const char* cewordchars1 =
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   "-+_/%\\*!~'\"";
-static char* cewordcharsn =
+static const char* cewordcharsn =
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   "-+_/%\\*!~'\"";
 
@@ -70,7 +70,7 @@ static char* wordcharsn = NULL;
 static char* worddelims = NULL;
 */
 
-static char* keywords[] = {
+static const char* keywords[] = {
 "alias",
 "array",
 "attributes",
@@ -96,7 +96,7 @@ static char* keywords[] = {
 NULL /* mark end of the keywords list */
 };
 
-static int keytokens[] = {
+static const int keytokens[] = {
 SCAN_ALIAS,
 SCAN_ARRAY,
 SCAN_ATTR,
@@ -371,7 +371,7 @@ daplexcleanup(DAPlexstate** lexstatep)
       (alphanum+"_!~*'-\"") then it is decoded, otherwise not.
 */
 #ifdef DECODE_PARTIAL
-static char* decodeset = /* Specify which characters are decoded */
+static const char* decodeset = /* Specify which characters are decoded */
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_!~*'-\"";
 #endif
 
