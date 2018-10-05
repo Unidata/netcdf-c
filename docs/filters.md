@@ -380,6 +380,27 @@ demonstrate how to build the hdf5 plugin for bzip2.
 Notes
 ==========
 
+Memory Allocation Issues
+-----------
+
+Starting with HDF5 version 1.10.x, the plugin code MUST be
+careful when using the standard *malloc()*, *realloc()*, and
+*free()* function.
+
+In the event that the code is allocating, reallocating, for
+free'ing memory that either came from or will be exported to the
+calling HDF5 library, then one MUST use the corresponding HDF5
+functions *H5allocate_memory()*, *H5resize_memory()*,
+*H5free_memory()* [5] to avoid memory failures.
+
+Additionally, if your filter code leaks memory, then the HDF5 library
+generates a failure something like this.
+````
+H5MM.c:232: H5MM_final_sanity_check: Assertion `0 == H5MM_curr_alloc_bytes_s' failed.
+````
+
+One can look at the the code in plugins/H5Zbzip2.c and H5Zmisc.c to see this.
+
 SZIP Issues
 -----------
 The current szip plugin code in the HDF5 library
@@ -467,6 +488,7 @@ References {#References}
 2. https://support.hdfgroup.org/HDF5/doc/TechNotes/TechNote-HDF5-CompressionTroubleshooting.pdf
 3. https://portal.hdfgroup.org/display/support/Contributions#Contributions-filters
 4. https://support.hdfgroup.org/services/contributions.html#filters
+5. https://support.hdfgroup.org/HDF5/doc/RM/RM_H5.html
 
 Point of Contact
 ================
