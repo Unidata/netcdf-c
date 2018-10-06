@@ -1996,8 +1996,8 @@ ENDIF()
 #####
 # Build ncdap_test|dap4_test/findtestserver[4].c
 #####
-configure_file(${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_BINARY_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
-configure_file(${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_BINARY_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
+configure_file(${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
+configure_file(${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_SOURCE_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
 
 ####
 # Export files

@@ -7,6 +7,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 echo "test_meta.sh:"
 
+
 cd ${DMRTESTFILES}
 F=`ls -1 *.dmr | sed -e 's/[.]dmr//g' | tr '\r\n' '  '`
 cd $WD
@@ -30,7 +31,7 @@ for f in ${F} ; do
     if ! ${VG} ${execdir}/test_meta ${DMRTESTFILES}/${f}.dmr ./results_test_meta/${f} ; then
         failure "${execdir}/test_meta ${DMRTESTFILES}/${f}.dmr ./results_test_meta/${f}"
     fi
-    ${NCDUMP} -h ./results_test_meta/${f} > ./results_test_meta/${f}.d4m
+    ${NCDUMP} ${DUMPFLAGS} -h ./results_test_meta/${f} > ./results_test_meta/${f}.d4m
     if test "x${TEST}" = x1 ; then
 	if ! diff -wBb ${BASELINE}/${f}.d4m ./results_test_meta/${f}.d4m ; then
 	    failure "diff -wBb ${BASELINE}/${f}.ncdump ./results_test_meta/${f}.d4m"

@@ -172,12 +172,15 @@ static char* optionmsg =
 
 static OCflags ocflags;
 
+EXTERNL int nc_initialize(void);
+
 static void
 init()
 {
     memset(&ocopt,0,sizeof(ocopt));
     ocopt.generate = 1;             /* -G|-g */
     ocopt.userparams = ncbytesnew(); /* -U */
+    nc_initialize();
 }
 
 int

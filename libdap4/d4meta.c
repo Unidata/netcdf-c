@@ -34,7 +34,7 @@ static int buildStructure(NCD4meta* builder, NCD4node* structvar);
 static int buildStructureType(NCD4meta* builder, NCD4node* structtype);
 static int buildVariable(NCD4meta* builder, NCD4node* var);
 static int buildVlenType(NCD4meta* builder, NCD4node* seqtype);
-static int compileAttrValues(NCD4meta* builder, NCD4node* basetype, NClist* values, void** memoryp);
+static int compileAttrValues(NCD4meta* builder, NCD4node* attr, void** memoryp);
 static void computeOffsets(NCD4meta* builder, NCD4node* cmpd);
 static int convertString(union ATOMICS* converter, NCD4node* type, const char* s);
 static void* copyAtomic(union ATOMICS* converter, nc_type type, size_t len, void* dst);
@@ -78,7 +78,7 @@ NCD4_metabuild(NCD4meta* metadata, int ncid)
     markfixedsize(metadata);
     markdapsize(metadata);
     /* Process the metadata state */
-    ret = build(metadata,metadata->root);
+    if((ret = build(metadata,metadata->root))) goto done;
     /* Done with the metadata*/
     if((ret=nc_enddef(metadata->ncid)))
 	goto done;
@@ -258,7 +258,9 @@ build(NCD4meta* builder, NCD4node* root)
     /* Finally, define the top-level variables */
     for(i=0;i<len;i++) {
 	NCD4node* x = (NCD4node*)nclistget(builder->allnodes,i);
-	if(ISVAR(x->sort) && ISTOPLEVEL(x)) buildVariable(builder,x);
+	if(ISVAR(x->sort) && ISTOPLEVEL(x)) {
+	    if((ret=buildVariable(builder,x))) goto done;
+	}
     }
 
 done:
@@ -432,9 +434,9 @@ buildAttributes(NCD4meta* builder, NCD4node* varorgroup)
 	    varid = NC_GLOBAL;
 	else
 	    varid = varorgroup->meta.id;
-        if((ret=compileAttrValues(builder,attr->basetype,attr->attr.values,&memory))) {
-	        nullfree(memory);
-                FAIL(NC_ERANGE,"Malformed attribute value(s) for: %s",attr->name);
+        if((ret=compileAttrValues(builder,attr,&memory))) {
+	    nullfree(memory);
+            FAIL(ret,"Malformed attribute value(s) for: %s",attr->name);
         }
 	group = NCD4_groupFor(varorgroup);
         NCCHECK((nc_put_att(group->meta.id,varid,attr->name,attr->basetype->meta.id,count,memory)));
@@ -717,17 +719,33 @@ into a memory chunk capable of being passed
 to nc_put_att().
 */
 static int
-compileAttrValues(NCD4meta* builder, NCD4node* basetype, NClist* values, void** memoryp)
+compileAttrValues(NCD4meta* builder, NCD4node* attr, void** memoryp)
 {
     int i,ret = NC_NOERR;
-    int count = nclistlength(values);
     unsigned char* memory = NULL;
     unsigned char* p;
     size_t size;
     NCD4node* truebase = NULL;
     union ATOMICS converter;
     int isenum = 0;
+    NCD4node* container = attr->container;
+    NCD4node* basetype = attr->basetype;
+    NClist* values = attr->attr.values;
+    int count = nclistlength(values);
 
+    /* Deal with _FillValue */
+    if(container->sort == NCD4_VAR && strcmp(attr->name,"_FillValue")==0) {
+	/* Verify or fix or fail on type match */
+	if(container->basetype != basetype) {
+	    /* _FillValue/Variable type mismatch */
+	    if(FLAGSET(builder->controller->controls.flags,NCF_FILLMISMATCH)) {
+		/* Force type match */
+		basetype = (attr->basetype = container->basetype);
+	    } else {/* Fail */
+	        FAIL(NC_EBADTYPE,"_FillValue/Variable type mismatch: %s:%s",container->name,attr->name);		
+	    }
+	}
+    }
     isenum = (basetype->subsort == NC_ENUM);
     truebase = (isenum ? basetype->basetype : basetype);
     if(!ISTYPE(truebase->sort) || (truebase->meta.id > NC_MAX_ATOMIC_TYPE))
