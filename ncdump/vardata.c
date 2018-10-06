@@ -492,24 +492,24 @@ print_rows(
 	/* determine if this is the last row */
 	lastrow = true;
 	for(j = 0; j < rank - 1; j++) {
-      if (cor[j] != vdims[j] - 1) {
+            if (cor[j] != vdims[j] - 1) {
 		lastrow = false;
 		break;
-      }
+            }
 	}
 	if (formatting_specs.full_data_cmnts) {
-      for (j = 0; j < marks_pending; j++) {
+          for (j = 0; j < marks_pending; j++) {
 		sbuf_cat(sb, "}");
-      }
-      printf("%s", sbuf_str(sb));
-      lastdelim (0, lastrow);
-      annotate (vp, cor, d0-1);
+          }
+          printf("%s", sbuf_str(sb));
+          lastdelim (0, lastrow);
+          annotate (vp, cor, d0-1);
 	} else {
-      for (j = 0; j < marks_pending; j++) {
+          for (j = 0; j < marks_pending; j++) {
 		sbuf_cat(sb, "}");
-      }
-      lput(sbuf_str(sb));
-      lastdelim2 (0, lastrow);
+          }
+          lput(sbuf_str(sb));
+          lastdelim2 (0, lastrow);
 	}
     }
     sbuf_free(sb);

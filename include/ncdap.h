@@ -20,6 +20,7 @@ typedef unsigned int NCFLAGS;
 #  define SETFLAG(controls,flag) (((controls).flags) |= (flag))
 #  define CLRFLAG(controls,flag) (((controls).flags) &= ~(flag))
 #  define FLAGSET(controls,flag) (((controls.flags) & (flag)) != 0)
+#  define CLRALLFLAGS(controls) (((controls).flags) = 0)
 
 /* Defined flags */
 #define NCF_NC3             (0x0001) /* DAP->netcdf-3 */

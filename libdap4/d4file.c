@@ -437,11 +437,7 @@ applyclientparamcontrols(NCD4INFO* info)
     const char* value;
 
     /* clear the flags */
-    CLRFLAG(info->controls.flags,NCF_CACHE);
-    CLRFLAG(info->controls.flags,NCF_SHOWFETCH);
-    CLRFLAG(info->controls.flags,NCF_NC4);
-    CLRFLAG(info->controls.flags,NCF_NCDAP);
-    CLRFLAG(info->controls.flags,NCF_FILLMISMATCH);
+    CLRALLFLAGS(info->controls.flags);
 
     /* Turn on any default on flags */
     SETFLAG(info->controls.flags,DFALT_ON_FLAGS);
@@ -468,6 +464,23 @@ applyclientparamcontrols(NCD4INFO* info)
     value = getparam(info,"nofillmismatch");
     if(value != NULL)
 	CLRFLAG(info->controls.debugflags,NCF_FILLMISMATCH);
+
+    /* Now, look for .daprc parameters */
+    {
+	const char** fraglist = NULL;
+	fraglist = ncurifraglist(info->uri);
+	if(fraglist != NULL) {
+	    char* hostport = NULL;
+            hostport = ncuricombinehostport(info->uri);
+	    for(;*fraglist;fraglist+=2) {
+		/* Override existing .daprc fields */
+		int ret = NC_rcloadfield(&info->controls.rcfields, fraglist[0], fraglist[1], hostport);
+		if(ret) {nullfree(hostport); return;}
+	    }
+	    nullfree(hostport);
+	}
+    }
+
 }
 
 static void

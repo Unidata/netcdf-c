@@ -56,7 +56,7 @@ static NCerror fetchconstrainedmetadata(NCDAPCOMMON*);
 static NCerror suppressunusablevars(NCDAPCOMMON*);
 static NCerror fixzerodims(NCDAPCOMMON*);
 static void applyclientparamcontrols(NCDAPCOMMON*);
-static NCerror applyclientparams(NCDAPCOMMON*);
+static NCerror applylimitparams(NCDAPCOMMON*);
 
 /**************************************************/
 
@@ -476,8 +476,8 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
     ncstat = suppressunusablevars(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
-    /* apply client parameters */
-    ncstat = applyclientparams(dapcomm);
+    /* apply limit parameters */
+    ncstat = applylimitparams(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Add (as needed) string dimensions*/
@@ -1218,13 +1218,11 @@ paramlookup(NCDAPCOMMON* state, const char* key)
     return value;
 }
 
-/* Note: this routine only applies some common
-   client parameters, other routines may apply
-   specific ones.
-*/
+/* Note: this routine only applies selected limit parameters,
+   other routines may apply specific ones.  */
 
 static NCerror
-applyclientparams(NCDAPCOMMON* nccomm)
+applylimitparams(NCDAPCOMMON* nccomm)
 {
     int i,len;
     int dfaltstrlen = DEFAULTSTRINGLENGTH;
@@ -1325,37 +1323,83 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	nullfree(pathstr);
     }
 
-    /* test for the appropriate fetch flags */
-    value = paramlookup(nccomm,"fetch");
-    if(value != NULL && strlen(value) > 0) {
-	if(value[0] == 'd' || value[0] == 'D') {
-            SETFLAG(nccomm->controls,NCF_ONDISK);
-	}
-    }
-
     /* test for the force-whole-var flag */
     value = paramlookup(nccomm,"wholevar");
     if(value != NULL) {
         SETFLAG(nccomm->controls,NCF_WHOLEVAR);
     }
 
+    return NC_NOERR;
+}
+
+/* Apply parameters that are independent of the meta-data */
+static void
+applyclientparamcontrols(NCDAPCOMMON* dapcomm)
+{
+    const char* value;
+
+    /* clear the flags */
+    CLRALLFLAGS(dapcomm->controls);
+
+    /* Turn on any default on flags */
+    SETFLAG(dapcomm->controls,DFALT_ON_FLAGS);
+    SETFLAG(dapcomm->controls,(NCF_NC3|NCF_NCDAP));
+
+    /* enable/disable caching */
+    if(dapparamcheck(dapcomm,"cache",NULL))
+	SETFLAG(dapcomm->controls,NCF_CACHE);
+    else if(dapparamcheck(dapcomm,"nocache",NULL))
+	CLRFLAG(dapcomm->controls,NCF_CACHE);
+
+    /* enable/disable cache prefetch and lazy vs eager*/
+    if(dapparamcheck(dapcomm,"prefetch","eager")) {
+        SETFLAG(dapcomm->controls,NCF_PREFETCH);
+        SETFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
+    } else if(dapparamcheck(dapcomm,"prefetch","lazy")
+              || dapparamcheck(dapcomm,"prefetch",NULL)) {
+        SETFLAG(dapcomm->controls,NCF_PREFETCH);
+        CLRFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
+    } else if(dapparamcheck(dapcomm,"noprefetch",NULL))
+        CLRFLAG(dapcomm->controls,NCF_PREFETCH);
+
+    if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE))
+	SETFLAG(dapcomm->controls,NCF_CACHE);
+
+    nclog(NCLOGNOTE,"Caching=%d",FLAGSET(dapcomm->controls,NCF_CACHE));
+
+    if(dapparamcheck(dapcomm,"show","fetch"))
+	SETFLAG(dapcomm->controls,NCF_SHOWFETCH);
+
+    /* enable/disable _FillValue/Variable Mis-match */
+    if(dapparamcheck(dapcomm,"fillmismatch",NULL))
+	SETFLAG(dapcomm->controls,NCF_FILLMISMATCH);
+    else if(dapparamcheck(dapcomm,"nofillmismatch",NULL))
+	CLRFLAG(dapcomm->controls,NCF_FILLMISMATCH);
+
+    /* test for the appropriate fetch flags */
+    value = paramlookup(dapcomm,"fetch");
+    if(value != NULL && strlen(value) > 0) {
+	if(value[0] == 'd' || value[0] == 'D') {
+            SETFLAG(dapcomm->controls,NCF_ONDISK);
+	}
+    }
+
     /* Now, look for .daprc parameters */
     {
 	const char** fraglist = NULL;
-	fraglist = ncurifraglist(nccomm->oc.url);
+	fraglist = ncurifraglist(dapcomm->oc.url);
 	if(fraglist != NULL) {
 	    char* hostport = NULL;
-            hostport = ncuricombinehostport(nccomm->oc.url);
+            hostport = ncuricombinehostport(dapcomm->oc.url);
 	    for(;*fraglist;fraglist+=2) {
 		/* Override existing .daprc fields */
-		int ret = NC_rcloadfield(&nccomm->rcfields, fraglist[0], fraglist[1], hostport);
-		if(ret) {nullfree(hostport); return ret;}
+		int ret = NC_rcloadfield(&dapcomm->rcfields, fraglist[0], fraglist[1], hostport);
+		if(ret) {nullfree(hostport); return;}
 	    }
 	    nullfree(hostport);
 	}
     }
 
-    return NC_NOERR;
 }
 
 /**
@@ -2203,54 +2247,6 @@ fixzerodims(NCDAPCOMMON* dapcomm)
 	}
     }
     return NC_NOERR;
-}
-
-static void
-applyclientparamcontrols(NCDAPCOMMON* dapcomm)
-{
-    /* clear the flags */
-    CLRFLAG(dapcomm->controls,NCF_CACHE);
-    CLRFLAG(dapcomm->controls,NCF_SHOWFETCH);
-    CLRFLAG(dapcomm->controls,NCF_NC3);
-    CLRFLAG(dapcomm->controls,NCF_NCDAP);
-    CLRFLAG(dapcomm->controls,NCF_PREFETCH);
-    CLRFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
-
-    /* Turn on any default on flags */
-    SETFLAG(dapcomm->controls,DFALT_ON_FLAGS);
-    SETFLAG(dapcomm->controls,(NCF_NC3|NCF_NCDAP));
-
-    /* enable/disable caching */
-    if(dapparamcheck(dapcomm,"cache",NULL))
-	SETFLAG(dapcomm->controls,NCF_CACHE);
-    else if(dapparamcheck(dapcomm,"nocache",NULL))
-	CLRFLAG(dapcomm->controls,NCF_CACHE);
-
-    /* enable/disable cache prefetch and lazy vs eager*/
-    if(dapparamcheck(dapcomm,"prefetch","eager")) {
-        SETFLAG(dapcomm->controls,NCF_PREFETCH);
-        SETFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
-    } else if(dapparamcheck(dapcomm,"prefetch","lazy")
-              || dapparamcheck(dapcomm,"prefetch",NULL)) {
-        SETFLAG(dapcomm->controls,NCF_PREFETCH);
-        CLRFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
-    } else if(dapparamcheck(dapcomm,"noprefetch",NULL))
-        CLRFLAG(dapcomm->controls,NCF_PREFETCH);
-
-    if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE))
-	SETFLAG(dapcomm->controls,NCF_CACHE);
-
-    if(dapparamcheck(dapcomm,"show","fetch"))
-	SETFLAG(dapcomm->controls,NCF_SHOWFETCH);
-
-    /* enable/disable _FillValue/Variable Mis-match */
-    if(dapparamcheck(dapcomm,"fillmismatch",NULL))
-	SETFLAG(dapcomm->controls,NCF_FILLMISMATCH);
-    else if(dapparamcheck(dapcomm,"nofillmismatch",NULL))
-	CLRFLAG(dapcomm->controls,NCF_FILLMISMATCH);
-
-    nclog(NCLOGNOTE,"Caching=%d",FLAGSET(dapcomm->controls,NCF_CACHE));
-
 }
 
 /*

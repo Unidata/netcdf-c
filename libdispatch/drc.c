@@ -25,6 +25,8 @@ See LICENSE.txt for license information.
 #define CURL_MAX_READ_SIZE (512*1024)
 #endif
 
+#define TRACEFIELDS
+
 #define RCFILEENV "DAPRCFILE"
 
 #define RTAG ']'
@@ -49,6 +51,17 @@ static void storedump(char* msg, NClist* triples);
 
 /* Define default rc files and aliases, also defines search order*/
 static char* rcfilenames[] = {".daprc",".dodsrc",NULL};
+
+#ifdef TRACEFIELDS
+static void
+trace(const char* key, const char* value)
+{
+    fprintf(stderr,".rc.trace.field: %s=|%s|\n",key,value);
+}
+#define TRACE(useit,key,value) {if(useit) {trace(key,value);}}
+#else
+#define TRACE(useit,key,value)
+#endif
 
 /**************************************************/
 /* External Entry Points */
@@ -521,7 +534,7 @@ getstring(char** field, const char* value)
 int
 NC_rcloadfield(NCRCFIELDS* fields, const char* key, const char* value, const char* host)
 {
-    int useit;
+    int useit = 0;
     int stat = NC_NOERR;
     if(strcmp("HTTP.VERBOSE",key)==0) {
         useit = (host == NULL && fields->HTTP_VERBOSE < 0);
@@ -617,6 +630,7 @@ NC_rcloadfield(NCRCFIELDS* fields, const char* key, const char* value, const cha
             fields->HTTP_KEEPALIVE.defined = 1;
         }
     } // else ignore
+    TRACE(useit,key,value);
 done:
     if(stat != NC_NOERR) {
         /* log error */
