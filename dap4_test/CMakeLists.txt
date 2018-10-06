@@ -9,6 +9,7 @@ ADD_SUBDIRECTORY(cdltestfiles)
 ADD_SUBDIRECTORY(daptestfiles)
 ADD_SUBDIRECTORY(dmrtestfiles)
 ADD_SUBDIRECTORY(nctestfiles)
+ADD_SUBDIRECTORY(misctestfiles)
 
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 

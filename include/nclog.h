@@ -7,6 +7,7 @@
 #ifndef NCLOG_H
 #define NCLOG_H
 
+#include <stdarg.h>
 #include "ncexternl.h"
 
 #define NCENVFLAG "NCLOGFILE"
@@ -28,6 +29,7 @@ EXTERNL void nclogclose(void);
 
 /* The tag value is an arbitrary integer */
 EXTERNL void nclog(int tag, const char* fmt, ...);
+EXTERNL void ncvlog(int tag, const char* fmt, va_list ap);
 EXTERNL void nclogtext(int tag, const char* text);
 EXTERNL void nclogtextn(int tag, const char* text, size_t count);
 

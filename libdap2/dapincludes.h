@@ -107,6 +107,6 @@ extern NCerror showprojection(NCDAPCOMMON*, CDFnode* var);
 
 /* From: dapcvt.c*/
 extern NCerror dapconvert(nc_type, nc_type, char*, char*, size_t);
-extern int dapcvtattrval(nc_type, void*, NClist*);
+extern int dapcvtattrval(nc_type, void*, NClist*, NCattribute*);
 
 #endif /*DAPINCLUDES_H*/
