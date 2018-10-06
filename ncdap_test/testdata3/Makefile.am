@@ -94,6 +94,7 @@ test.vs5.das test.vs5.dds test.vs5.dods \
 text.nc.das text.nc.dds text.nc.dods \
 whoi.das whoi.dds whoi.dods \
 kwcase.nc.das kwcase.nc.dds kwcase.nc.dods \
+fillmismatch.nc.das fillmismatch.nc.dds fillmismatch.nc.dods \
 CMakeLists.txt
 
 # following are not legally convertible to dap2

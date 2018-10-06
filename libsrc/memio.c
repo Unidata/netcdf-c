@@ -115,7 +115,6 @@ static int memio_close(ncio* nciop, int);
 static int readfile(const char* path, NC_memio*);
 static int writefile(const char* path, NCMEMIO*);
 static int fileiswriteable(const char* path);
-static int fileisreadable(const char* path);
 static int fileexists(const char* path);
 
 /* Mnemonic */
@@ -673,6 +672,7 @@ fileiswriteable(const char* path)
     return 1;
 }
 
+#if 0 /* not used */
 /* Return 1 if file is READABLE, return 0 otherwise;
    assumes fileexists has been checked already */
 static int
@@ -685,6 +685,7 @@ fileisreadable(const char* path)
 	return 0;
     return 1;
 }
+#endif
 
 /* Read contents of a disk file into a memory chunk */
 static int
