@@ -1962,6 +1962,11 @@ EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
 /* This function may be called to force the library to
+   initialize itself. It is not required, however.
+*/
+EXTERNL int nc_initialize(void);
+
+/* This function may be called to force the library to
    cleanup global memory so that memory checkers will not
    report errors. It is not required, however.
 */

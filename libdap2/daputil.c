@@ -41,18 +41,16 @@ cdflegalname(char* name)
    to the external netCDF variable type.
    The proper way is to, for example, convert unsigned short
    to an int to maintain the values.
-   Unfortuneately, libnc-dap does not do this:
+   Unfortunately, libnc-dap does not do this:
    it translates the types directly. For example
    libnc-dap upgrades the DAP byte type, which is unsigned char,
    to NC_BYTE, which signed char.
-   Oh well.
-   For netcdf-4, we can do proper type conversion.
+   Oh well. So we do the same.
 */
 nc_type
 nctypeconvert(NCDAPCOMMON* drno, nc_type nctype)
 {
     nc_type upgrade = NC_NAT;
-    if(drno->controls.flags & NCF_NC3) {
 	/* libnc-dap mimic invariant is to maintain type size */
 	switch (nctype) {
 	case NC_CHAR:    upgrade = NC_CHAR; break;
@@ -62,33 +60,12 @@ nctypeconvert(NCDAPCOMMON* drno, nc_type nctype)
 	case NC_USHORT:  upgrade = NC_SHORT; break;
 	case NC_INT:     upgrade = NC_INT; break;
 	case NC_UINT:    upgrade = NC_INT; break;
-	case NC_INT64:   upgrade = NC_INT64; break;
-	case NC_UINT64:  upgrade = NC_UINT64; break;
 	case NC_FLOAT:   upgrade = NC_FLOAT; break;
 	case NC_DOUBLE:  upgrade = NC_DOUBLE; break;
 	case NC_URL:
 	case NC_STRING:  upgrade = NC_CHAR; break;
 	default: break;
 	}
-    } else if(drno->controls.flags & NCF_NC4) {
-	/* netcdf-4 conversion is more correct */
-	switch (nctype) {
-	case NC_CHAR:    upgrade = NC_CHAR; break;
-	case NC_BYTE:    upgrade = NC_BYTE; break;
-	case NC_UBYTE:   upgrade = NC_UBYTE; break;
-	case NC_SHORT:   upgrade = NC_SHORT; break;
-	case NC_USHORT:  upgrade = NC_USHORT; break;
-	case NC_INT:     upgrade = NC_INT; break;
-	case NC_UINT:    upgrade = NC_UINT; break;
-	case NC_INT64:   upgrade = NC_INT64; break;
-	case NC_UINT64:  upgrade = NC_UINT64; break;
-	case NC_FLOAT:   upgrade = NC_FLOAT; break;
-	case NC_DOUBLE:  upgrade = NC_DOUBLE; break;
-	case NC_URL:
-	case NC_STRING:  upgrade = NC_STRING; break;
-	default: break;
-	}
-    }
     return upgrade;
 }
 
@@ -742,12 +719,12 @@ oc_dumpnode(conn,*rootp);
 /* Check a name to see if it contains illegal dap characters
 */
 
-static char* baddapchars = "./";
+static const char* baddapchars = "./";
 
 int
 dap_badname(char* name)
 {
-    char* p;
+    const char* p;
     if(name == NULL) return 0;
     for(p=baddapchars;*p;p++) {
         if(strchr(name,*p) != NULL)
