@@ -28,7 +28,7 @@ $Id: tst_nc4perf.c,v 1.4 2009/08/19 15:58:57 ed Exp $
 
 /* This function creates a file with 10 2D variables, no unlimited
  * dimension. */
-int test_pio_2d(size_t cache_size, int facc_type, int access_flag, MPI_Comm comm,
+int test_pio_2d(size_t cache_size, int access_flag, MPI_Comm comm,
 		MPI_Info info, int mpi_size, int mpi_rank,
 		size_t *chunk_size)
 {
@@ -62,7 +62,7 @@ int test_pio_2d(size_t cache_size, int facc_type, int access_flag, MPI_Comm comm
    for (t = 0; t < NUM_TRIES; t++)
    {
       /* Create a netcdf-4 file, opened for parallel I/O. */
-      if (nc_create_par(file_name, facc_type|NC_NETCDF4, comm,
+      if (nc_create_par(file_name, NC_NETCDF4, comm,
 			info, &ncid)) ERR;
 
       /* Create two dimensions. */
@@ -120,7 +120,7 @@ int test_pio_2d(size_t cache_size, int facc_type, int access_flag, MPI_Comm comm
 
       /* Print the results. */
       printf("%d\t\t%s\t%s\t%d\t\t%dx%d\t\t%s\t%f\t\t%f\t\t\t%d\n", mpi_size,
-	     (facc_type == NC_MPIIO ? "MPI-IO   " : "MPI-POSIX"),
+	     "MPI-IO   ",
 	     (access_flag == NC_INDEPENDENT ? "independent" : "collective"),
 	     (int)cache_size/MEGABYTE, DIMSIZE1, DIMSIZE2, chunk_string,
 	     write_time, bandwidth, NUM_TRIES);
@@ -135,7 +135,7 @@ int test_pio_2d(size_t cache_size, int facc_type, int access_flag, MPI_Comm comm
 /* Both read and write will be tested */
 /* Case 2: create four dimensional integer data,
    one dimension is unlimited. */
-int test_pio_4d(size_t cache_size, int facc_type, int access_flag, MPI_Comm comm,
+int test_pio_4d(size_t cache_size, int access_flag, MPI_Comm comm,
 		MPI_Info info, int mpi_size, int mpi_rank, size_t *chunk_size)
 {
    int ncid, dimuids[NDIMS2], varid2[NUMVARS];
@@ -171,7 +171,7 @@ int test_pio_4d(size_t cache_size, int facc_type, int access_flag, MPI_Comm comm
    for (t = 0; t < NUM_TRIES; t++)
    {
       /* Create a netcdf-4 file. */
-      if (nc_create_par(file_name, facc_type|NC_NETCDF4, comm, info,
+      if (nc_create_par(file_name, NC_NETCDF4, comm, info,
 			&ncid)) ERR;
 
       /* Create four dimensions. */
@@ -233,7 +233,7 @@ int test_pio_4d(size_t cache_size, int facc_type, int access_flag, MPI_Comm comm
 
       /* Print our results. */
       printf("%d\t\t%s\t%s\t%d\t\t%dx%dx%dx%d\t%s\t%f\t\t%f\t\t\t%d\n", mpi_size,
-	     (facc_type == NC_MPIIO ? "MPI-IO   " : "MPI-POSIX"),
+	     "MPI-IO   ",
 	     (access_flag == NC_INDEPENDENT ? "independent" : "collective"),
 	     (int)cache_size / MEGABYTE, TIMELEN, DIMSIZE3, DIMSIZE2, DIMSIZE1, chunk_string, write_time,
 	     bandwidth, NUM_TRIES);
@@ -245,11 +245,6 @@ int test_pio_4d(size_t cache_size, int facc_type, int access_flag, MPI_Comm comm
    return 0;
 }
 
-/* Note: When the MPI-POSIX VFD is not compiled in to HDF5, the NC_MPIPOSIX
- *      flag will be aliased to the NC_MPIIO flag within the library, and
- *      therefore this test will exercise the aliasing, with the MPI-IO VFD,
- *      under that configuration. -QAK
- */
 #define NUM_MODES 2
 #define NUM_FACC 2
 #define NUM_CHUNK_COMBOS_2D 3
@@ -261,7 +256,6 @@ int main(int argc, char **argv)
    MPI_Comm comm = MPI_COMM_WORLD;
    MPI_Info info = MPI_INFO_NULL;
    int mpi_size, mpi_rank;
-   int mpi_mode[NUM_MODES] = {NC_MPIIO, NC_MPIPOSIX};
    int facc_type[NUM_FACC] = {NC_INDEPENDENT, NC_COLLECTIVE};
    size_t chunk_size_2d[NUM_CHUNK_COMBOS_2D][NDIMS1] = {{0, 0},
 							{DIMSIZE2, DIMSIZE1},
@@ -271,7 +265,7 @@ int main(int argc, char **argv)
 							{TIMELEN / 2, DIMSIZE3 / 2 + 1, DIMSIZE2 / 2 + 1, DIMSIZE1 / 2},
 							{TIMELEN, DIMSIZE3, DIMSIZE2, DIMSIZE1}};
    size_t cache_size[NUM_CACHE_SIZES] = {MEGABYTE, 32 * MEGABYTE, 64 * MEGABYTE};
-   int m, f, c, i;
+   int f, c, i;
 
    /* Initialize MPI. */
    MPI_Init(&argc, &argv);
@@ -294,17 +288,15 @@ int main(int argc, char **argv)
    }
 
    for (i = 0; i < NUM_CACHE_SIZES; i++)
-      for (m = 0; m < NUM_MODES; m++)
 	 for (f = 0; f < NUM_FACC; f++)
 	    for (c = 0; c < NUM_CHUNK_COMBOS_2D; c++)
-	       if (test_pio_2d(cache_size[i], mpi_mode[m], facc_type[f], comm,
+	       if (test_pio_2d(cache_size[i], facc_type[f], comm,
 			       info, mpi_size, mpi_rank, chunk_size_2d[c])) ERR;
 
    for (i = 0; i < NUM_CACHE_SIZES; i++)
-      for (m = 0; m < NUM_MODES; m++)
 	 for (f = 0; f < NUM_FACC; f++)
 	    for (c = 0; c < NUM_CHUNK_COMBOS_4D; c++)
-	       if (test_pio_4d(cache_size[i], mpi_mode[m], facc_type[f], comm,
+	       if (test_pio_4d(cache_size[i], facc_type[f], comm,
 			       info, mpi_size, mpi_rank, chunk_size_4d[c])) ERR;
 
    if (!mpi_rank)

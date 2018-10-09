@@ -171,12 +171,10 @@ struct NC;
 
 int NC_create(const char *path, int cmode,
 	      size_t initialsz, int basepe, size_t *chunksizehintp,
-	      int useparallel, void* parameters,
-	      int *ncidp);
+	      int useparallel, void *parameters, int *ncidp);
 int NC_open(const char *path, int cmode,
 	    int basepe, size_t *chunksizehintp,
-	    int useparallel, void* parameters,
-	    int *ncidp);
+	    int useparallel, void *parameters, int *ncidp);
 
 /* Expose the default vars and varm dispatch entries */
 EXTERNL int NCDEFAULT_get_vars(int, int, const size_t*,
@@ -199,13 +197,11 @@ struct NC_Dispatch {
 int model; /* one of the NC_FORMATX #'s */
 
 int (*create)(const char *path, int cmode,
-	  size_t initialsz, int basepe, size_t *chunksizehintp,
-	  int use_parallel, void* parameters,
-	  struct NC_Dispatch* table, NC* ncp);
+              size_t initialsz, int basepe, size_t *chunksizehintp,
+              void* parameters, struct NC_Dispatch* table, NC* ncp);
 int (*open)(const char *path, int mode,
-	    int basepe, size_t *chunksizehintp,
-	    int use_parallel, void* parameters,
-	    struct NC_Dispatch* table, NC* ncp);
+            int basepe, size_t *chunksizehintp,
+            void* parameters, struct NC_Dispatch* table, NC* ncp);
 
 int (*redef)(int);
 int (*_enddef)(int,size_t,size_t,size_t,size_t);
@@ -417,7 +413,7 @@ NCDISPATCH_get_att(int ncid, int varid, const char* name, void* value, nc_type t
  * NC_EPERM to all attempts to modify a file. */
 
 EXTERNL int NC_RO_create(const char *path, int cmode, size_t initialsz, int basepe,
-                 size_t *chunksizehintp, int useparallel, void* parameters,
+                 size_t *chunksizehintp, void* parameters,
                  NC_Dispatch*, NC*);
 EXTERNL int NC_RO_redef(int ncid);
 EXTERNL int NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,

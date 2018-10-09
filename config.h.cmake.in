@@ -526,12 +526,6 @@ are set when opening a binary file on Windows. */
 /* if true, parallel netcdf-4 is in use */
 #cmakedefine USE_PARALLEL4 1
 
-/* if true, compile in parallel netCDF-4 based on MPI/IO */
-#cmakedefine USE_PARALLEL_MPIO 1
-
-/* if true, compile in parallel netCDF-4 based on MPI/POSIX */
-#cmakedefine USE_PARALLEL_POSIX 1
-
 /* if true, parallel netCDF is used */
 #cmakedefine USE_PNETCDF 1
 

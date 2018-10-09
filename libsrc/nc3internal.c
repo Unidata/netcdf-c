@@ -1038,11 +1038,9 @@ int NC3_new_nc(NC3_INFO** ncpp)
 
 /* WARNING: SIGNATURE CHANGE */
 int
-NC3_create(const char *path, int ioflags,
-		size_t initialsz, int basepe,
-		size_t *chunksizehintp,
-		int use_parallel, void* parameters,
-                NC_Dispatch* dispatch, NC* nc)
+NC3_create(const char *path, int ioflags, size_t initialsz, int basepe,
+           size_t *chunksizehintp, void *parameters,
+           NC_Dispatch *dispatch, NC *nc)
 {
 	int status = NC_NOERR;
 	void *xp = NULL;
@@ -1173,10 +1171,8 @@ nc_set_default_format(int format, int *old_formatp)
 #endif
 
 int
-NC3_open(const char * path, int ioflags,
-               int basepe, size_t *chunksizehintp,
-	       int use_parallel,void* parameters,
-               NC_Dispatch* dispatch, NC* nc)
+NC3_open(const char *path, int ioflags, int basepe, size_t *chunksizehintp,
+         void *parameters, NC_Dispatch *dispatch, NC *nc)
 {
 	int status;
 	NC3_INFO* nc3 = NULL;

@@ -8,10 +8,10 @@ include $(top_srcdir)/lib_flags.am
 
 libnetcdfp_la_CPPFLAGS = ${AM_CPPFLAGS}
 
-# This is the code for a dispatch table for pnetcdf
+# This is the code for a dispatch table for PnetCDF
 # (which has CDF5 as its magic number)
 
-# These files comprise the pnetcdf dispatch library code.
+# These files comprise the PnetCDF dispatch library code.
 libnetcdfp_la_SOURCES = ncpdispatch.c
 
 noinst_LTLIBRARIES = libnetcdfp.la
