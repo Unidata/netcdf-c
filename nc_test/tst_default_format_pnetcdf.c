@@ -5,7 +5,7 @@
 #include <netcdf_par.h>
 
 #define ERR { \
-    if (err != NC_NOERR) { \
+    if (err != exp_err) { \
         printf("Error at %s line %d: %s\n", __FILE__, __LINE__, \
                nc_strerror(err)); \
         nerrs++; \
@@ -17,10 +17,12 @@ static int default_format;
 static int
 create_check_pnetcdf(char *fname, int cmode, int exp_format)
 {
-    int nerrs=0, err, ncid, format;
+    int nerrs=0, err, exp_err=NC_NOERR, ncid, format;
     char *exp_str;
 
-    cmode |= NC_MPIIO;
+#ifndef USE_PNETCDF
+    exp_err = NC_ENOTBUILT;
+#endif
 
     switch (exp_format) {
         case NC_FORMAT_CLASSIC:      exp_str="NC_FORMAT_CLASSIC";      break;
@@ -32,16 +34,22 @@ create_check_pnetcdf(char *fname, int cmode, int exp_format)
         default: break;
     }
 
+#ifndef ENABLE_CDF5
+    if (cmode & NC_64BIT_DATA) exp_err = NC_ENOTBUILT;
+#endif
+
     /* create a file */
     cmode |= NC_CLOBBER;
     err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); ERR
+    if (exp_err == NC_ENOTBUILT) return 0;
+
     err = nc_close(ncid); ERR
 
     /* open the file and check its format */
     err = nc_open(fname, NC_NOWRITE, &ncid); ERR
     err = nc_inq_format(ncid, &format); ERR
     if (format != exp_format) {
-        char *f_str, *d_str;
+        char *f_str="", *d_str="";
         switch (format) {
             case NC_FORMAT_CLASSIC:      f_str = "NC_FORMAT_CLASSIC";
                                          break;
@@ -80,7 +88,7 @@ create_check_pnetcdf(char *fname, int cmode, int exp_format)
 int main(int argc, char *argv[])
 {
     char *fname="tst_default_format.nc";
-    int err, nerrs=0, ncid, cmode, format;
+    int err, exp_err=NC_NOERR, nerrs=0, ncid, cmode;
 
     MPI_Init(&argc, &argv);
 
@@ -88,7 +96,6 @@ int main(int argc, char *argv[])
 
     default_format = NC_FORMAT_CLASSIC;
 
-#ifdef ENABLE_CDF5
     /* check illegal cmode */
     cmode = NC_64BIT_OFFSET | NC_64BIT_DATA;
     err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
@@ -97,7 +104,6 @@ int main(int argc, char *argv[])
                __FILE__, __LINE__, err);
         nerrs++;
     }
-#endif
 #ifdef USE_NETCDF4
     /* check illegal cmode */
     cmode = NC_NETCDF4 | NC_64BIT_OFFSET;
@@ -108,32 +114,6 @@ int main(int argc, char *argv[])
         nerrs++;
     }
 #endif
-    /* check illegal cmode */
-    cmode = NC_MPIIO | NC_MPIPOSIX;
-    err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-
-    /* check illegal cmode */
-    cmode = NC_MPIIO | NC_DISKLESS;
-    err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-
-    /* check illegal cmode */
-    cmode = NC_MPIPOSIX | NC_DISKLESS;
-    err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
 
     /* create a file in CDF1 format */
     cmode = 0;

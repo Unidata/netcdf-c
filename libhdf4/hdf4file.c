@@ -17,7 +17,7 @@ extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /** @internal These flags may not be set for open mode. */
 static const int
-ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET|NC_MPIIO|NC_MPIPOSIX|NC_DISKLESS|NC_WRITE);
+ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET|NC_DISKLESS|NC_WRITE);
 
 /** @internal NetCDF atomic type names. */
 static const char*
@@ -583,8 +583,6 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
  * @param mode The open mode flag.
  * @param basepe Ignored by this function.
  * @param chunksizehintp Ignored by this function.
- * @param use_parallel Must be 0 for sequential, access. Parallel
- * access not supported for HDF4.
  * @param parameters pointer to struct holding extra data (e.g. for
  * parallel I/O) layer. Ignored if NULL.
  * @param dispatch Pointer to the dispatch table for this file.
@@ -596,8 +594,7 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
  */
 int
 NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-             int use_parallel, void *parameters, NC_Dispatch *dispatch,
-             NC *nc_file)
+             void *parameters, NC_Dispatch *dispatch, NC *nc_file)
 {
    NC_FILE_INFO_T *h5;
    NC_HDF4_FILE_INFO_T *hdf4_file;
@@ -608,7 +605,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    int retval = NC_NOERR;
 
    /* Check inputs. */
-   assert(nc_file && path && !use_parallel);
+   assert(nc_file && path);
 
    LOG((1, "%s: path %s mode %d params %x", __func__, path, mode, parameters));
 

@@ -109,7 +109,7 @@ int main(int argc, char** argv)
     MPI_Bcast(filename, 128, MPI_CHAR, 0, MPI_COMM_WORLD);
 
     /* create a new file for writing ----------------------------------------*/
-    cmode = NC_CLOBBER | NC_PNETCDF;
+    cmode = NC_CLOBBER;
     err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); FATAL_ERR
 
     /* the global array is NY * (NX * nprocs) */
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
     /* do not forget to exit define mode */
     err = nc_enddef(ncid); ERR
 
-    /* set to use MPI/PnetCDF collective I/O */
+    /* set to use MPI collective I/O */
     err = nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE); ERR
 
     /* now we are in data mode */
@@ -162,7 +162,7 @@ int main(int argc, char** argv)
 
     err = nc_close(ncid); ERR
 
-    omode = NC_PNETCDF | NC_NOWRITE;
+    omode = NC_NOWRITE;
     err = nc_open_par(filename, omode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); FATAL_ERR
 
     /* inquire dimension IDs and lengths */
@@ -175,7 +175,7 @@ int main(int argc, char** argv)
     /* obtain variable ID */
     err = nc_inq_varid(ncid, "var", &varid); ERR
 
-    /* set to use MPI/PnetCDF collective I/O */
+    /* set to use MPI collective I/O */
     err = nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE); ERR
 
     /* each process reads its subarray from the file */

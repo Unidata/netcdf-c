@@ -11,12 +11,20 @@
     } \
 }
 
+#define EXP_ERR(exp) { \
+    if (err != exp) { \
+        printf("Error at %s:%d: expect %d but got %d\n", \
+               __FILE__, __LINE__, exp,err); \
+        nerrs++; \
+    } \
+}
+
 static int default_format;
 
 static int
 create_check(char *fname, int cmode, int exp_format)
 {
-    int nerrs=0, err, ncid, format;
+    int nerrs=0, err, exp_err=NC_NOERR, ncid, format;
     char *exp_str;
 
     switch (exp_format) {
@@ -29,16 +37,27 @@ create_check(char *fname, int cmode, int exp_format)
         default: break;
     }
 
+#ifndef USE_NETCDF4
+    if (cmode & NC_NETCDF4)
+        exp_err = NC_ENOTBUILT;
+#endif
+#ifndef ENABLE_CDF5
+    if (cmode & NC_64BIT_DATA)
+        exp_err = NC_ENOTBUILT;
+#endif
+
     /* create a file */
     cmode |= NC_CLOBBER;
-    err = nc_create(fname, cmode, &ncid); ERR
+    err = nc_create(fname, cmode, &ncid); EXP_ERR(exp_err)
+    if (err == NC_ENOTBUILT) return nerrs;
+
     err = nc_close(ncid); ERR
 
     /* open the file and check its format */
     err = nc_open(fname, NC_NOWRITE, &ncid); ERR
     err = nc_inq_format(ncid, &format); ERR
     if (format != exp_format) {
-        char *f_str, *d_str;
+        char *f_str="", *d_str="";
         switch (format) {
             case NC_FORMAT_CLASSIC:      f_str = "NC_FORMAT_CLASSIC";
                                          break;
@@ -77,7 +96,7 @@ create_check(char *fname, int cmode, int exp_format)
 int main(int argc, char *argv[])
 {
     char *fname="tst_default_format.nc";
-    int err, nerrs=0, ncid, cmode, format;
+    int err, nerrs=0, ncid, cmode;
 
     if (argc == 2) fname = argv[1];
 
@@ -101,33 +120,6 @@ int main(int argc, char *argv[])
         nerrs++;
     }
 
-    /* check illegal cmode */
-    cmode = NC_MPIIO | NC_MPIPOSIX;
-    err = nc_create(fname, cmode, &ncid);
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-
-    /* check illegal cmode */
-    cmode = NC_MPIIO | NC_DISKLESS;
-    err = nc_create(fname, cmode, &ncid);
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-
-    /* check illegal cmode */
-    cmode = NC_MPIPOSIX | NC_DISKLESS;
-    err = nc_create(fname, cmode, &ncid);
-    if (err != NC_EINVAL) {
-        printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
-               __FILE__, __LINE__, err);
-        nerrs++;
-    }
-
     /* create a file in CDF1 format */
     cmode = 0;
     nerrs += create_check(fname, cmode, NC_FORMAT_CLASSIC);
@@ -136,11 +128,9 @@ int main(int argc, char *argv[])
     cmode = NC_64BIT_OFFSET;
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 
-#ifdef ENABLE_CDF5
     /* create a file in CDF5 format */
     cmode = NC_64BIT_DATA;
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_DATA);
-#endif
 
     /* set default file format to NC_FORMAT_64BIT_OFFSET ------------------*/
     default_format = NC_FORMAT_64BIT_OFFSET;
@@ -150,13 +140,13 @@ int main(int argc, char *argv[])
     cmode = 0;
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 
-#ifdef ENABLE_CDF5
     /* create a file in CDF5 format (this should ignore default) */
     cmode = NC_64BIT_DATA;
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_DATA);
-#endif
 
-#ifdef ENABLE_CDF5
+#ifndef ENABLE_CDF5
+    err = nc_set_default_format(NC_FORMAT_64BIT_DATA, NULL); EXP_ERR(NC_ENOTBUILT)
+#else
     /* set default file format to NC_FORMAT_64BIT_DATA --------------------*/
     default_format = NC_FORMAT_64BIT_DATA;
     err = nc_set_default_format(default_format, NULL); ERR
@@ -170,7 +160,12 @@ int main(int argc, char *argv[])
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 #endif
 
-#ifdef USE_NETCDF4
+#ifndef USE_NETCDF4
+    err = nc_set_default_format(NC_FORMAT_NETCDF4, NULL); EXP_ERR(NC_ENOTBUILT)
+    err = nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL); EXP_ERR(NC_ENOTBUILT)
+    nerrs += create_check(fname, NC_NETCDF4, NC_FORMAT_NETCDF4);
+    nerrs += create_check(fname, NC_NETCDF4|NC_CLASSIC_MODEL, NC_FORMAT_NETCDF4_CLASSIC);
+#else
     /* set default file format to NC_FORMAT_NETCDF4 -----------------------*/
     default_format = NC_FORMAT_NETCDF4;
     err = nc_set_default_format(default_format, NULL); ERR

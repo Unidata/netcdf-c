@@ -87,15 +87,21 @@ nc_set_default_format(int format, int *old_formatp)
       *old_formatp = default_create_format;
 
     /* Make sure only valid format is set. */
+#ifndef ENABLE_CDF5
+    if (format == NC_FORMAT_CDF5)
+        return NC_ENOTBUILT;
+#endif
 #ifdef USE_NETCDF4
     if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET &&
         format != NC_FORMAT_NETCDF4 && format != NC_FORMAT_NETCDF4_CLASSIC &&
 	format != NC_FORMAT_CDF5)
-      return NC_EINVAL;
+        return NC_EINVAL;
 #else
+    if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_NETCDF4_CLASSIC)
+        return NC_ENOTBUILT;
     if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET &&
         format != NC_FORMAT_CDF5)
-       return NC_EINVAL;
+        return NC_EINVAL;
 #endif
     default_create_format = format;
     return NC_NOERR;
