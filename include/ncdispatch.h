@@ -19,12 +19,12 @@
 #if defined(HDF5_PARALLEL) || defined(USE_PNETCDF)
 #include <mpi.h>
 #endif
-#ifdef USE_PARALLEL
-#include "netcdf_par.h"
-#endif
 #include "netcdf.h"
 #include "nc.h"
 #include "ncuri.h"
+#ifdef USE_PARALLEL
+#include "netcdf_par.h"
+#endif
 
 #define longtype ((sizeof(long) == sizeof(int) ? NC_INT : NC_INT64))
 
