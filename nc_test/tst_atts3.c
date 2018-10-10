@@ -99,7 +99,7 @@ tst_att_ordering(int cmode)
 
    /* Create a file with some global atts. */
 #ifdef TEST_PNETCDF
-   if (nc_create_par(FILE_NAME, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+   if (nc_create_par(FILE_NAME, cmode, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
    if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
 #endif
@@ -115,7 +115,7 @@ tst_att_ordering(int cmode)
 
    /* Reopen the file and check the order. */
 #ifdef TEST_PNETCDF
-   if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+   if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
    if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -158,7 +158,7 @@ main(int argc, char **argv)
 
       /* Create a file with some global atts. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -168,7 +168,7 @@ main(int argc, char **argv)
 
       /* Reopen the file and check the order. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -193,7 +193,7 @@ main(int argc, char **argv)
 
       /* This won't work, because classic files can't create these types. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -216,7 +216,7 @@ main(int argc, char **argv)
 
       /* Create a file with a global attribute of each type. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -230,7 +230,7 @@ main(int argc, char **argv)
 
       /* Open the file and check attributes. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -269,7 +269,7 @@ main(int argc, char **argv)
 
       /* Reopen the file and try different type conversions. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -423,7 +423,7 @@ main(int argc, char **argv)
 
       /* Create a file with a global attribute of each type of zero length. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -449,7 +449,7 @@ main(int argc, char **argv)
       nc_type xtype;
 
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -492,7 +492,7 @@ main(int argc, char **argv)
 
       /* Create a file with a global attribute of each type of zero length. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -509,7 +509,7 @@ main(int argc, char **argv)
       /* Make sure we can read all these zero-length atts added during a
        * redef. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -540,7 +540,7 @@ main(int argc, char **argv)
 
       /* Create a file with a global attribute. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -550,7 +550,7 @@ main(int argc, char **argv)
 
       /* Rename it. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -565,7 +565,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -580,7 +580,7 @@ main(int argc, char **argv)
 
       /* Now delete the att. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -590,7 +590,7 @@ main(int argc, char **argv)
 
       /* Now create a file with a variable, which has an att. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -603,7 +603,7 @@ main(int argc, char **argv)
 
       /* Reopen the file and delete it. Make sure it's gone. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -614,7 +614,7 @@ main(int argc, char **argv)
       /* Reopen the file and readd the attribute. Enddef and redef,
        * and delete it, then check to make sure it's gone. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -640,7 +640,7 @@ main(int argc, char **argv)
 
       /* Create a file with several global attributes. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -650,7 +650,7 @@ main(int argc, char **argv)
 
       /* Open it and check the order. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -662,7 +662,7 @@ main(int argc, char **argv)
 
       /* Now create a file with a variable, which has two atts. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -675,7 +675,7 @@ main(int argc, char **argv)
 
       /* Reopen the file and check the order of the attributes on the var. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -704,7 +704,7 @@ main(int argc, char **argv)
 
       /* Create a file with one var, and attach three atts to it. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -716,7 +716,7 @@ main(int argc, char **argv)
 
       /* Reopen the file and check. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -752,7 +752,7 @@ main(int argc, char **argv)
       int ncid, att = 1;
 
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -765,7 +765,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -789,7 +789,7 @@ main(int argc, char **argv)
 
       /* Create a file with a global attribute of each type. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -802,7 +802,7 @@ main(int argc, char **argv)
 
       /* Create another file and copy all the attributes. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME2, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid2)) ERR;
+      if (nc_create_par(FILE_NAME2, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid2)) ERR;
 #else
       if (nc_create(FILE_NAME2, NC_CLOBBER, &ncid2)) ERR;
 #endif
@@ -819,7 +819,7 @@ main(int argc, char **argv)
 
       /* Open the file and check attributes. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME2, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME2, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME2, 0, &ncid)) ERR;
 #endif

@@ -51,7 +51,7 @@ main(int argc, char **argv)
       {
          /* Create a parallel netcdf-4 file. */
          /*nc_set_log_level(3);*/
-         if (nc_create_par(FILE, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
+         if (nc_create_par(FILE, NC_NETCDF4, comm, info, &ncid)) ERR;
 
          /* Create a dimension. */
          if (nc_def_dim(ncid, DIM_NAME, DIMSIZE, &dimid)) ERR;
@@ -107,7 +107,7 @@ main(int argc, char **argv)
 
          /* Create a parallel netcdf-4 file. */
          /*nc_set_log_level(3);*/
-         if (nc_create_par(FILE, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
+         if (nc_create_par(FILE, NC_NETCDF4, comm, info, &ncid)) ERR;
 
          /* Create a dimension. */
          if (nc_def_dim(ncid, DIM_NAME, DIMSIZE, &dimid)) ERR;
@@ -171,7 +171,7 @@ main(int argc, char **argv)
 
          /* Create a parallel netcdf-4 file. */
          /*nc_set_log_level(3);*/
-         if (nc_create_par(FILE, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
+         if (nc_create_par(FILE, NC_NETCDF4, comm, info, &ncid)) ERR;
 
          /* Create a dimension. */
          if (nc_def_dim(ncid, CREW_DIM_NAME, NUM_CREW, &dimid)) ERR;
@@ -268,7 +268,7 @@ main(int argc, char **argv)
          }
 
          /* Now try parallel read. */
-         if (nc_open_par(FILE, NC_MPIIO, comm, info, &ncid)) ERR;
+         if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
 
          /* Task 0 reads all 8 lines, other tasks read 0. */
          if (nc_get_vara(ncid, v1id, start, count, story_in)) ERR;

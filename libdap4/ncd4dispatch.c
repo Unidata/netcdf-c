@@ -86,8 +86,7 @@ NCD4_sync(int ncid)
 static int
 NCD4_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch* dispatch, NC* ncp)
+           void* mpidata, NC_Dispatch *dispatch, NC *ncp)
 {
    return THROW(NC_EPERM);
 }

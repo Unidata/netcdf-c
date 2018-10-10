@@ -34,7 +34,7 @@ endif # BUILD_V2
 libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libdispatch.la	\
 			${top_builddir}/libsrc/libnetcdf3.la
 
-# + pnetcdf
+# + PnetCDF
 if USE_PNETCDF
 AM_CPPFLAGS += -I${top_srcdir}/libsrcp
 libnetcdf_la_LIBADD += ${top_builddir}/libsrcp/libnetcdfp.la

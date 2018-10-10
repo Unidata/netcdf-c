@@ -31,7 +31,7 @@ IF(ENABLE_TESTS)
       add_sh_test(ncdap tst_ber)
       add_sh_test(ncdap tst_remote3)
 # not yet      add_sh_test(ncdap tst_hyrax)
-
+      add_sh_test(ncdap tst_fillmismatch)
       IF(ENABLE_DAP_LONG_TESTS)
         add_sh_test(ncdap tst_longremote3)
       ENDIF(ENABLE_DAP_LONG_TESTS)

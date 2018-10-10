@@ -26,7 +26,7 @@ If the sort is NCD4_NULL, then that means it is
 irrelevant because that keyword will never be
 searched for in this table.
 */
-struct KEYWORDINFO {
+static const struct KEYWORDINFO {
     char* tag; /* The xml tag e.g. <tag...> */
     NCD4sort sort; /* What kind of node are we building */
     nc_type subsort; /* discriminator */
@@ -63,7 +63,7 @@ struct KEYWORDINFO {
 };
 typedef struct KEYWORDINFO KEYWORDINFO;
 
-static struct ATOMICTYPEINFO {
+static const struct ATOMICTYPEINFO {
     char* name; nc_type type; size_t size;
 } atomictypeinfo[] = {
 /* Keep in sorted order for binary search */
@@ -114,7 +114,7 @@ static int fillgroup(NCD4parser*, NCD4node* group, ezxml_t xml);
 static NCD4node* getOpaque(NCD4parser*, ezxml_t varxml, NCD4node* group);
 static int getValueStrings(NCD4parser*, NCD4node*, ezxml_t xattr, NClist*);
 static int isReserved(const char* name);
-static KEYWORDINFO* keyword(const char* name);
+static const KEYWORDINFO* keyword(const char* name);
 static NCD4node* lookupAtomictype(NCD4parser*, const char* name);
 static NCD4node* lookFor(NClist* elems, const char* name, NCD4sort sort);
 static NCD4node* lookupFQN(NCD4parser*, const char* sfqn, NCD4sort);
@@ -335,7 +335,7 @@ parseVariables(NCD4parser* parser, NCD4node* group, ezxml_t xml)
     ezxml_t x;
     for(x=xml->child;x != NULL;x=x->ordered) {
 	NCD4node* node = NULL;
-	KEYWORDINFO* info = keyword(x->name);
+	const KEYWORDINFO* info = keyword(x->name);
 	if(info == NULL)
 	    FAIL(NC_ETRANSLATION,"Unexpected node type: %s",x->name);
 	/* Check if we need to process this node */
@@ -353,7 +353,7 @@ parseVariable(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
 {
     int ret = NC_NOERR;
     NCD4node* node = NULL;
-    KEYWORDINFO* info = keyword(xml->name);
+    const KEYWORDINFO* info = keyword(xml->name);
 
     switch (info->subsort) {
     case NC_STRUCT:
@@ -441,7 +441,7 @@ parseFields(NCD4parser* parser, NCD4node* container, ezxml_t xml)
     ezxml_t x;
     for(x=xml->child;x != NULL;x=x->ordered) {
 	NCD4node* node = NULL;
-        KEYWORDINFO* info = keyword(x->name);
+        const KEYWORDINFO* info = keyword(x->name);
 	if(!ISVAR(info->sort)) continue; /* not a field */
 	ret = parseVariable(parser,container,x,&node);
 	if(ret) goto done;
@@ -461,7 +461,7 @@ parseVlenField(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** 
     NCD4node* field = NULL;
     ezxml_t x;
     for(x=xml->child;x != NULL;x=x->ordered) {
-        KEYWORDINFO* info = keyword(x->name);
+        const KEYWORDINFO* info = keyword(x->name);
 	if(!ISVAR(info->sort)) continue; /* not a field */
 	if(field != NULL)
 	    {ret = NC_EBADTYPE; goto done;}
@@ -603,7 +603,7 @@ parseAtomicVar(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** 
     NCD4node* node = NULL;
     NCD4node* base = NULL;
     const char* typename;
-    KEYWORDINFO* info;
+    const KEYWORDINFO* info;
     NCD4node* group;
 
     /* Check for aliases */
@@ -742,12 +742,7 @@ parseAttributes(NCD4parser* parser, NCD4node* container, ezxml_t xml)
 	}
 
 	if((ret=makeNode(parser,container,x,NCD4_ATTR,NC_NULL,&attr))) goto done;
-	/* HACK: If the attribute is _FillValue, then force the use of the
-           container's type as the attribute type */
-	if(strcmp(attr->name,"_FillValue") == 0)
-	    basetype = container->basetype;
-	else
-	    basetype = lookupFQN(parser,type,NCD4_TYPE);
+	basetype = lookupFQN(parser,type,NCD4_TYPE);
 	if(basetype == NULL)
 	    FAIL(NC_EBADTYPE,"Unknown <Attribute> type: ",type);
 	if(basetype->subsort == NC_NAT && basetype->subsort != NC_ENUM)
@@ -1127,14 +1122,14 @@ done:
     return (ret == NC_NOERR ? match : NULL);
 }
 
-static KEYWORDINFO*
+static const KEYWORDINFO*
 keyword(const char* name)
 {
     int n = sizeof(keywordmap)/sizeof(KEYWORDINFO);
     int L = 0;
     int R = (n - 1);
     int m, cmp;
-    struct KEYWORDINFO* p;
+    const struct KEYWORDINFO* p;
     for(;;) {
 	if(L > R) break;
         m = (L + R) / 2;
@@ -1174,7 +1169,7 @@ defineAtomicTypes(NCD4parser* parser)
 {
     int ret = NC_NOERR;
     NCD4node* node;
-    struct ATOMICTYPEINFO* ati;
+    const struct ATOMICTYPEINFO* ati;
 
     parser->atomictypes = nclistnew();
     if(parser->atomictypes == NULL)

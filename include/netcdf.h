@@ -149,14 +149,14 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 /** Turn on MPI I/O.
 Use this in mode flags for both nc_create() and nc_open(). */
-#define NC_MPIIO         0x2000
+#define NC_MPIIO         0x2000 /**< \deprecated */
 /** Turn on MPI POSIX I/O.
 Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_MPIPOSIX      0x4000 /**< \deprecated As of libhdf5 1.8.13. */
 
 #define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() => NC_DISKLESS */
 
-#define NC_PNETCDF       (NC_MPIIO) /**< Use parallel-netcdf library; alias for NC_MPIIO. */
+#define NC_PNETCDF       (NC_MPIIO) /**< \deprecated Use PnetCDF library; alias for NC_MPIIO. */
 
 #define NC_UDF0          0x0080  /**< User-defined format 0. */
 #define NC_UDF1          0x0002  /**< User-defined format 1. */
@@ -1960,6 +1960,11 @@ ncrecget(int ncid, long recnum, void **datap);
 
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
+
+/* This function may be called to force the library to
+   initialize itself. It is not required, however.
+*/
+EXTERNL int nc_initialize(void);
 
 /* This function may be called to force the library to
    cleanup global memory so that memory checkers will not
