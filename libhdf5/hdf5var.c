@@ -542,6 +542,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    NC_GRP_INFO_T *grp;
    NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
+   NC_FILE_INFO_T *nc4_info=NULL;
    int d;
    int retval;
 
@@ -567,7 +568,8 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    assert(var && var->hdr.id == varid);
 
    /* Can't turn on parallel and deflate/fletcher32/szip/shuffle. */
-   if (nc->mode & (NC_MPIIO | NC_MPIPOSIX)) {
+   nc4_info = NC4_DATA(nc);
+   if (nc4_info->parallel == NC_TRUE) {
       if (deflate || fletcher32 || shuffle)
          return NC_EINVAL;
    }
@@ -944,11 +946,6 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
    if(!var)
       return NC_ENOTVAR;
    assert(var->hdr.id == varid);
-
-   /* Can't turn on parallel and filters */
-   if (nc->mode & (NC_MPIIO | NC_MPIPOSIX)) {
-      return NC_EINVAL;
-   }
 
    /* If the HDF5 dataset has already been created, then it is too
     * late to set all the extra stuff. */

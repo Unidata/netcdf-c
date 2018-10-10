@@ -38,9 +38,8 @@ static const char* checkseps = "+,:;";
 /**************************************************/
 int
 NCD4_open(const char * path, int mode,
-               int basepe, size_t *chunksizehintp,
- 	       int useparallel, void* mpidata,
-               NC_Dispatch* dispatch, NC* nc)
+          int basepe, size_t *chunksizehintp,
+          void *mpidata, NC_Dispatch *dispatch, NC *nc)
 {
     int ret = NC_NOERR;
     NCD4INFO* d4info = NULL;
@@ -326,12 +325,12 @@ freeCurl(NCD4curl* curl)
 }
 
 /* Define the set of protocols known to be constrainable */
-static char* constrainableprotocols[] = {"http", "https",NULL};
+static const char* constrainableprotocols[] = {"http", "https",NULL};
 
 static int
 constrainable(NCURI* durl)
 {
-   char** protocol = constrainableprotocols;
+   const char** protocol = constrainableprotocols;
    for(;*protocol;protocol++) {
 	if(strcmp(durl->protocol,*protocol)==0)
 	    return 1;
@@ -433,6 +432,7 @@ applyclientparamcontrols(NCD4INFO* info)
     CLRFLAG(info->controls.flags,NCF_SHOWFETCH);
     CLRFLAG(info->controls.flags,NCF_NC4);
     CLRFLAG(info->controls.flags,NCF_NCDAP);
+    CLRFLAG(info->controls.flags,NCF_FILLMISMATCH);
 
     /* Turn on any default on flags */
     SETFLAG(info->controls.flags,DFALT_ON_FLAGS);
@@ -452,6 +452,13 @@ applyclientparamcontrols(NCD4INFO* info)
     if(value != NULL)
 	strncpy(info->controls.substratename,value,NC_MAX_NAME);
 
+    value = getparam(info,"fillmismatch");
+    if(value != NULL)
+	SETFLAG(info->controls.flags,NCF_FILLMISMATCH);
+
+    value = getparam(info,"nofillmismatch");
+    if(value != NULL)
+	CLRFLAG(info->controls.debugflags,NCF_FILLMISMATCH);
 }
 
 static void

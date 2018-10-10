@@ -12,8 +12,6 @@
 #ifndef NETCDF_MEM_H
 #define NETCDF_MEM_H 1
 
-#include <netcdf.h>
-
 typedef struct NC_memio {
     size_t size;
     void* memory;

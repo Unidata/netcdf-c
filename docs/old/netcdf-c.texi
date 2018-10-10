@@ -1385,7 +1385,7 @@ and placed in define mode, ready for you to add dimensions, variables,
 and attributes.
 
 If the NC_NETCDF4 flag is used, the HDF5 library is used for parallel
-I/O. If not, the parallel-netcdf library is used.
+I/O. If not, the PnetCDF library is used.
 
 When a file is created for parallel access, independent operations are
 the default. To use independent access on a variable,
@@ -10395,7 +10395,7 @@ The variable can be changed from collective to independent, and back,
 as often as desired.
 
 Note that classic and 64-bit offset files are access using the
-parallel-netcdf library, which does not allow per-variable setting of
+PnetCDF library, which does not allow per-variable setting of
 the parallel access mode. For these files, calling nc_var_par_access
 sets the access for all of the variables in the file.
 

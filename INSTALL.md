@@ -184,7 +184,7 @@ Building netCDF with Classic Library Only {#build_classic}
 ---------------------------------------
 
 It is possible to build the netCDF C libraries and utilities so that
-only the netCDF classic and 64-bit offset formats are supported, or
+only the netCDF classic, 64-bit offset, and CDF-5 formats are supported, or
 the remote data access client is not built. (See \ref netcdf_format)
 for more information about the netCDF format variants.  See the <a
 href="http://opendap.org/netCDF-DAP">netCDF-DAP site</a>
@@ -307,8 +307,8 @@ $ make check install
 ~~~
 
 
-If parallel I/O access to netCDF classic and 64-bit offset files is
-also needed, the parallel-netcdf library should also be installed.
+If parallel I/O access to netCDF classic, 64-bit offset, CDF-5 files is
+also needed, the PnetCDF library should also be installed.
 (Note: the previously recommended <a
 href=ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/pnetcdf.h>replacement
 pnetcdf.h</a> should no longer be used.)  Then configure netCDF with the
@@ -358,8 +358,7 @@ Note: --disable prefix indicates that the option is normally enabled.
 <tr><td>--enable-netcdf4<td>synonym for enable-netcdf-4
 <tr><td>--enable-hdf4<td>build netcdf-4 with HDF4 read capability<td>HDF4, HDF5 and zlib
 <tr><td>--enable-hdf4-file-tests<td>test ability to read HDF4 files<td>selected HDF4 files from Unidata ftp site
-<tr><td>--enable-pnetcdf<td>build netcdf-4 with parallel I/O for classic and
-                          64-bit offset files using parallel-netcdf
+<tr><td>--enable-pnetcdf<td>build netcdf-4 with parallel I/O for classic, 64-bit offset, and CDF-5 files using PnetCDF
 <tr><td>--enable-extra-example-tests<td>Run extra example tests<td>--enable-netcdf-4,GNU sed
 <tr><td>--enable-parallel-tests <td>run extra parallel IO tests<td>--enable-netcdf-4, parallel IO support
 <tr><td>--enable-logging<td>enable logging capability<td>--enable-netcdf-4

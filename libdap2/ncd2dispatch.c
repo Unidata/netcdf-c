@@ -35,7 +35,7 @@ static NCerror builddims(NCDAPCOMMON*);
 static char* getdefinename(CDFnode* node);
 static NCerror buildvars(NCDAPCOMMON*);
 static NCerror buildglobalattrs(NCDAPCOMMON*, CDFnode* root);
-static NCerror buildattribute(NCDAPCOMMON*, NCattribute*, nc_type, int);
+static NCerror buildattribute(NCDAPCOMMON*, CDFnode*, NCattribute*);
 static void computedimindexanon(CDFnode* dim, CDFnode* var);
 static void replacedims(NClist* dims);
 static int equivalentdim(CDFnode* basedim, CDFnode* dupdim);
@@ -63,8 +63,7 @@ static NCerror applyclientparams(NCDAPCOMMON*);
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch*,NC* ncp);
+           void* mpidata, NC_Dispatch*,NC* ncp);
 
 static int NCD2_redef(int ncid);
 static int NCD2__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
@@ -232,8 +231,7 @@ NCD2_abort(int ncid)
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch* dispatch, NC* ncp)
+           void* mpidata, NC_Dispatch* dispatch, NC* ncp)
 {
    return NC_EPERM;
 }
@@ -276,10 +274,8 @@ NCD2_get_vars(int ncid, int varid,
 
 /* See ncd2dispatch.c for other version */
 int
-NCD2_open(const char* path, int mode,
-               int basepe, size_t *chunksizehintp,
- 	       int useparallel, void* mpidata,
-               NC_Dispatch* dispatch, NC* drno)
+NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
+          void* mpidata, NC_Dispatch* dispatch, NC* drno)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
@@ -757,9 +753,6 @@ fprintf(stderr,"buildvars.candidate=|%s|\n",var->ncfullname);
                 dimids[j] = dim->ncid;
  	    }
         }
-
-
-
 	definename = getdefinename(var);
 
 #ifdef DEBUG1
@@ -789,7 +782,22 @@ fprintf(stderr,"\n");
 	if(var->attributes != NULL) {
 	    for(j=0;j<nclistlength(var->attributes);j++) {
 		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
-		ncstat = buildattribute(dapcomm,att,var->etype,varid);
+		/* Check for _FillValue/Variable mismatch */
+		if(strcmp(att->name,"_FillValue")==0) {
+		    if(att->etype != var->etype) {
+			/* Log a message */
+	                nclog(NCLOGERR,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
+			/* See if mismatch is allowed */
+			if(FLAGSET(dapcomm->controls,NCF_FILLMISMATCH)) {
+			    /* Forcibly change the attribute type to match */
+			    att->etype = var->etype;
+			} else {
+			    ncstat = NC_EBADTYPE; /* fail */
+			    goto done;
+			}
+		    }
+		}
+		ncstat = buildattribute(dapcomm,var,att);
         	if(ncstat != NC_NOERR) goto done;
 	    }
 	}
@@ -814,7 +822,7 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
     if(root->attributes != NULL) {
         for(i=0;i<nclistlength(root->attributes);i++) {
    	    NCattribute* att = (NCattribute*)nclistget(root->attributes,i);
-	    ncstat = buildattribute(dapcomm,att,NC_NAT,NC_GLOBAL);
+	    ncstat = buildattribute(dapcomm,NULL,att);
             if(ncstat != NC_NOERR) goto done;
 	}
     }
@@ -883,11 +891,12 @@ done:
 }
 
 static NCerror
-buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int varid)
+buildattribute(NCDAPCOMMON* dapcomm, CDFnode* var, NCattribute* att)
 {
     int i;
     NCerror ncstat = NC_NOERR;
     unsigned int nvalues = nclistlength(att->values);
+    int varid = (var == NULL ? NC_GLOBAL : var->ncid);
 
     /* If the type of the attribute is string, then we need*/
     /* to convert to a single character string by concatenation.
@@ -921,17 +930,7 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	nc_type atype;
 	unsigned int typesize;
 	void* mem = NULL;
-	/* It turns out that some servers upgrade the type
-           of _FillValue in order to correctly preserve the
-           original value. However, since the type of the
-           underlying variable is not changes, we get a type
-           mismatch. So, make sure the type of the fillvalue
-           is the same as that of the controlling variable.
-	*/
-        if(varid != NC_GLOBAL && strcmp(att->name,"_FillValue")==0)
-	    atype = nctypeconvert(dapcomm,vartype);
-	else
-	    atype = nctypeconvert(dapcomm,att->etype);
+	atype = nctypeconvert(dapcomm,att->etype);
 	typesize = nctypesizeof(atype);
 	if (nvalues > 0) {
 		mem = malloc(typesize * nvalues);
@@ -939,10 +938,13 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 		_ASSERTE(_CrtCheckMemory());
 #endif
 	}
-    ncstat = dapcvtattrval(atype,mem,att->values);
+        ncstat = dapcvtattrval(atype,mem,att->values,att);
 #ifdef _MSC_VER
 	_ASSERTE(_CrtCheckMemory());
 #endif
+    if(ncstat == NC_ERANGE)
+	nclog(NCLOGERR,"Attribute value out of range: %s:%s",
+		(var==NULL?"":var->ncbasename),att->name);
     if(ncstat) {nullfree(mem); goto done;}
     ncstat = nc_put_att(dapcomm->substrate.nc3id,varid,att->name,atype,nvalues,mem);
 #ifdef _MSC_VER
@@ -2209,6 +2211,12 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
     if(dapparamcheck(dapcomm,"show","fetch"))
 	SETFLAG(dapcomm->controls,NCF_SHOWFETCH);
 
+    /* enable/disable _FillValue/Variable Mis-match */
+    if(dapparamcheck(dapcomm,"fillmismatch",NULL))
+	SETFLAG(dapcomm->controls,NCF_FILLMISMATCH);
+    else if(dapparamcheck(dapcomm,"nofillmismatch",NULL))
+	CLRFLAG(dapcomm->controls,NCF_FILLMISMATCH);
+
     nclog(NCLOGNOTE,"Caching=%d",FLAGSET(dapcomm->controls,NCF_CACHE));
 
 }
@@ -2819,4 +2827,4 @@ NCD2_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return THROW(ret);
 }
 
-#endif // USE_NETCDF4
+#endif /* USE_NETCDF4 */

@@ -116,8 +116,6 @@ main(int argc, char **argv)
       /* These will not work. */
       if (nc_open(FILE_NAME, NC_MMAP, &ncid) != NC_EINVAL) ERR;
       if (nc_open(FILE_NAME, NC_64BIT_OFFSET, &ncid) != NC_EINVAL) ERR;
-      if (nc_open(FILE_NAME, NC_MPIIO, &ncid) != NC_EINVAL) ERR;
-      if (nc_open(FILE_NAME, NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
       if (nc_open(FILE_NAME, NC_DISKLESS, &ncid) != NC_EINVAL) ERR;
 
       /* Now open with netCDF. */

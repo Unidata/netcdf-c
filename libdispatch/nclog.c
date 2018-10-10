@@ -178,6 +178,25 @@ nclog(int tag, const char* fmt, ...)
 }
 
 void
+ncvlog(int tag, const char* fmt, va_list ap)
+{
+    char* prefix;
+
+    if(!nclogginginitialized) ncloginit();
+
+    if(!nclogging || nclogstream == NULL) return;
+
+    prefix = nctagname(tag);
+    fprintf(nclogstream,"%s:",prefix);
+
+    if(fmt != NULL) {
+      vfprintf(nclogstream, fmt, ap);
+    }
+    fprintf(nclogstream, "\n" );
+    fflush(nclogstream);
+}
+
+void
 nclogtext(int tag, const char* text)
 {
     nclogtextn(tag,text,strlen(text));
