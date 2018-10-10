@@ -84,7 +84,7 @@ escaped_name(const char* cp) {
     for (; *cp; cp++) {
 	if (isascii((int)*cp)) {
 	    if(iscntrl((int)*cp)) {	/* render control chars as two hex digits, \%xx */
-		snprintf(sp, 4,"\\%%%.2x", *cp);
+		snprintf(sp, 4+1,"\\%%%.2x", *cp);
 		sp += 4;
 	    } else {
 		switch (*cp) {

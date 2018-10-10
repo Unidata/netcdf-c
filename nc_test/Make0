@@ -1,12 +1,12 @@
 # Test c output
-T=nc_test
+T=tst_diskless3
 
 #H58=8
 H510=10
 
-ARGS=persist
+ARGS=diskless persist
 
-#SRC=test_put.c test_get.c test_read.c test_write.c util.c error.c
+#SRC=
 
 #CMD=env HDF5_DEBUG=trace
 #CMD=export NETCDF_LOG_LEVEL=5 ;gdb --args

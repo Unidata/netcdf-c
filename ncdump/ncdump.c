@@ -2314,7 +2314,7 @@ main(int argc, char *argv[])
 		void* mem = NULL;
 		nc_status = fileopen(path,&mem,&size);
 		if(nc_status == NC_NOERR)
-	            nc_status = nc_open_mem(path,NC_DISKLESS|NC_INMEMORY,size,mem,&ncid);
+	            nc_status = nc_open_mem(path,NC_INMEMORY,size,mem,&ncid);
 	    } else
 	        nc_status = nc_open(path, NC_NOWRITE, &ncid);
 	    if (nc_status != NC_NOERR) {

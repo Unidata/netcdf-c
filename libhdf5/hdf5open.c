@@ -11,6 +11,7 @@
 
 #include "config.h"
 #include "hdf5internal.h"
+#include "ncrc.h"
 
 #define NUM_TYPES 12 /**< Number of netCDF atomic types. */
 #define CD_NELEMS_ZLIB 1 /**< Number of parameters needed for ZLIB filter. */
@@ -389,6 +390,13 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 
    nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
    nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
+   nc4_info->mem.persist = ((mode & NC_PERSIST) == NC_PERSIST);
+   /* Does the mode specify that this file is read-only? */
+   if ((mode & NC_WRITE) == 0)
+      nc4_info->no_write = NC_TRUE;
+
+   if(nc4_info->mem.inmemory && nc4_info->mem.diskless)
+	BAIL(NC_EINTERNAL);
 
 #ifdef USE_PARALLEL4
    mpiinfo = (NC_MPI_INFO*)parameters; /* assume, may be changed if inmemory is true */
@@ -444,35 +452,39 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
         nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
 
-   /* Does the mode specify that this file is read-only? */
-   if ((mode & NC_WRITE) == 0)
-      nc4_info->no_write = NC_TRUE;
-
-   /* Now process if NC_INMEMORY is set (recall NC_DISKLESS => NC_INMEMORY) */
+   /* Process  NC_INMEMORY */
    if(nc4_info->mem.inmemory) {
       NC_memio* memio;
-
       /* validate */
       if(parameters == NULL)
          BAIL(NC_EINMEMORY);
       memio = (NC_memio*)parameters;
       if(memio->memory == NULL || memio->size == 0)
          BAIL(NC_EINMEMORY);
-
       /* initialize h5->mem */
       nc4_info->mem.memio = *memio;
-
       /* Is the incoming memory locked? */
       nc4_info->mem.locked = (nc4_info->mem.memio.flags & NC_MEMIO_LOCKED) == NC_MEMIO_LOCKED;
-
       /* As a safeguard, if !locked and not read-only,
          then we must take control of the incoming memory */
       if(!nc4_info->mem.locked && !nc4_info->no_write) {
-        memio->memory = NULL; /* take control */
-        memio->size = 0;
+         memio->memory = NULL; /* take control */
+         memio->size = 0;
       }
       retval = NC4_open_image_file(nc4_info);
       if(retval)
+         BAIL(NC_EHDFERR);
+   }
+   else
+   if(nc4_info->mem.diskless) {   /* Process  NC_DISKLESS */
+      NC_HDF5_FILE_INFO_T *hdf5_info;
+      size_t min_incr = 65536; /* Minimum buffer increment */
+      /* Configure FAPL to use the core file driver */
+      if (H5Pset_fapl_core(fapl_id, min_incr, (nc4_info->mem.persist?1:0)) < 0)
+	BAIL(NC_EHDFERR);
+      hdf5_info = (NC_HDF5_FILE_INFO_T *)nc4_info->format_file_info;
+      /* Open the HDF5 file. */
+      if ((hdf5_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
          BAIL(NC_EHDFERR);
    }
    else
@@ -572,6 +584,9 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 
    /* Check the mode for validity */
    if (mode & ILLEGAL_OPEN_FLAGS)
+      return NC_EINVAL;
+
+   if((mode & NC_DISKLESS) && (mode & NC_INMEMORY))
       return NC_EINVAL;
 
    /* If this is our first file, initialize HDF5. */
