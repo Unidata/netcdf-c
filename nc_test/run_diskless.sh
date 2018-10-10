@@ -1,11 +1,10 @@
 #!/bin/sh
 
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 set -e
-set -x
+
 # Get the target OS and CPU
 CPU=`uname -p`
 OS=`uname`
@@ -100,15 +99,15 @@ echo "**** Testing nc_open in-memory (diskless) files"
 rm -f tst_diskless3_file.cdl tst_diskless3_memory.cdl
 
 echo ""
-echo "**** Create and modify file without using diskless"
+echo "**** Create baseline cdl"
 rm -f $FILE3
-${execdir}/tst_diskless3
+${execdir}/tst_diskless3 file
 ${NCDUMP} $FILE3 >tst_diskless3_file.cdl
 
 echo ""
 echo "**** Create and modify file using diskless"
 rm -f $FILE3
-${execdir}/tst_diskless3 diskless
+${execdir}/tst_diskless3 diskless persist
 ${NCDUMP} $FILE3 >tst_diskless3_memory.cdl
 
 # compare
