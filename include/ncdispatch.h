@@ -387,11 +387,6 @@ extern int NC_argc;
 extern char* NC_argv[];
 extern int NC_initialized;
 
-extern int nc_initialize();
-extern int nc_finalize();
-
-
-
 /**
 Certain functions are in the dispatch table,
 but not in the netcdf.h API. These need to

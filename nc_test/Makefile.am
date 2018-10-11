@@ -51,6 +51,11 @@ TESTPROGRAMS += testnc3perf
 testnc3perf_SOURCES = testnc3perf.c
 endif
 
+if USE_NETCDF4
+TESTPROGRAMS += tst_diskless6
+tst_diskless6_SOURCES = tst_diskless6.c
+endif
+
 # Set up the tests.
 check_PROGRAMS = $(TESTPROGRAMS)
 
@@ -59,7 +64,6 @@ check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4	\
 tst_diskless5 tst_inmemory tst_open_mem
 if USE_NETCDF4
 check_PROGRAMS += tst_diskless2
-TESTPROGRAMS += tst_diskless6
 endif
 
 TESTS = $(TESTPROGRAMS)

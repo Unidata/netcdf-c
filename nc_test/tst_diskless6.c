@@ -15,6 +15,7 @@
 #include "unistd.h"
 #endif
 #ifdef _WIN32
+#include <Windows.h>
 #include <io.h>
 #endif
 
@@ -26,13 +27,26 @@
 #define NC_NETCDF3 0
 #endif
 
-#define RDONLY (S_IRUSR|S_IRGRP|S_IROTH)
-#define RDWRITE (RDONLY | S_IWUSR)
-
 #define FILE3D "file3d.nc"
 #define FILE3DP "file3dp.nc"
 #define FILE4D "file4d.nc"
 #define FILE4DP "file4dp.nc"
+
+/* Mnemonics */
+#define RDONLY 1
+#define RDWRITE 0
+
+#ifdef _WIN32
+#define RDONLYMODE (_S_IREAD)
+#define RDWRMODE (_S_IREAD|_S_IWRITE)
+#define CHMOD _chmod
+#define SLEEP(x) Sleep((x)*1000)
+#else
+#define RDONLYMODE (S_IRUSR|S_IRGRP|S_IROTH)
+#define RDWRMODE (RDONLY | S_IWUSR)
+#define CHMOD chmod
+#define SLEEP(x) sleep(x)
+#endif
 
 typedef enum OC { OPEN, CLOSE} OC;
 
@@ -72,10 +86,13 @@ getmodified(const char* path)
 }
 
 static void
-changeaccess(mode_t mode)
+changeaccess(int rdonly)
 {
-    (void)chmod(FILE3DP,mode);
-    (void)chmod(FILE4DP,mode);
+   const char* p3 = FILE3DP; /* Keep Visual Studio happy */
+   const char* p4 = FILE4DP;
+   int mode = (rdonly?RDONLYMODE:RDWRMODE);
+   (void)CHMOD(p3,mode);
+   (void)CHMOD(p4,mode);
 }
 
 static void
@@ -146,7 +163,7 @@ testopen(const char* file, int mode, int rdwrite)
     printf("test: file=%s mode=%s\n",file,smode(mode)); fflush(stdout);
 
     time1 = getmodified(file);
-    sleep(1); /* Ensure that if modified, it will be reported */
+    SLEEP(1); /* Ensure that if modified, it will be reported */
     if((ret = nc_open(file,mode,&ncid))) fail(ret);
     if(rdwrite) {
         /* Modify */
