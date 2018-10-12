@@ -1,9 +1,9 @@
 #!/bin/bash
 #NB=1
-#DB=1
+DB=1
 #X=-x
 
-FAST=1
+#FAST=1
 #PROF=1
 
 HDF5=1
@@ -108,11 +108,10 @@ FLAGS="$FLAGS --enable-extreme-numbers"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 #FLAGS="$FLAGS --enable-dap-auth-tests" -- requires a new remotetest server
-#FLAGS="$FLAGS --enable-doxygen"
-#FLAGS="$FLAGS --enable-internal-docs"
+#FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
-#FLAGS="$FLAGS --enable-mmap"
+FLAGS="$FLAGS --enable-mmap"
 #FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
 #FLAGS="$FLAGS --enable-jna"
