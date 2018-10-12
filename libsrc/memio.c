@@ -94,7 +94,7 @@ reallocx(void* mem, size_t newsize, size_t oldsize)
 typedef struct NCMEMIO {
     int locked; /* => we cannot realloc or free*/
     int modified; /* => we realloc'd memory at least once */
-    int persist; /* => save to a file; triggered by NC_WRITE */
+    int persist; /* => save to a file; triggered by NC_PERSIST*/
     char* memory;
     size_t alloc;
     size_t size;
@@ -130,6 +130,10 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
     ncio* nciop = NULL;
     NCMEMIO* memio = NULL;
     size_t minsize = (size_t)initialsize;
+
+    /* Unlike netcdf-4, INMEMORY and DISKLESS share code */
+    if(fIsSet(ioflags,NC_DISKLESS))
+	fSet(ioflags,NC_INMEMORY);    
 
     /* use asserts because this is an internal function */
     assert(fIsSet(ioflags,NC_INMEMORY));
@@ -199,7 +203,7 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
 	memio->diskless = 1;
     if(fIsSet(ioflags,NC_INMEMORY))
 	memio->inmemory = 1;
-    if(fIsSet(ioflags,NC_WRITE) && !fIsSet(ioflags,NC_NOCLOBBER) && memio->diskless)
+    if(fIsSet(ioflags,NC_PERSIST))
 	memio->persist = 1;
 
 done:
@@ -265,7 +269,7 @@ fprintf(stderr,"memio_create: initial memory: %lu/%lu\n",(unsigned long)memio->m
     fd = nc__pseudofd();
     *((int* )&nciop->fd) = fd;
 
-    fSet(nciop->ioflags, NC_WRITE);
+    fSet(nciop->ioflags, NC_WRITE); /* Always writeable */
 
     if(igetsz != 0)
     {
@@ -318,8 +322,10 @@ memio_open(const char* path,
     size_t initialsize;
     /* Should be the case that diskless => inmemory but not converse */
     int diskless = (fIsSet(ioflags,NC_DISKLESS));
-    int inmemory = (fIsSet(ioflags,NC_INMEMORY) && !diskless);
+    int inmemory = fIsSet(ioflags,NC_INMEMORY);
     int locked = 0;
+
+    assert(inmemory ? !diskless : 1);
 
     if(path == NULL || strlen(path) == 0)
         return NC_EINVAL;
@@ -440,10 +446,10 @@ memio_pad_length(ncio* nciop, off_t length)
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
     memio = (NCMEMIO*)nciop->pvt;
 
-    if(!memio->persist)
+    if(fIsSet(nciop->ioflags,NC_WRITE))
         return EPERM; /* attempt to write readonly file*/
     if(memio->locked)
-	return NC_EDISKLESS;
+	return NC_EINMEMORY;
 
     if(len > memio->alloc) {
         /* Realloc the allocated memory to a multiple of the pagesize*/

@@ -1,5 +1,3 @@
-/* Diskless test in support of https://github.com/Unidata/netcdf-c/issues/400 */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -27,10 +25,10 @@ static int mem = 0;
 #endif
 
 #ifdef DISKLESS
-#define MODE NC_NOCLOBBER|NC_DISKLESS
+#define MODE NC_DISKLESS
 static int diskless = 1;
 #else
-#define MODE NC_NOCLOBBER
+#define MODE 0
 static int diskless = 0;
 #endif
 
