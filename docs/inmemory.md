@@ -24,15 +24,19 @@ write it back out to disk when nc_close() is called.
 of memory as if it were a netcdf file. At close, it is possible to ask
 for the final contents of the memory chunk. Be warned that there is
 some complexity to this as described below.
-4. MMAP -- Tell the netcdf-c library to use the *mmap()* operating
+4. MMAP -- (deprecated) Tell the netcdf-c library to use the *mmap()* operating
 system functionality to access a file.
 
-The first two capabilities are intertwined in the sense that the *diskless*
-capability makes use internally of the *inmemory* capability. But, the
-*inmemory* capability can be used independently of the *diskless* capability.
+The first two capabilities are intertwined in the sense that the
+*diskless* capability makes use internally of the *inmemory*
+capability (for netcdf classic only). But, the *inmemory*
+capability can be used independently of the *diskless*
+capability.
 
 The *mmap()* capability provides a capability similar to *diskless* but
-using special capabilities of the underlying operating system.
+using special capabilities of the underlying operating system. It turns out
+that the mmap capability has seen no significant use, so its use is deprecated
+and will be removed at some point in the future.
 
 Note also that *diskless* and *inmemory* can be used for both
 *netcdf-3* (classic) and *netcdf-4* (enhanced) data. The *mmap*
@@ -47,22 +51,40 @@ Note that since the file is stored in memory, size limitations apply.
 If you are on using a 32-bit pointer then the file size must be less than 2^32
 bytes in length. On a 64-bit machine, the size must be less than 2^64 bytes.
 
+Also note that for a diskless file, there are two notions of
+*write* with respect to the file. The first notion is that the
+file is read-only through the netCDF API. For example, if the file
+is read-only, then a call to, for example, _nc_def_dim()_ will fail.
+The second notion of *write* refers to the file on disk to which 
+the contents of memory might be persisted.
+
+WARNING: control of the two kinds of *write* has changed since
+release 4.6.1.
+
+The mode flag NC_WRITE determines the first kind of *write*.
+If set, then NC_WRITE means that the file can be modified through
+the netCDF API, otherwise it is read-only. This is a change since
+release 4.6.1.
+
+The new mode flag NC_PERSIST now determines the second kind of
+*write*.  If set, then NC_PERSIST means that the memory contents
+will be persisted to disk, possibly overwriting the previous
+file contents.  Otherwise, the default is to throw away the
+in-memory contents.
+
 ### Diskless File Open
 Calling *nc_open()* using the mode flag *NC_DISKLESS* will cause
 the file being opened to be read into memory. When calling *nc_close()*,
 the file will optionally be re-written (aka "persisted") to disk. This
-persist capability will be invoked if and only if *NC_WRITE* is specified
+persist capability will be invoked if and only if *NC_PERSIST* is specified
 in the mode flags at the call to *nc_open()*.
 
 ### Diskless File Create
 Calling *nc_create()* using the mode flag *NC_DISKLESS* will cause
 the file to initially be created and kept in memory.
 When calling *nc_close()*, the file will be written
-to disk.
-Note that if it is desired to create the file in memory,
-but not write to a disk file, then one can either set
-the NC_NOCLOBBER mode flag or one can call *nc_abort()*
-instead of *nc_close()*.
+to disk if and only if *NC_PERSIST* is specified
+in the mode flags at the call to *nc_create()*.
 
 Enabling Inmemory File Access {#Enable_Inmemory}
 --------------
@@ -180,8 +202,10 @@ In this way, it is possible to avoid memory reallocation while still
 allowing modifications to the file. You will still need to call
 *nc_close_memio()* to obtain the size of the final, modified, file.
 
-Enabling MMAP File Access {#Enable_MMAP}
+Enabling MMAP File Access (Deprecated) {#Enable_MMAP}
 --------------
+
+The MMAP functionality is deprecated.
 
 Some operating systems provide a capability called MMAP.
 This allows disk files to automatically be mapped to chunks of memory.
@@ -201,6 +225,16 @@ Known Bugs {#Inmemory_Bugs}
    NC_MEMIO_LOCKED) and are accessing it as a netcdf-4 file, and
    you overrun the available space, then the HDF5 library will
    fail with a segmentation fault.
+
+2. You will get an HDF5 error under the following conditions.
+
+   1. You call nc_open on a file with the flags NC_DISKLESS|NC_WRITE
+      but without NC_PERSIST.
+   2. The file to be read is read-only (i.e. mode 0444).
+
+   Note that this should be ok because the modifications to the file
+   are not intended to pushed back into the disk file. However, the
+   HDF5 core driver does not allow this.
 
 References {#Inmemory_References}
 --------------

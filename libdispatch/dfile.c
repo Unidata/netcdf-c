@@ -302,8 +302,13 @@ NC_check_file_type(const char *path, int flags, int use_parallel,
    *model = 0;
    *version = 0;
 
-    assert(inmemory ? !mmap : 1); /* inmemory => !mmap */
-    assert((diskless && inmemory) ? !mmap : 1);/*diskless & inmemory => !mmap*/
+    /* NC_INMEMORY and NC_DISKLESS and NC_MMAP are all mutually exclusive */
+    if(diskless && inmemory) {status = NC_EDISKLESS; goto done;}
+    if(diskless && mmap) {status = NC_EDISKLESS; goto done;}
+    if(inmemory && mmap) {status = NC_EINMEMORY; goto done;}
+
+    /* mmap is not allowed for netcdf-4 */
+    if(mmap && (flags & NC_NETCDF4)) {status = NC_EINVAL; goto done;}
 
     memset((void*)&file,0,sizeof(file));
     file.path = path; /* do not free */
@@ -372,7 +377,8 @@ and attributes.
   NC_NETCDF4 (create netCDF-4/HDF5 file),
   NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5 files),
   NC_DISKLESS (store data in memory), and
-  NC_MMAP (use MMAP for NC_DISKLESS instead of NC_INMEMORY).
+  NC_PERSIST (force the NC_DISKLESS data from memory to a file),
+  NC_MMAP (use MMAP for NC_DISKLESS instead of NC_INMEMORY -- deprecated).
   See discussion below.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
@@ -385,10 +391,7 @@ aspects of how it may be used.
 
 Setting NC_NOCLOBBER means you do not want to clobber (overwrite) an
 existing dataset; an error (NC_EEXIST) is returned if the specified
-dataset already exists. As a slight variation on this, if you
-specify NC_DISKLESS and NC_NOCLOBBER, the file will be created
-in-memory, but no attempt will be made to persiste the in-memory
-data to a disk file.
+dataset already exists.
 
 The NC_SHARE flag is appropriate when one process may be writing the
 dataset and one or more other processes reading the dataset
@@ -424,32 +427,22 @@ types, multiple unlimited dimensions, or new atomic types. The
 advantage of this restriction is that such files are guaranteed to
 work with existing netCDF software.
 
-Setting NC_DISKLESS causes netCDF to create the file only in memory.
-This allows for the use of files that have no long term purpose. Note that
-with one exception, the in-memory file is destroyed upon calling
-nc_close. If, however, the flag combination (NC_DISKLESS|NC_WRITE)
-is used, then at close, the contents of the memory file will be
-made persistent in the file path that was specified in the nc_create
-call. If NC_DISKLESS is going to be used for creating a large classic file,
-it behooves one to use either nc__create or nc_create_mp and specify
-an appropriately large value of the initialsz parameter to avoid
-to many extensions to the in-memory space for the file.
-This flag applies to files in classic format and to file in extended
+Setting NC_DISKLESS causes netCDF to create the file only in
+memory and to optionally write the final contents to the
+correspondingly named disk file. This allows for the use of
+files that have no long term purpose. Operating on an existing file
+in memory may also be faster. The decision on whether
+or not to "persist" the memory contents to a disk file is
+described in detail in the file docs/inmemory.md, which is
+definitive.  By default, closing a diskless fill will cause it's
+contents to be lost.
+
+If NC_DISKLESS is going to be used for creating a large classic
+file, it behooves one to use nc__create and specify an
+appropriately large value of the initialsz parameter to avoid to
+many extensions to the in-memory space for the file.  This flag
+applies to files in classic format and to file in extended
 format (netcdf-4).
-
-Normally, NC_DISKLESS allocates space in the heap for
-storing the in-memory file. If, however, the ./configure
-flags --enable-mmap is used, and the additional mode flag
-NC_MMAP is specified, then the file will be created using
-the operating system MMAP facility.
-This flag only applies to files in classic format. Extended
-format (netcdf-4) files will ignore the NC_MMAP flag.
-
-Using NC_MMAP for nc_create is
-only included for completeness vis-a-vis nc_open. The
-ability to use MMAP is of limited use for nc_create because
-nc_create is going to create the file in memory anyway.
-Closing a MMAP'd file will be slightly faster, but not significantly.
 
 Note that nc_create(path,cmode,ncidp) is equivalent to the invocation of
 nc__create(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp).
@@ -527,7 +520,7 @@ the classic netCDF-3 data model.
      if (status != NC_NOERR) handle_error(status);
 @endcode
 
-In this example we create a in-memory netCDF classic dataset named
+In this example we create an in-memory netCDF classic dataset named
 diskless.nc whose content will be lost when nc_close() is called.
 
 @code
@@ -550,7 +543,7 @@ in a file named diskless.nc when nc_close() is called.
      int status = NC_NOERR;
      int ncid;
         ...
-     status = nc_create("diskless.nc", NC_DISKLESS|NC_WRITE, &ncid);
+     status = nc_create("diskless.nc", NC_DISKLESS|NC_PERSIST, &ncid);
      if (status != NC_NOERR) handle_error(status);
 @endcode
 
@@ -679,7 +672,7 @@ int
 nc_create_mem(const char* path, int mode, size_t initialsize, int* ncidp)
 {
     if(mode & NC_MMAP) return NC_EINVAL;
-    mode |= (NC_INMEMORY|NC_NOCLOBBER); /* Specifically, do not set NC_DISKLESS */
+    mode |= NC_INMEMORY; /* Specifically, do not set NC_DISKLESS */
     return NC_create(path, mode, initialsize, 0, NULL, 0, NULL, ncidp);
 }
 
@@ -754,7 +747,7 @@ nc__create_mp(const char *path, int cmode, size_t initialsz,
  *
  * If NC_DISKLESS is specified, then the whole file is read completely
  * into memory. In effect this creates an in-memory cache of the file.
- * If the omode flag also specifies NC_WRITE, then the in-memory cache
+ * If the omode flag also specifies NC_PERSIST, then the in-memory cache
  * will be re-written to the disk file when nc_close() is called.  For
  * some kinds of manipulations, having the in-memory cache can speed
  * up file processing. But in simple cases, non-cached processing may
@@ -945,7 +938,7 @@ nc_open_mem(const char* path, int omode, size_t size, void* memory, int* ncidp)
  	return NC_EINVAL;
     if(omode & (NC_WRITE|NC_MMAP))
 	return NC_EINVAL;
-    omode |= (NC_INMEMORY); /* DO not set NC_DISKLESS */
+    omode |= (NC_INMEMORY); /* Note: NC_INMEMORY and NC_DISKLESS are mutually exclusive*/
     meminfo.size = size;
     meminfo.memory = memory;
     meminfo.flags = NC_MEMIO_LOCKED;
@@ -1951,6 +1944,7 @@ check_create_mode(int mode)
     int mode_format;
     int mmap = 0;
     int inmemory = 0;
+    int diskless = 0;
 
     /* This is a clever check to see if more than one format bit is
      * set. */
@@ -1961,8 +1955,19 @@ check_create_mode(int mode)
 
     mmap = ((mode & NC_MMAP) == NC_MMAP);
     inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
-    if(mmap && inmemory) /* cannot have both */
-	return NC_EINMEMORY;
+    diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
+
+    /* NC_INMEMORY and NC_DISKLESS and NC_MMAP are all mutually exclusive */
+    if(diskless && inmemory) return NC_EDISKLESS;
+    if(diskless && mmap) return NC_EDISKLESS;
+    if(inmemory && mmap) return NC_EINMEMORY;
+
+    /* mmap is not allowed for netcdf-4 */
+    if(mmap && (mode & NC_NETCDF4)) return NC_EINVAL;
+
+    /* Can't use both parallel and diskless|inmemory|mmap. */
+    if (mode & NC_MPIIO && mode & (NC_DISKLESS|NC_INMEMORY|NC_MMAP))
+	return NC_EINVAL;
 
 #ifndef USE_NETCDF4
    /* If the user asks for a netCDF-4 file, and the library was built
@@ -2014,21 +2019,9 @@ NC_create(const char *path0, int cmode, size_t initialsz,
    int model = NC_FORMATX_UNDEFINED; /* one of the NC_FORMATX values */
    int isurl = 0;   /* dap or cdmremote or neither */
    char* path = NULL;
-   int mmap = 0;
-   int diskless = 0;
 
    TRACE(nc_create);
    if(path0 == NULL)
-	return NC_EINVAL;
-
-   /* Fix the inmemory related flags */
-   mmap = ((cmode & NC_MMAP) == NC_MMAP);  
-   diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);
-   /* diskless && !mmap => inmemory */
-   if(diskless && !mmap) cmode |= NC_INMEMORY;
-
-    /* Can't use both parallel and diskless|inmemory. */
-    if (useparallel && (cmode & (NC_DISKLESS|NC_INMEMORY)))
 	return NC_EINVAL;
 
    /* Check mode flag for sanity. */
@@ -2209,7 +2202,6 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
    int model = 0;
    int isurl = 0;
    int version = 0;
-   int flags = 0;
    char* path = NULL;
 
    TRACE(nc_open);
@@ -2221,14 +2213,12 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
    /* Fix the inmemory related flags */
    mmap = ((omode & NC_MMAP) == NC_MMAP);
    diskless = ((omode & NC_DISKLESS) == NC_DISKLESS);
-
-   /* diskless && !mmap => inmemory */
-   if(diskless && !mmap) omode |= NC_INMEMORY;
-
    inmemory = ((omode & NC_INMEMORY) == NC_INMEMORY);
 
    if(mmap && inmemory) /* cannot have both */
 	return NC_EINMEMORY;
+   if(mmap && diskless) /* cannot have both */
+	return NC_EDISKLESS;
 
    /* Attempt to do file path conversion: note that this will do
       nothing if path is a 'file:...' url, so it will need to be
@@ -2286,9 +2276,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     if(model == 0) {
 	version = 0;
 	/* Try to find dataset type */
-	if(inmemory) flags |= NC_INMEMORY;
-	if(diskless) flags |= NC_DISKLESS;
-	if(mmap) flags |= NC_MMAP;
+	int flags = omode;
 	stat = NC_check_file_type(path,flags,useparallel,parameters,&model,&version);
         if(stat == NC_NOERR) {
 	    if(model == 0) {
@@ -2470,8 +2458,8 @@ static int
 openmagic(struct MagicFile* file)
 {
     int status = NC_NOERR;
-    assert((!file->diskless && file->inmemory) ? file->parameters != NULL : 1);
-    if(file->inmemory && !file->diskless) {
+    assert((file->inmemory) ? file->parameters != NULL : 1);
+    if(file->inmemory) {
 	/* Get its length */
 	NC_memio* meminfo = (NC_memio*)file->parameters;
 	file->filelen = (long long)meminfo->size;
@@ -2546,11 +2534,11 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 {
     int status = NC_NOERR;
     memset(magic,0,MAGIC_NUMBER_LEN);
-    if(file->inmemory && !file->diskless) {
+    if(file->inmemory) {
 	char* mempos;
 	NC_memio* meminfo = (NC_memio*)file->parameters;
 	if((pos + MAGIC_NUMBER_LEN) > meminfo->size)
-	    {status = NC_EDISKLESS; goto done;}
+	    {status = NC_EINMEMORY; goto done;}
 	mempos = ((char*)meminfo->memory) + pos;
 	memcpy((void*)magic,mempos,MAGIC_NUMBER_LEN);
 #ifdef DEBUG

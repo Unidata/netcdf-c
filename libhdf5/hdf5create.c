@@ -73,8 +73,13 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 
    nc4_info->mem.inmemory = (cmode & NC_INMEMORY) == NC_INMEMORY;
    nc4_info->mem.diskless = (cmode & NC_DISKLESS) == NC_DISKLESS;
+   nc4_info->mem.persist =  (cmode & NC_PERSIST) == NC_PERSIST;
    nc4_info->mem.created = 1;
    nc4_info->mem.initialsize = initialsz;
+
+   /* diskless => !inmemory */
+   if(nc4_info->mem.inmemory && nc4_info->mem.diskless)
+	BAIL(NC_EINTERNAL);
 
    if(nc4_info->mem.inmemory && parameters)
       nc4_info->mem.memio = *(NC_memio*)parameters;
@@ -94,14 +99,11 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 
    /* If this file already exists, and NC_NOCLOBBER is specified,
       return an error (unless diskless|inmemory) */
-   if (nc4_info->mem.diskless) {
-      if((cmode & NC_WRITE) && (cmode & NC_NOCLOBBER) == 0)
-         nc4_info->mem.persist = 1;
-   } else if (nc4_info->mem.inmemory) {
-      /* ok */
-   } else if ((cmode & NC_NOCLOBBER) && (fp = fopen(path, "r"))) {
-      fclose(fp);
-      BAIL(NC_EEXIST);
+   if (!nc4_info->mem.diskless && !nc4_info->mem.inmemory) {
+      if ((cmode & NC_NOCLOBBER) && (fp = fopen(path, "r"))) {
+        fclose(fp);
+        BAIL(NC_EEXIST);
+      }
    }
 
    /* Need this access plist to control how HDF5 handles open objects
@@ -189,6 +191,24 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
          BAIL(retval);
    }
    else
+   if(nc4_info->mem.diskless) {
+      size_t alloc_incr;     /* Buffer allocation increment */
+      size_t min_incr = 65536; /* Minimum buffer increment */
+      double buf_prcnt = 0.1f;  /* Percentage of buffer size to set as increment */
+      /* set allocation increment to a percentage of the supplied buffer size, or
+       * a pre-defined minimum increment value, whichever is larger
+       */
+      if ((buf_prcnt * initialsz) > min_incr)
+         alloc_incr = (size_t)(buf_prcnt * initialsz);
+      else
+         alloc_incr = min_incr;
+      /* Configure FAPL to use the core file driver */
+      if (H5Pset_fapl_core(fapl_id, alloc_incr, (nc4_info->mem.persist?1:0)) < 0)
+	BAIL(NC_EHDFERR);
+      if ((hdf5_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
+         BAIL(EACCES);
+   }
+   else /* Normal file */
    {
       /* Create the HDF5 file. */
       if ((hdf5_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)

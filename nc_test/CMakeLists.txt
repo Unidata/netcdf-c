@@ -56,6 +56,7 @@ ENDIF()
 SET(TESTFILES ${TESTFILES} tst_diskless tst_diskless3 tst_diskless4 tst_diskless5 tst_inmemory tst_open_mem)
 IF(USE_NETCDF4)
   SET(TESTFILES ${TESTFILES} tst_diskless2)
+  SET(TESTS ${TESTS} tst_diskless6)
 ENDIF()
 
 # Build executables required for the shell scripts.

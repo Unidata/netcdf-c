@@ -51,6 +51,11 @@ TESTPROGRAMS += testnc3perf
 testnc3perf_SOURCES = testnc3perf.c
 endif
 
+if USE_NETCDF4
+TESTPROGRAMS += tst_diskless6
+tst_diskless6_SOURCES = tst_diskless6.c
+endif
+
 # Set up the tests.
 check_PROGRAMS = $(TESTPROGRAMS)
 
@@ -65,10 +70,6 @@ TESTS = $(TESTPROGRAMS)
 
 if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
-if BUILD_MMAP
-TESTS += run_mmap.sh
-run_mmap.log: run_diskless.log
-endif
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
 endif

@@ -137,8 +137,8 @@ locate(char* p, char tag)
 /**
  * @internal Parse file properties.
  *
- * @param properties list of parsed (key,value) pairs
- * @param text Text properties.
+ * @param text0 Text properties.
+ * @param pairs list of parsed (key,value) pairs
  *
  * @return ::NC_NOERR No error.
  * @author Dennis Heimbigner
