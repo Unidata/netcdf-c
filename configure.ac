@@ -888,10 +888,15 @@ test "x$enable_mmap" = xyes || enable_mmap=no
 AC_MSG_RESULT($enable_mmap)
 
 # check for mmap and mremap availability before committing to use mmap
-AC_CHECK_FUNCS([mremap])
+AC_CHECK_FUNCS([mmap],[have_mmap=yes],[have_mmap=no])
+AC_CHECK_FUNCS([mremap],[have_mremap=yes],[have_mremap=no])
 
-if test "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xyes ; then
-  echo "mmap function or mremap function is not available: disabling mmap"
+if test "x$have_mmap" != xyes ; then
+  echo "mmap function is not available: disabling mmap"
+  enable_mmap=no
+fi
+if test "x$have_mremap" != xyes ; then
+  echo "mremap function is not available: disabling mmap"
   enable_mmap=no
 fi
 

@@ -5,7 +5,7 @@ Copyright 2011, UCAR/Unidata. See COPYRIGHT file for copying and
 redistribution conditions.
 */
 
-#undef DDBG
+#define DDBG
 
 #include "config.h"
 #include <stdio.h>
@@ -23,11 +23,12 @@ variables:
 }
 */
 
+#ifndef NC_NETCDF3
+#define NC_NETCDF3 0
+#endif
 
-#define FLAGS4 (NC_DISKLESS|NC_NETCDF4|NC_CLASSIC_MODEL)
-#define FLAGS3 (NC_DISKLESS)
-
-#define PERSIST (NC_WRITE)
+#define FLAGS4 (NC_NETCDF4|NC_CLASSIC_MODEL)
+#define FLAGS3 (NC_NETCDF3)
 
 #define RESISTOR "resistor_value"
 #define CAPACITOR "capacitor_value"
@@ -37,7 +38,7 @@ variables:
 #undef ERR
 void fail(int line) {
     fflush(stdout);
-    fprintf(stderr,"\nline=%d\n",line);
+    fprintf(stderr,"\nfail: line=%d\n",line);
     fflush(stderr);
     exit(1);
 }
@@ -45,7 +46,31 @@ void fail(int line) {
 #endif
 
 /* Control flags  */
-static int flags, persist, usenetcdf4, mmap;
+static int flags, persist, usenetcdf4, mmap, diskless;
+
+char*
+smode(int mode)
+{
+    static char ms[8192];
+    ms[0] = '\0';
+    if(mode & NC_NETCDF4)
+	strcat(ms,"NC_NETCDF4");
+    else
+	strcat(ms,"NC_NETCDF3");
+    if(mode & NC_DISKLESS)
+	strcat(ms,"|NC_DISKLESS");
+    if(mode & NC_WRITE)
+	strcat(ms,"|NC_WRITE");
+    if(mode & NC_NOCLOBBER)
+	strcat(ms,"|NC_NOCLOBBER");
+    if(mode & NC_INMEMORY)
+	strcat(ms,"|NC_INMEMORY");
+    if(mode & NC_PERSIST)
+	strcat(ms,"|NC_PERSIST");
+    if(mode & NC_MMAP)
+	strcat(ms,"|NC_MMAP");
+    return ms;
+}
 
 /* Remove a file; do not care if it does not exist */
 static void
@@ -66,26 +91,31 @@ main(int argc, char **argv)
     persist = 0;
     usenetcdf4 = 0;
     mmap = 0;
+    diskless = 0;
 
     for(i=1;i<argc;i++) {
 	if(strcmp(argv[i],"netcdf4")==0) usenetcdf4=1;
 	else if(strcmp(argv[i],"persist")==0) persist=1;
 	else if(strcmp(argv[i],"mmap")==0) mmap=1;
+	else if(strcmp(argv[i],"diskless")==0) diskless=1;
 	/* ignore anything not recognized */
     }
 
 #ifndef USE_NETCDF4
+    fprintf(stderr,"netcdf-4 not supported; ignored\n");
     usenetcdf4 = 0;
 #endif
 
-    if(mmap)
-	usenetcdf4 = 0;
+    /* Invalid combinations */
+    if(mmap && diskless) {fprintf(stderr,"Illegal: mmap+diskless\n"); exit(1);};
+    if(mmap && usenetcdf4) {fprintf(stderr,"Illegal: mmap+netcdf4\n"); exit(1);};
 
     flags = usenetcdf4?FLAGS4:FLAGS3;
-    if(persist) flags |= PERSIST;
+    if(persist) flags |= NC_PERSIST;
     if(mmap) flags |= NC_MMAP;
+    if(diskless) flags |= NC_DISKLESS;
 
-printf("\n*** Testing the diskless API.\n");
+printf("\n*** Testing the diskless|mmap API.\n");
 printf("*** testing diskless file with scalar vars...");
 {
     int ncid, varid0, varid1, varid2;
@@ -98,7 +128,7 @@ printf("*** testing diskless file with scalar vars...");
 
     removefile(persist,filename);
 
-    /* Create a netCDF file (which exists only in memory). */
+    /* Create a netCDF file (which exists in memory). */
     if (nc_create(filename, flags, &ncid)) ERR;
 
     /* Create some variables. */

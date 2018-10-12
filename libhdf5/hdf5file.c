@@ -13,6 +13,7 @@
 
 #include "config.h"
 #include "hdf5internal.h"
+#include "ncrc.h"
 
 static void dumpopenobjects(NC_FILE_INFO_T* h5);
 
@@ -225,15 +226,15 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
        }
        /* If needed, reclaim extraneous memory */
        if(h5->mem.memio.memory != NULL) {
-	/* If the original block of memory is not resizeable, then
-           it belongs to the caller and we should not free it. */
-	if(!h5->mem.locked)
-	    free(h5->mem.memio.memory);	
+	    /* If the original block of memory is not resizeable, then
+               it belongs to the caller and we should not free it. */
+	    if(!h5->mem.locked)
+	        free(h5->mem.memio.memory);	
        }
        h5->mem.memio.memory = NULL;
        h5->mem.memio.size = 0;
        NC4_image_finalize(h5->mem.udata);
-   }
+    }
 
    /* Free the HDF5-specific info. */
    if (h5->format_file_info)
