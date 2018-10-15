@@ -368,6 +368,7 @@ if test $require_curl = yes ; then
   if test $found_curl = no ; then
     AC_MSG_NOTICE([libcurl not found; disabling remote protocol(s) support])
     enable_dap=no
+    enable_dap4=no
   elif test $found_curl = yes ; then
     # Redo the check lib to actually add -lcurl
     #AC_CHECK_LIB([curl], [curl_easy_setopt])
@@ -1089,11 +1090,14 @@ if test "x$enable_netcdf_4" = xyes; then
 
    # If the user wants hdf4 built in, check it out.
    if test "x$enable_hdf4" = xyes; then
+      AC_CHECK_LIB([jpeg], [jpeg_CreateCompress], [],
+                   [AC_MSG_ERROR([Jpeg library required for --enable-hdf4 builds.])])
       AC_CHECK_HEADERS([mfhdf.h], [], [nc_mfhdf_h_missing=yes])
       if test "x$nc_mfhdf_h_missing" = xyes; then
          AC_MSG_ERROR([Cannot find mfhdf.h, yet --enable-hdf4 was used.])
       fi
       AC_CHECK_LIB([df], [Hclose], [], [AC_MSG_ERROR([Can't find or link to the hdf4 df library. See config.log for errors.])])
+      AC_CHECK_LIB([mfhdf], [NC_arrayfill], [AC_MSG_ERROR([HDF4 library must be built with --disable-netcdf.])], [])
       AC_CHECK_LIB([mfhdf], [SDcreate], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
 
      AC_CHECK_LIB([jpeg], [jpeg_set_quality], [], [AC_MSG_ERROR([Can't find or link to the jpeg library (required by hdf4). See config.log for errors.])])
