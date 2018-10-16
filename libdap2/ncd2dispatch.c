@@ -63,8 +63,7 @@ static NCerror applylimitparams(NCDAPCOMMON*);
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch*,NC* ncp);
+           void* mpidata, NC_Dispatch*,NC* ncp);
 
 static int NCD2_redef(int ncid);
 static int NCD2__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
@@ -232,8 +231,7 @@ NCD2_abort(int ncid)
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch* dispatch, NC* ncp)
+           void* mpidata, NC_Dispatch* dispatch, NC* ncp)
 {
    return NC_EPERM;
 }
@@ -276,10 +274,8 @@ NCD2_get_vars(int ncid, int varid,
 
 /* See ncd2dispatch.c for other version */
 int
-NCD2_open(const char* path, int mode,
-               int basepe, size_t *chunksizehintp,
- 	       int useparallel, void* mpidata,
-               NC_Dispatch* dispatch, NC* drno)
+NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
+          void* mpidata, NC_Dispatch* dispatch, NC* drno)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;

@@ -38,9 +38,8 @@ static const char* checkseps = "+,:;";
 /**************************************************/
 int
 NCD4_open(const char * path, int mode,
-               int basepe, size_t *chunksizehintp,
- 	       int useparallel, void* mpidata,
-               NC_Dispatch* dispatch, NC* nc)
+          int basepe, size_t *chunksizehintp,
+          void *mpidata, NC_Dispatch *dispatch, NC *nc)
 {
     int ret = NC_NOERR;
     NCD4INFO* d4info = NULL;

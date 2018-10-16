@@ -49,7 +49,7 @@ main(int argc, char **argv)
 
 	 /* Make sure that netCDF rejects this file politely. */
 #ifdef TEST_PNETCDF
-        openstat = nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+        openstat = nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
 #else
          openstat = nc_open(FILE_NAME, 0, &ncid);
 #endif

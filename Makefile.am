@@ -58,7 +58,7 @@ DAP4 = libdap4
 NCDAP4TESTDIR = dap4_test
 endif #DAP4
 
-# Build pnetcdf
+# Build PnetCDF
 if USE_PNETCDF
 LIBSRCP = libsrcp
 endif

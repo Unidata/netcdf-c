@@ -112,7 +112,7 @@ main(int argc, char **argv)
 #ifdef DEBUG
     fprintf(stderr,"create: file_name=%s\n",file_name);
 #endif
-    if (nc_create_par(file_name, NC_PNETCDF, comm, info, &ncid)) ERR;
+    if (nc_create_par(file_name, 0, comm, info, &ncid)) ERR;
 
     /* A global attribute holds the number of processors that created
      * the file. */
@@ -185,7 +185,7 @@ main(int argc, char **argv)
 #ifdef DEBUG
     fprintf(stderr,"open: file_name=%s\n",file_name);
 #endif
-    if (nc_open_par(file_name, NC_NOWRITE|NC_PNETCDF, comm, info, &ncid)) ERR;
+    if (nc_open_par(file_name, NC_NOWRITE, comm, info, &ncid)) ERR;
     if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
     if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 || 
         unlimdimid_in != -1) ERR;

@@ -83,6 +83,7 @@ extern char* NC_backslashEscape(const char* s);
 extern char* NC_backslashUnescape(const char* esc);
 extern char* NC_entityescape(const char* s);
 extern int NC_readfile(const char* filename, NCbytes* content);
+extern int NC_writefile(const char* filename, size_t size, void* content);
 extern char* NC_mktmp(const char* base);
 
 #endif /*NCRC_H*/

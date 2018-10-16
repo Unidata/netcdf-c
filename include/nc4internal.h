@@ -20,7 +20,6 @@
 
 #include "ncdimscale.h"
 #include "nc_logging.h"
-#include "netcdf_mem.h"
 #include "ncindex.h"
 
 #ifdef USE_PARALLEL
@@ -28,6 +27,7 @@
 #endif /* USE_PARALLEL */
 #include "netcdf.h"
 #include "netcdf_f.h"
+#include "netcdf_mem.h"
 
 /* Always needed */
 #include "nc.h"

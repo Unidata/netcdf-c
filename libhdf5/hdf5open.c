@@ -11,6 +11,7 @@
 
 #include "config.h"
 #include "hdf5internal.h"
+#include "ncrc.h"
 
 #define NUM_TYPES 12 /**< Number of netCDF atomic types. */
 #define CD_NELEMS_ZLIB 1 /**< Number of parameters needed for ZLIB filter. */
@@ -39,7 +40,7 @@ static const int nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof
                                               sizeof(unsigned long long), sizeof(char *)};
 
 /** @internal These flags may not be set for open mode. */
-static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET);
+static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP);
 
 /* From hdf5file.c. */
 extern size_t nc4_chunk_cache_size;
@@ -389,6 +390,13 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 
    nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
    nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
+   nc4_info->mem.persist = ((mode & NC_PERSIST) == NC_PERSIST);
+   /* Does the mode specify that this file is read-only? */
+   if ((mode & NC_WRITE) == 0)
+      nc4_info->no_write = NC_TRUE;
+
+   if(nc4_info->mem.inmemory && nc4_info->mem.diskless)
+	BAIL(NC_EINTERNAL);
 
 #ifdef USE_PARALLEL4
    mpiinfo = (NC_MPI_INFO*)parameters; /* assume, may be changed if inmemory is true */
@@ -404,31 +412,14 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       BAIL(NC_EHDFERR);
 
 #ifdef USE_PARALLEL4
-   /* If this is a parallel file create, set up the file creation
-      property list. */
-   if (mode & NC_MPIIO || mode & NC_MPIPOSIX)
-   {
+   if (!(mode & (NC_INMEMORY | NC_DISKLESS)) && mpiinfo != NULL) {
+       /* If this is a parallel file create, set up the file creation
+        * property list.
+        */
       nc4_info->parallel = NC_TRUE;
-      if (mode & NC_MPIIO)  /* MPI/IO */
-      {
-         LOG((4, "opening parallel file with MPI/IO"));
-         if (H5Pset_fapl_mpio(fapl_id, mpiinfo->comm, mpiinfo->info) < 0)
-            BAIL(NC_EPARINIT);
-      }
-#ifdef USE_PARALLEL_POSIX
-      else /* MPI/POSIX */
-      {
-         LOG((4, "opening parallel file with MPI/posix"));
-         if (H5Pset_fapl_mpiposix(fapl_id, mpiinfo->comm, 0) < 0)
-            BAIL(NC_EPARINIT);
-      }
-#else /* USE_PARALLEL_POSIX */
-      /* Should not happen! Code in NC4_create/NC4_open should alias
-       * the NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
-       * available in HDF5. */
-      else /* MPI/POSIX */
-         BAIL(NC_EPARINIT);
-#endif /* USE_PARALLEL_POSIX */
+      LOG((4, "opening parallel file with MPI/IO"));
+      if (H5Pset_fapl_mpio(fapl_id, mpiinfo->comm, mpiinfo->info) < 0)
+          BAIL(NC_EPARINIT);
 
       /* Keep copies of the MPI Comm & Info objects */
       if (MPI_SUCCESS != MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm))
@@ -461,35 +452,39 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
         nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
 
-   /* Does the mode specify that this file is read-only? */
-   if ((mode & NC_WRITE) == 0)
-      nc4_info->no_write = NC_TRUE;
-
-   /* Now process if NC_INMEMORY is set (recall NC_DISKLESS => NC_INMEMORY) */
+   /* Process  NC_INMEMORY */
    if(nc4_info->mem.inmemory) {
       NC_memio* memio;
-
       /* validate */
       if(parameters == NULL)
          BAIL(NC_EINMEMORY);
       memio = (NC_memio*)parameters;
       if(memio->memory == NULL || memio->size == 0)
          BAIL(NC_EINMEMORY);
-
       /* initialize h5->mem */
       nc4_info->mem.memio = *memio;
-
       /* Is the incoming memory locked? */
       nc4_info->mem.locked = (nc4_info->mem.memio.flags & NC_MEMIO_LOCKED) == NC_MEMIO_LOCKED;
-
       /* As a safeguard, if !locked and not read-only,
          then we must take control of the incoming memory */
       if(!nc4_info->mem.locked && !nc4_info->no_write) {
-        memio->memory = NULL; /* take control */
-        memio->size = 0;
+         memio->memory = NULL; /* take control */
+         memio->size = 0;
       }
       retval = NC4_open_image_file(nc4_info);
       if(retval)
+         BAIL(NC_EHDFERR);
+   }
+   else
+   if(nc4_info->mem.diskless) {   /* Process  NC_DISKLESS */
+      NC_HDF5_FILE_INFO_T *hdf5_info;
+      size_t min_incr = 65536; /* Minimum buffer increment */
+      /* Configure FAPL to use the core file driver */
+      if (H5Pset_fapl_core(fapl_id, min_incr, (nc4_info->mem.persist?1:0)) < 0)
+	BAIL(NC_EHDFERR);
+      hdf5_info = (NC_HDF5_FILE_INFO_T *)nc4_info->format_file_info;
+      /* Open the HDF5 file. */
+      if ((hdf5_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
          BAIL(NC_EHDFERR);
    }
    else
@@ -568,7 +563,6 @@ exit:
  * @param mode The open mode flag.
  * @param basepe Ignored by this function.
  * @param chunksizehintp Ignored by this function.
- * @param use_parallel 0 for sequential, non-zero for parallel I/O.
  * @param parameters pointer to struct holding extra data (e.g. for parallel I/O)
  * layer. Ignored if NULL.
  * @param dispatch Pointer to the dispatch table for this file.
@@ -580,7 +574,7 @@ exit:
  */
 int
 NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-         int use_parallel, void *parameters, NC_Dispatch *dispatch, NC *nc_file)
+         void *parameters, NC_Dispatch *dispatch, NC *nc_file)
 {
    assert(nc_file && path && dispatch && nc_file &&
           nc_file->model == NC_FORMATX_NC4);
@@ -588,24 +582,11 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    LOG((1, "%s: path %s mode %d params %x",
         __func__, path, mode, parameters));
 
-#ifdef USE_PARALLEL4
-   /* User must provide MPI communicator for parallel I/O. */
-   if (use_parallel && !parameters)
-      return NC_EINVAL;
-
-#ifndef USE_PARALLEL_POSIX
-   /* If the HDF5 library has been compiled without the MPI-POSIX VFD,
-    * alias the NC_MPIPOSIX flag to NC_MPIIO. -QAK */
-   if (mode & NC_MPIPOSIX)
-   {
-      mode &= ~NC_MPIPOSIX;
-      mode |= NC_MPIIO;
-   }
-#endif /* USE_PARALLEL_POSIX */
-#endif /* USE_PARALLEL4 */
-
    /* Check the mode for validity */
    if (mode & ILLEGAL_OPEN_FLAGS)
+      return NC_EINVAL;
+
+   if((mode & NC_DISKLESS) && (mode & NC_INMEMORY))
       return NC_EINVAL;
 
    /* If this is our first file, initialize HDF5. */

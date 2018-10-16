@@ -73,8 +73,13 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 
    nc4_info->mem.inmemory = (cmode & NC_INMEMORY) == NC_INMEMORY;
    nc4_info->mem.diskless = (cmode & NC_DISKLESS) == NC_DISKLESS;
+   nc4_info->mem.persist =  (cmode & NC_PERSIST) == NC_PERSIST;
    nc4_info->mem.created = 1;
    nc4_info->mem.initialsize = initialsz;
+
+   /* diskless => !inmemory */
+   if(nc4_info->mem.inmemory && nc4_info->mem.diskless)
+	BAIL(NC_EINTERNAL);
 
    if(nc4_info->mem.inmemory && parameters)
       nc4_info->mem.memio = *(NC_memio*)parameters;
@@ -94,14 +99,11 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 
    /* If this file already exists, and NC_NOCLOBBER is specified,
       return an error (unless diskless|inmemory) */
-   if (nc4_info->mem.diskless) {
-      if((cmode & NC_WRITE) && (cmode & NC_NOCLOBBER) == 0)
-         nc4_info->mem.persist = 1;
-   } else if (nc4_info->mem.inmemory) {
-      /* ok */
-   } else if ((cmode & NC_NOCLOBBER) && (fp = fopen(path, "r"))) {
-      fclose(fp);
-      BAIL(NC_EEXIST);
+   if (!nc4_info->mem.diskless && !nc4_info->mem.inmemory) {
+      if ((cmode & NC_NOCLOBBER) && (fp = fopen(path, "r"))) {
+        fclose(fp);
+        BAIL(NC_EEXIST);
+      }
    }
 
    /* Need this access plist to control how HDF5 handles open objects
@@ -115,28 +117,11 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 #ifdef USE_PARALLEL4
    /* If this is a parallel file create, set up the file creation
       property list. */
-   if ((cmode & NC_MPIIO) || (cmode & NC_MPIPOSIX)) {
+   if (mpiinfo != NULL) {
       nc4_info->parallel = NC_TRUE;
-      if (cmode & NC_MPIIO)  /* MPI/IO */
-      {
-         LOG((4, "creating parallel file with MPI/IO"));
-         if (H5Pset_fapl_mpio(fapl_id, comm, info) < 0)
-            BAIL(NC_EPARINIT);
-      }
-#ifdef USE_PARALLEL_POSIX
-      else /* MPI/POSIX */
-      {
-         LOG((4, "creating parallel file with MPI/posix"));
-         if (H5Pset_fapl_mpiposix(fapl_id, comm, 0) < 0)
-            BAIL(NC_EPARINIT);
-      }
-#else /* USE_PARALLEL_POSIX */
-      /* Should not happen! Code in NC4_create/NC4_open should alias
-       * the NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
-       * available in HDF5. -QAK */
-      else /* MPI/POSIX */
-         BAIL(NC_EPARINIT);
-#endif /* USE_PARALLEL_POSIX */
+      LOG((4, "creating parallel file with MPI/IO"));
+      if (H5Pset_fapl_mpio(fapl_id, comm, info) < 0)
+          BAIL(NC_EPARINIT);
 
       /* Keep copies of the MPI Comm & Info objects */
       if (MPI_SUCCESS != MPI_Comm_dup(comm, &nc4_info->comm))
@@ -206,6 +191,24 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
          BAIL(retval);
    }
    else
+   if(nc4_info->mem.diskless) {
+      size_t alloc_incr;     /* Buffer allocation increment */
+      size_t min_incr = 65536; /* Minimum buffer increment */
+      double buf_prcnt = 0.1f;  /* Percentage of buffer size to set as increment */
+      /* set allocation increment to a percentage of the supplied buffer size, or
+       * a pre-defined minimum increment value, whichever is larger
+       */
+      if ((buf_prcnt * initialsz) > min_incr)
+         alloc_incr = (size_t)(buf_prcnt * initialsz);
+      else
+         alloc_incr = min_incr;
+      /* Configure FAPL to use the core file driver */
+      if (H5Pset_fapl_core(fapl_id, alloc_incr, (nc4_info->mem.persist?1:0)) < 0)
+	BAIL(NC_EHDFERR);
+      if ((hdf5_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
+         BAIL(EACCES);
+   }
+   else /* Normal file */
    {
       /* Create the HDF5 file. */
       if ((hdf5_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
@@ -249,7 +252,6 @@ exit: /*failure exit*/
  * @param initialsz Ignored by this function.
  * @param basepe Ignored by this function.
  * @param chunksizehintp Ignored by this function.
- * @param use_parallel 0 for sequential, non-zero for parallel I/O.
  * @param parameters pointer to struct holding extra data (e.g. for
  * parallel I/O) layer. Ignored if NULL.
  * @param dispatch Pointer to the dispatch table for this file.
@@ -262,8 +264,8 @@ exit: /*failure exit*/
  */
 int
 NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
-           size_t *chunksizehintp, int use_parallel, void *parameters,
-           NC_Dispatch *dispatch, NC* nc_file)
+           size_t *chunksizehintp, void *parameters,
+           NC_Dispatch *dispatch, NC *nc_file)
 {
    int res;
 
@@ -286,24 +288,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    if((cmode & ILLEGAL_CREATE_FLAGS) != 0)
    {res = NC_EINVAL; goto done;}
 
-   /* Cannot have both */
-   if((cmode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
-   {res = NC_EINVAL; goto done;}
-
-   /* Currently no parallel diskless io */
-   if((cmode & (NC_MPIIO | NC_MPIPOSIX)) && (cmode & NC_DISKLESS))
-   {res = NC_EINVAL; goto done;}
-
-#ifndef USE_PARALLEL_POSIX
-/* If the HDF5 library has been compiled without the MPI-POSIX VFD, alias
- *      the NC_MPIPOSIX flag to NC_MPIIO. -QAK
- */
-   if(cmode & NC_MPIPOSIX)
-   {
-      cmode &= ~NC_MPIPOSIX;
-      cmode |= NC_MPIIO;
-   }
-#endif /* USE_PARALLEL_POSIX */
+   /* check parallel against NC_DISKLESS already done in NC_create() */
 
    nc_file->int_ncid = nc_file->ext_ncid;
 

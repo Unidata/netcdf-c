@@ -6098,7 +6098,7 @@ The variable can be changed from collective to independent, and back,
 as often as desired.
 
 Classic and 64-bit offset files, when opened for parallel access, use
-the parallel-netcdf (a.k.a. pnetcdf) library, which does not allow
+the PnetCDF library, which does not allow
 per-variable changes of access mode - the entire file must be access
 independently or collectively. For classic and 64-bit offset files,
 the nf90_var_par_access function changes the access for all variables

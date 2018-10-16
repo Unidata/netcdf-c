@@ -841,7 +841,8 @@ ncuint64_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
     return sbuf_len(sfbf);
 }
 
-int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
+int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp)
+{
     const char *cp;
 
     cp = ((char **)valp)[0];
@@ -851,7 +852,8 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
         char *sp;
         unsigned char uc;
 
-        slen = 3 + 5 * strlen(cp); /* need "'s around string, and extra space to escape control characters */
+        slen = 4 + 5 * strlen(cp); /* need "'s around string, and extra space to escape control characters */
+	slen++; /* nul term */
         sout = emalloc(slen);
         sp = sout;
         *sp++ = '"' ;
@@ -895,7 +897,7 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
                 break;
             default:
                 if (iscntrl(uc)) {
-                    snprintf(sp,3,"\\%03o",uc);
+                    snprintf(sp,4+1,"\\%03o",uc); /* +1 for nul */
                     sp += 4;
                 }
                 else
