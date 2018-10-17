@@ -18,6 +18,7 @@
 #define VAR_NAME "Copernicus_var"
 #define DIM_NAME "Copernicus_dim"
 #define NUM_FILL_WRITE_TESTS 2
+#define NUM_FILL_WRITE_METHOD_TESTS 2
 
 /* Determine how many formats are available, and what they are. */
 void
@@ -104,9 +105,10 @@ main(int argc, char **argv)
    printf("\n*** Testing netcdf format functions.\n");
    {
       int ncid;
-      int f, d;
+      int f, d, a;
       int format[MAX_NUM_FORMATS];
       int num_formats;
+      int ret;
 
       /* How many formats to be tested? */
       determine_test_formats(&num_formats, format);
@@ -161,50 +163,66 @@ main(int argc, char **argv)
             if (nc_close(ncid)) ERR;
          }
          SUMMARIZE_ERR;
+         /* Test without and with actual data write. */
          for (d = 0; d < NUM_FILL_WRITE_TESTS; d++)
          {
-            printf("*** testing late fill handling with format %d writing %d...", format[f], d);
-            char file_name[NC_MAX_NAME + 1];
-            int dimid, varid;
-            size_t index = {DIM_LEN - 1};
-            int data = TEST_VAL_42;
-            int data_in;
-            int fill_value = TEST_VAL_42 * 2;
-
-            /* Try to set fill mode after data have been written. */
-            sprintf(file_name, "%s_%d_%d_elatefill.nc", FILE_NAME_BASE, format[f], d);
-            if (nc_set_default_format(format[f], NULL)) ERR;
-            if (nc_create(file_name, 0, &ncid)) ERR;
-            if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)) ERR;
-            if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIM1, &dimid, &varid)) ERR;
-            if (nc_enddef(ncid)) ERR;
-            /* For netCDF-4, we don't actually have to write data to
-             * prevent future setting of the fill value. Once the user
-             * leaves calls enddef after defining a var, fill values
-             * can no longer be set. */
-            if (d)
-               if (nc_put_var1_int(ncid, varid, &index, &data)) ERR;
-            if (nc_redef(ncid)) ERR;
-            /* Setting the fill value after data are written is
-             * allowed in classic formats, but not netcdf-4. */
-            if (format[f] == NC_FORMAT_CLASSIC || format[f] == NC_FORMAT_64BIT_OFFSET ||
-                format[f] == NC_FORMAT_CDF5)
+            /* Test setting _FillValue directly or calling nc_def_var_fill(). */
+            for (a = 0; a < NUM_FILL_WRITE_METHOD_TESTS; a++)
             {
-               if (nc_def_var_fill(ncid, varid, NC_FILL, &fill_value)) ERR;
-            }
-            else
-            {
-               if (nc_def_var_fill(ncid, varid, NC_FILL, &fill_value) != NC_ELATEDEF) ERR;
-            }
-            if (nc_enddef(ncid)) ERR;
-            if (nc_close(ncid)) ERR;
+               printf("*** testing late fill handling with format %d writing %d "
+                      "using def_var_fill %d...", format[f], d, a);
+               char file_name[NC_MAX_NAME + 1];
+               int dimid, varid;
+               size_t index = {DIM_LEN - 1};
+               int data = TEST_VAL_42;
+               int data_in;
+               int fill_value = TEST_VAL_42 * 2;
 
-            /* Open the file and check data. */
-            if (nc_open(file_name, NC_NOWRITE, &ncid)) ERR;
-            if (nc_get_var1_int(ncid, varid, &index, &data_in)) ERR;
-            if (data_in != (d ? data : NC_FILL_INT)) ERR;
-            if (nc_close(ncid)) ERR;
-            SUMMARIZE_ERR;
+               /* Try to set fill mode after data have been written. */
+               sprintf(file_name, "%s_%d_%d_%d_elatefill.nc", FILE_NAME_BASE, format[f], d, a);
+               if (nc_set_default_format(format[f], NULL)) ERR;
+               if (nc_create(file_name, 0, &ncid)) ERR;
+               if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)) ERR;
+               if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIM1, &dimid, &varid)) ERR;
+               if (nc_enddef(ncid)) ERR;
+               /* For netCDF-4, we don't actually have to write data to
+                * prevent future setting of the fill value. Once the user
+                * leaves calls enddef after defining a var, fill values
+                * can no longer be set. */
+               if (d)
+                  if (nc_put_var1_int(ncid, varid, &index, &data)) ERR;
+               if (nc_redef(ncid)) ERR;
+               if (a)
+               {
+                  ret = nc_def_var_fill(ncid, varid, NC_FILL, &fill_value);
+               }
+               else
+               {
+                  ret = nc_put_att_int(ncid, varid, "_FillValue", NC_INT, 1,
+                                       &fill_value);
+               }
+
+               /* Setting the fill value after data are written is
+                * allowed in classic formats, but not netcdf-4. */
+               if (format[f] == NC_FORMAT_CLASSIC || format[f] == NC_FORMAT_64BIT_OFFSET ||
+                   format[f] == NC_FORMAT_CDF5)
+               {
+                  if (ret) ERR;
+               }
+               else
+               {
+                  if (ret != (a ? NC_ELATEDEF: NC_ELATEFILL)) ERR;
+               }
+               if (nc_enddef(ncid)) ERR;
+               if (nc_close(ncid)) ERR;
+
+               /* Open the file and check data. */
+               if (nc_open(file_name, NC_NOWRITE, &ncid)) ERR;
+               if (nc_get_var1_int(ncid, varid, &index, &data_in)) ERR;
+               if (data_in != (d ? data : NC_FILL_INT)) ERR;
+               if (nc_close(ncid)) ERR;
+               SUMMARIZE_ERR;
+            } /* next fill value method test */
          } /* next fill val write test */
       } /* next format */
    }
