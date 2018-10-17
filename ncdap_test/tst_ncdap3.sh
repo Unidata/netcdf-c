@@ -24,9 +24,9 @@ for x in ${FILETESTS} ; do
     if IGNORE=`echo -n " ${XFAILTESTS} " | fgrep " ${x} "`; then isxfail=1; fi
   fi
   ok=1
-  if ${NCDUMP} ${DUMPFLAGS} "${url}" | sed 's/\\r//g' > ${x}.dmp ; then ok=$ok; else ok=0; fi
+  if ${NCDUMP} ${DUMPFLAGS} "${url}" | sed 's/\\r//g' > ${RESULTSDIR}/${x}.dmp ; then ok=$ok; else ok=0; fi
   # compare with expected
-  if diff -w ${EXPECTED}/${x}.dmp ${x}.dmp  ; then ok=$ok; else ok=0; fi
+  if diff -w ${EXPECTED}/${x}.dmp ${RESULTSDIR}/${x}.dmp  ; then ok=$ok; else ok=0; fi
    processstatus
 done
 }
@@ -42,9 +42,7 @@ echo "*** Testing $TITLE "
 echo "        Base URL: ${TESTURL}"
 echo "        Client Parameters: ${PARAMS}"
 
-cd ${RESULTSDIR}
 dotests file
-cd ..
 summarize
 #cleanup
 doexit

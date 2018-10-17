@@ -141,7 +141,7 @@ fixgrid(NCDAPCOMMON* nccomm, CDFnode* grid)
 
     glen = nclistlength(grid->subnodes);
     array = (CDFnode*)nclistget(grid->subnodes,0);
-    if(nccomm->controls.flags & (NCF_NC3)) {
+    if(FLAGSET(nccomm->controls,NCF_NC3)) {
         /* Rename grid Array: variable, but leave its oc base name alone */
         nullfree(array->ncbasename);
         array->ncbasename = nulldup(grid->ncbasename);

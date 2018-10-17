@@ -436,7 +436,7 @@ applyclientparamcontrols(NCD4INFO* info)
     const char* value;
 
     /* clear the flags */
-    CLRALLFLAGS(info->controls.flags);
+    CLRFLAG(info->controls.flags, NC4_CLIENT_PARAM_FLAGS);
 
     /* Turn on any default on flags */
     SETFLAG(info->controls.flags,DFALT_ON_FLAGS);

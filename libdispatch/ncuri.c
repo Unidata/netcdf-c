@@ -1022,13 +1022,11 @@ ncuriparsecredentials(const char* userpwd, char** userp, char** pwdp)
   return NC_NOERR;
 }
 
-/**
 /*! Get the fragment list as an envv style list.
 */
 const char**
 ncurifraglist(NCURI* uri)
 {
-  int i;
   if(uri == NULL) return NULL;
-  return uri->fraglist;
+  return (const char**)uri->fraglist;
 }

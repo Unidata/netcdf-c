@@ -802,14 +802,14 @@ fprintf(stderr,"\n");
         memory->next += (externtypesize);
     } else if(xgetvar->cache->wholevariable) {/* && rank0 > 0 */
 	/* There are multiple cases, assuming no conversion required.
-           1) client is asking for whole variable
+           1. client is asking for whole variable
               => start=0, count=totalsize, stride=1
 	      => read whole thing at one shot
-           2) client is asking for non-strided subset
+           2. client is asking for non-strided subset
               and edges are maximal
               => start=x, count=y, stride=1
 	      => read whole subset at one shot
-           3) client is asking for strided subset or edges are not maximal
+           3. client is asking for strided subset or edges are not maximal
               => start=x, count=y, stride=s
 	      => we have to use odometer on leading prefix.
            If conversion required, then read one-by-one

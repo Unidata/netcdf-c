@@ -1335,7 +1335,7 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
     const char* value;
 
     /* clear the flags */
-    CLRALLFLAGS(dapcomm->controls);
+    CLRFLAG(dapcomm->controls,NC3_CLIENT_PARAM_FLAGS);
 
     /* Turn on any default on flags */
     SETFLAG(dapcomm->controls,DFALT_ON_FLAGS);

@@ -20,7 +20,6 @@ typedef unsigned int NCFLAGS;
 #  define SETFLAG(controls,flag) (((controls).flags) |= (flag))
 #  define CLRFLAG(controls,flag) (((controls).flags) &= ~(flag))
 #  define FLAGSET(controls,flag) (((controls.flags) & (flag)) != 0)
-#  define CLRALLFLAGS(controls) (((controls).flags) = 0)
 
 /* Defined flags */
 #define NCF_NC3             (0x0001) /* DAP->netcdf-3 */
@@ -42,6 +41,12 @@ typedef unsigned int NCFLAGS;
 
 /* Define all the default on flags */
 #define DFALT_ON_FLAGS (NCF_CACHE|NCF_PREFETCH)
+
+/* Define the NC3 client param control flags */
+#define NC3_CLIENT_PARAM_FLAGS (NCF_NC3|NCF_NCDAP|NCF_CACHE|NCF_PREFETCH|NCF_PREFETCH_EAGER|NCF_FILLMISMATCH|NCF_ONDISK|NCF_SHOWFETCH)
+
+/* Define the NC4 client param control flags */
+#define NC4_CLIENT_PARAM_FLAGS (NCF_NC4|NCF_NCDAP|NCF_CACHE|NCF_PREFETCH|NCF_PREFETCH_EAGER|NCF_FILLMISMATCH|NCF_ONDISK|NCF_SHOWFETCH)
 
 typedef struct NCCONTROLS {
     NCFLAGS  flags;
