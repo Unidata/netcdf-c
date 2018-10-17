@@ -546,42 +546,57 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
    return status;
 }
 
-/*! Set the fill value for a variable.
+/**
+ * @ingroup variables
+ *
+ * Set the fill value for a variable.
+ *
+ * @note For netCDF classic, 64-bit offset, and CDF5 formats, it is
+ * allowed (but not good practice) to set the fill value after data
+ * have been written to the variable. In this case, unless the
+ * variable has been completely specified (without gaps in the data),
+ * any existing filled values will not be recognized as fill values by
+ * applications reading the data. Best practice is to set the fill
+ * value after the variable has been defined, but before any data have
+ * been written to that varibale. In NetCDF-4 files, this is enforced
+ * by the HDF5 library. For netCDF-4 files, an error is returned if
+ * the user attempts to set the fill value after writing data to the
+ * variable.
 
-\ingroup variables
-
-\param ncid NetCDF ID, from a previous call to nc_open or
-nc_create.
-
-\param varid Variable ID.
-
-\param no_fill Set to NC_NOFILL to turn off fill mode for this
-variable. Set to NC_FILL (the default) to turn on fill mode for the
-variable.
-
-\param fill_value the fill value to be used for this variable. Must be
-the same type as the variable. This must point to enough free memory
-to hold one element of the data type of the variable. (For example, an
-NC_INT will require 4 bytes for it's fill value, which is also an
-NC_INT.)
-
+ * @param ncid NetCDF ID, from a previous call to nc_open or
+ * nc_create.
+ * @param varid Variable ID.
+ * @param no_fill Set to NC_NOFILL to turn off fill mode for this
+ * variable. Set to NC_FILL (the default) to turn on fill mode for the
+ * variable.
+ * @param fill_value the fill value to be used for this variable. Must
+ * be the same type as the variable. This must point to enough free
+ * memory to hold one element of the data type of the variable. (For
+ * example, an NC_INT will require 4 bytes for it's fill value, which
+ * is also an NC_INT.)
+ *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ID.
- * @returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for
-netCDF classic, 64-bit offset, or 64-bit data files, or for netCDF-4 files,
-when they were created with NC_STRICT_NC3 flag. See \ref nc_create.
+ * @returns ::NC_ENOTINDEFINE Not in define mode.  This is returned
+ * for netCDF classic, 64-bit offset, or 64-bit data files, or for
+ * netCDF-4 files, when they were created with NC_STRICT_NC3 flag. See
+ * @ref nc_create.
  * @returns ::NC_EPERM Attempt to create object in read-only file.
-
-\section nc_def_var_fill_example Example
-
-In this example from libsrc4/tst_vars.c, a variable is defined, and
-the fill mode turned off. Then nc_inq_fill() is used to check that the
-setting is correct. Then some data are written to the variable. Since
-the data that are written do not cover the full extent of the
-variable, the missing values will just be random. If fill value mode
-was turned on, the missing values would get the fill value.
-
-\code
+ * @returns ::NC_ELATEDEF (NetCDF-4 only). Returned when user attempts
+ * to set fill value after data are written.
+ * @returns ::NC_EGLOBAL Attempt to set fill value on NC_GLOBAL.
+ *
+ * @section nc_def_var_fill_example Example
+ *
+ * In this example from libsrc4/tst_vars.c, a variable is defined, and
+ * the fill mode turned off. Then nc_inq_fill() is used to check that
+ * the setting is correct. Then some data are written to the
+ * variable. Since the data that are written do not cover the full
+ * extent of the variable, the missing values will just be random. If
+ * fill value mode was turned on, the missing values would get the
+ * fill value.
+ *
+ @code
 #define DIM7_LEN 2
 #define DIM7_NAME "dim_7_from_Indiana"
 #define VAR7_NAME "var_7_from_Idaho"
@@ -608,7 +623,8 @@ was turned on, the missing values would get the fill value.
       if (nc_get_var1_ushort(ncid, varid, index, &ushort_data_in)) ERR;
 
       if (nc_close(ncid)) ERR;
-\endcode
+ @endcode
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
@@ -617,7 +633,7 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
     int stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) return stat;
 
-    /* Dennis Heimbigner: (Using NC_GLOBAL is ilegal, as this API) has no
+    /* Dennis Heimbigner: Using NC_GLOBAL is illegal, as this API has no
      * provision for specifying the type of the fillvalue, it must of necessity
      * be using the type of the variable to interpret the bytes of the
      * fill_value argument.
