@@ -207,7 +207,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
    /* Free the fileinfo struct, which holds info from the fileinfo
     * hidden attribute. */
    if (h5->provenance)
-      free(h5->provenance);
+      NC4_free_provenance(h5->provenance);
 
    /* Close hdf file. It may not be open, since this function is also
     * called by NC_create() when a file opening is aborted. */
