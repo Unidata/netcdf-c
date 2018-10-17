@@ -13,6 +13,10 @@
 
 #define FILE_NAME_BASE "tst_formats"
 #define HDF4_FILE "ref_contiguous.hdf4"
+#define NDIM1 1
+#define DIM_LEN 10
+#define VAR_NAME "Copernicus_var"
+#define DIM_NAME "Copernicus_dim"
 
 /* Determine how many formats are available, and what they are. */
 void
@@ -99,9 +103,6 @@ main(int argc, char **argv)
    printf("\n*** Testing netcdf format functions.\n");
    {
       int ncid;
-      int expected_mode;
-      int expected_extended_format;
-      char file_name[NC_MAX_NAME + 1];
       int f;
       int format[MAX_NUM_FORMATS];
       int num_formats;
@@ -112,46 +113,66 @@ main(int argc, char **argv)
       for (f = 0; f < num_formats; f++)
       {
          printf("*** testing nc_inq_format() and nc_inq_format_extended() with format %d...", format[f]);
-         sprintf(file_name, "%s_%d.nc", FILE_NAME_BASE, format[f]);
+         {
+            char file_name[NC_MAX_NAME + 1];
+            int expected_mode;
+            int expected_extended_format;
 
-         /* Set up test. */
-         switch (format[f]) {
-         case NC_FORMAT_CLASSIC:
-            expected_extended_format = NC_FORMATX_NC3;
-            expected_mode = 0;
-            break;
-         case NC_FORMAT_64BIT_OFFSET:
-            expected_extended_format = NC_FORMATX_NC3;
-            expected_mode = NC_64BIT_OFFSET;            
-            break;
-         case NC_FORMAT_CDF5:
-            expected_extended_format = NC_FORMATX_NC3;
-            expected_mode = NC_CDF5;            
-            break;
-         case NC_FORMAT_NETCDF4:
-            expected_extended_format = NC_FORMATX_NC4;
-            expected_mode = NC_NETCDF4;            
-            break;
-         case NC_FORMAT_NETCDF4_CLASSIC:
-            expected_extended_format = NC_FORMATX_NC4;
-            expected_mode = NC_NETCDF4|NC_CLASSIC_MODEL;            
-            break;
+            sprintf(file_name, "%s_%d.nc", FILE_NAME_BASE, format[f]);
+
+            /* Set up test. */
+            switch (format[f]) {
+            case NC_FORMAT_CLASSIC:
+               expected_extended_format = NC_FORMATX_NC3;
+               expected_mode = 0;
+               break;
+            case NC_FORMAT_64BIT_OFFSET:
+               expected_extended_format = NC_FORMATX_NC3;
+               expected_mode = NC_64BIT_OFFSET;
+               break;
+            case NC_FORMAT_CDF5:
+               expected_extended_format = NC_FORMATX_NC3;
+               expected_mode = NC_CDF5;
+               break;
+            case NC_FORMAT_NETCDF4:
+               expected_extended_format = NC_FORMATX_NC4;
+               expected_mode = NC_NETCDF4;
+               break;
+            case NC_FORMAT_NETCDF4_CLASSIC:
+               expected_extended_format = NC_FORMATX_NC4;
+               expected_mode = NC_NETCDF4|NC_CLASSIC_MODEL;
+               break;
+            }
+            if (nc_set_default_format(format[f], NULL)) ERR;
+
+            /* Create a file. */
+            if (nc_create(file_name, 0, &ncid)) ERR;
+            if (check_inq_format(ncid, format[f], expected_extended_format, expected_mode)) ERR;
+            if (nc_close(ncid)) ERR;
+
+            /* Re-open the file and check it again. */
+            if (nc_open(file_name, 0, &ncid)) ERR;
+            /* Classic flag is not set on mode in nc_open(). Not sure if
+             * this is a bug or not. */
+            if (format[f] == NC_FORMAT_NETCDF4_CLASSIC)
+               expected_mode = NC_NETCDF4;
+            if (check_inq_format(ncid, format[f], expected_extended_format, expected_mode)) ERR;
+            if (nc_close(ncid)) ERR;
          }
-         if (nc_set_default_format(format[f], NULL)) ERR;
+         SUMMARIZE_ERR;
+         printf("*** testing NC_ELATEFILL errors with format %d...", format[f]);
+         {
+            char file_name[NC_MAX_NAME + 1];
+            int dimid, varid;
 
-         /* Create a file. */
-         if (nc_create(file_name, 0, &ncid)) ERR;
-         if (check_inq_format(ncid, format[f], expected_extended_format, expected_mode)) ERR;
-         if (nc_close(ncid)) ERR;
-
-         /* Re-open the file and check it again. */
-         if (nc_open(file_name, 0, &ncid)) ERR;
-         /* Classic flag is not set on mode in nc_open(). Not sure if
-          * this is a bug or not. */
-         if (format[f] == NC_FORMAT_NETCDF4_CLASSIC)
-            expected_mode = NC_NETCDF4;
-         if (check_inq_format(ncid, format[f], expected_extended_format, expected_mode)) ERR;
-         if (nc_close(ncid)) ERR;
+            sprintf(file_name, "%s_%d_elatefill.nc", FILE_NAME_BASE, format[f]);
+            if (nc_set_default_format(format[f], NULL)) ERR;
+            if (nc_create(file_name, 0, &ncid)) ERR;
+            if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)) ERR;
+            if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIM1, &dimid, &varid)) ERR;
+            if (nc_enddef(ncid)) ERR;
+            if (nc_close(ncid)) ERR;
+         }
          SUMMARIZE_ERR;
       } /* next format */
    }
