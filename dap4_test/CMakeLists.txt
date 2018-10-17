@@ -24,6 +24,7 @@ IF(ENABLE_TESTS)
 
   IF(BUILD_UTILITIES)
     add_sh_test(dap4_test test_raw)
+    add_sh_test(dap4_test test_fillmismatch)
   ENDIF(BUILD_UTILITIES)
 
   IF(ENABLE_DAP_REMOTE_TESTS)
@@ -33,6 +34,7 @@ IF(ENABLE_TESTS)
     BUILD_BIN_TEST(findtestserver4)
 
     IF(BUILD_UTILITIES)
+      add_sh_test(dap4_test test_rcparam)
       add_sh_test(dap4_test test_remote)
     ENDIF(BUILD_UTILITIES)
   ENDIF(ENABLE_DAP_REMOTE_TESTS)

@@ -50,6 +50,7 @@ check_PROGRAMS += findtestserver4
 findtestserver4_SOURCES = findtestserver4.c
 if BUILD_UTILITIES
   # relies on ncdump
+  TESTS += test_rcparam.sh
   TESTS += test_remote.sh
 endif
 endif
@@ -58,7 +59,7 @@ endif #ENABLE_DAP4
 
 EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
              test_raw.sh test_remote.sh test_hyrax.sh test_fillmismatch.sh \
-             tst_curlopt.sh d4test_common.sh \
+             test_rcparam.sh tst_curlopt.sh d4test_common.sh \
 	     daptestfiles dmrtestfiles cdltestfiles nctestfiles misctestfiles \
 	     baseline baselineraw baselineremote CMakeLists.txt
 

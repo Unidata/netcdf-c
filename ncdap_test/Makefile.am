@@ -42,7 +42,8 @@ check_PROGRAMS += findtestserver
 findtestserver_SOURCES = findtestserver.c
 
 if BUILD_UTILITIES
-TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh tst_fillmismatch.sh
+TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh
+TESTS += tst_fillmismatch.sh tst_rcparam.sh
 endif
 
 TESTS += test_partvar
@@ -85,7 +86,7 @@ EXTRA_DIST = tst_ncdap3.sh  \
              tst_longremote3.sh \
              tst_filelists.sh tst_urls.sh tst_utils.sh \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
-	     t_ncf330.c tst_ber.sh tst_fillmismatch.sh \
+	     t_ncf330.c tst_ber.sh tst_fillmismatch.sh tst_rcparam.sh \
 	     findtestserver.c.in
 
 CLEANFILES = test_varm3 test_cvt3 file_results/* remote_results/* datadds* t_dap3a test_nstride_cached *.exe

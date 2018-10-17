@@ -80,6 +80,9 @@ NCD4_open(const char * path, int mode,
     if(!constrainable(d4info->uri))
 	SETFLAG(d4info->controls.flags,NCF_UNCONSTRAINABLE);
 
+    /* process control client parameters */
+    applyclientparamcontrols(d4info);
+
     /* fail if we are unconstrainable but have constraints */
     if(FLAGSET(d4info->controls.flags,NCF_UNCONSTRAINABLE)) {
 	if(d4info->uri->query != NULL) {
@@ -89,9 +92,6 @@ NCD4_open(const char * path, int mode,
 	    goto done;
 	}
     }
-
-    /* process control client parameters */
-    applyclientparamcontrols(d4info);
 
     /* Use libsrc4 code (netcdf-4) for storing metadata */
     {
@@ -155,6 +155,7 @@ NCD4_open(const char * path, int mode,
 	d4info->curl->curl = curl;
         /* Load misc rc properties */
         NCD4_get_rcproperties(d4info);
+
         if((ret=set_curl_properties(d4info))!= NC_NOERR) goto done;	
         /* Set the one-time curl flags */
         if((ret=NCD4_set_flags_perlink(d4info))!= NC_NOERR) goto done;
@@ -473,7 +474,7 @@ applyclientparamcontrols(NCD4INFO* info)
             hostport = ncuricombinehostport(info->uri);
 	    for(;*fraglist;fraglist+=2) {
 		/* Override existing .daprc fields */
-		int ret = NC_rcloadfield(&info->controls.rcfields, fraglist[0], fraglist[1], hostport);
+		int ret = NC_rcloadfield(&info->controls.rcfields, fraglist[0], fraglist[1]);
 		if(ret) {nullfree(hostport); return;}
 	    }
 	    nullfree(hostport);

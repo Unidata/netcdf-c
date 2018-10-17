@@ -404,6 +404,9 @@ NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
     /* Construct a url for oc minus any constraint and params*/
     dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURIBASE);
 
+    /* process control client parameters */
+    applyclientparamcontrols(dapcomm);
+
     /* Pass to OC */
     ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->rcfields,&dapcomm->oc.conn);
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
@@ -414,9 +417,6 @@ NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
 
     nullfree(dapcomm->oc.urltext); /* clean up */
     dapcomm->oc.urltext = NULL;
-
-    /* process control client parameters */
-    applyclientparamcontrols(dapcomm);
 
     /* Turn on logging; only do this after oc_open*/
     if((value = dapparamvalue(dapcomm,"log")) != NULL) {
@@ -1389,7 +1389,7 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
             hostport = ncuricombinehostport(dapcomm->oc.url);
 	    for(;*fraglist;fraglist+=2) {
 		/* Override existing .daprc fields */
-		int ret = NC_rcloadfield(&dapcomm->rcfields, fraglist[0], fraglist[1], hostport);
+		int ret = NC_rcloadfield(&dapcomm->rcfields, fraglist[0], fraglist[1]);
 		if(ret) {nullfree(hostport); return;}
 	    }
 	    nullfree(hostport);
