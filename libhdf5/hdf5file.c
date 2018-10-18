@@ -161,7 +161,7 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
+nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
 {
    NC_HDF5_FILE_INFO_T *hdf5_info;
    int retval;
@@ -243,6 +243,53 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
    free(h5);
+
+   return NC_NOERR;
+}
+
+/**
+ * @internal This function will recurse through an open HDF5 file and
+ * release resources. All open HDF5 objects in the file will be
+ * closed.
+ *
+ * @param h5 Pointer to HDF5 file info struct.
+ * @param abort True if this is an abort.
+ * @param memio the place to return a core image if not NULL
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 could not close the file.
+ * @author Ed Hartnett
+ */
+int
+nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort,  NC_memio *memio)
+{
+   NC_HDF5_FILE_INFO_T *hdf5_info;
+   int retval;
+
+   assert(h5 && h5->root_grp && h5->format_file_info);
+   LOG((3, "%s: h5->path %s abort %d", __func__, h5->controller->path, abort));
+
+   /* /\* Get HDF5 specific info. *\/ */
+   /* hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info; */
+
+   /* /\* According to the docs, always end define mode on close. *\/ */
+   /* if (h5->flags & NC_INDEF) */
+   /*    h5->flags ^= NC_INDEF; */
+
+   /* /\* Sync the file, unless we're aborting, or this is a read-only */
+   /*  * file. *\/ */
+   /* if (!h5->no_write && !abort) */
+   /*    if ((retval = sync_netcdf4_file(h5))) */
+   /*       return retval; */
+
+   /* /\* Close all open HDF5 objects within the file. *\/ */
+   /* if ((retval = nc4_rec_grp_HDF5_del(h5->root_grp))) */
+   /*    return retval; */
+
+   /* Release all intarnal lists and metadata associated with this
+    * file. All HDF5 objects have already been released. */
+   if ((retval = nc4_close_netcdf4_file(h5, abort, memio)))
+      return retval;
 
    return NC_NOERR;
 }
@@ -510,7 +557,7 @@ NC4_abort(int ncid)
 
    /* Free any resources the netcdf-4 library has for this file's
     * metadata. */
-   if ((retval = nc4_close_netcdf4_file(nc4_info, 1, NULL)))
+   if ((retval = nc4_close_hdf5_file(nc4_info, 1, NULL)))
       return retval;
 
    /* Delete the file, if we should. */
@@ -559,7 +606,7 @@ NC4_close(int ncid, void* params)
    }
 
    /* Call the nc4 close. */
-   if ((retval = nc4_close_netcdf4_file(grp->nc4_info, 0, memio)))
+   if ((retval = nc4_close_hdf5_file(grp->nc4_info, 0, memio)))
       return retval;
 
    return NC_NOERR;
