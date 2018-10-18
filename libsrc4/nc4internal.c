@@ -1412,9 +1412,9 @@ nc4_att_free(NC_ATT_INFO_T *att)
       att->hdr.name = NULL;
    }
 
-   /* Close the HDF5 typeid. */
-   if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0)
-      return NC_EHDFERR;
+   /* /\* Close the HDF5 typeid. *\/ */
+   /* if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0) */
+   /*    return NC_EHDFERR; */
 
    /* If this is a string array attribute, delete all members of the
     * string array, then delete the array of pointers to strings. (The
