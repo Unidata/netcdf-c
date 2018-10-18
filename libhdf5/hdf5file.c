@@ -282,9 +282,9 @@ nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort,  NC_memio *memio)
       if ((retval = sync_netcdf4_file(h5)))
          return retval;
 
-   /* /\* Close all open HDF5 objects within the file. *\/ */
-   /* if ((retval = nc4_rec_grp_HDF5_del(h5->root_grp))) */
-   /*    return retval; */
+   /* Close all open HDF5 objects within the file. */
+   if ((retval = nc4_rec_grp_HDF5_del(h5->root_grp)))
+      return retval;
 
    /* Release all intarnal lists and metadata associated with this
     * file. All HDF5 objects have already been released. */
