@@ -552,7 +552,7 @@ exit:
    if (fapl_id > 0 && fapl_id != H5P_DEFAULT)
       H5Pclose(fapl_id);
    if (nc4_info)
-      nc4_close_netcdf4_file(nc4_info, 1, 0); /*  treat like abort*/
+      nc4_close_hdf5_file(nc4_info, 1, 0); /*  treat like abort*/
    return retval;
 }
 
