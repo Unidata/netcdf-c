@@ -495,16 +495,16 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
                                                                      i))))
          return retval;
 
-   /* /\* Close HDF5 resources associated with attributes. *\/ */
-   /* for (a = 0; a < ncindexsize(grp->att); a++) */
-   /* { */
-   /*    att = (NC_ATT_INFO_T *)ncindexith(grp->att, a); */
-   /*    assert(att); */
+   /* Close HDF5 resources associated with attributes. */
+   for (a = 0; a < ncindexsize(grp->att); a++)
+   {
+      att = (NC_ATT_INFO_T *)ncindexith(grp->att, a);
+      assert(att);
 
-   /*    /\* Close the HDF5 typeid. *\/ */
-   /*    if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0) */
-   /*       return NC_EHDFERR; */
-   /* } */
+      /* Close the HDF5 typeid. */
+      if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0)
+         return NC_EHDFERR;
+   }
 
    /* /\* Close HDF5 resources associated with vars. *\/ */
    /* for (i = 0; i < ncindexsize(grp->vars); i++) */
