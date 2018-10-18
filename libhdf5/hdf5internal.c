@@ -466,6 +466,129 @@ exit:
    return retval;
 }
 
+/**
+ * @internal Recursively free HDF5 objects for a group (and everything
+ * it contains).
+ *
+ * @param grp Pointer to group info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
+{
+   NC_VAR_INFO_T *var;
+   NC_DIM_INFO_T *dim;
+   NC_ATT_INFO_T *att;
+   int a;
+   int i;
+   int retval;
+
+   assert(grp);
+   LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
+
+   /* Recursively call this function for each child, if any, stopping
+    * if there is an error. */
+   for (i = 0; i < ncindexsize(grp->children); i++)
+      if ((retval = nc4_rec_grp_HDF5_del((NC_GRP_INFO_T *)ncindexith(grp->children,
+                                                                     i))))
+         return retval;
+
+   /* /\* Close HDF5 resources associated with attributes. *\/ */
+   /* for (a = 0; a < ncindexsize(grp->att); a++) */
+   /* { */
+   /*    att = (NC_ATT_INFO_T *)ncindexith(grp->att, a); */
+   /*    assert(att); */
+
+   /*    /\* Close the HDF5 typeid. *\/ */
+   /*    if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0) */
+   /*       return NC_EHDFERR; */
+   /* } */
+
+   /* /\* Close HDF5 resources associated with vars. *\/ */
+   /* for (i = 0; i < ncindexsize(grp->vars); i++) */
+   /* { */
+   /*    var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i); */
+   /*    assert(var); */
+
+   /*    /\* Close the HDF5 dataset associated with this var. *\/ */
+   /*    if (var->hdf_datasetid) */
+   /*    { */
+   /*       LOG((3, "closing HDF5 dataset %lld", var->hdf_datasetid)); */
+   /*       if (H5Dclose(var->hdf_datasetid) < 0) */
+   /*          return NC_EHDFERR; */
+   /*    } */
+
+   /*    for (a = 0; a < ncindexsize(var->att); a++) */
+   /*    { */
+   /*       att = (NC_ATT_INFO_T *)ncindexith(var->att, a); */
+   /*       assert(att); */
+
+   /*       /\* Close the HDF5 typeid if one is open. *\/ */
+   /*       if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0) */
+   /*          return NC_EHDFERR; */
+   /*    } */
+   /* } */
+
+   /* /\* Close HDF5 resources associated with dims. *\/ */
+   /* for (i = 0; i < ncindexsize(grp->dim); i++) */
+   /* { */
+   /*    dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, i); */
+   /*    assert(dim); */
+
+   /*    /\* If this is a dim without a coordinate variable, then close */
+   /*     * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this */
+   /*     * dim. *\/ */
+   /*    if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0) */
+   /*       return NC_EHDFERR; */
+   /* } */
+
+   /* /\* Close HDF5 resources associated with types. Set values to 0 */
+   /*  * after closing types. Because of type reference counters, these */
+   /*  * closes can be called multiple times. *\/ */
+   /* for (i = 0; i < ncindexsize(grp->type); i++) */
+   /* { */
+   /*    NC_TYPE_INFO_T *type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i); */
+   /*    assert(type); */
+
+   /*    /\* Close any open user-defined HDF5 typeids. *\/ */
+   /*    if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0) */
+   /*       return NC_EHDFERR; */
+   /*    type->hdf_typeid = 0; */
+   /*    if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0) */
+   /*       return NC_EHDFERR; */
+   /*    type->native_hdf_typeid = 0; */
+
+   /*    /\* Class-specific cleanup. Only enums and vlens have HDF5 */
+   /*     * resources to close. *\/ */
+   /*    switch (type->nc_type_class) */
+   /*    { */
+   /*    case NC_ENUM: */
+   /*       if (type->u.e.base_hdf_typeid && H5Tclose(type->u.e.base_hdf_typeid) < 0) */
+   /*          return NC_EHDFERR; */
+   /*       type->u.e.base_hdf_typeid = 0; */
+   /*       break; */
+
+   /*    case NC_VLEN: */
+   /*       if (type->u.v.base_hdf_typeid && H5Tclose(type->u.v.base_hdf_typeid) < 0) */
+   /*          return NC_EHDFERR; */
+   /*       type->u.v.base_hdf_typeid = 0; */
+   /*       break; */
+
+   /*    default: /\* Do nothing. *\/ */
+   /*       break; */
+   /*    } */
+   /* } */
+
+   /* /\* Close the HDF5 group. *\/ */
+   /* LOG((4, "%s: closing group %s", __func__, grp->hdr.name)); */
+   /* if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0) */
+   /*    return NC_EHDFERR; */
+
+   return NC_NOERR;
+}
+
 #ifdef LOGGING
 /* We will need to check against nc log level from nc4internal.c. */
 extern int nc_log_level;
