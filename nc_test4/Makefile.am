@@ -154,14 +154,24 @@ DISTCLEANFILES = findplugin.sh
 
 if ENABLE_VALGRIND
 # Keep check-valgrind happy
-run_grp_rename.sh: renamegroup
 run_empty_vlen_test.sh: tst_empty_vlen_unlim
-tst_szip.sh: test_szip h5testszip
-tst_filter.sh: test_filter test_filter_misc
 run_tst_chunks.sh: tst_chunks3
+if BUILD_UTILITIES
+run_grp_rename.sh: renamegroup
+if USE_SZIP
+tst_szip.sh: test_szip h5testszip
+endif
+if ENABLE_FILTER_TESTING
+tst_filter.sh: test_filter test_filter_misc
+endif
+endif
+if ENABLE_METADATA_PERF
+perftest.sh: bigmeta openbigmeta
+endif
+if BUILD_BENCHMARKS
 run_knmi_bm.sh: tst_knm
 run_bm_test1.sh: bm_file
 run_bm_test2.sh: bm_file
 run_bm_elena.sh: bm_file
-perftest.sh: bigmeta openbigmeta
+endif
 endif
