@@ -79,11 +79,8 @@ if USE_PNETCDF
 TESTS += run_pnetcdf_test.sh
 endif
 
-# Distribute the .c files so that m4 isn't required on the users
-# machine.
-
-# Distribute the .c files so that m4 isn't required on the users
-# machine.
+# The .c files that are generated with m4 are already distributed, but
+# we also include the original m4 files, plus test scripts data.
 EXTRA_DIST = test_get.m4 test_put.m4 run_diskless.sh run_diskless2.sh   \
 run_diskless5.sh run_mmap.sh run_pnetcdf_test.sh test_read.m4           \
 test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl run_inmemory.sh   \
@@ -91,13 +88,9 @@ f03tst_open_mem.nc                                                      \
 CMakeLists.txt
 
 # These files are created by the tests.
-CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
-tst_*.nc t_nc.nc large_files.nc quick_large_files.nc tst_diskless.nc	\
-tst_diskless2.nc tst_diskless3.nc tst_diskless3_file.cdl		\
-tst_diskless3_memory.cdl tst_diskless4.cdl tst_diskless4.nc		\
-tst_formatx.nc nc_test_cdf5.nc tst_inq_type.nc tst_elatefill.nc		\
-tst_global_fillval.nc tst_large_cdf5.nc tst_max_var_dims.nc		\
-benchmark.nc tst_def_var_fill.nc
+CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\
+quick_large_files.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl	\
+tst_diskless4.cdl benchmark.nc
 
 EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
 if ENABLE_CDF5
@@ -108,7 +101,6 @@ if ENABLE_CDF5
    check_PROGRAMS += tst_open_cdf5
 if LARGE_FILE_TESTS
    TESTPROGRAMS   += tst_large_cdf5 tst_cdf5_begin
-   CLEANFILES     += tst_large_cdf5.nc tst_cdf5_begin.nc
 endif
 endif
 
