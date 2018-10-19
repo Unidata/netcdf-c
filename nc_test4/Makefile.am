@@ -41,9 +41,14 @@ if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
 endif
 
+check_PROGRAMS =
+TESTS =
+
 # Build test programs plus programs used in test scripts.
-check_PROGRAMS = $(NC4_TESTS) renamegroup tst_empty_vlen_unlim
-TESTS = $(NC4_TESTS)
+if USE_NETCDF4
+check_PROGRAMS += $(NC4_TESTS) renamegroup tst_empty_vlen_unlim
+TESTS += $(NC4_TESTS)
+endif
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
@@ -51,11 +56,13 @@ check_PROGRAMS += tst_large tst_large2
 TESTS += tst_large tst_large2
 endif
 
+if USE_NETCDF4
 if BUILD_UTILITIES
 TESTS += run_grp_rename.sh tst_misc.sh
 endif
 
 TESTS += run_empty_vlen_test.sh
+endif
 
 # If the v2 API was built, add its test program.
 if BUILD_V2
@@ -154,10 +161,12 @@ DISTCLEANFILES = findplugin.sh
 
 if ENABLE_VALGRIND
 # Keep check-valgrind happy
-run_empty_vlen_test.sh: tst_empty_vlen_unlim
 run_tst_chunks.sh: tst_chunks3
 if BUILD_UTILITIES
+if USE_NETCDF4
+run_empty_vlen_test.sh: tst_empty_vlen_unlim
 run_grp_rename.sh: renamegroup
+endif
 if USE_SZIP
 tst_szip.sh: test_szip h5testszip
 endif
