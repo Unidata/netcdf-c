@@ -70,8 +70,10 @@ TESTS = $(TESTPROGRAMS)
 
 if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
+if USE_NETCDF4
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
+endif
 endif
 endif
 
