@@ -1,0 +1,13 @@
+rm -f .././cf
+rm -f .././cf.cmake
+rm -f .././dap4_test/Make0
+rm -f .././libdap2/Make0
+rm -f .././libdap4/Make0
+rm -f .././libdispatch/Make0
+rm -f .././Make0
+rm -f .././ncdump/Make0
+rm -f .././ncgen/Make0
+rm -f .././nc_test/Make0
+rm -f .././nc_test4/Make0
+rm -f .././oc2/Make0
+rm -f .././paths.sh

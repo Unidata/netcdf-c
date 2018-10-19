@@ -152,6 +152,7 @@ DISTCLEANFILES = findplugin.sh
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
 
+if ENABLE_VALGRIND
 # Keep check-valgrind happy
 run_grp_rename.sh: renamegroup
 run_empty_vlen_test.sh: tst_empty_vlen_unlim
@@ -163,3 +164,4 @@ run_bm_test1.sh: bm_file
 run_bm_test2.sh: bm_file
 run_bm_elena.sh: bm_file
 perftest.sh: bigmeta openbigmeta
+endif

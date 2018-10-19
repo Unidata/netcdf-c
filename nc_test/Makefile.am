@@ -119,6 +119,7 @@ endif
 
 
 
+if ENABLE_VALGRIND
 # For some reason, it appears that we need to make the .sh files
 # depend on the programs they run when doing check-valgrind
 run_diskless.sh: tst_diskless tst_diskless2 tst_diskless3
@@ -126,3 +127,4 @@ run_diskless5.sh: tst_diskless5
 run_inmemory.sh: tst_inmemory tst_open_mem
 run_diskless2.sh: tst_diskless4
 run_cdf5.sh: tst_open_cdf5
+endif
