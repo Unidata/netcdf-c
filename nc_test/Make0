@@ -1,17 +1,17 @@
 # Test c output
-T=tst_diskless3
+T=tst_diskless5
 
 #H58=8
 H510=10
 
-ARGS=diskless persist
+#ARGS=diskless persist
 
 #SRC=
 
 #CMD=env HDF5_DEBUG=trace
 #CMD=export NETCDF_LOG_LEVEL=5 ;gdb --args
 CMD=valgrind --leak-check=full
-CMD=gdb --args
+#CMD=gdb --args
 
 #PAR=1
 
@@ -48,3 +48,10 @@ cmp::
 
 cpp::
 	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt
+
+#TS = tst_diskless tst_diskless2 tst_diskless3 tst_diskless4 tst_diskless5 tst_diskless6
+TS = tst_diskless5
+several::
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	for f in ${TS} ; do ${CC} -o ${TS} ${CFLAGS} ${TS}.c ${SRC} ${LDFLAGS}; done
+

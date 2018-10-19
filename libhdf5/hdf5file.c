@@ -208,6 +208,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
     * hidden attribute. */
    if (h5->provenance)
       NC4_free_provenance(h5->provenance);
+   h5->provenance = NULL; /* Avoid double dealloc */
 
    /* Close hdf file. It may not be open, since this function is also
     * called by NC_create() when a file opening is aborted. */
