@@ -126,6 +126,7 @@ if BUILD_UTILITIES
 run_diskless.sh: tst_diskless tst_diskless2 tst_diskless3
 run_diskless5.sh: tst_diskless5
 run_inmemory.sh: tst_inmemory tst_open_mem
+endif
 if USE_NETCDF4
 if LARGE_FILE_TESTS
 run_diskless2.sh: tst_diskless4
