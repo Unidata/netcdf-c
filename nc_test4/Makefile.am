@@ -161,26 +161,26 @@ DISTCLEANFILES = findplugin.sh
 
 if ENABLE_VALGRIND
 # Keep check-valgrind happy
-run_tst_chunks.sh: tst_chunks3
+run_tst_chunks.sh: tst_chunks3${EXEEXT}
 if BUILD_UTILITIES
 if USE_NETCDF4
-run_empty_vlen_test.sh: tst_empty_vlen_unlim
-run_grp_rename.sh: renamegroup
+run_empty_vlen_test.sh: tst_empty_vlen_unlim${EXEEXT}
+run_grp_rename.sh: renamegroup${EXEEXT}
 endif
 if USE_SZIP
-tst_szip.sh: test_szip h5testszip
+tst_szip.sh: test_szip${EXEEXT} h5testszip${EXEEXT}
 endif
 if ENABLE_FILTER_TESTING
-tst_filter.sh: test_filter test_filter_misc
+tst_filter.sh: test_filter${EXEEXT} test_filter_misc${EXEEXT}
 endif
 endif
 if ENABLE_METADATA_PERF
-perftest.sh: bigmeta openbigmeta
+perftest.sh: bigmeta${EXEEXT} openbigmeta${EXEEXT}
 endif
 if BUILD_BENCHMARKS
-run_knmi_bm.sh: tst_knm
-run_bm_test1.sh: bm_file
-run_bm_test2.sh: bm_file
-run_bm_elena.sh: bm_file
+run_knmi_bm.sh: tst_knm${EXEEXT}
+run_bm_test1.sh: bm_file${EXEEXT}
+run_bm_test2.sh: bm_file${EXEEXT}
+run_bm_elena.sh: bm_file${EXEEXT}
 endif
 endif
