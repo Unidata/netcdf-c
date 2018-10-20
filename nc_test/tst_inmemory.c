@@ -7,7 +7,7 @@ redistribution conditions.
 
 #undef DDBG
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
@@ -346,7 +346,7 @@ static int
 verify_file(int ncid, int modified)
 {
     int stat = NC_NOERR;
-    int i,tmp;
+    int i;
     int dimid_in[NDIMS];
     int dimid[NDIMS];
     int ndims_in, nvars_in, natts_in, unlimdimid_in;
@@ -358,14 +358,17 @@ verify_file(int ncid, int modified)
     float float_data_in;
     int milesdata_in[MAXDIMLEN];
     int dimprod = UNLIM_LEN * DIM1_LEN;
+#ifdef USE_NETCDF4
+    int tmp;
+#endif
     
     CHECK(nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in));
     if (ndims_in != 2 || nvars_in != NVARS+modified || natts_in != 1 || unlimdimid_in != 0)
 	CHECK(NC_EINVAL);
 
     /* Get all the dimids */
-    tmp = 0;
 #ifdef USE_NETCDF4
+    tmp = 0;
     CHECK((nc_inq_dimids(ncid,&tmp,dimid,1)));
     if(tmp != NDIMS) CHECK(NC_EINVAL);
 
@@ -611,7 +614,9 @@ main(int argc, char **argv)
 {
     int stat = NC_NOERR;
     NC_memio filedata3;
+#ifdef USE_NETCDF4
     NC_memio filedata4;
+#endif
 
     fprintf(stderr,"\n*** Testing the inmemory API: netcdf-3.\n");
     CHECK(create_reference_file(FILE3,NC_NETCDF3,&filedata3)); /* netcdf-3 */
