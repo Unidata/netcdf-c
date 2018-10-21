@@ -91,7 +91,7 @@ run_bm_test1.log: tst_create_files.log
 run_bm_test2.log: tst_create_files.log
 run_bm_elena.log: tst_create_files.log
 run_tst_chunks.sh: tst_chunks3
-run_knmi_bm.sh: tst_knm
+run_knmi_bm.sh: tst_knmi
 run_bm_test1.sh: bm_file
 run_bm_test2.sh: bm_file
 run_bm_elena.sh: bm_file
@@ -162,4 +162,3 @@ DISTCLEANFILES = findplugin.sh
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
 
-# Keep check-valgrind happy
