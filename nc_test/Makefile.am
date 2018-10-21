@@ -70,7 +70,7 @@ TESTS = $(TESTPROGRAMS)
 
 if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
-run_diskless.sh: tst_diskless tst_diskless2 tst_diskless3
+run_diskless.sh: tst_diskless tst_diskless3
 run_diskless5.sh: tst_diskless5
 run_inmemory.sh: tst_inmemory tst_open_mem
 if USE_NETCDF4
