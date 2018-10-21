@@ -2027,6 +2027,8 @@ do_ncdumpx(int ncid, const char *path)
 	freeidlist(vlist);
     if(dims)
 	free(dims);
+    if(var.dims != NULL)
+        free(var.dims);
 }
 
 /*

@@ -140,6 +140,16 @@ static void yyerror(fmt,va_alist) const char* fmt; va_dcl;
 /* Extern */
 extern int lex_init(void);
 
+#if 0
+static void
+freeconstant(NCConstant* con)
+{
+    clearconstant(con);
+    nullfree(con);
+}
+#endif
+
+
 %}
 
 /* DECLARATIONS */
@@ -972,7 +982,6 @@ install(const char *sname)
     return sp;
 }
 
-
 static Symbol*
 currentgroup(void)
 {
@@ -1184,6 +1193,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	con = (NCConstant*)data;
 	list = builddatalist(1);
         dlappend(list,(NCConstant*)data);
+	clearconstant(con);
+	free(con);
     } else {
         list = (Datalist*)data;
         con = (NCConstant*)list->data;
@@ -1348,6 +1359,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             default: PANIC1("makespecial: illegal token: %d",tag);
          }
     }
+    nullfree(sdata);
     return attr;
 }
 
@@ -1420,6 +1432,7 @@ static void
 datalistextend(Datalist* dl, NCConstant* con)
 {
     dlappend(dl,con);
+    clearconstant(con);
 }
 
 /*

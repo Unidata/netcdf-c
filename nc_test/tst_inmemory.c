@@ -437,6 +437,7 @@ memiofree(NC_memio* memio)
     if(memio != NULL) {
 	if(memio->memory != NULL)
 	    free(memio->memory);
+	memio->memory = NULL;
     }
 }
 
@@ -458,7 +459,7 @@ test_open(const char* path, NC_memio* filedata, int mode)
     CHECK(nc_open_mem(path, xmode, duplicate.size, duplicate.memory, &ncid));
     CHECK(verify_file(ncid,!MODIFIED));
     CHECK(nc_close(ncid));
-    free(duplicate.memory);
+    memiofree(&duplicate);
 
     fprintf(stderr,"\n\t***Test open 2: nc_open_memio(): read-only\n");
     CHECK(duplicatememory(filedata,&duplicate,0));
@@ -471,7 +472,7 @@ test_open(const char* path, NC_memio* filedata, int mode)
     /* Verify that finaldata is same */
     if(finaldata.size != duplicate.size) CHECK(NC_EINVAL);
     if(finaldata.memory != duplicate.memory) CHECK(NC_EINVAL);
-    free(finaldata.memory); finaldata.memory = NULL;
+    memiofree(&finaldata);
 
     fprintf(stderr,"\n\t***Test open 3: nc_open_memio(): read-write, copy\n");
     xmode |= NC_WRITE; /* allow file to be modified */
@@ -486,7 +487,7 @@ test_open(const char* path, NC_memio* filedata, int mode)
     /* Verify that finaldata is same */
     if(finaldata.size < filedata->size) CHECK(NC_EINVAL);
     /* As a safeguard, the memory in duplicate should have been set to NULL*/
-    free(finaldata.memory); finaldata.memory = NULL;
+    memiofree(&finaldata);
 
     fprintf(stderr,"\n\t***Test open 4: nc_open_memio(): read-write, locked, extra space\n");
     /* Store the filedata in a memory chunk that leaves room for modification */
@@ -506,7 +507,7 @@ test_open(const char* path, NC_memio* filedata, int mode)
        actual used final size should not exceed the original */
     if(finaldata.size > duplicate.size) CHECK(NC_EINVAL);
     if(finaldata.memory != duplicate.memory) CHECK(NC_EINVAL);
-    free(finaldata.memory); finaldata.memory = NULL;
+    memiofree(&finaldata);
     return stat;
 }
 
@@ -565,6 +566,7 @@ test_misc(const char* path, int mode, NC_memio* filedata)
     CHECK(nc_open_memio(path, xmode, &duplicate, &ncid))
     CHECK(verify_file(ncid,!MODIFIED));
     CHECK(nc_close(ncid));
+    /* Do not free: nc_close will have done it memiofree(&duplicate); */
     removefile(MISC);
 
     return stat;
@@ -575,7 +577,7 @@ static int
 test_xfail(const char* path, int mode, NC_memio* filedata)
 {
     int stat = NC_NOERR;
-    NC_memio duplicate;
+    NC_memio duplicate = {0,NULL,0};
     int ncid;
     int xmode = mode; /* modified mode */
 
@@ -584,7 +586,7 @@ test_xfail(const char* path, int mode, NC_memio* filedata)
     CHECK(nc_open_mem(XFAIL, xmode, duplicate.size, duplicate.memory, &ncid));
     XCHECK(nc_redef(ncid));
     CHECK(nc_abort(ncid));
-    free(duplicate.memory);
+    memiofree(&duplicate);
 
     fprintf(stderr,"\n\t***Test xfail 2: nc_open_memio(): modify without overallocating\n");
     if((mode & NC_NETCDF4)) {
@@ -601,9 +603,8 @@ test_xfail(const char* path, int mode, NC_memio* filedata)
 	CHECK(nc_open_memio(XFAIL, xmode, &duplicate, &ncid))
 	XCHECK(modify_file(ncid));    
 	CHECK(nc_abort(ncid));
-	if(finaldata.memory != NULL)
-	    free(finaldata.memory);
-	finaldata.memory = NULL;
+	memiofree(&finaldata);
+	memiofree(&duplicate);
     }
 
     return stat;

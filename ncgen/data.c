@@ -266,7 +266,7 @@ report0(char* lead, Datasrc* src, int index)
 
 /**************************************************/
 
-/* Shallow constant cloning*/
+/* Shallow constant cloning; return struct not pointer to struct*/
 NCConstant
 cloneconstant(NCConstant* con)
 {
@@ -289,6 +289,25 @@ cloneconstant(NCConstant* con)
     }
     return newcon;
 }
+
+/* Shallow constant clear*/
+void
+clearconstant(NCConstant* con)
+{
+    if(con == NULL) return;
+    switch (con->nctype) {
+    case NC_STRING:
+	if(con->value.stringv.stringv != NULL)
+	    free(con->value.stringv.stringv);
+	break;
+    case NC_OPAQUE:
+	if(con->value.opaquev.stringv != NULL)
+	    free(con->value.opaquev.stringv);
+	break;
+    default: break;
+    }
+}
+
 
 /**************************************************/
 
@@ -324,7 +343,7 @@ datalistappend(Datalist* dl, NCConstant* con)
     if(con == NULL) return dl;
     vector = (NCConstant*)erealloc(dl->data,sizeof(NCConstant)*(dl->length+1));
     if(vector == NULL) return NULL;
-    vector[dl->length] = *con;
+    vector[dl->length] = cloneconstant(con);
     dl->length++;
     dl->data = vector;
     return dl;
@@ -336,7 +355,7 @@ datalistreplace(Datalist* dl, unsigned int index, NCConstant* con)
     ASSERT(dl != NULL);
     ASSERT(index < dl->length);
     ASSERT(con != NULL);
-    dl->data[index] = *con;
+    dl->data[index] = cloneconstant(con);
     return dl;
 }
 
@@ -720,7 +739,7 @@ dlappend(Datalist* dl, NCConstant* constant)
     if(dl->length >= dl->alloc)
 	dlextend(dl);
     if(constant == NULL) constant = &nullconstant;
-    dl->data[dl->length++] = *constant;
+    dl->data[dl->length++] = cloneconstant(constant);
 }
 
 NCConstant
@@ -753,10 +772,28 @@ builddatasublist(Datalist* dl)
   @param dlist Pointer to datalist object being freed.
 
  */
-void dlfree(Datalist **dlist) {
+void
+dlfree(Datalist **dlistp) {
+  if(dlistp) {
+    if(*dlistp) free(*dlistp);
+    *dlistp = NULL;
+  }
+}
 
-  if(*dlist) free(*dlist);
-  dlist = NULL;
+
+/** Alternate version of dlfree that walks the constants and kills off any allocated strings */
+void
+dlfreeall(Datalist **dlistp) {
+  int i;
+  Datalist* dlist = (dlistp == NULL ? NULL : *dlistp);
+  if(dlist != NULL) {
+    for(i=0;i<datalistlen(dlist);i++) {
+      NCConstant* con = datalistith(dlist,i);
+      clearconstant(con);
+    }
+    nullfree(dlist->data);
+  }
+  dlfree(dlistp);
 }
 
 

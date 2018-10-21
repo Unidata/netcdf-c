@@ -101,8 +101,8 @@ main()
     }
     strncpy(url,svc,sizeof(url));
     strlcat(url,TESTPATH,sizeof(url));
-
     printf("*** Test: varm on URL: %s\n",url);
+    free(svc);
 
     check(err = nc_open(url, NC_NOWRITE, &ncid),__FILE__,__LINE__);
     check(err = nc_inq_varid(ncid, VAR, &varid),__FILE__,__LINE__);

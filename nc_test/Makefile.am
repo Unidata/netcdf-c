@@ -116,24 +116,3 @@ endif
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
-
-
-
-if ENABLE_VALGRIND
-# For some reason, it appears that we need to make the .sh files
-# depend on the programs they run when doing check-valgrind
-if BUILD_UTILITIES
-run_diskless.sh: tst_diskless${EXEEXT} tst_diskless3${EXEEXT}
-run_diskless5.sh: tst_diskless5${EXEEXT}
-run_inmemory.sh: tst_inmemory${EXEEXT} tst_open_mem${EXEEXT}
-endif
-if USE_NETCDF4
-if LARGE_FILE_TESTS
-run_diskless.sh: tst_diskless2${EXEEXT}
-run_diskless2.sh: tst_diskless4${EXEEXT}
-endif
-endif
-if ENABLE_CDF5
-run_cdf5.sh: tst_open_cdf5${EXEEXT}
-endif
-endif

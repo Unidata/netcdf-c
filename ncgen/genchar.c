@@ -220,6 +220,7 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
     int i;
     size_t expectedsize,xproduct,unitsize;
     int rank = rankfor(dimset);
+    int modified = 0; /* was data arg modified? */
 
     ASSERT(bbLength(charbuf) == 0);
     ASSERT((findlastunlimited(dimset) == rank
@@ -242,7 +243,7 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
     concatenated with any trailing or leading string (with double quotes).
     */
 
-    /* Rebuild the datalist to merge 'x' constants */
+    /* Rebuild the datalist to merge '0x' constants */
     {
 	int i,cccount = 0;
 	/* Do initial walk */
@@ -270,8 +271,11 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
 			con = makeconst(lineno,len,accum);
 			len = 0;
 			lineno = 0;
-		    }
-		    dlappend(newlist,con);
+		        dlappend(newlist,con);
+			clearconstant(con);
+			free(con);
+		    } else
+		        dlappend(newlist,con);
 		}
 	    }
 	    /* deal with any unclosed strings */
@@ -280,9 +284,12 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
 		len = 0;
 		lineno = 0;
 	        dlappend(newlist,con);
+		clearconstant(con);
+		free(con);
 	    }
 	    free(accum);
 	    data = newlist;
+	    modified = 1;
 	}
     }
 
@@ -332,6 +339,8 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
             for(i=0;i<padsize;i++) bbAppend(charbuf,fillchar);
         }
     }
+    if(modified) /* reclaim data (== newlist) */
+      dlfreeall(&data);
 }
 
 /* Create a new string constant */

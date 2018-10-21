@@ -92,7 +92,8 @@ extern Datalist* alldatalists;
 
 /* from: data.c */
 extern Datalist* builddatalist(int initialize);
-extern void dlfree(Datalist **dlist);
+extern void dlfree(Datalist **dlistp);
+extern void dlfreeall(Datalist **dlistp);
 extern void dlappend(Datalist*, NCConstant*);
 extern NCConstant builddatasublist(Datalist* dl);
 extern void dlextend(Datalist* dl);
@@ -136,6 +137,7 @@ void srcreset(Datasrc* ds);
 NCConstant* emptystringconst(int,NCConstant*);
 
 NCConstant cloneconstant(NCConstant* con); /* shallow clone*/
+void clearconstant(NCConstant* con); /* shallow clear*/
 
 void alignbuffer(struct NCConstant* prim, Bytebuffer* buf);
 
