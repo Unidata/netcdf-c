@@ -76,7 +76,7 @@ run_inmemory.sh: tst_inmemory tst_open_mem
 if USE_NETCDF4
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
-run_diskless2.sh: tst_diskless4
+run_diskless2.sh: tst_diskless4 tst_diskless2
 endif
 endif
 endif
@@ -122,5 +122,3 @@ endif
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
 
-# For some reason, it appears that we need to make the .sh files
-# depend on the programs they run when doing check-valgrind
