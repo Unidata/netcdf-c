@@ -70,13 +70,9 @@ TESTS = $(TESTPROGRAMS)
 
 if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
-run_diskless.sh: tst_diskless tst_diskless3
-run_diskless5.sh: tst_diskless5
-run_inmemory.sh: tst_inmemory tst_open_mem
 if USE_NETCDF4
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
-run_diskless2.sh: tst_diskless4 tst_diskless2
 endif
 endif
 endif
@@ -105,7 +101,6 @@ if ENABLE_CDF5
 # detect and report error code NC_ENOTNC.
 TESTS += run_cdf5.sh
 check_PROGRAMS += tst_open_cdf5
-run_cdf5.sh: tst_open_cdf5
 if LARGE_FILE_TESTS
 TESTPROGRAMS += tst_large_cdf5 tst_cdf5_begin
 endif

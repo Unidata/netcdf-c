@@ -53,11 +53,9 @@ endif
 
 if BUILD_UTILITIES
 TESTS += run_grp_rename.sh tst_misc.sh
-run_grp_rename.sh: renamegroup
 endif
 
 TESTS += run_empty_vlen_test.sh
-run_empty_vlen_test.sh: tst_empty_vlen_unlim
 
 # If the v2 API was built, add its test program.
 if BUILD_V2
@@ -90,12 +88,6 @@ run_knmi_bm.sh
 run_bm_test1.log: tst_create_files.log
 run_bm_test2.log: tst_create_files.log
 run_bm_elena.log: tst_create_files.log
-run_tst_chunks.sh: tst_chunks3
-run_knmi_bm.sh: tst_knmi
-run_bm_test1.sh: bm_file
-run_bm_test2.sh: bm_file
-run_bm_elena.sh: bm_file
-perftest.sh: bigmeta openbigmeta
 
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL4
@@ -110,7 +102,6 @@ if USE_SZIP
 if BUILD_UTILITIES
 check_PROGRAMS += test_szip h5testszip
 TESTS += tst_szip.sh
-tst_szip.sh: test_szip h5testszip
 endif
 endif
 
@@ -119,7 +110,6 @@ if ENABLE_FILTER_TESTING
 if BUILD_UTILITIES
 extra_PROGRAMS = test_filter test_filter_misc
 TESTS += tst_filter.sh
-tst_filter.sh: test_filter test_filter_misc
 endif
 endif
 
