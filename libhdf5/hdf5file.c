@@ -172,16 +172,6 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
    /* Get HDF5 specific info. */
    hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
 
-   /* /\* According to the docs, always end define mode on close. *\/ */
-   /* if (h5->flags & NC_INDEF) */
-   /*    h5->flags ^= NC_INDEF; */
-
-   /* /\* Sync the file, unless we're aborting, or this is a read-only */
-   /*  * file. *\/ */
-   /* if (!h5->no_write && !abort) */
-   /*    if ((retval = sync_netcdf4_file(h5))) */
-   /*       return retval; */
-
    /* Delete all the list contents for vars, dims, and atts, in each
     * group. */
    if ((retval = nc4_rec_grp_del(h5->root_grp)))
