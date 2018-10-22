@@ -142,7 +142,8 @@ other filters such as checksums.  Changing the chunking in a netCDF
 file can also greatly speedup access, by choosing chunk shapes that
 are appropriate for the most common access patterns.
 .IP
-The \fIchunkspec\fP argument is a string of comma-separated associations,
+The \fIchunkspec\fP argument has two forms. The first form is the
+original, deprecated form and is a string of comma-separated associations,
 each specifying a dimension name, a '/' character, and optionally the
 corresponding chunk length for that dimension.  No blanks should
 appear in the chunkspec string, except possibly escaped blanks that
@@ -165,14 +166,25 @@ To see the chunking resulting from copying with a chunkspec,
 use the '\-s' option of ncdump on the output file.
 .IP
 As an I/O optimization, \fBnccopy\fP has a threshold for the minimum size of
-non-record variables that get chunked, currently 8192 bytes.  In the future,
-use of this threshold and its size may be settable in an option.
+non-record variables that get chunked, currently 8192 bytes. The -M flag
+can be used to override this value.
 .IP
 Note that \fBnccopy\fP requires variables that share a dimension to also
 share the chunk size associated with that dimension, but the
 programming interface has no such restriction.  If you need to
 customize chunking for variables independently, you will need to use
-the library API in a custom utility program.
+the second form of chunkspec. This second form of chunkspec has this
+syntax: \fI var:n1,n2,...,nn \fP. This assumes that the variable named
+"var" has rank n. The chunking to be applied to each dimension of the
+variable is specified by the values of n1 through nn. This second
+form of chunking specification can be repeated multiple times to specify
+the exact chunking for different variables.
+If the variable is specified but no chunk sizes are specified (i.e. \fI -d var: \fP)
+then chunking is disabled for that variable.
+If the same variable is specified
+more than once, the second and later specifications are ignored.
+Also, this second form, per-variable chunking, takes precedence over any
+per-dimension chunking except the bare "/" case.
 .IP "\fB \-v \fP \fI var1,... \fP"
 The output will include data values for the specified variables, in
 addition to the declarations of all dimensions, variables, and
@@ -353,12 +365,19 @@ nccopy \-c time/1000,lat/40,lon/40 slow.nc fast.nc
 to specify data chunks of 1000 times, 40 latitudes, and 40 longitudes.
 If you had enough memory to contain the output file, you could speed
 up the rechunking operation significantly by creating the output in
-memory before writing it to disk on close:
+memory before writing it to disk on close (using the -w flag):
 .RS
 .HP
 nccopy \-w \-c time/1000,lat/40,lon/40 slow.nc fast.nc
 .RE
-
+Alternatively, one could write this using the alternate, variable-specific
+chunking specification and assuming that times, lat, and lon
+are variables.
+.RS
+.HP
+nccopy \-c time:1000 -c lat:40 -c lon:40 slow.nc fast.nc
+.RE
+.LP
 .SH "Chunking Rules"
 .LP
 The complete set of chunking rules is captured here.  As a rough
@@ -366,31 +385,41 @@ summary, these rules preserve all chunking properties from the
 input file. These rules apply only when the selected output
 format supports chunking, i.e. for the netcdf-4 variants.
 .LP
+The variable specific chunking specification should be obvious
+and translates directly to the corresponding "nc_def_var_chunking"
+API call.
+.LP
+.\" see: https://github.com/Unidata/netcdf-c/issues/725
+The original per-dimension, chunking specification requires some
+interpretation by nccopy.
 The following rules are applied in the given order independently
 for each variable to be copied from input to output. The rules are
 written assuming we are trying to determine the chunking for a given
 output variable Vout that comes from an input variable Vin.
 .IP "1."
 For each dimension of Vout explicitly specified on the command line
-using the '-c' option, apply the chunking value for that
-dimension.  regardless of input format or input properties.
+(using the '-c' option), apply the chunking value for that
+dimension regardless of input format or input properties.
 .IP "2."
-For dimensions of V not named on the command line, preserve chunk
-sizes from the corresponding input variable.
+For dimensions of Vout not named on the command line, preserve chunk
+sizes from the corresponding input variable, if it is chunked.
 .IP "3."
-If V is netcdf-4 and contiguous, and none of its dimensions are
+If Vin is contiguous, and none of its dimensions are
 named on the command line, and chunking is not mandated by other
-options, then make V be contiguous.
+options, then make Vout be contiguous.
 .IP "4."
 If the input variable is contiguous (or is some netcdf-3
 variant) and there are no options requiring chunking, or the '/'
 special case for the '-c' option is specified, then the output
 variable V is marked as contiguous.
 .IP "5."
-Handle all remaining cases when some or all chunk sizes are not determined by the command line or the input variable. This includes the non-chunked input cases such as netcdf-3, cdf5, and DAP. In these cases:
-        Retain all chunk sizes determined by (1) and (2); and
-        Compute the remaining chunk sizes automatically, with some reasonable 
-
+Final, default case: some or all chunk sizes are not
+determined by the command line or the input
+variable. This includes the non-chunked input cases such
+as netcdf-3, cdf5, and DAP. In these cases retain all
+chunk sizes determined by previous rules, and use the full
+dimension size as the default. The exception is unlimited dimensions,
+where the default is 4 megabytes.
 
 .SH "SEE ALSO"
 .LP
