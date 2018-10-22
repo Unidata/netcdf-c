@@ -1313,12 +1313,12 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
       LOG((4, "%s: deleting var %s", __func__, var->hdr.name));
       /* Close HDF5 dataset associated with this var, unless it's a
        * scale. */
-      if (var->hdf_datasetid)
-      {
-         LOG((3, "closing dataset %lld", var->hdf_datasetid));
-         if (H5Dclose(var->hdf_datasetid) < 0)
-            return NC_EHDFERR;
-      }
+      /* if (var->hdf_datasetid) */
+      /* { */
+      /*    LOG((3, "closing dataset %lld", var->hdf_datasetid)); */
+      /*    if (H5Dclose(var->hdf_datasetid) < 0) */
+      /*       return NC_EHDFERR; */
+      /* } */
       if ((retval = nc4_var_free(var)))  /* free but leave in parent list */
          return retval;
    }
@@ -1411,10 +1411,6 @@ nc4_att_free(NC_ATT_INFO_T *att)
       free(att->hdr.name);
       att->hdr.name = NULL;
    }
-
-   /* /\* Close the HDF5 typeid. *\/ */
-   /* if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0) */
-   /*    return NC_EHDFERR; */
 
    /* If this is a string array attribute, delete all members of the
     * string array, then delete the array of pointers to strings. (The

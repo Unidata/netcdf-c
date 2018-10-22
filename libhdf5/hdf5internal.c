@@ -506,30 +506,30 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
          return NC_EHDFERR;
    }
 
-   /* /\* Close HDF5 resources associated with vars. *\/ */
-   /* for (i = 0; i < ncindexsize(grp->vars); i++) */
-   /* { */
-   /*    var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i); */
-   /*    assert(var); */
+   /* Close HDF5 resources associated with vars. */
+   for (i = 0; i < ncindexsize(grp->vars); i++)
+   {
+      var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
+      assert(var);
 
-   /*    /\* Close the HDF5 dataset associated with this var. *\/ */
-   /*    if (var->hdf_datasetid) */
-   /*    { */
-   /*       LOG((3, "closing HDF5 dataset %lld", var->hdf_datasetid)); */
-   /*       if (H5Dclose(var->hdf_datasetid) < 0) */
-   /*          return NC_EHDFERR; */
-   /*    } */
+      /* Close the HDF5 dataset associated with this var. */
+      if (var->hdf_datasetid)
+      {
+         LOG((3, "closing HDF5 dataset %lld", var->hdf_datasetid));
+         if (H5Dclose(var->hdf_datasetid) < 0)
+            return NC_EHDFERR;
+      }
 
-   /*    for (a = 0; a < ncindexsize(var->att); a++) */
-   /*    { */
-   /*       att = (NC_ATT_INFO_T *)ncindexith(var->att, a); */
-   /*       assert(att); */
+      for (a = 0; a < ncindexsize(var->att); a++)
+      {
+         att = (NC_ATT_INFO_T *)ncindexith(var->att, a);
+         assert(att);
 
-   /*       /\* Close the HDF5 typeid if one is open. *\/ */
-   /*       if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0) */
-   /*          return NC_EHDFERR; */
-   /*    } */
-   /* } */
+         /* Close the HDF5 typeid if one is open. */
+         if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0)
+            return NC_EHDFERR;
+      }
+   }
 
    /* /\* Close HDF5 resources associated with dims. *\/ */
    /* for (i = 0; i < ncindexsize(grp->dim); i++) */
