@@ -70,8 +70,10 @@ TESTS = $(TESTPROGRAMS)
 
 if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
+if USE_NETCDF4
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
+endif
 endif
 endif
 
@@ -94,13 +96,13 @@ tst_diskless4.cdl benchmark.nc
 
 EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
 if ENABLE_CDF5
-   # bad_cdf5_begin.nc is a corrupted CDF-5 file with bad variable starting
-   # file offsets. It is to be used by tst_open_cdf5.c to check if it can
-   # detect and report error code NC_ENOTNC.
-   TESTS          += run_cdf5.sh
-   check_PROGRAMS += tst_open_cdf5
+# bad_cdf5_begin.nc is a corrupted CDF-5 file with bad variable starting
+# file offsets. It is to be used by tst_open_cdf5.c to check if it can
+# detect and report error code NC_ENOTNC.
+TESTS += run_cdf5.sh
+check_PROGRAMS += tst_open_cdf5
 if LARGE_FILE_TESTS
-   TESTPROGRAMS   += tst_large_cdf5 tst_cdf5_begin
+TESTPROGRAMS += tst_large_cdf5 tst_cdf5_begin
 endif
 endif
 
@@ -114,3 +116,4 @@ endif
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
+

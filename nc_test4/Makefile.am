@@ -23,7 +23,7 @@ AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 # These are netCDF-4 C test programs which are built and run.
-NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4		\
+NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4 		\
 tst_vars tst_varms tst_unlim_vars tst_converts tst_converts2 tst_grps	\
 tst_grps2 tst_compounds tst_compounds2 tst_compounds3 tst_opaques	\
 tst_strings tst_strings2 tst_interops tst_interops4 tst_interops5	\
@@ -151,3 +151,4 @@ DISTCLEANFILES = findplugin.sh
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
+
