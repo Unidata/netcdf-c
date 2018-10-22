@@ -16,11 +16,11 @@ OS=`uname`
 FILE4=tst_diskless4.nc
 
 # Compute the file size for tst_diskless4
-SIZE=0
-case $CPU in
-*_64*) SIZE=3000000000;;
-*)     SIZE=1000000000;;
-esac
+SIZE=1000000000
+# case $CPU in
+# *_64*) SIZE=3000000000;;
+# *)     SIZE=1000000000;;
+# esac
 
 # Create the reference ncdump output for tst_diskless4
 rm -fr tst_diskless4.cdl
