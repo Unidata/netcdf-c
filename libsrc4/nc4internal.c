@@ -1110,7 +1110,8 @@ nc4_type_free(NC_TYPE_INFO_T *type)
 }
 
 /**
- * @internal  Delete a var, and free the memory.
+ * @internal Delete a var, and free the memory. All HDF5 objects for
+ * the var must be closed before this is called.
  *
  * @param var Pointer to the var info struct of var to delete.
  *
@@ -1124,34 +1125,31 @@ nc4_var_free(NC_VAR_INFO_T *var)
    int ret = NC_NOERR;
    int i;
 
-   if(var == NULL)
-      return NC_NOERR;
+   assert(var);
+   LOG((4, "%s: deleting var %s", __func__, var->hdr.name));
 
    /* First delete all the attributes attached to this var. */
-   for(i=0;i<ncindexsize(var->att);i++) {
-      att = (NC_ATT_INFO_T*)ncindexith(var->att,i);
-      if(att == NULL) continue; /* might be a gap */
-      if ((ret = nc4_att_free(att)))
-         return ret;
-   }
+   for (i = 0; i < ncindexsize(var->att); i++)
+      if ((retval = att_free((NC_ATT_INFO_T *)ncindexith(var->att, i))))
+         return retval;
    ncindexfree(var->att);
-   var->att = NULL;
 
    /* Free some things that may be allocated. */
+   /* Free some things that may be allocated. */
    if (var->chunksizes)
-   {free(var->chunksizes);var->chunksizes = NULL;}
+      free(var->chunksizes);
 
    if (var->hdf5_name)
-   {free(var->hdf5_name); var->hdf5_name = NULL;}
+      free(var->hdf5_name);
 
    if (var->hdr.name)
-   {free(var->hdr.name); var->hdr.name = NULL;}
+      free(var->hdr.name);
 
    if (var->dimids)
-   {free(var->dimids); var->dimids = NULL;}
+      free(var->dimids);
 
    if (var->dim)
-   {free(var->dim); var->dim = NULL;}
+      free(var->dim);
 
    /* Delete any fill value allocation. This must be done before the
     * type_info is freed. */
@@ -1168,18 +1166,12 @@ nc4_var_free(NC_VAR_INFO_T *var)
          }
       }
       free(var->fill_value);
-      var->fill_value = NULL;
    }
 
    /* Release type information */
    if (var->type_info)
-   {
-      int retval;
-
       if ((retval = nc4_type_free(var->type_info)))
          return retval;
-      var->type_info = NULL;
-   }
 
    /* Delete any HDF5 dimscale objid information. */
    if (var->dimscale_hdf5_objids)
