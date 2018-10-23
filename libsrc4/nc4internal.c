@@ -1040,24 +1040,26 @@ nc4_type_free(NC_TYPE_INFO_T *type)
 {
    int i;
 
+   assert(type && type->rc && type->hdr.name);
+
    /* Decrement the ref. count on the type */
-   assert(type->rc);
    type->rc--;
 
    /* Release the type, if the ref. count drops to zero */
-   if (0 == type->rc)
+   if (type->rc == 0)
    {
-      /* Close any open user-defined HDF5 typeids. */
-      if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0)
-         return NC_EHDFERR;
-      if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0)
-         return NC_EHDFERR;
+      LOG((4, "%s: deleting type %s", __func__, type->hdr.name));
+
+      /* /\* Close any open user-defined HDF5 typeids. *\/ */
+      /* if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0) */
+      /*    return NC_EHDFERR; */
+      /* if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0) */
+      /*    return NC_EHDFERR; */
 
       /* Free the name. */
-      if (type->hdr.name)
-         free(type->hdr.name);
+      free(type->hdr.name);
 
-      /* Class-specific cleanup */
+      /* Enums and compound types have lists of fields to clean up. */
       switch (type->nc_type_class)
       {
       case NC_COMPOUND:
@@ -1071,7 +1073,6 @@ nc4_type_free(NC_TYPE_INFO_T *type)
             field_free(field);
          }
          nclistfree(type->u.c.field);
-         type->u.c.field = NULL; /* belt and suspenders */
       }
       break;
 
@@ -1087,16 +1088,15 @@ nc4_type_free(NC_TYPE_INFO_T *type)
             free(enum_member);
          }
          nclistfree(type->u.e.enum_member);
-         type->u.e.enum_member = NULL; /* belt and suspenders */
 
-         if (H5Tclose(type->u.e.base_hdf_typeid) < 0)
-            return NC_EHDFERR;
+         /* if (H5Tclose(type->u.e.base_hdf_typeid) < 0) */
+         /*    return NC_EHDFERR; */
       }
       break;
 
-      case NC_VLEN:
-         if (H5Tclose(type->u.v.base_hdf_typeid) < 0)
-            return NC_EHDFERR;
+      /* case NC_VLEN: */
+      /*    if (H5Tclose(type->u.v.base_hdf_typeid) < 0) */
+      /*       return NC_EHDFERR; */
 
       default:
          break;
@@ -1371,10 +1371,10 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
    }
    ncindexfree(grp->type);
 
-   /* Tell HDF5 we're closing this group. */
-   LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
-   if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0)
-      return NC_EHDFERR;
+   /* /\* Tell HDF5 we're closing this group. *\/ */
+   /* LOG((4, "%s: closing group %s", __func__, grp->hdr.name)); */
+   /* if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0) */
+   /*    return NC_EHDFERR; */
 
    /* Free the name. */
    free(grp->hdr.name);
