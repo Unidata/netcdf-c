@@ -60,7 +60,7 @@ typedef struct  NC_HDF5_FILE_INFO
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 void reportopenobjects(int log, hid_t);
-
+int nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp);
 
 /* Used by NC4_set_provenance */
 int nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
