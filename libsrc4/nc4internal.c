@@ -1050,12 +1050,6 @@ nc4_type_free(NC_TYPE_INFO_T *type)
    {
       LOG((4, "%s: deleting type %s", __func__, type->hdr.name));
 
-      /* /\* Close any open user-defined HDF5 typeids. *\/ */
-      /* if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0) */
-      /*    return NC_EHDFERR; */
-      /* if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0) */
-      /*    return NC_EHDFERR; */
-
       /* Free the name. */
       free(type->hdr.name);
 
@@ -1088,15 +1082,8 @@ nc4_type_free(NC_TYPE_INFO_T *type)
             free(enum_member);
          }
          nclistfree(type->u.e.enum_member);
-
-         /* if (H5Tclose(type->u.e.base_hdf_typeid) < 0) */
-         /*    return NC_EHDFERR; */
       }
       break;
-
-      /* case NC_VLEN: */
-      /*    if (H5Tclose(type->u.v.base_hdf_typeid) < 0) */
-      /*       return NC_EHDFERR; */
 
       default:
          break;
@@ -1122,6 +1109,7 @@ att_free(NC_ATT_INFO_T *att)
 {
    int i;
 
+   assert(att);
    LOG((3, "%s: name %s ", __func__, att->hdr.name));
 
    /* Free memory that was malloced to hold data for this
@@ -1281,12 +1269,10 @@ dim_free(NC_DIM_INFO_T *dim)
    LOG((4, "%s: deleting dim %s", __func__, dim->hdr.name));
 
    /* Free memory allocated for names. */
-   if(dim) {
-      if (dim->hdr.name)
-         free(dim->hdr.name);
+   if (dim->hdr.name)
+      free(dim->hdr.name);
 
-      free(dim);
-   }
+   free(dim);
    return NC_NOERR;
 }
 
