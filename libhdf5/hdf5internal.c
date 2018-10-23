@@ -544,47 +544,47 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
          return NC_EHDFERR;
    }
 
-   /* /\* Close HDF5 resources associated with types. Set values to 0 */
-   /*  * after closing types. Because of type reference counters, these */
-   /*  * closes can be called multiple times. *\/ */
-   /* for (i = 0; i < ncindexsize(grp->type); i++) */
-   /* { */
-   /*    NC_TYPE_INFO_T *type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i); */
-   /*    assert(type); */
+   /* Close HDF5 resources associated with types. Set values to 0
+    * after closing types. Because of type reference counters, these
+    * closes can be called multiple times. */
+   for (i = 0; i < ncindexsize(grp->type); i++)
+   {
+      NC_TYPE_INFO_T *type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i);
+      assert(type);
 
-   /*    /\* Close any open user-defined HDF5 typeids. *\/ */
-   /*    if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0) */
-   /*       return NC_EHDFERR; */
-   /*    type->hdf_typeid = 0; */
-   /*    if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0) */
-   /*       return NC_EHDFERR; */
-   /*    type->native_hdf_typeid = 0; */
+      /* Close any open user-defined HDF5 typeids. */
+      if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0)
+         return NC_EHDFERR;
+      type->hdf_typeid = 0;
+      if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0)
+         return NC_EHDFERR;
+      type->native_hdf_typeid = 0;
 
-   /*    /\* Class-specific cleanup. Only enums and vlens have HDF5 */
-   /*     * resources to close. *\/ */
-   /*    switch (type->nc_type_class) */
-   /*    { */
-   /*    case NC_ENUM: */
-   /*       if (type->u.e.base_hdf_typeid && H5Tclose(type->u.e.base_hdf_typeid) < 0) */
-   /*          return NC_EHDFERR; */
-   /*       type->u.e.base_hdf_typeid = 0; */
-   /*       break; */
+      /* Class-specific cleanup. Only enums and vlens have HDF5
+       * resources to close. */
+      switch (type->nc_type_class)
+      {
+      case NC_ENUM:
+         if (type->u.e.base_hdf_typeid && H5Tclose(type->u.e.base_hdf_typeid) < 0)
+            return NC_EHDFERR;
+         type->u.e.base_hdf_typeid = 0;
+         break;
 
-   /*    case NC_VLEN: */
-   /*       if (type->u.v.base_hdf_typeid && H5Tclose(type->u.v.base_hdf_typeid) < 0) */
-   /*          return NC_EHDFERR; */
-   /*       type->u.v.base_hdf_typeid = 0; */
-   /*       break; */
+      case NC_VLEN:
+         if (type->u.v.base_hdf_typeid && H5Tclose(type->u.v.base_hdf_typeid) < 0)
+            return NC_EHDFERR;
+         type->u.v.base_hdf_typeid = 0;
+         break;
 
-   /*    default: /\* Do nothing. *\/ */
-   /*       break; */
-   /*    } */
-   /* } */
+      default: /* Do nothing. */
+         break;
+      }
+   }
 
-   /* /\* Close the HDF5 group. *\/ */
-   /* LOG((4, "%s: closing group %s", __func__, grp->hdr.name)); */
-   /* if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0) */
-   /*    return NC_EHDFERR; */
+   /* Close the HDF5 group. */
+   LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
+   if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0)
+      return NC_EHDFERR;
 
    return NC_NOERR;
 }
