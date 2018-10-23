@@ -1328,10 +1328,6 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
    assert(grp);
    LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
 
-   /* WARNING: for all these deletes, the nc4_xxx_del functions will
-      modify the index, so we need to not assume any state about
-      them. */
-
    /* Recursively call this function for each child, if any, stopping
     * if there is an error. */
    for (i = 0; i < ncindexsize(grp->children); i++)
@@ -1359,22 +1355,10 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
    ncindexfree(grp->dim);
 
    /* Delete all types. */
-   /* Is this code correct? I think it should do repeated passes
-      over h5->alltypes using the ref count to decide what to delete */
    for (i = 0; i < ncindexsize(grp->type); i++)
-   {
-      NC_TYPE_INFO_T *type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i);
-      assert(type);
-      LOG((4, "%s: deleting type %s", __func__, type->hdr.name));
-      if ((retval = nc4_type_free(type))) /* free but leave in parent list */
+      if ((retval = nc4_type_free((NC_TYPE_INFO_T *)ncindexith(grp->type, i))))
          return retval;
-   }
    ncindexfree(grp->type);
-
-   /* /\* Tell HDF5 we're closing this group. *\/ */
-   /* LOG((4, "%s: closing group %s", __func__, grp->hdr.name)); */
-   /* if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0) */
-   /*    return NC_EHDFERR; */
 
    /* Free the name. */
    free(grp->hdr.name);
