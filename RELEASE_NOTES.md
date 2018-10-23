@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.6.2 - TBD
 
-## 4.6.2-rc2 October 22, 2018
+## 4.6.2-rc2 October 24, 2018
 
 * [Bug Fix] The use of NC_DISKLESS has been modified to make it cleaner. This adds a new flag called NC_PERSIST that takes over the now obsolete NC_MPIPOSIX.
 * [Obsolete] Obsolete the MPIPOSIX flag.
