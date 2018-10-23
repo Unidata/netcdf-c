@@ -480,7 +480,7 @@ int
 NC4_free_provenance(struct NCPROVENANCE* prov)
 {
     if(prov == NULL) return NC_NOERR;
-    if(prov->propattr.properties != NULL);
+    if(prov->propattr.properties != NULL)
 	nclistfreeall(prov->propattr.properties);
     prov->propattr.properties = NULL;
     free(prov);
