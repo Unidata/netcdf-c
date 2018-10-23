@@ -531,18 +531,18 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
       }
    }
 
-   /* /\* Close HDF5 resources associated with dims. *\/ */
-   /* for (i = 0; i < ncindexsize(grp->dim); i++) */
-   /* { */
-   /*    dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, i); */
-   /*    assert(dim); */
+   /* Close HDF5 resources associated with dims. */
+   for (i = 0; i < ncindexsize(grp->dim); i++)
+   {
+      dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, i);
+      assert(dim);
 
-   /*    /\* If this is a dim without a coordinate variable, then close */
-   /*     * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this */
-   /*     * dim. *\/ */
-   /*    if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0) */
-   /*       return NC_EHDFERR; */
-   /* } */
+      /* If this is a dim without a coordinate variable, then close
+       * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this
+       * dim. */
+      if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
+         return NC_EHDFERR;
+   }
 
    /* /\* Close HDF5 resources associated with types. Set values to 0 */
    /*  * after closing types. Because of type reference counters, these */
