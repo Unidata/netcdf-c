@@ -106,14 +106,14 @@ extern int ncgdebug;
 
 union YYSTYPE
 {
-#line 157 "ncgen.y" /* yacc.c:1909  */
+#line 149 "ncgen.y" /* yacc.c:1909  */
 
 Symbol* sym;
 unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
 long           mark; /* track indices into the sequence*/
 int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
-NCConstant     constant;
+NCConstant*    constant;
 
 #line 119 "ncgeny.h" /* yacc.c:1909  */
 };

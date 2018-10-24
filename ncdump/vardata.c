@@ -23,6 +23,9 @@
 
 #define LINEPIND	"    "	/* indent of continued lines */
 
+#define LBRACE "{"
+#define RBRACE "}"
+
 extern fspec_t formatting_specs; /* set from command-line options */
 
 /* Only read this many values at a time, if last dimension is larger
@@ -442,7 +445,7 @@ print_rows(
 	inc *= vdims[i];
     }
     if(mark_record) { /* the whole point of this recursion is printing these "{}" */
-	lput("{");
+	lput(LBRACE);
 	marks_pending++;	/* matching "}"s to emit after last "row" */
     }
     if(rank - level > 1) {     	/* this level is just d0 next levels */
@@ -489,27 +492,35 @@ print_rows(
 	    }
 	    print_any_val(sb, vp, (void *)valp);
 	}
+	/* If this is an array of strings, then reclaim the space */
+	if(vp->type == NC_STRING) {
+	    int i; /* compute number of elements specified by cor and edg */
+	    size_t total = 1;
+	    for(i=0;i<rank;i++)
+		total *= edg[i];
+	    nc_free_string(total,(char**)vals);
+	}
 	/* determine if this is the last row */
 	lastrow = true;
 	for(j = 0; j < rank - 1; j++) {
-      if (cor[j] != vdims[j] - 1) {
+            if (cor[j] != vdims[j] - 1) {
 		lastrow = false;
 		break;
-      }
+            }
 	}
 	if (formatting_specs.full_data_cmnts) {
-      for (j = 0; j < marks_pending; j++) {
-		sbuf_cat(sb, "}");
-      }
-      printf("%s", sbuf_str(sb));
-      lastdelim (0, lastrow);
-      annotate (vp, cor, d0-1);
+            for (j = 0; j < marks_pending; j++) {
+		sbuf_cat(sb, RBRACE);
+            }
+            printf("%s", sbuf_str(sb));
+            lastdelim (0, lastrow);
+            annotate (vp, cor, d0-1);
 	} else {
-      for (j = 0; j < marks_pending; j++) {
-		sbuf_cat(sb, "}");
-      }
-      lput(sbuf_str(sb));
-      lastdelim2 (0, lastrow);
+            for (j = 0; j < marks_pending; j++) {
+		sbuf_cat(sb, RBRACE);
+            }
+      	    lput(sbuf_str(sb));
+            lastdelim2 (0, lastrow);
 	}
     }
     sbuf_free(sb);

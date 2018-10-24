@@ -35,6 +35,13 @@ Bytebuffer* stmt;
 /**************************************************/
 /**************************************************/
 
+NCConstant*
+nullconst(void)
+{
+    return cloneconstant(&nullconstant);
+}
+
+
 /* return 1 if the next element in the datasrc is compound*/
 int
 issublist(Datasrc* datasrc) {return istype(datasrc,NC_COMPOUND);}
@@ -111,22 +118,23 @@ const2src(NCConstant* con)
     Datasrc* src;
     ASSERT(con != NULL);
     src = allocdatasrc();
-    src->data = con;
+    src->data = malloc(sizeof(NCConstant*));
+    src->data[0] = con;
     src->index = 0;
     src->length = 1;
     DUMPSRC(src,"#");
     return src;
 }
 
-NCConstant
+NCConstant*
 list2const(Datalist* list)
 {
-    NCConstant con;
+    NCConstant* con = nullconst();
     ASSERT(list != NULL);
-    con.nctype = NC_COMPOUND;
-    con.lineno = list->data[0].lineno;
-    con.value.compoundv = list;
-    con.filled = 0;
+    con->nctype = NC_COMPOUND;
+    con->lineno = list->data[0]->lineno;
+    con->value.compoundv = list;
+    con->filled = 0;
     return con;
 }
 
@@ -147,7 +155,7 @@ srcpeek(Datasrc* ds)
 {
     if(ds == NULL) return NULL;
     if(ds->index < ds->length)
-	return &ds->data[ds->index];
+	return ds->data[ds->index];
     if(ds->spliced)
 	return srcpeek(ds->prev);
     return NULL;
@@ -165,7 +173,7 @@ srcnext(Datasrc* ds)
     DUMPSRC(ds,"!");
     if(ds == NULL) return NULL;
     if(ds->index < ds->length)
-	return &ds->data[ds->index++];
+	return ds->data[ds->index++];
     if(ds->spliced) {
 	srcpop(ds);
 	return srcnext(ds);
@@ -190,7 +198,7 @@ srcline(Datasrc* ds)
     /* pick closest available entry*/
     if(len == 0) return 0;
     if(index >= len) index = len-1;
-    return ds->data[index].lineno;
+    return ds->data[index]->lineno;
 }
 
 void
@@ -239,9 +247,9 @@ void
 srcsetfill(Datasrc* ds, Datalist* list)
 {
     if(ds->index >= ds->length) PANIC("srcsetfill: no space");
-    if(ds->data[ds->index].nctype != NC_FILLVALUE) PANIC("srcsetfill: not fill");
-    ds->data[ds->index].nctype = NC_COMPOUND;
-    ds->data[ds->index].value.compoundv = list;
+    if(ds->data[ds->index]->nctype != NC_FILLVALUE) PANIC("srcsetfill: not fill");
+    ds->data[ds->index]->nctype = NC_COMPOUND;
+    ds->data[ds->index]->value.compoundv = list;
 }
 
 
@@ -266,31 +274,46 @@ report0(char* lead, Datasrc* src, int index)
 
 /**************************************************/
 
-/* Shallow constant cloning; return struct not pointer to struct*/
-NCConstant
+/* Deep constant cloning; return struct not pointer to struct*/
+NCConstant*
 cloneconstant(NCConstant* con)
 {
-    NCConstant newcon = *con;
-    char* s;
-    switch (newcon.nctype) {
+    NCConstant* newcon = NULL;
+    Datalist* newdl = NULL;
+    char* s = NULL;
+
+    newcon = malloc(sizeof(NCConstant));
+    if(newcon == NULL) return newcon;
+    *newcon = *con;
+    switch (newcon->nctype) {
     case NC_STRING:
-	s = (char*)ecalloc(newcon.value.stringv.len+1);
-	memcpy(s,newcon.value.stringv.stringv,newcon.value.stringv.len);
-	s[newcon.value.stringv.len] = '\0';
-	newcon.value.stringv.stringv = s;
+	if(newcon->value.stringv.len == 0)
+	    s = NULL;
+	else {
+	    s = (char*)ecalloc(newcon->value.stringv.len+1);
+	    if(newcon->value.stringv.len > 0)
+	        memcpy(s,newcon->value.stringv.stringv,newcon->value.stringv.len);
+	    s[newcon->value.stringv.len] = '\0';
+	}
+	newcon->value.stringv.stringv = s;
 	break;
     case NC_OPAQUE:
-	s = (char*)ecalloc(newcon.value.opaquev.len+1);
-	memcpy(s,newcon.value.opaquev.stringv,newcon.value.opaquev.len);
-	s[newcon.value.opaquev.len] = '\0';
-	newcon.value.opaquev.stringv = s;
+	s = (char*)ecalloc(newcon->value.opaquev.len+1);
+	if(newcon->value.opaquev.len > 0)
+	    memcpy(s,newcon->value.opaquev.stringv,newcon->value.opaquev.len);
+	s[newcon->value.opaquev.len] = '\0';
+	newcon->value.opaquev.stringv = s;
+	break;
+    case NC_COMPOUND:
+	newdl = dlcopy(con->value.compoundv);
+	newcon->value.compoundv = newdl;
 	break;
     default: break;
     }
     return newcon;
 }
 
-/* Shallow constant clear*/
+/* Deep constant clear*/
 void
 clearconstant(NCConstant* con)
 {
@@ -306,8 +329,15 @@ clearconstant(NCConstant* con)
 	break;
     default: break;
     }
+    memset((void*)con,0,sizeof(NCConstant));
 }
 
+void
+freeconstant(NCConstant* con, int shallow)
+{
+    if(!shallow) clearconstant(con);
+    nullfree(con);
+}
 
 /**************************************************/
 
@@ -317,31 +347,33 @@ datalistclone(Datalist* dl)
     int i;
     Datalist* clone = builddatalist(dl->length);
     for(i=0;i<dl->length;i++) {
-	clone->data[i] = cloneconstant(dl->data+i);
+	clone->data[i] = cloneconstant(dl->data[i]);
     }
     return clone;
 }
 
+#if 0
 Datalist*
 datalistconcat(Datalist* dl1, Datalist* dl2)
 {
-    NCConstant* vector;
+    NCConstant** vector;
     ASSERT(dl1 != NULL);
     if(dl2 == NULL) return dl1;
-    vector = (NCConstant*)erealloc(dl1->data,sizeof(NCConstant)*(dl1->length+dl2->length));
+    vector = (NCConstant**)erealloc(dl1->data,sizeof(NCConstant*)*(dl1->length+dl2->length));
     if(vector == NULL) return NULL;
-    memcpy((void*)(vector+dl1->length),dl2->data,sizeof(NCConstant)*(dl2->length));
+    memcpy((void*)(vector+dl1->length),dl2->data,sizeof(NCConstant*)*(dl2->length));
     dl1->data = vector;
     return dl1;
 }
+#endif
 
 Datalist*
 datalistappend(Datalist* dl, NCConstant* con)
 {
-    NCConstant* vector;
+    NCConstant** vector;
     ASSERT(dl != NULL);
     if(con == NULL) return dl;
-    vector = (NCConstant*)erealloc(dl->data,sizeof(NCConstant)*(dl->length+1));
+    vector = (NCConstant**)erealloc(dl->data,sizeof(NCConstant*)*(dl->length+1));
     if(vector == NULL) return NULL;
     vector[dl->length] = cloneconstant(con);
     dl->length++;
@@ -363,7 +395,7 @@ int
 datalistline(Datalist* ds)
 {
     if(ds == NULL || ds->length == 0) return 0;
-    return ds->data[0].lineno;
+    return ds->data[0]->lineno;
 }
 
 
@@ -674,9 +706,11 @@ emptycompoundconst(int lineno, NCConstant* c)
     return c;    
 }
 
+/* Make an empty string constant*/
 NCConstant*
-emptystringconst(int lineno, NCConstant* c)
+emptystringconst(int lineno)
 {
+    NCConstant* c = nullconst();
     ASSERT(c != NULL);
     c->lineno = lineno;
     c->nctype = NC_STRING;
@@ -707,11 +741,11 @@ void
 dlextend(Datalist* dl)
 {
     size_t newalloc;
-    NCConstant* newdata = NULL;
+    NCConstant** newdata = NULL;
     newalloc = (dl->alloc > 0?2*dl->alloc:2);
-    newdata = (NCConstant*)ecalloc(newalloc*sizeof(NCConstant));
+    newdata = (NCConstant**)ecalloc(newalloc*sizeof(NCConstant*));
     if(dl->length > 0)
-        memcpy(newdata,dl->data,sizeof(NCConstant)*dl->length);
+        memcpy(newdata,dl->data,sizeof(NCConstant*)*dl->length);
     dl->alloc = newalloc;
     nullfree(dl->data);
     dl->data = newdata;
@@ -725,9 +759,11 @@ builddatalist(int initial)
     if(initial <= 0) initial = DATALISTINIT;
     initial++; /* for header*/
     ci = (Datalist*)ecalloc(sizeof(Datalist));
-    memset((void*)ci,0,sizeof(Datalist)); /* only clear the hdr*/
-    ci->data = (NCConstant*)ecalloc(sizeof(NCConstant)*initial);
-    memset((void*)ci->data,0,sizeof(NCConstant)*initial);
+    if(ci == NULL) semerror(0,"out of memory\n");
+    ci->next = alldatalists;
+    alldatalists = ci;
+    ci->data = (NCConstant**)ecalloc(sizeof(NCConstant*)*initial);
+    memset((void*)ci->data,0,sizeof(NCConstant*)*initial);
     ci->alloc = initial;
     ci->length = 0;
     return ci;
@@ -742,58 +778,38 @@ dlappend(Datalist* dl, NCConstant* constant)
     dl->data[dl->length++] = cloneconstant(constant);
 }
 
-NCConstant
+NCConstant*
 builddatasublist(Datalist* dl)
 {
 
-  NCConstant d;
-  d.nctype = NC_COMPOUND;
-  d.lineno = (dl->length > 0?dl->data[0].lineno:0);
-  d.value.compoundv = dl;
-  d.filled = 0;
+  NCConstant* d = nullconst();
+  d->nctype = NC_COMPOUND;
+  d->lineno = (dl->length > 0?dl->data[0]->lineno:0);
+  d->value.compoundv = dl;
+  d->filled = 0;
   return d;
 
 }
 
-/*! Function to free an allocated datalist.
-
-  This function is used to free an individual datalist
-  object.  It is possible, hypothetically, that a
-  datalist will appear in the middle of a set of datalists,
-  in which case we'll need to determine that and shuffle around
-  'next' pointers.  For the time being, this assumes that
-  we are freeing a datalist which was allocated locally
-  and must be discarded.
-
-  Using this function instead of an inline 'free' just in
-  case we ever want to extend it, we won't have to go back
-  and re-write a bunch of stuff. I hope.
-
-  @param dlist Pointer to datalist object being freed.
-
- */
-void
-dlfree(Datalist **dlistp) {
-  if(dlistp) {
-    if(*dlistp) free(*dlistp);
-    *dlistp = NULL;
-  }
-}
-
-
-/** Alternate version of dlfree that walks the constants and kills off any allocated strings */
-void
-dlfreeall(Datalist **dlistp) {
-  int i;
-  Datalist* dlist = (dlistp == NULL ? NULL : *dlistp);
-  if(dlist != NULL) {
-    for(i=0;i<datalistlen(dlist);i++) {
-      NCConstant* con = datalistith(dlist,i);
-      clearconstant(con);
+/* Deep copy */
+Datalist*
+dlcopy(Datalist* dl)
+{
+    int i;
+    size_t len = datalistlen(dl);
+    Datalist* newdl = builddatalist(len);
+    /* initialize */
+    newdl->readonly = dl->readonly;
+    newdl->vlen = dl->vlen;
+    for(i=0;i<len;i++) {
+	NCConstant* con = datalistith(dl,i);
+	newdl->data[i] = cloneconstant(con);
     }
-    nullfree(dlist->data);
-  }
-  dlfree(dlistp);
+    return newdl;
 }
 
+void
+reclaimalldatalists(void)
+{
 
+}

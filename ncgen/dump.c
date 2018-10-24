@@ -47,7 +47,7 @@ void
 bufdump(Datalist* list, Bytebuffer* buf)
 {
     int i;
-    NCConstant* dp;
+    NCConstant** dpl;
     unsigned int count;
 
     if(list == NULL) {
@@ -56,7 +56,8 @@ bufdump(Datalist* list, Bytebuffer* buf)
     }
 
     count = list->length;
-    for(dp=list->data,i=0;i<count;i++,dp++) {
+    for(dpl=list->data,i=0;i<count;i++,dpl++) {
+       NCConstant* dp = *dpl;
        switch (dp->nctype) {
         case NC_COMPOUND:
 	    bbCat(buf,"{");
@@ -272,12 +273,12 @@ dumpsrc0(Datasrc* src,char* tag)
         fprintf(stderr,"[%d/%d]",src->index,src->length);
 	for(i=0;i<index;i++) {
 	    fprintf(stderr," ");
-	    dumpconstant1(&src->data[i]);
+	    dumpconstant1(src->data[i]);
 	}
 	fprintf(stderr,"^");
 	for(i=index;i<count;i++) {
 	    fprintf(stderr," ");
-	    dumpconstant1(&src->data[i]);
+	    dumpconstant1(src->data[i]);
 	}
         if(count < src->length) fprintf(stderr,"...");
 	fprintf(stderr," | ");	

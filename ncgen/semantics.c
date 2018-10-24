@@ -409,10 +409,10 @@ processenums(void)
 	if(tsym->subclass != NC_ENUM) continue;
 	for(j=0;j<listlength(tsym->subnodes);j++) {
 	    Symbol* esym = (Symbol*)listget(tsym->subnodes,j);
-	    NCConstant newec;
+	    NCConstant* newec = nullconst();
 	    ASSERT(esym->subclass == NC_ECONST);
-	    newec.nctype = esym->typ.typecode;
-	    convert1(&esym->typ.econst,&newec);
+	    newec->nctype = esym->typ.typecode;
+	    convert1(esym->typ.econst,newec);
 	    esym->typ.econst = newec;
 	}
     }
@@ -447,9 +447,10 @@ processeconstrefs(void)
 static void
 processeconstrefsR(Datalist* data)
 {
-    NCConstant* con = NULL;
+    NCConstant** dlp = NULL;
     int i;
-    for(i=0,con=data->data;i<data->length;i++,con++) {
+    for(i=0,dlp=data->data;i<data->length;i++,dlp++) {
+	NCConstant* con = *dlp;
 	if(con->nctype == NC_COMPOUND) {
 	    /* Iterate over the sublists */
 	    processeconstrefsR(con->value.compoundv);
@@ -737,12 +738,15 @@ processattributes(void)
         /* fill in the typecode*/
 	asym->typ.typecode = asym->typ.basetype->typ.typecode;
 	if(asym->data->length == 0) {
+	    NCConstant* empty = NULL;
 	    /* If the attribute has a zero length, then default it;
                note that it must be of type NC_CHAR */
 	    if(asym->typ.typecode != NC_CHAR)
 	        semerror(asym->lineno,"Empty datalist can only be assigned to attributes of type char",fullname(asym));
 	    asym->data = builddatalist(1);
-	    emptystringconst(asym->lineno,&asym->data->data[asym->data->length]);
+	    empty = emptystringconst(asym->lineno);
+	    dlappend(asym->data,empty);
+	    freeconst(empty);
 	}
 	validateNIL(asym);
     }
@@ -768,11 +772,13 @@ processattributes(void)
 	/* fill in the typecode*/
 	asym->typ.typecode = asym->typ.basetype->typ.typecode;
 	if(asym->data->length == 0) {
+	    NCConstant* empty = NULL;
 	    /* If the attribute has a zero length, and is char type, then default it */
 	    if(asym->typ.typecode != NC_CHAR)
 	        semerror(asym->lineno,"Empty datalist can only be assigned to attributes of type char",fullname(asym));
 	    asym->data = builddatalist(1);
-	    emptystringconst(asym->lineno,&asym->data->data[asym->data->length]);
+	    empty = emptystringconst(asym->lineno);
+	    dlappend(asym->data,empty);
 	}
 	validateNIL(asym);
     }
@@ -1119,7 +1125,7 @@ thisunlim->name,
             thisunlim->dim.declsize = unlimsize;
         /*!lastunlim => data is list of sublists, recurse on each sublist*/
 	for(i=0;i<data->length;i++) {
-	    NCConstant* con = data->data+i;
+	    NCConstant* con = data->data[i];
 	    if(con->nctype != NC_COMPOUND) {
 		semerror(con->lineno,"UNLIMITED dimension (other than first) must be enclosed in {}");
 	    }
@@ -1131,7 +1137,7 @@ thisunlim->name,
 	       compute total number of characters */
 	    length = 0;
 	    for(i=0;i<data->length;i++) {
-		NCConstant* con = &data->data[i];
+		NCConstant* con = data->data[i];
 		switch (con->nctype) {
 	        case NC_CHAR: case NC_BYTE: case NC_UBYTE:
 		    length++;
@@ -1189,7 +1195,7 @@ processunlimiteddims(void)
 	} else {
 	    int j;
 	    for(j=0;j<var->data->length;j++) {
-	        NCConstant* con = var->data->data+j;
+	        NCConstant* con = var->data->data[j];
 	        if(con->nctype != NC_COMPOUND)
 		    semerror(con->lineno,"UNLIMITED dimension (other than first) must be enclosed in {}");
 		else

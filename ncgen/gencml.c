@@ -285,7 +285,7 @@ definextype(Symbol* tsym)
 	    ASSERT(econst->subclass == NC_ECONST);
 	    nprintf(stmt,sizeof(stmt),"<enumconst name=\"%s\" value=\"%s\" />",
 		    xname(econst),
-		    xconst(&econst->typ.econst));
+		    xconst(econst->typ.econst));
 	    xline(stmt);
 	}
 	xline("</enum>");

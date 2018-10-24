@@ -309,7 +309,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         if(con == NULL || isfillconst(con)) {
             Datalist* fill = (filler==NULL?getfiller(tsym):filler);
             ASSERT(fill->length == 1);
-            con = &fill->data[0];
+            con = fill->data[0];
             if(!islistconst(con)) {
               if(con)
                 semerror(con->lineno,"Compound data fill value is not enclosed in {..}");
@@ -352,7 +352,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         if(con == NULL || isfillconst(con)) {
             Datalist* fill = (filler==NULL?getfiller(tsym):filler);
             ASSERT(fill->length == 1);
-            con = &fill->data[0];
+            con = fill->data[0];
             if(con->nctype != NC_COMPOUND) {
                 semerror(con->lineno,"Vlen data fill value is not enclosed in {..}");
             }
@@ -539,6 +539,6 @@ generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
         break;
     }
     generator->constant(generator,basetype,&target,codebuf);
-
+    clearconstant(&target);
     return;
 }

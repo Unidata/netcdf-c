@@ -61,16 +61,17 @@ Return the complete url for the server plus the path.
 static char*
 nc_findtestserver(const char* path, int isdap4, const char* serverlist)
 {
+    char** svclist;
     char** svc;
     char url[MAXSERVERURL];
     char* match = NULL;
 
-    if((svc = parseServers(serverlist))==NULL) {
+    if((svclist = parseServers(serverlist))==NULL) {
 	fprintf(stderr,"cannot parse test server list: %s\n",serverlist);
 	return NULL;
     }
-    for(;*svc;svc++) {
-	if(*svc == NULL || strlen(*svc) == 0) 
+    for(svc=svclist;*svc;svc++) {
+	if(strlen(*svc) == 0) 
 	    goto done;
         if(path == NULL) path = "";
         if(strlen(path) > 0 && path[0] == '/')
@@ -86,11 +87,11 @@ nc_findtestserver(const char* path, int isdap4, const char* serverlist)
     }
 done:
     /* Free up the envv list of servers */
-    if(svc != NULL) {    
+    if(svclist != NULL) {    
         char** p;
-	for(p=svc;*p;p++)
+	for(p=svclist;*p;p++)
 	    free(*p);
-	free(svc);
+	free(svclist);
     }
     return match;
 }

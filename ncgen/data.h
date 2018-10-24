@@ -12,8 +12,10 @@
 #  include <varargs.h>
 #endif
 
-/* nmemonic*/
+/* nmemonics*/
 #define TOPLEVEL 1
+#define SHALLOW 1
+#define DEEP 0
 
 /* Forward types */
 struct Datalist;
@@ -60,7 +62,7 @@ typedef struct Datalist {
     int           readonly; /* data field is shared with another Datalist*/
     size_t  length; /* |data| */
     size_t  alloc;  /* track total allocated space for data field*/
-    NCConstant*     data; /* actual list of constants constituting the datalist*/
+    NCConstant**     data; /* actual list of constants constituting the datalist*/
     /* Track various values associated with the datalist*/
     /* (used to be in Constvalue.compoundv)*/
     struct Vlen {
@@ -75,7 +77,7 @@ typedef struct Datalist {
    In effect, we are parsing the data sequence.
    Push and pop of data sources is supported (see srcpush() below).*/
 typedef struct Datasrc {
-    NCConstant*    data;     /* duplicate pointer; so do not free.*/
+    NCConstant**   data;     /* duplicate pointer; so do not free.*/
     int index;        
     int length;
     int spliced;           /* Was this list spliced into our parent ? */
@@ -92,20 +94,20 @@ extern Datalist* alldatalists;
 
 /* from: data.c */
 extern Datalist* builddatalist(int initialize);
-extern void dlfree(Datalist **dlistp);
-extern void dlfreeall(Datalist **dlistp);
 extern void dlappend(Datalist*, NCConstant*);
-extern NCConstant builddatasublist(Datalist* dl);
+extern NCConstant* builddatasublist(Datalist* dl);
 extern void dlextend(Datalist* dl);
 extern void dlsetalloc(Datalist* dl, size_t newalloc);
+extern Datalist* dlcopy(Datalist* dl);
+extern void reclaimalldatalists(void);
 
 int       datalistline(Datalist*);
-#define   datalistith(dl,i) ((dl)==NULL?NULL:((i) >= (dl)->length?NULL:&(dl)->data[i]))
+#define   datalistith(dl,i) ((dl)==NULL?NULL:((i) >= (dl)->length?NULL:(dl)->data[i]))
 #define   datalistlen(dl) ((dl)==NULL?0:(dl)->length)
 
 Datasrc* datalist2src(Datalist* list);
 Datasrc* const2src(NCConstant*);
-NCConstant list2const(Datalist*);
+NCConstant* list2const(Datalist*);
 Datalist* const2list(NCConstant* con);
 void freedatasrc(Datasrc* src);
 
@@ -134,10 +136,12 @@ void srcreset(Datasrc* ds);
 #define isnilconst(con) ((con)!=NULL && (con)->nctype == NC_NIL)
 #define   compoundfor(con) ((con)==NULL?NULL:(con)->value.compoundv)
 
-NCConstant* emptystringconst(int,NCConstant*);
+NCConstant* emptystringconst(int);
 
-NCConstant cloneconstant(NCConstant* con); /* shallow clone*/
-void clearconstant(NCConstant* con); /* shallow clear*/
+NCConstant* cloneconstant(NCConstant* con); /* deep clone*/
+void clearconstant(NCConstant* con); /* deep clear*/
+#define freeconst(con) freeconstant(con,DEEP);
+void freeconstant(NCConstant* con, int shallow);
 
 void alignbuffer(struct NCConstant* prim, Bytebuffer* buf);
 
@@ -170,6 +174,7 @@ NCConstant* srcpeek(Datasrc*);
 #define srcincr(src) srcnext(src)
 #define srcget(src) srcpeek(src)
 
+extern NCConstant* nullconst(void);
 extern NCConstant nullconstant;
 extern NCConstant fillconstant;
 extern NCConstant nilconstant;

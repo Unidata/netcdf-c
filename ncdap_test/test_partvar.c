@@ -97,7 +97,7 @@ main()
     size_t count[RANK];
     size_t offset;
     char url[4096];
-    const char* svc = NULL;
+    char* svc = NULL;
 
     /* Find Test Server */
     svc = nc_findtestserver("dts",0,REMOTETESTSERVERS);

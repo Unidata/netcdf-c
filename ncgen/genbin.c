@@ -11,6 +11,25 @@
 
 #undef TRACE
 
+/**
+When generating binary data for complex netcdf-4
+files, the top-level databuf will have a number
+of pieces of malloc'd data hanging off of it:
+struct instances, strings, opaques, vlens, etc.
+When the databuf is reclaimed/cleared, those
+extra pieces need to be reclaimed to keep
+memory analyzers happy.
+This same problem occurs in the DAP4 code and the
+solution here is similar.
+The idea is that when a piece is malloc'd,
+a pointer to it is kept in the tbr (to be reclaimed)
+list. When the databuf is cleared, all the pieces
+in tbr are free'd.
+*/
+
+List* tbr = NULL;
+
+
 /* Forward*/
 static void genbin_defineattr(Symbol* asym);
 static void genbin_definevardata(Symbol* vsym);
@@ -37,6 +56,9 @@ gen_netcdf(const char *filename)
 #endif
 
     Bytebuffer* databuf = bbNew();
+    if(tbr == NULL)
+        tbr = listnew();
+    listclear(tbr);
 
     ndims = listlength(dimdefs);
     nvars = listlength(vardefs);
@@ -173,7 +195,14 @@ gen_netcdf(const char *filename)
             }
         }
     }
-    bbFree(databuf);
+    { /* Reclaim */
+	int i;
+	for(i=0;i<listlength(tbr);i++)
+	    nullfree(listget(tbr,i));
+	listfree(tbr);
+	tbr = NULL;
+        bbFree(databuf);
+    }	
 }
 
 #ifdef USE_NETCDF4
@@ -318,7 +347,7 @@ genbin_deftype(Symbol* tsym)
 	  ASSERT(econst->subclass == NC_ECONST);
 	  generator_reset(bin_generator,NULL);
 	  bbClear(datum);
-	  generate_basetype(econst->typ.basetype,&econst->typ.econst,datum,NULL,bin_generator);
+	  generate_basetype(econst->typ.basetype,econst->typ.econst,datum,NULL,bin_generator);
 	  stat = nc_insert_enum(tsym->container->ncid,
 				tsym->ncid,
 				econst->name,
@@ -326,7 +355,6 @@ genbin_deftype(Symbol* tsym)
 	  check_err(stat,__LINE__,__FILE__);
 	}
 	bbFree(datum);
-    dlfree(&ecdl);
       }
       break;
     case NC_VLEN:

@@ -555,13 +555,13 @@ static void
 reclaimDatalists(void)
 {
     Datalist* list;
-    NCConstant* con;
+    NCConstant** dlp;
     /* Step 1: free up the constant content of each datalist*/
     for(list=alldatalists;list != NULL; list = list->next) {
 	if(list->data != NULL) { /* avoid multiple free attempts*/
 	    int i;
-	    for(i=0,con=list->data;i<list->length;i++,con++)
-	        constantFree(con);
+	    for(i=0,dlp=list->data;i<list->length;i++,dlp++)
+	        constantFree(*dlp);
 	    list->data = NULL;
 	}
     }

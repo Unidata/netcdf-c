@@ -315,6 +315,7 @@ kind_string_extended(int kind, int mode)
     return text;
 }
 
+#if 0
 static int
 fileopen(const char* path, void** memp, size_t* sizep)
 {
@@ -387,6 +388,7 @@ done:
 
     return status;
 }
+#endif
 
 /*
  * Emit initial line of output for NcML
@@ -859,7 +861,6 @@ pr_att(
        switch(class) {
        case NC_VLEN:
 	   pr_any_att_vals(&att, data);
-	   free(data);
 	   break;
        case NC_OPAQUE: {
 	   char *sout = emalloc(2 * type_size + strlen("0X") + 1);
@@ -870,8 +871,7 @@ pr_att(
 	       cp += type_size;
 	   }
 	   free(sout);
-       }
-	   break;
+         } break;
        case NC_ENUM: {
 	   int64_t value;
 	   for (i = 0; i < att.len; i++) {
@@ -911,15 +911,14 @@ pr_att(
 	       print_name(enum_name);
 	       printf("%s", i < att.len-1 ? ", " : "");
 	   }
-       }
-	   break;
+         } break;
        case NC_COMPOUND:
 	   pr_any_att_vals(&att, data);
-	   free(data);
 	   break;
        default:
 	   error("unrecognized class of user defined type: %d", class);
        }
+       free(data);
        printf (" ;");		/* terminator for user defined types */
     }
 #endif /* USE_NETCDF4 */
@@ -1430,7 +1429,8 @@ print_ud_type(int ncid, nc_type typeid) {
 #endif /* USE_NETCDF4 */
 
 static void
-get_fill_info(int ncid, int varid, ncvar_t *vp) {
+get_fill_info(int ncid, int varid, ncvar_t *vp)
+{
     ncatt_t att;			/* attribute */
     int nc_status;			/* return from netcdf calls */
     void *fillvalp = NULL;
@@ -1439,7 +1439,7 @@ get_fill_info(int ncid, int varid, ncvar_t *vp) {
 
     /* get _FillValue attribute */
     nc_status = nc_inq_att(ncid,varid,_FillValue,&att.type,&att.len);
-    fillvalp = emalloc(vp->tinfo->size + 1);
+    fillvalp = ecalloc(vp->tinfo->size + 1);
     if(nc_status == NC_NOERR &&
        att.type == vp->type && att.len == 1) {
 	NC_CHECK(nc_get_att(ncid, varid, _FillValue, fillvalp));
@@ -1485,9 +1485,16 @@ get_fill_info(int ncid, int varid, ncvar_t *vp) {
 	    *(uint64_t *)fillvalp = NC_FILL_UINT64;
 	    break;
 #ifdef USE_NETCDF4
-	case NC_STRING:
-	    *((char **)fillvalp) = strdup(NC_FILL_STRING);
-	    break;
+	case NC_STRING: {
+	    char* s;
+	    size_t len = strlen(NC_FILL_STRING);
+	    /* In order to avoid mem leak, allocate this string as part of fillvalp */
+            fillvalp = erealloc(fillvalp, vp->tinfo->size + 1 + len + 1);
+	    s = fillvalp + vp->tinfo->size + 1;
+	    memcpy(s,NC_FILL_STRING,len);
+	    s[len] = '\0';
+	    *((char **)fillvalp) = s;
+	    } break;
 #endif /* USE_NETCDF4 */
 	default:		/* no default fill values for NC_NAT
 				   or user-defined types */
@@ -1499,7 +1506,6 @@ get_fill_info(int ncid, int varid, ncvar_t *vp) {
     }
     vp->fillvalp = fillvalp;
 }
-
 
 /* Recursively dump the contents of a group. (Only netcdf-4 format
  * files can have groups, so recursion will not take place for classic
@@ -2111,7 +2117,8 @@ void adapt_url_for_cache(char **pathp) {
     path[0] = '\0';
     strncat(path, prefix, strlen(prefix));
     strncat(path, tmp_path, strlen(tmp_path));
-    free(tmp_path);
+    if(tmp_path) free(tmp_path);
+    if(*path) free(*pathp);
     *pathp = path;
     return;
 }
@@ -2291,10 +2298,12 @@ main(int argc, char *argv[])
     init_epsilons();
 
     {
-	char *path = strdup(argv[i]);
-	if(!path)
+        char *path = strdup(argv[i]);
+	if(!path) {
 	    error("out of memory copying argument %s", argv[i]);
-        if (!nameopt)
+	    exit(EXIT_FAILURE);
+	}
+	if (!nameopt)
 	    formatting_specs.name = name_path(path);
 	if (argc > 0) {
 	    int ncid, nc_status;
@@ -2312,15 +2321,23 @@ main(int argc, char *argv[])
 	    }
 #endif /*USE_DAP*/
 	    if(formatting_specs.xopt_inmemory) {
+#if 0
 		size_t size = 0;
 		void* mem = NULL;
 		nc_status = fileopen(path,&mem,&size);
 		if(nc_status == NC_NOERR)
 	            nc_status = nc_open_mem(path,NC_INMEMORY,size,mem,&ncid);
+#else
+	        nc_status = nc_open(path,NC_DISKLESS|NC_NOWRITE,&ncid);
+#endif
 	    } else
 	        nc_status = nc_open(path, NC_NOWRITE, &ncid);
 	    if (nc_status != NC_NOERR) {
-		error("%s: %s", path, nc_strerror(nc_status));
+		char tmp[4096];
+		snprintf(tmp,sizeof(tmp),"%s: %s", path, nc_strerror(nc_status));
+		if(path) free(path);
+		error("%s",tmp);
+		exit(EXIT_FAILURE);
 	    }
 	    NC_CHECK( nc_inq_format(ncid, &formatting_specs.nc_kind) );
 	    NC_CHECK( nc_inq_format_extended(ncid,
@@ -2334,19 +2351,24 @@ main(int argc, char *argv[])
 		/* Initialize list of types. */
 		init_types(ncid);
 		/* Check if any vars in -v don't exist */
-		if(missing_vars(ncid, formatting_specs.nlvars, formatting_specs.lvars))
+		if(missing_vars(ncid, formatting_specs.nlvars, formatting_specs.lvars)) {
+		    if(path) free(path);
 		    exit(EXIT_FAILURE);
+		}
 		if(formatting_specs.nlgrps > 0) {
 		    if(formatting_specs.nc_kind != NC_FORMAT_NETCDF4) {
-			error("Group list (-g ...) only permitted for netCDF-4 file");
+		        if(path) free(path);
+		        error("Group list (-g ...) only permitted for netCDF-4 file");
 			exit(EXIT_FAILURE);
 		    }
 		    /* Check if any grps in -g don't exist */
 		    if(grp_matches(ncid, formatting_specs.nlgrps, formatting_specs.lgrps, formatting_specs.grpids) == 0)
+		        if(path) free(path);
 			exit(EXIT_FAILURE);
 		}
 		if (xml_out) {
 		    if(formatting_specs.nc_kind == NC_FORMAT_NETCDF4) {
+		        if(path) free(path);
 			error("NcML output (-x) currently only permitted for netCDF classic model");
 			exit(EXIT_FAILURE);
 		    }
@@ -2357,7 +2379,7 @@ main(int argc, char *argv[])
 	    }
 	    NC_CHECK( nc_close(ncid) );
 	}
-	free(path);
+	if(path) free(path);
     }
     exit(EXIT_SUCCESS);
 }

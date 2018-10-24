@@ -27,10 +27,10 @@ getfiller(Symbol* tvsym)
     ASSERT(tvsym->objectclass == NC_VAR || tvsym->objectclass == NC_TYPE);
     if(tvsym->objectclass == NC_VAR) {
 	tsym = tvsym->typ.basetype;
-        filler = tvsym->var.special._Fillvalue; /* get cached value (if any)*/
+        filler = dlcopy(tvsym->var.special._Fillvalue); /* get cached value (if any)*/
     }
     if(filler == NULL || tvsym->objectclass == NC_TYPE) {
-        filler = tvsym->typ._Fillvalue; /* get cached value (if any)*/
+        filler = dlcopy(tvsym->typ._Fillvalue); /* get cached value (if any)*/
     }
     if(filler == NULL) { /* need to compute it*/
         filler = builddatalist(0);
@@ -51,14 +51,15 @@ static void
 fill(Symbol* tsym, Datalist* filler)
 {
     unsigned long i;
-    NCConstant con = nullconstant;
+    NCConstant* con = NULL;
     Datalist* sublist;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
     case NC_ENUM: case NC_OPAQUE: case NC_PRIM:
-        con.nctype = tsym->typ.typecode;
-        nc_getfill(&con);
+        con = nullconst();
+        con->nctype = tsym->typ.typecode;
+        nc_getfill(con);
 	break;
     case NC_COMPOUND:
 	sublist = builddatalist(listlength(tsym->subnodes));
@@ -78,7 +79,8 @@ fill(Symbol* tsym, Datalist* filler)
 	break;
     default: PANIC1("fill: unexpected subclass %d",tsym->subclass);
     }
-    dlappend(filler,&con);
+    dlappend(filler,con);
+    freeconstant(con,DEEP);
 }
 
 static void
@@ -86,14 +88,16 @@ filllist(Symbol* tsym, Datalist* dl)
 {
     int i;
     Datalist* sublist;
-    NCConstant con = nullconstant;
+    NCConstant* con = NULL;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
     case NC_ENUM: case NC_OPAQUE: case NC_PRIM:
-        con.nctype = tsym->typ.typecode;
-        nc_getfill(&con);
-	dlappend(dl,&con);
+        con = nullconst();
+        con->nctype = tsym->typ.typecode;
+        nc_getfill(con);
+	dlappend(dl,con);
+	freeconstant(con,DEEP);
 	break;
     case NC_COMPOUND:
 	sublist = builddatalist(listlength(tsym->subnodes));
@@ -102,13 +106,15 @@ filllist(Symbol* tsym, Datalist* dl)
 	    filllist(field->typ.basetype,sublist);
         }	  
 	con = builddatasublist(sublist);
-	dlappend(dl,&con);
+	dlappend(dl,con);
+	freeconstant(con,DEEP);
 	break;
     case NC_VLEN:
 	sublist = builddatalist(0);
 	filllist(tsym->typ.basetype,sublist); /* generate a single instance*/
 	con = builddatasublist(sublist);
-	dlappend(dl,&con);
+	dlappend(dl,con);
+	freeconstant(con,DEEP);
 	break;
     default: PANIC1("fill: unexpected subclass %d",tsym->subclass);
     }

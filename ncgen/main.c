@@ -52,8 +52,8 @@ size_t nciterbuffersize;
 
 struct Vlendata* vlendata;
 
-char *netcdf_name; /* command line -o file name */
-char *datasetname; /* name from the netcdf <name> {} || from -N */
+char *netcdf_name = NULL; /* command line -o file name */
+char *datasetname = NULL; /* name from the netcdf <name> {} || from -N */
 
 extern FILE *ncgin;
 
@@ -340,9 +340,11 @@ main(
           binary_ext = ".cdf";
 	  break;
 	case 'o':		/* to explicitly specify output name */
+	  if(netcdf_name) free(netcdf_name);
 	  netcdf_name = nulldup(optarg);
 	  break;
 	case 'N':		/* to explicitly specify dataset name */
+	  if(datasetname) free(datasetname);
 	  datasetname = nulldup(optarg);
 	  break;
 	case 'x': /* set nofill mode to speed up creation of large files */
@@ -597,6 +599,9 @@ main(
         define_netcdf();
 
 done:
+    reclaimalldatalists();
+    nullfree(netcdf_name);
+    nullfree(datasetname);
     finalize_netcdf(code);
     return code;
 }

@@ -8,6 +8,9 @@
 
 #ifdef ENABLE_BINARY
 
+/* Track allocated objects here */
+extern List* tbr;
+
 static void alignto(int alignment, Bytebuffer* buf, int base);
 
 static int bin_uid = 0;
@@ -80,16 +83,17 @@ bin_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf
         } break;
     case NC_NIL:
     case NC_STRING: {
-        char* ptr;
         int len = (size_t)con->value.stringv.len;
 	if(len == 0 && con->value.stringv.stringv == NULL) {
 	    char* nil = NULL;
             bbAppendn(buf,(void*)&nil,sizeof(nil));
 	} else {
-	    ptr = (char*)ecalloc(len+1);
+            char* ptr = (char*)ecalloc(len+1);
+	    listpush(tbr,ptr);
 	    memcpy(ptr,con->value.stringv.stringv,len);
 	    ptr[len] = '\0';
             bbAppendn(buf,(void*)&ptr,sizeof(ptr));
+	    ptr = NULL;
         }
 	} break;
 
@@ -141,6 +145,7 @@ bin_vlendecl(Generator* generator, Symbol* tsym, Bytebuffer* buf, int uid, size_
     va_end(ap);
     ptr.len = count;
     ptr.p = bbDup(vlenmem);
+    listpush(tbr,ptr.p);
     bbAppendn(buf,(char*)&ptr,sizeof(ptr));
     return 1;
 }
@@ -157,6 +162,7 @@ bin_vlenstring(Generator* generator, Symbol* sym, Bytebuffer* codebuf, int* uidp
     va_end(ap);
     ptr.len = bbLength(vlenmem);
     ptr.p = bbDup(vlenmem);
+    listpush(tbr,ptr.p);
     bbAppendn(codebuf,(char*)&ptr,sizeof(ptr));
     return 1;
 }
