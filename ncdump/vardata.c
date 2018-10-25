@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <netcdf.h>
 #include "utils.h"
+#include "netcdf.h"
 #include "nccomps.h"
 #include "dumplib.h"
 #include "ncdump.h"
