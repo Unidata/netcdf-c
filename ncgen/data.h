@@ -58,7 +58,6 @@ typedef struct NCConstant {
 } NCConstant;
 
 typedef struct Datalist {
-    struct Datalist* next; /* chain of all known datalists*/
     int           readonly; /* data field is shared with another Datalist*/
     size_t  length; /* |data| */
     size_t  alloc;  /* track total allocated space for data field*/
@@ -90,7 +89,7 @@ struct Vlendata {
     unsigned long count;
 };
 extern struct Vlendata* vlendata;
-extern Datalist* alldatalists;
+extern List* alldatalists;
 
 /* from: data.c */
 extern Datalist* builddatalist(int initialize);

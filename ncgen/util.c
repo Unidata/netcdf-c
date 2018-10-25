@@ -531,58 +531,12 @@ reclaimSymbols(void)
     }
 }
 
-static void
-constantFree(NCConstant* con)
-{
-    switch(con->nctype) {
-    case NC_COMPOUND:
-	/* do nothing; ReclaimDatalists below will take care of the datalist	*/
-	break;
-    case NC_STRING:
-	if(con->value.stringv.len > 0 && con->value.stringv.stringv != NULL)
-	    efree(con->value.stringv.stringv);
-	break;
-    case NC_OPAQUE:
-	if(con->value.opaquev.len > 0 && con->value.opaquev.stringv != NULL)
-	    efree(con->value.opaquev.stringv);
-	break;
-    default:
-	break;
-    }
-}
-
-static void
-reclaimDatalists(void)
-{
-    Datalist* list;
-    NCConstant** dlp;
-    /* Step 1: free up the constant content of each datalist*/
-    for(list=alldatalists;list != NULL; list = list->next) {
-	if(list->data != NULL) { /* avoid multiple free attempts*/
-	    int i;
-	    for(i=0,dlp=list->data;i<list->length;i++,dlp++)
-	        constantFree(*dlp);
-	    list->data = NULL;
-	}
-    }
-    /* Step 2: free up the datalist itself*/
-    for(list=alldatalists;list != NULL;) {
-	Datalist* current = list;
-	list = list->next;
-	efree(current);
-    }
-}
-
 void
 cleanup()
 {
-  reclaimDatalists();
+  reclaimalldatalists();
   reclaimSymbols();
 }
-
-
-
-
 
 /* compute the total n-dimensional size as 1 long array;
    if stop == 0, then stop = dimset->ndims.

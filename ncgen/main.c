@@ -599,7 +599,6 @@ main(
         define_netcdf();
 
 done:
-    reclaimalldatalists();
     nullfree(netcdf_name);
     nullfree(datasetname);
     finalize_netcdf(code);

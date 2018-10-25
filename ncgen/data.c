@@ -18,7 +18,7 @@ extern int lvsnprintf(char*, size_t, const char*, va_list);
 #define DATALISTINIT 32
 
 /* Track all known datalist*/
-Datalist* alldatalists = NULL;
+List* alldatalists = NULL;
 
 NCConstant nullconstant;
 NCConstant fillconstant;
@@ -31,6 +31,7 @@ Bytebuffer* stmt;
 
 
 /* Forward */
+static void reclaimdatalist(Datalist* list);
 
 /**************************************************/
 /**************************************************/
@@ -326,6 +327,9 @@ clearconstant(NCConstant* con)
     case NC_OPAQUE:
 	if(con->value.opaquev.stringv != NULL)
 	    free(con->value.opaquev.stringv);
+	break;
+    case NC_COMPOUND:
+	con->value.compoundv = NULL;
 	break;
     default: break;
     }
@@ -760,8 +764,9 @@ builddatalist(int initial)
     initial++; /* for header*/
     ci = (Datalist*)ecalloc(sizeof(Datalist));
     if(ci == NULL) semerror(0,"out of memory\n");
-    ci->next = alldatalists;
-    alldatalists = ci;
+    if(alldatalists == NULL) alldatalists = listnew();
+    listpush(alldatalists,ci);
+fprintf(stderr,"xx=%p\n",ci);
     ci->data = (NCConstant**)ecalloc(sizeof(NCConstant*)*initial);
     memset((void*)ci->data,0,sizeof(NCConstant*)*initial);
     ci->alloc = initial;
@@ -798,18 +803,64 @@ dlcopy(Datalist* dl)
     int i;
     size_t len = datalistlen(dl);
     Datalist* newdl = builddatalist(len);
-    /* initialize */
-    newdl->readonly = dl->readonly;
-    newdl->vlen = dl->vlen;
-    for(i=0;i<len;i++) {
-	NCConstant* con = datalistith(dl,i);
-	newdl->data[i] = cloneconstant(con);
+    if(dl != NULL) {
+        /* initialize */
+        newdl->readonly = dl->readonly;
+        newdl->vlen = dl->vlen;
+        for(i=0;i<len;i++) {
+	    NCConstant* con = datalistith(dl,i);
+	    newdl->data[i] = cloneconstant(con);
+	}
     }
     return newdl;
+}
+
+/* recursive helpers */
+static void
+reclaimconstant(NCConstant* con)
+{
+    if(con == NULL) return;
+    switch (con->nctype) {
+    case NC_STRING:
+	if(con->value.stringv.stringv != NULL)
+	    free(con->value.stringv.stringv);
+	break;
+    case NC_OPAQUE:
+	if(con->value.opaquev.stringv != NULL)
+	    free(con->value.opaquev.stringv);
+	break;
+    case NC_COMPOUND:
+	reclaimdatalist(con->value.compoundv);
+	con->value.compoundv = NULL;
+	break;
+    default: break;
+    }
+    free(con);
+}
+
+static void
+reclaimdatalist(Datalist* list)
+{
+   int i;
+   if(list == NULL) return;
+fprintf(stderr,"yy=%p\n",list);
+   if(list->data != NULL) {
+       for(i=0;i<datalistlen(list);i++) {
+	    NCConstant* con = datalistith(list,i);
+	    reclaimconstant(con);
+       }
+       free(list->data);
+   }
+   list->data = NULL;
+   free(list);
 }
 
 void
 reclaimalldatalists(void)
 {
-
+    int i;
+    for(i=0;i<listlength(alldatalists);i++)
+	reclaimdatalist((Datalist*)listget(alldatalists,i));
+    free(alldatalists);
+    alldatalists = NULL;    
 }

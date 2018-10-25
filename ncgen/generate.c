@@ -81,11 +81,6 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
     int rank = dimset->ndims;
     Symbol* basetype = vsym->typ.basetype;
     Datalist* filler = getfiller(vsym);
-#if 0
-    const size_t* start;
-    const size_t* count;
-    Odometer* odom;
-#endif
 
     if(vsym->data == NULL) return;
 
