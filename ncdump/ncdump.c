@@ -1490,7 +1490,7 @@ get_fill_info(int ncid, int varid, ncvar_t *vp)
 	    size_t len = strlen(NC_FILL_STRING);
 	    /* In order to avoid mem leak, allocate this string as part of fillvalp */
             fillvalp = erealloc(fillvalp, vp->tinfo->size + 1 + len + 1);
-	    s = fillvalp + vp->tinfo->size + 1;
+	    s = ((char*)fillvalp) + vp->tinfo->size + 1;
 	    memcpy(s,NC_FILL_STRING,len);
 	    s[len] = '\0';
 	    *((char **)fillvalp) = s;

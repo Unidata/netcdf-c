@@ -766,7 +766,9 @@ builddatalist(int initial)
     if(ci == NULL) semerror(0,"out of memory\n");
     if(alldatalists == NULL) alldatalists = listnew();
     listpush(alldatalists,ci);
+#if 0
 fprintf(stderr,"xx=%p\n",ci);
+#endif
     ci->data = (NCConstant**)ecalloc(sizeof(NCConstant*)*initial);
     memset((void*)ci->data,0,sizeof(NCConstant*)*initial);
     ci->alloc = initial;
@@ -801,9 +803,12 @@ Datalist*
 dlcopy(Datalist* dl)
 {
     int i;
-    size_t len = datalistlen(dl);
-    Datalist* newdl = builddatalist(len);
-    if(dl != NULL) {
+    size_t len;
+    Datalist* newdl;
+
+    if(dl == NULL) return NULL;
+    len = datalistlen(dl);
+    newdl = builddatalist(len);
         /* initialize */
         newdl->readonly = dl->readonly;
         newdl->vlen = dl->vlen;
@@ -811,7 +816,6 @@ dlcopy(Datalist* dl)
 	    NCConstant* con = datalistith(dl,i);
 	    newdl->data[i] = cloneconstant(con);
 	}
-    }
     return newdl;
 }
 
@@ -843,12 +847,16 @@ reclaimdatalist(Datalist* list)
 {
    int i;
    if(list == NULL) return;
+#if 0
 fprintf(stderr,"yy=%p\n",list);
+#endif
    if(list->data != NULL) {
        for(i=0;i<datalistlen(list);i++) {
 	    NCConstant* con = datalistith(list,i);
 	    reclaimconstant(con);
        }
+if(((unsigned long)list) < 1000)
+abort();
        free(list->data);
    }
    list->data = NULL;
