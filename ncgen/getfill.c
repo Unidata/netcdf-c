@@ -15,36 +15,43 @@ static void fill(Symbol* tsym, Datalist*);
 static void fillarray(Symbol* tsym, Dimset* dimset, int index, Datalist*);
 static void filllist(Symbol* tvsym, Datalist* dl);
 
-/* Construct a Datalist representing a complete fill value*/
-/* for a specified variable */
-/* Cache if needed later*/
+/* Construct a Datalist representing a complete fill value.
+   for a specified variable or type. Cache if needed later.
+   The rules are as follows
+   1. If the tvsym argument is a variable and it has a _FillValue
+      attribute, then use that value.
+   2. If the tvsym argunment is a variable with no specified
+      _FillValue, then create one based on the variable's basetype.
+   3. If the tvsym argument is a type, then if it already has a fill value,
+      then use that, otherwise build and cache a fillvalue appropriate
+      for that type.
+*/
 
 Datalist*
 getfiller(Symbol* tvsym)
 {
     Datalist* filler = NULL;
-    Symbol* tsym = tvsym;
     ASSERT(tvsym->objectclass == NC_VAR || tvsym->objectclass == NC_TYPE);
     if(tvsym->objectclass == NC_VAR) {
-	tsym = tvsym->typ.basetype;
-        filler = dlcopy(tvsym->var.special._Fillvalue); /* get cached value (if any)*/
-    }
-    if(filler == NULL || tvsym->objectclass == NC_TYPE) {
-        filler = dlcopy(tvsym->typ._Fillvalue); /* get cached value (if any)*/
-    }
-    if(filler == NULL) { /* need to compute it*/
-        filler = builddatalist(0);
-	fill(tsym,filler);
+        if(tvsym->var.special->_Fillvalue !=  NULL) {
+	    /* We have a _FillValue Attribute specified */
+	    filler = tvsym->var.special->_Fillvalue;
+        } else { /* otherwise create a fillvalue for the base type */
+	    filler = getfiller(tvsym->typ.basetype);
+	}
+    } else { /* (tvsym->objectclass == NC_TYPE) */
+        if(tvsym->typ._Fillvalue ==  NULL) {
+	    /* create and cache */
+            filler = builddatalist(0);
+	    fill(tvsym,filler);
+	    tvsym->typ._Fillvalue = filler;
+	}
+	filler = tvsym->typ._Fillvalue;
     }
 #ifdef GENDEBUG2
     dumpdatalist(filler,"getfiller");
 #endif
-    if(tvsym->objectclass == NC_VAR) {
-        tvsym->var.special._Fillvalue = filler;
-    } else if(tvsym->objectclass == NC_TYPE) {
-        tvsym->typ._Fillvalue = filler; /* cache value*/
-    }
-    return filler;        
+    return filler;
 }
 
 static void
@@ -59,7 +66,7 @@ fill(Symbol* tsym, Datalist* filler)
     case NC_ENUM: case NC_OPAQUE: case NC_PRIM:
         con = nullconst();
         con->nctype = tsym->typ.typecode;
-        nc_getfill(con);
+        nc_getfill(con,tsym);
 	break;
     case NC_COMPOUND:
 	sublist = builddatalist(listlength(tsym->subnodes));
@@ -80,7 +87,6 @@ fill(Symbol* tsym, Datalist* filler)
     default: PANIC1("fill: unexpected subclass %d",tsym->subclass);
     }
     dlappend(filler,con);
-    freeconstant(con,DEEP);
 }
 
 static void
@@ -95,7 +101,7 @@ filllist(Symbol* tsym, Datalist* dl)
     case NC_ENUM: case NC_OPAQUE: case NC_PRIM:
         con = nullconst();
         con->nctype = tsym->typ.typecode;
-        nc_getfill(con);
+        nc_getfill(con,tsym);
 	dlappend(dl,con);
 	freeconstant(con,DEEP);
 	break;
@@ -155,7 +161,7 @@ fillarray(Symbol* basetype, Dimset* dimset, int index, Datalist* arraylist)
  * that type.
  */
 void
-nc_getfill(NCConstant* value)
+nc_getfill(NCConstant* value, Symbol* tsym)
 {
     switch(value->nctype) {
       case NC_CHAR: value->value.charv = NC_FILL_CHAR; break;
@@ -180,6 +186,33 @@ nc_getfill(NCConstant* value)
         value->value.opaquev.len = 2;
         value->value.opaquev.stringv = nulldup("00");
 	break;
+      case NC_ENUM: {
+	Symbol* econst;
+	NCConstant* eccon;
+	if(tsym == NULL)
+	    derror("nc_getfill: no enum type specified");
+	/* Get the first value */
+	if(tsym->subclass != NC_ENUM)
+	    derror("nc_getfill: expected enum type");
+	if(listlength(tsym->subnodes) == 0)
+	    derror("nc_getfill: empty enum type");
+	econst = listget(tsym->subnodes,0);
+	eccon = econst->typ.econst;
+	switch (eccon->nctype) {
+	case NC_BYTE:
+	case NC_SHORT:
+	case NC_INT:
+	case NC_UBYTE:
+	case NC_USHORT:
+	case NC_UINT:
+	case NC_INT64:
+	case NC_UINT64:
+	    value->value = eccon->value;
+	    break;
+	default:
+	    derror("nc_getfill: illegal enum basetype");
+	}
+      } break;
       default:
 	derror("nc_getfill: unrecognized type: %d",value->nctype);
     }

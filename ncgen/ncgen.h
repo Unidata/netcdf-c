@@ -200,7 +200,7 @@ typedef struct Typeinfo {
 typedef struct Varinfo {
     int		nattributes; /* |attributes|*/
     List*       attributes;  /* List<Symbol*>*/
-    Specialdata special;
+    Specialdata* special;
 } Varinfo;
 
 typedef struct Groupinfo {
@@ -218,7 +218,6 @@ typedef struct Reference {
 } Reference;
 
 typedef struct Symbol {  /* symbol table entry*/
-        struct Symbol*  next;    /* Linked list of all defined symbols*/
         nc_class        objectclass;  /* NC_DIM|NC_VLEN|NC_OPAQUE...*/
         nc_class        subclass;  /* NC_STRUCT|...*/
         char*           name;

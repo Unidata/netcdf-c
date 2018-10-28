@@ -63,7 +63,7 @@ extern char *progname;		/* for error messages */
 extern "C" {
 #endif
 
-#define NC_CHECK(fncall) {int statnc=fncall;if(statnc!=NC_NOERR)check(statnc,__FILE__,__LINE__);}
+#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,__FILE__,__LINE__);}
 
 /* Print error message to stderr and exit */
 extern void	error ( const char *fmt, ... );

@@ -99,6 +99,7 @@ tztrim(
     return;
 }
 
+#if 0
 /* Assume bytebuffer contains pointers to char**/
 void
 reclaimattptrs(void* buf, long count)
@@ -107,36 +108,45 @@ reclaimattptrs(void* buf, long count)
     char** ptrs = (char**)buf;
     for(i=0;i<count;i++) {free((void*)ptrs[i]);}
 }
+#endif
+
+static void
+freeSpecialdata(Specialdata* data)
+{
+    if(data == NULL) return;
+    reclaimdatalist(data->_Fillvalue);
+    if(data->_ChunkSizes)
+        free(data->_ChunkSizes);
+    if(data->_FilterParams)
+        free(data->_FilterParams);
+    free(data);
+}
 
 void
 freeSymbol(Symbol* sym)
 {
-#ifdef FIX
+    /* recurse first */
     switch (sym->objectclass) {
-    case NG_VAR:
-	reclaimconstlist(vsym->var.data);
-	if(vsym->var.dims != NULL) efree(vsym->var.dims);
+    case NC_VAR:
+	freeSpecialdata(sym->var.special);
+	listfree(sym->var.attributes);
 	break;
-    case NG_ATT:
-	if(asym->att.basetype == primsymbols[NC_STRING])
-  	    reclaimattptrs(asym->att.data,asym->att.count);
-	else
-	    efree(asym->att.data);
+    case NC_TYPE:
+	if(sym->typ.econst)
+	    reclaimconstant(sym->typ.econst);
+	if(sym->typ._Fillvalue)
+	    reclaimdatalist(sym->typ._Fillvalue);
 	break;
-    case NG_GRP:
-    case NG_DIM:
-    case NG_TYP:
-    case NG_ENUM:
-    case NG_ECONST:
-    case NG_VLEN:
-    case NG_STRUCT:
-    case NG_FIELD:
-    case NG_OPAQUE:
     default: break;
     }
-    efree(sym->name);
+    /* Universal */
+    if(sym->name) efree(sym->name);
+    if(sym->fqn) efree(sym->fqn);
+    listfree(sym->prefix);
+    if(sym->data)
+        reclaimdatalist(sym->data);
+    listfree(sym->subnodes);
     efree(sym);
-#endif
 }
 
 char* nctypenames[17] = {
@@ -523,18 +533,16 @@ getpadding(int offset, int alignment)
 static void
 reclaimSymbols(void)
 {
-    Symbol* sym;
-    for(sym=symlist;sym;) {
-	Symbol* next = sym->next;
+    int i;
+    for(i=0;i<listlength(symlist);i++) {
+        Symbol* sym = listget(symlist,i);
         freeSymbol(sym);
-	sym = next;
     }
 }
 
 void
 cleanup()
 {
-  reclaimalldatalists();
   reclaimSymbols();
 }
 

@@ -9,6 +9,8 @@
 #include        "ncoffsets.h"
 #include        "dump.h"
 
+#undef VERIFY
+
 #define XVSNPRINTF vsnprintf
 /*
 #define XVSNPRINTF lvsnprintf
@@ -31,7 +33,22 @@ Bytebuffer* stmt;
 
 
 /* Forward */
-static void reclaimdatalist(Datalist* list);
+static void setconstlist(NCConstant* con, Datalist* dl);
+
+#ifdef VERIFY
+/* index of match */
+static int
+verify(List* all, Datalist* dl)
+{
+    int i;
+    for(i=0;i<listlength(all);i++) {
+	void* pi = listget(all,i);
+	if(pi == dl)
+	    return i;
+    }
+    return -1;
+}
+#endif
 
 /**************************************************/
 /**************************************************/
@@ -39,7 +56,8 @@ static void reclaimdatalist(Datalist* list);
 NCConstant*
 nullconst(void)
 {
-    return cloneconstant(&nullconstant);
+    NCConstant* n = ecalloc(sizeof(NCConstant));
+    return n;
 }
 
 
@@ -134,7 +152,7 @@ list2const(Datalist* list)
     ASSERT(list != NULL);
     con->nctype = NC_COMPOUND;
     con->lineno = list->data[0]->lineno;
-    con->value.compoundv = list;
+    setconstlist(con,list);
     con->filled = 0;
     return con;
 }
@@ -250,7 +268,7 @@ srcsetfill(Datasrc* ds, Datalist* list)
     if(ds->index >= ds->length) PANIC("srcsetfill: no space");
     if(ds->data[ds->index]->nctype != NC_FILLVALUE) PANIC("srcsetfill: not fill");
     ds->data[ds->index]->nctype = NC_COMPOUND;
-    ds->data[ds->index]->value.compoundv = list;
+    setconstlist(ds->data[ds->index],list);
 }
 
 
@@ -274,6 +292,19 @@ report0(char* lead, Datasrc* src, int index)
 #endif
 
 /**************************************************/
+
+static void
+setconstlist(NCConstant* con, Datalist* dl)
+{
+#ifdef VERIFY
+    int pos = verify(alldatalists,dl);
+    if(pos >= 0) {
+        dumpdatalist(listget(alldatalists,pos),"XXX");
+    }
+#endif
+    con->value.compoundv = dl;
+}
+
 
 /* Deep constant cloning; return struct not pointer to struct*/
 NCConstant*
@@ -306,8 +337,8 @@ cloneconstant(NCConstant* con)
 	newcon->value.opaquev.stringv = s;
 	break;
     case NC_COMPOUND:
-	newdl = dlcopy(con->value.compoundv);
-	newcon->value.compoundv = newdl;
+	newdl = clonedatalist(con->value.compoundv);
+	setconstlist(newcon,newdl);
 	break;
     default: break;
     }
@@ -358,20 +389,6 @@ datalistclone(Datalist* dl)
 
 #if 0
 Datalist*
-datalistconcat(Datalist* dl1, Datalist* dl2)
-{
-    NCConstant** vector;
-    ASSERT(dl1 != NULL);
-    if(dl2 == NULL) return dl1;
-    vector = (NCConstant**)erealloc(dl1->data,sizeof(NCConstant*)*(dl1->length+dl2->length));
-    if(vector == NULL) return NULL;
-    memcpy((void*)(vector+dl1->length),dl2->data,sizeof(NCConstant*)*(dl2->length));
-    dl1->data = vector;
-    return dl1;
-}
-#endif
-
-Datalist*
 datalistappend(Datalist* dl, NCConstant* con)
 {
     NCConstant** vector;
@@ -394,6 +411,7 @@ datalistreplace(Datalist* dl, unsigned int index, NCConstant* con)
     dl->data[index] = cloneconstant(con);
     return dl;
 }
+#endif
 
 int
 datalistline(Datalist* ds)
@@ -705,7 +723,7 @@ emptycompoundconst(int lineno, NCConstant* c)
     ASSERT(c != NULL);
     c->lineno = lineno;
     c->nctype = NC_COMPOUND;
-    c->value.compoundv = builddatalist(0);
+    setconstlist(c,builddatalist(0));
     c->filled = 0;
     return c;    
 }
@@ -756,6 +774,13 @@ dlextend(Datalist* dl)
 }
 
 
+void
+capture(Datalist* dl)
+{
+    if(alldatalists == NULL) alldatalists = listnew();
+    listpush(alldatalists,dl);
+}
+
 Datalist*
 builddatalist(int initial)
 {
@@ -764,13 +789,7 @@ builddatalist(int initial)
     initial++; /* for header*/
     ci = (Datalist*)ecalloc(sizeof(Datalist));
     if(ci == NULL) semerror(0,"out of memory\n");
-    if(alldatalists == NULL) alldatalists = listnew();
-    listpush(alldatalists,ci);
-#if 0
-fprintf(stderr,"xx=%p\n",ci);
-#endif
     ci->data = (NCConstant**)ecalloc(sizeof(NCConstant*)*initial);
-    memset((void*)ci->data,0,sizeof(NCConstant*)*initial);
     ci->alloc = initial;
     ci->length = 0;
     return ci;
@@ -781,8 +800,14 @@ dlappend(Datalist* dl, NCConstant* constant)
 {
     if(dl->length >= dl->alloc)
 	dlextend(dl);
-    if(constant == NULL) constant = &nullconstant;
-    dl->data[dl->length++] = cloneconstant(constant);
+    dl->data[dl->length++] = (constant);
+}
+
+void
+dlset(Datalist* dl, size_t pos, NCConstant* constant)
+{
+    ASSERT(pos < dl->length);
+    dl->data[pos] = (constant);
 }
 
 NCConstant*
@@ -792,7 +817,7 @@ builddatasublist(Datalist* dl)
   NCConstant* d = nullconst();
   d->nctype = NC_COMPOUND;
   d->lineno = (dl->length > 0?dl->data[0]->lineno:0);
-  d->value.compoundv = dl;
+  setconstlist(d,dl);
   d->filled = 0;
   return d;
 
@@ -800,7 +825,7 @@ builddatasublist(Datalist* dl)
 
 /* Deep copy */
 Datalist*
-dlcopy(Datalist* dl)
+clonedatalist(Datalist* dl)
 {
     int i;
     size_t len;
@@ -809,18 +834,37 @@ dlcopy(Datalist* dl)
     if(dl == NULL) return NULL;
     len = datalistlen(dl);
     newdl = builddatalist(len);
-        /* initialize */
-        newdl->readonly = dl->readonly;
-        newdl->vlen = dl->vlen;
-        for(i=0;i<len;i++) {
-	    NCConstant* con = datalistith(dl,i);
-	    newdl->data[i] = cloneconstant(con);
-	}
+    /* initialize */
+    for(i=0;i<len;i++) {
+	NCConstant* con = datalistith(dl,i);
+	con = cloneconstant(con);
+	dlappend(newdl,con);
+    }
+#if 0
+    newdl->vlen = dl->vlen;
+#endif
+    newdl->readonly = dl->readonly;
     return newdl;
 }
 
+
 /* recursive helpers */
-static void
+
+#if 0
+static int
+isdup(Datalist* dl)
+{
+    int i;
+    size_t limit = listlength(alldatalists);
+    for(i=0;i<limit;i++) {
+	Datalist* di = listget(alldatalists,i);
+	if(di == dl) return 1;
+    }
+    return 0;
+}
+#endif
+
+void
 reclaimconstant(NCConstant* con)
 {
     if(con == NULL) return;
@@ -834,7 +878,19 @@ reclaimconstant(NCConstant* con)
 	    free(con->value.opaquev.stringv);
 	break;
     case NC_COMPOUND:
-	reclaimdatalist(con->value.compoundv);
+#ifdef VERIFY
+	{int pos;
+	if((pos=verify(alldatalists,con->value.compoundv)) >= 0) {
+	    dumpdatalist(listget(alldatalists,pos),"XXX");
+	    abort();
+	}
+	}
+#endif
+//	if(con->value.compoundv != NULL) {
+//	    if(!isdup(con->value.compoundv))
+//	        fprintf(stderr,"YYY\n");
+//	}
+        reclaimdatalist(con->value.compoundv);
 	con->value.compoundv = NULL;
 	break;
     default: break;
@@ -842,24 +898,19 @@ reclaimconstant(NCConstant* con)
     free(con);
 }
 
-static void
+void
 reclaimdatalist(Datalist* list)
 {
    int i;
    if(list == NULL) return;
-#if 0
-fprintf(stderr,"yy=%p\n",list);
-#endif
    if(list->data != NULL) {
-       for(i=0;i<datalistlen(list);i++) {
-	    NCConstant* con = datalistith(list,i);
-	    reclaimconstant(con);
+       for(i=0;i<list->length;i++) {
+	    NCConstant* con = list->data[i];
+	    if(con != NULL) reclaimconstant(con);
        }
-if(((unsigned long)list) < 1000)
-abort();
        free(list->data);
+       list->data = NULL;
    }
-   list->data = NULL;
    free(list);
 }
 
@@ -867,8 +918,26 @@ void
 reclaimalldatalists(void)
 {
     int i;
-    for(i=0;i<listlength(alldatalists);i++)
-	reclaimdatalist((Datalist*)listget(alldatalists,i));
+#if 0
+    int j;
+    /* Remove duplicates */
+    for(i=0;i<listlength(alldatalists);i++) {
+	Datalist* di = listget(alldatalists,i);
+	if(di == NULL) continue;
+        for(j=i;j<listlength(alldatalists);j++) {
+	    Datalist* dj = listget(alldatalists,j);
+	    if(dj == di) {
+	        listset(alldatalists,j,NULL);
+fprintf(stderr,"XXX\n");
+	    }
+        }
+    }
+#endif
+    for(i=0;i<listlength(alldatalists);i++) {
+        Datalist* di = listget(alldatalists,i);
+	if(di != NULL)
+	    reclaimdatalist(di);
+    }
     free(alldatalists);
     alldatalists = NULL;    
 }

@@ -47,7 +47,7 @@ typedef nc_vlen_t vlen_t;
 /* We retain the old representation of the symbol list
    as a linked list.
 */
-Symbol* symlist;
+List* symlist;
 
 /* Track rootgroup separately*/
 Symbol* rootgroup;
@@ -465,10 +465,10 @@ dimdecl:
 	  dimd '=' constint
               {
 		$1->dim.declsize = (size_t)extractint($3);
-		freeconst($3);
 #ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = %llu\n",$1->name,(unsigned long long)$1->dim.declsize);
 #endif
+		reclaimconstant($3);
 	      }
         | dimd '=' NC_UNLIMITED_K
                    {
@@ -519,6 +519,9 @@ vardecl:        typeref varlist
 		  	    sym->typ.basetype = $1;
 	                    addtogroup(sym);
 		            listpush(vardefs,(void*)sym);
+			    sym->var.special = ecalloc(sizeof(Specialdata));
+			    if(sym->var.special == NULL)
+			        derror("out of memory");
 			}
 		    }
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
@@ -537,6 +540,7 @@ varspec:        ident dimspec
                     {
 		    int i;
 		    Dimset dimset;
+		    Symbol* var = $1; /* for debugging */
 		    stacklen=listlength(stack);
 		    stackbase=$2;
 		    count = stacklen - stackbase;
@@ -552,11 +556,12 @@ varspec:        ident dimspec
 			    Symbol* dsym = (Symbol*)listget(stack,stackbase+i);
 			    dimset.dimsyms[i] = dsym;
 			}
-			$1->typ.dimset = dimset;
+			var->typ.dimset = dimset;
 		    }
-		    $1->typ.basetype = NULL; /* not yet known*/
-                    $1->objectclass=NC_VAR;
+		    var->typ.basetype = NULL; /* not yet known*/
+                    var->objectclass=NC_VAR;
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
+		    $$ = var;
 		    }
                 ;
 
@@ -714,11 +719,11 @@ attrdecllist: /*empty*/ {} | attrdecl ';' attrdecllist {} ;
 
 attrdecl:
 	  ':' _NCPROPS '=' conststring
-	    {$$ = makespecial(_NCPROPS_FLAG,NULL,NULL,(void*)$4,ISCONST);freeconst($4);}
+	    {$$ = makespecial(_NCPROPS_FLAG,NULL,NULL,(void*)$4,ISCONST);}
 	| ':' _ISNETCDF4 '=' constbool
-	    {$$ = makespecial(_ISNETCDF4_FLAG,NULL,NULL,(void*)$4,ISCONST);freeconst($4);}
+	    {$$ = makespecial(_ISNETCDF4_FLAG,NULL,NULL,(void*)$4,ISCONST);}
 	| ':' _SUPERBLOCK '=' constint
-	    {$$ = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)$4,ISCONST);freeconst($4);}
+	    {$$ = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)$4,ISCONST);}
 	| ':' ident '=' datalist
 	    { $$=makeattribute($2,NULL,NULL,$4,ATTRGLOBAL);}
 	| typeref type_var_ref ':' ident '=' datalist
@@ -746,23 +751,23 @@ attrdecl:
 	| typeref type_var_ref ':' _FILLVALUE '=' datalist
 	    {$$ = makespecial(_FILLVALUE_FLAG,$2,$1,(void*)$6,ISLIST);}
 	| type_var_ref ':' _STORAGE '=' conststring
-	    {$$ = makespecial(_STORAGE_FLAG,$1,NULL,(void*)$5,ISCONST);freeconst($5);}
+	    {$$ = makespecial(_STORAGE_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _CHUNKSIZES '=' intlist
 	    {$$ = makespecial(_CHUNKSIZES_FLAG,$1,NULL,(void*)$5,ISLIST);}
 	| type_var_ref ':' _FLETCHER32 '=' constbool
-	    {$$ = makespecial(_FLETCHER32_FLAG,$1,NULL,(void*)$5,ISCONST);freeconst($5);}
+	    {$$ = makespecial(_FLETCHER32_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _DEFLATELEVEL '=' constint
-	    {$$ = makespecial(_DEFLATE_FLAG,$1,NULL,(void*)$5,ISCONST);freeconst($5);}
+	    {$$ = makespecial(_DEFLATE_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _SHUFFLE '=' constbool
-	    {$$ = makespecial(_SHUFFLE_FLAG,$1,NULL,(void*)$5,ISCONST);freeconst($5);}
+	    {$$ = makespecial(_SHUFFLE_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _ENDIANNESS '=' conststring
-	    {$$ = makespecial(_ENDIAN_FLAG,$1,NULL,(void*)$5,ISCONST);freeconst($5);}
+	    {$$ = makespecial(_ENDIAN_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _FILTER '=' conststring
-	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)$5,ISCONST);freeconst($5);}
+	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _NOFILL '=' constbool
-	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)$5,ISCONST);freeconst($5);}
+	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ':' _FORMAT '=' conststring
-	    {$$ = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)$4,ISCONST);freeconst($4);}
+	    {$$ = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)$4,ISCONST);}
 	;
 
 path:
@@ -804,9 +809,9 @@ datalist0:
 	;
 
 datalist1: /* Must have at least 1 element */
-	  dataitem {$$ = const2list($1); freeconst(($1));}
+	  dataitem {$$ = const2list($1);}
 	| datalist ',' dataitem
-	    {dlappend($1,($3)); $$=$1; freeconst(($3));}
+	    {dlappend($1,($3)); $$=$1; }
 	;
 
 dataitem:
@@ -833,9 +838,9 @@ function:
 
 arglist:
 	  simpleconstant
-	    {$$ = const2list($1); freeconstant(($1),DEEP); }
+	    {$$ = const2list($1);}
 	| arglist ',' simpleconstant
-	    {dlappend($1,($3)); $$=$1; freeconstant(($3),DEEP);}
+	    {dlappend($1,($3)); $$=$1;}
 	;
 
 simpleconstant:
@@ -854,8 +859,8 @@ simpleconstant:
 	;
 
 intlist:
-	  constint {$$ = const2list($1); freeconst($1);}
-	| intlist ',' constint {$$=$1; dlappend($1,($3));freeconst($3);}
+	  constint {$$ = const2list($1);}
+	| intlist ',' constint {$$=$1; dlappend($1,($3));}
 	;
 
 constint:
@@ -922,7 +927,7 @@ parse_init(void)
     int i;
     opaqueid = 0;
     arrayuid = 0;
-    symlist = NULL;
+    symlist = listnew();
     stack = listnew();
     groupstack = listnew();
     consttype = NC_NAT;
@@ -967,11 +972,10 @@ install(const char *sname)
     Symbol* sp;
     sp = (Symbol*) ecalloc (sizeof (struct Symbol));
     sp->name = nulldup(sname);
-    sp->next = symlist;
     sp->lineno = lineno;
     sp->location = currentgroup();
     sp->container = currentgroup();
-    symlist = sp;
+    listpush(symlist,sp);
     return sp;
 }
 
@@ -1035,8 +1039,7 @@ makeconstdata(nc_type nctype)
 	    size_t len;
 	    len = bbLength(lextext);
 	    con->value.stringv.len = len;
-	    con->value.stringv.stringv = bbDup(lextext);
-	    bbClear(lextext);
+	    con->value.stringv.stringv = bbExtract(lextext);
 	    }
 	    break;
 
@@ -1254,19 +1257,28 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	    globalspecials._IsNetcdf4 = tf;
 	else if(tag == _SUPERBLOCK_FLAG)
 	    globalspecials._Superblock = idata;
-	else if(tag == _NCPROPS_FLAG)
-	    globalspecials._NCProperties = estrdup(sdata);
+	else if(tag == _NCPROPS_FLAG) {
+	    globalspecials._NCProperties = sdata;
+	    sdata = NULL;
+	}	    
     } else {
         Specialdata* special;
         /* Set up special info */
-        special = &vsym->var.special;
+	if(vsym->var.special == NULL) {
+            vsym->var.special = ecalloc(sizeof(Specialdata));
+	    if(vsym->var.special == NULL)
+	        derror("Out of memory");
+	}
+        special = vsym->var.special;
         if(tag == _FILLVALUE_FLAG) {
             /* fillvalue must be a single value*/
 	    if(!isconst && datalistlen(list) != 1)
                 derror("_FillValue: must be a single (possibly compound) value",
                             vsym->name);
-	    list = (isconst ? const2list(con) : list);
-            special->_Fillvalue = dlcopy(list);
+	    if(isconst) {
+	        list = const2list(con);
+		con = NULL;
+	    }
             /* check that the attribute value contains no fill values*/
             if(containsfills(list)) {
                 derror("Attribute data may not contain fill values (i.e. _ )");
@@ -1279,7 +1291,10 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             else if(vsym->typ.basetype != tsym) {
                 derror("_FillValue attribute type does not match variable type: %s",vsym->name);
             }
+            special->_Fillvalue = clonedatalist(list);
+	    /* Create the corresponding attribute */
             attr = makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
+	    list = NULL;
         } else switch (tag) {
 	    /* These will be output as attributes later */
             case _STORAGE_FLAG:
@@ -1352,13 +1367,15 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 		    derror("_Filter: unparseable filter spec: %s",sdata);
 		}
 #else
-        derror("%s: the filter attribute requires netcdf-4 to be enabled",specialname(tag));
+	        derror("%s: the filter attribute requires netcdf-4 to be enabled",specialname(tag));
 #endif
                 break;
             default: PANIC1("makespecial: illegal token: %d",tag);
          }
     }
     if(sdata) free(sdata);
+    if(con) reclaimconstant(con);
+    if(list) reclaimdatalist(list);
     return attr;
 }
 

@@ -95,7 +95,7 @@ gen_ncc(const char *filename)
         for(ivar=0;ivar<nvars;ivar++) {
             Bytebuffer* tmp = bbNew();
             Symbol* var = (Symbol*)listget(vardefs,ivar);
-            Specialdata* special = &var->var.special;
+            Specialdata* special = var->var.special;
             if(special->flags & _CHUNKSIZES_FLAG) {
                 int i;
                 size_t* chunks = special->_ChunkSizes;
@@ -448,7 +448,7 @@ genc_defineglobalspecials(void)
 static void
 genc_definespecialattributes(Symbol* vsym)
 {
-    Specialdata* special = &vsym->var.special;
+    Specialdata* special = vsym->var.special;
     if(usingclassic) return;
     if(special->flags & _STORAGE_FLAG) {
         int storage = special->_Storage;

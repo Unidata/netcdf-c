@@ -281,7 +281,7 @@ generate_arrayr(Symbol* vsym,
     return;
 }
 
-/* Generate an instance of the basetype */
+/* Generate an instance of the basetype using the value of con*/
 void
 generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* filler, Generator* generator)
 {
@@ -459,7 +459,7 @@ static void
 generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
                   Datalist* filler, Generator* generator)
 {
-    NCConstant target;
+    NCConstant* target;
     int match;
 
     if(prim == NULL || isfillconst(prim)) {
@@ -516,24 +516,26 @@ generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
                  basetype->name);
     }
 
-    target.nctype = basetype->typ.typecode;
+    target = nullconst();
+    target->nctype = basetype->typ.typecode;
 
-    if(target.nctype != NC_ECONST) {
-        convert1(prim,&target);
+    if(target->nctype != NC_ECONST) {
+        convert1(prim,target);
     }
 
-    switch (target.nctype) {
+    switch (target->nctype) {
     case NC_ECONST:
         if(basetype->subclass != NC_ENUM) {
             semerror(constline(prim),"Conversion to enum not supported (yet)");
         } break;
      case NC_OPAQUE:
-        normalizeopaquelength(&target,basetype->typ.size);
+        normalizeopaquelength(target,basetype->typ.size);
         break;
     default:
         break;
     }
-    generator->constant(generator,basetype,&target,codebuf);
-    clearconstant(&target);
+    generator->constant(generator,basetype,target,codebuf);
+    freeconst(target);
+    target = NULL;
     return;
 }

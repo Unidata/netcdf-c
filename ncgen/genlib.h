@@ -59,7 +59,7 @@ extern void nestedfqn(Symbol* sym);
 extern void attfqn(Symbol* sym);
 
 /* from: escapes.c */
-extern int unescape(char*, const char*, int, int);
+extern int unescape(const char*, int, int, char**);
 extern int unescapeoct(const char* s);
 extern int unescapehex(const char* s);
 extern char* cescapifychar(unsigned int c, int quote);
@@ -73,9 +73,10 @@ extern char* xescapify(char* s0, int quote, size_t len);
 extern char* jescapify(char* s0, int quote, size_t len);
 extern char* jescapifyname(char* s0);
 extern char* fqnescape(const char* s);
+extern char* esc_strchr(char* s, int c, int octhex);
 
 /* from: getfill.c */
-extern void nc_getfill(NCConstant*);
+extern void nc_getfill(NCConstant*,Symbol*);
 extern char* nc_dfaltfillname(nc_type);
 extern struct Datalist* getfiller(Symbol*); /* symbol isa variable|type */
 
@@ -163,7 +164,7 @@ extern GlobalSpecialData globalspecials;
 
 /* Global data */
 
-extern Symbol* symlist;      /* all symbol objects created */
+extern List* symlist;      /* all symbol objects created */
 extern Symbol* rootgroup;
 
 /* Track definitions of dims, types, attributes, and vars*/

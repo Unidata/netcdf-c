@@ -33,7 +33,7 @@ convert1(NCConstant* src, NCConstant* dst)
     /* special case for src being NC_FILLVALUE*/
     if(src->nctype == NC_FILLVALUE) {
 	if(dst->nctype != NC_FILLVALUE) {
-	    nc_getfill(dst);
+	    nc_getfill(dst,NULL);
 	} 
 	return;
     }

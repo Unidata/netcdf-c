@@ -277,3 +277,17 @@ bbNull(Bytebuffer* bb)
     bb->length--;
     return 1;
 }
+
+/* Extract the content and leave content null */
+char*
+bbExtract(Bytebuffer* bb)
+{
+    char* x = NULL;
+    if(bb == NULL || bb->content == NULL)
+        return NULL;
+    x = bb->content;
+    bb->content = NULL;
+    bb->length = 0;
+    bb->alloc = 0;
+    return x;
+}

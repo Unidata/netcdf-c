@@ -64,11 +64,13 @@ typedef struct Datalist {
     NCConstant**     data; /* actual list of constants constituting the datalist*/
     /* Track various values associated with the datalist*/
     /* (used to be in Constvalue.compoundv)*/
+#if 0
     struct Vlen {
         struct Symbol* schema; /* type/var that defines structure of this*/
         unsigned int count; /* # of vlen basetype instances*/
 	unsigned int uid;       /* unique id for NC_VLEN*/
     } vlen;
+#endif
 } Datalist;
 
 /* Define a structure to track
@@ -93,12 +95,16 @@ extern List* alldatalists;
 
 /* from: data.c */
 extern Datalist* builddatalist(int initialize);
+extern void capture(Datalist* dl);
 extern void dlappend(Datalist*, NCConstant*);
+extern void dlset(Datalist*, size_t, NCConstant*);
 extern NCConstant* builddatasublist(Datalist* dl);
 extern void dlextend(Datalist* dl);
 extern void dlsetalloc(Datalist* dl, size_t newalloc);
-extern Datalist* dlcopy(Datalist* dl);
+extern Datalist* clonedatalist(Datalist* dl);
 extern void reclaimalldatalists(void);
+extern void reclaimdatalist(Datalist*);
+extern void reclaimconstant(NCConstant*);
 
 int       datalistline(Datalist*);
 #define   datalistith(dl,i) ((dl)==NULL?NULL:((i) >= (dl)->length?NULL:(dl)->data[i]))

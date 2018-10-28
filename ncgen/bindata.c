@@ -89,7 +89,6 @@ bin_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf
             bbAppendn(buf,(void*)&nil,sizeof(nil));
 	} else {
             char* ptr = (char*)ecalloc(len+1);
-	    listpush(tbr,ptr);
 	    memcpy(ptr,con->value.stringv.stringv,len);
 	    ptr[len] = '\0';
             bbAppendn(buf,(void*)&ptr,sizeof(ptr));
@@ -145,7 +144,6 @@ bin_vlendecl(Generator* generator, Symbol* tsym, Bytebuffer* buf, int uid, size_
     va_end(ap);
     ptr.len = count;
     ptr.p = bbDup(vlenmem);
-    listpush(tbr,ptr.p);
     bbAppendn(buf,(char*)&ptr,sizeof(ptr));
     return 1;
 }
@@ -162,7 +160,6 @@ bin_vlenstring(Generator* generator, Symbol* sym, Bytebuffer* codebuf, int* uidp
     va_end(ap);
     ptr.len = bbLength(vlenmem);
     ptr.p = bbDup(vlenmem);
-    listpush(tbr,ptr.p);
     bbAppendn(codebuf,(char*)&ptr,sizeof(ptr));
     return 1;
 }

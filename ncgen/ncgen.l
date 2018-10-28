@@ -90,7 +90,7 @@ static unsigned int MAX_UINT = NC_MAX_UINT;
 
 char errstr[100];		/* for short error messages */
 
-int lineno;              /* line number for error messages */
+int lineno;                    /* line number for error messages */
 Bytebuffer* lextext;           /* name or string with escapes removed */
 
 #define YY_BREAK                /* defining as nothing eliminates unreachable
@@ -224,7 +224,7 @@ USASCII   [\x01-\x7F]
                           break;
                         }
 
-\"{nonquotes}\"		{int len;
+\"{nonquotes}\"		{int len; char* s = NULL;
 			 /* In netcdf4, this will be used in a variety
                             of places, so only remove escapes */
 /*
@@ -233,18 +233,15 @@ yyerror("string too long, truncated\n");
 yytext[MAXTRST-1] = '\0';
 }
 */
-		        /* FIX: Assumes unescape also does normalization */
-			bbSetalloc(lextext,yyleng+1); /*+1 for nul */
-			/* Adjust length */
-		        bbSetlength(lextext,yyleng-2); /*-2 for quotes */
-			len = unescape(bbContents(lextext),
-                                       (char *)yytext+1,yyleng-2,!ISIDENT);
+			len = unescape((char *)yytext+1,yyleng-2,!ISIDENT,&s);
 			if(len < 0) {
 			    sprintf(errstr,"Illegal character: %s",yytext);
 			    yyerror(errstr);
 			}
-			bbSetlength(lextext,len);
+			bbClear(lextext);
+			bbAppendn(lextext,s,len);
 			bbNull(lextext);
+			if(s) free(s);
 		 	return lexdebug(TERMSTRING);
 		        }
 
@@ -364,15 +361,15 @@ NIL|nil|Nil {
 		    return lexdebug(DATASETID);
 		}
 
-{ID}		{ char* id; int len;
-		    bbClear(lextext);
-		    bbAppendn(lextext,(char*)yytext,yyleng+1); /* include null */
-		    bbNull(lextext);
-		    id = bbContents(lextext);
-		    len = unescape(id,id,bbLength(lextext),ISIDENT);
-		    bbSetlength(lextext,len);
-		    if (NCSTREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
+{ID}		{ char* id = NULL; int len;
+		    len = strlen(yytext);
+		    len = unescape(yytext,len,ISIDENT,&id);
+		    if(NCSTREQ(id, FILL_STRING)) {
+			free(id);
+		        return lexdebug(FILLMARKER);
+		    }
 		    yylval.sym = install(id);
+		    free(id);
 		    return lexdebug(IDENT);
 		}
 
@@ -608,43 +605,35 @@ makepath(char* text0)
         List* prefix = listnew();
 	/* split the text into IDENT chunks, convert to symbols */
         Symbol* container = rootgroup;
-	char *ident, *p;
+	char *ident, *p, *match;
         char* text = estrdup(text0);
-	int c,lastident;
+	int lastident;
+
 	ident=text+1; p=ident; /* skip leading '/' */
+	lastident = 0;
 	do {
-	    lastident = 0;
-	    switch ((c=*p)) {
-	    default: p++; break;
-	    case '\\': p++; if(*p == '/') p++; break;
-	    case '\0': /* treat null terminator like trailing '/' (mostly) */
-		lastident=1; /* this is the last ident in the path */
-		/*fall thru */
-	    case '/':
-		*p='\0';
-		if(!lastident) {
-		    unescape(ident,ident,strlen(ident),ISIDENT);
-		    refsym = lookupingroup(NC_GRP,ident,container);
-		    if(refsym == NULL) {
-		        sprintf(errstr,"Undefined or forward referenced group: %s",ident);
-		        yyerror(errstr);
-			refsym = rootgroup;
-		    } else {
-		        listpush(prefix,(void*)refsym);
-		    }
-		} else { /* lastident is true */
-		    unescape(ident,ident,strlen(ident),ISIDENT);
-		    refsym = install(ident);
-		    refsym->objectclass = NC_GRP;/* tentative */
-		    refsym->ref.is_ref = 1;
-		    refsym->container = container;
-		    refsym->subnodes = listnew();
-		}
-		container = refsym;
-	        ident=p+1; p=ident;
-	        break;
+	    match = esc_strchr(p,'/',0);
+	    lastident = (*match == '\0');
+	    *p='\0';
+	    (void)unescape(p,strlen(p),ISIDENT,&ident);
+	    refsym = lookupingroup(NC_GRP,ident,container);
+	    if(!lastident) {
+	        if(refsym == NULL) {
+	            sprintf(errstr,"Undefined or forward referenced group: %s",ident);
+	            yyerror(errstr);
+		    refsym = rootgroup;
+	        } else
+	             listpush(prefix,(void*)refsym);
+	    } else {/* lasiident is true */
+		refsym = install(ident); /* create as symbol */
+	        refsym->objectclass = NC_GRP;/* tentative */
+		refsym->ref.is_ref = 1;
+		refsym->container = container;
+		refsym->subnodes = listnew();
 	    }
-	} while(c != '\0');
+   	    container = refsym;
+	    p = (lastident?match:match+1);
+	} while(!lastident);
         refsym->prefix = prefix;
 	free(text);
     }

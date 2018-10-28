@@ -52,6 +52,10 @@ int optind;
 #include "nc4internal.h" /* to get name of the special properties file */
 #endif
 
+#ifdef USE_DAP
+extern int nc__testurl(const char*,char**);
+#endif
+
 #define XML_VERSION "1.0"
 
 #define int64_t long long
@@ -2127,6 +2131,7 @@ void adapt_url_for_cache(char **pathp) {
 int
 main(int argc, char *argv[])
 {
+    int ncstat = NC_NOERR;
     int c;
     int i;
     int max_len = 80;		/* default maximum line length */
@@ -2135,6 +2140,10 @@ main(int argc, char *argv[])
     bool_t kind_out = false;	/* if true, just output kind of netCDF file */
     bool_t kind_out_extended = false;	/* output inq_format vs inq_format_extended */
     int Xp_flag = 0;    /* indicate that -Xp flag was set */
+    char* path = NULL;
+    char errmsg[4096];
+	
+    errmsg[0] = '\0';
 
 #if defined(WIN32) || defined(msdos) || defined(WIN64)
     putenv("PRINTF_EXPONENT_DIGITS=2"); /* Enforce unix/linux style exponent formatting. */
@@ -2180,7 +2189,8 @@ main(int argc, char *argv[])
 	      formatting_specs.data_lang = LANG_F;
 	      break;
 	    default:
-	      error("invalid value for -b option: %s", optarg);
+	      snprintf(errmsg,sizeof(errmsg),"invalid value for -b option: %s", optarg);
+	      goto fail;
 	  }
 	  break;
 	case 'f':		/* full comments in data section */
@@ -2193,13 +2203,15 @@ main(int argc, char *argv[])
 	      formatting_specs.data_lang = LANG_F;
 	      break;
 	    default:
-	      error("invalid value for -f option: %s", optarg);
+	      snprintf(errmsg,sizeof(errmsg),"invalid value for -f option: %s", optarg);
+	      goto fail;
 	  }
 	  break;
 	case 'l':		/* maximum line length */
 	  max_len = (int) strtol(optarg, 0, 0);
 	  if (max_len < 10) {
-	      error("unreasonably small line length specified: %d", max_len);
+	      snprintf(errmsg,sizeof(errmsg),"unreasonably small line length specified: %d", max_len);
+	      goto fail;
 	  }
 	  break;
 	case 'v':		/* variable names */
@@ -2252,8 +2264,8 @@ main(int argc, char *argv[])
 	      Xp_flag = 1; /* record that this flag was set */
 	      break;
 	    default:
-	      error("invalid value for -X option: %s", optarg);
-	      break;
+	      snprintf(errmsg,sizeof(errmsg),"invalid value for -X option: %s", optarg);
+	      goto fail;
 	  }
 	  break;
         case 'L':
@@ -2297,26 +2309,21 @@ main(int argc, char *argv[])
 
     init_epsilons();
 
-    {
-        char *path = strdup(argv[i]);
-	if(!path) {
-	    error("out of memory copying argument %s", argv[i]);
-	    exit(EXIT_FAILURE);
-	}
-	if (!nameopt)
-	    formatting_specs.name = name_path(path);
-	if (argc > 0) {
-	    int ncid, nc_status;
-	    /* If path is a URL, prefix with client-side directive to
-	     * make ncdump reasonably efficient */
+    path = strdup(argv[i]);
+    if(!path) {
+	snprintf(errmsg,sizeof(errmsg),"out of memory copying argument %s", argv[i]);
+	goto fail;
+    }
+    if (!nameopt)
+        formatting_specs.name = name_path(path);
+    if (argc > 0) {
+        int ncid;
+	/* If path is a URL, prefix with client-side directive to
+         * make ncdump reasonably efficient */
 #ifdef USE_DAP
-	    if(formatting_specs.with_cache) /* by default, don't use cache directive */
-	    {
-		extern int nc__testurl(const char*,char**);
-		/* See if this is a url */
-		if(nc__testurl(path, NULL)) {
+	    if(formatting_specs.with_cache) { /* by default, don't use cache directive */
+		if(nc__testurl(path, NULL)) /* See if this is a url */
 		    adapt_url_for_cache(&path);
-		}
 		/* else fall thru and treat like a file path */
 	    }
 #endif /*USE_DAP*/
@@ -2324,21 +2331,16 @@ main(int argc, char *argv[])
 #if 0
 		size_t size = 0;
 		void* mem = NULL;
-		nc_status = fileopen(path,&mem,&size);
-		if(nc_status == NC_NOERR)
-	            nc_status = nc_open_mem(path,NC_INMEMORY,size,mem,&ncid);
+		ncstat = fileopen(path,&mem,&size);
+		if(ncstat == NC_NOERR)
+	            ncstat = nc_open_mem(path,NC_INMEMORY,size,mem,&ncid);
 #else
-	        nc_status = nc_open(path,NC_DISKLESS|NC_NOWRITE,&ncid);
+	        ncstat = nc_open(path,NC_DISKLESS|NC_NOWRITE,&ncid);
 #endif
-	    } else
-	        nc_status = nc_open(path, NC_NOWRITE, &ncid);
-	    if (nc_status != NC_NOERR) {
-		char tmp[4096];
-		snprintf(tmp,sizeof(tmp),"%s: %s", path, nc_strerror(nc_status));
-		if(path) free(path);
-		error("%s",tmp);
-		exit(EXIT_FAILURE);
-	    }
+	    } else /* just a file */
+	        ncstat = nc_open(path, NC_NOWRITE, &ncid);
+	    if (ncstat != NC_NOERR) goto fail;
+	    
 	    NC_CHECK( nc_inq_format(ncid, &formatting_specs.nc_kind) );
 	    NC_CHECK( nc_inq_format_extended(ncid,
                                              &formatting_specs.nc_extended,
@@ -2352,25 +2354,20 @@ main(int argc, char *argv[])
 		init_types(ncid);
 		/* Check if any vars in -v don't exist */
 		if(missing_vars(ncid, formatting_specs.nlvars, formatting_specs.lvars)) {
-		    if(path) free(path);
-		    exit(EXIT_FAILURE);
+		    snprintf(errmsg,sizeof(errmsg),"-v: non-existent variables");
+		    goto fail;
 		}
 		if(formatting_specs.nlgrps > 0) {
-		    if(formatting_specs.nc_kind != NC_FORMAT_NETCDF4) {
-		        if(path) free(path);
-		        error("Group list (-g ...) only permitted for netCDF-4 file");
-			exit(EXIT_FAILURE);
-		    }
+		    if(formatting_specs.nc_kind != NC_FORMAT_NETCDF4)
+			goto fail;
 		    /* Check if any grps in -g don't exist */
 		    if(grp_matches(ncid, formatting_specs.nlgrps, formatting_specs.lgrps, formatting_specs.grpids) == 0)
-		        if(path) free(path);
-			exit(EXIT_FAILURE);
+			goto fail;
 		}
 		if (xml_out) {
 		    if(formatting_specs.nc_kind == NC_FORMAT_NETCDF4) {
-		        if(path) free(path);
-			error("NcML output (-x) currently only permitted for netCDF classic model");
-			exit(EXIT_FAILURE);
+			snprintf(errmsg,sizeof(errmsg),"NcML output (-x) currently only permitted for netCDF classic model");
+			goto fail;
 		    }
 		    do_ncdumpx(ncid, path);
 		} else {
@@ -2378,8 +2375,16 @@ main(int argc, char *argv[])
 		}
 	    }
 	    NC_CHECK( nc_close(ncid) );
-	}
-	if(path) free(path);
     }
+    if(path) {free(path); path = NULL;}
     exit(EXIT_SUCCESS);
+
+fail: /* ncstat failures */
+    path = (path?path:strdup("<unknown>"));
+    if(ncstat && strlen(errmsg) == 0)
+	snprintf(errmsg,sizeof(errmsg),"%s: %s", path, nc_strerror(ncstat));
+    if(strlen(errmsg) > 0)
+	error("%s: %s", path, errmsg);
+    if(path) free(path);
+    exit(EXIT_FAILURE);
 }

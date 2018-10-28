@@ -376,8 +376,9 @@ tagvlentypes(Symbol* tsym)
 static void
 filltypecodes(void)
 {
-    Symbol* sym;
-    for(sym=symlist;sym != NULL;sym = sym->next) {
+    int i;
+    for(i=0;i<listlength(symlist);i++) {
+        Symbol* sym = listget(symlist,i);
 	if(sym->typ.basetype != NULL && sym->typ.typecode == NC_NAT)
 	    sym->typ.typecode = sym->typ.basetype->typ.typecode;
     }
@@ -765,7 +766,9 @@ processattributes(void)
 		/* Generate a default fill value */
 	        asym->data = getfiller(asym->typ.basetype);
 	    }
-	    asym->att.var->var.special._Fillvalue = asym->data;
+	    if(asym->att.var->var.special->_Fillvalue != NULL)
+	    	reclaimdatalist(asym->att.var->var.special->_Fillvalue);
+	    asym->att.var->var.special->_Fillvalue = clonedatalist(asym->data);
 	} else if(asym->typ.basetype == NULL) {
 	    inferattributetype(asym);
 	}
