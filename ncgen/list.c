@@ -3,8 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "list.h"
+#include "includes.h"
 
 int listnull(void* e) {return e == NULL;}
 
@@ -27,7 +26,7 @@ List* listnew(void)
     initialized = 1;
   }
 */
-  l = (List*)malloc(sizeof(List));
+  l = (List*)emalloc(sizeof(List));
   if(l) {
     l->alloc=0;
     l->length=0;
@@ -41,8 +40,8 @@ listfree(List* l)
 {
   if(l) {
     l->alloc = 0;
-    if(l->content != NULL) {free(l->content); l->content = NULL;}
-    free(l);
+    if(l->content != NULL) {efree(l->content); l->content = NULL;}
+    efree(l);
   }
   return TRUE;
 }
@@ -54,11 +53,11 @@ listsetalloc(List* l, unsigned long sz)
   if(l == NULL) return FALSE;
   if(sz <= 0) {sz = (l->length?2*l->length:DEFAULTALLOC);}
   if(l->alloc >= sz) {return TRUE;}
-  newcontent=(void**)calloc(sz,sizeof(void*));
+  newcontent=(void**)ecalloc(sz*sizeof(void*));
   if(newcontent != NULL && l->alloc > 0 && l->length > 0 && l->content != NULL) {
     memcpy((void*)newcontent,(void*)l->content,sizeof(void*)*l->length);
   }
-  if(l->content != NULL) free(l->content);
+  if(l->content != NULL) efree(l->content);
   l->content=newcontent;
   l->alloc=sz;
   return TRUE;
@@ -146,7 +145,7 @@ listremove(List* l, unsigned long i)
 void**
 listdup(List* l)
 {
-    void** result = (void**)malloc(sizeof(void*)*(l->length+1));
+    void** result = (void**)emalloc(sizeof(void*)*(l->length+1));
     memcpy((void*)result,(void*)l->content,sizeof(void*)*l->length);
     result[l->length] = (void*)0;
     return result;

@@ -50,10 +50,12 @@ The wrapped version:
 3. zeros all allocated memory.
 */
 
+#define emalloc(x) chkmalloc(x) /*note only single arg */
 #define ecalloc(x) chkcalloc(x) /*note only single arg */
 #define erealloc(p,x)   chkrealloc(p,x)
 #define efree(x) chkfree(x)
 #define estrdup(x) chkstrdup(x)
+extern void* chkmalloc(size_t);
 extern void* chkcalloc(size_t);
 extern void* chkrealloc(void*,size_t);
 extern void  chkfree(void*);

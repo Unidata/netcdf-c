@@ -57,4 +57,7 @@ extern int specialconstants;
 #undef ITERBUG
 #undef CHARBUG
 
+#undef nullfree
+#define nullfree(x) {if((x)) free(x);}
+
 #endif /* NCGEN_INCLUDES_H */

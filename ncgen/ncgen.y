@@ -953,7 +953,7 @@ makeprimitivetype(nc_type nctype)
     Symbol* sym = install(primtypenames[nctype]);
     sym->objectclass=NC_TYPE;
     sym->subclass=NC_PRIM;
-    sym->ncid = nctype;
+    sym->nc_id = nctype;
     sym->typ.typecode = nctype;
     sym->typ.size = ncsize(nctype);
     sym->typ.nelems = 1;
@@ -1199,7 +1199,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	tmp->nctype = (con->nctype == NC_STRING?NC_STRING:NC_INT);
 	convert1(con,tmp);
 	tf = truefalse(tmp,tag);
-	freeconst(tmp);
+	reclaimconstant(tmp);
 	break;
     case _FORMAT_FLAG:
     case _STORAGE_FLAG:
@@ -1215,7 +1215,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	    tmp->value.stringv.len = 0;
 	} else
 	    derror("%s: illegal value",specialname(tag));
-	freeconst(tmp);
+	reclaimconstant(tmp);
 	break;
     case _SUPERBLOCK_FLAG:
     case _DEFLATE_FLAG:
@@ -1226,7 +1226,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	    idata = tmp->value.int32v;
 	else
 	    derror("%s: illegal value",specialname(tag));
-	freeconst(tmp);
+	reclaimconstant(tmp);
 	break;
     case _CHUNKSIZES_FLAG:
     case _FILLVALUE_FLAG:
@@ -1350,7 +1350,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                         efree(special->_ChunkSizes);
                         derror("%s: illegal value",specialname(tag));
                     }
-		    freeconst(tmp);
+		    reclaimconstant(tmp);
                 }
                 special->flags |= _CHUNKSIZES_FLAG;
                 /* Chunksizes => storage == chunked */
@@ -1373,7 +1373,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             default: PANIC1("makespecial: illegal token: %d",tag);
          }
     }
-    if(sdata) free(sdata);
+    if(sdata) efree(sdata);
     if(con) reclaimconstant(con);
     if(list) reclaimdatalist(list);
     return attr;

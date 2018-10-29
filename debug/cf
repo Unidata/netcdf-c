@@ -7,7 +7,7 @@ MEM=1
 #FAST=1
 #PROF=1
 
-#HDF5=1
+HDF5=1
 DAP=1
 #SZIP=1
 #HDF4=1

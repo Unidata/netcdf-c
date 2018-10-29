@@ -617,7 +617,7 @@ unescape(
     char* p;
     int b;
 
-    s = (char*)malloc(yyleng+1);
+    s = (char*)emalloc(yyleng+1);
     memcpy(s,yytext,yyleng);
     s[yyleng] = '\0';
 

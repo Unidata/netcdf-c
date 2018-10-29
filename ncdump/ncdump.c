@@ -36,6 +36,7 @@ int optind;
 
 #include "netcdf.h"
 #include "netcdf_mem.h"
+#include "netcdf_aux.h"
 #include "utils.h"
 #include "nccomps.h"
 #include "nctime0.h"		/* new iso time and calendar stuff */
@@ -844,7 +845,7 @@ pr_att(
 	  case NC_VLEN:
 	      /* because size returned for vlen is base type size, but we
 	       * need space to read array of vlen structs into ... */
-	      data = emalloc((att.len + 1) * sizeof(nc_vlen_t));
+              data = emalloc((att.len + 1) * sizeof(nc_vlen_t));
 	     break;
 	  case NC_OPAQUE:
 	      data = emalloc((att.len + 1) * type_size);
@@ -922,6 +923,7 @@ pr_att(
        default:
 	   error("unrecognized class of user defined type: %d", class);
        }
+       ncaux_reclaim_data(ncid,att.type,data,att.len);
        free(data);
        printf (" ;");		/* terminator for user defined types */
     }

@@ -37,8 +37,6 @@ gen_netcdf(const char *filename)
     int ntyps, ngrps, igrp;
 #endif
 
-    Bytebuffer* databuf = bbNew();
-
     ndims = listlength(dimdefs);
     nvars = listlength(vardefs);
     natts = listlength(attdefs);
@@ -64,7 +62,7 @@ gen_netcdf(const char *filename)
     check_err(stat,__LINE__,__FILE__);
 
     /* ncid created above is also root group*/
-    rootgroup->ncid = ncid;
+    rootgroup->nc_id = ncid;
 
 #ifdef USE_NETCDF4
     /* Define the group structure */
@@ -72,7 +70,7 @@ gen_netcdf(const char *filename)
     for(igrp=0;igrp<ngrps;igrp++) {
         Symbol* gsym = (Symbol*)listget(grpdefs,igrp);
         if(gsym == rootgroup) continue; /* ignore root group*/
-        stat = nc_def_grp(gsym->container->ncid,gsym->name,&gsym->ncid);
+        stat = nc_def_grp(gsym->container->nc_id,gsym->name,&gsym->nc_id);
         check_err(stat,__LINE__,__FILE__);
     }
 #endif
@@ -92,10 +90,10 @@ gen_netcdf(const char *filename)
     if (ndims > 0) {
         for(idim = 0; idim < ndims; idim++) {
             Symbol* dsym = (Symbol*)listget(dimdefs,idim);
-            stat = nc_def_dim(dsym->container->ncid,
+            stat = nc_def_dim(dsym->container->nc_id,
                               dsym->name,
                               (dsym->dim.isunlimited?NC_UNLIMITED:dsym->dim.declsize),
-                              &dsym->ncid);
+                              &dsym->nc_id);
             check_err(stat,__LINE__,__FILE__);
        }
     }
@@ -108,20 +106,20 @@ gen_netcdf(const char *filename)
                 /* construct a vector of dimension ids*/
                 int dimids[NC_MAX_VAR_DIMS];
                 for(idim=0;idim<vsym->typ.dimset.ndims;idim++)
-                    dimids[idim] = vsym->typ.dimset.dimsyms[idim]->ncid;
-                stat = nc_def_var(vsym->container->ncid,
+                    dimids[idim] = vsym->typ.dimset.dimsyms[idim]->nc_id;
+                stat = nc_def_var(vsym->container->nc_id,
                                   vsym->name,
-                                  vsym->typ.basetype->ncid,
+                                  vsym->typ.basetype->nc_id,
                                   vsym->typ.dimset.ndims,
                                   dimids,
-                                  &vsym->ncid);
+                                  &vsym->nc_id);
             } else { /* a scalar */
-                stat = nc_def_var(vsym->container->ncid,
+                stat = nc_def_var(vsym->container->nc_id,
                                   vsym->name,
-                                  vsym->typ.basetype->ncid,
+                                  vsym->typ.basetype->nc_id,
                                   vsym->typ.dimset.ndims,
                                   NULL,
-                                  &vsym->ncid);
+                                  &vsym->nc_id);
             }
             check_err(stat,__LINE__,__FILE__);
         }
@@ -154,12 +152,12 @@ gen_netcdf(const char *filename)
     }
 
     if (nofill_flag) {
-        stat = nc_set_fill(rootgroup->ncid, NC_NOFILL, 0);
+        stat = nc_set_fill(rootgroup->nc_id, NC_NOFILL, 0);
         check_err(stat,__LINE__,__FILE__);
     }
 
     /* leave define mode */
-    stat = nc_enddef(rootgroup->ncid);
+    stat = nc_enddef(rootgroup->nc_id);
     check_err(stat,__LINE__,__FILE__);
 
     if(!header_only) {
@@ -168,13 +166,11 @@ gen_netcdf(const char *filename)
             for(ivar = 0; ivar < nvars; ivar++) {
                 Symbol* vsym = (Symbol*)listget(vardefs,ivar);
                 if(vsym->data != NULL) {
-                    bbClear(databuf);
                     genbin_definevardata(vsym);
                 }
             }
         }
     }
-    bbFree(databuf);
 }
 
 #ifdef USE_NETCDF4
@@ -191,7 +187,7 @@ genbin_defineglobalspecials(void)
     if(!/*Main.*/format_attribute) return;
     /* Watch out, this is a global Attribute */
     format = kind_string(/*Main.*/format_flag);
-    stat = nc_put_att_text(rootgroup->ncid,NC_GLOBAL,"_Format",strlen(format),format);
+    stat = nc_put_att_text(rootgroup->nc_id,NC_GLOBAL,"_Format",strlen(format),format);
     check_err(stat,__LINE__,__FILE__);
 }
 #endif /*0*/
@@ -202,25 +198,24 @@ genbin_definespecialattributes(Symbol* var)
     int stat = NC_NOERR;
     Specialdata* special = var->var.special;
     if(special->flags & _STORAGE_FLAG) {
-        int storage = special->_Storage;
-        size_t* chunks = special->_ChunkSizes;
-        if(special->nchunks == 0 || chunks == NULL) chunks = NULL;
-        stat = nc_def_var_chunking(var->container->ncid,
-                                   var->ncid,
-                                   (storage == NC_CONTIGUOUS?NC_CONTIGUOUS
-                                                            :NC_CHUNKED),
-                                   chunks);
+	if(special->_Storage == NC_CONTIGUOUS) {
+	    stat = nc_def_var_chunking(var->container->nc_id, var->nc_id, NC_CONTIGUOUS, NULL);
+	} else { /* chunked */
+	    if(special->nchunks == 0 || special->_ChunkSizes == NULL)
+	        derror("NC_CHUNKED requested, but no chunksizes specified");
+            stat = nc_def_var_chunking(var->container->nc_id, var->nc_id, NC_CHUNKED, special->_ChunkSizes);
+	}
         check_err(stat,__LINE__,__FILE__);
     }
     if(special->flags & _FLETCHER32_FLAG) {
-        stat = nc_def_var_fletcher32(var->container->ncid,
-                                     var->ncid,
+        stat = nc_def_var_fletcher32(var->container->nc_id,
+                                     var->nc_id,
                                      special->_Fletcher32);
         check_err(stat,__LINE__,__FILE__);
     }
     if(special->flags & (_DEFLATE_FLAG | _SHUFFLE_FLAG)) {
-        stat = nc_def_var_deflate(var->container->ncid,
-                                  var->ncid,
+        stat = nc_def_var_deflate(var->container->nc_id,
+                                  var->nc_id,
                                   (special->_Shuffle == 1?1:0),
                                   (special->_DeflateLevel >= 0?1:0),
                                   (special->_DeflateLevel >= 0?special->_DeflateLevel
@@ -228,16 +223,16 @@ genbin_definespecialattributes(Symbol* var)
         check_err(stat,__LINE__,__FILE__);
     }
     if(special->flags & _ENDIAN_FLAG) {
-        stat = nc_def_var_endian(var->container->ncid,
-                                 var->ncid,
+        stat = nc_def_var_endian(var->container->nc_id,
+                                 var->nc_id,
                                  (special->_Endianness == NC_ENDIAN_LITTLE?
                                         NC_ENDIAN_LITTLE
                                        :NC_ENDIAN_BIG));
         check_err(stat,__LINE__,__FILE__);
     }
     if(special->flags & _NOFILL_FLAG) {
-        stat = nc_def_var_fill(var->container->ncid,
-                                 var->ncid,
+        stat = nc_def_var_fill(var->container->nc_id,
+                                 var->nc_id,
                                  (special->_Fill?NC_FILL:NC_NOFILL),
                                  NULL);
         check_err(stat,__LINE__,__FILE__);
@@ -253,15 +248,15 @@ genbin_definespecialattributes(Symbol* var)
             if(level > 9)
                 derror("Illegal deflate level");
             else {
-                stat = nc_def_var_deflate(var->container->ncid,
-                        var->ncid,
+                stat = nc_def_var_deflate(var->container->nc_id,
+                        var->nc_id,
                         (special->_Shuffle == 1?1:0),
                         (level > 0?1:0),
                         level);
             }
         } else {
-            stat = nc_def_var_filter(var->container->ncid,
-                        var->ncid,
+            stat = nc_def_var_filter(var->container->nc_id,
+                        var->nc_id,
                         special->_FilterID,
                         special->nparams,
                         special->_FilterParams
@@ -277,7 +272,7 @@ void
 cl_netcdf(void)
 {
     int stat;
-    stat = nc_close(rootgroup->ncid);
+    stat = nc_close(rootgroup->nc_id);
     check_err(stat,__LINE__,__FILE__);
 }
 
@@ -295,33 +290,29 @@ genbin_deftype(Symbol* tsym)
     switch (tsym->subclass) {
     case NC_PRIM: break; /* these are already taken care of*/
     case NC_OPAQUE:
-        stat = nc_def_opaque(tsym->container->ncid,
+        stat = nc_def_opaque(tsym->container->nc_id,
                              tsym->typ.size,
                              tsym->name,
-                             &tsym->ncid);
+                             &tsym->nc_id);
         check_err(stat,__LINE__,__FILE__);
         break;
     case NC_ENUM:
       {
         Bytebuffer* datum;
-        Datalist* ecdl;
-        stat = nc_def_enum(tsym->container->ncid,
-                           tsym->typ.basetype->typ.typecode,
+        stat = nc_def_enum(tsym->container->nc_id,
+                           tsym->typ.basetype->nc_id,
                            tsym->name,
-                           &tsym->ncid);
+                           &tsym->nc_id);
         check_err(stat,__LINE__,__FILE__);
         datum = bbNew();
-        ecdl = builddatalist(1);
-        dlextend(ecdl); /* make room for one constant*/
-        ecdl->length = 1;
         for(i=0;i<listlength(tsym->subnodes);i++) {
           Symbol* econst = (Symbol*)listget(tsym->subnodes,i);
           ASSERT(econst->subclass == NC_ECONST);
           generator_reset(bin_generator,NULL);
           bbClear(datum);
           generate_basetype(econst->typ.basetype,econst->typ.econst,datum,NULL,bin_generator);
-          stat = nc_insert_enum(tsym->container->ncid,
-                                tsym->ncid,
+          stat = nc_insert_enum(tsym->container->nc_id,
+                                tsym->nc_id,
                                 econst->name,
                                 bbContents(datum));
           check_err(stat,__LINE__,__FILE__);
@@ -330,28 +321,28 @@ genbin_deftype(Symbol* tsym)
       }
       break;
     case NC_VLEN:
-        stat = nc_def_vlen(tsym->container->ncid,
+        stat = nc_def_vlen(tsym->container->nc_id,
                            tsym->name,
-                           tsym->typ.basetype->ncid,
-                           &tsym->ncid);
+                           tsym->typ.basetype->nc_id,
+                           &tsym->nc_id);
         check_err(stat,__LINE__,__FILE__);
         break;
     case NC_COMPOUND:
-        stat = nc_def_compound(tsym->container->ncid,
+        stat = nc_def_compound(tsym->container->nc_id,
                                tsym->typ.size,
                                tsym->name,
-                               &tsym->ncid);
+                               &tsym->nc_id);
         check_err(stat,__LINE__,__FILE__);
         for(i=0;i<listlength(tsym->subnodes);i++) {
             Symbol* efield = (Symbol*)listget(tsym->subnodes,i);
             ASSERT(efield->subclass == NC_FIELD);
             if(efield->typ.dimset.ndims == 0){
                 stat = nc_insert_compound(
-                                tsym->container->ncid,
-                                tsym->ncid,
+                                tsym->container->nc_id,
+                                tsym->nc_id,
                                 efield->name,
                                 efield->typ.offset,
-                                efield->typ.basetype->ncid);
+                                efield->typ.basetype->nc_id);
             } else {
                 int j;
                 int dimsizes[NC_MAX_VAR_DIMS]; /* int because inside compound */
@@ -361,11 +352,11 @@ genbin_deftype(Symbol* tsym)
                      dimsizes[j] = size;
                 }
                 stat = nc_insert_array_compound(
-                                tsym->container->ncid,
-                                tsym->ncid,
+                                tsym->container->nc_id,
+                                tsym->nc_id,
                                 efield->name,
                                 efield->typ.offset,
-                                efield->typ.basetype->ncid,
+                                efield->typ.basetype->nc_id,
                                 efield->typ.dimset.ndims,
                                 dimsizes);
             }
@@ -383,7 +374,7 @@ genbin_defineattr(Symbol* asym)
     Bytebuffer* databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_attrdata(asym,bin_generator,(Writer)genbin_write,databuf);
-//    ncaux_reclaim_data(asym->container->ncid,asym->typ.basetype->typ.typecode,bbContents(databuf),datalistlen(asym->data));
+    ncaux_reclaim_data(asym->container->nc_id,asym->typ.basetype->nc_id,bbContents(databuf),datalistlen(asym->data));
     bbFree(databuf);
 }
 
@@ -397,7 +388,7 @@ genbin_definevardata(Symbol* vsym)
     databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_vardata(vsym,bin_generator,(Writer)genbin_write,databuf);
-//    ncaux_reclaim_data(vsym->container->ncid,vsym->typ.basetype->typ.typecode,bbContents(databuf),datalistlen(vsym->data));
+    ncaux_reclaim_data(vsym->container->nc_id,vsym->typ.basetype->nc_id,bbContents(databuf),datalistlen(vsym->data));
     bbFree(databuf);
 }
 
@@ -453,15 +444,15 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
 
     if(rank == 0) {
         size_t count[1] = {1};
-        stat = nc_put_var1(vsym->container->ncid, vsym->ncid, count, data);
+        stat = nc_put_var1(vsym->container->nc_id, vsym->nc_id, count, data);
     } else {
-        stat = nc_put_vara(vsym->container->ncid, vsym->ncid, start, count, data);
+        stat = nc_put_vara(vsym->container->nc_id, vsym->nc_id, start, count, data);
     }
     check_err(stat,__LINE__,__FILE__);
-    /* Reclaim the data */
-    stat = ncaux_reclaim_data(vsym->container->ncid, vsym->typ.basetype->typ.typecode, data, nelems);
-    check_err(stat,__LINE__,__FILE__);
-    bbClear(memory); /* reclaim top-level memory */
+//    /* Reclaim the data */
+//    stat = ncaux_reclaim_data(vsym->container->nc_id, vsym->typ.basetype->nc_id, data, nelems);
+//    check_err(stat,__LINE__,__FILE__);
+//    bbClear(memory); /* reclaim top-level memory */
     return stat;
 }
 
@@ -475,9 +466,9 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
     int varid, grpid, typid;
     Symbol* basetype = asym->typ.basetype;
 
-    grpid = asym->container->ncid;
-    varid = (asym->att.var == NULL?NC_GLOBAL : asym->att.var->ncid);
-    typid = basetype->ncid;
+    grpid = asym->container->nc_id;
+    varid = (asym->att.var == NULL?NC_GLOBAL : asym->att.var->nc_id);
+    typid = basetype->nc_id;
 
     list = asym->data;
     len = list->length;

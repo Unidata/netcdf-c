@@ -42,7 +42,7 @@ bin_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf
 	/* Assume the opaque string has been normalized */
         bytes=makebytestring(con->value.opaquev.stringv,&len);
         bbAppendn(buf,(void*)bytes,len);
-	free(bytes);
+	efree(bytes);
     } break;
     case NC_CHAR:
         bbAppendn(buf,&con->value.charv,sizeof(con->value.charv));
@@ -143,7 +143,7 @@ bin_vlendecl(Generator* generator, Symbol* tsym, Bytebuffer* buf, int uid, size_
     vlenmem = va_arg(ap, Bytebuffer*);
     va_end(ap);
     ptr.len = count;
-    ptr.p = bbDup(vlenmem);
+    ptr.p = bbExtract(vlenmem);
     bbAppendn(buf,(char*)&ptr,sizeof(ptr));
     return 1;
 }

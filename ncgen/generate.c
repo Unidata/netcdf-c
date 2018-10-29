@@ -7,6 +7,7 @@
 #include "nc_iter.h"
 #include "odom.h"
 #include "ncoffsets.h"
+#include "netcdf_aux.h"
 
 /**************************************************/
 /* Code for generating data lists*/
@@ -131,7 +132,6 @@ generate_array(Symbol* vsym,
     int rank = dimset->ndims;
     Symbol* basetype = vsym->typ.basetype;
     nc_type typecode = basetype->typ.typecode;
-    Odometer* odom = NULL;
     nciter_t iter;
     int firstunlim = findunlimited(dimset,1);
     int nunlim = countunlimited(dimset);
@@ -142,23 +142,24 @@ generate_array(Symbol* vsym,
     if(isnc3unlim) {
         /* Handle NC_CHAR case separately */
         if(typecode == NC_CHAR) {
+            Odometer* odom = newodometer(dimset,NULL,NULL);
             Bytebuffer* charbuf = bbNew();
             gen_chararray(dimset,0,vsym->data,charbuf,filler);
 	    generator->charconstant(generator,vsym,code,charbuf);
 	    /* Create an odometer to get the dimension info */
-            odom = newodometer(dimset,NULL,NULL);
             writer(generator,vsym,code,odom->rank,odom->start,odom->count);
 #if 0
             writer(generator,vsym,code,odom->rank,0,bbLength(charbuf));
 #endif
 	    bbFree(charbuf);
+    	    odometerfree(odom);
 	} else { /* typecode != NC_CHAR */
+            Odometer* odom = newodometer(dimset,NULL,NULL);
             /* Case: dim 1..rank-1 are not unlimited, dim 0 might be */
             size_t offset = 0; /* where are we in the data list */
             size_t nelems = 0; /* # of data list items to generate */
             /* Create an iterator and odometer and just walk the datalist */
             nc_get_iter(vsym,nciterbuffersize,&iter);
-            odom = newodometer(dimset,NULL,NULL);
             for(;;offset+=nelems) {
                 int i,uid;
                 nelems=nc_next_iter(&iter,odometerstartvector(odom),odometercountvector(odom));
@@ -174,11 +175,12 @@ generate_array(Symbol* vsym,
                 generator->listend(generator,vsym,NULL,LISTDATA,uid,i,code);
                 writer(generator,vsym,code,rank,odom->start,odom->count);
             }
+	    odometerfree(odom);
 	}
     } else { /* Hard case: multiple unlimited dimensions or unlim in dim > 0*/
+        Odometer* odom = newodometer(dimset,NULL,NULL);
         /* Setup iterator and odometer */
         nc_get_iter(vsym,NC_MAX_UINT,&iter); /* effectively infinite */
-        odom = newodometer(dimset,NULL,NULL);
         for(;;) {/* iterate in nelem chunks */
             /* get nelems count and modify odometer */
             size_t nelems=nc_next_iter(&iter,odom->start,odom->count);
@@ -190,9 +192,8 @@ generate_array(Symbol* vsym,
                            );
             writer(generator,vsym,code,odom->rank,odom->start,odom->count);
         }
-    }
-    if(odom != NULL)
         odometerfree(odom);
+    }
 }
 
 /**
@@ -372,7 +373,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
             }
             generator->listend(generator,tsym,NULL,LISTVLEN,uid,count,codebuf,(void*)vlenbuf);
         }
-        generator->vlendecl(generator,tsym,codebuf,uid,count,vlenbuf);
+        generator->vlendecl(generator,tsym,codebuf,uid,count,vlenbuf); /* Will extract contents of vlenbuf */
         bbFree(vlenbuf);
         } break;
 
@@ -535,7 +536,7 @@ generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
         break;
     }
     generator->constant(generator,basetype,target,codebuf);
-    freeconst(target);
+    reclaimconstant(target);
     target = NULL;
     return;
 }

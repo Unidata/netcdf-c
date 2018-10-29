@@ -241,7 +241,7 @@ yytext[MAXTRST-1] = '\0';
 			bbClear(lextext);
 			bbAppendn(lextext,s,len);
 			bbNull(lextext);
-			if(s) free(s);
+			if(s) efree(s);
 		 	return lexdebug(TERMSTRING);
 		        }
 
@@ -365,11 +365,11 @@ NIL|nil|Nil {
 		    len = strlen(yytext);
 		    len = unescape(yytext,len,ISIDENT,&id);
 		    if(NCSTREQ(id, FILL_STRING)) {
-			free(id);
+			efree(id);
 		        return lexdebug(FILLMARKER);
 		    }
 		    yylval.sym = install(id);
-		    free(id);
+		    efree(id);
 		    return lexdebug(IDENT);
 		}
 
@@ -635,7 +635,7 @@ makepath(char* text0)
 	    p = (lastident?match:match+1);
 	} while(!lastident);
         refsym->prefix = prefix;
-	free(text);
+	efree(text);
     }
     return refsym;
 }

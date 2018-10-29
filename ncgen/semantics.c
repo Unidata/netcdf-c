@@ -20,21 +20,22 @@ static void processvars(void);
 static void processattributes(void);
 static void processunlimiteddims(void);
 static void processeconstrefs(void);
-static void processeconstrefsR(Datalist*);
+static void processeconstrefsR(Symbol*,Datalist*);
 
-static List* ecsearchgrp(Symbol* grp, List* candidates);
-static List* findecmatches(char* ident);
-static void fixeconstref(NCConstant* con);
+static void fixeconstref(Symbol*,NCConstant* con);
 static void inferattributetype(Symbol* asym);
 static void validateNIL(Symbol* sym);
 static void checkconsistency(void);
 static int tagvlentypes(Symbol* tsym);
-
 static void computefqns(void);
-
 static Symbol* uniquetreelocate(Symbol* refsym, Symbol* root);
-static Symbol* checkeconst(Symbol* en, const char* refname);
 
+#if 0
+static Symbol* locateenumtype(Symbol* econst, Symbol* group, NCConstant*);
+static List* findecmatches(char* ident);
+static List* ecsearchgrp(Symbol* grp, List* candidates);
+static Symbol* checkeconst(Symbol* en, const char* refname);
+#endif
 
 List* vlenconstants;  /* List<Constant*>;*/
 			  /* ptr to vlen instances across all datalists*/
@@ -192,7 +193,6 @@ uniquetreelocate(Symbol* refsym, Symbol* root)
     }
     return sym;
 }
-
 
 /*
 Compute the fqn for every top-level definition symbol
@@ -414,6 +414,7 @@ processenums(void)
 	    ASSERT(esym->subclass == NC_ECONST);
 	    newec->nctype = esym->typ.typecode;
 	    convert1(esym->typ.econst,newec);
+	    reclaimconstant(esym->typ.econst);
 	    esym->typ.econst = newec;
 	}
     }
@@ -430,23 +431,25 @@ processeconstrefs(void)
     for(i=0;i<listlength(gattdefs);i++) {
 	Symbol* att = (Symbol*)listget(gattdefs,i);
 	if(att->data != NULL && listlength(att->data) > 0)
-	    processeconstrefsR(att->data);
+	    processeconstrefsR(att,att->data);
     }
     for(i=0;i<listlength(attdefs);i++) {
 	Symbol* att = (Symbol*)listget(attdefs,i);
 	if(att->data != NULL && listlength(att->data) > 0)
-	    processeconstrefsR(att->data);
+	    processeconstrefsR(att,att->data);
     }
     for(i=0;i<listlength(vardefs);i++) {
 	Symbol* var = (Symbol*)listget(vardefs,i);
 	if(var->data != NULL && listlength(var->data) > 0)
-	    processeconstrefsR(var->data);
+	    processeconstrefsR(var,var->data);
+	if(var->var.special->_Fillvalue != NULL)
+	    processeconstrefsR(var,var->var.special->_Fillvalue);
     }
 }
 
 /* Recursive helper for processeconstrefs */
 static void
-processeconstrefsR(Datalist* data)
+processeconstrefsR(Symbol* avsym, Datalist* data)
 {
     NCConstant** dlp = NULL;
     int i;
@@ -454,31 +457,78 @@ processeconstrefsR(Datalist* data)
 	NCConstant* con = *dlp;
 	if(con->nctype == NC_COMPOUND) {
 	    /* Iterate over the sublists */
-	    processeconstrefsR(con->value.compoundv);
-	} else if(con->nctype == NC_ECONST) {
-	    fixeconstref(con);
+	    processeconstrefsR(avsym,con->value.compoundv);
+	} else if(con->nctype == NC_ECONST || con->nctype == NC_FILLVALUE) {
+	    fixeconstref(avsym,con);
 	}
     }
 }
 
 static void
-fixeconstref(NCConstant* con)
+fixeconstref(Symbol* avsym, NCConstant* con)
+{
+    Symbol* basetype = NULL;
+    Symbol* refsym = con->value.enumv;
+    Symbol* varsym = NULL;
+    int i;
+
+    /* Figure out the proper type associated with avsym */
+    ASSERT(avsym->objectclass == NC_VAR || avsym->objectclass == NC_ATT);
+
+    if(avsym->objectclass == NC_VAR) {
+        basetype = avsym->typ.basetype;
+	varsym = avsym;
+    } else { /*(avsym->objectclass == NC_ATT)*/ 
+        basetype = avsym->typ.basetype;
+	varsym = avsym->container;
+	if(varsym->objectclass == NC_GRP)
+	    varsym = NULL;
+    }
+    
+    if(basetype->objectclass != NC_TYPE && basetype->subclass != NC_ENUM)
+        semerror(con->lineno,"Enumconstant associated with a non-econst type");
+
+    if(con->nctype == NC_FILLVALUE) {
+	Datalist* filllist = NULL;
+	NCConstant* filler = NULL;
+	filllist = getfiller(varsym == NULL?basetype:varsym);
+	if(filllist == NULL)
+	    semerror(con->lineno, "Cannot determine enum constant fillvalue");
+	filler = datalistith(filllist,0);
+	con->value.enumv = filler->value.enumv;
+	return;
+    }
+
+    for(i=0;i<listlength(basetype->subnodes);i++) {
+	Symbol* econst = listget(basetype->subnodes,i);
+	ASSERT(econst->subclass == NC_ECONST);
+	if(strcmp(econst->name,refsym->name)==0) {
+	    con->value.enumv = econst;
+	    return;
+	}
+    }
+    semerror(con->lineno,"Undefined enum or enum constant reference: %s",refsym->name);
+}
+
+#if 0
+/* If we have an enum-valued group attribute, then we need to do
+extra work to find the containing enum type
+*/
+static Symbol*
+locateenumtype(Symbol* refsym, Symbol* parent, NCConstant* con)
 {
     Symbol* match = NULL;
-    Symbol* parent = NULL;
-    Symbol* refsym = con->value.enumv;
     List* grpmatches;
 
-    
     /* Locate all possible matching enum constant definitions */
     List* candidates = findecmatches(refsym->name);
     if(candidates == NULL) {
 	semerror(con->lineno,"Undefined enum or enum constant reference: %s",refsym->name);
-	return;
+	return NULL;
     }
     /* One hopes that 99% of the time, the match is unique */
     if(listlength(candidates) == 1) {
-	con->value.enumv = (Symbol*)listget(candidates,0);
+	match = listget(candidates,0);
 	goto done;
     }
     /* If this ref has a specified group prefix, then find that group
@@ -501,12 +551,11 @@ fixeconstref(NCConstant* con)
 	default:
 	    semerror(con->lineno,"Ambiguous enum constant reference: %s", fullname(refsym));
 	}
-	con->value.enumv = listget(grpmatches,0);
+	match = listget(grpmatches,0);
 	listfree(grpmatches);
 	goto done;
     }
     /* Sigh, we have to search up the tree to see if any of our candidates are there */
-    parent = refsym->container;
     assert(parent == NULL || parent->objectclass == NC_GRP);
     while(parent != NULL && match == NULL) {
 	grpmatches = ecsearchgrp(parent,candidates);
@@ -520,15 +569,13 @@ fixeconstref(NCConstant* con)
 	}
 	listfree(grpmatches);
     }
-    if(match != NULL) {
-	con->value.enumv = match;
-	goto done;
-    }
+    if(match != NULL) goto done;
     /* Not unique and not in the parent tree, so complains and pick the first candidate */
     semerror(con->lineno,"Ambiguous enum constant reference: %s", fullname(refsym));
-    con->value.enumv = (Symbol*)listget(candidates,0);
+    match = (Symbol*)listget(candidates,0);
 done:
     listfree(candidates);
+    return match;
 }
 
 /*
@@ -604,7 +651,7 @@ checkeconst(Symbol* en, const char* refname)
     }
     return NULL;
 }
-
+#endif
 
 /* Compute type sizes and compound offsets*/
 void
@@ -747,7 +794,7 @@ processattributes(void)
 	    asym->data = builddatalist(1);
 	    empty = emptystringconst(asym->lineno);
 	    dlappend(asym->data,empty);
-	    freeconst(empty);
+	    reclaimconstant(empty);
 	}
 	validateNIL(asym);
     }

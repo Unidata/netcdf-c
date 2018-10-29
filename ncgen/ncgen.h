@@ -241,7 +241,7 @@ typedef struct Symbol {  /* symbol table entry*/
 	/* Misc pieces of info*/
 	int             lineno;  /* at point of creation*/
 	int		touched; /* for sorting*/
-        int             ncid;  /* from netcdf API: varid, or dimid, or etc.*/
+        int             nc_id;  /* from netcdf API: varid, or dimid, or etc.*/
 } Symbol;
 
 

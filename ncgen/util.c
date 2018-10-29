@@ -106,7 +106,7 @@ reclaimattptrs(void* buf, long count)
 {
     int i;
     char** ptrs = (char**)buf;
-    for(i=0;i<count;i++) {free((void*)ptrs[i]);}
+    for(i=0;i<count;i++) {efree((void*)ptrs[i]);}
 }
 #endif
 
@@ -116,10 +116,10 @@ freeSpecialdata(Specialdata* data)
     if(data == NULL) return;
     reclaimdatalist(data->_Fillvalue);
     if(data->_ChunkSizes)
-        free(data->_ChunkSizes);
+        efree(data->_ChunkSizes);
     if(data->_FilterParams)
-        free(data->_FilterParams);
-    free(data);
+        efree(data->_FilterParams);
+    efree(data);
 }
 
 void

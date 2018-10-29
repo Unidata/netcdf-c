@@ -35,11 +35,21 @@ chkfree(void* memory)
 }
 
 void*
+chkmalloc(size_t size)
+{
+    void* memory = malloc(size);
+    if(memory == NULL) {
+	panic("malloc:out of memory");
+    }
+    return memory;
+}
+
+void*
 chkcalloc(size_t size)
 {
     void* memory = calloc(size,1); /* use calloc to zero memory*/
     if(memory == NULL) {
-	panic("malloc:out of memory");
+	panic("calloc:out of memory");
     }
     return memory;
 }

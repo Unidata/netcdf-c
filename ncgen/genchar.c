@@ -243,7 +243,9 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
     concatenated with any trailing or leading string (with double quotes).
     */
 
-    /* Rebuild the datalist to merge '0x' constants */
+    /* Rebuild the datalist to merge '0x' constants;
+	WARNING: this is tricky.
+    */
     {
 	int i,cccount = 0;
 	/* Do initial walk */
@@ -254,39 +256,50 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
 	    }
 	}
 	if(cccount > 1) {
-	    char* accum = (char*)ecalloc(cccount+1);
-	    int len = 0;
+	    Bytebuffer* accum = bbNew();
+	    int len = 0; /* >0 implies doing accum */
 	    Datalist* newlist = builddatalist(datalistlen(data));
 	    int lineno = 0;
             NCConstant* con;
+	    /* We are going to construct a single string constant for each
+	       contiguous sequence of single char values.
+	       Assume that the constants are all primitive types */
 	    for(i=0;i<datalistlen(data);i++) {
 	        con = datalistith(data,i);
 	        if(consttype(con) == NC_CHAR || consttype(con) == NC_BYTE) {
-		    if(len == 0)
+		    if(len == 0) { /* Start an accumulation */
 			lineno = constline(con);
-		    accum[len] = con->value.charv;
+			bbClear(accum);
+		    }
+		    bbAppend(accum,con->value.charv);
 		    len++;
+		    /* Discard this constant */
+		    reclaimconstant(con);
 		} else {
-		    if(len > 0) {
-			con = makeconst(lineno,len,accum);
+		    if(len > 0) { /* End the accumulation */
+			bbNull(accum);
+			con = makeconst(lineno,len,bbContents(accum));
 			len = 0;
 			lineno = 0;
 		        dlappend(newlist,con);
-			freeconstant(con,DEEP);
 		    } else
 		        dlappend(newlist,con);
 		}
 	    }
 	    /* deal with any unclosed strings */
 	    if(len > 0) {
-		con = makeconst(lineno,len,accum);
+		con = makeconst(lineno,len,bbContents(accum));
 		len = 0;
 		lineno = 0;
 	        dlappend(newlist,con);
-		freeconstant(con,DEEP);
 	    }
-	    free(accum);
-	    data = newlist;
+	    bbFree(accum);
+	    /* Move the newlist sequence of constants into the old list */
+	    efree(data->data);
+	    data->data = newlist->data;
+	    data->length = newlist->length;
+    	    data->alloc = newlist->alloc;
+	    efree(newlist);
 	}
     }
 
@@ -342,7 +355,7 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
 static NCConstant*
 makeconst(int lineno, int len, char* str)
 {
-    NCConstant* con = (NCConstant*)ecalloc(sizeof(NCConstant));
+    NCConstant* con = nullconst();
     con->nctype = NC_STRING;
     con->lineno = lineno;
     con->filled = 0;

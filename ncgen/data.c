@@ -137,7 +137,7 @@ const2src(NCConstant* con)
     Datasrc* src;
     ASSERT(con != NULL);
     src = allocdatasrc();
-    src->data = malloc(sizeof(NCConstant*));
+    src->data = emalloc(sizeof(NCConstant*));
     src->data[0] = con;
     src->index = 0;
     src->length = 1;
@@ -314,7 +314,7 @@ cloneconstant(NCConstant* con)
     Datalist* newdl = NULL;
     char* s = NULL;
 
-    newcon = malloc(sizeof(NCConstant));
+    newcon = nullconst();
     if(newcon == NULL) return newcon;
     *newcon = *con;
     switch (newcon->nctype) {
@@ -353,11 +353,11 @@ clearconstant(NCConstant* con)
     switch (con->nctype) {
     case NC_STRING:
 	if(con->value.stringv.stringv != NULL)
-	    free(con->value.stringv.stringv);
+	    efree(con->value.stringv.stringv);
 	break;
     case NC_OPAQUE:
 	if(con->value.opaquev.stringv != NULL)
-	    free(con->value.opaquev.stringv);
+	    efree(con->value.opaquev.stringv);
 	break;
     case NC_COMPOUND:
 	con->value.compoundv = NULL;
@@ -871,11 +871,11 @@ reclaimconstant(NCConstant* con)
     switch (con->nctype) {
     case NC_STRING:
 	if(con->value.stringv.stringv != NULL)
-	    free(con->value.stringv.stringv);
+	    efree(con->value.stringv.stringv);
 	break;
     case NC_OPAQUE:
 	if(con->value.opaquev.stringv != NULL)
-	    free(con->value.opaquev.stringv);
+	    efree(con->value.opaquev.stringv);
 	break;
     case NC_COMPOUND:
 #ifdef VERIFY
@@ -886,16 +886,13 @@ reclaimconstant(NCConstant* con)
 	}
 	}
 #endif
-//	if(con->value.compoundv != NULL) {
-//	    if(!isdup(con->value.compoundv))
-//	        fprintf(stderr,"YYY\n");
-//	}
         reclaimdatalist(con->value.compoundv);
 	con->value.compoundv = NULL;
 	break;
     default: break;
     }
-    free(con);
+    efree(con);
+
 }
 
 void
@@ -908,10 +905,10 @@ reclaimdatalist(Datalist* list)
 	    NCConstant* con = list->data[i];
 	    if(con != NULL) reclaimconstant(con);
        }
-       free(list->data);
+       efree(list->data);
        list->data = NULL;
    }
-   free(list);
+   efree(list);
 }
 
 void
@@ -938,6 +935,6 @@ fprintf(stderr,"XXX\n");
 	if(di != NULL)
 	    reclaimdatalist(di);
     }
-    free(alldatalists);
+    efree(alldatalists);
     alldatalists = NULL;    
 }
