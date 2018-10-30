@@ -1,8 +1,8 @@
 # Visual Studio
 
 # Is netcdf-4 and/or DAP enabled?
-#NC4=1
-#DAP=1
+NC4=1
+DAP=1
 #CDF5=1
 #HDF4=1
 

@@ -24,7 +24,6 @@ See LICENSE.txt for license information.
 #include "config.h"
 #include "netcdf.h"
 #include "netcdf_aux.h"
-#include "ncexternl.h"
 
 struct NCAUX_FIELD {
     char* name;
@@ -48,8 +47,6 @@ struct NCAUX_CMPD {
 };
 
 
-static int ncaux_initialized = 0;
-
 /* Forward */
 static int reclaim_datar(int ncid, int xtype, void* memory);
 static int reclaim_usertype(int ncid, int xtype, void* memory);
@@ -58,8 +55,13 @@ static int reclaim_vlen(int ncid, int xtype, int basetype, void* memory);
 static int reclaim_enum(int ncid, int xtype, int basetype, void* memory);
 static int reclaim_opaque(int ncid, int xtype, size_t size, void* memory);
 
+#ifdef USE_NETCDF4
+
+static int ncaux_initialized = 0;
+
 static void compute_alignments(void);
 static int computefieldinfo(struct NCAUX_CMPD* cmpd);
+#endif
 
 /**************************************************/
 
@@ -78,7 +80,7 @@ Should work for any netcdf format.
 
 */
 
-EXTERNL int
+int
 ncaux_reclaim_data(int ncid, int xtype, const void* memory, size_t count)
 {
     int stat = NC_NOERR;
@@ -225,6 +227,7 @@ Author: D. Heimbigner 10/7/2008
 int
 ncaux_begin_compound(int ncid, const char *name, int alignmode, void** tagp)
 {
+#ifdef USE_NETCDF4
     int status = NC_NOERR;
     struct NCAUX_CMPD* cmpd = NULL;
 
@@ -253,11 +256,15 @@ ncaux_begin_compound(int ncid, const char *name, int alignmode, void** tagp)
 fail:
     ncaux_abort_compound((void*)cmpd);
     return status;
+#else
+    return NC_ENOTBUILT;
+#endif
 }
 
 int
 ncaux_abort_compound(void* tag)
 {
+#ifdef USE_NETCDF4
     int i;
     struct NCAUX_CMPD* cmpd = (struct NCAUX_CMPD*)tag;
     if(cmpd == NULL) goto done;
@@ -271,12 +278,16 @@ ncaux_abort_compound(void* tag)
 
 done:
     return NC_NOERR;
+#else
+    return NC_ENOTBUILT;
+#endif
 }
 
 int
 ncaux_add_field(void* tag,  const char *name, nc_type field_type,
 			   int ndims, const int* dimsizes)
 {
+#ifdef USE_NETCDF4
     int i;
     int status = NC_NOERR;
     struct NCAUX_CMPD* cmpd = (struct NCAUX_CMPD*)tag;
@@ -307,20 +318,15 @@ done:
     if(newfields)
       free(newfields);
     return status;
-}
-
-static size_t
-dimproduct(size_t ndims, int* dimsizes)
-{
-    int i;
-    size_t product = 1;
-    for(i=0;i<ndims;i++) product *= (size_t)dimsizes[i];
-    return product;
+#else
+    return NC_ENOTBUILT;
+#endif
 }
 
 int
 ncaux_end_compound(void* tag, nc_type* idp)
 {
+#ifdef USE_NETCDF4
     int i;
     int status = NC_NOERR;
     struct NCAUX_CMPD* cmpd = (struct NCAUX_CMPD*)tag;
@@ -349,9 +355,22 @@ ncaux_end_compound(void* tag, nc_type* idp)
 
 done:
     return status;
+#else
+    return NC_ENOTBUILT;
+#endif
 }
 
 /**************************************************/
+#ifdef USE_NETCDF4
+
+static size_t
+dimproduct(size_t ndims, int* dimsizes)
+{
+    int i;
+    size_t product = 1;
+    for(i=0;i<ndims;i++) product *= (size_t)dimsizes[i];
+    return product;
+}
 
 /*
 The heart of this is the following macro,
@@ -564,6 +583,7 @@ computefieldinfo(struct NCAUX_CMPD* cmpd)
 done:
     return status;
 }
+#endif /*USE_NETCDF4*/
 
 
 
