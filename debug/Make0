@@ -1,0 +1,40 @@
+T=tst_fileinfo
+
+NCLIB=./liblib/.libs/libnetcdf.a
+D4LIB=./libdap4/.libs/libdap4.a
+
+LFLAG=-L/usr/local/lib
+
+#HDF5LIB=-lhdf5_hl -lhdf5
+#CURLLIB=-lcurl
+#ZLIB=-lz
+
+OTHERLIBS=-lm
+
+LIBS=${D4LIB} ${NCLIB} ${LFLAG} ${CURLLIB} ${HDF5LIB} ${ZLIB} ${OTHERLIBS}
+INCL=-I. -I./include
+RPATH=-Wl,-rpath,${LFLAG}
+
+# Might want to specify a particular C compiler with flags
+CC=gcc
+#CFLAGS=-g -O2 -Wall -DHAVE_CONFIG_H
+CFLAGS=-g -O2 -DHAVE_CONFIG_H
+
+GFLAGS=-g -O0
+
+##################################################
+
+all::
+	cc -g -c ${T}.c ${INCL}
+	cc -g -o ${T} ${T}.o ${LIBS} ${RPATH}
+
+clean:
+	rm -f ${T}.o ${T}.exe
+
+
+EZXML=ezxml-0.8.6.tar.gz
+ezxml::
+	rm -fr ./ezxml ./ezxml.[ch]
+	tar -zxf ./${EZXML}
+	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.c >./ezxml.c
+	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.h >./ezxml.h

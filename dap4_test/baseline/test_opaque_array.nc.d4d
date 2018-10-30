@@ -1,10 +1,10 @@
 netcdf test_opaque_array.nc {
 types:
-  ubyte(*) _bytestring ;
+  opaque(16) opaque16_t ;
 dimensions:
 	d2 = 2 ;
 variables:
-	_bytestring vo2(d2, d2) ;
+	opaque16_t vo2(d2, d2) ;
 
 // global attributes:
 		:_DAP4_Little_Endian = 1UB ;

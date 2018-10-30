@@ -1,0 +1,60 @@
+# Test c output
+T=t
+K=4
+L=-L5
+#VG=valgrind --leak-check=full
+
+STDLIB=/usr/local
+#STDLIB=/share/ed/local/${HOST}
+
+CFLAGS=-I../include -I${STDLIB}/include
+LDFLAGS=../liblib/.libs/libnetcdf.a -L${STDLIB}/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
+# -lcurl -lm -llber -lldap -lrt -lssl -lcrypto -ldl
+
+CLASSPATH=".:ncCore-4.2.jar"
+
+btest::
+	./ncgen ${L} -$K -lb -o ${T}.nc ${T}.cdl
+	../ncdump/ncdump -L2 ./${T}.nc >${T}.dmp
+	diff -wBb ${T}.cdl ${T}.dmp
+	rm -f ./junk.nc
+	../ncdump/nccopy ./${T}.nc ./junk.nc
+
+ctest::
+	./ncgen ${L} -$K -lc ${T}.cdl >${T}.c
+	gcc -o ${T} ${CFLAGS} ${T}.c ${LDFLAGS}
+	./${T}
+	../ncdump/ncdump ${L} ./${T}.nc >${T}.dmp
+	diff -wBb ${T}.cdl ${T}.dmp
+	rm -f ./junk.nc
+	../ncdump/nccopy ./${T}.nc ./junk.nc
+
+gtest::
+	./ncgen -$K -lc ${T}.cdl >${T}.c
+	gcc -g -O0 -o ${T} ${CFLAGS} ${T}.c ${LDFLAGS}
+	gdb --args ./${T}
+
+vctest::
+	gcc -c ${CFLAGS} ${T}.c
+	gcc -o ./vt ${T}.o ${LDFLAGS}
+	${VG} ./vt
+
+ftest::
+	./ncgen -$K -lf77 ${T}.cdl >${T}.f77
+	gfortran -c ${CFLAGS} ${T}.f77
+
+jtest::
+	./ncgen -$K -lj ${T}.cdl >Main.java
+	javac -d . -classpath "${CLASSPATH}" Main.java
+
+#	java -cp ${CPATH} ./${T}
+#	../ncdump/ncdump ./${T}.nc >${T}.dmp
+#	diff -wBb ${T}.cdl ${T}.dmp
+
+xtest::
+	gcc -c ${CFLAGS} ${T}.c
+	gcc -o ./vt ${T}.o ${LDFLAGS}
+	rm -f ctest0.nc junk.cdl
+	./vt
+	../ncdump/ncdump ctest0.nc >junk.cdl
+#	gdb --args ./vt
