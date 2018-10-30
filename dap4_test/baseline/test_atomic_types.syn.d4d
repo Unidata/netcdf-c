@@ -52,8 +52,7 @@ data:
 
  vs = "O,L?c8A%V" ;
 
- vo = 
-    {70, 241, 105, 239, 35, 203, 175, 155, 31, 235, 217, 158, 78, 22, 206, 201} ;
+ vo = 0X46F169EF23CBAF9B1FEBD99E4E16CEC9 ;
 
  primary_cloud = Altocumulus ;
 
