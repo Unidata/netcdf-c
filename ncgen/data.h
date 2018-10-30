@@ -14,8 +14,6 @@
 
 /* nmemonics*/
 #define TOPLEVEL 1
-#define SHALLOW 1
-#define DEEP 0
 
 /* Forward types */
 struct Datalist;
@@ -141,6 +139,7 @@ void srcreset(Datasrc* ds);
 #define isnilconst(con) ((con)!=NULL && (con)->nctype == NC_NIL)
 #define   compoundfor(con) ((con)==NULL?NULL:(con)->value.compoundv)
 
+NCConstant* emptycompoundconst(int lineno);
 NCConstant* emptystringconst(int);
 
 NCConstant* cloneconstant(NCConstant* con); /* deep clone*/

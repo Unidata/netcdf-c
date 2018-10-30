@@ -718,9 +718,9 @@ codeprintf(const char *fmt, ...)
 }
 
 NCConstant*
-emptycompoundconst(int lineno, NCConstant* c)
+emptycompoundconst(int lineno)
 {
-    ASSERT(c != NULL);
+    NCConstant* c = nullconst();
     c->lineno = lineno;
     c->nctype = NC_COMPOUND;
     setconstlist(c,builddatalist(0));
@@ -810,6 +810,7 @@ dlset(Datalist* dl, size_t pos, NCConstant* constant)
     dl->data[pos] = (constant);
 }
 
+/* Convert a datalist to a compound constant */
 NCConstant*
 builddatasublist(Datalist* dl)
 {

@@ -59,7 +59,6 @@ fill(Symbol* tsym, Datalist* filler)
 {
     unsigned long i;
     NCConstant* con = NULL;
-    Datalist* sublist;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
@@ -67,26 +66,45 @@ fill(Symbol* tsym, Datalist* filler)
         con = nullconst();
         con->nctype = tsym->typ.typecode;
         nc_getfill(con,tsym);
+        dlappend(filler,con);
 	break;
-    case NC_COMPOUND:
-	sublist = builddatalist(listlength(tsym->subnodes));
+    case NC_COMPOUND: {
+	/* Given a compound type, the fill will be a sublist
+	   consisting itself of N constants, where N is the number of fields.
+	   Non-array fields will be direct, array fields will be sublists.
+	*/
+	Datalist* cmpdlist = builddatalist(listlength(tsym->subnodes)); /* list of field constants */
         for(i=0;i<listlength(tsym->subnodes);i++) {
+	    NCConstant* fieldinstance = NULL;
 	    Symbol* field = (Symbol*)listget(tsym->subnodes,i);
 	    if(field->typ.dimset.ndims > 0) {	
-                fillarray(field->typ.basetype,&field->typ.dimset,0,filler);
+  	        /*  Build a sublist for this field */
+	        Datalist* arraydata = builddatalist(0);
+                fillarray(field->typ.basetype,&field->typ.dimset,0,arraydata);
+		/* Convert to a compound constant */
+	        fieldinstance = list2const(arraydata);
+		dlappend(cmpdlist,fieldinstance);
+		fieldinstance = NULL;
 	    } else
-		filllist(field->typ.basetype,sublist);
+		/* Append directly to cmpdlist*/
+		filllist(field->typ.basetype,cmpdlist);
         }	  
-	con = builddatasublist(sublist);
-	break;
-    case NC_VLEN:
-	sublist = builddatalist(0);
-	filllist(tsym->typ.basetype,sublist); /* generate a single instance*/
-	con = builddatasublist(sublist);
-	break;
+        /* Add compound instance to the filler list */
+	con = list2const(cmpdlist);
+        dlappend(filler,con);
+	con = NULL;
+	} break;
+    case NC_VLEN: {
+        Datalist* vlensublist = NULL;
+	/* The vlist will have a sublist hanging off of fille, with
+	   a single compound constant in filler */
+	vlensublist = builddatalist(0);
+	filllist(tsym->typ.basetype,vlensublist); /* generate a single instance*/
+	con = builddatasublist(vlensublist);
+        dlappend(filler,con);
+	} break;
     default: PANIC1("fill: unexpected subclass %d",tsym->subclass);
     }
-    dlappend(filler,con);
 }
 
 static void
@@ -123,6 +141,9 @@ filllist(Symbol* tsym, Datalist* dl)
     }
 }
 
+/* Create an array of fill values of basetype given the dimset. This
+is recursive over the dimensions as specified by the index argumen
+*/
 static void
 fillarray(Symbol* basetype, Dimset* dimset, int index, Datalist* arraylist)
 {
@@ -131,23 +152,20 @@ fillarray(Symbol* basetype, Dimset* dimset, int index, Datalist* arraylist)
     unsigned int size = dim->dim.declsize;
     int isunlimited = (size == 0);
     int lastdim = (index == (dimset->ndims - 1));
-    int firstdim = (index == 0);
-    Datalist* sublist;
 
-    sublist = (firstdim?builddatalist(0):arraylist);
     if(isunlimited) {
 	/* do a single entry to satisfy*/
         if(lastdim) {
-	    filllist(basetype,sublist);
+	    filllist(basetype,arraylist);
 	} else {
-	    fillarray(basetype->typ.basetype,dimset,index+1,sublist);
+	    fillarray(basetype->typ.basetype,dimset,index+1,arraylist);
 	}
     } else { /* bounded*/
         if(lastdim) {
-	    for(i=0;i<size;i++) filllist(basetype,sublist);
+	    for(i=0;i<size;i++) filllist(basetype,arraylist);
 	} else {
 	    for(i=0;i<size;i++) {
-	        fillarray(basetype->typ.basetype,dimset,index+1,sublist);
+	        fillarray(basetype->typ.basetype,dimset,index+1,arraylist);
 	    }
 	}
     }

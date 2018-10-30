@@ -304,7 +304,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         int i,uid, nfields, dllen;
         if(con == NULL || isfillconst(con)) {
             Datalist* fill = (filler==NULL?getfiller(tsym):filler);
-            ASSERT(fill->length == 1);
+	    ASSERT(fill->length == 1);
             con = fill->data[0];
             if(!islistconst(con)) {
               if(con)

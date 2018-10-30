@@ -614,7 +614,7 @@ makepath(char* text0)
 	do {
 	    match = esc_strchr(p,'/',0);
 	    lastident = (*match == '\0');
-	    *p='\0';
+	    *match='\0';
 	    (void)unescape(p,strlen(p),ISIDENT,&ident);
 	    refsym = lookupingroup(NC_GRP,ident,container);
 	    if(!lastident) {

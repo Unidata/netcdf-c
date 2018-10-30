@@ -16,15 +16,6 @@ TESTFILES='tst_comp tst_comp2 tst_enum_data tst_fillbug
  tst_solar_cmp tst_special_atts tst_string_data tst_unicode
  tst_vlen_data'
 
-# Run these programs to create some test files; may already have been run
-if ! test -f tst_comp.nc ; then ${execdir}/tst_comp; fi
-if ! test -f tst_comp2.nc ; then ${execdir}/tst_comp2; fi
-if ! test -f tst_compress.nc ; then ${execdir}/tst_compress; fi
-if ! test -f tst_enum_data.nc ; then ${execdir}/tst_enum_data; fi
-if ! test -f tst_group_data.nc ; then ${execdir}/tst_group_data; fi
-if ! test -f tst_nans.nc ; then ${execdir}/tst_nans; fi
-if ! test -f tst_opaque_data.nc ; then ${execdir}/tst_opaque_data; fi
-
 echo "*** Testing netCDF-4 features of nccopy on ncdump/*.nc files"
 for i in $TESTFILES ; do
     echo "*** Test nccopy $i.nc copy_of_$i.nc ..."
