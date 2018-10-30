@@ -3,7 +3,8 @@
 DB=1
 #X=-x
 
-MEM=1
+#MEM=1
+#NOTUIL=1
 #FAST=1
 #PROF=1
 
@@ -103,7 +104,6 @@ CXXFLAGS="$CPPFLAGS $CXXFLAGS"
 FLAGS="--prefix ${PREFIX}"
 #FLAGS="$FLAGS --disable-cxx"
 #FLAGS="$FLAGS --disable-examples"
-#FLAGS="$FLAGS --disable-utilities"
 #FLAGS="$FLAGS --enable-cxx-4"
 #FLAGS="$FLAGS --enable-dap-long-tests"
 #FLAGS="$FLAGS --enable-ffio"
@@ -133,6 +133,10 @@ fi
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
+fi
+
+if test "x$NOUTIL" = x1 ; then
+FLAGS="$FLAGS --disable-utilities"
 fi
 
 if test "x${DB}" = x1 ; then

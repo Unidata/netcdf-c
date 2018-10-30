@@ -52,7 +52,7 @@ data:
 
  vs = "hello\tworld" ;
 
- vo = {1, 35, 69, 103, 137, 171, 205, 239} ;
+ vo = 0X0123456789ABCDEF0000000000000000 ;
 
  primary_cloud = Stratus ;
 

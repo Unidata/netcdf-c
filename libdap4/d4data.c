@@ -286,7 +286,7 @@ fillopfixed(NCD4meta* meta, d4size_t opaquesize, void** offsetp, void** dstp)
     delta = actual - opaquesize;
     if(delta != 0) {
 #ifdef FIXEDOPAQUE
-	nc_log(NCLOGWARN,"opaque changed from %lu to %lu",actual,opaquesize);
+	nclog(NCLOGWARN,"opaque changed from %lu to %lu",actual,opaquesize);
 	memset(dst,0,opaquesize); /* clear in case we have short case */
 	count = (delta < 0 ? actual : opaquesize);
 #else
