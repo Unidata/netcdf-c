@@ -49,16 +49,16 @@ struct NCAUX_CMPD {
 
 /* Forward */
 static int reclaim_datar(int ncid, int xtype, void* memory);
+#ifdef USE_NETCDF4
 static int reclaim_usertype(int ncid, int xtype, void* memory);
 static int reclaim_compound(int ncid, int xtype, size_t size, size_t nfields, void* memory);
 static int reclaim_vlen(int ncid, int xtype, int basetype, void* memory);
 static int reclaim_enum(int ncid, int xtype, int basetype, void* memory);
 static int reclaim_opaque(int ncid, int xtype, size_t size, void* memory);
+#endif
 
 #ifdef USE_NETCDF4
-
 static int ncaux_initialized = 0;
-
 static void compute_alignments(void);
 static int computefieldinfo(struct NCAUX_CMPD* cmpd);
 #endif
@@ -97,7 +97,8 @@ ncaux_reclaim_data(int ncid, int xtype, const void* memory, size_t count)
     if((stat=nc_inq_type(ncid,xtype,NULL,&typesize))) goto done;
     p = (char*)memory; /* use char* so we can do pointer arithmetic */
     for(i=0;i<count;i++,p+=typesize) {
-	reclaim_datar(ncid,xtype,p); /* reclaim one instance */
+	if((stat=reclaim_datar(ncid,xtype,p)) /* reclaim one instance */
+	    break;
     }
     
 done:
@@ -115,6 +116,7 @@ reclaim_datar(int ncid, int xtype, void* memory)
     case NC_SHORT: case NC_USHORT: break;
     case NC_INT: case NC_UINT: case NC_FLOAT: break;
     case NC_INT64: case NC_UINT64: case NC_DOUBLE: break;
+#ifdef USE_NETCDF4
     case NC_STRING: {
         char** sp = (char**)memory;
         /* Need to reclaim string */
@@ -123,11 +125,16 @@ reclaim_datar(int ncid, int xtype, void* memory)
     default:
     	/* reclaim a user type */
 	stat = reclaim_usertype(ncid,xtype,memory);
+#else
+    default:
+	stat = NC_ENOTNC4;
+#endif
 	break;
     }
     return stat;
 }
 	
+#ifdef USER_NETCDF4
 static int
 reclaim_usertype(int ncid, int xtype, void* memory)
 {
@@ -216,6 +223,7 @@ reclaim_opaque(int ncid, int xtype, size_t size, void* memory)
     return NC_NOERR;
 }
 
+#endif /*USE_NETCDF4*/
 
 /**************************************************/
 
