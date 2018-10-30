@@ -9,7 +9,6 @@
 #include "ezxml.h"
 #include "d4includes.h"
 #include "d4odom.h"
-#include "nc_logging.h"
 
 /**
 This code serves two purposes
