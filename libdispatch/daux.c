@@ -97,7 +97,7 @@ ncaux_reclaim_data(int ncid, int xtype, const void* memory, size_t count)
     if((stat=nc_inq_type(ncid,xtype,NULL,&typesize))) goto done;
     p = (char*)memory; /* use char* so we can do pointer arithmetic */
     for(i=0;i<count;i++,p+=typesize) {
-	if((stat=reclaim_datar(ncid,xtype,p)) /* reclaim one instance */
+	if((stat=reclaim_datar(ncid,xtype,p))) /* reclaim one instance */
 	    break;
     }
     
