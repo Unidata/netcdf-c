@@ -134,7 +134,7 @@ reclaim_datar(int ncid, int xtype, void* memory)
     return stat;
 }
 	
-#ifdef USER_NETCDF4
+#ifdef USE_NETCDF4
 static int
 reclaim_usertype(int ncid, int xtype, void* memory)
 {
