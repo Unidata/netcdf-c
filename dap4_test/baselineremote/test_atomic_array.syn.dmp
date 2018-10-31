@@ -45,8 +45,7 @@ data:
   "4a/q%n9;5Y", "{fIl?T\"\\A[" ;
 
  vo =
-  
-    0XA2177AA7287C04FA8BB57BCDF76EC80F, 0X34FA472AA9404DD543143CADED303A75 ;
+  0XA2177AA7287C04FA8BB57BCDF76EC80F, 0X34FA472AA9404DD543143CADED303A75 ;
 
  primary_cloud = Stratus, Cirrocumulus, Nimbostratus, Cirrostratus, 
     Stratocumulus ;
