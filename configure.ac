@@ -91,6 +91,7 @@ AC_DEFINE_UNQUOTED([NCIO_MINBLOCKSIZE], [$NCIO_MINBLOCKSIZE], [min blocksize for
 # Find valgrind, if available, and add targets for it.
 AX_VALGRIND_DFLT([sgcheck], [off])
 AX_VALGRIND_CHECK
+AM_CONDITIONAL(ENABLE_VALGRIND, [test "x$VALGRIND_ENABLED" = xyes])
 
 ###
 # Doxygen and doxygen-related options.

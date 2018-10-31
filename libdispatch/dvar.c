@@ -708,6 +708,28 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
    return NC_NOERR;
 }
 
+/** \ingroup variables
+Free string space allocated by the library.
+
+When you read string type the library will allocate the storage space
+for the data. This storage space must be freed, so pass the pointer
+back to this function, when you're done with the data, and it will
+free the string memory.
+
+\param len The number of character arrays in the array.
+\param data The pointer to the data array.
+
+\returns ::NC_NOERR No error.
+*/
+int
+nc_free_string(size_t len, char **data)
+{
+   int i;
+   for (i = 0; i < len; i++)
+      free(data[i]);
+   return NC_NOERR;
+}
+
 #ifdef USE_NETCDF4
 /** \ingroup variables
 
@@ -818,28 +840,6 @@ nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->get_var_chunk_cache(ncid, varid, sizep,
 					      nelemsp, preemptionp);
-}
-
-/** \ingroup variables
-Free string space allocated by the library.
-
-When you read string type the library will allocate the storage space
-for the data. This storage space must be freed, so pass the pointer
-back to this function, when you're done with the data, and it will
-free the string memory.
-
-\param len The number of character arrays in the array.
-\param data The pointer to the data array.
-
-\returns ::NC_NOERR No error.
-*/
-int
-nc_free_string(size_t len, char **data)
-{
-   int i;
-   for (i = 0; i < len; i++)
-      free(data[i]);
-   return NC_NOERR;
 }
 
 /**
