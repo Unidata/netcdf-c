@@ -64,17 +64,22 @@ NC4_provenance_init(void)
 	{stat = NC_ENOMEM; goto done;}
 
     /* Insert primary library version as first entry */
-    if((value = strdup(PACKAGE_VERSION)) == NULL)
-	{stat = NC_ENOMEM; goto done;}
-    
     if((name = strdup(NCPNCLIB2)) == NULL)
 	{stat = NC_ENOMEM; goto done;}
     nclistpush(globalpropinfo.properties,name);
-    name = NULL;
+    name = NULL; /* Avoid multiple free() */
+
+    if((value = strdup(PACKAGE_VERSION)) == NULL)
+	{stat = NC_ENOMEM; goto done;}
     nclistpush(globalpropinfo.properties,value);
     value = NULL;
     
     /* Insert the HDF5 as underlying storage format library */
+    if((name = strdup(NCPHDF5LIB2)) == NULL)
+	{stat = NC_ENOMEM; goto done;}
+    nclistpush(globalpropinfo.properties,name);
+    name = NULL;
+
     stat = NC4_hdf5get_libversion(&major,&minor,&release);
     if(stat) goto done;
     {
@@ -83,10 +88,6 @@ NC4_provenance_init(void)
 	if((value = strdup(sversion)) == NULL)
 	    {stat = NC_ENOMEM; goto done;}
     }
-    if((name = strdup(NCPHDF5LIB2)) == NULL)
-	{stat = NC_ENOMEM; goto done;}
-    nclistpush(globalpropinfo.properties,name);
-    name = NULL;
     nclistpush(globalpropinfo.properties,value);
     value = NULL;
 
@@ -101,6 +102,8 @@ NC4_provenance_init(void)
     /* merge into the properties list */
     for(i=0;i<nclistlength(other);i++)
 	nclistpush(globalpropinfo.properties,strdup(nclistget(other,i)));
+    nclistfreeall(other);
+    other = NULL;
 
 done:
     if(name != NULL) free(name);
@@ -132,6 +135,19 @@ locate(char* p, char tag)
 	    next++; /* skip escaped char */
     }
     return next; /* not found */
+}
+
+/**
+ * @internal finalize default provenance info
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
+ */
+int
+NC4_provenance_finalize(void)
+{
+    nclistfreeall(globalpropinfo.properties);
+    return NC_NOERR;
 }
 
 /**
@@ -347,20 +363,25 @@ NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt)
 
     /* Initialize from the default */
     provenance->propattr.version = globalpropinfo.version;
-    provenance->propattr.properties = nclistnew();
-    if(provenance->propattr.properties == NULL)
-	{ncstat = NC_ENOMEM; goto done;}
-    
     /* Get the superblock number */
     if((ncstat = NC4_hdf5get_superblock(file,&superblock)))
 	goto done;
     provenance->superblockversion = superblock;
 
+    /* Capture properties */
+    provenance->propattr.properties = nclistnew();
+    if(provenance->propattr.properties == NULL)
+	{ncstat = NC_ENOMEM; goto done;}
     /* add in the dfalt values */
     if(dfalt != NULL) {
 	int i;
 	for(i=0;i<nclistlength(dfalt->properties);i++) {
-	    nclistpush(provenance->propattr.properties,nclistget(dfalt->properties,i));
+	    char* prop = nclistget(dfalt->properties,i);
+	    if(prop != NULL) {
+		prop = strdup(prop);
+		if(prop == NULL) {ncstat = NC_ENOMEM; goto done;}
+	        nclistpush(provenance->propattr.properties,prop);
+	    }
 	}
     }
 
@@ -472,8 +493,9 @@ int
 NC4_free_provenance(struct NCPROVENANCE* prov)
 {
     if(prov == NULL) return NC_NOERR;
-    if(prov->propattr.properties)
+    if(prov->propattr.properties != NULL);
 	nclistfreeall(prov->propattr.properties);
+    prov->propattr.properties = NULL;
     free(prov);
     return NC_NOERR;
 }
