@@ -621,7 +621,7 @@ ncx_get_short_schar(const void *xp, schar *ip)
 #line 868
     int err=NC_NOERR;
 #line 868
-    ix_short xx;
+    ix_short xx = 0;
 #line 868
     get_ix_short(xp, &xx);
 #line 868
@@ -672,7 +672,7 @@ ncx_get_short_short(const void *xp, short *ip)
 #line 869
 #else
 #line 869
-    ix_short xx;
+    ix_short xx = 0;
 #line 869
     get_ix_short(xp, &xx);
 #line 869
@@ -725,7 +725,7 @@ ncx_get_short_int(const void *xp, int *ip)
 #line 870
 #else
 #line 870
-    ix_short xx;
+    ix_short xx = 0;
 #line 870
     get_ix_short(xp, &xx);
 #line 870
@@ -778,7 +778,7 @@ ncx_get_short_long(const void *xp, long *ip)
 #line 871
 #else
 #line 871
-    ix_short xx;
+    ix_short xx = 0;
 #line 871
     get_ix_short(xp, &xx);
 #line 871
@@ -831,7 +831,7 @@ ncx_get_short_longlong(const void *xp, longlong *ip)
 #line 872
 #else
 #line 872
-    ix_short xx;
+    ix_short xx = 0;
 #line 872
     get_ix_short(xp, &xx);
 #line 872
@@ -878,7 +878,7 @@ ncx_get_short_ushort(const void *xp, ushort *ip)
 #line 873
     int err=NC_NOERR;
 #line 873
-    ix_short xx;
+    ix_short xx = 0;
 #line 873
     get_ix_short(xp, &xx);
 #line 873
@@ -937,7 +937,7 @@ ncx_get_short_uchar(const void *xp, uchar *ip)
 #line 874
     int err=NC_NOERR;
 #line 874
-    ix_short xx;
+    ix_short xx = 0;
 #line 874
     get_ix_short(xp, &xx);
 #line 874
@@ -996,7 +996,7 @@ ncx_get_short_uint(const void *xp, uint *ip)
 #line 875
     int err=NC_NOERR;
 #line 875
-    ix_short xx;
+    ix_short xx = 0;
 #line 875
     get_ix_short(xp, &xx);
 #line 875
@@ -1055,7 +1055,7 @@ ncx_get_short_ulonglong(const void *xp, ulonglong *ip)
 #line 876
     int err=NC_NOERR;
 #line 876
-    ix_short xx;
+    ix_short xx = 0;
 #line 876
     get_ix_short(xp, &xx);
 #line 876
@@ -1112,7 +1112,7 @@ ncx_get_short_float(const void *xp, float *ip)
 #line 877
 {
 #line 877
-	ix_short xx;
+	ix_short xx = 0;
 #line 877
 	get_ix_short(xp, &xx);
 #line 877
@@ -1129,7 +1129,7 @@ ncx_get_short_double(const void *xp, double *ip)
 #line 878
 {
 #line 878
-	ix_short xx;
+	ix_short xx = 0;
 #line 878
 	get_ix_short(xp, &xx);
 #line 878
@@ -1663,7 +1663,7 @@ ncx_get_ushort_schar(const void *xp, schar *ip)
 #line 956
     int err=NC_NOERR;
 #line 956
-    ix_ushort xx;
+    ix_ushort xx = 0;
 #line 956
     get_ix_ushort(xp, &xx);
 #line 956
@@ -1708,7 +1708,7 @@ ncx_get_ushort_short(const void *xp, short *ip)
 #line 957
     int err=NC_NOERR;
 #line 957
-    ix_ushort xx;
+    ix_ushort xx = 0;
 #line 957
     get_ix_ushort(xp, &xx);
 #line 957
@@ -1753,7 +1753,7 @@ ncx_get_ushort_int(const void *xp, int *ip)
 #line 958
     int err=NC_NOERR;
 #line 958
-    ix_ushort xx;
+    ix_ushort xx = 0;
 #line 958
     get_ix_ushort(xp, &xx);
 #line 958
@@ -1798,7 +1798,7 @@ ncx_get_ushort_long(const void *xp, long *ip)
 #line 959
     int err=NC_NOERR;
 #line 959
-    ix_ushort xx;
+    ix_ushort xx = 0;
 #line 959
     get_ix_ushort(xp, &xx);
 #line 959
@@ -1843,7 +1843,7 @@ ncx_get_ushort_longlong(const void *xp, longlong *ip)
 #line 960
     int err=NC_NOERR;
 #line 960
-    ix_ushort xx;
+    ix_ushort xx = 0;
 #line 960
     get_ix_ushort(xp, &xx);
 #line 960
@@ -1894,7 +1894,7 @@ ncx_get_ushort_ushort(const void *xp, ushort *ip)
 #line 961
 #else
 #line 961
-    ix_ushort xx;
+    ix_ushort xx = 0;
 #line 961
     get_ix_ushort(xp, &xx);
 #line 961
@@ -1947,7 +1947,7 @@ ncx_get_ushort_uchar(const void *xp, uchar *ip)
 #line 962
 #else
 #line 962
-    ix_ushort xx;
+    ix_ushort xx = 0;
 #line 962
     get_ix_ushort(xp, &xx);
 #line 962
@@ -2000,7 +2000,7 @@ ncx_get_ushort_uint(const void *xp, uint *ip)
 #line 963
 #else
 #line 963
-    ix_ushort xx;
+    ix_ushort xx = 0;
 #line 963
     get_ix_ushort(xp, &xx);
 #line 963
@@ -2053,7 +2053,7 @@ ncx_get_ushort_ulonglong(const void *xp, ulonglong *ip)
 #line 964
 #else
 #line 964
-    ix_ushort xx;
+    ix_ushort xx = 0;
 #line 964
     get_ix_ushort(xp, &xx);
 #line 964
@@ -2098,7 +2098,7 @@ ncx_get_ushort_float(const void *xp, float *ip)
 #line 965
 {
 #line 965
-	ix_ushort xx;
+	ix_ushort xx = 0;
 #line 965
 	get_ix_ushort(xp, &xx);
 #line 965
@@ -2115,7 +2115,7 @@ ncx_get_ushort_double(const void *xp, double *ip)
 #line 966
 {
 #line 966
-	ix_ushort xx;
+	ix_ushort xx = 0;
 #line 966
 	get_ix_ushort(xp, &xx);
 #line 966
@@ -2750,7 +2750,7 @@ ncx_get_int_int(const void *xp, int *ip)
 #line 1067
 #else
 #line 1067
-    ix_int xx;
+    ix_int xx = 0;
 #line 1067
     get_ix_int(xp, &xx);
 #line 1067
@@ -2798,7 +2798,7 @@ ncx_get_int_schar(const void *xp, schar *ip)
 #line 1069
     int err=NC_NOERR;
 #line 1069
-    ix_int xx;
+    ix_int xx = 0;
 #line 1069
     get_ix_int(xp, &xx);
 #line 1069
@@ -2849,7 +2849,7 @@ ncx_get_int_short(const void *xp, short *ip)
 #line 1070
 #else
 #line 1070
-    ix_int xx;
+    ix_int xx = 0;
 #line 1070
     get_ix_int(xp, &xx);
 #line 1070
@@ -2902,7 +2902,7 @@ ncx_get_int_long(const void *xp, long *ip)
 #line 1071
 #else
 #line 1071
-    ix_int xx;
+    ix_int xx = 0;
 #line 1071
     get_ix_int(xp, &xx);
 #line 1071
@@ -2955,7 +2955,7 @@ ncx_get_int_longlong(const void *xp, longlong *ip)
 #line 1072
 #else
 #line 1072
-    ix_int xx;
+    ix_int xx = 0;
 #line 1072
     get_ix_int(xp, &xx);
 #line 1072
@@ -3002,7 +3002,7 @@ ncx_get_int_ushort(const void *xp, ushort *ip)
 #line 1073
     int err=NC_NOERR;
 #line 1073
-    ix_int xx;
+    ix_int xx = 0;
 #line 1073
     get_ix_int(xp, &xx);
 #line 1073
@@ -3061,7 +3061,7 @@ ncx_get_int_uchar(const void *xp, uchar *ip)
 #line 1074
     int err=NC_NOERR;
 #line 1074
-    ix_int xx;
+    ix_int xx = 0;
 #line 1074
     get_ix_int(xp, &xx);
 #line 1074
@@ -3120,7 +3120,7 @@ ncx_get_int_uint(const void *xp, uint *ip)
 #line 1075
     int err=NC_NOERR;
 #line 1075
-    ix_int xx;
+    ix_int xx = 0;
 #line 1075
     get_ix_int(xp, &xx);
 #line 1075
@@ -3179,7 +3179,7 @@ ncx_get_int_ulonglong(const void *xp, ulonglong *ip)
 #line 1076
     int err=NC_NOERR;
 #line 1076
-    ix_int xx;
+    ix_int xx = 0;
 #line 1076
     get_ix_int(xp, &xx);
 #line 1076
@@ -3236,7 +3236,7 @@ ncx_get_int_float(const void *xp, float *ip)
 #line 1077
 {
 #line 1077
-	ix_int xx;
+	ix_int xx = 0;
 #line 1077
 	get_ix_int(xp, &xx);
 #line 1077
@@ -3253,7 +3253,7 @@ ncx_get_int_double(const void *xp, double *ip)
 #line 1078
 {
 #line 1078
-	ix_int xx;
+	ix_int xx = 0;
 #line 1078
 	get_ix_int(xp, &xx);
 #line 1078
@@ -3803,7 +3803,7 @@ ncx_get_uint_uint(const void *xp, uint *ip)
 #line 1166
 #else
 #line 1166
-    ix_uint xx;
+    ix_uint xx = 0;
 #line 1166
     get_ix_uint(xp, &xx);
 #line 1166
@@ -3852,7 +3852,7 @@ ncx_get_uint_schar(const void *xp, schar *ip)
 #line 1169
     int err=NC_NOERR;
 #line 1169
-    ix_uint xx;
+    ix_uint xx = 0;
 #line 1169
     get_ix_uint(xp, &xx);
 #line 1169
@@ -3897,7 +3897,7 @@ ncx_get_uint_short(const void *xp, short *ip)
 #line 1170
     int err=NC_NOERR;
 #line 1170
-    ix_uint xx;
+    ix_uint xx = 0;
 #line 1170
     get_ix_uint(xp, &xx);
 #line 1170
@@ -3942,7 +3942,7 @@ ncx_get_uint_int(const void *xp, int *ip)
 #line 1171
     int err=NC_NOERR;
 #line 1171
-    ix_uint xx;
+    ix_uint xx = 0;
 #line 1171
     get_ix_uint(xp, &xx);
 #line 1171
@@ -3987,7 +3987,7 @@ ncx_get_uint_long(const void *xp, long *ip)
 #line 1172
     int err=NC_NOERR;
 #line 1172
-    ix_uint xx;
+    ix_uint xx = 0;
 #line 1172
     get_ix_uint(xp, &xx);
 #line 1172
@@ -4032,7 +4032,7 @@ ncx_get_uint_longlong(const void *xp, longlong *ip)
 #line 1173
     int err=NC_NOERR;
 #line 1173
-    ix_uint xx;
+    ix_uint xx = 0;
 #line 1173
     get_ix_uint(xp, &xx);
 #line 1173
@@ -4083,7 +4083,7 @@ ncx_get_uint_ushort(const void *xp, ushort *ip)
 #line 1174
 #else
 #line 1174
-    ix_uint xx;
+    ix_uint xx = 0;
 #line 1174
     get_ix_uint(xp, &xx);
 #line 1174
@@ -4136,7 +4136,7 @@ ncx_get_uint_uchar(const void *xp, uchar *ip)
 #line 1175
 #else
 #line 1175
-    ix_uint xx;
+    ix_uint xx = 0;
 #line 1175
     get_ix_uint(xp, &xx);
 #line 1175
@@ -4189,7 +4189,7 @@ ncx_get_uint_ulonglong(const void *xp, ulonglong *ip)
 #line 1176
 #else
 #line 1176
-    ix_uint xx;
+    ix_uint xx = 0;
 #line 1176
     get_ix_uint(xp, &xx);
 #line 1176
@@ -4234,7 +4234,7 @@ ncx_get_uint_float(const void *xp, float *ip)
 #line 1177
 {
 #line 1177
-	ix_uint xx;
+	ix_uint xx = 0;
 #line 1177
 	get_ix_uint(xp, &xx);
 #line 1177
@@ -4251,7 +4251,7 @@ ncx_get_uint_double(const void *xp, double *ip)
 #line 1178
 {
 #line 1178
-	ix_uint xx;
+	ix_uint xx = 0;
 #line 1178
 	get_ix_uint(xp, &xx);
 #line 1178
@@ -5499,7 +5499,7 @@ ncx_get_float_schar(const void *xp, schar *ip)
 #line 1650
 {
 #line 1650
-	ix_float xx;
+	ix_float xx = 0;
 #line 1650
 	get_ix_float(xp, &xx);
 #line 1650
@@ -5528,7 +5528,7 @@ ncx_get_float_short(const void *xp, short *ip)
 #line 1651
 {
 #line 1651
-	ix_float xx;
+	ix_float xx = 0;
 #line 1651
 	get_ix_float(xp, &xx);
 #line 1651
@@ -5557,7 +5557,7 @@ ncx_get_float_int(const void *xp, int *ip)
 #line 1652
 {
 #line 1652
-	ix_float xx;
+	ix_float xx = 0;
 #line 1652
 	get_ix_float(xp, &xx);
 #line 1652
@@ -5586,7 +5586,7 @@ ncx_get_float_long(const void *xp, long *ip)
 #line 1653
 {
 #line 1653
-	ix_float xx;
+	ix_float xx = 0;
 #line 1653
 	get_ix_float(xp, &xx);
 #line 1653
@@ -5615,7 +5615,7 @@ ncx_get_float_double(const void *xp, double *ip)
 #line 1654
 {
 #line 1654
-	ix_float xx;
+	ix_float xx = 0;
 #line 1654
 	get_ix_float(xp, &xx);
 #line 1654
@@ -5632,7 +5632,7 @@ ncx_get_float_longlong(const void *xp, longlong *ip)
 #line 1655
 {
 #line 1655
-	ix_float xx;
+	ix_float xx = 0;
 #line 1655
 	get_ix_float(xp, &xx);
 #line 1655
@@ -5665,7 +5665,7 @@ ncx_get_float_uchar(const void *xp, uchar *ip)
 #line 1656
 {
 #line 1656
-	ix_float xx;
+	ix_float xx = 0;
 #line 1656
 	get_ix_float(xp, &xx);
 #line 1656
@@ -5694,7 +5694,7 @@ ncx_get_float_ushort(const void *xp, ushort *ip)
 #line 1657
 {
 #line 1657
-	ix_float xx;
+	ix_float xx = 0;
 #line 1657
 	get_ix_float(xp, &xx);
 #line 1657
@@ -5723,7 +5723,7 @@ ncx_get_float_uint(const void *xp, uint *ip)
 #line 1658
 {
 #line 1658
-	ix_float xx;
+	ix_float xx = 0;
 #line 1658
 	get_ix_float(xp, &xx);
 #line 1658
@@ -5752,7 +5752,7 @@ ncx_get_float_ulonglong(const void *xp, ulonglong *ip)
 #line 1659
 {
 #line 1659
-	ix_float xx;
+	ix_float xx = 0;
 #line 1659
 	get_ix_float(xp, &xx);
 #line 1659
@@ -6450,7 +6450,7 @@ ncx_get_double_schar(const void *xp, schar *ip)
 #line 1975
 {
 #line 1975
-	ix_double xx;
+	ix_double xx = 0;
 #line 1975
 	get_ix_double(xp, &xx);
 #line 1975
@@ -6479,7 +6479,7 @@ ncx_get_double_short(const void *xp, short *ip)
 #line 1976
 {
 #line 1976
-	ix_double xx;
+	ix_double xx = 0;
 #line 1976
 	get_ix_double(xp, &xx);
 #line 1976
@@ -6508,7 +6508,7 @@ ncx_get_double_int(const void *xp, int *ip)
 #line 1977
 {
 #line 1977
-	ix_double xx;
+	ix_double xx = 0;
 #line 1977
 	get_ix_double(xp, &xx);
 #line 1977
@@ -6537,7 +6537,7 @@ ncx_get_double_long(const void *xp, long *ip)
 #line 1978
 {
 #line 1978
-	ix_double xx;
+	ix_double xx = 0;
 #line 1978
 	get_ix_double(xp, &xx);
 #line 1978
@@ -6566,7 +6566,7 @@ ncx_get_double_longlong(const void *xp, longlong *ip)
 #line 1979
 {
 #line 1979
-	ix_double xx;
+	ix_double xx = 0;
 #line 1979
 	get_ix_double(xp, &xx);
 #line 1979
@@ -6599,7 +6599,7 @@ ncx_get_double_uchar(const void *xp, uchar *ip)
 #line 1980
 {
 #line 1980
-	ix_double xx;
+	ix_double xx = 0;
 #line 1980
 	get_ix_double(xp, &xx);
 #line 1980
@@ -6628,7 +6628,7 @@ ncx_get_double_ushort(const void *xp, ushort *ip)
 #line 1981
 {
 #line 1981
-	ix_double xx;
+	ix_double xx = 0;
 #line 1981
 	get_ix_double(xp, &xx);
 #line 1981
@@ -6657,7 +6657,7 @@ ncx_get_double_uint(const void *xp, uint *ip)
 #line 1982
 {
 #line 1982
-	ix_double xx;
+	ix_double xx = 0;
 #line 1982
 	get_ix_double(xp, &xx);
 #line 1982
@@ -6686,7 +6686,7 @@ ncx_get_double_ulonglong(const void *xp, ulonglong *ip)
 #line 1983
 {
 #line 1983
-	ix_double xx;
+	ix_double xx = 0;
 #line 1983
 	get_ix_double(xp, &xx);
 #line 1983
@@ -6715,7 +6715,7 @@ ncx_get_double_ulonglong(const void *xp, ulonglong *ip)
 static int
 ncx_get_double_float(const void *xp, float *ip)
 {
-    double xx;
+    double xx = 0.0;
     get_ix_double(xp, &xx);
     if (xx > FLT_MAX) {
 #ifdef ERANGE_FILL
@@ -7093,7 +7093,7 @@ ncx_get_longlong_longlong(const void *xp, longlong *ip)
 #line 2124
 #else
 #line 2124
-    ix_int64 xx;
+    ix_int64 xx = 0;
 #line 2124
     get_ix_int64(xp, &xx);
 #line 2124
@@ -7141,7 +7141,7 @@ ncx_get_longlong_schar(const void *xp, schar *ip)
 #line 2126
     int err=NC_NOERR;
 #line 2126
-    ix_int64 xx;
+    ix_int64 xx = 0;
 #line 2126
     get_ix_int64(xp, &xx);
 #line 2126
@@ -7192,7 +7192,7 @@ ncx_get_longlong_short(const void *xp, short *ip)
 #line 2127
 #else
 #line 2127
-    ix_int64 xx;
+    ix_int64 xx = 0;
 #line 2127
     get_ix_int64(xp, &xx);
 #line 2127
@@ -7245,7 +7245,7 @@ ncx_get_longlong_int(const void *xp, int *ip)
 #line 2128
 #else
 #line 2128
-    ix_int64 xx;
+    ix_int64 xx = 0;
 #line 2128
     get_ix_int64(xp, &xx);
 #line 2128
@@ -7298,7 +7298,7 @@ ncx_get_longlong_long(const void *xp, long *ip)
 #line 2129
 #else
 #line 2129
-    ix_int64 xx;
+    ix_int64 xx = 0;
 #line 2129
     get_ix_int64(xp, &xx);
 #line 2129
@@ -7345,7 +7345,7 @@ ncx_get_longlong_ushort(const void *xp, ushort *ip)
 #line 2130
     int err=NC_NOERR;
 #line 2130
-    ix_int64 xx;
+    ix_int64 xx = 0;
 #line 2130
     get_ix_int64(xp, &xx);
 #line 2130
@@ -7404,7 +7404,7 @@ ncx_get_longlong_uchar(const void *xp, uchar *ip)
 #line 2131
     int err=NC_NOERR;
 #line 2131
-    ix_int64 xx;
+    ix_int64 xx = 0;
 #line 2131
     get_ix_int64(xp, &xx);
 #line 2131
@@ -7463,7 +7463,7 @@ ncx_get_longlong_uint(const void *xp, uint *ip)
 #line 2132
     int err=NC_NOERR;
 #line 2132
-    ix_int64 xx;
+    ix_int64 xx = 0;
 #line 2132
     get_ix_int64(xp, &xx);
 #line 2132
@@ -7522,7 +7522,7 @@ ncx_get_longlong_ulonglong(const void *xp, ulonglong *ip)
 #line 2133
     int err=NC_NOERR;
 #line 2133
-    ix_int64 xx;
+    ix_int64 xx = 0;
 #line 2133
     get_ix_int64(xp, &xx);
 #line 2133
@@ -7579,7 +7579,7 @@ ncx_get_longlong_float(const void *xp, float *ip)
 #line 2134
 {
 #line 2134
-	ix_int64 xx;
+	ix_int64 xx = 0;
 #line 2134
 	get_ix_int64(xp, &xx);
 #line 2134
@@ -7596,7 +7596,7 @@ ncx_get_longlong_double(const void *xp, double *ip)
 #line 2135
 {
 #line 2135
-	ix_int64 xx;
+	ix_int64 xx = 0;
 #line 2135
 	get_ix_int64(xp, &xx);
 #line 2135
@@ -8217,7 +8217,7 @@ ncx_get_ulonglong_ulonglong(const void *xp, ulonglong *ip)
 #line 2202
 #else
 #line 2202
-    ix_uint64 xx;
+    ix_uint64 xx = 0;
 #line 2202
     get_ix_uint64(xp, &xx);
 #line 2202
@@ -8265,7 +8265,7 @@ ncx_get_ulonglong_schar(const void *xp, schar *ip)
 #line 2204
     int err=NC_NOERR;
 #line 2204
-    ix_uint64 xx;
+    ix_uint64 xx = 0;
 #line 2204
     get_ix_uint64(xp, &xx);
 #line 2204
@@ -8310,7 +8310,7 @@ ncx_get_ulonglong_short(const void *xp, short *ip)
 #line 2205
     int err=NC_NOERR;
 #line 2205
-    ix_uint64 xx;
+    ix_uint64 xx = 0;
 #line 2205
     get_ix_uint64(xp, &xx);
 #line 2205
@@ -8355,7 +8355,7 @@ ncx_get_ulonglong_int(const void *xp, int *ip)
 #line 2206
     int err=NC_NOERR;
 #line 2206
-    ix_uint64 xx;
+    ix_uint64 xx = 0;
 #line 2206
     get_ix_uint64(xp, &xx);
 #line 2206
@@ -8400,7 +8400,7 @@ ncx_get_ulonglong_long(const void *xp, long *ip)
 #line 2207
     int err=NC_NOERR;
 #line 2207
-    ix_uint64 xx;
+    ix_uint64 xx = 0;
 #line 2207
     get_ix_uint64(xp, &xx);
 #line 2207
@@ -8445,7 +8445,7 @@ ncx_get_ulonglong_longlong(const void *xp, longlong *ip)
 #line 2208
     int err=NC_NOERR;
 #line 2208
-    ix_uint64 xx;
+    ix_uint64 xx = 0;
 #line 2208
     get_ix_uint64(xp, &xx);
 #line 2208
@@ -8496,7 +8496,7 @@ ncx_get_ulonglong_ushort(const void *xp, ushort *ip)
 #line 2209
 #else
 #line 2209
-    ix_uint64 xx;
+    ix_uint64 xx = 0;
 #line 2209
     get_ix_uint64(xp, &xx);
 #line 2209
@@ -8549,7 +8549,7 @@ ncx_get_ulonglong_uchar(const void *xp, uchar *ip)
 #line 2210
 #else
 #line 2210
-    ix_uint64 xx;
+    ix_uint64 xx = 0;
 #line 2210
     get_ix_uint64(xp, &xx);
 #line 2210
@@ -8602,7 +8602,7 @@ ncx_get_ulonglong_uint(const void *xp, uint *ip)
 #line 2211
 #else
 #line 2211
-    ix_uint64 xx;
+    ix_uint64 xx = 0;
 #line 2211
     get_ix_uint64(xp, &xx);
 #line 2211
@@ -8647,7 +8647,7 @@ ncx_get_ulonglong_float(const void *xp, float *ip)
 #line 2212
 {
 #line 2212
-	ix_uint64 xx;
+	ix_uint64 xx = 0;
 #line 2212
 	get_ix_uint64(xp, &xx);
 #line 2212
@@ -8664,7 +8664,7 @@ ncx_get_ulonglong_double(const void *xp, double *ip)
 #line 2213
 {
 #line 2213
-	ix_uint64 xx;
+	ix_uint64 xx = 0;
 #line 2213
 	get_ix_uint64(xp, &xx);
 #line 2213
