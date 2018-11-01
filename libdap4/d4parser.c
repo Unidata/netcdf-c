@@ -106,7 +106,6 @@ extern const char** ezxml_all_attr(ezxml_t xml, int* countp);
 
 static int addOrigType(NCD4parser*, NCD4node* src, NCD4node* dst, const char* tag);
 static int defineAtomicTypes(NCD4parser*);
-static int defineBytestringType(NCD4parser*);
 static void classify(NCD4node* container, NCD4node* node);
 static int convertString(union ATOMICS*, NCD4node* type, const char* s);
 static int downConvert(union ATOMICS*, NCD4node* type);
@@ -143,6 +142,9 @@ static void record(NCD4parser*, NCD4node* node);
 static int splitOrigType(NCD4parser*, const char* fqn, NCD4node* var);
 static void track(NCD4parser*, NCD4node* node);
 static int traverse(NCD4parser*, ezxml_t dom);
+#ifndef FIXEDOPAQUE
+static int defineBytestringType(NCD4parser*);
+#endif
 
 /***************************************************/
 /* API */
@@ -182,11 +184,19 @@ done:
 static void
 reclaimParser(NCD4parser* parser)
 {
+    int i,len;
     if(parser == NULL) return;
-    nclistfree(parser->atomictypes);
     nclistfree(parser->types);
     nclistfree(parser->dims);
     nclistfree(parser->vars);
+    /* Reclaim unused atomic type nodes */
+    len = nclistlength(parser->atomictypes);    
+    for(i=0;i<len;i++) {
+	if(parser->used[i])
+	    reclaimNode((NCD4node*)nclistget(parser->atomictypes,i));
+    }
+    nclistfree(parser->atomictypes);
+    nullfree(parser->used);
     free (parser);
 }
 
@@ -799,22 +809,31 @@ getOpaque(NCD4parser* parser, ezxml_t varxml, NCD4node* group)
     NCD4node* opaquetype = NULL;
     const char* xattr;
 
+#ifndef FIXEDOPAQUE
+    len = 0;
+#else
+    len = parser->metadata->controller->controls.opaquesize;
+#endif
     if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
         /* See if this var has UCARTAGOPAQUE attribute */
         xattr = ezxml_attr(varxml,UCARTAGOPAQUE);
         if(xattr != NULL) {
-            if((ret = parseLL(xattr,&len)) || (len < 0))
+	    long long tmp = 0;
+            if((ret = parseLL(xattr,&tmp)) || (tmp < 0))
 	        FAIL(NC_EINVAL,"Illegal opaque len: %s",xattr);
-        } else
-	    len = 0;
-    } else
-	len = 0;
-    if(len == 0) { /* Need to use _bytestring */
+	    len = tmp;
+        }
+    }
+#ifndef FIXEDOPAQUE
+    if(len == 0) {
+        /* Need to use _bytestring */
 	if((ret=defineBytestringType(parser)))
   	    goto done;
 	assert(parser->metadata->_bytestring != NULL);
 	opaquetype = parser->metadata->_bytestring;
-    } else {//(len > 0)
+    } else
+#endif
+    { /*(len > 0) || FIXEDOPAQUE */
         /* Try to locate existing opaque type with this length */
         for(i=0;i<nclistlength(parser->types); i++) {
 	    NCD4node* op = (NCD4node*)nclistget(parser->types,i);
@@ -1144,6 +1163,7 @@ keyword(const char* name)
     return NULL;
 }
 
+#ifndef FIXEDOPAQUE
 static int
 defineBytestringType(NCD4parser* parser)
 {
@@ -1163,6 +1183,7 @@ defineBytestringType(NCD4parser* parser)
 done:
     return THROW(ret);
 }
+#endif
 
 static int
 defineAtomicTypes(NCD4parser* parser)
@@ -1181,6 +1202,8 @@ defineAtomicTypes(NCD4parser* parser)
 	record(parser,node);
 	PUSH(parser->atomictypes,node);
     }
+    parser->used = (char*)calloc(1,nclistlength(parser->atomictypes));
+    if(parser->used == NULL) {ret = NC_ENOMEM; goto done;}
 
 done:
     return THROW(ret);
