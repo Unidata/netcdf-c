@@ -153,9 +153,9 @@ int nc_utf8_to_utf16(const unsigned char* s8, unsigned short** utf16p, size_t* l
 	    goto done;
       } else { /* move to next char */
 	    /* Complain if top 16 bits not zero */
-	    if((codepoint & 0x0000FFFF) != 0) {
-          ncstat = NC_EBADNAME;
-          goto done;
+	    if((codepoint & 0xFFFF0000) != 0) {
+	          ncstat = NC_EBADNAME;
+	          goto done;
 	    }
 	    /* Truncate codepoint to 16 bits and store */
 	    *p16++ = (unsigned short)(codepoint & 0x0000FFFF);
