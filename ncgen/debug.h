@@ -28,11 +28,10 @@
 #  endif
 #endif
 
+extern int settrace(int);
 
-
-
-extern int ncgdebug;
 extern int debug;
+extern int ncgdebug;
 
 extern void fdebug(const char *fmt, ...);
 

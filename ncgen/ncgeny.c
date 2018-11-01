@@ -3412,17 +3412,6 @@ makeattribute(Symbol* asym,
 {
     asym->objectclass = NC_ATT;
     asym->data = data;
-    if(tsym == NULL)
-       tsym = primsymbols[NC_CHAR];
-    if(data->length == 0) {
-	Datalist* filldata = NULL;
-	NCConstant* con = NULL;
-	filldata = getfiller(tsym);
-	ASSERT(filldata->length == 1);
-	con = datalistith(filldata,0);
-	dlappend(data,cloneconstant(con));
-	reclaimdatalist(filldata);
-    }
     switch (kind) {
     case ATTRVAR:
         asym->att.var = vsym;

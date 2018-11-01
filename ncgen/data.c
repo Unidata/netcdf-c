@@ -514,6 +514,7 @@ wordstring(char* p, Bytebuffer* buf, int quote)
 
 static const char zeros[] =
     "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+
 void
 alignbuffer(NCConstant* prim, Bytebuffer* buf)
 {

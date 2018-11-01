@@ -46,14 +46,18 @@ struct NCAUX_CMPD {
     size_t alignment;
 };
 
+
 /* Forward */
 static int reclaim_datar(int ncid, int xtype, void* memory);
+
 #ifdef USE_NETCDF4
+static int ncaux_initialized = 0;
 static int reclaim_usertype(int ncid, int xtype, void* memory);
 static int reclaim_compound(int ncid, int xtype, size_t size, size_t nfields, void* memory);
 static int reclaim_vlen(int ncid, int xtype, int basetype, void* memory);
 static int reclaim_enum(int ncid, int xtype, int basetype, void* memory);
 static int reclaim_opaque(int ncid, int xtype, size_t size, void* memory);
+
 static void compute_alignments(void);
 static int computefieldinfo(struct NCAUX_CMPD* cmpd);
 #endif
@@ -219,167 +223,6 @@ reclaim_opaque(int ncid, int xtype, size_t size, void* memory)
 }
 
 #endif /*USE_NETCDF4*/
-
-/**************************************************/
-
-/*
-This code is a variant of the H5detect.c code from HDF5.
-Author: D. Heimbigner 10/7/2008
-*/
-
-/**************************************************/
-
-/**
-Reclaim the output tree of data from a call
-to e.g. nc_get_vara or the input to e.g. nc_put_vara.
-This recursively walks the top-level instances to
-reclaim any nested data such as vlen or strings or such.
-
-Assumes it is passed a pointer to count instances of xtype.
-Reclaims any nested data.
-WARNING: does not reclaim the top-level memory because
-we do not know how it was allocated.
-
-Should work for any netcdf format.
-
-*/
-
-EXTERNL int
-ncaux_reclaim_data(int ncid, int xtype, const void* memory, size_t count)
-{
-    int stat = NC_NOERR;
-    size_t typesize = 0;
-    char* p;
-    size_t i;
-    
-    if(ncid < 0 || xtype < 0
-       || (memory == NULL && count > 0)
-       || xtype == NC_NAT)
-        {stat = NC_EINVAL; goto done;}
-    if(memory == NULL || count == 0)
-        goto done; /* ok, do nothing */
-    if((stat=nc_inq_type(ncid,xtype,NULL,&typesize))) goto done;
-    p = (char*)memory; /* use char* so we can do pointer arithmetic */
-    for(i=0;i<count;i++,p+=typesize) {
-	reclaim_datar(ncid,xtype,p); /* reclaim one instance */
-    }
-    
-done:
-    return stat;
-}
-
-/* Recursive type walker: reclaim a single instance */
-static int
-reclaim_datar(int ncid, int xtype, void* memory)
-{
-    int stat = NC_NOERR;
-    
-    switch  (xtype) {
-    case NC_CHAR: case NC_BYTE: case NC_UBYTE: break;
-    case NC_SHORT: case NC_USHORT: break;
-    case NC_INT: case NC_UINT: case NC_FLOAT: break;
-    case NC_INT64: case NC_UINT64: case NC_DOUBLE: break;
-    case NC_STRING: {
-        char** sp = (char**)memory;
-        /* Need to reclaim string */
-	if(*sp != NULL) free(*sp);
-	} break;
-    default:
-    	/* reclaim a user type */
-	stat = reclaim_usertype(ncid,xtype,memory);
-	break;
-    }
-    return stat;
-}
-	
-static int
-reclaim_usertype(int ncid, int xtype, void* memory)
-{
-    int stat = NC_NOERR;
-    size_t size;    
-    nc_type basetype;
-    size_t nfields;
-    int klass;
-
-    if(memory == NULL) return NC_EINVAL;
-    
-    /* Get info about the xtype */
-    stat = nc_inq_user_type(ncid, xtype, NULL, &size, &basetype, &nfields, &klass);
-    switch (klass) {
-    case NC_OPAQUE: stat = reclaim_opaque(ncid,xtype,size,memory); break;
-    case NC_ENUM: stat = reclaim_enum(ncid,xtype,basetype,memory); break;
-    case NC_COMPOUND: stat = reclaim_compound(ncid,xtype,size,nfields,memory); break;
-    case NC_VLEN: stat = reclaim_vlen(ncid,xtype,basetype,memory); break;
-    default:
-        stat = NC_EINVAL;
-	break;
-    }
-    return stat;
-}
-
-static int
-reclaim_compound(int ncid, int xtype, size_t size, size_t nfields, void* memory)
-{
-    int stat = NC_NOERR;
-    size_t fid, offset, i, fieldsize, arraycount;
-    int dimsizes[NC_MAX_VAR_DIMS];
-    int ndims;
-    nc_type fieldtype;
-    char* p;
-
-    /* Get info about each field in turn and reclaim it */
-    for(fid=0;fid<nfields;fid++) {
-        if((stat = nc_inq_compound_field(ncid,xtype,fid,NULL,&offset, &fieldtype, &ndims, dimsizes))) goto done;
-        if((stat = nc_inq_type(ncid,fieldtype,NULL,&fieldsize))) goto done;
-	if(ndims == 0) {ndims=1; dimsizes[0]=1;} /* fake the scalar case */
-	/* compute the total number of elements in the field array */
-	arraycount = 1;
-	for(i=0;i<ndims;i++) arraycount *= dimsizes[i];
-	for(i=0;i<arraycount;i++) {
-            p = ((char*)memory) + offset + (i*fieldsize);
-	    if((stat = reclaim_datar(ncid, fieldtype, p))) goto done;
-	}		
-    }
-
-done:
-    return stat;
-}
-
-static int
-reclaim_vlen(int ncid, int xtype, int basetype, void* memory)
-{
-    int stat = NC_NOERR;
-    nc_vlen_t* vl = (nc_vlen_t*)memory;
-    size_t i, size;
-
-    /* Get size of the basetype */
-    if((stat=nc_inq_type(ncid,basetype,NULL,&size))) goto done;
-    /* Free up each entry in the vlen list */
-    if(vl->p != NULL) {
-	char* p = vl->p;
-        for(i=0;i<vl->len;i++,p+=size)
-	    if((stat = reclaim_datar(ncid,basetype,p))) goto done;
-	free(vl->p);
-    }
-
-done:
-    return stat;
-}
-
-static int
-reclaim_enum(int ncid, int xtype, int basetype, void* memory)
-{
-    /* basically same as an instance of the enum's integer basetype */
-    return NC_NOERR;
-}
-
-static int
-reclaim_opaque(int ncid, int xtype, size_t size, void* memory)
-{
-    /* basically a fixed size sequence of bytes */
-    return NC_NOERR;
-}
-
 
 /**************************************************/
 
@@ -748,7 +591,6 @@ done:
     return status;
 }
 #endif /*USE_NETCDF4*/
-
 
 
 

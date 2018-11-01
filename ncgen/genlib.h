@@ -115,6 +115,9 @@ extern char* indented(int n);
 extern Generator* bin_generator;
 extern void gen_netcdf(const char *filename);
 extern void cl_netcdf(void);
+/* from: bindata.c */
+extern int binary_generate_data(Datalist* data, Symbol* tsym, Datalist* fillvalue, Bytebuffer* databuf);
+extern int binary_reclaim_data(Symbol* tsym, void* memory, size_t count);
 #endif
 
 #ifdef ENABLE_C

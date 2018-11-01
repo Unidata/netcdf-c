@@ -60,7 +60,9 @@ define_netcdf(void)
 #endif
 /* Binary is the default */
 #ifdef ENABLE_BINARY
+settrace(1);
     gen_netcdf(filename); /* create netcdf */
+settrace(0);
 #else
     derror("No language specified");
 #endif
@@ -110,7 +112,7 @@ topfqn(Symbol* sym)
         /* Recursively compute parent fqn */
         if(parent == NULL) { /* implies this is the rootgroup */
             assert(sym->grp.is_root);
-            sym->fqn = strdup("");
+            sym->fqn = estrdup("");
             return;
         } else if(parent->fqn == NULL) {
             topfqn(parent);
