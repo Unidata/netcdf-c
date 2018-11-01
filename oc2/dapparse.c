@@ -468,6 +468,8 @@ dap_parse_cleanup(DAPparsestate* state)
     daplexcleanup(&state->lexstate);
     if(state->ocnodes != NULL) ocnodes_free(state->ocnodes);
     state->ocnodes = NULL;
+    nullfree(state->code);
+    nullfree(state->message);
     free(state);
 }
 

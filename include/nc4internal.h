@@ -412,9 +412,10 @@ int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value
 /* Close the file. */
 int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio*);
 
-/* HDF5 initialization */
+/* HDF5 initialization/finalization */
 extern int nc4_hdf5_initialized;
 extern void nc4_hdf5_initialize(void);
+extern void nc4_hdf5_finalize(void);
 
 /* This is only included if --enable-logging is used for configure; it
    prints info about the metadata to stderr. */
@@ -506,6 +507,9 @@ extern struct NCPROPINFO globalpropinfo;
 
 /* Initialize the fileinfo global state */
 extern int NC4_provenance_init();
+
+/* Finalize the fileinfo global state */
+extern int NC4_provenance_finalize();
 
 /* Write the properties attribute to file. */
 extern int NC4_put_ncproperties(NC_FILE_INFO_T* file);

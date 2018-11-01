@@ -465,7 +465,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       nc4_info->mem.memio = *memio;
       /* Is the incoming memory locked? */
       nc4_info->mem.locked = (nc4_info->mem.memio.flags & NC_MEMIO_LOCKED) == NC_MEMIO_LOCKED;
-      /* As a safeguard, if !locked and not read-only,
+      /* As a safeguard, if not locked and not read-only,
          then we must take control of the incoming memory */
       if(!nc4_info->mem.locked && !nc4_info->no_write) {
          memio->memory = NULL; /* take control */

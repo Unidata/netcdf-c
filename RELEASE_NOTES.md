@@ -7,12 +7,18 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.6.2 - TBD
 
-* [Bug Fix] The use of NC_DISKLESS has been modified to make it cleaner. This
-adds a new flag called NC_PERSIST that takes over the now obsolete NC_MPIPOSIX.
+## 4.6.2-rc2 November 1, 2018
+
+
+* [Enhancement] Add nccopy command options for per-variable chunk sizing, and minimum chunk size.  See [GitHub #1087](https://github.com/Unidata/netcdf-c/pull/1087).
+* [Bug Fix] Fix nccopy handling of user specified chunk sizes.  See [GitHub #725](https://github.com/Unidata/netcdf-c/issues/725),[#1087](https://github.com/Unidata/netcdf-c/issues/1087).
+* [Bug Fix] Avoid limit on number of times a netCDF4 attribute can be updated.  Not a complete fix for the HDF5 "maximum creation order" problem, but should greatly reduce occurrences in many real-world cases.  See [GitHub #350](https://github.com/Unidata/netcdf-c/issues/350).
+* [Bug Fix] The use of NC_DISKLESS has been modified to make it cleaner. This adds a new flag called NC_PERSIST that takes over the now obsolete NC_MPIPOSIX.
 * [Obsolete] Obsolete the MPIPOSIX flag.
-* [Bug Fix] When using filters with HDF5 1.10.x or later, it is necessary
-to utilize the HDF5 replacements for malloc, realloc, and free in the filter
-code.
+* [Bug Fix] When using filters with HDF5 1.10.x or later, it is necessary to utilize the HDF5 replacements for malloc, realloc, and free in the filter code.
+
+## 4.6.2-rc1 - September 19, 2018
+
 * [Enhancement] Create a new version of _NCProperties provenance attribute. This version (version 2) supports arbitrary key-value pairs. It is the default when new files are created. Version 1 continues to be accepted.
 * [Enhancement] Allow user to set http read buffersize for DAP2 and  DAP4 using the tag HTTP.READ.BUFFERSIZE in the .daprc file.
 * [Enhancement] Allow user to set http keepalive for DAP2 and  DAP4 using the tag HTTP.KEEPALIVE in the .daprc file (see the OPeNDAP documentation for details).

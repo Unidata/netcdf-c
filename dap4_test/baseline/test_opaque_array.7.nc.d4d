@@ -1,11 +1,11 @@
 netcdf test_opaque_array.7.nc {
 types:
-  ubyte(*) _bytestring ;
+  opaque(16) opaque16_t ;
 dimensions:
 	_Anonymous1 = 1 ;
 	_Anonymous2 = 2 ;
 variables:
-	_bytestring vo2(_Anonymous1, _Anonymous2) ;
+	opaque16_t vo2(_Anonymous1, _Anonymous2) ;
 
 // global attributes:
 		string :_dap4.ce = "/vo2[1][0:1]" ;
@@ -13,6 +13,5 @@ variables:
 data:
 
  vo2 =
-  {254, 220, 186, 152, 118, 84, 50, 16}, 
-    {254, 220, 186, 153, 153, 153, 153, 153} ;
+  0XFEDCBA98765432100000000000000000, 0XFEDCBA99999999990000000000000000 ;
 }
