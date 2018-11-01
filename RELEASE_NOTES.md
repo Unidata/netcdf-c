@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.6.2 - TBD
 
-## 4.6.2-rc2 October 24, 2018
+## 4.6.2-rc2 November 1, 2018
 
 
 * [Enhancement] Add nccopy command options for per-variable chunk sizing, and minimum chunk size.  See [GitHub #1087](https://github.com/Unidata/netcdf-c/pull/1087).
