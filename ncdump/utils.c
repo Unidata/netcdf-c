@@ -45,6 +45,36 @@ emalloc (			/* check return from malloc */
     return p;
 }
 
+void *
+ecalloc (			/* check return from calloc */
+	size_t size)
+{
+    void   *p;
+
+    p = (void *) calloc (1,(size==0 ? 1 : size)); /* calloc(0) not portable */
+    if (p == 0) {
+	error ("out of memory\n");
+    }
+    return p;
+}
+
+void *
+erealloc (void* p0,			/* check return from realloc */
+	size_t size)
+{
+    void   *p;
+
+    if(p0 == NULL)
+        return emalloc(size);
+    if(size == 0)
+    	error("realloc with zero size");
+    p = (void *) realloc (p0,size); /* realloc(0) not portable */
+    if (p == 0) {
+	error ("out of memory\n");
+    }
+    return p;
+}
+
 void
 check(int err, const char* file, const int line)
 {
