@@ -110,53 +110,57 @@ target_triplet = @target@
 
 # Temporary I hope
 @ISCYGWIN_FALSE@am__append_2 = tst_h_strbug tst_h_refs
-check_PROGRAMS = $(am__EXEEXT_2) renamegroup$(EXEEXT) \
-	tst_empty_vlen_unlim$(EXEEXT) $(am__EXEEXT_3) $(am__EXEEXT_4) \
-	$(am__EXEEXT_5) $(am__EXEEXT_6) $(am__EXEEXT_7) \
-	$(am__EXEEXT_8)
-TESTS = $(am__EXEEXT_2) $(am__EXEEXT_3) $(am__append_5) \
-	run_empty_vlen_test.sh $(am__EXEEXT_4) $(am__EXEEXT_9) \
-	$(am__append_10) $(am__append_12) $(am__append_13) \
-	$(am__append_15) $(am__EXEEXT_10)
+check_PROGRAMS = $(am__EXEEXT_3) $(am__EXEEXT_4) $(am__EXEEXT_5) \
+	$(am__EXEEXT_6) $(am__EXEEXT_7) $(am__EXEEXT_8) \
+	$(am__EXEEXT_9)
+TESTS = $(am__EXEEXT_10) $(am__EXEEXT_4) $(am__append_7) \
+	$(am__append_8) $(am__EXEEXT_5) $(am__EXEEXT_11) \
+	$(am__append_13) $(am__append_15) $(am__append_16) \
+	$(am__append_18) $(am__EXEEXT_12)
+
+# Build test programs plus programs used in test scripts.
+@USE_NETCDF4_TRUE@am__append_3 = $(NC4_TESTS) renamegroup tst_empty_vlen_unlim
+@USE_NETCDF4_TRUE@am__append_4 = $(NC4_TESTS)
 
 # Add these if large file tests are turned on.
-@LARGE_FILE_TESTS_TRUE@am__append_3 = tst_large tst_large2
-@LARGE_FILE_TESTS_TRUE@am__append_4 = tst_large tst_large2
-@BUILD_UTILITIES_TRUE@am__append_5 = run_grp_rename.sh tst_misc.sh
+@LARGE_FILE_TESTS_TRUE@am__append_5 = tst_large tst_large2
+@LARGE_FILE_TESTS_TRUE@am__append_6 = tst_large tst_large2
+@BUILD_UTILITIES_TRUE@@USE_NETCDF4_TRUE@am__append_7 = run_grp_rename.sh tst_misc.sh
+@USE_NETCDF4_TRUE@am__append_8 = run_empty_vlen_test.sh
 
 # If the v2 API was built, add its test program.
-@BUILD_V2_TRUE@am__append_6 = tst_v2
-@BUILD_V2_TRUE@am__append_7 = tst_v2
+@BUILD_V2_TRUE@am__append_9 = tst_v2
+@BUILD_V2_TRUE@am__append_10 = tst_v2
 
 # If benchmarks were turned on, build and run a bunch more tests.
-@BUILD_BENCHMARKS_TRUE@am__append_8 = tst_create_files bm_file tst_chunks3 tst_ar4	\
+@BUILD_BENCHMARKS_TRUE@am__append_11 = tst_create_files bm_file tst_chunks3 tst_ar4	\
 @BUILD_BENCHMARKS_TRUE@tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts	\
 @BUILD_BENCHMARKS_TRUE@tst_files2 tst_files3 tst_mem tst_knmi bm_netcdf4_recs
 
-@BUILD_BENCHMARKS_TRUE@am__append_9 = tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
+@BUILD_BENCHMARKS_TRUE@am__append_12 = tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
 @BUILD_BENCHMARKS_TRUE@run_bm_test2.sh run_tst_chunks.sh tst_files2 tst_files3 tst_mem		\
 @BUILD_BENCHMARKS_TRUE@run_knmi_bm.sh
 
 
 # This will run a parallel I/O benchmark for parallel builds.
-@BUILD_BENCHMARKS_TRUE@@TEST_PARALLEL4_TRUE@am__append_10 = run_par_bm_test.sh
+@BUILD_BENCHMARKS_TRUE@@TEST_PARALLEL4_TRUE@am__append_13 = run_par_bm_test.sh
 
 # Szip Tests (requires ncdump)
-@BUILD_UTILITIES_TRUE@@USE_SZIP_TRUE@am__append_11 = test_szip h5testszip
-@BUILD_UTILITIES_TRUE@@USE_SZIP_TRUE@am__append_12 = tst_szip.sh
+@BUILD_UTILITIES_TRUE@@USE_SZIP_TRUE@am__append_14 = test_szip h5testszip
+@BUILD_UTILITIES_TRUE@@USE_SZIP_TRUE@am__append_15 = tst_szip.sh
 @BUILD_UTILITIES_TRUE@@ENABLE_FILTER_TESTING_TRUE@extra_PROGRAMS = test_filter$(EXEEXT) \
 @BUILD_UTILITIES_TRUE@@ENABLE_FILTER_TESTING_TRUE@	test_filter_misc$(EXEEXT)
-@BUILD_UTILITIES_TRUE@@ENABLE_FILTER_TESTING_TRUE@am__append_13 = tst_filter.sh
+@BUILD_UTILITIES_TRUE@@ENABLE_FILTER_TESTING_TRUE@am__append_16 = tst_filter.sh
 
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.
-@TEST_PARALLEL4_TRUE@am__append_14 = tst_mpi_parallel tst_parallel tst_parallel3		\
+@TEST_PARALLEL4_TRUE@am__append_17 = tst_mpi_parallel tst_parallel tst_parallel3		\
 @TEST_PARALLEL4_TRUE@tst_parallel4 tst_parallel5 tst_nc4perf tst_mode tst_simplerw_coll_r	\
 @TEST_PARALLEL4_TRUE@tst_mode
 
-@TEST_PARALLEL4_TRUE@am__append_15 = run_par_test.sh
-@ENABLE_METADATA_PERF_TRUE@am__append_16 = bigmeta openbigmeta tst_attsperf
-@ENABLE_METADATA_PERF_TRUE@am__append_17 = tst_attsperf perftest.sh
+@TEST_PARALLEL4_TRUE@am__append_18 = run_par_test.sh
+@ENABLE_METADATA_PERF_TRUE@am__append_19 = bigmeta openbigmeta tst_attsperf
+@ENABLE_METADATA_PERF_TRUE@am__append_20 = tst_attsperf perftest.sh
 subdir = nc_test4
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -199,10 +203,12 @@ am__EXEEXT_2 = tst_dims$(EXEEXT) tst_dims2$(EXEEXT) tst_dims3$(EXEEXT) \
 	tst_bug324$(EXEEXT) tst_types$(EXEEXT) tst_atts3$(EXEEXT) \
 	tst_put_vars$(EXEEXT) tst_elatefill$(EXEEXT) tst_udf$(EXEEXT) \
 	$(am__EXEEXT_1)
-@LARGE_FILE_TESTS_TRUE@am__EXEEXT_3 = tst_large$(EXEEXT) \
+@USE_NETCDF4_TRUE@am__EXEEXT_3 = $(am__EXEEXT_2) renamegroup$(EXEEXT) \
+@USE_NETCDF4_TRUE@	tst_empty_vlen_unlim$(EXEEXT)
+@LARGE_FILE_TESTS_TRUE@am__EXEEXT_4 = tst_large$(EXEEXT) \
 @LARGE_FILE_TESTS_TRUE@	tst_large2$(EXEEXT)
-@BUILD_V2_TRUE@am__EXEEXT_4 = tst_v2$(EXEEXT)
-@BUILD_BENCHMARKS_TRUE@am__EXEEXT_5 = tst_create_files$(EXEEXT) \
+@BUILD_V2_TRUE@am__EXEEXT_5 = tst_v2$(EXEEXT)
+@BUILD_BENCHMARKS_TRUE@am__EXEEXT_6 = tst_create_files$(EXEEXT) \
 @BUILD_BENCHMARKS_TRUE@	bm_file$(EXEEXT) tst_chunks3$(EXEEXT) \
 @BUILD_BENCHMARKS_TRUE@	tst_ar4$(EXEEXT) tst_ar4_3d$(EXEEXT) \
 @BUILD_BENCHMARKS_TRUE@	tst_ar4_4d$(EXEEXT) \
@@ -212,10 +218,10 @@ am__EXEEXT_2 = tst_dims$(EXEEXT) tst_dims2$(EXEEXT) tst_dims3$(EXEEXT) \
 @BUILD_BENCHMARKS_TRUE@	tst_files2$(EXEEXT) tst_files3$(EXEEXT) \
 @BUILD_BENCHMARKS_TRUE@	tst_mem$(EXEEXT) tst_knmi$(EXEEXT) \
 @BUILD_BENCHMARKS_TRUE@	bm_netcdf4_recs$(EXEEXT)
-@BUILD_UTILITIES_TRUE@@USE_SZIP_TRUE@am__EXEEXT_6 =  \
+@BUILD_UTILITIES_TRUE@@USE_SZIP_TRUE@am__EXEEXT_7 =  \
 @BUILD_UTILITIES_TRUE@@USE_SZIP_TRUE@	test_szip$(EXEEXT) \
 @BUILD_UTILITIES_TRUE@@USE_SZIP_TRUE@	h5testszip$(EXEEXT)
-@TEST_PARALLEL4_TRUE@am__EXEEXT_7 = tst_mpi_parallel$(EXEEXT) \
+@TEST_PARALLEL4_TRUE@am__EXEEXT_8 = tst_mpi_parallel$(EXEEXT) \
 @TEST_PARALLEL4_TRUE@	tst_parallel$(EXEEXT) \
 @TEST_PARALLEL4_TRUE@	tst_parallel3$(EXEEXT) \
 @TEST_PARALLEL4_TRUE@	tst_parallel4$(EXEEXT) \
@@ -223,7 +229,7 @@ am__EXEEXT_2 = tst_dims$(EXEEXT) tst_dims2$(EXEEXT) tst_dims3$(EXEEXT) \
 @TEST_PARALLEL4_TRUE@	tst_nc4perf$(EXEEXT) tst_mode$(EXEEXT) \
 @TEST_PARALLEL4_TRUE@	tst_simplerw_coll_r$(EXEEXT) \
 @TEST_PARALLEL4_TRUE@	tst_mode$(EXEEXT)
-@ENABLE_METADATA_PERF_TRUE@am__EXEEXT_8 = bigmeta$(EXEEXT) \
+@ENABLE_METADATA_PERF_TRUE@am__EXEEXT_9 = bigmeta$(EXEEXT) \
 @ENABLE_METADATA_PERF_TRUE@	openbigmeta$(EXEEXT) \
 @ENABLE_METADATA_PERF_TRUE@	tst_attsperf$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(extradir)"
@@ -1014,16 +1020,16 @@ am__set_TESTS_bases = \
   bases=`echo $$bases`
 RECHECK_LOGS = $(TEST_LOGS)
 AM_RECURSIVE_TARGETS = check recheck
-@BUILD_BENCHMARKS_TRUE@am__EXEEXT_9 = tst_ar4_3d$(EXEEXT) \
+@USE_NETCDF4_TRUE@am__EXEEXT_10 = $(am__EXEEXT_2)
+@BUILD_BENCHMARKS_TRUE@am__EXEEXT_11 = tst_ar4_3d$(EXEEXT) \
 @BUILD_BENCHMARKS_TRUE@	tst_create_files$(EXEEXT) \
 @BUILD_BENCHMARKS_TRUE@	run_bm_test1.sh run_bm_elena.sh \
 @BUILD_BENCHMARKS_TRUE@	run_bm_test2.sh run_tst_chunks.sh \
 @BUILD_BENCHMARKS_TRUE@	tst_files2$(EXEEXT) tst_files3$(EXEEXT) \
 @BUILD_BENCHMARKS_TRUE@	tst_mem$(EXEEXT) run_knmi_bm.sh
-@ENABLE_METADATA_PERF_TRUE@am__EXEEXT_10 = tst_attsperf$(EXEEXT) \
+@ENABLE_METADATA_PERF_TRUE@am__EXEEXT_12 = tst_attsperf$(EXEEXT) \
 @ENABLE_METADATA_PERF_TRUE@	perftest.sh
 TEST_SUITE_LOG = test-suite.log
-LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver
 LOG_COMPILE = $(LOG_COMPILER) $(AM_LOG_FLAGS) $(LOG_FLAGS)
 am__set_b = \
   case '$@' in \
@@ -1038,13 +1044,12 @@ am__set_b = \
 am__test_logs1 = $(TESTS:=.log)
 am__test_logs2 = $(am__test_logs1:@EXEEXT@.log=.log)
 TEST_LOGS = $(am__test_logs2:.sh.log=.log)
-SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver
 SH_LOG_COMPILE = $(SH_LOG_COMPILER) $(AM_SH_LOG_FLAGS) $(SH_LOG_FLAGS)
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/findplugin.in \
 	$(srcdir)/ref_hdf5_compat1.nc $(srcdir)/ref_hdf5_compat2.nc \
 	$(srcdir)/ref_hdf5_compat3.nc $(srcdir)/run_par_bm_test.sh.in \
 	$(srcdir)/run_par_test.sh.in $(top_srcdir)/depcomp \
-	$(top_srcdir)/lib_flags.am $(top_srcdir)/test-driver
+	$(top_srcdir)/lib_flags.am
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
@@ -1247,8 +1252,8 @@ AM_TESTS_ENVIRONMENT = export TOPSRCDIR=${abs_top_srcdir}; export TOPBUILDDIR=${
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 
 # Un comment to use a more verbose test driver
-#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 TEST_EXTENSIONS = .sh
 
 # Note which tests depend on other tests. necessary for make -j check

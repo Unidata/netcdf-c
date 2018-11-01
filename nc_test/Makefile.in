@@ -121,7 +121,7 @@ check_PROGRAMS = $(am__EXEEXT_7) tst_diskless$(EXEEXT) \
 TESTS = $(am__EXEEXT_7) $(am__append_8) $(am__append_9) \
 	$(am__append_10) $(am__append_11)
 @BUILD_UTILITIES_TRUE@am__append_8 = run_diskless.sh run_diskless5.sh run_inmemory.sh
-@BUILD_UTILITIES_TRUE@@LARGE_FILE_TESTS_TRUE@am__append_9 = run_diskless2.sh
+@BUILD_UTILITIES_TRUE@@LARGE_FILE_TESTS_TRUE@@USE_NETCDF4_TRUE@am__append_9 = run_diskless2.sh
 @USE_PNETCDF_TRUE@am__append_10 = run_pnetcdf_test.sh
 @ENABLE_CDF5_TRUE@am__append_11 = run_cdf5.sh
 @ENABLE_CDF5_TRUE@am__append_12 = tst_open_cdf5

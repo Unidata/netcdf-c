@@ -820,6 +820,8 @@ SHOW_DOXYGEN_TAG_LIST_FALSE
 SHOW_DOXYGEN_TAG_LIST_TRUE
 BUILD_DOCS_FALSE
 BUILD_DOCS_TRUE
+ENABLE_VALGRIND_FALSE
+ENABLE_VALGRIND_TRUE
 VALGRIND_CHECK_RULES
 valgrind_enabled_tools
 valgrind_tools
@@ -4163,6 +4165,14 @@ MOSTLYCLEANFILES += $(valgrind_log_files)
 
 
 
+
+ if test "x$VALGRIND_ENABLED" = xyes; then
+  ENABLE_VALGRIND_TRUE=
+  ENABLE_VALGRIND_FALSE='#'
+else
+  ENABLE_VALGRIND_TRUE='#'
+  ENABLE_VALGRIND_FALSE=
+fi
 
 
 ###
@@ -19537,6 +19547,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${VALGRIND_ENABLED_TRUE}" && test -z "${VALGRIND_ENABLED_FALSE}"; then
   as_fn_error $? "conditional \"VALGRIND_ENABLED\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_VALGRIND_TRUE}" && test -z "${ENABLE_VALGRIND_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_VALGRIND\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BUILD_DOCS_TRUE}" && test -z "${BUILD_DOCS_FALSE}"; then

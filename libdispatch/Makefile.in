@@ -109,7 +109,7 @@ target_triplet = @target@
 
 # Add functions only found in netCDF-4.
 @USE_NETCDF4_TRUE@am__append_2 = dgroup.c dvlen.c dcompound.c dtype.c denum.c	\
-@USE_NETCDF4_TRUE@dopaque.c dfilter.c ncaux.c
+@USE_NETCDF4_TRUE@dopaque.c dfilter.c
 
 
 # Add V2 API convenience library if needed.
@@ -136,17 +136,16 @@ am__libdispatch_la_SOURCES_DIST = dparallel.c dcopy.c dfile.c ddim.c \
 	dvarput.c dvarinq.c dinternal.c ddispatch.c dutf8.c nclog.c \
 	dstring.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c \
 	nclistmgr.c drc.c dauth.c doffsets.c dwinpath.c dutil.c \
-	dreadonly.c dnotnc4.c dnotnc3.c crc32.c crc32.h utf8proc.c \
-	utf8proc.h dgroup.c dvlen.c dcompound.c dtype.c denum.c \
-	dopaque.c dfilter.c ncaux.c
+	dreadonly.c dnotnc4.c dnotnc3.c crc32.c crc32.h daux.c \
+	utf8proc.c utf8proc.h dgroup.c dvlen.c dcompound.c dtype.c \
+	denum.c dopaque.c dfilter.c
 @USE_NETCDF4_TRUE@am__objects_1 = libdispatch_la-dgroup.lo \
 @USE_NETCDF4_TRUE@	libdispatch_la-dvlen.lo \
 @USE_NETCDF4_TRUE@	libdispatch_la-dcompound.lo \
 @USE_NETCDF4_TRUE@	libdispatch_la-dtype.lo \
 @USE_NETCDF4_TRUE@	libdispatch_la-denum.lo \
 @USE_NETCDF4_TRUE@	libdispatch_la-dopaque.lo \
-@USE_NETCDF4_TRUE@	libdispatch_la-dfilter.lo \
-@USE_NETCDF4_TRUE@	libdispatch_la-ncaux.lo
+@USE_NETCDF4_TRUE@	libdispatch_la-dfilter.lo
 am_libdispatch_la_OBJECTS = libdispatch_la-dparallel.lo \
 	libdispatch_la-dcopy.lo libdispatch_la-dfile.lo \
 	libdispatch_la-ddim.lo libdispatch_la-datt.lo \
@@ -164,8 +163,8 @@ am_libdispatch_la_OBJECTS = libdispatch_la-dparallel.lo \
 	libdispatch_la-doffsets.lo libdispatch_la-dwinpath.lo \
 	libdispatch_la-dutil.lo libdispatch_la-dreadonly.lo \
 	libdispatch_la-dnotnc4.lo libdispatch_la-dnotnc3.lo \
-	libdispatch_la-crc32.lo libdispatch_la-utf8proc.lo \
-	$(am__objects_1)
+	libdispatch_la-crc32.lo libdispatch_la-daux.lo \
+	libdispatch_la-utf8proc.lo $(am__objects_1)
 libdispatch_la_OBJECTS = $(am_libdispatch_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -205,6 +204,7 @@ am__depfiles_remade = ./$(DEPDIR)/dwinpath.Po \
 	./$(DEPDIR)/libdispatch_la-dattinq.Plo \
 	./$(DEPDIR)/libdispatch_la-dattput.Plo \
 	./$(DEPDIR)/libdispatch_la-dauth.Plo \
+	./$(DEPDIR)/libdispatch_la-daux.Plo \
 	./$(DEPDIR)/libdispatch_la-dcompound.Plo \
 	./$(DEPDIR)/libdispatch_la-dcopy.Plo \
 	./$(DEPDIR)/libdispatch_la-ddim.Plo \
@@ -233,7 +233,6 @@ am__depfiles_remade = ./$(DEPDIR)/dwinpath.Po \
 	./$(DEPDIR)/libdispatch_la-dvlen.Plo \
 	./$(DEPDIR)/libdispatch_la-dwinpath.Plo \
 	./$(DEPDIR)/libdispatch_la-nc.Plo \
-	./$(DEPDIR)/libdispatch_la-ncaux.Plo \
 	./$(DEPDIR)/libdispatch_la-ncbytes.Plo \
 	./$(DEPDIR)/libdispatch_la-nchashmap.Plo \
 	./$(DEPDIR)/libdispatch_la-nclist.Plo \
@@ -714,8 +713,8 @@ libdispatch_la_SOURCES = dparallel.c dcopy.c dfile.c ddim.c datt.c \
 	dvarput.c dvarinq.c dinternal.c ddispatch.c dutf8.c nclog.c \
 	dstring.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c \
 	nclistmgr.c drc.c dauth.c doffsets.c dwinpath.c dutil.c \
-	dreadonly.c dnotnc4.c dnotnc3.c crc32.c crc32.h utf8proc.c \
-	utf8proc.h $(am__append_2)
+	dreadonly.c dnotnc4.c dnotnc3.c crc32.c crc32.h daux.c \
+	utf8proc.c utf8proc.h $(am__append_2)
 @BUILD_V2_TRUE@libnetcdf2_la_SOURCES = dv2i.c
 @BUILD_V2_TRUE@libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 EXTRA_DIST = CMakeLists.txt ncsettings.hdr utf8proc_data.c
@@ -805,6 +804,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-dattinq.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-dattput.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-dauth.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-daux.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-dcompound.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-dcopy.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-ddim.Plo@am__quote@ # am--include-marker
@@ -833,7 +833,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-dvlen.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-dwinpath.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-nc.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-ncaux.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-ncbytes.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-nchashmap.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdispatch_la-nclist.Plo@am__quote@ # am--include-marker
@@ -1117,6 +1116,13 @@ libdispatch_la-crc32.lo: crc32.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libdispatch_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libdispatch_la-crc32.lo `test -f 'crc32.c' || echo '$(srcdir)/'`crc32.c
 
+libdispatch_la-daux.lo: daux.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libdispatch_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libdispatch_la-daux.lo -MD -MP -MF $(DEPDIR)/libdispatch_la-daux.Tpo -c -o libdispatch_la-daux.lo `test -f 'daux.c' || echo '$(srcdir)/'`daux.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libdispatch_la-daux.Tpo $(DEPDIR)/libdispatch_la-daux.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='daux.c' object='libdispatch_la-daux.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libdispatch_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libdispatch_la-daux.lo `test -f 'daux.c' || echo '$(srcdir)/'`daux.c
+
 libdispatch_la-utf8proc.lo: utf8proc.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libdispatch_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libdispatch_la-utf8proc.lo -MD -MP -MF $(DEPDIR)/libdispatch_la-utf8proc.Tpo -c -o libdispatch_la-utf8proc.lo `test -f 'utf8proc.c' || echo '$(srcdir)/'`utf8proc.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libdispatch_la-utf8proc.Tpo $(DEPDIR)/libdispatch_la-utf8proc.Plo
@@ -1172,13 +1178,6 @@ libdispatch_la-dfilter.lo: dfilter.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dfilter.c' object='libdispatch_la-dfilter.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libdispatch_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libdispatch_la-dfilter.lo `test -f 'dfilter.c' || echo '$(srcdir)/'`dfilter.c
-
-libdispatch_la-ncaux.lo: ncaux.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libdispatch_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libdispatch_la-ncaux.lo -MD -MP -MF $(DEPDIR)/libdispatch_la-ncaux.Tpo -c -o libdispatch_la-ncaux.lo `test -f 'ncaux.c' || echo '$(srcdir)/'`ncaux.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libdispatch_la-ncaux.Tpo $(DEPDIR)/libdispatch_la-ncaux.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ncaux.c' object='libdispatch_la-ncaux.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libdispatch_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libdispatch_la-ncaux.lo `test -f 'ncaux.c' || echo '$(srcdir)/'`ncaux.c
 
 libnetcdf2_la-dv2i.lo: dv2i.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnetcdf2_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnetcdf2_la-dv2i.lo -MD -MP -MF $(DEPDIR)/libnetcdf2_la-dv2i.Tpo -c -o libnetcdf2_la-dv2i.lo `test -f 'dv2i.c' || echo '$(srcdir)/'`dv2i.c
@@ -1525,6 +1524,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libdispatch_la-dattinq.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-dattput.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-dauth.Plo
+	-rm -f ./$(DEPDIR)/libdispatch_la-daux.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-dcompound.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-dcopy.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-ddim.Plo
@@ -1553,7 +1553,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libdispatch_la-dvlen.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-dwinpath.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-nc.Plo
-	-rm -f ./$(DEPDIR)/libdispatch_la-ncaux.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-ncbytes.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-nchashmap.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-nclist.Plo
@@ -1620,6 +1619,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libdispatch_la-dattinq.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-dattput.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-dauth.Plo
+	-rm -f ./$(DEPDIR)/libdispatch_la-daux.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-dcompound.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-dcopy.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-ddim.Plo
@@ -1648,7 +1648,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libdispatch_la-dvlen.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-dwinpath.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-nc.Plo
-	-rm -f ./$(DEPDIR)/libdispatch_la-ncaux.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-ncbytes.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-nchashmap.Plo
 	-rm -f ./$(DEPDIR)/libdispatch_la-nclist.Plo

@@ -98,7 +98,6 @@ host_triplet = @host@
 target_triplet = @target@
 @BUILD_PARALLEL_TRUE@am__append_1 = netcdf_par.h
 @USE_DAP_TRUE@am__append_2 = ncdap.h
-@USE_NETCDF4_TRUE@am__append_3 = ncaux.h
 subdir = include
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -133,7 +132,7 @@ am__can_run_installinfo = \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
 am__include_HEADERS_DIST = netcdf.h netcdf_meta.h netcdf_par.h \
-	netcdf_mem.h
+	netcdf_mem.h netcdf_aux.h
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -168,7 +167,7 @@ am__noinst_HEADERS_DIST = nc_logging.h nc_tests.h fbits.h nc.h \
 	nclog.h ncconfigure.h nc4internal.h nctime.h nc3internal.h \
 	onstack.h ncrc.h ncauth.h ncoffsets.h nctestserver.h \
 	nc4dispatch.h nc3dispatch.h ncexternl.h ncwinpath.h ncfilter.h \
-	ncindex.h hdf4dispatch.h hdf5internal.h ncdap.h ncaux.h
+	ncindex.h hdf4dispatch.h hdf5internal.h ncdap.h
 HEADERS = $(include_HEADERS) $(noinst_HEADERS)
 am__extra_recursive_targets = check-valgrind-recursive \
 	check-valgrind-memcheck-recursive \
@@ -389,14 +388,15 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 valgrind_enabled_tools = @valgrind_enabled_tools@
 valgrind_tools = @valgrind_tools@
-include_HEADERS = netcdf.h netcdf_meta.h $(am__append_1) netcdf_mem.h
+include_HEADERS = netcdf.h netcdf_meta.h $(am__append_1) netcdf_mem.h \
+	netcdf_aux.h
 noinst_HEADERS = nc_logging.h nc_tests.h fbits.h nc.h nclist.h ncuri.h \
 	ncutf8.h ncdispatch.h ncdimscale.h netcdf_f.h err_macros.h \
 	ncbytes.h nchashmap.h ceconstraints.h rnd.h nclog.h \
 	ncconfigure.h nc4internal.h nctime.h nc3internal.h onstack.h \
 	ncrc.h ncauth.h ncoffsets.h nctestserver.h nc4dispatch.h \
 	nc3dispatch.h ncexternl.h ncwinpath.h ncfilter.h ncindex.h \
-	hdf4dispatch.h hdf5internal.h $(am__append_2) $(am__append_3)
+	hdf4dispatch.h hdf5internal.h $(am__append_2)
 EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in
 all: all-am
 
