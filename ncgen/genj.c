@@ -38,11 +38,12 @@ static void genj_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
  * Generate code for creating netCDF from in-memory structure.
  */
 void
-gen_ncjava(const char *filename)
+genjava_netcdf(void)
 {
     int idim, ivar, iatt, maxdims;
     int ndims, nvars, natts, ngatts;
-
+    const char *filename = rootgroup->file.filename;
+    
     ndims = listlength(dimdefs);
     nvars = listlength(vardefs);
     natts = listlength(attdefs);
@@ -201,7 +202,7 @@ gen_ncjava(const char *filename)
 }
 
 void
-cl_java(void)
+genjava_close(void)
 {
     codelined(1,"ncfile.close();");
     codeline("");

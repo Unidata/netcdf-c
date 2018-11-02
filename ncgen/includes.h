@@ -39,6 +39,8 @@
 #define ENABLE_F77
 #define ENABLE_JAVA
 
+#define GENBIN2
+
 #include "netcdf.h"
 #include "data.h"
 #include "ncgen.h"

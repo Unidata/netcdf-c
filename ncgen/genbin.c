@@ -373,61 +373,26 @@ genbin_defineattr(Symbol* asym)
 {
     int stat = NC_NOERR;
     Bytebuffer* databuf = bbNew();
-#ifdef RECURSE
-    const char* data;
-    size_t len = datalistlen(asym->data);
-    int grpid = asym->container->nc_id;
-    int varid = (asym->att.var == NULL?NC_GLOBAL : asym->att.var->nc_id);
-    int typid = basetype->nc_id;
-    if((stat=binary_generate_data(asym->data,asym->typ.basetype,NULL,databuf)))
-        goto done;
-    data = (const char*)bbContents(databuf);
-    stat = nc_put_att(grpid,varid,asym->name,typid, data, (void*)data);
-    check_err(stat,__LINE__,__FILE__);
-    if((stat=binary_reclaim_data(asym->typ.basetype,data,len)))
-        goto done;
-#else
     generator_reset(bin_generator,NULL);
     generate_attrdata(asym,bin_generator,(Writer)genbin_write,databuf);
     if((stat = ncaux_reclaim_data(asym->container->nc_id,asym->typ.basetype->nc_id,bbContents(databuf),datalistlen(asym->data))))
         goto done;
-#endif
 done:
     bbFree(databuf);
-    return stat;
 }
 
 
 /* Following is patterned after the walk functions in semantics.c */
-static int
+static void
 genbin_definevardata(Symbol* vsym)
 {
-    int stat = NC_NOERR;
     Bytebuffer* databuf = bbNew();
-#ifdef RECURSE
-    const char* data;
-    size_t len = datalistlen(asym->data);
-    int grpid = asym->container->nc_id;
-    int varid = (asym->att.var == NULL?NC_GLOBAL : asym->att.var->nc_id);
-    int typid = basetype->nc_id;
-    Odometer odom;
-    if((stat=binary_generate_data(asym->data,asym->typ.basetype,NULL,databuf)))
-        goto done;
-    data = (const char*)bbContents(databuf);
-    stat = nc_put_att(grpid,varid,asym->name,typid, data, (void*)data);
-    check_err(stat,__LINE__,__FILE__);
-    if((stat=binary_reclaim_data(asym->typ.basetype,data,len)))
-        goto done;
-#else
     if(vsym->data == NULL) return;
     databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_vardata(vsym,bin_generator,(Writer)genbin_write,databuf);
     ncaux_reclaim_data(vsym->container->nc_id,vsym->typ.basetype->nc_id,bbContents(databuf),datalistlen(vsym->data));
-#endif
-done:
     bbFree(databuf);
-    return stat;
 }
 
 static int

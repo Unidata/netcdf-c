@@ -47,20 +47,24 @@ struct NCAUX_CMPD {
 };
 
 
+/* It is helpful to have a structure that contains memory and an offset */
+typedef struct NCAUX_OFFSET{char* memory; ptrdiff_t offset;} NCAUX_OFFSET;
+
 /* Forward */
-static int reclaim_datar(int ncid, int xtype, void* memory);
+static int reclaim_datar(int ncid, int xtype, size_t typesize, NCAUX_OFFSET*);
+static ptrdiff_t read_align(ptrdiff_t offset, size_t alignment);
 
 #ifdef USE_NETCDF4
 static int ncaux_initialized = 0;
-static int reclaim_usertype(int ncid, int xtype, void* memory);
-static int reclaim_compound(int ncid, int xtype, size_t size, size_t nfields, void* memory);
-static int reclaim_vlen(int ncid, int xtype, int basetype, void* memory);
-static int reclaim_enum(int ncid, int xtype, int basetype, void* memory);
-static int reclaim_opaque(int ncid, int xtype, size_t size, void* memory);
+static int reclaim_usertype(int ncid, int xtype, NCAUX_OFFSET* offset);
+static int reclaim_compound(int ncid, int xtype, size_t size, size_t nfields, NCAUX_OFFSET* offset);
+static int reclaim_vlen(int ncid, int xtype, int basetype, NCAUX_OFFSET* offset);
+static int reclaim_enum(int ncid, int xtype, int basetype, size_t, NCAUX_OFFSET* offset);
+static int reclaim_opaque(int ncid, int xtype, size_t size, NCAUX_OFFSET* offset);
 
 static void compute_alignments(void);
 static int computefieldinfo(struct NCAUX_CMPD* cmpd);
-#endif
+#endif /* USE_NETCDF4 */
 
 /**************************************************/
 
@@ -80,12 +84,12 @@ Should work for any netcdf format.
 */
 
 int
-ncaux_reclaim_data(int ncid, int xtype, const void* memory, size_t count)
+ncaux_reclaim_data(int ncid, int xtype, void* memory, size_t count)
 {
     int stat = NC_NOERR;
     size_t typesize = 0;
-    char* p;
     size_t i;
+    NCAUX_OFFSET offset;
     
     if(ncid < 0 || xtype < 0
        || (memory == NULL && count > 0)
@@ -94,9 +98,9 @@ ncaux_reclaim_data(int ncid, int xtype, const void* memory, size_t count)
     if(memory == NULL || count == 0)
         goto done; /* ok, do nothing */
     if((stat=nc_inq_type(ncid,xtype,NULL,&typesize))) goto done;
-    p = (char*)memory; /* use char* so we can do pointer arithmetic */
-    for(i=0;i<count;i++,p+=typesize) {
-	if((stat=reclaim_datar(ncid,xtype,p))) /* reclaim one instance */
+    offset.memory = (char*)memory; /* use char* so we can do pointer arithmetic */
+    for(i=0;i<count;i++) {
+	if((stat=reclaim_datar(ncid,xtype,typesize,&offset))) /* reclaim one instance */
 	    break;
     }
     
@@ -106,24 +110,28 @@ done:
 
 /* Recursive type walker: reclaim a single instance */
 static int
-reclaim_datar(int ncid, int xtype, void* memory)
+reclaim_datar(int ncid, int xtype, size_t typesize, NCAUX_OFFSET* offset)
 {
     int stat = NC_NOERR;
     
     switch  (xtype) {
-    case NC_CHAR: case NC_BYTE: case NC_UBYTE: break;
-    case NC_SHORT: case NC_USHORT: break;
-    case NC_INT: case NC_UINT: case NC_FLOAT: break;
-    case NC_INT64: case NC_UINT64: case NC_DOUBLE: break;
+    case NC_CHAR: case NC_BYTE: case NC_UBYTE:
+    case NC_SHORT: case NC_USHORT:
+    case NC_INT: case NC_UINT: case NC_FLOAT:
+    case NC_INT64: case NC_UINT64: case NC_DOUBLE:
+        offset->offset += typesize;
+	break;
+
 #ifdef USE_NETCDF4
     case NC_STRING: {
-        char** sp = (char**)memory;
+        char** sp = (char**)(offset->memory + offset->offset);
         /* Need to reclaim string */
 	if(*sp != NULL) free(*sp);
+	offset->offset += typesize;
 	} break;
     default:
     	/* reclaim a user type */
-	stat = reclaim_usertype(ncid,xtype,memory);
+	stat = reclaim_usertype(ncid,xtype,offset);
 #else
     default:
 	stat = NC_ENOTNC4;
@@ -135,7 +143,7 @@ reclaim_datar(int ncid, int xtype, void* memory)
 	
 #ifdef USE_NETCDF4
 static int
-reclaim_usertype(int ncid, int xtype, void* memory)
+reclaim_usertype(int ncid, int xtype, NCAUX_OFFSET* offset)
 {
     int stat = NC_NOERR;
     size_t size;    
@@ -143,15 +151,13 @@ reclaim_usertype(int ncid, int xtype, void* memory)
     size_t nfields;
     int klass;
 
-    if(memory == NULL) return NC_EINVAL;
-    
     /* Get info about the xtype */
     stat = nc_inq_user_type(ncid, xtype, NULL, &size, &basetype, &nfields, &klass);
     switch (klass) {
-    case NC_OPAQUE: stat = reclaim_opaque(ncid,xtype,size,memory); break;
-    case NC_ENUM: stat = reclaim_enum(ncid,xtype,basetype,memory); break;
-    case NC_COMPOUND: stat = reclaim_compound(ncid,xtype,size,nfields,memory); break;
-    case NC_VLEN: stat = reclaim_vlen(ncid,xtype,basetype,memory); break;
+    case NC_OPAQUE: stat = reclaim_opaque(ncid,xtype,size,offset); break;
+    case NC_ENUM: stat = reclaim_enum(ncid,xtype,basetype,size,offset); break;
+    case NC_COMPOUND: stat = reclaim_compound(ncid,xtype,size,nfields,offset); break;
+    case NC_VLEN: stat = reclaim_vlen(ncid,xtype,basetype,offset); break;
     default:
         stat = NC_EINVAL;
 	break;
@@ -160,47 +166,24 @@ reclaim_usertype(int ncid, int xtype, void* memory)
 }
 
 static int
-reclaim_compound(int ncid, int xtype, size_t size, size_t nfields, void* memory)
+reclaim_vlen(int ncid, int xtype, int basetype, NCAUX_OFFSET* offset)
 {
     int stat = NC_NOERR;
-    size_t fid, offset, i, fieldsize, arraycount;
-    int dimsizes[NC_MAX_VAR_DIMS];
-    int ndims;
-    nc_type fieldtype;
-    char* p;
-
-    /* Get info about each field in turn and reclaim it */
-    for(fid=0;fid<nfields;fid++) {
-        if((stat = nc_inq_compound_field(ncid,xtype,fid,NULL,&offset, &fieldtype, &ndims, dimsizes))) goto done;
-        if((stat = nc_inq_type(ncid,fieldtype,NULL,&fieldsize))) goto done;
-	if(ndims == 0) {ndims=1; dimsizes[0]=1;} /* fake the scalar case */
-	/* compute the total number of elements in the field array */
-	arraycount = 1;
-	for(i=0;i<ndims;i++) arraycount *= dimsizes[i];
-	for(i=0;i<arraycount;i++) {
-            p = ((char*)memory) + offset + (i*fieldsize);
-	    if((stat = reclaim_datar(ncid, fieldtype, p))) goto done;
-	}		
-    }
-
-done:
-    return stat;
-}
-
-static int
-reclaim_vlen(int ncid, int xtype, int basetype, void* memory)
-{
-    int stat = NC_NOERR;
-    nc_vlen_t* vl = (nc_vlen_t*)memory;
-    size_t i, size;
+    size_t i, basesize;
+    nc_vlen_t* vl = (nc_vlen_t*)(offset->memory+offset->offset);
 
     /* Get size of the basetype */
-    if((stat=nc_inq_type(ncid,basetype,NULL,&size))) goto done;
+    if((stat=nc_inq_type(ncid,basetype,NULL,&basesize))) goto done;
     /* Free up each entry in the vlen list */
     if(vl->p != NULL) {
-	char* p = vl->p;
-        for(i=0;i<vl->len;i++,p+=size)
-	    if((stat = reclaim_datar(ncid,basetype,p))) goto done;
+	NCAUX_OFFSET voffset;
+	voffset.memory = vl->p;
+	voffset.offset = 0;
+        for(i=0;i<vl->len;i++) {
+	    voffset.offset = read_align(voffset.offset,sizeof(nc_vlen_t));
+	    if((stat = reclaim_datar(ncid,basetype,basesize,&voffset))) goto done;
+	}
+	offset->offset += sizeof(nc_vlen_t);
 	free(vl->p);
     }
 
@@ -209,20 +192,65 @@ done:
 }
 
 static int
-reclaim_enum(int ncid, int xtype, int basetype, void* memory)
+reclaim_enum(int ncid, int xtype, int basetype, size_t basesize, NCAUX_OFFSET* offset)
 {
     /* basically same as an instance of the enum's integer basetype */
+    return reclaim_datar(ncid,basetype,basesize,offset);
+}
+
+static int
+reclaim_opaque(int ncid, int xtype, size_t opsize, NCAUX_OFFSET* offset)
+{
+    /* basically a fixed size sequence of bytes */
+    offset->offset += opsize;
     return NC_NOERR;
 }
 
 static int
-reclaim_opaque(int ncid, int xtype, size_t size, void* memory)
+reclaim_compound(int ncid, int xtype, size_t cmpdsize, size_t nfields, NCAUX_OFFSET* offset)
 {
-    /* basically a fixed size sequence of bytes */
-    return NC_NOERR;
+    int stat = NC_NOERR;
+    size_t fid, fieldoffset, i, fieldsize, arraycount;
+    int dimsizes[NC_MAX_VAR_DIMS];
+    int ndims;
+    nc_type fieldtype;
+    ptrdiff_t saveoffset;
+
+    saveoffset = offset->offset;
+
+    /* Get info about each field in turn and reclaim it */
+    for(fid=0;fid<nfields;fid++) {
+	/* Get all relevant info about the field */
+        if((stat = nc_inq_compound_field(ncid,xtype,fid,NULL,&fieldoffset, &fieldtype, &ndims, dimsizes))) goto done;
+        if((stat = nc_inq_type(ncid,fieldtype,NULL,&fieldsize))) goto done;
+	if(ndims == 0) {ndims=1; dimsizes[0]=1;} /* fake the scalar case */
+	/* Align to this field */
+	offset->offset = read_align(offset->offset,fieldoffset);
+	/* compute the total number of elements in the field array */
+	arraycount = 1;
+	for(i=0;i<ndims;i++) arraycount *= dimsizes[i];
+	for(i=0;i<arraycount;i++) {
+	    if((stat = reclaim_datar(ncid, fieldtype, fieldsize, offset))) goto done;
+	}		
+    }
+    /* Return to beginning of the compound and move |compound| */
+    offset->offset = saveoffset;
+    offset->offset += cmpdsize;
+
+done:
+    return stat;
 }
 
 #endif /*USE_NETCDF4*/
+
+static ptrdiff_t
+read_align(ptrdiff_t offset, size_t alignment)
+{
+    size_t delta = (offset % alignment);
+    if(delta == 0) return offset;
+    return offset + (alignment - delta);
+}
+
 
 /**************************************************/
 

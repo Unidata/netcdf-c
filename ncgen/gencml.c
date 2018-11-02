@@ -55,7 +55,7 @@ Bytebuffer* xcode;
  * Generate C code for creating netCDF from in-memory structure.
  */
 void
-gen_nccml(const char *filename)
+gencml_netcdf(const char *filename)
 {
     xcode = bbNew();
     bbSetalloc(xcode,C_MAX_STMT);

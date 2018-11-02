@@ -137,6 +137,10 @@ freeSymbol(Symbol* sym)
 	if(sym->typ._Fillvalue)
 	    reclaimdatalist(sym->typ._Fillvalue);
 	break;
+    case NC_GRP:
+        if(sym->file.filename)
+	    efree(sym->file.filename);
+	break;
     default: break;
     }
     /* Universal */

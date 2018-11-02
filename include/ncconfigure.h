@@ -50,7 +50,7 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #ifndef HAVE_STRLCAT
-#ifdef _MSC_VER
+#ifdef _WIN32
 /* Windows strlcat_s is equivalent to strlcat, but different arg order */
 #define strlcat(d,s,n) strcat_s((d),(n),(s))
 #else

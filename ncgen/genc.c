@@ -36,12 +36,13 @@ static void genc_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
  * Generate C code for creating netCDF from in-memory structure.
  */
 void
-gen_ncc(const char *filename)
+genc_netcdf(void)
 {
     int idim, ivar, iatt, maxdims;
     int ndims, nvars, natts, ngatts;
     char* cmode_string;
-
+    const char *filename = rootgroup->file.filename;
+    
 #ifdef USE_NETCDF4
     int igrp,ityp, ngrps, ntyps;
 #endif
@@ -554,7 +555,7 @@ genc_definespecialattributes(Symbol* vsym)
 #endif /*USE_NETCDF4*/
 
 void
-cl_c(void)
+genc_close(void)
 {
     bbprintf0(stmt,"%sstat = nc_close(%s);\n",indented(1),groupncid(rootgroup));
     codedump(stmt);

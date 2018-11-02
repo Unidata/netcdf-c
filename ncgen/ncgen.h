@@ -207,6 +207,10 @@ typedef struct Groupinfo {
     int is_root;
 } Groupinfo;
 
+typedef struct Fileinfo {
+    char* filename;
+} Fileinfo;
+
 /* store info when the symbol
    is really a reference to another
    symbol
@@ -237,6 +241,7 @@ typedef struct Symbol {  /* symbol table entry*/
         Attrinfo  att;
         Diminfo   dim;
         Groupinfo grp;
+	Fileinfo  file;
  	Reference ref; /* symbol is really a reference to another symbol*/
 	/* Misc pieces of info*/
 	int             lineno;  /* at point of creation*/

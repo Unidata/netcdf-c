@@ -7,17 +7,13 @@
 #include "odom.h"
 
 /******************************************************/
-/* Code for generating char variables etc; mostly
-   language independent */
+/* Code for processing char variables */
 /******************************************************/
 
 /*Forward*/
 static size_t gen_charconstant(NCConstant*, Bytebuffer*, int fillchar);
 static int getfillchar(Datalist* fillsrc);
 static void gen_leafchararray(Dimset*,int,Datalist*,Bytebuffer*, int);
-#if 0
-static void gen_chararrayr(Dimset*,int,int,Bytebuffer*,Datalist*,int,int,int);
-#endif
 static NCConstant* makeconst(int lineno, int len, char* str);
 
 /*

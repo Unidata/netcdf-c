@@ -14,6 +14,7 @@ static void computefqns(void);
 static void filltypecodes(void);
 static void processenums(void);
 static void processeconstrefs(void);
+static void processroot(void);
 static void processtypes(void);
 static void processtypesizes(void);
 static void processvars(void);
@@ -29,6 +30,7 @@ static void checkconsistency(void);
 static int tagvlentypes(Symbol* tsym);
 static void computefqns(void);
 static Symbol* uniquetreelocate(Symbol* refsym, Symbol* root);
+static char* createfilename(void);
 
 #if 0
 static Symbol* locateenumtype(Symbol* econst, Symbol* group, NCConstant*);
@@ -44,6 +46,8 @@ List* vlenconstants;  /* List<Constant*>;*/
 void
 processsemantics(void)
 {
+    /* Fix up the root name to match the chosen filename */
+    processroot();
     /* Fill in the fqn for every defining symbol */
     computefqns();
     /* Process each type and sort by dependency order*/
@@ -250,6 +254,18 @@ computefqns(void)
         Symbol* sym = (Symbol*)listget(attdefs,i);
         attfqn(sym);
     }
+}
+
+/**
+Process the root group.
+Currently mean:
+1. Compute and store the filename
+*/
+
+static void
+processroot(void)
+{
+    rootgroup->file.filename = createfilename();
 }
 
 /* 1. Do a topological sort of the types based on dependency*/
@@ -1265,4 +1281,43 @@ processunlimiteddims(void)
 	            (unsigned long)dim->dim.declsize);
     }
 #endif
+}
+
+
+
+/* Rules for specifying the dataset name:
+	1. use -o name
+	2. use the datasetname from the .cdl file
+	3. use input cdl file name (with .cdl removed)
+	It would be better if there was some way
+	to specify the datasetname independently of the
+	file name, but oh well.
+*/
+static char*
+createfilename(void)
+{
+    char filename[4096];
+    filename[0] = '\0';
+    if(netcdf_name) { /* -o flag name */
+      strlcat(filename,netcdf_name,sizeof(filename));
+    } else { /* construct a usable output file name */
+	if (cdlname != NULL && strcmp(cdlname,"-") != 0) {/* cmd line name */
+	    char* p;
+	    strlcat(filename,cdlname,sizeof(filename));
+	    /* remove any suffix and prefix*/
+	    p = strrchr(filename,'.');
+	    if(p != NULL) {*p= '\0';}
+	    p = strrchr(filename,'/');
+	    if(p != NULL) {
+		char* q = filename;
+		p++; /* skip the '/' */
+		while((*q++ = *p++));
+	    }
+       } else {/* construct name from dataset name */
+	    strlcat(filename,datasetname,sizeof(filename));
+        }
+        /* Append the proper extension */
+	strlcat(filename,binary_ext,sizeof(filename));
+    }
+    return strdup(filename);
 }
