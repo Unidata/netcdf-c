@@ -138,6 +138,19 @@ locate(char* p, char tag)
 }
 
 /**
+ * @internal finalize default provenance info
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
+ */
+int
+NC4_provenance_finalize(void)
+{
+    nclistfreeall(globalpropinfo.properties);
+    return NC_NOERR;
+}
+
+/**
  * @internal Parse file properties.
  *
  * @param text0 Text properties.

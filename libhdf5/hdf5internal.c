@@ -82,6 +82,18 @@ nc4_hdf5_initialize(void)
 }
 
 /**
+ * @internal Provide a function to do any necessary finalization of
+ * the HDF5 library.
+ */
+void
+nc4_hdf5_finalize(void)
+{
+   /* Reclaim global resources */
+   NC4_provenance_finalize();
+   nc4_hdf5_initialized = 0;
+}
+
+/**
  * @internal Given a varid, return the maximum length of a dimension
  * using dimid.
  *

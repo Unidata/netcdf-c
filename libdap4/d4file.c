@@ -22,7 +22,6 @@
 /* Forward */
 
 static void applyclientmetacontrols(NCD4meta* meta);
-static void applyclientparamcontrols(NCD4INFO*);
 static int constrainable(NCURI*);
 static void freeCurl(NCD4curl*);
 static void freeInfo(NCD4INFO*);
@@ -83,7 +82,7 @@ NCD4_open(const char * path, int mode,
     }
 
     /* process control client parameters */
-    applyclientparamcontrols(d4info);
+    NCD4_applyclientparamcontrols(d4info);
 
     /* Use libsrc4 code (netcdf-4) for storing metadata */
     {
@@ -281,6 +280,7 @@ NCD4_abort(int ncid)
 
 /**************************************************/
 
+/* Reclaim an NCD4INFO instance */
 static void
 freeInfo(NCD4INFO* d4info)
 {
@@ -294,6 +294,7 @@ freeInfo(NCD4INFO* d4info)
     nullfree(d4info->data.ondiskfilename);
     if(d4info->data.ondiskfile != NULL)
 	fclose(d4info->data.ondiskfile);
+    nullfree(d4info->fileproto.filename);
     if(d4info->substrate.realfile
 	&& !FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY)) {
 	/* We used real file, so we need to delete the temp file
@@ -304,13 +305,16 @@ freeInfo(NCD4INFO* d4info)
            when aborted, it should be deleted. But that is not working
            for some reason, so we delete it ourselves.
 	*/
+#if 0
 	if(d4info->substrate.filename != NULL) {
-//	    unlink(d4info->substrate.filename);
+	    unlink(d4info->substrate.filename);
 	}
+#endif
     }
     nullfree(d4info->substrate.filename); /* always reclaim */
     NCD4_reclaimMeta(d4info->substrate.metadata);
     NC_authclear(&d4info->auth);
+    nclistfree(d4info->blobs);
     free(d4info);    
 }
 
@@ -322,6 +326,7 @@ freeCurl(NCD4curl* curl)
     ncbytesfree(curl->packet);
     nullfree(curl->errdata.code);
     nullfree(curl->errdata.message);
+    free(curl);
 }
 
 /* Define the set of protocols known to be constrainable */
@@ -422,8 +427,8 @@ fail:
     return THROW(ret);
 }
 
-static void
-applyclientparamcontrols(NCD4INFO* info)
+void
+NCD4_applyclientparamcontrols(NCD4INFO* info)
 {
     const char* value;
 
@@ -452,6 +457,16 @@ applyclientparamcontrols(NCD4INFO* info)
     if(value != NULL)
 	strncpy(info->controls.substratename,value,NC_MAX_NAME);
 
+    info->controls.opaquesize = DFALTOPAQUESIZE;
+    value = getparam(info,"opaquesize");
+    if(value != NULL) {
+	long long len = 0;
+	if(sscanf(value,"%lld",&len) != 1 || len == 0)
+	    nclog(NCLOGWARN,"bad [opaquesize] tag: %s",value);
+	else
+	    info->controls.opaquesize = (size_t)len;	    
+    }
+    
     value = getparam(info,"fillmismatch");
     if(value != NULL)
 	SETFLAG(info->controls.flags,NCF_FILLMISMATCH);
