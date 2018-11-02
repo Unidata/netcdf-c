@@ -15,6 +15,8 @@
 #include "hdf5internal.h"
 #include "ncrc.h"
 
+extern int NC4_extract_file_image(NC_FILE_INFO_T* h5); /* In nc4memcb.c */
+
 static void dumpopenobjects(NC_FILE_INFO_T* h5);
 
 /** @internal When we have open objects at file close, should
@@ -211,6 +213,8 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
    /* If inmemory is used and user wants the final memory block,
       then capture and return the final memory block else free it */
    if(h5->mem.inmemory) {
+       /* Pull out the final memory */
+       (void)NC4_extract_file_image(h5);
        if(!abort && memio != NULL) {
 	    *memio = h5->mem.memio; /* capture it */
 	    h5->mem.memio.memory = NULL; /* avoid duplicate free */

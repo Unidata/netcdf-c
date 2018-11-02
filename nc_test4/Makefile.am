@@ -11,8 +11,8 @@
 include $(top_srcdir)/lib_flags.am
 
 # Un comment to use a more verbose test driver
-#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 TEST_EXTENSIONS = .sh
 
 # Note which tests depend on other tests. necessary for make -j check
@@ -23,7 +23,7 @@ AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 # These are netCDF-4 C test programs which are built and run.
-NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4		\
+NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4 		\
 tst_vars tst_varms tst_unlim_vars tst_converts tst_converts2 tst_grps	\
 tst_grps2 tst_compounds tst_compounds2 tst_compounds3 tst_opaques	\
 tst_strings tst_strings2 tst_interops tst_interops4 tst_interops5	\
@@ -41,9 +41,14 @@ if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
 endif
 
+check_PROGRAMS =
+TESTS =
+
 # Build test programs plus programs used in test scripts.
-check_PROGRAMS = $(NC4_TESTS) renamegroup tst_empty_vlen_unlim
-TESTS = $(NC4_TESTS)
+if USE_NETCDF4
+check_PROGRAMS += $(NC4_TESTS) renamegroup tst_empty_vlen_unlim
+TESTS += $(NC4_TESTS)
+endif
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
@@ -51,11 +56,13 @@ check_PROGRAMS += tst_large tst_large2
 TESTS += tst_large tst_large2
 endif
 
+if USE_NETCDF4
 if BUILD_UTILITIES
 TESTS += run_grp_rename.sh tst_misc.sh
 endif
 
 TESTS += run_empty_vlen_test.sh
+endif
 
 # If the v2 API was built, add its test program.
 if BUILD_V2

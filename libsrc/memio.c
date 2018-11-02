@@ -451,7 +451,7 @@ memio_pad_length(ncio* nciop, off_t length)
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
     memio = (NCMEMIO*)nciop->pvt;
 
-    if(fIsSet(nciop->ioflags,NC_WRITE))
+    if(!fIsSet(nciop->ioflags,NC_WRITE))
         return EPERM; /* attempt to write readonly file*/
     if(memio->locked)
 	return NC_EINMEMORY;

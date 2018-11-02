@@ -34,10 +34,10 @@ usage()
 int
 main(int argc, char** argv)
 {
-    const char* url = NULL;
+    char* url = NULL;
     const char* servlet = NULL;
     const char* proto = NULL;
-    const char* serverlist = NULL;
+    char* serverlist = NULL;
     int isdap4 = 0; /* 1 => dap4 */
 
     argc--; argv++;
@@ -75,5 +75,8 @@ main(int argc, char** argv)
     }
     printf("%s",url);
     fflush(stdout);
+    /* clean up */
+    free(serverlist);    
+    free(url);
     exit(0);
 }
