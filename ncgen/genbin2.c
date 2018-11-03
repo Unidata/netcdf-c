@@ -79,7 +79,7 @@ genbin2_netcdf(void)
     check_err(stat,__LINE__,__FILE__);
 
     /* ncid created above is also root group*/
-    rootgroup->nc_id = ncid;
+    rootgroup->note.bnote.nc_id = ncid;
 
 #ifdef USE_NETCDF4
     /* Define the group structure */
@@ -87,7 +87,7 @@ genbin2_netcdf(void)
     for(igrp=0;igrp<ngrps;igrp++) {
         Symbol* gsym = (Symbol*)listget(grpdefs,igrp);
         if(gsym == rootgroup) continue; /* ignore root group*/
-        stat = nc_def_grp(gsym->container->nc_id,gsym->name,&gsym->nc_id);
+        stat = nc_def_grp(gsym->container->note.bnote.nc_id,gsym->name,&gsym->note.bnote.nc_id);
         check_err(stat,__LINE__,__FILE__);
     }
 #endif
@@ -107,10 +107,10 @@ genbin2_netcdf(void)
     if (ndims > 0) {
         for(idim = 0; idim < ndims; idim++) {
             Symbol* dsym = (Symbol*)listget(dimdefs,idim);
-            stat = nc_def_dim(dsym->container->nc_id,
+            stat = nc_def_dim(dsym->container->note.bnote.nc_id,
                               dsym->name,
                               (dsym->dim.isunlimited?NC_UNLIMITED:dsym->dim.declsize),
-                              &dsym->nc_id);
+                              &dsym->note.bnote.nc_id);
             check_err(stat,__LINE__,__FILE__);
        }
     }
@@ -123,20 +123,20 @@ genbin2_netcdf(void)
                 /* construct a vector of dimension ids*/
                 int dimids[NC_MAX_VAR_DIMS];
                 for(idim=0;idim<vsym->typ.dimset.ndims;idim++)
-                    dimids[idim] = vsym->typ.dimset.dimsyms[idim]->nc_id;
-                stat = nc_def_var(vsym->container->nc_id,
+                    dimids[idim] = vsym->typ.dimset.dimsyms[idim]->note.bnote.nc_id;
+                stat = nc_def_var(vsym->container->note.bnote.nc_id,
                                   vsym->name,
-                                  vsym->typ.basetype->nc_id,
+                                  vsym->typ.basetype->note.bnote.nc_id,
                                   vsym->typ.dimset.ndims,
                                   dimids,
-                                  &vsym->nc_id);
+                                  &vsym->note.bnote.nc_id);
             } else { /* a scalar */
-                stat = nc_def_var(vsym->container->nc_id,
+                stat = nc_def_var(vsym->container->note.bnote.nc_id,
                                   vsym->name,
-                                  vsym->typ.basetype->nc_id,
+                                  vsym->typ.basetype->note.bnote.nc_id,
                                   vsym->typ.dimset.ndims,
                                   NULL,
-                                  &vsym->nc_id);
+                                  &vsym->note.bnote.nc_id);
             }
             check_err(stat,__LINE__,__FILE__);
         }
@@ -169,12 +169,12 @@ genbin2_netcdf(void)
     }
 
     if (nofill_flag) {
-        stat = nc_set_fill(rootgroup->nc_id, NC_NOFILL, 0);
+        stat = nc_set_fill(rootgroup->note.bnote.nc_id, NC_NOFILL, 0);
         check_err(stat,__LINE__,__FILE__);
     }
 
     /* leave define mode */
-    stat = nc_enddef(rootgroup->nc_id);
+    stat = nc_enddef(rootgroup->note.bnote.nc_id);
     check_err(stat,__LINE__,__FILE__);
 
     if(!header_only) {
@@ -194,7 +194,7 @@ void
 genbin2_close(void)
 {
     int stat;
-    stat = nc_close(rootgroup->nc_id);
+    stat = nc_close(rootgroup->note.bnote.nc_id);
     check_err(stat,__LINE__,__FILE__);
 }
 
@@ -205,9 +205,9 @@ genbin2_defineattr(Symbol* asym)
     Bytebuffer* databuf = bbNew();
     char* data;
     size_t len = datalistlen(asym->data);
-    int grpid = asym->container->nc_id;
-    int varid = (asym->att.var == NULL?NC_GLOBAL : asym->att.var->nc_id);
-    int typid = asym->typ.basetype->nc_id;
+    int grpid = asym->container->note.bnote.nc_id;
+    int varid = (asym->att.var == NULL?NC_GLOBAL : asym->att.var->note.bnote.nc_id);
+    int typid = asym->typ.basetype->note.bnote.nc_id;
     stat = genbin2_generate_data(asym->data,asym->typ.basetype,NULL,databuf);
     check_err(stat,__LINE__,__FILE__);
     data = (char*)bbContents(databuf);
@@ -225,8 +225,8 @@ genbin2_definevardata(Symbol* vsym)
     Bytebuffer* databuf = bbNew();
     char* data;
     size_t len = datalistlen(vsym->data);
-    int grpid = vsym->container->nc_id;
-    int varid = vsym->nc_id;
+    int grpid = vsym->container->note.bnote.nc_id;
+    int varid = vsym->note.bnote.nc_id;
     stat = genbin2_generate_data(vsym->data,vsym->typ.basetype,NULL,databuf);
     check_err(stat,__LINE__,__FILE__);
     data = (char*)bbContents(databuf);
@@ -254,18 +254,18 @@ genbin2_deftype(Symbol* tsym)
     switch (tsym->subclass) {
     case NC_PRIM: break; /* these are already taken care of*/
     case NC_OPAQUE:
-        stat = nc_def_opaque(tsym->container->nc_id,
+        stat = nc_def_opaque(tsym->container->note.bnote.nc_id,
                              tsym->typ.size,
                              tsym->name,
-                             &tsym->nc_id);
+                             &tsym->note.bnote.nc_id);
         check_err(stat,__LINE__,__FILE__);
         break;
     case NC_ENUM:
       {
-        stat = nc_def_enum(tsym->container->nc_id,
-                           tsym->typ.basetype->nc_id,
+        stat = nc_def_enum(tsym->container->note.bnote.nc_id,
+                           tsym->typ.basetype->note.bnote.nc_id,
                            tsym->name,
-                           &tsym->nc_id);
+                           &tsym->note.bnote.nc_id);
         check_err(stat,__LINE__,__FILE__);
         for(i=0;i<listlength(tsym->subnodes);i++) {
           Symbol* econst = (Symbol*)listget(tsym->subnodes,i);
@@ -273,8 +273,8 @@ genbin2_deftype(Symbol* tsym)
    	  Datalist* ecdl = const2list(cloneconstant(econst->typ.econst));
 
           ASSERT(econst->subclass == NC_ECONST);
-          stat = nc_insert_enum(tsym->container->nc_id,
-                                tsym->nc_id,
+          stat = nc_insert_enum(tsym->container->note.bnote.nc_id,
+                                tsym->note.bnote.nc_id,
                                 econst->name,
                                 bbContents(datum));
           check_err(stat,__LINE__,__FILE__);
@@ -284,28 +284,28 @@ genbin2_deftype(Symbol* tsym)
       }
       break;
     case NC_VLEN:
-        stat = nc_def_vlen(tsym->container->nc_id,
+        stat = nc_def_vlen(tsym->container->note.bnote.nc_id,
                            tsym->name,
-                           tsym->typ.basetype->nc_id,
-                           &tsym->nc_id);
+                           tsym->typ.basetype->note.bnote.nc_id,
+                           &tsym->note.bnote.nc_id);
         check_err(stat,__LINE__,__FILE__);
         break;
     case NC_COMPOUND:
-        stat = nc_def_compound(tsym->container->nc_id,
+        stat = nc_def_compound(tsym->container->note.bnote.nc_id,
                                tsym->typ.size,
                                tsym->name,
-                               &tsym->nc_id);
+                               &tsym->note.bnote.nc_id);
         check_err(stat,__LINE__,__FILE__);
         for(i=0;i<listlength(tsym->subnodes);i++) {
             Symbol* efield = (Symbol*)listget(tsym->subnodes,i);
             ASSERT(efield->subclass == NC_FIELD);
             if(efield->typ.dimset.ndims == 0){
                 stat = nc_insert_compound(
-                                tsym->container->nc_id,
-                                tsym->nc_id,
+                                tsym->container->note.bnote.nc_id,
+                                tsym->note.bnote.nc_id,
                                 efield->name,
                                 efield->typ.offset,
-                                efield->typ.basetype->nc_id);
+                                efield->typ.basetype->note.bnote.nc_id);
             } else {
                 int j;
                 int dimsizes[NC_MAX_VAR_DIMS]; /* int because inside compound */
@@ -315,11 +315,11 @@ genbin2_deftype(Symbol* tsym)
                      dimsizes[j] = size;
                 }
                 stat = nc_insert_array_compound(
-                                tsym->container->nc_id,
-                                tsym->nc_id,
+                                tsym->container->note.bnote.nc_id,
+                                tsym->note.bnote.nc_id,
                                 efield->name,
                                 efield->typ.offset,
-                                efield->typ.basetype->nc_id,
+                                efield->typ.basetype->note.bnote.nc_id,
                                 efield->typ.dimset.ndims,
                                 dimsizes);
             }
@@ -337,23 +337,23 @@ genbin2_definespecialattributes(Symbol* var)
     Specialdata* special = var->var.special;
     if(special->flags & _STORAGE_FLAG) {
 	if(special->_Storage == NC_CONTIGUOUS) {
-	    stat = nc_def_var_chunking(var->container->nc_id, var->nc_id, NC_CONTIGUOUS, NULL);
+	    stat = nc_def_var_chunking(var->container->note.bnote.nc_id, var->note.bnote.nc_id, NC_CONTIGUOUS, NULL);
 	} else { /* chunked */
 	    if(special->nchunks == 0 || special->_ChunkSizes == NULL)
 	        derror("NC_CHUNKED requested, but no chunksizes specified");
-            stat = nc_def_var_chunking(var->container->nc_id, var->nc_id, NC_CHUNKED, special->_ChunkSizes);
+            stat = nc_def_var_chunking(var->container->note.bnote.nc_id, var->note.bnote.nc_id, NC_CHUNKED, special->_ChunkSizes);
 	}
         check_err(stat,__LINE__,__FILE__);
     }
     if(special->flags & _FLETCHER32_FLAG) {
-        stat = nc_def_var_fletcher32(var->container->nc_id,
-                                     var->nc_id,
+        stat = nc_def_var_fletcher32(var->container->note.bnote.nc_id,
+                                     var->note.bnote.nc_id,
                                      special->_Fletcher32);
         check_err(stat,__LINE__,__FILE__);
     }
     if(special->flags & (_DEFLATE_FLAG | _SHUFFLE_FLAG)) {
-        stat = nc_def_var_deflate(var->container->nc_id,
-                                  var->nc_id,
+        stat = nc_def_var_deflate(var->container->note.bnote.nc_id,
+                                  var->note.bnote.nc_id,
                                   (special->_Shuffle == 1?1:0),
                                   (special->_DeflateLevel >= 0?1:0),
                                   (special->_DeflateLevel >= 0?special->_DeflateLevel
@@ -361,16 +361,16 @@ genbin2_definespecialattributes(Symbol* var)
         check_err(stat,__LINE__,__FILE__);
     }
     if(special->flags & _ENDIAN_FLAG) {
-        stat = nc_def_var_endian(var->container->nc_id,
-                                 var->nc_id,
+        stat = nc_def_var_endian(var->container->note.bnote.nc_id,
+                                 var->note.bnote.nc_id,
                                  (special->_Endianness == NC_ENDIAN_LITTLE?
                                         NC_ENDIAN_LITTLE
                                        :NC_ENDIAN_BIG));
         check_err(stat,__LINE__,__FILE__);
     }
     if(special->flags & _NOFILL_FLAG) {
-        stat = nc_def_var_fill(var->container->nc_id,
-                                 var->nc_id,
+        stat = nc_def_var_fill(var->container->note.bnote.nc_id,
+                                 var->note.bnote.nc_id,
                                  (special->_Fill?NC_FILL:NC_NOFILL),
                                  NULL);
         check_err(stat,__LINE__,__FILE__);
@@ -386,15 +386,15 @@ genbin2_definespecialattributes(Symbol* var)
             if(level > 9)
                 derror("Illegal deflate level");
             else {
-                stat = nc_def_var_deflate(var->container->nc_id,
-                        var->nc_id,
+                stat = nc_def_var_deflate(var->container->note.bnote.nc_id,
+                        var->note.bnote.nc_id,
                         (special->_Shuffle == 1?1:0),
                         (level > 0?1:0),
                         level);
             }
         } else {
-            stat = nc_def_var_filter(var->container->nc_id,
-                        var->nc_id,
+            stat = nc_def_var_filter(var->container->note.bnote.nc_id,
+                        var->note.bnote.nc_id,
                         special->_FilterID,
                         special->nparams,
                         special->_FilterParams
@@ -452,7 +452,7 @@ genbin2_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue,
 
     switch (tsym->subclass) {
     case NC_PRIM: {
-	switch (tsym->nc_id) {
+	switch (tsym->note.bnote.nc_id) {
         case NC_CHAR: {
             char* p = NULL;
             NCConstant* tmp = nullconst();
@@ -662,7 +662,7 @@ genbin2_reclaim_datar(Symbol* tsym, Reclaim* reclaimer)
 {
     int stat = NC_NOERR;
     
-    switch  (tsym->nc_id) {
+    switch  (tsym->note.bnote.nc_id) {
     case NC_CHAR: case NC_BYTE: case NC_UBYTE:
     case NC_SHORT: case NC_USHORT:
     case NC_INT: case NC_UINT: case NC_FLOAT:

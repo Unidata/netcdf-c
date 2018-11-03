@@ -259,6 +259,7 @@ dumpconstant1(NCConstant* con)
 #define MAXELEM 8
 #define MAXDEPTH 4
 
+#if 0
 void
 dumpsrc0(Datasrc* src,char* tag)
 {
@@ -297,3 +298,4 @@ dumpsrc(Datasrc* src,char* tag)
 #endif
     dumpsrc0(src,tag);
 }
+#endif

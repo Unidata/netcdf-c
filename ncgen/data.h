@@ -60,9 +60,12 @@ typedef struct Datalist {
     size_t  length; /* |data| */
     size_t  alloc;  /* track total allocated space for data field*/
     NCConstant**     data; /* actual list of constants constituting the datalist*/
+    /* Support annotations */
+    void* notes;
+
+#if 0
     /* Track various values associated with the datalist*/
     /* (used to be in Constvalue.compoundv)*/
-#if 0
     struct Vlen {
         struct Symbol* schema; /* type/var that defines structure of this*/
         unsigned int count; /* # of vlen basetype instances*/
@@ -71,6 +74,7 @@ typedef struct Datalist {
 #endif
 } Datalist;
 
+#if 0
 /* Define a structure to track
    location of current read point in the Datalist sequence
    In effect, we are parsing the data sequence.
@@ -89,6 +93,8 @@ struct Vlendata {
     unsigned long count;
 };
 extern struct Vlendata* vlendata;
+#endif
+
 extern List* alldatalists;
 
 /* from: data.c */
@@ -108,28 +114,29 @@ int       datalistline(Datalist*);
 #define   datalistith(dl,i) ((dl)==NULL?NULL:((i) >= (dl)->length?NULL:(dl)->data[i]))
 #define   datalistlen(dl) ((dl)==NULL?0:(dl)->length)
 
+#if 0
 Datasrc* datalist2src(Datalist* list);
 Datasrc* const2src(NCConstant*);
-NCConstant* list2const(Datalist*);
-Datalist* const2list(NCConstant* con);
 void freedatasrc(Datasrc* src);
-
 int issublist(Datasrc* src);
 int isstring(Datasrc* src);
 int isfillvalue(Datasrc* src);
 int istype(Datasrc* src, nc_type);
-int isstringable(nc_type nctype);
-
 void srcpush(Datasrc*);
 void srcpushlist(Datasrc* src, Datalist* cmpd);
 void srcpop(Datasrc*);
 void srcsetfill(Datasrc* ds, Datalist* list);
-
 NCConstant* srcnext(Datasrc*);
 int srcmore(Datasrc*);
 int srcline(Datasrc* ds);
 void srcreset(Datasrc* ds);
 #define srclen(s) ((s)==NULL?0:(s)->length)
+#ifdef FASTDATASRC
+#define srcpeek(ds) ((ds)==NULL || (ds)->index >= (ds)->max?NULL:(ds)->data+(ds)->index)
+#else
+NCConstant* srcpeek(Datasrc*);
+#endif
+#endif
 
 #define islistconst(con) ((con)!=NULL && (con)->nctype == NC_COMPOUND)
 #define isfillconst(con) ((con)!=NULL && (con)->nctype == NC_FILLVALUE)
@@ -138,6 +145,10 @@ void srcreset(Datasrc* ds);
 
 #define isnilconst(con) ((con)!=NULL && (con)->nctype == NC_NIL)
 #define   compoundfor(con) ((con)==NULL?NULL:(con)->value.compoundv)
+
+NCConstant* list2const(Datalist*);
+Datalist* const2list(NCConstant* con);
+int isstringable(nc_type nctype);
 
 NCConstant* emptycompoundconst(int lineno);
 NCConstant* emptystringconst(int);
@@ -167,12 +178,6 @@ char* word(char* p, Bytebuffer* buf);
 /* Provide buffers for language based generators */
 extern Bytebuffer* codebuffer; /* buffer over the std output */
 extern Bytebuffer* stmt; /* single stmt text generation */
-
-#ifdef FASTDATASRC
-#define srcpeek(ds) ((ds)==NULL || (ds)->index >= (ds)->max?NULL:(ds)->data+(ds)->index)
-#else
-NCConstant* srcpeek(Datasrc*);
-#endif
 
 /* Aliases */
 #define srcincr(src) srcnext(src)

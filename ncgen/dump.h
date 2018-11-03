@@ -14,12 +14,13 @@ extern void dumpdatalist(Datalist*,char*);
 extern void dumpconstant(NCConstant*,char*);
 extern void bufdump(Datalist*,Bytebuffer*);
 extern void dumpgroup(Symbol* g);
-extern void dumpsrc(Datasrc*,char*);
 
+#if 0
 #ifdef F
 #define DUMPSRC(src,tag) dumpsrc(src,tag)
 #else
 #define DUMPSRC(src,tag)
+#endif
 #endif
 
 #endif

@@ -60,7 +60,49 @@ nullconst(void)
     return n;
 }
 
+int
+isstringable(nc_type nctype)
+{
+    switch (nctype) {
+    case NC_CHAR: case NC_STRING:
+    case NC_BYTE: case NC_UBYTE:
+    case NC_FILLVALUE:
+	return 1;
+    default: break;
+    }
+    return 0;
+}
 
+/**************************************************/
+
+
+NCConstant*
+list2const(Datalist* list)
+{
+    NCConstant* con = nullconst();
+    ASSERT(list != NULL);
+    con->nctype = NC_COMPOUND;
+    con->lineno = list->data[0]->lineno;
+    setconstlist(con,list);
+    con->filled = 0;
+    return con;
+}
+
+Datalist*
+const2list(NCConstant* con)
+{
+    Datalist* list;
+    ASSERT(con != NULL);
+    list = builddatalist(1);
+    if(list != NULL) {
+        dlappend(list,con);
+    }
+    return list;
+}
+
+/**************************************************/
+
+#if 0
 /* return 1 if the next element in the datasrc is compound*/
 int
 issublist(Datasrc* datasrc) {return istype(datasrc,NC_COMPOUND);}
@@ -84,21 +126,6 @@ istype(Datasrc* datasrc , nc_type nctype)
     if(ci != NULL && ci->nctype == nctype) return 1;
     return 0;
 }
-
-int
-isstringable(nc_type nctype)
-{
-    switch (nctype) {
-    case NC_CHAR: case NC_STRING:
-    case NC_BYTE: case NC_UBYTE:
-    case NC_FILLVALUE:
-	return 1;
-    default: break;
-    }
-    return 0;
-}
-
-/**************************************************/
 
 void
 freedatasrc(Datasrc* src)
@@ -143,30 +170,6 @@ const2src(NCConstant* con)
     src->length = 1;
     DUMPSRC(src,"#");
     return src;
-}
-
-NCConstant*
-list2const(Datalist* list)
-{
-    NCConstant* con = nullconst();
-    ASSERT(list != NULL);
-    con->nctype = NC_COMPOUND;
-    con->lineno = list->data[0]->lineno;
-    setconstlist(con,list);
-    con->filled = 0;
-    return con;
-}
-
-Datalist*
-const2list(NCConstant* con)
-{
-    Datalist* list;
-    ASSERT(con != NULL);
-    list = builddatalist(1);
-    if(list != NULL) {
-        dlappend(list,con);
-    }
-    return list;
 }
 
 NCConstant*
@@ -270,7 +273,7 @@ srcsetfill(Datasrc* ds, Datalist* list)
     ds->data[ds->index]->nctype = NC_COMPOUND;
     setconstlist(ds->data[ds->index],list);
 }
-
+#endif
 
 /**************************************************/
 #ifdef GENDEBUG
@@ -285,10 +288,6 @@ fflush(stderr);
 bbFree(buf);
 }
 
-void
-report0(char* lead, Datasrc* src, int index)
-{
-}
 #endif
 
 /**************************************************/
@@ -376,6 +375,8 @@ freeconstant(NCConstant* con, int shallow)
 
 /**************************************************/
 
+#if 0
+/* Deep cloning */
 Datalist*
 datalistclone(Datalist* dl)
 {
@@ -387,7 +388,6 @@ datalistclone(Datalist* dl)
     return clone;
 }
 
-#if 0
 Datalist*
 datalistappend(Datalist* dl, NCConstant* con)
 {

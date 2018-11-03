@@ -889,7 +889,7 @@ infertype(nc_type prior, nc_type next, int hasneg)
 Collect info by repeated walking of the attribute value list.
 */
 static nc_type
-inferattributetype1(Datasrc* src)
+inferattributetype1(Datalist* adata)
 {
     nc_type result = NC_NAT;
     int hasneg = 0;
@@ -898,39 +898,38 @@ inferattributetype1(Datasrc* src)
     int forcefloat = 0;
     int forcedouble = 0;
     int forceuint64 = 0;
+    int i;
 
     /* Walk the top level set of attribute values to ensure non-nesting */
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	if(con == NULL) return NC_NAT;
 	if(con->nctype > NC_MAX_ATOMIC_TYPE) { /* illegal */
 	    return NC_NAT;
 	}
-	srcnext(src);
     }
-    /* Walk repeatedly to get info for inference (loops could be combined) */
+
+    /* Walk repeatedly to get info for inference */
 
     /* Compute: all strings or chars? */
-    srcreset(src);
     stringcount = 0;
     charcount = 0;
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	if(con->nctype == NC_STRING) stringcount++;
 	else if(con->nctype == NC_CHAR) charcount++;
     }
     if((stringcount+charcount) > 0) {
-        if((stringcount+charcount) < srclen(src))
+        if((stringcount+charcount) < datalistlen(adata))
 	    return NC_NAT; /* not all textual */
 	return NC_CHAR;
     }
 
     /* Compute: any floats/doubles? */
-    srcreset(src);
     forcefloat = 0;
     forcedouble = 0;
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	if(con->nctype == NC_FLOAT) forcefloat = 1;
 	else if(con->nctype == NC_DOUBLE) {forcedouble=1; break;}
     }
@@ -940,10 +939,9 @@ inferattributetype1(Datasrc* src)
     /* At this point all the constants should be integers */
 
     /* Compute: are there any uint64 values > NC_MAX_INT64? */
-    srcreset(src);
     forceuint64 = 0;
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	if(con->nctype != NC_UINT64) continue;
 	if(con->value.uint64v > NC_MAX_INT64) {forceuint64=1; break;}
     }
@@ -951,10 +949,9 @@ inferattributetype1(Datasrc* src)
 	return NC_UINT64;
 
     /* Compute: are there any negative constants? */
-    srcreset(src);
     hasneg = 0;
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	switch (con->nctype) {
 	case NC_BYTE :   if(con->value.int8v < 0)   {hasneg = 1;} break;
 	case NC_SHORT:   if(con->value.int16v < 0)  {hasneg = 1;} break;
@@ -963,10 +960,9 @@ inferattributetype1(Datasrc* src)
     }
 
     /* Compute: inferred integer type */
-    srcreset(src);
     result = NC_NAT;
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	result = infertype(result,con->nctype,hasneg);
 	if(result == NC_NAT) break; /* something wrong */
     }
@@ -977,8 +973,8 @@ static void
 inferattributetype(Symbol* asym)
 {
     Datalist* datalist;
-    Datasrc* src;
     nc_type nctype;
+
     ASSERT(asym->data != NULL);
     datalist = asym->data;
     if(datalist->length == 0) {
@@ -986,9 +982,7 @@ inferattributetype(Symbol* asym)
 	asym->typ.basetype = basetypefor(NC_CHAR);
 	return;
     }
-    src = datalist2src(datalist);
-    nctype = inferattributetype1(src);
-    freedatasrc(src);
+    nctype = inferattributetype1(asym->data);
     if(nctype == NC_NAT) { /* Illegal attribute value list */
 	semerror(asym->lineno,"Non-simple list of values for untyped attribute: %s",fullname(asym));
 	return;
@@ -1039,7 +1033,6 @@ validateNIL(Symbol* sym)
     validateNILr(datalist);
 #endif
 }
-
 
 /* Find name within group structure*/
 Symbol*
@@ -1282,8 +1275,6 @@ processunlimiteddims(void)
     }
 #endif
 }
-
-
 
 /* Rules for specifying the dataset name:
 	1. use -o name

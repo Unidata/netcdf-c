@@ -417,7 +417,7 @@ main(
     }
 
 #ifndef ENABLE_C
-    if(c_flag) {
+    if(l_flag == L_C) {
 	  fprintf(stderr,"C not currently supported\n");
 	  code=1; goto done;
     }

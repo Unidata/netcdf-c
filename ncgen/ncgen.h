@@ -187,7 +187,7 @@ typedef struct Typeinfo {
 	nc_type         typecode;
         unsigned long   offset;   /* fields in struct*/
         unsigned long   alignment;/* fields in struct*/
-        NCConstant*      econst;   /* for enum values*/
+        NCConstant*       econst;   /* for enum values */
         Dimset          dimset;     /* for NC_VAR/NC_FIELD/NC_ATT*/
         size_t   size;     /* for opaque, compound, etc.*/
 	size_t   cmpdalign; /* alignment needed for total size instances */
@@ -221,6 +221,24 @@ typedef struct Reference {
         struct Symbol*  ref;  /* ptr to the symbol if is_ref is true*/
 } Reference;
 
+/* Define structure of the per-generator annotations */
+
+typedef struct Bnote { /*Binary*/
+    int nc_id;  /* from netcdf API: varid, or dimid, or etc.*/
+} Bnote;
+
+typedef struct Cnote { /*C*/
+    int nc_id;  /* from netcdf API: varid, or dimid, or etc.*/
+} Cnote;
+
+typedef struct Fnote { /*F77*/
+    int nc_id;  /* from netcdf API: varid, or dimid, or etc.*/
+} Fnote;
+
+typedef struct Jnote { /*Java*/
+    int nc_id;  /* from netcdf API: varid, or dimid, or etc.*/
+} Jnote;
+
 typedef struct Symbol {  /* symbol table entry*/
         nc_class        objectclass;  /* NC_DIM|NC_VLEN|NC_OPAQUE...*/
         nc_class        subclass;  /* NC_STRUCT|...*/
@@ -246,7 +264,13 @@ typedef struct Symbol {  /* symbol table entry*/
 	/* Misc pieces of info*/
 	int             lineno;  /* at point of creation*/
 	int		touched; /* for sorting*/
-        int             nc_id;  /* from netcdf API: varid, or dimid, or etc.*/
+        /* Support annotations */
+	union {
+	Bnote bnote;
+	Cnote cnote;
+	Fnote fnote;
+	Jnote jnote;
+        } note;
 } Symbol;
 
 

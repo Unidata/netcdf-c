@@ -953,7 +953,7 @@ makeprimitivetype(nc_type nctype)
     Symbol* sym = install(primtypenames[nctype]);
     sym->objectclass=NC_TYPE;
     sym->subclass=NC_PRIM;
-    sym->nc_id = nctype;
+    sym->note.bnote.nc_id = nctype;
     sym->typ.typecode = nctype;
     sym->typ.size = ncsize(nctype);
     sym->typ.nelems = 1;
