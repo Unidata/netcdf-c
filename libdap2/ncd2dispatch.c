@@ -897,6 +897,7 @@ buildattribute(NCDAPCOMMON* dapcomm, CDFnode* var, NCattribute* att)
     NCerror ncstat = NC_NOERR;
     unsigned int nvalues = nclistlength(att->values);
     int varid = (var == NULL ? NC_GLOBAL : var->ncid);
+    void* mem = NULL;
 
     /* If the type of the attribute is string, then we need*/
     /* to convert to a single character string by concatenation.
@@ -929,30 +930,21 @@ buildattribute(NCDAPCOMMON* dapcomm, CDFnode* var, NCattribute* att)
     } else {
 	nc_type atype;
 	unsigned int typesize;
-	void* mem = NULL;
 	atype = nctypeconvert(dapcomm,att->etype);
 	typesize = nctypesizeof(atype);
 	if (nvalues > 0) {
-		mem = malloc(typesize * nvalues);
-#ifdef _MSC_VER
-		_ASSERTE(_CrtCheckMemory());
-#endif
+	    mem = malloc(typesize * nvalues);
 	}
         ncstat = dapcvtattrval(atype,mem,att->values,att);
-#ifdef _MSC_VER
-	_ASSERTE(_CrtCheckMemory());
-#endif
-    if(ncstat == NC_ERANGE)
-	nclog(NCLOGERR,"Attribute value out of range: %s:%s",
+        if(ncstat == NC_ERANGE)
+	    nclog(NCLOGERR,"Attribute value out of range: %s:%s",
 		(var==NULL?"":var->ncbasename),att->name);
-    if(ncstat) {nullfree(mem); goto done;}
-    ncstat = nc_put_att(dapcomm->substrate.nc3id,varid,att->name,atype,nvalues,mem);
-#ifdef _MSC_VER
-	_ASSERTE(_CrtCheckMemory());
-#endif
-    if(ncstat) {nullfree(mem); goto done;}
+        if(ncstat) goto done;
+        ncstat = nc_put_att(dapcomm->substrate.nc3id,varid,att->name,atype,nvalues,mem);
+        if(ncstat) goto done;
     }
 done:
+    if(mem) free(mem);
     return THROW(ncstat);
 }
 

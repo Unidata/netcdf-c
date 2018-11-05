@@ -181,7 +181,7 @@ readfile(NCD4INFO* state, const NCURI* uri, const char* suffix, NCbytes* packet)
     filename = ncbytesextract(tmp);
     ncbytesfree(tmp);
 
-    state->fileproto.filename = strdup(filename);
+    state->fileproto.filename = filename; /* filename is alloc'd here anyway */
 
     if(FLAGSET(state->controls.flags,NCF_SHOWFETCH)) {
 	char* surl = NULL;
