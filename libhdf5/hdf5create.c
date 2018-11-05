@@ -240,7 +240,7 @@ exit: /*failure exit*/
 #endif
    if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if(!nc4_info) return retval;
-   nc4_close_netcdf4_file(nc4_info,1,NULL); /* treat like abort */
+   nc4_close_hdf5_file(nc4_info, 1, NULL); /* treat like abort */
    return retval;
 }
 
