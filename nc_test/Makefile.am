@@ -60,7 +60,7 @@ endif
 check_PROGRAMS = $(TESTPROGRAMS)
 
 # Build Diskless test helpers
-check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4	\
+check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4 \
 tst_diskless5 tst_inmemory tst_open_mem
 if USE_NETCDF4
 check_PROGRAMS += tst_diskless2
@@ -70,10 +70,8 @@ TESTS = $(TESTPROGRAMS)
 
 if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
-if USE_NETCDF4
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
-endif
 endif
 endif
 
@@ -92,7 +90,7 @@ CMakeLists.txt
 # These files are created by the tests.
 CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\
 quick_large_files.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl	\
-tst_diskless4.cdl benchmark.nc
+tst_diskless4.cdl ref_tst_diskless4.cdl benchmark.nc
 
 EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
 if ENABLE_CDF5
