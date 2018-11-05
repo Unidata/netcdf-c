@@ -333,7 +333,10 @@ dceerror(DCEparsestate* state, char* msg)
 static void
 dce_parse_cleanup(DCEparsestate* state)
 {
+    if(state == NULL) return;
     dcelexcleanup(&state->lexstate); /* will free */
+    /* Free up the state */
+    free(state);
 }
 
 static DCEparsestate*
