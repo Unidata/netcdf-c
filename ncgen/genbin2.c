@@ -19,20 +19,20 @@ typedef struct Reclaim {char* memory; ptrdiff_t offset;} Reclaim;
 
 static ptrdiff_t read_align(ptrdiff_t offset, size_t alignment);
 static void write_align(int alignment, Bytebuffer* buf);
-static void genbin2_defineattr(Symbol* asym);
-static int genbin2_definevardata(Symbol* vsym);
-static void genbin2_deftype(Symbol* tsym);
-static void genbin2_definespecialattributes(Symbol* var);
-static int genbin2_generate_data(Datalist* data, Symbol* tsym, Datalist* fillvalue, Bytebuffer* databuf);
-static int genbin2_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Bytebuffer* databuf);
+static void genbin_defineattr(Symbol* asym);
+static int genbin_definevardata(Symbol* vsym);
+static void genbin_deftype(Symbol* tsym);
+static void genbin_definespecialattributes(Symbol* var);
+static int genbin_generate_data(Datalist* data, Symbol* tsym, Datalist* fillvalue, Bytebuffer* databuf);
+static int genbin_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Bytebuffer* databuf);
 
-static int genbin2_reclaim_data(Symbol* tsym, void* memory, size_t count);
-static int genbin2_reclaim_datar(Symbol* tsym, Reclaim* reclaim);
-static int genbin2_reclaim_usertype(Symbol* tsym, Reclaim* reclaim);
-static int genbin2_reclaim_compound(Symbol* tsym, Reclaim* reclaim);
-static int genbin2_reclaim_vlen(Symbol* tsym, Reclaim* reclaim);
-static int genbin2_reclaim_enum(Symbol* tsym, Reclaim* reclaim);
-static int genbin2_reclaim_opaque(Symbol* tsym, Reclaim* reclaim);
+static int genbin_reclaim_data(Symbol* tsym, void* memory, size_t count);
+static int genbin_reclaim_datar(Symbol* tsym, Reclaim* reclaim);
+static int genbin_reclaim_usertype(Symbol* tsym, Reclaim* reclaim);
+static int genbin_reclaim_compound(Symbol* tsym, Reclaim* reclaim);
+static int genbin_reclaim_vlen(Symbol* tsym, Reclaim* reclaim);
+static int genbin_reclaim_enum(Symbol* tsym, Reclaim* reclaim);
+static int genbin_reclaim_opaque(Symbol* tsym, Reclaim* reclaim);
 
 /**************************************************/
 
@@ -44,7 +44,7 @@ and invoke the corresponding API calls to create the file
 */
 
 void
-genbin2_netcdf(void)
+genbin_netcdf(void)
 {
     int stat, ncid;
     int idim, ivar, iatt;
@@ -98,7 +98,7 @@ genbin2_netcdf(void)
         int ityp;
         for(ityp = 0; ityp < ntyps; ityp++) {
             Symbol* tsym = (Symbol*)listget(typdefs,ityp);
-            genbin2_deftype(tsym);
+            genbin_deftype(tsym);
         }
     }
 #endif
@@ -147,7 +147,7 @@ genbin2_netcdf(void)
     if(nvars > 0) {
         for(ivar = 0; ivar < nvars; ivar++) {
             Symbol* var = (Symbol*)listget(vardefs,ivar);
-            genbin2_definespecialattributes(var);
+            genbin_definespecialattributes(var);
         }
     }
 #endif /*USE_NETCDF4*/
@@ -156,7 +156,7 @@ genbin2_netcdf(void)
     if(ngatts > 0) {
         for(iatt = 0; iatt < ngatts; iatt++) {
             Symbol* gasym = (Symbol*)listget(gattdefs,iatt);
-            genbin2_defineattr(gasym);
+            genbin_defineattr(gasym);
         }
     }
 
@@ -164,7 +164,7 @@ genbin2_netcdf(void)
     if(natts > 0) {
         for(iatt = 0; iatt < natts; iatt++) {
             Symbol* asym = (Symbol*)listget(attdefs,iatt);
-            genbin2_defineattr(asym);
+            genbin_defineattr(asym);
         }
     }
 
@@ -183,7 +183,7 @@ genbin2_netcdf(void)
             for(ivar = 0; ivar < nvars; ivar++) {
                 Symbol* vsym = (Symbol*)listget(vardefs,ivar);
                 if(vsym->data != NULL) {
-                    genbin2_definevardata(vsym);
+                    genbin_definevardata(vsym);
                 }
             }
         }
@@ -191,7 +191,7 @@ genbin2_netcdf(void)
 }
 
 void
-genbin2_close(void)
+genbin_close(void)
 {
     int stat;
     stat = nc_close(rootgroup->note.bnote.nc_id);
@@ -199,27 +199,32 @@ genbin2_close(void)
 }
 
 static void
-genbin2_defineattr(Symbol* asym)
+genbin_defineattr(Symbol* asym)
 {
     int stat = NC_NOERR;
     Bytebuffer* databuf = bbNew();
     char* data;
-    size_t len = datalistlen(asym->data);
     int grpid = asym->container->note.bnote.nc_id;
     int varid = (asym->att.var == NULL?NC_GLOBAL : asym->att.var->note.bnote.nc_id);
     int typid = asym->typ.basetype->note.bnote.nc_id;
-    stat = genbin2_generate_data(asym->data,asym->typ.basetype,NULL,databuf);
+    size_t len = datalistlen(asym->data);
+    stat = genbin_generate_data(asym->data,asym,NULL,databuf);
+    if(asym->typ.typecode == NC_CHAR) {
+	/* Character data has been converted to string constants to
+	   conform to ncgen3 semantics */
+	len = listlength(databuf);
+    }
     check_err(stat,__LINE__,__FILE__);
     data = (char*)bbContents(databuf);
     stat = nc_put_att(grpid,varid,asym->name,typid,len,(void*)data);
     check_err(stat,__LINE__,__FILE__);
-    stat = genbin2_reclaim_data(asym->typ.basetype,data,len);
+    stat = genbin_reclaim_data(asym->typ.basetype,data,len);
     check_err(stat,__LINE__,__FILE__);
     bbFree(databuf);
 }
 
 static int
-genbin2_definevardata(Symbol* vsym)
+genbin_definevardata(Symbol* vsym)
 {
     int stat = NC_NOERR;
     Bytebuffer* databuf = bbNew();
@@ -227,12 +232,13 @@ genbin2_definevardata(Symbol* vsym)
     size_t len = datalistlen(vsym->data);
     int grpid = vsym->container->note.bnote.nc_id;
     int varid = vsym->note.bnote.nc_id;
-    stat = genbin2_generate_data(vsym->data,vsym->typ.basetype,NULL,databuf);
+    stat = genbin_generate_data(vsym->data,vsym,NULL,databuf);
     check_err(stat,__LINE__,__FILE__);
     data = (char*)bbContents(databuf);
+
     stat = nc_put_var(grpid,varid,(void*)data);
     check_err(stat,__LINE__,__FILE__);
-    stat = genbin2_reclaim_data(vsym->typ.basetype,data,len);
+    stat = genbin_reclaim_data(vsym->typ.basetype,data,len);
     check_err(stat,__LINE__,__FILE__);
 
     bbFree(databuf);
@@ -245,7 +251,7 @@ genbin2_definevardata(Symbol* vsym)
 Generate type definitions
 */
 static void
-genbin2_deftype(Symbol* tsym)
+genbin_deftype(Symbol* tsym)
 {
     unsigned long i;
     int stat;
@@ -331,7 +337,7 @@ genbin2_deftype(Symbol* tsym)
 }
 
 static void
-genbin2_definespecialattributes(Symbol* var)
+genbin_definespecialattributes(Symbol* var)
 {
     int stat = NC_NOERR;
     Specialdata* special = var->var.special;
@@ -415,14 +421,14 @@ Walk a datalist using a type symbol as template. Generate
 the corresponding binary data into the databuf.
 
 @param data -- (Datalist*) to use to generate the binary data
-@param tsym -- (Symbol*)  the top-level type for which instances are to be generated
+@param tvasym -- (Symbol*)  the top-level type|var|attr for which instances are to be generated
 @param fillvalue -- (Datalist*) the fillvalue for the toplevel type
 @param databuf -- (Bytebuffer*) the buffer into which instances are to be stored
 @return netcdf error code
 */
 
 static int
-genbin2_generate_data(Datalist* data, Symbol* tsym, Datalist* fillvalue, Bytebuffer* databuf)
+genbin_generate_data(Datalist* data, Symbol* tvasym, Datalist* fillvalue, Bytebuffer* databuf)
 {
     int stat = NC_NOERR;
     size_t count = data->length;
@@ -431,7 +437,7 @@ genbin2_generate_data(Datalist* data, Symbol* tsym, Datalist* fillvalue, Bytebuf
     bbClear(databuf);
     for(i=0;i<count;i++) {
 	NCConstant* instance = datalistith(data,i);
-	if((stat = genbin2_generate_data_r(instance, tsym, fillvalue, databuf))) goto done;
+	if((stat = genbin_generate_data_r(instance, tvasym, fillvalue, databuf))) goto done;
     }
 done:
     return stat;
@@ -439,13 +445,18 @@ done:
 
 /* Recursive helper that does the bulk of the work */
 static int
-genbin2_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Bytebuffer* databuf)
+genbin_generate_data_r(NCConstant* instance, Symbol* tvasym, Datalist* fillvalue, Bytebuffer* databuf)
 {
     int stat = NC_NOERR;
+    Symbol* tsym; /* basetype */
+
+    if(tvasym->objectclass == NC_TYPE) tsym = tvasym;
+    else if(tvasym->objectclass == NC_VAR) tsym = tvasym->typ.basetype;
+    else if(tvasym->objectclass == NC_ATT) tsym = tvasym->typ.basetype;
 
     if(instance->nctype == NC_FILLVALUE) {
         /* replace with fillvalue for the type */
-	Datalist* filllist = (fillvalue == NULL ? getfiller(tsym) : fillvalue);
+	Datalist* filllist = (fillvalue == NULL ? getfiller(tvasym) : fillvalue);
 	ASSERT(datalistlen(filllist)==1)
 	instance = datalistith(filllist,0);
     }
@@ -455,11 +466,23 @@ genbin2_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue,
 	switch (tsym->note.bnote.nc_id) {
         case NC_CHAR: {
             char* p = NULL;
+	    size_t len = 0;
             NCConstant* tmp = nullconst();
-            tmp->nctype = NC_CHAR;
-            convert1(instance,tmp);
-            p = &tmp->value.charv;;
-            bbAppendn(databuf,p,sizeof(char));
+	    if(tvasym->objectclass == NC_ATT) {
+	        /* Convert to a string */ 
+                tmp->nctype = NC_STRING;
+                convert1(instance,tmp);
+		len = tmp->value.stringv.len;
+		p = tmp->value.stringv.stringv;
+	    } else if(tvasym->objectclass == NC_TYPE
+	              || tvasym->objectclass == NC_VAR) {
+	        /* Convert to a char */
+	        tmp->nctype = NC_CHAR;
+                convert1(instance,tmp);
+		len = 1;
+		p = &tmp->value.charv;
+	    }
+            bbAppendn(databuf,p,len);
             reclaimconstant(tmp);
             } break;
         case NC_BYTE: {
@@ -570,7 +593,7 @@ genbin2_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue,
     case NC_ENUM: {
 	Symbol* basetype = tsym->typ.basetype;
 	/* Pretend */
-	stat = genbin2_generate_data_r(instance,basetype,fillvalue,databuf);
+	stat = genbin_generate_data_r(instance,basetype,fillvalue,databuf);
         } break;
     case NC_OPAQUE: {
 	unsigned char* bytes = NULL;
@@ -593,7 +616,7 @@ genbin2_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue,
 	}
 	sublist = instance->value.compoundv;
 	vlendata = bbNew();
-	if((stat = genbin2_generate_data(sublist,tsym->typ.basetype,NULL,vlendata))) goto done;
+	if((stat = genbin_generate_data(sublist,tsym->typ.basetype,NULL,vlendata))) goto done;
 	p.len = datalistlen(sublist);
 	p.p = bbContents(vlendata);
         bbAppendn(databuf,(char*)&p,sizeof(nc_vlen_t));
@@ -618,7 +641,7 @@ genbin2_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue,
 	    write_align(field->typ.alignment,databuf);
 	    /* Write the instances */
 	    for(i=0;i<arraycount;i++) {
-	        if((stat = genbin2_generate_data_r(fieldinstance, field->typ.basetype, NULL, databuf))) goto done;
+	        if((stat = genbin_generate_data_r(fieldinstance, field->typ.basetype, NULL, databuf))) goto done;
 	    }
 	}		
         } break;
@@ -635,7 +658,7 @@ Internal equivalent of ncaux_reclaim_data.
 */
 
 static int
-genbin2_reclaim_data(Symbol* tsym, void* memory, size_t count)
+genbin_reclaim_data(Symbol* tsym, void* memory, size_t count)
 {
     int stat = NC_NOERR;
     size_t i;
@@ -649,7 +672,7 @@ genbin2_reclaim_data(Symbol* tsym, void* memory, size_t count)
     reclaimer.offset = 0;
     reclaimer.memory = memory;
     for(i=0;i<count;i++) {
-	if((stat=genbin2_reclaim_datar(tsym,&reclaimer))) /* reclaim one instance */
+	if((stat=genbin_reclaim_datar(tsym,&reclaimer))) /* reclaim one instance */
 	    break;
     }
 done:
@@ -658,7 +681,7 @@ done:
 
 /* Recursive type walker: reclaim a single instance */
 static int
-genbin2_reclaim_datar(Symbol* tsym, Reclaim* reclaimer)
+genbin_reclaim_datar(Symbol* tsym, Reclaim* reclaimer)
 {
     int stat = NC_NOERR;
     
@@ -678,7 +701,7 @@ genbin2_reclaim_datar(Symbol* tsym, Reclaim* reclaimer)
 	} break;
     default:
     	/* reclaim a user type */
-	stat = genbin2_reclaim_usertype(tsym,reclaimer);
+	stat = genbin_reclaim_usertype(tsym,reclaimer);
 #else
     default:
 	stat = NC_ENOTNC4;
@@ -689,16 +712,16 @@ genbin2_reclaim_datar(Symbol* tsym, Reclaim* reclaimer)
 }
 	
 static int
-genbin2_reclaim_usertype(Symbol* tsym, Reclaim* reclaimer)
+genbin_reclaim_usertype(Symbol* tsym, Reclaim* reclaimer)
 {
     int stat = NC_NOERR;
 
     /* Get info about the xtype */
     switch (tsym->subclass) {
-    case NC_OPAQUE: stat = genbin2_reclaim_opaque(tsym,reclaimer); break;
-    case NC_ENUM: stat = genbin2_reclaim_enum(tsym,reclaimer); break;
-    case NC_VLEN: stat = genbin2_reclaim_vlen(tsym,reclaimer); break;
-    case NC_COMPOUND: stat = genbin2_reclaim_compound(tsym,reclaimer); break;
+    case NC_OPAQUE: stat = genbin_reclaim_opaque(tsym,reclaimer); break;
+    case NC_ENUM: stat = genbin_reclaim_enum(tsym,reclaimer); break;
+    case NC_VLEN: stat = genbin_reclaim_vlen(tsym,reclaimer); break;
+    case NC_COMPOUND: stat = genbin_reclaim_compound(tsym,reclaimer); break;
     default:
         stat = NC_EINVAL;
 	break;
@@ -707,7 +730,7 @@ genbin2_reclaim_usertype(Symbol* tsym, Reclaim* reclaimer)
 }
 
 static int
-genbin2_reclaim_vlen(Symbol* tsym, Reclaim* reclaimer)
+genbin_reclaim_vlen(Symbol* tsym, Reclaim* reclaimer)
 {
     int stat = NC_NOERR;
     size_t i;
@@ -721,7 +744,7 @@ genbin2_reclaim_vlen(Symbol* tsym, Reclaim* reclaimer)
 	vreclaimer.offset = 0;
         for(i=0;i<vl->len;i++) {
 	    vreclaimer.offset = read_align(vreclaimer.offset,basetype->typ.alignment);
-	    if((stat = genbin2_reclaim_datar(basetype,&vreclaimer))) goto done;
+	    if((stat = genbin_reclaim_datar(basetype,&vreclaimer))) goto done;
 	    vreclaimer.offset += basetype->typ.size;
 	}
 	reclaimer->offset += tsym->typ.size;
@@ -732,13 +755,13 @@ done:
 }
 
 static int
-genbin2_reclaim_enum(Symbol* tsym, Reclaim* reclaimer)
+genbin_reclaim_enum(Symbol* tsym, Reclaim* reclaimer)
 {
-    return genbin2_reclaim_datar(tsym->typ.basetype,reclaimer);
+    return genbin_reclaim_datar(tsym->typ.basetype,reclaimer);
 }
 
 static int
-genbin2_reclaim_opaque(Symbol* tsym, Reclaim* reclaimer)
+genbin_reclaim_opaque(Symbol* tsym, Reclaim* reclaimer)
 {
     /* basically a fixed size sequence of bytes */
     reclaimer->offset += tsym->typ.size;
@@ -746,7 +769,7 @@ genbin2_reclaim_opaque(Symbol* tsym, Reclaim* reclaimer)
 }
 
 static int
-genbin2_reclaim_compound(Symbol* tsym, Reclaim* reclaimer)
+genbin_reclaim_compound(Symbol* tsym, Reclaim* reclaimer)
 {
     int stat = NC_NOERR;
     int nfields;
@@ -765,7 +788,7 @@ genbin2_reclaim_compound(Symbol* tsym, Reclaim* reclaimer)
 	for(i=0;i<ndims;i++) arraycount *= field->typ.dimset.dimsyms[i]->dim.declsize;
 	reclaimer->offset = read_align(reclaimer->offset,field->typ.alignment);
 	for(i=0;i<arraycount;i++) {
-	    if((stat = genbin2_reclaim_datar(field->typ.basetype, reclaimer))) goto done;
+	    if((stat = genbin_reclaim_datar(field->typ.basetype, reclaimer))) goto done;
 	}		
     }
     reclaimer->offset = saveoffset;

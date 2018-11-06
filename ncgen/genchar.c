@@ -239,7 +239,7 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
     concatenated with any trailing or leading string (with double quotes).
     */
 
-    /* Rebuild the datalist to merge '0x' constants;
+     /* Rebuild the datalist to merge '0x' constants;
 	WARNING: this is tricky.
     */
     {

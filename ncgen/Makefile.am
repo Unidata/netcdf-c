@@ -9,7 +9,7 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 # Build ncgen from the listed sources.
 bin_PROGRAMS = ncgen
 
-ncgen_SOURCES=generate.c main.c cdata.c genchar.c cvt.c data.c debug.c	\
+ncgen_SOURCES=main.c cdata.c genchar.c cvt.c data.c debug.c	\
 escapes.c genc.c generr.c genlib.c getfill.c odom.c	\
 semantics.c dump.c util.c bytebuffer.c list.c data.h		\
 debug.h generr.h genlib.h includes.h ncgen.h odom.h  dump.h	\

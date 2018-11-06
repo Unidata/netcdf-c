@@ -30,11 +30,7 @@ define_netcdf(void)
 #endif
 /* Binary is the default */
 #ifdef ENABLE_BINARY
-#ifdef GENBIN2
-    genbin2_netcdf(); /* create netcdf */
-#else
-    gen_netcdf(); /* create netcdf */
-#endif
+    genbin_netcdf(); /* create netcdf */
 #else
     derror("No language specified");
 #endif

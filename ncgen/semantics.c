@@ -5,13 +5,17 @@
 /* $Id: semantics.c,v 1.4 2010/05/24 19:59:58 dmh Exp $ */
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/semantics.c,v 1.4 2010/05/24 19:59:58 dmh Exp $ */
 
-#include        "includes.h"
-#include        "dump.h"
-#include        "ncoffsets.h"
+#include "includes.h"
+#include "dump.h"
+#include "ncoffsets.h"
+#include "nc_iter.h"
+#include "odom.h"
 
 /* Forward*/
 static void computefqns(void);
-static void filltypecodes(void);
+static void processchararray(Symbol*, Datalist*);
+static Datalist* processchararrayr(Symbol*, Datalist*, Odometer*, int, Datalist*);
+static void processvardata(void);
 static void processenums(void);
 static void processeconstrefs(void);
 static void processroot(void);
@@ -23,6 +27,8 @@ static void processunlimiteddims(void);
 static void processeconstrefs(void);
 static void processeconstrefsR(Symbol*,Datalist*);
 
+static void filltypecodes(void);
+static void fixstringlist(Symbol* asym);
 static void fixeconstref(Symbol*,NCConstant* con);
 static void inferattributetype(Symbol* asym);
 static void validateNIL(Symbol* sym);
@@ -66,6 +72,8 @@ processsemantics(void)
     processeconstrefs();
     /* Compute the unlimited dimension sizes */
     processunlimiteddims();
+    /* Fix up the data part of variables */
+    processvardata();
     /* check internal consistency*/
     checkconsistency();
 }
@@ -813,6 +821,11 @@ processattributes(void)
 	    reclaimconstant(empty);
 	}
 	validateNIL(asym);
+	if(asym->typ.typecode == NC_CHAR
+	   || (asym->typ.basetype->objectclass == NC_VLEN
+		&& asym->typ.basetype->typ.typecode == NC_CHAR)) {
+	    fixstringlist(asym);
+	}
     }
     /* process per variable attributes*/
     for(i=0;i<listlength(attdefs);i++) {
@@ -847,6 +860,11 @@ processattributes(void)
 	    dlappend(asym->data,empty);
 	}
 	validateNIL(asym);
+	if(asym->typ.typecode == NC_CHAR
+	   || (asym->typ.basetype->objectclass == NC_VLEN
+		&& asym->typ.basetype->typ.typecode == NC_CHAR)) {
+	    fixstringlist(asym);
+	}
     }
     /* collect per-variable attributes per variable*/
     for(i=0;i<listlength(vardefs);i++) {
@@ -862,6 +880,32 @@ processattributes(void)
 	vsym->var.attributes = list;
     }
 }
+
+static Datalist*
+rebuildstringlist(int lineno, Bytebuffer* newdata)
+{
+    /* Rebuild the datalist as one long string constant */
+    NCConstant* scon = NULL;
+    /* Replace the attributes data with the contents of buf */
+    scon = emptystringconst(lineno);
+    scon->value.stringv.len = bbLength(newdata);
+    scon->value.stringv.stringv = bbExtract(newdata);
+    return const2list(scon);
+}
+
+static void
+fixstringlist(Symbol* avsym)
+{
+    /* Rebuild the datalist as one long string constant */
+    Bytebuffer* buf = bbNew();
+    int lineno = datalistline(avsym->data);
+    gen_charattr(avsym->data,buf);
+    Datalist* newlist = rebuildstringlist(lineno,buf);
+    bbFree(buf);
+    reclaimdatalist(avsym->data);
+    avsym->data = newlist;
+}
+
 
 /*
 Given two types, attempt to upgrade to the "bigger type"
@@ -1275,6 +1319,158 @@ processunlimiteddims(void)
     }
 #endif
 }
+
+/**
+The goal is to regularize char valued datalists for
+variables to convert various kinds of string/char constants
+into regularly sized strings with fill character padding
+as needed.
+
+The basic idea is to split the set of dimensions into
+groups and iterate over each group by recursion.
+
+A group is defined as the range of indices starting at an
+unlimited dimension upto (but not including) the next
+unlimited.
+
+The first group starts at index 0, even if dimension 0 is not
+unlimited.  The last group is everything from the last
+unlimited dimension thru the last dimension (index rank-1).
+
+*/
+
+static void
+processvardata(void)
+{
+    int i;
+    for(i=0;i<listlength(vardefs);i++) {
+	Symbol* vsym = (Symbol*)listget(vardefs,i);
+	if(!nofill_flag && vsym->data == NULL)
+	    (void)getfiller(vsym); /* define fill values */
+	if(vsym->data == NULL)
+	    continue;
+	if(vsym->typ.typecode == NC_CHAR) {
+	    Datalist* filler = getfiller(vsym);
+	    processchararray(vsym,filler);
+	}
+    }
+}
+
+static void
+processchararray(Symbol* vsym, Datalist* filler)
+{
+    Dimset* dimset = &vsym->typ.dimset;
+    int rank = dimset->ndims;
+    Symbol* basetype = vsym->typ.basetype;
+    nc_type typecode = basetype->typ.typecode;	
+    nciter_t iter;
+    int firstunlim = findunlimited(dimset,1);
+    int nunlim = countunlimited(dimset);
+    Datalist* newlist = NULL;
+
+    /* do we have the netcdf-3 case of at most 1 unlim in 0th dimension? */
+    int isnc3unlim = (nunlim <= 1 && (firstunlim == 0 || firstunlim == rank));
+
+    ASSERT(rank > 0 && typecode == NC_CHAR);
+
+    if(isnc3unlim) {
+        Bytebuffer* charbuf = bbNew();
+        gen_chararray(dimset,0,vsym->data,charbuf,filler);
+	newlist = rebuildstringlist(datalistline(vsym->data),charbuf);
+	bbFree(charbuf);
+    } else { /* Hard case: multiple unlimited dimensions or unlim in dim > 0*/
+        Odometer* odom = newodometer(dimset,NULL,NULL);
+	newlist = builddatalist(0);
+        /* Setup iterator and odometer */
+        nc_get_iter(vsym,NC_MAX_UINT,&iter); /* effectively infinite */
+        for(;;) {/* iterate in nelem chunks */
+	    Datalist* dl;
+	    NCConstant* con;
+            /* get nelems count and modify odometer */
+            size_t nelems=nc_next_iter(&iter,odom->start,odom->count);
+            if(nelems == 0) break;
+            dl = processchararrayr(vsym,vsym->data,odom,/*dim index=*/0,filler);
+	    con = nullconst();
+	    con->nctype = NC_COMPOUND;
+	    con->value.compoundv = dl;
+	    dlappend(newlist,con);
+        }
+        odometerfree(odom);
+    }
+    reclaimdatalist(vsym->data);
+    vsym->data = newlist;
+}
+
+/**
+The basic idea is to split the set of dimensions into groups
+and iterate over each group.  A group is defined as the
+range of indices starting at an unlimited dimension upto
+(but not including) the next unlimited.  The first group
+starts at index 0, even if dimension 0 is not unlimited.
+The last group is everything from the last unlimited
+dimension thru the last dimension (index rank-1).
+*/
+static Datalist*
+processchararrayr(Symbol* vsym, Datalist* list, Odometer* odom, int dimindex, Datalist* filler)
+{
+    int i;
+    Symbol* basetype = vsym->typ.basetype;
+    Dimset* dimset = &vsym->typ.dimset;
+    int rank = dimset->ndims;
+    int lastunlimited = findlastunlimited(dimset);
+    int nextunlimited = findunlimited(dimset,dimindex+1);
+    int typecode = basetype->typ.typecode;
+    int islastgroup = (lastunlimited == rank || dimindex >= lastunlimited || dimindex == rank-1);
+    Odometer* subodom = NULL;
+    Datalist* newlist = NULL;
+
+    ASSERT(rank > 0 && typecode == NC_CHAR);
+    ASSERT((dimindex >= 0 && dimindex < rank));
+
+    if(islastgroup) {
+        Bytebuffer* charbuf = bbNew();
+        gen_chararray(dimset,dimindex,list,charbuf,filler);
+	newlist = rebuildstringlist(datalistline(list),charbuf);
+	bbFree(charbuf);
+    } else {/* !islastgroup */
+        /* Our datalist must be a list of compounds representing
+           the next unlimited; so walk the subarray from this index
+           upto next unlimited.
+        */
+	newlist = builddatalist(0);
+        ASSERT((dimindex < nextunlimited));
+        ASSERT((isunlimited(dimset,nextunlimited)));
+        /* build a sub odometer */
+        subodom = newsubodometer(odom,dimset,dimindex,nextunlimited);
+        for(i=0;odometermore(subodom);i++) {
+            size_t offset = odometeroffset(subodom);
+            NCConstant* con = datalistith(list,offset);
+	    Datalist* dl = NULL;
+            if(con == NULL || con->nctype == NC_FILL) {
+                if(filler == NULL)
+                    filler = getfiller(vsym);
+                dl = processchararrayr(vsym,filler,odom,nextunlimited,NULL);
+            } else if(islistconst(con)) {
+                Datalist* sublist = compoundfor(con);
+                dl = processchararrayr(vsym,sublist,odom,nextunlimited,filler);
+            } else {
+                semerror(constline(con),"Expected {...} representing unlimited list");
+            }
+	    con = nullconst();
+	    con->nctype = NC_COMPOUND;
+	    con->value.compoundv = dl;
+	    dlappend(newlist,con);
+            odometerincr(subodom);
+        }
+        odometerfree(subodom); subodom = NULL;
+    }
+    if(subodom != NULL)
+        odometerfree(subodom);
+    return newlist;
+}
+
+
+/**************************************************/
 
 /* Rules for specifying the dataset name:
 	1. use -o name

@@ -111,9 +111,9 @@ extern char* indented(int n);
 /* Generators for cdf, c, and fortran */
 
 #ifdef ENABLE_BINARY
-/* from: genbin.c */
-extern void genbin2_netcdf(void);
-extern void genbin2_close(void);
+/* from: genbin2.c */
+extern void genbin_netcdf(void);
+extern void genbin_close(void);
 /* from: bindata.c */
 extern int binary_generate_data(Datalist* data, Symbol* tsym, Datalist* fillvalue, Bytebuffer* databuf);
 extern int binary_reclaim_data(Symbol* tsym, void* memory, size_t count);
