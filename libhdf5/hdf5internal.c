@@ -510,13 +510,15 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
    /* Close HDF5 resources associated with global attributes. */
    for (a = 0; a < ncindexsize(grp->att); a++)
    {
-      NC_HDF5_ATT_INFO_T hdf5_att;
+      NC_HDF5_ATT_INFO_T *hdf5_att;
 
       att = (NC_ATT_INFO_T *)ncindexith(grp->att, a);
-      assert(att);
+      assert(att && att->format_att_info);
+      hdf5_att = (NC_HDF5_ATT_INFO_T *)att->format_att_info;
 
       /* Close the HDF5 typeid. */
-      if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0)
+      if (hdf5_att->native_hdf_typeid &&
+          H5Tclose(hdf5_att->native_hdf_typeid) < 0)
          return NC_EHDFERR;
    }
 
@@ -536,11 +538,14 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
 
       for (a = 0; a < ncindexsize(var->att); a++)
       {
+         NC_HDF5_ATT_INFO_T *hdf5_att;
          att = (NC_ATT_INFO_T *)ncindexith(var->att, a);
-         assert(att);
+         assert(att && att->format_att_info);
+         hdf5_att = (NC_HDF5_ATT_INFO_T *)att->format_att_info;
 
          /* Close the HDF5 typeid if one is open. */
-         if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0)
+         if (hdf5_att->native_hdf_typeid &&
+             H5Tclose(hdf5_att->native_hdf_typeid) < 0)
             return NC_EHDFERR;
       }
    }
