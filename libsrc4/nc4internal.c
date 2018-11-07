@@ -1143,6 +1143,10 @@ att_free(NC_ATT_INFO_T *att)
       free(att->vldata);
    }
 
+   /* Free any format-sepecific info. */
+   if (att->format_att_info)
+      free(att->format_att_info);
+
    free(att);
    return NC_NOERR;
 }

@@ -507,9 +507,11 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
                                                                      i))))
          return retval;
 
-   /* Close HDF5 resources associated with attributes. */
+   /* Close HDF5 resources associated with global attributes. */
    for (a = 0; a < ncindexsize(grp->att); a++)
    {
+      NC_HDF5_ATT_INFO_T hdf5_att;
+
       att = (NC_ATT_INFO_T *)ncindexith(grp->att, a);
       assert(att);
 

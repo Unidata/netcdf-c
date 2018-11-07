@@ -1593,6 +1593,10 @@ att_read_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
    if ((retval = nc4_att_list_add(list, att_name, &att)))
       BAIL(-1);
 
+   /* Allocate storage for the HDF5 specific att info. */
+   if (!(att->format_att_info = calloc(1, sizeof(NC_HDF5_ATT_INFO_T))))
+      BAIL(-1);
+
    /* Open the att by name. */
    if ((attid = H5Aopen(loc_id, att_name, H5P_DEFAULT)) < 0)
       BAIL(-1);
