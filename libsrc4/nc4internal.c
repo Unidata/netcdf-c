@@ -1040,24 +1040,20 @@ nc4_type_free(NC_TYPE_INFO_T *type)
 {
    int i;
 
+   assert(type && type->rc && type->hdr.name);
+
    /* Decrement the ref. count on the type */
-   assert(type->rc);
    type->rc--;
 
    /* Release the type, if the ref. count drops to zero */
-   if (0 == type->rc)
+   if (type->rc == 0)
    {
-      /* Close any open user-defined HDF5 typeids. */
-      if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0)
-         return NC_EHDFERR;
-      if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0)
-         return NC_EHDFERR;
+      LOG((4, "%s: deleting type %s", __func__, type->hdr.name));
 
       /* Free the name. */
-      if (type->hdr.name)
-         free(type->hdr.name);
+      free(type->hdr.name);
 
-      /* Class-specific cleanup */
+      /* Enums and compound types have lists of fields to clean up. */
       switch (type->nc_type_class)
       {
       case NC_COMPOUND:
@@ -1071,7 +1067,6 @@ nc4_type_free(NC_TYPE_INFO_T *type)
             field_free(field);
          }
          nclistfree(type->u.c.field);
-         type->u.c.field = NULL; /* belt and suspenders */
       }
       break;
 
@@ -1087,16 +1082,8 @@ nc4_type_free(NC_TYPE_INFO_T *type)
             free(enum_member);
          }
          nclistfree(type->u.e.enum_member);
-         type->u.e.enum_member = NULL; /* belt and suspenders */
-
-         if (H5Tclose(type->u.e.base_hdf_typeid) < 0)
-            return NC_EHDFERR;
       }
       break;
-
-      case NC_VLEN:
-         if (H5Tclose(type->u.v.base_hdf_typeid) < 0)
-            return NC_EHDFERR;
 
       default:
          break;
@@ -1110,48 +1097,96 @@ nc4_type_free(NC_TYPE_INFO_T *type)
 }
 
 /**
- * @internal  Delete a var, and free the memory.
+ * @internal Free memory of an attribute object
+ *
+ * @param att Pointer to attribute info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+static int
+att_free(NC_ATT_INFO_T *att)
+{
+   int i;
+
+   assert(att);
+   LOG((3, "%s: name %s ", __func__, att->hdr.name));
+
+   /* Free memory that was malloced to hold data for this
+    * attribute. */
+   if (att->data)
+      free(att->data);
+
+   /* Free the name. */
+   if (att->hdr.name)
+      free(att->hdr.name);
+
+   /* If this is a string array attribute, delete all members of the
+    * string array, then delete the array of pointers to strings. (The
+    * array was filled with pointers by HDF5 when the att was read,
+    * and memory for each string was allocated by HDF5. That's why I
+    * use free and not nc_free, because the netCDF library didn't
+    * allocate the memory that is being freed.) */
+   if (att->stdata)
+   {
+      for (i = 0; i < att->len; i++)
+         if(att->stdata[i])
+            free(att->stdata[i]);
+      free(att->stdata);
+   }
+
+   /* If this att has vlen data, release it. */
+   if (att->vldata)
+   {
+      for (i = 0; i < att->len; i++)
+         nc_free_vlen(&att->vldata[i]);
+      free(att->vldata);
+   }
+
+   free(att);
+   return NC_NOERR;
+}
+
+/**
+ * @internal Delete a var, and free the memory. All HDF5 objects for
+ * the var must be closed before this is called.
  *
  * @param var Pointer to the var info struct of var to delete.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett, Dennis Heimbigner
  */
-int
-nc4_var_free(NC_VAR_INFO_T *var)
+static int
+var_free(NC_VAR_INFO_T *var)
 {
-   NC_ATT_INFO_T *att;
-   int ret = NC_NOERR;
    int i;
+   int retval;
 
-   if(var == NULL)
-      return NC_NOERR;
+   assert(var);
+   LOG((4, "%s: deleting var %s", __func__, var->hdr.name));
 
    /* First delete all the attributes attached to this var. */
-   for(i=0;i<ncindexsize(var->att);i++) {
-      att = (NC_ATT_INFO_T*)ncindexith(var->att,i);
-      if(att == NULL) continue; /* might be a gap */
-      if ((ret = nc4_att_free(att)))
-         return ret;
-   }
+   for (i = 0; i < ncindexsize(var->att); i++)
+      if ((retval = att_free((NC_ATT_INFO_T *)ncindexith(var->att, i))))
+         return retval;
    ncindexfree(var->att);
-   var->att = NULL;
 
    /* Free some things that may be allocated. */
+   /* Free some things that may be allocated. */
    if (var->chunksizes)
-   {free(var->chunksizes);var->chunksizes = NULL;}
+      free(var->chunksizes);
 
    if (var->hdf5_name)
-   {free(var->hdf5_name); var->hdf5_name = NULL;}
+      free(var->hdf5_name);
 
    if (var->hdr.name)
-   {free(var->hdr.name); var->hdr.name = NULL;}
+      free(var->hdr.name);
 
    if (var->dimids)
-   {free(var->dimids); var->dimids = NULL;}
+      free(var->dimids);
 
    if (var->dim)
-   {free(var->dim); var->dim = NULL;}
+      free(var->dim);
 
    /* Delete any fill value allocation. This must be done before the
     * type_info is freed. */
@@ -1168,18 +1203,12 @@ nc4_var_free(NC_VAR_INFO_T *var)
          }
       }
       free(var->fill_value);
-      var->fill_value = NULL;
    }
 
    /* Release type information */
    if (var->type_info)
-   {
-      int retval;
-
       if ((retval = nc4_type_free(var->type_info)))
          return retval;
-      var->type_info = NULL;
-   }
 
    /* Delete any HDF5 dimscale objid information. */
    if (var->dimscale_hdf5_objids)
@@ -1222,7 +1251,7 @@ nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
       if(i >= 0)
          ncindexidel(grp->vars, i);
    }
-   return nc4_var_free(var);
+   return var_free(var);
 }
 
 /**
@@ -1233,16 +1262,17 @@ nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett, Ward Fisher
  */
-int
-nc4_dim_free(NC_DIM_INFO_T *dim)
+static int
+dim_free(NC_DIM_INFO_T *dim)
 {
-   /* Free memory allocated for names. */
-   if(dim) {
-      if (dim->hdr.name)
-         free(dim->hdr.name);
+   assert(dim);
+   LOG((4, "%s: deleting dim %s", __func__, dim->hdr.name));
 
-      free(dim);
-   }
+   /* Free memory allocated for names. */
+   if (dim->hdr.name)
+      free(dim->hdr.name);
+
+   free(dim);
    return NC_NOERR;
 }
 
@@ -1263,7 +1293,7 @@ nc4_dim_list_del(NC_GRP_INFO_T* grp, NC_DIM_INFO_T *dim)
       if(pos >= 0)
          ncindexidel(grp->dim,pos);
    }
-   return nc4_dim_free(dim);
+   return dim_free(dim);
 }
 
 /**
@@ -1278,17 +1308,11 @@ nc4_dim_list_del(NC_GRP_INFO_T* grp, NC_DIM_INFO_T *dim)
 int
 nc4_rec_grp_del(NC_GRP_INFO_T *grp)
 {
-   NC_VAR_INFO_T *var;
-   NC_DIM_INFO_T *dim;
-   int retval;
    int i;
+   int retval;
 
    assert(grp);
    LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
-
-   /* WARNING: for all these deletes, the nc4_xxx_del functions will
-      modify the index, so we need to not assume any state about
-      them. */
 
    /* Recursively call this function for each child, if any, stopping
     * if there is an error. */
@@ -1297,67 +1321,30 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
                                                                 i))))
          return retval;
    ncindexfree(grp->children);
-   grp->children = NULL;
 
    /* Free attributes, but leave in parent list */
    for (i = 0; i < ncindexsize(grp->att); i++)
-      if ((retval = nc4_att_free((NC_ATT_INFO_T *)ncindexith(grp->att, i))))
+      if ((retval = att_free((NC_ATT_INFO_T *)ncindexith(grp->att, i))))
          return retval;
    ncindexfree(grp->att);
-   grp->att = NULL;
 
    /* Delete all vars. */
-   for (i = 0; i < ncindexsize(grp->vars); i++) {
-      var = (NC_VAR_INFO_T *)ncindexith(grp->vars,i);
-      assert(var);
-      LOG((4, "%s: deleting var %s", __func__, var->hdr.name));
-      /* Close HDF5 dataset associated with this var, unless it's a
-       * scale. */
-      if (var->hdf_datasetid)
-      {
-         LOG((3, "closing dataset %lld", var->hdf_datasetid));
-         if (H5Dclose(var->hdf_datasetid) < 0)
-            return NC_EHDFERR;
-      }
-      if ((retval = nc4_var_free(var)))  /* free but leave in parent list */
+   for (i = 0; i < ncindexsize(grp->vars); i++)
+      if ((retval = var_free((NC_VAR_INFO_T *)ncindexith(grp->vars, i))))
          return retval;
-   }
    ncindexfree(grp->vars);
 
-   /* Delete all dims. */
+   /* Delete all dims, and free the list of dims. */
    for (i = 0; i < ncindexsize(grp->dim); i++)
-   {
-      dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, i);
-      assert(dim);
-      LOG((4, "%s: deleting dim %s", __func__, dim->hdr.name));
-
-      /* If this is a dim without a coordinate variable, then close
-       * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this
-       * dim. */
-      if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
-         return NC_EHDFERR;
-      if ((retval = nc4_dim_free(dim))) /* free but leave in parent list */
+      if ((retval = dim_free((NC_DIM_INFO_T *)ncindexith(grp->dim, i))))
          return retval;
-   }
    ncindexfree(grp->dim);
 
    /* Delete all types. */
-   /* Is this code correct? I think it should do repeated passes
-      over h5->alltypes using the ref count to decide what to delete */
    for (i = 0; i < ncindexsize(grp->type); i++)
-   {
-      NC_TYPE_INFO_T *type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i);
-      assert(type);
-      LOG((4, "%s: deleting type %s", __func__, type->hdr.name));
-      if ((retval = nc4_type_free(type))) /* free but leave in parent list */
+      if ((retval = nc4_type_free((NC_TYPE_INFO_T *)ncindexith(grp->type, i))))
          return retval;
-   }
    ncindexfree(grp->type);
-
-   /* Tell HDF5 we're closing this group. */
-   LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
-   if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0)
-      return NC_EHDFERR;
 
    /* Free the name. */
    free(grp->hdr.name);
@@ -1383,63 +1370,7 @@ nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att)
 {
    assert(att && list);
    ncindexidel(list, ((NC_OBJ *)att)->id);
-   return nc4_att_free(att);
-}
-
-/**
- * @internal Free memory of an attribute object
- *
- * @param att Pointer to attribute info struct.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
- */
-int
-nc4_att_free(NC_ATT_INFO_T *att)
-{
-   int i;
-
-   LOG((3, "%s: name %s ", __func__, att->hdr.name));
-
-   /* Free memory that was malloced to hold data for this
-    * attribute. */
-   if (att->data)
-      free(att->data);
-
-   /* Free the name. */
-   if (att->hdr.name) {
-      free(att->hdr.name);
-      att->hdr.name = NULL;
-   }
-
-   /* Close the HDF5 typeid. */
-   if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0)
-      return NC_EHDFERR;
-
-   /* If this is a string array attribute, delete all members of the
-    * string array, then delete the array of pointers to strings. (The
-    * array was filled with pointers by HDF5 when the att was read,
-    * and memory for each string was allocated by HDF5. That's why I
-    * use free and not nc_free, because the netCDF library didn't
-    * allocate the memory that is being freed.) */
-   if (att->stdata)
-   {
-      for (i = 0; i < att->len; i++)
-         if(att->stdata[i])
-            free(att->stdata[i]);
-      free(att->stdata);
-   }
-
-   /* If this att has vlen data, release it. */
-   if (att->vldata)
-   {
-      for (i = 0; i < att->len; i++)
-         nc_free_vlen(&att->vldata[i]);
-      free(att->vldata);
-   }
-
-   free(att);
-   return NC_NOERR;
+   return att_free(att);
 }
 
 /**

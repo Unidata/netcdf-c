@@ -376,10 +376,8 @@ int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims, NC_VAR_INF
 int nc4_var_list_add2(NC_GRP_INFO_T* grp, const char* name, NC_VAR_INFO_T **var);
 int nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims);
 int nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var);
-int nc4_var_free(NC_VAR_INFO_T *var);
 int nc4_dim_list_add(NC_GRP_INFO_T* grp, const char* name, size_t len, int assignedid, NC_DIM_INFO_T **dim);
 int nc4_dim_list_del(NC_GRP_INFO_T* grp, NC_DIM_INFO_T *dim);
-int nc4_dim_free(NC_DIM_INFO_T *dim);
 int nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid, NC_TYPE_INFO_T **type);
 int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name, NC_TYPE_INFO_T **type);
 int nc4_type_list_del(NC_GRP_INFO_T* grp, NC_TYPE_INFO_T *type);
@@ -389,7 +387,6 @@ int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
 		       nc_type xtype, int ndims, const int *dim_sizesp);
 int nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att);
 int nc4_att_list_del(NCindex* list, NC_ATT_INFO_T *att);
-int nc4_att_free(NC_ATT_INFO_T *att);
 int nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name, NC_GRP_INFO_T **grp);
 int nc4_build_root_grp(NC_FILE_INFO_T* h5);
 int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
@@ -410,7 +407,8 @@ int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value);
 
 /* Close the file. */
-int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio*);
+int nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
+int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
 
 /* HDF5 initialization/finalization */
 extern int nc4_hdf5_initialized;

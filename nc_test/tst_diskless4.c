@@ -20,7 +20,7 @@
 #define FILE_NAME "tst_diskless4.nc"
 #define CHUNKSIZE 4096
 #define DATASIZE (CHUNKSIZE/sizeof(int))
-#define DIMMAX 1000000000
+#define DIMMAX 1000000000L
 
 typedef enum Tag {Create,CreateDiskless,Open,OpenDiskless} Tag;
 
@@ -58,16 +58,8 @@ main(int argc, char **argv)
     /* Get the specified var/file size */
     if(argc > 1) {
 	filesize = atol(argv[1]);
-    } else {
-	if(sizeof(size_t) == 4)
-	    filesize = 1000000000L;
-	else if(sizeof(size_t) == 8)
-	    filesize = 3000000000L;
-	else {
-	    fprintf(stderr,"Cannot compute filesize\n");
-	    exit(1);
-	}
-    }
+    } else
+	filesize = 1000000000L;
 
     /* Test that we can malloc that much space */
     memory = malloc(filesize);
@@ -99,7 +91,7 @@ main(int argc, char **argv)
 
     switch (tag) {
     case Create:	  cmode = NC_CLOBBER; break;
-    case CreateDiskless:  cmode = NC_CLOBBER|NC_DISKLESS|NC_WRITE; break;
+    case CreateDiskless:  cmode = NC_CLOBBER|NC_DISKLESS|NC_PERSIST|NC_WRITE; break;
     case Open:		  cmode = 0; break;
     case OpenDiskless:	  cmode = NC_DISKLESS; break;
     }
