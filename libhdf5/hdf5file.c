@@ -258,14 +258,10 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
 int
 nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort,  NC_memio *memio)
 {
-   /* NC_HDF5_FILE_INFO_T *hdf5_info; */
    int retval;
 
    assert(h5 && h5->root_grp && h5->format_file_info);
    LOG((3, "%s: h5->path %s abort %d", __func__, h5->controller->path, abort));
-
-   /* /\* Get HDF5 specific info. *\/ */
-   /* hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info; */
 
    /* According to the docs, always end define mode on close. */
    if (h5->flags & NC_INDEF)
