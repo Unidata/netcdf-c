@@ -12,48 +12,46 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 CPU=`uname -p`
 OS=`uname`
 
-#Constants
+# Test diskless on a reasonably large file size
+
+# Try a large in-memory file
+SIZE=1000000000
+
 FILE4=tst_diskless4.nc
 
-# Compute the file size for tst_diskless4
-SIZE=0
-case $CPU in
-*_64*) SIZE=3000000000;;
-*)     SIZE=1000000000;;
-esac
+# Uncomment to get timing
+#TIME=time
 
 # Create the reference ncdump output for tst_diskless4
-rm -fr tst_diskless4.cdl
-echo "netcdf tst_diskless4 {" >>tst_diskless4.cdl
-echo "dimensions:" >>tst_diskless4.cdl
-echo "	dim = 1000000000 ;" >>tst_diskless4.cdl
-echo "variables:" >>tst_diskless4.cdl
-echo "	byte var0(dim) ;" >>tst_diskless4.cdl
-if test $SIZE = 3000000000 ; then
-echo "	byte var1(dim) ;" >>tst_diskless4.cdl
-echo "	byte var2(dim) ;" >>tst_diskless4.cdl
-fi
-echo "}" >>tst_diskless4.cdl
+rm -fr ref_tst_diskless4.cdl
+cat >ref_tst_diskless4.cdl <<EOF
+netcdf tst_diskless4 {
+dimensions:
+	dim = 1000000000 ;
+variables:
+	byte var0(dim) ;
+}
+EOF
 
 echo ""
 rm -f $FILE4
-time ./tst_diskless4 $SIZE create
+$TIME ./tst_diskless4 $SIZE create
 # Validate it
-${NCDUMP} -h $FILE4 |diff -w - tst_diskless4.cdl
+${NCDUMP} -h $FILE4 |diff -w - ref_tst_diskless4.cdl
 
 echo ""
 rm -f $FILE4
-time ./tst_diskless4 $SIZE creatediskless
+$TIME ./tst_diskless4 $SIZE creatediskless
 # Validate it
-${NCDUMP} -h $FILE4 |diff -w - tst_diskless4.cdl
+${NCDUMP} -h $FILE4 |diff -w - ref_tst_diskless4.cdl
 
 echo ""
-time ./tst_diskless4 $SIZE open
+$TIME ./tst_diskless4 $SIZE open
 
 echo ""
-time ./tst_diskless4 $SIZE opendiskless
+$TIME ./tst_diskless4 $SIZE opendiskless
 
 # cleanup
-rm -f $FILE4 tst_diskless4.cdl
+rm -f $FILE4 tst_diskless4.cdl ref_tst_diskless4.cdl
 
 exit
