@@ -356,6 +356,7 @@ delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *d
    /* Close the HDF5 dataset */
    if (H5Dclose(dim->hdf_dimscaleid) < 0)
       return NC_EHDFERR;
+   hdf5_dim->hdf_dimscaleid = 0;
    dim->hdf_dimscaleid = 0;
 
    /* Now delete the dataset. */
@@ -404,9 +405,10 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
             for (g = grp; g && !finished; g = g->parent)
             {
                NC_DIM_INFO_T *dim1;
-               for(k=0;k<ncindexsize(g->dim);k++)
+               for (k = 0; k < ncindexsize(g->dim); k++)
                {
-                  if((dim1 = (NC_DIM_INFO_T*)ncindexith(g->dim,k)) == NULL) continue;
+                  dim1 = (NC_DIM_INFO_T *)ncindexith(g->dim, k);
+                  assert(dim1);
                   if (var->dimids[d] == dim1->hdr.id)
                   {
                      hid_t dim_datasetid;  /* Dataset ID for dimension */
