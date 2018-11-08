@@ -1669,7 +1669,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
                if (dim1->coord_var)
                   dim_datasetid = dim1->coord_var->hdf_datasetid;
                else
-                  dim_datasetid = dim1->hdf_dimscaleid;
+                  dim_datasetid = hdf5_dim1->hdf_dimscaleid;
                assert(dim_datasetid > 0);
 
                if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
@@ -1768,7 +1768,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
     * and mark that it should be hidden from netCDF as a
     * variable. (That is, it should appear as a dimension
     * without an associated variable.) */
-   if (!dim->hdf_dimscaleid)
+   if (!hdf5_dim->hdf_dimscaleid)
    {
       hid_t spaceid, create_propid;
       hsize_t dims[1], max_dims[1], chunk_dims[1] = {1};
@@ -1863,7 +1863,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
     * the dimid that the dimension would otherwise receive based on
     * creation order. This can be necessary when dims and their
     * coordinate variables were created in different order. */
-   if (write_dimid && dim->hdf_dimscaleid)
+   if (write_dimid && hdf5_dim->hdf_dimscaleid)
       if ((retval = write_netcdf4_dimid(hdf5_dim->hdf_dimscaleid, dim->hdr.id)))
          BAIL(retval);
 
