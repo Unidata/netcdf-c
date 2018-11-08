@@ -104,6 +104,10 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    if ((retval = nc4_dim_list_add(grp, norm_name, len, -1, &dim)))
       return retval;
 
+   /* Create struct for HDF5-specific dim info. */
+   if (!(dim->format_dim_info = calloc(1, sizeof(NC_HDF5_DIM_INFO_T))))
+      return NC_ENOMEM;
+
    /* Pass back the dimid. */
    if (idp)
       *idp = dim->hdr.id;

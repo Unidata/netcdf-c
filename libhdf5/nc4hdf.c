@@ -2891,6 +2891,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
  *
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
+ * @returns NC_ENOMEM Out of memory.
  * @author Ed Hartnett
  */
 int
@@ -3049,11 +3050,15 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                   char phony_dim_name[NC_MAX_NAME + 1];
                   sprintf(phony_dim_name, "phony_dim_%d", grp->nc4_info->next_dimid);
                   LOG((3, "%s: creating phony dim for var %s", __func__, var->hdr.name));
-                  if ((retval = nc4_dim_list_add(grp, phony_dim_name, h5dimlen[d], -1, &dim))) {
+                  if ((retval = nc4_dim_list_add(grp, phony_dim_name, h5dimlen[d], -1, &dim)))
+                  {
                      free(h5dimlenmax);
                      free(h5dimlen);
                      return retval;
                   }
+                  /* Create struct for HDF5-specific dim info. */
+                  if (!(dim->format_dim_info = calloc(1, sizeof(NC_HDF5_DIM_INFO_T))))
+                     return NC_ENOMEM;
                   if (h5dimlenmax[d] == H5S_UNLIMITED)
                      dim->unlimited = NC_TRUE;
                }

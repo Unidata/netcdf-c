@@ -1738,6 +1738,10 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    if ((retval = nc4_dim_list_add(grp, obj_name, len, assigned_id, &new_dim)))
       BAIL(retval);
 
+   /* Create struct for HDF5-specific dim info. */
+   if (!(new_dim->format_dim_info = calloc(1, sizeof(NC_HDF5_DIM_INFO_T))))
+      BAIL(NC_ENOMEM);
+
    new_dim->too_long = too_long;
 
    dimscale_created++;
