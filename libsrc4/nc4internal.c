@@ -1277,6 +1277,10 @@ dim_free(NC_DIM_INFO_T *dim)
    if (dim->hdr.name)
       free(dim->hdr.name);
 
+   /* Release any format-specific information. */
+   if (dim->format_dim_info)
+      free(dim->format_dim_info);
+
    free(dim);
    return NC_NOERR;
 }
