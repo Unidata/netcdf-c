@@ -380,14 +380,17 @@ delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *d
 int
 nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 {
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
    int need_to_reattach_scales = 0;
    int retval = NC_NOERR;
 
-   assert(grp && var && dim);
-   LOG((3, "%s: dim->hdr.name %s var->hdr.name %s", __func__, dim->hdr.name, var->hdr.name));
+   assert(grp && var && dim && dim->format_dim_info);
+   LOG((3, "%s: dim->hdr.name %s var->hdr.name %s", __func__, dim->hdr.name,
+        var->hdr.name));
+   hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
 
    /* Detach dimscales from the [new] coordinate variable */
-   if(var->dimscale_attached)
+   if (var->dimscale_attached)
    {
       int dims_detached = 0;
       int finished = 0;
@@ -397,7 +400,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
       for (d = 0; d < var->ndims && !finished; d++)
       {
          /* Is there a dimscale attached to this axis? */
-         if(var->dimscale_attached[d])
+         if (var->dimscale_attached[d])
          {
             NC_GRP_INFO_T *g;
             int k;
@@ -405,10 +408,14 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
             for (g = grp; g && !finished; g = g->parent)
             {
                NC_DIM_INFO_T *dim1;
+               NC_HDF5_DIM_INFO_T *hdf5_dim1;
+
                for (k = 0; k < ncindexsize(g->dim); k++)
                {
                   dim1 = (NC_DIM_INFO_T *)ncindexith(g->dim, k);
-                  assert(dim1);
+                  assert(dim1 && dim1->format_dim_info);
+                  hdf5_dim1 = (NC_HDF5_DIM_INFO_T *)dim1->format_dim_info;
+
                   if (var->dimids[d] == dim1->hdr.id)
                   {
                      hid_t dim_datasetid;  /* Dataset ID for dimension */
