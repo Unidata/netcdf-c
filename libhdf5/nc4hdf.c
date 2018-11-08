@@ -2978,9 +2978,15 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                 * match. */
                for (g = grp; g && !finished; g = g->parent)
                {
-                  for(j=0;j<ncindexsize(g->dim);j++)
+                  for (j = 0; j < ncindexsize(g->dim); j++)
                   {
-                     if((dim = (NC_DIM_INFO_T*)ncindexith(g->dim,j)) == NULL) continue;
+                     NC_HDF5_DIM_INFO_T *hdf5_dim;
+                     dim = (NC_DIM_INFO_T *)ncindexith(g->dim, j);
+                     assert(dim && dim->format_dim_info);
+                     hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
+
+                     /* Check for exact match to find identical
+                      * objects in HDF5 file. */
                      if (var->dimscale_hdf5_objids[d].fileno[0] == dim->hdf5_objid.fileno[0] &&
                          var->dimscale_hdf5_objids[d].objno[0] == dim->hdf5_objid.objno[0] &&
                          var->dimscale_hdf5_objids[d].fileno[1] == dim->hdf5_objid.fileno[1] &&

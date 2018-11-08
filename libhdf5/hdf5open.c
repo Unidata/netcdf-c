@@ -1748,6 +1748,10 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
    dimscale_created++;
 
+   new_hdf5_dim->hdf5_objid.fileno[0] = statbuf->fileno[0];
+   new_hdf5_dim->hdf5_objid.fileno[1] = statbuf->fileno[1];
+   new_hdf5_dim->hdf5_objid.objno[0] = statbuf->objno[0];
+   new_hdf5_dim->hdf5_objid.objno[1] = statbuf->objno[1];
    new_dim->hdf5_objid.fileno[0] = statbuf->fileno[0];
    new_dim->hdf5_objid.fileno[1] = statbuf->fileno[1];
    new_dim->hdf5_objid.objno[0] = statbuf->objno[0];
