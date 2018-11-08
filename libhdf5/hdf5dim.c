@@ -208,7 +208,8 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_DIM_INFO_T *dim, *tmpdim;
+   NC_DIM_INFO_T *dim;
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
    NC_FILE_INFO_T *h5;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
@@ -234,15 +235,14 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
       return retval;
 
    /* Get the original dim */
-   if((retval=nc4_find_dim(grp,dimid,&dim,NULL)) != NC_NOERR)
-	return retval;
-   if(dim == NULL) /* No such dim */
-	return NC_EBADDIM;
+   if ((retval = nc4_find_dim(grp, dimid, &dim, NULL)))
+      return retval;
+   if (!dim) /* No such dim */
+      return NC_EBADDIM;
 
    /* Check if new name is in use */
-   tmpdim = (NC_DIM_INFO_T*)ncindexlookup(grp->dim,norm_name);
-   if(tmpdim != NULL)
-	return NC_ENAMEINUSE;
+   if (ncindexlookup(grp->dim, norm_name))
+      return NC_ENAMEINUSE;
 
    /* Check for renaming dimension w/o variable */
    if (dim->hdf_dimscaleid)
