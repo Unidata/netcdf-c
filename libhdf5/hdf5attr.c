@@ -451,7 +451,11 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
    {
       LOG((3, "adding attribute %s to the list...", norm_name));
       if ((ret = nc4_att_list_add(attlist, norm_name, &att)))
-         BAIL (ret);
+         BAIL(ret);
+
+      /* Allocate storage for the HDF5 specific att info. */
+      if (!(att->format_att_info = calloc(1, sizeof(NC_HDF5_ATT_INFO_T))))
+         BAIL(NC_ENOMEM);
    }
 
    /* Now fill in the metadata. */
