@@ -234,20 +234,19 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    if ((retval = nc4_check_name(name, norm_name)))
       return retval;
 
-   /* Get the original dim */
+   /* Get the original dim. */
    if ((retval = nc4_find_dim(grp, dimid, &dim, NULL)))
       return retval;
-   if (!dim) /* No such dim */
-      return NC_EBADDIM;
+   assert(dim && dim->format_dim_info);
+   hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
 
-   /* Check if new name is in use */
+   /* Check if new name is in use. */
    if (ncindexlookup(grp->dim, norm_name))
       return NC_ENAMEINUSE;
 
-   /* Check for renaming dimension w/o variable */
-   if (dim->hdf_dimscaleid)
+   /* Check for renaming dimension w/o variable. */
+   if (hdf5_dim->hdf_dimscaleid)
    {
-      /* Sanity check */
       assert(!dim->coord_var);
       LOG((3, "dim %s is a dim without variable", dim->hdr.name));
 
@@ -265,14 +264,14 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    LOG((3, "dim is now named %s", dim->hdr.name));
    dim->hdr.hashkey = NC_hashmapkey(dim->hdr.name,strlen(dim->hdr.name)); /* Fix hash key */
 
-   if(!ncindexrebuild(grp->dim))
-	return NC_EINTERNAL;
+   if (!ncindexrebuild(grp->dim))
+      return NC_EINTERNAL;
 
    /* Check if dimension was a coordinate variable, but names are
-    * different now */
+    * different now. */
    if (dim->coord_var && strcmp(dim->hdr.name, dim->coord_var->hdr.name))
    {
-      /* Break up the coordinate variable */
+      /* Break up the coordinate variable. */
       if ((retval = nc4_break_coord_var(grp, dim->coord_var, dim)))
          return retval;
    }
