@@ -421,14 +421,15 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          /* Use variable's dataset ID for the dimscale ID. So delete
           * the HDF5 DIM_WITHOUT_VARIABLE dataset that was created for
           * this dim. */
-         if (dim->hdf_dimscaleid)
+         if (hdf5_dim->hdf_dimscaleid)
          {
             /* Detach dimscale from any variables using it */
-            if ((retval = rec_detach_scales(grp, dimidsp[d], dim->hdf_dimscaleid)) < 0)
+            if ((retval = rec_detach_scales(grp, dimidsp[d],
+                                            hdf5_dim->hdf_dimscaleid)) < 0)
                BAIL(retval);
 
             /* Close the HDF5 DIM_WITHOUT_VARIABLE dataset. */
-            if (H5Dclose(dim->hdf_dimscaleid) < 0)
+            if (H5Dclose(hdf5_dim->hdf_dimscaleid) < 0)
                BAIL(NC_EHDFERR);
             dim->hdf_dimscaleid = 0;
             hdf5_dim->hdf_dimscaleid = 0;
@@ -1067,7 +1068,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
 
          /* Is there an existing dimscale-only dataset of this name? If
           * so, it must be deleted. */
-         if (var->dim[0]->hdf_dimscaleid)
+         if (hdf5_d0->hdf_dimscaleid)
          {
             if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->hdr.id,
                                                            var->dim[0])))
