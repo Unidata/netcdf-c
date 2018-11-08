@@ -1399,9 +1399,11 @@ attach_dimscales(NC_GRP_INFO_T *grp)
             {
                if (!var->dimscale_attached[d])
                {
+                  NC_HDF5_DIM_INFO_T *hdf5_dim;
                   hid_t dim_datasetid;  /* Dataset ID for dimension */
                   dim1 = var->dim[d];
-                  assert(dim1 && dim1->hdr.id == var->dimids[d]);
+                  assert(dim1 && dim1->hdr.id == var->dimids[d] && dim1->format_dim_info);
+                  hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim1->format_dim_info;
 
                   LOG((2, "%s: attaching scale for dimid %d to var %s",
                        __func__, var->dimids[d], var->hdr.name));
@@ -1585,20 +1587,27 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       }
    }
 
-   /* Check dims if the variable will be replaced, so that the dimensions
-    * will be de-attached and re-attached correctly. */
-   /* (Note: There's a temptation to merge this loop over the dimensions with
-    *        the prior loop over dimensions, but that blurs the line over the
-    *        purpose of them, so they are currently separate.  If performance
-    *        becomes an issue here, it would be possible to merge them. -QAK)
+   /* Check dims if the variable will be replaced, so that the
+    * dimensions will be de-attached and re-attached correctly. (Note:
+    * There's a temptation to merge this loop over the dimensions with
+    * the prior loop over dimensions, but that blurs the line over the
+    * purpose of them, so they are currently separate.  If performance
+    * becomes an issue here, it would be possible to merge them. -QAK)
     */
    if (replace_existing_var)
    {
-      NC_DIM_INFO_T *d1;
       int i;
 
-      for(i=0;i<ncindexsize(grp->dim);i++) {
-         if((d1 = (NC_DIM_INFO_T*)ncindexith(grp->dim,i)) == NULL) continue;
+      for (i = 0; i < ncindexsize(grp->dim); i++)
+      {
+         NC_DIM_INFO_T *d1;
+         NC_HDF5_DIM_INFO_T *hdf5_d1;
+
+         /* Get info about the dim, including HDF5-specific info. */
+         d1 = (NC_DIM_INFO_T *)ncindexith(grp->dim, i);
+         assert(d1 && d1->format_dim_info && d1->hdr.name);
+         hdf5_d1 = (NC_HDF5_DIM_INFO_T *)d1->format_dim_info;
+
          if (!strcmp(d1->hdr.name, var->hdr.name))
          {
             nc_bool_t exists;
@@ -1647,11 +1656,14 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
          /* If this is a regular var, detach all its dim scales. */
          for (d = 0; d < var->ndims; d++)
+         {
             if (var->dimscale_attached[d])
             {
                hid_t dim_datasetid;  /* Dataset ID for dimension */
                NC_DIM_INFO_T *dim1 = var->dim[d];
-               assert(dim1 && dim1->hdr.id == var->dimids[d]);
+               NC_HDF5_DIM_INFO_T *hdf5_dim1;
+               assert(dim1 && dim1->hdr.id == var->dimids[d] && dim1->format_dim_info);
+               hdf5_dim1 = (NC_HDF5_DIM_INFO_T *)dim1->format_dim_info;
 
                /* Find dataset ID for dimension */
                if (dim1->coord_var)
@@ -1664,6 +1676,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
                   BAIL(NC_EHDFERR);
                var->dimscale_attached[d] = NC_FALSE;
             }
+         }
       }
    }
 
@@ -1745,7 +1758,11 @@ exit:
 static int
 write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
    int retval;
+
+   assert(dim && dim->format_dim_info);
+   hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
 
    /* If there's no dimscale dataset for this dim, create one,
     * and mark that it should be hidden from netCDF as a
