@@ -458,6 +458,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
       if (H5Dclose(dim->hdf_dimscaleid) < 0)
          BAIL(NC_EHDFERR);
       dim->hdf_dimscaleid = 0;
+      hdf5_dim->hdf_dimscaleid = 0;
 
       /* Now delete the dimscale's dataset
          (it will be recreated later, if necessary) */
