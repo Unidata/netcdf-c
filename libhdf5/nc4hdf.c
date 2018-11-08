@@ -1399,11 +1399,11 @@ attach_dimscales(NC_GRP_INFO_T *grp)
             {
                if (!var->dimscale_attached[d])
                {
-                  NC_HDF5_DIM_INFO_T *hdf5_dim;
+                  NC_HDF5_DIM_INFO_T *hdf5_dim1;
                   hid_t dim_datasetid;  /* Dataset ID for dimension */
                   dim1 = var->dim[d];
                   assert(dim1 && dim1->hdr.id == var->dimids[d] && dim1->format_dim_info);
-                  hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim1->format_dim_info;
+                  hdf5_dim1 = (NC_HDF5_DIM_INFO_T *)dim1->format_dim_info;
 
                   LOG((2, "%s: attaching scale for dimid %d to var %s",
                        __func__, var->dimids[d], var->hdr.name));
@@ -1412,7 +1412,7 @@ attach_dimscales(NC_GRP_INFO_T *grp)
                   if (dim1->coord_var)
                      dim_datasetid = dim1->coord_var->hdf_datasetid;
                   else
-                     dim_datasetid = dim1->hdf_dimscaleid;
+                     dim_datasetid = hdf5_dim1->hdf_dimscaleid;
                   if(!(dim_datasetid > 0))
                      assert(dim_datasetid > 0);
                   if (H5DSattach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
@@ -1622,7 +1622,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
                if (d1->coord_var)
                   dim_datasetid = d1->coord_var->hdf_datasetid;
                else
-                  dim_datasetid = d1->hdf_dimscaleid;
+                  dim_datasetid = hdf5_d1->hdf_dimscaleid;
                assert(dim_datasetid > 0);
 
                /* If we're replacing an existing dimscale dataset, go to
