@@ -108,7 +108,7 @@ rehash(NC_hashmap* hm)
 /* Locate where given object is or should be placed in indexp.
    if fail to find spot return 0 else 1.
    If deletok then a deleted slot is ok to return;
-   return invariant: return == 0 || *indexp is defined 
+   return invariant: return == 0 || *indexp is defined
  */
 static int
 locate(NC_hashmap* hash, unsigned int hashkey, const char* key, size_t keysize, size_t* indexp, int deletedok)
@@ -118,15 +118,15 @@ locate(NC_hashmap* hash, unsigned int hashkey, const char* key, size_t keysize, 
     size_t step = 1; /* simple linear probe */
     int deletefound = 0;
     size_t deletedindex = 0; /* first deleted entry encountered */
-
+    NC_hentry* entry;
     TRACE("locate");
     /* Compute starting point */
     index = (size_t)(hashkey % hash->alloc);
 
     /* Search table using linear probing */
     for (i = 0; i < hash->alloc; i++) {
-        NC_hentry* entry = &hash->table[index];
-        if(entry->flags & ACTIVE) {
+      entry = &hash->table[index];
+      if(entry->flags & ACTIVE) {
 	    if(indexp) *indexp = index; /* assume a match */
             if(entry->hashkey == hashkey && entry->keysize == keysize) {
 		/* Check content */
@@ -148,7 +148,7 @@ locate(NC_hashmap* hash, unsigned int hashkey, const char* key, size_t keysize, 
 	index = (index + step) % hash->alloc;
     }
     if(deletedok && deletefound) {
-	if(indexp) *indexp = deletedindex;	
+	if(indexp) *indexp = deletedindex;
 	return 1;
     }
     return 0;
@@ -187,12 +187,13 @@ NC_hashmapnew(size_t startsize)
 int
 NC_hashmapadd(NC_hashmap* hash, uintptr_t data, const char* key, size_t keysize)
 {
-    unsigned int hashkey;
+  NC_hentry* entry;
+  unsigned int hashkey;
 
     TRACE("NC_hashmapadd");
 
     if(key == NULL || keysize == 0)
-	return 0;
+      return 0;
     hashkey = NC_crc32(0,(unsigned char*)key,(unsigned int)keysize);
 
     if(hash->alloc*3/4 <= hash->active)
@@ -203,7 +204,7 @@ NC_hashmapadd(NC_hashmap* hash, uintptr_t data, const char* key, size_t keysize)
 	    rehash(hash);
 	    continue; /* try on larger table */
 	}
-        NC_hentry* entry = &hash->table[index];
+    entry = &hash->table[index];
 	if(entry->flags & ACTIVE) {
 	    /* key already exists in table => overwrite data */
 	    entry->data = data;
@@ -264,13 +265,13 @@ NC_hashmapget(NC_hashmap* hash, const char* key, size_t keysize, uintptr_t* data
 	return 0;
     hashkey = NC_crc32(0,(unsigned char*)key,(unsigned int)keysize);
     if(hash->active) {
-        size_t index;
-        NC_hentry* h;
-        if(!locate(hash,hashkey,key,keysize,&index,0))
+      size_t index;
+      NC_hentry* h;
+      if(!locate(hash,hashkey,key,keysize,&index,0))
 	    return 0; /* not present */
-	h = &hash->table[index];
+      h = &hash->table[index];
 	if(h->flags & ACTIVE) {
-	    if(datap) *datap = h->data;
+      if(datap) *datap = h->data;
 	    return 1;
         } else /* Not found */
 	    return 0;
@@ -300,7 +301,7 @@ NC_hashmapsetdata(NC_hashmap* hash, const char* key, size_t keysize, uintptr_t n
     h = &hash->table[index];
     assert((h->flags & ACTIVE) == ACTIVE);
     h->data = newdata;
-    return 1;    
+    return 1;
 }
 
 size_t
@@ -339,7 +340,7 @@ Allows a hack by ncindex.
 int
 NC_hashmapdeactivate(NC_hashmap* map, uintptr_t data)
 {
-    size_t i;        
+    size_t i;
     NC_hentry* h;
     for(h=map->table,i=0;i<map->alloc;i++,h++) {
 	if((h->flags & ACTIVE) && h->data == data) {
@@ -370,21 +371,23 @@ findPrimeGreaterThan(size_t val)
       int L = 1; /* skip leading flag number */
       int R = (n - 2); /* skip trailing flag */
       unsigned int v = 0;
+      int m;
 
       if(val >= 0xFFFFFFFF)
-	return 0; /* Too big */
+        return 0; /* Too big */
       v = (unsigned int)val;
 
       for(;;) {
-	if(L >= R) break;
-            int m = (L + R) / 2;
-	/* is this an acceptable prime? */
-            if(NC_primes[m-1] < v && NC_primes[m] >= v)
-	    return NC_primes[m]; /* acceptable*/
-            else if(NC_primes[m-1] >= v)
-	        R = m;
-            else if(NC_primes[m] < v)
-	        L = m;
+        if(L >= R) break;
+
+        m = (L + R) / 2;
+        /* is this an acceptable prime? */
+        if(NC_primes[m-1] < v && NC_primes[m] >= v)
+          return NC_primes[m]; /* acceptable*/
+        else if(NC_primes[m-1] >= v)
+          R = m;
+        else if(NC_primes[m] < v)
+          L = m;
       }
       return 0;
 }
@@ -2046,6 +2049,7 @@ static unsigned int NC_nprimes = (sizeof(NC_primes) / sizeof(unsigned int));
 void
 printhashmapstats(NC_hashmap* hm)
 {
+
     size_t n,i;
     size_t step = 1;
     size_t maxchain = 0;
@@ -2061,7 +2065,7 @@ printhashmapstats(NC_hashmap* hm)
 	    default: /* empty slot, stop walking */
 		if(chainlen > maxchain) maxchain = chainlen;
 		goto next;
-	    }		
+	    }
             /* linear probe */
 	    index = (index + step) % hm->alloc;
 	}
