@@ -1699,6 +1699,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
            NC_DIM_INFO_T **dim)
 {
    NC_DIM_INFO_T *new_dim; /* Dimension added to group */
+   NC_HDF5_DIM_INFO_T *new_hdf5_dim; /* HDF5-specific dim info. */
    char dimscale_name_att[NC_MAX_NAME + 1] = "";    /* Dimscale name, for checking if dim without var */
    htri_t attr_exists = -1; /* Flag indicating hidden attribute exists */
    hid_t attid = -1; /* ID of hidden attribute (to store dim ID) */
@@ -1741,6 +1742,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Create struct for HDF5-specific dim info. */
    if (!(new_dim->format_dim_info = calloc(1, sizeof(NC_HDF5_DIM_INFO_T))))
       BAIL(NC_ENOMEM);
+   new_hdf5_dim = (NC_HDF5_DIM_INFO_T *)new_dim->format_dim_info;
 
    new_dim->too_long = too_long;
 
@@ -1775,8 +1777,9 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
          /* Hold open the dataset, since the dimension doesn't have a
           * coordinate variable */
+         new_hdf5_dim->hdf_dimscaleid = datasetid;
          new_dim->hdf_dimscaleid = datasetid;
-         H5Iinc_ref(new_dim->hdf_dimscaleid);        /* Increment number of objects using ID */
+         H5Iinc_ref(new_hdf5_dim->hdf_dimscaleid);        /* Increment number of objects using ID */
       }
    }
 
@@ -1854,7 +1857,7 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Add a var to the linked list, and get its metadata,
     * unless this is one of those funny dimscales that are a
     * dimension in netCDF but not a variable. (Spooky!) */
-   if (NULL == dim || (dim && !dim->hdf_dimscaleid))
+   if (!dim || (dim && !dim->hdf_dimscaleid))
       if ((retval = read_var(grp, datasetid, obj_name, ndims, dim)))
          BAIL(retval);
 
