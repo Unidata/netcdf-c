@@ -2972,28 +2972,29 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
             for (d = 0; d < var->ndims; d++)
             {
                nc_bool_t finished = NC_FALSE;
-
                LOG((5, "%s: var %s has dimscale info...", __func__, var->hdr.name));
-               /* Look at all the dims in this group to see if they
-                * match. */
+
+               /* Check this and parent groups. */
                for (g = grp; g && !finished; g = g->parent)
                {
+                  /* Check all dims in this group. */
                   for (j = 0; j < ncindexsize(g->dim); j++)
                   {
+                     /* Get the HDF5 specific dim info. */
                      NC_HDF5_DIM_INFO_T *hdf5_dim;
                      dim = (NC_DIM_INFO_T *)ncindexith(g->dim, j);
                      assert(dim && dim->format_dim_info);
                      hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
 
-                     /* Check for exact match to find identical
-                      * objects in HDF5 file. */
-                     if (var->dimscale_hdf5_objids[d].fileno[0] == dim->hdf5_objid.fileno[0] &&
-                         var->dimscale_hdf5_objids[d].objno[0] == dim->hdf5_objid.objno[0] &&
-                         var->dimscale_hdf5_objids[d].fileno[1] == dim->hdf5_objid.fileno[1] &&
-                         var->dimscale_hdf5_objids[d].objno[1] == dim->hdf5_objid.objno[1])
+                     /* Check for exact match of fileno/objid arrays
+                      * to find identical objects in HDF5 file. */
+                     if (var->dimscale_hdf5_objids[d].fileno[0] == hdf5_dim->hdf5_objid.fileno[0] &&
+                         var->dimscale_hdf5_objids[d].objno[0] == hdf5_dim->hdf5_objid.objno[0] &&
+                         var->dimscale_hdf5_objids[d].fileno[1] == hdf5_dim->hdf5_objid.fileno[1] &&
+                         var->dimscale_hdf5_objids[d].objno[1] == hdf5_dim->hdf5_objid.objno[1])
                      {
-                        LOG((4, "%s: for dimension %d, found dim %s",
-                             __func__, d, dim->hdr.name));
+                        LOG((4, "%s: for dimension %d, found dim %s", __func__,
+                             d, dim->hdr.name));
                         var->dimids[d] = dim->hdr.id;
                         var->dim[d] = dim;
                         finished = NC_TRUE;
@@ -3001,7 +3002,8 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                      }
                   } /* next dim */
                } /* next grp */
-               LOG((5, "%s: dimid for this dimscale is %d", __func__, var->type_info->hdr.id));
+               LOG((5, "%s: dimid for this dimscale is %d", __func__,
+                    var->type_info->hdr.id));
             } /* next var->dim */
          }
          /* No dimscales for this var! Invent phony dimensions. */
