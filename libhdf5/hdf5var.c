@@ -404,10 +404,13 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    for (d = 0; d < ndims; d++)
    {
       NC_GRP_INFO_T *dim_grp;
+      NC_HDF5_DIM_INFO_T *hdf5_dim;
 
       /* Look up each dimension */
       if ((retval = nc4_find_dim(grp, dimidsp[d], &dim, &dim_grp)))
          BAIL(retval);
+      assert(dim && dim->format_dim_info);
+      hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
 
       /* Check for dim index 0 having the same name, in the same group */
       if (d == 0 && dim_grp == grp && strcmp(dim->hdr.name, norm_name) == 0)
@@ -1053,16 +1056,22 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return NC_ENOTINDEFINE;
 
    /* Change the HDF5 file, if this var has already been created
-      there. Should we check here to ensure there is not already a
-      dimscale dataset of name name??? */
+      there. */
    if (var->created)
    {
-      /* Is there an existing dimscale-only dataset of this name? If
-       * so, it must be deleted. */
-      if (var->ndims && var->dim[0]->hdf_dimscaleid)
+      if (var->ndims)
       {
-         if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->hdr.id, var->dim[0])))
-            return retval;
+         NC_HDF5_DIM_INFO_T *hdf5_d0;
+         hdf5_d0 = (NC_HDF5_DIM_INFO_T *)var->dim[0]->format_dim_info;
+
+         /* Is there an existing dimscale-only dataset of this name? If
+          * so, it must be deleted. */
+         if (var->dim[0]->hdf_dimscaleid)
+         {
+            if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->hdr.id,
+                                                           var->dim[0])))
+               return retval;
+         }
       }
 
       LOG((3, "Moving dataset %s to %s", var->hdr.name, name));
