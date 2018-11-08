@@ -341,11 +341,13 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
 int
 delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim)
 {
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
    int retval;
 
-   assert(grp && dim);
+   assert(grp && dim && dim->format_dim_info);
    LOG((2, "%s: deleting dimscale dataset %s dimid %d", __func__, dim->hdr.name,
         dimid));
+   hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
 
    /* Detach dimscale from any variables using it */
    if ((retval = rec_detach_scales(grp, dimid, dim->hdf_dimscaleid)) < 0)
@@ -553,8 +555,11 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
    /* Close HDF5 resources associated with dims. */
    for (i = 0; i < ncindexsize(grp->dim); i++)
    {
+      NC_HDF5_DIM_INFO_T *hdf5_dim;
+
       dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, i);
-      assert(dim);
+      assert(dim && dim->format_dim_info);
+      hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
 
       /* If this is a dim without a coordinate variable, then close
        * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this
