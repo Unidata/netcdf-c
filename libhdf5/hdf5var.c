@@ -431,7 +431,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
             /* Close the HDF5 DIM_WITHOUT_VARIABLE dataset. */
             if (H5Dclose(hdf5_dim->hdf_dimscaleid) < 0)
                BAIL(NC_EHDFERR);
-            dim->hdf_dimscaleid = 0;
             hdf5_dim->hdf_dimscaleid = 0;
 
             /* Now delete the DIM_WITHOUT_VARIABLE dataset (it will be
