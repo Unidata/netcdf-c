@@ -46,17 +46,17 @@ main(int argc, char **argv)
       if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
       if (strcmp(name_in, DIM_NAME) || len_in != DIM_LEN) ERR;
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims_in,
-		     &dimid_in, &natts_in)) ERR;
+        	     &dimid_in, &natts_in)) ERR;
       if (strcmp(name_in, VAR_NAME1) || xtype_in != NC_FLOAT ||
-	  ndims_in != 1 || dimid_in != 0 || natts_in != 0) ERR;
+          ndims_in != 1 || dimid_in != 0 || natts_in != 0) ERR;
       if (nc_inq_var(ncid, 1, name_in, &xtype_in, &ndims_in,
-		     &dimid_in, &natts_in)) ERR;
+        	     &dimid_in, &natts_in)) ERR;
       if (strcmp(name_in, VAR_NAME2) || xtype_in != NC_FLOAT ||
-	  ndims_in != 1 || dimid_in != 0 || natts_in != 0) ERR;
+          ndims_in != 1 || dimid_in != 0 || natts_in != 0) ERR;
       if (nc_inq_var(ncid, 2, name_in, &xtype_in, &ndims_in,
-		     &dimid_in, &natts_in)) ERR;
+        	     &dimid_in, &natts_in)) ERR;
       if (strcmp(name_in, DIM_NAME) || xtype_in != NC_FLOAT ||
-	  ndims_in != 1 || dimid_in != 0 || natts_in != 0) ERR;
+          ndims_in != 1 || dimid_in != 0 || natts_in != 0) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -77,7 +77,10 @@ main(int argc, char **argv)
                          H5P_DEFAULT) < 0) ERR;
       if (H5Fclose(hdfid) < 0) ERR;
 
-      H5close(); /* Force HDF5 to forget about this file. */
+      /* Force HDF5 to forget about this file. This resets the error
+       * stack, so turn off HDF5 error messages again. */
+      H5close();
+      H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
 
       /* Now try and open it with netCDF. It will not work. */
       if (nc_open(HDF5_FILE_NAME, NC_NOWRITE, &ncid) != NC_EHDFERR) ERR;
