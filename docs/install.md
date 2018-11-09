@@ -150,7 +150,7 @@ Indicate where you want to install netCDF in another shell variable, for example
 ~~~~{.py}
     $ # Build and install netCDF-4
     $ NCDIR=/usr/local
-    $ CPPFLAGS=-I${H5DIR}/include LDFLAGS=-L${H5DIR}/lib ./configure --prefix=${NCDIR}
+    $ CPPFLAGS='-I${H5DIR}/include -I${ZDIR{/include' LDFLAGS='-L${H5DIR}/lib -L${ZDIR}/lib' ./configure --prefix=${NCDIR}
     $ make check
     $ make install  # or sudo make install
 ~~~~
