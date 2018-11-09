@@ -349,34 +349,15 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
+# We need curl for DAP.
+AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
+if test "x$enable_dap" = "xyes" ; then
+   AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll], [],
+      [AC_MSG_ERROR([curl required for remote access. Install curl or build with --disable-dap.])])
+fi
+
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
-
-# Curl support is required if and only if any of these flags are set:
-# 1. --enable-dap
-
-if test "x$enable_dap" = "xyes" ; then
-require_curl=yes
-else
-require_curl=no
-fi
-
-# See if the user provided us with a curl library
-# Do an initial lib test for curl, but suppress the default action
-AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
-# If curl is required but there is no curl, then complain
-if test $require_curl = yes ; then
-  if test $found_curl = no ; then
-    AC_MSG_NOTICE([libcurl not found; disabling remote protocol(s) support])
-    enable_dap=no
-    enable_dap4=no
-  elif test $found_curl = yes ; then
-    # Redo the check lib to actually add -lcurl
-    #AC_CHECK_LIB([curl], [curl_easy_setopt])
-    AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll], [], [])
-  fi
-fi
-
 # Default is now to always do the short remote tests
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
 AC_ARG_ENABLE([dap-remote-tests],
@@ -1032,7 +1013,7 @@ if test "x$enable_netcdf_4" = xyes; then
    AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hldll hdf5_hl], [],
    [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
 
-   AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
+   AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])]. [sys/types.h])
    AC_CHECK_FUNCS([H5Z_SZIP])
    hdf5_parallel=no
 
