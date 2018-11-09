@@ -1013,7 +1013,7 @@ if test "x$enable_netcdf_4" = xyes; then
    AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hldll hdf5_hl], [],
    [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
 
-   AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])]. [sys/types.h])
+   AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
    AC_CHECK_FUNCS([H5Z_SZIP])
    hdf5_parallel=no
 
