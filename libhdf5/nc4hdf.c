@@ -1324,7 +1324,8 @@ create_group(NC_GRP_INFO_T *grp)
    hid_t gcpl_id = -1;
    int retval = NC_NOERR;;
 
-   assert(grp && grp->parent && grp->parent->hdf_grpid);
+   assert(grp && grp->format_grp_info && grp->parent &&
+          grp->parent->format_grp_info && grp->parent->hdf_grpid);
 
    /* Create group, with link_creation_order set in the group
     * creation property list. */

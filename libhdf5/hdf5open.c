@@ -388,6 +388,10 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if (!(nc4_info->format_file_info = calloc(1, sizeof(NC_HDF5_FILE_INFO_T))))
       BAIL(NC_ENOMEM);
 
+   /* Add struct to hold HDF5-specific group info. */
+   if (!(nc4_info->root_grp->format_grp_info = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
+      return NC_ENOMEM;
+
    nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
    nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
    nc4_info->mem.persist = ((mode & NC_PERSIST) == NC_PERSIST);

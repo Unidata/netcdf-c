@@ -92,12 +92,14 @@ nc4_check_name(const char *name, char *norm_name)
  * @param mode The mode flag.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc4_nc4f_list_add(NC *nc, const char *path, int mode)
 {
    NC_FILE_INFO_T *h5;
+   int retval;
 
    assert(nc && !NC4_DATA(nc) && path);
 
@@ -123,7 +125,10 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
    /* There's always at least one open group - the root
     * group. Allocate space for one group's worth of information. Set
     * its hdf id, name, and a pointer to it's file structure. */
-   return nc4_grp_list_add(h5, NULL, NC_GROUP_NAME, &h5->root_grp);
+   if ((retval = nc4_grp_list_add(h5, NULL, NC_GROUP_NAME, &h5->root_grp)))
+      return retval;
+
+   return NC_NOERR;
 }
 
 /**
