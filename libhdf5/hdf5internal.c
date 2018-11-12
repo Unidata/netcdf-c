@@ -342,12 +342,16 @@ int
 delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim)
 {
    NC_HDF5_DIM_INFO_T *hdf5_dim;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    int retval;
 
-   assert(grp && dim && dim->format_dim_info);
+   assert(grp && grp->format_grp_info && dim && dim->format_dim_info);
    LOG((2, "%s: deleting dimscale dataset %s dimid %d", __func__, dim->hdr.name,
         dimid));
+
+   /* Get HDF5 specific grp and dim info. */
    hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    /* Detach dimscale from any variables using it */
    if ((retval = rec_detach_scales(grp, dimid, hdf5_dim->hdf_dimscaleid)) < 0)
@@ -359,7 +363,7 @@ delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *d
    hdf5_dim->hdf_dimscaleid = 0;
 
    /* Now delete the dataset. */
-   if (H5Gunlink(grp->hdf_grpid, dim->hdr.name) < 0)
+   if (H5Gunlink(hdf5_grp->hdf_grpid, dim->hdr.name) < 0)
       return NC_EHDFERR;
 
    return NC_NOERR;

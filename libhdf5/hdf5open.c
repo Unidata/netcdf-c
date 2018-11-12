@@ -2047,7 +2047,6 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
          if ((hdf5_grp->hdf_grpid = H5Gopen2(parent_hdf5_grp->hdf_grpid,
                                              grp->hdr.name, H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
-         grp->hdf_grpid = hdf5_grp->hdf_grpid;
       }
       else
       {
@@ -2057,7 +2056,6 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
          if ((hdf5_grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/",
                                              H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
-         grp->hdf_grpid = hdf5_grp->hdf_grpid;
       }
    }
    assert(hdf5_grp->hdf_grpid > 0);

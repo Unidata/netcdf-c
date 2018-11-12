@@ -1372,10 +1372,9 @@ create_group(NC_GRP_INFO_T *grp)
       BAIL(NC_EHDFERR);
 
    /* Create the group. */
-   if ((hdf5_grp->hdf_grpid = H5Gcreate2(grp->parent->hdf_grpid, grp->hdr.name,
+   if ((hdf5_grp->hdf_grpid = H5Gcreate2(parent_hdf5_grp->hdf_grpid, grp->hdr.name,
                                          H5P_DEFAULT, gcpl_id, H5P_DEFAULT)) < 0)
       BAIL(NC_EHDFERR);
-   grp->hdf_grpid = hdf5_grp->hdf_grpid;
 
 exit:
    if (gcpl_id > -1 && H5Pclose(gcpl_id) < 0)
