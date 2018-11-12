@@ -224,7 +224,6 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    /* Open the root group. */
    if ((hdf5_grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/", H5P_DEFAULT)) < 0)
       BAIL(NC_EFILEMETA);
-   nc4_info->root_grp->hdf_grpid = hdf5_grp->hdf_grpid;
 
    /* Release the property lists. */
    if (H5Pclose(fapl_id) < 0 || H5Pclose(fcpl_id) < 0)
