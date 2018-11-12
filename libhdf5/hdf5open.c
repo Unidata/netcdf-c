@@ -332,13 +332,18 @@ static int
 check_for_classic_model(NC_GRP_INFO_T *root_grp, int *is_classic)
 {
    htri_t attr_exists = -1;
+   hid_t grpid;
 
    /* Check inputs. */
-   assert(!root_grp->parent && is_classic);
+   assert(root_grp && root_grp->format_grp_info && !root_grp->parent
+          && is_classic);
+
+   /* Get the HDF5 group id. */
+   grpid = ((NC_HDF5_GRP_INFO_T *)(root_grp->format_grp_info))->hdf_grpid;
 
    /* If this attribute exists in the root group, then classic model
     * is in effect. */
-   if ((attr_exists = H5Aexists(root_grp->hdf_grpid, NC3_STRICT_ATT_NAME)) < 0)
+   if ((attr_exists = H5Aexists(grpid, NC3_STRICT_ATT_NAME)) < 0)
       return NC_EHDFERR;
    *is_classic = attr_exists ? 1 : 0;
 
@@ -1661,7 +1666,8 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    att_info.grp = grp;
 
    /* Determine where to read from in the HDF5 file. */
-   locid = var ? var->hdf_datasetid : grp->hdf_grpid;
+   locid = var ? var->hdf_datasetid :
+      ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid;
 
    /* Now read all the attributes at this location, ignoring special
     * netCDF hidden attributes. */
@@ -2031,14 +2037,14 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 
    /* Open this HDF5 group and retain its grpid. It will remain open
     * with HDF5 until this file is nc_closed. */
-   if (!grp->hdf_grpid)
+   if (!hdf5_grp->hdf_grpid)
    {
       if (grp->parent)
       {
          NC_HDF5_GRP_INFO_T *parent_hdf5_grp;
          parent_hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->parent->format_grp_info;
 
-         if ((hdf5_grp->hdf_grpid = H5Gopen2(grp->parent->hdf_grpid,
+         if ((hdf5_grp->hdf_grpid = H5Gopen2(parent_hdf5_grp->hdf_grpid,
                                              grp->hdr.name, H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
          grp->hdf_grpid = hdf5_grp->hdf_grpid;
