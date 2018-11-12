@@ -65,6 +65,8 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
     * sync. */
    if ((retval = nc4_grp_list_add(h5, grp, norm_name, &g)))
       return retval;
+   if (!(g->format_grp_info = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
+      return NC_ENOMEM;
    if (new_ncid)
       *new_ncid = grp->nc4_info->controller->ext_ncid | g->hdr.id;
 

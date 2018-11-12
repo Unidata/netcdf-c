@@ -2086,6 +2086,10 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
                                      &child_grp)))
          BAIL(retval);
 
+      /* Allocate storage for HDF5-specific group info. */
+      if (!(child_grp->format_grp_info = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
+         return NC_ENOMEM;
+
       /* Recursively read the child group's metadata */
       if ((retval = nc4_rec_read_metadata(child_grp)))
          BAIL(retval);

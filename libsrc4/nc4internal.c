@@ -1358,6 +1358,10 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
    /* Free the name. */
    free(grp->hdr.name);
 
+   /* Release any format-specific information about this group. */
+   if (grp->format_grp_info)
+      free(grp->format_grp_info);
+
    /* Free up this group */
    free(grp);
 
