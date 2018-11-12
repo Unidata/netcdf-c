@@ -1347,11 +1347,12 @@ create_group(NC_GRP_INFO_T *grp)
    int retval = NC_NOERR;;
 
    assert(grp && grp->format_grp_info && grp->parent &&
-          grp->parent->format_grp_info && grp->parent->hdf_grpid);
+          grp->parent->format_grp_info);
 
    /* Get HDF5 specific group info for group and parent. */
    hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
    parent_hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->parent->format_grp_info;
+   assert(parent_hdf5_grp->hdf_grpid);
 
    /* Create group, with link_creation_order set in the group
     * creation property list. */
@@ -1610,7 +1611,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
          {
             nc_bool_t exists;
 
-            if ((retval = var_exists(grp->hdf_grpid, var->hdr.name, &exists)))
+            if ((retval = var_exists(hdf5_grp->hdf_grpid, var->hdr.name, &exists)))
                return retval;
             if (exists)
             {
@@ -1648,7 +1649,8 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
          {
             nc_bool_t exists;
 
-            if ((retval = var_exists(grp->hdf_grpid, var->hdr.name, &exists)))
+            if ((retval = var_exists(hdf5_grp->hdf_grpid, var->hdr.name,
+                                     &exists)))
                return retval;
             if (exists)
             {
@@ -2014,7 +2016,8 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
    int retval;
    int i;
 
-   assert(grp && grp->hdr.name && grp->hdf_grpid);
+   assert(grp && grp->hdr.name &&
+          ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid);
    LOG((3, "%s: grp->hdr.name %s, bad_coord_order %d", __func__, grp->hdr.name,
         bad_coord_order));
 
@@ -2090,22 +2093,26 @@ int
 nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
 {
    NC_GRP_INFO_T *child_grp;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    NC_TYPE_INFO_T *type;
    int retval;
    int i;
 
-   assert(grp && grp->hdr.name);
+   assert(grp && grp->hdr.name && grp->format_grp_info);
    LOG((3, "%s: grp->hdr.name %s", __func__, grp->hdr.name));
 
+   /* Get HDF5-specific group info. */
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
+
    /* Create the group in the HDF5 file if it doesn't exist. */
-   if (!grp->hdf_grpid)
+   if (!hdf5_grp->hdf_grpid)
       if ((retval = create_group(grp)))
          return retval;
 
    /* If this is the root group of a file with strict NC3 rules, write
     * an attribute. But don't leave the attribute open. */
    if (!grp->parent && (grp->nc4_info->cmode & NC_CLASSIC_MODEL))
-      if ((retval = write_nc3_strict_att(grp->hdf_grpid)))
+      if ((retval = write_nc3_strict_att(hdf5_grp->hdf_grpid)))
          return retval;
 
    /* If there are any user-defined types, write them now. */
@@ -3517,7 +3524,8 @@ NC4_isnetcdf4(struct NC_FILE_INFO* h5)
    /* attribute did not exist */
    /* => last resort: walk the HDF5 file looking for markers */
    count = 0;
-   stat = NC4_walk(h5->root_grp->hdf_grpid, &count);
+   stat = NC4_walk(((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid,
+                   &count);
    if(stat != NC_NOERR)
       isnc4 = 0;
    else /* Threshold is at least two matches */
@@ -3536,15 +3544,16 @@ done:
  * @author Dennis Heimbigner.
  */
 static int
-NC4_get_strict_att(NC_FILE_INFO_T* h5)
+NC4_get_strict_att(NC_FILE_INFO_T *h5)
 {
-   hid_t grp = -1;
+   hid_t grpid = -1;
    hid_t attid = -1;
 
-   /* Get root group */
-   grp = h5->root_grp->hdf_grpid; /* get root group */
+   /* Get root group ID. */
+   grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
+
    /* Try to extract the NC3_STRICT_ATT_NAME attribute */
-   attid = H5Aopen_name(grp, NC3_STRICT_ATT_NAME);
+   attid = H5Aopen_name(grpid, NC3_STRICT_ATT_NAME);
    H5Aclose(attid);
    return attid;
 }
