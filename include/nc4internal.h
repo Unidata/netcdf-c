@@ -250,6 +250,7 @@ typedef struct NC_GRP_INFO
 {
    NC_OBJ hdr;
    hid_t hdf_grpid;
+   void *format_grp_info;
    struct NC_FILE_INFO *nc4_info;
    struct NC_GRP_INFO *parent;
    int atts_not_read;
