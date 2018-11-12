@@ -71,6 +71,10 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
       BAIL(NC_ENOMEM);
    hdf5_info = (NC_HDF5_FILE_INFO_T *)nc4_info->format_file_info;
 
+   /* Add struct to hold HDF5-specific group info. */
+   if (!(nc4_info->root_grp->format_grp_info = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
+      return NC_ENOMEM;
+
    nc4_info->mem.inmemory = (cmode & NC_INMEMORY) == NC_INMEMORY;
    nc4_info->mem.diskless = (cmode & NC_DISKLESS) == NC_DISKLESS;
    nc4_info->mem.persist =  (cmode & NC_PERSIST) == NC_PERSIST;
