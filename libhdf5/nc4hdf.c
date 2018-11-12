@@ -1321,11 +1321,16 @@ exit:
 static int
 create_group(NC_GRP_INFO_T *grp)
 {
+   NC_HDF5_GRP_INFO_T *hdf5_grp, *parent_hdf5_grp;
    hid_t gcpl_id = -1;
    int retval = NC_NOERR;;
 
    assert(grp && grp->format_grp_info && grp->parent &&
           grp->parent->format_grp_info && grp->parent->hdf_grpid);
+
+   /* Get HDF5 specific group info for group and parent. */
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
+   parent_hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->parent->format_grp_info;
 
    /* Create group, with link_creation_order set in the group
     * creation property list. */
@@ -1345,9 +1350,10 @@ create_group(NC_GRP_INFO_T *grp)
       BAIL(NC_EHDFERR);
 
    /* Create the group. */
-   if ((grp->hdf_grpid = H5Gcreate2(grp->parent->hdf_grpid, grp->hdr.name,
-                                    H5P_DEFAULT, gcpl_id, H5P_DEFAULT)) < 0)
+   if ((hdf5_grp->hdf_grpid = H5Gcreate2(grp->parent->hdf_grpid, grp->hdr.name,
+                                         H5P_DEFAULT, gcpl_id, H5P_DEFAULT)) < 0)
       BAIL(NC_EHDFERR);
+   grp->hdf_grpid = hdf5_grp->hdf_grpid;
 
 exit:
    if (gcpl_id > -1 && H5Pclose(gcpl_id) < 0)
