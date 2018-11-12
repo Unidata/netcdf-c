@@ -279,7 +279,7 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
    /* Sanity checks */
    assert(grp && coord_var && dim && dim->coord_var == coord_var &&
           coord_var->dim[0] == dim && coord_var->dimids[0] == dim->hdr.id &&
-          !dim->hdf_dimscaleid);
+          !((NC_HDF5_DIM_INFO_T *)(dim->format_dim_info))->hdf_dimscaleid);
    LOG((3, "%s dim %s was associated with var %s, but now has different name",
         __func__, dim->hdr.name, coord_var->hdr.name));
 
@@ -341,23 +341,29 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
 int
 delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim)
 {
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    int retval;
 
-   assert(grp && dim);
+   assert(grp && grp->format_grp_info && dim && dim->format_dim_info);
    LOG((2, "%s: deleting dimscale dataset %s dimid %d", __func__, dim->hdr.name,
         dimid));
 
+   /* Get HDF5 specific grp and dim info. */
+   hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
+
    /* Detach dimscale from any variables using it */
-   if ((retval = rec_detach_scales(grp, dimid, dim->hdf_dimscaleid)) < 0)
+   if ((retval = rec_detach_scales(grp, dimid, hdf5_dim->hdf_dimscaleid)) < 0)
       return retval;
 
    /* Close the HDF5 dataset */
-   if (H5Dclose(dim->hdf_dimscaleid) < 0)
+   if (H5Dclose(hdf5_dim->hdf_dimscaleid) < 0)
       return NC_EHDFERR;
-   dim->hdf_dimscaleid = 0;
+   hdf5_dim->hdf_dimscaleid = 0;
 
    /* Now delete the dataset. */
-   if (H5Gunlink(grp->hdf_grpid, dim->hdr.name) < 0)
+   if (H5Gunlink(hdf5_grp->hdf_grpid, dim->hdr.name) < 0)
       return NC_EHDFERR;
 
    return NC_NOERR;
@@ -377,14 +383,21 @@ delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *d
 int
 nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 {
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    int need_to_reattach_scales = 0;
    int retval = NC_NOERR;
 
-   assert(grp && var && dim);
-   LOG((3, "%s: dim->hdr.name %s var->hdr.name %s", __func__, dim->hdr.name, var->hdr.name));
+   assert(grp && grp->format_grp_info && var && dim && dim->format_dim_info);
+   LOG((3, "%s: dim->hdr.name %s var->hdr.name %s", __func__, dim->hdr.name,
+        var->hdr.name));
+
+   /* Get HDF5-specific dim and group info. */
+   hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    /* Detach dimscales from the [new] coordinate variable */
-   if(var->dimscale_attached)
+   if (var->dimscale_attached)
    {
       int dims_detached = 0;
       int finished = 0;
@@ -394,7 +407,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
       for (d = 0; d < var->ndims && !finished; d++)
       {
          /* Is there a dimscale attached to this axis? */
-         if(var->dimscale_attached[d])
+         if (var->dimscale_attached[d])
          {
             NC_GRP_INFO_T *g;
             int k;
@@ -402,9 +415,14 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
             for (g = grp; g && !finished; g = g->parent)
             {
                NC_DIM_INFO_T *dim1;
-               for(k=0;k<ncindexsize(g->dim);k++)
+               NC_HDF5_DIM_INFO_T *hdf5_dim1;
+
+               for (k = 0; k < ncindexsize(g->dim); k++)
                {
-                  if((dim1 = (NC_DIM_INFO_T*)ncindexith(g->dim,k)) == NULL) continue;
+                  dim1 = (NC_DIM_INFO_T *)ncindexith(g->dim, k);
+                  assert(dim1 && dim1->format_dim_info);
+                  hdf5_dim1 = (NC_HDF5_DIM_INFO_T *)dim1->format_dim_info;
+
                   if (var->dimids[d] == dim1->hdr.id)
                   {
                      hid_t dim_datasetid;  /* Dataset ID for dimension */
@@ -413,7 +431,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
                      if (dim1->coord_var)
                         dim_datasetid = dim1->coord_var->hdf_datasetid;
                      else
-                        dim_datasetid = dim1->hdf_dimscaleid;
+                        dim_datasetid = hdf5_dim1->hdf_dimscaleid;
 
                      /* dim_datasetid may be 0 in some cases when
                       * renames of dims and vars are happening. In
@@ -441,16 +459,16 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
    }
 
    /* Use variable's dataset ID for the dimscale ID. */
-   if (dim->hdf_dimscaleid && grp != NULL)
+   if (hdf5_dim->hdf_dimscaleid && grp != NULL)
    {
       LOG((3, "closing and unlinking dimscale dataset %s", dim->hdr.name));
-      if (H5Dclose(dim->hdf_dimscaleid) < 0)
+      if (H5Dclose(hdf5_dim->hdf_dimscaleid) < 0)
          BAIL(NC_EHDFERR);
-      dim->hdf_dimscaleid = 0;
+      hdf5_dim->hdf_dimscaleid = 0;
 
       /* Now delete the dimscale's dataset
          (it will be recreated later, if necessary) */
-      if (H5Gunlink(grp->hdf_grpid, dim->hdr.name) < 0)
+      if (H5Gunlink(hdf5_grp->hdf_grpid, dim->hdr.name) < 0)
          return NC_EDIMMETA;
    }
 
@@ -493,12 +511,15 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
    NC_ATT_INFO_T *att;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    int a;
    int i;
    int retval;
 
-   assert(grp);
+   assert(grp && grp->format_grp_info);
    LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
+
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    /* Recursively call this function for each child, if any, stopping
     * if there is an error. */
@@ -553,13 +574,16 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
    /* Close HDF5 resources associated with dims. */
    for (i = 0; i < ncindexsize(grp->dim); i++)
    {
+      NC_HDF5_DIM_INFO_T *hdf5_dim;
+
       dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, i);
-      assert(dim);
+      assert(dim && dim->format_dim_info);
+      hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
 
       /* If this is a dim without a coordinate variable, then close
        * the HDF5 DIM_WITHOUT_VARIABLE dataset associated with this
        * dim. */
-      if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
+      if (hdf5_dim->hdf_dimscaleid && H5Dclose(hdf5_dim->hdf_dimscaleid) < 0)
          return NC_EHDFERR;
    }
 
@@ -602,7 +626,7 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
 
    /* Close the HDF5 group. */
    LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
-   if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0)
+   if (hdf5_grp->hdf_grpid && H5Gclose(hdf5_grp->hdf_grpid) < 0)
       return NC_EHDFERR;
 
    return NC_NOERR;
