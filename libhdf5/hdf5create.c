@@ -48,6 +48,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    int retval = NC_NOERR;
    NC_FILE_INFO_T* nc4_info = NULL;
    NC_HDF5_FILE_INFO_T *hdf5_info;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
 
 #ifdef USE_PARALLEL4
    NC_MPI_INFO *mpiinfo = NULL;
@@ -70,6 +71,11 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    if (!(nc4_info->format_file_info = calloc(1, sizeof(NC_HDF5_FILE_INFO_T))))
       BAIL(NC_ENOMEM);
    hdf5_info = (NC_HDF5_FILE_INFO_T *)nc4_info->format_file_info;
+
+   /* Add struct to hold HDF5-specific group info. */
+   if (!(nc4_info->root_grp->format_grp_info = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
+      return NC_ENOMEM;
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)nc4_info->root_grp->format_grp_info;
 
    nc4_info->mem.inmemory = (cmode & NC_INMEMORY) == NC_INMEMORY;
    nc4_info->mem.diskless = (cmode & NC_DISKLESS) == NC_DISKLESS;
@@ -216,8 +222,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
    }
 
    /* Open the root group. */
-   if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/",
-                                                 H5P_DEFAULT)) < 0)
+   if ((hdf5_grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/", H5P_DEFAULT)) < 0)
       BAIL(NC_EFILEMETA);
 
    /* Release the property lists. */

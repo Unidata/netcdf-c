@@ -307,7 +307,7 @@ NC4_put_ncproperties(NC_FILE_INFO_T* file)
     char* text = NULL;
 
     /* Get root group */
-    grp = h5->root_grp->hdf_grpid; /* get root group */
+    grp = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
     /* See if the NCPROPS attribute exists */
     if(H5Aexists(grp,NCPROPS) <= 0) { /* Does not exist */
       ncstat = NC4_buildpropinfo(&h5->fileinfo->propattr,&text);
@@ -514,7 +514,7 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5)
     H5T_class_t t_class;
     hsize_t size;
 
-    hdf5grpid = h5->root_grp->hdf_grpid;
+    hdf5grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
 
     if(H5Aexists(hdf5grpid,NCPROPS) <= 0) { /* Does not exist */
 	/* File did not contain a _NCProperties attribute */		
@@ -578,7 +578,7 @@ NC4_write_ncproperties(NC_FILE_INFO_T* h5)
     if (h5->no_write)
       {retval = NC_EPERM; goto done;}
 
-    hdf5grpid = h5->root_grp->hdf_grpid;
+    hdf5grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
 
     if(H5Aexists(hdf5grpid,NCPROPS) > 0) /* Already exists, no overwrite */
 	goto done;

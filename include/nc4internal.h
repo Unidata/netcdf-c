@@ -112,20 +112,19 @@ typedef struct NC_OBJ {
 typedef struct NC_DIM_INFO
 {
    NC_OBJ hdr;
-   struct NC_GRP_INFO* container;  /* containing group */
+   struct NC_GRP_INFO *container;  /* containing group */
    size_t len;
    nc_bool_t unlimited;         /* True if the dimension is unlimited */
    nc_bool_t extended;          /* True if the dimension needs to be extended */
    nc_bool_t too_long;          /* True if len is too big to fit in local size_t. */
-   hid_t hdf_dimscaleid;        /* Non-zero if a DIM_WITHOUT_VARIABLE dataset is in use (no coord var). */
-   HDF5_OBJID_T hdf5_objid;
+   void *format_dim_info;       /* Pointer to format-specific dim info. */
    struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */
 } NC_DIM_INFO_T;
 
 typedef struct NC_ATT_INFO
 {
    NC_OBJ hdr;
-   struct NC_OBJ* container;    /* containing group|var */
+   struct NC_OBJ *container;    /* containing group|var */
    int len;
    nc_bool_t dirty;             /* True if attribute modified */
    nc_bool_t created;           /* True if attribute already created */
@@ -250,7 +249,7 @@ typedef struct NC_TYPE_INFO
 typedef struct NC_GRP_INFO
 {
    NC_OBJ hdr;
-   hid_t hdf_grpid;
+   void *format_grp_info;
    struct NC_FILE_INFO *nc4_info;
    struct NC_GRP_INFO *parent;
    int atts_not_read;
