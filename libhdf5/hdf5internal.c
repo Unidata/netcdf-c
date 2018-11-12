@@ -380,13 +380,17 @@ int
 nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 {
    NC_HDF5_DIM_INFO_T *hdf5_dim;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    int need_to_reattach_scales = 0;
    int retval = NC_NOERR;
 
-   assert(grp && var && dim && dim->format_dim_info);
+   assert(grp && grp->format_grp_info && var && dim && dim->format_dim_info);
    LOG((3, "%s: dim->hdr.name %s var->hdr.name %s", __func__, dim->hdr.name,
         var->hdr.name));
+
+   /* Get HDF5-specific dim and group info. */
    hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    /* Detach dimscales from the [new] coordinate variable */
    if (var->dimscale_attached)
@@ -460,7 +464,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 
       /* Now delete the dimscale's dataset
          (it will be recreated later, if necessary) */
-      if (H5Gunlink(grp->hdf_grpid, dim->hdr.name) < 0)
+      if (H5Gunlink(hdf5_grp->hdf_grpid, dim->hdr.name) < 0)
          return NC_EDIMMETA;
    }
 
@@ -503,12 +507,15 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
    NC_ATT_INFO_T *att;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    int a;
    int i;
    int retval;
 
-   assert(grp);
+   assert(grp && grp->format_grp_info);
    LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
+
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    /* Recursively call this function for each child, if any, stopping
     * if there is an error. */
@@ -615,7 +622,7 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
 
    /* Close the HDF5 group. */
    LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
-   if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0)
+   if (hdf5_grp->hdf_grpid && H5Gclose(hdf5_grp->hdf_grpid) < 0)
       return NC_EHDFERR;
 
    return NC_NOERR;
