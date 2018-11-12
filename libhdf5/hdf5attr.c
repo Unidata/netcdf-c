@@ -143,7 +143,8 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
    {
       if (varid == NC_GLOBAL)
       {
-         if (H5Adelete(grp->hdf_grpid, att->hdr.name) < 0)
+         if (H5Adelete(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid,
+                       att->hdr.name) < 0)
             return NC_EHDFERR;
       }
       else
@@ -237,7 +238,7 @@ NC4_del_att(int ncid, int varid, const char *name)
 
    /* Determine the location id in the HDF5 file. */
    if (varid == NC_GLOBAL)
-      locid = grp->hdf_grpid;
+      locid = ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid;
    else if (var->created)
       locid = var->hdf_datasetid;
 
