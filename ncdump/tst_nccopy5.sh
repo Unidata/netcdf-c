@@ -11,6 +11,7 @@ T1=1
 T2=1
 T3=1
 T4=1
+T5=1
 
 # For a netCDF-4 build, test nccopy chunking rules
 
@@ -38,6 +39,16 @@ checkfvar() {
   fi
 }
 
+# usage: checkivar <file>
+checkivar() {
+  # Make sure that ivar was not chunked
+  C5IVAR=`sed -e '/ivar:_ChunkSizes/p' -e d <$1`
+  if test "x$C5IVAR" != x ; then
+      echo "***Fail: ivar was chunked"
+      exit 1
+  fi
+}
+
 # usage: verifychunkline line1 line2
 verifychunkline() {
     # trim leading whitespace
@@ -53,12 +64,14 @@ verifychunkline() {
 cleanup() {
     rm -f tmp_nc5.nc tmp_nc5a.nc
     rm -f tmp_nc5.cdl tmp_nc5a.cdl tmp_nc5b.cdl
+    rm -f tmp_nc5_omit.nc tmp_nc5_omit.cdl
 }
 
 # remove all created files
 reset() {
     cleanup
     rm -fr tst_nc5.nc tst_nc5.cdl
+    rm -f tst_nc5_omit.nc tst_nc5_omit.cdl
 }
 
 reset
@@ -158,6 +171,29 @@ verifychunkline "$TESTLINE" "$BASELINE"
 checkfvar tmp_nc5.cdl
 
 fi # T4
+
+if test "x$T5" = x1 ; then
+
+echo "*** Test nccopy -c fvar: to suppress chunking; classic ->enhanced"
+reset
+./tst_chunking tst_nc5_omit.nc
+${NCDUMP} -n tst_nc5_omit tst_nc5_omit.nc > tst_nc5_omit.cdl
+${NCCOPY} -c ivar:7,1,2,1,5,1,9 -c fvar: tst_nc5_omit.nc tmp_nc5_omit.nc
+${NCDUMP} -n tst_nc5_omit tmp_nc5_omit.nc > tmp_nc5_omit.cdl
+diff tst_nc5_omit.cdl tmp_nc5_omit.cdl
+
+# Verify chunking of ivar
+${NCDUMP} -hs -n tst_nc5_omit tmp_nc5_omit.nc > tmp_nc5_omit.cdl
+# extract the chunking line
+TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_nc5_omit.cdl`
+# track line to match
+BASELINE='   ivar:_ChunkSizes = 7, 1, 2, 1, 5, 1, 9 ;   '
+verifychunkline "$TESTLINE" "$BASELINE"
+
+# Make sure that fvar was not chunked
+checkfvar tmp_nc5_omit.cdl
+
+fi # T5
 
 # Cleanup all created files
 reset
