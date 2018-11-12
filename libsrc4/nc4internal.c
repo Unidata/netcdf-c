@@ -1143,6 +1143,11 @@ att_free(NC_ATT_INFO_T *att)
       free(att->vldata);
    }
 
+   /* Free any format-sepecific info. Some formats use this (ex. HDF5)
+    * and some don't (ex. HDF4). So it may be NULL. */
+   if (att->format_att_info)
+      free(att->format_att_info);
+
    free(att);
    return NC_NOERR;
 }
