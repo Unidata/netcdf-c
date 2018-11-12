@@ -180,6 +180,8 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
 {
    NC_VAR_INFO_T *var;
 
+   assert(grp && grp->format_grp_info && dataset);
+
    /* Find the requested varid. */
    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
    if (!var) return NC_ENOTVAR;
@@ -187,9 +189,14 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
 
    /* Open this dataset if necessary. */
    if (!var->hdf_datasetid)
-      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdr.name,
-                                         H5P_DEFAULT)) < 0)
+   {
+      NC_HDF5_GRP_INFO_T *hdf5_grp;
+      hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
+
+      if ((var->hdf_datasetid = H5Dopen2(hdf5_grp->hdf_grpid,
+                                         var->hdr.name, H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
+   }
 
    *dataset = var->hdf_datasetid;
 
@@ -542,6 +549,7 @@ exit:
 static int
 put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
 {
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    hid_t datasetid = 0, locid;
    hid_t attid = 0, spaceid = 0, file_typeid = 0;
    hid_t existing_att_typeid = 0, existing_attid = 0, existing_spaceid = 0;
@@ -552,10 +560,13 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
    int phoney_data = 99;
    int retval = NC_NOERR;
 
-   assert(att->hdr.name);
+   assert(att->hdr.name && grp && grp->format_grp_info);
    LOG((3, "%s: varid %d att->hdr.id %d att->hdr.name %s att->nc_typeid %d "
         "att->len %d", __func__, varid, att->hdr.id, att->hdr.name,
         att->nc_typeid, att->len));
+
+   /* Get HDF5-specific group info. */
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    /* If the file is read-only, return an error. */
    if (grp->nc4_info->no_write)
