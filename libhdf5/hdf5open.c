@@ -2011,16 +2011,20 @@ exit:
 static int
 nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 {
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    NC4_rec_read_metadata_ud_t udata;   /* User data for iteration */
    NC4_rec_read_metadata_obj_info_t *oinfo;    /* Pointer to info for object */
-   hsize_t idx=0;
+   hsize_t idx = 0;
    hid_t pid = 0;
    unsigned crt_order_flags = 0;
    H5_index_t iter_index;
    int i, retval = NC_NOERR; /* everything worked! */
 
-   assert(grp && grp->hdr.name);
+   assert(grp && grp->hdr.name && grp->format_grp_info);
    LOG((3, "%s: grp->hdr.name %s", __func__, grp->hdr.name));
+
+   /* Get HDF5-specific group info. */
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    /* Portably initialize user data for later */
    memset(&udata, 0, sizeof(udata));
@@ -2031,24 +2035,29 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
    {
       if (grp->parent)
       {
-         if ((grp->hdf_grpid = H5Gopen2(grp->parent->hdf_grpid,
-                                        grp->hdr.name, H5P_DEFAULT)) < 0)
+         NC_HDF5_GRP_INFO_T *parent_hdf5_grp;
+         parent_hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->parent->format_grp_info;
+
+         if ((hdf5_grp->hdf_grpid = H5Gopen2(grp->parent->hdf_grpid,
+                                             grp->hdr.name, H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
+         grp->hdf_grpid = hdf5_grp->hdf_grpid;
       }
       else
       {
          NC_HDF5_FILE_INFO_T *hdf5_info;
          hdf5_info = (NC_HDF5_FILE_INFO_T *)grp->nc4_info->format_file_info;
 
-         if ((grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/",
-                                        H5P_DEFAULT)) < 0)
+         if ((hdf5_grp->hdf_grpid = H5Gopen2(hdf5_info->hdfid, "/",
+                                             H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
+         grp->hdf_grpid = hdf5_grp->hdf_grpid;
       }
    }
-   assert(grp->hdf_grpid > 0);
+   assert(hdf5_grp->hdf_grpid > 0);
 
    /* Get the group creation flags, to check for creation ordering */
-   pid = H5Gget_create_plist(grp->hdf_grpid);
+   pid = H5Gget_create_plist(hdf5_grp->hdf_grpid);
    H5Pget_link_creation_order(pid, &crt_order_flags);
    if (H5Pclose(pid) < 0)
       BAIL(NC_EHDFERR);
@@ -2073,17 +2082,17 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 
    /* Iterate over links in this group, building lists for the types,
     * datasets and groups encountered. */
-   if (H5Literate(grp->hdf_grpid, iter_index, H5_ITER_INC, &idx,
+   if (H5Literate(hdf5_grp->hdf_grpid, iter_index, H5_ITER_INC, &idx,
                   nc4_rec_read_metadata_cb, (void *)&udata) < 0)
       BAIL(NC_EHDFERR);
 
    /* Process the child groups found. (Deferred until now, so that the
     *  types in the current group get processed and are available for
     *  vars in the child group(s).) */
-   for(i=0;i<nclistlength(udata.grps);i++)
+   for (i = 0; i < nclistlength(udata.grps); i++)
    {
       NC_GRP_INFO_T *child_grp;
-      oinfo = (NC4_rec_read_metadata_obj_info_t*)nclistget(udata.grps,i);
+      oinfo = (NC4_rec_read_metadata_obj_info_t*)nclistget(udata.grps, i);
 
       /* Add group to file's hierarchy */
       if ((retval = nc4_grp_list_add(grp->nc4_info, grp, oinfo->oname,
@@ -2107,15 +2116,16 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
    grp->atts_not_read = 1;
 
    /* when exiting define mode, mark all variable written */
-   for (i=0; i<ncindexsize(grp->vars); i++) {
+   for (i = 0; i < ncindexsize(grp->vars); i++)
+   {
       NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
-      if(var == NULL) continue;
+      assert(var);
       var->written_to = NC_TRUE;
    }
 
 exit:
    /* Clean up local information, if anything remains */
-   for(i=0;i<nclistlength(udata.grps);i++)
+   for (i = 0; i < nclistlength(udata.grps); i++)
    {
       oinfo = (NC4_rec_read_metadata_obj_info_t*)nclistget(udata.grps,i);
       if (retval)
