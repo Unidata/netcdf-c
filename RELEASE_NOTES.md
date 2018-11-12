@@ -2,7 +2,7 @@ Release Notes       {#RELEASE_NOTES}
 =============
 
 \brief Release notes file for the netcdf-c package.
-
+ 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
 ## 4.6.2 - TBD
