@@ -69,6 +69,12 @@ typedef struct  NC_HDF5_ATT_INFO
    hid_t native_hdf_typeid;     /* Native HDF5 datatype for attribute's data */
 } NC_HDF5_ATT_INFO_T;
 
+/* Struct to hold HDF5-specific info for a group. */
+typedef struct NC_HDF5_GRP_INFO
+{
+   hid_t hdf_grpid;
+} NC_HDF5_GRP_INFO_T;
+
 /* These functions do HDF5 things. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
