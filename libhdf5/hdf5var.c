@@ -30,9 +30,16 @@ int
 nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    hid_t access_pid;
+   hid_t grpid;
+
+   assert(var && grp && grp->format_grp_info);
 
    if (var->hdf_datasetid)
    {
+      /* Get the HDF5 group id. */
+      grpid = ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid;
+
+
       if ((access_pid = H5Pcreate(H5P_DATASET_ACCESS)) < 0)
          return NC_EHDFERR;
       if (H5Pset_chunk_cache(access_pid, var->chunk_cache_nelems,
@@ -41,8 +48,7 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
          return NC_EHDFERR;
       if (H5Dclose(var->hdf_datasetid) < 0)
          return NC_EHDFERR;
-      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdr.name,
-                                         access_pid)) < 0)
+      if ((var->hdf_datasetid = H5Dopen2(grpid, var->hdr.name, access_pid)) < 0)
          return NC_EHDFERR;
       if (H5Pclose(access_pid) < 0)
          return NC_EHDFERR;
@@ -250,6 +256,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    NC_DIM_INFO_T *dim;
    NC_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type_info = NULL;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    char norm_name[NC_MAX_NAME + 1];
    int d;
    int retval;
@@ -257,7 +264,10 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       BAIL(retval);
-   assert(grp && h5);
+   assert(grp && grp->format_grp_info && h5);
+
+   /* Get HDF5-specific group info. */
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    /* HDF5 allows maximum of 32 dimensions. */
    if (ndims > H5S_MAX_RANK)
@@ -435,7 +445,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
 
             /* Now delete the DIM_WITHOUT_VARIABLE dataset (it will be
              * recreated later, if necessary). */
-            if (H5Gunlink(grp->hdf_grpid, dim->hdr.name) < 0)
+            if (H5Gunlink(hdf5_grp->hdf_grpid, dim->hdr.name) < 0)
                BAIL(NC_EDIMMETA);
          }
       }
@@ -1011,6 +1021,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var, *tmpvar;
    int retval = NC_NOERR;
@@ -1024,7 +1035,10 @@ NC4_rename_var(int ncid, int varid, const char *name)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-   assert(h5 && grp && h5);
+   assert(h5 && grp && grp->format_grp_info && h5);
+
+   /* Get HDF5-specific group info. */
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    /* Is the new name too long? */
    if (strlen(name) > NC_MAX_NAME)
@@ -1076,7 +1090,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
       }
 
       LOG((3, "Moving dataset %s to %s", var->hdr.name, name));
-      if (H5Gmove(grp->hdf_grpid, var->hdr.name, name) < 0)
+      if (H5Gmove(hdf5_grp->hdf_grpid, var->hdr.name, name) < 0)
          BAIL(NC_EHDFERR);
    }
 
