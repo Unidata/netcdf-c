@@ -65,6 +65,8 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
     * sync. */
    if ((retval = nc4_grp_list_add(h5, grp, norm_name, &g)))
       return retval;
+   if (!(g->format_grp_info = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
+      return NC_ENOMEM;
    if (new_ncid)
       *new_ncid = grp->nc4_info->controller->ext_ncid | g->hdr.id;
 
@@ -89,7 +91,8 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 int
 NC4_rename_grp(int grpid, const char *name)
 {
-   NC_GRP_INFO_T *grp, *parent;
+   NC_GRP_INFO_T *grp;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    NC_FILE_INFO_T *h5;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
@@ -99,7 +102,10 @@ NC4_rename_grp(int grpid, const char *name)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(grpid, &grp, &h5)))
       return retval;
-   assert(h5);
+   assert(h5 && grp && grp->format_grp_info);
+
+   /* Get HDF5-specific group info. */
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    if (h5->no_write)
       return NC_EPERM; /* attempt to write to a read-only file */
@@ -107,7 +113,6 @@ NC4_rename_grp(int grpid, const char *name)
    /* Do not allow renaming the root group */
    if (grp->parent == NULL)
       return NC_EBADGRPID;
-   parent = grp->parent;
 
    /* Check and normalize the name. */
    if ((retval = nc4_check_name(name, norm_name)))
@@ -115,7 +120,7 @@ NC4_rename_grp(int grpid, const char *name)
 
    /* Check that this name is not in use as a var, grp, or type in the
     * parent group (i.e. the group that grp is in). */
-   if ((retval = nc4_check_dup_name(parent, norm_name)))
+   if ((retval = nc4_check_dup_name(grp->parent, norm_name)))
       return retval;
 
    /* If it's not in define mode, switch to define mode. */
@@ -124,22 +129,26 @@ NC4_rename_grp(int grpid, const char *name)
          return retval;
 
    /* Rename the group, if it exists in the file */
-   if (grp->hdf_grpid)
+   if (hdf5_grp->hdf_grpid)
    {
+      NC_HDF5_GRP_INFO_T *parent_hdf5_grp;
+      parent_hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->parent->format_grp_info;
+
       /* Close the group */
-      if (H5Gclose(grp->hdf_grpid) < 0)
+      if (H5Gclose(hdf5_grp->hdf_grpid) < 0)
          return NC_EHDFERR;
-      grp->hdf_grpid = 0;
+      hdf5_grp->hdf_grpid = 0;
 
       /* Attempt to rename & re-open the group, if the parent group is open */
-      if (grp->parent->hdf_grpid)
+      if (parent_hdf5_grp->hdf_grpid)
       {
          /* Rename the group */
-         if (H5Gmove(parent->hdf_grpid, grp->hdr.name, name) < 0)
+         if (H5Gmove(parent_hdf5_grp->hdf_grpid, grp->hdr.name, name) < 0)
             return NC_EHDFERR;
 
          /* Reopen the group, with the new name */
-         if ((grp->hdf_grpid = H5Gopen2(parent->hdf_grpid, name, H5P_DEFAULT)) < 0)
+         if ((hdf5_grp->hdf_grpid = H5Gopen2(parent_hdf5_grp->hdf_grpid, name,
+                                             H5P_DEFAULT)) < 0)
             return NC_EHDFERR;
       }
    }
@@ -151,7 +160,7 @@ NC4_rename_grp(int grpid, const char *name)
       return NC_ENOMEM;
    grp->hdr.hashkey = NC_hashmapkey(grp->hdr.name,strlen(grp->hdr.name)); /* Fix hash key */
 
-   if(!ncindexrebuild(parent->children))
+   if(!ncindexrebuild(grp->parent->children))
       return NC_EINTERNAL;
 
    return NC_NOERR;
