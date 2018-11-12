@@ -92,6 +92,7 @@ int
 NC4_rename_grp(int grpid, const char *name)
 {
    NC_GRP_INFO_T *grp, *parent;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
    NC_FILE_INFO_T *h5;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
@@ -101,7 +102,10 @@ NC4_rename_grp(int grpid, const char *name)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(grpid, &grp, &h5)))
       return retval;
-   assert(h5);
+   assert(h5 && grp && grp->format_grp_info);
+
+   /* Get HDF5-specific group info. */
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    if (h5->no_write)
       return NC_EPERM; /* attempt to write to a read-only file */
