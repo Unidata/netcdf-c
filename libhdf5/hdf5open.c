@@ -637,6 +637,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          size_t ndims, NC_DIM_INFO_T *dim)
 {
    NC_VAR_INFO_T *var = NULL;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t access_pid = 0;
    int incr_id_rc = 0; /* Whether dataset ID's ref count has been incremented */
    int d;
@@ -678,10 +679,12 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Add storage for HDF5-specific var info. */
    if (!(var->format_var_info = calloc(1, sizeof(NC_HDF5_VAR_INFO_T))))
       BAIL(NC_ENOMEM);
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    /* Fill in what we already know. */
+   hdf5_var->hdf_datasetid = datasetid;
    var->hdf_datasetid = datasetid;
-   H5Iinc_ref(var->hdf_datasetid); /* Increment number of objects using ID */
+   H5Iinc_ref(hdf5_var->hdf_datasetid); /* Increment number of objects using ID */
    incr_id_rc++; /* Indicate that we've incremented the ref. count (for errors) */
    var->created = NC_TRUE;
 

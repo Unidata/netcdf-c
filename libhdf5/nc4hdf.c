@@ -80,19 +80,25 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
    LOG((3, "%s: grp->hdr.name %s", __func__, grp->hdr.name));
 
    /* If there are any child groups, attach dimscale there, if needed. */
-   for(i=0;i<ncindexsize(grp->children);i++) {
-      child_grp = (NC_GRP_INFO_T*)ncindexith(grp->children,i);
-      if(child_grp == NULL) continue;
+   for (i = 0; i < ncindexsize(grp->children); i++)
+   {
+      child_grp = (NC_GRP_INFO_T*)ncindexith(grp->children, i);
+      assert(child_grp);
       if ((retval = rec_reattach_scales(child_grp, dimid, dimscaleid)))
          return retval;
    }
 
    /* Find any vars that use this dimension id. */
-   for(i=0;i<ncindexsize(grp->vars);i++)
+   for (i = 0; i < ncindexsize(grp->vars); i++)
    {
+      NC_HDF5_VAR_INFO_T *hdf5_var;
+
       var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
-      if(var == NULL) continue;
+      assert(var && var->format_var_info);
+      hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
       for (d = 0; d < var->ndims; d++)
+      {
          if (var->dimids[d] == dimid && !var->dimscale)
          {
             LOG((2, "%s: attaching scale for dimid %d to var %s",
@@ -104,6 +110,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                var->dimscale_attached[d] = NC_TRUE;
             }
          }
+      }
    }
    return NC_NOERR;
 }
@@ -144,22 +151,30 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
    }
 
    /* Find any vars that use this dimension id. */
-   for(i=0;i<ncindexsize(grp->vars);i++) {
-      var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
-      if(var == NULL) continue;
+   for (i = 0; i < ncindexsize(grp->vars); i++)
+   {
+      NC_HDF5_VAR_INFO_T *hdf5_var;
+      var = (NC_VAR_INFO_T*)ncindexith(grp->vars, i);
+      assert(var && var->format_var_info);
+      hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
       for (d = 0; d < var->ndims; d++)
+      {
          if (var->dimids[d] == dimid && !var->dimscale)
          {
             LOG((2, "%s: detaching scale for dimid %d to var %s",
                  __func__, var->dimids[d], var->hdr.name));
             if (var->created)
+            {
                if (var->dimscale_attached && var->dimscale_attached[d])
                {
                   if (H5DSdetach_scale(var->hdf_datasetid, dimscaleid, d) < 0)
                      return NC_EHDFERR;
                   var->dimscale_attached[d] = NC_FALSE;
                }
+            }
          }
+      }
    }
    return NC_NOERR;
 }
@@ -179,13 +194,15 @@ int
 nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
 {
    NC_VAR_INFO_T *var;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
 
    assert(grp && grp->format_grp_info && dataset);
 
    /* Find the requested varid. */
-   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
-   if (!var) return NC_ENOTVAR;
-   assert(var->hdr.id == varid);
+   if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+      return NC_ENOTVAR;
+   assert(var && var->hdr.id == varid && var->format_var_info);
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    /* Open this dataset if necessary. */
    if (!var->hdf_datasetid)
@@ -193,9 +210,11 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
       NC_HDF5_GRP_INFO_T *hdf5_grp;
       hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
-      if ((var->hdf_datasetid = H5Dopen2(hdf5_grp->hdf_grpid,
-                                         var->hdr.name, H5P_DEFAULT)) < 0)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(hdf5_grp->hdf_grpid,
+                                              var->hdr.name, H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
+      var->hdf_datasetid = hdf5_var->hdf_datasetid;
+
    }
 
    *dataset = var->hdf_datasetid;
