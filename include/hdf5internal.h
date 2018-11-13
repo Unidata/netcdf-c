@@ -82,6 +82,13 @@ int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_
 void reportopenobjects(int log, hid_t);
 int nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp);
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
+int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
+int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
+int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
+int nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5);
+int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
+NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_FILE_INFO_T* h5,
+                                      hid_t target_hdf_typeid);
 
 /* Used by NC4_set_provenance */
 int nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,

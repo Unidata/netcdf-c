@@ -567,6 +567,7 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
 int
 nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
 {
+   assert(var);
 
    /* Remember the number of dimensions. */
    var->ndims = ndims;
