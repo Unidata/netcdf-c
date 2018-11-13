@@ -1693,7 +1693,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
                /* Find dataset ID for dimension */
                if (d1->coord_var)
-                  dim_datasetid = d1->coord_var->hdf_datasetid;
+                  dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(d1->coord_var->format_var_info))->hdf_datasetid;
                else
                   dim_datasetid = hdf5_d1->hdf_dimscaleid;
                assert(dim_datasetid > 0);
