@@ -1183,7 +1183,6 @@ var_free(NC_VAR_INFO_T *var)
    ncindexfree(var->att);
 
    /* Free some things that may be allocated. */
-   /* Free some things that may be allocated. */
    if (var->chunksizes)
       free(var->chunksizes);
 
@@ -1233,6 +1232,10 @@ var_free(NC_VAR_INFO_T *var)
    if (var->params)
       free(var->params);
 
+   /* Delete any format-specific info. */
+   if (var->format_var_info)
+      free(var->format_var_info);
+
    /* Delete the var. */
    free(var);
 
@@ -1242,26 +1245,24 @@ var_free(NC_VAR_INFO_T *var)
 /**
  * @internal  Delete a var, and free the memory.
  *
- * @param grp the containing group
+ * @param grp Pointer to the strct for the containing group.
  * @param var Pointer to the var info struct of var to delete.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
+nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    int i;
 
-   if(var == NULL)
-      return NC_NOERR;
+   assert(var && grp);
 
    /* Remove from lists */
-   if(grp) {
-      i = ncindexfind(grp->vars,(NC_OBJ*)var);
-      if(i >= 0)
-         ncindexidel(grp->vars, i);
-   }
+   i = ncindexfind(grp->vars, (NC_OBJ *)var);
+   if (i >= 0)
+      ncindexidel(grp->vars, i);
+
    return var_free(var);
 }
 
