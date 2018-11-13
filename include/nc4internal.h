@@ -321,13 +321,8 @@ int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		     const void *fill_value, int strict_nc3);
 
 /* These functions do HDF5 things. */
-int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
-int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
-int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
-int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
-int nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5);
+/* int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp); */
 int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
-int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
 int nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /* Find items in the in-memory lists of metadata. */
@@ -340,8 +335,6 @@ int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
 int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
 int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
 int nc4_find_type(const NC_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
-NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_FILE_INFO_T* h5,
-                                      hid_t target_hdf_typeid);
 NC_TYPE_INFO_T *nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name);
 NC_TYPE_INFO_T *nc4_rec_find_equal_type(NC_GRP_INFO_T *start_grp, int ncid1,
                                         NC_TYPE_INFO_T *type);
