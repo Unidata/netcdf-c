@@ -390,6 +390,11 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    /* Create a new var and fill in some HDF5 cache setting values. */
    if ((retval = nc4_var_list_add(grp, norm_name, ndims, &var)))
       BAIL(retval);
+
+   /* Add storage for HDF5-specific var info. */
+   if (!(var->format_var_info = calloc(1, sizeof(NC_HDF5_VAR_INFO_T))))
+      BAIL(NC_ENOMEM);
+
    var->is_new_var = NC_TRUE;
 
    /* Point to the type, and increment its ref. count */
