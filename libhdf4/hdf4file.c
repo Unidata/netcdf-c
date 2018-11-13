@@ -57,7 +57,7 @@ hdf4_rec_grp_del(NC_GRP_INFO_T *grp)
       NC_VAR_HDF4_INFO_T *hdf4_var;
       
       var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
-      if (var == NULL) continue;
+      assert(var);
       LOG((4, "%s: deleting var %s", __func__, var->hdr.name));
 
       /* Get the HDF4 specific var metadata. */
@@ -67,7 +67,6 @@ hdf4_rec_grp_del(NC_GRP_INFO_T *grp)
        * scale. */
       if (hdf4_var->sdsid && SDendaccess(hdf4_var->sdsid) < 0)
          return NC_EHDFERR;
-      free(hdf4_var);
    }
 
    return NC_NOERR;
