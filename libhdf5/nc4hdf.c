@@ -3007,11 +3007,14 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
    LOG((4, "%s: grp->hdr.name %s", __func__, grp->hdr.name));
 
    /* Perform var dimscale match for child groups. */
-   for(i=0;i<ncindexsize(grp->children);i++) {
-      if((g = (NC_GRP_INFO_T*)ncindexith(grp->children,i)) == NULL) continue;
+   for (i = 0; i < ncindexsize(grp->children); i++)
+   {
+      g = (NC_GRP_INFO_T*)ncindexith(grp->children, i);
+      assert(g);
       if ((retval = nc4_rec_match_dimscales(g)))
          return retval;
    }
+
    /* Check all the vars in this group. If they have dimscale info,
     * try and find a dimension for them. */
    for (i = 0; i < ncindexsize(grp->vars); i++)
@@ -3056,7 +3059,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
          int j;
 
          /* Are there dimscales for this variable? */
-         if (var->dimscale_hdf5_objids)
+         if (hdf5_var->dimscale_hdf5_objids)
          {
             for (d = 0; d < var->ndims; d++)
             {
@@ -3077,10 +3080,10 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 
                      /* Check for exact match of fileno/objid arrays
                       * to find identical objects in HDF5 file. */
-                     if (var->dimscale_hdf5_objids[d].fileno[0] == hdf5_dim->hdf5_objid.fileno[0] &&
-                         var->dimscale_hdf5_objids[d].objno[0] == hdf5_dim->hdf5_objid.objno[0] &&
-                         var->dimscale_hdf5_objids[d].fileno[1] == hdf5_dim->hdf5_objid.fileno[1] &&
-                         var->dimscale_hdf5_objids[d].objno[1] == hdf5_dim->hdf5_objid.objno[1])
+                     if (hdf5_var->dimscale_hdf5_objids[d].fileno[0] == hdf5_dim->hdf5_objid.fileno[0] &&
+                         hdf5_var->dimscale_hdf5_objids[d].objno[0] == hdf5_dim->hdf5_objid.objno[0] &&
+                         hdf5_var->dimscale_hdf5_objids[d].fileno[1] == hdf5_dim->hdf5_objid.fileno[1] &&
+                         hdf5_var->dimscale_hdf5_objids[d].objno[1] == hdf5_dim->hdf5_objid.objno[1])
                      {
                         LOG((4, "%s: for dimension %d, found dim %s", __func__,
                              d, dim->hdr.name));

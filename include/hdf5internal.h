@@ -79,6 +79,7 @@ typedef struct NC_HDF5_GRP_INFO
 typedef struct NC_HDF5_VAR_INFO
 {
    hid_t hdf_datasetid;
+   HDF5_OBJID_T *dimscale_hdf5_objids;
 } NC_HDF5_VAR_INFO_T;
 
 /* Struct to hold HDF5-specific info for a field. */
