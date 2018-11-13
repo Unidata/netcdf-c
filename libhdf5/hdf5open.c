@@ -876,7 +876,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
             BAIL(NC_ENOMEM);
          for (d = 0; d < var->ndims; d++)
          {
-            if (H5DSiterate_scales(var->hdf_datasetid, d, NULL, dimscale_visitor,
+            if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,
                                    &(var->dimscale_hdf5_objids[d])) < 0)
                BAIL(NC_EHDFERR);
             var->dimscale_attached[d] = NC_TRUE;
@@ -1674,7 +1674,7 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    att_info.grp = grp;
 
    /* Determine where to read from in the HDF5 file. */
-   locid = var ? var->hdf_datasetid :
+   locid = var ? ((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid :
       ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid;
 
    /* Now read all the attributes at this location, ignoring special
