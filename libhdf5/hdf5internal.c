@@ -444,7 +444,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
                      if (dim_datasetid > 0)
                      {
                         LOG((3, "detaching scale from %s", var->hdr.name));
-                        if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+                        if (H5DSdetach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
                            BAIL(NC_EHDFERR);
                      }
                      var->dimscale_attached[d] = NC_FALSE;
@@ -486,7 +486,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
       /* Reattach the scale everywhere it is used. */
       /* (Recall that netCDF dimscales are always 1-D) */
       if ((retval = rec_reattach_scales(grp->nc4_info->root_grp,
-                                        var->dimids[0], var->hdf_datasetid)))
+                                        var->dimids[0], hdf5_var->hdf_datasetid)))
          return retval;
 
       /* Set state transition indicator (cancels earlier transition) */
@@ -513,6 +513,7 @@ int
 nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
 {
    NC_VAR_INFO_T *var;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    NC_DIM_INFO_T *dim;
    NC_ATT_INFO_T *att;
    NC_HDF5_GRP_INFO_T *hdf5_grp;
@@ -551,13 +552,14 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
    for (i = 0; i < ncindexsize(grp->vars); i++)
    {
       var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
-      assert(var);
+      assert(var && var->format_var_info);
+      hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
       /* Close the HDF5 dataset associated with this var. */
-      if (var->hdf_datasetid)
+      if (hdf5_var->hdf_datasetid)
       {
-         LOG((3, "closing HDF5 dataset %lld", var->hdf_datasetid));
-         if (H5Dclose(var->hdf_datasetid) < 0)
+         LOG((3, "closing HDF5 dataset %lld", hdf5_var->hdf_datasetid));
+         if (H5Dclose(hdf5_var->hdf_datasetid) < 0)
             return NC_EHDFERR;
       }
 
