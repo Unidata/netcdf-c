@@ -858,6 +858,7 @@ static int
 var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid)
 {
    NC_HDF5_GRP_INFO_T *hdf5_grp;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t plistid = 0, access_plistid = 0, typeid = 0, spaceid = 0;
    hsize_t chunksize[H5S_MAX_RANK], dimsize[H5S_MAX_RANK], maxdimsize[H5S_MAX_RANK];
    int d;
@@ -866,12 +867,13 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    char *name_to_use;
    int retval;
 
-   assert(grp && grp->format_grp_info && var);
+   assert(grp && grp->format_grp_info && var && var->format_var_info);
 
    LOG((3, "%s:: name %s", __func__, var->hdr.name));
 
-   /* Get HDF5-specific group info. */
+   /* Get HDF5-specific group and var info. */
    hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    /* Scalar or not, we need a creation property list. */
    if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0)
@@ -1060,9 +1062,10 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    name_to_use = var->hdf5_name ? var->hdf5_name : var->hdr.name;
    LOG((4, "%s: about to H5Dcreate2 dataset %s of type 0x%x", __func__,
         name_to_use, typeid));
-   if ((var->hdf_datasetid = H5Dcreate2(hdf5_grp->hdf_grpid, name_to_use, typeid,
-                                        spaceid, H5P_DEFAULT, plistid, access_plistid)) < 0)
+   if ((hdf5_var->hdf_datasetid = H5Dcreate2(hdf5_grp->hdf_grpid, name_to_use, typeid,
+                                             spaceid, H5P_DEFAULT, plistid, access_plistid)) < 0)
       BAIL(NC_EHDFERR);
+   var->hdf_datasetid = hdf5_var->hdf_datasetid;
    var->created = NC_TRUE;
    var->is_new_var = NC_FALSE;
 
@@ -1585,15 +1588,17 @@ static int
 write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
    NC_HDF5_GRP_INFO_T *hdf5_grp;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    nc_bool_t replace_existing_var = NC_FALSE;
    int retval;
 
-   assert(var && grp && grp->format_grp_info);
+   assert(var && var->format_var_info && grp && grp->format_grp_info);
 
    LOG((4, "%s: writing var %s", __func__, var->hdr.name));
 
-   /* Get HDF5-specific group info. */
+   /* Get HDF5-specific group and var info. */
    hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    /* If the variable has already been created & the fill value changed,
     * indicate that the existing variable should be replaced. */
@@ -1742,6 +1747,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       /* Free the HDF5 dataset id. */
       if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
          BAIL(NC_EHDFERR);
+      hdf5_var->hdf_datasetid = 0;
       var->hdf_datasetid = 0;
 
       /* Now delete the variable. */
