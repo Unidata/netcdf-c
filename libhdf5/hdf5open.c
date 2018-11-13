@@ -243,15 +243,21 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
 static int
 read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t coord_att_typeid = -1, coord_attid = -1, spaceid = -1;
    hssize_t npoints;
    int retval = NC_NOERR;
    int d;
 
+   assert(grp && var && var->format_var_info);
+
+   /* Get HDF5-sepecific var info. */
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
    /* There is a hidden attribute telling us the ids of the
     * dimensions that apply to this multi-dimensional coordinate
     * variable. Read it. */
-   if ((coord_attid = H5Aopen_name(var->hdf_datasetid, COORDINATES)) < 0)
+   if ((coord_attid = H5Aopen_name(hdf5_var->hdf_datasetid, COORDINATES)) < 0)
       BAIL(NC_EATTMETA);
 
    if ((coord_att_typeid = H5Aget_type(coord_attid)) < 0)
