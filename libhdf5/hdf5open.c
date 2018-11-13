@@ -628,6 +628,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOMEM Out of memory.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
  */
@@ -671,8 +672,12 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       finalname = strdup(obj_name);
 
    /* Add a variable to the end of the group's var list. */
-   if ((retval = nc4_var_list_add(grp,finalname,ndims,&var)))
+   if ((retval = nc4_var_list_add(grp, finalname, ndims, &var)))
       BAIL(retval);
+
+   /* Add storage for HDF5-specific var info. */
+   if (!(var->format_var_info = calloc(1, sizeof(NC_HDF5_VAR_INFO_T))))
+      BAIL(NC_ENOMEM);
 
    /* Fill in what we already know. */
    var->hdf_datasetid = datasetid;
