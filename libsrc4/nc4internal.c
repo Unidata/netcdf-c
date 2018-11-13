@@ -1198,22 +1198,9 @@ var_free(NC_VAR_INFO_T *var)
    if (var->dim)
       free(var->dim);
 
-   /* Delete any fill value allocation. This must be done before the
-    * type_info is freed. */
+   /* Delete any fill value allocation. */
    if (var->fill_value)
-   {
-      /* if (var->hdf_datasetid) */
-      /* { */
-      /*    if (var->type_info) */
-      /*    { */
-      /*       if (var->type_info->nc_type_class == NC_VLEN) */
-      /*          nc_free_vlen((nc_vlen_t *)var->fill_value); */
-      /*       else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value) */
-      /*          free(*(char **)var->fill_value); */
-      /*    } */
-      /* } */
       free(var->fill_value);
-   }
 
    /* Release type information */
    if (var->type_info)

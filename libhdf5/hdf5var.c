@@ -54,7 +54,6 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
          return NC_EHDFERR;
       if ((hdf5_var->hdf_datasetid = H5Dopen2(grpid, var->hdr.name, access_pid)) < 0)
          return NC_EHDFERR;
-      var->hdf_datasetid = hdf5_var->hdf_datasetid;
       if (H5Pclose(access_pid) < 0)
          return NC_EHDFERR;
    }

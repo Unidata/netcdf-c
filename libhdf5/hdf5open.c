@@ -689,7 +689,6 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
    /* Fill in what we already know. */
    hdf5_var->hdf_datasetid = datasetid;
-   var->hdf_datasetid = datasetid;
    H5Iinc_ref(hdf5_var->hdf_datasetid); /* Increment number of objects using ID */
    incr_id_rc++; /* Indicate that we've incremented the ref. count (for errors) */
    var->created = NC_TRUE;
