@@ -215,8 +215,6 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
       if ((hdf5_var->hdf_datasetid = H5Dopen2(hdf5_grp->hdf_grpid,
                                               var->hdr.name, H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
-      var->hdf_datasetid = hdf5_var->hdf_datasetid;
-
    }
 
    *dataset = hdf5_var->hdf_datasetid;
@@ -1073,7 +1071,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    if ((hdf5_var->hdf_datasetid = H5Dcreate2(hdf5_grp->hdf_grpid, name_to_use, typeid,
                                              spaceid, H5P_DEFAULT, plistid, access_plistid)) < 0)
       BAIL(NC_EHDFERR);
-   var->hdf_datasetid = hdf5_var->hdf_datasetid;
    var->created = NC_TRUE;
    var->is_new_var = NC_FALSE;
 
@@ -1719,7 +1716,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
        * for making a dataset not a scale. -QAK) */
       if (var->created)
       {
-         if ((retval = remove_coord_atts(var->hdf_datasetid)))
+         if ((retval = remove_coord_atts(hdf5_var->hdf_datasetid)))
             BAIL(retval);
       }
 
@@ -1740,12 +1737,12 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
                /* Find dataset ID for dimension */
                if (dim1->coord_var)
-                  dim_datasetid = dim1->coord_var->hdf_datasetid;
+                  dim_datasetid = ((NC_HDF5_VAR_INFO_T *)dim1->coord_var->format_var_info)->hdf_datasetid;
                else
                   dim_datasetid = hdf5_dim1->hdf_dimscaleid;
                assert(dim_datasetid > 0);
 
-               if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+               if (H5DSdetach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
                   BAIL(NC_EHDFERR);
                var->dimscale_attached[d] = NC_FALSE;
             }
@@ -1757,10 +1754,9 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    if (replace_existing_var)
    {
       /* Free the HDF5 dataset id. */
-      if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
+      if (hdf5_var->hdf_datasetid && H5Dclose(hdf5_var->hdf_datasetid) < 0)
          BAIL(NC_EHDFERR);
       hdf5_var->hdf_datasetid = 0;
-      var->hdf_datasetid = 0;
 
       /* Now delete the variable. */
       if (H5Gunlink(hdf5_grp->hdf_grpid, var->hdr.name) < 0)
