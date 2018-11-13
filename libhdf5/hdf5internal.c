@@ -561,6 +561,17 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
          LOG((3, "closing HDF5 dataset %lld", hdf5_var->hdf_datasetid));
          if (H5Dclose(hdf5_var->hdf_datasetid) < 0)
             return NC_EHDFERR;
+
+         if (var->fill_value)
+         {
+            if (var->type_info)
+            {
+               if (var->type_info->nc_type_class == NC_VLEN)
+                  nc_free_vlen((nc_vlen_t *)var->fill_value);
+               else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value)
+                  free(*(char **)var->fill_value);
+            }
+         }
       }
 
       for (a = 0; a < ncindexsize(var->att); a++)
