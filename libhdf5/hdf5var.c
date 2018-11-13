@@ -29,10 +29,14 @@
 int
 nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t access_pid;
    hid_t grpid;
 
-   assert(var && grp && grp->format_grp_info);
+   assert(var && var->format_var_info && grp && grp->format_grp_info);
+
+   /* Get the HDF5-specific var info. */
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    if (var->hdf_datasetid)
    {
@@ -48,8 +52,9 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
          return NC_EHDFERR;
       if (H5Dclose(var->hdf_datasetid) < 0)
          return NC_EHDFERR;
-      if ((var->hdf_datasetid = H5Dopen2(grpid, var->hdr.name, access_pid)) < 0)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(grpid, var->hdr.name, access_pid)) < 0)
          return NC_EHDFERR;
+      var->hdf_datasetid = hdf5_var->hdf_datasetid;
       if (H5Pclose(access_pid) < 0)
          return NC_EHDFERR;
    }
