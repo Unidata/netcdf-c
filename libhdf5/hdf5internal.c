@@ -574,6 +574,10 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
          }
       }
 
+      /* Delete any HDF5 dimscale objid information. */
+      if (hdf5_var->dimscale_hdf5_objids)
+         free(hdf5_var->dimscale_hdf5_objids);
+
       for (a = 0; a < ncindexsize(var->att); a++)
       {
          NC_HDF5_ATT_INFO_T *hdf5_att;
