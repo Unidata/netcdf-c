@@ -433,7 +433,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 
                      /* Find dataset ID for dimension */
                      if (dim1->coord_var)
-                        dim_datasetid = dim1->coord_var->hdf_datasetid;
+                        dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
                      else
                         dim_datasetid = hdf5_dim1->hdf_dimscaleid;
 
