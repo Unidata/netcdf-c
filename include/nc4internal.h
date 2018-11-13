@@ -169,9 +169,7 @@ typedef struct NC_VAR_INFO
    nc_bool_t fletcher32;        /* True if var has fletcher32 filter applied */
    size_t chunk_cache_size, chunk_cache_nelems;
    float chunk_cache_preemption;
-#ifdef USE_HDF4
    void *format_var_info;       /* Pointer to any binary format info. */
-#endif /* USE_HDF4 */
    /* Stuff for arbitrary filters */
    unsigned int filterid;
    size_t nparams;
@@ -187,6 +185,7 @@ typedef struct NC_FIELD_INFO
    size_t offset;
    int ndims;
    int *dim_size;
+   void *format_field_info;  /* Pointer to any binary format info for field. */
 } NC_FIELD_INFO_T;
 
 typedef struct NC_ENUM_MEMBER_INFO
@@ -376,10 +375,6 @@ int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
 int nc4_enum_member_add(NC_TYPE_INFO_T *type, size_t size,
 			const char *name, const void *value);
 
-/* Break & reform coordinate variables */
-int nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim);
-int nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim);
-
 /* Check and normalize names. */
 int NC_check_name(const char *name);
 int nc4_check_name(const char *name, char *norm_name);
@@ -390,7 +385,6 @@ int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value);
 
 /* Close the file. */
-int nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
 int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
 
 /* HDF5 initialization/finalization */
@@ -457,7 +451,6 @@ For netcdf4 files, capture state information about the following:
 /* Version 2 changes this because '|' was causing bash problems */
 #define NCPROPSSEP1  '|'
 #define NCPROPSSEP2  ','
-
 
 /* Other hidden attributes */
 #define ISNETCDF4ATT "_IsNetcdf4"
