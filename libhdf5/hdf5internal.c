@@ -274,7 +274,7 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 int
 nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim)
 {
-   int retval = NC_NOERR;
+   int retval;
 
    /* Sanity checks */
    assert(grp && coord_var && dim && dim->coord_var == coord_var &&
@@ -286,7 +286,8 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
    /* If we're replacing an existing dimscale dataset, go to
     * every var in the file and detach this dimension scale. */
    if ((retval = rec_detach_scales(grp->nc4_info->root_grp,
-                                   dim->hdr.id, coord_var->hdf_datasetid)))
+                                   dim->hdr.id,
+                                   ((NC_HDF5_VAR_INFO_T *)(coord_var->format_var_info))->hdf_datasetid)))
       return retval;
 
    /* Allow attached dimscales to be tracked on the [former]
@@ -385,16 +386,19 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 {
    NC_HDF5_DIM_INFO_T *hdf5_dim;
    NC_HDF5_GRP_INFO_T *hdf5_grp;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    int need_to_reattach_scales = 0;
    int retval = NC_NOERR;
 
-   assert(grp && grp->format_grp_info && var && dim && dim->format_dim_info);
+   assert(grp && grp->format_grp_info && var && var->format_var_info &&
+          dim && dim->format_dim_info);
    LOG((3, "%s: dim->hdr.name %s var->hdr.name %s", __func__, dim->hdr.name,
         var->hdr.name));
 
-   /* Get HDF5-specific dim and group info. */
+   /* Get HDF5-specific dim, group, and var info. */
    hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
    hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    /* Detach dimscales from the [new] coordinate variable */
    if (var->dimscale_attached)
