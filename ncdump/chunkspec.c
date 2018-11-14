@@ -242,10 +242,19 @@ varchunkspec_parse(int igrp, const char *spec0)
     if(p == NULL)
 	{ret = NC_EINVAL; goto done;}
     *p++ = '\0';
+
     /* Lookup the variable by name */
     ret = nc_inq_varid2(igrp, spec, &chunkspec->ivarid, &chunkspec->igrpid);
     if(ret != NC_NOERR) goto done;
     
+    if(*p == '\0') {/* we have -c var: => do not chunk var */
+	chunkspec->omit = 1;
+        /* add the chunkspec to our list */
+        listpush(varchunkspecs,chunkspec);
+        chunkspec = NULL;
+	goto done;
+    }
+
     /* Iterate over dimension sizes */
     while(*p) {
 	unsigned long dimsize;
