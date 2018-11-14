@@ -112,25 +112,24 @@ typedef struct NC_OBJ {
 typedef struct NC_DIM_INFO
 {
    NC_OBJ hdr;
-   struct NC_GRP_INFO* container;  /* containing group */
+   struct NC_GRP_INFO *container;  /* containing group */
    size_t len;
    nc_bool_t unlimited;         /* True if the dimension is unlimited */
    nc_bool_t extended;          /* True if the dimension needs to be extended */
    nc_bool_t too_long;          /* True if len is too big to fit in local size_t. */
-   hid_t hdf_dimscaleid;        /* Non-zero if a DIM_WITHOUT_VARIABLE dataset is in use (no coord var). */
-   HDF5_OBJID_T hdf5_objid;
+   void *format_dim_info;       /* Pointer to format-specific dim info. */
    struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */
 } NC_DIM_INFO_T;
 
 typedef struct NC_ATT_INFO
 {
    NC_OBJ hdr;
-   struct NC_OBJ* container;    /* containing group|var */
+   struct NC_OBJ *container;    /* containing group|var */
    int len;
    nc_bool_t dirty;             /* True if attribute modified */
    nc_bool_t created;           /* True if attribute already created */
    nc_type nc_typeid;           /* netCDF type of attribute's data */
-   hid_t native_hdf_typeid;     /* Native HDF5 datatype for attribute's data */
+   void *format_att_info;
    void *data;
    nc_vlen_t *vldata; /* only used for vlen */
    char **stdata; /* only for string type. */
@@ -250,7 +249,7 @@ typedef struct NC_TYPE_INFO
 typedef struct NC_GRP_INFO
 {
    NC_OBJ hdr;
-   hid_t hdf_grpid;
+   void *format_grp_info;
    struct NC_FILE_INFO *nc4_info;
    struct NC_GRP_INFO *parent;
    int atts_not_read;
@@ -376,10 +375,8 @@ int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims, NC_VAR_INF
 int nc4_var_list_add2(NC_GRP_INFO_T* grp, const char* name, NC_VAR_INFO_T **var);
 int nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims);
 int nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var);
-int nc4_var_free(NC_VAR_INFO_T *var);
 int nc4_dim_list_add(NC_GRP_INFO_T* grp, const char* name, size_t len, int assignedid, NC_DIM_INFO_T **dim);
 int nc4_dim_list_del(NC_GRP_INFO_T* grp, NC_DIM_INFO_T *dim);
-int nc4_dim_free(NC_DIM_INFO_T *dim);
 int nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid, NC_TYPE_INFO_T **type);
 int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name, NC_TYPE_INFO_T **type);
 int nc4_type_list_del(NC_GRP_INFO_T* grp, NC_TYPE_INFO_T *type);
@@ -389,7 +386,6 @@ int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
 		       nc_type xtype, int ndims, const int *dim_sizesp);
 int nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att);
 int nc4_att_list_del(NCindex* list, NC_ATT_INFO_T *att);
-int nc4_att_free(NC_ATT_INFO_T *att);
 int nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name, NC_GRP_INFO_T **grp);
 int nc4_build_root_grp(NC_FILE_INFO_T* h5);
 int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
@@ -410,7 +406,8 @@ int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value);
 
 /* Close the file. */
-int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio*);
+int nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
+int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
 
 /* HDF5 initialization/finalization */
 extern int nc4_hdf5_initialized;

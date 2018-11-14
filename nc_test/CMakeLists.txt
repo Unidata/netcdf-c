@@ -78,14 +78,11 @@ IF(BUILD_UTILITIES)
       add_sh_test(nc_test run_mmap)
       SET_TESTS_PROPERTIES(nc_test_run_mmap PROPERTIES RUN_SERIAL TRUE)
     ENDIF(BUILD_MMAP)
-    if(USE_NETCDF4)
-      IF(LARGE_FILE_TESTS)
-        add_sh_test(nc_test run_diskless2)
-      ENDIF(LARGE_FILE_TESTS)
-    ENDIF(USE_NETCDF4)
     add_sh_test(nc_test run_diskless5)
     add_sh_test(nc_test run_inmemory)
-
+    IF(LARGE_FILE_TESTS)
+      add_sh_test(nc_test run_diskless2)
+    ENDIF()
 ENDIF(BUILD_UTILITIES)
 
 # Copy some test files from current source dir to out-of-tree build dir.
