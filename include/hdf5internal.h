@@ -56,11 +56,30 @@ typedef struct  NC_HDF5_FILE_INFO
    hid_t hdfid;
 } NC_HDF5_FILE_INFO_T;
 
+/* This is a struct to handle the dim metadata. */
+typedef struct NC_HDF5_DIM_INFO
+{
+   hid_t hdf_dimscaleid;        /* Non-zero if a DIM_WITHOUT_VARIABLE dataset is in use (no coord var). */
+   HDF5_OBJID_T hdf5_objid;
+} NC_HDF5_DIM_INFO_T;
+
+/** Strut to hold HDF5-specific info for attributes. */
+typedef struct  NC_HDF5_ATT_INFO
+{
+   hid_t native_hdf_typeid;     /* Native HDF5 datatype for attribute's data */
+} NC_HDF5_ATT_INFO_T;
+
+/* Struct to hold HDF5-specific info for a group. */
+typedef struct NC_HDF5_GRP_INFO
+{
+   hid_t hdf_grpid;
+} NC_HDF5_GRP_INFO_T;
+
 /* These functions do HDF5 things. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 void reportopenobjects(int log, hid_t);
-
+int nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp);
 
 /* Used by NC4_set_provenance */
 int nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,

@@ -143,7 +143,8 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
    {
       if (varid == NC_GLOBAL)
       {
-         if (H5Adelete(grp->hdf_grpid, att->hdr.name) < 0)
+         if (H5Adelete(((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid,
+                       att->hdr.name) < 0)
             return NC_EHDFERR;
       }
       else
@@ -237,7 +238,7 @@ NC4_del_att(int ncid, int varid, const char *name)
 
    /* Determine the location id in the HDF5 file. */
    if (varid == NC_GLOBAL)
-      locid = grp->hdf_grpid;
+      locid = ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid;
    else if (var->created)
       locid = var->hdf_datasetid;
 
@@ -451,7 +452,11 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
    {
       LOG((3, "adding attribute %s to the list...", norm_name));
       if ((ret = nc4_att_list_add(attlist, norm_name, &att)))
-         BAIL (ret);
+         BAIL(ret);
+
+      /* Allocate storage for the HDF5 specific att info. */
+      if (!(att->format_att_info = calloc(1, sizeof(NC_HDF5_ATT_INFO_T))))
+         BAIL(NC_ENOMEM);
    }
 
    /* Now fill in the metadata. */
