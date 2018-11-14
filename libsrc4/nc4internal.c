@@ -1207,10 +1207,6 @@ var_free(NC_VAR_INFO_T *var)
       if ((retval = nc4_type_free(var->type_info)))
          return retval;
 
-   /* Delete any HDF5 dimscale objid information. */
-   if (var->dimscale_hdf5_objids)
-      free(var->dimscale_hdf5_objids);
-
    /* Delete information about the attachment status of dimscales. */
    if (var->dimscale_attached)
       free(var->dimscale_attached);

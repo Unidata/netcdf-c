@@ -161,7 +161,7 @@ typedef struct NC_VAR_INFO
    int parallel_access;         /* Type of parallel access for I/O on variable (collective or independent) */
    nc_bool_t dimscale;          /* True if var is a dimscale */
    nc_bool_t *dimscale_attached;        /* Array of flags that are true if dimscale is attached for that dim index */
-   HDF5_OBJID_T *dimscale_hdf5_objids;
+   /* HDF5_OBJID_T *dimscale_hdf5_objids; */
    nc_bool_t deflate;           /* True if var has deflate filter applied */
    int deflate_level;
    nc_bool_t shuffle;           /* True if var has shuffle filter applied */
