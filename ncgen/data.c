@@ -553,10 +553,10 @@ retry:	    switch ((c=*p++)) {
 	    case 'u':
 		if(hcount == 2) {
    	            snprintf(tmp,sizeof(tmp),"%hhu",
-			(unsigned int)va_arg(argv,unsigned int));
+			(unsigned char)va_arg(argv,unsigned int));
 		} else if(hcount == 1) {
    	            snprintf(tmp,sizeof(tmp),"%hu",
-			(unsigned int)va_arg(argv,unsigned int));
+			(unsigned short)va_arg(argv,unsigned int));
 		} else if(lcount == 2) {
    	            snprintf(tmp,sizeof(tmp),"%llu",
 			(unsigned long long)va_arg(argv,unsigned long long));
@@ -572,10 +572,10 @@ retry:	    switch ((c=*p++)) {
 	    case 'd':
 		if(hcount == 2) {
    	            snprintf(tmp,sizeof(tmp),"%hhd",
-			(signed int)va_arg(argv,signed int));
+			(signed char)va_arg(argv,signed int));
 		} else if(hcount == 1) {
    	            snprintf(tmp,sizeof(tmp),"%hd",
-			(signed int)va_arg(argv,signed int));
+			(signed short)va_arg(argv,signed int));
 		} else if(lcount == 2) {
    	            snprintf(tmp,sizeof(tmp),"%lld",
 			(signed long long)va_arg(argv,signed long long));
