@@ -135,13 +135,16 @@ ref_tst_comp \
 ref_tst_comp2 \
 ref_tst_group_data \
 ref_tst_opaque_data \
-ref_tst_vlen_data \
 ref_tst_solar_1 \
 ref_tst_solar_2 \
 ref_tst_enum_data \
 ref_tst_nans \
 ref_tst_special_atts \
 ref_const_test"
+
+if test "x$NOVLEN" = x ; then
+TESTS4="$TESTS4 ref_tst_vlen_data"
+fi
 
 SPECIALTESTS="ref_tst_special_atts"
 

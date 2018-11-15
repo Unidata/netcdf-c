@@ -43,6 +43,7 @@ EXTERNC int bbCat(Bytebuffer*,const char*);
 EXTERNC int bbCatbuf(Bytebuffer*,const Bytebuffer*);
 EXTERNC int bbSetcontents(Bytebuffer*, char*, const unsigned int);
 EXTERNC int bbNull(Bytebuffer*);
+EXTERNC char* bbExtract(Bytebuffer*);
 
 /* Following are always "in-lined"*/
 #define bbLength(bb) ((bb)?(bb)->length:0U)

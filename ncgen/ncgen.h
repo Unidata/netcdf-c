@@ -131,7 +131,7 @@ unsigned int id;
 /* Note: some non-var specials (i.e. _Format) are not included in this struct*/
 typedef struct Specialdata {
     int flags;
-    Datalist*      _Fillvalue; /* This is a per-type  */
+    Datalist*      _Fillvalue; /* This is a per-type ; points to the _FillValue attribute node */
     int           _Storage;      /* NC_CHUNKED | NC_CONTIGUOUS*/
     size_t*       _ChunkSizes;     /* NULL => defaults*/
         int nchunks;     /*  |_Chunksize| ; 0 => not specified*/
@@ -151,6 +151,18 @@ typedef struct GlobalSpecialdata {
     int           _IsNetcdf4 ;   /* 0 => false, 1 => true */
     int           _Superblock  ; /* HDF5 file superblock version */
 } GlobalSpecialData;
+
+/*
+During the generation of binary data,
+we will generate a number of references
+to strings and opaques that should
+be reclaimed to keep the memory
+checkers happy.
+*/
+typedef struct BinBuffer {
+    Bytebuffer* buf; /* top level data */
+    List* reclaim; /* objects that need to be free'd */
+} BinBuffer;
 
 /* Track a set of dimensions*/
 /* (Note: the netcdf type system is deficient here)*/
@@ -175,7 +187,7 @@ typedef struct Typeinfo {
 	nc_type         typecode;
         unsigned long   offset;   /* fields in struct*/
         unsigned long   alignment;/* fields in struct*/
-        NCConstant      econst;   /* for enum values*/
+        NCConstant*      econst;   /* for enum values*/
         Dimset          dimset;     /* for NC_VAR/NC_FIELD/NC_ATT*/
         size_t   size;     /* for opaque, compound, etc.*/
 	size_t   cmpdalign; /* alignment needed for total size instances */
@@ -188,12 +200,16 @@ typedef struct Typeinfo {
 typedef struct Varinfo {
     int		nattributes; /* |attributes|*/
     List*       attributes;  /* List<Symbol*>*/
-    Specialdata special;
+    Specialdata* special;
 } Varinfo;
 
 typedef struct Groupinfo {
     int is_root;
 } Groupinfo;
+
+typedef struct Fileinfo {
+    char* filename;
+} Fileinfo;
 
 /* store info when the symbol
    is really a reference to another
@@ -206,7 +222,6 @@ typedef struct Reference {
 } Reference;
 
 typedef struct Symbol {  /* symbol table entry*/
-        struct Symbol*  next;    /* Linked list of all defined symbols*/
         nc_class        objectclass;  /* NC_DIM|NC_VLEN|NC_OPAQUE...*/
         nc_class        subclass;  /* NC_STRUCT|...*/
         char*           name;
@@ -226,11 +241,13 @@ typedef struct Symbol {  /* symbol table entry*/
         Attrinfo  att;
         Diminfo   dim;
         Groupinfo grp;
+	Fileinfo  file;
  	Reference ref; /* symbol is really a reference to another symbol*/
 	/* Misc pieces of info*/
 	int             lineno;  /* at point of creation*/
 	int		touched; /* for sorting*/
-        int             ncid;  /* from netcdf API: varid, or dimid, or etc.*/
+	/* for use by -lb */
+        int             nc_id;  /* from netcdf API: varid, or dimid, or etc.*/
 } Symbol;
 
 
