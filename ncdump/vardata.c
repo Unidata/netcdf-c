@@ -18,6 +18,7 @@
 #include "ncdump.h"
 #include "indent.h"
 #include "vardata.h"
+#include "netcdf_aux.h"
 
 /* maximum len of string needed for one value of a primitive type */
 #define MAX_OUTPUT_LEN 100
@@ -493,14 +494,9 @@ print_rows(
 	    }
 	    print_any_val(sb, vp, (void *)valp);
 	}
-	/* If this is an array of strings, then reclaim the space */
-	if(vp->type == NC_STRING) {
-	    int i; /* compute number of elements specified by cor and edg */
-	    size_t total = 1;
-	    for(i=0;i<rank;i++)
-		total *= edg[i];
-	    nc_free_string(total,(char**)vals);
-	}
+        /* In case vals has memory hanging off e.g. vlen or string, make sure to reclaim it */
+        (void)ncaux_reclaim_data(ncid,vp->type,vals,ncols);
+
 	/* determine if this is the last row */
 	lastrow = true;
 	for(j = 0; j < rank - 1; j++) {

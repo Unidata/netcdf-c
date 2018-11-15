@@ -21,6 +21,9 @@ convert1(NCConstant* src, NCConstant* dst)
 #ifdef _MSC_VER
     int byteval;
 #endif
+
+    memset(&tmp,0,sizeof(tmp));
+
     dst->lineno = src->lineno;
 
     /* Need to translate all possible sources to all possible sinks.*/
@@ -30,7 +33,7 @@ convert1(NCConstant* src, NCConstant* dst)
     /* special case for src being NC_FILLVALUE*/
     if(src->nctype == NC_FILLVALUE) {
 	if(dst->nctype != NC_FILLVALUE) {
-	    nc_getfill(dst);
+	    nc_getfill(dst,NULL);
 	} 
 	return;
     }
@@ -42,7 +45,7 @@ convert1(NCConstant* src, NCConstant* dst)
 	} else {
 	    Symbol* econst;
 	    econst = src->value.enumv;
-	    convert1(&econst->typ.econst,dst);
+	    convert1(econst->typ.econst,dst);
 	}
 	return;
     } else if(dst->nctype == NC_ECONST) {
@@ -655,4 +658,3 @@ convertFilterID(const char* id)
 	return nid;
     return 0; /* Not a recognizable id */
 }
-

@@ -475,7 +475,7 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
    if (att->vldata)
    {
       for (i = 0; i < att->len; i++)
-         nc_free_vlen(&att->vldata[i]);
+         nc_free_vlen(&att->vldata[i]); /* FIX: see warning of nc_free_vlen */
       free(att->vldata);
       att->vldata = NULL;
    }
@@ -539,11 +539,18 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
       if (var->type_info->nc_type_class == NC_VLEN)
       {
          nc_vlen_t *in_vlen = (nc_vlen_t *)data, *fv_vlen = (nc_vlen_t *)(var->fill_value);
+         NC_TYPE_INFO_T* basetype;
+	 size_t basetypesize = 0;
 
+	 /* get the basetype and its size */
+	 basetype = var->type_info;
+         if ((retval = nc4_get_typelen_mem(grp->nc4_info, basetype->hdr.id, &basetypesize)))
+             return retval;
+	 /* shallow clone the content of the vlen; shallow because it has only a temporary existence */
          fv_vlen->len = in_vlen->len;
-         if (!(fv_vlen->p = malloc(size * in_vlen->len)))
+         if (!(fv_vlen->p = malloc(basetypesize * in_vlen->len)))
             return NC_ENOMEM;
-         memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * size);
+         memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * basetypesize);
       }
       else if (var->type_info->nc_type_class == NC_STRING)
       {
@@ -579,15 +586,15 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
       if (type_class == NC_VLEN)
       {
          const hvl_t *vldata1;
-         NC_TYPE_INFO_T *type;
+         NC_TYPE_INFO_T *vltype;
          size_t base_typelen;
 
          /* Get the type object for the attribute's type */
-         if ((retval = nc4_find_type(h5, file_type, &type)))
+         if ((retval = nc4_find_type(h5, file_type, &vltype)))
             BAIL(retval);
 
          /* Retrieve the size of the base type */
-         if ((retval = nc4_get_typelen_mem(h5, type->u.v.base_nc_typeid, &base_typelen)))
+         if ((retval = nc4_get_typelen_mem(h5, vltype->u.v.base_nc_typeid, &base_typelen)))
             BAIL(retval);
 
          vldata1 = data;
@@ -596,6 +603,7 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
          for (i = 0; i < att->len; i++)
          {
             att->vldata[i].len = vldata1[i].len;
+	    /* Warning, this only works for cases described for nc_free_vlen() */
             if (!(att->vldata[i].p = malloc(base_typelen * att->vldata[i].len)))
                BAIL(NC_ENOMEM);
             memcpy(att->vldata[i].p, vldata1[i].p, base_typelen * att->vldata[i].len);
