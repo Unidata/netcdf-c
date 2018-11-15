@@ -14,8 +14,9 @@ OS=`uname`
 
 # Test diskless on a reasonably large file size
 
-# Try a large in-memory file
-SIZE=1000000000
+# Try a large in-memory file; two instances at once may be needed when doing realloc
+#SIZE=1000000000
+SIZE=500000000
 
 FILE4=tst_diskless4.nc
 
@@ -27,7 +28,7 @@ rm -fr ref_tst_diskless4.cdl
 cat >ref_tst_diskless4.cdl <<EOF
 netcdf tst_diskless4 {
 dimensions:
-	dim = 1000000000 ;
+	dim = 500000000 ;
 variables:
 	byte var0(dim) ;
 }

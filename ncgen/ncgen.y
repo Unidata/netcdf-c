@@ -13,7 +13,7 @@
 static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 */
 #include        "includes.h"
-#include        "ncoffsets.h"
+#include        "netcdf_aux.h"
 #include        "ncgeny.h"
 #include        "ncgen.h"
 #ifdef USE_NETCDF4
@@ -36,15 +36,18 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #define VLENSIZE  (sizeof(nc_vlen_t))
 #define MAXFLOATDIM 4294967295.0
 
-/* mnemonic */
+/* mnemonics */
 typedef enum Attrkind {ATTRVAR, ATTRGLOBAL, DONTKNOW} Attrkind;
+
+#define ISCONST 1
+#define ISLIST 0
 
 typedef nc_vlen_t vlen_t;
 
 /* We retain the old representation of the symbol list
    as a linked list.
 */
-Symbol* symlist;
+List* symlist;
 
 /* Track rootgroup separately*/
 Symbol* rootgroup;
@@ -109,9 +112,9 @@ List* condefs; /* non-dimension constants used in type defs*/
 List* tmp;
 
 /* Forward */
-static NCConstant makeconstdata(nc_type);
-static NCConstant evaluate(Symbol* fcn, Datalist* arglist);
-static NCConstant makeenumconstref(Symbol*);
+static NCConstant* makeconstdata(nc_type);
+static NCConstant* evaluate(Symbol* fcn, Datalist* arglist);
+static NCConstant* makeenumconstref(Symbol*);
 static void addtogroup(Symbol*);
 static Symbol* currentgroup(void);
 static Symbol* createrootgroup(const char*);
@@ -122,9 +125,8 @@ static Symbol* makeattribute(Symbol*,Symbol*,Symbol*,Datalist*,Attrkind);
 static Symbol* makeprimitivetype(nc_type i);
 static Symbol* makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst);
 static int containsfills(Datalist* list);
-static void datalistextend(Datalist* dl, NCConstant* con);
 static void vercheck(int ncid);
-static long long extractint(NCConstant con);
+static long long extractint(NCConstant* con);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
 #endif
@@ -150,7 +152,7 @@ unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
 long           mark; /* track indices into the sequence*/
 int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
-NCConstant     constant;
+NCConstant*    constant;
 }
 
 %token <sym>
@@ -361,7 +363,7 @@ opaquedecl: OPAQUE_ '(' INT_CONST ')' typename
                     $5->subclass=NC_OPAQUE;
                     $5->typ.typecode=NC_OPAQUE;
                     $5->typ.size=int32_val;
-                    $5->typ.alignment=nctypealignment(NC_OPAQUE);
+                    $5->typ.alignment=ncaux_class_alignment(NC_OPAQUE);
                 }
             ;
 
@@ -375,7 +377,7 @@ vlendecl: typeref '(' '*' ')' typename
                     $5->typ.basetype=basetype;
                     $5->typ.typecode=NC_VLEN;
                     $5->typ.size=VLENSIZE;
-                    $5->typ.alignment=nctypealignment(NC_VLEN);
+                    $5->typ.alignment=ncaux_class_alignment(NC_VLEN);
                 }
           ;
 
@@ -466,6 +468,7 @@ dimdecl:
 #ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = %llu\n",$1->name,(unsigned long long)$1->dim.declsize);
 #endif
+		reclaimconstant($3);
 	      }
         | dimd '=' NC_UNLIMITED_K
                    {
@@ -516,6 +519,9 @@ vardecl:        typeref varlist
 		  	    sym->typ.basetype = $1;
 	                    addtogroup(sym);
 		            listpush(vardefs,(void*)sym);
+			    sym->var.special = ecalloc(sizeof(Specialdata));
+			    if(sym->var.special == NULL)
+			        derror("out of memory");
 			}
 		    }
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
@@ -534,6 +540,7 @@ varspec:        ident dimspec
                     {
 		    int i;
 		    Dimset dimset;
+		    Symbol* var = $1; /* for debugging */
 		    stacklen=listlength(stack);
 		    stackbase=$2;
 		    count = stacklen - stackbase;
@@ -549,11 +556,12 @@ varspec:        ident dimspec
 			    Symbol* dsym = (Symbol*)listget(stack,stackbase+i);
 			    dimset.dimsyms[i] = dsym;
 			}
-			$1->typ.dimset = dimset;
+			var->typ.dimset = dimset;
 		    }
-		    $1->typ.basetype = NULL; /* not yet known*/
-                    $1->objectclass=NC_VAR;
+		    var->typ.basetype = NULL; /* not yet known*/
+                    var->objectclass=NC_VAR;
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
+		    $$ = var;
 		    }
                 ;
 
@@ -711,11 +719,11 @@ attrdecllist: /*empty*/ {} | attrdecl ';' attrdecllist {} ;
 
 attrdecl:
 	  ':' _NCPROPS '=' conststring
-	    {$$ = makespecial(_NCPROPS_FLAG,NULL,NULL,(void*)&$4,ATTRGLOBAL);}
+	    {$$ = makespecial(_NCPROPS_FLAG,NULL,NULL,(void*)$4,ISCONST);}
 	| ':' _ISNETCDF4 '=' constbool
-	    {$$ = makespecial(_ISNETCDF4_FLAG,NULL,NULL,(void*)&$4,ATTRGLOBAL);}
+	    {$$ = makespecial(_ISNETCDF4_FLAG,NULL,NULL,(void*)$4,ISCONST);}
 	| ':' _SUPERBLOCK '=' constint
-	    {$$ = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)&$4,ATTRGLOBAL);}
+	    {$$ = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)$4,ISCONST);}
 	| ':' ident '=' datalist
 	    { $$=makeattribute($2,NULL,NULL,$4,ATTRGLOBAL);}
 	| typeref type_var_ref ':' ident '=' datalist
@@ -739,27 +747,27 @@ attrdecl:
 		}
 	    }
 	| type_var_ref ':' _FILLVALUE '=' datalist
-	    {$$ = makespecial(_FILLVALUE_FLAG,$1,NULL,(void*)$5,0);}
+	    {$$ = makespecial(_FILLVALUE_FLAG,$1,NULL,(void*)$5,ISLIST);}
 	| typeref type_var_ref ':' _FILLVALUE '=' datalist
-	    {$$ = makespecial(_FILLVALUE_FLAG,$2,$1,(void*)$6,0);}
+	    {$$ = makespecial(_FILLVALUE_FLAG,$2,$1,(void*)$6,ISLIST);}
 	| type_var_ref ':' _STORAGE '=' conststring
-	    {$$ = makespecial(_STORAGE_FLAG,$1,NULL,(void*)&$5,1);}
+	    {$$ = makespecial(_STORAGE_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _CHUNKSIZES '=' intlist
-	    {$$ = makespecial(_CHUNKSIZES_FLAG,$1,NULL,(void*)$5,0);}
+	    {$$ = makespecial(_CHUNKSIZES_FLAG,$1,NULL,(void*)$5,ISLIST);}
 	| type_var_ref ':' _FLETCHER32 '=' constbool
-	    {$$ = makespecial(_FLETCHER32_FLAG,$1,NULL,(void*)&$5,1);}
+	    {$$ = makespecial(_FLETCHER32_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _DEFLATELEVEL '=' constint
-	    {$$ = makespecial(_DEFLATE_FLAG,$1,NULL,(void*)&$5,1);}
+	    {$$ = makespecial(_DEFLATE_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _SHUFFLE '=' constbool
-	    {$$ = makespecial(_SHUFFLE_FLAG,$1,NULL,(void*)&$5,1);}
+	    {$$ = makespecial(_SHUFFLE_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _ENDIANNESS '=' conststring
-	    {$$ = makespecial(_ENDIAN_FLAG,$1,NULL,(void*)&$5,1);}
+	    {$$ = makespecial(_ENDIAN_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _FILTER '=' conststring
-	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)&$5,1);}
+	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| type_var_ref ':' _NOFILL '=' constbool
-	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)&$5,1);}
+	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ':' _FORMAT '=' conststring
-	    {$$ = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)&$4,1);}
+	    {$$ = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)$4,ISCONST);}
 	;
 
 path:
@@ -801,9 +809,9 @@ datalist0:
 	;
 
 datalist1: /* Must have at least 1 element */
-	  dataitem {$$ = builddatalist(0); datalistextend($$,&($1));}
+	  dataitem {$$ = const2list($1);}
 	| datalist ',' dataitem
-	    {datalistextend($1,&($3)); $$=$1;}
+	    {dlappend($1,($3)); $$=$1; }
 	;
 
 dataitem:
@@ -830,9 +838,9 @@ function:
 
 arglist:
 	  simpleconstant
-	    {$$ = builddatalist(0); datalistextend($$,&($1));}
+	    {$$ = const2list($1);}
 	| arglist ',' simpleconstant
-	    {datalistextend($1,&($3)); $$=$1;}
+	    {dlappend($1,($3)); $$=$1;}
 	;
 
 simpleconstant:
@@ -851,8 +859,8 @@ simpleconstant:
 	;
 
 intlist:
-	  constint {$$ = builddatalist(0); datalistextend($$,&($1));}
-	| intlist ',' constint {$$=$1; datalistextend($1,&($3));}
+	  constint {$$ = const2list($1);}
+	| intlist ',' constint {$$=$1; dlappend($1,($3));}
 	;
 
 constint:
@@ -892,10 +900,10 @@ yyerror(fmt,va_alist) const char* fmt; va_dcl
 #endif
 {
     va_list argv;
-    vastart(argv,fmt);
+    va_start(argv,fmt);
     (void)fprintf(stderr,"%s: %s line %d: ", progname, cdlname, lineno);
     vderror(fmt,argv);
-    vaend(argv,fmt);
+    va_end(argv);
 }
 
 /* undefine yywrap macro, in case we are using bison instead of yacc */
@@ -919,7 +927,7 @@ parse_init(void)
     int i;
     opaqueid = 0;
     arrayuid = 0;
-    symlist = NULL;
+    symlist = listnew();
     stack = listnew();
     groupstack = listnew();
     consttype = NC_NAT;
@@ -945,11 +953,11 @@ makeprimitivetype(nc_type nctype)
     Symbol* sym = install(primtypenames[nctype]);
     sym->objectclass=NC_TYPE;
     sym->subclass=NC_PRIM;
-    sym->ncid = nctype;
+    sym->nc_id = nctype;
     sym->typ.typecode = nctype;
     sym->typ.size = ncsize(nctype);
     sym->typ.nelems = 1;
-    sym->typ.alignment = nctypealignment(nctype);
+    sym->typ.alignment = ncaux_class_alignment(nctype); 
     /* Make the basetype circular so we can always ask for it */
     sym->typ.basetype = sym;
     sym->prefix = listnew();
@@ -964,14 +972,12 @@ install(const char *sname)
     Symbol* sp;
     sp = (Symbol*) ecalloc (sizeof (struct Symbol));
     sp->name = nulldup(sname);
-    sp->next = symlist;
     sp->lineno = lineno;
     sp->location = currentgroup();
     sp->container = currentgroup();
-    symlist = sp;
+    listpush(symlist,sp);
     return sp;
 }
-
 
 static Symbol*
 currentgroup(void)
@@ -1010,40 +1016,39 @@ creategroup(Symbol * gsym)
     return gsym;
 }
 
-static NCConstant
+static NCConstant*
 makeconstdata(nc_type nctype)
 {
-    NCConstant con = nullconstant;
+    NCConstant* con = nullconst();
     consttype = nctype;
-    con.nctype = nctype;
-    con.lineno = lineno;
-    con.filled = 0;
+    con->nctype = nctype;
+    con->lineno = lineno;
+    con->filled = 0;
     switch (nctype) {
-	case NC_CHAR: con.value.charv = char_val; break;
-        case NC_BYTE: con.value.int8v = byte_val; break;
-        case NC_SHORT: con.value.int16v = int16_val; break;
-        case NC_INT: con.value.int32v = int32_val; break;
+	case NC_CHAR: con->value.charv = char_val; break;
+        case NC_BYTE: con->value.int8v = byte_val; break;
+        case NC_SHORT: con->value.int16v = int16_val; break;
+        case NC_INT: con->value.int32v = int32_val; break;
         case NC_FLOAT:
-	    con.value.floatv = float_val;
+	    con->value.floatv = float_val;
 	    break;
         case NC_DOUBLE:
-	    con.value.doublev = double_val;
+	    con->value.doublev = double_val;
 	    break;
         case NC_STRING: { /* convert to a set of chars*/
 	    size_t len;
 	    len = bbLength(lextext);
-	    con.value.stringv.len = len;
-	    con.value.stringv.stringv = bbDup(lextext);
-	    bbClear(lextext);
+	    con->value.stringv.len = len;
+	    con->value.stringv.stringv = bbExtract(lextext);
 	    }
 	    break;
 
 	/* Allow these constants even in netcdf-3 */
-        case NC_UBYTE: con.value.uint8v = ubyte_val; break;
-        case NC_USHORT: con.value.uint16v = uint16_val; break;
-        case NC_UINT: con.value.uint32v = uint32_val; break;
-        case NC_INT64: con.value.int64v = int64_val; break;
-        case NC_UINT64: con.value.uint64v = uint64_val; break;
+        case NC_UBYTE: con->value.uint8v = ubyte_val; break;
+        case NC_USHORT: con->value.uint16v = uint16_val; break;
+        case NC_UINT: con->value.uint32v = uint32_val; break;
+        case NC_INT64: con->value.int64v = int64_val; break;
+        case NC_UINT64: con->value.uint64v = uint64_val; break;
 
 #ifdef USE_NETCDF4
 	case NC_OPAQUE: {
@@ -1053,8 +1058,8 @@ makeconstdata(nc_type nctype)
 	    s = (char*)ecalloc(len+1);
 	    strncpy(s,bbContents(lextext),len);
 	    s[len] = '\0';
-	    con.value.opaquev.stringv = s;
-	    con.value.opaquev.len = len;
+	    con->value.opaquev.stringv = s;
+	    con->value.opaquev.len = len;
 	    } break;
 
 	case NC_NIL:
@@ -1067,25 +1072,25 @@ makeconstdata(nc_type nctype)
 	default:
 	    yyerror("Data constant: unexpected NC type: %s",
 		    nctypename(nctype));
-	    con.value.stringv.stringv = NULL;
-	    con.value.stringv.len = 0;
+	    con->value.stringv.stringv = NULL;
+	    con->value.stringv.len = 0;
     }
     return con;
 }
 
-static NCConstant
+static NCConstant*
 makeenumconstref(Symbol* refsym)
 {
-    NCConstant con;
+    NCConstant* con = nullconst();
 
     markcdf4("Enum type");
     consttype = NC_ENUM;
-    con.nctype = NC_ECONST;
-    con.lineno = lineno;
-    con.filled = 0;
+    con->nctype = NC_ECONST;
+    con->lineno = lineno;
+    con->filled = 0;
     refsym->objectclass = NC_TYPE;
     refsym->subclass = NC_ECONST;
-    con.value.enumv = refsym;
+    con->value.enumv = refsym;
     return con;
 }
 
@@ -1158,9 +1163,9 @@ static Symbol*
 makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 {
     Symbol* attr = NULL;
-    Datalist* list;
-    NCConstant* con;
-    NCConstant iconst;
+    Datalist* list = NULL;
+    NCConstant* con = NULL;
+    NCConstant* tmp = NULL;
     int tf = 0;
     char* sdata = NULL;
     int idata =  -1;
@@ -1180,44 +1185,48 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     if(tag != _FILLVALUE_FLAG && tag != _FORMAT_FLAG)
         /*Main.*/specials_flag++;
 
-    if(isconst) {
+    if(isconst)
 	con = (NCConstant*)data;
-	list = builddatalist(1);
-        dlappend(list,(NCConstant*)data);
-    } else {
+    else
         list = (Datalist*)data;
-        con = (NCConstant*)list->data;
-    }
 
     switch (tag) {
     case _FLETCHER32_FLAG:
     case _SHUFFLE_FLAG:
     case _ISNETCDF4_FLAG:
     case _NOFILL_FLAG:
-	iconst.nctype = (con->nctype == NC_STRING?NC_STRING:NC_INT);
-	convert1(con,&iconst);
-	tf = truefalse(&iconst,tag);
+	tmp = nullconst();
+	tmp->nctype = (con->nctype == NC_STRING?NC_STRING:NC_INT);
+	convert1(con,tmp);
+	tf = truefalse(tmp,tag);
+	reclaimconstant(tmp);
 	break;
     case _FORMAT_FLAG:
     case _STORAGE_FLAG:
     case _NCPROPS_FLAG:
     case _ENDIAN_FLAG:
     case _FILTER_FLAG:
-	iconst.nctype = NC_STRING;
-	convert1(con,&iconst);
-	if(iconst.nctype == NC_STRING)
-	    sdata = iconst.value.stringv.stringv;
-	else
+	tmp = nullconst();
+        tmp->nctype = NC_STRING;
+	convert1(con,tmp);
+	if(tmp->nctype == NC_STRING) {
+	    sdata = tmp->value.stringv.stringv;
+	    tmp->value.stringv.stringv = NULL;
+	    tmp->value.stringv.len = 0;
+	} else
 	    derror("%s: illegal value",specialname(tag));
+	reclaimconstant(tmp);
 	break;
     case _SUPERBLOCK_FLAG:
     case _DEFLATE_FLAG:
-	iconst.nctype = NC_INT;
-	convert1(con,&iconst);
-	if(iconst.nctype == NC_INT)
-	    idata = iconst.value.int32v;
+	tmp = nullconst();
+        tmp->nctype = NC_INT;
+	convert1(con,tmp);
+	if(tmp->nctype == NC_INT)
+	    idata = tmp->value.int32v;
 	else
 	    derror("%s: illegal value",specialname(tag));
+	reclaimconstant(tmp);
 	break;
     case _CHUNKSIZES_FLAG:
     case _FILLVALUE_FLAG:
@@ -1248,18 +1257,28 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	    globalspecials._IsNetcdf4 = tf;
 	else if(tag == _SUPERBLOCK_FLAG)
 	    globalspecials._Superblock = idata;
-	else if(tag == _NCPROPS_FLAG)
-	    globalspecials._NCProperties = estrdup(sdata);
+	else if(tag == _NCPROPS_FLAG) {
+	    globalspecials._NCProperties = sdata;
+	    sdata = NULL;
+	}	    
     } else {
         Specialdata* special;
         /* Set up special info */
-        special = &vsym->var.special;
+	if(vsym->var.special == NULL) {
+            vsym->var.special = ecalloc(sizeof(Specialdata));
+	    if(vsym->var.special == NULL)
+	        derror("Out of memory");
+	}
+        special = vsym->var.special;
         if(tag == _FILLVALUE_FLAG) {
-            special->_Fillvalue = list;
             /* fillvalue must be a single value*/
-            if(list->length != 1)
+	    if(!isconst && datalistlen(list) != 1)
                 derror("_FillValue: must be a single (possibly compound) value",
                             vsym->name);
+	    if(isconst) {
+	        list = const2list(con);
+		con = NULL;
+	    }
             /* check that the attribute value contains no fill values*/
             if(containsfills(list)) {
                 derror("Attribute data may not contain fill values (i.e. _ )");
@@ -1272,7 +1291,10 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             else if(vsym->typ.basetype != tsym) {
                 derror("_FillValue attribute type does not match variable type: %s",vsym->name);
             }
+            special->_Fillvalue = clonedatalist(list);
+	    /* Create the corresponding attribute */
             attr = makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
+	    list = NULL;
         } else switch (tag) {
 	    /* These will be output as attributes later */
             case _STORAGE_FLAG:
@@ -1315,17 +1337,20 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 break;
           case _CHUNKSIZES_FLAG: {
                 int i;
+		list = (isconst ? const2list(con) : list);		
                 special->nchunks = list->length;
                 special->_ChunkSizes = (size_t*)ecalloc(sizeof(size_t)*special->nchunks);
                 for(i=0;i<special->nchunks;i++) {
-                    iconst.nctype = NC_INT;
-                    convert1(&list->data[i],&iconst);
-                    if(iconst.nctype == NC_INT) {
-                        special->_ChunkSizes[i] = (size_t)iconst.value.int32v;
+		    tmp = nullconst();
+                    tmp->nctype = NC_INT;
+                    convert1(list->data[i],tmp);
+                    if(tmp->nctype == NC_INT) {
+                        special->_ChunkSizes[i] = (size_t)tmp->value.int32v;
                     } else {
                         efree(special->_ChunkSizes);
                         derror("%s: illegal value",specialname(tag));
                     }
+		    reclaimconstant(tmp);
                 }
                 special->flags |= _CHUNKSIZES_FLAG;
                 /* Chunksizes => storage == chunked */
@@ -1342,12 +1367,15 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 		    derror("_Filter: unparseable filter spec: %s",sdata);
 		}
 #else
-        derror("%s: the filter attribute requires netcdf-4 to be enabled",specialname(tag));
+	        derror("%s: the filter attribute requires netcdf-4 to be enabled",specialname(tag));
 #endif
                 break;
             default: PANIC1("makespecial: illegal token: %d",tag);
          }
     }
+    if(sdata) efree(sdata);
+    if(con) reclaimconstant(con);
+    if(list) reclaimdatalist(list);
     return attr;
 }
 
@@ -1383,18 +1411,18 @@ makeattribute(Symbol* asym,
 }
 
 static long long
-extractint(NCConstant con)
+extractint(NCConstant* con)
 {
-    switch (con.nctype) {
-    case NC_BYTE: return (long long)(con.value.int8v);
-    case NC_SHORT: return (long long)(con.value.int16v);
-    case NC_INT: return (long long)(con.value.int32v);
-    case NC_UBYTE: return (long long)(con.value.uint8v);
-    case NC_USHORT: return (long long)(con.value.uint16v);
-    case NC_UINT: return (long long)(con.value.uint32v);
-    case NC_INT64: return (long long)(con.value.int64v);
+    switch (con->nctype) {
+    case NC_BYTE: return (long long)(con->value.int8v);
+    case NC_SHORT: return (long long)(con->value.int16v);
+    case NC_INT: return (long long)(con->value.int32v);
+    case NC_UBYTE: return (long long)(con->value.uint8v);
+    case NC_USHORT: return (long long)(con->value.uint16v);
+    case NC_UINT: return (long long)(con->value.uint32v);
+    case NC_INT64: return (long long)(con->value.int64v);
     default:
-	derror("Not a signed integer type: %d",con.nctype);
+	derror("Not a signed integer type: %d",con->nctype);
 	break;
     }
     return 0;
@@ -1405,21 +1433,15 @@ containsfills(Datalist* list)
 {
     if(list != NULL) {
         int i;
-        NCConstant* con = list->data;
-        for(i=0;i<list->length;i++,con++) {
-	    if(con->nctype == NC_COMPOUND) {
-	        if(containsfills(con->value.compoundv)) return 1;
-	    } else if(con->nctype == NC_FILLVALUE)
+        NCConstant** cons = list->data;
+        for(i=0;i<list->length;i++) {
+	    if(cons[i]->nctype == NC_COMPOUND) {
+	        if(containsfills(cons[i]->value.compoundv)) return 1;
+	    } else if(cons[i]->nctype == NC_FILLVALUE)
 		return 1;
 	}
     }
     return 0;
-}
-
-static void
-datalistextend(Datalist* dl, NCConstant* con)
-{
-    dlappend(dl,con);
 }
 
 /*
@@ -1481,29 +1503,29 @@ Note that currently, only a single value can
 be returned.
 */
 
-static NCConstant
+static NCConstant*
 evaluate(Symbol* fcn, Datalist* arglist)
 {
-    NCConstant result = nullconstant;
+    NCConstant* result = nullconst();
 
     /* prepare the result */
-    result.lineno = fcn->lineno;
+    result->lineno = fcn->lineno;
 
     if(strcasecmp(fcn->name,"time") == 0) {
         char* timekind = NULL;
         char* timevalue = NULL;
-        result.nctype = NC_DOUBLE;
-        result.value.doublev = 0;
+        result->nctype = NC_DOUBLE;
+        result->value.doublev = 0;
 	/* int time([string],string) */
 	switch (arglist->length) {
 	case 2:
-	    if(arglist->data[1].nctype != NC_STRING) {
+	    if(arglist->data[1]->nctype != NC_STRING) {
 	        derror("Expected function signature: time([string,]string)");
 	        goto done;
 	    }
 	    /* fall thru */
 	case 1:
-	    if(arglist->data[0].nctype != NC_STRING) {
+	    if(arglist->data[0]->nctype != NC_STRING) {
 	        derror("Expected function signature: time([string,]string)");
 	        goto done;
 	    }
@@ -1514,10 +1536,10 @@ evaluate(Symbol* fcn, Datalist* arglist)
 	    goto done;
 	}
 	if(arglist->length == 2) {
-	    timekind = arglist->data[0].value.stringv.stringv;
-            timevalue = arglist->data[1].value.stringv.stringv;
+	    timekind = arglist->data[0]->value.stringv.stringv;
+            timevalue = arglist->data[1]->value.stringv.stringv;
 	} else
-            timevalue = arglist->data[0].value.stringv.stringv;
+            timevalue = arglist->data[0]->value.stringv.stringv;
 	if(timekind == NULL) { /* use cd time as the default */
             cdCompTime comptime;
 	    CdTime cdtime;
@@ -1531,7 +1553,7 @@ evaluate(Symbol* fcn, Datalist* arglist)
 	    cdtime.baseYear = 1970;
 	    cdtime.timeType = CdChron;
 	    /* convert to double value */
-	    Cdh2e(&cdtime,&result.value.doublev);
+	    Cdh2e(&cdtime,&result->value.doublev);
         } else {
 	    derror("Time conversion '%s' not supported",timekind);
 	    goto done;
