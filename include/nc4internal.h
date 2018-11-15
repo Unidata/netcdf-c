@@ -178,8 +178,6 @@ typedef struct NC_FIELD_INFO
 {
    NC_OBJ hdr;
    nc_type nc_typeid;
-   hid_t hdf_typeid;
-   hid_t native_hdf_typeid;
    size_t offset;
    int ndims;
    int *dim_size;
