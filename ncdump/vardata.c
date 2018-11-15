@@ -12,16 +12,21 @@
 #include <assert.h>
 #include <netcdf.h>
 #include "utils.h"
+#include "netcdf.h"
 #include "nccomps.h"
 #include "dumplib.h"
 #include "ncdump.h"
 #include "indent.h"
 #include "vardata.h"
+#include "netcdf_aux.h"
 
 /* maximum len of string needed for one value of a primitive type */
 #define MAX_OUTPUT_LEN 100
 
 #define LINEPIND	"    "	/* indent of continued lines */
+
+#define LBRACE "{"
+#define RBRACE "}"
 
 extern fspec_t formatting_specs; /* set from command-line options */
 
@@ -442,7 +447,7 @@ print_rows(
 	inc *= vdims[i];
     }
     if(mark_record) { /* the whole point of this recursion is printing these "{}" */
-	lput("{");
+	lput(LBRACE);
 	marks_pending++;	/* matching "}"s to emit after last "row" */
     }
     if(rank - level > 1) {     	/* this level is just d0 next levels */
@@ -489,27 +494,30 @@ print_rows(
 	    }
 	    print_any_val(sb, vp, (void *)valp);
 	}
+        /* In case vals has memory hanging off e.g. vlen or string, make sure to reclaim it */
+        (void)ncaux_reclaim_data(ncid,vp->type,vals,ncols);
+
 	/* determine if this is the last row */
 	lastrow = true;
 	for(j = 0; j < rank - 1; j++) {
-      if (cor[j] != vdims[j] - 1) {
+            if (cor[j] != vdims[j] - 1) {
 		lastrow = false;
 		break;
-      }
+            }
 	}
 	if (formatting_specs.full_data_cmnts) {
-      for (j = 0; j < marks_pending; j++) {
-		sbuf_cat(sb, "}");
-      }
-      printf("%s", sbuf_str(sb));
-      lastdelim (0, lastrow);
-      annotate (vp, cor, d0-1);
+            for (j = 0; j < marks_pending; j++) {
+		sbuf_cat(sb, RBRACE);
+            }
+            printf("%s", sbuf_str(sb));
+            lastdelim (0, lastrow);
+            annotate (vp, cor, d0-1);
 	} else {
-      for (j = 0; j < marks_pending; j++) {
-		sbuf_cat(sb, "}");
-      }
-      lput(sbuf_str(sb));
-      lastdelim2 (0, lastrow);
+            for (j = 0; j < marks_pending; j++) {
+		sbuf_cat(sb, RBRACE);
+            }
+      	    lput(sbuf_str(sb));
+            lastdelim2 (0, lastrow);
 	}
     }
     sbuf_free(sb);

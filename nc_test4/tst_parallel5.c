@@ -51,7 +51,7 @@ main(int argc, char **argv)
       {
          /* Create a parallel netcdf-4 file. */
          /*nc_set_log_level(3);*/
-         if (nc_create_par(FILE, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
+         if (nc_create_par(FILE, NC_NETCDF4, comm, info, &ncid)) ERR;
 
          /* Create a dimension. */
          if (nc_def_dim(ncid, DIM_NAME, DIMSIZE, &dimid)) ERR;
@@ -107,7 +107,7 @@ main(int argc, char **argv)
 
          /* Create a parallel netcdf-4 file. */
          /*nc_set_log_level(3);*/
-         if (nc_create_par(FILE, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
+         if (nc_create_par(FILE, NC_NETCDF4, comm, info, &ncid)) ERR;
 
          /* Create a dimension. */
          if (nc_def_dim(ncid, DIM_NAME, DIMSIZE, &dimid)) ERR;
@@ -171,17 +171,17 @@ main(int argc, char **argv)
 
          /* Create a parallel netcdf-4 file. */
          /*nc_set_log_level(3);*/
-         if (nc_create_par(FILE, NC_NETCDF4|NC_MPIIO, comm, info, &ncid)) ERR;
+         if (nc_create_par(FILE, NC_NETCDF4, comm, info, &ncid)) ERR;
 
          /* Create a dimension. */
          if (nc_def_dim(ncid, CREW_DIM_NAME, NUM_CREW, &dimid)) ERR;
 
          /* Create a compound type. */
          if (nc_def_compound(ncid, sizeof(struct crew), COMPOUND_NAME, &typeid)) ERR;
-         if (nc_insert_array_compound(ncid, typeid, "name", NC_COMPOUND_OFFSET(struct crew, name), NC_CHAR, 1, &dim_size));
-         if (nc_insert_array_compound(ncid, typeid, "description", NC_COMPOUND_OFFSET(struct crew, description), NC_CHAR, 1, &dim_size));
-         if (nc_insert_array_compound(ncid, typeid, "origin", NC_COMPOUND_OFFSET(struct crew, origin), NC_CHAR, 1, &dim_size));
-         if (nc_insert_compound(ncid, typeid, "age", NC_COMPOUND_OFFSET(struct crew, age), NC_INT));
+         if (nc_insert_array_compound(ncid, typeid, "name", NC_COMPOUND_OFFSET(struct crew, name), NC_CHAR, 1, &dim_size)) ERR;
+         if (nc_insert_array_compound(ncid, typeid, "description", NC_COMPOUND_OFFSET(struct crew, description), NC_CHAR, 1, &dim_size)) ERR;
+         if (nc_insert_array_compound(ncid, typeid, "origin", NC_COMPOUND_OFFSET(struct crew, origin), NC_CHAR, 1, &dim_size)) ERR;
+         if (nc_insert_compound(ncid, typeid, "age", NC_COMPOUND_OFFSET(struct crew, age), NC_INT)) ERR;
 
          /* Create one var. */
          if (nc_def_var(ncid, COMPOUND_VAR_NAME, typeid, NDIMS1, &dimid, &v1id)) ERR;
@@ -268,7 +268,7 @@ main(int argc, char **argv)
          }
 
          /* Now try parallel read. */
-         if (nc_open_par(FILE, NC_MPIIO, comm, info, &ncid)) ERR;
+         if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
 
          /* Task 0 reads all 8 lines, other tasks read 0. */
          if (nc_get_vara(ncid, v1id, start, count, story_in)) ERR;

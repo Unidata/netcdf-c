@@ -8,6 +8,8 @@
 #ifndef _NCDIMSCALE_H_
 #define _NCDIMSCALE_H_
 
+#include <hdf5.h>
+
 typedef struct hdf5_objid 
 {
    unsigned long fileno[2]; /* file number */

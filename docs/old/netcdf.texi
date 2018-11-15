@@ -872,8 +872,8 @@ servers, full support for the enhanced netCDF-4 data model in the
 ncgen utility, a new nccopy utility for copying and conversion among
 netCDF format variants, ability to read some HDF4/HDF5 data archives
 through the netCDF C or Fortran interfaces, support for parallel I/O
-on netCDF classic and 64-bit offset files using the parallel-netcdf
-(formerly pnetcdf) library from Argonne/Northwestern, a new nc-config
+on netCDF classic and 64-bit offset files using the PnetCDF
+library from Argonne/Northwestern, a new nc-config
 utility to help compile and link programs that use netCDF, inclusion
 of the UDUNITS library for hadling ``units'' attributes, and inclusion
 of libcf to assist in creating data compliant with the Climate and
@@ -1035,12 +1035,12 @@ multiple concurrent writers.
 
 NetCDF-4 supports parallel read/write access to netCDF-4/HDF5 files,
 using the underlying HDF5 library and parallel read/write access to
-classic and 64-bit offset files using the parallel-netcdf library.
+classic and 64-bit offset files using the PnetCDF library.
 
 For more information about HDF5, see the HDF5 web site:
 @uref{@value{hdf5-url}}.
 
-For more information about parallel-netcdf, see their web site:
+For more information about PnetCDF see their web site:
 @uref{@value{pnetcdf-url}}.
 
 @node Future , References, Limitations, Introduction
@@ -3064,11 +3064,11 @@ NetCDF uses the HDF5 parallel programming model for parallel I/O
 with netCDF-4/HDF5 files. The HDF5 tutorial
 (@uref{@value{hdf5-tutorial-url}}) is a good reference.
 
-For classic and 64-bit offset files, netCDF uses the parallel-netcdf
-(formerly pnetcdf) library from Argonne National Labs/Nortwestern
+For classic and 64-bit offset files, netCDF uses the PnetCDF
+library from Argonne National Labs/Nortwestern
 University. For parallel access of classic and 64-bit offset files,
 netCDF must be configured with the --with-pnetcdf option at build
-time. See the parallel-netcdf site for more information
+time. See the PnetCDF site for more information
 (@uref{@value{pnetcdf-url}}).
 
 @node Interoperability with HDF5, DAP Support, Parallel Access, Structure

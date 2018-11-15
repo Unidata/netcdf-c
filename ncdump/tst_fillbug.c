@@ -197,6 +197,7 @@ count_udtypes(int ncid) {
 	for (i=0; i < numgrps; i++) {
 	    ntypes += count_udtypes(ncids[i]);
 	}
+	free(ncids);
     }
     return ntypes;
 }

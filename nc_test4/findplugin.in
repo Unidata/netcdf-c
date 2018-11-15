@@ -99,3 +99,9 @@ HDF5_PLUGIN_PATH="$FP_PLUGIN_PATH"
 
 return 0
 }
+
+# debug
+if test "x$1" != x ; then
+findplugin
+echo "HDF5_PLUGIN_PATH=|$FP_PLUGIN_PATH|"
+fi

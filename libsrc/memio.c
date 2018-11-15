@@ -21,7 +21,6 @@
 #include <windows.h>
 #include <winbase.h>
 #include <io.h>
-#define access(path,mode) _access(path,mode)
 #endif
 
 #include "ncdispatch.h"
@@ -76,7 +75,7 @@ typedef int ssize_t;
 #undef X_ALIGN
 #endif
 
-#undef REALLOCBUG
+#define REALLOCBUG
 #ifdef REALLOCBUG
 /* There is some kind of realloc bug that I cannot solve yet */
 #define reallocx(m,new,old) realloc(m,new)
@@ -85,7 +84,10 @@ static void*
 reallocx(void* mem, size_t newsize, size_t oldsize)
 {
     void* m = malloc(newsize);
-    memcpy(m,mem,oldsize);
+    if(m != NULL) {
+        memcpy(m,mem,oldsize);
+	free(mem);
+    }
     return m;
 }
 #endif
@@ -95,7 +97,7 @@ reallocx(void* mem, size_t newsize, size_t oldsize)
 typedef struct NCMEMIO {
     int locked; /* => we cannot realloc or free*/
     int modified; /* => we realloc'd memory at least once */
-    int persist; /* => save to a file; triggered by NC_WRITE */
+    int persist; /* => save to a file; triggered by NC_PERSIST*/
     char* memory;
     size_t alloc;
     size_t size;
@@ -116,6 +118,7 @@ static int memio_close(ncio* nciop, int);
 static int readfile(const char* path, NC_memio*);
 static int writefile(const char* path, NCMEMIO*);
 static int fileiswriteable(const char* path);
+static int fileexists(const char* path);
 
 /* Mnemonic */
 #define DOOPEN 1
@@ -130,6 +133,10 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
     ncio* nciop = NULL;
     NCMEMIO* memio = NULL;
     size_t minsize = (size_t)initialsize;
+
+    /* Unlike netcdf-4, INMEMORY and DISKLESS share code */
+    if(fIsSet(ioflags,NC_DISKLESS))
+	fSet(ioflags,NC_INMEMORY);    
 
     /* use asserts because this is an internal function */
     assert(fIsSet(ioflags,NC_INMEMORY));
@@ -197,9 +204,9 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
 
     if(fIsSet(ioflags,NC_DISKLESS))
 	memio->diskless = 1;
-    if(fIsSet(ioflags,NC_INMEMORY) && !memio->diskless)
+    if(fIsSet(ioflags,NC_INMEMORY))
 	memio->inmemory = 1;
-    if(fIsSet(ioflags,NC_WRITE) && !fIsSet(ioflags,NC_NOCLOBBER) && memio->diskless)
+    if(fIsSet(ioflags,NC_PERSIST))
 	memio->persist = 1;
 
 done:
@@ -248,8 +255,8 @@ memio_create(const char* path, int ioflags,
         return status;
 
     if(memio->persist) {
-	/* Verify the file is writeable */
-	if(!fileiswriteable(path))
+	/* Verify the file is writeable or does not exist*/
+	if(fileexists(path) && !fileiswriteable(path))
 	    {status = EPERM; goto unwind_open;}	
     }
 
@@ -265,7 +272,7 @@ fprintf(stderr,"memio_create: initial memory: %lu/%lu\n",(unsigned long)memio->m
     fd = nc__pseudofd();
     *((int* )&nciop->fd) = fd;
 
-    fSet(nciop->ioflags, NC_WRITE);
+    fSet(nciop->ioflags, NC_WRITE); /* Always writeable */
 
     if(igetsz != 0)
     {
@@ -318,8 +325,10 @@ memio_open(const char* path,
     size_t initialsize;
     /* Should be the case that diskless => inmemory but not converse */
     int diskless = (fIsSet(ioflags,NC_DISKLESS));
-    int inmemory = (fIsSet(ioflags,NC_INMEMORY) && !diskless);
+    int inmemory = fIsSet(ioflags,NC_INMEMORY);
     int locked = 0;
+
+    assert(inmemory ? !diskless : 1);
 
     if(path == NULL || strlen(path) == 0)
         return NC_EINVAL;
@@ -327,6 +336,8 @@ memio_open(const char* path,
     assert(sizehintp != NULL);
 
     sizehint = *sizehintp;
+
+    memset(&meminfo,0,sizeof(meminfo));
 
     if(inmemory) { /* parameters provide the memory chunk */
 	NC_memio* memparams = (NC_memio*)parameters;
@@ -374,9 +385,11 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
 #endif
 
     if(memio->persist) {
-	/* Verify the file is writeable */
+	/* Verify the file is writeable and exists */
+	if(!fileexists(path))
+	    {status = ENOENT; goto unwind_open;}	
 	if(!fileiswriteable(path))
-	    {status = EPERM; goto unwind_open;}	
+	    {status = EACCES; goto unwind_open;}	
     }
 
     /* Use half the filesize as the blocksize ; why? */
@@ -438,10 +451,10 @@ memio_pad_length(ncio* nciop, off_t length)
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
     memio = (NCMEMIO*)nciop->pvt;
 
-    if(!memio->persist)
+    if(!fIsSet(nciop->ioflags,NC_WRITE))
         return EPERM; /* attempt to write readonly file*/
     if(memio->locked)
-	return NC_EDISKLESS;
+	return NC_EINMEMORY;
 
     if(len > memio->alloc) {
         /* Realloc the allocated memory to a multiple of the pagesize*/
@@ -482,7 +495,8 @@ fprintf(stderr,"realloc: %lu/%lu -> %lu/%lu\n",
 
 /*! Write out any dirty buffers to disk.
 
-  Write out any dirty buffers to disk and ensure that next read will get data from disk. Sync any changes, then close the open file associated with the ncio struct, and free its memory.
+  Write out any dirty buffers to disk and ensure that next read will get data from disk.
+  Sync any changes, then close the open file associated with the ncio struct, and free its memory.
 
   @param[in] nciop pointer to ncio to close.
   @param[in] doUnlink if true, unlink file
@@ -624,8 +638,8 @@ memio_sync(ncio* const nciop)
     return NC_NOERR; /* do nothing */
 }
 
-/* "Hidden" Internal function to extract a copy of
-   the size and/or contents of the memory
+/* "Hidden" Internal function to extract the 
+   the size and/or contents of the memory.
 */
 int
 memio_extract(ncio* const nciop, size_t* sizep, void** memoryp)
@@ -645,15 +659,45 @@ memio_extract(ncio* const nciop, size_t* sizep, void** memoryp)
     return status;
 }
 
+/* Return 1 if file exists, 0 otherwise */
+static int
+fileexists(const char* path)
+{
+    int ok;
+    /* See if the file exists at all */
+    ok = NCaccess(path,ACCESS_MODE_EXISTS);
+    if(ok < 0) /* file does not exist */
+      return 0;
+    return 1;
+}
+
+/* Return 1 if file is writeable, return 0 otherwise;
+   assumes fileexists has been checked already */
 static int
 fileiswriteable(const char* path)
 {
     int ok;
-    ok = access(path,O_RDWR);
+    /* if W is ok */
+    ok = NCaccess(path,ACCESS_MODE_W);
     if(ok < 0)
 	return 0;
     return 1;
 }
+
+#if 0 /* not used */
+/* Return 1 if file is READABLE, return 0 otherwise;
+   assumes fileexists has been checked already */
+static int
+fileisreadable(const char* path)
+{
+    int ok;
+    /* if RW is ok */
+    ok = NCaccess(path,ACCESS_MODE_R);
+    if(ok < 0)
+	return 0;
+    return 1;
+}
+#endif
 
 /* Read contents of a disk file into a memory chunk */
 static int
@@ -697,9 +741,11 @@ readfile(const char* path, NC_memio* memio)
     if(memio) {
 	memio->size = (size_t)filesize;
 	memio->memory = memory;
-    }    
+	memory = NULL;
+    }
+
 done:
-    if(status != NC_NOERR && memory != NULL)
+    if(memory != NULL)
 	free(memory);
     if(f != NULL) fclose(f);
     return status;    
@@ -714,14 +760,14 @@ writefile(const char* path, NCMEMIO* memio)
     size_t count = 0;
     char* p = NULL;
 
-    /* Open the file for writing*/
+    /* Open/create the file for writing*/
 #ifdef _MSC_VER
-    f = NCfopen(path,"rwb");
+    f = NCfopen(path,"wb");
 #else
-    f = NCfopen(path,"rw");
+    f = NCfopen(path,"w");
 #endif
     if(f == NULL)
-	{status = errno; goto done;}
+        {status = errno; goto done;}
     rewind(f);
     count = memio->size;
     p = memio->memory;

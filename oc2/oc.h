@@ -197,34 +197,46 @@ typedef OCobject OClink;
 /**@}*/
 
 /**************************************************/
-/* External API */
+/* extern API */
+/* Declaration modifiers for DLL support (MSC et al) */
+#if defined(DLL_NETCDF) /* define when library is a DLL */
+#  if defined(DLL_EXPORT) /* define when building the library */
+#   define MSC_EXTRA __declspec(dllexport)
+#  else
+#   define MSC_EXTRA __declspec(dllimport)
+#  endif
+#  include <io.h>
+#else
+#define MSC_EXTRA  /**< Needed for DLL build. */
+#endif  /* defined(DLL_NETCDF) */
 
+#define EXTERNL MSC_EXTRA extern /**< Needed for DLL build. */
 #ifdef __cplusplus
-extern "C" {
+external "C" {
 #endif
 
 /**************************************************/
 /* Link management */
 
-extern OCerror oc_open(const char* url, OClink*);
-extern OCerror oc_close(OClink);
+EXTERNL OCerror oc_open(const char* url, OClink*);
+EXTERNL OCerror oc_close(OClink);
 
 /**************************************************/
 /* Tree Management */
 
-extern OCerror oc_fetch(OClink,
+EXTERNL OCerror oc_fetch(OClink,
 			const char* constraint,
 			OCdxd,
 			OCflags,
 			OCddsnode*);
 
-extern OCerror oc_root_free(OClink, OCddsnode root);
-extern const char* oc_tree_text(OClink, OCddsnode root);
+EXTERNL OCerror oc_root_free(OClink, OCddsnode root);
+EXTERNL const char* oc_tree_text(OClink, OCddsnode root);
 
 /**************************************************/
 /* Node Management */
 
-extern OCerror oc_dds_properties(OClink, OCddsnode,
+EXTERNL OCerror oc_dds_properties(OClink, OCddsnode,
 		  char** namep,
 		  OCtype* typep,
 		  OCtype* atomictypep, /* if octype == OC_Atomic */
@@ -235,14 +247,14 @@ extern OCerror oc_dds_properties(OClink, OCddsnode,
 
 /* Define some individual accessors for convenience */
 
-extern OCerror oc_dds_name(OClink,OCddsnode,char**);
-extern OCerror oc_dds_class(OClink,OCddsnode,OCtype*);
-extern OCerror oc_dds_atomictype(OClink,OCddsnode,OCtype*);
-extern OCerror oc_dds_nsubnodes(OClink,OCddsnode,size_t*);
-extern OCerror oc_dds_rank(OClink,OCddsnode,size_t*);
-extern OCerror oc_dds_attr_count(OClink,OCddsnode,size_t*);
-extern OCerror oc_dds_root(OClink,OCddsnode,OCddsnode*);
-extern OCerror oc_dds_container(OClink,OCddsnode,OCddsnode*);
+EXTERNL OCerror oc_dds_name(OClink,OCddsnode,char**);
+EXTERNL OCerror oc_dds_class(OClink,OCddsnode,OCtype*);
+EXTERNL OCerror oc_dds_atomictype(OClink,OCddsnode,OCtype*);
+EXTERNL OCerror oc_dds_nsubnodes(OClink,OCddsnode,size_t*);
+EXTERNL OCerror oc_dds_rank(OClink,OCddsnode,size_t*);
+EXTERNL OCerror oc_dds_attr_count(OClink,OCddsnode,size_t*);
+EXTERNL OCerror oc_dds_root(OClink,OCddsnode,OCddsnode*);
+EXTERNL OCerror oc_dds_container(OClink,OCddsnode,OCddsnode*);
 
 /* Aliases */
 #define oc_dds_octype oc_dds_class
@@ -252,44 +264,44 @@ extern OCerror oc_dds_container(OClink,OCddsnode,OCddsnode*);
    if there is no such node; return OC_EBADTYPE if node is not
    a container
 */
-extern OCerror oc_dds_ithfield(OClink, OCddsnode, size_t index, OCddsnode* ithfieldp);
+EXTERNL OCerror oc_dds_ithfield(OClink, OCddsnode, size_t index, OCddsnode* ithfieldp);
 
 /* Alias for oc_dds_ithfield */
-extern OCerror oc_dds_ithsubnode(OClink, OCddsnode, size_t, OCddsnode*);
+EXTERNL OCerror oc_dds_ithsubnode(OClink, OCddsnode, size_t, OCddsnode*);
 
 /* Convenience functions that are just combinations of ithfield with other functions */
 
 /* Return the grid array dds node from the specified grid node*/
-extern OCerror oc_dds_gridarray(OClink, OCddsnode grid, OCddsnode* arrayp);
+EXTERNL OCerror oc_dds_gridarray(OClink, OCddsnode grid, OCddsnode* arrayp);
 
 /* Return the i'th grid map dds node from the specified grid dds node.
    NOTE: Map indices start at ZERO.
 */
-extern OCerror oc_dds_gridmap(OClink, OCddsnode grid, size_t index, OCddsnode* mapp);
+EXTERNL OCerror oc_dds_gridmap(OClink, OCddsnode grid, size_t index, OCddsnode* mapp);
 
 /* Retrieve a dds node by name from a dds structure or dataset node.
    return OC_EBADTYPE if node is not a container,
    return OC_EINDEX if no field by the given name is found.
 */
-extern OCerror oc_dds_fieldbyname(OClink, OCddsnode, const char* name, OCddsnode* fieldp);
+EXTERNL OCerror oc_dds_fieldbyname(OClink, OCddsnode, const char* name, OCddsnode* fieldp);
 
 
 /* Return the dimension nodes, if any, associated with a given DDS node */
 /* Caller must allocate and free the vector for dimids */
 /* If the node is scalar, then return OC_ESCALAR. */
-extern OCerror oc_dds_dimensions(OClink, OCddsnode, OCddsnode* dimids);
+EXTERNL OCerror oc_dds_dimensions(OClink, OCddsnode, OCddsnode* dimids);
 
 /* Return the i'th dimension node, if any, associated with a given object */
 /* If there is no such dimension, then return OC_EINVAL */
-extern OCerror oc_dds_ithdimension(OClink,OCddsnode, size_t, OCddsnode*);
+EXTERNL OCerror oc_dds_ithdimension(OClink,OCddsnode, size_t, OCddsnode*);
 
 /* Return the size and name associated with a given dimension object
    as defined in the DDS
 */
-extern OCerror oc_dimension_properties(OClink,OCddsnode,size_t*,char**);
+EXTERNL OCerror oc_dimension_properties(OClink,OCddsnode,size_t*,char**);
 
 /* For convenience, return only the dimension sizes */
-extern OCerror oc_dds_dimensionsizes(OClink,OCddsnode,size_t* dimsizes);
+EXTERNL OCerror oc_dds_dimensionsizes(OClink,OCddsnode,size_t* dimsizes);
 
 /* Attribute Management */
 
@@ -299,13 +311,13 @@ extern OCerror oc_dds_dimensionsizes(OClink,OCddsnode,size_t* dimsizes);
    must do any required conversion based on the octype.
    The strings vector must be allocated and freed by caller,
    The contents of the strings vector must also be reclaimed
-   using oc_attr_reclaim(see below). 
+   using oc_attr_reclaim(see below).
    Standard practice is to call twice, once with the strings
    argument == NULL so we get the number of values,
    then the second time with an allocated char** vector.
 
 */
-extern OCerror oc_dds_attr(OClink,OCddsnode, size_t i,
+EXTERNL OCerror oc_dds_attr(OClink,OCddsnode, size_t i,
 			    char** name, OCtype* octype,
 			    size_t* nvalues, char** strings);
 
@@ -318,19 +330,19 @@ extern OCerror oc_dds_attr(OClink,OCddsnode, size_t i,
    Caller must free returned string.
 */
 
-extern OCerror oc_das_attr_count(OClink, OCddsnode, size_t* countp);
+EXTERNL OCerror oc_das_attr_count(OClink, OCddsnode, size_t* countp);
 
-extern OCerror oc_das_attr(OClink,OCddsnode, size_t, OCtype*, char**);
+EXTERNL OCerror oc_das_attr(OClink,OCddsnode, size_t, OCtype*, char**);
 
 /**************************************************/
 /* Free up a ddsnode that is no longer being used */
-extern OCerror oc_dds_free(OClink, OCddsnode);
+EXTERNL OCerror oc_dds_free(OClink, OCddsnode);
 
 /**************************************************/
 /* Data Procedures */
 
 /* Given the DDS tree root, get the root data of datadds */
-extern OCerror oc_dds_getdataroot(OClink, OCddsnode treeroot, OCdatanode* rootp);
+EXTERNL OCerror oc_dds_getdataroot(OClink, OCddsnode treeroot, OCdatanode* rootp);
 
 /* Alias for oc_dds_getdataroot */
 #define oc_data_getroot oc_dds_getdataroot
@@ -339,13 +351,13 @@ extern OCerror oc_dds_getdataroot(OClink, OCddsnode treeroot, OCdatanode* rootp)
    If it does not exist, then return NULL.
    In effect this procedure allows one to walk up the datatree one level.
 */
-extern OCerror oc_data_container(OClink, OCdatanode data, OCdatanode* containerp);
+EXTERNL OCerror oc_data_container(OClink, OCdatanode data, OCdatanode* containerp);
 
 /* Return the root node of the data tree that contains the specified data node.
    In effect this procedure allows one to walk to the root of the datatree
    containing the specified datanode.
 */
-extern OCerror oc_data_root(OClink, OCdatanode data, OCdatanode* rootp);
+EXTERNL OCerror oc_data_root(OClink, OCdatanode data, OCdatanode* rootp);
 
 /*
 There are multiple ways to walk down a level in a data tree
@@ -373,33 +385,33 @@ or oc_data_readscalar.
 */
 
 /* Return the data node for the i'th field of the specified container data */
-extern OCerror oc_data_ithfield(OClink, OCdatanode container, size_t index,
+EXTERNL OCerror oc_data_ithfield(OClink, OCdatanode container, size_t index,
                                 OCdatanode* fieldp);
 
 /* Retrieve the data node by name from a container data node */
-extern OCerror oc_dat_fieldbyname(OClink, OCdatanode, const char* name, OCdatanode* fieldp);
+EXTERNL OCerror oc_dat_fieldbyname(OClink, OCdatanode, const char* name, OCdatanode* fieldp);
 
 /* Return the grid array data for the specified grid data */
-extern OCerror oc_data_gridarray(OClink, OCdatanode grid, OCdatanode* arrayp);
+EXTERNL OCerror oc_data_gridarray(OClink, OCdatanode grid, OCdatanode* arrayp);
 
 /* Return the i'th grid map data for the specified grid data.
    NOTE: Map indices start at ZERO.
 */
-extern OCerror oc_data_gridmap(OClink, OCdatanode grid, size_t index, OCdatanode* mapp);
+EXTERNL OCerror oc_data_gridmap(OClink, OCdatanode grid, size_t index, OCdatanode* mapp);
 
 /* Return the data of a dimensioned Structure corresponding
    to the element specified by the indices.
 */
-extern OCerror oc_data_ithelement(OClink, OCdatanode data, size_t* indices, OCdatanode* elementp);
+EXTERNL OCerror oc_data_ithelement(OClink, OCdatanode data, size_t* indices, OCdatanode* elementp);
 
 /* Return the i'th record data of a Sequence data. */
-extern OCerror oc_data_ithrecord(OClink, OCdatanode data, size_t index, OCdatanode* recordp);
+EXTERNL OCerror oc_data_ithrecord(OClink, OCdatanode data, size_t index, OCdatanode* recordp);
 
 /* Free up an data that is no longer being used */
-extern OCerror oc_data_free(OClink, OCdatanode data);
+EXTERNL OCerror oc_data_free(OClink, OCdatanode data);
 
 /* Count the records associated with a sequence */
-extern OCerror oc_data_recordcount(OClink, OCdatanode, size_t*);
+EXTERNL OCerror oc_data_recordcount(OClink, OCdatanode, size_t*);
 
 /* Return the actual data values associated with the specified leaf data.
    The OCdatanode is assumed to be referencing a leaf node that is
@@ -409,14 +421,14 @@ extern OCerror oc_data_recordcount(OClink, OCdatanode, size_t*);
    and free'ing it.
    See also oc_dds_read().
 */
-extern OCerror oc_data_read(OClink, OCdatanode, size_t*, size_t*, size_t, void*);
+EXTERNL OCerror oc_data_read(OClink, OCdatanode, size_t*, size_t*, size_t, void*);
 
 /* Like oc_data_read, but for reading a scalar.
    Caller is responsible for allocating memory(of proper size)
    and free'ing it.
    See also oc_dds_readscalar().
 */
-extern OCerror oc_data_readscalar(OClink, OCdatanode, size_t, void*);
+EXTERNL OCerror oc_data_readscalar(OClink, OCdatanode, size_t, void*);
 
 /* Like oc_data_read, but caller provides a starting set of indices
    and count of the number of elements to read.
@@ -424,81 +436,81 @@ extern OCerror oc_data_readscalar(OClink, OCdatanode, size_t, void*);
    and free'ing it.
    See also oc_dds_readn().
 */
-extern OCerror oc_data_readn(OClink, OCdatanode, size_t*, size_t, size_t, void*);
+EXTERNL OCerror oc_data_readn(OClink, OCdatanode, size_t*, size_t, size_t, void*);
 
 /* Return the indices for this datas; Assumes the data
    was obtained using oc_data_ithelement or oc_data_ithrecord;
    if not, then an error is returned.
 */
-extern OCerror oc_data_position(OClink, OCdatanode data, size_t* indices);
+EXTERNL OCerror oc_data_position(OClink, OCdatanode data, size_t* indices);
 
 /* Return the pattern dds node for an data */
-extern OCerror oc_data_ddsnode(OClink, OCdatanode data, OCddsnode*);
+EXTERNL OCerror oc_data_ddsnode(OClink, OCdatanode data, OCddsnode*);
 
 /* Return the octype of the data (convenience) */
-extern OCerror oc_data_octype(OClink, OCdatanode data, OCtype*);
+EXTERNL OCerror oc_data_octype(OClink, OCdatanode data, OCtype*);
 
 /* Return 1 if the specified data has a valid index, 0 otherwise.
    Valid index means it was created using
    oc_data_ithelement or oc_data_ithrecord.
 */
-extern int oc_data_indexed(OClink link, OCdatanode datanode);
+EXTERNL int oc_data_indexed(OClink link, OCdatanode datanode);
 
 /* Return 1 if the specified data has a valid index, 0 otherwise.
    Valid index means it was created using
    oc_data_ithelement or oc_data_ithrecord.
 */
-extern int oc_data_indexed(OClink, OCdatanode);
+EXTERNL int oc_data_indexed(OClink, OCdatanode);
 
 /* Return 1 if the specified data can be indexed
    Indexable means the data is pointing to
    an indexed structure or to a sequence.
 */
-extern int oc_data_indexable(OClink, OCdatanode);
+EXTERNL int oc_data_indexable(OClink, OCdatanode);
 
 /**************************************************/
-/* 
+/*
 For top-level, atomic variables, it is possible to directly
 read the associated data without having to use the oc_data_XXX
 procedures. Provide special procedures to support this.
 */
 
 /* See oc_data_read for semantics */
-extern OCerror oc_dds_read(OClink, OCddsnode, size_t*, size_t*, size_t, void*);
+EXTERNL OCerror oc_dds_read(OClink, OCddsnode, size_t*, size_t*, size_t, void*);
 
 /* See oc_data_readscalar for semantics */
-extern OCerror oc_dds_readscalar(OClink, OCddsnode, size_t, void*);
+EXTERNL OCerror oc_dds_readscalar(OClink, OCddsnode, size_t, void*);
 
 /* See oc_data_readn for semantics */
-extern OCerror oc_dds_readn(OClink, OCddsnode, size_t*, size_t, size_t, void*);
+EXTERNL OCerror oc_dds_readn(OClink, OCddsnode, size_t*, size_t, size_t, void*);
 
 /**************************************************/
 /* Misc. OCtype-related functions */
 
 /* Return size of the given type(Atomic only) */
-extern size_t oc_typesize(OCtype);
+EXTERNL size_t oc_typesize(OCtype);
 
 /* Return a canonical printable string describing a given type:
    e.g. Byte, Int16, etc.
 */
-extern const char* oc_typetostring(OCtype);
+EXTERNL const char* oc_typetostring(OCtype);
 
 /* Given a value of a atomic OC type, provide a canonical
    string representing that value; mostly for debugging.
 */
-extern OCerror oc_typeprint(OCtype, void* value, size_t bufsize, char* buf);
+EXTERNL OCerror oc_typeprint(OCtype, void* value, size_t bufsize, char* buf);
 
 /**************************************************/
 /* Logging */
 
-extern void oc_loginit(void);
-extern int  oc_setlogging(int onoff); /* 1=>start logging 0=>stop */
-extern int  oc_logopen(const char* logfilename);
-extern void oc_logclose(void);
+EXTERNL void oc_loginit(void);
+EXTERNL int  oc_setlogging(int onoff); /* 1=>start logging 0=>stop */
+EXTERNL int  oc_logopen(const char* logfilename);
+EXTERNL void oc_logclose(void);
 
-extern void oc_log(int tag, const char* fmt, ...);
+EXTERNL void oc_log(int tag, const char* fmt, ...);
 
-extern void oc_logtext(int tag, const char* text);
+EXTERNL void oc_logtext(int tag, const char* text);
 
 /**************************************************/
 /* Miscellaneous */
@@ -509,41 +521,41 @@ extern void oc_logtext(int tag, const char* text);
    Note that only the strings are reclaimed, the string vector
    is not reclaimed because it was presumably allocated by the client.
 */
-extern void oc_reclaim_strings(size_t n, char** svec);
+EXTERNL void oc_reclaim_strings(size_t n, char** svec);
 
 /* Convert an OCerror to a human readable string */
-extern const char* oc_errstring(OCerror err);
+EXTERNL const char* oc_errstring(OCerror err);
 
 /* Get client parameters from the URL
    DO NOT free the result
 */
-extern const char* oc_clientparam_get(OClink, const char* param);
+EXTERNL const char* oc_clientparam_get(OClink, const char* param);
 
 /**************************************************/
 /* Merging operations */
 
 /* Merge a specified DAS into a specified DDS or DATADDS */
-extern OCerror oc_merge_das(OClink, OCddsnode dasroot, OCddsnode ddsroot);
+EXTERNL OCerror oc_merge_das(OClink, OCddsnode dasroot, OCddsnode ddsroot);
 
 /**************************************************/
 /* Debugging */
 
 /* When a server error is detected, then it is possible
    to get DODS supplied server error info using this procedure */
-extern OCerror oc_svcerrordata(OClink link, char** codep,
+EXTERNL OCerror oc_svcerrordata(OClink link, char** codep,
                                char** msgp, long* httpp);
 
 /* Get the HTTP return code from the last call;
    note that this may or may not be the same as returned
    by oc_svcerrordata.
  */
-extern int oc_httpcode(OClink);
+EXTERNL int oc_httpcode(OClink);
 
 /*
 (Re-)initialize the oc library as if nothing had been called.
 This is primarily for debugging of rc files.
 */
-extern OCerror oc_initialize(void);
+EXTERNL OCerror oc_initialize(void);
 
 /**************************************************/
 /* Curl options */
@@ -552,37 +564,37 @@ extern OCerror oc_initialize(void);
 */
 
 /*Cause the curl library to be verbose and save error messages*/
-extern OCerror oc_trace_curl(OClink link);
+EXTERNL OCerror oc_trace_curl(OClink link);
 
 /* Allow specification of the rc file */
-extern OCerror oc_set_rcfile(const char* filepath);
+EXTERNL OCerror oc_set_rcfile(const char* filepath);
 
 /* Allow specification of the netrc file */
-extern OCerror oc_set_netrc(OClink*, const char* filepath);
+EXTERNL OCerror oc_set_netrc(OClink*, const char* filepath);
 
 /* Set arbitrary curl option */
-extern OCerror oc_set_curlopt(OClink link, const char* option, void* value);
+EXTERNL OCerror oc_set_curlopt(OClink link, const char* option, void* value);
 
 /**************************************************/
 /* Experimental/Undocumented */
 
 /* Given an arbitrary OCnode, return the connection of which it is a part */
-extern OCerror oc_get_connection(OCobject ocnode, OCobject* linkp);
+EXTERNL OCerror oc_get_connection(OCobject ocnode, OCobject* linkp);
 
 /* Resend a url as a head request to check the Last-Modified time */
-extern OCerror oc_update_lastmodified_data(OClink);
+EXTERNL OCerror oc_update_lastmodified_data(OClink);
 
 /* Get last known modification time; -1 => data unknown */
-extern long oc_get_lastmodified_data(OClink);
+EXTERNL long oc_get_lastmodified_data(OClink);
 
 /* Test if a given url responds to a DAP protocol request */
-extern OCerror oc_ping(const char* url);
+EXTERNL OCerror oc_ping(const char* url);
 
 /* Return the size of the in-memory or on-disk
    data chunk returned by the server for a given tree.
    Zero implies it is not defined.
 */
-extern OCerror oc_raw_xdrsize(OClink,OCddsnode,off_t*);
+EXTERNL OCerror oc_raw_xdrsize(OClink,OCddsnode,off_t*);
 
 #ifdef __cplusplus
 }

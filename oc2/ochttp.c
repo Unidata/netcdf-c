@@ -312,7 +312,7 @@ ocping(const char* url)
     if (cstat != CURLE_OK)
         goto done;
 
-    /* use a very short timeout: 10 seconds */
+    /* use a very short timeout: 5 seconds */
     cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)5));
     if (cstat != CURLE_OK)
         goto done;

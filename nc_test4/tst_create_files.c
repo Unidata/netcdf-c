@@ -1,10 +1,10 @@
 /*
- Copyright 2007, UCAR/Unidata
+ Copyright 2007-2018, UCAR/Unidata
  See COPYRIGHT file for copying and redistribution conditions.
 
  This program creates a test file.
 
- $Id: tst_create_files.c,v 1.11 2008/01/09 16:30:23 ed Exp $
+ Ed Hartnett
 */
 #include <config.h>
 #include <nc_tests.h>
@@ -21,9 +21,6 @@
 int
 main(int argc, char **argv)
 {
-    int nc_argc = argc;
-    int nc_argv = argv;
-
     printf("\n*** Create some files for testing benchmarks.\n");
 
 #ifdef LARGE_FILE_TESTS

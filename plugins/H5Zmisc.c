@@ -11,6 +11,22 @@
 #define DLL_EXPORT
 #endif
 
+/* WARNING:
+Starting with HDF5 version 1.10.x, the plugin code MUST be
+careful when using the standard *malloc()*, *realloc()*, and
+*free()* function.
+
+In the event that the code is allocating, reallocating, for
+free'ing memory that either came from or will be exported to the
+calling HDF5 library, then one MUST use the corresponding HDF5
+functions *H5allocate_memory()*, *H5resize_memory()*,
+*H5free_memory()* [5] to avoid memory failures.
+
+Additionally, if your filter code leaks memory, then the HDF5 library
+will generate an error.
+
+*/
+
 #include "h5misc.h"
 
 #undef DEBUG
@@ -93,17 +109,21 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
     if (flags & H5Z_FLAG_REVERSE) {
 
         /* Replace buffer */
-        newbuf = malloc(*buf_size);
+        newbuf = H5allocate_memory(*buf_size,0);
         if(newbuf == NULL) abort();
         memcpy(newbuf,*buf,*buf_size);
+	/* reclaim old buffer */
+	H5free_memory(*buf);
         *buf = newbuf;
 
     } else {
 
         /* Replace buffer */
-        newbuf = malloc(*buf_size);
+        newbuf = H5allocate_memory(*buf_size,0);
         if(newbuf == NULL) abort();
         memcpy(newbuf,*buf,*buf_size);
+	/* reclaim old buffer */
+	H5free_memory(*buf);
         *buf = newbuf;
 
     }

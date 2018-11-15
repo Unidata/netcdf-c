@@ -108,7 +108,7 @@ MPI_Init(&argc, &argv);
 #endif
    printf("\n*** testing UTF-8 normalization...");
 #ifdef TEST_PNETCDF
-   if((res = nc_create_par(FILE7_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)))
+   if((res = nc_create_par(FILE7_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)))
 #else
    if((res = nc_create(FILE7_NAME, NC_CLOBBER, &ncid)))
 #endif
@@ -151,7 +151,7 @@ MPI_Init(&argc, &argv);
 
    /* Check it out. */
 #ifdef TEST_PNETCDF
-   if ((res = nc_open_par(FILE7_NAME, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD,MPI_INFO_NULL, &ncid)))
+   if ((res = nc_open_par(FILE7_NAME, NC_NOWRITE, MPI_COMM_WORLD,MPI_INFO_NULL, &ncid)))
 #else
    if ((res = nc_open(FILE7_NAME, NC_NOWRITE, &ncid)))
 #endif

@@ -134,7 +134,6 @@ static void
 buildatts(int grpid, int varid)
 {
     char name[NC_MAX_NAME+1];
-    int attid;
     int i, count;
 
     count = (varid == NC_GLOBAL? ngroupattrs : nvarattrs);
@@ -149,7 +148,7 @@ static void
 buildgroup(int parent, int grpindex, int depth)
 {
     char name[NC_MAX_NAME+1];
-    int i, grpid, dimid, typid, varid, attid;
+    int i, grpid, varid;
     int dimids[NDIMS];
 
     if(depth == 0) return;
@@ -193,9 +192,7 @@ buildgroup(int parent, int grpindex, int depth)
 int
 main(int argc, char **argv)
 {
-    int stat = NC_NOERR;
     int i, ncid;
-    int grpid, dimid, varid, typid, attid;
     time_t starttime, endtime;
     long long delta;
     int tag;

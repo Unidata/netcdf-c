@@ -6,6 +6,7 @@
 
 #include "config.h"
 #include <stdlib.h>
+#include "nc4internal.h"
 #include "nc4dispatch.h"
 #include "nc.h"
 
@@ -37,8 +38,8 @@ NC4_sync,
 NC4_abort,
 NC4_close,
 NC4_set_fill,
-NC4_inq_base_pe,
-NC4_set_base_pe,
+NC_NOTNC3_inq_base_pe,
+NC_NOTNC3_set_base_pe,
 NC4_inq_format,
 NC4_inq_format_extended,
 
@@ -133,6 +134,10 @@ NC4_initialize(void)
    
    NC4_dispatch_table = &NC4_dispatcher;
 
+   /* This needs some kind of conditional on if libhdf5 is enabled */
+   if(!nc4_hdf5_initialized)
+      nc4_hdf5_initialize();
+
 #ifdef USE_UDF0
    /* If user-defined format 0 was specified during configure, set up
     * it's dispatch table. */
@@ -167,5 +172,6 @@ NC4_initialize(void)
 int
 NC4_finalize(void)
 {
+    nc4_hdf5_finalize();
     return NC_NOERR;
 }

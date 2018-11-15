@@ -16,10 +16,9 @@
 #  include <stdint.h>
 #endif /* HAVE_STDINT_H */
 #include <sys/types.h>	/* off_t */
+#include "netcdf.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
-#else
-#include "netcdf.h"
 #endif /* USE_PARALLEL */
 
 /* Always needed */
@@ -169,7 +168,7 @@ typedef struct NC_var {
 	int *dimids;	/* assoc->value */
 	NC_attrarray attrs;
 	nc_type type;		/* the discriminant */
-	size_t len;		/* the total length originally allocated */
+	long long len;		/* the total length originally allocated */
 	off_t begin;
 	/* end xdr */
 	int no_fill;		/* whether fill mode is ON or OFF */
@@ -212,7 +211,7 @@ extern int
 NC_findvar(const NC_vararray *ncap, const char *name, NC_var **varpp);
 
 extern int
-NC_check_vlen(NC_var *varp, unsigned long long vlen_max);
+NC_check_vlen(NC_var *varp, long long vlen_max);
 
 extern int
 NC_lookupvar(NC3_INFO* ncp, int varid, NC_var **varp);
@@ -363,7 +362,7 @@ nc_get_NC(NC3_INFO* ncp);
 /* Begin defined in putget.c */
 
 extern int
-fill_NC_var(NC3_INFO* ncp, const NC_var *varp, size_t varsize, size_t recno);
+fill_NC_var(NC3_INFO* ncp, const NC_var *varp, long long varsize, size_t recno);
 
 extern int
 nc_inq_rec(int ncid, size_t *nrecvars, int *recvarids, size_t *recsizes);

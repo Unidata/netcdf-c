@@ -46,7 +46,7 @@
 @set curl-url http://curl.haxx.se
 @set xml2-url http://xmlsoft.org
 @set opendap-url http://opendap.org
-@set pnetcdf-url http://www.mcs.anl.gov/parallel-netcdf
+@set pnetcdf-url https://parallel-netcdf.github.io
 
 @c urls for netcdf documents
 @set docs-url @value{netcdf-url}/docs

@@ -19,12 +19,19 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+# Figure our dst server; if none, then just stop
+DTS=`${execdir}/findtestserver dap2 dts`
+if test "x$DTS" = "x" ; then
+echo "WARNING: Cannot locate test server for dts"
+exit 1
+fi
+
 OCLOGFILE=stderr
 if test "x$DBG" = x1 ; then
 SHOW=1
 fi
 
-URL="http://remotetest.unidata.ucar.edu/dts/test.03"
+URL="$DTS/test.03"
 
 PREFIX="[log][show=fetch]"
 SUFFIX="log&show=fetch"
@@ -56,7 +63,7 @@ locreset
 
 if test "x$NOP" != x1 ; then
 echo "***Testing url prefix parameters"
-buildurl $PREFIX ""
+buildurl "$PREFIX" ""
 # Invoke ncdump to extract the URL
 
 echo "command: ${NCDUMP} -h $url"
@@ -66,7 +73,7 @@ if test "x${SHOW}" = x1 ; then cat ./tmp ; fi
 
 # Test that maxstrlen works as alias for stringlength
 echo "***Testing maxstrlen=stringlength alias"
-buildurl $STRLEN ""
+buildurl "$STRLEN" ""
 # Invoke ncdump to extract the URL
 echo "command: ${NCDUMP} -h $url"
 ${NCDUMP} "$url" >./tmp_testurl 2> ./errtmp_testurl
@@ -82,7 +89,7 @@ fi
 locreset
 if test "x$NOS" != x1 ; then
 echo "***Testing url suffix parameters"
-buildurl "" $SUFFIX
+buildurl "" "$SUFFIX"
 # Invoke ncdump to extract the URL
 ${NCDUMP} -h "$url" >./tmp_testurl  2> ./errtmp_testurl
 if test "x${SHOW}" = x1 ; then cat ./tmp_testurl ; fi
@@ -92,7 +99,7 @@ locreset
 
 if test "x$NOB" != x1 ; then
 echo "***Testing url prefix+suffix parameters"
-buildurl $BOTHP $BOTHS
+buildurl "$BOTHP" "$BOTHS"
 # Invoke ncdump to extract the URL
 ${NCDUMP} -h "$url" >./tmp_testurl 2> ./errtmp_testurl
 if test "x${SHOW}" = x1 ; then cat ./tmp_testurl ; fi

@@ -12,6 +12,8 @@ nc_test/test_get.c
 nc_test/test_put.c
 nc_test/test_read.c
 nc_test/test_write.c
+dap4_test/findtestserver4.c
+ncdap_test/findtestserver.c
 
 #####
 # End ignored generated files.

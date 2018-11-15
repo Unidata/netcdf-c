@@ -9,7 +9,6 @@
 #include "netcdf_mem.h"
 #include "ncbytes.h"
 #include "nc_tests.h"
-#include "err_macros.h"
 
 #ifdef USE_NETCDF4
 #include <hdf5.h>

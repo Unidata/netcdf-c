@@ -411,14 +411,21 @@ main(int argc, char **argv)
 #define DIM_LEN_1 100
 #define VAR_NAME "var1"
 #define H5_FILTER_SZIP 4
-#define NUM_PARAMS 2
+#define NUM_PARAMS_IN 2
+#define NUM_PARAMS_OUT 4
 #define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
 #define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
+#define NC_SZIP_EC_BPP_IN 32  /**< @internal bits per pixel input. */
+#define NC_SZIP_EC_BPP_OUT 64  /**< @internal bits per pixel output. */
       int ncid;
       int dimid;
       int varid;
-      /* int options_mask_in, bits_per_pixel_in; */
-      unsigned int params[NUM_PARAMS];
+      unsigned int params[NUM_PARAMS_IN];
+      int options_mask, bits_per_pixel;
+      size_t nparams;
+      unsigned int filterid;
+      unsigned int params_out[NUM_PARAMS_OUT];
+      unsigned int tmp;
 
       /* Create a netcdf-4 file with one dimensions. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
@@ -426,22 +433,29 @@ main(int argc, char **argv)
 
       /* Add a var. Turn on szip filter. */
       if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
-      params[0] = NC_SZIP_NN_OPTION_MASK;
-      params[1] = 32;
+      params[0] = NC_SZIP_NN_OPTION_MASK; /* options_mask */
+      params[1] = NC_SZIP_EC_BPP_IN; /* bits_per_pixel */
       if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
-      if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS, params)) ERR;
+      if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN, params)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check. */
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       /* The following code should work, but doesn't. See issue 972 in github. */
-      /* if (nc_inq_var_szip(ncid, varid, &options_mask_in, &bits_per_pixel_in)) ERR; */
-      /* if (options_mask_in != NC_SZIP_NN_OPTION_MASK || bits_per_pixel_in != 32) ERR; */
-      size_t nparams;
-      unsigned int filterid;
-      unsigned int params_in[4];
-      if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_in)) ERR;
+      if (nc_inq_var_szip(ncid, varid, &options_mask, &bits_per_pixel)) ERR;
+      /* H5Zszip code will sometimes bump the bits_per_pixel from 32 to 64
+         and may add other flags to the options_mask */
+      tmp = options_mask & NC_SZIP_NN_OPTION_MASK;
+      if (tmp != NC_SZIP_NN_OPTION_MASK) ERR;
+      if (bits_per_pixel !=  NC_SZIP_EC_BPP_IN && bits_per_pixel !=  NC_SZIP_EC_BPP_OUT)
+		ERR;
+
+      /* Also check using nc_inq_var_filter */
+      if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_out)) ERR;
       if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
+      /* According to H5Zszip, the mapping should be as follows */
+      if(params_out[0] != options_mask) ERR;
+      if(params[1] !=  bits_per_pixel) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;

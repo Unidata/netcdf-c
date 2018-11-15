@@ -36,6 +36,15 @@
 #define CLBRACE '{'
 #define CRBRACE '}'
 
+#define OCBUFFERSIZE "HTTP.READ.BUFFERSIZE"
+#define OCKEEPALIVE "HTTP.KEEPALIVE"
+
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+#ifndef CURL_MAX_READ_SIZE
+#define CURL_MAX_READ_SIZE  (512*1024)
+#endif
+#endif
+
 /*Forward*/
 static OCerror ocextractddsinmemory(OCstate*,OCtree*,int);
 static OCerror ocextractddsinfile(OCstate*,OCtree*,int);
@@ -45,6 +54,7 @@ static int dataError(XXDR* xdrs, OCstate*);
 static void ocremovefile(const char* path);
 
 static OCerror ocset_curlproperties(OCstate*);
+static OCerror ocget_rcproperties(OCstate*);
 
 extern OCnode* makeunlimiteddimension(void);
 
@@ -75,6 +85,9 @@ ocinternalinitialize(void)
 
     /* Compute some xdr related flags */
     xxdr_init();
+
+    /* Make sure that the rc file has been loaded */
+    (void)NC_rcload();
 
     return OCTHROW(stat);
 }
@@ -113,7 +126,11 @@ ocopen(OCstate** statep, const char* url)
     /* Initialize auth info from rc file */
     stat = NC_authsetup(&state->auth, state->uri);
 
-    /* capture curl properties for this link from rc file1*/
+    /* Initialize misc info from rc file */
+    stat = ocget_rcproperties(state);
+
+    /* Apply curl properties for this link;
+       assumes state has been initialized */
     stat = ocset_curlproperties(state);
     if(stat != OC_NOERR) goto fail;
 
@@ -491,7 +508,49 @@ ocupdatelastmodifieddata(OCstate* state)
 }
 
 /*
-    Set curl properties for link based on rc files etc.
+    Extract state values from .rc file
+*/
+static OCerror
+ocget_rcproperties(OCstate* state)
+{
+    OCerror ocerr = OC_NOERR;
+    char* option = NULL;
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+    option = NC_rclookup(OCBUFFERSIZE,state->uri->uri);
+    if(option != NULL && strlen(option) != 0) {
+	long bufsize;
+	if(strcasecmp(option,"max")==0) 
+	    bufsize = CURL_MAX_READ_SIZE;
+	else if(sscanf(option,"%ld",&bufsize) != 1 || bufsize <= 0)
+            fprintf(stderr,"Illegal %s size\n",OCBUFFERSIZE);
+	state->curlbuffersize = bufsize;
+    }
+#endif
+#ifdef HAVE_CURLOPT_KEEPALIVE
+    option = NC_rclookup(OCKEEPALIVE,state->uri->uri);
+    if(option != NULL && strlen(option) != 0) {
+	/* The keepalive value is of the form 0 or n/m,
+           where n is the idle time and m is the interval time;
+           setting either to zero will prevent that field being set. */
+	if(strcasecmp(option,"on")==0) {
+	    state->curlkeepalive.active = 1;
+	} else {
+	    unsigned long idle=0;
+	    unsigned long interval=0;
+	    if(sscanf(option,"%lu/%lu",&idle,&interval) != 2)
+	        fprintf(stderr,"Illegal KEEPALIVE VALUE: %s\n",option);
+	    state->curlkeepalive.idle = idle;
+	    state->curlkeepalive.interval = interval;
+	    state->curlkeepalive.active = 1;
+	}
+    }
+#endif
+    return ocerr;
+}
+
+
+/*
+    Set curl properties for link based on fields in the state.
 */
 static OCerror
 ocset_curlproperties(OCstate* state)

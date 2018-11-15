@@ -18,6 +18,7 @@
 
 #include "nc.h"
 #include "nc4internal.h"
+#include "hdf5internal.h"
 #include "nc4dispatch.h"
 #include "ncdispatch.h"
 
@@ -51,13 +52,13 @@ nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
       char* propdata = NULL;
       int stat = NC_NOERR;
       int len;
-      if(h5->fileinfo->propattr.version == 0)
+      if(h5->provenance->propattr.version == 0)
          return NC_ENOTATT;
       if(mem_type == NC_NAT) mem_type = NC_CHAR;
       if(mem_type != NC_CHAR)
          return NC_ECHAR;
       if(filetypep) *filetypep = NC_CHAR;
-      stat = NC4_buildpropinfo(&h5->fileinfo->propattr, &propdata);
+      stat = NC4_buildpropinfo(&h5->provenance->propattr, &propdata);
       if(stat != NC_NOERR) return stat;
       len = strlen(propdata);
       if(lenp) *lenp = len;
@@ -69,7 +70,7 @@ nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
       if(filetypep) *filetypep = NC_INT;
       if(lenp) *lenp = 1;
       if(strcmp(name,SUPERBLOCKATT)==0)
-         iv = (unsigned long long)h5->fileinfo->superblockversion;
+         iv = (unsigned long long)h5->provenance->superblockversion;
       else /* strcmp(name,ISNETCDF4ATT)==0 */
          iv = NC4_isnetcdf4(h5);
       if(mem_type == NC_NAT) mem_type = NC_INT;
@@ -155,13 +156,13 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    if (varid == NC_GLOBAL)
    {
       if (grp->atts_not_read)
-         if ((retval = nc4_read_grp_atts(grp)))
+         if ((retval = nc4_read_atts(grp, NULL)))
             return retval;
    }
    else
    {
       if (var->atts_not_read)
-         if ((retval = nc4_read_var_atts(grp, var)))
+         if ((retval = nc4_read_atts(grp, var)))
             return retval;
    }
 
@@ -348,23 +349,13 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 int
 NC4_inq_attname(int ncid, int varid, int attnum, char *name)
 {
-   NC *nc;
    NC_ATT_INFO_T *att;
-   NC_FILE_INFO_T *h5;
-   int retval = NC_NOERR;
+   int retval;
 
-   LOG((2, "nc_inq_attname: ncid 0x%x varid %d attnum %d",
-        ncid, varid, attnum));
+   LOG((2, "nc_inq_attname: ncid 0x%x varid %d attnum %d", ncid, varid,
+        attnum));
 
-   /* Find metadata. */
-   if (!(nc = nc4_find_nc_file(ncid,NULL)))
-      return NC_EBADID;
-
-   /* get netcdf-4 metadata */
-   h5 = NC4_DATA(nc);
-   assert(h5);
-
-   /* Handle netcdf-4 files. */
+   /* Find the attribute metadata. */
    if ((retval = nc4_find_nc_att(ncid, varid, NULL, attnum, &att)))
       return retval;
 

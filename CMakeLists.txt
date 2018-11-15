@@ -26,7 +26,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 6)
-SET(NC_VERSION_PATCH 2)
+SET(NC_VERSION_PATCH 3)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -273,7 +273,7 @@ SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
 # Configuration for post-install RPath
 # Adapted from http://www.cmake.org/Wiki/CMake_RPATH_handling
 ##
-IF(NOT MSVC)
+IF(NOT MSVC AND BUILD_SHARED_LIBS)
   # use, i.e. don't skip the full RPATH for the build tree
   SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
@@ -315,6 +315,8 @@ SET(CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemptio
 SET(MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
 SET(NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 SET(TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
+SET(NCPROPERTIES_EXTRA "" CACHE STRNG "Specify extra pairs for _NCProperties.")
+SET(MPIEXEC "mpiexec" CACHE STRING "Command to run MPI programs if parallel tests are run.")
 
 IF(NOT NETCDF_LIB_NAME STREQUAL "")
   SET(MOD_NETCDF_NAME ON)
@@ -381,14 +383,6 @@ OPTION(ENABLE_MMAP "Use MMAP." ON)
 
 # Option to use examples.
 OPTION(ENABLE_EXAMPLES "Build Examples" ON)
-
-
-# Option Logging, only valid for netcdf4.
-OPTION(ENABLE_LOGGING "Enable Logging." OFF)
-IF(ENABLE_LOGGING)
-  ADD_DEFINITIONS(-DLOGGING)
-  SET(LOGGING ON)
-ENDIF()
 
 # Option to automatically build netcdf-fortran.
 IF(NOT MSVC)
@@ -530,14 +524,19 @@ ENDIF()
 
 # Option Logging, only valid for netcdf4.
 OPTION(ENABLE_LOGGING "Enable Logging." OFF)
+IF(NOT ENABLE_NETCDF_4)
+SET(ENABLE_LOGGING OFF)
+ENDIF()
 IF(ENABLE_LOGGING)
   ADD_DEFINITIONS(-DLOGGING)
   ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
   SET(LOGGING ON)
+  SET(ENABLE_SET_LOG_LEVEL ON)
 ENDIF()
 OPTION(ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
-IF(ENABLE_NETCDF_$ AND (NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC) OR ENABLE_LOGGING)
+IF(ENABLE_NETCDF_4 AND NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC)
   ADD_DEFINITIONS(-DENABLE_SET_LOG_LEVEL)
+  SET(ENABLE_SET_LOG_LEVEL ON)
 ENDIF()
 
 # Option to allow for strict null file padding.
@@ -708,20 +707,15 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     # Do that by checking for the targets H5Pget_fapl_mpiposx and
     # H5Pget_fapl_mpio in ${HDF5_LIB}.
 
-    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
+    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
+    # CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+
     CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
-    IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
+    IF(HDF5_IS_PARALLEL_MPIO)
       SET(HDF5_PARALLEL ON)
     ELSE()
       SET(HDF5_PARALLEL OFF)
-    ENDIF()
-
-    IF(HDF5_IS_PARALLEL_MPIO)
-      SET(USE_PARALLEL_MPIO ON)
-    ENDIF()
-
-    IF(HDF5_IS_PARALLEL_MPIPOSIX)
-      SET(USE_PARALLEL_POSIX ON)
     ENDIF()
 
     #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
@@ -742,6 +736,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF()
 
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_libver_bounds "" HDF5_HAS_LIBVER_BOUNDS)
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5free_memory "" HDF5_HAS_H5FREE)
 
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
@@ -767,12 +762,6 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
-
-# Option to turn on CDF5 support.
-OPTION(ENABLE_CDF5 "Enable CDF5 Support." ON)
-IF(ENABLE_CDF5)
-    SET(USE_CDF5 ON CACHE BOOL "")
-ENDIF(ENABLE_CDF5)
 
 # Option to Build DAP2+DAP4 Clients
 OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
@@ -824,6 +813,18 @@ IF(ENABLE_DAP)
   CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
+
+  # Check to see if CURLOPT_BUFFERSIZE is defined.
+  # It is present starting version 7.59
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_BUFFERSIZE;}" HAVE_CURLOPT_BUFFERSIZE)
+
+  # Check to see if CURLOPT_TCP_KEEPALIVE is defined.
+  # It is present starting version 7.25
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
 
 ELSE()
   SET(ENABLE_DAP2 OFF)
@@ -987,7 +988,7 @@ IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
   SET(ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
 
-# Enable Parallel (different than pnetcdf).
+# Enable Parallel IO with netCDF-4/HDF5 files using HDF5 parallel I/O.
 SET(STATUS_PARALLEL "OFF")
 OPTION(ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
 IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
@@ -999,16 +1000,22 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
     SET(USE_PARALLEL ON CACHE BOOL "")
     SET(USE_PARALLEL4 ON CACHE BOOL "")
     SET(STATUS_PARALLEL "ON")
+    configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test.sh.in"
+      "${netCDF_BINARY_DIR}/tmp/run_par_test.sh" @ONLY NEWLINE_STYLE LF)
+    FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test.sh"
+      DESTINATION ${netCDF_BINARY_DIR}/nc_test4
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
   ENDIF()
 ENDIF()
 
-# Options to enable parallel IO, tests.
+# Options to enable parallel IO for classic formats with PnetCDF library.
 SET(STATUS_PNETCDF "OFF")
-OPTION(ENABLE_PNETCDF "Build with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
+OPTION(ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
 
 IF(ENABLE_PNETCDF)
   # Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
-  # Does the user want to turn on PNETCDF read ability?
+  # Does the user want to turn on PnetCDF read ability?
   SET(USE_PNETCDF ON CACHE BOOL "")
   FIND_LIBRARY(PNETCDF NAMES pnetcdf)
   FIND_PATH(PNETCDF_INCLUDE_DIR pnetcdf.h)
@@ -1034,7 +1041,7 @@ IF(ENABLE_PNETCDF)
       SET(STATUS_PNETCDF "ON")
       INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
       SET(HAVE_LIBPNETCDF ON)
-      # pnetcdf => parallel
+      # PnetCDF => parallel
       SET(STATUS_PARALLEL ON)
       SET(USE_PARALLEL ON)
       MESSAGE(STATUS "Using PnetCDF Library: ${PNETCDF}")
@@ -1045,56 +1052,87 @@ IF(ENABLE_PNETCDF)
 ENDIF()
 
 # Options to enable use of fill values for elements causing NC_ERANGE
-SET(STATUS_ERANGE_FILL "OFF")
-OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OF)
-IF(ENABLE_ERANGE_FILL)
-  SET(STATUS_ERANGE_FILL "ON")
-  ADD_DEFINITIONS(-DERANGE_FILL)
-ENDIF()
+SET(ENABLE_ERANGE_FILL AUTO CACHE STRING "AUTO")
+OPTION(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OFF)
+IF(ENABLE_ERANGE_FILL) # enable or auto
+   STRING(TOUPPER ${ENABLE_ERANGE_FILL} ENABLE_ERANGE_FILL)
+   IF(ENABLE_ERANGE_FILL AND NOT ENABLE_ERANGE_FILL STREQUAL "AUTO")
+      # explicitly enabled
+      SET(ENABLE_ERANGE_FILL ON)
+   ELSE()
+      IF(NOT ENABLE_ERANGE_FILL STREQUAL "AUTO")
+         SET(ENABLE_ERANGE_FILL OFF)
+      ENDIF()
+   ENDIF()
+ENDIF(ENABLE_ERANGE_FILL)
+# Now ENABLE_ERANGE_FILL is either AUTO, ON, or OFF
 
 # Options to use a more relaxed coordinate argument boundary check
-SET(STATUS_RELAX_COORD_BOUND "OFF")
+SET(ENABLE_ZERO_LENGTH_COORD_BOUND AUTO CACHE STRING "AUTO")
 OPTION(ENABLE_ZERO_LENGTH_COORD_BOUND "Enable a more relaxed boundary error check NC_EINVALCOORDS to allow coordinate start argument equal to dimension size when argument count is zero." OFF)
-IF(ENABLE_ZERO_LENGTH_COORD_BOUND)
-  SET(STATUS_RELAX_COORD_BOUND "ON")
-ENDIF()
+IF(ENABLE_ZERO_LENGTH_COORD_BOUND) # enable or auto
+   STRING(TOUPPER ${ENABLE_ZERO_LENGTH_COORD_BOUND} ENABLE_ZERO_LENGTH_COORD_BOUND)
+   IF(ENABLE_ZERO_LENGTH_COORD_BOUND AND NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "AUTO")
+      # explicitly enabled
+      SET(ENABLE_ZERO_LENGTH_COORD_BOUND ON)
+   ELSE()
+      IF(NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "AUTO")
+         SET(ENABLE_ZERO_LENGTH_COORD_BOUND OFF)
+      ENDIF()
+   ENDIF()
+ENDIF(ENABLE_ZERO_LENGTH_COORD_BOUND)
+# Now ENABLE_ZERO_LENGTH_COORD_BOUND is either AUTO, ON, or OFF
 
 # check and conform with PnetCDF settings on ERANGE_FILL and RELAX_COORD_BOUND
 IF(STATUS_PNETCDF)
   file(STRINGS "${pnetcdf_h}" enable_erange_fill_pnetcdf REGEX "^#define PNETCDF_ERANGE_FILL")
   string(REGEX REPLACE "[^0-9]" "" erange_fill_pnetcdf "${enable_erange_fill_pnetcdf}")
   IF("x${erange_fill_pnetcdf}" STREQUAL "x1")
-     IF(NOT STATUS_ERANGE_FILL)
-       MESSAGE(WARNING "Enable erange-fill to conform with PnetCDF setting")
-       SET(STATUS_ERANGE_FILL "ON")
-     ENDIF()
+     SET(erange_fill_pnetcdf "ON")
   ELSE()
-     IF(STATUS_ERANGE_FILL)
-       MESSAGE(WARNING "Disable erange-fill to conform with PnetCDF setting")
-       SET(STATUS_ERANGE_FILL "OFF")
+     SET(erange_fill_pnetcdf "OFF")
+  ENDIF()
+  IF(ENABLE_ERANGE_FILL STREQUAL "AUTO") # not set on command line
+     SET(ENABLE_ERANGE_FILL "${erange_fill_pnetcdf}")
+  ELSE()
+     # user explicitly set this option on command line
+     IF(NOT ENABLE_ERANGE_FILL STREQUAL "${erange_fill_pnetcdf}")
+        IF(ENABLE_ERANGE_FILL)
+           MESSAGE(FATAL_ERROR "Enabling erange-fill conflicts with PnetCDF setting")
+        ELSE()
+           MESSAGE(FATAL_ERROR "Disabling erange-fill conflicts with PnetCDF setting")
+        ENDIF()
      ENDIF()
   ENDIF()
+
   file(STRINGS "${pnetcdf_h}" relax_coord_bound_pnetcdf REGEX "^#define PNETCDF_RELAX_COORD_BOUND")
   string(REGEX REPLACE "[^0-9]" "" relax_coord_bound "${relax_coord_bound_pnetcdf}")
   IF("x${relax_coord_bound}" STREQUAL "x1")
-     IF(NOT STATUS_RELAX_COORD_BOUND)
-       MESSAGE(WARNING "Enable relax-coord-bound to conform with PnetCDF setting")
-       SET(STATUS_RELAX_COORD_BOUND "ON")
-     ENDIF()
+     SET(relax_coord_bound_pnetcdf "ON")
   ELSE()
-     IF(STATUS_RELAX_COORD_BOUND)
-       MESSAGE(WARNING "Disable relax-coord-bound to conform with PnetCDF setting")
-       SET(STATUS_RELAX_COORD_BOUND "OFF")
+     SET(relax_coord_bound_pnetcdf "OFF")
+  ENDIF()
+  IF(ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "AUTO") # not set on command line
+     SET(ENABLE_ZERO_LENGTH_COORD_BOUND "${relax_coord_bound_pnetcdf}")
+  ELSE()
+     # user explicitly set this option on command line
+     IF(NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "${relax_coord_bound_pnetcdf}")
+        IF(ENABLE_ZERO_LENGTH_COORD_BOUND)
+           MESSAGE(FATAL_ERROR "Enabling relax-coord-bound conflicts with PnetCDF setting")
+        ELSE()
+           MESSAGE(FATAL_ERROR "Disabling relax-coord-bound conflicts with PnetCDF setting")
+        ENDIF()
      ENDIF()
   ENDIF()
 ENDIF()
 
-IF(STATUS_ERANGE_FILL)
+IF(ENABLE_ERANGE_FILL)
+  MESSAGE(STATUS "Enabling use of fill value when NC_ERANGE")
   SET(M4FLAGS "-DERANGE_FILL" CACHE STRING "")
 ENDIF()
 
-IF(STATUS_RELAX_COORD_BOUND)
-  MESSAGE(STATUS "Enabling a more relatexed check for NC_EINVALCOORDS")
+IF(ENABLE_ZERO_LENGTH_COORD_BOUND)
+  MESSAGE(STATUS "Enabling a more relaxed check for NC_EINVALCOORDS")
   ADD_DEFINITIONS(-DRELAX_COORD_BOUND)
 ENDIF()
 
@@ -1299,6 +1337,26 @@ CHECK_TYPE_SIZE("_Bool"     SIZEOF__BOOL)
 
 CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
 
+# Check whether to turn on or off CDF5 support.
+SET(ENABLE_CDF5 AUTO CACHE STRING "AUTO")
+OPTION(ENABLE_CDF5 "Enable CDF5 support" ON)
+IF(SIZEOF_SIZE_T EQUAL 4)
+   IF(ENABLE_CDF5) # enable or auto
+      STRING(TOUPPER ${ENABLE_CDF5} ENABLE_CDF5)
+      IF(ENABLE_CDF5 AND NOT ENABLE_CDF5 STREQUAL "AUTO") # explicitly enabled
+         MESSAGE(FATAL_ERROR "Unable to support CDF5 feature because size_t is less than 8 bytes")
+      ENDIF(ENABLE_CDF5 AND NOT ENABLE_CDF5 STREQUAL "AUTO")
+      SET(ENABLE_CDF5 OFF) # cannot support CDF5
+      SET(USE_CDF5 OFF CACHE BOOL "") # cannot support CDF5
+   ENDIF(ENABLE_CDF5)
+ELSE(SIZEOF_SIZE_T EQUAL 4)
+   IF(ENABLE_CDF5) # explicitly set by user or not set
+      SET(USE_CDF5 ON CACHE BOOL "")
+   ELSE(ENABLE_CDF5) # explicitly disabled by user
+      SET(USE_CDF5 OFF CACHE BOOL "")
+   ENDIF(ENABLE_CDF5)
+ENDIF(SIZEOF_SIZE_T EQUAL 4)
+
 CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)
 IF(SIZEOF_SSIZE_T)
   SET(HAVE_SSIZE_T TRUE)
@@ -1340,23 +1398,24 @@ CHECK_FUNCTION_EXISTS(mkstemp HAVE_MKSTEMP)
 CHECK_FUNCTION_EXISTS(mktemp HAVE_MKTEMP)
 CHECK_FUNCTION_EXISTS(random HAVE_RANDOM)
 CHECK_FUNCTION_EXISTS(gettimeofday  HAVE_GETTIMEOFDAY)
-CHECK_FUNCTION_EXISTS(fsync HAVE_FSYNC)
 CHECK_FUNCTION_EXISTS(MPI_Comm_f2c  HAVE_MPI_COMM_F2C)
+CHECK_FUNCTION_EXISTS(MPI_Info_f2c  HAVE_MPI_INFO_F2C)
 CHECK_FUNCTION_EXISTS(memmove HAVE_MEMMOVE)
 CHECK_FUNCTION_EXISTS(getpagesize HAVE_GETPAGESIZE)
 CHECK_FUNCTION_EXISTS(sysconf HAVE_SYSCONF)
 CHECK_FUNCTION_EXISTS(getrlimit HAVE_GETRLIMIT)
 CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
+CHECK_FUNCTION_EXISTS(mmap HAVE_MMAP)
 CHECK_FUNCTION_EXISTS(mremap HAVE_MREMAP)
 
+IF(NOT HAVE_MMMAP OR NOT HAVE_MREMAP)
+  MESSAGE(WARNING "mmap or mremap not found: disabling MMAP support.")
+  SET(ENABLE_MMAP OFF)
+ENDIF()
+
 IF(ENABLE_MMAP)
-  IF(NOT HAVE_MREMAP)
-    MESSAGE(WARNING "mremap not found: disabling MMAP support.")
-    SET(ENABLE_MMAP OFF)
-  ELSE(NOT HAVE_MREMAP)
-    SET(BUILD_MMAP ON)
-    SET(USE_MMAP ON)
-  ENDIF(NOT HAVE_MREMAP)
+  SET(BUILD_MMAP ON)
+  SET(USE_MMAP ON)
 ENDIF(ENABLE_MMAP)
 
 #CHECK_FUNCTION_EXISTS(alloca HAVE_ALLOCA)
@@ -1535,7 +1594,7 @@ MACRO(print_conf_summary)
 
   IF(${STATUS_PNETCDF} OR ${STATUS_PARALLEL})
     MESSAGE("Building Parallel NetCDF")
-    MESSAGE(STATUS "Using pnetcdf:       ${STATUS_PNETCDF}")
+    MESSAGE(STATUS "Using PnetCDF:       ${STATUS_PNETCDF}")
     MESSAGE(STATUS "Using Parallel IO:   ${STATUS_PARALLEL}")
     MESSAGE("")
   ENDIF()
@@ -1880,7 +1939,7 @@ is_enabled(ENABLE_DAP4 HAS_DAP4)
 is_enabled(ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
-is_enabled(STATUS_RELAX_COORD_BOUND RELAX_COORD_BOUND)
+is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 
@@ -1933,6 +1992,12 @@ configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/nc
 IF(ENABLE_EXAMPLES)
 configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
 ENDIF()
+
+#####
+# Build ncdap_test|dap4_test/findtestserver[4].c
+#####
+configure_file(${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
+configure_file(${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_SOURCE_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
 
 ####
 # Export files

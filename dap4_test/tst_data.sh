@@ -15,7 +15,7 @@ for f in $F ; do
     if ! ${VG} ${execdir}/test_data ${DAPTESTFILES}/${f} ./results/${f}.nc ; then
         failure "${execdir}/test_data ${DAPTESTFILES}/${f} ./results/${f}.nc"
     fi
-    ${NCDUMP} ./results/${f}.nc > ./results/${f}.d4d
+    ${NCDUMP} ${DUMPFLAGS} ./results/${f}.nc > ./results/${f}.d4d
     if test "x${TEST}" = x1 ; then
 	if ! diff -wBb ${BASELINE}/${f}.d4d ./results/${f}.d4d ; then
 	    failure "diff -wBb ${BASELINE}/${f}.d4d ./results/${f}.d4d"

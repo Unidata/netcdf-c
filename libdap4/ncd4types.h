@@ -258,6 +258,7 @@ typedef struct NCD4parser {
     NClist* groups; /*list<NCD4node>*/
     /* Convenience for short cut fqn detection */
     NClist* atomictypes; /*list<NCD4node>*/
+    char* used; /* mark indices in atomictypes that have been used */
     NCD4node* dapopaque; /* Single non-fixed-size opaque type */
 } NCD4parser;
 
@@ -273,6 +274,12 @@ struct NCD4curl {
 	long  httpcode;
 	char  errorbuf[CURL_ERROR_SIZE]; /* CURLOPT_ERRORBUFFER*/
     } errdata;
+    struct {
+	int active; /* Activate keepalive? */
+	long idle; /* KEEPIDLE value */
+	long interval; /* KEEPINTVL value */
+    } keepalive; /* keepalive info */
+    long buffersize; /* read buffer size */    
 };
 
 /**************************************************/
@@ -280,7 +287,6 @@ struct NCD4curl {
 
 struct NCD4INFO {
     NC*   controller; /* Parent instance of NCD4INFO */
-    int debug;
     char* rawurltext; /* as given to ncd4_open */
     char* urltext;    /* as modified by ncd4_open */
     NCURI* uri;      /* parse of rawuritext */
@@ -305,8 +311,13 @@ struct NCD4INFO {
         NCCONTROLS  debugflags;
 	NCD4translation translation;
 	char substratename[NC_MAX_NAME];
+	size_t opaquesize; /* default opaque size */
     } controls;
     NCauth auth;
+    struct {
+	char* filename;
+    } fileproto;
+    NClist* blobs;
 };
 
 #endif /*D4TYPES_H*/

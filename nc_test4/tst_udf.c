@@ -25,8 +25,7 @@ NC4_show_metadata(int ncid)
 
 int
 tst_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-             int use_parallel, void *parameters, NC_Dispatch *dispatch,
-             NC *nc_file)
+             void *parameters, NC_Dispatch *dispatch, NC *nc_file)
 {
    return NC_NOERR;
 }

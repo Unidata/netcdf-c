@@ -35,7 +35,7 @@ bbFail(void)
 Bytebuffer*
 bbNew(void)
 {
-  Bytebuffer* bb = (Bytebuffer*)malloc(sizeof(Bytebuffer));
+  Bytebuffer* bb = (Bytebuffer*)emalloc(sizeof(Bytebuffer));
   if(bb == NULL) return (Bytebuffer*)bbFail();
   bb->alloc=0;
   bb->length=0;
@@ -53,7 +53,7 @@ bbSetalloc(Bytebuffer* bb, const unsigned int sz0)
   if(sz <= 0) {sz = (bb->alloc?2*bb->alloc:DEFAULTALLOC);}
   else if(bb->alloc >= sz) return TRUE;
   else if(bb->nonextendible) return bbFail();
-  newcontent=(char*)calloc(sz,sizeof(char));
+  newcontent=(char*)ecalloc(sz*sizeof(char));
   if(bb->alloc > 0 && bb->length > 0 && bb->content != NULL) {
     memcpy((void*)newcontent,(void*)bb->content,sizeof(char)*bb->length);
   }
@@ -250,7 +250,7 @@ bbTailpeek(Bytebuffer* bb, char* pelem)
 char*
 bbDup(const Bytebuffer* bb)
 {
-    char* result = (char*)malloc(bb->length+1);
+    char* result = (char*)emalloc(bb->length+1);
     memcpy((void*)result,(const void*)bb->content,bb->length);
     result[bb->length] = '\0'; /* just in case it is a string*/
     return result;
@@ -276,4 +276,18 @@ bbNull(Bytebuffer* bb)
     bbAppend(bb,'\0');
     bb->length--;
     return 1;
+}
+
+/* Extract the content and leave content null */
+char*
+bbExtract(Bytebuffer* bb)
+{
+    char* x = NULL;
+    if(bb == NULL || bb->content == NULL)
+        return NULL;
+    x = bb->content;
+    bb->content = NULL;
+    bb->length = 0;
+    bb->alloc = 0;
+    return x;
 }

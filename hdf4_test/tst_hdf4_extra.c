@@ -74,8 +74,7 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 
       /* These won't work. */
-      if (nc_get_vara_int(ncid, 0, NULL, count, data_int) != NC_EINVAL) ERR;
-      if (nc_get_vara_int(ncid, 0, start, count, NULL) != NC_EINVAL) ERR;
+      if (nc_get_vara_int(ncid, 0, NULL, count, data_int) != NC_EINVALCOORDS) ERR;
       if (nc_get_vara_int(ncid + TEST_VAL_42, 0, start, count, data_int) != NC_EBADID) ERR;
 
       /* Read data as short. */
@@ -117,8 +116,6 @@ main(int argc, char **argv)
       /* These will not work. */
       if (nc_open(FILE_NAME, NC_MMAP, &ncid) != NC_EINVAL) ERR;
       if (nc_open(FILE_NAME, NC_64BIT_OFFSET, &ncid) != NC_EINVAL) ERR;
-      if (nc_open(FILE_NAME, NC_MPIIO, &ncid) != NC_EINVAL) ERR;
-      if (nc_open(FILE_NAME, NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
       if (nc_open(FILE_NAME, NC_DISKLESS, &ncid) != NC_EINVAL) ERR;
 
       /* Now open with netCDF. */

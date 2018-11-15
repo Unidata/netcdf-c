@@ -55,7 +55,7 @@ NCD4_processdata(NCD4meta* meta)
 {
     int ret = NC_NOERR;
     int i;
-    NClist* toplevel;
+    NClist* toplevel = NULL;
     NCD4node* root = meta->root;
     void* offset;
 
@@ -99,14 +99,14 @@ NCD4_processdata(NCD4meta* meta)
         for(i=0;i<nclistlength(toplevel);i++) {
 	    NCD4node* var = (NCD4node*)nclistget(toplevel,i);
 	    if(var->data.localchecksum != var->data.remotechecksum) {
-		fprintf(stderr,"Checksum mismatch: %s\n",var->name);
-		fflush(stderr);
+		nclog(NCLOGERR,"Checksum mismatch: %s\n",var->name);
 		ret = NC_EDAP;
 		goto done;
 	    }
         }
     }
 done:
+    if(toplevel) nclistfree(toplevel);
     return THROW(ret);
 }
 
@@ -256,7 +256,6 @@ fillstring(NCD4meta* meta, void** offsetp, void** dstp, NClist* blobs)
     q = (char*)d4alloc(count+1);
     if(q == NULL)
 	{FAIL(NC_ENOMEM,"out of space");}
-    nclistpush(blobs,q);
     memcpy(q,offset,count);
     q[count] = '\0';
     /* Write the pointer to the string */
@@ -265,6 +264,11 @@ fillstring(NCD4meta* meta, void** offsetp, void** dstp, NClist* blobs)
     *dstp = dst;    
     offset = INCR(offset,count);
     *offsetp = offset;
+#if 0
+    nclistpush(blobs,q);
+#else
+    q = NULL;
+#endif
 done:
     return THROW(ret);
 }
@@ -273,7 +277,8 @@ static int
 fillopfixed(NCD4meta* meta, d4size_t opaquesize, void** offsetp, void** dstp)
 {
     int ret = NC_NOERR;
-    d4size_t count;
+    d4size_t count, actual;
+    int delta;
     void* offset = *offsetp;
     void* dst = *dstp;
 
@@ -281,15 +286,26 @@ fillopfixed(NCD4meta* meta, d4size_t opaquesize, void** offsetp, void** dstp)
     count = GETCOUNTER(offset);
     SKIPCOUNTER(offset);
     /* verify that it is the correct size */
-    if(count != opaquesize)
+    actual = count;
+    delta = actual - opaquesize;
+    if(delta != 0) {
+#ifdef FIXEDOPAQUE
+	nclog(NCLOGWARN,"opaque changed from %lu to %lu",actual,opaquesize);
+	memset(dst,0,opaquesize); /* clear in case we have short case */
+	count = (delta < 0 ? actual : opaquesize);
+#else
         FAIL(NC_EVARSIZE,"Expected opaque size to be %lld; found %lld",opaquesize,count);
+#endif
+    }
     /* move */
     memcpy(dst,offset,count);
     dst = INCR(dst,count);
     *dstp = dst;
     offset = INCR(offset,count);
     *offsetp = offset;
+#ifndef FIXEDOPAQUE
 done:
+#endif
     return THROW(ret);
 }
 
@@ -317,10 +333,10 @@ fillopvar(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, NClist* b
     /* Transfer out of band */
     q = (char*)d4alloc(count);
     if(q == NULL) FAIL(NC_ENOMEM,"out of space");
-    nclistpush(blobs,q);
     memcpy(q,offset,count);
     vlen->p = q;
     vlen->len = (size_t)count;
+    q = NULL; /*nclistpush(blobs,q);*/
     dst = INCR(dst,sizeof(nc_vlen_t));
     *dstp = dst;
     offset = INCR(offset,count);

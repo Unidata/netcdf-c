@@ -19,12 +19,12 @@
 #if defined(HDF5_PARALLEL) || defined(USE_PNETCDF)
 #include <mpi.h>
 #endif
-#ifdef USE_PARALLEL
-#include "netcdf_par.h"
-#endif
 #include "netcdf.h"
 #include "nc.h"
 #include "ncuri.h"
+#ifdef USE_PARALLEL
+#include "netcdf_par.h"
+#endif
 
 #define longtype ((sizeof(long) == sizeof(int) ? NC_INT : NC_INT64))
 
@@ -108,7 +108,8 @@ typedef struct NC_MPI_INFO {
 /* Define known dispatch tables and initializers */
 
 /*Forward*/
-typedef struct NC_Dispatch NC_Dispatch;
+// typedef struct NC_Dispatch NC_Dispatch;
+
 
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
@@ -151,6 +152,10 @@ extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
 extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];
 extern ptrdiff_t nc_ptrdiffvector1[NC_MAX_VAR_DIMS];
 
+/* Prototypes. */
+int NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
+                   ptrdiff_t **stride);
+
 /**************************************************/
 /* Forward */
 #ifndef USE_NETCDF4
@@ -166,12 +171,10 @@ struct NC;
 
 int NC_create(const char *path, int cmode,
 	      size_t initialsz, int basepe, size_t *chunksizehintp,
-	      int useparallel, void* parameters,
-	      int *ncidp);
+	      int useparallel, void *parameters, int *ncidp);
 int NC_open(const char *path, int cmode,
 	    int basepe, size_t *chunksizehintp,
-	    int useparallel, void* parameters,
-	    int *ncidp);
+	    int useparallel, void *parameters, int *ncidp);
 
 /* Expose the default vars and varm dispatch entries */
 EXTERNL int NCDEFAULT_get_vars(int, int, const size_t*,
@@ -194,13 +197,11 @@ struct NC_Dispatch {
 int model; /* one of the NC_FORMATX #'s */
 
 int (*create)(const char *path, int cmode,
-	  size_t initialsz, int basepe, size_t *chunksizehintp,
-	  int use_parallel, void* parameters,
-	  struct NC_Dispatch* table, NC* ncp);
+              size_t initialsz, int basepe, size_t *chunksizehintp,
+              void* parameters, struct NC_Dispatch* table, NC* ncp);
 int (*open)(const char *path, int mode,
-	    int basepe, size_t *chunksizehintp,
-	    int use_parallel, void* parameters,
-	    struct NC_Dispatch* table, NC* ncp);
+            int basepe, size_t *chunksizehintp,
+            void* parameters, struct NC_Dispatch* table, NC* ncp);
 
 int (*redef)(int);
 int (*_enddef)(int,size_t,size_t,size_t,size_t);
@@ -386,11 +387,6 @@ extern int NC_argc;
 extern char* NC_argv[];
 extern int NC_initialized;
 
-extern int nc_initialize();
-extern int nc_finalize();
-
-
-
 /**
 Certain functions are in the dispatch table,
 but not in the netcdf.h API. These need to
@@ -412,7 +408,7 @@ NCDISPATCH_get_att(int ncid, int varid, const char* name, void* value, nc_type t
  * NC_EPERM to all attempts to modify a file. */
 
 EXTERNL int NC_RO_create(const char *path, int cmode, size_t initialsz, int basepe,
-                 size_t *chunksizehintp, int useparallel, void* parameters,
+                 size_t *chunksizehintp, void* parameters,
                  NC_Dispatch*, NC*);
 EXTERNL int NC_RO_redef(int ncid);
 EXTERNL int NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,

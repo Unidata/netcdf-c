@@ -575,11 +575,15 @@ Parameter Name Legal Values Semantics
   for a string dimension for the specified variable. The default is
   64. The name "maxstrlen_<var>" is an alias for "stringlength_<var>".
 - "cache" - This enables caching.
+- "nocache" - This disbles caching.
 - "cachelimit=NN" - Specify the maximum amount of space allowed for
   the cache.
 - "cachecount=NN" - Specify the maximum number of entries in the
   cache.
+- "prefetch" - This enables prefetch of small variables (default).
 - "noprefetch" - This disables prefetch of small variables.
+- "fillmismatch" - This enables _FillValue/Variable type mismatch.
+- "nofillmismatch" - This disables _FillValue/Variable type mismatch (default).
 
 \section dap_debug Notes on Debugging OPeNDAP Access
 
@@ -691,6 +695,17 @@ follows.
         Type: String representing url to access the proxy: (e.g.http://[username:password@]host[:port])
         Description: Specify the needed information for accessing a proxy.
         Related CURL Flags: CURLOPT_PROXY, CURLOPT_PROXYHOST, CURLOPT_PROXYUSERPWD
+    HTTP.READ.BUFFERSIZE
+        Type: String ("dddddd")
+        Description: Specify the the internal buffer size for curl reads.
+        Related CURL Flags: CURLOPT_BUFFERSIZE, CURL_MAX_WRITE_SIZE (16kB),
+                            CURL_MAX_READ_SIZE (512kB).
+
+    HTTP.KEEPALIVE
+        Type: String ("on|n/m")
+        Description: Specify that TCP KEEPALIVE should be enabled and that the associated idle wait time is n and that the associated repeat interval is m. If the value is of the form is the string "on", then turn on keepalive, but do not set idle or interval.
+        Related CURL Flags: CURLOPT_TCP_KEEPALIVE, CURLOPT_TCP_KEEPIDLE,
+                            CURLOPT_TCP_KEEPINTVL.
 </pre>
 
 The related curl flags line indicates the curl flags modified by this

@@ -90,7 +90,7 @@
 
 typedef struct NCMMAPIO {
     int locked; /* => we cannot realloc */
-    int persist; /* => save to a file; triggered by NC_WRITE */
+    int persist; /* => save to a file; triggered by NC_PERSIST */
     char* memory;
     off_t alloc;
     off_t size;
@@ -164,7 +164,7 @@ mmapio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMM
     mmapio->memory = NULL;
     mmapio->size = 0;
     mmapio->pos = 0;
-    mmapio->persist = fIsSet(ioflags,NC_WRITE);
+    mmapio->persist = fIsSet(ioflags,NC_PERSIST);
 
     /* See if ok to use mmap */
     if(sizeof(void*) < 8 &&
@@ -211,7 +211,7 @@ mmapio_create(const char* path, int ioflags,
     int fd;
     int status;
     NCMMAPIO* mmapio = NULL;
-    int persist = (ioflags & NC_WRITE?1:0);
+    int persist = (ioflags & NC_PERSIST?1:0);
     int oflags;
 
     if(path == NULL ||* path == 0)
@@ -234,8 +234,8 @@ mmapio_create(const char* path, int ioflags,
                                     mmapio->mapfd,0);
 	{mmapio->memory[0] = 0;} /* test writing of the mmap'd memory */
     } else { /*persist */
-        /* Open the file, but make sure we can write it if needed */
-        oflags = (persist ? O_RDWR : O_RDONLY);    
+        /* Open the file to get fd,  but make sure we can write it if needed */
+        oflags = O_RDWR;
 #ifdef O_BINARY
         fSet(oflags, O_BINARY);
 #endif
@@ -319,11 +319,11 @@ mmapio_open(const char* path,
     ncio* nciop;
     int fd;
     int status;
-    int persist = (fIsSet(ioflags,NC_WRITE)?1:0);
     int oflags;
     NCMMAPIO* mmapio = NULL;
     size_t sizehint;
     off_t filesize;
+    int readwrite = (fIsSet(ioflags,NC_WRITE)?1:0);
 
     if(path == NULL ||* path == 0)
         return EINVAL;
@@ -332,7 +332,7 @@ mmapio_open(const char* path,
     sizehint = *sizehintp;
 
     /* Open the file, but make sure we can write it if needed */
-    oflags = (persist ? O_RDWR : O_RDONLY);    
+    oflags = (readwrite ? O_RDWR : O_RDONLY);    
 #ifdef O_BINARY
     fSet(oflags, O_BINARY);
 #endif
@@ -359,7 +359,7 @@ mmapio_open(const char* path,
 
     mmapio->mapfd = fd;
     mmapio->memory = (char*)mmap(NULL,mmapio->alloc,
-                                    persist?(PROT_READ|PROT_WRITE):(PROT_READ),
+                                    readwrite?(PROT_READ|PROT_WRITE):(PROT_READ),
 				    MAP_SHARED,
                                     mmapio->mapfd,0);
 #ifdef DEBUG
