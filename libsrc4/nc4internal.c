@@ -942,8 +942,6 @@ nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
       return NC_ENOMEM;
    }
    field->hdr.hashkey = NC_hashmapkey(field->hdr.name,strlen(field->hdr.name));
-   field->hdf_typeid = field_hdf_typeid;
-   field->native_hdf_typeid = native_typeid;
    field->nc_typeid = xtype;
    field->offset = offset;
    field->ndims = ndims;
