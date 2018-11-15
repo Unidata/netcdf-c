@@ -264,7 +264,11 @@ fillstring(NCD4meta* meta, void** offsetp, void** dstp, NClist* blobs)
     *dstp = dst;    
     offset = INCR(offset,count);
     *offsetp = offset;
-    q = NULL; /*nclistpush(blobs,q);*/
+#if 0
+    nclistpush(blobs,q);
+#else
+    q = NULL;
+#endif
 done:
     return THROW(ret);
 }

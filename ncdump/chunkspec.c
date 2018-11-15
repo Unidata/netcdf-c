@@ -86,22 +86,24 @@ dimchunkspec_parse(int igrp, const char *spec)
     const char *np;	   /* beginning of current dimension name */
     size_t ndims = 0;
     int idim;
-    int ret;
+    int ret = NC_NOERR;
     int comma_seen = 0;
 
     dimchunkspecs.ndims = 0;
     dimchunkspecs.omit = false;
     if (!spec || *spec == '\0') /* default chunking */
-	return NC_NOERR; 
-    if (spec[0] == '/' && spec[1] == '\0') { /* no chunking */
+	goto done;
+    /* Special rule: // is treated as equivalent to / */
+    if ((spec[0] == '/' && spec[1] == '\0')
+	|| (spec[0] == '/' && spec[1] == '/' && spec[2] == '\0')) { /* no chunking */
 	dimchunkspecs.omit = true;
-	return NC_NOERR;
+	goto done;
     }
     /* Count unescaped commas, handle consecutive unescaped commas as error */
     for(cp = spec; *cp; cp++) {
 	if(*cp == ',' && *pp != '\\') {
 	    if(comma_seen) {	/* consecutive commas detected */
-		return(NC_EINVAL);
+		{ret = NC_EINVAL; goto done;}
 	    }
 	    comma_seen = 1;
 	    ndims++;
@@ -129,7 +131,8 @@ dimchunkspec_parse(int igrp, const char *spec)
 		continue;
 	    }
 	    if(*pp != '/') {	/* no '/' found, no chunksize specified for dimension */
-		return(NC_EINVAL);
+		ret = NC_EINVAL;
+		goto done;
 	    }
 	    /* extract dimension name */
 	    dimname = (char *) emalloc(pp - np + 1);
@@ -141,7 +144,7 @@ dimchunkspec_parse(int igrp, const char *spec)
 	    /* look up dimension id from dimension pathname */
 	    ret = nc_inq_dimid2(igrp, dimname, &dimid);
 	    if(ret != NC_NOERR)
-		break;
+		{if(dimname) free(dimname); goto done;}
 	    dimchunkspecs.idimids[idim] = dimid;
 	    /* parse and assign corresponding chunksize */
 	    pp++; /* now points to first digit of chunksize, ',', or '\0' */
@@ -149,7 +152,7 @@ dimchunkspec_parse(int igrp, const char *spec)
 		size_t dimlen;
 		ret = nc_inq_dimlen(igrp, dimid, &dimlen);
 		if(ret != NC_NOERR)
-		    return(ret);
+		    {if(dimname) free(dimname); goto done;}
 		chunksize = dimlen;
 	    } else {	      /* convert nnn string to long long integer */
 		char *ep;
@@ -159,12 +162,13 @@ dimchunkspec_parse(int igrp, const char *spec)
 		long long val = strtol(pp, &ep, 0);
 #endif
 		if(ep == pp || errno == ERANGE || val < 1) /* allow chunksize bigger than dimlen */
-		    return (NC_EINVAL);
+		    {if(dimname) free(dimname); ret = NC_EINVAL; goto done;}
 		chunksize = (size_t)val;
 	    }
 	    dimchunkspecs.chunksizes[idim] = chunksize;
 	    idim++;
-	    free(dimname);
+	    if(dimname) free(dimname);
+	    dimname = NULL;
 	    if(*cp == '\0')
 		break;
 	    /* set np to point to first char after comma */
@@ -172,7 +176,8 @@ dimchunkspec_parse(int igrp, const char *spec)
 	}
 	pp = cp;
     };
-    return NC_NOERR;
+done:
+    return ret;
 }
 
 /* Return size in chunkspec string specified for dimension corresponding to dimid, 0 if not found */

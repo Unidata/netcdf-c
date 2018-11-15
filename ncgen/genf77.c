@@ -45,11 +45,12 @@ static void genf77_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*)
  * Generate code for creating netCDF from in-memory structure.
  */
 void
-gen_ncf77(const char *filename)
+genf77_netcdf(void)
 {
     int idim, ivar, iatt;
     int ndims, nvars, natts, ngatts;
     char* cmode_string;
+    const char *filename = rootgroup->file.filename;
 
     ndims = listlength(dimdefs);
     nvars = listlength(vardefs);
@@ -389,7 +390,7 @@ gen_ncf77(const char *filename)
 }
 
 void
-cl_f77(void)
+genf77_close(void)
 {
    /* already done above */
 }

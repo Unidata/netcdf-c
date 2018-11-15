@@ -29,11 +29,10 @@ we do not know how it was allocated.
 Should work for any netcdf format.
 */
 
-EXTERNL int ncaux_reclaim_data(int ncid, int xtype, const void* memory, size_t count);
+EXTERNL int ncaux_reclaim_data(int ncid, int xtype, void* memory, size_t count);
 
 
-EXTERNL int ncaux_begin_compound(int ncid, const char *name, int alignmode,
-				void** tag);
+EXTERNL int ncaux_begin_compound(int ncid, const char *name, int alignmode, void** tag);
 
 EXTERNL int ncaux_end_compound(void* tag, nc_type* typeid);
 
@@ -41,6 +40,12 @@ EXTERNL int ncaux_abort_compound(void* tag);
 
 EXTERNL int ncaux_add_field(void* tag,  const char *name, nc_type field_type,
 			   int ndims, const int* dimsizes);
+
+/* Takes any type */
+EXTERNL size_t ncaux_type_alignment(int xtype, int ncid);
+
+/* Takes type classes only */
+EXTERNL size_t ncaux_class_alignment(int ncclass);
 
 #if defined(__cplusplus)
 }
