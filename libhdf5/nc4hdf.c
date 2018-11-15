@@ -334,15 +334,19 @@ nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
       if (var->type_info->nc_type_class == NC_VLEN)
       {
          nc_vlen_t *in_vlen = (nc_vlen_t *)(var->fill_value), *fv_vlen = (nc_vlen_t *)(*fillp);
+	 size_t basetypesize = 0;
+
+	 if((retval=nc4_get_typelen_mem(h5, var->type_info->u.v.base_nc_typeid, &basetypesize)))
+	     return retval;
 
          fv_vlen->len = in_vlen->len;
-         if (!(fv_vlen->p = malloc(size * in_vlen->len)))
+         if (!(fv_vlen->p = malloc(basetypesize * in_vlen->len)))
          {
             free(*fillp);
             *fillp = NULL;
             return NC_ENOMEM;
          }
-         memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * size);
+         memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * basetypesize);
       }
       else if (var->type_info->nc_type_class == NC_STRING)
       {

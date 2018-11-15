@@ -184,7 +184,6 @@ ENDIF(MSVC)
     build_bin_test_no_prefix(tst_compress)
     build_bin_test_no_prefix(tst_chunking)
 
-
     ###
     # This test fails on Visual Studio builds with bash.
     # It passes, but technically fails because the scientific

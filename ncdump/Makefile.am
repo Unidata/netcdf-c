@@ -78,6 +78,8 @@ tst_group_data tst_enum_data tst_opaque_data tst_string_data	\
 tst_vlen_data tst_comp tst_comp2 tst_nans tst_special_atts	\
 tst_unicode tst_fillbug tst_compress tst_chunking tst_h_scalar
 
+check_PROGRAMS += tst_vlen_demo
+
 # Tests for netCDF-4 behavior.
 TESTS += tst_fileinfo.sh tst_hdf5_offset.sh tst_inttags4.sh		\
 tst_netcdf4.sh tst_fillbug.sh tst_netcdf4_4.sh tst_nccopy4.sh		\

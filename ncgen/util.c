@@ -99,44 +99,58 @@ tztrim(
     return;
 }
 
+#if 0
 /* Assume bytebuffer contains pointers to char**/
 void
 reclaimattptrs(void* buf, long count)
 {
     int i;
     char** ptrs = (char**)buf;
-    for(i=0;i<count;i++) {free((void*)ptrs[i]);}
+    for(i=0;i<count;i++) {efree((void*)ptrs[i]);}
+}
+#endif
+
+static void
+freeSpecialdata(Specialdata* data)
+{
+    if(data == NULL) return;
+    reclaimdatalist(data->_Fillvalue);
+    if(data->_ChunkSizes)
+        efree(data->_ChunkSizes);
+    if(data->_FilterParams)
+        efree(data->_FilterParams);
+    efree(data);
 }
 
 void
 freeSymbol(Symbol* sym)
 {
-#ifdef FIX
+    /* recurse first */
     switch (sym->objectclass) {
-    case NG_VAR:
-	reclaimconstlist(vsym->var.data);
-	if(vsym->var.dims != NULL) efree(vsym->var.dims);
+    case NC_VAR:
+	freeSpecialdata(sym->var.special);
+	listfree(sym->var.attributes);
 	break;
-    case NG_ATT:
-	if(asym->att.basetype == primsymbols[NC_STRING])
-  	    reclaimattptrs(asym->att.data,asym->att.count);
-	else
-	    efree(asym->att.data);
+    case NC_TYPE:
+	if(sym->typ.econst)
+	    reclaimconstant(sym->typ.econst);
+	if(sym->typ._Fillvalue)
+	    reclaimdatalist(sym->typ._Fillvalue);
 	break;
-    case NG_GRP:
-    case NG_DIM:
-    case NG_TYP:
-    case NG_ENUM:
-    case NG_ECONST:
-    case NG_VLEN:
-    case NG_STRUCT:
-    case NG_FIELD:
-    case NG_OPAQUE:
+    case NC_GRP:
+        if(sym->file.filename)
+	    efree(sym->file.filename);
+	break;
     default: break;
     }
-    efree(sym->name);
+    /* Universal */
+    if(sym->name) efree(sym->name);
+    if(sym->fqn) efree(sym->fqn);
+    listfree(sym->prefix);
+    if(sym->data)
+        reclaimdatalist(sym->data);
+    listfree(sym->subnodes);
     efree(sym);
-#endif
 }
 
 char* nctypenames[17] = {
@@ -523,66 +537,18 @@ getpadding(int offset, int alignment)
 static void
 reclaimSymbols(void)
 {
-    Symbol* sym;
-    for(sym=symlist;sym;) {
-	Symbol* next = sym->next;
+    int i;
+    for(i=0;i<listlength(symlist);i++) {
+        Symbol* sym = listget(symlist,i);
         freeSymbol(sym);
-	sym = next;
-    }
-}
-
-static void
-constantFree(NCConstant* con)
-{
-    switch(con->nctype) {
-    case NC_COMPOUND:
-	/* do nothing; ReclaimDatalists below will take care of the datalist	*/
-	break;
-    case NC_STRING:
-	if(con->value.stringv.len > 0 && con->value.stringv.stringv != NULL)
-	    efree(con->value.stringv.stringv);
-	break;
-    case NC_OPAQUE:
-	if(con->value.opaquev.len > 0 && con->value.opaquev.stringv != NULL)
-	    efree(con->value.opaquev.stringv);
-	break;
-    default:
-	break;
-    }
-}
-
-static void
-reclaimDatalists(void)
-{
-    Datalist* list;
-    NCConstant* con;
-    /* Step 1: free up the constant content of each datalist*/
-    for(list=alldatalists;list != NULL; list = list->next) {
-	if(list->data != NULL) { /* avoid multiple free attempts*/
-	    int i;
-	    for(i=0,con=list->data;i<list->length;i++,con++)
-	        constantFree(con);
-	    list->data = NULL;
-	}
-    }
-    /* Step 2: free up the datalist itself*/
-    for(list=alldatalists;list != NULL;) {
-	Datalist* current = list;
-	list = list->next;
-	efree(current);
     }
 }
 
 void
 cleanup()
 {
-  reclaimDatalists();
   reclaimSymbols();
 }
-
-
-
-
 
 /* compute the total n-dimensional size as 1 long array;
    if stop == 0, then stop = dimset->ndims.

@@ -59,7 +59,7 @@ extern void nestedfqn(Symbol* sym);
 extern void attfqn(Symbol* sym);
 
 /* from: escapes.c */
-extern int unescape(char*, const char*, int, int);
+extern int unescape(const char*, int, int, char**);
 extern int unescapeoct(const char* s);
 extern int unescapehex(const char* s);
 extern char* cescapifychar(unsigned int c, int quote);
@@ -73,9 +73,10 @@ extern char* xescapify(char* s0, int quote, size_t len);
 extern char* jescapify(char* s0, int quote, size_t len);
 extern char* jescapifyname(char* s0);
 extern char* fqnescape(const char* s);
+extern char* esc_strchr(char* s, int c, int octhex);
 
 /* from: getfill.c */
-extern void nc_getfill(NCConstant*);
+extern void nc_getfill(NCConstant*,Symbol*);
 extern char* nc_dfaltfillname(nc_type);
 extern struct Datalist* getfiller(Symbol*); /* symbol isa variable|type */
 
@@ -112,15 +113,18 @@ extern char* indented(int n);
 #ifdef ENABLE_BINARY
 /* from: genbin.c */
 extern Generator* bin_generator;
-extern void gen_netcdf(const char *filename);
-extern void cl_netcdf(void);
+extern void genbin_netcdf(void);
+extern void genbin_close(void);
+/* from: bindata.c */
+extern int binary_generate_data(Datalist* data, Symbol* tsym, Datalist* fillvalue, Bytebuffer* databuf);
+extern int binary_reclaim_data(Symbol* tsym, void* memory, size_t count);
 #endif
 
 #ifdef ENABLE_C
 /* from: genc.c */
 extern Generator* c_generator;
-extern void gen_ncc(const char *filename);
-extern void cl_c(void);
+extern void genc_netcdf(void);
+extern void genc_close(void);
 extern const char* ctypename(Symbol*);
 extern const char* nctype(nc_type type);
 extern const char* ncctype(nc_type type);
@@ -132,8 +136,8 @@ extern const char* cname(Symbol* sym);
 #ifdef ENABLE_F77
 /* from: genf77.c */
 extern Generator* f77_generator;
-extern void gen_ncf77(const char *filename);
-extern void cl_f77(void);
+extern void genf77_netcdf(void);
+extern void genf77_close(void);
 extern const char* f77name(Symbol*);
 extern const char* f77typename(Symbol*);
 #endif
@@ -141,8 +145,8 @@ extern const char* f77typename(Symbol*);
 #ifdef ENABLE_JAVA
 /* from: genj.c */
 extern Generator* j_generator;
-extern void gen_ncjava(const char *filename);
-extern void cl_java(void);
+extern void genjava_netcdf(void);
+extern void genjava_close(void);
 extern void jpartial(char*);
 extern void jline(char*);
 extern void jlined(int,char*);
@@ -163,7 +167,7 @@ extern GlobalSpecialData globalspecials;
 
 /* Global data */
 
-extern Symbol* symlist;      /* all symbol objects created */
+extern List* symlist;      /* all symbol objects created */
 extern Symbol* rootgroup;
 
 /* Track definitions of dims, types, attributes, and vars*/
