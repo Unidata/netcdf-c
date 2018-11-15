@@ -279,9 +279,9 @@ done:
  *
  * @param path File name.
  * @param flags
+ * @param use_parallel
  * @param parameters
- * @param model Pointer that gets the model to use for the dispatch
- * table.
+ * @param model Pointer that gets the model to use for the dispatch table.
  * @param version Pointer that gets version of the file.
  *
  * @return ::NC_NOERR No error.

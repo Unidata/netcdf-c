@@ -7,6 +7,7 @@
 #include "nc_iter.h"
 #include "odom.h"
 #include "ncoffsets.h"
+#include "netcdf_aux.h"
 
 /**************************************************/
 /* Code for generating data lists*/
@@ -81,11 +82,6 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
     int rank = dimset->ndims;
     Symbol* basetype = vsym->typ.basetype;
     Datalist* filler = getfiller(vsym);
-#if 0
-    const size_t* start;
-    const size_t* count;
-    Odometer* odom;
-#endif
 
     if(vsym->data == NULL) return;
 
@@ -136,7 +132,6 @@ generate_array(Symbol* vsym,
     int rank = dimset->ndims;
     Symbol* basetype = vsym->typ.basetype;
     nc_type typecode = basetype->typ.typecode;
-    Odometer* odom = NULL;
     nciter_t iter;
     int firstunlim = findunlimited(dimset,1);
     int nunlim = countunlimited(dimset);
@@ -147,23 +142,24 @@ generate_array(Symbol* vsym,
     if(isnc3unlim) {
         /* Handle NC_CHAR case separately */
         if(typecode == NC_CHAR) {
+            Odometer* odom = newodometer(dimset,NULL,NULL);
             Bytebuffer* charbuf = bbNew();
             gen_chararray(dimset,0,vsym->data,charbuf,filler);
 	    generator->charconstant(generator,vsym,code,charbuf);
 	    /* Create an odometer to get the dimension info */
-            odom = newodometer(dimset,NULL,NULL);
             writer(generator,vsym,code,odom->rank,odom->start,odom->count);
 #if 0
             writer(generator,vsym,code,odom->rank,0,bbLength(charbuf));
 #endif
 	    bbFree(charbuf);
+    	    odometerfree(odom);
 	} else { /* typecode != NC_CHAR */
+            Odometer* odom = newodometer(dimset,NULL,NULL);
             /* Case: dim 1..rank-1 are not unlimited, dim 0 might be */
             size_t offset = 0; /* where are we in the data list */
             size_t nelems = 0; /* # of data list items to generate */
             /* Create an iterator and odometer and just walk the datalist */
             nc_get_iter(vsym,nciterbuffersize,&iter);
-            odom = newodometer(dimset,NULL,NULL);
             for(;;offset+=nelems) {
                 int i,uid;
                 nelems=nc_next_iter(&iter,odometerstartvector(odom),odometercountvector(odom));
@@ -179,11 +175,12 @@ generate_array(Symbol* vsym,
                 generator->listend(generator,vsym,NULL,LISTDATA,uid,i,code);
                 writer(generator,vsym,code,rank,odom->start,odom->count);
             }
+	    odometerfree(odom);
 	}
     } else { /* Hard case: multiple unlimited dimensions or unlim in dim > 0*/
+        Odometer* odom = newodometer(dimset,NULL,NULL);
         /* Setup iterator and odometer */
         nc_get_iter(vsym,NC_MAX_UINT,&iter); /* effectively infinite */
-        odom = newodometer(dimset,NULL,NULL);
         for(;;) {/* iterate in nelem chunks */
             /* get nelems count and modify odometer */
             size_t nelems=nc_next_iter(&iter,odom->start,odom->count);
@@ -195,9 +192,8 @@ generate_array(Symbol* vsym,
                            );
             writer(generator,vsym,code,odom->rank,odom->start,odom->count);
         }
-    }
-    if(odom != NULL)
         odometerfree(odom);
+    }
 }
 
 /**
@@ -286,7 +282,7 @@ generate_arrayr(Symbol* vsym,
     return;
 }
 
-/* Generate an instance of the basetype */
+/* Generate an instance of the basetype using the value of con*/
 void
 generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* filler, Generator* generator)
 {
@@ -308,8 +304,8 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         int i,uid, nfields, dllen;
         if(con == NULL || isfillconst(con)) {
             Datalist* fill = (filler==NULL?getfiller(tsym):filler);
-            ASSERT(fill->length == 1);
-            con = &fill->data[0];
+	    ASSERT(fill->length == 1);
+            con = fill->data[0];
             if(!islistconst(con)) {
               if(con)
                 semerror(con->lineno,"Compound data fill value is not enclosed in {..}");
@@ -352,7 +348,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         if(con == NULL || isfillconst(con)) {
             Datalist* fill = (filler==NULL?getfiller(tsym):filler);
             ASSERT(fill->length == 1);
-            con = &fill->data[0];
+            con = fill->data[0];
             if(con->nctype != NC_COMPOUND) {
                 semerror(con->lineno,"Vlen data fill value is not enclosed in {..}");
             }
@@ -365,7 +361,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         /* generate the nc_vlen_t instance*/
         vlenbuf = bbNew();
         if(tsym->typ.basetype->typ.typecode == NC_CHAR) {
-            gen_charvlen(data,vlenbuf);
+            gen_charseq(data,vlenbuf);
             generator->vlenstring(generator,tsym,vlenbuf,&uid,&count);
         } else {
             generator->listbegin(generator,tsym,NULL,LISTVLEN,data->length,codebuf,&uid);
@@ -377,7 +373,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
             }
             generator->listend(generator,tsym,NULL,LISTVLEN,uid,count,codebuf,(void*)vlenbuf);
         }
-        generator->vlendecl(generator,tsym,codebuf,uid,count,vlenbuf);
+        generator->vlendecl(generator,tsym,codebuf,uid,count,vlenbuf); /* Will extract contents of vlenbuf */
         bbFree(vlenbuf);
         } break;
 
@@ -464,7 +460,7 @@ static void
 generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
                   Datalist* filler, Generator* generator)
 {
-    NCConstant target;
+    NCConstant* target;
     int match;
 
     if(prim == NULL || isfillconst(prim)) {
@@ -521,24 +517,26 @@ generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
                  basetype->name);
     }
 
-    target.nctype = basetype->typ.typecode;
+    target = nullconst();
+    target->nctype = basetype->typ.typecode;
 
-    if(target.nctype != NC_ECONST) {
-        convert1(prim,&target);
+    if(target->nctype != NC_ECONST) {
+        convert1(prim,target);
     }
 
-    switch (target.nctype) {
+    switch (target->nctype) {
     case NC_ECONST:
         if(basetype->subclass != NC_ENUM) {
             semerror(constline(prim),"Conversion to enum not supported (yet)");
         } break;
      case NC_OPAQUE:
-        normalizeopaquelength(&target,basetype->typ.size);
+        normalizeopaquelength(target,basetype->typ.size);
         break;
     default:
         break;
     }
-    generator->constant(generator,basetype,&target,codebuf);
-
+    generator->constant(generator,basetype,target,codebuf);
+    reclaimconstant(target);
+    target = NULL;
     return;
 }

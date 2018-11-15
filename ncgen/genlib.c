@@ -8,59 +8,24 @@
 
 /* invoke netcdf calls (or generate C or Fortran code) to create netcdf
  * from in-memory structure.
-The output file name is chosen by using the following in priority order:
-1. -o flag name
-2. command line input file with .cdl changed to .nc
-3. dataset name as specified in netcdf <name> {...}
 */
 void
 define_netcdf(void)
 {
-    char filename[2049];
-
-    /* Rule for specifying the dataset name:
-	1. use -o name
-	2. use the datasetname from the .cdl file
-	3. use input cdl file name (with .cdl removed)
-	It would be better if there was some way
-	to specify the datasetname independently of the
-	file name, but oh well.
-    */
-    if(netcdf_name) { /* -o flag name */
-      strncpy(filename,netcdf_name,2048);
-    } else { /* construct a usable output file name */
-	if (cdlname != NULL && strcmp(cdlname,"-") != 0) {/* cmd line name */
-	    char* p;
-
-	    strncpy(filename,cdlname,2048);
-	    /* remove any suffix and prefix*/
-	    p = strrchr(filename,'.');
-	    if(p != NULL) {*p= '\0';}
-	    p = strrchr(filename,'/');
-	    if(p != NULL) {memmove(filename,(p+1),(2048-strlen(cdlname)));}
-
-       } else {/* construct name from dataset name */
-	    strncpy(filename,datasetname,2048); /* Reserve space for extension, terminating '\0' */
-        }
-        /* Append the proper extension */
-	strncat(filename,binary_ext,2048-(strlen(filename) + strlen(binary_ext)));
-    }
 
     /* Execute exactly one of these */
 #ifdef ENABLE_C
-    if (l_flag == L_C) gen_ncc(filename); else /* create C code to create netcdf */
+    if (l_flag == L_C) genc_netcdf(); else /* create C code to create netcdf */
 #endif
 #ifdef ENABLE_F77
-    if (l_flag == L_F77) gen_ncf77(filename); else /* create Fortran code */
+    if (l_flag == L_F77) genf77_netcdf(); else /* create Fortran code */
 #endif
 #ifdef ENABLE_JAVA
-    if(l_flag == L_JAVA) {
-	gen_ncjava(filename);
-    } else
+    if(l_flag == L_JAVA) genjava_netcdf(); else
 #endif
 /* Binary is the default */
 #ifdef ENABLE_BINARY
-    gen_netcdf(filename); /* create netcdf */
+    genbin_netcdf(); /* create netcdf */
 #else
     derror("No language specified");
 #endif
@@ -72,16 +37,16 @@ void
 close_netcdf(void)
 {
 #ifdef ENABLE_C
-    if (l_flag == L_C) cl_c(); else /* create C code to close netcdf */
+    if (l_flag == L_C) genc_close(); else /* create C code to close netcdf */
 #endif
 #ifdef ENABLE_F77
-    if (l_flag == L_F77) cl_f77(); else
+    if (l_flag == L_F77) genf77_close(); else
 #endif
 #ifdef ENABLE_JAVA
-    if (l_flag == L_JAVA) cl_java(); else
+    if (l_flag == L_JAVA) genjava_close(); else
 #endif
 #ifdef ENABLE_BINARY
-    if (l_flag == L_BINARY) cl_netcdf();
+    if (l_flag == L_BINARY) genbin_close();
 #endif
 }
 
@@ -110,7 +75,7 @@ topfqn(Symbol* sym)
         /* Recursively compute parent fqn */
         if(parent == NULL) { /* implies this is the rootgroup */
             assert(sym->grp.is_root);
-            sym->fqn = strdup("");
+            sym->fqn = estrdup("");
             return;
         } else if(parent->fqn == NULL) {
             topfqn(parent);
