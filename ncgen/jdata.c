@@ -19,7 +19,7 @@ j_charconstant(Generator* generator, Symbol* sym, Bytebuffer* codebuf, ...)
     /* Just transfer charbuf to codebuf */
     Bytebuffer* charbuf;
     va_list ap;
-    vastart(ap,codebuf);
+    va_start(ap,codebuf);
     charbuf = va_arg(ap, Bytebuffer*);
     va_end(ap);
     bbNull(charbuf);

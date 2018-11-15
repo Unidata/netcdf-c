@@ -24,6 +24,8 @@ See LICENSE.txt for license information.
 #include "config.h"
 #include "netcdf.h"
 #include "netcdf_aux.h"
+#include "ncoffsets.h"
+#include "nclog.h"
 
 struct NCAUX_FIELD {
     char* name;
@@ -47,21 +49,23 @@ struct NCAUX_CMPD {
 };
 
 
+/* It is helpful to have a structure that contains memory and an offset */
+typedef struct Position{char* memory; ptrdiff_t offset;} Position;
+
 /* Forward */
-static int reclaim_datar(int ncid, int xtype, void* memory);
-#ifdef USE_NETCDF4
-static int reclaim_usertype(int ncid, int xtype, void* memory);
-static int reclaim_compound(int ncid, int xtype, size_t size, size_t nfields, void* memory);
-static int reclaim_vlen(int ncid, int xtype, int basetype, void* memory);
-static int reclaim_enum(int ncid, int xtype, int basetype, void* memory);
-static int reclaim_opaque(int ncid, int xtype, size_t size, void* memory);
-#endif
+static int reclaim_datar(int ncid, int xtype, size_t typesize, Position*);
+
+static int ncaux_initialized = 0;
 
 #ifdef USE_NETCDF4
-static int ncaux_initialized = 0;
-static void compute_alignments(void);
+static int reclaim_usertype(int ncid, int xtype, Position* offset);
+static int reclaim_compound(int ncid, int xtype, size_t size, size_t nfields, Position* offset);
+static int reclaim_vlen(int ncid, int xtype, int basetype, Position* offset);
+static int reclaim_enum(int ncid, int xtype, int basetype, size_t, Position* offset);
+static int reclaim_opaque(int ncid, int xtype, size_t size, Position* offset);
+
 static int computefieldinfo(struct NCAUX_CMPD* cmpd);
-#endif
+#endif /* USE_NETCDF4 */
 
 /**************************************************/
 
@@ -78,15 +82,20 @@ we do not know how it was allocated.
 
 Should work for any netcdf format.
 
+@param ncid file ncid
+@param xtype type id
+@param memory to reclaim
+@param count number of instances of the type in memory
+@return error code
 */
 
-int
-ncaux_reclaim_data(int ncid, int xtype, const void* memory, size_t count)
+EXTERNL int
+ncaux_reclaim_data(int ncid, int xtype, void* memory, size_t count)
 {
     int stat = NC_NOERR;
     size_t typesize = 0;
-    char* p;
     size_t i;
+    Position offset;
     
     if(ncid < 0 || xtype < 0
        || (memory == NULL && count > 0)
@@ -95,9 +104,10 @@ ncaux_reclaim_data(int ncid, int xtype, const void* memory, size_t count)
     if(memory == NULL || count == 0)
         goto done; /* ok, do nothing */
     if((stat=nc_inq_type(ncid,xtype,NULL,&typesize))) goto done;
-    p = (char*)memory; /* use char* so we can do pointer arithmetic */
-    for(i=0;i<count;i++,p+=typesize) {
-	if((stat=reclaim_datar(ncid,xtype,p))) /* reclaim one instance */
+    offset.memory = (char*)memory; /* use char* so we can do pointer arithmetic */
+    offset.offset = 0;
+    for(i=0;i<count;i++) {
+	if((stat=reclaim_datar(ncid,xtype,typesize,&offset))) /* reclaim one instance */
 	    break;
     }
     
@@ -107,24 +117,28 @@ done:
 
 /* Recursive type walker: reclaim a single instance */
 static int
-reclaim_datar(int ncid, int xtype, void* memory)
+reclaim_datar(int ncid, int xtype, size_t typesize, Position* offset)
 {
     int stat = NC_NOERR;
     
     switch  (xtype) {
-    case NC_CHAR: case NC_BYTE: case NC_UBYTE: break;
-    case NC_SHORT: case NC_USHORT: break;
-    case NC_INT: case NC_UINT: case NC_FLOAT: break;
-    case NC_INT64: case NC_UINT64: case NC_DOUBLE: break;
+    case NC_CHAR: case NC_BYTE: case NC_UBYTE:
+    case NC_SHORT: case NC_USHORT:
+    case NC_INT: case NC_UINT: case NC_FLOAT:
+    case NC_INT64: case NC_UINT64: case NC_DOUBLE:
+        offset->offset += typesize;
+	break;
+
 #ifdef USE_NETCDF4
     case NC_STRING: {
-        char** sp = (char**)memory;
+        char** sp = (char**)(offset->memory + offset->offset);
         /* Need to reclaim string */
 	if(*sp != NULL) free(*sp);
+	offset->offset += typesize;
 	} break;
     default:
     	/* reclaim a user type */
-	stat = reclaim_usertype(ncid,xtype,memory);
+	stat = reclaim_usertype(ncid,xtype,offset);
 #else
     default:
 	stat = NC_ENOTNC4;
@@ -135,8 +149,17 @@ reclaim_datar(int ncid, int xtype, void* memory)
 }
 	
 #ifdef USE_NETCDF4
+
+static ptrdiff_t
+read_align(ptrdiff_t offset, size_t alignment)
+{
+    size_t delta = (offset % alignment);
+    if(delta == 0) return offset;
+    return offset + (alignment - delta);
+}
+
 static int
-reclaim_usertype(int ncid, int xtype, void* memory)
+reclaim_usertype(int ncid, int xtype, Position* offset)
 {
     int stat = NC_NOERR;
     size_t size;    
@@ -144,15 +167,13 @@ reclaim_usertype(int ncid, int xtype, void* memory)
     size_t nfields;
     int klass;
 
-    if(memory == NULL) return NC_EINVAL;
-    
     /* Get info about the xtype */
     stat = nc_inq_user_type(ncid, xtype, NULL, &size, &basetype, &nfields, &klass);
     switch (klass) {
-    case NC_OPAQUE: stat = reclaim_opaque(ncid,xtype,size,memory); break;
-    case NC_ENUM: stat = reclaim_enum(ncid,xtype,basetype,memory); break;
-    case NC_COMPOUND: stat = reclaim_compound(ncid,xtype,size,nfields,memory); break;
-    case NC_VLEN: stat = reclaim_vlen(ncid,xtype,basetype,memory); break;
+    case NC_OPAQUE: stat = reclaim_opaque(ncid,xtype,size,offset); break;
+    case NC_ENUM: stat = reclaim_enum(ncid,xtype,basetype,size,offset); break;
+    case NC_COMPOUND: stat = reclaim_compound(ncid,xtype,size,nfields,offset); break;
+    case NC_VLEN: stat = reclaim_vlen(ncid,xtype,basetype,offset); break;
     default:
         stat = NC_EINVAL;
 	break;
@@ -161,47 +182,25 @@ reclaim_usertype(int ncid, int xtype, void* memory)
 }
 
 static int
-reclaim_compound(int ncid, int xtype, size_t size, size_t nfields, void* memory)
+reclaim_vlen(int ncid, int xtype, int basetype, Position* offset)
 {
     int stat = NC_NOERR;
-    size_t fid, offset, i, fieldsize, arraycount;
-    int dimsizes[NC_MAX_VAR_DIMS];
-    int ndims;
-    nc_type fieldtype;
-    char* p;
-
-    /* Get info about each field in turn and reclaim it */
-    for(fid=0;fid<nfields;fid++) {
-        if((stat = nc_inq_compound_field(ncid,xtype,fid,NULL,&offset, &fieldtype, &ndims, dimsizes))) goto done;
-        if((stat = nc_inq_type(ncid,fieldtype,NULL,&fieldsize))) goto done;
-	if(ndims == 0) {ndims=1; dimsizes[0]=1;} /* fake the scalar case */
-	/* compute the total number of elements in the field array */
-	arraycount = 1;
-	for(i=0;i<ndims;i++) arraycount *= dimsizes[i];
-	for(i=0;i<arraycount;i++) {
-            p = ((char*)memory) + offset + (i*fieldsize);
-	    if((stat = reclaim_datar(ncid, fieldtype, p))) goto done;
-	}		
-    }
-
-done:
-    return stat;
-}
-
-static int
-reclaim_vlen(int ncid, int xtype, int basetype, void* memory)
-{
-    int stat = NC_NOERR;
-    nc_vlen_t* vl = (nc_vlen_t*)memory;
-    size_t i, size;
+    size_t i, basesize;
+    nc_vlen_t* vl = (nc_vlen_t*)(offset->memory+offset->offset);
 
     /* Get size of the basetype */
-    if((stat=nc_inq_type(ncid,basetype,NULL,&size))) goto done;
+    if((stat=nc_inq_type(ncid,basetype,NULL,&basesize))) goto done;
     /* Free up each entry in the vlen list */
     if(vl->p != NULL) {
-	char* p = vl->p;
-        for(i=0;i<vl->len;i++,p+=size)
-	    if((stat = reclaim_datar(ncid,basetype,p))) goto done;
+	Position voffset;
+	unsigned int alignment = ncaux_type_alignment(basetype,ncid);
+	voffset.memory = vl->p;
+	voffset.offset = 0;
+        for(i=0;i<vl->len;i++) {
+	    voffset.offset = read_align(voffset.offset,alignment);
+	    if((stat = reclaim_datar(ncid,basetype,basesize,&voffset))) goto done;
+	}
+	offset->offset += sizeof(nc_vlen_t);
 	free(vl->p);
     }
 
@@ -210,20 +209,59 @@ done:
 }
 
 static int
-reclaim_enum(int ncid, int xtype, int basetype, void* memory)
+reclaim_enum(int ncid, int xtype, int basetype, size_t basesize, Position* offset)
 {
     /* basically same as an instance of the enum's integer basetype */
+    return reclaim_datar(ncid,basetype,basesize,offset);
+}
+
+static int
+reclaim_opaque(int ncid, int xtype, size_t opsize, Position* offset)
+{
+    /* basically a fixed size sequence of bytes */
+    offset->offset += opsize;
     return NC_NOERR;
 }
 
 static int
-reclaim_opaque(int ncid, int xtype, size_t size, void* memory)
+reclaim_compound(int ncid, int xtype, size_t cmpdsize, size_t nfields, Position* offset)
 {
-    /* basically a fixed size sequence of bytes */
-    return NC_NOERR;
+    int stat = NC_NOERR;
+    size_t fid, fieldoffset, i, fieldsize, arraycount;
+    int dimsizes[NC_MAX_VAR_DIMS];
+    int ndims;
+    nc_type fieldtype;
+    ptrdiff_t saveoffset;
+
+    saveoffset = offset->offset;
+
+    /* Get info about each field in turn and reclaim it */
+    for(fid=0;fid<nfields;fid++) {
+	unsigned int fieldalignment;
+	/* Get all relevant info about the field */
+        if((stat = nc_inq_compound_field(ncid,xtype,fid,NULL,&fieldoffset, &fieldtype, &ndims, dimsizes))) goto done;
+	fieldalignment = ncaux_type_alignment(fieldtype,ncid);
+        if((stat = nc_inq_type(ncid,fieldtype,NULL,&fieldsize))) goto done;
+	if(ndims == 0) {ndims=1; dimsizes[0]=1;} /* fake the scalar case */
+	/* Align to this field */
+	offset->offset = read_align(offset->offset,fieldalignment);
+	/* compute the total number of elements in the field array */
+	arraycount = 1;
+	for(i=0;i<ndims;i++) arraycount *= dimsizes[i];
+	for(i=0;i<arraycount;i++) {
+	    if((stat = reclaim_datar(ncid, fieldtype, fieldsize, offset))) goto done;
+	}		
+    }
+    /* Return to beginning of the compound and move |compound| */
+    offset->offset = saveoffset;
+    offset->offset += cmpdsize;
+
+done:
+    return stat;
 }
 
 #endif /*USE_NETCDF4*/
+
 
 /**************************************************/
 
@@ -232,17 +270,12 @@ This code is a variant of the H5detect.c code from HDF5.
 Author: D. Heimbigner 10/7/2008
 */
 
-int
+EXTERNL int
 ncaux_begin_compound(int ncid, const char *name, int alignmode, void** tagp)
 {
 #ifdef USE_NETCDF4
     int status = NC_NOERR;
     struct NCAUX_CMPD* cmpd = NULL;
-
-    if(!ncaux_initialized) {
-	compute_alignments();
-	ncaux_initialized = 1;
-    }
 
     if(tagp) *tagp = NULL;
 	
@@ -269,7 +302,7 @@ fail:
 #endif
 }
 
-int
+EXTERNL int
 ncaux_abort_compound(void* tag)
 {
 #ifdef USE_NETCDF4
@@ -291,7 +324,7 @@ done:
 #endif
 }
 
-int
+EXTERNL int
 ncaux_add_field(void* tag,  const char *name, nc_type field_type,
 			   int ndims, const int* dimsizes)
 {
@@ -331,7 +364,7 @@ done:
 #endif
 }
 
-int
+EXTERNL int
 ncaux_end_compound(void* tag, nc_type* idp)
 {
 #ifdef USE_NETCDF4
@@ -369,164 +402,55 @@ done:
 }
 
 /**************************************************/
-#ifdef USE_NETCDF4
 
-static size_t
-dimproduct(size_t ndims, int* dimsizes)
-{
-    int i;
-    size_t product = 1;
-    for(i=0;i<ndims;i++) product *= (size_t)dimsizes[i];
-    return product;
-}
-
-/*
-The heart of this is the following macro,
-which computes the offset of a field x
-when preceded by a char field.
-The assumptions appear to be as follows:
-1. the offset produced in this situation indicates
-   the alignment for x relative in such a way that it
-   depends only on the types that precede it in the struct.
-2. the compiler does not reorder fields.
-3. arrays are tightly packed.
-4. nested structs are alignd according to their first member
-   (this actually follows from C language requirement that
-    a struct can legally be cast to an instance of its first member).
-Given the alignments for the various common primitive types,
-it is assumed that one can use them anywhere to construct
-the layout of a struct of such types.
-It seems to work for HDF5 for a wide variety of machines.
+/**
+ @param ncclass - type class for which alignment is requested; excludes ENUM|COMPOUND
 */
-
-#define COMP_ALIGNMENT(DST,TYPE)  {\
-    struct {char f1; TYPE x;} tmp; \
-    DST.typename = #TYPE ;        \
-    DST.alignment = (size_t)((char*)(&(tmp.x)) - (char*)(&tmp));}
-
-/* Define indices for every primitive C type */
-/* NAT => NOT-A-TYPE*/
-#define NATINDEX       0
-#define CHARINDEX      1
-#define UCHARINDEX     2
-#define SHORTINDEX     3
-#define USHORTINDEX    4
-#define INTINDEX       5
-#define UINTINDEX      6
-#define LONGINDEX      7
-#define ULONGINDEX     8
-#define LONGLONGINDEX  9
-#define ULONGLONGINDEX 10
-#define FLOATINDEX     11
-#define DOUBLEINDEX    12
-#define PTRINDEX       13
-#define NCVLENINDEX    14
-
-#define NCTYPES        15
-
-typedef struct Alignment {
-    char* typename;
-    size_t alignment;
-} Alignment;
-
-typedef Alignment Typealignvec;
-
-/* Capture in struct and in a vector*/
-typedef struct Typealignset {
-    Alignment charalign;	/* char*/
-    Alignment ucharalign;	/* unsigned char*/
-    Alignment shortalign;	/* short*/
-    Alignment ushortalign;	/* unsigned short*/
-    Alignment intalign;		/* int*/
-    Alignment uintalign;	/* unsigned int*/
-    Alignment longalign;	/* long*/
-    Alignment ulongalign;	/* unsigned long*/
-    Alignment longlongalign;	/* long long*/
-    Alignment ulonglongalign;	/* unsigned long long*/
-    Alignment floatalign;	/* float*/
-    Alignment doublealign;	/* double*/
-    Alignment ptralign;		/* void**/
-    Alignment ncvlenalign;	/* nc_vlen_t*/
-} Typealignset;
-
-static Typealignvec vec[NCTYPES];
-static Typealignset set;
-
-static void
-compute_alignments(void)
+EXTERNL size_t
+ncaux_class_alignment(int ncclass)
 {
-    /* Compute the alignments for all the common C data types*/
-    /* First for the struct*/
-    /* initialize*/
-    memset((void*)&set,0,sizeof(set));
-    memset((void*)vec,0,sizeof(vec));
-
-    COMP_ALIGNMENT(set.charalign,char);
-    COMP_ALIGNMENT(set.ucharalign,unsigned char);
-    COMP_ALIGNMENT(set.shortalign,short);
-    COMP_ALIGNMENT(set.ushortalign,unsigned short);
-    COMP_ALIGNMENT(set.intalign,int);
-    COMP_ALIGNMENT(set.uintalign,unsigned int);
-    COMP_ALIGNMENT(set.longalign,long);
-    COMP_ALIGNMENT(set.ulongalign,unsigned long);
-    COMP_ALIGNMENT(set.longlongalign,long long);
-    COMP_ALIGNMENT(set.ulonglongalign,unsigned long long);
-    COMP_ALIGNMENT(set.floatalign,float);
-    COMP_ALIGNMENT(set.doublealign,double);
-    COMP_ALIGNMENT(set.ptralign,void*);
-    COMP_ALIGNMENT(set.ncvlenalign,nc_vlen_t);
-
-    /* Then the vector*/
-    COMP_ALIGNMENT(vec[CHARINDEX],char);
-    COMP_ALIGNMENT(vec[UCHARINDEX],unsigned char); 
-    COMP_ALIGNMENT(vec[SHORTINDEX],short);
-    COMP_ALIGNMENT(vec[USHORTINDEX],unsigned short);
-    COMP_ALIGNMENT(vec[INTINDEX],int);
-    COMP_ALIGNMENT(vec[UINTINDEX],unsigned int);
-    COMP_ALIGNMENT(vec[LONGINDEX],long);
-    COMP_ALIGNMENT(vec[ULONGINDEX],unsigned long);
-    COMP_ALIGNMENT(vec[LONGLONGINDEX],long long);
-    COMP_ALIGNMENT(vec[ULONGLONGINDEX],unsigned long long);
-    COMP_ALIGNMENT(vec[FLOATINDEX],float);
-    COMP_ALIGNMENT(vec[DOUBLEINDEX],double);
-    COMP_ALIGNMENT(vec[PTRINDEX],void*);
-    COMP_ALIGNMENT(vec[NCVLENINDEX],nc_vlen_t);
+    if(ncclass <= NC_MAX_ATOMIC_TYPE || ncclass == NC_VLEN || ncclass == NC_OPAQUE)
+        return NC_class_alignment(ncclass);
+    nclog(NCLOGERR,"ncaux_class_alignment: class %d; alignment cannot be determermined",ncclass);
+    return 0;
 }
 
-static size_t
-nctypealignment(nc_type nctype)
+/**
+ @param ncid - only needed for a compound type
+ @param xtype - type for which alignment is requested
+*/
+EXTERNL size_t
+ncaux_type_alignment(int xtype, int ncid)
 {
-    Alignment* align = NULL;
-    int index = 0;
-    switch (nctype) {
-      case NC_BYTE: index = UCHARINDEX; break;
-      case NC_CHAR: index = CHARINDEX; break;
-      case NC_SHORT: index = SHORTINDEX; break;
-      case NC_INT: index = INTINDEX; break;
-      case NC_FLOAT: index = FLOATINDEX; break;
-      case NC_DOUBLE: index = DOUBLEINDEX; break;
-      case NC_UBYTE: index = UCHARINDEX; break;
-      case NC_USHORT: index = USHORTINDEX; break;
-      case NC_UINT: index = UINTINDEX; break;
-      case NC_INT64: index = LONGLONGINDEX; break;
-      case NC_UINT64: index = ULONGLONGINDEX; break;
-      case NC_STRING: index = PTRINDEX; break;
-      case NC_VLEN: index = NCVLENINDEX; break;
-      case NC_OPAQUE: index = UCHARINDEX; break;
-      default: assert(0);
+    if(!NC_alignments_computed) {
+	NC_compute_alignments();
+	ncaux_initialized = 1;
     }
-    align = &vec[index];
-    return align->alignment;
+    if(xtype <= NC_MAX_ATOMIC_TYPE)
+        return NC_class_alignment(xtype); /* type == class */
+#ifdef USE_NETCDF4
+    else {/* Presumably a user type */
+	int klass = NC_NAT;
+        int stat = nc_inq_user_type(ncid,xtype,NULL,NULL,NULL,NULL,&klass);
+	if(stat) goto done;
+	switch(klass) {
+        case NC_VLEN: return NC_class_alignment(klass);
+        case NC_OPAQUE: return NC_class_alignment(klass);
+        case NC_COMPOUND: {/* get alignment of the first field of the compound */
+	   int fieldtype = NC_NAT;
+	   if((stat=nc_inq_compound_fieldtype(ncid,xtype,0,&fieldtype))) goto done;
+	   return ncaux_type_alignment(fieldtype,ncid); /* may recurse repeatedly */
+	} break;
+        default: break;
+	}
+    }
+
+done:
+#endif /*USE_NETCDF4 */
+    return 0; /* fail */
 }
 
-static size_t
-getpadding(size_t offset, size_t alignment)
-{
-    size_t rem = (alignment==0?0:(offset % alignment));
-    size_t pad = (rem==0?0:(alignment - rem));
-    return pad;
-}
-
+#ifdef USE_NETCDF4
 /* Find first primitive field of a possibly nested sequence of compounds */
 static nc_type
 findfirstfield(int ncid, nc_type xtype)
@@ -541,6 +465,23 @@ findfirstfield(int ncid, nc_type xtype)
 
 done:
     return (status == NC_NOERR?fieldtype:NC_NAT);
+}
+
+static size_t
+getpadding(size_t offset, size_t alignment)
+{
+    size_t rem = (alignment==0?0:(offset % alignment));
+    size_t pad = (rem==0?0:(alignment - rem));
+    return pad;
+}
+
+static size_t
+dimproduct(size_t ndims, int* dimsizes)
+{
+    int i;
+    size_t product = 1;
+    for(i=0;i<ndims;i++) product *= (size_t)dimsizes[i];
+    return product;
 }
 
 static int
@@ -571,15 +512,16 @@ computefieldinfo(struct NCAUX_CMPD* cmpd)
 	    field->alignment = 1;
 	    break;
 	case NC_ENUM:
-            field->alignment = nctypealignment(firsttype);
+            field->alignment = ncaux_type_alignment(firsttype,cmpd->ncid);
 	    break;	
 	case NC_VLEN: /*fall thru*/
 	case NC_COMPOUND:
-            field->alignment = nctypealignment(firsttype);
+            field->alignment = ncaux_type_alignment(firsttype,cmpd->ncid);
 	    break;
 	default:
-            field->alignment = nctypealignment(field->fieldtype);
+            field->alignment = ncaux_type_alignment(field->fieldtype,cmpd->ncid);
 	    break;
+
 	}
         offset += getpadding(offset,alignment);
         field->offset = offset;
@@ -591,7 +533,7 @@ computefieldinfo(struct NCAUX_CMPD* cmpd)
 done:
     return status;
 }
-#endif /*USE_NETCDF4*/
 
+#endif /*USE_NETCDF4*/
 
 

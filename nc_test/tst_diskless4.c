@@ -20,7 +20,7 @@
 #define FILE_NAME "tst_diskless4.nc"
 #define CHUNKSIZE 4096
 #define DATASIZE (CHUNKSIZE/sizeof(int))
-#define DIMMAX 1000000000L
+#define DIMMAX 500000000L
 
 typedef enum Tag {Create,CreateDiskless,Open,OpenDiskless} Tag;
 
