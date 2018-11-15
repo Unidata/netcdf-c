@@ -9,9 +9,6 @@
 
 #ifdef ENABLE_BINARY
 
-/* Track allocated objects here */
-extern List* tbr;
-
 /* Forward */
 static void alignto(int alignment, Bytebuffer* buf, ptrdiff_t base);
 
