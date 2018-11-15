@@ -423,16 +423,6 @@ NCD4_userpwd(NCURI* uri, char* space, size_t len)
     }
 }
 
-#ifdef BLOB
-void
-NCD4_saveblob(NCD4meta* meta, void* mem)
-{
-    if(meta->blobs == NULL)
-        meta->blobs = nclistnew();
-    nclistpush(meta->blobs,mem);
-}
-#endif
-
 /**************************************************/
 /* Error reporting */
 
