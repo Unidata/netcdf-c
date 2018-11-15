@@ -567,6 +567,7 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
 int
 nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
 {
+   assert(var);
 
    /* Remember the number of dimensions. */
    var->ndims = ndims;
@@ -1182,7 +1183,6 @@ var_free(NC_VAR_INFO_T *var)
    ncindexfree(var->att);
 
    /* Free some things that may be allocated. */
-   /* Free some things that may be allocated. */
    if (var->chunksizes)
       free(var->chunksizes);
 
@@ -1198,31 +1198,14 @@ var_free(NC_VAR_INFO_T *var)
    if (var->dim)
       free(var->dim);
 
-   /* Delete any fill value allocation. This must be done before the
-    * type_info is freed. */
+   /* Delete any fill value allocation. */
    if (var->fill_value)
-   {
-      if (var->hdf_datasetid)
-      {
-         if (var->type_info)
-         {
-            if (var->type_info->nc_type_class == NC_VLEN)
-               nc_free_vlen((nc_vlen_t *)var->fill_value);
-            else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value)
-               free(*(char **)var->fill_value);
-         }
-      }
       free(var->fill_value);
-   }
 
    /* Release type information */
    if (var->type_info)
       if ((retval = nc4_type_free(var->type_info)))
          return retval;
-
-   /* Delete any HDF5 dimscale objid information. */
-   if (var->dimscale_hdf5_objids)
-      free(var->dimscale_hdf5_objids);
 
    /* Delete information about the attachment status of dimscales. */
    if (var->dimscale_attached)
@@ -1231,6 +1214,10 @@ var_free(NC_VAR_INFO_T *var)
    /* Release parameter information. */
    if (var->params)
       free(var->params);
+
+   /* Delete any format-specific info. */
+   if (var->format_var_info)
+      free(var->format_var_info);
 
    /* Delete the var. */
    free(var);
@@ -1241,26 +1228,24 @@ var_free(NC_VAR_INFO_T *var)
 /**
  * @internal  Delete a var, and free the memory.
  *
- * @param grp the containing group
+ * @param grp Pointer to the strct for the containing group.
  * @param var Pointer to the var info struct of var to delete.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
+nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    int i;
 
-   if(var == NULL)
-      return NC_NOERR;
+   assert(var && grp);
 
    /* Remove from lists */
-   if(grp) {
-      i = ncindexfind(grp->vars,(NC_OBJ*)var);
-      if(i >= 0)
-         ncindexidel(grp->vars, i);
-   }
+   i = ncindexfind(grp->vars, (NC_OBJ *)var);
+   if (i >= 0)
+      ncindexidel(grp->vars, i);
+
    return var_free(var);
 }
 
