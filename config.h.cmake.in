@@ -109,7 +109,6 @@ are set when opening a binary file on Windows. */
 
 /* if true, enable CDF5 Support */
 #cmakedefine ENABLE_CDF5 1
-#cmakedefine USE_CDF5 1
 
 /* if true, enable strict null byte header padding. */
 #cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
@@ -153,6 +152,12 @@ are set when opening a binary file on Windows. */
 
 /* Is CURLINFO_HTTP_CODE defined */
 #cmakedefine HAVE_CURLINFO_HTTP_CONNECTCODE 1
+
+/* Is CURLOPT_BUFFERSIZE defined */
+#cmakedefine HAVE_CURLOPT_BUFFERSIZE 1
+
+/* Is CURLOPT_TCP_KEEPALIVE defined */
+#cmakedefine HAVE_CURLOPT_KEEPALIVE 1
 
 /* Is CURLOPT_KEYPASSWD defined */
 #cmakedefine HAVE_CURLOPT_KEYPASSWD 1
@@ -367,11 +372,17 @@ are set when opening a binary file on Windows. */
 /* If true, turn on logging. */
 #cmakedefine LOGGING 1
 
+/* If true, define nc_set_log_level. */
+#cmakedefine ENABLE_SET_LOG_LEVEL 1
+
 /* max size of the default per-var chunk cache. */
 #cmakedefine MAX_DEFAULT_CACHE_SIZE ${MAX_DEFAULT_CACHE_SIZE}
 
 /* min blocksize for posixio. */
 #cmakedefine NCIO_MINBLOCKSIZE ${NCIO_MINBLOCKSIZE}
+
+/* Add extra properties to _NCProperties attribute */
+#cmakedefine NCPROPERTIES_EXTRA ${NCPROPERTIES_EXTRA}
 
 /* no IEEE float on this platform */
 #cmakedefine NO_IEEE_FLOAT 1
@@ -514,12 +525,6 @@ are set when opening a binary file on Windows. */
 
 /* if true, parallel netcdf-4 is in use */
 #cmakedefine USE_PARALLEL4 1
-
-/* if true, compile in parallel netCDF-4 based on MPI/IO */
-#cmakedefine USE_PARALLEL_MPIO 1
-
-/* if true, compile in parallel netCDF-4 based on MPI/POSIX */
-#cmakedefine USE_PARALLEL_POSIX 1
 
 /* if true, parallel netCDF is used */
 #cmakedefine USE_PNETCDF 1

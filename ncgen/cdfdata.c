@@ -340,8 +340,8 @@ genbin_vlenconstants(List* vlenconstants)
 	bbClear(memory);
 	count = 0;
 	if(chartype) {
-   	    /* Collect the char vlen in a separate buffer */
-            gen_charvlen(vlensrc,memory);
+   	    /* Collect the char sequence in a separate buffer */
+            gen_charseq(vlensrc,memory);
 	    count = bbLength(memory);
 	} else {
   	    while(srcmore(vlensrc)) {

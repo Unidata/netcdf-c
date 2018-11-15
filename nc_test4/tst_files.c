@@ -46,15 +46,10 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
-      /* This will fail. */
-      if (nc_open(FILE_NAME, NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
-
       /* These will all fail due to incorrect mode flag combinations. */
       if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_NETCDF4, &ncid) != NC_EINVAL) ERR;
-      if (nc_create(FILE_NAME, NC_CLASSIC_MODEL|NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
       if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_CDF5, &ncid) != NC_EINVAL) ERR;
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CDF5, &ncid) != NC_EINVAL) ERR;
-      if (nc_create(FILE_NAME, NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
    }
    SUMMARIZE_ERR;
    printf("*** testing simple opens and creates...");

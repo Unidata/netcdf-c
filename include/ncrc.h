@@ -46,6 +46,7 @@ extern int NC_rcload(void);
 extern char* NC_rclookup(const char* key, const char* hostport);
 extern void NC_rcclear(NCRCinfo* info);
 extern int NC_set_rcfile(const char* rcfile);
+extern int NC_rcfile_insert(const char* key, const char* value, const char* hostport);
 
 /* From dutil.c (Might later move to e.g. nc.h */
 extern int NC__testurl(const char* path, char** basenamep);
@@ -54,6 +55,7 @@ extern char* NC_backslashEscape(const char* s);
 extern char* NC_backslashUnescape(const char* esc);
 extern char* NC_entityescape(const char* s);
 extern int NC_readfile(const char* filename, NCbytes* content);
+extern int NC_writefile(const char* filename, size_t size, void* content);
 extern char* NC_mktmp(const char* base);
 
 #endif /*NCRC_H*/

@@ -7,7 +7,7 @@
 #ifndef _NCITER_
 #define _NCITER_
 
-#include <netcdf.h>
+#include "netcdf.h"
 
 #if defined(__cplusplus)
 extern "C" {

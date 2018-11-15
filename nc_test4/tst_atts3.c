@@ -456,7 +456,7 @@ create_file()
 
     /* enter define mode */
 #ifdef TEST_PNETCDF
-    stat = nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+    stat = nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
 #else
     stat = nc_create(FILE_NAME, NC_CLOBBER, &ncid);
 #endif
@@ -2363,7 +2363,7 @@ main(int argc, char **argv)
 
       /* Create a file with a var with two atts. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLASSIC_MODEL|NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -2409,7 +2409,7 @@ main(int argc, char **argv)
 
       /* Reopen the file and check it. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -2441,7 +2441,7 @@ main(int argc, char **argv)
 
       /* Open the file. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -2470,7 +2470,7 @@ main(int argc, char **argv)
 
       /* Reopen the file and check it. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif

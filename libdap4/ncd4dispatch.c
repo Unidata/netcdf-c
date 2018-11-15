@@ -54,6 +54,7 @@ NCD4_initialize(void)
     globalinit();
     /* Load rc file */
     NC_rcload();    
+
     return THROW(NC_NOERR);
 }
 
@@ -85,8 +86,7 @@ NCD4_sync(int ncid)
 static int
 NCD4_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch* dispatch, NC* ncp)
+           void* mpidata, NC_Dispatch *dispatch, NC *ncp)
 {
    return THROW(NC_EPERM);
 }
@@ -798,6 +798,8 @@ globalinit(void)
 	if(cstat != CURLE_OK)
 	    fprintf(stderr,"curl_global_init failed!\n");
     }
+
+
     return stat;
 }
 

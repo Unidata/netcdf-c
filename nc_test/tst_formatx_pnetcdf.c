@@ -2,7 +2,7 @@
    Copyright 2005 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test fix of bug involving creation of a file with pnetcdf APIs,
+   Test fix of bug involving creation of a file with PnetCDF APIs,
    then opening and modifying the file with netcdf.
 
    Author: Wei-keng Liao.
@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
     MPI_Comm comm=MPI_COMM_SELF;
     MPI_Info info=MPI_INFO_NULL;
 
-    printf("\n*** Testing nc_inq_format_extended for pnetcdf...");
+    printf("\n*** Testing nc_inq_format_extended for PnetCDF...");
 
     MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
@@ -50,17 +50,12 @@ int main(int argc, char* argv[])
 #endif
 
     /* test CDF-1 file format */
-    cmode = NC_PNETCDF | NC_CLOBBER;
+    cmode = NC_CLOBBER;
     if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR_RET;
 
     if (nc_enddef(ncid)) ERR;
 
     if(nc_inq_format_extended(ncid,&format,&cmode)) ERR;
-    if((cmode & NC_PNETCDF) != NC_PNETCDF) {
-	printf("***FAIL at line %d: mode was %08x ; expected %08x\n",__LINE__,cmode,NC_PNETCDF);
-	ecode = 1;
-	ERR;
-    }
     if(format != NC_FORMATX_PNETCDF) {
 	printf("***FAIL at line %d: format was %d ; expected %d\n",__LINE__,format,NC_FORMATX_PNETCDF);
 	ecode = 1;
@@ -69,7 +64,7 @@ int main(int argc, char* argv[])
     if (nc_close(ncid)) ERR;
 
     /* test CDF-2 file format */
-    cmode = NC_PNETCDF | NC_CLOBBER | NC_64BIT_OFFSET;
+    cmode = NC_CLOBBER | NC_64BIT_OFFSET;
     if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR_RET;
 
     if (nc_enddef(ncid)) ERR;
@@ -88,7 +83,7 @@ int main(int argc, char* argv[])
     if (nc_close(ncid)) ERR;
 
     /* test CDF-5 file format */
-    cmode = NC_PNETCDF | NC_CLOBBER | NC_64BIT_DATA;
+    cmode = NC_CLOBBER | NC_64BIT_DATA;
     if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR_RET;
 
     if (nc_enddef(ncid)) ERR;

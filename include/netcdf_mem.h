@@ -12,13 +12,11 @@
 #ifndef NETCDF_MEM_H
 #define NETCDF_MEM_H 1
 
-#include <netcdf.h>
-
 typedef struct NC_memio {
     size_t size;
     void* memory;
-#define NC_MEMIO_LOCKED 1    /* Do not try to realloc or free provided memory */
     int flags;
+#define NC_MEMIO_LOCKED 1    /* Do not try to realloc or free provided memory */
 } NC_memio;
 
 #if defined(__cplusplus)

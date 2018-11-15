@@ -68,8 +68,6 @@ extern int nc__pseudofd(void);
 /* This function gets a current default create flag */
 extern int nc_get_default_format(void);
 
-extern int NC_check_file_type(const char *path, int flags, void *parameters, int* model, int* version);
-
 extern int add_to_NCList(NC*);
 extern void del_from_NCList(NC*);/* does not free object */
 extern NC* find_in_NCList(int ext_ncid);

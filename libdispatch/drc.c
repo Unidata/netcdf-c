@@ -291,34 +291,34 @@ rccompile(const char* path)
 	if((llen=strlen(line)) == 0) continue; /* empty line */
 	triple = (NCTriple*)calloc(1,sizeof(NCTriple));
 	if(triple == NULL) {ret = NC_ENOMEM; goto done;}
-    if(line[0] == LTAG) {
-      char* url = ++line;
-      char* rtag = strchr(line,RTAG);
-      if(rtag == NULL) {
-        nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
-        free(triple);
-        continue;
-      }
-      line = rtag + 1;
-      *rtag = '\0';
-      /* compile the url and pull out the host */
-      if(uri) ncurifree(uri);
-      if(ncuriparse(url,&uri) != NCU_OK) {
-        nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
-        free(triple);
+	if(line[0] == LTAG) {
+	    char* url = ++line;
+            char* rtag = strchr(line,RTAG);
+            if(rtag == NULL) {
+                nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
+                free(triple);
 		continue;
-      }
-      ncbytesclear(tmp);
-      ncbytescat(tmp,uri->host);
-      if(uri->port != NULL) {
+            }
+            line = rtag + 1;
+            *rtag = '\0';
+            /* compile the url and pull out the host */
+            if(uri) ncurifree(uri);
+            if(ncuriparse(url,&uri) != NCU_OK) {
+                nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
+                free(triple);
+		continue;
+            }
+            ncbytesclear(tmp);
+            ncbytescat(tmp,uri->host);
+            if(uri->port != NULL) {
 		ncbytesappend(tmp,':');
-        ncbytescat(tmp,uri->port);
-      }
-	    ncbytesnull(tmp);
-	    triple->host = ncbytesextract(tmp);
+                ncbytescat(tmp,uri->port);
+            }
+            ncbytesnull(tmp);
+            triple->host = ncbytesextract(tmp);
 	    if(strlen(triple->host)==0)
 		{free(triple->host); triple->host = NULL;}
-        }
+	}
         /* split off key and value */
         key=line;
         value = strchr(line, '=');
@@ -367,9 +367,12 @@ rclocate(const char* key, const char* hostport)
     if(hostport == NULL) hostport = "";
 
     for(found=0,i=0;i<nclistlength(rc);i++) {
-	triple = (NCTriple*)nclistget(rc,i);
-        size_t hplen = (triple->host == NULL ? 0 : strlen(triple->host));
-        int t;
+      int t;
+      size_t hplen;
+      triple = (NCTriple*)nclistget(rc,i);
+
+      hplen = (triple->host == NULL ? 0 : strlen(triple->host));
+
         if(strcmp(key,triple->key) != 0) continue; /* keys do not match */
         /* If the triple entry has no url, then use it
            (because we have checked all other cases)*/
@@ -421,6 +424,35 @@ done:
       path = NULL;
     }
     return (ret);
+}
+
+int
+NC_rcfile_insert(const char* key, const char* value, const char* hostport)
+{
+    int ret = NC_NOERR;
+    /* See if this key already defined */
+    struct NCTriple* triple = NULL;
+    NClist* rc = ncrc_globalstate.rcinfo.triples;
+
+    if(rc == NULL) {
+	rc = nclistnew();
+	if(rc == NULL) {ret = NC_ENOMEM; goto done;}
+    }
+    triple = rclocate(key,hostport);
+    if(triple == NULL) {
+	triple = (NCTriple*)calloc(1,sizeof(NCTriple));
+	if(triple == NULL) {ret = NC_ENOMEM; goto done;}
+	triple->key = strdup(key);
+	triple->value = NULL;
+        rctrim(triple->key);
+        triple->host = (hostport == NULL ? NULL : strdup(hostport));
+	nclistpush(rc,triple);
+    }
+    if(triple->value != NULL) free(triple->value);
+    triple->value = strdup(value);
+    rctrim(triple->value);
+done:
+    return ret;
 }
 
 #ifdef D4DEBUG

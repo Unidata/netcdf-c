@@ -134,7 +134,7 @@ main(int argc, char *argv[])
 	     break;
 
 	  case NC_FORMAT_CDF5:
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
         nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	     fprintf(stderr, "\n\nSwitching to 64-bit data format.\n");
 	     strcpy(testfile, "nc_test_cdf5.nc");

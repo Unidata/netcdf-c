@@ -10,6 +10,8 @@ linked with:
 
 netcdf.a from the daily snapshot
 netcdf-4.1-beta2-snapshot2009091100
+
+TODO: Note that this test uses thredds server
 */
 
 /* This particular test seems to occasionally expose a server error*/
@@ -101,8 +103,8 @@ main()
     }
     strncpy(url,svc,sizeof(url));
     strlcat(url,TESTPATH,sizeof(url));
-
     printf("*** Test: varm on URL: %s\n",url);
+    free(svc);
 
     check(err = nc_open(url, NC_NOWRITE, &ncid),__FILE__,__LINE__);
     check(err = nc_inq_varid(ncid, VAR, &varid),__FILE__,__LINE__);

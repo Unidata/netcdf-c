@@ -30,7 +30,7 @@ See LICENSE.txt for license information.
 
 /* Define the curl flag defaults in envv style */
 static const char* AUTHDEFAULTS[] = {
-"HTTP.TIMEOUT","10", /*seconds */
+"HTTP.TIMEOUT","1800", /*seconds */ /* Long but not infinite */
 NULL
 };
 

@@ -63,13 +63,17 @@ extern char *progname;		/* for error messages */
 extern "C" {
 #endif
 
-#define NC_CHECK(fncall) {int statnc=fncall;if(statnc!=NC_NOERR)check(statnc,__FILE__,__LINE__);}
+#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,__FILE__,__LINE__);}
 
 /* Print error message to stderr and exit */
 extern void	error ( const char *fmt, ... );
 
 /* Check error on malloc and exit with message if out of memory */
 extern void*    emalloc ( size_t size );
+/* Ditto calloc */
+extern void*    ecalloc ( size_t size );
+/* Ditto realloc */
+extern void*    erealloc (void* p, size_t size );
 
 /* Check error return.  If bad, print error message and exit. */
 extern void check(int err, const char* file, const int line);
@@ -84,6 +88,12 @@ void print_name(const char *name);
 /* Get dimid from a full dimension path name that may include group
  * names */
 extern int  nc_inq_dimid2(int ncid, const char *dimname, int *dimidp);
+
+/* Convert a full path name to a group to the specific groupid. */
+extern int  nc_inq_grpid2(int ncid, const char *grpname0, int *grpidp);
+
+/* Convert a full path name to a varid to the specific varid + grpid */
+extern int nc_inq_varid2(int ncid, const char *path0, int* varidp, int* grpidp);
 
 /* Test if variable is a record variable */
 extern int  isrecvar ( int ncid, int varid );

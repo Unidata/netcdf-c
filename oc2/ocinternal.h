@@ -139,8 +139,8 @@ typedef struct OCheader {
 #define DFALTUSERAGENT "oc"
 #endif
 
+#if 0
 /* Hold known curl flags */
-
 enum OCCURLFLAGTYPE {CF_UNKNOWN=0,CF_OTHER=1,CF_STRING=2,CF_LONG=3};
 struct OCCURLFLAG {
     const char* name;
@@ -148,6 +148,7 @@ struct OCCURLFLAG {
     int value;
     enum OCCURLFLAGTYPE type;
 };
+#endif
 
 struct OCTriplestore {
     int ntriples;
@@ -176,6 +177,12 @@ struct OCstate {
     NCauth auth; /* curl auth data */
     long ddslastmodified;
     long datalastmodified;
+    long curlbuffersize;
+    struct {
+	int active; /* Activate keepalive? */
+	long idle; /* KEEPIDLE value */
+	long interval; /* KEEPINTVL value */
+    } curlkeepalive; /* keepalive info */
 };
 
 /*! OCtree holds extra state info about trees */

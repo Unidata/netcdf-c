@@ -841,7 +841,8 @@ ncuint64_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
     return sbuf_len(sfbf);
 }
 
-int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
+int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp)
+{
     const char *cp;
 
     cp = ((char **)valp)[0];
@@ -851,7 +852,8 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
         char *sp;
         unsigned char uc;
 
-        slen = 3 + 5 * strlen(cp); /* need "'s around string, and extra space to escape control characters */
+        slen = 4 + 5 * strlen(cp); /* need "'s around string, and extra space to escape control characters */
+	slen++; /* nul term */
         sout = emalloc(slen);
         sp = sout;
         *sp++ = '"' ;
@@ -895,7 +897,7 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
                 break;
             default:
                 if (iscntrl(uc)) {
-                    snprintf(sp,3,"\\%03o",uc);
+                    snprintf(sp,4+1,"\\%03o",uc); /* +1 for nul */
                     sp += 4;
                 }
                 else
@@ -918,7 +920,7 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
 int
 ncenum_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
     char symbol[NC_MAX_NAME + 1];
-    long long val;
+    long long val = 0;
 
     switch (typ->base_tid) {
     case NC_BYTE:
@@ -1213,7 +1215,7 @@ ncdouble_val_tostring(const ncvar_t *varp, safebuf_t *sfbf, const void *valp) {
  * lose precision for values of type NC_INT64 or NC_UINT64 */
 static
 double to_double(const ncvar_t *varp, const void *valp) {
-    double dd;
+    double dd = 0.0;
     switch (varp->type) {
     case NC_BYTE:
 	dd = *(signed char *)valp;

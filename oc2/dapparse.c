@@ -103,7 +103,7 @@ dap_unrecognizedresponse(DAPparsestate* state)
     unsigned int httperr = 0;
     int i;
     char iv[32];
-    sscanf(state->lexstate->input,"%u ",&httperr);
+    (void)sscanf(state->lexstate->input,"%u ",&httperr);
     sprintf(iv,"%u",httperr);
     state->lexstate->next = state->lexstate->input;
     /* Limit the amount of input to prevent runaway */
@@ -468,6 +468,8 @@ dap_parse_cleanup(DAPparsestate* state)
     daplexcleanup(&state->lexstate);
     if(state->ocnodes != NULL) ocnodes_free(state->ocnodes);
     state->ocnodes = NULL;
+    nullfree(state->code);
+    nullfree(state->message);
     free(state);
 }
 

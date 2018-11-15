@@ -1962,6 +1962,7 @@ oc_dds_free(OCobject link, OCobject dds0)
 /**************************************************/
 /* Curl specific  options */
 
+#if 0
 /*!\defgroup Curl Curl-specifi Procedures
 @{*/
 
@@ -1992,6 +1993,7 @@ oc_set_curlopt(OClink link, const char* option, void* value)
 	return OCTHROW(OC_ECURL);
     return OCTHROW(ocset_curlopt(state,f->flag,value));
 }
+#endif
 
 /*!
 Set the absolute path to use for the .netrc file

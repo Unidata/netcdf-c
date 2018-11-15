@@ -331,8 +331,8 @@ genjjni_vlendata(List* vlenconstants, Bytebuffer* databuf)
 	vlensrc = datalist2src(cmpd->value.compoundv);
  	bbClear(vlenbuf);
 	if(typecode == NC_CHAR) {
-   	    /* Collect the char vlen in a separate buffer */
-            gen_charvlen(vlensrc,vlenbuf);
+   	    /* Collect the char sequence in a separate buffer */
+            gen_charseq(vlensrc,vlenbuf);
 	    count = bbLength(vlenbuf);
 	    /* Add to the existing data buf as a single constant */
    	    jquotestring(vlenbuf,'"');

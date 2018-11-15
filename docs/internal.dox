@@ -27,7 +27,7 @@ To date, at least the following dispatch tables are supported.
 - netcdf enhanced files (netcdf-4)
 - DAP2 to netcdf-3
 - DAP4 to netcdf-4
-- pnetcdf (parallel cdf5)
+- PnetCDF (parallel I/O for classic files)
 - HDF4 SD files
 
 The dispatch table represents a distillation of the netcdf API down to
@@ -338,7 +338,7 @@ these don't have to be re-implemented in each read-only dispatch layer:
 \subsubsection classic_functions Classic NetCDF Only Functions
 
 There are two functions that are only used in the classic code. All
-other dispatch layers (except pnetcdf) return error ::NC_ENOTNC3 for
+other dispatch layers (except PnetCDF) return error ::NC_ENOTNC3 for
 these functions. The following functions are provided for this
 purpose:
 

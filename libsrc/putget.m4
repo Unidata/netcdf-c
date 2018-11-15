@@ -147,7 +147,7 @@ NCFILL(ulonglong, ulonglong, X_SIZEOF_ULONGLONG, NC_FILL_UINT64)
 xdr_NC_fill()
  */
 int
-fill_NC_var(NC3_INFO* ncp, const NC_var *varp, size_t varsize, size_t recno)
+fill_NC_var(NC3_INFO* ncp, const NC_var *varp, long long varsize, size_t recno)
 {
 	char xfillp[NFILL * X_SIZEOF_DOUBLE];
 	const size_t step = varp->xsz;
@@ -155,7 +155,7 @@ fill_NC_var(NC3_INFO* ncp, const NC_var *varp, size_t varsize, size_t recno)
 	const size_t xsz = varp->xsz * nelems;
 	NC_attr **attrpp = NULL;
 	off_t offset;
-	size_t remaining = varsize;
+	long long remaining = varsize;
 
 	void *xp;
 	int status = NC_NOERR;

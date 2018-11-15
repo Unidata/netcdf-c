@@ -485,14 +485,14 @@ dumpnode(CDFnode* node)
 }
 
 char*
-dumpalign(NCalignment* ncalign)
+dumpalign(NCD2alignment* ncalign)
 {
     char* result;
     char tmp[1024];
     if(ncalign == NULL)
-	result = nulldup("NCalignment{size=-- alignment=-- offset=--}");
+	result = nulldup("NCD2alignment{size=-- alignment=-- offset=--}");
     else {
-        snprintf(tmp,sizeof(tmp),"NCalignment{size=%lu alignment=%lu offset=%lu}",
+        snprintf(tmp,sizeof(tmp),"NCD2alignment{size=%lu alignment=%lu offset=%lu}",
 		 ncalign->size,ncalign->alignment,ncalign->offset);
         result = nulldup(tmp);
     }

@@ -55,10 +55,11 @@ Bytebuffer* xcode;
  * Generate C code for creating netCDF from in-memory structure.
  */
 void
-gen_nccml(const char *filename)
+gencml_netcdf(void)
 {
     xcode = bbNew();
     bbSetalloc(xcode,C_MAX_STMT);
+    const char *filename = rootgroup->file.filename;
 
     /* Dump XML header */
     xline("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -75,7 +76,7 @@ gen_nccml(const char *filename)
 }
 
 void
-cl_cml(void)
+gencml_close(void)
 {
     xline("</netcdf>");
     xflush();
@@ -285,7 +286,7 @@ definextype(Symbol* tsym)
 	    ASSERT(econst->subclass == NC_ECONST);
 	    nprintf(stmt,sizeof(stmt),"<enumconst name=\"%s\" value=\"%s\" />",
 		    xname(econst),
-		    xconst(&econst->typ.econst));
+		    xconst(econst->typ.econst));
 	    xline(stmt);
 	}
 	xline("</enum>");

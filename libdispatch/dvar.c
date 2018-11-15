@@ -149,7 +149,8 @@ nc_inq_ncid().
 @param ndims Number of dimensions for the variable. For example, 2
 specifies a matrix, 1 specifies a vector, and 0 means the variable is
 a scalar with no dimensions. Must not be negative or greater than the
-predefined constant ::NC_MAX_VAR_DIMS.
+predefined constant ::NC_MAX_VAR_DIMS. In netCDF-4/HDF5 files, may not
+exceed the HDF5 maximum number of dimensions (32).
 
 @param dimidsp Vector of ndims dimension IDs corresponding to the
 variable dimensions. For classic model netCDF files, if the ID of the
@@ -545,42 +546,57 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
    return status;
 }
 
-/*! Set the fill value for a variable.
+/**
+ * @ingroup variables
+ *
+ * Set the fill value for a variable.
+ *
+ * @note For netCDF classic, 64-bit offset, and CDF5 formats, it is
+ * allowed (but not good practice) to set the fill value after data
+ * have been written to the variable. In this case, unless the
+ * variable has been completely specified (without gaps in the data),
+ * any existing filled values will not be recognized as fill values by
+ * applications reading the data. Best practice is to set the fill
+ * value after the variable has been defined, but before any data have
+ * been written to that varibale. In NetCDF-4 files, this is enforced
+ * by the HDF5 library. For netCDF-4 files, an error is returned if
+ * the user attempts to set the fill value after writing data to the
+ * variable.
 
-\ingroup variables
-
-\param ncid NetCDF ID, from a previous call to nc_open or
-nc_create.
-
-\param varid Variable ID.
-
-\param no_fill Set to NC_NOFILL to turn off fill mode for this
-variable. Set to NC_FILL (the default) to turn on fill mode for the
-variable.
-
-\param fill_value the fill value to be used for this variable. Must be
-the same type as the variable. This must point to enough free memory
-to hold one element of the data type of the variable. (For example, an
-NC_INT will require 4 bytes for it's fill value, which is also an
-NC_INT.)
-
+ * @param ncid NetCDF ID, from a previous call to nc_open or
+ * nc_create.
+ * @param varid Variable ID.
+ * @param no_fill Set to NC_NOFILL to turn off fill mode for this
+ * variable. Set to NC_FILL (the default) to turn on fill mode for the
+ * variable.
+ * @param fill_value the fill value to be used for this variable. Must
+ * be the same type as the variable. This must point to enough free
+ * memory to hold one element of the data type of the variable. (For
+ * example, an NC_INT will require 4 bytes for it's fill value, which
+ * is also an NC_INT.)
+ *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ID.
- * @returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for
-netCDF classic, 64-bit offset, or 64-bit data files, or for netCDF-4 files,
-when they were created with NC_STRICT_NC3 flag. See \ref nc_create.
+ * @returns ::NC_ENOTINDEFINE Not in define mode.  This is returned
+ * for netCDF classic, 64-bit offset, or 64-bit data files, or for
+ * netCDF-4 files, when they were created with NC_STRICT_NC3 flag. See
+ * @ref nc_create.
  * @returns ::NC_EPERM Attempt to create object in read-only file.
-
-\section nc_def_var_fill_example Example
-
-In this example from libsrc4/tst_vars.c, a variable is defined, and
-the fill mode turned off. Then nc_inq_fill() is used to check that the
-setting is correct. Then some data are written to the variable. Since
-the data that are written do not cover the full extent of the
-variable, the missing values will just be random. If fill value mode
-was turned on, the missing values would get the fill value.
-
-\code
+ * @returns ::NC_ELATEDEF (NetCDF-4 only). Returned when user attempts
+ * to set fill value after data are written.
+ * @returns ::NC_EGLOBAL Attempt to set fill value on NC_GLOBAL.
+ *
+ * @section nc_def_var_fill_example Example
+ *
+ * In this example from libsrc4/tst_vars.c, a variable is defined, and
+ * the fill mode turned off. Then nc_inq_fill() is used to check that
+ * the setting is correct. Then some data are written to the
+ * variable. Since the data that are written do not cover the full
+ * extent of the variable, the missing values will just be random. If
+ * fill value mode was turned on, the missing values would get the
+ * fill value.
+ *
+ @code
 #define DIM7_LEN 2
 #define DIM7_NAME "dim_7_from_Indiana"
 #define VAR7_NAME "var_7_from_Idaho"
@@ -607,7 +623,8 @@ was turned on, the missing values would get the fill value.
       if (nc_get_var1_ushort(ncid, varid, index, &ushort_data_in)) ERR;
 
       if (nc_close(ncid)) ERR;
-\endcode
+ @endcode
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
@@ -616,7 +633,7 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
     int stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) return stat;
 
-    /* Dennis Heimbigner: (Using NC_GLOBAL is ilegal, as this API) has no
+    /* Dennis Heimbigner: Using NC_GLOBAL is illegal, as this API has no
      * provision for specifying the type of the fillvalue, it must of necessity
      * be using the type of the variable to interpret the bytes of the
      * fill_value argument.
@@ -624,6 +641,93 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
     if (varid == NC_GLOBAL) return NC_EGLOBAL;
 
     return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
+}
+
+/**
+ * @internal Check the start, count, and stride parameters for gets
+ * and puts, and handle NULLs.
+ *
+ * @param ncid The file ID.
+ * @param varid The variable ID.
+ * @param start Pointer to start array. If NULL NC_EINVALCOORDS will
+ * be returned for non-scalar variable.
+ * @param count Pointer to pointer to count array. If *count is NULL,
+ * an array of the correct size will be allocated, and filled with
+ * counts that represent the full extent of the variable. In this
+ * case, the memory must be freed by the caller.
+ * @param stride Pointer to pointer to stride array. If NULL, stide is
+ * ignored. If *stride is NULL an array of the correct size will be
+ * allocated, and filled with ones. In this case, the memory must be
+ * freed by the caller.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Variable not found.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EINVALCOORDS Missing start array.
+ * @author Ed Hartnett
+ */
+int
+NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
+               ptrdiff_t **stride)
+{
+   int varndims;
+   int stat;
+
+   if ((stat = nc_inq_varndims(ncid, varid, &varndims)))
+      return stat;
+
+   /* For non-scalar vars, start is required. */
+   if (!start && varndims)
+      return NC_EINVALCOORDS;
+
+   /* If count is NULL, assume full extent of var. */
+   if (!*count)
+   {
+      if (!(*count = malloc(varndims * sizeof(size_t))))
+         return NC_ENOMEM;
+      if ((stat = NC_getshape(ncid, varid, varndims, *count)))
+      {
+         free(*count);
+         *count = NULL;
+         return stat;
+      }
+   }
+
+   /* If stride is NULL, do nothing, if *stride is NULL use all 1s. */
+   if (stride && !*stride)
+   {
+      int i;
+
+      if (!(*stride = malloc(varndims * sizeof(size_t))))
+         return NC_ENOMEM;
+      for (i = 0; i < varndims; i++)
+         *stride[i] = 1;
+   }
+
+   return NC_NOERR;
+}
+
+/** \ingroup variables
+Free string space allocated by the library.
+
+When you read string type the library will allocate the storage space
+for the data. This storage space must be freed, so pass the pointer
+back to this function, when you're done with the data, and it will
+free the string memory.
+
+\param len The number of character arrays in the array.
+\param data The pointer to the data array.
+
+\returns ::NC_NOERR No error.
+*/
+int
+nc_free_string(size_t len, char **data)
+{
+   int i;
+   for (i = 0; i < len; i++)
+      free(data[i]);
+   return NC_NOERR;
 }
 
 #ifdef USE_NETCDF4
@@ -736,28 +840,6 @@ nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->get_var_chunk_cache(ncid, varid, sizep,
 					      nelemsp, preemptionp);
-}
-
-/** \ingroup variables
-Free string space allocated by the library.
-
-When you read string type the library will allocate the storage space
-for the data. This storage space must be freed, so pass the pointer
-back to this function, when you're done with the data, and it will
-free the string memory.
-
-\param len The number of character arrays in the array.
-\param data The pointer to the data array.
-
-\returns ::NC_NOERR No error.
-*/
-int
-nc_free_string(size_t len, char **data)
-{
-   int i;
-   for (i = 0; i < len; i++)
-      free(data[i]);
-   return NC_NOERR;
 }
 
 /**

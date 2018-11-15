@@ -34,7 +34,7 @@
      int format; \
      nc_inq_format_extended(ncid,&format,NULL); \
      if (format == NC_FORMATX_PNETCDF) { \
-       if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;\
+       if (nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE)) ERR;\
      }\
    }
 #else
@@ -55,11 +55,11 @@ static int file_create(const char *filename, int cmode, int *ncid)
 #ifdef USE_PNETCDF
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
         || default_format == NC_FORMAT_64BIT_DATA
 #endif
         )
-        err = nc_create_par(filename, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
         err = nc_create(filename, cmode, ncid);
@@ -81,7 +81,7 @@ static int file_open(const char *filename, int omode, int *ncid)
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET ||
         default_format == NC_FORMAT_64BIT_DATA)
-        err = nc_open_par(filename, omode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        err = nc_open_par(filename, omode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
         err = nc_open(filename, omode, ncid);
@@ -425,9 +425,7 @@ test_two_growing_with_att(const char *testfile)
       {int format;
       nc_inq_format_extended(ncid,&format,NULL);
       if (format == NC_FORMATX_PNETCDF) {
-          for (v = 0; v < NUM_VARS; v++) {
-              if (nc_var_par_access(ncid, varid[v], NC_COLLECTIVE)) ERR;
-          }
+          if (nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE)) ERR;
       }}
 #endif
       count[0] = 1;
@@ -525,7 +523,7 @@ main(int argc, char **argv)
 	    printf("Switching to 64-bit offset format.\n");
 	    strcpy(testfile, "tst_small_64bit.nc");
 	    break;
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
 	 case NC_FORMAT_CDF5:
 	    nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	    printf("Switching to 64-bit data format.\n");

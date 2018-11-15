@@ -17,8 +17,7 @@ extern "C" {
 extern int
 NCD4_open(const char *path, int mode,
          int basepe, size_t *chunksizehintp,
-         int use_parallel, void* mpidata,
-         struct NC_Dispatch* dispatch, NC* ncp);
+         void *mpidata, struct NC_Dispatch *dispatch, NC *ncp);
 
 extern int
 NCD4_close(int ncid,void*);

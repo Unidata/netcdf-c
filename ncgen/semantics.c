@@ -8,9 +8,9 @@
 #include        "includes.h"
 #include        "dump.h"
 #include        "ncoffsets.h"
+#include        "netcdf_aux.h"
 
 /* Forward*/
-static void computefqns(void);
 static void filltypecodes(void);
 static void processenums(void);
 static void processeconstrefs(void);
@@ -20,21 +20,25 @@ static void processvars(void);
 static void processattributes(void);
 static void processunlimiteddims(void);
 static void processeconstrefs(void);
-static void processeconstrefsR(Datalist*);
+static void processeconstrefsR(Symbol*,Datalist*);
+static void processroot(void);
 
-static List* ecsearchgrp(Symbol* grp, List* candidates);
-static List* findecmatches(char* ident);
-static void fixeconstref(NCConstant* con);
+static void computefqns(void);
+static void fixeconstref(Symbol*,NCConstant* con);
 static void inferattributetype(Symbol* asym);
 static void validateNIL(Symbol* sym);
 static void checkconsistency(void);
 static int tagvlentypes(Symbol* tsym);
-
 static void computefqns(void);
-
 static Symbol* uniquetreelocate(Symbol* refsym, Symbol* root);
-static Symbol* checkeconst(Symbol* en, const char* refname);
+static char* createfilename(void);
 
+#if 0
+static Symbol* locateenumtype(Symbol* econst, Symbol* group, NCConstant*);
+static List* findecmatches(char* ident);
+static List* ecsearchgrp(Symbol* grp, List* candidates);
+static Symbol* checkeconst(Symbol* en, const char* refname);
+#endif
 
 List* vlenconstants;  /* List<Constant*>;*/
 			  /* ptr to vlen instances across all datalists*/
@@ -43,6 +47,8 @@ List* vlenconstants;  /* List<Constant*>;*/
 void
 processsemantics(void)
 {
+    /* Fix up the root name to match the chosen filename */
+    processroot();
     /* Fill in the fqn for every defining symbol */
     computefqns();
     /* Process each type and sort by dependency order*/
@@ -193,7 +199,6 @@ uniquetreelocate(Symbol* refsym, Symbol* root)
     return sym;
 }
 
-
 /*
 Compute the fqn for every top-level definition symbol
 */
@@ -250,6 +255,17 @@ computefqns(void)
         Symbol* sym = (Symbol*)listget(attdefs,i);
         attfqn(sym);
     }
+}
+
+/**
+Process the root group.
+Currently mean:
+1. Compute and store the filename
+*/
+static void
+processroot(void)
+{
+    rootgroup->file.filename = createfilename();
 }
 
 /* 1. Do a topological sort of the types based on dependency*/
@@ -376,8 +392,9 @@ tagvlentypes(Symbol* tsym)
 static void
 filltypecodes(void)
 {
-    Symbol* sym;
-    for(sym=symlist;sym != NULL;sym = sym->next) {
+    int i;
+    for(i=0;i<listlength(symlist);i++) {
+        Symbol* sym = listget(symlist,i);
 	if(sym->typ.basetype != NULL && sym->typ.typecode == NC_NAT)
 	    sym->typ.typecode = sym->typ.basetype->typ.typecode;
     }
@@ -409,10 +426,11 @@ processenums(void)
 	if(tsym->subclass != NC_ENUM) continue;
 	for(j=0;j<listlength(tsym->subnodes);j++) {
 	    Symbol* esym = (Symbol*)listget(tsym->subnodes,j);
-	    NCConstant newec;
+	    NCConstant* newec = nullconst();
 	    ASSERT(esym->subclass == NC_ECONST);
-	    newec.nctype = esym->typ.typecode;
-	    convert1(&esym->typ.econst,&newec);
+	    newec->nctype = esym->typ.typecode;
+	    convert1(esym->typ.econst,newec);
+	    reclaimconstant(esym->typ.econst);
 	    esym->typ.econst = newec;
 	}
     }
@@ -429,54 +447,104 @@ processeconstrefs(void)
     for(i=0;i<listlength(gattdefs);i++) {
 	Symbol* att = (Symbol*)listget(gattdefs,i);
 	if(att->data != NULL && listlength(att->data) > 0)
-	    processeconstrefsR(att->data);
+	    processeconstrefsR(att,att->data);
     }
     for(i=0;i<listlength(attdefs);i++) {
 	Symbol* att = (Symbol*)listget(attdefs,i);
 	if(att->data != NULL && listlength(att->data) > 0)
-	    processeconstrefsR(att->data);
+	    processeconstrefsR(att,att->data);
     }
     for(i=0;i<listlength(vardefs);i++) {
 	Symbol* var = (Symbol*)listget(vardefs,i);
 	if(var->data != NULL && listlength(var->data) > 0)
-	    processeconstrefsR(var->data);
+	    processeconstrefsR(var,var->data);
+	if(var->var.special->_Fillvalue != NULL)
+	    processeconstrefsR(var,var->var.special->_Fillvalue);
     }
 }
 
 /* Recursive helper for processeconstrefs */
 static void
-processeconstrefsR(Datalist* data)
+processeconstrefsR(Symbol* avsym, Datalist* data)
 {
-    NCConstant* con = NULL;
+    NCConstant** dlp = NULL;
     int i;
-    for(i=0,con=data->data;i<data->length;i++,con++) {
+    for(i=0,dlp=data->data;i<data->length;i++,dlp++) {
+	NCConstant* con = *dlp;
 	if(con->nctype == NC_COMPOUND) {
 	    /* Iterate over the sublists */
-	    processeconstrefsR(con->value.compoundv);
-	} else if(con->nctype == NC_ECONST) {
-	    fixeconstref(con);
+	    processeconstrefsR(avsym,con->value.compoundv);
+	} else if(con->nctype == NC_ECONST || con->nctype == NC_FILLVALUE) {
+	    fixeconstref(avsym,con);
 	}
     }
 }
 
 static void
-fixeconstref(NCConstant* con)
+fixeconstref(Symbol* avsym, NCConstant* con)
+{
+    Symbol* basetype = NULL;
+    Symbol* refsym = con->value.enumv;
+    Symbol* varsym = NULL;
+    int i;
+
+    /* Figure out the proper type associated with avsym */
+    ASSERT(avsym->objectclass == NC_VAR || avsym->objectclass == NC_ATT);
+
+    if(avsym->objectclass == NC_VAR) {
+        basetype = avsym->typ.basetype;
+	varsym = avsym;
+    } else { /*(avsym->objectclass == NC_ATT)*/ 
+        basetype = avsym->typ.basetype;
+	varsym = avsym->container;
+	if(varsym->objectclass == NC_GRP)
+	    varsym = NULL;
+    }
+    
+    if(basetype->objectclass != NC_TYPE && basetype->subclass != NC_ENUM)
+        semerror(con->lineno,"Enumconstant associated with a non-econst type");
+
+    if(con->nctype == NC_FILLVALUE) {
+	Datalist* filllist = NULL;
+	NCConstant* filler = NULL;
+	filllist = getfiller(varsym == NULL?basetype:varsym);
+	if(filllist == NULL)
+	    semerror(con->lineno, "Cannot determine enum constant fillvalue");
+	filler = datalistith(filllist,0);
+	con->value.enumv = filler->value.enumv;
+	return;
+    }
+
+    for(i=0;i<listlength(basetype->subnodes);i++) {
+	Symbol* econst = listget(basetype->subnodes,i);
+	ASSERT(econst->subclass == NC_ECONST);
+	if(strcmp(econst->name,refsym->name)==0) {
+	    con->value.enumv = econst;
+	    return;
+	}
+    }
+    semerror(con->lineno,"Undefined enum or enum constant reference: %s",refsym->name);
+}
+
+#if 0
+/* If we have an enum-valued group attribute, then we need to do
+extra work to find the containing enum type
+*/
+static Symbol*
+locateenumtype(Symbol* refsym, Symbol* parent, NCConstant* con)
 {
     Symbol* match = NULL;
-    Symbol* parent = NULL;
-    Symbol* refsym = con->value.enumv;
     List* grpmatches;
 
-    
     /* Locate all possible matching enum constant definitions */
     List* candidates = findecmatches(refsym->name);
     if(candidates == NULL) {
 	semerror(con->lineno,"Undefined enum or enum constant reference: %s",refsym->name);
-	return;
+	return NULL;
     }
     /* One hopes that 99% of the time, the match is unique */
     if(listlength(candidates) == 1) {
-	con->value.enumv = (Symbol*)listget(candidates,0);
+	match = listget(candidates,0);
 	goto done;
     }
     /* If this ref has a specified group prefix, then find that group
@@ -499,12 +567,11 @@ fixeconstref(NCConstant* con)
 	default:
 	    semerror(con->lineno,"Ambiguous enum constant reference: %s", fullname(refsym));
 	}
-	con->value.enumv = listget(grpmatches,0);
+	match = listget(grpmatches,0);
 	listfree(grpmatches);
 	goto done;
     }
     /* Sigh, we have to search up the tree to see if any of our candidates are there */
-    parent = refsym->container;
     assert(parent == NULL || parent->objectclass == NC_GRP);
     while(parent != NULL && match == NULL) {
 	grpmatches = ecsearchgrp(parent,candidates);
@@ -518,15 +585,13 @@ fixeconstref(NCConstant* con)
 	}
 	listfree(grpmatches);
     }
-    if(match != NULL) {
-	con->value.enumv = match;
-	goto done;
-    }
+    if(match != NULL) goto done;
     /* Not unique and not in the parent tree, so complains and pick the first candidate */
     semerror(con->lineno,"Ambiguous enum constant reference: %s", fullname(refsym));
-    con->value.enumv = (Symbol*)listget(candidates,0);
+    match = (Symbol*)listget(candidates,0);
 done:
     listfree(candidates);
+    return match;
 }
 
 /*
@@ -602,7 +667,7 @@ checkeconst(Symbol* en, const char* refname)
     }
     return NULL;
 }
-
+#endif
 
 /* Compute type sizes and compound offsets*/
 void
@@ -618,12 +683,12 @@ computesize(Symbol* tsym)
         case NC_VLEN: /* actually two sizes for vlen*/
 	    computesize(tsym->typ.basetype); /* first size*/
 	    tsym->typ.size = ncsize(tsym->typ.typecode);
-	    tsym->typ.alignment = nctypealignment(tsym->typ.typecode);
+	    tsym->typ.alignment = ncaux_class_alignment(tsym->typ.typecode);
 	    tsym->typ.nelems = 1; /* always a single compound datalist */
 	    break;
 	case NC_PRIM:
 	    tsym->typ.size = ncsize(tsym->typ.typecode);
-	    tsym->typ.alignment = nctypealignment(tsym->typ.typecode);
+	    tsym->typ.alignment = ncaux_class_alignment(tsym->typ.typecode);
 	    tsym->typ.nelems = 1;
 	    break;
 	case NC_OPAQUE:
@@ -736,13 +801,14 @@ processattributes(void)
 	if(asym->typ.basetype == NULL) inferattributetype(asym);
         /* fill in the typecode*/
 	asym->typ.typecode = asym->typ.basetype->typ.typecode;
-	if(asym->data->length == 0) {
+	if(asym->data != NULL && asym->data->length == 0) {
+	    NCConstant* empty = NULL;
 	    /* If the attribute has a zero length, then default it;
                note that it must be of type NC_CHAR */
 	    if(asym->typ.typecode != NC_CHAR)
 	        semerror(asym->lineno,"Empty datalist can only be assigned to attributes of type char",fullname(asym));
-	    asym->data = builddatalist(1);
-	    emptystringconst(asym->lineno,&asym->data->data[asym->data->length]);
+	    empty = emptystringconst(asym->lineno);
+	    dlappend(asym->data,empty);
 	}
 	validateNIL(asym);
     }
@@ -761,18 +827,21 @@ processattributes(void)
 		/* Generate a default fill value */
 	        asym->data = getfiller(asym->typ.basetype);
 	    }
-	    asym->att.var->var.special._Fillvalue = asym->data;
+	    if(asym->att.var->var.special->_Fillvalue != NULL)
+	    	reclaimdatalist(asym->att.var->var.special->_Fillvalue);
+	    asym->att.var->var.special->_Fillvalue = clonedatalist(asym->data);
 	} else if(asym->typ.basetype == NULL) {
 	    inferattributetype(asym);
 	}
 	/* fill in the typecode*/
 	asym->typ.typecode = asym->typ.basetype->typ.typecode;
 	if(asym->data->length == 0) {
+	    NCConstant* empty = NULL;
 	    /* If the attribute has a zero length, and is char type, then default it */
 	    if(asym->typ.typecode != NC_CHAR)
 	        semerror(asym->lineno,"Empty datalist can only be assigned to attributes of type char",fullname(asym));
-	    asym->data = builddatalist(1);
-	    emptystringconst(asym->lineno,&asym->data->data[asym->data->length]);
+	    empty = emptystringconst(asym->lineno);
+	    dlappend(asym->data,empty);
 	}
 	validateNIL(asym);
     }
@@ -817,7 +886,7 @@ infertype(nc_type prior, nc_type next, int hasneg)
 Collect info by repeated walking of the attribute value list.
 */
 static nc_type
-inferattributetype1(Datasrc* src)
+inferattributetype1(Datalist* adata)
 {
     nc_type result = NC_NAT;
     int hasneg = 0;
@@ -826,39 +895,37 @@ inferattributetype1(Datasrc* src)
     int forcefloat = 0;
     int forcedouble = 0;
     int forceuint64 = 0;
+    int i;
 
     /* Walk the top level set of attribute values to ensure non-nesting */
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	if(con == NULL) return NC_NAT;
 	if(con->nctype > NC_MAX_ATOMIC_TYPE) { /* illegal */
 	    return NC_NAT;
 	}
-	srcnext(src);
     }
-    /* Walk repeatedly to get info for inference (loops could be combined) */
 
+    /* Walk repeatedly to get info for inference (loops could be combined) */
     /* Compute: all strings or chars? */
-    srcreset(src);
     stringcount = 0;
     charcount = 0;
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	if(con->nctype == NC_STRING) stringcount++;
 	else if(con->nctype == NC_CHAR) charcount++;
     }
     if((stringcount+charcount) > 0) {
-        if((stringcount+charcount) < srclen(src))
+        if((stringcount+charcount) < datalistlen(adata))
 	    return NC_NAT; /* not all textual */
 	return NC_CHAR;
     }
 
     /* Compute: any floats/doubles? */
-    srcreset(src);
     forcefloat = 0;
     forcedouble = 0;
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	if(con->nctype == NC_FLOAT) forcefloat = 1;
 	else if(con->nctype == NC_DOUBLE) {forcedouble=1; break;}
     }
@@ -868,10 +935,9 @@ inferattributetype1(Datasrc* src)
     /* At this point all the constants should be integers */
 
     /* Compute: are there any uint64 values > NC_MAX_INT64? */
-    srcreset(src);
     forceuint64 = 0;
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	if(con->nctype != NC_UINT64) continue;
 	if(con->value.uint64v > NC_MAX_INT64) {forceuint64=1; break;}
     }
@@ -879,10 +945,9 @@ inferattributetype1(Datasrc* src)
 	return NC_UINT64;
 
     /* Compute: are there any negative constants? */
-    srcreset(src);
     hasneg = 0;
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	switch (con->nctype) {
 	case NC_BYTE :   if(con->value.int8v < 0)   {hasneg = 1;} break;
 	case NC_SHORT:   if(con->value.int16v < 0)  {hasneg = 1;} break;
@@ -891,10 +956,9 @@ inferattributetype1(Datasrc* src)
     }
 
     /* Compute: inferred integer type */
-    srcreset(src);
     result = NC_NAT;
-    while(srcmore(src)) {
-	NCConstant* con = srcnext(src);
+    for(i=0;i<datalistlen(adata);i++) {
+	NCConstant* con = datalistith(adata,i);
 	result = infertype(result,con->nctype,hasneg);
 	if(result == NC_NAT) break; /* something wrong */
     }
@@ -905,7 +969,6 @@ static void
 inferattributetype(Symbol* asym)
 {
     Datalist* datalist;
-    Datasrc* src;
     nc_type nctype;
     ASSERT(asym->data != NULL);
     datalist = asym->data;
@@ -914,9 +977,7 @@ inferattributetype(Symbol* asym)
 	asym->typ.basetype = basetypefor(NC_CHAR);
 	return;
     }
-    src = datalist2src(datalist);
-    nctype = inferattributetype1(src);
-    freedatasrc(src);
+    nctype = inferattributetype1(datalist);
     if(nctype == NC_NAT) { /* Illegal attribute value list */
 	semerror(asym->lineno,"Non-simple list of values for untyped attribute: %s",fullname(asym));
 	return;
@@ -1119,7 +1180,7 @@ thisunlim->name,
             thisunlim->dim.declsize = unlimsize;
         /*!lastunlim => data is list of sublists, recurse on each sublist*/
 	for(i=0;i<data->length;i++) {
-	    NCConstant* con = data->data+i;
+	    NCConstant* con = data->data[i];
 	    if(con->nctype != NC_COMPOUND) {
 		semerror(con->lineno,"UNLIMITED dimension (other than first) must be enclosed in {}");
 	    }
@@ -1131,7 +1192,7 @@ thisunlim->name,
 	       compute total number of characters */
 	    length = 0;
 	    for(i=0;i<data->length;i++) {
-		NCConstant* con = &data->data[i];
+		NCConstant* con = data->data[i];
 		switch (con->nctype) {
 	        case NC_CHAR: case NC_BYTE: case NC_UBYTE:
 		    length++;
@@ -1189,7 +1250,7 @@ processunlimiteddims(void)
 	} else {
 	    int j;
 	    for(j=0;j<var->data->length;j++) {
-	        NCConstant* con = var->data->data+j;
+	        NCConstant* con = var->data->data[j];
 	        if(con->nctype != NC_COMPOUND)
 		    semerror(con->lineno,"UNLIMITED dimension (other than first) must be enclosed in {}");
 		else
@@ -1209,4 +1270,42 @@ processunlimiteddims(void)
 	            (unsigned long)dim->dim.declsize);
     }
 #endif
+}
+
+
+/* Rules for specifying the dataset name:
+	1. use -o name
+	2. use the datasetname from the .cdl file
+	3. use input cdl file name (with .cdl removed)
+	It would be better if there was some way
+	to specify the datasetname independently of the
+	file name, but oh well.
+*/
+static char*
+createfilename(void)
+{
+    char filename[4096];
+    filename[0] = '\0';
+    if(netcdf_name) { /* -o flag name */
+      strlcat(filename,netcdf_name,sizeof(filename));
+    } else { /* construct a usable output file name */
+	if (cdlname != NULL && strcmp(cdlname,"-") != 0) {/* cmd line name */
+	    char* p;
+	    strlcat(filename,cdlname,sizeof(filename));
+	    /* remove any suffix and prefix*/
+	    p = strrchr(filename,'.');
+	    if(p != NULL) {*p= '\0';}
+	    p = strrchr(filename,'/');
+	    if(p != NULL) {
+		char* q = filename;
+		p++; /* skip the '/' */
+		while((*q++ = *p++));
+	    }
+       } else {/* construct name from dataset name */
+	    strlcat(filename,datasetname,sizeof(filename));
+        }
+        /* Append the proper extension */
+	strlcat(filename,binary_ext,sizeof(filename));
+    }
+    return strdup(filename);
 }

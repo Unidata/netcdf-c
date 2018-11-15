@@ -21,7 +21,6 @@ static char* getFieldFQN(NCD4node* field, const char* tail);
 static int build(NCD4meta* builder, NCD4node* root);
 static int buildAtomicVar(NCD4meta* builder, NCD4node* var);
 static int buildAttributes(NCD4meta* builder, NCD4node* varorgroup);
-static int buildBytestringType(NCD4meta* builder);
 static int buildCompound(NCD4meta* builder, NCD4node* cmpdtype, NCD4node* group, char* name);
 static int buildDimension(NCD4meta* builder, NCD4node* dim);
 static int buildEnumeration(NCD4meta* builder, NCD4node* en);
@@ -34,21 +33,23 @@ static int buildStructure(NCD4meta* builder, NCD4node* structvar);
 static int buildStructureType(NCD4meta* builder, NCD4node* structtype);
 static int buildVariable(NCD4meta* builder, NCD4node* var);
 static int buildVlenType(NCD4meta* builder, NCD4node* seqtype);
-static int compileAttrValues(NCD4meta* builder, NCD4node* basetype, NClist* values, void** memoryp);
+static int compileAttrValues(NCD4meta* builder, NCD4node* attr, void** memoryp, NClist* blobs);
 static void computeOffsets(NCD4meta* builder, NCD4node* cmpd);
 static int convertString(union ATOMICS* converter, NCD4node* type, const char* s);
-static void* copyAtomic(union ATOMICS* converter, nc_type type, size_t len, void* dst);
+static void* copyAtomic(union ATOMICS* converter, nc_type type, size_t len, void* dst, NClist* blobs);
 static int decodeEconst(NCD4meta* builder, NCD4node* enumtype, const char* nameorval, union ATOMICS* converter);
 static int downConvert(union ATOMICS* converter, NCD4node* type);
 static void freeStringMemory(char** mem, int count);
 static size_t getDimrefs(NCD4node* var, int* dimids);
 static size_t getDimsizes(NCD4node* var, int* dimsizes);
-static void reclaimNode(NCD4node* node);
 static d4size_t getpadding(d4size_t offset, size_t alignment);
 static int markdapsize(NCD4meta* meta);
 static int markfixedsize(NCD4meta* meta);
 static void savegroupbyid(NCD4meta*,NCD4node* group);
 static void savevarbyid(NCD4node* group, NCD4node* var);
+#ifndef FIXEDOPAQUE
+static int buildBytestringType(NCD4meta* builder);
+#endif
 
 /***************************************************/
 /* API */
@@ -78,7 +79,7 @@ NCD4_metabuild(NCD4meta* metadata, int ncid)
     markfixedsize(metadata);
     markdapsize(metadata);
     /* Process the metadata state */
-    ret = build(metadata,metadata->root);
+    if((ret = build(metadata,metadata->root))) goto done;
     /* Done with the metadata*/
     if((ret=nc_enddef(metadata->ncid)))
 	goto done;
@@ -140,7 +141,7 @@ NCD4_reclaimMeta(NCD4meta* dataset)
     free(dataset);
 }
 
-static void
+void
 reclaimNode(NCD4node* node)
 {
     if(node == NULL) return;
@@ -160,6 +161,7 @@ reclaimNode(NCD4node* node)
     nullfree(node->group.datasetname);
     nclistfree(node->group.varbyid);
     nullfree(node->nc4.orig.name);
+    nullfree(node);
 }
 
 /**************************************************/
@@ -219,9 +221,11 @@ build(NCD4meta* builder, NCD4node* root)
     }
 
     /* Walk and define the opaques */
+#ifndef FIXEDOPAQUE
     /* If _bytestring was required by parser, then create it */
     if(builder->_bytestring != NULL && (ret = buildBytestringType(builder)))
 	goto done;
+#endif
     /* Create other opaque types */
     for(i=0;i<len;i++) {/* Walk in postfix order */
 	NCD4node* x = (NCD4node*)nclistget(builder->allnodes,i);
@@ -258,7 +262,9 @@ build(NCD4meta* builder, NCD4node* root)
     /* Finally, define the top-level variables */
     for(i=0;i<len;i++) {
 	NCD4node* x = (NCD4node*)nclistget(builder->allnodes,i);
-	if(ISVAR(x->sort) && ISTOPLEVEL(x)) buildVariable(builder,x);
+	if(ISVAR(x->sort) && ISTOPLEVEL(x)) {
+	    if((ret=buildVariable(builder,x))) goto done;
+	}
     }
 
 done:
@@ -335,6 +341,7 @@ done:
     return THROW(ret);
 }
 
+#ifndef FIXEDOPAQUE
 static int
 buildBytestringType(NCD4meta* builder)
 {
@@ -351,6 +358,7 @@ buildBytestringType(NCD4meta* builder)
 done:
     return THROW(ret);
 }
+#endif
 
 static int
 buildVariable(NCD4meta* builder, NCD4node* var)
@@ -416,6 +424,7 @@ static int
 buildAttributes(NCD4meta* builder, NCD4node* varorgroup)
 {
     int i,ret = NC_NOERR;
+    NClist* blobs = NULL;
 
     for(i=0;i<nclistlength(varorgroup->attributes);i++) {
 	NCD4node* attr = nclistget(varorgroup->attributes,i);
@@ -432,15 +441,18 @@ buildAttributes(NCD4meta* builder, NCD4node* varorgroup)
 	    varid = NC_GLOBAL;
 	else
 	    varid = varorgroup->meta.id;
-        if((ret=compileAttrValues(builder,attr->basetype,attr->attr.values,&memory))) {
-	        nullfree(memory);
-                FAIL(NC_ERANGE,"Malformed attribute value(s) for: %s",attr->name);
+	blobs = nclistnew();
+        if((ret=compileAttrValues(builder,attr,&memory,blobs))) {
+	    nullfree(memory);
+            FAIL(ret,"Malformed attribute value(s) for: %s",attr->name);
         }
 	group = NCD4_groupFor(varorgroup);
         NCCHECK((nc_put_att(group->meta.id,varid,attr->name,attr->basetype->meta.id,count,memory)));
+	nclistfreeall(blobs); blobs = NULL;
         nullfree(memory);
     }
 done:
+    nclistfreeall(blobs);
     return THROW(ret);
 }
 
@@ -665,6 +677,7 @@ getFieldFQN(NCD4node* field, const char* tail)
 	ncbytescat(fqn,escaped);
 	free(escaped);
     }
+    nclistfree(path);
     if(tail != NULL)
         ncbytescat(fqn,tail);
     result = ncbytesextract(fqn);
@@ -717,17 +730,35 @@ into a memory chunk capable of being passed
 to nc_put_att().
 */
 static int
-compileAttrValues(NCD4meta* builder, NCD4node* basetype, NClist* values, void** memoryp)
+compileAttrValues(NCD4meta* builder, NCD4node* attr, void** memoryp, NClist* blobs)
 {
     int i,ret = NC_NOERR;
-    int count = nclistlength(values);
     unsigned char* memory = NULL;
     unsigned char* p;
     size_t size;
     NCD4node* truebase = NULL;
     union ATOMICS converter;
     int isenum = 0;
+    NCD4node* container = attr->container;
+    NCD4node* basetype = attr->basetype;
+    NClist* values = attr->attr.values;
+    int count = nclistlength(values);
 
+    memset((void*)&converter,0,sizeof(converter));
+
+    /* Deal with _FillValue */
+    if(container->sort == NCD4_VAR && strcmp(attr->name,"_FillValue")==0) {
+	/* Verify or fix or fail on type match */
+	if(container->basetype != basetype) {
+	    /* _FillValue/Variable type mismatch */
+	    if(FLAGSET(builder->controller->controls.flags,NCF_FILLMISMATCH)) {
+		/* Force type match */
+		basetype = (attr->basetype = container->basetype);
+	    } else {/* Fail */
+	        FAIL(NC_EBADTYPE,"_FillValue/Variable type mismatch: %s:%s",container->name,attr->name);		
+	    }
+	}
+    }
     isenum = (basetype->subsort == NC_ENUM);
     truebase = (isenum ? basetype->basetype : basetype);
     if(!ISTYPE(truebase->sort) || (truebase->meta.id > NC_MAX_ATOMIC_TYPE))
@@ -746,7 +777,7 @@ compileAttrValues(NCD4meta* builder, NCD4node* basetype, NClist* values, void** 
             FAIL(NC_EBADTYPE,"Illegal attribute type: ",basetype->name);
         }
         ret = downConvert(&converter,truebase);
-        p = copyAtomic(&converter,truebase->meta.id,NCD4_typesize(truebase->meta.id),p);
+        p = copyAtomic(&converter,truebase->meta.id,NCD4_typesize(truebase->meta.id),p,blobs);
     }
     if(memoryp) *memoryp = memory;
 done:
@@ -754,7 +785,7 @@ done:
 }
 
 static void*
-copyAtomic(union ATOMICS* converter, nc_type type, size_t len, void* dst)
+copyAtomic(union ATOMICS* converter, nc_type type, size_t len, void* dst, NClist* blobs)
 {
     switch (type) {
     case NC_CHAR: case NC_BYTE: case NC_UBYTE:
@@ -770,8 +801,10 @@ copyAtomic(union ATOMICS* converter, nc_type type, size_t len, void* dst)
     case NC_DOUBLE:
         memcpy(dst,&converter->f64[0],len); break;
     case NC_STRING:
-        memcpy(dst,&converter->s[0],len); break;
+        memcpy(dst,&converter->s[0],len);
+	nclistpush(blobs,converter->s[0]);
         converter->s[0] = NULL; /* avoid duplicate free */
+	break;
     }/*switch*/
     return (((char*)dst)+len);
 }

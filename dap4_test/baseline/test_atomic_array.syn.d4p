@@ -26,7 +26,6 @@
       <EnumConst name="Cirrus" value="10"/>
       <EnumConst name="Missing" value="127"/>
     </Enumeration>
-    <Opaque name="_bytestring"/>
   </Types>
   <Variables>
     <UInt8 name="vu8">
@@ -50,7 +49,7 @@
       <Dim name="/d2"/>
       <Dim name="/d2"/>
     </String>
-    <Opaque name="vo" type="/_bytestring">
+    <Opaque name="vo" type="/opaque16_t">
       <Dim name="/d1"/>
       <Dim name="/d2"/>
     </Opaque>

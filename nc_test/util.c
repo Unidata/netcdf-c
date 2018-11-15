@@ -927,14 +927,8 @@ write_file(char *filename)
 	error("nc_enddef: %s", nc_strerror(err));
 
 #ifdef USE_PNETCDF
-    { int i,format;
-    nc_inq_format_extended(ncid, &format, NULL);
-    if (format == NC_FORMATX_PNETCDF) {
-        for (i = 0; i < numVars; i++) {
-            err = nc_var_par_access(ncid, i, NC_COLLECTIVE);
-	    IF (err) error("nc_var_par_access: %s", nc_strerror(err));
-        }
-    }}
+    err = nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE);
+    IF (err) error("nc_var_par_access: %s", nc_strerror(err));
 #endif
 
     put_vars(ncid);
@@ -1160,7 +1154,7 @@ int file_create(const char *filename, int cmode, int *ncid)
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET ||
         default_format == NC_FORMAT_64BIT_DATA)
-        err = nc_create_par(filename, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
         err = nc_create(filename, cmode, ncid);
@@ -1186,7 +1180,7 @@ int file__create(const char *filename,
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET ||
         default_format == NC_FORMAT_64BIT_DATA)
-        err = nc_create_par(filename, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
         err = nc__create(filename, cmode, initialsz, bufrsizehintp, ncid);
@@ -1208,7 +1202,7 @@ int file_open(const char *filename, int omode, int *ncid)
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET ||
         default_format == NC_FORMAT_64BIT_DATA)
-        err = nc_open_par(filename, omode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        err = nc_open_par(filename, omode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
         err = nc_open(filename, omode, ncid);
@@ -1284,6 +1278,8 @@ char* nc_err_code_name(int err)
         case (NC_EAUTH):			return "NC_EAUTH";
         case (NC_ENOTFOUND):			return "NC_ENOTFOUND";
         case (NC_ECANTREMOVE):			return "NC_ECANTREMOVE";
+        case (NC_EINTERNAL):			return "NC_EINTERNAL";
+        case (NC_EPNETCDF):			return "NC_EPNETCDF";
         case (NC_EHDFERR):			return "NC_EHDFERR";
         case (NC_ECANTREAD):			return "NC_ECANTREAD";
         case (NC_ECANTWRITE):			return "NC_ECANTWRITE";
@@ -1315,8 +1311,9 @@ char* nc_err_code_name(int err)
         case (NC_EDISKLESS):			return "NC_EDISKLESS";
         case (NC_ECANTEXTEND):			return "NC_ECANTEXTEND";
         case (NC_EMPI):				return "NC_EMPI";
-    case (NC_ENULLPAD):             return "NC_NULLPAD";
-          // case (NC_EURL):				return "NC_EURL";
+        case (NC_ENULLPAD):			return "NC_NULLPAD";
+        case (NC_EINMEMORY):			return "NC_EINMEMORY";
+        // case (NC_EURL):				return "NC_EURL";
         // case (NC_ECONSTRAINT):			return "NC_ECONSTRAINT";
 #ifdef USE_PNETCDF
         case (NC_ESMALL):			return "NC_ESMALL";
@@ -1404,6 +1401,13 @@ char* nc_err_code_name(int err)
 int
 test_nc_against_pnetcdf(void)
 {
+    int format;
+
+    nc_set_default_format(NC_FORMAT_CLASSIC, &format);
+    nc_set_default_format(format, NULL); /* restore default */
+    if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_NETCDF4_CLASSIC)
+        return 1; /* skip test for netcdf4 formats */
+
 #ifdef USE_PNETCDF
     int  ncid; /* netCDF id */
     int  err;  /* status */
@@ -1421,7 +1425,7 @@ test_nc_against_pnetcdf(void)
     IF (err != NC_NOERR) error("nc_close: %s", nc_strerror(err));
 
     /* Using PnetCDF library to check file */
-    err = nc_open_par(scratch, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+    err = nc_open_par(scratch, NC_NOWRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
     IF (err != NC_NOERR) error("nc_open_par: %s", nc_strerror(err));
     check_dims(ncid);
     check_vars(ncid);
@@ -1430,7 +1434,7 @@ test_nc_against_pnetcdf(void)
     IF (err != NC_NOERR) error("nc_close: %s", nc_strerror(err));
 
     /* Using PnetCDF library to create file */
-    err = nc_create_par(scratch, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+    err = nc_create_par(scratch, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
     IF (err != NC_NOERR) error("nc_create_par: %s", nc_strerror(err));
     def_dims(ncid);
     def_vars(ncid);

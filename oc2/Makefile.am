@@ -18,7 +18,6 @@ ocdata.c ocdebug.c ocdump.c  \
 ocinternal.c ocnode.c \
 ochttp.c \
 ocread.c ocutil.c \
-occurlflags.c \
 xxdr.c
 
 HDRS=oc.h ocx.h \
