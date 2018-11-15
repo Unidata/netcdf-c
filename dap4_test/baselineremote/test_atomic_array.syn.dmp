@@ -1,8 +1,8 @@
 netcdf test_atomic_array {
 types:
-  byte enum cloud_class_t {Clear = 0, Cumulonimbus = 1, Stratus = 2, 
-      Stratocumulus = 3, Cumulus = 4, Altostratus = 5, Nimbostratus = 6, 
-      Altocumulus = 7, Cirrostratus = 8, Cirrocumulus = 9, Cirrus = 10, 
+  byte enum cloud_class_t {Clear = 0, Cumulonimbus = 1, Stratus = 2,
+      Stratocumulus = 3, Cumulus = 4, Altostratus = 5, Nimbostratus = 6,
+      Altocumulus = 7, Cirrostratus = 8, Cirrocumulus = 9, Cirrus = 10,
       Missing = 127} ;
   opaque(16) opaque16_t ;
 dimensions:
@@ -47,7 +47,8 @@ data:
  vo =
   0XA2177AA7287C04FA8BB57BCDF76EC80F, 0X34FA472AA9404DD543143CADED303A75 ;
 
- primary_cloud = Stratus, Cirrocumulus, Nimbostratus, Cirrostratus, 
+
+ primary_cloud = Stratus, Cirrocumulus, Nimbostratus, Cirrostratus,
     Stratocumulus ;
-    
+
 }
