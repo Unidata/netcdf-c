@@ -199,16 +199,16 @@ typedef struct NCDODS {
     char* dimname;
 } NCDODS;
 
-typedef struct NCalignment {
+typedef struct NCD2alignment {
     unsigned long    size; /* size of single instance of this type*/
     unsigned long    alignment; /* alignment of this field */
     unsigned long    offset;    /* offset of this field in parent */
-} NCalignment;
+} NCD2alignment;
 
 typedef struct NCtypesize {
     BOOL             aligned; /*  have instance and field been defined? */
-    NCalignment      instance; /* Alignment, etc for instance data */
-    NCalignment      field; /* Alignment, etc WRT to parent */
+    NCD2alignment      instance; /* Alignment, etc for instance data */
+    NCD2alignment      field; /* Alignment, etc WRT to parent */
 } NCtypesize;
 
 /* Closely mimics struct OCnode*/

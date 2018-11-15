@@ -8,12 +8,12 @@
 - \subpage netcdf_data_set_components
 - \subpage netcdf_perf_chunking
 - \subpage netcdf_utilities_guide
-- \subpage dap2
-- \subpage dap4
 - \subpage compress
 - \subpage BestPractices
 - \subpage user_defined_formats
 - \subpage users_guide_appendices
+- \subpage dap2
+- \subpage dap4
 
 <H2>The Purpose of NetCDF</H2>
 

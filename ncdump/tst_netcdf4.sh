@@ -71,10 +71,12 @@ ${execdir}/tst_opaque_data ; ERR
 ${NCDUMP} tst_opaque_data.nc | sed 's/e+0/e+/g' > tst_opaque_data.cdl ; ERR
 diff -b tst_opaque_data.cdl $srcdir/ref_tst_opaque_data.cdl ; ERR
 
+if test "x$NC_VLEN_NOTEST" = x ; then
 echo "*** Running tst_vlen_data.c to create test files."
 ${execdir}/tst_vlen_data ; ERR
 ${NCDUMP} tst_vlen_data.nc | sed 's/e+0/e+/g' > tst_vlen_data.cdl ; ERR
 diff -b tst_vlen_data.cdl $srcdir/ref_tst_vlen_data.cdl ; ERR
+fi
 
 echo "*** Running tst_comp.c to create test files."
 ${execdir}/tst_comp ; ERR

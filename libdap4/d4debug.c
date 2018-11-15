@@ -8,6 +8,7 @@
 
 #include "d4includes.h"
 #include "ncdispatch.h"
+#include "netcdf_aux.h"
 
 int ncdap4debug = 0;
 
@@ -110,8 +111,10 @@ NCD4_debugcopy(NCD4INFO* info)
 	int varid = var->meta.id;
 	d4size_t varsize;
 	void* memory = NULL;
+	size_t dimprod = NCD4_dimproduct(var);
+	int ncid = info->substrate.nc4id;
 
-	varsize = type->meta.memsize * NCD4_dimproduct(var);
+	varsize = type->meta.memsize * dimprod;
 	memory = d4alloc(varsize);
         if(memory == NULL)
 	    {ret = NC_ENOMEM; goto done;}		
@@ -138,8 +141,14 @@ NCD4_debugcopy(NCD4INFO* info)
             if((ret=nc_put_vara(grpid,varid,nc_sizevector0,edges,memory)))
 	        goto done;
 	}
+	if((ret=ncaux_reclaim_data(ncid,type->meta.id,memory,dimprod)))
+	    goto done;
+	free(memory);
+	memory = NULL;
     }	    
 done:
+    if(topvars)
+        nclistfree(topvars);
     if(ret != NC_NOERR) {
         fprintf(stderr,"debugcopy: %d %s\n",ret,nc_strerror(ret));
     }

@@ -48,6 +48,7 @@ int optind;
 #include "cdl.h"
 #include "nclog.h"
 #include "ncwinpath.h"
+#include "netcdf_aux.h"
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h" /* to get name of the special properties file */
@@ -1494,9 +1495,13 @@ get_fill_info(int ncid, int varid, ncvar_t *vp)
 	case NC_STRING: {
 	    char* s;
 	    size_t len = strlen(NC_FILL_STRING);
+#if 0
 	    /* In order to avoid mem leak, allocate this string as part of fillvalp */
             fillvalp = erealloc(fillvalp, vp->tinfo->size + 1 + len + 1);
 	    s = ((char*)fillvalp) + vp->tinfo->size + 1;
+#else
+	    s = malloc(len+1);
+#endif
 	    memcpy(s,NC_FILL_STRING,len);
 	    s[len] = '\0';
 	    *((char **)fillvalp) = s;
@@ -1689,9 +1694,9 @@ do_ncdump_rec(int ncid, const char *path)
     * to know how to print strings with embedded newlines. */
    NC_CHECK( nc_inq_format(ncid, &kind) );
 
-   /* For each var, get and print out info. */
-
    memset((void*)&var,0,sizeof(var));
+
+   /* For each var, get and print out info. */
 
    for (varid = 0; varid < nvars; varid++) {
       NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
@@ -1848,7 +1853,6 @@ do_ncdump_rec(int ncid, const char *path)
 	     vdims = 0;
 	     continue;
 	 }
-	 if(var.fillvalp != NULL) free(var.fillvalp);
 	 get_fill_info(ncid, varid, &var); /* sets has_fillval, fillvalp mmbrs */
 	 if(var.timeinfo != NULL) {
 	     if(var.timeinfo->units) free(var.timeinfo->units);
@@ -1863,6 +1867,8 @@ do_ncdump_rec(int ncid, const char *path)
 	    error("can't output data for variable %s", var.name);
 	    goto done;
 	 }
+	 if(var.fillvalp != NULL)
+	     {ncaux_reclaim_data(ncid,var.tinfo->tid,var.fillvalp,1); free(var.fillvalp); var.fillvalp = NULL;}
       }
       if (vdims) {
 	  free(vdims);
@@ -1913,7 +1919,12 @@ do_ncdump_rec(int ncid, const char *path)
 
 done:
    if(var.dims != NULL) free(var.dims);
-   if(var.fillvalp != NULL) free(var.fillvalp);
+   if(var.fillvalp != NULL) {
+	/* Release any data hanging off of fillvalp */
+	ncaux_reclaim_data(ncid,var.tinfo->tid,var.fillvalp,1);
+	free(var.fillvalp);
+	var.fillvalp = NULL;
+   }
    if(var.timeinfo != NULL) {
       if(var.timeinfo->units) free(var.timeinfo->units);
       free(var.timeinfo);
