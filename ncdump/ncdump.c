@@ -836,7 +836,7 @@ pr_att(
        size_t type_size, nfields;
        nc_type base_nc_type;
        int class, i;
-       void *data;
+       void *data = NULL;
 
        NC_CHECK( nc_inq_user_type(ncid, att.type,  type_name, &type_size,
 				  &base_nc_type, &nfields, &class));
