@@ -910,8 +910,6 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
  * @param parent parent type
  * @param name Name of the field.
  * @param offset Offset in bytes.
- * @param field_hdf_typeid The HDF5 type ID of the field.
- * @param native_typeid The HDF5 native type ID of the field.
  * @param xtype The netCDF type of the field.
  * @param ndims The number of dimensions of the field.
  * @param dim_sizesp An array of dim sizes for the field.
@@ -921,8 +919,8 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
  */
 int
 nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
-                   size_t offset, hid_t field_hdf_typeid, hid_t native_typeid,
-                   nc_type xtype, int ndims, const int *dim_sizesp)
+                   size_t offset, nc_type xtype, int ndims,
+                   const int *dim_sizesp)
 {
    NC_FIELD_INFO_T *field;
 

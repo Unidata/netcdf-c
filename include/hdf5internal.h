@@ -89,21 +89,36 @@ typedef struct NC_HDF5_FIELD_INFO
    hid_t native_hdf_typeid;
 } NC_HDF5_FIELD_INFO_T;
 
-/* These functions do HDF5 things. */
+/* Logging and debugging. */
+void reportopenobjects(int log, hid_t);
+int hdf5_set_log_level();
+
+/* These functions deal with HDF5 dimension scales. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
-void reportopenobjects(int log, hid_t);
-int nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp);
-int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
 int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
+
+/* Write metadata. */
 int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
 int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
-int nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5);
+
+/* Adjust the cache. */
 int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
+
+/* Open a HDF5 dataset. */
+int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
+
+/* Find types. */
 NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_FILE_INFO_T* h5,
                                       hid_t target_hdf_typeid);
+int nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
+		       hid_t *hdf_typeid, int endianness);
+
+/* Enddef and closing files. */
 int nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
+int nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp);
+int nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5);
 
 /* Break & reform coordinate variables */
 int nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim);
@@ -115,7 +130,6 @@ extern void NC4_image_finalize(void*);
 
 /* These functions are internal to the libhdf5 directory. */
 int nc4_detect_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
-int hdf5_set_log_level();
 int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
 
 #endif /* _HDF5INTERNAL_ */
