@@ -53,6 +53,6 @@ typedef struct NCtypealignset {
 
 size_t NC_class_alignment(int ncclass);
 void NC_compute_alignments(void);
-int NC_alignments_computed;
+EXTERNL int NC_alignments_computed;
 
 #endif /*NCOFFSETS_H*/
