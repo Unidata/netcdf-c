@@ -17,6 +17,7 @@ extern int NC3_finalize(void);
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h"
+#include "hdf5internal.h"
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
 #endif

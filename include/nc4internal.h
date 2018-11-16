@@ -502,35 +502,4 @@ struct NCPROVENANCE {
 /* Provenance Initialization */
 extern struct NCPROPINFO globalpropinfo;
 
-/* Initialize the fileinfo global state */
-extern int NC4_provenance_init();
-
-/* Finalize the fileinfo global state */
-extern int NC4_provenance_finalize();
-
-/* Write the properties attribute to file. */
-extern int NC4_put_ncproperties(NC_FILE_INFO_T* file);
-
-/* Extract the provenance from a file, using dfalt as default */
-extern int NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NCPROPINFO* dfalt);
-
-/* Set the provenance for a created file using dfalt as default */
-extern int NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt);
-
-/* Recover memory of an NCPROVENANCE object */
-extern int NC4_free_provenance(struct NCPROVENANCE* prov);
-
-extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
-extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
-extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
-
-/* Convert a NCPROPINFO instance to a single string. */
-extern int NC4_buildpropinfo(struct NCPROPINFO* info, char** propdatap);
-
-/* Use HDF5 API to read the _NCProperties attribute */
-extern int NC4_read_ncproperties(NC_FILE_INFO_T*);
-
-/* Use HDF5 API to write the _NCProperties attribute */
-extern int NC4_write_ncproperties(NC_FILE_INFO_T*);
-
 #endif /* _NC4INTERNAL_ */
