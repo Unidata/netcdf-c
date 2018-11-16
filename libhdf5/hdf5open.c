@@ -1403,9 +1403,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                break;
 
             /* Add this member to our list of fields in this compound type. */
-            if ((retval = nc4_field_list_add(type, member_name,
-                                             member_offset, H5Tget_super(member_hdf_typeid),
-                                             H5Tget_super(member_native_typeid),
+            if ((retval = nc4_field_list_add(type, member_name, member_offset,
                                              member_xtype, ndims, dim_size)))
                break;
          }
@@ -1417,8 +1415,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                break;
 
             /* Add this member to our list of fields in this compound type. */
-            if ((retval = nc4_field_list_add(type, member_name,
-                                             member_offset, member_hdf_typeid, member_native_typeid,
+            if ((retval = nc4_field_list_add(type, member_name, member_offset,
                                              member_xtype, 0, NULL)))
                break;
          }

@@ -192,35 +192,17 @@ typedef struct NC_ENUM_MEMBER_INFO
 
 typedef struct NC_TYPE_INFO
 {
-   NC_OBJ hdr; /* contains netCDF type ID, equivalent to a pre-defined type
-                                 * for atomic types, but a dynamically
-                                 * defined value for user-defined types (stored
-                                 * as named datatypes in the HDF5 file).
-                                 */
-
-   struct NC_GRP_INFO* container; /* Containing group */
+   NC_OBJ hdr;                  /* NetCDF type ID. */
+   struct NC_GRP_INFO *container; /* Containing group */
    unsigned rc;                 /* Ref. count of objects using this type */
    hid_t hdf_typeid;            /* HDF5 type ID, in the file */
    hid_t native_hdf_typeid;     /* HDF5 type ID, in memory */
    int endianness;              /* What endianness for the type? */
-                                /* (Set for integer types as well as "complex"
-                                 *  types, like compound/enum/vlen, used for the
-                                 *  endianness of the fields and/or base type)
-                                 */
    size_t size;                 /* Size of the type in memory, in bytes */
    nc_bool_t committed;         /* True when datatype is committed in the file */
-   nc_type nc_type_class;       /* NC_VLEN, NC_COMPOUND, NC_OPAQUE, or NC_ENUM
-                                 * NOTE: NC_INT is used for all integer types,
-                                 *      NC_FLOAT is used for all floating-point
-                                 *      types, and NC_STRING is also used for
-                                 *      fixed- and variable-length strings.
-                                 *      (NC_CHAR is used for characters though)
-                                 *
-                                 *      This is somewhat redundant with the
-                                 *      nc_type field, but allows the code to
-                                 *      have a single location to look at for
-                                 *      the "kind" of a type.
-                                 */
+   nc_type nc_type_class;       /* NC_VLEN, NC_COMPOUND, NC_OPAQUE,
+                                 * NC_ENUM, NC_INT, NC_FLOAT, or
+                                 * NC_STRING. */
 
    /* Information for each type or class */
    union {
@@ -316,7 +298,6 @@ int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		     const void *fill_value, int strict_nc3);
 
 /* These functions do HDF5 things. */
-/* int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp); */
 int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 int nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
@@ -339,8 +320,6 @@ int nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
                         NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
 int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name,
                      int attnum, NC_ATT_INFO_T **att);
-int nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
-		       hid_t *hdf_typeid, int endianness);
 int nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype,
                       int *type_class);
 
@@ -361,8 +340,8 @@ int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name, NC_TYPE
 int nc4_type_list_del(NC_GRP_INFO_T* grp, NC_TYPE_INFO_T *type);
 int nc4_type_free(NC_TYPE_INFO_T *type);
 int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
-		       size_t offset, hid_t field_hdf_typeid, hid_t native_typeid,
-		       nc_type xtype, int ndims, const int *dim_sizesp);
+		       size_t offset, nc_type xtype, int ndims,
+                       const int *dim_sizesp);
 int nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att);
 int nc4_att_list_del(NCindex* list, NC_ATT_INFO_T *att);
 int nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name, NC_GRP_INFO_T **grp);
