@@ -837,7 +837,7 @@ nc4_type_new(size_t size, const char *name, int assignedid,
 {
    NC_TYPE_INFO_T *new_type;
 
-   LOG(("%s: size %d name %s assignedid %d", __func__, size, name, assignedid));
+   LOG((4, "%s: size %d name %s assignedid %d", __func__, size, name, assignedid));
 
    /* Check inputs. */
    assert(type);
@@ -884,7 +884,8 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
    int retval;
 
    /* Check inputs. */
-   assert(type);
+   assert(grp && name && type);
+   LOG((4, "%s: size %d name %s", __func__, size, name));
 
    /* Create the new TYPE_INFO struct. */
    if ((retval = nc4_type_new(size, name, grp->nc4_info->next_typeid,
