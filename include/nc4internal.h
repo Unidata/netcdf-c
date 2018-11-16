@@ -329,26 +329,32 @@ int nc4_type_free(NC_TYPE_INFO_T *type);
 /* These list functions add and delete vars, atts. */
 int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
 void nc4_file_list_del(NC *nc);
-int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims, NC_VAR_INFO_T **var);
-int nc4_var_list_add2(NC_GRP_INFO_T* grp, const char* name, NC_VAR_INFO_T **var);
+int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims,
+                     NC_VAR_INFO_T **var);
+int nc4_var_list_add2(NC_GRP_INFO_T* grp, const char* name,
+                      NC_VAR_INFO_T **var);
 int nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims);
-int nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var);
-int nc4_dim_list_add(NC_GRP_INFO_T* grp, const char* name, size_t len, int assignedid, NC_DIM_INFO_T **dim);
-int nc4_dim_list_del(NC_GRP_INFO_T* grp, NC_DIM_INFO_T *dim);
-int nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid, NC_TYPE_INFO_T **type);
-int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name, NC_TYPE_INFO_T **type);
-int nc4_type_list_del(NC_GRP_INFO_T* grp, NC_TYPE_INFO_T *type);
+int nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+int nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
+                     int assignedid, NC_DIM_INFO_T **dim);
+int nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim);
+int nc4_type_new(size_t size, const char *name, int assignedid,
+                 NC_TYPE_INFO_T **type);
+int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
+                      NC_TYPE_INFO_T **type);
+int nc4_type_list_del(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type);
 int nc4_type_free(NC_TYPE_INFO_T *type);
 int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
 		       size_t offset, nc_type xtype, int ndims,
                        const int *dim_sizesp);
-int nc4_att_list_add(NCindex* list, const char* name, NC_ATT_INFO_T **att);
-int nc4_att_list_del(NCindex* list, NC_ATT_INFO_T *att);
-int nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name, NC_GRP_INFO_T **grp);
-int nc4_build_root_grp(NC_FILE_INFO_T* h5);
+int nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att);
+int nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att);
+int nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name,
+                     NC_GRP_INFO_T **grp);
+int nc4_build_root_grp(NC_FILE_INFO_T *h5);
 int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
-int nc4_enum_member_add(NC_TYPE_INFO_T *type, size_t size,
-			const char *name, const void *value);
+int nc4_enum_member_add(NC_TYPE_INFO_T *type, size_t size, const char *name,
+                        const void *value);
 
 /* Check and normalize names. */
 int NC_check_name(const char *name);
