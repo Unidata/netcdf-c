@@ -3208,7 +3208,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
  * @param len Pointer that gets length in bytes.
  *
  * @returns NC_NOERR No error.
- * @returns NC_EBADTYPE Type not found
+ * @returns NC_EBADTYPE Type not found.
  * @author Ed Hartnett
  */
 int
