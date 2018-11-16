@@ -822,7 +822,6 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
  * @internal Create a type, but do not add to various lists nor
  * increment its ref count
  *
- * @param grp Pointer to group info struct.
  * @param size Size of type in bytes.
  * @param name Name of type.
  * @param assignedid if >= 0 then override the default type id.
@@ -833,10 +832,12 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
  * @author Ed Hartnett, Ward Fisher
  */
 int
-nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid,
+nc4_type_new(size_t size, const char *name, int assignedid,
              NC_TYPE_INFO_T **type)
 {
    NC_TYPE_INFO_T *new_type;
+
+   LOG(("%s: size %d name %s assignedid %d", __func__, size, name, assignedid));
 
    /* Check inputs. */
    assert(type);
@@ -886,7 +887,7 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
    assert(type);
 
    /* Create the new TYPE_INFO struct. */
-   if ((retval = nc4_type_new(grp, size, name, grp->nc4_info->next_typeid,
+   if ((retval = nc4_type_new(size, name, grp->nc4_info->next_typeid,
                               &new_type)))
       return retval;
    grp->nc4_info->next_typeid++;

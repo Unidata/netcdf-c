@@ -344,7 +344,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          BAIL(retval);
 
       /* Create new NC_TYPE_INFO_T struct for this atomic type. */
-      if ((retval = nc4_type_new(grp, len, nc4_atomic_name[xtype], xtype,
+      if ((retval = nc4_type_new(len, nc4_atomic_name[xtype], xtype,
                                  &type_info)))
          BAIL(retval);
       type_info->endianness = NC_ENDIAN_NATIVE;
@@ -357,9 +357,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       if ((type_info->native_hdf_typeid = H5Tget_native_type(type_info->hdf_typeid,
                                                              H5T_DIR_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
-
-      /* if ((retval = nc4_get_typelen_mem(h5, type_info->hdr.id, &type_info->size))) */
-      /*    BAIL(retval); */
 
       /* Set the "class" of the type */
       if (xtype == NC_CHAR)
@@ -389,9 +386,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          }
       }
    }
-   /* If this is a user defined type, find it. */
    else
    {
+      /* If this is a user defined type, find it. */
       if (nc4_find_type(grp->nc4_info, xtype, &type_info))
          BAIL(NC_EBADTYPE);
    }
