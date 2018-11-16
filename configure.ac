@@ -13,7 +13,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.6.3-development], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.6.3-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -994,6 +994,8 @@ if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
    AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
      AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
      DAP clients with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
+   AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
+   AC_SEARCH_LIBS([dlopen], [dl dld], [], [])
 fi
 
 # We need the math library
@@ -1050,17 +1052,14 @@ if test "x$enable_netcdf_4" = xyes; then
       fi
    fi
 
-
-
    # The user may have built HDF5 with the SZLIB library.
+   AC_MSG_CHECKING([whether szlib was used when building HDF5])
    enable_szlib=no
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
-    enable_szlib=yes
-    AC_SEARCH_LIBS([ SZ_Compress], [szip sz], [], [])
-  	AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
+      enable_szlib=yes
+      AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
-
-
+   AC_MSG_RESULT([$enable_szlib])
 
    if test "x$ac_cv_func_H5free_memory" = xyes; then
       AC_DEFINE([HDF5_HAS_H5FREE], [1], [if true, H5free_memory() will be used to free hdf5-allocated memory in nc4file.])
@@ -1095,13 +1094,11 @@ fi
 
 # Should we provide parallel io for netcdf-4?
 if test "x$enable_netcdf_4" = xyes ; then
-   AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
    AC_ARG_ENABLE([parallel4],
 	[AS_HELP_STRING([--disable-parallel4],
                         [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5])],
 			[user_set_parallel4=${enableval}])
    test "x$enable_parallel4" = xno || enable_parallel4=yes
-   AC_MSG_RESULT($enable_parallel4)
 
    # If user wants parallel IO for netCDF-4, make sure HDF5 can provide it.
    if test "x$enable_parallel4" = xyes; then
@@ -1118,6 +1115,8 @@ if test "x$enable_netcdf_4" = xyes ; then
 else
    enable_parallel4=no
 fi
+AC_MSG_CHECKING([whether parallel I/O is enabled for netcdf-4])
+AC_MSG_RESULT($enable_parallel4)
 
 # We have already tested for parallel io in netcdf4
 # parallel I/O for CDF-1, 2, and 5 files can also be done through PnetCDF
