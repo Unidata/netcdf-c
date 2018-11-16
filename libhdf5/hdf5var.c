@@ -306,7 +306,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       BAIL(NC_EMAXDIMS);
 
    /* cast needed for braindead systems with signed size_t */
-   if((unsigned long) ndims > X_INT_MAX) /* Backward compat */
+   if ((unsigned long) ndims > X_INT_MAX) /* Backward compat */
       BAIL(NC_EINVAL);
 
    /* Check that this name is not in use as a var, grp, or type. */
@@ -338,23 +338,28 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    if (xtype <= NC_STRING)
    {
       size_t len;
-      char name[NC_MAX_NAME+1];
-      char* atomname = nc4_atomic_name[xtype];
-      size_t namelen = strlen(atomname);
-      memcpy(name,atomname,namelen);
-      name[namelen] = '\0';
-      nc4_get_typelen_mem(h5,xtype,&len);
-      if((retval = nc4_type_new(grp,len,name,xtype,&type_info)))
+
+      /* Get type length. */
+      if ((retval = nc4_get_typelen_mem(h5, xtype, &len)))
+         BAIL(retval);
+
+      /* Create new NC_TYPE_INFO_T struct for this atomic type. */
+      if ((retval = nc4_type_new(grp, len, nc4_atomic_name[xtype], xtype,
+                                 &type_info)))
          BAIL(retval);
       type_info->endianness = NC_ENDIAN_NATIVE;
+      type_info->size = len;
+
+      /* Get HDF5 typeids. */
       if ((retval = nc4_get_hdf_typeid(h5, xtype, &type_info->hdf_typeid,
                                        type_info->endianness)))
          BAIL(retval);
       if ((type_info->native_hdf_typeid = H5Tget_native_type(type_info->hdf_typeid,
                                                              H5T_DIR_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
-      if ((retval = nc4_get_typelen_mem(h5, type_info->hdr.id, &type_info->size)))
-         BAIL(retval);
+
+      /* if ((retval = nc4_get_typelen_mem(h5, type_info->hdr.id, &type_info->size))) */
+      /*    BAIL(retval); */
 
       /* Set the "class" of the type */
       if (xtype == NC_CHAR)
