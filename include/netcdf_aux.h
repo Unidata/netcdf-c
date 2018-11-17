@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 
+/**************************************************/
 /**
 Reclaim the output tree of data from a call
 to e.g. nc_get_vara or the input to e.g. nc_put_vara.
@@ -31,6 +32,7 @@ Should work for any netcdf format.
 
 EXTERNL int ncaux_reclaim_data(int ncid, int xtype, void* memory, size_t count);
 
+/**************************************************/
 
 EXTERNL int ncaux_begin_compound(int ncid, const char *name, int alignmode, void** tag);
 
@@ -52,4 +54,3 @@ EXTERNL size_t ncaux_class_alignment(int ncclass);
 #endif
 
 #endif /*NCAUX_H*/
-
