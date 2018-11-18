@@ -85,4 +85,11 @@ typedef unsigned short ushort;
 typedef unsigned int uint;
 #endif
 
+/* Optionally turn on Visual Studio memory checking */
+#ifdef VS_MEMCHECK
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+
+
 #endif /* NCCONFIGURE_H */

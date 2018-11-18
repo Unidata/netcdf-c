@@ -92,6 +92,10 @@ nc_initialize()
     stat = NC4_provenance_init();
 #endif /* USE_NETCDF4 */
 
+#ifdef VS_MEMCHECK
+    _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF ); 
+#endif
+
 done:
     return stat;
 }

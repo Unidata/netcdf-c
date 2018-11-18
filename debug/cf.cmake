@@ -5,6 +5,7 @@ NC4=1
 DAP=1
 #CDF5=1
 #HDF4=1
+MEM=1
 
 export SETX=1
 
@@ -33,6 +34,10 @@ if test "x$VSSETUP" = x1 ; then
 CFG="Debug"
 else
 CFG="Release"
+fi
+
+if test "x$MEM" = x1 ; then
+CFG="Debug"
 fi
 
 if test "x$VS" != x -a "x$INSTALL" != x ; then
