@@ -75,8 +75,7 @@ ok=1;
 if diff -b tst_ncf213.tmp ref_tst_ncf213.tmp ; then ok=1; else ok=0; fi
 
 # cleanup
-#rm -f tst_ncf213.cdl tst_ncf213.nc
-rm -f *.tmp
+rm -f tst_ncf213.cdl tst_ncf213.nc tst_ncf213.tmp ref_tst_ncf213.tmp
 
 if test $ok = 0 ; then
   echo "*** FAIL: NCF-213 Bug Fix test"
