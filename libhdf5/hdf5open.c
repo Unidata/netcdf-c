@@ -1278,8 +1278,8 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
    H5T_class_t class;
    hid_t native_typeid;
    size_t type_size;
-   int retval = NC_NOERR;
    int nmembers;
+   int retval;
 
    assert(grp && type_name);
 
@@ -1373,50 +1373,43 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             hsize_t dims[NC_MAX_VAR_DIMS];
             int d;
 
-            if ((ndims = H5Tget_array_ndims(member_hdf_typeid)) < 0) {
-               retval = NC_EHDFERR;
-               break;
-            }
-            if (H5Tget_array_dims(member_hdf_typeid, dims, NULL) != ndims) {
-               retval = NC_EHDFERR;
-               break;
-            }
+            if ((ndims = H5Tget_array_ndims(member_hdf_typeid)) < 0)
+               return NC_EHDFERR;
+
+            if (H5Tget_array_dims(member_hdf_typeid, dims, NULL) != ndims)
+               return NC_EHDFERR;
+
             for (d = 0; d < ndims; d++)
                dim_size[d] = dims[d];
 
             /* What is the netCDF typeid of this member? */
             if ((retval = get_netcdf_type(grp->nc4_info, H5Tget_super(member_hdf_typeid),
                                           &member_xtype)))
-               break;
+               return retval;
 
             /* Add this member to our list of fields in this compound type. */
             if ((retval = nc4_field_list_add(type, member_name,
                                              member_offset, H5Tget_super(member_hdf_typeid),
                                              H5Tget_super(member_native_typeid),
                                              member_xtype, ndims, dim_size)))
-               break;
+               return retval;
          }
          else
          {
             /* What is the netCDF typeid of this member? */
             if ((retval = get_netcdf_type(grp->nc4_info, member_native_typeid,
                                           &member_xtype)))
-               break;
+               return retval;
 
             /* Add this member to our list of fields in this compound type. */
             if ((retval = nc4_field_list_add(type, member_name,
                                              member_offset, member_hdf_typeid, member_native_typeid,
                                              member_xtype, 0, NULL)))
-               break;
+               return retval;
          }
 
          hdf5free(member_name);
-         member_name = NULL;
       }
-      hdf5free(member_name);
-      member_name = NULL;
-      if(retval) /* error exit from loop */
-         return retval;
    }
    break;
 
@@ -1455,9 +1448,8 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
          LOG((5, "base_hdf_typeid 0x%x type_size %d base_nc_type %d",
               base_hdf_typeid, type_size, base_nc_type));
 
-         /* Remember the base types for this vlen */
+         /* Remember the base type for this vlen. */
          type->u.v.base_nc_typeid = base_nc_type;
-         type->u.v.base_hdf_typeid = base_hdf_typeid;
       }
    }
    break;
@@ -1493,9 +1485,8 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
       LOG((5, "base_hdf_typeid 0x%x type_size %d base_nc_type %d",
            base_hdf_typeid, type_size, base_nc_type));
 
-      /* Remember the base types for this enum */
+      /* Remember the base type for this enum. */
       type->u.e.base_nc_typeid = base_nc_type;
-      type->u.e.base_hdf_typeid = base_hdf_typeid;
 
       /* Find out how many member are in the enum. */
       if ((nmembers = H5Tget_nmembers(hdf_typeid)) < 0)
@@ -1512,41 +1503,27 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
       {
          /* Get the name and value from HDF5. */
          if (!(member_name = H5Tget_member_name(hdf_typeid, i)))
-         {
-            retval = NC_EHDFERR;
-            break;
-         }
+            return NC_EHDFERR;
+
 #ifdef JNA
          strncpy(jna,member_name,1000);
          member_name = jna;
 #endif
 
          if (strlen(member_name) > NC_MAX_NAME)
-         {
-            retval = NC_EBADNAME;
-            break;
-         }
+            return NC_EBADNAME;
+
          if (H5Tget_member_value(hdf_typeid, i, value) < 0)
-         {
-            retval = NC_EHDFERR;
-            break;
-         }
+            return NC_EHDFERR;
 
          /* Insert new field into this type's list of fields. */
          if ((retval = nc4_enum_member_add(type, type->size,
                                            member_name, value)))
-         {
-            break;
-         }
+            return retval;
 
          hdf5free(member_name);
-         member_name = NULL;
       }
-      hdf5free(member_name);
-      member_name = NULL;
-      if(value) free(value);
-      if(retval) /* error exit from loop */
-         return retval;
+      free(value);
    }
    break;
 
