@@ -741,7 +741,7 @@ definejtype(Symbol* tsym)
 	nprintf(stmt,sizeof(stmt),"%s%s(%s)%s",
 		    indented(1),
 		    jtypename(econst),
-		    jconst(&econst->typ.econst),
+		    jconst(econst->typ.econst),
 	            (i == (nconst - 1)?";":","));
 	jlined(1,stmt);
     }
