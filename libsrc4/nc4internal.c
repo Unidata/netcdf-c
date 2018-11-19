@@ -1516,9 +1516,8 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
    for(i=0;i<ncindexsize(grp->type);i++)
    {
       if((type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i)) == NULL) continue;
-      LOG((2, "%s TYPE - nc_typeid: %d hdf_typeid: 0x%x committed: %d "
-           "name: %s num_fields: %d", tabs, type->hdr.id,
-           type->hdf_typeid, type->size, (int)type->committed, type->hdr.name));
+      LOG((2, "%s TYPE - nc_typeid: %d committed: %d name: %s num_fields: %d",
+           tabs, type->hdr.id, type->size, (int)type->committed, type->hdr.name));
       /* Is this a compound type? */
       if (type->nc_type_class == NC_COMPOUND)
       {

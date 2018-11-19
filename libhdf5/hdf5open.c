@@ -1354,7 +1354,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 
          /* Get the typeid and native typeid of this member of the
           * compound type. */
-         if ((member_hdf_typeid = H5Tget_member_type(type->native_hdf_typeid, m)) < 0)
+         if ((member_hdf_typeid = H5Tget_member_type(native_typeid, m)) < 0)
             return NC_EHDFERR;
 
          if ((member_native_typeid = H5Tget_native_type(member_hdf_typeid,
@@ -1362,7 +1362,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             return NC_EHDFERR;
 
          /* Get the name of the member.*/
-         member_name = H5Tget_member_name(type->native_hdf_typeid, m);
+         member_name = H5Tget_member_name(native_typeid, m);
          if (!member_name || strlen(member_name) > NC_MAX_NAME) {
             retval = NC_EBADNAME;
             break;
@@ -1375,7 +1375,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 #endif
 
          /* Offset in bytes on *this* platform. */
-         member_offset = H5Tget_member_offset(type->native_hdf_typeid, m);
+         member_offset = H5Tget_member_offset(native_typeid, m);
 
          /* Get dimensional data if this member is an array of something. */
          if ((mem_class = H5Tget_class(member_hdf_typeid)) < 0)
