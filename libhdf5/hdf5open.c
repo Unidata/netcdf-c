@@ -243,15 +243,21 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
 static int
 read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t coord_att_typeid = -1, coord_attid = -1, spaceid = -1;
    hssize_t npoints;
    int retval = NC_NOERR;
    int d;
 
+   assert(grp && var && var->format_var_info);
+
+   /* Get HDF5-sepecific var info. */
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
    /* There is a hidden attribute telling us the ids of the
     * dimensions that apply to this multi-dimensional coordinate
     * variable. Read it. */
-   if ((coord_attid = H5Aopen_name(var->hdf_datasetid, COORDINATES)) < 0)
+   if ((coord_attid = H5Aopen_name(hdf5_var->hdf_datasetid, COORDINATES)) < 0)
       BAIL(NC_EATTMETA);
 
    if ((coord_att_typeid = H5Aget_type(coord_attid)) < 0)
@@ -628,6 +634,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOMEM Out of memory.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
  */
@@ -636,6 +643,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          size_t ndims, NC_DIM_INFO_T *dim)
 {
    NC_VAR_INFO_T *var = NULL;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t access_pid = 0;
    int incr_id_rc = 0; /* Whether dataset ID's ref count has been incremented */
    int d;
@@ -671,12 +679,17 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       finalname = strdup(obj_name);
 
    /* Add a variable to the end of the group's var list. */
-   if ((retval = nc4_var_list_add(grp,finalname,ndims,&var)))
+   if ((retval = nc4_var_list_add(grp, finalname, ndims, &var)))
       BAIL(retval);
 
+   /* Add storage for HDF5-specific var info. */
+   if (!(var->format_var_info = calloc(1, sizeof(NC_HDF5_VAR_INFO_T))))
+      BAIL(NC_ENOMEM);
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
    /* Fill in what we already know. */
-   var->hdf_datasetid = datasetid;
-   H5Iinc_ref(var->hdf_datasetid); /* Increment number of objects using ID */
+   hdf5_var->hdf_datasetid = datasetid;
+   H5Iinc_ref(hdf5_var->hdf_datasetid); /* Increment number of objects using ID */
    incr_id_rc++; /* Indicate that we've incremented the ref. count (for errors) */
    var->created = NC_TRUE;
 
@@ -863,13 +876,13 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
          /* Store id information allowing us to match hdf5
           * dimscales to netcdf dimensions. */
-         if (!(var->dimscale_hdf5_objids = malloc(ndims *
-                                                  sizeof(struct hdf5_objid))))
+         if (!(hdf5_var->dimscale_hdf5_objids = malloc(ndims *
+                                                       sizeof(struct hdf5_objid))))
             BAIL(NC_ENOMEM);
          for (d = 0; d < var->ndims; d++)
          {
-            if (H5DSiterate_scales(var->hdf_datasetid, d, NULL, dimscale_visitor,
-                                   &(var->dimscale_hdf5_objids[d])) < 0)
+            if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,
+                                   &(hdf5_var->dimscale_hdf5_objids[d])) < 0)
                BAIL(NC_EHDFERR);
             var->dimscale_attached[d] = NC_TRUE;
          }
@@ -1388,9 +1401,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                return retval;
 
             /* Add this member to our list of fields in this compound type. */
-            if ((retval = nc4_field_list_add(type, member_name,
-                                             member_offset, H5Tget_super(member_hdf_typeid),
-                                             H5Tget_super(member_native_typeid),
+            if ((retval = nc4_field_list_add(type, member_name, member_offset,
                                              member_xtype, ndims, dim_size)))
                return retval;
          }
@@ -1402,8 +1413,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                return retval;
 
             /* Add this member to our list of fields in this compound type. */
-            if ((retval = nc4_field_list_add(type, member_name,
-                                             member_offset, member_hdf_typeid, member_native_typeid,
+            if ((retval = nc4_field_list_add(type, member_name, member_offset,
                                              member_xtype, 0, NULL)))
                return retval;
          }
@@ -1643,7 +1653,7 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    att_info.grp = grp;
 
    /* Determine where to read from in the HDF5 file. */
-   locid = var ? var->hdf_datasetid :
+   locid = var ? ((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid :
       ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid;
 
    /* Now read all the attributes at this location, ignoring special

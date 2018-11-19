@@ -567,6 +567,7 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
 int
 nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
 {
+   assert(var);
 
    /* Remember the number of dimensions. */
    var->ndims = ndims;
@@ -821,7 +822,6 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
  * @internal Create a type, but do not add to various lists nor
  * increment its ref count
  *
- * @param grp Pointer to group info struct.
  * @param size Size of type in bytes.
  * @param name Name of type.
  * @param assignedid if >= 0 then override the default type id.
@@ -832,10 +832,12 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
  * @author Ed Hartnett, Ward Fisher
  */
 int
-nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid,
+nc4_type_new(size_t size, const char *name, int assignedid,
              NC_TYPE_INFO_T **type)
 {
    NC_TYPE_INFO_T *new_type;
+
+   LOG((4, "%s: size %d name %s assignedid %d", __func__, size, name, assignedid));
 
    /* Check inputs. */
    assert(type);
@@ -882,10 +884,11 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
    int retval;
 
    /* Check inputs. */
-   assert(type);
+   assert(grp && name && type);
+   LOG((4, "%s: size %d name %s", __func__, size, name));
 
    /* Create the new TYPE_INFO struct. */
-   if ((retval = nc4_type_new(grp, size, name, grp->nc4_info->next_typeid,
+   if ((retval = nc4_type_new(size, name, grp->nc4_info->next_typeid,
                               &new_type)))
       return retval;
    grp->nc4_info->next_typeid++;
@@ -909,8 +912,6 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
  * @param parent parent type
  * @param name Name of the field.
  * @param offset Offset in bytes.
- * @param field_hdf_typeid The HDF5 type ID of the field.
- * @param native_typeid The HDF5 native type ID of the field.
  * @param xtype The netCDF type of the field.
  * @param ndims The number of dimensions of the field.
  * @param dim_sizesp An array of dim sizes for the field.
@@ -920,8 +921,8 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
  */
 int
 nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
-                   size_t offset, hid_t field_hdf_typeid, hid_t native_typeid,
-                   nc_type xtype, int ndims, const int *dim_sizesp)
+                   size_t offset, nc_type xtype, int ndims,
+                   const int *dim_sizesp)
 {
    NC_FIELD_INFO_T *field;
 
@@ -941,8 +942,6 @@ nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
       return NC_ENOMEM;
    }
    field->hdr.hashkey = NC_hashmapkey(field->hdr.name,strlen(field->hdr.name));
-   field->hdf_typeid = field_hdf_typeid;
-   field->native_hdf_typeid = native_typeid;
    field->nc_typeid = xtype;
    field->offset = offset;
    field->ndims = ndims;
@@ -1182,7 +1181,6 @@ var_free(NC_VAR_INFO_T *var)
    ncindexfree(var->att);
 
    /* Free some things that may be allocated. */
-   /* Free some things that may be allocated. */
    if (var->chunksizes)
       free(var->chunksizes);
 
@@ -1198,31 +1196,14 @@ var_free(NC_VAR_INFO_T *var)
    if (var->dim)
       free(var->dim);
 
-   /* Delete any fill value allocation. This must be done before the
-    * type_info is freed. */
+   /* Delete any fill value allocation. */
    if (var->fill_value)
-   {
-      if (var->hdf_datasetid)
-      {
-         if (var->type_info)
-         {
-            if (var->type_info->nc_type_class == NC_VLEN)
-               nc_free_vlen((nc_vlen_t *)var->fill_value);
-            else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value)
-               free(*(char **)var->fill_value);
-         }
-      }
       free(var->fill_value);
-   }
 
    /* Release type information */
    if (var->type_info)
       if ((retval = nc4_type_free(var->type_info)))
          return retval;
-
-   /* Delete any HDF5 dimscale objid information. */
-   if (var->dimscale_hdf5_objids)
-      free(var->dimscale_hdf5_objids);
 
    /* Delete information about the attachment status of dimscales. */
    if (var->dimscale_attached)
@@ -1231,6 +1212,10 @@ var_free(NC_VAR_INFO_T *var)
    /* Release parameter information. */
    if (var->params)
       free(var->params);
+
+   /* Delete any format-specific info. */
+   if (var->format_var_info)
+      free(var->format_var_info);
 
    /* Delete the var. */
    free(var);
@@ -1241,26 +1226,24 @@ var_free(NC_VAR_INFO_T *var)
 /**
  * @internal  Delete a var, and free the memory.
  *
- * @param grp the containing group
+ * @param grp Pointer to the strct for the containing group.
  * @param var Pointer to the var info struct of var to delete.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
+nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    int i;
 
-   if(var == NULL)
-      return NC_NOERR;
+   assert(var && grp);
 
    /* Remove from lists */
-   if(grp) {
-      i = ncindexfind(grp->vars,(NC_OBJ*)var);
-      if(i >= 0)
-         ncindexidel(grp->vars, i);
-   }
+   i = ncindexfind(grp->vars, (NC_OBJ *)var);
+   if (i >= 0)
+      ncindexidel(grp->vars, i);
+
    return var_free(var);
 }
 
