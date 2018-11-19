@@ -13,7 +13,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.6.2], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.6.2], [support-netcdf@unidata.ucar.edu], [netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
