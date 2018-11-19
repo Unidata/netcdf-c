@@ -1164,6 +1164,7 @@ static int
 commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 {
    NC_HDF5_GRP_INFO_T *hdf5_grp;
+   hid_t base_hdf_typeid;
    int retval;
 
    assert(grp && grp->format_grp_info && type);
@@ -1228,11 +1229,11 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    {
       /* Find the HDF typeid of the base type of this vlen. */
       if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->u.v.base_nc_typeid,
-                                       &type->u.v.base_hdf_typeid, type->endianness)))
+                                       &base_hdf_typeid, type->endianness)))
          return retval;
 
       /* Create a vlen type. */
-      if ((type->hdf_typeid = H5Tvlen_create(type->u.v.base_hdf_typeid)) < 0)
+      if ((type->hdf_typeid = H5Tvlen_create(base_hdf_typeid)) < 0)
          return NC_EHDFERR;
    }
    else if (type->nc_type_class == NC_OPAQUE)
@@ -1251,11 +1252,11 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
       /* Find the HDF typeid of the base type of this enum. */
       if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->u.e.base_nc_typeid,
-                                       &type->u.e.base_hdf_typeid, type->endianness)))
+                                       &base_hdf_typeid, type->endianness)))
          return retval;
 
       /* Create an enum type. */
-      if ((type->hdf_typeid =  H5Tenum_create(type->u.e.base_hdf_typeid)) < 0)
+      if ((type->hdf_typeid =  H5Tenum_create(base_hdf_typeid)) < 0)
          return NC_EHDFERR;
 
       /* Add all the members to the HDF5 type. */

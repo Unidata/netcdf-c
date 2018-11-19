@@ -602,26 +602,6 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
       if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0)
          return NC_EHDFERR;
       type->native_hdf_typeid = 0;
-
-      /* Class-specific cleanup. Only enums and vlens have HDF5
-       * resources to close. */
-      switch (type->nc_type_class)
-      {
-      case NC_ENUM:
-         if (type->u.e.base_hdf_typeid && H5Tclose(type->u.e.base_hdf_typeid) < 0)
-            return NC_EHDFERR;
-         type->u.e.base_hdf_typeid = 0;
-         break;
-
-      case NC_VLEN:
-         if (type->u.v.base_hdf_typeid && H5Tclose(type->u.v.base_hdf_typeid) < 0)
-            return NC_EHDFERR;
-         type->u.v.base_hdf_typeid = 0;
-         break;
-
-      default: /* Do nothing. */
-         break;
-      }
    }
 
    /* Close the HDF5 group. */
