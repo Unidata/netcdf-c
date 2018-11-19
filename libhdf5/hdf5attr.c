@@ -240,7 +240,7 @@ NC4_del_att(int ncid, int varid, const char *name)
    if (varid == NC_GLOBAL)
       locid = ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid;
    else if (var->created)
-      locid = var->hdf_datasetid;
+      locid = ((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid;
 
    /* Now find the attribute by name. */
    if (!(att = (NC_ATT_INFO_T*)ncindexlookup(attlist, name)))

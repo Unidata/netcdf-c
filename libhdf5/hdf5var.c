@@ -29,12 +29,16 @@
 int
 nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t access_pid;
    hid_t grpid;
 
-   assert(var && grp && grp->format_grp_info);
+   assert(var && var->format_var_info && grp && grp->format_grp_info);
 
-   if (var->hdf_datasetid)
+   /* Get the HDF5-specific var info. */
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
+   if (hdf5_var->hdf_datasetid)
    {
       /* Get the HDF5 group id. */
       grpid = ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid;
@@ -46,9 +50,9 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
                              var->chunk_cache_size,
                              var->chunk_cache_preemption) < 0)
          return NC_EHDFERR;
-      if (H5Dclose(var->hdf_datasetid) < 0)
+      if (H5Dclose(hdf5_var->hdf_datasetid) < 0)
          return NC_EHDFERR;
-      if ((var->hdf_datasetid = H5Dopen2(grpid, var->hdr.name, access_pid)) < 0)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(grpid, var->hdr.name, access_pid)) < 0)
          return NC_EHDFERR;
       if (H5Pclose(access_pid) < 0)
          return NC_EHDFERR;
@@ -302,7 +306,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       BAIL(NC_EMAXDIMS);
 
    /* cast needed for braindead systems with signed size_t */
-   if((unsigned long) ndims > X_INT_MAX) /* Backward compat */
+   if ((unsigned long) ndims > X_INT_MAX) /* Backward compat */
       BAIL(NC_EINVAL);
 
    /* Check that this name is not in use as a var, grp, or type. */
@@ -334,23 +338,25 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    if (xtype <= NC_STRING)
    {
       size_t len;
-      char name[NC_MAX_NAME+1];
-      char* atomname = nc4_atomic_name[xtype];
-      size_t namelen = strlen(atomname);
-      memcpy(name,atomname,namelen);
-      name[namelen] = '\0';
-      nc4_get_typelen_mem(h5,xtype,&len);
-      if((retval = nc4_type_new(grp,len,name,xtype,&type_info)))
+
+      /* Get type length. */
+      if ((retval = nc4_get_typelen_mem(h5, xtype, &len)))
+         BAIL(retval);
+
+      /* Create new NC_TYPE_INFO_T struct for this atomic type. */
+      if ((retval = nc4_type_new(len, nc4_atomic_name[xtype], xtype,
+                                 &type_info)))
          BAIL(retval);
       type_info->endianness = NC_ENDIAN_NATIVE;
+      type_info->size = len;
+
+      /* Get HDF5 typeids. */
       if ((retval = nc4_get_hdf_typeid(h5, xtype, &type_info->hdf_typeid,
                                        type_info->endianness)))
          BAIL(retval);
       if ((type_info->native_hdf_typeid = H5Tget_native_type(type_info->hdf_typeid,
                                                              H5T_DIR_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
-      if ((retval = nc4_get_typelen_mem(h5, type_info->hdr.id, &type_info->size)))
-         BAIL(retval);
 
       /* Set the "class" of the type */
       if (xtype == NC_CHAR)
@@ -380,9 +386,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          }
       }
    }
-   /* If this is a user defined type, find it. */
    else
    {
+      /* If this is a user defined type, find it. */
       if (nc4_find_type(grp->nc4_info, xtype, &type_info))
          BAIL(NC_EBADTYPE);
    }
@@ -390,6 +396,11 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    /* Create a new var and fill in some HDF5 cache setting values. */
    if ((retval = nc4_var_list_add(grp, norm_name, ndims, &var)))
       BAIL(retval);
+
+   /* Add storage for HDF5-specific var info. */
+   if (!(var->format_var_info = calloc(1, sizeof(NC_HDF5_VAR_INFO_T))))
+      BAIL(NC_ENOMEM);
+
    var->is_new_var = NC_TRUE;
 
    /* Point to the type, and increment its ref. count */
@@ -1322,6 +1333,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t file_spaceid = 0, mem_spaceid = 0, xfer_plistid = 0;
    long long unsigned xtend_size[NC_MAX_VAR_DIMS];
    hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
@@ -1340,7 +1352,10 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    /* Find info for this file, group, and var. */
    if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
       return retval;
-   assert(h5 && grp && var && var->hdr.id == varid);
+   assert(h5 && grp && var && var->hdr.id == varid && var->format_var_info);
+
+   /* Get the HDF5-specific var info. */
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    /* Cannot convert to user-defined types. */
    if (mem_nc_type >= NC_FIRSTUSERTYPEID)
@@ -1353,7 +1368,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     * be switched from define mode, it happens here. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
       return retval;
-   assert(var->hdf_datasetid && (!var->ndims || (startp && countp)));
+   assert(hdf5_var->hdf_datasetid && (!var->ndims || (startp && countp)));
 
    /* Convert from size_t and ptrdiff_t to hssize_t, and hsize_t. */
    /* Also do sanity checks */
@@ -1373,7 +1388,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    }
 
    /* Get file space of data. */
-   if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+   if ((file_spaceid = H5Dget_space(hdf5_var->hdf_datasetid)) < 0)
       BAIL(NC_EHDFERR);
 
    /* Get the sizes of all the dims and put them in fdims. */
@@ -1546,11 +1561,11 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
          for (d2 = 0; d2 < var->ndims; d2++)
             fdims[d2] = (hsize_t)xtend_size[d2];
 
-         if (H5Dset_extent(var->hdf_datasetid, fdims) < 0)
+         if (H5Dset_extent(hdf5_var->hdf_datasetid, fdims) < 0)
             BAIL(NC_EHDFERR);
          if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
             BAIL2(NC_EHDFERR);
-         if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+         if ((file_spaceid = H5Dget_space(hdf5_var->hdf_datasetid)) < 0)
             BAIL(NC_EHDFERR);
          if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
                                  start, stride, count, NULL) < 0)
@@ -1569,8 +1584,8 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
    /* Write the data. At last! */
    LOG((4, "about to H5Dwrite datasetid 0x%x mem_spaceid 0x%x "
-        "file_spaceid 0x%x", var->hdf_datasetid, mem_spaceid, file_spaceid));
-   if (H5Dwrite(var->hdf_datasetid, var->type_info->hdf_typeid,
+        "file_spaceid 0x%x", hdf5_var->hdf_datasetid, mem_spaceid, file_spaceid));
+   if (H5Dwrite(hdf5_var->hdf_datasetid, var->type_info->hdf_typeid,
                 mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
       BAIL(NC_EHDFERR);
 
@@ -1641,6 +1656,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    NC_GRP_INFO_T *grp;
    NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    NC_DIM_INFO_T *dim;
    hid_t file_spaceid = 0, mem_spaceid = 0;
    hid_t xfer_plistid = 0;
@@ -1660,7 +1676,10 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    /* Find info for this file, group, and var. */
    if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
       return retval;
-   assert(h5 && grp && var && var->hdr.id == varid);
+   assert(h5 && grp && var && var->hdr.id == varid && var->format_var_info);
+
+   /* Get the HDF5-specific var info. */
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
         var->hdr.name, mem_nc_type));
@@ -1669,7 +1688,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     * mode, if needed. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
       return retval;
-   assert(var->hdf_datasetid && (!var->ndims || (startp && countp)));
+   assert(hdf5_var->hdf_datasetid && (!var->ndims || (startp && countp)));
 
    /* Convert from size_t and ptrdiff_t to hsize_t. Also do sanity
     * checks. */
@@ -1689,7 +1708,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    }
 
    /* Get file space of data. */
-   if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+   if ((file_spaceid = H5Dget_space(hdf5_var->hdf_datasetid)) < 0)
       BAIL(NC_EHDFERR);
 
    /* Check to ensure the user selection is
@@ -1851,7 +1870,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
       /* Read this hyperslab into memory. */
       LOG((5, "About to H5Dread some data..."));
-      if (H5Dread(var->hdf_datasetid, var->type_info->native_hdf_typeid,
+      if (H5Dread(hdf5_var->hdf_datasetid, var->type_info->native_hdf_typeid,
                   mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
          BAIL(NC_EHDFERR);
 
@@ -1892,14 +1911,14 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
          /* Since no element will be selected, we just get the memory
           * space the same as the file space. */
-         if ((mem_spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+         if ((mem_spaceid = H5Dget_space(hdf5_var->hdf_datasetid)) < 0)
             BAIL(NC_EHDFERR);
          if (H5Sselect_none(mem_spaceid) < 0)
             BAIL(NC_EHDFERR);
 
          /* Read this hyperslab into memory. */
          LOG((5, "About to H5Dread some data..."));
-         if (H5Dread(var->hdf_datasetid, var->type_info->native_hdf_typeid,
+         if (H5Dread(hdf5_var->hdf_datasetid, var->type_info->native_hdf_typeid,
                      mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
             BAIL(NC_EHDFERR);
       }
