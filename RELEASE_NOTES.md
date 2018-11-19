@@ -5,7 +5,7 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.6.2 - November 16, 2018
+## 4.6.2 - November 19, 2018
 
 * [Enhancement] Lazy att read - only read atts when user requests one of them.  See [GitHub #857](https://github.com/Unidata/netcdf-c/issues/857).
 * [Enhancement] Fast global att read - when global atts are read, they are read much more quickly.  See [GitHub #857](https://github.com/Unidata/netcdf-c/issues/857).
