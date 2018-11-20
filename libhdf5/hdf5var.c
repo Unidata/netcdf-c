@@ -356,12 +356,12 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       type->format_type_info = hdf5_type;
 
       /* Get HDF5 typeids. */
-      if ((retval = nc4_get_hdf_typeid(h5, xtype, &type->hdf_typeid,
+      if ((retval = nc4_get_hdf_typeid(h5, xtype, &hdf5_type->hdf_typeid,
                                        type->endianness)))
          BAIL(retval);
 
       /* Get the native HDF5 typeid. */
-      if ((hdf5_type->native_hdf_typeid = H5Tget_native_type(type->hdf_typeid,
+      if ((hdf5_type->native_hdf_typeid = H5Tget_native_type(hdf5_type->hdf_typeid,
                                                              H5T_DIR_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
 
@@ -372,7 +372,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       {
          H5T_class_t class;
 
-         if ((class = H5Tget_class(type->hdf_typeid)) < 0)
+         if ((class = H5Tget_class(hdf5_type->hdf_typeid)) < 0)
             BAIL(NC_EHDFERR);
          switch(class)
          {
@@ -1592,7 +1592,8 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    /* Write the data. At last! */
    LOG((4, "about to H5Dwrite datasetid 0x%x mem_spaceid 0x%x "
         "file_spaceid 0x%x", hdf5_var->hdf_datasetid, mem_spaceid, file_spaceid));
-   if (H5Dwrite(hdf5_var->hdf_datasetid, var->type_info->hdf_typeid,
+   if (H5Dwrite(hdf5_var->hdf_datasetid,
+                ((NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info)->hdf_typeid,
                 mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
       BAIL(NC_EHDFERR);
 
@@ -1665,6 +1666,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    NC_VAR_INFO_T *var;
    NC_HDF5_VAR_INFO_T *hdf5_var;
    NC_DIM_INFO_T *dim;
+   NC_HDF5_TYPE_INFO_T *hdf5_type;
    hid_t file_spaceid = 0, mem_spaceid = 0;
    hid_t xfer_plistid = 0;
    size_t file_type_size;
@@ -1686,8 +1688,9 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    assert(h5 && grp && var && var->hdr.id == varid && var->format_var_info &&
           var->type_info && var->type_info->size && var->type_info->format_type_info);
 
-   /* Get the HDF5-specific var info. */
+   /* Get the HDF5-specific var and type info. */
    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+   hdf5_type = (NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info;
 
    LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
         var->hdr.name, mem_nc_type));
@@ -1832,12 +1835,12 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
        * variable-length strings are in allocated memory that user has
        * to free, which we allocate here. */
       if (var->type_info->nc_type_class == NC_STRING &&
-          H5Tget_size(var->type_info->hdf_typeid) > 1 &&
-          !H5Tis_variable_str(var->type_info->hdf_typeid))
+          H5Tget_size(hdf5_type->hdf_typeid) > 1 &&
+          !H5Tis_variable_str(hdf5_type->hdf_typeid))
       {
          hsize_t fstring_len;
 
-         if ((fstring_len = H5Tget_size(var->type_info->hdf_typeid)) == 0)
+         if ((fstring_len = H5Tget_size(hdf5_type->hdf_typeid)) == 0)
             BAIL(NC_EHDFERR);
          if (!(*(char **)data = malloc(1 + fstring_len)))
             BAIL(NC_ENOMEM);

@@ -634,9 +634,8 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
       hdf5_type = (NC_HDF5_TYPE_INFO_T *)type->format_type_info;
 
       /* Close any open user-defined HDF5 typeids. */
-      if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0)
+      if (hdf5_type->hdf_typeid && H5Tclose(hdf5_type->hdf_typeid) < 0)
          return NC_EHDFERR;
-      type->hdf_typeid = 0;
       hdf5_type->hdf_typeid = 0;
       if (hdf5_type->native_hdf_typeid &&
           H5Tclose(hdf5_type->native_hdf_typeid) < 0)
