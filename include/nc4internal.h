@@ -203,6 +203,7 @@ typedef struct NC_TYPE_INFO
    nc_type nc_type_class;       /* NC_VLEN, NC_COMPOUND, NC_OPAQUE,
                                  * NC_ENUM, NC_INT, NC_FLOAT, or
                                  * NC_STRING. */
+   void *format_type_info;      /* HDF5-specific type info. */
 
    /* Information for each type or class */
    union {
