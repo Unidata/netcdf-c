@@ -641,7 +641,6 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
       if (hdf5_type->native_hdf_typeid &&
           H5Tclose(hdf5_type->native_hdf_typeid) < 0)
          return NC_EHDFERR;
-      type->native_hdf_typeid = 0;
       hdf5_type->native_hdf_typeid = 0;
    }
 
