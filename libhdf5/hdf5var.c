@@ -364,7 +364,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       if ((hdf5_type->native_hdf_typeid = H5Tget_native_type(type->hdf_typeid,
                                                              H5T_DIR_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
-      type->native_hdf_typeid = hdf5_type->native_hdf_typeid;
 
       /* Set the "class" of the type */
       if (xtype == NC_CHAR)
