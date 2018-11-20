@@ -259,7 +259,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
    NC_FILE_INFO_T *h5;
-   NC_TYPE_INFO_T *type_info = NULL;
+   NC_TYPE_INFO_T *type = NULL;
+   NC_HDF5_TYPE_INFO_T *hdf5_type;
    NC_HDF5_GRP_INFO_T *hdf5_grp;
    char norm_name[NC_MAX_NAME + 1];
    int d;
@@ -301,7 +302,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    if (h5->cmode & NC_CLASSIC_MODEL && xtype > NC_DOUBLE)
       BAIL(NC_ESTRICTNC3);
 
-   /* For classic files */
+   /* For classic files limit number of dims. */
    if (h5->cmode & NC_CLASSIC_MODEL && ndims > NC_MAX_VAR_DIMS)
       BAIL(NC_EMAXDIMS);
 
@@ -332,8 +333,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    }
 #endif
 
-   /* If this is a user-defined type, there is a type_info struct with
-    * all the type information. For atomic types, fake up a type_info
+   /* If this is a user-defined type, there is a type struct with
+    * all the type information. For atomic types, fake up a type
     * struct. */
    if (xtype <= NC_STRING)
    {
@@ -344,41 +345,46 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
          BAIL(retval);
 
       /* Create new NC_TYPE_INFO_T struct for this atomic type. */
-      if ((retval = nc4_type_new(len, nc4_atomic_name[xtype], xtype,
-                                 &type_info)))
+      if ((retval = nc4_type_new(len, nc4_atomic_name[xtype], xtype, &type)))
          BAIL(retval);
-      type_info->endianness = NC_ENDIAN_NATIVE;
-      type_info->size = len;
+      type->endianness = NC_ENDIAN_NATIVE;
+      type->size = len;
 
       /* Get HDF5 typeids. */
-      if ((retval = nc4_get_hdf_typeid(h5, xtype, &type_info->hdf_typeid,
-                                       type_info->endianness)))
+      if ((retval = nc4_get_hdf_typeid(h5, xtype, &type->hdf_typeid,
+                                       type->endianness)))
          BAIL(retval);
-      if ((type_info->native_hdf_typeid = H5Tget_native_type(type_info->hdf_typeid,
-                                                             H5T_DIR_DEFAULT)) < 0)
+
+      /* Allocate storage for HDF5-specific type info. */
+      if (!(hdf5_type = calloc(1, sizeof(NC_HDF5_TYPE_INFO_T))))
+         BAIL(NC_ENOMEM);
+
+      /* Get the native HDF5 typeid. */
+      if ((type->native_hdf_typeid = H5Tget_native_type(type->hdf_typeid,
+                                                        H5T_DIR_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
 
       /* Set the "class" of the type */
       if (xtype == NC_CHAR)
-         type_info->nc_type_class = NC_CHAR;
+         type->nc_type_class = NC_CHAR;
       else
       {
          H5T_class_t class;
 
-         if ((class = H5Tget_class(type_info->hdf_typeid)) < 0)
+         if ((class = H5Tget_class(type->hdf_typeid)) < 0)
             BAIL(NC_EHDFERR);
          switch(class)
          {
          case H5T_STRING:
-            type_info->nc_type_class = NC_STRING;
+            type->nc_type_class = NC_STRING;
             break;
 
          case H5T_INTEGER:
-            type_info->nc_type_class = NC_INT;
+            type->nc_type_class = NC_INT;
             break;
 
          case H5T_FLOAT:
-            type_info->nc_type_class = NC_FLOAT;
+            type->nc_type_class = NC_FLOAT;
             break;
 
          default:
@@ -389,7 +395,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    else
    {
       /* If this is a user defined type, find it. */
-      if (nc4_find_type(grp->nc4_info, xtype, &type_info))
+      if (nc4_find_type(grp->nc4_info, xtype, &type))
          BAIL(NC_EBADTYPE);
    }
 
@@ -404,9 +410,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    var->is_new_var = NC_TRUE;
 
    /* Point to the type, and increment its ref. count */
-   var->type_info = type_info;
+   var->type_info = type;
    var->type_info->rc++;
-   type_info = NULL;
+   type = NULL;
 
    /* Set variables no_fill to match the database default
     * unless the variable type is variable length (NC_STRING or NC_VLEN)
@@ -519,8 +525,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    LOG((4, "new varid %d", var->hdr.id));
 
 exit:
-   if (type_info)
-      if ((retval = nc4_type_free(type_info)))
+   if (type)
+      if ((retval = nc4_type_free(type)))
          BAIL2(retval);
 
    return retval;
