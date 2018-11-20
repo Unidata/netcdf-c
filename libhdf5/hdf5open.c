@@ -210,7 +210,6 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
       if (!((*type_info)->hdr.name = strdup(nc_type_name_g[t])))
          return NC_ENOMEM;
       (*type_info)->hdf_typeid = hdf_typeid;
-      (*type_info)->native_hdf_typeid = native_typeid;
       hdf5_type->hdf_typeid = hdf_typeid;
       hdf5_type->native_hdf_typeid = native_typeid;
       return NC_NOERR;
@@ -1332,7 +1331,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
    type->hdf_typeid = hdf_typeid;
    hdf5_type->hdf_typeid = hdf_typeid;
    H5Iinc_ref(type->hdf_typeid); /* Increment number of objects using ID */
-   type->native_hdf_typeid = native_typeid;
    hdf5_type->native_hdf_typeid = native_typeid;
 
    /* What is the class of this type, compound, vlen, etc. */
