@@ -537,7 +537,7 @@ nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
             return NC_EBADTYPE;
          if (!type)
             return NC_EBADTYPE;
-         typeid = type->hdf_typeid;
+         typeid = ((NC_HDF5_TYPE_INFO_T *)type->format_type_info)->hdf_typeid;
          break;
       }
       assert(typeid);
@@ -1214,7 +1214,6 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
       if ((hdf5_type->hdf_typeid = H5Tcreate(H5T_COMPOUND, type->size)) < 0)
          return NC_EHDFERR;
-      type->hdf_typeid = hdf5_type->hdf_typeid;
       LOG((4, "creating compound type %s hdf_typeid 0x%x", type->hdr.name,
            hdf5_type->hdf_typeid));
 
@@ -1265,14 +1264,12 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
       /* Create a vlen type. */
       if ((hdf5_type->hdf_typeid = H5Tvlen_create(base_hdf_typeid)) < 0)
          return NC_EHDFERR;
-      type->hdf_typeid = hdf5_type->hdf_typeid;
    }
    else if (type->nc_type_class == NC_OPAQUE)
    {
       /* Create the opaque type. */
       if ((hdf5_type->hdf_typeid = H5Tcreate(H5T_OPAQUE, type->size)) < 0)
          return NC_EHDFERR;
-      type->hdf_typeid = hdf5_type->hdf_typeid;
    }
    else if (type->nc_type_class == NC_ENUM)
    {
@@ -1290,7 +1287,6 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
       /* Create an enum type. */
       if ((hdf5_type->hdf_typeid =  H5Tenum_create(base_hdf_typeid)) < 0)
          return NC_EHDFERR;
-      type->hdf_typeid = hdf5_type->hdf_typeid;
 
       /* Add all the members to the HDF5 type. */
       for(i=0;i<nclistlength(type->u.e.enum_member);i++) {
