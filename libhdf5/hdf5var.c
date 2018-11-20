@@ -1685,8 +1685,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
       return retval;
    assert(h5 && grp && var && var->hdr.id == varid && var->format_var_info &&
-          var->type_info && var->type_info->size);
-          /* var->type_info && var->type_info->size && var->type_info->format_type_info); */
+          var->type_info && var->type_info->size && var->type_info->format_type_info);
 
    /* Get the HDF5-specific var info. */
    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;

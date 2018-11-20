@@ -190,9 +190,16 @@ nc4_rec_find_hdf_type(NC_FILE_INFO_T *h5, hid_t target_hdf_typeid)
 
    assert(h5);
 
-   for(i=0;i<nclistlength(h5->alltypes);i++) {
-      type = (NC_TYPE_INFO_T*)nclistget(h5->alltypes,i);
+   for (i = 0; i < nclistlength(h5->alltypes); i++)
+   {
+      NC_HDF5_TYPE_INFO_T *hdf5_type;
+
+      type = (NC_TYPE_INFO_T*)nclistget(h5->alltypes, i);
       if(type == NULL) continue;
+
+      /* Get HDF5-specific type info. */
+      hdf5_type = (NC_HDF5_TYPE_INFO_T *)type->format_type_info;
+
       /* Is this the type we are searching for? */
       if ((equal = H5Tequal(type->native_hdf_typeid ? type->native_hdf_typeid :
                             type->hdf_typeid, target_hdf_typeid)) < 0)
@@ -613,8 +620,14 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
     * closes can be called multiple times. */
    for (i = 0; i < ncindexsize(grp->type); i++)
    {
-      NC_TYPE_INFO_T *type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i);
-      assert(type);
+      NC_TYPE_INFO_T *type;
+      NC_HDF5_TYPE_INFO_T *hdf5_type;
+
+      type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i);
+      assert(type && type->format_type_info);
+
+      /* Get HDF5-specific type info. */
+      hdf5_type = (NC_HDF5_TYPE_INFO_T *)type->format_type_info;
 
       /* Close any open user-defined HDF5 typeids. */
       if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0)
