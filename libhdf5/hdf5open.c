@@ -1325,11 +1325,16 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
       return NC_ENOMEM;
    type->format_type_info = hdf5_type;
 
-   /* Remember common info about this type. */
-   type->committed = NC_TRUE;
+   /* Remember HDF5-specific type info. */
    hdf5_type->hdf_typeid = hdf_typeid;
-   H5Iinc_ref(hdf5_type->hdf_typeid); /* Increment number of objects using ID */
    hdf5_type->native_hdf_typeid = native_typeid;
+
+   /* Remember we have committed this type. */
+   type->committed = NC_TRUE;
+
+   /* Increment number of objects using ID. */
+   if (H5Iinc_ref(hdf5_type->hdf_typeid) < 0)
+      return NC_EHDFERR;
 
    /* What is the class of this type, compound, vlen, etc. */
    if ((class = H5Tget_class(hdf_typeid)) < 0)
