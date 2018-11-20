@@ -1330,8 +1330,10 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
    /* Remember common info about this type. */
    type->committed = NC_TRUE;
    type->hdf_typeid = hdf_typeid;
+   hdf5_type->hdf_typeid = hdf_typeid;
    H5Iinc_ref(type->hdf_typeid); /* Increment number of objects using ID */
    type->native_hdf_typeid = native_typeid;
+   hdf5_type->native_hdf_typeid = native_typeid;
 
    /* What is the class of this type, compound, vlen, etc. */
    if ((class = H5Tget_class(hdf_typeid)) < 0)
