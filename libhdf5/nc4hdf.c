@@ -1318,7 +1318,6 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    if ((hdf5_type->native_hdf_typeid = H5Tget_native_type(hdf5_type->hdf_typeid,
                                                           H5T_DIR_DEFAULT)) < 0)
       return NC_EHDFERR;
-   type->native_hdf_typeid = hdf5_type->native_hdf_typeid;
 
    return NC_NOERR;
 }
