@@ -1881,7 +1881,8 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
       /* Read this hyperslab into memory. */
       LOG((5, "About to H5Dread some data..."));
-      if (H5Dread(hdf5_var->hdf_datasetid, var->type_info->native_hdf_typeid,
+      if (H5Dread(hdf5_var->hdf_datasetid,
+                  ((NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info)->native_hdf_typeid,
                   mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
          BAIL(NC_EHDFERR);
 
@@ -1929,7 +1930,8 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
          /* Read this hyperslab into memory. */
          LOG((5, "About to H5Dread some data..."));
-         if (H5Dread(hdf5_var->hdf_datasetid, var->type_info->native_hdf_typeid,
+         if (H5Dread(hdf5_var->hdf_datasetid,
+                     ((NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info)->native_hdf_typeid,
                      mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
             BAIL(NC_EHDFERR);
       }
