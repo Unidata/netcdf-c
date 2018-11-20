@@ -90,7 +90,7 @@ NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
       hid2 = ((NC_HDF5_TYPE_INFO_T *)type2->format_type_info)->native_hdf_typeid;
 
       /* Ask HDF5 if the types are equal. */
-      if ((retval = H5Tequal(type1->native_hdf_typeid, type2->native_hdf_typeid)) < 0)
+      if ((retval = H5Tequal(hid1, hid2)) < 0)
          return NC_EHDFERR;
       *equalp = 1 ? retval : 0;
    }
