@@ -211,6 +211,8 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
          return NC_ENOMEM;
       (*type_info)->hdf_typeid = hdf_typeid;
       (*type_info)->native_hdf_typeid = native_typeid;
+      hdf5_type->hdf_typeid = hdf_typeid;
+      hdf5_type->native_hdf_typeid = native_typeid;
       return NC_NOERR;
    }
    else
