@@ -195,8 +195,6 @@ typedef struct NC_TYPE_INFO
    NC_OBJ hdr;                  /* NetCDF type ID. */
    struct NC_GRP_INFO *container; /* Containing group */
    unsigned rc;                 /* Ref. count of objects using this type */
-   /* hid_t hdf_typeid;            /\* HDF5 type ID, in the file *\/ */
-   /* hid_t native_hdf_typeid;     /\* HDF5 type ID, in memory *\/ */
    int endianness;              /* What endianness for the type? */
    size_t size;                 /* Size of the type in memory, in bytes */
    nc_bool_t committed;         /* True when datatype is committed in the file */
