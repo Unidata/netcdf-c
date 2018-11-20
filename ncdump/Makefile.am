@@ -143,7 +143,7 @@ EXTRA_DIST += L512.bin
 SUBDIRS = cdl expected
 
 CLEANFILES = tst_*.nc tmp*.nc test*.nc iter.* tmp*.cdl			\
-tst_output_*.cdl tst_output_*.c tst_utf8_*.cdl tst_tst8.cdl		\
+tst_output_*.cdl tst_output_*.c tst_utf8_*.cdl *.tmp tst_tst8.cdl	\
 tst_netcdf4_*.cdl test1_ncdump.cdl test2_ncdump.cdl test1.cdl		\
 ctest1.cdl test1_cdf5.cdl test2_cdf5.cdl test1_offset.cdl		\
 test2_offset.cdl ctest0.nc ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl	\
@@ -163,4 +163,4 @@ compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc		\
 tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl			\
 tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl		\
 tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl ctest.c		\
-ctest64.c nccopy3_subset_out.nc camrun.c
+ctest64.c nccopy3_subset_out.nc camrun.c tst_ncf213.cdl tst_ncf213.nc
