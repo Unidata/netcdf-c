@@ -350,19 +350,21 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       type->endianness = NC_ENDIAN_NATIVE;
       type->size = len;
 
+      /* Allocate storage for HDF5-specific type info. */
+      if (!(hdf5_type = calloc(1, sizeof(NC_HDF5_TYPE_INFO_T))))
+         BAIL(NC_ENOMEM);
+      type->format_type_info = hdf5_type;
+
       /* Get HDF5 typeids. */
       if ((retval = nc4_get_hdf_typeid(h5, xtype, &type->hdf_typeid,
                                        type->endianness)))
          BAIL(retval);
 
-      /* Allocate storage for HDF5-specific type info. */
-      if (!(hdf5_type = calloc(1, sizeof(NC_HDF5_TYPE_INFO_T))))
-         BAIL(NC_ENOMEM);
-
       /* Get the native HDF5 typeid. */
-      if ((type->native_hdf_typeid = H5Tget_native_type(type->hdf_typeid,
-                                                        H5T_DIR_DEFAULT)) < 0)
+      if ((hdf5_type->native_hdf_typeid = H5Tget_native_type(type->hdf_typeid,
+                                                             H5T_DIR_DEFAULT)) < 0)
          BAIL(NC_EHDFERR);
+      type->native_hdf_typeid = hdf5_type->native_hdf_typeid;
 
       /* Set the "class" of the type */
       if (xtype == NC_CHAR)
@@ -1682,7 +1684,9 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    /* Find info for this file, group, and var. */
    if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
       return retval;
-   assert(h5 && grp && var && var->hdr.id == varid && var->format_var_info);
+   assert(h5 && grp && var && var->hdr.id == varid && var->format_var_info &&
+          var->type_info && var->type_info->size);
+          /* var->type_info && var->type_info->size && var->type_info->format_type_info); */
 
    /* Get the HDF5-specific var info. */
    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
@@ -1793,9 +1797,11 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
       }
    }
 
+   /* Check the type_info fields. */
+   /* assert(var->type_info && var->type_info->size && var->type_info->format_type_info); */
+
    /* Later on, we will need to know the size of this type in the
     * file. */
-   assert(var->type_info->size);
    file_type_size = var->type_info->size;
 
    if (!no_read)

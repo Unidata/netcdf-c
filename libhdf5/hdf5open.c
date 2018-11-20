@@ -101,6 +101,7 @@ static int
 get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
                NC_TYPE_INFO_T **type_info)
 {
+   NC_HDF5_TYPE_INFO_T *hdf5_type;
    htri_t is_str, equal = 0;
    H5T_class_t class;
    hid_t native_typeid, hdf_typeid;
@@ -148,6 +149,11 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
       /* Allocate a phony NC_TYPE_INFO_T struct to hold type info. */
       if (!(*type_info = calloc(1, sizeof(NC_TYPE_INFO_T))))
          return NC_ENOMEM;
+
+      /* Allocate storage for HDF5-specific type info. */
+      if (!(hdf5_type = calloc(1, sizeof(NC_HDF5_TYPE_INFO_T))))
+         return NC_ENOMEM;
+      (*type_info)->format_type_info = hdf5_type;
 
       /* H5Tequal doesn't work with H5T_C_S1 for some reason. But
        * H5Tget_class will return H5T_STRING if this is a string. */
