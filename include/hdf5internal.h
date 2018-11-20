@@ -89,6 +89,13 @@ typedef struct NC_HDF5_FIELD_INFO
    hid_t native_hdf_typeid;
 } NC_HDF5_FIELD_INFO_T;
 
+/* Struct to hold HDF5-specific info for a type. */
+typedef struct NC_HDF5_TYPE_INFO
+{
+   hid_t hdf_typeid;
+   hid_t native_hdf_typeid;
+} NC_HDF5_TYPE_INFO_T;
+
 /* Logging and debugging. */
 void reportopenobjects(int log, hid_t);
 int hdf5_set_log_level();
