@@ -23,7 +23,7 @@ IF(ENABLE_TESTS)
   # keep it from being too bad.
 
   IF(BUILD_UTILITIES)
-    add_sh_test(dap4_test test_raw)
+    #add_sh_test(dap4_test test_raw)
   ENDIF(BUILD_UTILITIES)
 
   IF(ENABLE_DAP_REMOTE_TESTS)
