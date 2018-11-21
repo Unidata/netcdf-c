@@ -373,6 +373,12 @@ check_for_classic_model(NC_GRP_INFO_T *root_grp, int *is_classic)
  * @param nc Pointer to NC file info.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EINTERNAL Internal list error.
+ * @return ::NC_EHDFERR HDF error.
+ * @return ::NC_EMPI MPI error for parallel.
+ * @return ::NC_EPARINIT Parallel I/O initialization error.
+ * @return ::NC_EINMEMMORY Memory file error.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 static int
@@ -407,7 +413,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 
    /* Add struct to hold HDF5-specific group info. */
    if (!(nc4_info->root_grp->format_grp_info = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
-      return NC_ENOMEM;
+      BAIL(NC_ENOMEM);
 
    nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
    nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
@@ -642,6 +648,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_ENOMEM Out of memory.
  * @return ::NC_EHDFERR HDF5 returned error.
+ * @return ::NC_EVARMETA Error with var metadata.
  * @author Ed Hartnett
  */
 static int
@@ -1056,6 +1063,8 @@ get_netcdf_type(NC_FILE_INFO_T *h5, hid_t native_typeid,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 returned error.
+ * @return ::NC_EATTMETA Att metadata error.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
  */
 static int
