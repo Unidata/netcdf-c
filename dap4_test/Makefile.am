@@ -12,7 +12,7 @@ include $(top_srcdir)/lib_flags.am
 #sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TESTS_ENVIRONMENT = export SETX=1;
-	
+
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/libdap4
 
@@ -55,9 +55,9 @@ endif
 endif
 
 endif #ENABLE_DAP4
-
+# test_remote.sh
 EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
-             test_raw.sh test_remote.sh test_hyrax.sh test_fillmismatch.sh \
+             test_raw.sh test_hyrax.sh test_fillmismatch.sh \
              tst_curlopt.sh d4test_common.sh \
 	     daptestfiles dmrtestfiles cdltestfiles nctestfiles misctestfiles \
 	     baseline baselineraw baselineremote CMakeLists.txt
