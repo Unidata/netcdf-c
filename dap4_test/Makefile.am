@@ -50,7 +50,7 @@ check_PROGRAMS += findtestserver4
 findtestserver4_SOURCES = findtestserver4.c
 if BUILD_UTILITIES
   # relies on ncdump
-#  TESTS += test_remote.sh
+  TESTS += test_remote.sh
 endif
 endif
 
