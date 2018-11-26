@@ -150,7 +150,8 @@ ncuriparse(const char* uri0, NCURI** durip)
     uri = (char*)malloc(len0+1+1); /* +2 for nul term and for host section terminator */
     if(uri == NULL)
 	{THROW(NCU_ENOMEM);}
-    strncpy(uri,uri0,len0+1);
+    uri[0] = '\0';
+    strlcat(uri,uri0,len0+1+1);
 
     /* Walk the uri and do the following:
 	1. remove leading and trailing whitespace
