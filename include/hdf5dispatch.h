@@ -89,8 +89,8 @@ extern "C" {
    EXTERNL int
    NC4_HDF5_inq_attid(int ncid, int varid, const char *name, int *idp);
 
-/*    EXTERNL int */
-/*    NC4_inq_attname(int ncid, int varid, int attnum, char *name); */
+   EXTERNL int
+   NC4_HDF5_inq_attname(int ncid, int varid, int attnum, char *name);
 
    EXTERNL int
    NC4_HDF5_rename_att(int ncid, int varid, const char *name, const char *newname);
@@ -101,6 +101,9 @@ extern "C" {
    EXTERNL int
    NC4_HDF5_put_att(int ncid, int varid, const char *name, nc_type datatype,
                     size_t len, const void *value, nc_type);
+
+   EXTERNL int
+   NC4_HDF5_get_att(int ncid, int varid, const char *name, void *value, nc_type);
 
 /*    EXTERNL int */
 /*    NC4_def_var(int ncid, const char *name, */
