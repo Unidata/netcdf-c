@@ -365,7 +365,6 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
    return nc4_get_att(ncid, varid, name, NULL, NC_NAT, NULL, attnump, NULL);
 }
 
-
 /**
  * @internal Given an attnum, find the att's name.
  *

@@ -86,8 +86,8 @@ extern "C" {
    NC4_HDF5_inq_att(int ncid, int varid, const char *name,
                     nc_type *xtypep, size_t *lenp);
 
-/*    EXTERNL int */
-/*    NC4_inq_attid(int ncid, int varid, const char *name, int *idp); */
+   EXTERNL int
+   NC4_HDF5_inq_attid(int ncid, int varid, const char *name, int *idp);
 
 /*    EXTERNL int */
 /*    NC4_inq_attname(int ncid, int varid, int attnum, char *name); */
