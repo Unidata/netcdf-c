@@ -56,7 +56,7 @@ NC4_put_vars,
 NCDEFAULT_get_varm,
 NCDEFAULT_put_varm,
 
-NC4_inq_var_all,
+NC4_HDF5_inq_var_all,
 
 NC4_var_par_access,
 NC4_def_var_fill,
