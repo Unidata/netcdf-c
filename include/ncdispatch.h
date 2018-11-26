@@ -1,10 +1,11 @@
-/*********************************************************************
- *   Copyright 2010, UCAR/Unidata
- *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *********************************************************************/
-
-/* $Id: ncdispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
-/* $Header: /upc/share/CVS/netcdf-3/libdispatch/ncdispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
+/* Copyright 2005-2018 University Corporation for Atmospheric
+   Research/Unidata. */
+/**
+ * @file
+ * @internal Includes prototypes for core dispatch functionality.
+ *
+ * @author Dennis Heimbigner
+ */
 
 #ifndef _DISPATCH_H
 #define _DISPATCH_H
