@@ -82,12 +82,9 @@ extern "C" {
 /*    EXTERNL int */
 /*    NC4_rename_dim(int ncid, int dimid, const char *name); */
 
-/* /\* End _dim *\/ */
-/* /\* Begin _att *\/ */
-
-/*    EXTERNL int */
-/*    NC4_inq_att(int ncid, int varid, const char *name, */
-/*                nc_type *xtypep, size_t *lenp); */
+   EXTERNL int
+   NC4_HDF5_inq_att(int ncid, int varid, const char *name,
+                    nc_type *xtypep, size_t *lenp);
 
 /*    EXTERNL int */
 /*    NC4_inq_attid(int ncid, int varid, const char *name, int *idp); */
