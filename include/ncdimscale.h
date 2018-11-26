@@ -1,8 +1,11 @@
-/* This is part of the netCDF package.
-   Copyright 2011 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
-
-   Includes for some HDF5 stuff needed by tests.
+/* Copyright 2005-2018 University Corporation for Atmospheric
+   Research/Unidata. */
+/**
+ * @file
+ * @internal Includes for some HDF5 stuff needed by libhdf5 code and
+ * also some h5_test tests.
+ *
+ * @author Ed Hartnett
 */
 
 #ifndef _NCDIMSCALE_H_
@@ -10,6 +13,8 @@
 
 #include <hdf5.h>
 
+/* This is used to uniquely identify datasets, so we can keep track of
+ * dimscales. */
 typedef struct hdf5_objid 
 {
    unsigned long fileno[2]; /* file number */
