@@ -414,7 +414,6 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 
       attlist = var->att;
    }
-
    assert(attlist);
 
    /* Now find the attribute by name or number. If a name is provided,

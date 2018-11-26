@@ -2021,3 +2021,66 @@ exit:
       return NC_ERANGE;
    return NC_NOERR;
 }
+
+/**
+ * @internal Get all the information about a variable. Pass NULL for
+ * whatever you don't care about.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param name Gets name.
+ * @param xtypep Gets type.
+ * @param ndimsp Gets number of dims.
+ * @param dimidsp Gets array of dim IDs.
+ * @param nattsp Gets number of attributes.
+ * @param shufflep Gets shuffle setting.
+ * @param deflatep Gets deflate setting.
+ * @param deflate_levelp Gets deflate level.
+ * @param fletcher32p Gets fletcher32 setting.
+ * @param contiguousp Gets contiguous setting.
+ * @param chunksizesp Gets chunksizes.
+ * @param no_fill Gets fill mode.
+ * @param fill_valuep Gets fill value.
+ * @param endiannessp Gets one of ::NC_ENDIAN_BIG ::NC_ENDIAN_LITTLE
+ * ::NC_ENDIAN_NATIVE
+ * @param idp Pointer to memory to store filter id.
+ * @param nparamsp Pointer to memory to store filter parameter count.
+ * @param params Pointer to vector of unsigned integers into which
+ * to store filter parameters.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Bad varid.
+ * @returns ::NC_ENOMEM Out of memory.
+ * @returns ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
+int
+NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
+                     int *ndimsp, int *dimidsp, int *nattsp,
+                     int *shufflep, int *deflatep, int *deflate_levelp,
+                     int *fletcher32p, int *contiguousp, size_t *chunksizesp,
+                     int *no_fill, void *fill_valuep, int *endiannessp,
+                     unsigned int *idp, size_t *nparamsp, unsigned int *params)
+{
+   NC_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
+   NC_VAR_INFO_T *var = NULL;
+   int retval;
+
+   LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+   /* Find the file, group, and var info, and do lazy att read if
+    * needed. */
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
+                                           &grp, &var, NULL)))
+      return retval;
+   assert(grp && h5);
+
+   /* Now that lazy atts have been read, use the libsrc4 function to
+    * get the answers. */
+   return NC4_inq_var_all(ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp,
+                          shufflep, deflatep, deflate_levelp, fletcher32p,
+                          contiguousp, chunksizesp, no_fill, fill_valuep,
+                          endiannessp, idp, nparamsp, params);
+}
