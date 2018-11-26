@@ -233,10 +233,8 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                 int *shufflep, int *deflatep, int *deflate_levelp,
                 int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                 int *no_fill, void *fill_valuep, int *endiannessp,
-                unsigned int* idp, size_t* nparamsp, unsigned int* params
-   )
+                unsigned int *idp, size_t *nparamsp, unsigned int *params)
 {
-   NC *nc;
    NC_GRP_INFO_T *grp;
    NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
@@ -246,10 +244,8 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find info for this file and group, and set pointer to each. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
       return retval;
-
-   assert(nc);
    assert(grp && h5);
 
    /* Walk through the list of vars, and return the info about the one
