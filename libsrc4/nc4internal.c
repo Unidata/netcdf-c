@@ -394,55 +394,41 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
                  NC_ATT_INFO_T **att)
 {
    NC_VAR_INFO_T *var;
-   NCindex* attlist = NULL;
-   int retval;
+   NC_ATT_INFO_T *my_att;
+   NCindex *attlist = NULL;
 
-   assert(grp && grp->hdr.name);
-   LOG((4, "nc4_find_grp_att: grp->name %s varid %d name %s attnum %d",
-        grp->hdr.name, varid, name, attnum));
+   assert(grp && grp->hdr.name && att);
+
+   LOG((4, "%s: grp->name %s varid %d attnum %d", __func__, grp->hdr.name,
+        varid, attnum));
 
    /* Get either the global or a variable attribute list. */
    if (varid == NC_GLOBAL)
    {
       attlist = grp->att;
-
-      /* /\* Do we need to read the atts? *\/ */
-      /* if (grp->atts_not_read) */
-      /*    if ((retval = nc4_read_atts(grp, NULL))) */
-      /*       return retval; */
    }
    else
    {
       var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
       if (!var) return NC_ENOTVAR;
 
-      /* /\* Do we need to read the var attributes? *\/ */
-      /* if (var->atts_not_read) */
-      /*    if ((retval = nc4_read_atts(grp, var))) */
-      /*       return retval; */
-
       attlist = var->att;
-      assert(var->hdr.id == varid);
    }
+
+   assert(attlist);
 
    /* Now find the attribute by name or number. If a name is provided,
     * ignore the attnum. */
-   if (attlist)
-   {
-      NC_ATT_INFO_T *my_att;
-      if (name)
-         my_att = (NC_ATT_INFO_T *)ncindexlookup(attlist, name);
-      else
-         my_att = (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
-      if (my_att)
-      {
-         *att = my_att;
-         return NC_NOERR;
-      }
-   }
+   if (name)
+      my_att = (NC_ATT_INFO_T *)ncindexlookup(attlist, name);
+   else
+      my_att = (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
 
-   /* If we get here, we couldn't find the attribute. */
-   return NC_ENOTATT;
+   if (!my_att)
+      return NC_ENOTATT;
+
+   *att = my_att;
+   return NC_NOERR;
 }
 
 /**
