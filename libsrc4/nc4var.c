@@ -251,23 +251,14 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    /* Walk through the list of vars, and return the info about the one
       with a matching varid. If the varid is -1, find the global
       atts and call it a day. */
-   if (varid == NC_GLOBAL)
+   if (varid == NC_GLOBAL && nattsp)
    {
-      if (nattsp)
-      {
-         /* Do we need to read the atts? */
-         if (grp->atts_not_read)
-            if ((retval = nc4_read_atts(grp, NULL)))
-               return retval;
-
-         *nattsp = ncindexcount(grp->att);
-      }
+      *nattsp = ncindexcount(grp->att);
       return NC_NOERR;
    }
 
    /* Find the var. */
-   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
-   if(!var)
+   if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
       return NC_ENOTVAR;
    assert(var && var->hdr.id == varid);
 
@@ -282,12 +273,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       for (d = 0; d < var->ndims; d++)
          dimidsp[d] = var->dimids[d];
    if (nattsp)
-   {
-      if (var->atts_not_read)
-         if ((retval = nc4_read_atts(grp, var)))
-            return retval;
       *nattsp = ncindexcount(var->att);
-   }
 
    /* Chunking stuff. */
    if (!var->contiguous && chunksizesp)
