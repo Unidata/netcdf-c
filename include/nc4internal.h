@@ -286,6 +286,14 @@ typedef struct  NC_FILE_INFO
    } mem;
 } NC_FILE_INFO_T;
 
+/* Variable Length Datatype struct in memory. Must be identical to
+ * HDF5 hvl_t. (This is only used for VL sequences, not VL strings,
+ * which are stored in char *'s) */
+typedef struct {
+    size_t len; /* Length of VL data (in base type units) */
+    void *p;    /* Pointer to VL data */
+} nc_hvl_t;
+
 extern char* nc4_atomic_name[NC_MAX_ATOMIC_TYPE+1];
 
 /* These functions convert between netcdf and HDF5 types. */
@@ -361,6 +369,11 @@ int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 
 /* Find default fill value. */
 int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value);
+
+/* Get an att given pointers to file, group, and perhaps ver info. */
+int nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
+                     const char *name, nc_type *xtype, nc_type mem_type,
+                     size_t *lenp, int *attnum, void *data);
 
 /* Close the file. */
 int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
