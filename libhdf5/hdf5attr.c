@@ -769,3 +769,56 @@ NC4_HDF5_inq_attid(int ncid, int varid, const char *name, int *attnump)
 
    return nc4_get_att_ptrs(h5, grp, var, name, NULL, NC_NAT, NULL, attnump, NULL);
 }
+
+/**
+ * @internal Given an attnum, find the att's name.
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param attnum The index number of the attribute.
+ * @param name Pointer that gets name of attrribute.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
+int
+NC4_HDF5_inq_attname(int ncid, int varid, int attnum, char *name)
+{
+   NC_ATT_INFO_T *att;
+   int retval;
+
+   LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+   /* Find the file, group, and var info, and do lazy att read if
+    * needed. */
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, NULL, attnum, 0, NULL,
+                                           NULL, NULL, &att)))
+      return retval;
+   assert(att);
+
+   /* Get the name. */
+   if (name)
+      strcpy(name, att->hdr.name);
+
+   return NC_NOERR;
+}
+
+/**
+ * @internal Get an attribute.
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param name Name of attribute.
+ * @param value Pointer that gets attribute data.
+ * @param memtype The type the data should be converted to as it is read.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
+int
+NC4_HDF5_get_att(int ncid, int varid, const char *name, void *value, nc_type memtype)
+{
+   return nc4_get_att(ncid, varid, name, NULL, memtype, NULL, NULL, value);
+}

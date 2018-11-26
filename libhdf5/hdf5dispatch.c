@@ -40,10 +40,10 @@ NC4_rename_dim,
 
 NC4_HDF5_inq_att,
 NC4_HDF5_inq_attid,
-NC4_inq_attname,
+NC4_HDF5_inq_attname,
 NC4_HDF5_rename_att,
 NC4_HDF5_del_att,
-NC4_get_att,
+NC4_HDF5_get_att,
 NC4_HDF5_put_att,
 
 NC4_def_var,
