@@ -729,7 +729,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
            var->hdr.name));
 
       /* If there's a _FillValue attribute, delete it. */
-      retval = NC4_del_att(ncid, varid, _FillValue);
+      retval = NC4_HDF5_del_att(ncid, varid, _FillValue);
       if (retval && retval != NC_ENOTATT)
          return retval;
 

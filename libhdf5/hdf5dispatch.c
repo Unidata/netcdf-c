@@ -9,10 +9,7 @@
 */
 
 #include "config.h"
-#include <stdlib.h>
-#include "nc4internal.h"
-#include "nc4dispatch.h"
-#include "nc.h"
+#include "hdf5internal.h"
 
 static NC_Dispatch NC4_dispatcher = {
 
@@ -44,10 +41,10 @@ NC4_rename_dim,
 NC4_inq_att,
 NC4_inq_attid,
 NC4_inq_attname,
-NC4_rename_att,
-NC4_del_att,
+NC4_HDF5_rename_att,
+NC4_HDF5_del_att,
 NC4_get_att,
-NC4_put_att,
+NC4_HDF5_put_att,
 
 NC4_def_var,
 NC4_inq_varid,

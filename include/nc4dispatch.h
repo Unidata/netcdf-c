@@ -97,21 +97,11 @@ extern "C" {
    EXTERNL int
    NC4_inq_attname(int ncid, int varid, int attnum, char *name);
 
-   EXTERNL int
-   NC4_rename_att(int ncid, int varid, const char *name, const char *newname);
-
-   EXTERNL int
-   NC4_del_att(int ncid, int varid, const char*);
-
 /* End _att */
 /* Begin {put,get}_att */
 
    EXTERNL int
    NC4_get_att(int ncid, int varid, const char *name, void *value, nc_type);
-
-   EXTERNL int
-   NC4_put_att(int ncid, int varid, const char *name, nc_type datatype,
-               size_t len, const void *value, nc_type);
 
 /* End {put,get}_att */
 /* Begin _var */
