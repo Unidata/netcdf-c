@@ -1,14 +1,15 @@
+/* Copyright 2018 University Corporation for Atmospheric
+   Research/Unidata. See COPYRIGHT file for more info. */
 /*! \file
 Functions for inquiring about variables.
 
-Copyright 2018 University Corporation for Atmospheric
-Research/Unidata. See COPYRIGHT file for more info.
 */
 
+#include "config.h"
 #include "ncdispatch.h"
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 #include <hdf5.h>
-#endif
+#endif /* USE_HDF5 */
 
 #ifndef H5Z_FILTER_SZIP
 /** ID of HDF SZIP filter. */
