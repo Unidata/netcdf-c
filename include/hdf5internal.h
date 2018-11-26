@@ -139,4 +139,10 @@ extern void NC4_image_finalize(void*);
 int nc4_detect_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
 int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
 
+/* Find file, group, var, and att info, doing lazy reads if needed. */
+int nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
+                              int use_name, NC_FILE_INFO_T **h5,
+                              NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var,
+                              NC_ATT_INFO_T **att);
+
 #endif /* _HDF5INTERNAL_ */
