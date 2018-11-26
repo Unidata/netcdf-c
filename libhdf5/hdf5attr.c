@@ -705,3 +705,37 @@ NC4_HDF5_put_att(int ncid, int varid, const char *name, nc_type file_type,
 
    return nc4_put_att(grp, varid, name, file_type, len, data, mem_type, 0);
 }
+
+/**
+ * @internal Learn about an att. All the nc4 nc_inq_ functions just
+ * call nc4_get_att to get the metadata on an attribute.
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param name Name of attribute.
+ * @param xtypep Pointer that gets type of attribute.
+ * @param lenp Pointer that gets length of attribute data array.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
+int
+NC4_HDF5_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
+                 size_t *lenp)
+{
+   NC_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
+   NC_VAR_INFO_T *var = NULL;
+   int retval;
+
+   LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
+
+   /* Find the file, group, and var info, and do lazy att read if
+    * needed. */
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
+                                           &grp, &var, NULL)))
+      return retval;
+
+   return nc4_get_att_ptrs(h5, grp, var, name, xtypep, NC_NAT, lenp, NULL, NULL);
+}

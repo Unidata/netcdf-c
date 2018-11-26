@@ -38,7 +38,7 @@ NC4_inq_dim,
 NC4_inq_unlimdim,
 NC4_rename_dim,
 
-NC4_inq_att,
+NC4_HDF5_inq_att,
 NC4_inq_attid,
 NC4_inq_attname,
 NC4_HDF5_rename_att,
