@@ -136,9 +136,14 @@ extern int NCP_finalize(void);
 #endif
 
 #ifdef USE_NETCDF4
-extern NC_Dispatch* NC4_dispatch_table;
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
+#endif
+
+#ifdef USE_HDF5
+extern NC_Dispatch* HDF5_dispatch_table;
+extern int NC_HDF5_initialize(void);
+extern int NC_HDF5_finalize(void);
 #endif
 
 #ifdef USE_HDF4

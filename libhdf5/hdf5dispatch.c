@@ -107,7 +107,7 @@ NC4_get_var_chunk_cache,
 
 };
 
-NC_Dispatch* NC4_dispatch_table = NULL; /* moved here from ddispatch.c */
+NC_Dispatch* HDF5_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 /**
  * @internal Initialize the HDF5 dispatch layer.
@@ -118,7 +118,7 @@ NC_Dispatch* NC4_dispatch_table = NULL; /* moved here from ddispatch.c */
 int
 NC_HDF5_initialize(void)
 {
-   NC4_dispatch_table = &NC4_dispatcher;
+   HDF5_dispatch_table = &NC4_dispatcher;
 
    if (!nc4_hdf5_initialized)
       nc4_hdf5_initialize();
