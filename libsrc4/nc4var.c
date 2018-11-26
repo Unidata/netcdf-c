@@ -542,9 +542,6 @@ NC4_var_par_access(int ncid, int varid, int par_access)
  * value used (or the default fill value if none is supplied) for
  * values that overflow the type.
  *
- * @note I should be able to take this out when HDF5 does the right thing
- * with data type conversion. Ed Hartnett, 11/15/3
- *
  * @param src Pointer to source of data.
  * @param dest Pointer that gets data.
  * @param src_type Type ID of source data.
@@ -1343,5 +1340,76 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
            __func__, src_type, dest_type));
       return NC_EBADTYPE;
    }
+   return NC_NOERR;
+}
+
+/**
+ * @internal Get the default fill value for an atomic type. Memory for
+ * fill_value must already be allocated, or you are DOOMED!
+ *
+ * @param type_info Pointer to type info struct.
+ * @param fill_value Pointer that gets the default fill value.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EINVAL Can't find atomic type.
+ * @author Ed Hartnett
+ */
+int
+nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value)
+{
+   switch (type_info->hdr.id)
+   {
+   case NC_CHAR:
+      *(char *)fill_value = NC_FILL_CHAR;
+      break;
+
+   case NC_STRING:
+      *(char **)fill_value = strdup(NC_FILL_STRING);
+      break;
+
+   case NC_BYTE:
+      *(signed char *)fill_value = NC_FILL_BYTE;
+      break;
+
+   case NC_SHORT:
+      *(short *)fill_value = NC_FILL_SHORT;
+      break;
+
+   case NC_INT:
+      *(int *)fill_value = NC_FILL_INT;
+      break;
+
+   case NC_UBYTE:
+      *(unsigned char *)fill_value = NC_FILL_UBYTE;
+      break;
+
+   case NC_USHORT:
+      *(unsigned short *)fill_value = NC_FILL_USHORT;
+      break;
+
+   case NC_UINT:
+      *(unsigned int *)fill_value = NC_FILL_UINT;
+      break;
+
+   case NC_INT64:
+      *(long long *)fill_value = NC_FILL_INT64;
+      break;
+
+   case NC_UINT64:
+      *(unsigned long long *)fill_value = NC_FILL_UINT64;
+      break;
+
+   case NC_FLOAT:
+      *(float *)fill_value = NC_FILL_FLOAT;
+      break;
+
+   case NC_DOUBLE:
+      *(double *)fill_value = NC_FILL_DOUBLE;
+      break;
+
+   default:
+      return NC_EINVAL;
+   }
+
    return NC_NOERR;
 }
