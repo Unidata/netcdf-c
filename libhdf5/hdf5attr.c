@@ -820,5 +820,18 @@ NC4_HDF5_inq_attname(int ncid, int varid, int attnum, char *name)
 int
 NC4_HDF5_get_att(int ncid, int varid, const char *name, void *value, nc_type memtype)
 {
-   return nc4_get_att(ncid, varid, name, NULL, memtype, NULL, NULL, value);
+   NC_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
+   NC_VAR_INFO_T *var = NULL;
+   int retval;
+
+   LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+   /* Find the file, group, and var info, and do lazy att read if
+    * needed. */
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
+                                           &grp, &var, NULL)))
+      return retval;
+
+   return nc4_get_att_ptrs(h5, grp, var, name, NULL, memtype, NULL, NULL, value);
 }
