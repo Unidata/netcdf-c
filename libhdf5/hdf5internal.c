@@ -651,6 +651,98 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
    return NC_NOERR;
 }
 
+/**
+ * @internal Given an ncid and varid, find an att. Lazy reads are done
+ * as needed.
+ *
+ * @param ncid File/group ID.
+ * @param varid Variable ID.
+ * @param name Name to of attribute.
+ * @param attnum Number of attribute.
+ * @param use_name If true, use the name to get the
+ * attribute. Otherwise use the attnum.
+ * @param h5 Pointer to pointer that gets file info struct. Ignored if
+ * NULL.
+ * @param grp Pointer to pointer that gets group info struct. Ignored
+ * if NULL.
+ * @param h5 Pointer to pointer that gets variable info
+ * struct. Ignored if NULL.
+ * @param att Pointer to pointer that gets attribute info
+ * struct. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Variable not found.
+ * @return ::NC_ENOTATT Attribute not found.
+ * @author Ed Hartnett
+ */
+int
+nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
+                          int use_name, NC_FILE_INFO_T **h5,
+                          NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var,
+                          NC_ATT_INFO_T **att)
+{
+   NC_FILE_INFO_T *my_h5;
+   NC_GRP_INFO_T *my_grp;
+   NC_VAR_INFO_T *my_var = NULL;
+   NC_ATT_INFO_T *my_att;
+   NCindex *attlist = NULL;
+   int retval;
+
+   LOG((4, "%s: ncid %d varid %d attnum %d use_name %d", __func__, ncid, varid,
+        attnum, use_name));
+
+   /* Find info for this file, group, and h5 info. */
+   if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &my_grp, &my_h5)))
+      return retval;
+   assert(my_grp && my_h5);
+
+   /* Get either the global or a variable attribute list. */
+   if (varid == NC_GLOBAL)
+   {
+      /* Do we need to read the atts? */
+      if (my_grp->atts_not_read)
+         if ((retval = nc4_read_atts(my_grp, NULL)))
+            return retval;
+
+      attlist = my_grp->att;
+   }
+   else
+   {
+      if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, varid)))
+         return NC_ENOTVAR;
+
+      /* Do we need to read the var attributes? */
+      if (my_var->atts_not_read)
+         if ((retval = nc4_read_atts(my_grp, my_var)))
+            return retval;
+
+      attlist = my_var->att;
+   }
+   assert(attlist);
+
+   /* Now find the attribute by name or number. */
+   if (att)
+   {
+      my_att = use_name ? (NC_ATT_INFO_T *)ncindexlookup(attlist, name) :
+         (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
+      if (!my_att)
+         return NC_ENOTATT;
+   }
+
+   /* Give the people what they want. */
+   if (h5)
+      *h5 = my_h5;
+   if (grp)
+      *grp = my_grp;
+   if (var)
+      *var = my_var;
+   if (att)
+      *att = my_att;
+
+   return NC_NOERR;
+}
+
 #ifdef LOGGING
 /* We will need to check against nc log level from nc4internal.c. */
 extern int nc_log_level;
