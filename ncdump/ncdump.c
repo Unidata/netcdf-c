@@ -49,6 +49,7 @@ int optind;
 #include "nclog.h"
 #include "ncwinpath.h"
 #include "netcdf_aux.h"
+#include "nc_provenance.h"
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h" /* to get name of the special properties file */
@@ -1095,7 +1096,7 @@ pr_att_specials(
 }
 #endif /* USE_NETCDF4 */
 
-#ifdef USE_NETCDF4
+
 static void
 pr_att_hidden(
     int ncid,
@@ -1145,7 +1146,6 @@ pr_att_hidden(
         }
     }
 }
-#endif /* USE_NETCDF4 */
 
 /*
  * Print a variable attribute for NcML
@@ -1798,9 +1798,8 @@ do_ncdump_rec(int ncid, const char *path)
    }
    if (is_root && formatting_specs.special_atts) { /* output special attribute
 					   * for format variant */
-#ifdef USE_NETCDF4
-       pr_att_hidden(ncid, kind);
-#endif
+
+     pr_att_hidden(ncid, kind);
        pr_att_global_format(ncid, kind);
    }
 
