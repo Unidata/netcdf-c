@@ -49,6 +49,7 @@ int optind;
 #include "nclog.h"
 #include "ncwinpath.h"
 #include "netcdf_aux.h"
+#include "nc_provenance.h"
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h" /* to get name of the special properties file */
@@ -1067,7 +1068,7 @@ pr_att_specials(
 	    printf(" = \"%u",id);
 	    if(nparams > 0) {
 	        int i;
-		for(i=0;i<nparams;i++)	
+		for(i=0;i<nparams;i++)
 		    printf(",%u",params[i]);
 	    }
 	    printf("\" ;\n");
@@ -1095,7 +1096,7 @@ pr_att_specials(
 }
 #endif /* USE_NETCDF4 */
 
-#ifdef USE_NETCDF4
+
 static void
 pr_att_hidden(
     int ncid,
@@ -1145,7 +1146,6 @@ pr_att_hidden(
         }
     }
 }
-#endif /* USE_NETCDF4 */
 
 /*
  * Print a variable attribute for NcML
@@ -1798,9 +1798,8 @@ do_ncdump_rec(int ncid, const char *path)
    }
    if (is_root && formatting_specs.special_atts) { /* output special attribute
 					   * for format variant */
-#ifdef USE_NETCDF4
-       pr_att_hidden(ncid, kind);
-#endif
+
+     pr_att_hidden(ncid, kind);
        pr_att_global_format(ncid, kind);
    }
 
@@ -2155,7 +2154,7 @@ main(int argc, char *argv[])
     int Xp_flag = 0;    /* indicate that -Xp flag was set */
     char* path = NULL;
     char errmsg[4096];
-	
+
     errmsg[0] = '\0';
 
 #if defined(WIN32) || defined(msdos) || defined(WIN64)
@@ -2353,7 +2352,7 @@ main(int argc, char *argv[])
 	    } else /* just a file */
 	        ncstat = nc_open(path, NC_NOWRITE, &ncid);
 	    if (ncstat != NC_NOERR) goto fail;
-	    
+
 	    NC_CHECK( nc_inq_format(ncid, &formatting_specs.nc_kind) );
 	    NC_CHECK( nc_inq_format_extended(ncid,
                                              &formatting_specs.nc_extended,
