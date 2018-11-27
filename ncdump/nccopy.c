@@ -696,29 +696,29 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outk
     outputdefined = 0; /* default is no filter defined */
     /* Only bother to look if output is netcdf-4 variant */
     if(outnc4) {
-        /* See if any output filter spec is defined for this output variable */
-        for(i=0;i<nfilterspecs;i++) {
+      /* See if any output filter spec is defined for this output variable */
+      for(i=0;i<nfilterspecs;i++) {
 	    if(strcmp(filterspecs[i].fqn,ofqn)==0) {
-	        ospec = filterspecs[i];
-	        outputdefined = 1;
-	        break;
+          ospec = filterspecs[i];
+          outputdefined = 1;
+          break;
 	    }
-        }
+      }
     }
 
     /* Is there a filter on the input variable */
     inputdefined = 0; /* default is no filter defined */
     /* Only bother to look if input is netcdf-4 variant */
     if(innc4) {
-	stat=nc_inq_var_filter(vid.grpid,vid.varid,&inspec.filterid,&inspec.nparams,NULL);
-	if(stat && stat != NC_EFILTER)
+      stat=nc_inq_var_filter(vid.grpid,vid.varid,&inspec.filterid,&inspec.nparams,NULL);
+      if(stat && stat != NC_EFILTER)
 	    goto done; /* true error */
-	if(stat == NC_NOERR) {/* input has a filter */
+      if(stat == NC_NOERR) {/* input has a filter */
   	    inspec.params = (unsigned int*)malloc(sizeof(unsigned int)*inspec.nparams);
 	    if((stat=nc_inq_var_filter(vid.grpid,vid.varid,&inspec.filterid,&inspec.nparams,inspec.params)))
-	        goto done;
+          goto done;
 	    inputdefined = 1;
-	}
+      }
     }
 
     /* Rules for choosing output filter are as follows:
@@ -737,17 +737,17 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outk
     unfiltered = 0;
 
     if(suppressfilters && !outputdefined) /* row 1 */
-	unfiltered = 1;
+      unfiltered = 1;
     else if(suppressfilters && outputdefined && ospec.nofilter) /* row 2 */
-	unfiltered = 1;
+      unfiltered = 1;
     else if(suppressfilters && outputdefined) /* row 3 */
-	actualspec = ospec;
+      actualspec = ospec;
     else if(!suppressfilters && !outputdefined && inputdefined) /* row 4 */
-	actualspec = inspec;
+      actualspec = inspec;
     else if(!suppressfilters && outputdefined && ospec.nofilter) /* row 5 */
-	unfiltered = 1;
+      unfiltered = 1;
     else if(!suppressfilters && outputdefined) /* row 6 */
-	actualspec = ospec;
+      actualspec = ospec;
 
     /* Apply actual filter spec if any */
     if(!unfiltered) {
