@@ -48,6 +48,10 @@ if ENABLE_DAP_REMOTE_TESTS
 # to avoid cmake complaint about duplicate targets.
 check_PROGRAMS += findtestserver4
 findtestserver4_SOURCES = findtestserver4.c
+if BUILD_UTILITIES
+  # relies on ncdump
+  #TESTS += test_remote.sh
+endif
 endif
 
 endif #ENABLE_DAP4
