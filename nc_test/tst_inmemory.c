@@ -44,12 +44,12 @@ extern int H5Eprint1(FILE * stream);
 #define CREATEFILE4 "tst_memcreate4.nc"
 
 /* Make no dimension larger than this */
-#define MAXDIMLEN 100
+#define MAXDIMLEN 400
 #define NDIMS 2
 #define UNLIM_LEN 2
 #define DIM0_NAME "fun"
 #define DIM1_NAME "money"
-#define DIM1_LEN 8
+#define DIM1_LEN 400
 #define ATT0_NAME "home"
 #define ATT0_TEXT "earthship"
 #define NVARS 3
