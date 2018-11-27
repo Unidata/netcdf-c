@@ -19,7 +19,8 @@ ncuri.h ncutf8.h ncdispatch.h ncdimscale.h netcdf_f.h err_macros.h	\
 ncbytes.h nchashmap.h ceconstraints.h rnd.h nclog.h ncconfigure.h	\
 nc4internal.h nctime.h nc3internal.h onstack.h ncrc.h ncauth.h		\
 ncoffsets.h nctestserver.h nc4dispatch.h nc3dispatch.h ncexternl.h	\
-ncwinpath.h ncfilter.h ncindex.h hdf4dispatch.h hdf5internal.h
+ncwinpath.h ncfilter.h ncindex.h hdf4dispatch.h hdf5internal.h \
+nc_provenance.h
 
 if USE_DAP
 noinst_HEADERS += ncdap.h

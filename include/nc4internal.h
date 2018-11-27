@@ -21,6 +21,7 @@
 #include "ncdimscale.h"
 #include "nc_logging.h"
 #include "ncindex.h"
+#include "nc_provenance.h"
 
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
@@ -451,34 +452,6 @@ extern const NC_reservedatt* NC_findreserved(const char* name);
 #define NC_ATT_COORDINATES COORDINATES /*defined above*/
 #define NC_ATT_FORMAT "_Format"
 
-/**************************************************/
-/**
-For netcdf4 files, capture state information about the following:
-1. Global: netcdf library version
-2. Global: hdf5 library version
-3. Per file: superblock version
-4. Per File: was it created by netcdf-4?
-5. Per file: _NCProperties attribute
-*/
-
-/* Most of this needs to be moved to hdf5internal.h */
-
-#define NCPROPS "_NCProperties"
-#define NCPVERSION "version" /* Of the properties format */
-#define NCPHDF5LIB1 "hdf5libversion"
-#define NCPNCLIB1 "netcdflibversion"
-#define NCPHDF5LIB2 "hdf5"
-#define NCPNCLIB2 "netcdf"
-#define NCPROPS_VERSION (2)
-/* Version 2 changes this because '|' was causing bash problems */
-#define NCPROPSSEP1  '|'
-#define NCPROPSSEP2  ','
-
-
-/* Other hidden attributes */
-#define ISNETCDF4ATT "_IsNetcdf4"
-#define SUPERBLOCKATT "_SuperblockVersion"
-
 struct NCPROVENANCE {
     int superblockversion;
      struct NCPROPINFO {
@@ -488,7 +461,7 @@ struct NCPROVENANCE {
 	   "netcdflibversion=<version|hdf5libversion=<version>"
 	   Version 2 format is:
 	   "<mainbuildlib>=<version|<supportlib1>=<version>...|<other>=..."
-	*/	
+	*/
 	/* The _NCProperties values are stored as an arbitrary
            set of (key,value) pairs */
 	/* It is assumed that the first entry is the primary library
