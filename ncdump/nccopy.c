@@ -836,7 +836,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
             int odimid = dimmap_odimid(idimid);
             size_t chunksize;
             size_t dimlen;
-    
+
             /* Get input dimension length */
             NC_CHECK(nc_inq_dimlen(igrp, idimid, &dimlen));
 
@@ -853,7 +853,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
                 ocontig = 0; /* cannot use contiguous */
                 goto next;
             }
-    
+
             /* Not specified in -c; Apply defaulting rules as defined in nccopy.1 */
 
 	    /* If input is chunked, then use that chunk size */
@@ -1199,7 +1199,10 @@ copy_atts(int igrp, int ivar, int ogrp, int ovar)
     for(iatt = 0; iatt < natts; iatt++) {
 	char name[NC_MAX_NAME];
 	NC_CHECK(nc_inq_attname(igrp, ivar, iatt, name));
-	NC_CHECK(nc_copy_att(igrp, ivar, name, ogrp, ovar));
+    if(!strcmp(name,"_NCProperties"))
+      return stat;
+
+    NC_CHECK(nc_copy_att(igrp, ivar, name, ogrp, ovar));
     }
     return stat;
 }
