@@ -1067,7 +1067,7 @@ pr_att_specials(
 	    printf(" = \"%u",id);
 	    if(nparams > 0) {
 	        int i;
-		for(i=0;i<nparams;i++)	
+		for(i=0;i<nparams;i++)
 		    printf(",%u",params[i]);
 	    }
 	    printf("\" ;\n");
@@ -1106,8 +1106,8 @@ pr_att_hidden(
     size_t len;
 
     /* No special variable attributes for classic or 64-bit offset data */
-    if(kind == 1 || kind == 2)
-	return;
+    //if(kind == 1 || kind == 2)
+	//return;
     /* Print out Selected hidden attributes */
     /* NCPROPS */
     stat = nc_inq_att(ncid,NC_GLOBAL,NCPROPS,NULL,&len);
@@ -2155,7 +2155,7 @@ main(int argc, char *argv[])
     int Xp_flag = 0;    /* indicate that -Xp flag was set */
     char* path = NULL;
     char errmsg[4096];
-	
+
     errmsg[0] = '\0';
 
 #if defined(WIN32) || defined(msdos) || defined(WIN64)
@@ -2353,7 +2353,7 @@ main(int argc, char *argv[])
 	    } else /* just a file */
 	        ncstat = nc_open(path, NC_NOWRITE, &ncid);
 	    if (ncstat != NC_NOERR) goto fail;
-	    
+
 	    NC_CHECK( nc_inq_format(ncid, &formatting_specs.nc_kind) );
 	    NC_CHECK( nc_inq_format_extended(ncid,
                                              &formatting_specs.nc_extended,
