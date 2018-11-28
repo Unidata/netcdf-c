@@ -9,8 +9,6 @@
 #include <config.h>
 #include <nc_tests.h>
 #include "err_macros.h"
-#include <hdf5.h>
-#include <H5DSpublic.h>
 #include <mfhdf.h>
 
 #define CHUNKEDFILE "ref_chunked.hdf4"
