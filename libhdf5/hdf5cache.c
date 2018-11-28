@@ -12,10 +12,11 @@
 #include "config.h"
 #include "hdf5internal.h"
 
-/* These hold the file caching settings for the library. */
-size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
-size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
-float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
+/* These are the default chunk cache sizes for HDF5 files created or
+ * opened with netCDF-4. */
+extern size_t nc4_chunk_cache_size;
+extern size_t nc4_chunk_cache_nelems;
+extern float nc4_chunk_cache_preemption;
 
 /**
  * Set chunk cache size. Only affects files opened/created *after* it
