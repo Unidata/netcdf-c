@@ -190,12 +190,23 @@ nc4_rec_find_hdf_type(NC_FILE_INFO_T *h5, hid_t target_hdf_typeid)
 
    assert(h5);
 
-   for(i=0;i<nclistlength(h5->alltypes);i++) {
-      type = (NC_TYPE_INFO_T*)nclistget(h5->alltypes,i);
+   for (i = 0; i < nclistlength(h5->alltypes); i++)
+   {
+      NC_HDF5_TYPE_INFO_T *hdf5_type;
+      hid_t hdf_typeid;
+
+      type = (NC_TYPE_INFO_T*)nclistget(h5->alltypes, i);
       if(type == NULL) continue;
+
+      /* Get HDF5-specific type info. */
+      hdf5_type = (NC_HDF5_TYPE_INFO_T *)type->format_type_info;
+
+      /* Select the HDF5 typeid to use. */
+      hdf_typeid = hdf5_type->native_hdf_typeid ?
+         hdf5_type->native_hdf_typeid : hdf5_type->hdf_typeid;
+
       /* Is this the type we are searching for? */
-      if ((equal = H5Tequal(type->native_hdf_typeid ? type->native_hdf_typeid :
-                            type->hdf_typeid, target_hdf_typeid)) < 0)
+      if ((equal = H5Tequal(hdf_typeid, target_hdf_typeid)) < 0)
          return NULL;
       if (equal)
          return type;
@@ -274,7 +285,7 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 int
 nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim)
 {
-   int retval = NC_NOERR;
+   int retval;
 
    /* Sanity checks */
    assert(grp && coord_var && dim && dim->coord_var == coord_var &&
@@ -286,7 +297,8 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
    /* If we're replacing an existing dimscale dataset, go to
     * every var in the file and detach this dimension scale. */
    if ((retval = rec_detach_scales(grp->nc4_info->root_grp,
-                                   dim->hdr.id, coord_var->hdf_datasetid)))
+                                   dim->hdr.id,
+                                   ((NC_HDF5_VAR_INFO_T *)(coord_var->format_var_info))->hdf_datasetid)))
       return retval;
 
    /* Allow attached dimscales to be tracked on the [former]
@@ -385,16 +397,19 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 {
    NC_HDF5_DIM_INFO_T *hdf5_dim;
    NC_HDF5_GRP_INFO_T *hdf5_grp;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    int need_to_reattach_scales = 0;
    int retval = NC_NOERR;
 
-   assert(grp && grp->format_grp_info && var && dim && dim->format_dim_info);
+   assert(grp && grp->format_grp_info && var && var->format_var_info &&
+          dim && dim->format_dim_info);
    LOG((3, "%s: dim->hdr.name %s var->hdr.name %s", __func__, dim->hdr.name,
         var->hdr.name));
 
-   /* Get HDF5-specific dim and group info. */
+   /* Get HDF5-specific dim, group, and var info. */
    hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
    hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    /* Detach dimscales from the [new] coordinate variable */
    if (var->dimscale_attached)
@@ -429,7 +444,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 
                      /* Find dataset ID for dimension */
                      if (dim1->coord_var)
-                        dim_datasetid = dim1->coord_var->hdf_datasetid;
+                        dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
                      else
                         dim_datasetid = hdf5_dim1->hdf_dimscaleid;
 
@@ -440,7 +455,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
                      if (dim_datasetid > 0)
                      {
                         LOG((3, "detaching scale from %s", var->hdr.name));
-                        if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+                        if (H5DSdetach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
                            BAIL(NC_EHDFERR);
                      }
                      var->dimscale_attached[d] = NC_FALSE;
@@ -482,7 +497,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
       /* Reattach the scale everywhere it is used. */
       /* (Recall that netCDF dimscales are always 1-D) */
       if ((retval = rec_reattach_scales(grp->nc4_info->root_grp,
-                                        var->dimids[0], var->hdf_datasetid)))
+                                        var->dimids[0], hdf5_var->hdf_datasetid)))
          return retval;
 
       /* Set state transition indicator (cancels earlier transition) */
@@ -509,6 +524,7 @@ int
 nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
 {
    NC_VAR_INFO_T *var;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    NC_DIM_INFO_T *dim;
    NC_ATT_INFO_T *att;
    NC_HDF5_GRP_INFO_T *hdf5_grp;
@@ -547,15 +563,31 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
    for (i = 0; i < ncindexsize(grp->vars); i++)
    {
       var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
-      assert(var);
+      assert(var && var->format_var_info);
+      hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
       /* Close the HDF5 dataset associated with this var. */
-      if (var->hdf_datasetid)
+      if (hdf5_var->hdf_datasetid)
       {
-         LOG((3, "closing HDF5 dataset %lld", var->hdf_datasetid));
-         if (H5Dclose(var->hdf_datasetid) < 0)
+         LOG((3, "closing HDF5 dataset %lld", hdf5_var->hdf_datasetid));
+         if (H5Dclose(hdf5_var->hdf_datasetid) < 0)
             return NC_EHDFERR;
+
+         if (var->fill_value)
+         {
+            if (var->type_info)
+            {
+               if (var->type_info->nc_type_class == NC_VLEN)
+                  nc_free_vlen((nc_vlen_t *)var->fill_value);
+               else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value)
+                  free(*(char **)var->fill_value);
+            }
+         }
       }
+
+      /* Delete any HDF5 dimscale objid information. */
+      if (hdf5_var->dimscale_hdf5_objids)
+         free(hdf5_var->dimscale_hdf5_objids);
 
       for (a = 0; a < ncindexsize(var->att); a++)
       {
@@ -592,42 +624,121 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
     * closes can be called multiple times. */
    for (i = 0; i < ncindexsize(grp->type); i++)
    {
-      NC_TYPE_INFO_T *type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i);
-      assert(type);
+      NC_TYPE_INFO_T *type;
+      NC_HDF5_TYPE_INFO_T *hdf5_type;
+
+      type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i);
+      assert(type && type->format_type_info);
+
+      /* Get HDF5-specific type info. */
+      hdf5_type = (NC_HDF5_TYPE_INFO_T *)type->format_type_info;
 
       /* Close any open user-defined HDF5 typeids. */
-      if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0)
+      if (hdf5_type->hdf_typeid && H5Tclose(hdf5_type->hdf_typeid) < 0)
          return NC_EHDFERR;
-      type->hdf_typeid = 0;
-      if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0)
+      hdf5_type->hdf_typeid = 0;
+      if (hdf5_type->native_hdf_typeid &&
+          H5Tclose(hdf5_type->native_hdf_typeid) < 0)
          return NC_EHDFERR;
-      type->native_hdf_typeid = 0;
-
-      /* Class-specific cleanup. Only enums and vlens have HDF5
-       * resources to close. */
-      switch (type->nc_type_class)
-      {
-      case NC_ENUM:
-         if (type->u.e.base_hdf_typeid && H5Tclose(type->u.e.base_hdf_typeid) < 0)
-            return NC_EHDFERR;
-         type->u.e.base_hdf_typeid = 0;
-         break;
-
-      case NC_VLEN:
-         if (type->u.v.base_hdf_typeid && H5Tclose(type->u.v.base_hdf_typeid) < 0)
-            return NC_EHDFERR;
-         type->u.v.base_hdf_typeid = 0;
-         break;
-
-      default: /* Do nothing. */
-         break;
-      }
+      hdf5_type->native_hdf_typeid = 0;
    }
 
    /* Close the HDF5 group. */
    LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
    if (hdf5_grp->hdf_grpid && H5Gclose(hdf5_grp->hdf_grpid) < 0)
       return NC_EHDFERR;
+
+   return NC_NOERR;
+}
+
+/**
+ * @internal Given an ncid and varid, find an att. Lazy reads are done
+ * as needed.
+ *
+ * @param ncid File/group ID.
+ * @param varid Variable ID.
+ * @param name Name to of attribute.
+ * @param attnum Number of attribute.
+ * @param use_name If true, use the name to get the
+ * attribute. Otherwise use the attnum.
+ * @param h5 Pointer to pointer that gets file info struct. Ignored if
+ * NULL.
+ * @param grp Pointer to pointer that gets group info struct. Ignored
+ * if NULL.
+ * @param h5 Pointer to pointer that gets variable info
+ * struct. Ignored if NULL.
+ * @param att Pointer to pointer that gets attribute info
+ * struct. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Variable not found.
+ * @return ::NC_ENOTATT Attribute not found.
+ * @author Ed Hartnett
+ */
+int
+nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
+                          int use_name, NC_FILE_INFO_T **h5,
+                          NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var,
+                          NC_ATT_INFO_T **att)
+{
+   NC_FILE_INFO_T *my_h5;
+   NC_GRP_INFO_T *my_grp;
+   NC_VAR_INFO_T *my_var = NULL;
+   NC_ATT_INFO_T *my_att;
+   NCindex *attlist = NULL;
+   int retval;
+
+   LOG((4, "%s: ncid %d varid %d attnum %d use_name %d", __func__, ncid, varid,
+        attnum, use_name));
+
+   /* Find info for this file, group, and h5 info. */
+   if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &my_grp, &my_h5)))
+      return retval;
+   assert(my_grp && my_h5);
+
+   /* Get either the global or a variable attribute list. */
+   if (varid == NC_GLOBAL)
+   {
+      /* Do we need to read the atts? */
+      if (my_grp->atts_not_read)
+         if ((retval = nc4_read_atts(my_grp, NULL)))
+            return retval;
+
+      attlist = my_grp->att;
+   }
+   else
+   {
+      if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, varid)))
+         return NC_ENOTVAR;
+
+      /* Do we need to read the var attributes? */
+      if (my_var->atts_not_read)
+         if ((retval = nc4_read_atts(my_grp, my_var)))
+            return retval;
+
+      attlist = my_var->att;
+   }
+   assert(attlist);
+
+   /* Now find the attribute by name or number. */
+   if (att)
+   {
+      my_att = use_name ? (NC_ATT_INFO_T *)ncindexlookup(attlist, name) :
+         (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
+      if (!my_att)
+         return NC_ENOTATT;
+   }
+
+   /* Give the people what they want. */
+   if (h5)
+      *h5 = my_h5;
+   if (grp)
+      *grp = my_grp;
+   if (var)
+      *var = my_var;
+   if (att)
+      *att = my_att;
 
    return NC_NOERR;
 }
