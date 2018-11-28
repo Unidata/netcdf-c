@@ -80,7 +80,7 @@ getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
  * @author Ed Hartnett
  */
 int
-NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
+NC4_HDF5_rename_att(int ncid, int varid, const char *name, const char *newname)
 {
    NC *nc;
    NC_GRP_INFO_T *grp;
@@ -195,7 +195,7 @@ NC4_rename_att(int ncid, int varid, const char *name, const char *newname)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-NC4_del_att(int ncid, int varid, const char *name)
+NC4_HDF5_del_att(int ncid, int varid, const char *name)
 {
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
@@ -240,7 +240,7 @@ NC4_del_att(int ncid, int varid, const char *name)
    if (varid == NC_GLOBAL)
       locid = ((NC_HDF5_GRP_INFO_T *)(grp->format_grp_info))->hdf_grpid;
    else if (var->created)
-      locid = var->hdf_datasetid;
+      locid = ((NC_HDF5_VAR_INFO_T *)(var->format_var_info))->hdf_datasetid;
 
    /* Now find the attribute by name. */
    if (!(att = (NC_ATT_INFO_T*)ncindexlookup(attlist, name)))
@@ -355,7 +355,7 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
    ncid = nc->ext_ncid | grp->hdr.id;
 
    /* Find att, if it exists. (Must check varid first or nc_test will
-    * break.) */
+    * break.) This also does lazy att reads if needed. */
    if ((ret = getattlist(grp, varid, &var, &attlist)))
       return ret;
 
@@ -397,9 +397,6 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
 
    /* See if there is already an attribute with this name. */
    att = (NC_ATT_INFO_T*)ncindexlookup(attlist,norm_name);
-
-   LOG((1, "%s: ncid 0x%x varid %d name %s file_type %d mem_type %d len %d",
-        __func__, ncid, varid, name, file_type, mem_type, len));
 
    if (!att)
    {
@@ -674,10 +671,8 @@ exit:
 }
 
 /**
- * @internal
- * Write an attribute to a netCDF-4/HDF5 file, converting
+ * @internal Write an attribute to a netCDF-4/HDF5 file, converting
  * data type if necessary.
- * Wrapper around nc4_put_att
  *
  * @param ncid File and group ID.
  * @param varid Variable ID.
@@ -696,18 +691,147 @@ exit:
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-NC4_put_att(int ncid, int varid, const char *name, nc_type file_type,
-            size_t len, const void *data, nc_type mem_type)
+NC4_HDF5_put_att(int ncid, int varid, const char *name, nc_type file_type,
+                 size_t len, const void *data, nc_type mem_type)
 {
-   int ret = NC_NOERR;
-   NC *nc;
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
+   int ret;
     
    /* Find info for this file, group, and h5 info. */
-   if ((ret = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   if ((ret = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
       return ret;
-   assert(nc && grp && h5);
+   assert(grp && h5);
 
-   return nc4_put_att(grp,varid,name,file_type,len,data,mem_type,0);
+   return nc4_put_att(grp, varid, name, file_type, len, data, mem_type, 0);
+}
+
+/**
+ * @internal Learn about an att. All the nc4 nc_inq_ functions just
+ * call nc4_get_att to get the metadata on an attribute.
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param name Name of attribute.
+ * @param xtypep Pointer that gets type of attribute.
+ * @param lenp Pointer that gets length of attribute data array.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
+int
+NC4_HDF5_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
+                 size_t *lenp)
+{
+   NC_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
+   NC_VAR_INFO_T *var = NULL;
+   int retval;
+
+   LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+   /* Find the file, group, and var info, and do lazy att read if
+    * needed. */
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
+                                           &grp, &var, NULL)))
+      return retval;
+
+   return nc4_get_att_ptrs(h5, grp, var, name, xtypep, NC_NAT, lenp, NULL, NULL);
+}
+
+/**
+ * @internal Learn an attnum, given a name.
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param name Name of attribute.
+ * @param attnump Pointer that gets the attribute index number.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+NC4_HDF5_inq_attid(int ncid, int varid, const char *name, int *attnump)
+{
+   NC_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
+   NC_VAR_INFO_T *var = NULL;
+   int retval;
+
+   LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+   /* Find the file, group, and var info, and do lazy att read if
+    * needed. */
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
+                                           &grp, &var, NULL)))
+      return retval;
+
+   return nc4_get_att_ptrs(h5, grp, var, name, NULL, NC_NAT, NULL, attnump, NULL);
+}
+
+/**
+ * @internal Given an attnum, find the att's name.
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param attnum The index number of the attribute.
+ * @param name Pointer that gets name of attrribute.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
+int
+NC4_HDF5_inq_attname(int ncid, int varid, int attnum, char *name)
+{
+   NC_ATT_INFO_T *att;
+   int retval;
+
+   LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+   /* Find the file, group, and var info, and do lazy att read if
+    * needed. */
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, NULL, attnum, 0, NULL,
+                                           NULL, NULL, &att)))
+      return retval;
+   assert(att);
+
+   /* Get the name. */
+   if (name)
+      strcpy(name, att->hdr.name);
+
+   return NC_NOERR;
+}
+
+/**
+ * @internal Get an attribute.
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param name Name of attribute.
+ * @param value Pointer that gets attribute data.
+ * @param memtype The type the data should be converted to as it is read.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
+int
+NC4_HDF5_get_att(int ncid, int varid, const char *name, void *value, nc_type memtype)
+{
+   NC_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
+   NC_VAR_INFO_T *var = NULL;
+   int retval;
+
+   LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+   /* Find the file, group, and var info, and do lazy att read if
+    * needed. */
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
+                                           &grp, &var, NULL)))
+      return retval;
+
+   return nc4_get_att_ptrs(h5, grp, var, name, NULL, memtype, NULL, NULL, value);
 }
