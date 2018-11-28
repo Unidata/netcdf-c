@@ -45,6 +45,7 @@ extern int H5Eprint1(FILE * stream);
 #define CREATEFILE4 "tst_memcreate4.nc"
 
 /* Make no dimension larger than this */
+
 #define MAXDIMLEN (1024*12)
 #define MAXDIMS 3 /* for defining arrays; includes all dimensions */
 #define MAXVARS 4 /* for defining arrays; includes all variables  */
@@ -52,8 +53,9 @@ extern int H5Eprint1(FILE * stream);
 #define NDIMS0 2 /* # dimensions in define_metadata: 1 unlimited + 1 fixed */
 #define DIM0_NAME "fun" /* unlimited */
 #define DIM0_LEN 2
+
 #define DIM1_NAME "money"
-#define DIM1_LEN 8
+#define DIM1_LEN 400
 #define ATT0_NAME "home"
 #define ATT0_TEXT "earthship"
 
@@ -189,19 +191,19 @@ readfile(const char* path, NC_memio* memio)
         size_t actual;
         actual = fread(p,1,count,f);
 	if(actual == 0 || ferror(f))
-	    {status = NC_EIO; goto done;}	 
+	    {status = NC_EIO; goto done;}
 	count -= actual;
 	p += actual;
     }
     if(memio) {
 	memio->size = (size_t)filesize;
 	memio->memory = memory;
-    }    
+    }
 done:
     if(status != NC_NOERR && memory != NULL)
 	free(memory);
     if(f != NULL) fclose(f);
-    return status;    
+    return status;
 }
 
 
@@ -227,13 +229,13 @@ writefile(const char* path, NC_memio* memio)
         size_t actual;
         actual = fwrite(p,1,count,f);
 	if(actual == 0 || ferror(f))
-	    {status = NC_EIO; goto done;}	 
+	    {status = NC_EIO; goto done;}
 	count -= actual;
 	p += actual;
     }
 done:
     if(f != NULL) fclose(f);
-    return status;    
+    return status;
 }
 
 
@@ -358,7 +360,7 @@ modify_file(int ncid)
 	data[i] = i;
     if((stat=nc_put_var_int(ncid,varid3,data))) goto done;
 done:
-    return stat;    
+    return stat;
 }
 
 /* Use this to force significant file size increase */
@@ -385,7 +387,7 @@ modify_file_extra(int ncid)
 	data[i] = i;
     if((stat=nc_put_var_int(ncid,varidx,data))) goto done;
 done:
-    return stat;    
+    return stat;
 }
 
 /* Verify the content of a file */
@@ -409,7 +411,7 @@ verify_file(int ncid, int modified, int extra)
 #ifdef USE_NETCDF4
     int tmp;
 #endif
-    
+
     CHECK(nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in));
     if (ndims_in != (NDIMS0+extra) || nvars_in != (NVARS0+modified+extra) || natts_in != 1 || unlimdimid_in != 0)
 	CHECK(NC_EINVAL);
@@ -430,8 +432,8 @@ verify_file(int ncid, int modified, int extra)
 	int dimcnt = 0;
         int varcnt = 0;
 	CHECK(nc_inq(ncid, &dimcnt, &varcnt, NULL, NULL));
-	for(j=0;j<dimcnt;j++) dimid[j] = j;	
-	for(j=0;j<varcnt;j++) varid[j] = j;	
+	for(j=0;j<dimcnt;j++) dimid[j] = j;
+	for(j=0;j<varcnt;j++) varid[j] = j;
     }
 #endif
 
@@ -447,7 +449,7 @@ verify_file(int ncid, int modified, int extra)
     if(extra) {
         CHECK(nc_inq_dim(ncid, dimid[2], name_in, &len_in));
         if (strcmp(name_in, DIMX_NAME) || len_in != DIMX_LEN) CHECK(NC_EINVAL);
-    }	
+    }
 
     /* CHECK variables. */
     CHECK(nc_inq_var(ncid, varid[0], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
@@ -692,7 +694,7 @@ test_xfail(const char* path, int mode, NC_memio* filedata)
 	duplicate.flags = NC_MEMIO_LOCKED;
 	xmode |= NC_WRITE;
 	CHECK(nc_open_memio(XFAIL, xmode, &duplicate, &ncid))
-	XCHECK(modify_file(ncid));    
+	XCHECK(modify_file(ncid));
 	CHECK(nc_abort(ncid));
 	memiofree(&finaldata,&original);
 	memiofree(&duplicate,&original);
