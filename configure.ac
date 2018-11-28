@@ -192,7 +192,10 @@ AC_MSG_CHECKING([whether we should build netCDF-4])
 AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
               [do not build with netcdf-4 (else HDF5 and zlib required)])])
 test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
-enable_hdf5=enable_netcdf_4
+
+enable_hdf5=$enable_netcdf_4
+AC_MSG_CHECKING([whether we should build with HDF5])
+AC_MSG_RESULT([$enable_hdf5])
 
 # Synonym
 AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
@@ -1419,7 +1422,6 @@ AC_SUBST(HAS_CDF5,[$enable_cdf5])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_HDF5,[$enable_hdf5])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
-AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_LOGGING, [$enable_logging])
 AC_SUBST(HAS_SZLIB,[$enable_szlib])
 AC_SUBST(HAS_PARALLEL,[$enable_parallel])
