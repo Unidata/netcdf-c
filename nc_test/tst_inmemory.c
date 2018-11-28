@@ -30,6 +30,7 @@ extern int H5Eprint1(FILE * stream);
 
 #define NC_NETCDF3 0
 #define MODIFIED 1
+#define EXTRA 1
 
 #define LARGE_SPACE (1<<18)
 
@@ -44,19 +45,30 @@ extern int H5Eprint1(FILE * stream);
 #define CREATEFILE4 "tst_memcreate4.nc"
 
 /* Make no dimension larger than this */
-#define MAXDIMLEN 100
-#define NDIMS 2
-#define UNLIM_LEN 2
-#define DIM0_NAME "fun"
+#define MAXDIMLEN (1024*12)
+#define MAXDIMS 3 /* for defining arrays; includes all dimensions */
+#define MAXVARS 4 /* for defining arrays; includes all variables  */
+
+#define NDIMS0 2 /* # dimensions in define_metadata: 1 unlimited + 1 fixed */
+#define DIM0_NAME "fun" /* unlimited */
+#define DIM0_LEN 2
 #define DIM1_NAME "money"
 #define DIM1_LEN 8
 #define ATT0_NAME "home"
 #define ATT0_TEXT "earthship"
-#define NVARS 3
+
+#define NVARS0 3 /* # variables in define_metadata */
 #define VAR0_NAME "nightlife"
 #define VAR1_NAME "time"
 #define VAR2_NAME "taxi_distance"
+
+/* Variable added by modify_file */
 #define VAR3_NAME "miles"
+
+/* Added variable info for modify_file_extra */
+#define DIMX_NAME "bigmoney"
+#define DIMX_LEN 8000
+#define VARX_NAME "expenses"
 
 #define FLOATVAL ((float)42.22)
 
@@ -98,28 +110,35 @@ fail(int line) {
 #endif
 
 static int
+fail(int stat, const char* file, int line, int xfail)
+{
+    fflush(stdout);
+    fprintf(stderr,"***%sFail: line: %d; status=%d %s\n",
+	            (xfail?"X":""),line,stat,nc_strerror(stat));
+    err++;
+    fflush(stderr);
+    return stat;
+}
+
+static int
+xxfail(int stat, const char* file, int line, int xfail)
+{
+    fflush(stdout);
+    if(stat == NC_NOERR)
+        return fail(NC_EINVAL,file,line,xfail);
+    fprintf(stderr,"\t***XFail Pass: status=%d %s\n", stat,nc_strerror(stat));
+    stat = NC_NOERR; /* because xfail */
+    fflush(stderr);
+    return stat;
+}
+
+static int
 check(int stat, const char* file, int line, int xfail)
 {
-/*    int pass = ((!xfail && stat == NC_NOERR) || (xfail && stat != NC_NOERR)); */
-    fflush(stdout);
-    if(!xfail) {
-        if(stat != NC_NOERR) {
-            fprintf(stderr,"***Fail: line: %d; status=%d %s\n",
-	            line,stat,nc_strerror(stat));
-        err++;
-        } 
-    } else { /*xfail*/
-        if(stat == NC_NOERR) {
-            fprintf(stderr,"***XFail Fail: line: %d; passed instead of failed\n",
-	            line);
-            err++;
-        } else {
-            fprintf(stderr,"\t***XFail: status=%d %s\n",
-	            stat,nc_strerror(stat));
-        } 
-	stat = NC_NOERR; /* because xfail */
-    }
-    fflush(stderr);
+    if(!xfail && stat != NC_NOERR)
+    	return fail(stat,file,line,xfail);
+    if(xfail)
+    	return xxfail(stat,file,line,xfail);
     return stat;
 }
 
@@ -223,7 +242,7 @@ done:
    Allow the new memory to be larger than the src memory
 */
 int
-duplicatememory(NC_memio* src, NC_memio* target, size_t alloc)
+duplicatememory(NC_memio* src, NC_memio* target, size_t alloc, void** original)
 {
     if(src == NULL || target == NULL || src->size == 0 || src->memory == NULL)
 	return NC_EINVAL;
@@ -232,6 +251,7 @@ duplicatememory(NC_memio* src, NC_memio* target, size_t alloc)
     target->memory = malloc(alloc);
     if(target->memory == NULL)
 	return NC_ENOMEM;
+    if(original) *original = target->memory;
     memcpy(target->memory,src->memory,src->size);
     target->size = alloc;
     return NC_NOERR;
@@ -247,14 +267,14 @@ static int
 define_metadata(int ncid)
 {
     int stat = NC_NOERR;
-    int dimid[NDIMS], varid0, varid1, varid2;
+    int dimid[MAXDIMS], varid0, varid1, varid2;
     short short_data[DIM1_LEN];
     size_t start[1] = {0};
     size_t count[1] = {DIM1_LEN};
-    int dimprod = (UNLIM_LEN*DIM1_LEN);
+    int dimprod = (DIM0_LEN*DIM1_LEN);
     int i;
     float float_data;
-    int nightdata[UNLIM_LEN*DIM1_LEN] ;
+    int nightdata[DIM0_LEN*DIM1_LEN] ;
 
     /* Create data to write */
     float_data = FLOATVAL;
@@ -271,7 +291,7 @@ define_metadata(int ncid)
     CHECK(nc_def_dim(ncid, DIM0_NAME, NC_UNLIMITED, &dimid[0]));
     CHECK(nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimid[1]));
 
-    CHECK(nc_def_var(ncid, VAR0_NAME, NC_INT, NDIMS, dimid, &varid0));
+    CHECK(nc_def_var(ncid, VAR0_NAME, NC_INT, 2, dimid, &varid0));
     CHECK(nc_def_var(ncid, VAR1_NAME, NC_FLOAT, 0, NULL, &varid1));
     CHECK(nc_def_var(ncid, VAR2_NAME, NC_SHORT, 1, &dimid[1], &varid2));
 
@@ -341,41 +361,69 @@ done:
     return stat;    
 }
 
+/* Use this to force significant file size increase */
+static int
+modify_file_extra(int ncid)
+{
+    int stat = NC_NOERR;
+    size_t i;
+    int varidx;
+    int dimid[1];
+    size_t len;
+    int data[MAXDIMLEN];
+
+    /* open file for new meta-data */
+    if((stat=nc_redef(ncid))) goto done;
+    /* Define a new dimension */
+    CHECK(nc_def_dim(ncid, DIMX_NAME, DIMX_LEN, &dimid[0]));
+    /* Define a new variable using new dimension */
+    if((stat=nc_def_var(ncid, VARX_NAME, NC_INT, 1, dimid, &varidx))) goto done;
+    /* close metadata */
+    if((stat=nc_enddef(ncid))) goto done;
+    /* Write data to new variable */
+    for(i=0;i<DIMX_LEN;i++)
+	data[i] = i;
+    if((stat=nc_put_var_int(ncid,varidx,data))) goto done;
+done:
+    return stat;    
+}
+
 /* Verify the content of a file */
 static int
-verify_file(int ncid, int modified)
+verify_file(int ncid, int modified, int extra)
 {
     int stat = NC_NOERR;
     int i;
-    int dimid_in[NDIMS];
-    int dimid[NDIMS];
+    int dimid_in[MAXDIMS];
+    int dimid[MAXDIMS];
     int ndims_in, nvars_in, natts_in, unlimdimid_in;
     char name_in[NC_MAX_NAME + 1], att0_in[NC_MAX_NAME + 1];
     nc_type type_in;
     size_t len_in;
-    int varid[4];
-    int nightdata_in[UNLIM_LEN*DIM1_LEN] ;
+    int varid[5];
+    int nightdata_in[DIM0_LEN*DIM1_LEN] ;
     float float_data_in;
     int milesdata_in[MAXDIMLEN];
-    int dimprod = UNLIM_LEN * DIM1_LEN;
+    int expenses_in[MAXDIMLEN];
+    int dimprod = DIM0_LEN * DIM1_LEN;
 #ifdef USE_NETCDF4
     int tmp;
 #endif
     
     CHECK(nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in));
-    if (ndims_in != 2 || nvars_in != NVARS+modified || natts_in != 1 || unlimdimid_in != 0)
+    if (ndims_in != (NDIMS0+extra) || nvars_in != (NVARS0+modified+extra) || natts_in != 1 || unlimdimid_in != 0)
 	CHECK(NC_EINVAL);
 
     /* Get all the dimids */
 #ifdef USE_NETCDF4
     tmp = 0;
     CHECK((nc_inq_dimids(ncid,&tmp,dimid,1)));
-    if(tmp != NDIMS) CHECK(NC_EINVAL);
+    if(tmp != NDIMS0+extra) CHECK(NC_EINVAL);
 
     /* Get all the varids */
     tmp = 0;
     CHECK((nc_inq_varids(ncid,&tmp,varid)));
-    if(tmp != (NVARS+modified)) CHECK(NC_EINVAL);
+    if(tmp != (NVARS0+modified+extra)) CHECK(NC_EINVAL);
 #else
     { /* Simulate nc_inq_varids and nc_inq_dimids */
 	int j;
@@ -396,10 +444,14 @@ verify_file(int ncid, int modified)
     if (strcmp(name_in, DIM0_NAME)) CHECK(NC_EINVAL);
     CHECK(nc_inq_dim(ncid, dimid[1], name_in, &len_in));
     if (strcmp(name_in, DIM1_NAME) || len_in != DIM1_LEN) CHECK(NC_EINVAL);
+    if(extra) {
+        CHECK(nc_inq_dim(ncid, dimid[2], name_in, &len_in));
+        if (strcmp(name_in, DIMX_NAME) || len_in != DIMX_LEN) CHECK(NC_EINVAL);
+    }	
 
     /* CHECK variables. */
     CHECK(nc_inq_var(ncid, varid[0], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-    if (strcmp(name_in, VAR0_NAME) || type_in != NC_INT || ndims_in != NDIMS ||
+    if (strcmp(name_in, VAR0_NAME) || type_in != NC_INT || ndims_in != NDIMS0 ||
     dimid_in[0] != 0 || dimid_in[1] != 1 || natts_in != 0) CHECK(NC_EINVAL);
     CHECK(nc_inq_var(ncid, varid[1], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
     if (strcmp(name_in, VAR1_NAME) || type_in != NC_FLOAT || ndims_in != 0 ||
@@ -428,17 +480,30 @@ verify_file(int ncid, int modified)
 	}
     }
 
+    if(extra) {
+	size_t xlen;
+	CHECK(nc_inq_var(ncid, varid[4], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
+        if (strcmp(name_in, VARX_NAME) || type_in != NC_INT || ndims_in != 1 ||
+	    dimid_in[0] != dimid[2] || natts_in != 0) CHECK(NC_EINVAL);
+        CHECK(nc_inq_dimlen(ncid, dimid_in[0], &xlen));
+        CHECK(nc_get_var_int(ncid, varid[4], expenses_in));
+	for(i=0;i<xlen;i++) {
+	    if(expenses_in[i] != i) CHECK(NC_EINVAL);
+	}
+    }
+
     return stat;
 }
 
 void
-memiofree(NC_memio* memio)
+memiofree(NC_memio* memio, void** original)
 {
     if(memio != NULL) {
 	if(memio->memory != NULL)
 	    free(memio->memory);
 	memio->memory = NULL;
     }
+    if(original) *original = NULL;
 }
 
 static int
@@ -446,6 +511,7 @@ test_open(const char* path, NC_memio* filedata, int mode)
 {
     int stat = NC_NOERR;
     NC_memio duplicate;
+    void* original = NULL;
     NC_memio finaldata;
     int ncid;
     int xmode = mode; /* modified mode */
@@ -455,59 +521,81 @@ test_open(const char* path, NC_memio* filedata, int mode)
     finaldata.flags = 0;
 
     fprintf(stderr,"\n\t***Test open 1: nc_open_mem(): read-only\n");
-    CHECK(duplicatememory(filedata,&duplicate,0));
+    CHECK(duplicatememory(filedata,&duplicate,0,&original));
     CHECK(nc_open_mem(path, xmode, duplicate.size, duplicate.memory, &ncid));
-    CHECK(verify_file(ncid,!MODIFIED));
+    CHECK(verify_file(ncid,!MODIFIED,!EXTRA));
     CHECK(nc_close(ncid));
-    memiofree(&duplicate);
+    memiofree(&duplicate,&original);
 
     fprintf(stderr,"\n\t***Test open 2: nc_open_memio(): read-only\n");
-    CHECK(duplicatememory(filedata,&duplicate,0));
+    CHECK(duplicatememory(filedata,&duplicate,0,&original));
     duplicate.flags = NC_MEMIO_LOCKED;
     CHECK(nc_open_memio(path, xmode, &duplicate, &ncid))
-    CHECK(verify_file(ncid,!MODIFIED));
+    CHECK(verify_file(ncid,!MODIFIED,!EXTRA));
     CHECK(nc_close_memio(ncid,&finaldata));
     /* Published returned finaldata  */
-    fprintf(stderr,"\tfinaldata: size=%lld memory=%p\n",(unsigned long long)finaldata.size,finaldata.memory);
+    fprintf(stderr,"\tfinaldata: size=%lld memory=%p original=%p\n",(unsigned long long)finaldata.size,finaldata.memory,original);
     /* Verify that finaldata is same */
     if(finaldata.size != duplicate.size) CHECK(NC_EINVAL);
     if(finaldata.memory != duplicate.memory) CHECK(NC_EINVAL);
-    memiofree(&finaldata);
+    memiofree(&finaldata,&original);
 
-    fprintf(stderr,"\n\t***Test open 3: nc_open_memio(): read-write, copy\n");
+    fprintf(stderr,"\n\t***Test open 3: nc_open_memio(): read-write, copy, no size increase\n");
+    fprintf(stderr,"\t*** Not testable\n");
+#if 0
+    {
+	fprintf(stderr,"\n\t***Test open 3: nc_open_memio(): read-write, copy, no size increase\n");
+	xmode |= NC_WRITE; /* allow file to be modified */
+	CHECK(duplicatememory(filedata,&duplicate,0,&original));
+	CHECK(nc_open_memio(path, xmode, &duplicate, &ncid))
+	/* modify file */
+	CHECK(modify_file(ncid));
+	CHECK(verify_file(ncid,MODIFIED,!EXTRA));
+	CHECK(nc_close_memio(ncid,&finaldata));
+	/* Published returned finaldata  */
+	fprintf(stderr,"\tfinaldata: size=%lld memory=%p original=%p\n",(unsigned long long)finaldata.size,finaldata.memory,original);
+	/* Verify that finaldata is same */
+	if(finaldata.size < filedata->size) CHECK(NC_EINVAL);
+	/* As a safeguard, the memory in duplicate should have been set to NULL*/
+	memiofree(&finaldata,&original);
+    }
+#endif
+
+    fprintf(stderr,"\n\t***Test open 4: nc_open_memio(): read-write, copy, size increase\n");
     xmode |= NC_WRITE; /* allow file to be modified */
-    CHECK(duplicatememory(filedata,&duplicate,0));
+    CHECK(duplicatememory(filedata,&duplicate,0,&original));
     CHECK(nc_open_memio(path, xmode, &duplicate, &ncid))
     /* modify file */
     CHECK(modify_file(ncid));
-    CHECK(verify_file(ncid,MODIFIED));
+    CHECK(modify_file_extra(ncid));
+    CHECK(verify_file(ncid,MODIFIED,EXTRA));
     CHECK(nc_close_memio(ncid,&finaldata));
     /* Published returned finaldata  */
-    fprintf(stderr,"\tfinaldata: size=%lld memory=%p\n",(unsigned long long)finaldata.size,finaldata.memory);
+    fprintf(stderr,"\tfinaldata: size=%lld memory=%p original=%p\n",(unsigned long long)finaldata.size,finaldata.memory,original);
     /* Verify that finaldata is same */
     if(finaldata.size < filedata->size) CHECK(NC_EINVAL);
     /* As a safeguard, the memory in duplicate should have been set to NULL*/
-    memiofree(&finaldata);
+    memiofree(&finaldata,&original);
 
-    fprintf(stderr,"\n\t***Test open 4: nc_open_memio(): read-write, locked, extra space\n");
+    fprintf(stderr,"\n\t***Test open 5: nc_open_memio(): read-write, locked, extra space\n");
     /* Store the filedata in a memory chunk that leaves room for modification */
-    CHECK(duplicatememory(filedata,&duplicate,LARGE_SPACE));
+    CHECK(duplicatememory(filedata,&duplicate,LARGE_SPACE,&original));
     /* Lock the duplicate memory */
     duplicate.flags |= NC_MEMIO_LOCKED;
     xmode |= NC_WRITE; /* allow file to be modified */
     CHECK(nc_open_memio(path, xmode, &duplicate, &ncid))
     /* modify file */
     CHECK(modify_file(ncid));
-    CHECK(verify_file(ncid,MODIFIED));
+    CHECK(verify_file(ncid,MODIFIED,!EXTRA));
     CHECK(nc_close_memio(ncid,&finaldata));
     /* Published returned finaldata  */
-    fprintf(stderr,"\tfinaldata: size=%lld memory=%p\n",(unsigned long long)finaldata.size,finaldata.memory);
+    fprintf(stderr,"\tfinaldata: size=%lld memory=%p original=%p\n",(unsigned long long)finaldata.size,finaldata.memory,original);
     /* Check returned finaldata:
        should have same memory but
        actual used final size should not exceed the original */
     if(finaldata.size > duplicate.size) CHECK(NC_EINVAL);
     if(finaldata.memory != duplicate.memory) CHECK(NC_EINVAL);
-    memiofree(&finaldata);
+    memiofree(&finaldata,&original);
     return stat;
 }
 
@@ -518,7 +606,6 @@ test_create(const char* path, int mode)
     NC_memio finaldata;
     int ncid;
     int xmode = mode;
-
     finaldata.memory = NULL;
     finaldata.size = 0;
     finaldata.flags = 0;
@@ -527,7 +614,7 @@ test_create(const char* path, int mode)
     CHECK(nc_create_mem(path, xmode, 0, &ncid))
     /* create file metadata */
     CHECK(define_metadata(ncid));
-    CHECK(verify_file(ncid,!MODIFIED));
+    CHECK(verify_file(ncid,!MODIFIED,!EXTRA));
     CHECK(nc_close_memio(ncid,&finaldata));
     /* Published returned finaldata  */
     fprintf(stderr,"\tfinaldata: size=%lld memory=%p\n",(unsigned long long)finaldata.size,finaldata.memory);
@@ -536,7 +623,7 @@ test_create(const char* path, int mode)
     CHECK(nc_create_mem(path, xmode, LARGE_SPACE, &ncid))
     /* create file metadata */
     CHECK(define_metadata(ncid));
-    CHECK(verify_file(ncid,!MODIFIED));
+    CHECK(verify_file(ncid,!MODIFIED,!EXTRA));
     CHECK(nc_close_memio(ncid,&finaldata));
     /* Published returned finaldata */
     fprintf(stderr,"\tfinaldata: size=%lld memory=%p\n",(unsigned long long)finaldata.size,finaldata.memory);
@@ -555,18 +642,21 @@ test_misc(const char* path, int mode, NC_memio* filedata)
     int ncid;
     int xmode = mode;
     NC_memio duplicate;
+    void* original = NULL;
 
     fprintf(stderr,"\n\t***Test misc 1: use nc_close on created inmemory file\n");
     CHECK(nc_create_mem(MISC, xmode, 0, &ncid))
     CHECK(nc_close(ncid));
+    fprintf(stderr,"\t***Pass\n");
     removefile(MISC);
 
     fprintf(stderr,"\n\t***Test misc 2: use nc_close on opened inmemory file\n");
-    CHECK(duplicatememory(filedata,&duplicate,0));
+    CHECK(duplicatememory(filedata,&duplicate,0,&original));
     CHECK(nc_open_memio(path, xmode, &duplicate, &ncid))
-    CHECK(verify_file(ncid,!MODIFIED));
+    CHECK(verify_file(ncid,!MODIFIED,!EXTRA));
     CHECK(nc_close(ncid));
-    /* Do not free: nc_close will have done it memiofree(&duplicate); */
+    fprintf(stderr,"\t***Pass\n");
+    /* Do not free: nc_close will have done it memiofree(&duplicate,&original); */
     removefile(MISC);
 
     return stat;
@@ -580,31 +670,32 @@ test_xfail(const char* path, int mode, NC_memio* filedata)
     NC_memio duplicate = {0,NULL,0};
     int ncid;
     int xmode = mode; /* modified mode */
+    void* original = NULL;
 
     fprintf(stderr,"\n\t***Test xfail 1: nc_open_mem(): write to read-only\n");
-    CHECK(duplicatememory(filedata,&duplicate,0));
+    CHECK(duplicatememory(filedata,&duplicate,0,&original));
     CHECK(nc_open_mem(XFAIL, xmode, duplicate.size, duplicate.memory, &ncid));
     XCHECK(nc_redef(ncid));
     CHECK(nc_abort(ncid));
-    memiofree(&duplicate);
+    memiofree(&duplicate,&original);
 
     fprintf(stderr,"\n\t***Test xfail 2: nc_open_memio(): modify without overallocating\n");
     if((mode & NC_NETCDF4)) {
-        fprintf(stderr,"\tSuppressed because of HDF5 library bug\n");
+        fprintf(stderr,"\t*** Suppressed because of HDF5 library bug\n");
     } else {
       /* With HDF5 1.8.20, and possibly other versions,
          this tests causes a seg fault in the HDF5 Library.
          So until it is fixed, just leave well enough alone */
 	NC_memio finaldata;
 	memset(&finaldata,0,sizeof(finaldata));
-	CHECK(duplicatememory(filedata,&duplicate,0));
+	CHECK(duplicatememory(filedata,&duplicate,0,&original));
 	duplicate.flags = NC_MEMIO_LOCKED;
 	xmode |= NC_WRITE;
 	CHECK(nc_open_memio(XFAIL, xmode, &duplicate, &ncid))
 	XCHECK(modify_file(ncid));    
 	CHECK(nc_abort(ncid));
-	memiofree(&finaldata);
-	memiofree(&duplicate);
+	memiofree(&finaldata,&original);
+	memiofree(&duplicate,&original);
     }
 
     return stat;
@@ -615,6 +706,7 @@ main(int argc, char **argv)
 {
     int stat = NC_NOERR;
     NC_memio filedata3;
+    void* original = NULL;
 #ifdef USE_NETCDF4
     NC_memio filedata4;
 #endif
@@ -625,7 +717,7 @@ main(int argc, char **argv)
     CHECK(test_create(CREATE3,NC_NETCDF3));
     CHECK(test_misc(FILE3, NC_NETCDF3, &filedata3));
     CHECK(test_xfail(FILE3, NC_NETCDF3, &filedata3));
-    memiofree(&filedata3);
+    memiofree(&filedata3,&original);
 
 #ifdef USE_NETCDF4
     fprintf(stderr,"\n*** Testing the inmemory API: netcdf-4.\n");
@@ -634,7 +726,7 @@ main(int argc, char **argv)
     CHECK(test_create(CREATE4,NC_NETCDF4));
     CHECK(test_misc(FILE4,NC_NETCDF4, &filedata4));
     CHECK(test_xfail(FILE4, NC_NETCDF4, &filedata4));
-    memiofree(&filedata4);
+    memiofree(&filedata4,&original);
 #endif
 
     SUMMARIZE_ERR;
