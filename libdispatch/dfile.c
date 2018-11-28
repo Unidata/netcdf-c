@@ -2122,8 +2122,8 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
     /* Figure out what dispatcher to use */
     if (model == NC_FORMATX_NC4)
-#ifdef USE_NETCDF4
-        dispatcher = NC4_dispatch_table;
+#ifdef USE_HDF5
+        dispatcher = HDF5_dispatch_table;
 #else
         return NC_ENOTBUILT;
 #endif
@@ -2360,7 +2360,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 #endif
 #if defined(USE_NETCDF4)
       case NC_FORMATX_NC4:
-         dispatcher = NC4_dispatch_table;
+         dispatcher = HDF5_dispatch_table;
          break;
 #endif
 #if defined(USE_HDF4)

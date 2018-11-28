@@ -99,51 +99,42 @@ nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
  * @param ncid File and group ID.
  * @param varid Variable ID.
  * @param name Name of attribute.
- * @param xtype Pointer that gets (file) type of attribute.
+ * @param xtype Pointer that gets (file) type of attribute. Ignored if
+ * NULL.
  * @param mem_type The type of attribute data in memory.
- * @param lenp Pointer that gets length of attribute array.
- * @param attnum Pointer that gets the index number of this attribute.
- * @param data Pointer that gets attribute data.
+ * @param lenp Pointer that gets length of attribute array. Ignored if
+ * NULL.
+ * @param attnum Pointer that gets the index number of this
+ * attribute. Ignored if NULL.
+ * @param data Pointer that gets attribute data. Ignored if NULL.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
  */
-static int
-nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
-            nc_type mem_type, size_t *lenp, int *attnum, void *data)
+int
+nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
+                 const char *name, nc_type *xtype, nc_type mem_type,
+                 size_t *lenp, int *attnum, void *data)
 {
-   NC *nc;
-   NC_GRP_INFO_T *grp;
-   NC_FILE_INFO_T *h5;
    NC_ATT_INFO_T *att = NULL;
-   NC_VAR_INFO_T *var;
    int my_attnum = -1;
    int need_to_convert = 0;
    int range_error = NC_NOERR;
    void *bufr = NULL;
    size_t type_size;
    char norm_name[NC_MAX_NAME + 1];
+   int varid;
    int i;
    int retval;
 
+   LOG((3, "%s: mem_type %d", __func__, mem_type));
+
+   /* Get the varid, or NC_GLOBAL. */
+   varid = var ? var->hdr.id : NC_GLOBAL;
+
    if (attnum)
       my_attnum = *attnum;
-
-   LOG((3, "%s: ncid 0x%x varid %d name %s attnum %d mem_type %d",
-        __func__, ncid, varid, name, my_attnum, mem_type));
-
-   /* Find info for this file, group, and h5 info. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return retval;
-
-   /* Check varid */
-   if (varid != NC_GLOBAL)
-   {
-      if (!(var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid)))
-         return NC_ENOTVAR;
-      assert(var->hdr.id == varid);
-   }
 
    if (name == NULL)
       BAIL(NC_EBADNAME);
@@ -152,22 +143,9 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    if ((retval = nc4_normalize_name(name, norm_name)))
       BAIL(retval);
 
-   /* Read the atts for this group/var, if they have not been read. */
-   if (varid == NC_GLOBAL)
-   {
-      if (grp->atts_not_read)
-         if ((retval = nc4_read_atts(grp, NULL)))
-            return retval;
-   }
-   else
-   {
-      if (var->atts_not_read)
-         if ((retval = nc4_read_atts(grp, var)))
-            return retval;
-   }
-
    /* If this is one of the reserved atts, use nc_get_att_special. */
-   if (nc->ext_ncid == ncid && varid == NC_GLOBAL) {
+   if (!var)
+   {
       const NC_reservedatt* ra = NC_findreserved(norm_name);
       if(ra != NULL && (ra->flags & NAMEONLYFLAG))
 	return nc4_get_att_special(h5, norm_name, xtype, mem_type, lenp, attnum, data);
@@ -246,7 +224,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
       if (att->vldata)
       {
          size_t base_typelen;
-         hvl_t *vldest = data;
+         nc_hvl_t *vldest = data;
          NC_TYPE_INFO_T *type;
 
          /* Get the type object for the attribute's type */
@@ -294,6 +272,60 @@ exit:
 }
 
 /**
+ * @internal Get or put attribute metadata from our linked list of
+ * file info. Always locate the attribute by name, never by attnum.
+ * The mem_type is ignored if data=NULL.
+ *
+ * @param ncid File and group ID.
+ * @param varid Variable ID.
+ * @param name Name of attribute.
+ * @param xtype Pointer that gets (file) type of attribute. Ignored if
+ * NULL.
+ * @param mem_type The type of attribute data in memory.
+ * @param lenp Pointer that gets length of attribute array. Ignored if
+ * NULL.
+ * @param attnum Pointer that gets the index number of this
+ * attribute. Ignored if NULL.
+ * @param data Pointer that gets attribute data. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
+int
+nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
+            nc_type mem_type, size_t *lenp, int *attnum, void *data)
+{
+   NC_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
+   NC_VAR_INFO_T *var = NULL;
+   int retval;
+
+   LOG((3, "%s: ncid 0x%x varid %d mem_type %d", __func__, ncid,
+        varid, mem_type));
+
+   /* Find info for this file, group, and h5 info. */
+   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
+      return retval;
+   assert(h5 && grp);
+
+   /* Check varid */
+   if (varid != NC_GLOBAL)
+   {
+      if (!(var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid)))
+         return NC_ENOTVAR;
+      assert(var->hdr.id == varid);
+   }
+
+   /* Name is required. */
+   if (!name)
+      return NC_EBADNAME;
+
+   return nc4_get_att_ptrs(h5, grp, var, name, xtype, mem_type, lenp,
+                           attnum, data);
+}
+
+/**
  * @internal Learn about an att. All the nc4 nc_inq_ functions just
  * call nc4_get_att to get the metadata on an attribute.
  *
@@ -332,7 +364,6 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
    LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
    return nc4_get_att(ncid, varid, name, NULL, NC_NAT, NULL, attnump, NULL);
 }
-
 
 /**
  * @internal Given an attnum, find the att's name.

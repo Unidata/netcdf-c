@@ -6,6 +6,11 @@
 #ifndef NCHASHMAP_H
 #define NCHASHMAP_H
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+#include <stdint.h>
+
 /*
 This hashmap is optimized to assume null-terminated strings as the
 key.
