@@ -106,7 +106,7 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
  * @returns ::NC_NOERR for success
  * @returns ::NC_EBADID Bad ncid.
  * @returns ::NC_ENOTVAR Invalid variable ID.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 static int
 nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
@@ -570,11 +570,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
                  const size_t *chunksizes, int *no_fill,
                  const void *fill_value, int *endianness)
 {
-   NC *nc;
    NC_GRP_INFO_T *grp;
    NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
-   NC_FILE_INFO_T *nc4_info=NULL;
    int d;
    int retval;
 
@@ -585,26 +583,23 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find info for this file and group, and set pointer to each. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
       return retval;
-   assert(nc && grp && h5);
+   assert(grp && h5);
 
    /* Trying to write to a read-only file? No way, Jose! */
    if (h5->no_write)
       return NC_EPERM;
 
    /* Find the var. */
-   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
-   if(!var)
+   if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
       return NC_ENOTVAR;
    assert(var && var->hdr.id == varid);
 
    /* Can't turn on parallel and deflate/fletcher32/szip/shuffle. */
-   nc4_info = NC4_DATA(nc);
-   if (nc4_info->parallel == NC_TRUE) {
+   if (h5->parallel == NC_TRUE)
       if (deflate || fletcher32 || shuffle)
          return NC_EINVAL;
-   }
 
    /* If the HDF5 dataset has already been created, then it is too
     * late to set all the extra stuff. */
@@ -734,7 +729,8 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
          return retval;
 
       /* Create a _FillValue attribute. */
-      if ((retval = nc_put_att(ncid, varid, _FillValue, var->type_info->hdr.id, 1, fill_value)))
+      if ((retval = nc_put_att(ncid, varid, _FillValue, var->type_info->hdr.id,
+                               1, fill_value)))
          return retval;
    }
 
@@ -2112,29 +2108,29 @@ NC4_HDF5_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
    NC_VAR_INFO_T *var;
    int retval;
 
-    /* Check input for validity. */
+   /* Check input for validity. */
    if (preemption < 0 || preemption > 1)
       return NC_EINVAL;
 
-    /* Find info for this file and group, and set pointer to each. */
+   /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
       return retval;
    assert(grp && h5);
 
-    /* Find the var. */
+   /* Find the var. */
    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
       return NC_ENOTVAR;
    assert(var && var->hdr.id == varid);
 
-    /* Set the values. */
+   /* Set the values. */
    var->chunk_cache_size = size;
    var->chunk_cache_nelems = nelems;
    var->chunk_cache_preemption = preemption;
 
-    /* Reopen the dataset to bring new settings into effect. */
+   /* Reopen the dataset to bring new settings into effect. */
    if ((retval = nc4_reopen_dataset(grp, var)))
       return retval;
-    return NC_NOERR;
+   return NC_NOERR;
 }
 
 /**
@@ -2158,15 +2154,15 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
    size_t real_nelems = H5D_CHUNK_CACHE_NSLOTS_DEFAULT;
    float real_preemption = CHUNK_CACHE_PREEMPTION;
 
-    if (size >= 0)
+   if (size >= 0)
       real_size = ((size_t) size) * MEGABYTE;
 
-    if (nelems >= 0)
+   if (nelems >= 0)
       real_nelems = nelems;
 
-    if (preemption >= 0)
+   if (preemption >= 0)
       real_preemption = preemption / 100.;
 
-    return NC4_HDF5_set_var_chunk_cache(ncid, varid, real_size, real_nelems,
+   return NC4_HDF5_set_var_chunk_cache(ncid, varid, real_size, real_nelems,
                                        real_preemption);
 }
