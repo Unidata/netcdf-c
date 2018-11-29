@@ -254,9 +254,6 @@ extern "C" {
    NC4_def_var_filter(int, int, unsigned int, size_t, const unsigned int*);
 
    EXTERNL int
-   NC4_set_var_chunk_cache(int, int, size_t, size_t, float);
-
-   EXTERNL int
    NC4_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
 
    EXTERNL int
