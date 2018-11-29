@@ -1412,10 +1412,7 @@ int
 nc_set_log_level(int new_level)
 {
 #ifdef LOGGING
-   if(!nc4_hdf5_initialized)
-      nc4_hdf5_initialize();
-
-   /* Now remember the new level. */
+   /* Remember the new level. */
    nc_log_level = new_level;
    LOG((4, "log_level changed to %d", nc_log_level));
 #endif /*LOGGING */
