@@ -809,7 +809,8 @@ NC4_HDF5_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
                                            &h5, &grp, &var, NULL)))
       return retval;
 
-   return nc4_get_att_ptrs(h5, grp, var, name, xtypep, NC_NAT, lenp, NULL, NULL);
+   return nc4_get_att_ptrs(h5, grp, var, norm_name, xtypep, NC_NAT,
+                           lenp, NULL, NULL);
 }
 
 /**
@@ -840,7 +841,8 @@ NC4_HDF5_inq_attid(int ncid, int varid, const char *name, int *attnump)
                                            &h5, &grp, &var, NULL)))
       return retval;
 
-   return nc4_get_att_ptrs(h5, grp, var, name, NULL, NC_NAT, NULL, attnump, NULL);
+   return nc4_get_att_ptrs(h5, grp, var, norm_name, NULL, NC_NAT,
+                           NULL, attnump, NULL);
 }
 
 /**
@@ -907,6 +909,7 @@ NC4_HDF5_get_att(int ncid, int varid, const char *name, void *value, nc_type mem
                                            &h5, &grp, &var, NULL)))
       return retval;
 
-   return nc4_get_att_ptrs(h5, grp, var, name, NULL, memtype, NULL, NULL, value);
+   return nc4_get_att_ptrs(h5, grp, var, norm_name, NULL, memtype,
+                           NULL, NULL, value);
 }
 
