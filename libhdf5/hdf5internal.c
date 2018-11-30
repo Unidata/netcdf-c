@@ -696,6 +696,10 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
    LOG((4, "%s: ncid %d varid %d attnum %d use_name %d", __func__, ncid, varid,
         attnum, use_name));
 
+   /* Don't need to provide name unless getting att pointer and using
+    * use_name. */
+   assert(!att || ((use_name && name) || !use_name));
+
    /* Find info for this file, group, and h5 info. */
    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &my_grp, &my_h5)))
       return retval;
@@ -725,10 +729,15 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
    }
    assert(attlist);
 
+   /* Normalize the name. */
+   if (use_name && name)
+      if ((retval = nc4_normalize_name(name, my_norm_name)))
+         return retval;
+
    /* Now find the attribute by name or number. */
    if (att)
    {
-      my_att = use_name ? (NC_ATT_INFO_T *)ncindexlookup(attlist, name) :
+      my_att = use_name ? (NC_ATT_INFO_T *)ncindexlookup(attlist, my_norm_name) :
          (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
       if (!my_att)
          return NC_ENOTATT;
