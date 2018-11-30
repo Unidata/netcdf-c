@@ -68,14 +68,6 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
    if (name == NULL)
       BAIL(NC_EBADNAME);
 
-   /* If this is one of the reserved atts, use nc_get_att_special. */
-   if (!var)
-   {
-      const NC_reservedatt* ra = NC_findreserved(name);
-      if(ra != NULL && (ra->flags & NAMEONLYFLAG))
-	return nc4_get_att_special(h5, name, xtype, mem_type, lenp, attnum, data);
-   }
-
    /* Find the attribute, if it exists. */
    if ((retval = nc4_find_grp_att(grp, varid, name, my_attnum, &att)))
       return retval;

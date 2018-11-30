@@ -809,6 +809,15 @@ NC4_HDF5_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
                                            &h5, &grp, &var, NULL)))
       return retval;
 
+   /* If this is one of the reserved atts, use nc_get_att_special. */
+   if (!var)
+   {
+      const NC_reservedatt *ra = NC_findreserved(norm_name);
+      if (ra  && ra->flags & NAMEONLYFLAG)
+	return nc4_get_att_special(h5, norm_name, xtypep, NC_NAT, lenp, NULL,
+                                   NULL);
+   }
+
    return nc4_get_att_ptrs(h5, grp, var, norm_name, xtypep, NC_NAT,
                            lenp, NULL, NULL);
 }
@@ -840,6 +849,15 @@ NC4_HDF5_inq_attid(int ncid, int varid, const char *name, int *attnump)
    if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, norm_name,
                                            &h5, &grp, &var, NULL)))
       return retval;
+
+   /* If this is one of the reserved atts, use nc_get_att_special. */
+   if (!var)
+   {
+      const NC_reservedatt *ra = NC_findreserved(norm_name);
+      if (ra  && ra->flags & NAMEONLYFLAG)
+	return nc4_get_att_special(h5, norm_name, NULL, NC_NAT, NULL, attnump,
+                                   NULL);
+   }
 
    return nc4_get_att_ptrs(h5, grp, var, norm_name, NULL, NC_NAT,
                            NULL, attnump, NULL);
@@ -886,14 +904,16 @@ NC4_HDF5_inq_attname(int ncid, int varid, int attnum, char *name)
  * @param varid Variable ID.
  * @param name Name of attribute.
  * @param value Pointer that gets attribute data.
- * @param memtype The type the data should be converted to as it is read.
+ * @param memtype The type the data should be converted to as it is
+ * read.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
  */
 int
-NC4_HDF5_get_att(int ncid, int varid, const char *name, void *value, nc_type memtype)
+NC4_HDF5_get_att(int ncid, int varid, const char *name, void *value,
+                 nc_type memtype)
 {
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
@@ -908,6 +928,15 @@ NC4_HDF5_get_att(int ncid, int varid, const char *name, void *value, nc_type mem
    if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, norm_name,
                                            &h5, &grp, &var, NULL)))
       return retval;
+
+   /* If this is one of the reserved atts, use nc_get_att_special. */
+   if (!var)
+   {
+      const NC_reservedatt *ra = NC_findreserved(norm_name);
+      if (ra  && ra->flags & NAMEONLYFLAG)
+	return nc4_get_att_special(h5, norm_name, NULL, NC_NAT, NULL, NULL,
+                                   value);
+   }
 
    return nc4_get_att_ptrs(h5, grp, var, norm_name, NULL, memtype,
                            NULL, NULL, value);
