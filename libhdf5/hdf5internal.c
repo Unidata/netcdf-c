@@ -729,8 +729,12 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
    }
    assert(attlist);
 
+   /* Need a name if use_name is true. */
+   if (use_name && !name)
+      return NC_EBADNAME;
+
    /* Normalize the name. */
-   if (use_name && name)
+   if (use_name)
       if ((retval = nc4_normalize_name(name, my_norm_name)))
          return retval;
 

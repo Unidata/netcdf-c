@@ -28,7 +28,7 @@
  *
  * @param ncid File and group ID.
  * @param varid Variable ID.
- * @param name Name of attribute.
+ * @param name Name of attribute. Must already be normalized.
  * @param xtype Pointer that gets (file) type of attribute. Ignored if
  * NULL.
  * @param mem_type The type of attribute data in memory.
@@ -53,7 +53,6 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
    int range_error = NC_NOERR;
    void *bufr = NULL;
    size_t type_size;
-   char norm_name[NC_MAX_NAME + 1];
    int varid;
    int i;
    int retval;
@@ -69,20 +68,16 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
    if (name == NULL)
       BAIL(NC_EBADNAME);
 
-   /* Normalize name. */
-   if ((retval = nc4_normalize_name(name, norm_name)))
-      BAIL(retval);
-
    /* If this is one of the reserved atts, use nc_get_att_special. */
    if (!var)
    {
-      const NC_reservedatt* ra = NC_findreserved(norm_name);
+      const NC_reservedatt* ra = NC_findreserved(name);
       if(ra != NULL && (ra->flags & NAMEONLYFLAG))
-	return nc4_get_att_special(h5, norm_name, xtype, mem_type, lenp, attnum, data);
+	return nc4_get_att_special(h5, name, xtype, mem_type, lenp, attnum, data);
    }
 
    /* Find the attribute, if it exists. */
-   if ((retval = nc4_find_grp_att(grp, varid, norm_name, my_attnum, &att)))
+   if ((retval = nc4_find_grp_att(grp, varid, name, my_attnum, &att)))
       return retval;
 
    /* If mem_type is NC_NAT, it means we want to use the attribute's
@@ -229,6 +224,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var = NULL;
+   char norm_name[NC_MAX_NAME + 1];
    int retval;
 
    LOG((3, "%s: ncid 0x%x varid %d mem_type %d", __func__, ncid,
@@ -251,7 +247,11 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    if (!name)
       return NC_EBADNAME;
 
-   return nc4_get_att_ptrs(h5, grp, var, name, xtype, mem_type, lenp,
+   /* Normalize name. */
+   if ((retval = nc4_normalize_name(name, norm_name)))
+      return retval;
+
+   return nc4_get_att_ptrs(h5, grp, var, norm_name, xtype, mem_type, lenp,
                            attnum, data);
 }
 
