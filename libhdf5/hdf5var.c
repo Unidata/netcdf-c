@@ -2062,14 +2062,13 @@ NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var = NULL;
-   char norm_name[NC_MAX_NAME + 1];
    int retval;
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find the file, group, and var info, and do lazy att read if
     * needed. */
-   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, norm_name,
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, NULL, 0, 0, NULL,
                                            &h5, &grp, &var, NULL)))
       return retval;
    assert(grp && h5);
