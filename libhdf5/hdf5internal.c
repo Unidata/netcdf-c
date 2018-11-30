@@ -661,6 +661,9 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
  * @param attnum Number of attribute.
  * @param use_name If true, use the name to get the
  * attribute. Otherwise use the attnum.
+ * @param norm_name Pointer to storage of size NC_MAX_NAME + 1,
+ * which will get the normalized name, if use_name is true. Ignored if
+ * NULL.
  * @param h5 Pointer to pointer that gets file info struct. Ignored if
  * NULL.
  * @param grp Pointer to pointer that gets group info struct. Ignored
@@ -678,7 +681,7 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
  */
 int
 nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
-                          int use_name, NC_FILE_INFO_T **h5,
+                          int use_name, char *norm_name, NC_FILE_INFO_T **h5,
                           NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var,
                           NC_ATT_INFO_T **att)
 {
@@ -686,6 +689,7 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
    NC_GRP_INFO_T *my_grp;
    NC_VAR_INFO_T *my_var = NULL;
    NC_ATT_INFO_T *my_att;
+   char my_norm_name[NC_MAX_NAME + 1] = "";
    NCindex *attlist = NULL;
    int retval;
 
@@ -731,6 +735,8 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
    }
 
    /* Give the people what they want. */
+   if (norm_name)
+      strncpy(norm_name, my_norm_name, NC_MAX_NAME);
    if (h5)
       *h5 = my_h5;
    if (grp)

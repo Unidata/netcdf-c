@@ -798,14 +798,15 @@ NC4_HDF5_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var = NULL;
+   char norm_name[NC_MAX_NAME + 1];
    int retval;
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find the file, group, and var info, and do lazy att read if
     * needed. */
-   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
-                                           &grp, &var, NULL)))
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, norm_name,
+                                           &h5, &grp, &var, NULL)))
       return retval;
 
    return nc4_get_att_ptrs(h5, grp, var, name, xtypep, NC_NAT, lenp, NULL, NULL);
@@ -828,14 +829,15 @@ NC4_HDF5_inq_attid(int ncid, int varid, const char *name, int *attnump)
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var = NULL;
+   char norm_name[NC_MAX_NAME + 1];
    int retval;
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find the file, group, and var info, and do lazy att read if
     * needed. */
-   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
-                                           &grp, &var, NULL)))
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, norm_name,
+                                           &h5, &grp, &var, NULL)))
       return retval;
 
    return nc4_get_att_ptrs(h5, grp, var, name, NULL, NC_NAT, NULL, attnump, NULL);
@@ -864,7 +866,7 @@ NC4_HDF5_inq_attname(int ncid, int varid, int attnum, char *name)
    /* Find the file, group, and var info, and do lazy att read if
     * needed. */
    if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, NULL, attnum, 0, NULL,
-                                           NULL, NULL, &att)))
+                                           NULL, NULL, NULL, &att)))
       return retval;
    assert(att);
 
@@ -894,14 +896,15 @@ NC4_HDF5_get_att(int ncid, int varid, const char *name, void *value, nc_type mem
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var = NULL;
+   char norm_name[NC_MAX_NAME + 1];
    int retval;
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find the file, group, and var info, and do lazy att read if
     * needed. */
-   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
-                                           &grp, &var, NULL)))
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, norm_name,
+                                           &h5, &grp, &var, NULL)))
       return retval;
 
    return nc4_get_att_ptrs(h5, grp, var, name, NULL, memtype, NULL, NULL, value);
