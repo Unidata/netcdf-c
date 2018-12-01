@@ -22,7 +22,7 @@ OMEMFILE=f03tst_open_mem.nc
 echo ""
 echo "*** Testing in-memory operations"
 
-HASNC4=`${top_builddir}/nc-config --has-nc4`
+HASHDF5=`${top_builddir}/nc-config --has-hdf5`
 
 # Execute the core of the inmemory tests
 ${execdir}/tst_inmemory
@@ -34,7 +34,7 @@ ${NCDUMP} -n "${FILE3}" ${FILE3}.nc > ${FILE3}.cdl
 ${NCDUMP} -n "${FILE3}" ${CREATE3}.nc > ${CREATE3}.cdl
 diff -wb ${FILE3}.cdl ${CREATE3}.cdl
 
-if test "x$HASNC4" = "xyes" ; then
+if test "x$HASHDF5" = "xyes" ; then
 ${NCDUMP} ${FILE4}.nc > ${FILE4}.cdl
 ${NCDUMP} ${CREATE4}.nc > ${CREATE4}.cdl
 diff -wb ${FILE4}.cdl ${CREATE4}.cdl

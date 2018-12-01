@@ -25,9 +25,9 @@ run_nc4_tests.sh XGetopt.c $(man_MANS)
 # them for DLL builds.
 #if !BUILD_DLL
 TESTS = run_tests.sh 
-if USE_NETCDF4
+if USE_HDF5
 TESTS += run_nc4_tests.sh
-endif # USE_NETCDF4
+endif # USE_HDF5
 #endif # !BUILD_DLL
 
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc
