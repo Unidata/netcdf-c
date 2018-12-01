@@ -204,13 +204,13 @@ AC_MSG_RESULT([$enable_netcdf_4])
 
 # Does the user want to use HDF5?
 AC_MSG_CHECKING([whether we should build with HDF5])
-enable_hdf5=$enable_netcdf_4
-dnl AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
-dnl               [do not build with HDF5])])
-dnl test "x$enable_hdf5" = xno || enable_hdf5=yes
-dnl if test "x$enable_netcdf_4" = xno ; then
-dnl enable_hdf5=no
-dnl fi
+#enable_hdf5=$enable_netcdf_4
+AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
+              [do not build with HDF5])])
+test "x$enable_hdf5" = xno || enable_hdf5=yes
+if test "x$enable_netcdf_4" = xno ; then
+enable_hdf5=no
+fi
 AC_MSG_RESULT([$enable_hdf5])
 
 # Does the user require dynamic loading?

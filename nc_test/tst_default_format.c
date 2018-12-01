@@ -37,7 +37,7 @@ create_check(char *fname, int cmode, int exp_format)
         default: break;
     }
 
-#ifndef USE_NETCDF4
+#ifndef USE_HDF5
     if (cmode & NC_NETCDF4)
         exp_err = NC_ENOTBUILT;
 #endif
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 #endif
 
-#ifndef USE_NETCDF4
+#ifndef USE_HDF5
     err = nc_set_default_format(NC_FORMAT_NETCDF4, NULL); EXP_ERR(NC_ENOTBUILT)
     err = nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL); EXP_ERR(NC_ENOTBUILT)
     nerrs += create_check(fname, NC_NETCDF4, NC_FORMAT_NETCDF4);
