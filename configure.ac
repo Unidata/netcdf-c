@@ -859,7 +859,8 @@ AC_CHECK_FUNCS([strlcat snprintf \
 		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c])
 
 # disable dap4 if netcdf-4 is disabled
-if test "x$enable_netcdf_4" = "xno" ; then
+#if test "x$enable_netcdf_4" = "xno" ; then
+if test "x$enable_hdf5" = "xno" ; then
     AC_MSG_WARN([netcdf-4 not enabled; disabling DAP4])
     enable_dap4=no
 fi
