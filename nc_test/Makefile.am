@@ -51,7 +51,7 @@ TESTPROGRAMS += testnc3perf
 testnc3perf_SOURCES = testnc3perf.c
 endif
 
-if USE_NETCDF4
+if USE_HDF5
 TESTPROGRAMS += tst_diskless6
 tst_diskless6_SOURCES = tst_diskless6.c
 endif
@@ -62,7 +62,7 @@ check_PROGRAMS = $(TESTPROGRAMS)
 # Build Diskless test helpers
 check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4 \
 tst_diskless5 tst_inmemory tst_open_mem
-if USE_NETCDF4
+if USE_HDF5
 check_PROGRAMS += tst_diskless2
 endif
 

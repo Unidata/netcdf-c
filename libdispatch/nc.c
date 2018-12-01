@@ -91,7 +91,7 @@ nc_set_default_format(int format, int *old_formatp)
     if (format == NC_FORMAT_CDF5)
         return NC_ENOTBUILT;
 #endif
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
     if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET &&
         format != NC_FORMAT_NETCDF4 && format != NC_FORMAT_NETCDF4_CLASSIC &&
 	format != NC_FORMAT_CDF5)
