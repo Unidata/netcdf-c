@@ -109,7 +109,6 @@ typedef struct NC_MPI_INFO {
 /* Define known dispatch tables and initializers */
 
 /*Forward*/
-// typedef struct NC_Dispatch NC_Dispatch;
 
 
 extern int NCDISPATCH_initialize(void);
