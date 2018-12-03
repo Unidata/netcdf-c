@@ -1189,13 +1189,9 @@ AC_ARG_ENABLE([erange_fill],
    [enable_erange_fill=${enableval}], [enable_erange_fill=auto]
 )
 
-AC_ARG_ENABLE([zero-length-coord-bound],
-   [AS_HELP_STRING([--disable-zero-length-coord-bound],
-                   [Disable a more relaxed boundary error check NC_EINVALCOORDS
-                    to allow coordinate start argument equal to dimension size
-                    when argument count is zero. @<:@default: enabled@:>@])],
-   [enable_zero_length_coord_bound=${enableval}], [enable_zero_length_coord_bound=auto]
-)
+dnl Always build with relaxed coord bound checking, to prevent API
+dnl incompatibilities between different installs of netCDF.
+enable_zero_length_coord_bound=yes
 
 # check PnetCDF's settings on enable_erange_fill and relax_coord_bound
 if test "x$enable_pnetcdf" = xyes; then
@@ -1225,19 +1221,12 @@ if test "x$enable_pnetcdf" = xyes; then
       choke me
 #endif]])], [relax_coord_bound_pnetcdf=yes], [relax_coord_bound_pnetcdf=no])
    AC_MSG_RESULT([$relax_coord_bound_pnetcdf])
-   if test "x$enable_zero_length_coord_bound" = xauto ; then
-      enable_zero_length_coord_bound=$relax_coord_bound_pnetcdf
-   elif test "$enable_zero_length_coord_bound" != "$relax_coord_bound_pnetcdf"; then
-      if test "$enable_zero_length_coord_bound" = yes; then
-         AC_MSG_ERROR([Enabling relax-coord-bound conflicts with PnetCDF setting])
-      else
-         AC_MSG_ERROR([Disabling relax-coord-bound conflicts with PnetCDF setting])
-      fi
+   if test x"$relax_coord_bound_pnetcdf" != xyes; then
+      AC_MSG_ERROR([PNetCDF must be built with relax-coord-bound])
    fi
 else
    # default setting
    enable_erange_fill=no
-   enable_zero_length_coord_bound=yes
 fi
 
 if test "x$enable_zero_length_coord_bound" = xyes; then
