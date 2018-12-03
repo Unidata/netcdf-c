@@ -140,6 +140,7 @@ int main(int argc, char* argv[])
         }
     }
     st = nc_close(ncid); CHK_ERR(st)
+    free(buf);
 
 fn_exit:
     MPI_Finalize();
