@@ -1,16 +1,18 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
 
-# This is the main automake file for netCDF. It builds the different
-# netcdf directories. Not all directories are built, depending on the
-# options selected during configure.
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+
+# See netcdf-c/COPYRIGHT file for more info.
 
 # Build ncgen/ncdump.
 if BUILD_UTILITIES
 CDL_DIR = CDL
 endif
 
-# These are the subdirectories that will be built. 
+# These are the subdirectories that will be built.
 SUBDIRS = C $(CDL_DIR)
 
 EXTRA_DIST=CMakeLists.txt
