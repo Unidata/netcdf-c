@@ -31,8 +31,12 @@ readfile(const char* path, NC_memio* memio)
 #else
     f = fopen(path,"r");
 #endif
-    if(f == NULL)
-	{status = errno; goto done;}
+    if(f == NULL) {
+	fprintf(stderr,"cannot open file: %s\n",path);
+	fflush(stderr);
+	status = errno;
+	goto done;
+    }
     /* get current filesize */
     if(fseek(f,0,SEEK_END) < 0)
 	{status = errno; goto done;}
@@ -56,6 +60,7 @@ readfile(const char* path, NC_memio* memio)
     if(memio) {
 	memio->size = (size_t)filesize;
 	memio->memory = memory;
+	memory = NULL;
     }    
 done:
     if(status != NC_NOERR && memory != NULL)
@@ -82,6 +87,8 @@ main(int argc, char** argv)
 	goto exit;
     if((retval = nc_close(ncid)))
 	goto exit;
+    if(mem.memory)
+        free(mem.memory);
     return 0;
 exit:
     fprintf(stderr,"retval=%d\n",retval);
