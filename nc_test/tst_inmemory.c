@@ -61,8 +61,8 @@ extern int H5Eprint1(FILE * stream);
 
 #define NVARS0 3 /* # variables in define_metadata */
 #define VAR0_NAME "nightlife"
-#define VAR1_NAME "time"
-#define VAR2_NAME "taxi_distance"
+#define VAR1_NAME "taxi_distance"
+#define VAR2_NAME "time"
 
 /* Variable added by modify_file */
 #define VAR3_NAME "miles"
@@ -270,19 +270,19 @@ define_metadata(int ncid)
 {
     int stat = NC_NOERR;
     int dimid[MAXDIMS], varid0, varid1, varid2;
-    short short_data[DIM1_LEN];
     size_t start[1] = {0};
     size_t count[1] = {DIM1_LEN};
     int dimprod = (DIM0_LEN*DIM1_LEN);
     int i;
     float float_data;
     int nightdata[DIM0_LEN*DIM1_LEN] ;
+    short taxi_distance[DIM1_LEN] ;
 
     /* Create data to write */
     float_data = FLOATVAL;
 
     for (i = 0; i < DIM1_LEN; i++)
-        short_data[i] = i;
+        taxi_distance[i] = i;
 
     for (i = 0; i < dimprod; i++)
         nightdata[i] = (100*i);
@@ -294,13 +294,13 @@ define_metadata(int ncid)
     CHECK(nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimid[1]));
 
     CHECK(nc_def_var(ncid, VAR0_NAME, NC_INT, 2, dimid, &varid0));
-    CHECK(nc_def_var(ncid, VAR1_NAME, NC_FLOAT, 0, NULL, &varid1));
-    CHECK(nc_def_var(ncid, VAR2_NAME, NC_SHORT, 1, &dimid[1], &varid2));
+    CHECK(nc_def_var(ncid, VAR1_NAME, NC_SHORT, 1, &dimid[1], &varid1));
+    CHECK(nc_def_var(ncid, VAR2_NAME, NC_FLOAT, 0, NULL, &varid2));
 
     CHECK(nc_enddef(ncid));
 
-    CHECK(nc_put_vara_float(ncid, varid1, NULL, NULL, &float_data));
-    CHECK(nc_put_vara_short(ncid, varid2, start, count, short_data));
+    CHECK(nc_put_vara_short(ncid, varid1, start, count, taxi_distance));
+    CHECK(nc_put_var_float(ncid, varid2, &float_data));
 
     {
         size_t start[2] = {0,0};
@@ -407,6 +407,7 @@ verify_file(int ncid, int modified, int extra)
     float float_data_in;
     int milesdata_in[MAXDIMLEN];
     int expenses_in[MAXDIMLEN];
+    short taxi_distance_in[MAXDIMLEN];
     int dimprod = DIM0_LEN * DIM1_LEN;
 #ifdef USE_NETCDF4
     int tmp;
@@ -456,18 +457,23 @@ verify_file(int ncid, int modified, int extra)
     if (strcmp(name_in, VAR0_NAME) || type_in != NC_INT || ndims_in != NDIMS0 ||
     dimid_in[0] != 0 || dimid_in[1] != 1 || natts_in != 0) CHECK(NC_EINVAL);
     CHECK(nc_inq_var(ncid, varid[1], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-    if (strcmp(name_in, VAR1_NAME) || type_in != NC_FLOAT || ndims_in != 0 ||
-    natts_in != 0) CHECK(NC_EINVAL);
+    if (strcmp(name_in, VAR1_NAME) || type_in != NC_SHORT || ndims_in != 1 || dimid_in[0] != 1 || natts_in != 0)
+    	CHECK(NC_EINVAL);
     CHECK(nc_inq_var(ncid, varid[2], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-    if (strcmp(name_in, VAR2_NAME) || type_in != NC_SHORT || ndims_in != 1 ||
-        dimid_in[0] != 1 || natts_in != 0) CHECK(NC_EINVAL);
+    if (strcmp(name_in, VAR2_NAME) || type_in != NC_FLOAT || ndims_in != 0 || natts_in != 0)
+    	CHECK(NC_EINVAL);
 
     CHECK(nc_get_var_int(ncid, varid[0], nightdata_in));
     for(i=0;i<dimprod;i++) {
 	if(nightdata_in[i] != (100*i)) CHECK(NC_EINVAL);
     }
 
-    CHECK(nc_get_vara_float(ncid, varid[1], NULL, NULL, &float_data_in));
+    CHECK(nc_get_var_short(ncid, varid[1], taxi_distance_in));
+    for(i=0;i<DIM1_LEN;i++) {
+	if(taxi_distance_in[i] != (i)) CHECK(NC_EINVAL);
+    }
+
+    CHECK(nc_get_var_float(ncid, varid[2], &float_data_in));
     if (float_data_in != FLOATVAL) CHECK(NC_EINVAL);
 
     if(modified) {
