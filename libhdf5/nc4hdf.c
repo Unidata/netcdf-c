@@ -1,4 +1,4 @@
-/* Copyright 2003, University Corporation for Atmospheric
+/* Copyright 2018, University Corporation for Atmospheric
  * Research. See the COPYRIGHT file for copying and redistribution
  * conditions. */
 /**
@@ -2791,4 +2791,3 @@ NC4_walk(hid_t gid, int* countp)
    }
    return ncstat;
 }
-
