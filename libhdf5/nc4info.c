@@ -2,7 +2,7 @@
  * @file
  * @internal Add provenance info for netcdf-4 files.
  *
- * Copyright 2010, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+ * Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
  * and redistribution conditions.
  * @author Dennis Heimbigner
  */
@@ -73,7 +73,7 @@ NC4_provenance_init(void)
 	{stat = NC_ENOMEM; goto done;}
     nclistpush(globalpropinfo.properties,value);
     value = NULL;
-    
+
     /* Insert the HDF5 as underlying storage format library */
     if((name = strdup(NCPHDF5LIB2)) == NULL)
 	{stat = NC_ENOMEM; goto done;}
@@ -109,7 +109,7 @@ done:
     if(name != NULL) free(name);
     if(value != NULL) free(value);
     if(other != NULL)
-	nclistfreeall(other);    
+	nclistfreeall(other);
     if(stat && globalpropinfo.properties != NULL) {
 	nclistfreeall(globalpropinfo.properties);
         globalpropinfo.properties = NULL;
@@ -192,7 +192,7 @@ properties_parse(const char* text0, NClist* pairs)
   	    *q++ = '\0';
 	next = q;
 	/* split key and value */
-	q = locate(p,'=');      
+	q = locate(p,'=');
  	name = p;
         *q++ = '\0';
 	value = q;
@@ -517,7 +517,7 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5)
     hdf5grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
 
     if(H5Aexists(hdf5grpid,NCPROPS) <= 0) { /* Does not exist */
-	/* File did not contain a _NCProperties attribute */		
+	/* File did not contain a _NCProperties attribute */
         retval=NC4_get_provenance(h5,NULL,&globalpropinfo);
         goto done;
     }
@@ -641,7 +641,7 @@ ncprintpropinfo(struct NCPROPINFO* info)
 	char* name = nclistget(info->properties,i);
 	char* value = nclistget(info->properties,i+1);
 	fprintf(stderr,"\t[%d] name=|%s| value=|%s|\n",i,name,value);
-    }    
+    }
 }
 
 void
@@ -650,4 +650,3 @@ ncprintprovenance(struct NCPROVENANCE* prov)
     fprintf(stderr,"[%p] superblockversion=%d\n",prov,prov->superblockversion);
     ncprintpropinfo(&prov->propattr);
 }
-
