@@ -7,6 +7,7 @@
 Test the netcdf-4 data building process.
 */
 
+#include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include "netcdf.h"

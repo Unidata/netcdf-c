@@ -5,9 +5,12 @@
 #include "config.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
+
+extern int fileno(FILE*);
 
 #include "ocinternal.h"
 #include "ocdebug.h"

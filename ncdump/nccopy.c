@@ -2156,7 +2156,7 @@ main(int argc, char**argv)
 		    error("too many -F filterspecs\n");
 		filterspecs[nfilterspecs] = filterspec;
 		nfilterspecs++;
-		// Force output to be netcdf-4
+		/* Force output to be netcdf-4 */
 		option_kind = NC_FORMAT_NETCDF4;
 	    }
 #else

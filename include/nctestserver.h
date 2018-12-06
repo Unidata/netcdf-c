@@ -65,27 +65,39 @@ nc_findtestserver(const char* path, int isdap4, const char* serverlist)
     char** svc;
     char url[MAXSERVERURL];
     char* match = NULL;
+    int reportsearch;
 
     if((svclist = parseServers(serverlist))==NULL) {
 	fprintf(stderr,"cannot parse test server list: %s\n",serverlist);
 	return NULL;
     }
+    reportsearch = (getenv("NC_REPORTSEARCH") != NULL);
     for(svc=svclist;*svc;svc++) {
 	if(strlen(*svc) == 0) 
 	    goto done;
         if(path == NULL) path = "";
         if(strlen(path) > 0 && path[0] == '/')
 	    path++;
+	if(reportsearch)
+	    fprintf(stderr,"nc_findtestserver: candidate=%s/%s: found=",*svc,path);
 	/* Try https: first */
         snprintf(url,MAXSERVERURL,"https://%s/%s",*svc,path);
-	if(ping(url) == NC_NOERR)
-	    {match = strdup(url); goto done;}
+	if(ping(url) == NC_NOERR) {
+	    if(reportsearch) fprintf(stderr,"yes\n");
+	    match = strdup(url);
+	    goto done;
+	}
 	/* Try http: next */
         snprintf(url,MAXSERVERURL,"http://%s/%s",*svc,path);
-	if(ping(url) == NC_NOERR)
-	    {match = strdup(url); goto done;}
+	if(ping(url) == NC_NOERR) {
+	    if(reportsearch) fprintf(stderr,"yes\n");
+	    match = strdup(url);
+	    goto done;
+	}
+	if(reportsearch) fprintf(stderr,"no\n");
     }
 done:
+    if(reportsearch) fflush(stderr);
     /* Free up the envv list of servers */
     if(svclist != NULL) {    
         char** p;

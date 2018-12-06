@@ -873,15 +873,24 @@ test "x$enable_mmap" = xyes || enable_mmap=no
 AC_MSG_RESULT($enable_mmap)
 
 # check for mmap and mremap availability before committing to use mmap
-AC_CHECK_FUNCS([mmap],[have_mmap=yes],[have_mmap=no])
-AC_CHECK_FUNCS([mremap],[have_mremap=yes],[have_mremap=no])
+have_mmap="$enable_mmap"
+AC_CHECK_FUNCS([mmap],[],[have_mmap=no])
+AC_CHECK_FUNCS([mremap],[],[have_mmap=no])
+
+# Check for MAP_ANONYMOUS
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include <sys/mman.h>],
+[[int x = MAP_ANONYMOUS;]])],
+                   [havemapanon=yes],
+                   [havemapanon=no])
+AC_MSG_CHECKING([whether MAP_ANONYMOUS is defined])
+AC_MSG_RESULT([${havemapanon}])
+if test "x$havemapanon" != xyes ; then
+  have_mmap=no
+fi
 
 if test "x$have_mmap" != xyes ; then
-  echo "mmap function is not available: disabling mmap"
-  enable_mmap=no
-fi
-if test "x$have_mremap" != xyes ; then
-  echo "mremap function is not available: disabling mmap"
+  echo "mmap functionality is not available: disabling mmap"
   enable_mmap=no
 fi
 

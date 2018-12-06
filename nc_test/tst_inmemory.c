@@ -371,7 +371,6 @@ modify_file_extra(int ncid)
     size_t i;
     int varidx;
     int dimid[1];
-    size_t len;
     int data[MAXDIMLEN];
 
     /* open file for new meta-data */
