@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2007, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This is to include the libnc-dap test comparison files
 
@@ -26,5 +26,3 @@ ref_niltest.cdl ref_tst_h_scalar.cdl ref_tst_econst.cdl \
 ref_tst_nul3.cdl ref_tst_nul4.cdl ref_tst_names.cdl \
 ref_tst_long_charconst.cdl tst_chararray.cdl ref_keyword.cdl \
 CMakeLists.txt
-
-
