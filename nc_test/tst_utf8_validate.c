@@ -1,5 +1,5 @@
 /*
- * Copyright 1998-2015 University Corporation for Atmospheric Research/Unidata
+ * Copyright 1998-2018 University Corporation for Atmospheric Research/Unidata
  *  See the LICENSE file for more information.
  */
 
@@ -99,16 +99,16 @@ static const struct Test utf8boundary[] = {
 {0,"2.1.2", "2 bytes (U-00000080)",        "Â€"},
 {0,"2.1.3", "3 bytes (U-00000800)",        "à €"},
 {0,"2.1.4", "4 bytes (U-00010000)",        "ğ€€"},
-{1,"2.1.5", "5 bytes (U-00200000)",        "øˆ€€€"},
-{1,"2.1.6", "6 bytes (U-04000000)",        "ü„€€€€"},
+{1,"2.1.5", "5 bytes (U-00200000)",        "ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"2.1.6", "6 bytes (U-04000000)",        "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
 
 /*2.2  Last possible sequence of a certain length*/
 {0,"2.2.1", "1 byte  (U-0000007F)",        ""},
 {0,"2.2.2", "2 bytes (U-000007FF)",        "ß¿"},
 {0,"2.2.3", "3 bytes (U-0000FFFF)",        "ï¿¿"}, /*See 5.3.2 */
-{1,"2.2.4", "4 bytes (U-001FFFFF)",        "÷¿¿¿"},
-{1,"2.2.5", "5 bytes (U-03FFFFFF)",        "û¿¿¿¿"},
-{1,"2.2.6", "6 bytes (U-7FFFFFFF)",        "ı¿¿¿¿¿"},
+{1,"2.2.4", "4 bytes (U-001FFFFF)",        "ï¿½ï¿½ï¿½ï¿½"},
+{1,"2.2.5", "5 bytes (U-03FFFFFF)",        "ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"2.2.6", "6 bytes (U-7FFFFFFF)",        "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
 
 /*2.3  Other boundary conditions*/
 
@@ -116,7 +116,7 @@ static const struct Test utf8boundary[] = {
 {0,"2.3.2", "U-0000E000 = ee 80 80", "î€€"},
 {0,"2.3.3", "U-0000FFFD = ef bf bd", "ï¿½"},
 {0,"2.3.4", "U-0010FFFF = f4 8f bf bf", "ô¿¿"},
-{1,"2.3.5", "U-00110000 = f4 90 80 80", "ô€€"},
+{1,"2.3.5", "U-00110000 = f4 90 80 80", "ï¿½ï¿½ï¿½ï¿½"},
 NULLTEST
 };
 
@@ -128,17 +128,17 @@ static const struct Test utf8bad[] = {
        Each unexpected continuation byte should be separately signalled
        as a malformed sequence of its own.
 */
-{1,"3.1.1", "First continuation byte 0x80", "€"},
-{1,"3.1.2", "Last  continuation byte 0xbf", "¿"},
+{1,"3.1.1", "First continuation byte 0x80", "ï¿½"},
+{1,"3.1.2", "Last  continuation byte 0xbf", "ï¿½"},
 
-{1,"3.1.3", "2 continuation bytes", "€¿"},
-{1,"3.1.4", "3 continuation bytes", "€¿€"},
-{1,"3.1.5", "4 continuation bytes", "€¿€¿"},
-{1,"3.1.6", "5 continuation bytes", "€¿€¿€"},
-{1,"3.1.7", "6 continuation bytes", "€¿€¿€¿"},
-{1,"3.1.8", "7 continuation bytes", "€¿€¿€¿€"},
+{1,"3.1.3", "2 continuation bytes", "ï¿½ï¿½"},
+{1,"3.1.4", "3 continuation bytes", "ï¿½ï¿½ï¿½"},
+{1,"3.1.5", "4 continuation bytes", "ï¿½ï¿½ï¿½ï¿½"},
+{1,"3.1.6", "5 continuation bytes", "ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"3.1.7", "6 continuation bytes", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"3.1.8", "7 continuation bytes", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
 {1,"3.1.9", "Sequence of all 64 possible continuation bytes (0x80-0xbf)",
-   "€‚ƒ„…†‡ˆ‰Š‹Œ‘’“”•–—˜™š›œŸ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿"
+   "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"
 },
 
 /*3.2  Lonely start characters*/
@@ -147,31 +147,31 @@ static const struct Test utf8bad[] = {
        each followed by a space character*/
 
 {1,"3.2.1", "All 32 first bytes of 2-byte sequences",
-"À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ğ Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü İ Ş ß "
+"ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ "
 },
 
 /*3.2.2  All 16 first bytes of 3-byte sequences (0xe0-0xef),
        each followed by a space character:*/
 {1,"3.2.2", "All 16 first bytes of 3-byte sequences",
-"à á â ã ä å æ ç è é ê ë ì í î ï "
+"ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ "
 },
 
 /*3.2.3  All 8 first bytes of 4-byte sequences (0xf0-0xf7),
        each followed by a space character:*/
 {1,"3.2.3", "All 8 first bytes of 4-byte sequences",
-   "ğ ñ ò ó ô õ ö ÷ "
+   "ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ "
 },
 
 /*3.2.4  All 4 first bytes of 5-byte sequences (0xf8-0xfb),
        each followed by a space character:*/
 {1,"3.2.4", "All 4 first bytes of 5-byte sequences",
-   "ø ù ú û "
+   "ï¿½ ï¿½ ï¿½ ï¿½ "
 },
 
 /*3.2.5  All 2 first bytes of 6-byte sequences (0xfc-0xfd),
        each followed by a space character:*/
 {1,"3.2.5", "All 2 first bytes of 6-byte sequences",
-   "ü ı "
+   "ï¿½ ï¿½ "
 },
 
 /*3.3  Sequences with last continuation byte missing
@@ -179,32 +179,32 @@ All bytes of an incomplete sequence should be signalled as a single
 malformed sequence, i.e., you should see only a single replacement
 character in each of the next 10 tests. (Characters as in section 2)
 */
-{1,"3.3.1", "2-byte sequence with last byte missing (U+0000)",     "À"},
-{1,"3.3.2", "3-byte sequence with last byte missing (U+0000)",     "à€"},
-{1,"3.3.3", "4-byte sequence with last byte missing (U+0000)",     "ğ€€"},
-{1,"3.3.4", "5-byte sequence with last byte missing (U+0000)",     "ø€€€"},
-{1,"3.3.5", "6-byte sequence with last byte missing (U+0000)",     "ü€€€€"},
-{1,"3.3.6", "2-byte sequence with last byte missing (U-000007FF)", "ß"},
-{1,"3.3.7", "3-byte sequence with last byte missing (U-0000FFFF)", "ï¿"},
-{1,"3.3.8", "4-byte sequence with last byte missing (U-001FFFFF)", "÷¿¿"},
-{1,"3.3.9", "5-byte sequence with last byte missing (U-03FFFFFF)", "û¿¿¿"},
-{1,"3.3.10", "6-byte sequence with last byte missing (U-7FFFFFFF)", "ı¿¿¿¿"},
+{1,"3.3.1", "2-byte sequence with last byte missing (U+0000)",     "ï¿½"},
+{1,"3.3.2", "3-byte sequence with last byte missing (U+0000)",     "ï¿½ï¿½"},
+{1,"3.3.3", "4-byte sequence with last byte missing (U+0000)",     "ï¿½ï¿½ï¿½"},
+{1,"3.3.4", "5-byte sequence with last byte missing (U+0000)",     "ï¿½ï¿½ï¿½ï¿½"},
+{1,"3.3.5", "6-byte sequence with last byte missing (U+0000)",     "ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"3.3.6", "2-byte sequence with last byte missing (U-000007FF)", "ï¿½"},
+{1,"3.3.7", "3-byte sequence with last byte missing (U-0000FFFF)", "ï¿½ï¿½"},
+{1,"3.3.8", "4-byte sequence with last byte missing (U-001FFFFF)", "ï¿½ï¿½ï¿½"},
+{1,"3.3.9", "5-byte sequence with last byte missing (U-03FFFFFF)", "ï¿½ï¿½ï¿½ï¿½"},
+{1,"3.3.10", "6-byte sequence with last byte missing (U-7FFFFFFF)", "ï¿½ï¿½ï¿½ï¿½ï¿½"},
 
 /*3.4 Concatenation of incomplete sequences
 All the 10 sequences of 3.3 concatenated; you should see 10 malformed
 sequences being signalled:
 */
 {1, "3.4.1", "All the 10 sequences of 3.3 concatenated",
-   "Àà€ğ€€ø€€€ü€€€€ßï¿÷¿¿û¿¿¿ı¿¿¿¿"
+   "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"
 },
 
 /*3.5  Impossible bytes
 The following two bytes cannot appear in a correct UTF-8 string
 */
 
-{1,"3.5.1", "fe", "ş"},
-{1,"3.5.2", "ff", "ÿ"},
-{1,"3.5.3", "fe fe ff ff", "şşÿÿ"},
+{1,"3.5.1", "fe", "ï¿½"},
+{1,"3.5.2", "ff", "ï¿½"},
+{1,"3.5.3", "fe fe ff ff", "ï¿½ï¿½ï¿½ï¿½"},
 
 /*
 4  Overlong sequences
@@ -237,11 +237,11 @@ a replacement character. If you see a slash below, you do not have a
 safe UTF-8 decoder!
 */
 
-{1,"4.1.1", "U+002F = c0 af             ", "À¯"},
-{1,"4.1.2", "U+002F = e0 80 af          ", "à€¯"},
-{1,"4.1.3", "U+002F = f0 80 80 af       ", "ğ€€¯"},
-{1,"4.1.4", "U+002F = f8 80 80 80 af    ", "ø€€€¯"},
-{1,"4.1.5", "U+002F = fc 80 80 80 80 af ", "ü€€€€¯"},
+{1,"4.1.1", "U+002F = c0 af             ", "ï¿½ï¿½"},
+{1,"4.1.2", "U+002F = e0 80 af          ", "ï¿½ï¿½ï¿½"},
+{1,"4.1.3", "U+002F = f0 80 80 af       ", "ï¿½ï¿½ï¿½ï¿½"},
+{1,"4.1.4", "U+002F = f8 80 80 80 af    ", "ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"4.1.5", "U+002F = fc 80 80 80 80 af ", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
 
 /*4.2  Maximum overlong sequences
 
@@ -251,11 +251,11 @@ is a boundary test for safe UTF-8 decoders. All five characters should
 be rejected like malformed UTF-8 sequences.
 */
 
-{1,"4.2.1", "U-0000007F = c1 bf             ", "Á¿"},
-{1,"4.2.2", "U-000007FF = e0 9f bf          ", "àŸ¿"},
-{1,"4.2.3", "U-0000FFFF = f0 8f bf bf       ", "ğ¿¿"},
-{1,"4.2.4", "U-001FFFFF = f8 87 bf bf bf    ", "ø‡¿¿¿"},
-{1,"4.2.5", "U-03FFFFFF = fc 83 bf bf bf bf ", "üƒ¿¿¿¿"},
+{1,"4.2.1", "U-0000007F = c1 bf             ", "ï¿½ï¿½"},
+{1,"4.2.2", "U-000007FF = e0 9f bf          ", "ï¿½ï¿½ï¿½"},
+{1,"4.2.3", "U-0000FFFF = f0 8f bf bf       ", "ï¿½ï¿½ï¿½ï¿½"},
+{1,"4.2.4", "U-001FFFFF = f8 87 bf bf bf    ", "ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"4.2.5", "U-03FFFFFF = fc 83 bf bf bf bf ", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
 
 /*
 4.3  Overlong representation of the NUL character
@@ -265,11 +265,11 @@ UTF-8 sequences and should not be treated like the ASCII NUL
 character.
 */
 
-{1,"4.3.1", "U+0000 = c0 80             ", "À€"},
-{1,"4.3.2", "U+0000 = e0 80 80          ", "à€€"},
-{1,"4.3.3", "U+0000 = f0 80 80 80       ", "ğ€€€"},
-{1,"4.3.4", "U+0000 = f8 80 80 80 80    ", "ø€€€€"},
-{1,"4.3.5", "U+0000 = fc 80 80 80 80 80 ", "ü€€€€€"},
+{1,"4.3.1", "U+0000 = c0 80             ", "ï¿½ï¿½"},
+{1,"4.3.2", "U+0000 = e0 80 80          ", "ï¿½ï¿½ï¿½"},
+{1,"4.3.3", "U+0000 = f0 80 80 80       ", "ï¿½ï¿½ï¿½ï¿½"},
+{1,"4.3.4", "U+0000 = f8 80 80 80 80    ", "ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"4.3.5", "U+0000 = fc 80 80 80 80 80 ", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
 
 /*
 5  Illegal code positions
@@ -281,24 +281,24 @@ comparable to overlong UTF-8 sequences.
 */
 /*5.1 Single UTF-16 surrogates*/
 
-{1,"5.1.1", "U+D800 = ed a0 80 ", "í €"},
-{1,"5.1.2", "U+DB7F = ed ad bf ", "í­¿"},
-{1,"5.1.3", "U+DB80 = ed ae 80 ", "í®€"},
-{1,"5.1.4", "U+DBFF = ed af bf ", "í¯¿"},
-{1,"5.1.5", "U+DC00 = ed b0 80 ", "í°€"},
-{1,"5.1.6", "U+DF80 = ed be 80 ", "í¾€"},
-{1,"5.1.7", "U+DFFF = ed bf bf ", "í¿¿"},
+{1,"5.1.1", "U+D800 = ed a0 80 ", "ï¿½ï¿½ï¿½"},
+{1,"5.1.2", "U+DB7F = ed ad bf ", "ï¿½ï¿½ï¿½"},
+{1,"5.1.3", "U+DB80 = ed ae 80 ", "ï¿½ï¿½ï¿½"},
+{1,"5.1.4", "U+DBFF = ed af bf ", "ï¿½ï¿½ï¿½"},
+{1,"5.1.5", "U+DC00 = ed b0 80 ", "ï¿½ï¿½ï¿½"},
+{1,"5.1.6", "U+DF80 = ed be 80 ", "ï¿½ï¿½ï¿½"},
+{1,"5.1.7", "U+DFFF = ed bf bf ", "ï¿½ï¿½ï¿½"},
 
 /*5.2 Paired UTF-16 surrogates */
 
-{1,"5.2.1", "U+D800 U+DC00 = ed a0 80 ed b0 80 ", "í €í°€"},
-{1,"5.2.2", "U+D800 U+DFFF = ed a0 80 ed bf bf ", "í €í¿¿"},
-{1,"5.2.3", "U+DB7F U+DC00 = ed ad bf ed b0 80 ", "í­¿í°€"},
-{1,"5.2.4", "U+DB7F U+DFFF = ed ad bf ed bf bf ", "í­¿í¿¿"},
-{1,"5.2.5", "U+DB80 U+DC00 = ed ae 80 ed b0 80 ", "í®€í°€"},
-{1,"5.2.6", "U+DB80 U+DFFF = ed ae 80 ed bf bf ", "í®€í¿¿"},
-{1,"5.2.7", "U+DBFF U+DC00 = ed af bf ed b0 80 ", "í¯¿í°€"},
-{1,"5.2.8", "U+DBFF U+DFFF = ed af bf ed bf bf ", "í¯¿í¿¿"},
+{1,"5.2.1", "U+D800 U+DC00 = ed a0 80 ed b0 80 ", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"5.2.2", "U+D800 U+DFFF = ed a0 80 ed bf bf ", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"5.2.3", "U+DB7F U+DC00 = ed ad bf ed b0 80 ", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"5.2.4", "U+DB7F U+DFFF = ed ad bf ed bf bf ", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"5.2.5", "U+DB80 U+DC00 = ed ae 80 ed b0 80 ", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"5.2.6", "U+DB80 U+DFFF = ed ae 80 ed bf bf ", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"5.2.7", "U+DBFF U+DC00 = ed af bf ed b0 80 ", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
+{1,"5.2.8", "U+DBFF U+DFFF = ed af bf ed bf bf ", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"},
 NULLTEST
 };
 

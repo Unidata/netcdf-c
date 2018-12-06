@@ -1,5 +1,5 @@
 /*
-  Copyright 2004-2006, UCAR/Unidata
+  Copyright 2004-2018, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 
   This program (quickly, but not thoroughly) tests the large file

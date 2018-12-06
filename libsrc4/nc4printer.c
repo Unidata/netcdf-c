@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -17,7 +17,7 @@ create other tools.
 #include "ncbytes.h"
 #include "nclist.h"
 
-#undef DEBUG 
+#undef DEBUG
 
 #define BUFSIZE 4096
 
@@ -148,7 +148,7 @@ freeNC4Printer(NC4printer* out)
 {
     int i;
 
-    if(out == NULL) return;    
+    if(out == NULL) return;
 
 #ifdef DEBUG
 fprintf(stderr,"free: |allnodes=%ld\n",nclistlength(out->allnodes));
@@ -206,7 +206,7 @@ printNode(NC4printer* out, NCID* node, int depth)
 
     switch (node->sort) {
     case GROUP:
-	/* Get group name */    
+	/* Get group name */
 	if((ret=nc_inq_grpname(node->id,name))) FAIL;
 	SETNAME(node,name);
 	/* get group counts */
@@ -304,7 +304,7 @@ printNode(NC4printer* out, NCID* node, int depth)
             printXMLAttributeName(out, "name", node->name);
             printXMLAttributeSize(out, "size", node->size);
             CAT("/>");
-	    break;	    	
+	    break;
 	case NC_ENUM:
             if((ret=nc_inq_enum(GROUPOF(node),node->id,NULL,NULL,NULL,&count))) FAIL;
 	    INDENT(depth); CAT("<Enumeration");
@@ -378,7 +378,7 @@ printNode(NC4printer* out, NCID* node, int depth)
                         SETNAME(id,name);
 			id->base = findType(out,base);
 			id->size = count;
-                printAttribute(out,id,depth); 
+                printAttribute(out,id,depth);
 		CAT("\n");
 	    }
             depth--;
@@ -636,7 +636,7 @@ makeFQN(NCID* id, NCbytes* path)
         fqnWalk(g,path);
     ncbytesappend(path,'/');
     if(id->sort != GROUP)
-        ncbytescat(path,id->name);   
+        ncbytescat(path,id->name);
     ncbytesnull(path);
 }
 
@@ -646,7 +646,7 @@ fqnWalk(NCID* grp, NCbytes* path)
     if(grp->id != 0) {
         NCID* parent = grp->parent;
         fqnWalk(parent,path);
-        ncbytesappend(path,'/');        
+        ncbytesappend(path,'/');
         ncbytescat(path,parent->name);
     }
 }
@@ -738,7 +738,7 @@ printString(NCbytes* out, const char* s, int quotes)
 	if(c == '\\') ncbytescat(out,"\\\\");
         else if(c == '"') ncbytescat(out,"\\\"");
         else ncbytesappend(out,c);
-    }               
+    }
     if(quotes) ncbytesappend(out,'"');
     ncbytesnull(out);
 }
@@ -783,4 +783,3 @@ readAttributeValues(NCID* attr, void** valuesp)
     if(valuesp) *valuesp = values;
     return ret;
 }
-

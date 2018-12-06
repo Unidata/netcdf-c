@@ -1,5 +1,5 @@
 /*
-  Copyright 2008, UCAR/Unidata
+  Copyright 2018, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 
   This program tests the fix for a large file bug in versions previous
