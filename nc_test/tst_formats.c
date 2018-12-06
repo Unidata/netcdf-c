@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005-2007 University
+/* This is part of the netCDF package. Copyright 2005-2018 University
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
@@ -58,12 +58,12 @@ check_inq_format(int ncid, int expected_format, int expected_extended_format, in
    int format;
    int extended_format;
    int mode;
-   
+
    if (nc_inq_format(ncid + 66000, NULL) != NC_EBADID) ERR;
    if (nc_inq_format(ncid, NULL)) ERR;
    if (nc_inq_format(ncid, &format)) ERR;
    if (format != expected_format) {
-      printf("format %d expected_format %d\n", format, expected_format);      
+      printf("format %d expected_format %d\n", format, expected_format);
       ERR;
    }
    if (nc_inq_format_extended(ncid + 66000, &extended_format, &mode) != NC_EBADID) ERR;

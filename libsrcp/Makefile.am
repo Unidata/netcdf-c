@@ -1,5 +1,5 @@
 ## This is an automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This automake file is in charge of building the libsrc directory,
 # which contains the classic library code.
@@ -16,4 +16,4 @@ libnetcdfp_la_SOURCES = ncpdispatch.c
 
 noinst_LTLIBRARIES = libnetcdfp.la
 
-EXTRA_DIST = CMakeLists.txt 
+EXTRA_DIST = CMakeLists.txt
