@@ -1,6 +1,6 @@
 /*
-Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
-See LICENSE.txt for license information.
+Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
+See COPYRIGHT for license information.
 */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -31,7 +31,7 @@ struct NCAUX_FIELD {
     char* name;
     nc_type fieldtype;
     size_t ndims;
-    int dimsizes[NC_MAX_VAR_DIMS];    
+    int dimsizes[NC_MAX_VAR_DIMS];
     size_t size;
     size_t offset;
     size_t alignment;
@@ -96,7 +96,7 @@ ncaux_reclaim_data(int ncid, int xtype, void* memory, size_t count)
     size_t typesize = 0;
     size_t i;
     Position offset;
-    
+
     if(ncid < 0 || xtype < 0
        || (memory == NULL && count > 0)
        || xtype == NC_NAT)
@@ -110,7 +110,7 @@ ncaux_reclaim_data(int ncid, int xtype, void* memory, size_t count)
 	if((stat=reclaim_datar(ncid,xtype,typesize,&offset))) /* reclaim one instance */
 	    break;
     }
-    
+
 done:
     return stat;
 }
@@ -120,7 +120,7 @@ static int
 reclaim_datar(int ncid, int xtype, size_t typesize, Position* offset)
 {
     int stat = NC_NOERR;
-    
+
     switch  (xtype) {
     case NC_CHAR: case NC_BYTE: case NC_UBYTE:
     case NC_SHORT: case NC_USHORT:
@@ -147,7 +147,7 @@ reclaim_datar(int ncid, int xtype, size_t typesize, Position* offset)
     }
     return stat;
 }
-	
+
 #ifdef USE_NETCDF4
 
 static ptrdiff_t
@@ -162,7 +162,7 @@ static int
 reclaim_usertype(int ncid, int xtype, Position* offset)
 {
     int stat = NC_NOERR;
-    size_t size;    
+    size_t size;
     nc_type basetype;
     size_t nfields;
     int klass;
@@ -250,7 +250,7 @@ reclaim_compound(int ncid, int xtype, size_t cmpdsize, size_t nfields, Position*
 	for(i=0;i<ndims;i++) arraycount *= dimsizes[i];
 	for(i=0;i<arraycount;i++) {
 	    if((stat = reclaim_datar(ncid, fieldtype, fieldsize, offset))) goto done;
-	}		
+	}
     }
     /* Return to beginning of the compound and move |compound| */
     offset->offset = saveoffset;
@@ -278,13 +278,13 @@ ncaux_begin_compound(int ncid, const char *name, int alignmode, void** tagp)
     struct NCAUX_CMPD* cmpd = NULL;
 
     if(tagp) *tagp = NULL;
-	
+
     cmpd = (struct NCAUX_CMPD*)calloc(1,sizeof(struct NCAUX_CMPD));
     if(cmpd == NULL) {status = NC_ENOMEM; goto fail;}
     cmpd->ncid = ncid;
     cmpd->mode = alignmode;
     cmpd->nfields = 0;
-    cmpd->name = strdup(name);    
+    cmpd->name = strdup(name);
     if(cmpd->name == NULL) {status = NC_ENOMEM; goto fail;}
 
     if(tagp) {
@@ -350,7 +350,7 @@ ncaux_add_field(void* tag,  const char *name, nc_type field_type,
     field = &cmpd->fields[cmpd->nfields+1];
     field->name = strdup(name);
     field->fieldtype = field_type;
-    if(field->name == NULL) {status = NC_ENOMEM; goto done;}    
+    if(field->name == NULL) {status = NC_ENOMEM; goto done;}
     field->ndims = (size_t)ndims;
     memcpy(field->dimsizes,dimsizes,sizeof(int)*field->ndims);
     cmpd->nfields++;
@@ -458,7 +458,7 @@ findfirstfield(int ncid, nc_type xtype)
     int status = NC_NOERR;
     nc_type fieldtype = xtype;
     if(xtype <= NC_MAX_ATOMIC_TYPE) goto done;
-        
+
     status = nc_inq_compound_fieldtype(ncid, xtype, 0, &fieldtype);
     if(status != NC_NOERR) goto done;
     fieldtype = findfirstfield(ncid,fieldtype);
@@ -494,7 +494,7 @@ computefieldinfo(struct NCAUX_CMPD* cmpd)
 
     /* Assign the sizes for the fields */
     for(i=0;i<cmpd->nfields;i++) {
-	struct NCAUX_FIELD* field = &cmpd->fields[i];	
+	struct NCAUX_FIELD* field = &cmpd->fields[i];
 	status = nc_inq_type(cmpd->ncid,field->fieldtype,NULL,&field->size);
         if(status != NC_NOERR) goto done;
 	totaldimsize = dimproduct(field->ndims,field->dimsizes);
@@ -513,7 +513,7 @@ computefieldinfo(struct NCAUX_CMPD* cmpd)
 	    break;
 	case NC_ENUM:
             field->alignment = ncaux_type_alignment(firsttype,cmpd->ncid);
-	    break;	
+	    break;
 	case NC_VLEN: /*fall thru*/
 	case NC_COMPOUND:
             field->alignment = ncaux_type_alignment(firsttype,cmpd->ncid);
@@ -535,5 +535,3 @@ done:
 }
 
 #endif /*USE_NETCDF4*/
-
-
