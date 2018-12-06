@@ -13,6 +13,9 @@
 #include <assert.h>
 #include <ctype.h>
 #include "utils.h"
+#ifndef isascii
+EXTERNL int isascii(int c);
+#endif
 
 /*
  * Print error message to stderr and exit

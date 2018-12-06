@@ -1038,7 +1038,9 @@ computeOffsets(NCD4meta* builder, NCD4node* cmpd)
 	field->meta.offset = offset;
 	assert(ftype->meta.memsize > 0);
 	size = ftype->meta.memsize;
-	//field->meta.memsize = size;
+#if 0
+	field->meta.memsize = size;
+#endif
 	/* Now ultiply by the field dimproduct*/
 	if(nclistlength(field->dims) > 0) {
             d4size_t count = NCD4_dimproduct(field);

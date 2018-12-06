@@ -319,7 +319,7 @@ strdup(const char* s)
  */
 
 #ifndef HAVE_STRLCAT
-#ifndef _MSC_VER /* We will use strcat_s */
+#ifndef _WIN32 /* We will use strcat_s */
 /*
  * Appends src to string dst of size dsize (unlike strncat, dsize is the
  * full size of dst, not space left).  At most dsize-1 characters
@@ -327,7 +327,7 @@ strdup(const char* s)
  * Returns strlen(src) + MIN(dsize, strlen(initial dst)).
  * If retval >= dsize, truncation occurred.
  */
-size_t
+EXTERNL size_t
 strlcat(char* dst, const char* src, size_t dsize)
 {
 	const char *odst = dst;
@@ -354,5 +354,28 @@ strlcat(char* dst, const char* src, size_t dsize)
 
 	return(dlen + (src - osrc));	/* count does not include NUL */
 }
-#endif /*!_MSC_VER*/
+#endif /*!_WIN32*/
 #endif /*!HAVE_STRLCAT*/
+
+/* It turns out the gcc -ansi under cygwin does
+   not define the following function(s) in <string.h>.
+*/
+#ifndef HAVE_STRDUP
+#if 0
+#if __STDC__ == 1 /*supposed to be same as -ansi flag */
+/*
+ * Duplicate the given string
+ */
+char*
+strdup(const char* s)
+{
+  size_t len = strlen(s);
+  char* news;
+  if((news = malloc(len + 1)))
+      memcpy(news, s, len+1);
+  return news;
+}
+#endif /*__STDC__*/
+#endif /*0*/
+#endif /*HAVE_STRDUP*/
+

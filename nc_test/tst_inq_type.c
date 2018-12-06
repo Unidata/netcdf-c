@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
    }
    SUMMARIZE_ERR;
 
-#endif // USE_NETCDF4
+#endif /*USE_NETCDF4*/
 
    printf("* Finished.\n");
 

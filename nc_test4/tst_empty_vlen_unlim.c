@@ -50,9 +50,11 @@ int main() {
     printf("\t* Creating File:\tnc_create()\n");
     if (nc_create(FILE_NAME_UNLIM, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
+#if 0
     /* Set fill mode */
-    //printf("\t* Setting fill mode:\tnc_set_fill()\n");
-    //if(nc_set_fill(ncid,NC_FILL,NULL)) ERR;
+    printf("\t* Setting fill mode:\tnc_set_fill()\n");
+    if(nc_set_fill(ncid,NC_FILL,NULL)) ERR;
+#endif
 
     /* Create Dimension */
     printf("\t* Defining Unlimited Dimension:\tnc_def_dim()\n");
@@ -142,10 +144,11 @@ int main() {
     printf("\t* Creating File:\tnc_create()\n");
     if (nc_create(FILE_NAME_LIM, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
+#if 0
     /* Set fill mode */
-    //printf("\t* Setting fill mode:\tnc_set_fill()\n");
-    //if(nc_set_fill(ncid,NC_FILL,NULL)) ERR;
-
+    printf("\t* Setting fill mode:\tnc_set_fill()\n");
+    if(nc_set_fill(ncid,NC_FILL,NULL)) ERR;
+#endif
     /* Create Dimension */
     printf("\t* Defining Unlimited Dimension:\tnc_def_dim()\n");
     if (nc_def_dim(ncid, DIM_NAME, DIM_LEN_LIM, &dimid)) ERR;

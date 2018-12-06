@@ -38,6 +38,8 @@
 #include "ncgen.h"
 #include "ncgeny.h"
 
+EXTERNL int fileno(FILE*);
+
 #define FILL_STRING "_"
 #define XDR_INT32_MIN (-2147483647-1)
 #define XDR_INT32_MAX 2147483647
