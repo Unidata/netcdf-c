@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/nctest/add.h,v 1.6 1996/04/30 17:56:54 davis Exp $
  *********************************************************************/
