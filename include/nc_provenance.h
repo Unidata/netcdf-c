@@ -1,12 +1,13 @@
 /* Copyright 2005-2018 University Corporation for Atmospheric
    Research/Unidata. */
-/**
+
 /**
  * @file
  * @internal Contains information for creating provenance
  * info and/or displaying provenance info.
  *
  * @author Dennis Heimbigner, Ward Fisher
+ */
 
 /**************************************************/
 /**
