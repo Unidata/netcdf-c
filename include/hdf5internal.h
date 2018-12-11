@@ -172,7 +172,7 @@ extern int NC4_write_ncproperties(NC_FILE_INFO_T*);
 
 /* Find file, group, var, and att info, doing lazy reads if needed. */
 int nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
-                              int use_name, NC_FILE_INFO_T **h5,
+                              int use_name, char *norm_name, NC_FILE_INFO_T **h5,
                               NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var,
                               NC_ATT_INFO_T **att);
 

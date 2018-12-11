@@ -60,6 +60,77 @@ getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
 }
 
 /**
+ * @internal Get one of three special attributes, NCPROPS,
+ * ISNETCDF4ATT, and SUPERBLOCKATT. These atts are not all really in
+ * the file, they are constructed on the fly.
+ *
+ * @param h5 Pointer to HDF5 file info struct.
+ * @param name Name of attribute.
+ * @param filetypep Pointer that gets type of the attribute data in
+ * file.
+ * @param mem_type Type of attribute data in memory.
+ * @param lenp Pointer that gets length of attribute array.
+ * @param attnump Pointer that gets the attribute number.
+ * @param data Attribute data.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ERANGE Data conversion out of range.
+ * @author Dennis Heimbigner
+ */
+int
+nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
+                    nc_type* filetypep, nc_type mem_type, size_t* lenp,
+                    int* attnump, void* data)
+{
+   /* Fail if asking for att id */
+   if(attnump)
+      return NC_EATTMETA;
+
+   if(strcmp(name,NCPROPS)==0) {
+      char* propdata = NULL;
+      int stat = NC_NOERR;
+      int len;
+      if(h5->provenance->propattr.version == 0)
+         return NC_ENOTATT;
+      if(mem_type == NC_NAT) mem_type = NC_CHAR;
+      if(mem_type != NC_CHAR)
+         return NC_ECHAR;
+      if(filetypep) *filetypep = NC_CHAR;
+      stat = NC4_buildpropinfo(&h5->provenance->propattr, &propdata);
+      if(stat != NC_NOERR) return stat;
+      len = strlen(propdata);
+      if(lenp) *lenp = len;
+      if(data) strncpy((char*)data,propdata,len+1);
+      free(propdata);
+   } else if(strcmp(name,ISNETCDF4ATT)==0
+             || strcmp(name,SUPERBLOCKATT)==0) {
+      unsigned long long iv = 0;
+      if(filetypep) *filetypep = NC_INT;
+      if(lenp) *lenp = 1;
+      if(strcmp(name,SUPERBLOCKATT)==0)
+         iv = (unsigned long long)h5->provenance->superblockversion;
+      else /* strcmp(name,ISNETCDF4ATT)==0 */
+         iv = NC4_isnetcdf4(h5);
+      if(mem_type == NC_NAT) mem_type = NC_INT;
+      if(data)
+         switch (mem_type) {
+         case NC_BYTE: *((char*)data) = (char)iv; break;
+         case NC_SHORT: *((short*)data) = (short)iv; break;
+         case NC_INT: *((int*)data) = (int)iv; break;
+         case NC_UBYTE: *((unsigned char*)data) = (unsigned char)iv; break;
+         case NC_USHORT: *((unsigned short*)data) = (unsigned short)iv; break;
+         case NC_UINT: *((unsigned int*)data) = (unsigned int)iv; break;
+         case NC_INT64: *((long long*)data) = (long long)iv; break;
+         case NC_UINT64: *((unsigned long long*)data) = (unsigned long long)iv; break;
+         default:
+            return NC_ERANGE;
+         }
+   }
+   return NC_NOERR;
+}
+
+/**
  * @internal I think all atts should be named the exact same thing, to
  * avoid confusion!
  *
@@ -727,17 +798,28 @@ NC4_HDF5_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var = NULL;
+   char norm_name[NC_MAX_NAME + 1];
    int retval;
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find the file, group, and var info, and do lazy att read if
     * needed. */
-   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
-                                           &grp, &var, NULL)))
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, norm_name,
+                                           &h5, &grp, &var, NULL)))
       return retval;
 
-   return nc4_get_att_ptrs(h5, grp, var, name, xtypep, NC_NAT, lenp, NULL, NULL);
+   /* If this is one of the reserved atts, use nc_get_att_special. */
+   if (!var)
+   {
+      const NC_reservedatt *ra = NC_findreserved(norm_name);
+      if (ra  && ra->flags & NAMEONLYFLAG)
+	return nc4_get_att_special(h5, norm_name, xtypep, NC_NAT, lenp, NULL,
+                                   NULL);
+   }
+
+   return nc4_get_att_ptrs(h5, grp, var, norm_name, xtypep, NC_NAT,
+                           lenp, NULL, NULL);
 }
 
 /**
@@ -757,17 +839,28 @@ NC4_HDF5_inq_attid(int ncid, int varid, const char *name, int *attnump)
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var = NULL;
+   char norm_name[NC_MAX_NAME + 1];
    int retval;
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find the file, group, and var info, and do lazy att read if
     * needed. */
-   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
-                                           &grp, &var, NULL)))
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, norm_name,
+                                           &h5, &grp, &var, NULL)))
       return retval;
 
-   return nc4_get_att_ptrs(h5, grp, var, name, NULL, NC_NAT, NULL, attnump, NULL);
+   /* If this is one of the reserved atts, use nc_get_att_special. */
+   if (!var)
+   {
+      const NC_reservedatt *ra = NC_findreserved(norm_name);
+      if (ra  && ra->flags & NAMEONLYFLAG)
+	return nc4_get_att_special(h5, norm_name, NULL, NC_NAT, NULL, attnump,
+                                   NULL);
+   }
+
+   return nc4_get_att_ptrs(h5, grp, var, norm_name, NULL, NC_NAT,
+                           NULL, attnump, NULL);
 }
 
 /**
@@ -793,7 +886,7 @@ NC4_HDF5_inq_attname(int ncid, int varid, int attnum, char *name)
    /* Find the file, group, and var info, and do lazy att read if
     * needed. */
    if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, NULL, attnum, 0, NULL,
-                                           NULL, NULL, &att)))
+                                           NULL, NULL, NULL, &att)))
       return retval;
    assert(att);
 
@@ -811,27 +904,41 @@ NC4_HDF5_inq_attname(int ncid, int varid, int attnum, char *name)
  * @param varid Variable ID.
  * @param name Name of attribute.
  * @param value Pointer that gets attribute data.
- * @param memtype The type the data should be converted to as it is read.
+ * @param memtype The type the data should be converted to as it is
+ * read.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
  */
 int
-NC4_HDF5_get_att(int ncid, int varid, const char *name, void *value, nc_type memtype)
+NC4_HDF5_get_att(int ncid, int varid, const char *name, void *value,
+                 nc_type memtype)
 {
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var = NULL;
+   char norm_name[NC_MAX_NAME + 1];
    int retval;
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find the file, group, and var info, and do lazy att read if
     * needed. */
-   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
-                                           &grp, &var, NULL)))
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, norm_name,
+                                           &h5, &grp, &var, NULL)))
       return retval;
 
-   return nc4_get_att_ptrs(h5, grp, var, name, NULL, memtype, NULL, NULL, value);
+   /* If this is one of the reserved atts, use nc_get_att_special. */
+   if (!var)
+   {
+      const NC_reservedatt *ra = NC_findreserved(norm_name);
+      if (ra  && ra->flags & NAMEONLYFLAG)
+	return nc4_get_att_special(h5, norm_name, NULL, NC_NAT, NULL, NULL,
+                                   value);
+   }
+
+   return nc4_get_att_ptrs(h5, grp, var, norm_name, NULL, memtype,
+                           NULL, NULL, value);
 }
+

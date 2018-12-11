@@ -2068,8 +2068,8 @@ NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 
    /* Find the file, group, and var info, and do lazy att read if
     * needed. */
-   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, name, 0, 1, &h5,
-                                           &grp, &var, NULL)))
+   if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, NULL, 0, 0, NULL,
+                                           &h5, &grp, &var, NULL)))
       return retval;
    assert(grp && h5);
 
