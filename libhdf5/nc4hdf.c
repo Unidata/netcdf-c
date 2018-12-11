@@ -1609,7 +1609,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
        * attributes from it, if they exist. */
       if (var->created)
          if ((retval = remove_coord_atts(hdf5_var->hdf_datasetid)))
-            BAIL(retval);
+            return retval;
 
       if (var->dimscale_attached)
       {
@@ -1645,7 +1645,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    {
       /* Free the HDF5 dataset id. */
       if (hdf5_var->hdf_datasetid && H5Dclose(hdf5_var->hdf_datasetid) < 0)
-         BAIL(NC_EHDFERR);
+         return NC_EHDFERR;
       hdf5_var->hdf_datasetid = 0;
 
       /* Now delete the variable. */
@@ -1664,7 +1664,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       if (write_dimid && var->ndims)
          if ((retval = write_netcdf4_dimid(hdf5_var->hdf_datasetid,
                                            var->dimids[0])))
-            BAIL(retval);
+            return retval;
    }
 
    if (replace_existing_var)
@@ -1695,13 +1695,11 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    {
       /* Write attributes for this var. */
       if ((retval = write_attlist(var->att, var->hdr.id, grp)))
-         BAIL(retval);
+         return retval;
       var->attr_dirty = NC_FALSE;
    }
 
    return NC_NOERR;
-exit:
-   return retval;
 }
 
 /**
