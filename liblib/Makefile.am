@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2010, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This Makefile assembles the correct libnetcdf based on various
 # configure flags. It is assumed that all the relevant convenience

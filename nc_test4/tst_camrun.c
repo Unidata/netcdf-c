@@ -1,5 +1,5 @@
 /*
-  Copyright 2010, UCAR/Unidata
+  Copyright 2018, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 
   This program writes a data file from the CAM model run. (Thanks to

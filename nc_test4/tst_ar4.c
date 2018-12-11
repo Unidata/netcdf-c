@@ -1,5 +1,5 @@
 /*
-Copyright 2009, UCAR/Unidata
+Copyright 2018, UCAR/Unidata
 See COPYRIGHT file for copying and redistribution conditions.
 
 This program tests netcdf-4 performance with some AR-4 3D data.

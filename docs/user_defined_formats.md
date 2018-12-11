@@ -111,4 +111,3 @@ user-defined format. (This is unnecessary if you just want to read
 HDF4 SD files, since the netCDF C library already includes an HDF4 SD
 file reader. This user-defined format library uses the same code. It
 is repackaged as a user-defined library to provide a working sample.)
-

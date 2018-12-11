@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: ncgen.y,v 1.34 2010/03/31 18:18:41 dmh Exp $
  *********************************************************************/
@@ -167,7 +167,7 @@ dimdecl:        dimd '=' INT_CONST
 		   }
                 ;
 dimd:           dim
-		   { 
+		   {
 		    if ($1->is_dim == 1) {
 		        derror( "duplicate dimension declaration for %s",
 		                $1->name);
@@ -554,7 +554,7 @@ const:         CHAR_CONST
 
 			   if(valnum + len > var_len) {
 			       if (vars[varnum].dims[0] != rec_dim) {
-				   derror("too many values for this variable, %d>%d", 
+				   derror("too many values for this variable, %d>%d",
 					  valnum+len, var_len);
 				   exit (5);
 			       } else {/* a record variable so grow it */
@@ -648,7 +648,7 @@ const:         CHAR_CONST
 			 case NC_DOUBLE:
 			   *double_valp++ = short_val;
 			   break;
-			 default: break;			
+			 default: break;
 		       }
 		       valnum++;
 		   }
@@ -853,7 +853,7 @@ YYSTYPE lookup(char *sname)
 {
     YYSTYPE sp;
     deescapify(sname);		/* delete escape chars from names,
-				 * e.g. 'ab\:cd\ ef' becomes 
+				 * e.g. 'ab\:cd\ ef' becomes
 				 * 'ab:cd ef' */
     for (sp = symlist; sp != (YYSTYPE) 0; sp = sp -> next)
 	if (STREQ(sp -> name, sname)) {

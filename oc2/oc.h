@@ -1,4 +1,4 @@
-/* Copyright 2014, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT dap for more information. */
 
 /*

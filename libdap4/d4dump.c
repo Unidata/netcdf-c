@@ -1,5 +1,5 @@
-/* Copyright 2012, UCAR/Unidata.
-   See the LICENSE file for more information.
+/* Copyright 2018, UCAR/Unidata.
+   See the COPYRIGHT file for more information.
 */
 
 #include "d4includes.h"
@@ -107,4 +107,3 @@ NCD4_dumpatomic(NCD4node* var, void* data)
     union ATOMICS* p = (union ATOMICS*)data;
     return p;
 }
-
