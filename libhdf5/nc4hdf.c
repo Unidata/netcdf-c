@@ -744,16 +744,17 @@ exit:
 static int
 write_netcdf4_dimid(hid_t datasetid, int dimid)
 {
-   hid_t dimid_spaceid, dimid_attid;
+   hid_t dimid_spaceid = -1, dimid_attid = -1;
    htri_t attr_exists;
+   int retval = NC_NOERR;
 
    /* Create the space. */
    if ((dimid_spaceid = H5Screate(H5S_SCALAR)) < 0)
-      return NC_EHDFERR;
+      BAIL(NC_EHDFERR);
 
    /* Does the attribute already exist? If so, don't try to create it. */
    if ((attr_exists = H5Aexists(datasetid, NC_DIMID_ATT_NAME)) < 0)
-      return NC_EHDFERR;
+      BAIL(NC_EHDFERR);
    if (attr_exists)
       dimid_attid = H5Aopen_by_name(datasetid, ".", NC_DIMID_ATT_NAME,
                                     H5P_DEFAULT, H5P_DEFAULT);
@@ -762,21 +763,22 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
       dimid_attid = H5Acreate(datasetid, NC_DIMID_ATT_NAME,
                               H5T_NATIVE_INT, dimid_spaceid, H5P_DEFAULT);
    if (dimid_attid  < 0)
-      return NC_EHDFERR;
+      BAIL(NC_EHDFERR);
 
 
    /* Write it. */
    LOG((4, "%s: writing secret dimid %d", __func__, dimid));
    if (H5Awrite(dimid_attid, H5T_NATIVE_INT, &dimid) < 0)
-      return NC_EHDFERR;
+      BAIL(NC_EHDFERR);
 
+exit:
    /* Close stuff*/
-   if (H5Sclose(dimid_spaceid) < 0)
-      return NC_EHDFERR;
-   if (H5Aclose(dimid_attid) < 0)
-      return NC_EHDFERR;
+   if (dimid_spaceid >= 0 && H5Sclose(dimid_spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (dimid_attid >= 0 && H5Aclose(dimid_attid) < 0)
+      BAIL2(NC_EHDFERR);
 
-   return NC_NOERR;
+   return retval;
 }
 
 /**
