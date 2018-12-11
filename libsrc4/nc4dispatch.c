@@ -78,6 +78,5 @@ NC4_initialize(void)
 int
 NC4_finalize(void)
 {
-    nc4_hdf5_finalize();
     return NC_NOERR;
 }

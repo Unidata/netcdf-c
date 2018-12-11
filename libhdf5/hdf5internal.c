@@ -661,6 +661,9 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
  * @param attnum Number of attribute.
  * @param use_name If true, use the name to get the
  * attribute. Otherwise use the attnum.
+ * @param norm_name Pointer to storage of size NC_MAX_NAME + 1,
+ * which will get the normalized name, if use_name is true. Ignored if
+ * NULL.
  * @param h5 Pointer to pointer that gets file info struct. Ignored if
  * NULL.
  * @param grp Pointer to pointer that gets group info struct. Ignored
@@ -678,7 +681,7 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
  */
 int
 nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
-                          int use_name, NC_FILE_INFO_T **h5,
+                          int use_name, char *norm_name, NC_FILE_INFO_T **h5,
                           NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var,
                           NC_ATT_INFO_T **att)
 {
@@ -686,11 +689,16 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
    NC_GRP_INFO_T *my_grp;
    NC_VAR_INFO_T *my_var = NULL;
    NC_ATT_INFO_T *my_att;
+   char my_norm_name[NC_MAX_NAME + 1] = "";
    NCindex *attlist = NULL;
    int retval;
 
    LOG((4, "%s: ncid %d varid %d attnum %d use_name %d", __func__, ncid, varid,
         attnum, use_name));
+
+   /* Don't need to provide name unless getting att pointer and using
+    * use_name. */
+   assert(!att || ((use_name && name) || !use_name));
 
    /* Find info for this file, group, and h5 info. */
    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &my_grp, &my_h5)))
@@ -721,16 +729,27 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
    }
    assert(attlist);
 
+   /* Need a name if use_name is true. */
+   if (use_name && !name)
+      return NC_EBADNAME;
+
+   /* Normalize the name. */
+   if (use_name)
+      if ((retval = nc4_normalize_name(name, my_norm_name)))
+         return retval;
+
    /* Now find the attribute by name or number. */
    if (att)
    {
-      my_att = use_name ? (NC_ATT_INFO_T *)ncindexlookup(attlist, name) :
+      my_att = use_name ? (NC_ATT_INFO_T *)ncindexlookup(attlist, my_norm_name) :
          (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
       if (!my_att)
          return NC_ENOTATT;
    }
 
    /* Give the people what they want. */
+   if (norm_name)
+      strncpy(norm_name, my_norm_name, NC_MAX_NAME);
    if (h5)
       *h5 = my_h5;
    if (grp)

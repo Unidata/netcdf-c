@@ -17,7 +17,9 @@ redistribution conditions. */
 #include <stdlib.h>
 #include <stdio.h>
 #include "assert.h"
+#ifdef USE_HDF5
 #include <hdf5.h>
+#endif /* USE_HDF5 */
 
 /* This contents of this file get skipped if LOGGING is not defined
  * during compile. */
@@ -64,10 +66,12 @@ nc_log(int severity, const char *fmt, ...)
    fflush(stderr);
 }
 
-void 
+void
 nc_log_hdf5(void)
 {
+#ifdef USE_HDF5
     H5Eprint(NULL);
+#endif /* USE_HDF5 */
 }
 
 #endif /* ifdef LOGGING */

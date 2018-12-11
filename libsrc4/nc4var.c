@@ -17,94 +17,6 @@
 #include <math.h>
 
 /**
- * @internal Set chunk cache size for a variable. This is the internal
- * function called by nc_set_var_chunk_cache().
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param size Size in bytes to set cache.
- * @param nelems Number of elements in cache.
- * @param preemption Controls cache swapping.
- *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
- * @returns ::NC_EINVAL Invalid input.
- * @returns ::NC_EHDFERR HDF5 error.
- * @author Ed Hartnett
- */
-int
-NC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
-                        float preemption)
-{
-   NC *nc;
-   NC_GRP_INFO_T *grp;
-   NC_FILE_INFO_T *h5;
-   NC_VAR_INFO_T *var;
-   int retval;
-
-   /* Check input for validity. */
-   if (preemption < 0 || preemption > 1)
-      return NC_EINVAL;
-
-   /* Find info for this file and group, and set pointer to each. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return retval;
-   assert(nc && grp && h5);
-
-   /* Find the var. */
-   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
-   if(!var)
-      return NC_ENOTVAR;
-   assert(var && var->hdr.id == varid);
-
-   /* Set the values. */
-   var->chunk_cache_size = size;
-   var->chunk_cache_nelems = nelems;
-   var->chunk_cache_preemption = preemption;
-
-   if ((retval = nc4_reopen_dataset(grp, var)))
-      return retval;
-
-   return NC_NOERR;
-}
-
-/**
- * @internal A wrapper for NC4_set_var_chunk_cache(), we need this
- * version for fortran. Negative values leave settings as they are.
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param size Size in bytes to set cache.
- * @param nelems Number of elements in cache.
- * @param preemption Controls cache swapping.
- *
- * @returns ::NC_NOERR for success
- * @author Ed Hartnett
- */
-int
-nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
-                            int preemption)
-{
-   size_t real_size = H5D_CHUNK_CACHE_NBYTES_DEFAULT;
-   size_t real_nelems = H5D_CHUNK_CACHE_NSLOTS_DEFAULT;
-   float real_preemption = CHUNK_CACHE_PREEMPTION;
-
-   if (size >= 0)
-      real_size = ((size_t) size) * MEGABYTE;
-
-   if (nelems >= 0)
-      real_nelems = nelems;
-
-   if (preemption >= 0)
-      real_preemption = preemption / 100.;
-
-   return NC4_set_var_chunk_cache(ncid, varid, real_size, real_nelems,
-                                  real_preemption);
-}
-
-/**
  * @internal This is called by nc_get_var_chunk_cache(). Get chunk
  * cache size for a variable.
  *
@@ -1392,6 +1304,72 @@ nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value)
    default:
       return NC_EINVAL;
    }
+
+   return NC_NOERR;
+}
+
+/**
+ * @internal Get the length, in bytes, of one element of a type in
+ * memory.
+ *
+ * @param h5 Pointer to HDF5 file info struct.
+ * @param xtype NetCDF type ID.
+ * @param len Pointer that gets length in bytes.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EBADTYPE Type not found.
+ * @author Ed Hartnett
+ */
+int
+nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len)
+{
+   NC_TYPE_INFO_T *type;
+   int retval;
+
+   LOG((4, "%s xtype: %d", __func__, xtype));
+   assert(len);
+
+   /* If this is an atomic type, the answer is easy. */
+   switch (xtype)
+   {
+   case NC_BYTE:
+   case NC_CHAR:
+   case NC_UBYTE:
+      *len = sizeof(char);
+      return NC_NOERR;
+   case NC_SHORT:
+   case NC_USHORT:
+      *len = sizeof(short);
+      return NC_NOERR;
+   case NC_INT:
+   case NC_UINT:
+      *len = sizeof(int);
+      return NC_NOERR;
+   case NC_FLOAT:
+      *len = sizeof(float);
+      return NC_NOERR;
+   case NC_DOUBLE:
+      *len = sizeof(double);
+      return NC_NOERR;
+   case NC_INT64:
+   case NC_UINT64:
+      *len = sizeof(long long);
+      return NC_NOERR;
+   case NC_STRING:
+      *len = sizeof(char *);
+      return NC_NOERR;
+   }
+
+   /* See if var is compound type. */
+   if ((retval = nc4_find_type(h5, xtype, &type)))
+      return retval;
+
+   if (!type)
+      return NC_EBADTYPE;
+
+   *len = type->size;
+
+   LOG((5, "type->size: %d", type->size));
 
    return NC_NOERR;
 }
