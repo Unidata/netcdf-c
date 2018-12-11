@@ -330,6 +330,224 @@ dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
 }
 
 /**
+ * @internal For files without any netCDF-4 dimensions defined, create phony
+ * dimension to match the available datasets.
+ *
+ * @param grp Pointer to the group info.
+ * @param hdf_datasetid HDF5 datsetid for the var's dataset.
+ * @param var Pointer to the var info.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @returns NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+ */
+static int
+create_phony_dims(NC_GRP_INFO_T *grp, hid_t hdf_datasetid, NC_VAR_INFO_T *var)
+{
+   NC_DIM_INFO_T *dim;
+   hid_t spaceid = 0;
+   hsize_t *h5dimlen = NULL, *h5dimlenmax = NULL;
+   int dataset_ndims;
+   int d;
+   int retval = NC_NOERR;
+
+   /* Find the space information for this dimension. */
+   if ((spaceid = H5Dget_space(hdf_datasetid)) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Get the len of each dim in the space. */
+   if (var->ndims)
+   {
+      /* Allocate storage for dim lens and max lens for this var. */
+      if (!(h5dimlen = malloc(var->ndims * sizeof(hsize_t))))
+         return NC_ENOMEM;
+      if (!(h5dimlenmax = malloc(var->ndims * sizeof(hsize_t))))
+         BAIL(NC_ENOMEM);
+
+      /* Get ndims, also len and mac len of all dims. */
+      if ((dataset_ndims = H5Sget_simple_extent_dims(spaceid, h5dimlen,
+                                                     h5dimlenmax)) < 0)
+         BAIL(NC_EHDFERR);
+      assert(dataset_ndims == var->ndims);
+   }
+   else
+   {
+      /* Make sure it's scalar. */
+      assert(H5Sget_simple_extent_type(spaceid) == H5S_SCALAR);
+   }
+
+   /* Create a phony dimension for each dimension in the dataset,
+    * unless there already is one the correct size. */
+   for (d = 0; d < var->ndims; d++)
+   {
+      int k;
+      int match;
+
+      /* Is there already a phony dimension of the correct size? */
+      for (match=-1, k = 0; k < ncindexsize(grp->dim); k++)
+      {
+         dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, k);
+         assert(dim);
+         if ((dim->len == h5dimlen[d]) &&
+             ((h5dimlenmax[d] == H5S_UNLIMITED && dim->unlimited) ||
+              (h5dimlenmax[d] != H5S_UNLIMITED && !dim->unlimited)))
+         {match = k; break;}
+      }
+
+      /* Didn't find a phony dim? Then create one. */
+      if (match < 0)
+      {
+         char phony_dim_name[NC_MAX_NAME + 1];
+         sprintf(phony_dim_name, "phony_dim_%d", grp->nc4_info->next_dimid);
+         LOG((3, "%s: creating phony dim for var %s", __func__, var->hdr.name));
+
+         /* Add phony dim to metadata list. */
+         if ((retval = nc4_dim_list_add(grp, phony_dim_name, h5dimlen[d], -1, &dim)))
+            BAIL(retval);
+
+         /* Create struct for HDF5-specific dim info. */
+         if (!(dim->format_dim_info = calloc(1, sizeof(NC_HDF5_DIM_INFO_T))))
+            BAIL(NC_ENOMEM);
+         if (h5dimlenmax[d] == H5S_UNLIMITED)
+            dim->unlimited = NC_TRUE;
+      }
+
+      /* The variable must remember the dimid. */
+      var->dimids[d] = dim->hdr.id;
+      var->dim[d] = dim;
+   } /* next dim */
+
+exit:
+   /* Free resources. */
+   if (spaceid > 0 && H5Sclose(spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (h5dimlenmax)
+      free(h5dimlenmax);
+   if (h5dimlen)
+      free(h5dimlen);
+
+   return retval;
+}
+
+/**
+ * @internal Iterate through the vars in this file and make sure we've
+ * got a dimid and a pointer to a dim for each dimension. This may
+ * already have been done using the COORDINATES hidden attribute, in
+ * which case this function will not have to do anything. This is
+ * desirable because recurdively matching the dimscales (when
+ * necessary) is very much the slowest part of opening a file.
+ *
+ * @param grp Pointer to group info struct.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @returns NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+ */
+static int
+rec_match_dimscales(NC_GRP_INFO_T *grp)
+{
+   NC_VAR_INFO_T *var;
+   NC_DIM_INFO_T *dim;
+   int retval = NC_NOERR;
+   int i;
+
+   assert(grp && grp->hdr.name);
+   LOG((4, "%s: grp->hdr.name %s", __func__, grp->hdr.name));
+
+   /* Perform var dimscale match for child groups. */
+   for (i = 0; i < ncindexsize(grp->children); i++)
+      if ((retval = rec_match_dimscales((NC_GRP_INFO_T *)ncindexith(grp->children, i))))
+         return retval;
+
+   /* Check all the vars in this group. If they have dimscale info,
+    * try and find a dimension for them. */
+   for (i = 0; i < ncindexsize(grp->vars); i++)
+   {
+      NC_HDF5_VAR_INFO_T *hdf5_var;
+      int d;
+
+      /* Get pointer to var and to the HDF5-specific var info. */
+      var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
+      assert(var && var->format_var_info);
+      hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
+      /* Check all vars and see if dim[i] != NULL if dimids[i]
+       * valid. Recall that dimids were initialized to -1. */
+      for (d = 0; d < var->ndims; d++)
+      {
+         if (!var->dim[d])
+            nc4_find_dim(grp, var->dimids[d], &var->dim[d], NULL);
+      }
+
+      /* Skip dimension scale variables */
+      if (!var->dimscale)
+      {
+         int d;
+         int j;
+
+         /* Are there dimscales for this variable? */
+         if (hdf5_var->dimscale_hdf5_objids)
+         {
+            for (d = 0; d < var->ndims; d++)
+            {
+               NC_GRP_INFO_T *g;
+               nc_bool_t finished = NC_FALSE;
+               LOG((5, "%s: var %s has dimscale info...", __func__, var->hdr.name));
+
+               /* If we already have the dimension, we don't need to
+                * match the dimscales. This is better because matching
+                * the dimscales is slow. */
+               if (var->dim[d])
+                  continue;
+
+               /* Now we have to try to match dimscales. Check this
+                * and parent groups. */
+               for (g = grp; g && !finished; g = g->parent)
+               {
+                  /* Check all dims in this group. */
+                  for (j = 0; j < ncindexsize(g->dim); j++)
+                  {
+                     /* Get the HDF5 specific dim info. */
+                     NC_HDF5_DIM_INFO_T *hdf5_dim;
+                     dim = (NC_DIM_INFO_T *)ncindexith(g->dim, j);
+                     assert(dim && dim->format_dim_info);
+                     hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
+
+                     /* Check for exact match of fileno/objid arrays
+                      * to find identical objects in HDF5 file. */
+                     if (hdf5_var->dimscale_hdf5_objids[d].fileno[0] == hdf5_dim->hdf5_objid.fileno[0] &&
+                         hdf5_var->dimscale_hdf5_objids[d].objno[0] == hdf5_dim->hdf5_objid.objno[0] &&
+                         hdf5_var->dimscale_hdf5_objids[d].fileno[1] == hdf5_dim->hdf5_objid.fileno[1] &&
+                         hdf5_var->dimscale_hdf5_objids[d].objno[1] == hdf5_dim->hdf5_objid.objno[1])
+                     {
+                        LOG((4, "%s: for dimension %d, found dim %s", __func__,
+                             d, dim->hdr.name));
+                        var->dimids[d] = dim->hdr.id;
+                        var->dim[d] = dim;
+                        finished = NC_TRUE;
+                        break;
+                     }
+                  } /* next dim */
+               } /* next grp */
+               LOG((5, "%s: dimid for this dimscale is %d", __func__,
+                    var->type_info->hdr.id));
+            } /* next var->dim */
+         }
+         else
+         {
+            /* No dimscales for this var! Invent phony dimensions. */
+            if ((retval = create_phony_dims(grp, hdf5_var->hdf_datasetid, var)))
+               return retval;
+         }
+      }
+   }
+
+   return retval;
+}
+
+/**
  * @internal Check for the attribute that indicates that netcdf
  * classic model is in use.
  *
@@ -555,7 +773,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 
    /* Now figure out which netCDF dims are indicated by the dimscale
     * information. */
-   if ((retval = nc4_rec_match_dimscales(nc4_info->root_grp)))
+   if ((retval = rec_match_dimscales(nc4_info->root_grp)))
       BAIL(retval);
 
 #ifdef LOGGING
