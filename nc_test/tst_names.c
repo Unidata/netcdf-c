@@ -229,7 +229,7 @@ main(int argc, char **argv)
        ,
        NC_FORMAT_CDF5
 #endif
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
        ,
        NC_FORMAT_NETCDF4
        ,

@@ -30,7 +30,7 @@ nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c     \
 utils.h utils.c dimmap.h dimmap.c list.c list.h
 
 # A simple netcdf-4 metadata -> xml printer. Do not install.
-if USE_NETCDF4
+if USE_HDF5
 noinst_PROGRAMS += nc4print
 nc4print_SOURCES = nc4print.c
 endif
@@ -70,7 +70,7 @@ if LARGE_FILE_TESTS
 TESTS += tst_iter.sh
 endif
 
-if USE_NETCDF4
+if USE_HDF5
 # NetCDF-4 has some extra C programs to build. These will be run by
 # the shell script tests.
 check_PROGRAMS += tst_fileinfo tst_create_files tst_h_rdc0	\
@@ -91,10 +91,10 @@ tst_ncgen4.sh
 tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
 tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log
 tst_nccopy5.log: tst_nccopy4.log
-endif #!USE_NETCDF4
+endif #!USE_HDF5
 
 TESTS += tst_inmemory_nc3.sh
-if USE_NETCDF4
+if USE_HDF5
 TESTS += tst_inmemory_nc4.sh
 endif
 

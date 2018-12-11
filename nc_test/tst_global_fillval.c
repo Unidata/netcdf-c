@@ -33,7 +33,7 @@ main(int argc, char **argv)
     int *formats = NULL;
 	/* Determine how many formats are in use. */
 
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
     num_formats += 2;
 #endif
 
@@ -49,7 +49,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_CDF5
 	formats[n++] = NC_64BIT_DATA;
 #endif
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 	formats[n++] = NC_NETCDF4;
 	formats[n++] = NC_CLASSIC_MODEL | NC_NETCDF4;
 #endif
