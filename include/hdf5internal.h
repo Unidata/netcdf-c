@@ -137,7 +137,6 @@ extern hid_t NC4_image_init(NC_FILE_INFO_T* h5);
 extern void NC4_image_finalize(void*);
 
 /* These functions are internal to the libhdf5 directory. */
-int nc4_detect_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
 int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
 
 /* Find file, group, var, and att info, doing lazy reads if needed. */
