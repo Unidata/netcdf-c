@@ -1553,14 +1553,11 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    {
       replace_existing_var = NC_TRUE;
       var->fill_val_changed = NC_FALSE;
-      /* If the variable is going to be replaced,
-         we need to flag any other attributes associated
-         with the variable as 'dirty', or else
-         *only* the fill value attribute will be copied over
-         and the rest will be lost.  See:
-
-         * https://github.com/Unidata/netcdf-c/issues/239 */
-
+      /* If the variable is going to be replaced, we need to flag any
+         other attributes associated with the variable as 'dirty', or
+         else *only* the fill value attribute will be copied over and
+         the rest will be lost.  See
+         https://github.com/Unidata/netcdf-c/issues/239 */
       flag_atts_dirty(var->att);
    }
 
@@ -1570,37 +1567,24 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
     * this object exists in the HDF group. */
    if (var->became_coord_var)
    {
-      NC_DIM_INFO_T *d1;
-      int i;
-
-      for (i = 0; i < ncindexsize(grp->dim); i++)
+      if ((NC_DIM_INFO_T *)ncindexlookup(grp->dim, var->hdr.name))
       {
-         d1 = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
-         assert(d1);
-         if (!strcmp(d1->hdr.name, var->hdr.name))
-         {
-            nc_bool_t exists;
+         nc_bool_t exists;
 
-            if ((retval = var_exists(hdf5_grp->hdf_grpid, var->hdr.name, &exists)))
-               return retval;
-            if (exists)
-            {
-               /* Indicate that the variable already exists, and should be replaced */
-               replace_existing_var = NC_TRUE;
-               flag_atts_dirty(var->att);
-               break;
-            }
+         if ((retval = var_exists(hdf5_grp->hdf_grpid, var->hdr.name, &exists)))
+            return retval;
+         if (exists)
+         {
+            /* Indicate that the variable already exists, and should
+             * be replaced. */
+            replace_existing_var = NC_TRUE;
+            flag_atts_dirty(var->att);
          }
       }
    }
 
    /* Check dims if the variable will be replaced, so that the
-    * dimensions will be de-attached and re-attached correctly. (Note:
-    * There's a temptation to merge this loop over the dimensions with
-    * the prior loop over dimensions, but that blurs the line over the
-    * purpose of them, so they are currently separate.  If performance
-    * becomes an issue here, it would be possible to merge them. -QAK)
-    */
+    * dimensions will be de-attached and re-attached correctly. */
    if (replace_existing_var)
    {
       int i;
