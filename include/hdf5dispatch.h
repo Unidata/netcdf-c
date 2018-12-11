@@ -49,6 +49,10 @@ extern "C" {
                         int *no_fill, void *fill_valuep, int *endiannessp,
                         unsigned int *idp, size_t *nparamsp, unsigned int *params);
 
+   EXTERNL int
+   NC4_HDF5_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
+                                float preemption);
+
 #if defined(__cplusplus)
 }
 #endif

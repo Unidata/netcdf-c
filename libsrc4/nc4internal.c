@@ -21,11 +21,10 @@
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
 
-/* These are the default chunk cache sizes for HDF5 files created or
- * opened with netCDF-4. */
-extern size_t nc4_chunk_cache_size;
-extern size_t nc4_chunk_cache_nelems;
-extern float nc4_chunk_cache_preemption;
+/* These hold the file caching settings for the library. */
+size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
+size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
+float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
 
 #ifdef LOGGING
 /* This is the severity level of messages which will be logged. Use
@@ -1413,10 +1412,7 @@ int
 nc_set_log_level(int new_level)
 {
 #ifdef LOGGING
-   if(!nc4_hdf5_initialized)
-      nc4_hdf5_initialize();
-
-   /* Now remember the new level. */
+   /* Remember the new level. */
    nc_log_level = new_level;
    LOG((4, "log_level changed to %d", nc_log_level));
 #endif /*LOGGING */
