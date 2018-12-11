@@ -577,7 +577,7 @@ prefixarraylength(Dimset* dimset, int last)
 
 
 
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 extern int H5Eprint1(FILE * stream);
 #endif
 
@@ -594,7 +594,7 @@ void check_err2(const int stat, const int cdlline, const int line, const char* f
 	else
 	    fprintf(stderr, "ncgen: %s\n", nc_strerror(stat));
 	fprintf(stderr, "\t(%s:%d)\n", file,line);
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 	H5Eprint1(stderr);
 #endif
 	fflush(stderr);
