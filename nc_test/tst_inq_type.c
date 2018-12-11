@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
    SUMMARIZE_ERR;
 #endif /* ENABLE_CDF5 */
 
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
    printf("\n* Testing nc_inq_type with netcdf-4 + Classic Model\n");
    {
       if(nc_create(FILE_NAME,NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL,&ncid)) ERR;
@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
    }
    SUMMARIZE_ERR;
 
-#endif // USE_NETCDF4
+#endif // USE_HDF5
 
    printf("* Finished.\n");
 
