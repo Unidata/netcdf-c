@@ -1366,70 +1366,53 @@ attach_dimscales(NC_GRP_INFO_T *grp)
 {
    NC_VAR_INFO_T *var;
    NC_HDF5_VAR_INFO_T *hdf5_var;
-   NC_DIM_INFO_T *dim1;
-   int d, i;
-   int retval = NC_NOERR;
+   int d, v;
 
    /* Attach dimension scales. */
-   for (i = 0; i < ncindexsize(grp->vars); i++)
+   for (v = 0; v < ncindexsize(grp->vars); v++)
    {
       /* Get pointer to var and HDF5-specific var info. */
-      var = (NC_VAR_INFO_T*)ncindexith(grp->vars, i);
+      var = (NC_VAR_INFO_T*)ncindexith(grp->vars, v);
       assert(var && var->format_var_info);
       hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
       /* Scales themselves do not attach. But I really wish they
        * would. */
       if (var->dimscale)
+         continue;
+
+      /* Find the scale for each dimension, if any, and attach it. */
+      for (d = 0; d < var->ndims; d++)
       {
-         /* If this is a multidimensional coordinate variable, it will
-          * have a special coords attribute (read earlier) with a list
-          * of the dimensions for this variable. */
-      }
-      else /* not a dimscale... */
-      {
-         /* Find the scale for each dimension, if any, and attach it. */
-         for (d = 0; d < var->ndims; d++)
+         /* Is there a dimscale for this dimension? */
+         if (var->dimscale_attached)
          {
-            /* Is there a dimscale for this dimension? */
-            if (var->dimscale_attached)
+            if (!var->dimscale_attached[d])
             {
-               if (!var->dimscale_attached[d])
-               {
-                  NC_HDF5_DIM_INFO_T *hdf5_dim1;
-                  hid_t dim_datasetid;  /* Dataset ID for dimension */
-                  dim1 = var->dim[d];
-                  assert(dim1 && dim1->hdr.id == var->dimids[d] && dim1->format_dim_info);
-                  hdf5_dim1 = (NC_HDF5_DIM_INFO_T *)dim1->format_dim_info;
+               hid_t dsid;  /* Dataset ID for dimension */
+               assert(var->dim[d] && var->dim[d]->hdr.id == var->dimids[d] &&
+                      var->dim[d]->format_dim_info);
 
-                  LOG((2, "%s: attaching scale for dimid %d to var %s",
-                       __func__, var->dimids[d], var->hdr.name));
+               LOG((2, "%s: attaching scale for dimid %d to var %s",
+                    __func__, var->dimids[d], var->hdr.name));
 
-                  /* Find dataset ID for dimension */
-                  if (dim1->coord_var)
-                     dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
-                  else
-                     dim_datasetid = hdf5_dim1->hdf_dimscaleid;
-                  if(!(dim_datasetid > 0))
-                     assert(dim_datasetid > 0);
-                  if (H5DSattach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
-                     BAIL(NC_EHDFERR);
-                  var->dimscale_attached[d] = NC_TRUE;
-               }
+               /* Find dataset ID for dimension */
+               if (var->dim[d]->coord_var)
+                  dsid = ((NC_HDF5_VAR_INFO_T *)(var->dim[d]->coord_var->format_var_info))->hdf_datasetid;
+               else
+                  dsid = ((NC_HDF5_DIM_INFO_T *)var->dim[d]->format_dim_info)->hdf_dimscaleid;
+               assert(dsid > 0);
 
-               /* If we didn't find a dimscale to attach, that's a problem! */
-               if (!var->dimscale_attached[d])
-               {
-                  LOG((0, "no dimscale found!"));
-                  return NC_EDIMSCALE;
-               }
+               /* Attach the scale. */
+               if (H5DSattach_scale(hdf5_var->hdf_datasetid, dsid, d) < 0)
+                  return NC_EHDFERR;
+               var->dimscale_attached[d] = NC_TRUE;
             }
          }
       }
    }
 
-exit:
-   return retval;
+   return NC_NOERR;
 }
 
 /**
