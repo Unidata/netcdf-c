@@ -1,3 +1,13 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
 /*
  * Example illustrates the use of SZIP compression in HDF5
  */
@@ -31,7 +41,7 @@ writeszip()
    unsigned szip_pixels_per_block;
 
   /*
-   * Create a new file using read/write access, default file 
+   * Create a new file using read/write access, default file
    * creation properties, and default file access properties.
    */
    file = H5Fcreate (filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -51,9 +61,9 @@ writeszip()
    properties = H5Pcreate (H5P_DATASET_CREATE);
    H5Pset_chunk (properties, 2, chunk_size);
 
-  /* 
+  /*
    * Set parameters for SZIP compression; check the description of
-   * the H5Pset_szip function in the HDF5 Reference Manual for more 
+   * the H5Pset_szip function in the HDF5 Reference Manual for more
    * information.
    */
    szip_options_mask=H5_SZIP_NN_OPTION_MASK;
@@ -76,7 +86,7 @@ writeszip()
   /*
    * Write the array to the file.  The datatype and dataspace
    * describe the format of the data in the `buf' buffer.
-   * The raw data is translated to the format required on disk, 
+   * The raw data is translated to the format required on disk,
    * as defined above.  We use default raw data transfer properties.
    */
 
@@ -127,7 +137,7 @@ compare(void)
 {
     int i,j;
     int errs = 0;
-    
+
     /* Do comparison */
     for (i=0; i < NX; i++) {
 	for (j=0; j < NY; j++) {

@@ -1,5 +1,11 @@
 /*! Testing for proper read of little-endian variables in an hdf4 file.
  *
+ * Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+ * 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+ * 2015, 2016, 2017, 2018
+ * University Corporation for Atmospheric Research/Unidata.
+ *
+ * See \ref copyright file for more info.
  * Added to debug issue NCF-332. Based on code submitted by
  * https://github.com/Unidata/netcdf-c/issues/113.
  */
@@ -27,7 +33,7 @@ int read_hdf_file(int dtype)
    if (nc_inq_varid(ncid,SDSNAME,&le_int16_varid)) ERR;
    if (nc_inq_var_endian(ncid,le_int16_varid,&ed)) ERR;
    if (nc_close(ncid)) ERR;
-   
+
    if (ed != NC_ENDIAN_LITTLE)
       return -1;
 

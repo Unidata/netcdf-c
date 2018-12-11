@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2007, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This is to include the test comparison files
 
@@ -25,4 +25,3 @@ CMakeLists.txt
 
 # These do not exist because they are not run as usual tests
 # bigf1.dmp bigf2.dmp bigf3.dmp bigr1.dmp bigr2.dmp bigr3.dmp gfs1.dmp
-

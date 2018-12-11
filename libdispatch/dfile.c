@@ -6,7 +6,7 @@
  * These functions end up calling functions in one of the dispatch
  * layers (netCDF-4, dap server, etc).
  *
- * Copyright 2010 University Corporation for Atmospheric
+ * Copyright 2018 University Corporation for Atmospheric
  * Research/Unidata. See COPYRIGHT file for more info.
 */
 

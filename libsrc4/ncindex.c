@@ -1,5 +1,5 @@
 /*
-Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
+Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
 See LICENSE.txt for license information.
 */
 
@@ -176,7 +176,7 @@ also recompute their hashkey.
 /* Return 1 if ok, 0 otherwise.*/
 int
 ncindexrebuild(NCindex* index)
-{ 
+{
 #ifndef NCNOHASH
     size_t i;
     size_t size = nclistlength(index->list);
@@ -196,7 +196,7 @@ ncindexrebuild(NCindex* index)
     }
 #endif
     if(contents != NULL) free(contents);
-    return 1;    
+    return 1;
 }
 
 /* Free a list map */
@@ -206,7 +206,7 @@ ncindexfree(NCindex* index)
     if(index == NULL) return 1;
     nclistfree(index->list);
     NC_hashmapfree(index->map);
-    free(index);    
+    free(index);
     return 1;
 }
 
@@ -235,7 +235,7 @@ keystr(NC_hentry* e)
 {
     if(e->keysize < sizeof(uintptr_t))
 	return (const char*)(&e->key);
-    else 
+    else
 	return (const char*)(e->key);
 }
 #endif
@@ -253,7 +253,7 @@ ncindexverify(NCindex* lm, int dump)
     if(lm == NULL) {
 	fprintf(stderr,"index: <empty>\n");
 	return 1;
-    }  
+    }
     if(dump) {
 	fprintf(stderr,"-------------------------\n");
 #ifndef NCNOHASH
