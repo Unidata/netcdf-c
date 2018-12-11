@@ -1873,11 +1873,9 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
 
    /* Set the pointers to the beginning of the list of dims & vars in this
     * group. */
-   dim_index = 0;
-   var_index = 0;
-   /* prime the loop */
-   dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,dim_index);
-   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,var_index);
+   dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, dim_index);
+   var = (NC_VAR_INFO_T *)ncindexith(grp->vars, var_index);
+
    /* Because of HDF5 ordering the dims and vars have to be stored in
     * this way to ensure that the dims and coordinate vars come out in
     * the correct order. */
@@ -1899,7 +1897,7 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
             coord_varid = dim->coord_var->hdr.id;
             found_coord = NC_TRUE;
          }
-         dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,++dim_index);
+         dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, ++dim_index);
       }
 
       /* Write each var. When we get to the coord var we are waiting
@@ -1910,16 +1908,19 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
             return retval;
          if (found_coord && var->hdr.id == coord_varid)
             wrote_coord = NC_TRUE;
-         var = (NC_VAR_INFO_T*)ncindexith(grp->vars,++var_index);
+         var = (NC_VAR_INFO_T *)ncindexith(grp->vars, ++var_index);
       }
    } /* end while */
 
+   /* Attach dimscales to vars in this group. */
    if ((retval = attach_dimscales(grp)))
       return retval;
 
    /* If there are any child groups, write their metadata. */
-   for(i=0;i<ncindexsize(grp->children);i++) {
-      if((child_grp = (NC_GRP_INFO_T*)ncindexith(grp->children,i)) == NULL) continue;
+   for (i = 0; i < ncindexsize(grp->children); i++)
+   {
+      child_grp = (NC_GRP_INFO_T *)ncindexith(grp->children, i);
+      assert(child_grp);
       if ((retval = nc4_rec_write_metadata(child_grp, bad_coord_order)))
          return retval;
    }
