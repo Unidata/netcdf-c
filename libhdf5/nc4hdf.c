@@ -1587,44 +1587,33 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
     * dimensions will be de-attached and re-attached correctly. */
    if (replace_existing_var)
    {
-      int i;
+      NC_DIM_INFO_T *d1;
 
-      for (i = 0; i < ncindexsize(grp->dim); i++)
+      /* Is there a dim with this var's name? */
+      if ((d1 = (NC_DIM_INFO_T *)ncindexlookup(grp->dim, var->hdr.name)))
       {
-         NC_DIM_INFO_T *d1;
-         NC_HDF5_DIM_INFO_T *hdf5_d1;
+         nc_bool_t exists;
+         assert(d1->format_dim_info && d1->hdr.name);
 
-         /* Get info about the dim, including HDF5-specific info. */
-         d1 = (NC_DIM_INFO_T *)ncindexith(grp->dim, i);
-         assert(d1 && d1->format_dim_info && d1->hdr.name);
-         hdf5_d1 = (NC_HDF5_DIM_INFO_T *)d1->format_dim_info;
-
-         if (!strcmp(d1->hdr.name, var->hdr.name))
+         if ((retval = var_exists(hdf5_grp->hdf_grpid, var->hdr.name, &exists)))
+            return retval;
+         if (exists)
          {
-            nc_bool_t exists;
+            hid_t dsid;
 
-            if ((retval = var_exists(hdf5_grp->hdf_grpid, var->hdr.name,
-                                     &exists)))
+            /* Find dataset ID for dimension */
+            if (d1->coord_var)
+               dsid = ((NC_HDF5_VAR_INFO_T *)d1->coord_var->format_var_info)->hdf_datasetid;
+            else
+               dsid = ((NC_HDF5_DIM_INFO_T *)d1->format_dim_info)->hdf_dimscaleid;
+            assert(dsid > 0);
+
+            /* If we're replacing an existing dimscale dataset, go to
+             * every var in the file and detach this dimension scale,
+             * because we have to delete it. */
+            if ((retval = rec_detach_scales(grp->nc4_info->root_grp,
+                                            var->dimids[0], dsid)))
                return retval;
-            if (exists)
-            {
-               hid_t dim_datasetid;  /* Dataset ID for dimension */
-
-               /* Find dataset ID for dimension */
-               if (d1->coord_var)
-                  dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(d1->coord_var->format_var_info))->hdf_datasetid;
-               else
-                  dim_datasetid = hdf5_d1->hdf_dimscaleid;
-               assert(dim_datasetid > 0);
-
-               /* If we're replacing an existing dimscale dataset, go to
-                * every var in the file and detach this dimension scale,
-                * because we have to delete it. */
-               if ((retval = rec_detach_scales(grp->nc4_info->root_grp,
-                                               var->dimids[0], dim_datasetid)))
-                  return retval;
-               break;
-            }
          }
       }
    }
