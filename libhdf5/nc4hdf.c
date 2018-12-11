@@ -1601,18 +1601,15 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       }
    }
 
-   /* If this is not a dimension scale, do this stuff. */
+   /* If this is not a dimension scale, remove any attached scales,
+    * and delete dimscale attributes from the var. */
    if (var->was_coord_var && var->dimscale_attached)
    {
       /* If the variable already exists in the file, Remove any dimension scale
        * attributes from it, if they exist. */
-      /* (The HDF5 Dimension Scale API should really have an API routine
-       * for making a dataset not a scale. -QAK) */
       if (var->created)
-      {
          if ((retval = remove_coord_atts(hdf5_var->hdf_datasetid)))
             BAIL(retval);
-      }
 
       if (var->dimscale_attached)
       {
@@ -1623,21 +1620,20 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
          {
             if (var->dimscale_attached[d])
             {
-               hid_t dim_datasetid;  /* Dataset ID for dimension */
-               NC_DIM_INFO_T *dim1 = var->dim[d];
-               NC_HDF5_DIM_INFO_T *hdf5_dim1;
-               assert(dim1 && dim1->hdr.id == var->dimids[d] && dim1->format_dim_info);
-               hdf5_dim1 = (NC_HDF5_DIM_INFO_T *)dim1->format_dim_info;
+               hid_t dsid;  /* Dataset ID for dimension */
+               assert(var->dim[d] && var->dim[d]->hdr.id == var->dimids[d] &&
+                      var->dim[d]->format_dim_info);
 
                /* Find dataset ID for dimension */
-               if (dim1->coord_var)
-                  dim_datasetid = ((NC_HDF5_VAR_INFO_T *)dim1->coord_var->format_var_info)->hdf_datasetid;
+               if (var->dim[d]->coord_var)
+                  dsid = ((NC_HDF5_VAR_INFO_T *)var->dim[d]->coord_var->format_var_info)->hdf_datasetid;
                else
-                  dim_datasetid = hdf5_dim1->hdf_dimscaleid;
-               assert(dim_datasetid > 0);
+                  dsid = ((NC_HDF5_DIM_INFO_T *)var->dim[d]->format_dim_info)->hdf_dimscaleid;
+               assert(dsid > 0);
 
-               if (H5DSdetach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
-                  BAIL(NC_EHDFERR);
+               /* Detach this dim scale. */
+               if (H5DSdetach_scale(hdf5_var->hdf_datasetid, dsid, d) < 0)
+                  return NC_EHDFERR;
                var->dimscale_attached[d] = NC_FALSE;
             }
          }
