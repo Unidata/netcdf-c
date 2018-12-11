@@ -123,7 +123,7 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
       if (ret != BZ_STREAM_END && stream.avail_out == 0) {
         /* Grow the output buffer. */
         newbuflen = outbuflen * 2;
-        newbuf = realloc(outbuf, newbuflen);
+        newbuf = H5resize_memory(outbuf, newbuflen);
         if (newbuf == NULL) {
           fprintf(stderr, "memory allocation failed for bzip2 decompression\n");
           goto cleanupAndFail;
