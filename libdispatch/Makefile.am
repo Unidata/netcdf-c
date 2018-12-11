@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2008, see the COPYRIGHT file for more information.
 
 # This Makefile controls the building of the dispatch layer of the
 # netCDF library. The dispatch layer decides whether to call the

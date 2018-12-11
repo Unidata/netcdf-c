@@ -1,5 +1,16 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 /* This example program is part of Unidata's netCDF library for
-   scientific data access. 
+   scientific data access.
 
    This program demonstrates various ways to create netCDF dimensions
    and variables.
@@ -35,7 +46,7 @@
 printf("Bailing out in file %s, line %d, error:%s.\n", \
 __FILE__, __LINE__, nc_strerror(e)); \
 return NC_EXAMPLE_ERROR; \
-} while (0) 
+} while (0)
 
 #define FILENAME "test.nc"
 #define NUMDIMS 4
@@ -118,7 +129,7 @@ main()
    size_t start[NUMDIMS], count[NUMDIMS];
 
    float *fp, *ifp;
-   int rec, i, res; 
+   int rec, i, res;
 
    /* Create a bunch of phoney data so we have something to write in
       the example file. */
@@ -128,10 +139,10 @@ main()
       lat[i] = PHONEY_LAT_START + (i * PHONEY_LAT_MULT);
    for (i=0; i<HEIGHT_LEN; i++)
       height[i] = i * PHONEY_HEIGHT_INC;
-   for (fp=(float *)temp, ifp=(float *)itemp, i=0; 
+   for (fp=(float *)temp, ifp=(float *)itemp, i=0;
 	i<LAT_LEN*LON_LEN; i++)
       *fp++ = (*ifp++ = PHONEY_TEMP_START) + i/PHONEY_TEMP_DIV;
-   for (fp=(float *)pres, ifp=(float *)ipres, i=0; 
+   for (fp=(float *)pres, ifp=(float *)ipres, i=0;
 	i<LAT_LEN*LON_LEN*HEIGHT_LEN; i++)
       *fp++ = (*ifp++ = PHONEY_PRES_START) - i/PHONEY_PRES_DIV;
 
@@ -142,7 +153,7 @@ main()
    /* Store a history string as a file-level attribute. This could
       store the name of the person or lab producing the data, or any
       information that applies to the dataset as a whole. */
-   if ((res = nc_put_att_text(ncid, NC_GLOBAL, HISTORY, 
+   if ((res = nc_put_att_text(ncid, NC_GLOBAL, HISTORY,
 			      strlen(HISTSTR), HISTSTR)))
       BAIL(res);
 
@@ -157,23 +168,23 @@ main()
       BAIL(res);
    if ((res = nc_def_dim(ncid, LON_NAME, LON_LEN, &lon_dimid)))
       BAIL(res);
-   if ((res = nc_def_dim(ncid, HEIGHT_NAME, HEIGHT_LEN, 
+   if ((res = nc_def_dim(ncid, HEIGHT_NAME, HEIGHT_LEN,
 			 &height_dimid)))
       BAIL(res);
-   
+
    /* Define the variables. Each variable's dimension ids are set in
       the dimids array before the call to nc_def_var. The first two
       variables share three dimensions, time, lat and lon. */
    dimids[0] = time_dimid;
    dimids[1] = lat_dimid;
    dimids[2] = lon_dimid;
-   if ((res = nc_def_var(ncid, TEMP_VARNAME, NC_FLOAT, NUMDIMS_3D, 
+   if ((res = nc_def_var(ncid, TEMP_VARNAME, NC_FLOAT, NUMDIMS_3D,
 			 dimids, &temp_varid)))
       BAIL(res);
-   
+
    /* For pressure we also add a 4th dimension: height. */
    dimids[3] = height_dimid;
-   if ((res = nc_def_var(ncid, PRES_VARNAME, NC_FLOAT, NUMDIMS_4D, 
+   if ((res = nc_def_var(ncid, PRES_VARNAME, NC_FLOAT, NUMDIMS_4D,
 			 dimids, &pres_varid)))
       BAIL(res);
 
@@ -181,23 +192,23 @@ main()
       they don't have a time dimension. */
    dimids[0] = lat_dimid;
    dimids[1] = lon_dimid;
-   if ((res = nc_def_var(ncid, INIT_TEMP_VARNAME, NC_FLOAT, 
+   if ((res = nc_def_var(ncid, INIT_TEMP_VARNAME, NC_FLOAT,
 			 NUMDIMS_2D, dimids, &itemp_varid)))
       BAIL(res);
    dimids[2] = height_dimid;
-   if ((res = nc_def_var(ncid, INIT_PRES_VARNAME, NC_FLOAT, 
+   if ((res = nc_def_var(ncid, INIT_PRES_VARNAME, NC_FLOAT,
 			 NUMDIMS_3D, dimids, &ipres_varid)))
       BAIL(res);
 
    /* We'll store the units as attributes for the temperature and
       pressure variables. */
-   if ((res = nc_put_att_text(ncid, pres_varid, UNITS, 
+   if ((res = nc_put_att_text(ncid, pres_varid, UNITS,
 			      strlen(MILIBARS), MILIBARS)))
       BAIL(res);
-   if ((res = nc_put_att_text(ncid, temp_varid, UNITS, 
+   if ((res = nc_put_att_text(ncid, temp_varid, UNITS,
 			      strlen(CELSIUS), CELSIUS)))
       BAIL(res);
-   
+
 
    /* In order to store the coordinate axis data we need to define a
       netCDF variable for each axis we want to store data for. In our
@@ -208,13 +219,13 @@ main()
       be the same as the dimension, it will be one-dimensional, with
       the length of the dimension. As it's dimension, it will be
       assigned the dimension that it represents. */
-   if ((res = nc_def_var(ncid, LAT_NAME, NC_FLOAT, NUMDIMS_1D, 
+   if ((res = nc_def_var(ncid, LAT_NAME, NC_FLOAT, NUMDIMS_1D,
 			 &lat_dimid, &lat_varid)))
       BAIL(res);
-   if ((res = nc_def_var(ncid, LON_NAME, NC_FLOAT, NUMDIMS_1D, 
+   if ((res = nc_def_var(ncid, LON_NAME, NC_FLOAT, NUMDIMS_1D,
 			 &lon_dimid, &lon_varid)))
       BAIL(res);
-   if ((res = nc_def_var(ncid, HEIGHT_NAME, NC_INT, NUMDIMS_1D, 
+   if ((res = nc_def_var(ncid, HEIGHT_NAME, NC_INT, NUMDIMS_1D,
 			 &height_dimid, &height_varid)))
       BAIL(res);
 
@@ -251,7 +262,7 @@ main()
    start[1] = 0;
    start[2] = 0;
    start[3] = 0;
-   count[0] = 1; 
+   count[0] = 1;
    count[1] = LAT_LEN;
    count[2] = LON_LEN;
    count[3] = HEIGHT_LEN;
@@ -262,14 +273,14 @@ main()
 	 nc_put_vara_<type> function, which can write any array subset
 	 of the variable. */
       start[0] = rec; /* We want to write *this* record. */
-      if ((res = nc_put_vara_float(ncid, temp_varid, start, count, 
+      if ((res = nc_put_vara_float(ncid, temp_varid, start, count,
 				   (float *)temp)))
 	 BAIL(res);
       if ((res = nc_put_vara_float(ncid, pres_varid, start, count,
 				   (float *)pres)))
 	 BAIL(res);
       /* We're done writing one record. */
-   } 
+   }
 
    /* Close the file. We're done, so we can go out and see the new
       Harry Potter movie! */
@@ -278,4 +289,3 @@ main()
 
    return 0;
 }
-

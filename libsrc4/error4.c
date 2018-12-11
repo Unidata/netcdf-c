@@ -1,4 +1,6 @@
-/* Copyright 2003-2018, University Corporation for Atmospheric
+/*! \file
+
+Copyright 2003-2018, University Corporation for Atmospheric
 Research. See netcdf-4/docs/COPYRIGHT file for copying and
 redistribution conditions. */
 /**
@@ -8,7 +10,7 @@ redistribution conditions. */
  *
  * This file contains functions relating to logging errors. Also it
  * contains the functions nc_malloc, nc_calloc, and nc_free.
- * 
+ *
  * @author Ed Hartnett
 */
 
@@ -30,7 +32,7 @@ extern int nc_log_level;
 /* This function prints out a message, if the severity of the message
    is lower than the global nc_log_level. To use it, do something like
    this:
-   
+
    nc_log(0, "this computer will explode in %d seconds", i);
 
    After the first arg (the severity), use the rest like a normal
@@ -38,7 +40,7 @@ extern int nc_log_level;
 
    This function is heavily based on the function in section 15.5 of
    the C FAQ. */
-void 
+void
 nc_log(int severity, const char *fmt, ...)
 {
    va_list argp;
@@ -60,7 +62,7 @@ nc_log(int severity, const char *fmt, ...)
    va_start(argp, fmt);
    vfprintf(stderr, fmt, argp);
    va_end(argp);
-   
+
    /* Put on a final linefeed. */
    fprintf(stderr, "\n");
    fflush(stderr);
@@ -75,4 +77,3 @@ nc_log_hdf5(void)
 }
 
 #endif /* ifdef LOGGING */
-

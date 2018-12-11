@@ -1,7 +1,7 @@
 /** \file \internal
 Basic NC_INMEMORY API tests both for netcdf-3 and netcdf-4
 
-Copyright 2011, UCAR/Unidata. See COPYRIGHT file for copying and
+Copyright 2018, UCAR/Unidata. See COPYRIGHT file for copying and
 redistribution conditions.
 */
 

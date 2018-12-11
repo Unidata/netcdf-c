@@ -2,7 +2,7 @@
  * @file
  * @internal Add provenance info for netcdf-4 files.
  *
- * Copyright 2010, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+ * Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
  * and redistribution conditions.
  * @author Dennis Heimbigner
  */
@@ -73,7 +73,7 @@ NC4_provenance_init(void)
 	{stat = NC_ENOMEM; goto done;}
     nclistpush(globalpropinfo.properties,value);
     value = NULL;
-    
+
     /* Insert the HDF5 as underlying storage format library */
     if((name = strdup(NCPHDF5LIB2)) == NULL)
 	{stat = NC_ENOMEM; goto done;}
@@ -109,7 +109,7 @@ done:
     if(name != NULL) free(name);
     if(value != NULL) free(value);
     if(other != NULL)
-	nclistfreeall(other);    
+	nclistfreeall(other);
     if(stat && globalpropinfo.properties != NULL) {
 	nclistfreeall(globalpropinfo.properties);
         globalpropinfo.properties = NULL;
@@ -192,7 +192,7 @@ properties_parse(const char* text0, NClist* pairs)
   	    *q++ = '\0';
 	next = q;
 	/* split key and value */
-	q = locate(p,'=');      
+	q = locate(p,'=');
  	name = p;
         *q++ = '\0';
 	value = q;
@@ -482,7 +482,7 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5)
     hdf5grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
 
     if(H5Aexists(hdf5grpid,NCPROPS) <= 0) { /* Does not exist */
-	/* File did not contain a _NCProperties attribute */		
+	/* File did not contain a _NCProperties attribute */
         retval=NC4_get_provenance(h5,NULL,&globalpropinfo);
         goto done;
     }
@@ -622,7 +622,7 @@ ncprintpropinfo(struct NCPROPINFO* info)
 	char* name = nclistget(info->properties,i);
 	char* value = nclistget(info->properties,i+1);
 	fprintf(stderr,"\t[%d] name=|%s| value=|%s|\n",i,name,value);
-    }    
+    }
 }
 
 void
@@ -631,49 +631,3 @@ ncprintprovenance(struct NCPROVENANCE* prov)
     fprintf(stderr,"[%p] superblockversion=%d\n",prov,prov->superblockversion);
     ncprintpropinfo(&prov->propattr);
 }
-
-#if 0
-/**
- * @internal Write the properties attribute to file.
- *
- * @param h5 Pointer to HDF5 file info struct.
- *
- * @return ::NC_NOERR No error.
- * @author Dennis Heimbigner
- */
-int
-NC4_put_ncproperties(NC_FILE_INFO_T* file)
-{
-    int ncstat = NC_NOERR;
-    char* text = NULL;
-
-    LOG((3, "%s: ncid 0x%x", __func__, file->root_grp->hdr.id);
-
-    /* Get root group */
-    grp = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
-    /* See if the NCPROPS attribute exists */
-    if(H5Aexists(grp,NCPROPS) <= 0) { /* Does not exist */
-      ncstat = NC4_buildpropinfo(&h5->fileinfo->propattr,&text);
-      if(text == NULL || ncstat != NC_NOERR) {
-        goto done;
-      }
-      /* Create a datatype to refer to. */
-      HCHECK((atype = H5Tcopy(H5T_C_S1)));
-      HCHECK((H5Tset_cset(atype, H5T_CSET_ASCII)));
-      HCHECK((H5Tset_size(atype, strlen(text)+1))); /*keep nul term */
-      HCHECK((aspace = H5Screate(H5S_SCALAR)));
-      HCHECK((attid = H5Acreate(grp, NCPROPS, atype, aspace, H5P_DEFAULT)));
-      HCHECK((H5Awrite(attid, atype, text)));
-    }
- done:
-    if(text != NULL) {
-      free(text);
-      text = NULL;
-    }
-
-    if(attid >= 0) HCHECK((H5Aclose(attid)));
-    if(aspace >= 0) HCHECK((H5Sclose(aspace)));
-    if(atype >= 0) HCHECK((H5Tclose(atype)));
-    return ncstat;
-}
-#endif
