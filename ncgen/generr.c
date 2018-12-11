@@ -7,6 +7,8 @@
 #include "includes.h"
 #include <ctype.h>	/* for isprint() */
 
+extern int vsnprintf(char*, size_t, const char*, va_list ap); 
+
 int error_count;
 
 #if 0

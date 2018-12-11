@@ -18,26 +18,22 @@
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 
-#include "oc.h"
-#include "ocx.h"
-
-/* Utilities */
 #include "netcdf.h"
 #include "ncuri.h"
 #include "ncbytes.h"
 #include "nclog.h"
 
-#ifdef WIN32
-/*#include <windows.h>*/
-#define snprintf _snprintf
-#define strcasecmp stricmp
-#endif
+#include "oc.h"
+#include "ocx.h"
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include "XGetopt.h"
-int opterr;
-int optind;
+int opterr, optind;
+char* optarg;
 #endif
 
 #ifndef nulldup
