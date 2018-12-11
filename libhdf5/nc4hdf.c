@@ -80,30 +80,38 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
    LOG((3, "%s: grp->hdr.name %s", __func__, grp->hdr.name));
 
    /* If there are any child groups, attach dimscale there, if needed. */
-   for(i=0;i<ncindexsize(grp->children);i++) {
-      child_grp = (NC_GRP_INFO_T*)ncindexith(grp->children,i);
-      if(child_grp == NULL) continue;
+   for (i = 0; i < ncindexsize(grp->children); i++)
+   {
+      child_grp = (NC_GRP_INFO_T*)ncindexith(grp->children, i);
+      assert(child_grp);
       if ((retval = rec_reattach_scales(child_grp, dimid, dimscaleid)))
          return retval;
    }
 
    /* Find any vars that use this dimension id. */
-   for(i=0;i<ncindexsize(grp->vars);i++)
+   for (i = 0; i < ncindexsize(grp->vars); i++)
    {
+      NC_HDF5_VAR_INFO_T *hdf5_var;
+
       var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
-      if(var == NULL) continue;
+      assert(var && var->format_var_info);
+      hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
       for (d = 0; d < var->ndims; d++)
+      {
          if (var->dimids[d] == dimid && !var->dimscale)
          {
             LOG((2, "%s: attaching scale for dimid %d to var %s",
                  __func__, var->dimids[d], var->hdr.name));
             if (var->created)
             {
-               if (H5DSattach_scale(var->hdf_datasetid, dimscaleid, d) < 0)
+               if (H5DSattach_scale(hdf5_var->hdf_datasetid,
+                                    dimscaleid, d) < 0)
                   return NC_EHDFERR;
                var->dimscale_attached[d] = NC_TRUE;
             }
          }
+      }
    }
    return NC_NOERR;
 }
@@ -144,22 +152,31 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
    }
 
    /* Find any vars that use this dimension id. */
-   for(i=0;i<ncindexsize(grp->vars);i++) {
-      var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
-      if(var == NULL) continue;
+   for (i = 0; i < ncindexsize(grp->vars); i++)
+   {
+      NC_HDF5_VAR_INFO_T *hdf5_var;
+      var = (NC_VAR_INFO_T*)ncindexith(grp->vars, i);
+      assert(var && var->format_var_info);
+      hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
       for (d = 0; d < var->ndims; d++)
+      {
          if (var->dimids[d] == dimid && !var->dimscale)
          {
             LOG((2, "%s: detaching scale for dimid %d to var %s",
                  __func__, var->dimids[d], var->hdr.name));
             if (var->created)
+            {
                if (var->dimscale_attached && var->dimscale_attached[d])
                {
-                  if (H5DSdetach_scale(var->hdf_datasetid, dimscaleid, d) < 0)
+                  if (H5DSdetach_scale(hdf5_var->hdf_datasetid,
+                                       dimscaleid, d) < 0)
                      return NC_EHDFERR;
                   var->dimscale_attached[d] = NC_FALSE;
                }
+            }
          }
+      }
    }
    return NC_NOERR;
 }
@@ -179,97 +196,28 @@ int
 nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
 {
    NC_VAR_INFO_T *var;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
 
    assert(grp && grp->format_grp_info && dataset);
 
    /* Find the requested varid. */
-   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
-   if (!var) return NC_ENOTVAR;
-   assert(var->hdr.id == varid);
+   if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+      return NC_ENOTVAR;
+   assert(var && var->hdr.id == varid && var->format_var_info);
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    /* Open this dataset if necessary. */
-   if (!var->hdf_datasetid)
+   if (!hdf5_var->hdf_datasetid)
    {
       NC_HDF5_GRP_INFO_T *hdf5_grp;
       hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
-      if ((var->hdf_datasetid = H5Dopen2(hdf5_grp->hdf_grpid,
-                                         var->hdr.name, H5P_DEFAULT)) < 0)
+      if ((hdf5_var->hdf_datasetid = H5Dopen2(hdf5_grp->hdf_grpid,
+                                              var->hdr.name, H5P_DEFAULT)) < 0)
          return NC_ENOTVAR;
    }
 
-   *dataset = var->hdf_datasetid;
-
-   return NC_NOERR;
-}
-
-/**
- * @internal Get the default fill value for an atomic type. Memory for
- * fill_value must already be allocated, or you are DOOMED!
- *
- * @param type_info Pointer to type info struct.
- * @param fill_value Pointer that gets the default fill value.
- *
- * @returns NC_NOERR No error.
- * @returns NC_EINVAL Can't find atomic type.
- * @author Ed Hartnett
- */
-int
-nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value)
-{
-   switch (type_info->hdr.id)
-   {
-   case NC_CHAR:
-      *(char *)fill_value = NC_FILL_CHAR;
-      break;
-
-   case NC_STRING:
-      *(char **)fill_value = strdup(NC_FILL_STRING);
-      break;
-
-   case NC_BYTE:
-      *(signed char *)fill_value = NC_FILL_BYTE;
-      break;
-
-   case NC_SHORT:
-      *(short *)fill_value = NC_FILL_SHORT;
-      break;
-
-   case NC_INT:
-      *(int *)fill_value = NC_FILL_INT;
-      break;
-
-   case NC_UBYTE:
-      *(unsigned char *)fill_value = NC_FILL_UBYTE;
-      break;
-
-   case NC_USHORT:
-      *(unsigned short *)fill_value = NC_FILL_USHORT;
-      break;
-
-   case NC_UINT:
-      *(unsigned int *)fill_value = NC_FILL_UINT;
-      break;
-
-   case NC_INT64:
-      *(long long *)fill_value = NC_FILL_INT64;
-      break;
-
-   case NC_UINT64:
-      *(unsigned long long *)fill_value = NC_FILL_UINT64;
-      break;
-
-   case NC_FLOAT:
-      *(float *)fill_value = NC_FILL_FLOAT;
-      break;
-
-   case NC_DOUBLE:
-      *(double *)fill_value = NC_FILL_DOUBLE;
-      break;
-
-   default:
-      return NC_EINVAL;
-   }
+   *dataset = hdf5_var->hdf_datasetid;
 
    return NC_NOERR;
 }
@@ -518,7 +466,7 @@ nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
             return NC_EBADTYPE;
          if (!type)
             return NC_EBADTYPE;
-         typeid = type->hdf_typeid;
+         typeid = ((NC_HDF5_TYPE_INFO_T *)type->format_type_info)->hdf_typeid;
          break;
       }
       assert(typeid);
@@ -751,9 +699,15 @@ write_attlist(NCindex *attlist, int varid, NC_GRP_INFO_T *grp)
 static int
 write_coord_dimids(NC_VAR_INFO_T *var)
 {
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hsize_t coords_len[1];
    hid_t c_spaceid = -1, c_attid = -1;
    int retval = NC_NOERR;
+
+   assert(var && var->format_var_info);
+
+   /* Get HDF5-specific var info. */
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    /* Set up space for attribute. */
    coords_len[0] = var->ndims;
@@ -761,8 +715,8 @@ write_coord_dimids(NC_VAR_INFO_T *var)
       BAIL(NC_EHDFERR);
 
    /* Create the attribute. */
-   if ((c_attid = H5Acreate(var->hdf_datasetid, COORDINATES, H5T_NATIVE_INT,
-                            c_spaceid, H5P_DEFAULT)) < 0)
+   if ((c_attid = H5Acreate(hdf5_var->hdf_datasetid, COORDINATES,
+                            H5T_NATIVE_INT, c_spaceid, H5P_DEFAULT)) < 0)
       BAIL(NC_EHDFERR);
 
    /* Write our attribute. */
@@ -843,6 +797,7 @@ static int
 var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid)
 {
    NC_HDF5_GRP_INFO_T *hdf5_grp;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t plistid = 0, access_plistid = 0, typeid = 0, spaceid = 0;
    hsize_t chunksize[H5S_MAX_RANK], dimsize[H5S_MAX_RANK], maxdimsize[H5S_MAX_RANK];
    int d;
@@ -851,12 +806,13 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    char *name_to_use;
    int retval;
 
-   assert(grp && grp->format_grp_info && var);
+   assert(grp && grp->format_grp_info && var && var->format_var_info);
 
    LOG((3, "%s:: name %s", __func__, var->hdr.name));
 
-   /* Get HDF5-specific group info. */
+   /* Get HDF5-specific group and var info. */
    hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    /* Scalar or not, we need a creation property list. */
    if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0)
@@ -1045,8 +1001,8 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
    name_to_use = var->hdf5_name ? var->hdf5_name : var->hdr.name;
    LOG((4, "%s: about to H5Dcreate2 dataset %s of type 0x%x", __func__,
         name_to_use, typeid));
-   if ((var->hdf_datasetid = H5Dcreate2(hdf5_grp->hdf_grpid, name_to_use, typeid,
-                                        spaceid, H5P_DEFAULT, plistid, access_plistid)) < 0)
+   if ((hdf5_var->hdf_datasetid = H5Dcreate2(hdf5_grp->hdf_grpid, name_to_use, typeid,
+                                             spaceid, H5P_DEFAULT, plistid, access_plistid)) < 0)
       BAIL(NC_EHDFERR);
    var->created = NC_TRUE;
    var->is_new_var = NC_FALSE;
@@ -1056,7 +1012,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     * dataset. */
    if (var->dimscale)
    {
-      if (H5DSset_scale(var->hdf_datasetid, var->hdr.name) < 0)
+      if (H5DSset_scale(hdf5_var->hdf_datasetid, var->hdr.name) < 0)
          BAIL(NC_EHDFERR);
 
       /* If this is a multidimensional coordinate variable, write a
@@ -1067,7 +1023,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 
       /* If desired, write the netCDF dimid. */
       if (write_dimid)
-         if ((retval = write_netcdf4_dimid(var->hdf_datasetid, var->dimids[0])))
+         if ((retval = write_netcdf4_dimid(hdf5_var->hdf_datasetid, var->dimids[0])))
             BAIL(retval);
    }
 
@@ -1164,12 +1120,15 @@ static int
 commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 {
    NC_HDF5_GRP_INFO_T *hdf5_grp;
+   NC_HDF5_TYPE_INFO_T *hdf5_type;
+   hid_t base_hdf_typeid;
    int retval;
 
-   assert(grp && grp->format_grp_info && type);
+   assert(grp && grp->format_grp_info && type && type->format_type_info);
 
-   /* Get HDF5-specific group info. */
+   /* Get HDF5-specific group and type info. */
    hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
+   hdf5_type = (NC_HDF5_TYPE_INFO_T *)type->format_type_info;
 
    /* Did we already record this type? */
    if (type->committed)
@@ -1182,10 +1141,10 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
       hid_t hdf_base_typeid, hdf_typeid;
       int i;
 
-      if ((type->hdf_typeid = H5Tcreate(H5T_COMPOUND, type->size)) < 0)
+      if ((hdf5_type->hdf_typeid = H5Tcreate(H5T_COMPOUND, type->size)) < 0)
          return NC_EHDFERR;
       LOG((4, "creating compound type %s hdf_typeid 0x%x", type->hdr.name,
-           type->hdf_typeid));
+           hdf5_type->hdf_typeid));
 
       for(i=0;i<nclistlength(type->u.c.field);i++)
       {
@@ -1217,7 +1176,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
             hdf_typeid = hdf_base_typeid;
          LOG((4, "inserting field %s offset %d hdf_typeid 0x%x", field->hdr.name,
               field->offset, hdf_typeid));
-         if (H5Tinsert(type->hdf_typeid, field->hdr.name, field->offset,
+         if (H5Tinsert(hdf5_type->hdf_typeid, field->hdr.name, field->offset,
                        hdf_typeid) < 0)
             return NC_EHDFERR;
          if (H5Tclose(hdf_typeid) < 0)
@@ -1228,17 +1187,17 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    {
       /* Find the HDF typeid of the base type of this vlen. */
       if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->u.v.base_nc_typeid,
-                                       &type->u.v.base_hdf_typeid, type->endianness)))
+                                       &base_hdf_typeid, type->endianness)))
          return retval;
 
       /* Create a vlen type. */
-      if ((type->hdf_typeid = H5Tvlen_create(type->u.v.base_hdf_typeid)) < 0)
+      if ((hdf5_type->hdf_typeid = H5Tvlen_create(base_hdf_typeid)) < 0)
          return NC_EHDFERR;
    }
    else if (type->nc_type_class == NC_OPAQUE)
    {
       /* Create the opaque type. */
-      if ((type->hdf_typeid = H5Tcreate(H5T_OPAQUE, type->size)) < 0)
+      if ((hdf5_type->hdf_typeid = H5Tcreate(H5T_OPAQUE, type->size)) < 0)
          return NC_EHDFERR;
    }
    else if (type->nc_type_class == NC_ENUM)
@@ -1251,17 +1210,17 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
       /* Find the HDF typeid of the base type of this enum. */
       if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->u.e.base_nc_typeid,
-                                       &type->u.e.base_hdf_typeid, type->endianness)))
+                                       &base_hdf_typeid, type->endianness)))
          return retval;
 
       /* Create an enum type. */
-      if ((type->hdf_typeid =  H5Tenum_create(type->u.e.base_hdf_typeid)) < 0)
+      if ((hdf5_type->hdf_typeid =  H5Tenum_create(base_hdf_typeid)) < 0)
          return NC_EHDFERR;
 
       /* Add all the members to the HDF5 type. */
       for(i=0;i<nclistlength(type->u.e.enum_member);i++) {
          enum_m = (NC_ENUM_MEMBER_INFO_T*)nclistget(type->u.e.enum_member,i);
-         if (H5Tenum_insert(type->hdf_typeid, enum_m->name, enum_m->value) < 0)
+         if (H5Tenum_insert(hdf5_type->hdf_typeid, enum_m->name, enum_m->value) < 0)
             return NC_EHDFERR;
       }
    }
@@ -1272,17 +1231,17 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    }
 
    /* Commit the type. */
-   if (H5Tcommit(hdf5_grp->hdf_grpid, type->hdr.name, type->hdf_typeid) < 0)
+   if (H5Tcommit(hdf5_grp->hdf_grpid, type->hdr.name, hdf5_type->hdf_typeid) < 0)
       return NC_EHDFERR;
    type->committed = NC_TRUE;
    LOG((4, "just committed type %s, HDF typeid: 0x%x", type->hdr.name,
-        type->hdf_typeid));
+        hdf5_type->hdf_typeid));
 
    /* Later we will always use the native typeid. In this case, it is
     * a copy of the same type pointed to by hdf_typeid, but it's
     * easier to maintain a copy. */
-   if ((type->native_hdf_typeid = H5Tget_native_type(type->hdf_typeid,
-                                                     H5T_DIR_DEFAULT)) < 0)
+   if ((hdf5_type->native_hdf_typeid = H5Tget_native_type(hdf5_type->hdf_typeid,
+                                                          H5T_DIR_DEFAULT)) < 0)
       return NC_EHDFERR;
 
    return NC_NOERR;
@@ -1404,15 +1363,19 @@ static int
 attach_dimscales(NC_GRP_INFO_T *grp)
 {
    NC_VAR_INFO_T *var;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    NC_DIM_INFO_T *dim1;
    int d, i;
    int retval = NC_NOERR;
 
    /* Attach dimension scales. */
-   for(i=0;i<ncindexsize(grp->vars);i++)
+   for (i = 0; i < ncindexsize(grp->vars); i++)
    {
-      var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
-      if (!var) continue;
+      /* Get pointer to var and HDF5-specific var info. */
+      var = (NC_VAR_INFO_T*)ncindexith(grp->vars, i);
+      assert(var && var->format_var_info);
+      hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
       /* Scales themselves do not attach. But I really wish they
        * would. */
       if (var->dimscale)
@@ -1442,12 +1405,12 @@ attach_dimscales(NC_GRP_INFO_T *grp)
 
                   /* Find dataset ID for dimension */
                   if (dim1->coord_var)
-                     dim_datasetid = dim1->coord_var->hdf_datasetid;
+                     dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
                   else
                      dim_datasetid = hdf5_dim1->hdf_dimscaleid;
                   if(!(dim_datasetid > 0))
                      assert(dim_datasetid > 0);
-                  if (H5DSattach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+                  if (H5DSattach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
                      BAIL(NC_EHDFERR);
                   var->dimscale_attached[d] = NC_TRUE;
                }
@@ -1570,15 +1533,17 @@ static int
 write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
    NC_HDF5_GRP_INFO_T *hdf5_grp;
+   NC_HDF5_VAR_INFO_T *hdf5_var;
    nc_bool_t replace_existing_var = NC_FALSE;
    int retval;
 
-   assert(var && grp && grp->format_grp_info);
+   assert(var && var->format_var_info && grp && grp->format_grp_info);
 
    LOG((4, "%s: writing var %s", __func__, var->hdr.name));
 
-   /* Get HDF5-specific group info. */
+   /* Get HDF5-specific group and var info. */
    hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
    /* If the variable has already been created & the fill value changed,
     * indicate that the existing variable should be replaced. */
@@ -1661,7 +1626,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
                /* Find dataset ID for dimension */
                if (d1->coord_var)
-                  dim_datasetid = d1->coord_var->hdf_datasetid;
+                  dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(d1->coord_var->format_var_info))->hdf_datasetid;
                else
                   dim_datasetid = hdf5_d1->hdf_dimscaleid;
                assert(dim_datasetid > 0);
@@ -1687,7 +1652,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
        * for making a dataset not a scale. -QAK) */
       if (var->created)
       {
-         if ((retval = remove_coord_atts(var->hdf_datasetid)))
+         if ((retval = remove_coord_atts(hdf5_var->hdf_datasetid)))
             BAIL(retval);
       }
 
@@ -1708,12 +1673,12 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
                /* Find dataset ID for dimension */
                if (dim1->coord_var)
-                  dim_datasetid = dim1->coord_var->hdf_datasetid;
+                  dim_datasetid = ((NC_HDF5_VAR_INFO_T *)dim1->coord_var->format_var_info)->hdf_datasetid;
                else
                   dim_datasetid = hdf5_dim1->hdf_dimscaleid;
                assert(dim_datasetid > 0);
 
-               if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+               if (H5DSdetach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
                   BAIL(NC_EHDFERR);
                var->dimscale_attached[d] = NC_FALSE;
             }
@@ -1725,9 +1690,9 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    if (replace_existing_var)
    {
       /* Free the HDF5 dataset id. */
-      if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
+      if (hdf5_var->hdf_datasetid && H5Dclose(hdf5_var->hdf_datasetid) < 0)
          BAIL(NC_EHDFERR);
-      var->hdf_datasetid = 0;
+      hdf5_var->hdf_datasetid = 0;
 
       /* Now delete the variable. */
       if (H5Gunlink(hdf5_grp->hdf_grpid, var->hdr.name) < 0)
@@ -1743,7 +1708,8 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
    else
    {
       if (write_dimid && var->ndims)
-         if ((retval = write_netcdf4_dimid(var->hdf_datasetid, var->dimids[0])))
+         if ((retval = write_netcdf4_dimid(hdf5_var->hdf_datasetid,
+                                           var->dimids[0])))
             BAIL(retval);
    }
 
@@ -1754,7 +1720,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       if(var->dimscale)
       {
          if ((retval = rec_reattach_scales(grp->nc4_info->root_grp,
-                                           var->dimids[0], var->hdf_datasetid)))
+                                           var->dimids[0], hdf5_var->hdf_datasetid)))
             return retval;
       }
       /* If it's not a dimension scale, clear the dimscale attached flags,
@@ -1883,8 +1849,11 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       v1 = (NC_VAR_INFO_T*)ncindexlookup(grp->vars,dim->hdr.name);
       if (v1)
       {
+         NC_HDF5_VAR_INFO_T *hdf5_v1;
          hsize_t *new_size = NULL;
          int d1;
+
+         hdf5_v1 = (NC_HDF5_VAR_INFO_T *)v1->format_var_info;
 
          /* Extend the dimension scale dataset to reflect the new
           * length of the dimension. */
@@ -1895,7 +1864,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
             assert(v1->dim[d1] && v1->dim[d1]->hdr.id == v1->dimids[d1]);
             new_size[d1] = v1->dim[d1]->len;
          }
-         if (H5Dset_extent(v1->hdf_datasetid, new_size) < 0) {
+         if (H5Dset_extent(hdf5_v1->hdf_datasetid, new_size) < 0) {
             free(new_size);
             BAIL(NC_EHDFERR);
          }
@@ -2136,819 +2105,6 @@ nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
 }
 
 /**
- * @internal Copy data from one buffer to another, performing
- * appropriate data conversion.
- *
- * This function will copy data from one buffer to another, in
- * accordance with the types. Range errors will be noted, and the fill
- * value used (or the default fill value if none is supplied) for
- * values that overflow the type.
- *
- * @note I should be able to take this out when HDF5 does the right thing
- * with data type conversion. Ed Hartnett, 11/15/3
- *
- * @param src Pointer to source of data.
- * @param dest Pointer that gets data.
- * @param src_type Type ID of source data.
- * @param dest_type Type ID of destination data.
- * @param len Number of elements of data to copy.
- * @param range_error Pointer that gets 1 if there was a range error.
- * @param fill_value The fill value.
- * @param strict_nc3 Non-zero if strict model in effect.
- *
- * @returns NC_NOERR No error.
- * @returns NC_EBADTYPE Type not found.
- * @author Ed Hartnett, Dennis Heimbigner
- */
-int
-nc4_convert_type(const void *src, void *dest, const nc_type src_type,
-                 const nc_type dest_type, const size_t len, int *range_error,
-                 const void *fill_value, int strict_nc3)
-{
-   char *cp, *cp1;
-   float *fp, *fp1;
-   double *dp, *dp1;
-   int *ip, *ip1;
-   short *sp, *sp1;
-   signed char *bp, *bp1;
-   unsigned char *ubp, *ubp1;
-   unsigned short *usp, *usp1;
-   unsigned int *uip, *uip1;
-   long long *lip, *lip1;
-   unsigned long long *ulip, *ulip1;
-   size_t count = 0;
-
-   *range_error = 0;
-   LOG((3, "%s: len %d src_type %d dest_type %d", __func__, len, src_type,
-        dest_type));
-
-   /* OK, this is ugly. If you can think of anything better, I'm open
-      to suggestions!
-
-      Note that we don't use a default fill value for type
-      NC_BYTE. This is because Lord Voldemort cast a nofilleramous spell
-      at Harry Potter, but it bounced off his scar and hit the netcdf-4
-      code.
-   */
-   switch (src_type)
-   {
-   case NC_CHAR:
-      switch (dest_type)
-      {
-      case NC_CHAR:
-         for (cp = (char *)src, cp1 = dest; count < len; count++)
-            *cp1++ = *cp++;
-         break;
-      default:
-         LOG((0, "%s: Unknown destination type.", __func__));
-      }
-      break;
-
-   case NC_BYTE:
-      switch (dest_type)
-      {
-      case NC_BYTE:
-         for (bp = (signed char *)src, bp1 = dest; count < len; count++)
-            *bp1++ = *bp++;
-         break;
-      case NC_UBYTE:
-         for (bp = (signed char *)src, ubp = dest; count < len; count++)
-         {
-            if (*bp < 0)
-               (*range_error)++;
-            *ubp++ = *bp++;
-         }
-         break;
-      case NC_SHORT:
-         for (bp = (signed char *)src, sp = dest; count < len; count++)
-            *sp++ = *bp++;
-         break;
-      case NC_USHORT:
-         for (bp = (signed char *)src, usp = dest; count < len; count++)
-         {
-            if (*bp < 0)
-               (*range_error)++;
-            *usp++ = *bp++;
-         }
-         break;
-      case NC_INT:
-         for (bp = (signed char *)src, ip = dest; count < len; count++)
-            *ip++ = *bp++;
-         break;
-      case NC_UINT:
-         for (bp = (signed char *)src, uip = dest; count < len; count++)
-         {
-            if (*bp < 0)
-               (*range_error)++;
-            *uip++ = *bp++;
-         }
-         break;
-      case NC_INT64:
-         for (bp = (signed char *)src, lip = dest; count < len; count++)
-            *lip++ = *bp++;
-         break;
-      case NC_UINT64:
-         for (bp = (signed char *)src, ulip = dest; count < len; count++)
-         {
-            if (*bp < 0)
-               (*range_error)++;
-            *ulip++ = *bp++;
-         }
-         break;
-      case NC_FLOAT:
-         for (bp = (signed char *)src, fp = dest; count < len; count++)
-            *fp++ = *bp++;
-         break;
-      case NC_DOUBLE:
-         for (bp = (signed char *)src, dp = dest; count < len; count++)
-            *dp++ = *bp++;
-         break;
-      default:
-         LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-              __func__, src_type, dest_type));
-         return NC_EBADTYPE;
-      }
-      break;
-
-   case NC_UBYTE:
-      switch (dest_type)
-      {
-      case NC_BYTE:
-         for (ubp = (unsigned char *)src, bp = dest; count < len; count++)
-         {
-            if (!strict_nc3 && *ubp > X_SCHAR_MAX)
-               (*range_error)++;
-            *bp++ = *ubp++;
-         }
-         break;
-      case NC_SHORT:
-         for (ubp = (unsigned char *)src, sp = dest; count < len; count++)
-            *sp++ = *ubp++;
-         break;
-      case NC_UBYTE:
-         for (ubp = (unsigned char *)src, ubp1 = dest; count < len; count++)
-            *ubp1++ = *ubp++;
-         break;
-      case NC_USHORT:
-         for (ubp = (unsigned char *)src, usp = dest; count < len; count++)
-            *usp++ = *ubp++;
-         break;
-      case NC_INT:
-         for (ubp = (unsigned char *)src, ip = dest; count < len; count++)
-            *ip++ = *ubp++;
-         break;
-      case NC_UINT:
-         for (ubp = (unsigned char *)src, uip = dest; count < len; count++)
-            *uip++ = *ubp++;
-         break;
-      case NC_INT64:
-         for (ubp = (unsigned char *)src, lip = dest; count < len; count++)
-            *lip++ = *ubp++;
-         break;
-      case NC_UINT64:
-         for (ubp = (unsigned char *)src, ulip = dest; count < len; count++)
-            *ulip++ = *ubp++;
-         break;
-      case NC_FLOAT:
-         for (ubp = (unsigned char *)src, fp = dest; count < len; count++)
-            *fp++ = *ubp++;
-         break;
-      case NC_DOUBLE:
-         for (ubp = (unsigned char *)src, dp = dest; count < len; count++)
-            *dp++ = *ubp++;
-         break;
-      default:
-         LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-              __func__, src_type, dest_type));
-         return NC_EBADTYPE;
-      }
-      break;
-
-   case NC_SHORT:
-      switch (dest_type)
-      {
-      case NC_UBYTE:
-         for (sp = (short *)src, ubp = dest; count < len; count++)
-         {
-            if (*sp > X_UCHAR_MAX || *sp < 0)
-               (*range_error)++;
-            *ubp++ = *sp++;
-         }
-         break;
-      case NC_BYTE:
-         for (sp = (short *)src, bp = dest; count < len; count++)
-         {
-            if (*sp > X_SCHAR_MAX || *sp < X_SCHAR_MIN)
-               (*range_error)++;
-            *bp++ = *sp++;
-         }
-         break;
-      case NC_SHORT:
-         for (sp = (short *)src, sp1 = dest; count < len; count++)
-            *sp1++ = *sp++;
-         break;
-      case NC_USHORT:
-         for (sp = (short *)src, usp = dest; count < len; count++)
-         {
-            if (*sp < 0)
-               (*range_error)++;
-            *usp++ = *sp++;
-         }
-         break;
-      case NC_INT:
-         for (sp = (short *)src, ip = dest; count < len; count++)
-            *ip++ = *sp++;
-         break;
-      case NC_UINT:
-         for (sp = (short *)src, uip = dest; count < len; count++)
-         {
-            if (*sp < 0)
-               (*range_error)++;
-            *uip++ = *sp++;
-         }
-         break;
-      case NC_INT64:
-         for (sp = (short *)src, lip = dest; count < len; count++)
-            *lip++ = *sp++;
-         break;
-      case NC_UINT64:
-         for (sp = (short *)src, ulip = dest; count < len; count++)
-         {
-            if (*sp < 0)
-               (*range_error)++;
-            *ulip++ = *sp++;
-         }
-         break;
-      case NC_FLOAT:
-         for (sp = (short *)src, fp = dest; count < len; count++)
-            *fp++ = *sp++;
-         break;
-      case NC_DOUBLE:
-         for (sp = (short *)src, dp = dest; count < len; count++)
-            *dp++ = *sp++;
-         break;
-      default:
-         LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-              __func__, src_type, dest_type));
-         return NC_EBADTYPE;
-      }
-      break;
-
-   case NC_USHORT:
-      switch (dest_type)
-      {
-      case NC_UBYTE:
-         for (usp = (unsigned short *)src, ubp = dest; count < len; count++)
-         {
-            if (*usp > X_UCHAR_MAX)
-               (*range_error)++;
-            *ubp++ = *usp++;
-         }
-         break;
-      case NC_BYTE:
-         for (usp = (unsigned short *)src, bp = dest; count < len; count++)
-         {
-            if (*usp > X_SCHAR_MAX)
-               (*range_error)++;
-            *bp++ = *usp++;
-         }
-         break;
-      case NC_SHORT:
-         for (usp = (unsigned short *)src, sp = dest; count < len; count++)
-         {
-            if (*usp > X_SHORT_MAX)
-               (*range_error)++;
-            *sp++ = *usp++;
-         }
-         break;
-      case NC_USHORT:
-         for (usp = (unsigned short *)src, usp1 = dest; count < len; count++)
-            *usp1++ = *usp++;
-         break;
-      case NC_INT:
-         for (usp = (unsigned short *)src, ip = dest; count < len; count++)
-            *ip++ = *usp++;
-         break;
-      case NC_UINT:
-         for (usp = (unsigned short *)src, uip = dest; count < len; count++)
-            *uip++ = *usp++;
-         break;
-      case NC_INT64:
-         for (usp = (unsigned short *)src, lip = dest; count < len; count++)
-            *lip++ = *usp++;
-         break;
-      case NC_UINT64:
-         for (usp = (unsigned short *)src, ulip = dest; count < len; count++)
-            *ulip++ = *usp++;
-         break;
-      case NC_FLOAT:
-         for (usp = (unsigned short *)src, fp = dest; count < len; count++)
-            *fp++ = *usp++;
-         break;
-      case NC_DOUBLE:
-         for (usp = (unsigned short *)src, dp = dest; count < len; count++)
-            *dp++ = *usp++;
-         break;
-      default:
-         LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-              __func__, src_type, dest_type));
-         return NC_EBADTYPE;
-      }
-      break;
-
-   case NC_INT:
-      switch (dest_type)
-      {
-      case NC_UBYTE:
-         for (ip = (int *)src, ubp = dest; count < len; count++)
-         {
-            if (*ip > X_UCHAR_MAX || *ip < 0)
-               (*range_error)++;
-            *ubp++ = *ip++;
-         }
-         break;
-      case NC_BYTE:
-         for (ip = (int *)src, bp = dest; count < len; count++)
-         {
-            if (*ip > X_SCHAR_MAX || *ip < X_SCHAR_MIN)
-               (*range_error)++;
-            *bp++ = *ip++;
-         }
-         break;
-      case NC_SHORT:
-         for (ip = (int *)src, sp = dest; count < len; count++)
-         {
-            if (*ip > X_SHORT_MAX || *ip < X_SHORT_MIN)
-               (*range_error)++;
-            *sp++ = *ip++;
-         }
-         break;
-      case NC_USHORT:
-         for (ip = (int *)src, usp = dest; count < len; count++)
-         {
-            if (*ip > X_USHORT_MAX || *ip < 0)
-               (*range_error)++;
-            *usp++ = *ip++;
-         }
-         break;
-      case NC_INT: /* src is int */
-         for (ip = (int *)src, ip1 = dest; count < len; count++)
-         {
-            if (*ip > X_INT_MAX || *ip < X_INT_MIN)
-               (*range_error)++;
-            *ip1++ = *ip++;
-         }
-         break;
-      case NC_UINT:
-         for (ip = (int *)src, uip = dest; count < len; count++)
-         {
-            if (*ip > X_UINT_MAX || *ip < 0)
-               (*range_error)++;
-            *uip++ = *ip++;
-         }
-         break;
-      case NC_INT64:
-         for (ip = (int *)src, lip = dest; count < len; count++)
-            *lip++ = *ip++;
-         break;
-      case NC_UINT64:
-         for (ip = (int *)src, ulip = dest; count < len; count++)
-         {
-            if (*ip < 0)
-               (*range_error)++;
-            *ulip++ = *ip++;
-         }
-         break;
-      case NC_FLOAT:
-         for (ip = (int *)src, fp = dest; count < len; count++)
-            *fp++ = *ip++;
-         break;
-      case NC_DOUBLE:
-         for (ip = (int *)src, dp = dest; count < len; count++)
-            *dp++ = *ip++;
-         break;
-      default:
-         LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-              __func__, src_type, dest_type));
-         return NC_EBADTYPE;
-      }
-      break;
-
-   case NC_UINT:
-      switch (dest_type)
-      {
-      case NC_UBYTE:
-         for (uip = (unsigned int *)src, ubp = dest; count < len; count++)
-         {
-            if (*uip > X_UCHAR_MAX)
-               (*range_error)++;
-            *ubp++ = *uip++;
-         }
-         break;
-      case NC_BYTE:
-         for (uip = (unsigned int *)src, bp = dest; count < len; count++)
-         {
-            if (*uip > X_SCHAR_MAX)
-               (*range_error)++;
-            *bp++ = *uip++;
-         }
-         break;
-      case NC_SHORT:
-         for (uip = (unsigned int *)src, sp = dest; count < len; count++)
-         {
-            if (*uip > X_SHORT_MAX)
-               (*range_error)++;
-            *sp++ = *uip++;
-         }
-         break;
-      case NC_USHORT:
-         for (uip = (unsigned int *)src, usp = dest; count < len; count++)
-         {
-            if (*uip > X_USHORT_MAX)
-               (*range_error)++;
-            *usp++ = *uip++;
-         }
-         break;
-      case NC_INT:
-         for (uip = (unsigned int *)src, ip = dest; count < len; count++)
-         {
-            if (*uip > X_INT_MAX)
-               (*range_error)++;
-            *ip++ = *uip++;
-         }
-         break;
-      case NC_UINT:
-         for (uip = (unsigned int *)src, uip1 = dest; count < len; count++)
-         {
-            if (*uip > X_UINT_MAX)
-               (*range_error)++;
-            *uip1++ = *uip++;
-         }
-         break;
-      case NC_INT64:
-         for (uip = (unsigned int *)src, lip = dest; count < len; count++)
-            *lip++ = *uip++;
-         break;
-      case NC_UINT64:
-         for (uip = (unsigned int *)src, ulip = dest; count < len; count++)
-            *ulip++ = *uip++;
-         break;
-      case NC_FLOAT:
-         for (uip = (unsigned int *)src, fp = dest; count < len; count++)
-            *fp++ = *uip++;
-         break;
-      case NC_DOUBLE:
-         for (uip = (unsigned int *)src, dp = dest; count < len; count++)
-            *dp++ = *uip++;
-         break;
-      default:
-         LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-              __func__, src_type, dest_type));
-         return NC_EBADTYPE;
-      }
-      break;
-
-   case NC_INT64:
-      switch (dest_type)
-      {
-      case NC_UBYTE:
-         for (lip = (long long *)src, ubp = dest; count < len; count++)
-         {
-            if (*lip > X_UCHAR_MAX || *lip < 0)
-               (*range_error)++;
-            *ubp++ = *lip++;
-         }
-         break;
-      case NC_BYTE:
-         for (lip = (long long *)src, bp = dest; count < len; count++)
-         {
-            if (*lip > X_SCHAR_MAX || *lip < X_SCHAR_MIN)
-               (*range_error)++;
-            *bp++ = *lip++;
-         }
-         break;
-      case NC_SHORT:
-         for (lip = (long long *)src, sp = dest; count < len; count++)
-         {
-            if (*lip > X_SHORT_MAX || *lip < X_SHORT_MIN)
-               (*range_error)++;
-            *sp++ = *lip++;
-         }
-         break;
-      case NC_USHORT:
-         for (lip = (long long *)src, usp = dest; count < len; count++)
-         {
-            if (*lip > X_USHORT_MAX || *lip < 0)
-               (*range_error)++;
-            *usp++ = *lip++;
-         }
-         break;
-      case NC_UINT:
-         for (lip = (long long *)src, uip = dest; count < len; count++)
-         {
-            if (*lip > X_UINT_MAX || *lip < 0)
-               (*range_error)++;
-            *uip++ = *lip++;
-         }
-         break;
-      case NC_INT:
-         for (lip = (long long *)src, ip = dest; count < len; count++)
-         {
-            if (*lip > X_INT_MAX || *lip < X_INT_MIN)
-               (*range_error)++;
-            *ip++ = *lip++;
-         }
-         break;
-      case NC_INT64:
-         for (lip = (long long *)src, lip1 = dest; count < len; count++)
-            *lip1++ = *lip++;
-         break;
-      case NC_UINT64:
-         for (lip = (long long *)src, ulip = dest; count < len; count++)
-         {
-            if (*lip < 0)
-               (*range_error)++;
-            *ulip++ = *lip++;
-         }
-         break;
-      case NC_FLOAT:
-         for (lip = (long long *)src, fp = dest; count < len; count++)
-            *fp++ = *lip++;
-         break;
-      case NC_DOUBLE:
-         for (lip = (long long *)src, dp = dest; count < len; count++)
-            *dp++ = *lip++;
-         break;
-      default:
-         LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-              __func__, src_type, dest_type));
-         return NC_EBADTYPE;
-      }
-      break;
-
-   case NC_UINT64:
-      switch (dest_type)
-      {
-      case NC_UBYTE:
-         for (ulip = (unsigned long long *)src, ubp = dest; count < len; count++)
-         {
-            if (*ulip > X_UCHAR_MAX)
-               (*range_error)++;
-            *ubp++ = *ulip++;
-         }
-         break;
-      case NC_BYTE:
-         for (ulip = (unsigned long long *)src, bp = dest; count < len; count++)
-         {
-            if (*ulip > X_SCHAR_MAX)
-               (*range_error)++;
-            *bp++ = *ulip++;
-         }
-         break;
-      case NC_SHORT:
-         for (ulip = (unsigned long long *)src, sp = dest; count < len; count++)
-         {
-            if (*ulip > X_SHORT_MAX)
-               (*range_error)++;
-            *sp++ = *ulip++;
-         }
-         break;
-      case NC_USHORT:
-         for (ulip = (unsigned long long *)src, usp = dest; count < len; count++)
-         {
-            if (*ulip > X_USHORT_MAX)
-               (*range_error)++;
-            *usp++ = *ulip++;
-         }
-         break;
-      case NC_UINT:
-         for (ulip = (unsigned long long *)src, uip = dest; count < len; count++)
-         {
-            if (*ulip > X_UINT_MAX)
-               (*range_error)++;
-            *uip++ = *ulip++;
-         }
-         break;
-      case NC_INT:
-         for (ulip = (unsigned long long *)src, ip = dest; count < len; count++)
-         {
-            if (*ulip > X_INT_MAX)
-               (*range_error)++;
-            *ip++ = *ulip++;
-         }
-         break;
-      case NC_INT64:
-         for (ulip = (unsigned long long *)src, lip = dest; count < len; count++)
-         {
-            if (*ulip > X_INT64_MAX)
-               (*range_error)++;
-            *lip++ = *ulip++;
-         }
-         break;
-      case NC_UINT64:
-         for (ulip = (unsigned long long *)src, ulip1 = dest; count < len; count++)
-            *ulip1++ = *ulip++;
-         break;
-      case NC_FLOAT:
-         for (ulip = (unsigned long long *)src, fp = dest; count < len; count++)
-            *fp++ = *ulip++;
-         break;
-      case NC_DOUBLE:
-         for (ulip = (unsigned long long *)src, dp = dest; count < len; count++)
-            *dp++ = *ulip++;
-         break;
-      default:
-         LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-              __func__, src_type, dest_type));
-         return NC_EBADTYPE;
-      }
-      break;
-
-   case NC_FLOAT:
-      switch (dest_type)
-      {
-      case NC_UBYTE:
-         for (fp = (float *)src, ubp = dest; count < len; count++)
-         {
-            if (*fp > X_UCHAR_MAX || *fp < 0)
-               (*range_error)++;
-            *ubp++ = *fp++;
-         }
-         break;
-      case NC_BYTE:
-         for (fp = (float *)src, bp = dest; count < len; count++)
-         {
-            if (*fp > (double)X_SCHAR_MAX || *fp < (double)X_SCHAR_MIN)
-               (*range_error)++;
-            *bp++ = *fp++;
-         }
-         break;
-      case NC_SHORT:
-         for (fp = (float *)src, sp = dest; count < len; count++)
-         {
-            if (*fp > (double)X_SHORT_MAX || *fp < (double)X_SHORT_MIN)
-               (*range_error)++;
-            *sp++ = *fp++;
-         }
-         break;
-      case NC_USHORT:
-         for (fp = (float *)src, usp = dest; count < len; count++)
-         {
-            if (*fp > X_USHORT_MAX || *fp < 0)
-               (*range_error)++;
-            *usp++ = *fp++;
-         }
-         break;
-      case NC_UINT:
-         for (fp = (float *)src, uip = dest; count < len; count++)
-         {
-            if (*fp > X_UINT_MAX || *fp < 0)
-               (*range_error)++;
-            *uip++ = *fp++;
-         }
-         break;
-      case NC_INT:
-         for (fp = (float *)src, ip = dest; count < len; count++)
-         {
-            if (*fp > (double)X_INT_MAX || *fp < (double)X_INT_MIN)
-               (*range_error)++;
-            *ip++ = *fp++;
-         }
-         break;
-      case NC_INT64:
-         for (fp = (float *)src, lip = dest; count < len; count++)
-         {
-            if (*fp > X_INT64_MAX || *fp <X_INT64_MIN)
-               (*range_error)++;
-            *lip++ = *fp++;
-         }
-         break;
-      case NC_UINT64:
-         for (fp = (float *)src, lip = dest; count < len; count++)
-         {
-            if (*fp > X_UINT64_MAX || *fp < 0)
-               (*range_error)++;
-            *lip++ = *fp++;
-         }
-         break;
-      case NC_FLOAT:
-         for (fp = (float *)src, fp1 = dest; count < len; count++)
-         {
-            /*                if (*fp > X_FLOAT_MAX || *fp < X_FLOAT_MIN)
-                              (*range_error)++;*/
-            *fp1++ = *fp++;
-         }
-         break;
-      case NC_DOUBLE:
-         for (fp = (float *)src, dp = dest; count < len; count++)
-            *dp++ = *fp++;
-         break;
-      default:
-         LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-              __func__, src_type, dest_type));
-         return NC_EBADTYPE;
-      }
-      break;
-
-   case NC_DOUBLE:
-      switch (dest_type)
-      {
-      case NC_UBYTE:
-         for (dp = (double *)src, ubp = dest; count < len; count++)
-         {
-            if (*dp > X_UCHAR_MAX || *dp < 0)
-               (*range_error)++;
-            *ubp++ = *dp++;
-         }
-         break;
-      case NC_BYTE:
-         for (dp = (double *)src, bp = dest; count < len; count++)
-         {
-            if (*dp > X_SCHAR_MAX || *dp < X_SCHAR_MIN)
-               (*range_error)++;
-            *bp++ = *dp++;
-         }
-         break;
-      case NC_SHORT:
-         for (dp = (double *)src, sp = dest; count < len; count++)
-         {
-            if (*dp > X_SHORT_MAX || *dp < X_SHORT_MIN)
-               (*range_error)++;
-            *sp++ = *dp++;
-         }
-         break;
-      case NC_USHORT:
-         for (dp = (double *)src, usp = dest; count < len; count++)
-         {
-            if (*dp > X_USHORT_MAX || *dp < 0)
-               (*range_error)++;
-            *usp++ = *dp++;
-         }
-         break;
-      case NC_UINT:
-         for (dp = (double *)src, uip = dest; count < len; count++)
-         {
-            if (*dp > X_UINT_MAX || *dp < 0)
-               (*range_error)++;
-            *uip++ = *dp++;
-         }
-         break;
-      case NC_INT:
-         for (dp = (double *)src, ip = dest; count < len; count++)
-         {
-            if (*dp > X_INT_MAX || *dp < X_INT_MIN)
-               (*range_error)++;
-            *ip++ = *dp++;
-         }
-         break;
-      case NC_INT64:
-         for (dp = (double *)src, lip = dest; count < len; count++)
-         {
-            if (*dp > X_INT64_MAX || *dp < X_INT64_MIN)
-               (*range_error)++;
-            *lip++ = *dp++;
-         }
-         break;
-      case NC_UINT64:
-         for (dp = (double *)src, lip = dest; count < len; count++)
-         {
-            if (*dp > X_UINT64_MAX || *dp < 0)
-               (*range_error)++;
-            *lip++ = *dp++;
-         }
-         break;
-      case NC_FLOAT:
-         for (dp = (double *)src, fp = dest; count < len; count++)
-         {
-            if (*dp > X_FLOAT_MAX || *dp < X_FLOAT_MIN)
-               (*range_error)++;
-            *fp++ = *dp++;
-         }
-         break;
-      case NC_DOUBLE:
-         for (dp = (double *)src, dp1 = dest; count < len; count++)
-         {
-            /* if (*dp > X_DOUBLE_MAX || *dp < X_DOUBLE_MIN) */
-            /*    (*range_error)++; */
-            *dp1++ = *dp++;
-         }
-         break;
-      default:
-         LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-              __func__, src_type, dest_type));
-         return NC_EBADTYPE;
-      }
-      break;
-
-   default:
-      LOG((0, "%s: unexpected src type. src_type %d, dest_type %d",
-           __func__, src_type, dest_type));
-      return NC_EBADTYPE;
-   }
-   return NC_NOERR;
-}
-
-/**
  * @internal In our first pass through the data, we may have
  * encountered variables before encountering their dimscales, so go
  * through the vars in this file and make sure we've got a dimid for
@@ -2974,18 +2130,27 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
    LOG((4, "%s: grp->hdr.name %s", __func__, grp->hdr.name));
 
    /* Perform var dimscale match for child groups. */
-   for(i=0;i<ncindexsize(grp->children);i++) {
-      if((g = (NC_GRP_INFO_T*)ncindexith(grp->children,i)) == NULL) continue;
+   for (i = 0; i < ncindexsize(grp->children); i++)
+   {
+      g = (NC_GRP_INFO_T*)ncindexith(grp->children, i);
+      assert(g);
       if ((retval = nc4_rec_match_dimscales(g)))
          return retval;
    }
+
    /* Check all the vars in this group. If they have dimscale info,
     * try and find a dimension for them. */
-   for(i=0;i<ncindexsize(grp->vars);i++)
+   for (i = 0; i < ncindexsize(grp->vars); i++)
    {
+      NC_HDF5_VAR_INFO_T *hdf5_var;
       int ndims;
       int d;
-      if((var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i)) == NULL) continue;
+
+      /* Get pointer to var and to the HDF5-specific var info. */
+      var = (NC_VAR_INFO_T*)ncindexith(grp->vars, i);
+      assert(var && var->format_var_info);
+      hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
       /* Check all vars and see if dim[i] != NULL if dimids[i] valid. */
       /* This loop is very odd. Under normal circumstances, var->dimid[d] is zero
          (from the initial calloc) which is a legitimate dimid. The code does not
@@ -3017,7 +2182,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
          int j;
 
          /* Are there dimscales for this variable? */
-         if (var->dimscale_hdf5_objids)
+         if (hdf5_var->dimscale_hdf5_objids)
          {
             for (d = 0; d < var->ndims; d++)
             {
@@ -3038,10 +2203,10 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 
                      /* Check for exact match of fileno/objid arrays
                       * to find identical objects in HDF5 file. */
-                     if (var->dimscale_hdf5_objids[d].fileno[0] == hdf5_dim->hdf5_objid.fileno[0] &&
-                         var->dimscale_hdf5_objids[d].objno[0] == hdf5_dim->hdf5_objid.objno[0] &&
-                         var->dimscale_hdf5_objids[d].fileno[1] == hdf5_dim->hdf5_objid.fileno[1] &&
-                         var->dimscale_hdf5_objids[d].objno[1] == hdf5_dim->hdf5_objid.objno[1])
+                     if (hdf5_var->dimscale_hdf5_objids[d].fileno[0] == hdf5_dim->hdf5_objid.fileno[0] &&
+                         hdf5_var->dimscale_hdf5_objids[d].objno[0] == hdf5_dim->hdf5_objid.objno[0] &&
+                         hdf5_var->dimscale_hdf5_objids[d].fileno[1] == hdf5_dim->hdf5_objid.fileno[1] &&
+                         hdf5_var->dimscale_hdf5_objids[d].objno[1] == hdf5_dim->hdf5_objid.objno[1])
                      {
                         LOG((4, "%s: for dimension %d, found dim %s", __func__,
                              d, dim->hdr.name));
@@ -3064,7 +2229,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
             int dataset_ndims;
 
             /* Find the space information for this dimension. */
-            if ((spaceid = H5Dget_space(var->hdf_datasetid)) < 0)
+            if ((spaceid = H5Dget_space(hdf5_var->hdf_datasetid)) < 0)
                return NC_EHDFERR;
 
             /* Get the len of each dim in the space. */
@@ -3162,7 +2327,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
  * @param len Pointer that gets length in bytes.
  *
  * @returns NC_NOERR No error.
- * @returns NC_EBADTYPE Type not found
+ * @returns NC_EBADTYPE Type not found.
  * @author Ed Hartnett
  */
 int

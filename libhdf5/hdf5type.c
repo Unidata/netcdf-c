@@ -82,7 +82,15 @@ NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
    /* Are the two types equal? */
    if (equalp)
    {
-      if ((retval = H5Tequal(type1->native_hdf_typeid, type2->native_hdf_typeid)) < 0)
+      hid_t hid1, hid2;
+
+      /* Get the HDF5 types from the HDF5-specific type info. */
+      assert(type1->format_type_info && type2->format_type_info);
+      hid1 = ((NC_HDF5_TYPE_INFO_T *)type1->format_type_info)->native_hdf_typeid;
+      hid2 = ((NC_HDF5_TYPE_INFO_T *)type2->format_type_info)->native_hdf_typeid;
+
+      /* Ask HDF5 if the types are equal. */
+      if ((retval = H5Tequal(hid1, hid2)) < 0)
          return NC_EHDFERR;
       *equalp = 1 ? retval : 0;
    }
@@ -195,6 +203,7 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_TYPE_INFO_T *type;
+   NC_HDF5_TYPE_INFO_T *hdf5_type;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
 
@@ -235,6 +244,11 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
    /* Add to our list of types. */
    if ((retval = nc4_type_list_add(grp, size, norm_name, &type)))
       return retval;
+
+   /* Allocate storage for HDF5-specific type info. */
+   if (!(hdf5_type = calloc(1, sizeof(NC_HDF5_TYPE_INFO_T))))
+      return NC_ENOMEM;
+   type->format_type_info = hdf5_type;
 
    /* Remember info about this type. */
    type->nc_type_class = type_class;
@@ -352,7 +366,7 @@ NC4_insert_array_compound(int ncid, int typeid1, const char *name,
       return NC_ETYPDEFINED;
 
    /* Insert new field into this type's list of fields. */
-   if ((retval = nc4_field_list_add(type, norm_name, offset, 0, 0, field_typeid,
+   if ((retval = nc4_field_list_add(type, norm_name, offset, field_typeid,
                                     ndims, dim_sizesp)))
       return retval;
 
