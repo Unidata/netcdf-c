@@ -1,5 +1,5 @@
 /*
-Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
+Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
 See LICENSE.txt for license information.
 */
 
@@ -212,7 +212,7 @@ NC_urlmodel(const char* path, int mode, char** newurl)
 	    found = 1;
 	    break;
 	}
-    }    
+    }
     if(found) {
 	model = protolist->model;
 	/* Substitute the protocol in any case */
@@ -231,7 +231,7 @@ NC_urlmodel(const char* path, int mode, char** newurl)
             model = NC_FORMATX_DAP2;
 	else if((match=ncurilookup(url,"dap4")) != NULL || strcmp(proto,"dap4") == 0)
             model = NC_FORMATX_DAP4;
-	else 
+	else
 	model = 0; /* Still don't know */
     }
     if(model == 0) {/* Last resort: use the mode */

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2008, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: nctime.c,v 1.9 2010/05/05 22:15:39 dmh Exp $
  *********************************************************************/
