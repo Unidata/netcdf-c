@@ -1,7 +1,7 @@
 /** \file \internal
 Basic diskless API tests.
 
-Copyright 2011, UCAR/Unidata. See COPYRIGHT file for copying and
+Copyright 2018, UCAR/Unidata. See COPYRIGHT file for copying and
 redistribution conditions.
 */
 

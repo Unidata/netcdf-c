@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2010, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
  *   Thanks to Philippe Poilbarbe and Antonio S. Cofiño for
  *   compression additions.

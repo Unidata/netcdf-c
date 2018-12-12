@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2010, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -17,6 +17,7 @@ extern int NC3_finalize(void);
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h"
+#include "hdf5internal.h"
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
 #endif
@@ -91,10 +92,10 @@ nc_initialize()
 #endif
 #ifdef USE_NETCDF4
     if((stat = NC4_initialize())) goto done;
-    stat = NC4_provenance_init();
 #endif /* USE_NETCDF4 */
 #ifdef USE_HDF5
     if((stat = NC_HDF5_initialize())) goto done;
+    stat = NC4_provenance_init();
 #endif
 #ifdef USE_HDF4
     if((stat = NC_HDF4_initialize())) goto done;

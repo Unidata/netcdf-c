@@ -1,7 +1,7 @@
 #ifndef NC_GENLIB_H
 #define NC_GENLIB_H
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/genlib.h,v 1.20 2010/05/17 23:26:45 dmh Exp $
  *********************************************************************/

@@ -1,6 +1,6 @@
 %{
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: ncgen.l,v 1.24 2009/12/29 18:42:36 dmh Exp $
  *********************************************************************/
@@ -44,7 +44,7 @@ char errstr[100];		/* for short error messages */
 #include "ncgentab.h"
 
 #define YY_BREAK                /* defining as nothing eliminates unreachable
-				   statement warnings from flex output, 
+				   statement warnings from flex output,
                                    but make sure every action ends with
                                    "return" or "break"! */
 
@@ -107,7 +107,7 @@ escaped		\\.
 nonquotes	([^"\\]|{escaped})*
 exp		([eE][+-]?[0-9]+)
 %%
-\/\/.*		        { /* comment */ 
+\/\/.*		        { /* comment */
                           break;
                         }
 
@@ -277,8 +277,8 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
 		return (BYTE_CONST);
                 }
 
-[ \r\t\f]+	{ /* whitespace */ 
-		  break;        
+[ \r\t\f]+	{ /* whitespace */
+		  break;
 		}
 .		{/* Note: this next rule will not work for UTF8 characters */
 		return (yytext[0]) ;
@@ -294,4 +294,3 @@ ignore()
     yyunput(0,NULL);
 #endif
 }
-

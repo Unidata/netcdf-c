@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 /*
   Create a netcdf-4 file with
   a large variable for the purpose
@@ -47,11 +58,11 @@ buildfile(void)
    if(nc_def_dim(ncid,DIM0,(size_t)DIMSIZE0,&dimids[0])) ERR;
    if(nc_def_dim(ncid,DIM1,(size_t)DIMSIZE1,&dimids[1])) ERR;
    if(nc_def_var(ncid,VAR,NC_INT,NDIMS,dimids,&varid)) ERR;
-    
+
    if(nc_enddef(ncid)) ERR;
 
    for(p=data,index=0;index<TOTALSIZE;index++)
-      *p++ = index;	
+      *p++ = index;
 
    if(nc_put_var_int(ncid,varid,data)) ERR;
 
@@ -124,7 +135,7 @@ readfile(int default_vars)
             if (data[dataindex] != read[readindex])
                return -1;
             i++;
-         }	
+         }
       }
    }
 
@@ -149,7 +160,7 @@ main(int argc, char **argv)
       return 1;
 
    /* Print results to the millisec */
-   factor = defaultdelta / nc4delta;    
+   factor = defaultdelta / nc4delta;
    printf("NCDEFAULT time=%lld NC4 time=%lld Speedup=%lld\n",
           defaultdelta, nc4delta, factor);
    SUMMARIZE_ERR;

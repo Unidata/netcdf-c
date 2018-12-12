@@ -1,5 +1,5 @@
 /*
- *	Copyright 1996, Unuiversity Corporation for Atmospheric Research
+ *	Copyright 2018, Unuiversity Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 

@@ -1,6 +1,9 @@
 # This is part of the netCDF package.
-# Copyright 2018 University Corporation for Atmospheric Research/Unidata
-# See COPYRIGHT file for conditions of use.
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+# See netcdf-c/COPYRIGHT file for more info.
 #
 # This directory has tests for the HDF4 code. This directory will be
 # skipped if HDF4 is not enabled.
@@ -19,7 +22,7 @@ TESTS = tst_chunk_hdf4 tst_h4_lendian tst_hdf4_extra
 
 # This test script depends on ncdump and tst_interops2.c.
 if BUILD_UTILITIES
-check_PROGRAMS += tst_interops2 
+check_PROGRAMS += tst_interops2
 TESTS += run_formatx_hdf4.sh
 endif # BUILD_UTILITIES
 

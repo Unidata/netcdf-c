@@ -1,4 +1,4 @@
-# This is part of Unidata's netCDF package.  Copyright 2005-2011, see
+# This is part of Unidata's netCDF package.  Copyright 2005-2018, see
 # the COPYRIGHT file for more information.
 
 # This automake file generates the Makefile to build netCDF-4.
@@ -15,8 +15,3 @@ nc4internal.c nc4type.c nc4var.c ncfunc.c error4.c nc4printer.c		\
 ncindex.c
 
 EXTRA_DIST = CMakeLists.txt
-
-
-
-
-

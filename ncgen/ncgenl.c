@@ -1166,7 +1166,7 @@ char *ncgtext;
 #line 1 "ncgen.l"
 #line 2 "ncgen.l"
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: ncgen.l,v 1.24 2009/09/25 18:22:35 dmh Exp $
  *********************************************************************/

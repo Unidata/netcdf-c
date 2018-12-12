@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1996, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: util.c 2792 2014-10-27 06:02:59Z wkliao $
  *********************************************************************/
