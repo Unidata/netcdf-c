@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Use HDF5 to read c0.nc, a file created by ncdump. This check was

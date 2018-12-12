@@ -1,5 +1,5 @@
 /*********************************************************************
-   Copyright 2010, UCAR/Unidata See netcdf/COPYRIGHT file for
+   Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for
    copying and redistribution conditions.
  *********************************************************************/
 
@@ -111,7 +111,7 @@ find_in_NCList_by_name(const char* path)
 	    if(strcmp(nc_filelist[i]->path,path)==0) {
 		f = nc_filelist[i];
 		break;
-	    }				
+	    }
 	}
    }
    return f;
@@ -126,4 +126,3 @@ iterate_NCList(int index, NC** ncp)
     if(ncp) *ncp = nc_filelist[index];
     return NC_NOERR;
 }
-
