@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2009, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
  *   "$Id: nciter.h 400 2010-08-27 21:02:52Z russ $"
  *********************************************************************/

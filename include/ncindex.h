@@ -1,6 +1,6 @@
 /*
-Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
-See LICENSE.txt for license information.
+Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
+See COPYRIGHT for license information.
 */
 
 #ifndef NCINDEX_H
@@ -100,7 +100,7 @@ static int ncindexsize(NCindex* index)
 {
    int i;
    if(index == NULL) return 0;
-   i = nclistlength(index->list);   
+   i = nclistlength(index->list);
    return i;
 }
 #else

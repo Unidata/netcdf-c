@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2007, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This is to include the libnc-dap test comparison files
 

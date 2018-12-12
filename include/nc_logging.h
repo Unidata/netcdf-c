@@ -1,4 +1,4 @@
-/* Copyright 2010, University Corporation for Atmospheric Research. See
+/* Copyright 2018, University Corporation for Atmospheric Research. See
    COPYRIGHT file for copying and redistribution conditions. */
 /** 
  * @file @internal This file is part of netcdf-4, a netCDF-like
