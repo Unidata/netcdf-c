@@ -1,4 +1,4 @@
-/* Copyright 2003, University Corporation for Atmospheric
+/* Copyright 2018, University Corporation for Atmospheric
  * Research. See the COPYRIGHT file for copying and redistribution
  * conditions. */
 /**
@@ -2319,72 +2319,6 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 }
 
 /**
- * @internal Get the length, in bytes, of one element of a type in
- * memory.
- *
- * @param h5 Pointer to HDF5 file info struct.
- * @param xtype NetCDF type ID.
- * @param len Pointer that gets length in bytes.
- *
- * @returns NC_NOERR No error.
- * @returns NC_EBADTYPE Type not found.
- * @author Ed Hartnett
- */
-int
-nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len)
-{
-   NC_TYPE_INFO_T *type;
-   int retval;
-
-   LOG((4, "%s xtype: %d", __func__, xtype));
-   assert(len);
-
-   /* If this is an atomic type, the answer is easy. */
-   switch (xtype)
-   {
-   case NC_BYTE:
-   case NC_CHAR:
-   case NC_UBYTE:
-      *len = sizeof(char);
-      return NC_NOERR;
-   case NC_SHORT:
-   case NC_USHORT:
-      *len = sizeof(short);
-      return NC_NOERR;
-   case NC_INT:
-   case NC_UINT:
-      *len = sizeof(int);
-      return NC_NOERR;
-   case NC_FLOAT:
-      *len = sizeof(float);
-      return NC_NOERR;
-   case NC_DOUBLE:
-      *len = sizeof(double);
-      return NC_NOERR;
-   case NC_INT64:
-   case NC_UINT64:
-      *len = sizeof(long long);
-      return NC_NOERR;
-   case NC_STRING:
-      *len = sizeof(char *);
-      return NC_NOERR;
-   }
-
-   /* See if var is compound type. */
-   if ((retval = nc4_find_type(h5, xtype, &type)))
-      return retval;
-
-   if (!type)
-      return NC_EBADTYPE;
-
-   *len = type->size;
-
-   LOG((5, "type->size: %d", type->size));
-
-   return NC_NOERR;
-}
-
-/**
  * @internal Get the class of a type
  *
  * @param h5 Pointer to the HDF5 file info struct.
@@ -2791,4 +2725,3 @@ NC4_walk(hid_t gid, int* countp)
    }
    return ncstat;
 }
-

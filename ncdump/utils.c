@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2011, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
  *   $Id$
  *********************************************************************/

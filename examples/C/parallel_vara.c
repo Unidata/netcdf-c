@@ -188,4 +188,3 @@ fn_exit:
     MPI_Finalize();
     return 0;
 }
-

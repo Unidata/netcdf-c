@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2008, see the COPYRIGHT file for more information.
 # This file builds and runs the ncgen program.
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.

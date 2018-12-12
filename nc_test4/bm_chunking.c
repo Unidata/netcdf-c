@@ -1,5 +1,5 @@
 /*
-Copyright 2007, UCAR/Unidata
+Copyright 2018, UCAR/Unidata
 See COPYRIGHT file for copying and redistribution conditions.
 
 This program benchmarks the write and read of reasonable large files,

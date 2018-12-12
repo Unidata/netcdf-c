@@ -1,7 +1,7 @@
 #ifndef NCGEN_UTIL_H
 #define NCGEN_UTIL_H
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/util.h,v 1.3 2010/04/04 19:39:57 dmh Exp $
  *********************************************************************/
