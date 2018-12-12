@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2016 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Provided in support of https://github.com/Unidata/netcdf-c/issues/282

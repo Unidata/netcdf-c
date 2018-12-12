@@ -1,7 +1,7 @@
 /** \file \internal
 Basic NC_INMEMORY API tests both for netcdf-3 and netcdf-4
 
-Copyright 2011, UCAR/Unidata. See COPYRIGHT file for copying and
+Copyright 2018, UCAR/Unidata. See COPYRIGHT file for copying and
 redistribution conditions.
 */
 
@@ -20,7 +20,7 @@ redistribution conditions.
 #include "nc_tests.h"
 #include "err_macros.h"
 
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 #include <hdf5.h>
 extern int H5Eprint1(FILE * stream);
 #endif
@@ -408,7 +408,7 @@ verify_file(int ncid, int modified, int extra)
     int milesdata_in[MAXDIMLEN];
     int expenses_in[MAXDIMLEN];
     int dimprod = DIM0_LEN * DIM1_LEN;
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
     int tmp;
 #endif
 
@@ -417,7 +417,7 @@ verify_file(int ncid, int modified, int extra)
 	CHECK(NC_EINVAL);
 
     /* Get all the dimids */
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
     tmp = 0;
     CHECK((nc_inq_dimids(ncid,&tmp,dimid,1)));
     if(tmp != NDIMS0+extra) CHECK(NC_EINVAL);
@@ -709,7 +709,7 @@ main(int argc, char **argv)
     int stat = NC_NOERR;
     NC_memio filedata3;
     void* original = NULL;
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
     NC_memio filedata4;
 #endif
 
@@ -721,7 +721,7 @@ main(int argc, char **argv)
     CHECK(test_xfail(FILE3, NC_NETCDF3, &filedata3));
     memiofree(&filedata3,&original);
 
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
     fprintf(stderr,"\n*** Testing the inmemory API: netcdf-4.\n");
     CHECK(create_reference_file(FILE4,NC_NETCDF4,&filedata4));
     CHECK(test_open(FILE4,&filedata4,NC_NETCDF4));

@@ -1,5 +1,5 @@
 /*
- * Copyright 1993-1996 University Corporation for Atmospheric Research/Unidata
+ * Copyright 2018-1996 University Corporation for Atmospheric Research/Unidata
  *
  * Portions of this software were developed by the Unidata Program at the
  * University Corporation for Atmospheric Research.

@@ -1,5 +1,5 @@
 # This is a automake file, part of Unidata's netCDF package.
-# Copyright 2006, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This file builds the C examples.
 
@@ -20,7 +20,7 @@ sfc_pres_temp_rd pres_temp_4D_wr pres_temp_4D_rd
 TESTS = run_examples.sh
 
 # To build netcdf-4, or not to build netcdf-4, that is the question...
-if USE_NETCDF4
+if USE_HDF5
 # These are the extra netCDF-4 examples.
 check_PROGRAMS += simple_nc4_wr simple_nc4_rd simple_xy_nc4_wr	\
 simple_xy_nc4_rd
@@ -31,7 +31,7 @@ check_PROGRAMS += filter_example
 TESTS += run_filter.sh
 endif
 
-endif #USE_NETCDF4
+endif #USE_HDF5
 
 if USE_PNETCDF
 # These are the extra netCDF-4 examples.
@@ -42,9 +42,9 @@ endif #USE_PNETCDF
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
-if USE_NETCDF4
+if USE_HDF5
 TESTS += run_examples4.sh
-endif #USE_NETCDF4
+endif #USE_HDF5
 
 # These files are created by the tests.
 CLEANFILES = *.nc

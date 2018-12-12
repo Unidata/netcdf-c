@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2010, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id $
  *********************************************************************/
@@ -62,7 +62,7 @@ chunkspec_parse(int igrp, const char *spec)
 /*
  * Parse chunkspec string and convert into dimchunkspec structure.
  *   ncid: location ID of open netCDF file or group in an open file
- *   spec: string of form 
+ *   spec: string of form
  *           dim1/n1,dim2/n2,...,dimk/nk
  *   specifying chunk size (ni) to be used for dimension named
  *   dimi.  Dimension names may be absolute,
@@ -72,7 +72,7 @@ chunkspec_parse(int igrp, const char *spec)
  *   not mentioned in the string. However, for unlimited dimensions,
  *   the default is a default size: 4 megabytes or the
  *   existing unlimited size if smaller.
- *   If the chunkspec string is "/", specifying no dimensions or 
+ *   If the chunkspec string is "/", specifying no dimensions or
  *   chunk sizes, it indicates chunking to be turned off on output.
  *
  * Returns NC_NOERR if no error, NC_EINVAL if spec has consecutive
@@ -126,7 +126,7 @@ dimchunkspec_parse(int igrp, const char *spec)
 	    char *dp;
 	    int dimid;
 	    size_t chunksize;
-	 
+
 	    for(; pp > np && *pp != '/'; pp--) { /* look backwards for "/" */
 		continue;
 	    }
@@ -187,7 +187,7 @@ dimchunkspec_size(int indimid) {
     for(idim = 0; idim < dimchunkspecs.ndims; idim++) {
 	if(indimid == dimchunkspecs.idimids[idim]) {
 	    return dimchunkspecs.chunksizes[idim];
-	}	
+	}
     }
     return 0;
 }
@@ -211,7 +211,7 @@ dimchunkspec_omit(void) {
 /*
  * Parse per-variable chunkspec string and convert into varchunkspec structure.
  *   ncid: location ID of open netCDF file or group in an open file
- *   spec: string of form 
+ *   spec: string of form
  *           var:n1,n2,...nk
  *
  *         specifying chunk size (ni) to be used for ith dimension of
@@ -251,7 +251,7 @@ varchunkspec_parse(int igrp, const char *spec0)
     /* Lookup the variable by name */
     ret = nc_inq_varid2(igrp, spec, &chunkspec->ivarid, &chunkspec->igrpid);
     if(ret != NC_NOERR) goto done;
-    
+
     if(*p == '\0') {/* we have -c var: => do not chunk var */
 	chunkspec->omit = 1;
         /* add the chunkspec to our list */
@@ -264,16 +264,16 @@ varchunkspec_parse(int igrp, const char *spec0)
     while(*p) {
 	unsigned long dimsize;
 	q = strchr(p,',');
-	if(q == NULL) 
+	if(q == NULL)
 	    q = p + strlen(p); /* Fake the endpoint */
 	else
 	    *q++ = '\0';
-	
+
 	/* Scan as unsigned long */
 	if(sscanf(p,"%lu",&dimsize) != 1)
 	    {ret = NC_EINVAL; goto done;} /* Apparently not a valid dimension size */
 	if(chunkspec->rank >= NC_MAX_VAR_DIMS) {ret = NC_EINVAL; goto done;} /* to many chunks */
-	chunkspec->chunksizes[chunkspec->rank] = (size_t)dimsize;		
+	chunkspec->chunksizes[chunkspec->rank] = (size_t)dimsize;
 	chunkspec->rank++;
 	p = q;
     }
@@ -281,7 +281,7 @@ varchunkspec_parse(int igrp, const char *spec0)
     /* Get some info about the var (from input) */
     ret = nc_inq_var(chunkspec->igrpid,chunkspec->ivarid,NULL,NULL,&rank,dimids,NULL);
     if(ret != NC_NOERR) goto done;
-    
+
     /* 1. check # chunksizes == rank of variable */
     if(rank != chunkspec->rank) {ret = NC_EINVAL; goto done;}
 
@@ -292,7 +292,7 @@ varchunkspec_parse(int igrp, const char *spec0)
 	if(ret != NC_NOERR) goto done;
 	if(chunkspec->chunksizes[i] > len) {ret = NC_EBADCHUNK; goto done;}
     }
-    
+
     /* add the chunkspec to our list */
     listpush(varchunkspecs,chunkspec);
     chunkspec = NULL;
@@ -354,5 +354,3 @@ varchunkspec_rank(int igrpid, int ivarid)
     }
     return 0;
 }
-
-
