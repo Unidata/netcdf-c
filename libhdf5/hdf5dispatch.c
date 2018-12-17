@@ -119,8 +119,7 @@ NC_HDF5_initialize(void)
 
    if (!nc4_hdf5_initialized)
       nc4_hdf5_initialize();
-
-   return NC_NOERR;
+   return NC4_provenance_init();
 }
 
 /**

@@ -7,8 +7,8 @@
  * @author Dennis Heimbigner
  */
 
-#ifndef _DISPATCH_H
-#define _DISPATCH_H
+#ifndef NC_DISPATCH_H
+#define NC_DISPATCH_H
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -63,14 +63,6 @@
 #define T_ulong   ulongtype
 
 /**************************************************/
-#if 0
-/* Define the known classes of dispatchers */
-/* Flags may be or'd => powers of 2*/
-#define NC_DISPATCH_NC3    1
-#define NC_DISPATCH_NC4    2
-#define NC_DISPATCH_NCD    4
-#define NC_DISPATCH_NCP    8
-#endif
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */
@@ -339,32 +331,6 @@ extern NC_Dispatch* NC_get_dispatch_override(void);
 extern void NC_set_dispatch_override(NC_Dispatch*);
 #endif
 
-/* Return model as specified by the url, if any;
-   return a modified url suitable for passing to curl
-*/
-extern int NC_urlmodel(const char* path, int mode, char** newurl);
-
-/* allow access url parse and params without exposing nc_url.h */
-extern int NCDAP_urlparse(const char* s, void** dapurl);
-extern void NCDAP_urlfree(void* dapurl);
-extern const char* NCDAP_urllookup(void* dapurl, const char* param);
-
-#if defined(DLL_NETCDF)
-# if defined(DLL_EXPORT)
-#  define NCC_EXTRA __declspec(dllexport)
-#else
-#  define NCC_EXTRA __declspec(dllimport)
-# endif
-NCC_EXTRA extern int nc__testurl(const char* path, char** basename);
-#else
-extern int
- nc__testurl(const char* parth, char** basename);
-#endif
-
-/* Ping a specific server */
-extern int NCDAP2_ping(const char*);
-extern int NCDAP4_ping(const char*);
-
 /* Misc */
 
 extern int NC_getshape(int ncid, int varid, int ndims, size_t* shape);
@@ -372,7 +338,6 @@ extern int NC_is_recvar(int ncid, int varid, size_t* nrecs);
 extern int NC_inq_recvar(int ncid, int varid, int* nrecdims, int* is_recdim);
 
 #define nullstring(s) (s==NULL?"(null)":s)
-
 
 #undef TRACECALLS
 #ifdef TRACECALLS
@@ -467,4 +432,4 @@ EXTERNL int NC_NOTNC4_set_var_chunk_cache(int, int, size_t, size_t, float);
 EXTERNL int NC_NOTNC4_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
 EXTERNL int NC_NOTNC4_var_par_access(int, int, int);
 
-#endif /* _DISPATCH_H */
+#endif /* NC_DISPATCH_H */
