@@ -1030,7 +1030,64 @@ static int get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
 }
 
 /**
- * @internal This function reads scale info for vars, whether there
+ * @internal This function gets info about the dimscales attached to a
+ * dataset. The info is used later for dimscale matching.
+ *
+ * @param grp Pointer to group info struct.
+ * @param dim Pointer to dim info struct if this is a scale, NULL
+ * otherwise.
+ * @param var Pointer to var info struct.
+ * @param hdf5_var Pointer to HDF5 var info struct.
+ * @param ndims Number of dims for this var.
+ * @param datasetid HDF5 datasetid.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EHDFERR HDF5 returned error.
+ * @return ::NC_EVARMETA Error with var metadata.
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
+static int
+get_attached_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
+                  NC_HDF5_VAR_INFO_T *hdf5_var, int ndims, hid_t datasetid)
+{
+   int d;
+   int num_scales = 0;
+
+   /* Find out how many scales are attached to this
+    * dataset. H5DSget_num_scales returns an error if there are no
+    * scales, so convert a negative return value to zero. */
+   num_scales = H5DSget_num_scales(datasetid, 0);
+   if (num_scales < 0)
+      num_scales = 0;
+
+   if (num_scales && ndims)
+   {
+      /* Allocate space to remember whether the dimscale has been
+       * attached for each dimension. */
+      if (!(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
+         return NC_ENOMEM;
+
+      /* Store id information allowing us to match hdf5
+       * dimscales to netcdf dimensions. */
+      if (!(hdf5_var->dimscale_hdf5_objids = malloc(ndims *
+                                                    sizeof(struct hdf5_objid))))
+         return NC_ENOMEM;
+      for (d = 0; d < var->ndims; d++)
+      {
+         if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,
+                                &(hdf5_var->dimscale_hdf5_objids[d])) < 0)
+            return NC_EHDFERR;
+         var->dimscale_attached[d] = NC_TRUE;
+      }
+   }
+
+   return NC_NOERR;
+}
+
+/**
+ * @internal This function reads scale info for vars, whether they
  * are scales or not.
  *
  * @param grp Pointer to group info struct.
@@ -1075,35 +1132,38 @@ get_scale_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
    }
    else /* Not a scale. */
    {
-      int num_scales = 0;
+      /* int num_scales = 0; */
 
-      /* Find out how many scales are attached to this
-       * dataset. H5DSget_num_scales returns an error if there are no
-       * scales, so convert a negative return value to zero. */
-      num_scales = H5DSget_num_scales(datasetid, 0);
-      if (num_scales < 0)
-         num_scales = 0;
+      if ((retval = get_attached_info(grp, dim, var, hdf5_var, ndims, datasetid)))
+         return retval;
 
-      if (num_scales && ndims)
-      {
-         /* Allocate space to remember whether the dimscale has been
-          * attached for each dimension. */
-         if (!(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
-            return NC_ENOMEM;
+      /* /\* Find out how many scales are attached to this */
+      /*  * dataset. H5DSget_num_scales returns an error if there are no */
+      /*  * scales, so convert a negative return value to zero. *\/ */
+      /* num_scales = H5DSget_num_scales(datasetid, 0); */
+      /* if (num_scales < 0) */
+      /*    num_scales = 0; */
 
-         /* Store id information allowing us to match hdf5
-          * dimscales to netcdf dimensions. */
-         if (!(hdf5_var->dimscale_hdf5_objids = malloc(ndims *
-                                                       sizeof(struct hdf5_objid))))
-            return NC_ENOMEM;
-         for (d = 0; d < var->ndims; d++)
-         {
-            if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,
-                                   &(hdf5_var->dimscale_hdf5_objids[d])) < 0)
-               return NC_EHDFERR;
-            var->dimscale_attached[d] = NC_TRUE;
-         }
-      }
+      /* if (num_scales && ndims) */
+      /* { */
+      /*    /\* Allocate space to remember whether the dimscale has been */
+      /*     * attached for each dimension. *\/ */
+      /*    if (!(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t)))) */
+      /*       return NC_ENOMEM; */
+
+      /*    /\* Store id information allowing us to match hdf5 */
+      /*     * dimscales to netcdf dimensions. *\/ */
+      /*    if (!(hdf5_var->dimscale_hdf5_objids = malloc(ndims * */
+      /*                                                  sizeof(struct hdf5_objid)))) */
+      /*       return NC_ENOMEM; */
+      /*    for (d = 0; d < var->ndims; d++) */
+      /*    { */
+      /*       if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor, */
+      /*                              &(hdf5_var->dimscale_hdf5_objids[d])) < 0) */
+      /*          return NC_EHDFERR; */
+      /*       var->dimscale_attached[d] = NC_TRUE; */
+      /*    } */
+      /* } */
    }
 
    return NC_NOERR;
