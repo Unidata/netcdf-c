@@ -1033,9 +1033,6 @@ static int get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
  * @internal This function gets info about the dimscales attached to a
  * dataset. The info is used later for dimscale matching.
  *
- * @param grp Pointer to group info struct.
- * @param dim Pointer to dim info struct if this is a scale, NULL
- * otherwise.
  * @param var Pointer to var info struct.
  * @param hdf5_var Pointer to HDF5 var info struct.
  * @param ndims Number of dims for this var.
@@ -1049,8 +1046,8 @@ static int get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 static int
-get_attached_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
-                  NC_HDF5_VAR_INFO_T *hdf5_var, int ndims, hid_t datasetid)
+get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, int ndims,
+                  hid_t datasetid)
 {
    int d;
    int num_scales = 0;
@@ -1109,7 +1106,6 @@ static int
 get_scale_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
                NC_HDF5_VAR_INFO_T *hdf5_var, int ndims, hid_t datasetid)
 {
-   int d;
    int retval;
 
    /* If it's a scale, mark it as such. */
@@ -1132,38 +1128,8 @@ get_scale_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
    }
    else /* Not a scale. */
    {
-      /* int num_scales = 0; */
-
-      if ((retval = get_attached_info(grp, dim, var, hdf5_var, ndims, datasetid)))
+      if ((retval = get_attached_info(var, hdf5_var, ndims, datasetid)))
          return retval;
-
-      /* /\* Find out how many scales are attached to this */
-      /*  * dataset. H5DSget_num_scales returns an error if there are no */
-      /*  * scales, so convert a negative return value to zero. *\/ */
-      /* num_scales = H5DSget_num_scales(datasetid, 0); */
-      /* if (num_scales < 0) */
-      /*    num_scales = 0; */
-
-      /* if (num_scales && ndims) */
-      /* { */
-      /*    /\* Allocate space to remember whether the dimscale has been */
-      /*     * attached for each dimension. *\/ */
-      /*    if (!(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t)))) */
-      /*       return NC_ENOMEM; */
-
-      /*    /\* Store id information allowing us to match hdf5 */
-      /*     * dimscales to netcdf dimensions. *\/ */
-      /*    if (!(hdf5_var->dimscale_hdf5_objids = malloc(ndims * */
-      /*                                                  sizeof(struct hdf5_objid)))) */
-      /*       return NC_ENOMEM; */
-      /*    for (d = 0; d < var->ndims; d++) */
-      /*    { */
-      /*       if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor, */
-      /*                              &(hdf5_var->dimscale_hdf5_objids[d])) < 0) */
-      /*          return NC_EHDFERR; */
-      /*       var->dimscale_attached[d] = NC_TRUE; */
-      /*    } */
-      /* } */
    }
 
    return NC_NOERR;
@@ -1317,7 +1283,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    if ((retval = get_scale_info(grp, dim, var, hdf5_var, ndims, datasetid)))
       BAIL(retval);
 
-   /* Learn all about the type of this variable. */
+   /* Learn all about the type of this variable. This will fail for
+    * HDF5 reference types, and then the var we just created will be
+    * deleted, thus ignoring HDF5 reference type objects. */
    if ((retval = get_type_info2(var->container->nc4_info, hdf5_var->hdf_datasetid,
                                 &var->type_info)))
       BAIL(retval);
@@ -1330,11 +1298,12 @@ exit:
       free(finalname);
    if (retval)
    {
+      /* If there was an error, decrement the dataset ref counter, and
+       * delete the var info struct we just created. */
       if (incr_id_rc && H5Idec_ref(datasetid) < 0)
          BAIL2(NC_EHDFERR);
-      if (var != NULL) {
-         nc4_var_list_del(grp,var);
-      }
+      if (var)
+         nc4_var_list_del(grp, var);
    }
 
    return retval;
@@ -2531,7 +2500,8 @@ rec_read_metadata(NC_GRP_INFO_T *grp)
    /* Iterate over links in this group, building lists for the types,
     * datasets and groups encountered. A pointer to udata will be
     * passed as a parameter to the callback function
-    * read_hdf5_obj(). */
+    * read_hdf5_obj(). (I have also tried H5Oiterate(), but it is much
+    * slower iterating over the same file - Ed.) */
    if (H5Literate(hdf5_grp->hdf_grpid, iter_index, H5_ITER_INC, &idx,
                   read_hdf5_obj, (void *)&udata) < 0)
       BAIL(NC_EHDFERR);
