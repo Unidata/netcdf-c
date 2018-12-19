@@ -300,6 +300,9 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    for (d = 0; d < var->ndims; d++)
       nc4_find_dim(grp, var->dimids[d], &var->dim[d], NULL);
 
+   /* Remember that we have read the coordinates hidden attribute. */
+   var->coords_read = NC_TRUE;
+
 exit:
    if (spaceid >= 0 && H5Sclose(spaceid) < 0)
       BAIL2(NC_EHDFERR);
