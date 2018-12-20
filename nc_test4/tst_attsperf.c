@@ -28,7 +28,7 @@
 #define NUM_ATTS 100
 #define ATT_LEN 100
 #define NUM_VARS 1
-#define NUM_VARS_MANY 10000
+#define NUM_VARS_MANY 5000
 
 int
 add_attributes(int ncid, int varid, size_t num_atts, size_t att_len)
@@ -172,7 +172,7 @@ readfile_hdf5(char *file_name, long long *delta, int do_inq, int num_vars)
 #define NUM_RUNS 1
 #define NUM_STEPS 20
 #define FACTOR 100
-#define VAR_FACTOR 100
+#define VAR_FACTOR 500
 #define NUM_INQ_TESTS 2
 int
 main(int argc, char **argv)

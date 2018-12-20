@@ -261,6 +261,11 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    int retval = NC_NOERR;
 
    assert(grp && var && var->format_var_info);
+   LOG((3, "%s: var->hdr.name %s", __func__, var->hdr.name));
+
+   /* Have we already read the coordinates hidden att for this var? */
+   if (var->coords_read)
+      return NC_NOERR;
 
    /* Get HDF5-sepecific var info. */
    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
@@ -294,6 +299,7 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    /* Read the dimids for this var. */
    if (H5Aread(coord_attid, coord_att_typeid, var->dimids) < 0)
       BAIL(NC_EATTMETA);
+   LOG((4, "read dimids for this var"));
 
    /* Update var->dim field based on the var->dimids. Ok if does not
     * find a dim at this time, but if found set it. */
@@ -494,6 +500,15 @@ rec_match_dimscales(NC_GRP_INFO_T *grp)
          if (!var->dim[d])
             nc4_find_dim(grp, var->dimids[d], &var->dim[d], NULL);
       }
+
+      /* Skip dimension scale variables */
+      if (var->dimscale)
+         continue;
+
+      /* If we have already read hidden coordinates att, then we don't
+       * have to match dimscales for this var. */
+      if (var->coords_read)
+         continue;
 
       /* Skip dimension scale variables */
       if (!var->dimscale)
@@ -1131,8 +1146,9 @@ get_scale_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
    }
    else /* Not a scale. */
    {
-      if ((retval = get_attached_info(var, hdf5_var, ndims, datasetid)))
-         return retval;
+      if (!var->coords_read)
+         if ((retval = get_attached_info(var, hdf5_var, ndims, datasetid)))
+            return retval;
    }
 
    return NC_NOERR;
@@ -1160,6 +1176,7 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
    int retval = NC_NOERR;
 
    assert(var && var->format_var_info);
+   LOG((3, "%s: var %s", var->hdr.name));
 
    /* Have we already read the var metadata? */
    if (var->meta_read)
@@ -1198,6 +1215,10 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
     * current cache size? */
    if ((retval = nc4_adjust_var_cache(var->container, var)))
       BAIL(retval);
+
+   if (var->coords_read && !var->dimscale)
+      if ((retval = get_attached_info(var, hdf5_var, var->ndims, hdf5_var->hdf_datasetid)))
+         return retval;
 
    /* Remember that we have read the metadata for this var. */
    var->meta_read = NC_TRUE;

@@ -1024,6 +1024,12 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
       if (H5DSset_scale(hdf5_var->hdf_datasetid, var->hdr.name) < 0)
          BAIL(NC_EHDFERR);
 
+      /* If this is a multidimensional coordinate variable, write a
+       * coordinates attribute. */
+      /* if (var->ndims > 1) */
+      /*    if ((retval = write_coord_dimids(var))) */
+      /*       BAIL(retval); */
+
       /* If desired, write the netCDF dimid. */
       if (write_dimid)
          if ((retval = write_netcdf4_dimid(hdf5_var->hdf_datasetid, var->dimids[0])))
