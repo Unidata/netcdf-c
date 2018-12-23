@@ -13,11 +13,12 @@
    access. This is above the libcurl level and below the
    dispatcher level
 */
-#define NC_IOSP_FILE (1)
-#define NC_IOSP_DAP2 (2)
-#define NC_IOSP_DAP4 (3)
-#define NC_IOSP_S3   (4)
-#define NC_IOSP_ZARR (5)
+#define NC_IOSP_FILE	(1)
+#define NC_IOSP_MEMORY	(2)
+#define NC_IOSP_DAP2	(3)
+#define NC_IOSP_DAP4	(4)
+#define NC_IOSP_S3	(5)
+#define NC_IOSP_ZARR	(6)
 
 /* Track the information hat will help us
    infer how to access the data defined by
@@ -31,7 +32,7 @@ typedef struct NCmodel {
 } NCmodel;
 
 /* Define a mask of all possible format flags */
-#define ANYFORMAT (NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL|NC_NETCDF4)
+#define ANYFORMAT (NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL|NC_NETCDF4|NC_UDF0|NC_UDF1)
 
 /**
 Sort info for open/read/close of
@@ -40,11 +41,9 @@ file when searching for magic numbers
 struct MagicFile {
     const char* path;
     NCURI* uri;
+    NCmodel* model;
     long long filelen;
     int use_parallel;
-    int inmemory;
-    int diskless;
-    int protocol;
     void* parameters; /* !NULL if inmemory && !diskless */
     FILE* fp;
 #ifdef USE_PARALLEL
@@ -62,7 +61,7 @@ extern char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
 EXTERNL int NC_testurl(const char* path);
 
 /* Infer model format and implementation */
-EXTERNL int NC_infermodel(const char* path, int omode, int iscreate, int useparallel, void* params, NCmodel* model, char** newpathp);
+EXTERNL int NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void* params, NCmodel* model, char** newpathp);
 
 /*
 Infer as much as possible from path plus the omode

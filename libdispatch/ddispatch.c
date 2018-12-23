@@ -9,7 +9,7 @@ See LICENSE.txt for license information.
 #include "nclog.h"
 #include "ncbytes.h"
 #include "ncrc.h"
-#include "ncurlmodel.h"
+#include "ncinfermodel.h"
 
 /* Required for getcwd, other functions. */
 #ifdef HAVE_UNISTD_H

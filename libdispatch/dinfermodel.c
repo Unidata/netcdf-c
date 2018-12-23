@@ -20,9 +20,6 @@
 #include "netcdf_mem.h"
 #include "fbits.h"
 
-/* Define a mask of all possible format flags */
-#define ANYFORMAT (NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL|NC_NETCDF4)
-
 /** @internal Magic number for HDF5 files. To be consistent with
  * H5Fis_hdf5, use the complete HDF5 magic number */
 static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
@@ -45,10 +42,10 @@ static struct LEGALMODES {
     const int iosp; /* NC_IOSP_XXX value */
     const int version;
 } legalmodes[] = {
-{"netcdf-3",NC_FORMAT_CLASSIC,NC_FORMATX_NC3,0,1},
-{"classic",NC_FORMAT_CLASSIC,NC_FORMATX_NC3,0,1},
-{"netcdf-4",NC_FORMAT_NETCDF4,NC_FORMATX_NC4,0,5},
-{"enhanced",NC_FORMAT_NETCDF4,NC_FORMATX_NC4,0,5},
+{"netcdf-3",NC_FORMAT_CLASSIC,NC_FORMATX_NC3,NC_IOSP_FILE,1},
+{"classic",NC_FORMAT_CLASSIC,NC_FORMATX_NC3,NC_IOSP_FILE,1},
+{"netcdf-4",NC_FORMAT_NETCDF4,NC_FORMATX_NC4,NC_IOSP_FILE,5},
+{"enhanced",NC_FORMAT_NETCDF4,NC_FORMATX_NC4,NC_IOSP_FILE,5},
 {"dap2",NC_FORMAT_CLASSIC,NC_FORMATX_DAP2,NC_IOSP_DAP2,1},
 {"dap4",NC_FORMAT_NETCDF4,NC_FORMATX_DAP4,NC_IOSP_DAP4,1},
 /* IO Handler tags */
@@ -60,6 +57,18 @@ static struct LEGALMODES {
 {"cdf5",0,0,0,NC_64BIT_DATA},
 {"hdf4",0,0,0,NC_NETCDF4},
 {NULL,0,0,0,0},
+};
+
+/* Map IOSP to readability to get magic number */
+static struct IospRead {
+    int iosp;
+    int readable;
+} readable[] = {
+{NC_IOSP_FILE,1},
+{NC_IOSP_MEMORY,1},
+{NC_IOSP_S3,1},
+{NC_IOSP_ZARR,0},
+{0,0},
 };
 
 /* Define the known URL protocols and their interpretation */
@@ -83,6 +92,7 @@ static struct NCPROTOCOLLIST {
 
 /* Forward */
 static int check_file_type(const char *path, int flags, int use_parallel, void *parameters, NCmodel* model, NCURI* uri);
+static int processuri(NCURI* uri, NCmodel* model);
 
 static int openmagic(struct MagicFile* file);
 static int readmagic(struct MagicFile* file, long pos, char* magic);
@@ -91,6 +101,7 @@ static int NC_interpret_magic_number(char* magic, NCmodel* model);
 #ifdef DEBUG
 static void printmagic(const char* tag, char* magic,struct MagicFile*);
 #endif
+static int isreadable(int iosp);
 
 /* Parse a mode string at the commas and nul terminate each tag */
 static int
@@ -100,10 +111,17 @@ parseurlmode(const char* modestr0, char** listp)
     char* modestr = NULL;
     char* p = NULL;
     char* endp = NULL;
+    size_t len;
 
-    /* Make modifiable copy */
-    if((modestr=strdup(modestr0)) == NULL)
+    if(modestr0 == NULL) goto done;
+    /* Make modifiable copy that can hold a trailing null string*/
+    len = strlen(modestr0);
+    if(len == 0) goto done;
+    if((modestr=malloc(len+2)) == NULL)
 	{stat=NC_ENOMEM; goto done;}
+    memcpy(modestr,modestr0,len);
+    modestr[len] = ','; /* fake empty field */
+    modestr[len+1] = '\0';
 
     /* Split modestr at the commas or EOL */
     p = modestr;
@@ -118,7 +136,7 @@ parseurlmode(const char* modestr0, char** listp)
     modestr = NULL;
 
 done:
-    if(stat) {nullfree(modestr);}
+    nullfree(modestr);
     return stat;
 }
 
@@ -158,8 +176,10 @@ url_getmode(const char* modestr, NCmodel* model)
 
     if((stat=parseurlmode(modestr,&args))) goto done;
     p = args;
-    for(;*p;p += (strlen(p)+1)) {
+    for(;;) {
+	if(*p == '\0') break;
 	if((stat = processmodearg(p,model))) goto done;
+	p += strlen(p)+1;
     }
 done:
     nullfree(args);
@@ -168,15 +188,13 @@ done:
 
 /*
 Fill in the model fields to degree possible
-using path+cmode. May rewrite path.
+using metadata only as opposed to looking
+at the contents of the dataset.
 */
 int
-NC_pathinfer(const char* path, int cmode, NCmodel* model, char** newpathp, NCURI** urip)
+NC_metainfer(const char* path, int cmode, NCmodel* model, char** newpathp, NCURI** urip)
 {
     int stat = NC_NOERR;
-    int found = 0;
-    struct NCPROTOCOLLIST* protolist;
-    const char** fragp = NULL;
     int isurl = 0;
     NCURI* uri = NULL;
 
@@ -187,51 +205,20 @@ NC_pathinfer(const char* path, int cmode, NCmodel* model, char** newpathp, NCURI
     if(urip) *urip = NULL;
 
     /* Parse the url */
-    if(ncuriparse(path,&uri) != NCU_OK) {
-	/* Not parseable as url; assume file path; need to process cmode */
-	goto docmode;
+    if(ncuriparse(path,&uri) == NCU_OK) {
+        isurl = 1;
+        if((stat = processuri(uri,model))) goto done;
+    } else {
+	model->iosp = NC_IOSP_FILE;
     }
-
-    /* From here to label docmode, we assume we are dealing with a URL */
-    isurl = 1;
-
-    /* Look up the protocol */
-    for(found=0,protolist=ncprotolist;protolist->protocol;protolist++) {
-        if(strcmp(uri->protocol,protolist->protocol) == 0) {
-	    found = 1;
-	    break;
-	}
-    }
-    if(!found)
-	{stat = NC_EINVAL; goto done;} /* unrecognized URL form */
-
-    /* process the corresponding mode arg */
-    if((stat=processmodearg(protolist->mode,model))) goto done;
-    /* Substitute the protocol in any case */
-    if(protolist->substitute) ncurisetprotocol(uri,protolist->substitute);
-
-    /* Iterate over the url fragment parameters */
-    for(fragp=ncurifragmentparams(uri);fragp && *fragp;fragp+=2) {
-	const char* name = fragp[0];
-	const char* value = fragp[1];
-	if(strcmp(name,"protocol")==0)
-	    name = value;
-	if(strcasecmp(name,"dap2") == 0) {
-	    model->format = NC_FORMAT_NC3;	    
-	    model->impl = NC_FORMATX_DAP2;	    
-	    /* No need to set iosp field */
-	} else if(strcasecmp(name,"dap4") == 0) {
-	    model->format = NC_FORMAT_NETCDF4;
-	    model->impl = NC_FORMATX_DAP4;
-	    /* No need to set iosp field */
-	} else if(strcmp(name,"mode")==0) {
-	    if((stat = url_getmode(value,model))) goto done;
-	}
-    }
-
-docmode:
-    /* Now process the cmode, but do not override already chosen flags */
+    
+    /* Now process the cmode; may override some already set flags */
     {
+	/* If no format flags are set, then use default format */
+	if(!fIsSet(cmode,ANYFORMAT)) {
+            model->format = nc_get_default_format();
+	}
+
 	if(fIsSet(cmode,NC_64BIT_OFFSET)) {
 	   if(model->format == 0)
 		model->format = NC_FORMAT_NC3;
@@ -241,7 +228,7 @@ docmode:
 	}
 	if(fIsSet(cmode,NC_64BIT_DATA)) {
 	   if(model->format == 0)
-		model->format = NC_FORMAT_64BIT_DATA;
+		model->format = NC_FORMAT_NC3;
 	   if(model->format == NC_FORMAT_NC3 && model->version == 0)
 		model->version = 5;
 	   else {stat = NC_EINVAL; goto done;}
@@ -253,12 +240,23 @@ docmode:
 		model->version = 5;
 	   else {stat = NC_EINVAL; goto done;}
 	}
-	if(fIsSet(cmode,NC_CLASSIC_MODEL)) {
-	   if(model->format == 0)
-		model->format = NC_FORMAT_NETCDF4;
-	   if(model->format == NC_FORMAT_NETCDF4 && model->version == 0)
-		model->version = 2;
-	   else {stat = NC_EINVAL; goto done;}
+	if(fIsSet(cmode,NC_UDF0)) {
+	    model->format = NC_FORMAT_NETCDF4;
+    	    model->impl = NC_FORMATX_UDF0;
+	    model->version = 6;
+	}
+	if(fIsSet(cmode,NC_UDF1)) {
+	    model->format = NC_FORMAT_NETCDF4;
+    	    model->impl = NC_FORMATX_UDF1;
+	    model->version = 7;
+	}
+        if(fIsSet(cmode,NC_CLASSIC_MODEL)) {
+	    /* ignore here; consider adding a new format type */
+	}
+	if(fIsSet(cmode,NC_INMEMORY)) {
+	    if(model->iosp != 0 && model->iosp != NC_IOSP_FILE)
+	        {stat = NC_EINVAL; goto done;} /* conflict */
+	    model->iosp = NC_IOSP_MEMORY;
 	}
     }
     /* Final case, if no format, then assume netcdf classic */
@@ -277,23 +275,21 @@ docmode:
 	    model->iosp = NC_IOSP_DAP2;
 	    model->impl = NC_FORMATX_DAP2;
 	}
-    } else if(!isurl && model->format != 0) {
+    } /* else defer to higher level */
+#if 0
+	/* Do not set the implementation yet */
 	switch (model->format) {
 	case NC_FORMAT_CLASSIC:
-	    model->impl = NC_FORMATX_NC3;
 	    model->version = 1;
 	    break;
 	case NC_FORMAT_64BIT_OFFSET:
-	    model->impl = NC_FORMATX_NC3;
 	    model->version = 2;
 	    break;
 	case NC_FORMAT_64BIT_DATA:
-	    model->impl = NC_FORMATX_NC3;
 	    model->version = 5;
 	    break;
 	case NC_FORMAT_NETCDF4:
 	case NC_FORMAT_NETCDF4_CLASSIC:
-	    model->impl = NC_FORMATX_NC4;
 	    model->version = 5;
 	    break;
 	default: break;
@@ -324,12 +320,65 @@ docmode:
 	    break;
         }
     }
+#else /*0*/
+    if(model->format == 0) {stat = NC_ENOTNC; goto done;} /* could not interpret */
+#endif
+
 done:
-    if(stat == NC_NOERR && isurl) {
-        if(newpathp)
+    if(stat) {
+	ncurifree(uri);
+    } else if(isurl) {
+	if(newpathp)
 	    *newpathp = ncuribuild(uri,NULL,NULL,NCURIALL);
         if(urip) *urip = uri;
     }
+    return stat;
+}
+
+static int
+processuri(NCURI* uri, NCmodel* model)
+{
+    int stat = NC_NOERR;
+    int found = 0;
+    const char** fragp = NULL;
+    struct NCPROTOCOLLIST* protolist;
+
+    /* Look up the protocol */
+    for(found=0,protolist=ncprotolist;protolist->protocol;protolist++) {
+        if(strcmp(uri->protocol,protolist->protocol) == 0) {
+	    found = 1;
+	    break;
+	}
+    }
+    if(!found)
+	{stat = NC_EINVAL; goto done;} /* unrecognized URL form */
+
+    /* process the corresponding mode arg */
+    if(protolist->mode != NULL)
+        if((stat=processmodearg(protolist->mode,model))) goto done;
+
+    /* Substitute the protocol in any case */
+    if(protolist->substitute) ncurisetprotocol(uri,protolist->substitute);
+
+    /* Iterate over the url fragment parameters */
+    for(fragp=ncurifragmentparams(uri);fragp && *fragp;fragp+=2) {
+	const char* name = fragp[0];
+	const char* value = fragp[1];
+	if(strcmp(name,"protocol")==0)
+	    name = value;
+	if(strcasecmp(name,"dap2") == 0) {
+	    model->format = NC_FORMAT_NC3;	    
+	    model->impl = NC_FORMATX_DAP2;	    
+	    /* No need to set iosp field */
+	} else if(strcasecmp(name,"dap4") == 0) {
+	    model->format = NC_FORMAT_NETCDF4;
+	    model->impl = NC_FORMATX_DAP4;
+	    /* No need to set iosp field */
+	} else if(strcmp(name,"mode")==0) {
+	    if((stat = url_getmode(value,model))) goto done;
+	}
+    }
+done:
     return stat;
 }
 
@@ -349,33 +398,104 @@ done:
 */
 
 int
-NC_infermodel(const char* path, int omode, int iscreate, int useparallel, void* params, NCmodel* model, char** newpathp)
+NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void* params, NCmodel* model, char** newpathp)
 {
     int stat = NC_NOERR;
     char* newpath = NULL;
     NCURI* uri = NULL;
+    int omode = *omodep;
 
     /* First get whatever we can from path+cmode */
-    stat = NC_pathinfer(path,omode,model,&newpath,&uri);
+    stat = NC_metainfer(path,omode,model,&newpath,&uri);
     if(stat && stat != NC_ENOTNC) goto done; /* true error */
     if(newpath) path = newpath;
 
     if(model->impl == 0) {
-        if(iscreate)
-	    {stat = NC_EINVAL; goto done;} /* cannot infer how to process dataset */
-        /* At this point, we may have an impl but do not have a format,
-           so we need to try to read the file */
-        if(!iscreate && model->impl == 0) {
-	    /* Ok, we need to try to read the file */
-	    if((stat = check_file_type(path, omode, useparallel, params, model, uri))) goto done;
+        if(iscreate) {
+	    assert(model->iosp == NC_IOSP_FILE || model->iosp == NC_IOSP_MEMORY);
+	    /* See if we can infer the implementation */
+	    switch (model->format) {
+            case NC_FORMAT_NETCDF4:
+                 omode |= NC_NETCDF4;
+                 model->impl = NC_FORMATX_NC4;
+                 break;
+            case NC_FORMAT_NETCDF4_CLASSIC:
+                 omode |= NC_NETCDF4 | NC_CLASSIC_MODEL;
+                 model->impl = NC_FORMATX_NC4;
+                 break;
+            case NC_FORMAT_CDF5:
+                 omode |= NC_64BIT_DATA;
+                 model->impl = NC_FORMATX_NC3;
+                 break;
+            case NC_FORMAT_64BIT_OFFSET:
+                 omode |= NC_64BIT_OFFSET;
+                 model->impl = NC_FORMATX_NC3;
+                 break;
+            case NC_FORMAT_CLASSIC:
+                 model->impl = NC_FORMATX_NC3;
+		 break;
+            default: break;
+            }
+            /* default dispatcher if above did not infer an implementation */
+            if (model->impl == 0)
+	        model->impl = NC_FORMATX_NC3; /* Final choice */
+	    /* Check for using PNETCDF */
+	    if (model->impl== NC_FORMATX_NC3 && useparallel && model->iosp == NC_IOSP_FILE)
+	        model->impl = NC_FORMATX_PNETCDF; /* Use this instead */
+
+	} else { /*!iscreate*/
+            /* read the file to see what it is */
+	    if(model->iosp == 0)
+	        abort();
+	    if(isreadable(model->iosp)) { /* Ok, we need to try to read the file */
+	        if((stat = check_file_type(path, omode, useparallel, params, model, uri))) goto done;
+	    }
 	}
     }
 	
+    /* Force flag consistency */
+    switch (model->impl) {
+    case NC_FORMATX_NC4:
+    case NC_FORMATX_NC_HDF4:
+    case NC_FORMATX_DAP4:
+    case NC_FORMATX_UDF0:
+    case NC_FORMATX_UDF1:
+	omode |= NC_NETCDF4;
+	break;
+    case NC_FORMATX_DAP2:
+	omode &= ~NC_NETCDF4;
+	omode &= ~NC_64BIT_OFFSET;
+	break;
+    case NC_FORMATX_NC3:
+	omode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
+	if(model->version == 2) omode |= NC_64BIT_OFFSET;
+	else if(model->version == 5) omode |= NC_64BIT_DATA;
+	break;
+    case NC_FORMATX_PNETCDF:
+	omode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
+	if(model->version == 2) omode |= NC_64BIT_OFFSET;
+	else if(model->version == 5) omode |= NC_64BIT_DATA;
+	break;
+    default:
+	{stat = NC_ENOTNC; goto done;}
+    }
 done:
     if(uri) ncurifree(uri);
     if(stat == NC_NOERR && newpathp) {*newpathp = newpath; newpath = NULL;}
     nullfree(newpath);
+    *omodep = omode; /* in/out */
     return stat;
+}
+
+static int
+isreadable(int iosp)
+{
+    struct IospRead* r;
+    /* Look up the protocol */
+    for(r=readable;r->iosp;r++) {
+	if(iosp == r->iosp) return r->readable;
+    }
+    return 0;
 }
 
 /**************************************************/
@@ -461,16 +581,13 @@ check_file_type(const char *path, int flags, int use_parallel,
 {
     char magic[NC_MAX_MAGIC_NUMBER_LEN];
     int status = NC_NOERR;
-    int diskless = ((flags & NC_DISKLESS) == NC_DISKLESS);
-    int inmemory = ((flags & NC_INMEMORY) == NC_INMEMORY);
     struct MagicFile magicinfo;
 
     memset((void*)&magicinfo,0,sizeof(magicinfo));
     magicinfo.path = path; /* do not free */
     magicinfo.uri = uri; /* do not free */
+    magicinfo.model = model; /* do not free */
     magicinfo.parameters = parameters; /* do not free */
-    magicinfo.inmemory = inmemory;
-    magicinfo.diskless = diskless;
     magicinfo.use_parallel = use_parallel;
 
     if((status = openmagic(&magicinfo))) goto done;
@@ -522,71 +639,75 @@ static int
 openmagic(struct MagicFile* file)
 {
     int status = NC_NOERR;
-    assert((file->inmemory) ? file->parameters != NULL : 1);
-    if(file->inmemory) {
+
+    switch (file->model->iosp) {
+    case NC_IOSP_MEMORY: {
 	/* Get its length */
 	NC_memio* meminfo = (NC_memio*)file->parameters;
+        assert(meminfo != NULL);
 	file->filelen = (long long)meminfo->size;
-	goto done;
-    }
+	} break;
+    case NC_IOSP_FILE:
 #ifdef USE_PARALLEL
-    if (file->use_parallel) {
-	int retval;
-	MPI_Offset size;
-        assert(file->parameters);
-	if((retval = MPI_File_open(((NC_MPI_INFO*)file->parameters)->comm,
+        if (file->use_parallel) {
+	    int retval;
+	    MPI_Offset size;
+            assert(file->parameters != NULL);
+	    if((retval = MPI_File_open(((NC_MPI_INFO*)file->parameters)->comm,
                                    (char*)file->path,MPI_MODE_RDONLY,
                                    ((NC_MPI_INFO*)file->parameters)->info,
                                    &file->fh)) != MPI_SUCCESS) {
 #ifdef MPI_ERR_NO_SUCH_FILE
-            int errorclass;
-            MPI_Error_class(retval, &errorclass);
-            if (errorclass == MPI_ERR_NO_SUCH_FILE)
+		int errorclass;
+		MPI_Error_class(retval, &errorclass);
+		if (errorclass == MPI_ERR_NO_SUCH_FILE)
 #ifdef NC_ENOENT
-                status = NC_ENOENT;
+		    status = NC_ENOENT;
 #else
-                status = errno;
+		    status = errno;
 #endif
-            else
+		else
 #endif
-            status = NC_EPARINIT;
-            goto done;
-        }
-	/* Get its length */
-	if((retval=MPI_File_get_size(file->fh, &size)) != MPI_SUCCESS)
-	    {status = NC_EPARINIT; goto done;}
-	file->filelen = (long long)size;
-	goto done;
-    }
+		    status = NC_EPARINIT;
+		goto done;
+	    }
+	    /* Get its length */
+	    if((retval=MPI_File_get_size(file->fh, &size)) != MPI_SUCCESS)
+	        {status = NC_EPARINIT; goto done;}
+	    file->filelen = (long long)size;
+	} else
 #endif /* USE_PARALLEL */
-    {
-        if(file->path == NULL || strlen(file->path)==0)
-	    {status = NC_EINVAL; goto done;}
-#ifdef _MSC_VER
-        file->fp = fopen(file->path, "rb");
-#else
-        file->fp = fopen(file->path, "r");
-#endif
-	if(file->fp == NULL)
-	    {status = errno; goto done;}
-	/* Get its length */
 	{
-	int fd = fileno(file->fp);
-#ifdef _MSC_VER
-	__int64 len64 = _filelengthi64(fd);
-	if(len64 < 0)
-            {status = errno; goto done;}
-	file->filelen = (long long)len64;
+	    if(file->path == NULL || strlen(file->path)==0)
+	        {status = NC_EINVAL; goto done;}
+#ifdef _WIN32
+            file->fp = fopen(file->path, "rb");
 #else
-	off_t size;
-	size = lseek(fd, 0, SEEK_END);
-	if(size == -1)
-	    {status = errno; goto done;}
-	file->filelen = (long long)size;
+            file->fp = fopen(file->path, "r");
 #endif
-	rewind(file->fp);
+   	    if(file->fp == NULL)
+	        {status = errno; goto done;}
+  	    /* Get its length */
+	    {
+	        int fd = fileno(file->fp);
+#ifdef _WIN32
+		__int64 len64 = _filelengthi64(fd);
+		if(len64 < 0)
+		    {status = errno; goto done;}
+		file->filelen = (long long)len64;
+#else
+		off_t size;
+		size = lseek(fd, 0, SEEK_END);
+		if(size == -1)
+		    {status = errno; goto done;}
+		file->filelen = (long long)size;
+#endif
+	    }
+	    rewind(file->fp);
 	}
-	goto done;
+	break;
+
+    default: assert(0);
     }
 
 done:
@@ -598,7 +719,8 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 {
     int status = NC_NOERR;
     memset(magic,0,MAGIC_NUMBER_LEN);
-    if(file->inmemory) {
+    switch (file->model->iosp) {
+    case NC_IOSP_MEMORY: {
 	char* mempos;
 	NC_memio* meminfo = (NC_memio*)file->parameters;
 	if((pos + MAGIC_NUMBER_LEN) > meminfo->size)
@@ -608,45 +730,34 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 #ifdef DEBUG
 	printmagic("XXX: readmagic",magic,file);
 #endif
-	goto done;
-    }
-#ifdef ENABLE_S3
-    if(file->protocol == NCUPROTO_S3) {
-	NCbytes* buf = ncbytesnew();
-	size_t start = (size_t)pos;
-	size_t count = MAGIC_NUMBER_LEN;
-	status = nc_s3_read(file->curl,start,count,buf);
-	if(ncbytesength(buf) != count)
-	    status = NC_EINVAL;
-	else
-	    memcpy(magic,ncbytescontents(buf),count);
-	ncbytesfree(buf);
-	goto done;
-    }
-#endif
+    } break;
+
+    case NC_IOSP_FILE:
 #ifdef USE_PARALLEL
-    if (file->use_parallel) {
-	MPI_Status mstatus;
-	int retval;
-	if((retval = MPI_File_read_at_all(file->fh, pos, magic,
-                     MAGIC_NUMBER_LEN, MPI_CHAR, &mstatus)) != MPI_SUCCESS)
-	    {status = NC_EPARINIT; goto done;}
-	goto done;
-    }
+        if (file->use_parallel) {
+	    MPI_Status mstatus;
+	    int retval;
+	    if((retval = MPI_File_read_at_all(file->fh, pos, magic,
+			    MAGIC_NUMBER_LEN, MPI_CHAR, &mstatus)) != MPI_SUCCESS)
+	        {status = NC_EPARINIT; goto done;}
+	} else
 #endif /* USE_PARALLEL */
-    {
-	int count;
-	int i = fseek(file->fp,pos,SEEK_SET);
-	if(i < 0)
-	    {status = errno; goto done;}
-	for(i=0;i<MAGIC_NUMBER_LEN;) {/* make sure to read proper # of bytes */
-	    count=fread(&magic[i],1,(size_t)(MAGIC_NUMBER_LEN-i),file->fp);
-	    if(count == 0 || ferror(file->fp))
-		{status = errno; goto done;}
-	    i += count;
+	{
+	    int count;
+	    int i = fseek(file->fp,pos,SEEK_SET);
+	    if(i < 0)
+	        {status = errno; goto done;}
+  	    for(i=0;i<MAGIC_NUMBER_LEN;) {/* make sure to read proper # of bytes */
+	        count=fread(&magic[i],1,(size_t)(MAGIC_NUMBER_LEN-i),file->fp);
+	        if(count == 0 || ferror(file->fp))
+		    {status = errno; goto done;}
+	        i += count;
+	    }
 	}
-	goto done;
+	break;
+    default: assert(0);
     }
+
 done:
     if(file && file->fp) clearerr(file->fp);
     return status;
@@ -665,27 +776,25 @@ static int
 closemagic(struct MagicFile* file)
 {
     int status = NC_NOERR;
-    if(file->inmemory) goto done; /* noop*/
-#ifdef ENABLE_S3
-    if(file->protocol == NCUPROTO_S3) {
-	status = nc_s3_close(file->curl);
-	goto done;
-    }
-#endif
+    switch (file->model->iosp) {
+    case NC_IOSP_MEMORY:
+	break; /* noop */
 
+    case NC_IOSP_FILE:
 #ifdef USE_PARALLEL
-    if (file->use_parallel) {
-	int retval;
-	if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
-		{status = NC_EPARINIT; goto done;}
-	goto done;
-    }
+        if (file->use_parallel) {
+	    int retval;
+	    if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
+		    {status = NC_EPARINIT; goto done;}
+        } else
 #endif
-    {
-	if(file->fp) fclose(file->fp);
-	goto done;
+        {
+	    if(file->fp) fclose(file->fp);
+        }
+	break;
+    default: assert(0);
     }
-done:
+
     return status;
 }
 
