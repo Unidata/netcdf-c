@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
@@ -135,7 +146,7 @@ main() {			/* create rec2Gp.nc */
 	       for(j=0; j<J_LEN; j++) {
 		   for (k=0; k<K_LEN; k++) {
 		       if (var1[j][k] != (signed char) n) {
-			   printf("Error on read, var1[%d, %d, %d, %d] = %d wrong, should be %d !\n", rec, i, j, k, var1[j][k], (signed char) n); 
+			   printf("Error on read, var1[%d, %d, %d, %d] = %d wrong, should be %d !\n", rec, i, j, k, var1[j][k], (signed char) n);
 			   return 1;
 		       }
 		       n++;

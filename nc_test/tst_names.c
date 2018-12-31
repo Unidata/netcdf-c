@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2006 University Corporation for Atmospheric Research/Unidata.
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata.
    See COPYRIGHT file for conditions of use.
 
    This is a very simple example which tests rejection of bad names for
@@ -229,7 +229,7 @@ main(int argc, char **argv)
        ,
        NC_FORMAT_CDF5
 #endif
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
        ,
        NC_FORMAT_NETCDF4
        ,

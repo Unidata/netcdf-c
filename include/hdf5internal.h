@@ -1,4 +1,4 @@
-/* Copyright 2005-2018 University Corporation for Atmospheric
+/* Copyright 2018-2018 University Corporation for Atmospheric
    Research/Unidata. */
 /**
  * @file This header file contains macros, types, and prototypes for
@@ -140,10 +140,41 @@ extern void NC4_image_finalize(void*);
 int nc4_detect_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
 int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
 
+
+/* Provenance Management (moved from nc4internal.h) */
+/* Initialize the fileinfo global state */
+extern int NC4_provenance_init();
+
+/* Finalize the fileinfo global state */
+extern int NC4_provenance_finalize();
+
+/* Extract the provenance from a file, using dfalt as default */
+extern int NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NCPROPINFO* dfalt);
+
+/* Set the provenance for a created file using dfalt as default */
+extern int NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt);
+
+/* Recover memory of an NCPROVENANCE object */
+extern int NC4_free_provenance(struct NCPROVENANCE* prov);
+
+extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
+extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
+extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
+
+/* Convert a NCPROPINFO instance to a single string. */
+extern int NC4_buildpropinfo(struct NCPROPINFO* info, char** propdatap);
+
+/* Use HDF5 API to read the _NCProperties attribute */
+extern int NC4_read_ncproperties(NC_FILE_INFO_T*);
+
+/* Use HDF5 API to write the _NCProperties attribute */
+extern int NC4_write_ncproperties(NC_FILE_INFO_T*);
+
 /* Find file, group, var, and att info, doing lazy reads if needed. */
 int nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
-                              int use_name, NC_FILE_INFO_T **h5,
+                              int use_name, char *norm_name, NC_FILE_INFO_T **h5,
                               NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var,
                               NC_ATT_INFO_T **att);
+
 
 #endif /* _HDF5INTERNAL_ */

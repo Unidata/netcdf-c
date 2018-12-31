@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2008 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test for a bug that Russ found testing fill values.

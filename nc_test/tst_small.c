@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
@@ -533,7 +533,7 @@ main(int argc, char **argv)
       case NC_FORMAT_CDF5:
         continue;
 #endif
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 	 case NC_FORMAT_NETCDF4_CLASSIC:
 	    nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL);
 	    strcpy(testfile, "tst_small_netcdf4_classic.nc");

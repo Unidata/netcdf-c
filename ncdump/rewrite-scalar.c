@@ -1,6 +1,6 @@
 /*********************************************************************
  * This is part of the Unidata netCDF package.
- * Copyright 2006, UCAR/Unidata
+ * Copyright 2018, UCAR/Unidata
  * See COPYRIGHT file for copying and redistribution conditions.
  *
  * This program is part of the testing of file lengths done by the
