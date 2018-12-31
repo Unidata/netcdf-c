@@ -74,7 +74,8 @@ endif # BUILD_V2
 if BUILD_BENCHMARKS
 check_PROGRAMS += tst_create_files bm_file tst_chunks3 tst_ar4		\
 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts		\
-tst_files2 tst_files3 tst_mem tst_knmi bm_netcdf4_recs tst_wrf_reads
+tst_files2 tst_files3 tst_mem tst_knmi bm_netcdf4_recs tst_wrf_reads	\
+tst_attsperf
 
 bm_netcdf4_recs_SOURCES = bm_netcdf4_recs.c tst_utils.c
 bm_many_atts_SOURCES = bm_many_atts.c tst_utils.c
@@ -90,7 +91,7 @@ tst_wrf_reads_SOURCES = tst_wrf_reads.c tst_utils.c
 
 TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
 run_bm_test2.sh run_tst_chunks.sh tst_files2 tst_files3 tst_mem		\
-run_knmi_bm.sh tst_wrf_reads
+run_knmi_bm.sh tst_wrf_reads tst_attsperf
 
 # tst_create_files creates files for other tests.
 run_bm_test1.log: tst_create_files.log
@@ -131,8 +132,8 @@ TESTS += run_par_test.sh
 endif
 
 if ENABLE_METADATA_PERF
-check_PROGRAMS += bigmeta openbigmeta tst_attsperf
-TESTS += tst_attsperf perftest.sh
+check_PROGRAMS += bigmeta openbigmeta
+TESTS += perftest.sh
 endif
 
 EXTRA_DIST = run_par_test.sh.in run_par_bm_test.sh.in run_bm_test1.sh	\

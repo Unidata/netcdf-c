@@ -510,6 +510,7 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
    if (!(new_var = calloc(1, sizeof(NC_VAR_INFO_T))))
       return NC_ENOMEM;
    new_var->hdr.sort = NCVAR;
+   new_var->container = grp;
 
    /* These are the HDF5-1.8.4 defaults. */
    new_var->chunk_cache_size = nc4_chunk_cache_size;
