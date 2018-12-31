@@ -224,6 +224,81 @@ main(int argc, char **argv)
                SUMMARIZE_ERR;
             } /* next fill value method test */
          } /* next fill val write test */
+
+#define NDIM2 2
+#define DIM1_NAME "dim1"
+#define DIM2_NAME "dim2"
+#define NTYPE 6
+#define DATA_LEN 4
+
+         printf("*** testing handling of null strides with format %d... ",
+                format[f]);
+         {
+            char file_name[NC_MAX_NAME + 1];
+            char var_name[NC_MAX_NAME + 1];
+            int dimid[NDIM2];
+            int xtype[NTYPE] = {NC_BYTE, NC_CHAR, NC_SHORT, NC_INT, NC_FLOAT, NC_DOUBLE};
+            int type_size[NTYPE] = {1, 1, 2, 4, 4, 8};
+            int varid[NTYPE];
+            size_t start[NDIM2] = {0, 0};
+            size_t count[NDIM2] = {2, 2};
+            signed char data_byte[DATA_LEN] = {1, 2, 3, 4};
+            unsigned char data_char[DATA_LEN] = {1, 2, 3, 4};
+            short data_short[DATA_LEN] = {1, 2, 3, 4};
+            int data_int[DATA_LEN] = {1, 2, 3, 4};
+            float data_float[DATA_LEN] = {1, 2, 3, 4};
+            double data_double[DATA_LEN] = {1, 2, 3, 4};
+            void *data_ptr[NTYPE] = {data_byte, data_char, data_short, data_int, data_float, data_double};
+            int t;
+
+            /* Create the test file. */
+            sprintf(file_name, "%s_%d_null_strides.nc", FILE_NAME_BASE, format[f]);
+            if (nc_set_default_format(format[f], NULL)) ERR;
+            if (nc_create(file_name, 0, &ncid)) ERR;
+            if (nc_def_dim(ncid, DIM1_NAME, DIM_LEN, &dimid[0])) ERR;
+            if (nc_def_dim(ncid, DIM2_NAME, DIM_LEN, &dimid[1])) ERR;
+            for (t = 0; t < NTYPE; t++)
+            {
+               sprintf(var_name, "var_%d", xtype[t]);
+               if (nc_def_var(ncid, var_name, xtype[t], NDIM2, dimid, &varid[t])) ERR;
+            }
+            if (nc_enddef(ncid)) ERR;
+
+            /* Write some data. */
+            for (t = 0; t < NTYPE; t++)
+            {
+               if (nc_put_vars(ncid, varid[t], start, count, NULL, data_ptr[t])) ERR;
+            }
+            if (nc_close(ncid)) ERR;
+
+            /* Open the file and check data. */
+            {
+               int ndims, nvars, ngatts, unlimdimid;
+
+               if (nc_open(file_name, NC_NOWRITE, &ncid)) ERR;
+               if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
+               if (ndims != 2 || nvars != NTYPE || ngatts != 0 || unlimdimid != -1) ERR;
+               for (t = 0; t < NTYPE; t++)
+               {
+                  nc_type my_type;
+                  int var_ndims, natts;
+                  int var_dimid[NDIM2];
+                  void *data_in;
+
+                  if (nc_inq_var(ncid, varid[t], NULL, &my_type, &var_ndims, var_dimid, &natts)) ERR;
+                  if (my_type != xtype[t] || var_ndims != 2 || var_dimid[0] != dimid[0] ||
+                      var_dimid[1] != dimid[1] || natts != 0) ERR;
+                  if (!(data_in = malloc(DATA_LEN * type_size[t]))) ERR;
+                  if (nc_get_vars(ncid, varid[t], start, count, NULL, data_in)) ERR;
+                  if (memcmp(data_in, data_ptr[t], DATA_LEN * type_size[t])) ERR;
+                  free(data_in);
+
+               }
+               if (nc_close(ncid)) ERR;
+            }
+
+         }
+         SUMMARIZE_ERR;
       } /* next format */
    }
    FINAL_RESULTS;
