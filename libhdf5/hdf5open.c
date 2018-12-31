@@ -1113,6 +1113,79 @@ get_scale_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
 }
 
 /**
+ * @internal Get the metadata for a variable.
+ *
+ * @param var Pointer to var info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EHDFERR HDF5 returned error.
+ * @return ::NC_EVARMETA Error with var metadata.
+ * @author Ed Hartnett
+ */
+static int
+get_var_meta(NC_VAR_INFO_T *var)
+{
+   NC_HDF5_VAR_INFO_T *hdf5_var;
+   hid_t access_pid = 0;
+   hid_t propid = 0;
+   double rdcc_w0;
+   int retval = NC_NOERR;
+
+   assert(var && var->format_var_info);
+
+   /* Get pointer to the HDF5-specific var info struct. */
+   hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
+   /* Get the current chunk cache settings. */
+   if ((access_pid = H5Dget_access_plist(hdf5_var->hdf_datasetid)) < 0)
+      BAIL(NC_EVARMETA);
+
+   /* Learn about current chunk cache settings. */
+   if ((H5Pget_chunk_cache(access_pid, &(var->chunk_cache_nelems),
+                           &(var->chunk_cache_size), &rdcc_w0)) < 0)
+      BAIL(NC_EHDFERR);
+   var->chunk_cache_preemption = rdcc_w0;
+
+   /* Get the dataset creation properties. */
+   if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Get var chunking info. */
+   if ((retval = get_chunking_info(propid, var)))
+      BAIL(retval);
+
+   /* Get filter info for a var. */
+   if ((retval = get_filter_info(propid, var)))
+      BAIL(retval);
+
+   /* Learn all about the type of this variable. */
+   if ((retval = get_type_info2(var->container->nc4_info, hdf5_var->hdf_datasetid,
+                                &var->type_info)))
+      BAIL(retval);
+
+   /* Indicate that the variable has a pointer to the type */
+   var->type_info->rc++;
+
+   /* Get fill value, if defined. */
+   if ((retval = get_fill_info(propid, var)))
+      BAIL(retval);
+
+   /* Is this a deflated variable with a chunksize greater than the
+    * current cache size? */
+   if ((retval = nc4_adjust_var_cache(var->container, var)))
+      BAIL(retval);
+
+exit:
+   if (access_pid && H5Pclose(access_pid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (propid > 0 && H5Pclose(propid) < 0)
+      BAIL2(NC_EHDFERR);
+   return retval;
+}
+
+/**
  * @internal This function is called by read_dataset(), (which is
  * called by rec_read_metadata()) when a netCDF variable is found in
  * the file. This function reads in all the metadata about the
@@ -1139,12 +1212,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 {
    NC_VAR_INFO_T *var = NULL;
    NC_HDF5_VAR_INFO_T *hdf5_var;
-   hid_t access_pid = 0;
    int incr_id_rc = 0; /* Whether dataset ID's ref count has been incremented */
-   hid_t propid = 0;
-   int retval = NC_NOERR;
-   double rdcc_w0;
    char *finalname = NULL;
+   int retval = NC_NOERR;
 
    assert(obj_name && grp);
    LOG((4, "%s: obj_name %s", __func__, obj_name));
@@ -1177,57 +1247,21 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    H5Iinc_ref(hdf5_var->hdf_datasetid); /* Increment number of objects using ID */
    incr_id_rc++; /* Indicate that we've incremented the ref. count (for errors) */
    var->created = NC_TRUE;
-
-   /* Get the current chunk cache settings. */
-   if ((access_pid = H5Dget_access_plist(datasetid)) < 0)
-      BAIL(NC_EVARMETA);
-
-   /* Learn about current chunk cache settings. */
-   if ((H5Pget_chunk_cache(access_pid, &(var->chunk_cache_nelems),
-                           &(var->chunk_cache_size), &rdcc_w0)) < 0)
-      BAIL(NC_EHDFERR);
-   var->chunk_cache_preemption = rdcc_w0;
-
-   /* Get the dataset creation properties. */
-   if ((propid = H5Dget_create_plist(datasetid)) < 0)
-      BAIL(NC_EHDFERR);
-
-   /* Get var chunking info. */
-   if ((retval = get_chunking_info(propid, var)))
-      BAIL(retval);
-
-   /* Get filter info for a var. */
-   if ((retval = get_filter_info(propid, var)))
-      BAIL(retval);
-
-   /* Learn all about the type of this variable. */
-   if ((retval = get_type_info2(grp->nc4_info, datasetid, &var->type_info)))
-      BAIL(retval);
-
-   /* Indicate that the variable has a pointer to the type */
-   var->type_info->rc++;
-
-   /* Get fill value, if defined. */
-   if ((retval = get_fill_info(propid, var)))
-      BAIL(retval);
+   var->atts_not_read = 1;   /* Don't read var atts until user asks for one. */
 
    /* Try and read the dimids from the COORDINATES attribute. If it's
     * not present, we will have to do dimsscale matching to locate the
     * dims for this var. */
    retval = read_coord_dimids(grp, var);
    if (retval && retval != NC_ENOTATT)
-      return retval;
+      BAIL(retval);
 
    /* Handle scale info. */
    if ((retval = get_scale_info(grp, dim, var, hdf5_var, ndims, datasetid)))
       BAIL(retval);
 
-   /* Don't read variable attributes until user asks for one. */
-   var->atts_not_read = 1;
-
-   /* Is this a deflated variable with a chunksize greater than the
-    * current cache size? */
-   if ((retval = nc4_adjust_var_cache(grp, var)))
+   /* Get the rest of the metadata for this variable. */
+   if ((retval = get_var_meta(var)))
       BAIL(retval);
 
 exit:
@@ -1241,10 +1275,7 @@ exit:
          nc4_var_list_del(grp,var);
       }
    }
-   if (access_pid && H5Pclose(access_pid) < 0)
-      BAIL2(NC_EHDFERR);
-   if (propid > 0 && H5Pclose(propid) < 0)
-      BAIL2(NC_EHDFERR);
+
    return retval;
 }
 
