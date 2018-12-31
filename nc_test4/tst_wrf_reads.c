@@ -26193,57 +26193,58 @@ main(int argc, char **argv)
                run_test(2, file_name, cmode[c], &open_time, &create_time, &close_time);
                remove(file_name);
             }
-            printf("%s \t %d \t\t\t %d \t\t %d\n", cmode[c] ? "netcdf-4" : "classic",
+            printf("%s \t %d \t %d \t %d\n", cmode[c] ? "netcdf-4" : "classic",
                    create_time/MAX_I, open_time/MAX_I, close_time/MAX_I);
+            fprintf(stderr, "%d\t%d\t%d\n", create_time/MAX_I, open_time/MAX_I, close_time/MAX_I);
          }
       }
    }
    SUMMARIZE_ERR;
-   printf("Testing with wrfbdy file...\n");
-   {
-      printf("cmode \t\tcreate time (us) \topen time (us) \tclose time (us)\n");
-      for (c = 0; c < NUM_CMODES; c++)
-      {
-         {
-            int open_time = 0, create_time = 0, close_time = 0;
+   /* printf("Testing with wrfbdy file...\n"); */
+   /* { */
+   /*    printf("cmode \t\tcreate time (us) \topen time (us) \tclose time (us)\n"); */
+   /*    for (c = 0; c < NUM_CMODES; c++) */
+   /*    { */
+   /*       { */
+   /*          int open_time = 0, create_time = 0, close_time = 0; */
 
-            for (i = 0; i < MAX_I; i++)
-            {
-               char file_name[NC_MAX_NAME + 1];
+   /*          for (i = 0; i < MAX_I; i++) */
+   /*          { */
+   /*             char file_name[NC_MAX_NAME + 1]; */
 
-               nc_set_log_level(4);
-               sprintf(file_name, "%s_%d.nc", FILE_NAME, i);
-               run_test(0, file_name, cmode[c], &open_time, &create_time, &close_time);
-               remove(file_name);
-            }
-            printf("%s \t %d \t\t\t %d \t\t %d\n", cmode[c] ? "netcdf-4" : "classic",
-                   create_time/MAX_I, open_time/MAX_I, close_time/MAX_I);
-         }
-      }
-   }
-   SUMMARIZE_ERR;
-   printf("Testing with merr file...\n");
-   {
-      printf("cmode \t\tcreate time (us) \topen time (us) \tclose time (us)\n");
-      for (c = 0; c < NUM_CMODES; c++)
-      {
-         {
-            int open_time = 0, create_time = 0, close_time = 0;
+   /*             nc_set_log_level(4); */
+   /*             sprintf(file_name, "%s_%d.nc", FILE_NAME, i); */
+   /*             run_test(0, file_name, cmode[c], &open_time, &create_time, &close_time); */
+   /*             remove(file_name); */
+   /*          } */
+   /*          printf("%s \t %d \t %d \t %d\n", cmode[c] ? "netcdf-4" : "classic", */
+   /*                 create_time/MAX_I, open_time/MAX_I, close_time/MAX_I); */
+   /*       } */
+   /*    } */
+   /* } */
+   /* SUMMARIZE_ERR; */
+   /* printf("Testing with merr file...\n"); */
+   /* { */
+   /*    printf("cmode \t\tcreate time (us) \topen time (us) \tclose time (us)\n"); */
+   /*    for (c = 0; c < NUM_CMODES; c++) */
+   /*    { */
+   /*       { */
+   /*          int open_time = 0, create_time = 0, close_time = 0; */
 
-            for (i = 0; i < MAX_I; i++)
-            {
-               char file_name[NC_MAX_NAME + 1];
+   /*          for (i = 0; i < MAX_I; i++) */
+   /*          { */
+   /*             char file_name[NC_MAX_NAME + 1]; */
 
-               nc_set_log_level(4);
-               sprintf(file_name, "%s_%d.nc", FILE_NAME, i);
-               run_test(1, file_name, cmode[c], &open_time, &create_time, &close_time);
-               remove(file_name);
-            }
-            printf("%s \t %d \t\t\t %d \t\t %d\n", cmode[c] ? "netcdf-4" : "classic",
-                   create_time/MAX_I, open_time/MAX_I, close_time/MAX_I);
-         }
-      }
-   }
-   SUMMARIZE_ERR;
+   /*             nc_set_log_level(4); */
+   /*             sprintf(file_name, "%s_%d.nc", FILE_NAME, i); */
+   /*             run_test(1, file_name, cmode[c], &open_time, &create_time, &close_time); */
+   /*             remove(file_name); */
+   /*          } */
+   /*          printf("%s \t %d \t %d \t %d\n", cmode[c] ? "netcdf-4" : "classic", */
+   /*                 create_time/MAX_I, open_time/MAX_I, close_time/MAX_I); */
+   /*       } */
+   /*    } */
+   /* } */
+   /* SUMMARIZE_ERR; */
    FINAL_RESULTS;
 }
