@@ -1,6 +1,5 @@
 /* Copyright 2018-2018 University Corporation for Atmospheric
    Research/Unidata. */
-
 /**
  * @file
  * @internal Contains information for creating provenance
