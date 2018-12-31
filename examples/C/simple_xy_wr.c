@@ -1,6 +1,11 @@
 /*! \file
 An example program demonstrating a simple 2D write.
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
 
+See netcdf-c/COPYRIGHT file for more info.
 */
 
 #include <stdlib.h>
@@ -65,7 +70,7 @@ main()
 
    /* Define the variable. The type of the variable in this case is
     * NC_INT (4-byte integer). */
-   if ((retval = nc_def_var(ncid, "data", NC_INT, NDIMS, 
+   if ((retval = nc_def_var(ncid, "data", NC_INT, NDIMS,
 			    dimids, &varid)))
       ERR(retval);
 

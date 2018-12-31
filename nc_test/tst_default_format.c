@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +48,7 @@ create_check(char *fname, int cmode, int exp_format)
         default: break;
     }
 
-#ifndef USE_NETCDF4
+#ifndef USE_HDF5
     if (cmode & NC_NETCDF4)
         exp_err = NC_ENOTBUILT;
 #endif
@@ -160,7 +171,7 @@ int main(int argc, char *argv[])
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 #endif
 
-#ifndef USE_NETCDF4
+#ifndef USE_HDF5
     err = nc_set_default_format(NC_FORMAT_NETCDF4, NULL); EXP_ERR(NC_ENOTBUILT)
     err = nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL); EXP_ERR(NC_ENOTBUILT)
     nerrs += create_check(fname, NC_NETCDF4, NC_FORMAT_NETCDF4);

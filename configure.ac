@@ -193,10 +193,6 @@ AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
               [do not build with netcdf-4 (else HDF5 and zlib required)])])
 test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
 
-enable_hdf5=$enable_netcdf_4
-AC_MSG_CHECKING([whether we should build with HDF5])
-AC_MSG_RESULT([$enable_hdf5])
-
 # Synonym
 AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
               [(just a synonym for --disable-netcdf-4)])])
@@ -205,6 +201,17 @@ if test "x$enable_netcdf4" = xno ; then
 enable_netcdf_4=no
 fi
 AC_MSG_RESULT([$enable_netcdf_4])
+
+# Does the user want to use HDF5?
+AC_MSG_CHECKING([whether we should build with HDF5])
+#enable_hdf5=$enable_netcdf_4
+AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
+              [do not build with HDF5])])
+test "x$enable_hdf5" = xno || enable_hdf5=yes
+if test "x$enable_netcdf_4" = xno ; then
+enable_hdf5=no
+fi
+AC_MSG_RESULT([$enable_hdf5])
 
 # Does the user require dynamic loading?
 # This is only for those hdf5 installs that support it.
@@ -852,7 +859,8 @@ AC_CHECK_FUNCS([strlcat snprintf \
 		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c])
 
 # disable dap4 if netcdf-4 is disabled
-if test "x$enable_netcdf_4" = "xno" ; then
+#if test "x$enable_netcdf_4" = "xno" ; then
+if test "x$enable_hdf5" = "xno" ; then
     AC_MSG_WARN([netcdf-4 not enabled; disabling DAP4])
     enable_dap4=no
 fi
@@ -1006,9 +1014,13 @@ AC_CHECK_LIB([m], [floor], [],
 [AC_MSG_ERROR([Can't find or link to the math library.])])
 
 if test "x$enable_netcdf_4" = xyes; then
+   AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
+fi
+
+hdf5_parallel=no
+if test "x$enable_hdf5" = xyes; then
 
    AC_DEFINE([USE_HDF5], [1], [if true, use HDF5])
-   AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
    # Check for the main hdf5 and hdf5_hl library.
@@ -1020,20 +1032,10 @@ if test "x$enable_netcdf_4" = xyes; then
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
    AC_CHECK_FUNCS([H5Z_SZIP])
-   hdf5_parallel=no
 
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
    AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
-   # The user may have parallel HDF5 based on MPI POSIX.
-   # if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
-   #    AC_DEFINE([USE_PARALLEL_POSIX], [1], [if true, compile in parallel netCDF-4 based on MPI/POSIX])
-   # fi
-
-   # The user may have parallel HDF5 based on MPI mumble mumble.
-   # if test "x$ac_cv_func_H5Pget_fapl_mpio" = xyes; then
-   #    AC_DEFINE([USE_PARALLEL_MPIO], [1], [if true, compile in parallel netCDF-4 based on MPI/IO])
-   # fi
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1041,7 +1043,6 @@ if test "x$enable_netcdf_4" = xyes; then
    fi
 
    # If parallel is available in hdf5, enable it in the C code. Also add some stuff to netcdf.h.
-   hdf5_parallel=no
    if test "x$ac_cv_func_H5Pget_fapl_mpio" = xyes -o "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
       hdf5_parallel=yes
    fi
@@ -1072,21 +1073,22 @@ if test "x$enable_netcdf_4" = xyes; then
       AC_DEFINE([HDF5_HAS_LIBVER_BOUNDS], [1], [if true, netcdf4 file properties will be set using H5Pset_libver_bounds])
    fi
 
-   # If the user wants hdf4 built in, check it out.
-   if test "x$enable_hdf4" = xyes; then
-      AC_CHECK_LIB([jpeg], [jpeg_CreateCompress], [],
-                   [AC_MSG_ERROR([Jpeg library required for --enable-hdf4 builds.])])
-      AC_CHECK_HEADERS([mfhdf.h], [], [nc_mfhdf_h_missing=yes])
-      if test "x$nc_mfhdf_h_missing" = xyes; then
-         AC_MSG_ERROR([Cannot find mfhdf.h, yet --enable-hdf4 was used.])
-      fi
-      AC_CHECK_LIB([df], [Hclose], [], [AC_MSG_ERROR([Can't find or link to the hdf4 df library. See config.log for errors.])])
-      AC_CHECK_LIB([mfhdf], [NC_arrayfill], [AC_MSG_ERROR([HDF4 library must be built with --disable-netcdf.])], [])
-      AC_CHECK_LIB([mfhdf], [SDcreate], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
+fi
 
-     AC_CHECK_LIB([jpeg], [jpeg_set_quality], [], [AC_MSG_ERROR([Can't find or link to the jpeg library (required by hdf4). See config.log for errors.])])
-      AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
+# If the user wants hdf4 built in, check it out.
+if test "x$enable_hdf4" = xyes; then
+   AC_CHECK_LIB([jpeg], [jpeg_CreateCompress], [],
+                [AC_MSG_ERROR([Jpeg library required for --enable-hdf4 builds.])])
+   AC_CHECK_HEADERS([mfhdf.h], [], [nc_mfhdf_h_missing=yes])
+   if test "x$nc_mfhdf_h_missing" = xyes; then
+      AC_MSG_ERROR([Cannot find mfhdf.h, yet --enable-hdf4 was used.])
    fi
+   AC_CHECK_LIB([df], [Hclose], [], [AC_MSG_ERROR([Can't find or link to the hdf4 df library. See config.log for errors.])])
+   AC_CHECK_LIB([mfhdf], [NC_arrayfill], [AC_MSG_ERROR([HDF4 library must be built with --disable-netcdf.])], [])
+   AC_CHECK_LIB([mfhdf], [SDcreate], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
+
+   AC_CHECK_LIB([jpeg], [jpeg_set_quality], [], [AC_MSG_ERROR([Can't find or link to the jpeg library (required by hdf4). See config.log for errors.])])
+   AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
 fi
 
 # There are several cases for parallelism:
@@ -1096,7 +1098,7 @@ fi
 #    b. do want to use it for netcdf4
 
 # Should we provide parallel io for netcdf-4?
-if test "x$enable_netcdf_4" = xyes ; then
+if test "x$enable_hdf5" = xyes ; then
    AC_ARG_ENABLE([parallel4],
 	[AS_HELP_STRING([--disable-parallel4],
                         [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5])],
