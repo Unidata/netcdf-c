@@ -40,10 +40,13 @@ extern "C" {
 
    extern int
    NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp, 
-                void* parameters, NC_Dispatch*, NC*);
+                void *parameters, NC_Dispatch *, NC *);
 
    extern int
-   NC_HDF4_close(int ncid);
+   NC_HDF4_abort(int ncid);
+
+   extern int
+   NC_HDF4_close(int ncid, void *ignore);
 
    extern int
    NC_HDF4_inq_format(int ncid, int *formatp);
