@@ -37,13 +37,13 @@ file name normally used is replaced with a URL with a specific
 format. The URL is composed of three parts.
 -  URL - this is a standard form URL with specific markers to indicate that
    it refers to a DAP4 encoded dataset. The markers are of the form
-   "dap4", "protocol=dap4", or "/thredds/dap4". The following
+   "dap4", "mode=dap4", or "/thredds/dap4". The following
    examples show how they are specified. Note that the "/thredds/dap4"
    case will only work when accessing a Thredds-based server.
    +  [dap4]http://remotetest.unidata.ucar.edu/d4ts/test.01
-   +  [protocol=dap4]http://remotetest.unidata.ucar.edu/d4ts/test.01
+   +  [mode=dap4]http://remotetest.unidata.ucar.edu/d4ts/test.01
    +  http://remotetest.unidata.ucar.edu/d4ts/test.01#dap4
-   +  http://remotetest.unidata.ucar.edu/d4ts/test.01#protocol=dap4
+   +  http://remotetest.unidata.ucar.edu/d4ts/test.01#mode=dap4
    +  http://thredds.ucar.edu/thredds/dap4/...
 
  -  Constraints - these are suffixed to the URL and take the form

@@ -7,6 +7,11 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.6.3 - TBD
 
+* [Enhancement] Provide byte-range reading of remote datasets. This allows
+read-only access to, for example, Amazon S3 objects and also Thredds Server
+datasets via the HTTPService access method.
+See [GitHub #???](https://github.com/Unidata/netcdf-c/issues/???).
+
 * Update the license from the home-brewed NetCDF license to the standard 3-Clause BSD License.  This change does not result in any new restrictions; it is merely the adoption of a standard, well-known and well-understood license in place of the historic NetCDF license written at Unidata.  This is part of a broader push by Unidata to adopt modern, standardized licensing.  
 
 

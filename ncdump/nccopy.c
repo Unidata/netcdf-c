@@ -2223,5 +2223,6 @@ main(int argc, char**argv)
     }
 #endif /*USE_NETCDF4*/
 
+    nc_finalize();
     exit(exitcode);
 }

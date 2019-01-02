@@ -18,10 +18,14 @@ ncbytes.h nchashmap.h ceconstraints.h rnd.h nclog.h ncconfigure.h	\
 nc4internal.h nctime.h nc3internal.h onstack.h ncrc.h ncauth.h		\
 ncoffsets.h nctestserver.h nc4dispatch.h nc3dispatch.h ncexternl.h	\
 ncwinpath.h ncfilter.h ncindex.h hdf4dispatch.h hdf5internal.h \
-nc_provenance.h hdf5dispatch.h
+nc_provenance.h hdf5dispatch.h ncmodel.h
 
 if USE_DAP
 noinst_HEADERS += ncdap.h
+endif
+
+if ENABLE_HTTP
+noinst_HEADERS += nchttp.h
 endif
 
 EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in

@@ -10,7 +10,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-#include "nc.h"
+#include "ncdispatch.h"
 #include "rnd.h"
 #include "ncutf8.h"
 
