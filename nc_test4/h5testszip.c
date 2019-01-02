@@ -12,7 +12,6 @@ See \ref copyright file for more info.
  * Example illustrates the use of SZIP compression in HDF5
  */
 
-#include <config.h>
 #include <stdio.h>
 #include "hdf5.h"
 
