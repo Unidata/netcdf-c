@@ -4,6 +4,7 @@
  *   $Id: util.c 2792 2014-10-27 06:02:59Z wkliao $
  *********************************************************************/
 
+#include <config.h>
 #include <math.h> /* floor() */
 #include "tests.h"
 
