@@ -1101,7 +1101,7 @@ if test "x$enable_hdf5" = xyes ; then
    AC_ARG_ENABLE([parallel4],
 	[AS_HELP_STRING([--disable-parallel4],
                         [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5])],
-			[user_set_parallel4=${enableval}])
+			[user_set_parallel4=${enableval}]2)
    test "x$enable_parallel4" = xno || enable_parallel4=yes
 
    # If user wants parallel IO for netCDF-4, make sure HDF5 can provide it.
@@ -1192,7 +1192,10 @@ AC_ARG_ENABLE([erange_fill],
 
 dnl Always build with relaxed coord bound checking, to prevent API
 dnl incompatibilities between different installs of netCDF.
-enable_zero_length_coord_bound=yes
+AC_ARG_ENABLE([zero-length-coord-bound],
+   [AS_HELP_STRING([--disable-zero-length-coord-bound],
+                   [Disable relaxed boundary error check. Deprecated. Using this can cause API incompatibilities. This option will be removed in the next release of netCDF.])])
+test "x$enable_zero_length_coord_bound" = xno || enable_zero_length_coord_bound=yes
 
 # check PnetCDF's settings on enable_erange_fill and relax_coord_bound
 if test "x$enable_pnetcdf" = xyes; then
