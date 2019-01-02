@@ -150,7 +150,7 @@ static herr_t H5FD_http_write(H5FD_t *lf, H5FD_mem_t type, hid_t fapl_id, haddr_
 static haddr_t H5FD_http_get_eof(const H5FD_t *_file);
 static herr_t H5FD_http_flush(H5FD_t *_file, hid_t dxpl_id, unsigned closing);
 static herr_t H5FD_http_lock(H5FD_t *_file, unsigned char* old, unsigned lock_type, hbool_t last);
-static herr_t H5FD_unlock)(H5FD_t *file, unsigned char *oid, hbool_t last);
+static herr_t H5FD_unlock(H5FD_t *file, unsigned char *oid, hbool_t last);
 #else
 static herr_t H5FD_http_term(void);
 static haddr_t H5FD_http_get_eof(const H5FD_t *_file, H5FD_mem_t type);
@@ -860,7 +860,7 @@ H5FD_http_lock(H5FD_t *_file, hbool_t rw)
  */
 static herr_t
 #ifdef H5FDCLASS1
-static herr_t H5FD_unlock)(H5FD_t *file, /*UNUSED*/unsigned char *oid, /*UNUSED*/ hbool_t last)
+static herr_t H5FD_unlock(H5FD_t *file, /*UNUSED*/unsigned char *oid, /*UNUSED*/ hbool_t last)
 #else
 H5FD_http_unlock(H5FD_t *_file)
 #endif
