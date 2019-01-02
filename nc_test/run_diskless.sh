@@ -17,18 +17,18 @@ FILE3=tst_diskless3.nc
 echo ""
 echo "*** Testing in-memory (diskless) files with and without persistence"
 
-HASNC4=`${top_builddir}/nc-config --has-nc4`
+HASHDF5=`${top_builddir}/nc-config --has-hdf5`
 
 echo "**** Test diskless netCDF classic file without persistence"
 ${execdir}/tst_diskless
 echo "PASS: diskless netCDF classic file without persistence"
 
-if test "x$HASNC4" = "xyes" ; then
+if test "x$HASHDF5" = "xyes" ; then
 echo ""
 echo "**** Test diskless netCDF enhanced file without persistence"
 ${execdir}/tst_diskless netcdf4
 echo "PASS: diskless netCDF enhanced file without persistence"
-fi #HASNC4
+fi #HASHDF5
 
 echo ""
 echo "**** Test diskless netCDF classic file with persistence"
@@ -43,7 +43,7 @@ echo "#### $FILE1 not created"
 echo "FAIL: diskless netCDF classic file with persistence"
 fi
 
-if test "x$HASNC4" = "xyes" ; then
+if test "x$HASHDF5" = "xyes" ; then
 echo ""
 echo "**** Test diskless netCDF enhanced file with persistence"
 rm -f $FILE1
@@ -57,10 +57,10 @@ echo "$FILE1 not created"
 echo "FAIL: diskless netCDF enhanced file with persistence"
 fi
 
-fi #HASNC4
+fi #HASHDF5
 
 # Do extended netcdf enhanced test
-if test "x$HASNC4" = "xyes" ; then
+if test "x$HASHDF5" = "xyes" ; then
 
 ok=""
 echo ""
@@ -90,7 +90,7 @@ else
   echo "FAIL: extended enhanced diskless netCDF with persistence"
 fi
 
-fi #HASNC4
+fi #HASHDF5
 
 echo ""
 echo "**** Testing nc_open in-memory (diskless) files"

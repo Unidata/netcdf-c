@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test fix of bug involving creation of a file with PnetCDF APIs,
@@ -23,7 +23,7 @@ write2(int ncid, int parallel)
    int dimid[NDIM2];
    char str[NC_MAX_NAME + 1];
    int varid[NVARS];
-   
+
    /* define dimension */
    if (nc_def_dim(ncid, "Y", NC_UNLIMITED, &dimid[0])) ERR;
    if (nc_def_dim(ncid, "X", NX, &dimid[1])) ERR;
@@ -42,16 +42,16 @@ write2(int ncid, int parallel)
 	 if (nc_def_var(ncid, str, NC_INT, 2, dimid, &varid[i])) ERR;
       }
    }
-   
+
    if (nc_enddef(ncid)) ERR;
-   
+
    /* write all variables */
    for (int i = 0; i < NVARS; i++)
    {
       size_t start[NDIM2] = {0, 0};
       size_t count[NDIM2];
       int buf[NX];
-      
+
       /* Initialize some data. */
       for (int j = 0; j < NX; j++)
 	 buf[j] = i * 10 + j;
@@ -80,7 +80,7 @@ extend(int ncid)
    char str[32];
 
    if (nc_redef(ncid)) ERR;
-   
+
    /* add attributes to make header grow */
    for (i = 0; i < NVARS; i++)
    {
@@ -98,7 +98,7 @@ read2(int ncid)
    for (int i = 0; i < NVARS; i++)
    {
       int buf[NX];
-      size_t start[2] = {0, 0}, count[2];      
+      size_t start[2] = {0, 0}, count[2];
 
       if (i % 2)
       {
@@ -109,7 +109,7 @@ read2(int ncid)
 	 count[0] = 1;
 	 count[1] = NX;
       }
-      if (nc_get_vara_int(ncid, i, start, count, buf)) ERR;	 
+      if (nc_get_vara_int(ncid, i, start, count, buf)) ERR;
       for (int j = 0; j < NX; j++)
       {
 	 if (buf[j] != i * 10 + j)
@@ -142,12 +142,12 @@ int main(int argc, char* argv[])
       if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR;
       if (write2(ncid, 1)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Re-open the file with pnetCDF (parallel) and add var attributes. */
       if (nc_open_par(FILENAME, NC_WRITE, comm, info, &ncid)) ERR;
       if (extend(ncid)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Open with classic and check. */
       if (nc_open(FILENAME, 0, &ncid)) ERR;
       if (read2(ncid)) ERR;
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
       if (nc_create(FILENAME, cmode, &ncid)) ERR;
       if (write2(ncid, 0)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Re-open the file with CDF5 and add some atts. */
       if (nc_open(FILENAME, NC_WRITE, &ncid)) ERR;
       if (extend(ncid)) ERR;

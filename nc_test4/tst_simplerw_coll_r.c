@@ -1,4 +1,4 @@
-/* Copyright 2007-2011, UCAR/Unidata. See COPYRIGHT file for copying
+/* Copyright 2007-2018, UCAR/Unidata. See COPYRIGHT file for copying
  * and redistribution conditions.
  *
  * This is part of the netCDF package.
@@ -113,7 +113,7 @@ main(int argc, char **argv)
          unsigned int uint_fill_value_in;
          long long int int64_fill_value_in;
          unsigned long long int uint64_fill_value_in;
-         
+
          /* Data to write and read. */
          signed char byte_data[DIMSIZE * DIMSIZE], byte_data_in[DIMSIZE * DIMSIZE];
          unsigned char char_data[DIMSIZE * DIMSIZE], char_data_in[DIMSIZE * DIMSIZE];
@@ -126,7 +126,7 @@ main(int argc, char **argv)
          unsigned int uint_data[DIMSIZE * DIMSIZE], uint_data_in[DIMSIZE * DIMSIZE];
          long long int int64_data[DIMSIZE * DIMSIZE], int64_data_in[DIMSIZE * DIMSIZE];
          unsigned long long int uint64_data[DIMSIZE * DIMSIZE], uint64_data_in[DIMSIZE * DIMSIZE];
-         
+
          if (!mpi_rank)
             printf("*** writing a %d x %d x %d file from %d processors for fill value test %d type %d...\n",
                    NUM_SLABS, DIMSIZE, DIMSIZE, mpi_size, fv, test_type[tt]);
@@ -234,7 +234,7 @@ main(int argc, char **argv)
             fill_value_in = &uint64_fill_value_in;
             break;
          }
-      
+
          /* Create a file name. */
          sprintf(file_name, "%s_type_%d_fv_%d.nc", TEST_NAME, test_type[tt], fv);
 
@@ -268,7 +268,7 @@ main(int argc, char **argv)
             if (nc_def_var_fill(ncid, varid, NC_NOFILL, NULL)) ERR;
             if (nc_inq_var_fill(ncid, varid, &fill_mode_in, NULL)) ERR;
             if (!fill_mode_in) ERR; /* nofill will be true */
-         }            
+         }
 
          /* Write metadata to file. */
          if (nc_enddef(ncid)) ERR;
@@ -406,7 +406,7 @@ main(int argc, char **argv)
             SUMMARIZE_ERR;
       } /* next test type */
    } /* next fill value test run */
-   
+
    /* Shut down MPI. */
    MPI_Finalize();
 

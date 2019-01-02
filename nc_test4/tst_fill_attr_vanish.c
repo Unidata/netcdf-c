@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2016 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Based on tst_fillbug.c

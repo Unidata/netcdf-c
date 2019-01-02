@@ -1,4 +1,4 @@
-/* Copyright 2010 University Corporation for Atmospheric Research. See
+/* Copyright 2018 University Corporation for Atmospheric Research. See
    COPYRIGHT file for copying and redistribution conditions.
 
    This test program is only built if netCDF-4 is disabled. It tests

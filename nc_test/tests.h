@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1996, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: tests.h 2785 2014-10-26 05:21:20Z wkliao $
  *********************************************************************/

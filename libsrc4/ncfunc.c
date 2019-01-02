@@ -1,7 +1,7 @@
 /**
  * @internal
  *
- * Copyright 2003, University Corporation for Atmospheric
+ * Copyright 2018, University Corporation for Atmospheric
  * Research. See netcdf-4/docs/COPYRIGHT file for copying and
  * redistribution conditions.
  *
@@ -82,7 +82,7 @@ NC4_inq_format_extended(int ncid, int *formatp, int *modep)
    if(modep)
       *modep = nc->mode|NC_NETCDF4;
 
-   if (formatp) 
+   if (formatp)
       *formatp = NC_FORMATX_NC_HDF5;
 
    return NC_NOERR;

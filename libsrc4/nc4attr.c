@@ -18,78 +18,8 @@
 
 #include "nc.h"
 #include "nc4internal.h"
-#include "hdf5internal.h"
 #include "nc4dispatch.h"
 #include "ncdispatch.h"
-
-/**
- * @internal Get special informatation about the attribute.
- *
- * @param h5 Pointer to HDF5 file info struct.
- * @param name Name of attribute.
- * @param filetypep Pointer that gets type of the attribute data in
- * file.
- * @param mem_type Type of attribute data in memory.
- * @param lenp Pointer that gets length of attribute array.
- * @param attnump Pointer that gets the attribute number.
- * @param data Attribute data.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_ERANGE Data conversion out of range.
- * @author Dennis Heimbigner
- */
-static int
-nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
-                    nc_type* filetypep, nc_type mem_type, size_t* lenp,
-                    int* attnump, void* data)
-{
-   /* Fail if asking for att id */
-   if(attnump)
-      return NC_EATTMETA;
-
-   if(strcmp(name,NCPROPS)==0) {
-      char* propdata = NULL;
-      int stat = NC_NOERR;
-      int len;
-      if(h5->provenance->propattr.version == 0)
-         return NC_ENOTATT;
-      if(mem_type == NC_NAT) mem_type = NC_CHAR;
-      if(mem_type != NC_CHAR)
-         return NC_ECHAR;
-      if(filetypep) *filetypep = NC_CHAR;
-      stat = NC4_buildpropinfo(&h5->provenance->propattr, &propdata);
-      if(stat != NC_NOERR) return stat;
-      len = strlen(propdata);
-      if(lenp) *lenp = len;
-      if(data) strncpy((char*)data,propdata,len+1);
-      free(propdata);
-   } else if(strcmp(name,ISNETCDF4ATT)==0
-             || strcmp(name,SUPERBLOCKATT)==0) {
-      unsigned long long iv = 0;
-      if(filetypep) *filetypep = NC_INT;
-      if(lenp) *lenp = 1;
-      if(strcmp(name,SUPERBLOCKATT)==0)
-         iv = (unsigned long long)h5->provenance->superblockversion;
-      else /* strcmp(name,ISNETCDF4ATT)==0 */
-         iv = NC4_isnetcdf4(h5);
-      if(mem_type == NC_NAT) mem_type = NC_INT;
-      if(data)
-         switch (mem_type) {
-         case NC_BYTE: *((char*)data) = (char)iv; break;
-         case NC_SHORT: *((short*)data) = (short)iv; break;
-         case NC_INT: *((int*)data) = (int)iv; break;
-         case NC_UBYTE: *((unsigned char*)data) = (unsigned char)iv; break;
-         case NC_USHORT: *((unsigned short*)data) = (unsigned short)iv; break;
-         case NC_UINT: *((unsigned int*)data) = (unsigned int)iv; break;
-         case NC_INT64: *((long long*)data) = (long long)iv; break;
-         case NC_UINT64: *((unsigned long long*)data) = (unsigned long long)iv; break;
-         default:
-            return NC_ERANGE;
-         }
-   }
-   return NC_NOERR;
-}
 
 /**
  * @internal Get or put attribute metadata from our linked list of
@@ -98,7 +28,7 @@ nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
  *
  * @param ncid File and group ID.
  * @param varid Variable ID.
- * @param name Name of attribute.
+ * @param name Name of attribute. Must already be normalized.
  * @param xtype Pointer that gets (file) type of attribute. Ignored if
  * NULL.
  * @param mem_type The type of attribute data in memory.
@@ -123,7 +53,6 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
    int range_error = NC_NOERR;
    void *bufr = NULL;
    size_t type_size;
-   char norm_name[NC_MAX_NAME + 1];
    int varid;
    int i;
    int retval;
@@ -139,20 +68,8 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
    if (name == NULL)
       BAIL(NC_EBADNAME);
 
-   /* Normalize name. */
-   if ((retval = nc4_normalize_name(name, norm_name)))
-      BAIL(retval);
-
-   /* If this is one of the reserved atts, use nc_get_att_special. */
-   if (!var)
-   {
-      const NC_reservedatt* ra = NC_findreserved(norm_name);
-      if(ra != NULL && (ra->flags & NAMEONLYFLAG))
-	return nc4_get_att_special(h5, norm_name, xtype, mem_type, lenp, attnum, data);
-   }
-
    /* Find the attribute, if it exists. */
-   if ((retval = nc4_find_grp_att(grp, varid, norm_name, my_attnum, &att)))
+   if ((retval = nc4_find_grp_att(grp, varid, name, my_attnum, &att)))
       return retval;
 
    /* If mem_type is NC_NAT, it means we want to use the attribute's
@@ -299,6 +216,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var = NULL;
+   char norm_name[NC_MAX_NAME + 1];
    int retval;
 
    LOG((3, "%s: ncid 0x%x varid %d mem_type %d", __func__, ncid,
@@ -321,7 +239,11 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
    if (!name)
       return NC_EBADNAME;
 
-   return nc4_get_att_ptrs(h5, grp, var, name, xtype, mem_type, lenp,
+   /* Normalize name. */
+   if ((retval = nc4_normalize_name(name, norm_name)))
+      return retval;
+
+   return nc4_get_att_ptrs(h5, grp, var, norm_name, xtype, mem_type, lenp,
                            attnum, data);
 }
 

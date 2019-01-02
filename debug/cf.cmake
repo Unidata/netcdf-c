@@ -97,7 +97,7 @@ NCLIB="${NCLIB}/build/liblib"
 #G="-GUnix Makefiles"
 #T="--trace-expand"
 cmake "${G}" $FLAGS ..
-if test "x$NOBUILD" == x ; then
+if test "x$NOBUILD" = x ; then
 make all
 make test
 fi
