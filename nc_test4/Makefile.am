@@ -32,8 +32,7 @@ t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_scalar tst_rename	\
 tst_rename2 tst_h5_endians tst_atts_string_rewrite			\
 tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_filterparser	\
-tst_bug324 tst_types tst_atts3 tst_put_vars tst_elatefill tst_udf	\
-renamegroup tst_empty_vlen_unlim
+tst_bug324 tst_types tst_atts3 tst_put_vars tst_elatefill tst_udf
 
 # Temporary I hope
 if !ISCYGWIN
@@ -41,8 +40,8 @@ NC4_TESTS += tst_h_strbug tst_h_refs
 endif
 
 # Build test programs plus programs used in test scripts.
-check_PROGRAMS = $(NC4_TESTS)
-TESTS = $(NC4_TESTS)
+check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim
+TESTS = $(NC4_TESTS) run_empty_vlen_test.sh
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
@@ -51,10 +50,9 @@ TESTS += tst_large tst_large2
 endif
 
 if BUILD_UTILITIES
+check_PROGRAMS += renamegroup
 TESTS += run_grp_rename.sh tst_misc.sh
 endif
-
-TESTS += run_empty_vlen_test.sh
 
 # If the v2 API was built, add its test program.
 if BUILD_V2
