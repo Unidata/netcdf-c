@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +37,7 @@ parseServers(const char* remotetestservers)
     char* p;
     char* svc;
     char** l;
-    
+
     list = (char**)malloc(sizeof(char*) * (int)(strlen(remotetestservers)/2));
     if(list == NULL) return NULL;
     rts = strdup(remotetestservers);
@@ -71,7 +82,7 @@ nc_findtestserver(const char* path, int isdap4, const char* serverlist)
 	return NULL;
     }
     for(svc=svclist;*svc;svc++) {
-	if(strlen(*svc) == 0) 
+	if(strlen(*svc) == 0)
 	    goto done;
         if(path == NULL) path = "";
         if(strlen(path) > 0 && path[0] == '/')
@@ -87,7 +98,7 @@ nc_findtestserver(const char* path, int isdap4, const char* serverlist)
     }
 done:
     /* Free up the envv list of servers */
-    if(svclist != NULL) {    
+    if(svclist != NULL) {
         char** p;
 	for(p=svclist;*p;p++)
 	    free(*p);

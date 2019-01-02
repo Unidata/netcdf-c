@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/nctest/rec.c,v 1.11 2006/10/31 16:21:58 ed Exp $
  *********************************************************************/

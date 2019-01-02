@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2007, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This is to include the libnc-dap test comparison files
 
@@ -36,5 +36,3 @@ test.vs3.dmp test.vs4.dmp test.vs5.dmp \
 text.nc.dmp whoi.dmp \
 testData.nc.dmp kwcase.nc.dmp fillmismatch.nc.dmp \
 CMakeLists.txt
-
- 

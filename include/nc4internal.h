@@ -1,4 +1,4 @@
-/* Copyright 2005-2018 University Corporation for Atmospheric
+/* Copyright 2018-2018 University Corporation for Atmospheric
    Research/Unidata. */
 /**
  * @file
@@ -141,10 +141,10 @@ typedef struct NC_VAR_INFO
 {
    NC_OBJ hdr;
    char *hdf5_name; /* used if different from name */
-   struct NC_GRP_INFO* container; /* containing group */
+   struct NC_GRP_INFO *container; /* containing group */
    size_t ndims;
    int *dimids;
-   NC_DIM_INFO_T** dim;
+   NC_DIM_INFO_T **dim;
    nc_bool_t is_new_var;        /* True if variable is newly created */
    nc_bool_t was_coord_var;     /* True if variable was a coordinate var, but either the dim or var has been renamed */
    nc_bool_t became_coord_var;  /* True if variable _became_ a coordinate var, because either the dim or var has been renamed */
@@ -154,7 +154,7 @@ typedef struct NC_VAR_INFO
    nc_bool_t written_to;        /* True if variable has data written to it */
    struct NC_TYPE_INFO *type_info;
    int atts_not_read;           /* If true, the atts have not yet been read. */
-   NCindex* att; 		/* NCindex<NC_ATT_INFO_T*> */
+   NCindex *att; 		/* NCindex<NC_ATT_INFO_T*> */
    nc_bool_t no_fill;           /* True if no fill value is defined for var */
    void *fill_value;
    size_t *chunksizes;
@@ -172,7 +172,7 @@ typedef struct NC_VAR_INFO
    /* Stuff for arbitrary filters */
    unsigned int filterid;
    size_t nparams;
-   unsigned int* params;
+   unsigned int *params;
 } NC_VAR_INFO_T;
 
 typedef struct NC_FIELD_INFO
@@ -471,36 +471,5 @@ struct NCPROVENANCE {
 
 /* Provenance Initialization */
 extern struct NCPROPINFO globalpropinfo;
-
-/* Initialize the fileinfo global state */
-extern int NC4_provenance_init();
-
-/* Finalize the fileinfo global state */
-extern int NC4_provenance_finalize();
-
-/* Write the properties attribute to file. */
-extern int NC4_put_ncproperties(NC_FILE_INFO_T* file);
-
-/* Extract the provenance from a file, using dfalt as default */
-extern int NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NCPROPINFO* dfalt);
-
-/* Set the provenance for a created file using dfalt as default */
-extern int NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt);
-
-/* Recover memory of an NCPROVENANCE object */
-extern int NC4_free_provenance(struct NCPROVENANCE* prov);
-
-extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
-extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
-extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
-
-/* Convert a NCPROPINFO instance to a single string. */
-extern int NC4_buildpropinfo(struct NCPROPINFO* info, char** propdatap);
-
-/* Use HDF5 API to read the _NCProperties attribute */
-extern int NC4_read_ncproperties(NC_FILE_INFO_T*);
-
-/* Use HDF5 API to write the _NCProperties attribute */
-extern int NC4_write_ncproperties(NC_FILE_INFO_T*);
 
 #endif /* _NC4INTERNAL_ */

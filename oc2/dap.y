@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 /*The lines down to DO NOT DELETE ... comment are specific to the C Parser.
@@ -17,7 +17,7 @@ int dapdebug = 0;
 
 /*DO NOT DELETE THIS LINE*/
 
-%token SCAN_ALIAS 
+%token SCAN_ALIAS
 %token SCAN_ARRAY
 %token SCAN_ATTR
 %token SCAN_BYTE
@@ -31,14 +31,14 @@ int dapdebug = 0;
 %token SCAN_GRID
 %token SCAN_INT16
 %token SCAN_INT32
-%token SCAN_MAPS 
+%token SCAN_MAPS
 %token SCAN_MESSAGE
 %token SCAN_SEQUENCE
 %token SCAN_STRING
 %token SCAN_STRUCTURE
 %token SCAN_UINT16
 %token SCAN_UINT32
-%token SCAN_URL 
+%token SCAN_URL
 /* For errorbody */
 %token SCAN_PTYPE
 %token SCAN_PROG
@@ -94,10 +94,10 @@ declaration:
 	| SCAN_GRID '{' SCAN_ARRAY ':' declaration SCAN_MAPS ':'
           declarations '}' var_name ';'
 	    {if(($$=dap_makegrid(parsestate,$10,$5,$8))==null) {YYABORT;}}
-        | error 
+        | error
             {dapsemanticerror(parsestate,OC_EBADTYPE,"Unrecognized type"); YYABORT;}
 	;
- 
+
 
 base_type:
 	  SCAN_BYTE {$$=(Object)SCAN_BYTE;}
@@ -144,7 +144,7 @@ attr_list:
 	;
 
 attribute:
-	  alias ';' {$$=null;} /* ignored */ 
+	  alias ';' {$$=null;} /* ignored */
         | SCAN_BYTE name bytes ';'
 	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_BYTE);}
 	| SCAN_INT16 name int16 ';'
@@ -164,7 +164,7 @@ attribute:
 	| SCAN_URL name urls ';'
 	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_URL);}
 	| name '{' attr_list '}' {$$=dap_attrset(parsestate,$1,$3);}
-	| error 
+	| error
             {dapsemanticerror(parsestate,OC_EDAS,"Illegal attribute"); YYABORT;}
 	;
 
@@ -222,7 +222,7 @@ str_or_id:
 /* Not used
 float_or_int:
 	  WORD_INT {$$=$1;}
-	| WORD_DOUBLE {$$=$1;}        
+	| WORD_DOUBLE {$$=$1;}
 	;
 */
 

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/genbin.c,v 1.4 2010/05/27 21:34:17 dmh Exp $
  *********************************************************************/
@@ -449,10 +449,12 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
         stat = nc_put_vara(vsym->container->nc_id, vsym->nc_id, start, count, data);
     }
     check_err(stat,__LINE__,__FILE__);
-//    /* Reclaim the data */
-//    stat = ncaux_reclaim_data(vsym->container->nc_id, vsym->typ.basetype->nc_id, data, nelems);
-//    check_err(stat,__LINE__,__FILE__);
-//    bbClear(memory); /* reclaim top-level memory */
+#if 0
+    /* Reclaim the data */
+    stat = ncaux_reclaim_data(vsym->container->nc_id, vsym->typ.basetype->nc_id, data, nelems);
+    check_err(stat,__LINE__,__FILE__);
+    bbClear(memory); /* reclaim top-level memory */
+#endif
     return stat;
 }
 
