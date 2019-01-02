@@ -9,6 +9,7 @@
 
 */
 
+#include <config.h>
 #include <stdio.h> /* printf() */
 #include <config.h>
 #include <stdlib.h>

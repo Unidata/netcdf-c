@@ -8,10 +8,10 @@
 
 */
 
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <netcdf.h>
