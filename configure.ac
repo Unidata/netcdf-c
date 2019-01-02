@@ -550,13 +550,12 @@ if test "x$enable_large_file_tests" = xyes; then
 fi
 
 # Does the user want to run benchmarks?
-AC_MSG_CHECKING([whether benchmarks should be run (experimental)])
+AC_MSG_CHECKING([whether benchmarks should be run])
 AC_ARG_ENABLE([benchmarks],
               [AS_HELP_STRING([--enable-benchmarks],
-                              [Run benchmarks. This is an experimental feature. You must fetch
-                              sample data files from the Unidata ftp site to use these benchmarks.
-                              The benchmarks are a bunch of extra tests, which are timed. We use these
-			      tests to check netCDF performance.])])
+                              [Run benchmarks. This will cause sample data files from the Unidata ftp
+                              site to be fetched. The benchmarks are a bunch of extra tests, which
+                              are timed. We use these tests to check netCDF performance.])])
 test "x$enable_benchmarks" = xyes || enable_benchmarks=no
 AC_MSG_RESULT($enable_benchmarks)
 AM_CONDITIONAL(BUILD_BENCHMARKS, [test x$enable_benchmarks = xyes])

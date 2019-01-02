@@ -160,9 +160,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       return retval;
    assert(grp && h5);
 
-   /* Walk through the list of vars, and return the info about the one
-      with a matching varid. If the varid is -1, find the global
-      atts and call it a day. */
+   /* If the varid is -1, find the global atts and call it a day. */
    if (varid == NC_GLOBAL && nattsp)
    {
       *nattsp = ncindexcount(grp->att);
