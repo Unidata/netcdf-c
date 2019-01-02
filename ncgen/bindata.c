@@ -431,13 +431,15 @@ Internal equivalent of ncaux_reclaim_data.
 /* It is helpful to have a structure that contains memory and an offset */
 typedef struct Reclaim {char* memory; ptrdiff_t offset;} Reclaim;
 
-static ptrdiff_t read_alignment(ptrdiff_t offset, unsigned long alignment);
 static int bin_reclaim_datar(Symbol* tsym, Reclaim* reclaim);
+#ifdef USE_NETCDF4
+static ptrdiff_t read_alignment(ptrdiff_t offset, unsigned long alignment);
 static int bin_reclaim_usertype(Symbol* tsym, Reclaim* reclaim);
 static int bin_reclaim_compound(Symbol* tsym, Reclaim* reclaim);
 static int bin_reclaim_vlen(Symbol* tsym, Reclaim* reclaim);
 static int bin_reclaim_enum(Symbol* tsym, Reclaim* reclaim);
 static int bin_reclaim_opaque(Symbol* tsym, Reclaim* reclaim);
+#endif
 
 int
 binary_reclaim_data(Symbol* tsym, void* memory, size_t count)
@@ -493,6 +495,7 @@ bin_reclaim_datar(Symbol* tsym, Reclaim* reclaimer)
     return stat;
 }
 	
+#ifdef USE_NETCDF4
 static int
 bin_reclaim_usertype(Symbol* tsym, Reclaim* reclaimer)
 {
@@ -587,6 +590,7 @@ bin_reclaim_compound(Symbol* tsym, Reclaim* reclaimer)
 done:
     return stat;
 }
+#endif /*USE_NETCDF4*/
 
 #endif /*ENABLE_BINARY*/
 
