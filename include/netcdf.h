@@ -172,8 +172,8 @@ Use this in mode flags for both nc_create() and nc_open(). */
  */
 /**@{*/
 #define NC_FORMAT_CLASSIC         (1)
-/* After adding CDF5 support, this flag
-   is somewhat confusing. So, it is renamed.
+/* After adding CDF5 support, the NC_FORMAT_64BIT
+   flag is somewhat confusing. So, it is renamed.
    Note that the name in the contributed code
    NC_FORMAT_64BIT was renamed to NC_FORMAT_CDF2
 */
@@ -185,6 +185,9 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 /* Alias */
 #define NC_FORMAT_CDF5    NC_FORMAT_64BIT_DATA
+
+/* Define a mask covering format flags only */
+#define NC_FORMAT_ALL (NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL|NC_NETCDF4|NC_UDF0|NC_UDF1)
 
 /**@}*/
 
@@ -215,6 +218,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMATX_DAP4      (6)
 #define NC_FORMATX_UDF0      (8)
 #define NC_FORMATX_UDF1      (9)
+#define NC_FORMATX_ZARR      (10)
 #define NC_FORMATX_UNDEFINED (0)
 
   /* To avoid breaking compatibility (such as in the python library),

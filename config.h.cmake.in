@@ -141,6 +141,9 @@ are set when opening a binary file on Windows. */
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
 
+/* if true, build byte-range Client */
+#cmakedefine ENABLE_HTTP 1
+
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
 

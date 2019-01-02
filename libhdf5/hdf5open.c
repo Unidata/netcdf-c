@@ -12,6 +12,14 @@
 #include "config.h"
 #include "hdf5internal.h"
 #include "ncrc.h"
+#include "ncmodel.h"
+
+#ifdef ENABLE_HTTP
+#include "H5FDhttp.h"
+#endif
+#ifdef ENABLE_BYTERANGE
+#include "H5FDhttp.h"
+#endif
 
 #define NUM_TYPES 12 /**< Number of netCDF atomic types. */
 #define CD_NELEMS_ZLIB 1 /**< Number of parameters needed for ZLIB filter. */
@@ -389,6 +397,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    unsigned flags;
    NC_FILE_INFO_T *nc4_info = NULL;
    int is_classic;
+   NC_HDF5_FILE_INFO_T *h5 = NULL;
 
 #ifdef USE_PARALLEL4
    NC_MPI_INFO* mpiinfo = NULL;
@@ -415,9 +424,23 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    if (!(nc4_info->root_grp->format_grp_info = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
       BAIL(NC_ENOMEM);
 
+   h5 = (NC_HDF5_FILE_INFO_T*)nc4_info->format_file_info;
+
+#ifdef ENABLE_HTTP
+   /* See if we want the byte range protocol */
+   if(nc->model->iosp == NC_IOSP_HTTP) {
+	h5->http.iosp = 1;
+        /* Kill off any conflicting modes flags */
+        mode &= ~(NC_WRITE|NC_DISKLESS|NC_PERSIST|NC_INMEMORY);
+	parameters = NULL; /* kill off parallel */	    
+   } else
+	h5->http.iosp = 0;
+#endif /*ENABLE_HTTP*/
+
    nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
    nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
    nc4_info->mem.persist = ((mode & NC_PERSIST) == NC_PERSIST);
+
    /* Does the mode specify that this file is read-only? */
    if ((mode & NC_WRITE) == 0)
       nc4_info->no_write = NC_TRUE;
@@ -504,23 +527,29 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
    }
    else
    if(nc4_info->mem.diskless) {   /* Process  NC_DISKLESS */
-      NC_HDF5_FILE_INFO_T *hdf5_info;
       size_t min_incr = 65536; /* Minimum buffer increment */
       /* Configure FAPL to use the core file driver */
       if (H5Pset_fapl_core(fapl_id, min_incr, (nc4_info->mem.persist?1:0)) < 0)
 	BAIL(NC_EHDFERR);
-      hdf5_info = (NC_HDF5_FILE_INFO_T *)nc4_info->format_file_info;
       /* Open the HDF5 file. */
-      if ((hdf5_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+      if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
          BAIL(NC_EHDFERR);
    }
+#ifdef ENABLE_HTTP
+   else
+   if(h5->http.iosp) {   /* Arrange to use the byte-range driver */
+      /* Configure FAPL to use the byte-range file driver */
+      if (H5Pset_fapl_http(fapl_id) < 0)
+	BAIL(NC_EHDFERR);
+      /* Open the HDF5 file. */
+      if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+         BAIL(NC_EHDFERR);
+   }
+#endif
    else
    {
-      NC_HDF5_FILE_INFO_T *hdf5_info;
-      hdf5_info = (NC_HDF5_FILE_INFO_T *)nc4_info->format_file_info;
-
       /* Open the HDF5 file. */
-      if ((hdf5_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+      if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
          BAIL(NC_EHDFERR);
    }
 
@@ -604,7 +633,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
          void *parameters, NC_Dispatch *dispatch, NC *nc_file)
 {
    assert(nc_file && path && dispatch && nc_file &&
-          nc_file->model == NC_FORMATX_NC4);
+          nc_file->model->impl == NC_FORMATX_NC4);
 
    LOG((1, "%s: path %s mode %d params %x",
         __func__, path, mode, parameters));

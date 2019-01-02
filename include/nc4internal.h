@@ -274,6 +274,7 @@ typedef struct  NC_FILE_INFO
    NClist* allgroups; /* including root group */
    void *format_file_info;
    struct NCPROVENANCE* provenance;
+   /* This should be in NC_HDF5_FILE_INFO_T */ 
    struct NC4_Memio {
 	NC_memio memio; /* What we sent to image_init and what comes back*/
 	int locked; /* do not copy and do not free  */

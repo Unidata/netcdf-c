@@ -29,6 +29,10 @@ libnetcdf3_la_SOURCES += posixio.c
 endif !USE_STDIO
 endif !USE_FFIO
 
+if ENABLE_HTTP
+  libnetcdf3_la_SOURCES += httpio.c
+endif ENABLE_HTTP
+
 noinst_LTLIBRARIES = libnetcdf3.la
 
 # These files are cleaned on developer workstations (and then rebuilt

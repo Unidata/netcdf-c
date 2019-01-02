@@ -1,0 +1,124 @@
+/* return first IOSP or NULL if none */
+int
+NC_urliosp(NCURI* u)
+{
+    int stat = NC_NOERR;
+    const char* modestr = NULL;
+    char* args = NULL;
+    char* p = NULL;
+    struct LEGALMODES* legal = legalmodes;
+    
+    modestr = ncurilookup(u,"mode");
+    if(modestr == NULL) return 0;
+    if((stat=parseurlmode(modestr,&args))) return 0;
+    p = args;
+    for(;;) {
+	if(*p == '\0') break;
+        for(;legal->tag;legal++) {
+	    if(strcmp(legal->tag,p)==0 && legal->iosp != 0)
+		return legal->iosp;
+	}
+	p += strlen(p)+1;
+    }
+    return 0;
+}
+
+
+/* Parse url fragment mode tag for model info */
+static int
+url_getmode(const char* modestr, NCmodel* model)
+{
+    int stat = NC_NOERR;
+    NClist* modelist = nclistnew();
+    int i;
+
+    if((stat=parseurlmode(modestr,modelist))) goto done;
+    for(i=0;i<nclistlength(modelist);i++) {
+	char* arg = nclistget(modelist,i);
+	if((stat = processmodearg(arg,model))) goto done;
+    }       
+
+done:
+    nclistfreeall(modelist);
+    return check(stat);	   
+}
+
+
+/*
+Fill in the model fields to degree possible using path only */
+static int
+NC_pathinfer(const char* path, NCmodel* model, char** newpathp, NCURI** urip)
+{
+    int stat = NC_NOERR;
+    NCURI* uri = NULL;
+    int isurl = 0;
+
+    if(path == NULL || strlen(path) == 0) goto done;
+
+    /* Defaults */
+    if(newpathp) *newpathp = NULL;
+    if(urip) *urip = NULL;
+
+    /* Parse the path and process */
+    if(ncuriparse(path,&uri) == NCU_OK) {
+	if((stat = processuri(uri,model))) goto done;
+	isurl = 1;
+    } else {
+	conflictset(MIO,model->iosp,NC_IOSP_FILE);
+    }
+
+done:
+    if(stat) {
+	ncurifree(uri);
+    } else if(isurl) {
+	if(newpathp)
+	    *newpathp = ncuribuild(uri,NULL,NULL,NCURIALL);
+	if(urip) *urip = uri;
+    }
+    return check(stat);
+}
+
+#if 0
+	/* Do not set the implementation yet */
+	switch (model->format) {
+	case NC_FORMAT_CLASSIC:
+	    model->version = 1;
+	    break;
+	case NC_FORMAT_64BIT_OFFSET:
+	    model->version = 2;
+	    break;
+	case NC_FORMAT_64BIT_DATA:
+	    model->version = 5;
+	    break;
+	case NC_FORMAT_NETCDF4:
+	case NC_FORMAT_NETCDF4_CLASSIC:
+	    model->version = 5;
+	    break;
+	default: break;
+	}
+    if(model->impl == 0) {stat = NC_ENOTNC; goto done;} /* could not interpret */
+
+
+
+    /* Try to infer format from implementation */
+    if(model->format == 0) {
+        switch (model->impl) {
+        case NC_FORMATX_NC3:
+            model->format = NC_FORMAT_NC3;
+            break;  
+        case NC_FORMATX_NC4:
+            model->format = NC_FORMAT_NETCDF4;
+            break;  
+        case NC_FORMATX_DAP2:
+            model->format = NC_FORMAT_NC3;
+            break;  
+        case NC_FORMATX_DAP4:
+            model->format = NC_FORMAT_NETCDF4;
+            break;  
+        case NC_FORMATX_ZARR:
+            model->format = NC_FORMAT_NETCDF4;
+            break;  
+        default:
+	    break;
+        }
+    }
