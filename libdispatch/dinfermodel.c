@@ -342,8 +342,10 @@ NC_omodeinfer(int cmode, NCmodel* model)
 	}
     }
     /* Ignore following flags for now */
+#if 0 /* keep lgtm happy
     if(fIsSet(cmode,NC_CLASSIC_MODEL)) {}
     if(fIsSet(cmode,NC_DISKLESS)) {}
+#endif
 
 done:
     return check(stat);
