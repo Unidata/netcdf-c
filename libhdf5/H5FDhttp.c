@@ -164,7 +164,7 @@ static const H5FD_class_t H5FD_http_g = {
     "http",                     /* name         */
     MAXADDR,                    /* maxaddr      */
     H5F_CLOSE_WEAK,             /* fc_degree    */
-#ifndef HDF5CLASS1
+#ifndef H5FDCLASS1
     H5FD_http_term,             /* terminate    */
 #endif
     NULL,                       /* sb_size      */
