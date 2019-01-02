@@ -82,7 +82,6 @@ main()
         int natts = 0;
 	nc_type type;
 
-        nc_set_log_level(4);
 	if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
 
         /* Check the root group's attributes are OK */
