@@ -843,17 +843,17 @@ NC3_put_att(
 
        for more information. */
 
-//    if (varid != NC_GLOBAL && !strcmp(name, _FillValue)) {
-//        /* Fill value must be of the same data type */
-//        if (type != ncp->vars.value[varid]->type) return NC_EBADTYPE;
-//
-//        /* Fill value must have exactly one value */
-//        if (nelems != 1) return NC_EINVAL;
-//
-//        /* Only allow for variables defined in initial define mode */
-//        if (ncp->old != NULL && varid < ncp->old->vars.nelems)
-//            return NC_ELATEFILL; /* try put attribute for an old variable */
-//    }
+#if 0
+    if (varid != NC_GLOBAL && !strcmp(name, _FillValue)) {
+        /* Fill value must be of the same data type*/
+        if (type != ncp->vars.value[varid]->type) return NC_EBADTYPE;
+        /* Fill value must have exactly one value */
+        if (nelems != 1) return NC_EINVAL;
+        /* Only allow for variables defined in initial define mode */
+        if (ncp->old != NULL && varid < ncp->old->vars.nelems)
+            return NC_ELATEFILL; /* try put attribute for an old variable */
+    }
+#endif
 
     attrpp = NC_findattr(ncap, name);
 

@@ -728,7 +728,7 @@ NCD4_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return (ret);
 }
 
-#endif // USE_NETCDF4
+#endif /*USE_NETCDF4*/
 
 /**************************************************/
 /*
