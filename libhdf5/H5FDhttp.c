@@ -862,7 +862,7 @@ H5FD_http_lock(H5FD_t *_file, hbool_t rw)
  */
 static herr_t
 #ifdef H5FDCLASS1
-H5FD_unlock(H5FD_t *file, /*UNUSED*/unsigned char *oid, /*UNUSED*/ hbool_t last)
+H5FD_http_unlock(H5FD_t *file, /*UNUSED*/unsigned char *oid, /*UNUSED*/ hbool_t last)
 #else
 H5FD_http_unlock(H5FD_t *_file)
 #endif
