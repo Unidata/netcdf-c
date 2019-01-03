@@ -457,7 +457,9 @@ H5FD_http_query(const H5FD_t *_f, unsigned long /*OUT*/ *flags)
         *flags |= H5FD_FEAT_ACCUMULATE_METADATA;    /* OK to accumulate metadata for faster writes                      */
         *flags |= H5FD_FEAT_DATA_SIEVE;             /* OK to perform data sieving for faster raw data reads & writes    */
         *flags |= H5FD_FEAT_AGGREGATE_SMALLDATA;    /* OK to aggregate "small" raw data allocations                     */
+#ifndef H5FDCLASS1
         *flags |= H5FD_FEAT_DEFAULT_VFD_COMPATIBLE; /* VFD creates a file which can be opened with the default VFD      */
+#endif
     }
 
     return 0;
@@ -860,7 +862,7 @@ H5FD_http_lock(H5FD_t *_file, hbool_t rw)
  */
 static herr_t
 #ifdef H5FDCLASS1
-static herr_t H5FD_unlock(H5FD_t *file, /*UNUSED*/unsigned char *oid, /*UNUSED*/ hbool_t last)
+H5FD_unlock(H5FD_t *file, /*UNUSED*/unsigned char *oid, /*UNUSED*/ hbool_t last)
 #else
 H5FD_http_unlock(H5FD_t *_file)
 #endif
