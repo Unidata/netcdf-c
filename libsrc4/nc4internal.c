@@ -258,7 +258,7 @@ nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **gr
 }
 
 /**
- * @internal Find a dim in a grp (or its parents).
+ * @internal Find a dim in the file.
  *
  * @param grp Pointer to group info struct.
  * @param dimid Dimension ID to find.
@@ -268,7 +268,7 @@ nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **gr
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADDIM Dimension not found.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
@@ -510,6 +510,7 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
    if (!(new_var = calloc(1, sizeof(NC_VAR_INFO_T))))
       return NC_ENOMEM;
    new_var->hdr.sort = NCVAR;
+   new_var->container = grp;
 
    /* These are the HDF5-1.8.4 defaults. */
    new_var->chunk_cache_size = nc4_chunk_cache_size;
@@ -565,7 +566,7 @@ nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
          return NC_ENOMEM;
 
       /* Initialize dimids to illegal values (-1). See the comment
-         in nc4hdf.c#nc4_rec_match_dimscales. */
+         in nc4_rec_match_dimscales(). */
       memset(var->dimids, -1, ndims * sizeof(int));
    }
 
