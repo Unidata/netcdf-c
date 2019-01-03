@@ -154,6 +154,7 @@ typedef struct NC_VAR_INFO
    nc_bool_t written_to;        /* True if variable has data written to it */
    struct NC_TYPE_INFO *type_info;
    int atts_not_read;           /* If true, the atts have not yet been read. */
+   nc_bool_t meta_read;         /* True if this vars metadata has been completely read. */
    NCindex *att; 		/* NCindex<NC_ATT_INFO_T*> */
    nc_bool_t no_fill;           /* True if no fill value is defined for var */
    void *fill_value;

@@ -99,8 +99,7 @@ typedef struct {
  * @author Ed Hartnett
  */
 static int
-get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
-               NC_TYPE_INFO_T **type_info)
+get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
 {
    NC_HDF5_TYPE_INFO_T *hdf5_type;
    htri_t is_str, equal = 0;
@@ -191,17 +190,17 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid,
          /* Find out about endianness. As of HDF 1.8.6, this works
           * with all data types Not just H5T_INTEGER. See
           * https://www.hdfgroup.org/HDF5/doc/RM/RM_H5T.html#Datatype-GetOrder */
-         if((order = H5Tget_order(hdf_typeid)) < 0)
+         if ((order = H5Tget_order(hdf_typeid)) < 0)
             return NC_EHDFERR;
 
-         if(order == H5T_ORDER_LE)
+         if (order == H5T_ORDER_LE)
             (*type_info)->endianness = NC_ENDIAN_LITTLE;
-         else if(order == H5T_ORDER_BE)
+         else if (order == H5T_ORDER_BE)
             (*type_info)->endianness = NC_ENDIAN_BIG;
          else
             return NC_EBADTYPE;
 
-         if(class == H5T_INTEGER)
+         if (class == H5T_INTEGER)
             (*type_info)->nc_type_class = NC_INT;
          else
             (*type_info)->nc_type_class = NC_FLOAT;
@@ -543,8 +542,6 @@ rec_match_dimscales(NC_GRP_INFO_T *grp)
                      }
                   } /* next dim */
                } /* next grp */
-               LOG((5, "%s: dimid for this dimscale is %d", __func__,
-                    var->type_info->hdr.id));
             } /* next var->dim */
          }
          else
@@ -1124,8 +1121,8 @@ get_scale_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
  * @return ::NC_EVARMETA Error with var metadata.
  * @author Ed Hartnett
  */
-static int
-get_var_meta(NC_VAR_INFO_T *var)
+int
+nc4_get_var_meta(NC_VAR_INFO_T *var)
 {
    NC_HDF5_VAR_INFO_T *hdf5_var;
    hid_t access_pid = 0;
@@ -1134,6 +1131,10 @@ get_var_meta(NC_VAR_INFO_T *var)
    int retval = NC_NOERR;
 
    assert(var && var->format_var_info);
+
+   /* Have we already read the var metadata? */
+   if (var->meta_read)
+      return NC_NOERR;
 
    /* Get pointer to the HDF5-specific var info struct. */
    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
@@ -1160,14 +1161,6 @@ get_var_meta(NC_VAR_INFO_T *var)
    if ((retval = get_filter_info(propid, var)))
       BAIL(retval);
 
-   /* Learn all about the type of this variable. */
-   if ((retval = get_type_info2(var->container->nc4_info, hdf5_var->hdf_datasetid,
-                                &var->type_info)))
-      BAIL(retval);
-
-   /* Indicate that the variable has a pointer to the type */
-   var->type_info->rc++;
-
    /* Get fill value, if defined. */
    if ((retval = get_fill_info(propid, var)))
       BAIL(retval);
@@ -1176,6 +1169,9 @@ get_var_meta(NC_VAR_INFO_T *var)
     * current cache size? */
    if ((retval = nc4_adjust_var_cache(var->container, var)))
       BAIL(retval);
+
+   /* Remember that we have read the metadata for this var. */
+   var->meta_read = NC_TRUE;
 
 exit:
    if (access_pid && H5Pclose(access_pid) < 0)
@@ -1255,14 +1251,19 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    retval = read_coord_dimids(grp, var);
    if (retval && retval != NC_ENOTATT)
       BAIL(retval);
+   retval = NC_NOERR;
 
    /* Handle scale info. */
    if ((retval = get_scale_info(grp, dim, var, hdf5_var, ndims, datasetid)))
       BAIL(retval);
 
-   /* Get the rest of the metadata for this variable. */
-   if ((retval = get_var_meta(var)))
+   /* Learn all about the type of this variable. */
+   if ((retval = get_type_info2(var->container->nc4_info, hdf5_var->hdf_datasetid,
+                                &var->type_info)))
       BAIL(retval);
+
+   /* Indicate that the variable has a pointer to the type */
+   var->type_info->rc++;
 
 exit:
    if (finalname)
