@@ -275,6 +275,7 @@ nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
              NC_GRP_INFO_T **dim_grp)
 {
    assert(grp && grp->nc4_info && dim);
+   LOG((4, "%s: dimid %d", __func__, dimid));
 
    /* Find the dim info. */
    if (!((*dim) = nclistget(grp->nc4_info->alldims, dimid)))

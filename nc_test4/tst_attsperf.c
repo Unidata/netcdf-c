@@ -28,7 +28,7 @@
 #define NUM_ATTS 100
 #define ATT_LEN 100
 #define NUM_VARS 1
-#define NUM_VARS_MANY 10000
+#define NUM_VARS_MANY 5000
 
 int
 add_attributes(int ncid, int varid, size_t num_atts, size_t att_len)
@@ -170,9 +170,9 @@ readfile_hdf5(char *file_name, long long *delta, int do_inq, int num_vars)
 }
 
 #define NUM_RUNS 1
-#define NUM_STEPS 20
+#define NUM_STEPS 10
 #define FACTOR 100
-#define VAR_FACTOR 100
+#define VAR_FACTOR 500
 #define NUM_INQ_TESTS 2
 int
 main(int argc, char **argv)
@@ -204,7 +204,7 @@ main(int argc, char **argv)
 
                if (buildfile(num_vars, num_atts, ATT_LEN, file_name)) ERR;
                if (readfile(file_name, &nc4_open_time, do_inq, num_vars)) ERR;
-               /* if (readfile_hdf5(file_name, &hdf5_open_time, do_inq, num_vars)) ERR; */
+               if (readfile_hdf5(file_name, &hdf5_open_time, do_inq, num_vars)) ERR;
                tot_nc4 += nc4_open_time;
                tot_hdf5 += hdf5_open_time;
             }
