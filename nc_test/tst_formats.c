@@ -72,7 +72,7 @@ check_inq_format(int ncid, int expected_format, int expected_extended_format, in
       if (nc_inq_format_extended(ncid, NULL, &mode)) ERR;
       if (mode != expected_mode) {
          printf("expected_mode %x mode %x\n", expected_mode, mode);
-         //ERR;
+         /*ERR;*/
       }
    }
    {

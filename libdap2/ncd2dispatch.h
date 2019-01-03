@@ -274,7 +274,7 @@ NCD2_def_var_fill(int, int, int, const void *);
 extern int
 NCD2_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
 
-#endif //USE_NETCDF4
+#endif /*USE_NETCDF4*/
 
 #if defined(__cplusplus)
 }
