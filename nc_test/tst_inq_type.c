@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
    }
    SUMMARIZE_ERR;
 
-#endif // USE_HDF5
+#endif /*USE_HDF5*/
 
    printf("* Finished.\n");
 

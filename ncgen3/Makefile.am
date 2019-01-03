@@ -24,6 +24,7 @@ run_nc4_tests.sh XGetopt.c $(man_MANS)
 # There is a netcdf classic and netcdf-4 test script, but don't run
 # them for DLL builds.
 #if !BUILD_DLL
+
 TESTS = run_tests.sh
 if USE_HDF5
 TESTS += run_nc4_tests.sh
