@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 {
     extern int optind;
     char filename[128];
-    int i, j, rank, nprocs, verbose=1, err;
+    int i, j, rank, nprocs, err;
     int ncid, cmode, omode, varid, dimid[2], buf[NY][NX];
     char str_att[128];
     float float_att[100];
@@ -94,8 +94,7 @@ int main(int argc, char** argv)
     /* get command-line arguments */
     while ((i = getopt(argc, argv, "hq")) != EOF)
         switch(i) {
-            case 'q': verbose = 0;
-                      break;
+            case 'q': break;
             case 'h':
             default:  if (rank==0) usage(argv[0]);
                       MPI_Finalize();
