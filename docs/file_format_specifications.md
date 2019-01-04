@@ -445,7 +445,7 @@ document. For more information about HDF5, see the HDF5 web site:
 http://hdf.ncsa.uiuc.edu/HDF5/.
 
 The specification that follows is sufficient to allow HDF5 users to
-create files that will be accessable from netCDF-4.
+create files that will be accessible from netCDF-4.
 
 \subsection creation_order Creation Order
 
@@ -735,7 +735,7 @@ Starting with version 4.1, the netCDF libraries can read HDF4 SD
 created with the Scientific Dataset API. Access is read-only.
 
 Dataset types are translated between HDF4 and netCDF in a
-straighforward manner.
+straightforward manner.
 - DFNT_CHAR = NC_CHAR
 - DFNT_UCHAR, DFNT_UINT8 = NC_UBYTE
 - DFNT_INT8 = NC_BYTE

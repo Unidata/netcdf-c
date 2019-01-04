@@ -1,9 +1,12 @@
-/** \file
+/* This is part of the netCDF package. Copyright 2005-2018 University
+   Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+   conditions of use.
 
-Performance test from KNMI.
+   This is a benchmarking program that depends on some KNMI files from
+   the Unidata ftp site. The files are opened and read, and
+   performance is timed.
 
-Copyright 2009, UCAR/Unidata. See \ref copyright file for copying and
-redistribution conditions.
+   Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -27,6 +30,10 @@ redistribution conditions.
 #define BNDS_LEN 2
 #define TIME_LEN 1560
 #define NUM_TS 1
+
+/* Prototype from tst_utils.c. */
+int nc4_timeval_subtract(struct timeval *result, struct timeval *x,
+                         struct timeval *y);
 
 extern const char* nc_strerror(int ncerr);
 static int
@@ -77,24 +84,9 @@ read_file(char *filename)
 int
 main(int argc, char **argv)
 {
-   int c, header = 0, verbose = 0, timeseries = 0;
-   int ncid, varid, storage;
-   char name_in[NC_MAX_NAME + 1];
-   size_t len;
-   size_t cs[NDIMS3] = {0, 0, 0};
-   int cache = MEGABYTE;
-   int ndims, dimid[NDIMS3];
-   float hor_data[LAT_LEN * LON_LEN];
-   int read_1_us, avg_read_us;
-   float ts_data[TIME_LEN];
-   size_t start[NDIMS3], count[NDIMS3];
-   int deflate, shuffle, deflate_level;
-   struct timeval start_time, end_time, diff_time;
-
    printf("\n*** Testing netcdf-4 vs. netcdf-3 performance.\n");
    if (complain(read_file(FILE_NAME_1))) ERR;
    if (complain(read_file(FILE_NAME_2))) ERR;
-
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

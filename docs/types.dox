@@ -12,8 +12,8 @@ a user-defined data type (see \ref user_defined_types).
 
 The atomic external types supported by the netCDF interface are:
 - ::NC_BYTE 	8-bit signed integer
-- ::NC_UBYTE 	8-bit unsigned integer
-- ::NC_CHAR 	8-bit character byte
+- ::NC_UBYTE 	8-bit unsigned integer *
+- ::NC_CHAR 	8-bit character
 - ::NC_SHORT 	16-bit signed integer
 - ::NC_USHORT 	16-bit unsigned integer *
 - ::NC_INT (or ::NC_LONG) 	32-bit signed integer
@@ -24,7 +24,7 @@ The atomic external types supported by the netCDF interface are:
 - ::NC_DOUBLE 	64-bit floating point
 - ::NC_STRING 	variable length character string +
 
-\remark * These types are available only for CDF5 (NC_CDF5) and netCDF-4 format (NC_NETCDF4) files. All the unsigned ints (except \ref NC_CHAR) and the 64-bit ints are for CDF5 or netCDF-4 files only.
+\remark * These types are available only for CDF5 (NC_CDF5) and netCDF-4 format (NC_NETCDF4) files. All the unsigned ints and the 64-bit ints are for CDF5 or netCDF-4 files only.
 \remark + These types are available only for netCDF-4 (NC_NETCDF4) files.
 
 These types were chosen to provide a reasonably wide range of
@@ -73,7 +73,7 @@ avoid such precision loss, check the external types of the variables
 you access to make sure you use an internal type that has adequate
 precision.
 
-The names for the primitive external data types (byte, char, short,
+The names for the primitive external data types (char, byte, ubyte, short,
 ushort, int, uint, int64, uint64, float or real, double, string) are
 reserved words in CDL, so the names of variables, dimensions, and
 attributes must not be type names.
@@ -85,16 +85,16 @@ converted into other numeric types, it is interpreted as signed.
 For the correspondence between netCDF external data types and the data
 types of a language see \ref variables.
 
-\section classic_structures Data Structures in Classic and 64-bit Offset Files
+\section classic_structures Data Structures in Classic Files
 
 The only kind of data structure directly supported by the netCDF
-classic (and 64-bit offset) abstraction is a collection of named
+classic abstraction, i.e. CDF-1, 2, and 5 formats, is a collection of named
 arrays with attached vector attributes. NetCDF is not particularly
 well-suited for storing linked lists, trees, sparse matrices, ragged
 arrays or other kinds of data structures requiring pointers.
 
 It is possible to build other kinds of data structures in netCDF
-classic or 64-bit offset formats, from sets of arrays by adopting
+classic formats, from sets of arrays by adopting
 various conventions regarding the use of data in one array as pointers
 into another array. The netCDF library won't provide much help or
 hindrance with constructing such data structures, but netCDF provides
@@ -116,7 +116,7 @@ arrays. See below.)
 \endcode
 
 As another example, netCDF variables may be grouped within a netCDF
-classic or 64-bit offset dataset by defining attributes that list the
+classic dataset by defining attributes that list the
 names of the variables in each group, separated by a conventional
 delimiter such as a space or comma. Using a naming convention for
 attribute names for such groupings permits any number of named groups

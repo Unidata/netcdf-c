@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/nctest/cdftests.c,v 1.23 2009/02/14 14:11:28 ed Exp $
  *********************************************************************/
@@ -127,7 +127,7 @@ test_ncopen(path)
      * Open a non-netCDF file.  Don't use "Makefile.in" because that
      * name is munged to something else by PC/NFS and, consequently,
      * won't exist in a cross-mounted directory. Also don't use a
-     * source file, becase that will break building in another
+     * source file, because that will break building in another
      * directory, and consequently, make dist. An object file is not
      * safe, because sometimes it's a .o and sometimes a .obj. So just
      * create a file!

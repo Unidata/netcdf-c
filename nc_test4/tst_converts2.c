@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test even more data conversions.
@@ -10,7 +10,7 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include "netcdf.h"
-#include "math.h"
+#include <math.h>
 
 #define FILE_NAME "tst_converts2.nc"
 #define VAR_NAME "Monkey"

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 #ifndef DUMP_H
@@ -46,7 +46,7 @@ extern char* dumptree(CDFnode* root);
 extern char* dumpvisible(CDFnode* root);
 extern char* dumpnode(CDFnode* node);
 
-extern char* dumpalign(struct NCalignment*);
+extern char* dumpalign(struct NCD2alignment*);
 
 extern char* dumpcachenode(NCcachenode* node);
 extern char* dumpcache(NCcache* cache);

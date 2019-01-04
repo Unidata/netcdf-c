@@ -1,5 +1,5 @@
 ## This is an automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2008, see the COPYRIGHT file for more information.
 
 # This automake file is in charge of building the libsrc directory,
 # which contains the classic library code.
@@ -10,15 +10,12 @@ libnetcdf3_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 # These files comprise the netCDF-3 classic library code.
 libnetcdf3_la_SOURCES = v1hpg.c \
-putget.c attr.c nc3dispatch.c nc3internal.c var.c dim.c ncx.c nc_hashmap.c \
-ncx.h lookup3.c pstdint.h ncio.c ncio.h
+putget.c attr.c nc3dispatch.c nc3internal.c var.c dim.c ncx.c \
+ncx.h lookup3.c pstdint.h ncio.c ncio.h memio.c
 
-if BUILD_DISKLESS
-  libnetcdf3_la_SOURCES += memio.c
 if BUILD_MMAP
   libnetcdf3_la_SOURCES += mmapio.c
 endif BUILD_MMAP
-endif BUILD_DISKLESS
 
 # Does the user want to use ffio, a replacement for posixio for Cray
 # computers?

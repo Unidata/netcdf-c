@@ -61,7 +61,7 @@ main()
    if ((retval = nc_def_dim(ncid, "y", NY, &y_dimid)))
       ERR(retval);
 
-   /* Set up variabe data. */
+   /* Set up variable data. */
    dimids[0] = x_dimid;
    dimids[1] = y_dimid;
    chunks[0] = NX/4;

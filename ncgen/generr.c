@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/generr.c,v 1.1 2009/09/25 18:22:22 dmh Exp $
  *********************************************************************/
@@ -9,18 +9,8 @@
 
 int error_count;
 
-#ifndef NO_STDARG
+#if 0
 #define vastart(argv,fmt) va_start(argv,fmt)
-#else
-#define vastart(argv,fmt) va_start(argv)
-#endif
-
-/*
- * Invalidate variable list.
- */
-#ifndef NO_STDARG
-#define vaend(argv,fmt) va_end(argv)
-#else
 #define vaend(argv,fmt) va_end(argv)
 #endif
 
@@ -28,14 +18,8 @@ int error_count;
  * For logging error conditions.
  * Designed to be called by other vararg procedures
  */
-#ifndef NO_STDARG
 void
 vderror(const char *fmt, va_list argv)
-#else
-/* Technically illegal; va_alist should be only arg */
-void
-vderror(fmt,va_alist) const char* fmt; va_dcl
-#endif
 {
     (void) vdwarn(fmt,argv);
     error_count++;
@@ -45,78 +29,58 @@ vderror(fmt,va_alist) const char* fmt; va_dcl
  * For logging error conditions.
  * Designed to be called by other vararg procedures
  */
-#ifndef NO_STDARG
 void
 vdwarn(const char *fmt, va_list argv)
-#else
-/* Technically illegal; va_alist should be only arg */
-void
-vdwarn(fmt,va_alist) const char* fmt; va_dcl
-#endif
 {
     (void) vfprintf(stderr,fmt,argv) ;
     (void) fputc('\n',stderr) ;
     (void) fflush(stderr);	/* to ensure log files are current */
 }
 
-#ifndef NO_STDARG
 void
 derror(const char *fmt, ...)
-#else
-void
-derror(fmt,va_alist) const char* fmt; va_dcl
-#endif
 {
     va_list argv;
-    vastart(argv,fmt);
+    va_start(argv,fmt);
     vderror(fmt,argv);
 }
 
 /* Report version errors */
-#ifndef NO_STDARG
 void
 verror(const char *fmt, ...)
-#else
-void
-verror(fmt,va_alist) const char* fmt; va_dcl
-#endif
 {
     char newfmt[2048];
     va_list argv;
+<<<<<<< HEAD
     vastart(argv,fmt);
     strncpy(newfmt,"netCDF classic: not supported: ",sizeof(newfmt));
     strlcat(newfmt,fmt,sizeof(newfmt));
+=======
+    va_start(argv,fmt);
+    strcpy(newfmt,"netCDF classic: not supported: ");
+    strncat(newfmt,fmt,2000);
+>>>>>>> master
     vderror(newfmt,argv);
-    vaend(argv,fmt);
+    va_end(argv);
 }
 
-#ifndef NO_STDARG
 void
 semwarn(const int lno, const char *fmt, ...)
-#else
-void
-semwarn(lno,fmt,va_alist) const int lno; const char* fmt; va_dcl
-#endif
 {
     va_list argv;
-    vastart(argv,fmt);
+    va_start(argv,fmt);
     (void)fprintf(stderr,"%s: %s line %d: ", progname, cdlname, lno);
     vdwarn(fmt,argv);
 }
 
-#ifndef NO_STDARG
 void
 semerror(const int lno, const char *fmt, ...)
-#else
-void
-semerror(lno,fmt,va_alist) const int lno; const char* fmt; va_dcl
-#endif
 {
     va_list argv;
-    vastart(argv,fmt);
+    va_start(argv,fmt);
     (void)fprintf(stderr,"%s: %s line %d: ", progname, cdlname, lno);
     vderror(fmt,argv);
-    exit(1); /* immediately fatal */
+    finalize_netcdf(1); /* immediately fatal */
 }
 
 /* Capture potential version errors */
@@ -155,18 +119,12 @@ getmarkcdf5(void)
 /* Provide a version of snprintf that panics if*/
 /* the buffer is overrun*/
 
-#ifndef NO_STDARG
 void
 nprintf(char* buffer, size_t size, const char *fmt, ...)
-#else
-void
-nprintf(buffer,size,fmt)
-    char* buffer; size_t size; const char* fmt; va_dcl
-#endif
 {
     long written;
     va_list args;
-    vastart(args,fmt);
+    va_start(args,fmt);
     written = vsnprintf(buffer,size,fmt,args);
     if(written < 0 || written >= size) {
 	PANIC("snprintf failure");

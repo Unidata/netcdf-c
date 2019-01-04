@@ -1,14 +1,15 @@
-/* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+/* This is part of the netCDF package. Copyright 2005-2018 University
+   Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+   conditions of use.
 
-   Test netcdf-4 variables.
-   $Id: tst_files2.c,v 1.11 2010/01/31 19:00:44 ed Exp $
+   This is a benchmark test which times how long it takes to create
+   some files.
+
+   Ed Hartnett
 */
 
 #include <nc_tests.h>
 #include "err_macros.h"
-#include "netcdf.h"
 #include <unistd.h>
 #include <time.h>
 #include <sys/time.h> /* Extra high precision time info. */
@@ -20,12 +21,16 @@
 
 void *last_sbrk;
 
-/* This function uses the ps command to find the amount of memory in
-use by the process. From the ps man page:
+/* Prototype from tst_utils.c. */
+int nc4_timeval_subtract(struct timeval *result, struct timeval *x,
+                         struct timeval *y);
 
-size SZ approximate amount of swap space that would be required if
-        the process were to dirty all writable pages and then be
-        swapped out. This number is very rough!
+/* This function uses the ps command to find the amount of memory in
+   use by the process. From the ps man page:
+
+   size SZ approximate amount of swap space that would be required if
+   the process were to dirty all writable pages and then be
+   swapped out. This number is very rough!
 */
 int
 get_mem_used1(int *mem_used)
@@ -33,7 +38,6 @@ get_mem_used1(int *mem_used)
    char cmd[NC_MAX_NAME + 1];
    char blob[MAX_LEN + 1] = "";
    FILE *fp;
-   int num_char;
 
    /* Run the ps command for this process, putting output (one number)
     * into file TMP_FILE_NAME. */
@@ -42,7 +46,7 @@ get_mem_used1(int *mem_used)
 
    /* Read the results and delete temp file. */
    if (!(fp = fopen(TMP_FILE_NAME, "r"))) ERR;
-   num_char = fread(blob, MAX_LEN, 1, fp);
+   fread(blob, MAX_LEN, 1, fp);
    sscanf(blob, "%d", mem_used);
    fclose(fp);
    unlink(TMP_FILE_NAME);
@@ -71,7 +75,7 @@ get_mem_used2(int *mem_used)
    }
    else
       *mem_used = -1;
-  fclose(pf);
+   fclose(pf);
 }
 
 void
@@ -95,16 +99,12 @@ create_sample_file(char *file_name, int ndims, int *dim_len,
    float *data_out;
    size_t start[MAX_DIMS], count[MAX_DIMS];
    int slab_nelems;
-   int i, d, ret;
+   int i, d;
 
    if (ndims != MAX_DIMS && ndims != MAX_DIMS - 1) ERR_RET;
 
    /* Create a file. */
-   ret = nc_create(file_name, NC_NOCLOBBER|mode, &ncid);
-   if (ret == NC_EEXIST)
-      return NC_NOERR;
-   else if (ret)
-      ERR_RET;
+   if (nc_create(file_name, NC_CLOBBER|mode, &ncid)) ERR_RET;
 
    /* Initialize sample data. Slab of data will be full extent of last
     * two dimensions. */
@@ -181,8 +181,8 @@ main(int argc, char **argv)
 #define NUM_TRIES 6
       int *ncid_in;
       int mem_used, mem_used2;
-      int mem_per_file;
-      int num_files[NUM_TRIES] = {1, 1, 1, 1, 1, 1};
+      /* int mem_per_file; */
+      int num_files[NUM_TRIES] = {1, 5, 10, 20, 35, 50};
       char file_name[NUM_TRIES][NC_MAX_NAME + 1];
       int num_vars[NUM_TRIES];
       size_t cache_size[NUM_TRIES];
@@ -190,10 +190,10 @@ main(int argc, char **argv)
       char mode_name[NUM_TRIES][8];
       int ndims[NUM_TRIES];
       int dim_len[NUM_TRIES][MAX_DIMS];
-      int dim_4d[MAX_DIMS] = {NC_UNLIMITED, 10, 1000, 1000};
+      int dim_4d[MAX_DIMS] = {NC_UNLIMITED, 10, 100, 100};
       char dimstr[30];
       char chunkstr[30];
-      int num_recs[NUM_TRIES] = {1, 1, 1};
+      int num_recs[NUM_TRIES] = {1, 1, 1, 1, 1, 1};
       struct timeval start_time, end_time, diff_time;
       struct timeval close_start_time, close_end_time, close_diff_time;
       int open_us, close_us, create_us;
@@ -202,11 +202,9 @@ main(int argc, char **argv)
       int d, f, t;
 
       printf("dims\t\tchunks\t\tformat\tnum_files\tcache(kb)\tnum_vars\tmem(kb)\t"
-	     "open_time(us)\tclose_time(us)\tcreate_time(us)\n");
+	     "open_time(us/file)\tclose_time(us/file)\tcreate_time(us/file)\n");
       for (t = 0; t < NUM_TRIES; t++)
       {
-	 /* Set up filename. */
-	 sprintf(file_name[t], "tst_files2_%d.nc", t);
 	 strcpy(mode_name[t], "netcdf4");
 	 mode[t] = NC_NETCDF4;
 	 cache_size[t] = 16000000;
@@ -215,88 +213,92 @@ main(int argc, char **argv)
 	 for (d = 0; d < ndims[t]; d++)
 	    dim_len[t][d] = dim_4d[d];
 
-	 /* Create sample file (unless it already exists). */
-	 if (gettimeofday(&start_time, NULL)) ERR;
-	 if (create_sample_file(file_name[t], ndims[t], dim_len[t], num_vars[t],
-				mode[t], num_recs[t])) ERR;
-
-	 /* How long did it take? */
-	 if (gettimeofday(&end_time, NULL)) ERR;
-	 if (nc4_timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
-	 create_us = ((int)diff_time.tv_sec * MILLION + (int)diff_time.tv_usec);
-
-	 /* Change the cache settings. */
-	 if (nc_set_chunk_cache(cache_size[t], 20000, .75)) ERR;
-
-	 /* We need storage for an array of ncids. */
-	 if (!(ncid_in = malloc(num_files[t] * sizeof(int)))) ERR;
-
-	 /* How much memory is in use now? */
- 	 if (get_mem_used1(&mem_used)) ERR;
-/* 	 get_mem_used2(&mem_used);
-	 get_mem_used3(&mem_used);*/
-
-	 /* Open the first file to get chunksizes. */
-	 if (gettimeofday(&start_time, NULL)) ERR;
-	 if (nc_open(file_name[t], 0, &ncid_in[0])) ERR;
-	 if (nc_inq_var_chunking(ncid_in[0], 0, &storage, chunksize)) ERR;
-
-	 /* Now reopen this file a large number of times. */
-	 for (f = 1; f < num_files[t]; f++)
-	    if (nc_open(file_name[t], 0, &ncid_in[f])) ERR_RET;
-
-	 /* How long did it take per file? */
-	 if (gettimeofday(&end_time, NULL)) ERR;
-	 if (nc4_timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
-	 open_us = ((int)diff_time.tv_sec * MILLION + (int)diff_time.tv_usec);
-
-	 /* How much memory is in use by this process now? */
- 	 if (get_mem_used1(&mem_used2)) ERR;
-
-	 /* Close all netcdf files. */
-	 if (gettimeofday(&close_start_time, NULL)) ERR;
+	 /* Create sample files. */
+         if (gettimeofday(&start_time, NULL)) ERR;
 	 for (f = 0; f < num_files[t]; f++)
-	    if (nc_close(ncid_in[f])) ERR_RET;
+         {
+            /* Set up filename. */
+            sprintf(file_name[t], "tst_files2_%d_%d.nc", t, f);
+            if (create_sample_file(file_name[t], ndims[t], dim_len[t], num_vars[t],
+                                   mode[t], num_recs[t])) ERR;
 
-	 /* How long did it take to close all files? */
-	 if (gettimeofday(&close_end_time, NULL)) ERR;
-	 if (nc4_timeval_subtract(&close_diff_time, &close_end_time, &close_start_time)) ERR;
-	 close_us = ((int)close_diff_time.tv_sec * MILLION + (int)close_diff_time.tv_usec);
+            /* How long did it take? */
+            if (gettimeofday(&end_time, NULL)) ERR;
+            if (nc4_timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
+            create_us = ((int)diff_time.tv_sec * MILLION + (int)diff_time.tv_usec) / num_files[t];
+         }
 
-	 /* We're done with this. */
-	 free(ncid_in);
+         /* /\* Change the cache settings. *\/ */
+         /* if (nc_set_chunk_cache(cache_size[t], 20000, .75)) ERR; */
 
-	 /* How much memory was used for each open file? */
-	 mem_per_file = mem_used2/num_files[t];
+         /* We need storage for an array of ncids. */
+         if (!(ncid_in = malloc(num_files[t] * sizeof(int)))) ERR;
 
-	 /* Prepare the dimensions string. */
-	 if (ndims[t] == MAX_DIMS)
-	    sprintf(dimstr, "%dx%dx%dx%d", dim_len[t][0], dim_len[t][1],
-		    dim_len[t][2], dim_len[t][3]);
-	 else
-	    sprintf(dimstr, "%dx%dx%d", dim_len[t][0], dim_len[t][1],
-		    dim_len[t][2]);
+         /* How much memory is in use now? */
+         if (get_mem_used1(&mem_used)) ERR;
 
-	 /* Prepare the chunksize string. */
-	 if (storage == NC_CHUNKED)
-	 {
-	    if (ndims[t] == MAX_DIMS)
-	       sprintf(chunkstr, "%dx%dx%dx%d", (int)chunksize[0], (int)chunksize[1],
-		       (int)chunksize[2], (int)chunksize[3]);
-	    else
-	       sprintf(chunkstr, "%dx%dx%d", (int)chunksize[0], (int)chunksize[1],
-		       (int)chunksize[2]);
-	 }
-	 else
-	    strcpy(chunkstr, "contig       ");
+         /* Open the first file to get chunksizes. */
+         if (gettimeofday(&start_time, NULL)) ERR;
+         if (nc_open(file_name[t], 0, &ncid_in[0])) ERR;
+         if (nc_inq_var_chunking(ncid_in[0], 0, &storage, chunksize)) ERR;
 
-	 /* Output results. */
-	 printf("%s\t%s\t%s\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n",
-		dimstr, chunkstr, mode_name[t], num_files[t], (int)(cache_size[t]/1024),
-		num_vars[t], mem_used2, open_us, close_us, create_us);
+         /* Now reopen this file a large number of times. */
+         for (f = 1; f < num_files[t]; f++)
+            if (nc_open(file_name[t], 0, &ncid_in[f])) ERR_RET;
+
+         /* How long did it take per file? */
+         if (gettimeofday(&end_time, NULL)) ERR;
+         if (nc4_timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
+         open_us = ((int)diff_time.tv_sec * MILLION + (int)diff_time.tv_usec) / num_files[t];
+
+         /* How much memory is in use by this process now? */
+         if (get_mem_used1(&mem_used2)) ERR;
+
+         /* Close all netcdf files. */
+         if (gettimeofday(&close_start_time, NULL)) ERR;
+         for (f = 0; f < num_files[t]; f++)
+            if (nc_close(ncid_in[f])) ERR_RET;
+
+         /* How long did it take to close all files? */
+         if (gettimeofday(&close_end_time, NULL)) ERR;
+         if (nc4_timeval_subtract(&close_diff_time, &close_end_time, &close_start_time)) ERR;
+         close_us = ((int)close_diff_time.tv_sec * MILLION +
+                     (int)close_diff_time.tv_usec) / num_files[t];
+
+         /* We're done with this. */
+         free(ncid_in);
+
+         /* How much memory was used for each open file? */
+         /* mem_per_file = mem_used2/num_files[t]; */
+
+         /* Prepare the dimensions string. */
+         if (ndims[t] == MAX_DIMS)
+            sprintf(dimstr, "%dx%dx%dx%d", dim_len[t][0], dim_len[t][1],
+                    dim_len[t][2], dim_len[t][3]);
+         else
+            sprintf(dimstr, "%dx%dx%d", dim_len[t][0], dim_len[t][1],
+                    dim_len[t][2]);
+
+         /* Prepare the chunksize string. */
+         if (storage == NC_CHUNKED)
+         {
+            if (ndims[t] == MAX_DIMS)
+               sprintf(chunkstr, "%dx%dx%dx%d", (int)chunksize[0], (int)chunksize[1],
+                       (int)chunksize[2], (int)chunksize[3]);
+            else
+               sprintf(chunkstr, "%dx%dx%d", (int)chunksize[0], (int)chunksize[1],
+                       (int)chunksize[2]);
+         }
+         else
+            strcpy(chunkstr, "contig       ");
+
+         /* Output results. */
+         printf("%s\t%s\t%s\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n",
+                dimstr, chunkstr, mode_name[t], num_files[t], (int)(cache_size[t]/1024),
+                num_vars[t], mem_used2, open_us, close_us, create_us);
       }
    }
-  SUMMARIZE_ERR;
+   SUMMARIZE_ERR;
    printf("Test for memory consumption...\n");
    {
 #define NUM_TRIES_100 100

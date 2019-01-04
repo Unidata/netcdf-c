@@ -1,5 +1,5 @@
 /*********************************************************************
-  *   Copyright 2016, UCAR/Unidata
+  *   Copyright 2018, UCAR/Unidata
   *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
   *********************************************************************/
 
@@ -41,10 +41,9 @@ defined here, including function-like #defines.
 /* Clear empty structure alignment space; Potentially costly, but probably less than  CLEARMEM */
 #define CLEARSTRUCT
 
-/**************************************************/
-/* Global state */
-
-extern NCD4globalstate* NCD4_globalstate;
+/* Always use fixed size opaques */
+#define FIXEDOPAQUE
+#define DFALTOPAQUESIZE 16
 
 /**************************************************/
 
@@ -105,6 +104,7 @@ extern int NCD4_print(NCD4meta*, NCbytes* output);
 /* From d4meta.c */
 extern NCD4meta* NCD4_newmeta(size_t size, void* rawdata);
 extern void NCD4_reclaimMeta(NCD4meta*);
+extern void reclaimNode(NCD4node* node);
 extern void NCD4_setdebuglevel(NCD4meta*,int);
 extern int NCD4_metabuild(NCD4meta*, int ncid);
 extern size_t NCD4_computeTypeSize(NCD4meta*, NCD4node* type);
@@ -158,6 +158,8 @@ extern int NCD4_convert(nc_type srctype, nc_type dsttype, char* memory0, char* v
 /* From d4crc32.c */
 extern unsigned int NCD4_crc32(unsigned int crc, const void *buf, size_t size);
 
+/* d4file.c */
+extern void NCD4_applyclientparamcontrols(NCD4INFO*);
 
 /* Add an extra function whose sole purpose is to allow
    configure(.ac) to test for the presence of this code.

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2010, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header$
  *********************************************************************/
@@ -172,6 +172,25 @@ nclog(int tag, const char* fmt, ...)
       va_start(args, fmt);
       vfprintf(nclogstream, fmt, args);
       va_end( args );
+    }
+    fprintf(nclogstream, "\n" );
+    fflush(nclogstream);
+}
+
+void
+ncvlog(int tag, const char* fmt, va_list ap)
+{
+    char* prefix;
+
+    if(!nclogginginitialized) ncloginit();
+
+    if(!nclogging || nclogstream == NULL) return;
+
+    prefix = nctagname(tag);
+    fprintf(nclogstream,"%s:",prefix);
+
+    if(fmt != NULL) {
+      vfprintf(nclogstream, fmt, ap);
     }
     fprintf(nclogstream, "\n" );
     fflush(nclogstream);

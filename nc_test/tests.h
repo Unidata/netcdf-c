@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1996, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: tests.h 2785 2014-10-26 05:21:20Z wkliao $
  *********************************************************************/
@@ -17,10 +17,6 @@
 #include "netcdf_par.h"
 #endif
 #include "error.h"
-
-#ifndef HAVE_SSIZE_T
-typedef int ssize_t;
-#endif
 
 #if defined(_CRAY) && !defined(_CRAYIEEE) && !defined(__crayx1)
 #define CRAYFLOAT 1 /* CRAY Floating point */

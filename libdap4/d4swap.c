@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -9,7 +9,7 @@
 #include "ezxml.h"
 
 /*
-The primary purpose of this code is to recursivly traverse
+The primary purpose of this code is to recursively traverse
 the incoming data to get the endianness correct.
 */
 

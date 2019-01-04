@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/genlib.c,v 1.57 2010/04/04 19:39:47 dmh Exp $
  *********************************************************************/
@@ -8,14 +8,11 @@
 
 /* invoke netcdf calls (or generate C or Fortran code) to create netcdf
  * from in-memory structure.
-The output file name is chosen by using the following in priority order:
-1. -o flag name
-2. command line input file with .cdl changed to .nc
-3. dataset name as specified in netcdf <name> {...} 
 */
 void
 define_netcdf(void)
 {
+<<<<<<< HEAD
     char filename[2048+1]; /* +1 for strlcat */
 
     /* Rule for specifying the dataset name:
@@ -45,22 +42,22 @@ define_netcdf(void)
         /* Append the proper extension */
 	strlcat(filename,binary_ext,sizeof(filename));
     }
+=======
+>>>>>>> master
 
     /* Execute exactly one of these */
 #ifdef ENABLE_C
-    if (l_flag == L_C) gen_ncc(filename); else /* create C code to create netcdf */
+    if (l_flag == L_C) genc_netcdf(); else /* create C code to create netcdf */
 #endif
 #ifdef ENABLE_F77
-    if (l_flag == L_F77) gen_ncf77(filename); else /* create Fortran code */
+    if (l_flag == L_F77) genf77_netcdf(); else /* create Fortran code */
 #endif
 #ifdef ENABLE_JAVA
-    if(l_flag == L_JAVA) {
-	gen_ncjava(filename);
-    } else
+    if(l_flag == L_JAVA) genjava_netcdf(); else
 #endif
 /* Binary is the default */
 #ifdef ENABLE_BINARY
-    gen_netcdf(filename); /* create netcdf */
+    genbin_netcdf(); /* create netcdf */
 #else
     derror("No language specified");
 #endif
@@ -72,16 +69,16 @@ void
 close_netcdf(void)
 {
 #ifdef ENABLE_C
-    if (l_flag == L_C) cl_c(); else /* create C code to close netcdf */
+    if (l_flag == L_C) genc_close(); else /* create C code to close netcdf */
 #endif
 #ifdef ENABLE_F77
-    if (l_flag == L_F77) cl_f77(); else
+    if (l_flag == L_F77) genf77_close(); else
 #endif
 #ifdef ENABLE_JAVA
-    if (l_flag == L_JAVA) cl_java(); else
+    if (l_flag == L_JAVA) genjava_close(); else
 #endif
 #ifdef ENABLE_BINARY
-    if (l_flag == L_BINARY) cl_netcdf();
+    if (l_flag == L_BINARY) genbin_close();
 #endif
 }
 
@@ -100,7 +97,7 @@ topfqn(Symbol* sym)
     char* parentfqn;
     Symbol* parent;
 #endif
-    
+
     if(sym->fqn != NULL)
 	return; /* already defined */
 
@@ -111,20 +108,27 @@ topfqn(Symbol* sym)
         /* Recursively compute parent fqn */
         if(parent == NULL) { /* implies this is the rootgroup */
             assert(sym->grp.is_root);
-            sym->fqn = strdup("");
+            sym->fqn = estrdup("");
             return;
         } else if(parent->fqn == NULL) {
             topfqn(parent);
         }
         parentfqn = parent->fqn;
-    
+
         fqnname = fqnescape(sym->name);
+<<<<<<< HEAD
         len = (strlen(fqnname) + strlen(parentfqn) + 1);
         len++; /* strlcat nul*/
         fqn = (char*)malloc(len+1);
         strncpy(fqn,parentfqn,len);
         strlcat(fqn,"/",len);
         strlcat(fqn,fqnname,len);
+=======
+        fqn = (char*)ecalloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);
+        strcpy(fqn,parentfqn);
+        strcat(fqn,"/");
+        strcat(fqn,fqnname);
+>>>>>>> master
         sym->fqn = fqn;
     } else
 #endif /*USE_NETCDF4*/
@@ -145,8 +149,12 @@ nestedfqn(Symbol* sym)
     char* fqn;
     char* fqnname;
     Symbol* parent;
+<<<<<<< HEAD
     size_t len;
     
+=======
+
+>>>>>>> master
     if(sym->fqn != NULL)
 	return; /* already defined */
 
@@ -157,12 +165,19 @@ nestedfqn(Symbol* sym)
     assert(parent->fqn != NULL);
 
     fqnname = fqnescape(sym->name);
+<<<<<<< HEAD
     len = (strlen(fqnname) + strlen(parent->fqn) + 1);
     len++; /* strlcat nul*/
     fqn = (char*)malloc(len+1);
     strncpy(fqn,parent->fqn,len);
     strlcat(fqn,".",len);
     strlcat(fqn,fqnname,len);
+=======
+    fqn = (char*)ecalloc(strlen(fqnname) + strlen(parent->fqn) + 1 + 1);
+    strcpy(fqn,parent->fqn);
+    strcat(fqn,".");
+    strcat(fqn,fqnname);
+>>>>>>> master
     sym->fqn = fqn;
 }
 
@@ -178,8 +193,12 @@ attfqn(Symbol* sym)
     char* fqnname;
     char* parentfqn;
     Symbol* parent;
+<<<<<<< HEAD
     size_t len;
     
+=======
+
+>>>>>>> master
     if(sym->fqn != NULL)
 	return; /* already defined */
 
@@ -192,12 +211,19 @@ attfqn(Symbol* sym)
 	parentfqn = parent->fqn;
 
     fqnname = fqnescape(sym->name);
+<<<<<<< HEAD
     len = (strlen(fqnname) + strlen(parentfqn) + 1);
     len++; /* strlcat nul*/
     fqn = (char*)malloc(len+1);
     strncpy(fqn,parentfqn,len);
     strlcat(fqn,"_",len);
     strlcat(fqn,fqnname,len);
+=======
+    fqn = (char*)ecalloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);
+    strcpy(fqn,parentfqn);
+    strcat(fqn,"_");
+    strcat(fqn,fqnname);
+>>>>>>> master
     sym->fqn = fqn;
 }
 
@@ -228,10 +254,17 @@ cprefixed(List* prefix, char* suffix, char* separator)
     i = (rootgroup == (Symbol*)listget(prefix,0))?1:0;
     for(;i<plen;i++) {
 	Symbol* sym = (Symbol*)listget(prefix,i);
+<<<<<<< HEAD
         strlcat(result,sym->name,slen); /* append "<prefix[i]/>"*/
 	strlcat(result,separator,slen);
     }    
     strlcat(result,suffix,slen); /* append "<suffix>"*/
+=======
+        strcat(result,sym->name); /* append "<prefix[i]/>"*/
+	strcat(result,separator);
+    }
+    strcat(result,suffix); /* append "<suffix>"*/
+>>>>>>> master
     return result;
 }
 #endif /*0*/

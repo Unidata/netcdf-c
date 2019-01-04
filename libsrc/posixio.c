@@ -1,5 +1,5 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *	See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 /* $Id: posixio.c,v 1.89 2010/05/22 21:59:08 dmh Exp $ */
@@ -39,10 +39,6 @@
 
 #ifndef NC_NOERR
 #define NC_NOERR 0
-#endif
-
-#ifndef HAVE_SSIZE_T
-typedef int ssize_t;
 #endif
 
 #ifndef SEEK_SET
@@ -514,7 +510,7 @@ ncio_px_rel(ncio *const nciop, off_t offset, int rflags)
    * The blkextent can't be more than twice the pxp->blksz. That's
    because the pxp->blksize is the sizehint, and in ncio_px_init2 the
    buffer (pointed to by pxp->bf-base) is allocated with 2 *
-   *sizehintp. This is checked (unneccesarily) more than once in
+   *sizehintp. This is checked (unnecessarily) more than once in
    asserts.
 
    * If this is called on a newly opened file, pxp->bf_offset will be
@@ -1726,7 +1722,7 @@ unwind_new:
    nciopp - pointer to pointer that will get address of newly created
    and inited ncio struct.
 
-   igetvpp - handle to pass back pointer to data from inital page
+   igetvpp - handle to pass back pointer to data from initial page
    read, if this were ever used, which it isn't.
 */
 int

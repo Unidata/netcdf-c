@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 types.
@@ -20,6 +20,7 @@
 #define FILENAME2 "tst_types2.nc"
 #define FILENAME3 "tst_types3.nc"
 #define FILENAME4 "tst_types4.nc"
+#define A_NAME "some_name"
 
 #define CLEAN_INPUT_BUFFERS                     \
    for (i = 0; i < SIZE; i++) {                 \
@@ -153,7 +154,10 @@ int main(int argc, char *argv[])
       if (nc_def_enum(ncid2 + TEST_VAL_42, NC_INT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3) != NC_EBADID) ERR;
       if (nc_def_enum(ncid2, NC_INT, NULL, &typeid3) != NC_EINVAL) ERR;
       if (nc_def_enum(ncid3, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3) != NC_ENOTNC4) ERR;
-      /* if (nc_def_enum(ncid4, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3) != NC_ENOTNC4) ERR; */
+      if (nc_def_enum(ncid4, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3) != NC_ESTRICTNC3) ERR;
+      if (nc_def_opaque(ncid4, TEST_VAL_42, A_NAME, &typeid3) != NC_ESTRICTNC3) ERR;
+      if (nc_def_compound(ncid4, TEST_VAL_42, A_NAME, &typeid3) != NC_ESTRICTNC3) ERR;
+      if (nc_def_vlen(ncid4, A_NAME, NC_INT, &typeid3) != NC_ESTRICTNC3) ERR;
 
       /* Create some enum types that will not be equal to typeid1. */
       if (nc_def_enum(ncid2, NC_SHORT, ENUM_UNEQUAL_TYPE_NAME_3, &typeid3)) ERR;
@@ -223,23 +227,41 @@ int main(int argc, char *argv[])
       /* Open a netcdf-4 file, and one dimension. */
       if (create_test_file(FILENAME, varid, &ncid)) ERR;
 
+      /* This will not work. */
+      if (nc_put_vara_uchar(ncid, varid[0], NULL, count, ubyte_data_out) !=
+          NC_EINVALCOORDS) ERR;
+
+      /* This will work. */
       if (nc_put_vara_uchar(ncid, varid[0], start, count, ubyte_data_out)) ERR;
+
+      /* This will not work. */
+      if (nc_get_vara_uchar(ncid, varid[0], NULL, count, ubyte_data_in) !=
+          NC_EINVALCOORDS) ERR;
+
+      /* This will work. */
+      if (nc_get_vara_uchar(ncid, varid[0], start, NULL, ubyte_data_in)) ERR;
+      for (i = 0; i < SIZE; i++)
+         if (ubyte_data_in[i] != ubyte_data_out[i]) ERR;
+
+      CLEAN_INPUT_BUFFERS;
       if (nc_get_vara_uchar(ncid, varid[0], start, count, ubyte_data_in)) ERR;
       for (i = 0; i < SIZE; i++)
          if (ubyte_data_in[i] != ubyte_data_out[i]) ERR;
 
-      if (nc_put_vara_ushort(ncid, varid[1], start, count, ushort_data_out)) ERR;
+      /* NULL count will be interpreted as count of full extent. */
+      if (nc_put_vara_ushort(ncid, varid[1], start, NULL, ushort_data_out)) ERR;
       if (nc_get_vara_ushort(ncid, varid[1], start, count, ushort_data_in)) ERR;
       for (i = 0; i < SIZE; i++)
          if (ubyte_data_in[i] != ubyte_data_out[i]) ERR;
 
-      if (nc_put_vara_uint(ncid, varid[2], start, count, uint_data_out)) ERR;
+      /* vars with NULL stride is the same as vara. */
+      if (nc_put_vars_uint(ncid, varid[2], start, NULL, NULL, uint_data_out)) ERR;
       if (nc_get_vara_uint(ncid, varid[2], start, count, uint_data_in)) ERR;
       for (i = 0; i < SIZE; i++)
          if (ubyte_data_in[i] != ubyte_data_out[i]) ERR;
 
       if (nc_put_vara_longlong(ncid, varid[3], start, count, int64_data_out)) ERR;
-      if (nc_get_vara_longlong(ncid, varid[3], start, count, int64_data_in)) ERR;
+      if (nc_get_vars_longlong(ncid, varid[3], start, NULL, NULL, int64_data_in)) ERR;
       for (i = 0; i < SIZE; i++)
          if (ubyte_data_in[i] != ubyte_data_out[i]) ERR;
 
@@ -266,11 +288,22 @@ int main(int argc, char *argv[])
 
       if (nc_put_vars_uchar(ncid, varid[0], start, count, stride,
                             ubyte_data_out)) ERR;
+
+      /* This will not work. */
+      if (nc_get_vars_uchar(ncid, varid[0], NULL, count, stride,
+                            ubyte_data_in) != NC_EINVALCOORDS) ERR;
+
+      /* This will work. */
       if (nc_get_vars_uchar(ncid, varid[0], start, count, stride,
                             ubyte_data_in)) ERR;
       if (ubyte_data_in[0] != ubyte_data_out[0]) ERR;
       if (ubyte_data_in[1] != ubyte_data_out[STRIDE_SIZE]) ERR;
 
+      /* This will not work. */
+      if (nc_put_vars_ushort(ncid, varid[1], NULL, count, stride,
+                             ushort_data_out) != NC_EINVALCOORDS) ERR;
+
+      /* This will work. */
       if (nc_put_vars_ushort(ncid, varid[1], start, count, stride,
                              ushort_data_out)) ERR;
       if (nc_get_vars_ushort(ncid, varid[1], start, count, stride,
@@ -313,7 +346,17 @@ int main(int argc, char *argv[])
       /* Open a netcdf-4 file, and one dimension. */
       if (create_test_file(FILENAME, varid, &ncid)) ERR;
 
+      /* This will not work. */
+      if (nc_put_var1_uchar(ncid, varid[0], NULL, ubyte_data_out) !=
+          NC_EINVALCOORDS) ERR;
+
+      /* This will work. */
       if (nc_put_var1_uchar(ncid, varid[0], index1, ubyte_data_out)) ERR;
+
+      /* This will not work. */
+      if (nc_get_var1_uchar(ncid, varid[0], NULL, ubyte_data_in) != NC_EINVALCOORDS) ERR;
+
+      /* This will work. */
       if (nc_get_var1_uchar(ncid, varid[0], index1, ubyte_data_in)) ERR;
       if (ubyte_data_in[0] != ubyte_data_out[0]) ERR;
 
@@ -351,8 +394,19 @@ int main(int argc, char *argv[])
       /* Open a netcdf-4 file, and one dimension. */
       if (create_test_file(FILENAME, varid, &ncid)) ERR;
 
+      /* This will not work. */
+      if (nc_put_varm_ubyte(ncid, varid[0], NULL, count, stride, imap,
+                            ubyte_data_out) != NC_EINVALCOORDS) ERR;
+
+      /* This will work. */
       if (nc_put_varm_ubyte(ncid, varid[0], start, count, stride, imap,
                             ubyte_data_out)) ERR;
+
+      /* This will not work. */
+      if (nc_get_varm_ubyte(ncid, varid[0], NULL, count, stride, imap,
+                            ubyte_data_in) != NC_EINVALCOORDS) ERR;
+
+      /* This will work. */
       if (nc_get_varm_ubyte(ncid, varid[0], start, count, stride, imap,
                             ubyte_data_in)) ERR;
       for (i = 0; i < STRIDE_SIZE; i++)

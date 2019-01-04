@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2008 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
@@ -14,7 +14,6 @@
 int
 main(int argc, char **argv)
 {
-nc_set_log_level(0);
    printf("\n*** Testing netcdf-4 dimensions even more.\n");
    printf("*** testing netcdf-4 dimension inheritance...");
    {

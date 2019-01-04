@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
  See the COPYRIGHT file for more information. */
 
 #include "config.h"
@@ -128,7 +128,7 @@ ocfetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
 	/* Null terminate the buffer*/
 	len = ncbyteslength(buf);
 	ncbytesappend(buf, '\0');
-	ncbytessetlength(buf, len); /* dont count null in buffer size*/
+	ncbytessetlength(buf, len); /* don't count null in buffer size*/
 #ifdef OCDEBUG
 	nclog(NCLOGNOTE,"buffersize: %lu bytes",(off_t)ncbyteslength(buf));
 #endif
@@ -312,7 +312,7 @@ ocping(const char* url)
     if (cstat != CURLE_OK)
         goto done;
 
-    /* use a very short timeout: 10 seconds */
+    /* use a very short timeout: 5 seconds */
     cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)5));
     if (cstat != CURLE_OK)
         goto done;

@@ -1,3 +1,13 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
 /*
 Report from Ansely Manke:
 I've attached a file with a short c program that
@@ -149,7 +159,7 @@ main()
 #ifdef VERBOSE
     for (idim=0; idim<ndim; idim++)
 	printf("start[%1d]=%3lu count[%1d]=%3lu stride[%1d]=%3lu\n",
-		idim,start[idim],idim,count[idim],idim,stride[idim]);
+		idim,(unsigned long)start[idim],idim,(unsigned long)count[idim],idim,(unsigned long)stride[idim]);
 #endif
 
     ncstatus = nc_get_vars_float (ncid, varid, start, count, stride, (float*) dat);
@@ -199,7 +209,7 @@ main()
 #ifdef VERBOSE
     for (idim=0; idim<ndim; idim++)
         printf("start[%d]=%3lu count[%d]=%3lu stride[%d]=%3lu\n",
-		idim, start[idim], idim, count[idim], idim, stride[idim]);
+		idim, (unsigned long)start[idim], idim, (unsigned long)count[idim], idim, (unsigned long)stride[idim]);
 #endif
 
     ncstatus = nc_get_vars_float (ncid, varid, start, count, stride, (float*) dat);
@@ -256,7 +266,7 @@ main()
 #ifdef VERBOSE
     for (idim=0; idim<ndim; idim++)
 	printf("start[%1d]=%3lu count[%1d]=%3lu stride[%1d]=%3lu\n",
-		idim,start[idim],idim,count[idim],idim,stride[idim]);
+		idim,(unsigned long)start[idim],idim,(unsigned long)count[idim],idim,(unsigned long)stride[idim]);
 #endif
 
     memset((void*)sdat,0,sizeof(sdat));

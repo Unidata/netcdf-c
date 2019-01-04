@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Common includes, defines, etc., for test code in the libsrc4 and
@@ -77,6 +77,17 @@ int ERR_report(int stat, const char* file, int line)
       return 2; \
    } \
    printf("*** Tests successful!\n"); \
+   return 0; \
+} while (0)
+
+/* This macro does the same as FINAL_RESULTS, but without the success
+ * message. */
+#define FINAL_RESULTS_QUIET do { \
+   if (total_err) \
+   { \
+      printf("%d errors detected! Sorry!\n", total_err); \
+      return 2; \
+   } \
    return 0; \
 } while (0)
 

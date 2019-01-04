@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -111,13 +111,12 @@ done:
 	d4odom_free(odom);
     if(instance != NULL)
 	free(instance);
-    if(ret != NC_NOERR) { /* reclaim all malloc'd data */
+    if(ret != NC_NOERR) { /* reclaim all malloc'd data if there is an error*/
 	for(i=0;i<nclistlength(blobs);i++) {
 	    nullfree(nclistget(blobs,i));
 	}
     }
-    if(blobs != NULL)
-	nclistfree(blobs);
+    if(blobs) nclistfree(blobs);
     return (ret);
 }
 

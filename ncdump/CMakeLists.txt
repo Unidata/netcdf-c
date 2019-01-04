@@ -1,21 +1,38 @@
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+
+# See netcdf-c/COPYRIGHT file for more info.
 IF(BUILD_SHARED_LIBS AND WIN32)
   remove_definitions(-DDLL_EXPORT)
   remove_definitions(-DDLL_NETCDF)
 ENDIF()
 
 SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.c)
-SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c)
+SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c list.c)
+SET(ocprint_FILES ocprint.c)
 
 IF(USE_X_GETOPT)
   SET(ncdump_FILES ${ncdump_FILES} XGetopt.c)
   SET(nccopy_FILES ${nccopy_FILES} XGetopt.c)
+  SET(ocprint_FILES ${ocprint_FILES} XGetopt.c)
+
 ENDIF()
 
 ADD_EXECUTABLE(ncdump ${ncdump_FILES})
 ADD_EXECUTABLE(nccopy ${nccopy_FILES})
 
+IF(ENABLE_DAP)
+  ADD_EXECUTABLE(ocprint ${ocprint_FILES})
+ENDIF(ENABLE_DAP)
+
 TARGET_LINK_LIBRARIES(ncdump netcdf ${ALL_TLL_LIBS})
 TARGET_LINK_LIBRARIES(nccopy netcdf ${ALL_TLL_LIBS})
+
+IF(ENABLE_DAP)
+  TARGET_LINK_LIBRARIES(ocprint netcdf ${ALL_TLL_LIBS})
+ENDIF(ENABLE_DAP)
 
 ####
 # We have to do a little tweaking
@@ -37,6 +54,16 @@ IF(MSVC)
     ${CMAKE_CURRENT_BINARY_DIR})
   SET_TARGET_PROPERTIES(nccopy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
     ${CMAKE_CURRENT_BINARY_DIR})
+
+  IF(ENABLE_DAP)
+    SET_TARGET_PROPERTIES(ocprint PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(ocprint PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(ocprint PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+      ${CMAKE_CURRENT_BINARY_DIR})
+  ENDIF(ENABLE_DAP)
+
 ENDIF()
 
 
@@ -121,7 +148,9 @@ ENDIF(MSVC)
   ENDIF(USE_STRICT_NULL_BYTE_HEADER_PADDING)
 
   add_sh_test(ncdump tst_nccopy3)
-  SET_TESTS_PROPERTIES(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
+  IF(HAVE_BASH)
+    SET_TESTS_PROPERTIES(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
+  ENDIF(HAVE_BASH)
 
   add_sh_test(ncdump tst_nccopy3_subset)
   add_sh_test(ncdump tst_charfill)
@@ -138,12 +167,10 @@ ENDIF(MSVC)
     ENDIF(ENABLE_LARGE_FILE_TESTS)
   ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
-  IF(BUILD_DISKLESS)
-    add_sh_test(ncdump tst_inmemory_nc3)
-    IF(USE_NETCDF4)
+  add_sh_test(ncdump tst_inmemory_nc3)
+  IF(USE_NETCDF4)
       add_sh_test(ncdump tst_inmemory_nc4)
-    ENDIF(USE_NETCDF4)
-  ENDIF(BUILD_DISKLESS)
+  ENDIF(USE_NETCDF4)
 
   IF(USE_NETCDF4)
     build_bin_test_no_prefix(tst_create_files)
@@ -162,7 +189,6 @@ ENDIF(MSVC)
     build_bin_test_no_prefix(tst_special_atts)
     build_bin_test_no_prefix(tst_compress)
     build_bin_test_no_prefix(tst_chunking)
-
 
     ###
     # This test fails on Visual Studio builds with bash.
@@ -189,9 +215,9 @@ ENDIF(MSVC)
     add_sh_test(ncdump_sh tst_fillbug)
 
     add_sh_test(ncdump tst_netcdf4_4)
-    IF(MSVC)
+    IF(MSVC AND HAVE_BASH)
       SET_TESTS_PROPERTIES(ncdump_tst_netcdf4_4 PROPERTIES WILL_FAIL TRUE)
-    ENDIF(MSVC)
+    ENDIF(MSVC AND HAVE_BASH)
 
     ###
     # Some test reordering was required to ensure these tests
@@ -207,7 +233,14 @@ ENDIF(MSVC)
     add_sh_test(ncdump_shell tst_h_scalar)
 
     add_sh_test(ncdump tst_nccopy4)
-    SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
+    IF(HAVE_BASH)
+      SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
+    ENDIF(HAVE_BASH)
+
+    add_sh_test(ncdump tst_nccopy5)
+    IF(HAVE_BASH)
+      SET_TESTS_PROPERTIES(ncdump_tst_nccopy5 PROPERTIES RUN_SERIAL TRUE)
+    ENDIF(HAVE_BASH)
 
     IF(USE_NETCDF4)
       add_sh_test(ncdump tst_ncgen4)
@@ -230,14 +263,21 @@ IF(MSVC)
     PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
     )
 
+  IF(ENABLE_DAP)
+    SET_TARGET_PROPERTIES(ocprint
+      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+      )
+  ENDIF(ENABLE_DAP)
+
 ENDIF()
 
 
 INSTALL(TARGETS ncdump RUNTIME DESTINATION bin COMPONENT utilities)
 INSTALL(TARGETS nccopy RUNTIME DESTINATION bin COMPONENT utilities)
+
 SET(MAN_FILES nccopy.1 ncdump.1)
 
-# Note, te L512.bin file is file containing exactly 512 bytes each of value 0.
+# Note, the L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
 
 FILE(GLOB COPY_FILES ${CMAKE_BINARY_DIR}/ncgen/*.nc ${CMAKE_BINARY_DIR}/nc_test4/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.ncml ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.1 ${CMAKE_CURRENT_SOURCE_DIR}/L512.bin)

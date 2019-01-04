@@ -14,8 +14,8 @@ export verbose
 
 echo "*** Performing diff/cycle tests for classic format: k=1"
 KFLAG=1 ; export KFLAG
-bash -x  ${srcdir}/tst_ncgen4_diff.sh
-bash -x  ${srcdir}/tst_ncgen4_cycle.sh
+bash ${srcdir}/tst_ncgen4_diff.sh
+bash ${srcdir}/tst_ncgen4_cycle.sh
 echo "SUCCESS!!"
 exit 0
 

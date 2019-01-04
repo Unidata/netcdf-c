@@ -8,7 +8,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 # This shell script runs the ncdump tests.
 # get some config.h parameters
 if test -f ${top_builddir}/config.h ; then
-  if fgrep -e '#define USE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
+  if fgrep -e '#define ENABLE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
     CDF5=1
   else
     CDF5=0

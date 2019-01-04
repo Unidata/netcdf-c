@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2006 University Corporation for Atmospheric Research/Unidata.
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata.
    See COPYRIGHT file for conditions of use.
 
    This is a very simple example which tests rejection of bad names for
@@ -225,11 +225,11 @@ main(int argc, char **argv)
        NC_FORMAT_CLASSIC
        ,
        NC_FORMAT_64BIT_OFFSET
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
        ,
        NC_FORMAT_CDF5
 #endif
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
        ,
        NC_FORMAT_NETCDF4
        ,
@@ -241,20 +241,12 @@ main(int argc, char **argv)
        "classic", "64-bit offset", "64-bit data", "netCDF-4/HDF5", "netCDF-4 classic model"
    };
 
-#ifdef TEST_PNETCDF
-   MPI_Init(&argc, &argv);
-#endif
-
    printf("\n*** testing names with file %s...\n", testfile);
    for (j = 0; j < num_formats; j++)
    {
        printf("*** switching to netCDF %s format...", format_names[j]);
        nc_set_default_format(formats[j], NULL);
-#ifdef TEST_PNETCDF
-       if((res = nc_create_par(testfile, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)))
-#else
        if((res = nc_create(testfile, NC_CLOBBER, &ncid)))
-#endif
 	   ERROR
 
        /* Define dimensions, variables, and attributes with various
@@ -302,11 +294,7 @@ main(int argc, char **argv)
 	   ERROR
 
        /* Check it out, make sure all objects with good names were defined OK */
-#ifdef TEST_PNETCDF
-       if ((res = nc_open_par(testfile, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)))
-#else
        if ((res = nc_open(testfile, NC_NOWRITE, &ncid)))
-#endif
 	   ERROR
        for (i = 0; i < NUM_GOOD; i++) {
 	   size_t attlen;
@@ -336,8 +324,5 @@ main(int argc, char **argv)
    total_err += nerrs;
    FINAL_RESULTS;
 
-#ifdef TEST_PNETCDF
-   MPI_Finalize();
-#endif
    return 0;
 }

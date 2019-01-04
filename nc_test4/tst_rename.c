@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 /*
  * Test renames of vars and dims. It's a surprisingly tricky business.
  *
@@ -130,7 +141,7 @@ main(int argc, char **argv)
    char *file_names[] = {FILE_NAME3, FILE_NAME4};
    int format;
 
-   fprintf(stderr,"*** Testing netcdf rename bugs and fixes.\n");
+   printf("*** Testing netcdf rename bugs and fixes.\n");
    /* nc_set_log_level(5); */
 
    for (format = 0; format < NUM_FORMATS; format++)
@@ -142,7 +153,7 @@ main(int argc, char **argv)
       float rh_in[DIM_LEN];
       int ii;
 
-      fprintf(stderr,"*** Test Charlie's test for renaming without enddef...");
+      printf("*** Test Charlie's test for renaming without enddef...");
       {
          int ncid, dimid, varid;
 
@@ -175,10 +186,13 @@ main(int argc, char **argv)
 
       }
       SUMMARIZE_ERR;
-      fprintf(stderr,"*** Test Charlie's test for renaming with one enddef...");
+      printf("*** Test Charlie's test for renaming with one enddef...");
       {
          int ncid, dimid, varid;
+
+#ifdef DEBUG
          nc_set_log_level(5);
+#endif
 
          /* Create a nice, simple file. This file will contain one
           * dataset, "lon", which is a dimscale. */
@@ -214,7 +228,7 @@ main(int argc, char **argv)
 
       }
       SUMMARIZE_ERR;
-      fprintf(stderr,"*** Test Charlie's test for renaming with enddef...");
+      printf("*** Test Charlie's test for renaming with enddef...");
       {
          int ncid, dimid, varid;
          float data[DIM1_LEN] = {0, 90.0, 180.0, 270.0};
@@ -424,8 +438,8 @@ main(int argc, char **argv)
       }
       SUMMARIZE_ERR;
 
-      fprintf(stderr,"*** Test renaming just coordinate variable for %s...",
-              fmt_names[format]);
+      printf("*** Test renaming just coordinate variable for %s...",
+             fmt_names[format]);
       {
          if (create_test_file(file_names[format], formats[format])) ERR;
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
@@ -449,8 +463,8 @@ main(int argc, char **argv)
       }
       SUMMARIZE_ERR;
 
-      fprintf(stderr,"*** Test renaming just coordinate dimension for %s...",
-              fmt_names[format]);
+      printf("*** Test renaming just coordinate dimension for %s...",
+             fmt_names[format]);
       {
          if (create_test_file(file_names[format], formats[format])) ERR;
          if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;

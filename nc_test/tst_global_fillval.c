@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2017 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
@@ -33,11 +33,11 @@ main(int argc, char **argv)
     int *formats = NULL;
 	/* Determine how many formats are in use. */
 
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
     num_formats += 2;
 #endif
 
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
     num_formats++;
 #endif
 
@@ -46,10 +46,10 @@ main(int argc, char **argv)
 
 	formats[n++] = 0;
 	formats[n++] = NC_64BIT_OFFSET;
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
 	formats[n++] = NC_64BIT_DATA;
 #endif
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 	formats[n++] = NC_NETCDF4;
 	formats[n++] = NC_CLASSIC_MODEL | NC_NETCDF4;
 #endif

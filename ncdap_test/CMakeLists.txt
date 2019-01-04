@@ -1,3 +1,9 @@
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+
+# See netcdf-c/COPYRIGHT file for more info.
 add_definitions(-D"TOPSRCDIR=${CMAKE_SOURCE_DIR}")
 add_definitions(-D"TOPBINDIR=${CMAKE_BINARY_DIR}")
 
@@ -31,6 +37,11 @@ IF(ENABLE_TESTS)
       add_sh_test(ncdap tst_ber)
       add_sh_test(ncdap tst_remote3)
 # not yet      add_sh_test(ncdap tst_hyrax)
+      add_sh_test(ncdap tst_fillmismatch)
+      IF(ENABLE_DAP_LONG_TESTS)
+        add_sh_test(ncdap tst_longremote3)
+      ENDIF(ENABLE_DAP_LONG_TESTS)
+
     ENDIF(BUILD_UTILITIES)
 
     IF(ENABLE_DAP_AUTH_TESTS)
@@ -55,5 +66,5 @@ ADD_SUBDIRECTORY(expectremote3)
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} findtestserver.c.in CMakeLists.txt Makefile.am)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

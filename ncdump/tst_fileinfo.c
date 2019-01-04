@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2008 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 */
@@ -24,6 +24,25 @@ Test _NCProperties and other special attributes
 #define INT_VAR_NAME "int_var"
 #define GROUPNAME "subgroup"
 #define DIMNAME "time"
+
+/*
+Effective cdl:
+
+netcdf nc4_fileinfo {
+dimensions:
+	time = 4;
+variables:
+	int :int_attr;
+	int int_var;
+		int int_var:int_attr;
+		char int_var:_NCProperties;
+	int time(time);
+  group subgroup: {
+	int :int_attr;
+	char :_NCProperties;
+  }
+}
+*/
 
 int
 main(int argc, char **argv)
@@ -94,9 +113,6 @@ main(int argc, char **argv)
 	if(nc_def_grp(root,GROUPNAME,&grpid)!=0) ERR;
 	/* Create global attribute in the group */
 	if(nc_put_att_int(grpid,NC_GLOBAL,INT_ATT_NAME,NC_INT,1,&data)!=0) ERR;
-	/* Create _NCProperties as var attr and as subgroup attribute */
-	if(nc_put_att_text(grpid,NC_GLOBAL,NCPROPS,strlen(sdata),sdata)!=0) ERR;
-	if(nc_put_att_text(root,varid,NCPROPS,strlen(sdata),sdata)!=0) ERR;
 	/* Create var + dimension to cause e.g. dimscales to appear */
 	if(nc_def_dim(root,DIMNAME,(size_t)4,&dimid)!=0) ERR;
 	if(nc_def_var(root,DIMNAME,NC_INT,1,&dimid,&varid)!=0) ERR; /* same name */

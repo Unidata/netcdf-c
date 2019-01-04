@@ -13,7 +13,7 @@ echo ""
 
 # get some config.h parameters
 if test -f ${top_builddir}/config.h ; then
-  if fgrep -e '#define USE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
+  if fgrep -e '#define ENABLE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
     HAVE_CDF5=1
   else
     HAVE_CDF5=0
@@ -34,6 +34,7 @@ fi
 echo "*** Testing netCDF-3 features of nccopy on ncdump/*.nc files"
 for i in $TESTFILES ; do
     echo "*** Testing nccopy $i.nc nccopy3_copy_of_$i.nc ..."
+ls -l $i.nc
     ${NCCOPY} $i.nc nccopy3_copy_of_$i.nc
     ${NCDUMP} -n nccopy3_copy_of_$i $i.nc > tmp_tst_nccopy3.cdl
     ${NCDUMP} nccopy3_copy_of_$i.nc > nccopy3_copy_of_$i.cdl

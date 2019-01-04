@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 variables.
@@ -276,7 +276,7 @@ main(int argc, char **argv)
 	printf("Return code is '%s', expected NC_BADCHUNK",nc_strerror(stat));
 	ERR;
       }
-      /* try agains with proper chunksize */
+      /* try again with proper chunksize */
       chunks[0] = D_SMALL_LEN2;
       stat = nc_def_var_chunking(ncid, small_varid, NC_CHUNKED, chunks);
       if(stat != NC_NOERR) {

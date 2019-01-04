@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 /*
@@ -218,7 +218,7 @@ xxdr_free(XXDR* xdr)
 
 /***********************************/
 
-/* Skip exacly "len" bytes in the input; any rounding must be done by the caller*/
+/* Skip exactly "len" bytes in the input; any rounding must be done by the caller*/
 int
 xxdr_skip(XXDR* xdrs, off_t len)
 {

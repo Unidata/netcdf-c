@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
@@ -28,7 +28,7 @@ bbFail(void)
     fflush(stdout);
     fprintf(stderr,"bytebuffer failure\n");
     fflush(stderr);
-    if(bbdebug) exit(1);
+    if(bbdebug) abort();
     return FALSE;
 }
 
@@ -53,7 +53,7 @@ bbSetalloc(Bytebuffer* bb, const unsigned int sz0)
   if(sz <= 0) {sz = (bb->alloc?2*bb->alloc:DEFAULTALLOC);}
   else if(bb->alloc >= sz) return TRUE;
   else if(bb->nonextendible) return bbFail();
-  newcontent=(char*)ecalloc(sz,sizeof(char));
+  newcontent=(char*)ecalloc(sz*sizeof(char));
   if(bb->alloc > 0 && bb->length > 0 && bb->content != NULL) {
     memcpy((void*)newcontent,(void*)bb->content,sizeof(char)*bb->length);
   }
@@ -276,4 +276,18 @@ bbNull(Bytebuffer* bb)
     bbAppend(bb,'\0');
     bb->length--;
     return 1;
+}
+
+/* Extract the content and leave content null */
+char*
+bbExtract(Bytebuffer* bb)
+{
+    char* x = NULL;
+    if(bb == NULL || bb->content == NULL)
+        return NULL;
+    x = bb->content;
+    bb->content = NULL;
+    bb->length = 0;
+    bb->alloc = 0;
+    return x;
 }

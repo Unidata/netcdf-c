@@ -1,7 +1,13 @@
-/* Diskless test in support of https://github.com/Unidata/netcdf-c/issues/400 */
+/*! \file
 
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
 
+See \ref copyright file for more info.
 
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,7 +23,7 @@
 #include "netcdf_mem.h"
 
 #undef MEM
-#define DISKLESS
+#undef DISKLESS
 #define USEINT
 
 #undef DUMP
@@ -30,10 +36,10 @@ static int mem = 0;
 #endif
 
 #ifdef DISKLESS
-#define MODE NC_NOCLOBBER|NC_DISKLESS
+#define MODE NC_DISKLESS
 static int diskless = 1;
 #else
-#define MODE NC_NOCLOBBER
+#define MODE 0
 static int diskless = 0;
 #endif
 

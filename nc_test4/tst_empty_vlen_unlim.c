@@ -1,4 +1,4 @@
-/* This is part of the netCDF package.  Copyright 2005 University
+/* This is part of the netCDF package.  Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use.
 
@@ -51,8 +51,10 @@ int main() {
     if (nc_create(FILE_NAME_UNLIM, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
     /* Set fill mode */
-    //printf("\t* Setting fill mode:\tnc_set_fill()\n");
-    //if(nc_set_fill(ncid,NC_FILL,NULL)) ERR;
+#if 0
+    printf("\t* Setting fill mode:\tnc_set_fill()\n");
+    if(nc_set_fill(ncid,NC_FILL,NULL)) ERR;
+#endif
 
     /* Create Dimension */
     printf("\t* Defining Unlimited Dimension:\tnc_def_dim()\n");
@@ -80,7 +82,7 @@ int main() {
       data2[i] = (float)i;
     }
 
-    printf("\t* Puting data in secondary variable:\tnc_put_vara().\n");
+    printf("\t* Putting data in secondary variable:\tnc_put_vara().\n");
     if (nc_put_vara(ncid,varid2,startp2,countp2,data2)) ERR;
     free(data2);
 
@@ -113,7 +115,7 @@ int main() {
     data[2].p = dat2;
     data[2].len = VLEN2;
 
-    printf("\t* Puting data in VLEN variable:\tnc_put_vara().\n");
+    printf("\t* Putting data in VLEN variable:\tnc_put_vara().\n");
     stat = nc_put_vara(ncid,varid,startp,countp,data);
     if(stat) ERR;
 
@@ -143,9 +145,10 @@ int main() {
     if (nc_create(FILE_NAME_LIM, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
     /* Set fill mode */
-    //printf("\t* Setting fill mode:\tnc_set_fill()\n");
-    //if(nc_set_fill(ncid,NC_FILL,NULL)) ERR;
-
+#if 0
+    printf("\t* Setting fill mode:\tnc_set_fill()\n");
+    if(nc_set_fill(ncid,NC_FILL,NULL)) ERR;
+#endif
     /* Create Dimension */
     printf("\t* Defining Unlimited Dimension:\tnc_def_dim()\n");
     if (nc_def_dim(ncid, DIM_NAME, DIM_LEN_LIM, &dimid)) ERR;
@@ -172,7 +175,7 @@ int main() {
       data2[i] = (float)i;
     }
 
-    printf("\t* Puting data in secondary variable:\tnc_put_vara().\n");
+    printf("\t* Putting data in secondary variable:\tnc_put_vara().\n");
     if (nc_put_vara(ncid,varid2,startp2,countp2,data2)) ERR;
     free(data2);
 
@@ -205,7 +208,7 @@ int main() {
     data[2].p = dat2;
     data[2].len = VLEN2;
 
-    printf("\t* Puting data in VLEN variable:\tnc_put_vara().\n");
+    printf("\t* Putting data in VLEN variable:\tnc_put_vara().\n");
     stat = nc_put_vara(ncid,varid,startp,countp,data);
     if(stat) ERR;
 

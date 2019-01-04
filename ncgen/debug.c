@@ -1,19 +1,30 @@
-/*********************************************************************
- *   Copyright 2009, UCAR/Unidata
- *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *********************************************************************/
-/* $Id: debug.c,v 1.2 2010/05/24 19:59:57 dmh Exp $ */
-/* $Header: /upc/share/CVS/netcdf-3/ncgen/debug.c,v 1.2 2010/05/24 19:59:57 dmh Exp $ */
+/*
+Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
+See COPYRIGHT for license information.
+*/
 
 #include "includes.h"
 
+#define TRACE
+
 extern char* ncclassname(nc_class);
 
-#ifdef DEBUG
-int debug = 1;
+#ifdef TRACE
+#define T(fcn,mem) {if(trace) {fprintf(stderr,"X: %s: %p\n", fcn,mem);}}
 #else
-int debug = 0;
+#define T(fcn,mem)
 #endif
+
+int debug = 0;
+static int trace = 0;
+
+int
+settrace(int tf)
+{
+    trace = tf;
+    return 1;
+}
+
 
 void fdebug(const char *fmt, ...)
 {
@@ -26,21 +37,36 @@ void fdebug(const char *fmt, ...)
 /**************************************************/
 
 /* Support debugging of memory*/
-/* Also guarantee that calloc zeros memory*/
-void*
-chkcalloc(size_t size, size_t nelems)
+
+void
+chkfree(void* memory)
 {
-    return chkmalloc(size*nelems);
+    if(memory == NULL) {
+	panic("free: null memory");
+    }
+T("free",memory);
+    free(memory);
 }
 
 void*
 chkmalloc(size_t size)
 {
-    void* memory = calloc(size,1); /* use calloc to zero memory*/
+    void* memory = malloc(size);
     if(memory == NULL) {
 	panic("malloc:out of memory");
     }
-    memset(memory,0,size);
+T("malloc",memory);
+    return memory;
+}
+
+void*
+chkcalloc(size_t size)
+{
+    void* memory = calloc(size,1); /* use calloc to zero memory*/
+    if(memory == NULL) {
+	panic("calloc:out of memory");
+    }
+T("calloc",memory);
     return memory;
 }
 
@@ -51,13 +77,23 @@ chkrealloc(void* ptr, size_t size)
     if(memory == NULL) {
 	panic("realloc:out of memory");
     }
+if(ptr != memory) {T("free",memory); T("realloc",memory);}
     return memory;
 }
 
-void
-chkfree(void* mem)
+char*
+chkstrdup(const char* s)
 {
-    if(mem != NULL) free(mem);
+    char* dup;
+    if(s == NULL) {
+	panic("strdup: null argument");
+    }
+    dup = strdup(s);
+    if(dup == NULL) {
+	panic("strdup: out of memory");
+    }
+T("strdup",dup);
+    return dup;
 }
 
 int

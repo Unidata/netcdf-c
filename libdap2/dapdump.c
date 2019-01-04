@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -156,10 +156,10 @@ dumpdata1(nc_type nctype, size_t index, char* data)
 	fprintf(stdout,"'%c' %hhd",data[index],data[index]);
 	break;
     case NC_BYTE:
-	fprintf(stdout,"%hdB",((signed char*)data)[index]);
+	fprintf(stdout,"%hhdB",((signed char*)data)[index]);
 	break;
     case NC_UBYTE:
-	fprintf(stdout,"%huB",((unsigned char*)data)[index]);
+	fprintf(stdout,"%hhuB",((unsigned char*)data)[index]);
 	break;
     case NC_SHORT:
 	fprintf(stdout,"%hdS",((short*)data)[index]);
@@ -485,14 +485,14 @@ dumpnode(CDFnode* node)
 }
 
 char*
-dumpalign(NCalignment* ncalign)
+dumpalign(NCD2alignment* ncalign)
 {
     char* result;
     char tmp[1024];
     if(ncalign == NULL)
-	result = nulldup("NCalignment{size=-- alignment=-- offset=--}");
+	result = nulldup("NCD2alignment{size=-- alignment=-- offset=--}");
     else {
-        snprintf(tmp,sizeof(tmp),"NCalignment{size=%lu alignment=%lu offset=%lu}",
+        snprintf(tmp,sizeof(tmp),"NCD2alignment{size=%lu alignment=%lu offset=%lu}",
 		 ncalign->size,ncalign->alignment,ncalign->offset);
         result = nulldup(tmp);
     }

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/genjjni.c,v 1.6 2010/04/04 19:39:46 dmh Exp $
  *********************************************************************/
@@ -741,7 +741,7 @@ definejtype(Symbol* tsym)
 	nprintf(stmt,sizeof(stmt),"%s%s(%s)%s",
 		    indented(1),
 		    jtypename(econst),
-		    jconst(&econst->typ.econst),
+		    jconst(econst->typ.econst),
 	            (i == (nconst - 1)?";":","));
 	jlined(1,stmt);
     }
@@ -1541,7 +1541,7 @@ jname(Symbol* sym)
 	    /* Attribute name must be prefixed with the cname of the*/
 	    /* associated variable*/
 	    char* lname;
-	    lname = (char*)emalloc(strlen(sym->att.var->name)
+	    lname = (char*)ecalloc(strlen(sym->att.var->name)
 					+strlen(sym->name)
 					+1+1);
 	    lname[0] = '\0';

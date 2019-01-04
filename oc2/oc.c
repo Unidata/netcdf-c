@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
@@ -1035,7 +1035,7 @@ oc_data_gridmap(OCobject link, OCobject grid, size_t index, OCobject* mapdatap)
 
 /*!
 Obtain the data instance corresponding to the container
-of a specied instance object.
+of a specified instance object.
 
 \param[in] link The link through which the server is accessed.
 \param[in] datanode The data instance of interest
@@ -1929,14 +1929,15 @@ oc_data_ddtree(OCobject link, OCobject ddsroot)
     return OCTHROW(OC_NOERR);
 }
 
-OCDT
-oc_data_mode(OCobject link, OCobject datanode)
+OCerror
+oc_data_mode(OCobject link, OCobject datanode, OCDT* modep)
 {
     OCdata* data;
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
 
-    return data->datamode;
+    if(modep) *modep = data->datamode;
+    return OC_NOERR;
 }
 
 /* Free up a datanode that is no longer being used;
@@ -1961,6 +1962,7 @@ oc_dds_free(OCobject link, OCobject dds0)
 /**************************************************/
 /* Curl specific  options */
 
+#if 0
 /*!\defgroup Curl Curl-specifi Procedures
 @{*/
 
@@ -1991,6 +1993,7 @@ oc_set_curlopt(OClink link, const char* option, void* value)
 	return OCTHROW(OC_ECURL);
     return OCTHROW(ocset_curlopt(state,f->flag,value));
 }
+#endif
 
 /*!
 Set the absolute path to use for the .netrc file

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Added in support of https://github.com/Unidata/netcdf-c/gh425 and
 # https://github.com/Unidata/netcdf-c/gh469

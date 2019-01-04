@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribuution conditions.
  *********************************************************************/
 
@@ -505,7 +505,8 @@ movetor(NCDAPCOMMON* nccomm,
     if(xnode->etype == NC_STRING || xnode->etype == NC_URL) hasstringdim = 1;
 
     /* Get the mode */
-    mode = oc_data_mode(conn,currentcontent);
+    ocstat = oc_data_mode(conn,currentcontent,&mode);
+    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
 #ifdef DEBUG2
 fprintf(stderr,"moveto: nctype=%d depth=%d dimindex=%d mode=%s",

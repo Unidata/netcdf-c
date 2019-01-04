@@ -1,10 +1,10 @@
 /*
-Copyright 2009, UCAR/Unidata
+Copyright 2009-2018, UCAR/Unidata
 See COPYRIGHT file for copying and redistribution conditions.
 
 This program tests netcdf-4 performance with some AR-4 3D data.
 
-$Id: tst_ar4_3d.c,v 1.1 2010/01/11 19:28:28 ed Exp $
+Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -22,7 +22,11 @@ $Id: tst_ar4_3d.c,v 1.1 2010/01/11 19:28:28 ed Exp $
 #define SIXTY_FOUR_MEG (SIXTEEN_MEG * 4)
 #define ONE_TWENTY_EIGHT_MEG (SIXTEEN_MEG * 8)
 
-	 /* From the data file we are using:
+/* Prototype from tst_utils.c. */
+int nc4_timeval_subtract(struct timeval *result, struct timeval *x,
+                         struct timeval *y);
+
+/* From the data file we are using:
 
 netcdf pr_A1.20C3M_8.CCSM.atmm.1870-01_cat_1999-12 {
 dimensions:
@@ -247,5 +251,5 @@ main(int argc, char **argv)
    else
       printf("%d\t\t%d\n", (int)read_1_us, (int)avg_read_us);
 
-   return 0;
+   FINAL_RESULTS;
 }

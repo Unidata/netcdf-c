@@ -1,5 +1,5 @@
 /*
- * Copyright 1993-1996 University Corporation for Atmospheric Research/Unidata
+ * Copyright 2018-1996 University Corporation for Atmospheric Research/Unidata
  *
  * Portions of this software were developed by the Unidata Program at the
  * University Corporation for Atmospheric Research.
@@ -53,15 +53,13 @@ extern "C" {
 extern int
 NC3_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int useparallel, void* mpidata,
-           struct NC_Dispatch*, NC* ncp);
+           void* mpidata, struct NC_Dispatch*, NC* ncp);
 
 /* WARNING: this signature differs from external nc_open API*/
 extern int
 NC3_open(const char *path, int mode,
          int basepe, size_t *chunksizehintp,
-         int use_parallel, void* mpidata,
-         NC_Dispatch*, NC* ncp);
+         void* mpidata, NC_Dispatch*, NC* ncp);
 
 extern int
 NC3_new_nc(NC**);
@@ -80,7 +78,7 @@ extern int
 NC3_abort(int ncid);
 
 extern int
-NC3_close(int ncid);
+NC3_close(int ncid,void*);
 
 extern int
 NC3_set_fill(int ncid, int fillmode, int *old_modep);

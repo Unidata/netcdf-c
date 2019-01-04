@@ -10,7 +10,7 @@
 #include <config.h>
 #include <nc_tests.h>
 #include "err_macros.h"
-#include "nc4internal.h"
+#include "hdf5internal.h"
 
 /* The data file we will create. */
 #define FILE_NAME "tst_atts.nc"
@@ -26,13 +26,16 @@
 #define CONTENTS_3 "Lots 0f pe0ple!"  /* same len as CONTENTS */
 #define VAR_NAME "Earth"
 
-#ifdef _MSC_VER /* otherwise defined in nc4internal/nc4file */
+/**
+WARNING: following should match lists in libsrc4/nc4file.c
+*/
+
 /**
  * @internal Define the names of attributes to ignore added by the
  * HDF5 dimension scale; these attached to variables. They cannot be
  * modified thru the netcdf-4 API.
  */
-const char* NC_RESERVED_VARATT_LIST[] = {
+static const char* NC_RESERVED_VARATT_LIST[] = {
    NC_ATT_REFERENCE_LIST,
    NC_ATT_CLASS,
    NC_ATT_DIMENSION_LIST,
@@ -47,7 +50,7 @@ const char* NC_RESERVED_VARATT_LIST[] = {
  * "hidden" global attributes. They can be read, but not modified thru
  * the netcdf-4 API.
  */
-const char* NC_RESERVED_ATT_LIST[] = {
+static const char* NC_RESERVED_ATT_LIST[] = {
    NC_ATT_FORMAT,
    NC3_STRICT_ATT_NAME,
    NCPROPS,
@@ -60,20 +63,17 @@ const char* NC_RESERVED_ATT_LIST[] = {
  * @internal Define the subset of the reserved list that is readable
  * by name only
 */
-const char* NC_RESERVED_SPECIAL_LIST[] = {
+static const char* NC_RESERVED_SPECIAL_LIST[] = {
    ISNETCDF4ATT,
    SUPERBLOCKATT,
    NCPROPS,
    NULL
 };
 
-#endif /*_MSC_VER*/
-
 int
 main(int argc, char **argv)
 {
    printf("\n*** Testing netCDF-4 attributes.\n");
-   nc_set_log_level(3);
    printf("*** testing attribute renaming for read-only file...");
    {
       int ncid;
@@ -178,12 +178,12 @@ main(int argc, char **argv)
 
       /* Try and write a new att. Won't work. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME_2, strlen(CONTENTS_2),
-                          CONTENTS_2) != NC_EINDEFINE) ERR;
+                          CONTENTS_2) != NC_ENOTINDEFINE) ERR;
 
       /* This will not work. Overwriting att must be same length or
        * shorter if not in define mode. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS_2),
-                          CONTENTS_2) != NC_EINDEFINE) ERR;
+                          CONTENTS_2) != NC_ENOTINDEFINE) ERR;
 
       /* Now overwrite the att. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS_3),
@@ -253,7 +253,7 @@ main(int argc, char **argv)
          const char** reserved = NC_RESERVED_VARATT_LIST;
          for ( ; *reserved; reserved++)
          {
-            if (nc_put_att_text(ncid, 0, *reserved, strlen(CONTENTS),
+           if (nc_put_att_text(ncid, 0, *reserved, strlen(CONTENTS),
                                 CONTENTS) != NC_ENAMEINUSE) ERR;
          }
       }
@@ -314,11 +314,11 @@ main(int argc, char **argv)
                                 CONTENTS) != NC_ENAMEINUSE) ERR;
          }
       }
-      
+
       /* Write the attribute at last. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS),
                           CONTENTS)) ERR;
-      
+
       /* Write another with different name. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME_2, strlen(CONTENTS),
                           CONTENTS)) ERR;
@@ -332,7 +332,7 @@ main(int argc, char **argv)
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, BAD_NAME) != NC_EBADNAME) ERR;
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, too_long_name) != NC_EMAXNAME) ERR;
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, OLD_NAME_2) != NC_ENAMEINUSE) ERR;
-      
+
       /* Rename the att. */
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, NEW_NAME)) ERR;
 

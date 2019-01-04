@@ -1385,7 +1385,7 @@ and placed in define mode, ready for you to add dimensions, variables,
 and attributes.
 
 If the NC_NETCDF4 flag is used, the HDF5 library is used for parallel
-I/O. If not, the parallel-netcdf library is used.
+I/O. If not, the PnetCDF library is used.
 
 When a file is created for parallel access, independent operations are
 the default. To use independent access on a variable,
@@ -3034,7 +3034,7 @@ This example is from libsrc4/tst_vars.c.
 
       ...
 
-      /* Open the file and make sure nc_inq_varids yeilds correct
+      /* Open the file and make sure nc_inq_varids yields correct
        * result. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
@@ -3108,7 +3108,7 @@ This example is from libsrc4/tst_dims.c.
 
       ...
 
-      /* Open the file and make sure nc_inq_dimids yeilds correct
+      /* Open the file and make sure nc_inq_dimids yields correct
        * result. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
@@ -10395,7 +10395,7 @@ The variable can be changed from collective to independent, and back,
 as often as desired.
 
 Note that classic and 64-bit offset files are access using the
-parallel-netcdf library, which does not allow per-variable setting of
+PnetCDF library, which does not allow per-variable setting of
 the parallel access mode. For these files, calling nc_var_par_access
 sets the access for all of the variables in the file.
 
@@ -11764,7 +11764,7 @@ programmers.
 
 Fortran compilers do not always agree as to how data should be laid
 out in memory. This makes handling compound and variable length array
-types compiler and platform dependant.
+types compiler and platform dependent.
 
 (This is also true for C, but the clever HDF5 configuration has solved
 this problem for C. Alas, not for Fortran.) 

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993 - 2005, UCAR/Unidata
+ *   Copyright 1993 - 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/nctest/tests.h,v 1.8 2006/10/31 16:23:47 ed Exp $
  *********************************************************************/
@@ -9,6 +9,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+extern int current_format;
 
    extern int test_nccreate(const char*);
    extern int test_ncopen(const char*);

@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
@@ -54,7 +54,7 @@ main(int argc, char **argv)
 
       if (nc_close(ncid)) ERR;
 
-      /* Open the file and make sure nc_inq_dimids yeilds correct
+      /* Open the file and make sure nc_inq_dimids yields correct
        * result. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
@@ -78,7 +78,7 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, LON_NAME, LON_LEN, &lon_dimid)) ERR;
       if (nc_close(ncid)) ERR;
 
-      /* Open the file and make sure nc_inq_dimids yeilds correct
+      /* Open the file and make sure nc_inq_dimids yields correct
        * result. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
