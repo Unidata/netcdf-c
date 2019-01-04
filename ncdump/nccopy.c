@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2010, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
  *   Thanks to Philippe Poilbarbe and Antonio S. Cofiño for
  *   compression additions.
@@ -2156,7 +2156,7 @@ main(int argc, char**argv)
 		    error("too many -F filterspecs\n");
 		filterspecs[nfilterspecs] = filterspec;
 		nfilterspecs++;
-		// Force output to be netcdf-4
+		/* Force output to be netcdf-4 */
 		option_kind = NC_FORMAT_NETCDF4;
 	    }
 #else

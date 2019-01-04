@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -1009,26 +1009,26 @@ computeOffsets(NCD4meta* builder, NCD4node* cmpd)
 	} else if(ftype->subsort == NC_SEQ) { /* VLEN */
 	    alignment = nctypealignment(NC_VLEN);
 	    assert(ftype->meta.memsize > 0); size=ftype->meta.memsize;
-	    //size = NCD4_computeTypeSize(builder,ftype);
+	    /*size = NCD4_computeTypeSize(builder,ftype);*/
 	} else if(ftype->subsort == NC_OPAQUE) {
 	    /* Either fixed or a vlen */
 	    assert(ftype->meta.memsize > 0); size=ftype->meta.memsize;
 	    if(ftype->opaque.size == 0) {/* treat like vlen */
 	        alignment = nctypealignment(NC_VLEN);
-	        //size = NCD4_computeTypeSize(builder,ftype);
+	        /*size = NCD4_computeTypeSize(builder,ftype);*/
 	    } else { /* fixed size */
 	        alignment = nctypealignment(NC_OPAQUE);
-	        //size = NCD4_computeTypeSize(builder,ftype);
+	        /*size = NCD4_computeTypeSize(builder,ftype);*/
 	    }
 	} else if(ftype->subsort == NC_ENUM) {
 	    NCD4node* truetype = ftype->basetype;
 	    alignment = nctypealignment(truetype->meta.id);
 	    assert(ftype->meta.memsize > 0); size=ftype->meta.memsize;
-	    //size = NCD4_computeTypeSize(builder,truetype);
+	    /*size = NCD4_computeTypeSize(builder,truetype);*/
 	} else { /* Basically a primitive */
 	    alignment = nctypealignment(ftype->meta.id);
 	    assert(ftype->meta.memsize > 0); size=ftype->meta.memsize;
-	    //size = NCD4_computeTypeSize(builder,ftype);
+	    /*size = NCD4_computeTypeSize(builder,ftype);*/
 	}
 #endif
         if(alignment > largestalign)
@@ -1038,7 +1038,7 @@ computeOffsets(NCD4meta* builder, NCD4node* cmpd)
 	field->meta.offset = offset;
 	assert(ftype->meta.memsize > 0);
 	size = ftype->meta.memsize;
-	//field->meta.memsize = size;
+	/*field->meta.memsize = size;*/
 	/* Now ultiply by the field dimproduct*/
 	if(nclistlength(field->dims) > 0) {
             d4size_t count = NCD4_dimproduct(field);

@@ -1,15 +1,11 @@
-/* Copyright 2005-2018 University Corporation for Atmospheric
+/* Copyright 2018-2018 University Corporation for Atmospheric
    Research/Unidata. */
-/**
 /**
  * @file
  * @internal Contains information for creating provenance
  * info and/or displaying provenance info.
  *
  * @author Dennis Heimbigner, Ward Fisher
-
-/**************************************************/
-/**
 
 It has come to pass that we can't guarantee that this information is
 contained only within netcdf4 files.  As a result, we need

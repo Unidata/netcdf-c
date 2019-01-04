@@ -76,6 +76,84 @@ NC_findreserved(const char* name)
 }
 
 /**
+ * @internal Recursively determine if there is a mismatch between
+ * order of coordinate creation and associated dimensions in this
+ * group or any subgroups, to find out if we have to handle that
+ * situation.  Also check if there are any multidimensional coordinate
+ * variables defined, which require the same treatment to fix a
+ * potential bug when such variables occur in subgroups.
+ *
+ * @param grp Pointer to group info struct.
+ * @param bad_coord_orderp Pointer that gets 1 if there is a bad
+ * coordinate order.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+ */
+static int
+detect_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp)
+{
+   NC_VAR_INFO_T *var;
+   NC_GRP_INFO_T *child_grp;
+   int last_dimid = -1;
+   int retval;
+   int i;
+
+   /* Iterate over variables in this group */
+   for (i=0; i < ncindexsize(grp->vars); i++)
+   {
+      var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
+      if (var == NULL) continue;
+      /* Only matters for dimension scale variables, with non-scalar dimensionality */
+      if (var->dimscale && var->ndims)
+      {
+         /* If the user writes coord vars in a different order then he
+          * defined their dimensions, then, when the file is reopened, the
+          * order of the dimids will change to match the order of the coord
+          * vars. Detect if this is about to happen. */
+         if (var->dimids[0] < last_dimid)
+         {
+            LOG((5, "%s: %s is out of order coord var", __func__, var->hdr.name));
+            *bad_coord_orderp = NC_TRUE;
+            return NC_NOERR;
+         }
+         last_dimid = var->dimids[0];
+
+         /* If there are multidimensional coordinate variables defined, then
+          * it's also necessary to preserve dimension IDs when the file is
+          * reopened ... */
+         if (var->ndims > 1)
+         {
+            LOG((5, "%s: %s is multidimensional coord var", __func__, var->hdr.name));
+            *bad_coord_orderp = NC_TRUE;
+            return NC_NOERR;
+         }
+
+         /* Did the user define a dimension, end define mode, reenter define
+          * mode, and then define a coordinate variable for that dimension?
+          * If so, dimensions will be out of order. */
+         if (var->is_new_var || var->became_coord_var)
+         {
+            LOG((5, "%s: coord var defined after enddef/redef", __func__));
+            *bad_coord_orderp = NC_TRUE;
+            return NC_NOERR;
+         }
+      }
+   }
+
+   /* If there are any child groups, check them also for this condition. */
+   for (i = 0; i < ncindexsize(grp->children); i++)
+   {
+      if (!(child_grp = (NC_GRP_INFO_T *)ncindexith(grp->children, i)))
+         continue;
+      if ((retval = detect_preserve_dimids(child_grp, bad_coord_orderp)))
+         return retval;
+   }
+   return NC_NOERR;
+}
+
+/**
  * @internal This function will write all changed metadata and flush
  * HDF5 file to disk.
  *
@@ -127,7 +205,7 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
       /* Check to see if the coordinate order is messed up. If
        * detected, propagate to all groups to consistently store
        * dimids. */
-      if ((retval = nc4_detect_preserve_dimids(h5->root_grp, &bad_coord_order)))
+      if ((retval = detect_preserve_dimids(h5->root_grp, &bad_coord_order)))
          return retval;
 
       /* Write all the metadata. */

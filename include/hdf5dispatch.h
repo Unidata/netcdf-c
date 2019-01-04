@@ -1,4 +1,4 @@
-/* Copyright 2005-2018 University Corporation for Atmospheric
+/* Copyright 2018-2018 University Corporation for Atmospheric
    Research/Unidata. */
 /**
  * @file
@@ -48,6 +48,10 @@ extern "C" {
                         int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                         int *no_fill, void *fill_valuep, int *endiannessp,
                         unsigned int *idp, size_t *nparamsp, unsigned int *params);
+
+   EXTERNL int
+   NC4_HDF5_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
+                                float preemption);
 
 #if defined(__cplusplus)
 }

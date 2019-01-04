@@ -1,4 +1,4 @@
-/* Copyright 2005-2018 University Corporation for Atmospheric
+/* Copyright 2018-2018 University Corporation for Atmospheric
    Research/Unidata. */
 /**
  * @file
@@ -107,10 +107,6 @@ typedef struct NC_MPI_INFO {
 } NC_MPI_INFO;
 
 /* Define known dispatch tables and initializers */
-
-/*Forward*/
-// typedef struct NC_Dispatch NC_Dispatch;
-
 
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
