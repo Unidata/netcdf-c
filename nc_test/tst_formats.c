@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005-2007 University
+/* This is part of the netCDF package. Copyright 2005-2018 University
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
@@ -36,11 +36,11 @@ determine_test_formats(int *num_formats, int *format)
    format[ind++] = NC_FORMAT_64BIT_OFFSET;
 
    /* Do we have netCDF-4 and netCDF-4 classic? */
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
    num += 2;
    format[ind++] = NC_FORMAT_NETCDF4;
    format[ind++] = NC_FORMAT_NETCDF4_CLASSIC;
-#endif /* USE_NETCDF4 */
+#endif /* USE_HDF5 */
 
    /* Do we have CDF5? */
 #ifdef ENABLE_CDF5
@@ -58,12 +58,12 @@ check_inq_format(int ncid, int expected_format, int expected_extended_format, in
    int format;
    int extended_format;
    int mode;
-   
+
    if (nc_inq_format(ncid + 66000, NULL) != NC_EBADID) ERR;
    if (nc_inq_format(ncid, NULL)) ERR;
    if (nc_inq_format(ncid, &format)) ERR;
    if (format != expected_format) {
-      printf("format %d expected_format %d\n", format, expected_format);      
+      printf("format %d expected_format %d\n", format, expected_format);
       ERR;
    }
    if (nc_inq_format_extended(ncid + 66000, &extended_format, &mode) != NC_EBADID) ERR;
@@ -72,7 +72,7 @@ check_inq_format(int ncid, int expected_format, int expected_extended_format, in
       if (nc_inq_format_extended(ncid, NULL, &mode)) ERR;
       if (mode != expected_mode) {
          printf("expected_mode %x mode %x\n", expected_mode, mode);
-         //ERR;
+         /*ERR;*/
       }
    }
    {

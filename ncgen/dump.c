@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2009, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 /* $Id: dump.c,v 1.3 2010/05/24 19:59:57 dmh Exp $ */

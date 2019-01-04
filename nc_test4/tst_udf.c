@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005-2007 University
+/* This is part of the netCDF package. Copyright 2005-2018 University
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
@@ -166,7 +166,7 @@ main(int argc, char **argv)
       int ncid;
       NC_Dispatch *disp_in;
       int i;
-      
+
       /* Create an empty file to play with. */
       if (nc_create(FILE_NAME, 0, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
@@ -180,11 +180,11 @@ main(int argc, char **argv)
          /* Check that our user-defined format has been added. */
          if (nc_inq_user_format(mode[i], &disp_in, NULL)) ERR;
          if (disp_in != &tst_dispatcher) ERR;
-         
+
          /* Open file with our defined functions. */
          if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
          if (nc_close(ncid)) ERR;
-         
+
          /* Open file again and abort, which is the same as closing it. */
          if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
          if (nc_inq_format(ncid, NULL) != TEST_VAL_42) ERR;
@@ -202,7 +202,7 @@ main(int argc, char **argv)
       char magic_number_in[NC_MAX_MAGIC_NUMBER_LEN];
       FILE *FP;
       int i;
-      
+
       /* Create a file with magic number at start. */
       if (!(FP = fopen(FILE_NAME, "w"))) ERR;
       if (fwrite(magic_number, sizeof(char), strlen(magic_number), FP)
@@ -210,13 +210,13 @@ main(int argc, char **argv)
       if (fwrite(dummy_data, sizeof(char), strlen(dummy_data), FP)
           != strlen(dummy_data)) ERR;
       if (fclose(FP)) ERR;
-      
+
       /* Test all available user-defined format slots. */
       for (i = 0; i < NUM_UDFS; i++)
       {
          /* Add our test user defined format. */
          if (nc_def_user_format(mode[i], &tst_dispatcher, magic_number)) ERR;
-         
+
          /* Check that our user-defined format has been added. */
          if (nc_inq_user_format(mode[i], &disp_in, magic_number_in)) ERR;
          if (disp_in != &tst_dispatcher) ERR;
@@ -225,7 +225,7 @@ main(int argc, char **argv)
          /* Open file with our defined functions. */
          if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
          if (nc_close(ncid)) ERR;
-         
+
          /* Open file again and abort, which is the same as closing
           * it. This time we don't specify a mode, because the magic
           * number is used to identify the file. */

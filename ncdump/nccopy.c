@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2010, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
  *   Thanks to Philippe Poilbarbe and Antonio S. Cofiño for
  *   compression additions.
@@ -696,29 +696,29 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outk
     outputdefined = 0; /* default is no filter defined */
     /* Only bother to look if output is netcdf-4 variant */
     if(outnc4) {
-        /* See if any output filter spec is defined for this output variable */
-        for(i=0;i<nfilterspecs;i++) {
+      /* See if any output filter spec is defined for this output variable */
+      for(i=0;i<nfilterspecs;i++) {
 	    if(strcmp(filterspecs[i].fqn,ofqn)==0) {
-	        ospec = filterspecs[i];
-	        outputdefined = 1;
-	        break;
+          ospec = filterspecs[i];
+          outputdefined = 1;
+          break;
 	    }
-        }
+      }
     }
 
     /* Is there a filter on the input variable */
     inputdefined = 0; /* default is no filter defined */
     /* Only bother to look if input is netcdf-4 variant */
     if(innc4) {
-	stat=nc_inq_var_filter(vid.grpid,vid.varid,&inspec.filterid,&inspec.nparams,NULL);
-	if(stat && stat != NC_EFILTER)
+      stat=nc_inq_var_filter(vid.grpid,vid.varid,&inspec.filterid,&inspec.nparams,NULL);
+      if(stat && stat != NC_EFILTER)
 	    goto done; /* true error */
-	if(stat == NC_NOERR) {/* input has a filter */
+      if(stat == NC_NOERR) {/* input has a filter */
   	    inspec.params = (unsigned int*)malloc(sizeof(unsigned int)*inspec.nparams);
 	    if((stat=nc_inq_var_filter(vid.grpid,vid.varid,&inspec.filterid,&inspec.nparams,inspec.params)))
-	        goto done;
+          goto done;
 	    inputdefined = 1;
-	}
+      }
     }
 
     /* Rules for choosing output filter are as follows:
@@ -737,17 +737,17 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outk
     unfiltered = 0;
 
     if(suppressfilters && !outputdefined) /* row 1 */
-	unfiltered = 1;
+      unfiltered = 1;
     else if(suppressfilters && outputdefined && ospec.nofilter) /* row 2 */
-	unfiltered = 1;
+      unfiltered = 1;
     else if(suppressfilters && outputdefined) /* row 3 */
-	actualspec = ospec;
+      actualspec = ospec;
     else if(!suppressfilters && !outputdefined && inputdefined) /* row 4 */
-	actualspec = inspec;
+      actualspec = inspec;
     else if(!suppressfilters && outputdefined && ospec.nofilter) /* row 5 */
-	unfiltered = 1;
+      unfiltered = 1;
     else if(!suppressfilters && outputdefined) /* row 6 */
-	actualspec = ospec;
+      actualspec = ospec;
 
     /* Apply actual filter spec if any */
     if(!unfiltered) {
@@ -836,7 +836,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
             int odimid = dimmap_odimid(idimid);
             size_t chunksize;
             size_t dimlen;
-    
+
             /* Get input dimension length */
             NC_CHECK(nc_inq_dimlen(igrp, idimid, &dimlen));
 
@@ -853,7 +853,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
                 ocontig = 0; /* cannot use contiguous */
                 goto next;
             }
-    
+
             /* Not specified in -c; Apply defaulting rules as defined in nccopy.1 */
 
 	    /* If input is chunked, then use that chunk size */
@@ -1199,7 +1199,10 @@ copy_atts(int igrp, int ivar, int ogrp, int ovar)
     for(iatt = 0; iatt < natts; iatt++) {
 	char name[NC_MAX_NAME];
 	NC_CHECK(nc_inq_attname(igrp, ivar, iatt, name));
-	NC_CHECK(nc_copy_att(igrp, ivar, name, ogrp, ovar));
+    if(!strcmp(name,"_NCProperties"))
+      return stat;
+
+    NC_CHECK(nc_copy_att(igrp, ivar, name, ogrp, ovar));
     }
     return stat;
 }
@@ -2153,7 +2156,7 @@ main(int argc, char**argv)
 		    error("too many -F filterspecs\n");
 		filterspecs[nfilterspecs] = filterspec;
 		nfilterspecs++;
-		// Force output to be netcdf-4
+		/* Force output to be netcdf-4 */
 		option_kind = NC_FORMAT_NETCDF4;
 	    }
 #else

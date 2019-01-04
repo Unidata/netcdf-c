@@ -1,5 +1,5 @@
 ## This is an automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2008, see the COPYRIGHT file for more information.
 
 # This automake file is in charge of building the libsrc directory,
 # which contains the classic library code.

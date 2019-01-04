@@ -2,7 +2,7 @@
  * @file
  * @internal Add provenance info for netcdf-4 files.
  *
- * Copyright 2010, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+ * Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
  * and redistribution conditions.
  * @author Dennis Heimbigner
  */
@@ -73,7 +73,7 @@ NC4_provenance_init(void)
 	{stat = NC_ENOMEM; goto done;}
     nclistpush(globalpropinfo.properties,value);
     value = NULL;
-    
+
     /* Insert the HDF5 as underlying storage format library */
     if((name = strdup(NCPHDF5LIB2)) == NULL)
 	{stat = NC_ENOMEM; goto done;}
@@ -109,7 +109,7 @@ done:
     if(name != NULL) free(name);
     if(value != NULL) free(value);
     if(other != NULL)
-	nclistfreeall(other);    
+	nclistfreeall(other);
     if(stat && globalpropinfo.properties != NULL) {
 	nclistfreeall(globalpropinfo.properties);
         globalpropinfo.properties = NULL;
@@ -192,7 +192,7 @@ properties_parse(const char* text0, NClist* pairs)
   	    *q++ = '\0';
 	next = q;
 	/* split key and value */
-	q = locate(p,'=');      
+	q = locate(p,'=');
  	name = p;
         *q++ = '\0';
 	value = q;
@@ -258,10 +258,12 @@ NC4_buildpropinfo(struct NCPROPINFO* info, char** propdatap)
     NCbytes* buffer = NULL;
     char sversion[64];
 
+    LOG((3, "%s", __func__));
+
     if(info == NULL || info->version == 0 || propdatap == NULL)
       {stat = NC_EINVAL; goto done;}
 
-    *propdatap = NULL;
+   *propdatap = NULL;
 
     buffer = ncbytesnew();
     if(!buffer) {stat = NC_ENOMEM; goto done;}
@@ -291,50 +293,6 @@ done:
     return stat;
 }
 
-#if 0
-/**
- * @internal Write the properties attribute to file.
- *
- * @param h5 Pointer to HDF5 file info struct.
- *
- * @return ::NC_NOERR No error.
- * @author Dennis Heimbigner
- */
-int
-NC4_put_ncproperties(NC_FILE_INFO_T* file)
-{
-    int ncstat = NC_NOERR;
-    char* text = NULL;
-
-    /* Get root group */
-    grp = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
-    /* See if the NCPROPS attribute exists */
-    if(H5Aexists(grp,NCPROPS) <= 0) { /* Does not exist */
-      ncstat = NC4_buildpropinfo(&h5->fileinfo->propattr,&text);
-      if(text == NULL || ncstat != NC_NOERR) {
-        goto done;
-      }
-      /* Create a datatype to refer to. */
-      HCHECK((atype = H5Tcopy(H5T_C_S1)));
-      HCHECK((H5Tset_cset(atype, H5T_CSET_ASCII)));
-      HCHECK((H5Tset_size(atype, strlen(text)+1))); /*keep nul term */
-      HCHECK((aspace = H5Screate(H5S_SCALAR)));
-      HCHECK((attid = H5Acreate(grp, NCPROPS, atype, aspace, H5P_DEFAULT)));
-      HCHECK((H5Awrite(attid, atype, text)));
-    }
- done:
-    if(text != NULL) {
-      free(text);
-      text = NULL;
-    }
-
-    if(attid >= 0) HCHECK((H5Aclose(attid)));
-    if(aspace >= 0) HCHECK((H5Sclose(aspace)));
-    if(atype >= 0) HCHECK((H5Tclose(atype)));
-    return ncstat;
-}
-#endif
-
 /**
  * @internal
  *
@@ -357,7 +315,10 @@ NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt)
     struct NCPROVENANCE* provenance = NULL;
     int superblock = -1;
 
+    LOG((3, "%s: ncid 0x%x", __func__, file->root_grp->hdr.id));
+
     assert(file->provenance == NULL);
+
     provenance = calloc(1,sizeof(struct NCPROVENANCE));
     if(provenance == NULL) {ncstat = NC_ENOMEM; goto done;}
 
@@ -420,6 +381,8 @@ NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NC
     int v = 0;
     int superblock = -1;
 
+    LOG((3, "%s: ncid 0x%x propstring %s", __func__, file->root_grp->hdr.id, propstring));
+
     assert(file->provenance == NULL);
     if((file->provenance = calloc(1,sizeof(struct NCPROVENANCE))) == NULL)
 	{ncstat = NC_ENOMEM; goto done;}
@@ -454,7 +417,6 @@ NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NC
 	    provenance->propattr.version = v;
 	} else
 	    {ncstat = NC_EINVAL; goto done;} /* bad _NCProperties attribute */
-#if 0
         /* Now, rebuild from version 1 to version 2 if necessary */
         if(provenance->propattr.version == 1) {
 	    int i;
@@ -469,10 +431,9 @@ NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NC
 		else continue; /* ignore */
 		/* Do any rename */
 	        nclistset(list,i,strdup(newname));
-	        if(name) free(name);
+	        if(name) {free(name); name = NULL;}
 	    }
         }
-#endif
     }
 done:
     if(name != NULL) free(name);
@@ -492,6 +453,8 @@ done:
 int
 NC4_free_provenance(struct NCPROVENANCE* prov)
 {
+    LOG((3, "%s", __func__));
+
     if(prov == NULL) return NC_NOERR;
     if(prov->propattr.properties != NULL)
 	nclistfreeall(prov->propattr.properties);
@@ -514,10 +477,12 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5)
     H5T_class_t t_class;
     hsize_t size;
 
+    LOG((3, "%s", __func__));
+
     hdf5grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
 
     if(H5Aexists(hdf5grpid,NCPROPS) <= 0) { /* Does not exist */
-	/* File did not contain a _NCProperties attribute */		
+	/* File did not contain a _NCProperties attribute */
         retval=NC4_get_provenance(h5,NULL,&globalpropinfo);
         goto done;
     }
@@ -556,9 +521,11 @@ done:
     if(ntype > 0 && H5Tclose(ntype) < 0) retval = NC_EHDFERR;
 
     /* For certain errors, actually fail, else log that attribute was invalid and ignore */
-    if(retval != NC_ENOMEM && retval != NC_EHDFERR) {
-	LOG((0,"Invalid _NCProperties attribute"));
-	retval = NC_NOERR;
+    if(retval != NC_NOERR) {
+	if(retval != NC_ENOMEM && retval != NC_EHDFERR) {
+	    LOG((0,"Invalid _NCProperties attribute: ignored"));
+	    retval = NC_NOERR;
+	}
     }
     return retval;
 }
@@ -573,6 +540,8 @@ NC4_write_ncproperties(NC_FILE_INFO_T* h5)
     hid_t atype = -1;
     char* text = NULL;
     size_t len = 0;
+
+    LOG((3, "%s", __func__));
 
     /* If the file is read-only, return an error. */
     if (h5->no_write)
@@ -594,18 +563,30 @@ NC4_write_ncproperties(NC_FILE_INFO_T* h5)
 	{retval = NC_EHDFERR; goto done;}
     if(H5Tset_cset(atype, H5T_CSET_ASCII) < 0)
 	{retval = NC_EHDFERR; goto done;}
-
-    /* Create NCPROPS attribute */
-
    len = strlen(text);
    if(H5Tset_size(atype, len) < 0)
       {retval = NC_EFILEMETA; goto done;}
+
+    /* Create NCPROPS attribute */
    if((aspace = H5Screate(H5S_SCALAR)) < 0)
       {retval = NC_EFILEMETA; goto done;}
    if ((attid = H5Acreate(hdf5grpid, NCPROPS, atype, aspace, H5P_DEFAULT)) < 0)
       {retval = NC_EFILEMETA; goto done;}
    if (H5Awrite(attid, atype, text) < 0)
       {retval = NC_EFILEMETA; goto done;}
+
+/* Verify */
+#if 0
+{
+   hid_t spacev, typev;
+   hsize_t dsize, tsize;
+   typev = H5Aget_type(attid);
+   spacev = H5Aget_space(attid);
+   dsize = H5Aget_storage_size(attid);
+   tsize = H5Tget_size(typev);
+   fprintf(stderr,"dsize=%lu tsize=%lu\n",(unsigned long)dsize,(unsigned long)tsize);
+}
+#endif
 
 done:
     if(text != NULL) free(text);
@@ -641,7 +622,7 @@ ncprintpropinfo(struct NCPROPINFO* info)
 	char* name = nclistget(info->properties,i);
 	char* value = nclistget(info->properties,i+1);
 	fprintf(stderr,"\t[%d] name=|%s| value=|%s|\n",i,name,value);
-    }    
+    }
 }
 
 void
@@ -650,4 +631,3 @@ ncprintprovenance(struct NCPROVENANCE* prov)
     fprintf(stderr,"[%p] superblockversion=%d\n",prov,prov->superblockversion);
     ncprintpropinfo(&prov->propattr);
 }
-

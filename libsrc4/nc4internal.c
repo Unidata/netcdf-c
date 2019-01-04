@@ -21,11 +21,10 @@
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
 
-/* These are the default chunk cache sizes for HDF5 files created or
- * opened with netCDF-4. */
-extern size_t nc4_chunk_cache_size;
-extern size_t nc4_chunk_cache_nelems;
-extern float nc4_chunk_cache_preemption;
+/* These hold the file caching settings for the library. */
+size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
+size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
+float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
 
 #ifdef LOGGING
 /* This is the severity level of messages which will be logged. Use
@@ -259,7 +258,7 @@ nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **gr
 }
 
 /**
- * @internal Find a dim in a grp (or its parents).
+ * @internal Find a dim in the file.
  *
  * @param grp Pointer to group info struct.
  * @param dimid Dimension ID to find.
@@ -269,7 +268,7 @@ nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **gr
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADDIM Dimension not found.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
@@ -394,55 +393,40 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
                  NC_ATT_INFO_T **att)
 {
    NC_VAR_INFO_T *var;
-   NCindex* attlist = NULL;
-   int retval;
+   NC_ATT_INFO_T *my_att;
+   NCindex *attlist = NULL;
 
-   assert(grp && grp->hdr.name);
-   LOG((4, "nc4_find_grp_att: grp->name %s varid %d name %s attnum %d",
-        grp->hdr.name, varid, name, attnum));
+   assert(grp && grp->hdr.name && att);
+
+   LOG((4, "%s: grp->name %s varid %d attnum %d", __func__, grp->hdr.name,
+        varid, attnum));
 
    /* Get either the global or a variable attribute list. */
    if (varid == NC_GLOBAL)
    {
       attlist = grp->att;
-
-      /* Do we need to read the atts? */
-      if (grp->atts_not_read)
-         if ((retval = nc4_read_atts(grp, NULL)))
-            return retval;
    }
    else
    {
       var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
       if (!var) return NC_ENOTVAR;
 
-      /* Do we need to read the var attributes? */
-      if (var->atts_not_read)
-         if ((retval = nc4_read_atts(grp, var)))
-            return retval;
-
       attlist = var->att;
-      assert(var->hdr.id == varid);
    }
+   assert(attlist);
 
    /* Now find the attribute by name or number. If a name is provided,
     * ignore the attnum. */
-   if (attlist)
-   {
-      NC_ATT_INFO_T *my_att;
-      if (name)
-         my_att = (NC_ATT_INFO_T *)ncindexlookup(attlist, name);
-      else
-         my_att = (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
-      if (my_att)
-      {
-         *att = my_att;
-         return NC_NOERR;
-      }
-   }
+   if (name)
+      my_att = (NC_ATT_INFO_T *)ncindexlookup(attlist, name);
+   else
+      my_att = (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
 
-   /* If we get here, we couldn't find the attribute. */
-   return NC_ENOTATT;
+   if (!my_att)
+      return NC_ENOTATT;
+
+   *att = my_att;
+   return NC_NOERR;
 }
 
 /**
@@ -526,6 +510,7 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
    if (!(new_var = calloc(1, sizeof(NC_VAR_INFO_T))))
       return NC_ENOMEM;
    new_var->hdr.sort = NCVAR;
+   new_var->container = grp;
 
    /* These are the HDF5-1.8.4 defaults. */
    new_var->chunk_cache_size = nc4_chunk_cache_size;
@@ -567,6 +552,7 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
 int
 nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
 {
+   assert(var);
 
    /* Remember the number of dimensions. */
    var->ndims = ndims;
@@ -580,7 +566,7 @@ nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
          return NC_ENOMEM;
 
       /* Initialize dimids to illegal values (-1). See the comment
-         in nc4hdf.c#nc4_rec_match_dimscales. */
+         in nc4_rec_match_dimscales(). */
       memset(var->dimids, -1, ndims * sizeof(int));
    }
 
@@ -821,7 +807,6 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
  * @internal Create a type, but do not add to various lists nor
  * increment its ref count
  *
- * @param grp Pointer to group info struct.
  * @param size Size of type in bytes.
  * @param name Name of type.
  * @param assignedid if >= 0 then override the default type id.
@@ -832,10 +817,12 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
  * @author Ed Hartnett, Ward Fisher
  */
 int
-nc4_type_new(NC_GRP_INFO_T *grp, size_t size, const char *name, int assignedid,
+nc4_type_new(size_t size, const char *name, int assignedid,
              NC_TYPE_INFO_T **type)
 {
    NC_TYPE_INFO_T *new_type;
+
+   LOG((4, "%s: size %d name %s assignedid %d", __func__, size, name, assignedid));
 
    /* Check inputs. */
    assert(type);
@@ -882,10 +869,11 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
    int retval;
 
    /* Check inputs. */
-   assert(type);
+   assert(grp && name && type);
+   LOG((4, "%s: size %d name %s", __func__, size, name));
 
    /* Create the new TYPE_INFO struct. */
-   if ((retval = nc4_type_new(grp, size, name, grp->nc4_info->next_typeid,
+   if ((retval = nc4_type_new(size, name, grp->nc4_info->next_typeid,
                               &new_type)))
       return retval;
    grp->nc4_info->next_typeid++;
@@ -909,8 +897,6 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
  * @param parent parent type
  * @param name Name of the field.
  * @param offset Offset in bytes.
- * @param field_hdf_typeid The HDF5 type ID of the field.
- * @param native_typeid The HDF5 native type ID of the field.
  * @param xtype The netCDF type of the field.
  * @param ndims The number of dimensions of the field.
  * @param dim_sizesp An array of dim sizes for the field.
@@ -920,8 +906,8 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
  */
 int
 nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
-                   size_t offset, hid_t field_hdf_typeid, hid_t native_typeid,
-                   nc_type xtype, int ndims, const int *dim_sizesp)
+                   size_t offset, nc_type xtype, int ndims,
+                   const int *dim_sizesp)
 {
    NC_FIELD_INFO_T *field;
 
@@ -941,8 +927,6 @@ nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
       return NC_ENOMEM;
    }
    field->hdr.hashkey = NC_hashmapkey(field->hdr.name,strlen(field->hdr.name));
-   field->hdf_typeid = field_hdf_typeid;
-   field->native_hdf_typeid = native_typeid;
    field->nc_typeid = xtype;
    field->offset = offset;
    field->ndims = ndims;
@@ -1094,6 +1078,10 @@ nc4_type_free(NC_TYPE_INFO_T *type)
          break;
       }
 
+      /* Release any HDF5-specific type info. */
+      if (type->format_type_info)
+         free(type->format_type_info);
+
       /* Release the memory. */
       free(type);
    }
@@ -1182,7 +1170,6 @@ var_free(NC_VAR_INFO_T *var)
    ncindexfree(var->att);
 
    /* Free some things that may be allocated. */
-   /* Free some things that may be allocated. */
    if (var->chunksizes)
       free(var->chunksizes);
 
@@ -1198,31 +1185,14 @@ var_free(NC_VAR_INFO_T *var)
    if (var->dim)
       free(var->dim);
 
-   /* Delete any fill value allocation. This must be done before the
-    * type_info is freed. */
+   /* Delete any fill value allocation. */
    if (var->fill_value)
-   {
-      if (var->hdf_datasetid)
-      {
-         if (var->type_info)
-         {
-            if (var->type_info->nc_type_class == NC_VLEN)
-               nc_free_vlen((nc_vlen_t *)var->fill_value);
-            else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value)
-               free(*(char **)var->fill_value);
-         }
-      }
       free(var->fill_value);
-   }
 
    /* Release type information */
    if (var->type_info)
       if ((retval = nc4_type_free(var->type_info)))
          return retval;
-
-   /* Delete any HDF5 dimscale objid information. */
-   if (var->dimscale_hdf5_objids)
-      free(var->dimscale_hdf5_objids);
 
    /* Delete information about the attachment status of dimscales. */
    if (var->dimscale_attached)
@@ -1231,6 +1201,10 @@ var_free(NC_VAR_INFO_T *var)
    /* Release parameter information. */
    if (var->params)
       free(var->params);
+
+   /* Delete any format-specific info. */
+   if (var->format_var_info)
+      free(var->format_var_info);
 
    /* Delete the var. */
    free(var);
@@ -1241,26 +1215,24 @@ var_free(NC_VAR_INFO_T *var)
 /**
  * @internal  Delete a var, and free the memory.
  *
- * @param grp the containing group
+ * @param grp Pointer to the strct for the containing group.
  * @param var Pointer to the var info struct of var to delete.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_var_list_del(NC_GRP_INFO_T* grp, NC_VAR_INFO_T *var)
+nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    int i;
 
-   if(var == NULL)
-      return NC_NOERR;
+   assert(var && grp);
 
    /* Remove from lists */
-   if(grp) {
-      i = ncindexfind(grp->vars,(NC_OBJ*)var);
-      if(i >= 0)
-         ncindexidel(grp->vars, i);
-   }
+   i = ncindexfind(grp->vars, (NC_OBJ *)var);
+   if (i >= 0)
+      ncindexidel(grp->vars, i);
+
    return var_free(var);
 }
 
@@ -1441,10 +1413,7 @@ int
 nc_set_log_level(int new_level)
 {
 #ifdef LOGGING
-   if(!nc4_hdf5_initialized)
-      nc4_hdf5_initialize();
-
-   /* Now remember the new level. */
+   /* Remember the new level. */
    nc_log_level = new_level;
    LOG((4, "log_level changed to %d", nc_log_level));
 #endif /*LOGGING */
@@ -1533,9 +1502,8 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
    for(i=0;i<ncindexsize(grp->type);i++)
    {
       if((type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i)) == NULL) continue;
-      LOG((2, "%s TYPE - nc_typeid: %d hdf_typeid: 0x%x committed: %d "
-           "name: %s num_fields: %d", tabs, type->hdr.id,
-           type->hdf_typeid, type->size, (int)type->committed, type->hdr.name));
+      LOG((2, "%s TYPE - nc_typeid: %d committed: %d name: %s num_fields: %d",
+           tabs, type->hdr.id, type->size, (int)type->committed, type->hdr.name));
       /* Is this a compound type? */
       if (type->nc_type_class == NC_COMPOUND)
       {

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2011, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   
  *   Stuff that's common to both ncdump and nccopy

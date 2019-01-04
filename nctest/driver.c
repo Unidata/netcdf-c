@@ -1,5 +1,5 @@
 /*********************************************************************
- * Copyright 1993-2006, UCAR/Unidata
+ * Copyright 1993-2018, UCAR/Unidata
  * See COPYRIGHT file for copying and redistribution conditions.
  *
  * Test driver for netCDF implementation.  This program performs tests
@@ -35,11 +35,11 @@ determine_test_formats(int *num_formats, int *format)
    format[ind++] = NC_FORMAT_64BIT_OFFSET;
 
    /* Do we have netCDF-4 and netCDF-4 classic? */
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
    num += 2;
    format[ind++] = NC_FORMAT_NETCDF4_CLASSIC;
    format[ind++] = NC_FORMAT_NETCDF4;
-#endif /* USE_NETCDF4 */
+#endif /* USE_HDF5 */
 
    /* Do we have CDF5? */
 #ifdef ENABLE_CDF5
@@ -75,10 +75,10 @@ main(int argc, char **argv)
       /* Skip netCDF-4 - only netCDF-4 classic will work. */
       if (format[i] == NC_FORMAT_NETCDF4)
          continue;
-      
+
       /* Come up with a test file name. */
       sprintf(testfile, "nctest_%s.nc", format_name[i]);
-      printf("Testing %s with file %s.\n", format_name[i], testfile);      
+      printf("Testing %s with file %s.\n", format_name[i], testfile);
 
       /* Set the default format. */
       nc_set_default_format(format[i], NULL);
@@ -137,7 +137,7 @@ main(int argc, char **argv)
 
       }
    }
-    
+
    fprintf(stderr, "\nTotal number of failures: %d\n", nerrs);
 
    if (nerrs)

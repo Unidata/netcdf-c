@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2011, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This file builds and runs DAP4 tests.
 
@@ -12,7 +12,7 @@ include $(top_srcdir)/lib_flags.am
 #sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TESTS_ENVIRONMENT = export SETX=1;
-	
+
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/libdap4
 

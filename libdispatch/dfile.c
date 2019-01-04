@@ -6,7 +6,7 @@
  * These functions end up calling functions in one of the dispatch
  * layers (netCDF-4, dap server, etc).
  *
- * Copyright 2010 University Corporation for Atmospheric
+ * Copyright 2018 University Corporation for Atmospheric
  * Research/Unidata. See COPYRIGHT file for more info.
 */
 
@@ -2122,8 +2122,8 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
     /* Figure out what dispatcher to use */
     if (model == NC_FORMATX_NC4)
-#ifdef USE_NETCDF4
-        dispatcher = NC4_dispatch_table;
+#ifdef USE_HDF5
+        dispatcher = HDF5_dispatch_table;
 #else
         return NC_ENOTBUILT;
 #endif
@@ -2358,9 +2358,9 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
          dispatcher = NCP_dispatch_table;
          break;
 #endif
-#if defined(USE_NETCDF4)
+#if defined(USE_HDF5)
       case NC_FORMATX_NC4:
-         dispatcher = NC4_dispatch_table;
+         dispatcher = HDF5_dispatch_table;
          break;
 #endif
 #if defined(USE_HDF4)

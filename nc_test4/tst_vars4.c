@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 variables.
@@ -17,6 +17,8 @@
 #define VAR_NAME Y_NAME
 #define XDIM_LEN 2
 #define YDIM_LEN 5
+#define CLAIR "Clair"
+#define JAMIE "Jamie"
 
 int
 main(int argc, char **argv)
@@ -141,6 +143,56 @@ main(int argc, char **argv)
       if (dim_len_in != NUM_RECORDS * 2) ERR;
 
       /* Close the file. */
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing type creation and destruction for atomic types...");
+   {
+      int varid1, varid2, ncid;
+      int ndims, nvars, natts, unlimdimid;
+
+      /* Create the test file with two scalar vars. */
+      /* nc_set_log_level(4); */
+      if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+      if (nc_def_var(ncid, CLAIR, NC_INT, 0, NULL, &varid1)) ERR;
+      if (nc_def_var(ncid, JAMIE, NC_INT, 0, NULL, &varid2)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
+      if (ndims != 0 || nvars != 2 || natts != 0 || unlimdimid != -1) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing scalar big endian vars...");
+   {
+      int varid1, varid2, ncid;
+      int ndims, nvars, natts, unlimdimid;
+      int test_val = TEST_VAL_42;
+      int test_val2 = TEST_VAL_42 * 2;
+      int data_in;
+
+      /* Create the test file with two scalar vars. */
+      nc_set_log_level(4);
+      if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+      if (nc_def_var(ncid, CLAIR, NC_INT, 0, NULL, &varid1)) ERR;
+      if (nc_def_var_endian(ncid, varid1, NC_ENDIAN_BIG)) ERR;
+      if (nc_def_var(ncid, JAMIE, NC_INT, 0, NULL, &varid2)) ERR;
+      if (nc_def_var_endian(ncid, varid2, NC_ENDIAN_BIG)) ERR;
+      if (nc_enddef(ncid)) ERR;
+      if (nc_put_var(ncid, varid1, &test_val)) ERR;
+      if (nc_put_var(ncid, varid2, &test_val2)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
+      if (ndims != 0 || nvars != 2 || natts != 0 || unlimdimid != -1) ERR;
+      if (nc_get_var(ncid, varid1, &data_in)) ERR;
+      if (data_in != TEST_VAL_42) ERR;
+      if (nc_get_var(ncid, varid2, &data_in)) ERR;
+      if (data_in != TEST_VAL_42 * 2) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;

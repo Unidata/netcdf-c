@@ -1102,7 +1102,7 @@ Warning: this function is only defined if the type of the variable
 is an atomic integer or float type.
 
 This function may only be called after the variable is defined, but
-before nc_enddef is called. 
+before nc_enddef is called.
 
 @param[in] ncid NetCDF ID, from a previous call to nc_open or
 nc_create.

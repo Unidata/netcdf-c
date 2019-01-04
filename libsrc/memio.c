@@ -1,5 +1,5 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *	See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -483,8 +483,6 @@ fprintf(stderr,"realloc: %lu/%lu -> %lu/%lu\n",
 (unsigned long)memio->memory,(unsigned long)memio->alloc,
 (unsigned long)newmem,(unsigned long)newsize);
 #endif
-	if(memio->memory != NULL && (!memio->locked || memio->modified))
-	    free(memio->memory);
 	memio->memory = newmem;
 	memio->alloc = newsize;
 	memio->modified = 1;

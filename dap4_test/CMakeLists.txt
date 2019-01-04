@@ -1,3 +1,10 @@
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+
+# See netcdf-c/COPYRIGHT file for more info.
+
 SET(abs_top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
 
 remove_definitions(-DDLL_EXPORT)
@@ -33,7 +40,7 @@ IF(ENABLE_TESTS)
     BUILD_BIN_TEST(findtestserver4)
 
     IF(BUILD_UTILITIES)
-      add_sh_test(dap4_test test_remote)
+      #add_sh_test(dap4_test test_remote)
     ENDIF(BUILD_UTILITIES)
   ENDIF(ENABLE_DAP_REMOTE_TESTS)
 ENDIF(ENABLE_TESTS)
