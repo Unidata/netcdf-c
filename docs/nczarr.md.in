@@ -8,6 +8,8 @@ supported by the netcdf-c library.*
 
 *Distribution of this document is currently restricted to Unidata.*
 
+[TOC]
+
 # Introduction {#nczarr_intro}
 
 The Unidata NetCDF group is proposing to provide access to cloud
@@ -17,7 +19,7 @@ more existing data models that already have mappings to
 key-value pair cloud storage systems.
 
 The initial target is to map that subset of netCDF-4 to the Zarr
-data model. As part of that effort, we intend to produce a
+[] data model. As part of that effort, we intend to produce a
 set of related documents that provide a semi-formal definition
 of the following.
 
@@ -30,14 +32,17 @@ of the following.
    Zarr storage representation, This representation is a
    combination of a mapping to Json plus a mapping to an
    abstract key-value pair interface.
-4. The internal architecture of the cloud support in the netcdf-c
-   library.
 
 The term "semi-formal" is used because rather than provide
 complete mathematical or operational semantics, prose text will
 be used to describe the context-sensitive features of the model.
 Complete formalization to produce an operationally defined
 specification is a possible future activity.
+
+This document describes the first item: the abstract
+representation of the NCZarr data model.  It also documents any
+differences between the NCZarr model and the existing Zarr data
+model.
 
 The approach to all of this is based on using modern compiler
 technology. Compilers are centered around the notion of an
@@ -70,6 +75,10 @@ This specification differs from compilers in a number of ways.
    node. It is this choice of mapping that ultimately connects
    the netcdf-c API to the Zarr formatted cloud storage.
 
+\includedoc @abs_top_srcdir@/nczast.md
+\includedoc @abs_top_srcdir@/nczapi.md
+
+
 # Copyright
 _Copyright 2018, UCAR/Unidata<br>
 See netcdf/COPYRIGHT file for copying and redistribution conditions._
@@ -80,3 +89,7 @@ __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 11/28/2018<br>
 __Last Revised__: 12/8/2018
+
+# References
+
+[] https://zarr.readthedocs.io/en/stable/spec/v2.html<br>

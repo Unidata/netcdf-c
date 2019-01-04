@@ -11,17 +11,6 @@ NetCDF ZARR Data Model Specification [].*
 
 *Distribution of this document is currently restricted to Unidata.*
 
-# Copyright
-_Copyright 2018, UCAR/Unidata<br>
-See netcdf/COPYRIGHT file for copying and redistribution conditions._
-
-# Point of Contact
-
-__Author__: Dennis Heimbigner<br>
-__Email__: dmh at ucar dot edu<br>
-__Initial Version__: 12/1/2018<br>
-__Last Revised__: 12/1/2018
-
 [TOC]
 
 # Introduction {#nczapi_intro}
@@ -42,7 +31,8 @@ of related functions. Any semantic differences are described.
 API functions that are disallowed are also described.
 Functions are organized according to the netCDF data model.
 
-## NetCDF File Functions
+## NetCDF File Functions {#nczapi_file_functions}
+
 ````C
 EXTERNL int
 nc_create(const char* path, int cmode, int* ncidp);
@@ -91,7 +81,8 @@ underscore versions with the extra parameters ignored.
    functions depending on the underlying implementation.
 3. The syntax and interpretation of the *path* argument are implementation dependent (See Section ?).
 
-## Dimensions
+## Dimensions  {#nczapi_dimensions}
+
 ````C
 EXTERNL int
 nc_def_dim(int ncid, const char* name, size_t len, int* idp);
@@ -121,7 +112,8 @@ Notes:
    the anonymous dimension.
 2. Handling of unlimited dimensions is still T.B.D.
 
-## Types
+## Types  {#nczapi_types}
+
 ````C
 EXTERNL int
 nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size);
@@ -182,7 +174,8 @@ nc_inq_compound_fielddim_sizes(int ncid, nc_type xtype, int fieldid, int* dim_si
 As of version 2, Zarr supports the equivalent of compound types.
 Fixed length byte string (Opaques) can also be represented.
 
-## Variables 
+## Variables {#nczapi_variables}
+
 ````C
 
 EXTERNL int
@@ -215,7 +208,8 @@ nc_rename_var(int ncid, int varid, const char* name);
 The basic variable definition/inquiry functions have the standard
 netCDF-4 semantics.
 
-## Variable Representation Functions
+## Variable Representation Functions {#nczapi_representation_functions}
+
 ````C
 EXTERNL int
 nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms);
@@ -258,7 +252,8 @@ match that of Zarr so that they can be directly implemented.
 Handling of the fill functions is still T.B.D.
 
 
-## Variable IO
+## Variable IO {#nczapi_variable_io}
+
 ````C
 EXTERNL int
 nc_put_var(int ncid, int varid,  const void* op);
@@ -328,7 +323,8 @@ If the actual variable type is different than the function type (the T), then au
 conversion is performed from the actual type to the desired type. With some judicious refactoring,
 it should be possible to reuse the existing conversion code in the netcdf-c library.
 
-## Attributes
+## Attributes {#nczapi_attributes}
+
 ````C
 EXTERNL int
 nc_put_att(int ncid, int varid, const char* name, nc_type xtype, size_t len, const void* op);
@@ -377,7 +373,8 @@ it should be possible to reuse the existing conversion code in the netcdf-c libr
 The put T functions specify the actual type of the attribute, so there is no conversion
 implied. 
 
-## Groups
+## Groups {#nczapi_groups}
+
 ````C
 EXTERNL int
 nc_def_grp(int parent_ncid, const char* name, int* new_ncid);
@@ -389,8 +386,8 @@ The semantics of the group functions appear to be completely consistent with the
 existing Zarr semantics. It is assumed that the graph of groups is a tree,
 which implies no cycles and no shared subgroups.
 
+## NetCDF Error Handling {#nczapi_error_handling}
 
-## NetCDF Error Handling
 ````C
 EXTERNL const char*
 nc_strerror(int ncerr);
@@ -401,7 +398,8 @@ nc_set_log_level(int new_level);
 Error reporting and event logging is not defined for Zarr, so these are the
 same as for the netcdf-c library.
 
-## Miscellaneous Functions
+## Miscellaneous Functions {#nczapi_misc}
+
 ````C
 EXTERNL const char*
 nc_inq_libvers(void);
@@ -464,7 +462,8 @@ Notes:
 4. The *nc_delete* function has always been something of an outlier, but it is useful
    to have a way to completely remove a dataset in a way that is implementation dependent.
 
-## To Be Determined Functions
+## To Be Determined Functions {#nczapi_tbd}
+
 ````C
 EXTERNL int
 nc_inq_unlimdim(int ncid, int* unlimdimidp);
@@ -474,7 +473,8 @@ nc_inq_unlimdims(int ncid, int* nunlimdimsp, int* unlimdimidsp);
 ````
 The nature of the implementation of these functions is yet to be determined.
 
-## Parallelism Functions
+## Parallelism Functions  {#nczapi_parallelism}
+
 ````C
 EXTERNL int
 nc__create_mp(const char* path, int cmode, size_t initialsz, int basepe, size_t* chunksizehintp, int* ncidp);
@@ -495,7 +495,8 @@ nc_inq_base_pe(int ncid, int* pe);
 The netcdf library parallelism-related functions are all heavily MPI oriented.
 It is unclear what is to be done with these functions.
 
-## Unimplemented Functions
+## Unimplemented Functions {#nczapi_unimplemented}
+
 ````C
 EXTERNL int
 nc_show_metadata(int ncid);
@@ -546,73 +547,41 @@ nc_inq_var_endian(int ncid, int varid, int* endianp);
 These functions are currently "unimplemented" in the sense that they will return 
 the error code  *NC_ENOTBUILT*.
 
-# Issues
+## Path URLS {#nczapi_path_urls}
 
-## Path URLS
+It is assumed that the format of a Zarr file will look like a
+netcdf Enhanced file with some variations. However, the path for
+specifying a cloud-based dataset will be more complicated than a
+simple file path. As with DAP2 and DAP4, it will be some kind of
+URL annotated with extra information relevant to its
+interpretation.
 
-It is assumed that the format of a Zarr file will look like a netcdf Enhanced file
-with some restrictions such as no enhanced types. However, the path for specifying
-a cloud-based dataset will be more complicated than a simple file path. As with DAP2
-and DAP4, it will be some kind of URL annotated with extra information relevant
-to its interpretation.
+## User Defined Types {#nczapi_user_defined_types}
 
+Zarr (version 2) can support both compound types and opaque
+types adequately. But the enumeration user-defined type is
+not available in Zarr and it will be desirable to make it
+available in Zarr as soon as possible.
+So it is probable that at some point we will propose and
+implement the addition of enumerations. In principle, it is not
+all that difficult. Effectively an enumeration is a named typed
+that consists of a set of integers and a 1-1 mapping of those
+integers to a set of names (the enumeration constants). So, what
+needs to be specified is the type name, the size of the base
+integer type (e.g. short, int, int64, etc) and the map between
+specific integers and their names.
 
-## Architecture
+# Copyright
+_Copyright 2018, UCAR/Unidata<br>
+See netcdf/COPYRIGHT file for copying and redistribution conditions._
 
-It is expected that the netcdf-c library code that is constructed to provide
-cloud storage access will have a multi-level architecture with a component
-to manage the netCDF data model, a component to manage the Zarr data model,
-and a component to manage access to the underlying key-value based cloud storage.
-It is also probable that the first two components will be combined to produce
-a single component to simultaneouly manage both data models. This is the pattern
-used by the DAP4 code. However, the implementation of the key-value pair
-storage is inherently controlled by the cloud in which the dataset is to be stored.
-So, for example, we may need to have an Amazon S3 library or a JetStream Swift library
-that mediates communication between the netcdf library and the actual cloud storage.
+# Point of Contact
 
-## Anonymous dimensions
+__Author__: Dennis Heimbigner<br>
+__Email__: dmh at ucar dot edu<br>
+__Initial Version__: 12/1/2018<br>
+__Last Revised__: 12/8/2018
 
-## Unlimited Dimensions
-The idea of an unlimited (expandable) dimension is extremely useful.
-The current Zarr specification does not appear to allow for this,
-so it is unclear how this will be resolved.
+# References
 
-The problem is that the implementation of unlimited dimensins is non-trivial,
-especially in the face of chunking.
-
-## Variable Fill
-Setting fill values for a variable can be implemented independently
-of the underlying implementation, but at a significant cost because
-the whole content of the variable must be initialized with the fill value.
-
-## Endian-ness, Fletcher, Shuffle, and other Filters
-
-The basic compression filters can be handled pretty well
-through the API that exists in the netcdf-4 API. However,
-the issue of *fletcher* checksumming and bit shuffle
-is still to be determined.
-
-The handling of *endianness* is still open. Currently, it
-appears that a fixed endianness is assumed for Zarr, but netcdf-4
-allows per-variable constrol of the endianness of the data storage.
-It is probable that we will all the endian inquiry function but
-will not implement the endian definition function to avoid an
-unnecessary inconsistency with the existing Zarr.
-
-## User Defined Types
-The enumeration user-defined type is probably the most important
-type constructor missing from Zarr. So it is probable that at some point
-we will propose and implement the addition of enumerations. In principle,
-it is not all that difficult. Effectively an enumeration is a named typed
-that consists of a set of integers and a 1-1 mapping of those integers to
-a set of names (the enumeration constants). So, what needs to be specified
-is the type name, the size of the base integer type (e.g. short, int, int64, etc)
-and the map between specific integers and their names.
-
-The second most important user defined type will be what netcdf-4 calls "compound" types.
-These are effectively similar to a C struct where the struct type consists of a set of
-named, typed *fields*. It should be noted that the Zarr python implementation does
-provide something like this by treating it as a serialized object plus the associated
-(de-)serializers. Something less language dependent would be preferable.
-
-
+[] https://zarr.readthedocs.io/en/stable/spec/v2.html<br>

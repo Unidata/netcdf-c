@@ -12,7 +12,7 @@ obsolete/fan_utils.html bestpractices.md filters.md indexing.dox	\
 inmemory.md DAP2.dox attribute_conventions.md FAQ.md	\
 file_format_specifications.md known_problems.md COPYRIGHT.dox		\
 user_defined_formats.md inmeminternal.dox DAP4.md DAP4.dox              \
-nczapi.md nczarr.md nczstore.md
+nczapi.md nczast.md nczstore.md nczarch.md nczarr.md
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:

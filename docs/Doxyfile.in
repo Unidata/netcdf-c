@@ -769,6 +769,11 @@ INPUT = \
     @abs_top_srcdir@/docs/inmeminternal.dox \
     @abs_top_srcdir@/docs/indexing.dox \
     @abs_top_srcdir@/docs/testserver.dox \
+    @abs_top_srcdir@/docs/nczarr.md \
+    @abs_top_srcdir@/docs/nczast.md \
+    @abs_top_srcdir@/docs/nczapi.md \
+    @abs_top_srcdir@/docs/nczstore.md \
+    @abs_top_srcdir@/docs/nczarch.md \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_mem.h \
     @abs_top_srcdir@/include/netcdf_par.h \

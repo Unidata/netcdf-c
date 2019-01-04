@@ -1160,6 +1160,13 @@ IF(NOT BUILD_SHARED_LIBS)
   SET(ENABLE_FILTER_TESTING OFF CACHE BOOL "")
 ENDIF()
 
+# Enable special filter test; experimental when using cmake.
+OPTION(ENABLE_CLOUD "Enable cloud storage support. Ignored if netcdf4 is not enabled" OFF)
+IF(NOT ENABLE_NETCDF4)
+  MESSAGE(WARNING "ENABLE_CLOUD requires netCDF-4 => Disabling Cloud Storage.")
+  SET(ENABLE_CLOUD OFF CACHE BOOL "")
+ENDIF()
+
 # Determine whether or not to generate documentation.
 OPTION(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
 IF(ENABLE_DOXYGEN)
@@ -1714,10 +1721,6 @@ add_subdirectory("include")
 add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
 
-IF(ENABLE_FILTER_TESTING)
-add_subdirectory(plugins)
-ENDIF()
-
 IF(USE_PNETCDF)
   add_subdirectory(libsrcp)
 ENDIF(USE_PNETCDF)
@@ -1739,6 +1742,10 @@ ENDIF()
 
 IF(ENABLE_DAP4)
   ADD_SUBDIRECTORY(libdap4)
+ENDIF()
+
+IF(ENABLE_CLOUD)
+add_subdirectory(libcloud)
 ENDIF()
 
 add_subdirectory(liblib)
@@ -1773,6 +1780,9 @@ IF(ENABLE_TESTS)
   ENDIF()
   IF(ENABLE_DAP4)
     ADD_SUBDIRECTORY(dap4_test)
+  ENDIF()
+  IF(ENABLE_CLOUD)
+    ADD_SUBDIRECTORY(cloud_test)
   ENDIF()
   IF(ENABLE_EXAMPLES)
     ADD_SUBDIRECTORY(examples)

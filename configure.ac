@@ -1406,6 +1406,19 @@ AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing])
 enable_filter_testing=no
 fi
 
+# Control cloud storage
+AC_MSG_CHECKING([whether cloud storage should be enabled])
+AC_ARG_ENABLE([cloud],
+              [AS_HELP_STRING([--enable-cloud],
+                              [enable cloud storage support; requires netCDF-4])])
+test "x$enable_cloud" = xyes || enable_cloud=no
+AC_MSG_RESULT($enable_cloud)
+if test "x$enable_netcdf_4" = xno ; then
+AC_MSG_WARN([netCDF-4 disabled => --disable-cloud])
+enable_cloud=no
+fi
+AM_CONDITIONAL(ENABLE_CLOUD, [test x$enable_cloud = xyes])
+
 if test "x$enable_shared" = xno ; then
 AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
 enable_filter_testing=no

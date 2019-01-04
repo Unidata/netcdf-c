@@ -13,18 +13,7 @@ Zarr specification [] and also documents differences between the
 netCDF Zarr model and the one described in the other specification.
 Additionally, some text is taken from the Zarr specification*
 
-*Distribution of this document is currently restricted to Unidata.
-
-# Copyright
-_Copyright 2018, UCAR/Unidata<br>
-See netcdf/COPYRIGHT file for copying and redistribution conditions._
-
-# Point of Contact
-
-__Author__: Dennis Heimbigner<br>
-__Email__: dmh at ucar dot edu<br>
-__Initial Version__: 12/6/2018<br>
-__Last Revised__: 12/6/2018
+*Distribution of this document is currently restricted to Unidata.*
 
 [TOC]
 
@@ -41,6 +30,37 @@ That mapping consists of a description of how the abstract representation
 is defined in terms of a combination of Json and an abstract key-value pair model.
 The goal is to be as consistent with Zarr as possible but to define and discuss
 any differences deemed necessary to support netCDF.
+
+# Interoperability Goals {#nczstore_interoperability}
+
+Given the NCZarr supporting netcdf-c library and given, for example,
+a Python Zarr reader that knows nothing of NCZarr, we propose the
+following interoperability goals for reading various datasets.
+
+1. netcdf-c library reading a Zarr formated dataset --
+allow the dataset to be read and to make its data accessible
+through the netcdf-c API.
+2. Python Zarr Reader reading an NCZarr formated dataset --
+allow the dataset to be read and to make its data accessible
+through the netcdf-c API.
+
+The first case requires the netcdf-c library to (1) recognize
+that the dataset is not NCZArr and (2) provide a usable
+netcdf-4 data model representation of the Zarr dataset.
+Part 1 is doable if we assume that the dataset contains the
+*_NCProperties* provenance attribute if and only if the file
+is NCZarr. Part 2 will be defined as asides in the rest of
+this document.
+
+For the second case (reading NCZarr as if it were Zarr)
+requires that (1) the Zarr reader ignores information it does
+not recognize (e.g. the NCZarr specific attributes)
+and (2) there is a subset of the NCZarr format in the file that
+is legal Zarr.
+
+Note that currently, the Zarr specification disallows ignoring
+unrecognized keys. Ideally, the specification should be changed
+to support this capability.
 
 # Abstract Key-Value Pair Model {#nczstore_keyvalue_model}
 
@@ -239,8 +259,14 @@ If encountered in the meta-data, it is treated as a 1-byte unsigned integer.
 
 #### Time-Related Types
 Defining variables or attributes using the Datetime or Timedelta types is not supported.
-If encountered, it is treated as a fixed length Unicode string with
+If encountered, it is treated as a string with
 an associated built-in attribute giving the units.
+
+#### The Complex Type
+If this type is encountered on reading a non-NCZarr Zarr file, then
+a compound type named "_Complex" will be added to the list of
+types defined in the root group. The associated type will then be
+treated as equivalent to thie compound type.
 
 #### The V Type
 The definition of, say, ````|V29````, appears to be the equivalent vector
@@ -262,13 +288,7 @@ an fixed size vector of 8-bit bytes. So we translate ````opaque(10)````
 to ````|V10````. 
 
 #### Variable Length Strings
-Zarr does not directly support variable length strings.
-But we propose to (ab)use this method to achieve it.
-1. Zarr stores data as a typed sequence of bytes.
-2. So, we store a variable-length string instance of length <n>
-   in the form ````|U<n>....````. Basically this stores the string
-   as a <n> 32bit values (full unicode).
-3. In the meta-data, the corresponding type is ````|S0````.
+This is discussed in detail in section \ref nczstore_varstring.
 
 #### Enumerations
 Currently, Zarr apparently has no support for enumeration types.
@@ -307,7 +327,7 @@ as the semantic equality of shared dimensions. Hence, we intend to stick with it
 in NCZarr.
 
 To this end, we propose the following solution:
-1. Add an additional, group level, key named *.zarrusertypes* that will store
+1. Add an additional, group level, key named *.ztypedefs* that will store
    all the netcdf-4 user type definitions: compound, opaque, and (eventually) enumeration.
 2. When a variable is typed by a user-type, the existing Zarr model of storing the
    type declaration at each point of use will be maintained, but an additional
@@ -315,6 +335,33 @@ To this end, we propose the following solution:
 
 Note: This same problem was encountered in mapping netcdf-4 to HDF5, but eventually
 HDF5 moved to a named type model.
+
+# Variable Length Strings {#nczstore_varstring}
+
+Zarr does not directly support variable length strings but does
+support fixed length strings. So supporting variable length strings
+in NCZarr is a challenge. Basically the choices are to move the variable
+string content out of line (i.e. somewhere else than in the chunk data)
+or to find some way to specify the maximum string length whenever a
+(variable length) string typed variable, attribute, or field is defined.
+The former is undesirable because the strings then become unreadable
+by, say, a Python Zarr reader which does not know about any NCZarr convention.
+
+The latter case -- annotating the dataset with maximum string length
+information -- is difficult because netcdf-4 only supports attributes
+for variables and not for fields of compound types and not for attributes
+themselves.
+
+Technically and given the way that Zarr stores attributes,
+there is no need to do anything special for string-typed attributes.
+This is because their value(s) is a list of Json strings, which are
+already variable length.
+
+For fields, we define an attribute in the same group as the one in which
+the containing compound type is defined. The name of this global attribute
+is *cmpdname.fieldname* and its value is the maximum length of the
+string-typed field.
+
 
 # Data Representation {#nczstore_data}
 
@@ -346,9 +393,10 @@ disallowed string-type fields.
 
 # Provenance Information {#nczstore_provenance}
 
-Recently, netcdf-4 has added a specific top-level attribute called *_NCProperties*
-that is used to store information about how a dataset was constructed.
-Most notably, it stores the netcdf-c library version, and the HDF5 library version.
+Recently, netcdf-4 has added a specific top-level attribute
+called *_NCProperties* that is used to store information about
+how a dataset was constructed.  Most notably, it stores the
+netcdf-c library version, and the HDF5 library version.
 
 We propose to extend the provenance information to record the cloud format
 used to store the data.
@@ -357,7 +405,7 @@ We propose to use the provenance information to control our
 interpretation of a dataset. Specifically, we assume *_NCProperties*
 is defined if and only if the dataset was created through the netcdf API.
 It *_NCProperties* is not present, then it is assumed that the dataset
-must be treated as if it was consistent with the existing Zarr specification.
+must be treated as if it was consistent with the existing Zarr specification [].
 
 This means two things:
 1. The dataset is considered read-only
@@ -381,19 +429,33 @@ We propose that item 2 is defined as follows.
    does not support all formats, then only part of the data may be readable.
    It would be better to know this up-front when initially opening the
    dataset. 
-3. What is the order of application vis-a-vis the compressor? From the examples,
-   it might be inferred as apply filters first, then compressor last.
+3. The use of Json to store meta-data may eventually be problem
+   for datasets with very large amounts of meta-data. We have encountered
+   this for netcdf-4 datasets and fixing it is not trivial unless taken
+   into account from the beginning.
 
 # Differences
 
 1. The Zarr specification says 
-````
-Other keys MUST NOT be present within the metadata object.
-````
-   NCZarr takes the "read-broadly, write narrowly" approach so it
-   allows extra keys, but ignores them if it does not understand
-   their semantics.
+````Other keys MUST NOT be present within the metadata object````.
+NCZarr takes the "read-broadly, write narrowly" approach so it
+allows extra keys, but ignores them if it does not understand
+their semantics.
+
+# Copyright
+_Copyright 2018, UCAR/Unidata<br>
+See netcdf/COPYRIGHT file for copying and redistribution conditions._
+
+# Point of Contact
+
+__Author__: Dennis Heimbigner<br>
+__Email__: dmh at ucar dot edu<br>
+__Initial Version__: 12/6/2018<br>
+__Last Revised__: 12/8/2018
 
 # References
-[] https://docs.python.org/2/library/collections.html
-[] https://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html#CoreConcepts
+[] https://zarr.readthedocs.io/en/stable/spec/v2.html<br>
+[] https://docs.python.org/2/library/collections.html<br>
+[] https://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html#CoreConcepts<br>
+
+

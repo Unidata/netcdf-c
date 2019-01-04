@@ -35,22 +35,22 @@ http://docs.opendap.org/index.php/DAP4:_Specification_Volume_1
 In order to access a DAP4 data source through the netCDF API, the
 file name normally used is replaced with a URL with a specific
 format. The URL is composed of three parts.
--  URL - this is a standard form URL with specific markers to indicate that
+- URL - this is a standard form URL with specific markers to indicate that
    it refers to a DAP4 encoded dataset. The markers are of the form
    "dap4", "protocol=dap4", or "/thredds/dap4". The following
    examples show how they are specified. Note that the "/thredds/dap4"
    case will only work when accessing a Thredds-based server.
-   +  [dap4]http://remotetest.unidata.ucar.edu/d4ts/test.01
-   +  [protocol=dap4]http://remotetest.unidata.ucar.edu/d4ts/test.01
-   +  http://remotetest.unidata.ucar.edu/d4ts/test.01#dap4
-   +  http://remotetest.unidata.ucar.edu/d4ts/test.01#protocol=dap4
-   +  http://thredds.ucar.edu/thredds/dap4/...
+   + [dap4]http://remotetest.unidata.ucar.edu/d4ts/test.01
+   + [protocol=dap4]http://remotetest.unidata.ucar.edu/d4ts/test.01
+   + http://remotetest.unidata.ucar.edu/d4ts/test.01#dap4
+   + http://remotetest.unidata.ucar.edu/d4ts/test.01#protocol=dap4
+   + http://thredds.ucar.edu/thredds/dap4/...
 
- -  Constraints - these are suffixed to the URL and take the form
+- Constraints - these are suffixed to the URL and take the form
     “?dap4.ce=\<expression\>”. The form of the constraint expression
     is somewhat complicated, and the specification should be consulted.
 
- - Client parameters - these may be specified in either of
+- Client parameters - these may be specified in either of
    two ways.  The older, deprecated form prefixes text to the
    front of the url and is of the the general form [\<name>]
    or [\<name>=value].  Examples include [show=fetch] or [noprefetch].
