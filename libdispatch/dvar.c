@@ -702,7 +702,7 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
       if (!(*stride = malloc(varndims * sizeof(size_t))))
          return NC_ENOMEM;
       for (i = 0; i < varndims; i++)
-         *stride[i] = 1;
+         (*stride)[i] = 1;
    }
 
    return NC_NOERR;
