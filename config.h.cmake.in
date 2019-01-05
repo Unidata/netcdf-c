@@ -138,6 +138,9 @@ are set when opening a binary file on Windows. */
 /* if true, do remote tests */
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
 
+/* if true, do remote tests */
+#cmakedefine ENABLE_ZARR 1
+
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
 

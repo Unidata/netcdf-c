@@ -1407,18 +1407,22 @@ AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing])
 enable_filter_testing=no
 fi
 
-# Control cloud storage
-AC_MSG_CHECKING([whether cloud storage should be enabled])
-AC_ARG_ENABLE([cloud],
-              [AS_HELP_STRING([--enable-cloud],
-                              [enable cloud storage support; requires netCDF-4])])
-test "x$enable_cloud" = xyes || enable_cloud=no
-AC_MSG_RESULT($enable_cloud)
+# Control zarr storage
+AC_MSG_CHECKING([whether zarr storage should be enabled])
+AC_ARG_ENABLE([zarr],
+              [AS_HELP_STRING([--enable-zarr],
+                              [enable zarr storage support; requires netCDF-4 and libcurl])])
+test "x$enable_zarr" = xyes || enable_zarr=no
+AC_MSG_RESULT($enable_zarr)
 if test "x$enable_netcdf_4" = xno ; then
-AC_MSG_WARN([netCDF-4 disabled => --disable-cloud])
-enable_cloud=no
+AC_MSG_ERROR([netCDF-4 disabled => --disable-zarr])
+enable_zarr=no
 fi
-AM_CONDITIONAL(ENABLE_CLOUD, [test x$enable_cloud = xyes])
+if test "x$havecurloption" = xno ; then
+  AC_MSG_ERROR([zarr support requires libcurl. Install curl or build without --enable-zarr.])
+  enable_zarr=no
+fi
+AM_CONDITIONAL(ENABLE_ZARR, [test x$enable_ZARR = xyes])
 
 if test "x$enable_shared" = xno ; then
 AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
@@ -1445,7 +1449,7 @@ AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
 AC_SUBST(RELAX_COORD_BOUND,[$enable_zero_length_coord_bound])
 AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
-
+AC_SUBST(HAS_ZARR,[$enable_zarr])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1567,6 +1571,7 @@ AC_CONFIG_FILES([Makefile
                  libdap2/Makefile
                  libdap4/Makefile
                  libhdf4/Makefile
+                 libzarr/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl/Makefile
@@ -1582,6 +1587,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
                  plugins/Makefile
+                 zarr_test/Makefile
                  ])
 AC_OUTPUT()
 
