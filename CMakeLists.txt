@@ -769,7 +769,6 @@ IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
   SET(ENABLE_DAP2 ON CACHE BOOL "")
 
-
   IF(ENABLE_NETCDF_4)
     SET(ENABLE_DAP4 ON CACHE BOOL "")
   ELSE(ENABLE_NETCDF_4)
@@ -1593,6 +1592,7 @@ MACRO(print_conf_summary)
   MESSAGE(STATUS "Building netCDF-4:             ${ENABLE_NETCDF_4}")
   MESSAGE(STATUS "Building DAP2 Support:         ${ENABLE_DAP2}")
   MESSAGE(STATUS "Building DAP4 Support:         ${ENABLE_DAP4}")
+  MESSAGE(STATUS "Building ZARR Support:         ${ENABLE_ZARR}")
   MESSAGE(STATUS "Building Utilities:            ${BUILD_UTILITIES}")
   IF(CMAKE_PREFIX_PATH)
     MESSAGE(STATUS "CMake Prefix Path:             ${CMAKE_PREFIX_PATH}")
@@ -1952,6 +1952,7 @@ is_enabled(JNA HAS_JNA)
 is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
+is_enabled(ENABLE_ZARR HAS_ZARR)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"

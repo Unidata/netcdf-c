@@ -47,7 +47,12 @@ extern int NC_HDF4_initialize(void);
 extern int NC_HDF4_finalize(void);
 #endif
 
-#ifdef _MSC_VER
+#ifdef ENABLE_ZARR
+extern int NCZ_initialize(void);
+extern int NCZ_finalize(void);
+#endif
+
+#ifdef _WIN32
 #include <io.h>
 #include <fcntl.h>
 #endif
@@ -100,6 +105,9 @@ nc_initialize()
 #ifdef USE_HDF4
     if((stat = NC_HDF4_initialize())) goto done;
 #endif
+#ifdef ENABLE_ZARR
+    if((stat = NCZ_initialize())) goto done;
+#endif
 
 done:
     return stat;
@@ -134,6 +142,10 @@ nc_finalize(void)
 
 #ifdef USE_PNETCDF
     if((stat = NCP_finalize())) return stat;
+#endif
+
+#ifdef ENABLE_ZARR
+    if((stat = NCZ_finalize())) return stat;
 #endif
 
 #ifdef USE_HDF4

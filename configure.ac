@@ -1299,6 +1299,7 @@ AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
 AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
+AM_CONDITIONAL(ENABLE_ZARR, [test "x$enable_zarr" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1518,6 +1519,7 @@ AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_RELAX_COORD_BOUND], [$enable_zero_length_coord_bound],[yes])
+AX_SET_META([NC_HAS_ZARR],[$enable_zarr],[yes])
 
 # Automake says that this is always run in top_builddir
 # and that srcdir is defined (== top_srcdir)
