@@ -304,7 +304,7 @@ inline static void
 swapn2b(void *dst, const void *src, IntType nn)
 {
     /* it is OK if dst == src */
-    int i;
+    IntType i;
     uint16_t *op = (uint16_t*) dst;
     uint16_t *ip = (uint16_t*) src;
     for (i=0; i<nn; i++) {
@@ -393,7 +393,7 @@ swap4b(void *dst, const void *src)
 inline static void
 swapn4b(void *dst, const void *src, IntType nn)
 {
-    int i;
+    IntType i;
     uint32_t *op = (uint32_t*) dst;
     uint32_t *ip = (uint32_t*) src;
     for (i=0; i<nn; i++) {
@@ -506,7 +506,7 @@ inline static void
 swapn8b(void *dst, const void *src, IntType nn)
 {
 #ifdef FLOAT_WORDS_BIGENDIAN
-    int i;
+    IntType i;
     uint64_t *dst_p = (uint64_t*) dst;
     uint64_t *src_p = (uint64_t*) src;
     for (i=0; i<nn; i++) {
@@ -518,7 +518,7 @@ swapn8b(void *dst, const void *src, IntType nn)
         *op = SWAP4(*op);
     }
 #else
-    int i;
+    IntType i;
     uint64_t *op = (uint64_t*) dst;
     uint64_t *ip = (uint64_t*) src;
     for (i=0; i<nn; i++) {
