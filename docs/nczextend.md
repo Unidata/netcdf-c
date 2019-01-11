@@ -1,22 +1,20 @@
-Differences Between NetCDF Zarr and Standard Zarr
+The NetCDF Zarr Extensions to Standard Zarr
 ====================================
 
 # Abstract
 
-*This document defines the differences between
-Netcdf Zarr and the standard Zarr
+*This document defines the proposed extensions
+of Netcdf Zarr versus the standard Zarr
 as defined in the Zarr specificiation [].*
-
-*Distribution of this document is currently restricted to Unidata.*
 
 [TOC]
 
-# Introduction {#nczdiffs_intro}
+# Introduction {#nczext_intro}
 
 The Unidata goal is to maximize the degree to which our Zarr
 implementation -- here called NCZarr -- can support the netCDF-4
 (aka *Enhanced*) model used by netCDF.  We believe this
-requires our NCZarr implementation to differ in some ways from
+requires our NCZarr implementation to extend in some ways
 the (Standard) Zarr as defined in the Zarr specification [].
 
 However, we recognize that interoperability is also important so
@@ -34,7 +32,7 @@ standard Zarr.
 The remainder of this document assumes knowledge of both the Zarr
 and netcdf-4 data models.
 
-# Provenance {#nczdiffs_provenance}
+# Provenance {#nczext_provenance}
 
 NetCDF-4 has a specific top-level attribute called
 *_NCProperties* that is used to store provenance information
@@ -54,9 +52,9 @@ In addition, if the dataset is determined to be standard Zarr,
 it will be treated as read-only. No attempt will be made to
 support modification of such a dataset.
 
-# Representing NetCDF-4 in NCZarr {#nczdiffs_nczarrrep}
+# Representing NetCDF-4 in NCZarr {#nczext_nczarrrep}
 
-This section identifies the differences and describes how the
+This section identifies the extensions and describes how the
 netcdf-4 concepts are represented. As part of this, it
 describes how the NCZarr can be usably read by a
 standard Zarr software package.
@@ -70,7 +68,7 @@ keys are instead ignored. This allows NCzarr to annotate the
 dataset with extra, netcdf-4 specific information that will
 support the netcdf-4 data model more completely.
 
-## Shared Dimensions {#nczdiffs_shareddims}
+## Shared Dimensions {#nczext_shareddims}
 
 The notion of shared (i.e. named) dimensions is critical to netcdf because
 it supports semantic equality. That is, if two variables reference
@@ -91,10 +89,10 @@ giving a list of dimension names that correspond to the values in the *shape* li
 The dimension names will be in the form of fully qualified names (e.g. */g1/g2/dimname*)
 to unambiguously specify the dimension.
 
-## Unlimited Dimensions {#nczdiffs_unlimited}
+## Unlimited Dimensions {#nczext_unlimited}
 T.B.D
 
-## Named Type Definitions {#nczdiffs_typedefs}
+## Named Type Definitions {#nczext_typedefs}
 
 There is a fundamental disconnect between the netCDF-4 handling of user-defined types
 and the Zarr handling of them, and especially compound (aka structure) types.
@@ -125,7 +123,7 @@ As an aside, this same problem was encountered in the original
 mapping of netcdf-4 to HDF5. Eventually HDF5 moved to support a
 named type model.
 
-## Atomic type mappings {#nczdiffs_atomictypes}
+## Atomic type mappings {#nczext_atomictypes}
 
 Fortunately, there is good agreement about most of the atomic types
 between netcdf-4 and standard Zarr. This table defines the mapping
@@ -142,7 +140,7 @@ between netcdf-4 and standard Zarr. This table defines the mapping
 <tr><td>uint64<td>|u64<td>Unsigned 64 bit integer
 </table>
 
-## Char mapping {#nczdiffs_char}
+## Char mapping {#nczext_char}
 
 The Netcdf-4 *char* type is treated as
 equivalent to an eight-bit, unsigned integer.
@@ -156,7 +154,7 @@ to ````|V10````. Since this is a user-defined type, it is stored in
 *.ztypedefs* and any variable referencing this type will be tagged with both
 ````|V10```` and with the opaque type FQN.
 
-# Variable Length Strings {#nczdiffs_varstring}
+# Variable Length Strings {#nczext_varstring}
 
 Zarr does not directly support variable length strings but does
 support fixed length strings. So supporting the netcdf-4 (variable length) String
@@ -198,12 +196,12 @@ Ideally, we think that Zarr should consider adding some kind of support
 for truly variable length items: possibly by adding a *malloc()* style
 heap mechanism.
 
-#### VLEN {#nczdiffs_vlen}
+#### VLEN {#nczext_vlen}
 
 Currently, we have no plans to support the netcdf-4 VLEN type since it appears to
 be a difficult undertaking in the context of the current Zarr specification.
 
-# Mapping Standard Zarr to Netcdf-4 {#nczdiffs_mapping}
+# Mapping Standard Zarr to Netcdf-4 {#nczext_mapping}
 
 Our other interoperabilty goal is to allow the netcdf-c library
 to usably read existing a large subset of standard Zarr
@@ -236,7 +234,7 @@ Each structure type will be declared as a separate netcdf-4 compound type with a
 constructed from the name of the associated variable and declared in the same
 group as the variable.
 
-# A Note on Naming {#nczdiffs_naming}
+# A Note on Naming {#nczext_naming}
  
 The various proposed NCzarr names (e.g. *.zdims*) are provisional.
 At some point, we will adopt naming conventions that are specific
@@ -256,6 +254,6 @@ __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 12/11/2018<br>
 __Last Revised__: 1/11/2019
 
-# References {#nczdiffs_references}
+# References {#nczext_references}
 [] [Zarr Version 2 Specification](https://zarr.readthedocs.io/en/stable/spec/v2.html)<br>
 
