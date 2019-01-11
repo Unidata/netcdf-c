@@ -184,7 +184,11 @@ blksize(int fd)
 		return 8192;
 	}
 	/* else, silent in the face of error */
+#else
+	NC_UNUSED(fd);
 #endif
+#else
+	NC_UNUSED(fd);
 #endif
 	return (size_t) 2 * pagesize();
 }
@@ -445,6 +449,7 @@ px_rel(ncio_px *const pxp, off_t offset, int rflags)
 		 && offset < pxp->bf_offset + (off_t) pxp->bf_extent);
 	assert(pIf(fIsSet(rflags, RGN_MODIFIED),
 		fIsSet(pxp->bf_rflags, RGN_WRITE)));
+	NC_UNUSED(offset);
 
 	if(fIsSet(rflags, RGN_MODIFIED))
 	{
@@ -1152,6 +1157,7 @@ ncio_spx_rel(ncio *const nciop, off_t offset, int rflags)
 	assert(offset < pxp->bf_offset + X_ALIGN);
 	assert(pxp->bf_cnt % X_ALIGN == 0 );
 #endif
+	NC_UNUSED(offset);
 
 	if(fIsSet(rflags, RGN_MODIFIED))
 	{
