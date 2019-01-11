@@ -14,7 +14,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <io.h>
 #endif
 
@@ -132,14 +132,14 @@ slashtrans:
 	if(*p == '/') {*p = '\\';}
     }
 #ifdef PATHFORMAT
-#ifndef _MSC_VER
+#ifndef _WIN32
 	p = outpath;
         /* Convert '\' back to '/' */
         for(;*p;p++) {
             if(*p == '\\') {*p = '/';}
 	}
     }
-#endif /*!_MSC_VER*/
+#endif /*!_WIN32*/
 #endif /*PATHFORMAT*/
 
 done:
@@ -155,7 +155,7 @@ static char*
 makeabsolute(const char* relpath)
 {
     char* path = NULL;
-#ifdef _MSC_VER
+#ifdef _WIN32
     path = _fullpath(NULL,relpath,8192);
 #else
     path = realpath(relpath, NULL);
@@ -214,7 +214,7 @@ NCaccess(const char* path, int mode)
     int status = 0;
     char* cvtname = NCpathcvt(path);
     if(cvtname == NULL) return -1;
-#ifdef _MSC_VER
+#ifdef _WIN32
     status = _access(cvtname,mode);
 #else
     status = access(cvtname,mode);
@@ -236,3 +236,24 @@ NCremove(const char* path)
 }
 
 #endif /*WINPATH*/
+
+#ifdef _WIN32
+/* This needs to be defined always if _WIN32
+   because the WIN32 mkdir does not provide the mode flag.
+*/
+EXTERNL
+int
+NCmkdir(const char* path, int mode)
+{
+    int status = 0;
+    char* cvtname = NCpathcvt(path);
+    if(cvtname == NULL) return -1;
+    status = _mkdir(cvtname);
+    if(status < 0) goto done;
+    /* Separately set mode */
+    status = _chmod(cvtname,mode);
+done:
+    if(cvtname) free(cvtname);    
+    return status;
+}
+

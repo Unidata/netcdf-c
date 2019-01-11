@@ -6,7 +6,7 @@ NetCDF ZARR Storage Representation
 *This document defines a mapping of the netcdf Zarr
 data model to a combination of Json and an abstract key-value
 pair model. This document corresponds most closely to the
-existing Zarr specification [].*
+existing Zarr specification Version 2 [].*
 
 *Note that this document both supplements the existing
 Zarr specification [] and also documents differences between the
@@ -104,6 +104,8 @@ we will briefly outline that storage model; this is a paraphrase
 of some official Amazon documentation [].
 
 The S3 model consists of *buckets* containing zero or more *objects*.
+Basically, each "top-level" object in a bucket represents the root of
+a separate dataset.
 
 ## S3 Objects
 An *object* is a collection of *meta-data* plus some opaque *data*.
@@ -164,7 +166,6 @@ Note that we assume that the *zarr_format* key is only used in the root group an
 other occurrences of this key in subgroups are ignored or assumed to be the same.
 
 ## Variable {#nczstore_variable}
-
 The primary element of Zarr is the variable, aka *array*.
 
 Each Zarr array is represented by an object (in the S3 sense).

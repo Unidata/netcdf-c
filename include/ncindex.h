@@ -35,8 +35,11 @@ See docs/indexind.dox for more detailed documentation
 
 */
 
+
 /* Generic list + matching hashtable */
 typedef struct NCindex {
+#define NCINDEX_SORT 0x10000000
+   int flags;
    NClist* list;
 #ifndef NCNOHASH
    NC_hashmap* map;

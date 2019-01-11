@@ -225,6 +225,7 @@ ncindexnew(size_t size0)
     index->map = NC_hashmapnew(size);
     if(index->map == NULL) {ncindexfree(index); return NULL;}
 #endif
+    index->flags = NCINDEX_SORT;
     return index;
 }
 

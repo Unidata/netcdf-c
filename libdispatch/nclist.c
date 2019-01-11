@@ -32,6 +32,7 @@ NClist* nclistnew(void)
     l->alloc=0;
     l->length=0;
     l->content=NULL;
+    l->flags = NCLIST_SORT;
   }
   return l;
 }

@@ -181,6 +181,7 @@ NC_hashmapnew(size_t startsize)
     hm->table = (NC_hentry*)calloc(sizeof(NC_hentry), (size_t)startsize);
     hm->alloc = startsize;
     hm->active = 0;
+    hm->flags = NCHASH_SORT;
     return hm;
 }
 

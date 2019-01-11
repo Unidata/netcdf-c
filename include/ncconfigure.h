@@ -26,12 +26,6 @@ defined and missing types defined.
 extern char* strdup(const char*);
 #endif
 
-/*
-#ifndef HAVE_SSIZE_T
-typedef long ssize_t;
-#define HAVE_SSIZE_T
-#endif
-*/
 /* handle null arguments */
 #ifndef nulldup
 #ifdef HAVE_STRDUP
@@ -84,5 +78,15 @@ typedef unsigned short ushort;
 #ifndef HAVE_UINT
 typedef unsigned int uint;
 #endif
+
+#ifndef HAVE_SIZE64_T
+typedef unsigned long long size64_t;
+#endif
+
+#ifndef HAVE_OFF64_T
+typedef long long off64_t;
+#endif
+
+
 
 #endif /* NCCONFIGURE_H */

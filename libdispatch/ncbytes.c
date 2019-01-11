@@ -34,10 +34,10 @@ ncbytesnew(void)
 {
   NCbytes* bb = (NCbytes*)malloc(sizeof(NCbytes));
   if(bb == NULL) return (ncbytesfail(),NULL);
+  bb->flags = NCBYTES_SORT;
   bb->alloc=0;
   bb->length=0;
   bb->content=NULL;
-  bb->nonextendible = 0;
   return bb;
 }
 
@@ -48,7 +48,7 @@ ncbytessetalloc(NCbytes* bb, unsigned long sz)
   if(bb == NULL) return ncbytesfail();
   if(sz == 0) {sz = (bb->alloc?2*bb->alloc:DEFAULTALLOC);}
   if(bb->alloc >= sz) return TRUE;
-  if(bb->nonextendible) return ncbytesfail();
+  if((bb->flags & NCBYTES_NONEXTENDIBLE)) return ncbytesfail();
   newcontent=(char*)calloc(sz,sizeof(char));
   if(newcontent == NULL) return FALSE;
   if(bb->alloc > 0 && bb->length > 0 && bb->content != NULL) {
@@ -64,7 +64,7 @@ void
 ncbytesfree(NCbytes* bb)
 {
   if(bb == NULL) return;
-  if(!bb->nonextendible && bb->content != NULL) free(bb->content);
+  if(!(bb->flags & NCBYTES_NONEXTENDIBLE) && bb->content != NULL) free(bb->content);
   free(bb);
 }
 
@@ -182,11 +182,11 @@ ncbytessetcontents(NCbytes* bb, char* contents, unsigned long alloc)
 {
     if(bb == NULL) return ncbytesfail();
     ncbytesclear(bb);
-    if(!bb->nonextendible && bb->content != NULL) free(bb->content);
+    if(!(bb->flags & NCBYTES_NONEXTENDIBLE) && bb->content != NULL) free(bb->content);
     bb->content = contents;
     bb->length = 0;
     bb->alloc = alloc;
-    bb->nonextendible = 1;
+    bb->flags |= NCBYTES_NONEXTENDIBLE;
     return 1;
 }
 

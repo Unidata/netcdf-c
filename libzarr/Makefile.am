@@ -20,14 +20,17 @@ LDADD=
 SRC= \
 zdispatch.c \
 znc4.c \
-zdispatch.c \
 zfile.c \
-zdebug.c
+zjson.c \
+zmap.c \
+zmap_file.c
 
 HDRS= \
-nczsdispatch.h \
 nczdispatch.h \
-nczdebug.h
+ncjson.h \
+nczmap.h \
+ncztypes.h \
+zincludes.h
 
 if ENABLE_ZARR
 

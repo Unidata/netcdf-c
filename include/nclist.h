@@ -12,6 +12,8 @@ extern "C" {
 extern int nclistnull(void*);
 
 typedef struct NClist {
+#define NCLIST_SORT 0x40000000
+  int flags; /* must be first */
   size_t alloc;
   size_t length;
   void** content;

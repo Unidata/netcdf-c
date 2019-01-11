@@ -7,6 +7,9 @@
 #include "ncexternl.h"
 
 typedef struct NCbytes {
+#define NCBYTES_SORT 0x80000000
+#define NCBYTES_NONEXTENDIBLE 0x00000001
+  int flags; /* must be first */
   int nonextendible; /* 1 => fail if an attempt is made to extend this buffer*/
   unsigned long alloc;
   unsigned long length;

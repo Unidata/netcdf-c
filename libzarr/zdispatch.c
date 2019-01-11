@@ -5,7 +5,6 @@
 
 #include "zincludes.h"
 
-
 /**************************************************/
 
 static int nczinitialized = 0;
@@ -55,20 +54,6 @@ NCZ_finalize(void)
     curl_global_cleanup();
     return THROW(NC_NOERR);
 }
-
-int
-NCZ_create(const char *path, int cmode,
-	  size_t initialsz, int basepe, size_t *chunksizehintp,
-	  int use_parallel, void* parameters,
-	  struct NC_Dispatch* table, NC* ncp)
-{return NC_NOERR;}
-
-int
-NCZ_open(const char *path, int mode,
-	    int basepe, size_t *chunksizehintp,
-	    int use_parallel, void* parameters,
-	    struct NC_Dispatch* table, NC* ncp)
-{return NC_NOERR;}
 
 int
 NCZ_redef(int ncid)

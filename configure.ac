@@ -1423,7 +1423,7 @@ if test "x$havecurloption" = xno ; then
   AC_MSG_ERROR([zarr support requires libcurl. Install curl or build without --enable-zarr.])
   enable_zarr=no
 fi
-AM_CONDITIONAL(ENABLE_ZARR, [test x$enable_ZARR = xyes])
+AM_CONDITIONAL(ENABLE_ZARR, [test x$enable_zarr = xyes])
 
 if test "x$enable_shared" = xno ; then
 AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])

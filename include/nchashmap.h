@@ -50,6 +50,8 @@ The hashmap object must give us the hash table (table),
 the |table| size, and the # of defined entries in the table
 */
 typedef struct NC_hashmap {
+#define NCHASH_SORT 0x20000000
+  int flags; /* must be first */
   size_t alloc; /* allocated # of entries */
   size_t active; /* # of active entries */
   NC_hentry* table;
