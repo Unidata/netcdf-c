@@ -310,7 +310,7 @@ cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTi
 	char charunits[CD_MAX_RELUNITS];
 	char basetime_1[CD_MAX_CHARTIME];
 	char basetime_2[CD_MAX_CHARTIME];
-	char basetime[CD_MAX_CHARTIME];
+	char basetime[2 * CD_MAX_CHARTIME + 1];
 	int nconv1, nconv2, nconv;
 
 					     /* Parse the relunits */
