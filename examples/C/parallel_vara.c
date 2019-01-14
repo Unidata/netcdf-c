@@ -4,7 +4,6 @@
  *  See COPYRIGHT notice in top-level directory.
  *
  *********************************************************************/
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * This example shows how to use nc_put_vara_int() to write a 2D 4-byte integer
  * array in parallel and read it back using the same array partitioning pattern.
