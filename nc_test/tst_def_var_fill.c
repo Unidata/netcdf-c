@@ -7,11 +7,11 @@
  * Author: Wei-keng Liao.
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <netcdf.h>
-
 
 #define CHECK_ERR { \
     if (err != NC_NOERR) { \
