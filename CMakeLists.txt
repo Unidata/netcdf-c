@@ -1719,10 +1719,6 @@ add_subdirectory("include")
 add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
 
-IF(ENABLE_FILTER_TESTING)
-add_subdirectory(plugins)
-ENDIF()
-
 IF(USE_PNETCDF)
   add_subdirectory(libsrcp)
 ENDIF(USE_PNETCDF)
@@ -1747,6 +1743,10 @@ IF(ENABLE_DAP4)
 ENDIF()
 
 add_subdirectory(liblib)
+
+IF(ENABLE_FILTER_TESTING)
+  add_subdirectory(plugins)
+ENDIF()
 
 # For tests and utilities, we are no longer
 # exporting symbols but rather importing them.
