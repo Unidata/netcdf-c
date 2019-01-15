@@ -12,6 +12,7 @@ See \ref copyright file for more info.
   See https://bugtracking.unidata.ucar.edu/browse/NCF-326
   for more information.
 */
+#include <config.h>
 #include <stdio.h>
 #include <string.h>
 #include <netcdf.h>
