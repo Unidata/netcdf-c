@@ -120,11 +120,11 @@ main(int argc, char **argv)
       /* Create a file with one group, a group to contain data about
        * Henry VII. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-      if (nc_def_var(ncid, HENRY_IV, NC_INT, 0, NULL, NULL)) ERR;      
+      if (nc_def_var(ncid, HENRY_IV, NC_INT, 0, NULL, NULL)) ERR;
 
       /* Turn off define mode. It will automatically be turned back on
        * when nc_def_grp is called. */
-      if (nc_enddef(ncid)) ERR; 
+      if (nc_enddef(ncid)) ERR;
       if (nc_def_grp(ncid, HENRY_VII, &henry_vii_id)) ERR;
 
       /* Check it out. */
@@ -377,7 +377,7 @@ main(int argc, char **argv)
       if (nc_inq_grps(ncid, NULL, grpid_in)) ERR;
       if (nc_inq_grpname(grpid_in[0], name_in)) ERR;
       if (strcmp(name_in, HENRY_VII)) ERR;
-      if (nc_inq_grpname(grpid_in[0], NULL)) ERR;      
+      if (nc_inq_grpname(grpid_in[0], NULL)) ERR;
       if (grpid_in[0] != grp_ncid) ERR;
       strcat(full_name, HENRY_VII);
       if (nc_inq_grpname_full(grpid_in[0], &len, full_name_in)) ERR;
@@ -443,7 +443,7 @@ main(int argc, char **argv)
       if (nc_inq_grpname_full(grpid_in[0], &len1, NULL)) ERR;
       if (len1 != strlen(full_name)) ERR;
       if (nc_inq_grpname_full(grpid_in[0], &len, full_name_in1)) ERR;
-      if (strcmp(full_name_in1, full_name)) ERR;      
+      if (strcmp(full_name_in1, full_name)) ERR;
 
       if (nc_close(ncid)) ERR;
 

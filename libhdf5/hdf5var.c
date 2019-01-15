@@ -409,6 +409,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
       BAIL(NC_ENOMEM);
 
    var->is_new_var = NC_TRUE;
+   var->meta_read = NC_TRUE;
 
    /* Point to the type, and increment its ref. count */
    var->type_info = type;
@@ -852,7 +853,7 @@ nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
    int i, retval;
 
    /* Get pointer to the var. */
-   if ((retval = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
+   if ((retval = nc4_hdf5_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
       return retval;
    assert(var);
 
@@ -1088,6 +1089,11 @@ NC4_rename_var(int ncid, int varid, const char *name)
       there. */
    if (var->created)
    {
+      /* Do we need to read var metadata? */
+      if (!var->meta_read)
+         if ((retval = nc4_get_var_meta(var)))
+            return retval;
+
       if (var->ndims)
       {
          NC_HDF5_DIM_INFO_T *hdf5_d0;
@@ -1353,7 +1359,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    size_t len = 1;
 
    /* Find info for this file, group, and var. */
-   if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
+   if ((retval = nc4_hdf5_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
       return retval;
    assert(h5 && grp && var && var->hdr.id == varid && var->format_var_info);
 
@@ -1679,7 +1685,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    size_t len = 1;
 
    /* Find info for this file, group, and var. */
-   if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
+   if ((retval = nc4_hdf5_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
       return retval;
    assert(h5 && grp && var && var->hdr.id == varid && var->format_var_info &&
           var->type_info && var->type_info->size && var->type_info->format_type_info);
