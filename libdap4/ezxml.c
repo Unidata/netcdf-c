@@ -33,8 +33,9 @@
 #endif
 #include "ezxml.h"
 
-extern int vsnprintf(char*, size_t, const char*, va_list ap); 
-
+#ifndef vsnprintf
+extern int vsnprintf(char*, size_t, const char*, va_list ap);
+#endif
 
 #define EZXML_WS   "\t\r\n "  /* whitespace*/
 #define EZXML_ERRL 128        /* maximum error string length*/

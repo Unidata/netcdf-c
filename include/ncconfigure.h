@@ -16,7 +16,7 @@
 
 /*
 This is included in bottom
-of config.h. It is where, 
+of config.h. It is where,
 typically, alternatives to
 missing functions should be
 defined and missing types defined.
@@ -42,8 +42,15 @@ typedef SSIZE_T ssize_t;
 #ifndef _WIN32
 #if __STDC__ == 1 /*supposed to be same as -ansi flag */
 extern char* strdup(const char*);
+
+#ifndef strlcat
 extern size_t strlcat(char*,const char*,size_t);
-extern int snprintf(char*, size_t, const char*, ...); 
+#endif
+
+#ifndef snprintf
+extern int snprintf(char*, size_t, const char*, ...);
+#endif
+
 extern int strcasecmp(const char*, const char*);
 extern long long int strtoll(const char*, char**, int);
 extern unsigned long long int strtoull(const char*, char**, int);
