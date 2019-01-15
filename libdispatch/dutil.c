@@ -25,6 +25,8 @@
 #include "nclog.h"
 #include "ncwinpath.h"
 
+extern int mkstemp(char *template);
+
 #define NC_MAX_PATH 4096
 
 #define LBRACKET '['

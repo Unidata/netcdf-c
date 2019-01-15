@@ -9,6 +9,9 @@
 #ifdef ENABLE_JAVA
 
 #include <math.h> 
+#ifndef isnan
+extern int isnan(double);
+#endif
 
 static int j_uid = 0;
 
