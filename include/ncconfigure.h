@@ -85,4 +85,8 @@ typedef unsigned short ushort;
 typedef unsigned int uint;
 #endif
 
+#ifndef NC_UNUSED
+#define NC_UNUSED(var) (void)var
+#endif
+
 #endif /* NCCONFIGURE_H */
