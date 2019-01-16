@@ -69,8 +69,8 @@ int main(int argc, char *argv[])
    unsigned char ubyte_data_out[] = {0,1,2,3,4};
    unsigned short ushort_data_out[] = {0,11,22,33,44};
    unsigned int uint_data_out[] = {0,111,222,333,3000000000u};
-   long long int int64_data_out[] = {0,-111111111,2222222222,-3333333333,444444444};
-   unsigned long long int uint64_data_out[] = {0,111111111,2222222222,33333333,44444444};
+   long long int int64_data_out[] = {0,-1111111111,222222222,-3333333333LL,444444444LL};
+   unsigned long long int uint64_data_out[] = {0,111111111,222222222,33333333,44444444};
 
    /* We will read back in the phoney data with these. */
    unsigned char ubyte_data_in[SIZE];

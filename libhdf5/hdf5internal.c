@@ -728,8 +728,61 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
 }
 
 /**
- * @internal Given an ncid and varid, find an att. Lazy reads are done
- * as needed.
+ * @internal Given an ncid and varid, get pointers to the group and var
+ * metadata. Lazy var metadata reads are done as needed.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param h5 Pointer that gets pointer to the NC_FILE_INFO_T struct
+ * for this file. Ignored if NULL.
+ * @param grp Pointer that gets pointer to group info. Ignored if
+ * NULL.
+ * @param var Pointer that gets pointer to var info. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOTVAR Variable not found.
+ * @author Ed Hartnett
+ */
+int
+nc4_hdf5_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
+                         NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var)
+{
+   NC_FILE_INFO_T *my_h5;
+   NC_GRP_INFO_T *my_grp;
+   NC_VAR_INFO_T *my_var;
+   int retval;
+
+   /* Look up file and group metadata. */
+   if ((retval = nc4_find_grp_h5(ncid, &my_grp, &my_h5)))
+      return retval;
+   assert(my_grp && my_h5);
+
+   /* Find the var. */
+   if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, varid)))
+      return NC_ENOTVAR;
+   assert(my_var && my_var->hdr.id == varid);
+
+   /* Do we need to read var metadata? */
+   if (!my_var->meta_read && my_var->created)
+      if ((retval = nc4_get_var_meta(my_var)))
+         return retval;
+
+   /* Return pointers that caller wants. */
+   if (h5)
+      *h5 = my_h5;
+   if (grp)
+      *grp = my_grp;
+   if (var)
+      *var = my_var;
+
+   return NC_NOERR;
+}
+
+/**
+ * @internal Given an ncid, varid, and attribute name, return
+ * normalized name and pointers to the file, group, var, and att info
+ * structs. Lazy reads of attributes and variable metadata are done as
+ * needed.
  *
  * @param ncid File/group ID.
  * @param varid Variable ID.
@@ -799,6 +852,11 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
       /* Do we need to read the var attributes? */
       if (my_var->atts_not_read)
          if ((retval = nc4_read_atts(my_grp, my_var)))
+            return retval;
+
+      /* Do we need to read var metadata? */
+      if (!my_var->meta_read && my_var->created)
+         if ((retval = nc4_get_var_meta(my_var)))
             return retval;
 
       attlist = my_var->att;
