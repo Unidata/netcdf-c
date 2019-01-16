@@ -334,12 +334,12 @@ xconst(Constant* ci)
 	char* p;
 	int bslen;
 	bslen=(4*ci->value.opaquev.len);
-	bstring = poolalloc(bslen+2+1);
+	bstring = poolalloc(bslen+3+1);
 	p = ci->value.opaquev.stringv;
 	while(*p) {
-	    strcat(bstring,"&#");
-	    strncat(bstring,p,2);
-	    strcat(bstring,";");
+	    strncpy(bstring,"&#",bslen+2);
+	    strlcat(bstring,p,bslen+2);
+	    strlcat(bstring,";",bslen+2);
 	    p += 2;
 	}
 	return bstring;

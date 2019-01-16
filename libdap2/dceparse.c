@@ -325,7 +325,7 @@ makeselectiontag(CEsort tag)
 int
 dceerror(DCEparsestate* state, char* msg)
 {
-  strncpy(state->errorbuf,msg,1023);
+  strncpy(state->errorbuf,msg,sizeof(state->errorbuf)-1);
   state->errorcode=NC_EDAPCONSTRAINT;
   return 0;
 }

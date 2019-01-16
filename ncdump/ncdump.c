@@ -2128,10 +2128,11 @@ void adapt_url_for_cache(char **pathp) {
     char prefix[] = DAP_CLIENT_CACHE_DIRECTIVE;
     char* path = *pathp;
     char *tmp_path = strdup(path);
-    path = (char *)emalloc(strlen(prefix) + strlen(tmp_path) + 1);
+    size_t pathlen = strlen(prefix) + strlen(tmp_path);
+    path = (char *)emalloc(pathlen + 1);
     path[0] = '\0';
-    strncat(path, prefix, strlen(prefix));
-    strncat(path, tmp_path, strlen(tmp_path));
+    strlcat(path, prefix, pathlen);
+    strlcat(path, tmp_path, pathlen);
     if(tmp_path) free(tmp_path);
     if(*path) free(*pathp);
     *pathp = path;

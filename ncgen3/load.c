@@ -314,7 +314,7 @@ fstrcat(
     /* Suppress a coverity-related issue without actually
        ignoring it in the coverity dashboard. */
     /* coverity[unsigned_compare] */
-    strncat(s, t, MAX(0,MIN(strlen(t),strlen(s)-(strlen(t)))));
+    strlcat(s, t, FORT_MAX_STMNT);
   }
 }
 

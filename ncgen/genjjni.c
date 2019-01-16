@@ -1499,15 +1499,15 @@ jconst(Constant* ci)
 	char* p;
 	int bslen;
 	bslen=(4*ci->value.opaquev.len);
-	bstring = poolalloc(bslen+2+1);
-	strcpy(bstring,"\"");
+	bstring = poolalloc(bslen+4+1);
+	strncpy(bstring,"\"",bslen+4);
 	p = ci->value.opaquev.stringv;
 	while(*p) {
-	    strcat(bstring,"\\x");
-	    strncat(bstring,p,2);	    	    
+	    strlcat(bstring,"\\x",bslen+4);
+	    strlcat(bstring,p,bslen+4);
 	    p += 2;	
 	}
-	strcat(bstring,"\"");
+	strlcat(bstring,"\"",bslen+4);
 	return bstring;
 	} break;
 
