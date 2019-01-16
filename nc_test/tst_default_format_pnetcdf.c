@@ -98,7 +98,7 @@ create_check_pnetcdf(char *fname, int cmode, int exp_format)
 
 int main(int argc, char *argv[])
 {
-    char *fname="tst_default_format.nc";
+    char *fname="tst_default_format_pnetcdf.nc";
     int err, exp_err=NC_NOERR, nerrs=0, ncid, cmode;
 
     MPI_Init(&argc, &argv);

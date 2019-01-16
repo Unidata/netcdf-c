@@ -5,7 +5,6 @@
  *********************************************************************/
 
 #include "config.h"
-
 #ifdef _MSC_VER
 #include<io.h>
 #endif
@@ -17,6 +16,8 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+
+extern FILE* fdopen(int fd, const char *mode);
 
 #include "nclog.h"
 

@@ -1408,8 +1408,13 @@ CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 CHECK_FUNCTION_EXISTS(mmap HAVE_MMAP)
 CHECK_FUNCTION_EXISTS(mremap HAVE_MREMAP)
 
-IF(NOT HAVE_MMMAP OR NOT HAVE_MREMAP)
-  MESSAGE(WARNING "mmap or mremap not found: disabling MMAP support.")
+# Check to see if MAP_ANONYMOUS is defined.
+CHECK_C_SOURCE_COMPILES("
+#include <sys/mmap.h>
+int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
+
+IF(NOT HAVE_MMMAP OR NOT HAVE_MREMAP OR NOT HAVE_MAPANON)
+  MESSAGE(WARNING "mmap or mremap or MAP_ANONYMOUS not found: disabling MMAP support.")
   SET(ENABLE_MMAP OFF)
 ENDIF()
 
@@ -1714,10 +1719,6 @@ add_subdirectory("include")
 add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
 
-IF(ENABLE_FILTER_TESTING)
-add_subdirectory(plugins)
-ENDIF()
-
 IF(USE_PNETCDF)
   add_subdirectory(libsrcp)
 ENDIF(USE_PNETCDF)
@@ -1742,6 +1743,10 @@ IF(ENABLE_DAP4)
 ENDIF()
 
 add_subdirectory(liblib)
+
+IF(ENABLE_FILTER_TESTING)
+  add_subdirectory(plugins)
+ENDIF()
 
 # For tests and utilities, we are no longer
 # exporting symbols but rather importing them.

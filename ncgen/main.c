@@ -14,7 +14,6 @@
 
 #ifdef _MSC_VER
 #include "XGetopt.h"
-#define snprintf _snprintf
 int opterr;
 int optind;
 #endif
@@ -298,7 +297,9 @@ main(
               derror("%s: output language is null", progname);
               return(1);
             }
-            /*lang_name = estrdup(optarg);*/
+#if 0
+            lang_name = estrdup(optarg);
+#endif
             lang_name = (char*) emalloc(strlen(optarg)+1);
             (void)strcpy(lang_name, optarg);
 

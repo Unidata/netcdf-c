@@ -9,6 +9,7 @@ See \ref copyright file for more info.
 
 */
 
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
