@@ -1210,7 +1210,7 @@ create_file()
     check_err(stat,__LINE__,__FILE__);
     }
     { /* Gi */
-    static const int Gi_att[4] = {-2147483648, 2147483647, -2147483648, -2147483648} ;
+    static const int Gi_att[] = {-2147483647-1,2147483647,-2147483647-1,-2147483647-1};
     stat = nc_put_att_int(ncid, NC_GLOBAL, "Gi", NC_INT, 4, Gi_att);
     check_err(stat,__LINE__,__FILE__);
     }
@@ -1242,7 +1242,7 @@ create_file()
     check_err(stat,__LINE__,__FILE__);
     }
     { /* i */
-    static const int i_i_att[3] = {-2147483648, 2147483647, -2147483648} ;
+    static const int i_i_att[3] = {-2147483647-1, 2147483647, -2147483647-1} ;
     stat = nc_put_att_int(ncid, i_id, "i", NC_INT, 3, i_i_att);
     check_err(stat,__LINE__,__FILE__);
     }
@@ -1322,7 +1322,7 @@ create_file()
     }
 
     {
-    int ir_data[2] = {-2147483648, 2147483647} ;
+    int ir_data[2] = {-2147483647-1, 2147483647} ;
     size_t ir_startset[1] = {0} ;
     size_t ir_countset[1] = {2} ;
     stat = nc_put_vara(ncid, ir_id, ir_startset, ir_countset, ir_data);
@@ -1370,7 +1370,7 @@ create_file()
     }
 
     {
-    int i1_data[1] = {-2147483648} ;
+    int i1_data[1] = {(-2147483647)-1} ;
     size_t i1_startset[1] = {0} ;
     size_t i1_countset[1] = {1} ;
     stat = nc_put_vara(ncid, i1_id, i1_startset, i1_countset, i1_data);
@@ -1418,7 +1418,7 @@ create_file()
     }
 
     {
-    int i2_data[2] = {-2147483648, 2147483647} ;
+    int i2_data[2] = {(-2147483647)-1, 2147483647} ;
     size_t i2_startset[1] = {0} ;
     size_t i2_countset[1] = {2} ;
     stat = nc_put_vara(ncid, i2_id, i2_startset, i2_countset, i2_data);
@@ -1466,7 +1466,7 @@ create_file()
     }
 
     {
-    int i3_data[3] = {-2147483648, 2147483647, -2147483648} ;
+    int i3_data[3] = {(-2147483647)-1, 2147483647, (-2147483647)-1} ;
     size_t i3_startset[1] = {0} ;
     size_t i3_countset[1] = {3} ;
     stat = nc_put_vara(ncid, i3_id, i3_startset, i3_countset, i3_data);
@@ -1514,7 +1514,7 @@ create_file()
     }
 
     {
-    int i4_data[4] = {-2147483648, 2147483647, -2147483648, -2147483648} ;
+    int i4_data[4] = {(-2147483647)-1, 2147483647, (-2147483647)-1, (-2147483647)-1} ;
     size_t i4_startset[1] = {0} ;
     size_t i4_countset[1] = {4} ;
     stat = nc_put_vara(ncid, i4_id, i4_startset, i4_countset, i4_data);
