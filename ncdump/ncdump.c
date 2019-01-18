@@ -2358,9 +2358,9 @@ main(int argc, char *argv[])
                                              &formatting_specs.nc_extended,
                                              &formatting_specs.nc_mode) );
 	    if (kind_out) {
-		printf ("%s", kind_string(formatting_specs.nc_kind));
+		printf ("%s\n", kind_string(formatting_specs.nc_kind));
 	    } else if (kind_out_extended) {
-		printf ("%s", kind_string_extended(formatting_specs.nc_extended,formatting_specs.nc_mode));
+		printf ("%s\n", kind_string_extended(formatting_specs.nc_extended,formatting_specs.nc_mode));
 	    } else {
 		/* Initialize list of types. */
 		init_types(ncid);
