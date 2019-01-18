@@ -402,16 +402,16 @@ main(int argc, char **argv)
 
    {
 #define VAR_NAME "Britany"
-#define NDIMS 2
+#define NDIMS2 2
 #define TEXT_LEN 15
 #define D0_NAME "time"
 #define D1_NAME "tl"
       int ncid, nvars_in, varids_in[1];
-      int time_dimids[NDIMS], time_id;
-      size_t time_count[NDIMS], time_index[NDIMS] = {0, 0};
+      int time_dimids[NDIMS2], time_id;
+      size_t time_count[NDIMS2], time_index[NDIMS2] = {0, 0};
       const char ttext[TEXT_LEN]="20051224.150000";
       int nvars, ndims, ngatts, unlimdimid;
-      int ndims_in, natts_in, dimids_in[NDIMS];
+      int ndims_in, natts_in, dimids_in[NDIMS2];
       char var_name_in[NC_MAX_NAME + 1];
       nc_type xtype_in;
 
@@ -420,7 +420,7 @@ main(int argc, char **argv)
 
       if (nc_def_dim(ncid, D0_NAME, NC_UNLIMITED, &time_dimids[0])) ERR;
       if (nc_def_dim(ncid, D1_NAME, TEXT_LEN, &time_dimids[1])) ERR;
-      if (nc_def_var(ncid, D0_NAME, NC_CHAR, NDIMS, time_dimids, &time_id)) ERR;
+      if (nc_def_var(ncid, D0_NAME, NC_CHAR, NDIMS2, time_dimids, &time_id)) ERR;
 
       /* Write one time to the coordinate variable. */
       time_count[0] = 1;

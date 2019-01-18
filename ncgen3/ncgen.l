@@ -25,6 +25,8 @@
    We include lexical definitions for all three, but use the second version.
 */
 
+extern int fileno(FILE*);
+
 /* lex specification for tokens for ncgen */
 
 /* Fill value used by ncdump from version 2.4 and later.  Should match
@@ -288,6 +290,7 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
 void
 ignore()
 {
+#ifndef YY_NO_UNPUT
     yyunput(0,NULL);
-
+#endif
 }

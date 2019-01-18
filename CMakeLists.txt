@@ -1150,14 +1150,14 @@ IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
 ENDIF()
 
 # Enable special filter test; experimental when using cmake.
-OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ON)
+OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${ENABLE_NETCDF_4})
 IF(ENABLE_FILTER_TESTING AND NOT ENABLE_NETCDF_4)
   MESSAGE(WARNING "ENABLE_FILTER_TESTING requires netCDF-4. Disabling.")
-  SET(ENABLE_FILTER_TESTING OFF CACHE BOOL "")
+  SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
 IF(NOT BUILD_SHARED_LIBS)
   MESSAGE(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
-  SET(ENABLE_FILTER_TESTING OFF CACHE BOOL "")
+  SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
 
 # Determine whether or not to generate documentation.
@@ -1408,8 +1408,13 @@ CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 CHECK_FUNCTION_EXISTS(mmap HAVE_MMAP)
 CHECK_FUNCTION_EXISTS(mremap HAVE_MREMAP)
 
-IF(NOT HAVE_MMMAP OR NOT HAVE_MREMAP)
-  MESSAGE(WARNING "mmap or mremap not found: disabling MMAP support.")
+# Check to see if MAP_ANONYMOUS is defined.
+CHECK_C_SOURCE_COMPILES("
+#include <sys/mmap.h>
+int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
+
+IF(NOT HAVE_MMMAP OR NOT HAVE_MREMAP OR NOT HAVE_MAPANON)
+  MESSAGE(WARNING "mmap or mremap or MAP_ANONYMOUS not found: disabling MMAP support.")
   SET(ENABLE_MMAP OFF)
 ENDIF()
 
@@ -1714,10 +1719,6 @@ add_subdirectory("include")
 add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
 
-IF(ENABLE_FILTER_TESTING)
-add_subdirectory(plugins)
-ENDIF()
-
 IF(USE_PNETCDF)
   add_subdirectory(libsrcp)
 ENDIF(USE_PNETCDF)
@@ -1742,6 +1743,10 @@ IF(ENABLE_DAP4)
 ENDIF()
 
 add_subdirectory(liblib)
+
+IF(ENABLE_FILTER_TESTING)
+  add_subdirectory(plugins)
+ENDIF()
 
 # For tests and utilities, we are no longer
 # exporting symbols but rather importing them.
