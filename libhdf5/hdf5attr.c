@@ -153,7 +153,6 @@ nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
 int
 NC4_HDF5_rename_att(int ncid, int varid, const char *name, const char *newname)
 {
-   NC *nc;
    NC_GRP_INFO_T *grp;
    NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var = NULL;
@@ -174,9 +173,9 @@ NC4_HDF5_rename_att(int ncid, int varid, const char *name, const char *newname)
       return NC_EMAXNAME;
 
    /* Find info for this file, group, and h5 info. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-   assert(h5 && grp && h5);
+   assert(h5 && grp);
 
    /* If the file is read-only, return an error. */
    if (h5->no_write)
