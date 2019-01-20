@@ -1466,13 +1466,14 @@ var_exists(hid_t grpid, char *name, nc_bool_t *exists)
  * attribute which may be present, and, if it does, holds the dimid of
  * the coordinate variable.
  *
- * @param hdf_datasetid The HDF5 dataset ID of the coordinate variable dataset.
+ * @param hdf_datasetid The HDF5 dataset ID of the coordinate variable
+ * dataset.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 error.
  * @author Ed Hartnett
  */
-int
+static int
 remove_coord_atts(hid_t hdf_datasetid)
 {
    htri_t attr_exists;
@@ -1487,17 +1488,17 @@ remove_coord_atts(hid_t hdf_datasetid)
          return NC_EHDFERR;
    }
 
-   /* (We could do a better job here and verify that the attributes are
-    * really dimension scale 'CLASS' & 'NAME' attributes, but that would be
-    * poking about in the HDF5 DimScale internal data) */
-   if ((attr_exists = H5Aexists(hdf_datasetid, HDF5_DIMSCALE_CLASS_ATT_NAME)) < 0)
+   /* Remove the dimension scale 'CLASS' & 'NAME' attributes. */
+   if ((attr_exists = H5Aexists(hdf_datasetid,
+                                HDF5_DIMSCALE_CLASS_ATT_NAME)) < 0)
       return NC_EHDFERR;
    if (attr_exists)
    {
       if (H5Adelete(hdf_datasetid, HDF5_DIMSCALE_CLASS_ATT_NAME) < 0)
          return NC_EHDFERR;
    }
-   if ((attr_exists = H5Aexists(hdf_datasetid, HDF5_DIMSCALE_NAME_ATT_NAME)) < 0)
+   if ((attr_exists = H5Aexists(hdf_datasetid,
+                                HDF5_DIMSCALE_NAME_ATT_NAME)) < 0)
       return NC_EHDFERR;
    if (attr_exists)
    {
