@@ -1103,8 +1103,8 @@ NC4_rename_var(int ncid, int varid, const char *name)
           * so, it must be deleted. */
          if (hdf5_d0->hdf_dimscaleid)
          {
-            if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->hdr.id,
-                                                           var->dim[0])))
+            if ((retval = delete_dimscale_dataset(grp, var->dim[0]->hdr.id,
+                                                  var->dim[0])))
                return retval;
          }
       }
