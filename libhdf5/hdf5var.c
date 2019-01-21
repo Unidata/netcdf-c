@@ -410,6 +410,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
 
    var->is_new_var = NC_TRUE;
    var->meta_read = NC_TRUE;
+   var->atts_read = NC_TRUE;
 
    /* Point to the type, and increment its ref. count */
    var->type_info = type;
