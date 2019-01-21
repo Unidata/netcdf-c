@@ -1308,7 +1308,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    H5Iinc_ref(hdf5_var->hdf_datasetid); /* Increment number of objects using ID */
    incr_id_rc++; /* Indicate that we've incremented the ref. count (for errors) */
    var->created = NC_TRUE;
-   var->atts_not_read = 1;   /* Don't read var atts until user asks for one. */
+   var->atts_read = 0;
 
    /* Try and read the dimids from the COORDINATES attribute. If it's
     * not present, we will have to do dimsscale matching to locate the
@@ -2112,7 +2112,7 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
    /* Remember that we have read the atts for this var or group. */
    if (var)
-      var->atts_not_read = 0;
+      var->atts_read = 1;
    else
       grp->atts_not_read = 0;
 
