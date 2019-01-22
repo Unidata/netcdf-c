@@ -229,7 +229,7 @@ typedef struct NC_GRP_INFO
    void *format_grp_info;
    struct NC_FILE_INFO *nc4_info;
    struct NC_GRP_INFO *parent;
-   int atts_not_read;
+   int atts_read;               /* True if atts have been read for this group. */
    NCindex* children;		/* NCindex<struct NC_GRP_INFO*> */
    NCindex* dim;		/* NCindex<NC_DIM_INFO_T> * */
    NCindex* att;		/* NCindex<NC_ATT_INFO_T> * */

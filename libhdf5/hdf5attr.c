@@ -34,7 +34,7 @@ getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
    if (varid == NC_GLOBAL)
    {
       /* Do we need to read the atts? */
-      if (grp->atts_not_read)
+      if (!grp->atts_read)
          if ((retval = nc4_read_atts(grp, NULL)))
             return retval;
 

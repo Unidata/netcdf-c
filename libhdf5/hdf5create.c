@@ -66,6 +66,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
       BAIL(retval);
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
+   nc4_info->root_grp->atts_read = 1;
 
    /* Add struct to hold HDF5-specific file metadata. */
    if (!(nc4_info->format_file_info = calloc(1, sizeof(NC_HDF5_FILE_INFO_T))))
