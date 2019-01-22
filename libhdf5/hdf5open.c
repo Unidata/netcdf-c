@@ -2114,7 +2114,7 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    if (var)
       var->atts_read = 1;
    else
-      grp->atts_not_read = 0;
+      grp->atts_read = 1;
 
    return NC_NOERR;
 }
@@ -2568,9 +2568,6 @@ rec_read_metadata(NC_GRP_INFO_T *grp)
       if ((retval = rec_read_metadata(child_grp)))
          BAIL(retval);
    }
-
-   /* Defer the reading of global atts until someone asks for one. */
-   grp->atts_not_read = 1;
 
    /* When reading existing file, mark all variables as written. */
    for (i = 0; i < ncindexsize(grp->vars); i++)
