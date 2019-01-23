@@ -3,6 +3,7 @@
 DB=1
 #X=-x
 
+ANSI=1
 #MEM=1
 #NOTUIL=1
 #FAST=1
@@ -34,6 +35,10 @@ CFLAGS="-Wall -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign ${CFL
 
 if test "x$MEM" = x1 ; then
 CFLAGS="-fsanitize=address ${CFLAGS}"
+fi
+
+if test "x$ANSI" = x1 ; then
+CFLAGS="-ansi ${CFLAGS}"
 fi
 
 stddir="/usr/local"
