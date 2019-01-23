@@ -539,7 +539,7 @@ NC4_enddef(int ncid)
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
    /* Find pointer to group and nc4_info. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &nc4_info)))
+   if ((retval = nc4_find_grp_h5(ncid, &grp, &nc4_info)))
       return retval;
 
    /* When exiting define mode, mark all variable written. */
@@ -650,7 +650,6 @@ int
 NC4_close(int ncid, void* params)
 {
    NC_GRP_INFO_T *grp;
-   NC *nc;
    NC_FILE_INFO_T *h5;
    int retval;
    int inmemory;
@@ -659,10 +658,10 @@ NC4_close(int ncid, void* params)
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
    /* Find our metadata for this file. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
 
-   assert(nc && h5 && grp);
+   assert(h5 && grp);
 
    /* This must be the root group. */
    if (grp->parent)
