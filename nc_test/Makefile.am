@@ -4,6 +4,8 @@
 # This file builds and runs the nc_test program, which tests the
 # netCDF-3 API for all formats.
 
+# Ed Hartnett, Dennis Heimbigner, Ward Fisher
+
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc
@@ -12,19 +14,20 @@ AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include -I$(top_srcdir)/libsrc
 
-# Note which tests depend on other tests. necessary for make -j check
 TEST_EXTENSIONS = .sh
 
+check_PROGRAMS =
+
 # These are the tests which are always run.
-TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names       \
-tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type      \
-tst_utf8_validate tst_utf8_phrases tst_global_fillval                   \
-tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef            \
+TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
+tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type	\
+tst_utf8_validate tst_utf8_phrases tst_global_fillval			\
+tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef		\
 tst_default_format
 
 if USE_PNETCDF
-TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar tst_formatx_pnetcdf \
-tst_default_format_pnetcdf
+check_PROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar
+TESTPROGRAMS += tst_formatx_pnetcdf tst_default_format_pnetcdf
 endif
 
 if TEST_PARALLEL4
@@ -48,16 +51,14 @@ endif # LARGE_FILE_TESTS
 
 if BUILD_BENCHMARKS
 TESTPROGRAMS += testnc3perf
-testnc3perf_SOURCES = testnc3perf.c
 endif
 
 if USE_HDF5
 TESTPROGRAMS += tst_diskless6
-tst_diskless6_SOURCES = tst_diskless6.c
 endif
 
 # Set up the tests.
-check_PROGRAMS = $(TESTPROGRAMS)
+check_PROGRAMS += $(TESTPROGRAMS)
 
 # Build Diskless test helpers
 check_PROGRAMS += tst_diskless tst_diskless3 tst_diskless4 \
