@@ -24,7 +24,6 @@
 
 int main(int argc, char* argv[])
 {
-    int err = 0;
     int ecode = 0;
     int ncid;
     int cmode, format;

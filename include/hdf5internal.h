@@ -104,7 +104,7 @@ int hdf5_set_log_level();
 /* These functions deal with HDF5 dimension scales. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
-int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
+int delete_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
 
 /* Write metadata. */
 int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
