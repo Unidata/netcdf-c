@@ -18,8 +18,7 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include <fcntl.h>
 #endif
 
-#ifdef _MSC_VER
-#define snprintf _snprintf
+#ifdef _WIN32
 #include "XGetopt.h"
 int opterr;
 int optind;
@@ -1107,8 +1106,9 @@ pr_att_hidden(
     size_t len;
 
     /* No special variable attributes for classic or 64-bit offset data */
-    //if(kind == 1 || kind == 2)
-	//return;
+#if 0
+    if(kind == 1 || kind == 2) return;
+#endif
     /* Print out Selected hidden attributes */
     /* NCPROPS */
     stat = nc_inq_att(ncid,NC_GLOBAL,NCPROPS,NULL,&len);
@@ -2358,9 +2358,9 @@ main(int argc, char *argv[])
                                              &formatting_specs.nc_extended,
                                              &formatting_specs.nc_mode) );
 	    if (kind_out) {
-		printf ("%s", kind_string(formatting_specs.nc_kind));
+		printf ("%s\n", kind_string(formatting_specs.nc_kind));
 	    } else if (kind_out_extended) {
-		printf ("%s", kind_string_extended(formatting_specs.nc_extended,formatting_specs.nc_mode));
+		printf ("%s\n", kind_string_extended(formatting_specs.nc_extended,formatting_specs.nc_mode));
 	    } else {
 		/* Initialize list of types. */
 		init_types(ncid);

@@ -9,6 +9,9 @@
 #ifdef ENABLE_C
 
 #include <math.h> 
+#ifndef isnan
+extern int isnan(double);
+#endif
 
 static int c_uid = 0;
 

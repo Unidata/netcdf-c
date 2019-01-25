@@ -12,6 +12,7 @@ See \ref copyright file for more info.
 Open a netcdf-4 file with horrendously large metadata.
 */
 
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

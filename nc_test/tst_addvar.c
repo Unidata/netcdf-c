@@ -26,6 +26,7 @@ See \ref copyright file for more info.
  * Check the first new variable's begin to see whether it is less than
  * the last variable's offset in the existing file.
  */
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>

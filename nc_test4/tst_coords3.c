@@ -33,7 +33,7 @@ variables:
     lat:long_name = "latitude" ;
     lat:units = "degrees_north" ;
 
-   $Id: tst_coords3.c,v 1.1 2010/03/30 19:42:24 ed Exp $
+   Ed Hartnett
 */
 
 #include <nc_tests.h>
@@ -206,7 +206,7 @@ int
 main(int argc, char **argv)
 {
    printf("\n*** Testing with CF example http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4/ch05s02.html....\n");
-   printf("**** simple test with only metadata");
+   printf("**** simple test with only metadata... ");
    {
       int ncid, dimids[NDIMS], varids[NVARS], data_dimids[DATA_NDIMS];
       int coord_dimids[COORD_NDIMS];
