@@ -52,20 +52,17 @@ NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
    if ((typeid1 <= NC_STRING && typeid2 > NC_STRING) ||
        (typeid2 <= NC_STRING && typeid1 > NC_STRING))
    {
-      if (equalp) *equalp = 0;
+      *equalp = 0;
       return NC_NOERR;
    }
 
    /* If both are atomic types, the answer is easy. */
    if (typeid1 <= NUM_ATOMIC_TYPES)
    {
-      if (equalp)
-      {
-         if (typeid1 == typeid2)
-            *equalp = 1;
-         else
-            *equalp = 0;
-      }
+      if (typeid1 == typeid2)
+         *equalp = 1;
+      else
+         *equalp = 0;
       return NC_NOERR;
    }
 
@@ -80,7 +77,6 @@ NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
       return NC_EBADTYPE;
 
    /* Are the two types equal? */
-   if (equalp)
    {
       hid_t hid1, hid2;
 
